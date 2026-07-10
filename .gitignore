@@ -1,1 +1,8 @@
-notepad .gitignore
+﻿.claude/
+*.zip
+*.rar
+CASH-CAR-projet-claude-code/
+node_modules/
+Thumbs.db
+.DS_Store
+.vscode/
