@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(unzip -l \"CASH-CAR-projet-claude-code.zip\")",
+      "Bash(node -e ' *)",
+      "Bash(node --check \"C:/Users/sacha/AppData/Local/Temp/claude/C--Users-sacha-Desktop-CAR-CRASH/94ed9d82-7df4-48d0-a75b-bb06d2360d71/scratchpad/extracted.js\")",
+      "Bash(find /c/Users/sacha/Downloads -maxdepth 2 -iname \"*.mp3\" -o -iname \"*.wav\" -o -iname \"*.m4a\" 2>/dev/null | head -50)"
+    ]
+  }
+}
