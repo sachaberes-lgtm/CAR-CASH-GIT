@@ -12,7 +12,9 @@
   html,body{margin:0;padding:0;overflow:hidden;background:#ffffff;font-family:var(--pix);user-select:none}
   canvas{display:block}
   #hud{position:fixed;inset:0;pointer-events:none;color:#fff}
-  #vig{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 60%,rgba(120,80,110,.24) 100%)}
+  #vig{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 44%,transparent 54%,rgba(60,26,70,.34) 100%)}
+  /* étalonnage cinéma du rendu 3D : couleurs plus riches, contraste doux */
+  body>canvas{filter:saturate(1.14) contrast(1.05) brightness(1.02)}
   #scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.14) 0 2px,transparent 2px 4px);opacity:.22}
   #speedFx{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 42%,rgba(45,20,55,.55) 100%);opacity:0}
   /* immersion nuage : voile blanc laiteux quand on traverse un banc */
@@ -42,6 +44,15 @@
     border:2px solid #ff3924;box-shadow:0 0 14px rgba(255,57,36,.4);
     padding:14px 18px;text-shadow:0 0 8px rgba(255,57,36,.8)}
   #resetBtn:hover{background:rgba(140,15,40,.9)}
+  .sndBtn{position:absolute;top:16px;pointer-events:auto;cursor:pointer;
+    font-family:var(--pix);font-size:12px;
+    background:rgba(10,40,70,.85);color:#c8ecff;
+    border:2px solid #00eaff;box-shadow:0 0 14px rgba(0,234,255,.35);
+    padding:14px 14px;text-shadow:0 0 8px rgba(0,234,255,.7)}
+  .sndBtn:hover{background:rgba(15,60,100,.9)}
+  .sndBtn.off{color:#5a6a78;border-color:#3a4a58;box-shadow:none;text-shadow:none;background:rgba(20,26,34,.85)}
+  #sndBtn{right:150px}
+  #voxBtn{right:280px}
   #speedo{position:absolute;bottom:210px;right:20px;text-align:right;min-width:150px}
   #minimap{position:absolute;bottom:20px;right:20px;width:176px;height:176px;border:2px solid #9aa0aa;border-radius:4px;background:rgba(18,18,24,.5);box-shadow:0 0 12px rgba(0,0,0,.25)}
   #speedVal{font-size:30px;line-height:1.2;color:#ff3ec8;text-shadow:0 0 16px rgba(255,62,200,.7);display:inline-block;transition:color .25s;transform-origin:100% 50%}
@@ -195,6 +206,8 @@
   <div id="money"><span id="moneyTxt">$00000000</span></div>
   <div id="record"></div>
   <button id="resetBtn">⟲ RESET</button>
+  <button id="sndBtn" class="sndBtn">🔊 SON</button>
+  <button id="voxBtn" class="sndBtn">🎙 VOIX</button>
   <div id="speedo" class="panel"><div id="speedVal">0</div><div id="speedUnit">km/h</div></div>
   <div id="cpInfo" class="panel">Prochaine voiture à <span id="cpDist"></span><div id="cpBar"><div id="cpFill"></div></div></div>
   <div id="feverGlow"></div>
@@ -225,10 +238,14 @@
   </div>
   <div class="go" id="goTxt">JOUER</div>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" integrity="sha512-dLxUelApnYxpLt6K2iomGngnHO83iUvZytA3YjDUCjT0HDOHKXnVYdf3hU4JjM8uEhxf9nD1/ey98U3t2vZ0qQ==" crossorigin="anonymous"></script>
 <script>
 (function(){
 'use strict';
+if(typeof THREE==='undefined'){ // CDN indisponible : un message clair plutôt qu'un écran noir muet
+  document.body.insertAdjacentHTML('beforeend','<div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#12081f;color:#ffd75e;font:14px monospace;text-align:center;padding:20px;z-index:99">CASH CAR n&#39;a pas pu charger son moteur 3D.<br>V&eacute;rifie ta connexion internet puis recharge la page.</div>');
+  return;
+}
 // ---------- SCENE ----------
 const scene=new THREE.Scene();
 // CIEL « PHOTO » : coucher de soleil sur l'océan — turquoise au zénith, rose/corail,
@@ -357,42 +374,52 @@ const oilGeo=new THREE.CircleGeometry(1,22);
 const oilMat=new THREE.MeshPhongMaterial({color:0x121419,shininess:320,specular:0x9fb4ff,envMap:null,transparent:true,opacity:.92});
 const oilRimMat=new THREE.MeshBasicMaterial({color:0x4a3a72,transparent:true,opacity:.4,depthWrite:false});
 // nuages : billboards duveteux (3 textures peintes, bouffées superposées à plat dessous, bourgeons dessus)
-const cloudTexs=(function(){ // nuages haute résolution : blanc pur, 3 couches (base large / détail / sommets brillants)
+const cloudTexs=(function(){ // cumulus haute définition : socle d'ombre PLAT, chou-fleur saumon, dômes crème, crêtes étincelantes
   const arr=[];let sd=97;const r=()=>{sd=(sd*16807)%2147483647;return sd/2147483647;};
-  for(let v=0;v<5;v++){
+  for(let v=0;v<6;v++){
     const cv=document.createElement('canvas');cv.width=512;cv.height=256;
     const c=cv.getContext('2d');
-    const puff=(x,y,rad,a,col)=>{ // bouffées TEINTÉES — plus de blanc pur (photo)
-      col=col||'255,255,255';
-      const g=c.createRadialGradient(x,y-rad*.3,rad*.1,x,y,rad);
+    const puff=(x,y,rad,a,col,sq)=>{ // bouffée teintée, éventuellement APLATIE (sq<1 : base de cumulus)
+      const g=c.createRadialGradient(x,y-rad*.32,rad*.08,x,y,rad);
       g.addColorStop(0,'rgba('+col+','+a+')');
       g.addColorStop(.55,'rgba('+col+','+(a*.55)+')');
       g.addColorStop(1,'rgba('+col+',0)');
-      c.fillStyle=g;c.beginPath();c.arc(x,y,rad,0,7);c.fill();
+      c.save();c.translate(x,y);c.scale(1,sq||1);c.translate(-x,-y);
+      c.fillStyle=g;c.beginPath();c.arc(x,y,rad,0,7);c.fill();c.restore();
     };
-    // couche 1 : grande base à l'ombre — mauve/ardoise (#8a7fa0)
-    let x=110+r()*70,y=165+r()*20;
-    const n1=8+Math.floor(r()*5);
+    const flat=v%2===0; // une variante sur deux a la BASE PLATE du vrai cumulus (photo Flight Simulator)
+    // couche 1 : socle d'ombre mauve — large, écrasé, aligné sur une base commune
+    const baseY=flat?188:168;
+    let x=90+r()*50;
+    const n1=11+Math.floor(r()*5);
     for(let i=0;i<n1;i++){
-      puff(x,y,44+r()*30,.5+r()*.2,'138,127,160');
-      x+=28+r()*46;y=Math.max(140,Math.min(190,y+(r()-.5)*26));
-      if(x>400){x=104+r()*60;y=150+r()*30;}
+      puff(x,baseY+(flat?(r()-.2)*8:(r()-.5)*26),40+r()*34,.5+r()*.22,'132,120,158',flat?.55:.85);
+      x+=26+r()*36;
+      if(x>430)x=86+r()*50;
     }
-    // couche 2 : bourgeons de détail — cœurs saumon (#ff9a76)
-    x=130+r()*60;y=120+r()*24;
-    const n2=10+Math.floor(r()*7);
+    // couche 2 : bourgeons saumon à mi-hauteur — le corps du chou-fleur
+    x=110+r()*50;let y=126+r()*20;
+    const n2=15+Math.floor(r()*7);
     for(let i=0;i<n2;i++){
-      puff(x,y,22+r()*20,.62+r()*.25,'255,154,118');
-      x+=20+r()*38;y=Math.max(92,Math.min(160,y+(r()-.5)*34));
-      if(x>396){x=120+r()*70;y=110+r()*30;}
+      puff(x,y,20+r()*22,.6+r()*.26,'255,158,122');
+      x+=18+r()*30;y=Math.max(96,Math.min(170,y+(r()-.5)*30));
+      if(x>420){x=104+r()*60;y=118+r()*26;}
     }
-    // couche 3 : sommets crème éclatants côté soleil (#ffd9a8)
-    x=160+r()*60;y=86+r()*20;
-    const n3=6+Math.floor(r()*5);
+    // couche 3 : dômes crème éclatants côté soleil
+    x=140+r()*60;y=84+r()*18;
+    const n3=9+Math.floor(r()*5);
     for(let i=0;i<n3;i++){
-      puff(x,y,11+r()*13,.9,'255,225,185');
-      x+=24+r()*40;y=Math.max(64,Math.min(112,y+(r()-.5)*24));
-      if(x>380){x=150+r()*70;y=80+r()*22;}
+      puff(x,y,13+r()*15,.85+r()*.15,'255,228,190');
+      x+=22+r()*34;y=Math.max(58,Math.min(112,y+(r()-.5)*22));
+      if(x>404){x=134+r()*66;y=76+r()*20;}
+    }
+    // couche 4 : étincelles de crête — le détail qui accroche l'œil de près
+    x=170+r()*50;y=66+r()*14;
+    const n4=6+Math.floor(r()*4);
+    for(let i=0;i<n4;i++){
+      puff(x,y,5+r()*7,.95,'255,244,220');
+      x+=26+r()*36;y=Math.max(50,Math.min(92,y+(r()-.5)*16));
+      if(x>390){x=160+r()*60;y=60+r()*14;}
     }
     arr.push(new THREE.CanvasTexture(cv));
   }
@@ -413,29 +440,33 @@ function disposeClouds(){
   for(const c of CLOUDS){scene.remove(c.g);for(const p of c.puffs)p.sp.material.dispose();}
   CLOUDS=[];cloudIn=0;
 }
+let QUAL_LOW=false; // garde-fou perf : passé vrai, 1 bouffée sur 3 disparaît (voir loop)
 function mkCloud(center,r,o,rr){
   const g=new THREE.Group();g.position.copy(center);
-  const ry=r*(o.giant?.5+rr()*.16:o.veil?.16:.36+rr()*.16);
-  const nP=o.giant?14:o.dense?11:o.veil?3:o.deco?7:8;
+  const ry=r*(o.giant?.55+rr()*.18:o.veil?.16:o.sea?.15:.36+rr()*.16);
+  const nP=o.giant?16:o.dense?12:o.veil?3:o.sea?6:o.deco?7:8;
   const puffs=[];
   for(let i=0;i<nP;i++){
     const a=rr()*Math.PI*2;let rad=Math.sqrt(rr())*r*.72;
-    const yb=o.giant?rr()*1.55-.5:(rr()*2-1)*.72; // géants : le chou-fleur bourgeonne vers le haut
-    if(o.giant)rad*=1-Math.max(0,yb)*.38;         // …et s'affine au sommet
+    const yb=o.giant?Math.pow(rr(),.8)*1.5-.35:(rr()*2-1)*.72; // géants : base PLATE, bourgeons empilés vers le ciel
+    if(o.giant)rad*=1-Math.max(0,yb)*.42;                      // …la tour s'affine au sommet
     const base=new THREE.Vector3(Math.cos(a)*rad,yb*ry,Math.sin(a)*rad);
     // éclairage féerique : sommets crème frappés par le soleil, ventres mauves à l'ombre
     const hN=base.y/(ry||1);
     const tint=o.veil?CLOUD_TINTS_FAR[Math.floor(rr()*CLOUD_TINTS_FAR.length)]
-      :hN>.4?0xfff3da:hN<-.35?0xd9aecb:CLOUD_TINTS[Math.floor(rr()*CLOUD_TINTS.length)];
+      :hN>.4?0xfff3da:hN<-.3?0xd4a8c6:CLOUD_TINTS[Math.floor(rr()*CLOUD_TINTS.length)];
     const m=new THREE.SpriteMaterial({map:cloudTexs[Math.floor(rr()*cloudTexs.length)],
-      color:tint,transparent:true,
-      opacity:o.veil?.12+rr()*.08:(o.dense?.6:o.giant?.5:.42)+rr()*.26,
+      color:tint,transparent:true,fog:!o.noFog, // noFog : les montagnes de ouate percent la brume jusqu'à l'horizon
+      opacity:o.veil?.12+rr()*.08:o.sea?.26+rr()*.14:(o.dense?.62:o.giant?.55:.42)+rr()*.25,
       depthWrite:false,rotation:rr()*6.28});
     const sp=new THREE.Sprite(m);
     const sc=r*(.5+rr()*.8);
-    if(o.veil)sp.scale.set(sc*2.4,sc*.26,1); // voiles d'altitude : nappes étirées, quasi immobiles
+    if(o.veil)sp.scale.set(sc*2.4,sc*.26,1);            // voiles d'altitude : nappes étirées, quasi immobiles
+    else if(o.sea)sp.scale.set(sc*1.9,sc*.3,1);         // mer de nuages : galettes larges à perte de vue
+    else if(o.giant&&hN<-.1)sp.scale.set(sc*1.25,sc*(.3+rr()*.15),1); // ventre de tour : large et écrasé
     else sp.scale.set(sc,sc*(.38+rr()*.28),1);
     sp.position.copy(base);
+    if(QUAL_LOW&&i%3===2)sp.visible=false;
     g.add(sp);
     puffs.push({sp:sp,base:base,ph:rr()*6.28,rv:(rr()-.5)*.09,dis:new THREE.Vector3(),dv:new THREE.Vector3()});
   }
@@ -446,11 +477,13 @@ function buildClouds(rr){
   disposeClouds();
   // RNG local : retoucher les nuages ne rebrasse plus la génération en aval (piège rnd séquentiel)
   const cr=mulberry32((rr()*1e9)|0);
-  // bancs SUR la route : ils avalent la piste — on y entre à l'aveugle
-  for(let sp=700+cr()*500;sp<L-300;sp+=560+cr()*640){
-    if(cr()<.25)continue;
+  // bancs SUR la route — et parfois un MUR de ouate : la voiture disparaît entièrement dedans
+  for(let sp=650+cr()*450;sp<L-300;sp+=480+cr()*560){
+    if(cr()<.2)continue;
     frameAt(sp,F);
-    mkCloud(cldV1.copy(F.p).addScaledVector(F.n,2.5+cr()*2),16+cr()*13,{onRoad:true,dense:true},cr);
+    const mega=cr()<.3;
+    mkCloud(cldV1.copy(F.p).addScaledVector(F.n,mega?6+cr()*4:2.5+cr()*2),
+      mega?34+cr()*24:16+cr()*13,{onRoad:true,dense:true},cr);
   }
   // nuages de VOL : au-dessus / en-dessous de la dalle, sur les lignes de saut
   for(let k=0;k<24;k++){
@@ -459,12 +492,21 @@ function buildClouds(rr){
     mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],(cr()*2-1)*70)
       .addScaledVector(Nn[i],above?14+cr()*48:-(26+cr()*64)),13+cr()*18,{},cr);
   }
-  // TOURS GÉANTES : cumulus massifs qui occupent le ciel — le rêve à hauteur d'yeux
-  for(let k=0;k<12;k++){
+  // TOURS GÉANTES façon simulateur de vol : des montagnes de ouate — une sur trois est
+  // PLANTÉE sur la piste : on la perce à l'aveugle, la voiture disparaît dans le blanc
+  for(let k=0;k<14;k++){
     const i=Math.floor(cr()*NP);
-    const r9=75+cr()*80;
-    mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],(r9+70+cr()*430)*(cr()<.5?-1:1))
-      .addScaledVector(Nn[i],-130+cr()*300),r9,{giant:true},cr);
+    const r9=120+cr()*140;
+    const cross=cr()<.32;
+    const off=cross?(cr()*2-1)*40:(r9*.55+60+cr()*420)*(cr()<.5?-1:1);
+    mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],off)
+      .addScaledVector(Nn[i],cross?-r9*.25+cr()*30:-140+cr()*330),r9,{giant:true,onRoad:cross,noFog:!cross},cr);
+  }
+  // MER DE NUAGES sous la piste : le tapis à perte de vue du vol au-dessus des nuages
+  for(let k=0;k<14;k++){
+    const i=Math.floor(cr()*NP);
+    mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],(cr()*2-1)*900)
+      .addScaledVector(Nn[i],-(170+cr()*220)),90+cr()*80,{sea:true,noFog:true},cr);
   }
   // mer de ouate à mi-distance : les nuages rêveurs qu'on longe
   for(let k=0;k<12;k++){
@@ -476,7 +518,7 @@ function buildClouds(rr){
   for(let k=0;k<7;k++){
     const i=Math.floor(cr()*NP);
     mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],(cr()*2-1)*750)
-      .addScaledVector(Nn[i],230+cr()*220),95+cr()*70,{veil:true},cr);
+      .addScaledVector(Nn[i],230+cr()*220),95+cr()*70,{veil:true,noFog:true},cr);
   }
 }
 function updateClouds(dt,t){
@@ -518,9 +560,13 @@ function updateClouds(dt,t){
         fallVel.y+=7*k*dt;
         fallVel.x+=(Math.random()-.5)*6*k*dt;
         fallVel.z+=(Math.random()-.5)*6*k*dt;
+        airRoll+=(Math.random()-.5)*2.4*k*dt; // TURBULENCE : la ouate chahute la vrille
+        shake=Math.max(shake,.13*k);          // …et secoue la caméra — on SENT la matière
         if(c.refT>0){const rf=Math.min(c.refT,dt*.9);c.refT-=rf;fallT=Math.max(0,fallT-rf);airFlash=.55;}
       }else if(k>.1){
         psi+=(Math.random()-.5)*.3*k*dt; // au sol : la route disparaît, la caisse tangue à peine
+        vA*=Math.max(0,1-.07*k*dt);      // la ouate FREINE un peu : percer un banc se paye en élan
+        shake=Math.max(shake,.09*k);
       }
       if(Math.random()<.65){ // brume qui file le long de la caisse
         tmp3.set(0,0,1).applyQuaternion(carGroup.quaternion);
@@ -529,6 +575,9 @@ function updateClouds(dt,t){
           cp.z+tmp3.z*(4+Math.random()*9)+(Math.random()-.5)*7,
           -tmp3.x*carV*.55,(Math.random()-.5)*2,-tmp3.z*carV*.55,.45+Math.random()*.4);
       }
+      if(Math.random()<.3*k)spawnP(sparkGold, // poussière d'or en suspension — la féerie se traverse
+        cp.x+(Math.random()-.5)*10,cp.y+(Math.random()-.5)*6+2,cp.z+(Math.random()-.5)*10,
+        (Math.random()-.5)*3,1+Math.random()*2,(Math.random()-.5)*3,.5+Math.random()*.5);
     }else if(c.wasIn&&d2>1.3){ // ---- SORTIE ----
       c.wasIn=false;
       noiseBurst(.22,.07,1500); // l'air se rouvre d'un coup
@@ -924,6 +973,8 @@ const DENOMS=[10,1e3,1e4,1e5,1e6,1e7,1e8,1e9,1e10,1e11,1e12,1e13,1e14];
 // (accroche immédiate), puis chaque palier exige un peu plus de maîtrise — en équivalent
 // pièces : 8, 12, 16, 20, 25, 30, 36, 44, 52, 62, 74, 88, 105. Les figures (x3-5 le revenu
 // des pièces) restent le moteur : un pilote qui vole progresse bien plus vite qu'un rouleur.
+// Les BUMPS ne payent plus un centime en vol : ils rendent l'airtime, chargent le STYLE (fever)
+// et gonflent le multiplicateur — tout se cash à l'ATTERRISSAGE. Voler paye, poser encaisse.
 const THRESH=[400,6e4,8.6e5,1.1e7,1.4e8,1.6e9,2e10,2.4e11,2.9e12,3.4e13,4e14,4.8e15,5.7e16];
 let level=0;
 function denom(){return DENOMS[Math.min(level,12)];}
@@ -1188,6 +1239,20 @@ function spawnPickups(rnd){
     m.quaternion.setFromRotationMatrix(mat4b);
     scene.add(m);
     pickups.push({s:ss,lat:lt,face:face,nitro:isN,mesh:m,taken:false,ax:F.n.clone().multiplyScalar(face)});
+  }
+  // POUVOIRS : orbes rares, hautes et brillantes — on les voit de loin, on les vise
+  const kinds='nav';
+  for(let ss=380+rnd()*260;ss<L-140;ss+=430+rnd()*380){
+    const kind=kinds[Math.floor(rnd()*3)];
+    const lt=(rnd()*2-1)*(ROAD_HALF-4);
+    const face=rnd()<.8?1:-1;
+    frameAt(ss,F);
+    const m=mkPower(kind);
+    m.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,face>0?2.1:-(THICK+2.1));
+    mat4b.makeBasis(F.b,F.n,F.t);
+    m.quaternion.setFromRotationMatrix(mat4b);
+    scene.add(m);
+    pickups.push({s:ss,lat:lt,face:face,nitro:false,pow:kind,mesh:m,taken:false,ax:F.n.clone().multiplyScalar(face)});
   }
 }
 // ---------- TIRELIRE : un petit cochon rose attend sur la ligne de départ… ----------
@@ -1583,7 +1648,7 @@ function clearBoom(){
   debris.length=0;
   for(const k9 of skulls){scene.remove(k9.m);k9.m.material.dispose();}
   skulls.length=0;
-  for(const d of chips)scene.remove(d.m);
+  for(const d of chips){scene.remove(d.m);if(!d.sh){if(d.m.material.dispose)d.m.material.dispose();if(d.m.geometry)d.m.geometry.dispose();}}
   chips.length=0;
   for(const b of bills)scene.remove(b.m);
   bills.length=0;
@@ -1767,6 +1832,7 @@ function noiseBuf(len){
 }
 function initAudio(){
   AC=new (window.AudioContext||window.webkitAudioContext)();
+  if(!SND.sfx)try{AC.suspend();}catch(e){} // le mute SON survit au redémarrage
   osc=AC.createOscillator();osc.type='sawtooth';
   osc2=AC.createOscillator();osc2.type='square';
   filt=AC.createBiquadFilter();filt.type='lowpass';filt.frequency.value=500;
@@ -2041,13 +2107,13 @@ const ANN_DIR='assets/audio/announcer/';
 // Renforcement à ratio variable : dans chaque paquet de 3 déclenchements, la voix tombe UNE fois,
 // à une place tirée au sort — imprévisible mais garanti. Les répliques épiques (first:1) sortent
 // dès leur toute première occurrence : on présente la voix, ensuite elle se mérite.
-const ANN_RATE=.94,ANN_DEMON_RATE=.80,ANN_DEMON_VOL=.40,ANN_ECHO1=162,ANN_ECHO2=324,
-      ANN_DUCK=.5,ANN_VOICE_VOL=.85;
-const ANN_LIB={
-  m1:        {f:'monstre.mp3',       txt:'MONSTRE',cd:2500},                 // figure simple à l'atterrissage
-  m2:        {f:'double_monstre.mp3',txt:'DOUBLE MONSTRE',cd:2500},          // gros multiplicateur
+const ANN_RATE=.94,ANN_DEMON_RATE=.80,ANN_DEMON_VOL=.26,ANN_ECHO1=162,ANN_ECHO2=324,
+      ANN_DUCK=.5,ANN_VOICE_VOL=.58; // volume dompté : la voix impressionne sans écraser le mix
+const ANN_LIB={ // first:1 partout : chaque voix se présente à sa 1re occurrence, puis se mérite (1/3)
+  m1:        {f:'monstre.mp3',       txt:'MONSTRE',cd:2500,first:1},         // figure simple à l'atterrissage
+  m2:        {f:'double_monstre.mp3',txt:'DOUBLE MONSTRE',cd:2500,first:1},  // gros multiplicateur
   m3:        {f:'triple_monstre.mp3',txt:'TRIPLE MONSTRE',cd:2500,first:1},  // multiplicateur monstrueux
-  meteor:    {f:'meteor.mp3',        txt:'METEOR',cd:2500},                  // impact en pleine poussée nitro (>1 s)
+  meteor:    {f:'meteor.mp3',        txt:'METEOR',cd:2500,first:1},          // impact en pleine poussée nitro (>1 s)
   megaMeteor:{f:'mega_meteor.mp3',   txt:'MEGA METEOR',cd:2500,first:1},     // >5 s de réacteur dans la chute
   snakeLoop: {f:'snake_loop.mp3',    txt:'SNAKE LOOP',cd:2500,first:1},      // TOUR COMPLET de la dalle (voir tryLand)
   pureSpeed: {f:'pure_speed.mp3',    txt:'PURE SPEED',cd:6000,first:1},      // >3 s de nitro au sol à +400 km/h
@@ -2079,8 +2145,8 @@ function annPlayLayers(e,prio){
   const main=mk(ANN_RATE,ANN_VOICE_VOL,0); // voix principale, à peine ralentie → plus massive
   if(!main)return;
   mk(ANN_DEMON_RATE,ANN_DEMON_VOL,25);  // DOUBLURE DÉMON : colle à la voix, une tierce plus bas
-  mk(ANN_RATE,.22,ANN_ECHO1);           // ÉCHO D'OR n°1 : 161,8 ms = φ — la signature 1.61
-  mk(ANN_RATE,.09,ANN_ECHO2);           // ÉCHO D'OR n°2 : 2φ — l'arène répond
+  mk(ANN_RATE,.15,ANN_ECHO1);           // ÉCHO D'OR n°1 : 161,8 ms = φ — la signature 1.61
+  mk(ANN_RATE,.06,ANN_ECHO2);           // ÉCHO D'OR n°2 : 2φ — l'arène répond
   ANN.playing={els:els,prio:prio};ANN.duck=true;
   main.addEventListener('ended',function(){
     ANN.playing=null;ANN.duck=false;
@@ -2091,6 +2157,7 @@ function annPlayLayers(e,prio){
 function annSpeak(key,prio,forced){ // renvoie TOUJOURS le texte à afficher (voix ou pas)
   const e=ANN_LIB[key];
   if(!e)return null;
+  if(!SND.voice)return e.txt; // VOIX coupée : le texte s'affiche, le tirage n'est pas consommé
   if(e.dead)return e.txt;
   const now=performance.now();
   if(now<e.cool)return e.txt;           // anti-doublon rapproché (ne consomme PAS le tirage)
@@ -2109,15 +2176,29 @@ function annStop(){
   if(ANN.playing){for(const a of ANN.playing.els){try{a.pause();}catch(err){}}ANN.playing=null;}
   ANN.queue=null;ANN.duck=false;
 }
+// ---------- MUTE : deux interrupteurs persistants — SON (tout le WebAudio) et VOIX (annonceur) ----------
+const SND={sfx:true,voice:true};
+try{SND.sfx=localStorage.rrSfx5!=='0';SND.voice=localStorage.rrVox5!=='0';}catch(e){}
+const sndBtnEl=document.getElementById('sndBtn'),voxBtnEl=document.getElementById('voxBtn');
+function sndRefresh(){
+  sndBtnEl.textContent=SND.sfx?'🔊 SON':'🔇 SON';sndBtnEl.classList.toggle('off',!SND.sfx);
+  voxBtnEl.textContent=SND.voice?'🎙 VOIX':'🤐 VOIX';voxBtnEl.classList.toggle('off',!SND.voice);
+  try{if(AC){if(SND.sfx)AC.resume();else AC.suspend();}}catch(e){} // suspend = silence total du moteur audio
+  if(!SND.voice)annStop();
+}
+sndBtnEl.addEventListener('click',function(e){e.stopPropagation();SND.sfx=!SND.sfx;try{localStorage.rrSfx5=SND.sfx?'1':'0';}catch(err){}sndRefresh();});
+voxBtnEl.addEventListener('click',function(e){e.stopPropagation();SND.voice=!SND.voice;try{localStorage.rrVox5=SND.voice?'1':'0';}catch(err){}sndRefresh();});
+sndRefresh();
 // ---------- ÉTAT ----------
 const keys={};
 addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight'].includes(e.code))e.preventDefault();if(e.code==='KeyP'&&started&&!gameOver){paused=!paused;showMsg(paused?'PAUSE':'GO !');}if(e.code==='Enter'&&started&&pendingScore==null){resetGame();}start();});
 addEventListener('keyup',e=>{keys[e.code]=false;});
+addEventListener('blur',()=>{for(const k in keys)keys[k]=false;}); // alt-tab : aucune touche ne reste coincée
 const GRAV=9.8*.55,FALL_G=33,AXIS_Y=new THREE.Vector3(0,1,0),AIR_MAX=6;
 const SPD=0.5; // vitesse globale du jeu (-50%)
 const TURN_HS=.0035; // pénalité de braquage à haute vitesse (avant .008 — plus petit = virages plus faciles)
 const AIR_ASSIST=1.0; // aide au recentrage en vol (0 = off), monte avec la vitesse
-const CAM_SHAKE_V=.52; // intensité du tremblement caméra lié à la vitesse (position + roulis)
+const CAM_SHAKE_V=.78; // intensité du tremblement caméra lié à la vitesse (position + roulis)
 let mode='drive',s=0,lat=0,psi=0,vA=0,vL=0,side=1;
 let steer=0,money=0,levelCash=0,boost=0,fallT=0,padCd=0,shake=0,combo=0,comboT=0,graceT=0,safeS=0,yawAcc=0,edgeT=0,squashT=0,momT=0,styleM=0,fever=0,streak=0,slowT=0,steerHold=0,aheadV=0,sideCd=0,slipT=0,oilCd=0;
 let airRoll=0; // vrille visuelle en vol
@@ -2128,6 +2209,7 @@ let bounceN=0,airFlash=0; // BUMPS : rebonds sur la tranche de la dalle pendant 
 let runStats={tricks:0,bumps:0,zones:0,vmax:0}; // bilan de la run (écran de fin)
 let hopY=0,hopV=0; // petit saut de dos d'âne
 let nitroR=2,nitroX=0,nitroOn=false,nitroBlue=false,nitroHeldT=0;
+let pwrNitroT=0,pwrAirT=0,pwrSpdT=0; // POUVOIRS : nitro infinie · airtime infini · speed up +60%
 let gameOver=false,paused=false,running=false,started=false,best=0;
 try{best=+localStorage.rrBest5||0;}catch(e){}
 const fallPos=new THREE.Vector3(),fallVel=new THREE.Vector3();
@@ -2140,13 +2222,13 @@ const elSpeed=$('speedVal'),elName=$('carName'),elLvl=$('carLevel'),elMoney=$('m
       elStyleF=$('styleFill'),feverGlow=$('feverGlow'),flashEl=$('flash'),
       overlay=$('overlay'),ovSub=$('ovSub'),finalScore=$('finalScore'),goTxt=$('goTxt'),tagline=$('tagline'),bestChip=$('bestChip');
 const elLb=$('lbBox'),nameEntry=$('nameEntry'),nameInput=$('nameInput'),nameSave=$('nameSave');
-const speedFx=$('speedFx'),cloudFxEl=$('cloudFx'),runStatsEl=$('runStats');
+const speedFx=$('speedFx'),cloudFxEl=$('cloudFx'),runStatsEl=$('runStats'),pwrChip=$('pwrChip');
 const slCv=$('slCv'),slCtx=slCv.getContext('2d');
 slCv.width=innerWidth;slCv.height=innerHeight;
 function drawSpeedLines(kmh,nitro){ // speed lines façon anime : traits radiaux fuyant le centre
   const W=slCv.width,H=slCv.height;
   slCtx.clearRect(0,0,W,H);
-  let k=Math.max(0,(kmh-270)/330)+(nitro?.42:0);
+  let k=Math.max(0,(kmh-230)/300)+(nitro?.42:0); // les speed lines s'invitent plus tôt et mordent plus fort
   if(k<=.03)return;
   k=Math.min(1.35,k);
   const cx=W/2,cy=H*.45,n=Math.floor(k*24);
@@ -2296,7 +2378,8 @@ function tryLand(){
   }
   const vN=fallVel.dot(Nn[bestI]);
   // FLANC de la dalle : la caisse COGNE la tranche et REBONDIT — c'est le BUMP, une vraie
-  // figure : demi-jauge d'airtime rendue, cash immédiat, et le verdict d'atterrissage gonfle.
+  // figure : demi-jauge d'airtime rendue, du STYLE, et le verdict d'atterrissage gonfle.
+  // Zéro dollar direct : le bump ne paye QUE si on pose la caisse ensuite (risque → récompense).
   const vB=fallVel.dot(B[bestI]);
   if(sideCd<=0&&Math.abs(latOff)>=ROAD_HALF&&Math.abs(latOff)<ROAD_HALF+2.6&&
      hOff>-THICK-.8&&hOff<.8&&vB*Math.sign(latOff)<-3){
@@ -2310,10 +2393,8 @@ function tryLand(){
     bounceN++;runStats.bumps++;
     fallT=Math.max(0,fallT-AIR_MAX*.5);airFlash=.6; // DEMI-JAUGE d'airtime rendue
     const bTxt=bounceN===1?'BUMP':bounceN===2?'DOUBLE BUMP':bounceN===3?'TRIPLE BUMP':'MEGA BUMP x'+bounceN;
-    const bGain=Math.round(denom()*(3+bounceN*3)*(fever>0?2:1));
-    money+=bGain;levelCash+=bGain;checkUpgrade();
-    trickMsg(bTxt+'  +'+fmt(bGain),Math.min(3,bounceN));
-    addStyle(10+bounceN*5);
+    trickMsg(bTxt,Math.min(3,bounceN));
+    addStyle(12+bounceN*6); // le bump nourrit le STYLE et le multiplicateur d'atterrissage, pas le compte en banque
     bumpSfx(bounceN);
     thud(impB);noiseBurst(.14,.09,1100); // choc + froissement de tôle
     shake=Math.min(1.3,.3+impB*.03);
@@ -2346,7 +2427,7 @@ function tryLand(){
     if(Math.abs(vN)<6)mult+=.5;                                       // réception parfaite
     if(spins>=.55)mult+=Math.max(1,Math.round(spins))*.8;             // vrilles
     if(fallT>2.2)mult+=.6;                                            // big air
-    if(bounceN>0)mult+=bounceN*.5;                                    // les BUMPS gonflent le verdict
+    if(bounceN>0)mult+=bounceN*.75;                                   // les BUMPS gonflent le verdict (leur seule paye : il faut POSER)
     if(sideL<0)mult*=2;                                               // face cachée
     streak++;
     if(streak>=2)mult*=1+Math.min(1,streak*.1);                       // enchaînement
@@ -2388,6 +2469,7 @@ function resetGame(){
   clearBoom();
   money=0;levelCash=0;level=0;buildCar(CARS[0]);
   nitroR=2;nitroX=0;boost=0;combo=0;edgeT=0;momT=0;styleM=0;fever=0;streak=0;slowT=0;gameOver=false;paused=false;
+  pwrNitroT=0;pwrAirT=0;pwrSpdT=0;
   nextRainAt=1e4;moneyRainT=0;sideCd=0;slipT=0;oilCd=0;
   nitroAirT=0;fallWrap=0;fallWrapSign=0;pureT=0;pureArmed=true;annStop();
   bounceN=0;airFlash=0;flightId=0;
@@ -2442,6 +2524,12 @@ let last=performance.now();
 function loop(now){
   requestAnimationFrame(loop);
   let dt=Math.min((now-last)/1000,.05);last=now;
+  // qualité auto : si le GPU peine (<45 fps soutenus après l'échauffement), on allège la ouate une fois pour toutes
+  loop._ms=(loop._ms||16)*.96+Math.min(100,now-(loop._pn||now))*.04;loop._pn=now;
+  if(!QUAL_LOW&&loop._ms>22&&now>15000){
+    QUAL_LOW=true;
+    for(const c9 of CLOUDS){let j9=0;for(const p9 of c9.puffs)if(++j9%3===0)p9.sp.visible=false;}
+  }
   if(slowT>0){slowT-=dt;dt*=.45;} // slow-mo d'atterrissage
   const t=now/1000;
   let speedKmh=0;
@@ -2449,11 +2537,16 @@ function loop(now){
     const spec=CARS[level],maxSp=spec.maxKmh/3.6;
     const up=keys.KeyW||keys.KeyZ||keys.ArrowUp,dn=keys.KeyS||keys.ArrowDown;
     const lf=keys.KeyA||keys.KeyQ||keys.ArrowLeft,rt=keys.KeyD||keys.ArrowRight;
+    // POUVOIRS : les minuteurs s'égrènent, l'airtime infini rend une jauge neuve en expirant
+    pwrNitroT=Math.max(0,pwrNitroT-dt);
+    pwrSpdT=Math.max(0,pwrSpdT-dt);
+    if(pwrAirT>0){pwrAirT-=dt;if(pwrAirT<=0){pwrAirT=0;if(mode==='fall'){fallT=0;airFlash=.6;}}}
     // nitro : 2s regen (10s de recharge) + 2s réserve (bidons bleus)
     nitroR=Math.min(2,nitroR+.2*dt);
+    if(pwrNitroT>0)nitroR=2; // NITRO INFINIE : la jauge reste pleine, rien ne se consomme
     const wantN=keys.ShiftLeft||keys.ShiftRight||keys.Space;
     nitroOn=wantN&&(nitroOn?(nitroR+nitroX)>.005:(nitroR+nitroX)>.3); // hystérésis anti-clignotement
-    if(nitroOn){
+    if(nitroOn&&pwrNitroT<=0){
       let take=dt;
       if(nitroR>=take)nitroR-=take;
       else{take-=nitroR;nitroR=0;nitroX=Math.max(0,nitroX-take);}
@@ -2501,11 +2594,12 @@ function loop(now){
       psi+=(slipT>0?.18:1)*steer*(.55+.45*(steerHold/.3))*spec.turn*.75*THREE.MathUtils.clamp(vA/8,-1,1)*(1/(1+Math.abs(vA)*TURN_HS))*(dn?1.3:1)*dt;
       psi=THREE.MathUtils.clamp(psi,-1.4,1.4);
       vL=vA*Math.sin(psi);
-      lat+=vL*dt*SPD;
-      s+=vA*Math.cos(psi)*dt*SPD;
+      const spdMult=pwrSpdT>0?1.6:1; // SPEED UP : le sol défile +60% plus vite, sans casser la physique
+      lat+=vL*dt*SPD*spdMult;
+      s+=vA*Math.cos(psi)*dt*SPD*spdMult;
       const vF=vA;
       boost=Math.max(0,boost-dt);
-      speedKmh=Math.abs(vF)*3.6*SPD;
+      speedKmh=Math.abs(vF)*3.6*SPD*spdMult;
       // PURE SPEED : 3 s de nitro soutenu à +400 km/h sur la route
       if(nitroOn&&speedKmh>400){
         pureT+=dt;
@@ -2598,7 +2692,16 @@ function loop(now){
           p.mesh.position.lerp(carGroup.position,Math.min(1,dt*(4.5+level*.3)));
         if(p.mesh.position.distanceTo(carGroup.position)<2.7+level*.2){
           p.taken=true;scene.remove(p.mesh);
-          if(p.nitro){nitroX=Math.min(2,nitroX+.5);nBlip();sparkBurst(sparkBlue,carGroup.position,6,7);}
+          if(p.pow){ // POUVOIR : le minuteur démarre, l'écran l'annonce en couleur
+            const d=PWR_DEFS[p.pow];
+            if(p.pow==='n')pwrNitroT=d.t;
+            else if(p.pow==='a'){pwrAirT=d.t;airFlash=.6;}
+            else pwrSpdT=d.t;
+            showMsg(d.msg,d.tint);boostSnd();shake=Math.max(shake,.35);
+            sparkBurst(p.pow==='n'?sparkBlue:sparkGold,carGroup.position,14,9);
+            addStyle(10);
+          }
+          else if(p.nitro){nitroX=Math.min(2,nitroX+.5);nBlip();sparkBurst(sparkBlue,carGroup.position,6,7);}
           else{
             sparkBurst(sparkGold,carGroup.position,8,8);
             combo++;comboT=3;
@@ -2701,7 +2804,7 @@ function loop(now){
         camera.up.copy(camUp);
         tmp2.copy(carGroup.position).addScaledVector(fwdW,8.5).addScaledVector(F.n,1.05);
         camera.lookAt(tmp2);
-        const fovT=72+Math.min(34,speedKmh*.052)+(boost>0?6:0)+(nitroOn?(nitroBlue?16:10):0);
+        const fovT=72+Math.min(38,speedKmh*.058)+(boost>0?6:0)+(nitroOn?(nitroBlue?16:10):0); // le tunnel s'ouvre : la vitesse se VOIT
         camera.fov+=(fovT-camera.fov)*Math.min(1,dt*6);
         camera.updateProjectionMatrix();
         if(shake>0){
@@ -2709,9 +2812,9 @@ function loop(now){
           camera.position.addScaledVector(tmp,(Math.random()-.5)*shake);
           shake=Math.max(0,shake-3.5*dt);
         }
-        // VIBRATION DE VITESSE : rien sous 220 km/h, ça tremble VRAIMENT passé 420
+        // VIBRATION DE VITESSE : ça frémit dès 190 km/h, ça tremble VRAIMENT passé 400
         // (position sur 3 axes + roulis haute fréquence — la caisse arrache l'air)
-        const spdN=THREE.MathUtils.clamp((speedKmh-220)/340,0,1.25),
+        const spdN=THREE.MathUtils.clamp((speedKmh-190)/320,0,1.35),
               spdSh=spdN*spdN*CAM_SHAKE_V*(nitroOn?1.35:1);
         if(spdSh>0){
           camera.position.addScaledVector(F.n,(Math.random()-.5)*spdSh);
@@ -2846,15 +2949,15 @@ function loop(now){
           }
         }
       }
-      // camembert de temps de vol
+      // camembert de temps de vol (cyan plein pendant AIRTIME INFINI : c'est le pouvoir qui s'égrène)
       airPie.style.display='block';
-      const fr=Math.max(0,1-fallT/AIR_MAX);
+      const fr=pwrAirT>0?Math.min(1,pwrAirT/10):Math.max(0,1-fallT/AIR_MAX);
       pieCtx.clearRect(0,0,74,74);
       pieCtx.beginPath();pieCtx.arc(37,37,33,0,7);pieCtx.fillStyle='rgba(0,0,0,.35)';pieCtx.fill();
       pieCtx.beginPath();pieCtx.moveTo(37,37);
       pieCtx.arc(37,37,29,-Math.PI/2,-Math.PI/2+fr*Math.PI*2);
       pieCtx.closePath();
-      pieCtx.fillStyle=fr>.4?'#7dff9b':(fr>.2?'#ffd75e':'#ff5e5e');
+      pieCtx.fillStyle=pwrAirT>0?'#7dffec':fr>.4?'#7dff9b':(fr>.2?'#ffd75e':'#ff5e5e');
       pieCtx.fill();
       if(airFlash>0){ // regain d'airtime (bump / surf de nuage) : la jauge scintille cyan
         airFlash=Math.max(0,airFlash-dt);
@@ -2863,9 +2966,9 @@ function loop(now){
         pieCtx.beginPath();pieCtx.arc(37,37,33,0,7);pieCtx.stroke();
       }
       pieCtx.fillStyle='#fff';pieCtx.font='bold 15px monospace';pieCtx.textAlign='center';
-      pieCtx.fillText(Math.max(0,AIR_MAX-fallT).toFixed(1),37,42);
+      pieCtx.fillText((pwrAirT>0?pwrAirT:Math.max(0,AIR_MAX-fallT)).toFixed(1),37,42);
       if(fallT>.35&&tryLand()){airPie.style.display='none';}
-      else if(fallT>AIR_MAX||fallPos.y<pts[NP-1].y-200){airPie.style.display='none';explode();}
+      else if((fallT>AIR_MAX&&pwrAirT<=0)||fallPos.y<pts[NP-1].y-200){airPie.style.display='none';explode();}
     }else if(mode==='boom'){ // ---- EXPLOSION ----
       boomT+=dt;
       for(const d of debris){
@@ -2929,7 +3032,7 @@ function loop(now){
       d.life-=dt;d.v.y-=20*dt;
       d.m.position.addScaledVector(d.v,dt);
       d.m.rotation.x+=d.rx*dt;d.m.rotation.y+=d.ry*dt;
-      if(d.life<=0){scene.remove(d.m);if(!d.sh&&d.m.material.dispose)d.m.material.dispose();chips.splice(i9,1);}
+      if(d.life<=0){scene.remove(d.m);if(!d.sh){if(d.m.material.dispose)d.m.material.dispose();if(d.m.geometry)d.m.geometry.dispose();}chips.splice(i9,1);} // géométrie unique des débris : libérer le GPU aussi
     }
     for(let i9=bills.length-1;i9>=0;i9--){
       const b9=bills[i9];
@@ -2938,7 +3041,7 @@ function loop(now){
       b9.m.rotation.x+=b9.rx*dt;b9.m.rotation.y+=b9.ry*dt;
       if(b9.life<=0){scene.remove(b9.m);bills.splice(i9,1);}
     }
-    for(const pk of pickups)if(!pk.taken){pk.mesh.rotateOnWorldAxis(pk.ax,dt*2.5);if(pk.nitro)pk.mesh.scale.setScalar(1+.12*Math.sin(t*6+pk.s));}
+    for(const pk of pickups)if(!pk.taken){pk.mesh.rotateOnWorldAxis(pk.ax,dt*(pk.pow?1.4:2.5));if(pk.nitro||pk.pow)pk.mesh.scale.setScalar(1+(pk.pow?.18:.12)*Math.sin(t*6+pk.s));}
     for(let i9=FLYCONES.length-1;i9>=0;i9--){
       const c9=FLYCONES[i9];
       c9.life-=dt;c9.v.y-=24*dt;
@@ -2979,7 +3082,7 @@ function loop(now){
         windF.frequency.setTargetAtTime((280+spd3*2.5)*(1-.6*cloudInS),AC.currentTime,.15); // le nuage étouffe le vent
       }
       if(whG){ // sifflement d'air : la signature des vitesses folles (>330 km/h)
-        whG.gain.setTargetAtTime(Math.min(.05,Math.max(0,(spd3-330)/2400))*(1-.7*cloudInS)*(ANN.duck?.6:1),AC.currentTime,.12);
+        whG.gain.setTargetAtTime(Math.min(.06,Math.max(0,(spd3-280)/2200))*(1-.7*cloudInS)*(ANN.duck?.6:1),AC.currentTime,.12); // le sifflement d'air arrive plus tôt
         whF.frequency.setTargetAtTime(2000+spd3*2.4,AC.currentTime,.1);
       }
       if(skidG)skidG.gain.setTargetAtTime((mode==='drive'&&Math.abs(psi)>.5&&Math.abs(vA)>15)?Math.min(.1,Math.abs(vA)*.001):0,AC.currentTime,.06);
@@ -3023,12 +3126,18 @@ function loop(now){
     speedFx.style.opacity=Math.max(0,Math.min(.95,(speedKmh-140)/280));
     elName.textContent=CARS[level].name;
     elLvl.textContent='NIVEAU '+(level+1)+' / '+CARS.length+' — pièces de '+fmt(denom()*5);
-    elMoney.innerHTML=fmtGta(money);
+    if(loop._money!==money){loop._money=money;elMoney.innerHTML=fmtGta(money);} // un parse HTML seulement quand le compte bouge
     if(!gameOver&&money>=nextRainAt){nextRainAt*=10;startMoneyRain();}
     if(money>best){best=money;try{localStorage.rrBest5=best;}catch(e){}}
     elRecord.textContent='record : '+fmt(best);
     elNR.style.width=(nitroR/4*100)+'%';
     elNX.style.width=(nitroX/4*100)+'%';
+    // chip des POUVOIRS actifs : compte à rebours coloré au-dessus de la jauge nitro
+    let pch='';
+    if(pwrNitroT>0)pch+='<span style="color:#4db8ff">NITRO ∞ '+pwrNitroT.toFixed(1)+'</span>';
+    if(pwrAirT>0)pch+='<span style="color:#7dffec">AIR ∞ '+pwrAirT.toFixed(1)+'</span>';
+    if(pwrSpdT>0)pch+='<span style="color:#ff3ec8">SPEED +60% '+pwrSpdT.toFixed(1)+'</span>';
+    if(pch!==loop._pch){loop._pch=pch;pwrChip.innerHTML=pch;pwrChip.style.display=pch?'block':'none';}
     const prevT=level>0?THRESH[level-1]:0,nextT=THRESH[Math.min(level,12)];
     elCp.textContent=level>=13?'MAX':fmt(nextT);
     elFill.style.width=(level>=13?100:100*Math.min(1,(levelCash-prevT)/(nextT-prevT)))+'%';
@@ -3128,6 +3237,7 @@ renderLeaders(-1);
   // Échelle inouïe (intervalles de φ : ni octaves ni quintes — le son littéral de 1.61),
   // compteuse à billets en guise de riser, sub qui bat à 0,618 Hz, jackpot de pièces à la fission.
   function introSound(){
+    if(!SND.sfx)return; // mute SON : l'intro reste muette aussi
     try{iAC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return;}
     const A=iAC;try{A.resume();}catch(e){}
     const t0=A.currentTime+.05,PHI=1.6180339;
