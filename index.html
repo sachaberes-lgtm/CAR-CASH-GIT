@@ -11,7 +11,9 @@
   :root{--pix:'Press Start 2P',monospace}
   html,body{margin:0;padding:0;overflow:hidden;background:#ffffff;font-family:var(--pix);user-select:none}
   canvas{display:block}
-  #hud{position:fixed;inset:0;pointer-events:none;color:#fff}
+  #hud{position:fixed;inset:0;pointer-events:none;color:#fff;z-index:2} /* au-dessus du canvas filtré (le filter crée un contexte d'empilement) */
+  /* HUD épuré : on ne garde que l'argent, le camembert d'airtime, la nitro et les figures */
+  #carInfo,#record,#speedo,#cpInfo,#minimap,#turnHint{display:none!important}
   #vig{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 44%,transparent 54%,rgba(60,26,70,.34) 100%)}
   /* étalonnage cinéma du rendu 3D : couleurs plus riches, contraste doux */
   body>canvas{filter:saturate(1.14) contrast(1.05) brightness(1.02)}
@@ -88,6 +90,11 @@
     -webkit-background-clip:text;background-clip:text;color:transparent;
     filter:drop-shadow(0 4px 0 #4a2500) drop-shadow(0 0 30px rgba(255,180,70,.95)) drop-shadow(0 12px 22px rgba(0,0,0,.55));animation-duration:1.5s}
   @keyframes trickPop{0%{transform:scale(.2) rotateX(50deg);opacity:0}16%{transform:scale(1.28) rotateX(-6deg);opacity:1}30%{transform:scale(1) rotateX(0)}75%{opacity:1}100%{opacity:0;transform:scale(1) translateY(-30px)}}
+  #chainHud{position:absolute;top:32%;left:50%;transform:translateX(-50%);font-family:var(--pix);font-size:15px;
+    letter-spacing:1px;color:#ffd75e;text-shadow:0 2px 0 #5c3600,0 0 14px rgba(255,170,60,.55);
+    opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
+  #chainHud.pulse{animation:chPulse .32s cubic-bezier(.2,1.6,.4,1)}
+  @keyframes chPulse{0%{transform:translateX(-50%) scale(1.5)}100%{transform:translateX(-50%) scale(1)}}
   #turnHint{position:absolute;top:33%;left:50%;transform:translateX(-50%);font-size:44px;color:#ff3924;opacity:0;text-shadow:0 0 16px rgba(255,57,36,.8);transition:opacity .15s}
   #airPie{position:absolute;top:40%;right:7%;width:110px;height:110px;display:none;filter:drop-shadow(0 0 8px rgba(0,234,255,.5))}
   #overlay{position:fixed;inset:0;background:rgba(6,4,16,.93);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;cursor:pointer;z-index:5}
@@ -215,6 +222,7 @@
   <div id="nitroWrap"><div id="pwrChip"></div><div id="styleBar"><div id="styleFill"></div></div><div id="nitroLbl">NITRO (ESPACE)</div><div id="nitroBar"><div id="nitroR"></div><div id="nitroX"></div></div></div>
   <div id="msg"></div>
   <div id="trickBox"></div>
+  <div id="chainHud"></div>
   <div id="turnHint"></div>
   <canvas id="airPie" width="74" height="74"></canvas>
   <canvas id="minimap" width="176" height="176"></canvas>
@@ -554,7 +562,8 @@ function updateClouds(dt,t){
       if(!c.wasIn){
         c.wasIn=true;
         noiseBurst(.5,.10,520); // on plonge dans la ouate
-        if(mode==='fall'&&c.fid!==flightId){c.fid=flightId;c.refT=1.2;} // budget d'airtime de CE banc
+        if(mode==='fall'&&c.fid!==flightId){c.fid=flightId;c.refT=1.2; // budget d'airtime de CE banc
+          if(fallT>.4)addTrick('nuage','PERCE-NUAGE',6,false);} // fendre la ouate en vol : un maillon de plus
       }
       if(mode==='fall'){ // SURF DE NUAGE : coussin d'air + regain d'airtime
         fallVel.y+=7*k*dt;
@@ -1514,6 +1523,9 @@ function signatureBoom(lvl){
 }
 function explode(){
   if(gameOver||mode==='boom')return;
+  // la chaîne part en fumée avec la caisse — le sel du bank-or-bust
+  if(chain>0)showMsg('CHAÎNE PERDUE — '+chain+(chain>1?' FIGURES ENVOLÉES !':' FIGURE ENVOLÉE !'),'#ff5e5e');
+  chainHud.style.opacity=0;
   mode='boom';boomT=0;boomPos.copy(carGroup.position);
   if(level<9){const tx=annSpeak('earlyDead',6);if(tx)trickMsg(tx,3);} // mort avant le top 5 des caisses
   carGroup.visible=false;shadow.position.y=-99999;landMark.visible=false;
@@ -2324,7 +2336,7 @@ let airRoll=0; // vrille visuelle en vol
 // 0 = rien · 1 = passé sur un CÔTÉ de la dalle · 2 = passé DESSOUS · 3 = remonté par l'AUTRE côté
 let nitroAirT=0,fallWrap=0,fallWrapSign=0,fallStartSide=1,pureT=0,pureArmed=true;
 let bounceN=0,airFlash=0; // BUMPS : rebonds sur la tranche de la dalle pendant CE vol
-let runStats={tricks:0,bumps:0,zones:0,vmax:0}; // bilan de la run (écran de fin)
+let runStats={tricks:0,bumps:0,zones:0,vmax:0,chainMax:0}; // bilan de la run (écran de fin)
 let hopY=0,hopV=0; // petit saut de dos d'âne
 let nitroR=2,nitroX=0,nitroOn=false,nitroBlue=false,nitroHeldT=0;
 let pwrNitroT=0,pwrAirT=0,pwrSpdT=0; // POUVOIRS : nitro infinie · airtime infini · speed up +60%
@@ -2336,7 +2348,7 @@ const $=id=>document.getElementById(id);
 const elSpeed=$('speedVal'),elName=$('carName'),elLvl=$('carLevel'),elMoney=$('moneyTxt'),
       elCp=$('cpDist'),elFill=$('cpFill'),elMsg=$('msg'),elTurn=$('turnHint'),
       elRecord=$('record'),elNR=$('nitroR'),elNX=$('nitroX'),
-      trickBox=$('trickBox'),airPie=$('airPie'),pieCtx=airPie.getContext('2d'),
+      trickBox=$('trickBox'),chainHud=$('chainHud'),airPie=$('airPie'),pieCtx=airPie.getContext('2d'),
       elStyleF=$('styleFill'),feverGlow=$('feverGlow'),flashEl=$('flash'),
       overlay=$('overlay'),ovSub=$('ovSub'),finalScore=$('finalScore'),goTxt=$('goTxt'),tagline=$('tagline'),bestChip=$('bestChip');
 const elLb=$('lbBox'),nameEntry=$('nameEntry'),nameInput=$('nameInput'),nameSave=$('nameSave');
@@ -2447,6 +2459,30 @@ function trickMsg(txt,tier){ // tier: 1 MONSTRE · 2 DOUBLE · 3 TRIPLE (ou true
   trickBox.appendChild(el);
   setTimeout(()=>{el.remove();},tier===3?1500:tier===2?1200:950);
 }
+// ---- CHAÎNE DE FIGURES : chaque exploit aérien se NOMME à l'instant où il naît et gonfle la
+// chaîne. Rien n'est payé en vol : tout se cashe à l'atterrissage (grade × face × série) —
+// et tout S'ENVOLE si on explose. La redite paye de moins en moins : varie le menu !
+let chain=0,chainVal=0,chainMult=1,chainSeen={},spinHalf=0,handsT=0,skimT=0,limboT=0,
+    launchY=0,peakY=0,curNear=false,curHOff=0,curLatOff=0,
+    trkAirBig=0,trkSky=false,trkMeteor=false,trkHands=false,trkLimbo=false,trkSkim=false;
+function trickPop(k){ // carillon qui MONTE d'un demi-ton par maillon — l'oreille réclame la suite
+  chimeNote(520*Math.pow(2,Math.min(16,k)/12),0,.09,.16);
+}
+function chainHudShow(){
+  chainHud.textContent='CHAÎNE ×'+Math.min(6,chainMult).toFixed(1)+' · +'+Math.round(chainVal);
+  chainHud.style.opacity=1;
+  chainHud.classList.remove('pulse');void chainHud.offsetWidth;chainHud.classList.add('pulse');
+}
+function addTrick(id,txt,val,tier,raw){ // raw : échelles qui grimpent déjà (vrilles, bumps) — pas de décote
+  const n=(chainSeen[id]=(chainSeen[id]||0)+1);
+  chainVal+=raw?val:val*Math.pow(.6,n-1);
+  chainMult+=n===1?.5:.15;chain++;
+  if(chain>(runStats.chainMax||0))runStats.chainMax=chain;
+  trickMsg(txt+(n>2&&!raw?' ×'+n:''),tier||false);
+  addStyle(tier===3?16:tier===2?11:7);
+  trickPop(chain);
+  chainHudShow();
+}
 function respawn(){
   if(introD){introD=false;if(pigGroup){scene.remove(pigGroup);pigGroup=null;}} // R pendant le largage : on annule proprement
   s=THREE.MathUtils.clamp(safeS-8,0,Math.max(0,L-80));
@@ -2467,6 +2503,11 @@ function startFall(impU,impF){
   fallPos.copy(F.p).addScaledVector(F.b,lat).addScaledVector(F.n,(side<0?THICK:0)+.6);
   fallVel.copy(F.t).multiplyScalar(vA*(impF||1)).addScaledVector(F.b,vL).addScaledVector(F.n,impU||.9);
   if(fallVel.length()>95)fallVel.setLength(95); // les fusées ne partent plus en orbite
+  // chaîne neuve : le vol commence, tout est à prouver
+  chain=0;chainVal=0;chainMult=1;chainSeen={};spinHalf=0;handsT=0;skimT=0;limboT=0;
+  trkAirBig=0;trkSky=trkMeteor=trkHands=trkLimbo=trkSkim=false;curNear=false;
+  launchY=fallPos.y;peakY=fallPos.y;
+  chainHud.style.opacity=0;chainHud.classList.remove('pulse');
   // le boost se disperse en petites particules
   for(let k=0;k<14;k++){
     spawnP(dust,fallPos.x,fallPos.y,fallPos.z,
@@ -2487,6 +2528,7 @@ function tryLand(){
   if(bestI<0||bd>1600)return false;
   dTmp.subVectors(fallPos,pts[bestI]);
   const hOff=dTmp.dot(Nn[bestI]),latOff=dTmp.dot(B[bestI]);
+  curNear=true;curHOff=hOff;curLatOff=latOff; // radar de dalle : nourrit RASE-MOTTES / LIMBO dans la boucle
   // SNAKE LOOP : le TOUR COMPLET de la dalle, dans l'ordre — côté A → dessous → côté B
   {
     const nearSlab=hOff>-THICK-9&&hOff<9;
@@ -2507,12 +2549,11 @@ function tryLand(){
     fallVel.y+=2.4; // la tranche RENVOIE la caisse vers le ciel
     fallPos.copy(pts[bestI]).addScaledVector(B[bestI],sg*(ROAD_HALF+1.8)).addScaledVector(Nn[bestI],hOff);
     sideCd=.35;
-    // ---- BUMP / DOUBLE BUMP / TRIPLE BUMP ----
+    // ---- BUMP / DOUBLE BUMP / TRIPLE BUMP : un maillon de la chaîne comme les autres ----
     bounceN++;runStats.bumps++;
     fallT=Math.max(0,fallT-AIR_MAX*.5);airFlash=.6; // DEMI-JAUGE d'airtime rendue
-    const bTxt=bounceN===1?'BUMP':bounceN===2?'DOUBLE BUMP':bounceN===3?'TRIPLE BUMP':'MEGA BUMP x'+bounceN;
-    trickMsg(bTxt,Math.min(3,bounceN));
-    addStyle(12+bounceN*6); // le bump nourrit le STYLE et le multiplicateur d'atterrissage, pas le compte en banque
+    addTrick('bump',bounceN===1?'BUMP':bounceN===2?'DOUBLE BUMP':bounceN===3?'TRIPLE BUMP':'MEGA BUMP x'+bounceN,
+      8+bounceN*3,Math.min(3,bounceN),true);
     bumpSfx(bounceN);
     thud(impB);noiseBurst(.14,.09,1100); // choc + froissement de tôle
     shake=Math.min(1.3,.3+impB*.03);
@@ -2538,33 +2579,35 @@ function tryLand(){
   prevTvalid=false;mode='drive';
   sparkBurst(sparkGold,carGroup.position,10,9);
   thud(Math.abs(vN));shake=Math.min(1.4,.35+Math.abs(vN)*.05+landLoss*.6);
-  // ---- FIGURES : le vol paye — un seul verdict : MONSTRE ----
-  if(fallT>.7||bounceN>0){
-    const spins=Math.abs(yawAcc)/(Math.PI*2);
-    let mult=1;
-    if(Math.abs(vN)<6)mult+=.5;                                       // réception parfaite
-    if(spins>=.55)mult+=Math.max(1,Math.round(spins))*.8;             // vrilles
-    if(fallT>2.2)mult+=.6;                                            // big air
-    if(bounceN>0)mult+=bounceN*.75;                                   // les BUMPS gonflent le verdict (leur seule paye : il faut POSER)
-    if(sideL<0)mult*=2;                                               // face cachée
+  // ---- LE VERDICT : la CHAÎNE se cashe — grade de réception × face × série ----
+  if(fallT>.7||chain>0){
+    // le grade juge tout le vol : pose soyeuse = jackpot, pose écrasée = décote
+    let g=1,gTxt='';
+    if(impact<4.5&&landLoss<.2){g=1.5;gTxt='PARFAIT ! ';}
+    else if(impact>=10){g=.65;gTxt='POSÉ LOURD… ';}
+    if(Math.abs(latOff)<ROAD_HALF*.3){chainVal+=4;chainMult+=.2;trickMsg('PILE AU CENTRE',false);} // posé sur l'axe
+    if(vA<-3){chainVal+=6;chainMult+=.3;trickMsg('À RECULONS !',2);}                               // posé en marche arrière
+    if(sideL<0)trickMsg('FACE CACHÉE ×2',2);
     streak++;
-    if(streak>=2)mult*=1+Math.min(1,streak*.1);                       // enchaînement
-    const gain=Math.round(denom()*8*Math.max(.7,fallT)*mult*(fever>0?2:1));
+    const gain=Math.round(denom()*(5*Math.max(.7,fallT)+chainVal)*Math.min(6,chainMult)*g
+      *(sideL<0?2:1)*(streak>=2?1+Math.min(1,streak*.1):1)*(fever>0?2:1));
     money+=gain;levelCash+=gain;checkUpgrade();
     runStats.tricks++;
     // ---- ANNOUNCER : la réplique la plus RARE l'emporte (chacune tombe 1 fois sur 3) ----
-    let vKey=mult>=3.2?'m3':(mult>=2?'m2':'m1');
-    let vTier=mult>=3.2?3:(mult>=2?2:1),vPrio=vTier;
+    const q=gain/denom();
+    let vKey=q>=140?'m3':(q>=45?'m2':'m1');
+    let vTier=q>=140?3:(q>=45?2:1),vPrio=vTier;
     if(nitroOn&&nitroAirT>1){vKey='meteor';vTier=Math.max(vTier,2);vPrio=4;}    // impact en pleine poussée
     if(fallWrap===3&&sideL===fallStartSide){vKey='snakeLoop';vTier=3;vPrio=5;}  // TOUR COMPLET, même face
     if(nitroOn&&nitroAirT>5){vKey='megaMeteor';vTier=3;vPrio=6;}                // 5 s de réacteur : l'ultime
     const vTxt=annSpeak(vKey,vPrio)||'MONSTRE';
-    trickMsg(vTxt+'  +'+fmt(gain),vTier);
+    trickMsg(gTxt+vTxt+'  +'+fmt(gain),vTier);
     rewardSfx(vKey,vTier); // signature sonore courte assortie à la récompense
     boost=Math.max(boost,1.2);
-    addStyle(18+spins*12);
+    addStyle(14+chain*4);
     if(fallT>2)slowT=.35; // slow-mo savoureux sur les gros airs
   }
+  chainHud.style.opacity=0;
   return true;
 }
 function newTrack(){
@@ -2591,7 +2634,8 @@ function resetGame(){
   nextRainAt=1e4;moneyRainT=0;sideCd=0;slipT=0;oilCd=0;
   nitroAirT=0;fallWrap=0;fallWrapSign=0;pureT=0;pureArmed=true;annStop();
   bounceN=0;airFlash=0;flightId=0;
-  runStats={tricks:0,bumps:0,zones:0,vmax:0};
+  chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;
+  runStats={tricks:0,bumps:0,zones:0,vmax:0,chainMax:0};
   cloudInS=0;cloudFxEl.style.opacity=0;
   scene.fog.near=FOG_N;scene.fog.far=FOG_F;scene.fog.color.copy(FOG_BASE);
   for(let i9=moneyRain.length-1;i9>=0;i9--){scene.remove(moneyRain[i9].m);moneyRain[i9].m.material.dispose();}
@@ -2602,7 +2646,7 @@ function resetGame(){
   showMsg('GO ! NE MEURS PAS','#7dff9b');
 }
 function endGame(){
-  gameOver=true;airPie.style.display='none';
+  gameOver=true;airPie.style.display='none';chainHud.style.opacity=0;
   if(gainN)gainN.gain.setTargetAtTime(0,AC.currentTime,.2);
   if(windG)windG.gain.setTargetAtTime(0,AC.currentTime,.2);
   if(engLfoG)engLfoG.gain.setTargetAtTime(0,AC.currentTime,.2);
@@ -2615,7 +2659,7 @@ function endGame(){
   try{const bc=+localStorage.rrBestCar5||0;if(level>bc)localStorage.rrBestCar5=level;}catch(e){} // meilleure caisse à vie
   setBestChip();
   runStatsEl.style.display='block';
-  runStatsEl.textContent='FIGURES '+runStats.tricks+' · BUMPS '+runStats.bumps+' · ZONES '+runStats.zones+' · VMAX '+Math.round(runStats.vmax)+' KM/H';
+  runStatsEl.textContent='FIGURES '+runStats.tricks+' · CHAÎNE MAX '+(runStats.chainMax||0)+' · BUMPS '+runStats.bumps+' · ZONES '+runStats.zones+' · VMAX '+Math.round(runStats.vmax)+' KM/H';
   finalScore.style.display='block';
   finalScore.textContent=fmt(money)+(isTop?'  🏆 RECORD':'');
   goTxt.textContent='REJOUER';
@@ -3007,6 +3051,26 @@ function loop(now){
       fallPos.addScaledVector(fallVel,dt*SPD);
       carGroup.position.copy(fallPos);
       speedKmh=fallVel.length()*3.6*SPD;
+      // ---- FIGURES EN VOL : chaque exploit se nomme à la seconde où il naît ----
+      {
+        const halfs=Math.floor(Math.abs(yawAcc)/Math.PI); // vrilles : un cri par demi-tour de lacet
+        if(halfs>spinHalf&&fallT>.45){spinHalf=halfs;
+          addTrick('vrille',halfs===1?'180°':halfs===2?'VRILLE 360 !':(halfs*180)+'° !!',3.5*halfs,halfs>=4?3:(halfs>=2?2:false),true);}
+        if(trkAirBig<1&&fallT>2.3){trkAirBig=1;addTrick('air','BIG AIR',6,2);}
+        if(trkAirBig<2&&fallT>4.4){trkAirBig=2;addTrick('air2','AIR MONSTRE',10,3);}
+        if(fallPos.y>peakY)peakY=fallPos.y;
+        if(!trkSky&&peakY>launchY+26){trkSky=true;addTrick('ciel','PLEIN CIEL',7,2);}      // grimper 26 m au-dessus du départ
+        if(!trkMeteor&&nitroOn&&nitroAirT>1.2){trkMeteor=true;addTrick('meteo','MÉTÉORE',8,2);}
+        if(Math.abs(steer)<.06){handsT+=dt;if(!trkHands&&handsT>2.1){trkHands=true;addTrick('mains','SANS LES MAINS',7,2);}}
+        else handsT=0;
+        if(curNear){ // radar de dalle (rempli par tryLand à la frame précédente)
+          if(Math.abs(curLatOff)<ROAD_HALF){
+            if(curHOff>1.4&&curHOff<5.2){skimT+=dt;if(!trkSkim&&skimT>.55&&fallT>.9){trkSkim=true;addTrick('rase','RASE-MOTTES',8,2);}}
+            else if(curHOff<-THICK-1.4&&curHOff>-THICK-8){limboT+=dt;if(!trkLimbo&&limboT>.35){trkLimbo=true;addTrick('limbo','LIMBO SOUS LA ROUTE',12,3);}}
+          }
+          curNear=false;
+        }
+      }
       if(speedKmh>60){ // traits d'air aussi en vol
         tmp.copy(fallVel).normalize();
         const nS9=speedKmh>240?3:speedKmh>130?2:1;
