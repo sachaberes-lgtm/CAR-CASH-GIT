@@ -1300,7 +1300,7 @@ function coinPing(i){ // tintement de pièces qui roulent
     const t0=AC.currentTime+i*.06;
     g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(.06,t0+.012);
     g.gain.exponentialRampToValueAtTime(.001,t0+.22);
-    o.connect(g);g.connect(AC.destination);o.start(t0);o.stop(t0+.25);
+    o.connect(g);g.connect(MASTER);o.start(t0);o.stop(t0+.25);
   }catch(e){}
 }
 function smashPig(){
@@ -1808,67 +1808,182 @@ function updateMoneyRain(dt,t){
 }
 // ---------- AUDIO ----------
 let AC=null,osc=null,osc2=null,filt=null,gainN=null,windG=null,windF=null,skidG=null,jetG=null,jetF=null,jetLowG=null,jetOsc=null,jetOscG=null,whF=null,whG=null;
-// sonorité moteur par voiture : de l'épave qui tousse au V12 hurlant
+let MASTER=null,engMix=null,engSub=null,engSubG=null,engNzF=null,engNzG=null,engShaper=null,engLfo=null,engLfoG=null,engWhine=null,engWhineG=null,
+    skF1=null,skF2=null,skLfo=null,skD1=null,skD2=null,jcFb=null,jcDep=null,jetDist=null,jrG=null,jrF=null,jrDep=null;
+let engLvl=-1,engGear=1,engRpm=0,engShiftT=0,engWasUp=false,nA=0,duckT=0;
+// MOTEURS v2 : un VRAI moteur par caisse. La fréquence fondamentale = fréquence d'explosion
+// (rpm/60 × cylindres/2) → i (Hz au ralenti) + r (plage jusqu'au rupteur). h = les harmoniques
+// (le TIMBRE : V8 rond, 4-pattes rageur, V12 hurleur), sub = le grave poitrine, dr = grain de
+// saturation, fq/fr = ouverture du filtre (base / × fondamentale), gr = rapports de boîte
+// virtuelle, lope = profondeur du RONRON au ralenti, wob = ralenti instable, crk = crépitements
+// d'échappement au lâcher, whine = ordre du sifflement onduleur/turbine (caisses ev).
 const ENGINES=[
- {fm:.75, o2:.5,  det:22,fq:0,   vol:.9},
- {fm:.85, o2:.5,  det:16,fq:90,  vol:.95},
- {fm:.95, o2:.5,  det:12,fq:180, vol:1},
- {fm:1.05,o2:.5,  det:9, fq:280, vol:1.02},
- {fm:1.15,o2:1.5, det:7, fq:400, vol:1.05},
- {fm:1.28,o2:1.5, det:6, fq:550, vol:1.1},
- {fm:1.42,o2:1.5, det:5, fq:720, vol:1.15},
- {fm:1.58,o2:2,   det:4, fq:920, vol:1.2},
- {fm:1.75,o2:2,   det:3, fq:1150,vol:1.25},
- {fm:1.95,o2:2.02,det:2, fq:1400,vol:1.3},
- {fm:2.2, o2:2.02,det:2, fq:1700,vol:1.32},
- {fm:2.55,o2:3,   det:1, fq:2050,vol:1.34},
- {fm:2.9, o2:1,   det:1, fq:2450,vol:1.36},
- {fm:3.3, o2:3.01,det:0, fq:2900,vol:1.4},
+ {i:17, r:100, h:[1,.4,.85,.3,.22],                          sub:.4, dr:2.6,fq:190,fr:2.4,gr:4,lope:.30,wob:.05, crk:.15,vol:1.15}, // épave : 3 pattes qui toussent
+ {i:28, r:190, h:[1,.5,.75,.35,.28,.18],                     sub:.42,dr:1.8,fq:220,fr:2.7,gr:4,lope:.16,wob:.02, crk:.1, vol:1.05},
+ {i:28, r:200, h:[1,.55,.7,.4,.3,.2,.1],                     sub:.48,dr:1.5,fq:250,fr:2.8,gr:5,lope:.13,wob:.012,crk:.1, vol:1},
+ {i:30, r:210, h:[1,.35,1,.3,.55,.25,.35,.18],               sub:.42,dr:1.9,fq:280,fr:3.1,gr:5,lope:.12,wob:.01, crk:.6, vol:1},   // hot hatch : buzz + ça pétarade
+ {i:45, r:345, h:[1,.42,.9,.3,.5,.25,.3,.14],                sub:.5, dr:1.7,fq:300,fr:3.3,gr:6,lope:.10,wob:.008,crk:.35,vol:.98},
+ {i:47, r:365, h:[1,.9,.42,.68,.3,.38,.22,.16,.1],           sub:.85,dr:2.2,fq:230,fr:2.6,gr:4,lope:.22,wob:.02, crk:.45,vol:1.08},// muscle V8 : le lope qui bascule
+ {i:48, r:385, h:[1,.42,.95,.3,.55,.25,.34,.14,.18],         sub:.5, dr:1.8,fq:330,fr:3.7,gr:6,lope:.09,wob:.006,crk:.5, vol:1},   // GT : flat-6 chirurgical
+ {i:66, r:520, h:[1,.5,.8,.55,.5,.35,.4,.22,.2,.1],          sub:.55,dr:1.8,fq:360,fr:3.9,gr:7,lope:.07,wob:.005,crk:.5, vol:1},
+ {i:90, r:700, h:[1,.3,.8,.55,.65,.4,.5,.3,.3,.18,.2],       sub:.38,dr:1.6,fq:420,fr:4.2,gr:7,lope:.05,wob:.004,crk:.6, vol:.98},
+ {i:95, r:780, h:[1,.35,.75,.6,.7,.45,.55,.35,.35,.22,.24,.12],sub:.4,dr:1.7,fq:460,fr:4.4,gr:7,lope:.05,wob:.004,crk:.7,vol:1},  // lambo V10 qui hurle
+ {i:200,r:1050,h:[1,.3,.7,.55,.75,.5,.6,.4,.42,.28,.3,.16,.14],sub:.3,dr:1.5,fq:520,fr:4.6,gr:8,lope:.04,wob:.003,crk:.7,vol:.96},// formule V12 stratosphérique
+ {i:30, r:900, h:[1,.12,.06,.2,.04,.1,.03,.08],              sub:.55,dr:1.1,fq:380,fr:5,  gr:1,lope:0,  wob:0,   crk:0,  vol:.92,whine:21}, // proto : onduleur cristallin
+ {i:45, r:1100,h:[1,.2,.1,.14,.06],                          sub:.62,dr:1.2,fq:420,fr:4.6,gr:1,lope:0,  wob:0,   crk:0,  vol:.98,whine:15}, // fusée : turbine
+ {i:55, r:1300,h:[1,.15,.08,.18,.05,.12],                    sub:.7, dr:1.3,fq:480,fr:5,  gr:1,lope:0,  wob:0,   crk:0,  vol:1.02,whine:19},// comète : la turbine royale
 ];
+function engCurve(k){ // courbe de saturation tanh — le grain qui devient hargne quand on pousse dedans
+  const n=256,c=new Float32Array(n);
+  for(let i=0;i<n;i++){const x=i/(n-1)*2-1;c[i]=Math.tanh(x*k)/Math.tanh(k);}
+  return c;
+}
+function engSetCar(lv){ // changement de caisse → nouveau timbre (onde harmonique + grain + sub), à chaud
+  if(!AC||!osc)return;
+  const e=ENGINES[lv];engLvl=lv;engGear=1;engShiftT=0;
+  if(!e.w){ // l'onde périodique du profil, construite une fois puis cachée
+    const re=new Float32Array(e.h.length+1),im=new Float32Array(e.h.length+1);
+    for(let i=0;i<e.h.length;i++)im[i+1]=e.h[i];
+    e.w=AC.createPeriodicWave(re,im);
+  }
+  osc.setPeriodicWave(e.w);osc2.setPeriodicWave(e.w);osc2.detune.value=7;
+  engSubG.gain.value=e.sub*.5;
+  engShaper.curve=engCurve(e.dr);
+}
+function crackle(amt){ // crépitements d'échappement au lâcher : pop-pop-pop dense puis qui s'égrène
+  if(!AC)return;
+  try{
+    const t0=AC.currentTime;let tt=0;
+    const n=2+Math.floor(Math.random()*4+amt*3);
+    for(let i=0;i<n;i++){
+      const src=AC.createBufferSource();src.buffer=noiseBuf(.06);
+      const f=AC.createBiquadFilter();f.type='bandpass';f.Q.value=1.6;f.frequency.value=280+Math.random()*620;
+      const g=AC.createGain();const big=Math.random()<.2;
+      g.gain.setValueAtTime(big?.3:.08+Math.random()*.13,t0+tt);
+      g.gain.exponentialRampToValueAtTime(.001,t0+tt+(big?.06:.03));
+      src.connect(f);f.connect(g);g.connect(MASTER);src.start(t0+tt);src.stop(t0+tt+.09);
+      tt+=.03+Math.random()*.08*(1+i*.3);
+    }
+  }catch(e){}
+}
 function noiseBuf(len){
   const n=Math.floor(AC.sampleRate*len),b=AC.createBuffer(1,n,AC.sampleRate),ch=b.getChannelData(0);
   for(let i=0;i<n;i++)ch[i]=Math.random()*2-1;
   return b;
 }
+function brownBuf(len){ // bruit BROWN : blanc intégré — grave et rond PAR NATURE, zéro chuintement.
+  // C'est le timbre de l'océan et des fusées : la matière première d'une flamme douce.
+  const n=Math.floor(AC.sampleRate*len),b=AC.createBuffer(1,n,AC.sampleRate),ch=b.getChannelData(0);
+  let v=0,m=0;
+  for(let i=0;i<n;i++){v=(v+(Math.random()*2-1)*.02)*.998;ch[i]=v;const a=Math.abs(v);if(a>m)m=a;}
+  const d0=ch[0]/(m||1),d1=ch[n-1]/(m||1);
+  for(let i=0;i<n;i++)ch[i]=ch[i]/(m||1)-(d0+(d1-d0)*i/n); // normalisé + boucle sans couture
+  return b;
+}
+function flamePop(dur,vol,freq){ // pop de combustion : tranche de bruit BROWN filtrée — un « plop » rond,
+  // jamais un « tss » blanc. La pluie de ces pops = le crépitement du feu, sans tapis de souffle.
+  if(!AC)return;
+  try{
+    const src=AC.createBufferSource();src.buffer=brownBuf(dur+.02);
+    const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=freq;f.Q.value=.7;
+    const g=AC.createGain();g.gain.setValueAtTime(vol,AC.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+dur);
+    src.connect(f);f.connect(g);g.connect(MASTER);src.start();
+  }catch(e){}
+}
 function initAudio(){
   AC=new (window.AudioContext||window.webkitAudioContext)();
   if(!SND.sfx)try{AC.suspend();}catch(e){} // le mute SON survit au redémarrage
-  osc=AC.createOscillator();osc.type='sawtooth';
-  osc2=AC.createOscillator();osc2.type='square';
+  // BUS MASTER : tout le WebAudio passe par compresseur + limiteur doux tanh — niveau perçu
+  // stable, jamais de clip numérique, pas de fatigue d'oreille sur une longue session
+  MASTER=AC.createGain();
+  const cmp=AC.createDynamicsCompressor();
+  cmp.threshold.value=-16;cmp.knee.value=12;cmp.ratio.value=4;cmp.attack.value=.004;cmp.release.value=.16;
+  const lim=AC.createWaveShaper();lim.curve=engCurve(1.3);lim.oversample='2x';
+  MASTER.connect(cmp);cmp.connect(lim);lim.connect(AC.destination);
+  // MOTEUR v2 : 2 oscillateurs à onde harmonique (le timbre de la caisse) désaccordés de 7 cents
+  // + sub sinus à f/2 (la poitrine) + souffle d'admission → SATURATION (grain) → filtre (brillance)
+  osc=AC.createOscillator();osc2=AC.createOscillator();
+  engMix=AC.createGain();engMix.gain.value=.5;
+  const o2g=AC.createGain();o2g.gain.value=.6;
+  osc.connect(engMix);osc2.connect(o2g);o2g.connect(engMix);
+  engSub=AC.createOscillator();engSub.type='sine';engSub.frequency.value=25;
+  engSubG=AC.createGain();engSub.connect(engSubG);engSubG.connect(engMix);
+  const enz=AC.createBufferSource();enz.buffer=noiseBuf(2);enz.loop=true;
+  engNzF=AC.createBiquadFilter();engNzF.type='bandpass';engNzF.frequency.value=800;engNzF.Q.value=.8;
+  engNzG=AC.createGain();engNzG.gain.value=0;
+  enz.connect(engNzF);engNzF.connect(engNzG);engNzG.connect(engMix);
+  engShaper=AC.createWaveShaper();engShaper.oversample='2x';
   filt=AC.createBiquadFilter();filt.type='lowpass';filt.frequency.value=500;
   gainN=AC.createGain();gainN.gain.value=0;
-  const g2=AC.createGain();g2.gain.value=.35;
-  osc.connect(filt);osc2.connect(g2);g2.connect(filt);
-  filt.connect(gainN);gainN.connect(AC.destination);
-  osc.start();osc2.start();
+  engMix.connect(engShaper);engShaper.connect(filt);filt.connect(gainN);gainN.connect(MASTER);
+  // RONRONNEMENT : LFO d'amplitude 8-15 Hz (la rugosité psychoacoustique que l'oreille adore),
+  // profond au ralenti, qui s'efface dès qu'on monte dans les tours — le chat devient fauve
+  engLfo=AC.createOscillator();engLfo.type='sine';engLfo.frequency.value=11;
+  engLfoG=AC.createGain();engLfoG.gain.value=0;
+  engLfo.connect(engLfoG);engLfoG.connect(gainN.gain);
+  // sifflement d'onduleur/turbine (proto, fusées) : dent de scie très haute filtrée
+  engWhine=AC.createOscillator();engWhine.type='sawtooth';engWhine.frequency.value=2000;
+  const ewf=AC.createBiquadFilter();ewf.type='lowpass';ewf.frequency.value=9000;
+  engWhineG=AC.createGain();engWhineG.gain.value=0;
+  engWhine.connect(ewf);ewf.connect(engWhineG);engWhineG.connect(gainN);
+  osc.start();osc2.start();engSub.start();enz.start();engLfo.start();engWhine.start();
+  engSetCar(level);
   // vent
   const wsrc=AC.createBufferSource();wsrc.buffer=noiseBuf(2);wsrc.loop=true;
   windF=AC.createBiquadFilter();windF.type='lowpass';windF.frequency.value=500;windF.Q.value=.2;
   windG=AC.createGain();windG.gain.value=0;
-  wsrc.connect(windF);windF.connect(windG);windG.connect(AC.destination);wsrc.start();
-  // crissement pneus
+  wsrc.connect(windF);windF.connect(windG);windG.connect(MASTER);wsrc.start();
+  // CRISSEMENT v2 : deux bandes résonantes non harmoniques (950/1480 Hz) + LFO de STICK-SLIP
+  // qui fait brouter les fréquences — la gomme accroche-lâche, le crissement VIT au lieu de siffler
   const ssrc=AC.createBufferSource();ssrc.buffer=noiseBuf(1.3);ssrc.loop=true;
-  const sf=AC.createBiquadFilter();sf.type='bandpass';sf.frequency.value=1600;sf.Q.value=3;
+  skF1=AC.createBiquadFilter();skF1.type='bandpass';skF1.frequency.value=950;skF1.Q.value=8;
+  skF2=AC.createBiquadFilter();skF2.type='bandpass';skF2.frequency.value=1480;skF2.Q.value=10;
   skidG=AC.createGain();skidG.gain.value=0;
-  ssrc.connect(sf);sf.connect(skidG);skidG.connect(AC.destination);ssrc.start();
+  ssrc.connect(skF1);ssrc.connect(skF2);skF1.connect(skidG);skF2.connect(skidG);skidG.connect(MASTER);ssrc.start();
+  skLfo=AC.createOscillator();skLfo.type='triangle';skLfo.frequency.value=12;
+  skD1=AC.createGain();skD1.gain.value=0;skD2=AC.createGain();skD2.gain.value=0;
+  skLfo.connect(skD1);skD1.connect(skF1.frequency);skLfo.connect(skD2);skD2.connect(skF2.frequency);skLfo.start();
   // SIFFLEMENT D'AIR : n'existe qu'aux vitesses folles (l'oreille sait qu'on va TRÈS vite)
   const wsrc2=AC.createBufferSource();wsrc2.buffer=noiseBuf(1.4);wsrc2.loop=true;
   whF=AC.createBiquadFilter();whF.type='bandpass';whF.frequency.value=2600;whF.Q.value=14;
   whG=AC.createGain();whG.gain.value=0;
-  wsrc2.connect(whF);whF.connect(whG);whG.connect(AC.destination);wsrc2.start();
+  wsrc2.connect(whF);whF.connect(whG);whG.connect(MASTER);wsrc2.start();
   // réacteur nitro : souffle + grondement grave + sifflement de turbine (3 couches)
+  // + FILTRE EN PEIGNE sur le souffle : rebouclé fort AU SOL = la flamme qui rugit ;
+  // en l'air le peigne s'ouvre et un LFO lent module le délai = le whoosh flangé du jet
   const jsrc=AC.createBufferSource();jsrc.buffer=noiseBuf(1.7);jsrc.loop=true;
   jetF=AC.createBiquadFilter();jetF.type='bandpass';jetF.frequency.value=900;jetF.Q.value=.8;
   jetG=AC.createGain();jetG.gain.value=0;
-  jsrc.connect(jetF);jetF.connect(jetG);jetG.connect(AC.destination);jsrc.start();
+  const jPre=AC.createGain();jPre.gain.value=2.6; // on pousse le souffle fort dans la saturation…
+  jetDist=AC.createWaveShaper();jetDist.curve=engCurve(3);jetDist.oversample='2x'; // …et le souffle devient FLAMME (grain de fusée)
+  jsrc.connect(jetF);jetF.connect(jPre);
+  const jcomb=AC.createDelay(.05);jcomb.delayTime.value=.0071;
+  jcFb=AC.createGain();jcFb.gain.value=.12;
+  jetF.connect(jcomb);jcomb.connect(jcFb);jcFb.connect(jcomb);jcomb.connect(jPre);
+  jPre.connect(jetDist);jetDist.connect(jetG);
+  const jcLfo=AC.createOscillator();jcLfo.type='sine';jcLfo.frequency.value=.4;
+  jcDep=AC.createGain();jcDep.gain.value=.0002;
+  jcLfo.connect(jcDep);jcDep.connect(jcomb.delayTime);jcLfo.start();
+  jetG.connect(MASTER);jsrc.start();
   const j2=AC.createBufferSource();j2.buffer=noiseBuf(2.3);j2.loop=true;
   const jlf=AC.createBiquadFilter();jlf.type='lowpass';jlf.frequency.value=150;
   jetLowG=AC.createGain();jetLowG.gain.value=0;
-  j2.connect(jlf);jlf.connect(jetLowG);jetLowG.connect(AC.destination);j2.start();
+  j2.connect(jlf);jlf.connect(jetLowG);jetLowG.connect(MASTER);j2.start();
   jetOsc=AC.createOscillator();jetOsc.type='sawtooth';jetOsc.frequency.value=1200;
   const jof=AC.createBiquadFilter();jof.type='bandpass';jof.frequency.value=2400;jof.Q.value=6;
   jetOscG=AC.createGain();jetOscG.gain.value=0;
-  jetOsc.connect(jof);jof.connect(jetOscG);jetOscG.connect(AC.destination);jetOsc.start();
+  jetOsc.connect(jof);jof.connect(jetOscG);jetOscG.connect(MASTER);jetOsc.start();
+  // LE CORPS DE LA FLAMME : bruit brown sous DOUBLE lowpass (pente raide, tout l'aigu meurt)
+  // + flutter lent 5 Hz — le « fwooosh » rond, chaud, moelleux. C'est LUI la nitro, surtout en vol.
+  const jr=AC.createBufferSource();jr.buffer=brownBuf(2.7);jr.loop=true;
+  jrF=AC.createBiquadFilter();jrF.type='lowpass';jrF.frequency.value=300;jrF.Q.value=.4;
+  const jrF2=AC.createBiquadFilter();jrF2.type='lowpass';jrF2.frequency.value=620;
+  jrG=AC.createGain();jrG.gain.value=0;
+  jr.connect(jrF);jrF.connect(jrF2);jrF2.connect(jrG);jrG.connect(MASTER);jr.start();
+  const jrLfo=AC.createOscillator();jrLfo.type='sine';jrLfo.frequency.value=5.3;
+  jrDep=AC.createGain();jrDep.gain.value=0;
+  jrLfo.connect(jrDep);jrDep.connect(jrG.gain);jrLfo.start();
 }
 function noiseBurst(dur,vol,freq){
   if(!AC)return;
@@ -1877,7 +1992,7 @@ function noiseBurst(dur,vol,freq){
     const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=freq;
     const g=AC.createGain();g.gain.setValueAtTime(vol,AC.currentTime);
     g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+dur);
-    src.connect(f);f.connect(g);g.connect(AC.destination);src.start();
+    src.connect(f);f.connect(g);g.connect(MASTER);src.start();
   }catch(e){}
 }
 function subBoom(vol){ // basse sourde d'impact
@@ -1887,10 +2002,10 @@ function subBoom(vol){ // basse sourde d'impact
     o.type='sine';o.frequency.setValueAtTime(90,AC.currentTime);
     o.frequency.exponentialRampToValueAtTime(34,AC.currentTime+.26);
     g.gain.setValueAtTime(vol,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+.3);
-    o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+.32);
+    o.connect(g);g.connect(MASTER);o.start();o.stop(AC.currentTime+.32);
   }catch(e){}
 }
-const thud=v=>{noiseBurst(.28,Math.min(.5,.14+v*.012),260+v*10);subBoom(Math.min(.28,.08+v*.009));};
+const thud=v=>{duckT=Math.max(duckT,Math.min(.7,v*.05));noiseBurst(.28,Math.min(.5,.14+v*.012),260+v*10);subBoom(Math.min(.28,.08+v*.009));}; // un choc creuse le mix : l'impact se SENT
 const whoosh=()=>noiseBurst(.55,.11,650);
 function blip(){ // pièce : ding cristallin qui monte avec le combo
   if(!AC)return;
@@ -1899,11 +2014,11 @@ function blip(){ // pièce : ding cristallin qui monte avec le combo
     const o=AC.createOscillator(),g=AC.createGain();
     o.type='sine';o.frequency.value=f;g.gain.value=.09;
     g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+.16);
-    o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+.18);
+    o.connect(g);g.connect(MASTER);o.start();o.stop(AC.currentTime+.18);
     const o2b=AC.createOscillator(),g2b=AC.createGain();
     o2b.type='sine';o2b.frequency.value=f*2;g2b.gain.value=.035;
     g2b.gain.exponentialRampToValueAtTime(.001,AC.currentTime+.11);
-    o2b.connect(g2b);g2b.connect(AC.destination);o2b.start();o2b.stop(AC.currentTime+.13);
+    o2b.connect(g2b);g2b.connect(MASTER);o2b.start();o2b.stop(AC.currentTime+.13);
   }catch(e){}
 }
 function nBlip(){
@@ -1913,7 +2028,7 @@ function nBlip(){
     o.type='triangle';o.frequency.setValueAtTime(300,AC.currentTime);
     o.frequency.exponentialRampToValueAtTime(900,AC.currentTime+.15);
     g.gain.value=.08;g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+.18);
-    o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+.2);
+    o.connect(g);g.connect(MASTER);o.start();o.stop(AC.currentTime+.2);
   }catch(e){}
 }
 function boostSnd(){
@@ -1923,11 +2038,12 @@ function boostSnd(){
     o.type='square';o.frequency.setValueAtTime(220,AC.currentTime);
     o.frequency.exponentialRampToValueAtTime(880,AC.currentTime+.35);
     g.gain.value=.06;g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+.4);
-    o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+.45);
+    o.connect(g);g.connect(MASTER);o.start();o.stop(AC.currentTime+.45);
   }catch(e){}
 }
-function fanfare(){ // nouvelle voiture : arpège victorieux
+function fanfare(){ // nouvelle voiture : arpège victorieux (et le mix s'incline)
   if(!AC)return;
+  duckT=Math.max(duckT,.5);
   try{
     [0,4,7,12].forEach(function(n,i){
       const o=AC.createOscillator(),g=AC.createGain();
@@ -1935,7 +2051,7 @@ function fanfare(){ // nouvelle voiture : arpège victorieux
       const t0=AC.currentTime+i*.09;
       g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(.07,t0+.02);
       g.gain.exponentialRampToValueAtTime(.001,t0+.32);
-      o.connect(g);g.connect(AC.destination);o.start(t0);o.stop(t0+.35);
+      o.connect(g);g.connect(MASTER);o.start(t0);o.stop(t0+.35);
     });
   }catch(e){}
 }
@@ -1953,7 +2069,7 @@ function chimeNote(f,t,vol,dur){ // note cloche : sinus + partiel triangle à l'
     const t0=AC.currentTime+t;
     g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(vol,t0+.008);
     g.gain.exponentialRampToValueAtTime(.0008,t0+dur);
-    o.connect(g);o2.connect(g2);g2.connect(g);g.connect(AC.destination);
+    o.connect(g);o2.connect(g2);g2.connect(g);g.connect(MASTER);
     o.start(t0);o.stop(t0+dur+.05);o2.start(t0);o2.stop(t0+dur+.05);
   }catch(e){}
 }
@@ -1965,7 +2081,7 @@ function sparkle(t,vol){ // poussière d'or : souffle bandpass très bref
     const g=AC.createGain();const t0=AC.currentTime+t;
     g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(vol,t0+.01);
     g.gain.exponentialRampToValueAtTime(.0008,t0+.09);
-    src.connect(f);f.connect(g);g.connect(AC.destination);src.start(t0);src.stop(t0+.14);
+    src.connect(f);f.connect(g);g.connect(MASTER);src.start(t0);src.stop(t0+.14);
   }catch(e){}
 }
 function rewardSfx(key,tier){ // signature courte assortie à chaque récompense
@@ -1982,12 +2098,12 @@ function rewardSfx(key,tier){ // signature courte assortie à chaque récompense
       o.frequency.exponentialRampToValueAtTime(330,t0+.16);
       o.frequency.exponentialRampToValueAtTime(1320,t0+.42);
       g.gain.setValueAtTime(.12,t0);g.gain.exponentialRampToValueAtTime(.0008,t0+.5);
-      o.connect(g);g.connect(AC.destination);o.start(t0);o.stop(t0+.55);
+      o.connect(g);g.connect(MASTER);o.start(t0);o.stop(t0+.55);
     }catch(e){}
     sparkle(.3,.12);return;
   }
   if(key==='megaMeteor'){ // le gong : quinte grave qui fleurit
-    chimeNote(220,0,.2,.9);chimeNote(330,.05,.16,.9);chimeNote(880,.12,.12,.6);sparkle(.1,.14);subBoom(.2);return;
+    duckT=Math.max(duckT,.6);chimeNote(220,0,.2,.9);chimeNote(330,.05,.16,.9);chimeNote(880,.12,.12,.6);sparkle(.1,.14);subBoom(.2);return;
   }
   // MONSTRE 1/2/3 : arpège consonant qui GRANDIT avec le tier (fondamentale → quinte → octave)
   chimeNote(660,0,.07+tier*.02,.22);
@@ -2021,7 +2137,7 @@ function nitroSpool(){ // enclenchement : spool de turbo qui grimpe + goulée d'
     g.gain.setValueAtTime(.0001,t0);
     g.gain.exponentialRampToValueAtTime(.045+lv*.002,t0+.22);
     g.gain.exponentialRampToValueAtTime(.0008,t0+.6);
-    o.connect(f);f.connect(g);g.connect(AC.destination);
+    o.connect(f);f.connect(g);g.connect(MASTER);
     o.start(t0);o.stop(t0+.65);
   }catch(e){}
   noiseBurst(.25,.05,900+level*150); // l'admission avale l'air
@@ -2030,6 +2146,7 @@ function blowOff(){ // relâche : PSSHT + flutter « stu-tu-tu » calé sur le s
   if(!AC)return;
   try{
     const lv=level,t0=AC.currentTime;
+    duckT=Math.max(duckT,.35); // le pssht mérite sa place
     // 1) le PSShhh : souffle large, attaque 30 ms, qui descend comme sur le wav
     const s=AC.createBufferSource();s.buffer=noiseBuf(1);
     const bp=AC.createBiquadFilter();bp.type='bandpass';bp.Q.value=1.1;
@@ -2045,21 +2162,21 @@ function blowOff(){ // relâche : PSSHT + flutter « stu-tu-tu » calé sur le s
       g.gain.setValueAtTime(.02,ta+p*.45);
     }
     g.gain.exponentialRampToValueAtTime(.0008,t0+.06+n*p+.3);
-    s.connect(bp);bp.connect(g);g.connect(AC.destination);
+    s.connect(bp);bp.connect(g);g.connect(MASTER);
     s.start(t0);s.stop(t0+1.2);
     // 3) le grondement 100-150 Hz mesuré sous le souffle
     const o2=AC.createOscillator(),g2=AC.createGain();
     o2.type='sine';o2.frequency.setValueAtTime(140,t0);
     o2.frequency.exponentialRampToValueAtTime(94,t0+.4);
     g2.gain.setValueAtTime(.08,t0);g2.gain.exponentialRampToValueAtTime(.0008,t0+.45);
-    o2.connect(g2);g2.connect(AC.destination);o2.start(t0);o2.stop(t0+.5);
+    o2.connect(g2);g2.connect(MASTER);o2.start(t0);o2.stop(t0+.5);
     if(CARS[lv].rocket){ // fusées : pas de flutter mais une coupure d'afterburner — boom + sifflet qui tombe
       subBoom(.22);
       const o=AC.createOscillator(),g3=AC.createGain();
       o.type='sine';o.frequency.setValueAtTime(1900,t0);
       o.frequency.exponentialRampToValueAtTime(300,t0+.5);
       g3.gain.setValueAtTime(.055,t0);g3.gain.exponentialRampToValueAtTime(.0008,t0+.5);
-      o.connect(g3);g3.connect(AC.destination);o.start(t0);o.stop(t0+.55);
+      o.connect(g3);g3.connect(MASTER);o.start(t0);o.stop(t0+.55);
     }
   }catch(e){}
 }
@@ -2070,18 +2187,19 @@ function portalSnd(){ // portail : sweep ascendant
     o.type='sine';o.frequency.setValueAtTime(400,AC.currentTime);
     o.frequency.exponentialRampToValueAtTime(1650,AC.currentTime+.5);
     g.gain.setValueAtTime(.11,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+.6);
-    o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+.65);
+    o.connect(g);g.connect(MASTER);o.start();o.stop(AC.currentTime+.65);
   }catch(e){}
 }
 function boomSnd(){ // explosion : souffle + sub + crépitement
   if(!AC)return;
   try{
+    duckT=1; // l'explosion écrase tout le reste une seconde
     noiseBurst(.9,.5,320);noiseBurst(.3,.38,2000);
     const o=AC.createOscillator(),g=AC.createGain();
     o.type='sine';o.frequency.setValueAtTime(140,AC.currentTime);
     o.frequency.exponentialRampToValueAtTime(26,AC.currentTime+.95);
     g.gain.setValueAtTime(.5,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+1);
-    o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+1.05);
+    o.connect(g);g.connect(MASTER);o.start();o.stop(AC.currentTime+1.05);
     setTimeout(function(){noiseBurst(.5,.16,700);},150);
     setTimeout(function(){noiseBurst(.4,.1,500);},380);
   }catch(e){}
@@ -2093,7 +2211,7 @@ function dieSnd(){
     o.type='sawtooth';o.frequency.setValueAtTime(320,AC.currentTime);
     o.frequency.exponentialRampToValueAtTime(55,AC.currentTime+.7);
     g.gain.value=.09;g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+.75);
-    o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+.8);
+    o.connect(g);g.connect(MASTER);o.start();o.stop(AC.currentTime+.8);
   }catch(e){}
 }
 // (musique supprimée — ambiance moteur/vent uniquement)
@@ -2487,6 +2605,8 @@ function endGame(){
   gameOver=true;airPie.style.display='none';
   if(gainN)gainN.gain.setTargetAtTime(0,AC.currentTime,.2);
   if(windG)windG.gain.setTargetAtTime(0,AC.currentTime,.2);
+  if(engLfoG)engLfoG.gain.setTargetAtTime(0,AC.currentTime,.2);
+  if(engWhineG)engWhineG.gain.setTargetAtTime(0,AC.currentTime,.2);
   const sc=Math.round(money);
   const q=lbQualifies(sc);
   const isTop=q&&(!leaders.length||sc>leaders[0].s);
@@ -3066,47 +3186,98 @@ function loop(now){
     // sons continus
     if(AC){
       const spd3=speedKmh;
+      if(duckT>0)duckT=Math.max(0,duckT-dt*2.6); // les gros événements creusent le mix, puis il respire
+      const dk=(1-.5*duckT)*(ANN.duck?ANN_DUCK:1);
+      nA+=((nitroOn&&mode!=='boom'?1:0)-nA)*Math.min(1,dt*6); // rampe nitro : le moteur gonfle, ne saute pas
       if(osc&&gainN&&mode==='drive'){
         const eng=ENGINES[level];
-        const rpm=(spd3%110)/110;
-        const rough=level<2?(Math.random()-.5)*(2-level)*7:0; // les épaves toussent
-        const f0=(70+rpm*170+(up?25:0)+spd3*.35+(nitroOn?60:0))*eng.fm+rough;
-        osc.frequency.setTargetAtTime(f0,AC.currentTime,.04);
-        osc.detune.setTargetAtTime(eng.det,AC.currentTime,.1);
-        osc2.frequency.setTargetAtTime(f0*eng.o2,AC.currentTime,.04);
-        filt.frequency.setTargetAtTime((320+eng.fq+spd3*3+(nitroOn?900:0)+(boost>0?500:0))*(1-.45*cloudInS),AC.currentTime,.08); // moteur feutré dans la ouate
-        gainN.gain.setTargetAtTime((.018+Math.min(.05,spd3*.0003)+(up?.012:0))*eng.vol*(ANN.duck?ANN_DUCK:1),AC.currentTime,.1); // moteur baissé quand l'announcer parle
-      }else if(gainN)gainN.gain.setTargetAtTime(.006,AC.currentTime,.1);
+        if(engLvl!==level)engSetCar(level); // nouvelle caisse → nouveau timbre, à chaud
+        const thr=up?1:0,sN=Math.min(1.06,spd3/CARS[level].maxKmh);
+        // BOÎTE VIRTUELLE : rapports courts en bas, longs en haut. Montée → CHUNK → chute →
+        // remontée : la respiration qui rend l'accélération grisante (une rampe nue est monotone)
+        let tgt;
+        if(eng.gr>1){
+          const gn=eng.gr,lo=Math.pow((engGear-1)/gn,1.3),hi=Math.pow(engGear/gn,1.3)*1.05;
+          const pos=Math.min(1.05,Math.max(0,(sN-lo)/Math.max(.01,hi-lo)));
+          if(pos>.99&&engGear<gn&&up){engGear++;engShiftT=.13;subBoom(.09);noiseBurst(.04,.05,3400);if(Math.random()<eng.crk*.5)crackle(eng.crk);} // passage : thump + claquement (+ parfois ça pète)
+          else if(pos<.06&&engGear>1)engGear--;
+          tgt=Math.pow(Math.min(1,pos),.9);
+          if(spd3<8)tgt=thr*.72; // sur place : vroum-vroum libre
+          if(engShiftT>0){engShiftT-=dt;tgt*=.66;} // gaz coupés le temps du passage
+        }else tgt=sN; // turbine/onduleur : montée continue, zéro rupture
+        engRpm+=(tgt-engRpm)*Math.min(1,dt*(tgt>engRpm?8:5.5)); // monte nerveux, retombe un peu plus lent
+        if(engWasUp&&!up&&engRpm>.42&&eng.crk>0&&Math.random()<eng.crk)crackle(eng.crk); // lâcher haut dans les tours : ça pète
+        engWasUp=up;
+        const wob=eng.wob?Math.sin(t*12.7)*Math.sin(t*3.1)*eng.wob*Math.max(0,1-engRpm*3.5):0; // l'épave respire au ralenti
+        const fF=(eng.i+engRpm*eng.r)*(1+.12*nA)*(1+wob); // fréquence d'explosion (+12% sous nitro : la poussée s'entend, sans hurler)
+        osc.frequency.setTargetAtTime(fF,AC.currentTime,.035);
+        osc2.frequency.setTargetAtTime(fF,AC.currentTime,.04);
+        engSub.frequency.setTargetAtTime(Math.max(24,fF*.5),AC.currentTime,.05);
+        engNzF.frequency.setTargetAtTime(Math.min(4800,Math.max(300,fF*6)),AC.currentTime,.06);
+        engNzG.gain.setTargetAtTime((.1+.16*thr+.08*engRpm)*(1-.5*nA),AC.currentTime,.07); // l'admission s'efface sous nitro (le souffle blanc dégage)
+        if(eng.whine){engWhine.frequency.setTargetAtTime(Math.min(13500,fF*eng.whine),AC.currentTime,.04);
+          engWhineG.gain.setTargetAtTime((.16+.1*thr)*Math.pow(Math.min(1,engRpm),.7)*(1-.45*nA),AC.currentTime,.06);
+        }else engWhineG.gain.setTargetAtTime(0,AC.currentTime,.06);
+        engMix.gain.setTargetAtTime(.42+.6*thr+.05*nA,AC.currentTime,.05); // pousser dans la saturation = la hargne
+        // SOUS NITRO LE MOTEUR S'INCLINE : filtre qui se referme (×(1-.25·nA)), plafond doux à 7800 Hz —
+        // c'est la FLAMME qui domine, le moteur gronde DERRIÈRE elle au lieu de lui hurler dessus
+        filt.frequency.setTargetAtTime(Math.min(7800,eng.fq+fF*eng.fr+thr*850+(boost>0?400:0))*(1-.25*nA)*(1-.45*cloudInS),AC.currentTime,.06); // sombre au ralenti, s'ouvre à fond — feutré dans la ouate
+        const ev=(.02+.028*engRpm+.013*thr)*(1-.24*nA)*eng.vol*dk;
+        gainN.gain.setTargetAtTime(ev,AC.currentTime,.08); // (dk = announcer + gros événements)
+        engLfo.frequency.setTargetAtTime(Math.min(40,Math.max(4,fF*.35)),AC.currentTime,.1);
+        engLfoG.gain.setTargetAtTime(ev*eng.lope*Math.max(0,1-engRpm*3.2),AC.currentTime,.1); // le RONRON s'efface quand ça monte
+      }else if(gainN){
+        // en vol : un souffle de moteur résiduel ; MORT ('boom') : coupé NET — et on retombe au
+        // ralenti pour que la reprise ne reparte pas d'un régime fantôme aigu
+        gainN.gain.setTargetAtTime(mode==='fall'?.004:0,AC.currentTime,mode==='boom'?.05:.1);
+        if(mode==='boom'){engRpm=0;osc.frequency.setTargetAtTime(ENGINES[level].i,AC.currentTime,.3);osc2.frequency.setTargetAtTime(ENGINES[level].i,AC.currentTime,.3);}
+        engLfoG.gain.setTargetAtTime(0,AC.currentTime,.1);
+        engWhineG.gain.setTargetAtTime(0,AC.currentTime,.1);
+      }
       if(windG){
-        windG.gain.setTargetAtTime(Math.min(.05,spd3*.0002+(mode==='fall'?.018:0)+cloudInS*.02)*(ANN.duck?.5:1),AC.currentTime,.15);
-        windF.frequency.setTargetAtTime((280+spd3*2.5)*(1-.6*cloudInS),AC.currentTime,.15); // le nuage étouffe le vent
+        windG.gain.setTargetAtTime(Math.min(.05,spd3*.0002+(mode==='fall'?.018:0)+cloudInS*.02)*dk,AC.currentTime,.15);
+        windF.frequency.setTargetAtTime((280+spd3*2.5)*(1-.6*cloudInS)+(mode==='fall'?260:0),AC.currentTime,.15); // le nuage étouffe le vent, l'air libre l'aère
       }
       if(whG){ // sifflement d'air : la signature des vitesses folles (>330 km/h)
-        whG.gain.setTargetAtTime(Math.min(.06,Math.max(0,(spd3-280)/2200))*(1-.7*cloudInS)*(ANN.duck?.6:1),AC.currentTime,.12); // le sifflement d'air arrive plus tôt
+        whG.gain.setTargetAtTime(Math.min(.06,Math.max(0,(spd3-280)/2200))*(1-.7*cloudInS)*(1-.5*nA)*dk,AC.currentTime,.12); // le sifflement d'air arrive plus tôt, et se range sous nitro (sinon ça stride)
         whF.frequency.setTargetAtTime(2000+spd3*2.4,AC.currentTime,.1);
       }
-      if(skidG)skidG.gain.setTargetAtTime((mode==='drive'&&Math.abs(psi)>.5&&Math.abs(vA)>15)?Math.min(.1,Math.abs(vA)*.001):0,AC.currentTime,.06);
-      if(jetG){ // réacteur : souffle + grave + turbine, allumage et crépitement
-        const air9=mode==='fall';
-        const jv=nitroOn?(air9?(nitroBlue?.17:.12):(nitroBlue?.07:.05)):0;
-        jetG.gain.setTargetAtTime(jv,AC.currentTime,.06);
-        jetLowG.gain.setTargetAtTime(jv*1.1,AC.currentTime,.08);
-        jetOscG.gain.setTargetAtTime(nitroOn&&air9?.012:0,AC.currentTime,.09);
-        if(nitroOn){
-          jetF.frequency.setTargetAtTime(650+spd3*2+Math.random()*400+(nitroBlue?400:0),AC.currentTime,.05);
-          jetOsc.frequency.setTargetAtTime(900+spd3*3.5+(nitroBlue?500:0),AC.currentTime,.08);
-          if(air9&&Math.random()<dt*7)noiseBurst(.05,.035,1500); // crépitement d'afterburner
+      if(cloudInS>.45&&!loop._cldWas)noiseBurst(.45,.08,520); // percée dans la ouate : fwoosh de coton
+      loop._cldWas=cloudInS>.45;
+      if(skidG){ // crissement v2 : ZONE MORTE (il signale LA LIMITE, pas la conduite normale), pitch qui monte avec la glisse
+        const drift=(mode==='drive')?Math.max(0,Math.min(1,(Math.abs(psi)-.32)*1.5))*Math.min(1,Math.abs(vA)/35):0;
+        skidG.gain.setTargetAtTime(drift>0?Math.min(.17,Math.pow(drift,1.3)*.15*(.4+Math.min(1,spd3/380)))*dk:0,AC.currentTime,.05);
+        if(drift>0){
+          const sq=900+drift*430+spd3*.35;
+          skF1.frequency.setTargetAtTime(sq,AC.currentTime,.05);skF2.frequency.setTargetAtTime(sq*1.56,AC.currentTime,.05);
+          skD1.gain.setTargetAtTime(40+130*drift,AC.currentTime,.1);skD2.gain.setTargetAtTime(60+200*drift,AC.currentTime,.1); // le broutage stick-slip suit la glisse
+          skLfo.frequency.setTargetAtTime(9+drift*7,AC.currentTime,.1);
         }
-        if(nitroOn&&air9&&!loop._jetWas){ // ALLUMAGE : pop sourd + montée en régime
-          noiseBurst(.22,.16,420);
-          try{
-            const o9=AC.createOscillator(),g9=AC.createGain();o9.type='sawtooth';
-            o9.frequency.setValueAtTime(160,AC.currentTime);
-            o9.frequency.exponentialRampToValueAtTime(950,AC.currentTime+.3);
-            g9.gain.setValueAtTime(.07,AC.currentTime);
-            g9.gain.exponentialRampToValueAtTime(.001,AC.currentTime+.35);
-            o9.connect(g9);g9.connect(AC.destination);o9.start();o9.stop(AC.currentTime+.4);
-          }catch(e){}
+      }
+      if(jetG){ // réacteur : AU SOL la flamme rugit (peigne serré + gros grave, le sol porte),
+        // EN L'AIR le jet fend l'air (whoosh flangé + turbine, le grave s'évapore)
+        const air9=mode==='fall';
+        // LA FLAMME = le rumble brown, sol COMME air. Rond, chaud, PRÉSENT — aucun aigu à arracher.
+        const jb=nitroOn?(nitroBlue?.52:.4):0;
+        jrG.gain.setTargetAtTime(jb*(air9?1.1:1.05)*(.84+.32*Math.random())*dk,AC.currentTime,.08); // turbulence lente
+        jrDep.gain.setTargetAtTime(jb*(air9?.22:.16)*dk,AC.currentTime,.1); // flutter 5 Hz : la flamme respire
+        jrF.frequency.setTargetAtTime(nitroOn?(air9?310+spd3*.3:430+spd3*.35)+(nitroBlue?80:0):240,AC.currentTime,.1); // un poil plus mordante au sol
+        // PLUS AUCUNE couche de bruit blanc continue : souffle médium coupé, grave blanc réduit
+        // à un fond — tout le caractère vient du rumble brown + des pops bruns
+        jetG.gain.setTargetAtTime(nitroOn&&air9?.01*dk:0,AC.currentTime,.06);
+        jetLowG.gain.setTargetAtTime((nitroOn?(air9?.08:.05):0)*(.7+.6*Math.random())*dk,AC.currentTime,.07);
+        jetOscG.gain.setTargetAtTime(nitroOn&&!air9?.003:0,AC.currentTime,.09); // pointe de turbine au sol
+        jcFb.gain.setTargetAtTime(.12,AC.currentTime,.1);jcDep.gain.setTargetAtTime(.0002,AC.currentTime,.12); // peigne+flanger au repos (ils chuintaient)
+        if(nitroOn){
+          jetF.frequency.setTargetAtTime(320+spd3*.6+(nitroBlue?180:0),AC.currentTime,.07);
+          jetOsc.frequency.setTargetAtTime(900+spd3*3.5+(nitroBlue?400:0),AC.currentTime,.08);
+          // pétillement en pops BRUNS, discrets et distincts : ça crépite, ça ne souffle pas.
+          // (moins denses qu'avant : 25/s de pops ronds > 50/s de pops blancs qui fusionnent en tapis)
+          if(Math.random()<dt*(air9?9:25))flamePop(.02+Math.random()*.05,air9?.05+Math.random()*.06:.1+Math.random()*.14,(air9?300:380)+Math.random()*260);
+          if(!air9&&Math.random()<dt*2.4){flamePop(.05+Math.random()*.04,.3,520);subBoom(.05);} // le POK : plop + mini coup de poitrine
+        }
+        if(nitroOn&&air9&&!loop._jetWas){ // ALLUMAGE : FWOOM rond — souffle grave + coup de poitrine (le sifflet strident a dégagé)
+          noiseBurst(.35,.2,300);subBoom(.15);
         }
         loop._jetWas=nitroOn&&air9;
       }
