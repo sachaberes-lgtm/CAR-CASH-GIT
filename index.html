@@ -5,7 +5,14 @@
 <title>CASH CAR</title>
 <meta name="description" content="CASH CAR — runner arcade 3D : fonce, saute, vrille, surfe les nuages et amasse une fortune. Une seule vie.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#12081f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CASH CAR">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
   :root{--pix:'Press Start 2P',monospace}
@@ -16,7 +23,7 @@
   #carInfo,#record,#speedo,#cpInfo,#minimap,#turnHint{display:none!important}
   #vig{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 44%,transparent 54%,rgba(60,26,70,.34) 100%)}
   /* étalonnage cinéma du rendu 3D : couleurs plus riches, contraste doux */
-  body>canvas{filter:saturate(1.14) contrast(1.05) brightness(1.02)}
+  body>canvas{filter:saturate(1.05) contrast(1.0) brightness(1.0)} /* ACES (passe post) fait désormais le gros de l'étalonnage — on n'empile plus */
   #scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.14) 0 2px,transparent 2px 4px);opacity:.22}
   #speedFx{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 42%,rgba(45,20,55,.55) 100%);opacity:0}
   /* immersion nuage : voile blanc laiteux quand on traverse un banc */
@@ -46,6 +53,28 @@
     border:2px solid #ff3924;box-shadow:0 0 14px rgba(255,57,36,.4);
     padding:14px 18px;text-shadow:0 0 8px rgba(255,57,36,.8)}
   #resetBtn:hover{background:rgba(140,15,40,.9)}
+  #saveRow{display:flex;gap:10px;margin-top:12px}
+  .saveBtn{font-family:var(--pix);font-size:9px;letter-spacing:1px;padding:8px 12px;cursor:pointer;
+    background:rgba(30,22,60,.85);color:#cfc4ff;border:1px solid #4a3a8a;border-radius:6px}
+  .saveBtn:hover{background:rgba(58,46,110,.9);color:#fff}
+  #survHud{position:absolute;top:64px;right:16px;font-family:var(--pix);font-size:9px;letter-spacing:.5px;
+    background:rgba(10,8,24,.72);border:1px solid #3a2e58;border-radius:8px;padding:7px 10px;
+    display:none;pointer-events:none;min-width:158px;z-index:3}
+  .svHead{color:#ffd75e;margin-bottom:5px;white-space:nowrap}
+  .svHead .hot{color:#ff5e5e}
+  .svRow{color:#cfc4ff;display:flex;justify-content:space-between;gap:10px;line-height:1.75;white-space:nowrap}
+  .svRow span{color:#8dff9e}
+  .svRow.me{color:#fff;text-shadow:0 0 8px rgba(255,215,94,.8)}
+  .svRow.me span{color:#ffd75e}
+  .svRow.dead{opacity:.34;text-decoration:line-through}
+  #svClock{width:60px;height:60px;image-rendering:pixelated;display:block;margin:0 auto 2px}
+  .svHead{text-align:center}
+  #svSecs{font-size:12px;letter-spacing:1px}
+  #lastAlert{position:absolute;top:16%;left:50%;transform:translateX(-50%);text-align:center;
+    font-family:var(--pix);font-size:15px;line-height:1.9;color:#ff5e5e;
+    text-shadow:0 2px 0 #4a0808,0 0 22px rgba(255,40,40,.85);display:none;z-index:4;
+    pointer-events:none;white-space:nowrap;animation:lastBlink .45s infinite alternate}
+  @keyframes lastBlink{from{opacity:1}to{opacity:.3}}
   .sndBtn{position:absolute;top:16px;pointer-events:auto;cursor:pointer;
     font-family:var(--pix);font-size:12px;
     background:rgba(10,40,70,.85);color:#c8ecff;
@@ -67,6 +96,8 @@
   #styleBar{height:8px;background:#0c0d18;border:2px solid #ff3ec8;margin-bottom:6px;overflow:hidden;box-shadow:0 0 10px rgba(255,62,200,.35)}
   #styleFill{height:100%;width:0%;background:repeating-linear-gradient(90deg,#ff3ec8 0 10px,#b3208c 10px 14px)}
   #styleFill.fever{background:repeating-linear-gradient(90deg,#ffd75e 0 10px,#ffb000 10px 14px)}
+  #styleFill.armed{background:repeating-linear-gradient(90deg,#ff3ec8 0 10px,#ffd75e 10px 14px);animation:armBlink .4s infinite alternate}
+  @keyframes armBlink{from{filter:brightness(1)}to{filter:brightness(1.9)}}
   #feverGlow{position:absolute;inset:0;box-shadow:inset 0 0 120px rgba(255,62,200,.55);display:none}
   #flash{position:absolute;inset:0;background:#ff2020;opacity:0;transition:opacity .5s}
   #nitroLbl{font-size:9px;color:#9ae6ff;text-align:center;margin-bottom:6px;text-shadow:0 0 8px rgba(0,234,255,.6)}
@@ -95,6 +126,15 @@
     opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
   #chainHud.pulse{animation:chPulse .32s cubic-bezier(.2,1.6,.4,1)}
   @keyframes chPulse{0%{transform:translateX(-50%) scale(1.5)}100%{transform:translateX(-50%) scale(1)}}
+  #caseHud{position:absolute;top:36.5%;left:50%;transform:translateX(-50%);font-family:var(--pix);
+    letter-spacing:1px;color:#8dff9e;text-shadow:0 2px 0 #0a3a14,0 0 16px rgba(90,255,140,.5);
+    opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
+  #caseHud.hot{color:#ffd75e;text-shadow:0 2px 0 #5c3600,0 0 22px rgba(255,170,60,.85);animation:caseTremble .09s infinite}
+  @keyframes caseTremble{0%{transform:translateX(-50%) translate(1px,-1px)}25%{transform:translateX(-50%) translate(-1px,1px)}
+    50%{transform:translateX(-50%) translate(1px,1px)}75%{transform:translateX(-50%) translate(-2px,-1px)}100%{transform:translateX(-50%) translate(1px,-1px)}}
+  .bill{position:absolute;font-family:var(--pix);font-size:15px;color:#8dff9e;
+    text-shadow:0 0 8px rgba(90,255,140,.8);pointer-events:none;z-index:4;
+    transition:left .55s cubic-bezier(.5,-.1,.7,1),top .55s cubic-bezier(.5,-.1,.7,1),opacity .55s,font-size .55s}
   #turnHint{position:absolute;top:33%;left:50%;transform:translateX(-50%);font-size:44px;color:#ff3924;opacity:0;text-shadow:0 0 16px rgba(255,57,36,.8);transition:opacity .15s}
   #airPie{position:absolute;top:40%;right:7%;width:110px;height:110px;display:none;filter:drop-shadow(0 0 8px rgba(0,234,255,.5))}
   #overlay{position:fixed;inset:0;background:rgba(6,4,16,.93);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;cursor:pointer;z-index:5}
@@ -190,6 +230,32 @@
     transition:transform .4s cubic-bezier(.14,1.2,.3,1),opacity .3s}
   #spTitle.on{transform:translate(-50%,-50%) scale(1);opacity:1}
   #spFlash{position:absolute;inset:0;background:#fff6e2;opacity:0;transition:opacity .35s;pointer-events:none;z-index:3}
+  /* ------- CONTRÔLES TACTILES (mobile) — masqués par défaut, révélés par body.touch ------- */
+  #touchCtl{position:fixed;inset:0;z-index:4;pointer-events:none;display:none;touch-action:none;
+    padding:env(safe-area-inset-top,0) env(safe-area-inset-right,0) env(safe-area-inset-bottom,0) env(safe-area-inset-left,0)}
+  body.touch #touchCtl{display:block}
+  .tbtn{position:absolute;pointer-events:auto;touch-action:none;-webkit-user-select:none;user-select:none;
+    -webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;
+    font-family:var(--pix);color:#dfeeff;border-radius:50%;text-align:center;line-height:1.2;
+    background:rgba(12,8,34,.42);border:2px solid rgba(0,234,255,.5);
+    box-shadow:0 0 14px rgba(0,234,255,.25),inset 0 0 18px rgba(0,234,255,.08);
+    -webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);transition:transform .06s,background .1s;opacity:.9}
+  .tbtn.on,.tbtn:active{transform:scale(.92);background:rgba(0,234,255,.32)}
+  #tLeft,#tRight{width:76px;height:76px;bottom:26px;font-size:26px}
+  #tLeft{left:20px}#tRight{left:112px}
+  #tBrake{width:64px;height:64px;left:22px;bottom:118px;font-size:11px;letter-spacing:1px;
+    border-color:rgba(255,94,122,.6);box-shadow:0 0 14px rgba(255,94,122,.25);color:#ffd0da}
+  #tNitro{width:104px;height:104px;right:24px;bottom:30px;font-size:12px;letter-spacing:1px;
+    border-color:rgba(255,140,26,.7);background:rgba(60,26,10,.42);color:#ffd0a0;
+    box-shadow:0 0 18px rgba(255,140,26,.3),inset 0 0 20px rgba(255,140,26,.1)}
+  #tNitro.on{background:rgba(255,140,26,.4)}
+  #tPause{width:44px;height:44px;right:16px;top:66px;font-size:14px;opacity:.7}
+  /* rotation conseillée : le jeu est pensé paysage */
+  #rotate{position:fixed;inset:0;z-index:60;display:none;flex-direction:column;align-items:center;justify-content:center;
+    background:#0a0610;color:#ffd75e;font-family:var(--pix);text-align:center;gap:20px;padding:30px;line-height:1.8;font-size:13px}
+  #rotate .ic{font-size:56px;animation:rotSpin 2.2s ease-in-out infinite}
+  @keyframes rotSpin{0%,40%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
+  @media (orientation:portrait){body.touch #rotate{display:flex}}
 </style>
 </head>
 <body>
@@ -223,9 +289,12 @@
   <div id="msg"></div>
   <div id="trickBox"></div>
   <div id="chainHud"></div>
+  <div id="caseHud"></div>
   <div id="turnHint"></div>
   <canvas id="airPie" width="74" height="74"></canvas>
   <canvas id="minimap" width="176" height="176"></canvas>
+  <div id="survHud"></div>
+  <div id="lastAlert"></div>
 </div>
 <div id="overlay">
   <h1><span class="lg gold" data-t="CASH">CASH</span><span class="lg grad" data-t="CAR">CAR</span></h1>
@@ -236,6 +305,11 @@
   <div id="runStats"></div>
   <div id="nameEntry"><span>★ NOUVEAU RECORD — TON NOM</span><input id="nameInput" maxlength="8" autocomplete="off" spellcheck="false"><button id="nameSave">VALIDER</button></div>
   <div id="lbBox"></div>
+  <div id="saveRow">
+    <button id="survBtn" class="saveBtn">🏁 SURVIVANT : OFF</button>
+    <button id="saveExp" class="saveBtn">📋 COPIER MA SAUVEGARDE</button>
+    <button id="saveImp" class="saveBtn">📥 RESTAURER UN CODE</button>
+  </div>
   <div id="ctrlRow">
     <span class="kc">Z Q S D<i>conduire</i></span>
     <span class="kc">← ↑ ↓ →<i>conduire</i></span>
@@ -246,7 +320,24 @@
   </div>
   <div class="go" id="goTxt">JOUER</div>
 </div>
+<div id="touchCtl">
+  <div id="tLeft" class="tbtn">◀</div>
+  <div id="tRight" class="tbtn">▶</div>
+  <div id="tBrake" class="tbtn">FREIN</div>
+  <div id="tNitro" class="tbtn">NITRO</div>
+  <div id="tPause" class="tbtn">⏸</div>
+</div>
+<div id="rotate"><div class="ic">📱</div><div>TOURNE TON TÉLÉPHONE<br>le jeu se joue en paysage</div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" integrity="sha512-dLxUelApnYxpLt6K2iomGngnHO83iUvZytA3YjDUCjT0HDOHKXnVYdf3hU4JjM8uEhxf9nD1/ey98U3t2vZ0qQ==" crossorigin="anonymous"></script>
+<!-- POST-PROCESSING r128 (bloom cinématique) — version EXACTE alignée sur three r128. Chargés avant le jeu ;
+     si l'un manque, le jeu retombe proprement sur renderer.render() (garde CAN_POST). -->
+<!-- ORDRE IMPORTANT : EffectComposer.js définit THREE.Pass, dont héritent Shader/Render/UnrealBloomPass — il doit venir AVANT elles. -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
 <script>
 (function(){
 'use strict';
@@ -352,11 +443,81 @@ const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth,innerHeight);
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 document.body.appendChild(renderer.domElement);
-addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);slCv.width=innerWidth;slCv.height=innerHeight;});
+let DPR_CAP=Math.min(devicePixelRatio,2),curDPR=DPR_CAP,dprT=0; // RÉSOLUTION ADAPTATIVE (perf) : ajustée dans loop() selon loop._ms
+let composer=null,bloomPass=null,acesPass=null,POST_ON=false,SHADOW_ON=true; // POST-PROCESSING (assigné juste après)
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);if(composer)composer.setSize(innerWidth,innerHeight);slCv.width=innerWidth;slCv.height=innerHeight;});
 scene.add(new THREE.HemisphereLight(0xffd9c0,0x7a6f8e,1.0)); // ciel crème / sol ardoise-mauve
 const sun=new THREE.DirectionalLight(0xffb87a,1.0);sun.position.copy(SUN_DIR).multiplyScalar(3800);scene.add(sun);
 const fill=new THREE.DirectionalLight(0x8a7fa0,.28);fill.position.set(-200,-400,-100);scene.add(fill);
 /* Paris retiré — tout est misé sur le CIEL : couchant, nuages irisés, pigeons ramiers */
+
+/* ============ TRIPTYQUE VISUEL : ACES + BLOOM + OMBRES DE CONTACT ============ */
+// Détection mobile REMONTÉE ici (le tactile la réutilise en fin de fichier) : elle pilote la qualité du post-traitement.
+const IS_TOUCH=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||('ontouchstart'in window)||navigator.maxTouchPoints>0;
+const IS_MOBILE=IS_TOUCH&&((window.matchMedia&&matchMedia('(hover:none)').matches)||Math.min(innerWidth,innerHeight)<820);
+// --- Étalonnage (réglables d'un coup d'œil) ---
+const POST_EXPO=0.92; // exposition avant ACES (luminosité globale)
+const POST_SAT=1.12;  // saturation APRÈS tonemap : garde le synthwave vif malgré le roll-off d'ACES
+// ACES filmique + relèvement de saturation, en PASSE FINALE — la scène en amont est rendue à l'identique d'aujourd'hui.
+const ACESShader={
+  uniforms:{tDiffuse:{value:null},uExposure:{value:POST_EXPO},uSat:{value:POST_SAT}},
+  vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+  fragmentShader:['uniform sampler2D tDiffuse;uniform float uExposure;uniform float uSat;varying vec2 vUv;',
+    'vec3 aces(vec3 x){const float a=2.51,b=.03,c=2.43,d=.59,e=.14;return clamp((x*(a*x+b))/(x*(c*x+d)+e),0.,1.);}',
+    'void main(){vec4 t=texture2D(tDiffuse,vUv);vec3 c=aces(t.rgb*uExposure);',
+    'float l=dot(c,vec3(.2126,.7152,.0722));c=mix(vec3(l),c,uSat);', // roll-off des hautes lumières (soleil/nitro) + couleurs vives préservées
+    'gl_FragColor=vec4(c,t.a);}'].join('\n')
+};
+const CAN_POST=typeof THREE.EffectComposer==='function'&&typeof THREE.RenderPass==='function'&&typeof THREE.UnrealBloomPass==='function'&&typeof THREE.ShaderPass==='function';
+if(CAN_POST){ try{
+  const w=innerWidth,h=innerHeight;
+  let rt; // MSAA sur desktop (récupère l'anticrénelage que le composer court-circuite), cible simple sur mobile
+  if(!IS_MOBILE&&typeof THREE.WebGLMultisampleRenderTarget==='function')rt=new THREE.WebGLMultisampleRenderTarget(w,h,{format:THREE.RGBAFormat});
+  else rt=new THREE.WebGLRenderTarget(w,h,{format:THREE.RGBAFormat,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});
+  composer=new THREE.EffectComposer(renderer,rt);
+  composer.setPixelRatio(curDPR);composer.setSize(w,h);
+  composer.addPass(new THREE.RenderPass(scene,camera));
+  // BLOOM : seuil HAUT (0.78) → seuls le soleil, la nitro, l'or et les émissifs rayonnent (pas tout le ciel).
+  const bRes=IS_MOBILE?new THREE.Vector2(Math.round(w*.5),Math.round(h*.5)):new THREE.Vector2(w,h);
+  bloomPass=new THREE.UnrealBloomPass(bRes,IS_MOBILE?0.55:0.72,IS_MOBILE?0.5:0.7,0.78);
+  composer.addPass(bloomPass);
+  acesPass=new THREE.ShaderPass(ACESShader);acesPass.renderToScreen=true;composer.addPass(acesPass);
+  POST_ON=true;
+}catch(e){composer=null;POST_ON=false;} }
+
+// OMBRE DE CONTACT : un blob dégradé posé au sol sous la caisse — ancre la voiture au monde (coût ~1 draw, mobile-friendly).
+const contactTex=(function(){
+  const cv=document.createElement('canvas');cv.width=cv.height=128;const c=cv.getContext('2d');
+  const g=c.createRadialGradient(64,64,3,64,64,64);
+  g.addColorStop(0,'rgba(0,0,0,.6)');g.addColorStop(.55,'rgba(0,0,0,.32)');g.addColorStop(1,'rgba(0,0,0,0)');
+  c.fillStyle=g;c.beginPath();c.arc(64,64,64,0,7);c.fill();return new THREE.CanvasTexture(cv);
+})();
+const contactShadow=new THREE.Mesh(new THREE.PlaneGeometry(1,1),
+  new THREE.MeshBasicMaterial({map:contactTex,color:0x140a12,transparent:true,depthWrite:false,fog:false,opacity:1}));
+contactShadow.renderOrder=1;contactShadow.visible=false;scene.add(contactShadow);
+const Fsh={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
+const shTmpP=new THREE.Vector3(),shMat4=new THREE.Matrix4();
+function updateContactShadow(){ // appelée juste avant le rendu
+  if(!SHADOW_ON||!running||mode==='boom'){contactShadow.visible=false;return;}
+  if(mode==='drive'){
+    frameAt(s,Fsh);
+    if(side<0){Fsh.n.multiplyScalar(-1);Fsh.b.multiplyScalar(-1);}
+    shTmpP.copy(Fsh.p).addScaledVector(Fsh.b,lat).addScaledVector(Fsh.n,(side<0?THICK:0)+0.03); // pile sur la surface (sans le hopY : l'ombre reste au sol quand la caisse saute)
+    contactShadow.position.copy(shTmpP);
+    shMat4.makeBasis(Fsh.b,Fsh.t,Fsh.n); // le plan (XY, normale +Z) épouse la route
+    contactShadow.quaternion.setFromRotationMatrix(shMat4);
+    contactShadow.scale.set(5.4,6.6,1);contactShadow.material.opacity=0.85;contactShadow.visible=true;
+  }else if(mode==='fall'){
+    const hgt=fallPos.y-lastNearY; // hauteur au-dessus de la route la plus proche → télégraphe d'atterrissage
+    if(hgt>0.4&&hgt<46){
+      contactShadow.position.set(fallPos.x,lastNearY+0.06,fallPos.z);
+      contactShadow.quaternion.setFromRotationMatrix(shMat4.makeRotationX(-Math.PI/2)); // à plat
+      const k=1+hgt*0.05;contactShadow.scale.set(5.4*k,6.6*k,1);
+      contactShadow.material.opacity=Math.max(0,0.7*(1-hgt/46));contactShadow.visible=true;
+    }else contactShadow.visible=false;
+  }else contactShadow.visible=false;
+}
+/* ============ fin TRIPTYQUE ============ */
 
 // ---------- GÉNÉRATEUR (45°, patterns pensés pour l'airtime) ----------
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
@@ -720,9 +881,27 @@ function genCtrl(rnd,startPos,startPhi){
   straight(150,-90,2); // ARRIVÉE : ligne droite claire vers le portail
   return ctrl;
 }
+// ---------- ÉPAVES : le trafic fantôme de la fin de partie — les percuter coûte TRÈS cher ----------
+// Géométries et matériaux PARTAGÉS (jamais disposés au rebuild : seuls les groupes sortent de scène).
+let WRECKS=[];
+const wkBodyM=new THREE.MeshPhongMaterial({color:0x5a4632,shininess:12,specular:0x333333});
+const wkBodyM2=new THREE.MeshPhongMaterial({color:0x3f4a55,shininess:12,specular:0x333333});
+const wkCabM=new THREE.MeshPhongMaterial({color:0x2a2f38,shininess:30,specular:0x555555});
+const wkWheelM=new THREE.MeshPhongMaterial({color:0x14161c,shininess:8});
+const wkBodyG=new THREE.BoxGeometry(1.9,.62,4.1),wkCabG=new THREE.BoxGeometry(1.7,.5,1.9),wkWhG=new THREE.CylinderGeometry(.34,.34,.24,10);
+function mkWreck(alt){
+  const g=new THREE.Group();
+  const body=new THREE.Mesh(wkBodyG,alt?wkBodyM2:wkBodyM);body.position.y=.62;g.add(body);
+  const cab=new THREE.Mesh(wkCabG,wkCabM);cab.position.set(0,1.1,-.3);cab.rotation.z=.05;g.add(cab);
+  for(const sd of[-1,1])for(const fz of[-1,1]){
+    const w=new THREE.Mesh(wkWhG,wkWheelM);w.rotation.z=Math.PI/2;
+    w.position.set(sd*.98,.34,fz*1.45);g.add(w);
+  }
+  return g;
+}
 function buildTrack(seed){
   for(const m of trackMeshes){scene.remove(m);if(m.geometry)m.geometry.dispose();if(m.material&&m.material.dispose)m.material.dispose();}
-  trackMeshes.length=0;PADS=[];BUMPS=[];CONES=[];FLYCONES=[];OILS=[];
+  trackMeshes.length=0;PADS=[];BUMPS=[];CONES=[];FLYCONES=[];OILS=[];WRECKS=[];
   const rnd=mulberry32(seed);
   const ctrl=genCtrl(rnd,new THREE.Vector3(0,0,0),0);
   const curve=new THREE.CatmullRomCurve3(ctrl,false,'catmullrom',0.5);
@@ -773,7 +952,7 @@ function buildTrack(seed){
   const shadeAt=(i,c9)=>laneShade[c9]+nz(c9*131.7+(i>>5)*7.77)*.09+nz(c9*53.1+(i>>1)*3.3)*.09+nz(i*7.71+c9*13.7)*.05-.13;
   for(const fy of [0,-THICK]){
     const arr=[],cols=[],idx=[];
-    const dim=fy===0?1:.82;
+    const dim=1; // les DEUX faces à pleine lumière : même texture dessus et dessous
     for(let i=0;i<NP;i++){
       const p=pts[i],b=B[i],nn=Nn[i];
       for(let c9=0;c9<COLS;c9++){
@@ -849,6 +1028,7 @@ function buildTrack(seed){
   }
   // (Paris retiré — la ville a cédé sa place au ciel)
   // FLAQUES D'HUILE : rares, et seulement là où on les VOIT — ligne droite, jamais en montée
+  let oilI=0;
   for(let sp=420+rnd()*500;sp<L-220;sp+=620+rnd()*760){
     if(rnd()<.4)continue; // encore plus rare
     const io=Math.floor(sp/L*(NP-1));
@@ -858,35 +1038,60 @@ function buildTrack(seed){
     if(!straight||climbing)continue;
     frameAt(sp,F);
     const r9=2+rnd()*1.1, lo=(rnd()*2-1)*(ROAD_HALF-4.5);
+    const of9=(oilI++%2)?-1:1; // une flaque dessus, une dessous : parité stricte
     const m=new THREE.Mesh(oilGeo,oilMat);
     m.scale.set(r9*1.35,r9,1);
-    m.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(F.b.clone(),F.t.clone().negate(),F.n.clone()));
-    m.position.copy(F.p).addScaledVector(F.b,lo).addScaledVector(F.n,.05);
+    m.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(F.b.clone(),F.t.clone().negate().multiplyScalar(of9),F.n.clone().multiplyScalar(of9)));
+    m.position.copy(F.p).addScaledVector(F.b,lo).addScaledVector(F.n,of9>0?.05:-THICK-.05);
     scene.add(m);trackMeshes.push(m);
     const rim=new THREE.Mesh(oilGeo,oilRimMat);
     rim.scale.set(r9*1.5,r9*1.12,1);
     rim.quaternion.copy(m.quaternion);
-    rim.position.copy(F.p).addScaledVector(F.b,lo).addScaledVector(F.n,.04);
+    rim.position.copy(F.p).addScaledVector(F.b,lo).addScaledVector(F.n,of9>0?.04:-THICK-.04);
     scene.add(rim);trackMeshes.push(rim);
-    OILS.push({s:sp,lat:lo,r:r9});
+    OILS.push({s:sp,lat:lo,r:r9,face:of9});
   }
   // plots de chantier orange : slaloms + lignes de bord — à esquiver… ou à envoyer valser
-  function placeCone(cs,cl){
+  function placeCone(cs,cl,fc){
+    fc=fc||1;
     if(cs>L-140)return;
     frameAt(cs,F);
     const m=mkCone();
-    m.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(F.b.clone(),F.n.clone(),F.t.clone()));
-    m.position.copy(F.p).addScaledVector(F.b,cl).addScaledVector(F.n,.12);
+    m.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(F.b.clone(),F.n.clone().multiplyScalar(fc),F.t.clone().multiplyScalar(fc)));
+    m.position.copy(F.p).addScaledVector(F.b,cl).addScaledVector(F.n,fc>0?.12:-THICK-.12);
     scene.add(m);trackMeshes.push(m);
-    CONES.push({s:cs,lat:cl,mesh:m,hit:false});
+    CONES.push({s:cs,lat:cl,mesh:m,hit:false,face:fc});
   }
+  let cnGrp=0; // chaque GROUPE de plots alterne de face : chantier identique dessus et dessous
   for(let sp=300+rnd()*220;sp<L-170;sp+=170+rnd()*260){
+    const cnF=(cnGrp++%2)?-1:1;
     if(rnd()<.55){ // slalom en quinconce au milieu de la route
       const w9=3.5+rnd()*4.5;
-      for(let k=0;k<3;k++)placeCone(sp+k*15,(k%2?-1:1)*w9);
+      for(let k=0;k<3;k++)placeCone(sp+k*15,(k%2?-1:1)*w9,cnF);
     }else{ // ligne de chantier le long d'un bord
       const sd9=rnd()<.5?-1:1;
-      for(let k=0;k<4;k++)placeCone(sp+k*7.5,sd9*(ROAD_HALF-1.3));
+      for(let k=0;k<4;k++)placeCone(sp+k*7.5,sd9*(ROAD_HALF-1.3),cnF);
+    }
+  }
+  // ---- FIN DE PARTIE (niveau 6+) : chantier DOUBLE + épaves entre chaque palier de pads ----
+  // Flux aléatoire SÉPARÉ (graine dérivée) : la densité dépend du niveau sans rebrasser la génération.
+  if(level>=5){
+    const wrnd=mulberry32((seed^0xCA55E77E)>>>0);
+    for(let sp=385+wrnd()*220;sp<L-170;sp+=200+wrnd()*300){ // 2e vague de plots, faces alternées
+      const w9=3+wrnd()*5,f9=(cnGrp++%2)?-1:1;
+      for(let k=0;k<3;k++)placeCone(sp+k*13,(k%2?-1:1)*w9,f9);
+    }
+    for(let i9=0;i9<PADS.length-1;i9++){ // UNE épave par palier : le trafic fantôme s'installe
+      const ws=(PADS[i9]+PADS[i9+1])/2+(wrnd()*2-1)*40;
+      if(ws<260||ws>L-130)continue;
+      const wl=(wrnd()*2-1)*(ROAD_HALF-3.2),wf=(i9%2)?-1:1;
+      frameAt(ws,F);
+      const m=mkWreck(i9%3===0);
+      m.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(F.b.clone().multiplyScalar(wf),F.n.clone().multiplyScalar(wf),F.t.clone()));
+      m.position.copy(F.p).addScaledVector(F.b,wl).addScaledVector(F.n,wf>0?.06:-THICK-.06);
+      m.rotateY((wrnd()*2-1)*.55); // garée de travers, comme abandonnée en catastrophe
+      scene.add(m);trackMeshes.push(m);
+      WRECKS.push({s:ws,lat:wl,face:wf,mesh:m,hit:false});
     }
   }
   // NUAGES : on roule DANS le ciel — grappes volumétriques traversables + couche lointaine diaphane
@@ -992,6 +1197,15 @@ function fmtGta(v){
   const s=String(Math.round(v)).padStart(8,'0');
   const i=s.search(/[1-9]/);
   return i<0?'$<span class="dz">'+s+'</span>':'$<span class="dz">'+s.slice(0,i)+'</span>'+s.slice(i);
+}
+// ---- UNITÉS COMPACTES : « $ 1,4 M » se lit d'un œil, « $ 1 400 000 » est du bruit. Échelle
+// longue française (million, milliard, billion, billiard, trillion) — assez folle toute seule.
+const UNITS=[[1e18,'T','TRILLIONS 🤯'],[1e15,'Bd','BILLIARDS'],[1e12,'Bn','BILLIONS'],[1e9,'Md','MILLIARDS'],[1e6,'M','MILLIONS'],[1e3,'k','MILLIERS']];
+let unitSeen=0; // jamais reset : la 1re traversée d'un ordre de grandeur se fête UNE fois par session
+function fmtC(v){
+  v=Math.round(v);
+  for(const u of UNITS)if(v>=u[0]){const q=v/u[0];return '$ '+(q>=100?Math.round(q):q.toFixed(1).replace('.',',').replace(',0',''))+' '+u[1];}
+  return '$ '+v.toLocaleString('fr-FR');
 }
 const envTex=(function(){ // le NOUVEAU ciel réfléchi par les carrosseries (turquoise → bande dorée)
   const faces=[];
@@ -1216,18 +1430,26 @@ function mkNitro(){
 const pwrGeo=new THREE.SphereGeometry(1.5,18,14),pwrCoreGeo=new THREE.SphereGeometry(.6,12,10),
       pwrRingGeo=new THREE.TorusGeometry(2,.13,8,28);
 const PWR_DEFS={ // n = nitro infinie · a = airtime infini · v = speed up
-  n:{col:0x1e7bff,core:0xaee4ff,msg:'★ NITRO INFINIE — 6 s ★',hud:'NITRO ∞',tint:'#4db8ff',t:6},
-  a:{col:0x7dffec,core:0xeafffb,msg:'★ AIRTIME INFINI — 10 s ★',hud:'AIR ∞',tint:'#7dffec',t:10},
-  v:{col:0xff2e8a,core:0xffd0e8,msg:'★ SPEED UP +60% — 6 s ★',hud:'SPEED +60%',tint:'#ff3ec8',t:6}};
+  n:{col:0x1e7bff,core:0xaee4ff,ico:'🔥',msg:'🔥 NITRO INFINIE — 6 s À FOND !',hud:'NITRO ∞',tint:'#4db8ff',t:6},
+  a:{col:0x7dffec,core:0xeafffb,ico:'🪂',msg:'🪂 AIRTIME INFINI — 10 s DE VOL !',hud:'AIR ∞',tint:'#7dffec',t:10},
+  v:{col:0xff2e8a,core:0xffd0e8,ico:'⚡',msg:'⚡ VITESSE +60% — 6 s !',hud:'VITESSE +60%',tint:'#ff3ec8',t:6}};
 for(const k in PWR_DEFS){const d=PWR_DEFS[k];
   d.glassM=new THREE.MeshPhongMaterial({color:d.col,emissive:d.col,emissiveIntensity:.45,shininess:260,specular:0xffffff,envMap:envTex,reflectivity:.55,transparent:true,opacity:.42,depthWrite:false});
   d.coreM=new THREE.MeshBasicMaterial({color:d.core});
   d.ringM=new THREE.MeshBasicMaterial({color:d.col,transparent:true,opacity:.85});
+  // ÉTIQUETTE FLOTTANTE : pictogramme + nom au-dessus de l'orbe — on sait ce qu'on vise AVANT de le prendre
+  const cv=document.createElement('canvas');cv.width=cv.height=128;
+  const c=cv.getContext('2d');c.textAlign='center';
+  c.font='58px sans-serif';c.fillText(d.ico,64,56);
+  c.font='bold 17px monospace';c.lineWidth=5;c.lineJoin='round';c.strokeStyle='rgba(8,10,22,.92)';
+  c.strokeText(d.hud,64,100);c.fillStyle=d.tint;c.fillText(d.hud,64,100);
+  d.icoM=new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthWrite:false});
 }
-function mkPower(kind){
+function mkPower(kind,dir){
   const d=PWR_DEFS[kind],g=new THREE.Group();
   g.add(new THREE.Mesh(pwrCoreGeo,d.coreM),new THREE.Mesh(pwrGeo,d.glassM));
   const ring=new THREE.Mesh(pwrRingGeo,d.ringM);ring.rotation.x=Math.PI/2;g.add(ring);
+  const ic=new THREE.Sprite(d.icoM);ic.scale.set(5,5,1);ic.position.y=(dir||1)*3.2;g.add(ic); // sous la route : étiquette côté joueur
   return g;
 }
 const pickups=[];
@@ -1235,10 +1457,10 @@ const mat4b=new THREE.Matrix4();
 function spawnPickups(rnd){
   for(const p of pickups)scene.remove(p.mesh);
   pickups.length=0;
-  let billCount=0;
+  let billCount=0,pkI=0,pwI=0;
   for(let ss=200;ss<L-80;ss+=10+rnd()*12){
     const lt=(rnd()*2-1)*(ROAD_HALF-2.8);
-    const face=rnd()<.72?1:-1; // majorité dessus, une partie dessous (récompense d'y aller)
+    const face=(pkI++%2)?-1:1; // ALTERNANCE stricte : densité EXACTEMENT égale dessus/dessous
     const isN=(billCount>0&&billCount%2===0&&rnd()<.65); // nitro plus fréquent
     if(!isN)billCount++;
     frameAt(ss,F);
@@ -1254,9 +1476,9 @@ function spawnPickups(rnd){
   for(let ss=380+rnd()*260;ss<L-140;ss+=430+rnd()*380){
     const kind=kinds[Math.floor(rnd()*3)];
     const lt=(rnd()*2-1)*(ROAD_HALF-4);
-    const face=rnd()<.8?1:-1;
+    const face=(pwI++%2)?-1:1; // pouvoirs : un dessus, un dessous — parité stricte
     frameAt(ss,F);
-    const m=mkPower(kind);
+    const m=mkPower(kind,face);
     m.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,face>0?2.1:-(THICK+2.1));
     mat4b.makeBasis(F.b,F.n,F.t);
     m.quaternion.setFromRotationMatrix(mat4b);
@@ -1333,8 +1555,9 @@ function smashPig(){
     coinPing(k);
   }
   scene.remove(pigGroup);pigGroup=null;
-  const g9=denom()*8;money+=g9;levelCash+=g9; // l'ouverture paye : la tirelire lance la partie
-  trickMsg('TIRELIRE ! +'+fmt(g9),1);
+  const g9=denom()*8;money+=g9;levelCash+=g9;checkUpgrade(); // l'ouverture paye : la tirelire lance la partie
+  trickMsg('TIRELIRE ! +'+fmtC(g9),1);
+  flyCash(pp,6);
   sparkBurst(sparkGold,pp,16,10);
   noiseBurst(.3,.22,2600);noiseBurst(.16,.15,4200);subBoom(.22);thud(9); // craquement de porcelaine
   shake=Math.max(shake,.8);squashT=Math.max(squashT,.3);
@@ -1524,8 +1747,22 @@ function signatureBoom(lvl){
 function explode(){
   if(gameOver||mode==='boom')return;
   // la chaîne part en fumée avec la caisse — le sel du bank-or-bust
-  if(chain>0)showMsg('CHAÎNE PERDUE — '+chain+(chain>1?' FIGURES ENVOLÉES !':' FIGURE ENVOLÉE !'),'#ff5e5e');
+  // (garde mode==='fall' : une explosion au sol après avoir encaissé ne perd rien)
+  if(chain>0&&mode==='fall'){
+    const lost=chainEst();
+    if(!insUsed){ // L'ASSURANCE : le filet des débutants — 30 % de la mallette sauvés, UNE fois par run.
+      insUsed=true; // Elle enseigne la règle en la cassant : « pose-toi AVANT d'exploser ».
+      const saved=Math.round(lost*.3);
+      money+=saved;levelCash+=saved;checkUpgrade();
+      showMsg('🛡 ASSURANCE — '+fmtC(saved)+' sauvés sur '+fmtC(lost)+' (une seule fois par run !)','#7dff9a');
+      flyCash(carGroup.position,5); // même en mourant, l'argent sauvé voyage vers le compteur
+    }else{
+      showMsg('CHAÎNE PERDUE — '+fmtC(lost)+' ENVOLÉS !','#ff5e5e');
+    }
+    sparkBurst(sparkGold,carGroup.position,44,24); // la mallette s'ouvre : les billets giclent
+  }
   chainHud.style.opacity=0;
+  caseHud.style.opacity=0;caseHud.className='';caseHot=false;
   mode='boom';boomT=0;boomPos.copy(carGroup.position);
   if(level<9){const tx=annSpeak('earlyDead',6);if(tx)trickMsg(tx,3);} // mort avant le top 5 des caisses
   carGroup.visible=false;shadow.position.y=-99999;landMark.visible=false;
@@ -2019,6 +2256,19 @@ function subBoom(vol){ // basse sourde d'impact
 }
 const thud=v=>{duckT=Math.max(duckT,Math.min(.7,v*.05));noiseBurst(.28,Math.min(.5,.14+v*.012),260+v*10);subBoom(Math.min(.28,.08+v*.009));}; // un choc creuse le mix : l'impact se SENT
 const whoosh=()=>noiseBurst(.55,.11,650);
+function heartBeat(){ // la mallette est lourde : le cœur du pilote cogne — toum-toum sourd
+  if(!AC)return;
+  try{
+    const t0=AC.currentTime;
+    for(const [d9,v9] of [[0,.15],[.14,.10]]){
+      const o=AC.createOscillator(),g=AC.createGain();
+      o.type='sine';o.frequency.setValueAtTime(58,t0+d9);o.frequency.exponentialRampToValueAtTime(38,t0+d9+.1);
+      g.gain.setValueAtTime(.0001,t0+d9);g.gain.linearRampToValueAtTime(v9,t0+d9+.015);
+      g.gain.exponentialRampToValueAtTime(.001,t0+d9+.16);
+      o.connect(g);g.connect(MASTER);o.start(t0+d9);o.stop(t0+d9+.2);
+    }
+  }catch(e){}
+}
 function blip(){ // pièce : ding cristallin qui monte avec le combo
   if(!AC)return;
   try{
@@ -2308,7 +2558,56 @@ function annStop(){
 }
 // ---------- MUTE : deux interrupteurs persistants — SON (tout le WebAudio) et VOIX (annonceur) ----------
 const SND={sfx:true,voice:true};
-try{SND.sfx=localStorage.rrSfx5!=='0';SND.voice=localStorage.rrVox5!=='0';}catch(e){}
+// ---------- SAVE : UNE clé versionnée ('cashcarSave'), migration douce depuis rrXxx5 ----------
+// Toute la persistance passe par ici : SAVE.d vit en mémoire, flush() écrit tout d'un bloc,
+// mark() note un changement (le filet des 30 s l'écrira). Les anciennes clés rrXxx5 sont lues
+// UNE fois puis laissées intactes (retour arrière possible) — plus jamais écrites.
+const SAVE={
+  V:2,K:'cashcarSave',d:null,dirty:false,
+  def(){return{v:this.V,best:0,leaders:[],bestCar:0,sfx:true,vox:true,
+    ai:{air:.5,boost:.35,caution:.5,skill:.86,aggr:.55,airDur:1.1,runs:0}};}, // profil d'apprentissage des IA
+  san(d){ // désinfection : quoi qu'on charge (storage rongé, code importé), la forme est GARANTIE
+    const c=this.def();
+    if(!d||typeof d!=='object')return c;
+    c.best=Math.max(0,Math.round(+d.best)||0);
+    c.bestCar=Math.min(13,Math.max(0,Math.round(+d.bestCar)||0));
+    if(Array.isArray(d.leaders))c.leaders=d.leaders
+      .filter(e=>e&&typeof e.n==='string'&&isFinite(+e.s))
+      .slice(0,10).map(e=>({n:e.n.slice(0,8),s:Math.max(0,Math.round(+e.s))}));
+    c.sfx=d.sfx!==false;c.vox=d.vox!==false;
+    if(d.ai&&typeof d.ai==='object'){const a=d.ai,g=(k,dv,lo,hi)=>THREE.MathUtils.clamp(isFinite(+a[k])?+a[k]:dv,lo,hi);
+      c.ai={air:g('air',.5,0,1),boost:g('boost',.35,0,1),caution:g('caution',.5,0,1),
+        skill:g('skill',.86,.5,1.1),aggr:g('aggr',.55,0,1),airDur:g('airDur',1.1,.4,4),
+        runs:Math.max(0,Math.round(+a.runs)||0)};}
+    return c;
+  },
+  load(){
+    let d=null;
+    try{d=JSON.parse(localStorage[this.K]||'null');}catch(e){}
+    if(!d){ // première fois (ou clé rongée) : on ramasse l'ancien monde éparpillé
+      try{d={best:+localStorage.rrBest5||0,
+        leaders:JSON.parse(localStorage.rrLeaders5||'[]'),
+        bestCar:+localStorage.rrBestCar5||0,
+        sfx:localStorage.rrSfx5!=='0',vox:localStorage.rrVox5!=='0'};}catch(e){}
+    }
+    // migrations futures : une marche par version, dans l'ordre — if(d&&d.v<3){…}
+    this.d=this.san(d);
+    this.flush();
+  },
+  mark(){this.dirty=true;},
+  flush(){try{this.d.v=this.V;localStorage[this.K]=JSON.stringify(this.d);this.dirty=false;}catch(e){}},
+  export(){return btoa(unescape(encodeURIComponent(JSON.stringify(this.d))));}, // code à copier-coller
+  import(code){ // rend true si le code est valide — la désinfection repasse derrière
+    try{
+      const d=JSON.parse(decodeURIComponent(escape(atob(String(code).trim()))));
+      if(typeof d.v!=='number')return false; // pas un code à nous
+      this.d=this.san(d);this.flush();return true;
+    }catch(e){return false;}
+  }
+};
+SAVE.load();
+setInterval(()=>{if(SAVE.dirty)SAVE.flush();},30000); // le filet : rien ne se perd plus de 30 s
+SND.sfx=SAVE.d.sfx;SND.voice=SAVE.d.vox;
 const sndBtnEl=document.getElementById('sndBtn'),voxBtnEl=document.getElementById('voxBtn');
 function sndRefresh(){
   sndBtnEl.textContent=SND.sfx?'🔊 SON':'🔇 SON';sndBtnEl.classList.toggle('off',!SND.sfx);
@@ -2316,12 +2615,19 @@ function sndRefresh(){
   try{if(AC){if(SND.sfx)AC.resume();else AC.suspend();}}catch(e){} // suspend = silence total du moteur audio
   if(!SND.voice)annStop();
 }
-sndBtnEl.addEventListener('click',function(e){e.stopPropagation();SND.sfx=!SND.sfx;try{localStorage.rrSfx5=SND.sfx?'1':'0';}catch(err){}sndRefresh();});
-voxBtnEl.addEventListener('click',function(e){e.stopPropagation();SND.voice=!SND.voice;try{localStorage.rrVox5=SND.voice?'1':'0';}catch(err){}sndRefresh();});
+sndBtnEl.addEventListener('click',function(e){e.stopPropagation();SND.sfx=!SND.sfx;SAVE.d.sfx=SND.sfx;SAVE.flush();sndRefresh();});
+voxBtnEl.addEventListener('click',function(e){e.stopPropagation();SND.voice=!SND.voice;SAVE.d.vox=SND.voice;SAVE.flush();sndRefresh();});
 sndRefresh();
 // ---------- ÉTAT ----------
 const keys={};
-addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight'].includes(e.code))e.preventDefault();if(e.code==='KeyP'&&started&&!gameOver){paused=!paused;showMsg(paused?'PAUSE':'GO !');}if(e.code==='Enter'&&started&&pendingScore==null){resetGame();}start();});
+let AUTO_GAS=false; // mobile : accélération auto (le doigt sert à tourner/freiner/nitro) — voir bloc MOBILE en fin de fichier
+addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight'].includes(e.code))e.preventDefault();if(e.code==='KeyP')togglePause();if(e.code==='Enter'&&started&&gameOver&&pendingScore==null){resetGame();}
+  if(e.code==='Space'&&!e.repeat&&started&&!gameOver){ // double-tap NITRO (<280 ms) = BRAQUAGE (e.repeat : une touche MAINTENUE ne compte pas)
+    const n9=performance.now();
+    if(feverArmed&&n9-lastSpaceT<280)heistFire();
+    lastSpaceT=n9;
+  }
+  start();});
 addEventListener('keyup',e=>{keys[e.code]=false;});
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false;}); // alt-tab : aucune touche ne reste coincée
 const GRAV=9.8*.55,FALL_G=33,AXIS_Y=new THREE.Vector3(0,1,0),AIR_MAX=6;
@@ -2330,7 +2636,7 @@ const TURN_HS=.0035; // pénalité de braquage à haute vitesse (avant .008 — 
 const AIR_ASSIST=1.0; // aide au recentrage en vol (0 = off), monte avec la vitesse
 const CAM_SHAKE_V=.78; // intensité du tremblement caméra lié à la vitesse (position + roulis)
 let mode='drive',s=0,lat=0,psi=0,vA=0,vL=0,side=1;
-let steer=0,money=0,levelCash=0,boost=0,fallT=0,padCd=0,shake=0,combo=0,comboT=0,graceT=0,safeS=0,yawAcc=0,edgeT=0,squashT=0,momT=0,styleM=0,fever=0,streak=0,slowT=0,steerHold=0,aheadV=0,sideCd=0,slipT=0,oilCd=0;
+let steer=0,money=0,levelCash=0,boost=0,fallT=0,padCd=0,shake=0,combo=0,comboT=0,graceT=0,safeS=0,yawAcc=0,edgeT=0,squashT=0,momT=0,styleM=0,fever=0,streak=0,slowT=0,steerHold=0,aheadV=0,sideCd=0,slipT=0,oilCd=0,hitT=0,insUsed=false,feverArmed=false,lastSpaceT=0,rollover=0;
 let airRoll=0; // vrille visuelle en vol
 // suivi des exploits pour l'announcer — fallWrap : machine à états du SNAKE LOOP
 // 0 = rien · 1 = passé sur un CÔTÉ de la dalle · 2 = passé DESSOUS · 3 = remonté par l'AUTRE côté
@@ -2341,14 +2647,14 @@ let hopY=0,hopV=0; // petit saut de dos d'âne
 let nitroR=2,nitroX=0,nitroOn=false,nitroBlue=false,nitroHeldT=0;
 let pwrNitroT=0,pwrAirT=0,pwrSpdT=0; // POUVOIRS : nitro infinie · airtime infini · speed up +60%
 let gameOver=false,paused=false,running=false,started=false,best=0;
-try{best=+localStorage.rrBest5||0;}catch(e){}
+best=SAVE.d.best;
 const fallPos=new THREE.Vector3(),fallVel=new THREE.Vector3();
 const prevTv=new THREE.Vector3();let prevTvalid=false;
 const $=id=>document.getElementById(id);
 const elSpeed=$('speedVal'),elName=$('carName'),elLvl=$('carLevel'),elMoney=$('moneyTxt'),
       elCp=$('cpDist'),elFill=$('cpFill'),elMsg=$('msg'),elTurn=$('turnHint'),
       elRecord=$('record'),elNR=$('nitroR'),elNX=$('nitroX'),
-      trickBox=$('trickBox'),chainHud=$('chainHud'),airPie=$('airPie'),pieCtx=airPie.getContext('2d'),
+      trickBox=$('trickBox'),chainHud=$('chainHud'),caseHud=$('caseHud'),airPie=$('airPie'),pieCtx=airPie.getContext('2d'),
       elStyleF=$('styleFill'),feverGlow=$('feverGlow'),flashEl=$('flash'),
       overlay=$('overlay'),ovSub=$('ovSub'),finalScore=$('finalScore'),goTxt=$('goTxt'),tagline=$('tagline'),bestChip=$('bestChip');
 const elLb=$('lbBox'),nameEntry=$('nameEntry'),nameInput=$('nameInput'),nameSave=$('nameSave');
@@ -2377,8 +2683,8 @@ function drawSpeedLines(kmh,nitro){ // speed lines façon anime : traits radiaux
   slCtx.globalCompositeOperation='source-over';
 }
 let pendingScore=null;
-let leaders=(function(){try{const a=JSON.parse(localStorage.rrLeaders5||'[]');return Array.isArray(a)?a:[];}catch(e){return[];}})();
-function saveLeaders(){try{localStorage.rrLeaders5=JSON.stringify(leaders);}catch(e){}}
+let leaders=SAVE.d.leaders; // même tableau que la sauvegarde : les mutations coulent dedans
+function saveLeaders(){SAVE.d.leaders=leaders;SAVE.flush();}
 function lbEsc(x){return String(x).replace(/[<>&]/g,function(c){return c==='<'?'&lt;':c==='>'?'&gt;':'&amp;';});}
 function lbQualifies(sc){return sc>0&&(leaders.length<10||sc>leaders[leaders.length-1].s);}
 function renderLeaders(hl){
@@ -2390,7 +2696,7 @@ function renderLeaders(hl){
   elLb.innerHTML=h;
 }
 function setBestChip(){
-  let bc=0;try{bc=+localStorage.rrBestCar5||0;}catch(e){}
+  const bc=SAVE.d.bestCar;
   bestChip.textContent=(best>0?('RECORD  '+fmt(best)):'AUCUN RECORD — À TOI DE JOUER')+
     (bc>0?('  ·  MEILLEURE CAISSE : '+CARS[Math.min(bc,13)].name):'');
 }
@@ -2436,6 +2742,14 @@ function drawMinimap(){
   c.stroke();
   // portail (fin de zone)
   const pe=pts[NP-1];c.fillStyle='#ff4fd8';c.beginPath();c.arc(X(pe.x),Y(pe.z),3.6,0,7);c.fill();
+  // POLICE : chaque unité vivante, à sa VRAIE position, gyrophare qui bat aussi sur la carte
+  if(SURV.on)for(const b9 of SURV.bots){
+    if(!b9.alive)continue;
+    const rl9=THREE.MathUtils.clamp(b9.totD-SURV.pBase,0,L-1);
+    const pp9=pts[Math.floor(rl9/L*(NP-1))];
+    c.fillStyle=((SURV.ph+b9.ph)%1)<.5?'#ff3030':'#3f7dff';
+    c.beginPath();c.arc(X(pp9.x),Y(pp9.z),2.7,0,7);c.fill();
+  }
   // voiture (triangle orienté)
   const cp=carGroup.position;
   mmFwd.set(0,0,1).applyQuaternion(carGroup.quaternion);
@@ -2450,7 +2764,13 @@ function showMsg(t,c){elMsg.textContent=t;elMsg.style.color=c||'#ffd75e';elMsg.s
 function addStyle(n){
   if(fever>0)return;
   styleM=Math.min(100,styleM+n);
-  if(styleM>=100){fever=10;styleM=0;boostSnd();shake=Math.max(shake,.5);showMsg('★ FEVER — TOUT x2 ! ★','#ff3ec8');}
+  // jauge pleine : on ARME au lieu de déclencher — le joueur choisit SON moment (le braquage se prépare)
+  if(styleM>=100&&!feverArmed){feverArmed=true;showMsg('★ BRAQUAGE PRÊT — double-tape NITRO ! ★','#ff3ec8');chimeNote(1244,0,.14,.26);}
+}
+function heistFire(){ // le BRAQUAGE : double-tap NITRO au bon moment — tout ×2, et le skill prolonge
+  feverArmed=false;fever=10;styleM=0;
+  boostSnd();shake=Math.max(shake,.5);
+  showMsg('★ BRAQUAGE — TOUT ×2 ! ★','#ff3ec8');
 }
 function trickMsg(txt,tier){ // tier: 1 MONSTRE · 2 DOUBLE · 3 TRIPLE (ou true = mis en avant)
   const el=document.createElement('div');
@@ -2463,8 +2783,30 @@ function trickMsg(txt,tier){ // tier: 1 MONSTRE · 2 DOUBLE · 3 TRIPLE (ou true
 // chaîne. Rien n'est payé en vol : tout se cashe à l'atterrissage (grade × face × série) —
 // et tout S'ENVOLE si on explose. La redite paye de moins en moins : varie le menu !
 let chain=0,chainVal=0,chainMult=1,chainSeen={},spinHalf=0,handsT=0,skimT=0,limboT=0,
-    launchY=0,peakY=0,curNear=false,curHOff=0,curLatOff=0,
-    trkAirBig=0,trkSky=false,trkMeteor=false,trkHands=false,trkLimbo=false,trkSkim=false;
+    launchY=0,peakY=0,curNear=false,curHOff=0,curLatOff=0,lastNearY=0,
+    trkAirBig=0,trkSky=false,trkMeteor=false,trkHands=false,trkLimbo=false,trkSkim=false,
+    dolphT=0,dolphGain=0,trkDolph=false,trkDolph2=false, // LE DAUPHIN : nager au ras de la dalle
+    caseHot=false,heartT=0,ladderI=0;        // la MALLETTE tremble + cœur qui cogne · échelle des paliers
+function chainEst(){ // la MALLETTE : ce que vaut la chaîne SI on pose la caisse maintenant
+  return denom()*(5*Math.max(.7,fallT)+chainVal)*Math.min(6,chainMult)
+    *(streak>=2?1+Math.min(1,streak*.1):1)*(fever>0?2:1);
+}
+// ---- L'ÉCHELLE : chaque palier de multiplicateur se CRIE — le plafond ×6 devient un objectif nommé ----
+const LADDER=[[2,'CHAUD !'],[3,'EN FEU !'],[4.5,'MILLIONNAIRE'],[6,'JACKPOT MAX']];
+const flyV=new THREE.Vector3();
+function flyCash(worldPos,n){ // les billets VOLENT de la caisse vers le compteur — l'argent SE VOIT gagné
+  flyV.copy(worldPos).project(camera);
+  if(flyV.z>1)return; // derrière la caméra : rien à montrer
+  const x0=(flyV.x*.5+.5)*innerWidth,y0=(-flyV.y*.5+.5)*innerHeight;
+  const r=elMoney.getBoundingClientRect(),x1=r.left+r.width/2,y1=r.top+r.height/2;
+  for(let i=0;i<n;i++){
+    const b=document.createElement('div');b.className='bill';b.textContent='$';
+    b.style.left=(x0+(Math.random()-.5)*70)+'px';b.style.top=(y0+(Math.random()-.5)*46)+'px';
+    document.body.appendChild(b);
+    setTimeout(()=>{b.style.left=x1+'px';b.style.top=y1+'px';b.style.opacity=0;b.style.fontSize='8px';},30+i*45);
+    setTimeout(()=>{b.remove();},640+i*45);
+  }
+}
 function trickPop(k){ // carillon qui MONTE d'un demi-ton par maillon — l'oreille réclame la suite
   chimeNote(520*Math.pow(2,Math.min(16,k)/12),0,.09,.16);
 }
@@ -2473,10 +2815,19 @@ function chainHudShow(){
   chainHud.style.opacity=1;
   chainHud.classList.remove('pulse');void chainHud.offsetWidth;chainHud.classList.add('pulse');
 }
-function addTrick(id,txt,val,tier,raw){ // raw : échelles qui grimpent déjà (vrilles, bumps) — pas de décote
+function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent déjà (vrilles, bumps) — pas de décote. free : figure GRATUITE, zéro dollar (le bump) : feedback oui, argent non
+  if(fever>0&&!free)fever=Math.min(18,fever+.8); // pendant le BRAQUAGE, chaque figure PROLONGE le plaisir (plafond 18 s) — sauf les gratuites
   const n=(chainSeen[id]=(chainSeen[id]||0)+1);
-  chainVal+=raw?val:val*Math.pow(.6,n-1);
-  chainMult+=n===1?.5:.15;chain++;
+  if(!free){ // une figure gratuite ne touche NI la mallette (chainVal) NI le multiplicateur NI l'échelle
+    chainVal+=raw?val:val*Math.pow(.6,n-1);
+    chainMult+=n===1?.5:.15;
+    while(ladderI<LADDER.length&&Math.min(6,chainMult)>=LADDER[ladderI][0]){ // palier franchi : on le crie
+      trickMsg('×'+LADDER[ladderI][0]+' — '+LADDER[ladderI][1],LADDER[ladderI][0]>=4.5?3:2);
+      chimeNote(880*Math.pow(2,(ladderI+1)*2/12),0,.12,.22); // l'échelle monte à l'oreille aussi
+      ladderI++;
+    }
+  }
+  chain++;
   if(chain>(runStats.chainMax||0))runStats.chainMax=chain;
   trickMsg(txt+(n>2&&!raw?' ×'+n:''),tier||false);
   addStyle(tier===3?16:tier===2?11:7);
@@ -2503,9 +2854,13 @@ function startFall(impU,impF){
   fallPos.copy(F.p).addScaledVector(F.b,lat).addScaledVector(F.n,(side<0?THICK:0)+.6);
   fallVel.copy(F.t).multiplyScalar(vA*(impF||1)).addScaledVector(F.b,vL).addScaledVector(F.n,impU||.9);
   if(fallVel.length()>95)fallVel.setLength(95); // les fusées ne partent plus en orbite
+  hopY=0;hopV=0; // un dos d'âne en cours ne doit pas laisser de décalage fantôme
+  lastNearY=fallPos.y; // référence du plongeon fatal tant que tryLand n'a pas mieux
   // chaîne neuve : le vol commence, tout est à prouver
-  chain=0;chainVal=0;chainMult=1;chainSeen={};spinHalf=0;handsT=0;skimT=0;limboT=0;
+  chain=0;chainVal=rollover;chainMult=1;chainSeen={};spinHalf=0;handsT=0;skimT=0;limboT=0;
+  if(rollover>0){trickMsg('REPORT +'+Math.round(rollover),false);rollover=0;} // le PARFAIT d'avant paye d'avance
   trkAirBig=0;trkSky=trkMeteor=trkHands=trkLimbo=trkSkim=false;curNear=false;
+  dolphT=0;dolphGain=0;trkDolph=trkDolph2=false;caseHot=false;heartT=0;ladderI=0;caseHud.style.opacity=0;caseHud.className='';
   launchY=fallPos.y;peakY=fallPos.y;
   chainHud.style.opacity=0;chainHud.classList.remove('pulse');
   // le boost se disperse en petites particules
@@ -2518,14 +2873,16 @@ function startFall(impU,impF){
   whoosh();
 }
 const dTmp=new THREE.Vector3();
-function tryLand(){
+function tryLand(dt){
   let bestI=-1,bd=1e9;
   for(let i=0;i<NP;i+=2){
     const dx=fallPos.x-pts[i].x,dy=fallPos.y-pts[i].y,dz=fallPos.z-pts[i].z;
     const dd=dx*dx+dy*dy+dz*dz;
     if(dd<bd){bd=dd;bestI=i;}
   }
-  if(bestI<0||bd>1600)return false;
+  if(bestI<0)return false;
+  lastNearY=pts[bestI].y; // altitude de la route la plus proche (référence du plongeon fatal)
+  if(bd>1600)return false;
   dTmp.subVectors(fallPos,pts[bestI]);
   const hOff=dTmp.dot(Nn[bestI]),latOff=dTmp.dot(B[bestI]);
   curNear=true;curHOff=hOff;curLatOff=latOff; // radar de dalle : nourrit RASE-MOTTES / LIMBO dans la boucle
@@ -2537,23 +2894,28 @@ function tryLand(){
     else if(fallWrap===2&&nearSlab&&Math.abs(latOff)>ROAD_HALF+.5&&Math.sign(latOff)===-fallWrapSign)fallWrap=3;
   }
   const vN=fallVel.dot(Nn[bestI]);
-  // FLANC de la dalle : la caisse COGNE la tranche et REBONDIT — c'est le BUMP, une vraie
-  // figure : demi-jauge d'airtime rendue, du STYLE, et le verdict d'atterrissage gonfle.
-  // Zéro dollar direct : le bump ne paye QUE si on pose la caisse ensuite (risque → récompense).
+  // FLANC de la dalle : la caisse COGNE la tranche et REBONDIT — c'est le BUMP.
+  // Demi-jauge d'airtime rendue + du STYLE + le feedback (message, son, secousse).
+  // ZÉRO argent : le bump ne verse RIEN, ni direct ni via la chaîne (figure `free`) —
+  // longer la tranche à l'infini ne remplit plus la mallette (exploit fermé).
   const vB=fallVel.dot(B[bestI]);
-  if(sideCd<=0&&Math.abs(latOff)>=ROAD_HALF&&Math.abs(latOff)<ROAD_HALF+2.6&&
-     hOff>-THICK-.8&&hOff<.8&&vB*Math.sign(latOff)<-3){
-    const sg=Math.sign(latOff),impB=Math.abs(vB);
+  // ANTI-TUNNEL : où était la caisse à la frame d'avant, dans le repère de la dalle ?
+  // À grande vitesse le pas d'une frame dépasse les fenêtres de contact — on teste la TRAVERSÉE.
+  const prevH=hOff-vN*dt*SPD,prevL=latOff-vB*dt*SPD;
+  const bumpIn=Math.abs(latOff)>=ROAD_HALF&&Math.abs(latOff)<ROAD_HALF+2.6&&vB*Math.sign(latOff)<-3;
+  const bumpThru=Math.abs(prevL)>=ROAD_HALF&&Math.abs(latOff)<ROAD_HALF&&Math.sign(prevL)*vB<-3; // paroi percée en une frame
+  if(sideCd<=0&&hOff>-THICK-.8&&hOff<.8&&(bumpIn||bumpThru)){
+    const sg=bumpThru?Math.sign(prevL):Math.sign(latOff),impB=Math.abs(vB);
     fallVel.addScaledVector(B[bestI],-vB*1.65); // réflexion amortie sur la paroi
     fallVel.multiplyScalar(.78);
     fallVel.y+=2.4; // la tranche RENVOIE la caisse vers le ciel
     fallPos.copy(pts[bestI]).addScaledVector(B[bestI],sg*(ROAD_HALF+1.8)).addScaledVector(Nn[bestI],hOff);
     sideCd=.35;
-    // ---- BUMP / DOUBLE BUMP / TRIPLE BUMP : un maillon de la chaîne comme les autres ----
+    // ---- BUMP / DOUBLE BUMP / TRIPLE BUMP : figure GRATUITE (compte pour le HUD/style, zéro dollar) ----
     bounceN++;runStats.bumps++;
     fallT=Math.max(0,fallT-AIR_MAX*.5);airFlash=.6; // DEMI-JAUGE d'airtime rendue
     addTrick('bump',bounceN===1?'BUMP':bounceN===2?'DOUBLE BUMP':bounceN===3?'TRIPLE BUMP':'MEGA BUMP x'+bounceN,
-      8+bounceN*3,Math.min(3,bounceN),true);
+      0,Math.min(3,bounceN),true,true); // free=true : le bump NE PAYE PLUS (fini la machine à cash en longeant la tranche) — il rend l'airtime et le style, c'est tout
     bumpSfx(bounceN);
     thud(impB);noiseBurst(.14,.09,1100); // choc + froissement de tôle
     shake=Math.min(1.3,.3+impB*.03);
@@ -2563,8 +2925,10 @@ function tryLand(){
     return false; // toujours en vol — enchaîne les bumps !
   }
   let sideL=0;
-  if(hOff>-1.2&&hOff<3&&vN<4.5)sideL=1;                       // face du dessus (fenêtre élargie)
-  else if(hOff>-THICK-3&&hOff<-THICK+1.2&&vN>-4.5)sideL=-1;   // face du dessous
+  if(fallT>.35&&hOff>-1.2&&hOff<3&&vN<4.5)sideL=1;                     // face du dessus (fenêtre élargie)
+  else if(fallT>.1&&hOff<=-1.2&&prevH>=-1.2&&prevH-hOff>2&&vN<4.5)sideL=1;      // dessus PERCÉ à grande vitesse : rattrapé
+  else if(fallT>.35&&hOff>-THICK-3&&hOff<-THICK+1.2&&vN>-4.5)sideL=-1; // face du dessous
+  else if(fallT>.1&&hOff>=-THICK+1.2&&prevH<=-THICK+1.2&&hOff-prevH>2&&vN>-4.5)sideL=-1; // dessous percé en montant : rattrapé
   if(!sideL||Math.abs(latOff)>=ROAD_HALF)return false;
   s=THREE.MathUtils.clamp(bestI/(NP-1)*L+THREE.MathUtils.clamp(dTmp.dot(T[bestI]),-2,2),0,L-1);
   side=sideL;lat=latOff*sideL;psi=0;
@@ -2583,8 +2947,14 @@ function tryLand(){
   if(fallT>.7||chain>0){
     // le grade juge tout le vol : pose soyeuse = jackpot, pose écrasée = décote
     let g=1,gTxt='';
-    if(impact<4.5&&landLoss<.2){g=1.5;gTxt='PARFAIT ! ';}
+    if(impact<4.5&&landLoss<.2){g=1.5;gTxt='PARFAIT ! ';hitT=.08;}
     else if(impact>=10){g=.65;gTxt='POSÉ LOURD… ';}
+    if(fever>0){ // BRAQUAGE : tous les grades montent d'un cran — même la casse pardonne
+      if(g===1.5){g=2;gTxt='DIVIN !! ';}
+      else if(g===1){g=1.5;gTxt='PARFAIT (BRAQUAGE) ! ';hitT=.08;}
+      else{g=1;gTxt='';}
+    }
+    rollover=g>=1.5?chainVal*.1:0; // ROLLOVER : un PARFAIT reporte 10 % — la fortune voyage au vol suivant
     if(Math.abs(latOff)<ROAD_HALF*.3){chainVal+=4;chainMult+=.2;trickMsg('PILE AU CENTRE',false);} // posé sur l'axe
     if(vA<-3){chainVal+=6;chainMult+=.3;trickMsg('À RECULONS !',2);}                               // posé en marche arrière
     if(sideL<0)trickMsg('FACE CACHÉE ×2',2);
@@ -2601,13 +2971,15 @@ function tryLand(){
     if(fallWrap===3&&sideL===fallStartSide){vKey='snakeLoop';vTier=3;vPrio=5;}  // TOUR COMPLET, même face
     if(nitroOn&&nitroAirT>5){vKey='megaMeteor';vTier=3;vPrio=6;}                // 5 s de réacteur : l'ultime
     const vTxt=annSpeak(vKey,vPrio)||'MONSTRE';
-    trickMsg(gTxt+vTxt+'  +'+fmt(gain),vTier);
+    trickMsg(gTxt+vTxt+'  +'+fmtC(gain),vTier);
+    flyCash(carGroup.position,Math.min(10,3+Math.floor(Math.log10(q+1)*2.5))); // la paye VOYAGE jusqu'au compteur
     rewardSfx(vKey,vTier); // signature sonore courte assortie à la récompense
     boost=Math.max(boost,1.2);
     addStyle(14+chain*4);
     if(fallT>2)slowT=.35; // slow-mo savoureux sur les gros airs
   }
   chainHud.style.opacity=0;
+  caseHud.style.opacity=0;caseHud.className='';caseHot=false;
   return true;
 }
 function newTrack(){
@@ -2629,12 +3001,13 @@ function die(){
 function resetGame(){
   clearBoom();
   money=0;levelCash=0;level=0;buildCar(CARS[0]);
-  nitroR=2;nitroX=0;boost=0;combo=0;edgeT=0;momT=0;styleM=0;fever=0;streak=0;slowT=0;gameOver=false;paused=false;
+  nitroR=2;nitroX=0;boost=0;combo=0;edgeT=0;momT=0;styleM=0;fever=0;streak=0;slowT=0;gameOver=false;paused=false;insUsed=false;feverArmed=false;rollover=0;
   pwrNitroT=0;pwrAirT=0;pwrSpdT=0;
   nextRainAt=1e4;moneyRainT=0;sideCd=0;slipT=0;oilCd=0;
   nitroAirT=0;fallWrap=0;fallWrapSign=0;pureT=0;pureArmed=true;annStop();
   bounceN=0;airFlash=0;flightId=0;
   chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;
+  caseHud.style.opacity=0;caseHud.className='';caseHot=false;dolphT=0;trkDolph=trkDolph2=false;
   runStats={tricks:0,bumps:0,zones:0,vmax:0,chainMax:0};
   cloudInS=0;cloudFxEl.style.opacity=0;
   scene.fog.near=FOG_N;scene.fog.far=FOG_F;scene.fog.color.copy(FOG_BASE);
@@ -2642,21 +3015,28 @@ function resetGame(){
   moneyRain.length=0;
   overlay.style.display='none';
   newTrack();respawn();safeS=0;s=0;
+  AIP.resetRun(); // les compteurs d'observation repartent avec la run
+  survStart(); // APRÈS la piste neuve et s=0 : la meute encadre le vrai départ
   setupIntroPig();
   showMsg('GO ! NE MEURS PAS','#7dff9b');
 }
 function endGame(){
-  gameOver=true;airPie.style.display='none';chainHud.style.opacity=0;
+  gameOver=true;airPie.style.display='none';chainHud.style.opacity=0;caseHud.style.opacity=0;
+  lastAlertEl.style.display='none';for(const l9 of gyroLights)l9.intensity=0; // la poursuite s'éteint avec la caisse
+  if(sirG)sirG.gain.setTargetAtTime(0,AC.currentTime,.3);
+  if(SURV.on)survRender(); // classement final figé
   if(gainN)gainN.gain.setTargetAtTime(0,AC.currentTime,.2);
   if(windG)windG.gain.setTargetAtTime(0,AC.currentTime,.2);
   if(engLfoG)engLfoG.gain.setTargetAtTime(0,AC.currentTime,.2);
   if(engWhineG)engWhineG.gain.setTargetAtTime(0,AC.currentTime,.2);
+  AIP.commit(); // ta manière de jouer entre dans la mémoire des poursuivantes
+  SAVE.d.best=best;SAVE.flush(); // fin de run : tout part sur le disque, quoi qu'il arrive
   const sc=Math.round(money);
   const q=lbQualifies(sc);
   const isTop=q&&(!leaders.length||sc>leaders[0].s);
   ovSub.textContent='GAME OVER';ovSub.style.display='';
   tagline.style.display='none';
-  try{const bc=+localStorage.rrBestCar5||0;if(level>bc)localStorage.rrBestCar5=level;}catch(e){} // meilleure caisse à vie
+  if(level>SAVE.d.bestCar){SAVE.d.bestCar=level;SAVE.flush();} // meilleure caisse à vie
   setBestChip();
   runStatsEl.style.display='block';
   runStatsEl.textContent='FIGURES '+runStats.tricks+' · CHAÎNE MAX '+(runStats.chainMax||0)+' · BUMPS '+runStats.bumps+' · ZONES '+runStats.zones+' · VMAX '+Math.round(runStats.vmax)+' KM/H';
@@ -2677,9 +3057,369 @@ function start(){
   annPreload(); // les voix sont prêtes avant le premier trick
   overlay.style.display='none';
   running=true;
+  survStart(); // le mode armé au menu s'active pour cette première run
 }
 overlay.addEventListener('click',()=>{if(pendingScore!=null)return;if(!started)start();else if(gameOver)resetGame();});
 $('resetBtn').addEventListener('click',()=>{if(started)resetGame();});
+// ---- sauvegarde : exporter / restaurer par code (le clic ne doit PAS relancer la partie) ----
+const expBtn=$('saveExp'),impBtn=$('saveImp');
+function btnFlash(b,txt){const o=b.textContent;b.textContent=txt;setTimeout(()=>{b.textContent=o;},1600);}
+expBtn.addEventListener('click',e=>{e.stopPropagation();
+  const code=SAVE.export();
+  if(navigator.clipboard&&navigator.clipboard.writeText)
+    navigator.clipboard.writeText(code).then(()=>btnFlash(expBtn,'✓ COPIÉ !'),()=>prompt('Copie ce code :',code));
+  else prompt('Copie ce code :',code); // vieux navigateurs : la boîte fait le travail
+});
+impBtn.addEventListener('click',e=>{e.stopPropagation();
+  const c=prompt('Colle ton code de sauvegarde :');
+  if(c==null)return; // annulé
+  if(SAVE.import(c)){btnFlash(impBtn,'✓ RESTAURÉ — RECHARGE…');setTimeout(()=>location.reload(),900);}
+  else btnFlash(impBtn,'✗ CODE INVALIDE');
+});
+// ---------- MODE SURVIVANT v2 : 7 VRAIES voitures de police sur la piste — la POURSUITE ----------
+// Chaque IA est incarnée : elle roule, dépasse, défend, se rate, revient. Le classement = la DISTANCE
+// parcourue (SURV.pBase+s pour le joueur : les écarts survivent aux portails, téléportation invisible).
+// Couperet toutes les 60 s : le DERNIER explose. LOD partout : sim 1D permanente, mesh+gyros seulement
+// à portée de vue, 2 vraies lumières (pool) pour les plus proches, sirène unique dosée à la distance.
+const SURV={armed:false,on:false,t:0,over:false,_r:0,pBase:0,ph:0,last:false};
+SURV.bots=[];
+// personnalités : spd = rythme de base · agro = dépasse/bloque · err = fréquence des fautes
+const SURV_PILOTS=[ // rythmes AU-DESSUS de ta vitesse max : les battre exige nitro, sauts et raccourcis
+ {n:'RICO',spd:1.04,agro:.92,err:.20}, // le chien fou : colle, frotte, tente tout
+ {n:'JADE',spd:1.01,agro:.30,err:.04}, // la métronome : propre, implacable
+ {n:'MOMO',spd:1.03,agro:.62,err:.11}, // l'opportuniste : surgit sur les erreurs
+ {n:'ZAZA',spd:1.075,agro:.80,err:.27},// la fusée fautive : très vite, se rate
+ {n:'LULU',spd:1.00,agro:.42,err:.08}, // la prudente : attend son heure
+ {n:'KIKI',spd:1.05,agro:.72,err:.15}, // la teigneuse : défend chaque mètre
+ {n:'BOB', spd:1.02,agro:.52,err:.12}, // le régulier : jamais loin
+];
+// ---------- APPRENTISSAGE : les IA t'observent et adoptent ton style (façon Drivatar) ----------
+// Deux mémoires. (1) Un PROFIL persistant (localStorage via SAVE) qui agrège TA manière de jouer sur
+// toutes tes parties — appétit de saut, usage nitro, prudence en virage, niveau, agressivité. Il biaise
+// tous les bots au départ : run après run, ils prennent ta patte. (2) Des ZONES DE SAUT enregistrées
+// EN DIRECT sur la piste courante : là où TU décolles, un bot qui repasse au même endroit décolle aussi.
+const AIP={
+  air:.5,boost:.35,caution:.5,skill:.86,aggr:.55,airDur:1.1,runs:0, // profil courant
+  _drv:0,_jumps:0,_airT:0,_boost:0,_spd:0,_spdN:0,_lat:0,_latN:0,_committed:false,_pm:'', // accus de la run
+  load(){const a=SAVE.d.ai;if(a){this.air=a.air;this.boost=a.boost;this.caution=a.caution;this.skill=a.skill;this.aggr=a.aggr;this.airDur=a.airDur;this.runs=a.runs;}},
+  resetRun(){this._drv=0;this._jumps=0;this._airT=0;this._boost=0;this._spd=0;this._spdN=0;this._lat=0;this._latN=0;this._committed=false;this._pm=mode;},
+  tick(dt){ // appelé chaque frame de jeu : on t'observe même hors mode Survivant
+    if(mode==='drive'){this._drv+=dt;
+      const mx=CARS[level].maxKmh;if(mx>0){this._spd+=(Math.abs(vA)*3.6*SPD)/mx;this._spdN++;}
+      this._lat+=Math.abs(lat)/ROAD_HALF;this._latN++;
+      if(nitroOn)this._boost+=dt;
+    }else if(mode==='fall')this._airT+=dt;
+    if(mode==='fall'&&this._pm!=='fall')this._jumps++; // un décollage de plus
+    this._pm=mode;
+  },
+  commit(){ // fin de run : on fond les mesures dans le profil (adoption totale la 1re fois, EMA ensuite)
+    if(this._committed||this._drv<3)return;this._committed=true;
+    const cl=THREE.MathUtils.clamp;
+    const air=cl(this._jumps/Math.max(6,this._drv)*7,0,1);          // ~1 saut / 7 s → plein appétit
+    const boost=cl(this._boost/Math.max(6,this._drv)*3,0,1);
+    const skill=this._spdN?cl(this._spd/this._spdN,.5,1.08):this.skill;
+    const line=this._latN?this._lat/this._latN:.4;
+    const caution=cl(1-line,.15,.95);                                // collé au centre = prudent
+    const airDur=this._jumps?cl(this._airT/this._jumps,.4,4):this.airDur;
+    const aggr=cl(air*.55+line*.55,.15,1);
+    const w=this.runs<1?1:.35,mix=(o,n)=>o+(n-o)*w;                   // 1re run : on adopte tout ; ensuite EMA douce
+    this.air=mix(this.air,air);this.boost=mix(this.boost,boost);this.skill=mix(this.skill,skill);
+    this.caution=mix(this.caution,caution);this.airDur=mix(this.airDur,airDur);this.aggr=mix(this.aggr,aggr);
+    this.runs++;
+    SAVE.d.ai={air:this.air,boost:this.boost,caution:this.caution,skill:this.skill,aggr:this.aggr,airDur:this.airDur,runs:this.runs};
+    SAVE.flush();
+  }
+};
+AIP.load();
+const survHudEl=$('survHud'),survBtnEl=$('survBtn'),lastAlertEl=$('lastAlert');
+let svClkCtx=null,svRowsEl=null,svSecsEl=null;
+// ---- carrosserie police : géométries/matériaux PARTAGÉS, 3 livrées pour casser les clones ----
+const pcGlassM=new THREE.MeshPhongMaterial({color:0x0d1620,shininess:280,specular:0xffffff});
+const pcBarM=new THREE.MeshPhongMaterial({color:0x101018,shininess:60,specular:0x444444});
+const pcLiv=[ // [carrosserie, capot/accents]
+  [new THREE.MeshPhongMaterial({color:0xf2f4f8,shininess:130,specular:0xdde6ff}),new THREE.MeshPhongMaterial({color:0x14161d,shininess:90,specular:0x8899aa})],
+  [new THREE.MeshPhongMaterial({color:0x191b22,shininess:110,specular:0x99a6bb}),new THREE.MeshPhongMaterial({color:0xe8ecf2,shininess:120,specular:0xffffff})],
+  [new THREE.MeshPhongMaterial({color:0x1c2a4a,shininess:110,specular:0x99aadd}),new THREE.MeshPhongMaterial({color:0xe8ecf2,shininess:120,specular:0xffffff})]];
+const gyroRedOn=new THREE.MeshBasicMaterial({color:0xff3030}),gyroRedOff=new THREE.MeshBasicMaterial({color:0x4a0808});
+const gyroBluOn=new THREE.MeshBasicMaterial({color:0x3f7dff}),gyroBluOff=new THREE.MeshBasicMaterial({color:0x081a4a});
+const pcBodyG=new THREE.BoxGeometry(1.9,.58,4.3),pcCabG=new THREE.BoxGeometry(1.62,.52,2.0),
+      pcHoodG=new THREE.BoxGeometry(1.7,.1,1.2),pcBaseG=new THREE.BoxGeometry(1.15,.09,.4),pcLampG=new THREE.BoxGeometry(.42,.17,.34);
+const gloCv=document.createElement('canvas');gloCv.width=gloCv.height=64;
+(()=>{const gc=gloCv.getContext('2d'),gr=gc.createRadialGradient(32,32,2,32,32,30);
+  gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.35,'rgba(255,255,255,.5)');gr.addColorStop(1,'rgba(255,255,255,0)');
+  gc.fillStyle=gr;gc.fillRect(0,0,64,64);})();
+const gloTex=new THREE.CanvasTexture(gloCv);
+const sprRedM=new THREE.SpriteMaterial({map:gloTex,color:0xff3030,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false});
+const sprBluM=new THREE.SpriteMaterial({map:gloTex,color:0x3f7dff,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false});
+const sprJetM=new THREE.SpriteMaterial({map:gloTex,color:0xff9a2a,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}); // flamme réacteur (partagée)
+function mkPolice(liv){
+  const g=new THREE.Group(),[bodyM,accM]=pcLiv[liv%3];
+  const body=new THREE.Mesh(pcBodyG,bodyM);body.position.y=.62;g.add(body);
+  const hood=new THREE.Mesh(pcHoodG,accM);hood.position.set(0,.93,1.45);g.add(hood);   // capot contrasté
+  const trunk=new THREE.Mesh(pcHoodG,accM);trunk.position.set(0,.93,-1.5);g.add(trunk);
+  const cab=new THREE.Mesh(pcCabG,pcGlassM);cab.position.set(0,1.14,-.25);g.add(cab);
+  const base=new THREE.Mesh(pcBaseG,pcBarM);base.position.set(0,1.46,-.25);g.add(base); // rampe
+  const lampR=new THREE.Mesh(pcLampG,gyroRedOn);lampR.position.set(-.3,1.56,-.25);g.add(lampR);
+  const lampB=new THREE.Mesh(pcLampG,gyroBluOff);lampB.position.set(.3,1.56,-.25);g.add(lampB);
+  for(const sd of[-1,1])for(const fz of[-1,1]){
+    const w=new THREE.Mesh(wkWhG,wkWheelM);w.rotation.z=Math.PI/2;w.position.set(sd*.98,.34,fz*1.42);g.add(w);}
+  const sR=new THREE.Sprite(sprRedM);sR.position.set(0,1.9,-.25);g.add(sR);            // halos additifs
+  const sB=new THREE.Sprite(sprBluM);sB.position.set(0,1.9,-.25);sB.visible=false;g.add(sB);
+  const jet=new THREE.Sprite(sprJetM);jet.position.set(0,.55,-2.55);jet.visible=false;g.add(jet); // réacteur nitro
+  g.visible=false;scene.add(g);
+  return {g,lampR,lampB,sR,sB,jet};
+}
+// pool de VRAIES lumières : seules les 2 poursuivantes les plus proches éclairent la route et ta caisse
+const gyroLights=[new THREE.PointLight(0xff3030,0,60),new THREE.PointLight(0x3f7dff,0,60)];
+for(const l of gyroLights)scene.add(l);
+// sirène unique (LOD audio) : un WAIL doux et lointain — la fréquence RESPIRE au lieu de claquer
+let sirG=null,sirO=null;
+function sirenInit(){
+  if(sirG||!AC)return;
+  try{
+    sirG=AC.createGain();sirG.gain.value=0;
+    const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=880;f.Q.value=.7; // rond, jamais strident
+    sirO=AC.createOscillator();sirO.type='sine';sirO.frequency.value=560;
+    const wl=AC.createOscillator(),wg=AC.createGain(); // le wail : lent glissando sinusoïdal ±115 Hz
+    wl.type='sine';wl.frequency.value=.27;wg.gain.value=115;
+    wl.connect(wg);wg.connect(sirO.frequency);
+    const vb=AC.createOscillator(),vg=AC.createGain(); // vibrato léger : la sirène VIT
+    vb.type='sine';vb.frequency.value=5.3;vg.gain.value=5;
+    vb.connect(vg);vg.connect(sirO.frequency);
+    sirO.connect(f);f.connect(sirG);sirG.connect(MASTER);
+    sirO.start();wl.start();vb.start();
+  }catch(e){sirG=null;}
+}
+const FB={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
+const svM4=new THREE.Matrix4();
+function survStart(){
+  for(const b of SURV.bots)if(b.mesh)scene.remove(b.mesh.g); // grand ménage de l'escadron précédent
+  SURV.on=SURV.armed;SURV.t=0;SURV.over=false;SURV.bots=[];SURV._r=0;SURV.pBase=0;SURV.ph=0;SURV.last=false;
+  SURV.jumpZones=[];SURV.pMode=mode;SURV._launchD=0;SURV._launchT=0; // mémoire de tes décollages sur CETTE piste
+  survHudEl.style.display=SURV.on?'block':'none';
+  lastAlertEl.style.display='none';
+  for(const l of gyroLights)l.intensity=0;
+  if(!SURV.on)return;
+  sirenInit();
+  survHudEl.innerHTML='<div class="svHead"><canvas id="svClock" width="20" height="20"></canvas><span id="svSecs"></span></div><div id="svRows"></div>';
+  svClkCtx=$('svClock').getContext('2d');svRowsEl=$('svRows');svSecsEl=$('svSecs');
+  for(let i=0;i<7;i++){
+    const p=SURV_PILOTS[i];
+    // le PROFIL appris te déteint sur chaque bot : sauteurs si tu sautes, prudents si tu l'es, à ton niveau
+    const spd=p.spd*(.9+AIP.skill*.2),                      // ton niveau tire le rythme de toute la meute — fort
+      agro=THREE.MathUtils.clamp(p.agro*(.7+AIP.aggr*.7),0,1),
+      appJump=THREE.MathUtils.clamp(AIP.air*(.5+p.agro*.9),0,1.1), // appétit de saut personnel
+      appBoost=THREE.MathUtils.clamp(AIP.boost*(.6+p.agro),0,1.1);
+    SURV.bots.push({name:p.n,spd:spd,agro:agro,err:p.err,alive:true,appJump:appJump,appBoost:appBoost,
+      totD:s+(i-3)*34+(Math.random()*2-1)*12, // la meute encadre le joueur dès le départ
+      v:24,lat:(Math.random()*2-1)*(ROAD_HALF-3),latT:0,errT:0,boostT:0,ph:Math.random(),
+      air:false,airH:0,vy:0,spin:0,spinV:0,jumpCD:1+Math.random()*2,nitroT:0,zoneMark:-1,
+      mesh:mkPolice(i)});
+    SURV.bots[i].latT=SURV.bots[i].lat;
+  }
+  survRender();
+}
+function svClockDraw(){ // minuteur circulaire PIXEL-ART : 20×20 upscalé net — cadran rétro, aiguille fluide
+  if(!svClkCtx)return;
+  const c=svClkCtx;c.clearRect(0,0,20,20);
+  const frac=Math.min(1,SURV.t/60),left=60-SURV.t;
+  c.fillStyle='#141026';c.beginPath();c.arc(10,10,9.4,0,7);c.fill();
+  c.fillStyle='#332a55';for(let k=0;k<12;k++){const a=k/12*Math.PI*2;
+    c.fillRect(Math.round(9.5+Math.sin(a)*8),Math.round(9.5-Math.cos(a)*8),1,1);}
+  const col=left<10?'#ff5040':left<25?'#ffb000':'#7dff9a';
+  c.fillStyle=col;
+  for(let k=0;k<36;k++){ // l'anneau se VIDE avec la minute
+    if(k/36<frac)continue;
+    const a=k/36*Math.PI*2;
+    c.fillRect(Math.round(9.5+Math.sin(a)*6.6),Math.round(9.5-Math.cos(a)*6.6),1,1);
+  }
+  const na=frac*Math.PI*2; // l'aiguille balaie son tour de cadran
+  c.fillStyle='#fff';
+  for(let r=1.5;r<6;r+=1)c.fillRect(Math.round(9.5+Math.sin(na)*r),Math.round(9.5-Math.cos(na)*r),1,1);
+  c.fillStyle='#ffd75e';c.fillRect(9,9,2,2);
+  if(svSecsEl){const sLeft=Math.max(0,Math.ceil(left));svSecsEl.textContent='0:'+String(sLeft).padStart(2,'0');
+    svSecsEl.style.color=left<10?'#ff5040':'#ffd75e';}
+}
+function botBoom(b){ // une unité saute : gerbe or+bleu, champignon, et le son si c'est proche
+  b.alive=false;b.mesh.g.visible=false;
+  const rel=THREE.MathUtils.clamp(b.totD-SURV.pBase,1,L-2);
+  frameAt(rel,FB);FB.p.addScaledVector(FB.n,.8);
+  sparkBurst(sparkGold,FB.p,36,20);sparkBurst(sparkBlue,FB.p,28,16);
+  for(let k=0;k<18;k++)spawnP(smokePool,FB.p.x,FB.p.y+k*.22,FB.p.z,(Math.random()-.5)*2.5,5+Math.random()*4,(Math.random()-.5)*2.5,1.2+Math.random()*.7);
+  if(Math.abs(rel-s)<220){subBoom(.3);thud(11);shake=Math.max(shake,.5);}
+  trickMsg('💥 '+b.name+' EXPLOSE !',2);chimeNote(196,0,.3,.25);
+}
+function survTick(dt){
+  if(!SURV.on)return;
+  if(SURV.over){for(const l of gyroLights)l.intensity=0;if(sirG)sirG.gain.setTargetAtTime(0,AC.currentTime,.3);return;}
+  SURV.t+=dt;SURV.ph=(SURV.ph+dt*2.7)%1;
+  svClockDraw();
+  const pTot=SURV.pBase+s;
+  const pMax=CARS[level].maxKmh/3.6*(1+Math.min(.5,Math.max(0,level-5)*.08)); // le rythme suit TA caisse
+  // ---- ON T'OBSERVE EN DIRECT : chaque décollage grave une ZONE que les bots imiteront sur CETTE piste ----
+  if(mode==='fall'&&SURV.pMode!=='fall'){SURV._launchD=pTot;SURV._launchT=SURV.t;}
+  else if(mode!=='fall'&&SURV.pMode==='fall'){
+    const dur=SURV.t-SURV._launchT;
+    if(dur>.4&&SURV.jumpZones.length<48)SURV.jumpZones.push({d:SURV._launchD,dur:Math.min(dur,4)}); // là où TU sautes
+  }
+  SURV.pMode=mode;
+  // ---- classement vivant (8 entrées : tri à la main, zéro alloc chaude) ----
+  const alive=SURV.bots.filter(b=>b.alive);
+  const racers=alive.slice();racers.sort((a,b)=>b.totD-a.totD);
+  const leadD=racers.length?Math.max(racers[0].totD,pTot):pTot;
+  let pRank=1;for(const b of alive)if(b.totD>pTot)pRank++;
+  const endRush=SURV.t>48; // dernière ligne droite de la minute : ça pousse
+  for(const b of alive){
+    // -- cible de vitesse : personnalité × virages × circonstances --
+    const bi=Math.floor(THREE.MathUtils.clamp((b.totD-SURV.pBase)/L,0,1)*(NP-1));
+    const bj=Math.min(NP-1,bi+70);
+    const curv=.8+.2*Math.max(0,T[bi].dot(T[bj])); // l'IA lève le pied dans les virages serrés
+    let tgt=pMax*b.spd*curv;
+    // -- fautes : chaque pilote a les siennes (visibles quand on est derrière !) --
+    if(b.errT>0){b.errT-=dt;tgt*=.55;}
+    else if(Math.random()<dt*b.err*.15)b.errT=.5+Math.random()*.8;
+    // -- VOL : la voltige n'est plus ton monopole — elles décollent, vrillent, retombent en gerbe --
+    if(b.air){
+      b.vy-=26*dt;b.airH+=b.vy*dt;               // gravité maison : 26, comme le grand plongeon
+      b.spin+=b.spinV*dt;b.spinV*=Math.max(0,1-dt*.5);
+      tgt*=1.08;                                  // en l'air ça FILE : le saut est un raccourci, comme pour toi
+      if(b.airH<=0){                              // la retombée
+        b.air=false;b.airH=0;b.vy=0;b.spin=0;b.spinV=0;b.jumpCD=1+Math.random()*1.6;
+        if(b.mesh.g.visible)sparkBurst(sparkGold,b.mesh.g.position,7,7);
+      }
+    }else{
+      b.jumpCD-=dt;
+      if(b.jumpCD<=0){
+        let air9=0;
+        for(let zi=0;zi<SURV.jumpZones.length;zi++){ // « il a vu où tu sautes » : TES spots deviennent les leurs
+          const z=SURV.jumpZones[zi];
+          if(zi!==b.zoneMark&&Math.abs(z.d-b.totD)<8){air9=z.dur*(.7+b.appJump*.5);b.zoneMark=zi;break;}
+        }
+        if(!air9&&Math.random()<dt*b.appJump*.5)air9=.7+Math.random()*(1+b.appJump*2.2); // l'appétit hérité de TOI
+        if(air9){
+          b.air=true;b.airH=.01;b.vy=13*Math.min(air9,4); // vy=G·t/2 : il reproduit la DURÉE de ton vol
+          b.spinV=(Math.random()<.5?-1:1)*(1+b.agro*5.5)*(air9>1.5?1:.35); // les gros airs partent en vrille
+          b.jumpCD=2.2;
+        }
+      }
+    }
+    // -- course dans la course : aspiration, blocage, dépassement --
+    let ahead=null,behind=null,bestA=1e9,bestB=1e9;
+    for(const o of alive){if(o===b)continue;const g9=o.totD-b.totD;
+      if(g9>0&&g9<bestA){bestA=g9;ahead=o;}if(g9<0&&-g9<bestB){bestB=-g9;behind=o;}}
+    if(mode==='drive'){const g9=pTot-b.totD; // le joueur est un concurrent comme les autres
+      if(g9>0&&g9<bestA){bestA=g9;ahead={lat:lat,isP:1};}if(g9<0&&-g9<bestB){bestB=-g9;behind={lat:lat,isP:1};}}
+    if(ahead&&bestA<16&&Math.abs(b.lat-ahead.lat)<3)tgt*=1.09;               // ASPIRATION dans le sillage
+    if(ahead&&bestA<11&&Math.abs(b.latT-ahead.lat)<3.4){                     // bouchon : on DÉBOÎTE
+      b.latT=THREE.MathUtils.clamp(ahead.lat+(b.lat>ahead.lat?4.6:-4.6),-(ROAD_HALF-2.4),ROAD_HALF-2.4);
+      if(b.boostT<=0&&Math.random()<dt*b.agro*2.2)b.boostT=.9;               // les agressifs forcent le passage
+    }else if(behind&&bestB<9&&Math.random()<dt*b.agro*1.6){                  // on DÉFEND : porte fermée
+      b.latT=THREE.MathUtils.clamp(behind.lat,-(ROAD_HALF-2.4),ROAD_HALF-2.4);
+    }else if(Math.random()<dt*.25){                                          // sinon la trajectoire respire
+      b.latT=THREE.MathUtils.clamp(b.latT+(Math.random()*2-1)*3,-(ROAD_HALF-2.6),ROAD_HALF-2.6);
+    }
+    if(b.boostT<=0&&Math.random()<dt*b.appBoost*.5)b.boostT=.7+Math.random()*.8; // la nitro d'humeur, à TA fréquence
+    if(b.boostT>0){b.boostT-=dt;tgt*=1.18;}
+    // -- pression du couperet : le condamné se bat, personne n'attend --
+    if(endRush){if(racers[racers.length-1]===b&&b.totD<pTot)tgt*=1.14;else if(b.totD<leadD-120)tgt*=1.07;}
+    if(b.totD-pTot>500)tgt*=.94; // garde-fou INVISIBLE : à 500 m devant toi (hors de vue), on décélère en douce
+    // -- élastique INVISIBLE (jamais sous les yeux) : largué ET hors champ → on recolle en douceur --
+    const off9=Math.abs(b.totD-pTot)>360;
+    if(off9&&b.totD<leadD-380)tgt*=1.06;
+    if(b.totD>leadD-1&&racers[1]&&b.totD-racers[1].totD>420)tgt*=.965; // la tête ne s'échappe pas à l'infini
+    b.v+=(tgt-b.v)*Math.min(1,dt*1.7);
+    b.totD+=b.v*dt;
+    b.lat+=(b.latT-b.lat)*Math.min(1,dt*2.1);
+    if(mode==='drive'&&Math.abs(b.totD-pTot)<9&&Math.abs(b.lat-lat)<2.4)     // ils t'ÉVITENT au dernier moment
+      b.latT=THREE.MathUtils.clamp(lat+(b.lat>=lat?3.4:-3.4),-(ROAD_HALF-2.4),ROAD_HALF-2.4);
+  }
+  // ---- incarnation : mesh + gyros SEULEMENT à portée de vue (LOD), 2 vraies lumières pour les proches ----
+  const ph5=SURV.ph%1<.5;
+  let li=0;
+  for(const b of SURV.bots){
+    if(!b.alive){continue;}
+    const rel=b.totD-SURV.pBase;
+    const gap=Math.abs(rel-s);
+    if(rel>2&&rel<L-4&&gap<340){
+      frameAt(rel,FB);
+      const m=b.mesh.g;
+      m.position.copy(FB.p).addScaledVector(FB.b,b.lat).addScaledVector(FB.n,.56+b.airH); // la hauteur de VOL soulève la caisse
+      m.quaternion.setFromRotationMatrix(svM4.makeBasis(FB.b,FB.n,FB.t));
+      if(b.spin)m.rotateZ(b.spin); // la vrille policière : barrel roll autour de l'axe de route
+      m.visible=true;
+      const bph=((SURV.ph+b.ph)%1)<.5; // chaque rampe bat sur SA phase — la meute scintille
+      b.mesh.lampR.material=bph?gyroRedOn:gyroRedOff;
+      b.mesh.lampB.material=bph?gyroBluOff:gyroBluOn;
+      b.mesh.sR.visible=bph;b.mesh.sB.visible=!bph;
+      const gsc=(2.1+Math.sin((SURV.ph+b.ph)*Math.PI*2)*.5)*(1-gap/400); // le halo respire, s'éteint au loin
+      b.mesh.sR.scale.set(gsc*3,gsc*1.6,1);b.mesh.sB.scale.set(gsc*3,gsc*1.6,1);
+      b.mesh.jet.visible=b.boostT>0; // NITRO VISIBLE : la flamme claque derrière la caisse qui pousse
+      if(b.boostT>0){
+        const js9=1.2+Math.random()*.6;b.mesh.jet.scale.set(js9,js9*.55,1);
+        if(gap<130&&Math.random()<dt*24) // et quelques braises au ras du pare-chocs (LOD : proches seulement)
+          spawnP(flameCore,m.position.x,m.position.y+.4,m.position.z,(Math.random()-.5)*2,.5+Math.random(),(Math.random()-.5)*2,.2);
+      }
+      if(li<2&&gap<170){ // les 2 plus proches allument VRAIMENT la route (et ta carrosserie)
+        const l=gyroLights[li++];
+        l.position.copy(m.position);l.position.addScaledVector(FB.n,2.2);
+        l.color.setHex(bph?0xff3030:0x3f7dff);
+        l.intensity=(1-gap/170)*2.6*(0.6+0.4*Math.abs(Math.sin((SURV.ph+b.ph)*Math.PI*4)));
+      }
+    }else b.mesh.g.visible=false;
+  }
+  while(li<2)gyroLights[li++].intensity=0;
+  // ---- sirène : une seule voix, dosée sur la plus proche QUI POURSUIT (derrière toi) ----
+  if(sirG){
+    let near=1e9;for(const b of alive){const g9=pTot-b.totD;if(g9>0&&g9<near)near=g9;}
+    const vol=near<170?(1-near/170)*.032:0; // basse, lointaine — la menace s'entend sans agresser
+    sirG.gain.setTargetAtTime(SND.sfx?vol:0,AC.currentTime,.25);
+  }
+  // ---- DERNIER = CONDAMNÉ : la caisse clignote rouge, le HUD crie l'échéance ----
+  SURV.last=alive.length>0&&pRank>alive.length;
+  if(SURV.last&&!gameOver){
+    const left=Math.max(0,Math.ceil(60-SURV.t));
+    lastAlertEl.innerHTML='⚠ ATTENTION !<br>VOUS ÊTES DERNIER<br>EXPLOSION DANS : 00:'+String(left).padStart(2,'0');
+    lastAlertEl.style.display='block';
+  }else lastAlertEl.style.display='none';
+  if(SURV.t>=60){ // ---- LE COUPERET ----
+    SURV.t-=60;
+    if(SURV.last){ // le joueur est bon dernier : feu d'artifice funèbre
+      SURV.over=true;lastAlertEl.style.display='none';
+      showMsg('🪦 ÉLIMINÉ — DERNIER DE LA MINUTE !','#ff5e5e');
+      flashEl.style.opacity=.85;setTimeout(function(){flashEl.style.opacity=0;},300);
+      sparkBurst(sparkGold,carGroup.position,60,26);sparkBurst(sparkBlue,carGroup.position,40,20);
+      shake=2.2;duckT=Math.max(duckT,.8);
+      survRender();explode();
+    }else{
+      const low=racers[racers.length-1];
+      if(low&&low.totD<pTot){botBoom(low);for(const b of SURV.bots)if(b.alive)b.spd+=.015;} // la meute accélère
+      if(!SURV.bots.some(b=>b.alive)){
+        SURV.over=true;fanfare();addStyle(100);
+        showMsg('🏆 CHAMPION SURVIVANT — JAUGE OFFERTE !','#ffd75e');
+      }
+    }
+  }
+  SURV._r-=dt;if(SURV._r<=0){SURV._r=.25;survRender();} // le panneau, lui, se contente de 4 Hz
+}
+function survRender(){
+  if(!svRowsEl)return;
+  const pTot=SURV.pBase+s;
+  const rows=[{name:'TOI',totD:pTot,alive:!gameOver,me:true},...SURV.bots]
+    .sort((a,b)=>(b.alive-a.alive)||(b.totD-a.totD));
+  const leadD=rows.length&&rows[0].alive?rows[0].totD:pTot;
+  let h='',rk=0;
+  for(const r of rows){
+    const gap=r.alive?(rk===0?'EN TÊTE':'+'+Math.round(leadD-r.totD)+' m'):'';
+    h+='<div class="svRow'+(r.me?' me':'')+(r.alive?'':' dead')+'">'
+      +(r.alive?(++rk)+'. ':'🪦 ')+r.name+' <span>'+gap+'</span></div>';
+  }
+  svRowsEl.innerHTML=h;
+}
+survBtnEl.addEventListener('click',e=>{e.stopPropagation();
+  SURV.armed=!SURV.armed;
+  survBtnEl.textContent='🏁 SURVIVANT : '+(SURV.armed?'ON':'OFF');
+  if(started&&!gameOver)showMsg(SURV.armed?'MODE SURVIVANT AU PROCHAIN DÉPART':'SURVIVANT DÉSARMÉ');
+});
 
 // ---------- BOUCLE ----------
 const fwdW=new THREE.Vector3(),tmp=new THREE.Vector3(),tmp2=new THREE.Vector3(),tmp3=new THREE.Vector3(),mat4=new THREE.Matrix4();
@@ -2693,13 +3433,24 @@ function loop(now){
   if(!QUAL_LOW&&loop._ms>22&&now>15000){
     QUAL_LOW=true;
     for(const c9 of CLOUDS){let j9=0;for(const p9 of c9.puffs)if(++j9%3===0)p9.sp.visible=false;}
+    if(bloomPass)bloomPass.enabled=false; // FPS au tapis : on sacrifie le bloom (on garde l'ACES, quasi gratuit)
+  }
+  // RÉSOLUTION ADAPTATIVE : on suit le temps par frame (EMA loop._ms) et on ajuste le pixelRatio
+  // — GPU qui peine → on baisse la résolution ; marge confortable → on la remonte (plafond = écran).
+  dprT-=dt;
+  if(dprT<=0&&now>4000){dprT=1.1;const ms9=loop._ms||16;
+    if(ms9>26&&curDPR>.6){curDPR=Math.max(.6,curDPR-.15);applyDPR();}
+    else if(ms9<15&&curDPR<DPR_CAP-.001){curDPR=Math.min(DPR_CAP,curDPR+.1);applyDPR();}
   }
   if(slowT>0){slowT-=dt;dt*=.45;} // slow-mo d'atterrissage
+  if(hitT>0){hitT-=dt;dt*=.04;}   // HIT-STOP : 80 ms de gel sur l'encaissement PARFAIT — le monde retient son souffle
   const t=now/1000;
   let speedKmh=0;
   try{ if(running&&!paused&&!gameOver){
-    const spec=CARS[level],maxSp=spec.maxKmh/3.6;
-    const up=keys.KeyW||keys.KeyZ||keys.ArrowUp,dn=keys.KeyS||keys.ArrowDown;
+    // OVERDRIVE : passé le niveau 6, le jeu passe la surmultipliée — +8 %/niveau, jusqu'à +50 %
+    const spec=CARS[level],late=1+Math.min(.5,Math.max(0,level-5)*.08),
+          maxSp=spec.maxKmh/3.6*late,acc9=spec.accel*late;
+    const up=AUTO_GAS||keys.KeyW||keys.KeyZ||keys.ArrowUp,dn=keys.KeyS||keys.ArrowDown;
     const lf=keys.KeyA||keys.KeyQ||keys.ArrowLeft,rt=keys.KeyD||keys.ArrowRight;
     // POUVOIRS : les minuteurs s'égrènent, l'airtime infini rend une jauge neuve en expirant
     pwrNitroT=Math.max(0,pwrNitroT-dt);
@@ -2743,13 +3494,13 @@ function loop(now){
       else momT=Math.max(0,momT-dt*3);
       const momF=1+Math.min(1.8,momT*momT*.1);
       let a=0;
-      if(up)a=spec.accel*(vA<maxSp?1:.55)*(boost>0?1.5:1)*momF; // ça pousse TOUJOURS sur la route
-      if(dn)a=vA>2?-spec.accel*1.5:-spec.accel*.5;
+      if(up)a=acc9*(vA<maxSp?1:.55)*(boost>0?1.5:1)*momF; // ça pousse TOUJOURS sur la route
+      if(dn)a=vA>2?-acc9*1.5:-acc9*.5;
       vA+=a*dt;
       if(nitroOn)vA+=(nitroBlue?48:30)*dt;
       vA+=-GRAV*F.t.y*Math.cos(psi)*dt;
       // pas de plafond : seule la traînée résiste (terminal ≈ 2,4x la vitesse max de la caisse)
-      vA-=vA*Math.abs(vA)*(spec.accel/(maxSp*maxSp*5.8))*dt;
+      vA-=vA*Math.abs(vA)*(acc9/(maxSp*maxSp*5.8))*dt;
       vA*=Math.max(0,1-.03*dt);
       if(!up&&!dn&&!nitroOn)vA*=Math.max(0,1-.4*dt);
       if(vA<-8)vA=-8;
@@ -2784,7 +3535,9 @@ function loop(now){
         const zb=denom()*40*(fever>0?2:1);money+=zb;levelCash+=zb;checkUpgrade();
         runStats.zones++;
         nitroR=2; // le portail regonfle la nitro : chaque zone repart pied au plancher
-        trickMsg('NOUVELLE ZONE ! +'+fmt(zb),true);
+        trickMsg('NOUVELLE ZONE ! +'+fmtC(zb),true);
+        flyCash(carGroup.position,8);
+        SURV.pBase+=s; // la course traverse le portail : les écarts restent vrais (téléportation invisible)
         newTrack();
       }
       // pads turbo
@@ -2810,13 +3563,13 @@ function loop(now){
         if(hopY<=0){hopY=0;hopV=0;squashT=Math.max(squashT,.15);if(introD)smashPig();} // SPLAT.
       }
       // plots orange : les percuter les envoie valser (étincelles + petite perte de vitesse)
-      if(mode==='drive'&&side>0)for(const c9 of CONES){
-        if(c9.hit||Math.abs(s-c9.s)>2.6)continue;
+      if(mode==='drive')for(const c9 of CONES){
+        if(c9.hit||c9.face!==side||Math.abs(s-c9.s)>2.6)continue; // chaque plot vit sur SA face
         if(Math.abs(lat-c9.lat)<1.6){
           c9.hit=true;
           const kv=new THREE.Vector3().copy(F.t).multiplyScalar(Math.max(8,Math.abs(vA)*.55))
             .addScaledVector(F.b,(lat-c9.lat>0?-1:1)*(2+Math.random()*4))
-            .addScaledVector(F.n,5+Math.random()*5);
+            .addScaledVector(F.n,(5+Math.random()*5)*side); // il valse en s'ÉLOIGNANT de sa dalle
           FLYCONES.push({m:c9.mesh,v:kv,rx:(Math.random()-.5)*16,rz:(Math.random()-.5)*16,life:1.6});
           vA*=.985;shake=Math.max(shake,.14);
           noiseBurst(.09,.08,520);
@@ -2824,9 +3577,25 @@ function loop(now){
           addStyle(2);
         }
       }
+      // ÉPAVES : percuter le trafic fantôme freine BRUTALEMENT — et tue à pleine vitesse
+      if(mode==='drive')for(const w9 of WRECKS){
+        if(w9.hit||w9.face!==side||Math.abs(s-w9.s)>3.2)continue;
+        if(Math.abs(lat-w9.lat)<2.3){
+          w9.hit=true;
+          if(Math.abs(vA)*3.6*SPD>330){explode();break;} // à cette vitesse, une épave est un MUR
+          vA*=.5;shake=Math.max(shake,.9);squashT=Math.max(squashT,.3);
+          thud(13);duckT=Math.max(duckT,.5);dropChip(4);
+          sparkBurst(sparkGold,w9.mesh.position,18,14);
+          w9.mesh.rotation.z+=(lat>w9.lat?-.5:.5); // l'épave encaisse et pivote
+          w9.mesh.position.addScaledVector(F.b,(lat>w9.lat?-1:1)*1.2);
+          showMsg('💥 ÉPAVE PERCUTÉE !','#ff9d2e');
+          break;
+        }
+      }
       // FLAQUES D'HUILE : passer dessus fait GLISSER (contrôle coupé un instant, la caisse chasse)
       oilCd=Math.max(0,oilCd-dt);
-      if(mode==='drive'&&side>0&&oilCd<=0)for(const o9 of OILS){
+      if(mode==='drive'&&oilCd<=0)for(const o9 of OILS){
+        if(o9.face!==side)continue; // chaque flaque vit sur SA face
         if(Math.abs(s-o9.s)>o9.r+2)continue;
         if(Math.abs(lat-o9.lat)<o9.r+.6){
           slipT=.75;oilCd=1.2;
@@ -2861,7 +3630,7 @@ function loop(now){
             if(p.pow==='n')pwrNitroT=d.t;
             else if(p.pow==='a'){pwrAirT=d.t;airFlash=.6;}
             else pwrSpdT=d.t;
-            showMsg(d.msg,d.tint);boostSnd();shake=Math.max(shake,.35);
+            showMsg(d.msg,d.tint);trickMsg(d.ico+' '+d.hud,2);boostSnd();shake=Math.max(shake,.35);
             sparkBurst(p.pow==='n'?sparkBlue:sparkGold,carGroup.position,14,9);
             addStyle(10);
           }
@@ -3065,11 +3834,34 @@ function loop(now){
         else handsT=0;
         if(curNear){ // radar de dalle (rempli par tryLand à la frame précédente)
           if(Math.abs(curLatOff)<ROAD_HALF){
-            if(curHOff>1.4&&curHOff<5.2){skimT+=dt;if(!trkSkim&&skimT>.55&&fallT>.9){trkSkim=true;addTrick('rase','RASE-MOTTES',8,2);}}
+            if(curHOff>.9&&curHOff<7){ // LE DAUPHIN : nager au ras de la dalle — plus on frôle, plus ça paye
+              const prox=1-(curHOff-.9)/6.1; // 1 = collé à la route, 0 = à 7 m
+              const dInc=3.2*prox*prox*dt; // le magot grimpe au CARRÉ de la proximité
+              dolphT+=dt;chainVal+=dInc;dolphGain+=dInc;addStyle(4*prox*dt);
+              if(!trkDolph&&dolphT>.4){trkDolph=true;addTrick('dauphin','LE DAUPHIN !',3,2);}
+              if(dolphT>.4){ // le nom RESTE à l'écran tant que les points comptent — on sait POURQUOI ça monte
+                chainHud.textContent='🐬 LE DAUPHIN +'+Math.round(dolphGain)+' · CHAÎNE ×'+Math.min(6,chainMult).toFixed(1);
+                chainHud.style.opacity=1;
+              }
+              if(!trkDolph2&&dolphT>2.4){trkDolph2=true;addTrick('dauphin2','DAUPHIN ROYAL !!',9,3);}
+              if(prox>.55&&Math.random()<dt*22) // écume dorée sous la caisse quand on frôle vraiment
+                spawnP(sparkGold,fallPos.x,fallPos.y-1.1,fallPos.z,(Math.random()-.5)*6,-2-Math.random()*4,(Math.random()-.5)*6,.3);
+              if(curHOff>1.4&&curHOff<5.2){skimT+=dt;if(!trkSkim&&skimT>.55&&fallT>.9){trkSkim=true;addTrick('rase','RASE-MOTTES',8,2);}}
+            }
             else if(curHOff<-THICK-1.4&&curHOff>-THICK-8){limboT+=dt;if(!trkLimbo&&limboT>.35){trkLimbo=true;addTrick('limbo','LIMBO SOUS LA ROUTE',12,3);}}
           }
           curNear=false;
         }
+      }
+      // ---- LA MALLETTE : la valeur en jeu sous les yeux — elle tremble quand ça devient gros ----
+      if(chain>0||fallT>.7){
+        const est=chainEst();
+        caseHud.textContent='💰 '+fmtC(est);
+        caseHud.style.fontSize=Math.min(30,17+est/denom()*.055)+'px'; // le magot GONFLE à l'écran
+        caseHud.style.opacity=1;
+        const hot=est>denom()*20; // au-delà, c'est de la nitroglycérine : tremblement + cœur
+        if(hot!==caseHot){caseHot=hot;caseHud.className=hot?'hot':'';}
+        if(hot){heartT-=dt;if(heartT<=0){heartT=.86;heartBeat();}}
       }
       if(speedKmh>60){ // traits d'air aussi en vol
         tmp.copy(fallVel).normalize();
@@ -3111,9 +3903,9 @@ function loop(now){
       // viseur : où vais-je atterrir ?
       landMark.visible=false;
       tmp2.copy(fallPos);tmp3.copy(fallVel);
-      for(let st2=0;st2<14;st2++){
+      for(let st2=0;st2<14;st2++){ // même intégration que la vraie chute : vel par seconde, position ×SPD
         tmp3.y-=FALL_G*.12;
-        tmp2.addScaledVector(tmp3,.12);
+        tmp2.addScaledVector(tmp3,.12*SPD);
         let bi=-1,bdd=400;
         for(let i2=0;i2<NP;i2+=8){
           const dx=tmp2.x-pts[i2].x,dy=tmp2.y-pts[i2].y,dz=tmp2.z-pts[i2].z,dd2=dx*dx+dy*dy+dz*dz;
@@ -3126,6 +3918,9 @@ function loop(now){
             landMark.position.copy(pts[bi]).addScaledVector(B[bi],l2).addScaledVector(Nn[bi],h2>-1.3?.3:-THICK-.3);
             landMark.quaternion.setFromRotationMatrix(mat4.makeBasis(T[bi],B[bi],Nn[bi]));
             landMark.visible=true;
+            const impP=Math.abs(tmp3.dot(Nn[bi])); // impact PRÉDIT — même unité que le verdict d'atterrissage
+            landMark.material.color.setHex(impP<4.5?0xffd75e:impP>=10?0xff5040:0xffffff); // or = fenêtre PARFAIT, rouge = posé lourd
+            landMark.scale.setScalar(impP<4.5?1+Math.sin(t*10)*.12:1); // l'anneau OR pulse : vas-y, c'est maintenant
             // assistance d'atterrissage : recentre doucement (d'autant plus qu'on va vite)
             const asF=AIR_ASSIST*THREE.MathUtils.clamp(fallVel.length()/60,.2,1.4);
             fallVel.addScaledVector(B[bi],-l2*asF*dt*.5);
@@ -3151,8 +3946,8 @@ function loop(now){
       }
       pieCtx.fillStyle='#fff';pieCtx.font='bold 15px monospace';pieCtx.textAlign='center';
       pieCtx.fillText((pwrAirT>0?pwrAirT:Math.max(0,AIR_MAX-fallT)).toFixed(1),37,42);
-      if(fallT>.35&&tryLand()){airPie.style.display='none';}
-      else if((fallT>AIR_MAX&&pwrAirT<=0)||fallPos.y<pts[NP-1].y-200){airPie.style.display='none';explode();}
+      if(tryLand(dt)){airPie.style.display='none';}
+      else if((fallT>AIR_MAX&&pwrAirT<=0)||fallPos.y<lastNearY-200){airPie.style.display='none';explode();}
     }else if(mode==='boom'){ // ---- EXPLOSION ----
       boomT+=dt;
       for(const d of debris){
@@ -3245,7 +4040,8 @@ function loop(now){
       if(k9.life<=0){scene.remove(k9.m);k9.m.material.dispose();skulls.splice(i9,1);}
     }
     carLight.position.copy(carGroup.position);carLight.position.y+=3;
-    if(fever>0){carLight.color.setHex(0xffd75e);carLight.intensity=.9+Math.sin(t*12)*.45;}
+    if(SURV.last&&!gameOver){carLight.color.setHex(Math.sin(t*18)>0?0xff3030:0x7a1010);carLight.intensity=1.6+Math.sin(t*18)*.9;} // DERNIER : la caisse clignote rouge
+    else if(fever>0){carLight.color.setHex(0xffd75e);carLight.intensity=.9+Math.sin(t*12)*.45;}
     else{carLight.color.setHex(0xfff0ff);carLight.intensity=.8;}
     // sons continus
     if(AC){
@@ -3360,25 +4156,33 @@ function loop(now){
     elSpeed.style.color=speedKmh>460?'#ff5040':'';
     speedFx.style.opacity=Math.max(0,Math.min(.95,(speedKmh-140)/280));
     elName.textContent=CARS[level].name;
-    elLvl.textContent='NIVEAU '+(level+1)+' / '+CARS.length+' — pièces de '+fmt(denom()*5);
-    if(loop._money!==money){loop._money=money;elMoney.innerHTML=fmtGta(money);} // un parse HTML seulement quand le compte bouge
+    elLvl.textContent='NIVEAU '+(level+1)+' / '+CARS.length+' — pièces de '+fmtC(denom()*5);
+    if(loop._money!==money){loop._money=money;elMoney.innerHTML=fmtGta(money); // un parse HTML seulement quand le compte bouge
+      for(const u of UNITS)if(money>=u[0]){ // on vient de changer d'ordre de grandeur ? ça se FÊTE (une fois par session)
+        if(u[0]>unitSeen){unitSeen=u[0];showMsg('💸 TU COMPTES EN '+u[2]+' MAINTENANT !','#7dff9a');}
+        break;}
+    }
     if(!gameOver&&money>=nextRainAt){nextRainAt*=10;startMoneyRain();}
-    if(money>best){best=money;try{localStorage.rrBest5=best;}catch(e){}}
+    if(money>best){best=money;SAVE.d.best=best;SAVE.mark();} // mark : le filet des 30 s (ou la fin de run) écrira
     elRecord.textContent='record : '+fmt(best);
     elNR.style.width=(nitroR/4*100)+'%';
     elNX.style.width=(nitroX/4*100)+'%';
     // chip des POUVOIRS actifs : compte à rebours coloré au-dessus de la jauge nitro
     let pch='';
-    if(pwrNitroT>0)pch+='<span style="color:#4db8ff">NITRO ∞ '+pwrNitroT.toFixed(1)+'</span>';
-    if(pwrAirT>0)pch+='<span style="color:#7dffec">AIR ∞ '+pwrAirT.toFixed(1)+'</span>';
-    if(pwrSpdT>0)pch+='<span style="color:#ff3ec8">SPEED +60% '+pwrSpdT.toFixed(1)+'</span>';
+    if(pwrNitroT>0)pch+='<span style="color:#4db8ff">🔥 NITRO ∞ '+pwrNitroT.toFixed(1)+'</span>';
+    if(pwrAirT>0)pch+='<span style="color:#7dffec">🪂 AIR ∞ '+pwrAirT.toFixed(1)+'</span>';
+    if(pwrSpdT>0)pch+='<span style="color:#ff3ec8">⚡ VITESSE +60% '+pwrSpdT.toFixed(1)+'</span>';
     if(pch!==loop._pch){loop._pch=pch;pwrChip.innerHTML=pch;pwrChip.style.display=pch?'block':'none';}
     const prevT=level>0?THRESH[level-1]:0,nextT=THRESH[Math.min(level,12)];
-    elCp.textContent=level>=13?'MAX':fmt(nextT);
+    elCp.textContent=level>=13?'MAX':fmtC(nextT);
     elFill.style.width=(level>=13?100:100*Math.min(1,(levelCash-prevT)/(nextT-prevT)))+'%';
-    if(fever>0)fever-=dt;else styleM=Math.max(0,styleM-4*dt);
-    if(fever>0){elStyleF.className='fever';elStyleF.style.width=(fever/10*100)+'%';feverGlow.style.display='block';}
-    else{elStyleF.className='';elStyleF.style.width=styleM+'%';feverGlow.style.display='none';}
+    if(fever>0)fever-=dt;
+    else if(feverArmed){styleM=Math.max(0,styleM-2*dt);if(styleM<=0)feverArmed=false;} // armé : la jauge FUIT — sers-toi ou perds-le
+    else styleM=Math.max(0,styleM-4*dt);
+    survTick(dt); // SURVIVANT : la meute roule, saute, et le couperet de la minute tombe
+    AIP.tick(dt); // …et pendant ce temps, les IA T'OBSERVENT (même hors mode Survivant)
+    if(fever>0){elStyleF.className='fever';elStyleF.style.width=(Math.min(1,fever/10)*100)+'%';feverGlow.style.display='block';}
+    else{elStyleF.className=feverArmed?'armed':'';elStyleF.style.width=styleM+'%';feverGlow.style.display='none';}
     if(comboT>0){comboT-=dt;if(comboT<=0)combo=0;}
     if(msgT>0){msgT-=dt;if(msgT<=0)elMsg.style.opacity=0;}
   } }catch(err){if(!loop._warned){console.error('loop error',err);loop._warned=true;}}
@@ -3393,7 +4197,9 @@ function loop(now){
     RAYS[r9].position.y+=RAY_LIFT;
   }
   if(!sunSprite.parent){scene.add(sunSprite);scene.add(horizonGlow);for(const r9 of RAYS)scene.add(r9);}
-  renderer.render(scene,camera);
+  updateContactShadow();
+  if(POST_ON&&composer)composer.render(); // ACES + bloom
+  else renderer.render(scene,camera);      // repli si le post n'a pas pu se charger
 }
 // ---------- INIT ----------
 newTrack();
@@ -3640,6 +4446,49 @@ renderLeaders(-1);
   }
   sp9.addEventListener('click',function(){if(!launched)launch();else hide();}); // 1er clic = lancer, 2e = passer
 })();
+/* ============ MOBILE / TACTILE / PAUSE / PWA — ajout non intrusif (rien de la physique n'est réécrit) ============ */
+// PAUSE commune : clavier P, bouton tactile ⏸ et pause auto passent tous par ici (gère aussi le son)
+function togglePause(){ if(!started||gameOver)return;
+  paused=!paused; showMsg(paused?'PAUSE':'GO !');
+  try{ if(AC){ if(paused)AC.suspend(); else if(SND.sfx)AC.resume(); } }catch(e){}
+}
+// applique la résolution adaptative (reconfigure le renderer et le canvas des speed-lines)
+function applyDPR(){ try{ renderer.setPixelRatio(curDPR); renderer.setSize(innerWidth,innerHeight);
+  if(composer){composer.setPixelRatio(curDPR);composer.setSize(innerWidth,innerHeight);}
+  slCv.width=innerWidth; slCv.height=innerHeight; }catch(e){} }
+// PAUSE AUTO : l'appli passe en arrière-plan (onglet caché, app minimisée) → on gèle + on coupe le son
+addEventListener('visibilitychange',function(){ if(document.hidden&&started&&!gameOver&&!paused)togglePause(); });
+// DÉTECTION MOBILE : IS_TOUCH / IS_MOBILE sont déclarés plus haut (bloc TRIPTYQUE) car le post-traitement s'en sert aussi
+if(IS_MOBILE){
+  document.body.classList.add('touch');
+  AUTO_GAS=true; // accélération auto : le pouce sert à tourner / freiner / nitro
+  const cr=document.getElementById('ctrlRow'); // remplace les indices CLAVIER par les bons contrôles tactiles
+  if(cr)cr.innerHTML='<span class="kc">◀ ▶<i>tourner</i></span>'+
+    '<span class="kc">NITRO<i>turbo · double-tap = braquage</i></span>'+
+    '<span class="kc">FREIN<i>ralentir</i></span>';
+  const nl=document.getElementById('nitroLbl'); if(nl)nl.textContent='NITRO (bouton)';
+  // câblage tactile : on pilote le MÊME objet `keys` que le clavier → aucune nouvelle physique
+  function bindHold(el,code,onDown){ if(!el)return;
+    const dn=function(e){ if(e.cancelable)e.preventDefault(); if(!keys[code]){keys[code]=true;el.classList.add('on');if(onDown)onDown();} };
+    const up=function(e){ if(e&&e.cancelable)e.preventDefault(); keys[code]=false; el.classList.remove('on'); };
+    el.addEventListener('touchstart',dn,{passive:false});
+    el.addEventListener('touchend',up,{passive:false});
+    el.addEventListener('touchcancel',up,{passive:false});
+    el.addEventListener('mousedown',dn); addEventListener('mouseup',up); // repli souris (test au clic sur desktop tactile)
+  }
+  bindHold(document.getElementById('tLeft'),'ArrowLeft',start);
+  bindHold(document.getElementById('tRight'),'ArrowRight',start);
+  bindHold(document.getElementById('tBrake'),'ArrowDown',start);
+  bindHold(document.getElementById('tNitro'),'Space',function(){ start(); // NITRO + double-tap = BRAQUAGE (même règle que la barre ESPACE)
+    if(started&&!gameOver){ const n9=performance.now();
+      if(feverArmed&&n9-lastSpaceT<280)heistFire(); lastSpaceT=n9; } });
+  const pb=document.getElementById('tPause');
+  if(pb){ const pv=function(e){ if(e.cancelable)e.preventDefault(); togglePause(); };
+    pb.addEventListener('touchstart',pv,{passive:false}); pb.addEventListener('click',pv); }
+}
+// PWA : enregistrement du service worker (offline + installable). Sans effet en file:// ou sans HTTPS/localhost.
+if('serviceWorker'in navigator){ addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); }); }
+/* ============ fin ajout MOBILE / PWA ============ */
 requestAnimationFrame(loop);
 })();
 </script>
