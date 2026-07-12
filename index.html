@@ -387,6 +387,7 @@ const skyDome=(function(){
   m.frustumCulled=false;m.renderOrder=-9;scene.add(m);return m;
 })();
 const FOG_N=420,FOG_F=2600,FOG_BASE=new THREE.Color(0xffc9a0),FOG_CLOUD=new THREE.Color(0xfff2e6),fogTmp=new THREE.Color();
+const FOG_CJ=new THREE.Color(0xffe3ba),cjV=new THREE.Vector3(); // CONTRE-JOUR : l'air s'embrase quand on roule vers le soleil
 scene.fog=new THREE.Fog(0xffc9a0,FOG_N,FOG_F); // brume chaude de l'horizon (resserrée quand on traverse un nuage)
 const camera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.1,9800);
 // SOLEIL « 1.61 » : les grands numéros lumineux du studio se couchent à l'horizon
@@ -455,17 +456,30 @@ const fill=new THREE.DirectionalLight(0x8a7fa0,.28);fill.position.set(-200,-400,
 // Détection mobile REMONTÉE ici (le tactile la réutilise en fin de fichier) : elle pilote la qualité du post-traitement.
 const IS_TOUCH=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||('ontouchstart'in window)||navigator.maxTouchPoints>0;
 const IS_MOBILE=IS_TOUCH&&((window.matchMedia&&matchMedia('(hover:none)').matches)||Math.min(innerWidth,innerHeight)<820);
+// --- OMBRES LONGUES (golden hour) : une seule casteuse — le soleil — dans une fenêtre ortho serrée qui SUIT la caisse.
+// Soleil à ~7,6° → l'ombre fait ~7,5× la hauteur de l'objet : le rasant fait tout le travail.
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+sun.castShadow=true;
+sun.shadow.mapSize.set(IS_MOBILE?1024:2048,IS_MOBILE?1024:2048);
+const SUNC=sun.shadow.camera;
+SUNC.left=-34;SUNC.right=34;SUNC.top=30;SUNC.bottom=-64;SUNC.near=40;SUNC.far=340;SUNC.updateProjectionMatrix(); // fond profond : l'ombre atteint la dalle même en PLEIN CIEL
+sun.shadow.bias=-0.0003;sun.shadow.normalBias=0.08; // normalBias en MÈTRES (~2 texels) : assez pour tuer l'acné, pas de quoi décoller l'ombre
+scene.add(sun.target);
+const SUN_UP=new THREE.Vector3().crossVectors(SUN_PERP,SUN_DIR).normalize(),shadV=new THREE.Vector3(); // base du plan lumière (snap texel)
 // --- Étalonnage (réglables d'un coup d'œil) ---
-const POST_EXPO=0.92; // exposition avant ACES (luminosité globale)
-const POST_SAT=1.12;  // saturation APRÈS tonemap : garde le synthwave vif malgré le roll-off d'ACES
+const POST_EXPO=0.92; // exposition avant ACES (luminosité globale) — respire en contre-jour (voir updateClouds)
+const POST_SAT=1.07;  // saturation APRÈS tonemap : la chaleur vient de la balance des blancs, plus besoin de pousser
 // ACES filmique + relèvement de saturation, en PASSE FINALE — la scène en amont est rendue à l'identique d'aujourd'hui.
 const ACESShader={
   uniforms:{tDiffuse:{value:null},uExposure:{value:POST_EXPO},uSat:{value:POST_SAT}},
   vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
   fragmentShader:['uniform sampler2D tDiffuse;uniform float uExposure;uniform float uSat;varying vec2 vUv;',
     'vec3 aces(vec3 x){const float a=2.51,b=.03,c=2.43,d=.59,e=.14;return clamp((x*(a*x+b))/(x*(c*x+d)+e),0.,1.);}',
-    'void main(){vec4 t=texture2D(tDiffuse,vUv);vec3 c=aces(t.rgb*uExposure);',
+    'void main(){vec4 t=texture2D(tDiffuse,vUv);',
+    'vec3 c=aces(t.rgb*vec3(1.045,1.,.955)*uExposure);', // balance des blancs GOLDEN HOUR avant le tonemap — la chaleur vient de la lumière, pas d un filtre
     'float l=dot(c,vec3(.2126,.7152,.0722));c=mix(vec3(l),c,uSat);', // roll-off des hautes lumières (soleil/nitro) + couleurs vives préservées
+    'c+=vec3(.018,.012,.028)*(1.-smoothstep(0.,.30,l));', // ombres relevées MAUVE (le ciel remplit ce que le soleil n atteint pas) — les noirs ne bouchent jamais
     'gl_FragColor=vec4(c,t.a);}'].join('\n')
 };
 const CAN_POST=typeof THREE.EffectComposer==='function'&&typeof THREE.RenderPass==='function'&&typeof THREE.UnrealBloomPass==='function'&&typeof THREE.ShaderPass==='function';
@@ -477,9 +491,9 @@ if(CAN_POST){ try{
   composer=new THREE.EffectComposer(renderer,rt);
   composer.setPixelRatio(curDPR);composer.setSize(w,h);
   composer.addPass(new THREE.RenderPass(scene,camera));
-  // BLOOM : seuil HAUT (0.78) → seuls le soleil, la nitro, l'or et les émissifs rayonnent (pas tout le ciel).
+  // BLOOM : seuil HAUT (0.82) + halo COURT → halation discrète sur soleil/nitro/or, jamais de brume laiteuse.
   const bRes=IS_MOBILE?new THREE.Vector2(Math.round(w*.5),Math.round(h*.5)):new THREE.Vector2(w,h);
-  bloomPass=new THREE.UnrealBloomPass(bRes,IS_MOBILE?0.55:0.72,IS_MOBILE?0.5:0.7,0.78);
+  bloomPass=new THREE.UnrealBloomPass(bRes,IS_MOBILE?0.45:0.58,IS_MOBILE?0.45:0.5,0.82);
   composer.addPass(bloomPass);
   acesPass=new THREE.ShaderPass(ACESShader);acesPass.renderToScreen=true;composer.addPass(acesPass);
   POST_ON=true;
@@ -506,7 +520,7 @@ function updateContactShadow(){ // appelée juste avant le rendu
     contactShadow.position.copy(shTmpP);
     shMat4.makeBasis(Fsh.b,Fsh.t,Fsh.n); // le plan (XY, normale +Z) épouse la route
     contactShadow.quaternion.setFromRotationMatrix(shMat4);
-    contactShadow.scale.set(5.4,6.6,1);contactShadow.material.opacity=0.85;contactShadow.visible=true;
+    contactShadow.scale.set(5.4,6.6,1);contactShadow.material.opacity=side<0?0.85:0.5;contactShadow.visible=true; // face -1 : le blob reste seul (l'ombre réelle part dans le vide) ; dessus il ne fait plus que l'occlusion de contact
   }else if(mode==='fall'){
     const hgt=fallPos.y-lastNearY; // hauteur au-dessus de la route la plus proche → télégraphe d'atterrissage
     if(hgt>0.4&&hgt<46){
@@ -535,6 +549,7 @@ function mkCone(){
   const base=new THREE.Mesh(coneBaseGeo,coneMat);base.position.y=.035;
   const c=new THREE.Mesh(coneGeo,coneMat);c.position.y=.5;
   const b=new THREE.Mesh(coneBandGeo,coneBandMat);b.position.y=.52;
+  base.castShadow=c.castShadow=b.castShadow=true; // les plots étirent leur ombre en travers de la route
   g.add(base,c,b);return g;
 }
 // flaques d'huile (rares, droites & plates uniquement) : disque sombre glacé + reflet irisé
@@ -757,10 +772,14 @@ function updateClouds(dt,t){
   cloudInS+=(cloudIn-cloudInS)*Math.min(1,dt*(cloudIn>cloudInS?9:3.5));
   if(cloudInS<.004)cloudInS=0;
   cloudFxEl.style.opacity=(cloudInS*.92).toFixed(3);
-  scene.fog.near=FOG_N-(FOG_N-26)*cloudInS;
+  // CONTRE-JOUR : face au soleil (au carré : ±30° seulement), la brume se dore, l'horizon avance, l'expo respire
+  camera.getWorldDirection(cjV);
+  const cj9=Math.max(0,cjV.dot(SUN_DIR)),cj2=cj9*cj9,fogN9=FOG_N*(1-cj2*.18);
+  scene.fog.near=fogN9-(fogN9-26)*cloudInS;
   scene.fog.far=FOG_F-(FOG_F-340)*cloudInS;
-  fogTmp.copy(FOG_BASE).lerp(FOG_CLOUD,cloudInS);
+  fogTmp.copy(FOG_BASE).lerp(FOG_CJ,cj2*.5).lerp(FOG_CLOUD,cloudInS);
   scene.fog.color.copy(fogTmp);
+  if(acesPass)acesPass.uniforms.uExposure.value=POST_EXPO*(1+cj2*.07);
 }
 // ---------- PIGEONS RAMIERS : rares traversées d'oiseaux — un peu de vie dans le ciel ----------
 const PIGEONS=[];let pigeonT=12+Math.random()*14;
@@ -893,8 +912,9 @@ function mkWreck(alt){
   const g=new THREE.Group();
   const body=new THREE.Mesh(wkBodyG,alt?wkBodyM2:wkBodyM);body.position.y=.62;g.add(body);
   const cab=new THREE.Mesh(wkCabG,wkCabM);cab.position.set(0,1.1,-.3);cab.rotation.z=.05;g.add(cab);
+  body.castShadow=cab.castShadow=true;
   for(const sd of[-1,1])for(const fz of[-1,1]){
-    const w=new THREE.Mesh(wkWhG,wkWheelM);w.rotation.z=Math.PI/2;
+    const w=new THREE.Mesh(wkWhG,wkWheelM);w.rotation.z=Math.PI/2;w.castShadow=true;
     w.position.set(sd*.98,.34,fz*1.45);g.add(w);
   }
   return g;
@@ -942,7 +962,7 @@ function buildTrack(seed){
     const g=new THREE.BufferGeometry();
     g.setAttribute('position',new THREE.Float32BufferAttribute(arr,3));
     g.setIndex(idx);g.computeVertexNormals();
-    const m=new THREE.Mesh(g,mat);
+    const m=new THREE.Mesh(g,mat);m.receiveShadow=true;
     scene.add(m);trackMeshes.push(m);return m;
   };
   // faces roulables : COLS colonnes de vertex → stries longitudinales + micro-grain étiré
@@ -970,7 +990,9 @@ function buildTrack(seed){
     g.setAttribute('position',new THREE.Float32BufferAttribute(arr,3));
     g.setAttribute('color',new THREE.Float32BufferAttribute(cols,3));
     g.setIndex(idx);g.computeVertexNormals();
-    const m=new THREE.Mesh(g,new THREE.MeshPhongMaterial({color:0x3a3a3a,side:THREE.DoubleSide,vertexColors:true,shininess:34,specular:0x50606e,envMap:envTex,reflectivity:.05}));
+    // spéculaire CHAUD : avec le soleil à 7°, le Phong dessine tout seul la traînée rasante qui court vers le couchant
+    const m=new THREE.Mesh(g,new THREE.MeshPhongMaterial({color:0x3a3a3a,side:THREE.DoubleSide,vertexColors:true,shininess:48,specular:0x8a6f52,envMap:envTex,reflectivity:.05}));
+    m.receiveShadow=true; // le bitume reçoit les OMBRES LONGUES
     scene.add(m);trackMeshes.push(m);
   }
   const flank=new THREE.MeshLambertMaterial({color:0x1a1a1a,side:THREE.DoubleSide});
@@ -1224,6 +1246,20 @@ const envTex=(function(){ // le NOUVEAU ciel réfléchi par les carrosseries (tu
 })();
 const carGroup=new THREE.Group();scene.add(carGroup);
 const carLight=new THREE.PointLight(0xfff0ff,.8,85);scene.add(carLight);
+// ---- RIM GOLDEN HOUR : liseré doré sur les arêtes exposées au soleil (fresnel masqué côté lumière).
+// Uniforms PARTAGÉS entre toutes les caisses — une seule source de vérité, teinte pilotée par l'état dans loop().
+const RIM_U={uRimC:{value:new THREE.Color(0xffd9a0)},uRimStr:{value:.55},uRimPow:{value:3.0},uSunV:{value:new THREE.Vector3()}};
+function rimify(m){
+  m.onBeforeCompile=function(sh){
+    sh.uniforms.uRimC=RIM_U.uRimC;sh.uniforms.uRimStr=RIM_U.uRimStr;sh.uniforms.uRimPow=RIM_U.uRimPow;sh.uniforms.uSunV=RIM_U.uSunV;
+    sh.fragmentShader=sh.fragmentShader
+      .replace('#include <common>','#include <common>\nuniform vec3 uRimC;uniform vec3 uSunV;uniform float uRimStr;uniform float uRimPow;')
+      .replace('#include <dithering_fragment>',
+        'float rimF=pow(1.-saturate(dot(normalize(normal),normalize(vViewPosition))),uRimPow);\n'+
+        'rimF*=smoothstep(-.25,.55,dot(normalize(normal),uSunV));\n'+ // seulement le flanc au soleil : un liseré, pas un halo cartoon
+        'gl_FragColor.rgb+=uRimC*rimF*uRimStr;\n#include <dithering_fragment>');
+  };
+}
 const wheels=[];
 // halo doux pour phares/feux (défini AVANT buildCar)
 const lampTex=(function(){
@@ -1248,6 +1284,7 @@ function buildCar(spec){
   const chromeM=new THREE.MeshPhongMaterial({color:0xe8ecf0,shininess:280,specular:0xffffff,envMap:envTex,reflectivity:.85,combine:THREE.MixOperation});
   const darkM=new THREE.MeshPhongMaterial({color:0x14161a,shininess:60,specular:0x333333});
   const rustM=new THREE.MeshPhongMaterial({color:0x5a3a20,shininess:5,specular:0x111111});
+  rimify(bodyM);rimify(accM); // le verre et le chrome brillent déjà par l'envMap — le rim, c'est pour la tôle
   const y0=.35;
   // châssis bas (l'épave est de travers)
   const lower=new THREE.Mesh(new THREE.BoxGeometry(spec.w,spec.h*.62,spec.l),bodyM);
@@ -1391,6 +1428,7 @@ function buildCar(spec){
     const tg=new THREE.Sprite(new THREE.SpriteMaterial({map:lampTex,color:0xff2818,transparent:true,opacity:.8,depthWrite:false}));
     tg.scale.set(.5,.5,1);tg.position.set(sd*spec.w*.30,y0+spec.h*.55,-spec.l/2-.16);carGroup.add(tg);
   }
+  carGroup.traverse(o9=>{if(o9.isMesh)o9.castShadow=true;}); // golden hour : toute la caisse porte son ombre LONGUE sur le bitume
 }
 buildCar(CARS[0]);
 // ombre portée sous la voiture
@@ -3166,6 +3204,7 @@ function mkPolice(liv){
   const sR=new THREE.Sprite(sprRedM);sR.position.set(0,1.9,-.25);g.add(sR);            // halos additifs
   const sB=new THREE.Sprite(sprBluM);sB.position.set(0,1.9,-.25);sB.visible=false;g.add(sB);
   const jet=new THREE.Sprite(sprJetM);jet.position.set(0,.55,-2.55);jet.visible=false;g.add(jet); // réacteur nitro
+  g.traverse(o9=>{if(o9.isMesh)o9.castShadow=true;}); // la meute aussi étire son ombre au couchant
   g.visible=false;scene.add(g);
   return {g,lampR,lampB,sR,sB,jet};
 }
@@ -3434,6 +3473,8 @@ function loop(now){
     QUAL_LOW=true;
     for(const c9 of CLOUDS){let j9=0;for(const p9 of c9.puffs)if(++j9%3===0)p9.sp.visible=false;}
     if(bloomPass)bloomPass.enabled=false; // FPS au tapis : on sacrifie le bloom (on garde l'ACES, quasi gratuit)
+    if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;} // ...et les ombres redescendent en 1024 (recrée la map, zéro recompilation)
+    sun.shadow.mapSize.set(1024,1024);
   }
   // RÉSOLUTION ADAPTATIVE : on suit le temps par frame (EMA loop._ms) et on ajuste le pixelRatio
   // — GPU qui peine → on baisse la résolution ; marge confortable → on la remonte (plafond = écran).
@@ -4197,6 +4238,19 @@ function loop(now){
     RAYS[r9].position.y+=RAY_LIFT;
   }
   if(!sunSprite.parent){scene.add(sunSprite);scene.add(horizonGlow);for(const r9 of RAYS)scene.add(r9);}
+  // fenêtre d'ombre : le soleil suit la caisse, snappé au texel dans le plan lumière (zéro scintillement en roulant)
+  const ts9=68/sun.shadow.mapSize.x;
+  shadV.copy(carGroup.position);
+  shadV.addScaledVector(SUN_PERP,Math.round(shadV.dot(SUN_PERP)/ts9)*ts9-shadV.dot(SUN_PERP));
+  shadV.addScaledVector(SUN_UP,Math.round(shadV.dot(SUN_UP)/ts9)*ts9-shadV.dot(SUN_UP));
+  sun.target.position.copy(shadV);
+  sun.position.copy(shadV).addScaledVector(SUN_DIR,160);
+  sun.target.updateMatrixWorld();
+  // rim golden hour : direction du soleil en espace vue + teinte par état (or / cyan nitro / or riche braquage)
+  RIM_U.uSunV.value.copy(SUN_DIR).transformDirection(camera.matrixWorldInverse);
+  if(fever>0)RIM_U.uRimC.value.setHex(0xffc55e);
+  else if(nitroOn)RIM_U.uRimC.value.setHex(0x9fe2ff);
+  else RIM_U.uRimC.value.setHex(0xffd9a0);
   updateContactShadow();
   if(POST_ON&&composer)composer.render(); // ACES + bloom
   else renderer.render(scene,camera);      // repli si le post n'a pas pu se charger

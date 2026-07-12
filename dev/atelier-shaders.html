@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CASH CAR — Atelier shaders</title>
+<style>
+  html,body{margin:0;height:100%;background:#12081f;overflow:hidden;font-family:system-ui,sans-serif;color:#fff}
+  #c{display:block;width:100vw;height:100vh}
+  /* étalonnage cinéma comme le jeu (léger, l'ACES fait le gros) */
+  #c{filter:saturate(1.05)}
+  #panel{position:fixed;top:12px;left:12px;width:250px;max-height:94vh;overflow:auto;
+    background:rgba(18,8,31,.82);backdrop-filter:blur(8px);border:1px solid rgba(255,200,120,.25);
+    border-radius:12px;padding:12px 14px;font-size:12px;line-height:1.5;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+  #panel h1{font-size:13px;margin:0 0 8px;letter-spacing:.5px;color:#ffd75e}
+  #panel h2{font-size:11px;margin:14px 0 4px;color:#ff9ad0;text-transform:uppercase;letter-spacing:1px}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:5px 0}
+  .row label{opacity:.85;flex:1}
+  .row input[type=range]{flex:1.2;min-width:0}
+  .row .val{width:38px;text-align:right;opacity:.7;font-variant-numeric:tabular-nums}
+  .amb{display:flex;gap:6px;margin:6px 0}
+  .amb button{flex:1;padding:6px 4px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);
+    color:#fff;border-radius:8px;cursor:pointer;font-size:11px}
+  .amb button.on{background:#ffd75e;color:#2a1600;border-color:#ffd75e;font-weight:700}
+  .chk{cursor:pointer}
+  #hint{position:fixed;bottom:10px;right:14px;font-size:11px;opacity:.5}
+</style>
+<!-- MÊME chaîne que index.html (r128) — l'ordre importe : EffectComposer définit THREE.Pass -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="panel">
+  <h1>⚡ ATELIER SHADERS</h1>
+
+  <h2>Ambiance</h2>
+  <div class="amb" id="amb">
+    <button data-a="0" class="on">Coucher</button>
+    <button data-a="1">Jour</button>
+    <button data-a="2">Néon</button>
+  </div>
+
+  <h2>Rim / Fresnel</h2>
+  <div class="row"><label class="chk"><input type="checkbox" id="rimOn" checked> Actif</label></div>
+  <div class="row"><label>Couleur</label><input type="color" id="rimCol" value="#bfe8ff"></div>
+  <div class="row"><label>Puissance</label><input type="range" id="rimPow" min="0.5" max="8" step="0.1" value="3"><span class="val" id="rimPowV"></span></div>
+  <div class="row"><label>Intensité</label><input type="range" id="rimStr" min="0" max="3" step="0.05" value="1.1"><span class="val" id="rimStrV"></span></div>
+
+  <h2>Post</h2>
+  <div class="row"><label>Bloom</label><input type="range" id="bloom" min="0" max="2" step="0.02" value="0.72"><span class="val" id="bloomV"></span></div>
+  <div class="row"><label>Exposition</label><input type="range" id="expo" min="0.4" max="1.6" step="0.02" value="0.92"><span class="val" id="expoV"></span></div>
+  <div class="row"><label>Saturation</label><input type="range" id="sat" min="0.5" max="2" step="0.02" value="1.12"><span class="val" id="satV"></span></div>
+
+  <h2>Vue</h2>
+  <div class="row"><label class="chk"><input type="checkbox" id="spin" checked> Rotation auto</label></div>
+</div>
+<div id="hint">glisser = orbiter · molette = zoom</div>
+
+<script>
+'use strict';
+// ============================================================
+//  BANC D'ESSAI SHADERS — reproduit l'environnement d'index.html
+//  (ciel shader, éclairage, envMap, ACES + bloom) pour itérer vite.
+//  Rien ici ne touche au jeu : c'est un labo jetable et réversible.
+// ============================================================
+const cv=document.getElementById('c');
+const renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true});
+renderer.setSize(innerWidth,innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,.1,9800);
+camera.position.set(6.5,3.4,7.5);
+const controls=new THREE.OrbitControls(camera,cv);
+controls.target.set(0,1.2,0);controls.enableDamping=true;controls.dampingFactor=.08;
+
+// ---------- CIEL (copie EXACTE du skyDome du jeu + uniforms d'ambiance) ----------
+const SUN_DIR=new THREE.Vector3(.38,.13,-.90).normalize();
+const skyU={uTime:{value:0},uSunDir:{value:SUN_DIR},uTint:{value:new THREE.Vector3(1,1,1)},uNight:{value:0}};
+const skyMat=new THREE.ShaderMaterial({uniforms:skyU,side:THREE.BackSide,depthWrite:false,
+  vertexShader:'varying vec3 vDir;void main(){vDir=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+  fragmentShader:[
+    'varying vec3 vDir;uniform vec3 uSunDir;uniform float uTime;uniform vec3 uTint;uniform float uNight;',
+    'void main(){',
+    '  float y=vDir.y;',
+    '  vec3 zen=vec3(.50,.79,.83);',
+    '  vec3 mve=vec3(.71,.54,.72);',
+    '  vec3 ros=vec3(.97,.63,.69);',
+    '  vec3 cor=vec3(1.,.67,.48);',
+    '  vec3 gld=vec3(1.,.78,.47);',
+    '  vec3 crm=vec3(1.,.89,.72);',
+    '  vec3 blw=vec3(1.,.79,.63);',
+    '  vec3 dp2=vec3(.35,.33,.44);',
+    '  vec3 col=mix(crm,gld,smoothstep(.015,.06,y));',
+    '  col=mix(col,cor,smoothstep(.05,.15,y));',
+    '  col=mix(col,ros,smoothstep(.13,.30,y));',
+    '  col=mix(col,mve,smoothstep(.26,.45,y));',
+    '  col=mix(col,zen,smoothstep(.42,.75,y));',
+    '  col=mix(blw,col,smoothstep(-.10,.015,y));',
+    '  col=mix(dp2,col,smoothstep(-.85,-.12,y));',
+    '  float sd=max(dot(vDir,uSunDir),0.);',
+    '  vec3 sunCol=mix(vec3(1.,.62,.32),vec3(1.,.25,.75),uNight);',   // le soleil vire magenta la nuit
+    '  col+=sunCol*pow(sd,5.)*.45;',
+    '  col+=mix(vec3(1.,.82,.55),vec3(.75,.35,1.),uNight)*pow(sd,40.)*.80;',
+    '  col+=vec3(1.,.96,.88)*pow(sd,520.)*1.1;',
+    '  float w=sin(vDir.x*8.+uTime*.05)*sin(vDir.z*7.-uTime*.04);',
+    '  col+=vec3(.016,.010,.014)*w*smoothstep(.05,.4,y);',
+    // NÉON : on plonge tout le ciel vers un bleu nuit profond, on garde les néons vifs
+    '  col=mix(col,mix(vec3(.04,.03,.10),col*vec3(.35,.30,.55),smoothstep(-.2,.6,y)),uNight);',
+    '  col*=uTint;',
+    '  col+=vec3((fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453)-.5)/160.);',
+    '  gl_FragColor=vec4(col,1.);',
+    '}'].join('\n')});
+const skyMesh=new THREE.Mesh(new THREE.SphereGeometry(4300,48,28),skyMat);
+skyMesh.frustumCulled=false;skyMesh.renderOrder=-9;scene.add(skyMesh);
+
+// ---------- FOG ----------
+scene.fog=new THREE.Fog(0xffc9a0,60,900);
+
+// ---------- ÉCLAIRAGE (copie du jeu) ----------
+const hemi=new THREE.HemisphereLight(0xffd9c0,0x7a6f8e,1.0);scene.add(hemi);
+const sun=new THREE.DirectionalLight(0xffb87a,1.0);sun.position.copy(SUN_DIR).multiplyScalar(200);scene.add(sun);
+const fill=new THREE.DirectionalLight(0x8a7fa0,.28);fill.position.set(-20,-40,-10);scene.add(fill);
+
+// ---------- envMap (CubeTexture procédural, copie du jeu) ----------
+const envTex=(function(){
+  const faces=[];
+  for(let i=0;i<6;i++){
+    const c2=document.createElement('canvas');c2.width=c2.height=64;
+    const c=c2.getContext('2d');
+    const gr=c.createLinearGradient(0,0,0,64);
+    gr.addColorStop(0,'#7fc9d4');gr.addColorStop(.3,'#b58ab8');gr.addColorStop(.48,'#f6a0b0');gr.addColorStop(.58,'#ffc878');gr.addColorStop(.66,'#8a7fa0');gr.addColorStop(1,'#5a5570');
+    c.fillStyle=gr;c.fillRect(0,0,64,64);
+    c.fillStyle='rgba(255,228,190,.6)';c.fillRect(0,20,64,3);
+    c.fillStyle='rgba(255,210,170,.32)';c.fillRect(0,30,64,2);
+    faces.push(c2);
+  }
+  const t=new THREE.CubeTexture(faces);t.needsUpdate=true;return t;
+})();
+
+// ============================================================
+//  RIM / FRESNEL — le snippet qu'on portera dans buildCar()
+//  Injecté via onBeforeCompile. Uniforms PARTAGÉS entre matériaux
+//  pour un pilotage live par les sliders.
+// ============================================================
+const RIM={color:{value:new THREE.Color(0xbfe8ff)},pow:{value:3.0},str:{value:1.1}};
+function addRim(mat){
+  mat.onBeforeCompile=function(shader){
+    shader.uniforms.uRimColor=RIM.color;
+    shader.uniforms.uRimPow=RIM.pow;
+    shader.uniforms.uRimStr=RIM.str;
+    shader.vertexShader=shader.vertexShader
+      .replace('#include <common>','#include <common>\nvarying vec3 vRimN;\nvarying vec3 vRimV;')
+      .replace('#include <begin_vertex>','#include <begin_vertex>\n  vRimN=normalize(normalMatrix*normal);\n  vRimV=-(modelViewMatrix*vec4(transformed,1.0)).xyz;');
+    shader.fragmentShader=shader.fragmentShader
+      .replace('#include <common>','#include <common>\nvarying vec3 vRimN;\nvarying vec3 vRimV;\nuniform vec3 uRimColor;\nuniform float uRimPow;\nuniform float uRimStr;')
+      .replace('#include <dithering_fragment>','  float rim=pow(1.0-clamp(abs(dot(normalize(vRimN),normalize(vRimV))),0.0,1.0),uRimPow);\n  gl_FragColor.rgb+=uRimColor*rim*uRimStr;\n#include <dithering_fragment>');
+  };
+  mat.needsUpdate=true;
+  return mat;
+}
+
+// ---------- VOITURE (formes représentatives du buildCar du jeu) ----------
+const carGroup=new THREE.Group();scene.add(carGroup);
+const spec={w:2.0,h:1.05,l:4.4,color:0x1b8fa0,accent:0xff7a3d};
+const lvl=7,shin=50+lvl*34,refl=Math.min(.98,.10+lvl*.085);
+const bodyM=addRim(new THREE.MeshPhongMaterial({color:spec.color,emissive:spec.color,emissiveIntensity:.16,shininess:shin,specular:0xeaf2fa,envMap:envTex,reflectivity:refl,combine:THREE.MixOperation}));
+const accM =addRim(new THREE.MeshPhongMaterial({color:spec.accent,emissive:spec.accent,emissiveIntensity:.08,shininess:shin*.8,specular:0xdddddd,envMap:envTex,reflectivity:refl*.8,combine:THREE.MixOperation}));
+const glassM=new THREE.MeshPhongMaterial({color:0x0d1620,shininess:300,specular:0xffffff,envMap:envTex,reflectivity:.75,combine:THREE.MixOperation});
+const chromeM=new THREE.MeshPhongMaterial({color:0xe8ecf0,shininess:280,specular:0xffffff,envMap:envTex,reflectivity:.85,combine:THREE.MixOperation});
+const darkM=new THREE.MeshPhongMaterial({color:0x14161a,shininess:60,specular:0x333333});
+const y0=.35;
+function box(w,h,d,m){return new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);}
+const lower=box(spec.w,spec.h*.62,spec.l,bodyM);lower.position.y=y0+spec.h*.31;carGroup.add(lower);
+const hood=box(spec.w*.94,spec.h*.34,spec.l*.34,bodyM);hood.position.set(0,y0+spec.h*.64,spec.l*.30);hood.rotation.x=.07;carGroup.add(hood);
+const trunk=box(spec.w*.94,spec.h*.36,spec.l*.26,bodyM);trunk.position.set(0,y0+spec.h*.65,-spec.l*.34);carGroup.add(trunk);
+const cab=box(spec.w*.78,spec.h*.62,spec.l*.40,glassM);cab.position.set(0,y0+spec.h*.93,-spec.l*.05);carGroup.add(cab);
+const roof=box(spec.w*.72,spec.h*.10,spec.l*.34,accM);roof.position.set(0,y0+spec.h*1.24,-spec.l*.05);carGroup.add(roof);
+for(const sd of [-1,1]){const sk=box(.08,spec.h*.25,spec.l*.62,accM);sk.position.set(sd*(spec.w/2+.02),y0+spec.h*.12,0);carGroup.add(sk);}
+const sp=box(spec.w*.98,.09,.5,accM);sp.position.set(0,y0+spec.h+.42,-spec.l/2+.12);carGroup.add(sp);
+for(const sd of [-1,1]){const st=box(.09,.34,.12,darkM);st.position.set(sd*spec.w*.36,y0+spec.h+.22,-spec.l/2+.12);carGroup.add(st);}
+// roues
+const wG=new THREE.CylinderGeometry(.40,.40,.32,14),rimG=new THREE.CylinderGeometry(.24,.24,.34,10);
+for(const sxz of [[-1,1],[1,1],[-1,-1],[1,-1]]){
+  const w=new THREE.Group();
+  w.add(new THREE.Mesh(wG,darkM));w.add(new THREE.Mesh(rimG,chromeM));
+  w.rotation.z=Math.PI/2;
+  w.position.set(sxz[0]*(spec.w/2-.05),y0,sxz[1]*spec.l*.32);
+  carGroup.add(w);
+}
+
+// ---------- PISTE (dalle sombre + bandes blanches, comme le jeu) ----------
+const road=box(9,.5,120,new THREE.MeshPhongMaterial({color:0x3a3a3a,shininess:34,specular:0x50606e,envMap:envTex,reflectivity:.05}));
+road.position.y=-.25;scene.add(road);
+for(const sd of [-1,1]){const edge=box(.5,.52,120,new THREE.MeshBasicMaterial({color:0xffffff}));edge.position.set(sd*4.25,-.24,0);scene.add(edge);}
+
+// ============================================================
+//  POST : Bloom + ACES (copie du jeu)
+// ============================================================
+const ACESShader={
+  uniforms:{tDiffuse:{value:null},uExposure:{value:0.92},uSat:{value:1.12}},
+  vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+  fragmentShader:['uniform sampler2D tDiffuse;uniform float uExposure;uniform float uSat;varying vec2 vUv;',
+    'vec3 aces(vec3 x){const float a=2.51,b=.03,c=2.43,d=.59,e=.14;return clamp((x*(a*x+b))/(x*(c*x+d)+e),0.,1.);}',
+    'void main(){vec4 t=texture2D(tDiffuse,vUv);vec3 c=aces(t.rgb*uExposure);',
+    'float l=dot(c,vec3(.2126,.7152,.0722));c=mix(vec3(l),c,uSat);',
+    'gl_FragColor=vec4(c,t.a);}'].join('\n')
+};
+const composer=new THREE.EffectComposer(renderer);
+composer.addPass(new THREE.RenderPass(scene,camera));
+const bloomPass=new THREE.UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),0.72,0.7,0.78);
+composer.addPass(bloomPass);
+const acesPass=new THREE.ShaderPass(ACESShader);acesPass.renderToScreen=true;composer.addPass(acesPass);
+
+// ============================================================
+//  AMBIANCES : jour / coucher / néon (aperçu de la table du jeu)
+// ============================================================
+const AMB=[
+  { // 0 — Coucher (défaut, = le jeu aujourd'hui)
+    name:'Coucher', bg:0xb58ab8, fog:0xffc9a0,
+    hemiSky:0xffd9c0, hemiGnd:0x7a6f8e, hemiInt:1.0,
+    sun:0xffb87a, sunInt:1.0, fill:0x8a7fa0,
+    tint:[1,1,1], night:0, expo:0.92, sat:1.12, rim:0xbfe8ff
+  },
+  { // 1 — Jour clair
+    name:'Jour', bg:0x8ec8e8, fog:0xd8ecf6,
+    hemiSky:0xffffff, hemiGnd:0x9fb0c0, hemiInt:1.15,
+    sun:0xfff4e0, sunInt:1.15, fill:0x9fb4d0,
+    tint:[1.06,1.08,1.12], night:0, expo:1.0, sat:1.02, rim:0xfff0d8
+  },
+  { // 2 — Néon nuit
+    name:'Néon', bg:0x0e0b22, fog:0x140a2e,
+    hemiSky:0x5a3f9a, hemiGnd:0x120a24, hemiInt:.7,
+    sun:0xff3fd8, sunInt:.85, fill:0x2f7dff,
+    tint:[.9,.85,1.15], night:1, expo:1.05, sat:1.35, rim:0xff4fd8
+  }
+];
+let curAmb=0;
+const tmpC=new THREE.Color();
+function applyAmb(a){
+  const P=AMB[a];curAmb=a;
+  scene.background=new THREE.Color(P.bg);
+  scene.fog.color.set(P.fog);
+  hemi.color.set(P.hemiSky);hemi.groundColor.set(P.hemiGnd);hemi.intensity=P.hemiInt;
+  sun.color.set(P.sun);sun.intensity=P.sunInt;fill.color.set(P.fill);
+  skyU.uTint.value.set(P.tint[0],P.tint[1],P.tint[2]);
+  skyU.uNight.value=P.night;
+  acesPass.uniforms.uExposure.value=P.expo;acesPass.uniforms.uSat.value=P.sat;
+  RIM.color.value.set(P.rim);
+  // resync des sliders post + rim
+  expoS.value=P.expo;expoV.textContent=P.expo.toFixed(2);
+  satS.value=P.sat;satV.textContent=P.sat.toFixed(2);
+  rimColI.value='#'+new THREE.Color(P.rim).getHexString();
+  document.querySelectorAll('#amb button').forEach(b=>b.classList.toggle('on',+b.dataset.a===a));
+}
+
+// ============================================================
+//  UI
+// ============================================================
+const rimOn=document.getElementById('rimOn'),rimColI=document.getElementById('rimCol'),
+      rimPowS=document.getElementById('rimPow'),rimPowV=document.getElementById('rimPowV'),
+      rimStrS=document.getElementById('rimStr'),rimStrV=document.getElementById('rimStrV'),
+      bloomS=document.getElementById('bloom'),bloomV=document.getElementById('bloomV'),
+      expoS=document.getElementById('expo'),expoV=document.getElementById('expoV'),
+      satS=document.getElementById('sat'),satV=document.getElementById('satV'),
+      spinChk=document.getElementById('spin');
+function sync(){
+  RIM.pow.value=+rimPowS.value;rimPowV.textContent=(+rimPowS.value).toFixed(1);
+  RIM.str.value=rimOn.checked?+rimStrS.value:0;rimStrV.textContent=(+rimStrS.value).toFixed(2);
+  RIM.color.value.set(rimColI.value);
+  bloomPass.strength=+bloomS.value;bloomV.textContent=(+bloomS.value).toFixed(2);
+  acesPass.uniforms.uExposure.value=+expoS.value;expoV.textContent=(+expoS.value).toFixed(2);
+  acesPass.uniforms.uSat.value=+satS.value;satV.textContent=(+satS.value).toFixed(2);
+}
+[rimOn,rimColI,rimPowS,rimStrS,bloomS,expoS,satS].forEach(el=>el.addEventListener('input',sync));
+document.querySelectorAll('#amb button').forEach(b=>b.addEventListener('click',()=>applyAmb(+b.dataset.a)));
+sync();applyAmb(0);
+
+// ============================================================
+//  BOUCLE
+// ============================================================
+addEventListener('resize',()=>{
+  camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight);composer.setSize(innerWidth,innerHeight);
+});
+let t=0;
+function loop(){
+  requestAnimationFrame(loop);
+  t+=1/60;skyU.uTime.value=t;
+  if(spinChk.checked)carGroup.rotation.y+=.006;
+  controls.update();
+  composer.render();
+}
+loop();
+</script>
+</body>
+</html>

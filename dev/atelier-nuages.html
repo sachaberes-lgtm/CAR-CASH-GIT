@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CASH CAR — Atelier nuages</title>
+<style>
+  html,body{margin:0;height:100%;background:#12081f;overflow:hidden;font-family:system-ui,sans-serif;color:#fff}
+  #c{display:block;width:100vw;height:100vh;filter:saturate(1.05)}
+  #panel{position:fixed;top:12px;left:12px;width:262px;max-height:94vh;overflow:auto;
+    background:rgba(18,8,31,.82);backdrop-filter:blur(8px);border:1px solid rgba(255,200,120,.25);
+    border-radius:12px;padding:12px 14px;font-size:12px;line-height:1.5;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+  #panel h1{font-size:13px;margin:0 0 8px;letter-spacing:.5px;color:#ffd75e}
+  #panel h2{font-size:11px;margin:14px 0 4px;color:#ff9ad0;text-transform:uppercase;letter-spacing:1px}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:5px 0}
+  .row label{opacity:.85;flex:1}
+  .row input[type=range]{flex:1.2;min-width:0}
+  .row .val{width:42px;text-align:right;opacity:.7;font-variant-numeric:tabular-nums}
+  .amb{display:flex;gap:6px;margin:6px 0}
+  .amb button{flex:1;padding:6px 4px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);
+    color:#fff;border-radius:8px;cursor:pointer;font-size:11px}
+  .amb button.on{background:#ffd75e;color:#2a1600;border-color:#ffd75e;font-weight:700}
+  .big{width:100%;padding:8px;margin-top:6px;border:1px solid rgba(255,180,90,.4);background:rgba(255,180,90,.14);
+    color:#ffd75e;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700}
+  #hint{position:fixed;bottom:10px;right:14px;font-size:11px;opacity:.5}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="panel">
+  <h1>☁️ ATELIER NUAGES</h1>
+  <h2>Ambiance</h2>
+  <div class="amb" id="amb">
+    <button data-a="0" class="on">Coucher</button>
+    <button data-a="1">Jour</button>
+    <button data-a="2">Néon</button>
+  </div>
+  <h2>Banc</h2>
+  <div class="row"><label>Bouffées / banc</label><input type="range" id="nP" min="20" max="180" step="5" value="110"><span class="val" id="nPV"></span></div>
+  <div class="row"><label>Taille banc</label><input type="range" id="siz" min="80" max="500" step="10" value="300"><span class="val" id="sizV"></span></div>
+  <div class="row"><label>Échelle bouffée</label><input type="range" id="pufS" min="20" max="140" step="2" value="78"><span class="val" id="pufSV"></span></div>
+  <div class="row"><label>Densité</label><input type="range" id="dens" min="0.15" max="1" step="0.02" value="0.62"><span class="val" id="densV"></span></div>
+  <div class="row"><label>Hauteur banc</label><input type="range" id="flat" min="0.2" max="1.4" step="0.02" value="0.8"><span class="val" id="flatV"></span></div>
+  <h2>Lumière</h2>
+  <div class="row"><label>Silver lining</label><input type="range" id="silv" min="0" max="2.5" step="0.05" value="0.5"><span class="val" id="silvV"></span></div>
+  <div class="row"><label>Contraste ventre</label><input type="range" id="belly" min="0" max="1" step="0.02" value="0.72"><span class="val" id="bellyV"></span></div>
+  <h2>Post</h2>
+  <div class="row"><label>Bloom</label><input type="range" id="bloom" min="0" max="2" step="0.02" value="0.72"><span class="val" id="bloomV"></span></div>
+  <button class="big" id="fly">✈️ TRAVERSER LE BANC</button>
+  <div class="row" style="margin-top:8px"><label style="cursor:pointer"><input type="checkbox" id="spin" checked> Rotation auto (hors vol)</label></div>
+  <button class="big" id="rebuild" style="border-color:rgba(140,180,255,.4);background:rgba(140,180,255,.14);color:#bcd0ff">↻ Régénérer</button>
+</div>
+<div id="hint">glisser = orbiter · molette = zoom · ✈️ = vol traversant</div>
+<script>
+'use strict';
+// =====================================================================
+//  ATELIER NUAGES — prototype de bancs géants traversables (fer de lance DA)
+//  Technique : impostors billboard en grappes DENSES (60-180 bouffées/banc),
+//  texture cumulus soft feathered, éclairage silver-lining (forward-scatter)
+//  recalculé par frame côté CPU. Rien ne touche au jeu : labo réversible.
+// =====================================================================
+const cv=document.getElementById('c');
+const renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true});
+renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.sortObjects=true;
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(66,innerWidth/innerHeight,.5,20000);
+camera.position.set(0,60,620);
+const controls=new THREE.OrbitControls(camera,cv);
+controls.target.set(0,40,0);controls.enableDamping=true;controls.dampingFactor=.08;
+
+// ---------- CIEL (dôme du jeu + uniforms d'ambiance) ----------
+const SUN_DIR=new THREE.Vector3(.38,.13,-.90).normalize();
+const skyU={uTime:{value:0},uSunDir:{value:SUN_DIR},uTint:{value:new THREE.Vector3(1,1,1)},uNight:{value:0}};
+const skyMat=new THREE.ShaderMaterial({uniforms:skyU,side:THREE.BackSide,depthWrite:false,
+  vertexShader:'varying vec3 vDir;void main(){vDir=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+  fragmentShader:[
+    'varying vec3 vDir;uniform vec3 uSunDir;uniform float uTime;uniform vec3 uTint;uniform float uNight;',
+    'void main(){float y=vDir.y;',
+    '  vec3 zen=vec3(.50,.79,.83),mve=vec3(.71,.54,.72),ros=vec3(.97,.63,.69),cor=vec3(1.,.67,.48);',
+    '  vec3 gld=vec3(1.,.78,.47),crm=vec3(1.,.89,.72),blw=vec3(1.,.79,.63),dp2=vec3(.35,.33,.44);',
+    '  vec3 col=mix(crm,gld,smoothstep(.015,.06,y));col=mix(col,cor,smoothstep(.05,.15,y));',
+    '  col=mix(col,ros,smoothstep(.13,.30,y));col=mix(col,mve,smoothstep(.26,.45,y));',
+    '  col=mix(col,zen,smoothstep(.42,.75,y));col=mix(blw,col,smoothstep(-.10,.015,y));',
+    '  col=mix(dp2,col,smoothstep(-.85,-.12,y));',
+    '  float sd=max(dot(vDir,uSunDir),0.);',
+    '  vec3 sunCol=mix(vec3(1.,.62,.32),vec3(1.,.25,.75),uNight);',
+    '  col+=sunCol*pow(sd,5.)*.45;col+=mix(vec3(1.,.82,.55),vec3(.75,.35,1.),uNight)*pow(sd,40.)*.80;',
+    '  col+=vec3(1.,.96,.88)*pow(sd,520.)*1.1;',
+    '  col=mix(col,mix(vec3(.04,.03,.10),col*vec3(.35,.30,.55),smoothstep(-.2,.6,y)),uNight);',
+    '  col*=uTint;col+=vec3((fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453)-.5)/160.);',
+    '  gl_FragColor=vec4(col,1.);}'].join('\n')});
+const skyMesh=new THREE.Mesh(new THREE.SphereGeometry(9000,48,28),skyMat);
+skyMesh.frustumCulled=false;skyMesh.renderOrder=-9;scene.add(skyMesh);
+scene.fog=new THREE.Fog(0xffc9a0,2600,9000);
+const hemi=new THREE.HemisphereLight(0xffd9c0,0x7a6f8e,1.0);scene.add(hemi);
+
+// ---------- ROUTE RUBAN (repère d'échelle : le banc doit l'engloutir) ----------
+const road=new THREE.Mesh(new THREE.BoxGeometry(16,1,4000),new THREE.MeshLambertMaterial({color:0x2c2c30}));
+road.position.y=-2;scene.add(road);
+for(const sd of [-1,1]){const e=new THREE.Mesh(new THREE.BoxGeometry(.8,1.1,4000),new THREE.MeshBasicMaterial({color:0xffffff}));e.position.set(sd*7.8,-1.7,0);scene.add(e);}
+
+// =====================================================================
+//  TEXTURES CUMULUS — bouffées soft feathered avec ombrage de ventre baké
+//  (grayscale tintable). Bien plus organiques que le disque radial simple.
+// =====================================================================
+function mkPuffTex(seed){
+  const S=384,cv=document.createElement('canvas');cv.width=cv.height=S;const c=cv.getContext('2d');
+  let sd=seed*9301+49297;const r=()=>{sd=(sd*9301+49297)%233280;return sd/233280;};
+  const cx=S/2,cy=S*0.54;
+  // grappe de lobes : large et bas (base cumulus), bourgeonnant vers le haut.
+  // Ombrage BAKÉ en niveaux de gris DANS chaque lobe (sommet clair / ventre sombre) —
+  // surtout PAS de passe 'multiply' opaque : elle détruirait le canal alpha feathered.
+  const N=14+Math.floor(r()*8);
+  const yTop=cy-S*0.30, ySpan=S*0.60;
+  for(let i=0;i<N;i++){
+    const ang=r()*Math.PI*2, spread=Math.pow(r(),.6);
+    const lx=cx+Math.cos(ang)*spread*S*0.30;
+    let ly=cy+Math.sin(ang)*spread*S*0.20 - (1-Math.min(1,spread))*S*0.12; // sommet plus haut au centre
+    const rad=S*(0.10+r()*0.16)*(1.15-spread*0.35);
+    const hh=Math.max(0,Math.min(1,1-(ly-yTop)/ySpan)); // 1 = sommet, 0 = ventre
+    const lum=Math.round((0.5+0.5*hh)*255);             // gris : ventre .5 -> sommet 1 (tint géré côté matériau)
+    const rgb=lum+','+lum+','+lum;
+    const g=c.createRadialGradient(lx,ly-rad*.28,rad*.05,lx,ly,rad);
+    g.addColorStop(0,'rgba('+rgb+',0.92)');
+    g.addColorStop(.5,'rgba('+rgb+',0.42)');
+    g.addColorStop(1,'rgba('+rgb+',0)');
+    c.fillStyle=g;c.beginPath();c.arc(lx,ly,rad,0,7);c.fill();
+  }
+  const t=new THREE.CanvasTexture(cv);t.needsUpdate=true;return t;
+}
+const PUFF_TEX=[mkPuffTex(3),mkPuffTex(17),mkPuffTex(42),mkPuffTex(88),mkPuffTex(151)];
+
+// =====================================================================
+//  BANC : ellipsoïde allongé rempli de bouffées, base plate, sommet billowing
+// =====================================================================
+const BELLY=new THREE.Color(0xb69ad8), MIDT=new THREE.Color(0xffd9c4), TOPT=new THREE.Color(0xfff3da);
+const GOLD=new THREE.Color(0xffe6b0);
+let banks=[]; // {group, puffs:[{sp,base:Vector3(world),rBase,h01}] }
+function disposeBanks(){for(const b of banks){scene.remove(b.group);for(const p of b.puffs)p.sp.material.dispose();}banks=[];}
+function buildBank(center,seed){
+  let sd=seed*16807%2147483647;const r=()=>{sd=(sd*16807)%2147483647;return sd/2147483647;};
+  const g=new THREE.Group();g.position.copy(center);
+  const P=CFG,puffs=[];
+  const L=P.size, W=P.size*0.72, H=P.size*0.82*P.flat;
+  const n=P.nP;
+  for(let i=0;i<n;i++){
+    // position dans un ellipsoïde, densité plus forte au centre, base APLATIE
+    const u=r(),v=r(),w=r();
+    const rr=Math.pow(r(),0.45);
+    const a=u*Math.PI*2, ph=Math.acos(2*v-1);
+    let px=Math.sin(ph)*Math.cos(a)*rr*L;
+    let pz=Math.sin(ph)*Math.sin(a)*rr*W;
+    let py=Math.cos(ph)*rr*H;
+    py=py*0.5+H*0.5;                 // remonte : base plate en bas, bourgeons en haut
+    py-=H*0.5;
+    const h01=(py+H)/(2*H);          // 0 = ventre, 1 = sommet
+    const base=new THREE.Vector3(px,py,pz);
+    const tex=PUFF_TEX[Math.floor(r()*PUFF_TEX.length)];
+    const m=new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false,
+      opacity:(P.dens*(0.55+0.55*h01)) *(0.7+0.3*r()),
+      rotation:r()*6.28});
+    const sp=new THREE.Sprite(m);
+    const sc=P.pufS*(0.6+r()*0.9)*(0.8+0.4*(1-Math.abs(h01-0.5)*2)); // plus gros au coeur
+    sp.scale.set(sc*1.35, sc*(0.7+0.3*r())*(h01<0.3?0.7:1), 1); // ventres écrasés
+    sp.position.copy(base);
+    g.add(sp);
+    puffs.push({sp:sp,base:base,h01:h01});
+  }
+  scene.add(g);
+  banks.push({group:g,puffs:puffs});
+}
+function rebuild(){
+  disposeBanks();
+  // 3 bancs alignés sur la route pour la traversée
+  buildBank(new THREE.Vector3(0,55,-100),7);
+  buildBank(new THREE.Vector3(-40,70,-900),23);
+  buildBank(new THREE.Vector3(50,45,-1700),59);
+}
+
+// éclairage silver-lining : recalculé/frame. tint = hauteur + forward-scatter vers soleil
+const _cp=new THREE.Vector3(),_cp2=new THREE.Vector3(),_cs=new THREE.Vector3(),_tc=new THREE.Color();
+function relight(){
+  _cs.copy(SUN_DIR); // direction vers le soleil (world)
+  for(const b of banks){
+    for(const p of b.puffs){
+      // teinte de base par hauteur
+      if(p.h01>0.62)_tc.copy(TOPT); else if(p.h01<0.32)_tc.copy(BELLY); else _tc.copy(MIDT);
+      // MODELÉ DIFFUS : le flanc du nuage face au soleil s'éclaire (volume propre hors contre-jour)
+      _cp2.copy(p.base).normalize();
+      const lit=0.5+0.5*_cp2.dot(_cs);
+      // assombrit le ventre selon le slider (donne la FORME verticale du cumulus)
+      const dk=1-CFG.belly*(1-p.h01)*0.92;
+      _tc.multiplyScalar(dk*(0.62+0.62*lit));
+      _tc.lerp(GOLD,lit*0.14);
+      // forward scattering : liseré argenté/doré quand on regarde VERS le soleil à travers le banc
+      _cp.copy(p.base).add(b.group.position).sub(camera.position).normalize();
+      const glow=Math.pow(Math.max(0,_cp.dot(_cs)),5.0)*CFG.silv; // exposant haut = halo net, pas un voile
+      _tc.lerp(GOLD,Math.min(0.6,glow));
+      _tc.r=Math.min(1,_tc.r+glow*0.16);_tc.g=Math.min(1,_tc.g+glow*0.12);_tc.b=Math.min(1,_tc.b+glow*0.07);
+      p.sp.material.color.copy(_tc);
+    }
+  }
+}
+
+// ---------- POST : bloom + ACES ----------
+const ACESShader={uniforms:{tDiffuse:{value:null},uExposure:{value:0.95},uSat:{value:1.14}},
+  vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+  fragmentShader:['uniform sampler2D tDiffuse;uniform float uExposure;uniform float uSat;varying vec2 vUv;',
+    'vec3 aces(vec3 x){const float a=2.51,b=.03,c=2.43,d=.59,e=.14;return clamp((x*(a*x+b))/(x*(c*x+d)+e),0.,1.);}',
+    'void main(){vec4 t=texture2D(tDiffuse,vUv);vec3 c=aces(t.rgb*uExposure);',
+    'float l=dot(c,vec3(.2126,.7152,.0722));c=mix(vec3(l),c,uSat);gl_FragColor=vec4(c,t.a);}'].join('\n')};
+const composer=new THREE.EffectComposer(renderer);
+composer.addPass(new THREE.RenderPass(scene,camera));
+const bloomPass=new THREE.UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),0.72,0.7,0.82);
+composer.addPass(bloomPass);
+const acesPass=new THREE.ShaderPass(ACESShader);acesPass.renderToScreen=true;composer.addPass(acesPass);
+
+// ---------- Ambiances ----------
+const AMB=[
+  {name:'Coucher',bg:0xb58ab8,fog:0xffc9a0,hemiSky:0xffd9c0,hemiGnd:0x7a6f8e,hemiInt:1.0,tint:[1,1,1],night:0,expo:0.95,sat:1.14,gold:0xffe6b0,belly:0x644e88,mid:0xffcdb0,top:0xfff2dc},
+  {name:'Jour',bg:0x8ec8e8,fog:0xd8ecf6,hemiSky:0xffffff,hemiGnd:0x9fb0c0,hemiInt:1.15,tint:[1.06,1.08,1.12],night:0,expo:1.02,sat:1.04,gold:0xfff2d8,belly:0xc8cfe0,mid:0xf2f6ff,top:0xffffff},
+  {name:'Néon',bg:0x0e0b22,fog:0x140a2e,hemiSky:0x5a3f9a,hemiGnd:0x120a24,hemiInt:.7,tint:[.9,.85,1.15],night:1,expo:1.05,sat:1.35,gold:0xff7fe0,belly:0x3a2f6e,mid:0x9a6fd0,top:0xd7b4ff}];
+function applyAmb(a){
+  const P=AMB[a];
+  scene.background=new THREE.Color(P.bg);scene.fog.color.set(P.fog);
+  hemi.color.set(P.hemiSky);hemi.groundColor.set(P.hemiGnd);hemi.intensity=P.hemiInt;
+  skyU.uTint.value.set(P.tint[0],P.tint[1],P.tint[2]);skyU.uNight.value=P.night;
+  acesPass.uniforms.uExposure.value=P.expo;acesPass.uniforms.uSat.value=P.sat;
+  GOLD.set(P.gold);BELLY.set(P.belly);MIDT.set(P.mid);TOPT.set(P.top);
+  document.querySelectorAll('#amb button').forEach(b=>b.classList.toggle('on',+b.dataset.a===a));
+}
+
+// ---------- CONFIG + UI ----------
+const CFG={nP:110,size:300,pufS:78,dens:0.62,flat:0.8,silv:0.5,belly:0.72};
+const ids=['nP','siz','pufS','dens','flat','silv','belly','bloom'];
+const el={};ids.forEach(i=>{el[i]=document.getElementById(i);el[i+'V']=document.getElementById(i+'V');});
+function readUI(){
+  CFG.nP=+el.nP.value;CFG.size=+el.siz.value;CFG.pufS=+el.pufS.value;CFG.dens=+el.dens.value;
+  CFG.flat=+el.flat.value;CFG.silv=+el.silv.value;CFG.belly=+el.belly.value;
+  el.nPV.textContent=CFG.nP;el.sizV.textContent=CFG.size;el.pufSV.textContent=CFG.pufS;
+  el.densV.textContent=CFG.dens.toFixed(2);el.flatV.textContent=CFG.flat.toFixed(2);
+  el.silvV.textContent=CFG.silv.toFixed(2);el.bellyV.textContent=CFG.belly.toFixed(2);
+  el.bloomV.textContent=(+el.bloom.value).toFixed(2);bloomPass.strength=+el.bloom.value;
+}
+ids.forEach(i=>el[i].addEventListener('input',()=>{readUI();if(['nP','siz','pufS','dens','flat'].includes(i))rebuild();}));
+document.querySelectorAll('#amb button').forEach(b=>b.addEventListener('click',()=>applyAmb(+b.dataset.a)));
+document.getElementById('rebuild').addEventListener('click',rebuild);
+const spinChk=document.getElementById('spin');
+
+// ---------- Vol traversant ----------
+let flying=false,flyZ=0;
+document.getElementById('fly').addEventListener('click',()=>{flying=true;flyZ=700;controls.enabled=false;});
+
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight);composer.setSize(innerWidth,innerHeight);});
+
+readUI();applyAmb(0);rebuild();
+let t=0,orbA=1.15; // départ sur un angle 3/4 latéral (le nuage lit clairement sur le ciel)
+function loop(){
+  requestAnimationFrame(loop);t+=1/60;skyU.uTime.value=t;
+  if(flying){
+    flyZ-=6.5; camera.position.set(Math.sin(t*0.3)*12,52,flyZ);camera.lookAt(camera.position.x,50,flyZ-200);
+    if(flyZ<-2200){flying=false;controls.enabled=true;camera.position.set(0,60,620);camera.lookAt(0,40,0);}
+  } else {
+    if(spinChk.checked){orbA+=0.0015;const R=1150;camera.position.set(Math.sin(orbA)*R,220,-100+Math.cos(orbA)*R);camera.lookAt(0,70,-100);}
+    controls.update();
+  }
+  relight();
+  composer.render();
+}
+loop();
+</script>
+</body>
+</html>
