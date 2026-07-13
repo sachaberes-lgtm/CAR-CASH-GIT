@@ -534,7 +534,7 @@ if(CAN_POST){ try{
   composer.addPass(new THREE.RenderPass(scene,camera));
   // BLOOM : seuil HAUT (0.82) + halo COURT → halation discrète sur soleil/nitro/or, jamais de brume laiteuse.
   const bRes=IS_MOBILE?new THREE.Vector2(Math.round(w*.5),Math.round(h*.5)):new THREE.Vector2(w,h);
-  bloomPass=new THREE.UnrealBloomPass(bRes,IS_MOBILE?0.45:0.58,IS_MOBILE?0.45:0.5,0.85); // seuil relevé : halation nette sur soleil/nitro/or, plus de brume laiteuse
+  bloomPass=new THREE.UnrealBloomPass(bRes,IS_MOBILE?0.42:0.52,IS_MOBILE?0.42:0.48,0.92); // seuil HAUT (0.92) : seuls soleil/nitro/or glowent — les nuages ne bavent plus de lumière
   composer.addPass(bloomPass);
   acesPass=new THREE.ShaderPass(ACESShader);acesPass.renderToScreen=true;composer.addPass(acesPass);
   POST_ON=true;
@@ -607,8 +607,8 @@ const cloudTexs=(function(){ // cumulus DREAMWORKS : ventre lavande doux, gros c
     const puff=(x,y,rad,a,col,sq)=>{ // bouffée ronde et pleine, éventuellement APLATIE (sq<1 : base de cumulus)
       const g=c.createRadialGradient(x,y-rad*.34,rad*.10,x,y,rad); // cœur décentré vers le haut = volume éclairé par le dessus
       g.addColorStop(0,'rgba('+col+','+a+')');
-      g.addColorStop(.5,'rgba('+col+','+(a*.68)+')'); // plateau plus haut = bouffées PLEINES, pas des ronds diffus
-      g.addColorStop(.82,'rgba('+col+','+(a*.24)+')');
+      g.addColorStop(.5,'rgba('+col+','+(a*.56)+')'); // plateau adouci : bouffées pleines mais bords qui fondent (moins de pointes)
+      g.addColorStop(.8,'rgba('+col+','+(a*.16)+')');
       g.addColorStop(1,'rgba('+col+',0)');
       c.save();c.translate(x,y);c.scale(1,sq||1);c.translate(-x,-y);
       c.fillStyle=g;c.beginPath();c.arc(x,y,rad,0,7);c.fill();c.restore();
@@ -623,28 +623,28 @@ const cloudTexs=(function(){ // cumulus DREAMWORKS : ventre lavande doux, gros c
       x+=30+r()*40;
       if(x>442)x=84+r()*46;
     }
-    // couche 2 : CORPS crème — le gros du chou-fleur, bourgeons ronds empilés (blanc chaud, PAS orange)
+    // couche 2 : CORPS crème DOUX — le gros du chou-fleur (blanc chaud ASSOURDI : ne bave plus de lumière)
     x=100+r()*52;let y=132+r()*22;
     const n2=22+Math.floor(r()*8);
     for(let i=0;i<n2;i++){
-      puff(x,y,23+r()*27,.6+r()*.22,'255,240,224');
+      puff(x,y,23+r()*27,.58+r()*.2,'228,221,214');
       x+=19+r()*26;y=Math.max(100,Math.min(178,y+(r()-.5)*30));
       if(x>426){x=96+r()*58;y=126+r()*26;}
     }
-    // couche 3 : COURONNE solaire — dômes quasi blancs côté ciel, le pop DreamWorks
+    // couche 3 : COURONNE côté ciel — dômes clairs mais SOUS le seuil de bloom (plus de halo qui déborde)
     x=132+r()*56;y=90+r()*18;
     const n3=12+Math.floor(r()*5);
     for(let i=0;i<n3;i++){
-      puff(x,y,14+r()*16,.82+r()*.18,'255,251,240');
+      puff(x,y,14+r()*16,.8+r()*.16,'236,231,224');
       x+=22+r()*32;y=Math.max(62,Math.min(118,y+(r()-.5)*22));
       if(x>410){x=128+r()*66;y=82+r()*20;}
     }
-    // couche 4 : LISERÉ doré — la lumière rasante accroche les crêtes (chaud, mais MINCE : ça pétille, ça n'inonde pas)
+    // couche 4 : liseré chaud TRÈS discret — juste un soupçon de tiédeur sur les crêtes, fini les pointes dorées
     x=160+r()*52;y=72+r()*14;
-    const n4=7+Math.floor(r()*4);
+    const n4=4+Math.floor(r()*3);
     for(let i=0;i<n4;i++){
-      puff(x,y,6+r()*8,.9,'255,228,182');
-      x+=26+r()*34;y=Math.max(54,Math.min(98,y+(r()-.5)*16));
+      puff(x,y,7+r()*9,.5,'224,206,184');
+      x+=30+r()*38;y=Math.max(54,Math.min(98,y+(r()-.5)*16));
       if(x>398){x=150+r()*62;y=66+r()*14;}
     }
     arr.push(new THREE.CanvasTexture(cv));
