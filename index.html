@@ -20,7 +20,7 @@
   canvas{display:block}
   #hud{position:fixed;inset:0;pointer-events:none;color:#fff;z-index:2} /* au-dessus du canvas filtré (le filter crée un contexte d'empilement) */
   /* HUD épuré : on ne garde que l'argent, le camembert d'airtime, la nitro et les figures */
-  #carInfo,#record,#speedo,#cpInfo,#minimap,#turnHint{display:none!important}
+  #carInfo,#record,#cpInfo,#turnHint{display:none!important} /* HUD épuré : on garde VITESSE + minimap (pilotage), on cache le reste */
   #vig{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 44%,transparent 54%,rgba(60,26,70,.34) 100%)}
   /* étalonnage cinéma du rendu 3D : couleurs plus riches, contraste doux */
   body>canvas{filter:saturate(1.1) contrast(1.03) brightness(1.0)} /* l'ACES (passe post) fait le gros de l'étalonnage ; ce filtre ajoute juste un dernier soupçon de pop */
@@ -599,60 +599,61 @@ const oilGeo=new THREE.CircleGeometry(1,22);
 const oilMat=new THREE.MeshPhongMaterial({color:0x121419,shininess:320,specular:0x9fb4ff,envMap:null,transparent:true,opacity:.92});
 const oilRimMat=new THREE.MeshBasicMaterial({color:0x4a3a72,transparent:true,opacity:.4,depthWrite:false});
 // nuages : billboards duveteux (3 textures peintes, bouffées superposées à plat dessous, bourgeons dessus)
-const cloudTexs=(function(){ // cumulus haute définition : socle d'ombre PLAT, chou-fleur saumon, dômes crème, crêtes étincelantes
+const cloudTexs=(function(){ // cumulus DREAMWORKS : ventre lavande doux, gros corps CRÈME volumineux, couronne solaire, liseré doré
   const arr=[];let sd=97;const r=()=>{sd=(sd*16807)%2147483647;return sd/2147483647;};
   for(let v=0;v<6;v++){
     const cv=document.createElement('canvas');cv.width=512;cv.height=256;
     const c=cv.getContext('2d');
-    const puff=(x,y,rad,a,col,sq)=>{ // bouffée teintée, éventuellement APLATIE (sq<1 : base de cumulus)
-      const g=c.createRadialGradient(x,y-rad*.32,rad*.08,x,y,rad);
+    const puff=(x,y,rad,a,col,sq)=>{ // bouffée ronde et pleine, éventuellement APLATIE (sq<1 : base de cumulus)
+      const g=c.createRadialGradient(x,y-rad*.34,rad*.10,x,y,rad); // cœur décentré vers le haut = volume éclairé par le dessus
       g.addColorStop(0,'rgba('+col+','+a+')');
-      g.addColorStop(.55,'rgba('+col+','+(a*.55)+')');
+      g.addColorStop(.5,'rgba('+col+','+(a*.68)+')'); // plateau plus haut = bouffées PLEINES, pas des ronds diffus
+      g.addColorStop(.82,'rgba('+col+','+(a*.24)+')');
       g.addColorStop(1,'rgba('+col+',0)');
       c.save();c.translate(x,y);c.scale(1,sq||1);c.translate(-x,-y);
       c.fillStyle=g;c.beginPath();c.arc(x,y,rad,0,7);c.fill();c.restore();
     };
-    const flat=v%2===0; // une variante sur deux a la BASE PLATE du vrai cumulus (photo Flight Simulator)
-    // couche 1 : socle d'ombre mauve — large, écrasé, aligné sur une base commune
-    const baseY=flat?188:168;
-    let x=90+r()*50;
-    const n1=11+Math.floor(r()*5);
+    const flat=v%2===0; // une variante sur deux a la BASE PLATE du vrai cumulus (le fond de la boule de coton)
+    // couche 1 : VENTRE d'ombre lavande — large, écrasé, aligné sur une base commune (le dessous à l'ombre)
+    const baseY=flat?190:172;
+    let x=84+r()*44;
+    const n1=10+Math.floor(r()*4);
     for(let i=0;i<n1;i++){
-      puff(x,baseY+(flat?(r()-.2)*8:(r()-.5)*26),40+r()*34,.5+r()*.22,'132,120,158',flat?.55:.85);
-      x+=26+r()*36;
-      if(x>430)x=86+r()*50;
+      puff(x,baseY+(flat?(r()-.15)*10:(r()-.5)*24),44+r()*32,.4+r()*.18,'150,140,182',flat?.5:.82);
+      x+=30+r()*40;
+      if(x>442)x=84+r()*46;
     }
-    // couche 2 : bourgeons saumon à mi-hauteur — le corps du chou-fleur
-    x=110+r()*50;let y=126+r()*20;
-    const n2=15+Math.floor(r()*7);
+    // couche 2 : CORPS crème — le gros du chou-fleur, bourgeons ronds empilés (blanc chaud, PAS orange)
+    x=100+r()*52;let y=132+r()*22;
+    const n2=22+Math.floor(r()*8);
     for(let i=0;i<n2;i++){
-      puff(x,y,20+r()*22,.6+r()*.26,'255,158,122');
-      x+=18+r()*30;y=Math.max(96,Math.min(170,y+(r()-.5)*30));
-      if(x>420){x=104+r()*60;y=118+r()*26;}
+      puff(x,y,23+r()*27,.6+r()*.22,'255,240,224');
+      x+=19+r()*26;y=Math.max(100,Math.min(178,y+(r()-.5)*30));
+      if(x>426){x=96+r()*58;y=126+r()*26;}
     }
-    // couche 3 : dômes crème éclatants côté soleil
-    x=140+r()*60;y=84+r()*18;
-    const n3=9+Math.floor(r()*5);
+    // couche 3 : COURONNE solaire — dômes quasi blancs côté ciel, le pop DreamWorks
+    x=132+r()*56;y=90+r()*18;
+    const n3=12+Math.floor(r()*5);
     for(let i=0;i<n3;i++){
-      puff(x,y,13+r()*15,.85+r()*.15,'255,228,190');
-      x+=22+r()*34;y=Math.max(58,Math.min(112,y+(r()-.5)*22));
-      if(x>404){x=134+r()*66;y=76+r()*20;}
+      puff(x,y,14+r()*16,.82+r()*.18,'255,251,240');
+      x+=22+r()*32;y=Math.max(62,Math.min(118,y+(r()-.5)*22));
+      if(x>410){x=128+r()*66;y=82+r()*20;}
     }
-    // couche 4 : étincelles de crête — le détail qui accroche l'œil de près
-    x=170+r()*50;y=66+r()*14;
-    const n4=6+Math.floor(r()*4);
+    // couche 4 : LISERÉ doré — la lumière rasante accroche les crêtes (chaud, mais MINCE : ça pétille, ça n'inonde pas)
+    x=160+r()*52;y=72+r()*14;
+    const n4=7+Math.floor(r()*4);
     for(let i=0;i<n4;i++){
-      puff(x,y,5+r()*7,.95,'255,244,220');
-      x+=26+r()*36;y=Math.max(50,Math.min(92,y+(r()-.5)*16));
-      if(x>390){x=160+r()*60;y=60+r()*14;}
+      puff(x,y,6+r()*8,.9,'255,228,182');
+      x+=26+r()*34;y=Math.max(54,Math.min(98,y+(r()-.5)*16));
+      if(x>398){x=150+r()*62;y=66+r()*14;}
     }
     arr.push(new THREE.CanvasTexture(cv));
   }
   return arr;
 })();
-// teintes des sprites de nuages (photo) : proches crème-pêche, lointains rose-mauve
-const CLOUD_TINTS=[0xffd9c4,0xffd0b8,0xffe2cc];
-const CLOUD_TINTS_FAR=[0xe8b8c8,0xdcb0c4,0xe0bcd2];
+// teintes des sprites de nuages : proches CRÈME quasi neutres (on laisse la texture parler), lointains rose-mauve tendre
+const CLOUD_TINTS=[0xfff2e6,0xffedde,0xfff7ee];
+const CLOUD_TINTS_FAR=[0xe8bcce,0xdcb4c8,0xe4c2d6];
 // ---------- NUAGES VIVANTS : bancs volumétriques traversables (impostors en grappes) ----------
 // Technique billboard-impostor (Harris, GDC 2002) : chaque nuage = grappe de bouffées montées sur
 // RESSORT. On les FEND en passant — elles giclent, tourbillonnent, puis reprennent leur place.
@@ -702,11 +703,12 @@ function buildClouds(rr){
   disposeClouds();
   // RNG local : retoucher les nuages ne rebrasse plus la génération en aval (piège rnd séquentiel)
   const cr=mulberry32((rr()*1e9)|0);
-  // bancs SUR la route — et parfois un MUR de ouate : la voiture disparaît entièrement dedans
-  for(let sp=650+cr()*450;sp<L-300;sp+=480+cr()*560){
-    if(cr()<.2)continue;
+  // bancs SUR la route — espacés : on en traverse PARFOIS, jamais en continu. Un MUR intégral (la caisse
+  // disparaît dans le blanc) reste l'exception spectaculaire, pas la règle.
+  for(let sp=850+cr()*600;sp<L-300;sp+=820+cr()*720){
+    if(cr()<.34)continue; // ~1 banc sur 3 sauté
     frameAt(sp,F);
-    const mega=cr()<.3;
+    const mega=cr()<.16;
     mkCloud(cldV1.copy(F.p).addScaledVector(F.n,mega?6+cr()*4:2.5+cr()*2),
       mega?34+cr()*24:16+cr()*13,{onRoad:true,dense:true},cr);
   }
@@ -722,7 +724,7 @@ function buildClouds(rr){
   for(let k=0;k<14;k++){
     const i=Math.floor(cr()*NP);
     const r9=120+cr()*140;
-    const cross=cr()<.32;
+    const cross=cr()<.22; // moins de tours PLANTÉES sur la piste : la percée à l'aveugle reste un moment fort
     const off=cross?(cr()*2-1)*40:(r9*.55+60+cr()*420)*(cr()<.5?-1:1);
     mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],off)
       .addScaledVector(Nn[i],cross?-r9*.25+cr()*30:-140+cr()*330),r9,{giant:true,onRoad:cross,noFog:!cross},cr);
@@ -734,7 +736,7 @@ function buildClouds(rr){
       .addScaledVector(Nn[i],-(170+cr()*220)),90+cr()*80,{sea:true,noFog:true},cr);
   }
   // mer de ouate à mi-distance : les nuages rêveurs qu'on longe
-  for(let k=0;k<12;k++){
+  for(let k=0;k<9;k++){
     const i=Math.floor(cr()*NP);
     mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],(95+cr()*260)*(cr()<.5?-1:1))
       .addScaledVector(Nn[i],-60+cr()*180),30+cr()*38,{deco:true},cr);
@@ -4165,12 +4167,16 @@ function loop(now){
       qTmp.premultiply(qTmp2);
       carGroup.quaternion.slerp(qTmp,Math.min(1,dt*8));
       shadow.position.y=-99999;
-      // caméra (encore plus proche en vol)
-      tmp2.copy(fallPos).addScaledVector(tmp,-9.0);tmp2.y+=3.5;
-      camera.position.lerp(tmp2,Math.min(1,dt*3));
+      // CAMÉRA DYNAMIQUE EN VOL : plus le saut est GROS, plus on zoome et on suit serré → la caisse reste héroïque (fini le point minuscule)
+      const bigAir=THREE.MathUtils.clamp((fallT-0.5)/2.2,0,1); // 0 au décollage → 1 sur un gros air
+      tmp2.copy(fallPos).addScaledVector(tmp,-(9.0-bigAir*2.6));tmp2.y+=3.5+bigAir*2.4; // on se rapproche et on monte (angle plus épique)
+      camera.position.lerp(tmp2,Math.min(1,dt*(3+bigAir*4.5))); // suivi PLUS VIF en gros air : la caméra ne décroche plus
       camUp.lerp(tmp3.set(0,1,0),Math.min(1,dt*2)).normalize();
       camera.up.copy(camUp);
       camera.lookAt(fallPos);
+      const fovAir=76-bigAir*22; // ZOOM cinématique : le champ se resserre avec l'ampleur du saut (76° petit air → 54° gros air)
+      camera.fov+=(fovAir-camera.fov)*Math.min(1,dt*4);
+      camera.updateProjectionMatrix();
       const fshN=THREE.MathUtils.clamp((speedKmh-180)/360,0,1.2),fsh=fshN*fshN*CAM_SHAKE_V;
       if(fsh>0){
         camera.position.x+=(Math.random()-.5)*fsh;
