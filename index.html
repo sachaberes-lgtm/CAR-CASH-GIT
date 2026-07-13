@@ -23,7 +23,7 @@
   #carInfo,#record,#speedo,#cpInfo,#minimap,#turnHint{display:none!important}
   #vig{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 44%,transparent 54%,rgba(60,26,70,.34) 100%)}
   /* étalonnage cinéma du rendu 3D : couleurs plus riches, contraste doux */
-  body>canvas{filter:saturate(1.05) contrast(1.0) brightness(1.0)} /* ACES (passe post) fait désormais le gros de l'étalonnage — on n'empile plus */
+  body>canvas{filter:saturate(1.1) contrast(1.03) brightness(1.0)} /* l'ACES (passe post) fait le gros de l'étalonnage ; ce filtre ajoute juste un dernier soupçon de pop */
   #scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.14) 0 2px,transparent 2px 4px);opacity:.22}
   #speedFx{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 42%,rgba(45,20,55,.55) 100%);opacity:0}
   /* immersion nuage : voile blanc laiteux quand on traverse un banc */
@@ -121,13 +121,15 @@
     -webkit-background-clip:text;background-clip:text;color:transparent;
     filter:drop-shadow(0 4px 0 #4a2500) drop-shadow(0 0 30px rgba(255,180,70,.95)) drop-shadow(0 12px 22px rgba(0,0,0,.55));animation-duration:1.5s}
   @keyframes trickPop{0%{transform:scale(.2) rotateX(50deg);opacity:0}16%{transform:scale(1.28) rotateX(-6deg);opacity:1}30%{transform:scale(1) rotateX(0)}75%{opacity:1}100%{opacity:0;transform:scale(1) translateY(-30px)}}
-  #chainHud{position:absolute;top:32%;left:50%;transform:translateX(-50%);font-family:var(--pix);font-size:15px;
+  #chainHud{position:absolute;top:37%;left:50%;transform:translateX(-50%);font-family:var(--pix);font-size:15px;
     letter-spacing:1px;color:#ffd75e;text-shadow:0 2px 0 #5c3600,0 0 14px rgba(255,170,60,.55);
+    background:rgba(8,5,18,.34);padding:5px 14px;border-radius:9px;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
     opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
   #chainHud.pulse{animation:chPulse .32s cubic-bezier(.2,1.6,.4,1)}
   @keyframes chPulse{0%{transform:translateX(-50%) scale(1.5)}100%{transform:translateX(-50%) scale(1)}}
-  #caseHud{position:absolute;top:36.5%;left:50%;transform:translateX(-50%);font-family:var(--pix);
+  #caseHud{position:absolute;top:42%;left:50%;transform:translateX(-50%);font-family:var(--pix);
     letter-spacing:1px;color:#8dff9e;text-shadow:0 2px 0 #0a3a14,0 0 16px rgba(90,255,140,.5);
+    background:rgba(8,5,18,.34);padding:4px 13px;border-radius:9px;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
     opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
   #caseHud.hot{color:#ffd75e;text-shadow:0 2px 0 #5c3600,0 0 22px rgba(255,170,60,.85);animation:caseTremble .09s infinite}
   @keyframes caseTremble{0%{transform:translateX(-50%) translate(1px,-1px)}25%{transform:translateX(-50%) translate(-1px,1px)}
@@ -256,6 +258,21 @@
   #rotate .ic{font-size:56px;animation:rotSpin 2.2s ease-in-out infinite}
   @keyframes rotSpin{0%,40%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
   @media (orientation:portrait){body.touch #rotate{display:flex}}
+  /* ------- RESPONSIVE : écrans étroits / mobile — le HUD ne se chevauche plus ------- */
+  @media (max-width:820px){
+    /* barre du haut : ARGENT à gauche, boutons compacts à droite → plus de collision */
+    #money{left:10px;transform:none;top:10px;padding:6px 11px;border-radius:10px}
+    #moneyTxt{font-size:18px;letter-spacing:1px}
+    .blabel{display:none} /* mobile : boutons en ICÔNES seules (emoji) — compacts, premium, plus de collision */
+    .sndBtn,#resetBtn{font-size:15px;padding:7px 9px;border-width:1px;line-height:1}
+    #resetBtn{top:12px;right:10px}
+    #sndBtn{top:12px;right:54px}
+    #voxBtn{top:12px;right:98px}
+    /* feedbacks : plus petits pour ne pas barrer tout l'écran */
+    #msg{font-size:15px}
+    .trick{font-size:13px}.trick.big,.trick.m1{font-size:19px}.trick.m2{font-size:23px}.trick.m3{font-size:29px}
+    #chainHud{font-size:12px;padding:4px 11px}#caseHud{font-size:12px;padding:3px 10px}
+  }
 </style>
 </head>
 <body>
@@ -278,9 +295,9 @@
   <div id="carInfo" class="panel"><div id="carName">Épave rouillée</div><div id="carLevel">NIVEAU 1 / 14</div></div>
   <div id="money"><span id="moneyTxt">$00000000</span></div>
   <div id="record"></div>
-  <button id="resetBtn">⟲ RESET</button>
-  <button id="sndBtn" class="sndBtn">🔊 SON</button>
-  <button id="voxBtn" class="sndBtn">🎙 VOIX</button>
+  <button id="resetBtn">⟲ <span class="blabel">RESET</span></button>
+  <button id="sndBtn" class="sndBtn">🔊 <span class="blabel">SON</span></button>
+  <button id="voxBtn" class="sndBtn">🎙 <span class="blabel">VOIX</span></button>
   <div id="speedo" class="panel"><div id="speedVal">0</div><div id="speedUnit">km/h</div></div>
   <div id="cpInfo" class="panel">Prochaine voiture à <span id="cpDist"></span><div id="cpBar"><div id="cpFill"></div></div></div>
   <div id="feverGlow"></div>
@@ -350,7 +367,7 @@ const scene=new THREE.Scene();
 // CIEL « PHOTO » : coucher de soleil sur l'océan — turquoise au zénith, rose/corail,
 // horizon d'or embrasé, brume rosée-dorée dense en contrebas (le miroitement de l'eau).
 scene.background=new THREE.Color(0xb58ab8);
-const SUN_DIR=new THREE.Vector3(.38,.13,-.90).normalize(); // soleil BAS, légèrement décentré
+const SUN_DIR=new THREE.Vector3(.38,.10,-.90).normalize(); // soleil TRÈS BAS (~5,9°) : lumière rasante, ombres longues
 const skyU={uTime:{value:0},uSunDir:{value:SUN_DIR}};
 const skyDome=(function(){
   const mat=new THREE.ShaderMaterial({uniforms:skyU,side:THREE.BackSide,depthWrite:false,
@@ -447,9 +464,9 @@ document.body.appendChild(renderer.domElement);
 let DPR_CAP=Math.min(devicePixelRatio,2),curDPR=DPR_CAP,dprT=0; // RÉSOLUTION ADAPTATIVE (perf) : ajustée dans loop() selon loop._ms
 let composer=null,bloomPass=null,acesPass=null,POST_ON=false,SHADOW_ON=true; // POST-PROCESSING (assigné juste après)
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);if(composer)composer.setSize(innerWidth,innerHeight);slCv.width=innerWidth;slCv.height=innerHeight;});
-scene.add(new THREE.HemisphereLight(0xffd9c0,0x7a6f8e,1.0)); // ciel crème / sol ardoise-mauve
-const sun=new THREE.DirectionalLight(0xffb87a,1.0);sun.position.copy(SUN_DIR).multiplyScalar(3800);scene.add(sun);
-const fill=new THREE.DirectionalLight(0x8a7fa0,.28);fill.position.set(-200,-400,-100);scene.add(fill);
+scene.add(new THREE.HemisphereLight(0xffd9c0,0x6a5f7e,0.68)); // ambiance BAISSÉE (1.0→0.68) : les ombres s'enfoncent → forte ombre
+const sun=new THREE.DirectionalLight(0xffb64a,1.34);sun.position.copy(SUN_DIR).multiplyScalar(3800);scene.add(sun); // OR chaud + PUISSANT : lumière dorée rasante, fort contraste lumière/ombre
+const fill=new THREE.DirectionalLight(0x7a6f98,.20);fill.position.set(-200,-400,-100);scene.add(fill); // fill discret : on garde des ombres profondes (le grade les teinte en teal)
 /* Paris retiré — tout est misé sur le CIEL : couchant, nuages irisés, pigeons ramiers */
 
 /* ============ TRIPTYQUE VISUEL : ACES + BLOOM + OMBRES DE CONTACT ============ */
@@ -457,7 +474,7 @@ const fill=new THREE.DirectionalLight(0x8a7fa0,.28);fill.position.set(-200,-400,
 const IS_TOUCH=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||('ontouchstart'in window)||navigator.maxTouchPoints>0;
 const IS_MOBILE=IS_TOUCH&&((window.matchMedia&&matchMedia('(hover:none)').matches)||Math.min(innerWidth,innerHeight)<820);
 // --- OMBRES LONGUES (golden hour) : une seule casteuse — le soleil — dans une fenêtre ortho serrée qui SUIT la caisse.
-// Soleil à ~7,6° → l'ombre fait ~7,5× la hauteur de l'objet : le rasant fait tout le travail.
+// Soleil à ~5,9° → l'ombre fait ~9,7× la hauteur de l'objet : le rasant étire tout au sol.
 renderer.shadowMap.enabled=true;
 renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 sun.castShadow=true;
@@ -467,20 +484,32 @@ SUNC.left=-34;SUNC.right=34;SUNC.top=30;SUNC.bottom=-64;SUNC.near=40;SUNC.far=34
 sun.shadow.bias=-0.0003;sun.shadow.normalBias=0.08; // normalBias en MÈTRES (~2 texels) : assez pour tuer l'acné, pas de quoi décoller l'ombre
 scene.add(sun.target);
 const SUN_UP=new THREE.Vector3().crossVectors(SUN_PERP,SUN_DIR).normalize(),shadV=new THREE.Vector3(); // base du plan lumière (snap texel)
-// --- Étalonnage (réglables d'un coup d'œil) ---
-const POST_EXPO=0.92; // exposition avant ACES (luminosité globale) — respire en contre-jour (voir updateClouds)
-const POST_SAT=1.07;  // saturation APRÈS tonemap : la chaleur vient de la balance des blancs, plus besoin de pousser
-// ACES filmique + relèvement de saturation, en PASSE FINALE — la scène en amont est rendue à l'identique d'aujourd'hui.
+// --- Étalonnage GTA-VICE (réglables d'un coup d'œil) : saturé, contrasté, teal-orange ---
+const POST_EXPO=0.98;      // exposition avant tonemap (luminosité globale) — respire en contre-jour (voir updateClouds)
+const POST_SAT=1.36;       // SATURATION forte : néons Vice City
+const POST_CONTRAST=1.22;  // CONTRASTE : noirs profonds, hautes lumières franches
+const POST_VIVID=0.68;     // 0 = ACES sobre (désature les hautes lumières) · 1 = tonemap qui PRÉSERVE la couleur (ciel/nitro restent colorés, pas blancs)
+const POST_WB=new THREE.Vector3(1.015,1.0,0.99);       // balance des blancs quasi neutre (la chaleur vient du split-tone, pas d'un voile beige)
+const POST_SHADOW=new THREE.Vector3(-0.022,0.008,0.055); // OMBRES → teal/bleu profond
+const POST_HI=new THREE.Vector3(0.050,0.014,-0.030);      // LUMIÈRES → or chaud (le duo teal-orange de GTA)
+// Grade cinéma en PASSE FINALE : tonemap préservant la chroma + contraste + saturation + split-tone. Scène en amont inchangée.
 const ACESShader={
-  uniforms:{tDiffuse:{value:null},uExposure:{value:POST_EXPO},uSat:{value:POST_SAT}},
+  uniforms:{tDiffuse:{value:null},uExposure:{value:POST_EXPO},uSat:{value:POST_SAT},uContrast:{value:POST_CONTRAST},
+            uVivid:{value:POST_VIVID},uWB:{value:POST_WB},uSh:{value:POST_SHADOW},uHi:{value:POST_HI}},
   vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
-  fragmentShader:['uniform sampler2D tDiffuse;uniform float uExposure;uniform float uSat;varying vec2 vUv;',
+  fragmentShader:['uniform sampler2D tDiffuse;uniform float uExposure,uSat,uContrast,uVivid;uniform vec3 uWB,uSh,uHi;varying vec2 vUv;',
     'vec3 aces(vec3 x){const float a=2.51,b=.03,c=2.43,d=.59,e=.14;return clamp((x*(a*x+b))/(x*(c*x+d)+e),0.,1.);}',
-    'void main(){vec4 t=texture2D(tDiffuse,vUv);',
-    'vec3 c=aces(t.rgb*vec3(1.045,1.,.955)*uExposure);', // balance des blancs GOLDEN HOUR avant le tonemap — la chaleur vient de la lumière, pas d un filtre
-    'float l=dot(c,vec3(.2126,.7152,.0722));c=mix(vec3(l),c,uSat);', // roll-off des hautes lumières (soleil/nitro) + couleurs vives préservées
-    'c+=vec3(.018,.012,.028)*(1.-smoothstep(0.,.30,l));', // ombres relevées MAUVE (le ciel remplit ce que le soleil n atteint pas) — les noirs ne bouchent jamais
-    'gl_FragColor=vec4(c,t.a);}'].join('\n')
+    'const vec3 LUM=vec3(.2126,.7152,.0722);',
+    'void main(){vec3 x=texture2D(tDiffuse,vUv).rgb*uWB*uExposure;',
+    'float L=dot(x,LUM);',
+    'vec3 perCh=aces(x);',                              // ACES par canal : sûr mais désature les hautes lumières
+    'vec3 lumB=x*(aces(vec3(L)).x/max(L,1e-4));',       // ACES sur la LUMINANCE seule → la chroma est conservée (néon)
+    'vec3 c=clamp(mix(perCh,lumB,uVivid),0.,1.);',      // dosage entre les deux
+    'c=clamp((c-0.5)*uContrast+0.5,0.,1.);',            // CONTRASTE : noirs profonds
+    'float l2=dot(c,LUM);c=mix(vec3(l2),c,uSat);',      // SATURATION
+    'c+=uSh*(1.-smoothstep(0.,0.5,l2));',               // split-tone : ombres TEAL
+    'c+=uHi*smoothstep(0.5,1.0,l2);',                   // split-tone : lumières OR
+    'gl_FragColor=vec4(clamp(c,0.,1.),1.0);}'].join('\n')
 };
 const CAN_POST=typeof THREE.EffectComposer==='function'&&typeof THREE.RenderPass==='function'&&typeof THREE.UnrealBloomPass==='function'&&typeof THREE.ShaderPass==='function';
 if(CAN_POST){ try{
@@ -493,7 +522,7 @@ if(CAN_POST){ try{
   composer.addPass(new THREE.RenderPass(scene,camera));
   // BLOOM : seuil HAUT (0.82) + halo COURT → halation discrète sur soleil/nitro/or, jamais de brume laiteuse.
   const bRes=IS_MOBILE?new THREE.Vector2(Math.round(w*.5),Math.round(h*.5)):new THREE.Vector2(w,h);
-  bloomPass=new THREE.UnrealBloomPass(bRes,IS_MOBILE?0.45:0.58,IS_MOBILE?0.45:0.5,0.82);
+  bloomPass=new THREE.UnrealBloomPass(bRes,IS_MOBILE?0.45:0.58,IS_MOBILE?0.45:0.5,0.85); // seuil relevé : halation nette sur soleil/nitro/or, plus de brume laiteuse
   composer.addPass(bloomPass);
   acesPass=new THREE.ShaderPass(ACESShader);acesPass.renderToScreen=true;composer.addPass(acesPass);
   POST_ON=true;
@@ -2648,8 +2677,8 @@ setInterval(()=>{if(SAVE.dirty)SAVE.flush();},30000); // le filet : rien ne se p
 SND.sfx=SAVE.d.sfx;SND.voice=SAVE.d.vox;
 const sndBtnEl=document.getElementById('sndBtn'),voxBtnEl=document.getElementById('voxBtn');
 function sndRefresh(){
-  sndBtnEl.textContent=SND.sfx?'🔊 SON':'🔇 SON';sndBtnEl.classList.toggle('off',!SND.sfx);
-  voxBtnEl.textContent=SND.voice?'🎙 VOIX':'🤐 VOIX';voxBtnEl.classList.toggle('off',!SND.voice);
+  sndBtnEl.innerHTML=(SND.sfx?'🔊':'🔇')+' <span class="blabel">SON</span>';sndBtnEl.classList.toggle('off',!SND.sfx); // garde le span → masquable en icône seule sur mobile
+  voxBtnEl.innerHTML=(SND.voice?'🎙':'🤐')+' <span class="blabel">VOIX</span>';voxBtnEl.classList.toggle('off',!SND.voice);
   try{if(AC){if(SND.sfx)AC.resume();else AC.suspend();}}catch(e){} // suspend = silence total du moteur audio
   if(!SND.voice)annStop();
 }
@@ -2811,6 +2840,9 @@ function heistFire(){ // le BRAQUAGE : double-tap NITRO au bon moment — tout �
   showMsg('★ BRAQUAGE — TOUT ×2 ! ★','#ff3ec8');
 }
 function trickMsg(txt,tier){ // tier: 1 MONSTRE · 2 DOUBLE · 3 TRIPLE (ou true = mis en avant)
+  // UN temps fort à la fois : un gros verdict (tier≥2) balaie les petits pops en cours ; sinon on plafonne à 2
+  if(tier===2||tier===3){while(trickBox.firstChild)trickBox.firstChild.remove();}
+  else while(trickBox.childElementCount>=2)trickBox.firstChild.remove();
   const el=document.createElement('div');
   el.className='trick'+(tier===3?' m3':tier===2?' m2':tier===1?' m1':(tier?' big':''));
   el.textContent=txt;
@@ -3121,15 +3153,17 @@ impBtn.addEventListener('click',e=>{e.stopPropagation();
 // à portée de vue, 2 vraies lumières (pool) pour les plus proches, sirène unique dosée à la distance.
 const SURV={armed:false,on:false,t:0,over:false,_r:0,pBase:0,ph:0,last:false};
 SURV.bots=[];
-// personnalités : spd = rythme de base · agro = dépasse/bloque · err = fréquence des fautes
-const SURV_PILOTS=[ // rythmes AU-DESSUS de ta vitesse max : les battre exige nitro, sauts et raccourcis
- {n:'RICO',spd:1.04,agro:.92,err:.20}, // le chien fou : colle, frotte, tente tout
- {n:'JADE',spd:1.01,agro:.30,err:.04}, // la métronome : propre, implacable
- {n:'MOMO',spd:1.03,agro:.62,err:.11}, // l'opportuniste : surgit sur les erreurs
- {n:'ZAZA',spd:1.075,agro:.80,err:.27},// la fusée fautive : très vite, se rate
- {n:'LULU',spd:1.00,agro:.42,err:.08}, // la prudente : attend son heure
- {n:'KIKI',spd:1.05,agro:.72,err:.15}, // la teigneuse : défend chaque mètre
- {n:'BOB', spd:1.02,agro:.52,err:.12}, // le régulier : jamais loin
+// personnalités : plus PERSONNE n'a de bonus de vitesse — tout le monde a TA caisse et TES lois.
+// La différence se joue au CERVEAU : agro = dépasse/bloque · err = fréquence des fautes ·
+// rea = délai de réaction (s, comme un humain) · line = propreté de trajectoire et des points de corde
+const SURV_PILOTS=[
+ {n:'RICO',agro:.92,err:.20,rea:.13,line:.60}, // le chien fou : réflexes de chat, trajectoires de poivrot
+ {n:'JADE',agro:.30,err:.03,rea:.16,line:.97}, // la métronome : propre, implacable — la référence à battre
+ {n:'MOMO',agro:.62,err:.11,rea:.14,line:.78}, // l'opportuniste : surgit sur les erreurs
+ {n:'ZAZA',agro:.80,err:.28,rea:.10,line:.86}, // la fusée fautive : réagit au quart de tour, se rate en grand
+ {n:'LULU',agro:.42,err:.07,rea:.26,line:.82}, // la prudente : longue à la détente, mais sûre
+ {n:'KIKI',agro:.72,err:.14,rea:.17,line:.72}, // la teigneuse : défend chaque mètre
+ {n:'BOB', agro:.52,err:.10,rea:.21,line:.76}, // le régulier : jamais brillant, jamais loin
 ];
 // ---------- APPRENTISSAGE : les IA t'observent et adoptent ton style (façon Drivatar) ----------
 // Deux mémoires. (1) Un PROFIL persistant (localStorage via SAVE) qui agrège TA manière de jouer sur
@@ -3230,7 +3264,7 @@ function sirenInit(){
   }catch(e){sirG=null;}
 }
 const FB={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
-const svM4=new THREE.Matrix4();
+const svM4=new THREE.Matrix4(),svT1=new THREE.Vector3(); // temp partagé de la meute (jamais d'alloc chaude)
 function survStart(){
   for(const b of SURV.bots)if(b.mesh)scene.remove(b.mesh.g); // grand ménage de l'escadron précédent
   SURV.on=SURV.armed;SURV.t=0;SURV.over=false;SURV.bots=[];SURV._r=0;SURV.pBase=0;SURV.ph=0;SURV.last=false;
@@ -3244,17 +3278,21 @@ function survStart(){
   svClkCtx=$('svClock').getContext('2d');svRowsEl=$('svRows');svSecsEl=$('svSecs');
   for(let i=0;i<7;i++){
     const p=SURV_PILOTS[i];
-    // le PROFIL appris te déteint sur chaque bot : sauteurs si tu sautes, prudents si tu l'es, à ton niveau
-    const spd=p.spd*(.9+AIP.skill*.2),                      // ton niveau tire le rythme de toute la meute — fort
+    // le PROFIL appris te déteint sur chaque bot — mais uniquement sur le CERVEAU, jamais sur le moteur
+    const line=THREE.MathUtils.clamp(p.line*(.72+AIP.skill*.3),.25,.98),
+      marg=THREE.MathUtils.clamp(.78+line*.18-AIP.caution*.04,.7,.96), // marge au point de corde : les fins freinent tard
       agro=THREE.MathUtils.clamp(p.agro*(.7+AIP.aggr*.7),0,1),
       appJump=THREE.MathUtils.clamp(AIP.air*(.5+p.agro*.9),0,1.1), // appétit de saut personnel
-      appBoost=THREE.MathUtils.clamp(AIP.boost*(.6+p.agro),0,1.1);
-    SURV.bots.push({name:p.n,spd:spd,agro:agro,err:p.err,alive:true,appJump:appJump,appBoost:appBoost,
+      appBoost=THREE.MathUtils.clamp(.25+AIP.boost*(.5+p.agro*.7),0,1.2);
+    SURV.bots.push({name:p.n,agro:agro,err:p.err,rea:p.rea,line:line,marg:marg,alive:true,
+      appJump:appJump,appBoost:appBoost,
       totD:s+(i-3)*34+(Math.random()*2-1)*12, // la meute encadre le joueur dès le départ
-      v:24,lat:(Math.random()*2-1)*(ROAD_HALF-3),latT:0,errT:0,boostT:0,ph:Math.random(),
-      air:false,airH:0,vy:0,spin:0,spinV:0,jumpCD:1+Math.random()*2,nitroT:0,zoneMark:-1,
+      v:24,lat:(Math.random()*2-1)*(ROAD_HALF-4),latT:0,lane:(Math.random()*2-1)*.6,
+      phi:0,steer:0,sHold:0,momT:0,pbi:-1,cornerV:1e9,think:Math.random()*.25,
+      nitroR:1.2,nT:0,boostT:0,padB:0,padCd:0,slipT:0,oilCd:0,wCd:0,errT:0,errK:0,ph:Math.random(),
+      air:false,airH:0,vy:0,spin:0,spinV:0,jumpCD:1+Math.random()*2,zoneMark:-1,
       mesh:mkPolice(i)});
-    SURV.bots[i].latT=SURV.bots[i].lat;
+    SURV.bots[i].latT=SURV.bots[i].lane*(ROAD_HALF-5);
   }
   survRender();
 }
@@ -3294,7 +3332,10 @@ function survTick(dt){
   SURV.t+=dt;SURV.ph=(SURV.ph+dt*2.7)%1;
   svClockDraw();
   const pTot=SURV.pBase+s;
-  const pMax=CARS[level].maxKmh/3.6*(1+Math.min(.5,Math.max(0,level-5)*.08)); // le rythme suit TA caisse
+  // MÊME MOTEUR QUE TOI : la meute roule avec TA caisse (specs + overdrive), pas un pouce de plus.
+  // Zéro triche : plus d'élastique, plus de garde-fou, plus d'aspiration magique — que du pilotage.
+  const spec9=CARS[level],late9=1+Math.min(.5,Math.max(0,level-5)*.08),
+        maxSp9=spec9.maxKmh/3.6*late9,acc9=spec9.accel*late9,tc9=spec9.turn*.75,segL9=L/(NP-1);
   // ---- ON T'OBSERVE EN DIRECT : chaque décollage grave une ZONE que les bots imiteront sur CETTE piste ----
   if(mode==='fall'&&SURV.pMode!=='fall'){SURV._launchD=pTot;SURV._launchT=SURV.t;}
   else if(mode!=='fall'&&SURV.pMode==='fall'){
@@ -3305,72 +3346,172 @@ function survTick(dt){
   // ---- classement vivant (8 entrées : tri à la main, zéro alloc chaude) ----
   const alive=SURV.bots.filter(b=>b.alive);
   const racers=alive.slice();racers.sort((a,b)=>b.totD-a.totD);
-  const leadD=racers.length?Math.max(racers[0].totD,pTot):pTot;
   let pRank=1;for(const b of alive)if(b.totD>pTot)pRank++;
-  const endRush=SURV.t>48; // dernière ligne droite de la minute : ça pousse
   for(const b of alive){
-    // -- cible de vitesse : personnalité × virages × circonstances --
-    const bi=Math.floor(THREE.MathUtils.clamp((b.totD-SURV.pBase)/L,0,1)*(NP-1));
-    const bj=Math.min(NP-1,bi+70);
-    const curv=.8+.2*Math.max(0,T[bi].dot(T[bj])); // l'IA lève le pied dans les virages serrés
-    let tgt=pMax*b.spd*curv;
-    // -- fautes : chaque pilote a les siennes (visibles quand on est derrière !) --
-    if(b.errT>0){b.errT-=dt;tgt*=.55;}
-    else if(Math.random()<dt*b.err*.15)b.errT=.5+Math.random()*.8;
-    // -- VOL : la voltige n'est plus ton monopole — elles décollent, vrillent, retombent en gerbe --
+    const rel=b.totD-SURV.pBase;
+    const bi=Math.floor(THREE.MathUtils.clamp(rel/L,0,1)*(NP-1));
+    // ============ LE CERVEAU : un tick à retard HUMAIN (100-300 ms selon le pilote) ============
+    // Entre deux ticks, le bot roule sur ses dernières décisions — comme toi entre deux regards.
+    b.think-=dt;
+    if(b.think<=0){
+      b.think=b.rea*(.8+Math.random()*.6);
+      // fautes : chaque pilote a les siennes, et elles se VOIENT (0=coup de frein, 1=embardée, 2=corde ratée)
+      if(b.errT<=0&&Math.random()<b.err*.4){b.errT=.5+Math.random()*.8;b.errK=Math.floor(Math.random()*3);}
+      // POINT DE CORDE (waypoints) : distance de freinage réelle (mêmes freins que toi) + retard de réaction
+      const dBrk=(b.v*b.v*SPD)/(2*acc9*1.5)+b.v*SPD*b.rea;
+      const look=THREE.MathUtils.clamp(dBrk*1.4+16,24,230);
+      let vSafe=1e9,crv=0;
+      for(let k9=1;k9<=3;k9++){ // 3 échantillons de courbure devant : l'anticipation, pas la ligne droite bête
+        const d9=look*k9/3;
+        const j9=Math.min(NP-1,bi+Math.max(1,Math.round(d9/segL9)));
+        const kap=Math.acos(THREE.MathUtils.clamp(T[bi].dot(T[j9]),-1,1))/Math.max(1,d9); // κ rad/m
+        if(kap>1e-4){ // vitesse max de passage : résout κ·v·SPD = plafond de braquage (LE TIEN)
+          const kS=kap*SPD,vs=(-kS+Math.sqrt(kS*kS+4*kS*TURN_HS*tc9))/(2*kS*TURN_HS);
+          if(vs<vSafe){vSafe=vs;svT1.crossVectors(T[bi],T[j9]);crv=Math.sign(svT1.dot(Nn[bi]))*kap;}
+        }
+      }
+      let m9=b.marg*(1+(Math.random()-.5)*.16*(.4+b.err)); // le point de frein n'est jamais deux fois le même
+      if(b.errT>0&&b.errK===2)m9*=1.35;                    // corde RATÉE : il rentre trop vite et part large
+      b.cornerV=vSafe*m9;
+      // LIGNE : viser la corde du virage annoncé, sinon sa file préférée
+      let lT=Math.abs(crv)>.004?Math.sign(crv)*(ROAD_HALF-3.4)*b.line:b.lane*(ROAD_HALF-5);
+      // PERCEPTION BORNÉE : 75 m devant, 25 m derrière — et les écarts s'estiment à l'œil (±10 %)
+      let ahead=null,aG=1e9,behind=null,bG=1e9;
+      for(const o of alive){if(o===b)continue;const g9=(o.totD-b.totD)*(1+(Math.random()-.5)*.2);
+        if(g9>0&&g9<75){if(g9<aG){aG=g9;ahead=o.lat;}}else if(g9<0&&-g9<25&&-g9<bG){bG=-g9;behind=o.lat;}}
+      if(mode==='drive'){const g9=(pTot-b.totD)*(1+(Math.random()-.5)*.2); // toi aussi tu n'es qu'une silhouette
+        if(g9>0&&g9<75){if(g9<aG){aG=g9;ahead=lat;}}else if(g9<0&&-g9<25&&-g9<bG){bG=-g9;behind=lat;}}
+      if(ahead!=null&&aG<14&&Math.abs(b.lat-ahead)<3.2)      // bouchon : on DÉBOÎTE (au prochain tick, pas avant)
+        lT=THREE.MathUtils.clamp(ahead+(b.lat>=ahead?4.6:-4.6),-(ROAD_HALF-2.6),ROAD_HALF-2.6);
+      else if(behind!=null&&bG<9&&Math.random()<b.agro*.7)   // porte fermée sur le poursuivant
+        lT=THREE.MathUtils.clamp(behind,-(ROAD_HALF-2.6),ROAD_HALF-2.6);
+      // OBSTACLES à portée de phares : il ne voit QUE devant, et l'esquive attend son tick (retard humain)
+      const oLook=Math.min(look,70);let obD=1e9,obLat=0,obW=0;
+      for(const c9 of CONES){if(c9.hit||c9.face!==1)continue;const d9=c9.s-rel;
+        if(d9>2&&d9<oLook&&d9<obD&&Math.abs(c9.lat-lT)<2.4){obD=d9;obLat=c9.lat;obW=2.4;}}
+      for(const w9 of WRECKS){if(w9.hit||w9.face!==1)continue;const d9=w9.s-rel;
+        if(d9>2&&d9<oLook&&d9<obD&&Math.abs(w9.lat-lT)<3.1){obD=d9;obLat=w9.lat;obW=3.1;}}
+      for(const o9 of OILS){if(o9.face!==1)continue;const d9=o9.s-rel;
+        if(d9>2&&d9<oLook&&d9<obD&&Math.abs(o9.lat-lT)<o9.r+1){obD=d9;obLat=o9.lat;obW=o9.r+1;}}
+      if(obD<1e9)lT=obLat+(lT>=obLat?1:-1)*(obW+1.6);
+      b.latT=THREE.MathUtils.clamp(lT,-(ROAD_HALF-2.4),ROAD_HALF-2.4);
+      // NITRO : une RESSOURCE (même jauge, même recharge que toi) — il l'allume sur du droit dégagé
+      if(b.nT<=0&&b.nitroR>.5&&b.slipT<=0&&b.cornerV>b.v*1.2&&(ahead==null||aG>10)){
+        let env=b.appBoost*(ahead!=null?1.5:.6);
+        if(SURV.t>48)env*=1.7;                             // dernière ligne droite de la minute : tout le monde tape dedans
+        if(racers[racers.length-1]===b)env*=1.6;           // le condamné du classement se bat
+        if(Math.random()<env*.55)b.nT=.5+Math.random()*.9;
+      }
+    }
+    if(b.errT>0)b.errT-=dt;
+    // ============ LE MOTEUR : copie conforme de TES équations — rien de plus, rien de moins ============
+    const brk=b.v>b.cornerV*1.05||(b.errT>0&&b.errK===0);  // frein réel ou coup de frein fautif
+    const lift=b.v>b.cornerV*.96;                          // pied levé à l'approche : un humain ne freine pas sec
+    if(!brk&&Math.abs(b.steer)<.2&&Math.abs(b.phi)<.25)b.momT+=dt;else b.momT=Math.max(0,b.momT-dt*3); // même MOMENTUM
+    const momF=1+Math.min(1.8,b.momT*b.momT*.1);
+    if(!b.air){
+      let a9=0;
+      if(brk)a9=b.v>2?-acc9*1.5:-acc9*.5;
+      else if(!lift)a9=acc9*(b.v<maxSp9?1:.55)*(b.padB>0?1.5:1)*momF;
+      b.v+=a9*dt;
+      b.v+=-GRAV*T[bi].y*Math.cos(b.phi)*dt;               // la pente pousse ou retient, comme toi
+      b.v-=b.v*Math.abs(b.v)*(acc9/(maxSp9*maxSp9*5.8))*dt; // même traînée, même terminal
+      b.v*=Math.max(0,1-.03*dt);
+      if(!brk&&lift)b.v*=Math.max(0,1-.4*dt);              // pied levé = même frein moteur
+    }
+    b.nT-=dt;
+    const nOn=b.nT>0&&!brk&&b.nitroR>.005;
+    if(nOn){b.v+=30*dt;b.nitroR=Math.max(0,b.nitroR-dt);}  // même poussée, même consommation
+    b.nitroR=Math.min(2,b.nitroR+.2*dt);                   // même recharge que ta jauge
+    b.boostT=nOn?1:0;                                      // la flamme du réacteur suit la VRAIE combustion
+    b.padB=Math.max(0,b.padB-dt);
+    if(b.v<0)b.v=0;
+    // ============ LA DIRECTION : même volant, même inertie, même plafond TURN_HS ============
+    const dL9=b.latT-b.lat;
+    const phiT=THREE.MathUtils.clamp(dL9/(Math.max(6,b.v*SPD)*.9),-.62,.62);
+    let st=THREE.MathUtils.clamp((phiT-b.phi)*4,-1,1);
+    st+=(Math.random()-.5)*.1*(1.2-b.line);                // micro-corrections permanentes : une main humaine
+    if(b.errT>0&&b.errK===1)st+=Math.sin(SURV.t*13+b.ph*9)*.7; // l'EMBARDÉE : ça se voit depuis derrière
+    b.steer+=(st-b.steer)*Math.min(1,dt*18);               // même inertie de volant que la tienne
+    if(Math.abs(b.steer)>.1)b.sHold=Math.min(.3,b.sHold+dt);else b.sHold=0;
+    b.phi+=(b.slipT>0?.18:1)*b.steer*(.55+.45*(b.sHold/.3))*tc9*THREE.MathUtils.clamp(b.v/8,-1,1)*(1/(1+Math.abs(b.v)*TURN_HS))*dt;
+    if(b.slipT>0){b.slipT-=dt;b.phi+=(Math.random()-.5)*2.6*dt*Math.min(1,Math.abs(b.v)/12);} // la flaque le fait chasser, LUI aussi
+    if(b.pbi>=0&&bi!==b.pbi){ // la route tourne SOUS le bot : même rétroaction que ton psi
+      svT1.crossVectors(T[b.pbi],T[bi]);
+      const dy9=Math.atan2(svT1.dot(Nn[bi]),THREE.MathUtils.clamp(T[b.pbi].dot(T[bi]),-1,1));
+      if(Math.abs(dy9)<.5)b.phi-=dy9; // (garde : saut de piste au portail = pas une vraie rotation)
+    }
+    b.pbi=bi;
+    b.phi=THREE.MathUtils.clamp(b.phi,-1.4,1.4);
+    // ============ L'AVANCE : mêmes intégrateurs (SPD compris) ============
+    b.lat+=b.v*Math.sin(b.phi)*dt*SPD;
+    b.totD+=b.v*Math.cos(b.phi)*dt*SPD;
+    // ============ VOL & BORD : mêmes règles — la roue sort, la caisse décolle ============
     if(b.air){
-      b.vy-=26*dt;b.airH+=b.vy*dt;               // gravité maison : 26, comme le grand plongeon
+      b.vy-=26*dt;b.airH+=b.vy*dt;
       b.spin+=b.spinV*dt;b.spinV*=Math.max(0,1-dt*.5);
-      tgt*=1.08;                                  // en l'air ça FILE : le saut est un raccourci, comme pour toi
-      if(b.airH<=0){                              // la retombée
+      if(b.airH<=0){ // la retombée
         b.air=false;b.airH=0;b.vy=0;b.spin=0;b.spinV=0;b.jumpCD=1+Math.random()*1.6;
+        if(Math.abs(b.lat)>ROAD_HALF){botBoom(b);continue;} // retombé À CÔTÉ : le vide ne pardonne pas, même à eux
         if(b.mesh.g.visible)sparkBurst(sparkGold,b.mesh.g.position,7,7);
       }
     }else{
-      b.jumpCD-=dt;
-      if(b.jumpCD<=0){
-        let air9=0;
-        for(let zi=0;zi<SURV.jumpZones.length;zi++){ // « il a vu où tu sautes » : TES spots deviennent les leurs
-          const z=SURV.jumpZones[zi];
-          if(zi!==b.zoneMark&&Math.abs(z.d-b.totD)<8){air9=z.dur*(.7+b.appJump*.5);b.zoneMark=zi;break;}
-        }
-        if(!air9&&Math.random()<dt*b.appJump*.5)air9=.7+Math.random()*(1+b.appJump*2.2); // l'appétit hérité de TOI
-        if(air9){
-          b.air=true;b.airH=.01;b.vy=13*Math.min(air9,4); // vy=G·t/2 : il reproduit la DURÉE de ton vol
-          b.spinV=(Math.random()<.5?-1:1)*(1+b.agro*5.5)*(air9>1.5?1:.35); // les gros airs partent en vrille
-          b.jumpCD=2.2;
+      if(Math.abs(b.lat)>ROAD_HALF){ // le BORD : même sanction que toi — ça décolle, à lui de revenir
+        b.air=true;b.airH=.01;b.vy=6;b.spinV=(Math.random()-.5)*2;
+      }else{
+        b.jumpCD-=dt;
+        if(b.jumpCD<=0){ // « il a vu où tu sautes » : TES spots sont leurs SEULS tremplins — plus de saut sorti de nulle part
+          for(let zi=0;zi<SURV.jumpZones.length;zi++){
+            const z=SURV.jumpZones[zi];
+            if(zi!==b.zoneMark&&Math.abs(z.d-b.totD)<8){
+              b.zoneMark=zi;
+              if(Math.random()<.25+b.appJump*.6){ // l'appétit hérité de TOI décide s'il OSE
+                const air9=z.dur*(.7+b.appJump*.5);
+                b.air=true;b.airH=.01;b.vy=13*Math.min(air9,4); // vy=G·t/2 : il reproduit la DURÉE de ton vol
+                b.spinV=(Math.random()<.5?-1:1)*(1+b.agro*5.5)*(air9>1.5?1:.35);
+                b.jumpCD=2.2;
+              }
+              break;
+            }
+          }
         }
       }
     }
-    // -- course dans la course : aspiration, blocage, dépassement --
-    let ahead=null,behind=null,bestA=1e9,bestB=1e9;
-    for(const o of alive){if(o===b)continue;const g9=o.totD-b.totD;
-      if(g9>0&&g9<bestA){bestA=g9;ahead=o;}if(g9<0&&-g9<bestB){bestB=-g9;behind=o;}}
-    if(mode==='drive'){const g9=pTot-b.totD; // le joueur est un concurrent comme les autres
-      if(g9>0&&g9<bestA){bestA=g9;ahead={lat:lat,isP:1};}if(g9<0&&-g9<bestB){bestB=-g9;behind={lat:lat,isP:1};}}
-    if(ahead&&bestA<16&&Math.abs(b.lat-ahead.lat)<3)tgt*=1.09;               // ASPIRATION dans le sillage
-    if(ahead&&bestA<11&&Math.abs(b.latT-ahead.lat)<3.4){                     // bouchon : on DÉBOÎTE
-      b.latT=THREE.MathUtils.clamp(ahead.lat+(b.lat>ahead.lat?4.6:-4.6),-(ROAD_HALF-2.4),ROAD_HALF-2.4);
-      if(b.boostT<=0&&Math.random()<dt*b.agro*2.2)b.boostT=.9;               // les agressifs forcent le passage
-    }else if(behind&&bestB<9&&Math.random()<dt*b.agro*1.6){                  // on DÉFEND : porte fermée
-      b.latT=THREE.MathUtils.clamp(behind.lat,-(ROAD_HALF-2.4),ROAD_HALF-2.4);
-    }else if(Math.random()<dt*.25){                                          // sinon la trajectoire respire
-      b.latT=THREE.MathUtils.clamp(b.latT+(Math.random()*2-1)*3,-(ROAD_HALF-2.6),ROAD_HALF-2.6);
+    // ============ OBSTACLES : la piste cogne pareil pour tout le monde ============
+    if(!b.air&&rel>0&&rel<L){
+      for(const c9 of CONES){ // plots : il les mange comme toi (et tu VOIS le plot valser devant)
+        if(c9.hit||c9.face!==1||Math.abs(rel-c9.s)>2.6)continue;
+        if(Math.abs(b.lat-c9.lat)<1.6){
+          c9.hit=true;
+          const kv=new THREE.Vector3().copy(T[bi]).multiplyScalar(Math.max(8,b.v*.55))
+            .addScaledVector(B[bi],(b.lat-c9.lat>0?-1:1)*(2+Math.random()*4))
+            .addScaledVector(Nn[bi],5+Math.random()*5);
+          FLYCONES.push({m:c9.mesh,v:kv,rx:(Math.random()-.5)*16,rz:(Math.random()-.5)*16,life:1.6});
+          b.v*=.985;
+          if(b.mesh.g.visible)sparkBurst(sparkGold,c9.mesh.position,5,6);
+        }
+      }
+      b.wCd=Math.max(0,b.wCd-dt);
+      if(b.wCd<=0)for(const w9 of WRECKS){ // épaves : même mur, même sanction (l'épave reste pour TOI)
+        if(w9.hit||w9.face!==1||Math.abs(rel-w9.s)>3.2)continue;
+        if(Math.abs(b.lat-w9.lat)<2.3){
+          if(b.v*3.6*SPD>330){botBoom(b);break;} // à cette vitesse, une épave est un MUR — pour eux aussi
+          b.v*=.5;b.wCd=1.2;
+          if(b.mesh.g.visible)sparkBurst(sparkGold,w9.mesh.position,12,10);
+          break;
+        }
+      }
+      if(!b.alive)continue;
+      b.oilCd=Math.max(0,b.oilCd-dt);
+      if(b.oilCd<=0)for(const o9 of OILS){ // flaques : ça chasse pareil
+        if(o9.face!==1||Math.abs(rel-o9.s)>o9.r+2)continue;
+        if(Math.abs(b.lat-o9.lat)<o9.r+.6){b.slipT=.75;b.oilCd=1.2;break;}
+      }
+      b.padCd=Math.max(0,b.padCd-dt);
+      if(b.padCd<=0)for(const p9 of PADS){ // pads turbo : même coup de pied
+        if(Math.abs(rel-p9)<6&&Math.abs(b.lat)<ROAD_HALF){b.v+=14;b.padB=Math.max(b.padB,1.2);b.padCd=1.5;break;}
+      }
     }
-    if(b.boostT<=0&&Math.random()<dt*b.appBoost*.5)b.boostT=.7+Math.random()*.8; // la nitro d'humeur, à TA fréquence
-    if(b.boostT>0){b.boostT-=dt;tgt*=1.18;}
-    // -- pression du couperet : le condamné se bat, personne n'attend --
-    if(endRush){if(racers[racers.length-1]===b&&b.totD<pTot)tgt*=1.14;else if(b.totD<leadD-120)tgt*=1.07;}
-    if(b.totD-pTot>500)tgt*=.94; // garde-fou INVISIBLE : à 500 m devant toi (hors de vue), on décélère en douce
-    // -- élastique INVISIBLE (jamais sous les yeux) : largué ET hors champ → on recolle en douceur --
-    const off9=Math.abs(b.totD-pTot)>360;
-    if(off9&&b.totD<leadD-380)tgt*=1.06;
-    if(b.totD>leadD-1&&racers[1]&&b.totD-racers[1].totD>420)tgt*=.965; // la tête ne s'échappe pas à l'infini
-    b.v+=(tgt-b.v)*Math.min(1,dt*1.7);
-    b.totD+=b.v*dt;
-    b.lat+=(b.latT-b.lat)*Math.min(1,dt*2.1);
-    if(mode==='drive'&&Math.abs(b.totD-pTot)<9&&Math.abs(b.lat-lat)<2.4)     // ils t'ÉVITENT au dernier moment
-      b.latT=THREE.MathUtils.clamp(lat+(b.lat>=lat?3.4:-3.4),-(ROAD_HALF-2.4),ROAD_HALF-2.4);
   }
   // ---- incarnation : mesh + gyros SEULEMENT à portée de vue (LOD), 2 vraies lumières pour les proches ----
   const ph5=SURV.ph%1<.5;
@@ -3384,6 +3525,7 @@ function survTick(dt){
       const m=b.mesh.g;
       m.position.copy(FB.p).addScaledVector(FB.b,b.lat).addScaledVector(FB.n,.56+b.airH); // la hauteur de VOL soulève la caisse
       m.quaternion.setFromRotationMatrix(svM4.makeBasis(FB.b,FB.n,FB.t));
+      m.rotateY(b.phi); // le cap RÉEL de la sim : on VOIT les braquages, contre-braquages et embardées
       if(b.spin)m.rotateZ(b.spin); // la vrille policière : barrel roll autour de l'axe de route
       m.visible=true;
       const bph=((SURV.ph+b.ph)%1)<.5; // chaque rampe bat sur SA phase — la meute scintille
@@ -3431,7 +3573,8 @@ function survTick(dt){
       survRender();explode();
     }else{
       const low=racers[racers.length-1];
-      if(low&&low.totD<pTot){botBoom(low);for(const b of SURV.bots)if(b.alive)b.spd+=.015;} // la meute accélère
+      if(low&&low.totD<pTot){botBoom(low); // la meute s'ÉNERVE : pas plus vite que toi, mais plus téméraire
+        for(const b of SURV.bots)if(b.alive){b.agro=Math.min(1,b.agro+.08);b.appBoost=Math.min(1.2,b.appBoost+.1);b.marg=Math.min(.97,b.marg+.02);}}
       if(!SURV.bots.some(b=>b.alive)){
         SURV.over=true;fanfare();addStyle(100);
         showMsg('🏆 CHAMPION SURVIVANT — JAUGE OFFERTE !','#ffd75e');
