@@ -599,16 +599,17 @@ let OILS=[];
 const oilGeo=new THREE.CircleGeometry(1,22);
 const oilMat=new THREE.MeshPhongMaterial({color:0x121419,shininess:320,specular:0x9fb4ff,envMap:null,transparent:true,opacity:.92});
 const oilRimMat=new THREE.MeshBasicMaterial({color:0x4a3a72,transparent:true,opacity:.4,depthWrite:false});
-// nuages : billboards VAPOREUX générés au BRUIT FRACTAL (fBm) — fini les cercles empilés.
-// Un champ de densité organique est sculpté en dôme de cumulus (base plate, sommet bombé lumpy),
-// seuillé en douceur → bords cotonneux, jamais de bouffées répétées. Couleur par ALTITUDE :
-// ventre lavande à l'ombre → corps crème → couronne claire au soleil.
+// nuages : sprites CUMULUS À L'AÉROGRAPHE — chaque texture est un amas de LOBES GAUSSIENS ronds
+// (assise large et plate, gros cœur, bourgeons au sommet). La densité est une SOMME de gaussiennes
+// jamais seuillée : zéro trou, zéro bord découpé — le cœur est laiteux opaque, la lisière fond en
+// dégradé continu. Un souffle de bruit basse fréquence (±14 %) ondule la silhouette sans la déchirer.
+// Couleur par ALTITUDE dans la texture : couronne crème → flanc pêche → assise rose clair (sunset).
 const cloudTexs=(function(){
   const arr=[];
   const clamp=(x,a,b)=>x<a?a:x>b?b:x;
   const sstep=(a,b,x)=>{const t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t);};
   const lerp=(a,b,k)=>a+(b-a)*k;
-  function mkNoise(seed){ // bruit de valeur lissé, tuilé sur 256
+  function mkNoise(seed){ // bruit de valeur lissé, tuilé sur 256 (le souffle qui ondule la lisière)
     const N=256,g=new Float32Array(N*N);let s=seed>>>0;
     const rnd=()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};
     for(let i=0;i<g.length;i++)g[i]=rnd();
@@ -620,35 +621,42 @@ const cloudTexs=(function(){
       return a*(1-ux)*(1-uy)+b*ux*(1-uy)+cc*(1-ux)*uy+d*ux*uy;
     };
   }
-  function fbm(n,x,y){let v=0,amp=.5,f=1,tot=0;for(let o=0;o<5;o++){v+=amp*n(x*f,y*f);tot+=amp;f*=2;amp*=.5;}return v/tot;}
+  function fbm(n,x,y){let v=0,amp=.5,f=1,tot=0;for(let o=0;o<4;o++){v+=amp*n(x*f,y*f);tot+=amp;f*=2;amp*=.5;}return v/tot;}
   const W=512,H=256;
-  for(let v=0;v<6;v++){
+  for(let v=0;v<5;v++){
     const cv=document.createElement('canvas');cv.width=W;cv.height=H;
     const ctx=cv.getContext('2d'),img=ctx.createImageData(W,H),D=img.data;
-    const n=mkNoise(1000+v*7919);
-    const hw=.44+ (v%3)*.02, base=.83, top=.13, freq=1/58; // largeur/hauteur du dôme + échelle du bruit
+    let s9=(1000+v*7919)>>>0;const rn=()=>{s9=(s9*1664525+1013904223)>>>0;return s9/4294967296;};
+    const n=mkNoise(3000+v*104729);
+    // l'amas : chaque variante empile 10-13 lobes ronds — la forme naît du CHEVAUCHEMENT, pas du découpage
+    const wide=.8+rn()*.28, cx=W*.5, baseY=H*(.66+rn()*.05), lobes=[];
+    const nb=3+(v%2);                       // assise : galettes larges posées à plat
+    for(let i=0;i<nb;i++){const t=nb===1?.5:i/(nb-1);
+      lobes.push({x:cx+(t-.5)*W*.42*wide+(rn()-.5)*24,y:baseY+(rn()-.5)*10,rx:(80+rn()*44)*wide,ry:44+rn()*16});}
+    for(let i=0;i<2;i++)                    // cœur : deux grosses masses pleines
+      lobes.push({x:cx+(rn()-.5)*W*.2,y:H*(.5+rn()*.08),rx:(90+rn()*40)*wide,ry:62+rn()*20});
+    const nt=2+Math.floor(rn()*3);          // bourgeons du sommet : les bosses de chou-fleur
+    for(let i=0;i<nt;i++){const t=nt===1?.5:i/(nt-1);
+      lobes.push({x:cx+(t-.5)*W*.3*wide+(rn()-.5)*34,y:H*(.33+rn()*.11),rx:48+rn()*32,ry:40+rn()*18});}
+    for(const sd of [-1,1])                 // épaules : deux lobes qui arrondissent les flancs
+      lobes.push({x:cx+sd*W*.3*wide+(rn()-.5)*20,y:H*(.55+rn()*.09),rx:56+rn()*24,ry:38+rn()*14});
     for(let py=0;py<H;py++){
       const ny=py/H;
       for(let px=0;px<W;px++){
         const nx=px/W;
-        const ex=(nx-.5)/hw;                        // -1..1 aux flancs
-        let m=1-ex*ex;                              // chute horizontale douce
-        if(m>0&&ny<=base+.04){
-          // toit du dôme : bas au centre, remonte vers les bords (cumulus bombé)
-          const arch=top+(1-Math.sqrt(Math.max(0,1-ex*ex)))*(base-top)*.7;
-          m*=sstep(arch-.04,arch+.2,ny);            // rien au-dessus du toit
-          m*=1-sstep(base-.02,base+.05,ny);         // base nette et plate
-          const dens=fbm(n,px*freq,py*freq);        // 0..1 densité organique
-          const thr=.58-m*.34;                       // le dôme ABAISSE le seuil au centre, le DURCIT aux flancs
-          const a=sstep(thr,thr+.13,dens);           // la SILHOUETTE suit le bruit → lobes cotonneux façon vrai cumulus
-          if(a>.01){
-            const t=clamp((ny-top)/(base-top),0,1); // 0 sommet .. 1 base
-            let R,G,B;
-            if(t<.5){const k=t/.5;R=lerp(238,229,k);G=lerp(233,222,k);B=lerp(226,215,k);}
-            else{const k=(t-.5)/.5;R=lerp(229,150,k);G=lerp(222,140,k);B=lerp(215,182,k);}
-            const bo=(dens-.55)*22;R=clamp(R+bo,0,255);G=clamp(G+bo,0,255);B=clamp(B+bo,0,255); // cœurs denses un peu + clairs
-            const o=(py*W+px)*4;D[o]=R;D[o+1]=G;D[o+2]=B;D[o+3]=a*255|0;
-          }
+        let dens=0;
+        for(let li=0;li<lobes.length;li++){const lb=lobes[li],dx=(px-lb.x)/lb.rx,dy=(py-lb.y)/lb.ry;
+          dens+=Math.exp(-(dx*dx+dy*dy)*2.1);}
+        dens*=.86+.28*fbm(n,px*.011,py*.011); // le souffle ondule la lisière — ne troue JAMAIS le cœur
+        dens*=sstep(0,.055,nx)*(1-sstep(.945,1,nx))*sstep(0,.06,ny)*(1-sstep(.9,.995,ny)); // rien ne touche les bords
+        const a=sstep(.16,.88,dens);          // rampe LARGE : cœur crémeux opaque → lisière aérographe
+        if(a>.003){
+          const t=clamp((ny-.2)/.62,0,1);     // 0 couronne .. 1 assise
+          let R,G,B;
+          if(t<.5){const k=t/.5;R=lerp(236,233,k);G=lerp(229,203,k);B=lerp(214,178,k);}   // crème → pêche
+          else{const k=(t-.5)/.5;R=lerp(233,214,k);G=lerp(203,160,k);B=lerp(178,170,k);}  // pêche → rose clair
+          const bo=Math.max(0,dens-.9)*10;R=clamp(R+bo,0,234);G=clamp(G+bo,0,230);B=clamp(B+bo,0,222); // cœur nacré, sous le seuil de bloom
+          const o=(py*W+px)*4;D[o]=R;D[o+1]=G;D[o+2]=B;D[o+3]=Math.min(a,.97)*255|0;
         }
       }
     }
@@ -657,9 +665,9 @@ const cloudTexs=(function(){
   }
   return arr;
 })();
-// teintes des sprites de nuages : proches CRÈME quasi neutres (on laisse la texture parler), lointains rose-mauve tendre
-const CLOUD_TINTS=[0xfff2e6,0xffedde,0xfff7ee];
-const CLOUD_TINTS_FAR=[0xe8bcce,0xdcb4c8,0xe4c2d6];
+// teintes des sprites de nuages : crèmes chauds quasi neutres (la texture porte la couleur), lointains rose poudré
+const CLOUD_TINTS=[0xfff4ea,0xffefe2,0xfff8f1];
+const CLOUD_TINTS_FAR=[0xf0c8d4,0xe6c0cc,0xeed0da];
 // ---------- NUAGES VIVANTS : bancs volumétriques traversables (impostors en grappes) ----------
 // Technique billboard-impostor (Harris, GDC 2002) : chaque nuage = grappe de bouffées montées sur
 // RESSORT. On les FEND en passant — elles giclent, tourbillonnent, puis reprennent leur place.
@@ -670,37 +678,132 @@ let CLOUDS=[],cloudIn=0,cloudInS=0,flightId=0;
 const cldV1=new THREE.Vector3(),cldV2=new THREE.Vector3();
 function disposeClouds(){
   for(const c of CLOUDS){scene.remove(c.g);for(const p of c.puffs)p.sp.material.dispose();}
+  // les boîtes volumétriques partagent geo+matériaux (jamais disposés) : retirer de la scène suffit
   CLOUDS=[];cloudIn=0;
 }
-let QUAL_LOW=false; // garde-fou perf : passé vrai, 1 bouffée sur 3 disparaît (voir loop)
-function mkCloud(center,r,o,rr){
+let QUAL_LOW=false; // garde-fou perf : passé vrai, réduit les pas du raymarch (voir loop)
+// ============================================================================
+//  NUAGES VOLUMÉTRIQUES (raymarching) — de VRAIS volumes, pas des billboards.
+//  Chaque nuage = une boîte englobante ; le fragment tire un rayon dans
+//  l'ellipsoïde, avance dans un champ de densité 3D (bruit Perlin-Worley baké
+//  en texture 3D), marche vers le soleil pour l'AUTO-OMBRAGE (Beer) → cœurs
+//  OPAQUES, ventres dans l'ombre, coiffes dorées, on VOLE DEDANS. WebGL2 requis.
+//  Repli billboard (mkCloudSprite) si pas de WebGL2. Réglé à l'atelier-nuages.
+// ============================================================================
+const VOL_OK=!!(renderer.capabilities&&renderer.capabilities.isWebGL2&&typeof THREE.DataTexture3D==='function');
+let VOL=null;
+if(VOL_OK){ try{
+  // -- texture 3D de bruit tuilable : R billows (1-Worley fBm), G détail, B trouées --
+  const N=64,data=new Uint8Array(N*N*N*4),imul=Math.imul;
+  const ih=(x,y,z)=>{let h=imul(x,374761393)+imul(y,668265263)+imul(z,1274126177);h=(h^(h>>>13));h=imul(h,1274126177);h=(h^(h>>>16));return (h>>>0)/4294967295;};
+  const wr=(a,p)=>((a%p)+p)%p;
+  const vn=(x,y,z,p)=>{const xi=Math.floor(x),yi=Math.floor(y),zi=Math.floor(z),xf=x-xi,yf=y-yi,zf=z-zi;
+    const u=xf*xf*(3-2*xf),v=yf*yf*(3-2*yf),w=zf*zf*(3-2*zf),H=(a,b,c)=>ih(wr(a,p),wr(b,p),wr(c,p)),L=(a,b,t)=>a+(b-a)*t;
+    return L(L(L(H(xi,yi,zi),H(xi+1,yi,zi),u),L(H(xi,yi+1,zi),H(xi+1,yi+1,zi),u),v),L(L(H(xi,yi,zi+1),H(xi+1,yi,zi+1),u),L(H(xi,yi+1,zi+1),H(xi+1,yi+1,zi+1),u),v),w);};
+  const wo=(x,y,z,c)=>{const fx=x*c,fy=y*c,fz=z*c,xi=Math.floor(fx),yi=Math.floor(fy),zi=Math.floor(fz);let md=9;
+    for(let dz=-1;dz<=1;dz++)for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const cx=xi+dx,cy=yi+dy,cz=zi+dz,wx=wr(cx,c),wy=wr(cy,c),wz=wr(cz,c);
+      const px=cx+ih(wx,wy,wz),py=cy+ih(wy,wz,wx),pz=cz+ih(wz,wx,wy),ex=px-fx,ey=py-fy,ez=pz-fz,d=ex*ex+ey*ey+ez*ez;if(d<md)md=d;}return Math.sqrt(md);};
+  const bil=(x,y,z,cs)=>{let a=0,amp=.55,tot=0;for(const c of cs){a+=amp*(1-Math.min(1,wo(x,y,z,c)));tot+=amp;amp*=.5;}return a/tot;};
+  const pf=(x,y,z,os)=>{let a=0,amp=.5,tot=0;for(const f of os){a+=amp*vn(x*f,y*f,z*f,f);tot+=amp;amp*=.5;}return a/tot;};
+  const ss=(a,b,x)=>{const t=Math.min(1,Math.max(0,(x-a)/(b-a)));return t*t*(3-2*t);};
+  let o=0;for(let z=0;z<N;z++)for(let y=0;y<N;y++)for(let x=0;x<N;x++){const nx=x/N,ny=y/N,nz=z/N;
+    let R=ss(.12,.92,pf(nx,ny,nz,[3,6,12])*.5+bil(nx,ny,nz,[3,6,12])*.5);
+    let G=ss(.15,.95,bil(nx,ny,nz,[8,16,24])), B=ss(.2,.85,pf(nx,ny,nz,[2,4]));
+    data[o++]=R*255|0;data[o++]=G*255|0;data[o++]=B*255|0;data[o++]=255;}
+  const noise=new THREE.DataTexture3D(data,N,N,N);
+  noise.format=THREE.RGBAFormat;noise.type=THREE.UnsignedByteType;noise.minFilter=THREE.LinearFilter;noise.magFilter=THREE.LinearFilter;
+  noise.wrapS=noise.wrapT=noise.wrapR=THREE.RepeatWrapping;noise.unpackAlignment=1;noise.needsUpdate=true;
+  const U={ uNoise:{value:noise}, uTime:{value:0},
+    uSunDir:{value:SUN_DIR.clone()}, uSunCol:{value:new THREE.Color(2.1,1.15,0.5)},
+    uSkyCol:{value:new THREE.Color(0.36,0.34,0.46)}, uGroundCol:{value:new THREE.Color(0.13,0.10,0.16)},
+    uAmb:{value:0.55}, uCoverage:{value:0.74}, uDensity:{value:2.3}, uDetail:{value:0.18},
+    uEdge:{value:0.5}, uFreq:{value:1/85}, uSigma:{value:0.4}, uAbsorb:{value:1.4}, uSilver:{value:1.3},
+    uSteps:{value:40.0}, uLightSteps:{value:6.0},
+    uFogCol:{value:new THREE.Color(0x8a4a48)}, uFogNear:{value:FOG_N}, uFogFar:{value:FOG_F},
+    uSeed:{value:0.0}, uDMul:{value:1.0}, uFogAmt:{value:1.0} };
+  const VERT=`out vec3 vWorld;out vec3 vCenter;out vec3 vRadius;
+    void main(){vec4 wp=modelMatrix*vec4(position,1.0);vWorld=wp.xyz;vCenter=modelMatrix[3].xyz;
+    vRadius=vec3(length(modelMatrix[0].xyz),length(modelMatrix[1].xyz),length(modelMatrix[2].xyz));
+    gl_Position=projectionMatrix*viewMatrix*wp;}`;
+  const FRAG=`precision highp float;precision highp sampler3D;
+    uniform sampler3D uNoise;uniform vec3 uSunDir,uSunCol,uSkyCol,uGroundCol,uFogCol;
+    uniform float uTime,uAmb,uCoverage,uDensity,uDetail,uEdge,uFreq,uSigma,uAbsorb,uSilver,uSteps,uLightSteps,uSeed,uDMul,uFogAmt,uFogNear,uFogFar;
+    in vec3 vWorld;in vec3 vCenter;in vec3 vRadius;out vec4 fragColor;
+    float densAt(vec3 p){vec3 q=(p-vCenter)/vRadius;float r=length(q);if(r>1.0)return 0.0;
+      float yb=q.y;float vert=smoothstep(-1.0,-0.68,yb)*(1.0-0.45*smoothstep(0.25,1.0,yb));
+      float shape=(1.0-smoothstep(uEdge,1.0,r))*vert;if(shape<=0.0)return 0.0;
+      vec3 np=(p-vCenter)*uFreq+vec3(uSeed)+vec3(uTime*0.010,-uTime*0.008,uTime*0.006);
+      float base=texture(uNoise,np).r;float det=texture(uNoise,np*3.3+5.0).g;
+      float d=shape-(1.0-base)*(1.0-uCoverage)*1.7;d-=(1.0-det)*uDetail*(1.0-shape)*0.6;
+      return max(d,0.0)*uDensity*uDMul;}
+    float lightMarch(vec3 p){float stepL=length(vRadius)/(uLightSteps*3.0);float od=0.0,t=stepL*0.5;
+      for(int i=0;i<8;i++){if(float(i)>=uLightSteps)break;od+=densAt(p+uSunDir*t)*stepL;t+=stepL;}return od;}
+    void main(){vec3 ro=cameraPosition,rd=normalize(vWorld-ro);
+      vec3 oc=(ro-vCenter)/vRadius,dd=rd/vRadius;
+      float A=dot(dd,dd),B=2.0*dot(oc,dd),C=dot(oc,oc)-1.0,disc=B*B-4.0*A*C;if(disc<0.0)discard;
+      float sq=sqrt(disc),t0=max((-B-sq)/(2.0*A),0.0),t1=(-B+sq)/(2.0*A);if(t1<=t0)discard;
+      float stepS=(t1-t0)/uSteps,dither=fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453),t=t0+stepS*dither;
+      float cosT=dot(rd,uSunDir),fs=pow(max(cosT,0.0),3.0)*uSilver,T=1.0;vec3 col=vec3(0.0);
+      for(int i=0;i<96;i++){if(float(i)>=uSteps||T<0.02)break;vec3 p=ro+rd*t;float d=densAt(p);
+        if(d>0.003){float od=lightMarch(p);float lt=exp(-od*uAbsorb);float ms=lt+0.42*exp(-od*uAbsorb*0.25);
+          float pw=1.0-exp(-d*6.0);vec3 sun=uSunCol*(ms+fs)*pw;
+          float up=clamp(((p.y-vCenter.y)/max(vRadius.y,1.0))*0.5+0.5,0.0,1.0);
+          vec3 lum=mix(uGroundCol,uSkyCol,up)*uAmb+sun;
+          float alpha=1.0-exp(-d*stepS*uSigma);col+=T*alpha*lum;T*=(1.0-alpha);}
+        t+=stepS;}
+      float a=1.0-T;if(a<0.004)discard;
+      float fog=clamp((t0-uFogNear)/(uFogFar-uFogNear),0.0,1.0)*uFogAmt;
+      col=mix(col,uFogCol*a,fog);
+      fragColor=vec4(col,a);}`;
+  const mk=(side)=>new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,uniforms:U,vertexShader:VERT,fragmentShader:FRAG,
+    transparent:true,depthWrite:false,depthTest:true,side:side,
+    blending:THREE.CustomBlending,blendEquation:THREE.AddEquation,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor});
+  VOL={U:U, geo:new THREE.BoxGeometry(2,2,2), matF:mk(THREE.FrontSide), matB:mk(THREE.BackSide)};
+}catch(e){VOL=null;} }
+function mkCloudVol(center,r,o,rr){ // un banc = une boîte volumétrique
   const g=new THREE.Group();g.position.copy(center);
   const ry=r*(o.giant?.55+rr()*.18:o.veil?.16:o.sea?.15:.36+rr()*.16);
-  const nP=o.giant?16:o.dense?12:o.veil?3:o.sea?6:o.deco?7:8;
+  const mesh=new THREE.Mesh(VOL.geo,VOL.matF);
+  mesh.scale.set(r,ry,r); // frustumCulled reste VRAI : les bancs hors-champ ne coûtent rien (le culling boîte est correct, même caméra dedans)
+  // params par nuage : voiles diaphanes, mer moyenne ; tours/murs pleins. noFog = perce la brume.
+  const dMul=o.veil?0.4:o.sea?0.7:o.deco?0.85:1.0;
+  mesh.userData={seed:(rr()*97.3)%17, dMul:dMul, fogAmt:o.noFog?0.0:1.0};
+  mesh.onBeforeRender=function(rn,sc,cm,gm,mat){const u=mat.uniforms,ud=this.userData;u.uSeed.value=ud.seed;u.uDMul.value=ud.dMul;u.uFogAmt.value=ud.fogAmt;};
+  g.add(mesh);scene.add(g);
+  CLOUDS.push({g:g,c:center.clone(),r:r,ry:ry,onRoad:!!o.onRoad,puffs:[],mesh:mesh,ph:rr()*6.28,refT:0,fid:-1,wasIn:false});
+}
+function mkCloud(center,r,o,rr){ if(VOL)return mkCloudVol(center,r,o,rr); return mkCloudSprite(center,r,o,rr); }
+function mkCloudSprite(center,r,o,rr){
+  const g=new THREE.Group();g.position.copy(center);
+  const ry=r*(o.giant?.55+rr()*.18:o.veil?.16:o.sea?.15:.36+rr()*.16);
+  const nP=o.giant?14:o.dense?9:o.veil?3:o.sea?6:o.deco?5:6; // 5-6 blobs par nuage courant, murs/tours plus fournis
   const puffs=[];
   for(let i=0;i<nP;i++){
-    const a=rr()*Math.PI*2;let rad=Math.sqrt(rr())*r*.72;
-    const yb=o.giant?Math.pow(rr(),.8)*1.5-.35:(rr()*2-1)*.72; // géants : base PLATE, bourgeons empilés vers le ciel
-    if(o.giant)rad*=1-Math.max(0,yb)*.42;                      // …la tour s'affine au sommet
+    const a=rr()*Math.PI*2;let rad=Math.sqrt(rr())*r*(o.giant?.7:.56); // grappe RESSERRÉE : les sprites se chevauchent fort — le volume naît de là
+    const yb=o.giant?Math.pow(rr(),.8)*1.5-.35 // géants : base PLATE, bourgeons empilés vers le ciel
+      :(o.sea||o.veil)?(rr()*2-1)*.72
+      :Math.pow(rr(),.75)*1.2-.32;             // cumulus : assise posée, la masse bourgeonne vers le HAUT
+    if(o.giant)rad*=1-Math.max(0,yb)*.42;      // …la tour s'affine au sommet
+    else if(!o.sea&&!o.veil)rad*=1-Math.max(0,yb)*.32;
     const base=new THREE.Vector3(Math.cos(a)*rad,yb*ry,Math.sin(a)*rad);
-    // éclairage féerique : sommets crème frappés par le soleil, ventres mauves à l'ombre
-    const hN=base.y/(ry||1);
+    // éclairage sunset : sommets crème frappés par le soleil, ventres rose tendre — jamais de mauve sale
+    const hN=base.y/(ry||1),cN=Math.min(1,rad/(r*.7)); // cN : 0 au cœur .. 1 en lisière
     const tint=o.veil?CLOUD_TINTS_FAR[Math.floor(rr()*CLOUD_TINTS_FAR.length)]
-      :hN>.4?0xfff3da:hN<-.3?0xd4a8c6:CLOUD_TINTS[Math.floor(rr()*CLOUD_TINTS.length)];
+      :hN>.4?0xfff3e0:hN<-.3?0xf2cfd2:CLOUD_TINTS[Math.floor(rr()*CLOUD_TINTS.length)];
     const m=new THREE.SpriteMaterial({map:cloudTexs[Math.floor(rr()*cloudTexs.length)],
       color:tint,transparent:true,fog:!o.noFog, // noFog : les montagnes de ouate percent la brume jusqu'à l'horizon
-      opacity:o.veil?.12+rr()*.08:o.sea?.26+rr()*.14:(o.dense?.62:o.giant?.55:.42)+rr()*.25,
-      depthWrite:false,rotation:rr()*6.28});
+      opacity:(o.veil?.13+rr()*.07:o.sea?.3+rr()*.12:(o.dense?.68:o.giant?.6:.5)+rr()*.16)*(1-cN*.35), // cœur dense, lisière diaphane
+      depthWrite:false,rotation:(rr()-.5)*(o.sea||o.veil?.08:.22)}); // à peine penché : la texture a un HAUT (assise plate en bas)
     const sp=new THREE.Sprite(m);
-    const sc=r*(.5+rr()*.8);
+    const sc=r*(.72+rr()*.6)*(1-cN*.22); // GROS sprites superposés, plus petits en lisière
     if(o.veil)sp.scale.set(sc*2.4,sc*.26,1);            // voiles d'altitude : nappes étirées, quasi immobiles
-    else if(o.sea)sp.scale.set(sc*1.9,sc*.3,1);         // mer de nuages : galettes larges à perte de vue
-    else if(o.giant&&hN<-.1)sp.scale.set(sc*1.25,sc*(.3+rr()*.15),1); // ventre de tour : large et écrasé
-    else sp.scale.set(sc,sc*(.38+rr()*.28),1);
+    else if(o.sea)sp.scale.set(sc*1.9,sc*.34,1);        // mer de nuages : galettes larges à perte de vue
+    else if(o.giant&&hN<-.1)sp.scale.set(sc*1.3,sc*(.34+rr()*.12),1); // ventre de tour : large et écrasé
+    else sp.scale.set(sc,sc*(.46+rr()*.14),1);          // proche du ratio naturel de la texture : rien d'écrasé ni d'étiré
     sp.position.copy(base);
     if(QUAL_LOW&&i%3===2)sp.visible=false;
     g.add(sp);
-    puffs.push({sp:sp,base:base,ph:rr()*6.28,rv:(rr()-.5)*.09,dis:new THREE.Vector3(),dv:new THREE.Vector3()});
+    puffs.push({sp:sp,base:base,ph:rr()*6.28,rv:(rr()-.5)*.03,dis:new THREE.Vector3(),dv:new THREE.Vector3()});
   }
   scene.add(g);
   CLOUDS.push({g:g,c:center.clone(),r:r,ry:ry,onRoad:!!o.onRoad,puffs:puffs,ph:rr()*6.28,refT:0,fid:-1,wasIn:false});
@@ -731,7 +834,7 @@ function buildClouds(rr){
     const i=Math.floor(cr()*NP);
     const r9=120+cr()*140;
     const cross=cr()<.22; // moins de tours PLANTÉES sur la piste : la percée à l'aveugle reste un moment fort
-    const off=cross?(cr()*2-1)*40:(r9*.55+60+cr()*420)*(cr()<.5?-1:1);
+    const off=cross?(cr()*2-1)*40:(r9*.68+80+cr()*420)*(cr()<.5?-1:1); // les tours ENCADRENT la route, jamais collées au bord du champ
     mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],off)
       .addScaledVector(Nn[i],cross?-r9*.25+cr()*30:-140+cr()*330),r9,{giant:true,onRoad:cross,noFog:!cross},cr);
   }
@@ -744,7 +847,7 @@ function buildClouds(rr){
   // mer de ouate à mi-distance : les nuages rêveurs qu'on longe
   for(let k=0;k<9;k++){
     const i=Math.floor(cr()*NP);
-    mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],(95+cr()*260)*(cr()<.5?-1:1))
+    mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],(125+cr()*260)*(cr()<.5?-1:1))
       .addScaledVector(Nn[i],-60+cr()*180),30+cr()*38,{deco:true},cr);
   }
   // voiles d'altitude : nappes roses étirées très haut — le plafond féerique
@@ -756,6 +859,7 @@ function buildClouds(rr){
 }
 function updateClouds(dt,t){
   cloudIn=0;
+  if(VOL){const U=VOL.U;U.uTime.value=t;U.uFogNear.value=scene.fog.near;U.uFogFar.value=scene.fog.far;U.uFogCol.value.copy(scene.fog.color);}
   const cp=carGroup.position;
   const carV=mode==='fall'?fallVel.length():Math.abs(vA);
   for(const c of CLOUDS){
@@ -764,7 +868,11 @@ function updateClouds(dt,t){
     cldV1.subVectors(cp,c.g.position);
     const dh2=cldV1.x*cldV1.x+cldV1.z*cldV1.z,dv=cldV1.y;
     const d2=dh2/(c.r*c.r)+(dv*dv)/(c.ry*c.ry);
-    if(d2<9)for(const p of c.puffs){ // ressorts mis à jour seulement à proximité (perf)
+    // Bascule FRONT/BACK selon la CAMÉRA (pas la voiture) : dès qu'elle entre dans la boîte, BackSide
+    // (sinon les faces avant, derrière l'œil, sont cullées → le volume disparaît quand on plonge dedans).
+    if(c.mesh){const qx=(camera.position.x-c.g.position.x)/c.r,qy=(camera.position.y-c.g.position.y)/c.ry,qz=(camera.position.z-c.g.position.z)/c.r;
+      c.mesh.material=(Math.abs(qx)<1.15&&Math.abs(qy)<1.15&&Math.abs(qz)<1.15)?VOL.matB:VOL.matF;}
+    if(d2<9)for(const p of c.puffs){ // ressorts mis à jour seulement à proximité (perf, repli sprite)
       p.dv.addScaledVector(p.dis,-2.3*dt);
       p.dv.multiplyScalar(Math.max(0,1-1.7*dt));
       p.dis.addScaledVector(p.dv,dt);
@@ -3719,7 +3827,8 @@ function loop(now){
   loop._ms=(loop._ms||16)*.96+Math.min(100,now-(loop._pn||now))*.04;loop._pn=now;
   if(!QUAL_LOW&&loop._ms>22&&now>15000){
     QUAL_LOW=true;
-    for(const c9 of CLOUDS){let j9=0;for(const p9 of c9.puffs)if(++j9%3===0)p9.sp.visible=false;}
+    if(VOL){VOL.U.uSteps.value=26;VOL.U.uLightSteps.value=4;} // raymarch allégé : moins de pas
+    for(const c9 of CLOUDS){let j9=0;for(const p9 of c9.puffs)if(++j9%3===0)p9.sp.visible=false;} // repli sprite
     if(bloomPass)bloomPass.enabled=false; // FPS au tapis : on sacrifie le bloom (on garde l'ACES, quasi gratuit)
     if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;} // ...et les ombres redescendent en 1024 (recrée la map, zéro recompilation)
     sun.shadow.mapSize.set(1024,1024);
