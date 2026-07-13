@@ -378,7 +378,7 @@ if(typeof THREE==='undefined'){ // CDN indisponible : un message clair plutôt q
 const scene=new THREE.Scene();
 // CIEL « PHOTO » : coucher de soleil sur l'océan — turquoise au zénith, rose/corail,
 // horizon d'or embrasé, brume rosée-dorée dense en contrebas (le miroitement de l'eau).
-scene.background=new THREE.Color(0xb58ab8);
+scene.background=new THREE.Color(0x17102e); // fond NUIT indigo (le ciel dôme couvre, ceci teinte les trouées)
 const SUN_DIR=new THREE.Vector3(.38,.10,-.90).normalize(); // soleil TRÈS BAS (~5,9°) : lumière rasante, ombres longues
 const skyU={uTime:{value:0},uSunDir:{value:SUN_DIR}};
 const skyDome=(function(){
@@ -388,25 +388,26 @@ const skyDome=(function(){
       'varying vec3 vDir;uniform vec3 uSunDir;uniform float uTime;',
       'void main(){',
       '  float y=vDir.y;',
-      '  vec3 zen=vec3(.50,.79,.83);',  // #7fc9d4 zenith TURQUOISE — la signature de la photo
-      '  vec3 mve=vec3(.71,.54,.72);',  // #b58ab8 mauve doux
-      '  vec3 ros=vec3(.97,.63,.69);',  // #f6a0b0 rose saumon
-      '  vec3 cor=vec3(1.,.67,.48);',   // #ffab7a corail
-      '  vec3 gld=vec3(1.,.78,.47);',   // #ffc878 bande d or (~15% de hauteur)
-      '  vec3 crm=vec3(1.,.89,.72);',   // #ffe4b8 creme a l horizon
-      '  vec3 blw=vec3(1.,.79,.63);',   // brume rosee-doree DENSE (miroitement d ocean)
-      '  vec3 dp2=vec3(.35,.33,.44);',  // ardoise mauve en profondeur
+      // CRÉPUSCULE PRESQUE NUIT : ciel sombre saturé, une seule bande chaude à l\'horizon (le soleil couchant)
+      '  vec3 zen=vec3(.045,.05,.15);', // zénith NUIT — indigo profond
+      '  vec3 mve=vec3(.16,.11,.30);',  // violet crépusculaire
+      '  vec3 ros=vec3(.44,.16,.40);',  // magenta sombre saturé (néon Vice City)
+      '  vec3 cor=vec3(.80,.28,.30);',  // rouge-corail brûlé
+      '  vec3 gld=vec3(1.,.50,.24);',   // orange braise (bande basse)
+      '  vec3 crm=vec3(1.,.68,.36);',   // ambre à l horizon (reste chaud près du soleil)
+      '  vec3 blw=vec3(.52,.26,.30);',  // brume sombre sous l horizon
+      '  vec3 dp2=vec3(.03,.03,.08);',  // nuit quasi noire tout en bas
       '  vec3 col=mix(crm,gld,smoothstep(.015,.06,y));',
       '  col=mix(col,cor,smoothstep(.05,.15,y));',
-      '  col=mix(col,ros,smoothstep(.13,.30,y));',
-      '  col=mix(col,mve,smoothstep(.26,.45,y));',
-      '  col=mix(col,zen,smoothstep(.42,.75,y));',   // trouees turquoise en haut
+      '  col=mix(col,ros,smoothstep(.12,.28,y));',
+      '  col=mix(col,mve,smoothstep(.24,.44,y));',
+      '  col=mix(col,zen,smoothstep(.40,.72,y));',   // nuit qui s installe en haut
       '  col=mix(blw,col,smoothstep(-.10,.015,y));',
       '  col=mix(dp2,col,smoothstep(-.85,-.12,y));',
-      '  float sd=max(dot(vDir,uSunDir),0.);',      // soleil : halo tres etendu qui embrase l horizon
-      '  col+=vec3(1.,.62,.32)*pow(sd,5.)*.45;',
-      '  col+=vec3(1.,.82,.55)*pow(sd,40.)*.80;',
-      '  col+=vec3(1.,.96,.88)*pow(sd,520.)*1.1;',
+      '  float sd=max(dot(vDir,uSunDir),0.);',      // soleil COUCHANT : halo qui embrase l horizon, éclatant contre le ciel sombre
+      '  col+=vec3(1.,.54,.26)*pow(sd,4.)*.60;',
+      '  col+=vec3(1.,.74,.44)*pow(sd,32.)*1.0;',
+      '  col+=vec3(1.,.94,.82)*pow(sd,480.)*1.4;',
       '  float w=sin(vDir.x*8.+uTime*.05)*sin(vDir.z*7.-uTime*.04);', // voile tres subtil qui vit
       '  col+=vec3(.016,.010,.014)*w*smoothstep(.05,.4,y);',
       '  col+=vec3((fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453)-.5)/160.);', // dither
@@ -415,9 +416,9 @@ const skyDome=(function(){
   const m=new THREE.Mesh(new THREE.SphereGeometry(4300,48,28),mat);
   m.frustumCulled=false;m.renderOrder=-9;scene.add(m);return m;
 })();
-const FOG_N=420,FOG_F=2600,FOG_BASE=new THREE.Color(0xffc9a0),FOG_CLOUD=new THREE.Color(0xfff2e6),fogTmp=new THREE.Color();
-const FOG_CJ=new THREE.Color(0xffe3ba),cjV=new THREE.Vector3(); // CONTRE-JOUR : l'air s'embrase quand on roule vers le soleil
-scene.fog=new THREE.Fog(0xffc9a0,FOG_N,FOG_F); // brume chaude de l'horizon (resserrée quand on traverse un nuage)
+const FOG_N=420,FOG_F=2600,FOG_BASE=new THREE.Color(0x8a4a48),FOG_CLOUD=new THREE.Color(0xe0c4c0),fogTmp=new THREE.Color();
+const FOG_CJ=new THREE.Color(0xd07a4e),cjV=new THREE.Vector3(); // CONTRE-JOUR : l'air s'embrase quand on roule vers le soleil (la seule zone lumineuse)
+scene.fog=new THREE.Fog(0x8a4a48,FOG_N,FOG_F); // brume crépusculaire SOMBRE : la route lointaine s'enfonce → l'échappement claque
 const camera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.1,9800);
 // SOLEIL « 1.61 » : les grands numéros lumineux du studio se couchent à l'horizon
 const sunSprite=(function(){
@@ -476,8 +477,8 @@ document.body.appendChild(renderer.domElement);
 let DPR_CAP=Math.min(devicePixelRatio,2),curDPR=DPR_CAP,dprT=0; // RÉSOLUTION ADAPTATIVE (perf) : ajustée dans loop() selon loop._ms
 let composer=null,bloomPass=null,acesPass=null,POST_ON=false,SHADOW_ON=true; // POST-PROCESSING (assigné juste après)
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);if(composer)composer.setSize(innerWidth,innerHeight);slCv.width=innerWidth;slCv.height=innerHeight;});
-scene.add(new THREE.HemisphereLight(0xffd9c0,0x6a5f7e,0.68)); // ambiance BAISSÉE (1.0→0.68) : les ombres s'enfoncent → forte ombre
-const sun=new THREE.DirectionalLight(0xffb64a,1.34);sun.position.copy(SUN_DIR).multiplyScalar(3800);scene.add(sun); // OR chaud + PUISSANT : lumière dorée rasante, fort contraste lumière/ombre
+scene.add(new THREE.HemisphereLight(0xd8a08a,0x241f38,0.46)); // ambiance CRÉPUSCULE : basse et teintée dusk → ombres profondes, route sombre
+const sun=new THREE.DirectionalLight(0xffab3e,1.55);sun.position.copy(SUN_DIR).multiplyScalar(3800);scene.add(sun); // OR chaud + PUISSANT (remonté 1.34→1.55) : sur fond nuit, le côté éclairé CLAQUE — contraste max lumière/ombre
 const fill=new THREE.DirectionalLight(0x7a6f98,.20);fill.position.set(-200,-400,-100);scene.add(fill); // fill discret : on garde des ombres profondes (le grade les teinte en teal)
 /* Paris retiré — tout est misé sur le CIEL : couchant, nuages irisés, pigeons ramiers */
 
@@ -497,7 +498,7 @@ sun.shadow.bias=-0.0003;sun.shadow.normalBias=0.08; // normalBias en MÈTRES (~2
 scene.add(sun.target);
 const SUN_UP=new THREE.Vector3().crossVectors(SUN_PERP,SUN_DIR).normalize(),shadV=new THREE.Vector3(); // base du plan lumière (snap texel)
 // --- Étalonnage GTA-VICE (réglables d'un coup d'œil) : saturé, contrasté, teal-orange ---
-const POST_EXPO=0.98;      // exposition avant tonemap (luminosité globale) — respire en contre-jour (voir updateClouds)
+const POST_EXPO=0.82;      // exposition BAISSÉE (0.98→0.82) : presque la nuit — la scène s'assombrit, seul le soleil et l'échappement rayonnent
 const POST_SAT=1.36;       // SATURATION forte : néons Vice City
 const POST_CONTRAST=1.22;  // CONTRASTE : noirs profonds, hautes lumières franches
 const POST_VIVID=0.68;     // 0 = ACES sobre (désature les hautes lumières) · 1 = tonemap qui PRÉSERVE la couleur (ciel/nitro restent colorés, pas blancs)
@@ -598,55 +599,60 @@ let OILS=[];
 const oilGeo=new THREE.CircleGeometry(1,22);
 const oilMat=new THREE.MeshPhongMaterial({color:0x121419,shininess:320,specular:0x9fb4ff,envMap:null,transparent:true,opacity:.92});
 const oilRimMat=new THREE.MeshBasicMaterial({color:0x4a3a72,transparent:true,opacity:.4,depthWrite:false});
-// nuages : billboards duveteux (3 textures peintes, bouffées superposées à plat dessous, bourgeons dessus)
-const cloudTexs=(function(){ // cumulus DREAMWORKS : ventre lavande doux, gros corps CRÈME volumineux, couronne solaire, liseré doré
-  const arr=[];let sd=97;const r=()=>{sd=(sd*16807)%2147483647;return sd/2147483647;};
-  for(let v=0;v<6;v++){
-    const cv=document.createElement('canvas');cv.width=512;cv.height=256;
-    const c=cv.getContext('2d');
-    const puff=(x,y,rad,a,col,sq)=>{ // bouffée ronde et pleine, éventuellement APLATIE (sq<1 : base de cumulus)
-      const g=c.createRadialGradient(x,y-rad*.34,rad*.10,x,y,rad); // cœur décentré vers le haut = volume éclairé par le dessus
-      g.addColorStop(0,'rgba('+col+','+a+')');
-      g.addColorStop(.5,'rgba('+col+','+(a*.56)+')'); // plateau adouci : bouffées pleines mais bords qui fondent (moins de pointes)
-      g.addColorStop(.8,'rgba('+col+','+(a*.16)+')');
-      g.addColorStop(1,'rgba('+col+',0)');
-      c.save();c.translate(x,y);c.scale(1,sq||1);c.translate(-x,-y);
-      c.fillStyle=g;c.beginPath();c.arc(x,y,rad,0,7);c.fill();c.restore();
+// nuages : billboards VAPOREUX générés au BRUIT FRACTAL (fBm) — fini les cercles empilés.
+// Un champ de densité organique est sculpté en dôme de cumulus (base plate, sommet bombé lumpy),
+// seuillé en douceur → bords cotonneux, jamais de bouffées répétées. Couleur par ALTITUDE :
+// ventre lavande à l'ombre → corps crème → couronne claire au soleil.
+const cloudTexs=(function(){
+  const arr=[];
+  const clamp=(x,a,b)=>x<a?a:x>b?b:x;
+  const sstep=(a,b,x)=>{const t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t);};
+  const lerp=(a,b,k)=>a+(b-a)*k;
+  function mkNoise(seed){ // bruit de valeur lissé, tuilé sur 256
+    const N=256,g=new Float32Array(N*N);let s=seed>>>0;
+    const rnd=()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};
+    for(let i=0;i<g.length;i++)g[i]=rnd();
+    const at=(xi,yi)=>g[((yi&(N-1))*N)+(xi&(N-1))];
+    return (x,y)=>{
+      const xi=Math.floor(x),yi=Math.floor(y),fx=x-xi,fy=y-yi;
+      const ux=fx*fx*(3-2*fx),uy=fy*fy*(3-2*fy);
+      const a=at(xi,yi),b=at(xi+1,yi),cc=at(xi,yi+1),d=at(xi+1,yi+1);
+      return a*(1-ux)*(1-uy)+b*ux*(1-uy)+cc*(1-ux)*uy+d*ux*uy;
     };
-    const flat=v%2===0; // une variante sur deux a la BASE PLATE du vrai cumulus (le fond de la boule de coton)
-    // couche 1 : VENTRE d'ombre lavande — large, écrasé, aligné sur une base commune (le dessous à l'ombre)
-    const baseY=flat?190:172;
-    let x=84+r()*44;
-    const n1=10+Math.floor(r()*4);
-    for(let i=0;i<n1;i++){
-      puff(x,baseY+(flat?(r()-.15)*10:(r()-.5)*24),44+r()*32,.4+r()*.18,'150,140,182',flat?.5:.82);
-      x+=30+r()*40;
-      if(x>442)x=84+r()*46;
+  }
+  function fbm(n,x,y){let v=0,amp=.5,f=1,tot=0;for(let o=0;o<5;o++){v+=amp*n(x*f,y*f);tot+=amp;f*=2;amp*=.5;}return v/tot;}
+  const W=512,H=256;
+  for(let v=0;v<6;v++){
+    const cv=document.createElement('canvas');cv.width=W;cv.height=H;
+    const ctx=cv.getContext('2d'),img=ctx.createImageData(W,H),D=img.data;
+    const n=mkNoise(1000+v*7919);
+    const hw=.44+ (v%3)*.02, base=.83, top=.13, freq=1/58; // largeur/hauteur du dôme + échelle du bruit
+    for(let py=0;py<H;py++){
+      const ny=py/H;
+      for(let px=0;px<W;px++){
+        const nx=px/W;
+        const ex=(nx-.5)/hw;                        // -1..1 aux flancs
+        let m=1-ex*ex;                              // chute horizontale douce
+        if(m>0&&ny<=base+.04){
+          // toit du dôme : bas au centre, remonte vers les bords (cumulus bombé)
+          const arch=top+(1-Math.sqrt(Math.max(0,1-ex*ex)))*(base-top)*.7;
+          m*=sstep(arch-.04,arch+.2,ny);            // rien au-dessus du toit
+          m*=1-sstep(base-.02,base+.05,ny);         // base nette et plate
+          const dens=fbm(n,px*freq,py*freq);        // 0..1 densité organique
+          const thr=.58-m*.34;                       // le dôme ABAISSE le seuil au centre, le DURCIT aux flancs
+          const a=sstep(thr,thr+.13,dens);           // la SILHOUETTE suit le bruit → lobes cotonneux façon vrai cumulus
+          if(a>.01){
+            const t=clamp((ny-top)/(base-top),0,1); // 0 sommet .. 1 base
+            let R,G,B;
+            if(t<.5){const k=t/.5;R=lerp(238,229,k);G=lerp(233,222,k);B=lerp(226,215,k);}
+            else{const k=(t-.5)/.5;R=lerp(229,150,k);G=lerp(222,140,k);B=lerp(215,182,k);}
+            const bo=(dens-.55)*22;R=clamp(R+bo,0,255);G=clamp(G+bo,0,255);B=clamp(B+bo,0,255); // cœurs denses un peu + clairs
+            const o=(py*W+px)*4;D[o]=R;D[o+1]=G;D[o+2]=B;D[o+3]=a*255|0;
+          }
+        }
+      }
     }
-    // couche 2 : CORPS crème DOUX — le gros du chou-fleur (blanc chaud ASSOURDI : ne bave plus de lumière)
-    x=100+r()*52;let y=132+r()*22;
-    const n2=22+Math.floor(r()*8);
-    for(let i=0;i<n2;i++){
-      puff(x,y,23+r()*27,.58+r()*.2,'228,221,214');
-      x+=19+r()*26;y=Math.max(100,Math.min(178,y+(r()-.5)*30));
-      if(x>426){x=96+r()*58;y=126+r()*26;}
-    }
-    // couche 3 : COURONNE côté ciel — dômes clairs mais SOUS le seuil de bloom (plus de halo qui déborde)
-    x=132+r()*56;y=90+r()*18;
-    const n3=12+Math.floor(r()*5);
-    for(let i=0;i<n3;i++){
-      puff(x,y,14+r()*16,.8+r()*.16,'236,231,224');
-      x+=22+r()*32;y=Math.max(62,Math.min(118,y+(r()-.5)*22));
-      if(x>410){x=128+r()*66;y=82+r()*20;}
-    }
-    // couche 4 : liseré chaud TRÈS discret — juste un soupçon de tiédeur sur les crêtes, fini les pointes dorées
-    x=160+r()*52;y=72+r()*14;
-    const n4=4+Math.floor(r()*3);
-    for(let i=0;i<n4;i++){
-      puff(x,y,7+r()*9,.5,'224,206,184');
-      x+=30+r()*38;y=Math.max(54,Math.min(98,y+(r()-.5)*16));
-      if(x>398){x=150+r()*62;y=66+r()*14;}
-    }
+    ctx.putImageData(img,0,0);
     arr.push(new THREE.CanvasTexture(cv));
   }
   return arr;
@@ -2843,13 +2849,15 @@ function commitName(){
   best=leaders[0].s;
   var idx=leaders.findIndex(function(e){return e.n===nm&&e.s===pendingScore;});
   pendingScore=null;nameEntry.style.display='none';goTxt.style.display='';nameInput.value='';
+  nameInput.blur(); // on lâche le focus : ENTRÉE peut désormais REJOUER (sinon le champ avale la touche)
   renderLeaders(idx);
   elRecord.textContent='record : '+fmt(best);
   setBestChip();
 }
 nameSave.addEventListener('click',function(e){e.stopPropagation();commitName();});
 nameEntry.addEventListener('click',function(e){e.stopPropagation();});
-nameInput.addEventListener('keydown',function(e){e.stopPropagation();if(e.code==='Enter'){e.preventDefault();commitName();}});
+// ENTRÉE dans le champ nom : 1er appui = valider le nom · 2e appui (nom déjà validé) = REJOUER direct
+nameInput.addEventListener('keydown',function(e){e.stopPropagation();if(e.code==='Enter'){e.preventDefault();if(pendingScore!=null)commitName();else if(gameOver)resetGame();}});
 if(leaders.length)best=leaders[0].s;
 const mmCanvas=$('minimap'),mmCtx=mmCanvas.getContext('2d');
 let mmMinX=0,mmMaxX=1,mmMinZ=0,mmMaxZ=1;
