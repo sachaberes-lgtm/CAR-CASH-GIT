@@ -207,6 +207,17 @@
   #nameInput{border-radius:10px;border:1px solid rgba(0,234,255,.5);box-shadow:none}
   #nameSave{border-radius:999px;border:1px solid #62e062;box-shadow:none}
   /* ------- INTRO STUDIO 1.61 : accumulation → FISSION ------- */
+  /* CARTE DE DÉBLOCAGE : la nouvelle caisse se présente — nom, chrono, punchline */
+  #carCard{position:fixed;left:50%;top:16%;transform:translateX(-50%) scale(.7);max-width:min(440px,86vw);
+    background:rgba(10,8,20,.82);border:1px solid rgba(255,215,94,.65);border-radius:14px;padding:14px 20px 15px;
+    text-align:center;z-index:22;opacity:0;pointer-events:none;backdrop-filter:blur(6px);
+    box-shadow:0 0 34px rgba(255,215,94,.25),inset 0 0 22px rgba(255,215,94,.06);
+    transition:opacity .3s,transform .35s cubic-bezier(.2,1.6,.4,1)}
+  #carCard.on{opacity:1;transform:translateX(-50%) scale(1)}
+  #carCard .ccTag{font-size:11px;letter-spacing:4px;color:#ffd75e;opacity:.9}
+  #carCard .ccName{font-size:26px;font-weight:900;letter-spacing:2px;color:#fff;text-shadow:0 0 18px rgba(255,215,94,.55);margin:2px 0}
+  #carCard .ccSpd{font-size:13px;font-weight:700;color:#ff9d2e;letter-spacing:2px;margin-bottom:6px}
+  #carCard .ccDesc{font-size:13px;line-height:1.45;color:#e8dcc8;font-style:italic}
   #splash{position:fixed;inset:0;background:radial-gradient(900px 600px at 50% 46%,#191024,#000 75%);z-index:40;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:opacity .7s;overflow:hidden}
   #fxCv{position:absolute;inset:0;width:100%;height:100%}
   #spStage{position:relative;text-align:center;z-index:2}
@@ -276,6 +287,7 @@
 </style>
 </head>
 <body>
+<div id="carCard"></div>
 <div id="splash">
   <canvas id="fxCv"></canvas>
   <div id="spStage">
@@ -292,7 +304,7 @@
   <div id="vig"></div>
   <div id="scan"></div>
   <div id="speedFx"></div>
-  <div id="carInfo" class="panel"><div id="carName">Épave rouillée</div><div id="carLevel">NIVEAU 1 / 14</div></div>
+  <div id="carInfo" class="panel"><div id="carName">LA HONTE</div><div id="carLevel">NIVEAU 1 / 24</div></div>
   <div id="money"><span id="moneyTxt">$00000000</span></div>
   <div id="record"></div>
   <button id="resetBtn">⟲ <span class="blabel">RESET</span></button>
@@ -1217,32 +1229,72 @@ const bumpMat=(function(){
 let sOffset=0;
 
 // ---------- VOITURES & ÉCONOMIE ----------
+// 24 caisses : 14 « civiles » (variété), puis 10 MONSTRES endgame — toutes au-dessus de l'ex-reine
+// (657 km/h) et de plus en plus extrêmes. Le skin = le palier visuel ; `desc` = la carte de déblocage.
 const CARS=[
- {name:'Épave rouillée',   color:0x7a4a2b,accent:0x4d2e1a,maxKmh:190,accel:22,turn:2.4, h:.75,w:1.9, l:4.0,spoiler:0},
- {name:'Vieille compacte', color:0xb8b09a,accent:0x6b6656,maxKmh:209,accel:24,turn:2.5, h:.75,w:1.85,l:3.8,spoiler:0},
- {name:'Berline familiale',color:0x4a6b9c,accent:0x2b3f5c,maxKmh:230,accel:26,turn:2.6, h:.72,w:1.9, l:4.4,spoiler:0},
- {name:'Hot hatch',        color:0xc23b2e,accent:0x701f18,maxKmh:253,accel:29,turn:2.7, h:.68,w:1.85,l:3.9,spoiler:0},
- {name:'Coupé sport',      color:0xe8e8e8,accent:0x999999,maxKmh:278,accel:32,turn:2.8, h:.62,w:1.9, l:4.3,spoiler:0},
- {name:'Muscle car',       color:0x2f2f38,accent:0x15151c,maxKmh:306,accel:35,turn:2.85,h:.6, w:2.0, l:4.8,spoiler:1},
- {name:'GT racing',        color:0x2e8b57,accent:0x1a5233,maxKmh:337,accel:39,turn:2.9, h:.55,w:2.0, l:4.5,spoiler:1},
- {name:'Supercar',         color:0xc0c8d0,accent:0x707880,maxKmh:371,accel:43,turn:3.0, h:.5, w:2.0, l:4.4,spoiler:1},
- {name:'Hypercar',         color:0x111118,accent:0xdd2222,maxKmh:408,accel:47,turn:3.05,h:.46,w:2.05,l:4.5,spoiler:1},
- {name:'LAMBO 🏁',         color:0xffc400,accent:0x1a1a1a,maxKmh:449,accel:52,turn:3.1, h:.42,w:2.1, l:4.6,spoiler:1},
- {name:'Formule Dorée 🏎️', color:0xffdf40,accent:0x22242a,maxKmh:494,accel:57,turn:3.15,h:.4, w:2.1, l:4.8,spoiler:1,glow:0xfff0a0},
- {name:'Proto Néon',       color:0x14061f,accent:0x00eaff,maxKmh:543,accel:62,turn:3.2, h:.38,w:2.12,l:4.7,spoiler:1,glow:0xff3ec8},
- {name:'Fusée de route 🚀',color:0xe8ecf2,accent:0xff5a1a,maxKmh:597,accel:68,turn:3.22,h:.4, w:2.15,l:5.0,spoiler:1,glow:0x66c8ff,rocket:1},
- {name:'COMÈTE 👑',        color:0x0a0a12,accent:0xffd75e,maxKmh:657,accel:75,turn:3.25,h:.36,w:2.2, l:5.1,spoiler:1,glow:0xffffff,rocket:1},
+ {name:'LA HONTE',        color:0x7a4a2b,accent:0x4d2e1a,maxKmh:190,accel:22,turn:2.4, h:.75,w:1.9, l:4.0,spoiler:0,
+  desc:'Trois cylindres : deux qui toussent, un qui prie. Elle démarre par pitié. Fais des thunes et oublie-la vite.'},
+ {name:'CAISSE À SAVON',  color:0xb8b09a,accent:0x6b6656,maxKmh:209,accel:24,turn:2.5, h:.75,w:1.85,l:3.8,spoiler:0,
+  desc:'Le moteur d\'une tondeuse, le charisme d\'un caddie. Mais ça roule — et vu d\'où tu viens, c\'est déjà un miracle.'},
+ {name:'PAPA MOBILE',     color:0x4a6b9c,accent:0x2b3f5c,maxKmh:230,accel:26,turn:2.6, h:.72,w:1.9, l:4.4,spoiler:0,
+  desc:'Sièges chauffants, porte-gobelets, zéro gloire. Conçue pour conduire prudemment. Toi ? Prudent ? On y croit très fort.'},
+ {name:'LE FRELON',       color:0xc23b2e,accent:0x701f18,maxKmh:253,accel:29,turn:2.7, h:.68,w:1.85,l:3.9,spoiler:0,
+  desc:'Petite, teigneuse, elle pétarade comme un 14 juillet. Le premier vrai sourire du compteur.'},
+ {name:'DIVA BLANCHE',    color:0xe8e8e8,accent:0x999999,maxKmh:278,accel:32,turn:2.8, h:.62,w:1.9, l:4.3,spoiler:0,
+  desc:'Elle refuse de rouler à moins de 200. Toi aussi, maintenant. Vous allez très bien vous entendre.'},
+ {name:'GROS BLOC',       color:0x2f2f38,accent:0x15151c,maxKmh:306,accel:35,turn:2.85,h:.6, w:2.0, l:4.8,spoiler:1,
+  desc:'Un V8 qui boit de l\'essence et crache du respect. L\'écologie te fait coucou dans le rétro. Tu n\'as pas de rétro.'},
+ {name:'SCALPEL VERT',    color:0x2e8b57,accent:0x1a5233,maxKmh:337,accel:39,turn:2.9, h:.55,w:2.0, l:4.5,spoiler:1,
+  desc:'Chirurgicale. Elle découpe les virages pendant que les autres les négocient. Toi, tu ne négocies plus rien.'},
+ {name:'BALLE D\'ARGENT', color:0xc0c8d0,accent:0x707880,maxKmh:371,accel:43,turn:3.0, h:.5, w:2.0, l:4.4,spoiler:1,
+  desc:'Une balle avec des sièges. Le pare-brise sert surtout à voir le futur arriver beaucoup trop vite.'},
+ {name:'VEUVE NOIRE',     color:0x111118,accent:0xdd2222,maxKmh:408,accel:47,turn:3.05,h:.46,w:2.05,l:4.5,spoiler:1,
+  desc:'Ceux qui l\'ont doublée en parlent encore. Ah non, pardon : personne ne l\'a jamais doublée.'},
+ {name:'EL PATRON 🏁',    color:0xffc400,accent:0x1a1a1a,maxKmh:449,accel:52,turn:3.1, h:.42,w:2.1, l:4.6,spoiler:1,
+  desc:'Le taureau doré. 449 au compteur, l\'assurance résiliée d\'office. C\'est ici que les vrais chiffres commencent.'},
+ {name:'FORMULE OR 🏎️',   color:0xffdf40,accent:0x22242a,maxKmh:494,accel:57,turn:3.15,h:.4, w:2.1, l:4.8,spoiler:1,glow:0xfff0a0,
+  desc:'Un aileron, un baquet, et tes économies peintes en doré. Le circuit appelle ça de la triche. Nous, du talent.'},
+ {name:'NÉON OUTLAW',     color:0x14061f,accent:0x00eaff,maxKmh:543,accel:62,turn:3.2, h:.38,w:2.12,l:4.7,spoiler:1,glow:0xff3ec8,
+  desc:'Prototype volé d\'un labo qui nie son existence. Le néon rose ? Pour qu\'on sache QUI vient de te mettre 3 secondes.'},
+ {name:'COMBUSTION 🚀',   color:0xe8ecf2,accent:0xff5a1a,maxKmh:597,accel:68,turn:3.22,h:.4, w:2.15,l:5.0,spoiler:1,glow:0x66c8ff,rocket:1,
+  desc:'Homologuée nulle part, immatriculée par erreur. Le rétroviseur est en option : rien ne revient jamais de derrière.'},
+ {name:'COMÈTE 👑',       color:0x0a0a12,accent:0xffd75e,maxKmh:657,accel:75,turn:3.25,h:.36,w:2.2, l:5.1,spoiler:1,glow:0xffffff,rocket:1,
+  desc:'657 km/h. Longtemps la reine incontestée du ciel. Aujourd\'hui : l\'échauffement. Bienvenue dans le vrai jeu.'},
+ // ---- ENDGAME : les 10 MONSTRES — plus rapides que l'ex-reine, de moins en moins légaux ----
+ {name:'INTERDITE',       color:0x141414,accent:0xff2a2a,maxKmh:730,accel:83,turn:3.28,h:.36,w:2.2, l:5.0,spoiler:1,glow:0xff2a2a,rocket:1,
+  desc:'Le dossier d\'homologation a explosé en vol. Littéralement. Première caisse officiellement bannie dans 194 pays.'},
+ {name:'ONDE DE CHOC',    color:0xdfe9f2,accent:0x2a6bff,maxKmh:810,accel:92,turn:3.3, h:.35,w:2.2, l:5.1,spoiler:1,glow:0x9adfff,rocket:1,
+  desc:'Elle klaxonne en BANG supersonique. Les pigeons ont porté plainte. Le mur du son a demandé une protection rapprochée.'},
+ {name:'RAZOR-9',         color:0x2a2e36,accent:0x00eaff,maxKmh:900,accel:101,turn:3.33,h:.34,w:2.22,l:5.1,spoiler:1,glow:0x00eaff,rocket:1,
+  desc:'Neuf turbines, zéro compromis. L\'ingénieur qui l\'a conçue s\'est enfui en courant. Pas assez vite.'},
+ {name:'GOUDRON FANTÔME', color:0x8a8f9a,accent:0xf2f5fa,maxKmh:1000,accel:112,turn:3.36,h:.33,w:2.22,l:5.2,spoiler:1,glow:0xdfe8ff,rocket:1,
+  desc:'Si rapide que les radars flashent une image vide. Les amendes sont envoyées à ton ombre. Elle non plus ne suit pas.'},
+ {name:'TÊTE CHERCHEUSE', color:0x3a4034,accent:0xff7a1a,maxKmh:1110,accel:124,turn:3.38,h:.33,w:2.25,l:5.3,spoiler:1,glow:0xff7a1a,rocket:1,
+  desc:'Techniquement, un missile avec des clignotants. Jamais utilisés, évidemment. L\'horizon a officiellement peur.'},
+ {name:'PLASMA ROYAL',    color:0x2a0a3a,accent:0xff3ec8,maxKmh:1230,accel:137,turn:3.41,h:.32,w:2.25,l:5.3,spoiler:1,glow:0xff3ec8,rocket:1,
+  desc:'Le moteur tourne au plasma pur et au mépris. Les vitres sont teintées pour protéger les témoins.'},
+ {name:'ANTIMATIÈRE',     color:0x08080e,accent:0x7a5cff,maxKmh:1370,accel:152,turn:3.44,h:.31,w:2.28,l:5.4,spoiler:1,glow:0x7a5cff,rocket:1,
+  desc:'Deux grammes d\'antimatière et un mépris total des lois de la physique. Newton s\'est retourné. Trop lentement.'},
+ {name:'ÉCLIPSE VII',     color:0x1a140a,accent:0xffd75e,maxKmh:1520,accel:168,turn:3.46,h:.3, w:2.28,l:5.4,spoiler:1,glow:0xffd75e,rocket:1,
+  desc:'Quand elle passe devant le soleil : trois secondes de nuit. Les astronomes l\'ont classée phénomène céleste.'},
+ {name:'SINGULARITÉ',     color:0x0a0a14,accent:0x9ad8ff,maxKmh:1690,accel:186,turn:3.48,h:.29,w:2.3, l:5.5,spoiler:1,glow:0x9ad8ff,rocket:1,
+  desc:'La lumière a demandé un délai. Le temps s\'excuse au passage. Tu ne conduis plus : tu plies la carte.'},
+ {name:'DIEU-VITESSE 👑', color:0xf5f6fa,accent:0xffd75e,maxKmh:1900,accel:208,turn:3.5, h:.28,w:2.3, l:5.6,spoiler:1,glow:0xffffff,rocket:1,
+  desc:'Plus de route. Plus de son. Plus de rivaux. Juste toi, et l\'univers qui essaie de suivre. Il n\'y arrive pas.'},
 ];
-const DENOMS=[10,1e3,1e4,1e5,1e6,1e7,1e8,1e9,1e10,1e11,1e12,1e13,1e14];
+const DENOMS=[10,1e3,1e4,1e5,1e6,1e7,1e8,1e9,1e10,1e11,1e12,1e13,1e14,
+              1e15,1e16,1e17,1e18,1e19,1e20,1e21,1e22,1e23,1e24,1e25]; // 24 niveaux : ×10 par caisse, jusqu'à l'absurde assumé
 // COURBE D'EFFORT CROISSANTE (échelle de renforcement) : la 1re caisse tombe en ~30 s
 // (accroche immédiate), puis chaque palier exige un peu plus de maîtrise — en équivalent
-// pièces : 8, 12, 16, 20, 25, 30, 36, 44, 52, 62, 74, 88, 105. Les figures (x3-5 le revenu
-// des pièces) restent le moteur : un pilote qui vole progresse bien plus vite qu'un rouleur.
+// pièces : 8, 12, 16, 20, 25, 30, 36, 44, 52, 62, 74, 88, 105, puis l'ENDGAME serre la vis :
+// 136, 162, 192, 228, 270, 320, 380, 450, 530, 630. Les figures (x3-5 le revenu des pièces)
+// restent le moteur : un pilote qui vole progresse bien plus vite qu'un rouleur.
 // Les BUMPS ne payent plus un centime en vol : ils rendent l'airtime, chargent le STYLE (fever)
 // et gonflent le multiplicateur — tout se cash à l'ATTERRISSAGE. Voler paye, poser encaisse.
-const THRESH=[400,6e4,8.6e5,1.1e7,1.4e8,1.6e9,2e10,2.4e11,2.9e12,3.4e13,4e14,4.8e15,5.7e16];
+const THRESH=[400,6e4,8.6e5,1.1e7,1.4e8,1.6e9,2e10,2.4e11,2.9e12,3.4e13,4e14,4.8e15,5.7e16,
+              6.8e17,8.1e18,9.6e19,1.1e21,1.4e22,1.6e23,1.9e24,2.3e25,2.7e26,3.2e27];
 let level=0;
-function denom(){return DENOMS[Math.min(level,12)];}
+function denom(){return DENOMS[Math.min(level,23)];}
 const fmt=v=>'$ '+Math.round(v).toLocaleString('fr-FR');
 function fmtGta(v){
   const s=String(Math.round(v)).padStart(8,'0');
@@ -1251,7 +1303,7 @@ function fmtGta(v){
 }
 // ---- UNITÉS COMPACTES : « $ 1,4 M » se lit d'un œil, « $ 1 400 000 » est du bruit. Échelle
 // longue française (million, milliard, billion, billiard, trillion) — assez folle toute seule.
-const UNITS=[[1e18,'T','TRILLIONS 🤯'],[1e15,'Bd','BILLIARDS'],[1e12,'Bn','BILLIONS'],[1e9,'Md','MILLIARDS'],[1e6,'M','MILLIONS'],[1e3,'k','MILLIERS']];
+const UNITS=[[1e30,'Qn','QUINTILLIONS 🛸'],[1e27,'Qd','QUADRILLIARDS'],[1e24,'Q','QUADRILLIONS 🤑'],[1e21,'Td','TRILLIARDS'],[1e18,'T','TRILLIONS 🤯'],[1e15,'Bd','BILLIARDS'],[1e12,'Bn','BILLIONS'],[1e9,'Md','MILLIARDS'],[1e6,'M','MILLIONS'],[1e3,'k','MILLIERS']];
 let unitSeen=0; // jamais reset : la 1re traversée d'un ordre de grandeur se fête UNE fois par session
 function fmtC(v){
   v=Math.round(v);
@@ -1623,7 +1675,7 @@ function smashPig(){
   }
   scene.remove(pigGroup);pigGroup=null;
   const g9=denom()*8;money+=g9;levelCash+=g9;checkUpgrade(); // l'ouverture paye : la tirelire lance la partie
-  trickMsg('TIRELIRE ! +'+fmtC(g9),1);
+  trickMsg('🐷 TIRELIRE ÉVENTRÉE +'+fmtC(g9),1);
   flyCash(pp,6);
   sparkBurst(sparkGold,pp,16,10);
   noiseBurst(.3,.22,2600);noiseBurst(.16,.15,4200);subBoom(.22);thud(9); // craquement de porcelaine
@@ -1821,17 +1873,17 @@ function explode(){
       insUsed=true; // Elle enseigne la règle en la cassant : « pose-toi AVANT d'exploser ».
       const saved=Math.round(lost*.3);
       money+=saved;levelCash+=saved;checkUpgrade();
-      showMsg('🛡 ASSURANCE — '+fmtC(saved)+' sauvés sur '+fmtC(lost)+' (une seule fois par run !)','#7dff9a');
+      showMsg('🛡 L\'ASSURANCE RÉPOND — '+fmtC(saved)+' sauvés sur '+fmtC(lost)+' (une seule fois, lis les petites lignes !)','#7dff9a');
       flyCash(carGroup.position,5); // même en mourant, l'argent sauvé voyage vers le compteur
     }else{
-      showMsg('CHAÎNE PERDUE — '+fmtC(lost)+' ENVOLÉS !','#ff5e5e');
+      showMsg(pickL(CRASH_LINES)(fmtC(lost)),'#ff5e5e');
     }
     sparkBurst(sparkGold,carGroup.position,44,24); // la mallette s'ouvre : les billets giclent
   }
   chainHud.style.opacity=0;
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;
   mode='boom';boomT=0;boomPos.copy(carGroup.position);
-  if(level<9){const tx=annSpeak('earlyDead',6);if(tx)trickMsg(tx,3);} // mort avant le top 5 des caisses
+  if(level<19){const tx=annSpeak('earlyDead',6);if(tx)trickMsg(tx,3);} // mort avant le top 5 des caisses
   carGroup.visible=false;shadow.position.y=-99999;landMark.visible=false;
   const spec=CARS[level];
   // VRAIS morceaux du modèle arrachés (roues, capot, toit, spoiler…)
@@ -2148,6 +2200,17 @@ const ENGINES=[
  {i:30, r:900, h:[1,.12,.06,.2,.04,.1,.03,.08],              sub:.55,dr:1.1,fq:380,fr:5,  gr:1,lope:0,  wob:0,   crk:0,  vol:.92,whine:21}, // proto : onduleur cristallin
  {i:45, r:1100,h:[1,.2,.1,.14,.06],                          sub:.62,dr:1.2,fq:420,fr:4.6,gr:1,lope:0,  wob:0,   crk:0,  vol:.98,whine:15}, // fusée : turbine
  {i:55, r:1300,h:[1,.15,.08,.18,.05,.12],                    sub:.7, dr:1.3,fq:480,fr:5,  gr:1,lope:0,  wob:0,   crk:0,  vol:1.02,whine:19},// comète : la turbine royale
+ // ---- ENDGAME : 10 timbres de monstres — turbines, plasma, subs abyssaux ----
+ {i:60, r:1400,h:[1,.18,.1,.2,.06,.1],                       sub:.72,dr:1.4,fq:500,fr:5.2,gr:1,lope:0,  wob:0,   crk:.3, vol:1.04,whine:17},// interdite : turbine sale qui crache
+ {i:70, r:1550,h:[1,.14,.22,.08,.12,.04],                    sub:.68,dr:1.3,fq:540,fr:5.4,gr:1,lope:0,  wob:0,   crk:0,  vol:1,   whine:23},// onde de choc : bang permanent
+ {i:80, r:1700,h:[1,.1,.05,.16,.03,.09,.02],                 sub:.6, dr:1.2,fq:600,fr:5.5,gr:1,lope:0,  wob:0,   crk:0,  vol:.98, whine:27},// razor-9 : neuf turbines cristallines
+ {i:55, r:1600,h:[1,.06,.03,.1,.02],                         sub:.78,dr:1.1,fq:520,fr:5.3,gr:1,lope:0,  wob:0,   crk:0,  vol:.94, whine:13},// goudron fantôme : feutré, presque un souffle
+ {i:95, r:1900,h:[1,.25,.12,.18,.08,.1],                     sub:.7, dr:1.5,fq:640,fr:5.6,gr:1,lope:0,  wob:0,   crk:.2, vol:1.05,whine:19},// tête chercheuse : le missile gronde
+ {i:110,r:2100,h:[1,.12,.2,.06,.14,.04,.08],                 sub:.62,dr:1.25,fq:700,fr:5.6,gr:1,lope:0, wob:0,   crk:0,  vol:1,   whine:31},// plasma royal : arc électrique qui chante
+ {i:70, r:2300,h:[1,.08,.04,.12,.02,.06],                    sub:.85,dr:1.15,fq:560,fr:5.4,gr:1,lope:0, wob:0,   crk:0,  vol:1.02,whine:11},// antimatière : sub abyssal, le vide qui aspire
+ {i:125,r:2500,h:[1,.15,.08,.14,.05,.09,.03],                sub:.66,dr:1.3,fq:760,fr:5.7,gr:1,lope:0,  wob:0,   crk:0,  vol:1,   whine:25},// éclipse VII : l'or qui siffle
+ {i:140,r:2800,h:[1,.1,.06,.1,.03,.07],                      sub:.74,dr:1.2,fq:820,fr:5.8,gr:1,lope:0,  wob:0,   crk:0,  vol:1.02,whine:29},// singularité : la lumière plie
+ {i:160,r:3200,h:[1,.2,.1,.16,.07,.11,.04,.06],              sub:.8, dr:1.35,fq:900,fr:5.8,gr:1,lope:0, wob:0,   crk:0,  vol:1.06,whine:33},// dieu-vitesse : l'orgue de l'apocalypse
 ];
 function engCurve(k){ // courbe de saturation tanh — le grain qui devient hargne quand on pousse dedans
   const n=256,c=new Float32Array(n);
@@ -2765,7 +2828,7 @@ function renderLeaders(hl){
 function setBestChip(){
   const bc=SAVE.d.bestCar;
   bestChip.textContent=(best>0?('RECORD  '+fmt(best)):'AUCUN RECORD — À TOI DE JOUER')+
-    (bc>0?('  ·  MEILLEURE CAISSE : '+CARS[Math.min(bc,13)].name):'');
+    (bc>0?('  ·  MEILLEURE CAISSE : '+CARS[Math.min(bc,23)].name):'');
 }
 function commitName(){
   if(pendingScore==null)return;
@@ -2861,8 +2924,27 @@ function chainEst(){ // la MALLETTE : ce que vaut la chaîne SI on pose la caiss
   return denom()*(5*Math.max(.7,fallT)+chainVal)*Math.min(6,chainMult)
     *(streak>=2?1+Math.min(1,streak*.1):1)*(fever>0?2:1);
 }
+// ---------- FLAVOUR : les phrases qui font le sel du jeu — courtes, arrogantes, cash ----------
+const pickL=a=>a[Math.floor(Math.random()*a.length)];
+const GO_LINES=[ // le départ : une gifle d'encouragement, jamais deux fois la même
+ 'GO ! NE MEURS PAS','PIED AU PLANCHER — QUESTIONS APRÈS','LA PRUDENCE RESTE AU GARAGE',
+ 'ROULE COMME SI L\'ESSENCE ÉTAIT GRATUITE','LE FREIN, C\'EST LA PÉDALE DES AUTRES','VAS-Y. LE CIEL REGARDE.'];
+const ZONE_LINES=[ // le portail : chaque zone avalée se célèbre
+ 'NOUVELLE ZONE !','ZONE AVALÉE — SUIVANTE !','ENCORE UNE ZONE AU COMPTEUR !','LA ROUTE EST À TOI !','ZONE SUIVANTE — ON RALENTIT PAS !'];
+const RAIN_LINES=[ // la pluie de billets : le compte en banque a le vertige
+ '💸 IL PLEUT DES BILLETS — PARAPLUIE INUTILE','💸 LA BANQUE A APPELÉ : ELLE ABANDONNE','💸 TON COMPTE A LE VERTIGE','💸 L\'ARGENT TOMBE PLUS VITE QUE TOI'];
+const CRASH_LINES=[ // la chaîne qui crame : le sel du bank-or-bust — ça pique, ça retient la leçon
+ m=>'CHAÎNE PERDUE — '+m+' ENVOLÉS !',m=>m+' PARTIS EN FUMÉE — FALLAIT POSER !',
+ m=>'ADIEU '+m+' — LE CIEL DIT MERCI',m=>m+' ÉPARPILLÉS FAÇON PUZZLE'];
+const END_LINES=[ // fin de run (même en crash) : la punchline sous le GAME OVER
+ 'LA ROUTE GAGNE. CETTE FOIS.','LE BITUME SE SOUVIENDRA DE TOI','MÊME LES LÉGENDES TOUCHENT LE SOL',
+ 'CRASH TEST RÉUSSI. ENFIN… TEST.','LA GRAVITÉ : 1 — TOI : 0','T\'ES MORT. LES THUNES, ELLES, RESTENT.',
+ 'REVIENS. LA VITESSE S\'ENNUIE DÉJÀ.'];
+const END_TOP=[ // fin de run AVEC record : là on s'incline
+ '🏆 RECORD — LES AUTRES JOUENT À UN AUTRE JEU','🏆 LE LEADERBOARD A DEMANDÉ TON AUTOGRAPHE',
+ '🏆 RECORD ÉCRASÉ — COMME TES SUSPENSIONS','🏆 HISTORIQUE. LA ROUTE S\'EN REMET À PEINE.'];
 // ---- L'ÉCHELLE : chaque palier de multiplicateur se CRIE — le plafond ×6 devient un objectif nommé ----
-const LADDER=[[2,'CHAUD !'],[3,'EN FEU !'],[4.5,'MILLIONNAIRE'],[6,'JACKPOT MAX']];
+const LADDER=[[2,'ÇA CHAUFFE !'],[3,'EN FEU !!'],[4.5,'IL PLEUT DES BILLETS'],[6,'JACKPOT MAX 🤑']];
 const flyV=new THREE.Vector3();
 function flyCash(worldPos,n){ // les billets VOLENT de la caisse vers le compteur — l'argent SE VOIT gagné
   flyV.copy(worldPos).project(camera);
@@ -2909,10 +2991,23 @@ function respawn(){
   s=THREE.MathUtils.clamp(safeS-8,0,Math.max(0,L-80));
   lat=0;psi=0;vA=26;vL=0;side=1;graceT=1.6;prevTvalid=false;yawAcc=0;hopY=0;hopV=0;mode='drive';
 }
+let carCardT=null;
+function carCardShow(spec){ // la caisse neuve se présente : nom qui claque, chrono qui fait peur, punchline
+  const el=$('carCard');
+  el.innerHTML='<div class="ccTag">🔑 NOUVELLE CAISSE DÉBLOQUÉE</div><div class="ccName">'+spec.name+'</div>'
+    +'<div class="ccSpd">'+spec.maxKmh+' KM/H · NIVEAU '+(CARS.indexOf(spec)+1)+' / '+CARS.length+'</div>'
+    +'<div class="ccDesc">'+spec.desc+'</div>';
+  el.classList.add('on');
+  if(carCardT)clearTimeout(carCardT);
+  carCardT=setTimeout(function(){el.classList.remove('on');},5200);
+}
 function checkUpgrade(){
   let up=false;
-  while(level<13&&levelCash>=THRESH[level]){level++;up=true;}
-  if(up){buildCar(CARS[level]);boost=Math.max(boost,1.3);fanfare();shake=Math.max(shake,.4);showMsg('NOUVELLE VOITURE → '+CARS[level].name);}
+  while(level<23&&levelCash>=THRESH[level]){level++;up=true;}
+  if(up){buildCar(CARS[level]);boost=Math.max(boost,1.3);fanfare();shake=Math.max(shake,.4);
+    showMsg('🔑 NOUVELLE CAISSE → '+CARS[level].name,'#ffd75e');
+    carCardShow(CARS[level]); // la carte de déblocage : nom, chrono max, et la punchline
+  }
 }
 function startFall(impU,impF){
   mode='fall';fallT=0;yawAcc=0;momT=0;airRoll=0;
@@ -2984,7 +3079,7 @@ function tryLand(dt){
     // ---- BUMP / DOUBLE BUMP / TRIPLE BUMP : figure GRATUITE (compte pour le HUD/style, zéro dollar) ----
     bounceN++;runStats.bumps++;
     fallT=Math.max(0,fallT-AIR_MAX*.5);airFlash=.6; // DEMI-JAUGE d'airtime rendue
-    addTrick('bump',bounceN===1?'BUMP':bounceN===2?'DOUBLE BUMP':bounceN===3?'TRIPLE BUMP':'MEGA BUMP x'+bounceN,
+    addTrick('bump',bounceN===1?'BUMP':bounceN===2?'DOUBLE BUMP':bounceN===3?'TRIPLE BUMP — LA DALLE EN PLEURE':'MEGA BUMP x'+bounceN+' 💥',
       0,Math.min(3,bounceN),true,true); // free=true : le bump NE PAYE PLUS (fini la machine à cash en longeant la tranche) — il rend l'airtime et le style, c'est tout
     bumpSfx(bounceN);
     thud(impB);noiseBurst(.14,.09,1100); // choc + froissement de tôle
@@ -3018,15 +3113,15 @@ function tryLand(dt){
     // le grade juge tout le vol : pose soyeuse = jackpot, pose écrasée = décote
     let g=1,gTxt='';
     if(impact<4.5&&landLoss<.2){g=1.5;gTxt='PARFAIT ! ';hitT=.08;}
-    else if(impact>=10){g=.65;gTxt='POSÉ LOURD… ';}
+    else if(impact>=10){g=.65;gTxt='POSÉ LOURD — AÏE… ';}
     if(fever>0){ // BRAQUAGE : tous les grades montent d'un cran — même la casse pardonne
       if(g===1.5){g=2;gTxt='DIVIN !! ';}
       else if(g===1){g=1.5;gTxt='PARFAIT (BRAQUAGE) ! ';hitT=.08;}
       else{g=1;gTxt='';}
     }
     rollover=g>=1.5?chainVal*.1:0; // ROLLOVER : un PARFAIT reporte 10 % — la fortune voyage au vol suivant
-    if(Math.abs(latOff)<ROAD_HALF*.3){chainVal+=4;chainMult+=.2;trickMsg('PILE AU CENTRE',false);} // posé sur l'axe
-    if(vA<-3){chainVal+=6;chainMult+=.3;trickMsg('À RECULONS !',2);}                               // posé en marche arrière
+    if(Math.abs(latOff)<ROAD_HALF*.3){chainVal+=4;chainMult+=.2;trickMsg('PILE AU CENTRE 🎯',false);} // posé sur l'axe
+    if(vA<-3){chainVal+=6;chainMult+=.3;trickMsg('À RECULONS — MÊME PAS REGARDÉ !',2);}              // posé en marche arrière
     if(sideL<0)trickMsg('FACE CACHÉE ×2',2);
     streak++;
     const gain=Math.round(denom()*(5*Math.max(.7,fallT)+chainVal)*Math.min(6,chainMult)*g
@@ -3088,7 +3183,7 @@ function resetGame(){
   AIP.resetRun(); // les compteurs d'observation repartent avec la run
   survStart(); // APRÈS la piste neuve et s=0 : la meute encadre le vrai départ
   setupIntroPig();
-  showMsg('GO ! NE MEURS PAS','#7dff9b');
+  showMsg(pickL(GO_LINES),'#7dff9b');
 }
 function endGame(){
   gameOver=true;airPie.style.display='none';chainHud.style.opacity=0;caseHud.style.opacity=0;
@@ -3105,7 +3200,7 @@ function endGame(){
   const q=lbQualifies(sc);
   const isTop=q&&(!leaders.length||sc>leaders[0].s);
   ovSub.textContent='GAME OVER';ovSub.style.display='';
-  tagline.style.display='none';
+  tagline.textContent=pickL(isTop?END_TOP:END_LINES);tagline.style.display=''; // la punchline de fin — même la mort a du style
   if(level>SAVE.d.bestCar){SAVE.d.bestCar=level;SAVE.flush();} // meilleure caisse à vie
   setBestChip();
   runStatsEl.style.display='block';
@@ -3719,7 +3814,7 @@ function loop(now){
         const zb=denom()*40*(fever>0?2:1);money+=zb;levelCash+=zb;checkUpgrade();
         runStats.zones++;
         nitroR=2; // le portail regonfle la nitro : chaque zone repart pied au plancher
-        trickMsg('NOUVELLE ZONE ! +'+fmtC(zb),true);
+        trickMsg(pickL(ZONE_LINES)+' +'+fmtC(zb),true);
         flyCash(carGroup.position,8);
         SURV.pBase+=s; // la course traverse le portail : les écarts restent vrais (téléportation invisible)
         newTrack();
@@ -4008,13 +4103,13 @@ function loop(now){
       {
         const halfs=Math.floor(Math.abs(yawAcc)/Math.PI); // vrilles : un cri par demi-tour de lacet
         if(halfs>spinHalf&&fallT>.45){spinHalf=halfs;
-          addTrick('vrille',halfs===1?'180°':halfs===2?'VRILLE 360 !':(halfs*180)+'° !!',3.5*halfs,halfs>=4?3:(halfs>=2?2:false),true);}
+          addTrick('vrille',halfs===1?'180°':halfs===2?'VRILLE 360 — LAVE-LINGE !':halfs===3?'540° !!':(halfs*180)+'° — ESSOREUSE COSMIQUE !!',3.5*halfs,halfs>=4?3:(halfs>=2?2:false),true);}
         if(trkAirBig<1&&fallT>2.3){trkAirBig=1;addTrick('air','BIG AIR',6,2);}
         if(trkAirBig<2&&fallT>4.4){trkAirBig=2;addTrick('air2','AIR MONSTRE',10,3);}
         if(fallPos.y>peakY)peakY=fallPos.y;
-        if(!trkSky&&peakY>launchY+26){trkSky=true;addTrick('ciel','PLEIN CIEL',7,2);}      // grimper 26 m au-dessus du départ
+        if(!trkSky&&peakY>launchY+26){trkSky=true;addTrick('ciel','PLEIN CIEL — COUCOU LES AVIONS',7,2);}      // grimper 26 m au-dessus du départ
         if(!trkMeteor&&nitroOn&&nitroAirT>1.2){trkMeteor=true;addTrick('meteo','MÉTÉORE',8,2);}
-        if(Math.abs(steer)<.06){handsT+=dt;if(!trkHands&&handsT>2.1){trkHands=true;addTrick('mains','SANS LES MAINS',7,2);}}
+        if(Math.abs(steer)<.06){handsT+=dt;if(!trkHands&&handsT>2.1){trkHands=true;addTrick('mains','SANS LES MAINS — MAMAN, REGARDE',7,2);}}
         else handsT=0;
         if(curNear){ // radar de dalle (rempli par tryLand à la frame précédente)
           if(Math.abs(curLatOff)<ROAD_HALF){
@@ -4346,7 +4441,7 @@ function loop(now){
         if(u[0]>unitSeen){unitSeen=u[0];showMsg('💸 TU COMPTES EN '+u[2]+' MAINTENANT !','#7dff9a');}
         break;}
     }
-    if(!gameOver&&money>=nextRainAt){nextRainAt*=10;startMoneyRain();}
+    if(!gameOver&&money>=nextRainAt){nextRainAt*=10;startMoneyRain();showMsg(pickL(RAIN_LINES),'#7dff9a');}
     if(money>best){best=money;SAVE.d.best=best;SAVE.mark();} // mark : le filet des 30 s (ou la fin de run) écrira
     elRecord.textContent='record : '+fmt(best);
     elNR.style.width=(nitroR/4*100)+'%';
@@ -4357,9 +4452,9 @@ function loop(now){
     if(pwrAirT>0)pch+='<span style="color:#7dffec">🪂 AIR ∞ '+pwrAirT.toFixed(1)+'</span>';
     if(pwrSpdT>0)pch+='<span style="color:#ff3ec8">⚡ VITESSE +60% '+pwrSpdT.toFixed(1)+'</span>';
     if(pch!==loop._pch){loop._pch=pch;pwrChip.innerHTML=pch;pwrChip.style.display=pch?'block':'none';}
-    const prevT=level>0?THRESH[level-1]:0,nextT=THRESH[Math.min(level,12)];
-    elCp.textContent=level>=13?'MAX':fmtC(nextT);
-    elFill.style.width=(level>=13?100:100*Math.min(1,(levelCash-prevT)/(nextT-prevT)))+'%';
+    const prevT=level>0?THRESH[level-1]:0,nextT=THRESH[Math.min(level,22)];
+    elCp.textContent=level>=23?'MAX':fmtC(nextT);
+    elFill.style.width=(level>=23?100:100*Math.min(1,(levelCash-prevT)/(nextT-prevT)))+'%';
     if(fever>0)fever-=dt;
     else if(feverArmed){styleM=Math.max(0,styleM-2*dt);if(styleM<=0)feverArmed=false;} // armé : la jauge FUIT — sers-toi ou perds-le
     else styleM=Math.max(0,styleM-4*dt);
