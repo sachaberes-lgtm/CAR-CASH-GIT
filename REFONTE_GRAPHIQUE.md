@@ -126,3 +126,26 @@ ombres portées (T2.5), rim doré par état (T3, or / cyan nitro / or riche braq
 contre-jour fog+expo, split-tone ACES (balance 1.045/1/.955, lift mauve, sat 1.12→1.07,
 bloom .58/.5/.82), spéculaire chaud du bitume (`0x8a6f52`, shininess 48).
 Validé au banc `dev/atelier-ombres.html` + partie complète sans erreur console.
+
+## 7. PRESQUE NUIT VICE CITY (2026-07-14) — ✅ LIVRÉ (le virage GTA 6)
+
+> Référence : trailer GTA 6, Ocean Drive au crépuscule tombant — rose Miami, néons, phares allumés.
+
+- **Ciel** : dégradé indigo nuit → violet → ROSE Miami → corail → ambre ; ÉTOILES (cellules
+  d'azimut 64/tour, scintillement `uTime`, éteintes près du soleil) ; LUNE pâle hardcodée dans
+  le fragment ; GUIRLANDE néon rose↔cyan sur l'horizon (multiplicateurs d'azimut ENTIERS →
+  zéro couture au raccord ±π) masquée côté soleil. `dp2` relevé : jamais de noir pur.
+- **Lumières** : hemi `0xc494c2`/`0x1c1a3e` .50 · soleil braise `0xff9448` 1.5 · fill bleu néon
+  `0x4f74e8` .26 (par dessous) · kick magenta `0xff3d9e` .22. Tout à l'init — zéro recompilation.
+- **Piste** : bandes d'ourlet → NÉON ROSE `0xff5cb2` + nappe additive `fog:false` en dégradé
+  vertex (noir additif = invisible) qui saigne vers l'intérieur — les rails percent la brume
+  jusqu'à l'horizon. Ligne centrale sodium doré. Bitume `0x3a3c46`, spéculaire rosé `0x9a5f66`.
+- **Voiture** : `headSpot` SpotLight unique (suit le nez, 0 en 'boom') + halos phares élargis +
+  néon sous caisse magenta (`userData.noShadow` sinon il CASTE un carré d'ombre — piège vu).
+- **Fog** `0x763f66` · envTex indigo→rose→ambre + strips rose/cyan · flaques spéculaire violet ·
+  nuages `uSunCol` (2.2,1.02,.70) / `uSkyCol` (.33,.30,.56) / `uGroundCol` (.14,.09,.19).
+- **Grade** : SAT 1.40, VIVID .74, WB magenta (1.02,.985,1.03), ombres bleu-violet, hautes
+  lumières or rosé, bloom .58/.52 seuil .92, vignette pourpre .46, `#cloudFx` rosé.
+- **Validation headless** : serveur scratchpad `/debug` (rAF → file pompable `__pump` + capture
+  `__shot` avec filtre CSS + vignette appliqués) — le pane headless est `hidden`, rAF ne tire
+  jamais : il faut pomper la boucle à la main. Partie complète pompée sans erreur console.
