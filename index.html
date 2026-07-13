@@ -749,8 +749,8 @@ if(VOL_OK){ try{
       float yb=q.y;float vert=smoothstep(-1.0,-0.68,yb)*(1.0-0.45*smoothstep(0.25,1.0,yb));
       float shape=(1.0-smoothstep(uEdge,1.0,r))*vert;if(shape<=0.0)return 0.0;
       vec3 np=(p-vCenter)*uFreq+vec3(uSeed)+vec3(uTime*0.010,-uTime*0.008,uTime*0.006);
-      float base=texture(uNoise,np).r;float det=texture(uNoise,np*3.3+5.0).g;
-      float d=shape-(1.0-base)*(1.0-uCoverage)*1.7;d-=(1.0-det)*uDetail*(1.0-shape)*0.6;
+      float base=texture(uNoise,np).r;float det=texture(uNoise,np*2.0+5.0).g;
+      float d=shape-(1.0-base)*(1.0-uCoverage)*1.7;d-=(1.0-det)*uDetail*(1.0-shape)*0.30;
       return max(d,0.0)*uDensity*uDMul;}
     float lightMarch(vec3 p){float stepL=length(vRadius)/(uLightSteps*3.0);float od=0.0,t=stepL*0.5;
       for(int i=0;i<8;i++){if(float(i)>=uLightSteps)break;od+=densAt(p+uSunDir*t)*stepL;t+=stepL;}return od;}

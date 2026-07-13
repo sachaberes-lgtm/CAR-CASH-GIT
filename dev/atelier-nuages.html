@@ -227,10 +227,10 @@ float densAt(vec3 p){
   vec3 np=(p-vCenter)*uFreq+vec3(uSeed);
   np+=vec3(uTime*0.010,-uTime*0.008,uTime*0.006);   // le banc bouillonne lentement
   float base=texture(uNoise,np).r;                  // billows
-  float det =texture(uNoise,np*3.3+5.0).g;          // dentelle haute fréquence
+  float det =texture(uNoise,np*2.0+5.0).g;          // dentelle FRÉQUENCE BAISSÉE (3.3→2.0) : lisière lisse, fini le grain
   // on SCULPTE une masse pleine : retrancher le bruit creuse les bosses de chou-fleur et dissout la lisière
   float d=shape-(1.0-base)*(1.0-uCoverage)*1.7;     // couverture ↑ → moins d'érosion → plus opaque
-  d-=(1.0-det)*uDetail*(1.0-shape)*0.6;             // fine dentelle réservée aux bords
+  d-=(1.0-det)*uDetail*(1.0-shape)*0.30;            // érosion de bord ADOUCIE (0.6→0.30) : bords doux même à peu de pas
   return max(d,0.0)*uDensity;
 }
 // marche vers le soleil → épaisseur optique (auto-ombrage)
