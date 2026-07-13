@@ -388,20 +388,20 @@ const skyDome=(function(){
       'varying vec3 vDir;uniform vec3 uSunDir;uniform float uTime;',
       'void main(){',
       '  float y=vDir.y;',
-      // CRÉPUSCULE PRESQUE NUIT : ciel sombre saturé, une seule bande chaude à l\'horizon (le soleil couchant)
-      '  vec3 zen=vec3(.045,.05,.15);', // zénith NUIT — indigo profond
-      '  vec3 mve=vec3(.16,.11,.30);',  // violet crépusculaire
-      '  vec3 ros=vec3(.44,.16,.40);',  // magenta sombre saturé (néon Vice City)
-      '  vec3 cor=vec3(.80,.28,.30);',  // rouge-corail brûlé
-      '  vec3 gld=vec3(1.,.50,.24);',   // orange braise (bande basse)
-      '  vec3 crm=vec3(1.,.68,.36);',   // ambre à l horizon (reste chaud près du soleil)
-      '  vec3 blw=vec3(.52,.26,.30);',  // brume sombre sous l horizon
-      '  vec3 dp2=vec3(.03,.03,.08);',  // nuit quasi noire tout en bas
+      // CRÉPUSCULE RÉALISTE : bleu marine au zénith → transition poussiéreuse désaturée → bande chaude à l\'horizon (soleil couchant)
+      '  vec3 zen=vec3(.07,.13,.27);',  // zénith : BLEU MARINE profond (le vrai twilight, pas du violet)
+      '  vec3 mve=vec3(.22,.27,.42);',  // bleu ardoise poussiéreux
+      '  vec3 ros=vec3(.52,.42,.50);',  // rose-mauve DÉSATURÉ (la brume de transition, subtile)
+      '  vec3 cor=vec3(.82,.50,.42);',  // corail poussiéreux (salmon doux, pas rouge pur)
+      '  vec3 gld=vec3(1.,.58,.30);',   // orange chaud (bande basse)
+      '  vec3 crm=vec3(1.,.70,.42);',   // ambre à l horizon (chaud près du soleil)
+      '  vec3 blw=vec3(.46,.30,.30);',  // brume sombre sous l horizon
+      '  vec3 dp2=vec3(.03,.04,.09);',  // nuit quasi noire tout en bas
       '  vec3 col=mix(crm,gld,smoothstep(.015,.06,y));',
-      '  col=mix(col,cor,smoothstep(.05,.15,y));',
-      '  col=mix(col,ros,smoothstep(.12,.28,y));',
-      '  col=mix(col,mve,smoothstep(.24,.44,y));',
-      '  col=mix(col,zen,smoothstep(.40,.72,y));',   // nuit qui s installe en haut
+      '  col=mix(col,cor,smoothstep(.05,.16,y));',
+      '  col=mix(col,ros,smoothstep(.14,.32,y));',
+      '  col=mix(col,mve,smoothstep(.28,.50,y));',
+      '  col=mix(col,zen,smoothstep(.46,.82,y));',   // le bleu marine domine les deux tiers hauts
       '  col=mix(blw,col,smoothstep(-.10,.015,y));',
       '  col=mix(dp2,col,smoothstep(-.85,-.12,y));',
       '  float sd=max(dot(vDir,uSunDir),0.);',      // soleil COUCHANT : halo qui embrase l horizon, éclatant contre le ciel sombre
