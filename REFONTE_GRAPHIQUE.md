@@ -127,25 +127,27 @@ contre-jour fog+expo, split-tone ACES (balance 1.045/1/.955, lift mauve, sat 1.1
 bloom .58/.5/.82), spéculaire chaud du bitume (`0x8a6f52`, shininess 48).
 Validé au banc `dev/atelier-ombres.html` + partie complète sans erreur console.
 
-## 7. PRESQUE NUIT VICE CITY (2026-07-14) — ✅ LIVRÉ (le virage GTA 6)
+## 7. CRÉPUSCULE BRAISE — nuit sombre, lumières héroïnes (2026-07-14) — ✅ LIVRÉ
 
-> Référence : trailer GTA 6, Ocean Drive au crépuscule tombant — rose Miami, néons, phares allumés.
+> v1 « rose Miami » jugée TROP ROSE par Sacha → v2 : retour aux couleurs d'avant (marine/corail/or)
+> mais AMBIANCE SOMBRE, soleil au sol ROUGE au lieu de jaune, et reflets nitro/boost sur le bitume.
 
-- **Ciel** : dégradé indigo nuit → violet → ROSE Miami → corail → ambre ; ÉTOILES (cellules
-  d'azimut 64/tour, scintillement `uTime`, éteintes près du soleil) ; LUNE pâle hardcodée dans
-  le fragment ; GUIRLANDE néon rose↔cyan sur l'horizon (multiplicateurs d'azimut ENTIERS →
-  zéro couture au raccord ±π) masquée côté soleil. `dp2` relevé : jamais de noir pur.
-- **Lumières** : hemi `0xc494c2`/`0x1c1a3e` .50 · soleil braise `0xff9448` 1.5 · fill bleu néon
-  `0x4f74e8` .26 (par dessous) · kick magenta `0xff3d9e` .22. Tout à l'init — zéro recompilation.
-- **Piste** : bandes d'ourlet → NÉON ROSE `0xff5cb2` + nappe additive `fog:false` en dégradé
-  vertex (noir additif = invisible) qui saigne vers l'intérieur — les rails percent la brume
-  jusqu'à l'horizon. Ligne centrale sodium doré. Bitume `0x3a3c46`, spéculaire rosé `0x9a5f66`.
-- **Voiture** : `headSpot` SpotLight unique (suit le nez, 0 en 'boom') + halos phares élargis +
-  néon sous caisse magenta (`userData.noShadow` sinon il CASTE un carré d'ombre — piège vu).
-- **Fog** `0x763f66` · envTex indigo→rose→ambre + strips rose/cyan · flaques spéculaire violet ·
-  nuages `uSunCol` (2.2,1.02,.70) / `uSkyCol` (.33,.30,.56) / `uGroundCol` (.14,.09,.19).
-- **Grade** : SAT 1.40, VIVID .74, WB magenta (1.02,.985,1.03), ombres bleu-violet, hautes
-  lumières or rosé, bloom .58/.52 seuil .92, vignette pourpre .46, `#cloudFx` rosé.
+- **Ciel** : dégradé d'avant légèrement assombri (marine → ardoise → rose désaturé → corail → or) ;
+  gardé de la v1 : ÉTOILES (cellules d'azimut 64/tour, scintillement `uTime`, éteintes près du
+  soleil) + LUNE pâle hardcodée dans le fragment. Guirlande néon d'horizon SUPPRIMÉE (trop rose).
+- **Lumières** : hemi crème/mauve **.38** (était .46) · soleil **ROUGE BRAISE `0xff5a30`** 1.55 —
+  la traînée rasante sur le bitume devient rouge · fill mauve .20. `POST_EXPO` 0.82→**0.74**.
+- **Piste** : bitume NUIT `0x2e3037` (sombre exprès : les pools de lumière y claquent),
+  spéculaire ROUGE `0x92553f` shininess 60. Bandes blanches + ligne centrale REVENUES d'origine
+  (rails néon roses + nappe additive supprimés).
+- **REFLET NITRO/BOOST (la demande clé)** : `nitroLight` PointLight (dist 30) collée à
+  l'échappement dans le repère caisse (`hsF` nez / `hsU` toit via quaternion — marche sous la
+  dalle) : orange `0xff7a24` nitro, bleu `0x5b7dff` réserve bleue, or `0xffb040` pad turbo
+  (`boost>0`) ; intensité lissée `dt*14` + tremblement sin 43 Hz, 0 en 'boom'. Ajoutée à l'INIT.
+- **Gardé de la v1** : `headSpot` phares (1.2), halos phares élargis, étoiles+lune, bloom .58/.52.
+- **Reverts v1** : fog `0x6e3b3a` (hue d'avant, −20 % de lumière), envTex turquoise→or (assombri),
+  flaques `0x9fb4ff`, carLight `0xfff0ff`, grade teal/or d'origine (SAT 1.36, WB neutre),
+  nuages `uSunCol` (2.1,1.0,.48) rouge-or / `uAmb` .50, `#cloudFx` crème, vignette .44.
 - **Validation headless** : serveur scratchpad `/debug` (rAF → file pompable `__pump` + capture
   `__shot` avec filtre CSS + vignette appliqués) — le pane headless est `hidden`, rAF ne tire
-  jamais : il faut pomper la boucle à la main. Partie complète pompée sans erreur console.
+  jamais : il faut pomper la boucle à la main. Nitro déclenchée au clavier synthétique (ShiftLeft).

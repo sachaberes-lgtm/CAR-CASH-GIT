@@ -21,14 +21,14 @@
   #hud{position:fixed;inset:0;pointer-events:none;color:#fff;z-index:2} /* au-dessus du canvas filtré (le filter crée un contexte d'empilement) */
   /* HUD épuré : on ne garde que l'argent, le camembert d'airtime, la nitro et les figures */
   #carInfo,#record,#cpInfo,#turnHint{display:none!important} /* HUD épuré : on garde VITESSE + minimap (pilotage), on cache le reste */
-  #vig{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 44%,transparent 52%,rgba(44,14,64,.46) 100%)}
+  #vig{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 44%,transparent 52%,rgba(40,18,48,.44) 100%)}
   /* étalonnage cinéma du rendu 3D : couleurs plus riches, contraste doux */
-  body>canvas{filter:saturate(1.12) contrast(1.05) brightness(1.0)} /* l'ACES (passe post) fait le gros de l'étalonnage ; ce filtre ajoute juste un dernier soupçon de pop */
+  body>canvas{filter:saturate(1.1) contrast(1.04) brightness(1.0)} /* l'ACES (passe post) fait le gros de l'étalonnage ; ce filtre ajoute juste un dernier soupçon de pop */
   #scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.14) 0 2px,transparent 2px 4px);opacity:.22}
   #speedFx{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 42%,rgba(45,20,55,.55) 100%);opacity:0}
   /* immersion nuage : voile blanc laiteux quand on traverse un banc */
   #cloudFx{position:absolute;inset:0;opacity:0;pointer-events:none;
-    background:radial-gradient(ellipse at 50% 55%,rgba(255,240,246,.99) 0%,rgba(252,226,238,.94) 46%,rgba(240,208,228,.88) 100%)}
+    background:radial-gradient(ellipse at 50% 55%,rgba(255,245,236,.99) 0%,rgba(255,236,222,.94) 46%,rgba(255,222,200,.88) 100%)}
   /* speed lines anime plein écran (dessinées en canvas) */
   #slCv{position:absolute;inset:0;width:100%;height:100%}
   .panel{background:rgba(12,8,34,.75);border:2px solid #00eaff;
@@ -376,9 +376,9 @@ if(typeof THREE==='undefined'){ // CDN indisponible : un message clair plutôt q
 }
 // ---------- SCENE ----------
 const scene=new THREE.Scene();
-// CIEL « PRESQUE NUIT » VICE CITY : indigo profond au zénith, grande brume ROSE Miami,
-// ambre au ras du couchant, étoiles qui s'allument, lune pâle, néons de la ville à l'horizon.
-scene.background=new THREE.Color(0x120b28); // fond NUIT violet (le ciel dôme couvre, ceci teinte les trouées)
+// CIEL « BRAISE » : crépuscule réaliste ASSOMBRI — bleu marine au zénith, corail/or à l'horizon,
+// étoiles qui s'allument, lune pâle. La nuit tombe, les lumières de la caisse prennent le relais.
+scene.background=new THREE.Color(0x17102e); // fond NUIT indigo (le ciel dôme couvre, ceci teinte les trouées)
 const SUN_DIR=new THREE.Vector3(.38,.10,-.90).normalize(); // soleil TRÈS BAS (~5,9°) : lumière rasante, ombres longues
 const skyU={uTime:{value:0},uSunDir:{value:SUN_DIR}};
 const skyDome=(function(){
@@ -389,33 +389,28 @@ const skyDome=(function(){
       'float hash21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}',
       'void main(){',
       '  float y=vDir.y;',
-      // PRESQUE NUIT VICE CITY : indigo profond au zénith → violet → grande brume ROSE Miami → corail → ambre au ras du soleil
-      '  vec3 zen=vec3(.045,.075,.21);', // zénith : bleu nuit profond (la nuit est LÀ)
-      '  vec3 mve=vec3(.23,.19,.46);',  // violet-indigo (la nuit qui descend)
-      '  vec3 ros=vec3(.57,.33,.60);',  // mauve magenta saturé
-      '  vec3 cor=vec3(.93,.45,.56);',  // ROSE Miami — la grande bande signature
-      '  vec3 gld=vec3(1.,.52,.40);',   // corail chaud
-      '  vec3 crm=vec3(1.,.66,.38);',   // ambre au ras de l horizon (dernier souffle du soleil)
-      '  vec3 blw=vec3(.33,.17,.31);',  // prune sombre sous l horizon
-      '  vec3 dp2=vec3(.032,.026,.08);',  // nuit tout en bas (jamais du noir pur : la ville veille dessous)
-      '  vec3 col=mix(crm,gld,smoothstep(.012,.05,y));',
-      '  col=mix(col,cor,smoothstep(.04,.13,y));',
-      '  col=mix(col,ros,smoothstep(.11,.30,y));',
-      '  col=mix(col,mve,smoothstep(.26,.48,y));',
-      '  col=mix(col,zen,smoothstep(.44,.78,y));',   // le bleu nuit domine le tiers haut
-      '  col=mix(blw,col,smoothstep(-.10,.012,y));',
+      // CRÉPUSCULE BRAISE : bleu marine au zénith → transition poussiéreuse → bande chaude à l horizon, le tout ASSOMBRI (la nuit gagne)
+      '  vec3 zen=vec3(.055,.10,.22);',  // zénith : bleu marine profond, plus sombre qu avant
+      '  vec3 mve=vec3(.17,.21,.34);',  // bleu ardoise poussiéreux
+      '  vec3 ros=vec3(.42,.33,.41);',  // rose-mauve désaturé (brume de transition)
+      '  vec3 cor=vec3(.72,.42,.36);',  // corail poussiéreux
+      '  vec3 gld=vec3(.96,.50,.26);',  // orange chaud (bande basse)
+      '  vec3 crm=vec3(1.,.62,.36);',   // ambre à l horizon (chaud près du soleil)
+      '  vec3 blw=vec3(.36,.22,.23);',  // brume sombre sous l horizon
+      '  vec3 dp2=vec3(.025,.032,.075);', // nuit quasi noire tout en bas
+      '  vec3 col=mix(crm,gld,smoothstep(.015,.06,y));',
+      '  col=mix(col,cor,smoothstep(.05,.16,y));',
+      '  col=mix(col,ros,smoothstep(.14,.32,y));',
+      '  col=mix(col,mve,smoothstep(.28,.50,y));',
+      '  col=mix(col,zen,smoothstep(.46,.82,y));',   // le bleu marine domine les deux tiers hauts
+      '  col=mix(blw,col,smoothstep(-.10,.015,y));',
       '  col=mix(dp2,col,smoothstep(-.85,-.12,y));',
-      '  float sd=max(dot(vDir,uSunDir),0.);',      // couchant : halo rosé large, couronne corail, coeur incandescent
-      '  col+=vec3(1.,.44,.30)*pow(sd,4.)*.55;',
-      '  col+=vec3(1.,.66,.40)*pow(sd,32.)*1.05;',
+      '  float sd=max(dot(vDir,uSunDir),0.);',      // soleil couchant ROUGE : halo braise, couronne or, coeur incandescent
+      '  col+=vec3(1.,.42,.20)*pow(sd,4.)*.58;',
+      '  col+=vec3(1.,.66,.34)*pow(sd,32.)*1.0;',
       '  col+=vec3(1.,.92,.80)*pow(sd,480.)*1.4;',
-      // LA VILLE SOUS LA MER DE NUAGES : guirlande de lueurs néon rose ↔ cyan qui court sur l horizon, loin du soleil
-      '  float az=atan(vDir.x,-vDir.z);',
-      '  float cty=(.5+.5*sin(az*4.+1.3))*.6+(.5+.5*sin(az*9.+4.2))*.4;cty*=cty;',
-      '  float band=smoothstep(.14,.008,abs(y+.03));',
-      '  vec3 neon=mix(vec3(1.,.30,.62),vec3(.36,.78,1.),.5+.5*sin(az*2.+2.0));',
-      '  col+=neon*cty*band*(1.-smoothstep(.15,.75,sd))*.55;',
       // ÉTOILES : elles s allument avec la nuit, scintillent doucement, jamais dans le halo du soleil
+      '  float az=atan(vDir.x,-vDir.z);',
       '  vec2 sg=vec2(az*10.1859,vDir.y*22.);', // 64 cellules par tour → zéro couture
       '  vec2 sid=floor(sg),sfr=fract(sg);',
       '  float h=hash21(sid);',
@@ -437,9 +432,9 @@ const skyDome=(function(){
   const m=new THREE.Mesh(new THREE.SphereGeometry(4300,48,28),mat);
   m.frustumCulled=false;m.renderOrder=-9;scene.add(m);return m;
 })();
-const FOG_N=420,FOG_F=2600,FOG_BASE=new THREE.Color(0x763f66),FOG_CLOUD=new THREE.Color(0xdcc0d6),fogTmp=new THREE.Color();
-const FOG_CJ=new THREE.Color(0xd9785e),cjV=new THREE.Vector3(); // CONTRE-JOUR : l'air s'embrase quand on roule vers le soleil (la seule zone lumineuse)
-scene.fog=new THREE.Fog(0x763f66,FOG_N,FOG_F); // brume MAGENTA poussiéreuse : la route lointaine fond dans le rose de la nuit qui tombe
+const FOG_N=420,FOG_F=2600,FOG_BASE=new THREE.Color(0x6e3b3a),FOG_CLOUD=new THREE.Color(0xe0c4c0),fogTmp=new THREE.Color();
+const FOG_CJ=new THREE.Color(0xd07a4e),cjV=new THREE.Vector3(); // CONTRE-JOUR : l'air s'embrase quand on roule vers le soleil (la seule zone lumineuse)
+scene.fog=new THREE.Fog(0x6e3b3a,FOG_N,FOG_F); // brume crépusculaire ASSOMBRIE : la route lointaine s'enfonce dans la braise sombre
 const camera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.1,9800);
 // SOLEIL « 1.61 » : les grands numéros lumineux du studio se couchent à l'horizon
 const sunSprite=(function(){
@@ -448,9 +443,9 @@ const sunSprite=(function(){
   const tex=new THREE.CanvasTexture(cv);
   function draw(){
     c.clearRect(0,0,512,512);
-    const g=c.createRadialGradient(256,256,18,256,256,252); // cœur #fff6e0, halo doré → rose corail (presque nuit)
-    g.addColorStop(0,'rgba(255,246,224,1)');g.addColorStop(.13,'rgba(255,198,130,.86)');
-    g.addColorStop(.38,'rgba(255,136,112,.36)');g.addColorStop(1,'rgba(255,136,112,0)');
+    const g=c.createRadialGradient(256,256,18,256,256,252); // cœur #fff6e0, halo #ffd27a → #ff9a5c
+    g.addColorStop(0,'rgba(255,246,224,1)');g.addColorStop(.14,'rgba(255,210,122,.96)');
+    g.addColorStop(.40,'rgba(255,154,92,.48)');g.addColorStop(1,'rgba(255,154,92,0)');
     c.fillStyle=g;c.beginPath();c.arc(256,256,252,0,7);c.fill();
     c.font='84px "Press Start 2P",monospace';c.textAlign='center';c.textBaseline='middle';
     c.lineJoin='round';c.shadowColor='#fff2be';c.shadowBlur=42;
@@ -461,7 +456,7 @@ const sunSprite=(function(){
   draw();
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(draw).catch(function(){});
   const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false,fog:false}));
-  sp.scale.set(960,960,1);return sp; // gros mais fondu : un couchant qui se noie, pas une boule nucléaire
+  sp.scale.set(1180,1180,1);return sp; // plus GROS, posé bas sur l'horizon
 })();
 // LUEUR D'HORIZON + RAYONS CRÉPUSCULAIRES (purement visuels — constantes réglables)
 const GLOW_DROP=260,RAY_LIFT=520,RAY_OFF=[-520,-180,150,480],RAY_ANGLES=[-.42,-.15,.12,.38],RAY_OPACITY=.12;
@@ -469,7 +464,7 @@ const horizonGlow=(function(){ // nappe très large et plate : l'horizon embras�
   const cv=document.createElement('canvas');cv.width=256;cv.height=64;
   const c=cv.getContext('2d');
   const g=c.createRadialGradient(128,32,2,128,32,124);
-  g.addColorStop(0,'rgba(255,196,140,.9)');g.addColorStop(.45,'rgba(255,126,140,.42)');g.addColorStop(1,'rgba(255,126,140,0)');
+  g.addColorStop(0,'rgba(255,210,122,.9)');g.addColorStop(.45,'rgba(255,158,98,.42)');g.addColorStop(1,'rgba(255,158,98,0)');
   c.fillStyle=g;c.fillRect(0,0,256,64);
   const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthWrite:false,fog:false,blending:THREE.AdditiveBlending,opacity:.8}));
   sp.scale.set(3000,560,1);return sp;
@@ -479,7 +474,7 @@ const RAYS=(function(){ // 3-4 faisceaux diffus en éventail derrière les nuage
   const c=cv.getContext('2d');
   try{c.filter='blur(5px)';}catch(e){}
   const g=c.createLinearGradient(0,256,0,0);
-  g.addColorStop(0,'rgba(255,204,164,.6)');g.addColorStop(.55,'rgba(255,168,150,.2)');g.addColorStop(1,'rgba(255,150,140,0)');
+  g.addColorStop(0,'rgba(255,214,150,.6)');g.addColorStop(.55,'rgba(255,192,124,.2)');g.addColorStop(1,'rgba(255,180,110,0)');
   c.fillStyle=g;
   c.beginPath();c.moveTo(26,256);c.lineTo(38,256);c.lineTo(58,0);c.lineTo(6,0);c.closePath();c.fill();
   const tex=new THREE.CanvasTexture(cv);
@@ -498,10 +493,9 @@ document.body.appendChild(renderer.domElement);
 let DPR_CAP=Math.min(devicePixelRatio,2),curDPR=DPR_CAP,dprT=0; // RÉSOLUTION ADAPTATIVE (perf) : ajustée dans loop() selon loop._ms
 let composer=null,bloomPass=null,acesPass=null,POST_ON=false,SHADOW_ON=true; // POST-PROCESSING (assigné juste après)
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);if(composer)composer.setSize(innerWidth,innerHeight);slCv.width=innerWidth;slCv.height=innerHeight;});
-scene.add(new THREE.HemisphereLight(0xc494c2,0x1c1a3e,0.50)); // ambiance PRESQUE NUIT : ciel rose-mauve, sol indigo — la pénombre respire sans boucher
-const sun=new THREE.DirectionalLight(0xff9448,1.5);sun.position.copy(SUN_DIR).multiplyScalar(3800);scene.add(sun); // BRAISE du couchant : plus rouge, toujours puissant — le côté éclairé CLAQUE contre la nuit
-const fill=new THREE.DirectionalLight(0x4f74e8,.26);fill.position.set(-200,-400,-100);scene.add(fill); // fill BLEU NÉON par en dessous : les ventres de caisse prennent la ville
-const kick=new THREE.DirectionalLight(0xff3d9e,.22);kick.position.set(-520,260,410);scene.add(kick); // baiser MAGENTA venu de la ville : le flanc opposé au soleil prend le néon
+scene.add(new THREE.HemisphereLight(0xd8a08a,0x241f38,0.38)); // ambiance CRÉPUSCULE ASSOMBRIE (.46→.38) : la pénombre gagne, les lumières de la caisse deviennent les héroïnes
+const sun=new THREE.DirectionalLight(0xff5a30,1.55);sun.position.copy(SUN_DIR).multiplyScalar(3800);scene.add(sun); // ROUGE BRAISE (fini le jaune) : la lumière rasante peint le bitume en rouge — golden hour devenue red hour
+const fill=new THREE.DirectionalLight(0x7a6f98,.20);fill.position.set(-200,-400,-100);scene.add(fill); // fill discret : on garde des ombres profondes (le grade les teinte en teal)
 /* Paris retiré — tout est misé sur le CIEL : couchant, nuages irisés, pigeons ramiers */
 
 /* ============ TRIPTYQUE VISUEL : ACES + BLOOM + OMBRES DE CONTACT ============ */
@@ -520,13 +514,13 @@ sun.shadow.bias=-0.0003;sun.shadow.normalBias=0.08; // normalBias en MÈTRES (~2
 scene.add(sun.target);
 const SUN_UP=new THREE.Vector3().crossVectors(SUN_PERP,SUN_DIR).normalize(),shadV=new THREE.Vector3(); // base du plan lumière (snap texel)
 // --- Étalonnage GTA-VICE (réglables d'un coup d'œil) : saturé, contrasté, teal-orange ---
-const POST_EXPO=0.82;      // exposition BAISSÉE (0.98→0.82) : presque la nuit — la scène s'assombrit, seul le soleil et l'échappement rayonnent
-const POST_SAT=1.40;       // SATURATION forte : néons Vice City
+const POST_EXPO=0.74;      // exposition ENCORE baissée (0.82→0.74) : la nuit gagne — le sol s'éteint pour que nitro/boost/phares RAYONNENT dessus
+const POST_SAT=1.36;       // SATURATION forte : néons Vice City
 const POST_CONTRAST=1.22;  // CONTRASTE : noirs profonds, hautes lumières franches
-const POST_VIVID=0.74;     // 0 = ACES sobre (désature les hautes lumières) · 1 = tonemap qui PRÉSERVE la couleur (les néons restent des néons)
-const POST_WB=new THREE.Vector3(1.02,0.985,1.03);       // voile MAGENTA subtil : le rose Vice City infuse toute l'image
-const POST_SHADOW=new THREE.Vector3(0.006,-0.006,0.060); // OMBRES → bleu-violet nuit (fini le teal, place au néon)
-const POST_HI=new THREE.Vector3(0.052,0.008,-0.012);      // LUMIÈRES → or rosé (le couchant qui s'accroche aux tôles)
+const POST_VIVID=0.72;     // 0 = ACES sobre (désature les hautes lumières) · 1 = tonemap qui PRÉSERVE la couleur (la flamme nitro reste bleue/orange, pas blanche)
+const POST_WB=new THREE.Vector3(1.015,1.0,0.99);       // balance des blancs quasi neutre (la chaleur vient du split-tone, pas d'un voile beige)
+const POST_SHADOW=new THREE.Vector3(-0.022,0.008,0.055); // OMBRES → teal/bleu profond
+const POST_HI=new THREE.Vector3(0.050,0.014,-0.030);      // LUMIÈRES → or chaud (le duo teal-orange de GTA)
 // Grade cinéma en PASSE FINALE : tonemap préservant la chroma + contraste + saturation + split-tone. Scène en amont inchangée.
 const ACESShader={
   uniforms:{tDiffuse:{value:null},uExposure:{value:POST_EXPO},uSat:{value:POST_SAT},uContrast:{value:POST_CONTRAST},
@@ -619,7 +613,7 @@ function mkCone(){
 // flaques d'huile (rares, droites & plates uniquement) : disque sombre glacé + reflet irisé
 let OILS=[];
 const oilGeo=new THREE.CircleGeometry(1,22);
-const oilMat=new THREE.MeshPhongMaterial({color:0x121419,shininess:320,specular:0xd49cff,envMap:null,transparent:true,opacity:.92}); // la flaque boit le néon violet
+const oilMat=new THREE.MeshPhongMaterial({color:0x121419,shininess:320,specular:0x9fb4ff,envMap:null,transparent:true,opacity:.92});
 const oilRimMat=new THREE.MeshBasicMaterial({color:0x4a3a72,transparent:true,opacity:.4,depthWrite:false});
 // nuages : sprites CUMULUS À L'AÉROGRAPHE — chaque texture est un amas de LOBES GAUSSIENS ronds
 // (assise large et plate, gros cœur, bourgeons au sommet). La densité est une SOMME de gaussiennes
@@ -736,9 +730,9 @@ if(VOL_OK){ try{
   noise.format=THREE.RGBAFormat;noise.type=THREE.UnsignedByteType;noise.minFilter=THREE.LinearFilter;noise.magFilter=THREE.LinearFilter;
   noise.wrapS=noise.wrapT=noise.wrapR=THREE.RepeatWrapping;noise.unpackAlignment=1;noise.needsUpdate=true;
   const U={ uNoise:{value:noise}, uTime:{value:0},
-    uSunDir:{value:SUN_DIR.clone()}, uSunCol:{value:new THREE.Color(2.2,1.02,0.70)}, // ROSE-DORÉ : les coiffes prennent le couchant Miami
-    uSkyCol:{value:new THREE.Color(0.33,0.30,0.56)}, uGroundCol:{value:new THREE.Color(0.14,0.09,0.19)}, // ambiante violette, ventres prune
-    uAmb:{value:0.55}, uCoverage:{value:0.74}, uDensity:{value:2.3}, uDetail:{value:0.18},
+    uSunDir:{value:SUN_DIR.clone()}, uSunCol:{value:new THREE.Color(2.1,1.0,0.48)}, // couchant ROUGE-OR : les coiffes prennent la braise
+    uSkyCol:{value:new THREE.Color(0.36,0.34,0.46)}, uGroundCol:{value:new THREE.Color(0.13,0.10,0.16)},
+    uAmb:{value:0.50}, uCoverage:{value:0.74}, uDensity:{value:2.3}, uDetail:{value:0.18},
     uEdge:{value:0.5}, uFreq:{value:1/85}, uSigma:{value:0.4}, uAbsorb:{value:1.4}, uSilver:{value:1.3},
     uSteps:{value:40.0}, uLightSteps:{value:6.0},
     uFogCol:{value:new THREE.Color(0x8a4a48)}, uFogNear:{value:FOG_N}, uFogFar:{value:FOG_F},
@@ -1169,14 +1163,14 @@ function buildTrack(seed){
     g.setAttribute('position',new THREE.Float32BufferAttribute(arr,3));
     g.setAttribute('color',new THREE.Float32BufferAttribute(cols,3));
     g.setIndex(idx);g.computeVertexNormals();
-    // spéculaire ROSÉ : soleil rasant + bitume presque-nuit → la traînée qui court vers le couchant tire vers le néon
-    const m=new THREE.Mesh(g,new THREE.MeshPhongMaterial({color:0x3a3c46,side:THREE.DoubleSide,vertexColors:true,shininess:54,specular:0x9a5f66,envMap:envTex,reflectivity:.06}));
+    // BITUME NUIT : sombre pour que les LUMIÈRES y vivent (nitro, boost, phares) — spéculaire ROUGE, le soleil rasant peint une traînée braise
+    const m=new THREE.Mesh(g,new THREE.MeshPhongMaterial({color:0x2e3037,side:THREE.DoubleSide,vertexColors:true,shininess:60,specular:0x92553f,envMap:envTex,reflectivity:.05}));
     m.receiveShadow=true; // le bitume reçoit les OMBRES LONGUES
     scene.add(m);trackMeshes.push(m);
   }
-  const flank=new THREE.MeshLambertMaterial({color:0x171226,side:THREE.DoubleSide}); // tranches violet-noir : elles boivent le fill néon
+  const flank=new THREE.MeshLambertMaterial({color:0x1a1a1a,side:THREE.DoubleSide});
   strip(sideL_,flank);strip(sideR_,flank);
-  // BANDES NÉON ROSE (dessus + dessous) : les rails de Vice City — le blanc administratif a rendu son tablier
+  // bandes blanches (dessus + dessous)
   for(const fy of [0,-THICK]) for(const sd of [-1,1]){
     const ep=[],ei=[];
     for(let i=0;i<NP;i++){
@@ -1188,32 +1182,10 @@ function buildTrack(seed){
     const g2=new THREE.BufferGeometry();
     g2.setAttribute('position',new THREE.Float32BufferAttribute(ep,3));
     g2.setIndex(ei);
-    const e=new THREE.Mesh(g2,new THREE.MeshBasicMaterial({color:0xff5cb2,side:THREE.DoubleSide}));
+    const e=new THREE.Mesh(g2,new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide}));
     scene.add(e);trackMeshes.push(e);
   }
-  // NAPPE DE LUEUR sous chaque bande : additif qui saigne vers l intérieur du bitume — sans fog, le néon perce
-  // la brume et les rails roses filent jusqu au bout de la nuit (1 mesh par face : gauche+droite fusionnées)
-  for(const fy of [0,-THICK]){
-    const gp=[],gc=[],gi=[];let vb=0;
-    for(const sd of [-1,1]){
-      for(let i=0;i<NP;i++){
-        const p=pts[i],b=B[i],nn=Nn[i],h=fy+(fy===0?.045:-.045);
-        const oI=sd*(ROAD_HALF-1.15),oO=sd*(ROAD_HALF+.10);
-        gp.push(p.x+b.x*oI+nn.x*h,p.y+b.y*oI+nn.y*h,p.z+b.z*oI+nn.z*h,
-                p.x+b.x*oO+nn.x*h,p.y+b.y*oO+nn.y*h,p.z+b.z*oO+nn.z*h);
-        gc.push(0,0,0,.62,.13,.34); // noir additif = invisible → dégradé rose qui meurt sur l asphalte
-      }
-      for(let i=0;i<NP-1;i++){const a2=vb+2*i,b2=a2+1,c2=a2+2,d2=a2+3;gi.push(a2,c2,b2,b2,c2,d2);}
-      vb+=NP*2;
-    }
-    const g3=new THREE.BufferGeometry();
-    g3.setAttribute('position',new THREE.Float32BufferAttribute(gp,3));
-    g3.setAttribute('color',new THREE.Float32BufferAttribute(gc,3));
-    g3.setIndex(gi);
-    const nm=new THREE.Mesh(g3,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide,transparent:true,opacity:.85,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
-    nm.renderOrder=1;scene.add(nm);trackMeshes.push(nm);
-  }
-  // ligne centrale pointillée — sodium doré, comme les vraies voies rapides la nuit
+  // ligne centrale pointillée
   (function(){
     const lp=[];
     for(let i=0;i<NP-8;i+=16){
@@ -1224,7 +1196,7 @@ function buildTrack(seed){
     }
     const g=new THREE.BufferGeometry();
     g.setAttribute('position',new THREE.Float32BufferAttribute(lp,3));
-    const l=new THREE.LineSegments(g,new THREE.LineBasicMaterial({color:0xffc978,transparent:true,opacity:.8}));
+    const l=new THREE.LineSegments(g,new THREE.LineBasicMaterial({color:0xcfcfcf,transparent:true,opacity:.75}));
     scene.add(l);trackMeshes.push(l);
   })();
   // pads turbo (les deux faces)
@@ -1470,27 +1442,30 @@ function fmtC(v){
   for(const u of UNITS)if(v>=u[0]){const q=v/u[0];return '$ '+(q>=100?Math.round(q):q.toFixed(1).replace('.',',').replace(',0',''))+' '+u[1];}
   return '$ '+v.toLocaleString('fr-FR');
 }
-const envTex=(function(){ // le ciel PRESQUE NUIT réfléchi par les carrosseries (indigo → rose Miami → ambre)
+const envTex=(function(){ // le ciel réfléchi par les carrosseries (turquoise → bande dorée), ASSOMBRI pour la nuit
   const faces=[];
   for(let i=0;i<6;i++){
     const cv=document.createElement('canvas');cv.width=cv.height=64;
     const c=cv.getContext('2d');
     const gr=c.createLinearGradient(0,0,0,64);
-    gr.addColorStop(0,'#2a2a66');gr.addColorStop(.3,'#7a4898');gr.addColorStop(.48,'#ff74ac');gr.addColorStop(.58,'#ff9a58');gr.addColorStop(.66,'#54406e');gr.addColorStop(1,'#221c46');
+    gr.addColorStop(0,'#69a8b2');gr.addColorStop(.3,'#96729a');gr.addColorStop(.48,'#d48696');gr.addColorStop(.58,'#e8ab60');gr.addColorStop(.66,'#726886');gr.addColorStop(1,'#48445c');
     c.fillStyle=gr;c.fillRect(0,0,64,64);
-    // strips néon horizontaux → les reflets accrochent rose et cyan (vitrine Ocean Drive)
-    c.fillStyle='rgba(255,180,215,.62)';c.fillRect(0,20,64,3);
-    c.fillStyle='rgba(140,225,255,.34)';c.fillRect(0,30,64,2);
+    // bandes lumineuses horizontales → reflets qui accrochent
+    c.fillStyle='rgba(255,228,190,.6)';c.fillRect(0,20,64,3);
+    c.fillStyle='rgba(255,210,170,.32)';c.fillRect(0,30,64,2);
     faces.push(cv);
   }
   const t=new THREE.CubeTexture(faces);t.needsUpdate=true;return t;
 })();
 const carGroup=new THREE.Group();scene.add(carGroup);
-const carLight=new THREE.PointLight(0xffe6f4,.8,85);scene.add(carLight);
-// PHARES RÉELS (presque nuit oblige) : UN spot chaud qui balaie le bitume devant la caisse — ajouté à l init, jamais togglé (zéro recompilation)
-const headSpot=new THREE.SpotLight(0xffd9a0,1.35,72,.5,.6,1.2);
+const carLight=new THREE.PointLight(0xfff0ff,.8,85);scene.add(carLight);
+// PHARES RÉELS (la nuit tombe) : UN spot chaud qui balaie le bitume devant la caisse — ajouté à l init, jamais togglé (zéro recompilation)
+const headSpot=new THREE.SpotLight(0xffd9a0,1.2,72,.5,.6,1.2);
 headSpot.position.set(0,4,0);scene.add(headSpot);scene.add(headSpot.target);
-const hsF=new THREE.Vector3(); // nez de la caisse (repère monde), réutilisé chaque frame
+// REFLET NITRO/BOOST : la flamme éclaire VRAIMENT le bitume — pool de lumière derrière la caisse,
+// orange nitro / bleu réserve / or pad turbo, intensité 0 au repos (à l init, zéro recompilation)
+const nitroLight=new THREE.PointLight(0xff7a24,0,30);scene.add(nitroLight);
+const hsF=new THREE.Vector3(),hsU=new THREE.Vector3(); // nez + toit de la caisse (repère monde), réutilisés chaque frame
 // ---- RIM GOLDEN HOUR : liseré doré sur les arêtes exposées au soleil (fresnel masqué côté lumière).
 // Uniforms PARTAGÉS entre toutes les caisses — une seule source de vérité, teinte pilotée par l'état dans loop().
 const RIM_U={uRimC:{value:new THREE.Color(0xffd9a0)},uRimStr:{value:.55},uRimPow:{value:3.0},uSunV:{value:new THREE.Vector3()}};
@@ -1673,12 +1648,7 @@ function buildCar(spec){
     const tg=new THREE.Sprite(new THREE.SpriteMaterial({map:lampTex,color:0xff2818,transparent:true,opacity:.85,depthWrite:false}));
     tg.scale.set(.62,.62,1);tg.position.set(sd*spec.w*.30,y0+spec.h*.55,-spec.l/2-.16);carGroup.add(tg);
   }
-  if(!wreck){ // NÉON SOUS CAISSE : la flaque magenta qui glisse avec la caisse — Vice City jusque sous le châssis
-    const ug=new THREE.Mesh(new THREE.PlaneGeometry(spec.w*2.5,spec.l*1.75),
-      new THREE.MeshBasicMaterial({map:lampTex,color:0xff2e9e,transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
-    ug.rotation.x=-Math.PI/2;ug.position.set(0,.07,0);ug.userData.noShadow=true;carGroup.add(ug);
-  }
-  carGroup.traverse(o9=>{if(o9.isMesh&&!o9.userData.noShadow)o9.castShadow=true;}); // toute la caisse porte son ombre LONGUE — sauf la nappe néon (un carré d ombre, non merci)
+  carGroup.traverse(o9=>{if(o9.isMesh&&!o9.userData.noShadow)o9.castShadow=true;}); // toute la caisse porte son ombre LONGUE (garde noShadow : tout futur plane additif doit s'exclure)
 }
 buildCar(CARS[0]);
 // ombre portée sous la voiture
@@ -2962,9 +2932,9 @@ const slCv=$('slCv'),slCtx=slCv.getContext('2d');
 slCv.width=innerWidth;slCv.height=innerHeight;
 function drawSpeedLines(kmh,nitro){ // speed lines façon anime : traits radiaux fuyant le centre
   const W=slCv.width,H=slCv.height;
-  slCtx.clearRect(0,0,W,H);
   let k=Math.max(0,(kmh-230)/300)+(nitro?.42:0); // les speed lines s'invitent plus tôt et mordent plus fort
-  if(k<=.03)return;
+  if(k<=.03){if(drawSpeedLines._had){slCtx.clearRect(0,0,W,H);drawSpeedLines._had=false;}return;} // rien à tracer : on n'efface le plein écran qu'UNE fois (plus de clearRect/frame à basse vitesse)
+  slCtx.clearRect(0,0,W,H);drawSpeedLines._had=true;
   k=Math.min(1.35,k);
   const cx=W/2,cy=H*.45,n=Math.floor(k*24);
   slCtx.globalCompositeOperation='lighter';
@@ -3021,41 +2991,44 @@ nameEntry.addEventListener('click',function(e){e.stopPropagation();});
 nameInput.addEventListener('keydown',function(e){e.stopPropagation();if(e.code==='Enter'){e.preventDefault();if(pendingScore!=null)commitName();else if(gameOver)resetGame();}});
 if(leaders.length)best=leaders[0].s;
 const mmCanvas=$('minimap'),mmCtx=mmCanvas.getContext('2d');
-let mmMinX=0,mmMaxX=1,mmMinZ=0,mmMaxZ=1;
+const mmBg=document.createElement('canvas');mmBg.width=mmCanvas.width;mmBg.height=mmCanvas.height;const mmBgCtx=mmBg.getContext('2d'); // calque STATIQUE : piste + portail pré-rendus une fois par zone (plus de ~240 segments/frame)
+let mmMinX=0,mmMaxX=1,mmMinZ=0,mmMaxZ=1,mmSc=1,mmOx=0,mmOy=0;
 const mmFwd=new THREE.Vector3();
+const mmX=x=>mmOx+x*mmSc, mmY=z=>mmOy+z*mmSc; // repère carte partagé (compute + draw)
 function computeMinimap(){
   if(!pts||!pts.length)return;
   let minX=1e9,maxX=-1e9,minZ=1e9,maxZ=-1e9;
   for(let i=0;i<NP;i++){const p=pts[i];if(p.x<minX)minX=p.x;if(p.x>maxX)maxX=p.x;if(p.z<minZ)minZ=p.z;if(p.z>maxZ)maxZ=p.z;}
   mmMinX=minX;mmMaxX=maxX;mmMinZ=minZ;mmMaxZ=maxZ;
-}
-function drawMinimap(){
-  const cv=mmCanvas,c=mmCtx,W=cv.width,H=cv.height,m=12;
-  c.clearRect(0,0,W,H);
+  const W=mmCanvas.width,H=mmCanvas.height,m=12;
   const bw=(mmMaxX-mmMinX)||1,bh=(mmMaxZ-mmMinZ)||1;
-  const sc=Math.min((W-2*m)/bw,(H-2*m)/bh);
-  const ox=(W-bw*sc)/2-mmMinX*sc, oy=(H-bh*sc)/2-mmMinZ*sc;
-  const X=x=>ox+x*sc, Y=z=>oy+z*sc;
-  // tracé de la piste
+  mmSc=Math.min((W-2*m)/bw,(H-2*m)/bh);
+  mmOx=(W-bw*mmSc)/2-mmMinX*mmSc; mmOy=(H-bh*mmSc)/2-mmMinZ*mmSc;
+  // PRÉ-RENDU du décor fixe (piste + portail) dans le calque hors-écran : blitté tel quel chaque frame
+  const c=mmBgCtx;c.clearRect(0,0,W,H);
   c.strokeStyle='rgba(160,160,170,.9)';c.lineWidth=2;c.lineJoin='round';c.beginPath();
   const step=Math.max(1,Math.floor(NP/240));
-  for(let i=0;i<NP;i+=step){const p=pts[i];const cx=X(p.x),cy=Y(p.z);if(i===0)c.moveTo(cx,cy);else c.lineTo(cx,cy);}
+  for(let i=0;i<NP;i+=step){const p=pts[i],cx=mmX(p.x),cy=mmY(p.z);if(i===0)c.moveTo(cx,cy);else c.lineTo(cx,cy);}
   c.stroke();
-  // portail (fin de zone)
-  const pe=pts[NP-1];c.fillStyle='#ff4fd8';c.beginPath();c.arc(X(pe.x),Y(pe.z),3.6,0,7);c.fill();
+  const pe=pts[NP-1];c.fillStyle='#ff4fd8';c.beginPath();c.arc(mmX(pe.x),mmY(pe.z),3.6,0,7);c.fill(); // portail (fin de zone)
+}
+function drawMinimap(){
+  const cv=mmCanvas,c=mmCtx,W=cv.width,H=cv.height;
+  c.clearRect(0,0,W,H);
+  c.drawImage(mmBg,0,0); // piste + portail (statiques, pré-rendus dans computeMinimap)
   // POLICE : chaque unité vivante, à sa VRAIE position, gyrophare qui bat aussi sur la carte
   if(SURV.on)for(const b9 of SURV.bots){
     if(!b9.alive)continue;
     const rl9=THREE.MathUtils.clamp(b9.totD-SURV.pBase,0,L-1);
     const pp9=pts[Math.floor(rl9/L*(NP-1))];
     c.fillStyle=((SURV.ph+b9.ph)%1)<.5?'#ff3030':'#3f7dff';
-    c.beginPath();c.arc(X(pp9.x),Y(pp9.z),2.7,0,7);c.fill();
+    c.beginPath();c.arc(mmX(pp9.x),mmY(pp9.z),2.7,0,7);c.fill();
   }
   // voiture (triangle orienté)
   const cp=carGroup.position;
   mmFwd.set(0,0,1).applyQuaternion(carGroup.quaternion);
   const a=Math.atan2(mmFwd.z,mmFwd.x);
-  c.save();c.translate(X(cp.x),Y(cp.z));c.rotate(a);
+  c.save();c.translate(mmX(cp.x),mmY(cp.z));c.rotate(a);
   c.fillStyle='#ffd75e';c.strokeStyle='#3a2e00';c.lineWidth=1;
   c.beginPath();c.moveTo(8,0);c.lineTo(-5,5);c.lineTo(-5,-5);c.closePath();c.fill();c.stroke();
   c.restore();
@@ -4206,16 +4179,7 @@ function loop(now){
           camera.position.addScaledVector(fwdW,(Math.random()-.5)*spdSh*.5);
           camera.rotateZ((Math.random()-.5)*spdSh*.045+Math.sin(t*27)*spdSh*.014);
         }
-        // indicateur de virage
-        frameAt(s+Math.max(70,vA*1.4),FH);
-        tmp2.crossVectors(F.t,FH.t);
-        const ahead=Math.atan2(tmp2.dot(F.n),F.t.dot(FH.t));
-        aheadV+=(ahead-aheadV)*Math.min(1,dt*4);
-        if(Math.abs(ahead)>.12){
-          const nA=Math.min(3,Math.ceil(Math.abs(ahead)*2.2));
-          elTurn.textContent=ahead>0?'◀'.repeat(nA):'▶'.repeat(nA);
-          elTurn.style.opacity=Math.min(1,Math.abs(ahead)*1.5);
-        }else elTurn.style.opacity=0;
+        // indicateur de virage RETIRÉ du HUD épuré (#turnHint est display:none) : on n'évalue plus la courbe à l'avance (frameAt+trig) chaque frame pour rien
         airPie.style.display='none';
       }
     }else if(mode==='fall'){ // ---- VOL : maniabilité aérienne propre ----
@@ -4497,12 +4461,19 @@ function loop(now){
     carLight.position.copy(carGroup.position);carLight.position.y+=3;
     if(SURV.last&&!gameOver){carLight.color.setHex(Math.sin(t*18)>0?0xff3030:0x7a1010);carLight.intensity=1.6+Math.sin(t*18)*.9;} // DERNIER : la caisse clignote rouge
     else if(fever>0){carLight.color.setHex(0xffd75e);carLight.intensity=.9+Math.sin(t*12)*.45;}
-    else{carLight.color.setHex(0xffe6f4);carLight.intensity=.8;}
+    else{carLight.color.setHex(0xfff0ff);carLight.intensity=.8;}
     // PHARES : le spot suit le nez de la caisse et pose sa flaque chaude 30 m devant (éteint quand la caisse explose)
     carGroup.getWorldDirection(hsF);
     headSpot.position.copy(carGroup.position).addScaledVector(hsF,1.6);headSpot.position.y+=1.5;
     headSpot.target.position.copy(carGroup.position).addScaledVector(hsF,30);headSpot.target.position.y-=1.2;
-    headSpot.intensity=(mode==='boom')?0:1.35;
+    headSpot.intensity=(mode==='boom')?0:1.2;
+    // REFLET NITRO/BOOST : le pool de lumière colle à l'échappement (repère caisse : marche aussi sous la dalle)
+    hsU.set(0,1,0).applyQuaternion(carGroup.quaternion);
+    nitroLight.position.copy(carGroup.position).addScaledVector(hsF,-2.4).addScaledVector(hsU,.6);
+    const nTgt=(mode==='boom')?0:((nitroOn?(nitroBlue?3.0:2.4):0)+(boost>0?1.1:0));
+    nitroLight.intensity+=(nTgt*(.82+.18*Math.sin(t*43))-nitroLight.intensity)*Math.min(1,dt*14); // flamme qui tremble, fondu doux
+    if(nitroOn)nitroLight.color.setHex(nitroBlue?0x5b7dff:0xff7a24); // orange nitro / bleu réserve (mêmes teintes que les particules)
+    else if(boost>0)nitroLight.color.setHex(0xffb040); // pad turbo : coup d'or
     // sons continus
     if(AC){
       const spd3=speedKmh;
@@ -4604,7 +4575,8 @@ function loop(now){
     }
     // portail qui pulse + pads RGB qui défilent
     if(portalMesh)portalMesh.scale.setScalar(1+.06*Math.sin(t*5));
-    updatePadTex(t);
+    // pads turbo : on n'anime la texture (dessin canvas + upload GPU) que si un pad est réellement en vue
+    {let pv9=false;for(const p9 of PADS)if(p9>s-80&&p9<s+520){pv9=true;break;}if(pv9)updatePadTex(t);}
     // HUD
     drawMinimap();
     drawSpeedLines(speedKmh,nitroOn);
@@ -4615,8 +4587,12 @@ function loop(now){
     elSpeed.style.transform='scale('+(1+spdP).toFixed(3)+')';
     elSpeed.style.color=speedKmh>460?'#ff5040':'';
     speedFx.style.opacity=Math.max(0,Math.min(.95,(speedKmh-140)/280));
-    elName.textContent=CARS[level].name;
-    elLvl.textContent='NIVEAU '+(level+1)+' / '+CARS.length+' — pièces de '+fmtC(denom()*5);
+    // panneaux HUD MASQUÉS (#carInfo/#cpInfo/#record en display:none) : on ne reconstruit leur texte (fmtC/fmt alloue) QUE quand la valeur change
+    if(loop._lvlHud!==level){loop._lvlHud=level;
+      elName.textContent=CARS[level].name;
+      elLvl.textContent='NIVEAU '+(level+1)+' / '+CARS.length+' — pièces de '+fmtC(denom()*5);
+      elCp.textContent=level>=23?'MAX':fmtC(THRESH[Math.min(level,22)]);
+    }
     if(loop._money!==money){loop._money=money;elMoney.innerHTML=fmtGta(money); // un parse HTML seulement quand le compte bouge
       for(const u of UNITS)if(money>=u[0]){ // on vient de changer d'ordre de grandeur ? ça se FÊTE (une fois par session)
         if(u[0]>unitSeen){unitSeen=u[0];showMsg('💸 TU COMPTES EN '+u[2]+' MAINTENANT !','#7dff9a');}
@@ -4624,7 +4600,7 @@ function loop(now){
     }
     if(!gameOver&&money>=nextRainAt){nextRainAt*=10;startMoneyRain();showMsg(pickL(RAIN_LINES),'#7dff9a');}
     if(money>best){best=money;SAVE.d.best=best;SAVE.mark();} // mark : le filet des 30 s (ou la fin de run) écrira
-    elRecord.textContent='record : '+fmt(best);
+    if(loop._bestHud!==best){loop._bestHud=best;elRecord.textContent='record : '+fmt(best);}
     elNR.style.width=(nitroR/4*100)+'%';
     elNX.style.width=(nitroX/4*100)+'%';
     // chip des POUVOIRS actifs : compte à rebours coloré au-dessus de la jauge nitro
@@ -4633,8 +4609,7 @@ function loop(now){
     if(pwrAirT>0)pch+='<span style="color:#7dffec">🪂 AIR ∞ '+pwrAirT.toFixed(1)+'</span>';
     if(pwrSpdT>0)pch+='<span style="color:#ff3ec8">⚡ VITESSE +60% '+pwrSpdT.toFixed(1)+'</span>';
     if(pch!==loop._pch){loop._pch=pch;pwrChip.innerHTML=pch;pwrChip.style.display=pch?'block':'none';}
-    const prevT=level>0?THRESH[level-1]:0,nextT=THRESH[Math.min(level,22)];
-    elCp.textContent=level>=23?'MAX':fmtC(nextT);
+    const prevT=level>0?THRESH[level-1]:0,nextT=THRESH[Math.min(level,22)]; // elCp (texte) est géré dans le bloc gated ci-dessus ; la jauge suit le cash en continu
     elFill.style.width=(level>=23?100:100*Math.min(1,(levelCash-prevT)/(nextT-prevT)))+'%';
     if(fever>0)fever-=dt;
     else if(feverArmed){styleM=Math.max(0,styleM-2*dt);if(styleM<=0)feverArmed=false;} // armé : la jauge FUIT — sers-toi ou perds-le
