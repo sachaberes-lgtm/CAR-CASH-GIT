@@ -752,10 +752,10 @@ if(VOL_OK){ try{
   noise.format=THREE.RGBAFormat;noise.type=THREE.UnsignedByteType;noise.minFilter=THREE.LinearFilter;noise.magFilter=THREE.LinearFilter;
   noise.wrapS=noise.wrapT=noise.wrapR=THREE.RepeatWrapping;noise.unpackAlignment=1;noise.needsUpdate=true;
   const U={ uNoise:{value:noise}, uTime:{value:0},
-    uSunDir:{value:SUN_DIR.clone()}, uSunCol:{value:new THREE.Color(1.95,0.92,0.62)}, // ROSE-DORÉ tamisé : les coiffes prennent le couchant Miami sans blanchir
-    uSkyCol:{value:new THREE.Color(0.30,0.27,0.52)}, uGroundCol:{value:new THREE.Color(0.11,0.07,0.16)}, // ambiante violette, ventres prune sombre
-    uAmb:{value:0.46}, uCoverage:{value:0.74}, uDensity:{value:2.3}, uDetail:{value:0.18},
-    uEdge:{value:0.5}, uFreq:{value:1/85}, uSigma:{value:0.4}, uAbsorb:{value:1.4}, uSilver:{value:1.3},
+    uSunDir:{value:SUN_DIR.clone()}, uSunCol:{value:new THREE.Color(2.05,0.95,0.60)}, // ROSE-DORÉ : les coiffes prennent le couchant Miami
+    uSkyCol:{value:new THREE.Color(0.34,0.30,0.62)}, uGroundCol:{value:new THREE.Color(0.09,0.05,0.13)}, // ciel violet SATURÉ en haut, ventres prune TRÈS sombre → la forme ressort même sans soleil
+    uAmb:{value:0.52}, uCoverage:{value:0.72}, uDensity:{value:2.7}, uDetail:{value:0.20},
+    uEdge:{value:0.40}, uFreq:{value:1/85}, uSigma:{value:0.45}, uAbsorb:{value:1.7}, uSilver:{value:1.4},
     uSteps:{value:40.0}, uLightSteps:{value:6.0},
     // MÉTABALLES : la forme du nuage = UNION DOUCE de 5-10 boules collées (par nuage, posées dans onBeforeRender)
     uBaseFlat:{value:1.0}, uNBlob:{value:1.0}, uBlobs:{value:(function(){const a=[];for(let i=0;i<12;i++)a.push(new THREE.Vector4(0,0,0,.3));return a;})()},
@@ -770,6 +770,9 @@ if(VOL_OK){ try{
     uniform float uTime,uAmb,uCoverage,uDensity,uDetail,uEdge,uFreq,uSigma,uAbsorb,uSilver,uSteps,uLightSteps,uSeed,uDMul,uFogAmt,uFogNear,uFogFar,uBaseFlat,uNBlob;
     uniform vec4 uBlobs[12];
     in vec3 vWorld;in vec3 vCenter;in vec3 vRadius;out vec4 fragColor;
+    // INTERLEAVED GRADIENT NOISE : le meilleur dither pour raymarch — ni sel-et-poivre (bruit blanc),
+    // ni quadrillage visible (Bayer). Décale le départ des rayons pour tuer le banding sans texturer la surface.
+    float ign(){return fract(52.9829189*fract(dot(gl_FragCoord.xy,vec2(0.06711056,0.00583715))));}
     float densAt(vec3 p){vec3 q=(p-vCenter)/vRadius;if(dot(q,q)>1.0)return 0.0;
       // FORME = union PROBABILISTE de N boules (metaballs) : un gros nuage fait de 5-10 boules collées
       float inv=1.0;
@@ -784,12 +787,13 @@ if(VOL_OK){ try{
       float d=shape-(1.0-base)*(1.0-uCoverage)*1.7;d-=(1.0-det)*uDetail*(1.0-shape)*0.30;
       return max(d,0.0)*uDensity*uDMul;}
     float lightMarch(vec3 p){float stepL=length(vRadius)/(uLightSteps*3.0);float od=0.0,t=stepL*0.5;
+      // PAS de jitter ici : un départ aléatoire par pixel fait scintiller l ombre propre → grain sur toute la surface
       for(int i=0;i<8;i++){if(float(i)>=uLightSteps)break;od+=densAt(p+uSunDir*t)*stepL;t+=stepL;}return od;}
     void main(){vec3 ro=cameraPosition,rd=normalize(vWorld-ro);
       vec3 oc=(ro-vCenter)/vRadius,dd=rd/vRadius;
       float A=dot(dd,dd),B=2.0*dot(oc,dd),C=dot(oc,oc)-1.0,disc=B*B-4.0*A*C;if(disc<0.0)discard;
       float sq=sqrt(disc),t0=max((-B-sq)/(2.0*A),0.0),t1=(-B+sq)/(2.0*A);if(t1<=t0)discard;
-      float stepS=(t1-t0)/uSteps,dither=fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453),t=t0+stepS*dither;
+      float stepS=(t1-t0)/uSteps,dither=ign(),t=t0+stepS*dither;
       float cosT=dot(rd,uSunDir),fs=pow(max(cosT,0.0),3.0)*uSilver,T=1.0;vec3 col=vec3(0.0);
       for(int i=0;i<96;i++){if(float(i)>=uSteps||T<0.02)break;vec3 p=ro+rd*t;float d=densAt(p);
         if(d>0.003){float od=lightMarch(p);float lt=exp(-od*uAbsorb);float ms=lt+0.42*exp(-od*uAbsorb*0.25);
@@ -806,8 +810,8 @@ if(VOL_OK){ try{
     transparent:true,depthWrite:false,depthTest:true,side:side,
     blending:THREE.CustomBlending,blendEquation:THREE.AddEquation,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor});
   VOL={U:U, geo:new THREE.BoxGeometry(2,2,2), matF:mk(THREE.FrontSide), matB:mk(THREE.BackSide)};
-  if(IS_MOBILE||IS_LOW_END){U.uSteps.value=24;U.uLightSteps.value=4;}
-  else{U.uSteps.value=32;U.uLightSteps.value=5;} // départ allégé (40/6 = atelier qualité max, pas runtime)
+  if(IS_MOBILE||IS_LOW_END){U.uSteps.value=28;U.uLightSteps.value=4;}
+  else{U.uSteps.value=56;U.uLightSteps.value=7;} // desktop : pas serrés = surface LISSE (le grain de raymarch fond avec le nombre de pas)
   if(QUAL_MED)applyPerfTier(true,false);
 }catch(e){VOL=null;} }
 // Boules d'un nuage (metaballs) — coords LOCALES [-1,1] dans la boîte (x,y,z,rayon).
@@ -925,11 +929,28 @@ function buildClouds(rr){
       .addScaledVector(Nn[i],-60+cr()*180),30+cr()*38,{deco:true},cr);
   }
   // voiles d'altitude : nappes roses étirées très haut — le plafond féerique
-  for(let k=0;k<7;k++){
+  for(let k=0;k<11;k++){
     const i=Math.floor(cr()*NP);
-    mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],(cr()*2-1)*750)
+    mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],(cr()*2-1)*1400)
       .addScaledVector(Nn[i],230+cr()*220),95+cr()*70,{veil:true,noFog:true},cr);
   }
+  // ============ LE CIEL PEUPLÉ : des nuages PARTOUT, posés en ESPACE MONDE ============
+  // (ajoutés APRÈS les familles historiques → zéro décalage de leurs positions)
+  // ⚠ On N'UTILISE PAS B[i]/Nn[i] ici : sur la piste inclinée/loopée, la binormale a une grosse composante
+  // verticale et éjecte les nuages à des milliers d'unités SOUS le monde (occlusion). Décalage HORIZONTAL
+  // en XZ + altitude en Y MONDE → le ciel se remplit là où le joueur regarde VRAIMENT, banking ou pas.
+  const roadY=37; // altitude moyenne du ruban (repère stable pour poser le plafond/plancher de nuages)
+  const sky=(n,rMin,rMax,distMin,distMax,yMin,yMax,opt)=>{
+    for(let k=0;k<n;k++){
+      const i=Math.floor(cr()*NP),a=cr()*6.2832,d=distMin+cr()*(distMax-distMin);
+      cldV1.set(pts[i].x+Math.cos(a)*d, roadY+yMin+cr()*(yMax-yMin), pts[i].z+Math.sin(a)*d);
+      mkCloud(cldV1,rMin+cr()*(rMax-rMin),opt,cr);
+    }
+  };
+  sky(40, 55,150, 180,1500, -60,520, {deco:true,noFog:true});   // CUMULUS mi-distance, altitudes basses→hautes
+  sky(16, 70,170, 250,1700,  260,900, {deco:true,noFog:true});  // BANC HAUT : quand on lève les yeux, du volume
+  sky(20,110,220, 700,2400, -260, 60, {sea:true,noFog:true});   // l'OCÉAN : la mer de nuages à perte de vue
+  sky(10,150,320, 600,2200, -160,420, {giant:true,noFog:true}); // SKYLINE : grandes tours lointaines
 }
 function updateClouds(dt,t){
   cloudIn=0;
