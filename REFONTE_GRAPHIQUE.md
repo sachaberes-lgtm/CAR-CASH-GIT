@@ -165,6 +165,28 @@ Validé au banc `dev/atelier-ombres.html` + partie complète sans erreur console
   toujours hidden) → neutraliser `document.hidden` + KeyP ; ne JAMAIS dispatcher les KeyboardEvent
   sur document ET window (bulle → double déclenchement : KeyP togglait la pause deux fois).
 
+## 10. LA NUIT DES LUMIÈRES — reflets au sol + meute équipée (2026-07-15) — ✅ LIVRÉ
+
+> Sacha : le noir sert à faire RESSORTIR les lumières. Feux arrière, flammes, traînée : tout doit
+> se refléter sur la route. Et la police doit avoir le MÊME kit lumière que le joueur + cracher
+> sa nitro bien plus souvent (grosses traînées bleues visibles de loin).
+
+- **Joueur** : `nitroLight` ne dort plus jamais — au repos elle passe ROUGE FEUX ARRIÈRE (.55),
+  nitro orange 1.6 / réserve bleue 2.1 / pad or .9. NOUVEAU `trailLight` (PointLight 26 m) : le
+  reflet de la traînée GLISSE sur le bitume 9 m derrière la caisse, couleur du ruban, fondu doux.
+- **Police — même kit que toi** (`mkPolice`) : halos de phares avant + feux arrière braise
+  (sprites partagés `pcHeadM`/`pcTailM`), PLUME DE RÉACTEUR bleue (2 cônes `jetGeo` par caisse,
+  matériaux partagés, flicker 57 Hz, `noShadow`), en plus des gyros/halos existants.
+- **Traînées bleues de la meute** : pool de 7 rubans (`botTrails`, `mkTrail` ×1.7 de large,
+  bleu .5/.62/1.55) mis à jour SANS limite de distance (fog:false → visibles de loin) — la
+  meute signe le ciel. Reset dans survStart/endGame/SURV.over (pas de rubans fantômes).
+- **Reflet nitro de la meute** : `botJetLight` (PointLight bleue 24 m, UNE seule — zéro
+  recompilation) collée à l'échappement du bot boosteur le plus proche (<200 m), fondu lissé.
+- **Cerveau nitro débridé** : `appBoost` .25→.45 base (clamp 1.35), jauge gate .5→.35,
+  fenêtre corner ×1.2→×1.12, envie solo .6→.9, proba ×.55→×.7, durée .5-1.4→.7-1.9 s.
+  La RESSOURCE (jauge/recharge identiques au joueur) régule toujours — zéro triche.
+- **Contrôle** : les bots roulaient déjà avec les équations EXACTES du joueur (SURV v3) — inchangé.
+
 ## 7. CRÉPUSCULE BRAISE — nuit sombre, lumières héroïnes (2026-07-14) — ⛔ REMPLACÉ PAR §8
 
 > v1 « rose Miami » jugée TROP ROSE par Sacha → v2 : retour aux couleurs d'avant (marine/corail/or)

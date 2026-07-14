@@ -491,11 +491,15 @@ const RAYS=(function(){ // 3-4 faisceaux diffus en éventail derrière les nuage
   return arr;
 })();
 const SUN_PERP=new THREE.Vector3().crossVectors(SUN_DIR,new THREE.Vector3(0,1,0)).normalize();
-const renderer=new THREE.WebGLRenderer({antialias:true});
+// Détection mobile / matériel faible AVANT le renderer : elle pilote antialias, DPR, ombres et post-traitement.
+const IS_TOUCH=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||('ontouchstart'in window)||navigator.maxTouchPoints>0;
+const IS_MOBILE=IS_TOUCH&&((window.matchMedia&&matchMedia('(hover:none)').matches)||Math.min(innerWidth,innerHeight)<820);
+const IS_LOW_END=IS_MOBILE||(navigator.hardwareConcurrency>0&&navigator.hardwareConcurrency<=4);
+const renderer=new THREE.WebGLRenderer({antialias:!IS_MOBILE&&!IS_LOW_END,powerPreference:'high-performance'});
 renderer.setSize(innerWidth,innerHeight);
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 document.body.appendChild(renderer.domElement);
-let DPR_CAP=Math.min(devicePixelRatio,2),curDPR=DPR_CAP,dprT=0; // RÉSOLUTION ADAPTATIVE (perf) : ajustée dans loop() selon loop._ms
+let DPR_CAP=Math.min(devicePixelRatio,IS_MOBILE?1.25:IS_LOW_END?1.5:1.75),curDPR=IS_MOBILE?1:Math.min(DPR_CAP,devicePixelRatio),dprT=0; // RÉSOLUTION ADAPTATIVE (perf) : ajustée dans loop() selon loop._ms
+renderer.setPixelRatio(curDPR);
 let composer=null,bloomPass=null,acesPass=null,POST_ON=false,SHADOW_ON=true; // POST-PROCESSING (assigné juste après)
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);if(composer)composer.setSize(innerWidth,innerHeight);slCv.width=innerWidth;slCv.height=innerHeight;});
 scene.add(new THREE.HemisphereLight(0xba86b6,0x18162e,0.40)); // ambiance VICE CITY NUIT (assombrie) : ciel rose-mauve baissé, sol indigo — la pénombre gagne, les lumières de la caisse vivent
@@ -505,15 +509,12 @@ const kick=new THREE.DirectionalLight(0xff3d9e,.20);kick.position.set(-520,260,4
 /* Paris retiré — tout est misé sur le CIEL : couchant, nuages irisés, pigeons ramiers */
 
 /* ============ TRIPTYQUE VISUEL : ACES + BLOOM + OMBRES DE CONTACT ============ */
-// Détection mobile REMONTÉE ici (le tactile la réutilise en fin de fichier) : elle pilote la qualité du post-traitement.
-const IS_TOUCH=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||('ontouchstart'in window)||navigator.maxTouchPoints>0;
-const IS_MOBILE=IS_TOUCH&&((window.matchMedia&&matchMedia('(hover:none)').matches)||Math.min(innerWidth,innerHeight)<820);
 // --- OMBRES LONGUES (golden hour) : une seule casteuse — le soleil — dans une fenêtre ortho serrée qui SUIT la caisse.
 // Soleil à ~5,9° → l'ombre fait ~9,7× la hauteur de l'objet : le rasant étire tout au sol.
 renderer.shadowMap.enabled=true;
 renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 sun.castShadow=true;
-sun.shadow.mapSize.set(IS_MOBILE?1024:2048,IS_MOBILE?1024:2048);
+sun.shadow.mapSize.set(IS_MOBILE||IS_LOW_END?1024:1536,IS_MOBILE||IS_LOW_END?1024:1536);
 const SUNC=sun.shadow.camera;
 SUNC.left=-34;SUNC.right=34;SUNC.top=30;SUNC.bottom=-64;SUNC.near=40;SUNC.far=340;SUNC.updateProjectionMatrix(); // fond profond : l'ombre atteint la dalle même en PLEIN CIEL
 sun.shadow.bias=-0.0003;sun.shadow.normalBias=0.08; // normalBias en MÈTRES (~2 texels) : assez pour tuer l'acné, pas de quoi décoller l'ombre
@@ -549,15 +550,16 @@ const ACESShader={
 const CAN_POST=typeof THREE.EffectComposer==='function'&&typeof THREE.RenderPass==='function'&&typeof THREE.UnrealBloomPass==='function'&&typeof THREE.ShaderPass==='function';
 if(CAN_POST){ try{
   const w=innerWidth,h=innerHeight;
-  let rt; // MSAA sur desktop (récupère l'anticrénelage que le composer court-circuite), cible simple sur mobile
-  if(!IS_MOBILE&&typeof THREE.WebGLMultisampleRenderTarget==='function')rt=new THREE.WebGLMultisampleRenderTarget(w,h,{format:THREE.RGBAFormat});
+  let rt; // MSAA seulement sur desktop musclé (sinon double AA + coût MSAA inutile)
+  if(!IS_MOBILE&&!IS_LOW_END&&typeof THREE.WebGLMultisampleRenderTarget==='function')rt=new THREE.WebGLMultisampleRenderTarget(w,h,{format:THREE.RGBAFormat});
   else rt=new THREE.WebGLRenderTarget(w,h,{format:THREE.RGBAFormat,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});
   composer=new THREE.EffectComposer(renderer,rt);
   composer.setPixelRatio(curDPR);composer.setSize(w,h);
   composer.addPass(new THREE.RenderPass(scene,camera));
-  // BLOOM : seuil HAUT (0.82) + halo COURT → halation discrète sur soleil/nitro/or, jamais de brume laiteuse.
-  const bRes=IS_MOBILE?new THREE.Vector2(Math.round(w*.5),Math.round(h*.5)):new THREE.Vector2(w,h);
-  bloomPass=new THREE.UnrealBloomPass(bRes,IS_MOBILE?0.46:0.58,IS_MOBILE?0.46:0.52,0.92); // seuil HAUT (0.92) : seuls soleil/nitro/or glowent — halation un cran plus riche façon néon humide
+  // BLOOM demi-résolution partout : gros gain GPU, halation quasi identique à l'œil.
+  const bSc=IS_MOBILE?.42:IS_LOW_END?.52:.62;
+  const bRes=new THREE.Vector2(Math.max(320,Math.round(w*bSc)),Math.max(240,Math.round(h*bSc)));
+  bloomPass=new THREE.UnrealBloomPass(bRes,IS_MOBILE?0.44:0.54,IS_MOBILE?0.44:.5,0.92);
   composer.addPass(bloomPass);
   acesPass=new THREE.ShaderPass(ACESShader);acesPass.renderToScreen=true;composer.addPass(acesPass);
   POST_ON=true;
@@ -703,7 +705,21 @@ function disposeClouds(){
   // les boîtes volumétriques partagent geo+matériaux (jamais disposés) : retirer de la scène suffit
   CLOUDS=[];cloudIn=0;
 }
-let QUAL_LOW=false; // garde-fou perf : passé vrai, réduit les pas du raymarch (voir loop)
+let QUAL_LOW=false,QUAL_MED=IS_MOBILE||IS_LOW_END; // garde-fous perf : réduisent le raymarch (voir loop + applyPerfTier)
+function applyPerfTier(med,low){
+  if(low&&!QUAL_LOW){
+    QUAL_LOW=true;QUAL_MED=true;
+    if(VOL){VOL.U.uSteps.value=18;VOL.U.uLightSteps.value=3;}
+    for(const c9 of CLOUDS){let j9=0;for(const p9 of c9.puffs)if(++j9%3===0)p9.sp.visible=false;}
+    if(bloomPass)bloomPass.enabled=false;
+    if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}
+    sun.shadow.mapSize.set(1024,1024);
+    renderer.shadowMap.type=THREE.BasicShadowMap;
+  }else if(med&&!QUAL_MED){
+    QUAL_MED=true;
+    if(VOL){VOL.U.uSteps.value=24;VOL.U.uLightSteps.value=4;}
+  }
+}
 // ============================================================================
 //  NUAGES VOLUMÉTRIQUES (raymarching) — de VRAIS volumes, pas des billboards.
 //  Chaque nuage = une boîte englobante ; le fragment tire un rayon dans
@@ -790,6 +806,9 @@ if(VOL_OK){ try{
     transparent:true,depthWrite:false,depthTest:true,side:side,
     blending:THREE.CustomBlending,blendEquation:THREE.AddEquation,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor});
   VOL={U:U, geo:new THREE.BoxGeometry(2,2,2), matF:mk(THREE.FrontSide), matB:mk(THREE.BackSide)};
+  if(IS_MOBILE||IS_LOW_END){U.uSteps.value=24;U.uLightSteps.value=4;}
+  else{U.uSteps.value=32;U.uLightSteps.value=5;} // départ allégé (40/6 = atelier qualité max, pas runtime)
+  if(QUAL_MED)applyPerfTier(true,false);
 }catch(e){VOL=null;} }
 // Boules d'un nuage (metaballs) — coords LOCALES [-1,1] dans la boîte (x,y,z,rayon).
 // Chaque famille a sa silhouette : cumulus bourgeonnant, tour empilée, mer plate, voile épars.
@@ -915,17 +934,20 @@ function buildClouds(rr){
 function updateClouds(dt,t){
   cloudIn=0;
   if(VOL){const U=VOL.U;U.uTime.value=t;U.uFogNear.value=scene.fog.near;U.uFogFar.value=scene.fog.far;U.uFogCol.value.copy(scene.fog.color);}
-  const cp=carGroup.position;
+  const cp=carGroup.position,camP=camera.position;
   const carV=mode==='fall'?fallVel.length():Math.abs(vA);
   for(const c of CLOUDS){
-    c.g.position.x=c.c.x+Math.sin(t*.07+c.ph)*4;   // le banc respire et dérive
-    c.g.position.z=c.c.z+Math.cos(t*.05+c.ph)*4;
     cldV1.subVectors(cp,c.g.position);
     const dh2=cldV1.x*cldV1.x+cldV1.z*cldV1.z,dv=cldV1.y;
     const d2=dh2/(c.r*c.r)+(dv*dv)/(c.ry*c.ry);
+    // Loin de la caisse : pas de drift ni de raymarch (culling perf — le gameplay ne lit que d2<1)
+    if(d2>64){if(c.mesh)c.mesh.visible=false;continue;}
+    if(c.mesh&&!c.mesh.visible)c.mesh.visible=true;
+    c.g.position.x=c.c.x+Math.sin(t*.07+c.ph)*4;   // le banc respire et dérive
+    c.g.position.z=c.c.z+Math.cos(t*.05+c.ph)*4;
     // Bascule FRONT/BACK selon la CAMÉRA (pas la voiture) : dès qu'elle entre dans la boîte, BackSide
     // (sinon les faces avant, derrière l'œil, sont cullées → le volume disparaît quand on plonge dedans).
-    if(c.mesh){const qx=(camera.position.x-c.g.position.x)/c.r,qy=(camera.position.y-c.g.position.y)/c.ry,qz=(camera.position.z-c.g.position.z)/c.r;
+    if(c.mesh&&d2<25){const qx=(camP.x-c.g.position.x)/c.r,qy=(camP.y-c.g.position.y)/c.ry,qz=(camP.z-c.g.position.z)/c.r;
       c.mesh.material=(Math.abs(qx)<1.15&&Math.abs(qy)<1.15&&Math.abs(qz)<1.15)?VOL.matB:VOL.matF;}
     if(d2<9)for(const p of c.puffs){ // ressorts mis à jour seulement à proximité (perf, repli sprite)
       p.dv.addScaledVector(p.dis,-2.3*dt);
@@ -1112,28 +1134,9 @@ function genCtrl(rnd,startPos,startPhi){
   straight(150,-90,2); // ARRIVÉE : ligne droite claire vers le portail
   return ctrl;
 }
-// ---------- ÉPAVES : le trafic fantôme de la fin de partie — les percuter coûte TRÈS cher ----------
-// Géométries et matériaux PARTAGÉS (jamais disposés au rebuild : seuls les groupes sortent de scène).
-let WRECKS=[];
-const wkBodyM=new THREE.MeshPhongMaterial({color:0x5a4632,shininess:12,specular:0x333333});
-const wkBodyM2=new THREE.MeshPhongMaterial({color:0x3f4a55,shininess:12,specular:0x333333});
-const wkCabM=new THREE.MeshPhongMaterial({color:0x2a2f38,shininess:30,specular:0x555555});
-const wkWheelM=new THREE.MeshPhongMaterial({color:0x14161c,shininess:8});
-const wkBodyG=new THREE.BoxGeometry(1.9,.62,4.1),wkCabG=new THREE.BoxGeometry(1.7,.5,1.9),wkWhG=new THREE.CylinderGeometry(.34,.34,.24,10);
-function mkWreck(alt){
-  const g=new THREE.Group();
-  const body=new THREE.Mesh(wkBodyG,alt?wkBodyM2:wkBodyM);body.position.y=.62;g.add(body);
-  const cab=new THREE.Mesh(wkCabG,wkCabM);cab.position.set(0,1.1,-.3);cab.rotation.z=.05;g.add(cab);
-  body.castShadow=cab.castShadow=true;
-  for(const sd of[-1,1])for(const fz of[-1,1]){
-    const w=new THREE.Mesh(wkWhG,wkWheelM);w.rotation.z=Math.PI/2;w.castShadow=true;
-    w.position.set(sd*.98,.34,fz*1.45);g.add(w);
-  }
-  return g;
-}
 function buildTrack(seed){
   for(const m of trackMeshes){scene.remove(m);if(m.geometry)m.geometry.dispose();if(m.material&&m.material.dispose)m.material.dispose();}
-  trackMeshes.length=0;PADS=[];BUMPS=[];CONES=[];FLYCONES=[];OILS=[];WRECKS=[];
+  trackMeshes.length=0;PADS=[];BUMPS=[];CONES=[];FLYCONES=[];OILS=[];
   const rnd=mulberry32(seed);
   const ctrl=genCtrl(rnd,new THREE.Vector3(0,0,0),0);
   const curve=new THREE.CatmullRomCurve3(ctrl,false,'catmullrom',0.5);
@@ -1329,25 +1332,13 @@ function buildTrack(seed){
       for(let k=0;k<4;k++)placeCone(sp+k*7.5,sd9*(ROAD_HALF-1.3),cnF);
     }
   }
-  // ---- FIN DE PARTIE (niveau 6+) : chantier DOUBLE + épaves entre chaque palier de pads ----
+  // ---- FIN DE PARTIE (niveau 6+) : 2e vague de plots ----
   // Flux aléatoire SÉPARÉ (graine dérivée) : la densité dépend du niveau sans rebrasser la génération.
   if(level>=5){
     const wrnd=mulberry32((seed^0xCA55E77E)>>>0);
     for(let sp=385+wrnd()*220;sp<L-170;sp+=200+wrnd()*300){ // 2e vague de plots, faces alternées
       const w9=3+wrnd()*5,f9=(cnGrp++%2)?-1:1;
       for(let k=0;k<3;k++)placeCone(sp+k*13,(k%2?-1:1)*w9,f9);
-    }
-    for(let i9=0;i9<PADS.length-1;i9++){ // UNE épave par palier : le trafic fantôme s'installe
-      const ws=(PADS[i9]+PADS[i9+1])/2+(wrnd()*2-1)*40;
-      if(ws<260||ws>L-130)continue;
-      const wl=(wrnd()*2-1)*(ROAD_HALF-3.2),wf=(i9%2)?-1:1;
-      frameAt(ws,F);
-      const m=mkWreck(i9%3===0);
-      m.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(F.b.clone().multiplyScalar(wf),F.n.clone().multiplyScalar(wf),F.t.clone()));
-      m.position.copy(F.p).addScaledVector(F.b,wl).addScaledVector(F.n,wf>0?.06:-THICK-.06);
-      m.rotateY((wrnd()*2-1)*.55); // garée de travers, comme abandonnée en catastrophe
-      scene.add(m);trackMeshes.push(m);
-      WRECKS.push({s:ws,lat:wl,face:wf,mesh:m,hit:false});
     }
   }
   // NUAGES : on roule DANS le ciel — grappes volumétriques traversables + couche lointaine diaphane
@@ -1526,6 +1517,7 @@ headSpot.position.set(0,4,0);scene.add(headSpot);scene.add(headSpot.target);
 // REFLET NITRO/BOOST : la flamme éclaire VRAIMENT le bitume — pool de lumière derrière la caisse,
 // orange nitro / bleu réserve / or pad turbo, intensité 0 au repos (à l init, zéro recompilation)
 const nitroLight=new THREE.PointLight(0xff7a24,0,18);scene.add(nitroLight); // portée courte : une FLAQUE de feu sous l'échappement, pas une rivière jusqu'à la caméra
+const trailLight=new THREE.PointLight(0xff7a24,0,26);scene.add(trailLight); // le REFLET DE LA TRAÎNÉE : une lueur qui GLISSE sur le bitume 9 m derrière la caisse
 const hsF=new THREE.Vector3(),hsU=new THREE.Vector3(),hsR=new THREE.Vector3(); // nez + toit + flanc de la caisse (repère monde), réutilisés chaque frame
 // ---- TRAÎNÉE DE NITRO : deux RUBANS de lumière accrochés aux tuyères — le « swoosh » qui reste dans l'air.
 // Buffers fixes (zéro allocation en boucle), largeur orientée face caméra, fondu au carré de l'âge.
@@ -1544,7 +1536,7 @@ function mkTrail(){
 }
 const trailL=mkTrail(),trailR=mkTrail();let trailK=0;
 const rbD=new THREE.Vector3(),rbS=new THREE.Vector3(),rbV=new THREE.Vector3();
-function trailStep(tr,px,py,pz,cr,cg,cb,k){
+function trailStep(tr,px,py,pz,cr,cg,cb,k,wMul){
   if(k<.03){tr.m.visible=false;tr.init=false;return;}
   const h=tr.hist;
   if(!tr.init){for(const q of h)q.set(px,py,pz);tr.init=true;} // réveil : pas de trait fantôme depuis l'ancienne position
@@ -1556,7 +1548,7 @@ function trailStep(tr,px,py,pz,cr,cg,cb,k){
     rbS.crossVectors(rbD,rbV);
     const l2=rbS.lengthSq();
     if(l2>1e-9)rbS.multiplyScalar(1/Math.sqrt(l2));else rbS.set(0,0,0);
-    const age=i/(TRAIL_N-1),w=.05+.20*(1-age);
+    const age=i/(TRAIL_N-1),w=(.05+.20*(1-age))*(wMul||1);
     let f=(1-age)*(1-age)*k;
     const dC=rbV.length(); // la caméra de poursuite roule DANS le sillage : on efface le ruban à son approche (sinon voile blanc plein écran)
     f*=Math.min(1,Math.max(0,(dC-3.2)/4.2));
@@ -3473,6 +3465,7 @@ function resetGame(){
 function endGame(){
   gameOver=true;airPie.style.display='none';chainHud.style.opacity=0;caseHud.style.opacity=0;
   lastAlertEl.style.display='none';for(const l9 of gyroLights)l9.intensity=0; // la poursuite s'éteint avec la caisse
+  botJetLight.intensity=0;for(const tr9 of botTrails){tr9.init=false;tr9.m.visible=false;}
   if(sirG)sirG.gain.setTargetAtTime(0,AC.currentTime,.3);
   if(SURV.on)survRender(); // classement final figé
   if(gainN)gainN.gain.setTargetAtTime(0,AC.currentTime,.2);
@@ -3604,6 +3597,15 @@ const gloTex=new THREE.CanvasTexture(gloCv);
 const sprRedM=new THREE.SpriteMaterial({map:gloTex,color:0xff3030,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false});
 const sprBluM=new THREE.SpriteMaterial({map:gloTex,color:0x3f7dff,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false});
 const sprJetM=new THREE.SpriteMaterial({map:gloTex,color:0xff9a2a,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}); // flamme réacteur (partagée)
+// ROUES : la meute réutilisait la géométrie/le matériau des épaves — feature épave retirée ailleurs,
+// donc la police porte désormais SES propres roues (mêmes valeurs, plus de dépendance fantôme wkWhG/wkWheelM).
+const wkWhG=new THREE.CylinderGeometry(.34,.34,.24,10);
+const wkWheelM=new THREE.MeshPhongMaterial({color:0x14161c,shininess:8});
+// MÊME KIT LUMIÈRE QUE LE JOUEUR : halos de phares/feux + cônes de réacteur (matériaux PARTAGÉS par la meute)
+const pcHeadM=new THREE.SpriteMaterial({map:lampTex,color:0xffe2a8,transparent:true,opacity:.95,depthWrite:false});
+const pcTailM=new THREE.SpriteMaterial({map:lampTex,color:0xff2818,transparent:true,opacity:.85,depthWrite:false});
+const pcJetShellM=new THREE.MeshBasicMaterial({map:jetTex,color:0x4f76ff,transparent:true,opacity:.85,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false});
+const pcJetCoreM=new THREE.MeshBasicMaterial({map:jetTex,color:0xd6e4ff,transparent:true,opacity:.92,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false});
 function mkPolice(liv){
   const g=new THREE.Group(),[bodyM,accM]=pcLiv[liv%3];
   const body=new THREE.Mesh(pcBodyG,bodyM);body.position.y=.62;g.add(body);
@@ -3617,14 +3619,28 @@ function mkPolice(liv){
     const w=new THREE.Mesh(wkWhG,wkWheelM);w.rotation.z=Math.PI/2;w.position.set(sd*.98,.34,fz*1.42);g.add(w);}
   const sR=new THREE.Sprite(sprRedM);sR.position.set(0,1.9,-.25);g.add(sR);            // halos additifs
   const sB=new THREE.Sprite(sprBluM);sB.position.set(0,1.9,-.25);sB.visible=false;g.add(sB);
-  const jet=new THREE.Sprite(sprJetM);jet.position.set(0,.55,-2.55);jet.visible=false;g.add(jet); // réacteur nitro
-  g.traverse(o9=>{if(o9.isMesh)o9.castShadow=true;}); // la meute aussi étire son ombre au couchant
+  const jet=new THREE.Sprite(sprJetM);jet.position.set(0,.55,-2.55);jet.visible=false;g.add(jet); // réacteur nitro (halo)
+  for(const sd of[-1,1]){ // MÊME KIT LUMIÈRE QUE TOI : halos de phares avant + feux arrière braise
+    const hg=new THREE.Sprite(pcHeadM);hg.scale.set(.8,.8,1);hg.position.set(sd*.62,.72,2.42);g.add(hg);
+    const tg=new THREE.Sprite(pcTailM);tg.scale.set(.6,.6,1);tg.position.set(sd*.58,.78,-2.35);g.add(tg);
+  }
+  const jets=[]; // plume de réacteur : les MÊMES cônes que la caisse du joueur, en BLEU police
+  for(const sd of[-1,1]){
+    const js9=new THREE.Mesh(jetGeo,pcJetShellM),jc9=new THREE.Mesh(jetGeo,pcJetCoreM);
+    js9.position.set(sd*.5,.55,-2.45);jc9.position.copy(js9.position);
+    js9.scale.set(.14,.14,.02);jc9.scale.set(.07,.07,.02);
+    js9.visible=jc9.visible=false;js9.userData.noShadow=jc9.userData.noShadow=true;
+    g.add(js9);g.add(jc9);jets.push(js9,jc9);
+  }
+  g.traverse(o9=>{if(o9.isMesh&&!o9.userData.noShadow)o9.castShadow=true;}); // la meute aussi étire son ombre — sauf les plumes additives
   g.visible=false;scene.add(g);
-  return {g,lampR,lampB,sR,sB,jet};
+  return {g,lampR,lampB,sR,sB,jet,jets};
 }
 // pool de VRAIES lumières : seules les 2 poursuivantes les plus proches éclairent la route et ta caisse
 const gyroLights=[new THREE.PointLight(0xff3030,0,60),new THREE.PointLight(0x3f7dff,0,60)];
 for(const l of gyroLights)scene.add(l);
+const botJetLight=new THREE.PointLight(0x5b7dff,0,24);scene.add(botJetLight); // le reflet BLEU au sol de la nitro du bot le plus proche (1 seule lumière, jamais de recompilation)
+const botTrails=[];for(let i9=0;i9<7;i9++)botTrails.push(mkTrail()); // 7 RUBANS BLEUS : la meute signe le ciel — visibles de LOIN (fog:false)
 // sirène unique (LOD audio) : un WAIL doux et lointain — la fréquence RESPIRE au lieu de claquer
 let sirG=null,sirO=null;
 function sirenInit(){
@@ -3652,6 +3668,8 @@ function survStart(){
   survHudEl.style.display=SURV.on?'block':'none';
   lastAlertEl.style.display='none';
   for(const l of gyroLights)l.intensity=0;
+  botJetLight.intensity=0;
+  for(const tr9 of botTrails){tr9.init=false;tr9.m.visible=false;} // pas de rubans fantômes d'une meute à l'autre
   if(!SURV.on)return;
   sirenInit();
   survHudEl.innerHTML='<div class="svHead"><canvas id="svClock" width="20" height="20"></canvas><span id="svSecs"></span></div><div id="svRows"></div>';
@@ -3663,14 +3681,15 @@ function survStart(){
       marg=THREE.MathUtils.clamp(.78+line*.18-AIP.caution*.04,.7,.96), // marge au point de corde : les fins freinent tard
       agro=THREE.MathUtils.clamp(p.agro*(.7+AIP.aggr*.7),0,1),
       appJump=THREE.MathUtils.clamp(AIP.air*(.5+p.agro*.9),0,1.1), // appétit de saut personnel
-      appBoost=THREE.MathUtils.clamp(.25+AIP.boost*(.5+p.agro*.7),0,1.2);
+      appBoost=THREE.MathUtils.clamp(.45+AIP.boost*(.55+p.agro*.7),0,1.35); // appétit de nitro REMONTÉ : la meute doit cracher du bleu
     SURV.bots.push({name:p.n,agro:agro,err:p.err,rea:p.rea,line:line,marg:marg,alive:true,
       appJump:appJump,appBoost:appBoost,
       totD:s+(i-3)*34+(Math.random()*2-1)*12, // la meute encadre le joueur dès le départ
       v:24,lat:(Math.random()*2-1)*(ROAD_HALF-4),latT:0,lane:(Math.random()*2-1)*.6,
       phi:0,steer:0,sHold:0,momT:0,pbi:-1,cornerV:1e9,think:Math.random()*.25,
-      nitroR:1.2,nT:0,boostT:0,padB:0,padCd:0,slipT:0,oilCd:0,wCd:0,errT:0,errK:0,ph:Math.random(),
+      nitroR:1.2,nT:0,boostT:0,padB:0,padCd:0,slipT:0,oilCd:0,errT:0,errK:0,ph:Math.random(),
       air:false,airH:0,vy:0,spin:0,spinV:0,jumpCD:1+Math.random()*2,zoneMark:-1,
+      trail:botTrails[i],trailK:0, // son ruban bleu personnel
       mesh:mkPolice(i)});
     SURV.bots[i].latT=SURV.bots[i].lane*(ROAD_HALF-5);
   }
@@ -3708,7 +3727,7 @@ function botBoom(b){ // une unité saute : gerbe or+bleu, champignon, et le son 
 }
 function survTick(dt){
   if(!SURV.on)return;
-  if(SURV.over){for(const l of gyroLights)l.intensity=0;if(sirG)sirG.gain.setTargetAtTime(0,AC.currentTime,.3);return;}
+  if(SURV.over){for(const l of gyroLights)l.intensity=0;botJetLight.intensity=0;for(const tr9 of botTrails){tr9.init=false;tr9.m.visible=false;}if(sirG)sirG.gain.setTargetAtTime(0,AC.currentTime,.3);return;}
   SURV.t+=dt;SURV.ph=(SURV.ph+dt*2.7)%1;
   svClockDraw();
   const pTot=SURV.pBase+s;
@@ -3769,18 +3788,16 @@ function survTick(dt){
       const oLook=Math.min(look,70);let obD=1e9,obLat=0,obW=0;
       for(const c9 of CONES){if(c9.hit||c9.face!==1)continue;const d9=c9.s-rel;
         if(d9>2&&d9<oLook&&d9<obD&&Math.abs(c9.lat-lT)<2.4){obD=d9;obLat=c9.lat;obW=2.4;}}
-      for(const w9 of WRECKS){if(w9.hit||w9.face!==1)continue;const d9=w9.s-rel;
-        if(d9>2&&d9<oLook&&d9<obD&&Math.abs(w9.lat-lT)<3.1){obD=d9;obLat=w9.lat;obW=3.1;}}
       for(const o9 of OILS){if(o9.face!==1)continue;const d9=o9.s-rel;
         if(d9>2&&d9<oLook&&d9<obD&&Math.abs(o9.lat-lT)<o9.r+1){obD=d9;obLat=o9.lat;obW=o9.r+1;}}
       if(obD<1e9)lT=obLat+(lT>=obLat?1:-1)*(obW+1.6);
       b.latT=THREE.MathUtils.clamp(lT,-(ROAD_HALF-2.4),ROAD_HALF-2.4);
-      // NITRO : une RESSOURCE (même jauge, même recharge que toi) — il l'allume sur du droit dégagé
-      if(b.nT<=0&&b.nitroR>.5&&b.slipT<=0&&b.cornerV>b.v*1.2&&(ahead==null||aG>10)){
-        let env=b.appBoost*(ahead!=null?1.5:.6);
+      // NITRO : une RESSOURCE (même jauge, même recharge que toi) — il l'allume dès que la route se dégage
+      if(b.nT<=0&&b.nitroR>.35&&b.slipT<=0&&b.cornerV>b.v*1.12&&(ahead==null||aG>10)){
+        let env=b.appBoost*(ahead!=null?1.5:.9);           // même seul, il envoie : le spectacle des traînées bleues
         if(SURV.t>48)env*=1.7;                             // dernière ligne droite de la minute : tout le monde tape dedans
         if(racers[racers.length-1]===b)env*=1.6;           // le condamné du classement se bat
-        if(Math.random()<env*.55)b.nT=.5+Math.random()*.9;
+        if(Math.random()<env*.7)b.nT=.7+Math.random()*1.2; // plus souvent, plus longtemps — la jauge régule de toute façon
       }
     }
     if(b.errT>0)b.errT-=dt;
@@ -3871,16 +3888,6 @@ function survTick(dt){
           if(b.mesh.g.visible)sparkBurst(sparkGold,c9.mesh.position,5,6);
         }
       }
-      b.wCd=Math.max(0,b.wCd-dt);
-      if(b.wCd<=0)for(const w9 of WRECKS){ // épaves : même mur, même sanction (l'épave reste pour TOI)
-        if(w9.hit||w9.face!==1||Math.abs(rel-w9.s)>3.2)continue;
-        if(Math.abs(b.lat-w9.lat)<2.3){
-          if(b.v*3.6*SPD>330){botBoom(b);break;} // à cette vitesse, une épave est un MUR — pour eux aussi
-          b.v*=.5;b.wCd=1.2;
-          if(b.mesh.g.visible)sparkBurst(sparkGold,w9.mesh.position,12,10);
-          break;
-        }
-      }
       if(!b.alive)continue;
       b.oilCd=Math.max(0,b.oilCd-dt);
       if(b.oilCd<=0)for(const o9 of OILS){ // flaques : ça chasse pareil
@@ -3895,13 +3902,18 @@ function survTick(dt){
   }
   // ---- incarnation : mesh + gyros SEULEMENT à portée de vue (LOD), 2 vraies lumières pour les proches ----
   const ph5=SURV.ph%1<.5;
-  let li=0;
+  let li=0,bjD=1e9,bjOn=false;
   for(const b of SURV.bots){
-    if(!b.alive){continue;}
+    if(!b.alive){b.trailK=0;trailStep(b.trail,0,0,0,0,0,0,0);continue;}
     const rel=b.totD-SURV.pBase;
     const gap=Math.abs(rel-s);
-    if(rel>2&&rel<L-4&&gap<340){
+    if(rel>2&&rel<L-4){
       frameAt(rel,FB);
+      // TRAÎNÉE BLEUE : mise à jour SANS limite de distance — la grosse signature de la meute se voit de LOIN (fog:false)
+      b.trailK+=((b.boostT>0?1:0)-b.trailK)*Math.min(1,dt*(b.boostT>0?16:5));
+      svT1.copy(FB.p).addScaledVector(FB.b,b.lat).addScaledVector(FB.n,1.05+b.airH).addScaledVector(FB.t,-2.5);
+      trailStep(b.trail,svT1.x,svT1.y,svT1.z,.5,.62,1.55,b.trailK,1.7);
+      if(gap<340){
       const m=b.mesh.g;
       m.position.copy(FB.p).addScaledVector(FB.b,b.lat).addScaledVector(FB.n,.56+b.airH); // la hauteur de VOL soulève la caisse
       m.quaternion.setFromRotationMatrix(svM4.makeBasis(FB.b,FB.n,FB.t));
@@ -3915,10 +3927,18 @@ function survTick(dt){
       const gsc=(2.1+Math.sin((SURV.ph+b.ph)*Math.PI*2)*.5)*(1-gap/400); // le halo respire, s'éteint au loin
       b.mesh.sR.scale.set(gsc*3,gsc*1.6,1);b.mesh.sB.scale.set(gsc*3,gsc*1.6,1);
       b.mesh.jet.visible=b.boostT>0; // NITRO VISIBLE : la flamme claque derrière la caisse qui pousse
+      const jOn9=b.boostT>0; // PLUME DE RÉACTEUR bleue : les mêmes cônes que le joueur
+      for(const j9 of b.mesh.jets)j9.visible=jOn9;
+      if(jOn9){
+        const fl9=.8+.2*Math.sin(SURV.t*57+b.ph*31),jl9=1.5*fl9,jr9=.13;
+        b.mesh.jets[0].scale.set(jr9,jr9,jl9);b.mesh.jets[1].scale.set(jr9*.5,jr9*.5,jl9*.72);
+        b.mesh.jets[2].scale.set(jr9,jr9,jl9);b.mesh.jets[3].scale.set(jr9*.5,jr9*.5,jl9*.72);
+      }
       if(b.boostT>0){
         const js9=1.2+Math.random()*.6;b.mesh.jet.scale.set(js9,js9*.55,1);
         if(gap<130&&Math.random()<dt*24) // et quelques braises au ras du pare-chocs (LOD : proches seulement)
           spawnP(flameCore,m.position.x,m.position.y+.4,m.position.z,(Math.random()-.5)*2,.5+Math.random(),(Math.random()-.5)*2,.2);
+        if(gap<bjD){bjD=gap;bjOn=true;botJetLight.position.copy(m.position).addScaledVector(FB.t,-2.4).addScaledVector(FB.n,.5);} // sa nitro éclaire AUSSI la route
       }
       if(li<2&&gap<170){ // les 2 plus proches allument VRAIMENT la route (et ta carrosserie)
         const l=gyroLights[li++];
@@ -3926,9 +3946,11 @@ function survTick(dt){
         l.color.setHex(bph?0xff3030:0x3f7dff);
         l.intensity=(1-gap/170)*2.6*(0.6+0.4*Math.abs(Math.sin((SURV.ph+b.ph)*Math.PI*4)));
       }
-    }else b.mesh.g.visible=false;
+      }else b.mesh.g.visible=false;
+    }else{b.mesh.g.visible=false;b.trailK=0;trailStep(b.trail,0,0,0,0,0,0,0);}
   }
   while(li<2)gyroLights[li++].intensity=0;
+  botJetLight.intensity+=(((bjOn&&bjD<200)?(1-bjD/200)*2.2:0)-botJetLight.intensity)*Math.min(1,dt*10); // le reflet bleu suit la poussée la plus proche
   // ---- sirène : une seule voix, dosée sur la plus proche QUI POURSUIT (derrière toi) ----
   if(sirG){
     let near=1e9;for(const b of alive){const g9=pTot-b.totD;if(g9>0&&g9<near)near=g9;}
@@ -4140,21 +4162,6 @@ function loop(now){
           noiseBurst(.09,.08,520);
           sparkBurst(sparkGold,c9.mesh.position,5,6);
           addStyle(2);
-        }
-      }
-      // ÉPAVES : percuter le trafic fantôme freine BRUTALEMENT — et tue à pleine vitesse
-      if(mode==='drive')for(const w9 of WRECKS){
-        if(w9.hit||w9.face!==side||Math.abs(s-w9.s)>3.2)continue;
-        if(Math.abs(lat-w9.lat)<2.3){
-          w9.hit=true;
-          if(Math.abs(vA)*3.6*SPD>330){explode();break;} // à cette vitesse, une épave est un MUR
-          vA*=.5;shake=Math.max(shake,.9);squashT=Math.max(squashT,.3);
-          thud(13);duckT=Math.max(duckT,.5);dropChip(4);
-          sparkBurst(sparkGold,w9.mesh.position,18,14);
-          w9.mesh.rotation.z+=(lat>w9.lat?-.5:.5); // l'épave encaisse et pivote
-          w9.mesh.position.addScaledVector(F.b,(lat>w9.lat?-1:1)*1.2);
-          showMsg('💥 ÉPAVE PERCUTÉE !','#ff9d2e');
-          break;
         }
       }
       // FLAQUES D'HUILE : passer dessus fait GLISSER (contrôle coupé un instant, la caisse chasse)
@@ -4613,10 +4620,11 @@ function loop(now){
     // REFLET NITRO/BOOST : le pool de lumière colle à l'échappement (repère caisse : marche aussi sous la dalle)
     hsU.set(0,1,0).applyQuaternion(carGroup.quaternion);
     nitroLight.position.copy(carGroup.position).addScaledVector(hsF,-2.2).addScaledVector(hsU,.5);
-    const nTgt=(mode==='boom')?0:((nitroOn?(nitroBlue?2.1:1.6):0)+(boost>0?.8:0)); // tempéré : un reflet, pas un projecteur de chantier
+    const nTgt=(mode==='boom')?0:(nitroOn?(nitroBlue?2.1:1.6):(boost>0?.9:.55)); // .55 au repos : les FEUX ARRIÈRE posent leur reflet rouge en permanence (la nuit sert à ça)
     nitroLight.intensity+=(nTgt*(.82+.18*Math.sin(t*43))-nitroLight.intensity)*Math.min(1,dt*14); // flamme qui tremble, fondu doux
     if(nitroOn)nitroLight.color.setHex(nitroBlue?0x5b7dff:0xff7a24); // orange nitro / bleu réserve (mêmes teintes que les particules)
     else if(boost>0)nitroLight.color.setHex(0xffb040); // pad turbo : coup d'or
+    else nitroLight.color.setHex(0xff2015); // repos : rouge feux arrière — la lueur qui suit la caisse
     // PLUME DE RÉACTEUR : court au filage, long et affûté à la nitro — flicker haute fréquence, la flamme VIT
     const jTgt=(mode==='boom')?0:((nitroOn?(nitroBlue?1.35:1.05):((mode!=='drive'||loop._wasUp)&&Math.abs(speedKmh)>20?.34:0))+(boost>0?.4:0));
     JETS.k+=(jTgt-JETS.k)*Math.min(1,dt*11);
@@ -4646,6 +4654,10 @@ function loop(now){
         carGroup.position.z+hsF.z*tz9+hsR.z*ox9+hsU.z*.43,
         tcr,tcg,tcb,trailK);
     }
+    // le reflet de la traînée GLISSE sur la route derrière la caisse (même couleur que le ruban)
+    trailLight.position.copy(carGroup.position).addScaledVector(hsF,-9).addScaledVector(hsU,1.1);
+    trailLight.intensity+=(trailK*1.35-trailLight.intensity)*Math.min(1,dt*10);
+    trailLight.color.setRGB(Math.min(1,tcr),Math.min(1,tcg),Math.min(1,tcb));
     // sons continus
     if(AC){
       const spd3=speedKmh;
