@@ -127,7 +127,25 @@ contre-jour fog+expo, split-tone ACES (balance 1.045/1/.955, lift mauve, sat 1.1
 bloom .58/.5/.82), spéculaire chaud du bitume (`0x8a6f52`, shininess 48).
 Validé au banc `dev/atelier-ombres.html` + partie complète sans erreur console.
 
-## 7. CRÉPUSCULE BRAISE — nuit sombre, lumières héroïnes (2026-07-14) — ✅ LIVRÉ
+## 8. VICE CITY NUIT — rose/violet SOMBRE + reflet nitro (2026-07-14 soir) — ✅ LIVRÉ (état actuel)
+
+> Sacha a tranché : il préfère finalement la palette rose/violet (v1) à la braise marine (v2 §7),
+> MAIS plus sombre. Direction retenue = v1 assombri, en gardant le reflet nitro/boost au sol.
+
+- **Palette** : retour au rose/violet Vice City du §7-v1, chaque couleur du ciel BAISSÉE ~20-30 %
+  (rose Miami `cor` .93→.66, ambre, mauve, zénith), sun sprite contenu (échelle 940, halo dégradé
+  tamisé) pour ne plus blanchir le ciel. Guirlande néon d'horizon + étoiles + lune GARDÉES.
+- **Assombrissement** : `POST_EXPO` 0.71 · hemi .40 (rose-mauve `0xba86b6`) · sun `0xff6a3c` 1.45 ·
+  `body>canvas` brightness .97 · vignette pourpre .52 · fog `0x5e3254` · nuages `uAmb` .46.
+- **Reflet nitro/boost au sol (LA demande, gardé du §7)** : `nitroLight` PointLight collée à
+  l'échappement (repère caisse `hsF`/`hsU`) — orange nitro / bleu réserve / or pad turbo. Sur le
+  bitume violet sombre `0x2b2937`, la flaque de lumière chaude CLAQUE (vérifié en capture).
+- **Piste** : bandes NÉON ROSE `0xf24aa0` + nappe additive `fog:false` (dégradé rose sombre) +
+  ligne centrale sodium doré + spéculaire rosé `0x9a5568`. Néon sous caisse magenta (opacity .42).
+- **Validation headless** : `/debug` (rAF pompable `__pump` + `__shot`) — nitro déclenchée au
+  clavier (ShiftLeft), captures conduite/nitro/vol OK, zéro erreur console.
+
+## 7. CRÉPUSCULE BRAISE — nuit sombre, lumières héroïnes (2026-07-14) — ⛔ REMPLACÉ PAR §8
 
 > v1 « rose Miami » jugée TROP ROSE par Sacha → v2 : retour aux couleurs d'avant (marine/corail/or)
 > mais AMBIANCE SOMBRE, soleil au sol ROUGE au lieu de jaune, et reflets nitro/boost sur le bitume.
