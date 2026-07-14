@@ -996,13 +996,14 @@ function updateClouds(dt,t){
         if(mode==='fall'&&c.fid!==flightId){c.fid=flightId;c.refT=1.2; // budget d'airtime de CE banc
           if(fallT>.4)addTrick('nuage','PERCE-NUAGE',6,false);} // fendre la ouate en vol : un maillon de plus
       }
-      if(mode==='fall'){ // SURF DE NUAGE : coussin d'air + regain d'airtime
-        fallVel.y+=7*k*dt;
-        fallVel.x+=(Math.random()-.5)*6*k*dt;
-        fallVel.z+=(Math.random()-.5)*6*k*dt;
-        airRoll+=(Math.random()-.5)*2.4*k*dt; // TURBULENCE : la ouate chahute la vrille
+      if(mode==='fall'){ // SURF DE NUAGE : coussin d'air + regain d'airtime (au rythme du vol accéléré)
+        const dtF=dt*AIR_RATE;
+        fallVel.y+=7*k*dtF;
+        fallVel.x+=(Math.random()-.5)*6*k*dtF;
+        fallVel.z+=(Math.random()-.5)*6*k*dtF;
+        airRoll+=(Math.random()-.5)*2.4*k*dtF; // TURBULENCE : la ouate chahute la vrille
         shake=Math.max(shake,.13*k);          // …et secoue la caméra — on SENT la matière
-        if(c.refT>0){const rf=Math.min(c.refT,dt*.9);c.refT-=rf;fallT=Math.max(0,fallT-rf);airFlash=.55;}
+        if(c.refT>0){const rf=Math.min(c.refT,dtF*.9);c.refT-=rf;fallT=Math.max(0,fallT-rf);airFlash=.55;}
       }else if(k>.1){
         psi+=(Math.random()-.5)*.3*k*dt; // au sol : la route disparaît, la caisse tangue à peine
         vA*=Math.max(0,1-.07*k*dt);      // la ouate FREINE un peu : percer un banc se paye en élan
@@ -3054,6 +3055,9 @@ addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDow
 addEventListener('keyup',e=>{keys[e.code]=false;});
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false;}); // alt-tab : aucune touche ne reste coincée
 const GRAV=9.8*.55,FALL_G=33,AXIS_Y=new THREE.Vector3(0,1,0),AIR_MAX=6;
+// AIR_RATE : le vol se joue PLUS VITE en temps réel — la parabole dans l'espace est identique
+// (viseur d'atterrissage + seuils de figures inchangés), mais on passe moins de temps à flotter.
+const AIR_RATE=1.6;
 const SPD=0.5; // vitesse globale du jeu (-50%)
 const TURN_HS=.0035; // pénalité de braquage à haute vitesse (avant .008 — plus petit = virages plus faciles)
 const AIR_ASSIST=1.0; // aide au recentrage en vol (0 = off), monte avec la vitesse
@@ -4354,26 +4358,27 @@ function loop(now){
         airPie.style.display='none';
       }
     }else if(mode==='fall'){ // ---- VOL : maniabilité aérienne propre ----
-      fallT+=dt;
-      if(nitroOn)nitroAirT+=dt; // temps de réacteur dans CE vol (METEOR / MEGA METEOR)
-      fallVel.y-=FALL_G*dt;
+      const dtF=dt*AIR_RATE; // temps de vol accéléré : même arc dans l'espace, moins de temps réel à flotter
+      fallT+=dtF;
+      if(nitroOn)nitroAirT+=dtF; // temps de réacteur dans CE vol (METEOR / MEGA METEOR)
+      fallVel.y-=FALL_G*dtF;
       // chute pilotée : un peu de lacet, c'est tout — la voiture est LOURDE
       // (le lacet gagne un peu d'autorité à grande vitesse → vol simplifié)
-      const yawIn=steer*(1.15+Math.min(.6,fallVel.length()*.004))*dt;
+      const yawIn=steer*(1.15+Math.min(.6,fallVel.length()*.004))*dtF;
       fallVel.applyAxisAngle(AXIS_Y,yawIn);
       yawAcc+=yawIn;
       if(nitroOn){ // RÉACTEUR : poussée depuis l'arrière façon Rocket League (modérée)
         tmp.copy(fallVel);
         if(tmp.lengthSq()>1)tmp.normalize();else tmp.set(0,0,1);
-        fallVel.addScaledVector(tmp,(nitroBlue?44:30)*dt);
-        if(keys.KeyW||keys.KeyZ||keys.ArrowUp)fallVel.y+=(nitroBlue?9:6)*dt;
+        fallVel.addScaledVector(tmp,(nitroBlue?44:30)*dtF);
+        if(keys.KeyW||keys.KeyZ||keys.ArrowUp)fallVel.y+=(nitroBlue?9:6)*dtF;
         if(dn){ // ↓ + nitro : on REDRESSE la caisse (le nez remonte, portance bonus)
           tmp2.copy(fallVel).normalize().cross(AXIS_Y);
           if(tmp2.lengthSq()>.01){
             tmp2.normalize();
-            fallVel.applyAxisAngle(tmp2,1.35*dt);
+            fallVel.applyAxisAngle(tmp2,1.35*dtF);
           }
-          fallVel.y+=(nitroBlue?14:10)*dt;
+          fallVel.y+=(nitroBlue?14:10)*dtF;
         }
         // jet visible au point de poussée arrière : panache conique, jamais deux fois pareil
         flames.mesh.material.color.set(nitroBlue?0x3a5bff:0xff8020);
@@ -4403,7 +4408,7 @@ function loop(now){
           carGroup.position.x-tmp3.x*2.5,carGroup.position.y-tmp3.y*2.5,carGroup.position.z-tmp3.z*2.5,
           -tmp3.x*20+(Math.random()-.5)*6,-tmp3.y*20+(Math.random()-.5)*6,-tmp3.z*20+(Math.random()-.5)*6,.3);
       }
-      fallPos.addScaledVector(fallVel,dt*SPD);
+      fallPos.addScaledVector(fallVel,dtF*SPD);
       carGroup.position.copy(fallPos);
       speedKmh=fallVel.length()*3.6*SPD;
       // ---- FIGURES EN VOL : chaque exploit se nomme à la seconde où il naît ----
@@ -4416,14 +4421,14 @@ function loop(now){
         if(fallPos.y>peakY)peakY=fallPos.y;
         if(!trkSky&&peakY>launchY+26){trkSky=true;addTrick('ciel','PLEIN CIEL — COUCOU LES AVIONS',7,2);}      // grimper 26 m au-dessus du départ
         if(!trkMeteor&&nitroOn&&nitroAirT>1.2){trkMeteor=true;addTrick('meteo','MÉTÉORE',8,2);}
-        if(Math.abs(steer)<.06){handsT+=dt;if(!trkHands&&handsT>2.1){trkHands=true;addTrick('mains','SANS LES MAINS — MAMAN, REGARDE',7,2);}}
+        if(Math.abs(steer)<.06){handsT+=dtF;if(!trkHands&&handsT>2.1){trkHands=true;addTrick('mains','SANS LES MAINS — MAMAN, REGARDE',7,2);}}
         else handsT=0;
         if(curNear){ // radar de dalle (rempli par tryLand à la frame précédente)
           if(Math.abs(curLatOff)<ROAD_HALF){
             if(curHOff>.9&&curHOff<7){ // LE DAUPHIN : nager au ras de la dalle — plus on frôle, plus ça paye
               const prox=1-(curHOff-.9)/6.1; // 1 = collé à la route, 0 = à 7 m
-              const dInc=3.2*prox*prox*dt; // le magot grimpe au CARRÉ de la proximité
-              dolphT+=dt;chainVal+=dInc;dolphGain+=dInc;addStyle(4*prox*dt);
+              const dInc=3.2*prox*prox*dtF; // le magot grimpe au CARRÉ de la proximité
+              dolphT+=dtF;chainVal+=dInc;dolphGain+=dInc;addStyle(4*prox*dtF);
               if(!trkDolph&&dolphT>.4){trkDolph=true;addTrick('dauphin','LE DAUPHIN !',3,2);}
               if(dolphT>.4){ // le nom RESTE à l'écran tant que les points comptent — on sait POURQUOI ça monte
                 chainHud.textContent='🐬 LE DAUPHIN +'+Math.round(dolphGain)+' · CHAÎNE ×'+Math.min(6,chainMult).toFixed(1);
@@ -4432,9 +4437,9 @@ function loop(now){
               if(!trkDolph2&&dolphT>2.4){trkDolph2=true;addTrick('dauphin2','DAUPHIN ROYAL !!',9,3);}
               if(prox>.55&&Math.random()<dt*22) // écume dorée sous la caisse quand on frôle vraiment
                 spawnP(sparkGold,fallPos.x,fallPos.y-1.1,fallPos.z,(Math.random()-.5)*6,-2-Math.random()*4,(Math.random()-.5)*6,.3);
-              if(curHOff>1.4&&curHOff<5.2){skimT+=dt;if(!trkSkim&&skimT>.55&&fallT>.9){trkSkim=true;addTrick('rase','RASE-MOTTES',8,2);}}
+              if(curHOff>1.4&&curHOff<5.2){skimT+=dtF;if(!trkSkim&&skimT>.55&&fallT>.9){trkSkim=true;addTrick('rase','RASE-MOTTES',8,2);}}
             }
-            else if(curHOff<-THICK-1.4&&curHOff>-THICK-8){limboT+=dt;if(!trkLimbo&&limboT>.35){trkLimbo=true;addTrick('limbo','LIMBO SOUS LA ROUTE',12,3);}}
+            else if(curHOff<-THICK-1.4&&curHOff>-THICK-8){limboT+=dtF;if(!trkLimbo&&limboT>.35){trkLimbo=true;addTrick('limbo','LIMBO SOUS LA ROUTE',12,3);}}
           }
           curNear=false;
         }
@@ -4467,7 +4472,7 @@ function loop(now){
       tmp2.crossVectors(tmp,tmp3);
       mat4.makeBasis(tmp3,tmp2,tmp);
       qTmp.setFromRotationMatrix(mat4);
-      airRoll+=(3.0+steer*2.2+Math.min(2,fallT*.5))*dt; // VRILLE : la caisse tourne sur elle-même
+      airRoll+=(3.0+steer*2.2+Math.min(2,fallT*.5))*dtF; // VRILLE : la caisse tourne sur elle-même (suit le vol accéléré)
       qTmp2.setFromAxisAngle(tmp,airRoll);
       qTmp.premultiply(qTmp2);
       carGroup.quaternion.slerp(qTmp,Math.min(1,dt*8));
@@ -4536,7 +4541,7 @@ function loop(now){
       }
       pieCtx.fillStyle='#fff';pieCtx.font='bold 15px monospace';pieCtx.textAlign='center';
       pieCtx.fillText((pwrAirT>0?pwrAirT:Math.max(0,AIR_MAX-fallT)).toFixed(1),37,42);
-      if(tryLand(dt)){airPie.style.display='none';}
+      if(tryLand(dtF)){airPie.style.display='none';}
       else if((fallT>AIR_MAX&&pwrAirT<=0)||fallPos.y<lastNearY-200){airPie.style.display='none';explode();}
     }else if(mode==='boom'){ // ---- EXPLOSION ----
       boomT+=dt;
