@@ -1525,8 +1525,50 @@ const headSpot=new THREE.SpotLight(0xffd9a0,1.2,72,.5,.6,1.2);
 headSpot.position.set(0,4,0);scene.add(headSpot);scene.add(headSpot.target);
 // REFLET NITRO/BOOST : la flamme éclaire VRAIMENT le bitume — pool de lumière derrière la caisse,
 // orange nitro / bleu réserve / or pad turbo, intensité 0 au repos (à l init, zéro recompilation)
-const nitroLight=new THREE.PointLight(0xff7a24,0,30);scene.add(nitroLight);
-const hsF=new THREE.Vector3(),hsU=new THREE.Vector3(); // nez + toit de la caisse (repère monde), réutilisés chaque frame
+const nitroLight=new THREE.PointLight(0xff7a24,0,18);scene.add(nitroLight); // portée courte : une FLAQUE de feu sous l'échappement, pas une rivière jusqu'à la caméra
+const hsF=new THREE.Vector3(),hsU=new THREE.Vector3(),hsR=new THREE.Vector3(); // nez + toit + flanc de la caisse (repère monde), réutilisés chaque frame
+// ---- TRAÎNÉE DE NITRO : deux RUBANS de lumière accrochés aux tuyères — le « swoosh » qui reste dans l'air.
+// Buffers fixes (zéro allocation en boucle), largeur orientée face caméra, fondu au carré de l'âge.
+const TRAIL_N=26;
+function mkTrail(){
+  const g=new THREE.BufferGeometry();
+  const pos=new Float32Array(TRAIL_N*2*3),col=new Float32Array(TRAIL_N*2*3);
+  g.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  g.setAttribute('color',new THREE.BufferAttribute(col,3));
+  const idx=[];for(let i=0;i<TRAIL_N-1;i++){const a=i*2;idx.push(a,a+1,a+2,a+1,a+3,a+2);}
+  g.setIndex(idx);
+  const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false}));
+  m.frustumCulled=false;m.visible=false;m.renderOrder=2;scene.add(m);
+  const hist=[];for(let i=0;i<TRAIL_N;i++)hist.push(new THREE.Vector3());
+  return {m,pos,col,hist,init:false};
+}
+const trailL=mkTrail(),trailR=mkTrail();let trailK=0;
+const rbD=new THREE.Vector3(),rbS=new THREE.Vector3(),rbV=new THREE.Vector3();
+function trailStep(tr,px,py,pz,cr,cg,cb,k){
+  if(k<.03){tr.m.visible=false;tr.init=false;return;}
+  const h=tr.hist;
+  if(!tr.init){for(const q of h)q.set(px,py,pz);tr.init=true;} // réveil : pas de trait fantôme depuis l'ancienne position
+  const tail=h.pop();tail.set(px,py,pz);h.unshift(tail);       // la tête colle à la tuyère, la queue s'efface
+  const P=tr.pos,C=tr.col;
+  for(let i=0;i<TRAIL_N;i++){
+    const p=h[i],pn=h[Math.min(i+1,TRAIL_N-1)],pp=h[Math.max(i-1,0)];
+    rbD.subVectors(pn,pp);rbV.subVectors(p,camera.position);
+    rbS.crossVectors(rbD,rbV);
+    const l2=rbS.lengthSq();
+    if(l2>1e-9)rbS.multiplyScalar(1/Math.sqrt(l2));else rbS.set(0,0,0);
+    const age=i/(TRAIL_N-1),w=.05+.20*(1-age);
+    let f=(1-age)*(1-age)*k;
+    const dC=rbV.length(); // la caméra de poursuite roule DANS le sillage : on efface le ruban à son approche (sinon voile blanc plein écran)
+    f*=Math.min(1,Math.max(0,(dC-3.2)/4.2));
+    P[i*6]=p.x+rbS.x*w;P[i*6+1]=p.y+rbS.y*w;P[i*6+2]=p.z+rbS.z*w;
+    P[i*6+3]=p.x-rbS.x*w;P[i*6+4]=p.y-rbS.y*w;P[i*6+5]=p.z-rbS.z*w;
+    C[i*6]=cr*f;C[i*6+1]=cg*f;C[i*6+2]=cb*f;
+    C[i*6+3]=cr*f;C[i*6+4]=cg*f;C[i*6+5]=cb*f;
+  }
+  tr.m.visible=true;
+  tr.m.geometry.attributes.position.needsUpdate=true;
+  tr.m.geometry.attributes.color.needsUpdate=true;
+}
 // ---- RIM GOLDEN HOUR : liseré doré sur les arêtes exposées au soleil (fresnel masqué côté lumière).
 // Uniforms PARTAGÉS entre toutes les caisses — une seule source de vérité, teinte pilotée par l'état dans loop().
 const RIM_U={uRimC:{value:new THREE.Color(0xffd9a0)},uRimStr:{value:.55},uRimPow:{value:3.0},uSunV:{value:new THREE.Vector3()}};
@@ -1551,9 +1593,32 @@ const lampTex=(function(){
   c.fillStyle=g;c.beginPath();c.arc(16,16,15,0,7);c.fill();
   return new THREE.CanvasTexture(cv);
 })();
+// ---- PLUME DE RÉACTEUR (façon fusée) : cône incandescent à la tuyère — dégradé + ANNEAUX DE CHOC bakés.
+// Blanc pur dans la texture, la teinte vient du matériau (orange nitro / bleu réserve). Partagé par toutes les caisses.
+const jetTex=(function(){
+  const cv=document.createElement('canvas');cv.width=64;cv.height=128;
+  const c=cv.getContext('2d');
+  const g=c.createLinearGradient(0,128,0,0); // y=128 → v0 = base du cône (tuyère) : brûlant, puis ça meurt vers la pointe
+  g.addColorStop(0,'rgba(255,255,255,.95)');g.addColorStop(.22,'rgba(255,255,255,.55)');
+  g.addColorStop(.55,'rgba(255,255,255,.20)');g.addColorStop(1,'rgba(255,255,255,0)');
+  c.fillStyle=g;c.fillRect(0,0,64,128);
+  c.fillStyle='rgba(255,255,255,.45)';c.fillRect(0,88,64,5);  // diamants de Mach : deux pinces lumineuses dans le jet
+  c.fillStyle='rgba(255,255,255,.28)';c.fillRect(0,60,64,4);
+  return new THREE.CanvasTexture(cv);
+})();
+const jetGeo=(function(){
+  const g=new THREE.ConeGeometry(1,1,10,1,true);
+  g.rotateX(-Math.PI/2);g.translate(0,0,-.5); // base à la tuyère, pointe vers l'ARRIÈRE (-Z caisse)
+  return g;
+})();
+const jetShellM=new THREE.MeshBasicMaterial({map:jetTex,color:0xff8c30,transparent:true,opacity:.85,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false});
+const jetCoreM=new THREE.MeshBasicMaterial({map:jetTex,color:0xffe6b0,transparent:true,opacity:.92,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false});
+const jetGlowM=new THREE.SpriteMaterial({map:lampTex,color:0xff9040,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false});
+const JETS={shells:[],cores:[],glows:[],k:0}; // rempli par buildCar, animé chaque frame
 function buildCar(spec){
   while(carGroup.children.length)carGroup.remove(carGroup.children[0]);
   wheels.length=0;
+  JETS.shells.length=0;JETS.cores.length=0;JETS.glows.length=0; // les plumes de l'ancienne caisse partent avec elle
   const lvl=CARS.indexOf(spec),wreck=lvl===0;
   // brillance qui explose avec le niveau — l'épave est mate et rouillée
   const shin=wreck?16:50+lvl*34;                       // la brillance GRIMPE fort par niveau
@@ -1676,6 +1741,16 @@ function buildCar(spec){
     const ex=new THREE.Mesh(new THREE.CylinderGeometry(.09,.11,.34,10),wreck?rustM:chromeM);
     ex.rotation.x=Math.PI/2;
     ex.position.set(sd*spec.w*.22,y0+.08,-spec.l/2-.14);carGroup.add(ex);
+    // PLUME DE RÉACTEUR : coquille colorée + cœur blanc + halo de tuyère — animés chaque frame (JETS)
+    const js9=new THREE.Mesh(jetGeo,jetShellM),jc9=new THREE.Mesh(jetGeo,jetCoreM);
+    js9.position.set(sd*spec.w*.22,y0+.08,-spec.l/2-.28);jc9.position.copy(js9.position);
+    js9.scale.set(.1,.1,.02);jc9.scale.set(.05,.05,.02);
+    js9.visible=jc9.visible=false;
+    js9.userData.noShadow=jc9.userData.noShadow=true;js9.renderOrder=jc9.renderOrder=3;
+    carGroup.add(js9);carGroup.add(jc9);JETS.shells.push(js9);JETS.cores.push(jc9);
+    const jg9=new THREE.Sprite(jetGlowM);
+    jg9.scale.set(.3,.3,1);jg9.position.copy(js9.position);jg9.visible=false;
+    carGroup.add(jg9);JETS.glows.push(jg9);
   }
   // ---- DÉTAILS v1.61 : la caméra s'est rapprochée, la caisse doit le mériter ----
   const seamM=new THREE.MeshBasicMaterial({color:0x0a0c10,transparent:true,opacity:.55});
@@ -1927,13 +2002,13 @@ function updateStreaks(dt){
   }
   streaks.mesh.geometry.attributes.position.needsUpdate=true;
 }
-const flames=makePool(150,1.8,0xff9030,.95);
+const flames=makePool(150,1.8,0xff9030,.8); // braises (les GROSSES nappes, c'est fini : le plume mesh fait le spectacle)
 flames.mesh.material.blending=THREE.AdditiveBlending;
-const flameCore=makePool(90,1.0,0xffe9a0,.95); // cœur chaud des flammes (deux tons)
+const flameCore=makePool(90,1.0,0xffe9a0,.9); // cœur chaud des braises (deux tons)
 flameCore.mesh.material.blending=THREE.AdditiveBlending;
 const embers=makePool(120,.55,0xffb24a,1); // braises fines qui s'échappent du feu et montent
 embers.mesh.material.blending=THREE.AdditiveBlending;
-const exSmoke=makePool(90,2.6,0x9aa2ac,.26); // voile de fumée qui suit le feu
+const exSmoke=makePool(90,1.7,0x9aa2ac,.16); // voile de fumée qui suit le feu (discret : plus de blobs blancs devant l'objectif)
 // ---------- EXPLOSION ----------
 const boomPool=makePool(240,3.0,0xff8a30,1);boomPool.mesh.material.blending=THREE.AdditiveBlending;
 const smokePool=makePool(120,3.6,0x2a2a2e,.45);
@@ -4174,28 +4249,30 @@ function loop(now){
             spawnStreak(tmp2.x,tmp2.y,tmp2.z,fwdW.x*ln9,fwdW.y*ln9,fwdW.z*ln9);
           }
         }
-        // flammes d'échappement : cône deux tons + flicker, sortent des pots chromés
-        flames.mesh.material.size=(1.35+level*.28)*(nitroOn?1.6:1)*(.85+Math.random()*.35);
-        flameCore.mesh.material.size=(.7+level*.14)*(nitroOn?1.7:1)*(.8+Math.random()*.4);
+        // BRAISES d'échappement : fines, vie COURTE, jet serré — le plume mesh (JETS) et la traînée
+        // font le spectacle, les particules ne sont plus que des étincelles qui giclent. Fini le mur
+        // blanc : avant, des sprites géants restaient plantés dans le monde et la caméra les TRAVERSAIT.
+        flames.mesh.material.size=Math.min(1.15,.45+level*.04)*(nitroOn?1.2:1)*(.8+Math.random()*.3);
+        flameCore.mesh.material.size=Math.min(.65,.25+level*.02)*(nitroOn?1.25:1)*(.75+Math.random()*.35);
         flames.mesh.material.color.set(nitroOn?(nitroBlue?0x3a5bff:0xff8020):0xff9030);
         flameCore.mesh.material.color.set(nitroOn?(nitroBlue?0xbfd6ff:0xffd9a0):0xffe2a8);
-        const fl=(up||nitroOn)?(nitroOn?4:2)+Math.floor(level/3):(Math.abs(vF)>8?1:0);
+        const fl=(up||nitroOn)?(nitroOn?5:2)+Math.min(3,Math.floor(level/5)):(Math.abs(vF)>8?1:0);
         for(let k=0;k<fl;k++){
           const sd3=k%2?-1:1;
-          tmp2.copy(carGroup.position).addScaledVector(fwdW,-spec.l/2-.18).addScaledVector(tmp,sd3*spec.w*.22).addScaledVector(F.n,.43);
-          const vsp=nitroOn?2.4:2.8;
-          spawnP(flames,tmp2.x+(Math.random()-.5)*.24,tmp2.y+(Math.random()-.5)*.24,tmp2.z+(Math.random()-.5)*.24,
-            -fwdW.x*(8+level+(nitroOn?6:0))+(Math.random()-.5)*vsp,F.n.y+(Math.random()-.5)*vsp,-fwdW.z*(8+level+(nitroOn?6:0))+(Math.random()-.5)*vsp,
-            .09+level*.015+(nitroOn?.1:0)+Math.random()*.08);
-          if((nitroOn||level>=5)&&Math.random()<.22)spawnP(exSmoke,tmp2.x,tmp2.y+.2,tmp2.z,
+          tmp2.copy(carGroup.position).addScaledVector(fwdW,-spec.l/2-.22).addScaledVector(tmp,sd3*spec.w*.22).addScaledVector(F.n,.43);
+          const vsp=nitroOn?1.2:1.8;
+          spawnP(flames,tmp2.x+(Math.random()-.5)*.12,tmp2.y+(Math.random()-.5)*.12,tmp2.z+(Math.random()-.5)*.12,
+            -fwdW.x*(14+level*.6+(nitroOn?10:0))+(Math.random()-.5)*vsp,F.n.y*.5+(Math.random()-.5)*vsp,-fwdW.z*(14+level*.6+(nitroOn?10:0))+(Math.random()-.5)*vsp,
+            .05+(nitroOn?.04:0)+Math.random()*.05);
+          if((nitroOn||level>=5)&&Math.random()<.10)spawnP(exSmoke,tmp2.x,tmp2.y+.2,tmp2.z,
             -fwdW.x*3+(Math.random()-.5)*1.5,.8+Math.random(),-fwdW.z*3+(Math.random()-.5)*1.5,
-            .5+Math.random()*.5);
-          if(Math.random()<.35)spawnP(embers,tmp2.x,tmp2.y,tmp2.z,
-            -fwdW.x*(4+Math.random()*7)+(Math.random()-.5)*3,1+Math.random()*3,-fwdW.z*(4+Math.random()*7)+(Math.random()-.5)*3,
-            .35+Math.random()*.4);
-          if(k<2)spawnP(flameCore,tmp2.x+(Math.random()-.5)*.15,tmp2.y+(Math.random()-.5)*.15,tmp2.z+(Math.random()-.5)*.15,
-            -fwdW.x*(10+level+(nitroOn?8:0))+(Math.random()-.5)*1.4,F.n.y*.5+(Math.random()-.5)*1.4,-fwdW.z*(10+level+(nitroOn?8:0))+(Math.random()-.5)*1.4,
-            .06+Math.random()*.07+(nitroOn?.07:0));
+            .4+Math.random()*.35);
+          if(Math.random()<.3)spawnP(embers,tmp2.x,tmp2.y,tmp2.z,
+            -fwdW.x*(5+Math.random()*8)+(Math.random()-.5)*3,1+Math.random()*3,-fwdW.z*(5+Math.random()*8)+(Math.random()-.5)*3,
+            .3+Math.random()*.35);
+          if(k<2)spawnP(flameCore,tmp2.x+(Math.random()-.5)*.08,tmp2.y+(Math.random()-.5)*.08,tmp2.z+(Math.random()-.5)*.08,
+            -fwdW.x*(17+level*.6+(nitroOn?12:0))+(Math.random()-.5)*.9,F.n.y*.3+(Math.random()-.5)*.9,-fwdW.z*(17+level*.6+(nitroOn?12:0))+(Math.random()-.5)*.9,
+            .04+Math.random()*.04+(nitroOn?.03:0));
         }
         // backfire : pop de flammes quand on relâche les gaz à haut régime
         if(!up&&loop._wasUp&&speedKmh>140){
@@ -4535,11 +4612,40 @@ function loop(now){
     headSpot.intensity=(mode==='boom')?0:1.2;
     // REFLET NITRO/BOOST : le pool de lumière colle à l'échappement (repère caisse : marche aussi sous la dalle)
     hsU.set(0,1,0).applyQuaternion(carGroup.quaternion);
-    nitroLight.position.copy(carGroup.position).addScaledVector(hsF,-2.4).addScaledVector(hsU,.6);
-    const nTgt=(mode==='boom')?0:((nitroOn?(nitroBlue?3.0:2.4):0)+(boost>0?1.1:0));
+    nitroLight.position.copy(carGroup.position).addScaledVector(hsF,-2.2).addScaledVector(hsU,.5);
+    const nTgt=(mode==='boom')?0:((nitroOn?(nitroBlue?2.1:1.6):0)+(boost>0?.8:0)); // tempéré : un reflet, pas un projecteur de chantier
     nitroLight.intensity+=(nTgt*(.82+.18*Math.sin(t*43))-nitroLight.intensity)*Math.min(1,dt*14); // flamme qui tremble, fondu doux
     if(nitroOn)nitroLight.color.setHex(nitroBlue?0x5b7dff:0xff7a24); // orange nitro / bleu réserve (mêmes teintes que les particules)
     else if(boost>0)nitroLight.color.setHex(0xffb040); // pad turbo : coup d'or
+    // PLUME DE RÉACTEUR : court au filage, long et affûté à la nitro — flicker haute fréquence, la flamme VIT
+    const jTgt=(mode==='boom')?0:((nitroOn?(nitroBlue?1.35:1.05):((mode!=='drive'||loop._wasUp)&&Math.abs(speedKmh)>20?.34:0))+(boost>0?.4:0));
+    JETS.k+=(jTgt-JETS.k)*Math.min(1,dt*11);
+    if(JETS.shells.length){
+      const jOn=JETS.k>.05,fl9=.82+.18*Math.sin(t*57+Math.sin(t*33)*2.1);
+      const jl=Math.max(.03,(.5+level*.035)*JETS.k*2.1*fl9),jr=.09+.07*JETS.k;
+      jetShellM.color.setHex(nitroBlue?0x4f76ff:(nitroOn?0xff6a18:0xff8c30));
+      jetCoreM.color.setHex(nitroBlue?0xd6e4ff:0xffe6b0);
+      jetGlowM.color.copy(jetShellM.color);jetGlowM.opacity=Math.min(1,JETS.k*.95*fl9);
+      for(const m9 of JETS.shells){m9.visible=jOn;m9.scale.set(jr,jr,jl);}
+      for(const m9 of JETS.cores){m9.visible=jOn;m9.scale.set(jr*.48,jr*.48,jl*.72);}
+      const g9=.2+.55*JETS.k*fl9;
+      for(const s9 of JETS.glows){s9.visible=jOn;s9.scale.set(g9,g9,1);}
+    }
+    // TRAÎNÉE DE NITRO : les rubans collent aux tuyères — orange nitro, bleu réserve, or pad turbo
+    const tTgt=(mode==='boom')?0:(nitroOn?1:(boost>0?.5:0));
+    trailK+=(tTgt-trailK)*Math.min(1,dt*(tTgt>trailK?16:6)); // s'allume sec, s'éteint en douceur
+    hsR.set(1,0,0).applyQuaternion(carGroup.quaternion);
+    const spec9=CARS[level],tz9=-(spec9.l/2+.32);
+    let tcr,tcg,tcb;
+    if(nitroBlue){tcr=.45;tcg=.62;tcb=1.6;}else if(nitroOn){tcr=1.35;tcg=.40;tcb=.06;}else{tcr=1.2;tcg=.62;tcb=.10;} // couleurs FRANCHES : le ruban doit rester orange/bleu, jamais blanc
+    for(const s9 of [-1,1]){
+      const tr9=s9<0?trailL:trailR,ox9=s9*spec9.w*.22;
+      trailStep(tr9,
+        carGroup.position.x+hsF.x*tz9+hsR.x*ox9+hsU.x*.43,
+        carGroup.position.y+hsF.y*tz9+hsR.y*ox9+hsU.y*.43,
+        carGroup.position.z+hsF.z*tz9+hsR.z*ox9+hsU.z*.43,
+        tcr,tcg,tcb,trailK);
+    }
     // sons continus
     if(AC){
       const spd3=speedKmh;

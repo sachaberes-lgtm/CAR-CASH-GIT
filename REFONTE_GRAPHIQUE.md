@@ -145,6 +145,26 @@ Validé au banc `dev/atelier-ombres.html` + partie complète sans erreur console
 - **Validation headless** : `/debug` (rAF pompable `__pump` + `__shot`) — nitro déclenchée au
   clavier (ShiftLeft), captures conduite/nitro/vol OK, zéro erreur console.
 
+## 9. ÉCHAPPEMENT v2 — plume fusée + traînée ruban (2026-07-14 nuit) — ✅ LIVRÉ
+
+> Sacha : « les flammes du pot et la traînée nitro font jeu amateur ». Diagnostic : les particules
+> étaient des sprites additifs GÉANTS posés dans le monde — la caméra de poursuite roulait au
+> travers, chaque sprite balayait l'objectif → mur blanc plein écran.
+
+- **Plume de réacteur** (`JETS`) : cône additif par pot — coquille teintée (orange/bleu réserve)
+  + cœur blanc + halo tuyère, texture canvas avec anneaux de choc, flicker 57 Hz, longueur pilotée
+  par `JETS.k` (gaz .34 / nitro 1.05 / réserve 1.35 / pad +.4). Construit dans buildCar, `noShadow`.
+- **Traînée ruban** (`trailStep`) : 2 rubans additifs à buffers fixes (26 segments), historique de
+  positions des tuyères, largeur face caméra, fondu (1-âge)²، **fondu <3-7 m de la caméra**
+  (indispensable : la caméra suit exactement la trajectoire = elle roule dans le sillage),
+  reset au réveil. Couleurs franches : orange 1.35/.40/.06, bleu .45/.62/1.6, or pad.
+- **Braises** : tailles plafonnées (1.15/.65), vie .05-.14 s, jet resserré, exSmoke 1.7/.16.
+- **nitroLight** : portée 30→18, hauteur .5, intensité 1.6/2.1 — une FLAQUE sous l'échappement ;
+  à 30 m elle peignait une rivière spéculaire jusqu'à la caméra (le « fleuve blanc »).
+- **Pièges de banc headless découverts** : le jeu s'AUTO-PAUSE sur `visibilitychange` (pane
+  toujours hidden) → neutraliser `document.hidden` + KeyP ; ne JAMAIS dispatcher les KeyboardEvent
+  sur document ET window (bulle → double déclenchement : KeyP togglait la pause deux fois).
+
 ## 7. CRÉPUSCULE BRAISE — nuit sombre, lumières héroïnes (2026-07-14) — ⛔ REMPLACÉ PAR §8
 
 > v1 « rose Miami » jugée TROP ROSE par Sacha → v2 : retour aux couleurs d'avant (marine/corail/or)
