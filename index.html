@@ -1117,43 +1117,72 @@ function genCtrl(rnd,startPos,startPhi){
             base.z+d.z*R*Math.sin(th)+sz*shift*th/(2*Math.PI));
       push();}
     approx+=2*Math.PI*R;};
-  straight(170,-105,2); // DÉPART : toujours une grande ligne droite
-  while(approx<7200){
-    const r=rnd();
-    if(r<.20&&approx-lastLoop>220){ // looping (superposition verticale)
-      straight(40+rnd()*60,-45);loop(30+rnd()*34,30+rnd()*22);straight(35+rnd()*50,-42);lastLoop=approx;
-      if(rnd()<.35){straight(50+rnd()*40,-48);loop(26+rnd()*22,28+rnd()*14);}
-    }else if(r<.42){ // hélice : la route s'empile sur elle-même (plus fréquent)
-      const sg=rnd()<.5?-1:1,Rh=60+rnd()*95,ah=260+rnd()*340;
+  // ---- ADN DE PISTE : chaque zone tire une PERSONNALITÉ — fini le shuffle statistiquement identique ----
+  // LV : la vitesse de la caisse élargit TOUS les rayons (praticable même à 1500 km/h) et allonge les respirations.
+  const LV=1+Math.min(2.6,level*.13);
+  const AR=[ // poids des 10 motifs [loop,hélice,épingle,esses,vague,virage,plongeon,droite,chicane,spirale] + caractère
+    {nm:'FLOW',   w:[6,10,2,22,8,24,5,8,5,10],   rs:1.35,vt:.8},  // autoroute céleste : sweepers qui chantent
+    {nm:'TECH',   w:[5,8,22,14,7,8,7,9,16,4],    rs:.92, vt:.9},  // slalom : épingles ouvertes, chicanes
+    {nm:'ALPIN',  w:[5,7,5,8,26,7,20,12,4,6],    rs:1.1, vt:1.4}, // crêtes à sauter, plongeons de vertige
+    {nm:'VOLTIGE',w:[22,20,3,7,10,7,10,7,4,10],  rs:1.15,vt:1.1}, // le ciel est un cirque : loops et hélices
+    {nm:'GRAND8', w:[11,11,10,12,12,11,11,8,7,7],rs:1,   vt:1}    // mixte équilibré
+  ][Math.floor(rnd()*5)];
+  const RS=AR.rs*LV,VT=AR.vt,LOOPS=1+(LV-1)*.35; // les loops grossissent doucement (un loop de 120 m reste un loop)
+  const hand=rnd()<.33?-1:(rnd()<.5?0:1);        // LATÉRALITÉ : une piste qui spirale à gauche ne ressemble pas à une équilibrée
+  const sgn=()=>rnd()<.5+hand*.22?1:-1;
+  const wsum=AR.w.reduce((a,b)=>a+b,0);
+  const pick=()=>{let x=rnd()*wsum;for(let k=0;k<10;k++){x-=AR.w[k];if(x<0)return k;}return 9;};
+  const LEN=7200*(1+Math.min(1.1,level*.07)); // zones plus longues à haute vitesse (sinon 13 s et portail)
+  straight(170+level*14,-105,2); // DÉPART : grande ligne droite, rallongée avec la vitesse
+  while(approx<LEN){
+    const mo=pick();
+    if(mo===0&&approx-lastLoop>220){ // looping (superposition verticale)
+      straight(40+rnd()*60,-45);loop((30+rnd()*34)*LOOPS,30+rnd()*22);straight(35+rnd()*50,-42);lastLoop=approx;
+      if(rnd()<.35){straight(50+rnd()*40,-48);loop((26+rnd()*22)*LOOPS,28+rnd()*14);}
+    }else if(mo===1){ // hélice : la route s'empile sur elle-même
+      const sg=sgn(),Rh=(60+rnd()*95)*RS,ah=Math.min(260+rnd()*340,58000/Rh);
       arc(sg*ah,Rh,8+Math.floor(rnd()*5),-(ah*Math.PI/180*Rh*(.5+rnd()*.35)));
-    }else if(r<.48){ // épingle OUVERTE (fini l'ultra-serré)
-      const sg=rnd()<.5?-1:1;
+    }else if(mo===2){ // épingle OUVERTE — s'évase avec le niveau (praticable à toute vitesse)
+      const sg=sgn();
       straight(25+rnd()*40,-25);
-      arc(sg*180,55+rnd()*50,5,-(24+rnd()*26));
+      arc(sg*180/Math.max(1,Math.sqrt(LV*.7)),(55+rnd()*50)*RS,5,-(24+rnd()*26));
       straight(25+rnd()*40,-25);
-    }else if(r<.58){ // esses amples
-      const nS=1+Math.floor(rnd()*3),a=25+rnd()*45,R=80+rnd()*100;
+    }else if(mo===3){ // esses amples
+      const nS=1+Math.floor(rnd()*3),a=25+rnd()*45,R=(80+rnd()*100)*RS;
       for(let q=0;q<nS;q++){
         const dl=a*Math.PI/180*R*(.6+rnd()*.5);
         arc(a,R,2,-dl);arc(-a,R,2,-dl);
       }
-    }else if(r<.68){ // vague verticale : bosse + creux (crête à sauter !)
-      straight(40+rnd()*40,-(10+rnd()*20));
-      straight(50+rnd()*40,20+rnd()*25);  // remontée surprise
-      straight(60+rnd()*50,-(90+rnd()*70)); // et ça replonge
-    }else if(r<.80){ // grand virage large
-      const sg=rnd()<.5?-1:1,a2=30+rnd()*70,R2=95+rnd()*150;
+    }else if(mo===4){ // vague verticale : bosse + creux (crête à sauter !)
+      straight(40+rnd()*40,-(10+rnd()*20)*VT);
+      straight(50+rnd()*40,(20+rnd()*25)*VT);  // remontée surprise
+      straight(60+rnd()*50,-(90+rnd()*70)*VT); // et ça replonge
+    }else if(mo===5){ // grand virage large
+      const sg=sgn(),R2=(95+rnd()*150)*RS,a2=Math.min(30+rnd()*70,46000/R2);
       arc(sg*a2,R2,3,-(a2*Math.PI/180*R2*(.6+rnd()*.5)));
-    }else if(r<.90){ // plongeon, parfois presque vertical
-      straight(60+rnd()*80,-(90+rnd()*130),2);
-      const sg=rnd()<.5?-1:1,a3=25+rnd()*50,R3=90+rnd()*80;
+    }else if(mo===6){ // plongeon, parfois presque vertical
+      straight(60+rnd()*80,-(90+rnd()*130)*VT,2);
+      const sg=sgn(),a3=25+rnd()*50,R3=(90+rnd()*80)*RS;
       arc(sg*a3,R3,2,-(a3*Math.PI/180*R3*.8));
-    }else{ // ligne droite à 45° (zone de momentum)
-      const l=100+rnd()*130;
+    }else if(mo===7){ // ligne droite à 45° (zone de momentum)
+      const l=(100+rnd()*130)*(1+level*.04);
       straight(l,-l*(.75+rnd()*.3),2);
+    }else if(mo===8){ // chicane rapide : gauche-droite-gauche à pleine vitesse
+      const n8=3+Math.floor(rnd()*3),a8=16+rnd()*14,R8=(70+rnd()*90)*RS;let sg8=sgn();
+      for(let q=0;q<n8;q++){arc(sg8*a8,R8,2,-(a8*Math.PI/180*R8*.5));sg8=-sg8;}
+    }else{ // spirale géante descendante : un tour de manège qui n'en finit pas
+      const sg=sgn(),RSp=(130+rnd()*90)*RS*.8,aS=Math.min(360+rnd()*220,52000/RSp);
+      arc(sg*aS,RSp,12+Math.floor(rnd()*5),-(aS*Math.PI/180*RSp*(.42+rnd()*.2)));
     }
+    if(rnd()<.6)straight(30+rnd()*50+level*9,-(18+rnd()*16)); // RESPIRATION entre motifs : le rythme fait la piste
   }
-  straight(150,-90,2); // ARRIVÉE : ligne droite claire vers le portail
+  // SIGNATURE DE FIN : chaque archétype clôt SA zone par SON geste — la zone se retient
+  if(AR.nm==='VOLTIGE'){straight(50,-46);loop(34*LOOPS,34);straight(40,-40);loop(28*LOOPS,26);}
+  else if(AR.nm==='ALPIN'){straight(70,-160);straight(80,26);straight(90,-180);}
+  else if(AR.nm==='FLOW'){arc(sgn()*110,220*Math.min(2,LV),6,-160);}
+  else if(AR.nm==='TECH'){let sgF=sgn();for(let q=0;q<3;q++){arc(sgF*24,90*RS,2,-26);sgF=-sgF;}}
+  else{const sg=sgn();arc(sg*420,80*RS,12,-(420*Math.PI/180*80*RS*.5));}
+  straight(150+level*12,-90,2); // ARRIVÉE : ligne droite claire vers le portail
   return ctrl;
 }
 function buildTrack(seed){
@@ -1234,7 +1263,10 @@ function buildTrack(seed){
   }
   const flank=new THREE.MeshLambertMaterial({color:0x14101f,side:THREE.DoubleSide}); // tranches violet-noir : elles boivent le fill néon
   strip(sideL_,flank);strip(sideR_,flank);
-  // BANDES NÉON ROSE (dessus + dessous) : les rails de Vice City — plus sombres que la v1, mais ils claquent dans la nuit
+  // ACCENT DE ZONE : chaque piste choisit SON néon — la nuit change de couleur à chaque portail
+  const ACCENTS=[0xf24aa0,0x3ee6f0,0xffb445,0x50f0a8,0xa06bff,0xff6a55]; // rose · cyan · ambre · menthe · violet électrique · corail
+  const accC=new THREE.Color(ACCENTS[Math.floor(rnd()*ACCENTS.length)]);
+  // BANDES NÉON (dessus + dessous) : les rails de Vice City — couleur d'accent de la zone
   for(const fy of [0,-THICK]) for(const sd of [-1,1]){
     const ep=[],ei=[];
     for(let i=0;i<NP;i++){
@@ -1246,7 +1278,7 @@ function buildTrack(seed){
     const g2=new THREE.BufferGeometry();
     g2.setAttribute('position',new THREE.Float32BufferAttribute(ep,3));
     g2.setIndex(ei);
-    const e=new THREE.Mesh(g2,new THREE.MeshBasicMaterial({color:0xf24aa0,side:THREE.DoubleSide}));
+    const e=new THREE.Mesh(g2,new THREE.MeshBasicMaterial({color:accC,side:THREE.DoubleSide}));
     scene.add(e);trackMeshes.push(e);
   }
   // NAPPE DE LUEUR sous chaque bande : additif qui saigne vers l intérieur du bitume — sans fog, le néon perce
@@ -1259,7 +1291,7 @@ function buildTrack(seed){
         const oI=sd*(ROAD_HALF-1.05),oO=sd*(ROAD_HALF+.10);
         gp.push(p.x+b.x*oI+nn.x*h,p.y+b.y*oI+nn.y*h,p.z+b.z*oI+nn.z*h,
                 p.x+b.x*oO+nn.x*h,p.y+b.y*oO+nn.y*h,p.z+b.z*oO+nn.z*h);
-        gc.push(0,0,0,.46,.09,.26); // noir additif = invisible → dégradé rose sombre qui meurt sur l asphalte
+        gc.push(0,0,0,accC.r*.48,accC.g*.48,accC.b*.48); // noir additif = invisible → dégradé d'accent qui meurt sur l asphalte
       }
       for(let i=0;i<NP-1;i++){const a2=vb+2*i,b2=a2+1,c2=a2+2,d2=a2+3;gi.push(a2,c2,b2,b2,c2,d2);}
       vb+=NP*2;
@@ -1271,13 +1303,13 @@ function buildTrack(seed){
     const nm=new THREE.Mesh(g3,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide,transparent:true,opacity:.78,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
     nm.renderOrder=1;scene.add(nm);trackMeshes.push(nm);
   }
-  // ligne centrale pointillée — sodium doré, comme les vraies voies rapides la nuit
+  // ligne centrale pointillée — sodium doré, comme les vraies voies rapides la nuit (les DEUX faces : zéro dessus-dessous)
   (function(){
     const lp=[];
-    for(let i=0;i<NP-8;i+=16){
+    for(const fy of [.09,-THICK-.09])for(let i=0;i<NP-8;i+=16){
       for(const j of [i,i+7]){
         const p2=pts[j],nn=Nn[j];
-        lp.push(p2.x+nn.x*.09,p2.y+nn.y*.09,p2.z+nn.z*.09);
+        lp.push(p2.x+nn.x*fy,p2.y+nn.y*fy,p2.z+nn.z*fy);
       }
     }
     const g=new THREE.BufferGeometry();
@@ -1298,7 +1330,7 @@ function buildTrack(seed){
       scene.add(m);trackMeshes.push(m);
     }
   }
-  // dos d'âne (face du dessus uniquement)
+  // dos d'âne — les DEUX faces, même endroit : le monde est identique où qu'on roule
   for(let sp=320+rnd()*260;sp<L-160;sp+=420+rnd()*420){
     BUMPS.push(sp);
     frameAt(sp,F);
@@ -1306,11 +1338,14 @@ function buildTrack(seed){
     m.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(F.b.clone(),F.n.clone(),F.t.clone()));
     m.position.copy(F.p).addScaledVector(F.n,.17);
     scene.add(m);trackMeshes.push(m);
+    const m2=new THREE.Mesh(bumpGeo,bumpMat); // le jumeau du dessous
+    m2.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(F.b.clone(),F.n.clone().negate(),F.t.clone().negate()));
+    m2.position.copy(F.p).addScaledVector(F.n,-THICK-.17);
+    scene.add(m2);trackMeshes.push(m2);
   }
   // (Paris retiré — la ville a cédé sa place au ciel)
   // FLAQUES D'HUILE : rares, et seulement là où on les VOIT — ligne droite, jamais en montée
-  let oilI=0;
-  for(let sp=420+rnd()*500;sp<L-220;sp+=620+rnd()*760){
+  for(let sp=420+rnd()*500;sp<L-220;sp+=1240+rnd()*1520){ // intervalle doublé : miroir = même densité par face qu'avant
     if(rnd()<.4)continue; // encore plus rare
     const io=Math.floor(sp/L*(NP-1));
     const ia=Math.max(0,io-40),ib=Math.min(NP-1,io+40);
@@ -1319,18 +1354,19 @@ function buildTrack(seed){
     if(!straight||climbing)continue;
     frameAt(sp,F);
     const r9=2+rnd()*1.1, lo=(rnd()*2-1)*(ROAD_HALF-4.5);
-    const of9=(oilI++%2)?-1:1; // une flaque dessus, une dessous : parité stricte
-    const m=new THREE.Mesh(oilGeo,oilMat);
-    m.scale.set(r9*1.35,r9,1);
-    m.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(F.b.clone(),F.t.clone().negate().multiplyScalar(of9),F.n.clone().multiplyScalar(of9)));
-    m.position.copy(F.p).addScaledVector(F.b,lo).addScaledVector(F.n,of9>0?.05:-THICK-.05);
-    scene.add(m);trackMeshes.push(m);
-    const rim=new THREE.Mesh(oilGeo,oilRimMat);
-    rim.scale.set(r9*1.5,r9*1.12,1);
-    rim.quaternion.copy(m.quaternion);
-    rim.position.copy(F.p).addScaledVector(F.b,lo).addScaledVector(F.n,of9>0?.04:-THICK-.04);
-    scene.add(rim);trackMeshes.push(rim);
-    OILS.push({s:sp,lat:lo,r:r9,face:of9});
+    for(const of9 of [1,-1]){ // la MÊME flaque sur les deux faces : zéro dessus-dessous
+      const m=new THREE.Mesh(oilGeo,oilMat);
+      m.scale.set(r9*1.35,r9,1);
+      m.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(F.b.clone(),F.t.clone().negate().multiplyScalar(of9),F.n.clone().multiplyScalar(of9)));
+      m.position.copy(F.p).addScaledVector(F.b,lo).addScaledVector(F.n,of9>0?.05:-THICK-.05);
+      scene.add(m);trackMeshes.push(m);
+      const rim=new THREE.Mesh(oilGeo,oilRimMat);
+      rim.scale.set(r9*1.5,r9*1.12,1);
+      rim.quaternion.copy(m.quaternion);
+      rim.position.copy(F.p).addScaledVector(F.b,lo).addScaledVector(F.n,of9>0?.04:-THICK-.04);
+      scene.add(rim);trackMeshes.push(rim);
+      OILS.push({s:sp,lat:lo,r:r9,face:of9});
+    }
   }
   // plots de chantier orange : slaloms + lignes de bord — à esquiver… ou à envoyer valser
   function placeCone(cs,cl,fc){
@@ -1343,24 +1379,23 @@ function buildTrack(seed){
     scene.add(m);trackMeshes.push(m);
     CONES.push({s:cs,lat:cl,mesh:m,hit:false,face:fc});
   }
-  let cnGrp=0; // chaque GROUPE de plots alterne de face : chantier identique dessus et dessous
-  for(let sp=300+rnd()*220;sp<L-170;sp+=170+rnd()*260){
-    const cnF=(cnGrp++%2)?-1:1;
+  // chaque GROUPE de plots existe sur LES DEUX faces (même chantier) — intervalle doublé : densité par face inchangée
+  for(let sp=300+rnd()*220;sp<L-170;sp+=340+rnd()*520){
     if(rnd()<.55){ // slalom en quinconce au milieu de la route
       const w9=3.5+rnd()*4.5;
-      for(let k=0;k<3;k++)placeCone(sp+k*15,(k%2?-1:1)*w9,cnF);
+      for(const fc of [1,-1])for(let k=0;k<3;k++)placeCone(sp+k*15,(k%2?-1:1)*w9,fc);
     }else{ // ligne de chantier le long d'un bord
       const sd9=rnd()<.5?-1:1;
-      for(let k=0;k<4;k++)placeCone(sp+k*7.5,sd9*(ROAD_HALF-1.3),cnF);
+      for(const fc of [1,-1])for(let k=0;k<4;k++)placeCone(sp+k*7.5,sd9*(ROAD_HALF-1.3),fc);
     }
   }
   // ---- FIN DE PARTIE (niveau 6+) : 2e vague de plots ----
   // Flux aléatoire SÉPARÉ (graine dérivée) : la densité dépend du niveau sans rebrasser la génération.
   if(level>=5){
     const wrnd=mulberry32((seed^0xCA55E77E)>>>0);
-    for(let sp=385+wrnd()*220;sp<L-170;sp+=200+wrnd()*300){ // 2e vague de plots, faces alternées
-      const w9=3+wrnd()*5,f9=(cnGrp++%2)?-1:1;
-      for(let k=0;k<3;k++)placeCone(sp+k*13,(k%2?-1:1)*w9,f9);
+    for(let sp=385+wrnd()*220;sp<L-170;sp+=400+wrnd()*600){ // 2e vague de plots, miroir deux faces (intervalle doublé)
+      const w9=3+wrnd()*5;
+      for(const f9 of [1,-1])for(let k=0;k<3;k++)placeCone(sp+k*13,(k%2?-1:1)*w9,f9);
     }
   }
   // NUAGES : on roule DANS le ciel — grappes volumétriques traversables + couche lointaine diaphane
@@ -1870,33 +1905,35 @@ const mat4b=new THREE.Matrix4();
 function spawnPickups(rnd){
   for(const p of pickups)scene.remove(p.mesh);
   pickups.length=0;
-  let billCount=0,pkI=0,pwI=0;
-  for(let ss=200;ss<L-80;ss+=10+rnd()*12){
+  let billCount=0;
+  for(let ss=200;ss<L-80;ss+=20+rnd()*24){ // intervalle doublé : chaque spot existe sur LES DEUX faces → même récolte par face, zéro dessus-dessous
     const lt=(rnd()*2-1)*(ROAD_HALF-2.8);
-    const face=(pkI++%2)?-1:1; // ALTERNANCE stricte : densité EXACTEMENT égale dessus/dessous
     const isN=(billCount>0&&billCount%2===0&&rnd()<.65); // nitro plus fréquent
     if(!isN)billCount++;
     frameAt(ss,F);
-    const m=isN?mkNitro():new THREE.Mesh(pickGeo,pickMat);
-    m.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,face>0?1.3:-(THICK+1.3));
     mat4b.makeBasis(F.b,F.n,F.t);
-    m.quaternion.setFromRotationMatrix(mat4b);
-    scene.add(m);
-    pickups.push({s:ss,lat:lt,face:face,nitro:isN,mesh:m,taken:false,ax:F.n.clone().multiplyScalar(face)});
+    for(const face of [1,-1]){
+      const m=isN?mkNitro():new THREE.Mesh(pickGeo,pickMat);
+      m.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,face>0?1.3:-(THICK+1.3));
+      m.quaternion.setFromRotationMatrix(mat4b);
+      scene.add(m);
+      pickups.push({s:ss,lat:lt,face:face,nitro:isN,mesh:m,taken:false,ax:F.n.clone().multiplyScalar(face)});
+    }
   }
-  // POUVOIRS : orbes rares, hautes et brillantes — on les voit de loin, on les vise
+  // POUVOIRS : orbes rares, hautes et brillantes — on les voit de loin, on les vise (miroir deux faces, intervalle doublé)
   const kinds='nav';
-  for(let ss=380+rnd()*260;ss<L-140;ss+=430+rnd()*380){
+  for(let ss=380+rnd()*260;ss<L-140;ss+=860+rnd()*760){
     const kind=kinds[Math.floor(rnd()*3)];
     const lt=(rnd()*2-1)*(ROAD_HALF-4);
-    const face=(pwI++%2)?-1:1; // pouvoirs : un dessus, un dessous — parité stricte
     frameAt(ss,F);
-    const m=mkPower(kind,face);
-    m.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,face>0?2.1:-(THICK+2.1));
     mat4b.makeBasis(F.b,F.n,F.t);
-    m.quaternion.setFromRotationMatrix(mat4b);
-    scene.add(m);
-    pickups.push({s:ss,lat:lt,face:face,nitro:false,pow:kind,mesh:m,taken:false,ax:F.n.clone().multiplyScalar(face)});
+    for(const face of [1,-1]){
+      const m=mkPower(kind,face);
+      m.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,face>0?2.1:-(THICK+2.1));
+      m.quaternion.setFromRotationMatrix(mat4b);
+      scene.add(m);
+      pickups.push({s:ss,lat:lt,face:face,nitro:false,pow:kind,mesh:m,taken:false,ax:F.n.clone().multiplyScalar(face)});
+    }
   }
 }
 // ---------- TIRELIRE : un petit cochon rose attend sur la ligne de départ… ----------
@@ -4161,8 +4198,8 @@ function loop(now){
           break;
         }
       }
-      // dos d'âne : petit saut
-      if(mode==='drive'&&side>0&&hopY===0&&Math.abs(vF)>10)for(const b9 of BUMPS){
+      // dos d'âne : petit saut — sur les DEUX faces (hopY suit F.n déjà retournée quand side<0)
+      if(mode==='drive'&&hopY===0&&Math.abs(vF)>10)for(const b9 of BUMPS){
         if(Math.abs(s-b9)<2.2){
           hopV=2.4+Math.min(3.2,Math.abs(vF)*.045);
           vA*=.97;shake=Math.max(shake,.15);noiseBurst(.12,.1,300);
