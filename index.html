@@ -370,6 +370,7 @@
 <script>
 (function(){
 'use strict';
+addEventListener('error',function(e){try{document.title='ERR:'+e.message+' @'+e.lineno;}catch(_){}}); // capteur d'init (les erreurs top-level échappent à la console headless)
 if(typeof THREE==='undefined'){ // CDN indisponible : un message clair plutôt qu'un écran noir muet
   document.body.insertAdjacentHTML('beforeend','<div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#12081f;color:#ffd75e;font:14px monospace;text-align:center;padding:20px;z-index:99">CASH CAR n&#39;a pas pu charger son moteur 3D.<br>V&eacute;rifie ta connexion internet puis recharge la page.</div>');
   return;
@@ -586,7 +587,7 @@ function updateContactShadow(){ // appelée juste avant le rendu
     contactShadow.position.copy(shTmpP);
     shMat4.makeBasis(Fsh.b,Fsh.t,Fsh.n); // le plan (XY, normale +Z) épouse la route
     contactShadow.quaternion.setFromRotationMatrix(shMat4);
-    contactShadow.scale.set(5.4,6.6,1);contactShadow.material.opacity=side<0?0.85:0.5;contactShadow.visible=true; // face -1 : le blob reste seul (l'ombre réelle part dans le vide) ; dessus il ne fait plus que l'occlusion de contact
+    contactShadow.scale.set(5.4,6.6,1);contactShadow.material.opacity=side<0?0.85:0.30;contactShadow.visible=true; // face -1 : le blob reste seul (l'ombre réelle part dans le vide) ; dessus .30 : la shadow map ancre déjà, un blob plus noir creusait un ANNEAU dans le néon/les flaques
   }else if(mode==='fall'){
     const hgt=fallPos.y-lastNearY; // hauteur au-dessus de la route la plus proche → télégraphe d'atterrissage
     if(hgt>0.4&&hgt<46){
@@ -602,7 +603,7 @@ function updateContactShadow(){ // appelée juste avant le rendu
 // ---------- GÉNÉRATEUR (45°, patterns pensés pour l'airtime) ----------
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
 const ROAD_HALF=14, THICK=2.6;
-let pts=[],T=[],Nn=[],B=[],L=0,NP=0;
+let pts=[],T=[],Nn=[],B=[],L=0,NP=0,trackMinY=-1e9; // trackMinY : plancher du monde (référence du plongeon fatal)
 const trackMeshes=[];let PADS=[];let BUMPS=[];let CONES=[];let FLYCONES=[];let portalMesh=null;
 // plots de chantier orange (percutables — ils valdinguent)
 const coneGeo=new THREE.CylinderGeometry(.055,.3,.95,10);
@@ -709,7 +710,7 @@ let QUAL_LOW=false,QUAL_MED=IS_MOBILE||IS_LOW_END; // garde-fous perf : réduise
 function applyPerfTier(med,low){
   if(low&&!QUAL_LOW){
     QUAL_LOW=true;QUAL_MED=true;
-    if(VOL){VOL.U.uSteps.value=18;VOL.U.uLightSteps.value=3;}
+    if(VOL){VOL.stepBase=18;VOL.U.uSteps.value=18;VOL.U.uLightSteps.value=3;} // ⚠ uSteps DIRECT : stepBase seul n'était lu par personne (le tier ne faisait RIEN)
     for(const c9 of CLOUDS){let j9=0;for(const p9 of c9.puffs)if(++j9%3===0)p9.sp.visible=false;}
     if(bloomPass)bloomPass.enabled=false;
     if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}
@@ -717,7 +718,9 @@ function applyPerfTier(med,low){
     renderer.shadowMap.type=THREE.BasicShadowMap;
   }else if(med&&!QUAL_MED){
     QUAL_MED=true;
-    if(VOL){VOL.U.uSteps.value=24;VOL.U.uLightSteps.value=4;}
+    if(VOL){VOL.stepBase=24;VOL.U.uSteps.value=24;VOL.U.uLightSteps.value=4;}
+    if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;} // ombres 1024 dès le palier MED (recrée la map, zéro recompilation)
+    sun.shadow.mapSize.set(1024,1024);
   }
 }
 // ============================================================================
@@ -753,9 +756,9 @@ if(VOL_OK){ try{
   noise.wrapS=noise.wrapT=noise.wrapR=THREE.RepeatWrapping;noise.unpackAlignment=1;noise.needsUpdate=true;
   const U={ uNoise:{value:noise}, uTime:{value:0},
     uSunDir:{value:SUN_DIR.clone()}, uSunCol:{value:new THREE.Color(2.05,0.95,0.60)}, // ROSE-DORÉ : les coiffes prennent le couchant Miami
-    uSkyCol:{value:new THREE.Color(0.34,0.30,0.62)}, uGroundCol:{value:new THREE.Color(0.09,0.05,0.13)}, // ciel violet SATURÉ en haut, ventres prune TRÈS sombre → la forme ressort même sans soleil
-    uAmb:{value:0.52}, uCoverage:{value:0.72}, uDensity:{value:2.7}, uDetail:{value:0.20},
-    uEdge:{value:0.40}, uFreq:{value:1/85}, uSigma:{value:0.45}, uAbsorb:{value:1.7}, uSilver:{value:1.4},
+    uSkyCol:{value:new THREE.Color(0.34,0.30,0.62)}, uGroundCol:{value:new THREE.Color(0.13,0.08,0.18)}, // ciel violet SATURÉ en haut, ventres prune adoucis (crémeux, plus charbon)
+    uAmb:{value:0.58}, uCoverage:{value:0.80}, uDensity:{value:2.9}, uDetail:{value:0.12}, // CRÉMEUX : plein, peu de crispure
+    uEdge:{value:0.36}, uFreq:{value:1/85}, uSigma:{value:0.60}, uAbsorb:{value:1.45}, uSilver:{value:1.4}, // bords fondus, chair épaisse, ombre propre laiteuse
     uSteps:{value:40.0}, uLightSteps:{value:6.0},
     // MÉTABALLES : la forme du nuage = UNION DOUCE de 5-10 boules collées (par nuage, posées dans onBeforeRender)
     uBaseFlat:{value:1.0}, uNBlob:{value:1.0}, uBlobs:{value:(function(){const a=[];for(let i=0;i<12;i++)a.push(new THREE.Vector4(0,0,0,.3));return a;})()},
@@ -793,25 +796,34 @@ if(VOL_OK){ try{
       vec3 oc=(ro-vCenter)/vRadius,dd=rd/vRadius;
       float A=dot(dd,dd),B=2.0*dot(oc,dd),C=dot(oc,oc)-1.0,disc=B*B-4.0*A*C;if(disc<0.0)discard;
       float sq=sqrt(disc),t0=max((-B-sq)/(2.0*A),0.0),t1=(-B+sq)/(2.0*A);if(t1<=t0)discard;
-      float stepS=(t1-t0)/uSteps,dither=ign(),t=t0+stepS*dither;
+      // FONDU RADIAL au bord de l'ellipsoïde : la silhouette fond au lieu de granuler (le dither
+      // sur 2-3 pas de lisière faisait du sel-et-poivre) — le nuage devient CRÉMEUX jusqu'au bord
+      float rim=1.0-smoothstep(0.78,1.0,length(oc+dd*max(-B/(2.0*A),0.0)));
+      float stepS=(t1-t0)/uSteps,dither=ign(),t=t0+stepS*0.55*dither;
       float cosT=dot(rd,uSunDir),fs=pow(max(cosT,0.0),3.0)*uSilver,T=1.0;vec3 col=vec3(0.0);
       for(int i=0;i<96;i++){if(float(i)>=uSteps||T<0.02)break;vec3 p=ro+rd*t;float d=densAt(p);
+        float sl=stepS*(0.55+1.05*float(i)/uSteps); // RAMPE : pas SERRÉS à l'entrée (surface nette de près), longs au fond — même budget
         if(d>0.003){float od=lightMarch(p);float lt=exp(-od*uAbsorb);float ms=lt+0.42*exp(-od*uAbsorb*0.25);
           float pw=1.0-exp(-d*6.0);vec3 sun=uSunCol*(ms+fs)*pw;
           float up=clamp(((p.y-vCenter.y)/max(vRadius.y,1.0))*0.5+0.5,0.0,1.0);
           vec3 lum=mix(uGroundCol,uSkyCol,up)*uAmb+sun;
-          float alpha=1.0-exp(-d*stepS*uSigma);col+=T*alpha*lum;T*=(1.0-alpha);}
-        t+=stepS;}
-      float a=1.0-T;if(a<0.004)discard;
+          float alpha=1.0-exp(-d*sl*uSigma);col+=T*alpha*lum;T*=(1.0-alpha);}
+        t+=sl;}
+      float a=(1.0-T)*rim;col*=rim;if(a<0.004)discard;
       float fog=clamp((t0-uFogNear)/(uFogFar-uFogNear),0.0,1.0)*uFogAmt;
       col=mix(col,uFogCol*a,fog);
       fragColor=vec4(col,a);}`;
-  const mk=(side)=>new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,uniforms:U,vertexShader:VERT,fragmentShader:FRAG,
-    transparent:true,depthWrite:false,depthTest:true,side:side,
+  const mk=(side,ztest)=>new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,uniforms:U,vertexShader:VERT,fragmentShader:FRAG,
+    transparent:true,depthWrite:false,depthTest:ztest,side:side,
     blending:THREE.CustomBlending,blendEquation:THREE.AddEquation,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor});
-  VOL={U:U, geo:new THREE.BoxGeometry(2,2,2), matF:mk(THREE.FrontSide), matB:mk(THREE.BackSide)};
-  if(IS_MOBILE||IS_LOW_END){U.uSteps.value=28;U.uLightSteps.value=4;}
-  else{U.uSteps.value=56;U.uLightSteps.value=7;} // desktop : pas serrés = surface LISSE (le grain de raymarch fond avec le nombre de pas)
+  // matB (caméra DANS la boîte) SANS depthTest : sinon les faces arrière passent derrière la dalle
+  // et le z-test découpe le volume en trous polygonaux — LE bug visuel de proximité. Dedans, le
+  // nuage a le droit de couvrir la route : c'est le white-out voulu, l'alpha fait le reste.
+  VOL={U:U, geo:new THREE.BoxGeometry(2,2,2), matF:mk(THREE.FrontSide,true), matB:mk(THREE.BackSide,false), stepBase:56};
+  if(IS_MOBILE||IS_LOW_END){VOL.stepBase=28;U.uLightSteps.value=4;}
+  else{VOL.stepBase=56;U.uLightSteps.value=7;} // desktop : pas serrés = surface LISSE (le grain de raymarch fond avec le nombre de pas)
+  U.uSteps.value=VOL.stepBase;
+  window.dbgCloud=(s,l)=>{if(s)VOL.stepBase=s;if(l)U.uLightSteps.value=l;return VOL.stepBase+'/'+U.uLightSteps.value;}; // hook debug : forcer la qualité du raymarch depuis la console (les tiers perf peuvent l'écraser)
   if(QUAL_MED)applyPerfTier(true,false);
 }catch(e){VOL=null;} }
 // Boules d'un nuage (metaballs) — coords LOCALES [-1,1] dans la boîte (x,y,z,rayon).
@@ -839,12 +851,14 @@ function mkCloudVol(center,r,o,rr){ // un banc = une boîte volumétrique rempli
   const ry=r*(o.giant?.55+rr()*.18:o.veil?.16:o.sea?.15:.36+rr()*.16);
   const mesh=new THREE.Mesh(VOL.geo,VOL.matF);
   mesh.scale.set(r,ry,r); // frustumCulled reste VRAI : les bancs hors-champ ne coûtent rien (le culling boîte est correct, même caméra dedans)
-  // params par nuage : voiles diaphanes, mer moyenne ; tours/murs pleins. noFog = perce la brume.
-  const dMul=o.veil?0.4:o.sea?0.7:o.deco?0.85:1.0;
+  // params par nuage : voiles diaphanes, mer moyenne ; tours/murs pleins ; titans laiteux. noFog = perce la brume.
+  const dMul=o.veil?0.4:o.sea?0.7:o.titan?0.8:o.deco?0.85:1.0;
   const blobs=mkBlobs(o,rr); // les 5-10 boules de CE nuage (RNG isolé : ne rebrasse pas la génération)
   mesh.userData={seed:(rr()*97.3)%17, dMul:dMul, fogAmt:o.noFog?0.0:1.0,
-    baseFlat:o.veil?0.0:o.giant?0.35:1.0, blobs:blobs};
+    baseFlat:o.veil?0.0:o.giant?0.35:1.0, blobs:blobs,
+    stepMul:o.titan?0.55:1}; // TITANS lointains : gros à l'écran mais moitié moins de pas — le budget suit la taille
   mesh.onBeforeRender=function(rn,sc,cm,gm,mat){const u=mat.uniforms,ud=this.userData;
+    u.uSteps.value=VOL.stepBase*ud.stepMul; // TOUJOURS via stepBase : les paliers perf n'écrivent plus uSteps en direct
     u.uSeed.value=ud.seed;u.uDMul.value=ud.dMul;u.uFogAmt.value=ud.fogAmt;u.uBaseFlat.value=ud.baseFlat;
     const bl=ud.blobs,uv=u.uBlobs.value;for(let i=0;i<bl.length;i++)uv[i].set(bl[i][0],bl[i][1],bl[i][2],bl[i][3]);u.uNBlob.value=bl.length;};
   g.add(mesh);scene.add(g);
@@ -892,47 +906,47 @@ function buildClouds(rr){
   const cr=mulberry32((rr()*1e9)|0);
   // bancs SUR la route — espacés : on en traverse PARFOIS, jamais en continu. Un MUR intégral (la caisse
   // disparaît dans le blanc) reste l'exception spectaculaire, pas la règle.
-  for(let sp=850+cr()*600;sp<L-300;sp+=820+cr()*720){
+  for(let sp=1050+cr()*800;sp<L-300;sp+=1050+cr()*900){ // plus RARES : traverser un banc redevient un événement
     if(cr()<.34)continue; // ~1 banc sur 3 sauté
     frameAt(sp,F);
     const mega=cr()<.16;
     mkCloud(cldV1.copy(F.p).addScaledVector(F.n,mega?6+cr()*4:2.5+cr()*2),
-      mega?34+cr()*24:16+cr()*13,{onRoad:true,dense:true},cr);
+      mega?40+cr()*30:18+cr()*14,{onRoad:true,dense:true},cr);
   }
   // nuages de VOL : au-dessus / en-dessous de la dalle, sur les lignes de saut
-  for(let k=0;k<24;k++){
+  for(let k=0;k<14;k++){
     const i=Math.floor(cr()*NP);
     const above=cr()<.62;
     mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],(cr()*2-1)*70)
-      .addScaledVector(Nn[i],above?14+cr()*48:-(26+cr()*64)),13+cr()*18,{},cr);
+      .addScaledVector(Nn[i],above?14+cr()*48:-(26+cr()*64)),16+cr()*20,{},cr);
   }
-  // TOURS GÉANTES façon simulateur de vol : des montagnes de ouate — une sur trois est
-  // PLANTÉE sur la piste : on la perce à l'aveugle, la voiture disparaît dans le blanc
-  for(let k=0;k<14;k++){
+  // TOURS GÉANTES façon simulateur de vol : des montagnes de ouate — une sur quatre est
+  // PLANTÉE sur la piste (rayon PLAFONNÉ : le white-out dure 2 s, pas 10)
+  for(let k=0;k<8;k++){
     const i=Math.floor(cr()*NP);
-    const r9=120+cr()*140;
-    const cross=cr()<.22; // moins de tours PLANTÉES sur la piste : la percée à l'aveugle reste un moment fort
+    const cross=cr()<.22;
+    const r9=cross?Math.min(120+cr()*140,190):200+cr()*220; // les tours libres DOUBLENT de taille
     const off=cross?(cr()*2-1)*40:(r9*.68+80+cr()*420)*(cr()<.5?-1:1); // les tours ENCADRENT la route, jamais collées au bord du champ
     mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],off)
       .addScaledVector(Nn[i],cross?-r9*.25+cr()*30:-140+cr()*330),r9,{giant:true,onRoad:cross,noFog:!cross},cr);
   }
   // MER DE NUAGES sous la piste : le tapis à perte de vue du vol au-dessus des nuages
-  for(let k=0;k<14;k++){
+  for(let k=0;k<10;k++){
     const i=Math.floor(cr()*NP);
-    mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],(cr()*2-1)*900)
-      .addScaledVector(Nn[i],-(170+cr()*220)),90+cr()*80,{sea:true,noFog:true},cr);
+    mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],(cr()*2-1)*1100)
+      .addScaledVector(Nn[i],-(170+cr()*220)),170+cr()*150,{sea:true,noFog:true},cr);
   }
-  // mer de ouate à mi-distance : les nuages rêveurs qu'on longe
-  for(let k=0;k<9;k++){
+  // ouate à mi-distance : les nuages rêveurs qu'on longe
+  for(let k=0;k<6;k++){
     const i=Math.floor(cr()*NP);
     mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],(125+cr()*260)*(cr()<.5?-1:1))
-      .addScaledVector(Nn[i],-60+cr()*180),30+cr()*38,{deco:true},cr);
+      .addScaledVector(Nn[i],-60+cr()*180),55+cr()*60,{deco:true},cr);
   }
   // voiles d'altitude : nappes roses étirées très haut — le plafond féerique
-  for(let k=0;k<11;k++){
+  for(let k=0;k<7;k++){
     const i=Math.floor(cr()*NP);
     mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],(cr()*2-1)*1400)
-      .addScaledVector(Nn[i],230+cr()*220),95+cr()*70,{veil:true,noFog:true},cr);
+      .addScaledVector(Nn[i],230+cr()*220),150+cr()*120,{veil:true,noFog:true},cr);
   }
   // ============ LE CIEL PEUPLÉ : des nuages PARTOUT, posés en ESPACE MONDE ============
   // (ajoutés APRÈS les familles historiques → zéro décalage de leurs positions)
@@ -947,10 +961,11 @@ function buildClouds(rr){
       mkCloud(cldV1,rMin+cr()*(rMax-rMin),opt,cr);
     }
   };
-  sky(40, 55,150, 180,1500, -60,520, {deco:true,noFog:true});   // CUMULUS mi-distance, altitudes basses→hautes
-  sky(16, 70,170, 250,1700,  260,900, {deco:true,noFog:true});  // BANC HAUT : quand on lève les yeux, du volume
-  sky(20,110,220, 700,2400, -260, 60, {sea:true,noFog:true});   // l'OCÉAN : la mer de nuages à perte de vue
-  sky(10,150,320, 600,2200, -160,420, {giant:true,noFog:true}); // SKYLINE : grandes tours lointaines
+  sky(20, 90,240, 220,1500, -60,520, {deco:true,noFog:true});   // CUMULUS mi-distance : moitié moins, deux fois plus gros
+  sky( 9,120,300, 300,1700,  260,900, {deco:true,noFog:true});  // BANC HAUT : quand on lève les yeux, du volume
+  sky(12,200,380, 800,2400, -260, 60, {sea:true,noFog:true});   // l'OCÉAN : la mer de nuages à perte de vue
+  sky( 6,300,620, 700,2200, -160,420, {giant:true,noFog:true}); // SKYLINE : grandes tours lointaines
+  sky( 4,700,1200,1600,3200,-120,520, {giant:true,titan:true,noFog:true}); // TITANS : des cathédrales de ouate ×10 — l'horizon a des épaules
 }
 function updateClouds(dt,t){
   cloudIn=0;
@@ -1003,7 +1018,7 @@ function updateClouds(dt,t){
         fallVel.z+=(Math.random()-.5)*6*k*dtF;
         airRoll+=(Math.random()-.5)*2.4*k*dtF; // TURBULENCE : la ouate chahute la vrille
         shake=Math.max(shake,.13*k);          // …et secoue la caméra — on SENT la matière
-        if(c.refT>0){const rf=Math.min(c.refT,dtF*.9);c.refT-=rf;fallT=Math.max(0,fallT-rf);airFlash=.55;}
+        if(c.refT>0){const rf=Math.min(c.refT,dtF*.9);c.refT-=rf;fallT=Math.max(0,fallT-rf);fallTR=Math.max(0,fallTR-rf/AIR_RATE);airFlash=.55;} // la jauge réelle est rendue au même RYTHME (rf est en temps-sim)
       }else if(k>.1){
         psi+=(Math.random()-.5)*.3*k*dt; // au sol : la route disparaît, la caisse tangue à peine
         vA*=Math.max(0,1-.07*k*dt);      // la ouate FREINE un peu : percer un banc se paye en élan
@@ -1194,6 +1209,7 @@ function buildTrack(seed){
   L=curve.getLength();
   const N=Math.min(9000,Math.max(3000,Math.round(L)));
   pts=curve.getSpacedPoints(N);NP=pts.length;
+  trackMinY=Infinity;for(let i=0;i<NP;i++)if(pts[i].y<trackMinY)trackMinY=pts[i].y; // plancher du monde
   T=[];Nn=[];B=[];
   for(let i=0;i<NP;i++){
     const j=Math.min(i+1,NP-1),k=Math.max(i-1,0);
@@ -1574,7 +1590,7 @@ headSpot.position.set(0,4,0);scene.add(headSpot);scene.add(headSpot.target);
 // REFLET NITRO/BOOST : la flamme éclaire VRAIMENT le bitume — pool de lumière derrière la caisse,
 // orange nitro / bleu réserve / or pad turbo, intensité 0 au repos (à l init, zéro recompilation)
 const nitroLight=new THREE.PointLight(0xff7a24,0,18);scene.add(nitroLight); // portée courte : une FLAQUE de feu sous l'échappement, pas une rivière jusqu'à la caméra
-const trailLight=new THREE.PointLight(0xff7a24,0,26);scene.add(trailLight); // le REFLET DE LA TRAÎNÉE : une lueur qui GLISSE sur le bitume 9 m derrière la caisse
+const trailLight=new THREE.PointLight(0xff7a24,0,34);scene.add(trailLight); // le REFLET DE LA TRAÎNÉE : une lueur qui GLISSE sur le bitume 9 m derrière la caisse
 const hsF=new THREE.Vector3(),hsU=new THREE.Vector3(),hsR=new THREE.Vector3(); // nez + toit + flanc de la caisse (repère monde), réutilisés chaque frame
 // ---- TRAÎNÉE DE NITRO : deux RUBANS de lumière accrochés aux tuyères — le « swoosh » qui reste dans l'air.
 // Buffers fixes (zéro allocation en boucle), largeur orientée face caméra, fondu au carré de l'âge.
@@ -1642,6 +1658,34 @@ const lampTex=(function(){
   c.fillStyle=g;c.beginPath();c.arc(16,16,15,0,7);c.fill();
   return new THREE.CanvasTexture(cv);
 })();
+// FLAQUE AU SOL : dégradé radial à EXTINCTION FRANCHE, éteint bien avant le bord du canvas —
+// avec lampTex (chute molle) les nappes additives saturaient en PAVÉ de couleur visible.
+const poolTex=(function(){
+  const cv=document.createElement('canvas');cv.width=cv.height=128;
+  const c=cv.getContext('2d');
+  const g=c.createRadialGradient(64,64,2,64,64,56);
+  g.addColorStop(0,'rgba(255,255,255,.9)');g.addColorStop(.35,'rgba(255,255,255,.38)');
+  g.addColorStop(.7,'rgba(255,255,255,.08)');g.addColorStop(1,'rgba(255,255,255,0)');
+  c.fillStyle=g;c.beginPath();c.arc(64,64,56,0,7);c.fill();
+  return new THREE.CanvasTexture(cv);
+})();
+// FAISCEAUX DE PHARES : DEUX cônes peints qui partent du pare-chocs (haut du canvas) et
+// s'évasent en fondant vers l'avant — posés à plat sur la route, ILS SONT la lumière des phares.
+// Blanc neutre : la teinte vient du matériau (chaud joueur / blanc-bleu police).
+const beamTex=(function(){
+  const cv=document.createElement('canvas');cv.width=cv.height=256;
+  const c=cv.getContext('2d');
+  try{c.filter='blur(7px)';}catch(e){}
+  for(const sd of [-1,1]){
+    const x0=128+sd*30;
+    const g=c.createLinearGradient(0,8,0,236);
+    g.addColorStop(0,'rgba(255,248,238,.95)');g.addColorStop(.38,'rgba(255,244,228,.42)');
+    g.addColorStop(.8,'rgba(255,240,220,.07)');g.addColorStop(1,'rgba(255,240,220,0)');
+    c.fillStyle=g;
+    c.beginPath();c.moveTo(x0-12,10);c.lineTo(x0+12,10);c.lineTo(x0+sd*14+46*sd+14,238);c.lineTo(x0+sd*14-46*sd-14,238);c.closePath();c.fill();
+  }
+  return new THREE.CanvasTexture(cv);
+})();
 // ---- PLUME DE RÉACTEUR (façon fusée) : cône incandescent à la tuyère — dégradé + ANNEAUX DE CHOC bakés.
 // Blanc pur dans la texture, la teinte vient du matériau (orange nitro / bleu réserve). Partagé par toutes les caisses.
 const jetTex=(function(){
@@ -1664,6 +1708,17 @@ const jetShellM=new THREE.MeshBasicMaterial({map:jetTex,color:0xff8c30,transpare
 const jetCoreM=new THREE.MeshBasicMaterial({map:jetTex,color:0xffe6b0,transparent:true,opacity:.92,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false});
 const jetGlowM=new THREE.SpriteMaterial({map:lampTex,color:0xff9040,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false});
 const JETS={shells:[],cores:[],glows:[],k:0}; // rempli par buildCar, animé chaque frame
+const CARPOOL={head:null,tail:null,jet:null}; // FLAQUES DE LUMIÈRE AU SOL (phares AV / feux AR / halo nitro) — rempli par buildCar, le halo nitro est piloté par JETS.k
+// SILHOUETTE DE PROFIL : la « gueule » de chaque gabarit — points (z=longueur,y=hauteur) extrudés
+// sur la largeur. Capots plongeants, fastbacks, coins furtifs : impossibles en boîtes, gratuits ici.
+function carProfile(pts,w){
+  const s=new THREE.Shape();
+  s.moveTo(pts[0][0],pts[0][1]);
+  for(let i=1;i<pts.length;i++)s.lineTo(pts[i][0],pts[i][1]);
+  const g=new THREE.ExtrudeGeometry(s,{depth:w,bevelEnabled:false});
+  g.rotateY(-Math.PI/2);g.translate(w/2,0,0); // longueur → Z (avant en +Z), largeur centrée sur X
+  return g;
+}
 function buildCar(spec){
   while(carGroup.children.length)carGroup.remove(carGroup.children[0]);
   wheels.length=0;
@@ -1681,6 +1736,11 @@ function buildCar(spec){
   const rustM=new THREE.MeshPhongMaterial({color:0x5a3a20,shininess:5,specular:0x111111});
   rimify(bodyM);rimify(accM); // le verre et le chrome brillent déjà par l'envMap — le rim, c'est pour la tôle
   const y0=.35;
+  // GABARIT (caisses v2) : chaque tranche de niveau a sa SILHOUETTE — surchargable par caisse via spec.shape
+  // boxy = quotidien · gt = supercar plongeante · muscle = long capot · formula = proto F1 · proto = furtive bulle · rocket = missile
+  const W9=spec.w,H9=spec.h,L9=spec.l,fusR=H9*1.0;
+  const shape=wreck?'boxy':spec.shape||(lvl>=14?'rocket':lvl>=11?'proto':lvl===10?'formula':(lvl===5||lvl===8)?'muscle':lvl>=4?'gt':'boxy');
+  if(shape==='boxy'){
   // châssis bas (l'épave est de travers)
   const lower=new THREE.Mesh(new THREE.BoxGeometry(spec.w,spec.h*.62,spec.l),bodyM);
   lower.position.y=y0+spec.h*.31;if(wreck)lower.rotation.z=.03;carGroup.add(lower);
@@ -1733,7 +1793,86 @@ function buildCar(spec){
     const fl9=new THREE.Mesh(new THREE.BoxGeometry(.04,spec.h*.4,spec.l*.35),rustM);
     fl9.position.set(spec.w/2+.05,y0+spec.h*.45,spec.l*.1);carGroup.add(fl9);
   }
-  if(spec.spoiler){
+  } // ← fin gabarit BOXY
+  else if(shape==='gt'||shape==='muscle'){ // ---- GT plongeante / MUSCLE long capot : profil extrudé + serre verrière ----
+    const gt=shape==='gt';
+    const bodyPts=gt?[[-.50*L9,0],[.50*L9,0],[.50*L9,.30*H9],[.20*L9,.48*H9],[-.10*L9,.58*H9],[-.44*L9,.62*H9],[-.50*L9,.56*H9]]
+                    :[[-.50*L9,0],[.50*L9,0],[.50*L9,.40*H9],[.44*L9,.52*H9],[.02*L9,.55*H9],[-.30*L9,.60*H9],[-.46*L9,.62*H9],[-.50*L9,.50*H9]];
+    const body=new THREE.Mesh(carProfile(bodyPts,W9*.96),bodyM);body.position.y=y0;carGroup.add(body);
+    const glsPts=gt?[[.14*L9,.44*H9],[-.02*L9,.94*H9],[-.24*L9,.92*H9],[-.36*L9,.54*H9]]
+                   :[[.06*L9,.50*H9],[-.04*L9,.95*H9],[-.24*L9,.93*H9],[-.34*L9,.55*H9]];
+    const gls=new THREE.Mesh(carProfile(glsPts,W9*.70),glassM);gls.position.y=y0;carGroup.add(gls);
+    const cap=new THREE.Mesh(new THREE.BoxGeometry(W9*.56,.05,L9*.20),accM); // plaque de toit accent
+    cap.position.set(0,y0+H9*(gt?.90:.91),-L9*.13);cap.rotation.x=.06;carGroup.add(cap);
+    if(!gt){ // MUSCLE : prise d'air, hanches musclées, rétros, calandre
+      const scoop=new THREE.Mesh(new THREE.BoxGeometry(W9*.30,H9*.16,L9*.16),accM);
+      scoop.position.set(0,y0+H9*.60,L9*.22);carGroup.add(scoop);
+      for(const sd of [-1,1]){
+        const hip=new THREE.Mesh(new THREE.BoxGeometry(W9*.12,H9*.36,L9*.30),bodyM);
+        hip.position.set(sd*(W9/2-.01),y0+H9*.40,-L9*.28);carGroup.add(hip);
+        const mir=new THREE.Mesh(new THREE.BoxGeometry(.09,.09,.16),accM);
+        mir.position.set(sd*(W9/2+.10),y0+H9*.92,L9*.10);carGroup.add(mir);
+      }
+      const grille=new THREE.Mesh(new THREE.BoxGeometry(W9*.55,H9*.2,.07),darkM);
+      grille.position.set(0,y0+H9*.40,L9/2+.08);carGroup.add(grille);
+    }
+    for(const sd of [-1,1]){ // jupes basses
+      const sk=new THREE.Mesh(new THREE.BoxGeometry(.08,H9*.22,L9*.60),accM);
+      sk.position.set(sd*(W9/2+.02),y0+H9*.10,0);carGroup.add(sk);
+    }
+  }
+  else if(shape==='formula'){ // ---- PROTO F1 : fuselage étroit (roues DEHORS), pontons, aileron biplan ----
+    const body=new THREE.Mesh(carProfile([[-.50*L9,0],[.50*L9,0],[.50*L9,.20*H9],[.30*L9,.26*H9],[.06*L9,.30*H9],[-.04*L9,.70*H9],[-.14*L9,.66*H9],[-.30*L9,.44*H9],[-.50*L9,.38*H9]],W9*.42),bodyM);
+    body.position.y=y0;carGroup.add(body);
+    for(const sd of [-1,1]){ // pontons
+      const pod=new THREE.Mesh(new THREE.BoxGeometry(W9*.26,H9*.34,L9*.36),bodyM);
+      pod.position.set(sd*W9*.32,y0+H9*.20,-L9*.06);carGroup.add(pod);
+    }
+    const fw=new THREE.Mesh(new THREE.BoxGeometry(W9*1.02,.05,L9*.10),accM); // aileron avant
+    fw.position.set(0,y0+H9*.10,L9*.46);carGroup.add(fw);
+    for(const sd of [-1,1]){const ep=new THREE.Mesh(new THREE.BoxGeometry(.03,H9*.16,L9*.10),darkM);ep.position.set(sd*W9*.51,y0+H9*.16,L9*.46);carGroup.add(ep);}
+    for(const wy of [1.05,1.32]){const rw=new THREE.Mesh(new THREE.BoxGeometry(W9*.92,.045,L9*.09),accM);rw.position.set(0,y0+H9*wy,-L9*.44);carGroup.add(rw);} // biplan arrière
+    for(const sd of [-1,1]){const ep=new THREE.Mesh(new THREE.BoxGeometry(.03,H9*.44,L9*.11),darkM);ep.position.set(sd*W9*.46,y0+H9*1.18,-L9*.44);carGroup.add(ep);}
+    const ab=new THREE.Mesh(new THREE.BoxGeometry(W9*.16,H9*.22,L9*.12),accM); // boîte à air
+    ab.position.set(0,y0+H9*.78,-L9*.09);carGroup.add(ab);
+    const ck=new THREE.Mesh(new THREE.BoxGeometry(W9*.20,H9*.10,L9*.14),darkM); // baquet ouvert
+    ck.position.set(0,y0+H9*.60,L9*.02);carGroup.add(ck);
+    const ws=new THREE.Mesh(new THREE.BoxGeometry(W9*.18,H9*.12,.02),glassM); // saute-vent
+    ws.position.set(0,y0+H9*.52,L9*.10);ws.rotation.x=-.5;carGroup.add(ws);
+  }
+  else if(shape==='proto'){ // ---- HYPERCAR furtive : coin plat + bulle de verre + dérive dorsale ----
+    const body=new THREE.Mesh(carProfile([[-.50*L9,0],[.50*L9,0],[.50*L9,.16*H9],[.10*L9,.40*H9],[-.30*L9,.52*H9],[-.50*L9,.50*H9]],W9*.94),bodyM);
+    body.position.y=y0;carGroup.add(body);
+    const can=new THREE.Mesh(new THREE.SphereGeometry(1,14,10),glassM); // bulle de cockpit
+    can.scale.set(W9*.30,H9*.52,L9*.20);can.position.set(0,y0+H9*.42,L9*.02);carGroup.add(can);
+    const fin=new THREE.Mesh(new THREE.BoxGeometry(.04,H9*.42,L9*.30),accM); // dérive
+    fin.position.set(0,y0+H9*.62,-L9*.34);carGroup.add(fin);
+    for(const sd of [-1,1]){const it=new THREE.Mesh(new THREE.BoxGeometry(.06,H9*.20,L9*.24),darkM);it.position.set(sd*(W9/2+.01),y0+H9*.28,-L9*.14);carGroup.add(it);}
+  }
+  else if(shape==='rocket'){ // ---- MONSTRE endgame : fuselage de missile, ailerons en croix, carénages de roues ----
+    const vr=Math.max(0,lvl-14); // 0..9 : chaque monstre varie (nez, ailerons, canards)
+    const fus=new THREE.Mesh(new THREE.CylinderGeometry(fusR*.86,fusR,L9*.74,12),bodyM);
+    fus.rotation.x=Math.PI/2;fus.position.set(0,y0+fusR*.9,0);carGroup.add(fus);
+    const nose=new THREE.Mesh(new THREE.ConeGeometry(fusR*.86,L9*(.18+.02*(vr%3)),12),bodyM);
+    nose.rotation.x=Math.PI/2;nose.position.set(0,y0+fusR*.9,L9*(.46+.01*(vr%3)));carGroup.add(nose);
+    const tail=new THREE.Mesh(new THREE.ConeGeometry(fusR*.9,L9*.10,12),darkM);
+    tail.rotation.x=-Math.PI/2;tail.position.set(0,y0+fusR*.9,-L9*.42);carGroup.add(tail);
+    const can=new THREE.Mesh(new THREE.SphereGeometry(1,14,10),glassM); // verrière
+    can.scale.set(fusR*.72,fusR*.62,L9*.14);can.position.set(0,y0+fusR*1.45,L9*.14);carGroup.add(can);
+    const finG=new THREE.BoxGeometry(.05,H9*1.15,L9*.22);finG.translate(0,H9*.58+fusR*.55,-L9*.02); // pivot à l'axe du fuselage
+    for(const ang of [0,2.35,-2.35]){ // dérive dorsale + 2 ailerons cantés
+      const fn=new THREE.Mesh(finG,accM);fn.position.set(0,y0+fusR*.9,-L9*.31);fn.rotation.z=ang;fn.rotation.x=-.14-(vr%2)*.10;carGroup.add(fn);
+    }
+    const cnd=new THREE.Mesh(new THREE.BoxGeometry(W9*.58,.04,L9*.09),accM); // canards
+    cnd.position.set(0,y0+fusR*.95,L9*.30);carGroup.add(cnd);
+    if(vr>=6){const c2=new THREE.Mesh(new THREE.BoxGeometry(W9*.46,.04,L9*.08),accM);c2.position.set(0,y0+fusR*1.15,L9*.22);carGroup.add(c2);}
+    if(lvl===23){const ring=new THREE.Mesh(new THREE.TorusGeometry(fusR*1.18,.05,8,22),accM);ring.position.set(0,y0+fusR*.9,-L9*.05);carGroup.add(ring);} // l'auréole du DIEU-VITESSE
+    for(const sxz of [[-1,1],[1,1],[-1,-1],[1,-1]]){ // carénages : les roues deviennent des patins
+      const cw9=new THREE.Mesh(new THREE.BoxGeometry(.36,.42,1.25),darkM);
+      cw9.position.set(sxz[0]*W9/2,.66,sxz[1]*(L9/2-.75));carGroup.add(cw9);
+    }
+  }
+  if(spec.spoiler&&shape!=='formula'&&shape!=='rocket'){ // formula a son biplan, rocket ses ailerons
     const sp=new THREE.Mesh(new THREE.BoxGeometry(spec.w*.98,.09,.5),accM);
     sp.position.set(0,y0+spec.h+.42,-spec.l/2+.12);carGroup.add(sp);
     for(const sd of [-1,1]){
@@ -1744,21 +1883,25 @@ function buildCar(spec){
   // caisses de l'au-delà (lvl 10+) : bandes lumineuses + booster fusée
   if(spec.glow){
     const glowM=new THREE.MeshBasicMaterial({color:spec.glow});
+    const gx=shape==='rocket'?fusR+.03:spec.w/2+.02,gy=shape==='rocket'?y0+fusR*.9:y0+spec.h*.42; // sur le missile, le néon court sur le FUSELAGE
     for(const sd of [-1,1]){
       const strip=new THREE.Mesh(new THREE.BoxGeometry(.05,.06,spec.l*.82),glowM);
-      strip.position.set(sd*(spec.w/2+.02),y0+spec.h*.42,0);carGroup.add(strip);
+      strip.position.set(sd*gx,gy,0);carGroup.add(strip);
     }
-    const front=new THREE.Mesh(new THREE.BoxGeometry(spec.w*.7,.06,.05),glowM);
-    front.position.set(0,y0+spec.h*.5,spec.l/2+.02);carGroup.add(front);
+    if(shape!=='rocket'){
+      const front=new THREE.Mesh(new THREE.BoxGeometry(spec.w*.7,.06,.05),glowM);
+      front.position.set(0,y0+spec.h*.5,spec.l/2+.02);carGroup.add(front);
+    }
   }
   if(spec.rocket){
     const boostM=new THREE.MeshPhongMaterial({color:0x3a3f48,shininess:200,specular:0xffffff,envMap:envTex,reflectivity:.5,combine:THREE.MixOperation});
     const nozzM=new THREE.MeshBasicMaterial({color:spec.glow||0x66c8ff});
+    const bs=shape==='rocket'?1.3:1; // sur le missile, les propulseurs d'appoint sont à l'échelle du fuselage
     for(const sd of [-1,1]){
-      const bo=new THREE.Mesh(new THREE.CylinderGeometry(.24,.3,.9,10),boostM);
+      const bo=new THREE.Mesh(new THREE.CylinderGeometry(.24*bs,.3*bs,.9*bs,10),boostM);
       bo.rotation.x=Math.PI/2;bo.position.set(sd*spec.w*.26,y0+spec.h*.55,-spec.l/2-.32);carGroup.add(bo);
-      const nz=new THREE.Mesh(new THREE.CylinderGeometry(.16,.2,.1,10),nozzM);
-      nz.rotation.x=Math.PI/2;nz.position.set(sd*spec.w*.26,y0+spec.h*.55,-spec.l/2-.78);carGroup.add(nz);
+      const nz=new THREE.Mesh(new THREE.CylinderGeometry(.16*bs,.2*bs,.1,10),nozzM);
+      nz.rotation.x=Math.PI/2;nz.position.set(sd*spec.w*.26,y0+spec.h*.55,-spec.l/2-.32-.45*bs-.05);carGroup.add(nz);
     }
   }
   // roues : pneu + jante chromée À RAYONS (une roue voilée et rouillée sur l'épave)
@@ -1780,13 +1923,19 @@ function buildCar(spec){
     w.position.set(sxz[0]*spec.w/2,.40,sxz[1]*(spec.l/2-.75));
     carGroup.add(w);wheels.push(w);wi++;
   }
-  // phares (un seul marche sur l'épave), feux arrière, pots
+  // phares (un seul marche sur l'épave), feux arrière, pots — positions PAR GABARIT (le missile éclaire depuis son nez)
   const hlM=new THREE.MeshBasicMaterial({color:0xfff6c8}),tlM=new THREE.MeshBasicMaterial({color:0xff2a2a});
+  const hlX=shape==='rocket'?fusR*.55:shape==='formula'?W9*.10:W9*.32,
+        hlY=shape==='rocket'?y0+fusR*.9:shape==='formula'?y0+H9*.24:y0+H9*.5,
+        hlZ=shape==='rocket'?L9*.40:shape==='formula'?L9*.46:L9/2+.16,
+        tlX=shape==='rocket'?fusR*.55:W9*.30,
+        tlY=shape==='rocket'?y0+fusR*.9:y0+H9*.55,
+        tlZ=shape==='rocket'?-L9*.44:-L9/2-.10;
   for(const sd of [-1,1]){
     const hl=new THREE.Mesh(new THREE.BoxGeometry(.30,.13,.06),(wreck&&sd>0)?darkM:hlM);
-    hl.position.set(sd*spec.w*.32,y0+spec.h*.5,spec.l/2+.16);carGroup.add(hl);
+    hl.position.set(sd*hlX,hlY,hlZ);carGroup.add(hl);
     const tl=new THREE.Mesh(new THREE.BoxGeometry(.34,.10,.05),tlM);
-    tl.position.set(sd*spec.w*.30,y0+spec.h*.55,-spec.l/2-.10);carGroup.add(tl);
+    tl.position.set(sd*tlX,tlY,tlZ);carGroup.add(tl);
     const ex=new THREE.Mesh(new THREE.CylinderGeometry(.09,.11,.34,10),wreck?rustM:chromeM);
     ex.rotation.x=Math.PI/2;
     ex.position.set(sd*spec.w*.22,y0+.08,-spec.l/2-.14);carGroup.add(ex);
@@ -1801,26 +1950,29 @@ function buildCar(spec){
     jg9.scale.set(.3,.3,1);jg9.position.copy(js9.position);jg9.visible=false;
     carGroup.add(jg9);JETS.glows.push(jg9);
   }
-  // ---- DÉTAILS v1.61 : la caméra s'est rapprochée, la caisse doit le mériter ----
-  const seamM=new THREE.MeshBasicMaterial({color:0x0a0c10,transparent:true,opacity:.55});
-  for(const sd of [-1,1]){ // lignes de portières + poignées chromées
-    for(const zz of [spec.l*.07,-spec.l*.17]){
-      const seam=new THREE.Mesh(new THREE.BoxGeometry(.012,spec.h*.5,.03),seamM);
-      seam.position.set(sd*(spec.w/2+.005),y0+spec.h*.45,zz);carGroup.add(seam);
+  // ---- DÉTAILS v1.61 : la caméra s'est rapprochée, la caisse doit le mériter (par gabarit : pas de portières sur un missile) ----
+  if(shape==='boxy'||shape==='muscle'){
+    const seamM=new THREE.MeshBasicMaterial({color:0x0a0c10,transparent:true,opacity:.55});
+    for(const sd of [-1,1]){ // lignes de portières + poignées chromées
+      for(const zz of [spec.l*.07,-spec.l*.17]){
+        const seam=new THREE.Mesh(new THREE.BoxGeometry(.012,spec.h*.5,.03),seamM);
+        seam.position.set(sd*(spec.w/2+.005),y0+spec.h*.45,zz);carGroup.add(seam);
+      }
+      const hdl=new THREE.Mesh(new THREE.BoxGeometry(.03,.035,.16),wreck?rustM:chromeM);
+      hdl.position.set(sd*(spec.w/2+.02),y0+spec.h*.66,spec.l*.01);carGroup.add(hdl);
     }
-    const hdl=new THREE.Mesh(new THREE.BoxGeometry(.03,.035,.16),wreck?rustM:chromeM);
-    hdl.position.set(sd*(spec.w/2+.02),y0+spec.h*.66,spec.l*.01);carGroup.add(hdl);
   }
-  // lame avant + diffuseur arrière à ailettes
-  const splitter=new THREE.Mesh(new THREE.BoxGeometry(spec.w*.96,.05,.3),darkM);
-  splitter.position.set(0,y0+spec.h*.04,spec.l/2+.12);carGroup.add(splitter);
-  const diff=new THREE.Mesh(new THREE.BoxGeometry(spec.w*.86,.09,.26),darkM);
-  diff.position.set(0,y0+spec.h*.06,-spec.l/2-.10);carGroup.add(diff);
-  for(const fx of [-1,0,1]){
-    const fin=new THREE.Mesh(new THREE.BoxGeometry(.03,.13,.24),darkM);
-    fin.position.set(fx*spec.w*.26,y0+spec.h*.10,-spec.l/2-.10);carGroup.add(fin);
+  if(shape!=='formula'&&shape!=='rocket'){ // lame avant + diffuseur arrière à ailettes (formula a ses ailerons, rocket son culot)
+    const splitter=new THREE.Mesh(new THREE.BoxGeometry(spec.w*.96,.05,.3),darkM);
+    splitter.position.set(0,y0+spec.h*.04,spec.l/2+.12);carGroup.add(splitter);
+    const diff=new THREE.Mesh(new THREE.BoxGeometry(spec.w*.86,.09,.26),darkM);
+    diff.position.set(0,y0+spec.h*.06,-spec.l/2-.10);carGroup.add(diff);
+    for(const fx of [-1,0,1]){
+      const fin=new THREE.Mesh(new THREE.BoxGeometry(.03,.13,.24),darkM);
+      fin.position.set(fx*spec.w*.26,y0+spec.h*.10,-spec.l/2-.10);carGroup.add(fin);
+    }
   }
-  if(lvl>=2)for(const gy of [-1,1]){ // barres de calandre chromées
+  if(lvl>=2&&(shape==='boxy'||shape==='muscle'))for(const gy of [-1,1]){ // barres de calandre chromées
     const slat=new THREE.Mesh(new THREE.BoxGeometry(spec.w*.5,.02,.02),chromeM);
     slat.position.set(0,y0+spec.h*.42+gy*.045,spec.l/2+.145);carGroup.add(slat);
   }
@@ -1828,19 +1980,41 @@ function buildCar(spec){
   for(const sd of [-1,1]){
     if(!(wreck&&sd>0)){
       const hg=new THREE.Sprite(new THREE.SpriteMaterial({map:lampTex,color:0xffe2a8,transparent:true,opacity:.95,depthWrite:false}));
-      hg.scale.set(.85,.85,1);hg.position.set(sd*spec.w*.32,y0+spec.h*.5,spec.l/2+.24);carGroup.add(hg);
+      hg.scale.set(.85,.85,1);hg.position.set(sd*hlX,hlY,hlZ+.08);carGroup.add(hg); // les halos suivent les phares du gabarit
     }
     const tg=new THREE.Sprite(new THREE.SpriteMaterial({map:lampTex,color:0xff2818,transparent:true,opacity:.85,depthWrite:false}));
-    tg.scale.set(.62,.62,1);tg.position.set(sd*spec.w*.30,y0+spec.h*.55,-spec.l/2-.16);carGroup.add(tg);
+    tg.scale.set(.62,.62,1);tg.position.set(sd*tlX,tlY,tlZ-.06);carGroup.add(tg);
   }
   if(!wreck){ // NÉON SOUS CAISSE : la flaque magenta qui glisse avec la caisse — Vice City jusque sous le châssis (tamisée pour la nuit sombre)
     const ug=new THREE.Mesh(new THREE.PlaneGeometry(spec.w*2.4,spec.l*1.7),
-      new THREE.MeshBasicMaterial({map:lampTex,color:0xff2e9e,transparent:true,opacity:.42,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
+      new THREE.MeshBasicMaterial({map:poolTex,color:0xff2e9e,transparent:true,opacity:.30,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
     ug.rotation.x=-Math.PI/2;ug.position.set(0,.07,0);ug.userData.noShadow=true;carGroup.add(ug);
   }
+  // FLAQUES DE LUMIÈRE AU SOL — la caisse ÉCLAIRE la route (même recette que le néon : plan additif qui épouse le bitume).
+  // Le SpotLight/PointLight font répondre le spéculaire ; ces flaques garantissent la LECTURE, même sur bitume mat ou au loin.
+  function mkPoolPlane(wid,len,zc,col,op,tex){
+    const m9=new THREE.Mesh(new THREE.PlaneGeometry(wid,len),
+      new THREE.MeshBasicMaterial({map:tex||poolTex,color:col,transparent:true,opacity:op,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
+    m9.rotation.x=-Math.PI/2;m9.position.set(0,.062,zc);m9.userData.noShadow=true;m9.renderOrder=2;
+    carGroup.add(m9);return m9;
+  }
+  // PHARES : les deux FAISCEAUX peints partent du pare-chocs et fondent vers l'avant (beamTex : le bord haut = la caisse)
+  CARPOOL.head=mkPoolPlane(spec.w*2.9,spec.l*3.3,spec.l/2+spec.l*1.62,0xffd9a6,wreck?.24:.55,beamTex);
+  CARPOOL.tail=mkPoolPlane(spec.w*2.1,spec.l*1.15,-spec.l/2-spec.l*.48,0xff2418,.30);          // les feux saignent leur rouge DERRIÈRE
+  CARPOOL.jet=mkPoolPlane(spec.w*2.7,spec.l*4.6,-spec.l/2-spec.l*2.3,0xff7a24,0);              // le halo de la nitro/traînée (opacité pilotée par JETS.k dans la boucle)
   carGroup.traverse(o9=>{if(o9.isMesh&&!o9.userData.noShadow)o9.castShadow=true;}); // toute la caisse porte son ombre LONGUE — sauf la nappe néon (un carré d'ombre, non merci)
 }
 buildCar(CARS[0]);
+window.dbgCar=function(i){buildCar(CARS[Math.max(0,Math.min(23,i|0))]);}; // console : dbgCar(16) → prévisualiser un gabarit sans farmer les milliards (visuel pur, ne touche pas au niveau)
+window.dbgScene=function(){return {car:carGroup,scene:scene,contact:contactShadow,shadow:shadow};}; // dissection console (visuel pur)
+window.dbgState=function(){return {started:started,running:running,paused:paused,gameOver:gameOver,mode:mode,vA:+vA.toFixed(2),s:+s.toFixed(1),level:level,introD:introD,hopY:+hopY.toFixed(2)};}; // état interne (lecture seule)
+window.dbgView=function(a,d,h){ // MODE PHOTO : force la pause, cadre la caisse sous l'angle a (rad), distance d, hauteur h, re-rend UNE frame
+  if(started&&!gameOver&&!paused)togglePause(); // sans pause, la chase-cam écrase le cadrage à la frame suivante
+  const p=carGroup.position;
+  camera.position.set(p.x+Math.sin(a)*(d||9),p.y+(h==null?2.4:h),p.z+Math.cos(a)*(d||9));
+  camera.lookAt(p.x,p.y+.7,p.z);
+  if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
+};
 // ombre portée sous la voiture
 const landMark=new THREE.Mesh(new THREE.TorusGeometry(3,.35,8,24),
   new THREE.MeshBasicMaterial({color:0x62e062,transparent:true,opacity:.85}));
@@ -2022,6 +2196,17 @@ const puffTex=(function(){
   c.fillStyle=g;c.beginPath();c.arc(32,32,30,0,7);c.fill();
   return new THREE.CanvasTexture(cv);
 })();
+// ÉTINCELLE : cœur brûlant, chute d'alpha RAPIDE — pour le feu d'échappement. Le disque mou (puffTex)
+// gonflé par le bloom faisait des BALLONS blancs ; ici le point reste une étincelle, même en gros plan.
+const sparkTex=(function(){
+  const cv=document.createElement('canvas');cv.width=cv.height=64;
+  const c=cv.getContext('2d');
+  const g=c.createRadialGradient(32,32,1,32,32,30);
+  g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.16,'rgba(255,255,255,.85)');
+  g.addColorStop(.42,'rgba(255,255,255,.22)');g.addColorStop(.7,'rgba(255,255,255,.04)');g.addColorStop(1,'rgba(255,255,255,0)');
+  c.fillStyle=g;c.beginPath();c.arc(32,32,30,0,7);c.fill();
+  return new THREE.CanvasTexture(cv);
+})();
 function makePool(n,size,color,opacity){
   const pos=new Float32Array(n*3);
   const g=new THREE.BufferGeometry();
@@ -2030,7 +2215,7 @@ function makePool(n,size,color,opacity){
   m.frustumCulled=false;scene.add(m);
   return {mesh:m,pos:pos,vel:new Float32Array(n*3),life:new Float32Array(n),n:n,head:0};
 }
-const dust=makePool(160,1.6,0x9a938a,.55);
+const dust=makePool(160,1.1,0x6a6284,.28); // gomme mauve-nuit, discrète (les gros flocons beiges permanents, c'est fini)
 const wisps=makePool(150,4.2,0xfff3e8,.4); // brume de nuage qui file le long de la caisse
 const streaks=(function(){
   const n=50,pos=new Float32Array(n*6);
@@ -2054,12 +2239,12 @@ function updateStreaks(dt){
   streaks.mesh.geometry.attributes.position.needsUpdate=true;
 }
 const flames=makePool(150,1.8,0xff9030,.8); // braises (les GROSSES nappes, c'est fini : le plume mesh fait le spectacle)
-flames.mesh.material.blending=THREE.AdditiveBlending;
+flames.mesh.material.blending=THREE.AdditiveBlending;flames.mesh.material.map=sparkTex; // texture étincelle : fini les ballons
 const flameCore=makePool(90,1.0,0xffe9a0,.9); // cœur chaud des braises (deux tons)
-flameCore.mesh.material.blending=THREE.AdditiveBlending;
+flameCore.mesh.material.blending=THREE.AdditiveBlending;flameCore.mesh.material.map=sparkTex;
 const embers=makePool(120,.55,0xffb24a,1); // braises fines qui s'échappent du feu et montent
-embers.mesh.material.blending=THREE.AdditiveBlending;
-const exSmoke=makePool(90,1.7,0x9aa2ac,.16); // voile de fumée qui suit le feu (discret : plus de blobs blancs devant l'objectif)
+embers.mesh.material.blending=THREE.AdditiveBlending;embers.mesh.material.map=sparkTex;
+const exSmoke=makePool(90,1.25,0x9aa2ac,.11); // voile de fumée qui suit le feu (discret : plus de blobs blancs devant l'objectif)
 // ---------- EXPLOSION ----------
 const boomPool=makePool(240,3.0,0xff8a30,1);boomPool.mesh.material.blending=THREE.AdditiveBlending;
 const smokePool=makePool(120,3.6,0x2a2a2e,.45);
@@ -3095,12 +3280,12 @@ const GRAV=9.8*.55,FALL_G=33,AXIS_Y=new THREE.Vector3(0,1,0),AIR_MAX=6;
 // AIR_RATE : le vol se joue PLUS VITE en temps réel — la parabole dans l'espace est identique
 // (viseur d'atterrissage + seuils de figures inchangés), mais on passe moins de temps à flotter.
 const AIR_RATE=1.6;
-const SPD=0.5; // vitesse globale du jeu (-50%)
+const SPD=0.25; // vitesse globale du jeu (÷2 le 2026-07-16 : « trop rapide dès le début » — SPD scale TOUT : avance joueur/bots, chute, viseur ET compteur)
 const TURN_HS=.0035; // pénalité de braquage à haute vitesse (avant .008 — plus petit = virages plus faciles)
 const AIR_ASSIST=1.0; // aide au recentrage en vol (0 = off), monte avec la vitesse
 const CAM_SHAKE_V=.78; // intensité du tremblement caméra lié à la vitesse (position + roulis)
 let mode='drive',s=0,lat=0,psi=0,vA=0,vL=0,side=1;
-let steer=0,money=0,levelCash=0,boost=0,fallT=0,padCd=0,shake=0,combo=0,comboT=0,graceT=0,safeS=0,yawAcc=0,edgeT=0,squashT=0,momT=0,styleM=0,fever=0,streak=0,slowT=0,steerHold=0,aheadV=0,sideCd=0,slipT=0,oilCd=0,hitT=0,insUsed=false,feverArmed=false,lastSpaceT=0,rollover=0;
+let steer=0,money=0,levelCash=0,boost=0,fallT=0,fallTR=0,padCd=0,shake=0,combo=0,comboT=0,graceT=0,safeS=0,yawAcc=0,edgeT=0,squashT=0,momT=0,styleM=0,fever=0,streak=0,slowT=0,steerHold=0,aheadV=0,sideCd=0,slipT=0,oilCd=0,hitT=0,insUsed=false,feverArmed=false,lastSpaceT=0,rollover=0;
 let airRoll=0; // vrille visuelle en vol
 // suivi des exploits pour l'announcer — fallWrap : machine à états du SNAKE LOOP
 // 0 = rien · 1 = passé sur un CÔTÉ de la dalle · 2 = passé DESSOUS · 3 = remonté par l'AUTRE côté
@@ -3349,7 +3534,7 @@ function checkUpgrade(){
   }
 }
 function startFall(impU,impF){
-  mode='fall';fallT=0;yawAcc=0;momT=0;airRoll=0;
+  mode='fall';fallT=0;fallTR=0;yawAcc=0;momT=0;airRoll=0;
   nitroAirT=0;fallWrap=0;fallWrapSign=0;fallStartSide=side; // suivi announcer
   bounceN=0;flightId++; // nouveau vol : compteur de bumps et budget d'airtime des nuages remis à zéro
   if(Math.abs(vA)*3.6*SPD>400)annSpeak('launch400',1); // éjecté à +400 km/h (1 fois sur 3)
@@ -3417,7 +3602,7 @@ function tryLand(dt){
     sideCd=.35;
     // ---- BUMP / DOUBLE BUMP / TRIPLE BUMP : figure GRATUITE (compte pour le HUD/style, zéro dollar) ----
     bounceN++;runStats.bumps++;
-    fallT=Math.max(0,fallT-AIR_MAX*.5);airFlash=.6; // DEMI-JAUGE d'airtime rendue
+    fallT=Math.max(0,fallT-AIR_MAX*.5);fallTR=Math.max(0,fallTR-AIR_MAX*.5);airFlash=.6; // DEMI-JAUGE d'airtime rendue (sim + réelle)
     addTrick('bump',bounceN===1?'BUMP':bounceN===2?'DOUBLE BUMP':bounceN===3?'TRIPLE BUMP — LA DALLE EN PLEURE':'MEGA BUMP x'+bounceN+' 💥',
       0,Math.min(3,bounceN),true,true); // free=true : le bump NE PAYE PLUS (fini la machine à cash en longeant la tranche) — il rend l'airtime et le style, c'est tout
     bumpSfx(bounceN);
@@ -3686,6 +3871,15 @@ function mkPolice(liv){
     const hg=new THREE.Sprite(pcHeadM);hg.scale.set(.8,.8,1);hg.position.set(sd*.62,.72,2.42);g.add(hg);
     const tg=new THREE.Sprite(pcTailM);tg.scale.set(.6,.6,1);tg.position.set(sd*.58,.78,-2.35);g.add(tg);
   }
+  // ...et les MÊMES FLAQUES AU SOL que le joueur : phares blanc-bleu police devant, feux rouges derrière, halo réacteur bleu (opacité pilotée par la poussée)
+  function pool9(wid,len,zc,col,op,tex){
+    const m9=new THREE.Mesh(new THREE.PlaneGeometry(wid,len),
+      new THREE.MeshBasicMaterial({map:tex||poolTex,color:col,transparent:true,opacity:op,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
+    m9.rotation.x=-Math.PI/2;m9.position.set(0,.062,zc);m9.userData.noShadow=true;m9.renderOrder=2;
+    g.add(m9);return m9;
+  }
+  pool9(6.0,14.5,9.4,0xcfe0ff,.5,beamTex);pool9(4.2,4.4,-4.3,0xff2418,.22); // faisceaux blanc-bleu police + rouge AR
+  const jetPool=pool9(5.2,15.5,-10.2,0x5b7dff,0);
   const jets=[]; // plume de réacteur : les MÊMES cônes que la caisse du joueur, en BLEU police
   for(const sd of[-1,1]){
     const js9=new THREE.Mesh(jetGeo,pcJetShellM),jc9=new THREE.Mesh(jetGeo,pcJetCoreM);
@@ -3696,7 +3890,7 @@ function mkPolice(liv){
   }
   g.traverse(o9=>{if(o9.isMesh&&!o9.userData.noShadow)o9.castShadow=true;}); // la meute aussi étire son ombre — sauf les plumes additives
   g.visible=false;scene.add(g);
-  return {g,lampR,lampB,sR,sB,jet,jets};
+  return {g,lampR,lampB,sR,sB,jet,jets,jetPool};
 }
 // pool de VRAIES lumières : seules les 2 poursuivantes les plus proches éclairent la route et ta caisse
 const gyroLights=[new THREE.PointLight(0xff3030,0,60),new THREE.PointLight(0x3f7dff,0,60)];
@@ -3995,7 +4189,8 @@ function survTick(dt){
         const fl9=.8+.2*Math.sin(SURV.t*57+b.ph*31),jl9=1.5*fl9,jr9=.13;
         b.mesh.jets[0].scale.set(jr9,jr9,jl9);b.mesh.jets[1].scale.set(jr9*.5,jr9*.5,jl9*.72);
         b.mesh.jets[2].scale.set(jr9,jr9,jl9);b.mesh.jets[3].scale.set(jr9*.5,jr9*.5,jl9*.72);
-      }
+        b.mesh.jetPool.material.opacity=.34*fl9; // le halo bleu de SA nitro lèche la route, comme le tien
+      }else b.mesh.jetPool.material.opacity=0;
       if(b.boostT>0){
         const js9=1.2+Math.random()*.6;b.mesh.jet.scale.set(js9,js9*.55,1);
         if(gap<130&&Math.random()<dt*24) // et quelques braises au ras du pare-chocs (LOD : proches seulement)
@@ -4076,20 +4271,15 @@ function loop(now){
   let dt=Math.min((now-last)/1000,.05);last=now;
   // qualité auto : si le GPU peine (<45 fps soutenus après l'échauffement), on allège la ouate une fois pour toutes
   loop._ms=(loop._ms||16)*.96+Math.min(100,now-(loop._pn||now))*.04;loop._pn=now;
-  if(!QUAL_LOW&&loop._ms>22&&now>15000){
-    QUAL_LOW=true;
-    if(VOL){VOL.U.uSteps.value=26;VOL.U.uLightSteps.value=4;} // raymarch allégé : moins de pas
-    for(const c9 of CLOUDS){let j9=0;for(const p9 of c9.puffs)if(++j9%3===0)p9.sp.visible=false;} // repli sprite
-    if(bloomPass)bloomPass.enabled=false; // FPS au tapis : on sacrifie le bloom (on garde l'ACES, quasi gratuit)
-    if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;} // ...et les ombres redescendent en 1024 (recrée la map, zéro recompilation)
-    sun.shadow.mapSize.set(1024,1024);
-  }
+  if(!QUAL_LOW&&loop._ms>22&&now>12000)applyPerfTier(true,true); // FPS au tapis : palier BAS (un seul chemin : applyPerfTier — l'ancien bloc dupliqué contournait stepBase)
+  else if(!QUAL_MED&&loop._ms>18.5&&now>8000)applyPerfTier(true,false); // ça tire la langue (<54 fps soutenus) : palier MOYEN — raymarch 24/4 + ombres 1024, quasi invisible à l'œil
   // RÉSOLUTION ADAPTATIVE : on suit le temps par frame (EMA loop._ms) et on ajuste le pixelRatio
   // — GPU qui peine → on baisse la résolution ; marge confortable → on la remonte (plafond = écran).
   dprT-=dt;
   if(dprT<=0&&now>4000){dprT=1.1;const ms9=loop._ms||16;
-    if(ms9>26&&curDPR>.6){curDPR=Math.max(.6,curDPR-.15);applyDPR();}
-    else if(ms9<15&&curDPR<DPR_CAP-.001){curDPR=Math.min(DPR_CAP,curDPR+.1);applyDPR();}
+    if(ms9>24&&curDPR>.6){curDPR=Math.max(.6,curDPR-.15);applyDPR();}       // ça rame fort : gros cran de résolution en moins
+    else if(ms9>19&&curDPR>.85){curDPR=Math.max(.85,curDPR-.08);applyDPR();} // ça tire : petit cran (hystérésis avec la remontée à <14.5)
+    else if(ms9<14.5&&curDPR<DPR_CAP-.001){curDPR=Math.min(DPR_CAP,curDPR+.08);applyDPR();}
   }
   if(slowT>0){slowT-=dt;dt*=.45;} // slow-mo d'atterrissage
   if(hitT>0){hitT-=dt;dt*=.04;}   // HIT-STOP : 80 ms de gel sur l'encaissement PARFAIT — le monde retient son souffle
@@ -4104,7 +4294,7 @@ function loop(now){
     // POUVOIRS : les minuteurs s'égrènent, l'airtime infini rend une jauge neuve en expirant
     pwrNitroT=Math.max(0,pwrNitroT-dt);
     pwrSpdT=Math.max(0,pwrSpdT-dt);
-    if(pwrAirT>0){pwrAirT-=dt;if(pwrAirT<=0){pwrAirT=0;if(mode==='fall'){fallT=0;airFlash=.6;}}}
+    if(pwrAirT>0){pwrAirT-=dt;if(pwrAirT<=0){pwrAirT=0;if(mode==='fall'){fallT=0;fallTR=0;airFlash=.6;}}}
     // nitro : 2s regen (10s de recharge) + 2s réserve (bidons bleus)
     nitroR=Math.min(2,nitroR+.2*dt);
     if(pwrNitroT>0)nitroR=2; // NITRO INFINIE : la jauge reste pleine, rien ne se consomme
@@ -4293,18 +4483,22 @@ function loop(now){
         }else carGroup.scale.set(1,1,1);
         for(const w of wheels)w.rotation.x+=vF*dt*2.5;
         // ombre
+        shadow.material.opacity=.10; // en drive la shadow map fait le travail — le disque noir creusait un DONUT dans le néon/les flaques
         shadow.position.copy(carGroup.position).addScaledVector(F.n,.06-hopY); // l'ombre reste collée à la route (drop/dos d'âne)
         mat4.makeBasis(tmp3.copy(F.t),tmp2.copy(F.b),F.n);
         shadow.quaternion.setFromRotationMatrix(mat4);
         shadow.scale.setScalar(1);
-        // poussière des roues
-        if(Math.abs(vF)>14){
-          for(let k=0;k<2;k++){
+        // fumée de gomme : SEULEMENT quand ça glisse (même zone morte que le crissement) —
+        // la poussière permanente derrière les roues, c'était du bruit visuel, pas de la vitesse
+        const drf9=Math.max(0,Math.min(1,(Math.abs(psi)-.32)*1.5))*Math.min(1,Math.abs(vA)/35);
+        if(drf9>0&&Math.abs(vF)>14){
+          const nD9=1+(drf9>.5?1:0);
+          for(let k=0;k<nD9;k++){
             const sd2=k?1:-1;
             tmp2.copy(carGroup.position).addScaledVector(fwdW,-spec.l/2).addScaledVector(tmp,sd2*spec.w/2);
             spawnP(dust,tmp2.x,tmp2.y,tmp2.z,
-              -fwdW.x*4+(Math.random()-.5)*2,F.n.y*1.5+Math.random(),-fwdW.z*4+(Math.random()-.5)*2,
-              .5+Math.random()*.4);
+              -fwdW.x*3+tmp.x*sd2*2.5*drf9+(Math.random()-.5)*1.5,F.n.y*1.2+Math.random()*.8,-fwdW.z*3+tmp.z*sd2*2.5*drf9+(Math.random()-.5)*1.5,
+              .3+Math.random()*.3);
           }
         }
         // traits d'AIR : discrets, de plus en plus nombreux à mesure que ça accélère
@@ -4321,26 +4515,26 @@ function loop(now){
         // BRAISES d'échappement : fines, vie COURTE, jet serré — le plume mesh (JETS) et la traînée
         // font le spectacle, les particules ne sont plus que des étincelles qui giclent. Fini le mur
         // blanc : avant, des sprites géants restaient plantés dans le monde et la caméra les TRAVERSAIT.
-        flames.mesh.material.size=Math.min(1.15,.45+level*.04)*(nitroOn?1.2:1)*(.8+Math.random()*.3);
-        flameCore.mesh.material.size=Math.min(.65,.25+level*.02)*(nitroOn?1.25:1)*(.75+Math.random()*.35);
+        flames.mesh.material.size=Math.min(.62,.27+level*.022)*(nitroOn?1.2:1)*(.8+Math.random()*.3); // PETIT : une étincelle, pas un ballon (le plume mesh fait le volume)
+        flameCore.mesh.material.size=Math.min(.34,.14+level*.012)*(nitroOn?1.25:1)*(.75+Math.random()*.35);
         flames.mesh.material.color.set(nitroOn?(nitroBlue?0x3a5bff:0xff8020):0xff9030);
         flameCore.mesh.material.color.set(nitroOn?(nitroBlue?0xbfd6ff:0xffd9a0):0xffe2a8);
         const fl=(up||nitroOn)?(nitroOn?5:2)+Math.min(3,Math.floor(level/5)):(Math.abs(vF)>8?1:0);
         for(let k=0;k<fl;k++){
           const sd3=k%2?-1:1;
           tmp2.copy(carGroup.position).addScaledVector(fwdW,-spec.l/2-.22).addScaledVector(tmp,sd3*spec.w*.22).addScaledVector(F.n,.43);
-          const vsp=nitroOn?1.2:1.8;
-          spawnP(flames,tmp2.x+(Math.random()-.5)*.12,tmp2.y+(Math.random()-.5)*.12,tmp2.z+(Math.random()-.5)*.12,
-            -fwdW.x*(14+level*.6+(nitroOn?10:0))+(Math.random()-.5)*vsp,F.n.y*.5+(Math.random()-.5)*vsp,-fwdW.z*(14+level*.6+(nitroOn?10:0))+(Math.random()-.5)*vsp,
+          const vsp=nitroOn?.6:.9; // flux SERRÉ le long de l'axe : un jet, pas un nuage
+          spawnP(flames,tmp2.x+(Math.random()-.5)*.10,tmp2.y+(Math.random()-.5)*.10,tmp2.z+(Math.random()-.5)*.10,
+            -fwdW.x*(22+level*.6+(nitroOn?14:0))+(Math.random()-.5)*vsp,F.n.y*.5+(Math.random()-.5)*vsp,-fwdW.z*(22+level*.6+(nitroOn?14:0))+(Math.random()-.5)*vsp,
             .05+(nitroOn?.04:0)+Math.random()*.05);
-          if((nitroOn||level>=5)&&Math.random()<.10)spawnP(exSmoke,tmp2.x,tmp2.y+.2,tmp2.z,
+          if((nitroOn||level>=5)&&Math.random()<.06)spawnP(exSmoke,tmp2.x,tmp2.y+.2,tmp2.z,
             -fwdW.x*3+(Math.random()-.5)*1.5,.8+Math.random(),-fwdW.z*3+(Math.random()-.5)*1.5,
             .4+Math.random()*.35);
           if(Math.random()<.3)spawnP(embers,tmp2.x,tmp2.y,tmp2.z,
             -fwdW.x*(5+Math.random()*8)+(Math.random()-.5)*3,1+Math.random()*3,-fwdW.z*(5+Math.random()*8)+(Math.random()-.5)*3,
             .3+Math.random()*.35);
-          if(k<2)spawnP(flameCore,tmp2.x+(Math.random()-.5)*.08,tmp2.y+(Math.random()-.5)*.08,tmp2.z+(Math.random()-.5)*.08,
-            -fwdW.x*(17+level*.6+(nitroOn?12:0))+(Math.random()-.5)*.9,F.n.y*.3+(Math.random()-.5)*.9,-fwdW.z*(17+level*.6+(nitroOn?12:0))+(Math.random()-.5)*.9,
+          if(k<2)spawnP(flameCore,tmp2.x+(Math.random()-.5)*.06,tmp2.y+(Math.random()-.5)*.06,tmp2.z+(Math.random()-.5)*.06,
+            -fwdW.x*(28+level*.6+(nitroOn?14:0))+(Math.random()-.5)*.5,F.n.y*.3+(Math.random()-.5)*.5,-fwdW.z*(28+level*.6+(nitroOn?14:0))+(Math.random()-.5)*.5,
             .04+Math.random()*.04+(nitroOn?.03:0));
         }
         // backfire : pop de flammes quand on relâche les gaz à haut régime
@@ -4348,7 +4542,7 @@ function loop(now){
           for(let k=0;k<6;k++){
             const sd3=k%2?-1:1;
             tmp2.copy(carGroup.position).addScaledVector(fwdW,-spec.l/2-.2).addScaledVector(tmp,sd3*spec.w*.22).addScaledVector(F.n,.43);
-            spawnP(flames,tmp2.x,tmp2.y,tmp2.z,-fwdW.x*14+(Math.random()-.5)*5,Math.random()*3,-fwdW.z*14+(Math.random()-.5)*5,.16);
+            spawnP(flames,tmp2.x,tmp2.y,tmp2.z,-fwdW.x*16+(Math.random()-.5)*2.5,Math.random()*1.6,-fwdW.z*16+(Math.random()-.5)*2.5,.12);
           }
           noiseBurst(.12,.07,900);
         }
@@ -4396,7 +4590,7 @@ function loop(now){
       }
     }else if(mode==='fall'){ // ---- VOL : maniabilité aérienne propre ----
       const dtF=dt*AIR_RATE; // temps de vol accéléré : même arc dans l'espace, moins de temps réel à flotter
-      fallT+=dtF;
+      fallT+=dtF;fallTR+=dt; // fallT = temps-sim (figures/paiements) ; fallTR = temps RÉEL (jauge des 6 s — sinon le chrono file à ×1,6)
       if(nitroOn)nitroAirT+=dtF; // temps de réacteur dans CE vol (METEOR / MEGA METEOR)
       fallVel.y-=FALL_G*dtF;
       // chute pilotée : un peu de lacet, c'est tout — la voiture est LOURDE
@@ -4429,13 +4623,13 @@ function loop(now){
         for(let j9=0;j9<5;j9++){
           tmp2.copy(carGroup.position).addScaledVector(tmp3,-2.3);
           tmp2.x+=(Math.random()-.5)*.5;tmp2.y+=(Math.random()-.5)*.5;tmp2.z+=(Math.random()-.5)*.5;
-          const pw=13+Math.random()*9,spr=3.5;
+          const pw=21+Math.random()*9,spr=1.7; // vol : le jet reste un CRAYON de feu, pas une gerbe
           spawnP(flames,tmp2.x,tmp2.y,tmp2.z,
             -tmp3.x*pw+(Math.random()-.5)*spr,-tmp3.y*pw+(Math.random()-.5)*spr,-tmp3.z*pw+(Math.random()-.5)*spr,
-            .09+Math.random()*.14);
+            .07+Math.random()*.10);
           if(j9<3)spawnP(flameCore,tmp2.x,tmp2.y,tmp2.z,
-            -tmp3.x*(pw+5)+(Math.random()-.5)*1.6,-tmp3.y*(pw+5)+(Math.random()-.5)*1.6,-tmp3.z*(pw+5)+(Math.random()-.5)*1.6,
-            .06+Math.random()*.08);
+            -tmp3.x*(pw+7)+(Math.random()-.5)*.9,-tmp3.y*(pw+7)+(Math.random()-.5)*.9,-tmp3.z*(pw+7)+(Math.random()-.5)*.9,
+            .05+Math.random()*.07);
         }
         if(Math.random()<.45)spawnP(exSmoke,
           carGroup.position.x-tmp3.x*3.4,carGroup.position.y-tmp3.y*3.4,carGroup.position.z-tmp3.z*3.4,
@@ -4562,7 +4756,7 @@ function loop(now){
       }
       // camembert de temps de vol (cyan plein pendant AIRTIME INFINI : c'est le pouvoir qui s'égrène)
       airPie.style.display='block';
-      const fr=pwrAirT>0?Math.min(1,pwrAirT/10):Math.max(0,1-fallT/AIR_MAX);
+      const fr=pwrAirT>0?Math.min(1,pwrAirT/10):Math.max(0,1-fallTR/AIR_MAX); // jauge en temps RÉEL : 6 s affichées = 6 s vécues
       pieCtx.clearRect(0,0,74,74);
       pieCtx.beginPath();pieCtx.arc(37,37,33,0,7);pieCtx.fillStyle='rgba(0,0,0,.35)';pieCtx.fill();
       pieCtx.beginPath();pieCtx.moveTo(37,37);
@@ -4577,9 +4771,9 @@ function loop(now){
         pieCtx.beginPath();pieCtx.arc(37,37,33,0,7);pieCtx.stroke();
       }
       pieCtx.fillStyle='#fff';pieCtx.font='bold 15px monospace';pieCtx.textAlign='center';
-      pieCtx.fillText((pwrAirT>0?pwrAirT:Math.max(0,AIR_MAX-fallT)).toFixed(1),37,42);
+      pieCtx.fillText((pwrAirT>0?pwrAirT:Math.max(0,AIR_MAX-fallTR)).toFixed(1),37,42);
       if(tryLand(dtF)){airPie.style.display='none';}
-      else if((fallT>AIR_MAX&&pwrAirT<=0)||fallPos.y<lastNearY-200){airPie.style.display='none';explode();}
+      else if((fallTR>AIR_MAX&&pwrAirT<=0)||fallPos.y<trackMinY-120){airPie.style.display='none';explode();} // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
     }else if(mode==='boom'){ // ---- EXPLOSION ----
       boomT+=dt;
       for(const d of debris){
@@ -4679,11 +4873,14 @@ function loop(now){
     carGroup.getWorldDirection(hsF);
     headSpot.position.copy(carGroup.position).addScaledVector(hsF,1.6);headSpot.position.y+=1.5;
     headSpot.target.position.copy(carGroup.position).addScaledVector(hsF,30);headSpot.target.position.y-=1.2;
-    headSpot.intensity=(mode==='boom')?0:1.2;
+    headSpot.intensity=(mode==='boom')?0:1.85; // phares qui MORDENT le bitume (la flaque CARPOOL.head assure la lecture, le spot fait répondre le spéculaire)
+    if(CARPOOL.head){const on9=(mode!=='boom');CARPOOL.head.visible=CARPOOL.tail.visible=CARPOOL.jet.visible=on9;
+      if(on9&&CARPOOL.jet){CARPOOL.jet.material.opacity=Math.min(.46,JETS.k*.5);CARPOOL.jet.material.color.copy(jetShellM.color);} // le halo de traînée suit la flamme (couleur d'état déjà calculée)
+      if(on9)CARPOOL.tail.material.opacity=.30+(keys.ArrowDown?.18:0);} // freinage : les feux stop chauffent la flaque
     // REFLET NITRO/BOOST : le pool de lumière colle à l'échappement (repère caisse : marche aussi sous la dalle)
     hsU.set(0,1,0).applyQuaternion(carGroup.quaternion);
     nitroLight.position.copy(carGroup.position).addScaledVector(hsF,-2.2).addScaledVector(hsU,.5);
-    const nTgt=(mode==='boom')?0:(nitroOn?(nitroBlue?2.1:1.6):(boost>0?.9:.55)); // .55 au repos : les FEUX ARRIÈRE posent leur reflet rouge en permanence (la nuit sert à ça)
+    const nTgt=(mode==='boom')?0:(nitroOn?(nitroBlue?2.3:1.9):(boost>0?1.1:.8)); // .8 au repos : les FEUX ARRIÈRE posent leur reflet rouge en permanence (la nuit sert à ça)
     nitroLight.intensity+=(nTgt*(.82+.18*Math.sin(t*43))-nitroLight.intensity)*Math.min(1,dt*14); // flamme qui tremble, fondu doux
     if(nitroOn)nitroLight.color.setHex(nitroBlue?0x5b7dff:0xff7a24); // orange nitro / bleu réserve (mêmes teintes que les particules)
     else if(boost>0)nitroLight.color.setHex(0xffb040); // pad turbo : coup d'or
@@ -4719,7 +4916,7 @@ function loop(now){
     }
     // le reflet de la traînée GLISSE sur la route derrière la caisse (même couleur que le ruban)
     trailLight.position.copy(carGroup.position).addScaledVector(hsF,-9).addScaledVector(hsU,1.1);
-    trailLight.intensity+=(trailK*1.35-trailLight.intensity)*Math.min(1,dt*10);
+    trailLight.intensity+=(trailK*1.7-trailLight.intensity)*Math.min(1,dt*10);
     trailLight.color.setRGB(Math.min(1,tcr),Math.min(1,tcg),Math.min(1,tcb));
     // sons continus
     if(AC){
@@ -4867,7 +5064,7 @@ function loop(now){
     else{elStyleF.className=feverArmed?'armed':'';elStyleF.style.width=styleM+'%';feverGlow.style.display='none';}
     if(comboT>0){comboT-=dt;if(comboT<=0)combo=0;}
     if(msgT>0){msgT-=dt;if(msgT<=0)elMsg.style.opacity=0;}
-  } }catch(err){if(!loop._warned){console.error('loop error',err);loop._warned=true;}}
+  } }catch(err){window.__loopErr=err.message+' | '+(err.stack||'').split('\n').slice(0,3).join(' ¶ ');if(!loop._warned){console.error('loop error',err);loop._warned=true;}}
   // ciel : dôme, soleil « 1.61 », lueur d'horizon et rayons crépusculaires suivent la caméra
   skyDome.position.copy(camera.position);
   skyU.uTime.value=t;
