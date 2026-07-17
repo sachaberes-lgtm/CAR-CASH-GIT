@@ -381,12 +381,17 @@ const scene=new THREE.Scene();
 // grande brume rose sombre, ambre au ras du couchant, étoiles, lune. La nuit tombe pour de bon.
 scene.background=new THREE.Color(0x0d0820); // fond NUIT violet TRÈS sombre (le ciel dôme couvre, ceci teinte les trouées)
 const SUN_DIR=new THREE.Vector3(.38,.10,-.90).normalize(); // soleil TRÈS BAS (~5,9°) : lumière rasante, ombres longues
-const skyU={uTime:{value:0},uSunDir:{value:SUN_DIR}};
+// GRADE DE CIEL (biomes) : uniforms à IDENTITÉ NEUTRE — réglages par défaut = rendu Vice City actuel au pixel près.
+// La palette reste bakée dans le shader ; le biome la teinte (×mul, +lift horizon) et dose soleil/ville/étoiles/lune.
+const skyU={uTime:{value:0},uSunDir:{value:SUN_DIR},
+  uSkyMul:{value:new THREE.Vector3(1,1,1)},uSkyLift:{value:new THREE.Vector3(0,0,0)},
+  uSunTint:{value:new THREE.Vector3(1,.40,.28)},uSunHalo:{value:1},uCity:{value:1},uStars:{value:1},uMoon:{value:1}};
 const skyDome=(function(){
   const mat=new THREE.ShaderMaterial({uniforms:skyU,side:THREE.BackSide,depthWrite:false,
     vertexShader:'varying vec3 vDir;void main(){vDir=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
     fragmentShader:[
       'varying vec3 vDir;uniform vec3 uSunDir;uniform float uTime;',
+      'uniform vec3 uSkyMul,uSkyLift,uSunTint;uniform float uSunHalo,uCity,uStars,uMoon;', // grade biome (identité par défaut)
       'float hash21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}',
       'void main(){',
       '  float y=vDir.y;',
@@ -406,16 +411,17 @@ const skyDome=(function(){
       '  col=mix(col,zen,smoothstep(.44,.78,y));',   // le bleu nuit domine le tiers haut
       '  col=mix(blw,col,smoothstep(-.10,.012,y));',
       '  col=mix(dp2,col,smoothstep(-.85,-.12,y));',
+      '  col=col*uSkyMul+uSkyLift*smoothstep(.35,-.06,y);', // BIOME : teinte du gradient + lift laiteux concentré à l horizon
       '  float sd=max(dot(vDir,uSunDir),0.);',      // couchant : halo rosé large, couronne corail, coeur incandescent (tamisé)
-      '  col+=vec3(1.,.40,.28)*pow(sd,4.)*.45;',
-      '  col+=vec3(1.,.60,.36)*pow(sd,32.)*.9;',
-      '  col+=vec3(1.,.90,.78)*pow(sd,480.)*1.25;',
+      '  col+=uSunTint*pow(sd,4.)*.45*uSunHalo;',
+      '  col+=vec3(1.,.60,.36)*pow(sd,32.)*.9*uSunHalo;',
+      '  col+=vec3(1.,.90,.78)*pow(sd,480.)*1.25*uSunHalo;',
       // LA VILLE SOUS LA MER DE NUAGES : guirlande de lueurs néon rose ↔ cyan qui court sur l horizon, loin du soleil
       '  float az=atan(vDir.x,-vDir.z);',
       '  float cty=(.5+.5*sin(az*4.+1.3))*.6+(.5+.5*sin(az*9.+4.2))*.4;cty*=cty;',
       '  float cband=smoothstep(.13,.008,abs(y+.03));',
       '  vec3 neon=mix(vec3(1.,.30,.62),vec3(.36,.78,1.),.5+.5*sin(az*2.+2.0));',
-      '  col+=neon*cty*cband*(1.-smoothstep(.15,.75,sd))*.42;',
+      '  col+=neon*cty*cband*(1.-smoothstep(.15,.75,sd))*.42*uCity;', // la ville s éteint sous l orage, hurle en NÉON TOTAL
       // ÉTOILES : elles s allument avec la nuit, scintillent doucement, jamais dans le halo du soleil
       '  vec2 sg=vec2(az*10.1859,vDir.y*22.);', // 64 cellules par tour → zéro couture
       '  vec2 sid=floor(sg),sfr=fract(sg);',
@@ -423,13 +429,13 @@ const skyDome=(function(){
       '  vec2 stp=vec2(fract(h*17.13),fract(h*31.71))*.7+.15;',
       '  float st=(1.-smoothstep(0.,.055,length(sfr-stp)))*step(.76,h);',
       '  st*=.55+.45*sin(uTime*(1.2+h*2.6)+h*44.);',
-      '  col+=vec3(.80,.88,1.)*st*smoothstep(.10,.42,y)*(1.-smoothstep(.25,.8,sd))*.9;', // elles descendent plus bas : le haut du cadre est habité
+      '  col+=vec3(.80,.88,1.)*st*smoothstep(.10,.42,y)*(1.-smoothstep(.25,.8,sd))*.9*uStars;', // elles descendent plus bas : le haut du cadre est habité — MINUIT les multiplie, l aube les éteint
       // LUNE pâle à l opposé du couchant — le témoin du presque-nuit
       '  vec3 mdir=normalize(vec3(-.52,.40,-.72));',
       '  float md=dot(vDir,mdir);',
-      '  col+=vec3(.93,.96,1.06)*smoothstep(.9976,.9988,md)*1.05;', // VRAI disque (~3°) : l ancre céleste du cadre, règle Alto
-      '  col+=vec3(.55,.62,.92)*pow(max(md,0.),420.)*.45;',        // aura proche
-      '  col+=vec3(.28,.32,.55)*pow(max(md,0.),90.)*.20;',         // halo large qui fond dans la nuit
+      '  col+=vec3(.93,.96,1.06)*smoothstep(.9976,.9988,md)*1.05*uMoon;', // VRAI disque (~3°) : l ancre céleste du cadre, règle Alto
+      '  col+=vec3(.55,.62,.92)*pow(max(md,0.),420.)*.45*uMoon;',        // aura proche
+      '  col+=vec3(.28,.32,.55)*pow(max(md,0.),90.)*.20*uMoon;',         // halo large qui fond dans la nuit
       '  float w=sin(vDir.x*8.+uTime*.05)*sin(vDir.z*7.-uTime*.04);', // voile tres subtil qui vit
       '  col+=vec3(.016,.010,.016)*w*smoothstep(.05,.4,y);',
       '  col+=vec3((fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453)-.5)/160.);', // dither
@@ -438,7 +444,8 @@ const skyDome=(function(){
   const m=new THREE.Mesh(new THREE.SphereGeometry(4300,48,28),mat);
   m.frustumCulled=false;m.renderOrder=-9;scene.add(m);return m;
 })();
-const FOG_N=420,FOG_F=2600,FOG_BASE=new THREE.Color(0x5e3254),FOG_CLOUD=new THREE.Color(0xd8bcd0),fogTmp=new THREE.Color();
+let FOG_N=420,FOG_F=2600; // near/far pilotés par les BIOMES (le lerp cloudInS les relit chaque frame)
+const FOG_BASE=new THREE.Color(0x5e3254),FOG_CLOUD=new THREE.Color(0xd8bcd0),fogTmp=new THREE.Color(); // FOG_BASE : l'objet reste const, les biomes mutent son RGB
 const FOG_CJ=new THREE.Color(0xc06a54),cjV=new THREE.Vector3(); // CONTRE-JOUR : l'air s'embrase quand on roule vers le soleil (la seule zone lumineuse)
 scene.fog=new THREE.Fog(0x5e3254,FOG_N,FOG_F); // brume MAGENTA sombre : la route lointaine fond dans le rose de la nuit qui tombe
 const camera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.1,9800);
@@ -499,11 +506,11 @@ const IS_LOW_END=IS_MOBILE||(navigator.hardwareConcurrency>0&&navigator.hardware
 const renderer=new THREE.WebGLRenderer({antialias:!IS_MOBILE&&!IS_LOW_END,powerPreference:'high-performance'});
 renderer.setSize(innerWidth,innerHeight);
 document.body.appendChild(renderer.domElement);
-let DPR_CAP=Math.min(devicePixelRatio,IS_MOBILE?1.25:IS_LOW_END?1.5:1.75),curDPR=IS_MOBILE?1:Math.min(DPR_CAP,devicePixelRatio),dprT=0; // RÉSOLUTION ADAPTATIVE (perf) : ajustée dans loop() selon loop._ms
+let DPR_CAP=Math.min(devicePixelRatio,IS_MOBILE?1.25:1.5),curDPR=IS_MOBILE?1:Math.min(DPR_CAP,devicePixelRatio),dprT=0; // RÉSOLUTION ADAPTATIVE — cap desktop 1.5 : sur Retina, 1.75→1.5 = −26 % de pixels, invisible sous bloom+grain (écran 1× : min() ne change rien)
 renderer.setPixelRatio(curDPR);
 let composer=null,bloomPass=null,acesPass=null,POST_ON=false,SHADOW_ON=true; // POST-PROCESSING (assigné juste après)
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);if(composer)composer.setSize(innerWidth,innerHeight);slCv.width=innerWidth;slCv.height=innerHeight;});
-scene.add(new THREE.HemisphereLight(0xba86b6,0x18162e,0.40)); // ambiance VICE CITY NUIT (assombrie) : ciel rose-mauve baissé, sol indigo — la pénombre gagne, les lumières de la caisse vivent
+const hemi=new THREE.HemisphereLight(0xba86b6,0x18162e,0.40);scene.add(hemi); // ambiance VICE CITY NUIT (assombrie) : ciel rose-mauve baissé, sol indigo — la pénombre gagne, les lumières de la caisse vivent (nommée : les BIOMES la pilotent)
 const sun=new THREE.DirectionalLight(0xff6a3c,1.45);sun.position.copy(SUN_DIR).multiplyScalar(3800);scene.add(sun); // BRAISE ROUGE-CORAIL : la lumière rasante peint le bitume en rouge sombre — golden hour devenue red hour
 const fill=new THREE.DirectionalLight(0x4f74e8,.24);fill.position.set(-200,-400,-100);scene.add(fill); // fill BLEU NÉON par en dessous : les ventres de caisse prennent la ville
 const kick=new THREE.DirectionalLight(0xff3d9e,.20);kick.position.set(-520,260,410);scene.add(kick); // baiser MAGENTA venu de la ville : le flanc opposé au soleil prend le néon
@@ -515,15 +522,15 @@ const kick=new THREE.DirectionalLight(0xff3d9e,.20);kick.position.set(-520,260,4
 renderer.shadowMap.enabled=true;
 renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 sun.castShadow=true;
-sun.shadow.mapSize.set(IS_MOBILE||IS_LOW_END?1024:1536,IS_MOBILE||IS_LOW_END?1024:1536);
+sun.shadow.mapSize.set(IS_MOBILE||IS_LOW_END?1024:1280,IS_MOBILE||IS_LOW_END?1024:1280); // 1280 : l'ortho ±34 m est si serrée que 1536 était du luxe — passe d'ombre ~30 % moins chère
 const SUNC=sun.shadow.camera;
 SUNC.left=-34;SUNC.right=34;SUNC.top=30;SUNC.bottom=-64;SUNC.near=40;SUNC.far=340;SUNC.updateProjectionMatrix(); // fond profond : l'ombre atteint la dalle même en PLEIN CIEL
 sun.shadow.bias=-0.0003;sun.shadow.normalBias=0.08; // normalBias en MÈTRES (~2 texels) : assez pour tuer l'acné, pas de quoi décoller l'ombre
 scene.add(sun.target);
 const SUN_UP=new THREE.Vector3().crossVectors(SUN_PERP,SUN_DIR).normalize(),shadV=new THREE.Vector3(); // base du plan lumière (snap texel)
 // --- Étalonnage GTA-VICE (réglables d'un coup d'œil) : saturé, contrasté, teal-orange ---
-const POST_EXPO=0.71;      // exposition BASSE : la nuit gagne — le sol s'éteint pour que nitro/boost/phares RAYONNENT dessus
-const POST_SAT=1.40;       // SATURATION forte : néons Vice City
+let POST_EXPO=0.71;        // exposition BASSE : la nuit gagne — le sol s'éteint pour que nitro/boost/phares RAYONNENT dessus (let : les BIOMES la pilotent, le contre-jour la relit chaque frame)
+const POST_SAT=1.40;       // SATURATION forte : néons Vice City (valeur d'init — les biomes écrivent acesPass.uniforms.uSat en direct)
 const POST_CONTRAST=1.23;  // CONTRASTE : noirs profonds, hautes lumières franches
 const POST_VIVID=0.74;     // 0 = ACES sobre (désature les hautes lumières) · 1 = tonemap qui PRÉSERVE la couleur (les néons restent des néons)
 const POST_WB=new THREE.Vector3(1.02,0.985,1.03);       // voile MAGENTA subtil : le rose Vice City infuse toute l'image
@@ -552,13 +559,13 @@ const CAN_POST=typeof THREE.EffectComposer==='function'&&typeof THREE.RenderPass
 if(CAN_POST){ try{
   const w=innerWidth,h=innerHeight;
   let rt; // MSAA seulement sur desktop musclé (sinon double AA + coût MSAA inutile)
-  if(!IS_MOBILE&&!IS_LOW_END&&typeof THREE.WebGLMultisampleRenderTarget==='function')rt=new THREE.WebGLMultisampleRenderTarget(w,h,{format:THREE.RGBAFormat});
+  if(!IS_MOBILE&&!IS_LOW_END&&devicePixelRatio<1.5&&typeof THREE.WebGLMultisampleRenderTarget==='function')rt=new THREE.WebGLMultisampleRenderTarget(w,h,{format:THREE.RGBAFormat}); // MSAA réservé aux écrans 1× (où le crénelage se voit) — sur Retina le resolve coûte cher pour rien
   else rt=new THREE.WebGLRenderTarget(w,h,{format:THREE.RGBAFormat,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});
   composer=new THREE.EffectComposer(renderer,rt);
   composer.setPixelRatio(curDPR);composer.setSize(w,h);
   composer.addPass(new THREE.RenderPass(scene,camera));
   // BLOOM demi-résolution partout : gros gain GPU, halation quasi identique à l'œil.
-  const bSc=IS_MOBILE?.42:IS_LOW_END?.52:.62;
+  const bSc=IS_MOBILE?.42:IS_LOW_END?.52:.55; // bloom demi-résolution un cran plus bas sur desktop : le flou EST le produit, personne ne voit la différence
   const bRes=new THREE.Vector2(Math.max(320,Math.round(w*bSc)),Math.max(240,Math.round(h*bSc)));
   bloomPass=new THREE.UnrealBloomPass(bRes,IS_MOBILE?0.44:0.54,IS_MOBILE?0.44:.5,0.92);
   composer.addPass(bloomPass);
@@ -710,7 +717,7 @@ let QUAL_LOW=false,QUAL_MED=IS_MOBILE||IS_LOW_END; // garde-fous perf : réduise
 function applyPerfTier(med,low){
   if(low&&!QUAL_LOW){
     QUAL_LOW=true;QUAL_MED=true;
-    if(VOL){VOL.stepBase=18;VOL.U.uSteps.value=18;VOL.U.uLightSteps.value=3;} // ⚠ uSteps DIRECT : stepBase seul n'était lu par personne (le tier ne faisait RIEN)
+    if(VOL){VOL.stepBase=26;VOL.U.uSteps.value=26;VOL.U.uLightSteps.value=4;} // PLANCHER RELEVÉ : sous 26 pas le dither devient un damier ; 4 pas de lumière = transition ombre lisse (3 stipplait)
     for(const c9 of CLOUDS){let j9=0;for(const p9 of c9.puffs)if(++j9%3===0)p9.sp.visible=false;}
     if(bloomPass)bloomPass.enabled=false;
     if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}
@@ -718,7 +725,7 @@ function applyPerfTier(med,low){
     renderer.shadowMap.type=THREE.BasicShadowMap;
   }else if(med&&!QUAL_MED){
     QUAL_MED=true;
-    if(VOL){VOL.stepBase=24;VOL.U.uSteps.value=24;VOL.U.uLightSteps.value=4;}
+    if(VOL){VOL.stepBase=36;VOL.U.uSteps.value=36;VOL.U.uLightSteps.value=4;} // MED : encore lisse (l'ancien 24 tramait déjà)
     if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;} // ombres 1024 dès le palier MED (recrée la map, zéro recompilation)
     sun.shadow.mapSize.set(1024,1024);
   }
@@ -731,11 +738,11 @@ function applyPerfTier(med,low){
 //  OPAQUES, ventres dans l'ombre, coiffes dorées, on VOLE DEDANS. WebGL2 requis.
 //  Repli billboard (mkCloudSprite) si pas de WebGL2. Réglé à l'atelier-nuages.
 // ============================================================================
-// ⛔ RAYMARCH COUPÉ (2026-07-16, verdict du patron : « les nuages les plus moches que j'ai vus de ma vie »).
-// Sur le matériel cible (MacBook Air), DPR adaptatif + paliers perf dégradent le raymarch → boules tramées
-// en damier. Le nuage qu'il aime = le SPRITE PEINT (fantômes d'horizon). Tout passe en sprites (VOL=null
-// → mkCloud retombe sur mkCloudSprite). Le code volumétrique reste en réserve : remettre le vrai test ci-dessous.
-const VOL_OK=false&&!!(renderer.capabilities&&renderer.capabilities.isWebGL2&&typeof THREE.DataTexture3D==='function');
+// RAYMARCH ACTIF — mission : LISSE ET ONCTUEUX MÊME DÉGRADÉ. L'aller-retour sprites (2026-07-16) a tranché :
+// le user veut des nuages PHYSIQUES traversables ; le problème n'était pas le raymarch mais sa version
+// dégradée (18-24 pas + DPR bas = boules tramées). Fixes : planchers de pas relevés (26/36), fondu de bord
+// resserré à la lisière (fini l'effet boule), sculpture du bruit restaurée, lobes proportionnels à la taille.
+const VOL_OK=!!(renderer.capabilities&&renderer.capabilities.isWebGL2&&typeof THREE.DataTexture3D==='function');
 let VOL=null;
 if(VOL_OK){ try{
   // -- texture 3D de bruit tuilable : R billows (1-Worley fBm), G détail, B trouées --
@@ -761,8 +768,8 @@ if(VOL_OK){ try{
   const U={ uNoise:{value:noise}, uTime:{value:0},
     uSunDir:{value:SUN_DIR.clone()}, uSunCol:{value:new THREE.Color(2.05,0.95,0.60)}, // ROSE-DORÉ : les coiffes prennent le couchant Miami
     uSkyCol:{value:new THREE.Color(0.34,0.30,0.62)}, uGroundCol:{value:new THREE.Color(0.13,0.08,0.18)}, // ciel violet SATURÉ en haut, ventres prune adoucis (crémeux, plus charbon)
-    uAmb:{value:0.58}, uCoverage:{value:0.80}, uDensity:{value:2.9}, uDetail:{value:0.12}, // CRÉMEUX : plein, peu de crispure
-    uEdge:{value:0.36}, uFreq:{value:1/85}, uSigma:{value:0.60}, uAbsorb:{value:1.45}, uSilver:{value:1.4}, // bords fondus, chair épaisse, ombre propre laiteuse
+    uAmb:{value:0.56}, uCoverage:{value:0.85}, uDensity:{value:2.9}, uDetail:{value:0.04}, // LISSE & CRÉMEUX : la forme vient des MÉTABALLES (lisses), le bruit ne fait QU'adoucir le bord — plus de quadrillage cellulaire
+    uEdge:{value:0.34}, uFreq:{value:1/120}, uSigma:{value:0.55}, uAbsorb:{value:1.5}, uSilver:{value:1.4}, // bruit BASSE fréquence (grosses ondulations douces, jamais de grain fin) + coquille molle
     uSteps:{value:40.0}, uLightSteps:{value:6.0},
     // MÉTABALLES : la forme du nuage = UNION DOUCE de 5-10 boules collées (par nuage, posées dans onBeforeRender)
     uBaseFlat:{value:1.0}, uNBlob:{value:1.0}, uBlobs:{value:(function(){const a=[];for(let i=0;i<12;i++)a.push(new THREE.Vector4(0,0,0,.3));return a;})()},
@@ -802,8 +809,8 @@ if(VOL_OK){ try{
       float sq=sqrt(disc),t0=max((-B-sq)/(2.0*A),0.0),t1=(-B+sq)/(2.0*A);if(t1<=t0)discard;
       // FONDU RADIAL au bord de l'ellipsoïde : la silhouette fond au lieu de granuler (le dither
       // sur 2-3 pas de lisière faisait du sel-et-poivre) — le nuage devient CRÉMEUX jusqu'au bord
-      float rim=1.0-smoothstep(0.78,1.0,length(oc+dd*max(-B/(2.0*A),0.0)));
-      float stepS=(t1-t0)/uSteps,dither=ign(),t=t0+stepS*0.55*dither;
+      float rim=1.0-smoothstep(0.88,1.0,length(oc+dd*max(-B/(2.0*A),0.0))); // lisière seule : .78 = boules, .93 = pointillé sur les petits — .88 est le point juste
+      float stepS=(t1-t0)/uSteps,dither=ign(),t=t0+stepS*0.18*dither; // dither MINIMAL : c'est lui qui, magnifié par le DPR bas, dessinait le quadrillage diagonal — la coquille molle basse-fréquence n'a plus de banding à cacher
       float cosT=dot(rd,uSunDir),fs=pow(max(cosT,0.0),3.0)*uSilver,T=1.0;vec3 col=vec3(0.0);
       for(int i=0;i<96;i++){if(float(i)>=uSteps||T<0.02)break;vec3 p=ro+rd*t;float d=densAt(p);
         float sl=stepS*(0.55+1.05*float(i)/uSteps); // RAMPE : pas SERRÉS à l'entrée (surface nette de près), longs au fond — même budget
@@ -824,8 +831,8 @@ if(VOL_OK){ try{
   // et le z-test découpe le volume en trous polygonaux — LE bug visuel de proximité. Dedans, le
   // nuage a le droit de couvrir la route : c'est le white-out voulu, l'alpha fait le reste.
   VOL={U:U, geo:new THREE.BoxGeometry(2,2,2), matF:mk(THREE.FrontSide,true), matB:mk(THREE.BackSide,false), stepBase:56};
-  if(IS_MOBILE||IS_LOW_END){VOL.stepBase=28;U.uLightSteps.value=4;}
-  else{VOL.stepBase=56;U.uLightSteps.value=7;} // desktop : pas serrés = surface LISSE (le grain de raymarch fond avec le nombre de pas)
+  if(IS_MOBILE||IS_LOW_END){VOL.stepBase=32;U.uLightSteps.value=4;}
+  else{VOL.stepBase=46;U.uLightSteps.value=6;} // desktop : 46/6 — toujours LISSE (loin du plancher damier 26, MED 36 l'est déjà), ~25 % de raymarch en moins que l'ancien 56/7
   U.uSteps.value=VOL.stepBase;
   window.dbgCloud=(s,l)=>{if(s)VOL.stepBase=s;if(l)U.uLightSteps.value=l;return VOL.stepBase+'/'+U.uLightSteps.value;}; // hook debug : forcer la qualité du raymarch depuis la console (les tiers perf peuvent l'écraser)
   if(QUAL_MED)applyPerfTier(true,false);
@@ -861,9 +868,11 @@ function mkCloudVol(center,r,o,rr){ // un banc = une boîte volumétrique rempli
   const blobs=mkBlobs(o,rr); // les 5-10 boules de CE nuage (RNG isolé : ne rebrasse pas la génération)
   mesh.userData={seed:(rr()*97.3)%17, dMul:dMul, fogAmt:o.noFog?0.0:1.0,
     baseFlat:o.veil?0.0:o.giant?0.35:1.0, blobs:blobs,
-    stepMul:o.titan?0.55:1}; // TITANS lointains : gros à l'écran mais moitié moins de pas — le budget suit la taille
+    stepMul:o.titan?0.55:1, // TITANS lointains : gros à l'écran mais moitié moins de pas — le budget suit la taille
+    fMul:Math.min(1,300/r)}; // LOBES PROPORTIONNELS : un titan a des bosses de titan (85 m de billows sur 1 km = grain de sable)
   mesh.onBeforeRender=function(rn,sc,cm,gm,mat){const u=mat.uniforms,ud=this.userData;
     u.uSteps.value=VOL.stepBase*ud.stepMul; // TOUJOURS via stepBase : les paliers perf n'écrivent plus uSteps en direct
+    u.uFreq.value=(1/120)*ud.fMul;
     u.uSeed.value=ud.seed;u.uDMul.value=ud.dMul;u.uFogAmt.value=ud.fogAmt;u.uBaseFlat.value=ud.baseFlat;
     const bl=ud.blobs,uv=u.uBlobs.value;for(let i=0;i<bl.length;i++)uv[i].set(bl[i][0],bl[i][1],bl[i][2],bl[i][3]);u.uNBlob.value=bl.length;};
   g.add(mesh);scene.add(g);
@@ -1205,6 +1214,7 @@ function genCtrl(rnd,startPos,startPhi){
     {nm:'VOLTIGE',w:[22,20,3,7,10,7,10,7,4,10],  rs:1.15,vt:1.1}, // le ciel est un cirque : loops et hélices
     {nm:'GRAND8', w:[11,11,10,12,12,11,11,8,7,7],rs:1,   vt:1}    // mixte équilibré
   ][Math.floor(rnd()*5)];
+  zoneArch=AR.nm; // exporté pour les BIOMES (aucun rnd() consommé : la génération reste identique)
   const RS=AR.rs*LV,VT=AR.vt,LOOPS=1+(LV-1)*.35; // les loops grossissent doucement (un loop de 120 m reste un loop)
   const hand=rnd()<.33?-1:(rnd()<.5?0:1);        // LATÉRALITÉ : une piste qui spirale à gauche ne ressemble pas à une équilibrée
   const sgn=()=>rnd()<.5+hand*.22?1:-1;
@@ -1630,21 +1640,105 @@ function fmtC(v){
   for(const u of UNITS)if(v>=u[0]){const q=v/u[0];return '$ '+(q>=100?Math.round(q):q.toFixed(1).replace('.',',').replace(',0',''))+' '+u[1];}
   return '$ '+v.toLocaleString('fr-FR');
 }
-const envTex=(function(){ // le ciel VICE CITY NUIT réfléchi par les carrosseries (indigo → rose sombre → ambre), assombri
-  const faces=[];
-  for(let i=0;i<6;i++){
-    const cv=document.createElement('canvas');cv.width=cv.height=64;
+const envCvs=[]; // les 6 canvases du cube env — gardés pour être REPEINTS par les biomes
+function paintEnv(stops,s1,s2){ // stops=[[pos,'#hex'],…] + 2 strips néon [r,g,b,alpha]
+  for(const cv of envCvs){
     const c=cv.getContext('2d');
     const gr=c.createLinearGradient(0,0,0,64);
-    gr.addColorStop(0,'#1e1e50');gr.addColorStop(.3,'#5e3676');gr.addColorStop(.48,'#cc5e8e');gr.addColorStop(.58,'#cc7a48');gr.addColorStop(.66,'#42324e');gr.addColorStop(1,'#181236');
+    for(const st of stops)gr.addColorStop(st[0],st[1]);
     c.fillStyle=gr;c.fillRect(0,0,64,64);
-    // strips néon horizontaux → les reflets accrochent rose et cyan (vitrine Ocean Drive)
-    c.fillStyle='rgba(240,150,190,.5)';c.fillRect(0,20,64,3);
-    c.fillStyle='rgba(120,200,235,.28)';c.fillRect(0,30,64,2);
-    faces.push(cv);
+    c.fillStyle='rgba('+s1[0]+','+s1[1]+','+s1[2]+','+s1[3]+')';c.fillRect(0,20,64,3);
+    c.fillStyle='rgba('+s2[0]+','+s2[1]+','+s2[2]+','+s2[3]+')';c.fillRect(0,30,64,2);
   }
-  const t=new THREE.CubeTexture(faces);t.needsUpdate=true;return t;
+  envTex.needsUpdate=true;
+}
+const envTex=(function(){ // le ciel réfléchi par les carrosseries — repeint à chaque changement de biome
+  for(let i=0;i<6;i++){const cv=document.createElement('canvas');cv.width=cv.height=64;envCvs.push(cv);}
+  const t=new THREE.CubeTexture(envCvs);return t;
 })();
+// ============================================================================
+//  BIOMES — le monde VOYAGE : une ambiance complète par zone, lerpée ~4 s au
+//  portail (uniforms/couleurs UNIQUEMENT — jamais de recompilation shader).
+//  BRAISE = l'identité Vice City actuelle À L'IDENTIQUE (valeurs d'init copiées).
+//  Choix lié à l'ARCHÉTYPE de la zone (zoneArch, posé par genCtrl) :
+//  FLOW→braise · TECH→néon total · ALPIN→aube pâle · VOLTIGE→minuit étoilé · GRAND8→orage violet.
+// ============================================================================
+let zoneArch='FLOW';
+const BIOMES={
+  braise:{ nm:'BRAISE', skyMul:[1,1,1],skyLift:[0,0,0],sunTint:[1,.40,.28],sunHalo:1,city:1,stars:1,moon:1,
+    fog:[.369,.196,.329],fogN:420,fogF:2600,
+    hemiS:[.729,.525,.714],hemiG:[.094,.086,.180],hemiI:.40, sunC:[1,.416,.235],sunI:1.45,
+    fillC:[.310,.455,.910],fillI:.24, kickC:[1,.239,.620],kickI:.20,
+    volSun:[2.05,.95,.60],volSky:[.34,.30,.62],volGnd:[.13,.08,.18],volAmb:.56,
+    expo:.71,sat:1.40,
+    env:[[0,'#1e1e50'],[.3,'#5e3676'],[.48,'#cc5e8e'],[.58,'#cc7a48'],[.66,'#42324e'],[1,'#181236']],eS1:[240,150,190,.5],eS2:[120,200,235,.28]},
+  aube:{ nm:'AUBE PÂLE', skyMul:[1.30,1.42,1.62],skyLift:[.10,.12,.16],sunTint:[1,.62,.42],sunHalo:.80,city:.15,stars:.12,moon:.5,
+    fog:[.604,.643,.769],fogN:380,fogF:2400,
+    hemiS:[.812,.847,.933],hemiG:[.227,.227,.333],hemiI:.62, sunC:[1,.788,.627],sunI:1.05,
+    fillC:[.478,.533,.722],fillI:.20, kickC:[1,.698,.784],kickI:.10,
+    volSun:[1.60,1.35,1.15],volSky:[.55,.60,.85],volGnd:[.30,.30,.42],volAmb:.72,
+    expo:.88,sat:1.08,
+    env:[[0,'#9fb4d8'],[.3,'#b8c4e2'],[.48,'#e8c8d8'],[.58,'#f2d8c0'],[.66,'#8a90b4'],[1,'#5a6288']],eS1:[255,235,225,.4],eS2:[190,215,240,.3]},
+  orage:{ nm:'ORAGE VIOLET', skyMul:[.42,.38,.60],skyLift:[.02,.01,.04],sunTint:[.75,.45,.60],sunHalo:.30,city:.30,stars:.10,moon:.30,
+    fog:[.165,.141,.251],fogN:300,fogF:1700,
+    hemiS:[.416,.373,.573],hemiG:[.063,.063,.125],hemiI:.30, sunC:[.604,.541,.722],sunI:.75,
+    fillC:[.227,.290,.604],fillI:.30, kickC:[.478,.239,.682],kickI:.22,
+    volSun:[.90,.85,1.05],volSky:[.20,.18,.38],volGnd:[.05,.04,.09],volAmb:.40,
+    expo:.62,sat:1.12,
+    env:[[0,'#232040'],[.3,'#3a3258'],[.48,'#584a72'],[.58,'#4a4260'],[.66,'#2a2542'],[1,'#141226']],eS1:[150,130,200,.35],eS2:[100,120,180,.22]},
+  minuit:{ nm:'MINUIT ÉTOILÉ', skyMul:[.50,.55,.85],skyLift:[0,0,0],sunTint:[.50,.35,.45],sunHalo:.18,city:.55,stars:1.8,moon:1.6,
+    fog:[.078,.106,.220],fogN:460,fogF:2900,
+    hemiS:[.251,.314,.494],hemiG:[.047,.055,.133],hemiI:.34, sunC:[.604,.706,.910],sunI:.85,
+    fillC:[.184,.290,.784],fillI:.20, kickC:[.416,.478,.871],kickI:.14,
+    volSun:[1.05,1.15,1.45],volSky:[.16,.20,.45],volGnd:[.04,.05,.12],volAmb:.44,
+    expo:.66,sat:1.22,
+    env:[[0,'#0e1434'],[.3,'#1c2650'],[.48,'#32406e'],[.58,'#3a4a80'],[.66,'#1a2244'],[1,'#080c20']],eS1:[170,195,255,.35],eS2:[120,150,230,.25]},
+  neon:{ nm:'NÉON TOTAL', skyMul:[1.05,.72,1.30],skyLift:[.08,.01,.10],sunTint:[1,.30,.70],sunHalo:.70,city:1.9,stars:.55,moon:.75,
+    fog:[.275,.102,.345],fogN:380,fogF:2300,
+    hemiS:[.847,.416,.847],hemiG:[.102,.063,.220],hemiI:.44, sunC:[1,.310,.690],sunI:1.30,
+    fillC:[.200,.816,1],fillI:.34, kickC:[1,.165,.604],kickI:.32,
+    volSun:[1.90,.75,1.30],volSky:[.42,.22,.72],volGnd:[.16,.06,.22],volAmb:.55,
+    expo:.74,sat:1.62,
+    env:[[0,'#2a1050'],[.3,'#6a2090'],[.48,'#e84aa8'],[.58,'#c858d8'],[.66,'#3a2468'],[1,'#1c0e3e']],eS1:[255,110,200,.65],eS2:[80,220,255,.45]},
+};
+const ARCH2BIO={FLOW:'braise',TECH:'neon',ALPIN:'aube',VOLTIGE:'minuit',GRAND8:'orage'};
+const BIO={cur:JSON.parse(JSON.stringify(BIOMES.braise)),from:null,to:BIOMES.braise,k:1,dur:4,name:'braise'};
+function bioLerp(a,b,e,out){ // mixe deux biomes champ à champ (tableaux = composantes, nombres = scalaires)
+  for(const key in b){ const bv=b[key];
+    if(typeof bv==='number')out[key]=a[key]+(bv-a[key])*e;
+    else if(Array.isArray(bv)&&typeof bv[0]==='number'){const ov=out[key];for(let i=0;i<bv.length;i++)ov[i]=a[key][i]+(bv[i]-a[key][i])*e;}
+  }
+}
+function bioApply(c){ // pousse l'ambiance mélangée dans TOUS les organes (uniforms/couleurs only)
+  skyU.uSkyMul.value.fromArray(c.skyMul);skyU.uSkyLift.value.fromArray(c.skyLift);skyU.uSunTint.value.fromArray(c.sunTint);
+  skyU.uSunHalo.value=c.sunHalo;skyU.uCity.value=c.city;skyU.uStars.value=c.stars;skyU.uMoon.value=c.moon;
+  FOG_BASE.setRGB(c.fog[0],c.fog[1],c.fog[2]);FOG_N=c.fogN;FOG_F=c.fogF;
+  hemi.color.setRGB(c.hemiS[0],c.hemiS[1],c.hemiS[2]);hemi.groundColor.setRGB(c.hemiG[0],c.hemiG[1],c.hemiG[2]);hemi.intensity=c.hemiI;
+  sun.color.setRGB(c.sunC[0],c.sunC[1],c.sunC[2]);sun.intensity=c.sunI;
+  fill.color.setRGB(c.fillC[0],c.fillC[1],c.fillC[2]);fill.intensity=c.fillI;
+  kick.color.setRGB(c.kickC[0],c.kickC[1],c.kickC[2]);kick.intensity=c.kickI;
+  if(VOL){VOL.U.uSunCol.value.setRGB(c.volSun[0],c.volSun[1],c.volSun[2]);VOL.U.uSkyCol.value.setRGB(c.volSky[0],c.volSky[1],c.volSky[2]);
+    VOL.U.uGroundCol.value.setRGB(c.volGnd[0],c.volGnd[1],c.volGnd[2]);VOL.U.uAmb.value=c.volAmb;}
+  POST_EXPO=c.expo;if(acesPass)acesPass.uniforms.uSat.value=c.sat;
+  // le SOLEIL « 1.61 », sa nappe d'horizon et ses rayons sont des SPRITES hors shader : ils suivent le halo du biome
+  sunSprite.material.opacity=Math.min(1,.15+c.sunHalo*.85);
+  horizonGlow.material.opacity=.8*c.sunHalo;
+  for(const r9 of RAYS)r9.material.opacity=RAY_OPACITY*c.sunHalo;
+}
+function bioGo(name,dur){ // lance le voyage vers un biome (reflets carrosserie repeints tout de suite : discret)
+  if(!BIOMES[name])name='braise';
+  BIO.from=JSON.parse(JSON.stringify(BIO.cur));BIO.to=BIOMES[name];BIO.k=0;BIO.dur=dur||4;BIO.name=name;
+  paintEnv(BIO.to.env,BIO.to.eS1,BIO.to.eS2);
+}
+function bioStep(dt){
+  if(BIO.k>=1)return;
+  BIO.k=Math.min(1,BIO.k+dt/BIO.dur);
+  const e=BIO.k*BIO.k*(3-2*BIO.k); // smoothstep : le ciel bascule sans à-coup
+  bioLerp(BIO.from,BIO.to,e,BIO.cur);
+  bioApply(BIO.cur);
+}
+window.dbgBio=function(n,d){bioGo(n,d||2);}; // console : dbgBio('minuit') → tester un biome sans farmer les portails (d = durée du lerp en s)
+paintEnv(BIOMES.braise.env,BIOMES.braise.eS1,BIOMES.braise.eS2); // premier reflet = Vice City (identique à l'ancien envTex)
 const carGroup=new THREE.Group();scene.add(carGroup);
 const carLight=new THREE.PointLight(0xffe6f4,.8,85);scene.add(carLight);
 // PHARES RÉELS (la nuit tombe) : UN spot chaud qui balaie le bitume devant la caisse — ajouté à l init, jamais togglé (zéro recompilation)
@@ -2071,6 +2165,7 @@ buildCar(CARS[0]);
 window.dbgCar=function(i){buildCar(CARS[Math.max(0,Math.min(23,i|0))]);}; // console : dbgCar(16) → prévisualiser un gabarit sans farmer les milliards (visuel pur, ne touche pas au niveau)
 window.dbgScene=function(){return {car:carGroup,scene:scene,contact:contactShadow,shadow:shadow};}; // dissection console (visuel pur)
 window.dbgState=function(){return {started:started,running:running,paused:paused,gameOver:gameOver,mode:mode,vA:+vA.toFixed(2),s:+s.toFixed(1),level:level,introD:introD,hopY:+hopY.toFixed(2)};}; // état interne (lecture seule)
+window.dbgPerf=function(){return {ms:+(loop._ms||0).toFixed(1),fps:Math.round(1000/Math.max(1,loop._ms||16)),spikes:+(loop._spk||0).toFixed(1),dpr:+curDPR.toFixed(2),tier:QUAL_LOW?'LOW':QUAL_MED?'MED':'FULL',steps:VOL?VOL.stepBase+'/'+VOL.U.uLightSteps.value:'sprites'};}; // à copier-coller dans un rapport de perf
 window.dbgView=function(a,d,h){ // MODE PHOTO : force la pause, cadre la caisse sous l'angle a (rad), distance d, hauteur h, re-rend UNE frame
   if(started&&!gameOver&&!paused)togglePause(); // sans pause, la chase-cam écrase le cadrage à la frame suivante
   const p=carGroup.position;
@@ -3737,6 +3832,7 @@ function tryLand(dt){
 function newTrack(){
   const sd=(Math.random()*1e9)|0;
   buildTrack(sd);
+  bioGo(level<1?'braise':(ARCH2BIO[zoneArch]||'braise'),started?4:.01); // BIOME de la zone : la 1re est toujours BRAISE, ensuite l'archétype donne son heure du ciel (lerp 4 s au portail, instantané au boot)
   computeMinimap();
   spawnPickups(mulberry32(sd^0x9e3779b9));
   s=0;lat=0;psi=0;side=1;prevTvalid=false;safeS=0;
@@ -4333,9 +4429,13 @@ function loop(now){
   requestAnimationFrame(loop);
   let dt=Math.min((now-last)/1000,.05);last=now;
   // qualité auto : si le GPU peine (<45 fps soutenus après l'échauffement), on allège la ouate une fois pour toutes
-  loop._ms=(loop._ms||16)*.96+Math.min(100,now-(loop._pn||now))*.04;loop._pn=now;
+  const rawMs=Math.min(100,now-(loop._pn||now));
+  loop._ms=(loop._ms||16)*.96+rawMs*.04;loop._pn=now;
+  // DÉTECTEUR D'À-COUPS : l'EMA (constante ~25 frames) lisse les PICS ponctuels (titan de nuage plein écran) —
+  // ce compteur fuyant attrape la saccade VÉCUE : ~10 frames >26 ms sur les 2-3 dernières secondes = on allège.
+  loop._spk=(loop._spk||0)*.985+(rawMs>26?1:0);
   if(!QUAL_LOW&&loop._ms>22&&now>12000)applyPerfTier(true,true); // FPS au tapis : palier BAS (un seul chemin : applyPerfTier — l'ancien bloc dupliqué contournait stepBase)
-  else if(!QUAL_MED&&loop._ms>18.5&&now>8000)applyPerfTier(true,false); // ça tire la langue (<54 fps soutenus) : palier MOYEN — raymarch 24/4 + ombres 1024, quasi invisible à l'œil
+  else if(!QUAL_MED&&now>6000&&(loop._ms>18.5||loop._spk>9))applyPerfTier(true,false); // ça tire la langue (<54 fps soutenus) OU ça saccade par à-coups : palier MOYEN, quasi invisible à l'œil
   // RÉSOLUTION ADAPTATIVE : on suit le temps par frame (EMA loop._ms) et on ajuste le pixelRatio
   // — GPU qui peine → on baisse la résolution ; marge confortable → on la remonte (plafond = écran).
   dprT-=dt;
@@ -4344,6 +4444,7 @@ function loop(now){
     else if(ms9>19&&curDPR>.85){curDPR=Math.max(.85,curDPR-.08);applyDPR();} // ça tire : petit cran (hystérésis avec la remontée à <14.5)
     else if(ms9<14.5&&curDPR<DPR_CAP-.001){curDPR=Math.min(DPR_CAP,curDPR+.08);applyDPR();}
   }
+  bioStep(dt); // BIOMES : le voyage d'ambiance avance même au menu/en pause de jeu (c'est le ciel qui vit, pas la sim)
   if(slowT>0){slowT-=dt;dt*=.45;} // slow-mo d'atterrissage
   if(hitT>0){hitT-=dt;dt*=.04;}   // HIT-STOP : 80 ms de gel sur l'encaissement PARFAIT — le monde retient son souffle
   const t=now/1000;
