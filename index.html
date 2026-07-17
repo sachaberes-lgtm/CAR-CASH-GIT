@@ -559,8 +559,12 @@ const CAN_POST=typeof THREE.EffectComposer==='function'&&typeof THREE.RenderPass
 if(CAN_POST){ try{
   const w=innerWidth,h=innerHeight;
   let rt; // MSAA seulement sur desktop musclé (sinon double AA + coût MSAA inutile)
-  if(!IS_MOBILE&&!IS_LOW_END&&devicePixelRatio<1.5&&typeof THREE.WebGLMultisampleRenderTarget==='function')rt=new THREE.WebGLMultisampleRenderTarget(w,h,{format:THREE.RGBAFormat}); // MSAA réservé aux écrans 1× (où le crénelage se voit) — sur Retina le resolve coûte cher pour rien
-  else rt=new THREE.WebGLRenderTarget(w,h,{format:THREE.RGBAFormat,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});
+  // RT en HALF-FLOAT : un RT 8 bits + grade contrasté (SAT 1.40/VIVID) POSTERISE les grands dégradés
+  // doux — sur les nuages volumétriques ça dessinait des ANNEAUX « agate » (lignes de niveau) que
+  // AUCUN réglage du raymarch ne pouvait tuer. En 16 bits flottants, le banding est impossible.
+  const rtType=(renderer.capabilities&&renderer.capabilities.isWebGL2)?THREE.HalfFloatType:THREE.UnsignedByteType;
+  if(!IS_MOBILE&&!IS_LOW_END&&devicePixelRatio<1.5&&typeof THREE.WebGLMultisampleRenderTarget==='function')rt=new THREE.WebGLMultisampleRenderTarget(w,h,{format:THREE.RGBAFormat,type:rtType}); // MSAA réservé aux écrans 1× (où le crénelage se voit) — sur Retina le resolve coûte cher pour rien
+  else rt=new THREE.WebGLRenderTarget(w,h,{format:THREE.RGBAFormat,type:rtType,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});
   composer=new THREE.EffectComposer(renderer,rt);
   composer.setPixelRatio(curDPR);composer.setSize(w,h);
   composer.addPass(new THREE.RenderPass(scene,camera));
@@ -759,7 +763,7 @@ if(VOL_OK){ try{
   const pf=(x,y,z,os)=>{let a=0,amp=.5,tot=0;for(const f of os){a+=amp*vn(x*f,y*f,z*f,f);tot+=amp;amp*=.5;}return a/tot;};
   const ss=(a,b,x)=>{const t=Math.min(1,Math.max(0,(x-a)/(b-a)));return t*t*(3-2*t);};
   let o=0;for(let z=0;z<N;z++)for(let y=0;y<N;y++)for(let x=0;x<N;x++){const nx=x/N,ny=y/N,nz=z/N;
-    let R=ss(.12,.92,pf(nx,ny,nz,[3,6,12])*.5+bil(nx,ny,nz,[3,6,12])*.5);
+    let R=ss(.10,.95,pf(nx,ny,nz,[2,4,8])); // PUR Perlin fBm — le Worley (1-dist) a des iso-surfaces CONCENTRIQUES autour de chaque feature point : c'était LUI qui gravait les anneaux « agate » (bisection dbgVOL uCoverage=1 → lisse parfait)
     let G=ss(.15,.95,bil(nx,ny,nz,[8,16,24])), B=ss(.2,.85,pf(nx,ny,nz,[2,4]));
     data[o++]=R*255|0;data[o++]=G*255|0;data[o++]=B*255|0;data[o++]=255;}
   const noise=new THREE.DataTexture3D(data,N,N,N);
@@ -768,8 +772,8 @@ if(VOL_OK){ try{
   const U={ uNoise:{value:noise}, uTime:{value:0},
     uSunDir:{value:SUN_DIR.clone()}, uSunCol:{value:new THREE.Color(2.05,0.95,0.60)}, // ROSE-DORÉ : les coiffes prennent le couchant Miami
     uSkyCol:{value:new THREE.Color(0.34,0.30,0.62)}, uGroundCol:{value:new THREE.Color(0.13,0.08,0.18)}, // ciel violet SATURÉ en haut, ventres prune adoucis (crémeux, plus charbon)
-    uAmb:{value:0.56}, uCoverage:{value:0.85}, uDensity:{value:2.9}, uDetail:{value:0.04}, // LISSE & CRÉMEUX : la forme vient des MÉTABALLES (lisses), le bruit ne fait QU'adoucir le bord — plus de quadrillage cellulaire
-    uEdge:{value:0.34}, uFreq:{value:1/120}, uSigma:{value:0.55}, uAbsorb:{value:1.5}, uSilver:{value:1.4}, // bruit BASSE fréquence (grosses ondulations douces, jamais de grain fin) + coquille molle
+    uAmb:{value:0.56}, uCoverage:{value:0.92}, uDensity:{value:2.9}, uDetail:{value:0.04}, // LISSE & CRÉMEUX : la forme vient des MÉTABALLES, le bruit n'est qu'une ondulation subtile (à .85 il gravait encore des anneaux « agate » dans les nappes minces)
+    uEdge:{value:0.34}, uFreq:{value:1/120}, uSigma:{value:0.55}, uAbsorb:{value:1.5}, uSilver:{value:0.85}, // bruit BASSE fréquence + coquille molle ; silver TAMISÉ (à 1.4 = « reflet bizarre », un projecteur dans le nuage)
     uSteps:{value:40.0}, uLightSteps:{value:6.0},
     // MÉTABALLES : la forme du nuage = UNION DOUCE de 5-10 boules collées (par nuage, posées dans onBeforeRender)
     uBaseFlat:{value:1.0}, uNBlob:{value:1.0}, uBlobs:{value:(function(){const a=[];for(let i=0;i<12;i++)a.push(new THREE.Vector4(0,0,0,.3));return a;})()},
@@ -784,9 +788,11 @@ if(VOL_OK){ try{
     uniform float uTime,uAmb,uCoverage,uDensity,uDetail,uEdge,uFreq,uSigma,uAbsorb,uSilver,uSteps,uLightSteps,uSeed,uDMul,uFogAmt,uFogNear,uFogFar,uBaseFlat,uNBlob;
     uniform vec4 uBlobs[12];
     in vec3 vWorld;in vec3 vCenter;in vec3 vRadius;out vec4 fragColor;
-    // INTERLEAVED GRADIENT NOISE : le meilleur dither pour raymarch — ni sel-et-poivre (bruit blanc),
-    // ni quadrillage visible (Bayer). Décale le départ des rayons pour tuer le banding sans texturer la surface.
-    float ign(){return fract(52.9829189*fract(dot(gl_FragCoord.xy,vec2(0.06711056,0.00583715))));}
+    // BRUIT BLANC (comme le skyDome) — PAS l'IGN : l'Interleaved Gradient Noise est une rampe
+    // conçue pour du 1:1 pixel ; sous le DPR adaptatif + upscale navigateur, sa structure fait du
+    // MOIRÉ en franges concentriques « agate » sur tout dégradé doux (LE motif moche, résistant à
+    // tous les réglages de champ/lumière). Le bruit blanc est sans structure → rien à moirer.
+    float ign(){return fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453);}
     float densAt(vec3 p){vec3 q=(p-vCenter)/vRadius;if(dot(q,q)>1.0)return 0.0;
       // FORME = union PROBABILISTE de N boules (metaballs) : un gros nuage fait de 5-10 boules collées
       float inv=1.0;
@@ -795,34 +801,46 @@ if(VOL_OK){ try{
         inv*=smoothstep(uEdge,1.0,rr); }
       float shape=1.0-inv;
       shape*=mix(1.0,smoothstep(-1.0,-0.64,q.y),uBaseFlat); // base APLATIE façon cumulus (modulée par type)
+      shape*=1.0-smoothstep(0.80,0.985,length(q)); // FONDU DE COQUILLE EN ESPACE OBJET : la silhouette est la MÊME sous tous les angles (le fondu écran d'avant se recalculait selon la caméra → le nuage MORPHAIT en approche)
       if(shape<=0.001)return 0.0;
       vec3 np=(p-vCenter)*uFreq+vec3(uSeed)+vec3(uTime*0.010,-uTime*0.008,uTime*0.006);
       float base=texture(uNoise,np).r;float det=texture(uNoise,np*2.0+5.0).g;
       float d=shape-(1.0-base)*(1.0-uCoverage)*1.7;d-=(1.0-det)*uDetail*(1.0-shape)*0.30;
       return max(d,0.0)*uDensity*uDMul;}
-    float lightMarch(vec3 p){float stepL=length(vRadius)/(uLightSteps*3.0);float od=0.0,t=stepL*0.5;
-      // PAS de jitter ici : un départ aléatoire par pixel fait scintiller l ombre propre → grain sur toute la surface
-      for(int i=0;i<8;i++){if(float(i)>=uLightSteps)break;od+=densAt(p+uSunDir*t)*stepL;t+=stepL;}return od;}
+    float lightMarch(vec3 p,float jit){
+      // MARCHE EXPONENTIELLE — le fix des anneaux « agate » : à pas FIXES, le 1er échantillon est à
+      // ~30 m du point et l'occlusion SAUTE de blob en blob → od en escalier → anneaux concentriques
+      // autour de chaque lobe (vérifié : plus de pas = plus d'anneaux). Premier pas COURT (le voisinage
+      // domine, od devient CONTINUE avec p), pas qui doublent ensuite — même portée totale (~L/3).
+      float L=length(vRadius),t=L*0.014*(0.5+jit),st=L*0.022,od=0.0;
+      for(int i=0;i<8;i++){if(float(i)>=uLightSteps)break;od+=densAt(p+uSunDir*t)*st;t+=st;st*=1.9;}
+      return od;}
     void main(){vec3 ro=cameraPosition,rd=normalize(vWorld-ro);
       vec3 oc=(ro-vCenter)/vRadius,dd=rd/vRadius;
       float A=dot(dd,dd),B=2.0*dot(oc,dd),C=dot(oc,oc)-1.0,disc=B*B-4.0*A*C;if(disc<0.0)discard;
       float sq=sqrt(disc),t0=max((-B-sq)/(2.0*A),0.0),t1=(-B+sq)/(2.0*A);if(t1<=t0)discard;
-      // FONDU RADIAL au bord de l'ellipsoïde : la silhouette fond au lieu de granuler (le dither
-      // sur 2-3 pas de lisière faisait du sel-et-poivre) — le nuage devient CRÉMEUX jusqu'au bord
-      float rim=1.0-smoothstep(0.88,1.0,length(oc+dd*max(-B/(2.0*A),0.0))); // lisière seule : .78 = boules, .93 = pointillé sur les petits — .88 est le point juste
-      float stepS=(t1-t0)/uSteps,dither=ign(),t=t0+stepS*0.18*dither; // dither MINIMAL : c'est lui qui, magnifié par le DPR bas, dessinait le quadrillage diagonal — la coquille molle basse-fréquence n'a plus de banding à cacher
+      // ANTI-ANNEAUX : dither PLEINE amplitude (la norme en volumétrique — les anneaux concentriques
+      // d'un dither timide sont bien plus laids qu'un grain fin sur de la crème) + échantillonnage
+      // au MILIEU du pas (ordre 2 : divise le banding par ~4 à coût nul). Le fondu de bord vit
+      // désormais dans densAt (espace objet) — plus de silhouette qui morphe avec la caméra.
+      float stepS=(t1-t0)/uSteps,dither=ign(),t=t0;
       float cosT=dot(rd,uSunDir),fs=pow(max(cosT,0.0),3.0)*uSilver,T=1.0;vec3 col=vec3(0.0);
-      for(int i=0;i<96;i++){if(float(i)>=uSteps||T<0.02)break;vec3 p=ro+rd*t;float d=densAt(p);
-        float sl=stepS*(0.55+1.05*float(i)/uSteps); // RAMPE : pas SERRÉS à l'entrée (surface nette de près), longs au fond — même budget
-        if(d>0.003){float od=lightMarch(p);float lt=exp(-od*uAbsorb);float ms=lt+0.42*exp(-od*uAbsorb*0.25);
-          float pw=1.0-exp(-d*6.0);vec3 sun=uSunCol*(ms+fs)*pw;
+      for(int i=0;i<96;i++){if(float(i)>=uSteps||T<0.02)break;
+        float sl=stepS*(0.55+1.05*float(i)/uSteps); // RAMPE : pas SERRÉS à l'entrée, longs au fond — même budget
+        vec3 p=ro+rd*(t+sl*dither);float d=densAt(p); // JITTER STRATIFIÉ : l'échantillon tiré DANS son pas — un dither de départ seul laissait des anneaux au rythme des pas longs du fond
+        if(d>0.003){float od=lightMarch(p,dither);float lt=exp(-od*uAbsorb);float ms=lt+0.42*exp(-od*uAbsorb*0.25);
+          float pw=1.0-exp(-d*4.5);vec3 sun=uSunCol*(ms+fs)*pw; // powder adouci : plus de cœur-projecteur
           float up=clamp(((p.y-vCenter.y)/max(vRadius.y,1.0))*0.5+0.5,0.0,1.0);
           vec3 lum=mix(uGroundCol,uSkyCol,up)*uAmb+sun;
           float alpha=1.0-exp(-d*sl*uSigma);col+=T*alpha*lum;T*=(1.0-alpha);}
         t+=sl;}
-      float a=(1.0-T)*rim;col*=rim;if(a<0.004)discard;
+      float a=1.0-T;if(a<0.004)discard;
       float fog=clamp((t0-uFogNear)/(uFogFar-uFogNear),0.0,1.0)*uFogAmt;
       col=mix(col,uFogCol*a,fog);
+      // DITHER DE SORTIE (comme le skyDome) : un nuage = un immense dégradé ultra-doux — sur un
+      // framebuffer 8 bits + grade contrasté, la QUANTIFICATION dessinait des anneaux « agate »
+      // qui suivaient les courbes de niveau des lobes. C'était ÇA, les anneaux — pas le raymarch.
+      col+=vec3((dither-0.5)*a/96.0);
       fragColor=vec4(col,a);}`;
   const mk=(side,ztest)=>new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,uniforms:U,vertexShader:VERT,fragmentShader:FRAG,
     transparent:true,depthWrite:false,depthTest:ztest,side:side,
@@ -835,6 +853,7 @@ if(VOL_OK){ try{
   else{VOL.stepBase=46;U.uLightSteps.value=6;} // desktop : 46/6 — toujours LISSE (loin du plancher damier 26, MED 36 l'est déjà), ~25 % de raymarch en moins que l'ancien 56/7
   U.uSteps.value=VOL.stepBase;
   window.dbgCloud=(s,l)=>{if(s)VOL.stepBase=s;if(l)U.uLightSteps.value=l;return VOL.stepBase+'/'+U.uLightSteps.value;}; // hook debug : forcer la qualité du raymarch depuis la console (les tiers perf peuvent l'écraser)
+  window.dbgVOL=U; // bisection live des uniforms nuages depuis la console (dbgVOL.uCoverage.value=1, etc.)
   if(QUAL_MED)applyPerfTier(true,false);
 }catch(e){VOL=null;} }
 // Boules d'un nuage (metaballs) — coords LOCALES [-1,1] dans la boîte (x,y,z,rayon).
@@ -1056,7 +1075,7 @@ function updateClouds(dt,t){
     // Bascule FRONT/BACK selon la CAMÉRA (pas la voiture) : dès qu'elle entre dans la boîte, BackSide
     // (sinon les faces avant, derrière l'œil, sont cullées → le volume disparaît quand on plonge dedans).
     if(c.mesh&&d2<25){const qx=(camP.x-c.g.position.x)/c.r,qy=(camP.y-c.g.position.y)/c.ry,qz=(camP.z-c.g.position.z)/c.r;
-      c.mesh.material=(Math.abs(qx)<1.15&&Math.abs(qy)<1.15&&Math.abs(qz)<1.15)?VOL.matB:VOL.matF;}
+      c.mesh.material=(Math.abs(qx)<1.45&&Math.abs(qy)<1.45&&Math.abs(qz)<1.45)?VOL.matB:VOL.matF;} // bascule ANTICIPÉE (1.45) : à 400 km/h la marge d'1.15 sautait en une frame → clipping visible à l'entrée
     if(d2<9)for(const p of c.puffs){ // ressorts mis à jour seulement à proximité (perf, repli sprite)
       p.dv.addScaledVector(p.dis,-2.3*dt);
       p.dv.multiplyScalar(Math.max(0,1-1.7*dt));
