@@ -851,8 +851,9 @@ function mkBlobs(o,rng){
   return B.map(clamp).slice(0,12);
 }
 function mkCloudVol(center,r,o,rr){ // un banc = une boîte volumétrique remplie de boules
-  const g=new THREE.Group();g.position.copy(center);
   const ry=r*(o.giant?.55+rr()*.18:o.veil?.16:o.sea?.15:.36+rr()*.16);
+  if(o.baseY!==undefined)center.y=o.baseY+ry*0.64; // même plafond de condensation que le chemin sprite
+  const g=new THREE.Group();g.position.copy(center);
   const mesh=new THREE.Mesh(VOL.geo,VOL.matF);
   mesh.scale.set(r,ry,r); // frustumCulled reste VRAI : les bancs hors-champ ne coûtent rien (le culling boîte est correct, même caméra dedans)
   // params par nuage : voiles diaphanes, mer moyenne ; tours/murs pleins ; titans laiteux. noFog = perce la brume.
@@ -870,8 +871,9 @@ function mkCloudVol(center,r,o,rr){ // un banc = une boîte volumétrique rempli
 }
 function mkCloud(center,r,o,rr){ if(VOL)return mkCloudVol(center,r,o,rr); return mkCloudSprite(center,r,o,rr); }
 function mkCloudSprite(center,r,o,rr){
-  const g=new THREE.Group();g.position.copy(center);
   const ry=r*(o.giant?.55+rr()*.18:o.veil?.16:o.sea?.15:.36+rr()*.16);
+  if(o.baseY!==undefined)center.y=o.baseY+ry*0.64; // assise posée sur le PLAFOND DE CONDENSATION commun (rues de nuages)
+  const g=new THREE.Group();g.position.copy(center);
   // PEU de sprites, GROS et opaques : le nuage lit comme UNE silhouette peinte (le look du fantôme
   // d'horizon, élu plus beau nuage du jeu) — plus jamais l'amas de cartes qui se chevauchent.
   const nP=o.giant?6:o.dense?7:o.veil?2:o.sea?3:o.deco?2:5;
@@ -919,12 +921,15 @@ function buildClouds(rr){
     mkCloud(cldV1.copy(F.p).addScaledVector(F.n,mega?6+cr()*4:2.5+cr()*2),
       mega?40+cr()*30:18+cr()*14,{onRoad:true,dense:true},cr);
   }
-  // nuages de VOL : au-dessus / en-dessous de la dalle, sur les lignes de saut
-  for(let k=0;k<14;k++){
-    const i=Math.floor(cr()*NP);
-    const above=cr()<.62;
-    mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],(cr()*2-1)*70)
-      .addScaledVector(Nn[i],above?14+cr()*48:-(26+cr()*64)),16+cr()*20,{},cr);
+  // CHAMPS de nuages de VOL : les coussins vont par 2-3, échelonnés le long de la piste —
+  // une vraie FENÊTRE de recharge d'airtime qu'on lit de loin, pas des miettes perdues
+  for(let k=0;k<6;k++){
+    const i0=Math.floor(cr()*NP),above=cr()<.62,n9=2+Math.floor(cr()*2);
+    for(let m9=0;m9<n9;m9++){
+      const i=Math.min(NP-1,i0+m9*(40+Math.floor(cr()*50)));
+      mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],(cr()*2-1)*70)
+        .addScaledVector(Nn[i],above?14+cr()*48:-(26+cr()*64)),16+cr()*20,{},cr);
+    }
   }
   // TOURS GÉANTES façon simulateur de vol : des montagnes de ouate — une sur quatre est
   // PLANTÉE sur la piste (rayon PLAFONNÉ : le white-out dure 2 s, pas 10)
@@ -954,24 +959,76 @@ function buildClouds(rr){
     mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],(cr()*2-1)*1400)
       .addScaledVector(Nn[i],230+cr()*220),150+cr()*120,{veil:true,noFog:true},cr);
   }
-  // ============ LE CIEL PEUPLÉ : des nuages PARTOUT, posés en ESPACE MONDE ============
-  // (ajoutés APRÈS les familles historiques → zéro décalage de leurs positions)
+  // ============ LE CIEL ORGANISÉ : une MÉTÉO, pas un semis (espace MONDE) ============
+  // (ajouté APRÈS les familles historiques → zéro décalage de leurs positions)
   // ⚠ On N'UTILISE PAS B[i]/Nn[i] ici : sur la piste inclinée/loopée, la binormale a une grosse composante
   // verticale et éjecte les nuages à des milliers d'unités SOUS le monde (occlusion). Décalage HORIZONTAL
-  // en XZ + altitude en Y MONDE → le ciel se remplit là où le joueur regarde VRAIMENT, banking ou pas.
+  // en XZ + altitude en Y MONDE. Un VENT unique oriente rues et massifs ; le couloir du COUCHANT
+  // reste dégagé (pickAz) — la vue soleil + guirlande néon, c'est le tableau du jeu, on n'y gare rien.
   const roadY=37; // altitude moyenne du ruban (repère stable pour poser le plafond/plancher de nuages)
-  const sky=(n,rMin,rMax,distMin,distMax,yMin,yMax,opt)=>{
-    for(let k=0;k<n;k++){
-      const i=Math.floor(cr()*NP),a=cr()*6.2832,d=distMin+cr()*(distMax-distMin);
-      cldV1.set(pts[i].x+Math.cos(a)*d, roadY+yMin+cr()*(yMax-yMin), pts[i].z+Math.sin(a)*d);
-      mkCloud(cldV1,rMin+cr()*(rMax-rMin),opt,cr);
+  const wA=cr()*6.2832,wx=Math.cos(wA),wz=Math.sin(wA); // le vent du jour (une direction par piste)
+  const sunAz=Math.atan2(SUN_DIR.z,SUN_DIR.x);
+  const offSun=(a)=>{let d9=(a-sunAz)%6.2832;if(d9>3.1416)d9-=6.2832;if(d9<-3.1416)d9+=6.2832;return Math.abs(d9);};
+  const pickAz=()=>{for(let t9=0;t9<5;t9++){const a=cr()*6.2832;if(offSun(a)>0.62)return a;}return sunAz+3.1416;};
+  // 1) RUES DE NUAGES : chaînes de 2-3 cumulus qui FILENT sous le vent, tous posés sur le MÊME
+  //    plafond de condensation (deckY) — la signature d'un vrai ciel, un étage sous la route
+  const deckY=roadY-58+cr()*18;
+  for(let ch=0;ch<7;ch++){
+    const i=Math.floor(cr()*NP),a=cr()*6.2832,d=280+cr()*1200;
+    let x9=pts[i].x+Math.cos(a)*d,z9=pts[i].z+Math.sin(a)*d;
+    const n9=2+Math.floor(cr()*2);
+    for(let m9=0;m9<n9;m9++){
+      cldV1.set(x9+(cr()-.5)*90,0,z9+(cr()-.5)*90);
+      mkCloud(cldV1,90+cr()*110,{deco:true,noFog:true,baseY:deckY+(cr()-.5)*14},cr);
+      const st=300+cr()*200;x9+=wx*st;z9+=wz*st; // la rue file SOUS LE VENT
     }
-  };
-  sky(20, 90,240, 220,1500, -60,520, {deco:true,noFog:true});   // CUMULUS mi-distance : moitié moins, deux fois plus gros
-  sky( 9,120,300, 300,1700,  260,900, {deco:true,noFog:true});  // BANC HAUT : quand on lève les yeux, du volume
-  sky(12,200,380, 800,2400, -260, 60, {sea:true,noFog:true});   // l'OCÉAN : la mer de nuages à perte de vue
-  sky( 6,300,620, 700,2200, -160,420, {giant:true,noFog:true}); // SKYLINE : grandes tours lointaines
-  sky( 4,700,1200,1600,3200,-120,520, {giant:true,titan:true,noFog:true}); // TITANS : des cathédrales de ouate ×10 — l'horizon a des épaules
+  }
+  // 2) ÉLECTRONS LIBRES : quelques gros cumulus détachés au-dessus du tapis (la couche vivante)
+  for(let k=0;k<6;k++){
+    const i=Math.floor(cr()*NP),a=cr()*6.2832,d=260+cr()*1250;
+    cldV1.set(pts[i].x+Math.cos(a)*d,roadY-20+cr()*260,pts[i].z+Math.sin(a)*d);
+    mkCloud(cldV1,90+cr()*150,{deco:true,noFog:true},cr);
+  }
+  // 3) BANC HAUT : du volume quand on lève les yeux
+  for(let k=0;k<9;k++){
+    const i=Math.floor(cr()*NP),a=cr()*6.2832,d=300+cr()*1700;
+    cldV1.set(pts[i].x+Math.cos(a)*d,roadY+260+cr()*640,pts[i].z+Math.sin(a)*d);
+    mkCloud(cldV1,120+cr()*180,{deco:true,noFog:true},cr);
+  }
+  // 4) L'OCÉAN : l'undercast — un tapis PLAT à perte de vue, loin sous la piste (bande d'altitude
+  //    serrée : une MER avec un niveau, pas des galettes flottant n'importe où)
+  for(let k=0;k<12;k++){
+    const i=Math.floor(cr()*NP),a=cr()*6.2832,d=800+cr()*1600;
+    cldV1.set(pts[i].x+Math.cos(a)*d,roadY-245+cr()*75,pts[i].z+Math.sin(a)*d);
+    mkCloud(cldV1,200+cr()*180,{sea:true,noFog:true},cr);
+  }
+  // 5) LES MASSIFS : trois fronts de tours ÉPAULE CONTRE ÉPAULE qui montent du tapis, étalés
+  //    en travers du vent, échelonnés le long du run — l'horizon a une géographie
+  for(let g9=0;g9<3;g9++){
+    const i=Math.min(NP-1,Math.floor(((g9+cr()*0.9)/3)*NP));
+    const a=pickAz(),d=800+cr()*1300;
+    const bx=pts[i].x+Math.cos(a)*d,bz=pts[i].z+Math.sin(a)*d;
+    for(let m9=0;m9<2;m9++){
+      const al=(cr()-.5)*700,ac=(cr()-.5)*300;
+      cldV1.set(bx-wz*al+wx*ac,roadY-120+cr()*380,bz+wx*al+wz*ac);
+      mkCloud(cldV1,300+cr()*320,{giant:true,noFog:true},cr);
+    }
+  }
+  // 6) LES TITANS : des cathédrales de ouate ×10 — trois posées au large par pickAz, et
+  //    LE COLOSSE : aux 2/3 du run, à l'OPPOSÉ du couchant — sa face prend toute la lumière
+  //    rasante, on le voit grossir pendant des kilomètres. Le repère du run.
+  for(let k=0;k<3;k++){
+    const i=Math.min(NP-1,Math.floor(((k+cr()*0.9)/3)*NP));
+    const a=pickAz(),d=1600+cr()*1600;
+    cldV1.set(pts[i].x+Math.cos(a)*d,roadY-120+cr()*640,pts[i].z+Math.sin(a)*d);
+    mkCloud(cldV1,700+cr()*500,{giant:true,titan:true,noFog:true},cr);
+  }
+  {
+    const i=Math.min(NP-1,Math.floor(NP*(0.6+cr()*0.15)));
+    const a=sunAz+3.1416+(cr()-.5)*0.9,d=1300+cr()*700;
+    cldV1.set(pts[i].x+Math.cos(a)*d,roadY-80+cr()*240,pts[i].z+Math.sin(a)*d);
+    mkCloud(cldV1,850+cr()*350,{giant:true,titan:true,noFog:true},cr);
+  }
 }
 function updateClouds(dt,t){
   cloudIn=0;
