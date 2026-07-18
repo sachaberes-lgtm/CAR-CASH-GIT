@@ -773,8 +773,8 @@ if(VOL_OK){ try{
   const U={ uNoise:{value:noise}, uTime:{value:0},
     uSunDir:{value:SUN_DIR.clone()}, uSunCol:{value:new THREE.Color(2.05,0.95,0.60)}, // ROSE-DORÉ : les coiffes prennent le couchant Miami
     uSkyCol:{value:new THREE.Color(0.34,0.30,0.62)}, uGroundCol:{value:new THREE.Color(0.13,0.08,0.18)}, // ciel violet SATURÉ en haut, ventres prune adoucis (crémeux, plus charbon)
-    uAmb:{value:0.56}, uCoverage:{value:0.92}, uDensity:{value:2.4}, uDetail:{value:0.04}, // LISSE & CRÉMEUX : métaballes seules ; densité 2.4 → l'alpha se construit sur PLUS d'échantillons = moyennage = moins de grain, plus onctueux
-    uEdge:{value:0.34}, uFreq:{value:1/120}, uSigma:{value:0.55}, uAbsorb:{value:1.5}, uSilver:{value:0.85}, // bruit BASSE fréquence + coquille molle ; silver TAMISÉ (à 1.4 = « reflet bizarre », un projecteur dans le nuage)
+    uAmb:{value:0.56}, uCoverage:{value:1.0}, uDensity:{value:3.2}, uDetail:{value:0.0}, // CARTOON LISSE ASSUMÉ (verdict user 2026-07-18) : bruit COUPÉ — champ 100 % métaballes ; la forme vient des lobes, point
+    uEdge:{value:0.40}, uFreq:{value:1/120}, uSigma:{value:1.1}, uAbsorb:{value:1.5}, uSilver:{value:0.85}, // SURFACE FRANCHE cartoon : l'alpha monte VITE → la zone semi-transparente (là où le grain vit) se réduit à un fin liseré
     uSteps:{value:40.0}, uLightSteps:{value:6.0},
     // MÉTABALLES : la forme du nuage = UNION DOUCE de 5-10 boules collées (par nuage, posées dans onBeforeRender)
     uBaseFlat:{value:1.0}, uNBlob:{value:1.0}, uBlobs:{value:(function(){const a=[];for(let i=0;i<12;i++)a.push(new THREE.Vector4(0,0,0,.3));return a;})()},
@@ -792,21 +792,19 @@ if(VOL_OK){ try{
     // GRAIN ANIMÉ : bruit blanc RE-TIRÉ chaque frame — un bruit statique se lit comme de la SALETÉ
     // collée sur la crème ; animé, l'œil le moyenne (grain de pellicule, raccord avec le filtre CRT
     // du jeu). Sans structure spatiale → rien à moirer sous l'upscale du DPR adaptatif.
-    float ign(){return fract(sin(dot(gl_FragCoord.xy+vec2(fract(uTime*0.6135)*289.0,fract(uTime*0.8317)*373.0),vec2(12.9898,78.233)))*43758.5453);}
-    float densAt(vec3 p){vec3 q=(p-vCenter)/vRadius;if(dot(q,q)>1.0)return 0.0;
-      // FORME = union PROBABILISTE de N boules (metaballs) : un gros nuage fait de 5-10 boules collées
+    float ign(){return fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453);}
+    // CHAMP IMPLICITE (0..1) : union douce des métaballes × base plate × coquille — LISSE par
+    // construction (bruit coupé : cartoon assumé). La SURFACE est l'iso 0.5 de ce champ.
+    float field(vec3 p){vec3 q=(p-vCenter)/vRadius;if(dot(q,q)>1.0)return 0.0;
       float inv=1.0;
       for(int i=0;i<12;i++){ if(float(i)>=uNBlob) break;
         vec4 b=uBlobs[i]; float rr=length(q-b.xyz)/max(b.w,0.02);
         inv*=smoothstep(uEdge,1.0,rr); }
       float shape=1.0-inv;
       shape*=mix(1.0,smoothstep(-1.0,-0.64,q.y),uBaseFlat); // base APLATIE façon cumulus (modulée par type)
-      shape*=1.0-smoothstep(0.80,0.985,length(q)); // FONDU DE COQUILLE EN ESPACE OBJET : la silhouette est la MÊME sous tous les angles (le fondu écran d'avant se recalculait selon la caméra → le nuage MORPHAIT en approche)
-      if(shape<=0.001)return 0.0;
-      vec3 np=(p-vCenter)*uFreq+vec3(uSeed)+vec3(uTime*0.010,-uTime*0.008,uTime*0.006);
-      float base=texture(uNoise,np).r;float det=texture(uNoise,np*2.0+5.0).g;
-      float d=shape-(1.0-base)*(1.0-uCoverage)*1.7;d-=(1.0-det)*uDetail*(1.0-shape)*0.30;
-      return max(d,0.0)*uDensity*uDMul;}
+      shape*=1.0-smoothstep(0.86,0.995,length(q));
+      return shape;}
+    float densAt(vec3 p){return field(p)*uDensity*uDMul;} // le lightMarch (ombre volumique douce) lit toujours une densité
     float lightMarch(vec3 p,float jit){
       // MARCHE EXPONENTIELLE — le fix des anneaux « agate » : à pas FIXES, le 1er échantillon est à
       // ~30 m du point et l'occlusion SAUTE de blob en blob → od en escalier → anneaux concentriques
@@ -819,33 +817,48 @@ if(VOL_OK){ try{
       vec3 oc=(ro-vCenter)/vRadius,dd=rd/vRadius;
       float A=dot(dd,dd),B=2.0*dot(oc,dd),C=dot(oc,oc)-1.0,disc=B*B-4.0*A*C;if(disc<0.0)discard;
       float sq=sqrt(disc),t0=max((-B-sq)/(2.0*A),0.0),t1=(-B+sq)/(2.0*A);if(t1<=t0)discard;
-      // ANTI-ANNEAUX : dither PLEINE amplitude (la norme en volumétrique — les anneaux concentriques
-      // d'un dither timide sont bien plus laids qu'un grain fin sur de la crème) + échantillonnage
-      // au MILIEU du pas (ordre 2 : divise le banding par ~4 à coût nul). Le fondu de bord vit
-      // désormais dans densAt (espace objet) — plus de silhouette qui morphe avec la caméra.
-      float stepS=(t1-t0)/uSteps,dither=ign(),t=t0,slMax=length(vRadius)*0.05;
-      float cosT=dot(rd,uSunDir),fs=pow(max(cosT,0.0),3.0)*uSilver,T=1.0;vec3 col=vec3(0.0);
-      for(int i=0;i<96;i++){if(float(i)>=uSteps||T<0.02)break;
-        float sl=min(stepS*(0.55+1.05*float(i)/uSteps),slMax); // RAMPE plafonnée : dans un titan traversé, des pas de 40 m faisaient du poivre-et-sel (le fond opaque sort par T<0.02 de toute façon)
-        vec3 p=ro+rd*(t+sl*dither);float d=densAt(p); // ALPHA au point JITTÉ (stratifié : zéro anneau)
-        if(d>0.003){
-          // ÉCLAIRAGE quasi stable (micro-jitter 30 % du pas) : sur un nuage épais l'alpha sature en
-          // 1 pas → chaque pixel = UN échantillon — lum au point PLEIN-jitter = sable ; lum figée au
-          // milieu = bandes en semi-transparence. 30 % brise les bandes sans bruiter la chair.
-          vec3 pm=ro+rd*(t+sl*(0.35+0.3*dither));
-          float od=lightMarch(pm,dither);float lt=exp(-od*uAbsorb);float ms=lt+0.42*exp(-od*uAbsorb*0.25);
-          float pw=1.0-exp(-d*4.5);vec3 sun=uSunCol*(ms+fs)*pw; // powder adouci : plus de cœur-projecteur
-          float up=clamp(((pm.y-vCenter.y)/max(vRadius.y,1.0))*0.5+0.5,0.0,1.0);
-          vec3 lum=mix(uGroundCol,uSkyCol,up)*uAmb+sun;
-          float alpha=1.0-exp(-d*sl*uSigma);col+=T*alpha*lum;T*=(1.0-alpha);}
-        t+=sl;}
-      float a=1.0-T;if(a<0.004)discard;
-      float fog=clamp((t0-uFogNear)/(uFogFar-uFogNear),0.0,1.0)*uFogAmt;
+      // ============ SURFACE IMPLICITE CARTOON (2026-07-18) ============
+      // L'accumulation volumique se battait à jamais entre GRAIN (jitter) et ANNEAUX (pas visibles).
+      // On rend désormais la SURFACE iso-0.5 du champ métaball : marche grossière pour l'encadrer,
+      // puis BISSECTION (8 itérations = position exacte) → ZÉRO échantillonnage stochastique,
+      // donc zéro grain ET zéro anneau, à n'importe quel nombre de pas et n'importe quel DPR.
+      const float ISO=0.5;
+      float tHit=-1.0;
+      if(field(ro+rd*(t0+0.001))>ISO){tHit=t0;} // caméra DANS la chair : plein voile immédiat
+      else{
+        float stepS=(t1-t0)/uSteps,t=t0,tPrev=t0;
+        for(int i=0;i<96;i++){if(float(i)>=uSteps)break;
+          t+=stepS;
+          if(field(ro+rd*t)>ISO){ // surface encadrée entre tPrev et t → bissection
+            float a2=tPrev,b2=t;
+            for(int j=0;j<8;j++){float m=0.5*(a2+b2);if(field(ro+rd*m)>ISO)b2=m;else a2=m;}
+            tHit=0.5*(a2+b2);break;}
+          tPrev=t;}
+      }
+      if(tHit<0.0)discard;
+      vec3 p=ro+rd*tHit;
+      // normale par gradient central du champ — lisse, donc éclairage lisse
+      float eN=length(vRadius)*0.012;
+      vec3 n=normalize(vec3(field(p+vec3(eN,0,0))-field(p-vec3(eN,0,0)),
+                            field(p+vec3(0,eN,0))-field(p-vec3(0,eN,0)),
+                            field(p+vec3(0,0,eN))-field(p-vec3(0,0,eN))));
+      if(dot(n,n)<0.1)n=-rd; // gradient nul (plein cœur) : face caméra
+      // ÉCLAIRAGE CARTOON : wrap solaire doux + ombre volumique (lightMarch conservé) + ambiante
+      // hémisphérique par la normale + liseré argenté au contre-jour + bord duveteux au fresnel.
+      float cosT=dot(rd,uSunDir),fs=pow(max(cosT,0.0),3.0)*uSilver;
+      float od=lightMarch(p+n*eN*2.0,0.5);
+      float sh=exp(-od*uAbsorb);
+      float wrap=clamp(dot(n,uSunDir)*0.55+0.45,0.0,1.0);
+      vec3 sun=uSunCol*wrap*mix(0.30,1.0,sh)*0.85;
+      vec3 amb=mix(uGroundCol,uSkyCol,clamp(n.y*0.5+0.5,0.0,1.0))*uAmb*1.55;
+      float fr=pow(1.0-abs(dot(n,rd)),2.0);
+      vec3 col=amb+sun+uSunCol*fs*fr*0.55; // silver lining : le bord s'embrase face au soleil
+      float a=(1.0-fr*0.32)*clamp(uDMul+0.35,0.0,1.0); // bord duveteux translucide ; voiles/mer plus diaphanes via dMul
+      if(tHit<=t0+0.002)a=1.0; // dedans : voile plein (le white-out gameplay fait le reste)
+      float fog=clamp((tHit-uFogNear)/(uFogFar-uFogNear),0.0,1.0)*uFogAmt;
+      col*=a; // blending prémultiplié
       col=mix(col,uFogCol*a,fog);
-      // DITHER DE SORTIE (comme le skyDome) : un nuage = un immense dégradé ultra-doux — sur un
-      // framebuffer 8 bits + grade contrasté, la QUANTIFICATION dessinait des anneaux « agate »
-      // qui suivaient les courbes de niveau des lobes. C'était ÇA, les anneaux — pas le raymarch.
-      col+=vec3((dither-0.5)*a/96.0);
+      col+=vec3((ign()-0.5)*a/96.0); // dither de sortie : casse la posterisation 8-bit des dégradés doux
       fragColor=vec4(col,a);}`;
   const mk=(side,ztest)=>new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,uniforms:U,vertexShader:VERT,fragmentShader:FRAG,
     transparent:true,depthWrite:false,depthTest:ztest,side:side,
@@ -893,7 +906,8 @@ function mkCloudVol(center,r,o,rr){ // un banc = une boîte volumétrique rempli
   mesh.userData={seed:(rr()*97.3)%17, dMul:dMul, fogAmt:o.noFog?0.0:1.0,
     baseFlat:o.veil?0.0:o.giant?0.35:1.0, blobs:blobs,
     stepMul:o.titan?0.55:1, // TITANS lointains : gros à l'écran mais moitié moins de pas — le budget suit la taille
-    fMul:Math.min(1,300/r)}; // LOBES PROPORTIONNELS : un titan a des bosses de titan (85 m de billows sur 1 km = grain de sable)
+    fMul:Math.min(1,300/r), // LOBES PROPORTIONNELS : un titan a des bosses de titan
+    trav:!!(o.onRoad||(!o.giant&&!o.sea&&!o.veil&&!o.deco&&!o.titan))}; // TRAVERSABLE (banc/vol/tour sur piste) : seuls eux ont droit au matB sans z-test — le décor reste occlus par la route À VIE
   mesh.onBeforeRender=function(rn,sc,cm,gm,mat){const u=mat.uniforms,ud=this.userData;
     u.uSteps.value=VOL.stepBase*ud.stepMul; // TOUJOURS via stepBase : les paliers perf n'écrivent plus uSteps en direct
     u.uFreq.value=(1/120)*ud.fMul;
@@ -1072,16 +1086,24 @@ function updateClouds(dt,t){
     cldV1.subVectors(cp,c.g.position);
     const dh2=cldV1.x*cldV1.x+cldV1.z*cldV1.z,dv=cldV1.y;
     const d2=dh2/(c.r*c.r)+(dv*dv)/(c.ry*c.ry);
-    // Loin de la caisse : pas de drift ni de raymarch (culling perf — le gameplay ne lit que d2<1)
-    if(d2>64){if(c.mesh)c.mesh.visible=false;continue;}
-    if(c.mesh&&!c.mesh.visible)c.mesh.visible=true;
+    // CULLING SANS POP-IN : l'ancien seuil (8× le rayon) faisait APPARAÎTRE les petits nuages à 160 m
+    // devant la caisse. Désormais : les nuages broués ne se cachent qu'au-delà du fog (invisibles de
+    // toute façon → aucun pop visible) ; les noFog (titans, décor d'horizon) ne se cachent JAMAIS.
+    if(c.mesh){
+      const hid=c.mesh.userData.fogAmt>0&&Math.sqrt(dh2+dv*dv)>scene.fog.far+c.r*1.2;
+      c.mesh.visible=!hid;if(hid)continue;
+    }else if(d2>64){continue;} // repli sprites : l'ancien culling
     c.g.position.x=c.c.x+Math.sin(t*.07+c.ph)*4;   // le banc respire et dérive
     c.g.position.z=c.c.z+Math.cos(t*.05+c.ph)*4;
-    // Bascule FRONT/BACK selon la CAMÉRA (pas la voiture) : dès qu'elle entre dans la boîte, BackSide
-    // (sinon les faces avant, derrière l'œil, sont cullées → le volume disparaît quand on plonge dedans).
-    if(c.mesh&&d2<25){const qx=(camP.x-c.g.position.x)/c.r,qy=(camP.y-c.g.position.y)/c.ry,qz=(camP.z-c.g.position.z)/c.r;
-      const mgx=1+9/c.r,mgy=1+9/c.ry; // marge ABSOLUE (~9 m) : en marge ×1.45, un titan d'1 km passait en matB (sans z-test) à 1,7 km → le nuage se dessinait À TRAVERS la route
-      c.mesh.material=(Math.abs(qx)<mgx&&Math.abs(qy)<mgy&&Math.abs(qz)<mgx)?VOL.matB:VOL.matF;}
+    // Bascule FRONT/BACK : TOUJOURS évaluée (un matB périmé restait collé quand on s'éloignait → nuage
+    // dessiné SANS z-test À TRAVERS la route). Et seuls les nuages TRAVERSABLES (bancs/vol/tours sur
+    // piste) ont le droit au matB : le décor lointain reste en matF+z-test à vie — occlusion garantie.
+    if(c.mesh){
+      if(!c.mesh.userData.trav)c.mesh.material=VOL.matF;
+      else{const qx=(camP.x-c.g.position.x)/c.r,qy=(camP.y-c.g.position.y)/c.ry,qz=(camP.z-c.g.position.z)/c.r;
+        const mgx=1+9/c.r,mgy=1+9/c.ry; // marge ABSOLUE ~9 m autour de la boîte
+        c.mesh.material=(Math.abs(qx)<mgx&&Math.abs(qy)<mgy&&Math.abs(qz)<mgx)?VOL.matB:VOL.matF;}
+    }
     if(d2<9)for(const p of c.puffs){ // ressorts mis à jour seulement à proximité (perf, repli sprite)
       p.dv.addScaledVector(p.dis,-2.3*dt);
       p.dv.multiplyScalar(Math.max(0,1-1.7*dt));
