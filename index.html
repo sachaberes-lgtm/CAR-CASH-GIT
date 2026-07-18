@@ -39,13 +39,14 @@
   /* compteur d'argent — OR MASSIF 3D */
   #money{position:absolute;top:14px;left:50%;transform:translateX(-50%) perspective(420px) rotateX(8deg);
     padding:12px 24px 14px;
-    background:rgba(24,12,30,.62);border:1px solid rgba(255,196,80,.4);border-radius:14px;
-    box-shadow:0 14px 40px rgba(0,0,0,.5),0 0 26px rgba(255,170,50,.25),inset 0 0 22px rgba(255,180,60,.08)}
+    background:rgba(12,24,16,.62);border:1px solid rgba(110,230,130,.35);border-radius:14px;
+    box-shadow:0 14px 40px rgba(0,0,0,.5),0 0 26px rgba(80,220,110,.22),inset 0 0 22px rgba(90,220,120,.07)}
+  /* VERT GTA V : billets, pas lingots — dégradé menthe→vert billet→vert bouteille, ombres presque noires */
   #moneyTxt{display:block;font-size:31px;letter-spacing:2px;
-    background:linear-gradient(180deg,#fff8d8 0%,#ffd75e 38%,#ff9d2e 68%,#a85e08 88%,#ffd75e 100%);
+    background:linear-gradient(180deg,#eaffe2 0%,#9ce870 38%,#4fc63f 68%,#1c6e22 88%,#7ede58 100%);
     -webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
-    filter:drop-shadow(0 2px 0 #6b3c00) drop-shadow(0 4px 1px #402300) drop-shadow(0 8px 16px rgba(0,0,0,.55))}
-  #moneyTxt .dz{-webkit-text-fill-color:#57431a;color:#57431a}
+    filter:drop-shadow(0 2px 0 #0e3a14) drop-shadow(0 4px 1px #06230c) drop-shadow(0 8px 16px rgba(0,0,0,.55))}
+  #moneyTxt .dz{-webkit-text-fill-color:#1d4423;color:#1d4423}
   #record{position:absolute;top:150px;left:50%;transform:translateX(-50%);font-size:9px;color:#8f84c8}
   #resetBtn{position:absolute;top:16px;right:16px;pointer-events:auto;cursor:pointer;
     font-family:var(--pix);font-size:12px;
@@ -721,7 +722,7 @@ let QUAL_LOW=false,QUAL_MED=IS_MOBILE||IS_LOW_END; // garde-fous perf : réduise
 function applyPerfTier(med,low){
   if(low&&!QUAL_LOW){
     QUAL_LOW=true;QUAL_MED=true;
-    if(VOL){VOL.stepBase=26;VOL.U.uSteps.value=26;VOL.U.uLightSteps.value=4;} // PLANCHER RELEVÉ : sous 26 pas le dither devient un damier ; 4 pas de lumière = transition ombre lisse (3 stipplait)
+    if(VOL){VOL.stepBase=32;VOL.U.uSteps.value=32;VOL.U.uLightSteps.value=4;} // PLANCHER 32/4 : les nuages sont PEU nombreux et les pas plafonnés — même au tier LOW ils restent crémeux (le grain ∝ 1/pas)
     for(const c9 of CLOUDS){let j9=0;for(const p9 of c9.puffs)if(++j9%3===0)p9.sp.visible=false;}
     if(bloomPass)bloomPass.enabled=false;
     if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}
@@ -729,7 +730,7 @@ function applyPerfTier(med,low){
     renderer.shadowMap.type=THREE.BasicShadowMap;
   }else if(med&&!QUAL_MED){
     QUAL_MED=true;
-    if(VOL){VOL.stepBase=36;VOL.U.uSteps.value=36;VOL.U.uLightSteps.value=4;} // MED : encore lisse (l'ancien 24 tramait déjà)
+    if(VOL){VOL.stepBase=42;VOL.U.uSteps.value=42;VOL.U.uLightSteps.value=5;} // MED 42/5 : encore lisse (l'ancien 24 tramait déjà)
     if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;} // ombres 1024 dès le palier MED (recrée la map, zéro recompilation)
     sun.shadow.mapSize.set(1024,1024);
   }
@@ -772,7 +773,7 @@ if(VOL_OK){ try{
   const U={ uNoise:{value:noise}, uTime:{value:0},
     uSunDir:{value:SUN_DIR.clone()}, uSunCol:{value:new THREE.Color(2.05,0.95,0.60)}, // ROSE-DORÉ : les coiffes prennent le couchant Miami
     uSkyCol:{value:new THREE.Color(0.34,0.30,0.62)}, uGroundCol:{value:new THREE.Color(0.13,0.08,0.18)}, // ciel violet SATURÉ en haut, ventres prune adoucis (crémeux, plus charbon)
-    uAmb:{value:0.56}, uCoverage:{value:0.92}, uDensity:{value:2.9}, uDetail:{value:0.04}, // LISSE & CRÉMEUX : la forme vient des MÉTABALLES, le bruit n'est qu'une ondulation subtile (à .85 il gravait encore des anneaux « agate » dans les nappes minces)
+    uAmb:{value:0.56}, uCoverage:{value:0.92}, uDensity:{value:2.4}, uDetail:{value:0.04}, // LISSE & CRÉMEUX : métaballes seules ; densité 2.4 → l'alpha se construit sur PLUS d'échantillons = moyennage = moins de grain, plus onctueux
     uEdge:{value:0.34}, uFreq:{value:1/120}, uSigma:{value:0.55}, uAbsorb:{value:1.5}, uSilver:{value:0.85}, // bruit BASSE fréquence + coquille molle ; silver TAMISÉ (à 1.4 = « reflet bizarre », un projecteur dans le nuage)
     uSteps:{value:40.0}, uLightSteps:{value:6.0},
     // MÉTABALLES : la forme du nuage = UNION DOUCE de 5-10 boules collées (par nuage, posées dans onBeforeRender)
@@ -788,11 +789,10 @@ if(VOL_OK){ try{
     uniform float uTime,uAmb,uCoverage,uDensity,uDetail,uEdge,uFreq,uSigma,uAbsorb,uSilver,uSteps,uLightSteps,uSeed,uDMul,uFogAmt,uFogNear,uFogFar,uBaseFlat,uNBlob;
     uniform vec4 uBlobs[12];
     in vec3 vWorld;in vec3 vCenter;in vec3 vRadius;out vec4 fragColor;
-    // BRUIT BLANC (comme le skyDome) — PAS l'IGN : l'Interleaved Gradient Noise est une rampe
-    // conçue pour du 1:1 pixel ; sous le DPR adaptatif + upscale navigateur, sa structure fait du
-    // MOIRÉ en franges concentriques « agate » sur tout dégradé doux (LE motif moche, résistant à
-    // tous les réglages de champ/lumière). Le bruit blanc est sans structure → rien à moirer.
-    float ign(){return fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453);}
+    // GRAIN ANIMÉ : bruit blanc RE-TIRÉ chaque frame — un bruit statique se lit comme de la SALETÉ
+    // collée sur la crème ; animé, l'œil le moyenne (grain de pellicule, raccord avec le filtre CRT
+    // du jeu). Sans structure spatiale → rien à moirer sous l'upscale du DPR adaptatif.
+    float ign(){return fract(sin(dot(gl_FragCoord.xy+vec2(fract(uTime*0.6135)*289.0,fract(uTime*0.8317)*373.0),vec2(12.9898,78.233)))*43758.5453);}
     float densAt(vec3 p){vec3 q=(p-vCenter)/vRadius;if(dot(q,q)>1.0)return 0.0;
       // FORME = union PROBABILISTE de N boules (metaballs) : un gros nuage fait de 5-10 boules collées
       float inv=1.0;
@@ -823,14 +823,19 @@ if(VOL_OK){ try{
       // d'un dither timide sont bien plus laids qu'un grain fin sur de la crème) + échantillonnage
       // au MILIEU du pas (ordre 2 : divise le banding par ~4 à coût nul). Le fondu de bord vit
       // désormais dans densAt (espace objet) — plus de silhouette qui morphe avec la caméra.
-      float stepS=(t1-t0)/uSteps,dither=ign(),t=t0;
+      float stepS=(t1-t0)/uSteps,dither=ign(),t=t0,slMax=length(vRadius)*0.05;
       float cosT=dot(rd,uSunDir),fs=pow(max(cosT,0.0),3.0)*uSilver,T=1.0;vec3 col=vec3(0.0);
       for(int i=0;i<96;i++){if(float(i)>=uSteps||T<0.02)break;
-        float sl=stepS*(0.55+1.05*float(i)/uSteps); // RAMPE : pas SERRÉS à l'entrée, longs au fond — même budget
-        vec3 p=ro+rd*(t+sl*dither);float d=densAt(p); // JITTER STRATIFIÉ : l'échantillon tiré DANS son pas — un dither de départ seul laissait des anneaux au rythme des pas longs du fond
-        if(d>0.003){float od=lightMarch(p,dither);float lt=exp(-od*uAbsorb);float ms=lt+0.42*exp(-od*uAbsorb*0.25);
+        float sl=min(stepS*(0.55+1.05*float(i)/uSteps),slMax); // RAMPE plafonnée : dans un titan traversé, des pas de 40 m faisaient du poivre-et-sel (le fond opaque sort par T<0.02 de toute façon)
+        vec3 p=ro+rd*(t+sl*dither);float d=densAt(p); // ALPHA au point JITTÉ (stratifié : zéro anneau)
+        if(d>0.003){
+          // ÉCLAIRAGE quasi stable (micro-jitter 30 % du pas) : sur un nuage épais l'alpha sature en
+          // 1 pas → chaque pixel = UN échantillon — lum au point PLEIN-jitter = sable ; lum figée au
+          // milieu = bandes en semi-transparence. 30 % brise les bandes sans bruiter la chair.
+          vec3 pm=ro+rd*(t+sl*(0.35+0.3*dither));
+          float od=lightMarch(pm,dither);float lt=exp(-od*uAbsorb);float ms=lt+0.42*exp(-od*uAbsorb*0.25);
           float pw=1.0-exp(-d*4.5);vec3 sun=uSunCol*(ms+fs)*pw; // powder adouci : plus de cœur-projecteur
-          float up=clamp(((p.y-vCenter.y)/max(vRadius.y,1.0))*0.5+0.5,0.0,1.0);
+          float up=clamp(((pm.y-vCenter.y)/max(vRadius.y,1.0))*0.5+0.5,0.0,1.0);
           vec3 lum=mix(uGroundCol,uSkyCol,up)*uAmb+sun;
           float alpha=1.0-exp(-d*sl*uSigma);col+=T*alpha*lum;T*=(1.0-alpha);}
         t+=sl;}
@@ -1075,7 +1080,8 @@ function updateClouds(dt,t){
     // Bascule FRONT/BACK selon la CAMÉRA (pas la voiture) : dès qu'elle entre dans la boîte, BackSide
     // (sinon les faces avant, derrière l'œil, sont cullées → le volume disparaît quand on plonge dedans).
     if(c.mesh&&d2<25){const qx=(camP.x-c.g.position.x)/c.r,qy=(camP.y-c.g.position.y)/c.ry,qz=(camP.z-c.g.position.z)/c.r;
-      c.mesh.material=(Math.abs(qx)<1.45&&Math.abs(qy)<1.45&&Math.abs(qz)<1.45)?VOL.matB:VOL.matF;} // bascule ANTICIPÉE (1.45) : à 400 km/h la marge d'1.15 sautait en une frame → clipping visible à l'entrée
+      const mgx=1+9/c.r,mgy=1+9/c.ry; // marge ABSOLUE (~9 m) : en marge ×1.45, un titan d'1 km passait en matB (sans z-test) à 1,7 km → le nuage se dessinait À TRAVERS la route
+      c.mesh.material=(Math.abs(qx)<mgx&&Math.abs(qy)<mgy&&Math.abs(qz)<mgx)?VOL.matB:VOL.matF;}
     if(d2<9)for(const p of c.puffs){ // ressorts mis à jour seulement à proximité (perf, repli sprite)
       p.dv.addScaledVector(p.dis,-2.3*dt);
       p.dv.multiplyScalar(Math.max(0,1-1.7*dt));
@@ -1631,8 +1637,8 @@ const CARS=[
  {name:'DIEU-VITESSE 👑', color:0xf5f6fa,accent:0xffd75e,maxKmh:1900,accel:208,turn:3.5, h:.28,w:2.3, l:5.6,spoiler:1,glow:0xffffff,rocket:1,
   desc:'Plus de route. Plus de son. Plus de rivaux. Juste toi, et l\'univers qui essaie de suivre. Il n\'y arrive pas.'},
 ];
-const DENOMS=[10,1e3,1e4,1e5,1e6,1e7,1e8,1e9,1e10,1e11,1e12,1e13,1e14,
-              1e15,1e16,1e17,1e18,1e19,1e20,1e21,1e22,1e23,1e24,1e25]; // 24 niveaux : ×10 par caisse, jusqu'à l'absurde assumé
+const DENOMS=[10,25,60,150,400,1e3,2.5e3,6e3,15e3,40e3,1e5,2.5e5,6e5,
+              1.5e6,4e6,1e7,2.5e7,6e7,1.5e8,4e8,1e9,2.5e9,6e9,15e9]; // 24 niveaux : ×~2,5 par caisse — REBASÉ le 2026-07-17 (l'ancien ×10 finissait à 1e25, illisible) : l'endgame se compte en MILLIARDS, ça reste GTA, plus jamais quintillions
 // COURBE D'EFFORT CROISSANTE (échelle de renforcement) : la 1re caisse tombe en ~30 s
 // (accroche immédiate), puis chaque palier exige un peu plus de maîtrise — en équivalent
 // pièces : 8, 12, 16, 20, 25, 30, 36, 44, 52, 62, 74, 88, 105, puis l'ENDGAME serre la vis :
@@ -1640,8 +1646,8 @@ const DENOMS=[10,1e3,1e4,1e5,1e6,1e7,1e8,1e9,1e10,1e11,1e12,1e13,1e14,
 // restent le moteur : un pilote qui vole progresse bien plus vite qu'un rouleur.
 // Les BUMPS ne payent plus un centime en vol : ils rendent l'airtime, chargent le STYLE (fever)
 // et gonflent le multiplicateur — tout se cash à l'ATTERRISSAGE. Voler paye, poser encaisse.
-const THRESH=[400,6e4,8.6e5,1.1e7,1.4e8,1.6e9,2e10,2.4e11,2.9e12,3.4e13,4e14,4.8e15,5.7e16,
-              6.8e17,8.1e18,9.6e19,1.1e21,1.4e22,1.6e23,1.9e24,2.3e25,2.7e26,3.2e27];
+const THRESH=[400,1.5e3,4.8e3,1.5e4,5e4,1.5e5,4.5e5,1.3e6,3.9e6,1.2e7,3.7e7,1.1e8,3.2e8,
+              1e9,3.2e9,9.6e9,2.9e10,8.1e10,2.4e11,7.6e11,2.3e12,6.6e12,1.9e13]; // ≈ 5 × denom × effort-pièces (même courbe 8→630 : la DIFFICULTÉ ressentie est inchangée, seuls les zéros dégonflent) — DIEU-VITESSE ≈ 19 billions cumulés
 let level=0;
 function denom(){return DENOMS[Math.min(level,23)];}
 const fmt=v=>'$ '+Math.round(v).toLocaleString('fr-FR');
@@ -2833,7 +2839,7 @@ const currTexs=CURR.map(([sym,col])=>{
   c.fillText(sym,48,50);
   return new THREE.CanvasTexture(cv);
 });
-const moneyRain=[];let moneyRainT=0,nextRainAt=1e4;
+const moneyRain=[];let moneyRainT=0,nextRainAt=4e3; // calé sur l'éco ×2,5 : ~une pluie par niveau (l'ancien 1e4/×10 suivait l'éco ×10)
 function startMoneyRain(){
   moneyRainT=3;
   try{fanfare();}catch(e){}
@@ -3456,11 +3462,12 @@ addEventListener('blur',()=>{for(const k in keys)keys[k]=false;}); // alt-tab : 
 const GRAV=9.8*.55,FALL_G=33,AXIS_Y=new THREE.Vector3(0,1,0),AIR_MAX=6;
 // AIR_RATE : le vol se joue PLUS VITE en temps réel — la parabole dans l'espace est identique
 // (viseur d'atterrissage + seuils de figures inchangés), mais on passe moins de temps à flotter.
-const AIR_RATE=1.6;
+let AIR_RATE=1.6; // DYNAMIQUE depuis 2026-07-17 (posé par startFall selon la vitesse de décollage) : ×1 quand on roule doucement (le vol du début collait mal au roulage lent), ×2.3 en endgame (il paraissait MOU à côté du roulage supersonique)
 const SPD=0.25; // vitesse globale du jeu (÷2 le 2026-07-16 : « trop rapide dès le début » — SPD scale TOUT : avance joueur/bots, chute, viseur ET compteur)
 const TURN_HS=.0035; // pénalité de braquage à haute vitesse (avant .008 — plus petit = virages plus faciles)
 const AIR_ASSIST=1.0; // aide au recentrage en vol (0 = off), monte avec la vitesse
 const CAM_SHAKE_V=.78; // intensité du tremblement caméra lié à la vitesse (position + roulis)
+function vmaxShow(){const l9=1+Math.min(.5,Math.max(0,level-5)*.08);return CARS[level].maxKmh*SPD*l9;} // vitesse max AFFICHÉE de la caisse actuelle (overdrive compris) — la sensation de vitesse se juge RELATIVE à ta caisse, pas en absolu
 let mode='drive',s=0,lat=0,psi=0,vA=0,vL=0,side=1;
 let steer=0,money=0,levelCash=0,boost=0,fallT=0,fallTR=0,padCd=0,shake=0,combo=0,comboT=0,graceT=0,safeS=0,yawAcc=0,edgeT=0,squashT=0,momT=0,styleM=0,fever=0,streak=0,slowT=0,steerHold=0,aheadV=0,sideCd=0,slipT=0,oilCd=0,hitT=0,insUsed=false,feverArmed=false,lastSpaceT=0,rollover=0;
 let airRoll=0; // vrille visuelle en vol
@@ -3489,7 +3496,8 @@ const slCv=$('slCv'),slCtx=slCv.getContext('2d');
 slCv.width=innerWidth;slCv.height=innerHeight;
 function drawSpeedLines(kmh,nitro){ // speed lines façon anime : traits radiaux fuyant le centre
   const W=slCv.width,H=slCv.height;
-  let k=Math.max(0,(kmh-230)/300)+(nitro?.42:0); // les speed lines s'invitent plus tôt et mordent plus fort
+  const vmxL=vmaxShow();
+  let k=Math.max(0,(kmh-vmxL*.55)/(vmxL*.7))+(nitro?.42:0); // les speed lines arrivent à ~55 % de la vmax de TA caisse — la sensation existe dès LA HONTE, sans saturer l'endgame
   if(k<=.03){if(drawSpeedLines._had){slCtx.clearRect(0,0,W,H);drawSpeedLines._had=false;}return;} // rien à tracer : on n'efface le plein écran qu'UNE fois (plus de clearRect/frame à basse vitesse)
   slCtx.clearRect(0,0,W,H);drawSpeedLines._had=true;
   k=Math.min(1.35,k);
@@ -3712,6 +3720,7 @@ function checkUpgrade(){
 }
 function startFall(impU,impF){
   mode='fall';fallT=0;fallTR=0;yawAcc=0;momT=0;airRoll=0;
+  AIR_RATE=THREE.MathUtils.clamp(.95+Math.abs(vA)*3.6*SPD/420*.55,1,2.3); // le RYTHME du vol suit la vitesse de décollage : lent = parabole au tempo du roulage, supersonique = vol qui claque (figé pour tout ce vol — la jauge 6 s reste en secondes RÉELLES via fallTR)
   nitroAirT=0;fallWrap=0;fallWrapSign=0;fallStartSide=side; // suivi announcer
   bounceN=0;flightId++; // nouveau vol : compteur de bumps et budget d'airtime des nuages remis à zéro
   if(Math.abs(vA)*3.6*SPD>400)annSpeak('launch400',1); // éjecté à +400 km/h (1 fois sur 3)
@@ -3870,7 +3879,7 @@ function resetGame(){
   money=0;levelCash=0;level=0;buildCar(CARS[0]);
   nitroR=2;nitroX=0;boost=0;combo=0;edgeT=0;momT=0;styleM=0;fever=0;streak=0;slowT=0;gameOver=false;paused=false;insUsed=false;feverArmed=false;rollover=0;
   pwrNitroT=0;pwrAirT=0;pwrSpdT=0;
-  nextRainAt=1e4;moneyRainT=0;sideCd=0;slipT=0;oilCd=0;
+  nextRainAt=4e3;moneyRainT=0;sideCd=0;slipT=0;oilCd=0;
   nitroAirT=0;fallWrap=0;fallWrapSign=0;pureT=0;pureArmed=true;annStop();
   bounceN=0;airFlash=0;flightId=0;
   chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;
@@ -4750,7 +4759,7 @@ function loop(now){
         camera.up.copy(camUp);
         tmp2.copy(carGroup.position).addScaledVector(fwdW,8.5).addScaledVector(F.n,1.05);
         camera.lookAt(tmp2);
-        const fovT=72+Math.min(38,speedKmh*.058)+(boost>0?6:0)+(nitroOn?(nitroBlue?16:10):0); // le tunnel s'ouvre : la vitesse se VOIT
+        const fovT=72+Math.min(38,(speedKmh/Math.max(1,vmaxShow()))*17+speedKmh*.030)+(boost>0?6:0)+(nitroOn?(nitroBlue?16:10):0); // le tunnel s'ouvre : part RELATIVE (ta caisse à fond = ça se voit, même la HONTE) + part absolue (le supersonique écarte encore les murs)
         camera.fov+=(fovT-camera.fov)*Math.min(1,dt*6);
         camera.updateProjectionMatrix();
         if(shake>0){
@@ -4758,10 +4767,13 @@ function loop(now){
           camera.position.addScaledVector(tmp,(Math.random()-.5)*shake);
           shake=Math.max(0,shake-3.5*dt);
         }
-        // VIBRATION DE VITESSE : ça frémit dès 190 km/h, ça tremble VRAIMENT passé 400
-        // (position sur 3 axes + roulis haute fréquence — la caisse arrache l'air)
-        const spdN=THREE.MathUtils.clamp((speedKmh-190)/320,0,1.35),
-              spdSh=spdN*spdN*CAM_SHAKE_V*(nitroOn?1.35:1);
+        // VIBRATION DE VITESSE — RELATIVE à la caisse : ça frémit dès ~45 % de TA vmax (une LA HONTE
+        // à fond doit trembler autant qu'une COMÈTE à fond), puis le PLANÉ SUPERSONIQUE calme tout :
+        // passé ~350 km/h affichés, l'air ne lutte plus, la caisse fend — les vibrations fondent à 30 %.
+        const vmx9=vmaxShow(),
+              spdN=THREE.MathUtils.clamp((speedKmh-vmx9*.60)/(vmx9*.55),0,1),
+              calm9=1-.7*THREE.MathUtils.smoothstep(speedKmh,350,900),
+              spdSh=spdN*spdN*CAM_SHAKE_V*.42*calm9*(nitroOn?1.3:1); // FRISSON, pas séisme : à vmax de croisière ≈ .10 d'amplitude (la sensation vient du FOV + speed lines, le tremblement signale juste la LIMITE)
         if(spdSh>0){
           camera.position.addScaledVector(F.n,(Math.random()-.5)*spdSh);
           camera.position.addScaledVector(tmp,(Math.random()-.5)*spdSh*1.2);
@@ -5225,7 +5237,7 @@ function loop(now){
         if(u[0]>unitSeen){unitSeen=u[0];showMsg('💸 TU COMPTES EN '+u[2]+' MAINTENANT !','#7dff9a');}
         break;}
     }
-    if(!gameOver&&money>=nextRainAt){nextRainAt*=10;startMoneyRain();showMsg(pickL(RAIN_LINES),'#7dff9a');}
+    if(!gameOver&&money>=nextRainAt){nextRainAt*=2.6;startMoneyRain();showMsg(pickL(RAIN_LINES),'#7dff9a');}
     if(money>best){best=money;SAVE.d.best=best;SAVE.mark();} // mark : le filet des 30 s (ou la fin de run) écrira
     if(loop._bestHud!==best){loop._bestHud=best;elRecord.textContent='record : '+fmt(best);}
     elNR.style.width=(nitroR/4*100)+'%';
