@@ -837,14 +837,34 @@ if(VOL_OK){ try{
       float tHit=-1.0;
       if(field(ro+rd*(t0+0.001))>ISO){tHit=t0;} // caméra DANS la chair : plein voile immédiat
       else{
-        float stepS=(t1-t0)/uSteps,t=t0,tPrev=t0;
-        for(int i=0;i<96;i++){if(float(i)>=uSteps)break;
-          t+=stepS;
-          if(field(ro+rd*t)>ISO){ // surface encadrée entre tPrev et t → bissection
-            float a2=tPrev,b2=t;
-            for(int j=0;j<8;j++){float m=0.5*(a2+b2);if(field(ro+rd*m)>ISO)b2=m;else a2=m;}
-            tHit=0.5*(a2+b2);break;}
-          tPrev=t;}
+        // ============ ENCADREMENT PAR BLOB (2026-07-19) — mort du « nuage qui nage » ============
+        // L'ancienne marche balayait TOUTE la boîte en pas de (t1-t0)/uSteps comptés depuis la
+        // caméra : tout lobe plus FIN que le pas le long du rayon (toute la silhouette en incidence
+        // rasante, des dizaines de mètres de pas sur un titan) était attrapé ou raté selon la PHASE
+        // des échantillons → qui dépend de la position caméra → forme et taille qui CHANGEAIENT à
+        // chaque mouvement. Or le champ ne dépasse l'iso QU'À L'INTÉRIEUR d'une sphère de blob
+        // (union de métaballes) : on intersecte donc le rayon avec CHAQUE sphère (2nd degré, exact,
+        // continu avec la caméra) et on ne marche finement QUE dans ces intervalles courts.
+        // Précision ∝ corde traversée → bords rasants résolus par construction, zéro phase, zéro pop.
+        float nSub=clamp(uSteps*0.16,4.0,10.0); // les paliers perf gardent leur bouton (46→7 pas, 26→4)
+        for(int i=0;i<12;i++){ if(float(i)>=uNBlob) break;
+          vec4 b=uBlobs[i];
+          vec3 oc2=oc-b.xyz;
+          float Bq=2.0*dot(oc2,dd),Cq=dot(oc2,oc2)-b.w*b.w,dq=Bq*Bq-4.0*A*Cq;
+          if(dq<0.0) continue;                                  // le rayon passe à côté de ce blob
+          float sq2=sqrt(dq),ta=max((-Bq-sq2)/(2.0*A),t0),tb=min((-Bq+sq2)/(2.0*A),t1);
+          if(tb<=ta||(tHit>0.0&&ta>=tHit)) continue;            // derrière nous, ou déjà battu par un hit plus proche
+          float stepS=(tb-ta)/nSub,t=ta,tPrev=ta;
+          for(int j=0;j<10;j++){ if(float(j)>=nSub) break;
+            t+=stepS;
+            if(field(ro+rd*t)>ISO){ // surface encadrée entre tPrev et t → bissection (position exacte)
+              float a2=tPrev,b2=t;
+              for(int k=0;k<8;k++){float m=0.5*(a2+b2);if(field(ro+rd*m)>ISO)b2=m;else a2=m;}
+              float th=0.5*(a2+b2);
+              if(tHit<0.0||th<tHit)tHit=th;
+              break;}
+            tPrev=t;}
+        }
       }
       if(tHit<0.0)discard;
       vec3 p=ro+rd*tHit;
@@ -889,6 +909,9 @@ if(VOL_OK){ try{
   U.uSteps.value=VOL.stepBase;
   window.dbgCloud=(s,l)=>{if(s)VOL.stepBase=s;if(l)U.uLightSteps.value=l;return VOL.stepBase+'/'+U.uLightSteps.value;}; // hook debug : forcer la qualité du raymarch depuis la console (les tiers perf peuvent l'écraser)
   window.dbgVOL=U; // bisection live des uniforms nuages depuis la console (dbgVOL.uCoverage.value=1, etc.)
+  // ÉTAT LIVE de la bascule matF/matB par nuage traversable — pour confirmer EN CONSOLE quel seuil
+  // déclenche vraiment (back=true → matB sans z-test ; hid → culé par le fog). Zéro coût hors appel.
+  window.dbgCloudMat=()=>CLOUDS.filter(c=>c.mesh&&c.mesh.userData.trav).map(c=>({back:!!c.back,hid:!!c.hid,r:Math.round(c.r)}));
   if(QUAL_MED)applyPerfTier(true,false);
 }catch(e){VOL=null;} }
 // Boules d'un nuage (metaballs) — coords LOCALES [-1,1] dans la boîte (x,y,z,rayon).
@@ -1107,9 +1130,12 @@ function updateClouds(dt,t){
     // devant la caisse. Désormais : les nuages broués ne se cachent qu'au-delà du fog (invisibles de
     // toute façon → aucun pop visible) ; les noFog (titans, décor d'horizon) ne se cachent JAMAIS.
     if(c.mesh){
-      // COLLANT : fog.far RESPIRE en traversée de nuage (cloudInS) — sans hystérésis, les nuages du
-      // seuil clignotaient au rythme du fog. On se cache au-delà du seuil, on ne revient qu'à 90 %.
-      const thr9=scene.fog.far+c.r*1.2;
+      // CULL DÉCOUPLÉ DU FOG QUI RESPIRE : scene.fog.far s'effondre (2600→340) en traversée de nuage
+      // (cloudInS) — l'utiliser ici faisait CLIGNOTER la visibilité des nuages du seuil au rythme du surf.
+      // On borne le cull sur FOG_F (le far STABLE du biome : constant, ne lerp qu'au portail sur 4 s) ; le
+      // FONDU visuel, lui, reste piloté par le fog dynamique DANS le shader (uFogFar → vis). Cull stable,
+      // fade vivant. Hystérésis conservée (on se cache au-delà du seuil, on ne revient qu'à 90 %).
+      const thr9=FOG_F+c.r*1.2;
       const hid=c.mesh.userData.fogAmt>0&&Math.sqrt(dh2+dv*dv)>(c.hid?thr9*.9:thr9);
       c.hid=hid;c.mesh.visible=!hid;if(hid)continue;
     }else if(d2>64){continue;} // repli sprites : l'ancien culling
@@ -1120,13 +1146,21 @@ function updateClouds(dt,t){
     // piste) ont le droit au matB : le décor lointain reste en matF+z-test à vie — occlusion garantie.
     if(c.mesh){
       if(!c.mesh.userData.trav)c.mesh.material=VOL.matF;
-      else{const qx=Math.abs(camP.x-c.g.position.x)/c.r,qy=Math.abs(camP.y-c.g.position.y)/c.ry,qz=Math.abs(camP.z-c.g.position.z)/c.r;
-        // HYSTÉRÉSIS anti-clignotement : ENTRÉE en matB à 2 m de la boîte, SORTIE à 6 m seulement.
-        // Avant : seuil unique à 9 m réévalué chaque frame → la caméra (qui tremble) oscillait sur le
-        // seuil = matériau qui clignote + forme qui saute ; et 9 m d'entrée = le sans-z-test s'allumait
-        // en passant À CÔTÉ d'un banc posé sur la route → nuage dessiné À TRAVERS la dalle. Désormais le
-        // sans-z-test n'existe qu'au contact réel, et l'état est COLLANT : impossible d'osciller.
-        const m9=c.back?6:2;
+      else{
+        // ====== BASCULE matF/matB STABILISÉE — LA cause du clignotement, deux oscillations tuées ======
+        //  (1) RÉFÉRENCE FIXE : on teste contre c.c (centre NOMINAL, immobile) et NON c.g.position, qui
+        //      DÉRIVE de ±4 m au vent (sin/cos) À CHAQUE FRAME. Un seuil réévalué contre une boîte qui
+        //      respire = décision qui oscille toute seule, caméra même à l'arrêt. Le RENDU reste à
+        //      c.g.position (le nuage dérive bien à l'écran) ; seule la DÉCISION s'ancre au centre fixe.
+        //  (2) BANDE LARGE COLLANTE : ENTRÉE en matB à 7 m de la boîte, SORTIE à 16 m (bande 9 m). Le
+        //      tremblement caméra (≤~1,5 m) ET la dérive (±4 m) sont chacun PLUS PETITS que la bande →
+        //      ni le shake ni le vent ne peuvent faire retraverser le seuil dans le même mouvement. La
+        //      marge absorbe le bruit PAR CONSTRUCTION : pas besoin de dé-shaker la caméra ni de timer.
+        // Sûreté du white-out : 7 m d'entrée > dérive 4 m + shake 1,5 m → matB est TOUJOURS armé AVANT que
+        // la caméra réelle (secouée) n'entre dans la boîte réelle (dérivée). Jamais de FrontSide vidé
+        // (caméra dedans → faces avant cullées → nuage qui disparaît). Le sans-z-test n'existe qu'ici.
+        const qx=Math.abs(camP.x-c.c.x)/c.r,qy=Math.abs(camP.y-c.c.y)/c.ry,qz=Math.abs(camP.z-c.c.z)/c.r;
+        const m9=c.back?16:7;
         c.back=qx<1+m9/c.r&&qy<1+m9/c.ry&&qz<1+m9/c.r;
         c.mesh.material=c.back?VOL.matB:VOL.matF;}
     }
@@ -3510,8 +3544,8 @@ addEventListener('blur',()=>{for(const k in keys)keys[k]=false;}); // alt-tab : 
 const GRAV=9.8*.55,FALL_G=33,AXIS_Y=new THREE.Vector3(0,1,0),AIR_MAX=6;
 // AIR_RATE : le vol se joue PLUS VITE en temps réel — la parabole dans l'espace est identique
 // (viseur d'atterrissage + seuils de figures inchangés), mais on passe moins de temps à flotter.
-let AIR_RATE=1.6; // DYNAMIQUE depuis 2026-07-17 (posé par startFall selon la vitesse de décollage) : ×1 quand on roule doucement (le vol du début collait mal au roulage lent), ×2.3 en endgame (il paraissait MOU à côté du roulage supersonique)
-const SPD=0.25; // vitesse globale du jeu (÷2 le 2026-07-16 : « trop rapide dès le début » — SPD scale TOUT : avance joueur/bots, chute, viseur ET compteur)
+let AIR_RATE=1; // FUSION V1 (2026-07-19) : le vol RETROUVE le temps réel de la V1 (pas d'accélération) — combiné à SPD=.5, la parabole ET le rythme réel du vol/réception collent PILE à la V1 (fallVel*AIR_RATE*SPD = fallVel*.5 = V1). startFall ne le pilote plus.
+const SPD=0.5; // vitesse globale du jeu — RESTAURÉ à la valeur V1 (2026-07-19) : le ÷2 « trop rapide dès le début » tuait le fun nerveux/arcade de la V1 ; le user tranche pour la V1. SPD scale TOUT : avance joueur/bots, chute, viseur ET compteur (donc les km/h affichés DOUBLENT — seuils de sensation ABSOLUS ajustés en conséquence, les systèmes RELATIFS via vmaxShow s'ajustent seuls)
 const TURN_HS=.0035; // pénalité de braquage à haute vitesse (avant .008 — plus petit = virages plus faciles)
 const AIR_ASSIST=1.0; // aide au recentrage en vol (0 = off), monte avec la vitesse
 const CAM_SHAKE_V=.45; // intensité du tremblement caméra lié à la vitesse (position + roulis) — .78→.45 : un frémissement, plus un séisme (user : « c'est trop »)
@@ -3768,7 +3802,7 @@ function checkUpgrade(){
 }
 function startFall(impU,impF){
   mode='fall';fallT=0;fallTR=0;yawAcc=0;momT=0;airRoll=0;
-  AIR_RATE=THREE.MathUtils.clamp(.95+Math.abs(vA)*3.6*SPD/420*.55,1,2.3); // le RYTHME du vol suit la vitesse de décollage : lent = parabole au tempo du roulage, supersonique = vol qui claque (figé pour tout ce vol — la jauge 6 s reste en secondes RÉELLES via fallTR)
+  AIR_RATE=1; // FUSION V1 : vol en TEMPS RÉEL comme la V1 (plus d'accélération dynamique) — le rythme des sauts/réceptions redevient celui de la V1. (Ligne conservée pour rester le seul point de réglage du tempo de vol.)
   nitroAirT=0;fallWrap=0;fallWrapSign=0;fallStartSide=side; // suivi announcer
   bounceN=0;flightId++; // nouveau vol : compteur de bumps et budget d'airtime des nuages remis à zéro
   if(Math.abs(vA)*3.6*SPD>400)annSpeak('launch400',1); // éjecté à +400 km/h (1 fois sur 3)
@@ -4750,8 +4784,8 @@ function loop(now){
           }
         }
         // traits d'AIR : discrets, de plus en plus nombreux à mesure que ça accélère
-        if(speedKmh>70){
-          const nS9=speedKmh>320?4:speedKmh>230?3:speedKmh>140?2:1;
+        if(speedKmh>140){ // seuils ×2 (SPD .25→.5 : km/h doublés) — mêmes traits d'air au même état-caisse
+          const nS9=speedKmh>640?4:speedKmh>460?3:speedKmh>280?2:1;
           for(let k9=0;k9<nS9;k9++)if(Math.random()<.85){
             tmp2.copy(carGroup.position).addScaledVector(fwdW,10+Math.random()*40);
             tmp2.addScaledVector(tmp,(Math.random()-.5)*30);
@@ -4786,7 +4820,7 @@ function loop(now){
             .04+Math.random()*.04+(nitroOn?.03:0));
         }
         // backfire : pop de flammes quand on relâche les gaz à haut régime
-        if(!up&&loop._wasUp&&speedKmh>140){
+        if(!up&&loop._wasUp&&speedKmh>280){ // seuil ×2 (SPD .25→.5) : le backfire reste réservé au HAUT régime
           for(let k=0;k<6;k++){
             const sd3=k%2?-1:1;
             tmp2.copy(carGroup.position).addScaledVector(fwdW,-spec.l/2-.2).addScaledVector(tmp,sd3*spec.w*.22).addScaledVector(F.n,.43);
@@ -4828,7 +4862,7 @@ function loop(now){
         // passé ~350 km/h affichés, l'air ne lutte plus, la caisse fend — les vibrations fondent à 30 %.
         const vmx9=vmaxShow(),
               spdN=THREE.MathUtils.clamp((speedKmh-vmx9*.60)/(vmx9*.55),0,1),
-              calm9=1-.7*THREE.MathUtils.smoothstep(speedKmh,350,900),
+              calm9=1-.7*THREE.MathUtils.smoothstep(speedKmh,700,1800), // fenêtre DOUBLÉE (SPD .25→.5 : les km/h affichés ont doublé) — le plané supersonique calme au même état-caisse qu'avant, pas dès le mid-game
               spdSh=spdN*spdN*CAM_SHAKE_V*.42*calm9*(nitroOn?1.3:1); // FRISSON, pas séisme : à vmax de croisière ≈ .10 d'amplitude (la sensation vient du FOV + speed lines, le tremblement signale juste la LIMITE)
         if(spdSh>0){
           camera.position.addScaledVector(F.n,(Math.random()-.5)*spdSh);
@@ -4936,9 +4970,9 @@ function loop(now){
         if(hot!==caseHot){caseHot=hot;caseHud.className=hot?'hot':'';}
         if(hot){heartT-=dt;if(heartT<=0){heartT=.86;heartBeat();}}
       }
-      if(speedKmh>60){ // traits d'air aussi en vol
+      if(speedKmh>120){ // traits d'air aussi en vol (seuils ×2 : SPD .25→.5)
         tmp.copy(fallVel).normalize();
-        const nS9=speedKmh>240?3:speedKmh>130?2:1;
+        const nS9=speedKmh>480?3:speedKmh>260?2:1;
         for(let k9=0;k9<nS9;k9++){
           tmp2.copy(fallPos).addScaledVector(tmp,10+Math.random()*30);
           tmp2.x+=(Math.random()-.5)*22;tmp2.y+=(Math.random()-.5)*16;tmp2.z+=(Math.random()-.5)*22;
@@ -5055,7 +5089,7 @@ function loop(now){
     tmp2.set(0,1,0).applyQuaternion(carGroup.quaternion);
     let trc;
     if(nitroOn)trc=nitroBlue?[.35,.55,1]:[1,.6,.15];
-    else{const ti=Math.max(0,Math.min(.3,(speedKmh-190)/500));trc=[ti*.8,ti*.9,ti];}
+    else{const ti=Math.max(0,Math.min(.3,(speedKmh-380)/1000));trc=[ti*.8,ti*.9,ti];} // seuil ×2 (SPD .25→.5) : la traînée se teinte au même état-caisse qu'avant
     trailPush(
       carGroup.position.x-tmp3.x*2.2-tmp.x*.95+tmp2.x*.45,
       carGroup.position.y-tmp3.y*2.2-tmp.y*.95+tmp2.y*.45,
@@ -5221,12 +5255,12 @@ function loop(now){
         engWhineG.gain.setTargetAtTime(0,AC.currentTime,.1);
       }
       if(windG){
-        windG.gain.setTargetAtTime(Math.min(.05,spd3*.0002+(mode==='fall'?.018:0)+cloudInS*.02)*dk,AC.currentTime,.15);
-        windF.frequency.setTargetAtTime((280+spd3*2.5)*(1-.6*cloudInS)+(mode==='fall'?260:0),AC.currentTime,.15); // le nuage étouffe le vent, l'air libre l'aère
+        windG.gain.setTargetAtTime(Math.min(.05,spd3*.0001+(mode==='fall'?.018:0)+cloudInS*.02)*dk,AC.currentTime,.15); // coef ÷2 (SPD .25→.5 : spd3 a doublé) — le vent garde sa montée progressive au lieu de saturer dès le mid-game
+        windF.frequency.setTargetAtTime((280+spd3*1.25)*(1-.6*cloudInS)+(mode==='fall'?260:0),AC.currentTime,.15); // le nuage étouffe le vent, l'air libre l'aère (coef ÷2 : même pitch au même état-caisse)
       }
       if(whG){ // sifflement d'air : la signature des vitesses folles (>330 km/h)
-        whG.gain.setTargetAtTime(Math.min(.06,Math.max(0,(spd3-280)/2200))*(1-.7*cloudInS)*(1-.5*nA)*dk,AC.currentTime,.12); // le sifflement d'air arrive plus tôt, et se range sous nitro (sinon ça stride)
-        whF.frequency.setTargetAtTime(2000+spd3*2.4,AC.currentTime,.1);
+        whG.gain.setTargetAtTime(Math.min(.06,Math.max(0,(spd3-560)/4400))*(1-.7*cloudInS)*(1-.5*nA)*dk,AC.currentTime,.12); // seuil+pente ×2 (SPD .25→.5 : spd3 a doublé) — le sifflement reste la signature des VITESSES FOLLES, pas un fond permanent
+        whF.frequency.setTargetAtTime(2000+spd3*1.2,AC.currentTime,.1); // coef ÷2 : même pitch au même état-caisse
       }
       if(cloudInS>.45&&!loop._cldWas)noiseBurst(.45,.08,520); // percée dans la ouate : fwoosh de coton
       loop._cldWas=cloudInS>.45;
@@ -5278,10 +5312,10 @@ function loop(now){
     if(speedKmh>runStats.vmax)runStats.vmax=speedKmh;
     elSpeed.textContent=Math.round(speedKmh);
     // le compteur VIT : il gonfle et vire au rouge quand ça devient déraisonnable
-    const spdP=Math.min(.24,Math.max(0,(speedKmh-380)/650)+(nitroOn?.05:0));
+    const spdP=Math.min(.24,Math.max(0,(speedKmh-760)/1300)+(nitroOn?.05:0)); // seuils ×2 (SPD .25→.5 : km/h affichés doublés) — le compteur gonfle/rougit au même RÉGIME RESSENTI qu'avant
     elSpeed.style.transform='scale('+(1+spdP).toFixed(3)+')';
-    elSpeed.style.color=speedKmh>460?'#ff5040':'';
-    speedFx.style.opacity=Math.max(0,Math.min(.95,(speedKmh-140)/280));
+    elSpeed.style.color=speedKmh>920?'#ff5040':'';
+    speedFx.style.opacity=Math.max(0,Math.min(.95,(speedKmh-280)/560));
     // panneaux HUD MASQUÉS (#carInfo/#cpInfo/#record en display:none) : on ne reconstruit leur texte (fmtC/fmt alloue) QUE quand la valeur change
     if(loop._lvlHud!==level){loop._lvlHud=level;
       elName.textContent=CARS[level].name;
