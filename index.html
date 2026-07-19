@@ -869,6 +869,12 @@ if(VOL_OK){ try{
       float fog=clamp((tHit-uFogNear)/(uFogFar-uFogNear),0.0,1.0)*uFogAmt;
       col*=a; // blending prémultiplié
       col=mix(col,uFogCol*a,fog);
+      // FIN DE FOG = VRAIE DISPARITION : avant, seule la couleur allait vers la brume et l'ALPHA restait
+      // plein → un nuage « au bout du fog » restait une silhouette opaque sur le ciel, que le culling
+      // faisait POPER ; et fog.far, qui s'effondre en traversée de nuage (cloudInS), faisait CLIGNOTER
+      // tous les nuages du seuil. Ici l'alpha s'éteint aussi → le cull coupe des nuages déjà invisibles.
+      float vis=1.0-smoothstep(0.72,0.98,fog);
+      col*=vis;a*=vis;
       col+=vec3((ign()-0.5)*a/96.0); // dither de sortie : casse la posterisation 8-bit des dégradés doux
       fragColor=vec4(col,a);}`;
   const mk=(side,ztest)=>new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,uniforms:U,vertexShader:VERT,fragmentShader:FRAG,
@@ -1101,8 +1107,11 @@ function updateClouds(dt,t){
     // devant la caisse. Désormais : les nuages broués ne se cachent qu'au-delà du fog (invisibles de
     // toute façon → aucun pop visible) ; les noFog (titans, décor d'horizon) ne se cachent JAMAIS.
     if(c.mesh){
-      const hid=c.mesh.userData.fogAmt>0&&Math.sqrt(dh2+dv*dv)>scene.fog.far+c.r*1.2;
-      c.mesh.visible=!hid;if(hid)continue;
+      // COLLANT : fog.far RESPIRE en traversée de nuage (cloudInS) — sans hystérésis, les nuages du
+      // seuil clignotaient au rythme du fog. On se cache au-delà du seuil, on ne revient qu'à 90 %.
+      const thr9=scene.fog.far+c.r*1.2;
+      const hid=c.mesh.userData.fogAmt>0&&Math.sqrt(dh2+dv*dv)>(c.hid?thr9*.9:thr9);
+      c.hid=hid;c.mesh.visible=!hid;if(hid)continue;
     }else if(d2>64){continue;} // repli sprites : l'ancien culling
     c.g.position.x=c.c.x+Math.sin(t*.07+c.ph)*4;   // le banc respire et dérive
     c.g.position.z=c.c.z+Math.cos(t*.05+c.ph)*4;
