@@ -789,14 +789,14 @@ if(VOL_OK){ try{
     uSteps:{value:40.0}, uLightSteps:{value:6.0},
     // MÉTABALLES : la forme du nuage = UNION DOUCE de 5-10 boules collées (par nuage, posées dans onBeforeRender)
     uBaseFlat:{value:1.0}, uNBlob:{value:1.0}, uBlobs:{value:(function(){const a=[];for(let i=0;i<12;i++)a.push(new THREE.Vector4(0,0,0,.3));return a;})()},
-    uFogCol:{value:new THREE.Color(0x8a4a48)}, uFogNear:{value:FOG_N}, uFogFar:{value:FOG_F},
+    uFogCol:{value:new THREE.Color(0x8a4a48)}, uFogNear:{value:FOG_N}, uFogFar:{value:FOG_F}, uProj:{value:new THREE.Matrix4()},
     uSeed:{value:0.0}, uDMul:{value:1.0}, uFogAmt:{value:1.0} };
   const VERT=`out vec3 vWorld;out vec3 vCenter;out vec3 vRadius;
     void main(){vec4 wp=modelMatrix*vec4(position,1.0);vWorld=wp.xyz;vCenter=modelMatrix[3].xyz;
     vRadius=vec3(length(modelMatrix[0].xyz),length(modelMatrix[1].xyz),length(modelMatrix[2].xyz));
     gl_Position=projectionMatrix*viewMatrix*wp;}`;
   const FRAG=`precision highp float;precision highp sampler3D;
-    uniform sampler3D uNoise;uniform vec3 uSunDir,uSunCol,uSkyCol,uGroundCol,uFogCol;
+    uniform sampler3D uNoise;uniform mat4 uProj;uniform vec3 uSunDir,uSunCol,uSkyCol,uGroundCol,uFogCol;
     uniform float uTime,uAmb,uCoverage,uDensity,uDetail,uEdge,uFreq,uSigma,uAbsorb,uSilver,uSteps,uLightSteps,uSeed,uDMul,uFogAmt,uFogNear,uFogFar,uBaseFlat,uNBlob;
     uniform vec4 uBlobs[12];
     in vec3 vWorld;in vec3 vCenter;in vec3 vRadius;out vec4 fragColor;
@@ -868,6 +868,16 @@ if(VOL_OK){ try{
       }
       if(tHit<0.0)discard;
       vec3 p=ro+rd*tHit;
+      // ============ PROFONDEUR VRAIE (2026-07-19 v2) — LA racine du « nuage à travers la route » ============
+      // Le z-test se faisait sur la profondeur de la FACE DE BOÎTE rasterisée (matF) ou pas du tout (matB).
+      // Or la face avant d'une grosse boîte est des DIZAINES de mètres devant la matière : une dalle passant
+      // ENTRE les deux « perdait » le test et le nuage se dessinait PAR-DESSUS la route ; et chaque bascule
+      // matF/matB changeait le résultat → clignotement. On écrit désormais gl_FragDepth = profondeur de la
+      // SURFACE touchée (tHit) : l'occlusion nuage/route/caisse devient PAR PIXEL, exacte, et IDENTIQUE des
+      // deux côtés du flip (même rayon ro+rd pour un même pixel, quelle que soit la face rasterisée).
+      float tD=max(tHit,0.15); // jamais p=ro pile (w clip nul → NaN) : profondeur ancrée juste devant le near-plane
+      vec4 cp9=uProj*viewMatrix*vec4(ro+rd*tD,1.0);
+      gl_FragDepth=clamp(cp9.z/cp9.w*0.5+0.5,0.0,1.0);
       // normale par gradient central du champ — lisse, donc éclairage lisse
       float eN=length(vRadius)*0.012;
       vec3 n=normalize(vec3(field(p+vec3(eN,0,0))-field(p-vec3(eN,0,0)),
@@ -900,10 +910,13 @@ if(VOL_OK){ try{
   const mk=(side,ztest)=>new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,uniforms:U,vertexShader:VERT,fragmentShader:FRAG,
     transparent:true,depthWrite:false,depthTest:ztest,side:side,
     blending:THREE.CustomBlending,blendEquation:THREE.AddEquation,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor});
-  // matB (caméra DANS la boîte) SANS depthTest : sinon les faces arrière passent derrière la dalle
-  // et le z-test découpe le volume en trous polygonaux — LE bug visuel de proximité. Dedans, le
-  // nuage a le droit de couvrir la route : c'est le white-out voulu, l'alpha fait le reste.
-  VOL={U:U, geo:new THREE.BoxGeometry(2,2,2), matF:mk(THREE.FrontSide,true), matB:mk(THREE.BackSide,false), stepBase:56};
+  // PROFONDEUR VRAIE (v2) : les DEUX matériaux z-testent — le shader écrit gl_FragDepth (profondeur
+  // de la SURFACE du nuage, pas de la face de boîte) donc l'occlusion nuage/route est PAR PIXEL et
+  // exacte. Les « trous polygonaux » de l'ancien matB sans z-test venaient du test sur la FACE
+  // ARRIÈRE de la boîte (derrière la dalle), pas du test lui-même — corrigé à la source. matB
+  // (BackSide) ne sert plus qu'à garder des faces rasterisées quand la caméra est DANS la boîte
+  // (en FrontSide elles seraient cullées → nuage disparu d'un coup).
+  VOL={U:U, geo:new THREE.BoxGeometry(2,2,2), matF:mk(THREE.FrontSide,true), matB:mk(THREE.BackSide,true), stepBase:56};
   if(IS_MOBILE||IS_LOW_END){VOL.stepBase=32;U.uLightSteps.value=4;}
   else{VOL.stepBase=46;U.uLightSteps.value=6;} // desktop : 46/6 — toujours LISSE (loin du plancher damier 26, MED 36 l'est déjà), ~25 % de raymarch en moins que l'ancien 56/7
   U.uSteps.value=VOL.stepBase;
@@ -1119,7 +1132,8 @@ function buildClouds(rr){
 }
 function updateClouds(dt,t){
   cloudIn=0;
-  if(VOL){const U=VOL.U;U.uTime.value=t;U.uFogNear.value=scene.fog.near;U.uFogFar.value=scene.fog.far;U.uFogCol.value.copy(scene.fog.color);}
+  if(VOL){const U=VOL.U;U.uTime.value=t;U.uFogNear.value=scene.fog.near;U.uFogFar.value=scene.fog.far;U.uFogCol.value.copy(scene.fog.color);
+    U.uProj.value.copy(camera.projectionMatrix);} // gl_FragDepth (profondeur vraie) : la projection du frame, FOV vivant compris
   const cp=carGroup.position,camP=camera.position;
   const carV=mode==='fall'?fallVel.length():Math.abs(vA);
   for(const c of CLOUDS){
@@ -1147,20 +1161,16 @@ function updateClouds(dt,t){
     if(c.mesh){
       if(!c.mesh.userData.trav)c.mesh.material=VOL.matF;
       else{
-        // ====== BASCULE matF/matB STABILISÉE — LA cause du clignotement, deux oscillations tuées ======
-        //  (1) RÉFÉRENCE FIXE : on teste contre c.c (centre NOMINAL, immobile) et NON c.g.position, qui
-        //      DÉRIVE de ±4 m au vent (sin/cos) À CHAQUE FRAME. Un seuil réévalué contre une boîte qui
-        //      respire = décision qui oscille toute seule, caméra même à l'arrêt. Le RENDU reste à
-        //      c.g.position (le nuage dérive bien à l'écran) ; seule la DÉCISION s'ancre au centre fixe.
-        //  (2) BANDE LARGE COLLANTE : ENTRÉE en matB à 7 m de la boîte, SORTIE à 16 m (bande 9 m). Le
-        //      tremblement caméra (≤~1,5 m) ET la dérive (±4 m) sont chacun PLUS PETITS que la bande →
-        //      ni le shake ni le vent ne peuvent faire retraverser le seuil dans le même mouvement. La
-        //      marge absorbe le bruit PAR CONSTRUCTION : pas besoin de dé-shaker la caméra ni de timer.
-        // Sûreté du white-out : 7 m d'entrée > dérive 4 m + shake 1,5 m → matB est TOUJOURS armé AVANT que
-        // la caméra réelle (secouée) n'entre dans la boîte réelle (dérivée). Jamais de FrontSide vidé
-        // (caméra dedans → faces avant cullées → nuage qui disparaît). Le sans-z-test n'existe qu'ici.
-        const qx=Math.abs(camP.x-c.c.x)/c.r,qy=Math.abs(camP.y-c.c.y)/c.ry,qz=Math.abs(camP.z-c.c.z)/c.r;
-        const m9=c.back?16:7;
+        // ====== BASCULE matF/matB DEVENUE INVISIBLE (v2) ======
+        // Les deux matériaux écrivent gl_FragDepth (profondeur de la VRAIE surface du nuage) et
+        // z-testent : pour un même pixel, face avant ou arrière tirent LE MÊME rayon (ro+rd) →
+        // rendu IDENTIQUE au pixel près des deux côtés de la bascule. Le flip ne peut plus se voir,
+        // il ne sert qu'à garder des faces rasterisées quand la caméra est DANS la boîte (les faces
+        // avant, cullées ou tranchées par le near-plane, disparaîtraient en FrontSide).
+        // Marge d'entrée 2 m / sortie 6 m (collante), évaluée sur la boîte RENDUE (c.g.position —
+        // celle qui dérive au vent) : le near-plane (0.1) ne tranche jamais une face avant en frôlant.
+        const qx=Math.abs(camP.x-c.g.position.x)/c.r,qy=Math.abs(camP.y-c.g.position.y)/c.ry,qz=Math.abs(camP.z-c.g.position.z)/c.r;
+        const m9=c.back?6:2;
         c.back=qx<1+m9/c.r&&qy<1+m9/c.ry&&qz<1+m9/c.r;
         c.mesh.material=c.back?VOL.matB:VOL.matF;}
     }
