@@ -1111,9 +1111,15 @@ function updateClouds(dt,t){
     // piste) ont le droit au matB : le décor lointain reste en matF+z-test à vie — occlusion garantie.
     if(c.mesh){
       if(!c.mesh.userData.trav)c.mesh.material=VOL.matF;
-      else{const qx=(camP.x-c.g.position.x)/c.r,qy=(camP.y-c.g.position.y)/c.ry,qz=(camP.z-c.g.position.z)/c.r;
-        const mgx=1+9/c.r,mgy=1+9/c.ry; // marge ABSOLUE ~9 m autour de la boîte
-        c.mesh.material=(Math.abs(qx)<mgx&&Math.abs(qy)<mgy&&Math.abs(qz)<mgx)?VOL.matB:VOL.matF;}
+      else{const qx=Math.abs(camP.x-c.g.position.x)/c.r,qy=Math.abs(camP.y-c.g.position.y)/c.ry,qz=Math.abs(camP.z-c.g.position.z)/c.r;
+        // HYSTÉRÉSIS anti-clignotement : ENTRÉE en matB à 2 m de la boîte, SORTIE à 6 m seulement.
+        // Avant : seuil unique à 9 m réévalué chaque frame → la caméra (qui tremble) oscillait sur le
+        // seuil = matériau qui clignote + forme qui saute ; et 9 m d'entrée = le sans-z-test s'allumait
+        // en passant À CÔTÉ d'un banc posé sur la route → nuage dessiné À TRAVERS la dalle. Désormais le
+        // sans-z-test n'existe qu'au contact réel, et l'état est COLLANT : impossible d'osciller.
+        const m9=c.back?6:2;
+        c.back=qx<1+m9/c.r&&qy<1+m9/c.ry&&qz<1+m9/c.r;
+        c.mesh.material=c.back?VOL.matB:VOL.matF;}
     }
     if(d2<9)for(const p of c.puffs){ // ressorts mis à jour seulement à proximité (perf, repli sprite)
       p.dv.addScaledVector(p.dis,-2.3*dt);
