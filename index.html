@@ -3499,7 +3499,7 @@ let AIR_RATE=1.6; // DYNAMIQUE depuis 2026-07-17 (posé par startFall selon la v
 const SPD=0.25; // vitesse globale du jeu (÷2 le 2026-07-16 : « trop rapide dès le début » — SPD scale TOUT : avance joueur/bots, chute, viseur ET compteur)
 const TURN_HS=.0035; // pénalité de braquage à haute vitesse (avant .008 — plus petit = virages plus faciles)
 const AIR_ASSIST=1.0; // aide au recentrage en vol (0 = off), monte avec la vitesse
-const CAM_SHAKE_V=.78; // intensité du tremblement caméra lié à la vitesse (position + roulis)
+const CAM_SHAKE_V=.45; // intensité du tremblement caméra lié à la vitesse (position + roulis) — .78→.45 : un frémissement, plus un séisme (user : « c'est trop »)
 function vmaxShow(){const l9=1+Math.min(.5,Math.max(0,level-5)*.08);return CARS[level].maxKmh*SPD*l9;} // vitesse max AFFICHÉE de la caisse actuelle (overdrive compris) — la sensation de vitesse se juge RELATIVE à ta caisse, pas en absolu
 let mode='drive',s=0,lat=0,psi=0,vA=0,vL=0,side=1;
 let steer=0,money=0,levelCash=0,boost=0,fallT=0,fallTR=0,padCd=0,shake=0,combo=0,comboT=0,graceT=0,safeS=0,yawAcc=0,edgeT=0,squashT=0,momT=0,styleM=0,fever=0,streak=0,slowT=0,steerHold=0,aheadV=0,sideCd=0,slipT=0,oilCd=0,hitT=0,insUsed=false,feverArmed=false,lastSpaceT=0,rollover=0;
