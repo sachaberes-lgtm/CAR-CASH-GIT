@@ -255,10 +255,23 @@
     box-shadow:0 0 14px rgba(0,234,255,.25),inset 0 0 18px rgba(0,234,255,.08);
     -webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);transition:transform .06s,background .1s;opacity:.9}
   .tbtn.on,.tbtn:active{transform:scale(.92);background:rgba(0,234,255,.32)}
-  #tLeft,#tRight{width:76px;height:76px;bottom:26px;font-size:26px}
-  #tLeft{left:20px}#tRight{left:112px}
-  #tBrake{width:64px;height:64px;left:22px;bottom:118px;font-size:11px;letter-spacing:1px;
-    border-color:rgba(255,94,122,.6);box-shadow:0 0 14px rgba(255,94,122,.25);color:#ffd0da}
+  /* PAD GAUCHE : VOLANT au sol → JOYSTICK en vol (il grossit, vire cyan, ouvre l'axe vertical) */
+  #tPad{width:126px;height:126px;left:18px;bottom:24px;
+    transition:width .18s,height .18s,border-color .25s,box-shadow .25s}
+  #tPad.on{transform:none;background:rgba(0,234,255,.16)} /* un joystick ne rétrécit pas sous le pouce */
+  #tArrows{font-size:22px;letter-spacing:6px;opacity:.85;pointer-events:none}
+  #tStick{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;
+    background:rgba(0,234,255,.22);border:2px solid rgba(0,234,255,.65);
+    box-shadow:0 0 12px rgba(0,234,255,.3);pointer-events:none;transition:background .2s,border-color .2s}
+  #tAir4{display:none;position:absolute;inset:0;pointer-events:none;color:#bffff2;font-size:12px}
+  #tAir4 i{position:absolute;font-style:normal;opacity:.85;text-shadow:0 0 6px rgba(0,255,220,.6)}
+  #tAir4 .u{top:7px;left:50%;transform:translateX(-50%)} #tAir4 .d{bottom:7px;left:50%;transform:translateX(-50%)}
+  #tAir4 .l{left:9px;top:50%;transform:translateY(-50%)} #tAir4 .r{right:9px;top:50%;transform:translateY(-50%)}
+  #tPad.air{width:150px;height:150px;border-color:rgba(120,255,240,.9);
+    box-shadow:0 0 26px rgba(0,255,220,.5),inset 0 0 26px rgba(0,255,220,.14)}
+  #tPad.air #tArrows{display:none}
+  #tPad.air #tAir4{display:block}
+  #tPad.air #tStick{background:rgba(120,255,240,.28);border-color:rgba(170,255,246,.95)}
   #tNitro{width:104px;height:104px;right:24px;bottom:30px;font-size:12px;letter-spacing:1px;
     border-color:rgba(255,140,26,.7);background:rgba(60,26,10,.42);color:#ffd0a0;
     box-shadow:0 0 18px rgba(255,140,26,.3),inset 0 0 20px rgba(255,140,26,.1)}
@@ -351,9 +364,7 @@
   <div class="go" id="goTxt">JOUER</div>
 </div>
 <div id="touchCtl">
-  <div id="tLeft" class="tbtn">◀</div>
-  <div id="tRight" class="tbtn">▶</div>
-  <div id="tBrake" class="tbtn">FREIN</div>
+  <div id="tPad" class="tbtn"><div id="tArrows">◀ ▶</div><div id="tAir4"><i class="u">▲</i><i class="d">▼</i><i class="l">◀</i><i class="r">▶</i></div><div id="tStick"></div></div>
   <div id="tNitro" class="tbtn">NITRO</div>
   <div id="tPause" class="tbtn">⏸</div>
 </div>
@@ -5568,15 +5579,51 @@ function applyDPR(){ try{ renderer.setPixelRatio(curDPR); renderer.setSize(inner
 // PAUSE AUTO : l'appli passe en arrière-plan (onglet caché, app minimisée) → on gèle + on coupe le son
 addEventListener('visibilitychange',function(){ if(document.hidden&&started&&!gameOver&&!paused)togglePause(); });
 // DÉTECTION MOBILE : IS_TOUCH / IS_MOBILE sont déclarés plus haut (bloc TRIPTYQUE) car le post-traitement s'en sert aussi
-if(IS_MOBILE){
+if(IS_MOBILE||/[?&]touch=1/.test(location.search)){ // ?touch=1 : tester l'UI tactile sur desktop
   document.body.classList.add('touch');
   AUTO_GAS=true; // accélération auto : le pouce sert à tourner / freiner / nitro
   const cr=document.getElementById('ctrlRow'); // remplace les indices CLAVIER par les bons contrôles tactiles
-  if(cr)cr.innerHTML='<span class="kc">◀ ▶<i>tourner</i></span>'+
-    '<span class="kc">NITRO<i>turbo · double-tap = braquage</i></span>'+
-    '<span class="kc">FREIN<i>ralentir</i></span>';
+  if(cr)cr.innerHTML='<span class="kc">🕹<i>pouce gauche : VOLANT — en vol il devient JOYSTICK (↑ plane · ↓ redresse) · tirer en bas = frein</i></span>'+
+    '<span class="kc">NITRO<i>pouce droit · double-tap = braquage</i></span>';
   const nl=document.getElementById('nitroLbl'); if(nl)nl.textContent='NITRO (bouton)';
-  // câblage tactile : on pilote le MÊME objet `keys` que le clavier → aucune nouvelle physique
+  addEventListener('contextmenu',function(e){e.preventDefault();}); // appui long : jamais de menu contextuel en jeu
+  // plein écran + verrou PAYSAGE à l'entrée en jeu (Android ; iOS refuse → try/catch silencieux)
+  const goFull=function(){ try{ if(!document.fullscreenElement&&document.documentElement.requestFullscreen)
+      document.documentElement.requestFullscreen().then(function(){ try{screen.orientation.lock('landscape').catch(function(){});}catch(e){} }).catch(function(){});
+    }catch(e){} };
+  const ov9=document.getElementById('overlay'); if(ov9)ov9.addEventListener('touchend',goFull,{passive:true});
+  // ---- PAD GAUCHE : VOLANT au sol, JOYSTICK en vol — le même pouce, deux métiers ----
+  // Ancre RELATIVE : le stick naît SOUS le pouce (pilotage à l'aveugle) et écrit dans le MÊME
+  // objet `keys` que le clavier → zéro nouvelle physique. Au sol seul l'axe X compte (+ tirer
+  // FRANCHEMENT vers le bas = frein) ; en vol l'axe vertical s'ouvre (↑ portance, ↓ redressement).
+  const pad=document.getElementById('tPad'),stick=document.getElementById('tStick');
+  const R9=46; let pid=null,px0=0,py0=0,jx=0,jy=0;
+  function padKeys(){ const air=(mode==='fall');
+    keys.ArrowLeft=jx<-.26; keys.ArrowRight=jx>.26;
+    keys.ArrowUp=air&&jy<-.32;
+    keys.ArrowDown=air?jy>.32:jy>.5; }
+  function padMove(x,y){ jx=Math.max(-1,Math.min(1,(x-px0)/R9)); jy=Math.max(-1,Math.min(1,(y-py0)/R9));
+    const m9=Math.hypot(jx,jy),k9=m9>1?1/m9:1;
+    stick.style.transform='translate('+(jx*k9*R9).toFixed(1)+'px,'+(jy*k9*R9).toFixed(1)+'px)';
+    padKeys(); }
+  function padRel(){ pid=null;jx=0;jy=0;stick.style.transform='';pad.classList.remove('on');
+    keys.ArrowLeft=keys.ArrowRight=keys.ArrowUp=keys.ArrowDown=false; }
+  pad.addEventListener('touchstart',function(e){ if(e.cancelable)e.preventDefault();
+    if(pid!==null)return; const t=e.changedTouches[0]; pid=t.identifier;
+    px0=t.clientX;py0=t.clientY; pad.classList.add('on'); goFull(); start(); },{passive:false});
+  pad.addEventListener('touchmove',function(e){ if(e.cancelable)e.preventDefault();
+    for(let i=0;i<e.changedTouches.length;i++){const t=e.changedTouches[i];if(t.identifier===pid)padMove(t.clientX,t.clientY);} },{passive:false});
+  const padEnd=function(e){ if(e.cancelable)e.preventDefault();
+    for(let i=0;i<e.changedTouches.length;i++)if(e.changedTouches[i].identifier===pid)padRel(); };
+  pad.addEventListener('touchend',padEnd,{passive:false});
+  pad.addEventListener('touchcancel',padEnd,{passive:false});
+  pad.addEventListener('mousedown',function(e){ pid='m';px0=e.clientX;py0=e.clientY;pad.classList.add('on');start(); }); // repli souris (?touch=1)
+  addEventListener('mousemove',function(e){ if(pid==='m')padMove(e.clientX,e.clientY); });
+  addEventListener('mouseup',function(){ if(pid==='m')padRel(); });
+  // MORPH bouton ↔ joystick : suit le mode de jeu ; re-mappe un pouce déjà posé au décollage
+  setInterval(function(){ pad.classList.toggle('air',mode==='fall'&&started&&!gameOver);
+    if(pid!==null)padKeys(); },120);
+  // ---- NITRO pouce droit (+ double-tap = braquage) & PAUSE ----
   function bindHold(el,code,onDown){ if(!el)return;
     const dn=function(e){ if(e.cancelable)e.preventDefault(); if(!keys[code]){keys[code]=true;el.classList.add('on');if(onDown)onDown();} };
     const up=function(e){ if(e&&e.cancelable)e.preventDefault(); keys[code]=false; el.classList.remove('on'); };
@@ -5585,10 +5632,7 @@ if(IS_MOBILE){
     el.addEventListener('touchcancel',up,{passive:false});
     el.addEventListener('mousedown',dn); addEventListener('mouseup',up); // repli souris (test au clic sur desktop tactile)
   }
-  bindHold(document.getElementById('tLeft'),'ArrowLeft',start);
-  bindHold(document.getElementById('tRight'),'ArrowRight',start);
-  bindHold(document.getElementById('tBrake'),'ArrowDown',start);
-  bindHold(document.getElementById('tNitro'),'Space',function(){ start(); // NITRO + double-tap = BRAQUAGE (même règle que la barre ESPACE)
+  bindHold(document.getElementById('tNitro'),'Space',function(){ goFull(); start(); // NITRO + double-tap = BRAQUAGE (même règle que la barre ESPACE)
     if(started&&!gameOver){ const n9=performance.now();
       if(feverArmed&&n9-lastSpaceT<280)heistFire(); lastSpaceT=n9; } });
   const pb=document.getElementById('tPause');
