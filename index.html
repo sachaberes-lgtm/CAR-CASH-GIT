@@ -536,7 +536,7 @@ renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 sun.castShadow=true;
 sun.shadow.mapSize.set(IS_MOBILE||IS_LOW_END?1024:1280,IS_MOBILE||IS_LOW_END?1024:1280); // 1280 : l'ortho ±34 m est si serrée que 1536 était du luxe — passe d'ombre ~30 % moins chère
 const SUNC=sun.shadow.camera;
-SUNC.left=-34;SUNC.right=34;SUNC.top=30;SUNC.bottom=-64;SUNC.near=40;SUNC.far=340;SUNC.updateProjectionMatrix(); // fond profond : l'ombre atteint la dalle même en PLEIN CIEL
+SUNC.left=-34;SUNC.right=34;SUNC.top=30;SUNC.bottom=-64;SUNC.near=40;SUNC.far=340;SUNC.updateProjectionMatrix(); // fond profond : l'ombre atteint la dalle même très haut au-dessus de la route
 sun.shadow.bias=-0.0003;sun.shadow.normalBias=0.08; // normalBias en MÈTRES (~2 texels) : assez pour tuer l'acné, pas de quoi décoller l'ombre
 scene.add(sun.target);
 const SUN_UP=new THREE.Vector3().crossVectors(SUN_PERP,SUN_DIR).normalize(),shadV=new THREE.Vector3(); // base du plan lumière (snap texel)
@@ -1197,8 +1197,7 @@ function updateClouds(dt,t){
       if(!c.wasIn){
         c.wasIn=true;
         noiseBurst(.5,.10,520); // on plonge dans la ouate
-        if(mode==='fall'&&c.fid!==flightId){c.fid=flightId;c.refT=1.2; // budget d'airtime de CE banc
-          if(fallT>.4)addTrick('nuage','PERCE-NUAGE',6,false);} // fendre la ouate en vol : un maillon de plus
+        if(mode==='fall'&&c.fid!==flightId){c.fid=flightId;c.refT=1.2;} // budget d'airtime de CE banc
       }
       if(mode==='fall'){ // SURF DE NUAGE : coussin d'air + regain d'airtime (au rythme du vol accéléré)
         const dtF=dt*AIR_RATE;
@@ -3420,7 +3419,7 @@ const ANN_LIB={ // first:1 partout : chaque voix se présente à sa 1re occurren
   m3:        {f:'triple_monstre.mp3',txt:'TRIPLE MONSTRE',cd:2500,first:1},  // multiplicateur monstrueux
   meteor:    {f:'meteor.mp3',        txt:'METEOR',cd:2500,first:1},          // impact en pleine poussée nitro (>1 s)
   megaMeteor:{f:'mega_meteor.mp3',   txt:'MEGA METEOR',cd:2500,first:1},     // >5 s de réacteur dans la chute
-  snakeLoop: {f:'snake_loop.mp3',    txt:'SNAKE LOOP',cd:2500,first:1},      // TOUR COMPLET de la dalle (voir tryLand)
+  snakeLoop: {f:'snake_loop.mp3',    txt:'SNAKE LOOP',cd:2500,first:1},      // passé SOUS la route, reposé face de départ (voir tryLand)
   pureSpeed: {f:'pure_speed.mp3',    txt:'PURE SPEED',cd:6000,first:1},      // >3 s de nitro au sol à +400 km/h
   launch400: {f:'launch400.mp3',     txt:null,cd:6000,first:1},              // éjecté à +400 km/h
   earlyDead: {f:'early_dead.mp3',    txt:'EARLY DEAD',first:1},              // explose avant le top 5 (level<9)
@@ -3567,9 +3566,10 @@ function vmaxShow(){const l9=1+Math.min(.5,Math.max(0,level-5)*.08);return CARS[
 let mode='drive',s=0,lat=0,psi=0,vA=0,vL=0,side=1;
 let steer=0,money=0,levelCash=0,boost=0,fallT=0,fallTR=0,padCd=0,shake=0,combo=0,comboT=0,graceT=0,safeS=0,yawAcc=0,edgeT=0,squashT=0,momT=0,styleM=0,fever=0,streak=0,slowT=0,steerHold=0,aheadV=0,sideCd=0,slipT=0,oilCd=0,hitT=0,insUsed=false,feverArmed=false,lastSpaceT=0,rollover=0;
 let airRoll=0; // vrille visuelle en vol
-// suivi des exploits pour l'announcer — fallWrap : machine à états du SNAKE LOOP
-// 0 = rien · 1 = passé sur un CÔTÉ de la dalle · 2 = passé DESSOUS · 3 = remonté par l'AUTRE côté
-let nitroAirT=0,fallWrap=0,fallWrapSign=0,fallStartSide=1,pureT=0,pureArmed=true;
+// suivi des exploits pour l'announcer — SNAKE LOOP v2 : fallStartSide mémorise la FACE de décollage,
+// fallUnder s'arme si on passe SOUS la route pendant le vol (côté opposé au départ, dans la largeur
+// de la dalle) ; le trick ne se VALIDE qu'à l'atterrissage, sur la même face que le départ (tryLand).
+let nitroAirT=0,fallUnder=false,fallStartSide=1,pureT=0,pureArmed=true;
 let bounceN=0,airFlash=0; // BUMPS : rebonds sur la tranche de la dalle pendant CE vol
 let runStats={tricks:0,bumps:0,zones:0,vmax:0,chainMax:0}; // bilan de la run (écran de fin)
 let hopY=0,hopV=0; // petit saut de dos d'âne
@@ -3720,13 +3720,14 @@ function trickMsg(txt,tier){ // tier: 1 MONSTRE · 2 DOUBLE · 3 TRIPLE (ou true
 // ---- CHAÎNE DE FIGURES : chaque exploit aérien se NOMME à l'instant où il naît et gonfle la
 // chaîne. Rien n'est payé en vol : tout se cashe à l'atterrissage (grade × face × série) —
 // et tout S'ENVOLE si on explose. La redite paye de moins en moins : varie le menu !
-let chain=0,chainVal=0,chainMult=1,chainSeen={},spinHalf=0,handsT=0,skimT=0,limboT=0,
-    launchY=0,peakY=0,curNear=false,curHOff=0,curLatOff=0,lastNearY=0,
-    trkAirBig=0,trkSky=false,trkMeteor=false,trkHands=false,trkLimbo=false,trkSkim=false,
-    dolphT=0,dolphGain=0,trkDolph=false,trkDolph2=false, // LE DAUPHIN : nager au ras de la dalle
+let chain=0,chainVal=0,chainMult=1,chainSeen={},spinHalf=0,
+    curNear=false,curHOff=0,curLatOff=0,lastNearY=0,
+    trkMeteor=false,
+    dolphT=0,dolphGain=0,trkDolph=false, // LE DAUPHIN : nager au ras de la dalle
     caseHot=false,heartT=0,ladderI=0;        // la MALLETTE tremble + cœur qui cogne · échelle des paliers
 function chainEst(){ // la MALLETTE : ce que vaut la chaîne SI on pose la caisse maintenant
-  return denom()*(5*Math.max(.7,fallT)+chainVal)*Math.min(6,chainMult)
+  // l'airtime brut ne vaut RIEN : seule la CHAÎNE (figures + dauphin) remplit la mallette
+  return denom()*chainVal*Math.min(6,chainMult)
     *(streak>=2?1+Math.min(1,streak*.1):1)*(fever>0?2:1);
 }
 // ---------- FLAVOUR : les phrases qui font le sel du jeu — courtes, arrogantes, cash ----------
@@ -3822,7 +3823,7 @@ function startFall(impU,impF){
   // au lieu de flotter, sans virer missile. Parabole DANS L'ESPACE, viseur, seuils de figures et
   // paiements (fallT temps-sim) INCHANGÉS — seul le temps réel du vol se compresse un peu.
   AIR_RATE=THREE.MathUtils.clamp(1+Math.max(0,Math.abs(vA)*3.6*SPD-450)/1800,1,1.35);
-  nitroAirT=0;fallWrap=0;fallWrapSign=0;fallStartSide=side; // suivi announcer
+  nitroAirT=0;fallUnder=false;fallStartSide=side; // SNAKE LOOP : côté de départ figé, passage dessous à prouver
   bounceN=0;flightId++; // nouveau vol : compteur de bumps et budget d'airtime des nuages remis à zéro
   if(Math.abs(vA)*3.6*SPD>400)annSpeak('launch400',1); // éjecté à +400 km/h (1 fois sur 3)
   frameAt(s,F);
@@ -3833,11 +3834,10 @@ function startFall(impU,impF){
   hopY=0;hopV=0; // un dos d'âne en cours ne doit pas laisser de décalage fantôme
   lastNearY=fallPos.y; // référence du plongeon fatal tant que tryLand n'a pas mieux
   // chaîne neuve : le vol commence, tout est à prouver
-  chain=0;chainVal=rollover;chainMult=1;chainSeen={};spinHalf=0;handsT=0;skimT=0;limboT=0;
+  chain=0;chainVal=rollover;chainMult=1;chainSeen={};spinHalf=0;
   if(rollover>0){trickMsg('REPORT +'+Math.round(rollover),false);rollover=0;} // le PARFAIT d'avant paye d'avance
-  trkAirBig=0;trkSky=trkMeteor=trkHands=trkLimbo=trkSkim=false;curNear=false;
-  dolphT=0;dolphGain=0;trkDolph=trkDolph2=false;caseHot=false;heartT=0;ladderI=0;caseHud.style.opacity=0;caseHud.className='';
-  launchY=fallPos.y;peakY=fallPos.y;
+  trkMeteor=false;curNear=false;
+  dolphT=0;dolphGain=0;trkDolph=false;caseHot=false;heartT=0;ladderI=0;caseHud.style.opacity=0;caseHud.className='';
   chainHud.style.opacity=0;chainHud.classList.remove('pulse');
   // le boost se disperse en petites particules
   for(let k=0;k<14;k++){
@@ -3861,14 +3861,10 @@ function tryLand(dt){
   if(bd>1600)return false;
   dTmp.subVectors(fallPos,pts[bestI]);
   const hOff=dTmp.dot(Nn[bestI]),latOff=dTmp.dot(B[bestI]);
-  curNear=true;curHOff=hOff;curLatOff=latOff; // radar de dalle : nourrit RASE-MOTTES / LIMBO dans la boucle
-  // SNAKE LOOP : le TOUR COMPLET de la dalle, dans l'ordre — côté A → dessous → côté B
-  {
-    const nearSlab=hOff>-THICK-9&&hOff<9;
-    if(fallWrap===0&&nearSlab&&Math.abs(latOff)>ROAD_HALF+.5){fallWrapSign=Math.sign(latOff);fallWrap=1;}
-    else if(fallWrap===1&&hOff<-THICK-1&&Math.abs(latOff)<ROAD_HALF)fallWrap=2;
-    else if(fallWrap===2&&nearSlab&&Math.abs(latOff)>ROAD_HALF+.5&&Math.sign(latOff)===-fallWrapSign)fallWrap=3;
-  }
+  curNear=true;curHOff=hOff;curLatOff=latOff; // radar de dalle : nourrit LE DAUPHIN dans la boucle
+  // SNAKE LOOP v2 : passer SOUS la route pendant le vol — côté OPPOSÉ à la face de départ, dans la
+  // largeur de la dalle — puis reposer la caisse sur la face de DÉPART (validé à l'atterrissage).
+  if(!fallUnder&&Math.abs(latOff)<ROAD_HALF&&(fallStartSide>0?hOff<-THICK-1:hOff>1))fallUnder=true;
   const vN=fallVel.dot(Nn[bestI]);
   // FLANC de la dalle : la caisse COGNE la tranche et REBONDIT — c'est le BUMP.
   // Demi-jauge d'airtime rendue + du STYLE + le feedback (message, son, secousse).
@@ -3931,27 +3927,31 @@ function tryLand(dt){
       else{g=1;gTxt='';}
     }
     rollover=g>=1.5?chainVal*.1:0; // ROLLOVER : un PARFAIT reporte 10 % — la fortune voyage au vol suivant
+    const snaked=fallUnder&&sideL===fallStartSide; // SNAKE LOOP v2 : passé SOUS la route, reposé face de départ
+    if(snaked){chainVal+=14;chainMult+=.5;}        // la figure paye sa part dans la chaîne
     if(Math.abs(latOff)<ROAD_HALF*.3){chainVal+=4;chainMult+=.2;trickMsg('PILE AU CENTRE 🎯',false);} // posé sur l'axe
     if(vA<-3){chainVal+=6;chainMult+=.3;trickMsg('À RECULONS — MÊME PAS REGARDÉ !',2);}              // posé en marche arrière
-    if(sideL<0)trickMsg('FACE CACHÉE ×2',2);
+    if(sideL<0&&chainVal>0)trickMsg('FACE CACHÉE ×2',2);
     streak++;
-    const gain=Math.round(denom()*(5*Math.max(.7,fallT)+chainVal)*Math.min(6,chainMult)*g
+    const gain=Math.round(denom()*chainVal*Math.min(6,chainMult)*g
       *(sideL<0?2:1)*(streak>=2?1+Math.min(1,streak*.1):1)*(fever>0?2:1));
-    money+=gain;levelCash+=gain;checkUpgrade();
-    runStats.tricks++;
-    // ---- ANNOUNCER : la réplique la plus RARE l'emporte (chacune tombe 1 fois sur 3) ----
-    const q=gain/denom();
-    let vKey=q>=140?'m3':(q>=45?'m2':'m1');
-    let vTier=q>=140?3:(q>=45?2:1),vPrio=vTier;
-    if(nitroOn&&nitroAirT>1){vKey='meteor';vTier=Math.max(vTier,2);vPrio=4;}    // impact en pleine poussée
-    if(fallWrap===3&&sideL===fallStartSide){vKey='snakeLoop';vTier=3;vPrio=5;}  // TOUR COMPLET, même face
-    if(nitroOn&&nitroAirT>5){vKey='megaMeteor';vTier=3;vPrio=6;}                // 5 s de réacteur : l'ultime
-    const vTxt=annSpeak(vKey,vPrio)||'MONSTRE';
-    trickMsg(gTxt+vTxt+'  +'+fmtC(gain),vTier);
-    flyCash(carGroup.position,Math.min(10,3+Math.floor(Math.log10(q+1)*2.5))); // la paye VOYAGE jusqu'au compteur
-    rewardSfx(vKey,vTier); // signature sonore courte assortie à la récompense
-    boost=Math.max(boost,1.2);
-    addStyle(14+chain*4);
+    if(gain>0){ // l'airtime brut ne rapporte RIEN : sans chaîne à casher, la pose est muette
+      money+=gain;levelCash+=gain;checkUpgrade();
+      runStats.tricks++;
+      // ---- ANNOUNCER : la réplique la plus RARE l'emporte (chacune tombe 1 fois sur 3) ----
+      const q=gain/denom();
+      let vKey=q>=140?'m3':(q>=45?'m2':'m1');
+      let vTier=q>=140?3:(q>=45?2:1),vPrio=vTier;
+      if(nitroOn&&nitroAirT>1){vKey='meteor';vTier=Math.max(vTier,2);vPrio=4;}    // impact en pleine poussée
+      if(snaked){vKey='snakeLoop';vTier=3;vPrio=5;}                               // passé dessous, reposé côté départ
+      if(nitroOn&&nitroAirT>5){vKey='megaMeteor';vTier=3;vPrio=6;}                // 5 s de réacteur : l'ultime
+      const vTxt=annSpeak(vKey,vPrio)||'MONSTRE';
+      trickMsg(gTxt+vTxt+'  +'+fmtC(gain),vTier);
+      flyCash(carGroup.position,Math.min(10,3+Math.floor(Math.log10(q+1)*2.5))); // la paye VOYAGE jusqu'au compteur
+      rewardSfx(vKey,vTier); // signature sonore courte assortie à la récompense
+      boost=Math.max(boost,1.2);
+      addStyle(14+chain*4);
+    }
     if(fallT>2)slowT=.35; // slow-mo savoureux sur les gros airs
   }
   chainHud.style.opacity=0;
@@ -3989,10 +3989,10 @@ function resetGame(){
   nitroR=2;nitroX=0;boost=0;combo=0;edgeT=0;momT=0;styleM=0;fever=0;streak=0;slowT=0;gameOver=false;paused=false;insUsed=false;feverArmed=false;rollover=0;
   pwrNitroT=0;pwrAirT=0;pwrSpdT=0;
   nextRainAt=4e3;moneyRainT=0;sideCd=0;slipT=0;oilCd=0;
-  nitroAirT=0;fallWrap=0;fallWrapSign=0;pureT=0;pureArmed=true;annStop();
+  nitroAirT=0;fallUnder=false;pureT=0;pureArmed=true;annStop();
   bounceN=0;airFlash=0;flightId=0;
   chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;
-  caseHud.style.opacity=0;caseHud.className='';caseHot=false;dolphT=0;trkDolph=trkDolph2=false;
+  caseHud.style.opacity=0;caseHud.className='';caseHot=false;dolphT=0;trkDolph=false;
   runStats={tricks:0,bumps:0,zones:0,vmax:0,chainMax:0};
   cloudInS=0;cloudFxEl.style.opacity=0;
   scene.fog.near=FOG_N;scene.fog.far=FOG_F;scene.fog.color.copy(FOG_BASE);
@@ -4951,36 +4951,29 @@ function loop(now){
         const halfs=Math.floor(Math.abs(yawAcc)/Math.PI); // vrilles : un cri par demi-tour de lacet
         if(halfs>spinHalf&&fallT>.45){spinHalf=halfs;
           addTrick('vrille',halfs===1?'180°':halfs===2?'VRILLE 360 — LAVE-LINGE !':halfs===3?'540° !!':(halfs*180)+'° — ESSOREUSE COSMIQUE !!',3.5*halfs,halfs>=4?3:(halfs>=2?2:false),true);}
-        if(trkAirBig<1&&fallT>2.3){trkAirBig=1;addTrick('air','BIG AIR',6,2);}
-        if(trkAirBig<2&&fallT>4.4){trkAirBig=2;addTrick('air2','AIR MONSTRE',10,3);}
-        if(fallPos.y>peakY)peakY=fallPos.y;
-        if(!trkSky&&peakY>launchY+26){trkSky=true;addTrick('ciel','PLEIN CIEL — COUCOU LES AVIONS',7,2);}      // grimper 26 m au-dessus du départ
         if(!trkMeteor&&nitroOn&&nitroAirT>1.2){trkMeteor=true;addTrick('meteo','MÉTÉORE',8,2);}
-        if(Math.abs(steer)<.06){handsT+=dtF;if(!trkHands&&handsT>2.1){trkHands=true;addTrick('mains','SANS LES MAINS — MAMAN, REGARDE',7,2);}}
-        else handsT=0;
         if(curNear){ // radar de dalle (rempli par tryLand à la frame précédente)
-          if(Math.abs(curLatOff)<ROAD_HALF){
-            if(curHOff>.9&&curHOff<7){ // LE DAUPHIN : nager au ras de la dalle — plus on frôle, plus ça paye
-              const prox=1-(curHOff-.9)/6.1; // 1 = collé à la route, 0 = à 7 m
-              const dInc=3.2*prox*prox*dtF; // le magot grimpe au CARRÉ de la proximité
-              dolphT+=dtF;chainVal+=dInc;dolphGain+=dInc;addStyle(4*prox*dtF);
-              if(!trkDolph&&dolphT>.4){trkDolph=true;addTrick('dauphin','LE DAUPHIN !',3,2);}
-              if(dolphT>.4){ // le nom RESTE à l'écran tant que les points comptent — on sait POURQUOI ça monte
-                chainHud.textContent='🐬 LE DAUPHIN +'+Math.round(dolphGain)+' · CHAÎNE ×'+Math.min(6,chainMult).toFixed(1);
-                chainHud.style.opacity=1;
-              }
-              if(!trkDolph2&&dolphT>2.4){trkDolph2=true;addTrick('dauphin2','DAUPHIN ROYAL !!',9,3);}
-              if(prox>.55&&Math.random()<dt*22) // écume dorée sous la caisse quand on frôle vraiment
-                spawnP(sparkGold,fallPos.x,fallPos.y-1.1,fallPos.z,(Math.random()-.5)*6,-2-Math.random()*4,(Math.random()-.5)*6,.3);
-              if(curHOff>1.4&&curHOff<5.2){skimT+=dtF;if(!trkSkim&&skimT>.55&&fallT>.9){trkSkim=true;addTrick('rase','RASE-MOTTES',8,2);}}
+          if(Math.abs(curLatOff)<ROAD_HALF&&curHOff>.9&&curHOff<7){
+            // LE DAUPHIN — LA mécanique du vol bas : précision et danger immédiat. Plus on frôle la
+            // dalle sans toucher, plus ça paye (au CARRÉ de la proximité) ; on s'écarte = le gain
+            // s'effondre à l'instant ; on touche = l'accumulation s'arrête (la chaîne se cashe).
+            const prox=1-(curHOff-.9)/6.1; // 1 = collé à la route, 0 = à 7 m
+            const dInc=3.2*prox*prox*dtF; // le magot grimpe au CARRÉ de la proximité
+            dolphT+=dtF;chainVal+=dInc;dolphGain+=dInc;addStyle(4*prox*dtF);
+            if(!trkDolph&&dolphT>.4){trkDolph=true;addTrick('dauphin','LE DAUPHIN !',3,2);}
+            if(dolphT>.4){ // le nom RESTE à l'écran tant que les points comptent — on sait POURQUOI ça monte
+              chainHud.textContent='🐬 LE DAUPHIN +'+Math.round(dolphGain)+' · CHAÎNE ×'+Math.min(6,chainMult).toFixed(1);
+              chainHud.style.opacity=1;
             }
-            else if(curHOff<-THICK-1.4&&curHOff>-THICK-8){limboT+=dtF;if(!trkLimbo&&limboT>.35){trkLimbo=true;addTrick('limbo','LIMBO SOUS LA ROUTE',12,3);}}
+            if(prox>.55&&Math.random()<dt*22) // écume dorée sous la caisse quand on frôle vraiment
+              spawnP(sparkGold,fallPos.x,fallPos.y-1.1,fallPos.z,(Math.random()-.5)*6,-2-Math.random()*4,(Math.random()-.5)*6,.3);
           }
           curNear=false;
         }
       }
       // ---- LA MALLETTE : la valeur en jeu sous les yeux — elle tremble quand ça devient gros ----
-      if(chain>0||fallT>.7){
+      // (chainVal>0 et plus fallT : l'airtime seul ne vaut rien, une mallette vide n'a rien à montrer)
+      if(chain>0||chainVal>0){
         const est=chainEst();
         caseHud.textContent='💰 '+fmtC(est);
         caseHud.style.fontSize=Math.min(30,17+est/denom()*.055)+'px'; // le magot GONFLE à l'écran
