@@ -3554,7 +3554,7 @@ addEventListener('blur',()=>{for(const k in keys)keys[k]=false;}); // alt-tab : 
 const GRAV=9.8*.55,FALL_G=33,AXIS_Y=new THREE.Vector3(0,1,0),AIR_MAX=6;
 // AIR_RATE : le vol se joue PLUS VITE en temps réel — la parabole dans l'espace est identique
 // (viseur d'atterrissage + seuils de figures inchangés), mais on passe moins de temps à flotter.
-let AIR_RATE=1; // FUSION V1 (2026-07-19) : le vol RETROUVE le temps réel de la V1 (pas d'accélération) — combiné à SPD=.5, la parabole ET le rythme réel du vol/réception collent PILE à la V1 (fallVel*AIR_RATE*SPD = fallVel*.5 = V1). startFall ne le pilote plus.
+let AIR_RATE=1; // base V1 (temps réel) — startFall le RE-pilote depuis 2026-07-20 : =1 sous 450 km/h affichés, puis rampe douce jusqu'au cap 1.35 (l'ancienne ère 2.3 COMPENSAIT SPD=.25 ; ici c'est un dosage de tempo, pas une compensation).
 const SPD=0.5; // vitesse globale du jeu — RESTAURÉ à la valeur V1 (2026-07-19) : le ÷2 « trop rapide dès le début » tuait le fun nerveux/arcade de la V1 ; le user tranche pour la V1. SPD scale TOUT : avance joueur/bots, chute, viseur ET compteur (donc les km/h affichés DOUBLENT — seuils de sensation ABSOLUS ajustés en conséquence, les systèmes RELATIFS via vmaxShow s'ajustent seuls)
 const TURN_HS=.0035; // pénalité de braquage à haute vitesse (avant .008 — plus petit = virages plus faciles)
 const AIR_ASSIST=1.0; // aide au recentrage en vol (0 = off), monte avec la vitesse
@@ -3812,7 +3812,12 @@ function checkUpgrade(){
 }
 function startFall(impU,impF){
   mode='fall';fallT=0;fallTR=0;yawAcc=0;momT=0;airRoll=0;
-  AIR_RATE=1; // FUSION V1 : vol en TEMPS RÉEL comme la V1 (plus d'accélération dynamique) — le rythme des sauts/réceptions redevient celui de la V1. (Ligne conservée pour rester le seul point de réglage du tempo de vol.)
+  // TEMPO DE VOL ∝ VITESSE (2026-07-20, dosage DOUX sur base V1) : =1 jusqu'à 450 km/h affichés
+  // (basse/moyenne vitesse : rigoureusement l'existant), puis +1 tous les 1800 km/h, CAP 1.35 —
+  // loin du 2.3 de l'ancienne ère (qui compensait SPD=.25) : l'endgame TRAVERSE sa phase aérienne
+  // au lieu de flotter, sans virer missile. Parabole DANS L'ESPACE, viseur, seuils de figures et
+  // paiements (fallT temps-sim) INCHANGÉS — seul le temps réel du vol se compresse un peu.
+  AIR_RATE=THREE.MathUtils.clamp(1+Math.max(0,Math.abs(vA)*3.6*SPD-450)/1800,1,1.35);
   nitroAirT=0;fallWrap=0;fallWrapSign=0;fallStartSide=side; // suivi announcer
   bounceN=0;flightId++; // nouveau vol : compteur de bumps et budget d'airtime des nuages remis à zéro
   if(Math.abs(vA)*3.6*SPD>400)annSpeak('launch400',1); // éjecté à +400 km/h (1 fois sur 3)
@@ -4896,7 +4901,7 @@ function loop(now){
       if(nitroOn){ // RÉACTEUR : poussée depuis l'arrière façon Rocket League (modérée)
         tmp.copy(fallVel);
         if(tmp.lengthSq()>1)tmp.normalize();else tmp.set(0,0,1);
-        fallVel.addScaledVector(tmp,(nitroBlue?44:30)*dtF);
+        fallVel.addScaledVector(tmp,(nitroBlue?49:34)*dtF); // +~12 % : le réacteur suit le nouveau tempo (et dtF l'amplifie déjà à haute vitesse via AIR_RATE)
         if(keys.KeyW||keys.KeyZ||keys.ArrowUp)fallVel.y+=(nitroBlue?9:6)*dtF;
         if(dn){ // ↓ + nitro : on REDRESSE la caisse (le nez remonte, portance bonus)
           tmp2.copy(fallVel).normalize().cross(AXIS_Y);
