@@ -1715,52 +1715,52 @@ const envTex=(function(){ // le ciel réfléchi par les carrosseries — repeint
   const t=new THREE.CubeTexture(envCvs);return t;
 })();
 // ============================================================================
-//  BIOMES — le monde VOYAGE : une ambiance complète par zone, lerpée ~4 s au
-//  portail (uniforms/couleurs UNIQUEMENT — jamais de recompilation shader).
-//  BRAISE = l'identité Vice City actuelle À L'IDENTIQUE (valeurs d'init copiées).
-//  Choix lié à l'ARCHÉTYPE de la zone (zoneArch, posé par genCtrl) :
-//  FLOW→braise · TECH→néon total · ALPIN→aube pâle · VOLTIGE→minuit étoilé · GRAND8→orage violet.
+//  BIOMES — LE CYCLE DU CIEL : 5 heures de la journée, lerpées ~4 s au portail
+//  (uniforms/couleurs UNIQUEMENT — jamais de recompilation shader).
+//  APREM · GOLDEN · COUCHANT · SOIR = tirées au HASARD (jamais deux fois la même
+//  de suite) au départ et à chaque portail — au 3e portail de la MÊME partie,
+//  la VRAIE NUIT tombe pour de bon (le mode débloqué, phares rois).
 // ============================================================================
-let zoneArch='FLOW';
+let zoneArch='FLOW'; // posé par genCtrl (ADN de piste) — plus utilisé par les biomes, gardé pour debug
 const BIOMES={
-  braise:{ nm:'BRAISE', skyMul:[1,1,1],skyLift:[0,0,0],sunTint:[1,.40,.28],sunHalo:1,city:1,stars:1,moon:1,
-    fog:[.369,.196,.329],fogN:420,fogF:2600,
-    hemiS:[.729,.525,.714],hemiG:[.094,.086,.180],hemiI:.40, sunC:[1,.416,.235],sunI:1.45,
-    fillC:[.310,.455,.910],fillI:.24, kickC:[1,.239,.620],kickI:.20,
-    volSun:[2.05,.95,.60],volSky:[.34,.30,.62],volGnd:[.13,.08,.18],volAmb:.56,
-    expo:.71,sat:1.40,
-    env:[[0,'#1e1e50'],[.3,'#5e3676'],[.48,'#cc5e8e'],[.58,'#cc7a48'],[.66,'#42324e'],[1,'#181236']],eS1:[240,150,190,.5],eS2:[120,200,235,.28]},
-  aube:{ nm:'AUBE PÂLE', skyMul:[1.30,1.42,1.62],skyLift:[.10,.12,.16],sunTint:[1,.62,.42],sunHalo:.80,city:.15,stars:.12,moon:.5,
-    fog:[.604,.643,.769],fogN:380,fogF:2400,
-    hemiS:[.812,.847,.933],hemiG:[.227,.227,.333],hemiI:.62, sunC:[1,.788,.627],sunI:1.05,
-    fillC:[.478,.533,.722],fillI:.20, kickC:[1,.698,.784],kickI:.10,
-    volSun:[1.60,1.35,1.15],volSky:[.55,.60,.85],volGnd:[.30,.30,.42],volAmb:.72,
-    expo:.88,sat:1.08,
-    env:[[0,'#9fb4d8'],[.3,'#b8c4e2'],[.48,'#e8c8d8'],[.58,'#f2d8c0'],[.66,'#8a90b4'],[1,'#5a6288']],eS1:[255,235,225,.4],eS2:[190,215,240,.3]},
-  orage:{ nm:'ORAGE VIOLET', skyMul:[.42,.38,.60],skyLift:[.02,.01,.04],sunTint:[.75,.45,.60],sunHalo:.30,city:.30,stars:.10,moon:.30,
-    fog:[.165,.141,.251],fogN:300,fogF:1700,
-    hemiS:[.416,.373,.573],hemiG:[.063,.063,.125],hemiI:.30, sunC:[.604,.541,.722],sunI:.75,
-    fillC:[.227,.290,.604],fillI:.30, kickC:[.478,.239,.682],kickI:.22,
-    volSun:[.90,.85,1.05],volSky:[.20,.18,.38],volGnd:[.05,.04,.09],volAmb:.40,
-    expo:.62,sat:1.12,
-    env:[[0,'#232040'],[.3,'#3a3258'],[.48,'#584a72'],[.58,'#4a4260'],[.66,'#2a2542'],[1,'#141226']],eS1:[150,130,200,.35],eS2:[100,120,180,.22]},
-  minuit:{ nm:'MINUIT ÉTOILÉ', skyMul:[.50,.55,.85],skyLift:[0,0,0],sunTint:[.50,.35,.45],sunHalo:.18,city:.55,stars:1.8,moon:1.6,
-    fog:[.078,.106,.220],fogN:460,fogF:2900,
-    hemiS:[.251,.314,.494],hemiG:[.047,.055,.133],hemiI:.34, sunC:[.604,.706,.910],sunI:.85,
-    fillC:[.184,.290,.784],fillI:.20, kickC:[.416,.478,.871],kickI:.14,
-    volSun:[1.05,1.15,1.45],volSky:[.16,.20,.45],volGnd:[.04,.05,.12],volAmb:.44,
-    expo:.66,sat:1.22,
+  aprem:{ nm:'FIN D\'APRÈS-MIDI', skyMul:[1.22,1.38,1.70],skyLift:[.06,.10,.18],sunTint:[1,.80,.55],sunHalo:.85,city:0,stars:0,moon:.15,
+    fog:[.66,.70,.82],fogN:460,fogF:3000,
+    hemiS:[.85,.88,.95],hemiG:[.32,.30,.38],hemiI:.78, sunC:[1,.88,.72],sunI:1.15,
+    fillC:[.55,.62,.80],fillI:.22, kickC:[1,.75,.60],kickI:.08,
+    volSun:[1.75,1.55,1.30],volSky:[.60,.66,.88],volGnd:[.34,.34,.44],volAmb:.78,
+    expo:1.00,sat:1.18,
+    env:[[0,'#7fa8d8'],[.3,'#a8c0e0'],[.48,'#e8d4b8'],[.58,'#f2d8a8'],[.66,'#98a0b8'],[1,'#5a6a92']],eS1:[255,244,220,.42],eS2:[180,210,245,.3]},
+  golden:{ nm:'GOLDEN HOUR', skyMul:[1.30,1.05,.92],skyLift:[.12,.05,.02],sunTint:[1,.62,.30],sunHalo:1.15,city:.15,stars:0,moon:.25,
+    fog:[.80,.55,.38],fogN:400,fogF:2500,
+    hemiS:[.95,.78,.62],hemiG:[.26,.20,.26],hemiI:.60, sunC:[1,.72,.36],sunI:1.55,
+    fillC:[.42,.48,.72],fillI:.20, kickC:[1,.55,.35],kickI:.14,
+    volSun:[2.2,1.35,.75],volSky:[.52,.44,.58],volGnd:[.24,.17,.18],volAmb:.62,
+    expo:.94,sat:1.34,
+    env:[[0,'#5a7ab8'],[.3,'#c88a70'],[.48,'#f2b04a'],[.58,'#ffc060'],[.66,'#7a5a58'],[1,'#3a3a5e']],eS1:[255,214,130,.55],eS2:[255,170,90,.35]},
+  couchant:{ nm:'DÉBUT DE SOIRÉE', skyMul:[1.05,.85,1.05],skyLift:[.05,.02,.06],sunTint:[1,.48,.30],sunHalo:.95,city:.55,stars:.25,moon:.5,
+    fog:[.58,.36,.48],fogN:380,fogF:2300,
+    hemiS:[.80,.58,.72],hemiG:[.18,.15,.26],hemiI:.50, sunC:[1,.55,.34],sunI:1.30,
+    fillC:[.36,.42,.78],fillI:.24, kickC:[1,.35,.60],kickI:.18,
+    volSun:[2.0,1.0,.70],volSky:[.44,.34,.62],volGnd:[.18,.11,.20],volAmb:.56,
+    expo:.84,sat:1.40,
+    env:[[0,'#3a4a8e'],[.3,'#7a4a86'],[.48,'#e87a9a'],[.58,'#e8925e'],[.66,'#4a3a5e'],[1,'#242046']],eS1:[255,180,190,.5],eS2:[150,190,240,.3]},
+  soir:{ nm:'SOIRÉE', skyMul:[.80,.75,1.0],skyLift:[.01,.01,.03],sunTint:[1,.38,.30],sunHalo:.55,city:1.5,stars:1,moon:1,
+    fog:[.30,.18,.34],fogN:400,fogF:2500,
+    hemiS:[.66,.48,.68],hemiG:[.12,.11,.22],hemiI:.46, sunC:[1,.44,.26],sunI:1.15,
+    fillC:[.31,.46,.91],fillI:.26, kickC:[1,.24,.62],kickI:.24,
+    volSun:[1.6,.85,.65],volSky:[.28,.26,.56],volGnd:[.11,.07,.16],volAmb:.52,
+    expo:.78,sat:1.46,
+    env:[[0,'#1e1e50'],[.3,'#5e3676'],[.48,'#cc5e8e'],[.58,'#cc7a48'],[.66,'#42324e'],[1,'#181236']],eS1:[240,150,190,.5],eS2:[120,200,235,.32]},
+  nuit:{ nm:'NUIT NOIRE', skyMul:[.42,.46,.72],skyLift:[0,0,0],sunTint:[.45,.32,.42],sunHalo:.12,city:.75,stars:1.9,moon:1.7,
+    fog:[.066,.09,.19],fogN:460,fogF:2900,
+    hemiS:[.23,.29,.46],hemiG:[.04,.05,.12],hemiI:.32, sunC:[.58,.68,.90],sunI:.80,
+    fillC:[.18,.29,.78],fillI:.22, kickC:[.42,.48,.87],kickI:.14,
+    volSun:[1.0,1.1,1.4],volSky:[.15,.19,.42],volGnd:[.04,.05,.11],volAmb:.42,
+    expo:.64,sat:1.24,
     env:[[0,'#0e1434'],[.3,'#1c2650'],[.48,'#32406e'],[.58,'#3a4a80'],[.66,'#1a2244'],[1,'#080c20']],eS1:[170,195,255,.35],eS2:[120,150,230,.25]},
-  neon:{ nm:'NÉON TOTAL', skyMul:[1.05,.72,1.30],skyLift:[.08,.01,.10],sunTint:[1,.30,.70],sunHalo:.70,city:1.9,stars:.55,moon:.75,
-    fog:[.275,.102,.345],fogN:380,fogF:2300,
-    hemiS:[.847,.416,.847],hemiG:[.102,.063,.220],hemiI:.44, sunC:[1,.310,.690],sunI:1.30,
-    fillC:[.200,.816,1],fillI:.34, kickC:[1,.165,.604],kickI:.32,
-    volSun:[1.90,.75,1.30],volSky:[.42,.22,.72],volGnd:[.16,.06,.22],volAmb:.55,
-    expo:.74,sat:1.62,
-    env:[[0,'#2a1050'],[.3,'#6a2090'],[.48,'#e84aa8'],[.58,'#c858d8'],[.66,'#3a2468'],[1,'#1c0e3e']],eS1:[255,110,200,.65],eS2:[80,220,255,.45]},
 };
-const ARCH2BIO={FLOW:'braise',TECH:'neon',ALPIN:'aube',VOLTIGE:'minuit',GRAND8:'orage'};
-const BIO={cur:JSON.parse(JSON.stringify(BIOMES.braise)),from:null,to:BIOMES.braise,k:1,dur:4,name:'braise'};
+const BIO_DAY=['aprem','golden','couchant','soir']; // le tirage du jour — la NUIT ne se tire pas, elle se MÉRITE (3 portails)
+const BIO={cur:JSON.parse(JSON.stringify(BIOMES.golden)),from:null,to:BIOMES.golden,k:1,dur:4,name:'golden'};
 function bioLerp(a,b,e,out){ // mixe deux biomes champ à champ (tableaux = composantes, nombres = scalaires)
   for(const key in b){ const bv=b[key];
     if(typeof bv==='number')out[key]=a[key]+(bv-a[key])*e;
@@ -1784,7 +1784,7 @@ function bioApply(c){ // pousse l'ambiance mélangée dans TOUS les organes (uni
   for(const r9 of RAYS)r9.material.opacity=RAY_OPACITY*c.sunHalo;
 }
 function bioGo(name,dur){ // lance le voyage vers un biome (reflets carrosserie repeints tout de suite : discret)
-  if(!BIOMES[name])name='braise';
+  if(!BIOMES[name])name='golden';
   BIO.from=JSON.parse(JSON.stringify(BIO.cur));BIO.to=BIOMES[name];BIO.k=0;BIO.dur=dur||4;BIO.name=name;
   paintEnv(BIO.to.env,BIO.to.eS1,BIO.to.eS2);
 }
@@ -1795,8 +1795,8 @@ function bioStep(dt){
   bioLerp(BIO.from,BIO.to,e,BIO.cur);
   bioApply(BIO.cur);
 }
-window.dbgBio=function(n,d){bioGo(n,d||2);}; // console : dbgBio('minuit') → tester un biome sans farmer les portails (d = durée du lerp en s)
-paintEnv(BIOMES.braise.env,BIOMES.braise.eS1,BIOMES.braise.eS2); // premier reflet = Vice City (identique à l'ancien envTex)
+window.dbgBio=function(n,d){bioGo(n,d||2);}; // console : dbgBio('nuit') → tester une heure du ciel sans farmer les portails (d = durée du lerp en s)
+paintEnv(BIOMES.golden.env,BIOMES.golden.eS1,BIOMES.golden.eS2); // premier reflet = golden hour (la vitrine du menu)
 const carGroup=new THREE.Group();scene.add(carGroup);
 const carLight=new THREE.PointLight(0xffe6f4,.8,85);scene.add(carLight);
 // PHARES RÉELS (la nuit tombe) : UN spot chaud qui balaie le bitume devant la caisse — ajouté à l init, jamais togglé (zéro recompilation)
@@ -3893,7 +3893,15 @@ function tryLand(dt){
 function newTrack(){
   const sd=(Math.random()*1e9)|0;
   buildTrack(sd);
-  bioGo(level<1?'braise':(ARCH2BIO[zoneArch]||'braise'),started?4:.01); // BIOME de la zone : la 1re est toujours BRAISE, ensuite l'archétype donne son heure du ciel (lerp 4 s au portail, instantané au boot)
+  // LE CYCLE DU CIEL : au départ et à chaque portail on tire une heure du jour au hasard
+  // (jamais deux fois la même de suite) — au 3e portail de la MÊME partie, la VRAIE NUIT
+  // tombe pour de bon (runStats.zones est ++ AVANT newTrack au portail, remis à 0 par resetGame).
+  let nb9;
+  if(runStats.zones>=3)nb9='nuit';
+  else do{nb9=BIO_DAY[(Math.random()*BIO_DAY.length)|0];}while(nb9===BIO.name);
+  const nightFalls=started&&nb9==='nuit'&&BIO.name!=='nuit'; // capturé AVANT bioGo (qui écrase BIO.name)
+  bioGo(nb9,started?4:.01); // lerp 4 s au portail (et au replay), instantané au boot
+  if(nightFalls)showMsg('LA NUIT TOMBE…','#9ac8ff'); // le déblocage s'annonce
   computeMinimap();
   spawnPickups(mulberry32(sd^0x9e3779b9));
   s=0;lat=0;psi=0;side=1;prevTvalid=false;safeS=0;
