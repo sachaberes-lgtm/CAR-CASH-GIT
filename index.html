@@ -1463,7 +1463,11 @@ function buildTrack(seed){
     g.setAttribute('color',new THREE.Float32BufferAttribute(cols,3));
     g.setIndex(idx);g.computeVertexNormals();
     // BITUME NUIT VIOLET : sombre pour que les LUMIÈRES y vivent (nitro, boost, phares) — spéculaire ROSÉ, le soleil rasant peint une traînée magenta-braise
-    const m=new THREE.Mesh(g,new THREE.MeshPhongMaterial({color:0x2b2937,side:THREE.DoubleSide,vertexColors:true,shininess:58,specular:0x9a5568,envMap:envTex,reflectivity:.05}));
+    // SPÉCULAIRE BRAISE CUIVRÉE (2026-07-20) : l'ancien mauve 0x9a5568 (bleu > vert) teintait TOUS les
+    // reflets vers le MAGENTA — feux arrière roses, soleil pincé en point plastique. La braise 0x8a524a
+    // garde le chaud mais laisse chaque lumière imposer SA teinte ; shininess 58→40 : lobe plus large,
+    // reflet qui NAPPE le bitume au lieu de piquer — la route reste sensuelle, plus crédible.
+    const m=new THREE.Mesh(g,new THREE.MeshPhongMaterial({color:0x2b2937,side:THREE.DoubleSide,vertexColors:true,shininess:40,specular:0x8a524a,envMap:envTex,reflectivity:.05}));
     m.receiveShadow=true; // le bitume reçoit les OMBRES LONGUES
     scene.add(m);trackMeshes.push(m);
   }
@@ -2274,7 +2278,7 @@ function buildCar(spec){
   }
   // PHARES : les deux FAISCEAUX peints partent du pare-chocs et fondent vers l'avant (beamTex : le bord haut = la caisse)
   CARPOOL.head=mkPoolPlane(spec.w*2.9,spec.l*3.3,spec.l/2+spec.l*1.62,0xffd9a6,wreck?.24:.55,beamTex);
-  CARPOOL.tail=mkPoolPlane(spec.w*2.1,spec.l*1.15,-spec.l/2-spec.l*.48,0xff2418,.30);          // les feux saignent leur rouge DERRIÈRE
+  CARPOOL.tail=mkPoolPlane(spec.w*2.1,spec.l*1.15,-spec.l/2-spec.l*.48,0xf51a0c,.30);          // les feux saignent leur rouge DERRIÈRE — rouge PROFOND (le bleu résiduel de 0xff2418 rosissait la flaque sur le bitume violet)
   CARPOOL.jet=mkPoolPlane(spec.w*2.7,spec.l*4.6,-spec.l/2-spec.l*2.3,0xff7a24,0);              // le halo de la nitro/traînée (opacité pilotée par JETS.k dans la boucle)
   carGroup.traverse(o9=>{if(o9.isMesh&&!o9.userData.noShadow)o9.castShadow=true;}); // toute la caisse porte son ombre LONGUE — sauf la nappe néon (un carré d'ombre, non merci)
 }
@@ -5180,11 +5184,11 @@ function loop(now){
     // REFLET NITRO/BOOST : le pool de lumière colle à l'échappement (repère caisse : marche aussi sous la dalle)
     hsU.set(0,1,0).applyQuaternion(carGroup.quaternion);
     nitroLight.position.copy(carGroup.position).addScaledVector(hsF,-2.2).addScaledVector(hsU,.5);
-    const nTgt=(mode==='boom')?0:(nitroOn?(nitroBlue?2.3:1.9):(boost>0?1.1:.8)); // .8 au repos : les FEUX ARRIÈRE posent leur reflet rouge en permanence (la nuit sert à ça)
+    const nTgt=(mode==='boom')?0:(nitroOn?(nitroBlue?2.3:1.9):(boost>0?1.1:.68)); // .68 au repos (était .8) : les FEUX ARRIÈRE posent leur reflet rouge en permanence — braise posée, plus le point chaud qui perçait
     nitroLight.intensity+=(nTgt*(.82+.18*Math.sin(t*43))-nitroLight.intensity)*Math.min(1,dt*14); // flamme qui tremble, fondu doux
     if(nitroOn)nitroLight.color.setHex(nitroBlue?0x5b7dff:0xff7a24); // orange nitro / bleu réserve (mêmes teintes que les particules)
     else if(boost>0)nitroLight.color.setHex(0xffb040); // pad turbo : coup d'or
-    else nitroLight.color.setHex(0xff2015); // repos : rouge feux arrière — la lueur qui suit la caisse
+    else nitroLight.color.setHex(0xf21808); // repos : rouge feux arrière PROFOND (moins d'orangé → la braise reste rouge après le spéculaire cuivré)
     // PLUME DE RÉACTEUR : court au filage, long et affûté à la nitro — flicker haute fréquence, la flamme VIT
     const jTgt=(mode==='boom')?0:((nitroOn?(nitroBlue?1.35:1.05):((mode!=='drive'||loop._wasUp)&&Math.abs(speedKmh)>20?.34:0))+(boost>0?.4:0));
     JETS.k+=(jTgt-JETS.k)*Math.min(1,dt*11);
@@ -5216,7 +5220,7 @@ function loop(now){
     }
     // le reflet de la traînée GLISSE sur la route derrière la caisse (même couleur que le ruban)
     trailLight.position.copy(carGroup.position).addScaledVector(hsF,-9).addScaledVector(hsU,1.1);
-    trailLight.intensity+=(trailK*1.7-trailLight.intensity)*Math.min(1,dt*10);
+    trailLight.intensity+=(trailK*1.5-trailLight.intensity)*Math.min(1,dt*10); // ×1.7→1.5 : le RUBAN garde la vedette, son reflet accompagne sans s'additionner brutalement au reste
     trailLight.color.setRGB(Math.min(1,tcr),Math.min(1,tcg),Math.min(1,tcb));
     // sons continus
     if(AC){
