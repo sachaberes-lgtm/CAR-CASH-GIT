@@ -613,7 +613,7 @@ function updateContactShadow(){ // appelée juste avant le rendu
     contactShadow.scale.set(5.4,6.6,1);contactShadow.material.opacity=side<0?0.85:0.30;contactShadow.visible=true; // face -1 : le blob reste seul (l'ombre réelle part dans le vide) ; dessus .30 : la shadow map ancre déjà, un blob plus noir creusait un ANNEAU dans le néon/les flaques
   }else if(mode==='fall'){
     const hgt=fallPos.y-lastNearY; // hauteur au-dessus de la route la plus proche → télégraphe d'atterrissage
-    if(hgt>0.4&&hgt<46){
+    if(hgt>0.4&&hgt<46&&lastNearH2<560){ // ...mais RIEN à survoler au-dessus d'un trou : pas d'ombre suspendue dans le vide
       contactShadow.position.set(fallPos.x,lastNearY+0.06,fallPos.z);
       contactShadow.quaternion.setFromRotationMatrix(shMat4.makeRotationX(-Math.PI/2)); // à plat
       const k=1+hgt*0.05;contactShadow.scale.set(5.4*k,6.6*k,1);
@@ -635,8 +635,11 @@ const GAPMARK=[];
 // LE TROU, POUR DE VRAI : portions de dalle PUREMENT ABSENTES {i0,i1:index pts · s0,s1:arc-length}.
 // Zéro mesh, zéro collision, zéro atterrissage possible : c'est du VIDE. On le franchit ou on tombe.
 let HOLES=[];
-const holeAtS=sv=>{for(const h of HOLES)if(sv>h.s0&&sv<h.s1)return h;return null;}; // trou à cette distance ?
-const holeAtI=i=>{for(const h of HOLES)if(i>=h.i0&&i<=h.i1)return true;return false;}; // ce point de piste est-il dans le vide ?
+const holeAtS=sv=>{if(!HOLES.length)return null;for(const h of HOLES)if(sv>h.s0&&sv<h.s1)return h;return null;}; // trou à cette distance ?
+// ⚠ bornes STRICTES : i0 et i1 sont les DERNIER et PREMIER points de bitume (le mesh ne saute que les
+// segments i0→i1). Les inclure faisait deux bandes mortes d'où l'on ne pouvait pas se poser — donc un
+// atterrissage pile sur le bord d'en face échouait et la caisse repartait dans le vide.
+const holeAtI=i=>{if(!HOLES.length)return false;for(const h of HOLES)if(i>h.i0&&i<h.i1)return true;return false;};
 // plots de chantier orange (percutables — ils valdinguent)
 const coneGeo=new THREE.CylinderGeometry(.055,.3,.95,10);
 const coneBandGeo=new THREE.CylinderGeometry(.185,.24,.2,10);
@@ -2532,6 +2535,7 @@ function spawnPickups(rnd){
     const lt=(rnd()*2-1)*(ROAD_HALF-2.8);
     const isN=(billCount>0&&billCount%2===0&&rnd()<.65); // nitro plus fréquent
     if(!isN)billCount++;
+    if(holeAtS(ss))continue; // LE VIDE : pas de pièces suspendues en plein ciel au-dessus du trou
     frameAt(ss,F);
     mat4b.makeBasis(F.b,F.n,F.t);
     for(const face of [1,-1]){
@@ -2547,6 +2551,7 @@ function spawnPickups(rnd){
   for(let ss=380+rnd()*260;ss<L-140;ss+=860+rnd()*760){
     const kind=kinds[Math.floor(rnd()*3)];
     const lt=(rnd()*2-1)*(ROAD_HALF-4);
+    if(holeAtS(ss))continue; // (tirages consommés au-dessus : le flux rnd reste identique) — pas d'orbe dans le vide
     frameAt(ss,F);
     mat4b.makeBasis(F.b,F.n,F.t);
     for(const face of [1,-1]){
@@ -3894,7 +3899,7 @@ function trickMsg(txt,tier){ // tier: 1 MONSTRE · 2 DOUBLE · 3 TRIPLE (ou true
 // chaîne. Rien n'est payé en vol : tout se cashe à l'atterrissage (grade × face × série) —
 // et tout S'ENVOLE si on explose. La redite paye de moins en moins : varie le menu !
 let chain=0,chainVal=0,chainMult=1,chainSeen={},spinHalf=0,
-    curNear=false,curHOff=0,curLatOff=0,lastNearY=0,
+    curNear=false,curHOff=0,curLatOff=0,lastNearY=0,lastNearH2=0,lastNearS=0, // lastNearH2 : distance HORIZONTALE² au bitume (au-dessus d'un trou elle explose → l'ombre de contact se cache) · lastNearS : où l'on en est SUR la piste pendant un vol (recentre le LOD de proximité)
     trkMeteor=false,
     dolphT=0,dolphGain=0,trkDolph=false, // LE DAUPHIN : nager au ras de la dalle
     caseHot=false,heartT=0,ladderI=0;        // la MALLETTE tremble + cœur qui cogne · échelle des paliers
@@ -4037,6 +4042,8 @@ function tryLand(dt){
   }
   if(bestI<0)return false;
   lastNearY=pts[bestI].y; // altitude de la route la plus proche (référence du plongeon fatal)
+  {const hx=fallPos.x-pts[bestI].x,hz=fallPos.z-pts[bestI].z;lastNearH2=hx*hx+hz*hz;} // à plat : sert à savoir si on survole du BITUME ou du VIDE
+  lastNearS=bestI/(NP-1)*L; // position le long de la piste PENDANT le vol (le LOD de proximité s'y recentre)
   if(bd>1600)return false;
   dTmp.subVectors(fallPos,pts[bestI]);
   const hOff=dTmp.dot(Nn[bestI]),latOff=dTmp.dot(B[bestI]);
@@ -5357,7 +5364,30 @@ function loop(now){
       b9.m.rotation.x+=b9.rx*dt;b9.m.rotation.y+=b9.ry*dt;
       if(b9.life<=0){scene.remove(b9.m);bills.splice(i9,1);}
     }
-    for(const pk of pickups)if(!pk.taken){pk.mesh.rotateOnWorldAxis(pk.ax,dt*(pk.pow?1.4:2.5));if(pk.nitro||pk.pow)pk.mesh.scale.setScalar(1+(pk.pow?.18:.12)*Math.sin(t*6+pk.s));}
+    // ---- LOD DE PROXIMITÉ : on ne s'occupe QUE du couloir utile ----
+    // La scène porte ~1550 meshes (≈550 pièces + ≈590 plots). Avant, CHAQUE frame faisait tourner les
+    // 600 pièces à l'autre bout de la piste : 600 quaternions + 600 matrices monde recalculées pour des
+    // objets invisibles, plus autant de tests de frustum. Tout ce qui est hors du couloir est masqué
+    // (`visible=false` = ni draw call, ni frustum, ni matrice). Le rayon s'élargit avec la vitesse pour
+    // que rien n'apparaisse sous le nez, et en VOL on se recentre sur la portion de piste survolée
+    // (`lastNearS`) — sinon le couloir resterait figé au point de décollage et la zone d'arrivée
+    // se retrouverait vide pendant tout le saut.
+    {
+      const cS=(mode==='fall'?lastNearS:s),lodR=620+Math.abs(vA)*1.1;
+      for(const pk of pickups){
+        if(pk.taken)continue;
+        const vis=Math.abs(pk.s-cS)<lodR;
+        if(pk.mesh.visible!==vis)pk.mesh.visible=vis;
+        if(!vis)continue; // hors couloir : on ne l'anime même pas
+        pk.mesh.rotateOnWorldAxis(pk.ax,dt*(pk.pow?1.4:2.5));
+        if(pk.nitro||pk.pow)pk.mesh.scale.setScalar(1+(pk.pow?.18:.12)*Math.sin(t*6+pk.s));
+      }
+      for(const c9 of CONES){ // les plots ne s'animent pas, mais ils coûtent un draw call chacun
+        if(c9.hit)continue;   // un plot qui valse appartient à FLYCONES : on ne touche pas à sa visibilité
+        const vis=Math.abs(c9.s-cS)<lodR;
+        if(c9.mesh.visible!==vis)c9.mesh.visible=vis;
+      }
+    }
     for(let i9=FLYCONES.length-1;i9>=0;i9--){
       const c9=FLYCONES[i9];
       c9.life-=dt;c9.v.y-=24*dt;
