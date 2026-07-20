@@ -2477,7 +2477,7 @@ function buildCar(spec){
 buildCar(CARS[0]);
 window.dbgCar=function(i){buildCar(CARS[Math.max(0,Math.min(23,i|0))]);}; // console : dbgCar(16) → prévisualiser un gabarit sans farmer les milliards (visuel pur, ne touche pas au niveau)
 window.dbgScene=function(){return {car:carGroup,scene:scene,contact:contactShadow,shadow:shadow};}; // dissection console (visuel pur)
-window.dbgState=function(){return {started:started,running:running,paused:paused,gameOver:gameOver,mode:mode,vA:+vA.toFixed(2),s:+s.toFixed(1),lat:+lat.toFixed(2),side:side,gapArmed:gapArmed,fallT:+fallT.toFixed(2),level:level,introD:introD,hopY:+hopY.toFixed(2)};}; // état interne (lecture seule)
+window.dbgState=function(){return {started:started,running:running,paused:paused,gameOver:gameOver,mode:mode,vA:+vA.toFixed(2),s:+s.toFixed(1),lat:+lat.toFixed(2),side:side,gapArmed:gapArmed,fallT:+fallT.toFixed(2),level:level,introD:introD,hopY:+hopY.toFixed(2),hOff:+curHOff.toFixed(2),latOff:+curLatOff.toFixed(2),dolphT:+dolphT.toFixed(2),dolphGain:+dolphGain.toFixed(2),chainVal:+chainVal.toFixed(2)};}; // état interne (lecture seule) — hOff/dolph* : calibrage du DAUPHIN
 // TREMPLINS de la zone courante : archétype, longueur de piste, et chaque lèvre (position + variante).
 // `dbgGap(true)` téléporte à 220 m avant la 1re lèvre — pour juger le gap sans refaire la course d'élan.
 window.dbgGap=function(go){
@@ -4030,7 +4030,7 @@ function checkUpgrade(){
     showMsg('NOUVELLE CAISSE','#ffd75e'); // sobre : la caisse neuve parle d'elle-même, on ne coupe plus le run pour la présenter
   }
 }
-function startFall(impU,impF,capV){
+function startFall(impU,impF){
   mode='fall';fallT=0;fallTR=0;yawAcc=0;momT=0;airRoll=0;
   // TEMPO DE VOL ∝ VITESSE (2026-07-20, dosage DOUX sur base V1) : =1 jusqu'à 450 km/h affichés
   // (basse/moyenne vitesse : rigoureusement l'existant), puis +1 tous les 1800 km/h, CAP 1.35 —
@@ -4046,11 +4046,14 @@ function startFall(impU,impF,capV){
   if(side<0){F.n.multiplyScalar(-1);F.b.multiplyScalar(-1);}
   fallPos.copy(F.p).addScaledVector(F.b,lat).addScaledVector(F.n,(side<0?THICK:0)+.6);
   fallVel.copy(F.t).multiplyScalar(vA*(impF||1)).addScaledVector(F.b,vL).addScaledVector(F.n,impU||.9);
-  // PLAFOND DE LANCEMENT : 95 par défaut (les fusées ne partent plus en orbite). La CATAPULTE le
-  // desserre — sans ça la portée serait IDENTIQUE à 200 comme à 1200 km/h, et le boost avant la
-  // rampe ne servirait à rien : c'est ce plafond qui rend le choix risque/récompense réel.
-  const cap9=capV||95;
-  if(fallVel.length()>cap9)fallVel.setLength(cap9);
+  // INERTIE RÉELLE (2026-07-20) : fini le plafond TOTAL de 95 qui bridait l'éjection — éjecté à
+  // 300 km/h, on VOLE à 300 km/h (le compteur ne s'effondre plus au décollage), et la gravité en
+  // RAJOUTE en descente, comme une vraie chute. Seule la composante VERTICALE est bornée (70) :
+  // une crête ALPIN prise à 1900 km/h ne catapulte plus en orbite et la jauge des 6 s reste tenable
+  // (vol balistique max ≈ 4,2 s-sim). L'ancien 3e paramètre capV de la CATAPULTE est retiré : il ne
+  // servait qu'à rendre la portée ∝ vitesse malgré le plafond total — l'horizontale conservée le
+  // fait désormais NATIVEMENT (portée = vx·2vy/g, vx vrai).
+  if(fallVel.y>70)fallVel.y=70;
   hopY=0;hopV=0; // un dos d'âne en cours ne doit pas laisser de décalage fantôme
   lastNearY=fallPos.y; // référence du plongeon fatal tant que tryLand n'a pas mieux
   // chaîne neuve : le vol commence, tout est à prouver
@@ -4935,7 +4938,7 @@ function loop(now){
         if(Math.abs(s-r9.s)>7)continue;
         if(Math.abs(vA)*3.6*SPD<110)break; // au pas : la lèvre ne catapulte personne — et le vide attend juste derrière
         rampCd=1.4;                        // on ne se relance pas en retombant sur sa propre lèvre
-        startFall(6.6+(r9.v===1?1.4:0),1.14,130); // pop vertical + poussée avant, plafond desserré : ici la VITESSE paye
+        startFall(6.6+(r9.v===1?1.4:0),1.14); // pop vertical + poussée avant — l'inertie réelle fait payer la vitesse toute seule (portée ∝ vx conservé)
         gapArmed=r9.v+1;                   // ARMÉ APRÈS startFall (qui remet à 0) : le verdict saura d'où vient ce vol
         boost=Math.max(boost,1.5);shake=Math.max(shake,.55);
         boostSnd();duckT=Math.max(duckT,.35);
@@ -5162,8 +5165,8 @@ function loop(now){
       if(nitroOn){ // RÉACTEUR : poussée depuis l'arrière façon Rocket League (modérée)
         tmp.copy(fallVel);
         if(tmp.lengthSq()>1)tmp.normalize();else tmp.set(0,0,1);
-        fallVel.addScaledVector(tmp,(nitroBlue?49:34)*dtF); // +~12 % : le réacteur suit le nouveau tempo (et dtF l'amplifie déjà à haute vitesse via AIR_RATE)
-        if(keys.KeyW||keys.KeyZ||keys.ArrowUp)fallVel.y+=(nitroBlue?9:6)*dtF;
+        fallVel.addScaledVector(tmp,(nitroBlue?70:52)*dtF); // RÉACTEUR façon Rocket League (2026-07-20, était 49/34) : en l'air la nitro POUSSE vraiment — on sculpte sa trajectoire, on ne la subit plus
+        if(keys.KeyW||keys.KeyZ||keys.ArrowUp)fallVel.y+=(nitroBlue?13:9)*dtF; // portance ↑ relevée (9/6→13/9) : tenir un vol ras-la-route au réacteur devient un vrai geste
         if(dn){ // ↓ + nitro : on REDRESSE la caisse (le nez remonte, portance bonus)
           tmp2.copy(fallVel).normalize().cross(AXIS_Y);
           if(tmp2.lengthSq()>.01){
@@ -5210,19 +5213,30 @@ function loop(now){
           addTrick('vrille',halfs===1?'180°':halfs===2?'VRILLE 360 — LAVE-LINGE !':halfs===3?'540° !!':(halfs*180)+'° — ESSOREUSE COSMIQUE !!',3.5*halfs,halfs>=4?3:(halfs>=2?2:false),true);}
         if(!trkMeteor&&nitroOn&&nitroAirT>1.2){trkMeteor=true;addTrick('meteo','MÉTÉORE',8,2);}
         if(curNear){ // radar de dalle (rempli par tryLand à la frame précédente)
-          if(Math.abs(curLatOff)<ROAD_HALF&&curHOff>.9&&curHOff<7){
-            // LE DAUPHIN — LA mécanique du vol bas : précision et danger immédiat. Plus on frôle la
-            // dalle sans toucher, plus ça paye (au CARRÉ de la proximité) ; on s'écarte = le gain
-            // s'effondre à l'instant ; on touche = l'accumulation s'arrête (la chaîne se cashe).
-            const prox=1-(curHOff-.9)/6.1; // 1 = collé à la route, 0 = à 7 m
-            const dInc=3.2*prox*prox*dtF; // le magot grimpe au CARRÉ de la proximité
-            dolphT+=dtF;chainVal+=dInc;dolphGain+=dInc;addStyle(4*prox*dtF);
-            if(!trkDolph&&dolphT>.4){trkDolph=true;addTrick('dauphin','LE DAUPHIN !',3,2);}
-            if(dolphT>.4){ // le nom RESTE à l'écran tant que les points comptent — on sait POURQUOI ça monte
+          if(Math.abs(curLatOff)<ROAD_HALF&&curHOff>2.2&&curHOff<12){
+            // ---- LE DAUPHIN : nager au ras de la dalle. Plus on frôle, plus ça paye ----
+            // Précision et danger immédiat : le gain grimpe au CARRÉ de la proximité, s'effondre dès
+            // qu'on s'écarte, et s'arrête net si on touche (la chaîne se cashe à l'atterrissage).
+            //
+            // ⚠ RÉPARÉ le 2026-07-20 — la figure ne se déclenchait PLUS JAMAIS. Deux causes, mesurées :
+            //  (1) STRUCTURE : la bande était 0,9→7 m, or `tryLand` fait ATTERRIR dès que hOff<3.
+            //      La zone la plus payante (prox→1) tombait donc À L'INTÉRIEUR de la fenêtre
+            //      d'atterrissage : viser le maximum revenait à se poser. Il ne restait qu'une
+            //      tranche utile de 4 m, et sur 857 frames de vol mesurées : ZÉRO passage dedans.
+            //  (2) MONTANT : même tenue parfaitement, la bande plafonnait à ~1,4/s, soit ~8 de
+            //      chaîne sur un vol ENTIER de 6 s — quand une simple vrille 360 en donne 7 d'un coup.
+            // Correctif : la bande démarre À 2,2 (juste au-dessus du seuil d'atterrissage, donc le
+            // point le plus payant est aussi le plus risqué — on est à une frame de toucher) et monte
+            // à 12 m, ce qui la rend enfin TENABLE. Gain ×4,4 pour peser face aux autres figures.
+            const prox=1-(curHOff-2.2)/9.8; // 1 = à ras (2,2 m, une frame du contact), 0 = à 12 m
+            const dInc=14*prox*prox*dtF;    // le magot grimpe au CARRÉ de la proximité
+            dolphT+=dtF;chainVal+=dInc;dolphGain+=dInc;addStyle(6*prox*dtF);
+            if(!trkDolph&&dolphT>.25){trkDolph=true;addTrick('dauphin','🐬 LE DAUPHIN !',3,2);}
+            if(dolphT>.15){ // le nom s'affiche VITE et RESTE tant que les points comptent — on voit POURQUOI ça monte
               chainHud.textContent='🐬 LE DAUPHIN +'+Math.round(dolphGain)+' · CHAÎNE ×'+Math.min(6,chainMult).toFixed(1);
               chainHud.style.opacity=1;
             }
-            if(prox>.55&&Math.random()<dt*22) // écume dorée sous la caisse quand on frôle vraiment
+            if(prox>.45&&Math.random()<dt*22) // écume dorée sous la caisse quand on frôle vraiment
               spawnP(sparkGold,fallPos.x,fallPos.y-1.1,fallPos.z,(Math.random()-.5)*6,-2-Math.random()*4,(Math.random()-.5)*6,.3);
           }
           curNear=false;
