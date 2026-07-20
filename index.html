@@ -628,6 +628,15 @@ function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a
 const ROAD_HALF=14, THICK=2.6;
 let pts=[],T=[],Nn=[],B=[],L=0,NP=0,trackMinY=-1e9; // trackMinY : plancher du monde (référence du plongeon fatal)
 const trackMeshes=[];let PADS=[];let BUMPS=[];let CONES=[];let FLYCONES=[];let portalMesh=null;
+// TREMPLINS HÉROS (motif « gap catapulte », voir genCtrl/gapRun) : {s:lèvre, s0/s1:couloir gardé NU, v:variante}
+let RAMPS=[];
+// passerelle genCtrl → buildTrack : positions MONDE (lèvre + les deux bords du vide), retrouvées sur la courbe réelle
+const GAPMARK=[];
+// LE TROU, POUR DE VRAI : portions de dalle PUREMENT ABSENTES {i0,i1:index pts · s0,s1:arc-length}.
+// Zéro mesh, zéro collision, zéro atterrissage possible : c'est du VIDE. On le franchit ou on tombe.
+let HOLES=[];
+const holeAtS=sv=>{for(const h of HOLES)if(sv>h.s0&&sv<h.s1)return h;return null;}; // trou à cette distance ?
+const holeAtI=i=>{for(const h of HOLES)if(i>=h.i0&&i<=h.i1)return true;return false;}; // ce point de piste est-il dans le vide ?
 // plots de chantier orange (percutables — ils valdinguent)
 const coneGeo=new THREE.CylinderGeometry(.055,.3,.95,10);
 const coneBandGeo=new THREE.CylinderGeometry(.185,.24,.2,10);
@@ -1305,6 +1314,7 @@ function updatePigeons(dt,t){
 }
 function genCtrl(rnd,startPos,startPhi){
   const ctrl=[];
+  GAPMARK.length=0; // les lèvres de tremplin de la zone précédente ne survivent pas à la nouvelle piste
   let P=startPos.clone(),phi=startPhi,approx=0,lastLoop=-500;
   const dir=()=>new THREE.Vector3(Math.sin(phi),0,Math.cos(phi));
   const push=()=>ctrl.push(P.clone());
@@ -1323,20 +1333,57 @@ function genCtrl(rnd,startPos,startPhi){
   // ---- ADN DE PISTE : chaque zone tire une PERSONNALITÉ — fini le shuffle statistiquement identique ----
   // LV : la vitesse de la caisse élargit TOUS les rayons (praticable même à 1500 km/h) et allonge les respirations.
   const LV=1+Math.min(2.6,level*.13);
-  const AR=[ // poids des 10 motifs [loop,hélice,épingle,esses,vague,virage,plongeon,droite,chicane,spirale] + caractère
-    {nm:'FLOW',   w:[6,10,2,22,8,24,5,8,5,10],   rs:1.35,vt:.8},  // autoroute céleste : sweepers qui chantent
-    {nm:'TECH',   w:[5,8,22,14,7,8,7,9,16,4],    rs:.92, vt:.9},  // slalom : épingles ouvertes, chicanes
-    {nm:'ALPIN',  w:[5,7,5,8,26,7,20,12,4,6],    rs:1.1, vt:1.4}, // crêtes à sauter, plongeons de vertige
-    {nm:'VOLTIGE',w:[22,20,3,7,10,7,10,7,4,10],  rs:1.15,vt:1.1}, // le ciel est un cirque : loops et hélices
-    {nm:'GRAND8', w:[11,11,10,12,12,11,11,8,7,7],rs:1,   vt:1}    // mixte équilibré
+  const AR=[ // poids des 11 motifs [loop,hélice,épingle,esses,vague,virage,plongeon,droite,chicane,spirale,GAP] + caractère
+    {nm:'FLOW',   w:[6,10,2,22,8,24,5,8,5,10,4],   rs:1.35,vt:.8},  // autoroute céleste : sweepers qui chantent — et LE gap
+    {nm:'TECH',   w:[5,8,22,14,7,8,7,9,16,4,0],    rs:.92, vt:.9},  // slalom : épingles ouvertes, chicanes (zéro gap : on est en ville)
+    {nm:'ALPIN',  w:[5,7,5,8,26,7,20,12,4,6,3],    rs:1.1, vt:1.4}, // crêtes à sauter, plongeons — et sa SIGNATURE se clôt sur le vide
+    {nm:'VOLTIGE',w:[22,20,3,7,10,7,10,7,4,10,2],  rs:1.15,vt:1.1}, // le ciel est un cirque : loops et hélices (motifs courts → poids bas sinon ça sature)
+    {nm:'GRAND8', w:[11,11,10,12,12,11,11,8,7,7,1],rs:1,   vt:1}    // mixte équilibré
   ][Math.floor(rnd()*5)];
   zoneArch=AR.nm; // exporté pour les BIOMES (aucun rnd() consommé : la génération reste identique)
   const RS=AR.rs*LV,VT=AR.vt,LOOPS=1+(LV-1)*.35; // les loops grossissent doucement (un loop de 120 m reste un loop)
   const hand=rnd()<.33?-1:(rnd()<.5?0:1);        // LATÉRALITÉ : une piste qui spirale à gauche ne ressemble pas à une équilibrée
   const sgn=()=>rnd()<.5+hand*.22?1:-1;
   const wsum=AR.w.reduce((a,b)=>a+b,0);
-  const pick=()=>{let x=rnd()*wsum;for(let k=0;k<10;k++){x-=AR.w[k];if(x<0)return k;}return 9;};
+  const pick=()=>{let x=rnd()*wsum;for(let k=0;k<11;k++){x-=AR.w[k];if(x<0)return k;}return 9;};
   const LEN=7200*(1+Math.min(1.1,level*.07)); // zones plus longues à haute vitesse (sinon 13 s et portail)
+  // ---- LE GAP CATAPULTE : le grand geste du générateur — RARE, et il y a un VRAI TROU ----
+  // Tout est COLINÉAIRE : la route d'en face est droit devant, on lit la promesse d'un coup d'œil
+  // (condition non négociable pour que ça marche à 1200 km/h). La recette, dans l'ordre :
+  //   TRÈS longue ligne droite → rampe → LÈVRE franche → LE VIDE (la dalle s'arrête NET) → route d'en face.
+  // Entre les deux bords il n'y a RIEN : pas de fond de gouffre, pas de filet — buildTrack supprime le
+  // mesh, la collision ET l'atterrissage sur cette portion. On franchit, ou on tombe.
+  // ⚠ CALIBRAGE (mesuré, pas deviné) : la catapulte porte ~118 u à 150 km/h et ~220 u à 300 km/h.
+  // Le trou fait 86 u au niveau 0 → ~150 u dans l'endgame : franchi avec marge dès qu'on arrive lancé,
+  // manqué si on traîne. Exigeant, jamais injuste — et assez large pour que le vide se VOIE.
+  // v : 0 = gap propre (lisible, satisfaisant) · 1 = arrivée SURÉLEVÉE (il faut s'engager, nitro conseillée)
+  //     2 = DOUBLE GAP (on repose à peine et ça repart — rare, réservé à l'endgame).
+  let lastGap=-1e9,gapN=0;
+  const gapRun=(v)=>{
+    const K=Math.min(1,level/14); // 0 = début de partie (marge GÉNÉREUSE) → 1 = endgame (exigeant)
+    gapN++;
+    straight(320+rnd()*90+level*9,-(12+rnd()*8),3); // LA LIGNE DROITE : longue, presque plate, rigoureusement nue — la tension monte
+    straight(44,16+K*5,2);                          // la rampe se lève franchement sous les roues
+    const gm={v:v,p:P.clone()};                     // ← LA LÈVRE : le point de catapulte
+    straight(14,10,1);                              // dernier coup de reins vers le ciel
+    gm.h0=P.clone();                                // ← LA DALLE S'ARRÊTE NET : premier bord du vide
+    straight(86+K*54+rnd()*12,(v===1?14+K*10:-(4+K*4)),2); // LE TROU : large de 3 à 5 largeurs de route (arrivée surélevée si v=1)
+    gm.h1=P.clone();                                // ← LA ROUTE REPREND : le bord d'en face
+    GAPMARK.push(gm);
+    straight(135+rnd()*40,-10,2);                   // ROUTE D'EN FACE : longue et lisible, on repose proprement
+    if(v===2){ // DOUBLE GAP : à peine reposé, la dalle se rouvre — le grand frisson de l'endgame
+      straight(30,10,1);                            // petite rampe de relance
+      const g2={v:2,p:P.clone()};
+      straight(12,8,1);
+      g2.h0=P.clone();
+      straight(48+K*26,-(4+K*4),2);                 // second trou, plus court : on l'enchaîne au culot
+      g2.h1=P.clone();
+      GAPMARK.push(g2);
+      straight(125+rnd()*30,-10,2);
+    }
+    straight(150+rnd()*60,-12,2); // DÉGAGEMENT : on respire, on relance
+    lastGap=approx;
+  };
   straight(170+level*14,-105,2); // DÉPART : grande ligne droite, rallongée avec la vitesse
   while(approx<LEN){
     const mo=pick();
@@ -1374,15 +1421,19 @@ function genCtrl(rnd,startPos,startPhi){
     }else if(mo===8){ // chicane rapide : gauche-droite-gauche à pleine vitesse
       const n8=3+Math.floor(rnd()*3),a8=16+rnd()*14,R8=(70+rnd()*90)*RS;let sg8=sgn();
       for(let q=0;q<n8;q++){arc(sg8*a8,R8,2,-(a8*Math.PI/180*R8*.5));sg8=-sg8;}
-    }else{ // spirale géante descendante : un tour de manège qui n'en finit pas
+    }else if(mo===9){ // spirale géante descendante : un tour de manège qui n'en finit pas
       const sg=sgn(),RSp=(130+rnd()*90)*RS*.8,aS=Math.min(360+rnd()*220,52000/RSp);
       arc(sg*aS,RSp,12+Math.floor(rnd()*5),-(aS*Math.PI/180*RSp*(.42+rnd()*.2)));
+    }else{ // LE GAP CATAPULTE — l'ÉVÉNEMENT de la zone : au plus 1 (2 dans l'endgame), jamais coup sur coup
+      const vG=(level>=8&&rnd()<.22)?2:(rnd()<.42?1:0);
+      if(approx<LEN-1000&&approx-lastGap>2600&&gapN<(level>=8?2:1))gapRun(vG);
+      else{const l=(100+rnd()*130)*(1+level*.04);straight(l,-l*(.75+rnd()*.3),2);} // déjà servi (ou pas la place) : droite de momentum, le rythme ne trébuche pas
     }
     if(rnd()<.6)straight(30+rnd()*50+level*9,-(18+rnd()*16)); // RESPIRATION entre motifs : le rythme fait la piste
   }
   // SIGNATURE DE FIN : chaque archétype clôt SA zone par SON geste — la zone se retient
   if(AR.nm==='VOLTIGE'){straight(50,-46);loop(34*LOOPS,34);straight(40,-40);loop(28*LOOPS,26);}
-  else if(AR.nm==='ALPIN'){straight(70,-160);straight(80,26);straight(90,-180);}
+  else if(AR.nm==='ALPIN'){straight(70,-160);straight(80,26);gapRun(1);} // ALPIN se clôt SUR LE VIDE : arrivée surélevée, dernier engagement avant le portail
   else if(AR.nm==='FLOW'){arc(sgn()*110,220*Math.min(2,LV),6,-160);}
   else if(AR.nm==='TECH'){let sgF=sgn();for(let q=0;q<3;q++){arc(sgF*24,90*RS,2,-26);sgF=-sgF;}}
   else{const sg=sgn();arc(sg*420,80*RS,12,-(420*Math.PI/180*80*RS*.5));}
@@ -1391,7 +1442,7 @@ function genCtrl(rnd,startPos,startPhi){
 }
 function buildTrack(seed){
   for(const m of trackMeshes){scene.remove(m);if(m.geometry)m.geometry.dispose();if(m.material&&m.material.dispose)m.material.dispose();}
-  trackMeshes.length=0;PADS=[];BUMPS=[];CONES=[];FLYCONES=[];OILS=[];
+  trackMeshes.length=0;PADS=[];BUMPS=[];CONES=[];FLYCONES=[];OILS=[];RAMPS=[];
   const rnd=mulberry32(seed);
   const ctrl=genCtrl(rnd,new THREE.Vector3(0,0,0),0);
   const curve=new THREE.CatmullRomCurve3(ctrl,false,'catmullrom',0.5);
@@ -1416,6 +1467,23 @@ function buildTrack(seed){
       n.addScaledVector(T[i+1],-n.dot(T[i+1])).normalize();
     }
   }
+  // ---- LE VIDE : on DÉCOUPE les portions de dalle qui n'existent pas ----
+  // genCtrl a semé les deux bords de chaque trou en coordonnées MONDE ; on les retrouve sur la courbe
+  // réelle (le lissage Catmull-Rom les a un peu déplacés). Tout ce qui suit — surface, tranches, néons,
+  // nappe, ligne centrale — SAUTE ces segments, et tryLand comme le viseur les ignorent. Résultat : un
+  // vrai trou traversant, pas une illusion peinte. La courbe, elle, continue (invisible) : elle sert
+  // encore de repère pour le bord d'en face.
+  HOLES=[];
+  {
+    const nearI=p=>{let bi=-1,bd=1e9;for(let i=0;i<NP;i++){const dx=p.x-pts[i].x,dy=p.y-pts[i].y,dz=p.z-pts[i].z,dd=dx*dx+dy*dy+dz*dz;if(dd<bd){bd=dd;bi=i;}}return bd<2500?bi:-1;};
+    for(const gm of GAPMARK){
+      const a=nearI(gm.h0),b9=nearI(gm.h1),lp=nearI(gm.p);
+      if(a<0||b9<0||lp<0||b9<=a+2)continue; // un bord égaré au lissage : on n'ouvre pas un trou approximatif
+      if(a<14||b9>NP-16)continue;           // jamais sur le largage de départ ni collé au portail
+      HOLES.push({i0:a,i1:b9,lip:lp,v:gm.v,s0:a/(NP-1)*L,s1:b9/(NP-1)*L});
+    }
+  }
+  const holeSeg=i=>{for(const h of HOLES)if(i>=h.i0&&i<h.i1)return true;return false;}; // le segment i→i+1 est-il dans le vide ?
   // ROUTE ÉPAISSE : grain LONGITUDINAL — stries dans le sens de la route (effet vitesse)
   const sideL_=[],sideR_=[];
   const nz=i=>{const x=Math.sin(i*12.9898)*43758.5453;return x-Math.floor(x);};
@@ -1429,7 +1497,7 @@ function buildTrack(seed){
   }
   const strip=(arr,mat)=>{
     const idx=[];
-    for(let i=0;i<NP-1;i++){const a2=2*i,b2=2*i+1,c2=2*i+2,d2=2*i+3;idx.push(a2,c2,b2,b2,c2,d2);}
+    for(let i=0;i<NP-1;i++){if(holeSeg(i))continue;const a2=2*i,b2=2*i+1,c2=2*i+2,d2=2*i+3;idx.push(a2,c2,b2,b2,c2,d2);} // le vide n'a pas de tranche
     const g=new THREE.BufferGeometry();
     g.setAttribute('position',new THREE.Float32BufferAttribute(arr,3));
     g.setIndex(idx);g.computeVertexNormals();
@@ -1453,9 +1521,12 @@ function buildTrack(seed){
         cols.push(sh,sh,sh+.04);
       }
     }
-    for(let i=0;i<NP-1;i++)for(let c9=0;c9<COLS-1;c9++){
-      const a2=i*COLS+c9,b2=a2+1,c2=a2+COLS,d2=c2+1;
-      idx.push(a2,c2,b2,b2,c2,d2);
+    for(let i=0;i<NP-1;i++){
+      if(holeSeg(i))continue; // LE TROU : pas une seule facette de bitume ici
+      for(let c9=0;c9<COLS-1;c9++){
+        const a2=i*COLS+c9,b2=a2+1,c2=a2+COLS,d2=c2+1;
+        idx.push(a2,c2,b2,b2,c2,d2);
+      }
     }
     const g=new THREE.BufferGeometry();
     g.setAttribute('position',new THREE.Float32BufferAttribute(arr,3));
@@ -1483,7 +1554,7 @@ function buildTrack(seed){
       ep.push(p.x+b.x*(o-sd*.6)+nn.x*h,p.y+b.y*(o-sd*.6)+nn.y*h,p.z+b.z*(o-sd*.6)+nn.z*h,
               p.x+b.x*o+nn.x*h,p.y+b.y*o+nn.y*h,p.z+b.z*o+nn.z*h);
     }
-    for(let i=0;i<NP-1;i++){const a2=2*i,b2=2*i+1,c2=2*i+2,d2=2*i+3;ei.push(a2,c2,b2,b2,c2,d2);}
+    for(let i=0;i<NP-1;i++){if(holeSeg(i))continue;const a2=2*i,b2=2*i+1,c2=2*i+2,d2=2*i+3;ei.push(a2,c2,b2,b2,c2,d2);} // les rails néon s'arrêtent au bord du vide
     const g2=new THREE.BufferGeometry();
     g2.setAttribute('position',new THREE.Float32BufferAttribute(ep,3));
     g2.setIndex(ei);
@@ -1502,7 +1573,7 @@ function buildTrack(seed){
                 p.x+b.x*oO+nn.x*h,p.y+b.y*oO+nn.y*h,p.z+b.z*oO+nn.z*h);
         gc.push(0,0,0,accC.r*.48,accC.g*.48,accC.b*.48); // noir additif = invisible → dégradé d'accent qui meurt sur l asphalte
       }
-      for(let i=0;i<NP-1;i++){const a2=vb+2*i,b2=a2+1,c2=a2+2,d2=a2+3;gi.push(a2,c2,b2,b2,c2,d2);}
+      for(let i=0;i<NP-1;i++){if(holeSeg(i))continue;const a2=vb+2*i,b2=a2+1,c2=a2+2,d2=a2+3;gi.push(a2,c2,b2,b2,c2,d2);} // ...et leur nappe aussi
       vb+=NP*2;
     }
     const g3=new THREE.BufferGeometry();
@@ -1516,6 +1587,7 @@ function buildTrack(seed){
   (function(){
     const lp=[];
     for(const fy of [.09,-THICK-.09])for(let i=0;i<NP-8;i+=16){
+      if(holeSeg(i)||holeSeg(i+7))continue; // la ligne centrale ne flotte pas au-dessus du vide
       for(const j of [i,i+7]){
         const p2=pts[j],nn=Nn[j];
         lp.push(p2.x+nn.x*fy,p2.y+nn.y*fy,p2.z+nn.z*fy);
@@ -1526,10 +1598,57 @@ function buildTrack(seed){
     const l=new THREE.LineSegments(g,new THREE.LineBasicMaterial({color:0xffc978,transparent:true,opacity:.8}));
     scene.add(l);trackMeshes.push(l);
   })();
+  // BORDS DU VIDE : on ferme la coupe. La dalle montre sa TRANCHE en rouge d'alerte — à pleine vitesse,
+  // c'est cette barre qui hurle « ça s'arrête LÀ », et on la voit bien avant d'y être.
+  for(const h of HOLES){
+    for(const e of [h.i0,h.i1]){
+      const p=pts[e],b=B[e],nn=Nn[e],vv=[];
+      for(const c of [[-1,0],[1,0],[-1,-THICK],[1,-THICK]])
+        vv.push(p.x+b.x*c[0]*ROAD_HALF+nn.x*c[1],p.y+b.y*c[0]*ROAD_HALF+nn.y*c[1],p.z+b.z*c[0]*ROAD_HALF+nn.z*c[1]);
+      const gc=new THREE.BufferGeometry();
+      gc.setAttribute('position',new THREE.Float32BufferAttribute(vv,3));
+      gc.setIndex([0,2,1,1,2,3]);
+      const mc=new THREE.Mesh(gc,new THREE.MeshBasicMaterial({color:0xff3b2e,side:THREE.DoubleSide}));
+      scene.add(mc);trackMeshes.push(mc);
+    }
+  }
+  // ---- TREMPLINS HÉROS : le balisage du « gap catapulte » ----
+  // Les trous sont déjà découpés (HOLES) ; reste à ÉQUIPER chaque lèvre pour qu'on la lise de très loin.
+  // ⚠ ZÉRO rnd() consommé ici : tout est déduit de la géométrie, sinon la génération en aval se décale.
+  for(const h of HOLES){
+    const sL=h.lip/(NP-1)*L;
+    RAMPS.push({s:sL,v:h.v,s0:Math.max(0,sL-340),s1:Math.min(L,h.s1+300)});
+    // BOOST OPTIONNEL : un seul pad turbo sur la ligne droite, à ~95 m de la lèvre. On le prend ou on
+    // l'ignore — c'est LE choix risque/récompense, pas un péage obligatoire.
+    if(sL-95>40)PADS.push(sL-95);
+    for(const fy of [1,-1]){ // MIROIR STRICT : le tremplin existe à l'identique sur les deux faces
+      // 1) TAPIS DE CHEVRONS : la course d'élan s'allume, l'œil suit la flèche jusqu'à la lèvre
+      frameAt(Math.max(0,sL-34),F);
+      const strp=new THREE.Mesh(rampStripGeo,new THREE.MeshBasicMaterial({map:rampTex,transparent:true,opacity:.62,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
+      strp.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(F.b.clone().multiplyScalar(-fy),F.t.clone(),F.n.clone().multiplyScalar(fy)));
+      strp.position.copy(F.p).addScaledVector(F.n,fy>0?.07:-THICK-.07);
+      strp.renderOrder=1;scene.add(strp);trackMeshes.push(strp);
+      // 2) LA LÈVRE : muret chaud et franc — on la voit venir, on la sent claquer
+      frameAt(sL,F);
+      const lip=new THREE.Mesh(rampLipGeo,rampLipMat);
+      lip.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(F.b.clone(),F.n.clone().multiplyScalar(fy),F.t.clone().multiplyScalar(fy)));
+      lip.position.copy(F.p).addScaledVector(F.n,fy>0?.30:-THICK-.30);
+      scene.add(lip);trackMeshes.push(lip);
+      // 3) ANNEAU DE VISÉE sur la route d'en face : LA PROMESSE, lisible avant même d'atteindre la lèvre
+      frameAt(Math.min(L-10,h.s1+45),F); // posé sur la route d'EN FACE, juste après le bord opposé
+      const ring=new THREE.Mesh(landRingGeo,new THREE.MeshBasicMaterial({color:0x3ee6f0,transparent:true,opacity:.5,side:THREE.DoubleSide,depthWrite:false,fog:false,blending:THREE.AdditiveBlending}));
+      ring.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(F.b.clone(),F.t.clone(),F.n.clone().multiplyScalar(fy)));
+      ring.position.copy(F.p).addScaledVector(F.n,fy>0?.11:-THICK-.11);
+      ring.renderOrder=1;scene.add(ring);trackMeshes.push(ring);
+    }
+  }
+  // le couloir du tremplin reste NU : ni plot, ni huile, ni pad parasite — la tension a besoin de silence visuel
+  const inGap=sp=>{for(const r of RAMPS)if(sp>r.s0&&sp<r.s1)return true;return false;};
   // pads turbo (les deux faces)
   for(let sp=180+rnd()*150;sp<L-100;sp+=280+rnd()*280){
+    const padCol=new THREE.Color([0x2e7bff,0xffffff,0xff3030][Math.floor(rnd()*3)]); // bleu / blanc / rouge (tiré AVANT le filtre : le flux rnd reste identique quoi qu'il arrive)
+    if(inGap(sp))continue; // la course d'élan garde son SEUL boost, celui qu'on a posé volontairement
     PADS.push(sp);
-    const padCol=new THREE.Color([0x2e7bff,0xffffff,0xff3030][Math.floor(rnd()*3)]); // bleu / blanc / rouge
     for(const fy of [1,-1]){
       frameAt(sp,F);
       const m=new THREE.Mesh(padGeo,new THREE.MeshBasicMaterial({map:padTex,color:padCol}));
@@ -1541,6 +1660,7 @@ function buildTrack(seed){
   }
   // dos d'âne — les DEUX faces, même endroit : le monde est identique où qu'on roule
   for(let sp=320+rnd()*260;sp<L-160;sp+=420+rnd()*420){
+    if(inGap(sp))continue; // pas de dos d'âne dans le couloir du tremplin : la LÈVRE doit rester le seul relief
     BUMPS.push(sp);
     frameAt(sp,F);
     const m=new THREE.Mesh(bumpGeo,bumpMat);
@@ -1563,6 +1683,7 @@ function buildTrack(seed){
     if(!straight||climbing)continue;
     frameAt(sp,F);
     const r9=2+rnd()*1.1, lo=(rnd()*2-1)*(ROAD_HALF-4.5);
+    if(inGap(sp))continue; // (tirages consommés au-dessus : le filtre gap ne décale pas le flux rnd)
     for(const of9 of [1,-1]){ // la MÊME flaque sur les deux faces : zéro dessus-dessous
       const m=new THREE.Mesh(oilGeo,oilMat);
       m.scale.set(r9*1.35,r9,1);
@@ -1590,13 +1711,11 @@ function buildTrack(seed){
   }
   // chaque GROUPE de plots existe sur LES DEUX faces (même chantier) — intervalle doublé : densité par face inchangée
   for(let sp=300+rnd()*220;sp<L-170;sp+=340+rnd()*520){
-    if(rnd()<.55){ // slalom en quinconce au milieu de la route
-      const w9=3.5+rnd()*4.5;
-      for(const fc of [1,-1])for(let k=0;k<3;k++)placeCone(sp+k*15,(k%2?-1:1)*w9,fc);
-    }else{ // ligne de chantier le long d'un bord
-      const sd9=rnd()<.5?-1:1;
-      for(const fc of [1,-1])for(let k=0;k<4;k++)placeCone(sp+k*7.5,sd9*(ROAD_HALF-1.3),fc);
-    }
+    const slal=rnd()<.55;                                     // le tirage tombe D'ABORD : le flux rnd ne dépend jamais du filtre gap
+    const w9=slal?3.5+rnd()*4.5:0,sd9=slal?0:(rnd()<.5?-1:1); // exactement 2 tirages par tour, comme avant
+    if(inGap(sp))continue;                                    // couloir du tremplin : nu
+    if(slal)for(const fc of [1,-1])for(let k=0;k<3;k++)placeCone(sp+k*15,(k%2?-1:1)*w9,fc);      // slalom en quinconce au milieu
+    else for(const fc of [1,-1])for(let k=0;k<4;k++)placeCone(sp+k*7.5,sd9*(ROAD_HALF-1.3),fc); // ligne de chantier le long d'un bord
   }
   // ---- FIN DE PARTIE (niveau 6+) : 2e vague de plots ----
   // Flux aléatoire SÉPARÉ (graine dérivée) : la densité dépend du niveau sans rebrasser la génération.
@@ -1604,6 +1723,7 @@ function buildTrack(seed){
     const wrnd=mulberry32((seed^0xCA55E77E)>>>0);
     for(let sp=385+wrnd()*220;sp<L-170;sp+=400+wrnd()*600){ // 2e vague de plots, miroir deux faces (intervalle doublé)
       const w9=3+wrnd()*5;
+      if(inGap(sp))continue; // (tirage consommé au-dessus) — même la 2e vague épargne le couloir du tremplin
       for(const f9 of [1,-1])for(let k=0;k<3;k++)placeCone(sp+k*13,(k%2?-1:1)*w9,f9);
     }
   }
@@ -1676,6 +1796,28 @@ const bumpMat=(function(){
   const t2=new THREE.CanvasTexture(cv);
   return new THREE.MeshLambertMaterial({map:t2});
 })();
+// ---------- TREMPLIN HÉROS : le balisage du « gap catapulte » ----------
+// Tout se joue sur la LECTURE INSTANTANÉE : à 1200 km/h le joueur doit comprendre la promesse d'un
+// coup d'œil. Trois pièces : (1) un TAPIS de chevrons qui montent sur la course d'élan — l'œil suit
+// la flèche ; (2) la LÈVRE, muret chaud et franc, rien à voir avec le gris d'un dos d'âne ; (3) un
+// ANNEAU DE VISÉE posé sur la route d'en face — la cible est visible AVANT même d'atteindre la lèvre.
+const rampTex=(function(){
+  const cv=document.createElement('canvas');cv.width=64;cv.height=256;
+  const c=cv.getContext('2d');
+  c.fillStyle='rgba(0,0,0,0)';c.clearRect(0,0,64,256);
+  c.lineCap='round';c.lineJoin='round';c.strokeStyle='#fff0c4';c.shadowColor='#ffb028';
+  for(let k=0;k<7;k++){ // chevrons de plus en plus SERRÉS et VIFS vers la lèvre : on sent l'accélération
+    const oy=246-k*35,f=k/6;
+    c.shadowBlur=10+f*14;c.globalAlpha=.20+f*.72;c.lineWidth=5+f*6;
+    c.beginPath();c.moveTo(10,oy);c.lineTo(32,oy-20);c.lineTo(54,oy);c.stroke();
+  }
+  c.globalAlpha=1;c.shadowBlur=0;
+  return new THREE.CanvasTexture(cv);
+})();
+const rampStripGeo=new THREE.PlaneGeometry(ROAD_HALF*2-2,64); // tapis de chevrons sur la course d'élan
+const rampLipGeo=new THREE.BoxGeometry(ROAD_HALF*2-2,.55,5);  // LA LÈVRE : franche, on la sent claquer
+const rampLipMat=new THREE.MeshLambertMaterial({color:0xffb028,emissive:0x6a3400}); // braise chaude : jamais confondue avec un dos d'âne
+const landRingGeo=new THREE.RingGeometry(8.5,11.5,32);        // anneau de visée sur la route d'arrivée
 let sOffset=0;
 
 // ---------- VOITURES & ÉCONOMIE ----------
@@ -2284,7 +2426,35 @@ function buildCar(spec){
 buildCar(CARS[0]);
 window.dbgCar=function(i){buildCar(CARS[Math.max(0,Math.min(23,i|0))]);}; // console : dbgCar(16) → prévisualiser un gabarit sans farmer les milliards (visuel pur, ne touche pas au niveau)
 window.dbgScene=function(){return {car:carGroup,scene:scene,contact:contactShadow,shadow:shadow};}; // dissection console (visuel pur)
-window.dbgState=function(){return {started:started,running:running,paused:paused,gameOver:gameOver,mode:mode,vA:+vA.toFixed(2),s:+s.toFixed(1),level:level,introD:introD,hopY:+hopY.toFixed(2)};}; // état interne (lecture seule)
+window.dbgState=function(){return {started:started,running:running,paused:paused,gameOver:gameOver,mode:mode,vA:+vA.toFixed(2),s:+s.toFixed(1),lat:+lat.toFixed(2),side:side,gapArmed:gapArmed,fallT:+fallT.toFixed(2),level:level,introD:introD,hopY:+hopY.toFixed(2)};}; // état interne (lecture seule)
+// TREMPLINS de la zone courante : archétype, longueur de piste, et chaque lèvre (position + variante).
+// `dbgGap(true)` téléporte à 220 m avant la 1re lèvre — pour juger le gap sans refaire la course d'élan.
+window.dbgGap=function(go){
+  const FP={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
+  const g=HOLES.map(h=>{
+    const sLv=h.lip/(NP-1)*L;
+    frameAt(sLv,FP);const penteLevre=+FP.t.y.toFixed(3),yLevre=FP.p.y;      // pente AU point de catapulte
+    frameAt(Math.max(0,sLv-7),FP);const penteAvant=+FP.t.y.toFixed(3);      // ...et 7 u avant (là où ça se déclenche vraiment)
+    frameAt(h.s0,FP);const p0=FP.p.clone();
+    frameAt(h.s1,FP);
+    return {variante:['propre','surélevé','double'][h.v],
+            levre:Math.round(h.lip/(NP-1)*L),
+            largeur:Math.round(p0.distanceTo(FP.p)), // largeur RÉELLE du vide, bord à bord (doit rester < ~118)
+            denivele:Math.round(FP.p.y-p0.y),        // + = route d'en face SURÉLEVÉE (il faut s'engager)
+            i0:h.i0,i1:h.i1,s0:Math.round(h.s0),s1:Math.round(h.s1),penteLevre:penteLevre,penteAvant:penteAvant,dLevreBord:Math.round(p0.y-yLevre),
+            mid:[(p0.x+FP.p.x)/2,(p0.y+FP.p.y)/2,(p0.z+FP.p.z)/2], // plein milieu du vide (pour vérif au rayon)
+            avant:[p0.x,p0.y,p0.z]};                 // dernier point de dalle avant le trou
+  });
+  if(go&&HOLES.length){s=Math.max(0,HOLES[0].lip/(NP-1)*L-260);lat=0;psi=0;side=1;mode='drive';vA=Math.max(vA,110);prevTvalid=false;}
+  return {zone:zoneArch,L:Math.round(L),trous:g};
+};
+// SIMULATION PAS À PAS : en headless l'onglet est « caché », rAF est suspendu et le jeu ne bouge plus —
+// impossible de vérifier une mécanique. Ce pas-à-pas fait avancer la boucle À LA MAIN, sans rAF.
+window.dbgStep=function(n,ms){
+  n=n||60;ms=ms||16;
+  for(let k=0;k<n;k++){last=performance.now()-ms;loop(performance.now());}
+  return window.dbgState();
+};
 window.dbgPerf=function(){return {ms:+(loop._ms||0).toFixed(1),fps:Math.round(1000/Math.max(1,loop._ms||16)),spikes:+(loop._spk||0).toFixed(1),dpr:+curDPR.toFixed(2),tier:QUAL_LOW?'LOW':QUAL_MED?'MED':'FULL',steps:VOL?VOL.stepBase+'/'+VOL.U.uLightSteps.value:'sprites'};}; // à copier-coller dans un rapport de perf
 window.dbgView=function(a,d,h){ // MODE PHOTO : force la pause, cadre la caisse sous l'angle a (rad), distance d, hauteur h, re-rend UNE frame
   if(started&&!gameOver&&!paused)togglePause(); // sans pause, la chase-cam écrase le cadrage à la frame suivante
@@ -3566,6 +3736,9 @@ function vmaxShow(){const l9=1+Math.min(.5,Math.max(0,level-5)*.08);return CARS[
 let mode='drive',s=0,lat=0,psi=0,vA=0,vL=0,side=1;
 let steer=0,money=0,levelCash=0,boost=0,fallT=0,fallTR=0,padCd=0,shake=0,combo=0,comboT=0,graceT=0,safeS=0,yawAcc=0,edgeT=0,squashT=0,momT=0,styleM=0,fever=0,streak=0,slowT=0,steerHold=0,aheadV=0,sideCd=0,slipT=0,oilCd=0,hitT=0,insUsed=false,feverArmed=false,lastSpaceT=0,rollover=0;
 let airRoll=0; // vrille visuelle en vol
+// TREMPLIN HÉROS : gapArmed = variante du tremplin qui a lancé CE vol (0 = vol ordinaire, 1/2/3 = v+1),
+// lu au verdict d'atterrissage pour le GAP FRANCHI ; rampCd empêche de re-catapulter en reposant dessus.
+let gapArmed=0,rampCd=0;
 // suivi des exploits pour l'announcer — SNAKE LOOP v2 : fallStartSide mémorise la FACE de décollage,
 // fallUnder s'arme si on passe SOUS la route pendant le vol (côté opposé au départ, dans la largeur
 // de la dalle) ; le trick ne se VALIDE qu'à l'atterrissage, sur la même face que le départ (tryLand).
@@ -3815,7 +3988,7 @@ function checkUpgrade(){
     carCardShow(CARS[level]); // la carte de déblocage : nom, chrono max, et la punchline
   }
 }
-function startFall(impU,impF){
+function startFall(impU,impF,capV){
   mode='fall';fallT=0;fallTR=0;yawAcc=0;momT=0;airRoll=0;
   // TEMPO DE VOL ∝ VITESSE (2026-07-20, dosage DOUX sur base V1) : =1 jusqu'à 450 km/h affichés
   // (basse/moyenne vitesse : rigoureusement l'existant), puis +1 tous les 1800 km/h, CAP 1.35 —
@@ -3824,13 +3997,18 @@ function startFall(impU,impF){
   // paiements (fallT temps-sim) INCHANGÉS — seul le temps réel du vol se compresse un peu.
   AIR_RATE=THREE.MathUtils.clamp(1+Math.max(0,Math.abs(vA)*3.6*SPD-450)/1800,1,1.35);
   nitroAirT=0;fallUnder=false;fallStartSide=side; // SNAKE LOOP : côté de départ figé, passage dessous à prouver
+  gapArmed=0; // vol ordinaire par défaut — la catapulte réarme JUSTE APRÈS cet appel
   bounceN=0;flightId++; // nouveau vol : compteur de bumps et budget d'airtime des nuages remis à zéro
   if(Math.abs(vA)*3.6*SPD>400)annSpeak('launch400',1); // éjecté à +400 km/h (1 fois sur 3)
   frameAt(s,F);
   if(side<0){F.n.multiplyScalar(-1);F.b.multiplyScalar(-1);}
   fallPos.copy(F.p).addScaledVector(F.b,lat).addScaledVector(F.n,(side<0?THICK:0)+.6);
   fallVel.copy(F.t).multiplyScalar(vA*(impF||1)).addScaledVector(F.b,vL).addScaledVector(F.n,impU||.9);
-  if(fallVel.length()>95)fallVel.setLength(95); // les fusées ne partent plus en orbite
+  // PLAFOND DE LANCEMENT : 95 par défaut (les fusées ne partent plus en orbite). La CATAPULTE le
+  // desserre — sans ça la portée serait IDENTIQUE à 200 comme à 1200 km/h, et le boost avant la
+  // rampe ne servirait à rien : c'est ce plafond qui rend le choix risque/récompense réel.
+  const cap9=capV||95;
+  if(fallVel.length()>cap9)fallVel.setLength(cap9);
   hopY=0;hopV=0; // un dos d'âne en cours ne doit pas laisser de décalage fantôme
   lastNearY=fallPos.y; // référence du plongeon fatal tant que tryLand n'a pas mieux
   // chaîne neuve : le vol commence, tout est à prouver
@@ -3852,6 +4030,7 @@ const dTmp=new THREE.Vector3();
 function tryLand(dt){
   let bestI=-1,bd=1e9;
   for(let i=0;i<NP;i+=2){
+    if(holeAtI(i))continue; // LE VIDE : on ne se pose pas sur une dalle qui n'existe pas
     const dx=fallPos.x-pts[i].x,dy=fallPos.y-pts[i].y,dz=fallPos.z-pts[i].z;
     const dd=dx*dx+dy*dy+dz*dz;
     if(dd<bd){bd=dd;bestI=i;}
@@ -3929,6 +4108,12 @@ function tryLand(dt){
     rollover=g>=1.5?chainVal*.1:0; // ROLLOVER : un PARFAIT reporte 10 % — la fortune voyage au vol suivant
     const snaked=fallUnder&&sideL===fallStartSide; // SNAKE LOOP v2 : passé SOUS la route, reposé face de départ
     if(snaked){chainVal+=14;chainMult+=.5;}        // la figure paye sa part dans la chaîne
+    // GAP FRANCHI : le vol vient d'une CATAPULTE et il a vraiment traversé — le grand geste de la zone se paye
+    const gapOk=gapArmed>0&&fallT>.9;
+    if(gapOk){
+      chainVal+=gapArmed===3?26:(gapArmed===2?20:16);chainMult+=.6;
+      trickMsg(gapArmed===3?'🚀 DOUBLE GAP — MONSTRUEUX !':'🚀 GAP FRANCHI !',3);
+    }
     if(Math.abs(latOff)<ROAD_HALF*.3){chainVal+=4;chainMult+=.2;trickMsg('PILE AU CENTRE 🎯',false);} // posé sur l'axe
     if(vA<-3){chainVal+=6;chainMult+=.3;trickMsg('À RECULONS — MÊME PAS REGARDÉ !',2);}              // posé en marche arrière
     if(sideL<0&&chainVal>0)trickMsg('FACE CACHÉE ×2',2);
@@ -3944,6 +4129,7 @@ function tryLand(dt){
       let vTier=q>=140?3:(q>=45?2:1),vPrio=vTier;
       if(nitroOn&&nitroAirT>1){vKey='meteor';vTier=Math.max(vTier,2);vPrio=4;}    // impact en pleine poussée
       if(snaked){vKey='snakeLoop';vTier=3;vPrio=5;}                               // passé dessous, reposé côté départ
+      if(gapOk){vTier=3;vPrio=Math.max(vPrio,5);if(q<45)vKey='m2';}               // traverser le vide mérite au moins le DOUBLE MONSTRE
       if(nitroOn&&nitroAirT>5){vKey='megaMeteor';vTier=3;vPrio=6;}                // 5 s de réacteur : l'ultime
       const vTxt=annSpeak(vKey,vPrio)||'MONSTRE';
       trickMsg(gTxt+vTxt+'  +'+fmtC(gain),vTier);
@@ -3956,6 +4142,7 @@ function tryLand(dt){
   }
   chainHud.style.opacity=0;
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;
+  gapArmed=0; // la catapulte est encaissée : le prochain vol repart vierge
   return true;
 }
 function newTrack(){
@@ -3989,7 +4176,7 @@ function resetGame(){
   nitroR=2;nitroX=0;boost=0;combo=0;edgeT=0;momT=0;styleM=0;fever=0;streak=0;slowT=0;gameOver=false;paused=false;insUsed=false;feverArmed=false;rollover=0;
   pwrNitroT=0;pwrAirT=0;pwrSpdT=0;
   nextRainAt=4e3;moneyRainT=0;sideCd=0;slipT=0;oilCd=0;
-  nitroAirT=0;fallUnder=false;pureT=0;pureArmed=true;annStop();
+  nitroAirT=0;fallUnder=false;pureT=0;pureArmed=true;gapArmed=0;rampCd=0;annStop();
   bounceN=0;airFlash=0;flightId=0;
   chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;dolphT=0;trkDolph=false;
@@ -4402,10 +4589,15 @@ function survTick(dt){
       if(b.airH<=0){ // la retombée
         b.air=false;b.airH=0;b.vy=0;b.spin=0;b.spinV=0;b.jumpCD=1+Math.random()*1.6;
         if(Math.abs(b.lat)>ROAD_HALF){botBoom(b);continue;} // retombé À CÔTÉ : le vide ne pardonne pas, même à eux
+        if(rel>0&&rel<L&&holeAtS(rel)){botBoom(b);continue;} // retombé DANS le trou : il n'a pas passé le gap, point
         if(b.mesh.g.visible)sparkBurst(sparkGold,b.mesh.g.position,7,7);
       }
     }else{
-      if(Math.abs(b.lat)>ROAD_HALF){ // le BORD : même sanction que toi — ça décolle, à lui de revenir
+      const hb9=(rel>0&&rel<L)?holeAtS(rel):null;
+      if(hb9){ // LE TROU : la dalle a disparu sous ses roues — il s'envoie, exactement comme toi
+        b.air=true;b.airH=.01;b.spinV=(Math.random()-.5)*2.5;
+        b.vy=13*Math.min(3.5,1.15*(hb9.s1-hb9.s0)/Math.max(20,b.v*SPD)); // vy calé sur la LARGEUR du trou : il vise l'autre bord
+      }else if(Math.abs(b.lat)>ROAD_HALF){ // le BORD : même sanction que toi — ça décolle, à lui de revenir
         b.air=true;b.airH=.01;b.vy=6;b.spinV=(Math.random()-.5)*2;
       }else{
         b.jumpCD-=dt;
@@ -4689,6 +4881,27 @@ function loop(now){
           break;
         }
       }
+      // ---- LA CATAPULTE : le tremplin héros envoie la caisse par-dessus le vide ----
+      // Rien à voir avec un dos d'âne (qui fait sautiller) : ici on QUITTE la dalle d'un coup de reins,
+      // la route d'en face est déjà dans le pare-brise et le viseur d'atterrissage prend le relais.
+      // Trop lent = pas de décollage : on franchit la lèvre et on plonge dans le gouffre — dont le fond
+      // est roulable et la remontée praticable. Rater coûte du temps et du style, jamais la partie.
+      rampCd=Math.max(0,rampCd-dt);
+      if(mode==='drive'&&rampCd<=0&&Math.abs(lat)<ROAD_HALF-1)for(const r9 of RAMPS){
+        if(Math.abs(s-r9.s)>7)continue;
+        if(Math.abs(vA)*3.6*SPD<110)break; // au pas : la lèvre ne catapulte personne — et le vide attend juste derrière
+        rampCd=1.4;                        // on ne se relance pas en retombant sur sa propre lèvre
+        startFall(6.6+(r9.v===1?1.4:0),1.14,130); // pop vertical + poussée avant, plafond desserré : ici la VITESSE paye
+        gapArmed=r9.v+1;                   // ARMÉ APRÈS startFall (qui remet à 0) : le verdict saura d'où vient ce vol
+        boost=Math.max(boost,1.5);shake=Math.max(shake,.55);
+        boostSnd();duckT=Math.max(duckT,.35);
+        trickMsg('🚀 CATAPULTE !',2);
+        sparkBurst(sparkGold,fallPos,20,14);
+        break;
+      }
+      // LE VIDE SOUS LES ROUES : la dalle s'est arrêtée et on est encore dessus — donc on tombe.
+      // Pas de fond, pas de filet : c'est la sanction de qui arrive trop lentement sur la lèvre.
+      if(mode==='drive'&&holeAtS(s))startFall(1.1,1);
       // dos d'âne : petit saut — sur les DEUX faces (hopY suit F.n déjà retournée quand side<0)
       if(mode==='drive'&&hopY===0&&Math.abs(vF)>10)for(const b9 of BUMPS){
         if(Math.abs(s-b9)<2.2){
@@ -5031,6 +5244,7 @@ function loop(now){
         tmp2.addScaledVector(tmp3,.12*SPD);
         let bi=-1,bdd=400;
         for(let i2=0;i2<NP;i2+=8){
+          if(holeAtI(i2))continue; // le viseur ne promet jamais un atterrissage dans le vide
           const dx=tmp2.x-pts[i2].x,dy=tmp2.y-pts[i2].y,dz=tmp2.z-pts[i2].z,dd2=dx*dx+dy*dy+dz*dz;
           if(dd2<bdd){bdd=dd2;bi=i2;}
         }
