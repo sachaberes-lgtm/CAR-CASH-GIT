@@ -208,17 +208,6 @@
   #nameInput{border-radius:10px;border:1px solid rgba(0,234,255,.5);box-shadow:none}
   #nameSave{border-radius:999px;border:1px solid #62e062;box-shadow:none}
   /* ------- INTRO STUDIO 1.61 : accumulation → FISSION ------- */
-  /* CARTE DE DÉBLOCAGE : la nouvelle caisse se présente — nom, chrono, punchline */
-  #carCard{position:fixed;left:50%;top:16%;transform:translateX(-50%) scale(.7);max-width:min(440px,86vw);
-    background:rgba(10,8,20,.82);border:1px solid rgba(255,215,94,.65);border-radius:14px;padding:14px 20px 15px;
-    text-align:center;z-index:22;opacity:0;pointer-events:none;backdrop-filter:blur(6px);
-    box-shadow:0 0 34px rgba(255,215,94,.25),inset 0 0 22px rgba(255,215,94,.06);
-    transition:opacity .3s,transform .35s cubic-bezier(.2,1.6,.4,1)}
-  #carCard.on{opacity:1;transform:translateX(-50%) scale(1)}
-  #carCard .ccTag{font-size:11px;letter-spacing:4px;color:#ffd75e;opacity:.9}
-  #carCard .ccName{font-size:26px;font-weight:900;letter-spacing:2px;color:#fff;text-shadow:0 0 18px rgba(255,215,94,.55);margin:2px 0}
-  #carCard .ccSpd{font-size:13px;font-weight:700;color:#ff9d2e;letter-spacing:2px;margin-bottom:6px}
-  #carCard .ccDesc{font-size:13px;line-height:1.45;color:#e8dcc8;font-style:italic}
   #splash{position:fixed;inset:0;background:radial-gradient(900px 600px at 50% 46%,#191024,#000 75%);z-index:40;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:opacity .7s;overflow:hidden}
   #fxCv{position:absolute;inset:0;width:100%;height:100%}
   #spStage{position:relative;text-align:center;z-index:2}
@@ -301,7 +290,6 @@
 </style>
 </head>
 <body>
-<div id="carCard"></div>
 <div id="splash">
   <canvas id="fxCv"></canvas>
   <div id="spStage">
@@ -4035,22 +4023,11 @@ function respawn(){
   s=THREE.MathUtils.clamp(safeS-8,0,Math.max(0,L-80));
   lat=0;psi=0;vA=26;vL=0;side=1;graceT=1.6;prevTvalid=false;yawAcc=0;hopY=0;hopV=0;mode='drive';
 }
-let carCardT=null;
-function carCardShow(spec){ // la caisse neuve se présente : nom qui claque, chrono qui fait peur, punchline
-  const el=$('carCard');
-  el.innerHTML='<div class="ccTag">🔑 NOUVELLE CAISSE DÉBLOQUÉE</div><div class="ccName">'+spec.name+'</div>'
-    +'<div class="ccSpd">'+spec.maxKmh+' KM/H · NIVEAU '+(CARS.indexOf(spec)+1)+' / '+CARS.length+'</div>'
-    +'<div class="ccDesc">'+spec.desc+'</div>';
-  el.classList.add('on');
-  if(carCardT)clearTimeout(carCardT);
-  carCardT=setTimeout(function(){el.classList.remove('on');},5200);
-}
 function checkUpgrade(){
   let up=false;
   while(level<23&&levelCash>=THRESH[level]){level++;up=true;}
   if(up){buildCar(CARS[level]);boost=Math.max(boost,1.3);fanfare();shake=Math.max(shake,.4);
-    showMsg('🔑 NOUVELLE CAISSE → '+CARS[level].name,'#ffd75e');
-    carCardShow(CARS[level]); // la carte de déblocage : nom, chrono max, et la punchline
+    showMsg('NOUVELLE CAISSE','#ffd75e'); // sobre : la caisse neuve parle d'elle-même, on ne coupe plus le run pour la présenter
   }
 }
 function startFall(impU,impF,capV){
