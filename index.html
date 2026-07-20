@@ -469,6 +469,11 @@ const sunSprite=(function(){
   draw();
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(draw).catch(function(){});
   const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false,fog:false}));
+  // renderOrder ÉPINGLÉ (2026-07-20 v3) : sans lui, le tri des transparents (distance CAMÉRA,
+  // recalculée chaque frame) faisait passer le soleil devant/derrière les titans au gré du shake
+  // → gros clignotement à l'horizon. Le trio soleil/nappe/rayons dessine toujours JUSTE après le
+  // skyDome (-9), donc toujours DERRIÈRE les nuages : ordre fixe, plus aucun flip possible.
+  sp.renderOrder=-8;
   sp.scale.set(940,940,1);return sp; // contenu et fondu : un couchant qui se noie dans la nuit, pas un projecteur
 })();
 // LUEUR D'HORIZON + RAYONS CRÉPUSCULAIRES (purement visuels — constantes réglables)
@@ -480,6 +485,7 @@ const horizonGlow=(function(){ // nappe très large et plate : l'horizon embras�
   g.addColorStop(0,'rgba(255,182,128,.82)');g.addColorStop(.45,'rgba(240,110,126,.38)');g.addColorStop(1,'rgba(240,110,126,0)');
   c.fillStyle=g;c.fillRect(0,0,256,64);
   const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthWrite:false,fog:false,blending:THREE.AdditiveBlending,opacity:.8}));
+  sp.renderOrder=-7; // épinglé derrière les nuages (voir sunSprite)
   sp.scale.set(3000,560,1);return sp;
 })();
 const RAYS=(function(){ // 3-4 faisceaux diffus en éventail derrière les nuages (discrets)
@@ -494,6 +500,7 @@ const RAYS=(function(){ // 3-4 faisceaux diffus en éventail derrière les nuage
   const arr=[];
   for(let i=0;i<RAY_ANGLES.length;i++){
     const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false,fog:false,blending:THREE.AdditiveBlending,opacity:RAY_OPACITY,rotation:RAY_ANGLES[i]}));
+    sp.renderOrder=-6; // épinglé derrière les nuages (voir sunSprite)
     sp.scale.set(260,1700,1);arr.push(sp);
   }
   return arr;
@@ -1132,7 +1139,13 @@ function buildClouds(rr){
 }
 function updateClouds(dt,t){
   cloudIn=0;
-  if(VOL){const U=VOL.U;U.uTime.value=t;U.uFogNear.value=scene.fog.near;U.uFogFar.value=scene.fog.far;U.uFogCol.value.copy(scene.fog.color);
+  // FOG STABLE POUR LES NUAGES (2026-07-20 v3) : scene.fog.near/far S'EFFONDRENT en traversée
+  // (420→26 / 2600→340 via cloudInS) — les donner au shader faisait PULSER tous les nuages de
+  // l'écran à chaque entrée/sortie de banc (LE clignotement de traversée). Les nuages lisent
+  // désormais le fog du BIOME (FOG_N/FOG_F, ne bouge qu'au portail sur 4 s) : pendant un white-out
+  // c'est le volume qu'on traverse qui masque le lointain, pas un fondu global. La couleur, elle,
+  // reste celle du fog vivant (teinte douce, aucun effet d'alpha).
+  if(VOL){const U=VOL.U;U.uTime.value=t;U.uFogNear.value=FOG_N;U.uFogFar.value=FOG_F;U.uFogCol.value.copy(scene.fog.color);
     U.uProj.value.copy(camera.projectionMatrix);} // gl_FragDepth (profondeur vraie) : la projection du frame, FOV vivant compris
   const cp=carGroup.position,camP=camera.position;
   const carV=mode==='fall'?fallVel.length():Math.abs(vA);
@@ -2506,7 +2519,7 @@ window.dbgStep=function(n,ms){
   for(let k=0;k<n;k++){last=performance.now()-ms;loop(performance.now());}
   return window.dbgState();
 };
-window.dbgPerf=function(){return {ms:+(loop._ms||0).toFixed(1),fps:Math.round(1000/Math.max(1,loop._ms||16)),spikes:+(loop._spk||0).toFixed(1),dpr:+curDPR.toFixed(2),tier:QUAL_LOW?'LOW':QUAL_MED?'MED':'FULL',steps:VOL?VOL.stepBase+'/'+VOL.U.uLightSteps.value:'sprites'};}; // à copier-coller dans un rapport de perf
+window.dbgPerf=function(){return {ms:+(loop._ms||0).toFixed(1),fps:Math.round(1000/Math.max(1,loop._ms||16)),spikes:+(loop._spk||0).toFixed(1),dpr:+curDPR.toFixed(2),dprCeil:loop._dprCeilT?+loop._dprCeil.toFixed(2):null,cloudIn:+cloudInS.toFixed(2),tier:QUAL_LOW?'LOW':QUAL_MED?'MED':'FULL',steps:VOL?VOL.stepBase+'/'+VOL.U.uLightSteps.value:'sprites'};}; // à copier-coller dans un rapport de perf (dprCeil non-null = le yoyo de résolution a été bridé)
 window.dbgView=function(a,d,h){ // MODE PHOTO : force la pause, cadre la caisse sous l'angle a (rad), distance d, hauteur h, re-rend UNE frame
   if(started&&!gameOver&&!paused)togglePause(); // sans pause, la chase-cam écrase le cadrage à la frame suivante
   const p=carGroup.position;
@@ -4814,11 +4827,23 @@ function loop(now){
   else if(!QUAL_MED&&now>6000&&(loop._ms>18.5||loop._spk>9))applyPerfTier(true,false); // ça tire la langue (<54 fps soutenus) OU ça saccade par à-coups : palier MOYEN, quasi invisible à l'œil
   // RÉSOLUTION ADAPTATIVE : on suit le temps par frame (EMA loop._ms) et on ajuste le pixelRatio
   // — GPU qui peine → on baisse la résolution ; marge confortable → on la remonte (plafond = écran).
+  // v3 ANTI PING-PONG (2026-07-20) : l'ancienne remontée instantanée à <14,5 ms faisait OSCILLER la
+  // résolution sur les machines pile au seuil (monte → rame → descend → respire → remonte…). Chaque
+  // cran re-échantillonne TOUT l'écran, et ce sont les dégradés doux des NUAGES qui le montrent le
+  // plus : un clignotement « sans logique », corrélé à la charge donc au mouvement caméra. Désormais
+  // (1) la remontée exige ~4,5 s de marge CONSÉCUTIVE, (2) une montée qui retombe en <6 s marque ce
+  // palier TROP HAUT (plafond mémorisé 45 s) — le yoyo est structurellement impossible.
   dprT-=dt;
   if(dprT<=0&&now>4000){dprT=1.1;const ms9=loop._ms||16;
-    if(ms9>24&&curDPR>.6){curDPR=Math.max(.6,curDPR-.15);applyDPR();}       // ça rame fort : gros cran de résolution en moins
-    else if(ms9>19&&curDPR>.85){curDPR=Math.max(.85,curDPR-.08);applyDPR();} // ça tire : petit cran (hystérésis avec la remontée à <14.5)
-    else if(ms9<14.5&&curDPR<DPR_CAP-.001){curDPR=Math.min(DPR_CAP,curDPR+.08);applyDPR();}
+    const dn9=(fl9,d9)=>{curDPR=Math.max(fl9,curDPR-d9);loop._dprUp=0;
+      if(loop._dprRoseT&&now-loop._dprRoseT<6000){loop._dprCeil=curDPR;loop._dprCeilT=now;} // montée retombée aussitôt → ce palier est un mur
+      loop._dprRoseT=0;applyDPR();};
+    if(ms9>24&&curDPR>.6)dn9(.6,.15);        // ça rame fort : gros cran de résolution en moins
+    else if(ms9>19&&curDPR>.85)dn9(.85,.08); // ça tire : petit cran (hystérésis avec la remontée)
+    else if(ms9<14.5){const ceil9=(loop._dprCeilT&&now-loop._dprCeilT<45000)?loop._dprCeil:DPR_CAP;
+      loop._dprUp=(loop._dprUp||0)+1;
+      if(curDPR<ceil9-.001&&loop._dprUp>=4){loop._dprUp=0;loop._dprRoseT=now;curDPR=Math.min(ceil9,curDPR+.08);applyDPR();}}
+    else loop._dprUp=0;
   }
   bioStep(dt); // BIOMES : le voyage d'ambiance avance même au menu/en pause de jeu (c'est le ciel qui vit, pas la sim)
   if(slowT>0){slowT-=dt;dt*=.45;} // slow-mo d'atterrissage
