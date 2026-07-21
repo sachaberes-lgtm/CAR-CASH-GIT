@@ -905,7 +905,7 @@ function buildClouds(rr){
   }
   // TOURS GÉANTES façon simulateur de vol : des montagnes de ouate — une sur quatre est
   // PLANTÉE sur la piste (rayon PLAFONNÉ : le white-out dure 2 s, pas 10)
-  for(let k=0;k<8;k++){
+  for(let k=0;k<5;k++){ // 8→5 : moins de tours (le ciel était trop chargé)
     const i=Math.floor(cr()*NP);
     const cross=cr()<.22;
     const r9=cross?Math.min(120+cr()*140,190):200+cr()*220; // les tours libres DOUBLENT de taille
@@ -914,19 +914,19 @@ function buildClouds(rr){
       .addScaledVector(Nn[i],cross?-r9*.25+cr()*30:-140+cr()*330),r9,{giant:true,onRoad:cross,noFog:!cross},cr);
   }
   // MER DE NUAGES sous la piste : le tapis à perte de vue du vol au-dessus des nuages
-  for(let k=0;k<10;k++){
+  for(let k=0;k<6;k++){ // 10→6
     const i=Math.floor(cr()*NP);
     mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],(cr()*2-1)*1100)
       .addScaledVector(Nn[i],-(170+cr()*220)),170+cr()*150,{sea:true,noFog:true},cr);
   }
   // ouate à mi-distance : les nuages rêveurs qu'on longe — moins nombreux, nettement plus GROS
-  for(let k=0;k<5;k++){
+  for(let k=0;k<3;k++){ // 5→3
     const i=Math.floor(cr()*NP);
     mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],(125+cr()*260)*(cr()<.5?-1:1))
       .addScaledVector(Nn[i],-60+cr()*180),95+cr()*85,{deco:true},cr);
   }
   // voiles d'altitude : nappes roses étirées très haut — le plafond féerique
-  for(let k=0;k<7;k++){
+  for(let k=0;k<4;k++){ // 7→4
     const i=Math.floor(cr()*NP);
     mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],(cr()*2-1)*1400)
       .addScaledVector(Nn[i],230+cr()*220),150+cr()*120,{veil:true,noFog:true},cr);
@@ -945,7 +945,7 @@ function buildClouds(rr){
   // 1) RUES DE NUAGES : chaînes de 2-3 cumulus qui FILENT sous le vent, tous posés sur le MÊME
   //    plafond de condensation (deckY) — la signature d'un vrai ciel, un étage sous la route
   const deckY=roadY-58+cr()*18;
-  for(let ch=0;ch<7;ch++){
+  for(let ch=0;ch<4;ch++){ // 7→4 rues
     const i=Math.floor(cr()*NP),a=cr()*6.2832,d=280+cr()*1200;
     let x9=pts[i].x+Math.cos(a)*d,z9=pts[i].z+Math.sin(a)*d;
     const n9=2+Math.floor(cr()*2);
@@ -956,27 +956,27 @@ function buildClouds(rr){
     }
   }
   // 2) ÉLECTRONS LIBRES : quelques gros cumulus détachés au-dessus du tapis (la couche vivante)
-  for(let k=0;k<6;k++){
+  for(let k=0;k<4;k++){ // 6→4
     const i=Math.floor(cr()*NP),a=cr()*6.2832,d=260+cr()*1250;
     cldV1.set(pts[i].x+Math.cos(a)*d,roadY-20+cr()*260,pts[i].z+Math.sin(a)*d);
     mkCloud(cldV1,90+cr()*150,{deco:true,noFog:true},cr);
   }
   // 3) BANC HAUT : du volume quand on lève les yeux
-  for(let k=0;k<9;k++){
+  for(let k=0;k<5;k++){ // 9→5
     const i=Math.floor(cr()*NP),a=cr()*6.2832,d=300+cr()*1700;
     cldV1.set(pts[i].x+Math.cos(a)*d,roadY+260+cr()*640,pts[i].z+Math.sin(a)*d);
     mkCloud(cldV1,120+cr()*180,{deco:true,noFog:true},cr);
   }
   // 4) L'OCÉAN : l'undercast — un tapis PLAT à perte de vue, loin sous la piste (bande d'altitude
   //    serrée : une MER avec un niveau, pas des galettes flottant n'importe où)
-  for(let k=0;k<12;k++){
+  for(let k=0;k<7;k++){ // 12→7 : l'undercast reste un tapis, en moins dense
     const i=Math.floor(cr()*NP),a=cr()*6.2832,d=800+cr()*1600;
     cldV1.set(pts[i].x+Math.cos(a)*d,roadY-245+cr()*75,pts[i].z+Math.sin(a)*d);
     mkCloud(cldV1,200+cr()*180,{sea:true,noFog:true},cr);
   }
   // 5) LES MASSIFS : trois fronts de tours ÉPAULE CONTRE ÉPAULE qui montent du tapis, étalés
   //    en travers du vent, échelonnés le long du run — l'horizon a une géographie
-  for(let g9=0;g9<3;g9++){
+  for(let g9=0;g9<2;g9++){ // 3→2 fronts
     const i=Math.min(NP-1,Math.floor(((g9+cr()*0.9)/3)*NP));
     const a=pickAz(),d=800+cr()*1300;
     const bx=pts[i].x+Math.cos(a)*d,bz=pts[i].z+Math.sin(a)*d;
@@ -5454,11 +5454,13 @@ function loop(now){
         engWhineG.gain.setTargetAtTime(0,AC.currentTime,.1);
       }
       if(windG){
-        windG.gain.setTargetAtTime(Math.min(.05,spd3*.0001+(mode==='fall'?.018:0)+cloudInS*.02)*dk,AC.currentTime,.15); // coef ÷2 (SPD .25→.5 : spd3 a doublé) — le vent garde sa montée progressive au lieu de saturer dès le mid-game
+        // MORT ('boom') : coupé NET — sinon spd3 (=speedKmh figé au crash) laisse le vent souffler à fond pour toujours
+        windG.gain.setTargetAtTime(mode==='boom'?0:Math.min(.05,spd3*.0001+(mode==='fall'?.018:0)+cloudInS*.02)*dk,AC.currentTime,mode==='boom'?.08:.15); // coef ÷2 (SPD .25→.5 : spd3 a doublé) — le vent garde sa montée progressive au lieu de saturer dès le mid-game
         windF.frequency.setTargetAtTime((280+spd3*1.25)*(1-.6*cloudInS)+(mode==='fall'?260:0),AC.currentTime,.15); // le nuage étouffe le vent, l'air libre l'aère (coef ÷2 : même pitch au même état-caisse)
       }
       if(whG){ // sifflement d'air : la signature des vitesses folles (>330 km/h)
-        whG.gain.setTargetAtTime(Math.min(.06,Math.max(0,(spd3-560)/4400))*(1-.7*cloudInS)*(1-.5*nA)*dk,AC.currentTime,.12); // seuil+pente ×2 (SPD .25→.5 : spd3 a doublé) — le sifflement reste la signature des VITESSES FOLLES, pas un fond permanent
+        // MORT : coupé NET (même piège que le vent : sinon le sifflement reste bloqué à fond après le crash)
+        whG.gain.setTargetAtTime(mode==='boom'?0:Math.min(.06,Math.max(0,(spd3-560)/4400))*(1-.7*cloudInS)*(1-.5*nA)*dk,AC.currentTime,mode==='boom'?.08:.12); // seuil+pente ×2 (SPD .25→.5 : spd3 a doublé) — le sifflement reste la signature des VITESSES FOLLES, pas un fond permanent
         whF.frequency.setTargetAtTime(2000+spd3*1.2,AC.currentTime,.1); // coef ÷2 : même pitch au même état-caisse
       }
       if(cloudInS>.45&&!loop._cldWas)noiseBurst(.45,.08,520); // percée dans la ouate : fwoosh de coton
