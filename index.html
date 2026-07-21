@@ -1140,19 +1140,26 @@ function genCtrl(rnd,startPos,startPhi){
   // ---- ADN DE PISTE : chaque zone tire une PERSONNALITÉ — fini le shuffle statistiquement identique ----
   // LV : la vitesse de la caisse élargit TOUS les rayons (praticable même à 1500 km/h) et allonge les respirations.
   const LV=1+Math.min(2.6,level*.13);
-  const AR=[ // poids des 11 motifs [loop,hélice,épingle,esses,vague,virage,plongeon,droite,chicane,spirale,GAP] + caractère
-    {nm:'FLOW',   w:[6,10,2,22,8,24,5,8,5,10,4],   rs:1.35,vt:.8},  // autoroute céleste : sweepers qui chantent — et LE gap
-    {nm:'TECH',   w:[5,8,22,14,7,8,7,9,16,4,0],    rs:.92, vt:.9},  // slalom : épingles ouvertes, chicanes (zéro gap : on est en ville)
-    {nm:'ALPIN',  w:[5,7,5,8,26,7,20,12,4,6,3],    rs:1.1, vt:1.4}, // crêtes à sauter, plongeons — et sa SIGNATURE se clôt sur le vide
-    {nm:'VOLTIGE',w:[22,20,3,7,10,7,10,7,4,10,2],  rs:1.15,vt:1.1}, // le ciel est un cirque : loops et hélices (motifs courts → poids bas sinon ça sature)
-    {nm:'GRAND8', w:[11,11,10,12,12,11,11,8,7,7,1],rs:1,   vt:1}    // mixte équilibré
+  // poids des 13 motifs [loop,hélice,épingle,esses,vague,virage,plongeon,droite,chicane,spirale,GAP,TIRE-BOUCHON,ENTRELACS]
+  const AR=[
+    {nm:'FLOW',   w:[5,10,2,26,6,26,4,5,7,12,4,7,6],   rs:1.35,vt:.8},  // autoroute céleste : sweepers qui chantent — et LE gap
+    {nm:'TECH',   w:[4,7,24,16,5,10,5,5,20,5,0,6,8],   rs:.92, vt:.9},  // slalom : épingles, chicanes, entrelacs (zéro gap : on est en ville)
+    {nm:'ALPIN',  w:[4,6,5,9,24,9,20,8,5,7,3,5,4],     rs:1.1, vt:1.4}, // crêtes à sauter, plongeons — sa SIGNATURE se clôt sur le vide
+    {nm:'VOLTIGE',w:[20,20,3,7,8,7,8,4,4,11,2,12,10],  rs:1.15,vt:1.1}, // le ciel est un cirque : loops, hélices, tire-bouchons
+    {nm:'GRAND8', w:[10,11,9,13,10,12,9,5,9,9,1,8,7],  rs:1,   vt:1}    // mixte équilibré
   ][Math.floor(rnd()*5)];
-  zoneArch=AR.nm; // exporté pour les BIOMES (aucun rnd() consommé : la génération reste identique)
+  zoneArch=AR.nm; // exporté pour les BIOMES
   const RS=AR.rs*LV,VT=AR.vt,LOOPS=1+(LV-1)*.35; // les loops grossissent doucement (un loop de 120 m reste un loop)
   const hand=rnd()<.33?-1:(rnd()<.5?0:1);        // LATÉRALITÉ : une piste qui spirale à gauche ne ressemble pas à une équilibrée
   const sgn=()=>rnd()<.5+hand*.22?1:-1;
-  const wsum=AR.w.reduce((a,b)=>a+b,0);
-  const pick=()=>{let x=rnd()*wsum;for(let k=0;k<11;k++){x-=AR.w[k];if(x<0)return k;}return 9;};
+  // ---- HUMEUR DE LA ZONE : deux FLOW ne doivent PAS se ressembler ----
+  // Les poids étaient FIXES par archétype : à la longue, toutes les zones d'un même archétype
+  // sortaient statistiquement jumelles (« on a l'impression que la génération est toujours pareille »).
+  // On secoue les poids à CHAQUE zone : celle-ci sera obsédée par les esses, la suivante par les
+  // tire-bouchons. Le CARACTÈRE de l'archétype tient (un 0 reste un 0), seule l'humeur change.
+  const W=AR.w.map(v=>v*(0.35+rnd()*1.7));
+  const wsum=W.reduce((a,b)=>a+b,0);
+  const pick=()=>{let x=rnd()*wsum;for(let k=0;k<13;k++){x-=W[k];if(x<0)return k;}return 5;};
   const LEN=7200*(1+Math.min(1.1,level*.07)); // zones plus longues à haute vitesse (sinon 13 s et portail)
   // ---- LE GAP CATAPULTE : le grand geste du générateur — RARE, et il y a un VRAI TROU ----
   // Tout est COLINÉAIRE : la route d'en face est droit devant, on lit la promesse d'un coup d'œil
@@ -1228,15 +1235,37 @@ function genCtrl(rnd,startPos,startPhi){
     }else if(mo===8){ // chicane rapide : gauche-droite-gauche à pleine vitesse
       const n8=3+Math.floor(rnd()*3),a8=16+rnd()*14,R8=(70+rnd()*90)*RS;let sg8=sgn();
       for(let q=0;q<n8;q++){arc(sg8*a8,R8,2,-(a8*Math.PI/180*R8*.5));sg8=-sg8;}
-    }else if(mo===9){ // spirale géante descendante : un tour de manège qui n'en finit pas
-      const sg=sgn(),RSp=(130+rnd()*90)*RS*.8,aS=Math.min(360+rnd()*220,52000/RSp);
-      arc(sg*aS,RSp,12+Math.floor(rnd()*5),-(aS*Math.PI/180*RSp*(.42+rnd()*.2)));
-    }else{ // LE GAP CATAPULTE — l'ÉVÉNEMENT de la zone : au plus 1 (2 dans l'endgame), jamais coup sur coup
+    }else if(mo===9){ // SPIRALE GÉANTE : le manège — DÉBRIDÉE
+      // ⚠ l'ancien `Math.min(…,52000/RSp)` gagnait quasiment TOUJOURS : la « spirale géante » ne
+      // faisait en réalité que 218-371°, soit à peine un virage — d'où « je ne vois jamais de
+      // spirale ». On assume désormais 1,5 à 2,5 TOURS pleins.
+      const sg=sgn(),RSp=(120+rnd()*80)*RS*.8,aS=540+rnd()*360;
+      arc(sg*aS,RSp,Math.round(aS/26),-(aS*Math.PI/180*RSp*(.30+rnd()*.16)));
+    }else if(mo===10){ // LE GAP CATAPULTE — l'ÉVÉNEMENT de la zone : au plus 1 (2 dans l'endgame), jamais coup sur coup
       const vG=(level>=8&&rnd()<.22)?2:(rnd()<.42?1:0);
       if(approx<LEN-1000&&approx-lastGap>2600&&gapN<(level>=8?2:1))gapRun(vG);
       else{const l=(100+rnd()*130)*(1+level*.04);straight(l,-l*(.75+rnd()*.3),2);} // déjà servi (ou pas la place) : droite de momentum, le rythme ne trébuche pas
+    }else if(mo===11){
+      // ---- LE TIRE-BOUCHON : on VISSE dans le ciel ----
+      // Rayon SERRÉ + 1,5 à 2,6 tours pleins, avec assez de chute par tour pour que l'étage d'en
+      // dessous PASSE SOUS LA CAISSE : c'est ça, une piste emmêlée — on voit défiler sous soi la
+      // route qu'on vient de quitter. Le nombre de tours DIMINUE quand le niveau élargit les rayons
+      // (sinon un tire-bouchon d'endgame mangerait la moitié de la zone).
+      const sg=sgn(),Rv=(44+rnd()*24)*RS,tours=Math.max(1.5,2.6-(LV-1)*.45),aV=tours*360;
+      straight(28+rnd()*30,-18);                              // on se cale avant de visser
+      arc(sg*aV,Rv,Math.round(aV/22),-((52+rnd()*28)*tours)); // la chute par tour = l'écart entre étages
+      straight(38+rnd()*38,-24);                              // et on ressort à plat
+    }else{
+      // ---- L'ENTRELACS : la route se NOUE ----
+      // Une hélice dans un sens, puis l'autre AUSSITÔT, sans respiration entre les deux : le ruban
+      // se croise avec lui-même et on ne sait plus où est le haut. Le nœud du générateur.
+      const sg=sgn(),Re=(52+rnd()*34)*RS,a1=300+rnd()*240,a2=280+rnd()*240;
+      arc(sg*a1,Re,Math.round(a1/24),-(a1*Math.PI/180*Re*(.34+rnd()*.14)));
+      arc(-sg*a2,Re*(.82+rnd()*.30),Math.round(a2/24),-(a2*Math.PI/180*Re*(.30+rnd()*.14)));
     }
-    if(rnd()<.6)straight(30+rnd()*50+level*9,-(18+rnd()*16)); // RESPIRATION entre motifs : le rythme fait la piste
+    // RESPIRATION entre motifs : plus RARE et plus COURTE (.6→.42). C'était l'autre raison du
+    // « tout se ressemble » : le liant entre deux motifs était TOUJOURS le même bout de droite.
+    if(rnd()<.42)straight(24+rnd()*38+level*7,-(16+rnd()*14));
   }
   // SIGNATURE DE FIN : chaque archétype clôt SA zone par SON geste — la zone se retient
   if(AR.nm==='VOLTIGE'){straight(50,-46);loop(34*LOOPS,34);straight(40,-40);loop(28*LOOPS,26);}
