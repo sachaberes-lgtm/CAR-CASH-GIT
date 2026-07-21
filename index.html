@@ -4915,6 +4915,18 @@ survBtnEl.addEventListener('click',e=>{e.stopPropagation();
 const fwdW=new THREE.Vector3(),tmp=new THREE.Vector3(),tmp2=new THREE.Vector3(),tmp3=new THREE.Vector3(),mat4=new THREE.Matrix4();
 const camUp=new THREE.Vector3(0,1,0),qTmp=new THREE.Quaternion(),qTmp2=new THREE.Quaternion();
 let last=performance.now();
+// ---- LE TEST QUI TRANCHE POUR LE CLIGNOTEMENT DES NUAGES (2026-07-20) ----
+// Tout ce qui pouvait faire clignoter les nuages CÔTÉ LOGIQUE a été mesuré STABLE (détection de
+// surface sous mouvement caméra : 0 saut sur 47 400 transitions ; tri des transparents : 0 inversion
+// sur 1 600 frames ; nuages dessinés : constant ; bascules matF/matB : 0 ; et le shader est
+// DÉTERMINISTE — `ign()` ne dépend que de gl_FragCoord, `lightMarch` a un jitter fixe).
+// Il ne reste donc qu'un mécanisme capable de changer l'image sans que rien ne bouge dans la scène :
+// le RÉ-ÉCHANTILLONNAGE (DPR adaptatif + paliers perf), piloté par la charge GPU — laquelle monte
+// précisément quand la caméra bouge et découvre des nuages. `dbgPin(1)` fige les deux : si le
+// clignotement s'arrête net, la cause est là et nulle part ailleurs.
+let RESPIN=false;
+window.dbgPin=function(on){RESPIN=(on===undefined)?true:!!on;
+  return {resolution_et_paliers_figes:RESPIN,dpr:+curDPR.toFixed(3),stepBase:VOL?VOL.stepBase:null};};
 function loop(now){
   requestAnimationFrame(loop);
   let dt=Math.min((now-last)/1000,.05);last=now;
@@ -4924,8 +4936,8 @@ function loop(now){
   // DÉTECTEUR D'À-COUPS : l'EMA (constante ~25 frames) lisse les PICS ponctuels (titan de nuage plein écran) —
   // ce compteur fuyant attrape la saccade VÉCUE : ~10 frames >26 ms sur les 2-3 dernières secondes = on allège.
   loop._spk=(loop._spk||0)*.985+(rawMs>26?1:0);
-  if(!QUAL_LOW&&loop._ms>22&&now>12000)applyPerfTier(true,true); // FPS au tapis : palier BAS (un seul chemin : applyPerfTier — l'ancien bloc dupliqué contournait stepBase)
-  else if(!QUAL_MED&&now>6000&&(loop._ms>18.5||loop._spk>9))applyPerfTier(true,false); // ça tire la langue (<54 fps soutenus) OU ça saccade par à-coups : palier MOYEN, quasi invisible à l'œil
+  if(!RESPIN&&!QUAL_LOW&&loop._ms>22&&now>12000)applyPerfTier(true,true); // FPS au tapis : palier BAS (un seul chemin : applyPerfTier — l'ancien bloc dupliqué contournait stepBase)
+  else if(!RESPIN&&!QUAL_MED&&now>6000&&(loop._ms>18.5||loop._spk>9))applyPerfTier(true,false); // ça tire la langue (<54 fps soutenus) OU ça saccade par à-coups : palier MOYEN, quasi invisible à l'œil
   // RÉSOLUTION ADAPTATIVE : on suit le temps par frame (EMA loop._ms) et on ajuste le pixelRatio
   // — GPU qui peine → on baisse la résolution ; marge confortable → on la remonte (plafond = écran).
   // v3 ANTI PING-PONG (2026-07-20) : l'ancienne remontée instantanée à <14,5 ms faisait OSCILLER la
@@ -4935,7 +4947,7 @@ function loop(now){
   // (1) la remontée exige ~4,5 s de marge CONSÉCUTIVE, (2) une montée qui retombe en <6 s marque ce
   // palier TROP HAUT (plafond mémorisé 45 s) — le yoyo est structurellement impossible.
   dprT-=dt;
-  if(dprT<=0&&now>4000){dprT=1.1;const ms9=loop._ms||16;
+  if(!RESPIN&&dprT<=0&&now>4000){dprT=1.1;const ms9=loop._ms||16;
     const dn9=(fl9,d9)=>{curDPR=Math.max(fl9,curDPR-d9);loop._dprUp=0;
       if(loop._dprRoseT&&now-loop._dprRoseT<6000){loop._dprCeil=curDPR;loop._dprCeilT=now;} // montée retombée aussitôt → ce palier est un mur
       loop._dprRoseT=0;applyDPR();};
