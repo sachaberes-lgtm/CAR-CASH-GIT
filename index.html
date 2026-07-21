@@ -5055,9 +5055,9 @@ function loop(now){
           tmp2.copy(fallVel).normalize().cross(AXIS_Y);
           if(tmp2.lengthSq()>.01){
             tmp2.normalize();
-            fallVel.applyAxisAngle(tmp2,-3.4*dtF); // le nez pique BRUTAL vers le sol
+            fallVel.applyAxisAngle(tmp2,-1.35*dtF); // le nez pique vers le sol (dosage doux : au-delà on traverse la dalle)
           }
-          fallVel.y-=(nitroBlue?46:38)*dtF; // piqué agressif : on PLONGE comme une pierre
+          fallVel.y-=(nitroBlue?14:10)*dtF;
         }
         if(dn){ // ↓ + nitro : on REDRESSE la caisse (le nez remonte, portance bonus)
           tmp2.copy(fallVel).normalize().cross(AXIS_Y);
