@@ -5051,17 +5051,12 @@ function loop(now){
         tmp.copy(fallVel);
         if(tmp.lengthSq()>1)tmp.normalize();else tmp.set(0,0,1);
         fallVel.addScaledVector(tmp,(nitroBlue?70:52)*dtF); // RÉACTEUR façon Rocket League (2026-07-20, était 49/34) : en l'air la nitro POUSSE vraiment — on sculpte sa trajectoire, on ne la subit plus
-        // ↑/gaz (souvent TENU) : PORTANCE — on plane, on tient un vol ras-la-route. Jamais de piqué
-        // involontaire : la flèche avant est aussi l'accélérateur, on la garde forgiving (comportement d'origine).
-        if(keys.KeyW||keys.KeyZ||keys.ArrowUp)fallVel.y+=(nitroBlue?13:9)*dtF;
-        if(dn){ // ↓/FREIN (touche DÉLIBÉRÉE, jamais tenue) : PIQUÉ — on POUSSE vers le bas pour raser la route ou casser un vol trop haut
-          tmp2.copy(fallVel).normalize().cross(AXIS_Y);
-          if(tmp2.lengthSq()>.01){
-            tmp2.normalize();
-            fallVel.applyAxisAngle(tmp2,-1.35*dtF); // le nez pique vers le sol (dosage doux : au-delà on traverse la dalle)
-          }
-          fallVel.y-=(nitroBlue?14:10)*dtF;
-        }
+        // ↑/AVANT : PIQUÉ — on POUSSE vers le bas pour raser la route ou casser un vol trop haut.
+        // ⚠ PAS de rotation du vecteur vitesse (elle pouvait le basculer à la VERTICALE → le repère
+        // makeBasis dégénère → caisse COINCÉE en vrille) : on ajoute juste une composante descendante,
+        // le nez suit la trajectoire tout seul. Stable, aucune vrille surprise.
+        if(keys.KeyW||keys.KeyZ||keys.ArrowUp)fallVel.y-=(nitroBlue?16:12)*dtF;
+        if(dn)fallVel.y+=(nitroBlue?13:9)*dtF; // ↓/FREIN : on CABRE — le nez remonte (portance)
         // jet visible au point de poussée arrière : panache conique, jamais deux fois pareil
         flames.mesh.material.color.set(nitroBlue?0x3a5bff:0xff8020);
         flameCore.mesh.material.color.set(nitroBlue?0xbfd6ff:0xffd9a0);
@@ -5154,7 +5149,11 @@ function loop(now){
       carGroup.scale.set(1,1,1);
       tmp.copy(fallVel).normalize();
       tmp2.set(0,1,0);
-      tmp3.crossVectors(tmp2,tmp).normalize();
+      tmp3.crossVectors(tmp2,tmp);
+      // ⚠ vitesse quasi VERTICALE (piqué à pic) : (0,1,0)×vitesse → ~0, le repère dégénère et la caisse
+      // reste COINCÉE en vrille. Right de secours dans ce cas → orientation stable, plus de blocage.
+      if(tmp3.lengthSq()<.0009)tmp3.set(1,0,0);
+      tmp3.normalize();
       tmp2.crossVectors(tmp,tmp3);
       mat4.makeBasis(tmp3,tmp2,tmp);
       qTmp.setFromRotationMatrix(mat4);
@@ -5853,10 +5852,10 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){ // ?touch=1 : tester l'UI ta
   const R9=46; let pid=null,px0=0,py0=0,jx=0,jy=0;
   function padKeys(){ const air=(mode==='fall');
     keys.ArrowLeft=jx<-.26; keys.ArrowRight=jx>.26;
-    // EN VOL : pousser le stick en AVANT (haut écran) = PIQUÉ (frein/↓) ; tirer en ARRIÈRE = cabrer/portance (↑).
-    // AU SOL : tirer FRANCHEMENT vers le bas = frein (↓). Jamais de piqué involontaire (le stick revient au centre).
-    keys.ArrowUp=air&&jy>.32;
-    keys.ArrowDown=air?jy<-.32:jy>.5; }
+    // EN VOL : pousser le stick en AVANT (haut écran) = PIQUÉ (↑) ; tirer en ARRIÈRE = cabrer/portance (↓).
+    // AU SOL : tirer FRANCHEMENT vers le bas = frein (↓).
+    keys.ArrowUp=air&&jy<-.32;
+    keys.ArrowDown=air?jy>.32:jy>.5; }
   function padMove(x,y){ jx=Math.max(-1,Math.min(1,(x-px0)/R9)); jy=Math.max(-1,Math.min(1,(y-py0)/R9));
     const m9=Math.hypot(jx,jy),k9=m9>1?1/m9:1;
     stick.style.transform='translate('+(jx*k9*R9).toFixed(1)+'px,'+(jy*k9*R9).toFixed(1)+'px)';
