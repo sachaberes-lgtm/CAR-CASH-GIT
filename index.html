@@ -343,6 +343,7 @@
   <div id="nameEntry"><span>★ NOUVEAU RECORD — TON NOM</span><input id="nameInput" maxlength="8" autocomplete="off" spellcheck="false"><button id="nameSave">VALIDER</button></div>
   <div id="lbBox"></div>
   <div id="saveRow">
+    <button id="parkBtn" class="saveBtn">🛝 PARC FREESTYLE : OFF</button>
     <button id="survBtn" class="saveBtn">🏁 SURVIVANT : OFF</button>
     <button id="saveExp" class="saveBtn">📋 COPIER MA SAUVEGARDE</button>
     <button id="saveImp" class="saveBtn">📥 RESTAURER UN CODE</button>
@@ -1246,11 +1247,57 @@ function genCtrl(rnd,startPos,startPhi){
   straight(150+level*12,-90,2); // ARRIVÉE : ligne droite claire vers le portail
   return ctrl;
 }
+// ---------- MODE FREESTYLE : LE PARC DE FIGURES (pas une course) ----------
+// Un IMMENSE ruban qui s'enroule sur lui-même — loops, hélices, tire-bouchons, spirales, vagues,
+// rampes — tissé dans une zone BORNÉE : il se recroise partout, ça se lit comme un enchevêtrement de
+// routes. AUCUN trou mortel, rayons GÉNÉREUX (fun à rider), très long. La mort est neutralisée
+// ailleurs (respawn). Pensé pour le MULTI : tout le monde riderait CE parc (le netcode = chantier serveur).
+function genPark(rnd){
+  GAPMARK.length=0; // le parc n'a AUCUN trou : jamais de vide mortel ici
+  zoneArch='PARK';
+  const ctrl=[];
+  let P=new THREE.Vector3(0,0,0),phi=0,approx=0;
+  const dir=()=>new THREE.Vector3(Math.sin(phi),0,Math.cos(phi));
+  const push=()=>ctrl.push(P.clone());
+  push();
+  const straight=(l,dy=0,n=1)=>{for(let k=0;k<n;k++){P.addScaledVector(dir(),l/n);P.y+=dy/n;push();}approx+=Math.hypot(l,dy);};
+  const arc=(aDeg,R,n,dy=0)=>{const a=aDeg*Math.PI/180,st=a/n,ch=2*R*Math.sin(Math.abs(st)/2);
+    for(let k=0;k<n;k++){phi+=st/2;P.addScaledVector(dir(),ch);P.y+=dy/n;phi+=st/2;push();}approx+=Math.abs(a)*R;};
+  const loop=(R,shift)=>{const base=P.clone(),d=dir(),sx=Math.cos(phi),sz=-Math.sin(phi);
+    for(let k=1;k<=8;k++){const th=k*Math.PI/4;
+      P.set(base.x+d.x*R*Math.sin(th)+sx*shift*th/(2*Math.PI),
+            base.y+R*(1-Math.cos(th)),
+            base.z+d.z*R*Math.sin(th)+sz*shift*th/(2*Math.PI));
+      push();}approx+=2*Math.PI*R;};
+  let sg=rnd()<.5?1:-1;               // latéralité courante — on ALTERNE souvent → le ruban reste dans la zone
+  const flip=()=>{sg=-sg;};
+  straight(210,-70,3);                // LARGAGE : tapis d'atterrissage pour l'intro, puis pente douce
+  const modules=[
+    ()=>{ arc(sg*(50+rnd()*70),190+rnd()*120,5,-(18+rnd()*28)); flip(); },                 // GRAND SWEEPER : virage qui chante
+    ()=>{ straight(55+rnd()*30,-38); loop(44+rnd()*30,32+rnd()*24); straight(52+rnd()*30,-36); }, // LOOP VERTICAL
+    ()=>{ arc(sg*(300+rnd()*260),105+rnd()*70,12,-(120+rnd()*140)); flip(); },              // HÉLICE / TIRE-BOUCHON : la route s'empile
+    ()=>{ arc(sg*(360+rnd()*280),175+rnd()*90,14,-(150+rnd()*150)); flip(); },              // SPIRALE GÉANTE : le manège sans fin
+    ()=>{ straight(55+rnd()*30,-(16+rnd()*14)); straight(62+rnd()*30,26+rnd()*16); straight(72+rnd()*40,-(64+rnd()*44)); }, // VAGUES à sauter (airtime)
+    ()=>{ straight(120+rnd()*50,-8,2); straight(42,20+rnd()*10); straight(26,10); straight(155+rnd()*60,-16,2); }, // RAMPE DE LANCEMENT + réception
+    ()=>{ const a=28+rnd()*30,R=145+rnd()*90; arc(sg*a,R,3,-(20+rnd()*20)); arc(-sg*a,R,3,-(20+rnd()*20)); flip(); }, // ESSES AMPLES
+    ()=>{ arc(sg*(150+rnd()*70),92+rnd()*50,6,-(28+rnd()*30)); flip(); },                   // DEMI-TOUR SERRÉ : ramène le ruban → croisements
+  ];
+  const TARGET=20000;                 // TRÈS grand (~3 zones de course), borné pour rester tissé
+  while(approx<TARGET){
+    modules[Math.floor(rnd()*modules.length)]();
+    // ALTITUDE MAISON : on garde le ruban dans un volume (sinon il s'enfonce à l'infini et ne se recroise plus)
+    if(P.y<-520)straight(95+rnd()*60,72+rnd()*50,2);        // trop bas : on remonte franchement
+    else if(P.y>320)straight(95+rnd()*60,-(72+rnd()*50),2); // trop haut : on replonge
+    else if(rnd()<.55)straight(40+rnd()*55,-(10+rnd()*20)); // sinon petite RESPIRATION
+  }
+  straight(170,-40,2);                // SORTIE propre (le bouclage se fait par newTrack → nouveau secteur)
+  return ctrl;
+}
 function buildTrack(seed){
   for(const m of trackMeshes){scene.remove(m);if(m.geometry)m.geometry.dispose();if(m.material&&m.material.dispose)m.material.dispose();}
   trackMeshes.length=0;PADS=[];BUMPS=[];CONES=[];FLYCONES=[];OILS=[];RAMPS=[];
   const rnd=mulberry32(seed);
-  const ctrl=genCtrl(rnd,new THREE.Vector3(0,0,0),0);
+  const ctrl=PARK.on?genPark(rnd):genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course
   const curve=new THREE.CatmullRomCurve3(ctrl,false,'catmullrom',0.5);
   L=curve.getLength();
   const N=Math.min(9000,Math.max(3000,Math.round(L)));
@@ -3642,6 +3689,7 @@ const GRAV=9.8*.55,FALL_G=33,AXIS_Y=new THREE.Vector3(0,1,0),AIR_MAX=6;
 // AIR_RATE : le vol se joue PLUS VITE en temps réel — la parabole dans l'espace est identique
 // (viseur d'atterrissage + seuils de figures inchangés), mais on passe moins de temps à flotter.
 let AIR_RATE=1; // base V1 (temps réel) — startFall le RE-pilote depuis 2026-07-20 : =1 sous 450 km/h affichés, puis rampe douce jusqu'au cap 1.35 (l'ancienne ère 2.3 COMPENSAIT SPD=.25 ; ici c'est un dosage de tempo, pas une compensation).
+const PARK={on:false}; // MODE FREESTYLE : le parc de figures (pas une course). Armé au menu, persiste entre les runs. Neutralise police/mort/portail.
 const SPD=0.5; // vitesse globale du jeu — RESTAURÉ à la valeur V1 (2026-07-19) : le ÷2 « trop rapide dès le début » tuait le fun nerveux/arcade de la V1 ; le user tranche pour la V1. SPD scale TOUT : avance joueur/bots, chute, viseur ET compteur (donc les km/h affichés DOUBLENT — seuils de sensation ABSOLUS ajustés en conséquence, les systèmes RELATIFS via vmaxShow s'ajustent seuls)
 const TURN_HS=.0035; // pénalité de braquage à haute vitesse (avant .008 — plus petit = virages plus faciles)
 const AIR_ASSIST=1.0; // aide au recentrage en vol (0 = off), monte avec la vitesse
@@ -3884,6 +3932,15 @@ function respawn(){
   s=THREE.MathUtils.clamp(safeS-8,0,Math.max(0,L-80));
   lat=0;psi=0;vA=26;vL=0;side=1;graceT=1.6;prevTvalid=false;yawAcc=0;hopY=0;hopV=0;mode='drive';
 }
+// FREESTYLE : on ne MEURT jamais dans le parc — on repart sur la piste. La chaîne en cours est perdue
+// (on n'a pas su reposer), mais aucune explosion, aucun game over : c'est un bac à sable de figures.
+function parkRespawn(){
+  chain=0;chainVal=0;chainMult=1;chainHud.style.opacity=0;
+  caseHud.style.opacity=0;caseHud.className='';caseHot=false;dolphT=0;trkDolph=false;
+  airPie.style.display='none';airFlash=0;
+  respawn();
+  showMsg('↻ ON REPART','#7dffec');
+}
 function checkUpgrade(){
   let up=false;
   while(level<23&&levelCash>=THRESH[level]){level++;up=true;}
@@ -4072,6 +4129,7 @@ function newTrack(){
   mode='drive';
 }
 function die(){
+  if(PARK.on){parkRespawn();return;} // FREESTYLE : la mort n'existe pas ici, on respawn
   if(gameOver)return;
   dieSnd();
   flashEl.style.opacity=.7;setTimeout(function(){flashEl.style.opacity=0;},260);
@@ -4214,7 +4272,7 @@ const AIP={
   }
 };
 AIP.load();
-const survHudEl=$('survHud'),survBtnEl=$('survBtn'),lastAlertEl=$('lastAlert');
+const survHudEl=$('survHud'),survBtnEl=$('survBtn'),parkBtnEl=$('parkBtn'),lastAlertEl=$('lastAlert');
 let svClkCtx=null,svRowsEl=null,svSecsEl=null;
 // ---- carrosserie police : géométries/matériaux PARTAGÉS, 3 livrées pour casser les clones ----
 const pcGlassM=new THREE.MeshPhongMaterial({color:0x0d1620,shininess:280,specular:0xffffff});
@@ -4310,7 +4368,7 @@ const FB={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:ne
 const svM4=new THREE.Matrix4(),svT1=new THREE.Vector3(); // temp partagé de la meute (jamais d'alloc chaude)
 function survStart(){
   for(const b of SURV.bots)if(b.mesh)scene.remove(b.mesh.g); // grand ménage de l'escadron précédent
-  SURV.on=SURV.armed;SURV.t=0;SURV.over=false;SURV.bots=[];SURV._r=0;SURV.pBase=0;SURV.ph=0;SURV.last=false;
+  SURV.on=SURV.armed&&!PARK.on;SURV.t=0;SURV.over=false;SURV.bots=[];SURV._r=0;SURV.pBase=0;SURV.ph=0;SURV.last=false; // FREESTYLE : jamais de police dans le parc
   SURV.jumpZones=[];SURV.pMode=mode;SURV._launchD=0;SURV._launchT=0; // mémoire de tes décollages sur CETTE piste
   survHudEl.style.display=SURV.on?'block':'none';
   lastAlertEl.style.display='none';
@@ -4652,10 +4710,21 @@ function survRender(){
   }
   svRowsEl.innerHTML=h;
 }
+// reconstruit le décor du menu dans le mode courant (course/parc) — même séquence que l'init
+function rebuildMenuScene(){ newTrack();respawn();setupIntroPig();frameAt(0,F);camera.position.copy(F.p).addScaledVector(F.t,-9).addScaledVector(F.n,4); }
 survBtnEl.addEventListener('click',e=>{e.stopPropagation();
   SURV.armed=!SURV.armed;
+  if(SURV.armed&&PARK.on){PARK.on=false;parkBtnEl.textContent='🛝 PARC FREESTYLE : OFF';if(!started)rebuildMenuScene();} // course + police : on quitte le parc
   survBtnEl.textContent='🏁 SURVIVANT : '+(SURV.armed?'ON':'OFF');
   if(started&&!gameOver)showMsg(SURV.armed?'MODE SURVIVANT AU PROCHAIN DÉPART':'SURVIVANT DÉSARMÉ');
+});
+// ---- MODE FREESTYLE : le parc de figures (pas une course, pas de mort, pas de police) ----
+parkBtnEl.addEventListener('click',e=>{e.stopPropagation();
+  PARK.on=!PARK.on;
+  parkBtnEl.textContent='🛝 PARC FREESTYLE : '+(PARK.on?'ON':'OFF');
+  if(PARK.on&&SURV.armed){SURV.armed=false;survBtnEl.textContent='🏁 SURVIVANT : OFF';} // parc = pas de police
+  if(!started)rebuildMenuScene(); // au menu : on montre déjà le parc (et le prochain départ y roulera)
+  else showMsg(PARK.on?'🛝 PARC FREESTYLE AU PROCHAIN DÉPART':'RETOUR À LA COURSE');
 });
 
 // ---------- BOUCLE ----------
@@ -4795,14 +4864,20 @@ function loop(now){
       if(graceT<=0&&F.n.y*1<-.15&&Math.abs(vF)<7)startFall();
       // PORTAIL : fin de zone
       if(mode==='drive'&&s>L-32){
-        portalSnd();boostSnd();shake=.5;
-        const zb=denom()*40*(fever>0?2:1);money+=zb;levelCash+=zb;checkUpgrade();
-        runStats.zones++;
-        nitroR=2; // le portail regonfle la nitro : chaque zone repart pied au plancher
-        trickMsg(pickL(ZONE_LINES)+' +'+fmtC(zb),true);
-        flyCash(carGroup.position,8);
-        SURV.pBase+=s; // la course traverse le portail : les écarts restent vrais (téléportation invisible)
-        newTrack();
+        if(PARK.on){ // FREESTYLE : pas de course — on enchaîne sur un NOUVEAU SECTEUR de parc (variété)
+          portalSnd();shake=.35;nitroR=2;
+          showMsg('✦ NOUVEAU SECTEUR','#7dffec');
+          newTrack();
+        }else{
+          portalSnd();boostSnd();shake=.5;
+          const zb=denom()*40*(fever>0?2:1);money+=zb;levelCash+=zb;checkUpgrade();
+          runStats.zones++;
+          nitroR=2; // le portail regonfle la nitro : chaque zone repart pied au plancher
+          trickMsg(pickL(ZONE_LINES)+' +'+fmtC(zb),true);
+          flyCash(carGroup.position,8);
+          SURV.pBase+=s; // la course traverse le portail : les écarts restent vrais (téléportation invisible)
+          newTrack();
+        }
       }
       // pads turbo
       padCd=Math.max(0,padCd-dt);
@@ -5228,7 +5303,7 @@ function loop(now){
       pieCtx.fillStyle='#fff';pieCtx.font='bold 15px monospace';pieCtx.textAlign='center';
       pieCtx.fillText((pwrAirT>0?pwrAirT:Math.max(0,AIR_MAX-fallTR)).toFixed(1),37,42);
       if(tryLand(dtF)){airPie.style.display='none';}
-      else if((fallTR>AIR_MAX&&pwrAirT<=0)||fallPos.y<trackMinY-120){airPie.style.display='none';explode();} // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
+      else if((fallTR>AIR_MAX&&pwrAirT<=0)||fallPos.y<trackMinY-120){airPie.style.display='none';if(PARK.on)parkRespawn();else explode();} // FREESTYLE : trop long en l'air ou chute dans le vide = on repart, jamais de mort // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
     }else if(mode==='boom'){ // ---- EXPLOSION ----
       boomT+=dt;
       for(const d of debris){
