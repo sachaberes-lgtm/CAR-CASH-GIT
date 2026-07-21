@@ -738,243 +738,68 @@ const CLOUD_TINTS_FAR=[0xf0c8d4,0xe6c0cc,0xeed0da];
 let CLOUDS=[],cloudIn=0,cloudInS=0,flightId=0;
 const cldV1=new THREE.Vector3(),cldV2=new THREE.Vector3();
 function disposeClouds(){
-  for(const c of CLOUDS){scene.remove(c.g);for(const p of c.puffs)p.sp.material.dispose();}
-  // les boîtes volumétriques partagent geo+matériaux (jamais disposés) : retirer de la scène suffit
+  // ⚠ chaque nuage a sa PROPRE géométrie fusionnée : il FAUT la libérer, sinon chaque portail
+  // laisse fuir quelques Mo de VRAM. Le matériau (CLOUD_MAT) est partagé : jamais disposé.
+  for(const c of CLOUDS){scene.remove(c.g);if(c.mesh&&c.mesh.geometry)c.mesh.geometry.dispose();}
   CLOUDS=[];cloudIn=0;
 }
 let QUAL_LOW=false,QUAL_MED=IS_MOBILE||IS_LOW_END; // garde-fous perf : réduisent le raymarch (voir loop + applyPerfTier)
 function applyPerfTier(med,low){
   if(low&&!QUAL_LOW){
     QUAL_LOW=true;QUAL_MED=true;
-    if(VOL){VOL.stepBase=32;VOL.U.uSteps.value=32;VOL.U.uLightSteps.value=4;} // PLANCHER 32/4 : les nuages sont PEU nombreux et les pas plafonnés — même au tier LOW ils restent crémeux (le grain ∝ 1/pas)
-    for(const c9 of CLOUDS){let j9=0;for(const p9 of c9.puffs)if(++j9%3===0)p9.sp.visible=false;}
+    // (les nuages ne coûtent plus rien à alléger : mesh opaques, un draw call chacun)
     if(bloomPass)bloomPass.enabled=false;
     if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}
     sun.shadow.mapSize.set(1024,1024);
     renderer.shadowMap.type=THREE.BasicShadowMap;
   }else if(med&&!QUAL_MED){
     QUAL_MED=true;
-    if(VOL){VOL.stepBase=42;VOL.U.uSteps.value=42;VOL.U.uLightSteps.value=5;} // MED 42/5 : encore lisse (l'ancien 24 tramait déjà)
     if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;} // ombres 1024 dès le palier MED (recrée la map, zéro recompilation)
     sun.shadow.mapSize.set(1024,1024);
   }
 }
 // ============================================================================
-//  NUAGES VOLUMÉTRIQUES (raymarching) — de VRAIS volumes, pas des billboards.
-//  Chaque nuage = une boîte englobante ; le fragment tire un rayon dans
-//  l'ellipsoïde, avance dans un champ de densité 3D (bruit Perlin-Worley baké
-//  en texture 3D), marche vers le soleil pour l'AUTO-OMBRAGE (Beer) → cœurs
-//  OPAQUES, ventres dans l'ombre, coiffes dorées, on VOLE DEDANS. WebGL2 requis.
-//  Repli billboard (mkCloudSprite) si pas de WebGL2. Réglé à l'atelier-nuages.
+//  NUAGES — MESH SIMPLES (refonte 2026-07-20, décision de Sacha)
+//  Le raymarch volumétrique est SUPPRIMÉ. Pourquoi, précisément : après six rondes
+//  de correctifs ratés sur le clignotement, la capture vidéo a montré la panne
+//  réelle — quand la caméra entrait dans la MATIÈRE d'un nuage, le shader basculait
+//  l'alpha à 1.0 D'UN COUP (`if(tHit<=t0+0.002)a=1.0`), donc PLEIN ÉCRAN blanchi sur
+//  une frame, puis retour. Mesuré sur la vidéo : 10 frames blanchies sur 411, soit un
+//  flash toutes les ~1,3 s. Aucun réglage ne pouvait corriger ça : ce n'était pas un
+//  réglage, c'était une marche d'escalier dans le shader.
+//  Avec des mesh OPAQUES, ce bug devient STRUCTURELLEMENT impossible : plus de
+//  transparence (donc plus d'ordre de tri entre nuages), plus de gl_FragDepth, plus
+//  de discard, plus de raymarch, plus d'uniformes poussés à chaque frame.
+//  Un nuage = quelques SPHÈRES FUSIONNÉES en UN seul mesh, éclairé par les lumières
+//  du biome (Lambert → il suit les 10 ambiances tout seul). On le TRAVERSE toujours :
+//  DoubleSide et aucune collision — dedans, on voit sa paroi, c'est le white-out.
+//  ⚠ NE PAS réintroduire de transparence ni de shader ici sans demande explicite.
 // ============================================================================
-// RAYMARCH ACTIF — mission : LISSE ET ONCTUEUX MÊME DÉGRADÉ. L'aller-retour sprites (2026-07-16) a tranché :
-// le user veut des nuages PHYSIQUES traversables ; le problème n'était pas le raymarch mais sa version
-// dégradée (18-24 pas + DPR bas = boules tramées). Fixes : planchers de pas relevés (26/36), fondu de bord
-// resserré à la lisière (fini l'effet boule), sculpture du bruit restaurée, lobes proportionnels à la taille.
-const VOL_OK=!!(renderer.capabilities&&renderer.capabilities.isWebGL2&&typeof THREE.DataTexture3D==='function');
-let VOL=null;
-if(VOL_OK){ try{
-  // -- texture 3D de bruit tuilable : R billows (1-Worley fBm), G détail, B trouées --
-  const N=64,data=new Uint8Array(N*N*N*4),imul=Math.imul;
-  const ih=(x,y,z)=>{let h=imul(x,374761393)+imul(y,668265263)+imul(z,1274126177);h=(h^(h>>>13));h=imul(h,1274126177);h=(h^(h>>>16));return (h>>>0)/4294967295;};
-  const wr=(a,p)=>((a%p)+p)%p;
-  const vn=(x,y,z,p)=>{const xi=Math.floor(x),yi=Math.floor(y),zi=Math.floor(z),xf=x-xi,yf=y-yi,zf=z-zi;
-    const u=xf*xf*(3-2*xf),v=yf*yf*(3-2*yf),w=zf*zf*(3-2*zf),H=(a,b,c)=>ih(wr(a,p),wr(b,p),wr(c,p)),L=(a,b,t)=>a+(b-a)*t;
-    return L(L(L(H(xi,yi,zi),H(xi+1,yi,zi),u),L(H(xi,yi+1,zi),H(xi+1,yi+1,zi),u),v),L(L(H(xi,yi,zi+1),H(xi+1,yi,zi+1),u),L(H(xi,yi+1,zi+1),H(xi+1,yi+1,zi+1),u),v),w);};
-  const wo=(x,y,z,c)=>{const fx=x*c,fy=y*c,fz=z*c,xi=Math.floor(fx),yi=Math.floor(fy),zi=Math.floor(fz);let md=9;
-    for(let dz=-1;dz<=1;dz++)for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const cx=xi+dx,cy=yi+dy,cz=zi+dz,wx=wr(cx,c),wy=wr(cy,c),wz=wr(cz,c);
-      const px=cx+ih(wx,wy,wz),py=cy+ih(wy,wz,wx),pz=cz+ih(wz,wx,wy),ex=px-fx,ey=py-fy,ez=pz-fz,d=ex*ex+ey*ey+ez*ez;if(d<md)md=d;}return Math.sqrt(md);};
-  const bil=(x,y,z,cs)=>{let a=0,amp=.55,tot=0;for(const c of cs){a+=amp*(1-Math.min(1,wo(x,y,z,c)));tot+=amp;amp*=.5;}return a/tot;};
-  const pf=(x,y,z,os)=>{let a=0,amp=.5,tot=0;for(const f of os){a+=amp*vn(x*f,y*f,z*f,f);tot+=amp;amp*=.5;}return a/tot;};
-  const ss=(a,b,x)=>{const t=Math.min(1,Math.max(0,(x-a)/(b-a)));return t*t*(3-2*t);};
-  let o=0;for(let z=0;z<N;z++)for(let y=0;y<N;y++)for(let x=0;x<N;x++){const nx=x/N,ny=y/N,nz=z/N;
-    let R=ss(.10,.95,pf(nx,ny,nz,[2,4,8])); // PUR Perlin fBm — le Worley (1-dist) a des iso-surfaces CONCENTRIQUES autour de chaque feature point : c'était LUI qui gravait les anneaux « agate » (bisection dbgVOL uCoverage=1 → lisse parfait)
-    let G=ss(.15,.95,bil(nx,ny,nz,[8,16,24])), B=ss(.2,.85,pf(nx,ny,nz,[2,4]));
-    data[o++]=R*255|0;data[o++]=G*255|0;data[o++]=B*255|0;data[o++]=255;}
-  const noise=new THREE.DataTexture3D(data,N,N,N);
-  noise.format=THREE.RGBAFormat;noise.type=THREE.UnsignedByteType;noise.minFilter=THREE.LinearFilter;noise.magFilter=THREE.LinearFilter;
-  noise.wrapS=noise.wrapT=noise.wrapR=THREE.RepeatWrapping;noise.unpackAlignment=1;noise.needsUpdate=true;
-  const U={ uNoise:{value:noise}, uTime:{value:0},
-    uSunDir:{value:SUN_DIR.clone()}, uSunCol:{value:new THREE.Color(2.05,0.95,0.60)}, // ROSE-DORÉ : les coiffes prennent le couchant Miami
-    uSkyCol:{value:new THREE.Color(0.34,0.30,0.62)}, uGroundCol:{value:new THREE.Color(0.13,0.08,0.18)}, // ciel violet SATURÉ en haut, ventres prune adoucis (crémeux, plus charbon)
-    uAmb:{value:0.56}, uCoverage:{value:1.0}, uDensity:{value:3.2}, uDetail:{value:0.0}, // CARTOON LISSE ASSUMÉ (verdict user 2026-07-18) : bruit COUPÉ — champ 100 % métaballes ; la forme vient des lobes, point
-    uEdge:{value:0.40}, uFreq:{value:1/120}, uSigma:{value:1.1}, uAbsorb:{value:1.5}, uSilver:{value:0.85}, // SURFACE FRANCHE cartoon : l'alpha monte VITE → la zone semi-transparente (là où le grain vit) se réduit à un fin liseré
-    uSteps:{value:40.0}, uLightSteps:{value:6.0},
-    // MÉTABALLES : la forme du nuage = UNION DOUCE de 5-10 boules collées (par nuage, posées dans onBeforeRender)
-    uBaseFlat:{value:1.0}, uNBlob:{value:1.0}, uBlobs:{value:(function(){const a=[];for(let i=0;i<12;i++)a.push(new THREE.Vector4(0,0,0,.3));return a;})()},
-    uFogCol:{value:new THREE.Color(0x8a4a48)}, uFogNear:{value:FOG_N}, uFogFar:{value:FOG_F}, uProj:{value:new THREE.Matrix4()},
-    uSeed:{value:0.0}, uDMul:{value:1.0}, uFogAmt:{value:1.0} };
-  const VERT=`out vec3 vWorld;out vec3 vCenter;out vec3 vRadius;
-    void main(){vec4 wp=modelMatrix*vec4(position,1.0);vWorld=wp.xyz;vCenter=modelMatrix[3].xyz;
-    vRadius=vec3(length(modelMatrix[0].xyz),length(modelMatrix[1].xyz),length(modelMatrix[2].xyz));
-    gl_Position=projectionMatrix*viewMatrix*wp;}`;
-  const FRAG=`precision highp float;precision highp sampler3D;
-    uniform sampler3D uNoise;uniform mat4 uProj;uniform vec3 uSunDir,uSunCol,uSkyCol,uGroundCol,uFogCol;
-    uniform float uTime,uAmb,uCoverage,uDensity,uDetail,uEdge,uFreq,uSigma,uAbsorb,uSilver,uSteps,uLightSteps,uSeed,uDMul,uFogAmt,uFogNear,uFogFar,uBaseFlat,uNBlob;
-    uniform vec4 uBlobs[12];
-    in vec3 vWorld;in vec3 vCenter;in vec3 vRadius;out vec4 fragColor;
-    // GRAIN ANIMÉ : bruit blanc RE-TIRÉ chaque frame — un bruit statique se lit comme de la SALETÉ
-    // collée sur la crème ; animé, l'œil le moyenne (grain de pellicule, raccord avec le filtre CRT
-    // du jeu). Sans structure spatiale → rien à moirer sous l'upscale du DPR adaptatif.
-    float ign(){return fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453);}
-    // CHAMP IMPLICITE (0..1) : union douce des métaballes × base plate × coquille — LISSE par
-    // construction (bruit coupé : cartoon assumé). La SURFACE est l'iso 0.5 de ce champ.
-    float field(vec3 p){vec3 q=(p-vCenter)/vRadius;if(dot(q,q)>1.0)return 0.0;
-      float inv=1.0;
-      for(int i=0;i<12;i++){ if(float(i)>=uNBlob) break;
-        vec4 b=uBlobs[i]; float rr=length(q-b.xyz)/max(b.w,0.02);
-        inv*=smoothstep(uEdge,1.0,rr); }
-      float shape=1.0-inv;
-      shape*=mix(1.0,smoothstep(-1.0,-0.64,q.y),uBaseFlat); // base APLATIE façon cumulus (modulée par type)
-      shape*=1.0-smoothstep(0.86,0.995,length(q));
-      return shape;}
-    float densAt(vec3 p){return field(p)*uDensity*uDMul;} // le lightMarch (ombre volumique douce) lit toujours une densité
-    float lightMarch(vec3 p,float jit){
-      // MARCHE EXPONENTIELLE — le fix des anneaux « agate » : à pas FIXES, le 1er échantillon est à
-      // ~30 m du point et l'occlusion SAUTE de blob en blob → od en escalier → anneaux concentriques
-      // autour de chaque lobe (vérifié : plus de pas = plus d'anneaux). Premier pas COURT (le voisinage
-      // domine, od devient CONTINUE avec p), pas qui doublent ensuite — même portée totale (~L/3).
-      float L=length(vRadius),t=L*0.014*(0.5+jit),st=L*0.022,od=0.0;
-      for(int i=0;i<8;i++){if(float(i)>=uLightSteps)break;od+=densAt(p+uSunDir*t)*st;t+=st;st*=1.9;}
-      return od;}
-    void main(){vec3 ro=cameraPosition,rd=normalize(vWorld-ro);
-      vec3 oc=(ro-vCenter)/vRadius,dd=rd/vRadius;
-      float A=dot(dd,dd),B=2.0*dot(oc,dd),C=dot(oc,oc)-1.0,disc=B*B-4.0*A*C;if(disc<0.0)discard;
-      float sq=sqrt(disc),t0=max((-B-sq)/(2.0*A),0.0),t1=(-B+sq)/(2.0*A);if(t1<=t0)discard;
-      // ============ SURFACE IMPLICITE CARTOON (2026-07-18) ============
-      // L'accumulation volumique se battait à jamais entre GRAIN (jitter) et ANNEAUX (pas visibles).
-      // On rend désormais la SURFACE iso-0.5 du champ métaball : marche grossière pour l'encadrer,
-      // puis BISSECTION (8 itérations = position exacte) → ZÉRO échantillonnage stochastique,
-      // donc zéro grain ET zéro anneau, à n'importe quel nombre de pas et n'importe quel DPR.
-      const float ISO=0.5;
-      float tHit=-1.0;
-      if(field(ro+rd*(t0+0.001))>ISO){tHit=t0;} // caméra DANS la chair : plein voile immédiat
-      else{
-        // ============ ENCADREMENT PAR BLOB (2026-07-19) — mort du « nuage qui nage » ============
-        // L'ancienne marche balayait TOUTE la boîte en pas de (t1-t0)/uSteps comptés depuis la
-        // caméra : tout lobe plus FIN que le pas le long du rayon (toute la silhouette en incidence
-        // rasante, des dizaines de mètres de pas sur un titan) était attrapé ou raté selon la PHASE
-        // des échantillons → qui dépend de la position caméra → forme et taille qui CHANGEAIENT à
-        // chaque mouvement. Or le champ ne dépasse l'iso QU'À L'INTÉRIEUR d'une sphère de blob
-        // (union de métaballes) : on intersecte donc le rayon avec CHAQUE sphère (2nd degré, exact,
-        // continu avec la caméra) et on ne marche finement QUE dans ces intervalles courts.
-        // Précision ∝ corde traversée → bords rasants résolus par construction, zéro phase, zéro pop.
-        float nSub=clamp(uSteps*0.16,4.0,10.0); // les paliers perf gardent leur bouton (46→7 pas, 26→4)
-        for(int i=0;i<12;i++){ if(float(i)>=uNBlob) break;
-          vec4 b=uBlobs[i];
-          vec3 oc2=oc-b.xyz;
-          float Bq=2.0*dot(oc2,dd),Cq=dot(oc2,oc2)-b.w*b.w,dq=Bq*Bq-4.0*A*Cq;
-          if(dq<0.0) continue;                                  // le rayon passe à côté de ce blob
-          float sq2=sqrt(dq),ta=max((-Bq-sq2)/(2.0*A),t0),tb=min((-Bq+sq2)/(2.0*A),t1);
-          if(tb<=ta||(tHit>0.0&&ta>=tHit)) continue;            // derrière nous, ou déjà battu par un hit plus proche
-          float stepS=(tb-ta)/nSub,t=ta,tPrev=ta;
-          for(int j=0;j<10;j++){ if(float(j)>=nSub) break;
-            t+=stepS;
-            if(field(ro+rd*t)>ISO){ // surface encadrée entre tPrev et t → bissection (position exacte)
-              float a2=tPrev,b2=t;
-              for(int k=0;k<8;k++){float m=0.5*(a2+b2);if(field(ro+rd*m)>ISO)b2=m;else a2=m;}
-              float th=0.5*(a2+b2);
-              if(tHit<0.0||th<tHit)tHit=th;
-              break;}
-            tPrev=t;}
-        }
-      }
-      if(tHit<0.0)discard;
-      vec3 p=ro+rd*tHit;
-      // ============ PROFONDEUR VRAIE (2026-07-19 v2) — LA racine du « nuage à travers la route » ============
-      // Le z-test se faisait sur la profondeur de la FACE DE BOÎTE rasterisée (matF) ou pas du tout (matB).
-      // Or la face avant d'une grosse boîte est des DIZAINES de mètres devant la matière : une dalle passant
-      // ENTRE les deux « perdait » le test et le nuage se dessinait PAR-DESSUS la route ; et chaque bascule
-      // matF/matB changeait le résultat → clignotement. On écrit désormais gl_FragDepth = profondeur de la
-      // SURFACE touchée (tHit) : l'occlusion nuage/route/caisse devient PAR PIXEL, exacte, et IDENTIQUE des
-      // deux côtés du flip (même rayon ro+rd pour un même pixel, quelle que soit la face rasterisée).
-      float tD=max(tHit,0.15); // jamais p=ro pile (w clip nul → NaN) : profondeur ancrée juste devant le near-plane
-      vec4 cp9=uProj*viewMatrix*vec4(ro+rd*tD,1.0);
-      gl_FragDepth=clamp(cp9.z/cp9.w*0.5+0.5,0.0,1.0);
-      // normale par gradient central du champ — lisse, donc éclairage lisse
-      float eN=length(vRadius)*0.012;
-      vec3 n=normalize(vec3(field(p+vec3(eN,0,0))-field(p-vec3(eN,0,0)),
-                            field(p+vec3(0,eN,0))-field(p-vec3(0,eN,0)),
-                            field(p+vec3(0,0,eN))-field(p-vec3(0,0,eN))));
-      if(dot(n,n)<0.1)n=-rd; // gradient nul (plein cœur) : face caméra
-      // ÉCLAIRAGE CARTOON : wrap solaire doux + ombre volumique (lightMarch conservé) + ambiante
-      // hémisphérique par la normale + liseré argenté au contre-jour + bord duveteux au fresnel.
-      float cosT=dot(rd,uSunDir),fs=pow(max(cosT,0.0),3.0)*uSilver;
-      float od=lightMarch(p+n*eN*2.0,0.5);
-      float sh=exp(-od*uAbsorb);
-      float wrap=clamp(dot(n,uSunDir)*0.55+0.45,0.0,1.0);
-      vec3 sun=uSunCol*wrap*mix(0.30,1.0,sh)*0.85;
-      vec3 amb=mix(uGroundCol,uSkyCol,clamp(n.y*0.5+0.5,0.0,1.0))*uAmb*1.55;
-      float fr=pow(1.0-abs(dot(n,rd)),2.0);
-      vec3 col=amb+sun+uSunCol*fs*fr*0.55; // silver lining : le bord s'embrase face au soleil
-      float a=(1.0-fr*0.32)*clamp(uDMul+0.35,0.0,1.0); // bord duveteux translucide ; voiles/mer plus diaphanes via dMul
-      if(tHit<=t0+0.002)a=1.0; // dedans : voile plein (le white-out gameplay fait le reste)
-      float fog=clamp((tHit-uFogNear)/(uFogFar-uFogNear),0.0,1.0)*uFogAmt;
-      col*=a; // blending prémultiplié
-      col=mix(col,uFogCol*a,fog);
-      // FIN DE FOG = VRAIE DISPARITION : avant, seule la couleur allait vers la brume et l'ALPHA restait
-      // plein → un nuage « au bout du fog » restait une silhouette opaque sur le ciel, que le culling
-      // faisait POPER ; et fog.far, qui s'effondre en traversée de nuage (cloudInS), faisait CLIGNOTER
-      // tous les nuages du seuil. Ici l'alpha s'éteint aussi → le cull coupe des nuages déjà invisibles.
-      float vis=1.0-smoothstep(0.72,0.98,fog);
-      col*=vis;a*=vis;
-      col+=vec3((ign()-0.5)*a/96.0); // dither de sortie : casse la posterisation 8-bit des dégradés doux
-      fragColor=vec4(col,a);}`;
-  const mk=(side,ztest)=>new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,uniforms:U,vertexShader:VERT,fragmentShader:FRAG,
-    transparent:true,depthWrite:false,depthTest:ztest,side:side,
-    blending:THREE.CustomBlending,blendEquation:THREE.AddEquation,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor});
-  // PROFONDEUR VRAIE (v2) : les DEUX matériaux z-testent — le shader écrit gl_FragDepth (profondeur
-  // de la SURFACE du nuage, pas de la face de boîte) donc l'occlusion nuage/route est PAR PIXEL et
-  // exacte. Les « trous polygonaux » de l'ancien matB sans z-test venaient du test sur la FACE
-  // ARRIÈRE de la boîte (derrière la dalle), pas du test lui-même — corrigé à la source. matB
-  // (BackSide) ne sert plus qu'à garder des faces rasterisées quand la caméra est DANS la boîte
-  // (en FrontSide elles seraient cullées → nuage disparu d'un coup).
-  VOL={U:U, geo:new THREE.BoxGeometry(2,2,2), matF:mk(THREE.FrontSide,true), matB:mk(THREE.BackSide,true), stepBase:56};
-  if(IS_MOBILE||IS_LOW_END){VOL.stepBase=32;U.uLightSteps.value=4;}
-  else{VOL.stepBase=46;U.uLightSteps.value=6;} // desktop : 46/6 — toujours LISSE (loin du plancher damier 26, MED 36 l'est déjà), ~25 % de raymarch en moins que l'ancien 56/7
-  U.uSteps.value=VOL.stepBase;
-  window.dbgCloud=(s,l)=>{if(s)VOL.stepBase=s;if(l)U.uLightSteps.value=l;return VOL.stepBase+'/'+U.uLightSteps.value;}; // hook debug : forcer la qualité du raymarch depuis la console (les tiers perf peuvent l'écraser)
-  window.dbgVOL=U; // bisection live des uniforms nuages depuis la console (dbgVOL.uCoverage.value=1, etc.)
-  // ÉTAT LIVE de la bascule matF/matB par nuage traversable — pour confirmer EN CONSOLE quel seuil
-  // déclenche vraiment (back=true → matB sans z-test ; hid → culé par le fog). Zéro coût hors appel.
-  window.dbgCloudMat=()=>CLOUDS.filter(c=>c.mesh&&c.mesh.userData.trav).map(c=>({back:!!c.back,hid:!!c.hid,r:Math.round(c.r)}));
-  // ====== dbgFlicker : DIAGNOSTIC LIVE DU CLIGNOTEMENT (à piloter par le joueur en jeu) ======
-  // Comme je ne peux pas VOIR le rendu, chaque appel bascule un mode et Sacha me dit lequel ARRÊTE le
-  // clignotement. Chaque mode isole une cause candidate — zéro recompilation, effet immédiat :
-  //   dbgFlicker(1) → depthWrite ON : les nuages s'occludent au z-test (ordre de tri sans effet).
-  //                   Si ça règle → cause = ORDRE DE DESSIN des nuages transparents qui se chevauchent.
-  //   dbgFlicker(2) → dérive au vent GELÉE. Si ça règle → cause = jitter de position.
-  //   dbgFlicker(3) → raymarch ×120. Si ça règle → cause = échantillonnage du shader (surface).
-  //   dbgFlicker(0) → retour à l'état livré. dbgFlicker() sans argument = mode suivant en boucle.
-  window.dbgFlicker=function(s){ s=(''+(s==null?'':s)).toLowerCase(); // flags combinables : 'matf,nocull,depthw,hi,freeze' — '' = tout remis à zéro
-    VOL._matFonly=/matf/.test(s); VOL._nocull=/nocull/.test(s); VOL._freeze=/freeze/.test(s);
-    const dw=/depthw/.test(s); VOL.matF.depthWrite=VOL.matB.depthWrite=dw; VOL.matF.needsUpdate=VOL.matB.needsUpdate=true;
-    const hi=/hi/.test(s); VOL.stepBase=hi?120:46; VOL.U.uLightSteps.value=hi?14:6;
-    return {matFonly:VOL._matFonly,nocull:VOL._nocull,freeze:VOL._freeze,depthWrite:dw,hiSteps:hi};
-  };
-  // dbgPan : PANORAMIQUE LISSE à temps figé — 3 positions caméra alignées (pas de shake aléatoire),
-  // second-diff = réponse NON LISSE du rendu à la position caméra. Isole le clignotement du mouvement.
-  window.dbgPan=function(step){ step=step||0.15;
-    try{
-      const gl=renderer.getContext(),cv=renderer.domElement,w=cv.width,h=cv.height,GW=48,GH=27;
-      const tFix=performance.now()/1000, buf=new Uint8Array(w*h*4);
-      const grab=()=>{ updateClouds(0,tFix); if(POST_ON&&composer)composer.render(); else renderer.render(scene,camera);
-        gl.readPixels(0,0,w,h,gl.RGBA,gl.UNSIGNED_BYTE,buf);
-        const g=new Float32Array(GW*GH);
-        for(let gy=0;gy<GH;gy++)for(let gx=0;gx<GW;gx++){const px=Math.min(w-1,(gx+.5)/GW*w|0),py=Math.min(h-1,(gy+.5)/GH*h|0),i=(py*w+px)*4;g[gy*GW+gx]=(buf[i]+buf[i+1]+buf[i+2])/3;}
-        return g; };
-      const rgt=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,0), p=camera.position.clone();
-      const A=grab();
-      camera.position.copy(p).addScaledVector(rgt,step); camera.updateMatrixWorld(); const B=grab();
-      camera.position.copy(p).addScaledVector(rgt,2*step); camera.updateMatrixWorld(); const C=grab();
-      camera.position.copy(p); camera.updateMatrixWorld(); grab();
-      let haut=0,mid=0,bas=0,mx=0;
-      for(let gy=0;gy<GH;gy++)for(let gx=0;gx<GW;gx++){const i=gy*GW+gx,dd=Math.abs(2*B[i]-A[i]-C[i]);if(dd>mx)mx=dd;if(dd>35){if(gy<GH/3)haut++;else if(gy<2*GH/3)mid++;else bas++;}}
-      return {panHaut:haut,panMid:mid,panBas:bas,panMax:mx|0};
-    }catch(e){return 'err '+e.message;}
-  };
-  if(QUAL_MED)applyPerfTier(true,false);
-}catch(e){VOL=null;} }
+const CLOUD_MAT=new THREE.MeshLambertMaterial({color:0xeae6f2,side:THREE.DoubleSide});
+const CLOUD_SPH=new THREE.SphereGeometry(1,16,11); // gabarit recopié/fusionné dans chaque nuage
+// Fusionne N sphères (x,y,z,rayon en coords locales) en UNE géométrie : un nuage = un draw call.
+function mergeSpheres(blobs,rx,ry,rz){
+  const src=CLOUD_SPH, sp=src.attributes.position.array, sn=src.attributes.normal.array, si=src.index.array;
+  const nv=sp.length/3, nb=blobs.length;
+  const pos=new Float32Array(nv*3*nb), nor=new Float32Array(nv*3*nb), idx=new Uint32Array(si.length*nb);
+  for(let b=0;b<nb;b++){
+    const B=blobs[b], ox=B[0]*rx, oy=B[1]*ry, oz=B[2]*rz, sx=B[3]*rx, sy=B[3]*ry, sz=B[3]*rz;
+    const vo=b*nv*3, io=b*si.length, vb=b*nv;
+    for(let i=0;i<nv;i++){
+      pos[vo+i*3  ]=sp[i*3  ]*sx+ox; pos[vo+i*3+1]=sp[i*3+1]*sy+oy; pos[vo+i*3+2]=sp[i*3+2]*sz+oz;
+      // normale corrigée du non-uniforme (inverse des échelles), sinon l'éclairage ment sur les nuages aplatis
+      let nx=sn[i*3]/sx, ny=sn[i*3+1]/sy, nz=sn[i*3+2]/sz;
+      const l=Math.hypot(nx,ny,nz)||1; nor[vo+i*3]=nx/l; nor[vo+i*3+1]=ny/l; nor[vo+i*3+2]=nz/l;
+    }
+    for(let i=0;i<si.length;i++)idx[io+i]=si[i]+vb;
+  }
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+  g.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));
+  g.setIndex(new THREE.BufferAttribute(idx,1));
+  g.computeBoundingSphere();
+  return g;
+}
 // Boules d'un nuage (metaballs) — coords LOCALES [-1,1] dans la boîte (x,y,z,rayon).
 // Chaque famille a sa silhouette : cumulus bourgeonnant, tour empilée, mer plate, voile épars.
 function mkBlobs(o,rng){
@@ -995,77 +820,21 @@ function mkBlobs(o,rng){
   }
   return B.map(clamp).slice(0,12);
 }
-function mkCloudVol(center,r,o,rr){ // un banc = une boîte volumétrique remplie de boules
+function mkCloud(center,r,o,rr){ // un nuage = ses boules fusionnées en UN mesh opaque, point.
   const ry=r*(o.giant?.55+rr()*.18:o.veil?.16:o.sea?.15:.36+rr()*.16);
-  if(o.baseY!==undefined)center.y=o.baseY+ry*0.64; // même plafond de condensation que le chemin sprite
+  if(o.baseY!==undefined)center.y=o.baseY+ry*0.64; // plafond de condensation commun
   const g=new THREE.Group();g.position.copy(center);
-  const mesh=new THREE.Mesh(VOL.geo,VOL.matF);
-  mesh.scale.set(r,ry,r);
-  // ⚠⚠ FRUSTUM CULLING COUPÉ (2026-07-20 v4) — LA CAUSE DU CLIGNOTEMENT « QUAND LA CAMÉRA BOUGE ».
-  // three.js teste la SPHÈRE englobante du nuage contre le champ de vision ; ce champ TOURNE avec la
-  // caméra (shake + virages). Un nuage au bord de l'écran, ou un titan lointain dont la grosse sphère
-  // frôle un plan du frustum, basculait donc dessiné/non-dessiné à CHAQUE micro-rotation → pop
-  // mono-frame (vérifié sur la capture de Sacha : un géant remplit l'écran 1 frame puis disparaît).
-  // C'était le SEUL mécanisme de visibilité couplé à l'ORIENTATION caméra. Coupé : la visibilité ne
-  // dépend plus QUE de la distance (cull stable ci-dessous, FOG_F). Coût nul : peu de nuages, et une
-  // boîte hors-champ ne rasterise AUCUN fragment (juste 36 sommets projetés puis clippés).
-  mesh.frustumCulled=false;
-  // params par nuage : voiles diaphanes, mer moyenne ; tours/murs pleins ; titans laiteux. noFog = perce la brume.
-  const dMul=o.veil?0.4:o.sea?0.7:o.titan?0.8:o.deco?0.85:1.0;
   const blobs=mkBlobs(o,rr); // les 5-10 boules de CE nuage (RNG isolé : ne rebrasse pas la génération)
-  mesh.userData={seed:(rr()*97.3)%17, dMul:dMul, fogAmt:o.noFog?0.0:1.0,
-    baseFlat:o.veil?0.0:o.giant?0.35:1.0, blobs:blobs,
-    stepMul:o.titan?0.55:1, // TITANS lointains : gros à l'écran mais moitié moins de pas — le budget suit la taille
-    fMul:Math.min(1,300/r), // LOBES PROPORTIONNELS : un titan a des bosses de titan
-    trav:!!(o.onRoad||(!o.giant&&!o.sea&&!o.veil&&!o.deco&&!o.titan))}; // TRAVERSABLE (banc/vol/tour sur piste) : seuls eux ont droit au matB sans z-test — le décor reste occlus par la route À VIE
-  mesh.onBeforeRender=function(rn,sc,cm,gm,mat){const u=mat.uniforms,ud=this.userData;
-    VOL._dr=(VOL._dr||0)+1; // sonde : combien de nuages DESSINÉS cette frame (lue par updateClouds → dbgPerf.cloudsDrawn)
-    u.uSteps.value=VOL.stepBase*ud.stepMul; // TOUJOURS via stepBase : les paliers perf n'écrivent plus uSteps en direct
-    u.uFreq.value=(1/120)*ud.fMul;
-    u.uSeed.value=ud.seed;u.uDMul.value=ud.dMul;u.uFogAmt.value=ud.fogAmt;u.uBaseFlat.value=ud.baseFlat;
-    const bl=ud.blobs,uv=u.uBlobs.value;for(let i=0;i<bl.length;i++)uv[i].set(bl[i][0],bl[i][1],bl[i][2],bl[i][3]);u.uNBlob.value=bl.length;};
+  const mesh=new THREE.Mesh(mergeSpheres(blobs,r,ry,r),CLOUD_MAT);
+  // Opaque : il s'occlut par le z-buffer comme n'importe quel décor. Aucun tri, aucun mélange,
+  // donc AUCUN ordre de dessin ne peut le faire clignoter. Le frustum culling de three.js
+  // redevient sûr (la géométrie est réelle et sa sphère englobante est exacte).
+  mesh.castShadow=false;mesh.receiveShadow=false; // la ouate ne projette rien : c'est du décor
+  mesh.userData.trav=!!(o.onRoad||(!o.giant&&!o.sea&&!o.veil&&!o.deco&&!o.titan));
   g.add(mesh);scene.add(g);
   CLOUDS.push({g:g,c:center.clone(),r:r,ry:ry,onRoad:!!o.onRoad,puffs:[],mesh:mesh,ph:rr()*6.28,refT:0,fid:-1,wasIn:false});
 }
-function mkCloud(center,r,o,rr){ if(VOL)return mkCloudVol(center,r,o,rr); return mkCloudSprite(center,r,o,rr); }
-function mkCloudSprite(center,r,o,rr){
-  const ry=r*(o.giant?.55+rr()*.18:o.veil?.16:o.sea?.15:.36+rr()*.16);
-  if(o.baseY!==undefined)center.y=o.baseY+ry*0.64; // assise posée sur le PLAFOND DE CONDENSATION commun (rues de nuages)
-  const g=new THREE.Group();g.position.copy(center);
-  // PEU de sprites, GROS et opaques : le nuage lit comme UNE silhouette peinte (le look du fantôme
-  // d'horizon, élu plus beau nuage du jeu) — plus jamais l'amas de cartes qui se chevauchent.
-  const nP=o.giant?6:o.dense?7:o.veil?2:o.sea?3:o.deco?2:5;
-  const puffs=[];
-  for(let i=0;i<nP;i++){
-    const a=rr()*Math.PI*2;let rad=Math.sqrt(rr())*r*(o.giant?.55:.40); // grappe TRÈS resserrée : une seule masse
-    const yb=o.giant?Math.pow(rr(),.8)*1.5-.35 // géants : base PLATE, bourgeons empilés vers le ciel
-      :(o.sea||o.veil)?(rr()*2-1)*.72
-      :Math.pow(rr(),.75)*1.2-.32;             // cumulus : assise posée, la masse bourgeonne vers le HAUT
-    if(o.giant)rad*=1-Math.max(0,yb)*.42;      // …la tour s'affine au sommet
-    else if(!o.sea&&!o.veil)rad*=1-Math.max(0,yb)*.32;
-    const base=new THREE.Vector3(Math.cos(a)*rad,yb*ry,Math.sin(a)*rad);
-    // éclairage sunset : sommets crème frappés par le soleil, ventres rose tendre — jamais de mauve sale
-    const hN=base.y/(ry||1),cN=Math.min(1,rad/(r*.7)); // cN : 0 au cœur .. 1 en lisière
-    const tint=o.veil?CLOUD_TINTS_FAR[Math.floor(rr()*CLOUD_TINTS_FAR.length)]
-      :hN>.4?0xfff3e0:hN<-.3?0xf2cfd2:CLOUD_TINTS[Math.floor(rr()*CLOUD_TINTS.length)];
-    const m=new THREE.SpriteMaterial({map:cloudTexs[Math.floor(rr()*cloudTexs.length)],
-      color:tint,transparent:true,fog:!o.noFog, // noFog : les montagnes de ouate percent la brume jusqu'à l'horizon
-      opacity:(o.veil?.16+rr()*.08:o.sea?.4+rr()*.14:(o.dense?.74:o.giant?.7:.62)+rr()*.14)*(1-cN*.3), // moins de sprites → chacun porte plus d'alpha
-      depthWrite:false,rotation:(rr()-.5)*(o.sea||o.veil?.08:.18)}); // à peine penché : la texture a un HAUT (assise plate en bas)
-    const sp=new THREE.Sprite(m);
-    const sc=r*(1.0+rr()*.55)*(1-cN*.18); // TRÈS gros sprites : la silhouette peinte fait le travail
-    if(o.veil)sp.scale.set(sc*2.4,sc*.26,1);            // voiles d'altitude : nappes étirées, quasi immobiles
-    else if(o.sea)sp.scale.set(sc*1.9,sc*.34,1);        // mer de nuages : galettes larges à perte de vue
-    else if(o.giant&&hN<-.1)sp.scale.set(sc*1.3,sc*(.34+rr()*.12),1); // ventre de tour : large et écrasé
-    else sp.scale.set(sc,sc*(.46+rr()*.14),1);          // proche du ratio naturel de la texture : rien d'écrasé ni d'étiré
-    sp.position.copy(base);
-    if(QUAL_LOW&&i%3===2)sp.visible=false;
-    g.add(sp);
-    puffs.push({sp:sp,base:base,ph:rr()*6.28,rv:(rr()-.5)*.03,dis:new THREE.Vector3(),dv:new THREE.Vector3()});
-  }
-  scene.add(g);
-  CLOUDS.push({g:g,c:center.clone(),r:r,ry:ry,onRoad:!!o.onRoad,puffs:puffs,ph:rr()*6.28,refT:0,fid:-1,wasIn:false});
-}
+// (le repli SPRITES a été supprimé avec le raymarch : il n'y a plus qu'UN seul chemin de nuage)
 function buildClouds(rr){
   disposeClouds();
   // RNG local : retoucher les nuages ne rebrasse plus la génération en aval (piège rnd séquentiel)
@@ -1190,79 +959,20 @@ function buildClouds(rr){
 }
 function updateClouds(dt,t){
   cloudIn=0;
-  // SONDE ANTI-CLIGNOTEMENT : _dr = nb de nuages dessinés à la frame PRÉCÉDENTE (onBeforeRender tourne
-  // au render, après ce updateClouds). On garde min/max sur ~1,5 s : si min≠max alors que la scène est
-  // stable, des nuages POPENT (frustum/cull) — c'est la signature du clignotement, lisible dans dbgPerf.
-  if(VOL){if(VOL._dr!==undefined){const h=VOL._drHist||(VOL._drHist=[]);h.push(VOL._dr);if(h.length>90)h.shift();}VOL._dr=0;}
-  // FOG STABLE POUR LES NUAGES (2026-07-20 v3) : scene.fog.near/far S'EFFONDRENT en traversée
-  // (420→26 / 2600→340 via cloudInS) — les donner au shader faisait PULSER tous les nuages de
-  // l'écran à chaque entrée/sortie de banc (LE clignotement de traversée). Les nuages lisent
-  // désormais le fog du BIOME (FOG_N/FOG_F, ne bouge qu'au portail sur 4 s) : pendant un white-out
-  // c'est le volume qu'on traverse qui masque le lointain, pas un fondu global. La couleur, elle,
-  // reste celle du fog vivant (teinte douce, aucun effet d'alpha).
-  if(VOL){const U=VOL.U;U.uTime.value=t;U.uFogNear.value=FOG_N;U.uFogFar.value=FOG_F;U.uFogCol.value.copy(scene.fog.color);
-    U.uProj.value.copy(camera.projectionMatrix);} // gl_FragDepth (profondeur vraie) : la projection du frame, FOV vivant compris
-  const cp=carGroup.position,camP=camera.position;
-  const carV=mode==='fall'?fallVel.length():Math.abs(vA);
+  // Plus rien à pousser dans un shader : les nuages sont des mesh opaques ordinaires. On ne fait
+  // plus que (1) les faire dériver doucement et (2) détecter qu'on est DEDANS (fog/son/airtime).
+  // Le frustum culling de three.js s'occupe du reste : la géométrie est réelle, sa sphère
+  // englobante est exacte, donc aucun pop possible.
+  const cp=carGroup.position;
   for(const c of CLOUDS){
     cldV1.subVectors(cp,c.g.position);
     const dh2=cldV1.x*cldV1.x+cldV1.z*cldV1.z,dv=cldV1.y;
     const d2=dh2/(c.r*c.r)+(dv*dv)/(c.ry*c.ry);
-    // CULLING SANS POP-IN : l'ancien seuil (8× le rayon) faisait APPARAÎTRE les petits nuages à 160 m
-    // devant la caisse. Désormais : les nuages broués ne se cachent qu'au-delà du fog (invisibles de
-    // toute façon → aucun pop visible) ; les noFog (titans, décor d'horizon) ne se cachent JAMAIS.
-    if(c.mesh){
-      // CULL DÉCOUPLÉ DU FOG QUI RESPIRE : scene.fog.far s'effondre (2600→340) en traversée de nuage
-      // (cloudInS) — l'utiliser ici faisait CLIGNOTER la visibilité des nuages du seuil au rythme du surf.
-      // On borne le cull sur FOG_F (le far STABLE du biome : constant, ne lerp qu'au portail sur 4 s) ; le
-      // FONDU visuel, lui, reste piloté par le fog dynamique DANS le shader (uFogFar → vis). Cull stable,
-      // fade vivant. Hystérésis conservée (on se cache au-delà du seuil, on ne revient qu'à 90 %).
-      const thr9=FOG_F+c.r*1.2;
-      const hid=!(VOL&&VOL._nocull)&&c.mesh.userData.fogAmt>0&&Math.sqrt(dh2+dv*dv)>(c.hid?thr9*.9:thr9); // dbgFlicker(2) : _nocull → jamais caché
-      c.hid=hid;c.mesh.visible=!hid;if(hid)continue;
-    }else if(d2>64){continue;} // repli sprites : l'ancien culling
-    if(VOL&&VOL._freeze){c.g.position.x=c.c.x;c.g.position.z=c.c.z;} // dbgFlicker(2) : dérive gelée
-    else{c.g.position.x=c.c.x+Math.sin(t*.07+c.ph)*4;   // le banc respire et dérive
-    c.g.position.z=c.c.z+Math.cos(t*.05+c.ph)*4;}
-    // Bascule FRONT/BACK : TOUJOURS évaluée (un matB périmé restait collé quand on s'éloignait → nuage
-    // dessiné SANS z-test À TRAVERS la route). Et seuls les nuages TRAVERSABLES (bancs/vol/tours sur
-    // piste) ont le droit au matB : le décor lointain reste en matF+z-test à vie — occlusion garantie.
-    if(c.mesh){
-      if((VOL&&VOL._matFonly)||!c.mesh.userData.trav)c.mesh.material=VOL.matF; // dbgFlicker(1) : matF forcé partout
-      else{
-        // ====== BASCULE matF/matB DEVENUE INVISIBLE (v2) ======
-        // Les deux matériaux écrivent gl_FragDepth (profondeur de la VRAIE surface du nuage) et
-        // z-testent : pour un même pixel, face avant ou arrière tirent LE MÊME rayon (ro+rd) →
-        // rendu IDENTIQUE au pixel près des deux côtés de la bascule. Le flip ne peut plus se voir,
-        // il ne sert qu'à garder des faces rasterisées quand la caméra est DANS la boîte (les faces
-        // avant, cullées ou tranchées par le near-plane, disparaîtraient en FrontSide).
-        // Marge d'entrée 2 m / sortie 6 m (collante), évaluée sur la boîte RENDUE (c.g.position —
-        // celle qui dérive au vent) : le near-plane (0.1) ne tranche jamais une face avant en frôlant.
-        const qx=Math.abs(camP.x-c.g.position.x)/c.r,qy=Math.abs(camP.y-c.g.position.y)/c.ry,qz=Math.abs(camP.z-c.g.position.z)/c.r;
-        const m9=c.back?6:2;
-        c.back=qx<1+m9/c.r&&qy<1+m9/c.ry&&qz<1+m9/c.r;
-        c.mesh.material=c.back?VOL.matB:VOL.matF;}
-    }
-    if(d2<9)for(const p of c.puffs){ // ressorts mis à jour seulement à proximité (perf, repli sprite)
-      p.dv.addScaledVector(p.dis,-2.3*dt);
-      p.dv.multiplyScalar(Math.max(0,1-1.7*dt));
-      p.dis.addScaledVector(p.dv,dt);
-      p.sp.position.set(p.base.x+p.dis.x,
-        p.base.y+p.dis.y+Math.sin(t*.4+p.ph)*c.ry*.06,
-        p.base.z+p.dis.z);
-      p.sp.material.rotation+=p.rv*dt*(1+p.dv.length()*.35);
-    }
+    c.g.position.x=c.c.x+Math.sin(t*.07+c.ph)*4;   // le banc respire et dérive au vent
+    c.g.position.z=c.c.z+Math.cos(t*.05+c.ph)*4;
     if(d2<1){ // ---- DEDANS ----
       const k=1-Math.sqrt(d2);
       if(k>cloudIn)cloudIn=k;
-      for(const p of c.puffs){ // on FEND la ouate : les bouffées giclent puis reviennent
-        cldV2.copy(p.sp.position).add(c.g.position).sub(cp);
-        if(cldV2.lengthSq()<p.sp.scale.x*p.sp.scale.x*.36){
-          cldV2.normalize();
-          p.dv.addScaledVector(cldV2,(carV*.12+3)*8*dt);
-          p.dv.y+=6*dt;
-        }
-      }
       if(!c.wasIn){
         c.wasIn=true;
         noiseBurst(.5,.10,520); // on plonge dans la ouate
@@ -1281,16 +991,7 @@ function updateClouds(dt,t){
         vA*=Math.max(0,1-.07*k*dt);      // la ouate FREINE un peu : percer un banc se paye en élan
         shake=Math.max(shake,.09*k);
       }
-      if(Math.random()<.65){ // brume qui file le long de la caisse
-        tmp3.set(0,0,1).applyQuaternion(carGroup.quaternion);
-        spawnP(wisps,cp.x+tmp3.x*(4+Math.random()*9)+(Math.random()-.5)*7,
-          cp.y+(Math.random()-.5)*4+1.5,
-          cp.z+tmp3.z*(4+Math.random()*9)+(Math.random()-.5)*7,
-          -tmp3.x*carV*.55,(Math.random()-.5)*2,-tmp3.z*carV*.55,.45+Math.random()*.4);
-      }
-      if(Math.random()<.3*k)spawnP(sparkGold, // poussière d'or en suspension — la féerie se traverse
-        cp.x+(Math.random()-.5)*10,cp.y+(Math.random()-.5)*6+2,cp.z+(Math.random()-.5)*10,
-        (Math.random()-.5)*3,1+Math.random()*2,(Math.random()-.5)*3,.5+Math.random()*.5);
+      // (zéro particule à la traversée — demande de Sacha : la paroi du mesh fait tout le travail)
     }else if(c.wasIn&&d2>1.3){ // ---- SORTIE ----
       c.wasIn=false;
       noiseBurst(.22,.07,1500); // l'air se rouvre d'un coup
@@ -2099,8 +1800,9 @@ function bioApply(c){ // pousse l'ambiance mélangée dans TOUS les organes (uni
   sun.color.setRGB(c.sunC[0],c.sunC[1],c.sunC[2]);sun.intensity=c.sunI;
   fill.color.setRGB(c.fillC[0],c.fillC[1],c.fillC[2]);fill.intensity=c.fillI;
   kick.color.setRGB(c.kickC[0],c.kickC[1],c.kickC[2]);kick.intensity=c.kickI;
-  if(VOL){VOL.U.uSunCol.value.setRGB(c.volSun[0],c.volSun[1],c.volSun[2]);VOL.U.uSkyCol.value.setRGB(c.volSky[0],c.volSky[1],c.volSky[2]);
-    VOL.U.uGroundCol.value.setRGB(c.volGnd[0],c.volGnd[1],c.volGnd[2]);VOL.U.uAmb.value=c.volAmb;}
+  // NUAGES : mesh Lambert — ils prennent déjà l'éclairage du biome (hemi/soleil). On teinte en plus
+  // leur matière avec la couleur solaire du biome pour qu'ils virent crème le soir et bleus la nuit.
+  CLOUD_MAT.color.setRGB(Math.min(1,.55+c.volSun[0]*.16),Math.min(1,.55+c.volSun[1]*.16),Math.min(1,.55+c.volSun[2]*.16));
   POST_EXPO=c.expo;if(acesPass)acesPass.uniforms.uSat.value=c.sat;
   // le SOLEIL « 1.61 », sa nappe d'horizon et ses rayons sont des SPRITES hors shader : ils suivent le halo du biome
   sunSprite.material.opacity=Math.min(1,.15+c.sunHalo*.85);
@@ -2577,7 +2279,7 @@ window.dbgStep=function(n,ms){
 };
 window.CASHCAR_BUILD='2026-07-20 v5 (anti-flicker + anti-cache)'; // vérif version : taper CASHCAR_BUILD en console
 console.log('%c🏎 CASH CAR — build '+CASHCAR_BUILD,'color:#f24aa0;font-weight:bold'); // si ce texte n'apparaît pas au chargement → tu es sur une VIEILLE version en cache (Ctrl+Shift+R)
-window.dbgPerf=function(){const h=VOL&&VOL._drHist;return {ms:+(loop._ms||0).toFixed(1),fps:Math.round(1000/Math.max(1,loop._ms||16)),spikes:+(loop._spk||0).toFixed(1),dpr:+curDPR.toFixed(2),dprCeil:loop._dprCeilT?+loop._dprCeil.toFixed(2):null,cloudIn:+cloudInS.toFixed(2),cloudsDrawn:h&&h.length?Math.min.apply(null,h)+'-'+Math.max.apply(null,h):null,tier:QUAL_LOW?'LOW':QUAL_MED?'MED':'FULL',steps:VOL?VOL.stepBase+'/'+VOL.U.uLightSteps.value:'sprites'};}; // cloudsDrawn min-max : s'ils diffèrent en scène stable, des nuages POPENT (clignotement)
+window.dbgPerf=function(){return {ms:+(loop._ms||0).toFixed(1),fps:Math.round(1000/Math.max(1,loop._ms||16)),spikes:+(loop._spk||0).toFixed(1),dpr:+curDPR.toFixed(2),dprCeil:loop._dprCeilT?+loop._dprCeil.toFixed(2):null,cloudIn:+cloudInS.toFixed(2),nuages:CLOUDS.length,tier:QUAL_LOW?'LOW':QUAL_MED?'MED':'FULL'};};
 // dbgDiff : EXPÉRIENCE CONTRÔLÉE DU CLIGNOTEMENT — même instant, on ne bouge QUE la caméra (position
 // dpos m + lacet dyaw rad), on rend 2 images et on mesure la différence par cellules. Un flicker
 // caméra = grosse différence pour un tout petit mouvement. En comparant dbgDiff avant/après dbgFlicker,
@@ -2597,7 +2299,7 @@ window.dbgDiff=function(dpos,dyaw){ dpos=dpos==null?0.4:dpos; dyaw=dyaw==null?0.
     const B=grab();
     camera.position.copy(p); camera.quaternion.copy(q); camera.updateMatrixWorld(); grab();
     let mean=0,max=0,big=0; for(let i=0;i<A.length;i++){const d=Math.abs(A[i]-B[i]); mean+=d; if(d>max)max=d; if(d>35)big++;}
-    return {mean:+(mean/A.length).toFixed(1), max:max|0, bigCells:big, of:GW*GH, mode:VOL?(VOL._fx||0):'-'};
+    return {mean:+(mean/A.length).toFixed(1), max:max|0, bigCells:big, of:GW*GH};
   }catch(e){return 'err '+e.message;}
 };
 // dbgPop : DÉTECTEUR DE CLIGNOTEMENT RÉEL. 3 frames de JEU consécutives (caméra/shake/tri/dérive tous
@@ -2618,7 +2320,7 @@ window.dbgPop=function(){
     pin();const A=grab(); dbgStep(1,16); pin();const B=grab(); dbgStep(1,16); pin();const C=grab();
     let mean=0,max=0; const band=[0,0,0]; // pops par tiers vertical
     for(let gy=0;gy<GH;gy++)for(let gx=0;gx<GW;gx++){const i=gy*GW+gx,dd=Math.abs(2*B[i]-A[i]-C[i]);mean+=dd;if(dd>max)max=dd;if(dd>35)band[gy<GH/3?0:gy<2*GH/3?1:2]++;}
-    return {popMean:+(mean/(GW*GH)).toFixed(1),popMax:max|0,popHaut:band[0],popMilieu:band[1],popBas:band[2],mode:VOL?(VOL._fx||0):'-'};
+    return {popMean:+(mean/(GW*GH)).toFixed(1),popMax:max|0,popHaut:band[0],popMilieu:band[1],popBas:band[2]};
   }catch(e){return 'err '+e.message;}
 };
 window.dbgView=function(a,d,h){ // MODE PHOTO : force la pause, cadre la caisse sous l'angle a (rad), distance d, hauteur h, re-rend UNE frame
@@ -4926,7 +4628,7 @@ let last=performance.now();
 // clignotement s'arrête net, la cause est là et nulle part ailleurs.
 let RESPIN=false;
 window.dbgPin=function(on){RESPIN=(on===undefined)?true:!!on;
-  return {resolution_et_paliers_figes:RESPIN,dpr:+curDPR.toFixed(3),stepBase:VOL?VOL.stepBase:null};};
+  return {resolution_et_paliers_figes:RESPIN,dpr:+curDPR.toFixed(3),stepBase:null};};
 function loop(now){
   requestAnimationFrame(loop);
   let dt=Math.min((now-last)/1000,.05);last=now;
