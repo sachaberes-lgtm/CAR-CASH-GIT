@@ -1273,34 +1273,41 @@ function genPark(rnd){
   const flip=()=>{sg=-sg;};
   straight(210,-70,3);                // LARGAGE : tapis d'atterrissage pour l'intro, puis pente douce
   const modules=[
-    ()=>{ arc(sg*(50+rnd()*70),190+rnd()*120,5,-(18+rnd()*28)); flip(); },                 // GRAND SWEEPER : virage qui chante
-    ()=>{ straight(55+rnd()*30,-38); loop(44+rnd()*30,32+rnd()*24); straight(52+rnd()*30,-36); }, // LOOP VERTICAL
-    ()=>{ arc(sg*(300+rnd()*260),105+rnd()*70,12,-(120+rnd()*140)); flip(); },              // HÉLICE / TIRE-BOUCHON : la route s'empile
-    ()=>{ arc(sg*(360+rnd()*280),175+rnd()*90,14,-(150+rnd()*150)); flip(); },              // SPIRALE GÉANTE : le manège sans fin
-    ()=>{ straight(55+rnd()*30,-(16+rnd()*14)); straight(62+rnd()*30,26+rnd()*16); straight(72+rnd()*40,-(64+rnd()*44)); }, // VAGUES à sauter (airtime)
-    ()=>{ straight(120+rnd()*50,-8,2); straight(42,20+rnd()*10); straight(26,10); straight(155+rnd()*60,-16,2); }, // RAMPE DE LANCEMENT + réception
-    ()=>{ const a=28+rnd()*30,R=145+rnd()*90; arc(sg*a,R,3,-(20+rnd()*20)); arc(-sg*a,R,3,-(20+rnd()*20)); flip(); }, // ESSES AMPLES
-    ()=>{ arc(sg*(150+rnd()*70),92+rnd()*50,6,-(28+rnd()*30)); flip(); },                   // DEMI-TOUR SERRÉ : ramène le ruban → croisements
+    ()=>{ arc(sg*(50+rnd()*70),175+rnd()*110,5,(rnd()*2-1)*46); flip(); },                        // GRAND SWEEPER : virage qui chante
+    ()=>{ straight(52+rnd()*28,-30); loop(44+rnd()*30,32+rnd()*24); straight(50+rnd()*28,-28); },  // LOOP VERTICAL
+    ()=>{ arc(sg*(300+rnd()*260),100+rnd()*65,12,-(70+rnd()*100)); flip(); },                      // HÉLICE / TIRE-BOUCHON : la route s'empile
+    ()=>{ arc(sg*(360+rnd()*280),160+rnd()*80,14,(rnd()<.5?-1:1)*(80+rnd()*110)); flip(); },       // SPIRALE GÉANTE : monte OU descend (remplit la boule)
+    ()=>{ straight(52+rnd()*26,-(14+rnd()*12)); straight(58+rnd()*26,24+rnd()*14); straight(66+rnd()*32,-(42+rnd()*34)); }, // VAGUES à sauter (airtime)
+    ()=>{ straight(110+rnd()*44,-6,2); straight(40,18+rnd()*10); straight(24,10); straight(135+rnd()*50,-12,2); }, // RAMPE DE LANCEMENT + réception
+    ()=>{ const a=28+rnd()*28,R=135+rnd()*80; arc(sg*a,R,3,(rnd()*2-1)*24); arc(-sg*a,R,3,(rnd()*2-1)*24); flip(); }, // ESSES AMPLES
+    ()=>{ arc(sg*(150+rnd()*70),88+rnd()*46,6,(rnd()*2-1)*30); flip(); },                          // DEMI-TOUR SERRÉ : ramène le ruban → croisements
   ];
-  // CAP VERS LE CŒUR : dès que le ruban s'éloigne, on le RAMÈNE vers l'origine — il se replie sur
-  // lui-même dans un disque serré → BEAUCOUP plus de croisements = routes denses (la clé de la densité).
-  const homeward=(R)=>{
-    let want=Math.atan2(-P.x,-P.z),d=want-phi;           // cap désiré = vers (0,0)
+  // ============ LA SPHÈRE : une ÉNORME BOULE de routes dans le ciel ============
+  // Le ruban ne se replie plus dans un DISQUE plat mais dans une SPHÈRE 3D : dès qu'il sort de la boule,
+  // on le RAMÈNE vers le cœur en tournant ET en montant/descendant vers le centre ; entre-temps on
+  // l'envoie explorer la moitié OPPOSÉE en hauteur. Résultat : des routes PARTOUT, au-dessus comme en
+  // dessous, entrelacées dans tous les sens — une planète de bitume flottant dans le ciel.
+  const R=1200;                        // RAYON de la sphère (immense — 2,4 km de diamètre)
+  // CONFINEMENT HORIZONTAL : on tourne vers le centre en gardant l'altitude — le rayon horizontal
+  // ADMISSIBLE rétrécit vers le haut/bas de la boule (√(R²−y²)) → l'enveloppe est bien une SPHÈRE.
+  const homeHoriz=()=>{
+    let want=Math.atan2(-P.x,-P.z),d=want-phi;
     while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;
-    const deg=d*180/Math.PI;
-    arc(deg,R,Math.max(3,Math.ceil(Math.abs(deg)/28)),-(Math.abs(deg)*Math.PI/180*R*.3));
+    const deg=d*180/Math.PI,Rr=110+rnd()*70;
+    arc(deg,Rr,Math.max(3,Math.ceil(Math.abs(deg)/26)),0);
   };
-  const TARGET=32000;                 // ÉNORME (~4,5 zones de course) mais REPLIÉ dans un disque serré → très dense
-  const HOME=1250;                    // rayon du cœur : au-delà, on rentre (plus petit = plus dense)
+  // REMPLISSAGE VERTICAL : on VISE une altitude cible (n'importe où dans la boule) et on grimpe/plonge
+  // vers elle en rampe. C'est ça qui étale les routes du HAUT au BAS de la sphère (sinon : disque plat).
+  let yTarget=(rnd()*2-1)*R*.88,tcd=1;
+  const TARGET=34000;                  // ÉNORME et DENSE : ~34 km de ruban plié dans la boule
   while(approx<TARGET){
-    modules[Math.floor(rnd()*modules.length)]();
-    const hd=Math.hypot(P.x,P.z);
-    if(hd>HOME)homeward(120+rnd()*70);                     // trop loin : demi-tour vers le centre → densité
-    else if(P.y<-520)straight(95+rnd()*60,72+rnd()*50,2);  // trop bas : on remonte
-    else if(P.y>340)straight(95+rnd()*60,-(72+rnd()*50),2); // trop haut : on replonge
-    else if(rnd()<.4)straight(38+rnd()*46,-(10+rnd()*18));  // sinon petite RESPIRATION (raccourcie : plus de motifs au m²)
+    modules[Math.floor(rnd()*modules.length)]();          // une FIGURE (tricks + tangle local)
+    if(--tcd<=0||Math.abs(P.y-yTarget)<110){yTarget=(rnd()*2-1)*R*.9;tcd=2+Math.floor(rnd()*3);} // nouvelle cible d'altitude (jusqu'aux pôles de la boule)
+    straight(150+rnd()*55,THREE.MathUtils.clamp(yTarget-P.y,-215,215),2); // rampe FRANCHE vers la cible → remplit vraiment la hauteur (≈52°, ridable)
+    const rMax=Math.sqrt(Math.max(0,R*R-P.y*P.y))*.96;    // rayon horizontal admissible à CETTE hauteur
+    if(Math.hypot(P.x,P.z)>rMax)homeHoriz();              // hors de la sphère : on rentre (en gardant l'altitude)
   }
-  straight(170,-40,2);                // SORTIE propre (le bouclage se fait par newTrack → nouveau secteur)
+  straight(150,-30,2);                 // SORTIE propre (le bouclage se fait par newTrack → nouveau secteur)
   return ctrl;
 }
 function buildTrack(seed){
@@ -1310,7 +1317,7 @@ function buildTrack(seed){
   const ctrl=PARK.on?genPark(rnd):genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course
   const curve=new THREE.CatmullRomCurve3(ctrl,false,'catmullrom',0.5);
   L=curve.getLength();
-  const N=Math.min(9000,Math.max(3000,Math.round(L)));
+  const N=Math.min(PARK.on?11000:9000,Math.max(3000,Math.round(L))); // parc : plus long → plus de points pour garder les loops lisses
   pts=curve.getSpacedPoints(N);NP=pts.length;
   trackMinY=Infinity;for(let i=0;i<NP;i++)if(pts[i].y<trackMinY)trackMinY=pts[i].y; // plancher du monde
   T=[];Nn=[];B=[];
@@ -3700,6 +3707,7 @@ const GRAV=9.8*.55,FALL_G=33,AXIS_Y=new THREE.Vector3(0,1,0),AIR_MAX=6;
 // (viseur d'atterrissage + seuils de figures inchangés), mais on passe moins de temps à flotter.
 let AIR_RATE=1; // base V1 (temps réel) — startFall le RE-pilote depuis 2026-07-20 : =1 sous 450 km/h affichés, puis rampe douce jusqu'au cap 1.35 (l'ancienne ère 2.3 COMPENSAIT SPD=.25 ; ici c'est un dosage de tempo, pas une compensation).
 const PARK={on:false}; // MODE FREESTYLE : le parc de figures (pas une course). Armé au menu, persiste entre les runs. Neutralise police/mort/portail.
+const PARK_VCAP=145; // PARC : plafond de vitesse (m/s ≈ 260 km/h affichés) — la nitro infinie ne DOIT PAS envoyer à 1000 km/h ingérables ; on garde une vitesse RAPIDE mais CONTRÔLABLE (sol ET air)
 const SPD=0.5; // vitesse globale du jeu — RESTAURÉ à la valeur V1 (2026-07-19) : le ÷2 « trop rapide dès le début » tuait le fun nerveux/arcade de la V1 ; le user tranche pour la V1. SPD scale TOUT : avance joueur/bots, chute, viseur ET compteur (donc les km/h affichés DOUBLENT — seuils de sensation ABSOLUS ajustés en conséquence, les systèmes RELATIFS via vmaxShow s'ajustent seuls)
 const TURN_HS=.0035; // pénalité de braquage à haute vitesse (avant .008 — plus petit = virages plus faciles)
 const AIR_ASSIST=1.0; // aide au recentrage en vol (0 = off), monte avec la vitesse
@@ -4846,6 +4854,7 @@ function loop(now){
       vA-=vA*Math.abs(vA)*(acc9/(maxSp*maxSp*5.8))*dt;
       vA*=Math.max(0,1-.03*dt);
       if(!up&&!dn&&!nitroOn)vA*=Math.max(0,1-.4*dt);
+      if(PARK.on&&vA>PARK_VCAP)vA=PARK_VCAP; // PARC : gouverneur de vitesse — la nitro infinie POUSSE mais ne s'emballe pas (contrôlable)
       if(vA<-8)vA=-8;
       if(introD){vA=0;momT=0;steer=0;psi=0;} // LARGAGE : chute verticale, contrôles gelés
       if(Math.abs(target)>.1)steerHold=Math.min(.3,steerHold+dt);else steerHold=0;
@@ -5170,6 +5179,7 @@ function loop(now){
           carGroup.position.x-tmp3.x*2.5,carGroup.position.y-tmp3.y*2.5,carGroup.position.z-tmp3.z*2.5,
           -tmp3.x*20+(Math.random()-.5)*6,-tmp3.y*20+(Math.random()-.5)*6,-tmp3.z*20+(Math.random()-.5)*6,.3);
       }
+      if(PARK.on&&fallVel.lengthSq()>PARK_VCAP*PARK_VCAP)fallVel.setLength(PARK_VCAP); // PARC : la nitro infinie ne t'emballe pas non plus EN L'AIR — vol rapide mais pilotable
       fallPos.addScaledVector(fallVel,dtF*SPD);
       carGroup.position.copy(fallPos);
       speedKmh=fallVel.length()*3.6*SPD;
