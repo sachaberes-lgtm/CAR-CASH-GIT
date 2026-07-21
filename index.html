@@ -2386,7 +2386,7 @@ function buildCar(spec){
 buildCar(CARS[0]);
 window.dbgCar=function(i){buildCar(CARS[Math.max(0,Math.min(23,i|0))]);}; // console : dbgCar(16) → prévisualiser un gabarit sans farmer les milliards (visuel pur, ne touche pas au niveau)
 window.dbgScene=function(){return {car:carGroup,scene:scene,contact:contactShadow,shadow:shadow};}; // dissection console (visuel pur)
-window.dbgState=function(){return {started:started,running:running,paused:paused,gameOver:gameOver,mode:mode,vA:+vA.toFixed(2),s:+s.toFixed(1),lat:+lat.toFixed(2),side:side,gapArmed:gapArmed,fallT:+fallT.toFixed(2),level:level,introD:introD,hopY:+hopY.toFixed(2),hOff:+curHOff.toFixed(2),latOff:+curLatOff.toFixed(2),dolphT:+dolphT.toFixed(2),dolphGain:+dolphGain.toFixed(2),chainVal:+chainVal.toFixed(2)};}; // état interne (lecture seule) — hOff/dolph* : calibrage du DAUPHIN
+window.dbgState=function(){return {started:started,running:running,paused:paused,gameOver:gameOver,mode:mode,vA:+vA.toFixed(2),s:+s.toFixed(1),lat:+lat.toFixed(2),side:side,driveDir:driveDir,gapArmed:gapArmed,fallT:+fallT.toFixed(2),level:level,introD:introD,hopY:+hopY.toFixed(2),hOff:+curHOff.toFixed(2),latOff:+curLatOff.toFixed(2),dolphT:+dolphT.toFixed(2),dolphGain:+dolphGain.toFixed(2),chainVal:+chainVal.toFixed(2)};}; // état interne (lecture seule) — hOff/dolph* : calibrage du DAUPHIN
 // TREMPLINS de la zone courante : archétype, longueur de piste, et chaque lèvre (position + variante).
 // `dbgGap(true)` téléporte à 220 m avant la 1re lèvre — pour juger le gap sans refaire la course d'élan.
 window.dbgGap=function(go){
@@ -3742,7 +3742,7 @@ const TURN_HS=.0035; // pénalité de braquage à haute vitesse (avant .008 — 
 const AIR_ASSIST=1.0; // aide au recentrage en vol (0 = off), monte avec la vitesse
 const CAM_SHAKE_V=.45; // intensité du tremblement caméra lié à la vitesse (position + roulis) — .78→.45 : un frémissement, plus un séisme (user : « c'est trop »)
 function vmaxShow(){const l9=1+Math.min(.5,Math.max(0,level-5)*.08);return CARS[level].maxKmh*SPD*l9;} // vitesse max AFFICHÉE de la caisse actuelle (overdrive compris) — la sensation de vitesse se juge RELATIVE à ta caisse, pas en absolu
-let mode='drive',s=0,lat=0,psi=0,vA=0,vL=0,side=1;
+let mode='drive',s=0,lat=0,psi=0,vA=0,vL=0,side=1,driveDir=1; // driveDir : sens de conduite le long du ruban (+1/-1). TOUJOURS 1 en course ; dans le PARC il suit le sens d'atterrissage → les routes se roulent dans les DEUX sens (pas de sens imposé)
 let steer=0,money=0,levelCash=0,boost=0,fallT=0,fallTR=0,padCd=0,shake=0,combo=0,comboT=0,graceT=0,safeS=0,yawAcc=0,edgeT=0,squashT=0,momT=0,styleM=0,fever=0,streak=0,slowT=0,steerHold=0,aheadV=0,sideCd=0,slipT=0,oilCd=0,hitT=0,insUsed=false,feverArmed=false,lastSpaceT=0,rollover=0;
 let airRoll=0; // vrille visuelle en vol
 // TREMPLIN HÉROS : gapArmed = variante du tremplin qui a lancé CE vol (0 = vol ordinaire, 1/2/3 = v+1),
@@ -3977,7 +3977,7 @@ function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent dé
 function respawn(){
   if(introD){introD=false;if(pigGroup){scene.remove(pigGroup);pigGroup=null;}} // R pendant le largage : on annule proprement
   s=THREE.MathUtils.clamp(safeS-8,0,Math.max(0,L-80));
-  lat=0;psi=0;vA=26;vL=0;side=1;graceT=1.6;prevTvalid=false;yawAcc=0;hopY=0;hopV=0;mode='drive';
+  lat=0;psi=0;vA=26;vL=0;side=1;driveDir=1;graceT=1.6;prevTvalid=false;yawAcc=0;hopY=0;hopV=0;mode='drive';
 }
 // FREESTYLE : on ne MEURT jamais dans le parc — on repart sur la piste. La chaîne en cours est perdue
 // (on n'a pas su reposer), mais aucune explosion, aucun game over : c'est un bac à sable de figures.
@@ -4010,7 +4010,7 @@ function startFall(impU,impF){
   frameAt(s,F);
   if(side<0){F.n.multiplyScalar(-1);F.b.multiplyScalar(-1);}
   fallPos.copy(F.p).addScaledVector(F.b,lat).addScaledVector(F.n,(side<0?THICK:0)+.6);
-  fallVel.copy(F.t).multiplyScalar(vA*(impF||1)).addScaledVector(F.b,vL).addScaledVector(F.n,impU||.9);
+  fallVel.copy(F.t).multiplyScalar(vA*driveDir*(impF||1)).addScaledVector(F.b,vL*driveDir).addScaledVector(F.n,impU||.9); // driveDir : on décolle dans le sens où l'on roulait (le parc autorise les deux)
   // INERTIE RÉELLE (2026-07-20) : fini le plafond TOTAL de 95 qui bridait l'éjection — éjecté à
   // 300 km/h, on VOLE à 300 km/h (le compteur ne s'effondre plus au décollage), et la gravité en
   // RAJOUTE en descente, comme une vraie chute. Seule la composante VERTICALE est bornée (70) :
@@ -4096,6 +4096,7 @@ function tryLand(dt){
   s=THREE.MathUtils.clamp(bestI/(NP-1)*L+THREE.MathUtils.clamp(dTmp.dot(T[bestI]),-2,2),0,L-1);
   side=sideL;lat=latOff*sideL;psi=0;
   vA=fallVel.dot(T[bestI]);vL=fallVel.dot(B[bestI])*.4*sideL;
+  if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1; // PARC : on repart dans le sens d'atterrissage (les deux directions roulent) ; COURSE : toujours vers l'avant
   // ATTERRISSAGE : l'impact ralentit la caisse — d'autant plus que le saut etait gros
   const impact=Math.abs(vN);
   const bigness=Math.max(0,fallT-.8);
@@ -4171,7 +4172,7 @@ function newTrack(){
   if(nightFalls)showMsg('LA NUIT TOMBE…','#9ac8ff'); // le déblocage s'annonce
   computeMinimap();
   spawnPickups(mulberry32(sd^0x9e3779b9));
-  s=0;lat=0;psi=0;side=1;prevTvalid=false;safeS=0;
+  s=0;lat=0;psi=0;side=1;driveDir=1;prevTvalid=false;safeS=0;
   if(vA<20)vA=20;
   mode='drive';
 }
@@ -4878,7 +4879,7 @@ function loop(now){
       if(dn)a=vA>2?-acc9*1.5:-acc9*.5;
       vA+=a*dt;
       if(nitroOn)vA+=(nitroBlue?48:30)*dt;
-      vA+=-GRAV*F.t.y*Math.cos(psi)*dt;
+      vA+=-GRAV*F.t.y*Math.cos(psi)*driveDir*dt; // la pente accélère/freine selon le SENS réel de marche
       // pas de plafond : seule la traînée résiste (terminal ≈ 2,4x la vitesse max de la caisse)
       vA-=vA*Math.abs(vA)*(acc9/(maxSp*maxSp*5.8))*dt;
       vA*=Math.max(0,1-.03*dt);
@@ -4891,8 +4892,8 @@ function loop(now){
       psi=THREE.MathUtils.clamp(psi,-1.4,1.4);
       vL=vA*Math.sin(psi);
       const spdMult=pwrSpdT>0?1.6:1; // SPEED UP : le sol défile +60% plus vite, sans casser la physique
-      lat+=vL*dt*SPD*spdMult;
-      s+=vA*Math.cos(psi)*dt*SPD*spdMult;
+      lat+=vL*driveDir*dt*SPD*spdMult;
+      s+=vA*Math.cos(psi)*driveDir*dt*SPD*spdMult; // avance le long du ruban dans le SENS de conduite (parc : avant OU arrière)
       const vF=vA;
       boost=Math.max(0,boost-dt);
       speedKmh=Math.abs(vF)*3.6*SPD*spdMult;
@@ -4911,12 +4912,12 @@ function loop(now){
       }
       if(graceT<=0&&F.n.y*1<-.15&&Math.abs(vF)<7)startFall();
       // PORTAIL : fin de zone
-      if(mode==='drive'&&s>L-32){
-        if(PARK.on){ // FREESTYLE : pas de course — on enchaîne sur un NOUVEAU SECTEUR de parc (variété)
-          portalSnd();shake=.35;nitroR=2;
-          showMsg('✦ NOUVEAU SECTEUR','#7dffec');
-          newTrack();
-        }else{
+      if(mode==='drive'&&PARK.on&&((s>L-32&&driveDir>0)||(s<6&&driveDir<0))){ // FREESTYLE : on ne régénère QUE si on sort par le bout vers lequel on roule (les deux sens sont valides, s=0 au spawn ne déclenche rien)
+        portalSnd();shake=.35;nitroR=2;
+        showMsg('✦ NOUVEAU SECTEUR','#7dffec');
+        newTrack();
+      }else if(mode==='drive'&&!PARK.on&&s>L-32){
+        {
           portalSnd();boostSnd();shake=.5;
           const zb=denom()*40*(fever>0?2:1);money+=zb;levelCash+=zb;checkUpgrade();
           runStats.zones++;
@@ -5042,7 +5043,7 @@ function loop(now){
         frameAt(s,F);
         if(side<0){F.n.multiplyScalar(-1);F.b.multiplyScalar(-1);}
         carGroup.position.copy(F.p).addScaledVector(F.b,lat).addScaledVector(F.n,(side<0?THICK:0)+hopY);
-        fwdW.copy(F.t).multiplyScalar(Math.cos(psi)).addScaledVector(F.b,Math.sin(psi)).normalize();
+        fwdW.copy(F.t).multiplyScalar(Math.cos(psi)*driveDir).addScaledVector(F.b,Math.sin(psi)*driveDir).normalize(); // la caisse REGARDE son sens de marche (parc : peut faire face à -T)
         tmp.crossVectors(F.n,fwdW).normalize();
         mat4.makeBasis(tmp,F.n,fwdW);
         carGroup.quaternion.setFromRotationMatrix(mat4);
