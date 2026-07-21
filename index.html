@@ -1651,6 +1651,66 @@ function buildTrack(seed){
   const plight=new THREE.PointLight(0xff4fd8,1.3,240);
   plight.position.copy(portalMesh.position);
   scene.add(plight);trackMeshes.push(plight);
+  buildParkGround(); // FREESTYLE : la prairie sous la boule (no-op en course)
+}
+// ---------- PARC : LE SOL — une prairie d'HERBE LONGUE animée par le vent ----------
+// Un grand tapis vert texturé (qui prend l'éclairage des biomes) SOUS la sphère, planté de dizaines de
+// milliers de brins instanciés qu'un shader ploie au vent. Tout part dans trackMeshes → disposé au rebuild.
+let parkGrassMat=null,_grassTex=null;
+function grassGroundTex(){
+  if(_grassTex)return _grassTex; // une seule fois : pas de fuite VRAM à chaque parc
+  const cv=document.createElement('canvas');cv.width=256;cv.height=256;const c=cv.getContext('2d');
+  c.fillStyle='#4f8a3a';c.fillRect(0,0,256,256);
+  for(let i=0;i<4600;i++){ // micro-brins peints : le tapis a du grain
+    const x=Math.random()*256,y=Math.random()*256,l=3+Math.random()*8,g=70+Math.random()*90|0;
+    c.strokeStyle='rgba('+(28+Math.random()*40|0)+','+g+','+(28+Math.random()*30|0)+','+(.22+Math.random()*.5).toFixed(2)+')';
+    c.lineWidth=1;c.beginPath();c.moveTo(x,y);c.lineTo(x+(Math.random()-.5)*3,y-l);c.stroke();
+  }
+  _grassTex=new THREE.CanvasTexture(cv);_grassTex.wrapS=_grassTex.wrapT=THREE.RepeatWrapping;_grassTex.repeat.set(70,70);
+  return _grassTex;
+}
+function buildParkGround(){
+  parkGrassMat=null;
+  if(!PARK.on)return;
+  const gy=(isFinite(trackMinY)?trackMinY:-1200)-160; // le SOL, un cran sous la route la plus basse de la boule
+  // 1) LA PRAIRIE : grand tapis texturé (MeshLambert → il vit avec les biomes, sombre la nuit)
+  const gmesh=new THREE.Mesh(new THREE.PlaneGeometry(16000,16000),
+    new THREE.MeshLambertMaterial({map:grassGroundTex(),color:0x86c766}));
+  gmesh.rotation.x=-Math.PI/2;gmesh.position.set(0,gy,0);gmesh.receiveShadow=true;
+  scene.add(gmesh);trackMeshes.push(gmesh);
+  // 2) L'HERBE LONGUE : brins instanciés, ondulés par le vent dans un shader (30 000 brins = 1 draw call)
+  const seg=3,vp=[],vi=[];
+  for(let i=0;i<=seg;i++){const y=i/seg,w=.95*(1-y*.8);vp.push(-w,y,0, w,y,0);}
+  for(let i=0;i<seg;i++){const a=i*2;vi.push(a,a+2,a+1, a+1,a+2,a+3);}
+  const bg=new THREE.InstancedBufferGeometry();
+  bg.setAttribute('position',new THREE.Float32BufferAttribute(vp,3));
+  bg.setIndex(vi);
+  const N=30000,ap=new Float32Array(N*3),ar=new Float32Array(N),ah=new Float32Array(N),aph=new Float32Array(N);
+  for(let i=0;i<N;i++){
+    const rad=Math.sqrt(Math.random())*2700,an=Math.random()*6.2832; // disque : dense au centre
+    ap[i*3]=Math.cos(an)*rad;ap[i*3+1]=gy;ap[i*3+2]=Math.sin(an)*rad;
+    ar[i]=Math.random()*6.2832;ah[i]=24+Math.random()*30;aph[i]=Math.random()*6.2832; // HERBE LONGUE : 24-54 de haut
+  }
+  bg.setAttribute('aPos',new THREE.InstancedBufferAttribute(ap,3));
+  bg.setAttribute('aRot',new THREE.InstancedBufferAttribute(ar,1));
+  bg.setAttribute('aH',new THREE.InstancedBufferAttribute(ah,1));
+  bg.setAttribute('aPh',new THREE.InstancedBufferAttribute(aph,1));
+  bg.instanceCount=N;
+  parkGrassMat=new THREE.ShaderMaterial({
+    uniforms:{uTime:{value:0}},side:THREE.DoubleSide,
+    vertexShader:'attribute vec3 aPos;attribute float aRot;attribute float aH;attribute float aPh;'+
+      'uniform float uTime;varying float vY;void main(){vY=position.y;'+
+      'float c=cos(aRot),s=sin(aRot);vec3 rw=vec3(position.x*c,0.0,position.x*s);'+
+      'float w=sin(uTime*1.6+aPh+aPos.x*0.006+aPos.z*0.006)+0.5*sin(uTime*2.7+aPh*1.7);'+ // vagues de vent qui roulent
+      'float bend=w*position.y*position.y*3.4;'+ // ploie vers la POINTE (y²)
+      'vec3 world=aPos+rw+vec3(bend,position.y*aH,bend*0.5);'+
+      'gl_Position=projectionMatrix*modelViewMatrix*vec4(world,1.0);}',
+    fragmentShader:'varying float vY;void main(){'+
+      'vec3 root=vec3(0.11,0.26,0.07),tip=vec3(0.52,0.82,0.32);'+ // racine sombre → pointe claire
+      'gl_FragColor=vec4(mix(root,tip,vY),1.0);}'
+  });
+  const gm=new THREE.Mesh(bg,parkGrassMat);gm.frustumCulled=false;
+  scene.add(gm);trackMeshes.push(gm);
 }
 function frameAt(s,out){
   s=THREE.MathUtils.clamp(s,0,L-.01);
@@ -2386,7 +2446,7 @@ function buildCar(spec){
 buildCar(CARS[0]);
 window.dbgCar=function(i){buildCar(CARS[Math.max(0,Math.min(23,i|0))]);}; // console : dbgCar(16) → prévisualiser un gabarit sans farmer les milliards (visuel pur, ne touche pas au niveau)
 window.dbgScene=function(){return {car:carGroup,scene:scene,contact:contactShadow,shadow:shadow};}; // dissection console (visuel pur)
-window.dbgState=function(){return {started:started,running:running,paused:paused,gameOver:gameOver,mode:mode,vA:+vA.toFixed(2),s:+s.toFixed(1),lat:+lat.toFixed(2),side:side,driveDir:driveDir,gapArmed:gapArmed,fallT:+fallT.toFixed(2),level:level,introD:introD,hopY:+hopY.toFixed(2),hOff:+curHOff.toFixed(2),latOff:+curLatOff.toFixed(2),dolphT:+dolphT.toFixed(2),dolphGain:+dolphGain.toFixed(2),chainVal:+chainVal.toFixed(2)};}; // état interne (lecture seule) — hOff/dolph* : calibrage du DAUPHIN
+window.dbgState=function(){return {started:started,running:running,paused:paused,gameOver:gameOver,mode:mode,vA:+vA.toFixed(2),s:+s.toFixed(1),lat:+lat.toFixed(2),side:side,driveDir:driveDir,gapArmed:gapArmed,fallT:+fallT.toFixed(2),level:level,introD:introD,hopY:+hopY.toFixed(2),hOff:+curHOff.toFixed(2),latOff:+curLatOff.toFixed(2),dolphT:+dolphT.toFixed(2),dolphGain:+dolphGain.toFixed(2),chainVal:+chainVal.toFixed(2),fvy:+fallVel.y.toFixed(2),fspd:+fallVel.length().toFixed(1)};}; // état interne (lecture seule) — hOff/dolph* : calibrage du DAUPHIN
 // TREMPLINS de la zone courante : archétype, longueur de piste, et chaque lèvre (position + variante).
 // `dbgGap(true)` téléporte à 220 m avant la 1re lèvre — pour juger le gap sans refaire la course d'élan.
 window.dbgGap=function(go){
@@ -4823,6 +4883,7 @@ function loop(now){
     else loop._dprUp=0;
   }
   bioStep(dt); // BIOMES : le voyage d'ambiance avance même au menu/en pause de jeu (c'est le ciel qui vit, pas la sim)
+  if(parkGrassMat)parkGrassMat.uniforms.uTime.value=now*.001; // l'herbe longue du parc ondule au vent (now : dispo avant `const t`)
   if(slowT>0){slowT-=dt;dt*=.45;} // slow-mo d'atterrissage
   if(hitT>0){hitT-=dt;dt*=.04;}   // HIT-STOP : 80 ms de gel sur l'encaissement PARFAIT — le monde retient son souffle
   const t=now/1000;
@@ -5175,16 +5236,22 @@ function loop(now){
         tmp.copy(fallVel);
         if(tmp.lengthSq()>1)tmp.normalize();else tmp.set(0,0,1);
         fallVel.addScaledVector(tmp,(nitroBlue?70:52)*dtF); // RÉACTEUR façon Rocket League (2026-07-20, était 49/34) : en l'air la nitro POUSSE vraiment — on sculpte sa trajectoire, on ne la subit plus
-        // ↑/AVANT : PIQUÉ — on POUSSE vers le bas pour raser la route ou casser un vol trop haut.
-        // ⚠ PAS de rotation du vecteur vitesse (elle pouvait le basculer à la VERTICALE → le repère
-        // makeBasis dégénère → caisse COINCÉE en vrille) : on ajoute juste une composante descendante,
-        // le nez suit la trajectoire tout seul. Stable, aucune vrille surprise.
-        // PARC : au plafond de vitesse (PARK_VCAP=145) le piqué/cabré ne courbait plus RIEN — 12 m/s² ajoutés
-        // à un vecteur de 145 puis reclampés, ça fait ~4°/s : on volait tout droit, nitro en l'air = inerte.
-        // L'autorité suit donc la vitesse : la trajectoire se plie AUTANT à 260 km/h qu'à 80.
-        const airAuth=PARK.on?THREE.MathUtils.clamp(fallVel.length()/45,1,3.4):1;
-        if(keys.KeyW||keys.KeyZ||keys.ArrowUp)fallVel.y-=(nitroBlue?16:12)*airAuth*dtF;
-        if(dn)fallVel.y+=(nitroBlue?13:9)*airAuth*dtF; // ↓/FREIN : on CABRE — le nez remonte (portance)
+        // ↑/AVANT : PIQUÉ · ↓/FREIN : CABRÉ. On fait TOURNER la vitesse en tangage (pitch) au lieu
+        // d'ajouter à .y : ajouter ±12 à un vecteur de 145 puis reclamper ne pliait la trajectoire que
+        // de ~4°/s (« le nitro haut/bas ne marche plus » — surtout au plafond de vitesse du parc). La
+        // ROTATION donne une autorité FORTE et INDÉPENDANTE de la vitesse (on plie autant à 260 qu'à 80).
+        // BORNÉE à ±65° d'assiette → jamais vertical → pas de gimbal-lock, pas de vrille coincée.
+        const wPitch=((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0); // -1 = piqué, +1 = cabré
+        if(wPitch!==0){
+          const spd=fallVel.length();
+          if(spd>1){
+            const hxz=Math.hypot(fallVel.x,fallVel.z);
+            let pit=Math.atan2(fallVel.y,hxz);
+            pit=THREE.MathUtils.clamp(pit+1.7*wPitch*dtF,-1.13,1.13); // 1.7 rad/s ≈ 97°/s, plafond ±65°
+            const nH=Math.cos(pit)*spd,hs=hxz>.001?nH/hxz:1;
+            fallVel.set(fallVel.x*hs,Math.sin(pit)*spd,fallVel.z*hs); // même vitesse, nouvelle assiette
+          }
+        }
         // jet visible au point de poussée arrière : panache conique, jamais deux fois pareil
         flames.mesh.material.color.set(nitroBlue?0x3a5bff:0xff8020);
         flameCore.mesh.material.color.set(nitroBlue?0xbfd6ff:0xffd9a0);
