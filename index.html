@@ -2,6 +2,12 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
+<!-- ANTI-CACHE (2026-07-20) : le navigateur servait une ANCIENNE copie d'index.html en cache — les
+     correctifs récents n'apparaissaient jamais (« ça marche toujours pas »). On force le rechargement
+     frais à chaque ouverture. Sur file:// c'est sans effet, mais le jeu se lance via http.server. -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>CASH CAR</title>
 <meta name="description" content="CASH CAR — runner arcade 3D : fonce, saute, vrille, surfe les nuages et amasse une fortune. Une seule vie.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
@@ -932,6 +938,21 @@ if(VOL_OK){ try{
   // ÉTAT LIVE de la bascule matF/matB par nuage traversable — pour confirmer EN CONSOLE quel seuil
   // déclenche vraiment (back=true → matB sans z-test ; hid → culé par le fog). Zéro coût hors appel.
   window.dbgCloudMat=()=>CLOUDS.filter(c=>c.mesh&&c.mesh.userData.trav).map(c=>({back:!!c.back,hid:!!c.hid,r:Math.round(c.r)}));
+  // ====== dbgFlicker : DIAGNOSTIC LIVE DU CLIGNOTEMENT (à piloter par le joueur en jeu) ======
+  // Comme je ne peux pas VOIR le rendu, chaque appel bascule un mode et Sacha me dit lequel ARRÊTE le
+  // clignotement. Chaque mode isole une cause candidate — zéro recompilation, effet immédiat :
+  //   dbgFlicker(1) → depthWrite ON : les nuages s'occludent au z-test (ordre de tri sans effet).
+  //                   Si ça règle → cause = ORDRE DE DESSIN des nuages transparents qui se chevauchent.
+  //   dbgFlicker(2) → dérive au vent GELÉE. Si ça règle → cause = jitter de position.
+  //   dbgFlicker(3) → raymarch ×120. Si ça règle → cause = échantillonnage du shader (surface).
+  //   dbgFlicker(0) → retour à l'état livré. dbgFlicker() sans argument = mode suivant en boucle.
+  window.dbgFlicker=function(m){
+    const f=VOL._fx=((m==null?(VOL._fx==null?0:VOL._fx+1):m)%4+4)%4;
+    VOL.matF.depthWrite=VOL.matB.depthWrite=(f===1);VOL.matF.needsUpdate=VOL.matB.needsUpdate=true;
+    VOL._freeze=(f===2);
+    if(f===3){VOL.stepBase=120;VOL.U.uLightSteps.value=14;}else if(VOL.stepBase>90){VOL.stepBase=46;VOL.U.uLightSteps.value=6;}
+    return ['0 : ÉTAT LIVRÉ','1 : depthWrite ON (teste l ordre de tri des nuages)','2 : dérive gelée (teste le jitter de position)','3 : raymarch x120 (teste l échantillonnage du shader)'][f];
+  };
   if(QUAL_MED)applyPerfTier(true,false);
 }catch(e){VOL=null;} }
 // Boules d'un nuage (metaballs) — coords LOCALES [-1,1] dans la boîte (x,y,z,rayon).
@@ -1180,8 +1201,9 @@ function updateClouds(dt,t){
       const hid=c.mesh.userData.fogAmt>0&&Math.sqrt(dh2+dv*dv)>(c.hid?thr9*.9:thr9);
       c.hid=hid;c.mesh.visible=!hid;if(hid)continue;
     }else if(d2>64){continue;} // repli sprites : l'ancien culling
-    c.g.position.x=c.c.x+Math.sin(t*.07+c.ph)*4;   // le banc respire et dérive
-    c.g.position.z=c.c.z+Math.cos(t*.05+c.ph)*4;
+    if(VOL&&VOL._freeze){c.g.position.x=c.c.x;c.g.position.z=c.c.z;} // dbgFlicker(2) : dérive gelée
+    else{c.g.position.x=c.c.x+Math.sin(t*.07+c.ph)*4;   // le banc respire et dérive
+    c.g.position.z=c.c.z+Math.cos(t*.05+c.ph)*4;}
     // Bascule FRONT/BACK : TOUJOURS évaluée (un matB périmé restait collé quand on s'éloignait → nuage
     // dessiné SANS z-test À TRAVERS la route). Et seuls les nuages TRAVERSABLES (bancs/vol/tours sur
     // piste) ont le droit au matB : le décor lointain reste en matF+z-test à vie — occlusion garantie.
