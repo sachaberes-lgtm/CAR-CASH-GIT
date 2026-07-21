@@ -5178,8 +5178,12 @@ function loop(now){
         // ⚠ PAS de rotation du vecteur vitesse (elle pouvait le basculer à la VERTICALE → le repère
         // makeBasis dégénère → caisse COINCÉE en vrille) : on ajoute juste une composante descendante,
         // le nez suit la trajectoire tout seul. Stable, aucune vrille surprise.
-        if(keys.KeyW||keys.KeyZ||keys.ArrowUp)fallVel.y-=(nitroBlue?16:12)*dtF;
-        if(dn)fallVel.y+=(nitroBlue?13:9)*dtF; // ↓/FREIN : on CABRE — le nez remonte (portance)
+        // PARC : au plafond de vitesse (PARK_VCAP=145) le piqué/cabré ne courbait plus RIEN — 12 m/s² ajoutés
+        // à un vecteur de 145 puis reclampés, ça fait ~4°/s : on volait tout droit, nitro en l'air = inerte.
+        // L'autorité suit donc la vitesse : la trajectoire se plie AUTANT à 260 km/h qu'à 80.
+        const airAuth=PARK.on?THREE.MathUtils.clamp(fallVel.length()/45,1,3.4):1;
+        if(keys.KeyW||keys.KeyZ||keys.ArrowUp)fallVel.y-=(nitroBlue?16:12)*airAuth*dtF;
+        if(dn)fallVel.y+=(nitroBlue?13:9)*airAuth*dtF; // ↓/FREIN : on CABRE — le nez remonte (portance)
         // jet visible au point de poussée arrière : panache conique, jamais deux fois pareil
         flames.mesh.material.color.set(nitroBlue?0x3a5bff:0xff8020);
         flameCore.mesh.material.color.set(nitroBlue?0xbfd6ff:0xffd9a0);
