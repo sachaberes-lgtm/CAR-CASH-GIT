@@ -946,12 +946,32 @@ if(VOL_OK){ try{
   //   dbgFlicker(2) → dérive au vent GELÉE. Si ça règle → cause = jitter de position.
   //   dbgFlicker(3) → raymarch ×120. Si ça règle → cause = échantillonnage du shader (surface).
   //   dbgFlicker(0) → retour à l'état livré. dbgFlicker() sans argument = mode suivant en boucle.
-  window.dbgFlicker=function(m){
-    const f=VOL._fx=((m==null?(VOL._fx==null?0:VOL._fx+1):m)%4+4)%4;
-    VOL.matF.depthWrite=VOL.matB.depthWrite=(f===1);VOL.matF.needsUpdate=VOL.matB.needsUpdate=true;
-    VOL._freeze=(f===2);
-    if(f===3){VOL.stepBase=120;VOL.U.uLightSteps.value=14;}else if(VOL.stepBase>90){VOL.stepBase=46;VOL.U.uLightSteps.value=6;}
-    return ['0 : ÉTAT LIVRÉ','1 : depthWrite ON (teste l ordre de tri des nuages)','2 : dérive gelée (teste le jitter de position)','3 : raymarch x120 (teste l échantillonnage du shader)'][f];
+  window.dbgFlicker=function(s){ s=(''+(s==null?'':s)).toLowerCase(); // flags combinables : 'matf,nocull,depthw,hi,freeze' — '' = tout remis à zéro
+    VOL._matFonly=/matf/.test(s); VOL._nocull=/nocull/.test(s); VOL._freeze=/freeze/.test(s);
+    const dw=/depthw/.test(s); VOL.matF.depthWrite=VOL.matB.depthWrite=dw; VOL.matF.needsUpdate=VOL.matB.needsUpdate=true;
+    const hi=/hi/.test(s); VOL.stepBase=hi?120:46; VOL.U.uLightSteps.value=hi?14:6;
+    return {matFonly:VOL._matFonly,nocull:VOL._nocull,freeze:VOL._freeze,depthWrite:dw,hiSteps:hi};
+  };
+  // dbgPan : PANORAMIQUE LISSE à temps figé — 3 positions caméra alignées (pas de shake aléatoire),
+  // second-diff = réponse NON LISSE du rendu à la position caméra. Isole le clignotement du mouvement.
+  window.dbgPan=function(step){ step=step||0.15;
+    try{
+      const gl=renderer.getContext(),cv=renderer.domElement,w=cv.width,h=cv.height,GW=48,GH=27;
+      const tFix=performance.now()/1000, buf=new Uint8Array(w*h*4);
+      const grab=()=>{ updateClouds(0,tFix); if(POST_ON&&composer)composer.render(); else renderer.render(scene,camera);
+        gl.readPixels(0,0,w,h,gl.RGBA,gl.UNSIGNED_BYTE,buf);
+        const g=new Float32Array(GW*GH);
+        for(let gy=0;gy<GH;gy++)for(let gx=0;gx<GW;gx++){const px=Math.min(w-1,(gx+.5)/GW*w|0),py=Math.min(h-1,(gy+.5)/GH*h|0),i=(py*w+px)*4;g[gy*GW+gx]=(buf[i]+buf[i+1]+buf[i+2])/3;}
+        return g; };
+      const rgt=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,0), p=camera.position.clone();
+      const A=grab();
+      camera.position.copy(p).addScaledVector(rgt,step); camera.updateMatrixWorld(); const B=grab();
+      camera.position.copy(p).addScaledVector(rgt,2*step); camera.updateMatrixWorld(); const C=grab();
+      camera.position.copy(p); camera.updateMatrixWorld(); grab();
+      let haut=0,mid=0,bas=0,mx=0;
+      for(let gy=0;gy<GH;gy++)for(let gx=0;gx<GW;gx++){const i=gy*GW+gx,dd=Math.abs(2*B[i]-A[i]-C[i]);if(dd>mx)mx=dd;if(dd>35){if(gy<GH/3)haut++;else if(gy<2*GH/3)mid++;else bas++;}}
+      return {panHaut:haut,panMid:mid,panBas:bas,panMax:mx|0};
+    }catch(e){return 'err '+e.message;}
   };
   if(QUAL_MED)applyPerfTier(true,false);
 }catch(e){VOL=null;} }
@@ -1198,7 +1218,7 @@ function updateClouds(dt,t){
       // FONDU visuel, lui, reste piloté par le fog dynamique DANS le shader (uFogFar → vis). Cull stable,
       // fade vivant. Hystérésis conservée (on se cache au-delà du seuil, on ne revient qu'à 90 %).
       const thr9=FOG_F+c.r*1.2;
-      const hid=c.mesh.userData.fogAmt>0&&Math.sqrt(dh2+dv*dv)>(c.hid?thr9*.9:thr9);
+      const hid=!(VOL&&VOL._nocull)&&c.mesh.userData.fogAmt>0&&Math.sqrt(dh2+dv*dv)>(c.hid?thr9*.9:thr9); // dbgFlicker(2) : _nocull → jamais caché
       c.hid=hid;c.mesh.visible=!hid;if(hid)continue;
     }else if(d2>64){continue;} // repli sprites : l'ancien culling
     if(VOL&&VOL._freeze){c.g.position.x=c.c.x;c.g.position.z=c.c.z;} // dbgFlicker(2) : dérive gelée
@@ -1208,7 +1228,7 @@ function updateClouds(dt,t){
     // dessiné SANS z-test À TRAVERS la route). Et seuls les nuages TRAVERSABLES (bancs/vol/tours sur
     // piste) ont le droit au matB : le décor lointain reste en matF+z-test à vie — occlusion garantie.
     if(c.mesh){
-      if(!c.mesh.userData.trav)c.mesh.material=VOL.matF;
+      if((VOL&&VOL._matFonly)||!c.mesh.userData.trav)c.mesh.material=VOL.matF; // dbgFlicker(1) : matF forcé partout
       else{
         // ====== BASCULE matF/matB DEVENUE INVISIBLE (v2) ======
         // Les deux matériaux écrivent gl_FragDepth (profondeur de la VRAIE surface du nuage) et
@@ -2555,7 +2575,52 @@ window.dbgStep=function(n,ms){
   for(let k=0;k<n;k++){last=performance.now()-ms;loop(performance.now());}
   return window.dbgState();
 };
+window.CASHCAR_BUILD='2026-07-20 v5 (anti-flicker + anti-cache)'; // vérif version : taper CASHCAR_BUILD en console
+console.log('%c🏎 CASH CAR — build '+CASHCAR_BUILD,'color:#f24aa0;font-weight:bold'); // si ce texte n'apparaît pas au chargement → tu es sur une VIEILLE version en cache (Ctrl+Shift+R)
 window.dbgPerf=function(){const h=VOL&&VOL._drHist;return {ms:+(loop._ms||0).toFixed(1),fps:Math.round(1000/Math.max(1,loop._ms||16)),spikes:+(loop._spk||0).toFixed(1),dpr:+curDPR.toFixed(2),dprCeil:loop._dprCeilT?+loop._dprCeil.toFixed(2):null,cloudIn:+cloudInS.toFixed(2),cloudsDrawn:h&&h.length?Math.min.apply(null,h)+'-'+Math.max.apply(null,h):null,tier:QUAL_LOW?'LOW':QUAL_MED?'MED':'FULL',steps:VOL?VOL.stepBase+'/'+VOL.U.uLightSteps.value:'sprites'};}; // cloudsDrawn min-max : s'ils diffèrent en scène stable, des nuages POPENT (clignotement)
+// dbgDiff : EXPÉRIENCE CONTRÔLÉE DU CLIGNOTEMENT — même instant, on ne bouge QUE la caméra (position
+// dpos m + lacet dyaw rad), on rend 2 images et on mesure la différence par cellules. Un flicker
+// caméra = grosse différence pour un tout petit mouvement. En comparant dbgDiff avant/après dbgFlicker,
+// on ISOLE la cause sans jamais avoir à voir l'écran. Retourne {mean,max,bigCells} sur grille 48×27.
+window.dbgDiff=function(dpos,dyaw){ dpos=dpos==null?0.4:dpos; dyaw=dyaw==null?0.01:dyaw;
+  try{
+    const gl=renderer.getContext(),cv=renderer.domElement,w=cv.width,h=cv.height,GW=48,GH=27;
+    const tFix=performance.now()/1000, buf=new Uint8Array(w*h*4);
+    const grab=()=>{ updateClouds(0,tFix); if(POST_ON&&composer)composer.render(); else renderer.render(scene,camera);
+      gl.readPixels(0,0,w,h,gl.RGBA,gl.UNSIGNED_BYTE,buf);
+      const g=new Float32Array(GW*GH);
+      for(let gy=0;gy<GH;gy++)for(let gx=0;gx<GW;gx++){const px=Math.min(w-1,(gx+.5)/GW*w|0),py=Math.min(h-1,(gy+.5)/GH*h|0),i=(py*w+px)*4;g[gy*GW+gx]=(buf[i]+buf[i+1]+buf[i+2])/3;}
+      return g; };
+    const p=camera.position.clone(),q=camera.quaternion.clone();
+    const A=grab();
+    camera.position.x+=dpos; camera.rotateY(dyaw); camera.updateMatrixWorld();
+    const B=grab();
+    camera.position.copy(p); camera.quaternion.copy(q); camera.updateMatrixWorld(); grab();
+    let mean=0,max=0,big=0; for(let i=0;i<A.length;i++){const d=Math.abs(A[i]-B[i]); mean+=d; if(d>max)max=d; if(d>35)big++;}
+    return {mean:+(mean/A.length).toFixed(1), max:max|0, bigCells:big, of:GW*GH, mode:VOL?(VOL._fx||0):'-'};
+  }catch(e){return 'err '+e.message;}
+};
+// dbgPop : DÉTECTEUR DE CLIGNOTEMENT RÉEL. 3 frames de JEU consécutives (caméra/shake/tri/dérive tous
+// réels), on mesure l'écart à un mouvement LISSE : |2·milieu − avant − après|. La parallaxe (linéaire)
+// s'annule ; ne restent que les POPS (un nuage présent 1 frame puis absent = pic). Découpé par tiers
+// d'écran (haut = ciel/nuages, bas = route/caisse) pour localiser. Comparer entre modes dbgFlicker.
+window.dbgPop=function(){
+  try{
+    const gl=renderer.getContext(),cv=renderer.domElement,w=cv.width,h=cv.height,GW=48,GH=27;
+    const buf=new Uint8Array(w*h*4);
+    const grab=()=>{ if(POST_ON&&composer)composer.render(); else renderer.render(scene,camera);
+      gl.readPixels(0,0,w,h,gl.RGBA,gl.UNSIGNED_BYTE,buf);
+      const g=new Float32Array(GW*GH);
+      for(let gy=0;gy<GH;gy++)for(let gx=0;gx<GW;gx++){const px=Math.min(w-1,(gx+.5)/GW*w|0),py=Math.min(h-1,(gy+.5)/GH*h|0),i=(py*w+px)*4;g[gy*GW+gx]=(buf[i]+buf[i+1]+buf[i+2])/3;}
+      return g; };
+    const fP=camera.position.clone(),fQ=camera.quaternion.clone();
+    const pin=()=>{if(window.dbgFreezeCam){camera.position.copy(fP);camera.quaternion.copy(fQ);camera.updateMatrixWorld();}}; // caméra figée, seul le temps avance
+    pin();const A=grab(); dbgStep(1,16); pin();const B=grab(); dbgStep(1,16); pin();const C=grab();
+    let mean=0,max=0; const band=[0,0,0]; // pops par tiers vertical
+    for(let gy=0;gy<GH;gy++)for(let gx=0;gx<GW;gx++){const i=gy*GW+gx,dd=Math.abs(2*B[i]-A[i]-C[i]);mean+=dd;if(dd>max)max=dd;if(dd>35)band[gy<GH/3?0:gy<2*GH/3?1:2]++;}
+    return {popMean:+(mean/(GW*GH)).toFixed(1),popMax:max|0,popHaut:band[0],popMilieu:band[1],popBas:band[2],mode:VOL?(VOL._fx||0):'-'};
+  }catch(e){return 'err '+e.message;}
+};
 window.dbgView=function(a,d,h){ // MODE PHOTO : force la pause, cadre la caisse sous l'angle a (rad), distance d, hauteur h, re-rend UNE frame
   if(started&&!gameOver&&!paused)togglePause(); // sans pause, la chase-cam écrase le cadrage à la frame suivante
   const p=carGroup.position;
@@ -5204,7 +5269,7 @@ function loop(now){
               spdN=THREE.MathUtils.clamp((speedKmh-vmx9*.60)/(vmx9*.55),0,1),
               calm9=1-.7*THREE.MathUtils.smoothstep(speedKmh,700,1800), // fenêtre DOUBLÉE (SPD .25→.5 : les km/h affichés ont doublé) — le plané supersonique calme au même état-caisse qu'avant, pas dès le mid-game
               spdSh=spdN*spdN*CAM_SHAKE_V*.42*calm9*(nitroOn?1.3:1); // FRISSON, pas séisme : à vmax de croisière ≈ .10 d'amplitude (la sensation vient du FOV + speed lines, le tremblement signale juste la LIMITE)
-        if(spdSh>0){
+        if(spdSh>0&&!window.dbgNoShake){
           camera.position.addScaledVector(F.n,(Math.random()-.5)*spdSh);
           camera.position.addScaledVector(tmp,(Math.random()-.5)*spdSh*1.2);
           camera.position.addScaledVector(fwdW,(Math.random()-.5)*spdSh*.5);
