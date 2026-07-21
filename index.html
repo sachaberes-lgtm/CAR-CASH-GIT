@@ -1282,13 +1282,23 @@ function genPark(rnd){
     ()=>{ const a=28+rnd()*30,R=145+rnd()*90; arc(sg*a,R,3,-(20+rnd()*20)); arc(-sg*a,R,3,-(20+rnd()*20)); flip(); }, // ESSES AMPLES
     ()=>{ arc(sg*(150+rnd()*70),92+rnd()*50,6,-(28+rnd()*30)); flip(); },                   // DEMI-TOUR SERRÉ : ramène le ruban → croisements
   ];
-  const TARGET=20000;                 // TRÈS grand (~3 zones de course), borné pour rester tissé
+  // CAP VERS LE CŒUR : dès que le ruban s'éloigne, on le RAMÈNE vers l'origine — il se replie sur
+  // lui-même dans un disque serré → BEAUCOUP plus de croisements = routes denses (la clé de la densité).
+  const homeward=(R)=>{
+    let want=Math.atan2(-P.x,-P.z),d=want-phi;           // cap désiré = vers (0,0)
+    while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;
+    const deg=d*180/Math.PI;
+    arc(deg,R,Math.max(3,Math.ceil(Math.abs(deg)/28)),-(Math.abs(deg)*Math.PI/180*R*.3));
+  };
+  const TARGET=32000;                 // ÉNORME (~4,5 zones de course) mais REPLIÉ dans un disque serré → très dense
+  const HOME=1250;                    // rayon du cœur : au-delà, on rentre (plus petit = plus dense)
   while(approx<TARGET){
     modules[Math.floor(rnd()*modules.length)]();
-    // ALTITUDE MAISON : on garde le ruban dans un volume (sinon il s'enfonce à l'infini et ne se recroise plus)
-    if(P.y<-520)straight(95+rnd()*60,72+rnd()*50,2);        // trop bas : on remonte franchement
-    else if(P.y>320)straight(95+rnd()*60,-(72+rnd()*50),2); // trop haut : on replonge
-    else if(rnd()<.55)straight(40+rnd()*55,-(10+rnd()*20)); // sinon petite RESPIRATION
+    const hd=Math.hypot(P.x,P.z);
+    if(hd>HOME)homeward(120+rnd()*70);                     // trop loin : demi-tour vers le centre → densité
+    else if(P.y<-520)straight(95+rnd()*60,72+rnd()*50,2);  // trop bas : on remonte
+    else if(P.y>340)straight(95+rnd()*60,-(72+rnd()*50),2); // trop haut : on replonge
+    else if(rnd()<.4)straight(38+rnd()*46,-(10+rnd()*18));  // sinon petite RESPIRATION (raccourcie : plus de motifs au m²)
   }
   straight(170,-40,2);                // SORTIE propre (le bouclage se fait par newTrack → nouveau secteur)
   return ctrl;
@@ -4791,10 +4801,10 @@ function loop(now){
     if(pwrAirT>0){pwrAirT-=dt;if(pwrAirT<=0){pwrAirT=0;if(mode==='fall'){fallT=0;fallTR=0;airFlash=.6;}}}
     // nitro : 2s regen (10s de recharge) + 2s réserve (bidons bleus)
     nitroR=Math.min(2,nitroR+.2*dt);
-    if(pwrNitroT>0)nitroR=2; // NITRO INFINIE : la jauge reste pleine, rien ne se consomme
+    if(pwrNitroT>0||PARK.on)nitroR=2; // NITRO INFINIE : jauge pleine, rien ne se consomme (pouvoir OU parc freestyle : c'est un parc, pas une course)
     const wantN=keys.ShiftLeft||keys.ShiftRight||keys.Space;
     nitroOn=wantN&&(nitroOn?(nitroR+nitroX)>.005:(nitroR+nitroX)>.3); // hystérésis anti-clignotement
-    if(nitroOn&&pwrNitroT<=0){
+    if(nitroOn&&pwrNitroT<=0&&!PARK.on){
       let take=dt;
       if(nitroR>=take)nitroR-=take;
       else{take-=nitroR;nitroR=0;nitroX=Math.max(0,nitroX-take);}
