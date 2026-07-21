@@ -959,7 +959,16 @@ function mkCloudVol(center,r,o,rr){ // un banc = une boîte volumétrique rempli
   if(o.baseY!==undefined)center.y=o.baseY+ry*0.64; // même plafond de condensation que le chemin sprite
   const g=new THREE.Group();g.position.copy(center);
   const mesh=new THREE.Mesh(VOL.geo,VOL.matF);
-  mesh.scale.set(r,ry,r); // frustumCulled reste VRAI : les bancs hors-champ ne coûtent rien (le culling boîte est correct, même caméra dedans)
+  mesh.scale.set(r,ry,r);
+  // ⚠⚠ FRUSTUM CULLING COUPÉ (2026-07-20 v4) — LA CAUSE DU CLIGNOTEMENT « QUAND LA CAMÉRA BOUGE ».
+  // three.js teste la SPHÈRE englobante du nuage contre le champ de vision ; ce champ TOURNE avec la
+  // caméra (shake + virages). Un nuage au bord de l'écran, ou un titan lointain dont la grosse sphère
+  // frôle un plan du frustum, basculait donc dessiné/non-dessiné à CHAQUE micro-rotation → pop
+  // mono-frame (vérifié sur la capture de Sacha : un géant remplit l'écran 1 frame puis disparaît).
+  // C'était le SEUL mécanisme de visibilité couplé à l'ORIENTATION caméra. Coupé : la visibilité ne
+  // dépend plus QUE de la distance (cull stable ci-dessous, FOG_F). Coût nul : peu de nuages, et une
+  // boîte hors-champ ne rasterise AUCUN fragment (juste 36 sommets projetés puis clippés).
+  mesh.frustumCulled=false;
   // params par nuage : voiles diaphanes, mer moyenne ; tours/murs pleins ; titans laiteux. noFog = perce la brume.
   const dMul=o.veil?0.4:o.sea?0.7:o.titan?0.8:o.deco?0.85:1.0;
   const blobs=mkBlobs(o,rr); // les 5-10 boules de CE nuage (RNG isolé : ne rebrasse pas la génération)
@@ -969,6 +978,7 @@ function mkCloudVol(center,r,o,rr){ // un banc = une boîte volumétrique rempli
     fMul:Math.min(1,300/r), // LOBES PROPORTIONNELS : un titan a des bosses de titan
     trav:!!(o.onRoad||(!o.giant&&!o.sea&&!o.veil&&!o.deco&&!o.titan))}; // TRAVERSABLE (banc/vol/tour sur piste) : seuls eux ont droit au matB sans z-test — le décor reste occlus par la route À VIE
   mesh.onBeforeRender=function(rn,sc,cm,gm,mat){const u=mat.uniforms,ud=this.userData;
+    VOL._dr=(VOL._dr||0)+1; // sonde : combien de nuages DESSINÉS cette frame (lue par updateClouds → dbgPerf.cloudsDrawn)
     u.uSteps.value=VOL.stepBase*ud.stepMul; // TOUJOURS via stepBase : les paliers perf n'écrivent plus uSteps en direct
     u.uFreq.value=(1/120)*ud.fMul;
     u.uSeed.value=ud.seed;u.uDMul.value=ud.dMul;u.uFogAmt.value=ud.fogAmt;u.uBaseFlat.value=ud.baseFlat;
@@ -1139,6 +1149,10 @@ function buildClouds(rr){
 }
 function updateClouds(dt,t){
   cloudIn=0;
+  // SONDE ANTI-CLIGNOTEMENT : _dr = nb de nuages dessinés à la frame PRÉCÉDENTE (onBeforeRender tourne
+  // au render, après ce updateClouds). On garde min/max sur ~1,5 s : si min≠max alors que la scène est
+  // stable, des nuages POPENT (frustum/cull) — c'est la signature du clignotement, lisible dans dbgPerf.
+  if(VOL){if(VOL._dr!==undefined){const h=VOL._drHist||(VOL._drHist=[]);h.push(VOL._dr);if(h.length>90)h.shift();}VOL._dr=0;}
   // FOG STABLE POUR LES NUAGES (2026-07-20 v3) : scene.fog.near/far S'EFFONDRENT en traversée
   // (420→26 / 2600→340 via cloudInS) — les donner au shader faisait PULSER tous les nuages de
   // l'écran à chaque entrée/sortie de banc (LE clignotement de traversée). Les nuages lisent
@@ -2519,7 +2533,7 @@ window.dbgStep=function(n,ms){
   for(let k=0;k<n;k++){last=performance.now()-ms;loop(performance.now());}
   return window.dbgState();
 };
-window.dbgPerf=function(){return {ms:+(loop._ms||0).toFixed(1),fps:Math.round(1000/Math.max(1,loop._ms||16)),spikes:+(loop._spk||0).toFixed(1),dpr:+curDPR.toFixed(2),dprCeil:loop._dprCeilT?+loop._dprCeil.toFixed(2):null,cloudIn:+cloudInS.toFixed(2),tier:QUAL_LOW?'LOW':QUAL_MED?'MED':'FULL',steps:VOL?VOL.stepBase+'/'+VOL.U.uLightSteps.value:'sprites'};}; // à copier-coller dans un rapport de perf (dprCeil non-null = le yoyo de résolution a été bridé)
+window.dbgPerf=function(){const h=VOL&&VOL._drHist;return {ms:+(loop._ms||0).toFixed(1),fps:Math.round(1000/Math.max(1,loop._ms||16)),spikes:+(loop._spk||0).toFixed(1),dpr:+curDPR.toFixed(2),dprCeil:loop._dprCeilT?+loop._dprCeil.toFixed(2):null,cloudIn:+cloudInS.toFixed(2),cloudsDrawn:h&&h.length?Math.min.apply(null,h)+'-'+Math.max.apply(null,h):null,tier:QUAL_LOW?'LOW':QUAL_MED?'MED':'FULL',steps:VOL?VOL.stepBase+'/'+VOL.U.uLightSteps.value:'sprites'};}; // cloudsDrawn min-max : s'ils diffèrent en scène stable, des nuages POPENT (clignotement)
 window.dbgView=function(a,d,h){ // MODE PHOTO : force la pause, cadre la caisse sous l'angle a (rad), distance d, hauteur h, re-rend UNE frame
   if(started&&!gameOver&&!paused)togglePause(); // sans pause, la chase-cam écrase le cadrage à la frame suivante
   const p=carGroup.position;
