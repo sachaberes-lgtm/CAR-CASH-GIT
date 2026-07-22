@@ -677,6 +677,10 @@ let PARK_CIRCUIT=null; // {gates:[start,cp…], cpNext, lapStart, bestLap, laps,
 let PARK_SKYRUN=null;  // {gates:[…], next, startT, best, live}
 // PARC : positions MONDE des LÈVRES DE SAUT posées par genPark (sommets de rampe au sol) — mappées en RAMPS dans buildTrack.
 const PARK_JUMPS=[];
+// PARC : LES QUARTIERS — {x,z,name,ico,col,peak}. genPark noue son ruban autour de ces ancres au lieu de tout
+// entasser au centre : la map devient LISIBLE (5 amas distincts + un lobby vide au milieu) et buildParkDecor
+// y plante une balise colorée + son nom → on navigue à vue au lieu de se perdre dans une boule de spaghettis.
+const PARK_DISTRICTS=[];
 // passerelle genCtrl → buildTrack : positions MONDE (lèvre + les deux bords du vide), retrouvées sur la courbe réelle
 const GAPMARK=[];
 // LE TROU, POUR DE VRAI : portions de dalle PUREMENT ABSENTES {i0,i1:index pts · s0,s1:arc-length}.
@@ -1343,7 +1347,9 @@ function genPark(rnd){
   const ctrl=[];
   let P=new THREE.Vector3(0,0,0),phi=0,approx=0;
   const dir=()=>new THREE.Vector3(Math.sin(phi),0,Math.cos(phi));
-  const push=()=>ctrl.push(P.clone());
+  // FILET DE SÉCURITÉ (parc) : le ruban ne passe JAMAIS sous l'herbe — une figure descendante trop gourmande
+  // enterrerait la dalle. Rare (les garde-fous d'altitude passent avant), mais ici c'est GARANTI.
+  const push=()=>{if(P.y<PARK_GROUND_Y)P.y=PARK_GROUND_Y;ctrl.push(P.clone());};
   push();
   const straight=(l,dy=0,n=1)=>{for(let k=0;k<n;k++){P.addScaledVector(dir(),l/n);P.y+=dy/n;push();}approx+=Math.hypot(l,dy);};
   const arc=(aDeg,R,n,dy=0)=>{const a=aDeg*Math.PI/180,st=a/n,ch=2*R*Math.sin(Math.abs(st)/2);
@@ -1357,6 +1363,7 @@ function genPark(rnd){
   let sg=rnd()<.5?1:-1;               // latéralité courante — on ALTERNE souvent → le ruban reste dans la zone
   const flip=()=>{sg=-sg;};
   PARK_GROUND_Y=0;                     // LE SOL = de l'HERBE PURE, rien d'autre (aucune route posée à plat dessus)
+  PARK_DISTRICTS.length=0;
   // ================= LE BAC À SABLE : HERBE AU SOL + RAMPES QUI PARTENT DU SOL VERS L'AÉRIEN =================
   // Demande de Sacha (2026-07-22) : « pas de route au sol, juste des rampes qui partent du sol ». Le ruban
   // n'a AUCUNE portion à plat au sol — il OSCILLE : une RAMPE s'arrache du sol vers un sommet ; là-haut, soit
@@ -1365,13 +1372,44 @@ function genPark(rnd){
   // confiné dans une zone (`PLAZA_R`) pour rester à portée. On accède à l'air en roulant sur l'herbe jusqu'à
   // une base de rampe. Zéro vide mortel, zéro sens imposé.
   const markLip=()=>{PARK_JUMPS.push(P.clone());};
-  const PLAZA_R=1250;
-  const homeHoriz=()=>{                 // revient vers le centre EN GARDANT l'altitude → le playground reste groupé
-    let want=Math.atan2(-P.x,-P.z),d=want-phi;
+  const PLAZA_R=1700;
+  // ---- LES QUARTIERS : 5 amas de figures en couronne autour d'un LOBBY VIDE au centre ----
+  // Avant, tout le ruban se repliait sur l'origine : 52 km de nœud uniforme, impossible de se repérer et
+  // impossible d'aller « quelque part ». Désormais chaque quartier a sa PLACE, son ALTITUDE et son CARACTÈRE
+  // (poids de figures) ; le centre reste dégagé pour le lobby (portails, circuit, balise).
+  const DTH=[
+    {name:'LE NŒUD',    ico:'🌀', col:0xa06bff, mods:[2,5,9,12,7],  peak:[520,900],  tight:360},
+    {name:'LA TOUR',    ico:'🗼', col:0x3ee6f0, mods:[3,4,5,10],    peak:[900,1330], tight:300},
+    {name:'LES VAGUES', ico:'🌊', col:0x50f0a8, mods:[6,11,0,7],    peak:[300,560],  tight:520},
+    {name:'LE GRAND 8', ico:'♾', col:0xf24aa0, mods:[1,2,9,1,8],   peak:[600,980],  tight:420},
+    {name:'LA RAMPE',   ico:'🚀', col:0xffd75e, mods:[0,6,8,12],    peak:[420,720],  tight:560},
+  ];
+  {const a0=rnd()*6.2832;
+   for(let i=0;i<DTH.length;i++){const an=a0+i/DTH.length*6.2832,rad=880+rnd()*160;
+     PARK_DISTRICTS.push(Object.assign({x:Math.cos(an)*rad,z:Math.sin(an)*rad},DTH[i]));}}
+  let DC=PARK_DISTRICTS[0];             // quartier courant : cible de tous les recentrages
+  const homeTo=(tx,tz,clamp9)=>{        // vire vers un point EN GARDANT l'altitude → le nœud reste groupé
+    let want=Math.atan2(tx-P.x,tz-P.z),d=want-phi;
     while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;
-    d=THREE.MathUtils.clamp(d,-2.2,2.2);
+    d=THREE.MathUtils.clamp(d,-(clamp9||2.2),clamp9||2.2);
     const deg=d*180/Math.PI,Rr=110+rnd()*80;
     arc(deg,Rr,Math.max(3,Math.ceil(Math.abs(deg)/24)),0);
+  };
+  const homeHoriz=()=>homeTo(DC.x,DC.z);        // « rentre au quartier » (et non plus à l'origine)
+  const distTo=(tx,tz)=>Math.hypot(P.x-tx,P.z-tz);
+  // VOIE AÉRIENNE : on relie deux quartiers EN L'AIR (le sol doit rester de l'herbe pure — aucune route à plat).
+  // C'est le liant du parc : de longues nationales suspendues qu'on enfile à pleine vitesse entre deux amas.
+  const cruiseTo=(tx,tz,alt)=>{
+    let g=0;
+    while(g++<24){
+      const dd=distTo(tx,tz);if(dd<320)break;
+      let want=Math.atan2(tx-P.x,tz-P.z),d=want-phi;
+      while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;
+      d=THREE.MathUtils.clamp(d,-1.4,1.4);
+      const deg=d*180/Math.PI;
+      if(Math.abs(deg)>4)arc(deg,190+rnd()*140,Math.max(2,Math.ceil(Math.abs(deg)/22)),(alt-P.y)*.25);
+      straight(Math.max(140,Math.min(dd-260,230+rnd()*170)),(alt-P.y)*.45,2);
+    }
   };
   // MODULES AÉRIENS (au SOMMET des rampes) : le playground de figures. Plus de variété + des figures SERRÉES
   // (loops compacts, tire-bouchons) pour que le nœud se recroise vraiment (« beaucoup plus emmêlé »).
@@ -1386,37 +1424,63 @@ function genPark(rnd){
     ()=>{ const a=28+rnd()*28,R2=128+rnd()*74; arc(sg*a,R2,3,(rnd()*2-1)*22); arc(-sg*a,R2,3,(rnd()*2-1)*22); flip(); }, // ESSES
     ()=>{ arc(sg*(150+rnd()*70),82+rnd()*42,6,(rnd()*2-1)*26); flip(); },                           // DEMI-TOUR SERRÉ
     ()=>{ loop(40+rnd()*16,22); loop(38+rnd()*16,-22); flip(); },                                   // DOUBLE LOOP : deux boucles qui se croisent
+    ()=>{ arc(sg*(400+rnd()*300),52+rnd()*26,14,-(120+rnd()*150)); flip(); },                       // 10 LE PUITS : vis DESCENDANTE serrée (on plonge en vrille)
+    ()=>{ straight(96+rnd()*40,-(90+rnd()*70),2); straight(110+rnd()*40,72+rnd()*54,2); },           // 11 PLONGEON-RESSAUT : on pique, on ressort (compression dans les jambes)
+    ()=>{ const R3=70+rnd()*40; for(let z=0;z<4;z++){arc(sg*(56+rnd()*30),R3,3,(rnd()*2-1)*18);flip();} }, // 12 ZIGZAG : quatre appuis secs enchaînés
   ];
-  // rampes ridables (~50-54°) jusqu'à une altitude cible / jusqu'au sol
-  const climbTo=(peak)=>{let g=0;while(P.y<peak-8&&g++<44){straight(150+rnd()*40,Math.min(210,peak-P.y+6),2);
-    if(Math.hypot(P.x,P.z)>PLAZA_R)homeHoriz();}};
-  const dropToGround=()=>{let g=0;while(P.y>110&&g++<44){straight(150+rnd()*40,-Math.min(210,P.y),2);
-    if(Math.hypot(P.x,P.z)>PLAZA_R)homeHoriz();}
-    straight(120+rnd()*40,-P.y,2);      // POSE FRANCHE : la rampe MEURT au ras de l'herbe
-    straight(70+rnd()*40,0,1);};        // pied de rampe minime (ce n'est PAS un réseau : juste la base où l'on monte)
+  // ---- RAMPES PROGRESSIVES (le gros défaut d'avant : un mur à 52° planté sec dans l'herbe) ----
+  // MONTÉE : douce en bas (~17°, on l'attaque à plat sans se planter) puis de plus en plus raide (~52° à la lèvre
+  // → le décollage projette vraiment). DESCENTE : raide en haut, ARRONDIE en bas (flare-out) + un long pied plat
+  // — c'est CE pied qui sert de porte d'entrée depuis l'herbe (accroche : dalle à y≈0 + cap aligné).
+  const climbTo=(peak)=>{const y0=P.y,H=Math.max(80,peak-y0);let g=0;
+    while(P.y<peak-8&&g++<60){
+      const u=THREE.MathUtils.clamp((P.y-y0)/H,0,1),sl=.30+1.10*Math.min(1,u*1.9),run=130+rnd()*40;
+      straight(run,Math.min(peak-P.y+6,run*sl),2);
+      if(Math.hypot(P.x,P.z)>PLAZA_R)homeHoriz();}};
+  const dropToGround=()=>{const y0=Math.max(1,P.y);let g=0;
+    while(P.y>45&&g++<60){
+      const u=THREE.MathUtils.clamp(P.y/y0,0,1),sl=.18+1.05*Math.min(1,u*1.7),run=130+rnd()*40;
+      straight(run,-Math.min(P.y,run*sl),2);
+      if(Math.hypot(P.x,P.z)>PLAZA_R)homeHoriz();}
+    straight(150+rnd()*50,-P.y,3);      // ARRONDI : la rampe s'aplatit et MEURT au ras de l'herbe (plus de mur)
+    straight(130+rnd()*70,0,2);};       // PIED PLAT LONG : la porte d'entrée depuis la prairie
   // SPAWN : court tapis AU SOL — le largage tombe ici, à la base de la 1re rampe
   straight(130,0,2);
   const TARGET=approx+52000;            // BEAUCOUP plus de route (Sacha) — ~52 km de ruban noué en l'air
-  while(approx<TARGET){
-    const roll=rnd();
-    if(roll<0.13){                                 // ★ MÉGA-RAMPE (liberté freestyle) : rampe COLOSSALE → catapulte dans les NUAGES
-      climbTo(1000+rnd()*350); markLip(); straight(64,16,1);
-      dropToGround();
-    }else if(roll<0.46){                            // RAMPE-CATAPULTE : saut franc, réception dans l'herbe
-      climbTo(240+rnd()*260); markLip(); straight(50,8,1);
-      dropToGround();
-    }else{                                          // RAMPE → LE NŒUD : enchevêtrement DENSE et confiné SERRÉ
-      climbTo(520+rnd()*480);
-      const nm=4+Math.floor(rnd()*5);              // 4-8 figures nouées d'affilée
-      for(let m=0;m<nm;m++){aerial[Math.floor(rnd()*aerial.length)]();
-        if(P.y<PARK_GROUND_Y+120)straight(140,180,2);                 // garde-fou : le nœud ne perce pas le sol
-        if(P.y>1450)straight(150,-Math.min(240,P.y-800),2);           // plafond du nœud (juste sous les nuages)
-        if(Math.hypot(P.x,P.z)>780)homeHoriz();                        // confinement SERRÉ → le ruban se recroise = ENMÊLÉ
+  let di=0,guard=0;
+  while(approx<TARGET&&guard++<400){
+    DC=PARK_DISTRICTS[di++%PARK_DISTRICTS.length];   // on fait le tour des quartiers → le ruban VOYAGE
+    const lo=DC.peak[0],hi=DC.peak[1];
+    // 1) REJOINDRE LE QUARTIER : si on est au sol, une rampe d'envol ; sinon on file par la voie aérienne
+    if(P.y<140)climbTo(lo*.7+120);
+    cruiseTo(DC.x,DC.z,THREE.MathUtils.clamp(P.y,260,900));
+    // 2) CE QU'ON Y FAIT — chaque quartier alterne catapulte / nœud / méga-rampe, à SA hauteur
+    const cyc=2+Math.floor(rnd()*3);                 // 2-4 passages avant de changer de quartier
+    for(let c=0;c<cyc;c++){
+      // CHAQUE quartier a AU MOINS une rampe-catapulte (on y entre) et AU MOINS un nœud (on y joue) :
+      // avant, le tirage pur laissait des parcs entiers à 1 seule lèvre de saut.
+      const roll=c===0?rnd()*.42:(c===cyc-1?.99:rnd());
+      if(roll<0.12){                                 // ★ MÉGA-RAMPE : rampe COLOSSALE → catapulte dans les NUAGES
+        climbTo(1020+rnd()*330); markLip(); straight(64,16,1);
+        dropToGround();
+      }else if(roll<0.42){                           // RAMPE-CATAPULTE : saut franc, réception dans l'herbe
+        climbTo(lo*.6+180+rnd()*220); markLip(); straight(50,8,1);
+        dropToGround();
+      }else{                                         // LE NŒUD DU QUARTIER : enchevêtrement DENSE et confiné SERRÉ
+        climbTo(lo+rnd()*(hi-lo));
+        const nm=3+Math.floor(rnd()*4);              // 3-6 figures nouées d'affilée (nœuds plus courts = plus de cycles, plus de rampes)
+        for(let m=0;m<nm;m++){aerial[DC.mods[Math.floor(rnd()*DC.mods.length)]]();   // le CARACTÈRE du quartier
+          if(P.y<PARK_GROUND_Y+300)straight(170,Math.min(260,PARK_GROUND_Y+330-P.y),2); // garde-fou : de la GARDE AU SOL avant la figure suivante (le puits/plongeon descendent fort)
+          if(P.y>1450)straight(150,-Math.min(240,P.y-800),2);           // plafond du nœud (juste sous les nuages)
+          if(distTo(DC.x,DC.z)>DC.tight)homeHoriz();                     // confinement SERRÉ autour de l'ancre = ENMÊLÉ
+        }
+        if(c<cyc-1&&rnd()<.45){climbTo(P.y+180);}    // on RESTE en l'air : deux nœuds qui s'empilent
+        else dropToGround();                          // sinon on redescend TOUCHER l'herbe (accès au quartier)
       }
-      dropToGround();
+      if(Math.hypot(P.x,P.z)>PLAZA_R)homeHoriz();
     }
-    if(Math.hypot(P.x,P.z)>PLAZA_R)homeHoriz();
   }
+  if(P.y>60)dropToGround();
   straight(120,0,2);                    // fin : au ras du sol, sortie courte (le bouclage se fait par newTrack)
   return ctrl;
 }
@@ -1899,6 +1963,8 @@ function buildParkExtras(){
     scene.add(lab);trackMeshes.push(lab);
     PARK_PORTALS.push({pos:center.clone(),axis:axis,r:15,kind:pd.kind,mesh:ring,glow:glow,col:pd.col});
   }
+  // ---- B) LES ENTRÉES DE RAMPE : balisées, sinon on longe 50 km de ruban sans jamais trouver où monter ----
+  buildParkRampMarks();
   // ---- C) DÉCOR GÉANT : on se sent minuscule (ce que Sacha aime dans l'herbe) ----
   buildParkDecor();
   // ---- D) MINI-JEUX CHRONOMÉTRÉS : circuit au sol (tours) + parcours aérien ----
@@ -1917,6 +1983,29 @@ function mkGate(pos,axis,r,col,tube){
   const glow=new THREE.Mesh(new THREE.TorusGeometry(r,tb*2.5,8,36),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.3,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
   glow.quaternion.setFromRotationMatrix(q);glow.position.copy(pos);glow.renderOrder=1;scene.add(glow);trackMeshes.push(glow);
   return {pos:pos.clone(),axis:a,r:r,mesh:ring,glow:glow,col:col,cool:0};
+}
+// LES ENTRÉES DE RAMPE : le SEUL moyen de passer de l'herbe au ruban, c'est un PIED DE RAMPE (dalle posée à
+// ras, cap aligné → accroche dans le bloc 'grass'). Sans balisage on les cherchait au hasard. Maintenant :
+// deux plots néon de part et d'autre + un halo + une étiquette — on les repère de loin dans la prairie.
+function buildParkRampMarks(){
+  const postGeo=new THREE.CylinderGeometry(.9,1.6,18,8);
+  const postMat=new THREE.MeshBasicMaterial({color:0x7dffec,fog:false});
+  const runs=[];let st=-1;
+  for(let i=0;i<NP;i++){const g=pts[i].y<PARK_GROUND_Y+6;
+    if(g&&st<0)st=i;else if(!g&&st>=0){if(i-st>4)runs.push([st,i-1]);st=-1;}}
+  if(st>=0&&NP-1-st>4)runs.push([st,NP-1]);
+  for(const r of runs){
+    const i=Math.round((r[0]+r[1])/2),p=pts[i],bb=B[i];
+    for(const s of [1,-1]){
+      const px=p.x+bb.x*(ROAD_HALF+3)*s,pz=p.z+bb.z*(ROAD_HALF+3)*s;
+      const post=new THREE.Mesh(postGeo,postMat);post.position.set(px,PARK_GROUND_Y+9,pz);
+      scene.add(post);trackMeshes.push(post);
+      const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:gloTex,color:0x7dffec,transparent:true,opacity:.75,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
+      halo.scale.set(30,30,1);halo.position.set(px,PARK_GROUND_Y+20,pz);scene.add(halo);trackMeshes.push(halo);
+    }
+    const lab=portalLabel('🛫','RAMPE',0x7dffec);
+    lab.position.set(p.x,PARK_GROUND_Y+46,p.z);lab.scale.set(46,23,1);scene.add(lab);trackMeshes.push(lab);
+  }
 }
 function buildParkCourses(){
   const V=THREE.Vector3;
@@ -1979,11 +2068,30 @@ function buildParkDecor(){
   const beacon=new THREE.Mesh(new THREE.CylinderGeometry(2.4,4,150,16,1,true),
     new THREE.MeshBasicMaterial({color:0x7dffec,transparent:true,opacity:.22,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
   beacon.position.set(0,PARK_GROUND_Y+75,0);scene.add(beacon);trackMeshes.push(beacon);
+  // 1bis) LES BALISES DE QUARTIER : un fût de lumière À SA COULEUR + son nom, plantés sur chaque ancre de
+  //       genPark. C'est la carte du parc : depuis le lobby on VOIT les 5 amas et on choisit où aller.
+  const dsGeo=new THREE.CylinderGeometry(3.2,7,420,14,1,true);
+  const dcGeo=new THREE.SphereGeometry(9,14,12);
+  for(const d of PARK_DISTRICTS){
+    const shaft=new THREE.Mesh(dsGeo,new THREE.MeshBasicMaterial({color:d.col,transparent:true,opacity:.17,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
+    shaft.position.set(d.x,PARK_GROUND_Y+210,d.z);scene.add(shaft);trackMeshes.push(shaft);
+    const cap=new THREE.Mesh(dcGeo,new THREE.MeshBasicMaterial({color:d.col,fog:false}));
+    cap.position.set(d.x,PARK_GROUND_Y+424,d.z);scene.add(cap);trackMeshes.push(cap);
+    const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:gloTex,color:d.col,transparent:true,opacity:.7,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
+    halo.scale.set(120,120,1);halo.position.copy(cap.position);scene.add(halo);trackMeshes.push(halo);
+    const lab=portalLabel(d.ico,d.name,d.col);lab.position.set(d.x,PARK_GROUND_Y+478,d.z);lab.scale.set(150,75,1);
+    scene.add(lab);trackMeshes.push(lab);
+    // couronne au sol : on sait où commence le quartier même le nez dans l'herbe
+    const ringM=new THREE.Mesh(new THREE.RingGeometry(d.tight*.92,d.tight,64),
+      new THREE.MeshBasicMaterial({color:d.col,transparent:true,opacity:.30,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
+    ringM.rotation.x=-Math.PI/2;ringM.position.set(d.x,PARK_GROUND_Y+0.4,d.z);ringM.renderOrder=1;
+    scene.add(ringM);trackMeshes.push(ringM);
+  }
   // 2) ARCHES GÉANTES : une couronne d'arches néon (demi-tores dressés) — hautes de ~220 m, on passe DESSOUS
   const archGeo=new THREE.TorusGeometry(120,4,8,28,Math.PI); // demi-cercle
   const ARCH_COLS=[0xff3d9e,0x3ee6f0,0xa06bff,0xffd75e,0x50f0a8];
-  for(let i=0;i<8;i++){
-    const an=(i/8)*6.2832,rad=1250;
+  for(let i=0;i<10;i++){
+    const an=(i/10)*6.2832,rad=2400;   // repoussées AU-DELÀ des quartiers (880-1040) et du ruban (~2200) : elles bornent le parc
     const col=ARCH_COLS[i%ARCH_COLS.length];
     const arch=new THREE.Mesh(archGeo,new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.9,fog:false}));
     // le demi-tore par défaut couvre l'angle 0..π dans le plan XY → base sur l'axe X : on le dresse et on l'oriente vers le centre
@@ -1997,7 +2105,7 @@ function buildParkDecor(){
   const pyGeo=new THREE.CylinderGeometry(1.6,3.2,90,10);
   const capGeo=new THREE.SphereGeometry(5,12,10);
   for(let i=0;i<18;i++){
-    const an=Math.random()*6.2832,rad=520+Math.random()*760;
+    const an=Math.random()*6.2832,rad=2120+Math.random()*230; // juste en deçà des arches, hors du ruban : ils balisent la bordure
     const px=Math.cos(an)*rad,pz=Math.sin(an)*rad;
     const col=ARCH_COLS[(i*3)%ARCH_COLS.length];
     const py=new THREE.Mesh(pyGeo,new THREE.MeshLambertMaterial({color:0x20263a}));
