@@ -1043,8 +1043,8 @@ function buildClouds(rr){
   // On relève chaque nuage bien au-dessus de la prairie : un vrai PLAFOND de ciel qu'on va percer en montant,
   // jamais une brume posée sur le vert. (c.g.position.y est statique ; le drift ne touche que x/z → on peut le bouger.)
   if(PARK.on){for(const c of CLOUDS){
-    let y=c.g.position.y+640;
-    if(y<620)y=620+((c.ph*131)%1)*560; // les nuages « bas » (undercast, decks) remontent en couche mi-ciel, jamais sous ~620
+    let y=c.g.position.y+1350;          // relevage FORT (Sacha : « encore trop bas ») — un vrai plafond de ciel
+    if(y<1600)y=1600+((c.ph*131)%1)*1300; // plancher HAUT : aucun nuage sous ~1600 (au-dessus du nœud aérien plafonné ~1450)
     c.g.position.y=y;c.c.y=y;
   }}
 }
@@ -1363,37 +1363,48 @@ function genPark(rnd){
     const deg=d*180/Math.PI,Rr=110+rnd()*80;
     arc(deg,Rr,Math.max(3,Math.ceil(Math.abs(deg)/24)),0);
   };
-  // MODULES AÉRIENS (au SOMMET des rampes) : c'est là que se déploie le playground de figures
+  // MODULES AÉRIENS (au SOMMET des rampes) : le playground de figures. Plus de variété + des figures SERRÉES
+  // (loops compacts, tire-bouchons) pour que le nœud se recroise vraiment (« beaucoup plus emmêlé »).
   const aerial=[
-    ()=>{ arc(sg*(50+rnd()*70),175+rnd()*110,5,(rnd()*2-1)*40); flip(); },                        // GRAND SWEEPER
-    ()=>{ straight(52+rnd()*28,-28); loop(46+rnd()*28,32+rnd()*22); straight(50+rnd()*28,26); },   // LOOP VERTICAL
-    ()=>{ arc(sg*(300+rnd()*260),100+rnd()*65,12,(rnd()<.5?-1:1)*(60+rnd()*90)); flip(); },        // HÉLICE / TIRE-BOUCHON
-    ()=>{ arc(sg*(360+rnd()*280),155+rnd()*75,14,(rnd()<.5?-1:1)*(70+rnd()*100)); flip(); },       // SPIRALE GÉANTE
-    ()=>{ straight(52+rnd()*26,-(14+rnd()*12)); straight(58+rnd()*26,22+rnd()*14); straight(66+rnd()*32,-(28+rnd()*22)); }, // VAGUES à sauter
-    ()=>{ const a=28+rnd()*28,R2=135+rnd()*80; arc(sg*a,R2,3,(rnd()*2-1)*22); arc(-sg*a,R2,3,(rnd()*2-1)*22); flip(); }, // ESSES AMPLES
-    ()=>{ arc(sg*(150+rnd()*70),88+rnd()*46,6,(rnd()*2-1)*26); flip(); },                          // DEMI-TOUR SERRÉ
+    ()=>{ arc(sg*(50+rnd()*70),170+rnd()*100,5,(rnd()*2-1)*40); flip(); },                         // GRAND SWEEPER
+    ()=>{ straight(48+rnd()*24,-26); loop(44+rnd()*26,30+rnd()*20); straight(46+rnd()*24,24); },    // LOOP VERTICAL
+    ()=>{ loop(36+rnd()*18,16+rnd()*16); },                                                         // LOOP SERRÉ : boucle compacte, on l'empile
+    ()=>{ arc(sg*(300+rnd()*260),96+rnd()*60,12,(rnd()<.5?-1:1)*(60+rnd()*90)); flip(); },          // HÉLICE
+    ()=>{ arc(sg*(360+rnd()*280),150+rnd()*70,14,(rnd()<.5?-1:1)*(70+rnd()*100)); flip(); },        // SPIRALE GÉANTE
+    ()=>{ arc(sg*(560+rnd()*380),64+rnd()*34,16,(rnd()<.5?-1:1)*(130+rnd()*170)); flip(); },        // TIRE-BOUCHON SERRÉ : 1,5-2,6 tours qui s'empilent
+    ()=>{ straight(50+rnd()*24,-(14+rnd()*12)); straight(56+rnd()*24,22+rnd()*14); straight(64+rnd()*30,-(28+rnd()*22)); }, // VAGUES
+    ()=>{ const a=28+rnd()*28,R2=128+rnd()*74; arc(sg*a,R2,3,(rnd()*2-1)*22); arc(-sg*a,R2,3,(rnd()*2-1)*22); flip(); }, // ESSES
+    ()=>{ arc(sg*(150+rnd()*70),82+rnd()*42,6,(rnd()*2-1)*26); flip(); },                           // DEMI-TOUR SERRÉ
+    ()=>{ loop(40+rnd()*16,22); loop(38+rnd()*16,-22); flip(); },                                   // DOUBLE LOOP : deux boucles qui se croisent
   ];
   // rampes ridables (~50-54°) jusqu'à une altitude cible / jusqu'au sol
-  const climbTo=(peak)=>{let g=0;while(P.y<peak-8&&g++<26){straight(150+rnd()*40,Math.min(210,peak-P.y+6),2);
+  const climbTo=(peak)=>{let g=0;while(P.y<peak-8&&g++<44){straight(150+rnd()*40,Math.min(210,peak-P.y+6),2);
     if(Math.hypot(P.x,P.z)>PLAZA_R)homeHoriz();}};
-  const dropToGround=()=>{let g=0;while(P.y>110&&g++<26){straight(150+rnd()*40,-Math.min(210,P.y),2);
+  const dropToGround=()=>{let g=0;while(P.y>110&&g++<44){straight(150+rnd()*40,-Math.min(210,P.y),2);
     if(Math.hypot(P.x,P.z)>PLAZA_R)homeHoriz();}
     straight(120+rnd()*40,-P.y,2);      // POSE FRANCHE : la rampe MEURT au ras de l'herbe
     straight(70+rnd()*40,0,1);};        // pied de rampe minime (ce n'est PAS un réseau : juste la base où l'on monte)
   // SPAWN : court tapis AU SOL — le largage tombe ici, à la base de la 1re rampe
   straight(130,0,2);
-  const TARGET=approx+34000;            // ~34 km de ruban plié en rampes + enchevêtrements aériens (DENSE)
+  const TARGET=approx+52000;            // BEAUCOUP plus de route (Sacha) — ~52 km de ruban noué en l'air
   while(approx<TARGET){
-    const isLaunch=rnd()<.45;                      // 45 % de rampes-CATAPULTE, 55 % de rampes-vers-un-tangle
-    const peak=isLaunch?(240+rnd()*220):(480+rnd()*470); // catapulte : saut raisonnable ; tangle : bien haut
-    climbTo(peak);                                 // 1) LA RAMPE s'arrache du sol
-    if(isLaunch){markLip();straight(50,8,1);}      // 2a) LÈVRE : on décolle POUR DE BON et on retombe dans l'herbe
-    else{const nm=2+Math.floor(rnd()*3);           // 2b) ou ENCHEVÊTREMENT AÉRIEN (2-4 figures au sommet)
+    const roll=rnd();
+    if(roll<0.13){                                 // ★ MÉGA-RAMPE (liberté freestyle) : rampe COLOSSALE → catapulte dans les NUAGES
+      climbTo(1000+rnd()*350); markLip(); straight(64,16,1);
+      dropToGround();
+    }else if(roll<0.46){                            // RAMPE-CATAPULTE : saut franc, réception dans l'herbe
+      climbTo(240+rnd()*260); markLip(); straight(50,8,1);
+      dropToGround();
+    }else{                                          // RAMPE → LE NŒUD : enchevêtrement DENSE et confiné SERRÉ
+      climbTo(520+rnd()*480);
+      const nm=4+Math.floor(rnd()*5);              // 4-8 figures nouées d'affilée
       for(let m=0;m<nm;m++){aerial[Math.floor(rnd()*aerial.length)]();
-        if(P.y<PARK_GROUND_Y+90)straight(120,150,2);            // garde-fou : au milieu du tangle on ne perce pas le sol
-        if(Math.hypot(P.x,P.z)>PLAZA_R)homeHoriz();
-      }}
-    dropToGround();                                 // 3) LA RAMPE REDESCEND toucher le sol (nouvelle base accessible)
+        if(P.y<PARK_GROUND_Y+120)straight(140,180,2);                 // garde-fou : le nœud ne perce pas le sol
+        if(P.y>1450)straight(150,-Math.min(240,P.y-800),2);           // plafond du nœud (juste sous les nuages)
+        if(Math.hypot(P.x,P.z)>780)homeHoriz();                        // confinement SERRÉ → le ruban se recroise = ENMÊLÉ
+      }
+      dropToGround();
+    }
     if(Math.hypot(P.x,P.z)>PLAZA_R)homeHoriz();
   }
   straight(120,0,2);                    // fin : au ras du sol, sortie courte (le bouclage se fait par newTrack)
@@ -1406,7 +1417,7 @@ function buildTrack(seed){
   const ctrl=PARK.on?genPark(rnd):genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course
   const curve=new THREE.CatmullRomCurve3(ctrl,false,'catmullrom',0.5);
   L=curve.getLength();
-  const N=Math.min(PARK.on?11000:9000,Math.max(3000,Math.round(L))); // parc : plus long → plus de points pour garder les loops lisses
+  const N=Math.min(PARK.on?15000:9000,Math.max(3000,Math.round(L))); // parc : ruban ~52 km bien plus noué → budget de points relevé (loops/tire-bouchons lisses)
   pts=curve.getSpacedPoints(N);NP=pts.length;
   trackMinY=Infinity;for(let i=0;i<NP;i++)if(pts[i].y<trackMinY)trackMinY=pts[i].y; // plancher du monde
   T=[];Nn=[];B=[];
@@ -1940,7 +1951,7 @@ function buildParkHoops(){
   const glowGeo=new THREE.TorusGeometry(HR,1.9,8,40);
   const COLS=[0x3ee6f0,0xf24aa0,0xffd75e,0x50f0a8,0xa06bff]; // cyan · rose · or · menthe · violet
   let ci=0,s9=420;
-  while(s9<L-160&&HOOPS.length<46){
+  while(s9<L-160&&HOOPS.length<64){ // ruban bien plus long/noué → plus de cerceaux à enfiler dans l'aérien
     frameAt(s9,F);
     const ground=F.p.y<PARK_GROUND_Y+80;
     const col=COLS[ci++%COLS.length];
@@ -1954,7 +1965,7 @@ function buildParkHoops(){
     glow.quaternion.setFromRotationMatrix(q);glow.position.copy(center);glow.renderOrder=1;
     scene.add(glow);trackMeshes.push(glow);
     HOOPS.push({pos:center.clone(),axis:F.t.clone().normalize(),r:HR,scored:false,mesh:ring,glow:glow,col:col});
-    s9+=ground?540:780;                                      // plus serrés au sol, plus espacés dans le ciel
+    s9+=ground?560:640;                                      // plus serrés au sol, un peu plus rapprochés dans le ciel (nœud dense)
   }
   // ---- ACTIVITÉ DE LOBBY : des CERCEAUX SEMÉS EN PLEINE PRAIRIE, loin du ruban ----
   // Ils n'appartiennent à aucune route : on les cherche en roue libre sur l'herbe, dans n'importe quel sens.
