@@ -677,6 +677,15 @@ let PARK_CIRCUIT=null; // {gates:[start,cp…], cpNext, lapStart, bestLap, laps,
 let PARK_SKYRUN=null;  // {gates:[…], next, startT, best, live}
 // PARC : positions MONDE des LÈVRES DE SAUT posées par genPark (sommets de rampe au sol) — mappées en RAMPS dans buildTrack.
 const PARK_JUMPS=[];
+// PARC / LOBBY MULTI : LES PILOTES. Des caisses qui roulent dans le parc avec leur pseudo au-dessus —
+// aujourd'hui pilotées en local (`parkPilotsTick`), demain par le réseau : chaque entrée porte DÉJÀ la forme
+// d'un joueur distant {id,name,pos,yaw,onRoad,s,lat}. Le jour où le serveur WebSocket existe, il suffit de
+// remplacer la mise à jour locale par les paquets reçus — le rendu, les pseudos et le LOD ne bougent pas.
+const PARK_PILOTS=[];
+const PILOT_NAMES=['NEO_92','VYPER','KIKI','ZED','MAX74','LUNA','T0SS','R3KT','BOOM','NOVA','GHOST','SACHA_JR'];
+// PARC : LE POINT DE DÉCOLLAGE — d'où l'on s'est envolé (voir startFall). Quand la jauge d'airtime se vide,
+// on ne renaît plus au spawn : on RÉAPPARAÎT LÀ, avec un peu d'élan pour retenter le saut.
+const parkTake={ok:false,s:0,lat:0,side:1,driveDir:1,vA:0};
 // PARC : LES QUARTIERS — {x,z,name,ico,col,peak}. genPark noue son ruban autour de ces ancres au lieu de tout
 // entasser au centre : la map devient LISIBLE (5 amas distincts + un lobby vide au milieu) et buildParkDecor
 // y plante une balise colorée + son nom → on navigue à vue au lieu de se perdre dans une boule de spaghettis.
@@ -1999,6 +2008,8 @@ function buildParkExtras(){
     scene.add(lab);trackMeshes.push(lab);
     PARK_PORTALS.push({pos:center.clone(),axis:axis,r:15,kind:pd.kind,mesh:ring,glow:glow,col:pd.col});
   }
+  // ---- A bis) LA PLACE DU LOBBY : 30 emplacements numérotés + le panneau du serveur ----
+  buildLobbyPlaza();
   // ---- B) LES ENTRÉES DE RAMPE : balisées, sinon on longe 50 km de ruban sans jamais trouver où monter ----
   buildParkRampMarks();
   // ---- C) DÉCOR GÉANT : on se sent minuscule (ce que Sacha aime dans l'herbe) ----
@@ -2019,6 +2030,117 @@ function mkGate(pos,axis,r,col,tube){
   const glow=new THREE.Mesh(new THREE.TorusGeometry(r,tb*2.5,8,36),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.3,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
   glow.quaternion.setFromRotationMatrix(q);glow.position.copy(pos);glow.renderOrder=1;scene.add(glow);trackMeshes.push(glow);
   return {pos:pos.clone(),axis:a,r:r,mesh:ring,glow:glow,col:col,cool:0};
+}
+// ================= LA PLACE DU LOBBY (façon serveur Roblox) =================
+// 30 EMPLACEMENTS NUMÉROTÉS en couronne autour de la balise : c'est la grille de départ du serveur. Chacun
+// est une dalle néon avec son numéro — aujourd'hui décor + repère de rendez-vous, demain le slot d'un joueur
+// connecté (`PARK_SLOTS[i]` donne déjà la position monde à assigner). Au centre, le PANNEAU DU LOBBY.
+const PARK_SLOTS=[];
+const _numTex={};
+function slotNumber(n){
+  if(_numTex[n])return _numTex[n];
+  const cv=document.createElement('canvas');cv.width=128;cv.height=128;const c=cv.getContext('2d');
+  c.textAlign='center';c.font='bold 92px monospace';c.lineWidth=12;c.lineJoin='round';
+  c.strokeStyle='rgba(4,6,16,.9)';c.strokeText(n,64,96);c.fillStyle='#bff6ff';c.fillText(n,64,96);
+  return _numTex[n]=new THREE.CanvasTexture(cv);
+}
+function buildLobbyPlaza(){
+  PARK_SLOTS.length=0;
+  const R9=132,N9=30;
+  const padG=new THREE.CircleGeometry(9,20),ringG=new THREE.RingGeometry(9,10.6,20);
+  const padM=new THREE.MeshBasicMaterial({color:0x2ad9ff,transparent:true,opacity:.15,blending:THREE.AdditiveBlending,depthWrite:false,fog:false,side:THREE.DoubleSide});
+  const rimM=new THREE.MeshBasicMaterial({color:0x7dffec,transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false,fog:false,side:THREE.DoubleSide});
+  for(let i=0;i<N9;i++){
+    const an=i/N9*6.2832,px=Math.cos(an)*R9,pz=Math.sin(an)*R9;
+    PARK_SLOTS.push(new THREE.Vector3(px,PARK_GROUND_Y,pz));
+    for(const gm of [[padG,padM],[ringG,rimM]]){
+      const m=new THREE.Mesh(gm[0],gm[1]);m.rotation.x=-Math.PI/2;
+      m.position.set(px,PARK_GROUND_Y+.5,pz);m.renderOrder=1;scene.add(m);trackMeshes.push(m);
+    }
+    const num=new THREE.Sprite(new THREE.SpriteMaterial({map:slotNumber(i+1),transparent:true,depthWrite:false,fog:false,opacity:.9}));
+    num.scale.set(10,10,1);num.position.set(px,PARK_GROUND_Y+7,pz);scene.add(num);trackMeshes.push(num);
+  }
+  // LE PANNEAU DU SERVEUR : deux mâts + une plaque lumineuse annonçant le lobby et sa fréquentation
+  const cv=document.createElement('canvas');cv.width=1024;cv.height=384;const c=cv.getContext('2d');
+  c.fillStyle='rgba(6,9,22,.86)';c.fillRect(0,0,1024,384);
+  c.strokeStyle='#7dffec';c.lineWidth=10;c.strokeRect(10,10,1004,364);
+  c.textAlign='center';c.fillStyle='#ffd75e';c.font='bold 96px monospace';c.fillText('LOBBY FREESTYLE',512,120);
+  c.fillStyle='#7dffec';c.font='bold 62px monospace';c.fillText(PARK_PILOTS_N+' PILOTES · '+PARK_SLOTS.length+' PLACES',512,214);
+  c.fillStyle='#cfd8ff';c.font='40px monospace';c.fillText('ROULE DANS UN PORTAIL POUR LANCER UNE PARTIE',512,300);
+  const board=new THREE.Mesh(new THREE.PlaneGeometry(200,75),
+    new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv),transparent:true,side:THREE.DoubleSide,depthWrite:false,fog:false}));
+  board.position.set(0,PARK_GROUND_Y+82,-215);scene.add(board);trackMeshes.push(board);
+  for(const sx of [-1,1]){
+    const mast=new THREE.Mesh(new THREE.CylinderGeometry(1.6,2.4,86,8),new THREE.MeshBasicMaterial({color:0x7dffec,fog:false}));
+    mast.position.set(sx*92,PARK_GROUND_Y+43,-215);scene.add(mast);trackMeshes.push(mast);
+  }
+  buildParkPilots();
+}
+// ---- LES PILOTES DU LOBBY : des caisses qui VIVENT dans le parc, pseudo au-dessus de la tête ----
+// C'est ce qui fait la différence entre une map vide et un lobby : on croise du monde. La moitié tourne sur
+// le ruban (ils enfilent les loops), l'autre roule en rond dans la prairie autour du lobby.
+const PARK_PILOTS_N=9;
+const _tagTex={};
+function pilotTag(name,col){
+  const k=name+col;
+  if(!_tagTex[k]){
+    const cv=document.createElement('canvas');cv.width=256;cv.height=64;const c=cv.getContext('2d');
+    c.textAlign='center';c.font='bold 40px monospace';c.lineWidth=9;c.lineJoin='round';
+    c.strokeStyle='rgba(4,6,16,.92)';c.strokeText(name,128,46);
+    c.fillStyle='#'+col.toString(16).padStart(6,'0');c.fillText(name,128,46);
+    _tagTex[k]=new THREE.CanvasTexture(cv);
+  }
+  return new THREE.Sprite(new THREE.SpriteMaterial({map:_tagTex[k],transparent:true,depthWrite:false,fog:false}));
+}
+function buildParkPilots(){
+  PARK_PILOTS.length=0;
+  const COLS=[0xff3d9e,0x3ee6f0,0xffd75e,0x50f0a8,0xa06bff,0xff7a24,0x5b7dff,0xf24aa0,0x9be86a];
+  for(let i=0;i<PARK_PILOTS_N;i++){
+    const col=COLS[i%COLS.length];
+    // géométries PROPRES à chaque pilote (fraîches à chaque build) : on les pousse dans trackMeshes pour
+    // qu'elles soient libérées au rebuild. ⚠ le groupe y va aussi (c'est LUI qui sort de la scène) ;
+    // scene.remove() sur un enfant non-racine est un no-op inoffensif, mais son dispose(), lui, compte.
+    const g=new THREE.Group();
+    const body=new THREE.Mesh(new THREE.BoxGeometry(2.2,.92,4.8),new THREE.MeshLambertMaterial({color:col}));
+    body.position.y=.86;g.add(body);trackMeshes.push(body);
+    const cab=new THREE.Mesh(new THREE.BoxGeometry(1.75,.72,2.1),new THREE.MeshBasicMaterial({color:0x10162c}));
+    cab.position.set(0,1.62,-.25);g.add(cab);trackMeshes.push(cab);
+    const glow=new THREE.Mesh(new THREE.PlaneGeometry(3.4,6.4),new THREE.MeshBasicMaterial({map:poolTex,color:col,transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
+    glow.rotation.x=-Math.PI/2;glow.position.y=.07;g.add(glow);trackMeshes.push(glow);
+    for(const sd of [-1,1])for(const fz of [-1,1]){
+      const w=new THREE.Mesh(new THREE.CylinderGeometry(.46,.46,.34,10),new THREE.MeshLambertMaterial({color:0x14161f}));
+      w.rotation.z=Math.PI/2;w.position.set(sd*1.05,.46,fz*1.5);g.add(w);trackMeshes.push(w);
+    }
+    const tag=pilotTag(PILOT_NAMES[i%PILOT_NAMES.length],col);
+    tag.scale.set(15,3.8,1);tag.position.y=4.4;g.add(tag);trackMeshes.push(tag);
+    scene.add(g);trackMeshes.push(g);
+    const onRoad=i<5;
+    PARK_PILOTS.push({id:'bot'+i,name:PILOT_NAMES[i%PILOT_NAMES.length],grp:g,onRoad:onRoad,
+      s:L*(0.08+0.17*i),lat:(i%3-1)*5.5,v:70+Math.random()*90,dir:Math.random()<.5?-1:1,
+      a:Math.random()*6.2832,r:190+Math.random()*420,yaw:0});
+  }
+}
+// mise à jour LOCALE des pilotes (le jour du multi : remplacer ce corps par l'état reçu du serveur)
+const _pil=new THREE.Matrix4(),_pilT=new THREE.Vector3(),_pilN=new THREE.Vector3(),_pilB=new THREE.Vector3();
+function parkPilotsTick(dt){
+  parkPilotsTick.n=(parkPilotsTick.n|0)+1; // compteur de frames (dbgPark) : prouve que le lobby tourne
+  for(const p of PARK_PILOTS){
+    if(p.onRoad){
+      p.s+=p.v*dt*p.dir*SPD;
+      if(p.s>L-60){p.s=L-60;p.dir=-1;}else if(p.s<60){p.s=60;p.dir=1;}
+      frameAt(p.s,FH);
+      p.grp.position.copy(FH.p).addScaledVector(FH.b,p.lat).addScaledVector(FH.n,.2);
+      _pilT.copy(FH.t).multiplyScalar(p.dir);_pilN.copy(FH.n);_pilB.crossVectors(_pilN,_pilT);
+      p.grp.quaternion.setFromRotationMatrix(_pil.makeBasis(_pilB,_pilN,_pilT));
+    }else{
+      p.a+=p.v/p.r*dt*SPD;
+      p.grp.position.set(Math.cos(p.a)*p.r,PARK_GROUND_Y+.1,Math.sin(p.a)*p.r);
+      _pilT.set(-Math.sin(p.a),0,Math.cos(p.a));_pilN.set(0,1,0);_pilB.crossVectors(_pilN,_pilT);
+      p.grp.quaternion.setFromRotationMatrix(_pil.makeBasis(_pilB,_pilN,_pilT));
+    }
+    // LOD : au-delà de 900 m on ne dessine plus rien (pseudo compris) — le lobby coûte alors zéro draw call
+    p.grp.visible=p.grp.position.distanceToSquared(carGroup.position)<810000;
+  }
 }
 // LES ENTRÉES DE RAMPE : le SEUL moyen de passer de l'herbe au ruban, c'est un PIED DE RAMPE (dalle posée à
 // ras, cap aligné → accroche dans le bloc 'grass'). Sans balisage on les cherchait au hasard. Maintenant :
@@ -3013,6 +3135,15 @@ window.dbgStep=function(n,ms){
   for(let k=0;k<n;k++){last=performance.now()-ms;loop(performance.now());}
   return window.dbgState();
 };
+// état du LOBBY (lecture seule) : pilotes, emplacements, dernier point de décollage — sert à vérifier que le
+// parc tourne (les pilotes bougent-ils ? le tremplin est-il mémorisé ?) sans deviner à l'œil.
+window.dbgPark=function(){return {on:PARK.on,pilotes:PARK_PILOTS.length,ticks:parkPilotsTick.n|0,
+  places:PARK_SLOTS.length,quartiers:PARK_DISTRICTS.map(d=>d.name),
+  tremplin:parkTake.ok?{s:+parkTake.s.toFixed(0),lat:+parkTake.lat.toFixed(1),side:parkTake.side,v:+parkTake.vA.toFixed(0)}:null,
+  bigAir:{h:+PARK_AIR.h.toFixed(0),t:+PARK_AIR.t.toFixed(1),recH:+PARK_AIR.bh.toFixed(0)},
+  pos:PARK_PILOTS.slice(0,3).map(p=>[+p.grp.position.x.toFixed(0),+p.grp.position.y.toFixed(0),+p.grp.position.z.toFixed(0)])};};
+// force le retour au tremplin (ce que fait la fin de jauge d'airtime en parc) — sans avoir à rater un vol
+window.dbgRespawn=function(){parkRespawn();return window.dbgState();};
 window.CASHCAR_BUILD='2026-07-20 v5 (anti-flicker + anti-cache)'; // vérif version : taper CASHCAR_BUILD en console
 console.log('%c🏎 CASH CAR — build '+CASHCAR_BUILD,'color:#f24aa0;font-weight:bold'); // si ce texte n'apparaît pas au chargement → tu es sur une VIEILLE version en cache (Ctrl+Shift+R)
 window.dbgPerf=function(){return {ms:+(loop._ms||0).toFixed(1),fps:Math.round(1000/Math.max(1,loop._ms||16)),spikes:+(loop._spk||0).toFixed(1),dpr:+curDPR.toFixed(2),dprCeil:loop._dprCeilT?+loop._dprCeil.toFixed(2):null,cloudIn:+cloudInS.toFixed(2),nuages:CLOUDS.length,tier:QUAL_LOW?'LOW':QUAL_MED?'MED':'FULL'};};
@@ -4331,6 +4462,10 @@ addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDow
 addEventListener('keyup',e=>{keys[e.code]=false;});
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false;}); // alt-tab : aucune touche ne reste coincée
 const GRAV=9.8*.55,FALL_G=33,AXIS_Y=new THREE.Vector3(0,1,0),AIR_MAX=6;
+// PARC : la jauge d'airtime EXISTE aussi (avant, elle ne se vidait jamais et un vol raté pouvait durer une
+// éternité), mais elle est deux fois plus longue : une MÉGA-RAMPE redescend de 1350 m, ça prend ~7-9 s
+// réelles. Au bout, pas d'explosion — on réapparaît au tremplin (`parkRespawn`).
+const PARK_AIR_MAX=12;
 // AIR_RATE : le vol se joue PLUS VITE en temps réel — la parabole dans l'espace est identique
 // (viseur d'atterrissage + seuils de figures inchangés), mais on passe moins de temps à flotter.
 let AIR_RATE=1; // base V1 (temps réel) — startFall le RE-pilote depuis 2026-07-20 : =1 sous 450 km/h affichés, puis rampe douce jusqu'au cap 1.35 (l'ancienne ère 2.3 COMPENSAIT SPD=.25 ; ici c'est un dosage de tempo, pas une compensation).
@@ -4586,6 +4721,19 @@ function parkRespawn(){
   chain=0;chainVal=0;chainMult=1;chainHud.style.opacity=0;
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;dolphT=0;trkDolph=false;
   airPie.style.display='none';airFlash=0;
+  // ---- RETOUR AU TREMPLIN : on renaît LÀ OÙ ON A DÉCOLLÉ, pas au spawn du lobby ----
+  // Reculé de 110 m dans le sens où l'on roulait : on retombe sur la course d'élan, pas sur la lèvre (sinon
+  // on serait recatapulté aussitôt, plus lentement, dans le même vol raté — boucle infernale). Vitesse à 60 %
+  // de celle du décollage : ça roule déjà, il reste de la marge pour remettre les gaz avant la rampe.
+  if(parkTake.ok){
+    s=THREE.MathUtils.clamp(parkTake.s-110*parkTake.driveDir,10,Math.max(10,L-90));
+    lat=parkTake.lat;side=parkTake.side;driveDir=parkTake.driveDir;
+    vA=Math.max(22,parkTake.vA*.6);psi=0;vL=0;yawAcc=0;hopY=0;hopV=0;graceT=1.2;prevTvalid=false;mode='drive';
+    if(introD){introD=false;if(pigGroup){scene.remove(pigGroup);pigGroup=null;}}
+    frameAt(s,F);sparkBurst(sparkGold,F.p,14,10);
+    showMsg('↻ RETOUR AU TREMPLIN','#7dffec');
+    return;
+  }
   respawn();
   showMsg('↻ ON REPART','#7dffec');
 }
@@ -4731,6 +4879,12 @@ function checkUpgrade(){
   }
 }
 function startFall(impU,impF){
+  // PARC : on GRAVE le point de décollage AVANT de quitter le sol — c'est là qu'on réapparaîtra si la jauge
+  // d'airtime se vide (demande de Sacha : « réapparaître là où on a décollé à la fin de l'airtime »).
+  // ⚠ `lat` est RAMENÉ SUR LA DALLE : on décolle très souvent en SORTANT par le bord (|lat|>ROAD_HALF) —
+  // restituer ce lat-là ferait retomber la caisse dans le vide à la seconde même du retour (boucle de mort).
+  if(PARK.on&&mode==='drive'){parkTake.ok=true;parkTake.s=s;parkTake.side=side;parkTake.driveDir=driveDir;parkTake.vA=Math.abs(vA);
+    parkTake.lat=THREE.MathUtils.clamp(lat,-(ROAD_HALF-3),ROAD_HALF-3);}
   mode='fall';fallT=0;fallTR=0;yawAcc=0;momT=0;airRoll=0;
   // TEMPO DE VOL ∝ VITESSE (2026-07-20, dosage DOUX sur base V1) : =1 jusqu'à 450 km/h affichés
   // (basse/moyenne vitesse : rigoureusement l'existant), puis +1 tous les 1800 km/h, CAP 1.35 —
@@ -6208,7 +6362,8 @@ function loop(now){
       }
       // camembert de temps de vol (cyan plein pendant AIRTIME INFINI : c'est le pouvoir qui s'égrène)
       airPie.style.display='block';
-      const fr=pwrAirT>0?Math.min(1,pwrAirT/10):Math.max(0,1-fallTR/AIR_MAX); // jauge en temps RÉEL : 6 s affichées = 6 s vécues
+      const aMax=PARK.on?PARK_AIR_MAX:AIR_MAX; // PARC : jauge plus longue (une méga-rampe redescend de 1350 m)
+      const fr=pwrAirT>0?Math.min(1,pwrAirT/10):Math.max(0,1-fallTR/aMax); // jauge en temps RÉEL : 6 s affichées = 6 s vécues
       pieCtx.clearRect(0,0,74,74);
       pieCtx.beginPath();pieCtx.arc(37,37,33,0,7);pieCtx.fillStyle='rgba(0,0,0,.35)';pieCtx.fill();
       pieCtx.beginPath();pieCtx.moveTo(37,37);
@@ -6223,7 +6378,7 @@ function loop(now){
         pieCtx.beginPath();pieCtx.arc(37,37,33,0,7);pieCtx.stroke();
       }
       pieCtx.fillStyle='#fff';pieCtx.font='bold 15px monospace';pieCtx.textAlign='center';
-      pieCtx.fillText((pwrAirT>0?pwrAirT:Math.max(0,AIR_MAX-fallTR)).toFixed(1),37,42);
+      pieCtx.fillText((pwrAirT>0?pwrAirT:Math.max(0,aMax-fallTR)).toFixed(1),37,42);
       if(tryLand(dtF)){airPie.style.display='none';}
       // PARC : LA PRAIRIE RATTRAPE TOUT — on ne meurt pas d'un vol raté, on se pose dans l'herbe et on repart.
       // ZÉRO ARGENT : la pose ne paye pas ; on célèbre juste la longueur de la chaîne de figures (fierté, pas cash).
@@ -6239,7 +6394,7 @@ function loop(now){
         squashT=Math.max(squashT,.22);shake=Math.max(shake,.25);
         sparkBurst(sparkGold,fallPos,10,8);noiseBurst(.16,.12,300);
       }
-      else if((fallTR>AIR_MAX&&pwrAirT<=0&&!PARK.on)||fallPos.y<trackMinY-120){airPie.style.display='none';if(PARK.on)parkRespawn();else explode();} // FREESTYLE : la jauge d'airtime ne tue plus (le sol est roulable, on finit par se poser) ; reste le filet du plongeon hors-monde // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
+      else if((fallTR>aMax&&pwrAirT<=0)||fallPos.y<trackMinY-120){airPie.style.display='none';if(PARK.on)parkRespawn();else explode();} // FREESTYLE : la jauge d'airtime ne tue plus (le sol est roulable, on finit par se poser) ; reste le filet du plongeon hors-monde // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
     }else if(mode==='boom'){ // ---- EXPLOSION ----
       boomT+=dt;
       for(const d of debris){
@@ -6270,6 +6425,7 @@ function loop(now){
       if(HOOPS.length)checkHoops();
       if(PARK_PORTALS.length)checkPortals();
       checkCircuit();checkSkyrun();updateCourseHud();parkAirTick(dtReal);
+      if(PARK_PILOTS.length)parkPilotsTick(dt); // le lobby VIT : les autres pilotes roulent pendant que tu joues
       carPrev.copy(carGroup.position);carPrevSet=true; // mémoire pour la détection BALAYÉE des portes (frame suivante)
     }
     if(hoopComboT>0){hoopComboT-=dt;if(hoopComboT<=0)hoopCombo=0;} // la combo de cerceaux retombe si on traîne
