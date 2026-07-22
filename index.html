@@ -161,6 +161,12 @@
     letter-spacing:1px;color:#8dff9e;text-shadow:0 2px 0 #0a3a14,0 0 16px rgba(90,255,140,.5);
     background:rgba(8,5,18,.34);padding:4px 13px;border-radius:9px;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
     opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
+  /* CHRONO des mini-jeux du parc (circuit au sol / parcours aérien) */
+  #courseHud{position:absolute;top:11%;left:50%;transform:translateX(-50%);font-family:var(--pix);font-size:13px;
+    letter-spacing:1px;color:#7dffec;text-shadow:0 2px 0 #073a34,0 0 15px rgba(60,230,240,.55);
+    background:rgba(8,5,18,.44);padding:6px 15px;border-radius:9px;border:1px solid rgba(60,230,240,.32);
+    opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;z-index:4}
+  @media (max-width:820px){#courseHud{font-size:10px;padding:4px 10px}}
   #caseHud.hot{color:#ffd75e;text-shadow:0 2px 0 #5c3600,0 0 22px rgba(255,170,60,.85);animation:caseTremble .09s infinite}
   @keyframes caseTremble{0%{transform:translateX(-50%) translate(1px,-1px)}25%{transform:translateX(-50%) translate(-1px,1px)}
     50%{transform:translateX(-50%) translate(1px,1px)}75%{transform:translateX(-50%) translate(-2px,-1px)}100%{transform:translateX(-50%) translate(1px,-1px)}}
@@ -350,6 +356,7 @@
   <div id="trickBox"></div>
   <div id="chainHud"></div>
   <div id="caseHud"></div>
+  <div id="courseHud"></div>
   <div id="turnHint"></div>
   <canvas id="airPie" width="74" height="74"></canvas>
   <canvas id="minimap" width="176" height="176"></canvas>
@@ -665,6 +672,9 @@ let RAMPS=[];
 let HOOPS=[];
 // PARC LOBBY : PORTAILS DE LANCEMENT {pos, axis, r, kind, y} — on roule DEDANS pour lancer une game (course / survivant / nouveau lobby).
 let PARK_PORTALS=[];
+// PARC : MINI-JEUX CHRONOMÉTRÉS — CIRCUIT au sol (tours) + PARCOURS aérien (sprint). Portes ordonnées, détectées chaque frame.
+let PARK_CIRCUIT=null; // {gates:[start,cp…], cpNext, lapStart, bestLap, laps, live}
+let PARK_SKYRUN=null;  // {gates:[…], next, startT, best, live}
 // PARC : positions MONDE des LÈVRES DE SAUT posées par genPark (sommets de rampe au sol) — mappées en RAMPS dans buildTrack.
 const PARK_JUMPS=[];
 // passerelle genCtrl → buildTrack : positions MONDE (lèvre + les deux bords du vide), retrouvées sur la courbe réelle
@@ -1412,7 +1422,7 @@ function genPark(rnd){
 }
 function buildTrack(seed){
   for(const m of trackMeshes){scene.remove(m);if(m.geometry)m.geometry.dispose();if(m.material&&m.material.dispose)m.material.dispose();}
-  trackMeshes.length=0;PADS=[];BUMPS=[];CONES=[];FLYCONES=[];OILS=[];RAMPS=[];HOOPS=[];PARK_PORTALS=[];
+  trackMeshes.length=0;PADS=[];BUMPS=[];CONES=[];FLYCONES=[];OILS=[];RAMPS=[];HOOPS=[];PARK_PORTALS=[];PARK_CIRCUIT=null;PARK_SKYRUN=null;
   const rnd=mulberry32(seed);
   const ctrl=PARK.on?genPark(rnd):genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course
   const curve=new THREE.CatmullRomCurve3(ctrl,false,'catmullrom',0.5);
@@ -1891,6 +1901,61 @@ function buildParkExtras(){
   }
   // ---- C) DÉCOR GÉANT : on se sent minuscule (ce que Sacha aime dans l'herbe) ----
   buildParkDecor();
+  // ---- D) MINI-JEUX CHRONOMÉTRÉS : circuit au sol (tours) + parcours aérien ----
+  buildParkCourses();
+}
+// une PORTE = un anneau néon dressé (trou le long de `axis`) — on la traverse. Renvoie {pos,axis,r} + meshes.
+function mkGate(pos,axis,r,col,tube){
+  const a=axis.clone().normalize();
+  const up=Math.abs(a.y)>.92?new THREE.Vector3(1,0,0):new THREE.Vector3(0,1,0);
+  const bas=new THREE.Vector3().crossVectors(up,a).normalize();
+  const nrm=new THREE.Vector3().crossVectors(a,bas).normalize();
+  const q=new THREE.Matrix4().makeBasis(bas,nrm,a);
+  const tb=tube||0.9;
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(r,tb,8,36),new THREE.MeshBasicMaterial({color:col}));
+  ring.quaternion.setFromRotationMatrix(q);ring.position.copy(pos);scene.add(ring);trackMeshes.push(ring);
+  const glow=new THREE.Mesh(new THREE.TorusGeometry(r,tb*2.5,8,36),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.3,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
+  glow.quaternion.setFromRotationMatrix(q);glow.position.copy(pos);glow.renderOrder=1;scene.add(glow);trackMeshes.push(glow);
+  return {pos:pos.clone(),axis:a,r:r,mesh:ring,glow:glow,col:col,cool:0};
+}
+function buildParkCourses(){
+  const V=THREE.Vector3;
+  // ============ 1) LE CIRCUIT AU SOL : un OVALE à lapper, chrono lancé par l'anneau de départ ============
+  const CX=0,CZ=-40,RX=580,RZ=440,NSEG=72;                     // grand ovale centré près du spawn
+  const loop=[];for(let i=0;i<NSEG;i++){const t=i/NSEG*6.2832;loop.push(new V(CX+Math.cos(t)*RX,PARK_GROUND_Y,CZ+Math.sin(t)*RZ));}
+  // PISTE VISIBLE : nappe d'asphalte sombre + liserés néon (on la voit du sol comme du ciel)
+  const W=9,pos=[],idx=[];
+  for(let i=0;i<NSEG;i++){const p=loop[i],nx=loop[(i+1)%NSEG],pv=loop[(i-1+NSEG)%NSEG];
+    const tg=new V().subVectors(nx,pv).normalize(),pr=new V(-tg.z,0,tg.x);
+    pos.push(p.x+pr.x*W,PARK_GROUND_Y+0.2,p.z+pr.z*W, p.x-pr.x*W,PARK_GROUND_Y+0.2,p.z-pr.z*W);}
+  for(let i=0;i<NSEG;i++){const a=2*i,b=2*i+1,c=(2*i+2)%(2*NSEG),d=(2*i+3)%(2*NSEG);idx.push(a,c,b,b,c,d);}
+  const cg=new THREE.BufferGeometry();cg.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));cg.setIndex(idx);cg.computeVertexNormals();
+  const cmesh=new THREE.Mesh(cg,new THREE.MeshBasicMaterial({color:0x161a24,side:THREE.DoubleSide}));cmesh.renderOrder=1;scene.add(cmesh);trackMeshes.push(cmesh);
+  // liserés néon (deux boucles de points au bord)
+  for(const s of [1,-1]){const lp=[];for(let i=0;i<=NSEG;i++){const p=loop[i%NSEG],nx=loop[(i+1)%NSEG],pv=loop[(i-1+NSEG)%NSEG];
+      const tg=new V().subVectors(nx,pv).normalize(),pr=new V(-tg.z,0,tg.x);lp.push(new V(p.x+pr.x*W*s,PARK_GROUND_Y+0.5,p.z+pr.z*W*s));}
+    const lg=new THREE.BufferGeometry().setFromPoints(lp);
+    const line=new THREE.Line(lg,new THREE.LineBasicMaterial({color:0x3ee6f0,transparent:true,opacity:.85,fog:false}));scene.add(line);trackMeshes.push(line);}
+  // PORTES : départ/arrivée doré + 3 checkpoints répartis ; hole = tangente (on les traverse en tournant)
+  const gateAt=(i,r,col,tube)=>{const p=loop[i%NSEG],nx=loop[(i+1)%NSEG],pv=loop[(i-1+NSEG)%NSEG];
+    const tg=new V().subVectors(nx,pv).normalize();
+    return mkGate(new V(p.x,PARK_GROUND_Y+r*0.7,p.z),tg,r,col,tube);};
+  const startG=gateAt(0,17,0xffd75e,1.5);
+  const cps=[gateAt(Math.round(NSEG*.25),13,0x3ee6f0),gateAt(Math.round(NSEG*.5),13,0xf24aa0),gateAt(Math.round(NSEG*.75),13,0x50f0a8)];
+  // panneau « CIRCUIT » au-dessus du départ
+  const clab=portalLabel('🏁','CIRCUIT',0xffd75e);clab.position.set(loop[0].x,PARK_GROUND_Y+40,loop[0].z);clab.scale.set(30,15,1);scene.add(clab);trackMeshes.push(clab);
+  PARK_CIRCUIT={gates:[startG,...cps],cpNext:1,lapStart:-1,bestLap:Infinity,laps:0,live:false};
+  // ============ 2) LE PARCOURS AÉRIEN : 8 anneaux enfilés le long de la SECTION LA PLUS HAUTE du ruban ============
+  // On les pose SUR la ligne de conduite d'un nœud aérien → on les traverse en montant une rampe (ATTEIGNABLE,
+  // pas des anneaux perdus dans le vide) ; le chrono mesure à quelle vitesse tu enfiles le nœud.
+  let ip=8,py=0;for(let i=8;i<NP-8;i+=6){if(pts[i].y>py){py=pts[i].y;ip=i;}}   // le point le PLUS haut du ruban
+  const step=Math.max(18,Math.round(NP*0.006)),sky=[];
+  for(let k=-3;k<=4;k++){const i=THREE.MathUtils.clamp(ip+k*step,5,NP-6);
+    frameAt(i/(NP-1)*L,F);const first=(k===-3);
+    sky.push(mkGate(F.p.clone(),F.t.clone(),first?24:19,first?0xffd75e:0xa06bff,first?1.5:1.1));}
+  frameAt(THREE.MathUtils.clamp(ip-3*step,5,NP-6)/(NP-1)*L,F);
+  const slab=portalLabel('🪂','PARCOURS',0xa06bff);slab.position.copy(F.p).addScaledVector(F.n,26);slab.scale.set(34,17,1);scene.add(slab);trackMeshes.push(slab);
+  PARK_SKYRUN={gates:sky,next:0,startT:-1,best:Infinity,live:false};
 }
 // étiquette flottante d'un portail : gros pictogramme + nom, contour épais (lisible de loin).
 // ⚠ la TEXTURE est cachée par nom (3 étiquettes fixes) → aucune fuite au reroll ; seul le SpriteMaterial
@@ -4108,7 +4173,7 @@ const $=id=>document.getElementById(id);
 const elSpeed=$('speedVal'),elName=$('carName'),elLvl=$('carLevel'),elMoney=$('moneyTxt'),
       elCp=$('cpDist'),elFill=$('cpFill'),elMsg=$('msg'),elTurn=$('turnHint'),
       elRecord=$('record'),elNR=$('nitroR'),elNX=$('nitroX'),
-      trickBox=$('trickBox'),chainHud=$('chainHud'),caseHud=$('caseHud'),airPie=$('airPie'),pieCtx=airPie.getContext('2d'),
+      trickBox=$('trickBox'),chainHud=$('chainHud'),caseHud=$('caseHud'),courseHud=$('courseHud'),airPie=$('airPie'),pieCtx=airPie.getContext('2d'),
       elStyleF=$('styleFill'),feverGlow=$('feverGlow'),flashEl=$('flash'),
       overlay=$('overlay'),ovSub=$('ovSub'),finalScore=$('finalScore'),goTxt=$('goTxt'),tagline=$('tagline'),bestChip=$('bestChip');
 const elLb=$('lbBox'),nameEntry=$('nameEntry'),nameInput=$('nameInput'),nameSave=$('nameSave');
@@ -4391,6 +4456,55 @@ function doParkLaunch(kind){
   SURV.armed=(kind==='surv');survBtnEl.textContent='🏁 SURVIVANT : '+(SURV.armed?'ON':'OFF');
   resetGame();
   showMsg(kind==='surv'?'🚓 SURVIVANT — GO !':'🏁 COURSE — GO !',kind==='surv'?'#ff8a8a':'#7dffec');
+}
+// ---- MINI-JEUX CHRONO : portes ordonnées (circuit au sol à lapper + parcours aérien sprint) ----
+const _gv=new THREE.Vector3(),_p0=new THREE.Vector3(),_p1=new THREE.Vector3();
+const carPrev=new THREE.Vector3();let carPrevSet=false;
+let parkClock=0; // HORLOGE DE JEU des chronos (s) — n'avance QUE quand on joue (gèle en pause/garage) ; pas le temps réel
+const _fmtT=s=>s<60?s.toFixed(2)+'s':(s/60|0)+':'+('0'+(s%60).toFixed(2)).slice(-5);
+// détection BALAYÉE : on teste le SEGMENT frame-précédente→actuelle contre le plan de la porte (anti-tunnel :
+// à ~900 m/s la caisse fait ~14 u/frame, un simple |along|<seuil raterait la traversée). Anti-rebond via g.cool.
+function gateHit(p,g){
+  if(performance.now()<g.cool)return false;
+  const sweep=carPrevSet&&carPrev.distanceToSquared(p)<40000; // >200 u en une frame = téléport (respawn/snap) → pas de balayage
+  _p0.subVectors(sweep?carPrev:p,g.pos);_p1.subVectors(p,g.pos);
+  const a0=_p0.dot(g.axis),a1=_p1.dot(g.axis);
+  if(a0*a1>0&&Math.min(Math.abs(a0),Math.abs(a1))>9)return false; // même côté ET loin → pas de traversée
+  const den=a0-a1,tc=THREE.MathUtils.clamp(Math.abs(den)<1e-4?0:a0/den,0,1); // point où along≈0 (le plan)
+  _gv.lerpVectors(_p0,_p1,tc);
+  const along=_gv.dot(g.axis),radial=Math.sqrt(Math.max(0,_gv.lengthSq()-along*along));
+  if(radial<g.r){g.cool=performance.now()+900;return true;}
+  return false;
+}
+const gateFlash=(g,c)=>{g.mesh.material.color.setHex(c);if(g.glow)g.glow.material.color.setHex(c);};
+function checkCircuit(){
+  const C=PARK_CIRCUIT;if(!C)return;const p=carGroup.position,now=parkClock;
+  // checkpoints DANS L'ORDRE
+  if(C.live&&C.cpNext<C.gates.length&&gateHit(p,C.gates[C.cpNext])){gateFlash(C.gates[C.cpNext],0x2effa0);C.cpNext++;chimeNote(500+C.cpNext*90,0,.07,.14);noiseBurst(.12,.06,700);}
+  // départ / arrivée
+  if(gateHit(p,C.gates[0])){
+    if(C.lapStart<0){C.lapStart=now;C.cpNext=1;C.laps=0;C.live=true;for(const g of C.gates)gateFlash(g,g.col);gateFlash(C.gates[0],0xffffff);showMsg('🏁 CHRONO LANCÉ — BOUCLE LES TOURS !','#ffd75e');chimeNote(760,0,.12,.22);}
+    else if(C.cpNext>C.gates.length-1){const lap=now-C.lapStart;const best=lap<C.bestLap;if(best)C.bestLap=lap;C.laps++;C.lapStart=now;C.cpNext=1;for(let i=1;i<C.gates.length;i++)gateFlash(C.gates[i],C.gates[i].col);
+      showMsg('🏁 TOUR '+C.laps+' — '+_fmtT(lap)+(best?'  ⭐ RECORD !':''),best?'#7dff9b':'#ffd75e');fanfare();sparkBurst(sparkGold,C.gates[0].pos,20,12);}
+  }
+}
+function checkSkyrun(){
+  const S=PARK_SKYRUN;if(!S)return;const p=carGroup.position,now=parkClock;
+  if(S.next<S.gates.length&&gateHit(p,S.gates[S.next])){
+    const g=S.gates[S.next];gateFlash(g,0x2effa0);sparkBurst(sparkGold,g.pos,10,9);
+    if(S.next===0){S.startT=now;S.live=true;chimeNote(600,0,.1,.2);showMsg('🪂 PARCOURS AÉRIEN — GO !','#a06bff');}
+    else chimeNote(560*Math.pow(2,S.next/9),0,.07,.15);
+    S.next++;
+    if(S.next>=S.gates.length){const tt=now-S.startT;const best=tt<S.best;if(best)S.best=tt;
+      showMsg('🪂 PARCOURS BOUCLÉ — '+_fmtT(tt)+(best?'  ⭐ RECORD !':''),best?'#7dff9b':'#a06bff');fanfare();
+      S.next=0;S.live=false;S.startT=-1;for(const gg of S.gates)gateFlash(gg,gg.col);}
+  }
+}
+function updateCourseHud(){
+  const C=PARK_CIRCUIT,S=PARK_SKYRUN,now=parkClock;let txt='';
+  if(S&&S.live)txt='🪂 '+_fmtT(now-S.startT)+'  ·  '+S.next+'/'+S.gates.length+(S.best<1e9?'  ·  ★ '+_fmtT(S.best):'');
+  else if(C&&C.live)txt='🏁 '+_fmtT(now-C.lapStart)+'  ·  TOURS '+C.laps+(C.bestLap<1e9?'  ·  ★ '+_fmtT(C.bestLap):'');
+  if(txt){courseHud.textContent=txt;courseHud.style.opacity=1;}else if(courseHud.style.opacity!=='0'){courseHud.style.opacity=0;courseHud.textContent='';}
 }
 function checkUpgrade(){
   if(PARK.on)return; // PARC : zéro système d'argent → aucun déblocage de caisse par le cash
@@ -5222,6 +5336,7 @@ window.dbgPin=function(on){RESPIN=(on===undefined)?true:!!on;
 function loop(now){
   requestAnimationFrame(loop);
   let dt=Math.min((now-last)/1000,.05);last=now;
+  const dtReal=dt; // frame RÉELLE (avant slow-mo/hit-stop) — sert d'horloge aux chronos des mini-jeux du parc
   // qualité auto : si le GPU peine (<45 fps soutenus après l'échauffement), on allège la ouate une fois pour toutes
   const rawMs=Math.min(100,now-(loop._pn||now));
   loop._ms=(loop._ms||16)*.96+rawMs*.04;loop._pn=now;
@@ -5256,7 +5371,7 @@ function loop(now){
   if(loop._parkHUD!==PARK.on){loop._parkHUD=PARK.on;
     const md=document.getElementById('money');if(md)md.style.display=PARK.on?'none':'';
     garageBtnEl.style.display=PARK.on?'inline-block':'none'; // le GARAGE ne s'offre qu'en freestyle (valeur explicite : la règle CSS par défaut est display:none)
-    if(!PARK.on){closeGarage();} // on quitte le parc → le panneau garage se ferme
+    if(!PARK.on){closeGarage();courseHud.style.opacity=0;} // on quitte le parc → panneau garage + chrono fermés
     if(PARK.on){caseHud.style.opacity=0;caseHud.className='';}}
   // LANCEMENT D'UNE GAME depuis le lobby : on a roulé dans un portail → on démarre ici (hors des branches de mode, rebuild propre)
   if(parkLaunch){const k=parkLaunch;parkLaunch=null;doParkLaunch(k);return;}
@@ -5930,10 +6045,13 @@ function loop(now){
       elTurn.style.opacity=0;
       if(boomT>1.8&&!gameOver)endGame();
     }
-    // ACTIVITÉS DU LOBBY : cerceaux et portails — détectés en roulant OU en vol (carGroup.position est à jour partout)
+    // ACTIVITÉS DU LOBBY : cerceaux, portails, circuit chrono & parcours aérien — détectés partout (carGroup.position est à jour)
     if(PARK.on&&(mode==='drive'||mode==='fall'||mode==='grass')){
+      parkClock+=dtReal; // horloge de jeu des chronos (ne tourne QUE pendant qu'on joue en parc)
       if(HOOPS.length)checkHoops();
       if(PARK_PORTALS.length)checkPortals();
+      checkCircuit();checkSkyrun();updateCourseHud();
+      carPrev.copy(carGroup.position);carPrevSet=true; // mémoire pour la détection BALAYÉE des portes (frame suivante)
     }
     if(hoopComboT>0){hoopComboT-=dt;if(hoopComboT<=0)hoopCombo=0;} // la combo de cerceaux retombe si on traîne
     // traînée nitro façon Asphalt 8
