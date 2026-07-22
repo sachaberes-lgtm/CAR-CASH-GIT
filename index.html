@@ -1747,8 +1747,8 @@ function buildTrack(seed){
   }
   // le couloir du tremplin reste NU : ni plot, ni huile, ni pad parasite — la tension a besoin de silence visuel
   const inGap=sp=>{for(const r of RAMPS)if(sp>r.s0&&sp<r.s1)return true;return false;};
-  // pads turbo (les deux faces)
-  for(let sp=180+rnd()*150;sp<L-100;sp+=280+rnd()*280){
+  // pads turbo (les deux faces) — PARC : deux fois plus serrés, c'est le carburant des longues voies aériennes
+  for(let sp=180+rnd()*150;sp<L-100;sp+=PARK.on?(150+rnd()*140):(280+rnd()*280)){
     const padCol=new THREE.Color([0x2e7bff,0xffffff,0xff3030][Math.floor(rnd()*3)]); // bleu / blanc / rouge (tiré AVANT le filtre : le flux rnd reste identique quoi qu'il arrive)
     if(inGap(sp))continue; // la course d'élan garde son SEUL boost, celui qu'on a posé volontairement
     PADS.push(sp);
@@ -1777,7 +1777,9 @@ function buildTrack(seed){
   }
   // (Paris retiré — la ville a cédé sa place au ciel)
   // FLAQUES D'HUILE : rares, et seulement là où on les VOIT — ligne droite, jamais en montée
-  for(let sp=420+rnd()*500;sp<L-220;sp+=1240+rnd()*1520){ // intervalle doublé : miroir = même densité par face qu'avant
+  // ⚠ PARC : AUCUNE (`!PARK.on`) — un playground freestyle n'est pas un chantier. Une glissade subie en
+  // pleine approche de loop, sans argent ni classement à la clé, c'est de la punition gratuite.
+  if(!PARK.on)for(let sp=420+rnd()*500;sp<L-220;sp+=1240+rnd()*1520){ // intervalle doublé : miroir = même densité par face qu'avant
     if(rnd()<.4)continue; // encore plus rare
     const io=Math.floor(sp/L*(NP-1));
     const ia=Math.max(0,io-40),ib=Math.min(NP-1,io+40);
@@ -1813,7 +1815,9 @@ function buildTrack(seed){
     CONES.push({s:cs,lat:cl,mesh:m,hit:false,face:fc});
   }
   // chaque GROUPE de plots existe sur LES DEUX faces (même chantier) — intervalle doublé : densité par face inchangée
-  for(let sp=300+rnd()*220;sp<L-170;sp+=340+rnd()*520){
+  // ⚠ PARC : AUCUN PLOT. Le parc tourne à `level=23` → la 2e vague s'ajoutait à la 1re et le ruban freestyle
+  // était un slalom de chantier permanent. Ici on garde les pads (boost) et les dos d'âne (le pop), rien d'autre.
+  if(!PARK.on)for(let sp=300+rnd()*220;sp<L-170;sp+=340+rnd()*520){
     const slal=rnd()<.55;                                     // le tirage tombe D'ABORD : le flux rnd ne dépend jamais du filtre gap
     const w9=slal?3.5+rnd()*4.5:0,sd9=slal?0:(rnd()<.5?-1:1); // exactement 2 tirages par tour, comme avant
     if(inGap(sp))continue;                                    // couloir du tremplin : nu
@@ -1822,7 +1826,7 @@ function buildTrack(seed){
   }
   // ---- FIN DE PARTIE (niveau 6+) : 2e vague de plots ----
   // Flux aléatoire SÉPARÉ (graine dérivée) : la densité dépend du niveau sans rebrasser la génération.
-  if(level>=5){
+  if(level>=5&&!PARK.on){
     const wrnd=mulberry32((seed^0xCA55E77E)>>>0);
     for(let sp=385+wrnd()*220;sp<L-170;sp+=400+wrnd()*600){ // 2e vague de plots, miroir deux faces (intervalle doublé)
       const w9=3+wrnd()*5;
@@ -2093,6 +2097,40 @@ function portalLabel(ico,name,col){
   }
   return new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false,fog:false}));
 }
+// LA SCULPTURE DU QUARTIER : une silhouette NÉON par ancre, plantée en bordure (côté extérieur, hors du
+// nœud) — de loin la skyline se lit d'un coup d'œil, on choisit sa destination à la forme. Tout est additif
+// et sans profondeur écrite : la caisse peut la traverser sans que ça choque (c'est de la lumière, pas un mur).
+function parkLandmark(d){
+  const ang=Math.atan2(d.z,d.x),ox=d.x+Math.cos(ang)*(d.tight+150),oz=d.z+Math.sin(ang)*(d.tight+150);
+  const M=(o,extra)=>new THREE.MeshBasicMaterial(Object.assign({color:d.col,transparent:true,opacity:o,blending:THREE.AdditiveBlending,depthWrite:false,fog:false},extra||{}));
+  const add=(m,x,y,z)=>{m.position.set(x,PARK_GROUND_Y+y,z);scene.add(m);trackMeshes.push(m);return m;};
+  const kind=d.name;
+  if(kind==='LA TOUR'){                       // 🗼 pylône treillis de 340 m coiffé d'un anneau
+    for(let k=0;k<4;k++){const a2=k*1.5708;
+      const leg=new THREE.Mesh(new THREE.CylinderGeometry(1.4,3.4,340,6),M(.85));
+      leg.rotation.z=Math.cos(a2)*.09;leg.rotation.x=Math.sin(a2)*.09;
+      add(leg,ox+Math.cos(a2)*26,170,oz+Math.sin(a2)*26);}
+    for(let k=0;k<5;k++)add(new THREE.Mesh(new THREE.TorusGeometry(30-k*4,1.6,6,24),M(.7)),ox,50+k*66,oz).rotation.x=Math.PI/2;
+    add(new THREE.Mesh(new THREE.ConeGeometry(9,90,8),M(.9)),ox,382,oz);
+  }else if(kind==='LE GRAND 8'){              // ♾ deux anneaux colossaux dressés côte à côte
+    for(const s of [-1,1]){const t=new THREE.Mesh(new THREE.TorusGeometry(120,7,8,40),M(.8));
+      add(t,ox+Math.sin(ang)*s*118,128,oz-Math.cos(ang)*s*118).rotation.y=-ang;}
+  }else if(kind==='LES VAGUES'){              // 🌊 une houle de cinq arches décroissantes
+    for(let k=0;k<5;k++){const R=140-k*22;
+      const a3=new THREE.Mesh(new THREE.TorusGeometry(R,5,8,26,Math.PI),M(.78));
+      add(a3,ox+Math.sin(ang)*(k-2)*96,0,oz-Math.cos(ang)*(k-2)*96).rotation.y=-ang+Math.PI/2;}
+  }else if(kind==='LE NŒUD'){                 // 🌀 trois anneaux imbriqués sur trois axes
+    const t1=add(new THREE.Mesh(new THREE.TorusGeometry(110,6,8,36),M(.8)),ox,150,oz);
+    const t2=add(new THREE.Mesh(new THREE.TorusGeometry(110,6,8,36),M(.8)),ox,150,oz);t2.rotation.x=Math.PI/2;
+    const t3=add(new THREE.Mesh(new THREE.TorusGeometry(110,6,8,36),M(.8)),ox,150,oz);t3.rotation.y=Math.PI/2;t3.rotation.z=Math.PI/2;
+    t1.rotation.z=.6;
+  }else{                                      // 🚀 LA RAMPE : un obélisque-fusée sur son pas de tir
+    add(new THREE.Mesh(new THREE.CylinderGeometry(16,26,260,10),M(.85)),ox,130,oz);
+    add(new THREE.Mesh(new THREE.ConeGeometry(26,110,10),M(.9)),ox,315,oz);
+    for(let k=0;k<3;k++){const a2=k*2.094;
+      add(new THREE.Mesh(new THREE.BoxGeometry(5,150,40),M(.6)),ox+Math.cos(a2)*30,75,oz+Math.sin(a2)*30).rotation.y=-a2;}
+  }
+}
 // DÉCOR : arches néon COLOSSALES + pylônes lumineux tout autour de la plaza. Cheap (peu de meshes),
 // mais énormes → l'herbe haute + ces arches = sensation d'être minuscule dans un immense hall.
 function buildParkDecor(){
@@ -2118,6 +2156,7 @@ function buildParkDecor(){
       new THREE.MeshBasicMaterial({color:d.col,transparent:true,opacity:.30,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
     ringM.rotation.x=-Math.PI/2;ringM.position.set(d.x,PARK_GROUND_Y+0.4,d.z);ringM.renderOrder=1;
     scene.add(ringM);trackMeshes.push(ringM);
+    parkLandmark(d);   // sa SCULPTURE : chaque quartier a sa silhouette dans la skyline
   }
   // 2) ARCHES GÉANTES : une couronne d'arches néon (demi-tores dressés) — hautes de ~220 m, on passe DESSOUS
   const archGeo=new THREE.TorusGeometry(120,4,8,28,Math.PI); // demi-cercle
@@ -2133,6 +2172,20 @@ function buildParkDecor(){
     const glow=new THREE.Mesh(new THREE.TorusGeometry(120,9,8,28,Math.PI),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.16,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
     glow.position.copy(arch.position);glow.rotation.y=-an;scene.add(glow);trackMeshes.push(glow);
   }
+  // 2bis) L'HORIZON : une chaîne de MONTAGNES tout autour. Sans elles la prairie s'arrêtait sur du vide et
+  //       le parc paraissait posé sur une table ; avec, il est au fond d'une vallée et l'échelle explose.
+  //       Deux rideaux (buttes proches sombres, sommets lointains plus pâles) = de la profondeur pour 34 meshes.
+  const mkRange=(n,radMin,radMax,hMin,hMax,col,op)=>{
+    for(let i=0;i<n;i++){
+      const an=(i/n)*6.2832+Math.random()*.22,rad=radMin+Math.random()*(radMax-radMin);
+      const h=hMin+Math.random()*(hMax-hMin),r9=h*(.72+Math.random()*.5);
+      const m=new THREE.Mesh(new THREE.ConeGeometry(r9,h,7,1),new THREE.MeshLambertMaterial({color:col,transparent:op<1,opacity:op}));
+      m.position.set(Math.cos(an)*rad,PARK_GROUND_Y+h*.5-30,Math.sin(an)*rad);
+      m.rotation.y=Math.random()*6.2832;scene.add(m);trackMeshes.push(m);
+    }
+  };
+  mkRange(20,3600,4600,340,760,0x3b4d52,1);    // rideau PROCHE : sombre, il découpe la prairie
+  mkRange(14,7200,9000,900,1700,0x59677e,.92); // rideau LOINTAIN : plus pâle (perspective atmosphérique)
   // 3) PYLÔNES : de grands mâts lumineux qui bordent la plaza (repères + échelle)
   const pyGeo=new THREE.CylinderGeometry(1.6,3.2,90,10);
   const capGeo=new THREE.SphereGeometry(5,12,10);
@@ -4644,7 +4697,30 @@ function updateCourseHud(){
   const C=PARK_CIRCUIT,S=PARK_SKYRUN,now=parkClock;let txt='';
   if(S&&S.live)txt='🪂 '+_fmtT(now-S.startT)+'  ·  '+S.next+'/'+S.gates.length+(S.best<1e9?'  ·  ★ '+_fmtT(S.best):'');
   else if(C&&C.live)txt='🏁 '+_fmtT(now-C.lapStart)+'  ·  TOURS '+C.laps+(C.bestLap<1e9?'  ·  ★ '+_fmtT(C.bestLap):'');
+  else if(PARK_AIR.live&&PARK_AIR.h>25)txt='🚀 BIG AIR  '+Math.round(PARK_AIR.h)+' m  ·  '+PARK_AIR.t.toFixed(1)+'s'+(PARK_AIR.bh>0?'  ·  ★ '+Math.round(PARK_AIR.bh)+' m':'');
   if(txt){courseHud.textContent=txt;courseHud.style.opacity=1;}else if(courseHud.style.opacity!=='0'){courseHud.style.opacity=0;courseHud.textContent='';}
+}
+// ---- LE BIG AIR : le 3e « mini-jeu » du parc, sans porte ni chrono à lancer — il mesure tes vols ----
+// Zéro argent, zéro mort : ce qui reste à battre en freestyle, c'est sa propre trace. On enregistre la
+// HAUTEUR maximale au-dessus de l'herbe et la DURÉE du vol, et on ne crie que sur un record.
+const PARK_AIR={live:false,h:0,t:0,bh:0,bt:0};
+function parkAirTick(dtR){
+  if(mode==='fall'){
+    PARK_AIR.live=true;PARK_AIR.t+=dtR;
+    const h=carGroup.position.y-PARK_GROUND_Y;if(h>PARK_AIR.h)PARK_AIR.h=h;
+    return;
+  }
+  if(!PARK_AIR.live)return;
+  PARK_AIR.live=false;
+  const h=PARK_AIR.h,t=PARK_AIR.t;PARK_AIR.h=0;PARK_AIR.t=0;
+  if(h<60||t<1.2)return;                                  // un saut de trottoir n'est pas un exploit
+  const rh=h>PARK_AIR.bh+1,rt=t>PARK_AIR.bt+.05;
+  if(rh)PARK_AIR.bh=h;
+  if(rt)PARK_AIR.bt=t;
+  if(rh||rt){
+    trickMsg('🚀 RECORD BIG AIR — '+Math.round(h)+' m · '+t.toFixed(1)+'s',3);
+    fanfare();sparkBurst(sparkGold,carGroup.position,16,11);
+  }else showMsg('🚀 BIG AIR '+Math.round(h)+' m · '+t.toFixed(1)+'s  (★ '+Math.round(PARK_AIR.bh)+' m)','#7dffec');
 }
 function checkUpgrade(){
   if(PARK.on)return; // PARC : zéro système d'argent → aucun déblocage de caisse par le cash
@@ -6193,7 +6269,7 @@ function loop(now){
       parkClock+=dtReal; // horloge de jeu des chronos (ne tourne QUE pendant qu'on joue en parc)
       if(HOOPS.length)checkHoops();
       if(PARK_PORTALS.length)checkPortals();
-      checkCircuit();checkSkyrun();updateCourseHud();
+      checkCircuit();checkSkyrun();updateCourseHud();parkAirTick(dtReal);
       carPrev.copy(carGroup.position);carPrevSet=true; // mémoire pour la détection BALAYÉE des portes (frame suivante)
     }
     if(hoopComboT>0){hoopComboT-=dt;if(hoopComboT<=0)hoopCombo=0;} // la combo de cerceaux retombe si on traîne
