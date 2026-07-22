@@ -1008,6 +1008,16 @@ function buildClouds(rr){
     cldV1.set(pts[i].x+Math.cos(a)*d,roadY-80+cr()*240,pts[i].z+Math.sin(a)*d);
     mkCloud(cldV1,850+cr()*350,{giant:true,titan:true,noFog:true},cr);
   }
+  // ---- PARC : ON REMONTE TOUT LE CIEL DE NUAGES ----
+  // Les altitudes ci-dessus visent une piste de course (repère `roadY=37`, quasi au ras du sol). En PARC le
+  // sol est à 0 et le playground grimpe à ~940 → tel quel, les nuages traînent AU RAS DE L'HERBE (bug signalé).
+  // On relève chaque nuage bien au-dessus de la prairie : un vrai PLAFOND de ciel qu'on va percer en montant,
+  // jamais une brume posée sur le vert. (c.g.position.y est statique ; le drift ne touche que x/z → on peut le bouger.)
+  if(PARK.on){for(const c of CLOUDS){
+    let y=c.g.position.y+640;
+    if(y<620)y=620+((c.ph*131)%1)*560; // les nuages « bas » (undercast, decks) remontent en couche mi-ciel, jamais sous ~620
+    c.g.position.y=y;c.c.y=y;
+  }}
 }
 function updateClouds(dt,t){
   cloudIn=0;
@@ -4027,7 +4037,6 @@ const GRAV=9.8*.55,FALL_G=33,AXIS_Y=new THREE.Vector3(0,1,0),AIR_MAX=6;
 // (viseur d'atterrissage + seuils de figures inchangés), mais on passe moins de temps à flotter.
 let AIR_RATE=1; // base V1 (temps réel) — startFall le RE-pilote depuis 2026-07-20 : =1 sous 450 km/h affichés, puis rampe douce jusqu'au cap 1.35 (l'ancienne ère 2.3 COMPENSAIT SPD=.25 ; ici c'est un dosage de tempo, pas une compensation).
 const PARK={on:false}; // MODE FREESTYLE : le parc de figures (pas une course). Armé au menu, persiste entre les runs. Neutralise police/mort/portail.
-const PARK_VCAP=145; // PARC : plafond de vitesse (m/s ≈ 260 km/h affichés) — la nitro infinie ne DOIT PAS envoyer à 1000 km/h ingérables ; on garde une vitesse RAPIDE mais CONTRÔLABLE (sol ET air)
 let PARK_GROUND_Y=0; // PARC : altitude de la PRAIRIE (le sol). Le ruban naît ici (y≈0), on y roule un bon moment, PUIS il grimpe vers le ciel. Le tapis d'herbe (buildParkGround), l'herbe-route (buildTrack) et le respawn-plancher (loop) s'y calent.
 const SPD=0.5; // vitesse globale du jeu — RESTAURÉ à la valeur V1 (2026-07-19) : le ÷2 « trop rapide dès le début » tuait le fun nerveux/arcade de la V1 ; le user tranche pour la V1. SPD scale TOUT : avance joueur/bots, chute, viseur ET compteur (donc les km/h affichés DOUBLENT — seuils de sensation ABSOLUS ajustés en conséquence, les systèmes RELATIFS via vmaxShow s'ajustent seuls)
 const TURN_HS=.0035; // pénalité de braquage à haute vitesse (avant .008 — plus petit = virages plus faciles)
@@ -4602,8 +4611,8 @@ function start(){
   if(PARK.on){level=parkCarPick();buildCar(CARS[level]);} // PARC : caisse fun d'emblée (pas de progression par l'argent)
   survStart(); // le mode armé au menu s'active pour cette première run
 }
-// PARC : quelle caisse offrir (pas de déblocage cash) — ta MEILLEURE débloquée, plancher sur une GT rapide
-function parkCarPick(){return Math.min(CARS.length-1,Math.max(6,(SAVE&&SAVE.d&&SAVE.d.bestCar)||0));}
+// PARC : quelle caisse offrir (pas de déblocage cash) — LA MEILLEURE du jeu, direct (demande Sacha 2026-07-22)
+function parkCarPick(){return CARS.length-1;}
 overlay.addEventListener('click',()=>{if(pendingScore!=null)return;if(!started)start();else if(gameOver)resetGame();});
 $('resetBtn').addEventListener('click',()=>{if(started)resetGame();});
 // ---- sauvegarde : exporter / restaurer par code (le clic ne doit PAS relancer la partie) ----
@@ -5196,6 +5205,9 @@ function loop(now){
     // OVERDRIVE : passé le niveau 6, le jeu passe la surmultipliée — +8 %/niveau, jusqu'à +50 %
     const spec=CARS[level],late=1+Math.min(.5,Math.max(0,level-5)*.08),
           maxSp=spec.maxKmh/3.6*late,acc9=spec.accel*late;
+    // PARC : plus de plafond fixe bas (l'ancien 145 m/s ≈ 261 km/h rendait le parc BEAUCOUP trop lent vs la course).
+    // On plafonne à la VRAIE vitesse max de la caisse (comme en course) + 15 % de marge nitro → aussi rapide que le mode classique.
+    const parkCap=maxSp*1.15;
     const up=AUTO_GAS||keys.KeyW||keys.KeyZ||keys.ArrowUp,dn=keys.KeyS||keys.ArrowDown;
     const lf=keys.KeyA||keys.KeyQ||keys.ArrowLeft,rt=keys.KeyD||keys.ArrowRight;
     // POUVOIRS : les minuteurs s'égrènent, l'airtime infini rend une jauge neuve en expirant
@@ -5249,7 +5261,7 @@ function loop(now){
       vA-=vA*Math.abs(vA)*(acc9/(maxSp*maxSp*5.8))*dt;
       vA*=Math.max(0,1-.03*dt);
       if(!up&&!dn&&!nitroOn)vA*=Math.max(0,1-.4*dt);
-      if(PARK.on&&vA>PARK_VCAP)vA=PARK_VCAP; // PARC : gouverneur de vitesse — la nitro infinie POUSSE mais ne s'emballe pas (contrôlable)
+      if(PARK.on&&vA>parkCap)vA=parkCap; // PARC : gouverneur = vitesse max de la caisse (+15 %) → aussi rapide que la course, sans emballement de la nitro infinie
       if(vA<-8)vA=-8;
       if(introD){vA=0;momT=0;steer=0;psi=0;} // LARGAGE : chute verticale, contrôles gelés
       if(Math.abs(target)>.1)steerHold=Math.min(.3,steerHold+dt);else steerHold=0;
@@ -5549,7 +5561,7 @@ function loop(now){
       vA-=vA*Math.abs(vA)*(acc9/(maxSp*maxSp*5.8))*dt;
       vA*=Math.max(0,1-.10*dt);                       // l'herbe freine un peu plus que le bitume
       if(!up&&!dn&&!nitroOn)vA*=Math.max(0,1-.5*dt);
-      if(vA>PARK_VCAP)vA=PARK_VCAP;
+      if(vA>parkCap)vA=parkCap;
       if(vA<-10)vA=-10;
       // VOLANT LIBRE : mordant avec la vitesse, jamais de pivot sur place
       const tgt9=(lf?1:0)-(rt?1:0);
@@ -5671,7 +5683,7 @@ function loop(now){
           carGroup.position.x-tmp3.x*2.5,carGroup.position.y-tmp3.y*2.5,carGroup.position.z-tmp3.z*2.5,
           -tmp3.x*20+(Math.random()-.5)*6,-tmp3.y*20+(Math.random()-.5)*6,-tmp3.z*20+(Math.random()-.5)*6,.3);
       }
-      if(PARK.on&&fallVel.lengthSq()>PARK_VCAP*PARK_VCAP)fallVel.setLength(PARK_VCAP); // PARC : la nitro infinie ne t'emballe pas non plus EN L'AIR — vol rapide mais pilotable
+      if(PARK.on&&fallVel.lengthSq()>parkCap*parkCap)fallVel.setLength(parkCap); // PARC : même plafond EN L'AIR (vitesse max de la caisse +15 %) — vol rapide comme la course
       fallPos.addScaledVector(fallVel,dtF*SPD);
       carGroup.position.copy(fallPos);
       speedKmh=fallVel.length()*3.6*SPD;
@@ -5825,7 +5837,7 @@ function loop(now){
         chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;dolphT=0;trkDolph=false;
         gPos.set(fallPos.x,PARK_GROUND_Y,fallPos.z);
         gYaw=Math.atan2(fallVel.x,fallVel.z);
-        vA=Math.min(PARK_VCAP,Math.hypot(fallVel.x,fallVel.z));
+        vA=Math.min(parkCap,Math.hypot(fallVel.x,fallVel.z));
         hopY=0;hopV=0;gCd=.5;mode='grass';
         squashT=Math.max(squashT,.22);shake=Math.max(shake,.25);
         sparkBurst(sparkGold,fallPos,10,8);noiseBurst(.16,.12,300);
