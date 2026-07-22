@@ -1870,103 +1870,113 @@ function buildTrack(seed){
   scene.add(plight);trackMeshes.push(plight);
   buildParkGround(); // FREESTYLE : la prairie sous la boule (no-op en course)
 }
-// ---------- PARC : LE SOL — une prairie d'HERBE LONGUE animée par le vent ----------
-// Un grand tapis vert texturé (qui prend l'éclairage des biomes) SOUS la sphère, planté de dizaines de
-// milliers de brins instanciés qu'un shader ploie au vent. Tout part dans trackMeshes → disposé au rebuild.
-let parkGrassMat=null,_grassTex=null,_grassRoadTex=null;
-function grassGroundTex(){
-  if(_grassTex)return _grassTex; // une seule fois : pas de fuite VRAM à chaque parc
-  const cv=document.createElement('canvas');cv.width=256;cv.height=256;const c=cv.getContext('2d');
-  // fond vert riche + LARGES taches de tonte (dégradé doux) → la prairie respire, jamais plate
-  c.fillStyle='#4c8a37';c.fillRect(0,0,256,256);
-  for(let i=0;i<26;i++){ // plaques d'herbe plus claire/plus sombre, façon terrain tondu
-    const x=Math.random()*256,y=Math.random()*256,r=26+Math.random()*70;
-    const g=c.createRadialGradient(x,y,0,x,y,r);
-    const lite=Math.random()<.5;
-    g.addColorStop(0,lite?'rgba(120,180,80,.28)':'rgba(36,70,26,.30)');
-    g.addColorStop(1,'rgba(0,0,0,0)');
-    c.fillStyle=g;c.beginPath();c.arc(x,y,r,0,6.2832);c.fill();
+// ---------- PARC : LE SOL EST UN OCÉAN ----------
+// Demande de Sacha (2026-07-22) : « le sol doit être en fait un océan ». Plus un brin d'herbe, plus une
+// pyramide à l'horizon : de l'eau à perte de vue, et le playground de rampes qui en SORT. La caisse SURFE
+// dessus (mode 'grass', gardé pour son nom mais c'est de l'eau) : on traverse, ça freine, ça gicle.
+//
+// TEXTURE : la normal map de ripples est GÉNÉRÉE (canvas 512², somme d'ondes à fréquences ENTIÈRES → elle
+// se raccorde parfaitement en tuilage). Un JPEG téléchargé aurait fait le même travail mais aurait cassé
+// le lancement en file:// et ajouté un binaire au dépôt ; ici : zéro dépendance, zéro licence, et on peut
+// régler l'agitation en changeant les amplitudes du tableau W.
+let parkWaterMat=null,_waterNrm=null;
+function waterNormalTex(){
+  if(_waterNrm)return _waterNrm;
+  const S=512,cv=document.createElement('canvas');cv.width=cv.height=S;
+  const c=cv.getContext('2d'),img=c.createImageData(S,S),d=img.data;
+  // ondes tileables : [fx, fz, amplitude, phase] — fx/fz ENTIERS = raccord parfait sur la tuile
+  const W=[[3,1,1,1.7],[1,3,.92,2.3],[5,2,.55,3.1],[2,5,.5,.7],[7,5,.3,4.2],[5,8,.26,2.0],[11,3,.17,1.1],[3,11,.15,5.3],[13,9,.1,.4],[9,14,.08,2.9]];
+  const TAU=6.283185307;
+  const hAt=(u,v)=>{let s=0;for(let i=0;i<W.length;i++){const w=W[i];s+=w[2]*Math.sin((w[0]*u+w[1]*v)*TAU+w[3]);}return s;};
+  const e=1/S,K=2.6;                          // K : relief de la normale (plus haut = eau plus agitée)
+  for(let y=0;y<S;y++)for(let x=0;x<S;x++){
+    const u=x/S,v=y/S;
+    const hx=(hAt(u+e,v)-hAt(u-e,v))*K,hz=(hAt(u,v+e)-hAt(u,v-e))*K;
+    let nx=-hx,ny=1,nz=-hz;const l=Math.sqrt(nx*nx+ny*ny+nz*nz);
+    const i=(y*S+x)*4;
+    d[i]=(nx/l*.5+.5)*255;d[i+1]=(ny/l*.5+.5)*255;d[i+2]=(nz/l*.5+.5)*255;d[i+3]=255;
   }
-  for(let i=0;i<5200;i++){ // micro-brins peints : le tapis a du grain fin
-    const x=Math.random()*256,y=Math.random()*256,l=3+Math.random()*8,g=78+Math.random()*95|0;
-    c.strokeStyle='rgba('+(26+Math.random()*46|0)+','+g+','+(24+Math.random()*32|0)+','+(.22+Math.random()*.5).toFixed(2)+')';
-    c.lineWidth=1;c.beginPath();c.moveTo(x,y);c.lineTo(x+(Math.random()-.5)*3,y-l);c.stroke();
-  }
-  _grassTex=new THREE.CanvasTexture(cv);_grassTex.wrapS=_grassTex.wrapT=THREE.RepeatWrapping;_grassTex.repeat.set(80,80);
-  return _grassTex;
+  c.putImageData(img,0,0);
+  _waterNrm=new THREE.CanvasTexture(cv);
+  _waterNrm.wrapS=_waterNrm.wrapT=THREE.RepeatWrapping;
+  return _waterNrm;
 }
-// L'HERBE DE LA ROUTE AU SOL : la dalle que l'on ROULE sur le sol est du GAZON tondu (bandes de tonte
-// alternées), tuilée le long du ruban. C'est ce qui donne « on roule VRAIMENT sur l'herbe ».
-function grassRoadTex(){
-  if(_grassRoadTex)return _grassRoadTex;
-  const cv=document.createElement('canvas');cv.width=128;cv.height=128;const c=cv.getContext('2d');
-  c.fillStyle='#57a03e';c.fillRect(0,0,128,128);
-  for(let y=0;y<128;y+=16){c.fillStyle=(y/16)%2?'rgba(255,255,255,.06)':'rgba(0,0,0,.07)';c.fillRect(0,y,128,16);} // bandes de tonte
-  for(let i=0;i<2600;i++){const x=Math.random()*128,y=Math.random()*128,l=2+Math.random()*6;
-    c.strokeStyle='rgba('+(30+Math.random()*40|0)+','+(90+Math.random()*90|0)+','+(28+Math.random()*30|0)+','+(.2+Math.random()*.5).toFixed(2)+')';
-    c.lineWidth=1;c.beginPath();c.moveTo(x,y);c.lineTo(x+(Math.random()-.5)*3,y-l);c.stroke();}
-  _grassRoadTex=new THREE.CanvasTexture(cv);_grassRoadTex.wrapS=_grassRoadTex.wrapT=THREE.RepeatWrapping;
-  return _grassRoadTex;
+// LA HOULE, côté JS : les MÊMES trois grandes ondes que le shader (mêmes fréquences, mêmes vitesses) →
+// la caisse monte et descend exactement avec la surface qu'on voit. Amplitude volontairement basse
+// (~±0,55 m) : c'est une respiration, pas une mer démontée qui décollerait la voiture.
+function waveH(x,z,t){
+  return .32*Math.sin(x*.0042+t*.55)+.26*Math.sin(z*.0055-t*.47)+.17*Math.sin((x+z)*.0031+t*.83);
+}
+function buildParkOcean(){
+  const nrm=waterNormalTex();
+  parkWaterMat=new THREE.ShaderMaterial({
+    fog:true,
+    uniforms:THREE.UniformsUtils.merge([THREE.UniformsLib.fog,{
+      uTime:{value:0},uNrm:{value:null},
+      uDeep:{value:new THREE.Color(0x06263f)},   // le fond : bleu profond
+      uShal:{value:new THREE.Color(0x1d8fa8)},   // la crête : turquoise
+      uSky:{value:new THREE.Color(0x8fb4ff)},    // ce que l'eau REFLÈTE (repeint par les biomes)
+      uSun:{value:new THREE.Vector3(0,1,0)},uSunCol:{value:new THREE.Color(0xffd0a0)},
+      uAmp:{value:1}
+    }]),
+    // ⚠ THREE r128 : le varying de brouillard s'appelle `fogDepth` (il n'est devenu `vFogDepth` qu'après) —
+    // se tromper de nom fait ÉCHOUER la compilation du vertex shader et l'océan disparaît en silence.
+    vertexShader:[
+      'varying vec3 vW;',
+      '#include <fog_pars_vertex>',
+      'void main(){vec4 w=modelMatrix*vec4(position,1.0);vW=w.xyz;',
+      ' vec4 mv=viewMatrix*w;',
+      ' #ifdef USE_FOG',
+      ' fogDepth=-mv.z;',
+      ' #endif',
+      ' gl_Position=projectionMatrix*mv;}'
+    ].join('\n'),
+    fragmentShader:[
+      'uniform float uTime;uniform sampler2D uNrm;',
+      'uniform vec3 uDeep,uShal,uSky,uSunCol,uSun;uniform float uAmp;',
+      'varying vec3 vW;',
+      '#include <fog_pars_fragment>',
+      'vec3 nrm(vec2 uv){return texture2D(uNrm,uv).xyz*2.0-1.0;}',
+      'void main(){',
+      // trois couches de ripples à échelles et vitesses différentes : le tuilage devient invisible
+      ' vec2 p=vW.xz;',
+      ' vec3 n1=nrm(p*0.0125+vec2( 0.021, 0.013)*uTime);',
+      ' vec3 n2=nrm(p*0.0041+vec2(-0.014, 0.024)*uTime);',
+      ' vec3 n3=nrm(p*0.0009+vec2( 0.006,-0.004)*uTime);',
+      ' vec3 N=normalize(vec3((n1.xz*0.55+n2.xz*0.75+n3.xz*1.1)*uAmp,1.0).xzy);',
+      // la GRANDE HOULE (mêmes ondes que waveH côté JS) incline la surface en plus des ripples
+      ' float sw=0.32*sin(p.x*0.0042+uTime*0.55)+0.26*sin(p.y*0.0055-uTime*0.47)+0.17*sin((p.x+p.y)*0.0031+uTime*0.83);',
+      ' float dx=0.32*0.0042*cos(p.x*0.0042+uTime*0.55)+0.17*0.0031*cos((p.x+p.y)*0.0031+uTime*0.83);',
+      ' float dz=-0.26*0.0055*cos(p.y*0.0055-uTime*0.47)+0.17*0.0031*cos((p.x+p.y)*0.0031+uTime*0.83);',
+      ' N=normalize(N+vec3(-dx*90.0,0.0,-dz*90.0));',
+      ' vec3 V=normalize(cameraPosition-vW);',
+      // FRESNEL : de face on voit DANS l'eau (bleu profond), en rasant elle devient miroir de ciel
+      ' float f=pow(clamp(1.0-max(dot(N,V),0.0),0.0,1.0),4.0);',
+      ' f=mix(0.045,1.0,f);',
+      ' vec3 body=mix(uDeep,uShal,clamp(sw*0.9+0.5,0.0,1.0));',
+      ' vec3 col=mix(body,uSky,f);',
+      // SOLEIL : le grand reflet large + le PAILLETAGE haute fréquence (le sel de la mer)
+      ' vec3 H=normalize(uSun+V);',
+      ' float sp=pow(max(dot(N,H),0.0),240.0);',
+      ' float glit=pow(max(dot(normalize(N+n1*0.85),H),0.0),900.0);',
+      ' col+=uSunCol*(sp*1.5+glit*2.6);',
+      // ÉCUME sur les crêtes de houle : un liseré clair qui roule avec la mer
+      ' float foam=smoothstep(0.52,0.72,sw+ (n1.x+n2.z)*0.22);',
+      ' col=mix(col,vec3(0.86,0.94,1.0),foam*0.20);',
+      ' gl_FragColor=vec4(col,1.0);',
+      ' #include <fog_fragment>',
+      '}'
+    ].join('\n')
+  });
+  parkWaterMat.uniforms.uNrm.value=nrm;   // (merge() clone les uniforms : la texture s'assigne APRÈS)
+  const sea=new THREE.Mesh(new THREE.PlaneGeometry(46000,46000,1,1),parkWaterMat);
+  sea.rotation.x=-Math.PI/2;sea.position.set(0,PARK_GROUND_Y-.25,0);sea.renderOrder=-1;
+  scene.add(sea);trackMeshes.push(sea);
 }
 function buildParkGround(){
-  parkGrassMat=null;
+  parkWaterMat=null;
   if(!PARK.on)return;
-  const gy=PARK_GROUND_Y-0.3; // LA PRAIRIE est AU NIVEAU DE LA ROUTE DU SOL (y≈0) : le ruban naît DEDANS, on roule sur le vert — plus jamais 160 m sous la route
-  const isGnd=i=>pts[i].y<PARK_GROUND_Y+8; // segment « au ras de l'herbe » ?
-  // 1) LA PRAIRIE : grand tapis texturé (MeshLambert → il vit avec les biomes, sombre la nuit)
-  const gmesh=new THREE.Mesh(new THREE.PlaneGeometry(20000,20000),
-    new THREE.MeshLambertMaterial({map:grassGroundTex(),color:0x8fce6f}));
-  gmesh.rotation.x=-Math.PI/2;gmesh.position.set(0,gy,0);gmesh.receiveShadow=true;
-  scene.add(gmesh);trackMeshes.push(gmesh);
-  // 2) (SUPPRIMÉ 2026-07-22) : plus de « route au sol » en gazon — le sol est de l'HERBE PURE. Les seules
-  //    surfaces roulables sont les RAMPES (dalle néon normale) qui partent du sol. `grassRoadTex` conservée
-  //    au cas où, mais plus appelée ici.
-  // 3) L'HERBE LONGUE : brins instanciés ondulés par le vent (1 draw call). Un CHAMP en disque + une BANDE
-  //    DENSE qui BORDE la route du sol (elle frôle la caisse → immersion totale « je roule dans l'herbe »).
-  const blades=[]; // {x,z,rot,h,ph}
-  const FIELD=30000;
-  for(let i=0;i<FIELD;i++){
-    const rad=Math.sqrt(Math.random())*3600,an=Math.random()*6.2832; // disque large, dense au centre
-    blades.push({x:Math.cos(an)*rad,z:Math.sin(an)*rad,rot:Math.random()*6.2832,h:22+Math.random()*32,ph:Math.random()*6.2832});
-  }
-  for(let i=0;i<NP;i+=3){ // BORDURE : de l'herbe haute qui longe la route au sol, sur les deux côtés
-    if(!isGnd(i))continue;
-    const p=pts[i],b=B[i];
-    for(let k=0;k<5;k++){
-      const side9=Math.random()<.5?-1:1,off=ROAD_HALF+1.5+Math.random()*30;
-      blades.push({x:p.x+b.x*side9*off,z:p.z+b.z*side9*off,rot:Math.random()*6.2832,h:20+Math.random()*30,ph:Math.random()*6.2832});
-    }
-  }
-  const N=blades.length;
-  const seg=3,vp=[],vi=[];
-  for(let i=0;i<=seg;i++){const y=i/seg,w=.95*(1-y*.8);vp.push(-w,y,0, w,y,0);}
-  for(let i=0;i<seg;i++){const a=i*2;vi.push(a,a+2,a+1, a+1,a+2,a+3);}
-  const bg=new THREE.InstancedBufferGeometry();
-  bg.setAttribute('position',new THREE.Float32BufferAttribute(vp,3));
-  bg.setIndex(vi);
-  const ap=new Float32Array(N*3),ar=new Float32Array(N),ah=new Float32Array(N),aph=new Float32Array(N);
-  for(let i=0;i<N;i++){const bl=blades[i];
-    ap[i*3]=bl.x;ap[i*3+1]=gy;ap[i*3+2]=bl.z;ar[i]=bl.rot;ah[i]=bl.h;aph[i]=bl.ph;}
-  bg.setAttribute('aPos',new THREE.InstancedBufferAttribute(ap,3));
-  bg.setAttribute('aRot',new THREE.InstancedBufferAttribute(ar,1));
-  bg.setAttribute('aH',new THREE.InstancedBufferAttribute(ah,1));
-  bg.setAttribute('aPh',new THREE.InstancedBufferAttribute(aph,1));
-  bg.instanceCount=N;
-  parkGrassMat=new THREE.ShaderMaterial({
-    uniforms:{uTime:{value:0}},side:THREE.DoubleSide,
-    vertexShader:'attribute vec3 aPos;attribute float aRot;attribute float aH;attribute float aPh;'+
-      'uniform float uTime;varying float vY;void main(){vY=position.y;'+
-      'float c=cos(aRot),s=sin(aRot);vec3 rw=vec3(position.x*c,0.0,position.x*s);'+
-      'float w=sin(uTime*1.6+aPh+aPos.x*0.006+aPos.z*0.006)+0.5*sin(uTime*2.7+aPh*1.7);'+ // vagues de vent qui roulent
-      'float bend=w*position.y*position.y*3.4;'+ // ploie vers la POINTE (y²)
-      'vec3 world=aPos+rw+vec3(bend,position.y*aH,bend*0.5);'+
-      'gl_Position=projectionMatrix*modelViewMatrix*vec4(world,1.0);}',
-    fragmentShader:'varying float vY;void main(){'+
-      'vec3 root=vec3(0.11,0.26,0.07),tip=vec3(0.52,0.82,0.32);'+ // racine sombre → pointe claire
-      'gl_FragColor=vec4(mix(root,tip,vY),1.0);}'
-  });
-  const gm=new THREE.Mesh(bg,parkGrassMat);gm.frustumCulled=false;
-  scene.add(gm);trackMeshes.push(gm);
+  buildParkOcean();       // 1) L'OCÉAN : il remplace la prairie, le tapis d'herbe et les 30 000 brins
   // 4) LES CERCEAUX : anneaux néon posés le long du ruban (sol ET ciel) — on les TRAVERSE pour la combo/le style
   buildParkHoops();
   // 5) LES ACTIVITÉS DE LOBBY : portails de lancement + décor GÉANT (on se sent petit). ZÉRO argent.
@@ -2036,6 +2046,10 @@ function mkGate(pos,axis,r,col,tube){
 // est une dalle néon avec son numéro — aujourd'hui décor + repère de rendez-vous, demain le slot d'un joueur
 // connecté (`PARK_SLOTS[i]` donne déjà la position monde à assigner). Au centre, le PANNEAU DU LOBBY.
 const PARK_SLOTS=[];
+// PONTON : hauteur des surfaces PLATES du lobby (emplacements, circuit, couronnes de quartier). Le sol est
+// une MER : posées à y≈0 elles seraient noyées et se battraient en z avec la surface (houle ±0,55). Elles
+// flottent donc 4,6 m au-dessus — même niveau que le pied des rampes, tout le lobby est hors d'eau.
+const DECK=4.6;
 const _numTex={};
 function slotNumber(n){
   if(_numTex[n])return _numTex[n];
@@ -2055,10 +2069,10 @@ function buildLobbyPlaza(){
     PARK_SLOTS.push(new THREE.Vector3(px,PARK_GROUND_Y,pz));
     for(const gm of [[padG,padM],[ringG,rimM]]){
       const m=new THREE.Mesh(gm[0],gm[1]);m.rotation.x=-Math.PI/2;
-      m.position.set(px,PARK_GROUND_Y+.5,pz);m.renderOrder=1;scene.add(m);trackMeshes.push(m);
+      m.position.set(px,PARK_GROUND_Y+DECK,pz);m.renderOrder=1;scene.add(m);trackMeshes.push(m);
     }
     const num=new THREE.Sprite(new THREE.SpriteMaterial({map:slotNumber(i+1),transparent:true,depthWrite:false,fog:false,opacity:.9}));
-    num.scale.set(10,10,1);num.position.set(px,PARK_GROUND_Y+7,pz);scene.add(num);trackMeshes.push(num);
+    num.scale.set(10,10,1);num.position.set(px,PARK_GROUND_Y+DECK+6.5,pz);scene.add(num);trackMeshes.push(num);
   }
   // LE PANNEAU DU SERVEUR : deux mâts + une plaque lumineuse annonçant le lobby et sa fréquentation
   const cv=document.createElement('canvas');cv.width=1024;cv.height=384;const c=cv.getContext('2d');
@@ -2174,19 +2188,19 @@ function buildParkCourses(){
   const W=9,pos=[],idx=[];
   for(let i=0;i<NSEG;i++){const p=loop[i],nx=loop[(i+1)%NSEG],pv=loop[(i-1+NSEG)%NSEG];
     const tg=new V().subVectors(nx,pv).normalize(),pr=new V(-tg.z,0,tg.x);
-    pos.push(p.x+pr.x*W,PARK_GROUND_Y+0.2,p.z+pr.z*W, p.x-pr.x*W,PARK_GROUND_Y+0.2,p.z-pr.z*W);}
+    pos.push(p.x+pr.x*W,PARK_GROUND_Y+DECK,p.z+pr.z*W, p.x-pr.x*W,PARK_GROUND_Y+DECK,p.z-pr.z*W);}
   for(let i=0;i<NSEG;i++){const a=2*i,b=2*i+1,c=(2*i+2)%(2*NSEG),d=(2*i+3)%(2*NSEG);idx.push(a,c,b,b,c,d);}
   const cg=new THREE.BufferGeometry();cg.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));cg.setIndex(idx);cg.computeVertexNormals();
   const cmesh=new THREE.Mesh(cg,new THREE.MeshBasicMaterial({color:0x161a24,side:THREE.DoubleSide}));cmesh.renderOrder=1;scene.add(cmesh);trackMeshes.push(cmesh);
   // liserés néon (deux boucles de points au bord)
   for(const s of [1,-1]){const lp=[];for(let i=0;i<=NSEG;i++){const p=loop[i%NSEG],nx=loop[(i+1)%NSEG],pv=loop[(i-1+NSEG)%NSEG];
-      const tg=new V().subVectors(nx,pv).normalize(),pr=new V(-tg.z,0,tg.x);lp.push(new V(p.x+pr.x*W*s,PARK_GROUND_Y+0.5,p.z+pr.z*W*s));}
+      const tg=new V().subVectors(nx,pv).normalize(),pr=new V(-tg.z,0,tg.x);lp.push(new V(p.x+pr.x*W*s,PARK_GROUND_Y+DECK+.35,p.z+pr.z*W*s));}
     const lg=new THREE.BufferGeometry().setFromPoints(lp);
     const line=new THREE.Line(lg,new THREE.LineBasicMaterial({color:0x3ee6f0,transparent:true,opacity:.85,fog:false}));scene.add(line);trackMeshes.push(line);}
   // PORTES : départ/arrivée doré + 3 checkpoints répartis ; hole = tangente (on les traverse en tournant)
   const gateAt=(i,r,col,tube)=>{const p=loop[i%NSEG],nx=loop[(i+1)%NSEG],pv=loop[(i-1+NSEG)%NSEG];
     const tg=new V().subVectors(nx,pv).normalize();
-    return mkGate(new V(p.x,PARK_GROUND_Y+r*0.7,p.z),tg,r,col,tube);};
+    return mkGate(new V(p.x,PARK_GROUND_Y+DECK+r*0.7,p.z),tg,r,col,tube);};
   const startG=gateAt(0,17,0xffd75e,1.5);
   const cps=[gateAt(Math.round(NSEG*.25),13,0x3ee6f0),gateAt(Math.round(NSEG*.5),13,0xf24aa0),gateAt(Math.round(NSEG*.75),13,0x50f0a8)];
   // panneau « CIRCUIT » au-dessus du départ
@@ -2276,7 +2290,7 @@ function buildParkDecor(){
     // couronne au sol : on sait où commence le quartier même le nez dans l'herbe
     const ringM=new THREE.Mesh(new THREE.RingGeometry(d.tight*.92,d.tight,64),
       new THREE.MeshBasicMaterial({color:d.col,transparent:true,opacity:.30,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
-    ringM.rotation.x=-Math.PI/2;ringM.position.set(d.x,PARK_GROUND_Y+0.4,d.z);ringM.renderOrder=1;
+    ringM.rotation.x=-Math.PI/2;ringM.position.set(d.x,PARK_GROUND_Y+DECK,d.z);ringM.renderOrder=1;
     scene.add(ringM);trackMeshes.push(ringM);
     parkLandmark(d);   // sa SCULPTURE : chaque quartier a sa silhouette dans la skyline
   }
@@ -2294,20 +2308,8 @@ function buildParkDecor(){
     const glow=new THREE.Mesh(new THREE.TorusGeometry(120,9,8,28,Math.PI),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.16,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
     glow.position.copy(arch.position);glow.rotation.y=-an;scene.add(glow);trackMeshes.push(glow);
   }
-  // 2bis) L'HORIZON : une chaîne de MONTAGNES tout autour. Sans elles la prairie s'arrêtait sur du vide et
-  //       le parc paraissait posé sur une table ; avec, il est au fond d'une vallée et l'échelle explose.
-  //       Deux rideaux (buttes proches sombres, sommets lointains plus pâles) = de la profondeur pour 34 meshes.
-  const mkRange=(n,radMin,radMax,hMin,hMax,col,op)=>{
-    for(let i=0;i<n;i++){
-      const an=(i/n)*6.2832+Math.random()*.22,rad=radMin+Math.random()*(radMax-radMin);
-      const h=hMin+Math.random()*(hMax-hMin),r9=h*(.72+Math.random()*.5);
-      const m=new THREE.Mesh(new THREE.ConeGeometry(r9,h,7,1),new THREE.MeshLambertMaterial({color:col,transparent:op<1,opacity:op}));
-      m.position.set(Math.cos(an)*rad,PARK_GROUND_Y+h*.5-30,Math.sin(an)*rad);
-      m.rotation.y=Math.random()*6.2832;scene.add(m);trackMeshes.push(m);
-    }
-  };
-  mkRange(20,3600,4600,340,760,0x3b4d52,1);    // rideau PROCHE : sombre, il découpe la prairie
-  mkRange(14,7200,9000,900,1700,0x59677e,.92); // rideau LOINTAIN : plus pâle (perspective atmosphérique)
+  // 2bis) (SUPPRIMÉ 2026-07-22 — « enlève les pyramides ») : les deux rideaux de montagnes coniques ont
+  //       sauté. L'horizon est désormais celui de la MER : l'eau file jusqu'au brouillard, et c'est tout.
   // 3) PYLÔNES : de grands mâts lumineux qui bordent la plaza (repères + échelle)
   const pyGeo=new THREE.CylinderGeometry(1.6,3.2,90,10);
   const capGeo=new THREE.SphereGeometry(5,12,10);
@@ -3401,6 +3403,10 @@ function makePool(n,size,color,opacity){
   return {mesh:m,pos:pos,vel:new Float32Array(n*3),life:new Float32Array(n),n:n,head:0};
 }
 const dust=makePool(160,1.1,0x6a6284,.28); // gomme mauve-nuit, discrète (les gros flocons beiges permanents, c'est fini)
+// L'EAU QUI GICLE (parc océan) : gerbe blanche à la traversée, panache continu quand on laboure la mer,
+// explosion de gouttes à la sortie. Deux tons — le gros de la gerbe, et l'écume fine qui reste en l'air.
+const spray=makePool(300,1.45,0xdff4ff,.62);
+const sprayFine=makePool(160,.7,0xffffff,.5);
 const wisps=makePool(150,4.2,0xfff3e8,.4); // brume de nuage qui file le long de la caisse
 const streaks=(function(){
   const n=50,pos=new Float32Array(n*6);
@@ -3736,6 +3742,23 @@ const sparkBlue=makePool(70,.9,0x5ee6ff,1);sparkBlue.mesh.material.blending=THRE
 function sparkBurst(pool,pos,n,sp){
   for(let k=0;k<n;k++)spawnP(pool,pos.x,pos.y,pos.z,
     (Math.random()-.5)*sp,Math.random()*sp*.7,(Math.random()-.5)*sp,.28+Math.random()*.22);
+}
+// LA GERBE D'EAU (parc océan) : une COURONNE qui part à l'horizontale (comme une vraie entrée dans l'eau)
+// + une colonne centrale + l'écume fine qui reste en suspension. `pw` 1 = on effleure, 3 = on plonge.
+function splashBurst(x,y,z,pw){
+  const n=Math.round(26*pw);
+  for(let k=0;k<n;k++){
+    const a=Math.random()*6.2832,r=(4+Math.random()*13)*pw;
+    spawnP(spray,x+Math.cos(a)*1.6,y+.2,z+Math.sin(a)*1.6,
+      Math.cos(a)*r,7*pw+Math.random()*9*pw,Math.sin(a)*r,.34+Math.random()*.4);
+  }
+  for(let k=0;k<Math.round(9*pw);k++)                       // la COLONNE : l'eau chassée vers le haut
+    spawnP(spray,x+(Math.random()-.5)*3,y+.4,z+(Math.random()-.5)*3,
+      (Math.random()-.5)*4,12*pw+Math.random()*10*pw,(Math.random()-.5)*4,.45+Math.random()*.4);
+  for(let k=0;k<Math.round(14*pw);k++)
+    spawnP(sprayFine,x+(Math.random()-.5)*7,y+.6,z+(Math.random()-.5)*7,
+      (Math.random()-.5)*7,3+Math.random()*7,(Math.random()-.5)*7,.6+Math.random()*.6);
+  noiseBurst(.22*Math.min(1,pw*.6),.16,520);                 // le CHTONG sourd de l'eau
 }
 // billets de dollars qui volettent
 const billNoteTex=(function(){
@@ -5736,7 +5759,15 @@ function loop(now){
     else loop._dprUp=0;
   }
   bioStep(dt); // BIOMES : le voyage d'ambiance avance même au menu/en pause de jeu (c'est le ciel qui vit, pas la sim)
-  if(parkGrassMat)parkGrassMat.uniforms.uTime.value=now*.001; // l'herbe longue du parc ondule au vent (now : dispo avant `const t`)
+  // L'OCÉAN VIT : le temps avance (ripples + houle) et l'eau PREND LA COULEUR DU BIOME — elle reflète le
+  // ciel du moment (`hemi.color`), le soleil garde sa teinte et sa direction. Une mer d'aube n'a rien à voir
+  // avec une mer de nuit, et tout ça sans recompiler un shader (uniformes seulement).
+  if(parkWaterMat){const U=parkWaterMat.uniforms;
+    U.uTime.value=now*.001;
+    U.uSky.value.copy(hemi.color);
+    U.uSunCol.value.copy(sun.color);
+    U.uSun.value.copy(sun.position).normalize();
+  }
   // PARC = ZÉRO ARGENT : on cache le compteur de cash ET la mallette (valeur en jeu). Bascule seulement au changement.
   if(loop._parkHUD!==PARK.on){loop._parkHUD=PARK.on;
     const md=document.getElementById('money');if(md)md.style.display=PARK.on?'none':'';
@@ -6097,9 +6128,10 @@ function loop(now){
         // indicateur de virage RETIRÉ du HUD épuré (#turnHint est display:none) : on n'évalue plus la courbe à l'avance (frameAt+trig) chaque frame pour rien
         airPie.style.display='none';
       }
-    }else if(mode==='grass'){ // ---- LA PRAIRIE : CONDUITE LIBRE, TOUT LE SOL EST ROULABLE ----
-      // Plus de rails : un cap (gYaw), un plan d'herbe, et on va où on veut. C'est le LOBBY —
-      // on s'y balade entre deux activités, on monte sur une route quand on veut décoller.
+    }else if(mode==='grass'){ // ---- L'OCÉAN : ON TRAVERSE L'EAU (le mode garde son vieux nom 'grass') ----
+      // Plus de rails : un cap (gYaw), la surface de la mer, et on va où on veut. C'est le LOBBY — mais
+      // l'eau FREINE : on laboure, ça gicle, et on ressort trempé. La route (les rampes) reste le seul
+      // endroit où l'on va vite : c'est ce contraste qui donne envie de remonter sur le ruban.
       landMark.visible=false;airPie.style.display='none';
       gCd=Math.max(0,gCd-dt);
       const spdMult=pwrSpdT>0?1.6:1;
@@ -6109,8 +6141,14 @@ function loop(now){
       vA+=a*dt;
       if(nitroOn)vA+=(nitroBlue?48:30)*dt;
       vA-=vA*Math.abs(vA)*(acc9/(maxSp*maxSp*5.8))*dt;
-      vA*=Math.max(0,1-.10*dt);                       // l'herbe freine un peu plus que le bitume
-      if(!up&&!dn&&!nitroOn)vA*=Math.max(0,1-.5*dt);
+      // ---- LA RÉSISTANCE DE L'EAU : c'est ELLE qui te ralentit ----
+      // Traînée quadratique franche (on pousse une masse d'eau) + un PLAFOND DE COQUE bien plus bas que
+      // la route (35 % du gouverneur du parc) qu'on ne franchit pas en force : la nitro te maintient au
+      // maximum en surplace-hydro, elle ne te rend pas la vitesse du bitume. « Traverser en nitro » coûte.
+      vA*=Math.max(0,1-1.15*dt);
+      const hull=parkCap*.35;
+      if(vA>hull)vA-=(vA-hull)*2.6*dt;                 // freinage PROGRESSIF (pas un mur) : la coque s'enfonce
+      if(!up&&!dn&&!nitroOn)vA*=Math.max(0,1-1.1*dt);  // au lâcher, l'eau t'arrête vite
       if(vA>parkCap)vA=parkCap;
       if(vA<-10)vA=-10;
       // VOLANT LIBRE : mordant avec la vitesse, jamais de pivot sur place
@@ -6118,7 +6156,8 @@ function loop(now){
       gYaw+=tgt9*spec.turn*1.3*THREE.MathUtils.clamp(vA/10,-1,1)*(1/(1+Math.abs(vA)*TURN_HS*.7))*dt;
       gPos.x+=Math.sin(gYaw)*vA*dt*SPD*spdMult;
       gPos.z+=Math.cos(gYaw)*vA*dt*SPD*spdMult;
-      gPos.y=PARK_GROUND_Y;
+      // LA CAISSE FLOTTE : elle suit la houle (mêmes ondes que le shader) et s'enfonce un peu dans l'eau
+      gPos.y=PARK_GROUND_Y+waveH(gPos.x,gPos.z,now*.001)-.45;
       if(hopY>0)hopY=Math.max(0,hopY-dt*Math.max(7,hopY*8)); // AMORTISSEUR : la marche du pied de rampe se résorbe en ~0,3 s
       speedKmh=Math.abs(vA)*3.6*SPD*spdMult;
       boost=Math.max(0,boost-dt);
@@ -6138,7 +6177,10 @@ function loop(now){
               s=bi/(NP-1)*L;lat=lt;side=1;driveDir=dotT>0?1:-1;psi=0;
               hopY=0;hopV=0;prevTvalid=false;graceT=.45;gCd=.6;mode='drive';
               squashT=Math.max(squashT,.12);noiseBurst(.1,.08,420);
-              showMsg('🛣 SUR LA ROUTE','#7dffec');
+              // ON SORT DE L'EAU : la caisse EMPORTE l'océan avec elle — gerbe de gouttes qui retombent
+              // derrière, d'autant plus grosse qu'on arrive vite. C'est LA récompense de la traversée.
+              splashBurst(gPos.x,PARK_GROUND_Y+.3,gPos.z,THREE.MathUtils.clamp(Math.abs(vA)/26,.8,2.4));
+              showMsg('🌊 SORTI DE L\'EAU','#7dffec');
             }
           }
         }
@@ -6158,10 +6200,27 @@ function loop(now){
       mat4.makeBasis(tmp3.copy(F.t),tmp2.copy(F.b),F.n);
       shadow.quaternion.setFromRotationMatrix(mat4);
       shadow.scale.setScalar(1);
-      // gerbe d'herbe sous les roues quand ça glisse / accélère fort
-      if(Math.abs(vA)>14&&Math.random()<dt*26)
-        spawnP(dust,gPos.x-Math.sin(gYaw)*2.2+(Math.random()-.5)*1.6,PARK_GROUND_Y+.3,gPos.z-Math.cos(gYaw)*2.2+(Math.random()-.5)*1.6,
-          (Math.random()-.5)*3,1+Math.random()*2,(Math.random()-.5)*3,.4);
+      // ---- ÇA GICLE : moustaches d'étrave + sillage ----
+      // Le débit suit la vitesse : à l'arrêt, rien ; lancé, deux ailes d'eau partent des roues avant et
+      // un panache d'écume traîne derrière. C'est la récompense visuelle de « traverser l'eau ».
+      {
+        const wk=Math.min(1,Math.abs(vA)/(parkCap*.3)),sy=Math.sin(gYaw),cy=Math.cos(gYaw);
+        if(wk>.06){
+          const nJet=1+(wk>.45?1:0)+(wk>.8?1:0);
+          for(let k=0;k<nJet;k++){
+            const sd=Math.random()<.5?-1:1;                       // une aile à gauche, une à droite
+            const bx=gPos.x+sy*2.4+cy*sd*1.15,bz=gPos.z+cy*2.4-sy*sd*1.15; // devant, au niveau des roues
+            spawnP(spray,bx,gPos.y+.35,bz,
+              sy*vA*SPD*.16+cy*sd*(5+wk*11)+(Math.random()-.5)*2.2,
+              4.5+wk*11+Math.random()*3,
+              cy*vA*SPD*.16-sy*sd*(5+wk*11)+(Math.random()-.5)*2.2,
+              .30+Math.random()*.34);
+          }
+          if(Math.random()<dt*40*wk)                              // le SILLAGE : écume fine derrière
+            spawnP(sprayFine,gPos.x-sy*3.2+(Math.random()-.5)*3.4,gPos.y+.25,gPos.z-cy*3.2+(Math.random()-.5)*3.4,
+              (Math.random()-.5)*2.6,1.4+Math.random()*2.4,(Math.random()-.5)*2.6,.5+Math.random()*.5);
+        }
+      }
       const camBack9=5.6+speedKmh*.0095,camH9=2.2+speedKmh*.004;
       tmp2.copy(carGroup.position).addScaledVector(fwdW,-camBack9).addScaledVector(F.n,camH9);
       camera.position.lerp(tmp2,Math.min(1,dt*5));
@@ -6380,19 +6439,21 @@ function loop(now){
       pieCtx.fillStyle='#fff';pieCtx.font='bold 15px monospace';pieCtx.textAlign='center';
       pieCtx.fillText((pwrAirT>0?pwrAirT:Math.max(0,aMax-fallTR)).toFixed(1),37,42);
       if(tryLand(dtF)){airPie.style.display='none';}
-      // PARC : LA PRAIRIE RATTRAPE TOUT — on ne meurt pas d'un vol raté, on se pose dans l'herbe et on repart.
+      // PARC : L'OCÉAN RATTRAPE TOUT — on ne meurt pas d'un vol raté, on AMERRIT et on repart.
       // ZÉRO ARGENT : la pose ne paye pas ; on célèbre juste la longueur de la chaîne de figures (fierté, pas cash).
-      else if(PARK.on&&fallPos.y<=PARK_GROUND_Y+.7){
+      else if(PARK.on&&fallPos.y<=PARK_GROUND_Y+waveH(fallPos.x,fallPos.z,now*.001)+.7){
         airPie.style.display='none';
-        if(chain>1)trickMsg('🌱 POSÉ — '+chain+' FIGURES ENCHAÎNÉES !',chain>=5?3:2);
+        if(chain>1)trickMsg('🌊 AMERRISSAGE — '+chain+' FIGURES ENCHAÎNÉES !',chain>=5?3:2);
         chain=0;chainVal=0;chainMult=1;chainSeen={};ladderI=0;
         chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;dolphT=0;trkDolph=false;
+        // L'IMPACT : plus on tombe vite, plus la gerbe est grosse ET plus l'eau te MANGE ta vitesse.
+        const vIn=fallVel.length(),hSpd=Math.hypot(fallVel.x,fallVel.z);
+        splashBurst(fallPos.x,PARK_GROUND_Y,fallPos.z,THREE.MathUtils.clamp(vIn/28,.9,3.2));
         gPos.set(fallPos.x,PARK_GROUND_Y,fallPos.z);
         gYaw=Math.atan2(fallVel.x,fallVel.z);
-        vA=Math.min(parkCap,Math.hypot(fallVel.x,fallVel.z));
+        vA=Math.min(parkCap*.35,hSpd*.45);              // on ne ressort pas d'un plongeon lancé : l'eau encaisse
         hopY=0;hopV=0;gCd=.5;mode='grass';
-        squashT=Math.max(squashT,.22);shake=Math.max(shake,.25);
-        sparkBurst(sparkGold,fallPos,10,8);noiseBurst(.16,.12,300);
+        squashT=Math.max(squashT,.22);shake=Math.max(shake,.3);
       }
       else if((fallTR>aMax&&pwrAirT<=0)||fallPos.y<trackMinY-120){airPie.style.display='none';if(PARK.on)parkRespawn();else explode();} // FREESTYLE : la jauge d'airtime ne tue plus (le sol est roulable, on finit par se poser) ; reste le filet du plongeon hors-monde // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
     }else if(mode==='boom'){ // ---- EXPLOSION ----
@@ -6446,6 +6507,8 @@ function loop(now){
       trc[0],trc[1],trc[2]);
     // particules
     updatePool(dust,dt,2);
+    updatePool(spray,dt,26);      // les gouttes RETOMBENT vite : gravité franche, c'est de l'eau lourde
+    updatePool(sprayFine,dt,7);   // l'écume fine flotte plus longtemps dans le sillage
     updatePool(wisps,dt,1.2);
     updateStreaks(dt);
     updatePool(flames,dt,1);
