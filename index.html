@@ -632,6 +632,14 @@ let pts=[],T=[],Nn=[],B=[],L=0,NP=0,trackMinY=-1e9; // trackMinY : plancher du m
 const trackMeshes=[];let PADS=[];let BUMPS=[];let CONES=[];let FLYCONES=[];let portalMesh=null;
 // TREMPLINS HÉROS (motif « gap catapulte », voir genCtrl/gapRun) : {s:lèvre, s0/s1:couloir gardé NU, v:variante}
 let RAMPS=[];
+// PARC : CERCEAUX à traverser (bac à sable freestyle) — {pos, axis, r, scored, mesh, glow}. Détectés chaque frame en drive/vol.
+let HOOPS=[];
+// PARC LOBBY : PIÈCES semées en pleine prairie {pos, mesh, taken} — ramassées en roue libre, combo qui monte (checkParkCoins).
+let PARK_COINS=[];
+// PARC LOBBY : PORTAILS DE LANCEMENT {pos, axis, r, kind, y} — on roule DEDANS pour lancer une game (course / survivant / nouveau lobby).
+let PARK_PORTALS=[];
+// PARC : positions MONDE des LÈVRES DE SAUT posées par genPark (sommets de rampe au sol) — mappées en RAMPS dans buildTrack.
+const PARK_JUMPS=[];
 // passerelle genCtrl → buildTrack : positions MONDE (lèvre + les deux bords du vide), retrouvées sur la courbe réelle
 const GAPMARK=[];
 // LE TROU, POUR DE VRAI : portions de dalle PUREMENT ABSENTES {i0,i1:index pts · s0,s1:arc-length}.
@@ -1283,6 +1291,7 @@ function genCtrl(rnd,startPos,startPhi){
 // ailleurs (respawn). Pensé pour le MULTI : tout le monde riderait CE parc (le netcode = chantier serveur).
 function genPark(rnd){
   GAPMARK.length=0; // le parc n'a AUCUN trou : jamais de vide mortel ici
+  PARK_JUMPS.length=0; // on repart d'une liste de lèvres de saut vierge
   zoneArch='PARK';
   const ctrl=[];
   let P=new THREE.Vector3(0,0,0),phi=0,approx=0;
@@ -1300,48 +1309,101 @@ function genPark(rnd){
       push();}approx+=2*Math.PI*R;};
   let sg=rnd()<.5?1:-1;               // latéralité courante — on ALTERNE souvent → le ruban reste dans la zone
   const flip=()=>{sg=-sg;};
-  straight(210,-70,3);                // LARGAGE : tapis d'atterrissage pour l'intro, puis pente douce
+  PARK_GROUND_Y=0;                     // LA PRAIRIE est au niveau 0 — le ruban y naît et y revient
+  // ================= LE BAC À SABLE : on SPAWN AU SOL, on ROULE SUR L'HERBE, puis ça DÉCOLLE =================
+  // Trois temps : (1) LA PRAIRIE — un grand réseau plat au ras de l'herbe, virages, ronds-points, bosses
+  // à sauter, on joue sur le sol ; (2) L'ENVOL — de grosses rampes arrachent la route du sol vers le ciel ;
+  // (3) L'ENCHEVÊTREMENT AÉRIEN — une boule DENSE de loops/hélices/spirales suspendue AU-DESSUS de la prairie,
+  // puis un long plongeon qui redescend se poser sur l'herbe. Zéro vide mortel, zéro sens imposé.
+  straight(230,0,3);                   // TAPIS DE SPAWN : plat, sur l'herbe — le largage tombe ICI, au cœur de la plaza (les portails de lancement sont autour)
+  // ---- FIGURES DE PRAIRIE (au sol, y≈0 : on roule VRAIMENT sur le vert) ----
+  // markLip() enregistre le SOMMET d'une rampe : buildTrack y posera une VRAIE lèvre catapulte
+  // (mécanique RAMPS des tremplins héros) → on décolle POUR DE BON et on retombe sur l'herbe.
+  const markLip=()=>{PARK_JUMPS.push(P.clone());};
+  // 15 FIGURES DE SOL (le lobby a PLUS de routes différentes) — TOUTES à plat sauf les 3 sauts (markLip) :
+  // elles reviennent à leur altitude de départ, donc zéro dérive verticale ; le réseau reste au ras du vert.
+  const gmod=[
+    ()=>{ arc(sg*(60+rnd()*90),150+rnd()*130,6,0); flip(); },                                     // GRAND VIRAGE à plat
+    ()=>{ const a=42+rnd()*44,R2=120+rnd()*90; arc(sg*a,R2,4,0); arc(-sg*a,R2,4,0); flip(); },     // ESSES sur l'herbe
+    ()=>{ arc(sg*(200+rnd()*160),72+rnd()*44,8,0); flip(); },                                      // ÉPINGLE / demi-tour → croisements au sol
+    ()=>{ straight(70+rnd()*44,0); straight(38,15+rnd()*9); straight(44,-(15+rnd()*9)); straight(70+rnd()*44,0); }, // WHOOPS : petites bosses qui font sautiller
+    ()=>{ straight(120+rnd()*70,0,2); },                                                            // LIGNE DROITE : de l'élan
+    ()=>{ arc(sg*(300+rnd()*180),95+rnd()*55,10,0); flip(); },                                      // GRAND ROND-POINT
+    // ---- FIGURES NEUVES DU LOBBY (2026-07-22) : plus de variété, réseau plus dense ----
+    ()=>{ const R2=135+rnd()*75; straight(120+rnd()*80,0,2); arc(sg*180,R2,8,0); straight(120+rnd()*80,0,2); arc(sg*180,R2,8,0); }, // VÉLODROME : ovale bouclé, on tourne en rond
+    ()=>{ const R2=90+rnd()*45; arc(sg*250,R2,9,0); arc(-sg*250,R2,9,0); flip(); },                 // LE HUIT : deux boucles opposées qui se croisent
+    ()=>{ for(let z=0;z<4;z++){arc(sg*(50+rnd()*20),56+rnd()*26,3,0);flip();} },                    // SLALOM SERRÉ : chicanes rapides à enchaîner
+    ()=>{ arc(sg*300,78+rnd()*38,10,0); straight(64,0); arc(-sg*300,78+rnd()*38,10,0); flip(); },   // DOUBLE ROND-POINT côte à côte
+    ()=>{ arc(sg*(120+rnd()*90),210+rnd()*150,8,0); flip(); },                                      // GRAND BALAYAGE : courbe ample et rapide
+    ()=>{ for(let z=0;z<3;z++){straight(40,0);straight(26,12);straight(30,-12);} straight(60,0); },  // RYTHME : train de bosses (airtime léger)
+    // TREMPLIN DE PRAIRIE : longue course d'élan → rampe franche → LÈVRE (saut réel) → réception sur l'herbe
+    ()=>{ straight(150+rnd()*50,0,2); straight(50,24+rnd()*10); straight(34,12); markLip(); straight(30,-12); straight(140+rnd()*50,-2,2); },
+    // GROS KICKER : rampe raide et courte, on part HAUT et loin, on retombe plus bas — le saut spectacle du sol
+    ()=>{ straight(170+rnd()*60,0,2); straight(46,30+rnd()*12); straight(30,18); markLip(); straight(120+rnd()*40,-20,2); straight(60,0); },
+    // TABLE-TOP : deux kickers face à face, plateau en l'air — on saute le plat au milieu
+    ()=>{ straight(120+rnd()*40,0,2); straight(40,22); markLip(); straight(46,0); straight(40,-22); straight(120+rnd()*40,0,2); },
+  ];
+  // LA PLAZA : le réseau du sol tient dans ce disque. On plie ~9,6 km de ruban DEDANS → les routes se
+  // CROISENT partout (densité maxi) au lieu de filer en ligne. homeGround() ramène le ruban vers le centre
+  // à PLAT dès qu'il sort, sans virage brutal (on garde de la place pour rouler, pas du spaghetti).
+  const PLAZA_R=1500;
+  const homeGround=()=>{
+    let want=Math.atan2(-P.x,-P.z),d=want-phi;
+    while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;
+    d=THREE.MathUtils.clamp(d,-2.0,2.0);
+    const deg=d*180/Math.PI,Rr=120+rnd()*90;
+    arc(deg,Rr,Math.max(3,Math.ceil(Math.abs(deg)/24)),0);
+  };
+  const GROUND_LEN=9600;               // ~9,6 km de route AU SOL, repliés dans la plaza → densité de routes maxi
+  while(approx<GROUND_LEN){
+    gmod[Math.floor(rnd()*gmod.length)]();
+    if(P.y>1.5&&P.y<130)straight(48+P.y*1.3,-P.y,1);  // ANTI-DÉRIVE : on recolle au ras de l'herbe (les rampes de saut redescendent sur le vert)
+    if(Math.hypot(P.x,P.z)>PLAZA_R)homeGround();       // hors plaza : on revient au centre → le ruban se recroise, réseau dense
+  }
+  straight(80,0,1);                    // dernier bout de plaza avant que ça décolle vers la boule aérienne
+  // ============ L'ENVOL + L'ENCHEVÊTREMENT AÉRIEN : la boule DENSE suspendue au-dessus de l'herbe ============
+  // On garde le principe de remplissage sphérique du parc d'origine, mais la boule est POSÉE HAUT (centre yc) :
+  // sa base frôle la prairie, son sommet monte à ~2 km. Dès que la route sort de la boule on la RAMÈNE vers
+  // le cœur (tour + montée/descente), et un garde-fou l'empêche de replonger sous la prairie.
   const modules=[
     ()=>{ arc(sg*(50+rnd()*70),175+rnd()*110,5,(rnd()*2-1)*46); flip(); },                        // GRAND SWEEPER : virage qui chante
-    ()=>{ straight(52+rnd()*28,-30); loop(44+rnd()*30,32+rnd()*24); straight(50+rnd()*28,-28); },  // LOOP VERTICAL
-    ()=>{ arc(sg*(300+rnd()*260),100+rnd()*65,12,-(70+rnd()*100)); flip(); },                      // HÉLICE / TIRE-BOUCHON : la route s'empile
+    ()=>{ straight(52+rnd()*28,-30); loop(44+rnd()*30,32+rnd()*24); straight(50+rnd()*28,28); },   // LOOP VERTICAL (remonte : on ne perce pas le sol)
+    ()=>{ arc(sg*(300+rnd()*260),100+rnd()*65,12,(rnd()<.5?-1:1)*(70+rnd()*100)); flip(); },       // HÉLICE / TIRE-BOUCHON : la route s'empile
     ()=>{ arc(sg*(360+rnd()*280),160+rnd()*80,14,(rnd()<.5?-1:1)*(80+rnd()*110)); flip(); },       // SPIRALE GÉANTE : monte OU descend (remplit la boule)
     ()=>{ straight(52+rnd()*26,-(14+rnd()*12)); straight(58+rnd()*26,24+rnd()*14); straight(66+rnd()*32,-(42+rnd()*34)); }, // VAGUES à sauter (airtime)
     ()=>{ straight(110+rnd()*44,-6,2); straight(40,18+rnd()*10); straight(24,10); straight(135+rnd()*50,-12,2); }, // RAMPE DE LANCEMENT + réception
-    ()=>{ const a=28+rnd()*28,R=135+rnd()*80; arc(sg*a,R,3,(rnd()*2-1)*24); arc(-sg*a,R,3,(rnd()*2-1)*24); flip(); }, // ESSES AMPLES
+    ()=>{ const a=28+rnd()*28,R2=135+rnd()*80; arc(sg*a,R2,3,(rnd()*2-1)*24); arc(-sg*a,R2,3,(rnd()*2-1)*24); flip(); }, // ESSES AMPLES
     ()=>{ arc(sg*(150+rnd()*70),88+rnd()*46,6,(rnd()*2-1)*30); flip(); },                          // DEMI-TOUR SERRÉ : ramène le ruban → croisements
   ];
-  // ============ LA SPHÈRE : une ÉNORME BOULE de routes dans le ciel ============
-  // Le ruban ne se replie plus dans un DISQUE plat mais dans une SPHÈRE 3D : dès qu'il sort de la boule,
-  // on le RAMÈNE vers le cœur en tournant ET en montant/descendant vers le centre ; entre-temps on
-  // l'envoie explorer la moitié OPPOSÉE en hauteur. Résultat : des routes PARTOUT, au-dessus comme en
-  // dessous, entrelacées dans tous les sens — une planète de bitume flottant dans le ciel.
-  const R=1200;                        // RAYON de la sphère (immense — 2,4 km de diamètre)
-  // CONFINEMENT HORIZONTAL : on tourne vers le centre en gardant l'altitude — le rayon horizontal
-  // ADMISSIBLE rétrécit vers le haut/bas de la boule (√(R²−y²)) → l'enveloppe est bien une SPHÈRE.
+  const R=980,yc=980;                  // RAYON de la boule ~1 km, centrée HAUT → base ≈ 0 (l'herbe), sommet ≈ 1960
+  straight(160,0,2);                   // dernier élan au ras du sol…
+  straight(300,300,3);                 // …puis LA GRANDE RAMPE : on arrache la route de l'herbe vers le ciel (~45°)
   const homeHoriz=()=>{
     let want=Math.atan2(-P.x,-P.z),d=want-phi;
     while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;
     const deg=d*180/Math.PI,Rr=110+rnd()*70;
     arc(deg,Rr,Math.max(3,Math.ceil(Math.abs(deg)/26)),0);
   };
-  // REMPLISSAGE VERTICAL : on VISE une altitude cible (n'importe où dans la boule) et on grimpe/plonge
-  // vers elle en rampe. C'est ça qui étale les routes du HAUT au BAS de la sphère (sinon : disque plat).
-  let yTarget=(rnd()*2-1)*R*.88,tcd=1;
-  const TARGET=34000;                  // ÉNORME et DENSE : ~34 km de ruban plié dans la boule
+  let yTarget=yc+(rnd()*2-1)*R*.82,tcd=1;
+  const TARGET=approx+26000;           // ÉNORME et DENSE : ~26 km de ruban plié dans la boule aérienne (le sol a récupéré ~4,6 km : total ≈ constant → densité de points/loops inchangée)
   while(approx<TARGET){
     modules[Math.floor(rnd()*modules.length)]();          // une FIGURE (tricks + tangle local)
-    if(--tcd<=0||Math.abs(P.y-yTarget)<110){yTarget=(rnd()*2-1)*R*.9;tcd=2+Math.floor(rnd()*3);} // nouvelle cible d'altitude (jusqu'aux pôles de la boule)
-    straight(150+rnd()*55,THREE.MathUtils.clamp(yTarget-P.y,-215,215),2); // rampe FRANCHE vers la cible → remplit vraiment la hauteur (≈52°, ridable)
-    const rMax=Math.sqrt(Math.max(0,R*R-P.y*P.y))*.96;    // rayon horizontal admissible à CETTE hauteur
-    if(Math.hypot(P.x,P.z)>rMax)homeHoriz();              // hors de la sphère : on rentre (en gardant l'altitude)
+    if(--tcd<=0||Math.abs(P.y-yTarget)<110){yTarget=yc+(rnd()*2-1)*R*.86;tcd=2+Math.floor(rnd()*3);} // nouvelle cible d'altitude DANS la boule
+    straight(150+rnd()*55,THREE.MathUtils.clamp(yTarget-P.y,-215,215),2); // rampe FRANCHE vers la cible (≈52°, ridable)
+    if(P.y<PARK_GROUND_Y+70)straight(130,150,2);          // GARDE-FOU : l'aérien ne retombe jamais sur la prairie (on ne perce pas le sol)
+    const rMax=Math.sqrt(Math.max(0,R*R-(P.y-yc)*(P.y-yc)))*.96; // rayon horizontal admissible à CETTE hauteur (sphère)
+    if(Math.hypot(P.x,P.z)>rMax)homeHoriz();              // hors de la boule : on rentre (en gardant l'altitude)
   }
-  straight(150,-30,2);                 // SORTIE propre (le bouclage se fait par newTrack → nouveau secteur)
+  // ---- LE PLONGEON : on redescend du ciel jusqu'à se reposer sur l'herbe ----
+  let guard=0;
+  while(P.y>PARK_GROUND_Y+120&&guard++<40)straight(165,-Math.min(205,P.y-PARK_GROUND_Y),2);
+  straight(170,PARK_GROUND_Y-P.y,2);   // dernière marche pile sur la prairie
+  straight(160,0,2);                   // SORTIE plate (le bouclage se fait par newTrack → nouveau secteur)
   return ctrl;
 }
 function buildTrack(seed){
   for(const m of trackMeshes){scene.remove(m);if(m.geometry)m.geometry.dispose();if(m.material&&m.material.dispose)m.material.dispose();}
-  trackMeshes.length=0;PADS=[];BUMPS=[];CONES=[];FLYCONES=[];OILS=[];RAMPS=[];
+  trackMeshes.length=0;PADS=[];BUMPS=[];CONES=[];FLYCONES=[];OILS=[];RAMPS=[];HOOPS=[];PARK_COINS=[];PARK_PORTALS=[];
   const rnd=mulberry32(seed);
   const ctrl=PARK.on?genPark(rnd):genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course
   const curve=new THREE.CatmullRomCurve3(ctrl,false,'catmullrom',0.5);
@@ -1541,6 +1603,33 @@ function buildTrack(seed){
       ring.renderOrder=1;scene.add(ring);trackMeshes.push(ring);
     }
   }
+  // ---- PARC : LES VRAIS SAUTS DU SOL ----
+  // genPark a marqué le SOMMET de chaque rampe de prairie (PARK_JUMPS, coord MONDE). On les retrouve sur la
+  // courbe et on y pose une LÈVRE CATAPULTE (même mécanique RAMPS que les tremplins héros) : franchie à
+  // l'élan, elle envoie POUR DE BON en l'air, et on retombe sur l'herbe plus loin. ⚠ ZÉRO rnd() consommé ici
+  // (sinon la génération d'obstacles en aval se décale) : tout est déduit de la géométrie.
+  if(PARK.on&&PARK_JUMPS.length){
+    const nearIw=p=>{let bi=-1,bd=1e9;for(let i=8;i<NP-8;i++){const dx=p.x-pts[i].x,dy=p.y-pts[i].y,dz=p.z-pts[i].z,dd=dx*dx+dy*dy+dz*dz;if(dd<bd){bd=dd;bi=i;}}return bi;};
+    let lastJ=-1e9;
+    for(const jp of PARK_JUMPS){
+      const ji=nearIw(jp);if(ji<12||ji>NP-14)continue;
+      const sJ=ji/(NP-1)*L;
+      if(sJ-lastJ<260)continue;lastJ=sJ;                     // pas deux lèvres collées
+      RAMPS.push({s:sJ,v:0,s0:sJ-150,s1:sJ+120});            // couloir NU + le loop lira cette lèvre pour catapulter
+      for(const fy of [1,-1]){                               // MIROIR : le saut existe sur les deux faces
+        frameAt(Math.max(0,sJ-30),F);
+        const strp=new THREE.Mesh(rampStripGeo,new THREE.MeshBasicMaterial({map:rampTex,transparent:true,opacity:.6,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
+        strp.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(F.b.clone().multiplyScalar(-fy),F.t.clone(),F.n.clone().multiplyScalar(fy)));
+        strp.position.copy(F.p).addScaledVector(F.n,fy>0?.07:-THICK-.07);
+        strp.renderOrder=1;scene.add(strp);trackMeshes.push(strp);
+        frameAt(sJ,F);
+        const lip=new THREE.Mesh(rampLipGeo,rampLipMat);
+        lip.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(F.b.clone(),F.n.clone().multiplyScalar(fy),F.t.clone().multiplyScalar(fy)));
+        lip.position.copy(F.p).addScaledVector(F.n,fy>0?.30:-THICK-.30);
+        scene.add(lip);trackMeshes.push(lip);
+      }
+    }
+  }
   // le couloir du tremplin reste NU : ni plot, ni huile, ni pad parasite — la tension a besoin de silence visuel
   const inGap=sp=>{for(const r of RAMPS)if(sp>r.s0&&sp<r.s1)return true;return false;};
   // pads turbo (les deux faces)
@@ -1656,41 +1745,95 @@ function buildTrack(seed){
 // ---------- PARC : LE SOL — une prairie d'HERBE LONGUE animée par le vent ----------
 // Un grand tapis vert texturé (qui prend l'éclairage des biomes) SOUS la sphère, planté de dizaines de
 // milliers de brins instanciés qu'un shader ploie au vent. Tout part dans trackMeshes → disposé au rebuild.
-let parkGrassMat=null,_grassTex=null;
+let parkGrassMat=null,_grassTex=null,_grassRoadTex=null;
 function grassGroundTex(){
   if(_grassTex)return _grassTex; // une seule fois : pas de fuite VRAM à chaque parc
   const cv=document.createElement('canvas');cv.width=256;cv.height=256;const c=cv.getContext('2d');
-  c.fillStyle='#4f8a3a';c.fillRect(0,0,256,256);
-  for(let i=0;i<4600;i++){ // micro-brins peints : le tapis a du grain
-    const x=Math.random()*256,y=Math.random()*256,l=3+Math.random()*8,g=70+Math.random()*90|0;
-    c.strokeStyle='rgba('+(28+Math.random()*40|0)+','+g+','+(28+Math.random()*30|0)+','+(.22+Math.random()*.5).toFixed(2)+')';
+  // fond vert riche + LARGES taches de tonte (dégradé doux) → la prairie respire, jamais plate
+  c.fillStyle='#4c8a37';c.fillRect(0,0,256,256);
+  for(let i=0;i<26;i++){ // plaques d'herbe plus claire/plus sombre, façon terrain tondu
+    const x=Math.random()*256,y=Math.random()*256,r=26+Math.random()*70;
+    const g=c.createRadialGradient(x,y,0,x,y,r);
+    const lite=Math.random()<.5;
+    g.addColorStop(0,lite?'rgba(120,180,80,.28)':'rgba(36,70,26,.30)');
+    g.addColorStop(1,'rgba(0,0,0,0)');
+    c.fillStyle=g;c.beginPath();c.arc(x,y,r,0,6.2832);c.fill();
+  }
+  for(let i=0;i<5200;i++){ // micro-brins peints : le tapis a du grain fin
+    const x=Math.random()*256,y=Math.random()*256,l=3+Math.random()*8,g=78+Math.random()*95|0;
+    c.strokeStyle='rgba('+(26+Math.random()*46|0)+','+g+','+(24+Math.random()*32|0)+','+(.22+Math.random()*.5).toFixed(2)+')';
     c.lineWidth=1;c.beginPath();c.moveTo(x,y);c.lineTo(x+(Math.random()-.5)*3,y-l);c.stroke();
   }
-  _grassTex=new THREE.CanvasTexture(cv);_grassTex.wrapS=_grassTex.wrapT=THREE.RepeatWrapping;_grassTex.repeat.set(70,70);
+  _grassTex=new THREE.CanvasTexture(cv);_grassTex.wrapS=_grassTex.wrapT=THREE.RepeatWrapping;_grassTex.repeat.set(80,80);
   return _grassTex;
+}
+// L'HERBE DE LA ROUTE AU SOL : la dalle que l'on ROULE sur le sol est du GAZON tondu (bandes de tonte
+// alternées), tuilée le long du ruban. C'est ce qui donne « on roule VRAIMENT sur l'herbe ».
+function grassRoadTex(){
+  if(_grassRoadTex)return _grassRoadTex;
+  const cv=document.createElement('canvas');cv.width=128;cv.height=128;const c=cv.getContext('2d');
+  c.fillStyle='#57a03e';c.fillRect(0,0,128,128);
+  for(let y=0;y<128;y+=16){c.fillStyle=(y/16)%2?'rgba(255,255,255,.06)':'rgba(0,0,0,.07)';c.fillRect(0,y,128,16);} // bandes de tonte
+  for(let i=0;i<2600;i++){const x=Math.random()*128,y=Math.random()*128,l=2+Math.random()*6;
+    c.strokeStyle='rgba('+(30+Math.random()*40|0)+','+(90+Math.random()*90|0)+','+(28+Math.random()*30|0)+','+(.2+Math.random()*.5).toFixed(2)+')';
+    c.lineWidth=1;c.beginPath();c.moveTo(x,y);c.lineTo(x+(Math.random()-.5)*3,y-l);c.stroke();}
+  _grassRoadTex=new THREE.CanvasTexture(cv);_grassRoadTex.wrapS=_grassRoadTex.wrapT=THREE.RepeatWrapping;
+  return _grassRoadTex;
 }
 function buildParkGround(){
   parkGrassMat=null;
   if(!PARK.on)return;
-  const gy=(isFinite(trackMinY)?trackMinY:-1200)-160; // le SOL, un cran sous la route la plus basse de la boule
+  const gy=PARK_GROUND_Y-0.3; // LA PRAIRIE est AU NIVEAU DE LA ROUTE DU SOL (y≈0) : le ruban naît DEDANS, on roule sur le vert — plus jamais 160 m sous la route
+  const isGnd=i=>pts[i].y<PARK_GROUND_Y+8; // segment « au ras de l'herbe » ?
   // 1) LA PRAIRIE : grand tapis texturé (MeshLambert → il vit avec les biomes, sombre la nuit)
-  const gmesh=new THREE.Mesh(new THREE.PlaneGeometry(16000,16000),
-    new THREE.MeshLambertMaterial({map:grassGroundTex(),color:0x86c766}));
+  const gmesh=new THREE.Mesh(new THREE.PlaneGeometry(20000,20000),
+    new THREE.MeshLambertMaterial({map:grassGroundTex(),color:0x8fce6f}));
   gmesh.rotation.x=-Math.PI/2;gmesh.position.set(0,gy,0);gmesh.receiveShadow=true;
   scene.add(gmesh);trackMeshes.push(gmesh);
-  // 2) L'HERBE LONGUE : brins instanciés, ondulés par le vent dans un shader (30 000 brins = 1 draw call)
+  // 2) LA ROUTE DU SOL = GAZON : nappe verte tuilée POSÉE sur les segments au ras du sol → on roule sur l'herbe
+  {
+    const ga=[],guv=[],gi=[];
+    for(let i=0;i<NP;i++){const p=pts[i],b=B[i],nn=Nn[i];
+      for(let c9=0;c9<2;c9++){const o=(c9?1:-1)*ROAD_HALF;   // pile la largeur de la dalle : sous les rails néon, aucun chevauchement
+        ga.push(p.x+b.x*o+nn.x*.05,p.y+b.y*o+nn.y*.05,p.z+b.z*o+nn.z*.05);
+        guv.push(c9*4.2,i*0.09);}}                      // ~4 tuiles en largeur, tuilage le long du ruban
+    for(let i=0;i<NP-1;i++){if(!isGnd(i))continue;const a2=2*i,b2=a2+1,c2=a2+2,d2=a2+3;gi.push(a2,c2,b2,b2,c2,d2);}
+    if(gi.length){
+      const g=new THREE.BufferGeometry();
+      g.setAttribute('position',new THREE.Float32BufferAttribute(ga,3));
+      g.setAttribute('uv',new THREE.Float32BufferAttribute(guv,2));
+      g.setIndex(gi);g.computeVertexNormals();
+      const gmat=new THREE.MeshLambertMaterial({map:grassRoadTex(),color:0xa8e084,side:THREE.DoubleSide});
+      const gmesh2=new THREE.Mesh(g,gmat);gmesh2.receiveShadow=true;gmesh2.renderOrder=1;
+      scene.add(gmesh2);trackMeshes.push(gmesh2);
+    }
+  }
+  // 3) L'HERBE LONGUE : brins instanciés ondulés par le vent (1 draw call). Un CHAMP en disque + une BANDE
+  //    DENSE qui BORDE la route du sol (elle frôle la caisse → immersion totale « je roule dans l'herbe »).
+  const blades=[]; // {x,z,rot,h,ph}
+  const FIELD=30000;
+  for(let i=0;i<FIELD;i++){
+    const rad=Math.sqrt(Math.random())*3600,an=Math.random()*6.2832; // disque large, dense au centre
+    blades.push({x:Math.cos(an)*rad,z:Math.sin(an)*rad,rot:Math.random()*6.2832,h:22+Math.random()*32,ph:Math.random()*6.2832});
+  }
+  for(let i=0;i<NP;i+=3){ // BORDURE : de l'herbe haute qui longe la route au sol, sur les deux côtés
+    if(!isGnd(i))continue;
+    const p=pts[i],b=B[i];
+    for(let k=0;k<5;k++){
+      const side9=Math.random()<.5?-1:1,off=ROAD_HALF+1.5+Math.random()*30;
+      blades.push({x:p.x+b.x*side9*off,z:p.z+b.z*side9*off,rot:Math.random()*6.2832,h:20+Math.random()*30,ph:Math.random()*6.2832});
+    }
+  }
+  const N=blades.length;
   const seg=3,vp=[],vi=[];
   for(let i=0;i<=seg;i++){const y=i/seg,w=.95*(1-y*.8);vp.push(-w,y,0, w,y,0);}
   for(let i=0;i<seg;i++){const a=i*2;vi.push(a,a+2,a+1, a+1,a+2,a+3);}
   const bg=new THREE.InstancedBufferGeometry();
   bg.setAttribute('position',new THREE.Float32BufferAttribute(vp,3));
   bg.setIndex(vi);
-  const N=30000,ap=new Float32Array(N*3),ar=new Float32Array(N),ah=new Float32Array(N),aph=new Float32Array(N);
-  for(let i=0;i<N;i++){
-    const rad=Math.sqrt(Math.random())*2700,an=Math.random()*6.2832; // disque : dense au centre
-    ap[i*3]=Math.cos(an)*rad;ap[i*3+1]=gy;ap[i*3+2]=Math.sin(an)*rad;
-    ar[i]=Math.random()*6.2832;ah[i]=24+Math.random()*30;aph[i]=Math.random()*6.2832; // HERBE LONGUE : 24-54 de haut
-  }
+  const ap=new Float32Array(N*3),ar=new Float32Array(N),ah=new Float32Array(N),aph=new Float32Array(N);
+  for(let i=0;i<N;i++){const bl=blades[i];
+    ap[i*3]=bl.x;ap[i*3+1]=gy;ap[i*3+2]=bl.z;ar[i]=bl.rot;ah[i]=bl.h;aph[i]=bl.ph;}
   bg.setAttribute('aPos',new THREE.InstancedBufferAttribute(ap,3));
   bg.setAttribute('aRot',new THREE.InstancedBufferAttribute(ar,1));
   bg.setAttribute('aH',new THREE.InstancedBufferAttribute(ah,1));
@@ -1711,6 +1854,173 @@ function buildParkGround(){
   });
   const gm=new THREE.Mesh(bg,parkGrassMat);gm.frustumCulled=false;
   scene.add(gm);trackMeshes.push(gm);
+  // 4) LES CERCEAUX : anneaux néon posés le long du ruban (sol ET ciel) — on les TRAVERSE pour la combo/le style
+  buildParkHoops();
+  // 5) LES ACTIVITÉS DE LOBBY : pièces à ramasser, portails de lancement, décor GÉANT (on se sent petit)
+  buildParkExtras();
+}
+// ================= LE LOBBY : ACTIVITÉS & DÉCOR (façon hub Roblox) =================
+// Semé AUTOUR du spawn (origine) : des PIÈCES à ramasser en roue libre, des PORTAILS où l'on ROULE
+// DEDANS pour lancer une game, et des structures GÉANTES qui donnent l'échelle (on est minuscule).
+// Tout part dans trackMeshes → disposé au rebuild ; les listes PARK_COINS/PARK_PORTALS sont vidées dans buildTrack.
+function buildParkExtras(){
+  // ---- A) LES PIÈCES : traînées et couronnes de pièces sur l'herbe (mini-jeu « ramasse tout ») ----
+  const coins=[]; // positions monde (y au niveau roulé + ~2)
+  // couronnes concentriques de pièces autour du spawn
+  for(let ring=0;ring<4;ring++){
+    const rad=180+ring*150,n=14+ring*8;
+    for(let k=0;k<n;k++){const an=(k/n)*6.2832+ring*0.4;coins.push({x:Math.cos(an)*rad,z:Math.sin(an)*rad});}
+  }
+  // TRAÎNÉES rayonnantes : des serpentins de pièces qui filent du centre vers l'extérieur (à suivre en glissant)
+  for(let ray=0;ray<7;ray++){
+    const a0=(ray/7)*6.2832+0.3,curl=(Math.random()*2-1)*0.0009;
+    for(let d=1;d<=26;d++){const rr=140+d*46,an=a0+d*d*curl;coins.push({x:Math.cos(an)*rr,z:Math.sin(an)*rr});}
+  }
+  // ⚠ GÉOMÉTRIE & GLOW FRAIS À CHAQUE BUILD (pas pickGeo/singleton !) : ces meshes vont dans trackMeshes,
+  // donc le rebuild les DISPOSE — réutiliser la géométrie/le matériau GLOBAL des pickups les casserait.
+  // pickMat est un TABLEAU (pas de .dispose → jamais disposé) : on le réutilise sans risque pour le look pièce.
+  const cGeo=new THREE.CylinderGeometry(3.2,3.2,.5,20);cGeo.rotateX(Math.PI/2); // pièce dressée, ~3 m de rayon (visible de loin)
+  const glowM=new THREE.SpriteMaterial({map:gloTex,color:0xffd75e,transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false,fog:false});
+  for(const c of coins){
+    const m=new THREE.Mesh(cGeo,pickMat);
+    m.position.set(c.x,PARK_GROUND_Y+3.6,c.z);
+    scene.add(m);trackMeshes.push(m);
+    const gl=new THREE.Sprite(glowM);gl.scale.set(9,9,1);gl.position.copy(m.position);
+    scene.add(gl);trackMeshes.push(gl);
+    PARK_COINS.push({pos:m.position.clone(),mesh:m,glow:gl,taken:false});
+  }
+  // ---- B) LES PORTAILS DE LANCEMENT : on ROULE DEDANS pour démarrer une game (c'est le LOBBY) ----
+  // Placés en arc face au spawn (le largage tombe à l'origine, cap +z) → on les voit droit devant en tombant.
+  const portalGeo=new THREE.TorusGeometry(15,1.2,10,40);
+  const portalGlowGeo=new THREE.TorusGeometry(15,3.2,10,40);
+  const PORTS=[
+    {kind:'race',col:0x3ee6f0,ico:'🏁',name:'COURSE',ang:-0.55},
+    {kind:'surv',col:0xff3b3b,ico:'🚓',name:'SURVIVANT',ang:0.0},
+    {kind:'reroll',col:0xffd75e,ico:'🎲',name:'NOUVEAU LOBBY',ang:0.55},
+  ];
+  const up9=new THREE.Vector3(0,1,0);
+  for(const pd of PORTS){
+    const rad=300,px=Math.sin(pd.ang)*rad,pz=Math.cos(pd.ang)*rad;   // devant le spawn (+z), en éventail
+    const axis=new THREE.Vector3(Math.sin(pd.ang),0,Math.cos(pd.ang)).normalize(); // traversé dans l'axe radial : le joueur roule du centre vers lui
+    const bas=new THREE.Vector3().crossVectors(up9,axis).normalize();
+    const q=new THREE.Matrix4().makeBasis(bas,up9,axis);
+    const center=new THREE.Vector3(px,PARK_GROUND_Y+15*0.9,pz);
+    const ring=new THREE.Mesh(portalGeo,new THREE.MeshBasicMaterial({color:pd.col}));
+    ring.quaternion.setFromRotationMatrix(q);ring.position.copy(center);
+    scene.add(ring);trackMeshes.push(ring);
+    const glow=new THREE.Mesh(portalGlowGeo,new THREE.MeshBasicMaterial({color:pd.col,transparent:true,opacity:.28,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
+    glow.quaternion.setFromRotationMatrix(q);glow.position.copy(center);glow.renderOrder=1;
+    scene.add(glow);trackMeshes.push(glow);
+    // rideau de lumière DANS l'anneau (on voit qu'on peut le traverser) + étiquette flottante
+    const veil=new THREE.Mesh(new THREE.CircleGeometry(14,32),new THREE.MeshBasicMaterial({color:pd.col,transparent:true,opacity:.16,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
+    veil.quaternion.setFromRotationMatrix(q);veil.position.copy(center);veil.renderOrder=1;
+    scene.add(veil);trackMeshes.push(veil);
+    const lab=portalLabel(pd.ico,pd.name,pd.col);lab.position.set(px,PARK_GROUND_Y+38,pz);lab.scale.set(30,15,1);
+    scene.add(lab);trackMeshes.push(lab);
+    PARK_PORTALS.push({pos:center.clone(),axis:axis,r:15,kind:pd.kind,mesh:ring,glow:glow,col:pd.col});
+  }
+  // ---- C) DÉCOR GÉANT : on se sent minuscule (ce que Sacha aime dans l'herbe) ----
+  buildParkDecor();
+}
+// étiquette flottante d'un portail : gros pictogramme + nom, contour épais (lisible de loin).
+// ⚠ la TEXTURE est cachée par nom (3 étiquettes fixes) → aucune fuite au reroll ; seul le SpriteMaterial
+// (jetable) est recréé et part dans trackMeshes (disposé au rebuild sans toucher à la texture cachée).
+const _portalLabTex={};
+function portalLabel(ico,name,col){
+  let tex=_portalLabTex[name];
+  if(!tex){
+    const cv=document.createElement('canvas');cv.width=512;cv.height=256;const c=cv.getContext('2d');
+    c.textAlign='center';c.font='120px sans-serif';c.fillText(ico,256,120);
+    c.font='bold 52px monospace';c.lineWidth=10;c.lineJoin='round';c.strokeStyle='rgba(6,8,20,.95)';
+    c.strokeText(name,256,196);c.fillStyle='#'+col.toString(16).padStart(6,'0');c.fillText(name,256,196);
+    tex=_portalLabTex[name]=new THREE.CanvasTexture(cv);
+  }
+  return new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false,fog:false}));
+}
+// DÉCOR : arches néon COLOSSALES + pylônes lumineux tout autour de la plaza. Cheap (peu de meshes),
+// mais énormes → l'herbe haute + ces arches = sensation d'être minuscule dans un immense hall.
+function buildParkDecor(){
+  // 1) BALISE CENTRALE : un fût de lumière au spawn (le point de téléportation du lobby)
+  const beacon=new THREE.Mesh(new THREE.CylinderGeometry(2.4,4,150,16,1,true),
+    new THREE.MeshBasicMaterial({color:0x7dffec,transparent:true,opacity:.22,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
+  beacon.position.set(0,PARK_GROUND_Y+75,0);scene.add(beacon);trackMeshes.push(beacon);
+  // 2) ARCHES GÉANTES : une couronne d'arches néon (demi-tores dressés) — hautes de ~220 m, on passe DESSOUS
+  const archGeo=new THREE.TorusGeometry(120,4,8,28,Math.PI); // demi-cercle
+  const ARCH_COLS=[0xff3d9e,0x3ee6f0,0xa06bff,0xffd75e,0x50f0a8];
+  for(let i=0;i<8;i++){
+    const an=(i/8)*6.2832,rad=1250;
+    const col=ARCH_COLS[i%ARCH_COLS.length];
+    const arch=new THREE.Mesh(archGeo,new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.9,fog:false}));
+    // le demi-tore par défaut couvre l'angle 0..π dans le plan XY → base sur l'axe X : on le dresse et on l'oriente vers le centre
+    arch.position.set(Math.cos(an)*rad,PARK_GROUND_Y,Math.sin(an)*rad);
+    arch.rotation.y=-an; // le plan de l'arche fait face au centre
+    scene.add(arch);trackMeshes.push(arch);
+    const glow=new THREE.Mesh(new THREE.TorusGeometry(120,9,8,28,Math.PI),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.16,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
+    glow.position.copy(arch.position);glow.rotation.y=-an;scene.add(glow);trackMeshes.push(glow);
+  }
+  // 3) PYLÔNES : de grands mâts lumineux qui bordent la plaza (repères + échelle)
+  const pyGeo=new THREE.CylinderGeometry(1.6,3.2,90,10);
+  const capGeo=new THREE.SphereGeometry(5,12,10);
+  for(let i=0;i<18;i++){
+    const an=Math.random()*6.2832,rad=520+Math.random()*760;
+    const px=Math.cos(an)*rad,pz=Math.sin(an)*rad;
+    const col=ARCH_COLS[(i*3)%ARCH_COLS.length];
+    const py=new THREE.Mesh(pyGeo,new THREE.MeshLambertMaterial({color:0x20263a}));
+    py.position.set(px,PARK_GROUND_Y+45,pz);scene.add(py);trackMeshes.push(py);
+    const cap=new THREE.Mesh(capGeo,new THREE.MeshBasicMaterial({color:col,fog:false}));
+    cap.position.set(px,PARK_GROUND_Y+92,pz);scene.add(cap);trackMeshes.push(cap);
+    const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:gloTex,color:col,transparent:true,opacity:.6,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
+    halo.scale.set(34,34,1);halo.position.copy(cap.position);scene.add(halo);trackMeshes.push(halo);
+  }
+}
+// CERCEAUX : un tore néon perpendiculaire au ruban, franchi de part en part. Détectés chaque frame (checkHoops).
+// Géométrie créée par build (partagée entre tous les anneaux du secteur) ; libérée via trackMeshes au rebuild.
+function buildParkHoops(){
+  const HR=ROAD_HALF*0.95;                                   // rayon de l'anneau : large, on passe dedans sans viser
+  const ringGeo=new THREE.TorusGeometry(HR,0.8,8,40);
+  const glowGeo=new THREE.TorusGeometry(HR,1.9,8,40);
+  const COLS=[0x3ee6f0,0xf24aa0,0xffd75e,0x50f0a8,0xa06bff]; // cyan · rose · or · menthe · violet
+  let ci=0,s9=420;
+  while(s9<L-160&&HOOPS.length<46){
+    frameAt(s9,F);
+    const ground=F.p.y<PARK_GROUND_Y+80;
+    const col=COLS[ci++%COLS.length];
+    const q=new THREE.Matrix4().makeBasis(F.b.clone(),F.n.clone(),F.t.clone()); // trou de l'anneau le long de la tangente
+    // au SOL : l'anneau se DRESSE, base au ras de l'herbe (arche) ; en VOL : il FLOTTE, centré sur la ligne de conduite
+    const center=F.p.clone().addScaledVector(F.n,ground?HR*0.72:2.2);
+    const ring=new THREE.Mesh(ringGeo,new THREE.MeshBasicMaterial({color:col}));
+    ring.quaternion.setFromRotationMatrix(q);ring.position.copy(center);
+    scene.add(ring);trackMeshes.push(ring);
+    const glow=new THREE.Mesh(glowGeo,new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.32,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
+    glow.quaternion.setFromRotationMatrix(q);glow.position.copy(center);glow.renderOrder=1;
+    scene.add(glow);trackMeshes.push(glow);
+    HOOPS.push({pos:center.clone(),axis:F.t.clone().normalize(),r:HR,scored:false,mesh:ring,glow:glow,col:col});
+    s9+=ground?540:780;                                      // plus serrés au sol, plus espacés dans le ciel
+  }
+  // ---- ACTIVITÉ DE LOBBY : des CERCEAUX SEMÉS EN PLEINE PRAIRIE, loin du ruban ----
+  // Ils n'appartiennent à aucune route : on les cherche en roue libre sur l'herbe, dans n'importe quel sens.
+  // Placés en anneaux concentriques autour du spawn → il y en a toujours un en vue quand on se balade.
+  const up9=new THREE.Vector3(0,1,0);
+  for(let ring9=0;ring9<5;ring9++){
+    const rad=520+ring9*430, n9=6+ring9*2;
+    for(let k=0;k<n9&&HOOPS.length<120;k++){
+      const an=(k/n9)*6.2832+ring9*0.7;
+      const px=Math.cos(an)*rad,pz=Math.sin(an)*rad;
+      const face=an+Math.PI/2;                               // l'anneau se traverse tangentiellement au cercle
+      const axis=new THREE.Vector3(Math.sin(face),0,Math.cos(face)).normalize();
+      const col=COLS[(ring9+k)%COLS.length];
+      const bas=new THREE.Vector3().crossVectors(up9,axis).normalize();
+      const q=new THREE.Matrix4().makeBasis(bas,up9,axis);
+      const center=new THREE.Vector3(px,PARK_GROUND_Y+HR*0.72,pz);
+      const ring=new THREE.Mesh(ringGeo,new THREE.MeshBasicMaterial({color:col}));
+      ring.quaternion.setFromRotationMatrix(q);ring.position.copy(center);
+      scene.add(ring);trackMeshes.push(ring);
+      const glow=new THREE.Mesh(glowGeo,new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.32,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
+      glow.quaternion.setFromRotationMatrix(q);glow.position.copy(center);glow.renderOrder=1;
+      scene.add(glow);trackMeshes.push(glow);
+      HOOPS.push({pos:center.clone(),axis:axis,r:HR,scored:false,mesh:ring,glow:glow,col:col});
+    }
+  }
 }
 function frameAt(s,out){
   s=THREE.MathUtils.clamp(s,0,L-.01);
@@ -3797,6 +4107,7 @@ const GRAV=9.8*.55,FALL_G=33,AXIS_Y=new THREE.Vector3(0,1,0),AIR_MAX=6;
 let AIR_RATE=1; // base V1 (temps réel) — startFall le RE-pilote depuis 2026-07-20 : =1 sous 450 km/h affichés, puis rampe douce jusqu'au cap 1.35 (l'ancienne ère 2.3 COMPENSAIT SPD=.25 ; ici c'est un dosage de tempo, pas une compensation).
 const PARK={on:false}; // MODE FREESTYLE : le parc de figures (pas une course). Armé au menu, persiste entre les runs. Neutralise police/mort/portail.
 const PARK_VCAP=145; // PARC : plafond de vitesse (m/s ≈ 260 km/h affichés) — la nitro infinie ne DOIT PAS envoyer à 1000 km/h ingérables ; on garde une vitesse RAPIDE mais CONTRÔLABLE (sol ET air)
+let PARK_GROUND_Y=0; // PARC : altitude de la PRAIRIE (le sol). Le ruban naît ici (y≈0), on y roule un bon moment, PUIS il grimpe vers le ciel. Le tapis d'herbe (buildParkGround), l'herbe-route (buildTrack) et le respawn-plancher (loop) s'y calent.
 const SPD=0.5; // vitesse globale du jeu — RESTAURÉ à la valeur V1 (2026-07-19) : le ÷2 « trop rapide dès le début » tuait le fun nerveux/arcade de la V1 ; le user tranche pour la V1. SPD scale TOUT : avance joueur/bots, chute, viseur ET compteur (donc les km/h affichés DOUBLENT — seuils de sensation ABSOLUS ajustés en conséquence, les systèmes RELATIFS via vmaxShow s'ajustent seuls)
 const TURN_HS=.0035; // pénalité de braquage à haute vitesse (avant .008 — plus petit = virages plus faciles)
 const AIR_ASSIST=1.0; // aide au recentrage en vol (0 = off), monte avec la vitesse
@@ -4048,6 +4359,98 @@ function parkRespawn(){
   respawn();
   showMsg('↻ ON REPART','#7dffec');
 }
+// ---- PRAIRIE ROULABLE : le mode 'grass' — conduite LIBRE sur le sol, sans rail ----
+// TOUT le sol est roulable : on quitte la dalle par le bord, on retombe du ciel, on repart où l'on veut.
+// gPos = position monde sur le plan d'herbe · gYaw = cap · gCd = anti-rebond route↔herbe.
+const gPos=new THREE.Vector3();
+let gYaw=0,gCd=0;
+// ---- CERCEAUX DU PARC : on les traverse, la combo monte (carillon qui grimpe, style, un peu de cash) ----
+let hoopCombo=0,hoopComboT=0;
+const hoopV=new THREE.Vector3();
+function checkHoops(){
+  const p=carGroup.position;
+  for(const h of HOOPS){
+    if(h.scored)continue;
+    hoopV.subVectors(p,h.pos);
+    const along=hoopV.dot(h.axis);          // distance au PLAN de l'anneau
+    if(Math.abs(along)>4.5)continue;
+    const radial=Math.sqrt(Math.max(0,hoopV.lengthSq()-along*along)); // écart au CENTRE dans le plan
+    if(radial<h.r){h.scored=true;onHoop(h);}
+  }
+}
+function onHoop(h){
+  hoopCombo++;hoopComboT=2.4;
+  h.mesh.material.color.setHex(0x2effa0);   // franchi = vert
+  if(h.glow)h.glow.material.color.setHex(0x2effa0);
+  sparkBurst(sparkGold,h.pos,18,12);
+  chimeNote(560*Math.pow(2,Math.min(24,hoopCombo)/12),0,.10,.20); // le carillon MONTE à chaque anneau
+  noiseBurst(.2,.09,900);
+  addStyle(7);
+  const g=denom()*4*Math.min(8,hoopCombo)*(fever>0?2:1);
+  money+=g;levelCash+=g;checkUpgrade();
+  trickMsg('🎯 CERCEAU'+(hoopCombo>1?' ×'+hoopCombo:'')+' +'+fmtC(g),hoopCombo>=5?3:hoopCombo>=3?2:false);
+  flyCash(h.pos,4);
+}
+// ---- LOBBY : LES PIÈCES — mini-jeu « ramasse tout » en roue libre sur l'herbe (combo qui monte) ----
+let coinCombo=0,coinComboT=0;const coinV=new THREE.Vector3();
+function checkParkCoins(){
+  const p=carGroup.position;
+  for(const c of PARK_COINS){
+    if(c.taken)continue;
+    const dx=p.x-c.pos.x,dz=p.z-c.pos.z,dy=p.y-c.pos.y;
+    if(dx*dx+dz*dz<58&&Math.abs(dy)<11){c.taken=true;c.mesh.visible=false;c.glow.visible=false;onParkCoin(c);}
+  }
+}
+function onParkCoin(c){
+  coinCombo++;coinComboT=2.0;
+  sparkBurst(sparkGold,c.pos,8,7);
+  chimeNote(720*Math.pow(2,Math.min(20,coinCombo)/16),0,.06,.13); // le carillon grimpe à chaque pièce enchaînée
+  const g=denom()*2*Math.min(10,coinCombo)*(fever>0?2:1);
+  money+=g;levelCash+=g;checkUpgrade();
+  addStyle(3);
+  if(coinCombo%5===0)trickMsg('🪙 PIÈCES ×'+coinCombo+' +'+fmtC(g),coinCombo>=15?2:false);
+  flyCash(c.pos,2);
+}
+// spin + flottement doux des pièces (seulement dans le parc ; ~200 pièces = négligeable)
+function animParkCoins(now){
+  for(const c of PARK_COINS){
+    if(c.taken)continue;
+    c.mesh.rotation.y=now*.003+c.pos.x*.1;
+    c.mesh.position.y=c.pos.y+Math.sin(now*.002+c.pos.z*.05)*.7;
+    c.glow.position.y=c.mesh.position.y;
+  }
+}
+// ---- LOBBY : LES PORTAILS — on roule DEDANS pour lancer une game (course / survivant / nouveau lobby) ----
+let parkLaunch=null;const portV=new THREE.Vector3();
+window.dbgLaunch=function(k){parkLaunch=k||'reroll';return 'armé : '+parkLaunch;}; // test console : simule le franchissement d'un portail
+function checkPortals(){
+  if(parkLaunch)return; // déjà armé : on ne relance pas
+  const p=carGroup.position;
+  for(const pt of PARK_PORTALS){
+    portV.subVectors(p,pt.pos);
+    const along=portV.dot(pt.axis);
+    if(Math.abs(along)>7)continue;
+    const radial=Math.sqrt(Math.max(0,portV.lengthSq()-along*along));
+    if(radial<pt.r*0.94){parkLaunch=pt.kind;
+      pt.mesh.material.color.setHex(0xffffff);if(pt.glow)pt.glow.material.color.setHex(0xffffff);
+      flashEl.style.opacity=.55;setTimeout(function(){flashEl.style.opacity=0;},240);
+      shake=Math.max(shake,.5);sparkBurst(sparkGold,pt.pos,30,16);fanfare();
+      return;}
+  }
+}
+// exécute le lancement (appelé en TÊTE de loop, hors des branches de mode → rebuild propre)
+function doParkLaunch(kind){
+  if(kind==='reroll'){ // reroll : on régénère un lobby tout neuf, on reste dans le parc
+    showMsg('🎲 NOUVEAU LOBBY','#ffd75e');
+    newTrack();respawn();safeS=0;s=0;coinCombo=0;hoopCombo=0;
+    return;
+  }
+  // COURSE / SURVIVANT : on QUITTE le lobby et on démarre une vraie partie
+  PARK.on=false;parkBtnEl.textContent='🛝 PARC FREESTYLE : OFF';
+  SURV.armed=(kind==='surv');survBtnEl.textContent='🏁 SURVIVANT : '+(SURV.armed?'ON':'OFF');
+  resetGame();
+  showMsg(kind==='surv'?'🚓 SURVIVANT — GO !':'🏁 COURSE — GO !',kind==='surv'?'#ff8a8a':'#7dffec');
+}
 function checkUpgrade(){
   let up=false;
   while(level<23&&levelCash>=THRESH[level]){level++;up=true;}
@@ -4247,7 +4650,7 @@ function die(){
 function resetGame(){
   clearBoom();
   money=0;levelCash=0;level=0;buildCar(CARS[0]);
-  nitroR=2;nitroX=0;boost=0;combo=0;edgeT=0;momT=0;styleM=0;fever=0;streak=0;slowT=0;gameOver=false;paused=false;insUsed=false;feverArmed=false;rollover=0;
+  nitroR=2;nitroX=0;boost=0;combo=0;edgeT=0;momT=0;styleM=0;fever=0;streak=0;slowT=0;gameOver=false;paused=false;insUsed=false;feverArmed=false;rollover=0;hoopCombo=0;hoopComboT=0;coinCombo=0;coinComboT=0;
   pwrNitroT=0;pwrAirT=0;pwrSpdT=0;
   nextRainAt=4e3;moneyRainT=0;sideCd=0;slipT=0;oilCd=0;
   nitroAirT=0;fallUnder=false;pureT=0;pureArmed=true;gapArmed=0;rampCd=0;annStop();
@@ -4884,6 +5287,9 @@ function loop(now){
   }
   bioStep(dt); // BIOMES : le voyage d'ambiance avance même au menu/en pause de jeu (c'est le ciel qui vit, pas la sim)
   if(parkGrassMat)parkGrassMat.uniforms.uTime.value=now*.001; // l'herbe longue du parc ondule au vent (now : dispo avant `const t`)
+  if(PARK.on&&PARK_COINS.length)animParkCoins(now); // les pièces du lobby tournent et flottent (même au menu)
+  // LANCEMENT D'UNE GAME depuis le lobby : on a roulé dans un portail → on démarre ici (hors des branches de mode, rebuild propre)
+  if(parkLaunch){const k=parkLaunch;parkLaunch=null;doParkLaunch(k);return;}
   if(slowT>0){slowT-=dt;dt*=.45;} // slow-mo d'atterrissage
   if(hitT>0){hitT-=dt;dt*=.04;}   // HIT-STOP : 80 ms de gel sur l'encaissement PARFAIT — le monde retient son souffle
   const t=now/1000;
@@ -4968,7 +5374,16 @@ function loop(now){
       // BORD : si la voiture dépasse le côté de la route, elle bascule et tombe dans le vide.
       if(Math.abs(lat)>ROAD_HALF){
         const out=Math.sign(lat);
-        if(graceT<=0)startFall(3.4,1.04); // petit boost de saut en sortie de route
+        // PARC : au ras de la prairie, quitter la dalle ne tue pas — on DESCEND rouler sur l'herbe (tout le sol est roulable)
+        if(PARK.on&&graceT<=0&&F.p.y<PARK_GROUND_Y+7&&F.n.y>.5){
+          const cs=Math.cos(psi)*driveDir,sn=Math.sin(psi)*driveDir;
+          gPos.set(F.p.x+F.b.x*lat,PARK_GROUND_Y,F.p.z+F.b.z*lat);
+          gYaw=Math.atan2(F.t.x*cs+F.b.x*sn,F.t.z*cs+F.b.z*sn);
+          vA=Math.abs(vA);gCd=.6;hopY=0;hopV=0;mode='grass';
+          squashT=Math.max(squashT,.12);noiseBurst(.12,.09,360);
+          showMsg('🌱 DANS L\'HERBE','#9be86a');
+        }
+        else if(graceT<=0)startFall(3.4,1.04); // petit boost de saut en sortie de route
         else{lat=out*ROAD_HALF;if(vL*out>0)vL=0;}
       }
       if(graceT<=0&&F.n.y*1<-.15&&Math.abs(vF)<7)startFall();
@@ -5222,6 +5637,84 @@ function loop(now){
         // indicateur de virage RETIRÉ du HUD épuré (#turnHint est display:none) : on n'évalue plus la courbe à l'avance (frameAt+trig) chaque frame pour rien
         airPie.style.display='none';
       }
+    }else if(mode==='grass'){ // ---- LA PRAIRIE : CONDUITE LIBRE, TOUT LE SOL EST ROULABLE ----
+      // Plus de rails : un cap (gYaw), un plan d'herbe, et on va où on veut. C'est le LOBBY —
+      // on s'y balade entre deux activités, on monte sur une route quand on veut décoller.
+      landMark.visible=false;airPie.style.display='none';
+      gCd=Math.max(0,gCd-dt);
+      const spdMult=pwrSpdT>0?1.6:1;
+      let a=0;
+      if(up)a=acc9*(vA<maxSp?1:.55)*(boost>0?1.5:1);
+      if(dn)a=vA>2?-acc9*1.5:-acc9*.5;
+      vA+=a*dt;
+      if(nitroOn)vA+=(nitroBlue?48:30)*dt;
+      vA-=vA*Math.abs(vA)*(acc9/(maxSp*maxSp*5.8))*dt;
+      vA*=Math.max(0,1-.10*dt);                       // l'herbe freine un peu plus que le bitume
+      if(!up&&!dn&&!nitroOn)vA*=Math.max(0,1-.5*dt);
+      if(vA>PARK_VCAP)vA=PARK_VCAP;
+      if(vA<-10)vA=-10;
+      // VOLANT LIBRE : mordant avec la vitesse, jamais de pivot sur place
+      const tgt9=(lf?1:0)-(rt?1:0);
+      gYaw+=tgt9*spec.turn*1.3*THREE.MathUtils.clamp(vA/10,-1,1)*(1/(1+Math.abs(vA)*TURN_HS*.7))*dt;
+      gPos.x+=Math.sin(gYaw)*vA*dt*SPD*spdMult;
+      gPos.z+=Math.cos(gYaw)*vA*dt*SPD*spdMult;
+      gPos.y=PARK_GROUND_Y;
+      speedKmh=Math.abs(vA)*3.6*SPD*spdMult;
+      boost=Math.max(0,boost-dt);
+      // ---- MONTER SUR UNE ROUTE : dalle au ras du sol + bon cap = on s'y accroche ----
+      if(gCd<=0){
+        let bi=-1,bd=1e9;
+        for(let i=0;i<NP;i+=2){const p=pts[i];
+          if(p.y>PARK_GROUND_Y+7)continue;            // seules les dalles POSÉES sur l'herbe se prennent en marche
+          const dx=gPos.x-p.x,dz=gPos.z-p.z,dd=dx*dx+dz*dz;
+          if(dd<bd){bd=dd;bi=i;}}
+        if(bi>=0&&bd<ROAD_HALF*ROAD_HALF){
+          const tg=T[bi],bb=B[bi];
+          const dotT=Math.sin(gYaw)*tg.x+Math.cos(gYaw)*tg.z; // aligné avec la route ?
+          if(Math.abs(dotT)>.7){
+            const dx=gPos.x-pts[bi].x,dz=gPos.z-pts[bi].z,lt=dx*bb.x+dz*bb.z;
+            if(Math.abs(lt)<ROAD_HALF-1.5){
+              s=bi/(NP-1)*L;lat=lt;side=1;driveDir=dotT>0?1:-1;psi=0;
+              hopY=0;hopV=0;prevTvalid=false;graceT=.45;gCd=.6;mode='drive';
+              squashT=Math.max(squashT,.12);noiseBurst(.1,.08,420);
+              showMsg('🛣 SUR LA ROUTE','#7dffec');
+            }
+          }
+        }
+      }
+      // ---- RENDU + CAMÉRA (repère plat synthétique : l'herbe est un sol, la normale est verticale) ----
+      F.p.copy(gPos);F.n.set(0,1,0);F.t.set(Math.sin(gYaw),0,Math.cos(gYaw));F.b.crossVectors(F.n,F.t).normalize();
+      carGroup.position.copy(gPos);carGroup.position.y+=hopY;
+      fwdW.copy(F.t);
+      tmp.crossVectors(F.n,fwdW).normalize();
+      mat4.makeBasis(tmp,F.n,fwdW);
+      carGroup.quaternion.setFromRotationMatrix(mat4);
+      if(squashT>0){const sq=squashT/.28;squashT=Math.max(0,squashT-dt);carGroup.scale.set(1+sq*.25,1-sq*.4,1+sq*.15);}
+      else carGroup.scale.set(1,1,1);
+      for(const w of wheels)w.rotation.x+=vA*dt*2.5;
+      shadow.material.opacity=.10;
+      shadow.position.copy(carGroup.position);shadow.position.y=PARK_GROUND_Y+.07;
+      mat4.makeBasis(tmp3.copy(F.t),tmp2.copy(F.b),F.n);
+      shadow.quaternion.setFromRotationMatrix(mat4);
+      shadow.scale.setScalar(1);
+      // gerbe d'herbe sous les roues quand ça glisse / accélère fort
+      if(Math.abs(vA)>14&&Math.random()<dt*26)
+        spawnP(dust,gPos.x-Math.sin(gYaw)*2.2+(Math.random()-.5)*1.6,PARK_GROUND_Y+.3,gPos.z-Math.cos(gYaw)*2.2+(Math.random()-.5)*1.6,
+          (Math.random()-.5)*3,1+Math.random()*2,(Math.random()-.5)*3,.4);
+      const camBack9=5.6+speedKmh*.0095,camH9=2.2+speedKmh*.004;
+      tmp2.copy(carGroup.position).addScaledVector(fwdW,-camBack9).addScaledVector(F.n,camH9);
+      camera.position.lerp(tmp2,Math.min(1,dt*5));
+      camUp.lerp(F.n,Math.min(1,dt*4)).normalize();camera.up.copy(camUp);
+      tmp2.copy(carGroup.position).addScaledVector(fwdW,8.5).addScaledVector(F.n,1.05);
+      camera.lookAt(tmp2);
+      const fovT9=72+Math.min(38,(speedKmh/Math.max(1,vmaxShow()))*17+speedKmh*.030)+(boost>0?6:0)+(nitroOn?(nitroBlue?16:10):0);
+      camera.fov+=(fovT9-camera.fov)*Math.min(1,dt*6);camera.updateProjectionMatrix();
+      if(shake>0){
+        camera.position.x+=(Math.random()-.5)*shake;
+        camera.position.y+=(Math.random()-.5)*shake;
+        camera.position.z+=(Math.random()-.5)*shake;
+        shake=Math.max(0,shake-3.5*dt);
+      }
     }else if(mode==='fall'){ // ---- VOL : maniabilité aérienne propre ----
       const dtF=dt*AIR_RATE; // temps de vol accéléré : même arc dans l'espace, moins de temps réel à flotter
       fallT+=dtF;fallTR+=dt; // fallT = temps-sim (figures/paiements) ; fallTR = temps RÉEL (jauge des 6 s — sinon le chrono file à ×1,6)
@@ -5424,7 +5917,25 @@ function loop(now){
       pieCtx.fillStyle='#fff';pieCtx.font='bold 15px monospace';pieCtx.textAlign='center';
       pieCtx.fillText((pwrAirT>0?pwrAirT:Math.max(0,AIR_MAX-fallTR)).toFixed(1),37,42);
       if(tryLand(dtF)){airPie.style.display='none';}
-      else if((fallTR>AIR_MAX&&pwrAirT<=0)||fallPos.y<trackMinY-120){airPie.style.display='none';if(PARK.on)parkRespawn();else explode();} // FREESTYLE : trop long en l'air ou chute dans le vide = on repart, jamais de mort // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
+      // PARC : LA PRAIRIE RATTRAPE TOUT — on ne meurt pas d'un vol raté, on se pose dans l'herbe et on repart.
+      // La chaîne se cashe ici comme à un atterrissage sur dalle : le vol paye, même fini au sol.
+      else if(PARK.on&&fallPos.y<=PARK_GROUND_Y+.7){
+        airPie.style.display='none';
+        if(chain>0||chainVal>0){
+          const gain=chainEst();
+          if(gain>0){money+=gain;levelCash+=gain;checkUpgrade();
+            trickMsg('🌱 POSÉ DANS L\'HERBE +'+fmtC(gain),2);flyCash(fallPos,6);}
+        }
+        chain=0;chainVal=0;chainMult=1;chainSeen={};ladderI=0;
+        chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;dolphT=0;trkDolph=false;
+        gPos.set(fallPos.x,PARK_GROUND_Y,fallPos.z);
+        gYaw=Math.atan2(fallVel.x,fallVel.z);
+        vA=Math.min(PARK_VCAP,Math.hypot(fallVel.x,fallVel.z));
+        hopY=0;hopV=0;gCd=.5;mode='grass';
+        squashT=Math.max(squashT,.22);shake=Math.max(shake,.25);
+        sparkBurst(sparkGold,fallPos,10,8);noiseBurst(.16,.12,300);
+      }
+      else if((fallTR>AIR_MAX&&pwrAirT<=0&&!PARK.on)||fallPos.y<trackMinY-120){airPie.style.display='none';if(PARK.on)parkRespawn();else explode();} // FREESTYLE : la jauge d'airtime ne tue plus (le sol est roulable, on finit par se poser) ; reste le filet du plongeon hors-monde // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
     }else if(mode==='boom'){ // ---- EXPLOSION ----
       boomT+=dt;
       for(const d of debris){
@@ -5449,6 +5960,14 @@ function loop(now){
       elTurn.style.opacity=0;
       if(boomT>1.8&&!gameOver)endGame();
     }
+    // ACTIVITÉS DU LOBBY : cerceaux, pièces et portails — détectés en roulant OU en vol (carGroup.position est à jour partout)
+    if(PARK.on&&(mode==='drive'||mode==='fall'||mode==='grass')){
+      if(HOOPS.length)checkHoops();
+      if(PARK_COINS.length)checkParkCoins();
+      if(PARK_PORTALS.length)checkPortals();
+    }
+    if(hoopComboT>0){hoopComboT-=dt;if(hoopComboT<=0)hoopCombo=0;} // la combo de cerceaux retombe si on traîne
+    if(coinComboT>0){coinComboT-=dt;if(coinComboT<=0)coinCombo=0;} // idem pour la combo de pièces
     // traînée nitro façon Asphalt 8
     tmp3.set(0,0,1).applyQuaternion(carGroup.quaternion);
     tmp.set(1,0,0).applyQuaternion(carGroup.quaternion);
