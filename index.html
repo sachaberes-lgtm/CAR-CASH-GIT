@@ -35,6 +35,9 @@
   /* immersion nuage : voile blanc laiteux quand on traverse un banc */
   #cloudFx{position:absolute;inset:0;opacity:0;pointer-events:none;
     background:radial-gradient(ellipse at 50% 55%,rgba(252,236,244,.99) 0%,rgba(246,220,234,.94) 46%,rgba(232,200,224,.88) 100%)}
+  /* IMMERSION : sous la mer, un voile bleu-vert se referme + un liseré clair vers la surface */
+  #waterFx{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .18s linear;
+    background:linear-gradient(180deg,rgba(120,220,240,.30) 0%,rgba(12,86,120,.72) 38%,rgba(3,32,54,.92) 100%)}
   /* speed lines anime plein écran (dessinées en canvas) */
   #slCv{position:absolute;inset:0;width:100%;height:100%}
   .panel{background:rgba(12,8,34,.75);border:2px solid #00eaff;
@@ -338,6 +341,7 @@
 <div id="hud">
   <canvas id="slCv"></canvas>
   <div id="cloudFx"></div>
+  <div id="waterFx"></div>
   <div id="vig"></div>
   <div id="scan"></div>
   <div id="speedFx"></div>
@@ -1910,14 +1914,15 @@ function waveH(x,z,t){
 function buildParkOcean(){
   const nrm=waterNormalTex();
   parkWaterMat=new THREE.ShaderMaterial({
-    fog:true,
+    fog:true,side:THREE.DoubleSide,   // DoubleSide : on PASSE SOUS l'eau, il faut voir la surface d'en dessous
     uniforms:THREE.UniformsUtils.merge([THREE.UniformsLib.fog,{
       uTime:{value:0},uNrm:{value:null},
-      uDeep:{value:new THREE.Color(0x06263f)},   // le fond : bleu profond
-      uShal:{value:new THREE.Color(0x1d8fa8)},   // la crête : turquoise
-      uSky:{value:new THREE.Color(0x8fb4ff)},    // ce que l'eau REFLÈTE (repeint par les biomes)
+      uDeep:{value:new THREE.Color(0x04121f)},   // le corps de l'eau, au couchant : indigo presque noir
+      uShal:{value:new THREE.Color(0x0e5a6e)},   // le creux éclairé : pétrole
+      uSky:{value:new THREE.Color(0x8fb4ff)},    // le ZÉNITH reflété (repeint par les biomes)
+      uHorz:{value:new THREE.Color(0xff9a52)},   // l'HORIZON reflété : la braise du couchant
       uSun:{value:new THREE.Vector3(0,1,0)},uSunCol:{value:new THREE.Color(0xffd0a0)},
-      uAmp:{value:1}
+      uAmp:{value:1},uSub:{value:0}              // uSub : 1 = la caméra est SOUS la surface
     }]),
     // ⚠ THREE r128 : le varying de brouillard s'appelle `fogDepth` (il n'est devenu `vFogDepth` qu'après) —
     // se tromper de nom fait ÉCHOUER la compilation du vertex shader et l'océan disparaît en silence.
@@ -1931,38 +1936,72 @@ function buildParkOcean(){
       ' #endif',
       ' gl_Position=projectionMatrix*mv;}'
     ].join('\n'),
+    // ================== L'OCÉAN AU COUCHANT ==================
+    // Ce qui fait une belle mer de coucher de soleil, ce n'est PAS la couleur de l'eau : c'est le SOLEIL
+    // RASANT. Trois choses le rendent, et c'est ce que fait ce shader :
+    //  1. LE CHEMIN DE LUMIÈRE (glitter path) — la traînée verticale qui court du soleil jusqu'à toi.
+    //     Il naît d'un reflet ANISOTROPE : les vaguelettes s'inclinent dans tous les sens, donc le reflet
+    //     s'étale le long de l'azimut du soleil et reste étroit perpendiculairement. On l'obtient en
+    //     ÉCRASANT la normale sur l'axe perpendiculaire au soleil avant le calcul spéculaire.
+    //  2. LE CIEL EN DÉGRADÉ — l'eau ne reflète pas « une » couleur : au ras de l'horizon elle reflète la
+    //     braise, plus haut le bleu. On interpole selon la hauteur du rayon réfléchi.
+    //  3. LA TRANSLUCIDITÉ DES CRÊTES — une vague prise à contre-jour s'ALLUME par transparence.
     fragmentShader:[
       'uniform float uTime;uniform sampler2D uNrm;',
-      'uniform vec3 uDeep,uShal,uSky,uSunCol,uSun;uniform float uAmp;',
+      'uniform vec3 uDeep,uShal,uSky,uHorz,uSunCol,uSun;uniform float uAmp,uSub;',
       'varying vec3 vW;',
       '#include <fog_pars_fragment>',
       'vec3 nrm(vec2 uv){return texture2D(uNrm,uv).xyz*2.0-1.0;}',
       'void main(){',
-      // trois couches de ripples à échelles et vitesses différentes : le tuilage devient invisible
       ' vec2 p=vW.xz;',
-      ' vec3 n1=nrm(p*0.0125+vec2( 0.021, 0.013)*uTime);',
-      ' vec3 n2=nrm(p*0.0041+vec2(-0.014, 0.024)*uTime);',
-      ' vec3 n3=nrm(p*0.0009+vec2( 0.006,-0.004)*uTime);',
-      ' vec3 N=normalize(vec3((n1.xz*0.55+n2.xz*0.75+n3.xz*1.1)*uAmp,1.0).xzy);',
+      // trois couches de ripples à échelles/vitesses/directions différentes : le tuilage devient invisible
+      ' vec3 n1=nrm(p*0.0135+vec2( 0.021, 0.013)*uTime);',
+      ' vec3 n2=nrm(p*0.0044+vec2(-0.014, 0.024)*uTime);',
+      ' vec3 n3=nrm(p*0.0010+vec2( 0.006,-0.004)*uTime);',
+      ' vec3 N=normalize(vec3((n1.xz*0.50+n2.xz*0.70+n3.xz*1.15)*uAmp,1.0).xzy);',
       // la GRANDE HOULE (mêmes ondes que waveH côté JS) incline la surface en plus des ripples
       ' float sw=0.32*sin(p.x*0.0042+uTime*0.55)+0.26*sin(p.y*0.0055-uTime*0.47)+0.17*sin((p.x+p.y)*0.0031+uTime*0.83);',
       ' float dx=0.32*0.0042*cos(p.x*0.0042+uTime*0.55)+0.17*0.0031*cos((p.x+p.y)*0.0031+uTime*0.83);',
       ' float dz=-0.26*0.0055*cos(p.y*0.0055-uTime*0.47)+0.17*0.0031*cos((p.x+p.y)*0.0031+uTime*0.83);',
-      ' N=normalize(N+vec3(-dx*90.0,0.0,-dz*90.0));',
+      ' N=normalize(N+vec3(-dx*110.0,0.0,-dz*110.0));',
       ' vec3 V=normalize(cameraPosition-vW);',
-      // FRESNEL : de face on voit DANS l'eau (bleu profond), en rasant elle devient miroir de ciel
-      ' float f=pow(clamp(1.0-max(dot(N,V),0.0),0.0,1.0),4.0);',
-      ' f=mix(0.045,1.0,f);',
-      ' vec3 body=mix(uDeep,uShal,clamp(sw*0.9+0.5,0.0,1.0));',
-      ' vec3 col=mix(body,uSky,f);',
-      // SOLEIL : le grand reflet large + le PAILLETAGE haute fréquence (le sel de la mer)
+      ' float vy=max(abs(V.y),0.001);',
+      // ---------- VUE DU DESSOUS : on est SOUS la mer, la surface devient un plafond ----------
+      ' if(uSub>0.5){',
+      '   vec3 und=mix(vec3(0.012,0.075,0.115),vec3(0.05,0.28,0.36),pow(1.0-vy,2.0));', // plus on rase, plus c'est clair
+      '   float caust=pow(max(0.0,0.5+0.5*sin((p.x+p.y)*0.06+uTime*1.7)+n1.x*0.9),6.0);',// caustiques du plafond
+      '   und+=uSunCol*caust*0.16;',
+      '   gl_FragColor=vec4(und,1.0);',
+      '   #include <fog_fragment>',
+      '   return;',
+      ' }',
+      // ---------- LE CIEL RÉFLÉCHI : dégradé horizon(braise) → zénith(bleu) ----------
+      ' vec3 R=reflect(-V,N);',
+      ' float ry=clamp(R.y,0.0,1.0);',
+      ' vec3 skyRefl=mix(uHorz,uSky,pow(ry,0.42));',
+      // ---------- FRESNEL : de face on voit DANS l'eau, en rasant c'est un miroir ----------
+      ' float f=pow(clamp(1.0-max(dot(N,V),0.0),0.0,1.0),5.0);',
+      ' f=mix(0.03,1.0,f);',
+      ' vec3 body=mix(uDeep,uShal,clamp(sw*0.8+0.5,0.0,1.0));',
+      ' vec3 col=mix(body,skyRefl,f);',
+      // ---------- 1) LE CHEMIN DE LUMIÈRE : reflet ANISOTROPE étiré vers le soleil ----------
+      ' vec3 sd=normalize(vec3(uSun.x,0.0,uSun.z));',      // azimut du soleil, à plat
+      ' vec3 sp3=normalize(cross(vec3(0.0,1.0,0.0),sd));',  // l\'axe PERPENDICULAIRE
+      ' vec3 Na=normalize(N-sp3*dot(N,sp3)*0.78);',         // on écrase la normale sur cet axe → traînée
       ' vec3 H=normalize(uSun+V);',
-      ' float sp=pow(max(dot(N,H),0.0),240.0);',
-      ' float glit=pow(max(dot(normalize(N+n1*0.85),H),0.0),900.0);',
-      ' col+=uSunCol*(sp*1.5+glit*2.6);',
-      // ÉCUME sur les crêtes de houle : un liseré clair qui roule avec la mer
-      ' float foam=smoothstep(0.52,0.72,sw+ (n1.x+n2.z)*0.22);',
-      ' col=mix(col,vec3(0.86,0.94,1.0),foam*0.20);',
+      ' float road=pow(max(dot(Na,H),0.0),190.0);',         // la ROUTE de lumière, large et molle
+      ' float glit=pow(max(dot(normalize(Na+n1*1.15),H),0.0),1400.0);', // le PAILLETAGE, dur et piqué
+      ' float low=smoothstep(0.55,0.0,uSun.y);',            // n\'existe que soleil BAS : c\'est ça, le couchant
+      ' col+=uSunCol*(road*(1.1+low*2.6)+glit*(2.0+low*3.4));',
+      // ---------- 2) LE CONTRE-JOUR : halo chaud autour de la direction du soleil ----------
+      ' float back=pow(max(dot(normalize(vec3(V.x,0.0,V.z)),-sd),0.0),3.0);',
+      ' col+=uSunCol*back*low*0.30*(0.4+f);',
+      // ---------- 3) TRANSLUCIDITÉ : la crête prise à contre-jour s\'ALLUME ----------
+      ' float crest=smoothstep(0.15,0.62,sw+(n1.x+n2.z)*0.30);',
+      ' col+=uSunCol*crest*low*0.22;',
+      // ---------- ÉCUME : seulement sur le HAUT des crêtes, teintée par le couchant ----------
+      ' float foam=smoothstep(0.58,0.78,sw+(n1.x+n2.z)*0.22);',
+      ' col=mix(col,mix(vec3(0.86,0.90,1.0),uSunCol,low*0.55),foam*0.22);',
       ' gl_FragColor=vec4(col,1.0);',
       ' #include <fog_fragment>',
       '}'
@@ -3143,6 +3182,7 @@ window.dbgPark=function(){return {on:PARK.on,pilotes:PARK_PILOTS.length,ticks:pa
   places:PARK_SLOTS.length,quartiers:PARK_DISTRICTS.map(d=>d.name),
   tremplin:parkTake.ok?{s:+parkTake.s.toFixed(0),lat:+parkTake.lat.toFixed(1),side:parkTake.side,v:+parkTake.vA.toFixed(0)}:null,
   bigAir:{h:+PARK_AIR.h.toFixed(0),t:+PARK_AIR.t.toFixed(1),recH:+PARK_AIR.bh.toFixed(0)},
+  eau:{profondeur:+wDep.toFixed(1),vy:+wVy.toFixed(1),immerge:wSub,biome:BIO.name},
   pos:PARK_PILOTS.slice(0,3).map(p=>[+p.grp.position.x.toFixed(0),+p.grp.position.y.toFixed(0),+p.grp.position.z.toFixed(0)])};};
 // force le retour au tremplin (ce que fait la fin de jauge d'airtime en parc) — sans avoir à rater un vol
 window.dbgRespawn=function(){parkRespawn();return window.dbgState();};
@@ -4528,7 +4568,7 @@ const elSpeed=$('speedVal'),elName=$('carName'),elLvl=$('carLevel'),elMoney=$('m
       elStyleF=$('styleFill'),feverGlow=$('feverGlow'),flashEl=$('flash'),
       overlay=$('overlay'),ovSub=$('ovSub'),finalScore=$('finalScore'),goTxt=$('goTxt'),tagline=$('tagline'),bestChip=$('bestChip');
 const elLb=$('lbBox'),nameEntry=$('nameEntry'),nameInput=$('nameInput'),nameSave=$('nameSave');
-const speedFx=$('speedFx'),cloudFxEl=$('cloudFx'),runStatsEl=$('runStats'),pwrChip=$('pwrChip');
+const speedFx=$('speedFx'),cloudFxEl=$('cloudFx'),waterFxEl=$('waterFx'),runStatsEl=$('runStats'),pwrChip=$('pwrChip');
 const slCv=$('slCv'),slCtx=slCv.getContext('2d');
 slCv.width=innerWidth;slCv.height=innerHeight;
 function drawSpeedLines(kmh,nitro){ // speed lines façon anime : traits radiaux fuyant le centre
@@ -4765,6 +4805,14 @@ function parkRespawn(){
 // gPos = position monde sur le plan d'herbe · gYaw = cap · gCd = anti-rebond route↔herbe.
 const gPos=new THREE.Vector3();
 let gYaw=0,gCd=0;
+// ---- LA PLONGÉE (parc océan, demande de Sacha 2026-07-22) ----
+// `wDep` = profondeur SOUS la surface (0 = on flotte, >0 = immergé). La NITRO enfonce (les tuyères
+// poussent vers le fond), et une FLOTTAISON de type ressort te renvoie toujours vers le haut : lâche
+// tout et la mer te recrache. Sous l'eau tout est plus lent — c'est le prix de la plongée.
+let wDep=0,wVy=0,wSub=false,wBubT=0;
+const W_MAXDEP=52;      // fond « utile » : au-delà, la poussée d'Archimède gagne quoi qu'il arrive
+const W_BUOY=13;        // ressort de flottaison (par mètre de profondeur)
+const W_DIVE=42;        // ce que la nitro arrache vers le fond (équilibre nitro↔Archimède ≈ 22 m de fond)
 // ---- CERCEAUX DU PARC : on les traverse, la combo monte (carillon qui grimpe, style, un peu de cash) ----
 let hoopCombo=0,hoopComboT=0;
 const hoopV=new THREE.Vector3();
@@ -5077,7 +5125,12 @@ function newTrack(){
   // (jamais deux fois la même de suite) — au 3e portail de la MÊME partie, la VRAIE NUIT
   // tombe pour de bon (runStats.zones est ++ AVANT newTrack au portail, remis à 0 par resetGame).
   let nb9;
-  if(runStats.zones>=3)nb9='nuit';
+  // PARC : le ciel ne tire PLUS au hasard — c'est un OCÉAN AU COUCHANT, toujours (demande de Sacha
+  // 2026-07-22 : « je veux un effet océan avec le sunset »). Un soleil RASANT est ce qui fait la beauté
+  // d'une mer : il allume le chemin de lumière sur l'eau et met le feu aux crêtes. On alterne juste
+  // `couchant` et `golden` pour que deux lobbies ne soient pas identiques.
+  if(PARK.on)nb9=(BIO.name==='couchant')?'golden':'couchant';
+  else if(runStats.zones>=3)nb9='nuit';
   else do{nb9=BIO_DAY[(Math.random()*BIO_DAY.length)|0];}while(nb9===BIO.name);
   const nightFalls=started&&nb9==='nuit'&&BIO.name!=='nuit'; // capturé AVANT bioGo (qui écrase BIO.name)
   bioGo(nb9,started?4:.01); // lerp 4 s au portail (et au replay), instantané au boot
@@ -5766,8 +5819,18 @@ function loop(now){
     U.uTime.value=now*.001;
     U.uSky.value.copy(hemi.color);
     U.uSunCol.value.copy(sun.color);
-    U.uSun.value.copy(sun.position).normalize();
-  }
+    // ⚠ PAS `sun.position` : la DirectionalLight est recollée sur la caisse à chaque frame pour cadrer la
+    // shadow map (voir `sun.position.copy(shadV)…`), donc sa position ne dit RIEN de la direction du soleil.
+    // La vraie direction, immuable, c'est SUN_DIR (~5,9° au-dessus de l'horizon = le couchant du jeu).
+    U.uSun.value.copy(SUN_DIR);
+    // l'HORIZON reflété = l'air du moment RÉCHAUFFÉ vers le soleil : c'est la braise qu'on voit courir sur l'eau
+    U.uHorz.value.copy(FOG_BASE).lerp(sun.color,.55);
+    // SOUS L'EAU : la surface devient un plafond (le shader bascule) et un voile bleu-vert se referme.
+    // Le test porte sur la CAMÉRA, pas sur la caisse : c'est ce que l'ŒIL traverse qui compte.
+    const camSub=PARK.on&&camera.position.y<PARK_GROUND_Y+waveH(camera.position.x,camera.position.z,now*.001);
+    U.uSub.value=camSub?1:0;
+    if(waterFxEl)waterFxEl.style.opacity=camSub?Math.min(.92,.42+Math.max(0,PARK_GROUND_Y-camera.position.y)*.035).toFixed(3):0;
+  }else if(waterFxEl&&waterFxEl.style.opacity!=='0')waterFxEl.style.opacity=0;
   // PARC = ZÉRO ARGENT : on cache le compteur de cash ET la mallette (valeur en jeu). Bascule seulement au changement.
   if(loop._parkHUD!==PARK.on){loop._parkHUD=PARK.on;
     const md=document.getElementById('money');if(md)md.style.display=PARK.on?'none':'';
@@ -6145,10 +6208,21 @@ function loop(now){
       // Traînée quadratique franche (on pousse une masse d'eau) + un PLAFOND DE COQUE bien plus bas que
       // la route (35 % du gouverneur du parc) qu'on ne franchit pas en force : la nitro te maintient au
       // maximum en surplace-hydro, elle ne te rend pas la vitesse du bitume. « Traverser en nitro » coûte.
-      vA*=Math.max(0,1-1.15*dt);
-      const hull=parkCap*.35;
-      if(vA>hull)vA-=(vA-hull)*2.6*dt;                 // freinage PROGRESSIF (pas un mur) : la coque s'enfonce
-      if(!up&&!dn&&!nitroOn)vA*=Math.max(0,1-1.1*dt);  // au lâcher, l'eau t'arrête vite
+      // ---- LA PLONGÉE : la NITRO ENFONCE, la FLOTTAISON RAMÈNE ----
+      // Tant qu'on tient la nitro, les tuyères poussent vers le fond ; dès qu'on lâche, la poussée
+      // d'Archimède (ressort ∝ profondeur) recrache la caisse et on JAILLIT hors de l'eau. Plus on est
+      // profond, plus ça freine — plonger à fond de nitro, c'est s'arrêter net.
+      const sub=THREE.MathUtils.clamp(wDep/16,0,1);      // 0 = en surface, 1 = bien immergé
+      wVy+=(W_BUOY*Math.min(wDep,W_MAXDEP)/8+(wDep>0?7:0))*dt;   // ARCHIMÈDE : remonte toujours
+      if(nitroOn)wVy-=W_DIVE*dt;                                  // NITRO = on s'enfonce
+      if(dn)wVy-=W_DIVE*.45*dt;                                   // le frein aide à couler (pilotage fin)
+      wVy*=Math.max(0,1-(wDep>0?2.6:1.2)*dt);                     // l'eau amortit tout mouvement vertical
+      wDep=Math.max(0,wDep-wVy*dt);
+      if(wDep>W_MAXDEP){wDep=W_MAXDEP;if(wVy<0)wVy=0;}            // on ne descend pas indéfiniment
+      vA*=Math.max(0,1-(1.15+sub*3.2)*dt);                        // SOUS L'EAU : la traînée EXPLOSE
+      const hull=parkCap*.35*(1-sub*.72);                         // et le plafond de coque s'effondre
+      if(vA>hull)vA-=(vA-hull)*(2.6+sub*4)*dt;                    // freinage PROGRESSIF (pas un mur)
+      if(!up&&!dn&&!nitroOn)vA*=Math.max(0,1-1.1*dt);             // au lâcher, l'eau t'arrête vite
       if(vA>parkCap)vA=parkCap;
       if(vA<-10)vA=-10;
       // VOLANT LIBRE : mordant avec la vitesse, jamais de pivot sur place
@@ -6156,8 +6230,29 @@ function loop(now){
       gYaw+=tgt9*spec.turn*1.3*THREE.MathUtils.clamp(vA/10,-1,1)*(1/(1+Math.abs(vA)*TURN_HS*.7))*dt;
       gPos.x+=Math.sin(gYaw)*vA*dt*SPD*spdMult;
       gPos.z+=Math.cos(gYaw)*vA*dt*SPD*spdMult;
-      // LA CAISSE FLOTTE : elle suit la houle (mêmes ondes que le shader) et s'enfonce un peu dans l'eau
-      gPos.y=PARK_GROUND_Y+waveH(gPos.x,gPos.z,now*.001)-.45;
+      // LA CAISSE FLOTTE : elle suit la houle (mêmes ondes que le shader), moins sa PROFONDEUR de plongée
+      const surfY=PARK_GROUND_Y+waveH(gPos.x,gPos.z,now*.001);
+      gPos.y=surfY-.45-wDep;
+      // ---- FRANCHIR LA SURFACE : les deux traversées se voient et s'entendent ----
+      if(!wSub&&wDep>1.6){                                   // ON PLONGE
+        wSub=true;splashBurst(gPos.x,surfY,gPos.z,1.5);
+        showMsg('🤿 EN PLONGÉE','#7dffec');
+      }else if(wSub&&wDep<0.9){                              // ON JAILLIT
+        wSub=false;splashBurst(gPos.x,surfY,gPos.z,THREE.MathUtils.clamp(-wVy/9+1,1,3));
+        hopY=Math.max(hopY,Math.min(9,-wVy*.45));            // la mer te RECRACHE : petit envol
+        squashT=Math.max(squashT,.16);
+      }
+      // BULLES : elles montent en tremblant tant qu'on est immergé (et beaucoup plus à la nitro)
+      if(wDep>1){
+        wBubT-=dt;
+        if(wBubT<=0){wBubT=0.012+Math.random()*0.03;
+          const sy9=Math.sin(gYaw),cy9=Math.cos(gYaw);
+          spawnP(sprayFine,gPos.x-sy9*2.6+(Math.random()-.5)*3.2,gPos.y+.4+Math.random()*1.2,gPos.z-cy9*2.6+(Math.random()-.5)*3.2,
+            (Math.random()-.5)*2.2,7+Math.random()*9,(Math.random()-.5)*2.2,.55+Math.random()*.5);
+          if(nitroOn)spawnP(spray,gPos.x-sy9*3.4,gPos.y+.6,gPos.z-cy9*3.4,
+            (Math.random()-.5)*5,9+Math.random()*11,(Math.random()-.5)*5,.4+Math.random()*.4);
+        }
+      }
       if(hopY>0)hopY=Math.max(0,hopY-dt*Math.max(7,hopY*8)); // AMORTISSEUR : la marche du pied de rampe se résorbe en ~0,3 s
       speedKmh=Math.abs(vA)*3.6*SPD*spdMult;
       boost=Math.max(0,boost-dt);
@@ -6176,6 +6271,7 @@ function loop(now){
             if(Math.abs(lt)<ROAD_HALF-1.5){
               s=bi/(NP-1)*L;lat=lt;side=1;driveDir=dotT>0?1:-1;psi=0;
               hopY=0;hopV=0;prevTvalid=false;graceT=.45;gCd=.6;mode='drive';
+              wDep=0;wVy=0;wSub=false; // on quitte la mer : la plongée se solde
               squashT=Math.max(squashT,.12);noiseBurst(.1,.08,420);
               // ON SORT DE L'EAU : la caisse EMPORTE l'océan avec elle — gerbe de gouttes qui retombent
               // derrière, d'autant plus grosse qu'on arrive vite. C'est LA récompense de la traversée.
@@ -6205,7 +6301,7 @@ function loop(now){
       // un panache d'écume traîne derrière. C'est la récompense visuelle de « traverser l'eau ».
       {
         const wk=Math.min(1,Math.abs(vA)/(parkCap*.3)),sy=Math.sin(gYaw),cy=Math.cos(gYaw);
-        if(wk>.06){
+        if(wk>.06&&wDep<1.2){ // (immergé, on ne fait plus d'étrave : on fait des bulles)
           const nJet=1+(wk>.45?1:0)+(wk>.8?1:0);
           for(let k=0;k<nJet;k++){
             const sd=Math.random()<.5?-1:1;                       // une aile à gauche, une à droite
@@ -6452,6 +6548,9 @@ function loop(now){
         gPos.set(fallPos.x,PARK_GROUND_Y,fallPos.z);
         gYaw=Math.atan2(fallVel.x,fallVel.z);
         vA=Math.min(parkCap*.35,hSpd*.45);              // on ne ressort pas d'un plongeon lancé : l'eau encaisse
+        // ON ENTRE DANS L'EAU : la vitesse VERTICALE d'impact devient de la PROFONDEUR — tomber de haut
+        // t'envoie au fond, et c'est la flottaison qui te ramène (lâche la nitro et tu remontes).
+        wDep=THREE.MathUtils.clamp(-fallVel.y*.30,0,26);wVy=0;wSub=wDep>1.6;
         hopY=0;hopV=0;gCd=.5;mode='grass';
         squashT=Math.max(squashT,.22);shake=Math.max(shake,.3);
       }
