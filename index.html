@@ -479,7 +479,7 @@
     <div class="setSec">Commandes</div>
     <div class="setKeys" id="setKb">
       <span><i>Z Q S D</i> / <i>← ↑ ↓ →</i></span><span>conduire · piloter en vol</span>
-      <span><i>Espace</i></span><span>nitro · double-tap = braquage</span>
+      <span><i>Espace</i></span><span>nitro · double-tap = DÉCOLLAGE</span>
       <span><i>↓</i> + direction</span><span>drift</span>
       <span><i>R</i></span><span>replacer la caisse</span>
       <span><i>P</i></span><span>pause</span>
@@ -489,7 +489,7 @@
       <span><i>Pad gauche</i></span><span>volant · tirer vers le bas = frein</span>
       <span><i>Pad + frein</i></span><span>drift</span>
       <span><i>En vol</i></span><span>le pad devient un joystick (haut/bas)</span>
-      <span><i>NITRO</i></span><span>pouce droit · double-tap = braquage</span>
+      <span><i>NITRO</i></span><span>pouce droit · double-tap = DÉCOLLAGE</span>
       <span><i>⏸</i></span><span>pause</span>
     </div>
     <div class="setSec">Sauvegarde</div>
@@ -3813,6 +3813,8 @@ window.dbgPlanet=function(){const v=planetGroup.position.clone().project(camera)
   return {ecran:[Math.round((v.x*.5+.5)*W),Math.round((1-(v.y*.5+.5))*H)],dansLeCadre:(Math.abs(v.x)<1&&Math.abs(v.y)<1&&v.z<1),
     tailleEcranPx:Math.round(2*PLANET_R/planetGroup.position.distanceTo(camera.position)/(2*Math.tan(camera.fov*Math.PI/360))*H),buffer:[W,H]};};
 window.dbgBoom=function(){explode();return {variante:BOOMV.n,rings:BOOMV.rings,extra:extraRings.length};}; // déclenche une mort et dit quelle signature est sortie
+window.dbgTakeoff=function(){const a=mode;heistFire();return {avant:a,apres:mode,vy:+fallVel.y.toFixed(1),slowT:+slowT.toFixed(2),fever:+fever.toFixed(1)};};
+window.dbgSlow=function(v){if(v!=null)slowT=v;return {slowT:+slowT.toFixed(2),s:+s.toFixed(2),fallTR:+fallTR.toFixed(2),mode:mode};};
 window.dbgDrift=function(){return {driftYaw:+driftYaw.toFixed(3),degres:Math.round(driftYaw*57.3),nitro:nitroOn,mode:mode,kmh:Math.round(Math.abs(vA)*3.6*SPD)};};
 window.dbgFx=function(){return {uSpeed:acesPass?+acesPass.uniforms.uSpeed.value.toFixed(3):null,post:(typeof POST_ON!=='undefined')?POST_ON:'?',sunVis:(typeof sunSprite!=='undefined')?sunSprite.visible:'?',sunOp:(typeof sunSprite!=='undefined')?+sunSprite.material.opacity.toFixed(2):'?',splash:!!document.getElementById('splash')};};
 window.dbgCreatures=function(){return {
@@ -4724,12 +4726,40 @@ function styleFromBoost(dt){
   // suffisent, et la fuite (13 %/s) fait qu'il faut les ENCHAÎNER. C'est ça, « sans lâcher ».
   if(fever>0)return;
   styleM=Math.min(100,styleM+40*dt);
-  if(styleM>=100&&!feverArmed){feverArmed=true;showMsg('★ BRAQUAGE PRÊT — double-tape NITRO ! ★','#ff3ec8');chimeNote(1244,0,.14,.26);}
+  if(styleM>=100&&!feverArmed){feverArmed=true;showMsg('★ DÉCOLLAGE PRÊT — double-tape NITRO ! ★','#ff3ec8');chimeNote(1244,0,.14,.26);}
 }
-function heistFire(){ // le BRAQUAGE : double-tap NITRO au bon moment — tout ×2, et le skill prolonge
+// ---------- LE DÉCOLLAGE : double-tap NITRO — la caisse s'ARRACHE vers le ciel, le temps se fige ----------
+// (remplace l'ancien « braquage », qui ne faisait que doubler les gains : un bonus comptable, aucun geste.
+//  Le ×2 est conservé, mais COLLÉ à l'action — un seul appui, un événement qu'on VOIT.)
+// Le ralenti est mesuré : sur 60 frames la caisse fait 25,8 u contre 52,2 u — le monde défile 2× moins vite.
+function heistFire(){
   feverArmed=false;fever=10;styleM=0;
-  boostSnd();shake=Math.max(shake,.5);
-  showMsg('★ BRAQUAGE — TOUT ×2 ! ★','#ff3ec8');
+  slowT=Math.max(slowT,2);            // 2 s de bullet-time
+  if(mode==='drive'&&!introD){
+    startFall(42,1);                  // ARRACHEMENT vertical (startFall borne la verticale à 70)
+    // ⚠ mesuré : en DESCENTE, la composante avant (−Y) mangeait l'impulsion — on ressortait à vy −8,
+    // c'est-à-dire en plongeant. On garantit donc un vrai décollage, quelle que soit la pente.
+    fallVel.y=Math.max(fallVel.y,36);
+    airFlash=.6;
+  }else if(mode==='fall'){
+    fallVel.y=Math.min(70,fallVel.y+34); // en plein vol : une RELANCE, le geste n'est jamais perdu
+  }
+  // LA COLONNE DE FEU : le souffle qui pousse la caisse, cracké vers le bas
+  const p9=carGroup.position;
+  for(let k=0;k<54;k++){
+    const a=Math.random()*6.2832,r=Math.random()*1.5;
+    spawnP(k%3?flames:flameCore,p9.x+Math.cos(a)*r,p9.y-.3,p9.z+Math.sin(a)*r,
+      Math.cos(a)*(2+Math.random()*5),-(14+Math.random()*20),Math.sin(a)*(2+Math.random()*5),.22+Math.random()*.24);
+  }
+  for(let k=0;k<26;k++){const a=Math.random()*6.2832;
+    spawnP(smokePool,p9.x+Math.cos(a)*2,p9.y-.5,p9.z+Math.sin(a)*2,
+      Math.cos(a)*(6+Math.random()*8),1+Math.random()*3,Math.sin(a)*(6+Math.random()*8),.7+Math.random()*.7);}
+  sparkBurst(sparkGold,p9,22,16);sparkBurst(sparkBlue,p9,14,13);
+  boostSnd();subBoom(.34);noiseBurst(.5,.2,340);thud(12);
+  shake=Math.max(shake,1.1);duckT=Math.max(duckT,.5);
+  flashEl.style.background='#ffe6b8';flashEl.style.opacity=.42;
+  setTimeout(function(){flashEl.style.opacity=0;flashEl.style.background='#ff2020';},150);
+  showMsg('🚀 DÉCOLLAGE — TOUT ×2 ! ★','#ff3ec8');
 }
 function trickMsg(txt,tier){ // tier: 1 MONSTRE · 2 DOUBLE · 3 TRIPLE (ou true = mis en avant)
   // UN temps fort à la fois : un gros verdict (tier≥2) balaie les petits pops en cours ; sinon on plafonne à 2
@@ -4962,7 +4992,7 @@ function tryLand(dt){
     else if(impact>=10){g=.65;gTxt='POSÉ LOURD — AÏE… ';}
     if(fever>0){ // BRAQUAGE : tous les grades montent d'un cran — même la casse pardonne
       if(g===1.5){g=2;gTxt='DIVIN !! ';}
-      else if(g===1){g=1.5;gTxt='PARFAIT (BRAQUAGE) ! ';hitT=.08;}
+      else if(g===1){g=1.5;gTxt='PARFAIT (BOOST ×2) ! ';hitT=.08;}
       else{g=1;gTxt='';}
     }
     rollover=g>=1.5?chainVal*.1:0; // ROLLOVER : un PARFAIT reporte 10 % — la fortune voyage au vol suivant
@@ -7074,7 +7104,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){ // ?touch=1 : tester l'UI ta
   AUTO_GAS=true; // accélération auto : le pouce sert à tourner / freiner / nitro
   const cr=document.getElementById('ctrlRow'); // remplace les indices CLAVIER par les bons contrôles tactiles
   if(cr)cr.innerHTML='<span class="kc">🕹<i>pouce gauche : VOLANT — en vol il devient JOYSTICK (↑ plane · ↓ redresse) · tirer en bas = frein</i></span>'+
-    '<span class="kc">NITRO<i>pouce droit · double-tap = braquage</i></span>';
+    '<span class="kc">NITRO<i>pouce droit · double-tap = DÉCOLLAGE</i></span>';
   const nl=document.getElementById('nitroLbl'); if(nl)nl.textContent='NITRO (bouton)';
   addEventListener('contextmenu',function(e){e.preventDefault();}); // appui long : jamais de menu contextuel en jeu
   // plein écran + verrou PAYSAGE à l'entrée en jeu (Android ; iOS refuse → try/catch silencieux)
@@ -7115,7 +7145,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){ // ?touch=1 : tester l'UI ta
   // MORPH bouton ↔ joystick : suit le mode de jeu ; re-mappe un pouce déjà posé au décollage
   setInterval(function(){ pad.classList.toggle('air',mode==='fall'&&started&&!gameOver);
     if(pid!==null)padKeys(); },120);
-  // ---- NITRO pouce droit (+ double-tap = braquage) & PAUSE ----
+  // ---- NITRO pouce droit (+ double-tap = DÉCOLLAGE) & PAUSE ----
   function bindHold(el,code,onDown){ if(!el)return;
     const dn=function(e){ if(e.cancelable)e.preventDefault(); if(!keys[code]){keys[code]=true;el.classList.add('on');if(onDown)onDown();} };
     const up=function(e){ if(e&&e.cancelable)e.preventDefault(); keys[code]=false; el.classList.remove('on'); };
