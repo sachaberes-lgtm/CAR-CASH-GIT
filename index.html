@@ -53,6 +53,18 @@
   #gMeta{font-size:13px;color:#9fe0ff;margin:4px 0 8px}
   #gDesc{font-size:13px;line-height:1.5;color:#dfeefc;opacity:.92}
   #gHint{margin-top:10px;font-size:11px;color:#6f89a8}
+  /* ÉTAL : même showroom que le garage, mais pour régler les fruits (boost + fréquence) */
+  #stall{position:fixed;inset:0;display:none;z-index:60;pointer-events:none;flex-direction:column;
+    justify-content:space-between;color:#eaf6ff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  #stall.on{display:flex}
+  #stall #gTop,#stall #gBottom{pointer-events:auto}
+  #stName{font-weight:800;font-size:23px;letter-spacing:1px;color:#ffd75e;margin-bottom:10px}
+  .stRow{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:#cfe6fb;margin-top:8px}
+  .stRow b{color:#7fe8ff;font-size:15px}
+  .stSlider{width:100%;margin:5px 0 2px;accent-color:#00eaff;cursor:pointer}
+  #stRare{margin-top:10px;font-size:12px;color:#8fa8c0}
+  #stClose{width:40px;height:40px;border-radius:50%;background:rgba(12,8,34,.7);border:2px solid #00eaff;color:#cff6ff;font-size:18px;cursor:pointer}
+  body.inStall #hud>:not(#stall){display:none!important} /* étal ouvert : HUD de jeu masqué, le fruit reste (canvas au niveau body) */
   body.inGarage #hud>:not(#garage){display:none!important} /* garage ouvert : on masque le HUD de jeu (compteur, jauges), la caisse reste (canvas au niveau body) */
   /* RÉGLAGES — carte sobre, verre dépoli, typo système (DA simple et efficace) */
   #settings{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;
@@ -401,6 +413,21 @@
       <button id="gNext" class="gNav">▶</button>
     </div>
   </div>
+  <div id="stall">
+    <div id="gTop"><span id="gTitle">ÉTAL — RÉGLAGE DES FRUITS</span><button id="stClose">✕</button></div>
+    <div id="gBottom">
+      <button id="stPrev" class="gNav">◀</button>
+      <div id="gCard">
+        <div id="stName">POMME</div>
+        <div class="stRow"><span>Boost rendu</span><b id="stBoostV">0.50</b></div>
+        <input id="stBoost" class="stSlider" type="range" min="0" max="2" step="0.05">
+        <div class="stRow"><span>Fréquence d'apparition</span><b id="stFreqV">10</b></div>
+        <input id="stFreq" class="stSlider" type="range" min="0" max="30" step="1">
+        <div id="stRare">soit 12 % des fruits de la piste</div>
+      </div>
+      <button id="stNext" class="gNav">▶</button>
+    </div>
+  </div>
   <div id="carInfo" class="panel"><div id="carName">LA HONTE</div><div id="carLevel">NIVEAU 1 / 24</div></div>
   <div id="money"><span id="moneyTxt">$00000000</span></div>
   <div id="record"></div>
@@ -435,6 +462,7 @@
   <div class="go" id="goTxt">▸ CLIQUE LE LOGO POUR JOUER</div>
   <div id="saveRow">
     <button id="garageBtn" class="saveBtn">🚗 Garage</button>
+    <button id="stallBtn" class="saveBtn">🍎 Étal</button>
     <button id="setBtn" class="saveBtn">⚙︎ Réglages</button>
     <button id="parkBtn" class="saveBtn">🛝 Parc freestyle · OFF</button>
     <button id="survBtn" class="saveBtn">🏁 Survivant · OFF</button>
@@ -2801,30 +2829,34 @@ const FM={ // la palette du primeur
 };
 const mesh9=(geo,mat,sx,sy,sz,px,py,pz,rz)=>{const m=new THREE.Mesh(geo,mat);
   m.scale.set(sx,sy,sz);m.position.set(px||0,py||0,pz||0);if(rz)m.rotation.z=rz;return m;};
-const FRUITS=[
-  g=>{g.add(mesh9(fgSph,FM.pomme,.80,.74,.80,0,.02),mesh9(fgCyl,FM.tige,.05,.34,.05,0,.62),
-            mesh9(fgSph,FM.feuille,.26,.05,.15,.2,.66,0,-.5));},                    // POMME
-  g=>{g.add(mesh9(fgSph,FM.orange,.80,.78,.80),mesh9(fgSph,FM.feuille,.22,.05,.13,.14,.72,0,-.4));}, // ORANGE
-  g=>{g.add(mesh9(fgSph,FM.citron,.62,.86,.62),mesh9(fgSph,FM.citron,.16,.20,.16,0,.82));},          // CITRON
-  g=>{g.add(mesh9(fgSph,FM.poire,.72,.62,.72,0,-.18),mesh9(fgSph,FM.poire,.46,.52,.46,0,.34),
-            mesh9(fgCyl,FM.tige,.045,.3,.045,0,.76));},                              // POIRE
-  g=>{const c=mesh9(fgCone,FM.carotte,.42,1.5,.42,0,-.1);c.rotation.z=Math.PI;g.add(c,
-            mesh9(fgSph,FM.fane,.2,.34,.2,0,.72),mesh9(fgSph,FM.fane,.16,.26,.16,.2,.66,0,-.5));},   // CAROTTE
-  g=>{g.add(mesh9(fgSph,FM.aubergine,.54,.92,.54,0,-.06),mesh9(fgSph,FM.fane,.34,.16,.34,0,.78));},  // AUBERGINE
-  g=>{const c=mesh9(fgCone,FM.fraise,.72,1.1,.72,0,.06);c.rotation.z=Math.PI;g.add(c,
-            mesh9(fgSph,FM.fane,.42,.09,.42,0,.6));},                                 // FRAISE
-  g=>{g.add(mesh9(fgCyl,FM.fane,.16,.5,.16,0,-.4),mesh9(fgSph,FM.brocoli,.72,.5,.72,0,.24),
-            mesh9(fgSph,FM.brocoli,.38,.34,.38,.28,.5));},                            // BROCOLI
-  g=>{g.add(mesh9(fgSph,FM.raisin,.34,.34,.34,-.26,.2),mesh9(fgSph,FM.raisin,.34,.34,.34,.26,.16),
-            mesh9(fgSph,FM.raisin,.36,.36,.36,0,-.28));}                              // RAISIN
+// L'ÉTAL : chaque cageot a son NOM, sa recette 3D, son BOOST (nitro rendue) et sa FRÉQUENCE (poids
+// de tirage). boost/freq sont réglables en jeu depuis la plateforme ÉTAL et persistés dans la sauvegarde.
+const FRUIT_DEFS=[
+  {n:'POMME',    boost:.5, freq:10, build:g=>{g.add(mesh9(fgSph,FM.pomme,.80,.74,.80,0,.02),mesh9(fgCyl,FM.tige,.05,.34,.05,0,.62),
+            mesh9(fgSph,FM.feuille,.26,.05,.15,.2,.66,0,-.5));}},
+  {n:'ORANGE',   boost:.5, freq:10, build:g=>{g.add(mesh9(fgSph,FM.orange,.80,.78,.80),mesh9(fgSph,FM.feuille,.22,.05,.13,.14,.72,0,-.4));}},
+  {n:'CITRON',   boost:.4, freq:9,  build:g=>{g.add(mesh9(fgSph,FM.citron,.62,.86,.62),mesh9(fgSph,FM.citron,.16,.20,.16,0,.82));}},
+  {n:'POIRE',    boost:.5, freq:8,  build:g=>{g.add(mesh9(fgSph,FM.poire,.72,.62,.72,0,-.18),mesh9(fgSph,FM.poire,.46,.52,.46,0,.34),
+            mesh9(fgCyl,FM.tige,.045,.3,.045,0,.76));}},
+  {n:'CAROTTE',  boost:.6, freq:8,  build:g=>{const c=mesh9(fgCone,FM.carotte,.42,1.5,.42,0,-.1);c.rotation.z=Math.PI;g.add(c,
+            mesh9(fgSph,FM.fane,.2,.34,.2,0,.72),mesh9(fgSph,FM.fane,.16,.26,.16,.2,.66,0,-.5));}},
+  {n:'AUBERGINE',boost:.8, freq:5,  build:g=>{g.add(mesh9(fgSph,FM.aubergine,.54,.92,.54,0,-.06),mesh9(fgSph,FM.fane,.34,.16,.34,0,.78));}},
+  {n:'FRAISE',   boost:.7, freq:6,  build:g=>{const c=mesh9(fgCone,FM.fraise,.72,1.1,.72,0,.06);c.rotation.z=Math.PI;g.add(c,
+            mesh9(fgSph,FM.fane,.42,.09,.42,0,.6));}},
+  {n:'BROCOLI',  boost:1.0,freq:3,  build:g=>{g.add(mesh9(fgCyl,FM.fane,.16,.5,.16,0,-.4),mesh9(fgSph,FM.brocoli,.72,.5,.72,0,.24),
+            mesh9(fgSph,FM.brocoli,.38,.34,.38,.28,.5));}},
+  {n:'RAISIN',   boost:.9, freq:4,  build:g=>{g.add(mesh9(fgSph,FM.raisin,.34,.34,.34,-.26,.2),mesh9(fgSph,FM.raisin,.34,.34,.34,.26,.16),
+            mesh9(fgSph,FM.raisin,.36,.36,.36,0,-.28));}}
 ];
-let fruitI=0;
-function mkNitro(){
-  const g=new THREE.Group();
-  FRUITS[fruitI++%FRUITS.length](g); // on tourne dans l'étal : deux fruits voisins ne se ressemblent pas
-  g.scale.setScalar(1.15);
-  return g;
+function fruitPick(rnd){ // tirage PONDÉRÉ par la fréquence (un brocoli reste rare, une pomme court les rues)
+  let tot=0;for(const f of FRUIT_DEFS)tot+=Math.max(0,f.freq);
+  if(tot<=0)return 0;
+  let r=(rnd?rnd():Math.random())*tot;
+  for(let i=0;i<FRUIT_DEFS.length;i++){r-=Math.max(0,FRUIT_DEFS[i].freq);if(r<=0)return i;}
+  return FRUIT_DEFS.length-1;
 }
+function mkFruit(i){ const g=new THREE.Group();FRUIT_DEFS[i].build(g);g.scale.setScalar(1.15);g.userData.fruit=i;return g; }
+function mkNitro(rnd){ return mkFruit(fruitPick(rnd)); }
 // POUVOIRS : grosses orbes rares — sphère de verre teinté + cœur brûlant + anneau qui tourne
 const pwrGeo=new THREE.SphereGeometry(1.5,18,14),pwrCoreGeo=new THREE.SphereGeometry(.6,12,10),
       pwrRingGeo=new THREE.TorusGeometry(2,.13,8,28);
@@ -2862,12 +2894,13 @@ function spawnPickups(rnd){
     if(sp<120||sp>L-50||holeAtS(sp))return;
     frameAt(sp,F);mat4b.makeBasis(F.b,F.n,F.t);
     const cl=THREE.MathUtils.clamp(lt,-HALF,HALF);
+    const fi=isN?fruitPick():-1; // MÊME fruit sur les deux faces (miroir strict) — tiré hors du rnd seedé
     for(const face of [1,-1]){
-      const m=isN?mkNitro():new THREE.Mesh(pickGeo,pickMat);
+      const m=isN?mkFruit(fi):new THREE.Mesh(pickGeo,pickMat);
       m.position.copy(F.p).addScaledVector(F.b,cl).addScaledVector(F.n,face>0?1.3:-(THICK+1.3));
       m.quaternion.setFromRotationMatrix(mat4b);
       scene.add(m);
-      pickups.push({s:sp,lat:cl,face:face,nitro:isN,mesh:m,taken:false,ax:F.n.clone().multiplyScalar(face)});
+      pickups.push({s:sp,lat:cl,face:face,nitro:isN,fruit:fi,mesh:m,taken:false,ax:F.n.clone().multiplyScalar(face)});
     }
   };
   // MOTIFS HARMONIEUX : on avance par « figures » de pièces, jamais du semis uniforme
@@ -4427,7 +4460,7 @@ const SND={sfx:true,voice:true,music:true};
 // UNE fois puis laissées intactes (retour arrière possible) — plus jamais écrites.
 const SAVE={
   V:2,K:'cashcarSave',d:null,dirty:false,
-  def(){return{v:this.V,best:0,leaders:[],bestCar:0,sfx:true,vox:true,mus:true,
+  def(){return{v:this.V,best:0,leaders:[],bestCar:0,sfx:true,vox:true,mus:true,fruits:[],
     ai:{air:.5,boost:.35,caution:.5,skill:.86,aggr:.55,airDur:1.1,runs:0}};}, // profil d'apprentissage des IA
   san(d){ // désinfection : quoi qu'on charge (storage rongé, code importé), la forme est GARANTIE
     const c=this.def();
@@ -4438,6 +4471,9 @@ const SAVE={
       .filter(e=>e&&typeof e.n==='string'&&isFinite(+e.s))
       .slice(0,10).map(e=>({n:e.n.slice(0,8),s:Math.max(0,Math.round(+e.s))}));
     c.sfx=d.sfx!==false;c.vox=d.vox!==false;c.mus=d.mus!==false;
+    if(Array.isArray(d.fruits))c.fruits=d.fruits.slice(0,32).map(e=>({ // réglages de l'ÉTAL (bornés : un import bidon ne casse rien)
+      b:THREE.MathUtils.clamp(isFinite(+e.b)?+e.b:.5,0,2),
+      f:THREE.MathUtils.clamp(isFinite(+e.f)?+e.f:8,0,40)}));
     if(d.ai&&typeof d.ai==='object'){const a=d.ai,g=(k,dv,lo,hi)=>THREE.MathUtils.clamp(isFinite(+a[k])?+a[k]:dv,lo,hi);
       c.ai={air:g('air',.5,0,1),boost:g('boost',.35,0,1),caution:g('caution',.5,0,1),
         skill:g('skill',.86,.5,1.1),aggr:g('aggr',.55,0,1),airDur:g('airDur',1.1,.4,4),
@@ -4471,6 +4507,10 @@ const SAVE={
 SAVE.load();
 setInterval(()=>{if(SAVE.dirty)SAVE.flush();},30000); // le filet : rien ne se perd plus de 30 s
 SND.sfx=SAVE.d.sfx;SND.voice=SAVE.d.vox;SND.music=SAVE.d.mus;
+// ÉTAL : on recharge les réglages boost/fréquence par-dessus les valeurs d'usine
+(function(){const fr=SAVE.d.fruits;if(!fr||!fr.length)return;
+  for(let i=0;i<FRUIT_DEFS.length&&i<fr.length;i++){FRUIT_DEFS[i].boost=fr[i].b;FRUIT_DEFS[i].freq=fr[i].f;}})();
+function saveFruits(){SAVE.d.fruits=FRUIT_DEFS.map(f=>({b:f.boost,f:f.freq}));SAVE.flush();}
 const sndBtnEl=document.getElementById('sndBtn'),voxBtnEl=document.getElementById('voxBtn'),musBtnEl=document.getElementById('musBtn');
 function sndRefresh(){
   sndBtnEl.innerHTML=(SND.sfx?'🔊':'🔇')+' <span class="blabel">SON</span>';sndBtnEl.classList.toggle('off',!SND.sfx); // garde le span → masquable en icône seule sur mobile
@@ -5634,6 +5674,67 @@ for(const row of document.querySelectorAll('.setRow')) row.addEventListener('cli
   setRefresh();
 });
 addEventListener('keydown',e=>{if(e.code==='Escape'&&setEl.classList.contains('on'))closeSettings();});
+// ---------- L'ÉTAL : on fait défiler les fruits et on règle leur boost / leur fréquence ----------
+let stallOn=false,stallI=0,stallMesh=null,stallAng=0;
+const stEl=$('stall');
+function stallShow(i){
+  stallI=((i%FRUIT_DEFS.length)+FRUIT_DEFS.length)%FRUIT_DEFS.length;
+  if(stallMesh){scene.remove(stallMesh);stallMesh=null;}
+  stallMesh=mkFruit(stallI);stallMesh.scale.setScalar(3.4); // gros plan d'étal : on voit le vernis
+  scene.add(stallMesh);
+  const d=FRUIT_DEFS[stallI];
+  $('stName').textContent=d.n;
+  $('stBoost').value=d.boost;$('stFreq').value=d.freq;
+  stallRefresh();
+}
+function stallRefresh(){
+  const d=FRUIT_DEFS[stallI];
+  $('stBoostV').textContent=d.boost.toFixed(2);
+  $('stFreqV').textContent=Math.round(d.freq);
+  let tot=0;for(const f of FRUIT_DEFS)tot+=Math.max(0,f.freq);
+  $('stRare').textContent=tot>0?('soit '+Math.round(100*Math.max(0,d.freq)/tot)+' % des fruits de la piste'
+    +(d.freq<=0?' — jamais tiré':'')):'aucun fruit ne peut apparaître (toutes les fréquences à 0)';
+}
+function openStall(){
+  if(started){showMsg('L\'étal se visite depuis le menu');return;}
+  stallOn=true;stEl.classList.add('on');document.body.classList.add('inStall');
+  overlay.style.display='none';
+  if(pigGroup)pigGroup.visible=false;
+  carGroup.visible=false;                 // la caisse laisse la place au cageot
+  stallAng=0;stallShow(stallI);
+}
+function closeStall(){
+  stallOn=false;stEl.classList.remove('on');document.body.classList.remove('inStall');
+  if(stallMesh){scene.remove(stallMesh);stallMesh=null;}
+  garageFloor.visible=false;carGroup.visible=true;
+  sunSprite.visible=true;horizonGlow.visible=true;for(const r9 of RAYS)r9.visible=true;
+  if(pigGroup)pigGroup.visible=true;
+  camera.up.set(0,1,0);
+  frameAt(0,F);camera.position.copy(F.p).addScaledVector(F.t,-9).addScaledVector(F.n,4);camera.lookAt(F.p);
+  overlay.style.display='flex';
+  saveFruits(); // les réglages survivent à la session
+}
+function stallRender(dt){ // même showroom que le garage : fond cyan propre, caméra qui tourne autour
+  const ay=GARAGE_Y;
+  if(stallMesh){stallMesh.position.set(0,ay,0);stallMesh.rotation.y+=dt*.55;}
+  garageFloor.position.set(0,ay-1.6,0);garageFloor.visible=true;
+  skyU.uSkyMul.value.set(.62,.92,1.34);skyU.uStars.value=1.7;skyU.uMoon.value=1.5;skyU.uSunHalo.value=.12;
+  sunSprite.visible=false;horizonGlow.visible=false;for(const r9 of RAYS)r9.visible=false;
+  stallAng+=dt*.25;
+  camera.up.set(0,1,0);
+  camera.position.set(Math.sin(stallAng)*7,ay+2.4,Math.cos(stallAng)*7);
+  camera.lookAt(0,ay+.2,0);
+}
+$('stallBtn').addEventListener('click',e=>{e.stopPropagation();openStall();});
+$('stClose').addEventListener('click',e=>{e.stopPropagation();closeStall();});
+$('stPrev').addEventListener('click',e=>{e.stopPropagation();stallShow(stallI-1);});
+$('stNext').addEventListener('click',e=>{e.stopPropagation();stallShow(stallI+1);});
+$('stBoost').addEventListener('input',e=>{FRUIT_DEFS[stallI].boost=+e.target.value;stallRefresh();});
+$('stFreq').addEventListener('input',e=>{FRUIT_DEFS[stallI].freq=+e.target.value;stallRefresh();});
+$('stBoost').addEventListener('change',saveFruits);
+$('stFreq').addEventListener('change',saveFruits);
+addEventListener('keydown',e=>{if(!stallOn)return;
+  if(e.code==='Escape')closeStall();else if(e.code==='ArrowLeft')stallShow(stallI-1);else if(e.code==='ArrowRight')stallShow(stallI+1);});
 $('garageBtn').addEventListener('click',e=>{e.stopPropagation();openGarage();});
 $('gClose').addEventListener('click',e=>{e.stopPropagation();closeGarage();});
 $('gPrev').addEventListener('click',e=>{e.stopPropagation();garageShow(garageI-1);});
@@ -5918,7 +6019,11 @@ function loop(now){
             sparkBurst(p.pow==='n'?sparkBlue:sparkGold,carGroup.position,14,9);
             addStyle(10);
           }
-          else if(p.nitro){nitroX=Math.min(2,nitroX+.5);nBlip();sparkBurst(sparkBlue,carGroup.position,6,7);}
+          else if(p.nitro){ // chaque fruit rend SA dose de nitro (réglable dans l'ÉTAL)
+            const fd=FRUIT_DEFS[p.fruit]||FRUIT_DEFS[0];
+            nitroX=Math.min(2,nitroX+fd.boost);nBlip();
+            sparkBurst(fd.boost>=.8?sparkGold:sparkBlue,carGroup.position,fd.boost>=.8?10:6,7);
+          }
           else{
             sparkBurst(sparkGold,carGroup.position,8,8);
             combo++;comboT=3;
@@ -6620,6 +6725,7 @@ function loop(now){
   } }catch(err){window.__loopErr=err.message+' | '+(err.stack||'').split('\n').slice(0,3).join(' ¶ ');if(!loop._warned){console.error('loop error',err);loop._warned=true;}}
   // ciel : dôme, soleil « 1.61 », lueur d'horizon et rayons crépusculaires suivent la caméra
   if(garageOn)garageRender(dt); // GARAGE : place la caisse + oriente la caméra AVANT que le ciel suive
+  else if(stallOn)stallRender(dt); // ÉTAL : même showroom, mais c'est un fruit qui tourne
   skyDome.position.copy(camera.position);
   skyU.uTime.value=t;
   if(acesPass){ // EFFETS DE VITESSE (aberration + flou radial + tunnel) — SUR LE BOOST, pas sur le simple fait d'avancer
