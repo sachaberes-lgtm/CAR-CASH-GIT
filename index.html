@@ -191,7 +191,18 @@
   #styleFill.fever{background:repeating-linear-gradient(90deg,#ffd75e 0 10px,#ffb000 10px 14px)}
   #styleFill.armed{background:repeating-linear-gradient(90deg,#ff3ec8 0 10px,#ffd75e 10px 14px);animation:armBlink .4s infinite alternate}
   @keyframes armBlink{from{filter:brightness(1)}to{filter:brightness(1.9)}}
-  #feverGlow{position:absolute;inset:0;box-shadow:inset 0 0 120px rgba(255,62,200,.55);display:none}
+  /* HALO D'ÉCRAN — il RESPIRE au lieu d'être une ombre figée.
+     .armed = jauge pleine : discret mais insistant, il appelle le double-tap.
+     (sans classe) = décollage en cours : plein, rose + or, il bat vite. */
+  #feverGlow{position:absolute;inset:0;display:none;pointer-events:none;
+    animation:feverPulse .85s ease-in-out infinite alternate}
+  @keyframes feverPulse{
+    from{box-shadow:inset 0 0 90px rgba(255,62,200,.42),inset 0 0 34px rgba(255,215,94,.20)}
+    to{box-shadow:inset 0 0 180px rgba(255,62,200,.75),inset 0 0 66px rgba(255,215,94,.42)}}
+  #feverGlow.armed{animation:armGlow 1.15s ease-in-out infinite alternate}
+  @keyframes armGlow{
+    from{box-shadow:inset 0 0 40px rgba(255,62,200,.18)}
+    to{box-shadow:inset 0 0 120px rgba(255,62,200,.52),inset 0 0 28px rgba(255,215,94,.16)}}
   #flash{position:absolute;inset:0;background:#ff2020;opacity:0;transition:opacity .5s}
   #nitroLbl{font-size:9px;color:#9ae6ff;text-align:center;margin-bottom:6px;text-shadow:0 0 8px rgba(0,234,255,.6)}
   #pwrChip{font-size:9px;text-align:center;margin-bottom:6px;letter-spacing:1px;display:none;text-shadow:0 0 10px rgba(255,255,255,.35)}
@@ -2824,13 +2835,17 @@ const glossyM=(col)=>new THREE.MeshPhongMaterial({color:col,emissive:col,emissiv
 const FM={ // la palette du primeur
   peche:glossyM(0xff9ec2),   pecheClair:glossyM(0xfff1dd), peau:glossyM(0xffb8a0),
   banane:glossyM(0xffd63a),  bananeBout:glossyM(0x6b5320),
-  grenade:glossyM(0xb31434), grenadeInt:glossyM(0xf7e3c8), couronne:glossyM(0x8e1f34),
+  grenadeInt:glossyM(0xf7e3c8), couronne:glossyM(0xa5122c),
   orange:glossyM(0xff8b12),  citron:glossyM(0xffd21c),
   feuille:glossyM(0x3faa4a), tige:glossyM(0x6d4a26)
 };
 // LES GRAINS DE LA GRENADE : rouge profond mais LUISANT — ils doivent accrocher la lumière comme du verre
 FM.grain=new THREE.MeshPhongMaterial({color:0xe8103f,emissive:0x7a0620,emissiveIntensity:.55,
   shininess:300,specular:0xffffff,envMap:envTex,reflectivity:.72,combine:THREE.MixOperation});
+// PEAU DE GRENADE : le glossy standard la rendait ROSE sous l'éclairage cyan de l'étal — il lui faut
+// son propre rouge, plus saturé et plus incandescent, avec un vernis dur.
+FM.grenade=new THREE.MeshPhongMaterial({color:0xd10f2b,emissive:0x8c0518,emissiveIntensity:.5,
+  shininess:260,specular:0xfff0f0,envMap:envTex,reflectivity:.6,combine:THREE.MixOperation});
 const mesh9=(geo,mat,sx,sy,sz,px,py,pz,rz)=>{const m=new THREE.Mesh(geo,mat);
   m.scale.set(sx,sy,sz);m.position.set(px||0,py||0,pz||0);if(rz)m.rotation.z=rz;return m;};
 // L'ÉTAL : chaque cageot a son NOM, sa recette 3D, son BOOST (nitro rendue) et sa FRÉQUENCE (poids
@@ -2838,18 +2853,26 @@ const mesh9=(geo,mat,sx,sy,sz,px,py,pz,rz)=>{const m=new THREE.Mesh(geo,mat);
 const FRUIT_DEFS=[
   // PÊCHE PLATE : galette bombée, rose lavée de blanc crème sur une joue + son sillon
   {n:'PÊCHE PLATE',boost:.5,freq:10,build:g=>{
-    g.add(mesh9(fgSph,FM.peche,.92,.46,.92),
-          mesh9(fgSph,FM.pecheClair,.62,.34,.62,-.26,.06,.18),   // la joue blanche
-          mesh9(fgSph,FM.peau,.10,.30,.66,.0,.10,0),             // le sillon, marqué en relief
-          mesh9(fgCyl,FM.tige,.04,.16,.04,0,.44));}},
+    // pêche JAPONAISE : galette bombée mais pas écrasée — elle garde de la joue et une fossette au sommet
+    g.add(mesh9(fgSph,FM.peche,.88,.66,.88),
+          mesh9(fgSph,FM.pecheClair,.60,.50,.60,-.26,.08,.20),   // la joue blanc crème
+          mesh9(fgSph,FM.peau,.10,.42,.62,0,.12,0),              // le sillon, marqué en relief
+          mesh9(fgSph,FM.peche,.30,.16,.30,0,.56),               // la fossette du pédoncule
+          mesh9(fgCyl,FM.tige,.04,.16,.04,0,.64));}},
   // BANANE : un arc de segments qui s'affinent, avec les deux bouts bruns
+  // BANANE : des segments ALLONGÉS dans l'axe (donc fondus en un tube lisse, plus des boules empilées
+  // qui faisaient « larve »), croissant plus marqué, corps plus fin et plus long, pointes franches.
   {n:'BANANE',boost:.6,freq:9,build:g=>{
-    const N=7;
-    for(let i=0;i<N;i++){const u=i/(N-1),a=(u-.5)*2.0;               // courbure du croissant
-      const r=.30*(1-Math.pow(Math.abs(u-.5)*2,2.2)*.72);            // ventre au milieu, pointes aux bouts
-      const m=mesh9(fgSph,(i===0||i===N-1)?FM.bananeBout:FM.banane,r,r*.92,r*1.15,
-        Math.sin(a)*.82,Math.cos(a)*.30-.24,0);
-      m.rotation.z=-a*.5;g.add(m);}
+    const N=13;
+    for(let i=0;i<N;i++){const u=i/(N-1),a=(u-.5)*2.9;               // croissant BIEN courbé
+      const t=Math.abs(u-.5)*2;
+      const r=.165*(1-Math.pow(t,2.4)*.92);                          // corps FIN qui s'effile en pointe
+      const m=mesh9(fgSph,(i===0||i===N-1)?FM.bananeBout:FM.banane,
+        // ⚠ l'axe du fruit est X LOCAL (les segments sont tournés par rotation.z) : étirer en Z
+        // donnait des bourrelets perpendiculaires — d'où l'aspect « larve ».
+        r*2.4,r*1.12,r*.86,
+        Math.sin(a)*1.06,Math.cos(a)*.40-.36,0);
+      m.rotation.z=-a;g.add(m);}                                     // chaque segment suit la tangente du croissant
   }},
   // GRENADE : peau laquée, COUPÉE — on plonge dans la chair crème et ses grains qui brillent
   {n:'GRENADE',boost:1.0,freq:4,build:g=>{
@@ -6780,8 +6803,12 @@ function loop(now){
     else styleM=Math.max(0,styleM-13*dt); // LÂCHER le boost fait retomber la jauge vite : c'est « sans lâcher » qui paye
     survTick(dt); // SURVIVANT : la meute roule, saute, et le couperet de la minute tombe
     AIP.tick(dt); // …et pendant ce temps, les IA T'OBSERVENT (même hors mode Survivant)
-    if(fever>0){elStyleF.className='fever';elStyleF.style.width=(Math.min(1,fever/10)*100)+'%';feverGlow.style.display='block';}
-    else{elStyleF.className=feverArmed?'armed':'';elStyleF.style.width=styleM+'%';feverGlow.style.display='none';}
+    if(fever>0){elStyleF.className='fever';elStyleF.style.width=(Math.min(1,fever/10)*100)+'%';
+      feverGlow.style.display='block';if(feverGlow.className)feverGlow.className='';}
+    else{elStyleF.className=feverArmed?'armed':'';elStyleF.style.width=styleM+'%';
+      // ARMÉ : le halo s'allume DÈS que la jauge est pleine — c'est lui qui réclame le double-tap
+      feverGlow.style.display=feverArmed?'block':'none';
+      if(feverGlow.className!==(feverArmed?'armed':''))feverGlow.className=feverArmed?'armed':'';}
     if(comboT>0){comboT-=dt;if(comboT<=0)combo=0;}
     if(msgT>0){msgT-=dt;if(msgT<=0)elMsg.style.opacity=0;}
   } }catch(err){window.__loopErr=err.message+' | '+(err.stack||'').split('\n').slice(0,3).join(' ¶ ');if(!loop._warned){console.error('loop error',err);loop._warned=true;}}
