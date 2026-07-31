@@ -612,32 +612,50 @@ const horizonGlow=(function(){ // nappe très large et plate : l'horizon embras�
 })();
 // ---------- LA PLANÈTE : une Terre bleu-vert qui flotte haut dans le ciel, vue depuis l'orbite ----------
 // Un ancrage céleste de plus (comme la lune), volontairement PETIT : elle habite le cadre sans le manger.
-const PLANET_DIR=new THREE.Vector3(-.60,.17,.78).normalize(); // BASSE : on rase son atmosphère, la courbure barre le ciel comme un horizon lointain
+const PLANET_DIR=new THREE.Vector3(-.76,.11,.64).normalize(); // BASSE et DÉPORTÉE : une partie sort du cadre → on lit une DEMI-SPHÈRE, pas une bille (et la route reste dégagée)
 // ON EST AU RAS DE L'ATMOSPHÈRE : la Terre n'est plus une bille dans le ciel mais un MONDE dont on
 // voit la COURBURE (~40° d'arc ≈ la moitié de la hauteur d'écran), posé bas, avec son limbe qui brille.
-const PLANET_R=900,PLANET_D=3400; // ~52 % de la hauteur : la courbure barre le ciel SANS manger la route (à 1250 elle prenait 72 %)
+const PLANET_R=1250,PLANET_D=3400; // ~50 % de la hauteur : une DEMI-SPHÈRE qui barre le ciel — on rase l'atmosphère
 const planetGroup=(function(){
   const g=new THREE.Group();
   // texture : océans profonds, continents verts, calottes blanches et volutes nuageuses
-  const cv=document.createElement('canvas');cv.width=512;cv.height=256;const x=cv.getContext('2d');
-  const oc=x.createLinearGradient(0,0,0,256);
-  oc.addColorStop(0,'#0d4f8f');oc.addColorStop(.5,'#1273c4');oc.addColorStop(1,'#0d4f8f');
-  x.fillStyle=oc;x.fillRect(0,0,512,256);
-  const blob=(cx,cy,r,col,n)=>{ // continent : un amas de disques → côtes irrégulières, jamais une patate
-    x.fillStyle=col;
-    for(let i=0;i<n;i++){
+  // TEXTURE ÉQUIRECTANGULAIRE d'après la réf : EUROPE + AFRIQUE, océan azur vif, Sahara ocre,
+  // massifs enneigés, récifs et fosses. Tout est procédural (aucun asset) mais géographiquement lisible.
+  const W9=1024,H9=512,cv=document.createElement('canvas');cv.width=W9;cv.height=H9;const x=cv.getContext('2d');
+  const oc=x.createLinearGradient(0,0,0,H9); // OCÉAN : azur vibrant, plus profond aux pôles
+  oc.addColorStop(0,'#0a3f7d');oc.addColorStop(.30,'#1370cf');oc.addColorStop(.5,'#1b8ae6');
+  oc.addColorStop(.70,'#1370cf');oc.addColorStop(1,'#0a3f7d');
+  x.fillStyle=oc;x.fillRect(0,0,W9,H9);
+  for(let i=0;i<90;i++){ // fosses profondes + hauts-fonds turquoise (les « coraux » de la réf)
+    const cx=Math.random()*W9,cy=30+Math.random()*(H9-60),r=18+Math.random()*90;
+    x.fillStyle=Math.random()<.45?'rgba(6,40,92,.30)':'rgba(64,196,224,.20)';
+    x.beginPath();x.ellipse(cx,cy,r,r*(.35+Math.random()*.4),Math.random()*3,0,6.2832);x.fill();
+  }
+  // masse de terre : amas de disques → côtes déchiquetées, jamais une patate
+  const land=(pts,col,r,n)=>{x.fillStyle=col;
+    for(const p of pts)for(let i=0;i<n;i++){
       const a=Math.random()*6.2832,d=Math.random()*r;
-      x.beginPath();x.arc(cx+Math.cos(a)*d,cy+Math.sin(a)*d*.7,r*(.30+Math.random()*.42),0,6.2832);x.fill();
-    }
-  };
-  blob(96,104,44,'#2f8f4a',16);blob(150,150,32,'#3aa356',12);   // un grand continent + son écharpe
-  blob(300,84,38,'#35994f',14);blob(356,132,30,'#2b8544',11);
-  blob(444,170,34,'#3ca055',12);blob(214,196,26,'#2f8f4a',9);
-  x.fillStyle='rgba(232,246,255,.92)';x.fillRect(0,0,512,13);x.fillRect(0,243,512,13); // calottes polaires
-  x.globalAlpha=.5;x.fillStyle='#ffffff';                        // volutes nuageuses
-  for(let i=0;i<26;i++){
-    const cx=Math.random()*512,cy=18+Math.random()*220,w=26+Math.random()*70;
-    x.beginPath();x.ellipse(cx,cy,w,5+Math.random()*9,Math.random()*.6-.3,0,6.2832);x.fill();
+      x.beginPath();x.arc(p[0]+Math.cos(a)*d,p[1]+Math.sin(a)*d*.8,r*(.34+Math.random()*.4),0,6.2832);x.fill();}};
+  const VERT='#2e8b45',SABLE='#d9b169',SAHARA='#e3c07d',STEPPE='#8a9c4a';
+  // AFRIQUE : bulbe nord large (Sahara), corne à l'est, pointe sud
+  land([[470,250],[520,235],[430,240],[500,285],[470,320],[452,355],[500,205],[556,268]],VERT,30,10);
+  land([[430,215],[480,205],[530,212],[575,232],[392,222]],SAHARA,30,10); // le Sahara couvre le nord
+  land([[452,196],[512,190],[560,200]],SABLE,22,8);                        // dunes plus claires
+  land([[462,300],[486,330],[458,352]],VERT,24,9);                          // Afrique équatoriale/australe
+  // EUROPE : plus petite, verte, découpée — au nord de la Méditerranée
+  land([[452,150],[492,140],[522,152],[420,142],[540,132]],VERT,20,8);
+  land([[404,120],[440,112],[478,118]],STEPPE,18,7);                        // plaines du nord
+  // MASSIFS ENNEIGÉS : Alpes, Atlas, Caucase
+  x.fillStyle='rgba(244,250,255,.85)';
+  for(const m of [[470,140],[496,146],[436,196],[556,146],[520,138]]){
+    for(let i=0;i<5;i++){x.beginPath();
+      x.ellipse(m[0]+(Math.random()-.5)*22,m[1]+(Math.random()-.5)*10,5+Math.random()*7,3+Math.random()*4,Math.random()*3,0,6.2832);x.fill();}
+  }
+  x.fillStyle='rgba(238,248,255,.95)';x.fillRect(0,0,W9,26);x.fillRect(0,H9-26,W9,26); // calottes polaires
+  x.globalAlpha=.46;x.fillStyle='#ffffff';                                   // volutes nuageuses en bandes
+  for(let i=0;i<54;i++){
+    const cx=Math.random()*W9,cy=34+Math.random()*(H9-68),w=40+Math.random()*130;
+    x.beginPath();x.ellipse(cx,cy,w,7+Math.random()*13,(Math.random()-.5)*.5,0,6.2832);x.fill();
   }
   x.globalAlpha=1;
   const tex=new THREE.CanvasTexture(cv);tex.wrapS=THREE.RepeatWrapping;
@@ -2769,9 +2787,42 @@ const nitroGeo=new THREE.SphereGeometry(.8,18,14);
 const nitroMat=new THREE.MeshPhongMaterial({color:0x1e7bff,emissive:0x1246ff,emissiveIntensity:.55,shininess:260,specular:0xcfeaff,envMap:envTex,reflectivity:.55,transparent:true,opacity:.5,depthWrite:false});
 const nitroCoreGeo=new THREE.SphereGeometry(.34,12,10);
 const nitroCoreMat=new THREE.MeshBasicMaterial({color:0xaee4ff});
+// ---------- L'ÉTAL : les orbes bleues de boost deviennent des FRUITS ET LÉGUMES ----------
+// Lisses, laqués, appétissants : shininess haut + spéculaire blanc + reflet du ciel (envMap).
+// Géométries et matériaux PARTAGÉS (créés une fois) — un fruit ne coûte que 2-3 meshes.
+const fgSph=new THREE.SphereGeometry(1,16,12),fgCone=new THREE.ConeGeometry(1,1,14),fgCyl=new THREE.CylinderGeometry(1,1,1,8);
+const glossyM=(col)=>new THREE.MeshPhongMaterial({color:col,emissive:col,emissiveIntensity:.14,
+  shininess:180,specular:0xffffff,envMap:envTex,reflectivity:.5,combine:THREE.MixOperation});
+const FM={ // la palette du primeur
+  pomme:glossyM(0xe0202f),  orange:glossyM(0xff8b12),  citron:glossyM(0xffd21c),
+  poire:glossyM(0xbcd63a),  carotte:glossyM(0xff7418), aubergine:glossyM(0x6d3ba8),
+  fraise:glossyM(0xe8203f), brocoli:glossyM(0x2f9c4a), raisin:glossyM(0x8b3fc4),
+  feuille:glossyM(0x3faa4a),tige:glossyM(0x6d4a26),   fane:glossyM(0x49b356)
+};
+const mesh9=(geo,mat,sx,sy,sz,px,py,pz,rz)=>{const m=new THREE.Mesh(geo,mat);
+  m.scale.set(sx,sy,sz);m.position.set(px||0,py||0,pz||0);if(rz)m.rotation.z=rz;return m;};
+const FRUITS=[
+  g=>{g.add(mesh9(fgSph,FM.pomme,.80,.74,.80,0,.02),mesh9(fgCyl,FM.tige,.05,.34,.05,0,.62),
+            mesh9(fgSph,FM.feuille,.26,.05,.15,.2,.66,0,-.5));},                    // POMME
+  g=>{g.add(mesh9(fgSph,FM.orange,.80,.78,.80),mesh9(fgSph,FM.feuille,.22,.05,.13,.14,.72,0,-.4));}, // ORANGE
+  g=>{g.add(mesh9(fgSph,FM.citron,.62,.86,.62),mesh9(fgSph,FM.citron,.16,.20,.16,0,.82));},          // CITRON
+  g=>{g.add(mesh9(fgSph,FM.poire,.72,.62,.72,0,-.18),mesh9(fgSph,FM.poire,.46,.52,.46,0,.34),
+            mesh9(fgCyl,FM.tige,.045,.3,.045,0,.76));},                              // POIRE
+  g=>{const c=mesh9(fgCone,FM.carotte,.42,1.5,.42,0,-.1);c.rotation.z=Math.PI;g.add(c,
+            mesh9(fgSph,FM.fane,.2,.34,.2,0,.72),mesh9(fgSph,FM.fane,.16,.26,.16,.2,.66,0,-.5));},   // CAROTTE
+  g=>{g.add(mesh9(fgSph,FM.aubergine,.54,.92,.54,0,-.06),mesh9(fgSph,FM.fane,.34,.16,.34,0,.78));},  // AUBERGINE
+  g=>{const c=mesh9(fgCone,FM.fraise,.72,1.1,.72,0,.06);c.rotation.z=Math.PI;g.add(c,
+            mesh9(fgSph,FM.fane,.42,.09,.42,0,.6));},                                 // FRAISE
+  g=>{g.add(mesh9(fgCyl,FM.fane,.16,.5,.16,0,-.4),mesh9(fgSph,FM.brocoli,.72,.5,.72,0,.24),
+            mesh9(fgSph,FM.brocoli,.38,.34,.38,.28,.5));},                            // BROCOLI
+  g=>{g.add(mesh9(fgSph,FM.raisin,.34,.34,.34,-.26,.2),mesh9(fgSph,FM.raisin,.34,.34,.34,.26,.16),
+            mesh9(fgSph,FM.raisin,.36,.36,.36,0,-.28));}                              // RAISIN
+];
+let fruitI=0;
 function mkNitro(){
   const g=new THREE.Group();
-  g.add(new THREE.Mesh(nitroCoreGeo,nitroCoreMat),new THREE.Mesh(nitroGeo,nitroMat));
+  FRUITS[fruitI++%FRUITS.length](g); // on tourne dans l'étal : deux fruits voisins ne se ressemblent pas
+  g.scale.setScalar(1.15);
   return g;
 }
 // POUVOIRS : grosses orbes rares — sphère de verre teinté + cœur brûlant + anneau qui tourne
