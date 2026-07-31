@@ -2822,31 +2822,53 @@ const fgSph=new THREE.SphereGeometry(1,16,12),fgCone=new THREE.ConeGeometry(1,1,
 const glossyM=(col)=>new THREE.MeshPhongMaterial({color:col,emissive:col,emissiveIntensity:.14,
   shininess:180,specular:0xffffff,envMap:envTex,reflectivity:.5,combine:THREE.MixOperation});
 const FM={ // la palette du primeur
-  pomme:glossyM(0xe0202f),  orange:glossyM(0xff8b12),  citron:glossyM(0xffd21c),
-  poire:glossyM(0xbcd63a),  carotte:glossyM(0xff7418), aubergine:glossyM(0x6d3ba8),
-  fraise:glossyM(0xe8203f), brocoli:glossyM(0x2f9c4a), raisin:glossyM(0x8b3fc4),
-  feuille:glossyM(0x3faa4a),tige:glossyM(0x6d4a26),   fane:glossyM(0x49b356)
+  peche:glossyM(0xff9ec2),   pecheClair:glossyM(0xfff1dd), peau:glossyM(0xffb8a0),
+  banane:glossyM(0xffd63a),  bananeBout:glossyM(0x6b5320),
+  grenade:glossyM(0xb31434), grenadeInt:glossyM(0xf7e3c8), couronne:glossyM(0x8e1f34),
+  orange:glossyM(0xff8b12),  citron:glossyM(0xffd21c),
+  feuille:glossyM(0x3faa4a), tige:glossyM(0x6d4a26)
 };
+// LES GRAINS DE LA GRENADE : rouge profond mais LUISANT — ils doivent accrocher la lumière comme du verre
+FM.grain=new THREE.MeshPhongMaterial({color:0xe8103f,emissive:0x7a0620,emissiveIntensity:.55,
+  shininess:300,specular:0xffffff,envMap:envTex,reflectivity:.72,combine:THREE.MixOperation});
 const mesh9=(geo,mat,sx,sy,sz,px,py,pz,rz)=>{const m=new THREE.Mesh(geo,mat);
   m.scale.set(sx,sy,sz);m.position.set(px||0,py||0,pz||0);if(rz)m.rotation.z=rz;return m;};
 // L'ÉTAL : chaque cageot a son NOM, sa recette 3D, son BOOST (nitro rendue) et sa FRÉQUENCE (poids
 // de tirage). boost/freq sont réglables en jeu depuis la plateforme ÉTAL et persistés dans la sauvegarde.
 const FRUIT_DEFS=[
-  {n:'POMME',    boost:.5, freq:10, build:g=>{g.add(mesh9(fgSph,FM.pomme,.80,.74,.80,0,.02),mesh9(fgCyl,FM.tige,.05,.34,.05,0,.62),
-            mesh9(fgSph,FM.feuille,.26,.05,.15,.2,.66,0,-.5));}},
-  {n:'ORANGE',   boost:.5, freq:10, build:g=>{g.add(mesh9(fgSph,FM.orange,.80,.78,.80),mesh9(fgSph,FM.feuille,.22,.05,.13,.14,.72,0,-.4));}},
-  {n:'CITRON',   boost:.4, freq:9,  build:g=>{g.add(mesh9(fgSph,FM.citron,.62,.86,.62),mesh9(fgSph,FM.citron,.16,.20,.16,0,.82));}},
-  {n:'POIRE',    boost:.5, freq:8,  build:g=>{g.add(mesh9(fgSph,FM.poire,.72,.62,.72,0,-.18),mesh9(fgSph,FM.poire,.46,.52,.46,0,.34),
-            mesh9(fgCyl,FM.tige,.045,.3,.045,0,.76));}},
-  {n:'CAROTTE',  boost:.6, freq:8,  build:g=>{const c=mesh9(fgCone,FM.carotte,.42,1.5,.42,0,-.1);c.rotation.z=Math.PI;g.add(c,
-            mesh9(fgSph,FM.fane,.2,.34,.2,0,.72),mesh9(fgSph,FM.fane,.16,.26,.16,.2,.66,0,-.5));}},
-  {n:'AUBERGINE',boost:.8, freq:5,  build:g=>{g.add(mesh9(fgSph,FM.aubergine,.54,.92,.54,0,-.06),mesh9(fgSph,FM.fane,.34,.16,.34,0,.78));}},
-  {n:'FRAISE',   boost:.7, freq:6,  build:g=>{const c=mesh9(fgCone,FM.fraise,.72,1.1,.72,0,.06);c.rotation.z=Math.PI;g.add(c,
-            mesh9(fgSph,FM.fane,.42,.09,.42,0,.6));}},
-  {n:'BROCOLI',  boost:1.0,freq:3,  build:g=>{g.add(mesh9(fgCyl,FM.fane,.16,.5,.16,0,-.4),mesh9(fgSph,FM.brocoli,.72,.5,.72,0,.24),
-            mesh9(fgSph,FM.brocoli,.38,.34,.38,.28,.5));}},
-  {n:'RAISIN',   boost:.9, freq:4,  build:g=>{g.add(mesh9(fgSph,FM.raisin,.34,.34,.34,-.26,.2),mesh9(fgSph,FM.raisin,.34,.34,.34,.26,.16),
-            mesh9(fgSph,FM.raisin,.36,.36,.36,0,-.28));}}
+  // PÊCHE PLATE : galette bombée, rose lavée de blanc crème sur une joue + son sillon
+  {n:'PÊCHE PLATE',boost:.5,freq:10,build:g=>{
+    g.add(mesh9(fgSph,FM.peche,.92,.46,.92),
+          mesh9(fgSph,FM.pecheClair,.62,.34,.62,-.26,.06,.18),   // la joue blanche
+          mesh9(fgSph,FM.peau,.10,.30,.66,.0,.10,0),             // le sillon, marqué en relief
+          mesh9(fgCyl,FM.tige,.04,.16,.04,0,.44));}},
+  // BANANE : un arc de segments qui s'affinent, avec les deux bouts bruns
+  {n:'BANANE',boost:.6,freq:9,build:g=>{
+    const N=7;
+    for(let i=0;i<N;i++){const u=i/(N-1),a=(u-.5)*2.0;               // courbure du croissant
+      const r=.30*(1-Math.pow(Math.abs(u-.5)*2,2.2)*.72);            // ventre au milieu, pointes aux bouts
+      const m=mesh9(fgSph,(i===0||i===N-1)?FM.bananeBout:FM.banane,r,r*.92,r*1.15,
+        Math.sin(a)*.82,Math.cos(a)*.30-.24,0);
+      m.rotation.z=-a*.5;g.add(m);}
+  }},
+  // GRENADE : peau laquée, COUPÉE — on plonge dans la chair crème et ses grains qui brillent
+  {n:'GRENADE',boost:1.0,freq:4,build:g=>{
+    g.add(mesh9(fgSph,FM.grenade,.80,.80,.80));
+    g.add(mesh9(fgSph,FM.grenadeInt,.46,.46,.12,0,0,.60));           // la chair : une OUVERTURE nette, pas une deuxième boule
+    for(let i=0;i<34;i++){                                            // les arilles, petits et serrés en rosace
+      const a=Math.random()*6.2832,d=Math.pow(Math.random(),.55)*.36;
+      g.add(mesh9(fgSph,FM.grain,.052,.052,.052,Math.cos(a)*d,Math.sin(a)*d,.66+Math.random()*.04));}
+    for(let i=0;i<5;i++){const a=i/5*6.2832;                          // la couronne, en haut
+      g.add(mesh9(fgCone,FM.couronne,.09,.22,.09,Math.cos(a)*.17,.84,Math.sin(a)*.17));}
+  }},
+  {n:'ORANGE',boost:.5,freq:10,build:g=>{
+    g.add(mesh9(fgSph,FM.orange,.80,.78,.80),
+          mesh9(fgSph,FM.feuille,.24,.05,.14,.16,.72,0,-.4),
+          mesh9(fgCyl,FM.tige,.04,.12,.04,0,.78));}},
+  {n:'CITRON',boost:.4,freq:9,build:g=>{
+    g.add(mesh9(fgSph,FM.citron,.60,.84,.60),
+          mesh9(fgSph,FM.citron,.17,.21,.17,0,.80),                  // le téton du citron
+          mesh9(fgSph,FM.citron,.15,.18,.15,0,-.78));}}
 ];
 function fruitPick(rnd){ // tirage PONDÉRÉ par la fréquence (un brocoli reste rare, une pomme court les rues)
   let tot=0;for(const f of FRUIT_DEFS)tot+=Math.max(0,f.freq);
@@ -4471,7 +4493,8 @@ const SAVE={
       .filter(e=>e&&typeof e.n==='string'&&isFinite(+e.s))
       .slice(0,10).map(e=>({n:e.n.slice(0,8),s:Math.max(0,Math.round(+e.s))}));
     c.sfx=d.sfx!==false;c.vox=d.vox!==false;c.mus=d.mus!==false;
-    if(Array.isArray(d.fruits))c.fruits=d.fruits.slice(0,32).map(e=>({ // réglages de l'ÉTAL (bornés : un import bidon ne casse rien)
+    if(Array.isArray(d.fruits))c.fruits=d.fruits.slice(0,32).filter(e=>e&&typeof e.n==='string').map(e=>({ // réglages de l'ÉTAL (bornés : un import bidon ne casse rien)
+      n:e.n.slice(0,24),
       b:THREE.MathUtils.clamp(isFinite(+e.b)?+e.b:.5,0,2),
       f:THREE.MathUtils.clamp(isFinite(+e.f)?+e.f:8,0,40)}));
     if(d.ai&&typeof d.ai==='object'){const a=d.ai,g=(k,dv,lo,hi)=>THREE.MathUtils.clamp(isFinite(+a[k])?+a[k]:dv,lo,hi);
@@ -4508,9 +4531,11 @@ SAVE.load();
 setInterval(()=>{if(SAVE.dirty)SAVE.flush();},30000); // le filet : rien ne se perd plus de 30 s
 SND.sfx=SAVE.d.sfx;SND.voice=SAVE.d.vox;SND.music=SAVE.d.mus;
 // ÉTAL : on recharge les réglages boost/fréquence par-dessus les valeurs d'usine
+// ⚠ indexés par NOM, pas par position : changer la liste des fruits ne doit PAS coller les réglages
+// de l'ancien étal sur les nouveaux (une pêche héritant du boost d'une pomme).
 (function(){const fr=SAVE.d.fruits;if(!fr||!fr.length)return;
-  for(let i=0;i<FRUIT_DEFS.length&&i<fr.length;i++){FRUIT_DEFS[i].boost=fr[i].b;FRUIT_DEFS[i].freq=fr[i].f;}})();
-function saveFruits(){SAVE.d.fruits=FRUIT_DEFS.map(f=>({b:f.boost,f:f.freq}));SAVE.flush();}
+  for(const d of FRUIT_DEFS){const e=fr.find(z=>z.n===d.n);if(e){d.boost=e.b;d.freq=e.f;}}})();
+function saveFruits(){SAVE.d.fruits=FRUIT_DEFS.map(f=>({n:f.n,b:f.boost,f:f.freq}));SAVE.flush();}
 const sndBtnEl=document.getElementById('sndBtn'),voxBtnEl=document.getElementById('voxBtn'),musBtnEl=document.getElementById('musBtn');
 function sndRefresh(){
   sndBtnEl.innerHTML=(SND.sfx?'🔊':'🔇')+' <span class="blabel">SON</span>';sndBtnEl.classList.toggle('off',!SND.sfx); // garde le span → masquable en icône seule sur mobile
@@ -5677,10 +5702,14 @@ addEventListener('keydown',e=>{if(e.code==='Escape'&&setEl.classList.contains('o
 // ---------- L'ÉTAL : on fait défiler les fruits et on règle leur boost / leur fréquence ----------
 let stallOn=false,stallI=0,stallMesh=null,stallAng=0;
 const stEl=$('stall');
+// L'ÉCLAIRAGE DE L'ÉTAL : le showroom est une nuit cyan — sans lumière propre, un fruit rouge vire au
+// violet terne. Deux sources dédiées (clé chaude + contre-jour froid) le rendent APPÉTISSANT.
+const stallKey=new THREE.PointLight(0xfff0dc,0,60);stallKey.visible=false;scene.add(stallKey);
+const stallRim=new THREE.PointLight(0x9fd8ff,0,60);stallRim.visible=false;scene.add(stallRim);
 function stallShow(i){
   stallI=((i%FRUIT_DEFS.length)+FRUIT_DEFS.length)%FRUIT_DEFS.length;
   if(stallMesh){scene.remove(stallMesh);stallMesh=null;}
-  stallMesh=mkFruit(stallI);stallMesh.scale.setScalar(3.4); // gros plan d'étal : on voit le vernis
+  stallMesh=mkFruit(stallI);stallMesh.scale.setScalar(2.6); // gros plan d'étal : on voit le vernis (sans que le fruit déborde du cadre)
   scene.add(stallMesh);
   const d=FRUIT_DEFS[stallI];
   $('stName').textContent=d.n;
@@ -5706,6 +5735,7 @@ function openStall(){
 function closeStall(){
   stallOn=false;stEl.classList.remove('on');document.body.classList.remove('inStall');
   if(stallMesh){scene.remove(stallMesh);stallMesh=null;}
+  stallKey.visible=false;stallKey.intensity=0;stallRim.visible=false;stallRim.intensity=0; // on éteint l'étal en partant
   garageFloor.visible=false;carGroup.visible=true;
   sunSprite.visible=true;horizonGlow.visible=true;for(const r9 of RAYS)r9.visible=true;
   if(pigGroup)pigGroup.visible=true;
@@ -5718,6 +5748,8 @@ function stallRender(dt){ // même showroom que le garage : fond cyan propre, ca
   const ay=GARAGE_Y;
   if(stallMesh){stallMesh.position.set(0,ay,0);stallMesh.rotation.y+=dt*.55;}
   garageFloor.position.set(0,ay-1.6,0);garageFloor.visible=true;
+  stallKey.visible=true;stallKey.intensity=2.6;stallKey.position.set(Math.sin(stallAng+.7)*5,ay+4,Math.cos(stallAng+.7)*5);
+  stallRim.visible=true;stallRim.intensity=1.5;stallRim.position.set(Math.sin(stallAng+3.6)*6,ay+1,Math.cos(stallAng+3.6)*6);
   skyU.uSkyMul.value.set(.62,.92,1.34);skyU.uStars.value=1.7;skyU.uMoon.value=1.5;skyU.uSunHalo.value=.12;
   sunSprite.visible=false;horizonGlow.visible=false;for(const r9 of RAYS)r9.visible=false;
   stallAng+=dt*.25;
