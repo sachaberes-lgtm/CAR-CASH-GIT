@@ -335,7 +335,8 @@
     font-family:var(--pix);font-size:clamp(34px,7.6vw,64px);letter-spacing:8px;
     transform:translate(-50%,-50%) scale(7);opacity:0;
     transition:transform .4s cubic-bezier(.14,1.2,.3,1),opacity .3s}
-  #spTitle.on{transform:translate(-50%,-50%) scale(1);opacity:1}
+  /* --k : l'échelle du logo du MENU, mesurée à l'exécution → le titre atterrit à sa taille définitive */
+  #spTitle.on{transform:translate(-50%,-50%) scale(var(--k,1));opacity:1}
   #spFlash{position:absolute;inset:0;background:#fff6e2;opacity:0;transition:opacity .35s;pointer-events:none;z-index:3}
   /* ------- CONTRÔLES TACTILES (mobile) — masqués par défaut, révélés par body.touch ------- */
   #touchCtl{position:fixed;inset:0;z-index:4;pointer-events:none;display:none;touch-action:none;
@@ -654,7 +655,7 @@ const horizonGlow=(function(){ // nappe très large et plate : l'horizon embras�
 const PLANET_DIR=new THREE.Vector3(-.76,.11,.64).normalize(); // BASSE et DÉPORTÉE : une partie sort du cadre → on lit une DEMI-SPHÈRE, pas une bille (et la route reste dégagée)
 // ON EST AU RAS DE L'ATMOSPHÈRE : la Terre n'est plus une bille dans le ciel mais un MONDE dont on
 // voit la COURBURE (~40° d'arc ≈ la moitié de la hauteur d'écran), posé bas, avec son limbe qui brille.
-const PLANET_R=1250,PLANET_D=3400; // ~50 % de la hauteur : une DEMI-SPHÈRE qui barre le ciel — on rase l'atmosphère
+const PLANET_R=1560,PLANET_D=3400; // ~62 % de la hauteur : la demi-sphère barre franchement le ciel — on rase l'atmosphère
 const planetGroup=(function(){
   const g=new THREE.Group();
   // texture : océans profonds, continents verts, calottes blanches et volutes nuageuses
@@ -2341,13 +2342,21 @@ function rimify(m){
 }
 const wheels=[];
 // halo doux pour phares/feux (défini AVANT buildCar)
+// ⚠ était en 32×32 avec une chute LINÉAIRE : de près, un phare n'était qu'une bouillie pixelisée et
+// fade. En 128 px avec un CŒUR BLANC net qui s'éteint vite, l'ampoule a enfin un point chaud —
+// c'est ce contraste (foyer dur / halo doux) qui fait lire une source de lumière plutôt qu'une tache.
 const lampTex=(function(){
-  const cv=document.createElement('canvas');cv.width=cv.height=32;
+  const s=128,cv=document.createElement('canvas');cv.width=cv.height=s;
   const c=cv.getContext('2d');
-  const g=c.createRadialGradient(16,16,1,16,16,15);
-  g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.5,'rgba(255,255,255,.5)');g.addColorStop(1,'rgba(255,255,255,0)');
-  c.fillStyle=g;c.beginPath();c.arc(16,16,15,0,7);c.fill();
-  return new THREE.CanvasTexture(cv);
+  const g=c.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2);
+  g.addColorStop(0,'rgba(255,255,255,1)');
+  g.addColorStop(.14,'rgba(255,255,255,1)');    // le FOYER : franc, saturé
+  g.addColorStop(.26,'rgba(255,255,255,.72)');
+  g.addColorStop(.48,'rgba(255,255,255,.30)');  // la chute rapide = le contraste
+  g.addColorStop(.74,'rgba(255,255,255,.08)');
+  g.addColorStop(1,'rgba(255,255,255,0)');
+  c.fillStyle=g;c.fillRect(0,0,s,s);
+  const t=new THREE.CanvasTexture(cv);t.minFilter=THREE.LinearFilter;return t;
 })();
 // FLAQUE AU SOL : dégradé radial à EXTINCTION FRANCHE, éteint bien avant le bord du canvas —
 // avec lampTex (chute molle) les nappes additives saturaient en PAVÉ de couleur visible.
@@ -7034,7 +7043,29 @@ renderLeaders(-1);
     }
     for(let i=0;i<3;i++)RG.push({r:10,v:1400-i*300,w:7-i*2,a:.9,col:i===1?'255,120,180':'255,224,150'});
     T9(function(){if(done)return;fl9.style.opacity=0;},130);
-    T9(function(){if(done)return;ttl.classList.add('on');shakeStage(10);},300); // le titre CLAQUE
+    T9(function(){if(done)return;alignTitleToMenu();ttl.classList.add('on');shakeStage(10);},300); // le titre CLAQUE — à SA place définitive
+  }
+  // ALIGNEMENT : le CASH CAR de l'intro naît EXACTEMENT là où sera celui du menu (même point, même
+  // taille) — donc quand le splash se dissout, le logo ne bouge pas d'un pixel. Aucune animation.
+  function alignTitleToMenu(){
+    try{
+      const ovl=document.getElementById('overlay'),h1=ovl&&ovl.querySelector('h1');
+      if(!h1)return;
+      const had=ovl.style.display;
+      ovl.style.visibility='hidden';ovl.style.display='flex';
+      const r=h1.getBoundingClientRect(),t=ttl.getBoundingClientRect();
+      // ⚠ restaurer PROPREMENT : l'ancienne version écrivait 'none' en dur quand il n'y avait pas de
+      // style inline — le menu restait alors masqué pour de bon (« où est mon jeu ? »).
+      if(had)ovl.style.display=had;else ovl.style.removeProperty('display');
+      ovl.style.removeProperty('visibility');
+      if(r.width>10&&t.width>10){
+        ttl.style.left=(r.left+r.width/2)+'px';
+        ttl.style.top=(r.top+r.height/2)+'px';
+        const k=Math.max(.45,Math.min(1.6,r.width/t.width));
+        ttl.dataset.k=k.toFixed(3); // l'échelle du menu, appliquée par la classe .on
+        ttl.style.setProperty('--k',k.toFixed(3));
+      }
+    }catch(e){}
   }
   function shakeStage(n){
     if(done)return;
@@ -7234,11 +7265,8 @@ renderLeaders(-1);
     // ⚠ NE PAS remesurer l'overlay ici : la version « glissante » le passait en display:flex pour
     // mesurer et le restaurait avec `prevD||'none'` — or prevD était VIDE (display géré par le CSS),
     // donc le menu restait masqué EN DUR : « où est mon jeu ? ». Bug supprimé avec le glissement.
-    try{
-      ttl.style.transition='transform .55s cubic-bezier(.2,.8,.2,1),filter .55s';
-      ttl.style.transform='translate(-50%,-50%) scale(1.06)';
-      ttl.style.filter='drop-shadow(0 0 34px rgba(255,206,110,.6))';
-    }catch(e){}
+    // le titre NE BOUGE PAS (il est déjà à la place du logo du menu) : juste un souffle de halo
+    try{ttl.style.transition='filter .5s';ttl.style.filter='drop-shadow(0 0 34px rgba(255,206,110,.6))';}catch(e){}
     setTimeout(function(){sp9.style.opacity=0;},420);
     setTimeout(function(){sp9.remove();},1150);
   }
