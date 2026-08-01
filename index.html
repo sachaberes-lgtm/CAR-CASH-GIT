@@ -43,7 +43,7 @@
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
   #garage.on{display:flex}
   #gTop{display:flex;justify-content:space-between;align-items:center;padding:16px 22px;pointer-events:auto}
-  #gTitle{font-weight:800;letter-spacing:3px;font-size:18px;color:#7fe8ff;text-shadow:0 0 18px rgba(80,200,255,.5)}
+  #gTitle,.gTitle{font-weight:800;letter-spacing:3px;font-size:18px;color:#7fe8ff;text-shadow:0 0 18px rgba(80,200,255,.5)}
   #gClose{width:40px;height:40px;border-radius:50%;background:rgba(12,8,34,.7);border:2px solid #00eaff;color:#cff6ff;font-size:18px;cursor:pointer}
   #gBottom{display:flex;align-items:center;justify-content:center;gap:16px;padding:0 16px 40px;pointer-events:auto}
   .gNav{font-size:24px;width:54px;height:54px;border-radius:50%;background:rgba(12,8,34,.7);border:2px solid #00eaff;color:#cff6ff;cursor:pointer;flex:none}
@@ -63,6 +63,8 @@
   .stRow b{color:#7fe8ff;font-size:15px}
   .stSlider{width:100%;margin:5px 0 2px;accent-color:#00eaff;cursor:pointer}
   #stRare{margin-top:10px;font-size:12px;color:#8fa8c0}
+  #stall.moteur .stRow,#stall.moteur .stSlider{display:none}   /* l'atelier n'a rien à régler : on CONSULTE */
+  #stall.moteur #stRare{font-size:13.5px;color:#cfe6fb;line-height:1.55;margin-top:4px}
   #stClose{width:40px;height:40px;border-radius:50%;background:rgba(12,8,34,.7);border:2px solid #00eaff;color:#cff6ff;font-size:18px;cursor:pointer}
   body.inStall #hud>:not(#stall){display:none!important} /* étal ouvert : HUD de jeu masqué, le fruit reste (canvas au niveau body) */
   body.inGarage #hud>:not(#garage){display:none!important} /* garage ouvert : on masque le HUD de jeu (compteur, jauges), la caisse reste (canvas au niveau body) */
@@ -143,12 +145,20 @@
   #overlay h1{cursor:pointer;transition:transform .22s cubic-bezier(.2,.8,.2,1),filter .22s}
   #overlay h1:hover{transform:scale(1.045);filter:drop-shadow(0 0 26px rgba(255,200,90,.55)) brightness(1.08)}
   #overlay h1:active{transform:scale(.985)}
-  #saveRow{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;justify-content:center;max-width:min(520px,92vw)}
-  /* pilules sobres (DA simple) — plus de pixel-font criard sur les boutons secondaires */
-  .saveBtn{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:13px;font-weight:500;
-    letter-spacing:.2px;padding:9px 16px;cursor:pointer;background:rgba(255,255,255,.09);color:#e6ecf6;
-    border:1px solid rgba(255,255,255,.14);border-radius:999px;transition:background .15s,transform .12s}
-  .saveBtn:hover{background:rgba(255,255,255,.17);color:#fff;transform:translateY(-1px)}
+  #saveRow{display:flex;gap:12px;margin-top:22px;flex-wrap:wrap;justify-content:center;max-width:min(560px,92vw)}
+  /* BOUTONS ARCADE : coins coupés, liseré néon, texte condensé — la pilule grise faisait « app mobile ».
+     Le biseau (clip-path) et le double liseré cyan/rose sont la signature du jeu, pas un composant générique. */
+  .saveBtn{position:relative;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI Semibold","Segoe UI",Roboto,sans-serif;
+    font-size:12.5px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;padding:12px 20px;cursor:pointer;
+    color:#dff4ff;background:linear-gradient(160deg,rgba(28,16,64,.92),rgba(12,8,30,.92));
+    border:1px solid rgba(0,234,255,.42);border-radius:0;
+    clip-path:polygon(9px 0,100% 0,100% calc(100% - 9px),calc(100% - 9px) 100%,0 100%,0 9px);
+    box-shadow:0 0 0 1px rgba(255,62,200,.14),0 6px 22px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.07);
+    transition:color .16s,box-shadow .16s,transform .12s,border-color .16s}
+  .saveBtn:hover{color:#fff;border-color:#00eaff;transform:translateY(-2px);
+    box-shadow:0 0 0 1px rgba(255,62,200,.5),0 0 18px rgba(0,234,255,.42),0 10px 26px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.12)}
+  .saveBtn:active{transform:translateY(0)}
+  .saveBtn:focus-visible{outline:2px solid #ffd75e;outline-offset:2px}
   #survHud{position:absolute;top:64px;right:16px;font-family:var(--pix);font-size:9px;letter-spacing:.5px;
     background:rgba(10,8,24,.72);border:1px solid #3a2e58;border-radius:8px;padding:7px 10px;
     display:none;pointer-events:none;min-width:158px;z-index:3}
@@ -287,7 +297,14 @@
   #nameSave:hover{background:rgba(30,90,45,.9)}
 
   /* ------- ÉCRANS MODERNES (accueil / game over) ------- */
-  #overlay{background:radial-gradient(1200px 700px at 50% 30%,rgba(74,34,58,.55),rgba(10,6,16,.93));backdrop-filter:blur(10px);gap:6px}
+  /* le décor du menu : halo magenta, veine cyan rasante et trame de balayage — on est dans une borne,
+     pas dans une app. Le jeu reste visible derrière (blur léger), il ne disparaît pas sous un voile plat. */
+  #overlay{background:
+      radial-gradient(1100px 620px at 50% 26%,rgba(255,62,200,.16),transparent 62%),
+      linear-gradient(105deg,transparent 38%,rgba(0,234,255,.10) 49%,transparent 60%),
+      repeating-linear-gradient(0deg,rgba(255,255,255,.028) 0 1px,transparent 1px 3px),
+      radial-gradient(1200px 700px at 50% 30%,rgba(74,34,58,.5),rgba(8,5,16,.94));
+    backdrop-filter:blur(9px);gap:6px}
   #overlay h1{font-size:54px;letter-spacing:8px;display:flex;gap:26px;
     transform:perspective(720px) rotateX(11deg);transform-origin:50% 60%;
     filter:drop-shadow(0 22px 30px rgba(0,0,0,.45))}
@@ -425,7 +442,7 @@
     </div>
   </div>
   <div id="stall">
-    <div id="gTop"><span id="gTitle">ÉTAL — RÉGLAGE DES FRUITS</span><button id="stClose">✕</button></div>
+    <div id="gTop"><span id="stTitle" class="gTitle">ÉTAL — RÉGLAGE DES FRUITS</span><button id="stClose">✕</button></div>
     <div id="gBottom">
       <button id="stPrev" class="gNav">◀</button>
       <div id="gCard">
@@ -474,6 +491,7 @@
   <div id="saveRow">
     <button id="garageBtn" class="saveBtn">🚗 Garage</button>
     <button id="stallBtn" class="saveBtn">🍎 Étal</button>
+    <button id="engBtn" class="saveBtn">⚙ Moteurs</button>
     <button id="setBtn" class="saveBtn">⚙︎ Réglages</button>
     <button id="parkBtn" class="saveBtn">🛝 Parc freestyle · OFF</button>
     <button id="survBtn" class="saveBtn">🏁 Survivant · OFF</button>
@@ -2980,6 +2998,53 @@ const FRUIT_DEFS=[
       g.add(mesh9(fgSph,FM.pepin,.055,.085,.02,Math.cos(a)*d,Math.sin(a)*d,.98,a));}
   }}
 ];
+/* ============================================================================
+   LES MOTEURS — plan de progression (2026-07-31)
+   Les FRUITS ne remplissent plus seulement la nitro : ils font MONTER LE MOTEUR. Le moteur est la
+   progression VERTICALE (ce qui pousse) ; la voiture reste la progression HORIZONTALE (ce qu'on pilote,
+   à débloquer par challenges). Chaque palier donne de la poussée, un peu de réserve, et une IDENTITÉ.
+   `fruits` = nombre de fruits croqués pour l'atteindre.
+   ========================================================================== */
+const ENGINE_TIERS=[
+  {n:'3 CYLINDRES',      d:'Deux qui toussent, un qui prie.',            fruits:0,  push:1.00,res:2.0,col:0x9a8f7a,flam:0xff8a30},
+  {n:'4 EN LIGNE',       d:'Honnête. Il fait le travail, sans génie.',   fruits:12, push:1.10,res:2.1,col:0xb9c2cc,flam:0xffa030},
+  {n:'TURBO 4',          d:'Le premier vrai souffle. Ça siffle.',        fruits:30, push:1.24,res:2.3,col:0x6fd0ff,flam:0xffc23a},
+  {n:'V6 BITURBO',       d:'Deux turbos, zéro patience.',                fruits:56, push:1.40,res:2.5,col:0x4a9cff,flam:0x8ad8ff},
+  {n:'V8 COMPRESSÉ',     d:'Le grondement qui fait trembler la dalle.',  fruits:92, push:1.58,res:2.7,col:0xff7a3c,flam:0xff5a2a},
+  {n:'V12 ATMOSPHÉRIQUE',d:'Douze cylindres qui hurlent à l\'unisson.',  fruits:140,push:1.78,res:2.9,col:0xffd75e,flam:0xfff0a0},
+  {n:'COUPLE ÉLECTRIQUE',d:'Aucun bruit. Juste la gifle.',               fruits:210,push:2.00,res:3.2,col:0x7dffec,flam:0x9fffe8},
+  {n:'RÉACTEUR',         d:'Ce n\'est plus un moteur, c\'est une menace.',fruits:300,push:2.30,res:3.6,col:0xff3ec8,flam:0xff6ad5}
+];
+let engTier=0,fruitsEaten=0; // palier courant + fruits croqués (la monnaie du moteur)
+function engineFor(nf){let t=0;for(let i=0;i<ENGINE_TIERS.length;i++)if(nf>=ENGINE_TIERS[i].fruits)t=i;return t;}
+// MODÈLE 3D : bloc, cache-culasse, cylindres (en ligne puis en V), turbo, cellules, tuyère.
+// La silhouette s'enrichit avec le palier — on VOIT qu'on a progressé.
+function mkEngine(i){
+  const E=ENGINE_TIERS[i]||ENGINE_TIERS[0],g=new THREE.Group();
+  const bloc=new THREE.MeshPhongMaterial({color:E.col,shininess:150,specular:0xffffff,envMap:envTex,reflectivity:.45,combine:THREE.MixOperation});
+  const sombre=new THREE.MeshPhongMaterial({color:0x252a33,shininess:90,specular:0x8899aa});
+  const chrome=new THREE.MeshPhongMaterial({color:0xdfe8f2,shininess:280,specular:0xffffff,envMap:envTex,reflectivity:.8,combine:THREE.MixOperation});
+  const feu=new THREE.MeshBasicMaterial({color:E.flam});
+  const box=new THREE.BoxGeometry(1,1,1);
+  const nCyl=[3,4,4,6,8,12,0,0][i]||0;                                    // électrique et réacteur : plus de cylindres
+  g.add(mesh9(box,bloc,1.5,.9,1.1,0,0,0));                                // le bloc
+  g.add(mesh9(box,sombre,1.56,.2,1.16,0,.55,0));                          // le cache-culasse
+  for(let c=0;c<nCyl;c++){                                                 // cylindres : en ligne, puis en V
+    const enV=i>=3,rang=enV?Math.floor(c/2):c,nR=enV?Math.ceil(nCyl/2):nCyl;
+    const sd=enV?(c%2?1:-1):0,u=(nR>1?rang/(nR-1):.5)-.5;
+    const m=mesh9(fgCyl,chrome,.15,.40,.15,u*1.2,.72,sd*.26);
+    if(enV)m.rotation.z=sd*.3;
+    g.add(m);
+  }
+  if(i>=2){                                                                // le turbo (escargot + tubulure)
+    g.add(mesh9(fgCyl,chrome,.34,.22,.34,.95,-.12,.6,Math.PI/2));
+    g.add(mesh9(fgCyl,sombre,.12,.5,.12,.62,-.12,.6,Math.PI/2));
+  }
+  if(i>=6)for(const sd of [1,-1])g.add(mesh9(box,feu,.12,.52,.5,-.82,.12,sd*.3)); // cellules lumineuses
+  if(i>=7)g.add(mesh9(fgCone,feu,.5,.9,.5,-1.45,0,0,Math.PI/2));           // la tuyère
+  g.add(mesh9(fgCyl,sombre,.5,.16,.5,-.92,-.1,0,Math.PI/2));               // le volant moteur
+  return g;
+}
 function fruitPick(rnd){ // tirage PONDÉRÉ par la fréquence (un brocoli reste rare, une pomme court les rues)
   let tot=0;for(const f of FRUIT_DEFS)tot+=Math.max(0,f.freq);
   if(tot<=0)return 0;
@@ -5222,6 +5287,7 @@ function resetGame(){
   clearBoom();
   money=0;levelCash=0;level=0;buildCar(CARS[0]);
   nitroR=2;nitroX=0;boost=0;combo=0;edgeT=0;momT=0;styleM=0;fever=0;streak=0;slowT=0;gameOver=false;paused=false;insUsed=false;feverArmed=false;rollover=0;idleT=0;driftT=0;driftYaw=0;
+  fruitsEaten=0;engTier=0; // le moteur se remonte à chaque run (c'est la progression DE LA PARTIE)
   pwrNitroT=0;pwrAirT=0;pwrSpdT=0;
   nextRainAt=4e3;moneyRainT=0;sideCd=0;slipT=0;oilCd=0;
   nitroAirT=0;fallUnder=false;pureT=0;pureArmed=true;gapArmed=0;rampCd=0;annStop();
@@ -5892,9 +5958,21 @@ const stEl=$('stall');
 // violet terne. Deux sources dédiées (clé chaude + contre-jour froid) le rendent APPÉTISSANT.
 const stallKey=new THREE.PointLight(0xfff0dc,0,60);stallKey.visible=false;scene.add(stallKey);
 const stallRim=new THREE.PointLight(0x9fd8ff,0,60);stallRim.visible=false;scene.add(stallRim);
+let stallMode='fruit'; // 'fruit' = l'étal · 'moteur' = l'atelier (même vitrine, autre contenu)
 function stallShow(i){
-  stallI=((i%FRUIT_DEFS.length)+FRUIT_DEFS.length)%FRUIT_DEFS.length;
+  const N=stallMode==='moteur'?ENGINE_TIERS.length:FRUIT_DEFS.length;
+  stallI=((i%N)+N)%N;
   if(stallMesh){scene.remove(stallMesh);stallMesh=null;}
+  if(stallMode==='moteur'){ // L'ATELIER : le moteur tourne sur son socle, avec sa fiche
+    stallMesh=mkEngine(stallI);stallMesh.scale.setScalar(1.55);
+    scene.add(stallMesh);
+    const E=ENGINE_TIERS[stallI];
+    $('stName').textContent=E.n;
+    $('stRare').textContent=E.d+'  ·  poussée ×'+E.push.toFixed(2)
+      +(stallI===0?'  ·  d\'origine':'  ·  à '+E.fruits+' fruits')
+      +(stallI===engTier?'   ◀ LE TIEN':'');
+    return;
+  }
   stallMesh=mkFruit(stallI);stallMesh.scale.setScalar(2.6); // gros plan d'étal : on voit le vernis (sans que le fruit déborde du cadre)
   scene.add(stallMesh);
   const d=FRUIT_DEFS[stallI];
@@ -5910,8 +5988,11 @@ function stallRefresh(){
   $('stRare').textContent=tot>0?('soit '+Math.round(100*Math.max(0,d.freq)/tot)+' % des fruits de la piste'
     +(d.freq<=0?' — jamais tiré':'')):'aucun fruit ne peut apparaître (toutes les fréquences à 0)';
 }
-function openStall(){
-  if(started){showMsg('L\'étal se visite depuis le menu');return;}
+function openStall(mode){
+  if(started){showMsg('Ça se visite depuis le menu');return;}
+  stallMode=mode||'fruit';stallI=stallMode==='moteur'?engTier:0;
+  stEl.classList.toggle('moteur',stallMode==='moteur');
+  $('stTitle').textContent=stallMode==='moteur'?'ATELIER — LES MOTEURS':'ÉTAL — RÉGLAGE DES FRUITS';
   stallOn=true;stEl.classList.add('on');document.body.classList.add('inStall');
   overlay.style.display='none';
   if(pigGroup)pigGroup.visible=false;
@@ -5943,7 +6024,8 @@ function stallRender(dt){ // même showroom que le garage : fond cyan propre, ca
   camera.position.set(Math.sin(stallAng)*7,ay+2.4,Math.cos(stallAng)*7);
   camera.lookAt(0,ay+.2,0);
 }
-$('stallBtn').addEventListener('click',e=>{e.stopPropagation();openStall();});
+$('stallBtn').addEventListener('click',e=>{e.stopPropagation();openStall('fruit');});
+$('engBtn').addEventListener('click',e=>{e.stopPropagation();openStall('moteur');});
 $('stClose').addEventListener('click',e=>{e.stopPropagation();closeStall();});
 $('stPrev').addEventListener('click',e=>{e.stopPropagation();stallShow(stallI-1);});
 $('stNext').addEventListener('click',e=>{e.stopPropagation();stallShow(stallI+1);});
@@ -6078,7 +6160,7 @@ function loop(now){
       if(up)a=acc9*(vA<maxSp?1:.55)*(boost>0?1.5:1)*momF; // ça pousse TOUJOURS sur la route
       if(dn)a=vA>2?-acc9*1.5:-acc9*.5;
       vA+=a*dt;
-      if(nitroOn)vA+=(nitroBlue?48:30)*dt;
+      if(nitroOn)vA+=(nitroBlue?48:30)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*dt; // LE MOTEUR pousse : le palier multiplie la nitro
       vA+=-GRAV*F.t.y*Math.cos(psi)*driveDir*dt; // la pente accélère/freine selon le SENS réel de marche
       // pas de plafond : seule la traînée résiste (terminal ≈ 2,4x la vitesse max de la caisse)
       vA-=vA*Math.abs(vA)*(acc9/(maxSp*maxSp*5.8))*dt;
@@ -6242,6 +6324,12 @@ function loop(now){
             nitroX=Math.min(2,nitroX+fd.boost);
             juiceSplash(carGroup.position,fd.jus||0xffd75e,pw); // ON CROQUE : le jus gicle à sa couleur
             juiceSfx(pw);
+            // LE MOTEUR MONTE : chaque fruit compte, les gros comptent double
+            fruitsEaten+=fd.boost>=1?2:1;
+            const nt=engineFor(fruitsEaten);
+            if(nt>engTier){engTier=nt;const E=ENGINE_TIERS[nt];
+              showMsg('⚙ MOTEUR : '+E.n,'#7dffec');trickMsg('⚙ '+E.n+' — POUSSÉE ×'+E.push.toFixed(2),3);
+              fanfare();shake=Math.max(shake,.5);sparkBurst(sparkGold,carGroup.position,26,16);}
             if(fd.boost>=1.5){ // LE GRAAL : la pastèque, ça se fête
               trickMsg('🍉 '+fd.n+' !',2);sparkBurst(sparkGold,carGroup.position,18,14);shake=Math.max(shake,.3);
             }else sparkBurst(fd.boost>=.8?sparkGold:sparkBlue,carGroup.position,fd.boost>=.8?8:5,7);
