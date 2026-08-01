@@ -6362,8 +6362,12 @@ function loop(now){
           }
         }
         // caméra COLLÉE à la caisse hors boost (elle remplit l'écran) → RECULE quand on boost (le monde s'ouvre)
+        // ⚠ ANGLE : en rapprochant la caméra (5,6 → 4,1) sans baisser sa hauteur, l'assiette est passée
+        // de 21,4° à 26° de plongée — la caméra regardait 5° trop vers le bas EN PERMANENCE.
+        // La hauteur suit désormais la distance (même rapport qu'à l'origine) : on reste collé à la
+        // caisse, mais l'œil retrouve exactement l'angle d'avant.
         const camBoost=Math.min(1,(nitroOn?.72:0)+Math.min(1,boost)*.5);
-        const camBack=4.1+speedKmh*.006+camBoost*3.8,camH=2.0+speedKmh*.004+camBoost*.5;
+        const camBack=4.6+speedKmh*.006+camBoost*3.8,camH=camBack*.393+speedKmh*.0018+camBoost*.35;
         tmp2.copy(carGroup.position).addScaledVector(fwdW,-camBack).addScaledVector(F.n,camH);
         camera.position.lerp(tmp2,Math.min(1,dt*5));
         camUp.lerp(F.n,Math.min(1,dt*4)).normalize();
