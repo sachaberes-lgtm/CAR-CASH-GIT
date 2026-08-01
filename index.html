@@ -2712,6 +2712,45 @@ function buildCar(spec){
   CARPOOL.tail=mkPoolPlane(spec.w*2.1,spec.l*1.15,-spec.l/2-spec.l*.48,0xf51a0c,.30);          // les feux saignent leur rouge DERRIÈRE — rouge PROFOND (le bleu résiduel de 0xff2418 rosissait la flaque sur le bitume violet)
   CARPOOL.jet=mkPoolPlane(spec.w*2.7,spec.l*4.6,-spec.l/2-spec.l*2.3,0xff7a24,0);              // le halo de la nitro/traînée (opacité pilotée par JETS.k dans la boucle)
   carGroup.traverse(o9=>{if(o9.isMesh&&!o9.userData.noShadow)o9.castShadow=true;}); // toute la caisse porte son ombre LONGUE — sauf la nappe néon (un carré d'ombre, non merci)
+  hudCarBuild(); // la vignette du HUD prend le modèle neuf
+}
+// ---------- VIGNETTE DE CAISSE : on VOIT ce qu'on pilote, en 3D, pendant la course ----------
+// Scène minuscule et SÉPARÉE (une copie du modèle + deux lumières), dessinée dans un petit coin de
+// l'écran après le rendu principal. Le monde n'est pas re-rendu : le surcoût est un seul objet.
+const hudScene=new THREE.Scene();
+const hudCam=new THREE.PerspectiveCamera(34,1.35,.1,80);
+hudScene.add(new THREE.HemisphereLight(0xd8ecff,0x241c3e,1.35));
+{const k=new THREE.DirectionalLight(0xffffff,1.5);k.position.set(3.5,5,4.5);hudScene.add(k);
+ const r=new THREE.DirectionalLight(0x7fd8ff,.85);r.position.set(-4,1.5,-3);hudScene.add(r);}
+let hudCar=null,hudSpin=0;
+function hudCarBuild(){
+  if(hudCar)hudScene.remove(hudCar);
+  hudCar=carGroup.clone(true);
+  hudCar.position.set(0,0,0);hudCar.rotation.set(0,0,0);hudCar.scale.setScalar(1);
+  hudCar.visible=true;
+  // on jette lumières, sprites et nappes de lumière au sol : dans une vitrine ils n'ont aucun sens
+  const kill=[];
+  hudCar.traverse(o=>{if(o.isLight||o.isSprite||o.isPoints||(o.geometry&&o.geometry.type==='PlaneGeometry'))kill.push(o);});
+  for(const k of kill)if(k.parent)k.parent.remove(k);
+  hudScene.add(hudCar);
+}
+function hudCarRender(dt){
+  if(!hudCar||!started||gameOver||garageOn||stallOn||paused)return;
+  hudSpin+=dt*.55;
+  hudCar.rotation.y=hudSpin;
+  const spec=CARS[level],rad=Math.max(spec.l,spec.w)*.5;
+  hudCam.position.set(0,rad*.9,rad*3.7);hudCam.lookAt(0,rad*.28,0); // mesuré : à 3,05 la caisse touchait les bords du cadre
+  const dpr=renderer.getPixelRatio(),W=renderer.domElement.width,H=renderer.domElement.height;
+  const w=Math.round(Math.min(210,W/dpr*.19)*dpr),h=Math.round(w/1.35);
+  const x=Math.round(16*dpr),y=Math.round(H-h-(IS_TOUCH?96:120)*dpr); // sous la fiche de caisse, en haut à gauche
+  if(w<24||h<18||y<0||x+w>W||y+h>H)return; // fenêtre dégénérée (onglet caché, écran minuscule) : on ne dessine pas
+  const ac=renderer.autoClear;renderer.autoClear=false;
+  renderer.setScissorTest(true);
+  renderer.setViewport(x,y,w,h);renderer.setScissor(x,y,w,h);
+  renderer.clearDepth();
+  renderer.render(hudScene,hudCam);
+  renderer.setScissorTest(false);
+  renderer.setViewport(0,0,W,H);renderer.autoClear=ac;
 }
 buildCar(CARS[0]);
 window.dbgCar=function(i){buildCar(CARS[Math.max(0,Math.min(23,i|0))]);}; // console : dbgCar(16) → prévisualiser un gabarit sans farmer les milliards (visuel pur, ne touche pas au niveau)
@@ -2845,8 +2884,10 @@ const wmelTex=(function(){
   }
   const t=new THREE.CanvasTexture(cv);t.wrapS=THREE.RepeatWrapping;return t;
 })();
-const glossyM=(col)=>new THREE.MeshPhongMaterial({color:col,emissive:col,emissiveIntensity:.14,
-  shininess:180,specular:0xffffff,envMap:envTex,reflectivity:.5,combine:THREE.MixOperation});
+// VERNIS MOUILLÉ : shininess très haut = un point de lumière SERRÉ (la goutte de reflet qui donne faim),
+// emissive relevé pour que la chair reste lumineuse même dans la nuit néon, et le ciel qui s'y reflète.
+const glossyM=(col)=>new THREE.MeshPhongMaterial({color:col,emissive:col,emissiveIntensity:.34,
+  shininess:340,specular:0xffffff,envMap:envTex,reflectivity:.72,combine:THREE.MixOperation});
 const FM={ // la palette du primeur
   peche:glossyM(0xff9ec2),   pecheClair:glossyM(0xfff1dd), peau:glossyM(0xffb8a0),
   banane:glossyM(0xffd63a),  bananeBout:glossyM(0x6b5320),
@@ -2857,16 +2898,17 @@ const FM={ // la palette du primeur
   feuille:glossyM(0x3faa4a), tige:glossyM(0x6d4a26)
 };
 // LES GRAINS DE LA GRENADE : rouge profond mais LUISANT — ils doivent accrocher la lumière comme du verre
-FM.grain=new THREE.MeshPhongMaterial({color:0xe8103f,emissive:0x7a0620,emissiveIntensity:.55,
-  shininess:300,specular:0xffffff,envMap:envTex,reflectivity:.72,combine:THREE.MixOperation});
+FM.grain=new THREE.MeshPhongMaterial({color:0xff2050,emissive:0x9c0a2a,emissiveIntensity:.8,
+  shininess:400,specular:0xffffff,envMap:envTex,reflectivity:.85,combine:THREE.MixOperation}); // les arilles : de vraies perles de jus
 // PEAU DE GRENADE : le glossy standard la rendait ROSE sous l'éclairage cyan de l'étal — il lui faut
 // son propre rouge, plus saturé et plus incandescent, avec un vernis dur.
-FM.grenade=new THREE.MeshPhongMaterial({color:0xc00d24,emissive:0x6e0413,emissiveIntensity:.34,
-  shininess:190,specular:0xffdcd6,envMap:envTex,reflectivity:.42,combine:THREE.MixOperation}); // grenat plus SOURD = plus réaliste
-FM.ecorce=new THREE.MeshPhongMaterial({map:wmelTex,shininess:70,specular:0xdfeccc,envMap:envTex,reflectivity:.24,combine:THREE.MixOperation});
-// CHAIR DE PASTÈQUE : rouge JUTEUX, presque translucide — c'est elle qui doit donner soif
-FM.chair=new THREE.MeshPhongMaterial({color:0xe8253f,emissive:0x8a0f22,emissiveIntensity:.32,
-  shininess:150,specular:0xffd8d8,side:THREE.DoubleSide});
+FM.grenade=new THREE.MeshPhongMaterial({color:0xc00d24,emissive:0x7c0518,emissiveIntensity:.46,
+  shininess:300,specular:0xfff0ec,envMap:envTex,reflectivity:.6,combine:THREE.MixOperation}); // grenat profond mais VERNI
+FM.ecorce=new THREE.MeshPhongMaterial({map:wmelTex,emissive:0x0d2e13,emissiveIntensity:.3,
+  shininess:180,specular:0xeafbdc,envMap:envTex,reflectivity:.42,combine:THREE.MixOperation}); // écorce cirée
+// CHAIR DE PASTÈQUE : rouge JUTEUX, gorgé d'eau — c'est elle qui doit donner soif
+FM.chair=new THREE.MeshPhongMaterial({color:0xff2a48,emissive:0xa8122a,emissiveIntensity:.55,
+  shininess:320,specular:0xffeaea,side:THREE.DoubleSide});
 const mesh9=(geo,mat,sx,sy,sz,px,py,pz,rz)=>{const m=new THREE.Mesh(geo,mat);
   m.scale.set(sx,sy,sz);m.position.set(px||0,py||0,pz||0);if(rz)m.rotation.z=rz;return m;};
 // L'ÉTAL : chaque cageot a son NOM, sa recette 3D, son BOOST (nitro rendue) et sa FRÉQUENCE (poids
@@ -3900,6 +3942,25 @@ window.dbgPlanet=function(){const v=planetGroup.position.clone().project(camera)
   return {ecran:[Math.round((v.x*.5+.5)*W),Math.round((1-(v.y*.5+.5))*H)],dansLeCadre:(Math.abs(v.x)<1&&Math.abs(v.y)<1&&v.z<1),
     tailleEcranPx:Math.round(2*PLANET_R/planetGroup.position.distanceTo(camera.position)/(2*Math.tan(camera.fov*Math.PI/360))*H),buffer:[W,H]};};
 window.dbgBoom=function(){explode();return {variante:BOOMV.n,rings:BOOMV.rings,extra:extraRings.length};}; // déclenche une mort et dit quelle signature est sortie
+window.dbgHudCar=function(){ // test DIFFÉRENTIEL : la vignette change-t-elle vraiment les pixels du coin ?
+  const dpr=renderer.getPixelRatio(),W=renderer.domElement.width,H=renderer.domElement.height;
+  const w=Math.round(Math.min(210,W/dpr*.19)*dpr),h=Math.round(w/1.35);
+  const x=Math.round(16*dpr),y=Math.round(H-h-(IS_TOUCH?96:120)*dpr);
+  const gl=renderer.getContext(),buf=new Uint8Array(w*h*4);
+  const lire=()=>{gl.readPixels(x,y,w,h,gl.RGBA,gl.UNSIGNED_BYTE,buf);let s=0;for(let i=0;i<buf.length;i+=4)s+=buf[i]+buf[i+1]+buf[i+2];return s;};
+  if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
+  hudCarRender(.016);const avec=lire();
+  const v=hudCar?hudCar.visible:false;if(hudCar)hudCar.visible=false;
+  if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
+  hudCarRender(.016);const sans=lire();
+  if(hudCar)hudCar.visible=v;
+  let meshes=0;if(hudCar)hudCar.traverse(o=>{if(o.isMesh)meshes++;});
+  const bb=hudCar?new THREE.Box3().setFromObject(hudCar):null;
+  renderer.render(hudScene,hudCam);const calls=renderer.info.render.calls,tris=renderer.info.render.triangles;
+  return {rect:[x,y,w,h],avec,sans,difference:Math.abs(avec-sans),dessine:Math.abs(avec-sans)>2000,
+    caisse:hudCar?CARS[level].name:'(aucune)',meshes,drawCalls:calls,triangles:tris,
+    boite:bb?{min:bb.min.toArray().map(n=>+n.toFixed(1)),max:bb.max.toArray().map(n=>+n.toFixed(1))}:null,
+    cam:hudCam.position.toArray().map(n=>+n.toFixed(1)),visible:hudCar?hudCar.visible:null};};
 window.dbgTakeoff=function(){const a=mode;heistFire();return {avant:a,apres:mode,vy:+fallVel.y.toFixed(1),slowT:+slowT.toFixed(2),fever:+fever.toFixed(1)};};
 window.dbgSlow=function(v){if(v!=null)slowT=v;return {slowT:+slowT.toFixed(2),s:+s.toFixed(2),fallTR:+fallTR.toFixed(2),mode:mode};};
 window.dbgDrift=function(){return {driftYaw:+driftYaw.toFixed(3),degres:Math.round(driftYaw*57.3),nitro:nitroOn,mode:mode,kmh:Math.round(Math.abs(vA)*3.6*SPD)};};
@@ -6925,6 +6986,7 @@ function loop(now){
   try{musicTick(dt,musMvt);updateDolphins(dt);updateSerpent(dt);updateBoomArt(dt);}catch(e){if(!loop._crWarn){console.warn('créatures/musique',e);loop._crWarn=1;}}
   if(POST_ON&&composer)composer.render(); // ACES + bloom
   else renderer.render(scene,camera);      // repli si le post n'a pas pu se charger
+  try{hudCarRender(dt);}catch(e){if(!loop._hudWarn){console.warn('vignette caisse',e);loop._hudWarn=1;}} // la caisse en vitrine, PAR-DESSUS l'image finale
 }
 // ---------- INIT ----------
 newTrack();
