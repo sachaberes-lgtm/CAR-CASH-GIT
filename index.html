@@ -335,8 +335,7 @@
     font-family:var(--pix);font-size:clamp(34px,7.6vw,64px);letter-spacing:8px;
     transform:translate(-50%,-50%) scale(7);opacity:0;
     transition:transform .4s cubic-bezier(.14,1.2,.3,1),opacity .3s}
-  /* --k : l'échelle du logo du MENU, mesurée à l'exécution → le titre atterrit à sa taille définitive */
-  #spTitle.on{transform:translate(-50%,-50%) scale(var(--k,1));opacity:1}
+  #spTitle.on{transform:translate(-50%,-50%) scale(1);opacity:1}
   #spFlash{position:absolute;inset:0;background:#fff6e2;opacity:0;transition:opacity .35s;pointer-events:none;z-index:3}
   /* ------- CONTRÔLES TACTILES (mobile) — masqués par défaut, révélés par body.touch ------- */
   #touchCtl{position:fixed;inset:0;z-index:4;pointer-events:none;display:none;touch-action:none;
@@ -6999,7 +6998,10 @@ function loop(now){
   try{musicTick(dt,musMvt);updateDolphins(dt);updateSerpent(dt);updateBoomArt(dt);}catch(e){if(!loop._crWarn){console.warn('créatures/musique',e);loop._crWarn=1;}}
   if(POST_ON&&composer)composer.render(); // ACES + bloom
   else renderer.render(scene,camera);      // repli si le post n'a pas pu se charger
-  try{hudCarRender(dt);}catch(e){if(!loop._hudWarn){console.warn('vignette caisse',e);loop._hudWarn=1;}} // la caisse en vitrine, PAR-DESSUS l'image finale
+  // VIGNETTE DE CAISSE — DÉSACTIVÉE : elle détourne le viewport/scissor du renderer entre deux frames
+  // du composer, ce qui déformait l'image principale. À réintroduire seulement via un RenderTarget
+  // dédié (jamais en touchant au viewport de la passe finale).
+  // try{hudCarRender(dt);}catch(e){}
 }
 // ---------- INIT ----------
 newTrack();
@@ -7047,29 +7049,7 @@ renderLeaders(-1);
     }
     for(let i=0;i<3;i++)RG.push({r:10,v:1400-i*300,w:7-i*2,a:.9,col:i===1?'255,120,180':'255,224,150'});
     T9(function(){if(done)return;fl9.style.opacity=0;},130);
-    T9(function(){if(done)return;alignTitleToMenu();ttl.classList.add('on');shakeStage(10);},300); // le titre CLAQUE — à SA place définitive
-  }
-  // ALIGNEMENT : le CASH CAR de l'intro naît EXACTEMENT là où sera celui du menu (même point, même
-  // taille) — donc quand le splash se dissout, le logo ne bouge pas d'un pixel. Aucune animation.
-  function alignTitleToMenu(){
-    try{
-      const ovl=document.getElementById('overlay'),h1=ovl&&ovl.querySelector('h1');
-      if(!h1)return;
-      const had=ovl.style.display;
-      ovl.style.visibility='hidden';ovl.style.display='flex';
-      const r=h1.getBoundingClientRect(),t=ttl.getBoundingClientRect();
-      // ⚠ restaurer PROPREMENT : l'ancienne version écrivait 'none' en dur quand il n'y avait pas de
-      // style inline — le menu restait alors masqué pour de bon (« où est mon jeu ? »).
-      if(had)ovl.style.display=had;else ovl.style.removeProperty('display');
-      ovl.style.removeProperty('visibility');
-      if(r.width>10&&t.width>10){
-        ttl.style.left=(r.left+r.width/2)+'px';
-        ttl.style.top=(r.top+r.height/2)+'px';
-        const k=Math.max(.45,Math.min(1.6,r.width/t.width));
-        ttl.dataset.k=k.toFixed(3); // l'échelle du menu, appliquée par la classe .on
-        ttl.style.setProperty('--k',k.toFixed(3));
-      }
-    }catch(e){}
+    T9(function(){if(done)return;ttl.classList.add('on');shakeStage(10);},300); // le titre CLAQUE, au CENTRE (l'alignement sur le menu le décalait à droite : abandonné)
   }
   function shakeStage(n){
     if(done)return;
