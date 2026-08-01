@@ -2829,13 +2829,30 @@ const nitroCoreMat=new THREE.MeshBasicMaterial({color:0xaee4ff});
 // ---------- L'ÉTAL : les orbes bleues de boost deviennent des FRUITS ET LÉGUMES ----------
 // Lisses, laqués, appétissants : shininess haut + spéculaire blanc + reflet du ciel (envMap).
 // Géométries et matériaux PARTAGÉS (créés une fois) — un fruit ne coûte que 2-3 meshes.
-const fgSph=new THREE.SphereGeometry(1,16,12),fgCone=new THREE.ConeGeometry(1,1,14),fgCyl=new THREE.CylinderGeometry(1,1,1,8);
+const fgSph=new THREE.SphereGeometry(1,16,12),fgCone=new THREE.ConeGeometry(1,1,14),fgCyl=new THREE.CylinderGeometry(1,1,1,8),
+      fgDisc=new THREE.CircleGeometry(1,28); // la CHAIR d'un fruit coupé (pastèque)
+// ÉCORCE DE PASTÈQUE : bandes vert sombre / vert clair, peintes puis enroulées sur la sphère
+const wmelTex=(function(){
+  const w=256,h=128,cv=document.createElement('canvas');cv.width=w;cv.height=h;const x=cv.getContext('2d');
+  x.fillStyle='#1f7a2e';x.fillRect(0,0,w,h);
+  for(let i=0;i<10;i++){ // les rayures sinueuses, jamais droites
+    const cx=i/10*w+6;
+    x.fillStyle=i%2?'#0d3d18':'#2f9c3e';
+    x.beginPath();
+    for(let y=0;y<=h;y+=8){const off=Math.sin(y*.09+i)*5;x.lineTo(cx+off-7,y);}
+    for(let y=h;y>=0;y-=8){const off=Math.sin(y*.09+i)*5;x.lineTo(cx+off+7,y);}
+    x.closePath();x.fill();
+  }
+  const t=new THREE.CanvasTexture(cv);t.wrapS=THREE.RepeatWrapping;return t;
+})();
 const glossyM=(col)=>new THREE.MeshPhongMaterial({color:col,emissive:col,emissiveIntensity:.14,
   shininess:180,specular:0xffffff,envMap:envTex,reflectivity:.5,combine:THREE.MixOperation});
 const FM={ // la palette du primeur
   peche:glossyM(0xff9ec2),   pecheClair:glossyM(0xfff1dd), peau:glossyM(0xffb8a0),
   banane:glossyM(0xffd63a),  bananeBout:glossyM(0x6b5320),
   grenadeInt:glossyM(0xf7e3c8), couronne:glossyM(0xa5122c),
+  myrtille:glossyM(0x4433a8),   pruine:glossyM(0x8f86d6),
+  pasteque:glossyM(0xd8213a),   pepin:glossyM(0x1a1410),  blancMelon:glossyM(0xeaf7d8),
   orange:glossyM(0xff8b12),  citron:glossyM(0xffd21c),
   feuille:glossyM(0x3faa4a), tige:glossyM(0x6d4a26)
 };
@@ -2844,25 +2861,32 @@ FM.grain=new THREE.MeshPhongMaterial({color:0xe8103f,emissive:0x7a0620,emissiveI
   shininess:300,specular:0xffffff,envMap:envTex,reflectivity:.72,combine:THREE.MixOperation});
 // PEAU DE GRENADE : le glossy standard la rendait ROSE sous l'éclairage cyan de l'étal — il lui faut
 // son propre rouge, plus saturé et plus incandescent, avec un vernis dur.
-FM.grenade=new THREE.MeshPhongMaterial({color:0xd10f2b,emissive:0x8c0518,emissiveIntensity:.5,
-  shininess:260,specular:0xfff0f0,envMap:envTex,reflectivity:.6,combine:THREE.MixOperation});
+FM.grenade=new THREE.MeshPhongMaterial({color:0xc00d24,emissive:0x6e0413,emissiveIntensity:.34,
+  shininess:190,specular:0xffdcd6,envMap:envTex,reflectivity:.42,combine:THREE.MixOperation}); // grenat plus SOURD = plus réaliste
+FM.ecorce=new THREE.MeshPhongMaterial({map:wmelTex,shininess:70,specular:0xdfeccc,envMap:envTex,reflectivity:.24,combine:THREE.MixOperation});
+// CHAIR DE PASTÈQUE : rouge JUTEUX, presque translucide — c'est elle qui doit donner soif
+FM.chair=new THREE.MeshPhongMaterial({color:0xe8253f,emissive:0x8a0f22,emissiveIntensity:.32,
+  shininess:150,specular:0xffd8d8,side:THREE.DoubleSide});
 const mesh9=(geo,mat,sx,sy,sz,px,py,pz,rz)=>{const m=new THREE.Mesh(geo,mat);
   m.scale.set(sx,sy,sz);m.position.set(px||0,py||0,pz||0);if(rz)m.rotation.z=rz;return m;};
 // L'ÉTAL : chaque cageot a son NOM, sa recette 3D, son BOOST (nitro rendue) et sa FRÉQUENCE (poids
 // de tirage). boost/freq sont réglables en jeu depuis la plateforme ÉTAL et persistés dans la sauvegarde.
 const FRUIT_DEFS=[
   // PÊCHE PLATE : galette bombée, rose lavée de blanc crème sur une joue + son sillon
-  {n:'PÊCHE PLATE',boost:.5,freq:10,build:g=>{
+  {n:'PÊCHE PLATE',boost:.6,freq:10,jus:0xff9ec2,build:g=>{
     // pêche JAPONAISE : galette bombée mais pas écrasée — elle garde de la joue et une fossette au sommet
     g.add(mesh9(fgSph,FM.peche,.88,.66,.88),
           mesh9(fgSph,FM.pecheClair,.60,.50,.60,-.26,.08,.20),   // la joue blanc crème
           mesh9(fgSph,FM.peau,.10,.42,.62,0,.12,0),              // le sillon, marqué en relief
           mesh9(fgSph,FM.peche,.30,.16,.30,0,.56),               // la fossette du pédoncule
-          mesh9(fgCyl,FM.tige,.04,.16,.04,0,.64));}},
+          mesh9(fgCyl,FM.tige,.04,.16,.04,0,.64),
+          mesh9(fgSph,FM.feuille,.30,.045,.17,.24,.70,.04,-.42), // la petite feuille verte
+          mesh9(fgSph,FM.feuille,.16,.04,.10,.40,.66,-.06,-.7)); // sa pointe qui retombe
+  }},
   // BANANE : un arc de segments qui s'affinent, avec les deux bouts bruns
   // BANANE : des segments ALLONGÉS dans l'axe (donc fondus en un tube lisse, plus des boules empilées
   // qui faisaient « larve »), croissant plus marqué, corps plus fin et plus long, pointes franches.
-  {n:'BANANE',boost:.6,freq:9,build:g=>{
+  {n:'BANANE',boost:.5,freq:12,jus:0xffd63a,build:g=>{
     const N=13;
     for(let i=0;i<N;i++){const u=i/(N-1),a=(u-.5)*2.9;               // croissant BIEN courbé
       const t=Math.abs(u-.5)*2;
@@ -2875,7 +2899,7 @@ const FRUIT_DEFS=[
       m.rotation.z=-a;g.add(m);}                                     // chaque segment suit la tangente du croissant
   }},
   // GRENADE : peau laquée, COUPÉE — on plonge dans la chair crème et ses grains qui brillent
-  {n:'GRENADE',boost:1.0,freq:4,build:g=>{
+  {n:'GRENADE',boost:1.0,freq:4,jus:0xd10f2b,build:g=>{
     g.add(mesh9(fgSph,FM.grenade,.80,.80,.80));
     g.add(mesh9(fgSph,FM.grenadeInt,.46,.46,.12,0,0,.60));           // la chair : une OUVERTURE nette, pas une deuxième boule
     for(let i=0;i<34;i++){                                            // les arilles, petits et serrés en rosace
@@ -2884,14 +2908,27 @@ const FRUIT_DEFS=[
     for(let i=0;i<5;i++){const a=i/5*6.2832;                          // la couronne, en haut
       g.add(mesh9(fgCone,FM.couronne,.09,.22,.09,Math.cos(a)*.17,.84,Math.sin(a)*.17));}
   }},
-  {n:'ORANGE',boost:.5,freq:10,build:g=>{
+  {n:'ORANGE',boost:.5,freq:11,jus:0xff8b12,build:g=>{
     g.add(mesh9(fgSph,FM.orange,.80,.78,.80),
           mesh9(fgSph,FM.feuille,.24,.05,.14,.16,.72,0,-.4),
           mesh9(fgCyl,FM.tige,.04,.12,.04,0,.78));}},
-  {n:'CITRON',boost:.4,freq:9,build:g=>{
-    g.add(mesh9(fgSph,FM.citron,.60,.84,.60),
-          mesh9(fgSph,FM.citron,.17,.21,.17,0,.80),                  // le téton du citron
-          mesh9(fgSph,FM.citron,.15,.18,.15,0,-.78));}}
+  // MYRTILLE : petite bille violet-bleu profond, sa pruine claire et sa couronne étoilée au sommet
+  {n:'MYRTILLE',boost:.35,freq:9,jus:0x6a4bd8,build:g=>{
+    g.add(mesh9(fgSph,FM.myrtille,.60,.54,.60),
+          mesh9(fgSph,FM.pruine,.40,.10,.40,0,.36),                  // le voile clair sur le dessus
+          mesh9(fgSph,FM.myrtille,.16,.10,.16,0,.50));               // le petit cratère
+    for(let i=0;i<5;i++){const a=i/5*6.2832;                          // la couronne en étoile
+      g.add(mesh9(fgSph,FM.pruine,.09,.04,.03,Math.cos(a)*.16,.50,Math.sin(a)*.16,a));}
+  }},
+  // LA PASTÈQUE — LE GRAAL : demi-melon rayé, chair rouge juteuse et ses pépins. Rarissime, boost maximal.
+  {n:'PASTÈQUE',boost:2.0,freq:1,jus:0xe8253f,build:g=>{
+    g.add(mesh9(fgSph,FM.ecorce,.95,.95,.95));                        // l'écorce rayée
+    const ch=new THREE.Mesh(fgDisc,FM.chair);ch.scale.set(.90,.90,1);ch.position.z=.955;g.add(ch); // la coupe : chair rouge
+    const bl=new THREE.Mesh(fgDisc,FM.blancMelon);bl.scale.set(.95,.95,1);bl.position.z=.95;g.add(bl); // le liseré blanc dessous
+    for(let i=0;i<11;i++){                                            // les pépins, semés dans la chair
+      const a=Math.random()*6.2832,d=.22+Math.random()*.52;
+      g.add(mesh9(fgSph,FM.pepin,.055,.085,.02,Math.cos(a)*d,Math.sin(a)*d,.98,a));}
+  }}
 ];
 function fruitPick(rnd){ // tirage PONDÉRÉ par la fréquence (un brocoli reste rare, une pomme court les rues)
   let tot=0;for(const f of FRUIT_DEFS)tot+=Math.max(0,f.freq);
@@ -2906,7 +2943,7 @@ function mkNitro(rnd){ return mkFruit(fruitPick(rnd)); }
 const pwrGeo=new THREE.SphereGeometry(1.5,18,14),pwrCoreGeo=new THREE.SphereGeometry(.6,12,10),
       pwrRingGeo=new THREE.TorusGeometry(2,.13,8,28);
 const PWR_DEFS={ // n = nitro infinie · a = airtime infini · v = speed up
-  n:{col:0x1e7bff,core:0xaee4ff,ico:'🔥',msg:'🔥 NITRO INFINIE — 6 s À FOND !',hud:'NITRO ∞',tint:'#4db8ff',t:6},
+  n:{col:0x1e7bff,core:0xaee4ff,ico:'',msg:'NITRO INFINIE — 6 s À FOND !',hud:'NITRO ∞',tint:'#4db8ff',t:6},
   a:{col:0x7dffec,core:0xeafffb,ico:'🪂',msg:'🪂 AIRTIME INFINI — 10 s DE VOL !',hud:'AIR ∞',tint:'#7dffec',t:10},
   v:{col:0xff2e8a,core:0xffd0e8,ico:'⚡',msg:'⚡ VITESSE +60% — 6 s !',hud:'VITESSE +60%',tint:'#ff3ec8',t:6}};
 for(const k in PWR_DEFS){const d=PWR_DEFS[k];
@@ -2916,7 +2953,7 @@ for(const k in PWR_DEFS){const d=PWR_DEFS[k];
   // ÉTIQUETTE FLOTTANTE : pictogramme + nom au-dessus de l'orbe — on sait ce qu'on vise AVANT de le prendre
   const cv=document.createElement('canvas');cv.width=cv.height=128;
   const c=cv.getContext('2d');c.textAlign='center';
-  c.font='58px sans-serif';c.fillText(d.ico,64,56);
+  if(d.ico)c.font='58px sans-serif',c.fillText(d.ico,64,56); // (la NITRO INFINIE n'a plus de pictogramme : la flamme au-dessus de l'orbe bleue a sauté)
   c.font='bold 17px monospace';c.lineWidth=5;c.lineJoin='round';c.strokeStyle='rgba(8,10,22,.92)';
   c.strokeText(d.hud,64,100);c.fillStyle=d.tint;c.fillText(d.hud,64,100);
   d.icoM=new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthWrite:false});
@@ -3541,6 +3578,33 @@ const sparkGold=makePool(140,.9,0xffd75e,1);sparkGold.mesh.material.blending=THR
 const sparkBlue=makePool(70,.9,0x5ee6ff,1);sparkBlue.mesh.material.blending=THREE.AdditiveBlending;
 // MORCEAUX DE NUAGE : quand on défonce un banc, il éclate en mille bouts de ouate au point de contact
 const cloudBits=makePool(150,2.8,0xf3eff9,.9);
+// ÉCLABOUSSURE DE FRUIT : gouttelettes à la COULEUR du fruit croqué. Un seul pool dont on repeint le
+// matériau à chaque bouchée — les gouttes vivent ~0,3 s, donc le changement de teinte ne se voit jamais.
+const juicePool=makePool(110,1.15,0xffffff,1);juicePool.mesh.material.blending=THREE.AdditiveBlending;
+function juiceSplash(pos,col,power){
+  juicePool.mesh.material.color.setHex(col);
+  const n=Math.round(16+power*22);
+  for(let k=0;k<n;k++){
+    const a=Math.random()*6.2832,el=Math.random()*1.2,sp=(4+Math.random()*11)*(.6+power*.7);
+    spawnP(juicePool,pos.x,pos.y+.3,pos.z,
+      Math.cos(a)*Math.cos(el)*sp,2+Math.sin(el)*sp*.9,Math.sin(a)*Math.cos(el)*sp,.22+Math.random()*.26);
+  }
+}
+function juiceSfx(power){ // le « ploc » d'une goutte qui éclate — court, mat, jamais envahissant
+  if(!AC||!SND.sfx||!MASTER)return;
+  try{
+    const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain(),f=AC.createBiquadFilter();
+    o.type='sine';
+    o.frequency.setValueAtTime(520+power*300,t);
+    o.frequency.exponentialRampToValueAtTime(110,t+.10);   // la chute de hauteur = la goutte qui s'écrase
+    f.type='lowpass';f.frequency.value=1700;f.Q.value=.7;
+    g.gain.setValueAtTime(.0001,t);
+    g.gain.exponentialRampToValueAtTime(.05+power*.035,t+.008);
+    g.gain.exponentialRampToValueAtTime(.0001,t+.14);
+    o.connect(f);f.connect(g);g.connect(MASTER);o.start(t);o.stop(t+.16);
+    noiseBurst(.05,.022+power*.02,2400);                    // le voile d'éclaboussure
+  }catch(e){}
+}
 function shatterCloud(pos,power){
   const n=Math.floor(18+power*28);
   for(let k=0;k<n;k++){
@@ -5922,11 +5986,11 @@ function loop(now){
       if(!introD&&!PARK.on&&graceT<=0&&idleKmh<22){
         idleT+=dt;
         if(idleT>1.6){
-          showMsg('⚠ ROULE OU CRÈVE — '+Math.max(0,4-idleT).toFixed(1)+'s','#ff4d4d'); // compte à rebours vivant
+          showMsg('⚠ ROULE OU CRÈVE — '+Math.max(0,6-idleT).toFixed(1)+'s','#ff4d4d'); // compte à rebours vivant
           loop._tickT=(loop._tickT||0)-dt; // TIC d'amorce qui S'ACCÉLÈRE vers le boom
-          if(loop._tickT<=0){loop._tickT=Math.max(.10,(4-idleT)*.22);chimeNote(660+ (4-idleT<1?900:0),0,.05,.22);subBoom(.05);}
+          if(loop._tickT<=0){loop._tickT=Math.max(.10,(6-idleT)*.22);chimeNote(660+ (6-idleT<1?900:0),0,.05,.22);subBoom(.05);}
         }
-        if(idleT>=4){idleT=0;explode();}
+        if(idleT>=6){idleT=0;explode();}
       }else{idleT=Math.max(0,idleT-dt*2.5);loop._tickT=0;}
       frameAt(s,F);
       if(side<0){F.n.multiplyScalar(-1);F.b.multiplyScalar(-1);}
@@ -6105,9 +6169,13 @@ function loop(now){
             addStyle(10);
           }
           else if(p.nitro){ // chaque fruit rend SA dose de nitro (réglable dans l'ÉTAL)
-            const fd=FRUIT_DEFS[p.fruit]||FRUIT_DEFS[0];
-            nitroX=Math.min(2,nitroX+fd.boost);nBlip();
-            sparkBurst(fd.boost>=.8?sparkGold:sparkBlue,carGroup.position,fd.boost>=.8?10:6,7);
+            const fd=FRUIT_DEFS[p.fruit]||FRUIT_DEFS[0],pw=Math.min(1,fd.boost/2);
+            nitroX=Math.min(2,nitroX+fd.boost);
+            juiceSplash(carGroup.position,fd.jus||0xffd75e,pw); // ON CROQUE : le jus gicle à sa couleur
+            juiceSfx(pw);
+            if(fd.boost>=1.5){ // LE GRAAL : la pastèque, ça se fête
+              trickMsg('🍉 '+fd.n+' !',2);sparkBurst(sparkGold,carGroup.position,18,14);shake=Math.max(shake,.3);
+            }else sparkBurst(fd.boost>=.8?sparkGold:sparkBlue,carGroup.position,fd.boost>=.8?8:5,7);
           }
           else{
             sparkBurst(sparkGold,carGroup.position,8,8);
@@ -6545,6 +6613,7 @@ function loop(now){
     updatePool(sparkGold,dt,-8);
     updatePool(sparkBlue,dt,-5);
     updatePool(cloudBits,dt,-2.2); // les morceaux de nuage retombent doucement
+    updatePool(juicePool,dt,-16);  // le jus retombe VITE : c'est lourd, une goutte
     updatePool(boomTom,dt,-22);
     updatePool(boomEmbR,dt,1.2);
     updatePool(boomEmbO,dt,2);
