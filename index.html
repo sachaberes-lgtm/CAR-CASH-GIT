@@ -4719,7 +4719,7 @@ const SAVE={
     const c=this.def();
     if(!d||typeof d!=='object')return c;
     c.best=Math.max(0,Math.round(+d.best)||0);
-    c.bestCar=Math.min(13,Math.max(0,Math.round(+d.bestCar)||0));
+    c.bestCar=Math.min(23,Math.max(0,Math.round(+d.bestCar)||0)); // 24 caisses : le clamp a 13 ecretait la moitie du roster
     if(Array.isArray(d.leaders))c.leaders=d.leaders
       .filter(e=>e&&typeof e.n==='string'&&isFinite(+e.s))
       .slice(0,10).map(e=>({n:e.n.slice(0,8),s:Math.max(0,Math.round(+e.s))}));
@@ -5015,6 +5015,9 @@ function chainEst(){ // la MALLETTE : ce que vaut la chaîne SI on pose la caiss
 }
 // ---------- FLAVOUR : les phrases qui font le sel du jeu — courtes, arrogantes, cash ----------
 const pickL=a=>a[Math.floor(Math.random()*a.length)];
+// LE DÉBLOCAGE : elle est à toi, définitivement — on le dit autrement qu'un « nouvelle caisse » plat
+const CAR_LINES=['ELLE EST À TOI','CLÉS EN MAIN','LIVRÉE, RODÉE, VOLÉE','TU CHANGES DE MONDE',
+  'SIGNÉ, EMBARQUÉ','ELLE T\'ATTENDAIT','NOUVEAU JOUET','ENCARTÉE AU GARAGE'];
 const GO_LINES=[ // le départ : une gifle d'encouragement, jamais deux fois la même
  'GO ! NE MEURS PAS','PIED AU PLANCHER — QUESTIONS APRÈS','LA PRUDENCE RESTE AU GARAGE',
  'ROULE COMME SI L\'ESSENCE ÉTAIT GRATUITE','LE FREIN, C\'EST LA PÉDALE DES AUTRES','VAS-Y. LE CIEL REGARDE.'];
@@ -5093,7 +5096,12 @@ function checkUpgrade(){
   let up=false;
   while(level<23&&levelCash>=THRESH[level]){level++;up=true;}
   if(up){buildCar(CARS[level]);boost=Math.max(boost,1.3);fanfare();shake=Math.max(shake,.4);
-    showMsg('NOUVELLE CAISSE','#ffd75e'); // sobre : la caisse neuve parle d'elle-même, on ne coupe plus le run pour la présenter
+    // ELLE EST À TOI : on la nomme, on annonce ce qu'elle change, et on l'ACQUIERT pour de bon
+    const sp9=CARS[level];
+    showMsg(pickL(CAR_LINES)+' — '+sp9.name,'#ffd75e');
+    trickMsg('🔑 '+sp9.name+' · '+Math.round(sp9.maxKmh)+' km/h'+(level>=5?' · elle crache des billets':''),3);
+    sparkBurst(sparkGold,carGroup.position,30,17);
+    if(level>SAVE.d.bestCar){SAVE.d.bestCar=level;SAVE.flush();} // acquise DÈS le déblocage, pas à la mort
     musicSetLevel(level); // MODE HISTOIRE : le niveau amène son morceau (si défini dans MUSIC.byLevel)
   }
 }
@@ -5293,7 +5301,12 @@ function die(){
 }
 function resetGame(){
   clearBoom();
-  money=0;levelCash=0;level=0;buildCar(CARS[0]);
+  // ON GARDE SA CAISSE : une voiture débloquée est acquise pour de bon. Seul le SCORE repart à zéro
+  // (levelCash est recalé sur le palier atteint, sinon la caisse suivante tomberait immédiatement).
+  money=0;
+  level=Math.max(0,Math.min(23,SAVE.d.bestCar|0));
+  levelCash=level>0?THRESH[level-1]:0;
+  buildCar(CARS[level]);
   nitroR=2;nitroX=0;boost=0;combo=0;edgeT=0;momT=0;styleM=0;fever=0;streak=0;slowT=0;gameOver=false;paused=false;insUsed=false;feverArmed=false;rollover=0;idleT=0;driftT=0;driftYaw=0;
   coinsGot=0;engTier=0; // le moteur se remonte à chaque run (c'est la progression DE LA PARTIE)
   pwrNitroT=0;pwrAirT=0;pwrSpdT=0;
@@ -5352,6 +5365,9 @@ function endGame(){
 }
 function start(){
   if(started||document.getElementById('splash'))return;started=true;
+  // ON REPREND SA CAISSE dès la PREMIÈRE partie de la session (le rejeu le faisait déjà)
+  {const bc=Math.max(0,Math.min(23,SAVE.d.bestCar|0));
+   if(bc>level){level=bc;levelCash=THRESH[bc-1]||0;buildCar(CARS[bc]);}}
   try{initAudio();}catch(e){}
   annPreload(); // les voix sont prêtes avant le premier trick
   overlay.style.display='none';
