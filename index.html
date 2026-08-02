@@ -436,7 +436,7 @@
       <button id="gPrev" class="gNav">◀</button>
       <div id="gCard">
         <div id="gName">LA HONTE</div>
-        <div id="gMeta"><span id="gLvl">CAISSE 1 / 24</span> · <span id="gSpd">190 km/h</span></div>
+        <div id="gMeta"><span id="gLvl">CAISSE 1 / 24</span><span id="gSpd"></span></div>
         <div id="gDesc"></div>
         <button id="gEquip" class="saveBtn">ÉQUIPER</button>
         <div id="gHint">glisse pour tourner · molette pour zoomer</div>
@@ -502,6 +502,8 @@
 <div id="settings">
   <div id="setCard">
     <div id="setHead"><span>Réglages</span><button id="setClose">✕</button></div>
+    <div class="setSec">Langue</div>
+    <div class="setRow" id="langRow"><span>Langue · Language</span><b id="tgLang">FR</b></div>
     <div class="setSec">Audio</div>
     <div class="setRow" data-tg="sndBtn"><span>Effets sonores</span><b id="tgSnd">ON</b></div>
     <div class="setRow" data-tg="musBtn"><span>Radio 1.61</span><b id="tgMus">ON</b></div>
@@ -2117,11 +2119,17 @@ const THRESH=[400,1.5e3,4.8e3,1.5e4,5e4,1.5e5,4.5e5,1.3e6,3.9e6,1.2e7,3.7e7,1.1e
               1e9,3.2e9,9.6e9,2.9e10,8.1e10,2.4e11,7.6e11,2.3e12,6.6e12,1.9e13]; // ≈ 5 × denom × effort-pièces (même courbe 8→630 : la DIFFICULTÉ ressentie est inchangée, seuls les zéros dégonflent) — DIEU-VITESSE ≈ 19 billions cumulés
 let level=0;
 function denom(){return DENOMS[Math.min(level,23)];}
-const fmt=v=>'$ '+Math.round(v).toLocaleString('fr-FR');
+// LANGUE & DEVISE : le français compte en EUROS, l'anglais en DOLLARS. Un seul point de vérité —
+// tous les affichages d'argent passent par ces trois fonctions, donc changer la langue suffit.
+let LANG=(typeof localStorage!=='undefined'&&localStorage.ccLang)||'fr';
+const CUR=()=>LANG==='en'?'$':'\u20ac';
+const LOC=()=>LANG==='en'?'en-US':'fr-FR';
+const fmt=v=>CUR()+' '+Math.round(v).toLocaleString(LOC());
 function fmtGta(v){
   const s=String(Math.round(v)).padStart(8,'0');
   const i=s.search(/[1-9]/);
-  return i<0?'$<span class="dz">'+s+'</span>':'$<span class="dz">'+s.slice(0,i)+'</span>'+s.slice(i);
+  const c=CUR();
+  return i<0?c+'<span class="dz">'+s+'</span>':c+'<span class="dz">'+s.slice(0,i)+'</span>'+s.slice(i);
 }
 // ---- UNITÉS COMPACTES : « $ 1,4 M » se lit d'un œil, « $ 1 400 000 » est du bruit. Échelle
 // longue française (million, milliard, billion, billiard, trillion) — assez folle toute seule.
@@ -2129,8 +2137,8 @@ const UNITS=[[1e30,'Qn','QUINTILLIONS 🛸'],[1e27,'Qd','QUADRILLIARDS'],[1e24,'
 let unitSeen=0; // jamais reset : la 1re traversée d'un ordre de grandeur se fête UNE fois par session
 function fmtC(v){
   v=Math.round(v);
-  for(const u of UNITS)if(v>=u[0]){const q=v/u[0];return '$ '+(q>=100?Math.round(q):q.toFixed(1).replace('.',',').replace(',0',''))+' '+u[1];}
-  return '$ '+v.toLocaleString('fr-FR');
+  for(const u of UNITS)if(v>=u[0]){const q=v/u[0];return CUR()+' '+(q>=100?Math.round(q):q.toFixed(1).replace('.',',').replace(',0',''))+' '+u[1];}
+  return CUR()+' '+v.toLocaleString(LOC());
 }
 const envCvs=[]; // les 6 canvases du cube env — gardés pour être REPEINTS par les biomes
 function paintEnv(stops,s1,s2){ // stops=[[pos,'#hex'],…] + 2 strips néon [r,g,b,alpha]
@@ -4807,7 +4815,8 @@ const AIR_ASSIST=1.0; // aide au recentrage en vol (0 = off), monte avec la vite
 const CAM_SHAKE_V=.45; // intensité du tremblement caméra lié à la vitesse (position + roulis) — .78→.45 : un frémissement, plus un séisme (user : « c'est trop »)
 function vmaxShow(){const l9=1+Math.min(.5,Math.max(0,level-5)*.08);return CARS[level].maxKmh*SPD*l9;} // vitesse max AFFICHÉE de la caisse actuelle (overdrive compris) — la sensation de vitesse se juge RELATIVE à ta caisse, pas en absolu
 let mode='drive',s=0,lat=0,psi=0,vA=0,vL=0,side=1,driveDir=1; // driveDir : sens de conduite le long du ruban (+1/-1). TOUJOURS 1 en course ; dans le PARC il suit le sens d'atterrissage → les routes se roulent dans les DEUX sens (pas de sens imposé)
-let steer=0,money=0,levelCash=0,boost=0,fallT=0,fallTR=0,padCd=0,shake=0,combo=0,comboT=0,graceT=0,safeS=0,yawAcc=0,edgeT=0,squashT=0,momT=0,styleM=0,fever=0,streak=0,slowT=0,steerHold=0,aheadV=0,sideCd=0,slipT=0,oilCd=0,hitT=0,insUsed=false,feverArmed=false,lastSpaceT=0,rollover=0,idleT=0,driftT=0,driftYaw=0;
+const START_CASH=1.61; // la mise de depart, clin d'oeil au studio 1.61
+let steer=0,money=START_CASH,levelCash=0,boost=0,fallT=0,fallTR=0,padCd=0,shake=0,combo=0,comboT=0,graceT=0,safeS=0,yawAcc=0,edgeT=0,squashT=0,momT=0,styleM=0,fever=0,streak=0,slowT=0,steerHold=0,aheadV=0,sideCd=0,slipT=0,oilCd=0,hitT=0,insUsed=false,feverArmed=false,lastSpaceT=0,rollover=0,idleT=0,driftT=0,driftYaw=0;
 let airRoll=0; // vrille visuelle en vol
 // TREMPLIN HÉROS : gapArmed = variante du tremplin qui a lancé CE vol (0 = vol ordinaire, 1/2/3 = v+1),
 // lu au verdict d'atterrissage pour le GAP FRANCHI ; rampCd empêche de re-catapulter en reposant dessus.
@@ -5100,7 +5109,7 @@ function checkUpgrade(){
     // ELLE EST À TOI : on la nomme, on annonce ce qu'elle change, et on l'ACQUIERT pour de bon
     const sp9=CARS[level];
     showMsg(pickL(CAR_LINES)+' — '+sp9.name,'#ffd75e');
-    trickMsg('🔑 '+sp9.name+' · '+Math.round(sp9.maxKmh)+' km/h'+(level>=5?' · elle crache des billets':''),3);
+    trickMsg('🔑 '+sp9.name+(level>=5?' · elle crache des billets':''),3);
     sparkBurst(sparkGold,carGroup.position,30,17);
     if(level>SAVE.d.bestCar)SAVE.d.bestCar=level;      // acquise DÈS le déblocage, pas à la mort
     SAVE.d.equipped=level;SAVE.flush();                // et on l'équipe : c'est celle qu'on vient de gagner
@@ -5305,7 +5314,7 @@ function resetGame(){
   clearBoom();
   // ON REPART SUR LA CAISSE ÉQUIPÉE (choisie au garage), pas sur la meilleure : démarrer d'office sur
   // la dernière n'avait aucun sens. Seul le SCORE repart à zéro ; levelCash est recalé sur le palier.
-  money=0;
+  money=START_CASH; // on repart avec la mise de départ, jamais à sec
   level=Math.max(0,Math.min(23,SAVE.d.equipped|0));
   levelCash=level>0?THRESH[level-1]:0;
   buildCar(CARS[level]);
@@ -5927,7 +5936,7 @@ function garageShow(i){
   const c=CARS[garageI];
   gNameEl.textContent=c.name;
   gLvlEl.textContent='CAISSE '+(garageI+1)+' / '+CARS.length;
-  gSpdEl.textContent=Math.round(c.maxKmh)+' km/h';
+  gSpdEl.textContent=''; // plus de km/h sur la fiche : la vitesse vient du MOTEUR, pas de la caisse
   gDescEl.textContent=c.desc||'';
   // ÉQUIPER : verrouillé tant que la caisse n'est pas débloquée ; marqué quand c'est déjà la tienne
   const bt=$('gEquip'),bc=SAVE.d.bestCar|0,eq=SAVE.d.equipped|0;
@@ -5972,7 +5981,17 @@ const setEl=$('settings');
 function setRefresh(){
   const put=(id,on)=>{const b=$(id);if(b){b.textContent=on?'ON':'OFF';b.className=on?'':'off';}};
   put('tgSnd',SND.sfx);put('tgMus',SND.music);put('tgVox',SND.voice);
+  const lg=$('tgLang');if(lg){lg.textContent=LANG.toUpperCase();lg.className='';}
 }
+// LANGUE : bascule FR/EN. La devise suit (€ / $) et l'argent affiché se met à jour immédiatement.
+$('langRow').addEventListener('click',e=>{
+  e.stopPropagation();
+  LANG=LANG==='en'?'fr':'en';
+  try{localStorage.ccLang=LANG;}catch(err){}
+  $('tgLang').textContent=LANG.toUpperCase();
+  $('tgLang').className=''; // toujours « allumé » : ce n'est pas un interrupteur ON/OFF
+  try{elMoney.innerHTML=fmtGta(money);elRecord.textContent=(LANG==='en'?'best : ':'record : ')+fmt(best);}catch(err){}
+});
 function openSettings(){setEl.classList.add('on');setRefresh();}
 function closeSettings(){setEl.classList.remove('on');}
 $('setBtn').addEventListener('click',e=>{e.stopPropagation();openSettings();});
