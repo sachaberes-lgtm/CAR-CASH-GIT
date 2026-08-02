@@ -6143,7 +6143,12 @@ function loop(now){
   try{ if(running&&!paused&&!gameOver){
     // OVERDRIVE : passé le niveau 6, le jeu passe la surmultipliée — +8 %/niveau, jusqu'à +50 %
     const spec=CARS[level],late=1+Math.min(.5,Math.max(0,level-5)*.08),
-          maxSp=spec.maxKmh/3.6*late,acc9=spec.accel*late;
+          // ⚠ JEU DE PROGRESSION : la VITESSE vient du MOTEUR, pas de la caisse équipée — sinon
+          // équiper une caisse débloquée ferait démarrer la partie à 400 km/h et il n'y aurait plus
+          // rien à gagner. Toutes les caisses partent donc à la même allure (celle de la première),
+          // et c'est le palier moteur (monté aux pièces, remis à zéro à chaque run) qui l'ouvre.
+          eng9=ENGINE_TIERS[engTier]||ENGINE_TIERS[0],
+          maxSp=CARS[0].maxKmh/3.6*late*eng9.push,acc9=CARS[0].accel*late*(1+(eng9.push-1)*.6);
     const up=AUTO_GAS||keys.KeyW||keys.KeyZ||keys.ArrowUp,dn=keys.KeyS||keys.ArrowDown;
     const lf=keys.KeyA||keys.KeyQ||keys.ArrowLeft,rt=keys.KeyD||keys.ArrowRight;
     // POUVOIRS : les minuteurs s'égrènent, l'airtime infini rend une jauge neuve en expirant
