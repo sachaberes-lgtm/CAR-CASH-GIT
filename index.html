@@ -124,7 +124,9 @@
   #carName{font-size:13px;line-height:1.5;color:#ffb000;text-shadow:0 0 10px rgba(255,176,0,.6)}
   #carLevel{font-size:8px;line-height:1.6;color:#9ae6ff;margin-top:6px}
   /* compteur d'argent — OR MASSIF 3D */
-  #money{position:absolute;top:14px;left:50%;transform:translateX(-50%) perspective(420px) rotateX(8deg);
+  /* l'argent était au CENTRE : sur écran étroit il passait sous les boutons SON/VOIX/RADIO.
+     Il descend à gauche, sous la fiche de caisse — le haut de l'écran est rendu aux réglages. */
+  #money{position:absolute;top:70px;left:16px;transform:perspective(420px) rotateX(8deg);
     padding:12px 24px 14px;
     background:rgba(12,24,16,.62);border:1px solid rgba(110,230,130,.35);border-radius:14px;
     box-shadow:0 14px 40px rgba(0,0,0,.5),0 0 26px rgba(80,220,110,.22),inset 0 0 22px rgba(90,220,120,.07)}
@@ -436,6 +438,7 @@
         <div id="gName">LA HONTE</div>
         <div id="gMeta"><span id="gLvl">CAISSE 1 / 24</span> · <span id="gSpd">190 km/h</span></div>
         <div id="gDesc"></div>
+        <button id="gEquip" class="saveBtn">ÉQUIPER</button>
         <div id="gHint">glisse pour tourner · molette pour zoomer</div>
       </div>
       <button id="gNext" class="gNav">▶</button>
@@ -491,7 +494,6 @@
   <div id="saveRow">
     <button id="garageBtn" class="saveBtn">🚗 Garage</button>
     <button id="stallBtn" class="saveBtn">🍎 Étal</button>
-    <button id="engBtn" class="saveBtn">⚙ Moteurs</button>
     <button id="setBtn" class="saveBtn">⚙︎ Réglages</button>
     <button id="parkBtn" class="saveBtn">🛝 Parc freestyle · OFF</button>
     <button id="survBtn" class="saveBtn">🏁 Survivant · OFF</button>
@@ -4713,13 +4715,13 @@ const SND={sfx:true,voice:true,music:true};
 // UNE fois puis laissées intactes (retour arrière possible) — plus jamais écrites.
 const SAVE={
   V:2,K:'cashcarSave',d:null,dirty:false,
-  def(){return{v:this.V,best:0,leaders:[],bestCar:0,sfx:true,vox:true,mus:true,fruits:[],
+  def(){return{v:this.V,best:0,leaders:[],bestCar:0,equipped:0,sfx:true,vox:true,mus:true,fruits:[],
     ai:{air:.5,boost:.35,caution:.5,skill:.86,aggr:.55,airDur:1.1,runs:0}};}, // profil d'apprentissage des IA
   san(d){ // désinfection : quoi qu'on charge (storage rongé, code importé), la forme est GARANTIE
     const c=this.def();
     if(!d||typeof d!=='object')return c;
     c.best=Math.max(0,Math.round(+d.best)||0);
-    c.bestCar=Math.min(23,Math.max(0,Math.round(+d.bestCar)||0)); // 24 caisses : le clamp a 13 ecretait la moitie du roster
+    c.bestCar=Math.min(23,Math.max(0,Math.round(+d.bestCar)||0));c.equipped=Math.min(c.bestCar,Math.max(0,Math.round(+d.equipped)||0)); // 24 caisses : le clamp a 13 ecretait la moitie du roster
     if(Array.isArray(d.leaders))c.leaders=d.leaders
       .filter(e=>e&&typeof e.n==='string'&&isFinite(+e.s))
       .slice(0,10).map(e=>({n:e.n.slice(0,8),s:Math.max(0,Math.round(+e.s))}));
@@ -5101,7 +5103,8 @@ function checkUpgrade(){
     showMsg(pickL(CAR_LINES)+' — '+sp9.name,'#ffd75e');
     trickMsg('🔑 '+sp9.name+' · '+Math.round(sp9.maxKmh)+' km/h'+(level>=5?' · elle crache des billets':''),3);
     sparkBurst(sparkGold,carGroup.position,30,17);
-    if(level>SAVE.d.bestCar){SAVE.d.bestCar=level;SAVE.flush();} // acquise DÈS le déblocage, pas à la mort
+    if(level>SAVE.d.bestCar)SAVE.d.bestCar=level;      // acquise DÈS le déblocage, pas à la mort
+    SAVE.d.equipped=level;SAVE.flush();                // et on l'équipe : c'est celle qu'on vient de gagner
     musicSetLevel(level); // MODE HISTOIRE : le niveau amène son morceau (si défini dans MUSIC.byLevel)
   }
 }
@@ -5301,10 +5304,10 @@ function die(){
 }
 function resetGame(){
   clearBoom();
-  // ON GARDE SA CAISSE : une voiture débloquée est acquise pour de bon. Seul le SCORE repart à zéro
-  // (levelCash est recalé sur le palier atteint, sinon la caisse suivante tomberait immédiatement).
+  // ON REPART SUR LA CAISSE ÉQUIPÉE (choisie au garage), pas sur la meilleure : démarrer d'office sur
+  // la dernière n'avait aucun sens. Seul le SCORE repart à zéro ; levelCash est recalé sur le palier.
   money=0;
-  level=Math.max(0,Math.min(23,SAVE.d.bestCar|0));
+  level=Math.max(0,Math.min(23,SAVE.d.equipped|0));
   levelCash=level>0?THRESH[level-1]:0;
   buildCar(CARS[level]);
   nitroR=2;nitroX=0;boost=0;combo=0;edgeT=0;momT=0;styleM=0;fever=0;streak=0;slowT=0;gameOver=false;paused=false;insUsed=false;feverArmed=false;rollover=0;idleT=0;driftT=0;driftYaw=0;
@@ -5365,9 +5368,9 @@ function endGame(){
 }
 function start(){
   if(started||document.getElementById('splash'))return;started=true;
-  // ON REPREND SA CAISSE dès la PREMIÈRE partie de la session (le rejeu le faisait déjà)
-  {const bc=Math.max(0,Math.min(23,SAVE.d.bestCar|0));
-   if(bc>level){level=bc;levelCash=THRESH[bc-1]||0;buildCar(CARS[bc]);}}
+  // la caisse ÉQUIPÉE dès la première partie de la session (le rejeu le faisait déjà)
+  {const eq=Math.max(0,Math.min(23,SAVE.d.equipped|0));
+   if(eq!==level){level=eq;levelCash=eq>0?THRESH[eq-1]:0;buildCar(CARS[eq]);}}
   try{initAudio();}catch(e){}
   annPreload(); // les voix sont prêtes avant le premier trick
   overlay.style.display='none';
@@ -5927,6 +5930,13 @@ function garageShow(i){
   gLvlEl.textContent='CAISSE '+(garageI+1)+' / '+CARS.length;
   gSpdEl.textContent=Math.round(c.maxKmh)+' km/h';
   gDescEl.textContent=c.desc||'';
+  // ÉQUIPER : verrouillé tant que la caisse n'est pas débloquée ; marqué quand c'est déjà la tienne
+  const bt=$('gEquip'),bc=SAVE.d.bestCar|0,eq=SAVE.d.equipped|0;
+  if(bt){
+    if(garageI>bc){bt.textContent='🔒 VERROUILLÉE — '+fmtC(THRESH[garageI-1]||0)+' À ATTEINDRE';bt.disabled=true;bt.style.opacity=.5;}
+    else if(garageI===eq){bt.textContent='✓ ÉQUIPÉE';bt.disabled=true;bt.style.opacity=.7;}
+    else{bt.textContent='ÉQUIPER';bt.disabled=false;bt.style.opacity=1;}
+  }
 }
 function openGarage(){
   if(started){showMsg('Le garage se visite depuis le menu');return;}
@@ -6049,7 +6059,8 @@ function stallRender(dt){ // même showroom que le garage : fond cyan propre, ca
   camera.lookAt(0,ay+.2,0);
 }
 $('stallBtn').addEventListener('click',e=>{e.stopPropagation();openStall('fruit');});
-$('engBtn').addEventListener('click',e=>{e.stopPropagation();openStall('moteur');});
+// (l'atelier des moteurs est retiré du menu : le moteur se gagne en jouant, il n'y a rien à y régler —
+//  `openStall('moteur')` reste fonctionnel pour le debug)
 $('stClose').addEventListener('click',e=>{e.stopPropagation();closeStall();});
 $('stPrev').addEventListener('click',e=>{e.stopPropagation();stallShow(stallI-1);});
 $('stNext').addEventListener('click',e=>{e.stopPropagation();stallShow(stallI+1);});
@@ -6061,6 +6072,13 @@ addEventListener('keydown',e=>{if(!stallOn)return;
   if(e.code==='Escape')closeStall();else if(e.code==='ArrowLeft')stallShow(stallI-1);else if(e.code==='ArrowRight')stallShow(stallI+1);});
 $('garageBtn').addEventListener('click',e=>{e.stopPropagation();openGarage();});
 $('gClose').addEventListener('click',e=>{e.stopPropagation();closeGarage();});
+$('gEquip').addEventListener('click',e=>{e.stopPropagation();
+  if(garageI>(SAVE.d.bestCar|0))return;                    // pas encore débloquée
+  SAVE.d.equipped=garageI;SAVE.flush();
+  level=garageI;levelCash=garageI>0?THRESH[garageI-1]:0;   // la caisse choisie devient la caisse de départ
+  garageShow(garageI);                                      // rafraîchit l'étiquette du bouton
+  try{fanfare();}catch(err){}
+});
 $('gPrev').addEventListener('click',e=>{e.stopPropagation();garageShow(garageI-1);});
 $('gNext').addEventListener('click',e=>{e.stopPropagation();garageShow(garageI+1);});
 addEventListener('pointerdown',e=>{if(!garageOn)return;if(e.target.closest&&e.target.closest('#gTop,#gBottom'))return;garageDrag=true;gpx=e.clientX;gpy=e.clientY;});
