@@ -493,7 +493,6 @@
   <div class="go" id="goTxt">▸ CLIQUE LE LOGO POUR JOUER</div>
   <div id="saveRow">
     <button id="garageBtn" class="saveBtn">🚗 Garage</button>
-    <button id="stallBtn" class="saveBtn">🍎 Étal</button>
     <button id="setBtn" class="saveBtn">⚙︎ Réglages</button>
     <button id="parkBtn" class="saveBtn">🛝 Parc freestyle · OFF</button>
     <button id="survBtn" class="saveBtn">🏁 Survivant · OFF</button>
@@ -2983,7 +2982,7 @@ const FRUIT_DEFS=[
           mesh9(fgSph,FM.feuille,.24,.05,.14,.16,.72,0,-.4),
           mesh9(fgCyl,FM.tige,.04,.12,.04,0,.78));}},
   // MYRTILLE : petite bille violet-bleu profond, sa pruine claire et sa couronne étoilée au sommet
-  {n:'MYRTILLE',boost:.35,freq:9,jus:0x6a4bd8,build:g=>{
+  {n:'MYRTILLE',boost:.35,freq:26,jus:0x6a4bd8,build:g=>{
     g.add(mesh9(fgSph,FM.myrtille,.60,.54,.60),
           mesh9(fgSph,FM.pruine,.40,.10,.40,0,.36),                  // le voile clair sur le dessus
           mesh9(fgSph,FM.myrtille,.16,.10,.16,0,.50));               // le petit cratère
@@ -5939,7 +5938,7 @@ function garageShow(i){
   }
 }
 function openGarage(){
-  if(started){showMsg('Le garage se visite depuis le menu');return;}
+  if(started&&!gameOver){showMsg('Le garage se visite depuis le menu');return;} // ⚠ gameOver = on EST au menu : refuser ici bloquait le bouton apres la 1re partie
   garageOn=true;gEl.classList.add('on');overlay.style.display='none';document.body.classList.add('inGarage');
   if(pigGroup)pigGroup.visible=false;
   garageAng=0;garagePitch=.28;garageDist=8.5;
@@ -6023,7 +6022,7 @@ function stallRefresh(){
     +(d.freq<=0?' — jamais tiré':'')):'aucun fruit ne peut apparaître (toutes les fréquences à 0)';
 }
 function openStall(mode){
-  if(started){showMsg('Ça se visite depuis le menu');return;}
+  if(started&&!gameOver){showMsg('Ça se visite depuis le menu');return;}
   stallMode=mode||'fruit';stallI=stallMode==='moteur'?engTier:0;
   stEl.classList.toggle('moteur',stallMode==='moteur');
   $('stTitle').textContent=stallMode==='moteur'?'ATELIER — LES MOTEURS':'ÉTAL — RÉGLAGE DES FRUITS';
@@ -6058,7 +6057,8 @@ function stallRender(dt){ // même showroom que le garage : fond cyan propre, ca
   camera.position.set(Math.sin(stallAng)*7,ay+2.4,Math.cos(stallAng)*7);
   camera.lookAt(0,ay+.2,0);
 }
-$('stallBtn').addEventListener('click',e=>{e.stopPropagation();openStall('fruit');});
+// (l'étal est retiré du menu : régler les fruits n'apportait rien au joueur — `openStall('fruit')`
+//  et `openStall('moteur')` restent appelables depuis la console pour le réglage)
 // (l'atelier des moteurs est retiré du menu : le moteur se gagne en jouant, il n'y a rien à y régler —
 //  `openStall('moteur')` reste fonctionnel pour le debug)
 $('stClose').addEventListener('click',e=>{e.stopPropagation();closeStall();});
