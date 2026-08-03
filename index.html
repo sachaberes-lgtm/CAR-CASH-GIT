@@ -2138,18 +2138,12 @@ const DENOMS=[10,16,25,40,62,
               9800,15500,24500,39000,62000,
               98000,155000,245000,390000,620000,
               980000,1.55e6,2.45e6,3.9e6,6.2e6]; // 30 paliers moteur
-// COURBE D'EFFORT CROISSANTE (échelle de renforcement) : la 1re caisse tombe en ~30 s
-// (accroche immédiate), puis chaque palier exige un peu plus de maîtrise — en équivalent
-// pièces : 8, 12, 16, 20, 25, 30, 36, 44, 52, 62, 74, 88, 105, puis l'ENDGAME serre la vis :
-// 136, 162, 192, 228, 270, 320, 380, 450, 530, 630. Les figures (x3-5 le revenu des pièces)
-// restent le moteur : un pilote qui vole progresse bien plus vite qu'un rouleur.
-// Les BUMPS ne payent plus un centime en vol : ils rendent l'airtime, chargent le STYLE (fever)
-// et gonflent le multiplicateur — tout se cash à l'ATTERRISSAGE. Voler paye, poser encaisse.
-// SEUILS D'ORIGINE rétablis (2026-08-02) : le x3 tuait la boucle « progressive addictive » — sentir
-// la caisse tomber régulièrement VAUT mieux qu'une montée lente. La difficulté se règle ailleurs.
-const THRESH=[400,1.5e3,4.8e3,1.5e4,5e4,1.5e5,4.5e5,1.3e6,3.9e6,1.2e7,3.7e7,1.1e8,3.2e8,
-              1e9,3.2e9,9.6e9,2.9e10,8.1e10,2.4e11,7.6e11,2.3e12,6.6e12,1.9e13]; // ≈ 5 × denom × effort-pièces (même courbe 8→630 : la DIFFICULTÉ ressentie est inchangée, seuls les zéros dégonflent) — DIEU-VITESSE ≈ 19 billions cumulés
-let level=0;
+// ⚠ `THRESH` A ÉTÉ RETIRÉ (2026-08-03) — c'était l'échelle de 23 seuils d'argent qui faisait tomber
+// les caisses EN COURS de partie. Depuis que les voitures se débloquent sur des exploits persistants
+// (voir CAR_UNLOCK), plus une seule ligne ne la lisait : la laisser aurait fait croire qu'elle pilote
+// encore quelque chose. Son dernier seuil valait 1,9e13, hors d'atteinte — c'est précisément ce qui
+// rendait les dernières caisses inaccessibles et ce qui a motivé de nouvelles règles.
+let level=0; // la caisse CONDUITE (choisie au garage). Fixe pendant toute une partie — ce n'est plus un « niveau ».
 // ⚠ LA VALEUR DES PIÈCES SUIT LE MOTEUR, PLUS LA VOITURE (2026-08-02). La voiture est désormais
 // PUREMENT COSMÉTIQUE : l'indexer sur `level` faisait qu'équiper une belle caisse donnait d'emblée
 // des pièces à 40 000 — d'où la tirelire à 320 000 dès le premier écran. Le moteur, lui, part
@@ -2185,16 +2179,22 @@ function fmtC(v){
 // désormais par ici (init, départ, reset, changement de langue) : un seul écrivain, plus d'oubli.
 function paintMoney(){try{elMoney.innerHTML=fmtGta(money);loop._money=money;}catch(e){}}
 // LA FICHE DE CAISSE : même histoire. Le cache ne regardait que `level` — or depuis que la voiture est
-// COSMÉTIQUE, `level` ne bouge plus d'une partie à l'autre et c'est le PALIER MOTEUR qui pilote la valeur
-// des pièces. La clé porte donc les deux : le nom et le « pièces de X » se rafraîchissent enfin.
+// COSMÉTIQUE, `level` ne bouge plus en partie et c'est le PALIER MOTEUR qui pilote la valeur des
+// pièces. La clé porte donc les deux : le nom et le « pièces de X » se rafraîchissent enfin.
+// ⚠ CE PANNEAU EST MASQUÉ (`#carInfo{display:none!important}`, choix « HUD épuré » en tête de CSS) :
+// rien de ce qui est écrit ici n'apparaît à l'écran aujourd'hui. On le tient quand même à jour pour
+// qu'il soit juste le jour où on le rallume — la vignette moteur est la fiche VISIBLE, elle.
+// La 2e ligne parle du MOTEUR et non plus d'un « NIVEAU X / 24 » : le numéro de caisse n'est plus une
+// progression depuis qu'on choisit sa carrosserie au garage, il ne veut plus rien dire.
 function paintCarHud(){
   const k=level+'|'+engTier;
   if(paintCarHud._k===k)return;
   paintCarHud._k=k;
   try{
+    const E=ENGINE_TIERS[engTier]||ENGINE_TIERS[0];
     elName.textContent=CARS[level].name;
-    elLvl.textContent='NIVEAU '+(level+1)+' / '+CARS.length+' — pièces de '+fmtC(denom()*5);
-    elCp.textContent=level>=23?'MAX':fmtC(THRESH[Math.min(level,22)]);
+    elLvl.textContent=E.n+' — PALIER '+(engTier+1)+' / '+ENGINE_TIERS.length+' · pièces de '+fmtC(denom()*5);
+    elCp.textContent=engTier>=ENGINE_TIERS.length-1?'MOTEUR MAX':(ENGINE_TIERS[engTier+1].coins-coinsGot)+' PIÈCES';
   }catch(e){}
 }
 const envCvs=[]; // les 6 canvases du cube env — gardés pour être REPEINTS par les biomes
@@ -2820,6 +2820,12 @@ function buildCar(spec){
 const engVigEl=document.getElementById('engVig'),engVigCapEl=document.getElementById('engVigCap'),engVigTierEl=document.getElementById('engVigTier');
 const engVigScene=new THREE.Scene();
 const engVigCam=new THREE.PerspectiveCamera(34,1.5,.1,80);
+// ⚠ POSÉE ICI, PAS DANS LA BOUCLE : elle ne bouge jamais, et le cadrage automatique (engVigBuild) lit
+// sa distance pour calculer l'échelle. Quand elle était réglée en fin de engVigRender, le TOUT PREMIER
+// build tombait sur une caméra encore en (0,0,0) → champ nul → échelle 0 → vignette VIDE jusqu'au
+// premier changement de palier. Le point visé est SOUS le moteur : il remonte dans le cadre, au-dessus
+// de la légende (sinon la bande de texte du bas lui mange le carter).
+engVigCam.position.set(0,1.05,4.05);engVigCam.lookAt(0,-.06,0);
 engVigScene.add(new THREE.HemisphereLight(0xd8ecff,0x241c3e,1.15));
 {const k=new THREE.DirectionalLight(0xffffff,1.55);k.position.set(3.5,5,4.5);engVigScene.add(k);
  const r=new THREE.DirectionalLight(0x7fd8ff,.9);r.position.set(-4,1.5,-3);engVigScene.add(r);
@@ -2869,10 +2875,6 @@ function engVigRender(dt){
   engVigSpin+=dt*.6;
   engVigMesh.rotation.y=engVigSpin;
   engVigMesh.rotation.x=Math.sin(engVigSpin*.4)*.09; // un léger roulis : la pièce se donne à voir sous tous les angles
-  // le point visé est SOUS le moteur : il remonte donc dans le cadre, au-dessus de la légende
-  // (sinon la bande de texte du bas lui mange le carter). Recul calé sur le plus gros palier —
-  // la couronne de la COMÈTE porte à ~1,45 du centre, il faut qu'elle tienne dans le champ.
-  engVigCam.position.set(0,1.05,4.05);engVigCam.lookAt(0,-.06,0);
   // (1) le moteur dans SON framebuffer — fond transparent pour que le cadre CSS reste visible dessous
   const ca=renderer.getClearAlpha();
   renderer.setClearAlpha(0);
@@ -3168,6 +3170,84 @@ const ENGINE_TIERS=[
 // triplé de longueur, des index nus se seraient décalés en silence (billets dès le 4e palier sur 30,
 // soit presque tout de suite). Proportions d'origine conservées : 40 %, 50 %, 90 % de l'échelle.
 const ENG_CAP={billets:12,aimant:15,comete:27};
+/* ============================================================================
+   DÉBLOCAGE DES 24 VOITURES (2026-08-03)
+   Le MOTEUR est la progression DANS une partie (il repart à zéro à chaque run) ; la VOITURE est la
+   progression ENTRE les parties. Les deux échelles ne se marchent donc plus dessus — c'est pour ça
+   que les conditions portent toutes sur des compteurs PERSISTANTS (`SAVE.d.ex`, + le record `best`),
+   jamais sur l'argent de la partie en cours.
+   TROIS FAMILLES mélangées, pour que 24 déblocages ne se ressemblent pas :
+     `cash`  → ton RECORD de partie (la boucle de base, ça enseigne le jeu)
+     `eng`   → le plus haut PALIER MOTEUR jamais atteint (récompense la montée en course)
+     le reste → des DÉFIS nommés (figures, gaps, bumps, zones, chaîne, vitesse, Survivant)
+   ⚠ Les caisses ne se débloquent PLUS dans l'ordre : chacune a sa condition propre, on peut très bien
+   décrocher la 15e avant la 12e. Tout ce qui gate une caisse doit donc passer par `carUnlocked(i)` —
+   comparer à `bestCar` (qui n'est plus qu'un indicateur d'avancement) laisserait passer des trous.
+   ⚠ La caisse est COSMÉTIQUE : rien ici ne touche à la vitesse ni à la valeur des pièces. */
+const CAR_UNLOCK=[
+  null,                 // LA HONTE — le point de départ, jamais verrouillée
+  {k:'cash',  v:2.5e3}, // CAISSE À SAVON
+  {k:'cash',  v:1.5e4}, // PAPA MOBILE
+  {k:'eng',   v:4},     // LE FRELON
+  {k:'cash',  v:9e4},   // DIVA BLANCHE
+  {k:'tricks',v:25},    // GROS BLOC
+  {k:'eng',   v:7},     // SCALPEL VERT
+  {k:'cash',  v:6e5},   // BALLE D'ARGENT
+  {k:'gaps',  v:5},     // VEUVE NOIRE
+  {k:'eng',   v:10},    // EL PATRON
+  {k:'cash',  v:4e6},   // FORMULE OR
+  {k:'bumps', v:60},    // NÉON OUTLAW
+  {k:'eng',   v:13},    // COMBUSTION
+  {k:'zones', v:4},     // COMÈTE
+  {k:'cash',  v:3e7},   // INTERDITE
+  {k:'chain', v:12},    // ONDE DE CHOC
+  {k:'eng',   v:17},    // RAZOR-9
+  {k:'kmh',   v:900},   // GOUDRON FANTÔME
+  {k:'cash',  v:2.5e8}, // TÊTE CHERCHEUSE
+  {k:'eng',   v:20},    // PLASMA ROYAL
+  {k:'surv',  v:1},     // ANTIMATIÈRE
+  {k:'tricks',v:400},   // ÉCLIPSE VII
+  {k:'eng',   v:24},    // SINGULARITÉ
+  {k:'eng',   v:29}     // DIEU-VITESSE — le tout dernier moteur ouvre la toute dernière caisse
+];
+function carStat(k){return k==='cash'?(SAVE.d.best||0):((SAVE.d.ex&&SAVE.d.ex[k])||0);}
+function carUnlocked(i){
+  if(i<=((SAVE.d.ex&&SAVE.d.ex.floor)|0))return true; // acquise sous les anciennes règles : elle le reste
+  const u=CAR_UNLOCK[i];return !u||carStat(u.k)>=u.v;
+}
+function carUnlockText(i){ // ce qu'il reste à faire, en une ligne — affiché sur la caisse verrouillée
+  const u=CAR_UNLOCK[i];if(!u)return '';
+  const v=u.v,cur=carStat(u.k);
+  switch(u.k){
+    case 'cash':  return 'RECORD DE PARTIE : '+fmtC(v)+'  ('+fmtC(cur)+')';
+    case 'eng':   return 'ATTEINDRE LE MOTEUR « '+(ENGINE_TIERS[v]||ENGINE_TIERS[0]).n+' »  (palier '+(v+1)+' / '+ENGINE_TIERS.length+', ton record : '+(cur+1)+')';
+    case 'tricks':return v+' FIGURES RÉUSSIES EN TOUT  ('+cur+')';
+    case 'gaps':  return v+' GAPS FRANCHIS  ('+cur+')';
+    case 'bumps': return v+' BUMPS SUR LA TRANCHE  ('+cur+')';
+    case 'zones': return v+' ZONES DANS UNE SEULE PARTIE  (record : '+cur+')';
+    case 'chain': return 'UNE CHAÎNE DE '+v+' FIGURES  (record : '+cur+')';
+    case 'kmh':   return 'ATTEINDRE '+v+' KM/H  (record : '+cur+')';
+    case 'surv':  return 'GAGNER UNE PARTIE EN MODE SURVIVANT';
+  }
+  return '';
+}
+// Aucun état « déjà annoncé » n'est persisté : une condition remplie le reste, donc l'instantané
+// mémoire suffit à ne crier une caisse qu'UNE fois. carSnapshot() est pris au chargement, sinon le
+// premier scan annoncerait d'un coup tout ce qui était déjà acquis.
+let carWas=[];
+// La caisse à conduire : celle du garage, à condition qu'elle soit VRAIMENT débloquée. Les caisses ne
+// se gagnant plus dans l'ordre, on ne peut pas se fier à `bestCar` — un `equipped` hérité d'une
+// sauvegarde importée ou d'une règle antérieure doit retomber sur la cabossée plutôt que d'offrir
+// une caisse non méritée.
+function equippedCar(){const i=SAVE.d.equipped|0;return (i>=0&&i<CARS.length&&carUnlocked(i))?i:0;}
+function carSnapshot(){carWas=[];for(let i=0;i<CARS.length;i++)carWas[i]=carUnlocked(i);}
+function carScan(){ // rend les caisses NOUVELLEMENT débloquées + resynchronise l'indicateur bestCar
+  const got=[];
+  for(let i=0;i<CARS.length;i++){const u=carUnlocked(i);if(u&&!carWas[i])got.push(i);carWas[i]=u;}
+  let bc=0;for(let i=0;i<CARS.length;i++)if(carWas[i])bc=i;
+  if(bc!==(SAVE.d.bestCar|0)){SAVE.d.bestCar=bc;SAVE.mark();}
+  return got;
+}
 let engTier=0,coinsGot=0; // ÉCARTS ÉLARGIS (2026-08-02) : ×1 → ×4,2, chaque palier doit S'ENTENDRE et SE SENTIR // palier courant + PIÈCES ramassées (la monnaie du moteur)
 function engineFor(nc){let t=0;for(let i=0;i<ENGINE_TIERS.length;i++)if(nc>=ENGINE_TIERS[i].coins)t=i;return t;}
 // LA MONNAIE DU MOTEUR : ramasser une pièce en donne 1 — et RÉUSSIR UNE FIGURE en donne une poignée.
@@ -3178,6 +3258,9 @@ function addCoins(n){
   const nt=engineFor(coinsGot);
   if(nt>engTier){
     engTier=nt;const E=ENGINE_TIERS[nt];
+    // record de palier À VIE : mis à jour TOUT DE SUITE (pas à la fin du run) pour que les caisses
+    // dont la condition est « atteindre tel moteur » se débloquent à l'instant où on y arrive
+    if(SAVE.d.ex&&nt>SAVE.d.ex.eng){SAVE.d.ex.eng=nt;SAVE.mark();}
     showMsg('⚙ '+E.n,'#7dffec');trickMsg('⚙ '+E.n+' — POUSSÉE ×'+E.push.toFixed(2),3);
     try{fanfare();}catch(e){}
     shake=Math.max(shake,.5);sparkBurst(sparkGold,carGroup.position,26,16);duckT=Math.max(duckT,.4);
@@ -3732,7 +3815,7 @@ function explode(){
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;
   mode='boom';boomT=0;boomPos.copy(carGroup.position);
   spawnBoomArt(boomPos,1); // LA BOULE DE FEU DESSINÉE : volutes en chou-fleur + dards
-  if(level<19){const tx=annSpeak('earlyDead',6);if(tx)trickMsg(tx,3);} // mort avant le top 5 des caisses
+  if(engTier<23){const tx=annSpeak('earlyDead',6);if(tx)trickMsg(tx,3);} // mort avant le haut de l'échelle — indexé sur le MOTEUR (le niveau de caisse n'est plus une progression mais un choix de garage)
   carGroup.visible=false;shadow.position.y=-99999;landMark.visible=false;
   const spec=CARS[level];
   // VRAIS morceaux du modèle arrachés (roues, capot, toit, spoiler…)
@@ -4922,6 +5005,14 @@ const SND={sfx:true,voice:true,music:true};
 const SAVE={
   V:2,K:'cashcarSave',d:null,dirty:false,
   def(){return{v:this.V,best:0,leaders:[],bestCar:0,equipped:0,sfx:true,vox:true,mus:true,fruits:[],
+    // EXPLOITS — les compteurs À VIE qui débloquent les caisses. Ils PERSISTENT : le moteur est la
+    // progression DANS une partie (il repart à zéro), la voiture est la progression ENTRE les parties.
+    // `eng` = plus haut palier moteur jamais atteint · `gaps`/`tricks`/`bumps` = cumuls · `zones`,
+    // `chain`, `kmh` = meilleurs d'une partie · `surv` = victoires en Survivant.
+    // `floor` = clause de GRAND-PÈRE : les caisses gagnées sous les anciennes règles (déblocage à
+    // l'argent de la partie) restent acquises. Sans elle, changer de règles reprenait au joueur des
+    // caisses qu'il avait méritées — une mise à jour ne doit jamais confisquer.
+    ex:{eng:0,tricks:0,gaps:0,bumps:0,zones:0,chain:0,kmh:0,surv:0,runs:0,floor:0},
     ai:{air:.5,boost:.35,caution:.5,skill:.86,aggr:.55,airDur:1.1,runs:0}};}, // profil d'apprentissage des IA
   san(d){ // désinfection : quoi qu'on charge (storage rongé, code importé), la forme est GARANTIE
     const c=this.def();
@@ -4936,6 +5027,13 @@ const SAVE={
       n:e.n.slice(0,24),
       b:THREE.MathUtils.clamp(isFinite(+e.b)?+e.b:.5,0,2),
       f:THREE.MathUtils.clamp(isFinite(+e.f)?+e.f:8,0,40)}));
+    if(d.ex&&typeof d.ex==='object'){const e=d.ex,n=(k,hi)=>Math.min(hi,Math.max(0,Math.round(+e[k])||0)); // bornés : un code importé bidon ne débloque pas le roster
+      c.ex={eng:n('eng',ENGINE_TIERS.length-1),tricks:n('tricks',1e7),gaps:n('gaps',1e6),bumps:n('bumps',1e6),
+        zones:n('zones',1e4),chain:n('chain',1e5),kmh:n('kmh',1e5),surv:n('surv',1e5),runs:n('runs',1e6),
+        floor:n('floor',CARS.length-1)};}
+    else if(c.bestCar>0)c.ex.floor=c.bestCar; // SAUVEGARDE D'AVANT LES NOUVELLES RÈGLES : tout ce qui
+      // était acquis le reste. Ne s'applique qu'une fois — dès le 1er flush, `ex` existe et ce chemin
+      // n'est plus emprunté.
     if(d.ai&&typeof d.ai==='object'){const a=d.ai,g=(k,dv,lo,hi)=>THREE.MathUtils.clamp(isFinite(+a[k])?+a[k]:dv,lo,hi);
       c.ai={air:g('air',.5,0,1),boost:g('boost',.35,0,1),caution:g('caution',.5,0,1),
         skill:g('skill',.86,.5,1.1),aggr:g('aggr',.55,0,1),airDur:g('airDur',1.1,.4,4),
@@ -5012,7 +5110,15 @@ const SPD=0.5; // vitesse globale du jeu — RESTAURÉ à la valeur V1 (2026-07-
 const TURN_HS=.0035; // pénalité de braquage à haute vitesse (avant .008 — plus petit = virages plus faciles)
 const AIR_ASSIST=1.0; // aide au recentrage en vol (0 = off), monte avec la vitesse
 const CAM_SHAKE_V=.45; // intensité du tremblement caméra lié à la vitesse (position + roulis) — .78→.45 : un frémissement, plus un séisme (user : « c'est trop »)
-function vmaxShow(){const l9=1+Math.min(.5,Math.max(0,level-5)*.08);return CARS[level].maxKmh*SPD*l9;} // vitesse max AFFICHÉE de la caisse actuelle (overdrive compris) — la sensation de vitesse se juge RELATIVE à ta caisse, pas en absolu
+// OVERDRIVE : il suivait le NIVEAU DE CAISSE (+8 %/niveau à partir du 6e). Depuis que la caisse est
+// équipée au choix, ça revenait à vendre de la vitesse au garage. Il suit désormais le PALIER MOTEUR,
+// calé pour que le sommet donne exactement le même +50 % qu'avant (palier 22 sur 30 et au-delà).
+function lateMul(){return 1+Math.min(.5,Math.max(0,engTier-8)*.035);}
+// vitesse max AFFICHÉE — la sensation de vitesse (tremblement, filés, FOV) se juge RELATIVE à elle.
+// ⚠ elle doit décrire la vitesse RÉELLEMENT atteignable : lire CARS[level].maxKmh (la fiche de la
+// carrosserie, jusqu'à 1900) alors que la caisse plafonne en vrai à CARS[0]×moteur donnait un ratio
+// minuscule — plus aucun frisson, plus de speed lines, quelle que soit l'allure.
+function vmaxShow(){return CARS[0].maxKmh*SPD*lateMul()*(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).push;}
 let mode='drive',s=0,lat=0,psi=0,vA=0,vL=0,side=1,driveDir=1; // driveDir : sens de conduite le long du ruban (+1/-1). TOUJOURS 1 en course ; dans le PARC il suit le sens d'atterrissage → les routes se roulent dans les DEUX sens (pas de sens imposé)
 const START_CASH=1.61; // la mise de depart, clin d'oeil au studio 1.61
 let steer=0,money=START_CASH,levelCash=0,boost=0,fallT=0,fallTR=0,padCd=0,shake=0,combo=0,comboT=0,graceT=0,safeS=0,yawAcc=0,edgeT=0,squashT=0,momT=0,styleM=0,fever=0,streak=0,slowT=0,steerHold=0,aheadV=0,sideCd=0,slipT=0,oilCd=0,hitT=0,insUsed=false,feverArmed=false,lastSpaceT=0,rollover=0,idleT=0,driftT=0,driftYaw=0;
@@ -5025,7 +5131,7 @@ let gapArmed=0,rampCd=0;
 // de la dalle) ; le trick ne se VALIDE qu'à l'atterrissage, sur la même face que le départ (tryLand).
 let nitroAirT=0,fallUnder=false,fallStartSide=1,pureT=0,pureArmed=true;
 let bounceN=0,airFlash=0; // BUMPS : rebonds sur la tranche de la dalle pendant CE vol
-let runStats={tricks:0,bumps:0,zones:0,vmax:0,chainMax:0}; // bilan de la run (écran de fin)
+let runStats={tricks:0,bumps:0,zones:0,vmax:0,chainMax:0,gaps:0,surv:0}; // bilan de la run (écran de fin) + les exploits versés aux compteurs À VIE qui débloquent les caisses
 let hopY=0,hopV=0; // petit saut de dos d'âne
 let nitroR=2,nitroX=0,nitroOn=false,nitroBlue=false,nitroHeldT=0;
 let pwrNitroT=0,pwrAirT=0,pwrSpdT=0; // POUVOIRS : nitro infinie · airtime infini · speed up +60%
@@ -5302,25 +5408,25 @@ function parkRespawn(){
   respawn();
   showMsg('↻ ON REPART','#7dffec');
 }
+// ⚠ CE N'EST PLUS L'ARGENT DE LA PARTIE QUI DÉBLOQUE LES CAISSES (2026-08-03). Avant, `level` montait
+// en pleine course dès que `levelCash` passait un seuil : la caisse conduite ne changeait plus (elle
+// est cosmétique) mais `level` si — d'où un HUD qui affichait la dernière caisse GAGNÉE au lieu de
+// celle qu'on PILOTE, et un overdrive de vitesse qui grimpait avec elle. `level` est désormais FIXE
+// pour toute la partie : c'est la caisse équipée au garage, point.
+// Le déblocage passe par des conditions PERSISTANTES (voir CAR_UNLOCK) ; on scanne ici pour crier
+// tout de suite celles qui tombent en direct (record d'argent, palier moteur), le reste est versé à
+// la fin du run par commitExploits().
 function checkUpgrade(){
-  let up=false;
-  while(level<23&&levelCash>=THRESH[level]){level++;up=true;}
-  if(up){
-    // ⚠ LA CAISSE NE CHANGE PLUS EN PLEINE PARTIE (2026-08-02) : elle est COSMÉTIQUE, c'est le moteur
-    // qui porte la progression. On ENREGISTRE le déblocage et on l'annonce — le modèle, lui, se
-    // choisit au garage entre deux parties. (buildCar retiré d'ici : il mutait la voiture sous le nez
-    // du joueur au milieu d'un run.)
-    boost=Math.max(boost,1.3);fanfare();shake=Math.max(shake,.4);
-    // ELLE EST À TOI : on la nomme, on annonce ce qu'elle change, et on l'ACQUIERT pour de bon
-    const sp9=CARS[level];
+  const got=carScan();
+  if(!got.length)return;
+  boost=Math.max(boost,1.3);fanfare();shake=Math.max(shake,.4);
+  sparkBurst(sparkGold,carGroup.position,30,17);
+  for(const i of got){
+    const sp9=CARS[i];
     showMsg(pickL(CAR_LINES)+' — '+sp9.name+'  (au garage)','#ffd75e');
-    trickMsg('🔑 '+sp9.name+(level>=5?' · elle crache des billets':''),3);
-    sparkBurst(sparkGold,carGroup.position,30,17);
-    // ⚠ on ENREGISTRE la caisse gagnée, mais on ne l'ÉQUIPE PAS d'office : sinon la partie suivante
-    // démarrait sur une voiture que le joueur n'avait pas choisie. L'équipement se fait au garage.
-    if(level>SAVE.d.bestCar){SAVE.d.bestCar=level;SAVE.flush();}
-    musicSetLevel(level); // MODE HISTOIRE : le niveau amène son morceau (si défini dans MUSIC.byLevel)
+    trickMsg('🔑 '+sp9.name,3);
   }
+  SAVE.flush();
 }
 function startFall(impU,impF){
   mode='fall';fallT=0;fallTR=0;yawAcc=0;momT=0;airRoll=0;
@@ -5456,6 +5562,7 @@ function tryLand(dt){
     const gapOk=gapArmed>0&&fallT>.9;
     if(gapOk){
       chainVal+=gapArmed===3?26:(gapArmed===2?20:16);chainMult+=.6;
+      runStats.gaps++; // compté pour les DÉFIS de déblocage (cumul à vie, versé dans endGame)
       trickMsg(gapArmed===3?'🚀 DOUBLE GAP — MONSTRUEUX !':'🚀 GAP FRANCHI !',3);
     }
     if(Math.abs(latOff)<ROAD_HALF*.3){chainVal+=4;chainMult+=.2;trickMsg('PILE AU CENTRE 🎯',false);} // posé sur l'axe
@@ -5521,14 +5628,13 @@ function die(){
 }
 function resetGame(){
   clearBoom();
-  // ON REPART SUR LA CAISSE ÉQUIPÉE (choisie au garage), pas sur la meilleure : démarrer d'office sur
-  // la dernière n'avait aucun sens. Seul le SCORE repart à zéro ; levelCash est recalé sur le palier.
   money=START_CASH; // on repart avec la mise de départ, jamais à sec
-  // ⚠ ON REPART TOUJOURS SUR LA CABOSSÉE (2026-08-02) : le jeu est une progression, chaque partie
-  // recommence au bas de l'échelle. L'équipement d'une caisse débloquée reviendra quand les règles
-  // de déblocage seront tranchées — pour l'instant `equipped` est ignoré au démarrage.
-  level=0;levelCash=0;
-  buildCar(CARS[0]);
+  // LA CAISSE ÉQUIPÉE S'APPLIQUE (2026-08-03) — les règles de déblocage étant tranchées, le bouton
+  // ÉQUIPER du garage sert enfin. « On repart en bas de l'échelle » reste vrai : ce qui redémarre à
+  // zéro, c'est le MOTEUR et les 1,61 € ; la carrosserie, elle, est un choix cosmétique qui ne donne
+  // ni vitesse ni valeur de pièces. `level` est FIXE pour toute la partie (plus de montée en course).
+  level=equippedCar();levelCash=0;
+  buildCar(CARS[level]);
   nitroR=2;nitroX=0;boost=0;combo=0;edgeT=0;momT=0;styleM=0;fever=0;streak=0;slowT=0;gameOver=false;paused=false;insUsed=false;feverArmed=false;rollover=0;idleT=0;driftT=0;driftYaw=0;
   coinsGot=0;engTier=0; // le moteur se remonte à chaque run (c'est la progression DE LA PARTIE)
   pwrNitroT=0;pwrAirT=0;pwrSpdT=0;
@@ -5538,7 +5644,7 @@ function resetGame(){
   chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;dolphT=0;trkDolph=false;
   dolShow=0;serpShow=0; // créatures de figure au repos
-  runStats={tricks:0,bumps:0,zones:0,vmax:0,chainMax:0};
+  runStats={tricks:0,bumps:0,zones:0,vmax:0,chainMax:0,gaps:0,surv:0};
   cloudInS=0;cloudFxEl.style.opacity=0;
   scene.fog.near=FOG_N;scene.fog.far=FOG_F;scene.fog.color.copy(FOG_BASE);
   for(let i9=moneyRain.length-1;i9>=0;i9--){scene.remove(moneyRain[i9].m);moneyRain[i9].m.material.dispose();}
@@ -5550,6 +5656,24 @@ function resetGame(){
   setupIntroPig();
   showMsg(pickL(GO_LINES),'#7dff9b');
   musicStartRun(); // nouvelle partie → la playlist repart du début
+}
+// Fin de run : les exploits de la partie rejoignent les compteurs À VIE. Cumuls pour ce qui se
+// collectionne (figures, gaps, bumps), records pour ce qui se bat (zones, chaîne, vitesse).
+// ⚠ appelé APRÈS l'écriture de `best` dans endGame : les conditions `cash` lisent ce record.
+function commitExploits(){
+  const ex=SAVE.d.ex;if(!ex)return [];
+  ex.eng=Math.max(ex.eng,engTier);
+  ex.tricks+=runStats.tricks|0;
+  ex.gaps+=runStats.gaps|0;
+  ex.bumps+=runStats.bumps|0;
+  ex.surv+=runStats.surv|0;
+  ex.zones=Math.max(ex.zones,runStats.zones|0);
+  ex.chain=Math.max(ex.chain,runStats.chainMax|0);
+  ex.kmh=Math.max(ex.kmh,Math.round(runStats.vmax)||0);
+  ex.runs++;
+  const got=carScan();
+  SAVE.flush();
+  return got;
 }
 function endGame(){
   gameOver=true;airPie.style.display='none';chainHud.style.opacity=0;caseHud.style.opacity=0;
@@ -5570,10 +5694,11 @@ function endGame(){
   const isTop=q&&(!leaders.length||sc>leaders[0].s);
   ovSub.textContent='GAME OVER';ovSub.style.display='';
   tagline.textContent=pickL(isTop?END_TOP:END_LINES);tagline.style.display=''; // la punchline de fin — même la mort a du style
-  if(level>SAVE.d.bestCar){SAVE.d.bestCar=level;SAVE.flush();} // meilleure caisse à vie
+  const gagnees=commitExploits(); // les exploits de la run entrent au compteur À VIE → nouvelles caisses
   setBestChip();
   runStatsEl.style.display='block';
-  runStatsEl.textContent='FIGURES '+runStats.tricks+' · CHAÎNE MAX '+(runStats.chainMax||0)+' · BUMPS '+runStats.bumps+' · ZONES '+runStats.zones+' · VMAX '+Math.round(runStats.vmax)+' KM/H';
+  runStatsEl.textContent='FIGURES '+runStats.tricks+' · CHAÎNE MAX '+(runStats.chainMax||0)+' · BUMPS '+runStats.bumps+' · ZONES '+runStats.zones+' · GAPS '+runStats.gaps+' · VMAX '+Math.round(runStats.vmax)+' KM/H'
+    +(gagnees.length?'\n🔑 DÉBLOQUÉ : '+gagnees.map(i=>CARS[i].name).join(' · '):'');
   finalScore.style.display='block';
   finalScore.textContent=fmt(money)+(isTop?'  🏆 RECORD':'');
   goTxt.textContent='▸ CLIQUE LE LOGO POUR REJOUER';
@@ -5588,7 +5713,7 @@ function endGame(){
 function start(){
   if(started||document.getElementById('splash'))return;started=true;
   // la caisse ÉQUIPÉE dès la première partie de la session (le rejeu le faisait déjà)
-  if(level!==0){level=0;levelCash=0;buildCar(CARS[0]);} // première partie : la cabossée, toujours
+  {const e9=equippedCar();if(level!==e9){level=e9;buildCar(CARS[e9]);}levelCash=0;}
   try{initAudio();}catch(e){}
   annPreload(); // les voix sont prêtes avant le premier trick
   overlay.style.display='none';
@@ -5645,7 +5770,7 @@ const AIP={
   resetRun(){this._drv=0;this._jumps=0;this._airT=0;this._boost=0;this._spd=0;this._spdN=0;this._lat=0;this._latN=0;this._committed=false;this._pm=mode;},
   tick(dt){ // appelé chaque frame de jeu : on t'observe même hors mode Survivant
     if(mode==='drive'){this._drv+=dt;
-      const mx=CARS[level].maxKmh;if(mx>0){this._spd+=(Math.abs(vA)*3.6*SPD)/mx;this._spdN++;}
+      const mx=vmaxShow();if(mx>0){this._spd+=(Math.abs(vA)*3.6*SPD)/mx;this._spdN++;} // part de TA vitesse atteignable, pas de la fiche de carrosserie
       this._lat+=Math.abs(lat)/ROAD_HALF;this._latN++;
       if(nitroOn)this._boost+=dt;
     }else if(mode==='fall')this._airT+=dt;
@@ -5837,8 +5962,11 @@ function survTick(dt){
   const pTot=SURV.pBase+s;
   // MÊME MOTEUR QUE TOI : la meute roule avec TA caisse (specs + overdrive), pas un pouce de plus.
   // Zéro triche : plus d'élastique, plus de garde-fou, plus d'aspiration magique — que du pilotage.
-  const spec9=CARS[level],late9=1+Math.min(.5,Math.max(0,level-5)*.08),
-        maxSp9=spec9.maxKmh/3.6*late9,acc9=spec9.accel*late9,tc9=spec9.turn*.75,segL9=L/(NP-1);
+  // ⚠ CARS[0] + TON MOTEUR, comme toi (2026-08-03) : la meute lisait CARS[level], or `level` est
+  // désormais la carrosserie CHOISIE au garage. Équiper la dernière caisse aurait lancé sept
+  // poursuivantes à 1900 km/h contre un joueur plafonné par son palier moteur — course injouable.
+  const spec9=CARS[0],late9=lateMul(),push9=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).push,
+        maxSp9=spec9.maxKmh/3.6*late9*push9,acc9=spec9.accel*late9*(1+(push9-1)*.6),tc9=spec9.turn*.75,segL9=L/(NP-1);
   // ---- ON T'OBSERVE EN DIRECT : chaque décollage grave une ZONE que les bots imiteront sur CETTE piste ----
   if(mode==='fall'&&SURV.pMode!=='fall'){SURV._launchD=pTot;SURV._launchT=SURV.t;}
   else if(mode!=='fall'&&SURV.pMode==='fall'){
@@ -6089,6 +6217,7 @@ function survTick(dt){
         for(const b of SURV.bots)if(b.alive){b.agro=Math.min(1,b.agro+.08);b.appBoost=Math.min(1.2,b.appBoost+.1);b.marg=Math.min(.97,b.marg+.02);}}
       if(!SURV.bots.some(b=>b.alive)){
         SURV.over=true;fanfare();addStyle(100);
+        runStats.surv=1; // toute la meute au tapis : ça débloque une caisse (versé dans endGame)
         showMsg('🏆 CHAMPION SURVIVANT — JAUGE OFFERTE !','#ffd75e');
       }
     }
@@ -6148,11 +6277,17 @@ function garageShow(i){
   gNameEl.textContent=c.name;
   gLvlEl.textContent='CAISSE '+(garageI+1)+' / '+CARS.length;
   gSpdEl.textContent=''; // plus de km/h sur la fiche : la vitesse vient du MOTEUR, pas de la caisse
-  gDescEl.textContent=c.desc||'';
+  // La caisse VERROUILLÉE annonce SA condition (et où tu en es) : c'est la carte du jeu, pas une
+  // porte close. Une caisse débloquée garde sa punchline d'origine — le champ `desc` des 24 fiches
+  // ressert enfin, il n'était plus affiché nulle part depuis le retrait de la carte de déblocage.
+  const ouverte=carUnlocked(garageI);
+  gDescEl.textContent=ouverte?(c.desc||''):('🔒  '+carUnlockText(garageI));
   // ÉQUIPER : verrouillé tant que la caisse n'est pas débloquée ; marqué quand c'est déjà la tienne
-  const bt=$('gEquip'),bc=SAVE.d.bestCar|0,eq=SAVE.d.equipped|0;
+  // ⚠ on teste carUnlocked(i), PAS `garageI>bestCar` : les caisses ne se gagnent plus dans l'ordre
+  // (chacune a sa condition), donc un simple « au-dessus du meilleur » laisserait passer les trous.
+  const bt=$('gEquip'),eq=SAVE.d.equipped|0;
   if(bt){
-    if(garageI>bc){bt.textContent='🔒 VERROUILLÉE — '+fmtC(THRESH[garageI-1]||0)+' À ATTEINDRE';bt.disabled=true;bt.style.opacity=.5;}
+    if(!ouverte){bt.textContent='🔒 VERROUILLÉE';bt.disabled=true;bt.style.opacity=.5;}
     else if(garageI===eq){bt.textContent='✓ ÉQUIPÉE';bt.disabled=true;bt.style.opacity=.7;}
     else{bt.textContent='ÉQUIPER';bt.disabled=false;bt.style.opacity=1;}
   }
@@ -6303,9 +6438,9 @@ addEventListener('keydown',e=>{if(!stallOn)return;
 $('garageBtn').addEventListener('click',e=>{e.stopPropagation();openGarage();});
 $('gClose').addEventListener('click',e=>{e.stopPropagation();closeGarage();});
 $('gEquip').addEventListener('click',e=>{e.stopPropagation();
-  if(garageI>(SAVE.d.bestCar|0))return;                    // pas encore débloquée
+  if(!carUnlocked(garageI))return;                          // pas encore débloquée (condition propre à CETTE caisse)
   SAVE.d.equipped=garageI;SAVE.flush();
-  level=garageI;levelCash=garageI>0?THRESH[garageI-1]:0;   // la caisse choisie devient la caisse de départ
+  level=garageI;levelCash=0;                                // la caisse choisie devient la caisse de départ — ⚠ plus de levelCash pré-rempli : il offrait un magot de départ égal au seuil de la caisse (la tirelire à 320 000 d'anciennes sessions venait de là)
   garageShow(garageI);                                      // rafraîchit l'étiquette du bouton
   try{fanfare();}catch(err){}
 });
@@ -6372,11 +6507,13 @@ function loop(now){
   let speedKmh=0;
   try{ if(running&&!paused&&!gameOver){
     // OVERDRIVE : passé le niveau 6, le jeu passe la surmultipliée — +8 %/niveau, jusqu'à +50 %
-    const spec=CARS[level],late=1+Math.min(.5,Math.max(0,level-5)*.08),
-          // ⚠ JEU DE PROGRESSION : la VITESSE vient du MOTEUR, pas de la caisse équipée — sinon
-          // équiper une caisse débloquée ferait démarrer la partie à 400 km/h et il n'y aurait plus
-          // rien à gagner. Toutes les caisses partent donc à la même allure (celle de la première),
-          // et c'est le palier moteur (monté aux pièces, remis à zéro à chaque run) qui l'ouvre.
+    // ⚠ JEU DE PROGRESSION : la VITESSE vient du MOTEUR, pas de la caisse équipée — sinon équiper une
+    // caisse débloquée ferait démarrer la partie à 400 km/h et il n'y aurait plus rien à gagner.
+    // ⚠ `spec` = CARS[0] et NON CARS[level] (2026-08-03) : il ne servait plus qu'à `spec.turn`, et
+    // depuis que la caisse équipée s'applique, ce seul champ suffisait à donner à une caisse tardive
+    // un rayon de braquage deux fois meilleur — de la performance déguisée en cosmétique. Toutes les
+    // caisses PILOTENT donc pareil ; CARS[level] ne sert plus qu'à la carrosserie et au nom.
+    const spec=CARS[0],late=lateMul(),
           eng9=ENGINE_TIERS[engTier]||ENGINE_TIERS[0],
           maxSp=CARS[0].maxKmh/3.6*late*eng9.push,acc9=CARS[0].accel*late*(1+(eng9.push-1)*.6);
     const up=AUTO_GAS||keys.KeyW||keys.KeyZ||keys.ArrowUp,dn=keys.KeyS||keys.ArrowDown;
@@ -7185,7 +7322,7 @@ function loop(now){
         // ⚠ l'ancien barème (`engTier*2+…`) était taillé pour 10 paliers et plafonnait à 20 sur 24 voix ;
         // avec 30 paliers il aurait saturé au 11e. On étale la liste sur TOUTE la palette de timbres.
         {const et9=Math.min(ENGINES.length-1,Math.round(engTier*(ENGINES.length-1)/(ENGINE_TIERS.length-1))); if(engLvl!==et9)engSetCar(et9);}
-        const thr=up?1:0,sN=Math.min(1.06,spd3/CARS[level].maxKmh);
+        const thr=up?1:0,sN=Math.min(1.06,spd3/Math.max(1,vmaxShow())); // régime = part de la vitesse RÉELLEMENT atteignable (la fiche de la carrosserie n'a plus rien à voir avec ce que la caisse fait)
         // BOÎTE VIRTUELLE : rapports courts en bas, longs en haut. Montée → CHUNK → chute →
         // remontée : la respiration qui rend l'accélération grisante (une rampe nue est monotone)
         let tgt;
@@ -7309,8 +7446,12 @@ function loop(now){
     if(pwrAirT>0)pch+='<span style="color:#7dffec">🪂 AIR ∞ '+pwrAirT.toFixed(1)+'</span>';
     if(pwrSpdT>0)pch+='<span style="color:#ff3ec8">⚡ VITESSE +60% '+pwrSpdT.toFixed(1)+'</span>';
     if(pch!==loop._pch){loop._pch=pch;pwrChip.innerHTML=pch;pwrChip.style.display=pch?'block':'none';}
-    const prevT=level>0?THRESH[level-1]:0,nextT=THRESH[Math.min(level,22)]; // elCp (texte) est géré dans le bloc gated ci-dessus ; la jauge suit le cash en continu
-    elFill.style.width=(level>=23?100:100*Math.min(1,(levelCash-prevT)/(nextT-prevT)))+'%';
+    // JAUGE DE PROGRESSION — elle suivait le cash vers la prochaine VOITURE ; les voitures ne se
+    // gagnent plus à l'argent de la partie. Elle suit désormais les PIÈCES vers le prochain MOTEUR,
+    // la seule progression qui court pendant une partie. (elCp, le texte, est géré plus haut.)
+    {const iT=Math.min(engTier,ENGINE_TIERS.length-1),
+       prevT=ENGINE_TIERS[iT].coins,nextT=(ENGINE_TIERS[iT+1]||ENGINE_TIERS[iT]).coins;
+     elFill.style.width=(iT>=ENGINE_TIERS.length-1?100:100*Math.min(1,(coinsGot-prevT)/Math.max(1,nextT-prevT)))+'%';}
     if(fever>0)fever-=dt;
     else if(feverArmed){styleM=Math.max(0,styleM-2*dt);if(styleM<=0)feverArmed=false;} // armé : la jauge FUIT — sers-toi ou perds-le
     else styleM=Math.max(0,styleM-13*dt); // LÂCHER le boost fait retomber la jauge vite : c'est « sans lâcher » qui paye
@@ -7390,6 +7531,8 @@ setupIntroPig();
 frameAt(0,F);
 camera.position.copy(F.p).addScaledVector(F.t,-9).addScaledVector(F.n,4);
 elRecord.textContent='record : '+fmt(best);
+carSnapshot();   // photo des caisses DÉJÀ acquises : sans elle, le 1er scan les annoncerait toutes d'un coup
+level=equippedCar();buildCar(CARS[level]); // on se présente au menu dans la caisse choisie au garage
 paintMoney(); // LE MENU AFFICHE LA MISE : 1,61 € visible AVANT de lancer (le HTML disait « $00000000 »)
 paintCarHud(); // et la fiche de caisse porte le bon nom/palier dès l'écran d'accueil
 setBestChip();
