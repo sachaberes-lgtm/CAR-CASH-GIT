@@ -2116,8 +2116,11 @@ const DENOMS=[10,25,60,150,400,1e3,2.5e3,6e3,15e3,40e3,1e5,2.5e5,6e5,
 // restent le moteur : un pilote qui vole progresse bien plus vite qu'un rouleur.
 // Les BUMPS ne payent plus un centime en vol : ils rendent l'airtime, chargent le STYLE (fever)
 // et gonflent le multiplicateur — tout se cash à l'ATTERRISSAGE. Voler paye, poser encaisse.
-const THRESH=[400,1.5e3,4.8e3,1.5e4,5e4,1.5e5,4.5e5,1.3e6,3.9e6,1.2e7,3.7e7,1.1e8,3.2e8,
-              1e9,3.2e9,9.6e9,2.9e10,8.1e10,2.4e11,7.6e11,2.3e12,6.6e12,1.9e13]; // ≈ 5 × denom × effort-pièces (même courbe 8→630 : la DIFFICULTÉ ressentie est inchangée, seuls les zéros dégonflent) — DIEU-VITESSE ≈ 19 billions cumulés
+// ⚠ SEUILS x3 SUR LE DÉBUT (2026-08-02) : « ça monte beaucoup trop vite ». Les 8 premières caisses
+// tombaient en quelques dizaines de secondes ; on triple leur coût, puis on revient progressivement
+// à la courbe d'origine (au-delà, les montants sont déjà astronomiques et le rythme était bon).
+const THRESH=[1200,4.5e3,14.4e3,4.5e4,1.5e5,4.2e5,1.1e6,2.9e6,7.4e6,2.1e7,5.6e7,1.5e8,4e8,
+              1.2e9,3.6e9,1.05e10,3.1e10,8.5e10,2.5e11,7.8e11,2.35e12,6.7e12,1.9e13]; // ≈ 5 × denom × effort-pièces (même courbe 8→630 : la DIFFICULTÉ ressentie est inchangée, seuls les zéros dégonflent) — DIEU-VITESSE ≈ 19 billions cumulés
 let level=0;
 function denom(){return DENOMS[Math.min(level,23)];}
 // LANGUE & DEVISE : le français compte en EUROS, l'anglais en DOLLARS. Un seul point de vérité —
@@ -6181,7 +6184,9 @@ function loop(now){
     pwrSpdT=Math.max(0,pwrSpdT-dt);
     if(pwrAirT>0){pwrAirT-=dt;if(pwrAirT<=0){pwrAirT=0;if(mode==='fall'){fallT=0;fallTR=0;airFlash=.6;}}}
     // nitro : 2s regen (10s de recharge) + 2s réserve (bidons bleus)
-    nitroR=Math.min(2,nitroR+.2*dt);
+    // CAPACITÉ MOTEUR : la réserve de nitro s'élargit avec le palier (2,0 → 3,6 au réacteur)
+    const NRMAX=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2;
+    nitroR=Math.min(NRMAX,nitroR+.2*dt);
     if(pwrNitroT>0||PARK.on)nitroR=2; // NITRO INFINIE : jauge pleine, rien ne se consomme (pouvoir OU parc freestyle : c'est un parc, pas une course)
     const wantN=keys.ShiftLeft||keys.ShiftRight||keys.Space;
     nitroOn=wantN&&(nitroOn?(nitroR+nitroX)>.005:(nitroR+nitroX)>.3); // hystérésis anti-clignotement
@@ -6378,9 +6383,12 @@ function loop(now){
         if(p.taken||p.face!==side)continue;
         const ds9=Math.abs(p.s-s);
         if(ds9>22)continue;
-        if(ds9<15&&Math.abs(p.lat-side*lat)<7+level*.4)
-          p.mesh.position.lerp(carGroup.position,Math.min(1,dt*(4.5+level*.3)));
-        if(p.mesh.position.distanceTo(carGroup.position)<2.7+level*.2){
+        // CAPACITÉ MOTEUR (V12 atmosphérique) : L'AIMANT À PIÈCES — elles viennent à toi de bien plus
+        // loin, et plus vite. Sans lui, on garde l'attraction d'origine, discrète.
+        const mag=engTier>=5?1:0;
+        if(ds9<15+mag*6&&Math.abs(p.lat-side*lat)<7+level*.4+mag*7)
+          p.mesh.position.lerp(carGroup.position,Math.min(1,dt*(4.5+level*.3+mag*5)));
+        if(p.mesh.position.distanceTo(carGroup.position)<2.7+level*.2+mag*1.6){
           p.taken=true;scene.remove(p.mesh);
           if(p.pow){ // POUVOIR : le minuteur démarre, l'écran l'annonce en couleur
             const d=PWR_DEFS[p.pow];
@@ -6512,7 +6520,7 @@ function loop(now){
         }
         loop._wasUp=up;
         // les caisses de riche crachent des billets par les fenêtres
-        if(level>=5&&Math.abs(vF)>15){
+        if(engTier>=4&&Math.abs(vF)>15){ // CAPACITÉ MOTEUR (V8 compressé) : la caisse crache des billets
           billT-=dt;
           if(billT<=0){
             billT=.28+Math.random()*.4;
