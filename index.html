@@ -2121,7 +2121,11 @@ const DENOMS=[10,25,60,150,400,1e3,2.5e3,6e3,15e3,40e3,1e5,2.5e5,6e5,
 const THRESH=[400,1.5e3,4.8e3,1.5e4,5e4,1.5e5,4.5e5,1.3e6,3.9e6,1.2e7,3.7e7,1.1e8,3.2e8,
               1e9,3.2e9,9.6e9,2.9e10,8.1e10,2.4e11,7.6e11,2.3e12,6.6e12,1.9e13]; // ≈ 5 × denom × effort-pièces (même courbe 8→630 : la DIFFICULTÉ ressentie est inchangée, seuls les zéros dégonflent) — DIEU-VITESSE ≈ 19 billions cumulés
 let level=0;
-function denom(){return DENOMS[Math.min(level,23)];}
+// ⚠ LA VALEUR DES PIÈCES SUIT LE MOTEUR, PLUS LA VOITURE (2026-08-02). La voiture est désormais
+// PUREMENT COSMÉTIQUE : l'indexer sur `level` faisait qu'équiper une belle caisse donnait d'emblée
+// des pièces à 40 000 — d'où la tirelire à 320 000 dès le premier écran. Le moteur, lui, part
+// toujours de zéro : l'économie repart donc au même point à chaque partie.
+function denom(){return DENOMS[Math.min(engTier,23)];}
 // LANGUE & DEVISE : le français compte en EUROS, l'anglais en DOLLARS. Un seul point de vérité —
 // tous les affichages d'argent passent par ces trois fonctions, donc changer la langue suffit.
 let LANG=(typeof localStorage!=='undefined'&&localStorage.ccLang)||'fr';
@@ -4355,7 +4359,7 @@ function initAudio(){
   engWhineG=AC.createGain();engWhineG.gain.value=0;
   engWhine.connect(ewf);ewf.connect(engWhineG);engWhineG.connect(gainN);
   osc.start();osc2.start();engSub.start();enz.start();engLfo.start();engWhine.start();
-  engSetCar(level);
+  engSetCar(0); // on démarre toujours au timbre du moteur d'origine
   // vent
   const wsrc=AC.createBufferSource();wsrc.buffer=noiseBuf(2);wsrc.loop=true;
   windF=AC.createBiquadFilter();windF.type='lowpass';windF.frequency.value=500;windF.Q.value=.2;
@@ -6994,7 +6998,9 @@ function loop(now){
       nA+=((nitroOn&&mode!=='boom'?1:0)-nA)*Math.min(1,dt*6); // rampe nitro : le moteur gonfle, ne saute pas
       if(osc&&gainN&&mode==='drive'){
         const eng=ENGINES[level];
-        if(engLvl!==level)engSetCar(level); // nouvelle caisse → nouveau timbre, à chaud
+        // LE TIMBRE SUIT LE MOTEUR : chaque palier a sa voix (le 3 cylindres tousse, le V12 hurle,
+        // le réacteur souffle). Avant, changer de caisse changeait le son — or la caisse est cosmétique.
+        {const et9=Math.min(23,engTier*2+Math.min(2,engTier)); if(engLvl!==et9)engSetCar(et9);}
         const thr=up?1:0,sN=Math.min(1.06,spd3/CARS[level].maxKmh);
         // BOÎTE VIRTUELLE : rapports courts en bas, longs en haut. Montée → CHUNK → chute →
         // remontée : la respiration qui rend l'accélération grisante (une rampe nue est monotone)
