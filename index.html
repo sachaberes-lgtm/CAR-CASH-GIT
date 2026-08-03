@@ -137,6 +137,17 @@
     filter:drop-shadow(0 2px 0 #0e3a14) drop-shadow(0 4px 1px #06230c) drop-shadow(0 8px 16px rgba(0,0,0,.55))}
   #moneyTxt .dz{-webkit-text-fill-color:#1d4423;color:#1d4423}
   #moneyTxt .cts{font-size:.56em;opacity:.92;letter-spacing:0} /* les centimes de la mise de départ */
+  /* VIGNETTE MOTEUR — le cadre est du DOM, le moteur 3D est peint DEDANS par le WebGL (RenderTarget).
+     C'est le CSS qui décide de la place : le quad va lire ce rectangle chaque frame et s'y caler. */
+  #engVig{position:absolute;top:150px;left:16px;width:196px;height:132px;display:none;
+    border:1px solid rgba(125,255,236,.34);border-radius:12px;
+    background:linear-gradient(180deg,rgba(10,20,30,.30),rgba(6,12,22,.46));
+    box-shadow:0 10px 30px rgba(0,0,0,.45),inset 0 0 24px rgba(90,220,255,.06)}
+  #engVigCap{position:absolute;left:0;right:0;bottom:0;padding:4px 8px 5px;
+    font-family:var(--pix);font-size:7px;line-height:1.5;letter-spacing:.5px;text-align:center;
+    color:#7dffec;text-shadow:0 0 8px rgba(125,255,236,.55);
+    background:linear-gradient(180deg,rgba(4,10,18,0),rgba(4,10,18,.72) 45%);border-radius:0 0 11px 11px}
+  #engVigTier{display:block;color:#ffd75e;font-size:6px;opacity:.9;margin-top:2px}
   #record{position:absolute;top:150px;left:50%;transform:translateX(-50%);font-size:9px;color:#8f84c8}
   #resetBtn{position:absolute;top:16px;right:16px;pointer-events:auto;cursor:pointer;
     font-family:var(--pix);font-size:12px;
@@ -411,6 +422,9 @@
     #msg{font-size:15px}
     .trick{font-size:13px}.trick.big,.trick.m1{font-size:19px}.trick.m2{font-size:23px}.trick.m3{font-size:29px}
     #chainHud{font-size:12px;padding:4px 11px}#caseHud{font-size:12px;padding:3px 10px}
+    /* le pouce a besoin de l'écran : la vignette rétrécit et se cale sous l'argent */
+    #engVig{top:56px;left:10px;width:118px;height:80px;border-radius:9px}
+    #engVigCap{font-size:5px;padding:3px 4px 4px}#engVigTier{font-size:4px}
   }
 </style>
 </head>
@@ -462,6 +476,7 @@
   </div>
   <div id="carInfo" class="panel"><div id="carName">LA HONTE</div><div id="carLevel">NIVEAU 1 / 24</div></div>
   <div id="money"><span id="moneyTxt">$00000000</span></div>
+  <div id="engVig"><div id="engVigCap">MOTEUR ROUILLÉ<span id="engVigTier">PALIER 1 / 30</span></div></div>
   <div id="record"></div>
   <button id="resetBtn">⟲ <span class="blabel">RESET</span></button>
   <button id="sndBtn" class="sndBtn">🔊 <span class="blabel">SON</span></button>
@@ -2789,45 +2804,92 @@ function buildCar(spec){
   CARPOOL.tail=mkPoolPlane(spec.w*2.1,spec.l*1.15,-spec.l/2-spec.l*.48,0xf51a0c,.30);          // les feux saignent leur rouge DERRIÈRE — rouge PROFOND (le bleu résiduel de 0xff2418 rosissait la flaque sur le bitume violet)
   CARPOOL.jet=mkPoolPlane(spec.w*2.7,spec.l*4.6,-spec.l/2-spec.l*2.3,0xff7a24,0);              // le halo de la nitro/traînée (opacité pilotée par JETS.k dans la boucle)
   carGroup.traverse(o9=>{if(o9.isMesh&&!o9.userData.noShadow)o9.castShadow=true;}); // toute la caisse porte son ombre LONGUE — sauf la nappe néon (un carré d'ombre, non merci)
-  hudCarBuild(); // la vignette du HUD prend le modèle neuf
 }
-// ---------- VIGNETTE DE CAISSE : on VOIT ce qu'on pilote, en 3D, pendant la course ----------
-// Scène minuscule et SÉPARÉE (une copie du modèle + deux lumières), dessinée dans un petit coin de
-// l'écran après le rendu principal. Le monde n'est pas re-rendu : le surcoût est un seul objet.
-const hudScene=new THREE.Scene();
-const hudCam=new THREE.PerspectiveCamera(34,1.35,.1,80);
-hudScene.add(new THREE.HemisphereLight(0xd8ecff,0x241c3e,1.35));
-{const k=new THREE.DirectionalLight(0xffffff,1.5);k.position.set(3.5,5,4.5);hudScene.add(k);
- const r=new THREE.DirectionalLight(0x7fd8ff,.85);r.position.set(-4,1.5,-3);hudScene.add(r);}
-let hudCar=null,hudSpin=0;
-function hudCarBuild(){
-  if(hudCar)hudScene.remove(hudCar);
-  hudCar=carGroup.clone(true);
-  hudCar.position.set(0,0,0);hudCar.rotation.set(0,0,0);hudCar.scale.setScalar(1);
-  hudCar.visible=true;
-  // on jette lumières, sprites et nappes de lumière au sol : dans une vitrine ils n'ont aucun sens
-  const kill=[];
-  hudCar.traverse(o=>{if(o.isLight||o.isSprite||o.isPoints||(o.geometry&&o.geometry.type==='PlaneGeometry'))kill.push(o);});
-  for(const k of kill)if(k.parent)k.parent.remove(k);
-  hudScene.add(hudCar);
+/* ---------- VIGNETTE MOTEUR : on VOIT ce qui nous pousse, en 3D, pendant la course ----------
+   ⚠ POURQUOI CETTE RÉÉCRITURE. La 1re version dessinait la vignette DIRECTEMENT dans le framebuffer
+   principal avec `setViewport`/`setScissor`, entre deux passes du composer. Le composer garde sa
+   propre idée du viewport : au tour suivant il rendait la scène dans un cadre laissé en place par
+   la vignette — d'où l'image déformée qui a fait désactiver la fonction. Le viewport de la passe
+   finale ne doit JAMAIS être touché.
+   LA RECETTE ICI : (1) le moteur est rendu dans un RenderTarget qui lui appartient — un framebuffer
+   à part, sa taille est la sienne, le viewport principal n'est même pas au courant ; (2) le résultat
+   est recollé APRÈS le composer comme un simple quad en caméra orthographique, autoClear coupé :
+   un draw call, zéro changement d'état de viewport ou de scissor.
+   Et la POSITION vient du DOM : le quad lit le rectangle de `#engVig` à chaque frame, donc le CSS
+   (y compris la règle mobile) décide seul de la place — pas une coordonnée en dur dans le JS. */
+const engVigEl=document.getElementById('engVig'),engVigCapEl=document.getElementById('engVigCap'),engVigTierEl=document.getElementById('engVigTier');
+const engVigScene=new THREE.Scene();
+const engVigCam=new THREE.PerspectiveCamera(34,1.5,.1,80);
+engVigScene.add(new THREE.HemisphereLight(0xd8ecff,0x241c3e,1.15));
+{const k=new THREE.DirectionalLight(0xffffff,1.55);k.position.set(3.5,5,4.5);engVigScene.add(k);
+ const r=new THREE.DirectionalLight(0x7fd8ff,.9);r.position.set(-4,1.5,-3);engVigScene.add(r);
+ const b=new THREE.DirectionalLight(0xff7a3c,.55);b.position.set(-2,-3,-4);engVigScene.add(b);} // contre-jour braise : la silhouette se détache du fond sombre
+const engRT=new THREE.WebGLRenderTarget(320,214,{minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,depthBuffer:true});
+// le quad de recollage — caméra ortho en coordonnées NDC (-1..1), donc positionner = convertir un rect DOM
+const engVigQuadScene=new THREE.Scene();
+const engVigQuadCam=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
+const engVigQuadMat=new THREE.MeshBasicMaterial({map:engRT.texture,transparent:true,depthTest:false,depthWrite:false});
+const engVigQuad=new THREE.Mesh(new THREE.PlaneGeometry(1,1),engVigQuadMat);
+engVigQuad.frustumCulled=false;engVigQuadScene.add(engVigQuad);
+let engVigMesh=null,engVigTierShown=-1,engVigSpin=0,engVigForce=null; // engVigForce : palier imposé par la console (visuel pur)
+function engVigTier(){return engVigForce!=null?engVigForce:engTier;}
+function engVigBuild(){
+  if(engVigMesh){ // ⚠ mkEngine fabrique des matériaux NEUFS à chaque appel : sans ça, une fuite par palier
+    engVigScene.remove(engVigMesh);
+    engVigMesh.traverse(o=>{if(o.isMesh){if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose();}});
+    engVigMesh=null;
+  }
+  const t=engVigTier();
+  engVigMesh=mkEngine(t);
+  engVigScene.add(engVigMesh);
+  // CADRAGE AUTOMATIQUE — mesuré : 10 des 30 paliers débordaient (la tuyère à plasma porte à 2,12 du
+  // centre pour un champ de 1,86). Reculer la caméra aurait réduit le moteur rouillé à un pois. Chaque
+  // pièce est donc mise à l'échelle pour remplir le cadre. Le rayon retenu est celui du plan XZ, parce
+  // que la pièce TOURNE : c'est lui qui balaie la largeur. Recentrage en Y seulement — recentrer en X
+  // ferait valser la pièce à chaque tour.
+  {const bb=new THREE.Box3().setFromObject(engVigMesh);
+   const rx=Math.max(Math.abs(bb.min.x),Math.abs(bb.max.x)),rz=Math.max(Math.abs(bb.min.z),Math.abs(bb.max.z)),
+         rxz=Math.max(.001,Math.hypot(rx,rz)),ry=Math.max(.001,(bb.max.y-bb.min.y)/2);
+   const halfV=engVigCam.position.z*Math.tan(engVigCam.fov*Math.PI/360),halfH=halfV*engVigCam.aspect;
+   const k=Math.min(halfH*.92/rxz,halfV*.92/ry);
+   engVigMesh.scale.setScalar(k);
+   engVigMesh.position.y=-(bb.min.y+bb.max.y)/2*k;}
+  const E=ENGINE_TIERS[t]||ENGINE_TIERS[0];
+  if(engVigCapEl)engVigCapEl.firstChild.nodeValue=E.n;
+  // légende COURTE : « PALIER 7 / 30 · POUSSÉE ×1.50 » passait à la ligne dans le cadre étroit
+  if(engVigTierEl)engVigTierEl.textContent=(t+1)+'/'+ENGINE_TIERS.length+'  ·  ×'+E.push.toFixed(2);
+  engVigTierShown=t;
 }
-function hudCarRender(dt){
-  if(!hudCar||!started||gameOver||garageOn||stallOn||paused)return;
-  hudSpin+=dt*.55;
-  hudCar.rotation.y=hudSpin;
-  const spec=CARS[level],rad=Math.max(spec.l,spec.w)*.5;
-  hudCam.position.set(0,rad*.9,rad*3.7);hudCam.lookAt(0,rad*.28,0); // mesuré : à 3,05 la caisse touchait les bords du cadre
-  const dpr=renderer.getPixelRatio(),W=renderer.domElement.width,H=renderer.domElement.height;
-  const w=Math.round(Math.min(210,W/dpr*.19)*dpr),h=Math.round(w/1.35);
-  const x=Math.round(16*dpr),y=Math.round(H-h-(IS_TOUCH?96:120)*dpr); // sous la fiche de caisse, en haut à gauche
-  if(w<24||h<18||y<0||x+w>W||y+h>H)return; // fenêtre dégénérée (onglet caché, écran minuscule) : on ne dessine pas
+function engVigRender(dt){
+  const on=started&&!gameOver&&!garageOn&&!stallOn&&!paused&&running;
+  if(!on){if(engVigEl&&engVigEl.style.display!=='none')engVigEl.style.display='none';return;}
+  if(engVigEl.style.display!=='block')engVigEl.style.display='block';
+  if(engVigTierShown!==engVigTier())engVigBuild();
+  if(!engVigMesh)return;
+  engVigSpin+=dt*.6;
+  engVigMesh.rotation.y=engVigSpin;
+  engVigMesh.rotation.x=Math.sin(engVigSpin*.4)*.09; // un léger roulis : la pièce se donne à voir sous tous les angles
+  // le point visé est SOUS le moteur : il remonte donc dans le cadre, au-dessus de la légende
+  // (sinon la bande de texte du bas lui mange le carter). Recul calé sur le plus gros palier —
+  // la couronne de la COMÈTE porte à ~1,45 du centre, il faut qu'elle tienne dans le champ.
+  engVigCam.position.set(0,1.05,4.05);engVigCam.lookAt(0,-.06,0);
+  // (1) le moteur dans SON framebuffer — fond transparent pour que le cadre CSS reste visible dessous
+  const ca=renderer.getClearAlpha();
+  renderer.setClearAlpha(0);
+  renderer.setRenderTarget(engRT);
+  renderer.clear();
+  renderer.render(engVigScene,engVigCam);
+  renderer.setRenderTarget(null); // ⚠ restaure le framebuffer ET son viewport : c'est tout l'intérêt
+  renderer.setClearAlpha(ca);
+  // (2) recollage à l'écran, à la place que le CSS a décidée
+  const r=engVigEl.getBoundingClientRect();
+  if(r.width<8||r.height<8)return;
+  const W=innerWidth||1,H=innerHeight||1;
+  engVigQuad.position.set((r.left+r.width/2)/W*2-1,-((r.top+r.height/2)/H*2-1),0);
+  engVigQuad.scale.set(r.width/W*2,r.height/H*2,1);
   const ac=renderer.autoClear;renderer.autoClear=false;
-  renderer.setScissorTest(true);
-  renderer.setViewport(x,y,w,h);renderer.setScissor(x,y,w,h);
-  renderer.clearDepth();
-  renderer.render(hudScene,hudCam);
-  renderer.setScissorTest(false);
-  renderer.setViewport(0,0,W,H);renderer.autoClear=ac;
+  renderer.render(engVigQuadScene,engVigQuadCam);
+  renderer.autoClear=ac;
 }
 buildCar(CARS[0]);
 window.dbgCar=function(i){buildCar(CARS[Math.max(0,Math.min(23,i|0))]);}; // console : dbgCar(16) → prévisualiser un gabarit sans farmer les milliards (visuel pur, ne touche pas au niveau)
@@ -4154,25 +4216,40 @@ window.dbgPlanet=function(){const v=planetGroup.position.clone().project(camera)
   return {ecran:[Math.round((v.x*.5+.5)*W),Math.round((1-(v.y*.5+.5))*H)],dansLeCadre:(Math.abs(v.x)<1&&Math.abs(v.y)<1&&v.z<1),
     tailleEcranPx:Math.round(2*PLANET_R/planetGroup.position.distanceTo(camera.position)/(2*Math.tan(camera.fov*Math.PI/360))*H),buffer:[W,H]};};
 window.dbgBoom=function(){explode();return {variante:BOOMV.n,rings:BOOMV.rings,extra:extraRings.length};}; // déclenche une mort et dit quelle signature est sortie
-window.dbgHudCar=function(){ // test DIFFÉRENTIEL : la vignette change-t-elle vraiment les pixels du coin ?
-  const dpr=renderer.getPixelRatio(),W=renderer.domElement.width,H=renderer.domElement.height;
-  const w=Math.round(Math.min(210,W/dpr*.19)*dpr),h=Math.round(w/1.35);
-  const x=Math.round(16*dpr),y=Math.round(H-h-(IS_TOUCH?96:120)*dpr);
-  const gl=renderer.getContext(),buf=new Uint8Array(w*h*4);
-  const lire=()=>{gl.readPixels(x,y,w,h,gl.RGBA,gl.UNSIGNED_BYTE,buf);let s=0;for(let i=0;i<buf.length;i+=4)s+=buf[i]+buf[i+1]+buf[i+2];return s;};
-  if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
-  hudCarRender(.016);const avec=lire();
-  const v=hudCar?hudCar.visible:false;if(hudCar)hudCar.visible=false;
-  if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
-  hudCarRender(.016);const sans=lire();
-  if(hudCar)hudCar.visible=v;
-  let meshes=0;if(hudCar)hudCar.traverse(o=>{if(o.isMesh)meshes++;});
-  const bb=hudCar?new THREE.Box3().setFromObject(hudCar):null;
-  renderer.render(hudScene,hudCam);const calls=renderer.info.render.calls,tris=renderer.info.render.triangles;
-  return {rect:[x,y,w,h],avec,sans,difference:Math.abs(avec-sans),dessine:Math.abs(avec-sans)>2000,
-    caisse:hudCar?CARS[level].name:'(aucune)',meshes,drawCalls:calls,triangles:tris,
-    boite:bb?{min:bb.min.toArray().map(n=>+n.toFixed(1)),max:bb.max.toArray().map(n=>+n.toFixed(1))}:null,
-    cam:hudCam.position.toArray().map(n=>+n.toFixed(1)),visible:hudCar?hudCar.visible:null};};
+window.dbgHudCar=function(){ // VIGNETTE MOTEUR : lit-elle vraiment des pixels dans le RenderTarget, et où atterrit le quad ?
+  // On lit le RENDERTARGET (pas le coin de l'écran comme l'ancienne version) : c'est la seule preuve
+  // que le moteur est bien dessiné, indépendamment de l'endroit où le quad va le recoller ensuite.
+  const w=engRT.width,h=engRT.height,buf=new Uint8Array(w*h*4);
+  engVigRender(.016);
+  renderer.readRenderTargetPixels(engRT,0,0,w,h,buf);
+  let somme=0,opaques=0;
+  for(let i=0;i<buf.length;i+=4){somme+=buf[i]+buf[i+1]+buf[i+2];if(buf[i+3]>8)opaques++;}
+  let meshes=0;if(engVigMesh)engVigMesh.traverse(o=>{if(o.isMesh)meshes++;});
+  const bb=engVigMesh?new THREE.Box3().setFromObject(engVigMesh):null;
+  const r=engVigEl?engVigEl.getBoundingClientRect():null;
+  return {palier:engTier+1+' / '+ENGINE_TIERS.length,moteur:(ENGINE_TIERS[engTier]||{}).n,meshes,
+    rt:[w,h],somme,pixelsDessines:opaques,tauxRemplissage:+(opaques/(w*h)).toFixed(3),
+    dessine:opaques>500,
+    cadreDOM:r?{x:Math.round(r.left),y:Math.round(r.top),w:Math.round(r.width),h:Math.round(r.height),visible:engVigEl.style.display}:null,
+    quad:{pos:engVigQuad.position.toArray().map(n=>+n.toFixed(3)),scale:engVigQuad.scale.toArray().map(n=>+n.toFixed(3))},
+    boite:bb?{min:bb.min.toArray().map(n=>+n.toFixed(2)),max:bb.max.toArray().map(n=>+n.toFixed(2))}:null};};
+window.dbgEngine=function(i){ // console : dbgEngine(27) → la vignette montre CE palier (visuel pur, ne touche pas à ta progression) · dbgEngine(null) → elle resuit le tien
+  engVigForce=(i==null)?null:Math.max(0,Math.min(ENGINE_TIERS.length-1,i|0));
+  const t=engVigTier(),E=ENGINE_TIERS[t];
+  engVigBuild();
+  let meshes=0;const bb=new THREE.Box3();
+  if(engVigMesh){engVigMesh.traverse(o=>{if(o.isMesh)meshes++;});bb.setFromObject(engVigMesh);}
+  // CADRAGE : la pièce TOURNE autour de Y, donc ce qui compte est son rayon dans le plan XZ (il balaie
+  // la largeur du cadre) et sa demi-hauteur — pas le rayon de coin de la boîte, qui surestime.
+  const rx=Math.max(Math.abs(bb.min.x),Math.abs(bb.max.x)),rz=Math.max(Math.abs(bb.min.z),Math.abs(bb.max.z)),
+        ry=Math.max(Math.abs(bb.min.y),Math.abs(bb.max.y)),rxz=Math.hypot(rx,rz);
+  const halfV=engVigCam.position.z*Math.tan(engVigCam.fov*Math.PI/360),halfH=halfV*engVigCam.aspect;
+  return {palier:(t+1)+' / '+ENGINE_TIERS.length,nom:E.n,poussee:E.push,reserve:E.res,cylindres:E.cyl,
+    pieces:E.coins,piece:fmtC(DENOMS[Math.min(t,DENOMS.length-1)]),meshes,
+    rayonXZ:+rxz.toFixed(2),demiHauteur:+ry.toFixed(2),champ:[+halfH.toFixed(2),+halfV.toFixed(2)],
+    deborde:rxz>halfH||ry>halfV,
+    reculNecessaire:+Math.max(rxz/(Math.tan(engVigCam.fov*Math.PI/360)*engVigCam.aspect),ry/Math.tan(engVigCam.fov*Math.PI/360)).toFixed(2),
+    suitTaProgression:engVigForce==null};};
 window.dbgTakeoff=function(){const a=mode;heistFire();return {avant:a,apres:mode,vy:+fallVel.y.toFixed(1),slowT:+slowT.toFixed(2),fever:+fever.toFixed(1)};};
 window.dbgSlow=function(v){if(v!=null)slowT=v;return {slowT:+slowT.toFixed(2),s:+s.toFixed(2),fallTR:+fallTR.toFixed(2),mode:mode};};
 window.dbgDrift=function(){return {driftYaw:+driftYaw.toFixed(3),degres:Math.round(driftYaw*57.3),nitro:nitroOn,mode:mode,kmh:Math.round(Math.abs(vA)*3.6*SPD)};};
@@ -7301,10 +7378,10 @@ function loop(now){
   try{musicTick(dt,musMvt);updateDolphins(dt);updateSerpent(dt);updateBoomArt(dt);}catch(e){if(!loop._crWarn){console.warn('créatures/musique',e);loop._crWarn=1;}}
   if(POST_ON&&composer)composer.render(); // ACES + bloom
   else renderer.render(scene,camera);      // repli si le post n'a pas pu se charger
-  // VIGNETTE DE CAISSE — DÉSACTIVÉE : elle détourne le viewport/scissor du renderer entre deux frames
-  // du composer, ce qui déformait l'image principale. À réintroduire seulement via un RenderTarget
-  // dédié (jamais en touchant au viewport de la passe finale).
-  // try{hudCarRender(dt);}catch(e){}
+  // VIGNETTE MOTEUR — RÉACTIVÉE (2026-08-02) : elle passe désormais par un RenderTarget dédié puis un
+  // quad ortho recollé par-dessus. Elle ne touche plus au viewport de la passe finale — c'était ça,
+  // la déformation de l'image. ⚠ APRÈS le composer, jamais avant : il écrase le framebuffer.
+  try{engVigRender(dt);}catch(e){if(!loop._vigWarn){console.warn('vignette moteur',e);loop._vigWarn=1;}}
 }
 // ---------- INIT ----------
 newTrack();
