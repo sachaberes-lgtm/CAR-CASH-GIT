@@ -136,6 +136,7 @@
     -webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
     filter:drop-shadow(0 2px 0 #0e3a14) drop-shadow(0 4px 1px #06230c) drop-shadow(0 8px 16px rgba(0,0,0,.55))}
   #moneyTxt .dz{-webkit-text-fill-color:#1d4423;color:#1d4423}
+  #moneyTxt .cts{font-size:.56em;opacity:.92;letter-spacing:0} /* les centimes de la mise de départ */
   #record{position:absolute;top:150px;left:50%;transform:translateX(-50%);font-size:9px;color:#8f84c8}
   #resetBtn{position:absolute;top:16px;right:16px;pointer-events:auto;cursor:pointer;
     font-family:var(--pix);font-size:12px;
@@ -2126,10 +2127,14 @@ const CUR=()=>LANG==='en'?'$':'\u20ac';
 const LOC=()=>LANG==='en'?'en-US':'fr-FR';
 const fmt=v=>CUR()+' '+Math.round(v).toLocaleString(LOC());
 function fmtGta(v){
-  const s=String(Math.round(v)).padStart(8,'0');
+  // LES CENTIMES : le compteur 8 chiffres arrondissait la mise de départ (1,61 s'affichait « 2 »).
+  // On les montre en petit tant qu'on est sous les 1 000 — après, ils ne veulent plus rien dire.
+  const ent=Math.floor(v),cts=Math.round((v-ent)*100);
+  const s=String(ent).padStart(8,'0');
   const i=s.search(/[1-9]/);
   const c=CUR();
-  return i<0?c+'<span class="dz">'+s+'</span>':c+'<span class="dz">'+s.slice(0,i)+'</span>'+s.slice(i);
+  const dec=(v<1000&&cts>0)?'<span class="cts">,'+String(cts).padStart(2,'0')+'</span>':'';
+  return (i<0?c+'<span class="dz">'+s+'</span>':c+'<span class="dz">'+s.slice(0,i)+'</span>'+s.slice(i))+dec;
 }
 // ---- UNITÉS COMPACTES : « $ 1,4 M » se lit d'un œil, « $ 1 400 000 » est du bruit. Échelle
 // longue française (million, milliard, billion, billiard, trillion) — assez folle toute seule.
@@ -5111,8 +5116,9 @@ function checkUpgrade(){
     showMsg(pickL(CAR_LINES)+' — '+sp9.name,'#ffd75e');
     trickMsg('🔑 '+sp9.name+(level>=5?' · elle crache des billets':''),3);
     sparkBurst(sparkGold,carGroup.position,30,17);
-    if(level>SAVE.d.bestCar)SAVE.d.bestCar=level;      // acquise DÈS le déblocage, pas à la mort
-    SAVE.d.equipped=level;SAVE.flush();                // et on l'équipe : c'est celle qu'on vient de gagner
+    // ⚠ on ENREGISTRE la caisse gagnée, mais on ne l'ÉQUIPE PAS d'office : sinon la partie suivante
+    // démarrait sur une voiture que le joueur n'avait pas choisie. L'équipement se fait au garage.
+    if(level>SAVE.d.bestCar){SAVE.d.bestCar=level;SAVE.flush();}
     musicSetLevel(level); // MODE HISTOIRE : le niveau amène son morceau (si défini dans MUSIC.byLevel)
   }
 }
@@ -5316,8 +5322,8 @@ function resetGame(){
   // la dernière n'avait aucun sens. Seul le SCORE repart à zéro ; levelCash est recalé sur le palier.
   money=START_CASH; // on repart avec la mise de départ, jamais à sec
   level=Math.max(0,Math.min(23,SAVE.d.equipped|0));
-  levelCash=level>0?THRESH[level-1]:0;
-  buildCar(CARS[level]);
+  levelCash=0;            // ⚠ la progression repart de ZÉRO : pré-remplir la jauge donnait l'illusion
+  buildCar(CARS[level]);  //    d'être déjà riche, et pouvait faire sauter un palier au premier billet
   nitroR=2;nitroX=0;boost=0;combo=0;edgeT=0;momT=0;styleM=0;fever=0;streak=0;slowT=0;gameOver=false;paused=false;insUsed=false;feverArmed=false;rollover=0;idleT=0;driftT=0;driftYaw=0;
   coinsGot=0;engTier=0; // le moteur se remonte à chaque run (c'est la progression DE LA PARTIE)
   pwrNitroT=0;pwrAirT=0;pwrSpdT=0;
@@ -5378,7 +5384,7 @@ function start(){
   if(started||document.getElementById('splash'))return;started=true;
   // la caisse ÉQUIPÉE dès la première partie de la session (le rejeu le faisait déjà)
   {const eq=Math.max(0,Math.min(23,SAVE.d.equipped|0));
-   if(eq!==level){level=eq;levelCash=eq>0?THRESH[eq-1]:0;buildCar(CARS[eq]);}}
+   if(eq!==level){level=eq;levelCash=0;buildCar(CARS[eq]);}}
   try{initAudio();}catch(e){}
   annPreload(); // les voix sont prêtes avant le premier trick
   overlay.style.display='none';
