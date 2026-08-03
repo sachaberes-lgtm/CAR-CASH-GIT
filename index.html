@@ -3038,6 +3038,19 @@ const ENGINE_TIERS=[
 ];
 let engTier=0,coinsGot=0; // ÉCARTS ÉLARGIS (2026-08-02) : ×1 → ×4,2, chaque palier doit S'ENTENDRE et SE SENTIR // palier courant + PIÈCES ramassées (la monnaie du moteur)
 function engineFor(nc){let t=0;for(let i=0;i<ENGINE_TIERS.length;i++)if(nc>=ENGINE_TIERS[i].coins)t=i;return t;}
+// LA MONNAIE DU MOTEUR : ramasser une pièce en donne 1 — et RÉUSSIR UNE FIGURE en donne une poignée.
+// Tout passe par ici, donc le passage de palier s'annonce toujours de la même façon.
+function addCoins(n){
+  if(n<=0)return;
+  coinsGot+=n;
+  const nt=engineFor(coinsGot);
+  if(nt>engTier){
+    engTier=nt;const E=ENGINE_TIERS[nt];
+    showMsg('⚙ '+E.n,'#7dffec');trickMsg('⚙ '+E.n+' — POUSSÉE ×'+E.push.toFixed(2),3);
+    try{fanfare();}catch(e){}
+    shake=Math.max(shake,.5);sparkBurst(sparkGold,carGroup.position,26,16);duckT=Math.max(duckT,.4);
+  }
+}
 // MODÈLE 3D : bloc, cache-culasse, cylindres (en ligne puis en V), turbo, cellules, tuyère.
 // La silhouette s'enrichit avec le palier — on VOIT qu'on a progressé.
 function mkEngine(i){
@@ -5280,6 +5293,9 @@ function tryLand(dt){
       const vTxt=annSpeak(vKey,vPrio)||'MONSTRE';
       trickMsg(gTxt+vTxt+'  +'+fmtC(gain),vTier);
       flyCash(carGroup.position,Math.min(10,3+Math.floor(Math.log10(q+1)*2.5))); // la paye VOYAGE jusqu'au compteur
+      // LES FIGURES RAPPORTENT DES PIÈCES : une belle chaîne fait progresser le MOTEUR, pas seulement
+      // le portefeuille. 2 pièces pour une figure honnête, jusqu'à ~18 pour un enchaînement monstrueux.
+      addCoins(Math.max(2,Math.min(18,Math.round(2+q/6))));
       rewardSfx(vKey,vTier); // signature sonore courte assortie à la récompense
       landBoom(carGroup.position,vTier); // P'TIT BOOM D'ATTERRISSAGE : toute figure MONSTER+ éclate à la pose (calibré sur le tier)
       boost=Math.max(boost,1.2);
@@ -6420,11 +6436,7 @@ function loop(now){
             // ~2,3× moins et le combo se mérite (un palier toutes les 5 pièces, plafond ×4 au lieu de ×5)
             // → rendement max 8,8×denom contre 25×denom avant. La CHAÎNE DE FIGURES reste la vraie fortune.
             // LE MOTEUR MONTE À LA PIÈCE : c'est la ferraille ramassée qui paye le turbo
-            coinsGot++;
-            {const nt=engineFor(coinsGot);
-             if(nt>engTier){engTier=nt;const E=ENGINE_TIERS[nt];
-               showMsg('⚙ '+E.n,'#7dffec');trickMsg('⚙ '+E.n+' — POUSSÉE ×'+E.push.toFixed(2),3);
-               fanfare();shake=Math.max(shake,.5);sparkBurst(sparkGold,carGroup.position,26,16);duckT=Math.max(duckT,.4);}}
+            addCoins(1);
             const mult=1+Math.min(3,Math.floor(combo/5));
             const g=denom()*2.2*mult*(fever>0?2:1);
             money+=g;levelCash+=g;blip();addStyle(5);
