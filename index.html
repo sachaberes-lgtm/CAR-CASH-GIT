@@ -2116,11 +2116,10 @@ const DENOMS=[10,25,60,150,400,1e3,2.5e3,6e3,15e3,40e3,1e5,2.5e5,6e5,
 // restent le moteur : un pilote qui vole progresse bien plus vite qu'un rouleur.
 // Les BUMPS ne payent plus un centime en vol : ils rendent l'airtime, chargent le STYLE (fever)
 // et gonflent le multiplicateur — tout se cash à l'ATTERRISSAGE. Voler paye, poser encaisse.
-// ⚠ SEUILS x3 SUR LE DÉBUT (2026-08-02) : « ça monte beaucoup trop vite ». Les 8 premières caisses
-// tombaient en quelques dizaines de secondes ; on triple leur coût, puis on revient progressivement
-// à la courbe d'origine (au-delà, les montants sont déjà astronomiques et le rythme était bon).
-const THRESH=[1200,4.5e3,14.4e3,4.5e4,1.5e5,4.2e5,1.1e6,2.9e6,7.4e6,2.1e7,5.6e7,1.5e8,4e8,
-              1.2e9,3.6e9,1.05e10,3.1e10,8.5e10,2.5e11,7.8e11,2.35e12,6.7e12,1.9e13]; // ≈ 5 × denom × effort-pièces (même courbe 8→630 : la DIFFICULTÉ ressentie est inchangée, seuls les zéros dégonflent) — DIEU-VITESSE ≈ 19 billions cumulés
+// SEUILS D'ORIGINE rétablis (2026-08-02) : le x3 tuait la boucle « progressive addictive » — sentir
+// la caisse tomber régulièrement VAUT mieux qu'une montée lente. La difficulté se règle ailleurs.
+const THRESH=[400,1.5e3,4.8e3,1.5e4,5e4,1.5e5,4.5e5,1.3e6,3.9e6,1.2e7,3.7e7,1.1e8,3.2e8,
+              1e9,3.2e9,9.6e9,2.9e10,8.1e10,2.4e11,7.6e11,2.3e12,6.6e12,1.9e13]; // ≈ 5 × denom × effort-pièces (même courbe 8→630 : la DIFFICULTÉ ressentie est inchangée, seuls les zéros dégonflent) — DIEU-VITESSE ≈ 19 billions cumulés
 let level=0;
 function denom(){return DENOMS[Math.min(level,23)];}
 // LANGUE & DEVISE : le français compte en EUROS, l'anglais en DOLLARS. Un seul point de vérité —
@@ -3027,17 +3026,17 @@ const FRUIT_DEFS=[
 // La montée est ROCAMBOLESQUE : on part d'une épave qui tousse, on finit en comète en feu.
 const ENGINE_TIERS=[
   {n:'MOTEUR ROUILLÉ',   d:'Il tousse, il fume, il prie. Mais il tourne.',      coins:0,  push:1.00,col:0x7a5a3c,flam:0x8a6a30},
-  {n:'3 CYLINDRES',      d:'Deux qui toussent, un qui prie.',                   coins:18, push:1.10,col:0x9a8f7a,flam:0xff8a30},
-  {n:'4 EN LIGNE TURBO', d:'Le premier vrai souffle. Ça siffle.',               coins:45, push:1.26,col:0x6fd0ff,flam:0xffc23a},
-  {n:'V6 BITURBO',       d:'Deux turbos, zéro patience.',                       coins:85, push:1.44,col:0x4a9cff,flam:0x8ad8ff},
-  {n:'V8 COMPRESSÉ',     d:'Le grondement qui fait trembler la dalle.',         coins:140,push:1.64,col:0xff7a3c,flam:0xff5a2a},
-  {n:'V12 ATMOSPHÉRIQUE',d:'Douze cylindres qui hurlent à l\'unisson.',         coins:215,push:1.86,col:0xffd75e,flam:0xfff0a0},
-  {n:'H16 F1',           d:'Seize cylindres en H. Interdit en course. Logique.',coins:310,push:2.12,col:0xe8eef6,flam:0xbfe8ff},
-  {n:'TURBINE À PLASMA', d:'Plus de pistons. Un souffle continu, bleu.',        coins:430,push:2.42,col:0x7dffec,flam:0x9fffe8},
-  {n:'RÉACTEUR NUCLÉAIRE',d:'Tu roules avec un cœur de centrale sous le capot.',coins:580,push:2.78,col:0x9dff50,flam:0xd8ff7a},
-  {n:'COMÈTE',           d:'La caisse est EN FEU. Comme au premier jour.',      coins:760,push:3.20,col:0xff3ec8,flam:0xff8a20}
+  {n:'3 CYLINDRES',      d:'Deux qui toussent, un qui prie.',                   coins:18, push:1.22,col:0x9a8f7a,flam:0xff8a30},
+  {n:'4 EN LIGNE TURBO', d:'Le premier vrai souffle. Ça siffle.',               coins:45, push:1.48,col:0x6fd0ff,flam:0xffc23a},
+  {n:'V6 BITURBO',       d:'Deux turbos, zéro patience.',                       coins:85, push:1.78,col:0x4a9cff,flam:0x8ad8ff},
+  {n:'V8 COMPRESSÉ',     d:'Le grondement qui fait trembler la dalle.',         coins:140,push:2.10,col:0xff7a3c,flam:0xff5a2a},
+  {n:'V12 ATMOSPHÉRIQUE',d:'Douze cylindres qui hurlent à l\'unisson.',         coins:215,push:2.45,col:0xffd75e,flam:0xfff0a0},
+  {n:'H16 F1',           d:'Seize cylindres en H. Interdit en course. Logique.',coins:310,push:2.85,col:0xe8eef6,flam:0xbfe8ff},
+  {n:'TURBINE À PLASMA', d:'Plus de pistons. Un souffle continu, bleu.',        coins:430,push:3.25,col:0x7dffec,flam:0x9fffe8},
+  {n:'RÉACTEUR NUCLÉAIRE',d:'Tu roules avec un cœur de centrale sous le capot.',coins:580,push:3.70,col:0x9dff50,flam:0xd8ff7a},
+  {n:'COMÈTE',           d:'La caisse est EN FEU. Comme au premier jour.',      coins:760,push:4.20,col:0xff3ec8,flam:0xff8a20}
 ];
-let engTier=0,coinsGot=0; // palier courant + PIÈCES ramassées (la monnaie du moteur)
+let engTier=0,coinsGot=0; // ÉCARTS ÉLARGIS (2026-08-02) : ×1 → ×4,2, chaque palier doit S'ENTENDRE et SE SENTIR // palier courant + PIÈCES ramassées (la monnaie du moteur)
 function engineFor(nc){let t=0;for(let i=0;i<ENGINE_TIERS.length;i++)if(nc>=ENGINE_TIERS[i].coins)t=i;return t;}
 // MODÈLE 3D : bloc, cache-culasse, cylindres (en ligne puis en V), turbo, cellules, tuyère.
 // La silhouette s'enrichit avec le palier — on VOIT qu'on a progressé.
@@ -5392,6 +5391,9 @@ function start(){
   annPreload(); // les voix sont prêtes avant le premier trick
   overlay.style.display='none';
   running=true;
+  // ⚠ le compteur gardait l'affichage d'avant la partie (« $00000000 ») : on le repeint tout de suite
+  // avec la mise de départ et la bonne devise, sinon le joueur croit démarrer à sec.
+  try{elMoney.innerHTML=fmtGta(money);}catch(e){}
   survStart(); // le mode armé au menu s'active pour cette première run
   musicStartRun(); // la bande-son démarre avec la partie
 }
@@ -6385,10 +6387,12 @@ function loop(now){
         if(ds9>22)continue;
         // CAPACITÉ MOTEUR (V12 atmosphérique) : L'AIMANT À PIÈCES — elles viennent à toi de bien plus
         // loin, et plus vite. Sans lui, on garde l'attraction d'origine, discrète.
+        // (aimant CALMÉ : à +6 de portée et +7 de largeur il aspirait toute la route — on garde juste
+        //  un coup de pouce sensible, il faut toujours viser)
         const mag=engTier>=5?1:0;
-        if(ds9<15+mag*6&&Math.abs(p.lat-side*lat)<7+level*.4+mag*7)
-          p.mesh.position.lerp(carGroup.position,Math.min(1,dt*(4.5+level*.3+mag*5)));
-        if(p.mesh.position.distanceTo(carGroup.position)<2.7+level*.2+mag*1.6){
+        if(ds9<15+mag*2&&Math.abs(p.lat-side*lat)<7+level*.4+mag*2)
+          p.mesh.position.lerp(carGroup.position,Math.min(1,dt*(4.5+level*.3+mag*1.5)));
+        if(p.mesh.position.distanceTo(carGroup.position)<2.7+level*.2+mag*.5){
           p.taken=true;scene.remove(p.mesh);
           if(p.pow){ // POUVOIR : le minuteur démarre, l'écran l'annonce en couleur
             const d=PWR_DEFS[p.pow];
