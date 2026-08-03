@@ -2155,6 +2155,173 @@ let LANG=(typeof localStorage!=='undefined'&&localStorage.ccLang)||'fr';
 const CUR=()=>LANG==='en'?'$':'\u20ac';
 const LOC=()=>LANG==='en'?'en-US':'fr-FR';
 const fmt=v=>CUR()+' '+Math.round(v).toLocaleString(LOC());
+/* ============================================================================
+   TRADUCTION FR / EN (2026-08-03)
+   La mécanique de langue existait (sélecteur + devise) mais TOUS les textes étaient en français.
+   PARTI PRIS : la clé du dictionnaire est LA PHRASE FRANÇAISE elle-même. Le code reste donc lisible
+   (`showMsg('CATAPULTE !')`), rien ne casse si une traduction manque — on retombe sur le français —
+   et il n'y a pas 400 constantes `MSG_042` à maintenir en parallèle.
+   ⚠ TR() fait une correspondance EXACTE, sans magie de remplacement partiel : une substitution de
+   fragments mangerait « COMÈTE » dans « COMÈTE 👑 ». Les phrases composées à l'exécution
+   (« ⚙ »+nom du moteur) appellent donc TR() sur CHAQUE morceau, à la composition.
+   ========================================================================== */
+const I18N={
+ // ---- interface ----
+ 'GARAGE':'GARAGE','ÉQUIPER':'EQUIP','✓ ÉQUIPÉE':'✓ EQUIPPED','🔒 VERROUILLÉE':'🔒 LOCKED',
+ 'glisse pour tourner · molette pour zoomer':'drag to turn · scroll to zoom',
+ 'cours après le cash · ne tombe jamais':'chase the cash · never fall',
+ 'GAME OVER':'GAME OVER','VALIDER':'CONFIRM','★ NOUVEAU RECORD — TON NOM':'★ NEW RECORD — YOUR NAME',
+ '▸ CLIQUE LE LOGO POUR JOUER':'▸ CLICK THE LOGO TO PLAY','▸ CLIQUE LE LOGO POUR REJOUER':'▸ CLICK THE LOGO TO PLAY AGAIN',
+ '🚗 Garage':'🚗 Garage','⚙︎ Réglages':'⚙︎ Settings','Réglages':'Settings','Langue':'Language',
+ 'Audio':'Audio','Effets sonores':'Sound effects','Radio 1.61':'Radio 1.61','Voix de l\'annonceur':'Announcer voice',
+ 'Commandes':'Controls','Sauvegarde':'Save','📋 Copier ma sauvegarde':'📋 Copy my save',
+ 'conduire · piloter en vol':'drive · steer in flight','nitro · double-tap = DÉCOLLAGE':'nitro · double-tap = LIFT-OFF',
+ 'drift':'drift','replacer la caisse':'respawn the car','pause':'pause','rejouer':'play again',
+ 'Espace':'Space','Entrée':'Enter','Pad gauche':'Left pad','Pad + frein':'Pad + brake','En vol':'In flight',
+ 'volant · tirer vers le bas = frein':'steering · pull down = brake',
+ 'le pad devient un joystick (haut/bas)':'the pad becomes a joystick (up/down)',
+ 'pouce droit · double-tap = DÉCOLLAGE':'right thumb · double-tap = LIFT-OFF',
+ 'NITRO INFINIE — 6 s À FOND !':'INFINITE NITRO — 6 s FLAT OUT!','NITRO ∞':'NITRO ∞',
+ '🪂 AIRTIME INFINI — 10 s DE VOL !':'🪂 INFINITE AIRTIME — 10 s OF FLIGHT!','AIR ∞':'AIR ∞',
+ '⚡ VITESSE +60% — 6 s !':'⚡ SPEED +60% — 6 s!','VITESSE +60%':'SPEED +60%',
+ 'NITRO (ESPACE)':'NITRO (SPACE)','km/h':'km/h','SON':'SFX','VOIX':'VOICE','RESET':'RESET',
+ '🏆 TOP 10':'🏆 TOP 10','Aucun score — sois le premier !':'No score yet — be the first!',
+ 'AUCUN RECORD — À TOI DE JOUER':'NO RECORD YET — YOUR MOVE','RECORD':'RECORD','MEILLEURE CAISSE':'BEST CAR',
+ 'record : ':'best : ','Prochaine voiture à':'Next car at',
+ '🛝 Parc freestyle':'🛝 Freestyle park','🏁 Survivant':'🏁 Survivor','ON':'ON','OFF':'OFF',
+ 'Le garage se visite depuis le menu':'The garage is visited from the menu',
+ 'Ça se visite depuis le menu':'That is visited from the menu',
+ 'MODE SURVIVANT AU PROCHAIN DÉPART':'SURVIVOR MODE ON NEXT RUN','SURVIVANT DÉSARMÉ':'SURVIVOR DISARMED',
+ 'PAUSE':'PAUSE','GO !':'GO!','MOTEUR MAX':'MAX ENGINE','PIÈCES':'COINS','pièces de ':'coins worth ',
+ 'FIGURES':'TRICKS','CHAÎNE MAX':'BEST CHAIN','BUMPS':'BUMPS','ZONES':'ZONES','GAPS':'GAPS','VMAX':'TOP SPEED',
+ '🔑 DÉBLOQUÉ : ':'🔑 UNLOCKED: ','PALIER':'TIER','CAISSE':'CAR','NIVEAU':'LEVEL',
+ // ---- messages de jeu ----
+ '↻ ON REPART':'↻ HERE WE GO AGAIN','✦ NOUVEAU SECTEUR':'✦ NEW SECTOR','LA NUIT TOMBE…':'NIGHT IS FALLING…',
+ '🚀 CATAPULTE !':'🚀 CATAPULT!','🚀 DÉCOLLAGE — TOUT ×2 ! ★':'🚀 LIFT-OFF — EVERYTHING ×2! ★',
+ '★ DÉCOLLAGE PRÊT — double-tape NITRO ! ★':'★ LIFT-OFF READY — double-tap NITRO! ★',
+ '🏆 CHAMPION SURVIVANT — JAUGE OFFERTE !':'🏆 SURVIVOR CHAMPION — FREE GAUGE!',
+ '🪦 ÉLIMINÉ — DERNIER DE LA MINUTE !':'🪦 ELIMINATED — LAST OF THE MINUTE!',
+ 'PILE AU CENTRE 🎯':'DEAD CENTRE 🎯','À RECULONS — MÊME PAS REGARDÉ !':'BACKWARDS — DIDN\'T EVEN LOOK!',
+ 'FACE CACHÉE ×2':'HIDDEN FACE ×2','🚀 GAP FRANCHI !':'🚀 GAP CLEARED!','🚀 DOUBLE GAP — MONSTRUEUX !':'🚀 DOUBLE GAP — MONSTROUS!',
+ 'CHAÎNE PERDUE':'CHAIN LOST','REPORT +':'CARRY-OVER +','⚠ ROULE OU CRÈVE — ':'⚠ DRIVE OR DIE — ',
+ '🐷 TIRELIRE ÉVENTRÉE +':'🐷 PIGGY BANK CRACKED +','💸 TU COMPTES EN ':'💸 YOU NOW COUNT IN ',
+ '🛡 L\'ASSURANCE RÉPOND — ':'🛡 THE INSURANCE PAYS OUT — ','POUSSÉE ×':'THRUST ×',
+ // ---- les phrases de saveur ----
+ 'ELLE EST À TOI':'SHE\'S YOURS','CLÉS EN MAIN':'KEYS IN HAND','LIVRÉE, RODÉE, VOLÉE':'DELIVERED, RUN IN, STOLEN',
+ 'TU CHANGES DE MONDE':'YOU\'RE CHANGING WORLDS','SIGNÉ, EMBARQUÉ':'SIGNED, LOADED','ELLE T\'ATTENDAIT':'SHE WAS WAITING FOR YOU',
+ 'NOUVEAU JOUET':'NEW TOY','ENCARTÉE AU GARAGE':'PARKED IN YOUR GARAGE',
+ 'GO ! NE MEURS PAS':'GO! DON\'T DIE','PIED AU PLANCHER — QUESTIONS APRÈS':'FLOOR IT — QUESTIONS LATER',
+ 'LA PRUDENCE RESTE AU GARAGE':'CAUTION STAYS IN THE GARAGE','ROULE COMME SI L\'ESSENCE ÉTAIT GRATUITE':'DRIVE LIKE FUEL IS FREE',
+ 'LE FREIN, C\'EST LA PÉDALE DES AUTRES':'THE BRAKE IS OTHER PEOPLE\'S PEDAL','VAS-Y. LE CIEL REGARDE.':'GO ON. THE SKY IS WATCHING.',
+ 'NOUVELLE ZONE !':'NEW ZONE!','ZONE AVALÉE — SUIVANTE !':'ZONE SWALLOWED — NEXT!','ENCORE UNE ZONE AU COMPTEUR !':'ANOTHER ZONE ON THE CLOCK!',
+ 'LA ROUTE EST À TOI !':'THE ROAD IS YOURS!','ZONE SUIVANTE — ON RALENTIT PAS !':'NEXT ZONE — NO SLOWING DOWN!',
+ '💸 IL PLEUT DES BILLETS — PARAPLUIE INUTILE':'💸 IT\'S RAINING CASH — UMBRELLA USELESS',
+ '💸 LA BANQUE A APPELÉ : ELLE ABANDONNE':'💸 THE BANK CALLED: IT GIVES UP','💸 TON COMPTE A LE VERTIGE':'💸 YOUR ACCOUNT IS DIZZY',
+ '💸 L\'ARGENT TOMBE PLUS VITE QUE TOI':'💸 MONEY FALLS FASTER THAN YOU',
+ 'LA ROUTE GAGNE. CETTE FOIS.':'THE ROAD WINS. THIS TIME.','LE BITUME SE SOUVIENDRA DE TOI':'THE TARMAC WILL REMEMBER YOU',
+ 'MÊME LES LÉGENDES TOUCHENT LE SOL':'EVEN LEGENDS HIT THE GROUND','CRASH TEST RÉUSSI. ENFIN… TEST.':'CRASH TEST PASSED. WELL… TEST.',
+ 'LA GRAVITÉ : 1 — TOI : 0':'GRAVITY: 1 — YOU: 0','T\'ES MORT. LES THUNES, ELLES, RESTENT.':'YOU\'RE DEAD. THE CASH STAYS.',
+ 'REVIENS. LA VITESSE S\'ENNUIE DÉJÀ.':'COME BACK. SPEED IS ALREADY BORED.',
+ '🏆 RECORD — LES AUTRES JOUENT À UN AUTRE JEU':'🏆 RECORD — EVERYONE ELSE IS PLAYING ANOTHER GAME',
+ '🏆 LE LEADERBOARD A DEMANDÉ TON AUTOGRAPHE':'🏆 THE LEADERBOARD ASKED FOR YOUR AUTOGRAPH',
+ '🏆 RECORD ÉCRASÉ — COMME TES SUSPENSIONS':'🏆 RECORD SMASHED — LIKE YOUR SUSPENSION',
+ '🏆 HISTORIQUE. LA ROUTE S\'EN REMET À PEINE.':'🏆 HISTORIC. THE ROAD IS BARELY RECOVERING.',
+ // ---- moteurs ----
+ 'MOTEUR ROUILLÉ':'RUSTY ENGINE','BICYLINDRE':'TWIN-CYLINDER','3 CYLINDRES':'3-CYLINDER','4 EN LIGNE':'INLINE-4',
+ '4 SOUPAPES':'FOUR-VALVE','4 EN LIGNE TURBO':'TURBO INLINE-4','5 CYLINDRES':'5-CYLINDER','V6 BITURBO':'TWIN-TURBO V6',
+ 'BOXER À PLAT':'FLAT BOXER','V8 ATMO':'NAT-ASPIRATED V8','V8 COMPRESSÉ':'SUPERCHARGED V8','QUADRITURBO':'QUAD-TURBO',
+ 'ROTATIF TRIPLE':'TRIPLE ROTARY','TURBINE À GAZ':'GAS TURBINE','TURBINE À PLASMA':'PLASMA TURBINE',
+ 'STATORÉACTEUR':'RAMJET','PULSORÉACTEUR':'PULSEJET','RÉACTEUR NUCLÉAIRE':'NUCLEAR REACTOR','CŒUR À FUSION':'FUSION CORE',
+ 'MOTEUR À DISTORSION':'WARP DRIVE','COMÈTE':'COMET','TROU NOIR':'BLACK HOLE',
+ 'Il tousse, il fume, il prie. Mais il tourne.':'It coughs, it smokes, it prays. But it runs.',
+ 'Deux cylindres. Un qui pousse, un qui regarde.':'Two cylinders. One pushes, one watches.',
+ 'Deux qui toussent, un qui prie.':'Two coughing, one praying.',
+ 'Le premier moteur qui ne s\'excuse pas.':'The first engine that doesn\'t apologise.',
+ 'Il respire enfin par le nez.':'It finally breathes through its nose.',
+ 'Le premier vrai souffle. Ça siffle.':'The first real breath. It whistles.',
+ 'Un chiffre impair, un bruit inoubliable.':'An odd number, an unforgettable noise.',
+ 'La forme fait le son. Le son fait le reste.':'The shape makes the sound. The sound does the rest.',
+ 'Deux turbos, zéro patience.':'Two turbos, zero patience.',
+ 'Le centre de gravité au ras du bitume.':'Centre of gravity scraping the tarmac.',
+ 'Le grondement qui fait trembler la dalle.':'The rumble that shakes the slab.',
+ 'Un compresseur, et la dalle demande grâce.':'One supercharger, and the slab begs for mercy.',
+ 'Dix cylindres, zéro argument.':'Ten cylinders, zero arguments.',
+ 'Douze cylindres qui hurlent à l\'unisson.':'Twelve cylinders screaming in unison.',
+ 'Deux V6 mariés de force. Ça marche.':'Two V6s married by force. It works.',
+ 'Seize. Parce que quinze, c\'était ridicule.':'Sixteen. Because fifteen was ridiculous.',
+ 'Seize cylindres en H. Interdit en course. Logique.':'Sixteen cylinders in an H. Banned from racing. Figures.',
+ 'Quatre escargots, une seule idée.':'Four snails, one single idea.',
+ 'Pas de pistons. Que du hurlement.':'No pistons. Just screaming.',
+ 'L\'hélicoptère a appelé. Il veut son moteur.':'The helicopter called. It wants its engine back.',
+ 'Plus de pistons. Un souffle continu, bleu.':'No more pistons. One continuous blue breath.',
+ 'Il n\'avale plus l\'air. Il l\'agresse.':'It no longer swallows air. It assaults it.',
+ 'Un battement par milliseconde. C\'est le tien qui suit.':'One beat per millisecond. Yours is the one struggling to keep up.',
+ 'Tu roules avec un cœur de centrale sous le capot.':'You drive with a power-plant core under the bonnet.',
+ 'Une petite étoile, sanglée sous le capot.':'A small star, strapped under the bonnet.',
+ 'Un gramme. Un seul. Ne freine pas.':'One gram. Just one. Do not brake.',
+ 'Ce n\'est plus toi qui avances. C\'est la route qui recule.':'You\'re not moving forward any more. The road is backing away.',
+ 'La caisse est EN FEU. Comme au premier jour.':'The car is ON FIRE. Just like day one.',
+ 'Tu ne brûles plus le carburant. Tu brûles le ciel.':'You don\'t burn fuel any more. You burn the sky.',
+ 'Plus rien ne s\'échappe. Même pas toi.':'Nothing escapes any more. Not even you.',
+ // ---- voitures ----
+ 'LA HONTE':'THE SHAME','CAISSE À SAVON':'SOAPBOX','PAPA MOBILE':'DAD-MOBILE','LE FRELON':'THE HORNET',
+ 'DIVA BLANCHE':'WHITE DIVA','GROS BLOC':'BIG BLOCK','SCALPEL VERT':'GREEN SCALPEL','BALLE D\'ARGENT':'SILVER BULLET',
+ 'VEUVE NOIRE':'BLACK WIDOW','EL PATRON 🏁':'EL PATRON 🏁','FORMULE OR 🏎️':'GOLD FORMULA 🏎️','NÉON OUTLAW':'NEON OUTLAW',
+ 'COMBUSTION 🚀':'COMBUSTION 🚀','COMÈTE 👑':'COMET 👑','INTERDITE':'FORBIDDEN','ONDE DE CHOC':'SHOCKWAVE',
+ 'GOUDRON FANTÔME':'GHOST TARMAC','TÊTE CHERCHEUSE':'HOMING HEAD','PLASMA ROYAL':'ROYAL PLASMA','ANTIMATIÈRE':'ANTIMATTER',
+ 'ÉCLIPSE VII':'ECLIPSE VII','SINGULARITÉ':'SINGULARITY','DIEU-VITESSE 👑':'SPEED GOD 👑',
+ 'Trois cylindres : deux qui toussent, un qui prie. Elle démarre par pitié. Fais des thunes et oublie-la vite.':'Three cylinders: two coughing, one praying. It starts out of pity. Make cash and forget it fast.',
+ 'Le moteur d\'une tondeuse, le charisme d\'un caddie. Mais ça roule — et vu d\'où tu viens, c\'est déjà un miracle.':'A lawnmower engine, the charisma of a shopping trolley. But it moves — and given where you\'re coming from, that\'s already a miracle.',
+ 'Sièges chauffants, porte-gobelets, zéro gloire. Conçue pour conduire prudemment. Toi ? Prudent ? On y croit très fort.':'Heated seats, cup holders, zero glory. Built for careful driving. You? Careful? We believe in you, really.',
+ 'Petite, teigneuse, elle pétarade comme un 14 juillet. Le premier vrai sourire du compteur.':'Small, vicious, it crackles like fireworks. The first real smile on the speedo.',
+ 'Elle refuse de rouler à moins de 200. Toi aussi, maintenant. Vous allez très bien vous entendre.':'It refuses to drive below 200. So do you, now. You two will get along beautifully.',
+ 'Un V8 qui boit de l\'essence et crache du respect. L\'écologie te fait coucou dans le rétro. Tu n\'as pas de rétro.':'A V8 that drinks fuel and spits respect. The environment waves at you in the mirror. You have no mirror.',
+ 'Chirurgicale. Elle découpe les virages pendant que les autres les négocient. Toi, tu ne négocies plus rien.':'Surgical. It slices corners while everyone else negotiates them. You don\'t negotiate anything any more.',
+ 'Une balle avec des sièges. Le pare-brise sert surtout à voir le futur arriver beaucoup trop vite.':'A bullet with seats. The windscreen is mostly there to watch the future arrive far too fast.',
+ 'Ceux qui l\'ont doublée en parlent encore. Ah non, pardon : personne ne l\'a jamais doublée.':'Those who overtook it still talk about it. Oh, sorry: nobody ever overtook it.',
+ 'Le taureau doré. 449 au compteur, l\'assurance résiliée d\'office. C\'est ici que les vrais chiffres commencent.':'The golden bull. 449 on the clock, insurance cancelled on sight. This is where the real numbers begin.',
+ 'Un aileron, un baquet, et tes économies peintes en doré. Le circuit appelle ça de la triche. Nous, du talent.':'A wing, a bucket seat, and your savings painted gold. The track calls it cheating. We call it talent.',
+ 'Prototype volé d\'un labo qui nie son existence. Le néon rose ? Pour qu\'on sache QUI vient de te mettre 3 secondes.':'A prototype stolen from a lab that denies it exists. The pink neon? So everyone knows WHO just put 3 seconds on you.',
+ 'Homologuée nulle part, immatriculée par erreur. Le rétroviseur est en option : rien ne revient jamais de derrière.':'Road-legal nowhere, registered by mistake. The mirror is optional: nothing ever comes back from behind.',
+ '657 km/h. Longtemps la reine incontestée du ciel. Aujourd\'hui : l\'échauffement. Bienvenue dans le vrai jeu.':'657 km/h. Long the undisputed queen of the sky. Today: the warm-up. Welcome to the real game.',
+ 'Le dossier d\'homologation a explosé en vol. Littéralement. Première caisse officiellement bannie dans 194 pays.':'The type-approval file exploded in mid-air. Literally. The first car officially banned in 194 countries.',
+ 'Elle klaxonne en BANG supersonique. Les pigeons ont porté plainte. Le mur du son a demandé une protection rapprochée.':'Its horn is a sonic BOOM. The pigeons filed a complaint. The sound barrier requested a bodyguard.',
+ 'Neuf turbines, zéro compromis. L\'ingénieur qui l\'a conçue s\'est enfui en courant. Pas assez vite.':'Nine turbines, zero compromise. The engineer who designed it ran away. Not fast enough.',
+ 'Si rapide que les radars flashent une image vide. Les amendes sont envoyées à ton ombre. Elle non plus ne suit pas.':'So fast the speed cameras photograph an empty frame. The fines go to your shadow. It can\'t keep up either.',
+ 'Techniquement, un missile avec des clignotants. Jamais utilisés, évidemment. L\'horizon a officiellement peur.':'Technically a missile with indicators. Never used, obviously. The horizon is officially afraid.',
+ 'Le moteur tourne au plasma pur et au mépris. Les vitres sont teintées pour protéger les témoins.':'The engine runs on pure plasma and contempt. The windows are tinted to protect the witnesses.',
+ 'Deux grammes d\'antimatière et un mépris total des lois de la physique. Newton s\'est retourné. Trop lentement.':'Two grams of antimatter and utter contempt for the laws of physics. Newton turned in his grave. Too slowly.',
+ 'Quand elle passe devant le soleil : trois secondes de nuit. Les astronomes l\'ont classée phénomène céleste.':'When it crosses the sun: three seconds of night. Astronomers classified it as a celestial event.',
+ 'La lumière a demandé un délai. Le temps s\'excuse au passage. Tu ne conduis plus : tu plies la carte.':'Light asked for an extension. Time apologises as you pass. You\'re not driving any more: you\'re folding the map.',
+ 'Plus de route. Plus de son. Plus de rivaux. Juste toi, et l\'univers qui essaie de suivre. Il n\'y arrive pas.':'No more road. No more sound. No more rivals. Just you, and the universe trying to keep up. It can\'t.'
+};
+// ⚠ nommée TR et non T : `T` est DÉJÀ le tableau des tangentes de la piste (T[bi].y) — la
+// collision faisait planter tout le script au parsing, écran noir muet.
+function TR(s){ // traduction EXACTE, repli français silencieux
+  if(LANG!=='en'||s==null)return s;
+  const t=I18N[s];return t===undefined?s:t;
+}
+// LE HTML STATIQUE — le texte d'origine est mémorisé au premier passage (`data-fr`), sinon rebasculer
+// en FR après un passage en EN traduirait de l'anglais vers rien. On repeint donc TOUJOURS depuis la
+// source française, dans les deux sens.
+function applyLangDOM(){
+  const put=(sel,txt)=>{const e=document.querySelector(sel);if(e)e.textContent=txt;};
+  // ⚠ que des éléments à texte PUR : #cpInfo par exemple contient <span id=cpDist> et #cpBar,
+  // lui écrire un textContent supprimerait ses enfants (donc la jauge de progression).
+  for(const e of document.querySelectorAll('[data-fr],#gTitle,#gHint,#gEquip,#tagline,#goTxt,#nameSave,#setHead>span,#saveExp,#saveImp,#nitroLbl,#speedUnit,.setSec,.setRow>span,.setKeys span,#nameEntry>span,.blabel')){
+    if(e.dataset.fr===undefined)e.dataset.fr=e.textContent;
+    e.textContent=TR(e.dataset.fr);
+  }
+  // les boutons à état composé (leur libellé se reconstruit ailleurs) : on les repasse par leur écrivain
+  const pb=$('parkBtn'),sb=$('survBtn');
+  if(pb)pb.textContent=TR('🛝 Parc freestyle')+' · '+(PARK.on?TR('ON'):TR('OFF'));
+  if(sb)sb.textContent=TR('🏁 Survivant')+' · '+(SURV.armed?TR('ON'):TR('OFF'));
+  put('#garageBtn',TR('🚗 Garage'));put('#setBtn',TR('⚙︎ Réglages'));
+  try{paintMoney();elRecord.textContent=TR('record : ')+fmt(best);setBestChip();renderLeaders(-1);}catch(e){}
+  paintCarHud._k=null;try{paintCarHud();}catch(e){}      // la fiche se repeint dans la langue neuve
+  engVigTierShown=-1;                                     // la légende de la vignette aussi
+  if(garageOn)try{garageShow(garageI);}catch(e){}
+}
 function fmtGta(v){
   // LES CENTIMES : le compteur 8 chiffres arrondissait la mise de départ (1,61 s'affichait « 2 »).
   // On les montre en petit tant qu'on est sous les 1 000 — après, ils ne veulent plus rien dire.
@@ -2162,7 +2329,7 @@ function fmtGta(v){
   const s=String(ent).padStart(8,'0');
   const i=s.search(/[1-9]/);
   const c=CUR();
-  const dec=(v<1000&&cts>0)?'<span class="cts">,'+String(cts).padStart(2,'0')+'</span>':'';
+  const dec=(v<1000&&cts>0)?'<span class="cts">'+(LANG==='en'?'.':',')+String(cts).padStart(2,'0')+'</span>':''; // le point décimal anglais : « $1,61 » se lit comme des milliers
   return (i<0?c+'<span class="dz">'+s+'</span>':c+'<span class="dz">'+s.slice(0,i)+'</span>'+s.slice(i))+dec;
 }
 // ---- UNITÉS COMPACTES : « $ 1,4 M » se lit d'un œil, « $ 1 400 000 » est du bruit. Échelle
@@ -2192,9 +2359,9 @@ function paintCarHud(){
   paintCarHud._k=k;
   try{
     const E=ENGINE_TIERS[engTier]||ENGINE_TIERS[0];
-    elName.textContent=CARS[level].name;
-    elLvl.textContent=E.n+' — PALIER '+(engTier+1)+' / '+ENGINE_TIERS.length+' · pièces de '+fmtC(denom()*5);
-    elCp.textContent=engTier>=ENGINE_TIERS.length-1?'MOTEUR MAX':(ENGINE_TIERS[engTier+1].coins-coinsGot)+' PIÈCES';
+    elName.textContent=TR(CARS[level].name);
+    elLvl.textContent=TR(E.n)+' — '+TR('PALIER')+' '+(engTier+1)+' / '+ENGINE_TIERS.length+' · '+TR('pièces de ')+fmtC(denom()*5);
+    elCp.textContent=engTier>=ENGINE_TIERS.length-1?TR('MOTEUR MAX'):(ENGINE_TIERS[engTier+1].coins-coinsGot)+' '+TR('PIÈCES');
   }catch(e){}
 }
 const envCvs=[]; // les 6 canvases du cube env — gardés pour être REPEINTS par les biomes
@@ -2861,7 +3028,7 @@ function engVigBuild(){
    engVigMesh.scale.setScalar(k);
    engVigMesh.position.y=-(bb.min.y+bb.max.y)/2*k;}
   const E=ENGINE_TIERS[t]||ENGINE_TIERS[0];
-  if(engVigCapEl)engVigCapEl.firstChild.nodeValue=E.n;
+  if(engVigCapEl)engVigCapEl.firstChild.nodeValue=TR(E.n);
   // légende COURTE : « PALIER 7 / 30 · POUSSÉE ×1.50 » passait à la ligne dans le cadre étroit
   if(engVigTierEl)engVigTierEl.textContent=(t+1)+'/'+ENGINE_TIERS.length+'  ·  ×'+E.push.toFixed(2);
   engVigTierShown=t;
@@ -3218,16 +3385,19 @@ function carUnlocked(i){
 function carUnlockText(i){ // ce qu'il reste à faire, en une ligne — affiché sur la caisse verrouillée
   const u=CAR_UNLOCK[i];if(!u)return '';
   const v=u.v,cur=carStat(u.k);
+  const en=LANG==='en';
   switch(u.k){
-    case 'cash':  return 'RECORD DE PARTIE : '+fmtC(v)+'  ('+fmtC(cur)+')';
-    case 'eng':   return 'ATTEINDRE LE MOTEUR « '+(ENGINE_TIERS[v]||ENGINE_TIERS[0]).n+' »  (palier '+(v+1)+' / '+ENGINE_TIERS.length+', ton record : '+(cur+1)+')';
-    case 'tricks':return v+' FIGURES RÉUSSIES EN TOUT  ('+cur+')';
-    case 'gaps':  return v+' GAPS FRANCHIS  ('+cur+')';
-    case 'bumps': return v+' BUMPS SUR LA TRANCHE  ('+cur+')';
-    case 'zones': return v+' ZONES DANS UNE SEULE PARTIE  (record : '+cur+')';
-    case 'chain': return 'UNE CHAÎNE DE '+v+' FIGURES  (record : '+cur+')';
-    case 'kmh':   return 'ATTEINDRE '+v+' KM/H  (record : '+cur+')';
-    case 'surv':  return 'GAGNER UNE PARTIE EN MODE SURVIVANT';
+    case 'cash':  return (en?'BEST RUN: ':'RECORD DE PARTIE : ')+fmtC(v)+'  ('+fmtC(cur)+')';
+    case 'eng':   return en
+      ? 'REACH THE « '+TR((ENGINE_TIERS[v]||ENGINE_TIERS[0]).n)+' » ENGINE  (tier '+(v+1)+' / '+ENGINE_TIERS.length+', your best: '+(cur+1)+')'
+      : 'ATTEINDRE LE MOTEUR « '+(ENGINE_TIERS[v]||ENGINE_TIERS[0]).n+' »  (palier '+(v+1)+' / '+ENGINE_TIERS.length+', ton record : '+(cur+1)+')';
+    case 'tricks':return v+(en?' TRICKS LANDED IN TOTAL  (':' FIGURES RÉUSSIES EN TOUT  (')+cur+')';
+    case 'gaps':  return v+(en?' GAPS CLEARED  (':' GAPS FRANCHIS  (')+cur+')';
+    case 'bumps': return v+(en?' BUMPS OFF THE EDGE  (':' BUMPS SUR LA TRANCHE  (')+cur+')';
+    case 'zones': return v+(en?' ZONES IN A SINGLE RUN  (best: ':' ZONES DANS UNE SEULE PARTIE  (record : ')+cur+')';
+    case 'chain': return (en?'A CHAIN OF ':'UNE CHAÎNE DE ')+v+(en?' TRICKS  (best: ':' FIGURES  (record : ')+cur+')';
+    case 'kmh':   return (en?'REACH ':'ATTEINDRE ')+v+(en?' KM/H  (best: ':' KM/H  (record : ')+cur+')';
+    case 'surv':  return en?'WIN A RUN IN SURVIVOR MODE':'GAGNER UNE PARTIE EN MODE SURVIVANT';
   }
   return '';
 }
@@ -3261,7 +3431,7 @@ function addCoins(n){
     // record de palier À VIE : mis à jour TOUT DE SUITE (pas à la fin du run) pour que les caisses
     // dont la condition est « atteindre tel moteur » se débloquent à l'instant où on y arrive
     if(SAVE.d.ex&&nt>SAVE.d.ex.eng){SAVE.d.ex.eng=nt;SAVE.mark();}
-    showMsg('⚙ '+E.n,'#7dffec');trickMsg('⚙ '+E.n+' — POUSSÉE ×'+E.push.toFixed(2),3);
+    showMsg('⚙ '+TR(E.n),'#7dffec');trickMsg('⚙ '+TR(E.n)+' — '+TR('POUSSÉE ×')+E.push.toFixed(2),3);
     try{fanfare();}catch(e){}
     shake=Math.max(shake,.5);sparkBurst(sparkGold,carGroup.position,26,16);duckT=Math.max(duckT,.4);
   }
@@ -5182,7 +5352,7 @@ function lbEsc(x){return String(x).replace(/[<>&]/g,function(c){return c==='<'?'
 function lbQualifies(sc){return sc>0&&(leaders.length<10||sc>leaders[leaders.length-1].s);}
 function renderLeaders(hl){
   var trophy='🏆 TOP 10';
-  if(!leaders.length){elLb.innerHTML='<div class="lbTitle">'+trophy+'</div><div class="lbEmpty">Aucun score — sois le premier !</div>';return;}
+  if(!leaders.length){elLb.innerHTML='<div class="lbTitle">'+trophy+'</div><div class="lbEmpty">'+TR('Aucun score — sois le premier !')+'</div>';return;}
   var h='<div class="lbTitle">'+trophy+'</div>';
   for(var i=0;i<leaders.length;i++){var e=leaders[i];
     h+='<div class="lbRow'+(i===hl?' hl':'')+'"><span class="lbRank">'+(i+1)+'</span><span class="lbName">'+lbEsc(e.n)+'</span><span class="lbScore">'+fmt(e.s)+'</span></div>';}
@@ -5190,8 +5360,8 @@ function renderLeaders(hl){
 }
 function setBestChip(){
   const bc=SAVE.d.bestCar;
-  bestChip.textContent=(best>0?('RECORD  '+fmt(best)):'AUCUN RECORD — À TOI DE JOUER')+
-    (bc>0?('  ·  MEILLEURE CAISSE : '+CARS[Math.min(bc,23)].name):'');
+  bestChip.textContent=(best>0?(TR('RECORD')+'  '+fmt(best)):TR('AUCUN RECORD — À TOI DE JOUER'))+
+    (bc>0?('  ·  '+TR('MEILLEURE CAISSE')+' : '+TR(CARS[Math.min(bc,23)].name)):'');
 }
 function commitName(){
   if(pendingScore==null)return;
@@ -5207,7 +5377,7 @@ function commitName(){
   nameInput.blur(); // on lâche le focus : ENTRÉE peut désormais REJOUER (sinon le champ avale la touche)
   renderLeaders(idx);
   paintMoney();
-  elRecord.textContent='record : '+fmt(best);
+  elRecord.textContent=TR('record : ')+fmt(best);
   setBestChip();
 }
 nameSave.addEventListener('click',function(e){e.stopPropagation();commitName();});
@@ -5259,7 +5429,9 @@ function drawMinimap(){
   c.restore();
 }
 let msgT=0;
-function showMsg(t,c){elMsg.textContent=t;elMsg.style.color=c||'#ffd75e';elMsg.style.opacity=1;msgT=2.2;}
+// TR() est appliqué ICI plutôt qu'aux ~40 points d'appel : une seule porte d'entrée pour tout ce qui
+// s'affiche au centre de l'écran, et les phrases de saveur (tirées par pickL) passent par là aussi.
+function showMsg(t,c){elMsg.textContent=TR(t);elMsg.style.color=c||'#ffd75e';elMsg.style.opacity=1;msgT=2.2;}
 // LA JAUGE ROSE NE VIENT PLUS DES FIGURES (2026-07-30) : trop dur à remplir, et illisible (« pourquoi
 // ça monte ? »). Elle mesure désormais UNE seule chose, limpide : le TEMPS DE BOOST TENU SANS LÂCHER
 // (voir `styleFromBoost`). Les figures, elles, multiplient déjà le SCORE via chainVal/chainMult.
@@ -5312,7 +5484,7 @@ function trickMsg(txt,tier){ // tier: 1 MONSTRE · 2 DOUBLE · 3 TRIPLE (ou true
   else while(trickBox.childElementCount>=2)trickBox.firstChild.remove();
   const el=document.createElement('div');
   el.className='trick'+(tier===3?' m3':tier===2?' m2':tier===1?' m1':(tier?' big':''));
-  el.textContent=txt;
+  el.textContent=TR(txt); // même porte d'entrée unique que showMsg pour la traduction
   trickBox.appendChild(el);
   setTimeout(()=>{el.remove();},tier===3?1500:tier===2?1200:950);
 }
@@ -5692,16 +5864,17 @@ function endGame(){
   const sc=Math.round(money);
   const q=lbQualifies(sc);
   const isTop=q&&(!leaders.length||sc>leaders[0].s);
-  ovSub.textContent='GAME OVER';ovSub.style.display='';
-  tagline.textContent=pickL(isTop?END_TOP:END_LINES);tagline.style.display=''; // la punchline de fin — même la mort a du style
+  ovSub.textContent=TR('GAME OVER');ovSub.style.display='';
+  tagline.textContent=TR(pickL(isTop?END_TOP:END_LINES));tagline.style.display=''; // la punchline de fin — même la mort a du style
   const gagnees=commitExploits(); // les exploits de la run entrent au compteur À VIE → nouvelles caisses
   setBestChip();
   runStatsEl.style.display='block';
-  runStatsEl.textContent='FIGURES '+runStats.tricks+' · CHAÎNE MAX '+(runStats.chainMax||0)+' · BUMPS '+runStats.bumps+' · ZONES '+runStats.zones+' · GAPS '+runStats.gaps+' · VMAX '+Math.round(runStats.vmax)+' KM/H'
-    +(gagnees.length?'\n🔑 DÉBLOQUÉ : '+gagnees.map(i=>CARS[i].name).join(' · '):'');
+  runStatsEl.textContent=TR('FIGURES')+' '+runStats.tricks+' · '+TR('CHAÎNE MAX')+' '+(runStats.chainMax||0)+' · '+TR('BUMPS')+' '+runStats.bumps
+    +' · '+TR('ZONES')+' '+runStats.zones+' · '+TR('GAPS')+' '+runStats.gaps+' · '+TR('VMAX')+' '+Math.round(runStats.vmax)+' KM/H'
+    +(gagnees.length?'\n'+TR('🔑 DÉBLOQUÉ : ')+gagnees.map(i=>TR(CARS[i].name)).join(' · '):'');
   finalScore.style.display='block';
   finalScore.textContent=fmt(money)+(isTop?'  🏆 RECORD':'');
-  goTxt.textContent='▸ CLIQUE LE LOGO POUR REJOUER';
+  goTxt.textContent=TR('▸ CLIQUE LE LOGO POUR REJOUER');
   if(q){
     pendingScore=sc;nameEntry.style.display='flex';goTxt.style.display='none';renderLeaders(-1);
     setTimeout(function(){try{nameInput.focus();nameInput.select();}catch(e){}},60);
@@ -6274,22 +6447,22 @@ function garageShow(i){
   garageI=((i%CARS.length)+CARS.length)%CARS.length;
   buildCar(CARS[garageI]);
   const c=CARS[garageI];
-  gNameEl.textContent=c.name;
-  gLvlEl.textContent='CAISSE '+(garageI+1)+' / '+CARS.length;
+  gNameEl.textContent=TR(c.name);
+  gLvlEl.textContent=TR('CAISSE')+' '+(garageI+1)+' / '+CARS.length;
   gSpdEl.textContent=''; // plus de km/h sur la fiche : la vitesse vient du MOTEUR, pas de la caisse
   // La caisse VERROUILLÉE annonce SA condition (et où tu en es) : c'est la carte du jeu, pas une
   // porte close. Une caisse débloquée garde sa punchline d'origine — le champ `desc` des 24 fiches
   // ressert enfin, il n'était plus affiché nulle part depuis le retrait de la carte de déblocage.
   const ouverte=carUnlocked(garageI);
-  gDescEl.textContent=ouverte?(c.desc||''):('🔒  '+carUnlockText(garageI));
+  gDescEl.textContent=ouverte?TR(c.desc||''):('🔒  '+carUnlockText(garageI));
   // ÉQUIPER : verrouillé tant que la caisse n'est pas débloquée ; marqué quand c'est déjà la tienne
   // ⚠ on teste carUnlocked(i), PAS `garageI>bestCar` : les caisses ne se gagnent plus dans l'ordre
   // (chacune a sa condition), donc un simple « au-dessus du meilleur » laisserait passer les trous.
   const bt=$('gEquip'),eq=SAVE.d.equipped|0;
   if(bt){
-    if(!ouverte){bt.textContent='🔒 VERROUILLÉE';bt.disabled=true;bt.style.opacity=.5;}
-    else if(garageI===eq){bt.textContent='✓ ÉQUIPÉE';bt.disabled=true;bt.style.opacity=.7;}
-    else{bt.textContent='ÉQUIPER';bt.disabled=false;bt.style.opacity=1;}
+    if(!ouverte){bt.textContent=TR('🔒 VERROUILLÉE');bt.disabled=true;bt.style.opacity=.5;}
+    else if(garageI===eq){bt.textContent=TR('✓ ÉQUIPÉE');bt.disabled=true;bt.style.opacity=.7;}
+    else{bt.textContent=TR('ÉQUIPER');bt.disabled=false;bt.style.opacity=1;}
   }
 }
 function openGarage(){
@@ -6336,7 +6509,7 @@ $('langRow').addEventListener('click',e=>{
   try{localStorage.ccLang=LANG;}catch(err){}
   $('tgLang').textContent=LANG.toUpperCase();
   $('tgLang').className=''; // toujours « allumé » : ce n'est pas un interrupteur ON/OFF
-  paintMoney();try{elRecord.textContent=(LANG==='en'?'best : ':'record : ')+fmt(best);}catch(err){}
+  applyLangDOM(); // toute l'interface bascule d'un coup (argent, record, menu, réglages, garage, HUD)
 });
 function openSettings(){setEl.classList.add('on');setRefresh();}
 function closeSettings(){setEl.classList.remove('on');}
@@ -6738,7 +6911,7 @@ function loop(now){
             if(p.pow==='n')pwrNitroT=d.t;
             else if(p.pow==='a'){pwrAirT=d.t;airFlash=.6;}
             else pwrSpdT=d.t;
-            showMsg(d.msg,d.tint);trickMsg(d.ico+' '+d.hud,2);boostSnd();shake=Math.max(shake,.35);
+            showMsg(d.msg,d.tint);trickMsg(d.ico+' '+TR(d.hud),2);boostSnd();shake=Math.max(shake,.35);
             sparkBurst(p.pow==='n'?sparkBlue:sparkGold,carGroup.position,14,9);
             addStyle(10);
           }
@@ -7437,14 +7610,14 @@ function loop(now){
     }
     if(!gameOver&&money>=nextRainAt){nextRainAt*=2.6;startMoneyRain();showMsg(pickL(RAIN_LINES),'#7dff9a');}
     if(money>best){best=money;SAVE.d.best=best;SAVE.mark();} // mark : le filet des 30 s (ou la fin de run) écrira
-    if(loop._bestHud!==best){loop._bestHud=best;elRecord.textContent='record : '+fmt(best);}
+    if(loop._bestHud!==best){loop._bestHud=best;elRecord.textContent=TR('record : ')+fmt(best);}
     elNR.style.width=(nitroR/4*100)+'%';
     elNX.style.width=(nitroX/4*100)+'%';
     // chip des POUVOIRS actifs : compte à rebours coloré au-dessus de la jauge nitro
     let pch='';
     if(pwrNitroT>0)pch+='<span style="color:#4db8ff">🔥 NITRO ∞ '+pwrNitroT.toFixed(1)+'</span>';
     if(pwrAirT>0)pch+='<span style="color:#7dffec">🪂 AIR ∞ '+pwrAirT.toFixed(1)+'</span>';
-    if(pwrSpdT>0)pch+='<span style="color:#ff3ec8">⚡ VITESSE +60% '+pwrSpdT.toFixed(1)+'</span>';
+    if(pwrSpdT>0)pch+='<span style="color:#ff3ec8">⚡ '+TR('VITESSE +60%')+' '+pwrSpdT.toFixed(1)+'</span>';
     if(pch!==loop._pch){loop._pch=pch;pwrChip.innerHTML=pch;pwrChip.style.display=pch?'block':'none';}
     // JAUGE DE PROGRESSION — elle suivait le cash vers la prochaine VOITURE ; les voitures ne se
     // gagnent plus à l'argent de la partie. Elle suit désormais les PIÈCES vers le prochain MOTEUR,
@@ -7530,11 +7703,12 @@ respawn();
 setupIntroPig();
 frameAt(0,F);
 camera.position.copy(F.p).addScaledVector(F.t,-9).addScaledVector(F.n,4);
-elRecord.textContent='record : '+fmt(best);
+elRecord.textContent=TR('record : ')+fmt(best);
 carSnapshot();   // photo des caisses DÉJÀ acquises : sans elle, le 1er scan les annoncerait toutes d'un coup
 level=equippedCar();buildCar(CARS[level]); // on se présente au menu dans la caisse choisie au garage
 paintMoney(); // LE MENU AFFICHE LA MISE : 1,61 € visible AVANT de lancer (le HTML disait « $00000000 »)
 paintCarHud(); // et la fiche de caisse porte le bon nom/palier dès l'écran d'accueil
+applyLangDOM(); // la langue sauvegardée s'applique AU CHARGEMENT (elle ne prenait qu'en cliquant le sélecteur)
 setBestChip();
 renderLeaders(-1);
 (function(){ // ---------- INTRO STUDIO « 1.61 » : accumulation… battements… FISSION ----------
