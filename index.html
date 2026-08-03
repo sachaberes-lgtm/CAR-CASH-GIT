@@ -2107,8 +2107,22 @@ const CARS=[
  {name:'DIEU-VITESSE 👑', color:0xf5f6fa,accent:0xffd75e,maxKmh:1900,accel:208,turn:3.5, h:.28,w:2.3, l:5.6,spoiler:1,glow:0xffffff,rocket:1,
   desc:'Plus de route. Plus de son. Plus de rivaux. Juste toi, et l\'univers qui essaie de suivre. Il n\'y arrive pas.'},
 ];
-const DENOMS=[10,25,60,150,400,1e3,2.5e3,6e3,15e3,40e3,1e5,2.5e5,6e5,
-              1.5e6,4e6,1e7,2.5e7,6e7,1.5e8,4e8,1e9,2.5e9,6e9,15e9]; // 24 niveaux : ×~2,5 par caisse — REBASÉ le 2026-07-17 (l'ancien ×10 finissait à 1e25, illisible) : l'endgame se compte en MILLIARDS, ça reste GTA, plus jamais quintillions
+// ---- VALEUR D'UNE PIÈCE — UNE ENTRÉE PAR PALIER MOTEUR (30) ---------------------------------
+// ⚠ Cette table est indexée par `engTier` depuis que les PIÈCES portent la progression, mais elle
+// avait gardé les 24 entrées taillées pour les 24 VOITURES : avec 30 paliers elle saturait sur les
+// six derniers, et surtout ses valeurs hautes (jusqu'à 15 milliards) étaient calibrées pour un
+// palier de VOITURE, pas de moteur — les 10 anciens paliers n'en touchaient que les 10 premières
+// cases (10 → 40 000). La reprendre telle quelle aurait multiplié la valeur d'une pièce par 375.
+// RECALAGE À EFFORT ÉGAL : le palier 18 (731 pièces) vaut 39 000, soit ce que valait l'ancien
+// dernier palier (760 pièces → 40 000). Ce qui est en dessous est inchangé à effort comparable ;
+// ce qui est au-dessus prolonge la rampe. Série 1-1,6-2,5-4-6,2 par décade (ratio ×1,585,
+// 5 marches par décade) : des nombres qui se lisent, sur 6 décades.
+const DENOMS=[10,16,25,40,62,
+              100,155,245,390,620,
+              980,1550,2450,3900,6200,
+              9800,15500,24500,39000,62000,
+              98000,155000,245000,390000,620000,
+              980000,1.55e6,2.45e6,3.9e6,6.2e6]; // 30 paliers moteur
 // COURBE D'EFFORT CROISSANTE (échelle de renforcement) : la 1re caisse tombe en ~30 s
 // (accroche immédiate), puis chaque palier exige un peu plus de maîtrise — en équivalent
 // pièces : 8, 12, 16, 20, 25, 30, 36, 44, 52, 62, 74, 88, 105, puis l'ENDGAME serre la vis :
@@ -2125,7 +2139,7 @@ let level=0;
 // PUREMENT COSMÉTIQUE : l'indexer sur `level` faisait qu'équiper une belle caisse donnait d'emblée
 // des pièces à 40 000 — d'où la tirelire à 320 000 dès le premier écran. Le moteur, lui, part
 // toujours de zéro : l'économie repart donc au même point à chaque partie.
-function denom(){return DENOMS[Math.min(engTier,23)];}
+function denom(){return DENOMS[Math.min(engTier,DENOMS.length-1)];} // clamp sur la table elle-même : la liste de paliers peut grandir sans qu'un 23 codé en dur la tronque
 // LANGUE & DEVISE : le français compte en EUROS, l'anglais en DOLLARS. Un seul point de vérité —
 // tous les affichages d'argent passent par ces trois fonctions, donc changer la langue suffit.
 let LANG=(typeof localStorage!=='undefined'&&localStorage.ccLang)||'fr';
@@ -2150,6 +2164,23 @@ function fmtC(v){
   v=Math.round(v);
   for(const u of UNITS)if(v>=u[0]){const q=v/u[0];return CUR()+' '+(q>=100?Math.round(q):q.toFixed(1).replace('.',',').replace(',0',''))+' '+u[1];}
   return CUR()+' '+v.toLocaleString(LOC());
+}
+// LE COMPTEUR AU MENU : la seule repeinte vivait DANS la boucle, sous le gate de simulation — au menu
+// elle ne tournait jamais et le HUD gardait le « $00000000 » écrit en dur dans le HTML. Tout passe
+// désormais par ici (init, départ, reset, changement de langue) : un seul écrivain, plus d'oubli.
+function paintMoney(){try{elMoney.innerHTML=fmtGta(money);loop._money=money;}catch(e){}}
+// LA FICHE DE CAISSE : même histoire. Le cache ne regardait que `level` — or depuis que la voiture est
+// COSMÉTIQUE, `level` ne bouge plus d'une partie à l'autre et c'est le PALIER MOTEUR qui pilote la valeur
+// des pièces. La clé porte donc les deux : le nom et le « pièces de X » se rafraîchissent enfin.
+function paintCarHud(){
+  const k=level+'|'+engTier;
+  if(paintCarHud._k===k)return;
+  paintCarHud._k=k;
+  try{
+    elName.textContent=CARS[level].name;
+    elLvl.textContent='NIVEAU '+(level+1)+' / '+CARS.length+' — pièces de '+fmtC(denom()*5);
+    elCp.textContent=level>=23?'MAX':fmtC(THRESH[Math.min(level,22)]);
+  }catch(e){}
 }
 const envCvs=[]; // les 6 canvases du cube env — gardés pour être REPEINTS par les biomes
 function paintEnv(stops,s1,s2){ // stops=[[pos,'#hex'],…] + 2 strips néon [r,g,b,alpha]
@@ -3028,18 +3059,53 @@ const FRUIT_DEFS=[
 // ⚠ CE SONT LES PIÈCES qui montent le moteur (pas les fruits — eux ne servent QU'au boost, ce qui
 // explique qu'un moteur rouillé puisse déjà filer à une vitesse absurde). `coins` = pièces ramassées.
 // La montée est ROCAMBOLESQUE : on part d'une épave qui tousse, on finit en comète en feu.
+// ---- LA LONGUE LISTE : 30 PALIERS (2026-08-02) ----------------------------------------------
+// COURBE DE COÛT — ⚠ un ratio 1,5× CONSTANT est impossible ici : 1,5^29 ≈ 100 000, le dernier palier
+// coûterait des milliards de pièces. L'INTENTION est tenue autrement : l'écart entre deux paliers
+// part à ×1,40 (les premiers tombent en quelques secondes — c'est l'accroche) et se détend vers ×1,09
+// (l'endgame se mérite). IRRÉGULARITÉ VOLONTAIRE : quelques paliers arrivent plus tôt que la courbe
+// ne le voudrait (9, 16, 23, 28) — le cadeau inattendu vaut mieux qu'une horloge suisse.
+// Les 10 premiers paliers coûtent 145 pièces au total, là où l'ancienne liste en demandait 205 pour
+// 9 paliers : le début est PLUS généreux, la liste est juste beaucoup plus longue derrière.
+// `res` = réserve de nitro (2,0 → 3,6) : la capacité était documentée mais AUCUN palier ne la
+// définissait, `.res||2` retombait donc toujours sur 2 — elle existe enfin. `cyl` = cylindres du
+// modèle 3D (0 = plus de pistons du tout : turbines et réacteurs).
 const ENGINE_TIERS=[
-  {n:'MOTEUR ROUILLÉ',   d:'Il tousse, il fume, il prie. Mais il tourne.',      coins:0,  push:1.00,col:0x7a5a3c,flam:0x8a6a30},
-  {n:'3 CYLINDRES',      d:'Deux qui toussent, un qui prie.',                   coins:18, push:1.22,col:0x9a8f7a,flam:0xff8a30},
-  {n:'4 EN LIGNE TURBO', d:'Le premier vrai souffle. Ça siffle.',               coins:45, push:1.48,col:0x6fd0ff,flam:0xffc23a},
-  {n:'V6 BITURBO',       d:'Deux turbos, zéro patience.',                       coins:85, push:1.78,col:0x4a9cff,flam:0x8ad8ff},
-  {n:'V8 COMPRESSÉ',     d:'Le grondement qui fait trembler la dalle.',         coins:140,push:2.10,col:0xff7a3c,flam:0xff5a2a},
-  {n:'V12 ATMOSPHÉRIQUE',d:'Douze cylindres qui hurlent à l\'unisson.',         coins:215,push:2.45,col:0xffd75e,flam:0xfff0a0},
-  {n:'H16 F1',           d:'Seize cylindres en H. Interdit en course. Logique.',coins:310,push:2.85,col:0xe8eef6,flam:0xbfe8ff},
-  {n:'TURBINE À PLASMA', d:'Plus de pistons. Un souffle continu, bleu.',        coins:430,push:3.25,col:0x7dffec,flam:0x9fffe8},
-  {n:'RÉACTEUR NUCLÉAIRE',d:'Tu roules avec un cœur de centrale sous le capot.',coins:580,push:3.70,col:0x9dff50,flam:0xd8ff7a},
-  {n:'COMÈTE',           d:'La caisse est EN FEU. Comme au premier jour.',      coins:760,push:4.20,col:0xff3ec8,flam:0xff8a20}
+  {n:'MOTEUR ROUILLÉ',    d:'Il tousse, il fume, il prie. Mais il tourne.',        coins:0,   push:1.00,res:2.00,cyl:2, col:0x7a5a3c,flam:0x8a6a30},
+  {n:'BICYLINDRE',        d:'Deux cylindres. Un qui pousse, un qui regarde.',      coins:5,   push:1.06,res:2.02,cyl:2, col:0x8a6a48,flam:0x9a7a34},
+  {n:'3 CYLINDRES',       d:'Deux qui toussent, un qui prie.',                     coins:12,  push:1.12,res:2.05,cyl:3, col:0x9a8f7a,flam:0xff8a30},
+  {n:'4 EN LIGNE',        d:'Le premier moteur qui ne s\'excuse pas.',             coins:21,  push:1.19,res:2.08,cyl:4, col:0xa8a294,flam:0xffa040},
+  {n:'4 SOUPAPES',        d:'Il respire enfin par le nez.',                        coins:33,  push:1.26,res:2.11,cyl:4, col:0xb4b0a2,flam:0xffb050},
+  {n:'4 EN LIGNE TURBO',  d:'Le premier vrai souffle. Ça siffle.',                 coins:48,  push:1.34,res:2.15,cyl:4, col:0x6fd0ff,flam:0xffc23a},
+  {n:'5 CYLINDRES',       d:'Un chiffre impair, un bruit inoubliable.',            coins:66,  push:1.42,res:2.19,cyl:5, col:0x5cc0f0,flam:0xffcc50},
+  {n:'V6',                d:'La forme fait le son. Le son fait le reste.',         coins:88,  push:1.50,res:2.23,cyl:6, col:0x4a9cff,flam:0x8ad8ff},
+  {n:'V6 BITURBO',        d:'Deux turbos, zéro patience.',                         coins:114, push:1.59,res:2.28,cyl:6, col:0x3f8cf5,flam:0x8ad8ff},
+  {n:'BOXER À PLAT',      d:'Le centre de gravité au ras du bitume.',              coins:145, push:1.68,res:2.33,cyl:4, col:0x5a7ae0,flam:0x9ac0ff},
+  {n:'V8 ATMO',           d:'Le grondement qui fait trembler la dalle.',           coins:181, push:1.78,res:2.38,cyl:8, col:0xff7a3c,flam:0xff5a2a},
+  {n:'V8 COMPRESSÉ',      d:'Un compresseur, et la dalle demande grâce.',          coins:223, push:1.88,res:2.43,cyl:8, col:0xff8a48,flam:0xff6a30},
+  {n:'V10',               d:'Dix cylindres, zéro argument.',                       coins:271, push:1.99,res:2.49,cyl:10,col:0xffa055,flam:0xff8038},
+  {n:'V12',               d:'Douze cylindres qui hurlent à l\'unisson.',           coins:326, push:2.10,res:2.55,cyl:12,col:0xffd75e,flam:0xfff0a0},
+  {n:'W12',               d:'Deux V6 mariés de force. Ça marche.',                 coins:389, push:2.21,res:2.61,cyl:12,col:0xffe27a,flam:0xfff4b8},
+  {n:'V16',               d:'Seize. Parce que quinze, c\'était ridicule.',         coins:452, push:2.33,res:2.67,cyl:16,col:0xf2ecc8,flam:0xfff8d0},
+  {n:'H16 F1',            d:'Seize cylindres en H. Interdit en course. Logique.',  coins:540, push:2.45,res:2.73,cyl:16,col:0xe8eef6,flam:0xbfe8ff},
+  {n:'QUADRITURBO',       d:'Quatre escargots, une seule idée.',                   coins:630, push:2.58,res:2.80,cyl:8, col:0xd8e8ff,flam:0xa8d8ff},
+  {n:'ROTATIF TRIPLE',    d:'Pas de pistons. Que du hurlement.',                   coins:731, push:2.71,res:2.87,cyl:3, col:0xc0e0ff,flam:0x90d0ff},
+  {n:'TURBINE À GAZ',     d:'L\'hélicoptère a appelé. Il veut son moteur.',        coins:844, push:2.85,res:2.94,cyl:0, col:0xa8dcf0,flam:0x8ae0ff},
+  {n:'TURBINE À PLASMA',  d:'Plus de pistons. Un souffle continu, bleu.',          coins:970, push:2.99,res:3.01,cyl:0, col:0x7dffec,flam:0x9fffe8},
+  {n:'STATORÉACTEUR',     d:'Il n\'avale plus l\'air. Il l\'agresse.',             coins:1110,push:3.13,res:3.08,cyl:0, col:0x6affe0,flam:0x8affe8},
+  {n:'PULSORÉACTEUR',     d:'Un battement par milliseconde. C\'est le tien qui suit.',coins:1265,push:3.28,res:3.15,cyl:0,col:0x8affc0,flam:0xb0ffd0},
+  {n:'RÉACTEUR NUCLÉAIRE',d:'Tu roules avec un cœur de centrale sous le capot.',   coins:1420,push:3.44,res:3.23,cyl:0, col:0x9dff50,flam:0xd8ff7a},
+  {n:'CŒUR À FUSION',     d:'Une petite étoile, sanglée sous le capot.',           coins:1624,push:3.60,res:3.31,cyl:0, col:0xd8ff60,flam:0xf0ff90},
+  {n:'ANTIMATIÈRE',       d:'Un gramme. Un seul. Ne freine pas.',                  coins:1830,push:3.76,res:3.39,cyl:0, col:0xffe860,flam:0xfff2a0},
+  {n:'MOTEUR À DISTORSION',d:'Ce n\'est plus toi qui avances. C\'est la route qui recule.',coins:2055,push:3.90,res:3.46,cyl:0,col:0xff9ad8,flam:0xffc0e8},
+  {n:'COMÈTE',            d:'La caisse est EN FEU. Comme au premier jour.',        coins:2270,push:4.02,res:3.52,cyl:0, col:0xff3ec8,flam:0xff8a20},
+  {n:'SUPERNOVA',         d:'Tu ne brûles plus le carburant. Tu brûles le ciel.',  coins:2566,push:4.12,res:3.56,cyl:0, col:0xff6ea0,flam:0xffb060},
+  {n:'TROU NOIR',         d:'Plus rien ne s\'échappe. Même pas toi.',              coins:2854,push:4.20,res:3.60,cyl:0, col:0xf5f6fa,flam:0xffffff}
 ];
+// SEUILS DES CAPACITÉS MOTEUR — nommés plutôt que semés en `engTier>=4` dans la boucle : la liste a
+// triplé de longueur, des index nus se seraient décalés en silence (billets dès le 4e palier sur 30,
+// soit presque tout de suite). Proportions d'origine conservées : 40 %, 50 %, 90 % de l'échelle.
+const ENG_CAP={billets:12,aimant:15,comete:27};
 let engTier=0,coinsGot=0; // ÉCARTS ÉLARGIS (2026-08-02) : ×1 → ×4,2, chaque palier doit S'ENTENDRE et SE SENTIR // palier courant + PIÈCES ramassées (la monnaie du moteur)
 function engineFor(nc){let t=0;for(let i=0;i<ENGINE_TIERS.length;i++)if(nc>=ENGINE_TIERS[i].coins)t=i;return t;}
 // LA MONNAIE DU MOTEUR : ramasser une pièce en donne 1 — et RÉUSSIR UNE FIGURE en donne une poignée.
@@ -3064,24 +3130,31 @@ function mkEngine(i){
   const chrome=new THREE.MeshPhongMaterial({color:0xdfe8f2,shininess:280,specular:0xffffff,envMap:envTex,reflectivity:.8,combine:THREE.MixOperation});
   const feu=new THREE.MeshBasicMaterial({color:E.flam});
   const box=new THREE.BoxGeometry(1,1,1);
-  const nCyl=[3,3,4,6,8,12,16,0,0,0][i]||0;                                    // électrique et réacteur : plus de cylindres
+  // ⚠ SEUILS DE SILHOUETTE : ils étaient écrits en dur pour 10 paliers (`i>=2` turbo, `i>=7` tuyère…).
+  // Sur 30 paliers ils auraient tout allumé dès le premier quart — le moteur rouillé aurait eu la
+  // tuyère à plasma. Ils sont repositionnés sur la nouvelle échelle, et le nombre de cylindres vient
+  // désormais de la fiche du palier (`cyl`) au lieu d'une table parallèle de 10 cases à resynchroniser.
+  const nCyl=E.cyl||0;                                                    // 0 = plus de pistons (turbines, réacteurs)
+  const enV=nCyl>=6, turbo=i>=5, plasma=i>=20, nuke=i>=23, comete=i>=ENG_CAP.comete;
   g.add(mesh9(box,bloc,1.5,.9,1.1,0,0,0));                                // le bloc
   g.add(mesh9(box,sombre,1.56,.2,1.16,0,.55,0));                          // le cache-culasse
   for(let c=0;c<nCyl;c++){                                                 // cylindres : en ligne, puis en V
-    const enV=i>=3,rang=enV?Math.floor(c/2):c,nR=enV?Math.ceil(nCyl/2):nCyl;
+    const rang=enV?Math.floor(c/2):c,nR=enV?Math.ceil(nCyl/2):nCyl;
     const sd=enV?(c%2?1:-1):0,u=(nR>1?rang/(nR-1):.5)-.5;
     const m=mesh9(fgCyl,chrome,.15,.40,.15,u*1.2,.72,sd*.26);
     if(enV)m.rotation.z=sd*.3;
     g.add(m);
   }
-  if(i>=2){                                                                // le turbo (escargot + tubulure)
+  if(turbo){                                                               // le turbo (escargot + tubulure)
     g.add(mesh9(fgCyl,chrome,.34,.22,.34,.95,-.12,.6,Math.PI/2));
     g.add(mesh9(fgCyl,sombre,.12,.5,.12,.62,-.12,.6,Math.PI/2));
   }
-  if(i>=7)for(const sd of [1,-1])g.add(mesh9(box,feu,.12,.52,.5,-.82,.12,sd*.3)); // cellules (plasma et au-delà)
-  if(i>=7)g.add(mesh9(fgCone,feu,.5,.9,.5,-1.45,0,0,Math.PI/2));           // la tuyère
-  if(i>=8)for(let k=0;k<3;k++)g.add(mesh9(fgCyl,feu,.1,.34,.1,-.2+k*.3,.95,0)); // barres de combustible (nucléaire)
-  if(i>=9)for(let k=0;k<7;k++){const a=k/7*6.2832;                          // COMÈTE : la couronne de feu
+  if(i>=17)for(const sd of [1,-1])                                         // QUADRITURBO : la paire du dessous
+    g.add(mesh9(fgCyl,chrome,.26,.18,.26,.95,-.42,sd*.42,Math.PI/2));
+  if(plasma)for(const sd of [1,-1])g.add(mesh9(box,feu,.12,.52,.5,-.82,.12,sd*.3)); // cellules (plasma et au-delà)
+  if(plasma)g.add(mesh9(fgCone,feu,.5,.9,.5,-1.45,0,0,Math.PI/2));         // la tuyère
+  if(nuke)for(let k=0;k<3;k++)g.add(mesh9(fgCyl,feu,.1,.34,.1,-.2+k*.3,.95,0)); // barres de combustible (nucléaire)
+  if(comete)for(let k=0;k<7;k++){const a=k/7*6.2832;                       // COMÈTE : la couronne de feu
     g.add(mesh9(fgCone,feu,.13,.5,.13,Math.cos(a)*.9,.15,Math.sin(a)*.62,Math.PI/2+a*.1));}
   g.add(mesh9(fgCyl,sombre,.5,.16,.5,-.92,-.1,0,Math.PI/2));               // le volant moteur
   return g;
@@ -4950,9 +5023,8 @@ function commitName(){
   pendingScore=null;nameEntry.style.display='none';goTxt.style.display='';nameInput.value='';
   nameInput.blur(); // on lâche le focus : ENTRÉE peut désormais REJOUER (sinon le champ avale la touche)
   renderLeaders(idx);
-  elMoney.innerHTML=fmtGta(money); // ⚠ AU MENU le compteur restait à « $00000000 » : la mise de départ
-                                 //   doit être lisible AVANT de lancer, pas seulement pendant.
-elRecord.textContent='record : '+fmt(best);
+  paintMoney();
+  elRecord.textContent='record : '+fmt(best);
   setBestChip();
 }
 nameSave.addEventListener('click',function(e){e.stopPropagation();commitName();});
@@ -5444,9 +5516,7 @@ function start(){
   annPreload(); // les voix sont prêtes avant le premier trick
   overlay.style.display='none';
   running=true;
-  // ⚠ le compteur gardait l'affichage d'avant la partie (« $00000000 ») : on le repeint tout de suite
-  // avec la mise de départ et la bonne devise, sinon le joueur croit démarrer à sec.
-  try{elMoney.innerHTML=fmtGta(money);}catch(e){}
+  paintMoney(); // la mise de départ et la bonne devise, tout de suite
   survStart(); // le mode armé au menu s'active pour cette première run
   musicStartRun(); // la bande-son démarre avec la partie
 }
@@ -6054,7 +6124,7 @@ $('langRow').addEventListener('click',e=>{
   try{localStorage.ccLang=LANG;}catch(err){}
   $('tgLang').textContent=LANG.toUpperCase();
   $('tgLang').className=''; // toujours « allumé » : ce n'est pas un interrupteur ON/OFF
-  try{elMoney.innerHTML=fmtGta(money);elRecord.textContent=(LANG==='en'?'best : ':'record : ')+fmt(best);}catch(err){}
+  paintMoney();try{elRecord.textContent=(LANG==='en'?'best : ':'record : ')+fmt(best);}catch(err){}
 });
 function openSettings(){setEl.classList.add('on');setRefresh();}
 function closeSettings(){setEl.classList.remove('on');}
@@ -6444,7 +6514,7 @@ function loop(now){
         //  un coup de pouce sensible, il faut toujours viser)
         if(p.air&&mode!=='fall')continue; // les grappes du CIEL ne s'attrapent qu'en vol (sinon elles
                                           // se feraient aspirer au sol par l'aimant, sans jamais sauter)
-        const mag=engTier>=5?1:0;
+        const mag=engTier>=ENG_CAP.aimant?1:0;
         if(ds9<15+mag*2&&Math.abs(p.lat-side*lat)<7+level*.4+mag*2)
           p.mesh.position.lerp(carGroup.position,Math.min(1,dt*(4.5+level*.3+mag*1.5)));
         if(p.mesh.position.distanceTo(carGroup.position)<2.7+level*.2+mag*.5){
@@ -6575,7 +6645,7 @@ function loop(now){
         }
         loop._wasUp=up;
         // les caisses de riche crachent des billets par les fenêtres
-        if(engTier>=4&&Math.abs(vF)>15){ // CAPACITÉ MOTEUR (V8 compressé) : la caisse crache des billets
+        if(engTier>=ENG_CAP.billets&&Math.abs(vF)>15){ // CAPACITÉ MOTEUR (V10) : la caisse crache des billets
           billT-=dt;
           if(billT<=0){
             billT=.28+Math.random()*.4;
@@ -7035,7 +7105,9 @@ function loop(now){
         const eng=ENGINES[level];
         // LE TIMBRE SUIT LE MOTEUR : chaque palier a sa voix (le 3 cylindres tousse, le V12 hurle,
         // le réacteur souffle). Avant, changer de caisse changeait le son — or la caisse est cosmétique.
-        {const et9=Math.min(23,engTier*2+Math.min(2,engTier)); if(engLvl!==et9)engSetCar(et9);}
+        // ⚠ l'ancien barème (`engTier*2+…`) était taillé pour 10 paliers et plafonnait à 20 sur 24 voix ;
+        // avec 30 paliers il aurait saturé au 11e. On étale la liste sur TOUTE la palette de timbres.
+        {const et9=Math.min(ENGINES.length-1,Math.round(engTier*(ENGINES.length-1)/(ENGINE_TIERS.length-1))); if(engLvl!==et9)engSetCar(et9);}
         const thr=up?1:0,sN=Math.min(1.06,spd3/CARS[level].maxKmh);
         // BOÎTE VIRTUELLE : rapports courts en bas, longs en haut. Montée → CHUNK → chute →
         // remontée : la respiration qui rend l'accélération grisante (une rampe nue est monotone)
@@ -7143,11 +7215,7 @@ function loop(now){
     elSpeed.style.color=speedKmh>920?'#ff5040':'';
     speedFx.style.opacity=Math.max(0,Math.min(.95,(speedKmh-280)/560));
     // panneaux HUD MASQUÉS (#carInfo/#cpInfo/#record en display:none) : on ne reconstruit leur texte (fmtC/fmt alloue) QUE quand la valeur change
-    if(loop._lvlHud!==level){loop._lvlHud=level;
-      elName.textContent=CARS[level].name;
-      elLvl.textContent='NIVEAU '+(level+1)+' / '+CARS.length+' — pièces de '+fmtC(denom()*5);
-      elCp.textContent=level>=23?'MAX':fmtC(THRESH[Math.min(level,22)]);
-    }
+    paintCarHud();
     if(loop._money!==money){loop._money=money;elMoney.innerHTML=fmtGta(money); // un parse HTML seulement quand le compte bouge
       for(const u of UNITS)if(money>=u[0]){ // on vient de changer d'ordre de grandeur ? ça se FÊTE (une fois par session)
         if(u[0]>unitSeen){unitSeen=u[0];showMsg('💸 TU COMPTES EN '+u[2]+' MAINTENANT !','#7dff9a');}
@@ -7221,8 +7289,8 @@ function loop(now){
   if(carWingL){const tgt=(mode==='fall'&&!garageOn)?1:0;wingT+=(tgt-wingT)*Math.min(1,dt*6);
     const sc=.05+.95*wingT;carWingL.scale.x=sc;carWingR.scale.x=sc; // RÉTRACTÉES dans la caisse au sol → DÉPLOYÉES en vol (fini les ailerons parasites)
     carWingL.rotation.z=.16*wingT;carWingR.rotation.z=-.16*wingT;}  // léger dièdre de planeur une fois sorties
-  // COMÈTE (dernier palier) : la caisse BRÛLE en permanence — la boucle est bouclée, on repart en feu
-  if(engTier>=9&&running&&!gameOver&&mode!=='boom'){
+  // COMÈTE : la caisse BRÛLE en permanence — la boucle est bouclée, on repart en feu (les 3 derniers paliers la gardent allumée)
+  if(engTier>=ENG_CAP.comete&&running&&!gameOver&&mode!=='boom'){
     const p9=carGroup.position;
     for(let k=0;k<2;k++)if(Math.random()<dt*30)
       spawnP(k?flames:flameCore,p9.x+(Math.random()-.5)*1.7,p9.y+.25+Math.random()*.9,p9.z+(Math.random()-.5)*2.4,
@@ -7245,6 +7313,8 @@ setupIntroPig();
 frameAt(0,F);
 camera.position.copy(F.p).addScaledVector(F.t,-9).addScaledVector(F.n,4);
 elRecord.textContent='record : '+fmt(best);
+paintMoney(); // LE MENU AFFICHE LA MISE : 1,61 € visible AVANT de lancer (le HTML disait « $00000000 »)
+paintCarHud(); // et la fiche de caisse porte le bon nom/palier dès l'écran d'accueil
 setBestChip();
 renderLeaders(-1);
 (function(){ // ---------- INTRO STUDIO « 1.61 » : accumulation… battements… FISSION ----------
