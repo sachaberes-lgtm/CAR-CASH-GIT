@@ -2932,8 +2932,8 @@ const wmelTex=(function(){
 })();
 // VERNIS MOUILLÉ : shininess très haut = un point de lumière SERRÉ (la goutte de reflet qui donne faim),
 // emissive relevé pour que la chair reste lumineuse même dans la nuit néon, et le ciel qui s'y reflète.
-const glossyM=(col)=>new THREE.MeshPhongMaterial({color:col,emissive:col,emissiveIntensity:.34,
-  shininess:340,specular:0xffffff,envMap:envTex,reflectivity:.72,combine:THREE.MixOperation});
+const glossyM=(col)=>new THREE.MeshPhongMaterial({color:col,emissive:col,emissiveIntensity:.52,
+  shininess:520,specular:0xffffff,envMap:envTex,reflectivity:.92,combine:THREE.MixOperation});
 const FM={ // la palette du primeur
   peche:glossyM(0xff9ec2),   pecheClair:glossyM(0xfff1dd), peau:glossyM(0xffb8a0),
   banane:glossyM(0xffd63a),  bananeBout:glossyM(0x6b5320),
@@ -4950,7 +4950,9 @@ function commitName(){
   pendingScore=null;nameEntry.style.display='none';goTxt.style.display='';nameInput.value='';
   nameInput.blur(); // on lâche le focus : ENTRÉE peut désormais REJOUER (sinon le champ avale la touche)
   renderLeaders(idx);
-  elRecord.textContent='record : '+fmt(best);
+  elMoney.innerHTML=fmtGta(money); // ⚠ AU MENU le compteur restait à « $00000000 » : la mise de départ
+                                 //   doit être lisible AVANT de lancer, pas seulement pendant.
+elRecord.textContent='record : '+fmt(best);
   setBestChip();
 }
 nameSave.addEventListener('click',function(e){e.stopPropagation();commitName();});
@@ -5154,10 +5156,15 @@ function parkRespawn(){
 function checkUpgrade(){
   let up=false;
   while(level<23&&levelCash>=THRESH[level]){level++;up=true;}
-  if(up){buildCar(CARS[level]);boost=Math.max(boost,1.3);fanfare();shake=Math.max(shake,.4);
+  if(up){
+    // ⚠ LA CAISSE NE CHANGE PLUS EN PLEINE PARTIE (2026-08-02) : elle est COSMÉTIQUE, c'est le moteur
+    // qui porte la progression. On ENREGISTRE le déblocage et on l'annonce — le modèle, lui, se
+    // choisit au garage entre deux parties. (buildCar retiré d'ici : il mutait la voiture sous le nez
+    // du joueur au milieu d'un run.)
+    boost=Math.max(boost,1.3);fanfare();shake=Math.max(shake,.4);
     // ELLE EST À TOI : on la nomme, on annonce ce qu'elle change, et on l'ACQUIERT pour de bon
     const sp9=CARS[level];
-    showMsg(pickL(CAR_LINES)+' — '+sp9.name,'#ffd75e');
+    showMsg(pickL(CAR_LINES)+' — '+sp9.name+'  (au garage)','#ffd75e');
     trickMsg('🔑 '+sp9.name+(level>=5?' · elle crache des billets':''),3);
     sparkBurst(sparkGold,carGroup.position,30,17);
     // ⚠ on ENREGISTRE la caisse gagnée, mais on ne l'ÉQUIPE PAS d'office : sinon la partie suivante
