@@ -654,19 +654,37 @@ const sunSprite=(function(){
   const tex=new THREE.CanvasTexture(cv);
   function draw(){
     c.clearRect(0,0,512,512);
-    const g=c.createRadialGradient(256,256,18,256,256,252); // cœur crème, halo doré → rose corail (contenu, ne blanchit pas le ciel)
-    g.addColorStop(0,'rgba(255,242,220,1)');g.addColorStop(.13,'rgba(255,190,124,.82)');
-    g.addColorStop(.38,'rgba(255,124,110,.32)');g.addColorStop(1,'rgba(255,124,110,0)');
+    // UNE VRAIE SOURCE DE LUMIÈRE (2026-08-03) : le disque était volontairement « contenu » et
+    // dessiné en fusion NORMALE — il PEIGNAIT le ciel au lieu d'y AJOUTER de la lumière, d'où un
+    // aplat terne. Il passe en additif (voir le matériau) et gagne un vrai noyau brûlant : un cœur
+    // blanc franc, une couronne dorée large, puis la longue retombée corail qui se noie dans le ciel.
+    const g=c.createRadialGradient(256,256,10,256,256,252);
+    g.addColorStop(0,'rgba(255,252,242,1)');      // le NOYAU : blanc chaud, pas crème
+    g.addColorStop(.09,'rgba(255,236,190,.98)');  // il tient jusqu'à 9 % — c'est ça qui fait « ça brûle »
+    g.addColorStop(.20,'rgba(255,198,120,.62)');  // couronne dorée large
+    g.addColorStop(.46,'rgba(255,132,104,.24)');
+    g.addColorStop(1,'rgba(255,124,110,0)');      // retombée corail jusqu'à zéro AVANT le bord du disque
     c.fillStyle=g;c.beginPath();c.arc(256,256,252,0,7);c.fill();
+    // LE « 1.61 » DOIT RESTER LISIBLE. En additif, tout ce qu'on dessine AJOUTE de la lumière : un
+    // contour sombre ne peut donc plus assombrir quoi que ce soit, et des chiffres blancs sur un
+    // noyau blanc disparaissent. On CREUSE donc d'abord leur silhouette dans le disque
+    // (`destination-out` retire de l'alpha) : ça ménage un sillon plus sombre autour des glyphes,
+    // et les chiffres se détachent DANS la lumière au lieu d'y fondre.
     c.font='84px "Press Start 2P",monospace';c.textAlign='center';c.textBaseline='middle';
-    c.lineJoin='round';c.shadowColor='#fff2be';c.shadowBlur=42;
-    c.strokeStyle='rgba(205,110,26,.95)';c.lineWidth=9;c.strokeText('1.61',256,260);
-    c.fillStyle='#fffdf2';c.fillText('1.61',256,260);
-    c.shadowBlur=0;tex.needsUpdate=true;
+    c.lineJoin='round';
+    c.globalCompositeOperation='destination-out';
+    c.lineWidth=26;c.strokeStyle='rgba(0,0,0,.60)';c.strokeText('1.61',256,260); // le sillon
+    c.globalCompositeOperation='source-over';
+    c.shadowColor='#ffd88a';c.shadowBlur=30;
+    c.strokeStyle='rgba(224,116,24,.95)';c.lineWidth=10;c.strokeText('1.61',256,260); // l'auréole ambre
+    c.shadowBlur=0;c.fillStyle='#fffef8';c.fillText('1.61',256,260);                  // les chiffres, plein pot
+    tex.needsUpdate=true;
   }
   draw();
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(draw).catch(function(){});
-  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false,fog:false}));
+  // ADDITIF : c'est ce qui fait la différence entre un autocollant et une source de lumière — le disque
+  // AJOUTE sa lumière au ciel, le bloom l'attrape, et le halo se fond au lieu de se découper.
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false,fog:false,blending:THREE.AdditiveBlending}));
   // renderOrder ÉPINGLÉ (2026-07-20 v3) : sans lui, le tri des transparents (distance CAMÉRA,
   // recalculée chaque frame) faisait passer le soleil devant/derrière les titans au gré du shake
   // → gros clignotement à l'horizon. Le trio soleil/nappe/rayons dessine toujours JUSTE après le
@@ -677,11 +695,23 @@ const sunSprite=(function(){
 // LUEUR D'HORIZON + RAYONS CRÉPUSCULAIRES (purement visuels — constantes réglables)
 const GLOW_DROP=260,RAY_LIFT=520,RAY_OFF=[-520,-180,150,480],RAY_ANGLES=[-.42,-.15,.12,.38],RAY_OPACITY=.12;
 const horizonGlow=(function(){ // nappe très large et plate : l'horizon embrasé sous le soleil
+  // ⚠ LE RECTANGLE À L'HORIZON, C'ÉTAIT ICI (corrigé 2026-08-03, MESURÉ). Le dégradé radial avait un
+  // rayon de 124 px dans un canvas haut de 64 (32 depuis le centre) : verticalement il n'atteignait
+  // JAMAIS sa dernière étape transparente, il était TRANCHÉ par le bord. Alpha relevé sur les bords
+  // haut et bas : 149/255, soit 58 % d'opacité qui tombe à 0 d'un coup — sur un sprite ADDITIF de
+  // 3000 × 560, ça dessine une barre rectangulaire franche en travers du ciel.
+  // LA CORRECTION : on rend le dégradé ELLIPTIQUE (le canvas 2D ne sait faire que des cercles, donc
+  // on écrase le repère en Y) et on cale son zéro AVANT le bord — 30 px sur 32, il reste une marge
+  // de sécurité complètement transparente tout autour.
   const cv=document.createElement('canvas');cv.width=256;cv.height=64;
   const c=cv.getContext('2d');
-  const g=c.createRadialGradient(128,32,2,128,32,124);
+  const R9=124;
+  const g=c.createRadialGradient(0,0,2,0,0,R9);
   g.addColorStop(0,'rgba(255,182,128,.82)');g.addColorStop(.45,'rgba(240,110,126,.38)');g.addColorStop(1,'rgba(240,110,126,0)');
-  c.fillStyle=g;c.fillRect(0,0,256,64);
+  c.save();
+  c.translate(128,32);c.scale(1,30/R9); // 30 (et non 32) : le dégradé s'éteint 2 px avant le bord
+  c.fillStyle=g;c.fillRect(-R9,-R9,R9*2,R9*2);
+  c.restore();
   const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthWrite:false,fog:false,blending:THREE.AdditiveBlending,opacity:.8}));
   sp.renderOrder=-7; // épinglé derrière les nuages (voir sunSprite)
   sp.scale.set(3000,560,1);return sp;
@@ -758,8 +788,12 @@ const RAYS=(function(){ // 3-4 faisceaux diffus en éventail derrière les nuage
   const cv=document.createElement('canvas');cv.width=64;cv.height=256;
   const c=cv.getContext('2d');
   try{c.filter='blur(5px)';}catch(e){}
+  // MÊME PIÈGE que la nappe d'horizon : la 1re étape valait .5 EN BAS DU CANVAS, pile sur le bord —
+  // une coupure franche en travers d'un sprite additif de 260 × 1700. On part donc de zéro et on
+  // monte en 6 % de hauteur : le pied du rayon s'allume au lieu d'être tranché au couteau.
   const g=c.createLinearGradient(0,256,0,0);
-  g.addColorStop(0,'rgba(255,190,150,.5)');g.addColorStop(.55,'rgba(250,150,140,.18)');g.addColorStop(1,'rgba(240,130,130,0)');
+  g.addColorStop(0,'rgba(255,190,150,0)');g.addColorStop(.06,'rgba(255,190,150,.5)');
+  g.addColorStop(.55,'rgba(250,150,140,.18)');g.addColorStop(1,'rgba(240,130,130,0)');
   c.fillStyle=g;
   c.beginPath();c.moveTo(26,256);c.lineTo(38,256);c.lineTo(58,0);c.lineTo(6,0);c.closePath();c.fill();
   const tex=new THREE.CanvasTexture(cv);
@@ -3668,8 +3702,14 @@ function smashPig(){
   // LA TIRELIRE SYMBOLIQUE : elle ne contient que la mise du studio — 1,61 €. Indexée sur denom()
   // elle crachait des centaines de milliers dès l'écran d'ouverture : un jeu de progression ne
   // commence pas riche, il commence avec de quoi payer un café.
-  const g9=START_CASH;money+=g9;levelCash+=g9;checkUpgrade();
-  trickMsg('🐷 TIRELIRE ÉVENTRÉE +'+fmtC(g9),1);
+  // ⚠ ELLE NE DONNE RIEN, ELLE RÉVÈLE (2026-08-03) : `money` vaut DÉJÀ START_CASH (posé à l'init et
+  // par resetGame). La tirelire faisait `money+=START_CASH` par-dessus → toute partie commençait à
+  // 3,22 € au lieu de 1,61 €. C'est la MÊME mise qu'on casse en deux, pas une seconde.
+  // Le message ne promet donc plus « +X » : il constate ce qu'on a en poche.
+  money=START_CASH;levelCash=0;paintMoney();
+  // ⚠ pas fmtC ici : il ARRONDIT (1,61 → « 2 »), le message aurait annoncé 2 € à côté d'un compteur
+  // affichant 1,61. La mise est le seul montant du jeu qui se dit au centime près.
+  trickMsg('🐷 TIRELIRE ÉVENTRÉE — '+CUR()+' '+START_CASH.toFixed(2).replace('.',LANG==='en'?'.':',')+' EN POCHE',1);
   flyCash(pp,6);
   sparkBurst(sparkGold,pp,16,10);
   noiseBurst(.3,.22,2600);noiseBurst(.16,.15,4200);subBoom(.22);thud(9); // craquement de porcelaine
@@ -7085,6 +7125,25 @@ function loop(now){
       fallT+=dtF;fallTR+=dt; // fallT = temps-sim (figures/paiements) ; fallTR = temps RÉEL (jauge des 6 s — sinon le chrono file à ×1,6)
       if(nitroOn)nitroAirT+=dtF; // temps de réacteur dans CE vol (METEOR / MEGA METEOR)
       fallVel.y-=FALL_G*dtF;
+      // ⚠ ANTI-BLOCAGE DU LACET (2026-08-03) — MÊME PIÈGE QUE LE TANGAGE, jamais traité de ce côté.
+      // Le lacet fait TOURNER le vecteur vitesse autour de Y. Si la trajectoire est quasi VERTICALE
+      // (gros décollage, plongeon de crête), sa composante horizontale est ~nulle : la faire tourner
+      // ne change plus rien de perceptible, le volant est MORT en plein vol. D'où le « sens bloqué »
+      // qui n'arrive que PARFOIS — précisément quand on part ou tombe droit.
+      // On rétablit donc un minimum d'horizontale (repli sur le nez de la caisse), mais UNIQUEMENT
+      // quand le joueur braque vraiment : c'est une correction d'INTENTION, pas une force parasite.
+      // ⚠ la vitesse TOTALE est conservée (on reprend en vertical ce qu'on donne en horizontal),
+      // sinon on offrirait de la portée gratuite sur chaque saut vertical.
+      if(Math.abs(steer)>.15){
+        const spdY=fallVel.length(),hxz0=Math.hypot(fallVel.x,fallVel.z);
+        if(spdY>1&&hxz0<spdY*.12){
+          tmp3.set(0,0,1).applyQuaternion(carGroup.quaternion);
+          let hx=tmp3.x,hz=tmp3.z,hl=Math.hypot(hx,hz);
+          if(hl<1e-3){hx=1;hz=0;hl=1;}
+          const need=spdY*.12,vy2=Math.sqrt(Math.max(0,spdY*spdY-need*need));
+          fallVel.set(hx/hl*need,(fallVel.y<0?-1:1)*vy2,hz/hl*need);
+        }
+      }
       // chute pilotée : un peu de lacet, c'est tout — la voiture est LOURDE
       // (le lacet gagne un peu d'autorité à grande vitesse → vol simplifié)
       const yawIn=steer*(1.15+Math.min(.6,fallVel.length()*.004))*dtF;
