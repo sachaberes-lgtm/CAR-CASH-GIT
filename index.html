@@ -136,7 +136,14 @@
     -webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
     filter:drop-shadow(0 2px 0 #0e3a14) drop-shadow(0 4px 1px #06230c) drop-shadow(0 8px 16px rgba(0,0,0,.55))}
   #moneyTxt .dz{-webkit-text-fill-color:#1d4423;color:#1d4423}
-  #moneyTxt .cts{font-size:.56em;opacity:.92;letter-spacing:0} /* les centimes de la mise de départ */
+  /* LES CENTIMES — ⚠ ILS ÉTAIENT INVISIBLES. `#moneyTxt` peint ses chiffres avec un dégradé en
+     `background-clip:text` + `-webkit-text-fill-color:transparent`. Ce transparent est HÉRITÉ par
+     ce span, et le dégradé du parent ne repeint pas le texte d'un enfant : les « ,61 » occupaient
+     leurs 53 px de large sans jamais rien afficher — d'où un compteur qui disait « 1 » au lieu de
+     « 1,61 ». (`.dz` s'en sortait uniquement parce qu'il impose SA couleur.) On impose donc la
+     nôtre : le vert clair du haut du dégradé, pour que la mise se lise au centime. */
+  #moneyTxt .cts{font-size:.56em;opacity:.95;letter-spacing:0;
+    -webkit-text-fill-color:#9ce870;color:#9ce870}
   /* VIGNETTE MOTEUR — le cadre est du DOM, le moteur 3D est peint DEDANS par le WebGL (RenderTarget).
      C'est le CSS qui décide de la place : le quad va lire ce rectangle chaque frame et s'y caler. */
   #engVig{position:absolute;top:150px;left:16px;width:196px;height:132px;display:none;
@@ -5737,9 +5744,16 @@ function tryLand(dt){
   else if(fallT>.1&&prevH>-1.2&&hOff<=-1.2&&vN<4.5)sideL=1;      // dessus PERCÉ : TOUTE traversée du plan supérieur est rattrapée (plus de seuil d'amplitude → fini la caisse qui passe à travers la route)
   else if(fallT>.35&&hOff>-THICK-3&&hOff<-THICK+1.2&&vN>-4.5)sideL=-1; // face du dessous
   else if(fallT>.1&&prevH<-THICK+1.2&&hOff>=-THICK+1.2&&vN>-4.5)sideL=-1; // dessous percé en montant : idem, toute traversée compte
-  if(!sideL||Math.abs(latOff)>=ROAD_HALF)return false;
+  // ⚠ LE DERNIER AXE SANS BALAYAGE (2026-08-03) — c'est LUI, « je passe à travers la route parfois ».
+  // La traversée du plan de la dalle est rattrapée depuis longtemps (prevH, juste au-dessus), mais le
+  // test LATÉRAL ne regardait que la position de CETTE frame. Une caisse qui perce le plan tout en
+  // sortant sur le côté dans la même frame se retrouvait avec |latOff| déjà hors dalle : refusée par
+  // l'atterrissage, et hors de la fenêtre du BUMP si elle s'éloignait — donc elle traversait le bitume.
+  // `prevL` existait déjà (calculé pour le bump) : il suffisait de s'en servir. On accepte si la caisse
+  // était SUR la dalle à un bout OU l'autre du segment, et on ramène `lat` dans la largeur.
+  if(!sideL||(Math.abs(latOff)>=ROAD_HALF&&Math.abs(prevL)>=ROAD_HALF))return false;
   s=THREE.MathUtils.clamp(bestI/(NP-1)*L+THREE.MathUtils.clamp(dTmp.dot(T[bestI]),-2,2),0,L-1);
-  side=sideL;lat=latOff*sideL;
+  side=sideL;lat=THREE.MathUtils.clamp(latOff,-ROAD_HALF+.6,ROAD_HALF-.6)*sideL;
   // RÉCEPTION EN GLISSE : la caisse se pose de travers et rattrape — petit drift au lieu d'un psi=0 sec
   {const vTan=fallVel.dot(T[bestI]),vLat=fallVel.dot(B[bestI])*sideL;
    psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+6)*.85,-.62,.62);
@@ -6813,6 +6827,7 @@ function loop(now){
       vL=vA*Math.sin(psi);
       const spdMult=pwrSpdT>0?1.6:1; // SPEED UP : le sol défile +60% plus vite, sans casser la physique
       lat+=vL*driveDir*dt*SPD*spdMult;
+      const sPrev9=s; // ⚠ mémorisé AVANT l'avance : les tremplins se testent sur le SEGMENT parcouru, pas sur un point
       s+=vA*Math.cos(psi)*driveDir*dt*SPD*spdMult; // avance le long du ruban dans le SENS de conduite (parc : avant OU arrière)
       const vF=vA;
       boost=Math.max(0,boost-dt);
@@ -6864,7 +6879,13 @@ function loop(now){
       // est roulable et la remontée praticable. Rater coûte du temps et du style, jamais la partie.
       rampCd=Math.max(0,rampCd-dt);
       if(mode==='drive'&&rampCd<=0&&Math.abs(lat)<ROAD_HALF-1)for(const r9 of RAMPS){
-        if(Math.abs(s-r9.s)>7)continue;
+        // ⚠ BALAYAGE, PAS UN POINT (2026-08-03) : le test était `|s - lèvre| > 7`, soit une fenêtre de
+        // 14 unités. Dans l'endgame on avance de ~9 unités par frame, et le moindre à-coup de frame
+        // (un GC, un portail) fait un pas de 25+ : la lèvre passait ENTRE deux frames, la catapulte ne
+        // se déclenchait pas — et comme le trou est juste derrière, on tombait dedans au lieu de sauter.
+        // C'est ça, « parfois le tremplin bloque ». On teste désormais le SEGMENT réellement parcouru.
+        const sA9=Math.min(sPrev9,s)-7,sB9=Math.max(sPrev9,s)+7;
+        if(r9.s<sA9||r9.s>sB9)continue;
         if(Math.abs(vA)*3.6*SPD<110)break; // au pas : la lèvre ne catapulte personne — et le vide attend juste derrière
         rampCd=1.4;                        // on ne se relance pas en retombant sur sa propre lèvre
         startFall(6.6+(r9.v===1?1.4:0),1.14); // pop vertical + poussée avant — l'inertie réelle fait payer la vitesse toute seule (portée ∝ vx conservé)
