@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>CASH CAR — L'ATELIER DES MOTEURS</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  :root{--pix:"Press Start 2P",monospace;--cy:#7dffec;--or:#ffd75e;--ro:#ff3ec8}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0a0713;color:#e8e8f0;font-family:var(--pix);overflow:hidden;
+    background-image:radial-gradient(120% 80% at 50% 0%,#241a44 0%,#0a0713 62%)}
+  #wrap{display:flex;height:100vh;width:100vw}
+
+  /* ---- colonne de gauche : les 30 paliers ---- */
+  #side{width:290px;flex:0 0 290px;border-right:1px solid rgba(125,255,236,.18);
+    display:flex;flex-direction:column;background:rgba(6,10,22,.55)}
+  #sideTop{padding:16px 14px 10px;border-bottom:1px solid rgba(125,255,236,.14)}
+  #sideTop h1{font-size:11px;color:var(--or);line-height:1.7;text-shadow:0 0 12px rgba(255,215,94,.5)}
+  #sideTop p{font-size:7px;color:#8f84c8;line-height:1.9;margin-top:8px}
+  #list{flex:1;overflow-y:auto;padding:8px 0}
+  .row{display:flex;align-items:center;gap:9px;padding:9px 14px;cursor:pointer;border-left:3px solid transparent}
+  .row:hover{background:rgba(125,255,236,.07)}
+  .row.on{background:rgba(125,255,236,.13);border-left-color:var(--cy)}
+  .num{font-size:8px;color:#5a5580;min-width:20px;text-align:right}
+  .swatch{width:11px;height:11px;border-radius:2px;flex:0 0 11px;box-shadow:0 0 8px currentColor}
+  .nm{font-size:7.5px;line-height:1.6;flex:1;color:#dfe8fc}
+  .row.on .nm{color:var(--cy)}
+  .pu{font-size:7px;color:#8f84c8}
+
+  /* ---- scène ---- */
+  #main{flex:1;position:relative;min-width:0}
+  canvas{display:block}
+  #hud{position:absolute;left:0;right:0;bottom:0;padding:16px 20px 18px;pointer-events:none;
+    background:linear-gradient(180deg,rgba(10,7,19,0),rgba(10,7,19,.88) 55%)}
+  #eName{font-size:17px;color:var(--or);text-shadow:0 0 16px rgba(255,215,94,.55);line-height:1.6}
+  #eDesc{font-size:8px;color:#c9c2ea;line-height:2;margin-top:9px;max-width:640px}
+  #eStats{display:flex;gap:22px;flex-wrap:wrap;margin-top:13px}
+  .st{font-size:7px;color:#6f6a95;line-height:1.9}
+  .st b{display:block;font-size:11px;color:var(--cy);margin-top:5px;text-shadow:0 0 10px rgba(125,255,236,.45)}
+  #topBar{position:absolute;top:0;left:0;right:0;padding:14px 20px;display:flex;gap:9px;align-items:center;
+    justify-content:flex-end;pointer-events:none}
+  button{pointer-events:auto;cursor:pointer;font-family:var(--pix);font-size:8px;line-height:1;
+    padding:10px 13px;color:#dfe8fc;background:rgba(18,14,38,.9);
+    border:1px solid rgba(125,255,236,.35);border-radius:8px}
+  button:hover{border-color:var(--cy);color:var(--cy);box-shadow:0 0 14px rgba(125,255,236,.25)}
+  button.on{background:rgba(125,255,236,.16);border-color:var(--cy);color:var(--cy)}
+  #hint{position:absolute;top:14px;left:20px;font-size:7px;color:#5a5580;line-height:1.9;pointer-events:none}
+  #err{position:absolute;inset:0;display:none;place-content:center;text-align:center;padding:40px;
+    font-size:9px;line-height:2.2;color:#ff8a8a}
+  #err code{color:var(--or);font-size:8px}
+  /* la PLANCHE CONTACT : les 30 silhouettes d'un coup */
+  #grid{position:absolute;inset:0;display:none;grid-template-columns:repeat(6,1fr);
+    background:#0a0713;overflow-y:auto}
+  #grid.on{display:grid}
+  .cell{position:relative;aspect-ratio:1;border:1px solid rgba(125,255,236,.09);cursor:pointer;overflow:hidden}
+  .cell:hover{border-color:var(--cy);background:rgba(125,255,236,.05)}
+  .cell canvas{width:100%;height:100%}
+  .cLbl{position:absolute;left:0;right:0;bottom:0;padding:5px 6px 6px;font-size:5.5px;line-height:1.7;
+    color:#c9c2ea;background:linear-gradient(180deg,rgba(10,7,19,0),rgba(10,7,19,.9));text-align:center}
+  .cLbl i{display:block;color:#5a5580;font-style:normal;margin-bottom:2px}
+  @media (max-width:900px){#side{width:210px;flex-basis:210px}#grid{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="side">
+    <div id="sideTop">
+      <h1>L'ATELIER<br>DES MOTEURS</h1>
+      <p id="cnt">chargement…</p>
+    </div>
+    <div id="list"></div>
+  </div>
+  <div id="main">
+    <div id="hint">glisser : tourner<br>molette : zoomer<br>← → : palier suivant</div>
+    <div id="topBar">
+      <button id="bSpin" class="on">↻ ROTATION</button>
+      <button id="bGrid">▦ LES 30</button>
+    </div>
+    <div id="hud">
+      <div id="eName">—</div>
+      <div id="eDesc"></div>
+      <div id="eStats"></div>
+    </div>
+    <div id="grid"></div>
+    <div id="err"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ============================================================================
+   L'ATELIER DES MOTEURS — plateforme locale de revue des 30 modèles.
+
+   ⚠ CE FICHIER NE RECOPIE PAS LES MOTEURS. Il va LIRE `index.html` au chargement et en
+   extrait `ENGINE_TIERS`, `ENG_CAP` et `mkEngine()` tels qu'ils sont dans le jeu. C'est
+   volontaire : une copie aurait dérivé dès la première retouche, et on se serait retrouvé
+   à juger ici des moteurs qui ne sont plus ceux qu'on voit en partie. Ce qu'on regarde
+   sur cette page EST, au pixel de géométrie près, ce que le joueur a sous le capot.
+   Conséquence : il faut servir le dossier en HTTP (`python3 -m http.server 8000`) —
+   en `file://` le navigateur refuse le fetch, et la page le dit clairement.
+
+   Ce que l'atelier fournit en plus du jeu : la lumière est neutre et RÉGLÉE POUR JUGER
+   (trois quarts + contre-jour), le fond est sombre et uni, et la PLANCHE CONTACT met les
+   30 silhouettes côte à côte — c'est la seule vue qui montre si deux paliers voisins se
+   ressemblent trop.
+   ========================================================================== */
+const $=id=>document.getElementById(id);
+const fail=(t,d)=>{$('err').style.display='grid';$('err').innerHTML=t+(d?'<br><br><code>'+d+'</code>':'');};
+
+// ---- le décor de studio : un cube env neutre, juste pour que le chrome ait quelque chose à refléter
+function makeEnv(){
+  const faces=[];
+  for(let i=0;i<6;i++){
+    const cv=document.createElement('canvas');cv.width=cv.height=64;const c=cv.getContext('2d');
+    const g=c.createLinearGradient(0,0,0,64);
+    if(i===2){g.addColorStop(0,'#cfe4ff');g.addColorStop(1,'#8ea8d8');}      // le plafond éclaire
+    else if(i===3){g.addColorStop(0,'#1a1830');g.addColorStop(1,'#0d0b18');} // le sol mange
+    else{g.addColorStop(0,'#7d8fc0');g.addColorStop(.55,'#3a3860');g.addColorStop(1,'#16142a');}
+    c.fillStyle=g;c.fillRect(0,0,64,64);
+    faces.push(cv);
+  }
+  const t=new THREE.CubeTexture(faces);t.needsUpdate=true;return t;
+}
+const envTex=makeEnv();
+// les helpers dont `mkEngine` a besoin — MÊMES définitions que dans le jeu
+const fgCone=new THREE.ConeGeometry(1,1,14),fgCyl=new THREE.CylinderGeometry(1,1,1,8);
+const mesh9=(geo,mat,sx,sy,sz,px,py,pz,rz)=>{const m=new THREE.Mesh(geo,mat);
+  m.scale.set(sx,sy,sz);m.position.set(px||0,py||0,pz||0);if(rz)m.rotation.z=rz;return m;};
+
+let ENGINE_TIERS=null,ENG_CAP=null,mkEngine=null;
+
+// ---- extraction depuis le jeu -------------------------------------------------------
+function extraire(src){
+  const bloc=(re,quoi)=>{const m=src.match(re);if(!m)throw new Error('bloc introuvable dans index.html : '+quoi);return m[0];};
+  const sTiers=bloc(/const ENGINE_TIERS=\[[\s\S]*?\n\];/,'ENGINE_TIERS');
+  const sCap  =bloc(/const ENG_CAP=\{[^}]*\};/,'ENG_CAP');
+  const sMk   =bloc(/function mkEngine\(i\)\{[\s\S]*?\n\}/,'mkEngine()');
+  // évalué dans une fonction à qui on passe explicitement les dépendances : rien ne fuit,
+  // et si `mkEngine` se met un jour à utiliser un helper de plus, l'erreur sera parlante.
+  const f=new Function('THREE','envTex','mesh9','fgCyl','fgCone',
+    sTiers+'\n'+sCap+'\n'+sMk+'\nreturn {ENGINE_TIERS,ENG_CAP,mkEngine};');
+  return f(THREE,envTex,mesh9,fgCyl,fgCone);
+}
+
+// ---- la scène principale ------------------------------------------------------------
+const main=$('main');
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+main.appendChild(renderer.domElement);
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(34,1,.1,200);
+// LUMIÈRE DE STUDIO — volontairement neutre : ici on JUGE une forme, on ne met pas en scène.
+// Trois quarts chaud (la clé), remplissage froid à l'opposé, contre-jour braise qui détache
+// la silhouette du fond. Aucune couleur de biome : la teinte vue est celle du matériau.
+scene.add(new THREE.HemisphereLight(0xd8ecff,0x1a1830,1.05));
+{const k=new THREE.DirectionalLight(0xfff2e0,1.55);k.position.set(3.5,5,4.5);scene.add(k);
+ const r=new THREE.DirectionalLight(0x7fd8ff,.85);r.position.set(-4,1.5,-3);scene.add(r);
+ const b=new THREE.DirectionalLight(0xff7a3c,.6);b.position.set(-2,-2.5,-4.5);scene.add(b);}
+const pivot=new THREE.Group();scene.add(pivot);
+
+let cur=0,mesh=null,spin=true,ang=.6,pitch=.22,dist=4.6;
+
+function poser(i){
+  if(mesh){pivot.remove(mesh);mesh.traverse(o=>{if(o.isMesh){o.geometry&&o.geometry.dispose();o.material&&o.material.dispose();}});}
+  mesh=mkEngine(i);pivot.add(mesh);
+  // CADRAGE AUTOMATIQUE (même principe que la vignette du jeu) : la pièce tourne autour de Y,
+  // donc ce qui doit tenir dans le champ est son rayon dans le plan XZ, pas le coin de sa boîte.
+  const bb=new THREE.Box3().setFromObject(mesh);
+  const rx=Math.max(Math.abs(bb.min.x),Math.abs(bb.max.x)),rz=Math.max(Math.abs(bb.min.z),Math.abs(bb.max.z));
+  const rxz=Math.max(.001,Math.hypot(rx,rz)),ry=Math.max(.001,(bb.max.y-bb.min.y)/2);
+  const halfV=Math.tan(camera.fov*Math.PI/360),halfH=halfV*camera.aspect;
+  dist=Math.max(rxz/halfH,ry/halfV)*1.55;
+  mesh.position.y=-(bb.min.y+bb.max.y)/2;
+  cur=i;
+  const E=ENGINE_TIERS[i];
+  $('eName').textContent=(i+1)+'.  '+E.n;
+  $('eDesc').textContent=E.d;
+  let m=0;mesh.traverse(o=>{if(o.isMesh)m++;});
+  const cap=[];
+  if(i>=ENG_CAP.billets)cap.push('billets');
+  if(i>=ENG_CAP.aimant)cap.push('aimant');
+  if(i>=ENG_CAP.comete)cap.push('en feu');
+  $('eStats').innerHTML=
+     st('POUSSÉE','×'+E.push.toFixed(2))
+    +st('RÉSERVE NITRO',E.res.toFixed(2))
+    +st('CYLINDRES',E.cyl||'—')
+    +st('PIÈCES',E.coins)
+    +st('MESHES',m)
+    +st('RAYON',rxz.toFixed(2))
+    +st('CAPACITÉS',cap.length?cap.join(' · '):'—');
+  for(const el of document.querySelectorAll('.row'))el.classList.toggle('on',+el.dataset.i===i);
+  const on=document.querySelector('.row.on');if(on)on.scrollIntoView({block:'nearest'});
+}
+const st=(l,v)=>'<div class="st">'+l+'<b>'+v+'</b></div>';
+
+function resize(){
+  const w=main.clientWidth,h=main.clientHeight;
+  renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();
+}
+addEventListener('resize',resize);
+
+let last=performance.now();
+function boucle(now){
+  requestAnimationFrame(boucle);
+  const dt=Math.min(.05,(now-last)/1000);last=now;
+  if(spin)ang+=dt*.55;
+  camera.position.set(Math.sin(ang)*Math.cos(pitch)*dist,Math.sin(pitch)*dist,Math.cos(ang)*Math.cos(pitch)*dist);
+  camera.lookAt(0,0,0);
+  renderer.render(scene,camera);
+}
+
+// ---- pilotage souris / clavier ------------------------------------------------------
+let drag=false,px=0,py=0;
+renderer.domElement.addEventListener('pointerdown',e=>{drag=true;px=e.clientX;py=e.clientY;spin=false;$('bSpin').classList.remove('on');});
+addEventListener('pointerup',()=>drag=false);
+addEventListener('pointermove',e=>{if(!drag)return;
+  ang-=(e.clientX-px)*.011;pitch=Math.max(-1.35,Math.min(1.35,pitch+(e.clientY-py)*.008));
+  px=e.clientX;py=e.clientY;});
+renderer.domElement.addEventListener('wheel',e=>{e.preventDefault();dist=Math.max(1.6,Math.min(22,dist*(1+e.deltaY*.0012)));},{passive:false});
+addEventListener('keydown',e=>{
+  if(e.code==='ArrowRight')poser((cur+1)%ENGINE_TIERS.length);
+  else if(e.code==='ArrowLeft')poser((cur-1+ENGINE_TIERS.length)%ENGINE_TIERS.length);
+  else if(e.code==='Space'){e.preventDefault();spin=!spin;$('bSpin').classList.toggle('on',spin);}
+});
+$('bSpin').addEventListener('click',()=>{spin=!spin;$('bSpin').classList.toggle('on',spin);});
+
+// ---- LA PLANCHE CONTACT : les 30 côte à côte -----------------------------------------
+// Une seule vue permet de répondre à « est-ce que deux paliers voisins se ressemblent trop ? ».
+// Chaque case est un mini-rendu FIXE (pas d'animation) : 30 canvas animés tueraient la page.
+let grilleFaite=false;
+function faireGrille(){
+  if(grilleFaite)return;grilleFaite=true;
+  const g=$('grid');
+  for(let i=0;i<ENGINE_TIERS.length;i++){
+    const E=ENGINE_TIERS[i];
+    const cell=document.createElement('div');cell.className='cell';
+    const cv=document.createElement('canvas');cv.width=cv.height=260;
+    cell.appendChild(cv);
+    const lbl=document.createElement('div');lbl.className='cLbl';
+    lbl.innerHTML='<i>'+(i+1)+' / '+ENGINE_TIERS.length+'</i>'+E.n;
+    cell.appendChild(lbl);
+    cell.addEventListener('click',()=>{basculerGrille(false);poser(i);});
+    g.appendChild(cell);
+    rendreVignette(cv,i);
+  }
+}
+// un renderer JETABLE par case serait 30 contextes WebGL (le navigateur en refuse ~16) :
+// on réutilise UN renderer hors écran et on recopie son image dans le canvas 2D de la case.
+let offR=null,offScene=null,offCam=null;
+function rendreVignette(cv,i){
+  if(!offR){
+    offR=new THREE.WebGLRenderer({antialias:true,alpha:true});
+    offR.setSize(260,260);offR.setPixelRatio(1);
+    offScene=new THREE.Scene();
+    offScene.add(new THREE.HemisphereLight(0xd8ecff,0x1a1830,1.05));
+    const k=new THREE.DirectionalLight(0xfff2e0,1.55);k.position.set(3.5,5,4.5);offScene.add(k);
+    const r=new THREE.DirectionalLight(0x7fd8ff,.85);r.position.set(-4,1.5,-3);offScene.add(r);
+    const b=new THREE.DirectionalLight(0xff7a3c,.6);b.position.set(-2,-2.5,-4.5);offScene.add(b);
+    offCam=new THREE.PerspectiveCamera(34,1,.1,200);
+  }
+  const m=mkEngine(i);
+  const bb=new THREE.Box3().setFromObject(m);
+  const rx=Math.max(Math.abs(bb.min.x),Math.abs(bb.max.x)),rz=Math.max(Math.abs(bb.min.z),Math.abs(bb.max.z));
+  const rxz=Math.max(.001,Math.hypot(rx,rz)),ry=Math.max(.001,(bb.max.y-bb.min.y)/2);
+  const hV=Math.tan(offCam.fov*Math.PI/360),d=Math.max(rxz/hV,ry/hV)*1.5;
+  m.position.y=-(bb.min.y+bb.max.y)/2;
+  m.rotation.y=.6;
+  offScene.add(m);
+  offCam.position.set(Math.sin(.6)*d*.94,d*.22,Math.cos(.6)*d*.94);offCam.lookAt(0,0,0);
+  offR.render(offScene,offCam);
+  cv.getContext('2d').drawImage(offR.domElement,0,0,260,260);
+  offScene.remove(m);
+  m.traverse(o=>{if(o.isMesh){o.geometry&&o.geometry.dispose();o.material&&o.material.dispose();}});
+}
+function basculerGrille(v){
+  const g=$('grid');const on=v===undefined?!g.classList.contains('on'):v;
+  if(on)faireGrille();
+  g.classList.toggle('on',on);$('bGrid').classList.toggle('on',on);
+}
+$('bGrid').addEventListener('click',()=>basculerGrille());
+
+// ---- démarrage ----------------------------------------------------------------------
+// ⚠ LE PARAMÈTRE D'URL N'EST PAS DÉCORATIF. Le jeu enregistre un service worker (PWA) sur
+// l'origine : il intercepte `fetch('index.html')` et répond depuis SON cache — on récupérait
+// 16 Ko de vieille page au lieu des 567 Ko du jeu, d'où un « bloc introuvable » très trompeur.
+// Une URL unique passe à côté de son cache et va vraiment chercher le fichier sur le disque.
+// (C'est aussi ce service worker qui fait qu'une simple F5 ne montre pas toujours tes retouches
+//  dans le JEU : là-bas il faut un rechargement forcé.)
+fetch('index.html?atelier='+Date.now(),{cache:'no-store'})
+  .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.text();})
+  .then(src=>{
+    const out=extraire(src);
+    ENGINE_TIERS=out.ENGINE_TIERS;ENG_CAP=out.ENG_CAP;mkEngine=out.mkEngine;
+    $('cnt').textContent=ENGINE_TIERS.length+' paliers · lus en direct dans index.html';
+    const L=$('list');
+    ENGINE_TIERS.forEach((E,i)=>{
+      const d=document.createElement('div');d.className='row';d.dataset.i=i;
+      d.innerHTML='<span class="num">'+(i+1)+'</span>'
+        +'<span class="swatch" style="background:#'+E.col.toString(16).padStart(6,'0')
+        +';color:#'+E.flam.toString(16).padStart(6,'0')+'"></span>'
+        +'<span class="nm">'+E.n+'</span><span class="pu">×'+E.push.toFixed(2)+'</span>';
+      d.addEventListener('click',()=>poser(i));
+      L.appendChild(d);
+    });
+    resize();poser(0);requestAnimationFrame(boucle);
+  })
+  .catch(e=>{
+    fail(String(e.message||e).indexOf('Failed to fetch')>=0
+      ? "L'atelier lit les moteurs DIRECTEMENT dans index.html, ce qui exige un vrai serveur.<br>Ouvre un terminal dans le dossier du jeu et lance :"
+      : "Impossible de lire les moteurs dans index.html.",
+      String(e.message||e).indexOf('Failed to fetch')>=0
+        ? 'python3 -m http.server 8000<br>puis http://localhost:8000/moteurs.html'
+        : String(e.message||e));
+  });
+</script>
+</body>
+</html>
