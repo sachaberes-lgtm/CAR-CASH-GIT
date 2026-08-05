@@ -150,6 +150,13 @@
      collée sur le ciel. Le moteur flotte désormais librement dans le HUD, comme la caisse flotte
      dans le monde. Le rectangle n'apportait rien : le quad WebGL a déjà un fond transparent. */
   #engVig{position:absolute;top:150px;left:16px;width:196px;height:132px;display:none}
+  /* LE MOTEUR DE FIN DE PARTIE : plus grand, centré, il tient la place d'un trophée. */
+  #endEng{position:relative;width:min(320px,72vw);height:min(212px,48vw);margin:6px auto 2px;display:none}
+  #endEngCv{width:100%;height:100%;display:block}
+  #endEngCap{position:absolute;left:0;right:0;bottom:-4px;font-family:var(--pix);font-size:9px;
+    line-height:1.6;letter-spacing:.5px;text-align:center;color:#7dffec;
+    text-shadow:0 0 10px rgba(125,255,236,.6),0 2px 5px rgba(0,0,0,.95)}
+  #endEngTier{display:block;color:#ffd75e;font-size:7px;opacity:.95;margin-top:4px}
   #engVigCap{position:absolute;left:0;right:0;bottom:0;padding:4px 8px 5px;
     font-family:var(--pix);font-size:7px;line-height:1.5;letter-spacing:.5px;text-align:center;
     color:#7dffec;
@@ -512,6 +519,9 @@
   <div id="finalScore"></div>
   <div id="bestChip"></div>
   <div id="runStats"></div>
+  <!-- LE MOTEUR ATTEINT : on montre la pièce qu'on a réussi à monter, pas seulement son nom.
+       Le rendu 3D vient du MÊME moteur que la vignette de course (voir engVigRender). -->
+  <div id="endEng"><canvas id="endEngCv" width="320" height="214"></canvas><div id="endEngCap">MOTEUR ROUILLÉ<span id="endEngTier">PALIER 1 / 30</span></div></div>
   <div id="nameEntry"><span>★ NOUVEAU RECORD — TON NOM</span><input id="nameInput" maxlength="8" autocomplete="off" spellcheck="false"><button id="nameSave">VALIDER</button></div>
   <div id="lbBox"></div>
   <div class="go" id="goTxt">▸ CLIQUE LE LOGO POUR JOUER</div>
@@ -3027,6 +3037,10 @@ function buildCar(spec){
    Et la POSITION vient du DOM : le quad lit le rectangle de `#engVig` à chaque frame, donc le CSS
    (y compris la règle mobile) décide seul de la place — pas une coordonnée en dur dans le JS. */
 const engVigEl=document.getElementById('engVig'),engVigCapEl=document.getElementById('engVigCap'),engVigTierEl=document.getElementById('engVigTier');
+// la seconde maison du moteur : l'ecran de fin de partie
+const engEndEl=document.getElementById('endEng'),engEndCapEl=document.getElementById('endEngCap'),engEndTierEl=document.getElementById('endEngTier');
+const engEndCv=document.getElementById('endEngCv'),engEndCtx=engEndCv?engEndCv.getContext('2d'):null;
+let engEndT=0,engEndBuf=null,engEndImg=null; // rapatriement GPU→CPU pour l'écran de fin (voir engVigRender)
 const engVigScene=new THREE.Scene();
 const engVigCam=new THREE.PerspectiveCamera(34,1.5,.1,80);
 // ⚠ POSÉE ICI, PAS DANS LA BOUCLE : elle ne bouge jamais, et le cadrage automatique (engVigBuild) lit
@@ -3128,15 +3142,27 @@ function engVigBuild(){
    // dehors du rayon balayé par la pièce, et elle part vers la gauche — elle sort toujours.
    engVigFeu.position.set(-rxz*k*.94,engVigBaseY-ry*k*.10,-(rxz*k*.18));}
   const E=ENGINE_TIERS[t]||ENGINE_TIERS[0];
-  if(engVigCapEl)engVigCapEl.firstChild.nodeValue=TR(E.n);
   // légende COURTE : « PALIER 7 / 30 · POUSSÉE ×1.50 » passait à la ligne dans le cadre étroit
-  if(engVigTierEl)engVigTierEl.textContent=(t+1)+'/'+ENGINE_TIERS.length+'  ·  ×'+E.push.toFixed(2);
+  const lg=(t+1)+'/'+ENGINE_TIERS.length+'  ·  ×'+E.push.toFixed(2);
+  if(engVigCapEl)engVigCapEl.firstChild.nodeValue=TR(E.n);
+  if(engVigTierEl)engVigTierEl.textContent=lg;
+  // l'ecran de fin porte la MEME fiche : on ne recalcule rien, on la recopie
+  if(engEndCapEl)engEndCapEl.firstChild.nodeValue=TR(E.n);
+  if(engEndTierEl)engEndTierEl.textContent=TR('PALIER')+' '+lg;
   engVigTierShown=t;
 }
 function engVigRender(dt){
-  const on=started&&!gameOver&&!garageOn&&!stallOn&&!paused&&running;
-  if(!on){if(engVigEl&&engVigEl.style.display!=='none')engVigEl.style.display='none';return;}
-  if(engVigEl.style.display!=='block')engVigEl.style.display='block';
+  /* DEUX MAISONS, UN SEUL RENDU (2026-08-03). Pendant la course le moteur vit dans le coin du HUD ;
+     à la mort il passe sur l'écran de fin, en grand, pour montrer JUSQU'OÙ on est monté. Le quad se
+     cale sur le rect DOM de la cible, donc il suffit de changer d'élément — pas une ligne de rendu
+     à dupliquer, et le palier affiché reste celui qu'on avait au moment de mourir. */
+  const fin=gameOver&&overlay.style.display!=='none';
+  const cible=fin?engEndEl:engVigEl;
+  const autre=fin?engVigEl:engEndEl;
+  const on=started&&!garageOn&&!stallOn&&(fin||(!gameOver&&!paused&&running));
+  if(autre&&autre.style.display!=='none')autre.style.display='none';
+  if(!on){if(cible&&cible.style.display!=='none')cible.style.display='none';return;}
+  if(cible.style.display!=='block')cible.style.display='block';
   if(engVigTierShown!==engVigTier())engVigBuild();
   if(!engVigMesh)return;
   engVigSpin+=dt*.6;
@@ -3178,8 +3204,31 @@ function engVigRender(dt){
   renderer.render(engVigScene,engVigCam);
   renderer.setRenderTarget(null); // ⚠ restaure le framebuffer ET son viewport : c'est tout l'intérêt
   renderer.setClearAlpha(ca);
-  // (2) recollage à l'écran, à la place que le CSS a décidée
-  const r=engVigEl.getBoundingClientRect();
+  /* (2a) ÉCRAN DE FIN : là, le recollage en WebGL NE MARCHE PAS. L'overlay de game over est un
+     élément DOM posé PAR-DESSUS le canvas, avec un flou d'arrière-plan : tout ce qu'on dessine
+     dans le canvas passe derrière lui et ressort flouté. On rapatrie donc l'image du RenderTarget
+     dans un vrai <canvas> DOM, qui vit DANS l'overlay et passe donc au-dessus.
+     ⚠ readRenderTargetPixels est une lecture GPU→CPU, coûteuse : on la limite à ~20 images/s, ce
+     qui suffit largement pour une rotation lente, et on est de toute façon à l'arrêt. Les lignes
+     arrivent de bas en haut, d'où le retournement. */
+  if(fin){
+    const now9=performance.now();
+    if(now9-engEndT>50){
+      engEndT=now9;
+      const w=engRT.width,h=engRT.height;
+      if(!engEndBuf){engEndBuf=new Uint8Array(w*h*4);engEndImg=engEndCtx.createImageData(w,h);}
+      renderer.readRenderTargetPixels(engRT,0,0,w,h,engEndBuf);
+      const d=engEndImg.data;
+      for(let y=0;y<h;y++){
+        const src=(h-1-y)*w*4, dst=y*w*4;
+        for(let x=0;x<w*4;x++)d[dst+x]=engEndBuf[src+x];
+      }
+      engEndCtx.putImageData(engEndImg,0,0);
+    }
+    return; // pas de quad : l'overlay le masquerait
+  }
+  // (2b) EN COURSE : recollage WebGL, à la place que le CSS a décidée
+  const r=cible.getBoundingClientRect();
   if(r.width<8||r.height<8)return;
   const W=innerWidth||1,H=innerHeight||1;
   engVigQuad.position.set((r.left+r.width/2)/W*2-1,-((r.top+r.height/2)/H*2-1),0);
@@ -3611,17 +3660,73 @@ const ENG_LOOK=[
  {a:'ex',c:0,t:0,f:0,x:['couronne','ondes']},               // 29 SUPERNOVA       → ondes de choc
  {a:'ex',c:0,t:0,f:0,x:['spherenoire','disque']}            // 30 TROU NOIR       → sphère + disque
 ];
-/* ---- LA FONDERIE : la matière est PEINTE PAR LE CODE (portée depuis l'atelier, 2026-08-03) ----
-   Les 30 moteurs étaient des aplats de couleur unie — c'est ça, bien plus que leur nombre de faces,
-   qui les rendait plats. Une seule passe de bruit sort TROIS cartes tirées du MÊME champ : la
-   couleur, le relief (bumpMap) et le spéculaire (specularMap). C'est cette cohérence qui fait
-   qu'une cloque de rouille est au bon endroit sur les trois, donc que la surface se lit comme une
-   seule matière. Et c'est le CONTRASTE SPÉCULAIRE (métal nu brillant / rouille mate) qui dit
-   « vieux métal » : une couleur seule donne une carrosserie repeinte.
-   ⚠ CALCULÉE UNE FOIS, PARTAGÉE PAR LES 30. La teinte de chaque palier reste portée par
-   `material.color`, qui multiplie la carte — on garde donc l'identité couleur de `E.col` sans
-   régénérer un seul pixel. Sans ce partage, chaque ouverture du garage recalculerait des canvas. */
-const FONTE=(function(){
+/* ================= L'ATELIER DE MATIÈRES (2026-08-03, d'après références réelles) =================
+   ⚠ LA FONTE ROUILLÉE NE CONVIENT QU'À L'ÉPAVE. Elle a été validée sur le palier 1, puis appliquée
+   aux 30 — résultat : trente moteurs en terre cuite. Sur les photos de vrais moteurs, ce qu'on voit
+   c'est de l'ALUMINIUM DE FONDERIE clair, de l'INOX POLI qui réfléchit tout (les collecteurs
+   tubulaires), et de la FIBRE DE CARBONE. La rouille est donc réservée aux deux premiers paliers ;
+   au-delà, la matière devient propre, métallique et BRILLANTE.
+   Quatre familles, toutes peintes par le code, toutes calculées UNE fois et partagées :
+     fonte    — l'épave : rouille, cloques, coulures
+     alu      — fonderie alu : grain fin, micro-piqûres, presque neutre pour se laisser teinter
+     carbone  — sergé 2/2 tissé par le code, avec le reflet qui court le long des mèches
+     inox     — pas de texture : c'est l'envMap + une brillance énorme qui FONT le chrome.
+   ⚠ La teinte du palier reste portée par `material.color`, qui MULTIPLIE la carte : on garde
+   l'identité couleur de `E.col` sans régénérer un pixel. */
+const MAT9=(function(){
+  const S=192;
+  const rnd32=a=>function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+    t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
+  const bruit=s=>{const G=256,r=rnd32(s),tab=new Float32Array(G*G);
+    for(let i=0;i<G*G;i++)tab[i]=r();
+    const sm=t=>t*t*(3-2*t);
+    return function(x,y){const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi;
+      const a=tab[((yi&255)*G)+(xi&255)],b=tab[((yi&255)*G)+((xi+1)&255)];
+      const c=tab[(((yi+1)&255)*G)+(xi&255)],d=tab[(((yi+1)&255)*G)+((xi+1)&255)];
+      const u=sm(xf),v=sm(yf);return (a*(1-u)+b*u)*(1-v)+(c*(1-u)+d*u)*v;};};
+  const fbm=(n,x,y,o,p)=>{let s=0,a=1,f=1,q=0;for(let i=0;i<o;i++){s+=n(x*f,y*f)*a;q+=a;a*=p;f*=2;}return s/q;};
+  const cl=v=>v<0?0:v>1?1:v;
+  const trio=fn=>{ // fabrique les 3 cartes (couleur / relief / spéculaire) d'une seule passe
+    const cs=[0,1,2].map(()=>{const c=document.createElement('canvas');c.width=c.height=S;return c;});
+    const ims=cs.map(c=>c.getContext('2d').createImageData(S,S));
+    for(let y=0;y<S;y++)for(let x=0;x<S;x++){
+      const o=fn(x/S,y/S),j=(y*S+x)*4;
+      ims[0].data[j]=cl(o[0])*255;ims[0].data[j+1]=cl(o[1])*255;ims[0].data[j+2]=cl(o[2])*255;ims[0].data[j+3]=255;
+      ims[1].data[j]=ims[1].data[j+1]=ims[1].data[j+2]=cl(o[3])*255;ims[1].data[j+3]=255;
+      ims[2].data[j]=ims[2].data[j+1]=ims[2].data[j+2]=cl(o[4])*255;ims[2].data[j+3]=255;
+    }
+    cs.forEach((c,i)=>c.getContext('2d').putImageData(ims[i],0,0));
+    const mk=c=>{const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;return t;};
+    return {map:mk(cs[0]),bump:mk(cs[1]),spec:mk(cs[2])};
+  };
+  // ---- ALUMINIUM DE FONDERIE : la matière de 90 % d'un vrai moteur ----
+  // Presque neutre en couleur (elle doit se laisser teinter), mais VIVANTE en spéculaire : c'est le
+  // grain de moulage et les micro-piqûres qui accrochent la lumière et empêchent l'effet plastique.
+  const nA=bruit(31),nA2=bruit(97);
+  const alu=trio((u,v)=>{
+    const g=fbm(nA,u*9,v*9,3,.5), fin=fbm(nA2,u*38,v*38,2,.5);
+    const base=.74+(g-.5)*.10+(fin-.5)*.07;
+    const piq=Math.pow(fbm(nA2,u*26,v*26,2,.5),6);          // rares piqûres de fonderie
+    return [base*1.00,base*1.01,base*1.04,                   // très léger bleuté : l'alu n'est pas gris neutre
+            cl(.5+(g-.5)*.22+(fin-.5)*.30-piq*.5),
+            cl(.62+(fin-.5)*.5-piq*.45)];                    // spéculaire haut : ça DOIT briller
+  });
+  // ---- FIBRE DE CARBONE : sergé 2/2 tissé par le code ----
+  // Le motif seul ne suffit pas : ce qui fait lire le carbone, c'est que le reflet COURT le long des
+  // mèches — donc le spéculaire suit l'orientation du fil, pas la couleur.
+  const carbone=trio((u,v)=>{
+    const N=10, fx=u*N, fy=v*N;
+    const ix=Math.floor(fx), iy=Math.floor(fy);
+    const sens=((ix+iy)%4<2)?0:1;                            // le pas du sergé 2/2
+    const t=sens?(fx-ix):(fy-iy);
+    const arr=Math.abs(t-.5)*2;                              // bombé du fil
+    const lum=.13+(1-arr)*(1-arr)*.30;
+    return [lum*.92,lum*.96,lum*1.06,
+            cl(.5+(1-arr)*.28),
+            cl((1-arr)*(1-arr)*.95)];                        // le fil brille en son milieu
+  });
+  // ---- FONTE ROUILLÉE : réservée à l'épave ----
+  const fonte=(function(){
   const S=192,seed=7;
   const rnd32=a=>function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
     t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
@@ -3663,17 +3768,72 @@ const FONTE=(function(){
   cvS.getContext('2d').putImageData(iS,0,0);
   const mk=c=>{const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;return t;};
   return {map:mk(cvC),bump:mk(cvB),spec:mk(cvS)};
+  })();
+  return {fonte:fonte,alu:alu,carbone:carbone};
 })();
+// ---- LES MATÉRIAUX : c'est là que se joue le « métallique brillant », pas dans la géométrie ----
+// ⚠ EN r128 (MeshPhong, pas de PBR) le chrome ne vient PAS d'une texture : il vient d'une
+// `shininess` très haute + une `envMap` fortement réfléchissante. Le ciel du jeu sert de sonde —
+// c'est lui qu'on voit couler sur les collecteurs, et c'est ce qui les rend crédibles.
+const M9={
+  alu:(c,sh)=>new THREE.MeshPhongMaterial({color:c==null?0xd8dce2:c,map:MAT9.alu.map,bumpMap:MAT9.alu.bump,
+    bumpScale:.010,specularMap:MAT9.alu.spec,shininess:sh||165,specular:0xf2f6ff,
+    envMap:envTex,reflectivity:.40,combine:THREE.MixOperation}),
+  inox:(c)=>new THREE.MeshPhongMaterial({color:c==null?0xeef3f9:c,shininess:340,specular:0xffffff,
+    envMap:envTex,reflectivity:.90,combine:THREE.MixOperation}),   // le collecteur tubulaire : miroir
+  carbone:()=>new THREE.MeshPhongMaterial({color:0xffffff,map:MAT9.carbone.map,bumpMap:MAT9.carbone.bump,
+    bumpScale:.006,specularMap:MAT9.carbone.spec,shininess:250,specular:0xc8dcf0,
+    envMap:envTex,reflectivity:.26,combine:THREE.MixOperation}),
+  anod:(c)=>new THREE.MeshPhongMaterial({color:c,map:MAT9.alu.map,bumpMap:MAT9.alu.bump,bumpScale:.008,
+    shininess:230,specular:0xffffff,envMap:envTex,reflectivity:.34,combine:THREE.MixOperation}),
+  fonte:(c)=>new THREE.MeshPhongMaterial({color:c==null?0x9a8f84:c,map:MAT9.fonte.map,bumpMap:MAT9.fonte.bump,
+    bumpScale:.026,specularMap:MAT9.fonte.spec,shininess:70,specular:0xc8d0d8,
+    envMap:envTex,reflectivity:.20,combine:THREE.MixOperation}),
+  noir:()=>new THREE.MeshPhongMaterial({color:0x14161b,shininess:120,specular:0x6a7480,envMap:envTex,reflectivity:.18,combine:THREE.MixOperation})
+};
+// ---- LE COLLECTEUR TUBULAIRE : la pièce signature des références ----
+// Des tubes qui SERPENTENT depuis chaque cylindre et se rejoignent. On décrit un CHEMIN et
+// TubeGeometry fait le reste : un collecteur à 3, 6 ou 12 sorties, c'est le même appel.
+function collecteur9(g,n,mat,cote){
+  const N=Math.max(2,Math.min(8,n||4));
+  for(let k=0;k<N;k++){
+    const u=(N>1?k/(N-1):.5)-.5, ph=k/N;
+    const pts=[
+      new THREE.Vector3(u*1.15,.40,cote*.54),
+      new THREE.Vector3(u*1.05,.22+ph*.10,cote*(.86+ph*.14)),   // la boucle qui s'écarte
+      new THREE.Vector3(u*.55,-.02-ph*.06,cote*(.92+ph*.10)),
+      new THREE.Vector3(u*.18,-.16,cote*.80),
+      new THREE.Vector3(0,-.20,cote*.66)                         // tout se rejoint
+    ];
+    g.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),16,.062,9,false),mat));
+  }
+  g.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0,-.20,cote*.66),new THREE.Vector3(.34,-.26,cote*.74),
+    new THREE.Vector3(.78,-.30,cote*.62)]),12,.105,10,false),mat));  // le tube de sortie
+}
+// ---- LES BOBINES D'ALLUMAGE : une par cylindre, alignées sur le cache-culasse ----
+function bobines9(g,n,matC,matN,y){
+  const N=Math.max(2,Math.min(8,n||4));
+  for(let k=0;k<N;k++){
+    const u=(N>1?k/(N-1):.5)-.5;
+    g.add(mesh9(new THREE.BoxGeometry(.13,.17,.19),matC,1,1,1,u*1.12,y+.09,0));
+    g.add(mesh9(fgCyl,matN,.055,.16,.055,u*1.12,y-.02,0));
+  }
+}
 // ---- les briques, toutes SEMÉES par boucle : c'est ce qui rend 30 moteurs tenable ----
 function mkEngine(i){
   const E=ENGINE_TIERS[i]||ENGINE_TIERS[0],K=ENG_LOOK[i]||ENG_LOOK[0],g=new THREE.Group();
-  // la fonte porte la MATIÈRE, `color` porte l'IDENTITÉ du palier — les deux se multiplient
-  const bloc=new THREE.MeshPhongMaterial({color:E.col,map:FONTE.map,bumpMap:FONTE.bump,bumpScale:.026,
-    specularMap:FONTE.spec,shininess:70,specular:0xc8d0d8,envMap:envTex,reflectivity:.22,combine:THREE.MixOperation});
-  const sombre=new THREE.MeshPhongMaterial({color:0x4a4f58,map:FONTE.map,bumpMap:FONTE.bump,bumpScale:.030,
-    specularMap:FONTE.spec,shininess:40,specular:0x8899aa});
-  const chrome=new THREE.MeshPhongMaterial({color:0xdfe8f2,map:FONTE.map,bumpMap:FONTE.bump,bumpScale:.012,
-    specularMap:FONTE.spec,shininess:220,specular:0xffffff,envMap:envTex,reflectivity:.55,combine:THREE.MixOperation});
+  // ⚠ LA ROUILLE EST RÉSERVÉE AUX DEUX PREMIERS PALIERS. Au-delà, un moteur est de l'ALU DE
+  // FONDERIE clair, de l'INOX POLI et du CARBONE — c'est ce que montrent les références, et c'est
+  // ce qui fait la différence entre « épave » et « pièce de mécanique ». La teinte du palier ne
+  // colore plus tout le bloc : elle habille le CACHE-CULASSE (comme un couvre-culasse anodisé sur
+  // un vrai moteur) pendant que le bloc reste métallique. Sinon on repeint la pièce en plastique.
+  const epave=i<2;
+  const bloc=epave?M9.fonte(E.col):M9.alu(0xd6dae0,175);
+  const sombre=epave?M9.fonte(0x6a6259):M9.noir();
+  const chrome=M9.inox();                       // collecteurs, cornets, turbos : miroir
+  const habit=epave?M9.fonte(E.col):M9.anod(E.col); // la couleur du palier, sur le couvre-culasse
+  const carbo=M9.carbone();
   const feu=new THREE.MeshBasicMaterial({color:E.flam});
   const box=new THREE.BoxGeometry(1,1,1);
   const a=K.a,has=n=>K.x.indexOf(n)>=0;
@@ -3681,8 +3841,17 @@ function mkEngine(i){
   // ---- LE CORPS : sa forme dépend de l'architecture, pas seulement sa décoration ----
   if(piston){
     g.add(mesh9(box,bloc,1.5,.9,1.1,0,0,0));
-    g.add(mesh9(box,sombre,1.56,.2,1.16,0,.55,0));
+    // COUVRE-CULASSE : c'est LUI qui porte la couleur du palier (anodisé), et il est CARBONE sur
+    // les moteurs de course — le détail qui, sur les références, dit « pièce chère » en un coup d'œil.
+    g.add(mesh9(box,i>=13?carbo:habit,1.56,.20,1.16,0,.55,0));
+    // les boulons de culasse, semés tout autour : sans eux la culasse est une planche
+    if(!epave)for(let b=0;b<12;b++){
+      const t=b/12*6.2832;
+      g.add(mesh9(fgCyl,chrome,.030,.030,.030,Math.cos(t)*.74,.66,Math.sin(t)*.56));
+    }
     if(has('carter'))g.add(mesh9(box,sombre,1.34,.26,.98,0,-.56,0));
+    // BOBINES D'ALLUMAGE alignées sur la culasse (références : les blocs bleus en rang)
+    if(!epave&&K.c>=3)bobines9(g,K.c,habit,sombre,.74);
   }else if(a==='ro'){                                     // ROTATIF : des lobes, pas des cylindres
     g.add(mesh9(fgCyl,bloc,.62,1.34,.62,0,0,0,Math.PI/2));
     for(let k=0;k<K.c;k++)g.add(mesh9(fgCyl,chrome,.66,.10,.66,-.44+k*.44,0,0,Math.PI/2));
@@ -3724,9 +3893,12 @@ function mkEngine(i){
     g.add(mesh9(fgCyl,sombre,.11,.44,.11,.62,Math.sin(ang)*r*.5,Math.cos(ang)*r,Math.PI/2));
   }
   // ---- LES PIÈCES EN PLUS : chacune est un marqueur VISIBLE d'un palier ----
-  if(has('collecteur'))for(let k=0;k<Math.max(2,Math.min(6,K.c||2));k++){
-    const u=(k/Math.max(1,Math.min(6,K.c||2)-1))-.5;
-    g.add(mesh9(fgCyl,sombre,.07,.46,.07,u*1.1,.10,.62,.35));
+  // ⚠ LE COLLECTEUR EST LA PIÈCE SIGNATURE. Avant : des bâtonnets droits plantés dans le flanc.
+  // Sur les références c'est un entrelacs de tubes polis qui serpentent et se rejoignent — et
+  // c'est CE reflet mouvant qui vend le métal, bien plus que le bloc lui-même.
+  if(has('collecteur')){
+    collecteur9(g,K.c,chrome,1);
+    if(a==='v'||a==='w'||a==='h')collecteur9(g,K.c,chrome,-1); // en V : un collecteur par banc
   }
   if(has('pot'))g.add(mesh9(fgCyl,sombre,.13,.9,.13,.5,-.30,.66,Math.PI/2.4));
   if(has('courroie')){const t=new THREE.Mesh(new THREE.TorusGeometry(.30,.035,7,20),sombre);
