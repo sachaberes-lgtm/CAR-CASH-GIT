@@ -3912,11 +3912,26 @@ function mkEngine(i){
   // ⚠ LE COLLECTEUR EST LA PIÈCE SIGNATURE. Avant : des bâtonnets droits plantés dans le flanc.
   // Sur les références c'est un entrelacs de tubes polis qui serpentent et se rejoignent — et
   // c'est CE reflet mouvant qui vend le métal, bien plus que le bloc lui-même.
-  if(has('collecteur')){
-    collecteur9(g,K.c,chrome,1);
-    if(a==='v'||a==='w'||a==='h')collecteur9(g,K.c,chrome,-1); // en V : un collecteur par banc
+  // ⚠ SUR L'ÉPAVE il ne doit PAS être chromé : un collecteur miroir sur un bloc rouillé ferait
+  // pièce neuve montée sur une carcasse. Fonte sombre et suiée pour les deux premiers paliers.
+  const tub=epave?M9.fonte(0x8f7f6c):chrome;
+  /* ⚠ UN MOTEUR A TOUJOURS UN ÉCHAPPEMENT — GARANTI PAR LE CODE (2026-08-05).
+     En rendant chaque palier « déclaratif » pour tuer les séries identiques, j'ai optimisé la
+     DIFFÉRENCE et oublié que certaines pièces sont OBLIGATOIRES : 6 moteurs à pistons sur 30
+     (dont le MOTEUR ROUILLÉ, celui qu'on voit en premier) n'avaient aucun tuyau. Un oubli par
+     entrée se serait reproduit à la prochaine retouche de la table : la règle est donc dans le
+     CONSTRUCTEUR. Si une architecture à pistons ne déclare rien, elle reçoit un collecteur. */
+  const aEch=has('collecteur')||has('pot')||has('tuyere');
+  if(has('collecteur')||(piston&&!aEch)){
+    collecteur9(g,K.c,tub,1);
+    if(a==='v'||a==='w'||a==='h')collecteur9(g,K.c,tub,-1); // en V : un collecteur par banc
   }
-  if(has('pot'))g.add(mesh9(fgCyl,sombre,.13,.9,.13,.5,-.30,.66,Math.PI/2.4));
+  // LE POT : un tube SORTANT, en matière d'échappement (inox poli, ou fonte suiée sur l'épave) —
+  // il était en `sombre`, donc en plastique noir sur les moteurs récents.
+  if(has('pot')){
+    g.add(mesh9(fgCyl,tub,.115,.95,.115,.52,-.28,.66,Math.PI/2.6));
+    g.add(mesh9(fgCyl,tub,.145,.16,.145,.86,-.46,.82,Math.PI/2.6)); // l'embout, évasé
+  }
   if(has('courroie')){const t=new THREE.Mesh(new THREE.TorusGeometry(.30,.035,7,20),sombre);
     t.position.set(-.86,.06,0);t.rotation.y=Math.PI/2;t.scale.set(1,1.4,1);g.add(t);}
   if(has('doubleArbre'))for(const s of[-1,1])g.add(mesh9(fgCyl,chrome,.10,1.3,.10,0,.66,s*.26,Math.PI/2));
