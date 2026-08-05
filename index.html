@@ -3532,44 +3532,154 @@ function addCoins(n){
     shake=Math.max(shake,.5);sparkBurst(sparkGold,carGroup.position,26,16);duckT=Math.max(duckT,.4);
   }
 }
-// MODÈLE 3D : bloc, cache-culasse, cylindres (en ligne puis en V), turbo, cellules, tuyère.
-// La silhouette s'enrichit avec le palier — on VOIT qu'on a progressé.
+/* <<<MOTEURS>>> ---------------------------------------------------------------------------
+   LE CONSTRUCTEUR DE MOTEURS — paramétrique, une fiche VISUELLE par palier.
+
+   ⚠ POURQUOI CETTE RÉÉCRITURE (2026-08-03). L'ancien `mkEngine` empilait des seuils (`i>=5`
+   turbo, `i>=20` tuyère…) : entre deux seuils, RIEN ne changeait. Mesuré sur les 30 paliers :
+   **13 paliers sur 29 étaient visuellement identiques au précédent**, avec des séries de 3
+   (21-23) et de 4 (24-27) moteurs strictement interchangeables. Autrement dit on payait
+   quatre paliers pour voir la même pièce — de quoi lasser n'importe qui.
+   LA RÈGLE MAINTENANT : chaque palier DÉCLARE sa silhouette dans `ENG_LOOK`, et deux paliers
+   voisins doivent différer sur au moins un poste. C'est vérifiable par script (voir le test
+   de non-répétition en fin de bloc), donc ça ne peut plus se dégrader en silence.
+   ---------------------------------------------------------------------------------------- */
+// Chaque fiche : a=architecture · c=cylindres · t=turbos · f=ailettes · x=pièces en plus.
+// Architectures : in=en ligne · v=en V · fl=à plat · w=en W · h=en H · ro=rotatif ·
+//                 tu=turbine · ra=statoréacteur · pu=pulsoréacteur · re=réacteur · ex=exotique
+const ENG_LOOK=[
+ {a:'in',c:2,t:0,f:0,x:['carter','courroie']},              //  1 MOTEUR ROUILLÉ
+ {a:'in',c:2,t:0,f:3,x:['carter','pot']},                   //  2 BICYLINDRE      → ailettes + pot
+ {a:'in',c:3,t:0,f:0,x:['collecteur']},                     //  3 3 CYLINDRES     → 3 cyl, collecteur
+ {a:'in',c:4,t:0,f:0,x:['collecteur','carter']},            //  4 4 EN LIGNE      → 4 cyl
+ {a:'in',c:4,t:0,f:0,x:['collecteur','doubleArbre']},       //  5 4 SOUPAPES      → double arbre à cames
+ {a:'in',c:4,t:1,f:0,x:['collecteur','wastegate']},         //  6 4 EN LIGNE TURBO→ turbo
+ {a:'in',c:5,t:1,f:0,x:['collecteur','carter']},            //  7 5 CYLINDRES     → 5 cyl
+ {a:'v', c:6,t:0,f:0,x:['collecteur','carter']},            //  8 V6              → passage en V
+ {a:'v', c:6,t:2,f:0,x:['collecteur']},                     //  9 V6 BITURBO      → 2 turbos
+ {a:'fl',c:4,t:0,f:4,x:['carter','courroie']},              // 10 BOXER À PLAT    → à plat + ailettes
+ {a:'v', c:8,t:0,f:0,x:['carbu','collecteur']},             // 11 V8 ATMO         → carburateur
+ {a:'v', c:8,t:0,f:0,x:['compresseur','courroie']},         // 12 V8 COMPRESSÉ    → compresseur
+ {a:'v', c:10,t:0,f:0,x:['trompettes']},                    // 13 V10             → trompettes d'admission
+ {a:'v', c:12,t:0,f:0,x:['trompettes','collecteur']},       // 14 V12             → 12 cyl
+ {a:'w', c:12,t:0,f:0,x:['trompettes']},                    // 15 W12             → architecture W
+ {a:'v', c:16,t:0,f:0,x:['trompettes','carbu']},            // 16 V16             → 16 cyl
+ {a:'h', c:16,t:0,f:0,x:['collecteur']},                    // 17 H16 F1          → architecture H
+ {a:'v', c:8,t:4,f:0,x:['collecteur']},                     // 18 QUADRITURBO     → 4 turbos
+ {a:'ro',c:3,t:1,f:2,x:['pot']},                            // 19 ROTATIF TRIPLE  → rotors
+ {a:'tu',c:0,t:0,f:0,x:['axial','tuyere']},                 // 20 TURBINE À GAZ   → plus de pistons
+ {a:'tu',c:0,t:0,f:0,x:['axial','tuyere','cellules']},      // 21 TURBINE À PLASMA→ cellules
+ {a:'ra',c:0,t:0,f:0,x:['coneEntree','tuyere']},            // 22 STATORÉACTEUR   → corps long, entrée conique
+ {a:'pu',c:0,t:0,f:0,x:['valves','tuyere','anneaux2']},     // 23 PULSORÉACTEUR   → valves + anneaux de choc
+ {a:'re',c:0,t:0,f:0,x:['barres','dome','tuyere']},         // 24 RÉACTEUR NUCL.  → dôme + barres
+ {a:'re',c:0,t:0,f:0,x:['tore','dome']},                    // 25 CŒUR À FUSION   → tore
+ {a:'re',c:0,t:0,f:0,x:['anneaux3','confinement']},         // 26 ANTIMATIÈRE     → triple anneau
+ {a:'ex',c:0,t:0,f:0,x:['nacelles']},                       // 27 MOTEUR À DIST.  → nacelles
+ {a:'ex',c:0,t:0,f:0,x:['couronne','tuyere']},              // 28 COMÈTE          → couronne de feu
+ {a:'ex',c:0,t:0,f:0,x:['couronne','ondes']},               // 29 SUPERNOVA       → ondes de choc
+ {a:'ex',c:0,t:0,f:0,x:['spherenoire','disque']}            // 30 TROU NOIR       → sphère + disque
+];
+// ---- les briques, toutes SEMÉES par boucle : c'est ce qui rend 30 moteurs tenable ----
 function mkEngine(i){
-  const E=ENGINE_TIERS[i]||ENGINE_TIERS[0],g=new THREE.Group();
+  const E=ENGINE_TIERS[i]||ENGINE_TIERS[0],K=ENG_LOOK[i]||ENG_LOOK[0],g=new THREE.Group();
   const bloc=new THREE.MeshPhongMaterial({color:E.col,shininess:150,specular:0xffffff,envMap:envTex,reflectivity:.45,combine:THREE.MixOperation});
   const sombre=new THREE.MeshPhongMaterial({color:0x252a33,shininess:90,specular:0x8899aa});
   const chrome=new THREE.MeshPhongMaterial({color:0xdfe8f2,shininess:280,specular:0xffffff,envMap:envTex,reflectivity:.8,combine:THREE.MixOperation});
   const feu=new THREE.MeshBasicMaterial({color:E.flam});
   const box=new THREE.BoxGeometry(1,1,1);
-  // ⚠ SEUILS DE SILHOUETTE : ils étaient écrits en dur pour 10 paliers (`i>=2` turbo, `i>=7` tuyère…).
-  // Sur 30 paliers ils auraient tout allumé dès le premier quart — le moteur rouillé aurait eu la
-  // tuyère à plasma. Ils sont repositionnés sur la nouvelle échelle, et le nombre de cylindres vient
-  // désormais de la fiche du palier (`cyl`) au lieu d'une table parallèle de 10 cases à resynchroniser.
-  const nCyl=E.cyl||0;                                                    // 0 = plus de pistons (turbines, réacteurs)
-  const enV=nCyl>=6, turbo=i>=5, plasma=i>=20, nuke=i>=23, comete=i>=ENG_CAP.comete;
-  g.add(mesh9(box,bloc,1.5,.9,1.1,0,0,0));                                // le bloc
-  g.add(mesh9(box,sombre,1.56,.2,1.16,0,.55,0));                          // le cache-culasse
-  for(let c=0;c<nCyl;c++){                                                 // cylindres : en ligne, puis en V
-    const rang=enV?Math.floor(c/2):c,nR=enV?Math.ceil(nCyl/2):nCyl;
-    const sd=enV?(c%2?1:-1):0,u=(nR>1?rang/(nR-1):.5)-.5;
-    const m=mesh9(fgCyl,chrome,.15,.40,.15,u*1.2,.72,sd*.26);
-    if(enV)m.rotation.z=sd*.3;
-    g.add(m);
+  const a=K.a,has=n=>K.x.indexOf(n)>=0;
+  const piston=(a==='in'||a==='v'||a==='fl'||a==='w'||a==='h');
+  // ---- LE CORPS : sa forme dépend de l'architecture, pas seulement sa décoration ----
+  if(piston){
+    g.add(mesh9(box,bloc,1.5,.9,1.1,0,0,0));
+    g.add(mesh9(box,sombre,1.56,.2,1.16,0,.55,0));
+    if(has('carter'))g.add(mesh9(box,sombre,1.34,.26,.98,0,-.56,0));
+  }else if(a==='ro'){                                     // ROTATIF : des lobes, pas des cylindres
+    g.add(mesh9(fgCyl,bloc,.62,1.34,.62,0,0,0,Math.PI/2));
+    for(let k=0;k<K.c;k++)g.add(mesh9(fgCyl,chrome,.66,.10,.66,-.44+k*.44,0,0,Math.PI/2));
+  }else if(a==='tu'){                                     // TURBINE : un fuseau
+    g.add(mesh9(fgCyl,bloc,.52,1.7,.52,0,0,0,Math.PI/2));
+  }else if(a==='ra'){                                     // STATORÉACTEUR : long et fin
+    g.add(mesh9(fgCyl,bloc,.40,2.3,.40,0,0,0,Math.PI/2));
+  }else if(a==='pu'){                                     // PULSORÉACTEUR : tube nu
+    g.add(mesh9(fgCyl,bloc,.34,2.5,.34,0,0,0,Math.PI/2));
+  }else if(a==='re'){                                     // RÉACTEUR : cœur trapu et blindé
+    g.add(mesh9(fgCyl,bloc,.78,1.1,.78,0,0,0,Math.PI/2));
+    g.add(mesh9(fgCyl,sombre,.86,.16,.86,-.3,0,0,Math.PI/2));
+    g.add(mesh9(fgCyl,sombre,.86,.16,.86,.3,0,0,Math.PI/2));
+  }else{                                                  // EXOTIQUE : un noyau qui flotte
+    g.add(mesh9(fgSph,bloc,.62,.62,.62,0,0,0));
+    g.add(mesh9(fgCyl,sombre,.30,1.5,.30,0,0,0,Math.PI/2));
   }
-  if(turbo){                                                               // le turbo (escargot + tubulure)
-    g.add(mesh9(fgCyl,chrome,.34,.22,.34,.95,-.12,.6,Math.PI/2));
-    g.add(mesh9(fgCyl,sombre,.12,.5,.12,.62,-.12,.6,Math.PI/2));
+  // ---- CYLINDRES : une banque par architecture (c'est LE marqueur qui change le plus) ----
+  if(piston&&K.c>0){
+    const bancs=a==='in'?[0]:a==='v'?[-.32,.32]:a==='fl'?[-1.35,1.35]:a==='w'?[-.5,0,.5]:[-1.35,1.35];
+    const parBanc=Math.ceil(K.c/bancs.length);
+    for(let b=0;b<bancs.length;b++)for(let c=0;c<parBanc;c++){
+      if(b*parBanc+c>=K.c)break;
+      const u=(parBanc>1?c/(parBanc-1):.5)-.5, inc=bancs[b];
+      const dy=a==='fl'?0:(a==='h'?(b?.34:-.34):.72);
+      const dz=Math.sin(inc)*.30, hy=a==='fl'?Math.cos(inc)*.05:dy;
+      const m=mesh9(fgCyl,chrome,.15,.40,.15,u*1.2,hy,a==='fl'?Math.sin(inc)*.62:dz);
+      m.rotation.z=a==='fl'?inc:(a==='h'?0:inc*.9);
+      g.add(m);
+    }
   }
-  if(i>=17)for(const sd of [1,-1])                                         // QUADRITURBO : la paire du dessous
-    g.add(mesh9(fgCyl,chrome,.26,.18,.26,.95,-.42,sd*.42,Math.PI/2));
-  if(plasma)for(const sd of [1,-1])g.add(mesh9(box,feu,.12,.52,.5,-.82,.12,sd*.3)); // cellules (plasma et au-delà)
-  if(plasma)g.add(mesh9(fgCone,feu,.5,.9,.5,-1.45,0,0,Math.PI/2));         // la tuyère
-  if(nuke)for(let k=0;k<3;k++)g.add(mesh9(fgCyl,feu,.1,.34,.1,-.2+k*.3,.95,0)); // barres de combustible (nucléaire)
-  if(comete)for(let k=0;k<7;k++){const a=k/7*6.2832;                       // COMÈTE : la couronne de feu
-    g.add(mesh9(fgCone,feu,.13,.5,.13,Math.cos(a)*.9,.15,Math.sin(a)*.62,Math.PI/2+a*.1));}
-  g.add(mesh9(fgCyl,sombre,.5,.16,.5,-.92,-.1,0,Math.PI/2));               // le volant moteur
+  // ---- AILETTES DE REFROIDISSEMENT : semées, jamais dessinées une par une ----
+  for(let k=0;k<(K.f||0);k++)
+    g.add(mesh9(box,chrome,1.44,.035,1.06,0,.16+k*.13,0));
+  // ---- TURBOS : distribués en cercle autour du bloc ----
+  for(let k=0;k<(K.t||0);k++){
+    const ang=(k/Math.max(1,K.t))*6.2832+.6, r=.62;
+    g.add(mesh9(fgCyl,chrome,.30,.20,.30,.95,Math.sin(ang)*r*.5,Math.cos(ang)*r,Math.PI/2));
+    g.add(mesh9(fgCyl,sombre,.11,.44,.11,.62,Math.sin(ang)*r*.5,Math.cos(ang)*r,Math.PI/2));
+  }
+  // ---- LES PIÈCES EN PLUS : chacune est un marqueur VISIBLE d'un palier ----
+  if(has('collecteur'))for(let k=0;k<Math.max(2,Math.min(6,K.c||2));k++){
+    const u=(k/Math.max(1,Math.min(6,K.c||2)-1))-.5;
+    g.add(mesh9(fgCyl,sombre,.07,.46,.07,u*1.1,.10,.62,.35));
+  }
+  if(has('pot'))g.add(mesh9(fgCyl,sombre,.13,.9,.13,.5,-.30,.66,Math.PI/2.4));
+  if(has('courroie')){const t=new THREE.Mesh(new THREE.TorusGeometry(.30,.035,7,20),sombre);
+    t.position.set(-.86,.06,0);t.rotation.y=Math.PI/2;t.scale.set(1,1.4,1);g.add(t);}
+  if(has('doubleArbre'))for(const s of[-1,1])g.add(mesh9(fgCyl,chrome,.10,1.3,.10,0,.66,s*.26,Math.PI/2));
+  if(has('wastegate'))g.add(mesh9(fgCyl,chrome,.13,.26,.13,.86,.34,.34));
+  if(has('carbu')){g.add(mesh9(box,chrome,.42,.34,.42,0,.86,0));
+    g.add(mesh9(fgCone,chrome,.26,.22,.26,0,1.10,0));}
+  if(has('compresseur')){g.add(mesh9(fgCyl,chrome,.30,1.0,.30,0,.86,0,Math.PI/2));
+    g.add(mesh9(fgCyl,sombre,.16,.24,.16,-.62,.86,0,Math.PI/2));}
+  if(has('trompettes'))for(let k=0;k<Math.min(8,Math.max(2,K.c/2));k++){
+    const u=(k/Math.max(1,Math.min(8,Math.max(2,K.c/2))-1))-.5;
+    g.add(mesh9(fgCone,chrome,.11,.20,.11,u*1.1,.90,0));}
+  if(has('axial'))for(let k=0;k<5;k++)g.add(mesh9(fgCyl,chrome,.56-k*.03,.06,.56-k*.03,.42-k*.20,0,0,Math.PI/2));
+  if(has('coneEntree'))g.add(mesh9(fgCone,chrome,.42,.52,.42,1.28,0,0,-Math.PI/2));
+  if(has('valves'))for(let k=0;k<6;k++)g.add(mesh9(box,chrome,.05,.34,.34,.9-k*.28,0,0));
+  if(has('cellules'))for(const s of[1,-1])g.add(mesh9(box,feu,.12,.52,.5,-.72,.12,s*.34));
+  if(has('tuyere'))g.add(mesh9(fgCone,feu,.46,.86,.46,-1.5,0,0,Math.PI/2));
+  if(has('anneaux2'))for(let k=0;k<2;k++)g.add(mesh9(fgCyl,feu,.30-k*.06,.05,.30-k*.06,-1.7-k*.32,0,0,Math.PI/2));
+  if(has('barres'))for(let k=0;k<4;k++)g.add(mesh9(fgCyl,feu,.09,.40,.09,-.36+k*.24,.86,0));
+  if(has('dome'))g.add(mesh9(fgSph,chrome,.52,.34,.52,0,.60,0));
+  if(has('tore')){const t=new THREE.Mesh(new THREE.TorusGeometry(.62,.13,10,26),feu);
+    t.rotation.y=Math.PI/2;g.add(t);}
+  if(has('anneaux3'))for(let k=0;k<3;k++){
+    const t=new THREE.Mesh(new THREE.TorusGeometry(.54+k*.16,.045,8,24),feu);
+    t.rotation.set(k*.6,Math.PI/2,k*.4);g.add(t);}
+  if(has('confinement'))for(const s of[1,-1])g.add(mesh9(fgCyl,chrome,.14,.9,.14,0,0,s*.72,Math.PI/2));
+  if(has('nacelles'))for(const s of[1,-1]){
+    g.add(mesh9(fgCyl,bloc,.20,1.5,.20,0,.20,s*.62,Math.PI/2));
+    g.add(mesh9(fgCone,feu,.20,.42,.20,-.86,.20,s*.62,Math.PI/2));}
+  if(has('couronne'))for(let k=0;k<7;k++){const an=k/7*6.2832;
+    g.add(mesh9(fgCone,feu,.13,.5,.13,Math.cos(an)*.9,.15,Math.sin(an)*.62,Math.PI/2+an*.1));}
+  if(has('ondes'))for(let k=0;k<3;k++){
+    const t=new THREE.Mesh(new THREE.TorusGeometry(.80+k*.30,.030,8,28),feu);
+    t.rotation.y=Math.PI/2;g.add(t);}
+  if(has('spherenoire'))g.add(mesh9(fgSph,new THREE.MeshBasicMaterial({color:0x05040a}),.54,.54,.54,0,0,0));
+  if(has('disque')){const d=new THREE.Mesh(new THREE.TorusGeometry(.92,.10,6,34),feu);
+    d.rotation.x=Math.PI/2.3;d.scale.set(1,1,.24);g.add(d);}
+  if(piston)g.add(mesh9(fgCyl,sombre,.5,.16,.5,-.92,-.1,0,Math.PI/2)); // le volant moteur
   return g;
 }
+/* <<<FIN MOTEURS>>> */
 function fruitPick(rnd){ // tirage PONDÉRÉ par la fréquence (un brocoli reste rare, une pomme court les rues)
   let tot=0;for(const f of FRUIT_DEFS)tot+=Math.max(0,f.freq);
   if(tot<=0)return 0;

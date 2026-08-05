@@ -124,7 +124,8 @@ function makeEnv(){
 }
 const envTex=makeEnv();
 // les helpers dont `mkEngine` a besoin — MÊMES définitions que dans le jeu
-const fgCone=new THREE.ConeGeometry(1,1,14),fgCyl=new THREE.CylinderGeometry(1,1,1,8);
+const fgCone=new THREE.ConeGeometry(1,1,14),fgCyl=new THREE.CylinderGeometry(1,1,1,8),
+      fgSph=new THREE.SphereGeometry(1,16,12);
 const mesh9=(geo,mat,sx,sy,sz,px,py,pz,rz)=>{const m=new THREE.Mesh(geo,mat);
   m.scale.set(sx,sy,sz);m.position.set(px||0,py||0,pz||0);if(rz)m.rotation.z=rz;return m;};
 
@@ -135,12 +136,16 @@ function extraire(src){
   const bloc=(re,quoi)=>{const m=src.match(re);if(!m)throw new Error('bloc introuvable dans index.html : '+quoi);return m[0];};
   const sTiers=bloc(/const ENGINE_TIERS=\[[\s\S]*?\n\];/,'ENGINE_TIERS');
   const sCap  =bloc(/const ENG_CAP=\{[^}]*\};/,'ENG_CAP');
-  const sMk   =bloc(/function mkEngine\(i\)\{[\s\S]*?\n\}/,'mkEngine()');
+  // ⚠ ON EXTRAIT UN BLOC BALISÉ, plus la seule fonction. `mkEngine` s'appuie désormais sur la
+  // table `ENG_LOOK` (la fiche visuelle de chaque palier) : attraper la fonction seule laissait
+  // une référence dans le vide. Les balises rendent aussi l'extraction insensible aux prochaines
+  // retouches — on pourra ajouter des helpers dedans sans jamais retoucher cette page.
+  const sMot  =bloc(/\/\* <<<MOTEURS>>>[\s\S]*?<<<FIN MOTEURS>>> \*\//,'bloc <<<MOTEURS>>>');
   // évalué dans une fonction à qui on passe explicitement les dépendances : rien ne fuit,
-  // et si `mkEngine` se met un jour à utiliser un helper de plus, l'erreur sera parlante.
-  const f=new Function('THREE','envTex','mesh9','fgCyl','fgCone',
-    sTiers+'\n'+sCap+'\n'+sMk+'\nreturn {ENGINE_TIERS,ENG_CAP,mkEngine};');
-  return f(THREE,envTex,mesh9,fgCyl,fgCone);
+  // et si le bloc se met un jour à utiliser un helper de plus, l'erreur sera parlante.
+  const f=new Function('THREE','envTex','mesh9','fgCyl','fgCone','fgSph',
+    sTiers+'\n'+sCap+'\n'+sMot+'\nreturn {ENGINE_TIERS,ENG_CAP,ENG_LOOK,mkEngine};');
+  return f(THREE,envTex,mesh9,fgCyl,fgCone,fgSph);
 }
 
 // ---- la scène principale ------------------------------------------------------------
