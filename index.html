@@ -146,14 +146,15 @@
     -webkit-text-fill-color:#9ce870;color:#9ce870}
   /* VIGNETTE MOTEUR — le cadre est du DOM, le moteur 3D est peint DEDANS par le WebGL (RenderTarget).
      C'est le CSS qui décide de la place : le quad va lire ce rectangle chaque frame et s'y caler. */
-  #engVig{position:absolute;top:150px;left:16px;width:196px;height:132px;display:none;
-    border:1px solid rgba(125,255,236,.34);border-radius:12px;
-    background:linear-gradient(180deg,rgba(10,20,30,.30),rgba(6,12,22,.46));
-    box-shadow:0 10px 30px rgba(0,0,0,.45),inset 0 0 24px rgba(90,220,255,.06)}
+  /* SANS CADRE (2026-08-03) : la bordure + le fond faisaient une vignette « fenêtre de logiciel »
+     collée sur le ciel. Le moteur flotte désormais librement dans le HUD, comme la caisse flotte
+     dans le monde. Le rectangle n'apportait rien : le quad WebGL a déjà un fond transparent. */
+  #engVig{position:absolute;top:150px;left:16px;width:196px;height:132px;display:none}
   #engVigCap{position:absolute;left:0;right:0;bottom:0;padding:4px 8px 5px;
     font-family:var(--pix);font-size:7px;line-height:1.5;letter-spacing:.5px;text-align:center;
-    color:#7dffec;text-shadow:0 0 8px rgba(125,255,236,.55);
-    background:linear-gradient(180deg,rgba(4,10,18,0),rgba(4,10,18,.72) 45%);border-radius:0 0 11px 11px}
+    color:#7dffec;
+    /* plus de bandeau derrière : c'est l'ombre portée qui décolle le texte du ciel */
+    text-shadow:0 0 8px rgba(125,255,236,.55),0 2px 4px rgba(0,0,0,.9),0 0 14px rgba(0,0,0,.75)}
   #engVigTier{display:block;color:#ffd75e;font-size:6px;opacity:.9;margin-top:2px}
   #record{position:absolute;top:150px;left:50%;transform:translateX(-50%);font-size:9px;color:#8f84c8}
   #resetBtn{position:absolute;top:16px;right:16px;pointer-events:auto;cursor:pointer;
@@ -3047,7 +3048,7 @@ const engVigQuad=new THREE.Mesh(new THREE.PlaneGeometry(1,1),engVigQuadMat);
 engVigQuad.frustumCulled=false;engVigQuadScene.add(engVigQuad);
 let engVigMesh=null,engVigTierShown=-1,engVigSpin=0,engVigForce=null; // engVigForce : palier imposé par la console (visuel pur)
 // LA VIE DU MOTEUR : horloge du battement, chaleur lissée, matériaux qui rougissent, flamme.
-let engVigT=0,engVigHeat=0,engVigBaseY=0,engVigMats=[],engVigFeu=null;
+let engVigT=0,engVigHeat=0,engVigBaseY=0,engVigMats=[],engVigFeu=null,engVigFeuBase=1;
 // le cône de flamme, construit UNE fois et re-parenté à chaque palier (pas une allocation par build).
 // Base à l'origine et pointe vers l'arrière : le scale.y le fait pousser vers l'extérieur au lieu
 // de l'étirer depuis son centre (sinon il rentre dans le bloc à chaque battement).
@@ -3056,12 +3057,28 @@ let engVigT=0,engVigHeat=0,engVigBaseY=0,engVigMats=[],engVigFeu=null;
 // et l'animation aurait gonflé la flamme en largeur au lieu de l'allonger.
 const engVigFeuGeo=(function(){const g=new THREE.ConeGeometry(.19,.72,14,1,true);
   g.translate(0,.36,0);return g;})();
-// ⚠ `depthTest:false` : le cadrage automatique fait remplir 92 % du cadre au moteur, donc une
-// flamme placée DERRIÈRE lui est occultée par le bloc les trois quarts du tour. En additif et
-// sans test de profondeur, elle se lit comme un HALO qui déborde de la silhouette — ce qui est
-// justement ce qu'on veut voir dans une vignette de 200 px : une lueur, pas un cône détaillé.
-const engVigFeuMat=new THREE.MeshBasicMaterial({color:0xff7a1e,transparent:true,opacity:0,
-  blending:THREE.AdditiveBlending,depthWrite:false,depthTest:false,side:THREE.DoubleSide});
+// ⚠ `depthTest` RESTE ACTIF. Le couper faisait dessiner la flamme PAR-DESSUS le bloc : un cône
+// jaune collé sur la face avant, effet autocollant. La bonne réponse n'était pas de tricher sur
+// la profondeur mais de LAISSER DE LA PLACE : le cadrage automatique remplit désormais 76 % du
+// cadre au lieu de 92 %, et la flamme, couchée en biais vers l'arrière-gauche, dépasse de la
+// silhouette pour de vrai.
+// ⚠ ET SURTOUT : une TEXTURE le long de la flamme. Un cône en couleur pleine, même en additif,
+// garde une silhouette nette — ça lit « cône en carton », pas « feu ». Le dégradé éteint la pointe
+// et blanchit le cœur près de la tuyère : la forme se dissout dans l'air, ce que fait une flamme.
+const engVigFeuTex=(function(){
+  const cv=document.createElement('canvas');cv.width=8;cv.height=64;
+  const c=cv.getContext('2d'),g=c.createLinearGradient(0,64,0,0); // v=0 en bas = la sortie
+  // ⚠ PAS DE BLANC PUR au cœur : en additif sur un ciel clair, le blanc écrase tout et la flamme
+  // ressort GRISE. On reste dans l'ambre — c'est la superposition qui fera le point chaud.
+  g.addColorStop(0,'rgba(255,232,176,.88)');
+  g.addColorStop(.20,'rgba(255,176,72,.62)');
+  g.addColorStop(.58,'rgba(255,104,26,.26)');
+  g.addColorStop(1,'rgba(255,70,16,0)');     // la pointe se perd dans l'air
+  c.fillStyle=g;c.fillRect(0,0,8,64);
+  const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping;return t;
+})();
+const engVigFeuMat=new THREE.MeshBasicMaterial({map:engVigFeuTex,color:0xffa855,transparent:true,opacity:0,
+  blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
 function engVigTier(){return engVigForce!=null?engVigForce:engTier;}
 function engVigBuild(){
   if(engVigMesh){ // ⚠ mkEngine fabrique des matériaux NEUFS à chaque appel : sans ça, une fuite par palier
@@ -3081,7 +3098,9 @@ function engVigBuild(){
    const rx=Math.max(Math.abs(bb.min.x),Math.abs(bb.max.x)),rz=Math.max(Math.abs(bb.min.z),Math.abs(bb.max.z)),
          rxz=Math.max(.001,Math.hypot(rx,rz)),ry=Math.max(.001,(bb.max.y-bb.min.y)/2);
    const halfV=engVigCam.position.z*Math.tan(engVigCam.fov*Math.PI/360),halfH=halfV*engVigCam.aspect;
-   const k=Math.min(halfH*.92/rxz,halfV*.92/ry);
+   // .92 → .76 : il faut de l'air autour de la pièce pour que la flamme de boost DÉPASSE de la
+   // silhouette. À 92 % le moteur touchait les bords et rien ne pouvait se voir derrière lui.
+   const k=Math.min(halfH*.76/rxz,halfV*.76/ry);
    engVigMesh.scale.setScalar(k);
    engVigMesh.position.y=-(bb.min.y+bb.max.y)/2*k;
    engVigBaseY=engVigMesh.position.y;   // le tremblement oscille AUTOUR de cette hauteur de cadrage
@@ -3091,11 +3110,23 @@ function engVigBuild(){
    engVigMesh.traverse(o=>{if(o.isMesh&&o.material&&o.material.emissive&&engVigMats.indexOf(o.material)<0)engVigMats.push(o.material);});
    // la flamme se pose DERRIÈRE le bloc, à sa taille — un moteur plus gros crache plus large
    if(!engVigFeu){engVigFeu=new THREE.Mesh(engVigFeuGeo,engVigFeuMat);engVigFeu.visible=false;
-     engVigFeu.rotation.x=-Math.PI/2;} // +Y local → -Z monde : la flamme part vers l'arrière
+     // ⚠ PAS DROIT DERRIÈRE : la caméra regarde l'axe -Z, donc une flamme alignée dessus se voit
+     // DE BOUT et ne lit plus que comme un disque orange. On la couche en biais (arrière-gauche,
+     // légèrement plongeante) : on en voit le PROFIL, donc la longueur, donc une flamme.
+     engVigFeu.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),
+       new THREE.Vector3(-.88,-.22,-.42).normalize());}
    if(engVigFeu.parent)engVigFeu.parent.remove(engVigFeu);
    engVigScene.add(engVigFeu);
-   engVigFeu.position.set(0,engVigBaseY+ry*k*.12,-(rxz*k*.55)); // assez près pour déborder du bloc
-   engVigFeu.scale.setScalar(1);}
+   // ⚠ LA FLAMME SE DIMENSIONNE SUR LE MOTEUR. Elle était à taille fixe (rayon .19) alors que le
+   // cadrage automatique amène toujours la pièce à ~1,09 de rayon : elle était donc six fois trop
+   // petite et se perdait derrière le bloc — « on ne voit pas la flamme quand on turbo ». Sa taille
+   // suit désormais l'encombrement réel, donc elle reste lisible sur les 30 paliers.
+   engVigFeuBase=rxz*k*1.15;
+   // ⚠ ELLE DÉMARRE AU BORD DU GABARIT, PAS DEDANS. Le moteur TOURNE et la flamme, elle, est fixe
+   // dans la scène : posée près du centre, elle passait derrière le bloc et disparaissait (mesuré :
+   // le remplissage BAISSAIT au boost au lieu de monter). Son origine est donc calée juste en
+   // dehors du rayon balayé par la pièce, et elle part vers la gauche — elle sort toujours.
+   engVigFeu.position.set(-rxz*k*.94,engVigBaseY-ry*k*.10,-(rxz*k*.18));}
   const E=ENGINE_TIERS[t]||ENGINE_TIERS[0];
   if(engVigCapEl)engVigCapEl.firstChild.nodeValue=TR(E.n);
   // légende COURTE : « PALIER 7 / 30 · POUSSÉE ×1.50 » passait à la ligne dans le cadre étroit
@@ -3134,8 +3165,9 @@ function engVigRender(dt){
     const k9=Math.max(0,engVigHeat-.30)/.70, pal9=.84+Math.sin(engVigT*47)*.12+Math.sin(engVigT*23.7)*.06;
     engVigFeu.visible=k9>.02;
     if(engVigFeu.visible){
-      engVigFeu.scale.set(1,k9*pal9*1.2,1);
-      engVigFeu.material.opacity=.62*k9;
+      const b9=engVigFeuBase;
+      engVigFeu.scale.set(b9,b9*k9*pal9*1.35,b9); // la LONGUEUR palpite, la largeur suit le moteur
+      engVigFeu.material.opacity=.72*k9;
     }
   }
   // (1) le moteur dans SON framebuffer — fond transparent pour que le cadre CSS reste visible dessous
@@ -3579,12 +3611,69 @@ const ENG_LOOK=[
  {a:'ex',c:0,t:0,f:0,x:['couronne','ondes']},               // 29 SUPERNOVA       → ondes de choc
  {a:'ex',c:0,t:0,f:0,x:['spherenoire','disque']}            // 30 TROU NOIR       → sphère + disque
 ];
+/* ---- LA FONDERIE : la matière est PEINTE PAR LE CODE (portée depuis l'atelier, 2026-08-03) ----
+   Les 30 moteurs étaient des aplats de couleur unie — c'est ça, bien plus que leur nombre de faces,
+   qui les rendait plats. Une seule passe de bruit sort TROIS cartes tirées du MÊME champ : la
+   couleur, le relief (bumpMap) et le spéculaire (specularMap). C'est cette cohérence qui fait
+   qu'une cloque de rouille est au bon endroit sur les trois, donc que la surface se lit comme une
+   seule matière. Et c'est le CONTRASTE SPÉCULAIRE (métal nu brillant / rouille mate) qui dit
+   « vieux métal » : une couleur seule donne une carrosserie repeinte.
+   ⚠ CALCULÉE UNE FOIS, PARTAGÉE PAR LES 30. La teinte de chaque palier reste portée par
+   `material.color`, qui multiplie la carte — on garde donc l'identité couleur de `E.col` sans
+   régénérer un seul pixel. Sans ce partage, chaque ouverture du garage recalculerait des canvas. */
+const FONTE=(function(){
+  const S=192,seed=7;
+  const rnd32=a=>function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+    t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
+  const bruit=s=>{const G=256,r=rnd32(s),tab=new Float32Array(G*G);
+    for(let i=0;i<G*G;i++)tab[i]=r();
+    const sm=t=>t*t*(3-2*t);
+    return function(x,y){const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi;
+      const a=tab[((yi&255)*G)+(xi&255)],b=tab[((yi&255)*G)+((xi+1)&255)];
+      const c=tab[(((yi+1)&255)*G)+(xi&255)],d=tab[(((yi+1)&255)*G)+((xi+1)&255)];
+      const u=sm(xf),v=sm(yf);return (a*(1-u)+b*u)*(1-v)+(c*(1-u)+d*u)*v;};};
+  const fbm=(n,x,y,o,p)=>{let s=0,a=1,f=1,q=0;for(let i=0;i<o;i++){s+=n(x*f,y*f)*a;q+=a;a*=p;f*=2;}return s/q;};
+  const cl=v=>v<0?0:v>1?1:v, mx=(A,B,t)=>[A[0]+(B[0]-A[0])*t,A[1]+(B[1]-A[1])*t,A[2]+(B[2]-A[2])*t];
+  const nR=bruit(seed),nG=bruit(seed+977),nC=bruit(seed+4231);
+  const cvC=document.createElement('canvas'),cvB=document.createElement('canvas'),cvS=document.createElement('canvas');
+  cvC.width=cvC.height=cvB.width=cvB.height=cvS.width=cvS.height=S;
+  const iC=cvC.getContext('2d').createImageData(S,S),iB=cvB.getContext('2d').createImageData(S,S),
+        iS=cvS.getContext('2d').createImageData(S,S);
+  // teintes NEUTRES : la carte doit rester quasi grise pour que `material.color` la teinte proprement
+  const FER=[150,148,152],ROU=[152,96,58],ROUC=[204,140,84],NU=[212,214,220];
+  for(let y=0;y<S;y++)for(let x=0;x<S;x++){
+    const u=x/S*5.5,v=y/S*5.5;
+    let r=fbm(nR,u,v,5,.55);
+    const coul=fbm(nC,u*3.5,v*.35,3,.5);
+    r=Math.max(r,(r>.47?1:0)*coul*.92);                 // la rouille PLEURE depuis une plaque installée
+    const t=cl((r-.52)*3.2), g=fbm(nG,u*7,v*7,2,.52);
+    let col=mx(FER,ROU,cl(t*1.6));col=mx(col,ROUC,cl((t-.55)*2.2)*.85);
+    if(t<.12)col=mx(col,NU,cl((.12-t)*7)*.5*cl(g*1.4));
+    const gg=(g-.5)*.30*46*(1-cl(t)*.55);               // le grain ne mord pas la rouille : elle est MATE
+    const j=(y*S+x)*4;
+    iC.data[j]=cl((col[0]+gg)/255)*255;iC.data[j+1]=cl((col[1]+gg)/255)*255;
+    iC.data[j+2]=cl((col[2]+gg)/255)*255;iC.data[j+3]=255;
+    const piq=Math.pow(fbm(nG,u*13,v*13,2,.5),5);
+    const h=cl(.5+t*.26+(g-.5)*.13-piq*.30);
+    iB.data[j]=iB.data[j+1]=iB.data[j+2]=h*255;iB.data[j+3]=255;
+    const sp=cl((1-t)*(.55+g*.5)-piq*.3);
+    iS.data[j]=iS.data[j+1]=iS.data[j+2]=sp*255;iS.data[j+3]=255;
+  }
+  cvC.getContext('2d').putImageData(iC,0,0);cvB.getContext('2d').putImageData(iB,0,0);
+  cvS.getContext('2d').putImageData(iS,0,0);
+  const mk=c=>{const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;return t;};
+  return {map:mk(cvC),bump:mk(cvB),spec:mk(cvS)};
+})();
 // ---- les briques, toutes SEMÉES par boucle : c'est ce qui rend 30 moteurs tenable ----
 function mkEngine(i){
   const E=ENGINE_TIERS[i]||ENGINE_TIERS[0],K=ENG_LOOK[i]||ENG_LOOK[0],g=new THREE.Group();
-  const bloc=new THREE.MeshPhongMaterial({color:E.col,shininess:150,specular:0xffffff,envMap:envTex,reflectivity:.45,combine:THREE.MixOperation});
-  const sombre=new THREE.MeshPhongMaterial({color:0x252a33,shininess:90,specular:0x8899aa});
-  const chrome=new THREE.MeshPhongMaterial({color:0xdfe8f2,shininess:280,specular:0xffffff,envMap:envTex,reflectivity:.8,combine:THREE.MixOperation});
+  // la fonte porte la MATIÈRE, `color` porte l'IDENTITÉ du palier — les deux se multiplient
+  const bloc=new THREE.MeshPhongMaterial({color:E.col,map:FONTE.map,bumpMap:FONTE.bump,bumpScale:.026,
+    specularMap:FONTE.spec,shininess:70,specular:0xc8d0d8,envMap:envTex,reflectivity:.22,combine:THREE.MixOperation});
+  const sombre=new THREE.MeshPhongMaterial({color:0x4a4f58,map:FONTE.map,bumpMap:FONTE.bump,bumpScale:.030,
+    specularMap:FONTE.spec,shininess:40,specular:0x8899aa});
+  const chrome=new THREE.MeshPhongMaterial({color:0xdfe8f2,map:FONTE.map,bumpMap:FONTE.bump,bumpScale:.012,
+    specularMap:FONTE.spec,shininess:220,specular:0xffffff,envMap:envTex,reflectivity:.55,combine:THREE.MixOperation});
   const feu=new THREE.MeshBasicMaterial({color:E.flam});
   const box=new THREE.BoxGeometry(1,1,1);
   const a=K.a,has=n=>K.x.indexOf(n)>=0;
@@ -4693,6 +4782,11 @@ window.dbgHudCar=function(){ // VIGNETTE MOTEUR : lit-elle vraiment des pixels d
   const bb=engVigMesh?new THREE.Box3().setFromObject(engVigMesh):null;
   const r=engVigEl?engVigEl.getBoundingClientRect():null;
   return {palier:engTier+1+' / '+ENGINE_TIERS.length,moteur:(ENGINE_TIERS[engTier]||{}).n,meshes,
+    // état de la VIE du moteur : sans ça, « on ne voit pas la flamme » est indébuggable à l'œil
+    feu:engVigFeu?{visible:engVigFeu.visible,opacite:+engVigFeu.material.opacity.toFixed(3),
+      echelle:engVigFeu.scale.toArray().map(n=>+n.toFixed(2)),
+      pos:engVigFeu.position.toArray().map(n=>+n.toFixed(2)),base:+engVigFeuBase.toFixed(2)}:null,
+    chaleur:+engVigHeat.toFixed(3),nitro:nitroOn,
     rt:[w,h],somme,pixelsDessines:opaques,tauxRemplissage:+(opaques/(w*h)).toFixed(3),
     dessine:opaques>500,
     cadreDOM:r?{x:Math.round(r.left),y:Math.round(r.top),w:Math.round(r.width),h:Math.round(r.height),visible:engVigEl.style.display}:null,
