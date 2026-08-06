@@ -2212,11 +2212,14 @@ const CARS=[
  {name:'COMÈTE 👑',       shape:'proto',   color:0x0a0a12,accent:0xffd75e,maxKmh:657,accel:75,turn:3.25,h:.36,w:2.08,l:5.05,spoiler:1,glow:0xffffff,rocket:1,
   desc:'Coin furtif, bulle de verre, dérive dorsale. La reine du ciel, et elle le sait. Personne ne l\'a jamais vue de face.'},
  // ---- LES TROIS FANTASTIQUES : matières GÉNÉRATIVES, offertes pour l'instant (voir CAR_UNLOCK) ----
- {name:'ACIDE',           shape:'tuner',   color:0x4cd914,accent:0x123a08,maxKmh:520,accel:60,turn:3.18,h:.62,w:1.88,l:4.1,spoiler:0,glow:0x8dff2a,
+ {name:'ACIDE',           shape:'tuner',   color:0x5cff1e,accent:0x123a08,maxKmh:520,accel:60,turn:3.18,h:.62,w:1.88,l:4.1,spoiler:0,glow:0x8dff2a,
+  fx:{jet:0x7cff28,core:0xe8ffb4,trail:[.52,1.55,.10],light:0x6fe81e},
   desc:'Compacte japonaise passée au bain d\'acide : capot vitré sur le bloc, aileron de table à repasser, échappement qui crache vert.'},
  {name:'CHAT POP-TART',   shape:'poptart', color:0xf6b98a,accent:0xf78fb8,maxKmh:560,accel:64,turn:3.2, h:.52,w:1.95,l:3.4,spoiler:0,glow:0xff5ec8,
+  fx:{jet:0xff64d2,core:0xffd8f2,trail:[1.5,.35,1.1],light:0xff5ec8,rainbow:1},
   desc:'Une pâtisserie industrielle avec une tête de chat et quatre roulettes. Personne n\'a demandé pourquoi. Tout le monde a demandé comment.'},
  {name:'REQUIN',          shape:'requin',  color:0x3a6ea8,accent:0xdfe9f2,maxKmh:600,accel:68,turn:3.22,h:.95,w:1.98,l:3.3,spoiler:0,glow:0x9adfff,
+  fx:{jet:0x7ff0d8,core:0xe6fffa,trail:[.30,1.35,1.15],light:0x5fe6d0},
   desc:'Bulle de verre, museau de grand blanc, quatre bras d\'hélices repliés dans les flancs. Au sol il roule. En l\'air, il chasse.'},
 ];
 // ---- VALEUR D'UNE PIÈCE — UNE ENTRÉE PAR PALIER MOTEUR (30) ---------------------------------
@@ -2662,6 +2665,57 @@ function mkTrail(){
   return {m,pos,col,hist,init:false};
 }
 const trailL=mkTrail(),trailR=mkTrail();let trailK=0;
+/* ---- L'ARC-EN-CIEL DU CHAT POP-TART -----------------------------------------------------------
+   ⚠ POURQUOI UN RUBAN À PART. Les traînées normales n'ont que DEUX sommets en travers : entre eux
+   le GPU interpole en ligne droite, donc un dégradé rouge→violet passe par un mauve boueux au lieu
+   de traverser le jaune, le vert et le cyan. Un arc-en-ciel a besoin de bandes RÉELLES : ce ruban-ci
+   a donc RB_ROWS sommets en travers, chacun avec SA couleur fixe. C'est la seule façon d'obtenir
+   les six barres nettes de la référence plutôt qu'un dégradé sale.
+   Il ne sert qu'aux caisses qui déclarent `fx.rainbow` — sinon il reste invisible et ne coûte rien. */
+const RB_ROWS=7,RB_COLS=[[1,.16,.16],[1,.55,.10],[1,.92,.16],[.28,.92,.30],[.24,.60,1],[.62,.32,1]];
+const rainbow=(function(){
+  const g=new THREE.BufferGeometry();
+  const pos=new Float32Array(TRAIL_N*RB_ROWS*3),col=new Float32Array(TRAIL_N*RB_ROWS*3);
+  g.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  g.setAttribute('color',new THREE.BufferAttribute(col,3));
+  const idx=[];
+  for(let i=0;i<TRAIL_N-1;i++)for(let r=0;r<RB_ROWS-1;r++){
+    const a=i*RB_ROWS+r,b=a+RB_ROWS;idx.push(a,b,a+1,b,b+1,a+1);}
+  g.setIndex(idx);
+  const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,
+    blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false}));
+  m.frustumCulled=false;m.visible=false;m.renderOrder=2;scene.add(m);
+  const hist=[];for(let i=0;i<TRAIL_N;i++)hist.push(new THREE.Vector3());
+  return {m,pos,col,hist,init:false};
+})();
+function rainbowStep(px,py,pz,k){
+  const tr=rainbow;
+  if(k<.03){tr.m.visible=false;tr.init=false;return;}
+  const h=tr.hist;
+  if(!tr.init){for(const q of h)q.set(px,py,pz);tr.init=true;}
+  const tail=h.pop();tail.set(px,py,pz);h.unshift(tail);
+  const P=tr.pos,C=tr.col;
+  for(let i=0;i<TRAIL_N;i++){
+    const p=h[i],pn=h[Math.min(i+1,TRAIL_N-1)],pp=h[Math.max(i-1,0)];
+    rbD.subVectors(pn,pp);rbV.subVectors(p,camera.position);
+    rbS.crossVectors(rbD,rbV);
+    const l2=rbS.lengthSq();
+    if(l2>1e-9)rbS.multiplyScalar(1/Math.sqrt(l2));else rbS.set(0,0,0);
+    const age=i/(TRAIL_N-1),W=.30+1.05*(1-age*.35);       // large tout de suite, à peine effilé
+    let f=(1-age*age)*k;
+    const dC=rbV.length();
+    f*=Math.min(1,Math.max(0,(dC-3.2)/4.2));               // même fondu près caméra que les rubans
+    for(let r=0;r<RB_ROWS;r++){
+      const o=(r/(RB_ROWS-1)-.5)*2*W,j=(i*RB_ROWS+r)*3;
+      P[j]=p.x+rbS.x*o;P[j+1]=p.y+rbS.y*o;P[j+2]=p.z+rbS.z*o;
+      const c=RB_COLS[Math.min(RB_COLS.length-1,r)];       // une bande PLEINE par rangée, pas un dégradé
+      C[j]=c[0]*f;C[j+1]=c[1]*f;C[j+2]=c[2]*f;
+    }
+  }
+  tr.m.visible=true;
+  tr.m.geometry.attributes.position.needsUpdate=true;
+  tr.m.geometry.attributes.color.needsUpdate=true;
+}
 const rbD=new THREE.Vector3(),rbS=new THREE.Vector3(),rbV=new THREE.Vector3();
 function trailStep(tr,px,py,pz,cr,cg,cb,k,wMul){
   if(k<.03){tr.m.visible=false;tr.init=false;return;}
@@ -2780,7 +2834,8 @@ const jetCoreM=new THREE.MeshBasicMaterial({map:jetTex,color:0xffe6b0,transparen
 const jetGlowM=new THREE.SpriteMaterial({map:lampTex,color:0xff9040,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false});
 const JETS={shells:[],cores:[],glows:[],k:0}; // rempli par buildCar, animé chaque frame
 const CARPOOL={head:null,tail:null,jet:null}; // FLAQUES DE LUMIÈRE AU SOL (phares AV / feux AR / halo nitro) — rempli par buildCar, le halo nitro est piloté par JETS.k
-let carWingL=null,carWingR=null,wingT=0; // MINI-AILES/PLANEURS : repliées au sol, déployées en vol (buildCar les crée, la boucle les anime)
+let carWingL=null,carWingR=null,wingT=0;
+let carProps=[],propSpin=0; // LES PALES (gabarit `requin`) : recensées ici, tournées par la boucle // MINI-AILES/PLANEURS : repliées au sol, déployées en vol (buildCar les crée, la boucle les anime)
 // ---- MATIÈRES GÉNÉRATIVES DES CAISSES (`MATV`) — jumelles de `MAT9` côté moteurs -------------
 // Trois peaux peintes PAR LE CODE, jamais un fichier image : peinture à paillettes, pâtisserie
 // industrielle et peau de requin. ⚠ calculées UNE fois et partagées (comme MAT9) — sans ce cache,
@@ -2828,6 +2883,19 @@ const MATV={_c:{},get(k){return this._c[k]||(this._c[k]=this['_'+k]());},
     for(let i=0;i<220;i++){c.fillStyle='rgba(146,96,48,'+(.06+Math.random()*.22)+')';
       c.beginPath();c.arc(Math.random()*64,Math.random()*64,.6+Math.random()*1.5,0,7);c.fill();}
     for(let i=0;i<16;i++){c.fillStyle='rgba(120,78,38,.42)';c.fillRect(i*4+1,0,2,7);c.fillRect(i*4+1,57,2,7);} // festons
+    return this._tex(cv);
+  },
+  // LE BANDEAU DE PARE-BRISE du tuner : bande sombre en haut de la vitre + lettrage suggéré.
+  // ⚠ on ne DESSINE PAS de texte : à 40 px de haut en jeu, des lettres lisibles seraient du bruit.
+  // Des barres de largeurs irrégulières lisent « autocollant de team » beaucoup mieux qu'un mot.
+  _banner(){
+    const cv=document.createElement('canvas');cv.width=256;cv.height=64;const c=cv.getContext('2d');
+    c.fillStyle='#0c1408';c.fillRect(0,0,256,64);
+    let x=14;
+    while(x<242){const w=6+Math.random()*22,h=16+Math.random()*14;
+      c.fillStyle=Math.random()<.22?'#ffffff':'#9dff42';
+      c.fillRect(x,32-h/2,w,h);x+=w+5+Math.random()*7;}
+    c.fillStyle='rgba(157,255,66,.28)';c.fillRect(0,54,256,4);
     return this._tex(cv);
   },
   // PEAU DE REQUIN : le CONTRE-OMBRAGE. Un requin n'est pas bleu, il est sombre dessus et blanc
@@ -3073,7 +3141,7 @@ const SHAPES={
   tuner(K){
     const {W,H,L,y0,box:B,spec}=K;
     const vernis=new THREE.MeshPhongMaterial({color:spec.color,map:MATV.get('flake'),emissive:spec.color,
-      emissiveIntensity:.16,shininess:220,specular:0xffffff,envMap:envTex,reflectivity:.72,combine:THREE.MixOperation});
+      emissiveIntensity:.26,shininess:220,specular:0xffffff,envMap:envTex,reflectivity:.72,combine:THREE.MixOperation});
     rimify(vernis);
     // trois volumes de hatch : capot court, pare-brise très incliné, toit, hayon coupé net
     K.prof([[-.50*L,0],[.50*L,0],[.50*L,.34*H],[.34*L,.42*H],[.16*L,.46*H],[.02*L,.90*H],[-.34*L,.94*H],[-.44*L,.62*H],[-.50*L,.56*H]],W*.94,vernis);
@@ -3092,8 +3160,19 @@ const SHAPES={
     B(W*1.06,.06,L*.20,K.acc,0,y0+H*1.32,-L*.42);
     B(W*1.02,H*.18,.16,K.acc,0,y0+H*.16,L/2+.10);                // pare-chocs kitté + lame
     B(W*.98,.05,.30,K.dark,0,y0+H*.04,L/2+.18);
-    B(W*.50,H*.14,.07,K.dark,0,y0+H*.28,L/2+.06);
-    K.cyl(.14,.16,.30,K.chrome,W*.22,y0+.06,-L/2-.16,12).rotation.x=Math.PI/2; // canon d'échappement
+    // L'INTERCOOLER dans la bouche du pare-chocs : c'est LE détail qui dit « préparée », pas « peinte »
+    B(W*.54,H*.17,.08,K.dark,0,y0+H*.26,L/2+.055);
+    for(let i9=0;i9<7;i9++)B(W*.052,H*.13,.03,K.chrome,(i9/6-.5)*W*.46,y0+H*.26,L/2+.10);
+    // LE BANDEAU de pare-brise : posé À PLAT sur la vitre, il attrape le regard avant la couleur
+    const ban=new THREE.Mesh(new THREE.PlaneGeometry(W*.66,H*.20),
+      new THREE.MeshBasicMaterial({map:MATV.get('banner'),transparent:true}));
+    ban.position.set(0,y0+H*.80,L*.02);ban.rotation.x=-.62;carGroup.add(ban);
+    for(const sd of [-1,1]){
+      K.sph(W*.13,H*.30,L*.22,vernis,sd*(W/2-.02),y0+H*.34,-L*.24); // ARCHES arrière élargies
+      B(.05,H*.44,.05,K.chrome,sd*W*.24,y0+H*.72,-L*.06);           // arceau visible sous la vitre
+    }
+    B(W*.46,.05,.05,K.chrome,0,y0+H*.94,-L*.06);
+    K.cyl(.15,.17,.32,K.chrome,W*.22,y0+.06,-L/2-.16,12).rotation.x=Math.PI/2; // canon d'échappement
     return {hl:[W*.32,y0+H*.40,L/2+.06],tl:[W*.34,y0+H*.66,-L/2-.04],wr:.94,doors:1,sp:0};
   },
   // 14. LE CHAT POP-TART — un pavé de pâtisserie sur quatre roulettes, tête de chat à l'avant.
@@ -3112,20 +3191,34 @@ const SHAPES={
     tart.position.set(0,cy,-L*.08);carGroup.add(tart);
     // LA TÊTE : elle DÉPASSE franchement du pavé — collée dessus on lirait un dessin imprimé,
     // pas un chat qui conduit. Boule aplatie, oreilles, joues, museau, moustaches.
-    const gris=new THREE.MeshPhongMaterial({color:0x7f7f88,shininess:16,specular:0x3a3a3a}),
+    // ⚠ MAT, PAS BRILLANT. À shininess 16 avec un spéculaire clair, la boule attrapait un point
+    // chaud de studio et ressortait CHROMÉE : on lisait une torpille en inox, pas un chat.
+    // Et elle était plus LONGUE que large (L*.20 = .68 de profondeur) — d'où la forme d'obus.
+    // Une tête de chat est un carré arrondi : à peu près aussi large que haute, courte en profondeur.
+    const gris=new THREE.MeshPhongMaterial({color:0x74747e,shininess:5,specular:0x141418}),
           rose=new THREE.MeshBasicMaterial({color:0xf98cb8});
-    K.sph(W*.36,H*.62,L*.20,gris,0,cy+H*.06,L*.40);
+    // ⚠ LES TRAITS SE POSENT SUR LA COQUE, PAS DEDANS. Placés « à peu près devant » (z=L*.50) ils
+    // tombaient À L'INTÉRIEUR de la boule : le chat n'avait plus de visage. Le nez de l'ellipsoïde
+    // est à `z = centre + demi-profondeur` = L*.555 — tout ce qui doit se voir est calé là-dessus.
+    K.sph(W*.28,H*.60,L*.125,gris,0,cy+H*.10,L*.43);
     for(const sd of [-1,1]){
-      const or=K.con(W*.14,H*.46,gris,sd*W*.23,cy+H*.44,L*.34,4);or.rotation.y=Math.PI/4;
-      K.sph(W*.09,H*.10,L*.035,rose,sd*W*.16,cy-H*.10,L*.50);   // joues
-      K.sph(W*.055,H*.09,L*.04,K.dark,sd*W*.13,cy+H*.14,L*.51); // yeux
-      for(const a of [-.16,0,.16]){                              // moustaches, ancrées AU MUSEAU
-        const m9=B(W*.26,.014,.014,K.chrome,sd*W*.33,cy-H*.06+a*H*.5,L*.46);m9.rotation.z=sd*a;}
+      const or=K.con(W*.13,H*.50,gris,sd*W*.17,cy+H*.88,L*.42,4);or.rotation.y=Math.PI/4;  // oreilles DESSUS
+      const oi=K.con(W*.068,H*.28,rose,sd*W*.17,cy+H*.86,L*.45,4);oi.rotation.y=Math.PI/4; // INTÉRIEUR d'oreille
+      K.sph(W*.070,H*.085,L*.022,rose,sd*W*.145,cy-H*.05,L*.535); // joues
+      K.sph(W*.042,H*.080,L*.026,K.dark,sd*W*.11,cy+H*.18,L*.545); // yeux
+      K.sph(W*.013,H*.022,L*.010,K.chrome,sd*W*.105,cy+H*.23,L*.556); // le reflet dans l'œil : sans lui, deux trous
+      K.sph(W*.085,H*.075,L*.075,gris,sd*W*.28,cy-H*.40,L*.26); // pattes avant posées sur le pavé
+      for(const a of [-.14,0,.14]){                              // moustaches, ancrées AU MUSEAU
+        const m9=B(W*.20,.012,.012,K.chrome,sd*W*.26,cy+H*.02+a*H*.5,L*.53);m9.rotation.z=sd*a;}
     }
-    K.sph(W*.055,H*.05,L*.03,rose,0,cy-H*.04,L*.55);             // truffe
+    K.sph(W*.042,H*.042,L*.020,rose,0,cy+H*.03,L*.556);           // truffe
+    for(const sd of [-1,1]){const b9=B(W*.070,.014,.014,K.dark,sd*W*.038,cy-H*.10,L*.553);b9.rotation.z=sd*.55;} // la bouche en « w »
     const q=B(W*.07,H*.14,L*.30,gris,0,cy+H*.20,-L*.52);q.rotation.x=-.55; // la queue
+    // ⚠ `wings:'none'` : les panneaux de planeur génériques sont plus PROFONDS que ce gâteau et
+    // ressortaient par-dessus le glaçage comme quatre lattes noires. Sa signature de vol, c'est
+    // l'arc-en-ciel (`fx.rainbow`), pas des ailerons.
     return {hl:[W*.28,cy-H*.24,L*.42],tl:[W*.32,cy-H*.10,-L*.46],wr:.58,wx:W/2-.11,wz:L/2-.62,
-            split:0,skirt:0,sp:0,doors:0,glowX:W*.49,glowY:cy-H*.30};
+            split:0,skirt:0,sp:0,doors:0,wings:'none',glowX:W*.47,glowY:cy-H*.36,glowL:L*.74,glowF:0};
   },
   // 15. LE REQUIN — bulle de verre sur un corps rond, museau de grand blanc, et QUATRE BRAS
   //     D'HÉLICES repliés dans les flancs au sol / déployés en vol. Les bras réutilisent les
@@ -3151,10 +3244,17 @@ const SHAPES={
       // s'affine à ses extrémités — la caisse se lisait en pièces détachées.
       for(const fz of [1,-1])K.sph(W*.16,H*.30,L*.20,peau,sd*(W/2-.16),y0+H*.24,fz*(L/2-.72));
     }
-    K.con(W*.11,H*.40,peau,0,y0+H*.88,-L*.10,4).rotation.y=Math.PI/4; // AILERON DORSAL
-    B(W*.30,.05,L*.18,peau,0,y0+H*.14,-L*.44).rotation.x=.3;          // caudale
+    // ⚠ NAGEOIRES = PANNEAUX PLATS. Un cône aplati PUIS tourné voit ses axes tourner avec lui :
+    // l'aplatissement partait dans la mauvaise direction et chaque pectorale ressortait en torpille
+    // collée au flanc. Une simple lame inclinée dit « poisson » mieux et coûte un mesh.
+    for(const sd of [-1,1]){
+      const pec=B(W*.34,.05,L*.20,peau,sd*W*.48,y0+H*.18,L*.02);
+      pec.rotation.set(0,sd*.34,sd*-.42);}                            // dièdre tombant vers l'arrière
+    K.con(W*.13,H*.48,peau,0,y0+H*.92,-L*.10,4).rotation.y=Math.PI/4; // AILERON DORSAL
+    B(.055,H*.44,L*.20,peau,0,y0+H*.52,-L*.48);                       // caudale : le lobe VERTICAL
+    for(const sd of [-1,1]){const lo=B(W*.26,.05,L*.15,peau,sd*W*.14,y0+H*.28,-L*.50);lo.rotation.z=sd*-.55;} // et les deux lobes bas
     return {hl:[W*.24,y0+H*.30,L*.38],tl:[W*.28,y0+H*.50,-L*.40],wr:.90,wx:W/2-.02,wz:L/2-.72,
-            split:0,skirt:0,sp:0,doors:0,wings:'props',glowX:W*.46,glowY:y0+H*.20};
+            split:0,skirt:0,sp:0,doors:0,wings:'props',glowX:W*.46,glowY:y0+H*.14,glowL:L*.66,glowF:0};
   }
 };
 function buildCar(spec){
@@ -3194,14 +3294,14 @@ function buildCar(spec){
     hl:[W9*.32,y0+H9*.50,L9/2+.16],   // phare (demi-écart, hauteur, avancée)
     tl:[W9*.30,y0+H9*.55,-L9/2-.10],  // feu arrière
     wr:1,wx:W9/2,wz:L9/2-.75,wy:0,    // roues : rayon, voie, empattement, relèvement
-    glowX:W9/2+.02,glowY:y0+H9*.42,   // où court le néon des caisses de l'au-delà
+    glowX:W9/2+.02,glowY:y0+H9*.42,glowL:L9*.82,glowF:1, // où court le néon (position, longueur, barre avant)
     sp:1,skirt:1,split:1,doors:0,slats:0,wings:'panel'
   },(SHAPES[shape]||(console.warn('CASH CAR : gabarit inconnu « '+shape+' » sur '+spec.name+' — repli sur gt'),SHAPES.gt))(K)||{});
   const hlX=A.hl[0],hlY=A.hl[1],hlZ=A.hl[2],tlX=A.tl[0],tlY=A.tl[1],tlZ=A.tl[2];
   // ---- MINI-AILES / PLANEURS : repliées dans le flanc au sol, déployées en vol (la boucle les anime
   // via carWingL/carWingR). Le REQUIN remplace les panneaux par ses QUATRE BRAS D'HÉLICES sur les
   // MÊMES pivots : rien à ajouter dans la boucle, la caisse volante était déjà prévue par le jeu.
-  carWingL=carWingR=null;wingT=0;
+  carWingL=carWingR=null;wingT=0;carProps.length=0;
   if(A.wings!=='none'){
     const props=A.wings==='props';
     const wGeo=props?null:new THREE.BoxGeometry(W9*.92,.05,L9*.32);
@@ -3216,9 +3316,10 @@ function buildCar(spec){
           moy.position.set(sd*W9*.78,.05,fz*L9*.20);piv.add(moy);
           const rot=new THREE.Mesh(new THREE.TorusGeometry(.26,.022,6,16),chromeM); // le carénage d'hélice
           rot.rotation.x=Math.PI/2;rot.position.set(sd*W9*.78,.09,fz*L9*.20);piv.add(rot);
-          for(const pa of [0,1]){ // deux pales par hélice
-            const p9=new THREE.Mesh(new THREE.BoxGeometry(.46,.014,.07),accM);
-            p9.position.set(sd*W9*.78,.09,fz*L9*.20);p9.rotation.y=pa*Math.PI/2;piv.add(p9);}
+          for(const pa of [0,1]){ // deux pales par hélice — recensées pour que la boucle les fasse tourner
+            const p9=new THREE.Mesh(new THREE.BoxGeometry(.52,.016,.085),accM);
+            p9.position.set(sd*W9*.78,.09,fz*L9*.20);p9.rotation.y=pa*Math.PI/2;piv.add(p9);
+            carProps.push({m:p9,b:pa*Math.PI/2});}
         }
       }else{
         const wing=new THREE.Mesh(wGeo,accM);wing.position.set(sd*W9*.5,0,0);piv.add(wing);
@@ -3237,8 +3338,8 @@ function buildCar(spec){
   // ---- BANDES LUMINEUSES (caisses de l'au-delà) ----
   if(spec.glow){
     const glowM=new THREE.MeshBasicMaterial({color:spec.glow});
-    for(const sd of [-1,1])box(.05,.06,L9*.82,glowM,sd*A.glowX,A.glowY,0);
-    box(W9*.7,.06,.05,glowM,0,y0+H9*.5,L9/2+.02);
+    for(const sd of [-1,1])box(.05,.06,A.glowL,glowM,sd*A.glowX,A.glowY,0);
+    if(A.glowF)box(W9*.7,.06,.05,glowM,0,y0+H9*.5,L9/2+.02);
   }
   // ---- PROPULSEURS D'APPOINT (spec.rocket) ----
   if(spec.rocket){
@@ -5775,6 +5876,16 @@ window.dbgEngine=function(i){ // console : dbgEngine(27) → la vignette montre 
 window.dbgTakeoff=function(){const a=mode;heistFire();return {avant:a,apres:mode,vy:+fallVel.y.toFixed(1),slowT:+slowT.toFixed(2),fever:+fever.toFixed(1)};};
 window.dbgSlow=function(v){if(v!=null)slowT=v;return {slowT:+slowT.toFixed(2),s:+s.toFixed(2),fallTR:+fallTR.toFixed(2),mode:mode};};
 window.dbgDrift=function(){return {driftYaw:+driftYaw.toFixed(3),degres:Math.round(driftYaw*57.3),nitro:nitroOn,mode:mode,kmh:Math.round(Math.abs(vA)*3.6*SPD)};};
+// LA SIGNATURE D'ÉCHAPPEMENT, en lecture seule. Sans ce hook, vérifier qu'une caisse crache bien
+// SA couleur demandait de regarder l'écran — impossible en test automatisé, et à l'œil on confond
+// vite « le vert ne marche pas » avec « la caisse équipée n'est pas la bonne ».
+window.dbgJet=function(){const c=CARS[level];return {
+  caisse:c.name,fx:c.fx?{jet:'#'+(c.fx.jet||0).toString(16).padStart(6,'0'),rainbow:!!c.fx.rainbow}:null,
+  plume:'#'+jetShellM.color.getHexString(),coeur:'#'+jetCoreM.color.getHexString(),k:+JETS.k.toFixed(2),
+  ruban:{k:+trailK.toFixed(2),visible:trailL.m.visible},
+  arcEnCiel:{visible:rainbow.m.visible,arme:!!(c.fx&&c.fx.rainbow)},
+  helices:carProps.length,deploiement:+wingT.toFixed(2),
+  reflet:'#'+nitroLight.color.getHexString()};};
 window.dbgFx=function(){return {uSpeed:acesPass?+acesPass.uniforms.uSpeed.value.toFixed(3):null,post:(typeof POST_ON!=='undefined')?POST_ON:'?',sunVis:(typeof sunSprite!=='undefined')?sunSprite.visible:'?',sunOp:(typeof sunSprite!=='undefined')?+sunSprite.material.opacity.toFixed(2):'?',splash:!!document.getElementById('splash')};};
 window.dbgCreatures=function(){return {
   dolShow:+dolShow.toFixed(2),dolVis:dolphins[0].visible,
@@ -6540,7 +6651,14 @@ const SAVE={
     const c=this.def();
     if(!d||typeof d!=='object')return c;
     c.best=Math.max(0,Math.round(+d.best)||0);
-    c.bestCar=Math.min(CARS.length-1,Math.max(0,Math.round(+d.bestCar)||0));c.equipped=Math.min(c.bestCar,Math.max(0,Math.round(+d.equipped)||0)); // borné sur CARS.length : une gamme qui rétrécit ne doit pas laisser passer un index périmé
+    // ⚠ `equipped` NE SE BORNE PLUS À `bestCar` (2026-08-05). Ce clamp datait de l'époque où les
+    // caisses se gagnaient DANS L'ORDRE : `bestCar` était alors le plus haut index atteint, donc un
+    // plafond valable. Depuis que chaque caisse a sa condition — et surtout depuis que les trois
+    // PREMIUM sont ouvertes d'entrée alors que `bestCar` vaut encore 0 — il RAMENAIT à la cabossée,
+    // à chaque chargement, une caisse parfaitement légitime. Le vrai garde-fou est `equippedCar()`,
+    // qui teste `carUnlocked()` ; ici on ne borne que la FORME (un index qui existe).
+    c.bestCar=Math.min(CARS.length-1,Math.max(0,Math.round(+d.bestCar)||0));
+    c.equipped=Math.min(CARS.length-1,Math.max(0,Math.round(+d.equipped)||0)); // borné sur la gamme : un index périmé ne passe pas
     if(Array.isArray(d.leaders))c.leaders=d.leaders
       .filter(e=>e&&typeof e.n==='string'&&isFinite(+e.s))
       .slice(0,10).map(e=>({n:e.n.slice(0,8),s:Math.max(0,Math.round(+e.s))}));
@@ -8831,17 +8949,25 @@ function loop(now){
     nitroLight.position.copy(carGroup.position).addScaledVector(hsF,-2.2).addScaledVector(hsU,.5);
     const nTgt=(mode==='boom')?0:(nitroOn?(nitroBlue?2.3:1.9):(boost>0?1.1:.68)); // .68 au repos (était .8) : les FEUX ARRIÈRE posent leur reflet rouge en permanence — braise posée, plus le point chaud qui perçait
     nitroLight.intensity+=(nTgt*(.82+.18*Math.sin(t*43))-nitroLight.intensity)*Math.min(1,dt*14); // flamme qui tremble, fondu doux
-    if(nitroOn)nitroLight.color.setHex(nitroBlue?0x5b7dff:0xff7a24); // orange nitro / bleu réserve (mêmes teintes que les particules)
-    else if(boost>0)nitroLight.color.setHex(0xffb040); // pad turbo : coup d'or
-    else nitroLight.color.setHex(0xf21808); // repos : rouge feux arrière PROFOND (moins d'orangé → la braise reste rouge après le spéculaire cuivré)
+    {const FL9=CARS[level].fx,fxL=(FL9&&FL9.light!=null&&!nitroBlue)?FL9.light:null; // la signature n'éclaire QUE sous poussée
+     if(nitroOn)nitroLight.color.setHex(nitroBlue?0x5b7dff:(fxL!=null?fxL:0xff7a24)); // orange nitro / bleu réserve (mêmes teintes que les particules)
+     else if(boost>0)nitroLight.color.setHex(fxL!=null?fxL:0xffb040); // pad turbo : coup d'or
+     else nitroLight.color.setHex(0xf21808);} // repos : rouge feux arrière PROFOND (la signature ne vit qu'à la nitro)
     // PLUME DE RÉACTEUR : court au filage, long et affûté à la nitro — flicker haute fréquence, la flamme VIT
     const jTgt=(mode==='boom')?0:((nitroOn?(nitroBlue?1.35:1.05):((mode!=='drive'||loop._wasUp)&&Math.abs(speedKmh)>20?.34:0))+(boost>0?.4:0));
     JETS.k+=(jTgt-JETS.k)*Math.min(1,dt*11);
     if(JETS.shells.length){
       const jOn=JETS.k>.05,fl9=.82+.18*Math.sin(t*57+Math.sin(t*33)*2.1);
       const jl=Math.max(.03,(.5+level*.035)*JETS.k*2.1*fl9),jr=.09+.07*JETS.k;
-      jetShellM.color.setHex(nitroBlue?0x4f76ff:(nitroOn?0xff6a18:0xff8c30));
-      jetCoreM.color.setHex(nitroBlue?0xd6e4ff:0xffe6b0);
+      // LA SIGNATURE DE LA CAISSE EST UN EFFET DE **NITRO**, pas une peinture permanente (décision
+      // du user, 2026-08-05). Au filage la plume reste l'orange commun à tout le monde ; c'est en
+      // appuyant que la caisse montre ce qu'elle a dans le ventre — le vert acide, le rose de la
+      // pop-tart, l'eau du requin. Une signature qui est TOUJOURS là ne récompense plus rien.
+      // ⚠ la RÉSERVE BLEUE garde la priorité absolue : c'est un SIGNAL de jeu (« tu tapes dans la
+      // réserve »), et aucune identité de caisse n'a le droit d'effacer un signal.
+      const FX9=CARS[level].fx,fxOn=(nitroOn||boost>0)&&!nitroBlue;
+      jetShellM.color.setHex(nitroBlue?0x4f76ff:(fxOn&&FX9&&FX9.jet!=null?FX9.jet:(nitroOn?0xff6a18:0xff8c30)));
+      jetCoreM.color.setHex(nitroBlue?0xd6e4ff:(fxOn&&FX9&&FX9.core!=null?FX9.core:0xffe6b0));
       jetGlowM.color.copy(jetShellM.color);jetGlowM.opacity=Math.min(1,JETS.k*.95*fl9);
       for(const m9 of JETS.shells){m9.visible=jOn;m9.scale.set(jr,jr,jl);}
       for(const m9 of JETS.cores){m9.visible=jOn;m9.scale.set(jr*.48,jr*.48,jl*.72);}
@@ -8854,7 +8980,10 @@ function loop(now){
     hsR.set(1,0,0).applyQuaternion(carGroup.quaternion);
     const spec9=CARS[level],tz9=-(spec9.l/2+.32);
     let tcr,tcg,tcb;
-    if(nitroBlue){tcr=.45;tcg=.62;tcb=1.6;}else if(nitroOn){tcr=1.35;tcg=.40;tcb=.06;}else{tcr=1.2;tcg=.62;tcb=.10;} // couleurs FRANCHES : le ruban doit rester orange/bleu, jamais blanc
+    const FXT=spec9.fx;
+    if(nitroBlue){tcr=.45;tcg=.62;tcb=1.6;}                       // la réserve bleue reste un SIGNAL
+    else if(FXT&&FXT.trail){tcr=FXT.trail[0];tcg=FXT.trail[1];tcb=FXT.trail[2];} // la signature de la caisse
+    else if(nitroOn){tcr=1.35;tcg=.40;tcb=.06;}else{tcr=1.2;tcg=.62;tcb=.10;} // couleurs FRANCHES : le ruban doit rester orange/bleu, jamais blanc
     for(const s9 of [-1,1]){
       const tr9=s9<0?trailL:trailR,ox9=s9*spec9.w*.22;
       trailStep(tr9,
@@ -8862,6 +8991,25 @@ function loop(now){
         carGroup.position.y+hsF.y*tz9+hsR.y*ox9+hsU.y*.43,
         carGroup.position.z+hsF.z*tz9+hsR.z*ox9+hsU.z*.43,
         tcr,tcg,tcb,trailK);
+    }
+    // L'ARC-EN-CIEL EST LA TRAÎNÉE DE NITRO DE CETTE CAISSE — pas un décor permanent. Il suit donc
+    // `trailK`, exactement comme les rubans des autres : il se déclenche à l'appui, s'éteint en
+    // douceur, et le joueur le MÉRITE. (Première version : toujours visible dès qu'on roulait ;
+    // le user a tranché — les effets spéciaux de caisse sont des effets de nitro.)
+    if(FXT&&FXT.rainbow){
+      // ⚠ ET IL S'EFFACE EN RÉSERVE BLEUE, comme la plume. Sinon la caisse continue d'arborer ses
+      // six couleurs pendant que les rubans passent au bleu : le joueur voit deux messages
+      // contradictoires et le signal « tu tapes dans la réserve » se perd dans la fête.
+      const rk=(mode==='boom'||nitroBlue)?0:trailK;
+      rainbowStep(carGroup.position.x+hsF.x*tz9+hsU.x*.62,
+                  carGroup.position.y+hsF.y*tz9+hsU.y*.62,
+                  carGroup.position.z+hsF.z*tz9+hsU.z*.62,rk);
+    }else if(rainbow.m.visible){rainbow.m.visible=false;rainbow.init=false;}
+    // LES HÉLICES DU REQUIN : elles brassent doucement au sol et s'emballent en vol (`wingT` est
+    // déjà le taux de déploiement des bras — une seule variable pilote la sortie ET le régime).
+    if(carProps.length){
+      propSpin+=dt*(3.5+wingT*36);
+      for(const p9 of carProps)p9.m.rotation.y=p9.b+propSpin;
     }
     // le reflet de la traînée GLISSE sur la route derrière la caisse (même couleur que le ruban)
     trailLight.position.copy(carGroup.position).addScaledVector(hsF,-9).addScaledVector(hsU,1.1);

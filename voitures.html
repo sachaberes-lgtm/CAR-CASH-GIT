@@ -106,6 +106,7 @@
     <div id="topBar">
       <button id="bSpin" class="on">↻ ROTATION</button>
       <button id="bLite">☀ LUMIÈRES</button>
+      <button id="bAir">✈ EN VOL</button>
       <button id="bGrid">▦ LA PLANCHE</button>
       <button id="bSil">◧ SILHOUETTES</button>
       <button id="bDbl">⚖ DOUBLONS</button>
@@ -181,7 +182,7 @@ function moduleVoitures(src,carGroup){
   const sVoit =bloc(/\/\* <<<VOITURES>>>[\s\S]*?<<<FIN VOITURES>>> \*\//,'bloc <<<VOITURES>>>');
   const f=new Function('THREE','envTex','carGroup',
     sCars+'\n'+sUnl+'\n'+sVoit
-    +'\nreturn {CARS,CAR_UNLOCK,buildCar,carProfile,RIM_U,JETS,CARPOOL,wheels,ailes:()=>[carWingL,carWingR]};');
+    +'\nreturn {CARS,CAR_UNLOCK,buildCar,carProfile,RIM_U,JETS,CARPOOL,wheels,carProps,ailes:()=>[carWingL,carWingR]};');
   return f(THREE,envTex,carGroup);
 }
 
@@ -217,7 +218,7 @@ studio(scene);
  sol.rotation.x=-Math.PI/2;sol.position.y=-.004;sol.renderOrder=-5;scene.add(sol);}
 const carGroup=new THREE.Group();scene.add(carGroup);
 
-let cur=0,spin=true,lite=false,ang=.72,pitch=.20,dist=9,zoom=1,frameR=3.5,frameH=.7;
+let cur=0,spin=true,lite=false,ang=.72,pitch=.20,dist=9,zoom=1,frameR=3.5,frameH=.7,propSpin=0,ailesD=0;
 // LE CADRAGE EST RECALCULÉ, PAS FIGÉ. La distance dépend du format de la fenêtre : la figer au
 // moment du build donnait une caisse hors champ dès qu'on redimensionnait — et, quand le panneau
 // démarre à 0×0 (onglet encore masqué), un `aspect` NaN gelait la caméra en NaN pour de bon :
@@ -260,7 +261,7 @@ function boiteCaisse(grp){
 function poser(i){
   cur=((i%CARS.length)+CARS.length)%CARS.length;
   mod.buildCar(CARS[cur]);
-  poserAiles(mod,0);appliquerLumieres(carGroup,lite);
+  poserAiles(mod,ailesD);appliquerLumieres(carGroup,lite);
   const c=CARS[cur],bb=boiteCaisse(carGroup);
   // CADRAGE : la caisse tourne autour de Y, donc ce qui doit tenir dans le champ est son rayon
   // dans le plan XZ (pas le coin de sa boîte), et sa hauteur.
@@ -313,6 +314,10 @@ function boucle(now){
   requestAnimationFrame(boucle);
   const dt=Math.min(.05,(now-last)/1000);last=now;
   if(spin)ang+=dt*.5;
+  // LES HÉLICES tournent aussi ici : un atelier qui montre un rotor figé ne dit pas la vérité sur
+  // la caisse. `d` = taux de déploiement des bras (0 au sol, 1 en vol) — voir poserAiles.
+  if(mod&&mod.carProps.length){propSpin+=dt*(3.5+ailesD*36);
+    for(const p9 of mod.carProps)p9.m.rotation.y=p9.b+propSpin;}
   const cp=Math.cos(pitch)*dist,hh=Math.sin(pitch)*dist;
   const cy=.55;
   camera.position.set(Math.sin(ang)*cp,cy+hh,Math.cos(ang)*cp);
@@ -342,6 +347,9 @@ addEventListener('keydown',e=>{
 });
 $('bSpin').addEventListener('click',()=>{spin=!spin;$('bSpin').classList.toggle('on',spin);});
 $('bLite').addEventListener('click',()=>{lite=!lite;$('bLite').classList.toggle('on',lite);appliquerLumieres(carGroup,lite);});
+// EN VOL : `buildCar` pose les ailes à plat, c'est la boucle du JEU qui les rétracte au sol.
+// L'étal doit pouvoir montrer les deux états — sinon les bras d'hélices du requin n'existent nulle part.
+$('bAir').addEventListener('click',()=>{ailesD=ailesD?0:1;$('bAir').classList.toggle('on',!!ailesD);poserAiles(mod,ailesD);});
 
 /* ============================================================================
    LE BANC HORS ÉCRAN — un seul renderer réutilisé.

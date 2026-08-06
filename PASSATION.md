@@ -59,6 +59,7 @@ bien dans le fichier.
 ## HOOKS CONSOLE
 `dbgTier(n)` rejouer un passage de palier · `dbgEngine(i)` prévisualiser un moteur ·
 `dbgPieces(z)` densité de pièces par zone · `dbgHudCar()` état vignette/flamme/chauffe ·
+`dbgJet()` signature d'échappement (plume, ruban, arc-en-ciel, hélices) ·
 `dbgState()` état interne (dont `engTier`, `coinsGot`) · `dbgStep(n,ms)` avancer la boucle à la main
 (indispensable si l'onglet est en arrière-plan) · `dbgGap()` `dbgBio()` `dbgCar(i)` `dbgFx()`
 
@@ -99,12 +100,16 @@ bien dans le fichier.
    pire cas 78,0 %**. Trois caisses fantastiques d'après les planches du user (ACIDE le tuner au
    capot vitré, CHAT POP-TART, REQUIN à bulle et hélices) avec des matières GÉNÉRATIVES (`MATV`),
    **offertes d'entrée** (`{k:'prem',v:0}` — un `0` à passer à `1` le jour où elles se paient).
-   ⚠ Ce qui reste ouvert dessus : (a) **l'arc-en-ciel du CHAT POP-TART** et **la flamme verte de
-   l'ACIDE** — les traînées-rubans et la plume de réacteur ont des matériaux PARTAGÉS pilotés par
-   l'état nitro dans la boucle, donc une teinte par caisse demande de les dédoubler ; (b) les
-   **hélices du REQUIN ne tournent pas** (elles se déploient déjà en vol via `wings:'props'`, il
-   manque juste une rotation dans la boucle) ; (c) les descriptions des 9 caisses supprimées ne
-   sont pas recyclées.
+   **Les signatures sont faites** (2e passe) : `spec.fx` donne à chaque caisse sa plume, son ruban
+   et son reflet au sol, l'arc-en-ciel du CHAT POP-TART a son propre ruban à 7 rangées, et les
+   hélices du REQUIN tournent. ⚠ **RÈGLE POSÉE PAR LE USER** : ces effets ne s'allument QU'À LA
+   NITRO — au filage, tout le monde garde la plume orange commune. Et la RÉSERVE BLEUE efface
+   toutes les signatures : c'est un signal de jeu, pas une décoration.
+   ⚠ **CE QUE JE N'AI PAS PU JUGER** : le RENDU de l'arc-en-ciel (largeur, densité des bandes,
+   lisibilité à 400 km/h). L'état est vérifié par `dbgJet()` — il s'allume et s'éteint au bon
+   moment — mais `dbgStep` désynchronise la caméra de poursuite, donc aucune capture propre.
+   **À valider à l'écran, manette en main.** Reste aussi : les descriptions des 9 caisses
+   supprimées ne sont pas recyclées.
 7. **`#carInfo` est masqué** (`display:none!important`, choix « HUD épuré ») : le nom de la caisse
    conduite n'apparaît nulle part en jeu. À rallumer ou à assumer.
 
