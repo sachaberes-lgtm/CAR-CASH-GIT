@@ -49,7 +49,7 @@ bien dans le fichier.
   contact, la seule vue qui montre si deux paliers se ressemblent trop.
 - **`voitures.html` — L'ÉTAL DES VOITURES** — même principe pour la gamme (bloc balisé
   `<<<VOITURES>>>` + `CARS` + `CAR_UNLOCK`). Quatre vues : showroom, **planche contact**,
-  **SILHOUETTES** (profil noir, échelle COMMUNE aux 24 : une caisse courte se voit courte) et
+  **SILHOUETTES** (profil noir, échelle COMMUNE à toute la gamme : une caisse courte se voit courte) et
   **DOUBLONS** — le recouvrement mesuré de chaque paire de profils, classé. C'est la page à ouvrir
   AVANT de toucher à une carrosserie, et à rouvrir après pour voir si le chiffre a bougé.
 - **`atelier-rouille.html`** — les 3 propositions du moteur rouillé + les régimes RALENTI / ROULE /
