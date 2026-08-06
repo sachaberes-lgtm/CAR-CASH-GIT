@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>CASH CAR — REDESIGN MOTEURS : 3 DIRECTIONS</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  :root{--pix:"Press Start 2P",monospace;--cy:#7dffec;--or:#ffd75e}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#07050f;color:#e8e8f0;font-family:var(--pix);overflow:hidden;
+    background-image:radial-gradient(120% 80% at 50% 0%,#1e1638 0%,#07050f 62%)}
+  #wrap{display:flex;height:100vh;width:100vw}
+  #side{width:270px;flex:0 0 270px;border-right:1px solid rgba(125,255,236,.16);
+    display:flex;flex-direction:column;background:rgba(5,8,20,.6)}
+  #sideTop{padding:15px 14px 11px;border-bottom:1px solid rgba(125,255,236,.12)}
+  #sideTop h1{font-size:10px;color:var(--or);line-height:1.8;text-shadow:0 0 12px rgba(255,215,94,.5)}
+  #sideTop p{font-size:6.5px;color:#8f84c8;line-height:2;margin-top:8px}
+  #list{flex:1;overflow-y:auto;padding:6px 0}
+  .row{display:flex;align-items:center;gap:9px;padding:9px 13px;cursor:pointer;border-left:3px solid transparent}
+  .row:hover{background:rgba(125,255,236,.07)}
+  .row.on{background:rgba(125,255,236,.13);border-left-color:var(--cy)}
+  .num{font-size:7px;color:#5a5580;min-width:22px;text-align:right}
+  .swatch{width:11px;height:11px;border-radius:2px;flex:0 0 11px;box-shadow:0 0 8px currentColor}
+  .nm{font-size:7px;line-height:1.7;flex:1;color:#dfe8fc}
+  .row.on .nm{color:var(--cy)}
+  .ar{font-size:6px;color:#6f6a95}
+  #main{flex:1;position:relative;min-width:0;overflow:hidden}
+  /* ⚠ le canvas ne doit JAMAIS dicter la mise en page : sans taille CSS il s'affiche à la taille de
+     son buffer, #main se règle dessus, et on repart pour un tour à chaque frame (spirale). */
+  #main>canvas{display:block;position:absolute;left:0;top:0;width:100%;height:100%}
+  #topBar{position:absolute;top:0;right:0;padding:12px 16px;display:flex;gap:8px;z-index:6;pointer-events:none}
+  button{pointer-events:auto;cursor:pointer;font-family:var(--pix);font-size:7.5px;line-height:1;
+    padding:9px 12px;color:#dfe8fc;background:rgba(14,11,30,.92);
+    border:1px solid rgba(125,255,236,.32);border-radius:8px}
+  button:hover{border-color:var(--cy);color:var(--cy);box-shadow:0 0 14px rgba(125,255,236,.25)}
+  button.on{background:rgba(125,255,236,.16);border-color:var(--cy);color:var(--cy)}
+  #hint{position:absolute;top:14px;left:16px;font-size:6.5px;color:#4e4a72;line-height:2;pointer-events:none;z-index:3}
+  #cards{position:absolute;left:0;right:0;bottom:0;display:flex;pointer-events:none;z-index:2}
+  .card{flex:1;padding:13px 15px 15px;border-top:1px solid rgba(125,255,236,.13);
+    background:linear-gradient(180deg,rgba(7,5,15,0),rgba(7,5,15,.95) 42%)}
+  .card+.card{border-left:1px solid rgba(125,255,236,.10)}
+  .cTag{font-size:6px;color:#5a5580;line-height:1.8}
+  .cNm{font-size:13px;margin-top:5px;line-height:1.5}
+  .cTx{font-size:6.5px;color:#b9b2dc;line-height:2.1;margin-top:8px}
+  .c0 .cNm{color:#ffc38a;text-shadow:0 0 14px rgba(255,170,100,.5)}
+  .c1 .cNm{color:#7dffec;text-shadow:0 0 14px rgba(125,255,236,.5)}
+  .c2 .cNm{color:#c79dff;text-shadow:0 0 14px rgba(180,120,255,.5)}
+  #grid{position:absolute;inset:0;display:none;grid-template-columns:repeat(3,1fr);
+    background:#07050f;overflow-y:auto;z-index:5;align-content:start}
+  #grid.on{display:grid}
+  .gh{position:sticky;top:0;padding:10px;text-align:center;font-size:8px;background:#07050f;
+    border-bottom:1px solid rgba(125,255,236,.16);z-index:2}
+  .cell{position:relative;aspect-ratio:1;border:1px solid rgba(125,255,236,.08);overflow:hidden}
+  .cell canvas{display:block;width:100%;height:100%}
+  .cLbl{position:absolute;left:0;right:0;bottom:0;padding:4px 6px 6px;font-size:5.5px;line-height:1.7;
+    color:#c9c2ea;background:linear-gradient(180deg,rgba(7,5,15,0),rgba(7,5,15,.92));text-align:center}
+  @media (max-width:1000px){#side{width:190px;flex-basis:190px}.cTx{display:none}}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="side">
+    <div id="sideTop">
+      <h1>REDESIGN<br>MOTEURS</h1>
+      <p>8 paliers témoins · 3 directions<br>tout est généré par le code</p>
+    </div>
+    <div id="list"></div>
+  </div>
+  <div id="main">
+    <div id="hint">glisser : tourner<br>molette : zoomer<br>← → : palier</div>
+    <div id="topBar">
+      <button id="bSpin" class="on">↻ ROTATION</button>
+      <button id="bGrid">▦ LES 24</button>
+    </div>
+    <div id="cards">
+      <div class="card c0"><div class="cTag">DIRECTION A</div><div class="cNm">FONDERIE</div>
+        <div class="cTx">La pièce de mécanique VRAIE. Carter à profil coulé et arêtes biseautées, nervures de renfort, cloche d'embrayage tournée, collecteurs qui BLEUISSENT à la culasse, cornets d'admission dans le V. Le carter s'allonge avec les cylindres, les bancs s'ouvrent au vrai angle.</div></div>
+      <div class="card c1"><div class="cTag">DIRECTION B</div><div class="cNm">NÉON</div>
+        <div class="cTx">Le même squelette, mais c'est une pièce de NUIT : corps noir anodisé, saignées usinées qui s'allument à la couleur du palier, chambre incandescente entre les bancs, racines d'échappement au rouge. Pensée pour être lisible à 200 px — la taille de la vignette en jeu.</div></div>
+      <div class="card c2"><div class="cTag">DIRECTION C</div><div class="cNm">RELIQUE</div>
+        <div class="cTx">Ce n'est plus un moteur, c'est un OBJET. Coque érodée par bruit fractal, fûts remplacés par des cristaux taillés, culasse en lévitation au-dessus du vide, anneaux en orbite et nervures d'énergie. Étrange, cher, endgame.</div></div>
+    </div>
+    <div id="grid"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ============================================================================
+   REDESIGN DES MOTEURS — 3 DIRECTIONS À COMPARER (2026-08-05)
+
+   POURQUOI. Mesuré sur la planche contact de `moteurs.html` : les paliers 3 à 18 se recouvrent
+   à 85-99 % de silhouette (V10 / V12 / W12 : 99 %). SEIZE paliers pour une seule forme. Deux
+   causes, aucune n'était une histoire de finition :
+     1. le bloc faisait 1,5 × 0,9 × 1,1 pour tout le monde, du bicylindre au V16 ;
+     2. les fûts étaient inclinés autour de Z alors que le vilebrequin court sur X — un V
+        s'ouvre dans le plan Y-Z, donc le V ne POUVAIT PAS se lire, quel que soit l'angle.
+
+   ⚠ ET LA VRAIE RAISON POUR LAQUELLE C'ÉTAIT LAID : tout était une PRIMITIVE ÉTIRÉE. Un cube
+   mis à l'échelle reste un cube — arêtes vives, faces plates, zéro accroche de lumière. Ici on
+   passe à deux outils qui changent tout :
+     · `profilX()` — on décrit la SECTION de la pièce (carter, culasse, couvre-culasse) et on
+       l'extrude AVEC BISEAU. C'est l'arête cassée qui fait la pièce coulée : elle attrape un
+       filet de lumière sur toute sa longueur.
+     · `tourneX()` — les pièces TOURNÉES (cloche d'embrayage, poulies, fûts, cornets, carters
+       de turbine, tuyères) sont des profils de révolution, pas des cylindres étirés. Un cornet
+       d'admission, c'est une courbe ; un cône ne le remplace pas.
+   Le reste (boulons, nervures, durites, érosion) est SEMÉ par tirage : chaque palier a sa
+   graine, donc son propre désordre — reproductible, jamais dessiné à la main.
+
+   Ce que les 3 directions PARTAGENT : le squelette (longueur ∝ cylindres, bancs ∝ architecture).
+   Ce qu'elles ne partagent pas : la matière, la lumière et ce qu'on ajoute par-dessus.
+   ========================================================================== */
+const $=id=>document.getElementById(id);
+
+/* ---------- ALÉA SEMÉ ---------- */
+const mul=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
+const hash3=(x,y,z)=>{let h=Math.imul(((x*7349)^(y*15731)^(z*24593))|0,668265263);
+  h^=h>>>13;h=Math.imul(h,1274126177);return((h^h>>>16)>>>0)/4294967296;};
+
+/* ---------- LES CARTES : tout est peint par le code ---------- */
+const S=192;
+function bruit(seed){const G=256,r=mul(seed),tab=new Float32Array(G*G);
+  for(let i=0;i<G*G;i++)tab[i]=r();
+  const sm=t=>t*t*(3-2*t);
+  return (x,y)=>{const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi;
+    const a=tab[((yi&255)*G)+(xi&255)],b=tab[((yi&255)*G)+((xi+1)&255)];
+    const c=tab[(((yi+1)&255)*G)+(xi&255)],d=tab[(((yi+1)&255)*G)+((xi+1)&255)];
+    const u=sm(xf),v=sm(yf);return (a*(1-u)+b*u)*(1-v)+(c*(1-u)+d*u)*v;};}
+const fbm=(n,x,y,o,p)=>{let s=0,a=1,f=1,q=0;for(let i=0;i<o;i++){s+=n(x*f,y*f)*a;q+=a;a*=p;f*=2;}return s/q;};
+const cl=v=>v<0?0:v>1?1:v;
+function trio(fn){
+  const cs=[0,1,2].map(()=>{const c=document.createElement('canvas');c.width=c.height=S;return c;});
+  const ims=cs.map(c=>c.getContext('2d').createImageData(S,S));
+  for(let y=0;y<S;y++)for(let x=0;x<S;x++){
+    const o=fn(x/S,y/S),j=(y*S+x)*4;
+    ims[0].data[j]=cl(o[0])*255;ims[0].data[j+1]=cl(o[1])*255;ims[0].data[j+2]=cl(o[2])*255;ims[0].data[j+3]=255;
+    ims[1].data[j]=ims[1].data[j+1]=ims[1].data[j+2]=cl(o[3])*255;ims[1].data[j+3]=255;
+    ims[2].data[j]=ims[2].data[j+1]=ims[2].data[j+2]=cl(o[4])*255;ims[2].data[j+3]=255;
+  }
+  cs.forEach((c,i)=>c.getContext('2d').putImageData(ims[i],0,0));
+  const mk=c=>{const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;return t;};
+  return {map:mk(cs[0]),bump:mk(cs[1]),spec:mk(cs[2])};
+}
+const nA=bruit(31),nB=bruit(97),nC=bruit(4231);
+// ALU DE FONDERIE : quasi neutre en couleur (elle doit se laisser teinter) mais VIVANTE en
+// spéculaire — c'est le grain de moulage qui empêche l'effet plastique.
+const T_ALU=trio((u,v)=>{const g=fbm(nA,u*9,v*9,3,.5),f=fbm(nB,u*38,v*38,2,.5);
+  const b=.76+(g-.5)*.10+(f-.5)*.07,piq=Math.pow(fbm(nB,u*26,v*26,2,.5),6);
+  return[b,b*1.01,b*1.04,cl(.5+(g-.5)*.22+(f-.5)*.30-piq*.5),cl(.62+(f-.5)*.5-piq*.45)];});
+// FONTE ROUILLÉE : réservée à l'épave. La rouille PLEURE depuis une plaque installée.
+const T_FONTE=trio((u,v)=>{const x=u*5.5,y=v*5.5;
+  let r=fbm(nA,x,y,5,.55);const co=fbm(nC,x*3.5,y*.35,3,.5);
+  r=Math.max(r,(r>.47?1:0)*co*.92);
+  const t=cl((r-.52)*3.2),g=fbm(nB,x*7,y*7,2,.52);
+  const mx=(A,B,k)=>[A[0]+(B[0]-A[0])*k,A[1]+(B[1]-A[1])*k,A[2]+(B[2]-A[2])*k];
+  let c=mx([.59,.58,.6],[.6,.38,.23],cl(t*1.6));c=mx(c,[.8,.55,.33],cl((t-.55)*2.2)*.85);
+  if(t<.12)c=mx(c,[.83,.84,.86],cl((.12-t)*7)*.5*cl(g*1.4));
+  const gg=(g-.5)*.12*(1-cl(t)*.55),piq=Math.pow(fbm(nB,x*13,y*13,2,.5),5);
+  return[c[0]+gg,c[1]+gg,c[2]+gg,cl(.5+t*.26+(g-.5)*.13-piq*.30),cl((1-t)*(.55+g*.5)-piq*.3)];});
+// ANODISÉ NOIR (direction B) : presque noir, mais BROSSÉ — sans le brossage c'est du plastique.
+const T_ANOD=trio((u,v)=>{const b=fbm(nB,u*4,v*90,2,.5),g=fbm(nA,u*7,v*7,3,.5);
+  const l=.13+(b-.5)*.06+(g-.5)*.03;
+  return[l,l*1.04,l*1.14,cl(.5+(b-.5)*.4),cl(.34+(b-.5)*.9)];});
+// CROÛTE ÉRODÉE (direction C) : basalte fendu, avec des veines qui prennent la lumière.
+const T_CROUTE=trio((u,v)=>{const g=fbm(nA,u*6,v*6,5,.55),f=fbm(nC,u*17,v*17,3,.5);
+  // ⚠ une roche N'EST PAS BRILLANTE. Version 1 : bump .055 + pic spéculaire à .7 sur chaque
+  // fissure = un banc de paillettes. Le relief est calmé et le spéculaire plafonné bas.
+  const fis=Math.pow(1-Math.abs(f-.5)*2,9),l=.11+(g-.5)*.10;
+  return[l+fis*.10,l*.95+fis*.06,l*1.28+fis*.17,cl(.5+(g-.5)*.35-fis*.22),cl(.10+fis*.26)];});
+// LE COLLECTEUR CHAUFFÉ : sur une vraie photo, l'inox BLEUIT près de la culasse puis vire paille
+// avant de redevenir poli. C'est ce dégradé qui vend la pièce, pas sa forme.
+const T_CHAUFFE=(function(){const c=document.createElement('canvas');c.width=128;c.height=8;
+  const x=c.getContext('2d'),g=x.createLinearGradient(0,0,128,0);
+  g.addColorStop(0,'#5f74b4');g.addColorStop(.12,'#8878ac');g.addColorStop(.30,'#c9a870');
+  g.addColorStop(.50,'#dccfb2');g.addColorStop(.74,'#b6c0cc');g.addColorStop(1,'#e2e9f0');
+  x.fillStyle=g;x.fillRect(0,0,128,8);
+  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;return t;})();
+// LES SAIGNÉES USINÉES (direction B) : un plan noir dans lequel le code CREUSE des rainures qui
+// s'allument. La carte d'émission fait tout — la géométrie ne bouge pas d'un sommet.
+const cacheCanaux={};
+function texCanaux(col){
+  if(cacheCanaux[col])return cacheCanaux[col];
+  const N=256,c=document.createElement('canvas');c.width=c.height=N;const x=c.getContext('2d');
+  x.fillStyle='#000';x.fillRect(0,0,N,N);
+  const r=mul(col|0),h='#'+(col>>>0).toString(16).padStart(6,'0');
+  // ⚠ VERSION 1 = des gribouillis à coudes : ça lisait « autocollant de circuit imprimé », pas
+  // « pièce usinée ». Une saignée d'usinage suit la LONGUEUR de la pièce, en rainures parallèles
+  // de largeurs tirées, coupées de loin en loin par une traverse. C'est la régularité qui fait
+  // la machine ; le tirage ne sert qu'à ce que deux paliers n'aient pas la même partition.
+  x.fillStyle=h;
+  let y=10+r()*14;
+  while(y<N-12){const w=3+r()*7;x.fillRect(0,y,N,w);y+=w+9+r()*26;}
+  for(let k=0;k<3;k++){const cx=N*(k+.5)/3+(r()-.5)*30;x.fillRect(cx,0,2+r()*3,N);}
+  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;cacheCanaux[col]=t;return t;
+}
+// le halo : le seul « bloom » possible sans post-traitement
+const T_HALO=(function(){const N=128,c=document.createElement('canvas');c.width=c.height=N;
+  const x=c.getContext('2d'),g=x.createRadialGradient(N/2,N/2,0,N/2,N/2,N/2);
+  g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.32,'rgba(255,255,255,.40)');
+  g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,N,N);
+  return new THREE.CanvasTexture(c);})();
+
+/* ---------- LE STUDIO : un env neutre, pour que le chrome ait à refléter ---------- */
+const envTex=(function(){const f=[];
+  for(let i=0;i<6;i++){const cv=document.createElement('canvas');cv.width=cv.height=64;
+    const c=cv.getContext('2d'),g=c.createLinearGradient(0,0,0,64);
+    if(i===2){g.addColorStop(0,'#dcecff');g.addColorStop(1,'#93aede');}
+    else if(i===3){g.addColorStop(0,'#171530');g.addColorStop(1,'#0b0a16');}
+    else{g.addColorStop(0,'#8496c6');g.addColorStop(.55,'#3c3a64');g.addColorStop(1,'#15132a');}
+    c.fillStyle=g;c.fillRect(0,0,64,64);f.push(cv);}
+  const t=new THREE.CubeTexture(f);t.needsUpdate=true;return t;})();
+
+/* ---------- LES MATÉRIAUX ----------
+   ⚠ En r128 (MeshPhong, pas de PBR) le chrome ne vient PAS d'une texture : il vient d'une
+   `shininess` énorme + une `envMap` très réfléchissante. Le studio sert de sonde. */
+const MM={
+  alu:(c,sh)=>new THREE.MeshPhongMaterial({color:c==null?0xd2d7e0:c,map:T_ALU.map,bumpMap:T_ALU.bump,
+    bumpScale:.012,specularMap:T_ALU.spec,shininess:sh||150,specular:0xeef4ff,
+    envMap:envTex,reflectivity:.38,combine:THREE.MixOperation}),
+  inox:c=>new THREE.MeshPhongMaterial({color:c==null?0xeef3f9:c,shininess:330,specular:0xffffff,
+    envMap:envTex,reflectivity:.90,combine:THREE.MixOperation}),
+  chauffe:()=>new THREE.MeshPhongMaterial({color:0xffffff,map:T_CHAUFFE,shininess:290,specular:0xffffff,
+    envMap:envTex,reflectivity:.52,combine:THREE.MixOperation}),
+  anod:c=>new THREE.MeshPhongMaterial({color:c,map:T_ALU.map,bumpMap:T_ALU.bump,bumpScale:.008,
+    shininess:250,specular:0xffffff,envMap:envTex,reflectivity:.36,combine:THREE.MixOperation}),
+  fonte:c=>new THREE.MeshPhongMaterial({color:c==null?0x9a8f84:c,map:T_FONTE.map,bumpMap:T_FONTE.bump,
+    bumpScale:.030,specularMap:T_FONTE.spec,shininess:60,specular:0xc0c8d2,
+    envMap:envTex,reflectivity:.18,combine:THREE.MixOperation}),
+  noir:()=>new THREE.MeshPhongMaterial({color:0x181b22,shininess:130,specular:0x76808e,
+    envMap:envTex,reflectivity:.20,combine:THREE.MixOperation}),
+  nuit:()=>new THREE.MeshPhongMaterial({color:0x8e98a8,map:T_ANOD.map,bumpMap:T_ANOD.bump,bumpScale:.013,
+    specularMap:T_ANOD.spec,shininess:270,specular:0xdfe8ff,envMap:envTex,reflectivity:.32,combine:THREE.MixOperation}),
+  canaux:c=>new THREE.MeshPhongMaterial({color:0x7d8797,map:T_ANOD.map,bumpMap:T_ANOD.bump,bumpScale:.013,
+    emissive:0xffffff,emissiveMap:texCanaux(c),shininess:290,specular:0xffffff,
+    envMap:envTex,reflectivity:.30,combine:THREE.MixOperation}),
+  croute:c=>new THREE.MeshPhongMaterial({color:c==null?0x929ab8:c,map:T_CROUTE.map,bumpMap:T_CROUTE.bump,
+    bumpScale:.022,specularMap:T_CROUTE.spec,shininess:26,specular:0x7d88a8,
+    envMap:envTex,reflectivity:.14,combine:THREE.MixOperation}),
+  cristal:c=>new THREE.MeshPhongMaterial({color:c,emissive:c,emissiveIntensity:.5,shininess:400,
+    specular:0xffffff,transparent:true,opacity:.74,envMap:envTex,reflectivity:.78,combine:THREE.MixOperation}),
+  feu:c=>new THREE.MeshBasicMaterial({color:c}),
+  glow:(c,o)=>new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:o==null?.45:o,
+    blending:THREE.AdditiveBlending,depthWrite:false})
+};
+const halo=(col,s,x,y,z,op)=>{const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:T_HALO,color:col,
+  transparent:true,opacity:op==null?.7:op,blending:THREE.AdditiveBlending,depthWrite:false}));
+  sp.scale.set(s,s,1);sp.position.set(x||0,y||0,z||0);return sp;};
+
+/* ============================================================================
+   LES DEUX OUTILS DE FORME — c'est là que se joue « pièce de mécanique » vs « cube »
+   ========================================================================== */
+// PROFIL EXTRUDÉ le long de X, avec BISEAU. On décrit la SECTION dans le plan (z,y) et le code
+// l'étire sur la longueur. Le biseau casse l'arête : sur une pièce coulée, il n'existe pas
+// d'angle vif, et c'est exactement ce filet de lumière qui manquait aux boîtes redimensionnées.
+function profilX(pts,len,bev){
+  const s=new THREE.Shape();
+  s.moveTo(-pts[0][0],pts[0][1]);
+  for(let i=1;i<pts.length;i++)s.lineTo(-pts[i][0],pts[i][1]);
+  s.closePath();
+  const b=bev==null?.022:bev;
+  const g=new THREE.ExtrudeGeometry(s,{depth:len,bevelEnabled:b>0,bevelSize:b,bevelThickness:b,
+    bevelSegments:2,curveSegments:4,steps:1});
+  g.translate(0,0,-len/2);g.rotateY(Math.PI/2);
+  return g;
+}
+// PIÈCE TOURNÉE (au tour), axe sur X. Les points sont [rayon, position sur l'axe]. Une cloche
+// d'embrayage, un cornet d'admission, une tuyère : ce sont des COURBES de révolution — un cône
+// étiré ne les remplace pas, il en donne la caricature.
+function tourneX(pts,seg){
+  const v=pts.map(p=>new THREE.Vector2(Math.max(.0006,p[0]),p[1]));
+  const g=new THREE.LatheGeometry(v,seg||22);
+  g.rotateZ(-Math.PI/2);
+  return g;
+}
+const M=(geo,mat,x,y,z)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x||0,y||0,z||0);return m;};
+// un tube qui SERPENTE d'un point à l'autre, avec du mou et un tirage : durite, faisceau,
+// nervure d'énergie — une seule fonction pour tout ce qui relie deux pièces.
+function serpent(g,p0,p1,mat,r,rng,mou){
+  const pts=[],n=4;
+  for(let k=0;k<=n;k++){const t=k/n,w=Math.sin(t*Math.PI);
+    pts.push(new THREE.Vector3(
+      p0[0]+(p1[0]-p0[0])*t+(rng()-.5)*.10*w,
+      p0[1]+(p1[1]-p0[1])*t-(mou||.16)*w+(rng()-.5)*.07*w,
+      p0[2]+(p1[2]-p0[2])*t+(rng()-.5)*.10*w));}
+  g.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),14,r,7,false),mat));
+}
+// ÉROSION : on hache le sommet par sa POSITION, pas par son index — sinon une géométrie non
+// indexée se déchire en confettis (chaque triangle y a ses propres sommets).
+function eroder(geo,amp,freq,graine){
+  const p=geo.attributes.position;geo.computeVertexNormals();
+  const n=geo.attributes.normal,q=v=>Math.round(v*freq*40);
+  for(let i=0;i<p.count;i++){
+    const x=p.getX(i),y=p.getY(i),z=p.getZ(i);
+    const d=(hash3(q(x)+graine,q(y),q(z))*.62+hash3(q(x)*2+graine,q(y)*2,q(z)*2)*.38-.5)*amp;
+    p.setXYZ(i,x+n.getX(i)*d,y+n.getY(i)*d,z+n.getZ(i)*d);}
+  p.needsUpdate=true;geo.computeVertexNormals();return geo;
+}
+const gSph=new THREE.SphereGeometry(1,20,14),gCyl=new THREE.CylinderGeometry(1,1,1,6);
+const boulon=(g,mat,x,y,z,r)=>{const m=new THREE.Mesh(gCyl,mat);
+  m.scale.set(r||.030,.030,r||.030);m.position.set(x,y,z);g.add(m);};
+
+/* ============================================================================
+   LE SQUELETTE — commun aux 3 directions. C'est ici que naît la variété de silhouette :
+   la LONGUEUR sort du nombre de cylindres, les BANCS sortent de l'architecture, et un banc
+   s'ouvre autour de X (le vilebrequin court sur X) — la seule façon de faire lire un V.
+   ========================================================================== */
+function squelette(E){
+  const BK=E.a==='in'?[[0,0]]:E.a==='v'?[[-.44,0],[.44,0]]
+         :E.a==='fl'?[[-1.50,0],[1.50,0]]
+         :E.a==='w'?[[-.80,0],[-.28,0],[.28,0],[.80,0]]
+         :E.a==='h'?[[-1.50,-1],[1.50,-1],[-1.50,1],[1.50,1]]:[[0,0]];
+  const parBanc=Math.max(1,Math.ceil(E.c/BK.length));
+  return {BK:BK,parBanc:parBanc,L:.52+parBanc*.30,piston:'in v fl w h'.split(' ').indexOf(E.a)>=0};
+}
+// ---- LE CORPS À PISTONS, partagé par A et B : seuls les matériaux passés changent ----
+function corps(g,E,K,MT,rng,ep){
+  const L=K.L,plat=E.a==='fl',haut=E.a==='h';
+  // LE CARTER : une section de pièce coulée (flancs qui rentrent, semelle étroite), pas une boîte
+  const sec=plat?[[-.30,.20],[.30,.20],[.26,-.10],[.16,-.24],[-.16,-.24],[-.26,-.10]]
+        :haut?[[-.24,.50],[.24,.50],[.22,-.50],[-.22,-.50]]
+        :[[-.34,.26],[.34,.26],[.30,-.02],[.20,-.26],[-.20,-.26],[-.30,-.02]];
+  g.add(M(profilX(sec,L,.026),MT.bloc,0,-.02,0));
+  // LES NERVURES DE RENFORT, semées : c'est ce qui dit « pièce coulée sous contrainte »
+  if(!ep&&!plat){const nb=3+Math.floor(rng()*3);
+    for(let k=0;k<nb;k++){const u=(k/(nb-1)-.5)*(L-.30)+(rng()-.5)*.06;
+      for(const s of[-1,1])g.add(M(profilX([[-.03,.22],[.03,.22],[.03,-.20],[-.03,-.20]],.05,.012),
+        MT.bloc,u,-.02,s*.31));}}
+  // LE CARTER D'HUILE, plus étroit et plus sombre
+  g.add(M(profilX([[-.22,.02],[.22,.02],[.17,-.20],[-.17,-.20]],L*.88,.018),MT.sombre,0,-.30,0));
+  // LA CLOCHE D'EMBRAYAGE : une pièce TOURNÉE — le volant plat de l'ancienne version était un palet
+  g.add(M(tourneX([[.06,0],[.26,0],[.30,.05],[.32,.16],[.26,.22],[.08,.24],[.06,.24]],20),
+    MT.sombre,-(L*.5+.02),-.02,0));
+  // LA POULIE DE VILEBREQUIN, à l'autre bout
+  g.add(M(tourneX([[.05,0],[.20,0],[.22,.04],[.20,.09],[.22,.13],[.20,.17],[.05,.17]],18),
+    MT.chrome,L*.5,-.02,0));
+  for(let b=0;b<K.BK.length;b++){
+    const n=Math.min(K.parBanc,E.c-b*K.parBanc);if(n<=0)break;
+    const bk=new THREE.Group();bk.position.y=K.BK[b][1]*.28;bk.rotation.x=K.BK[b][0];
+    // LE FÛT : un profil TOURNÉ, avec sa collerette de culasse — pas un cylindre étiré.
+    // `tourneX` sort une pièce d'axe X ; ici le fût est vertical, d'où le quart de tour sur Z.
+    for(let c=0;c<n;c++){
+      const u=(n>1?c/(n-1)-.5:0)*(L-.42);
+      const f=new THREE.Mesh(tourneX([[.005,0],[.155,.02],[.175,.05],[.175,.30],[.205,.33],[.205,.40],[.005,.40]],16),MT.bloc);
+      f.rotation.z=Math.PI/2;f.position.set(u,.10,0);bk.add(f);
+    }
+    // LA CULASSE puis LE COUVRE-CULASSE : c'est lui qui porte la couleur du palier
+    bk.add(M(profilX([[-.25,0],[.25,0],[.235,.15],[-.235,.15]],L*.93,.022),MT.bloc,0,.52,0));
+    bk.add(M(profilX([[-.235,0],[.235,0],[.20,.13],[-.20,.13]],L*.97,.026),MT.habit,0,.67,0));
+    if(!ep){
+      for(let k=0;k<8;k++)for(const s of[-1,1])
+        boulon(bk,MT.boulon,(k/7-.5)*(L-.24),.68,s*.215);
+      if(n>=3)for(let c=0;c<n;c++){                 // les bobines d'allumage, en rang
+        const u=(n>1?c/(n-1)-.5:0)*(L-.46);
+        bk.add(M(profilX([[-.08,0],[.08,0],[.07,.15],[-.07,.15]],.13,.012),MT.habit,u,.80,0));
+        bk.add(M(tourneX([[.048,0],[.048,.12]],10),MT.sombre,u,.68,0));}
+    }
+    g.add(bk);
+  }
+}
+// LE COLLECTEUR : des tubes qui sortent du FLANC de la culasse, s'écartent, plongent, se
+// rejoignent — et qui suivent l'inclinaison du banc, sinon un V a ses tuyaux dans le vide.
+function collecteur(g,K,mat,b,chaud){
+  const inc=K.BK[b][0],et=K.BK[b][1],n=K.parBanc,L=K.L;
+  // ⚠ le collecteur ne suit PAS l'inclinaison au pied de la lettre : à plat (boxer, H) un banc
+  // couché à 86° enverrait ses tubes faire une anse PAR-DESSUS le moteur. On plafonne le
+  // basculement — les tubes sortent sur le flanc puis plongent, comme sur une vraie voiture.
+  const gr=new THREE.Group();gr.position.y=et*.28;
+  gr.rotation.x=Math.abs(inc)>1?Math.sign(inc)*.62:inc;
+  for(let k=0;k<n;k++){
+    const u=((n>1?k/(n-1):.5)-.5)*(L-.42),ph=k/Math.max(1,n);
+    const pts=[new THREE.Vector3(u,.58,.24),
+               new THREE.Vector3(u*.94,.40+ph*.10,.56+ph*.12),
+               new THREE.Vector3(u*.52,.04-ph*.05,.66+ph*.10),
+               new THREE.Vector3(u*.18,-.24,.56),
+               new THREE.Vector3(0,-.32,.42)];
+    gr.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),18,.055,9,false),mat));
+    if(chaud)gr.add(halo(chaud,.34,u,.55,.26,.5));   // la racine du tube, au rouge
+  }
+  gr.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0,-.32,.42),new THREE.Vector3(L*.34,-.38,.46),
+    new THREE.Vector3(L*.64,-.42,.36)]),14,.095,10,false),mat));
+  g.add(gr);
+}
+// LES CORNETS D'ADMISSION dans le V : LA pièce qui fait rêver sur une photo de moteur
+function cornets(g,K,chrome,c){
+  const n=Math.min(8,Math.max(3,Math.round(c/2))),L=K.L;
+  // ⚠ ils DOIVENT dépasser du V : à .50 ils passaient sous les caches-culasse (.80) et on ne
+  // voyait rien de la seule pièce qui fait rêver sur une photo de moteur.
+  const geo=tourneX([[.052,0],[.052,.24],[.070,.31],[.105,.36],[.140,.39]],20);
+  for(let k=0;k<n;k++){const u=(k/(n-1)-.5)*(L-.44);
+    const m=new THREE.Mesh(geo.clone(),chrome);m.rotation.z=Math.PI/2;m.position.set(u,.56,0);g.add(m);}
+}
+// LES ACCESSOIRES, SEMÉS : c'est ce désordre contrôlé qui fait qu'un vrai moteur n'est jamais
+// symétrique. Alternateur, filtre à huile, durites — tirés, jamais placés à la main.
+function accessoires(g,K,rng,MT,ep){
+  const L=K.L,XE=L*.5;
+  const alt=[-XE*.5+(rng()-.5)*.12,.24,.46];
+  g.add(M(tourneX([[.03,0],[.145,.02],[.155,.06],[.155,.26],[.145,.30],[.03,.32]],16),MT.corps,alt[0],alt[1],alt[2])
+    .rotateY(0));
+  const flt=[XE*.28+(rng()-.5)*.10,-.22,.44];
+  g.add(M(tourneX([[.02,0],[.12,.02],[.125,.06],[.125,.26],[.11,.29]],14),MT.sombre,flt[0],flt[1],flt[2]));
+  serpent(g,[alt[0],alt[1]+.16,alt[2]],[XE*.2,.56,.30],MT.sombre,.026,rng,.18);
+  serpent(g,[flt[0],flt[1],flt[2]],[-XE*.3,-.28,.32],MT.sombre,.030,rng,.12);
+  if(!ep)for(let k=0;k<7;k++)
+    boulon(g,MT.chrome,(rng()-.5)*L*.9,-.06-rng()*.26,.315,.026);
+}
+// LES DEUX PIÈCES TOURNÉES DE L'ENDGAME : carter de turbine et tuyère. Un cône étiré ne fait pas
+// une tuyère — il faut le col qui se pince PUIS la corolle qui s'ouvre.
+// ⚠ `tourneX` rend DÉJÀ une pièce d'axe X. Lui ajouter un `rotation.z=PI/2` la met DEBOUT — c'est
+// ce qui transformait la turbine à gaz en vase posé sur la table. Ces deux-là ne se tournent pas.
+const geoTurbine=()=>tourneX([[.05,0],[.24,.04],[.33,.14],[.39,.34],[.42,.70],[.41,1.06],[.36,1.34],[.27,1.50],[.05,1.56]],28);
+const geoTuyere=()=>tourneX([[.15,0],[.19,.08],[.155,.24],[.20,.42],[.31,.64],[.44,.82]],26);
+
+/* ============================================================================
+   DIRECTION A — « FONDERIE » : la pièce de mécanique vraie
+   ========================================================================== */
+function bâtirA(E){
+  const g=new THREE.Group(),K=squelette(E),rng=mul(E.t*7919+11),ep=!!E.ep;
+  const bloc=ep?MM.fonte(E.col):MM.alu(0xd2d7e0,150),
+        sombre=ep?MM.fonte(0x6a6259):MM.noir(),
+        chrome=MM.inox(),tube=ep?MM.fonte(0x8f7f6c):MM.chauffe(),
+        habit=ep?MM.fonte(E.col):MM.anod(E.col);
+  if(K.piston){
+    corps(g,E,K,{bloc:bloc,sombre:sombre,chrome:chrome,habit:habit,boulon:chrome},rng,ep);
+    for(let b=0;b<K.BK.length;b++)collecteur(g,K,tube,b,0);
+    accessoires(g,K,rng,{corps:bloc,sombre:sombre,chrome:chrome},ep);
+    if(E.a==='v'||E.a==='w')cornets(g,K,chrome,E.c);
+  }else if(E.a==='tu'){
+    g.add(M(geoTurbine(),bloc,-.78,0,0));
+    for(let k=0;k<8;k++)                                   // les étages du compresseur axial
+      g.add(M(tourneX([[.04,0],[.38-k*.027,.015],[.38-k*.027,.045],[.04,.06]],22),chrome,.50-k*.125,0,0));
+    const n=M(geoTuyere(),chrome,-.78,0,0);n.rotation.y=Math.PI;g.add(n);
+    g.add(halo(E.flam,1.5,-1.5,0,0,.55));
+  }else{
+    // LE TROU NOIR, version mécanique : une CAGE tournée qui contient quelque chose d'invisible
+    const c=new THREE.Mesh(gSph,MM.feu(0x05040a));c.scale.set(.5,.5,.5);g.add(c);
+    for(let k=0;k<8;k++){const a=k/8*6.2832;
+      const b=new THREE.Mesh(profilX([[-.05,.62],[.05,.62],[.05,-.62],[-.05,-.62]],.10,.014),chrome);
+      b.position.set(Math.cos(a)*.62,0,Math.sin(a)*.62);b.rotation.x=a;g.add(b);}
+    for(const s of[-1,1]){
+      const cp=new THREE.Mesh(tourneX([[.06,0],[.70,.02],[.72,.06],[.30,.14],[.08,.16]],28),bloc);
+      cp.rotation.z=s>0?-Math.PI/2:Math.PI/2;cp.position.y=s*.62;g.add(cp);}
+    const d=new THREE.Mesh(new THREE.TorusGeometry(.92,.085,8,44),MM.feu(E.flam));
+    d.rotation.x=Math.PI/2.2;d.scale.set(1,1,.22);g.add(d);
+    g.add(halo(E.flam,2.4,0,0,0,.6));
+  }
+  return g;
+}
+
+/* ============================================================================
+   DIRECTION B — « NÉON » : le même squelette, mais c'est une pièce de nuit
+   ========================================================================== */
+function bâtirB(E){
+  const g=new THREE.Group(),K=squelette(E),rng=mul(E.t*7919+11),L=K.L,ep=!!E.ep;
+  const nuit=MM.nuit(),canaux=MM.canaux(E.col),chrome=MM.inox(0xd2e2f6),
+        sombre=MM.noir(),glow=MM.glow(E.col,.5);
+  if(K.piston){
+    corps(g,E,K,{bloc:ep?MM.fonte(E.col):nuit,sombre:sombre,chrome:chrome,habit:canaux,boulon:chrome},rng,ep);
+    // LA CHAMBRE INCANDESCENTE : une lame additive coincée sous chaque culasse. C'est ELLE qui, à
+    // 200 px, dit « ça brûle là-dedans » — bien mieux qu'un détail de géométrie.
+    for(let b=0;b<K.BK.length;b++){
+      const gr=new THREE.Group();gr.position.y=K.BK[b][1]*.28;gr.rotation.x=K.BK[b][0];
+      gr.add(M(profilX([[-.20,0],[.20,0],[.20,.06],[-.20,.06]],L*.90,0),glow,0,.45,0));
+      g.add(gr);
+    }
+    for(let b=0;b<K.BK.length;b++)collecteur(g,K,chrome,b,0xff5a1e);
+    accessoires(g,K,rng,{corps:nuit,sombre:sombre,chrome:chrome},ep);
+    // LA SAIGNÉE DU CARTER : une ligne de lumière sur toute la longueur
+    g.add(M(profilX([[-.31,0],[.31,0],[.31,.035],[-.31,.035]],L*.98,0),glow,0,-.12,0));
+    g.add(halo(E.col,L*1.5,0,.05,0,.34));
+  }else if(E.a==='tu'){
+    g.add(M(geoTurbine(),nuit,-.78,0,0));
+    for(let k=0;k<5;k++){const r=new THREE.Mesh(new THREE.TorusGeometry(.42,.042,8,30),k%2?MM.feu(E.col):chrome);
+      r.rotation.y=Math.PI/2;r.position.x=.46-k*.28;g.add(r);}
+    const n=M(geoTuyere(),MM.feu(E.flam),-.78,0,0);n.rotation.y=Math.PI;g.add(n);
+    g.add(halo(E.flam,2.1,-1.5,0,0,.7));g.add(halo(E.col,1.5,.4,0,0,.35));
+  }else{
+    const c=new THREE.Mesh(gSph,MM.feu(0x05040a));c.scale.set(.5,.5,.5);g.add(c);
+    for(let k=0;k<3;k++){const t=new THREE.Mesh(new THREE.TorusGeometry(.70+k*.20,.032,8,36),MM.feu(E.flam));
+      t.rotation.set(k*.7,Math.PI/2,k*.5);g.add(t);}
+    g.add(halo(E.flam,2.8,0,0,0,.7));
+  }
+  return g;
+}
+
+/* ============================================================================
+   DIRECTION C — « RELIQUE » : ce n'est plus un moteur, c'est un objet
+   ========================================================================== */
+function bâtirC(E){
+  const g=new THREE.Group(),K=squelette(E),rng=mul(E.t*7919+11),L=K.L,XE=L*.5;
+  const croute=MM.croute(E.ep?0x7a6a5e:0x939bba),cristal=MM.cristal(E.col),
+        energie=MM.glow(E.flam,.5);
+  if(K.piston){
+    g.add(new THREE.Mesh(eroder(new THREE.BoxGeometry(L,.58,.62,12,7,7),.17,1.1,E.t*13),croute));
+    for(let b=0;b<K.BK.length;b++){
+      const n=Math.min(K.parBanc,E.c-b*K.parBanc);if(n<=0)break;
+      const bk=new THREE.Group();bk.position.y=K.BK[b][1]*.28;bk.rotation.x=K.BK[b][0];
+      for(let c=0;c<n;c++){                        // les fûts deviennent des CRISTAUX taillés
+        const u=(n>1?c/(n-1)-.5:0)*(L-.42),h=.42+rng()*.28;
+        const cr=new THREE.Mesh(tourneX([[.005,0],[.115,.10],[.10,h],[.005,h+.16]],6),cristal);
+        cr.rotation.z=Math.PI/2;cr.rotation.x=rng()*3;
+        cr.position.set(u,.16,0);bk.add(cr);
+      }
+      // LA DALLE EN LÉVITATION : rien ne la tient, l'énergie passe dessous
+      bk.add(M(profilX([[-.22,0],[.22,0],[.19,.10],[-.19,.10]],L*.88,.02),croute,0,.86,0));
+      bk.add(M(profilX([[-.19,0],[.19,0],[.19,.035],[-.19,.035]],L*.84,0),energie,0,.79,0));
+      g.add(bk);
+    }
+    for(let k=0;k<3;k++){const t=new THREE.Mesh(new THREE.TorusGeometry(.52+k*.14,.020,7,40),energie);
+      t.rotation.set(k*.5,Math.PI/2,k*.34);g.add(t);}
+    for(let k=0;k<5;k++)
+      serpent(g,[-XE*.8,-.18,.30],[XE*.8,.32,-.26+k*.13],energie,.019,rng,.28);
+    g.add(halo(E.flam,L*1.6,0,.15,0,.42));
+  }else if(E.a==='tu'){
+    const t=new THREE.Mesh(eroder(new THREE.CylinderGeometry(.40,.30,1.7,20,7),.15,1.4,E.t*13),croute);
+    t.rotation.z=Math.PI/2;g.add(t);
+    for(let k=0;k<4;k++){const r=new THREE.Mesh(new THREE.TorusGeometry(.50-k*.055,.026,7,34),energie);
+      r.rotation.y=Math.PI/2;r.position.x=.5-k*.34;g.add(r);}
+    const n=M(geoTuyere(),energie,-.92,0,0);n.rotation.y=Math.PI;g.add(n);
+    g.add(halo(E.flam,2.3,-1.4,0,0,.6));
+  }else{
+    const c=new THREE.Mesh(gSph,MM.feu(0x05040a));c.scale.set(.48,.48,.48);g.add(c);
+    for(let k=0;k<16;k++){const a=k/16*6.2832,r=.72+rng()*.52;   // des éclats en orbite
+      const e=new THREE.Mesh(eroder(new THREE.IcosahedronGeometry(.09+rng()*.09,0),.07,3,k+E.t),croute);
+      e.position.set(Math.cos(a)*r,(rng()-.5)*.5,Math.sin(a)*r*.5);
+      e.rotation.set(rng()*3,rng()*3,rng()*3);g.add(e);}
+    const d=new THREE.Mesh(new THREE.TorusGeometry(.98,.10,8,46),energie);
+    d.rotation.x=Math.PI/2.25;d.scale.set(1,1,.2);g.add(d);
+    g.add(halo(E.flam,3,0,0,0,.55));
+  }
+  return g;
+}
+
+const DIRS=[{n:'FONDERIE',f:bâtirA},{n:'NÉON',f:bâtirB},{n:'RELIQUE',f:bâtirC}];
+
+/* ---------- LES 8 PALIERS TÉMOINS : un par famille de silhouette ---------- */
+const ECH=[
+ {n:'MOTEUR ROUILLÉ',t:1, a:'in',c:2, col:0x7a5a3c,flam:0x8a6a30,ep:1},
+ {n:'4 EN LIGNE',    t:4, a:'in',c:4, col:0xa8a294,flam:0xffa040},
+ {n:'BOXER À PLAT',  t:10,a:'fl',c:4, col:0x5a7ae0,flam:0x9ac0ff},
+ {n:'V8 ATMO',       t:11,a:'v', c:8, col:0xff7a3c,flam:0xff5a2a},
+ {n:'W12',           t:15,a:'w', c:12,col:0xffe27a,flam:0xfff4b8},
+ {n:'V16',           t:16,a:'v', c:16,col:0xf2ecc8,flam:0xfff8d0},
+ {n:'TURBINE À GAZ', t:20,a:'tu',c:0, col:0xa8dcf0,flam:0x8ae0ff},
+ {n:'TROU NOIR',     t:30,a:'ex',c:0, col:0xf5f6fa,flam:0xffffff}
+];
+
+/* ---------- LA SCÈNE : 3 colonnes, UN seul contexte WebGL (ciseaux) ---------- */
+const main=$('main');
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setScissorTest(true);
+main.appendChild(renderer.domElement);
+function studio(sc){
+  // LUMIÈRE RÉGLÉE POUR JUGER : clé chaude en trois quarts, remplissage froid à l'opposé,
+  // contre-jour braise qui décolle la silhouette, et un LISERÉ blanc au-dessus pour l'arête.
+  sc.add(new THREE.HemisphereLight(0xd8ecff,0x181630,.95));
+  const k=new THREE.DirectionalLight(0xfff2e0,1.45);k.position.set(3.5,5,4.5);sc.add(k);
+  const r=new THREE.DirectionalLight(0x7fd8ff,.80);r.position.set(-4,1.5,-3);sc.add(r);
+  const b=new THREE.DirectionalLight(0xff7a3c,.60);b.position.set(-2,-2.5,-4.5);sc.add(b);
+  const t=new THREE.DirectionalLight(0xffffff,.55);t.position.set(-1,4,-2.5);sc.add(t);
+}
+const scene=new THREE.Scene();studio(scene);
+const camera=new THREE.PerspectiveCamera(31,1,.1,200);
+const pivots=[0,1,2].map(i=>{const p=new THREE.Group();p.position.x=i*100;scene.add(p);return p;});
+let cur=0,spin=true,ang=.66,pitch=.22,zoom=1,fitXZ=1,fitY=1,meshes=[null,null,null];
+
+// LA BOÎTE QUI CADRE — meshes SEULEMENT. Les halos sont de larges sprites (le faux bloom) : les
+// compter reviendrait à cadrer sur la lueur, et B et C partiraient deux fois plus loin que A.
+function boite(m){const b=new THREE.Box3(),t=new THREE.Box3();
+  m.updateWorldMatrix(false,true);
+  m.traverse(o=>{if(o.isMesh&&o.geometry){o.geometry.computeBoundingBox();
+    t.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld);b.union(t);}});
+  return b.isEmpty()?new THREE.Box3(new THREE.Vector3(-.5,-.5,-.5),new THREE.Vector3(.5,.5,.5)):b;}
+function jeter(m){if(!m)return;m.traverse(o=>{
+  o.geometry&&o.geometry.dispose&&o.geometry.dispose();
+  o.material&&o.material.dispose&&o.material.dispose();});}
+
+function poser(i){
+  cur=i;const E=ECH[i];fitXZ=0;fitY=0;
+  for(let d=0;d<3;d++){
+    if(meshes[d]){pivots[d].remove(meshes[d]);jeter(meshes[d]);}
+    const m=DIRS[d].f(E);
+    // ⚠ LA BOÎTE SE MESURE AVANT L'ADOPTION. `Box3` travaille en coordonnées MONDE : une fois la
+    // pièce accrochée au pivot de la 3e colonne (x=200), son rayon vaut 200 et la caméra part à
+    // l'autre bout du studio. Orpheline, sa matrice monde vaut l'identité.
+    const bb=boite(m);
+    const rx=Math.max(Math.abs(bb.min.x),Math.abs(bb.max.x)),rz=Math.max(Math.abs(bb.min.z),Math.abs(bb.max.z));
+    fitXZ=Math.max(fitXZ,Math.hypot(rx,rz));fitY=Math.max(fitY,(bb.max.y-bb.min.y)/2);
+    m.position.y=-(bb.min.y+bb.max.y)/2;
+    pivots[d].add(m);meshes[d]=m;
+  }
+  fitXZ=Math.max(.2,fitXZ);fitY=Math.max(.2,fitY);
+  for(const el of document.querySelectorAll('.row'))el.classList.toggle('on',+el.dataset.i===i);
+}
+function rendre(){
+  const w=main.clientWidth,h=main.clientHeight,cw=Math.floor(w/3);
+  if(!w||!h)return;
+  renderer.setSize(w,h,false);camera.aspect=cw/h;camera.updateProjectionMatrix();
+  // la colonne est HAUTE et ÉTROITE : c'est la demi-ouverture HORIZONTALE qui décide du recul,
+  // sinon la pièce déborde des ciseaux à gauche et à droite.
+  const hV=Math.tan(camera.fov*Math.PI/360),hH=hV*camera.aspect;
+  const dist=Math.max(fitXZ/hH,fitY/hV)*1.15*zoom, ty=-fitY*.45;
+  for(let d=0;d<3;d++){
+    renderer.setViewport(d*cw,0,cw,h);renderer.setScissor(d*cw,0,cw,h);
+    const c=pivots[d].position;
+    camera.position.set(c.x+Math.sin(ang)*Math.cos(pitch)*dist,ty+Math.sin(pitch)*dist,Math.cos(ang)*Math.cos(pitch)*dist);
+    camera.lookAt(c.x,ty,0);
+    renderer.render(scene,camera);
+  }
+}
+let last=performance.now();
+function boucle(now){requestAnimationFrame(boucle);
+  const dt=Math.min(.05,(now-last)/1000);last=now;
+  if(spin)ang+=dt*.40;
+  rendre();}
+
+/* ---------- pilotage ---------- */
+let drag=false,px=0,py=0;
+renderer.domElement.addEventListener('pointerdown',e=>{drag=true;px=e.clientX;py=e.clientY;spin=false;$('bSpin').classList.remove('on');});
+addEventListener('pointerup',()=>drag=false);
+addEventListener('pointermove',e=>{if(!drag)return;
+  ang-=(e.clientX-px)*.011;pitch=Math.max(-1.35,Math.min(1.35,pitch+(e.clientY-py)*.008));
+  px=e.clientX;py=e.clientY;});
+renderer.domElement.addEventListener('wheel',e=>{e.preventDefault();zoom=Math.max(.35,Math.min(4,zoom*(1+e.deltaY*.0012)));},{passive:false});
+addEventListener('keydown',e=>{
+  if(e.code==='ArrowRight')poser((cur+1)%ECH.length);
+  else if(e.code==='ArrowLeft')poser((cur-1+ECH.length)%ECH.length);
+  else if(e.code==='Space'){e.preventDefault();spin=!spin;$('bSpin').classList.toggle('on',spin);}});
+$('bSpin').addEventListener('click',()=>{spin=!spin;$('bSpin').classList.toggle('on',spin);});
+
+/* ---------- LA PLANCHE : 8 paliers × 3 directions, l'épreuve de vérité ---------- */
+let faite=false,offR=null,offS=null,offC=null;
+function planche(){
+  if(faite)return;faite=true;const G=$('grid');
+  for(let d=0;d<3;d++){const h=document.createElement('div');h.className='gh';
+    h.style.color=['#ffc38a','#7dffec','#c79dff'][d];h.textContent=DIRS[d].n;G.appendChild(h);}
+  for(let i=0;i<ECH.length;i++)for(let d=0;d<3;d++){
+    const cell=document.createElement('div');cell.className='cell';
+    const cv=document.createElement('canvas');cv.width=cv.height=300;cell.appendChild(cv);
+    const l=document.createElement('div');l.className='cLbl';l.textContent=ECH[i].n;cell.appendChild(l);
+    G.appendChild(cell);
+    try{vignette(cv,i,d);}catch(err){console.error('vignette',i,d,err);}
+  }
+}
+function vignette(cv,i,d){
+  if(!offR){
+    offR=new THREE.WebGLRenderer({antialias:true,alpha:true});offR.setSize(300,300,false);offR.setPixelRatio(1);
+    offS=new THREE.Scene();studio(offS);offC=new THREE.PerspectiveCamera(31,1,.1,200);
+  }
+  const m=DIRS[d].f(ECH[i]);
+  const bb=boite(m);
+  const rx=Math.max(Math.abs(bb.min.x),Math.abs(bb.max.x)),rz=Math.max(Math.abs(bb.min.z),Math.abs(bb.max.z));
+  const rxz=Math.max(.2,Math.hypot(rx,rz)),ry=Math.max(.2,(bb.max.y-bb.min.y)/2);
+  const hV=Math.tan(offC.fov*Math.PI/360),dd=Math.max(rxz/hV,ry/hV)*1.12;
+  m.position.y=-(bb.min.y+bb.max.y)/2;m.rotation.y=.66;offS.add(m);
+  offC.position.set(Math.sin(.66)*dd*.95,dd*.20,Math.cos(.66)*dd*.95);offC.lookAt(0,0,0);
+  offR.render(offS,offC);
+  cv.getContext('2d').drawImage(offR.domElement,0,0,300,300);
+  offS.remove(m);jeter(m);
+}
+$('bGrid').addEventListener('click',()=>{const g=$('grid'),on=!g.classList.contains('on');
+  if(on)planche();g.classList.toggle('on',on);$('bGrid').classList.toggle('on',on);});
+
+/* ---------- démarrage ---------- */
+const LST=$('list');
+ECH.forEach((E,i)=>{const d=document.createElement('div');d.className='row';d.dataset.i=i;
+  d.innerHTML='<span class="num">'+E.t+'</span>'
+   +'<span class="swatch" style="background:#'+E.col.toString(16).padStart(6,'0')
+   +';color:#'+E.flam.toString(16).padStart(6,'0')+'"></span>'
+   +'<span class="nm">'+E.n+'</span><span class="ar">'+E.a.toUpperCase()+(E.c||'')+'</span>';
+  d.addEventListener('click',()=>poser(i));LST.appendChild(d);});
+poser(3);requestAnimationFrame(boucle);
+</script>
+</body>
+</html>

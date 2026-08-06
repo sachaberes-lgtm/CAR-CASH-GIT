@@ -2628,6 +2628,15 @@ function trailStep(tr,px,py,pz,cr,cg,cb,k,wMul){
   tr.m.geometry.attributes.position.needsUpdate=true;
   tr.m.geometry.attributes.color.needsUpdate=true;
 }
+/* <<<VOITURES>>> ---------------------------------------------------------------------------
+   LA CARROSSERIE — tout ce qui fabrique une caisse, des matériaux jusqu'aux flaques au sol.
+   Ces balises servent à `voitures.html` (L'ÉTAL DES VOITURES), qui LIT ce fichier au chargement
+   et exécute le bloc tel quel : la planche contact et les silhouettes montrent donc les VRAIES
+   caisses du jeu, pas une copie qui aurait dérivé à la première retouche.
+   ⚠ Le bloc ne doit dépendre QUE de : THREE · envTex · CARS · carGroup. Tout le reste (RIM_U,
+   rimify, wheels, les textures de halo, la plume de réacteur, JETS/CARPOOL) est déclaré DEDANS.
+   Ajouter ici une référence à un global du jeu (scene, level, SND…) casserait l'étal en silence.
+   -------------------------------------------------------------------------------------------- */
 // ---- RIM GOLDEN HOUR : liseré doré sur les arêtes exposées au soleil (fresnel masqué côté lumière).
 // Uniforms PARTAGÉS entre toutes les caisses — une seule source de vérité, teinte pilotée par l'état dans loop().
 const RIM_U={uRimC:{value:new THREE.Color(0xffd9a0)},uRimStr:{value:.55},uRimPow:{value:3.0},uSunV:{value:new THREE.Vector3()}};
@@ -2760,6 +2769,7 @@ function buildCar(spec){
   // boxy = quotidien · gt = supercar plongeante · muscle = long capot · formula = proto F1 · proto = furtive bulle · rocket = missile
   const W9=spec.w,H9=spec.h,L9=spec.l,fusR=H9*1.0;
   const shape=wreck?'boxy':spec.shape||(lvl>=14?'rocket':lvl>=11?'proto':lvl===10?'formula':(lvl===5||lvl===8)?'muscle':lvl>=4?'gt':'boxy');
+  carGroup.userData.shape=shape;carGroup.userData.lvl=lvl; // l'étal LIT le gabarit ici plutôt que de recopier la règle (une copie aurait dérivé)
   if(shape==='boxy'){
   // châssis bas (l'épave est de travers)
   const lower=new THREE.Mesh(new THREE.BoxGeometry(spec.w,spec.h*.62,spec.l),bodyM);
@@ -3024,6 +3034,7 @@ function buildCar(spec){
   CARPOOL.jet=mkPoolPlane(spec.w*2.7,spec.l*4.6,-spec.l/2-spec.l*2.3,0xff7a24,0);              // le halo de la nitro/traînée (opacité pilotée par JETS.k dans la boucle)
   carGroup.traverse(o9=>{if(o9.isMesh&&!o9.userData.noShadow)o9.castShadow=true;}); // toute la caisse porte son ombre LONGUE — sauf la nappe néon (un carré d'ombre, non merci)
 }
+/* <<<FIN VOITURES>>> */
 /* ---------- VIGNETTE MOTEUR : on VOIT ce qui nous pousse, en 3D, pendant la course ----------
    ⚠ POURQUOI CETTE RÉÉCRITURE. La 1re version dessinait la vignette DIRECTEMENT dans le framebuffer
    principal avec `setViewport`/`setScissor`, entre deux passes du composer. Le composer garde sa
@@ -3642,39 +3653,42 @@ function addCoins(n){
    de non-répétition en fin de bloc), donc ça ne peut plus se dégrader en silence.
    ---------------------------------------------------------------------------------------- */
 // Chaque fiche : a=architecture · c=cylindres · t=turbos · f=ailettes · x=pièces en plus.
-// Architectures : in=en ligne · v=en V · fl=à plat · w=en W · h=en H · ro=rotatif ·
-//                 tu=turbine · ra=statoréacteur · pu=pulsoréacteur · re=réacteur · ex=exotique
+// Architectures : in=en ligne · v=en V · fl=à plat · w=en W · h=en H · ro=rotatif · tu=turbine
+//                 pl=plasma · ra=statoréacteur · pu=pulsoréacteur · re=réacteur · ex=exotique
+// ⚠ 'pl' EST NÉ D'UNE MESURE : la TURBINE À PLASMA partageait le corps 'tu' de la TURBINE À GAZ
+// et ne s'en distinguait que par deux cellules — 99 % de silhouette commune sur la planche
+// contact, le pire doublon du jeu. Un palier qui se paie doit se VOIR.
 const ENG_LOOK=[
- {a:'in',c:2,t:0,f:0,x:['carter','courroie']},              //  1 MOTEUR ROUILLÉ
- {a:'in',c:2,t:0,f:3,x:['carter','pot']},                   //  2 BICYLINDRE      → ailettes + pot
- {a:'in',c:3,t:0,f:0,x:['collecteur']},                     //  3 3 CYLINDRES     → 3 cyl, collecteur
- {a:'in',c:4,t:0,f:0,x:['collecteur','carter']},            //  4 4 EN LIGNE      → 4 cyl
- {a:'in',c:4,t:0,f:0,x:['collecteur','doubleArbre']},       //  5 4 SOUPAPES      → double arbre à cames
- {a:'in',c:4,t:1,f:0,x:['collecteur','wastegate']},         //  6 4 EN LIGNE TURBO→ turbo
- {a:'in',c:5,t:1,f:0,x:['collecteur','carter']},            //  7 5 CYLINDRES     → 5 cyl
- {a:'v', c:6,t:0,f:0,x:['collecteur','carter']},            //  8 V6              → passage en V
- {a:'v', c:6,t:2,f:0,x:['collecteur']},                     //  9 V6 BITURBO      → 2 turbos
- {a:'fl',c:4,t:0,f:4,x:['carter','courroie']},              // 10 BOXER À PLAT    → à plat + ailettes
- {a:'v', c:8,t:0,f:0,x:['carbu','collecteur']},             // 11 V8 ATMO         → carburateur
- {a:'v', c:8,t:0,f:0,x:['compresseur','courroie']},         // 12 V8 COMPRESSÉ    → compresseur
- {a:'v', c:10,t:0,f:0,x:['trompettes']},                    // 13 V10             → trompettes d'admission
- {a:'v', c:12,t:0,f:0,x:['trompettes','collecteur']},       // 14 V12             → 12 cyl
- {a:'w', c:12,t:0,f:0,x:['trompettes']},                    // 15 W12             → architecture W
- {a:'v', c:16,t:0,f:0,x:['trompettes','carbu']},            // 16 V16             → 16 cyl
- {a:'h', c:16,t:0,f:0,x:['collecteur']},                    // 17 H16 F1          → architecture H
- {a:'v', c:8,t:4,f:0,x:['collecteur']},                     // 18 QUADRITURBO     → 4 turbos
- {a:'ro',c:3,t:1,f:2,x:['pot']},                            // 19 ROTATIF TRIPLE  → rotors
- {a:'tu',c:0,t:0,f:0,x:['axial','tuyere']},                 // 20 TURBINE À GAZ   → plus de pistons
- {a:'tu',c:0,t:0,f:0,x:['axial','tuyere','cellules']},      // 21 TURBINE À PLASMA→ cellules
- {a:'ra',c:0,t:0,f:0,x:['coneEntree','tuyere']},            // 22 STATORÉACTEUR   → corps long, entrée conique
- {a:'pu',c:0,t:0,f:0,x:['valves','tuyere','anneaux2']},     // 23 PULSORÉACTEUR   → valves + anneaux de choc
- {a:'re',c:0,t:0,f:0,x:['barres','dome','tuyere']},         // 24 RÉACTEUR NUCL.  → dôme + barres
- {a:'re',c:0,t:0,f:0,x:['tore','dome']},                    // 25 CŒUR À FUSION   → tore
- {a:'re',c:0,t:0,f:0,x:['anneaux3','confinement']},         // 26 ANTIMATIÈRE     → triple anneau
- {a:'ex',c:0,t:0,f:0,x:['nacelles']},                       // 27 MOTEUR À DIST.  → nacelles
- {a:'ex',c:0,t:0,f:0,x:['couronne','tuyere']},              // 28 COMÈTE          → couronne de feu
- {a:'ex',c:0,t:0,f:0,x:['couronne','ondes']},               // 29 SUPERNOVA       → ondes de choc
- {a:'ex',c:0,t:0,f:0,x:['spherenoire','disque']}            // 30 TROU NOIR       → sphère + disque
+ {a:'in',c:2,t:0,f:0,x:['courroie','pot']},                 //  1 MOTEUR ROUILLÉ
+ {a:'in',c:2,t:0,f:5,x:['pot','kick']},                     //  2 BICYLINDRE      → ailettes de moto
+ {a:'in',c:3,t:0,f:0,x:['collecteur']},                     //  3 3 CYLINDRES
+ {a:'in',c:4,t:0,f:0,x:['collecteur','filtre']},            //  4 4 EN LIGNE
+ {a:'in',c:4,t:0,f:0,x:['collecteur','doubleArbre']},       //  5 4 SOUPAPES      → 2 arbres à cames
+ {a:'in',c:4,t:1,f:0,x:['collecteur','wastegate','plenum']},//  6 4 EN LIGNE TURBO
+ {a:'in',c:5,t:1,f:0,x:['collecteur','plenum']},            //  7 5 CYLINDRES
+ {a:'v', c:6,t:0,f:0,x:['collecteur','filtre']},            //  8 V6              → passage en V
+ {a:'v', c:6,t:2,f:0,x:['collecteur']},                     //  9 V6 BITURBO      → 2 turbos DANS le V
+ {a:'fl',c:4,t:0,f:4,x:['collecteur','ventilo']},           // 10 BOXER À PLAT
+ {a:'v', c:8,t:0,f:0,x:['collecteur','carbu']},             // 11 V8 ATMO         → filtre à air rond
+ {a:'v', c:8,t:0,f:0,x:['collecteur','compresseur']},       // 12 V8 COMPRESSÉ    → Roots qui dépasse
+ {a:'v', c:10,t:0,f:0,x:['collecteur','trompettes']},       // 13 V10             → cornets F1
+ {a:'v', c:12,t:0,f:0,x:['collecteur','trompettes']},       // 14 V12
+ {a:'w', c:12,t:0,f:0,x:['collecteur','plenum']},           // 15 W12             → 4 bancs serrés
+ {a:'v', c:16,t:0,f:0,x:['collecteur','trompettes']},       // 16 V16             → le plus long
+ {a:'h', c:16,t:0,f:0,x:['collecteur']},                    // 17 H16 F1          → deux étages
+ {a:'v', c:8,t:4,f:0,x:['collecteur']},                     // 18 QUADRITURBO     → 4 escargots
+ {a:'ro',c:3,t:1,f:2,x:['pot']},                            // 19 ROTATIF TRIPLE  → des rotors
+ {a:'tu',c:0,t:0,f:0,x:['axial','tuyere']},                 // 20 TURBINE À GAZ
+ {a:'pl',c:0,t:0,f:0,x:['anneauxM','cellules','tuyere']},   // 21 TURBINE À PLASMA→ anneaux magnétiques
+ {a:'ra',c:0,t:0,f:0,x:['coneEntree','tuyere']},            // 22 STATORÉACTEUR   → long, spike d'entrée
+ {a:'pu',c:0,t:0,f:0,x:['valves','tuyere','anneaux2']},     // 23 PULSORÉACTEUR   → grosse tête, tuyau fin
+ {a:'re',c:0,t:0,f:0,x:['barres','dome','ailettesE']},      // 24 RÉACTEUR NUCL.
+ {a:'re',c:0,t:0,f:0,x:['tore','bobinesD']},                // 25 CŒUR À FUSION   → tokamak
+ {a:'re',c:0,t:0,f:0,x:['anneaux3','confinement']},         // 26 ANTIMATIÈRE
+ {a:'ex',c:0,t:0,f:0,x:['nacelles']},                       // 27 MOTEUR À DIST.
+ {a:'ex',c:0,t:0,f:0,x:['couronne','tuyere']},              // 28 COMÈTE
+ {a:'ex',c:0,t:0,f:0,x:['couronne','ondes']},               // 29 SUPERNOVA
+ {a:'ex',c:0,t:0,f:0,x:['spherenoire','disque','cage']}     // 30 TROU NOIR
 ];
 /* ================= L'ATELIER DE MATIÈRES (2026-08-03, d'après références réelles) =================
    ⚠ LA FONTE ROUILLÉE NE CONVIENT QU'À L'ÉPAVE. Elle a été validée sur le palier 1, puis appliquée
@@ -3787,6 +3801,32 @@ const MAT9=(function(){
   })();
   return {fonte:fonte,alu:alu,carbone:carbone};
 })();
+// ---- LE COLLECTEUR CHAUFFÉ : sur une photo de vrai moteur, l'inox BLEUIT près de la culasse,
+// vire paille, puis redevient poli. C'est ce dégradé qui vend la pièce — pas sa forme.
+const T_CHAUD9=(function(){const c=document.createElement('canvas');c.width=128;c.height=8;
+  const x=c.getContext('2d'),g=x.createLinearGradient(0,0,128,0);
+  g.addColorStop(0,'#5f74b4');g.addColorStop(.12,'#8878ac');g.addColorStop(.30,'#c9a870');
+  g.addColorStop(.50,'#dccfb2');g.addColorStop(.74,'#b6c0cc');g.addColorStop(1,'#e2e9f0');
+  x.fillStyle=g;x.fillRect(0,0,128,8);
+  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;return t;})();
+// ---- LES SAIGNÉES USINÉES : à partir des moteurs de course, le couvre-culasse porte des
+// rainures qui S'ALLUMENT à la couleur du palier. Une saignée d'usinage suit la LONGUEUR de la
+// pièce : rainures parallèles, largeurs tirées, coupées de loin en loin par une traverse. C'est
+// la régularité qui fait la machine ; le tirage sert juste à ce que deux paliers n'aient pas la
+// même partition. (Des gribouillis à coudes liraient « autocollant de circuit imprimé ».)
+const CAN9={};
+function texCan9(col){
+  if(CAN9[col])return CAN9[col];
+  const N=256,c=document.createElement('canvas');c.width=c.height=N;const x=c.getContext('2d');
+  x.fillStyle='#000';x.fillRect(0,0,N,N);
+  let a=col|0;const r=function(){a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+    t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
+  x.fillStyle='#'+(col>>>0).toString(16).padStart(6,'0');
+  let y=10+r()*14;
+  while(y<N-12){const w=3+r()*7;x.fillRect(0,y,N,w);y+=w+9+r()*26;}
+  for(let k=0;k<3;k++)x.fillRect(N*(k+.5)/3+(r()-.5)*30,0,2+r()*3,N);
+  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;CAN9[col]=t;return t;
+}
 // ---- LES MATÉRIAUX : c'est là que se joue le « métallique brillant », pas dans la géométrie ----
 // ⚠ EN r128 (MeshPhong, pas de PBR) le chrome ne vient PAS d'une texture : il vient d'une
 // `shininess` très haute + une `envMap` fortement réfléchissante. Le ciel du jeu sert de sonde —
@@ -3805,7 +3845,12 @@ const M9={
   fonte:(c)=>new THREE.MeshPhongMaterial({color:c==null?0x9a8f84:c,map:MAT9.fonte.map,bumpMap:MAT9.fonte.bump,
     bumpScale:.026,specularMap:MAT9.fonte.spec,shininess:70,specular:0xc8d0d8,
     envMap:envTex,reflectivity:.20,combine:THREE.MixOperation}),
-  noir:()=>new THREE.MeshPhongMaterial({color:0x14161b,shininess:120,specular:0x6a7480,envMap:envTex,reflectivity:.18,combine:THREE.MixOperation})
+  noir:()=>new THREE.MeshPhongMaterial({color:0x14161b,shininess:120,specular:0x6a7480,envMap:envTex,reflectivity:.18,combine:THREE.MixOperation}),
+  chaud:()=>new THREE.MeshPhongMaterial({color:0xffffff,map:T_CHAUD9,shininess:290,specular:0xffffff,
+    envMap:envTex,reflectivity:.52,combine:THREE.MixOperation}),          // collecteurs : inox bleui
+  canaux:(c)=>new THREE.MeshPhongMaterial({color:0x8a94a6,map:MAT9.alu.map,bumpMap:MAT9.alu.bump,
+    bumpScale:.008,emissive:0xffffff,emissiveMap:texCan9(c),shininess:280,specular:0xffffff,
+    envMap:envTex,reflectivity:.30,combine:THREE.MixOperation})           // couvre-culasse de course
 };
 // ---- LE COLLECTEUR TUBULAIRE : la pièce signature des références ----
 // Des tubes qui SERPENTENT depuis chaque cylindre et se rejoignent. On décrit un CHEMIN et

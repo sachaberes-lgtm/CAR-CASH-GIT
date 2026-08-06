@@ -42,10 +42,15 @@ bien dans le fichier.
 | Flux de pièces | `spawnPickups()`, facteur `rich` |
 | Animation de palier | `addCoins()` → `engSwapT` + `engSwapSnd()` |
 
-## LES DEUX ATELIERS (pages autonomes)
+## LES TROIS ATELIERS (pages autonomes)
 - **`moteurs.html`** — revue des 30 moteurs. ⚠ il ne recopie pas le jeu : il **lit `index.html` au
   chargement** et en extrait le bloc balisé. Impossible qu'il dérive. Bouton **« LES 30 »** = planche
   contact, la seule vue qui montre si deux paliers se ressemblent trop.
+- **`voitures.html` — L'ÉTAL DES VOITURES** — même principe pour les 24 caisses (bloc balisé
+  `<<<VOITURES>>>` + `CARS` + `CAR_UNLOCK`). Quatre vues : showroom, **planche contact**,
+  **SILHOUETTES** (profil noir, échelle COMMUNE aux 24 : une caisse courte se voit courte) et
+  **DOUBLONS** — le recouvrement mesuré de chaque paire de profils, classé. C'est la page à ouvrir
+  AVANT de toucher à une carrosserie, et à rouvrir après pour voir si le chiffre a bougé.
 - **`atelier-rouille.html`** — les 3 propositions du moteur rouillé + les régimes RALENTI / ROULE /
   BOOST. C'est là que vit le prototype de flamme à 3 couches (coque + cœur + halo), meilleur que
   celui du jeu.
@@ -87,8 +92,15 @@ bien dans le fichier.
    rampe de pièces sont posés à l'estime.
 5. **Le boost suit le moteur** (`push`). Le user a évoqué le lier à la VOITURE — non tranché, et ça
    contredirait la décision n°2.
-6. **Silhouettes des voitures** (les 24 caisses, pas les moteurs) : « certaines se ressemblent trop »,
-   refonte non commencée.
+6. **Silhouettes des voitures — LE CHANTIER EN COURS, désormais CHIFFRÉ.** L'étal (`voitures.html`)
+   a mesuré ce que « certaines se ressemblent trop » voulait dire : **20 paires sur 276 dépassent
+   90 % de recouvrement de silhouette, 53 dépassent 80 %**. Pire paire : ANTIMATIÈRE × ÉCLIPSE VII
+   à **99,0 %** — deux caisses différentes séparées par une teinte. LA CAUSE est structurelle et se
+   lit d'un coup d'œil dans la colonne des gabarits : `boxy` 4 · `gt` 4 · `muscle` 2 · `formula` 1 ·
+   `proto` 3 · **`rocket` 10**. Tout l'endgame (caisses 15 à 24) partage UNE silhouette redécorée
+   par des accessoires (`vr=lvl-14` ne change que le nez, les canards et l'inclinaison des
+   ailerons). La suite, c'est le même remède que pour les moteurs : casser le monopole en donnant
+   au corps des FORMES différentes, pas des breloques — et relire le classement après.
 7. **`#carInfo` est masqué** (`display:none!important`, choix « HUD épuré ») : le nom de la caisse
    conduite n'apparaît nulle part en jeu. À rallumer ou à assumer.
 
