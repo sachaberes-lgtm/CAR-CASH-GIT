@@ -12,7 +12,7 @@
     background-image:radial-gradient(120% 80% at 50% 0%,#241a44 0%,#0a0713 62%)}
   #wrap{display:flex;height:100vh;width:100vw}
 
-  /* ---- colonne de gauche : les 24 caisses ---- */
+  /* ---- colonne de gauche : la gamme ---- */
   #side{width:300px;flex:0 0 300px;border-right:1px solid rgba(125,255,236,.18);
     display:flex;flex-direction:column;background:rgba(6,10,22,.55)}
   #sideTop{padding:16px 14px 10px;border-bottom:1px solid rgba(125,255,236,.14)}
@@ -28,8 +28,10 @@
   .row.on .nm{color:var(--cy)}
   .pu{font-size:6.5px;color:#8f84c8;letter-spacing:.5px}
   /* la pastille de GABARIT : une couleur par silhouette — les paquets se voient dans la colonne */
-  .pu.g-boxy{color:#9aa4b8}.pu.g-gt{color:#7dffec}.pu.g-muscle{color:#ffb35e}
-  .pu.g-formula{color:#ffd75e}.pu.g-proto{color:#b48cff}.pu.g-rocket{color:#ff6a8a}
+  .pu.g-epave{color:#8a7a68}.pu.g-kei{color:#9aa4b8}.pu.g-break{color:#7fb0ff}.pu.g-pickup{color:#ffa04a}
+  .pu.g-muscle{color:#ffb35e}.pu.g-berline{color:#dfe8fc}.pu.g-gt{color:#7dffec}.pu.g-wedge{color:#ff6a8a}
+  .pu.g-hyper{color:#ffd75e}.pu.g-formula{color:#ffe98a}.pu.g-lemans{color:#ff8f5e}.pu.g-proto{color:#b48cff}
+  .pu.g-tuner{color:#8dff2a}.pu.g-poptart{color:#ff8fd4}.pu.g-requin{color:#74d8ff}
 
   /* ---- scène ---- */
   #main{flex:1;position:relative;min-width:0}
@@ -54,7 +56,7 @@
     font-size:9px;line-height:2.2;color:#ff8a8a}
   #err code{color:var(--or);font-size:8px}
 
-  /* ---- LA PLANCHE CONTACT : les 24 d'un coup ---- */
+  /* ---- LA PLANCHE CONTACT : toute la gamme d'un coup ---- */
   #grid{position:absolute;inset:0;display:none;grid-template-columns:repeat(6,1fr);
     background:#0a0713;overflow-y:auto;align-content:start}
   #grid.on{display:grid}
@@ -104,7 +106,7 @@
     <div id="topBar">
       <button id="bSpin" class="on">↻ ROTATION</button>
       <button id="bLite">☀ LUMIÈRES</button>
-      <button id="bGrid">▦ LES 24</button>
+      <button id="bGrid">▦ LA PLANCHE</button>
       <button id="bSil">◧ SILHOUETTES</button>
       <button id="bDbl">⚖ DOUBLONS</button>
     </div>
@@ -122,7 +124,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 /* ============================================================================
-   L'ÉTAL DES VOITURES — plateforme locale de revue des 24 caisses.
+   L'ÉTAL DES VOITURES — plateforme locale de revue de TOUTE la gamme (15 caisses).
 
    ⚠ CE FICHIER NE RECOPIE PAS LES VOITURES. Il va LIRE `index.html` au chargement et en
    exécute le bloc balisé `<<<VOITURES>>>` (matériaux, gabarits, `carProfile`, `buildCar`)
@@ -133,7 +135,7 @@
 
    CE QUE L'ÉTAL APPORTE EN PLUS DU GARAGE DU JEU :
    1. une lumière de studio NEUTRE (on juge une forme, on ne met pas en scène) ;
-   2. la PLANCHE CONTACT — les 24 côte à côte ;
+   2. la PLANCHE CONTACT — toute la gamme côte à côte ;
    3. le mode SILHOUETTE — profil noir sur papier, à ÉCHELLE COMMUNE : c'est la vue qui a
       débloqué le chantier des moteurs, et la seule qui répond honnêtement à « certaines se
       ressemblent trop » ;
@@ -193,10 +195,18 @@ const camera=new THREE.PerspectiveCamera(34,1,.1,200);
 // LUMIÈRE DE STUDIO — la même recette que l'atelier des moteurs, pour que les deux pages se
 // comparent : trois quarts chaud (la clé), remplissage froid à l'opposé, contre-jour braise.
 const KEY=new THREE.Vector3(3.5,5,4.5).normalize(); // sert aussi de « soleil » au liseré RIM
-scene.add(new THREE.HemisphereLight(0xd8ecff,0x1a1830,1.0));
-{const k=new THREE.DirectionalLight(0xfff2e0,1.5);k.position.set(3.5,5,4.5);scene.add(k);
- const r=new THREE.DirectionalLight(0x7fd8ff,.85);r.position.set(-4,1.5,-3);scene.add(r);
- const b=new THREE.DirectionalLight(0xff7a3c,.6);b.position.set(-2,-2.5,-4.5);scene.add(b);}
+// ⚠ INTENSITÉS BAISSÉES (2026-08-05). Le studio hérité de l'atelier des moteurs (hemi 1.05 + clé
+// 1.55) convenait à des blocs d'alu et de fonte sombres ; sur des CARROSSERIES pastel il cramait
+// tout : le glaçage rose de la pop-tart et la peau du requin ressortaient BLANCS, et on aurait juré
+// à une texture manquante alors qu'elle était bien là (vérifié : 256×256 montée sur la bonne face).
+// Un atelier de revue n'a pas le droit de mentir sur une couleur — d'où ce dosage plus bas.
+const LUM=[[0xd8ecff,0x1a1830,.62],[0xfff2e0,1.02,3.5,5,4.5],[0x7fd8ff,.50,-4,1.5,-3],[0xff7a3c,.38,-2,-2.5,-4.5]];
+function studio(sc){
+  sc.add(new THREE.HemisphereLight(LUM[0][0],LUM[0][1],LUM[0][2]));
+  for(let i=1;i<LUM.length;i++){const L=LUM[i],d=new THREE.DirectionalLight(L[0],L[1]);
+    d.position.set(L[2],L[3],L[4]);sc.add(d);}
+}
+studio(scene);
 // SOL : une nappe sombre qui donne une assise (sans elle la caisse flotte et on ne lit plus la garde au sol)
 {const cv=document.createElement('canvas');cv.width=cv.height=256;const c=cv.getContext('2d');
  const g=c.createRadialGradient(128,128,0,128,128,128);
@@ -279,9 +289,10 @@ const st=(l,v,warn)=>'<div class="st">'+l+'<b'+(warn?' class="warn"':'')+'>'+v+'
 
 // la condition de déblocage, en une ligne — lue dans CAR_UNLOCK, pas réécrite
 const UNL={cash:'RECORD',eng:'MOTEUR PALIER',tricks:'FIGURES',gaps:'GAPS',bumps:'BUMPS',
-           zones:'ZONES',chain:'CHAÎNE ×',kmh:'KM/H',surv:'SURVIVANT'};
+           zones:'ZONES',chain:'CHAÎNE ×',kmh:'KM/H',surv:'SURVIVANT',prem:'PREMIUM'};
 function texteUnlock(i){
   const u=CAR_UNLOCK[i];if(!u)return 'de départ';
+  if(u.k==='prem')return 'OFFERTE';
   const v=u.v>=1e6?(u.v/1e6)+' M':u.v>=1e3?(u.v/1e3)+' k':u.v;
   return (UNL[u.k]||u.k)+' '+v;
 }
@@ -348,19 +359,15 @@ function bancInit(){
   offR=new THREE.WebGLRenderer({antialias:true,alpha:true});
   offR.setPixelRatio(1);
   offScene=new THREE.Scene();
-  offScene.add(new THREE.HemisphereLight(0xd8ecff,0x1a1830,1.0));
-  const k=new THREE.DirectionalLight(0xfff2e0,1.5);k.position.set(3.5,5,4.5);offScene.add(k);
-  const r=new THREE.DirectionalLight(0x7fd8ff,.85);r.position.set(-4,1.5,-3);offScene.add(r);
-  const b=new THREE.DirectionalLight(0xff7a3c,.6);b.position.set(-2,-2.5,-4.5);offScene.add(b);
+  studio(offScene); // ⚠ MÊME lumière que la scène principale : deux dosages = deux jugements
   off34=new THREE.PerspectiveCamera(32,1,.1,200);
   // SILHOUETTE : caméra ORTHOGRAPHIQUE et cadre FIXE, identique pour les 24. C'est tout l'intérêt —
   // en perspective ou avec un cadrage automatique, une petite caisse serait grossie jusqu'à la
   // taille d'un monstre et on comparerait des proportions au lieu de comparer des voitures.
-  // CADRE MESURÉ, pas deviné : sur les 24 caisses, hors-tout de 4,38 à 6,74 m et hauteur de 1,10 à
-  // 1,42 m (DIEU-VITESSE la plus longue, GROS BLOC la plus haute, aileron compris). Le cadre les
-  // contient toutes avec une marge fine — donc une caisse courte SE VOIT courte, ce qui est
-  // exactement l'information qu'on vient chercher. Un cadrage par caisse aurait tout ramené à la
-  // même taille et effacé la moitié des différences.
+  // CADRE MESURÉ, pas deviné, et COMMUN à toute la gamme : il contient la plus longue et la plus
+  // haute avec une marge fine — donc une caisse courte SE VOIT courte, ce qui est exactement
+  // l'information qu'on vient chercher. Un cadrage par caisse aurait tout ramené à la même taille
+  // et effacé la moitié des différences.
   const HW=3.78,HH=HW*SH/SW,CY=.92;
   // ⚠ les bornes d'une caméra ORTHO sont en repère CAMÉRA, pas en repère monde. Écrire
   // `top=CY+HH` décalait la fenêtre de CY une SECONDE fois (la caméra est déjà à cette hauteur) :

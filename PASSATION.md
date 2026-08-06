@@ -36,9 +36,10 @@ bien dans le fichier.
 | Fiche visuelle par palier | `ENG_LOOK` (architecture, cylindres, turbos, ailettes, pièces) |
 | Données de palier | `ENGINE_TIERS` (nom, desc, coins, push, res, cyl, col, flam) |
 | Matières génératives | `MAT9` (alu, carbone, fonte) et `M9` (les matériaux) |
-| Constructeur 3D | `mkEngine(i)` + `collecteur9()` / `bobines9()` |
+| Constructeur 3D moteur | `mkEngine(i)` + `collecteur9()` / `bobines9()` |
+| Les 15 silhouettes de caisse | bloc `<<<VOITURES>>>` → `SHAPES` (une entrée = une caisse) |
 | Vignette en jeu + écran de fin | `engVigRender()` |
-| Déblocage des 24 caisses | `CAR_UNLOCK`, `carUnlocked(i)`, `carScan()` |
+| Déblocage des caisses | `CAR_UNLOCK`, `carUnlocked(i)`, `carScan()` |
 | Flux de pièces | `spawnPickups()`, facteur `rich` |
 | Animation de palier | `addCoins()` → `engSwapT` + `engSwapSnd()` |
 
@@ -46,7 +47,7 @@ bien dans le fichier.
 - **`moteurs.html`** — revue des 30 moteurs. ⚠ il ne recopie pas le jeu : il **lit `index.html` au
   chargement** et en extrait le bloc balisé. Impossible qu'il dérive. Bouton **« LES 30 »** = planche
   contact, la seule vue qui montre si deux paliers se ressemblent trop.
-- **`voitures.html` — L'ÉTAL DES VOITURES** — même principe pour les 24 caisses (bloc balisé
+- **`voitures.html` — L'ÉTAL DES VOITURES** — même principe pour la gamme (bloc balisé
   `<<<VOITURES>>>` + `CARS` + `CAR_UNLOCK`). Quatre vues : showroom, **planche contact**,
   **SILHOUETTES** (profil noir, échelle COMMUNE aux 24 : une caisse courte se voit courte) et
   **DOUBLONS** — le recouvrement mesuré de chaque paire de profils, classé. C'est la page à ouvrir
@@ -63,7 +64,7 @@ bien dans le fichier.
 
 ## CE QUI A ÉTÉ FAIT (dernières sessions)
 - **30 paliers moteur** (au lieu de 10), courbe de coût ×1,40 → ×1,10 avec paliers-cadeaux.
-- **Déblocage des 24 caisses** par conditions persistantes, 3 familles mélangées (record d'argent /
+- **Déblocage des caisses** par conditions persistantes, 3 familles mélangées (record d'argent /
   palier moteur / défis nommés). Clause de grand-père pour les caisses déjà gagnées.
 - **Traduction FR/EN** (dictionnaire `I18N`, fonction **`TR()`** — ⚠ **pas `T`**, déjà pris par le
   tableau des tangentes de la piste : la collision fait planter tout le script au parsing).
@@ -92,15 +93,18 @@ bien dans le fichier.
    rampe de pièces sont posés à l'estime.
 5. **Le boost suit le moteur** (`push`). Le user a évoqué le lier à la VOITURE — non tranché, et ça
    contredirait la décision n°2.
-6. **Silhouettes des voitures — LE CHANTIER EN COURS, désormais CHIFFRÉ.** L'étal (`voitures.html`)
-   a mesuré ce que « certaines se ressemblent trop » voulait dire : **20 paires sur 276 dépassent
-   90 % de recouvrement de silhouette, 53 dépassent 80 %**. Pire paire : ANTIMATIÈRE × ÉCLIPSE VII
-   à **99,0 %** — deux caisses différentes séparées par une teinte. LA CAUSE est structurelle et se
-   lit d'un coup d'œil dans la colonne des gabarits : `boxy` 4 · `gt` 4 · `muscle` 2 · `formula` 1 ·
-   `proto` 3 · **`rocket` 10**. Tout l'endgame (caisses 15 à 24) partage UNE silhouette redécorée
-   par des accessoires (`vr=lvl-14` ne change que le nez, les canards et l'inclinaison des
-   ailerons). La suite, c'est le même remède que pour les moteurs : casser le monopole en donnant
-   au corps des FORMES différentes, pas des breloques — et relire le classement après.
+6. **Silhouettes des voitures — FAIT (2026-08-05).** La gamme est passée de **24 à 15 caisses, une
+   silhouette par caisse**, déclarée dans `CARS[i].shape` et montée par le registre `SHAPES`.
+   Mesuré dans l'étal : de **20 paires ≥ 90 % de recouvrement (pire : 99,0 %)** à **0 paire ≥ 80 %,
+   pire cas 78,0 %**. Trois caisses fantastiques d'après les planches du user (ACIDE le tuner au
+   capot vitré, CHAT POP-TART, REQUIN à bulle et hélices) avec des matières GÉNÉRATIVES (`MATV`),
+   **offertes d'entrée** (`{k:'prem',v:0}` — un `0` à passer à `1` le jour où elles se paient).
+   ⚠ Ce qui reste ouvert dessus : (a) **l'arc-en-ciel du CHAT POP-TART** et **la flamme verte de
+   l'ACIDE** — les traînées-rubans et la plume de réacteur ont des matériaux PARTAGÉS pilotés par
+   l'état nitro dans la boucle, donc une teinte par caisse demande de les dédoubler ; (b) les
+   **hélices du REQUIN ne tournent pas** (elles se déploient déjà en vol via `wings:'props'`, il
+   manque juste une rotation dans la boucle) ; (c) les descriptions des 9 caisses supprimées ne
+   sont pas recyclées.
 7. **`#carInfo` est masqué** (`display:none!important`, choix « HUD épuré ») : le nom de la caisse
    conduite n'apparaît nulle part en jeu. À rallumer ou à assumer.
 

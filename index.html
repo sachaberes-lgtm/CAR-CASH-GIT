@@ -163,6 +163,57 @@
     /* plus de bandeau derrière : c'est l'ombre portée qui décolle le texte du ciel */
     text-shadow:0 0 8px rgba(125,255,236,.55),0 2px 4px rgba(0,0,0,.9),0 0 14px rgba(0,0,0,.75)}
   #engVigTier{display:block;color:#ffd75e;font-size:6px;opacity:.9;margin-top:2px}
+  /* ---- LE BADGE DE PALIER : la récompense qui CLAQUE ----
+     ⚠ il se pose SUR la vignette du moteur, jamais au centre de l'écran. Ce qui vient de
+     changer, c'est CETTE pièce-là : l'œil doit y aller. Un bandeau de plus au milieu se
+     lirait comme un message parmi les autres, et on récompenserait le joueur nulle part.
+     ⚠ Le geste, c'est l'ÉLASTIQUE : ça dépasse la taille finale puis ça se repose. Une montée
+     linéaire vers la bonne taille ne procure rien — c'est le dépassement qui fait la joie. */
+  #engPop{position:absolute;top:150px;left:16px;width:196px;height:132px;display:none;
+    pointer-events:none;z-index:7;overflow:visible}
+  #engPop.on{display:block}
+  .epOnde{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;
+    border-radius:50%;border:5px solid #ffd75e;opacity:0;
+    animation:epOnde .9s cubic-bezier(.15,.75,.3,1) forwards}
+  .epOnde.b{border-color:#7dffec;animation-delay:.13s}
+  @keyframes epOnde{0%{transform:scale(.2);opacity:.95;border-width:7px}
+    100%{transform:scale(4.8);opacity:0;border-width:1px}}
+  #epFlash{position:absolute;inset:-10px;border-radius:14px;opacity:0;
+    background:radial-gradient(circle at 50% 44%,rgba(255,255,238,1),rgba(255,225,140,.72) 24%,rgba(255,180,50,.30) 48%,rgba(255,180,50,0) 72%);
+    animation:epFlash .7s ease-out forwards}
+  @keyframes epFlash{0%{opacity:0}12%{opacity:1}100%{opacity:0}}
+  #epBadge{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);text-align:center;
+    opacity:0;animation:epBadge 1.7s cubic-bezier(.16,1.25,.32,1) forwards;white-space:nowrap}
+  @keyframes epBadge{
+    0%{transform:translate(-50%,-50%) scale(.15) rotate(-30deg);opacity:0}
+    16%{opacity:1}
+    38%{transform:translate(-50%,-50%) scale(1.22) rotate(4deg)}
+    52%{transform:translate(-50%,-50%) scale(.96) rotate(-1deg)}
+    64%{transform:translate(-50%,-50%) scale(1) rotate(0)}
+    82%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+    100%{transform:translate(-50%,-72%) scale(.98);opacity:0}}
+  /* ⚠ LE HÉROS, C'EST LE NUMÉRO. Première version : un engrenage de 30 px au-dessus d'une ligne
+     « PALIER 12 » en corps 15 — l'engrenage se perdait et le chiffre, noyé dans son mot, ne
+     claquait pas. Ce que le joueur doit lire en un dixième de seconde, c'est LE NOMBRE : il est
+     donc énorme, l'engrenage lui sert de sceau derrière, et le mot « palier » redevient une
+     étiquette discrète. */
+  #epGear{position:absolute;left:50%;top:34%;transform:translate(-50%,-50%);
+    font-size:58px;line-height:1;opacity:.30;color:#ffd75e;
+    filter:drop-shadow(0 0 14px rgba(255,215,94,.8));
+    animation:epGear 1.7s cubic-bezier(.16,1.2,.3,1) forwards}
+  @keyframes epGear{0%{transform:translate(-50%,-50%) rotate(-170deg) scale(.6)}
+    55%{transform:translate(-50%,-50%) rotate(16deg) scale(1.05)}
+    100%{transform:translate(-50%,-50%) rotate(0) scale(1)}}
+  #epNum{position:relative;display:block;font-size:30px;color:#fff8dc;letter-spacing:1px;
+    text-shadow:0 0 16px rgba(255,215,94,1),0 0 34px rgba(255,160,20,.7),0 3px 0 #7a4e00}
+  #epNum i{display:block;font-style:normal;font-size:7px;letter-spacing:2px;color:#ffd75e;
+    opacity:.9;margin-bottom:6px;text-shadow:0 0 10px rgba(255,215,94,.8)}
+  #epNom{display:block;margin-top:7px;font-size:7px;color:#7dffec;
+    text-shadow:0 0 12px rgba(125,255,236,.85)}
+  @media (max-width:820px){
+    #engPop{top:56px;left:10px;width:118px;height:80px}
+    #epGear{font-size:36px}#epNum{font-size:19px}#epNum i{font-size:5px;margin-bottom:4px}
+    #epNom{font-size:5px;margin-top:5px}}
   #record{position:absolute;top:150px;left:50%;transform:translateX(-50%);font-size:9px;color:#8f84c8}
   #resetBtn{position:absolute;top:16px;right:16px;pointer-events:auto;cursor:pointer;
     font-family:var(--pix);font-size:12px;
@@ -466,7 +517,7 @@
       <button id="gPrev" class="gNav">◀</button>
       <div id="gCard">
         <div id="gName">LA HONTE</div>
-        <div id="gMeta"><span id="gLvl">CAISSE 1 / 24</span><span id="gSpd"></span></div>
+        <div id="gMeta"><span id="gLvl">CAISSE 1 / 15</span><span id="gSpd"></span></div>
         <div id="gDesc"></div>
         <button id="gEquip" class="saveBtn">ÉQUIPER</button>
         <div id="gHint">glisse pour tourner · molette pour zoomer</div>
@@ -489,9 +540,11 @@
       <button id="stNext" class="gNav">▶</button>
     </div>
   </div>
-  <div id="carInfo" class="panel"><div id="carName">LA HONTE</div><div id="carLevel">NIVEAU 1 / 24</div></div>
+  <div id="carInfo" class="panel"><div id="carName">LA HONTE</div><div id="carLevel">MOTEUR ROUILLÉ</div></div>
   <div id="money"><span id="moneyTxt">$00000000</span></div>
   <div id="engVig"><div id="engVigCap">MOTEUR ROUILLÉ<span id="engVigTier">PALIER 1 / 30</span></div></div>
+  <div id="engPop"><div id="epFlash"></div><div class="epOnde"></div><div class="epOnde b"></div>
+    <div id="epBadge"><span id="epGear">⚙</span><span id="epNum"></span><span id="epNom"></span></div></div>
   <div id="record"></div>
   <button id="resetBtn">⟲ <span class="blabel">RESET</span></button>
   <button id="sndBtn" class="sndBtn">🔊 <span class="blabel">SON</span></button>
@@ -2121,58 +2174,50 @@ const landRingGeo=new THREE.RingGeometry(8.5,11.5,32);        // anneau de visé
 let sOffset=0;
 
 // ---------- VOITURES & ÉCONOMIE ----------
-// 24 caisses : 14 « civiles » (variété), puis 10 MONSTRES endgame — toutes au-dessus de l'ex-reine
+// 15 caisses, UNE SILHOUETTE CHACUNE (2026-08-05) — l'ancien roster de 24 faisait sortir 10 caisses
+// du même moule `rocket` : 20 paires au-dessus de 90 % de recouvrement. Mieux vaut 15 formes qu'on
+// reconnaît que 24 variantes d'une seule. ⚠ toutes au-dessus de l'ex-reine
 // (657 km/h) et de plus en plus extrêmes. Le skin = le palier visuel ; `desc` = la carte de déblocage.
 const CARS=[
- {name:'LA HONTE',        color:0x7a4a2b,accent:0x4d2e1a,maxKmh:190,accel:22,turn:2.4, h:.75,w:1.9, l:4.0,spoiler:0,
+ // ---- LA GAMME DES 15 (2026-08-05) : UNE SILHOUETTE PAR CAISSE, point. ----------------------
+ // ⚠ RÈGLE FONDATRICE, mesurée puis gravée : `shape` est DÉCLARÉ ici, une valeur unique par
+ // caisse, et le constructeur refuse de deviner. L'ancienne gamme de 24 tirait son gabarit d'une
+ // échelle de niveaux (`lvl>=14?'rocket':…`) : 10 caisses partageaient `rocket` et 4 `gt`, ce qui
+ // donnait 20 paires au-dessus de 90 % de recouvrement de silhouette et une pire paire à 99,0 %
+ // (ANTIMATIÈRE × ÉCLIPSE VII — deux caisses séparées par une teinte). Voir `voitures.html`,
+ // bouton DOUBLONS : c'est là qu'on vérifie qu'on n'a pas recréé le problème.
+ // Chaque ligne a une RÉFÉRENCE réelle (ou assumée fantastique) et un trait qui se lit de loin.
+ {name:'LA HONTE',        shape:'epave',   color:0x7a4a2b,accent:0x4d2e1a,maxKmh:190,accel:22,turn:2.4, h:.75,w:1.90,l:4.0,spoiler:0,
   desc:'Trois cylindres : deux qui toussent, un qui prie. Elle démarre par pitié. Fais des thunes et oublie-la vite.'},
- {name:'CAISSE À SAVON',  color:0xb8b09a,accent:0x6b6656,maxKmh:209,accel:24,turn:2.5, h:.75,w:1.85,l:3.8,spoiler:0,
-  desc:'Le moteur d\'une tondeuse, le charisme d\'un caddie. Mais ça roule — et vu d\'où tu viens, c\'est déjà un miracle.'},
- {name:'PAPA MOBILE',     color:0x4a6b9c,accent:0x2b3f5c,maxKmh:230,accel:26,turn:2.6, h:.72,w:1.9, l:4.4,spoiler:0,
-  desc:'Sièges chauffants, porte-gobelets, zéro gloire. Conçue pour conduire prudemment. Toi ? Prudent ? On y croit très fort.'},
- {name:'LE FRELON',       color:0xc23b2e,accent:0x701f18,maxKmh:253,accel:29,turn:2.7, h:.68,w:1.85,l:3.9,spoiler:0,
-  desc:'Petite, teigneuse, elle pétarade comme un 14 juillet. Le premier vrai sourire du compteur.'},
- {name:'DIVA BLANCHE',    color:0xe8e8e8,accent:0x999999,maxKmh:278,accel:32,turn:2.8, h:.62,w:1.9, l:4.3,spoiler:0,
-  desc:'Elle refuse de rouler à moins de 200. Toi aussi, maintenant. Vous allez très bien vous entendre.'},
- {name:'GROS BLOC',       color:0x2f2f38,accent:0x15151c,maxKmh:306,accel:35,turn:2.85,h:.6, w:2.0, l:4.8,spoiler:1,
+ {name:'CAISSE À SAVON',  shape:'kei',     color:0xb8b09a,accent:0x6b6656,maxKmh:209,accel:24,turn:2.5, h:.85,w:1.72,l:3.2,spoiler:0,
+  desc:'Un cube sur quatre roulettes, moteur de tondeuse, galerie de toit pour la crédibilité. Ça roule — vu d\'où tu viens, c\'est un miracle.'},
+ {name:'PAPA MOBILE',     shape:'break',   color:0x4a6b9c,accent:0x2b3f5c,maxKmh:230,accel:26,turn:2.6, h:.90,w:1.90,l:4.7,spoiler:0,
+  desc:'Break sept places, barres de toit, hayon vertical. Conçue pour conduire prudemment. Toi ? Prudent ? On y croit très fort.'},
+ {name:'LE CONTREMAÎTRE', shape:'pickup',  color:0xd0742a,accent:0x2a2c30,maxKmh:248,accel:28,turn:2.55,h:.95,w:2.05,l:5.3,spoiler:0,
+  desc:'Pick-up de chantier : benne ouverte, arceau, pare-buffle et garde au sol de tracteur. Elle ne double pas, elle DÉPLACE.'},
+ {name:'GROS BLOC',       shape:'muscle',  color:0x2f2f38,accent:0x15151c,maxKmh:306,accel:35,turn:2.85,h:.60,w:2.00,l:4.9,spoiler:1,
   desc:'Un V8 qui boit de l\'essence et crache du respect. L\'écologie te fait coucou dans le rétro. Tu n\'as pas de rétro.'},
- {name:'SCALPEL VERT',    color:0x2e8b57,accent:0x1a5233,maxKmh:337,accel:39,turn:2.9, h:.55,w:2.0, l:4.5,spoiler:1,
-  desc:'Chirurgicale. Elle découpe les virages pendant que les autres les négocient. Toi, tu ne négocies plus rien.'},
- {name:'BALLE D\'ARGENT', color:0xc0c8d0,accent:0x707880,maxKmh:371,accel:43,turn:3.0, h:.5, w:2.0, l:4.4,spoiler:1,
-  desc:'Une balle avec des sièges. Le pare-brise sert surtout à voir le futur arriver beaucoup trop vite.'},
- {name:'VEUVE NOIRE',     color:0x111118,accent:0xdd2222,maxKmh:408,accel:47,turn:3.05,h:.46,w:2.05,l:4.5,spoiler:1,
-  desc:'Ceux qui l\'ont doublée en parlent encore. Ah non, pardon : personne ne l\'a jamais doublée.'},
- {name:'EL PATRON 🏁',    color:0xffc400,accent:0x1a1a1a,maxKmh:449,accel:52,turn:3.1, h:.42,w:2.1, l:4.6,spoiler:1,
-  desc:'Le taureau doré. 449 au compteur, l\'assurance résiliée d\'office. C\'est ici que les vrais chiffres commencent.'},
- {name:'FORMULE OR 🏎️',   color:0xffdf40,accent:0x22242a,maxKmh:494,accel:57,turn:3.15,h:.4, w:2.1, l:4.8,spoiler:1,glow:0xfff0a0,
+ {name:'DIVA BLANCHE',    shape:'berline', color:0xe8e8e8,accent:0x999999,maxKmh:278,accel:32,turn:2.8, h:.64,w:2.00,l:5.5,spoiler:0,
+  desc:'Limousine à calandre droite et emblème chromé. Elle refuse de rouler à moins de 200. Toi aussi, maintenant.'},
+ {name:'SCALPEL VERT',    shape:'gt',      color:0x1d5c3a,accent:0x0f3222,maxKmh:337,accel:39,turn:2.9, h:.48,w:1.94,l:4.35,spoiler:1,
+  desc:'Fastback en goutte d\'eau, moteur derrière l\'essieu. Elle découpe les virages pendant que les autres les négocient.'},
+ {name:'VEUVE NOIRE',     shape:'wedge',   color:0x111118,accent:0xdd2222,maxKmh:408,accel:47,turn:3.05,h:.44,w:2.12,l:4.7,spoiler:1,
+  desc:'Un coin de tôle posé au ras du sol, deux écopes dans les flancs. Ceux qui l\'ont doublée en parlent encore. Ah non : personne.'},
+ {name:'EL PATRON 🏁',    shape:'hyper',   color:0xffc400,accent:0x1a1a1a,maxKmh:449,accel:52,turn:3.1, h:.58,w:2.26,l:4.55,spoiler:1,
+  desc:'Le taureau doré, arche de toit bicolore et fer à cheval en calandre. L\'assurance a été résiliée d\'office.'},
+ {name:'FORMULE OR 🏎️',   shape:'formula', color:0xffdf40,accent:0x22242a,maxKmh:494,accel:57,turn:3.15,h:.40,w:2.10,l:4.8,spoiler:0,glow:0xfff0a0,
   desc:'Un aileron, un baquet, et tes économies peintes en doré. Le circuit appelle ça de la triche. Nous, du talent.'},
- {name:'NÉON OUTLAW',     color:0x14061f,accent:0x00eaff,maxKmh:543,accel:62,turn:3.2, h:.38,w:2.12,l:4.7,spoiler:1,glow:0xff3ec8,
-  desc:'Prototype volé d\'un labo qui nie son existence. Le néon rose ? Pour qu\'on sache QUI vient de te mettre 3 secondes.'},
- {name:'COMBUSTION 🚀',   color:0xe8ecf2,accent:0xff5a1a,maxKmh:597,accel:68,turn:3.22,h:.4, w:2.15,l:5.0,spoiler:1,glow:0x66c8ff,rocket:1,
-  desc:'Homologuée nulle part, immatriculée par erreur. Le rétroviseur est en option : rien ne revient jamais de derrière.'},
- {name:'COMÈTE 👑',       color:0x0a0a12,accent:0xffd75e,maxKmh:657,accel:75,turn:3.25,h:.36,w:2.2, l:5.1,spoiler:1,glow:0xffffff,rocket:1,
-  desc:'657 km/h. Longtemps la reine incontestée du ciel. Aujourd\'hui : l\'échauffement. Bienvenue dans le vrai jeu.'},
- // ---- ENDGAME : les 10 MONSTRES — plus rapides que l'ex-reine, de moins en moins légaux ----
- {name:'INTERDITE',       color:0x141414,accent:0xff2a2a,maxKmh:730,accel:83,turn:3.28,h:.36,w:2.2, l:5.0,spoiler:1,glow:0xff2a2a,rocket:1,
-  desc:'Le dossier d\'homologation a explosé en vol. Littéralement. Première caisse officiellement bannie dans 194 pays.'},
- {name:'ONDE DE CHOC',    color:0xdfe9f2,accent:0x2a6bff,maxKmh:810,accel:92,turn:3.3, h:.35,w:2.2, l:5.1,spoiler:1,glow:0x9adfff,rocket:1,
-  desc:'Elle klaxonne en BANG supersonique. Les pigeons ont porté plainte. Le mur du son a demandé une protection rapprochée.'},
- {name:'RAZOR-9',         color:0x2a2e36,accent:0x00eaff,maxKmh:900,accel:101,turn:3.33,h:.34,w:2.22,l:5.1,spoiler:1,glow:0x00eaff,rocket:1,
-  desc:'Neuf turbines, zéro compromis. L\'ingénieur qui l\'a conçue s\'est enfui en courant. Pas assez vite.'},
- {name:'GOUDRON FANTÔME', color:0x8a8f9a,accent:0xf2f5fa,maxKmh:1000,accel:112,turn:3.36,h:.33,w:2.22,l:5.2,spoiler:1,glow:0xdfe8ff,rocket:1,
-  desc:'Si rapide que les radars flashent une image vide. Les amendes sont envoyées à ton ombre. Elle non plus ne suit pas.'},
- {name:'TÊTE CHERCHEUSE', color:0x3a4034,accent:0xff7a1a,maxKmh:1110,accel:124,turn:3.38,h:.33,w:2.25,l:5.3,spoiler:1,glow:0xff7a1a,rocket:1,
-  desc:'Techniquement, un missile avec des clignotants. Jamais utilisés, évidemment. L\'horizon a officiellement peur.'},
- {name:'PLASMA ROYAL',    color:0x2a0a3a,accent:0xff3ec8,maxKmh:1230,accel:137,turn:3.41,h:.32,w:2.25,l:5.3,spoiler:1,glow:0xff3ec8,rocket:1,
-  desc:'Le moteur tourne au plasma pur et au mépris. Les vitres sont teintées pour protéger les témoins.'},
- {name:'ANTIMATIÈRE',     color:0x08080e,accent:0x7a5cff,maxKmh:1370,accel:152,turn:3.44,h:.31,w:2.28,l:5.4,spoiler:1,glow:0x7a5cff,rocket:1,
-  desc:'Deux grammes d\'antimatière et un mépris total des lois de la physique. Newton s\'est retourné. Trop lentement.'},
- {name:'ÉCLIPSE VII',     color:0x1a140a,accent:0xffd75e,maxKmh:1520,accel:168,turn:3.46,h:.3, w:2.28,l:5.4,spoiler:1,glow:0xffd75e,rocket:1,
-  desc:'Quand elle passe devant le soleil : trois secondes de nuit. Les astronomes l\'ont classée phénomène céleste.'},
- {name:'SINGULARITÉ',     color:0x0a0a14,accent:0x9ad8ff,maxKmh:1690,accel:186,turn:3.48,h:.29,w:2.3, l:5.5,spoiler:1,glow:0x9ad8ff,rocket:1,
-  desc:'La lumière a demandé un délai. Le temps s\'excuse au passage. Tu ne conduis plus : tu plies la carte.'},
- {name:'DIEU-VITESSE 👑', color:0xf5f6fa,accent:0xffd75e,maxKmh:1900,accel:208,turn:3.5, h:.28,w:2.3, l:5.6,spoiler:1,glow:0xffffff,rocket:1,
-  desc:'Plus de route. Plus de son. Plus de rivaux. Juste toi, et l\'univers qui essaie de suivre. Il n\'y arrive pas.'},
+ {name:'LE MANS 24',      shape:'lemans',  color:0xe8ecf2,accent:0xff5a1a,maxKmh:543,accel:62,turn:3.2, h:.46,w:2.18,l:5.35,spoiler:0,
+  desc:'Prototype d\'endurance : quatre phares longue portée, dérive dorsale, aileron de porte-avions. Faite pour rouler une nuit entière.'},
+ {name:'COMÈTE 👑',       shape:'proto',   color:0x0a0a12,accent:0xffd75e,maxKmh:657,accel:75,turn:3.25,h:.36,w:2.08,l:5.05,spoiler:1,glow:0xffffff,rocket:1,
+  desc:'Coin furtif, bulle de verre, dérive dorsale. La reine du ciel, et elle le sait. Personne ne l\'a jamais vue de face.'},
+ // ---- LES TROIS FANTASTIQUES : matières GÉNÉRATIVES, offertes pour l'instant (voir CAR_UNLOCK) ----
+ {name:'ACIDE',           shape:'tuner',   color:0x4cd914,accent:0x123a08,maxKmh:520,accel:60,turn:3.18,h:.62,w:1.88,l:4.1,spoiler:0,glow:0x8dff2a,
+  desc:'Compacte japonaise passée au bain d\'acide : capot vitré sur le bloc, aileron de table à repasser, échappement qui crache vert.'},
+ {name:'CHAT POP-TART',   shape:'poptart', color:0xf6b98a,accent:0xf78fb8,maxKmh:560,accel:64,turn:3.2, h:.52,w:1.95,l:3.4,spoiler:0,glow:0xff5ec8,
+  desc:'Une pâtisserie industrielle avec une tête de chat et quatre roulettes. Personne n\'a demandé pourquoi. Tout le monde a demandé comment.'},
+ {name:'REQUIN',          shape:'requin',  color:0x3a6ea8,accent:0xdfe9f2,maxKmh:600,accel:68,turn:3.22,h:.95,w:1.98,l:3.3,spoiler:0,glow:0x9adfff,
+  desc:'Bulle de verre, museau de grand blanc, quatre bras d\'hélices repliés dans les flancs. Au sol il roule. En l\'air, il chasse.'},
 ];
 // ---- VALEUR D'UNE PIÈCE — UNE ENTRÉE PAR PALIER MOTEUR (30) ---------------------------------
 // ⚠ Cette table est indexée par `engTier` depuis que les PIÈCES portent la progression, mais elle
@@ -2585,6 +2630,21 @@ headSpot.position.set(0,4,0);scene.add(headSpot);scene.add(headSpot.target);
 // orange nitro / bleu réserve / or pad turbo, intensité 0 au repos (à l init, zéro recompilation)
 const nitroLight=new THREE.PointLight(0xff7a24,0,18);scene.add(nitroLight); // portée courte : une FLAQUE de feu sous l'échappement, pas une rivière jusqu'à la caméra
 const trailLight=new THREE.PointLight(0xff7a24,0,34);scene.add(trailLight); // le REFLET DE LA TRAÎNÉE : une lueur qui GLISSE sur le bitume 9 m derrière la caisse
+/* ---- LA SCÈNE DU CHANGEMENT DE MOTEUR (2026-08-05) ----
+   ⚠ TOUT EST CRÉÉ ICI, à l'init, intensité 0 et `visible=false`. Ajouter une lumière ou un
+   matériau EN COURS DE PARTIE force une recompilation de shader, donc un hoquet — et il
+   tomberait précisément sur l'instant qu'on essaie de rendre jouissif. */
+const swapLight=new THREE.PointLight(0xffd06a,0,30);scene.add(swapLight); // le flash doré de la pose
+const swapRing=(function(){                                               // l'onde qui s'ouvre au ras de la caisse
+  const m=new THREE.Mesh(new THREE.RingGeometry(.80,1,48,1),
+    new THREE.MeshBasicMaterial({color:0xffd75e,transparent:true,opacity:0,
+      blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
+  m.frustumCulled=false;m.visible=false;scene.add(m);return m;})();
+// repères de la caisse pour la spirale — dédiés, car `tmp/tmp2/tmp3` sont partagés et la boucle
+// continue après nous (musique, créatures) : les écraser ici se paierait ailleurs
+const sw1=new THREE.Vector3(),sw2=new THREE.Vector3(),sw3=new THREE.Vector3();
+const T_SWAP=1.7;   // la durée de TOUTE la scène — une seule constante, lue par le son, la
+                    // vignette, l'onde et le badge : ils ne peuvent plus se désynchroniser
 const hsF=new THREE.Vector3(),hsU=new THREE.Vector3(),hsR=new THREE.Vector3(); // nez + toit + flanc de la caisse (repère monde), réutilisés chaque frame
 // ---- TRAÎNÉE DE NITRO : deux RUBANS de lumière accrochés aux tuyères — le « swoosh » qui reste dans l'air.
 // Buffers fixes (zéro allocation en boucle), largeur orientée face caméra, fondu au carré de l'âge.
@@ -2721,6 +2781,70 @@ const jetGlowM=new THREE.SpriteMaterial({map:lampTex,color:0xff9040,transparent:
 const JETS={shells:[],cores:[],glows:[],k:0}; // rempli par buildCar, animé chaque frame
 const CARPOOL={head:null,tail:null,jet:null}; // FLAQUES DE LUMIÈRE AU SOL (phares AV / feux AR / halo nitro) — rempli par buildCar, le halo nitro est piloté par JETS.k
 let carWingL=null,carWingR=null,wingT=0; // MINI-AILES/PLANEURS : repliées au sol, déployées en vol (buildCar les crée, la boucle les anime)
+// ---- MATIÈRES GÉNÉRATIVES DES CAISSES (`MATV`) — jumelles de `MAT9` côté moteurs -------------
+// Trois peaux peintes PAR LE CODE, jamais un fichier image : peinture à paillettes, pâtisserie
+// industrielle et peau de requin. ⚠ calculées UNE fois et partagées (comme MAT9) — sans ce cache,
+// chaque ouverture du garage repeindrait trois canvas. La TEINTE reste portée par `material.color`
+// qui MULTIPLIE la carte : la carte donne le grain, la fiche donne la couleur.
+const MATV={_c:{},get(k){return this._c[k]||(this._c[k]=this['_'+k]());},
+  _tex(cv){const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;return t;},
+  // PEINTURE À PAILLETTES : ce qui fait lire « vernis tuning » n'est pas la couleur, c'est le
+  // SCINTILLEMENT — des milliers de micro-éclats qui n'accrochent la lumière que sous un angle.
+  // Fond quasi blanc pour se laisser teindre, marbrure très douce pour que le plat ne soit pas plat.
+  _flake(){
+    const cv=document.createElement('canvas');cv.width=cv.height=256;const c=cv.getContext('2d');
+    c.fillStyle='#f2f2f2';c.fillRect(0,0,256,256);
+    for(let i=0;i<170;i++){ // marbrure : nuages sombres à peine perceptibles (la tôle n'est jamais uniforme)
+      c.globalAlpha=.05;c.fillStyle='#9aa0a6';
+      c.beginPath();c.arc(Math.random()*256,Math.random()*256,8+Math.random()*22,0,7);c.fill();}
+    c.globalAlpha=1;
+    for(let i=0;i<2600;i++){ // LES PAILLETTES
+      const x=Math.random()*256,y=Math.random()*256,r=Math.random()<.12?1.6:.75;
+      c.fillStyle=Math.random()<.5?'rgba(255,255,255,.95)':'rgba(190,200,210,.7)';
+      c.beginPath();c.arc(x,y,r,0,7);c.fill();}
+    return this._tex(cv);
+  },
+  // LA POP-TART, FACE GLAÇAGE : croûte dorée piquée, glaçage rose en retrait, pépites semées.
+  // ⚠ le glaçage NE VA PAS jusqu'au bord — c'est ce liseré de pâte nue qui fait lire « pâtisserie »
+  // et pas « rectangle rose ». Les pépites sont semées par boucle, jamais dessinées à la main.
+  _icing(){
+    const cv=document.createElement('canvas');cv.width=cv.height=256;const c=cv.getContext('2d');
+    c.fillStyle='#e8b473';c.fillRect(0,0,256,256);                       // la pâte
+    for(let i=0;i<900;i++){c.fillStyle='rgba(150,102,52,'+(.05+Math.random()*.18)+')'; // piqûres de cuisson
+      c.beginPath();c.arc(Math.random()*256,Math.random()*256,.7+Math.random()*1.6,0,7);c.fill();}
+    c.fillStyle='#f4a0c4';c.fillRect(26,26,204,204);                     // le glaçage, en retrait
+    c.fillStyle='rgba(255,255,255,.16)';c.fillRect(26,26,204,26);        // reflet mou en haut du glaçage
+    const SPR=['#7fd8ff','#ffe45e','#ff6f91','#8dff9a','#c48dff','#ffffff'];
+    for(let i=0;i<130;i++){                                              // LES PÉPITES
+      const x=36+Math.random()*184,y=36+Math.random()*184,a=Math.random()*3.14;
+      c.save();c.translate(x,y);c.rotate(a);
+      c.fillStyle=SPR[(Math.random()*SPR.length)|0];c.fillRect(-4,-1.4,8,2.8);c.restore();}
+    return this._tex(cv);
+  },
+  // LA TRANCHE de la pop-tart : pâte nue, festonnée sur ses bords (l'empreinte de la fourchette).
+  _crust(){
+    const cv=document.createElement('canvas');cv.width=cv.height=64;const c=cv.getContext('2d');
+    c.fillStyle='#e0a869';c.fillRect(0,0,64,64);
+    for(let i=0;i<220;i++){c.fillStyle='rgba(146,96,48,'+(.06+Math.random()*.22)+')';
+      c.beginPath();c.arc(Math.random()*64,Math.random()*64,.6+Math.random()*1.5,0,7);c.fill();}
+    for(let i=0;i<16;i++){c.fillStyle='rgba(120,78,38,.42)';c.fillRect(i*4+1,0,2,7);c.fillRect(i*4+1,57,2,7);} // festons
+    return this._tex(cv);
+  },
+  // PEAU DE REQUIN : le CONTRE-OMBRAGE. Un requin n'est pas bleu, il est sombre dessus et blanc
+  // dessous — c'est ce dégradé (et lui seul) qui le fait lire comme un animal marin. Le grain fin
+  // par-dessus, ce sont les denticules : sans eux la bulle ressort en plastique de jouet.
+  _skin(){
+    const cv=document.createElement('canvas');cv.width=64;cv.height=256;const c=cv.getContext('2d');
+    const g=c.createLinearGradient(0,0,0,256); // v=1 en haut de la texture = le DOS sur une sphère
+    g.addColorStop(0,'#ffffff');g.addColorStop(.30,'#eaf2f8');g.addColorStop(.52,'#9dbcd8');
+    g.addColorStop(.66,'#5d86b4');g.addColorStop(1,'#2f5a86');
+    c.fillStyle=g;c.fillRect(0,0,64,256);
+    for(let i=0;i<2200;i++){const y=Math.random()*256;
+      c.fillStyle='rgba('+(Math.random()<.5?'255,255,255,':'20,40,70,')+(.04+Math.random()*.10)+')';
+      c.fillRect(Math.random()*64,y,1.4,1);}
+    return this._tex(cv);
+  }};
+const SPH9=new THREE.SphereGeometry(1,16,12); // la boule partagée par les gabarits (bulles, museaux, têtes)
 // SILHOUETTE DE PROFIL : la « gueule » de chaque gabarit — points (z=longueur,y=hauteur) extrudés
 // sur la largeur. Capots plongeants, fastbacks, coins furtifs : impossibles en boîtes, gratuits ici.
 function carProfile(pts,w){
@@ -2733,6 +2857,306 @@ function carProfile(pts,w){
   g.rotateY(-Math.PI/2);g.translate(w/2-bev,0,0); // longueur → Z (avant en +Z), largeur centrée sur X (bev compris)
   return g;
 }
+/* ---- LES 15 SILHOUETTES ---------------------------------------------------------------------
+   UNE ENTRÉE = UNE CAISSE. Chaque gabarit monte son corps avec la boîte à outils `K` et rend une
+   FICHE D'ANCRAGES : où vont les phares, les feux, les roues, et quels accessoires communs il veut.
+   ⚠ POURQUOI CETTE FORME. L'ancien `buildCar` choisissait le gabarit par SEUILS de niveau
+   (`lvl>=14?'rocket':lvl>=11?'proto':…`) : entre deux seuils, RIEN ne changeait, et 10 caisses sur
+   24 sortaient du même moule. Mesuré dans `voitures.html` : 20 paires au-dessus de 90 % de
+   recouvrement de silhouette. C'est la même erreur, et le même remède, que pour les moteurs.
+   ⚠ LA RÈGLE : deux caisses ne doivent JAMAIS partager un gabarit. Vérifiable d'un clic (bouton
+   DOUBLONS de l'étal) ; le constructeur, lui, refuse de deviner — pas de `shape`, pas de caisse.
+   ⚠ CE QUE LES GABARITS NE TOUCHENT PAS : les tuyères (JETS) restent aux ancres canoniques
+   ±w*.22 / y .43 / -l/2-.28, parce que les traînées-rubans et `nitroLight` s'y accrochent en dur.
+   -------------------------------------------------------------------------------------------- */
+const SHAPES={
+  // 1. L'ÉPAVE — tôle froissée, une roue voilée, un phare mort. Le point de départ de chaque run.
+  epave(K){
+    const {W,H,L,y0,box:B}=K;
+    B(W,H*.62,L,K.body,0,y0+H*.31).rotation.z=.03;
+    const hood=B(W*.94,H*.34,L*.34,K.body,0,y0+H*.64,L*.30);hood.rotation.set(.16,0,-.06);hood.scale.y=.8;
+    B(W*.94,H*.36,L*.26,K.body,0,y0+H*.65,-L*.34).rotation.x=-.09;
+    B(W*.78,H*.62,L*.40,K.glass,0,y0+H*.93,-L*.05).rotation.z=-.04;
+    const roof=B(W*.72,H*.10,L*.34,K.acc,0,y0+H*1.24,-L*.05);roof.rotation.z=.09;roof.scale.y=.6;
+    for(const sd of [-1,1]){
+      const mir=B(.09,.09,.16,sd<0?K.rust:K.acc,sd*(W/2+.10),y0+H*.95,L*.12);if(sd<0)mir.rotation.z=-.9;
+      B(.08,H*.25,L*.62,K.acc,sd*(W/2+.02),y0+H*.12,0);
+    }
+    B(W*.55,H*.2,.07,K.dark,0,y0+H*.42,L/2+.10);
+    for(const fz of [1,-1]){const bp=B(W*1.02,H*.24,.18,K.dark,0,y0+H*.15,fz*(L/2+.06));
+      if(fz<0){bp.rotation.z=.14;bp.position.y-=.08;}}
+    for(const sp of [[.30,.50,.35,.50,.30],[-.42,.45,-.10,.40,.50],[.10,.68,-.42,.60,.25],[-.25,.30,.42,.35,.40]])
+      B(W*sp[3],H*sp[4],.05,K.rust,sp[0]*W,y0+H*sp[1],sp[2]*L+(sp[2]>0?.03:-.03)); // plaques de rouille
+    B(.04,H*.40,L*.35,K.rust,W/2+.05,y0+H*.45,L*.10);
+    return {doors:1};
+  },
+  // 2. LA KEI-CAR — UN SEUL VOLUME, haut et court, roues aux quatre coins, galerie de toit.
+  //    Le trait qui la sauve du cube : la ceinture de vitres qui fait TOUT le tour.
+  kei(K){
+    const {W,H,L,y0,box:B}=K;
+    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.30*H],[.46*L,.55*H],[.30*L,.62*H],[.20*L,1.02*H],[-.44*L,1.06*H],[-.50*L,.92*H]],W*.96,K.body);
+    K.prof([[.18*L,.66*H],[.13*L,1.00*H],[-.40*L,1.03*H],[-.42*L,.66*H]],W*.86,K.glass);
+    B(W*.90,H*.09,L*.62,K.acc,0,y0+H*1.06,-L*.10);
+    for(const sd of [-1,1]){
+      B(.05,.05,L*.50,K.chrome,sd*W*.30,y0+H*1.15,-L*.08);      // longerons de galerie
+      B(.09,.09,.16,K.acc,sd*(W/2+.09),y0+H*.86,L*.16);
+    }
+    for(const zz of [-.26,0,.26])B(W*.66,.04,.05,K.chrome,0,y0+H*1.15,zz*L); // traverses
+    B(W*.62,H*.16,.07,K.dark,0,y0+H*.36,L/2+.06);
+    return {hl:[W*.34,y0+H*.44,L/2+.10],tl:[W*.34,y0+H*.88,-L/2-.06],wr:.84,wz:L/2-.52,doors:1,split:0};
+  },
+  // 3. LE BREAK — long toit DROIT et hayon VERTICAL. Deux traits, et on ne la confond avec rien.
+  break(K){
+    const {W,H,L,y0,box:B}=K;
+    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.34*H],[.30*L,.40*H],[.14*L,.44*H],[.06*L,.96*H],[-.44*L,.98*H],[-.50*L,.88*H],[-.50*L,.34*H]],W*.96,K.body);
+    K.prof([[.05*L,.52*H],[-.01*L,.93*H],[-.42*L,.95*H],[-.44*L,.52*H]],W*.80,K.glass);
+    B(W*.86,H*.08,L*.52,K.acc,0,y0+H*.98,-L*.16);
+    for(const sd of [-1,1]){
+      B(.06,.07,L*.44,K.chrome,sd*W*.28,y0+H*1.04,-L*.14);      // BARRES DE TOIT : la signature du break
+      B(.09,.09,.16,K.acc,sd*(W/2+.10),y0+H*.80,L*.14);
+      B(.07,H*.20,L*.60,K.acc,sd*(W/2+.02),y0+H*.12,0);
+    }
+    B(W*.58,H*.18,.07,K.dark,0,y0+H*.40,L/2+.08);
+    B(W*.92,H*.10,.06,K.acc,0,y0+H*.86,-L/2-.02);               // baguette de hayon
+    return {hl:[W*.32,y0+H*.46,L/2+.12],tl:[W*.38,y0+H*.72,-L/2-.06],wz:L/2-.82,doors:1,slats:1};
+  },
+  // 4. LE PICK-UP — cabine et BENNE OUVERTE, arceau, pare-buffle, roues de tracteur.
+  //    Le seul creux de la gamme : de trois quarts on voit DEDANS, aucune autre caisse ne fait ça.
+  pickup(K){
+    const {W,H,L,y0,box:B}=K;
+    const ch=y0+.20;                                            // châssis relevé : garde au sol de chantier
+    // TROIS VOLUMES SÉPARÉS — capot, cabine, benne. C'est la SÉPARATION qui fait lire le pick-up ;
+    // ⚠ le premier jet dessinait la cabine d'un seul profil dont les points revenaient en arrière :
+    // le polygone se recoupait et sortait en éclat de tôle. Un profil doit faire le tour SANS croiser.
+    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.36*H],[.46*L,.46*H],[.15*L,.48*H],[.15*L,.34*H],[-.50*L,.34*H]],W*.96,K.body,ch);
+    K.prof([[.14*L,.46*H],[.05*L,.98*H],[-.21*L,1.00*H],[-.23*L,.46*H]],W*.92,K.body,ch);   // CABINE
+    K.prof([[.11*L,.54*H],[.04*L,.94*H],[-.19*L,.96*H],[-.21*L,.54*H]],W*.78,K.glass,ch);   // vitrage
+    B(W*.94,H*.09,L*.30,K.acc,0,ch+H*1.01,-L*.07);              // toit de cabine
+    // LA BENNE : plancher + trois parois. On voit DEDANS de trois quarts — aucune autre caisse ne fait ça.
+    B(W*.96,.07,L*.48,K.body,0,ch+H*.38,-L*.26);
+    B(W*.96,H*.34,.07,K.body,0,ch+H*.55,-L*.49);
+    for(const sd of [-1,1]){
+      B(.07,H*.34,L*.48,K.body,sd*W*.47,ch+H*.55,-L*.26);
+      B(.10,.10,.18,K.acc,sd*(W/2+.11),ch+H*.80,L*.06);         // rétros de camion
+      B(.06,H*.52,.06,K.chrome,sd*W*.32,ch+H*1.10,-L*.27);      // ARCEAU : deux montants…
+      B(W*.16,H*.26,L*.26,K.body,sd*W*.42,ch+H*.12,L*.32);      // ailes avant proéminentes
+    }
+    B(W*.72,.08,.08,K.chrome,0,ch+H*1.36,-L*.27);               // …et la traverse
+    for(const xx of [-.18,.18])K.cyl(.06,.06,.13,K.chrome,xx*W,ch+H*1.43,-L*.27,10).rotation.x=Math.PI/2; // 2 phares de toit
+    B(W*1.04,H*.24,.14,K.dark,0,ch+H*.20,L*.50);                // PARE-BUFFLE
+    for(const xx of [-.24,0,.24])B(.07,H*.44,.07,K.chrome,xx*W,ch+H*.40,L*.52);
+    return {hl:[W*.34,ch+H*.52,L*.50],tl:[W*.36,ch+H*.52,-L*.50],wr:1.22,wx:W/2+.05,wz:L/2-.98,doors:1,split:0,skirt:0};
+  },
+  // 5. LA MUSCLE US — capot INTERMINABLE, hanches, prise d'air sur le nez.
+  muscle(K){
+    const {W,H,L,y0,box:B}=K;
+    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.40*H],[.44*L,.52*H],[.02*L,.55*H],[-.30*L,.60*H],[-.46*L,.62*H],[-.50*L,.50*H]],W*.96,K.body);
+    K.prof([[.06*L,.50*H],[-.04*L,.95*H],[-.24*L,.93*H],[-.34*L,.55*H]],W*.70,K.glass);
+    B(W*.56,.05,L*.20,K.acc,0,y0+H*.91,-L*.13).rotation.x=.06;
+    B(W*.30,H*.16,L*.16,K.acc,0,y0+H*.60,L*.22);                 // le SCOOP
+    for(const sd of [-1,1]){
+      B(W*.12,H*.36,L*.30,K.body,sd*(W/2-.01),y0+H*.40,-L*.28);  // hanches
+      B(.09,.09,.16,K.acc,sd*(W/2+.10),y0+H*.92,L*.10);
+      B(.08,H*.22,L*.60,K.acc,sd*(W/2+.02),y0+H*.10,0);
+    }
+    B(W*.55,H*.2,.07,K.dark,0,y0+H*.40,L/2+.08);
+    return {doors:1,slats:1};
+  },
+  // 6. LA BERLINE DE LUXE — trois volumes francs, calandre HAUTE ET DROITE, emblème chromé.
+  berline(K){
+    const {W,H,L,y0,box:B}=K;
+    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.46*H],[.44*L,.52*H],[.16*L,.54*H],[.02*L,.94*H],[-.28*L,.96*H],[-.40*L,.58*H],[-.50*L,.54*H]],W*.96,K.body);
+    K.prof([[.01*L,.60*H],[-.03*L,.92*H],[-.26*L,.93*H],[-.30*L,.60*H]],W*.80,K.glass);
+    B(W*.72,H*.07,L*.30,K.acc,0,y0+H*.95,-L*.13);
+    B(W*.46,H*.40,.10,K.dark,0,y0+H*.36,L/2+.05);                // LA CALANDRE, droite et haute
+    B(W*.50,H*.44,.05,K.chrome,0,y0+H*.36,L/2+.02);              // son encadrement
+    const em=K.cyl(.07,.07,.03,K.chrome,0,y0+H*.52,L/2+.11,10);em.rotation.x=Math.PI/2; // l'emblème
+    for(const sd of [-1,1]){
+      B(.10,.09,.17,K.chrome,sd*(W/2+.10),y0+H*.86,L*.12);
+      B(.04,.05,L*.50,K.chrome,sd*(W*.40),y0+H*.60,-L*.06);      // encadrement de vitres chromé
+      B(.07,H*.16,L*.60,K.acc,sd*(W/2+.02),y0+H*.10,0);
+    }
+    return {hl:[W*.34,y0+H*.44,L/2+.10],tl:[W*.34,y0+H*.50,-L/2-.08],wz:L/2-.86,doors:1,slats:1};
+  },
+  // 7. LA GT À MOTEUR ARRIÈRE — le FASTBACK en goutte d'eau, ailes bombées.
+  gt(K){
+    const {W,H,L,y0,box:B}=K;
+    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.30*H],[.20*L,.48*H],[-.10*L,.58*H],[-.44*L,.62*H],[-.50*L,.56*H]],W*.96,K.body);
+    K.prof([[.14*L,.44*H],[-.02*L,.94*H],[-.24*L,.92*H],[-.36*L,.54*H]],W*.70,K.glass);
+    B(W*.56,.05,L*.20,K.acc,0,y0+H*.90,-L*.13).rotation.x=.06;
+    for(const sd of [-1,1]){
+      K.sph(W*.10,H*.34,L*.20,K.body,sd*(W/2-.02),y0+H*.44,L*.24); // ailes bombées AV
+      K.sph(W*.11,H*.32,L*.22,K.body,sd*(W/2-.02),y0+H*.42,-L*.26);
+      B(.08,H*.22,L*.60,K.acc,sd*(W/2+.02),y0+H*.10,0);
+    }
+    return {};
+  },
+  // 8. LE COIN — supercar à moteur central : nez au ras du sol, deux ÉCOPES dans les flancs.
+  wedge(K){
+    const {W,H,L,y0,box:B}=K;
+    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.10*H],[.22*L,.34*H],[-.06*L,.66*H],[-.34*L,.68*H],[-.50*L,.50*H]],W*.96,K.body);
+    K.prof([[.10*L,.44*H],[-.04*L,.86*H],[-.22*L,.84*H],[-.28*L,.56*H]],W*.62,K.glass);
+    for(const sd of [-1,1]){
+      B(.09,H*.30,L*.26,K.dark,sd*(W/2-.01),y0+H*.36,-L*.06);    // LES ÉCOPES, creusées dans le flanc
+      B(.05,H*.10,L*.30,K.acc,sd*(W/2+.03),y0+H*.50,-L*.06);
+      B(.08,H*.16,L*.62,K.acc,sd*(W/2+.02),y0+H*.08,0);
+    }
+    B(W*.62,H*.06,L*.14,K.dark,0,y0+H*.70,-L*.34);               // grille de capot moteur
+    for(const zz of [-.30,-.36,-.42])B(W*.58,.02,.02,K.chrome,0,y0+H*.73,zz*L);
+    return {hl:[W*.34,y0+H*.26,L*.44],tl:[W*.32,y0+H*.60,-L/2-.06]};
+  },
+  // 9. L'HYPERCAR — l'ARCHE DE TOIT bicolore qui court du nez au coffre, fer à cheval en calandre.
+  hyper(K){
+    const {W,H,L,y0,box:B}=K;
+    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.26*H],[.26*L,.46*H],[.04*L,.72*H],[-.26*L,.74*H],[-.44*L,.58*H],[-.50*L,.46*H]],W*.98,K.body);
+    K.prof([[.12*L,.52*H],[-.02*L,.96*H],[-.24*L,.94*H],[-.32*L,.60*H]],W*.66,K.glass);
+    // L'ARCHE : une bande accent qui passe PAR-DESSUS l'habitacle — le trait signature, visible de partout
+    for(const sd of [-1,1]){
+      const arc=K.prof([[.30*L,.44*H],[.10*L,.80*H],[-.14*L,1.00*H],[-.34*L,.78*H],[-.46*L,.56*H],[-.44*L,.50*H],[-.16*L,.92*H],[.08*L,.72*H],[.28*L,.38*H]],.06,K.acc);
+      arc.position.x=sd*W*.30;
+      B(.10,H*.26,L*.28,K.dark,sd*(W/2-.01),y0+H*.40,-L*.02);
+      B(.08,H*.16,L*.64,K.acc,sd*(W/2+.02),y0+H*.08,0);
+    }
+    const fer=K.cyl(W*.20,W*.20,.10,K.chrome,0,y0+H*.30,L/2+.02,16); // le FER À CHEVAL
+    fer.rotation.x=Math.PI/2;fer.scale.z=1.5;
+    K.cyl(W*.15,W*.15,.14,K.dark,0,y0+H*.30,L/2+.04,16).rotation.x=Math.PI/2;
+    return {hl:[W*.36,y0+H*.40,L*.46],tl:[W*.34,y0+H*.56,-L/2-.06]};
+  },
+  // 10. LA MONOPLACE — roues DEHORS, pontons, aileron biplan. Aucune carrosserie autour des roues.
+  formula(K){
+    const {W,H,L,y0,box:B}=K;
+    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.20*H],[.30*L,.26*H],[.06*L,.30*H],[-.04*L,.70*H],[-.14*L,.66*H],[-.30*L,.44*H],[-.50*L,.38*H]],W*.42,K.body);
+    for(const sd of [-1,1]){
+      B(W*.26,H*.34,L*.36,K.body,sd*W*.32,y0+H*.20,-L*.06);
+      B(.03,H*.16,L*.10,K.dark,sd*W*.51,y0+H*.16,L*.46);
+      B(.03,H*.44,L*.11,K.dark,sd*W*.46,y0+H*1.18,-L*.44);
+    }
+    B(W*1.02,.05,L*.10,K.acc,0,y0+H*.10,L*.46);
+    for(const wy of [1.05,1.32])B(W*.92,.045,L*.09,K.acc,0,y0+H*wy,-L*.44);
+    B(W*.16,H*.22,L*.12,K.acc,0,y0+H*.78,-L*.09);                // boîte à air
+    B(W*.20,H*.10,L*.14,K.dark,0,y0+H*.60,L*.02);                // baquet ouvert
+    B(W*.18,H*.12,.02,K.glass,0,y0+H*.52,L*.10).rotation.x=-.5;
+    return {hl:[W*.10,y0+H*.24,L*.46],tl:[W*.14,y0+H*.30,-L/2-.06],wx:W/2+.16,split:0,skirt:0,sp:0};
+  },
+  // 11. LE PROTOTYPE D'ENDURANCE — dérive dorsale reliée à un aileron de porte-avions,
+  //     quatre phares longue portée. Long, bas, et cette ombre de requin sur le dos.
+  lemans(K){
+    const {W,H,L,y0,box:B}=K;
+    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.18*H],[.28*L,.36*H],[.02*L,.60*H],[-.22*L,.64*H],[-.42*L,.52*H],[-.50*L,.44*H]],W*.98,K.body);
+    K.prof([[.10*L,.46*H],[-.02*L,.88*H],[-.20*L,.86*H],[-.26*L,.54*H]],W*.60,K.glass);
+    B(.06,H*.44,L*.44,K.acc,0,y0+H*.86,-L*.20);                  // LA DÉRIVE DORSALE
+    for(const sd of [-1,1]){
+      B(.10,H*.34,L*.28,K.dark,sd*(W/2-.01),y0+H*.34,-L*.10);
+      B(.07,H*.90,L*.10,K.acc,sd*W*.40,y0+H*.96,-L*.46);         // pylônes de l'aileron
+      B(W*.16,H*.26,L*.30,K.body,sd*W*.42,y0+H*.30,L*.24);       // passages de roue AV carénés
+    }
+    B(W*1.06,.06,L*.20,K.acc,0,y0+H*1.42,-L*.46);                // L'AILERON, plus large que la caisse
+    B(W*1.02,.05,L*.10,K.acc,0,y0+H*.10,L*.48);
+    for(const sd of [-1,1])for(const dx of [.07,.19])            // QUATRE phares longue portée
+      K.cyl(.09,.09,.05,K.chrome,sd*(W*dx+W*.10),y0+H*.34,L*.47,10).rotation.x=Math.PI/2;
+    return {hl:[W*.24,y0+H*.34,L*.48],tl:[W*.32,y0+H*.48,-L/2-.06],sp:0};
+  },
+  // 12. LE FURTIF — coin plat, bulle de verre, dérive. La reine : on ne lui voit aucune ligne droite.
+  proto(K){
+    const {W,H,L,y0,box:B}=K;
+    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.16*H],[.10*L,.40*H],[-.30*L,.52*H],[-.50*L,.50*H]],W*.94,K.body);
+    K.sph(W*.30,H*.52,L*.20,K.glass,0,y0+H*.42,L*.02);
+    B(.04,H*.42,L*.30,K.acc,0,y0+H*.62,-L*.34);
+    for(const sd of [-1,1])B(.06,H*.20,L*.24,K.dark,sd*(W/2+.01),y0+H*.28,-L*.14);
+    return {hl:[W*.30,y0+H*.30,L*.44],tl:[W*.30,y0+H*.44,-L/2-.06]};
+  },
+  /* ============================================================================================
+     LES TROIS FANTASTIQUES — d'après les planches de référence. Matières GÉNÉRATIVES (`MATV`).
+     ========================================================================================== */
+  // 13. ACIDE — compacte japonaise kittée : CAPOT VITRÉ sur le bloc, aileron de table à repasser,
+  //     pare-chocs proéminent, peinture à paillettes. Le trait qui la vend : on voit le moteur.
+  tuner(K){
+    const {W,H,L,y0,box:B,spec}=K;
+    const vernis=new THREE.MeshPhongMaterial({color:spec.color,map:MATV.get('flake'),emissive:spec.color,
+      emissiveIntensity:.16,shininess:220,specular:0xffffff,envMap:envTex,reflectivity:.72,combine:THREE.MixOperation});
+    rimify(vernis);
+    // trois volumes de hatch : capot court, pare-brise très incliné, toit, hayon coupé net
+    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.34*H],[.34*L,.42*H],[.16*L,.46*H],[.02*L,.90*H],[-.34*L,.94*H],[-.44*L,.62*H],[-.50*L,.56*H]],W*.94,vernis);
+    K.prof([[.02*L,.52*H],[-.04*L,.88*H],[-.32*L,.90*H],[-.40*L,.60*H]],W*.78,K.glass);
+    // LE CAPOT VITRÉ : une vitre à plat au-dessus d'un bloc moteur sommaire — c'est ça, la caisse
+    B(W*.62,.03,L*.26,K.glass,0,y0+H*.47,L*.28).rotation.x=.06;
+    B(W*.44,H*.20,L*.18,K.dark,0,y0+H*.34,L*.28);                // le bloc
+    for(const xx of [-.13,0,.13])K.cyl(.045,.045,H*.22,K.acc,xx*W,y0+H*.42,L*.28,8); // 4 bougies alignées
+    K.cyl(.05,.05,L*.20,K.chrome,W*.16,y0+H*.40,L*.28,8).rotation.x=Math.PI/2;       // durite
+    // L'AILERON GT : deux pylônes droits + un plan qui dépasse largement du hayon
+    for(const sd of [-1,1]){
+      B(.06,H*.52,L*.07,K.acc,sd*W*.34,y0+H*1.06,-L*.42);
+      B(.09,H*.20,L*.66,K.acc,sd*(W/2+.03),y0+H*.14,-L*.02);     // JUPES larges
+      B(.10,.09,.16,K.acc,sd*(W/2+.10),y0+H*.78,L*.14);
+    }
+    B(W*1.06,.06,L*.20,K.acc,0,y0+H*1.32,-L*.42);
+    B(W*1.02,H*.18,.16,K.acc,0,y0+H*.16,L/2+.10);                // pare-chocs kitté + lame
+    B(W*.98,.05,.30,K.dark,0,y0+H*.04,L/2+.18);
+    B(W*.50,H*.14,.07,K.dark,0,y0+H*.28,L/2+.06);
+    K.cyl(.14,.16,.30,K.chrome,W*.22,y0+.06,-L/2-.16,12).rotation.x=Math.PI/2; // canon d'échappement
+    return {hl:[W*.32,y0+H*.40,L/2+.06],tl:[W*.34,y0+H*.66,-L/2-.04],wr:.94,doors:1,sp:0};
+  },
+  // 14. LE CHAT POP-TART — un pavé de pâtisserie sur quatre roulettes, tête de chat à l'avant.
+  //     ⚠ la pâtisserie ne tient QUE par la texture générative : glaçage sur le dessus, pâte sur
+  //     la tranche. Un pavé rose uni lit « brique », pas « pop-tart ».
+  poptart(K){
+    const {W,H,L,y0,box:B}=K;
+    const gla=new THREE.MeshPhongMaterial({map:MATV.get('icing'),shininess:26,specular:0x554433}),
+          cro=new THREE.MeshPhongMaterial({map:MATV.get('crust'),shininess:12,specular:0x332211});
+    // ⚠ LA CAISSE POSE PLUS BAS QUE LES AUTRES. Un pavé de pâtisserie sur des roues de berline,
+    // ce sont quatre roulettes qui flottent sous une planche : ici le dessous du gâteau descend
+    // JUSQUE sur des roulettes minuscules, et c'est ce contact qui rend l'objet crédible.
+    const cy=.44;
+    // BoxGeometry : +X, -X, +Y, -Y, +Z, -Z → le glaçage sur le dessus, la pâte partout ailleurs
+    const tart=new THREE.Mesh(new THREE.BoxGeometry(W*.96,H*.60,L*.78),[cro,cro,gla,cro,cro,cro]);
+    tart.position.set(0,cy,-L*.08);carGroup.add(tart);
+    // LA TÊTE : elle DÉPASSE franchement du pavé — collée dessus on lirait un dessin imprimé,
+    // pas un chat qui conduit. Boule aplatie, oreilles, joues, museau, moustaches.
+    const gris=new THREE.MeshPhongMaterial({color:0x7f7f88,shininess:16,specular:0x3a3a3a}),
+          rose=new THREE.MeshBasicMaterial({color:0xf98cb8});
+    K.sph(W*.36,H*.62,L*.20,gris,0,cy+H*.06,L*.40);
+    for(const sd of [-1,1]){
+      const or=K.con(W*.14,H*.46,gris,sd*W*.23,cy+H*.44,L*.34,4);or.rotation.y=Math.PI/4;
+      K.sph(W*.09,H*.10,L*.035,rose,sd*W*.16,cy-H*.10,L*.50);   // joues
+      K.sph(W*.055,H*.09,L*.04,K.dark,sd*W*.13,cy+H*.14,L*.51); // yeux
+      for(const a of [-.16,0,.16]){                              // moustaches, ancrées AU MUSEAU
+        const m9=B(W*.26,.014,.014,K.chrome,sd*W*.33,cy-H*.06+a*H*.5,L*.46);m9.rotation.z=sd*a;}
+    }
+    K.sph(W*.055,H*.05,L*.03,rose,0,cy-H*.04,L*.55);             // truffe
+    const q=B(W*.07,H*.14,L*.30,gris,0,cy+H*.20,-L*.52);q.rotation.x=-.55; // la queue
+    return {hl:[W*.28,cy-H*.24,L*.42],tl:[W*.32,cy-H*.10,-L*.46],wr:.58,wx:W/2-.11,wz:L/2-.62,
+            split:0,skirt:0,sp:0,doors:0,glowX:W*.49,glowY:cy-H*.30};
+  },
+  // 15. LE REQUIN — bulle de verre sur un corps rond, museau de grand blanc, et QUATRE BRAS
+  //     D'HÉLICES repliés dans les flancs au sol / déployés en vol. Les bras réutilisent les
+  //     pivots des mini-ailes (`wings:'props'`) : zéro nouvelle mécanique dans la boucle.
+  requin(K){
+    const {W,H,L,y0,box:B,spec}=K;
+    const peau=new THREE.MeshPhongMaterial({color:spec.color,map:MATV.get('skin'),shininess:64,
+      specular:0xdfe9f2,envMap:envTex,reflectivity:.42,combine:THREE.MixOperation});
+    rimify(peau);
+    K.sph(W*.48,H*.46,L*.46,peau,0,y0+H*.42,-L*.02);              // le corps, une goutte ronde
+    K.sph(W*.40,H*.40,L*.34,K.glass,0,y0+H*.54,L*.04);            // LA BULLE
+    // LE MUSEAU : il PLONGE vers le sol et sort du corps. Rentré dans la boule, on ne lisait plus
+    // qu'un galet bleu — c'est le nez pointu et la bouche EN DESSOUS qui font le requin.
+    const mu=K.sph(W*.28,H*.22,L*.30,peau,0,y0+H*.20,L*.36);mu.rotation.x=-.40;
+    const bou=B(W*.46,H*.09,L*.13,K.dark,0,y0+H*.11,L*.44);bou.rotation.x=-.26;
+    for(let i9=0;i9<7;i9++){const t=(i9/6-.5)*W*.42;             // deux rangées de dents
+      K.con(.036,.10,K.acc,t,y0+H*.155,L*.455,4);
+      K.con(.030,.085,K.acc,t,y0+H*.065,L*.455,4).rotation.z=Math.PI;}
+    for(const sd of [-1,1]){
+      K.sph(W*.06,H*.055,L*.045,K.dark,sd*W*.25,y0+H*.30,L*.30); // yeux
+      for(let f=0;f<5;f++)B(.022,H*.10,.022,K.dark,sd*W*.45,y0+H*.30,L*(.10-f*.05)); // fentes branchiales
+      // CARÉNAGES DE ROUE : sans eux les quatre roues pendent DANS LE VIDE sous une sphère qui
+      // s'affine à ses extrémités — la caisse se lisait en pièces détachées.
+      for(const fz of [1,-1])K.sph(W*.16,H*.30,L*.20,peau,sd*(W/2-.16),y0+H*.24,fz*(L/2-.72));
+    }
+    K.con(W*.11,H*.40,peau,0,y0+H*.88,-L*.10,4).rotation.y=Math.PI/4; // AILERON DORSAL
+    B(W*.30,.05,L*.18,peau,0,y0+H*.14,-L*.44).rotation.x=.3;          // caudale
+    return {hl:[W*.24,y0+H*.30,L*.38],tl:[W*.28,y0+H*.50,-L*.40],wr:.90,wx:W/2-.02,wz:L/2-.72,
+            split:0,skirt:0,sp:0,doors:0,wings:'props',glowX:W*.46,glowY:y0+H*.20};
+  }
+};
 function buildCar(spec){
   while(carGroup.children.length)carGroup.remove(carGroup.children[0]);
   wheels.length=0;
@@ -2749,229 +3173,111 @@ function buildCar(spec){
   const darkM=new THREE.MeshPhongMaterial({color:0x14161a,shininess:60,specular:0x333333});
   const rustM=new THREE.MeshPhongMaterial({color:0x5a3a20,shininess:5,specular:0x111111});
   rimify(bodyM);rimify(accM); // le verre et le chrome brillent déjà par l'envMap — le rim, c'est pour la tôle
-  const y0=.35;
-  // MINI-AILES / PLANEURS : un panneau fin par côté, sur pivot — replié le long du flanc au sol, déployé en vol
+  const y0=.35,W9=spec.w,H9=spec.h,L9=spec.l;
+  // ---- LA BOÎTE À OUTILS DES GABARITS : sans ces six raccourcis, 15 silhouettes feraient 1500 lignes.
+  const add=m=>{carGroup.add(m);return m;};
+  const box=(w,h,d,mat,x,y,z)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x||0,y||0,z||0);return add(m);};
+  const prof=(pts,w,mat,yy)=>{const m=new THREE.Mesh(carProfile(pts,w),mat);m.position.y=(yy===undefined?y0:yy);return add(m);};
+  const cyl=(rt,rb,hh,mat,x,y,z,sg)=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,hh,sg||12),mat);m.position.set(x||0,y||0,z||0);return add(m);};
+  const sph=(sx,sy,sz,mat,x,y,z)=>{const m=new THREE.Mesh(SPH9,mat);m.scale.set(sx,sy,sz);m.position.set(x||0,y||0,z||0);return add(m);};
+  const con=(r,hh,mat,x,y,z,sg)=>{const m=new THREE.Mesh(new THREE.ConeGeometry(r,hh,sg||12),mat);m.position.set(x||0,y||0,z||0);return add(m);};
+  const K={W:W9,H:H9,L:L9,y0:y0,spec:spec,wreck:wreck,add:add,box:box,prof:prof,cyl:cyl,sph:sph,con:con,
+           body:bodyM,acc:accM,glass:glassM,chrome:chromeM,dark:darkM,rust:rustM};
+  // LE GABARIT EST DÉCLARÉ PAR LA CAISSE, jamais deviné. Le repli sur 'gt' n'est pas une règle de
+  // secours confortable : c'est un filet pour qu'une fiche mal saisie se voie tout de suite à l'écran
+  // au lieu de faire disparaître la carrosserie. Une caisse sans `shape`, c'est un oubli, pas un choix.
+  const shape=spec.shape||'gt';
+  carGroup.userData.shape=shape;carGroup.userData.lvl=lvl; // l'étal LIT le gabarit ici (voir voitures.html)
+  // LA FICHE D'ANCRAGES : chaque gabarit dit où sont ses phares, ses feux, ses roues, et ce qu'il
+  // veut des accessoires communs. Les valeurs par défaut couvrent la berline moyenne.
+  const A=Object.assign({
+    hl:[W9*.32,y0+H9*.50,L9/2+.16],   // phare (demi-écart, hauteur, avancée)
+    tl:[W9*.30,y0+H9*.55,-L9/2-.10],  // feu arrière
+    wr:1,wx:W9/2,wz:L9/2-.75,wy:0,    // roues : rayon, voie, empattement, relèvement
+    glowX:W9/2+.02,glowY:y0+H9*.42,   // où court le néon des caisses de l'au-delà
+    sp:1,skirt:1,split:1,doors:0,slats:0,wings:'panel'
+  },(SHAPES[shape]||(console.warn('CASH CAR : gabarit inconnu « '+shape+' » sur '+spec.name+' — repli sur gt'),SHAPES.gt))(K)||{});
+  const hlX=A.hl[0],hlY=A.hl[1],hlZ=A.hl[2],tlX=A.tl[0],tlY=A.tl[1],tlZ=A.tl[2];
+  // ---- MINI-AILES / PLANEURS : repliées dans le flanc au sol, déployées en vol (la boucle les anime
+  // via carWingL/carWingR). Le REQUIN remplace les panneaux par ses QUATRE BRAS D'HÉLICES sur les
+  // MÊMES pivots : rien à ajouter dans la boucle, la caisse volante était déjà prévue par le jeu.
   carWingL=carWingR=null;wingT=0;
-  {
-    const wGeo=new THREE.BoxGeometry(spec.w*.92,.05,spec.l*.32);
+  if(A.wings!=='none'){
+    const props=A.wings==='props';
+    const wGeo=props?null:new THREE.BoxGeometry(W9*.92,.05,L9*.32);
     for(const sd of [1,-1]){
       const piv=new THREE.Group();
-      piv.position.set(sd*spec.w*.36,y0+spec.h*.55,-spec.l*.14);
-      const wing=new THREE.Mesh(wGeo,accM);
-      wing.position.set(sd*spec.w*.5,0,0); // s'étend vers l'extérieur depuis le pivot
-      const tip=new THREE.Mesh(new THREE.BoxGeometry(spec.w*.28,.04,spec.l*.14),bodyM); // winglet en bout d'aile
-      tip.position.set(sd*spec.w*.92,.06,-spec.l*.08);tip.rotation.x=.2;piv.add(tip);
-      piv.add(wing);carGroup.add(piv);
+      piv.position.set(sd*W9*.36,y0+H9*(props?.44:.55),-L9*.14);
+      if(props){
+        for(const fz of [1,-1]){ // deux bras par côté = les quatre hélices de la planche de référence
+          const brasG=new THREE.BoxGeometry(W9*.62,.055,.10);
+          const bras=new THREE.Mesh(brasG,accM);bras.position.set(sd*W9*.44,0,fz*L9*.20);piv.add(bras);
+          const moy=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,.09,8),darkM);
+          moy.position.set(sd*W9*.78,.05,fz*L9*.20);piv.add(moy);
+          const rot=new THREE.Mesh(new THREE.TorusGeometry(.26,.022,6,16),chromeM); // le carénage d'hélice
+          rot.rotation.x=Math.PI/2;rot.position.set(sd*W9*.78,.09,fz*L9*.20);piv.add(rot);
+          for(const pa of [0,1]){ // deux pales par hélice
+            const p9=new THREE.Mesh(new THREE.BoxGeometry(.46,.014,.07),accM);
+            p9.position.set(sd*W9*.78,.09,fz*L9*.20);p9.rotation.y=pa*Math.PI/2;piv.add(p9);}
+        }
+      }else{
+        const wing=new THREE.Mesh(wGeo,accM);wing.position.set(sd*W9*.5,0,0);piv.add(wing);
+        const tip=new THREE.Mesh(new THREE.BoxGeometry(W9*.28,.04,L9*.14),bodyM);
+        tip.position.set(sd*W9*.92,.06,-L9*.08);tip.rotation.x=.2;piv.add(tip);
+      }
+      carGroup.add(piv);
       if(sd>0)carWingL=piv;else carWingR=piv;
     }
   }
-  // GABARIT (caisses v2) : chaque tranche de niveau a sa SILHOUETTE — surchargable par caisse via spec.shape
-  // boxy = quotidien · gt = supercar plongeante · muscle = long capot · formula = proto F1 · proto = furtive bulle · rocket = missile
-  const W9=spec.w,H9=spec.h,L9=spec.l,fusR=H9*1.0;
-  const shape=wreck?'boxy':spec.shape||(lvl>=14?'rocket':lvl>=11?'proto':lvl===10?'formula':(lvl===5||lvl===8)?'muscle':lvl>=4?'gt':'boxy');
-  carGroup.userData.shape=shape;carGroup.userData.lvl=lvl; // l'étal LIT le gabarit ici plutôt que de recopier la règle (une copie aurait dérivé)
-  if(shape==='boxy'){
-  // châssis bas (l'épave est de travers)
-  const lower=new THREE.Mesh(new THREE.BoxGeometry(spec.w,spec.h*.62,spec.l),bodyM);
-  lower.position.y=y0+spec.h*.31;if(wreck)lower.rotation.z=.03;carGroup.add(lower);
-  // capot plongeant (cabossé et mal fermé sur l'épave)
-  const hood=new THREE.Mesh(new THREE.BoxGeometry(spec.w*.94,spec.h*.34,spec.l*.34),bodyM);
-  hood.position.set(0,y0+spec.h*.64,spec.l*.30);hood.rotation.x=wreck?.16:.07;
-  if(wreck){hood.rotation.z=-.06;hood.scale.y=.8;}
-  carGroup.add(hood);
-  // coffre (mal fermé sur l'épave)
-  const trunk=new THREE.Mesh(new THREE.BoxGeometry(spec.w*.94,spec.h*.36,spec.l*.26),bodyM);
-  trunk.position.set(0,y0+spec.h*.65,-spec.l*.34);if(wreck)trunk.rotation.x=-.09;carGroup.add(trunk);
-  // habitacle vitré
-  const cab=new THREE.Mesh(new THREE.BoxGeometry(spec.w*.78,spec.h*.62,spec.l*.40),glassM);
-  cab.position.set(0,y0+spec.h*.93,-spec.l*.05);if(wreck)cab.rotation.z=-.04;carGroup.add(cab);
-  // toit couleur accent (enfoncé sur l'épave)
-  const roof=new THREE.Mesh(new THREE.BoxGeometry(spec.w*.72,spec.h*.10,spec.l*.34),accM);
-  roof.position.set(0,y0+spec.h*1.24,-spec.l*.05);
-  if(wreck){roof.rotation.z=.09;roof.scale.y=.6;}
-  carGroup.add(roof);
-  // rétroviseurs (celui de gauche pend sur l'épave)
-  for(const sd of [-1,1]){
-    const mir=new THREE.Mesh(new THREE.BoxGeometry(.09,.09,.16),(wreck&&sd<0)?rustM:accM);
-    mir.position.set(sd*(spec.w/2+.10),y0+spec.h*.95,spec.l*.12);
-    if(wreck&&sd<0)mir.rotation.z=-.9;
-    carGroup.add(mir);
+  // ---- AILERON GÉNÉRIQUE : seulement pour les gabarits qui n'ont pas le leur (`sp`) ----
+  if(spec.spoiler&&A.sp){
+    box(W9*.98,.09,.5,accM,0,y0+H9+.42,-L9/2+.12);
+    for(const sd of [-1,1])box(.09,.34,.12,darkM,sd*W9*.36,y0+H9+.22,-L9/2+.12);
   }
-  // calandre
-  const grille=new THREE.Mesh(new THREE.BoxGeometry(spec.w*.55,spec.h*.2,.07),darkM);
-  grille.position.set(0,y0+spec.h*.42,spec.l/2+.10);carGroup.add(grille);
-  // jupes latérales
-  for(const sd of [-1,1]){
-    const sk=new THREE.Mesh(new THREE.BoxGeometry(.08,spec.h*.25,spec.l*.62),accM);
-    sk.position.set(sd*(spec.w/2+.02),y0+spec.h*.12,0);carGroup.add(sk);
-  }
-  // pare-chocs (l'arrière de l'épave pend à moitié)
-  for(const fz of [1,-1]){
-    const bp=new THREE.Mesh(new THREE.BoxGeometry(spec.w*1.02,spec.h*.24,.18),darkM);
-    bp.position.set(0,y0+spec.h*.15,fz*(spec.l/2+.06));
-    if(wreck&&fz<0){bp.rotation.z=.14;bp.position.y-=.08;}
-    carGroup.add(bp);
-  }
-  // plaques de rouille sur l'épave
-  if(wreck){
-    const spots=[[.3,.5,.35,.5,.3],[-.42,.45,-.1,.4,.5],[.1,.68,-.42,.6,.25],[-.25,.3,.42,.35,.4]];
-    for(const sp9 of spots){
-      const r9=new THREE.Mesh(new THREE.BoxGeometry(spec.w*sp9[3],spec.h*sp9[4],.05),rustM);
-      r9.position.set(sp9[0]*spec.w,y0+spec.h*sp9[1],sp9[2]*spec.l+(sp9[2]>0?.03:-.03));
-      carGroup.add(r9);
-    }
-    const fl9=new THREE.Mesh(new THREE.BoxGeometry(.04,spec.h*.4,spec.l*.35),rustM);
-    fl9.position.set(spec.w/2+.05,y0+spec.h*.45,spec.l*.1);carGroup.add(fl9);
-  }
-  } // ← fin gabarit BOXY
-  else if(shape==='gt'||shape==='muscle'){ // ---- GT plongeante / MUSCLE long capot : profil extrudé + serre verrière ----
-    const gt=shape==='gt';
-    const bodyPts=gt?[[-.50*L9,0],[.50*L9,0],[.50*L9,.30*H9],[.20*L9,.48*H9],[-.10*L9,.58*H9],[-.44*L9,.62*H9],[-.50*L9,.56*H9]]
-                    :[[-.50*L9,0],[.50*L9,0],[.50*L9,.40*H9],[.44*L9,.52*H9],[.02*L9,.55*H9],[-.30*L9,.60*H9],[-.46*L9,.62*H9],[-.50*L9,.50*H9]];
-    const body=new THREE.Mesh(carProfile(bodyPts,W9*.96),bodyM);body.position.y=y0;carGroup.add(body);
-    const glsPts=gt?[[.14*L9,.44*H9],[-.02*L9,.94*H9],[-.24*L9,.92*H9],[-.36*L9,.54*H9]]
-                   :[[.06*L9,.50*H9],[-.04*L9,.95*H9],[-.24*L9,.93*H9],[-.34*L9,.55*H9]];
-    const gls=new THREE.Mesh(carProfile(glsPts,W9*.70),glassM);gls.position.y=y0;carGroup.add(gls);
-    const cap=new THREE.Mesh(new THREE.BoxGeometry(W9*.56,.05,L9*.20),accM); // plaque de toit accent
-    cap.position.set(0,y0+H9*(gt?.90:.91),-L9*.13);cap.rotation.x=.06;carGroup.add(cap);
-    if(!gt){ // MUSCLE : prise d'air, hanches musclées, rétros, calandre
-      const scoop=new THREE.Mesh(new THREE.BoxGeometry(W9*.30,H9*.16,L9*.16),accM);
-      scoop.position.set(0,y0+H9*.60,L9*.22);carGroup.add(scoop);
-      for(const sd of [-1,1]){
-        const hip=new THREE.Mesh(new THREE.BoxGeometry(W9*.12,H9*.36,L9*.30),bodyM);
-        hip.position.set(sd*(W9/2-.01),y0+H9*.40,-L9*.28);carGroup.add(hip);
-        const mir=new THREE.Mesh(new THREE.BoxGeometry(.09,.09,.16),accM);
-        mir.position.set(sd*(W9/2+.10),y0+H9*.92,L9*.10);carGroup.add(mir);
-      }
-      const grille=new THREE.Mesh(new THREE.BoxGeometry(W9*.55,H9*.2,.07),darkM);
-      grille.position.set(0,y0+H9*.40,L9/2+.08);carGroup.add(grille);
-    }
-    for(const sd of [-1,1]){ // jupes basses
-      const sk=new THREE.Mesh(new THREE.BoxGeometry(.08,H9*.22,L9*.60),accM);
-      sk.position.set(sd*(W9/2+.02),y0+H9*.10,0);carGroup.add(sk);
-    }
-  }
-  else if(shape==='formula'){ // ---- PROTO F1 : fuselage étroit (roues DEHORS), pontons, aileron biplan ----
-    const body=new THREE.Mesh(carProfile([[-.50*L9,0],[.50*L9,0],[.50*L9,.20*H9],[.30*L9,.26*H9],[.06*L9,.30*H9],[-.04*L9,.70*H9],[-.14*L9,.66*H9],[-.30*L9,.44*H9],[-.50*L9,.38*H9]],W9*.42),bodyM);
-    body.position.y=y0;carGroup.add(body);
-    for(const sd of [-1,1]){ // pontons
-      const pod=new THREE.Mesh(new THREE.BoxGeometry(W9*.26,H9*.34,L9*.36),bodyM);
-      pod.position.set(sd*W9*.32,y0+H9*.20,-L9*.06);carGroup.add(pod);
-    }
-    const fw=new THREE.Mesh(new THREE.BoxGeometry(W9*1.02,.05,L9*.10),accM); // aileron avant
-    fw.position.set(0,y0+H9*.10,L9*.46);carGroup.add(fw);
-    for(const sd of [-1,1]){const ep=new THREE.Mesh(new THREE.BoxGeometry(.03,H9*.16,L9*.10),darkM);ep.position.set(sd*W9*.51,y0+H9*.16,L9*.46);carGroup.add(ep);}
-    for(const wy of [1.05,1.32]){const rw=new THREE.Mesh(new THREE.BoxGeometry(W9*.92,.045,L9*.09),accM);rw.position.set(0,y0+H9*wy,-L9*.44);carGroup.add(rw);} // biplan arrière
-    for(const sd of [-1,1]){const ep=new THREE.Mesh(new THREE.BoxGeometry(.03,H9*.44,L9*.11),darkM);ep.position.set(sd*W9*.46,y0+H9*1.18,-L9*.44);carGroup.add(ep);}
-    const ab=new THREE.Mesh(new THREE.BoxGeometry(W9*.16,H9*.22,L9*.12),accM); // boîte à air
-    ab.position.set(0,y0+H9*.78,-L9*.09);carGroup.add(ab);
-    const ck=new THREE.Mesh(new THREE.BoxGeometry(W9*.20,H9*.10,L9*.14),darkM); // baquet ouvert
-    ck.position.set(0,y0+H9*.60,L9*.02);carGroup.add(ck);
-    const ws=new THREE.Mesh(new THREE.BoxGeometry(W9*.18,H9*.12,.02),glassM); // saute-vent
-    ws.position.set(0,y0+H9*.52,L9*.10);ws.rotation.x=-.5;carGroup.add(ws);
-  }
-  else if(shape==='proto'){ // ---- HYPERCAR furtive : coin plat + bulle de verre + dérive dorsale ----
-    const body=new THREE.Mesh(carProfile([[-.50*L9,0],[.50*L9,0],[.50*L9,.16*H9],[.10*L9,.40*H9],[-.30*L9,.52*H9],[-.50*L9,.50*H9]],W9*.94),bodyM);
-    body.position.y=y0;carGroup.add(body);
-    const can=new THREE.Mesh(new THREE.SphereGeometry(1,14,10),glassM); // bulle de cockpit
-    can.scale.set(W9*.30,H9*.52,L9*.20);can.position.set(0,y0+H9*.42,L9*.02);carGroup.add(can);
-    const fin=new THREE.Mesh(new THREE.BoxGeometry(.04,H9*.42,L9*.30),accM); // dérive
-    fin.position.set(0,y0+H9*.62,-L9*.34);carGroup.add(fin);
-    for(const sd of [-1,1]){const it=new THREE.Mesh(new THREE.BoxGeometry(.06,H9*.20,L9*.24),darkM);it.position.set(sd*(W9/2+.01),y0+H9*.28,-L9*.14);carGroup.add(it);}
-  }
-  else if(shape==='rocket'){ // ---- MONSTRE endgame : fuselage de missile, ailerons en croix, carénages de roues ----
-    const vr=Math.max(0,lvl-14); // 0..9 : chaque monstre varie (nez, ailerons, canards)
-    const fus=new THREE.Mesh(new THREE.CylinderGeometry(fusR*.86,fusR,L9*.74,12),bodyM);
-    fus.rotation.x=Math.PI/2;fus.position.set(0,y0+fusR*.9,0);carGroup.add(fus);
-    const nose=new THREE.Mesh(new THREE.ConeGeometry(fusR*.86,L9*(.18+.02*(vr%3)),12),bodyM);
-    nose.rotation.x=Math.PI/2;nose.position.set(0,y0+fusR*.9,L9*(.46+.01*(vr%3)));carGroup.add(nose);
-    const tail=new THREE.Mesh(new THREE.ConeGeometry(fusR*.9,L9*.10,12),darkM);
-    tail.rotation.x=-Math.PI/2;tail.position.set(0,y0+fusR*.9,-L9*.42);carGroup.add(tail);
-    const can=new THREE.Mesh(new THREE.SphereGeometry(1,14,10),glassM); // verrière
-    can.scale.set(fusR*.72,fusR*.62,L9*.14);can.position.set(0,y0+fusR*1.45,L9*.14);carGroup.add(can);
-    const finG=new THREE.BoxGeometry(.05,H9*1.15,L9*.22);finG.translate(0,H9*.58+fusR*.55,-L9*.02); // pivot à l'axe du fuselage
-    for(const ang of [0,2.35,-2.35]){ // dérive dorsale + 2 ailerons cantés
-      const fn=new THREE.Mesh(finG,accM);fn.position.set(0,y0+fusR*.9,-L9*.31);fn.rotation.z=ang;fn.rotation.x=-.14-(vr%2)*.10;carGroup.add(fn);
-    }
-    const cnd=new THREE.Mesh(new THREE.BoxGeometry(W9*.58,.04,L9*.09),accM); // canards
-    cnd.position.set(0,y0+fusR*.95,L9*.30);carGroup.add(cnd);
-    if(vr>=6){const c2=new THREE.Mesh(new THREE.BoxGeometry(W9*.46,.04,L9*.08),accM);c2.position.set(0,y0+fusR*1.15,L9*.22);carGroup.add(c2);}
-    if(lvl===23){const ring=new THREE.Mesh(new THREE.TorusGeometry(fusR*1.18,.05,8,22),accM);ring.position.set(0,y0+fusR*.9,-L9*.05);carGroup.add(ring);} // l'auréole du DIEU-VITESSE
-    for(const sxz of [[-1,1],[1,1],[-1,-1],[1,-1]]){ // carénages : les roues deviennent des patins
-      const cw9=new THREE.Mesh(new THREE.BoxGeometry(.36,.42,1.25),darkM);
-      cw9.position.set(sxz[0]*W9/2,.66,sxz[1]*(L9/2-.75));carGroup.add(cw9);
-    }
-  }
-  if(spec.spoiler&&shape!=='formula'&&shape!=='rocket'){ // formula a son biplan, rocket ses ailerons
-    const sp=new THREE.Mesh(new THREE.BoxGeometry(spec.w*.98,.09,.5),accM);
-    sp.position.set(0,y0+spec.h+.42,-spec.l/2+.12);carGroup.add(sp);
-    for(const sd of [-1,1]){
-      const st=new THREE.Mesh(new THREE.BoxGeometry(.09,.34,.12),darkM);
-      st.position.set(sd*spec.w*.36,y0+spec.h+.22,-spec.l/2+.12);carGroup.add(st);
-    }
-  }
-  // caisses de l'au-delà (lvl 10+) : bandes lumineuses + booster fusée
+  // ---- BANDES LUMINEUSES (caisses de l'au-delà) ----
   if(spec.glow){
     const glowM=new THREE.MeshBasicMaterial({color:spec.glow});
-    const gx=shape==='rocket'?fusR+.03:spec.w/2+.02,gy=shape==='rocket'?y0+fusR*.9:y0+spec.h*.42; // sur le missile, le néon court sur le FUSELAGE
-    for(const sd of [-1,1]){
-      const strip=new THREE.Mesh(new THREE.BoxGeometry(.05,.06,spec.l*.82),glowM);
-      strip.position.set(sd*gx,gy,0);carGroup.add(strip);
-    }
-    if(shape!=='rocket'){
-      const front=new THREE.Mesh(new THREE.BoxGeometry(spec.w*.7,.06,.05),glowM);
-      front.position.set(0,y0+spec.h*.5,spec.l/2+.02);carGroup.add(front);
-    }
+    for(const sd of [-1,1])box(.05,.06,L9*.82,glowM,sd*A.glowX,A.glowY,0);
+    box(W9*.7,.06,.05,glowM,0,y0+H9*.5,L9/2+.02);
   }
+  // ---- PROPULSEURS D'APPOINT (spec.rocket) ----
   if(spec.rocket){
     const boostM=new THREE.MeshPhongMaterial({color:0x3a3f48,shininess:200,specular:0xffffff,envMap:envTex,reflectivity:.5,combine:THREE.MixOperation});
     const nozzM=new THREE.MeshBasicMaterial({color:spec.glow||0x66c8ff});
-    const bs=shape==='rocket'?1.3:1; // sur le missile, les propulseurs d'appoint sont à l'échelle du fuselage
     for(const sd of [-1,1]){
-      const bo=new THREE.Mesh(new THREE.CylinderGeometry(.24*bs,.3*bs,.9*bs,10),boostM);
-      bo.rotation.x=Math.PI/2;bo.position.set(sd*spec.w*.26,y0+spec.h*.55,-spec.l/2-.32);carGroup.add(bo);
-      const nz=new THREE.Mesh(new THREE.CylinderGeometry(.16*bs,.2*bs,.1,10),nozzM);
-      nz.rotation.x=Math.PI/2;nz.position.set(sd*spec.w*.26,y0+spec.h*.55,-spec.l/2-.32-.45*bs-.05);carGroup.add(nz);
+      cyl(.24,.3,.9,boostM,sd*W9*.26,y0+H9*.55,-L9/2-.32,10).rotation.x=Math.PI/2;
+      cyl(.16,.2,.1,nozzM,sd*W9*.26,y0+H9*.55,-L9/2-.82,10).rotation.x=Math.PI/2;
     }
   }
-  // roues : pneu + jante chromée À RAYONS (une roue voilée et rouillée sur l'épave)
-  const wG=new THREE.CylinderGeometry(.40,.40,.32,14),rimG=new THREE.CylinderGeometry(.24,.24,.34,10),
-        spokeG=new THREE.BoxGeometry(.42,.36,.05),hubG=new THREE.CylinderGeometry(.075,.075,.37,8);
-  let wi=0;
-  for(const sxz of [[-1,1],[1,1],[-1,-1],[1,-1]]){
-    const w=new THREE.Group();
-    w.add(new THREE.Mesh(wG,darkM));
-    w.add(new THREE.Mesh(rimG,wreck?(wi===2?rustM:darkM):chromeM));
-    for(let sk9=0;sk9<5;sk9++){ // 5 rayons qui tournent avec la roue
-      const spk=new THREE.Mesh(spokeG,wreck?(wi===2?rustM:darkM):chromeM);
-      spk.rotation.y=sk9*Math.PI*2/5;
-      w.add(spk);
+  // ---- ROUES : pneu + jante chromée à rayons. Le RAYON suit le gabarit (`wr`) — une kei-car sur
+  // des roues de muscle car, et toute la silhouette ment sur sa taille.
+  {
+    const R9=.40*A.wr,wG=new THREE.CylinderGeometry(R9,R9,.32*A.wr,14),rimG=new THREE.CylinderGeometry(R9*.6,R9*.6,.34*A.wr,10),
+          spokeG=new THREE.BoxGeometry(R9*1.05,R9*.9,.05),hubG=new THREE.CylinderGeometry(.075,.075,.37*A.wr,8);
+    let wi=0;
+    for(const sxz of [[-1,1],[1,1],[-1,-1],[1,-1]]){
+      const w=new THREE.Group();
+      w.add(new THREE.Mesh(wG,darkM));
+      w.add(new THREE.Mesh(rimG,wreck?(wi===2?rustM:darkM):chromeM));
+      for(let sk9=0;sk9<5;sk9++){const spk=new THREE.Mesh(spokeG,wreck?(wi===2?rustM:darkM):chromeM);
+        spk.rotation.y=sk9*Math.PI*2/5;w.add(spk);}
+      w.add(new THREE.Mesh(hubG,wreck?rustM:chromeM));
+      w.rotation.z=Math.PI/2;
+      if(wreck&&wi===2)w.rotation.y=.16;
+      w.position.set(sxz[0]*A.wx,R9+A.wy,sxz[1]*A.wz);
+      carGroup.add(w);wheels.push(w);wi++;
     }
-    w.add(new THREE.Mesh(hubG,wreck?rustM:chromeM));
-    w.rotation.z=Math.PI/2;
-    if(wreck&&wi===2)w.rotation.y=.16;
-    w.position.set(sxz[0]*spec.w/2,.40,sxz[1]*(spec.l/2-.75));
-    carGroup.add(w);wheels.push(w);wi++;
   }
-  // phares (un seul marche sur l'épave), feux arrière, pots — positions PAR GABARIT (le missile éclaire depuis son nez)
+  // ---- PHARES, FEUX, POTS ET PLUMES DE RÉACTEUR ----
+  // ⚠ les POTS et les JETS gardent leurs ancres CANONIQUES (±w*.22, y0+.08, -l/2-.14/-.28) quel que
+  // soit le gabarit : les traînées-rubans et `nitroLight` s'y accrochent en dur (voir hsF/hsU/hsR).
   const hlM=new THREE.MeshBasicMaterial({color:0xfff6c8}),tlM=new THREE.MeshBasicMaterial({color:0xff2a2a});
-  const hlX=shape==='rocket'?fusR*.55:shape==='formula'?W9*.10:W9*.32,
-        hlY=shape==='rocket'?y0+fusR*.9:shape==='formula'?y0+H9*.24:y0+H9*.5,
-        hlZ=shape==='rocket'?L9*.40:shape==='formula'?L9*.46:L9/2+.16,
-        tlX=shape==='rocket'?fusR*.55:W9*.30,
-        tlY=shape==='rocket'?y0+fusR*.9:y0+H9*.55,
-        tlZ=shape==='rocket'?-L9*.44:-L9/2-.10;
   for(const sd of [-1,1]){
-    const hl=new THREE.Mesh(new THREE.BoxGeometry(.30,.13,.06),(wreck&&sd>0)?darkM:hlM);
-    hl.position.set(sd*hlX,hlY,hlZ);carGroup.add(hl);
-    const tl=new THREE.Mesh(new THREE.BoxGeometry(.34,.10,.05),tlM);
-    tl.position.set(sd*tlX,tlY,tlZ);carGroup.add(tl);
-    const ex=new THREE.Mesh(new THREE.CylinderGeometry(.09,.11,.34,10),wreck?rustM:chromeM);
-    ex.rotation.x=Math.PI/2;
-    ex.position.set(sd*spec.w*.22,y0+.08,-spec.l/2-.14);carGroup.add(ex);
-    // PLUME DE RÉACTEUR : coquille colorée + cœur blanc + halo de tuyère — animés chaque frame (JETS)
+    box(.30,.13,.06,(wreck&&sd>0)?darkM:hlM,sd*hlX,hlY,hlZ);
+    box(.34,.10,.05,tlM,sd*tlX,tlY,tlZ);
+    cyl(.09,.11,.34,wreck?rustM:chromeM,sd*W9*.22,y0+.08,-L9/2-.14,10).rotation.x=Math.PI/2;
     const js9=new THREE.Mesh(jetGeo,jetShellM),jc9=new THREE.Mesh(jetGeo,jetCoreM);
-    js9.position.set(sd*spec.w*.22,y0+.08,-spec.l/2-.28);jc9.position.copy(js9.position);
+    js9.position.set(sd*W9*.22,y0+.08,-L9/2-.28);jc9.position.copy(js9.position);
     js9.scale.set(.1,.1,.02);jc9.scale.set(.05,.05,.02);
     js9.visible=jc9.visible=false;
     js9.userData.noShadow=jc9.userData.noShadow=true;js9.renderOrder=jc9.renderOrder=3;
@@ -2980,32 +3286,20 @@ function buildCar(spec){
     jg9.scale.set(.3,.3,1);jg9.position.copy(js9.position);jg9.visible=false;
     carGroup.add(jg9);JETS.glows.push(jg9);
   }
-  // ---- DÉTAILS v1.61 : la caméra s'est rapprochée, la caisse doit le mériter (par gabarit : pas de portières sur un missile) ----
-  if(shape==='boxy'||shape==='muscle'){
+  // ---- DÉTAILS COMMUNS, demandés par la fiche d'ancrages ----
+  if(A.doors){ // lignes de portières + poignées : sur une pâtisserie ou un missile, ça n'aurait rien à faire
     const seamM=new THREE.MeshBasicMaterial({color:0x0a0c10,transparent:true,opacity:.55});
-    for(const sd of [-1,1]){ // lignes de portières + poignées chromées
-      for(const zz of [spec.l*.07,-spec.l*.17]){
-        const seam=new THREE.Mesh(new THREE.BoxGeometry(.012,spec.h*.5,.03),seamM);
-        seam.position.set(sd*(spec.w/2+.005),y0+spec.h*.45,zz);carGroup.add(seam);
-      }
-      const hdl=new THREE.Mesh(new THREE.BoxGeometry(.03,.035,.16),wreck?rustM:chromeM);
-      hdl.position.set(sd*(spec.w/2+.02),y0+spec.h*.66,spec.l*.01);carGroup.add(hdl);
+    for(const sd of [-1,1]){
+      for(const zz of [L9*.07,-L9*.17])box(.012,H9*.5,.03,seamM,sd*(W9/2+.005),y0+H9*.45,zz);
+      box(.03,.035,.16,wreck?rustM:chromeM,sd*(W9/2+.02),y0+H9*.66,L9*.01);
     }
   }
-  if(shape!=='formula'&&shape!=='rocket'){ // lame avant + diffuseur arrière à ailettes (formula a ses ailerons, rocket son culot)
-    const splitter=new THREE.Mesh(new THREE.BoxGeometry(spec.w*.96,.05,.3),darkM);
-    splitter.position.set(0,y0+spec.h*.04,spec.l/2+.12);carGroup.add(splitter);
-    const diff=new THREE.Mesh(new THREE.BoxGeometry(spec.w*.86,.09,.26),darkM);
-    diff.position.set(0,y0+spec.h*.06,-spec.l/2-.10);carGroup.add(diff);
-    for(const fx of [-1,0,1]){
-      const fin=new THREE.Mesh(new THREE.BoxGeometry(.03,.13,.24),darkM);
-      fin.position.set(fx*spec.w*.26,y0+spec.h*.10,-spec.l/2-.10);carGroup.add(fin);
-    }
+  if(A.split){ // lame avant + diffuseur arrière à ailettes
+    box(W9*.96,.05,.3,darkM,0,y0+H9*.04,L9/2+.12);
+    box(W9*.86,.09,.26,darkM,0,y0+H9*.06,-L9/2-.10);
+    for(const fx of [-1,0,1])box(.03,.13,.24,darkM,fx*W9*.26,y0+H9*.10,-L9/2-.10);
   }
-  if(lvl>=2&&(shape==='boxy'||shape==='muscle'))for(const gy of [-1,1]){ // barres de calandre chromées
-    const slat=new THREE.Mesh(new THREE.BoxGeometry(spec.w*.5,.02,.02),chromeM);
-    slat.position.set(0,y0+spec.h*.42+gy*.045,spec.l/2+.145);carGroup.add(slat);
-  }
+  if(A.slats)for(const gy of [-1,1])box(W9*.5,.02,.02,chromeM,0,y0+H9*.42+gy*.045,L9/2+.145);
   // PRESQUE NUIT : phares allumés (halo chaud élargi) + feux arrière braise
   for(const sd of [-1,1]){
     if(!(wreck&&sd>0)){
@@ -3183,9 +3477,12 @@ function engVigRender(dt){
      une rotation constante plus rapide ne raconterait rien. */
   if(engSwapT>0){
     engSwapT=Math.max(0,engSwapT-dt);
-    const q=engSwapT/1.25, e=q*q*q;
-    engVigSpin+=dt*e*16;
-    if(engVigEl)engVigEl.style.transform='scale('+(1+e*.14).toFixed(3)+')';
+    const q=engSwapT/T_SWAP, e=q*q*q;
+    engVigSpin+=dt*e*18;
+    // ⚠ la vignette ne fait pas que grossir : elle ENCAISSE à la pose. Le petit creux au moment
+    // du clank (u≈.36) est ce qui donne du poids à la pièce — sans lui, elle « apparaît ».
+    const u=1-q, kick=(u>.30&&u<.46)?-Math.sin((u-.30)/.16*Math.PI)*.07:0;
+    if(engVigEl)engVigEl.style.transform='scale('+(1+e*.14+kick).toFixed(3)+')';
   }else if(engVigEl&&engVigEl.style.transform)engVigEl.style.transform='';
   engVigSpin+=dt*.6;
   engVigMesh.rotation.y=engVigSpin;
@@ -3260,7 +3557,7 @@ function engVigRender(dt){
   renderer.autoClear=ac;
 }
 buildCar(CARS[0]);
-window.dbgCar=function(i){buildCar(CARS[Math.max(0,Math.min(23,i|0))]);}; // console : dbgCar(16) → prévisualiser un gabarit sans farmer les milliards (visuel pur, ne touche pas au niveau)
+window.dbgCar=function(i){buildCar(CARS[Math.max(0,Math.min(CARS.length-1,i|0))]);}; // console : dbgCar(16) → prévisualiser un gabarit sans farmer les milliards (visuel pur, ne touche pas au niveau)
 window.dbgScene=function(){return {car:carGroup,scene:scene,contact:contactShadow,shadow:shadow};}; // dissection console (visuel pur)
 window.dbgState=function(){return {started:started,running:running,paused:paused,gameOver:gameOver,mode:mode,
   /* flux des PIÈCES : sans ces trois-là, régler leur arrivée se fait à l'aveugle */
@@ -3505,7 +3802,7 @@ const FRUIT_DEFS=[
 // modèle 3D (0 = plus de pistons du tout : turbines et réacteurs).
 const ENGINE_TIERS=[
   {n:'MOTEUR ROUILLÉ',    d:'Il tousse, il fume, il prie. Mais il tourne.',        coins:0,   push:1.00,res:2.00,cyl:2, col:0x7a5a3c,flam:0x8a6a30},
-  {n:'BICYLINDRE',        d:'Deux cylindres. Un qui pousse, un qui regarde.',      coins:5,   push:1.06,res:2.02,cyl:2, col:0x8a6a48,flam:0x9a7a34},
+  {n:'BICYLINDRE',        d:'Deux cylindres. Un qui pousse, un qui regarde.',      coins:5,   push:1.06,res:2.02,cyl:2, col:0x9fa8b0,flam:0xd08a3c},
   {n:'3 CYLINDRES',       d:'Deux qui toussent, un qui prie.',                     coins:12,  push:1.12,res:2.05,cyl:3, col:0x9a8f7a,flam:0xff8a30},
   {n:'4 EN LIGNE',        d:'Le premier moteur qui ne s\'excuse pas.',             coins:21,  push:1.19,res:2.08,cyl:4, col:0xa8a294,flam:0xffa040},
   {n:'4 SOUPAPES',        d:'Il respire enfin par le nez.',                        coins:33,  push:1.26,res:2.11,cyl:4, col:0xb4b0a2,flam:0xffb050},
@@ -3556,28 +3853,22 @@ const ENG_CAP={billets:12,aimant:15,comete:27};
 const CAR_UNLOCK=[
   null,                 // LA HONTE — le point de départ, jamais verrouillée
   {k:'cash',  v:2.5e3}, // CAISSE À SAVON
-  {k:'cash',  v:1.5e4}, // PAPA MOBILE
-  {k:'eng',   v:4},     // LE FRELON
+  {k:'tricks',v:25},    // PAPA MOBILE
+  {k:'eng',   v:4},     // LE CONTREMAÎTRE
+  {k:'bumps', v:60},    // GROS BLOC
   {k:'cash',  v:9e4},   // DIVA BLANCHE
-  {k:'tricks',v:25},    // GROS BLOC
-  {k:'eng',   v:7},     // SCALPEL VERT
-  {k:'cash',  v:6e5},   // BALLE D'ARGENT
+  {k:'eng',   v:10},    // SCALPEL VERT
   {k:'gaps',  v:5},     // VEUVE NOIRE
-  {k:'eng',   v:10},    // EL PATRON
-  {k:'cash',  v:4e6},   // FORMULE OR
-  {k:'bumps', v:60},    // NÉON OUTLAW
-  {k:'eng',   v:13},    // COMBUSTION
-  {k:'zones', v:4},     // COMÈTE
-  {k:'cash',  v:3e7},   // INTERDITE
-  {k:'chain', v:12},    // ONDE DE CHOC
-  {k:'eng',   v:17},    // RAZOR-9
-  {k:'kmh',   v:900},   // GOUDRON FANTÔME
-  {k:'cash',  v:2.5e8}, // TÊTE CHERCHEUSE
-  {k:'eng',   v:20},    // PLASMA ROYAL
-  {k:'surv',  v:1},     // ANTIMATIÈRE
-  {k:'tricks',v:400},   // ÉCLIPSE VII
-  {k:'eng',   v:24},    // SINGULARITÉ
-  {k:'eng',   v:29}     // DIEU-VITESSE — le tout dernier moteur ouvre la toute dernière caisse
+  {k:'cash',  v:4e6},   // EL PATRON
+  {k:'chain', v:12},    // FORMULE OR
+  {k:'kmh',   v:900},   // LE MANS 24
+  {k:'surv',  v:1},     // COMÈTE — la couronne : gagner une partie en Survivant
+  // ---- LES TROIS FANTASTIQUES : OFFERTES. `carStat('prem')` vaut 0 et le seuil est 0, donc elles
+  // sont ouvertes d'entrée. Le jour où elles deviennent payantes, il n'y a qu'un 0 à passer à 1
+  // ici et un `ex.prem` à poser à l'achat — aucun autre code à toucher.
+  {k:'prem',  v:0},     // ACIDE
+  {k:'prem',  v:0},     // CHAT POP-TART
+  {k:'prem',  v:0}      // REQUIN
 ];
 function carStat(k){return k==='cash'?(SAVE.d.best||0):((SAVE.d.ex&&SAVE.d.ex[k])||0);}
 function carUnlocked(i){
@@ -3600,6 +3891,7 @@ function carUnlockText(i){ // ce qu'il reste à faire, en une ligne — affiché
     case 'chain': return (en?'A CHAIN OF ':'UNE CHAÎNE DE ')+v+(en?' TRICKS  (best: ':' FIGURES  (record : ')+cur+')';
     case 'kmh':   return (en?'REACH ':'ATTEINDRE ')+v+(en?' KM/H  (best: ':' KM/H  (record : ')+cur+')';
     case 'surv':  return en?'WIN A RUN IN SURVIVOR MODE':'GAGNER UNE PARTIE EN MODE SURVIVANT';
+    case 'prem':  return en?'PREMIUM CAR — free for now':'CAISSE PREMIUM — offerte pour l\'instant';
   }
   return '';
 }
@@ -3620,7 +3912,24 @@ function carScan(){ // rend les caisses NOUVELLEMENT débloquées + resynchronis
   if(bc!==(SAVE.d.bestCar|0)){SAVE.d.bestCar=bc;SAVE.mark();}
   return got;
 }
-let engSwapT=0; // minuteur de l'ANIMATION de changement de palier (étincelles + vignette qui s'emballe)
+let engSwapT=0; // minuteur de la SCÈNE de changement de palier (montage → pose → révélation)
+/* LE BADGE DE PALIER — le « niveau supérieur » qui se stampe sur la vignette du moteur.
+   ⚠ REJOUER UNE ANIMATION CSS NE VA PAS DE SOI : réappliquer la même classe ne la relance pas,
+   le navigateur considère qu'elle tourne déjà. Deux paliers enchaînés (ça arrive : une figure
+   peut rapporter assez de pièces pour en franchir deux) et le second passait INAPERÇU. On coupe
+   donc l'élément, on force un reflow (`offsetWidth`), et on le rallume. */
+const epEl=document.getElementById('engPop'),epNumEl=document.getElementById('epNum'),
+      epNomEl=document.getElementById('epNom');
+function engPop9(E,tier){
+  if(!epEl)return;
+  epNumEl.innerHTML='<i>'+TR('PALIER')+'</i>'+(tier+1);
+  epNomEl.textContent=TR(E.n);
+  epEl.classList.remove('on');
+  void epEl.offsetWidth;                 // ⚠ le reflow : sans lui, pas de rejeu
+  epEl.classList.add('on');
+  clearTimeout(engPop9._t);
+  engPop9._t=setTimeout(function(){epEl.classList.remove('on');},T_SWAP*1000+120);
+}
 let engTier=0,coinsGot=0; // ÉCARTS ÉLARGIS (2026-08-02) : ×1 → ×4,2, chaque palier doit S'ENTENDRE et SE SENTIR // palier courant + PIÈCES ramassées (la monnaie du moteur)
 function engineFor(nc){let t=0;for(let i=0;i<ENGINE_TIERS.length;i++)if(nc>=ENGINE_TIERS[i].coins)t=i;return t;}
 // LA MONNAIE DU MOTEUR : ramasser une pièce en donne 1 — et RÉUSSIR UNE FIGURE en donne une poignée.
@@ -3634,9 +3943,13 @@ function addCoins(n){
     // record de palier À VIE : mis à jour TOUT DE SUITE (pas à la fin du run) pour que les caisses
     // dont la condition est « atteindre tel moteur » se débloquent à l'instant où on y arrive
     if(SAVE.d.ex&&nt>SAVE.d.ex.eng){SAVE.d.ex.eng=nt;SAVE.mark();}
-    showMsg('⚙ '+TR(E.n),'#7dffec');trickMsg('⚙ '+TR(E.n)+' — '+TR('POUSSÉE ×')+E.push.toFixed(2),3);
-    try{engSwapSnd();}catch(e){}          // la scène sonore : on dévisse, ça tombe en place, ça démarre
-    engSwapT=1.25;                        // ⚠ arme l'ANIMATION (étincelles de soudure + vignette qui s'emballe)
+    // ⚠ PLUS DE BANDEAU `showMsg` ICI (2026-08-05). Le badge de palier dit déjà le nom, et sur
+    // la vignette — c'est-à-dire sur l'objet qui vient de changer. Les deux ensemble faisaient
+    // deux récompenses concurrentes pour un seul événement, et l'œil ne savait plus où aller.
+    trickMsg('⚙ '+TR(E.n)+' — '+TR('POUSSÉE ×')+E.push.toFixed(2),3);
+    try{engSwapSnd();}catch(e){}          // la scène sonore : on dévisse, ça se pose, ça démarre, ça sonne
+    engSwapT=T_SWAP;                      // ⚠ arme la SCÈNE (onde + spirale + flash + vignette qui s'emballe)
+    engPop9(E,nt);                        // et le badge qui claque sur la vignette
     shake=Math.max(shake,.5);duckT=Math.max(duckT,.45);
   }
 }
@@ -3660,7 +3973,7 @@ function addCoins(n){
 // contact, le pire doublon du jeu. Un palier qui se paie doit se VOIR.
 const ENG_LOOK=[
  {a:'in',c:2,t:0,f:0,x:['courroie','pot']},                 //  1 MOTEUR ROUILLÉ
- {a:'in',c:2,t:0,f:5,x:['pot','kick']},                     //  2 BICYLINDRE      → ailettes de moto
+ {a:'in',c:2,t:0,f:6,x:['potMoto','kick']},                 //  2 BICYLINDRE      → ailettes de moto
  {a:'in',c:3,t:0,f:0,x:['collecteur']},                     //  3 3 CYLINDRES
  {a:'in',c:4,t:0,f:0,x:['collecteur','filtre']},            //  4 4 EN LIGNE
  {a:'in',c:4,t:0,f:0,x:['collecteur','doubleArbre']},       //  5 4 SOUPAPES      → 2 arbres à cames
@@ -3694,7 +4007,7 @@ const ENG_LOOK=[
    ⚠ LA FONTE ROUILLÉE NE CONVIENT QU'À L'ÉPAVE. Elle a été validée sur le palier 1, puis appliquée
    aux 30 — résultat : trente moteurs en terre cuite. Sur les photos de vrais moteurs, ce qu'on voit
    c'est de l'ALUMINIUM DE FONDERIE clair, de l'INOX POLI qui réfléchit tout (les collecteurs
-   tubulaires), et de la FIBRE DE CARBONE. La rouille est donc réservée aux deux premiers paliers ;
+   tubulaires), et de la FIBRE DE CARBONE. La rouille est donc réservée au TOUT PREMIER palier ;
    au-delà, la matière devient propre, métallique et BRILLANTE.
    Quatre familles, toutes peintes par le code, toutes calculées UNE fois et partagées :
      fonte    — l'épave : rouille, cloques, coulures
@@ -3827,6 +4140,38 @@ function texCan9(col){
   for(let k=0;k<3;k++)x.fillRect(N*(k+.5)/3+(r()-.5)*30,0,2+r()*3,N);
   const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;CAN9[col]=t;return t;
 }
+/* ---- LA CROÛTE ÉRODÉE : la matière des SIX DERNIERS paliers ----
+   À partir du CŒUR À FUSION, ce n'est plus une pièce de mécanique : c'est un objet impossible.
+   Basalte fendu, veines qui prennent la lumière. ⚠ Une roche N'EST PAS BRILLANTE : la première
+   version avait un relief à .055 et un pic spéculaire sur chaque fissure — un banc de paillettes.
+   Le relief est calmé et le spéculaire plafonné bas. */
+const T_CROUTE9=(function(){
+  const S2=192,rr=a=>function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+    t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
+  const br=s0=>{const G=256,r=rr(s0),tb=new Float32Array(G*G);
+    for(let i=0;i<G*G;i++)tb[i]=r();
+    const sm=t=>t*t*(3-2*t);
+    return function(x,y){const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi;
+      const a=tb[((yi&255)*G)+(xi&255)],b=tb[((yi&255)*G)+((xi+1)&255)];
+      const c=tb[(((yi+1)&255)*G)+(xi&255)],d=tb[(((yi+1)&255)*G)+((xi+1)&255)];
+      const u=sm(xf),v=sm(yf);return (a*(1-u)+b*u)*(1-v)+(c*(1-u)+d*u)*v;};};
+  const fb=(n,x,y,o,p2)=>{let t=0,a=1,f=1,q=0;for(let i=0;i<o;i++){t+=n(x*f,y*f)*a;q+=a;a*=p2;f*=2;}return t/q;};
+  const c2=v=>v<0?0:v>1?1:v,nR=br(311),nF=br(913);
+  const cs=[0,1,2].map(()=>{const c=document.createElement('canvas');c.width=c.height=S2;return c;});
+  const im=cs.map(c=>c.getContext('2d').createImageData(S2,S2));
+  for(let y=0;y<S2;y++)for(let x=0;x<S2;x++){
+    const u=x/S2,v=y/S2,j=(y*S2+x)*4;
+    const g=fb(nR,u*6,v*6,5,.55),f=fb(nF,u*17,v*17,3,.5);
+    const fis=Math.pow(1-Math.abs(f-.5)*2,9),l=.11+(g-.5)*.10;
+    im[0].data[j]=c2(l+fis*.10)*255;im[0].data[j+1]=c2(l*.95+fis*.06)*255;
+    im[0].data[j+2]=c2(l*1.28+fis*.17)*255;im[0].data[j+3]=255;
+    const h=c2(.5+(g-.5)*.35-fis*.22);im[1].data[j]=im[1].data[j+1]=im[1].data[j+2]=h*255;im[1].data[j+3]=255;
+    const sp=c2(.10+fis*.26);im[2].data[j]=im[2].data[j+1]=im[2].data[j+2]=sp*255;im[2].data[j+3]=255;
+  }
+  cs.forEach((c,i)=>c.getContext('2d').putImageData(im[i],0,0));
+  const mk=c=>{const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;return t;};
+  return {map:mk(cs[0]),bump:mk(cs[1]),spec:mk(cs[2])};
+})();
 // ---- LES MATÉRIAUX : c'est là que se joue le « métallique brillant », pas dans la géométrie ----
 // ⚠ EN r128 (MeshPhong, pas de PBR) le chrome ne vient PAS d'une texture : il vient d'une
 // `shininess` très haute + une `envMap` fortement réfléchissante. Le ciel du jeu sert de sonde —
@@ -3850,170 +4195,504 @@ const M9={
     envMap:envTex,reflectivity:.52,combine:THREE.MixOperation}),          // collecteurs : inox bleui
   canaux:(c)=>new THREE.MeshPhongMaterial({color:0x8a94a6,map:MAT9.alu.map,bumpMap:MAT9.alu.bump,
     bumpScale:.008,emissive:0xffffff,emissiveMap:texCan9(c),shininess:280,specular:0xffffff,
-    envMap:envTex,reflectivity:.30,combine:THREE.MixOperation})           // couvre-culasse de course
+    envMap:envTex,reflectivity:.30,combine:THREE.MixOperation}),          // couvre-culasse de course
+  croute:(c)=>new THREE.MeshPhongMaterial({color:c==null?0x8d95b4:c,map:T_CROUTE9.map,bumpMap:T_CROUTE9.bump,
+    bumpScale:.022,specularMap:T_CROUTE9.spec,shininess:26,specular:0x7d88a8,
+    envMap:envTex,reflectivity:.14,combine:THREE.MixOperation}),          // les six derniers paliers
+  cristal:(c)=>new THREE.MeshPhongMaterial({color:c,emissive:c,emissiveIntensity:.5,shininess:400,
+    specular:0xffffff,transparent:true,opacity:.72,envMap:envTex,reflectivity:.78,combine:THREE.MixOperation})
 };
-// ---- LE COLLECTEUR TUBULAIRE : la pièce signature des références ----
-// Des tubes qui SERPENTENT depuis chaque cylindre et se rejoignent. On décrit un CHEMIN et
-// TubeGeometry fait le reste : un collecteur à 3, 6 ou 12 sorties, c'est le même appel.
-function collecteur9(g,n,mat,cote){
-  const N=Math.max(2,Math.min(8,n||4));
-  for(let k=0;k<N;k++){
-    const u=(N>1?k/(N-1):.5)-.5, ph=k/N;
-    const pts=[
-      new THREE.Vector3(u*1.15,.40,cote*.54),
-      new THREE.Vector3(u*1.05,.22+ph*.10,cote*(.86+ph*.14)),   // la boucle qui s'écarte
-      new THREE.Vector3(u*.55,-.02-ph*.06,cote*(.92+ph*.10)),
-      new THREE.Vector3(u*.18,-.16,cote*.80),
-      new THREE.Vector3(0,-.20,cote*.66)                         // tout se rejoint
-    ];
-    g.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),16,.062,9,false),mat));
-  }
-  g.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([
-    new THREE.Vector3(0,-.20,cote*.66),new THREE.Vector3(.34,-.26,cote*.74),
-    new THREE.Vector3(.78,-.30,cote*.62)]),12,.105,10,false),mat));  // le tube de sortie
+/* ================= LES DEUX OUTILS DE FORME (2026-08-05) =================
+   ⚠ POURQUOI LES MOTEURS ÉTAIENT LAIDS — ce n'était pas la finition. TOUT était une primitive
+   ÉTIRÉE : un cube mis à l'échelle reste un cube (arêtes vives, faces plates, zéro accroche de
+   lumière), et un cône ne remplace pas un cornet d'admission — il en donne la caricature.
+     · `profX` — on décrit la SECTION de la pièce (carter, culasse, couvre-culasse) et on
+       l'extrude AVEC BISEAU. Sur une pièce coulée il n'existe pas d'angle vif : c'est cette
+       arête cassée qui attrape un filet de lumière sur toute la longueur, et c'est elle qui
+       sépare « pièce de mécanique » de « boîte ».
+     · `tourX` — les pièces TOURNÉES (cloche d'embrayage, fûts, cornets, turbos, carters de
+       turbine, tuyères) sont des profils de RÉVOLUTION, pas des cylindres redimensionnés.
+   ⚠ `tourX` rend une pièce d'axe X. Lui ajouter un `rotation.z=PI/2` la met DEBOUT — c'est
+   exactement ce qui transformait la turbine à gaz en vase posé sur la table. */
+function profX(pts,len,bev){
+  const sh=new THREE.Shape();sh.moveTo(-pts[0][0],pts[0][1]);
+  for(let k=1;k<pts.length;k++)sh.lineTo(-pts[k][0],pts[k][1]);
+  sh.closePath();
+  const b=bev==null?.022:bev;
+  const g=new THREE.ExtrudeGeometry(sh,{depth:len,bevelEnabled:b>0,bevelSize:b,bevelThickness:b,
+    bevelSegments:2,curveSegments:4,steps:1});
+  g.translate(0,0,-len/2);g.rotateY(Math.PI/2);return g;
 }
-// ---- LES BOBINES D'ALLUMAGE : une par cylindre, alignées sur le cache-culasse ----
-function bobines9(g,n,matC,matN,y){
-  const N=Math.max(2,Math.min(8,n||4));
-  for(let k=0;k<N;k++){
-    const u=(N>1?k/(N-1):.5)-.5;
-    g.add(mesh9(new THREE.BoxGeometry(.13,.17,.19),matC,1,1,1,u*1.12,y+.09,0));
-    g.add(mesh9(fgCyl,matN,.055,.16,.055,u*1.12,y-.02,0));
+function tourX(pts,seg){
+  const v=[];for(let k=0;k<pts.length;k++)v.push(new THREE.Vector2(Math.max(.0006,pts[k][0]),pts[k][1]));
+  const g=new THREE.LatheGeometry(v,seg||20);g.rotateZ(-Math.PI/2);return g;
+}
+/* ---- L'ÉROSION : on déforme une géométrie par un bruit haché, pour les objets impossibles ----
+   ⚠ le sommet se hache par sa POSITION, jamais par son index : une géométrie non indexée donne
+   à chaque triangle ses propres sommets, et un hachage par index la déchire en confettis. */
+function hash9(x,y,z){let h=Math.imul(((x*7349)^(y*15731)^(z*24593))|0,668265263);
+  h^=h>>>13;h=Math.imul(h,1274126177);return((h^h>>>16)>>>0)/4294967296;}
+function eroder9(geo,amp,freq,graine){
+  const p=geo.attributes.position;geo.computeVertexNormals();
+  const n=geo.attributes.normal,q=v=>Math.round(v*freq*40);
+  for(let i=0;i<p.count;i++){
+    const x=p.getX(i),y=p.getY(i),z=p.getZ(i);
+    const d=(hash9(q(x)+graine,q(y),q(z))*.62+hash9(q(x)*2+graine,q(y)*2,q(z)*2)*.38-.5)*amp;
+    p.setXYZ(i,x+n.getX(i)*d,y+n.getY(i)*d,z+n.getZ(i)*d);}
+  p.needsUpdate=true;geo.computeVertexNormals();return geo;
+}
+// un ÉCLAT en lévitation : un caillou taillé, tiré, qui ne touche rien
+function eclat9(g,mat,rnd,x,y,z,t){
+  const e=new THREE.Mesh(eroder9(new THREE.IcosahedronGeometry(t,0),t*.7,3,(x*97+y*31+z*13)|0),mat);
+  e.position.set(x,y,z);e.rotation.set(rnd()*3,rnd()*3,rnd()*3);g.add(e);return e;
+}
+// L'ALÉA SEMÉ : une graine par palier. Boulons, durites, nervures et accessoires sont TIRÉS —
+// chaque moteur a son propre désordre, reproductible, et aucun n'est placé à la main.
+function rngT(a){a|=0;return function(){a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const put9=(g,geo,mat,x,y,z)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x||0,y||0,z||0);g.add(m);return m;};
+const GBOU9=new THREE.CylinderGeometry(1,1,1,6);
+const bou9=(g,mat,x,y,z,r)=>{const m=new THREE.Mesh(GBOU9,mat);m.scale.set(r||.028,.030,r||.028);
+  m.position.set(x,y,z);g.add(m);return m;};
+// un tube qui SERPENTE d'un point à l'autre : durite, faisceau, tube d'admission de turbo
+function serp9(g,p0,p1,mat,r,rnd,mou){
+  const pts=[];
+  for(let k=0;k<=4;k++){const t=k/4,w=Math.sin(t*Math.PI);
+    pts.push(new THREE.Vector3(p0[0]+(p1[0]-p0[0])*t+(rnd()-.5)*.10*w,
+      p0[1]+(p1[1]-p0[1])*t-(mou==null?.14:mou)*w+(rnd()-.5)*.06*w,
+      p0[2]+(p1[2]-p0[2])*t+(rnd()-.5)*.10*w));}
+  g.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),14,r,7,false),mat));
+}
+/* ================= LE SQUELETTE : la forme SORT du moteur =================
+   ⚠ (2026-08-05) Avant, le bloc faisait 1,5 × 0,9 × 1,1 pour TOUT LE MONDE, du bicylindre au
+   V16, et les fûts, minuscules, étaient noyés dedans. Pire : ils étaient inclinés autour de Z
+   alors que le vilebrequin court sur X — un V s'ouvre dans le plan Y-Z, donc le V ne POUVAIT
+   PAS se lire, quel que soit l'angle de caméra. Mesuré sur la planche contact de `moteurs.html`
+   (recouvrement des silhouettes) : les paliers 3 à 18 se recouvraient à 85-99 %, V10/V12/W12 à
+   99 %. SEIZE paliers pour une seule forme.
+   Désormais la LONGUEUR sort du nombre de cylindres et les BANCS sortent de l'architecture. */
+function squel9(K){
+  const BK=K.a==='in'?[[0,0]]:K.a==='v'?[[-.44,0],[.44,0]]
+    :K.a==='fl'?[[-1.50,0],[1.50,0]]
+    :K.a==='w'?[[-.80,0],[-.28,0],[.28,0],[.80,0]]
+    :K.a==='h'?[[-1.50,-1],[1.50,-1],[-1.50,1],[1.50,1]]:[[0,0]];
+  const pb=Math.max(1,Math.ceil((K.c||1)/BK.length));
+  return {BK:BK,pb:pb,L:.52+pb*.30};
+}
+// ---- LE CORPS À PISTONS : carter coulé, bancs de fûts, culasses, couvre-culasses ----
+function corps9(g,K,S,MT,rnd,ep,carbo){
+  const L=S.L,plat=K.a==='fl',haut=K.a==='h';
+  // LE CARTER : une vraie section de pièce coulée — flancs qui rentrent, semelle étroite
+  const sec=plat?[[-.30,.20],[.30,.20],[.26,-.10],[.16,-.24],[-.16,-.24],[-.26,-.10]]
+    :haut?[[-.24,.50],[.24,.50],[.22,-.50],[-.22,-.50]]
+    :[[-.34,.26],[.34,.26],[.30,-.02],[.20,-.26],[-.20,-.26],[-.30,-.02]];
+  put9(g,profX(sec,L,.026),MT.bloc,0,-.02,0);
+  // LES NERVURES DE RENFORT, semées : c'est ce qui dit « pièce coulée sous contrainte »
+  if(!ep&&!plat){const nb=3+Math.floor(rnd()*3);
+    for(let k=0;k<nb;k++){const u=(k/(nb-1)-.5)*(L-.30)+(rnd()-.5)*.06;
+      for(let si=0;si<2;si++)put9(g,profX([[-.03,.22],[.03,.22],[.03,-.20],[-.03,-.20]],.05,.012),
+        MT.bloc,u,-.02,(si?1:-1)*.31);}}
+  put9(g,profX([[-.22,.02],[.22,.02],[.17,-.20],[-.17,-.20]],L*.88,.018),MT.sombre,0,-.30,0); // carter d'huile
+  // LA CLOCHE D'EMBRAYAGE, tournée. L'ancien « volant moteur » était un palet plat : à l'écran
+  // il lisait comme une roue posée contre le bloc, et il mangeait toute la composition.
+  put9(g,tourX([[.06,0],[.26,0],[.30,.05],[.32,.16],[.26,.22],[.08,.24],[.06,.24]],20),
+    MT.sombre,-(L*.5+.02),-.02,0);
+  put9(g,tourX([[.05,0],[.20,0],[.22,.04],[.20,.09],[.22,.13],[.20,.17],[.05,.17]],18),
+    MT.chrome,L*.5,-.02,0);                                                     // poulie de vilebrequin
+  for(let b=0;b<S.BK.length;b++){
+    const n=Math.min(S.pb,K.c-b*S.pb);if(n<=0)break;
+    const bk=new THREE.Group();bk.position.y=S.BK[b][1]*.28;bk.rotation.x=S.BK[b][0];
+    // LE FÛT : un profil tourné avec sa collerette. `tourX` sort un axe X, le fût est vertical.
+    for(let c=0;c<n;c++){
+      const u=(n>1?c/(n-1)-.5:0)*(L-.42);
+      const f=new THREE.Mesh(tourX([[.005,0],[.155,.02],[.175,.05],[.175,.30],[.205,.33],[.205,.40],[.005,.40]],16),MT.bloc);
+      f.rotation.z=Math.PI/2;f.position.set(u,.10,0);bk.add(f);
+    }
+    put9(bk,profX([[-.25,0],[.25,0],[.235,.15],[-.235,.15]],L*.93,.022),MT.bloc,0,.52,0);   // culasse
+    // LE COUVRE-CULASSE : c'est LUI qui porte la couleur du palier — teindre tout le bloc
+    // donnerait un moteur en plastique coloré.
+    put9(bk,profX([[-.235,0],[.235,0],[.20,.13],[-.20,.13]],L*.97,.026),MT.habit,0,.67,0);
+    if(!ep){
+      for(let k=0;k<8;k++){const u=(k/7-.5)*(L-.24);bou9(bk,MT.chrome,u,.68,.215);bou9(bk,MT.chrome,u,.68,-.215);}
+      if(n>=3)for(let c=0;c<n;c++){                                   // les bobines d'allumage, en rang
+        const u=(n>1?c/(n-1)-.5:0)*(L-.46);
+        put9(bk,profX([[-.07,0],[.07,0],[.06,.13],[-.06,.13]],.12,.012),MT.habit,u,.80,0);
+        put9(bk,tourX([[.045,0],[.045,.11]],10),MT.sombre,u,.68,0);}
+    }
+    g.add(bk);
   }
 }
-// ---- les briques, toutes SEMÉES par boucle : c'est ce qui rend 30 moteurs tenable ----
+// ---- LE COLLECTEUR : des tubes qui sortent du FLANC de la culasse, s'écartent, plongent et se
+// rejoignent — et qui suivent l'inclinaison du banc, sinon un V a ses tuyaux dans le vide.
+function collect9(g,K,S,mat,b){
+  const inc=S.BK[b][0],et=S.BK[b][1],n=S.pb,L=S.L;
+  // ⚠ le collecteur ne suit PAS l'inclinaison au pied de la lettre : à plat (boxer, H) un banc
+  // couché à 86° enverrait ses tubes faire une ANSE par-dessus le moteur. On plafonne le
+  // basculement — les tubes sortent sur le flanc puis plongent, comme sur une vraie voiture.
+  const gr=new THREE.Group();gr.position.y=et*.28;
+  gr.rotation.x=Math.abs(inc)>1?(inc<0?-1:1)*.62:inc;
+  for(let k=0;k<n;k++){
+    const u=((n>1?k/(n-1):.5)-.5)*(L-.42),ph=k/Math.max(1,n);
+    gr.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([
+      new THREE.Vector3(u,.58,.24),
+      new THREE.Vector3(u*.94,.40+ph*.10,.56+ph*.12),
+      new THREE.Vector3(u*.52,.04-ph*.05,.66+ph*.10),
+      new THREE.Vector3(u*.18,-.24,.56),
+      new THREE.Vector3(0,-.32,.42)]),18,.055,9,false),mat));
+  }
+  gr.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0,-.32,.42),new THREE.Vector3(L*.34,-.38,.46),
+    new THREE.Vector3(L*.64,-.42,.36)]),14,.095,10,false),mat));
+  g.add(gr);
+}
+// ---- L'ESCARGOT DE TURBO : carter en volute + tube. Deux cylindres croisés ne font pas un turbo.
+function turbo9(g,chrome,sombre,x,y,z){
+  put9(g,tourX([[.05,0],[.19,.015],[.215,.055],[.215,.15],[.19,.19],[.05,.205]],18),chrome,x,y,z);
+  const t=new THREE.Mesh(new THREE.TorusGeometry(.175,.075,8,20),chrome);
+  t.rotation.y=Math.PI/2;t.position.set(x+.10,y,z);g.add(t);
+  put9(g,tourX([[.055,0],[.055,.22]],10),sombre,x-.22,y,z);
+}
+/* ---- L'ÉCHANGEUR (intercooler) : une dalle nervurée EN AVANT du moteur ----
+   ⚠ LEÇON DE LA MESURE (2026-08-05). J'ai d'abord distingué les paliers turbo par leurs
+   escargots. Résultat mesuré : 4 EN LIGNE TURBO recouvrait encore le 4 SOUPAPES à 98 %, et
+   V6 BITURBO recouvrait le V6 à 100 %. La raison est bête et vaut pour TOUT le reste : la
+   vignette RECADRE chaque moteur pour qu'il remplisse la case (en jeu comme à l'atelier).
+   Donc ni la taille, ni la longueur, ni une petite pièce collée au flanc ne se voient — seules
+   comptent les PROPORTIONS et la TOPOLOGIE. Pour qu'un palier se distingue, il lui faut une
+   masse qui sorte du volume : dessus, dessous, ou devant. D'où cette dalle. */
+function echang9(g,mat,chrome,x,y,w,h){
+  put9(g,profX([[-w/2,-h/2],[w/2,-h/2],[w/2,h/2],[-w/2,h/2]],.11,.016),mat,x,y,0);
+  for(let k=0;k<7;k++)
+    put9(g,profX([[-w/2+.03,-.012],[w/2-.03,-.012],[w/2-.03,.012],[-w/2+.03,.012]],.14,0),
+      chrome,x,y-h/2+.06+k*(h-.12)/6,0);
+}
+// ---- LES DEUX PIÈCES TOURNÉES DE L'ENDGAME. Un cône étiré ne fait pas une tuyère : il faut
+// le col qui se PINCE puis la corolle qui s'ouvre.
+const geoTurb9=()=>tourX([[.05,0],[.24,.04],[.33,.14],[.39,.34],[.42,.70],[.41,1.06],[.36,1.34],[.27,1.50],[.05,1.56]],26);
+const geoTuy9 =()=>tourX([[.15,0],[.19,.08],[.155,.24],[.20,.42],[.30,.62],[.40,.78]],24);
+
+/* ================= LE CONSTRUCTEUR =================
+   ⚠ RÈGLE 1 : deux paliers voisins doivent DIFFÉRER VISIBLEMENT. Vérifiable par script.
+   ⚠ RÈGLE 2 : un moteur à pistons a TOUJOURS un échappement — la garantie est dans le CODE,
+   pas dans la table (11 paliers sur 30 n'en avaient aucun, dont le MOTEUR ROUILLÉ ; un oubli
+   par entrée se serait reproduit à la retouche suivante).
+   ⚠ RÈGLE 3 (nouvelle) : chaque palier a sa SIGNATURE, traitée une par une dans le bloc
+   `switch(i)` en fin de fonction. C'est volontairement du cas par cas : une pièce marquante
+   par moteur, c'est ce qui fait qu'on reconnaît le sien. */
 function mkEngine(i){
   const E=ENGINE_TIERS[i]||ENGINE_TIERS[0],K=ENG_LOOK[i]||ENG_LOOK[0],g=new THREE.Group();
-  // ⚠ LA ROUILLE EST RÉSERVÉE AUX DEUX PREMIERS PALIERS. Au-delà, un moteur est de l'ALU DE
-  // FONDERIE clair, de l'INOX POLI et du CARBONE — c'est ce que montrent les références, et c'est
-  // ce qui fait la différence entre « épave » et « pièce de mécanique ». La teinte du palier ne
-  // colore plus tout le bloc : elle habille le CACHE-CULASSE (comme un couvre-culasse anodisé sur
-  // un vrai moteur) pendant que le bloc reste métallique. Sinon on repeint la pièce en plastique.
-  const epave=i<2;
-  const bloc=epave?M9.fonte(E.col):M9.alu(0xd6dae0,175);
-  const sombre=epave?M9.fonte(0x6a6259):M9.noir();
-  const chrome=M9.inox();                       // collecteurs, cornets, turbos : miroir
-  const habit=epave?M9.fonte(E.col):M9.anod(E.col); // la couleur du palier, sur le couvre-culasse
+  const rnd=rngT(i*7919+11),S=squel9(K),L=S.L,XE=L*.5;
+  /* ⚠ LA ROUILLE, C'EST LE PREMIER PALIER ET LUI SEUL (2026-08-05, demande de Sacha).
+     Elle a d'abord été validée sur l'épave, puis appliquée aux 30 : trente moteurs en terre
+     cuite. Repliée sur DEUX, elle donnait encore deux carcasses jumelles au démarrage — et un
+     joueur qui paie son 2e palier doit voir qu'il a acheté du MÉTAL, pas une deuxième ruine.
+     Le BICYLINDRE est donc en alu brut. ⚠ Mais brut ne veut pas dire NEUF : la finition monte
+     avec l'échelle — fonderie mate et terne jusqu'au 4 EN LIGNE, puis alu clair et poli. */
+  const ep=i===0;
+  const bloc=ep?M9.fonte(E.col):M9.alu(i<4?0xbcc3cc:0xd0d5de,i<4?100:150);
+  const sombre=ep?M9.fonte(0x6a6259):M9.noir();
+  const chrome=M9.inox();
+  const chaud=ep?M9.fonte(0x8f7f6c):M9.chaud();                 // les collecteurs, bleuis par la chauffe
+  // dès les moteurs de course, le couvre-culasse passe aux SAIGNÉES qui s'allument : c'est ce
+  // qui fait lire la montée en gamme d'un coup d'œil, à la taille de la vignette en jeu.
+  const habit=ep?M9.fonte(E.col):(i>=12?M9.canaux(E.col):M9.anod(E.col));
   const carbo=M9.carbone();
   const feu=new THREE.MeshBasicMaterial({color:E.flam});
-  const box=new THREE.BoxGeometry(1,1,1);
-  const a=K.a,has=n=>K.x.indexOf(n)>=0;
+  const lueur=function(c,o){return new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:o,
+    blending:THREE.AdditiveBlending,depthWrite:false});};
+  const a=K.a,has=function(n){return K.x.indexOf(n)>=0;};
   const piston=(a==='in'||a==='v'||a==='fl'||a==='w'||a==='h');
-  // ---- LE CORPS : sa forme dépend de l'architecture, pas seulement sa décoration ----
+  /* ⚠ LES SIX DERNIERS PALIERS CHANGENT DE LANGAGE (2026-08-05). À partir du CŒUR À FUSION, ce
+     n'est plus une pièce de mécanique — c'est un OBJET IMPOSSIBLE : croûte érodée, cristal,
+     morceaux en lévitation, rien qui tienne rien. Ils n'ont donc pas de corps générique : leur
+     `case` construit TOUT. C'est volontaire, et ça n'a de sens que parce que c'est la FIN de
+     l'échelle : la même recette appliquée aux 30 donnerait trente cailloux. */
+  const relique=i>=24;
+  const croute=M9.croute(),cristal=M9.cristal(E.col);
+  const MT={bloc:bloc,sombre:sombre,chrome:chrome,habit:habit};
+
+  // ---------- LE CORPS, par architecture ----------
   if(piston){
-    g.add(mesh9(box,bloc,1.5,.9,1.1,0,0,0));
-    // COUVRE-CULASSE : c'est LUI qui porte la couleur du palier (anodisé), et il est CARBONE sur
-    // les moteurs de course — le détail qui, sur les références, dit « pièce chère » en un coup d'œil.
-    g.add(mesh9(box,i>=13?carbo:habit,1.56,.20,1.16,0,.55,0));
-    // les boulons de culasse, semés tout autour : sans eux la culasse est une planche
-    if(!epave)for(let b=0;b<12;b++){
-      const t=b/12*6.2832;
-      g.add(mesh9(fgCyl,chrome,.030,.030,.030,Math.cos(t)*.74,.66,Math.sin(t)*.56));
+    corps9(g,K,S,MT,rnd,ep,carbo);
+    // LA CHAMBRE INCANDESCENTE, sous chaque culasse : à 200 px (la vignette en jeu) c'est ELLE
+    // qui dit « ça brûle là-dedans », bien mieux qu'un détail de géométrie.
+    if(!ep)for(let b=0;b<S.BK.length;b++){
+      const gr=new THREE.Group();gr.position.y=S.BK[b][1]*.28;gr.rotation.x=S.BK[b][0];
+      put9(gr,profX([[-.20,0],[.20,0],[.20,.05],[-.20,.05]],L*.90,0),lueur(E.flam,.34),0,.46,0);
+      g.add(gr);
     }
-    if(has('carter'))g.add(mesh9(box,sombre,1.34,.26,.98,0,-.56,0));
-    // BOBINES D'ALLUMAGE alignées sur la culasse (références : les blocs bleus en rang)
-    if(!epave&&K.c>=3)bobines9(g,K.c,habit,sombre,.74);
   }else if(a==='ro'){                                     // ROTATIF : des lobes, pas des cylindres
-    g.add(mesh9(fgCyl,bloc,.62,1.34,.62,0,0,0,Math.PI/2));
-    for(let k=0;k<K.c;k++)g.add(mesh9(fgCyl,chrome,.66,.10,.66,-.44+k*.44,0,0,Math.PI/2));
-  }else if(a==='tu'){                                     // TURBINE : un fuseau
-    g.add(mesh9(fgCyl,bloc,.52,1.7,.52,0,0,0,Math.PI/2));
+    put9(g,tourX([[.06,0],[.56,.03],[.60,.10],[.60,1.24],[.56,1.31],[.06,1.34]],22),bloc,-.67,0,0);
+    for(let k=0;k<K.c;k++)
+      put9(g,tourX([[.62,0],[.66,.02],[.66,.09],[.62,.11]],20),chrome,-.45+k*.44,0,0);
+  }else if(a==='tu'){                                     // TURBINE À GAZ : un fuseau + un compresseur
+    put9(g,geoTurb9(),bloc,-.78,0,0);
+  }else if(a==='pl'){                                     // PLASMA : un tube MINCE, plus rien de mobile
+    put9(g,tourX([[.04,0],[.17,.03],[.19,.10],[.19,1.9],[.17,1.97],[.04,2.0]],20),bloc,-1.0,0,0);
   }else if(a==='ra'){                                     // STATORÉACTEUR : long et fin
-    g.add(mesh9(fgCyl,bloc,.40,2.3,.40,0,0,0,Math.PI/2));
-  }else if(a==='pu'){                                     // PULSORÉACTEUR : tube nu
-    g.add(mesh9(fgCyl,bloc,.34,2.5,.34,0,0,0,Math.PI/2));
+    put9(g,tourX([[.05,0],[.28,.06],[.33,.20],[.34,2.1],[.30,2.24],[.05,2.3]],22),bloc,-1.15,0,0);
+  }else if(a==='pu'){                                     // PULSORÉACTEUR : grosse tête, tuyau fin
+    put9(g,tourX([[.05,0],[.40,.04],[.44,.16],[.44,.78],[.34,.92],[.22,1.0],[.05,1.02]],22),chrome,-.10,0,0);
+    put9(g,tourX([[.04,0],[.19,.02],[.19,1.45],[.04,1.5]],18),bloc,-1.60,0,0);
+  }else if(relique){                                      // les six derniers : leur `case` fait tout
   }else if(a==='re'){                                     // RÉACTEUR : cœur trapu et blindé
-    g.add(mesh9(fgCyl,bloc,.78,1.1,.78,0,0,0,Math.PI/2));
-    g.add(mesh9(fgCyl,sombre,.86,.16,.86,-.3,0,0,Math.PI/2));
-    g.add(mesh9(fgCyl,sombre,.86,.16,.86,.3,0,0,Math.PI/2));
+    put9(g,tourX([[.06,0],[.62,.05],[.72,.18],[.74,.92],[.66,1.06],[.06,1.10]],26),bloc,-.55,0,0);
+    put9(g,tourX([[.30,0],[.86,.03],[.86,.14],[.30,.17]],26),sombre,-.36,0,0);
+    put9(g,tourX([[.30,0],[.86,.03],[.86,.14],[.30,.17]],26),sombre,.22,0,0);
   }else{                                                  // EXOTIQUE : un noyau qui flotte
-    g.add(mesh9(fgSph,bloc,.62,.62,.62,0,0,0));
-    g.add(mesh9(fgCyl,sombre,.30,1.5,.30,0,0,0,Math.PI/2));
+    put9(g,fgSph,bloc,0,0,0).scale.set(.56,.56,.56);
+    put9(g,tourX([[.04,0],[.17,.03],[.17,1.44],[.04,1.5]],16),sombre,-.75,0,0);
   }
-  // ---- CYLINDRES : une banque par architecture (c'est LE marqueur qui change le plus) ----
-  if(piston&&K.c>0){
-    const bancs=a==='in'?[0]:a==='v'?[-.32,.32]:a==='fl'?[-1.35,1.35]:a==='w'?[-.5,0,.5]:[-1.35,1.35];
-    const parBanc=Math.ceil(K.c/bancs.length);
-    for(let b=0;b<bancs.length;b++)for(let c=0;c<parBanc;c++){
-      if(b*parBanc+c>=K.c)break;
-      const u=(parBanc>1?c/(parBanc-1):.5)-.5, inc=bancs[b];
-      const dy=a==='fl'?0:(a==='h'?(b?.34:-.34):.72);
-      const dz=Math.sin(inc)*.30, hy=a==='fl'?Math.cos(inc)*.05:dy;
-      const m=mesh9(fgCyl,chrome,.15,.40,.15,u*1.2,hy,a==='fl'?Math.sin(inc)*.62:dz);
-      m.rotation.z=a==='fl'?inc:(a==='h'?0:inc*.9);
-      g.add(m);
-    }
-  }
-  // ---- AILETTES DE REFROIDISSEMENT : semées, jamais dessinées une par une ----
-  for(let k=0;k<(K.f||0);k++)
-    g.add(mesh9(box,chrome,1.44,.035,1.06,0,.16+k*.13,0));
-  // ---- TURBOS : distribués en cercle autour du bloc ----
+
+  // ---------- AILETTES DE REFROIDISSEMENT ----------
+  // ⚠ elles étaient posées à plat SUR le bloc, à ±.30 en Z : donc À L'INTÉRIEUR de son
+  // gabarit, donc invisibles au recadrage. Une culasse à air a ses ailettes qui DÉBORDENT —
+  // c'est ce débord qui fait la silhouette du bicylindre et du boxer.
+  if(K.f&&piston)for(let b=0;b<S.BK.length;b++){
+    const n2=Math.min(S.pb,K.c-b*S.pb);if(n2<=0)break;
+    const gr=new THREE.Group();gr.position.y=S.BK[b][1]*.28;gr.rotation.x=S.BK[b][0];
+    // ⚠ DEUX FAÇONS D'ÊTRE REFROIDI À L'AIR, et elles ne se dessinent pas pareil. Un boxer porte
+    // une NAPPE d'ailettes sur toute la longueur du banc ; une moto a des ailettes CARRÉES
+    // empilées autour de chaque fût. Une seule recette pour les deux donnait au bicylindre la
+    // silhouette d'un boxer miniature — et donc un jumeau de plus.
+    if(K.c<=2)for(let c=0;c<n2;c++){
+      const u=(n2>1?c/(n2-1)-.5:0)*(L-.42);
+      for(let k=0;k<K.f;k++){const w=.30-Math.abs(k-K.f/2)*.012;
+        put9(gr,profX([[-w,0],[w,0],[w,.026],[-w,.026]],w*2,.006),chrome,u,.11+k*.075,0);}
+    }else for(let k=0;k<K.f;k++)
+      put9(gr,profX([[-.42,0],[.42,0],[.42,.026],[-.42,.026]],L*.86,.006),chrome,0,.13+k*.082,0);
+    g.add(gr);
+  }else for(let k=0;k<(K.f||0);k++)
+    put9(g,profX([[-.34,0],[.34,0],[.34,.028],[-.34,.028]],1.15,.008),chrome,0,.16+k*.115,0);
+  // ---------- TURBOS : de vrais escargots, répartis sur les flancs ----------
   for(let k=0;k<(K.t||0);k++){
-    const ang=(k/Math.max(1,K.t))*6.2832+.6, r=.62;
-    g.add(mesh9(fgCyl,chrome,.30,.20,.30,.95,Math.sin(ang)*r*.5,Math.cos(ang)*r,Math.PI/2));
-    g.add(mesh9(fgCyl,sombre,.11,.44,.11,.62,Math.sin(ang)*r*.5,Math.cos(ang)*r,Math.PI/2));
+    const s=(k%2)?1:-1,r=Math.floor(k/2);
+    turbo9(g,chrome,sombre,XE-.10-r*.46,.06+r*.18,s*.46);
+    serp9(g,[XE-.32-r*.46,.06+r*.18,s*.46],[0,.62,s*.20],sombre,.045,rnd,.10);
   }
-  // ---- LES PIÈCES EN PLUS : chacune est un marqueur VISIBLE d'un palier ----
-  // ⚠ LE COLLECTEUR EST LA PIÈCE SIGNATURE. Avant : des bâtonnets droits plantés dans le flanc.
-  // Sur les références c'est un entrelacs de tubes polis qui serpentent et se rejoignent — et
-  // c'est CE reflet mouvant qui vend le métal, bien plus que le bloc lui-même.
-  // ⚠ SUR L'ÉPAVE il ne doit PAS être chromé : un collecteur miroir sur un bloc rouillé ferait
-  // pièce neuve montée sur une carcasse. Fonte sombre et suiée pour les deux premiers paliers.
-  const tub=epave?M9.fonte(0x8f7f6c):chrome;
-  /* ⚠ UN MOTEUR A TOUJOURS UN ÉCHAPPEMENT — GARANTI PAR LE CODE (2026-08-05).
-     En rendant chaque palier « déclaratif » pour tuer les séries identiques, j'ai optimisé la
-     DIFFÉRENCE et oublié que certaines pièces sont OBLIGATOIRES : 6 moteurs à pistons sur 30
-     (dont le MOTEUR ROUILLÉ, celui qu'on voit en premier) n'avaient aucun tuyau. Un oubli par
-     entrée se serait reproduit à la prochaine retouche de la table : la règle est donc dans le
-     CONSTRUCTEUR. Si une architecture à pistons ne déclare rien, elle reçoit un collecteur. */
-  const aEch=has('collecteur')||has('pot')||has('tuyere');
+
+  /* ================= L'ÉCHAPPEMENT — GARANTI PAR LE CODE =================
+     Si une architecture à pistons ne déclare aucun tuyau, elle reçoit un collecteur. La règle
+     est ici et pas dans la table : c'est le seul endroit où elle ne peut pas être oubliée. */
+  // ⚠ `potMoto` compte comme un échappement : le mégaphone du BICYLINDRE est dessiné par sa
+  // signature, pas par la table. S'il n'était pas listé ici, la garantie lui collerait un
+  // collecteur EN PLUS et le moteur sortirait avec deux lignes d'échappement.
+  const aEch=has('collecteur')||has('pot')||has('potMoto')||has('tuyere');
   if(has('collecteur')||(piston&&!aEch)){
-    collecteur9(g,K.c,tub,1);
-    if(a==='v'||a==='w'||a==='h')collecteur9(g,K.c,tub,-1); // en V : un collecteur par banc
+    for(let b=0;b<S.BK.length;b++)collect9(g,K,S,chaud,b);
   }
-  // LE POT : un tube SORTANT, en matière d'échappement (inox poli, ou fonte suiée sur l'épave) —
-  // il était en `sombre`, donc en plastique noir sur les moteurs récents.
-  if(has('pot')){
-    g.add(mesh9(fgCyl,tub,.115,.95,.115,.52,-.28,.66,Math.PI/2.6));
-    g.add(mesh9(fgCyl,tub,.145,.16,.145,.86,-.46,.82,Math.PI/2.6)); // l'embout, évasé
+  if(has('pot')){                                          // LE POT : un tube tourné, pas un cylindre
+    const t=put9(g,tourX([[.09,0],[.105,.05],[.105,.80],[.135,.86],[.15,.92]],16),chaud,XE*.5,-.30,.42);
+    t.rotation.z=-.30;t.rotation.y=-.35;
   }
-  if(has('courroie')){const t=new THREE.Mesh(new THREE.TorusGeometry(.30,.035,7,20),sombre);
-    t.position.set(-.86,.06,0);t.rotation.y=Math.PI/2;t.scale.set(1,1.4,1);g.add(t);}
-  if(has('doubleArbre'))for(const s of[-1,1])g.add(mesh9(fgCyl,chrome,.10,1.3,.10,0,.66,s*.26,Math.PI/2));
-  if(has('wastegate'))g.add(mesh9(fgCyl,chrome,.13,.26,.13,.86,.34,.34));
-  if(has('carbu')){g.add(mesh9(box,chrome,.42,.34,.42,0,.86,0));
-    g.add(mesh9(fgCone,chrome,.26,.22,.26,0,1.10,0));}
-  if(has('compresseur')){g.add(mesh9(fgCyl,chrome,.30,1.0,.30,0,.86,0,Math.PI/2));
-    g.add(mesh9(fgCyl,sombre,.16,.24,.16,-.62,.86,0,Math.PI/2));}
-  if(has('trompettes'))for(let k=0;k<Math.min(8,Math.max(2,K.c/2));k++){
-    const u=(k/Math.max(1,Math.min(8,Math.max(2,K.c/2))-1))-.5;
-    g.add(mesh9(fgCone,chrome,.11,.20,.11,u*1.1,.90,0));}
-  if(has('axial'))for(let k=0;k<5;k++)g.add(mesh9(fgCyl,chrome,.56-k*.03,.06,.56-k*.03,.42-k*.20,0,0,Math.PI/2));
-  if(has('coneEntree'))g.add(mesh9(fgCone,chrome,.42,.52,.42,1.28,0,0,-Math.PI/2));
-  if(has('valves'))for(let k=0;k<6;k++)g.add(mesh9(box,chrome,.05,.34,.34,.9-k*.28,0,0));
-  if(has('cellules'))for(const s of[1,-1])g.add(mesh9(box,feu,.12,.52,.5,-.72,.12,s*.34));
-  if(has('tuyere'))g.add(mesh9(fgCone,feu,.46,.86,.46,-1.5,0,0,Math.PI/2));
-  if(has('anneaux2'))for(let k=0;k<2;k++)g.add(mesh9(fgCyl,feu,.30-k*.06,.05,.30-k*.06,-1.7-k*.32,0,0,Math.PI/2));
-  if(has('barres'))for(let k=0;k<4;k++)g.add(mesh9(fgCyl,feu,.09,.40,.09,-.36+k*.24,.86,0));
-  if(has('dome'))g.add(mesh9(fgSph,chrome,.52,.34,.52,0,.60,0));
-  if(has('tore')){const t=new THREE.Mesh(new THREE.TorusGeometry(.62,.13,10,26),feu);
-    t.rotation.y=Math.PI/2;g.add(t);}
-  if(has('anneaux3'))for(let k=0;k<3;k++){
-    const t=new THREE.Mesh(new THREE.TorusGeometry(.54+k*.16,.045,8,24),feu);
-    t.rotation.set(k*.6,Math.PI/2,k*.4);g.add(t);}
-  if(has('confinement'))for(const s of[1,-1])g.add(mesh9(fgCyl,chrome,.14,.9,.14,0,0,s*.72,Math.PI/2));
-  if(has('nacelles'))for(const s of[1,-1]){
-    g.add(mesh9(fgCyl,bloc,.20,1.5,.20,0,.20,s*.62,Math.PI/2));
-    g.add(mesh9(fgCone,feu,.20,.42,.20,-.86,.20,s*.62,Math.PI/2));}
-  if(has('couronne'))for(let k=0;k<7;k++){const an=k/7*6.2832;
-    g.add(mesh9(fgCone,feu,.13,.5,.13,Math.cos(an)*.9,.15,Math.sin(an)*.62,Math.PI/2+an*.1));}
-  if(has('ondes'))for(let k=0;k<3;k++){
-    const t=new THREE.Mesh(new THREE.TorusGeometry(.80+k*.30,.030,8,28),feu);
-    t.rotation.y=Math.PI/2;g.add(t);}
-  if(has('spherenoire'))g.add(mesh9(fgSph,new THREE.MeshBasicMaterial({color:0x05040a}),.54,.54,.54,0,0,0));
-  if(has('disque')){const d=new THREE.Mesh(new THREE.TorusGeometry(.92,.10,6,34),feu);
-    d.rotation.x=Math.PI/2.3;d.scale.set(1,1,.24);g.add(d);}
-  if(piston)g.add(mesh9(fgCyl,sombre,.5,.16,.5,-.92,-.1,0,Math.PI/2)); // le volant moteur
+
+  // ================= LA SIGNATURE DE CHAQUE PALIER =================
+  // Volontairement du cas par cas : UNE pièce marquante par moteur, c'est ce qui fait qu'on
+  // reconnaît le sien. Ajouter un palier = ajouter un `case`, rien d'autre ne bouge.
+  switch(i){
+  case 0:{ // MOTEUR ROUILLÉ — la courroie nue et une durite qui pendouille
+    const c=new THREE.Mesh(new THREE.TorusGeometry(.28,.032,7,20),sombre);
+    c.position.set(-(XE+.02),.04,0);c.rotation.y=Math.PI/2;c.scale.set(1,1.35,1);g.add(c);
+    serp9(g,[-XE*.4,.30,.32],[XE*.5,-.18,.36],sombre,.030,rnd,.26);
+    break;}
+  case 1:{ /* BICYLINDRE — LE PREMIER MOTEUR EN MÉTAL. Il ne doit ressembler NI à l'épave qu'on
+    vient de quitter, ni au 3 CYLINDRES qui suit : c'est un twin de moto, donc des TIGES DE
+    CULBUTEUR à l'air libre entre carter et culasse (personne d'autre n'en a), un cache-culbuteurs
+    à ailettes, un kick, et un pot en mégaphone chromé qui remonte. */
+    for(let c=0;c<2;c++){const u=(c-.5)*(L-.42);
+      for(let s2=0;s2<2;s2++)                                        // les tiges de culbuteur
+        put9(g,tourX([[.024,0],[.024,.40]],8),chrome,u,.12,(s2?1:-1)*.20).rotation.z=Math.PI/2;
+      put9(g,tourX([[.10,0],[.125,.03],[.125,.13],[.10,.16]],14),M9.anod(E.col),u,.74,0)
+        .rotation.z=Math.PI/2;                                       // le cache-culbuteurs
+    }
+    const kk=put9(g,tourX([[.028,0],[.032,.28]],10),chrome,-(XE+.10),-.14,.30);kk.rotation.z=.95;
+    put9(g,tourX([[.05,0],[.085,.03],[.085,.09]],12),sombre,-(XE+.30),.02,.30);
+    const mg=put9(g,tourX([[.075,0],[.085,.06],[.085,.62],[.135,.76],[.155,.82]],16),chrome,XE*.35,-.26,.44);
+    mg.rotation.y=-.55;mg.rotation.z=.22;                            // le mégaphone qui remonte
+    break;}
+  case 4:{ // 4 SOUPAPES — DEUX BOSSAGES d'arbre à cames qui ÉLARGISSENT le haut du moteur.
+    // De simples tubes de came ne suffisaient pas : trop fins, ils disparaissaient au recadrage.
+    for(let s=0;s<2;s++){const z=(s?1:-1)*.155;
+      put9(g,tourX([[.10,0],[.115,.03],[.115,L*.88],[.10,L*.91]],16),habit,-L*.455,.84,z);
+      for(let k=0;k<6;k++)bou9(g,chrome,(k/5-.5)*(L-.30),.94,z,.024);}
+    break;}
+  case 5:{ // 4 EN LIGNE TURBO — L'ÉCHANGEUR devant : la masse qui dit « turbo » de loin
+    echang9(g,M9.anod(E.col),chrome,XE+.34,.02,.86,.52);
+    serp9(g,[XE-.10,.30,-.46],[XE+.30,.16,-.30],chrome,.055,rnd,.06);
+    break;}
+  case 8:{ // V6 BITURBO — DEUX échangeurs, un par flanc, et les tubes qui les alimentent
+    for(let s=0;s<2;s++){const z=(s?1:-1);
+      echang9(g,M9.anod(E.col),chrome,XE+.26,z*.20,.62,.40);
+      serp9(g,[XE-.10,.06,z*.46],[XE+.22,z*.20,z*.16],chrome,.050,rnd,.05);}
+    break;}
+  case 6: case 14:{ // 5 CYLINDRES / W12 — le PLÉNUM d'admission, une boîte tournée sur le dessus
+    put9(g,tourX([[.06,0],[.19,.03],[.21,.10],[.21,L*.62],[.19,L*.69],[.06,L*.72]],20),
+      i===14?carbo:chrome,-L*.36,.92,0);
+    break;}
+  case 9:{ // BOXER — le VENTILO de refroidissement, la signature du flat air-cooled
+    const v=new THREE.Mesh(new THREE.TorusGeometry(.30,.05,8,24),sombre);
+    v.position.set(-(XE+.14),0,0);v.rotation.y=Math.PI/2;g.add(v);
+    for(let k=0;k<8;k++){const an=k/8*6.2832;
+      const p=put9(g,profX([[-.02,.26],[.02,.26],[.02,-.26],[-.02,-.26]],.06,.006),chrome,
+        -(XE+.14),Math.sin(an)*.15,Math.cos(an)*.15);p.rotation.x=an;}
+    break;}
+  case 10:{ // V8 ATMO — LE FILTRE À AIR ROND CHROMÉ. L'icône. Il se voit de dos, de loin, partout.
+    const f=put9(g,tourX([[.02,0],[.34,.02],[.36,.06],[.36,.14],[.34,.18],[.02,.20]],26),chrome,0,.72,0);
+    f.rotation.z=Math.PI/2;
+    put9(g,profX([[-.16,0],[.16,0],[.16,.14],[-.16,.14]],.34,.02),sombre,0,.56,0);
+    break;}
+  case 11:{ // V8 COMPRESSÉ — le ROOTS qui SORT DU CAPOT, coiffé de sa trompe d'admission.
+    // Il doit monter HAUT : c'est la seule façon de ne pas être un V8 ATMO de plus une fois la
+    // vignette recadrée. Sur les vraies caisses, c'est exactement ce qui dépasse du capot.
+    put9(g,profX([[-.22,0],[.22,0],[.22,.34],[-.22,.34]],L*.54,.03),chrome,0,.66,0);
+    put9(g,profX([[-.26,0],[.26,0],[.24,.12],[-.24,.12]],L*.60,.03),sombre,0,1.00,0);
+    put9(g,tourX([[.05,0],[.20,.03],[.22,.10],[.22,.30],[.19,.36]],20),chrome,-L*.16,1.28,0)
+      .rotation.z=Math.PI/2;
+    put9(g,tourX([[.04,0],[.16,.02],[.16,.09],[.04,.11]],18),chrome,L*.30,.83,0);
+    const c=new THREE.Mesh(new THREE.TorusGeometry(.19,.028,7,20),sombre);
+    c.position.set(L*.33,.56,0);c.rotation.y=Math.PI/2;c.scale.set(1,1.9,1);g.add(c);
+    break;}
+  case 13:{ // V12 — le vé FERMÉ par un couvercle en carbone : les cornets sont DESSOUS.
+    // Volontairement l'inverse du V10, qui les montre à nu — deux paliers voisins ne doivent
+    // pas partager leur topologie, pas seulement leur nombre de cylindres.
+    const n=6,geo=tourX([[.05,0],[.05,.18],[.07,.24],[.10,.28]],16);
+    for(let k=0;k<n;k++){const m=new THREE.Mesh(geo.clone(),chrome);
+      m.rotation.z=Math.PI/2;m.position.set((k/(n-1)-.5)*(L-.44),.52,0);g.add(m);}
+    put9(g,profX([[-.30,0],[.30,0],[.26,.16],[-.26,.16]],L*.86,.03),carbo,0,.84,0);
+    for(let k=0;k<7;k++)bou9(g,chrome,(k/6-.5)*(L-.30),1.00,0,.026);
+    break;}
+  case 12: case 15:{ // V10 / V16 — LES CORNETS D'ADMISSION à nu dans le V
+    // ⚠ ils DOIVENT dépasser du vé : posés trop bas ils passent sous les couvre-culasses et on
+    // ne voit plus rien de la seule pièce qui fait rêver sur une photo de moteur.
+    const n=Math.min(8,Math.max(3,Math.round(K.c/2)));
+    const geo=tourX([[.052,0],[.052,.24],[.070,.31],[.105,.36],[.140,.39]],20);
+    for(let k=0;k<n;k++){const u=(k/(n-1)-.5)*(L-.44);
+      const m=new THREE.Mesh(geo.clone(),chrome);m.rotation.z=Math.PI/2;m.position.set(u,.56,0);g.add(m);}
+    break;}
+  case 16:{ // H16 F1 — la boîte de renvoi entre les deux étages, ce que personne d'autre n'a
+    put9(g,profX([[-.13,0],[.13,0],[.13,.52],[-.13,.52]],.26,.02),carbo,-(XE+.14),-.26,0);
+    break;}
+  case 18:{ // ROTATIF — le hurlement sort par UN tube unique, énorme, sur le flanc
+    const t=put9(g,tourX([[.12,0],[.135,.05],[.135,1.0],[.175,1.06],[.19,1.12]],18),chaud,.30,-.20,.46);
+    t.rotation.y=-.5;t.rotation.z=-.16;
+    break;}
+  case 19:{ // TURBINE À GAZ — les étages du compresseur axial, l'un derrière l'autre
+    for(let k=0;k<8;k++)
+      put9(g,tourX([[.04,0],[.38-k*.027,.015],[.38-k*.027,.045],[.04,.06]],22),chrome,.50-k*.125,0,0);
+    break;}
+  case 20:{ // TURBINE À PLASMA — les ANNEAUX MAGNÉTIQUES : plus une pièce en mouvement
+    for(let k=0;k<5;k++){const t=new THREE.Mesh(new THREE.TorusGeometry(.27,.045,8,26),k%2?feu:chrome);
+      t.rotation.y=Math.PI/2;t.position.x=.62-k*.36;g.add(t);}
+    break;}
+  case 21:{ // STATORÉACTEUR — LE SPIKE d'entrée : le cône qui casse l'onde de choc
+    const c=put9(g,tourX([[.005,0],[.30,.62]],22),chrome,.78,0,0);c.rotation.y=Math.PI;
+    break;}
+  case 22:{ // PULSORÉACTEUR — la GRILLE de valves, en pleine face
+    for(let k=0;k<7;k++){const an=k/7*6.2832;
+      put9(g,profX([[-.02,.16],[.02,.16],[.02,-.16],[-.02,-.16]],.30,.006),chrome,
+        .60,Math.sin(an)*.20,Math.cos(an)*.20).rotation.x=an;}
+    break;}
+  case 23:{ // RÉACTEUR NUCLÉAIRE — le dôme, les barres de contrôle et l'échangeur à ailettes
+    put9(g,tourX([[.02,0],[.44,.30],[.50,.44]],24),chrome,0,.34,0).rotation.z=-Math.PI/2;
+    for(let k=0;k<4;k++)put9(g,tourX([[.045,0],[.045,.42]],10),feu,-.30+k*.20,.74,0).rotation.z=Math.PI/2;
+    for(let k=0;k<6;k++)put9(g,profX([[-.42,0],[.42,0],[.42,.025],[-.42,.025]],.05,.006),
+      chrome,-.62+k*.16,0,0);
+    break;}
+  case 24:{ // CŒUR À FUSION — UNE PETITE ÉTOILE, sanglée par rien. Le blindage a EXPLOSÉ en
+    // quartiers qui tiennent en lévitation autour d'elle, et le tore les traverse.
+    put9(g,fgSph,feu,0,0,0).scale.set(.22,.22,.22);
+    for(let k=0;k<7;k++){const an=k/7*6.2832+rnd()*.2,r=.62+rnd()*.10;
+      const q=eclat9(g,croute,rnd,Math.cos(an)*r*.55,Math.sin(an)*r,Math.cos(an*1.7)*r*.5,.20+rnd()*.13);
+      q.scale.set(1,1,.55);}
+    const t=new THREE.Mesh(new THREE.TorusGeometry(.80,.10,12,34),feu);t.rotation.y=Math.PI/2;g.add(t);
+    for(let k=0;k<8;k++){const an=k/8*6.2832;
+      const d=new THREE.Mesh(new THREE.TorusGeometry(.28,.030,6,16),cristal);
+      d.position.set(0,Math.sin(an)*.80,Math.cos(an)*.80);d.rotation.x=an+Math.PI/2;g.add(d);}
+    break;}
+  case 25:{ // ANTIMATIÈRE — le NÉGATIF : un cœur qui n'émet rien au milieu d'un halo, et deux
+    // anneaux qui tournent à l'envers l'un de l'autre. Un gramme, et il ne touche aucune paroi.
+    put9(g,fgSph,new THREE.MeshBasicMaterial({color:0x05040a}),0,0,0).scale.set(.20,.20,.20);
+    put9(g,fgSph,lueur(E.flam,.30),0,0,0).scale.set(.44,.44,.44);
+    for(let k=0;k<2;k++){const t=new THREE.Mesh(new THREE.TorusGeometry(.60+k*.22,.055,10,30),
+      k?cristal:feu);t.rotation.set(k?.9:-.9,Math.PI/2,k?.5:-.5);g.add(t);}
+    for(let k=0;k<10;k++){const an=k/10*6.2832;                       // les éclats du piège
+      eclat9(g,croute,rnd,Math.cos(an)*.95,Math.sin(an)*.42,Math.sin(an*1.3)*.60,.09+rnd()*.07);}
+    break;}
+  case 26:{ // MOTEUR À DISTORSION — CE N'EST PAS LUI QUI AVANCE, C'EST LA ROUTE QUI RECULE.
+    // Donc le moteur est TRANCHÉ : des rondelles décalées les unes des autres, comme si l'espace
+    // ne se recollait plus entre deux, avec de l'énergie dans chaque fente.
+    for(let k=0;k<7;k++){
+      const d=(k-3)/3, dec=Math.sin(k*1.9)*.30*Math.abs(d);
+      const r=.52-Math.abs(d)*.16;
+      const q=new THREE.Mesh(eroder9(new THREE.CylinderGeometry(r,r,.14,20,1),.05,2,k*37),croute);
+      q.rotation.z=Math.PI/2;q.position.set(d*.72,dec,dec*.6);
+      q.rotation.x=dec*.9;g.add(q);
+      if(k<6)put9(g,fgSph,lueur(E.flam,.34),(d+.166)*.72,dec*.5,dec*.3).scale.set(r*.9,r*.9,r*.9);
+    }
+    for(let s2=0;s2<2;s2++){const z=(s2?1:-1)*.78;                    // les deux nacelles, à part
+      put9(g,tourX([[.04,0],[.14,.03],[.15,.12],[.15,.92],[.12,1.02],[.04,1.06]],18),croute,-.53,.12,z);
+      put9(g,tourX([[.13,0],[.17,.12],[.23,.30]],16),feu,-.53,.12,z).rotation.y=Math.PI;}
+    break;}
+  case 27:{ // COMÈTE — un noyau de roche EN FEU, et une queue de débris qui le suit
+    const n=new THREE.Mesh(eroder9(new THREE.IcosahedronGeometry(.48,2),.26,2.2,77),croute);
+    g.add(n);
+    put9(g,fgSph,lueur(E.flam,.30),0,0,0).scale.set(.72,.72,.72);
+    for(let k=0;k<7;k++){const an=k/7*6.2832;                          // la couronne de tuyères
+      const t=put9(g,tourX([[.04,0],[.10,.10],[.16,.36]],14),feu,-.42,Math.sin(an)*.44,Math.cos(an)*.44);
+      t.rotation.y=Math.PI;t.rotation.z=an*.06;}
+    for(let k=0;k<14;k++){const t=k/13;                                // la queue
+      eclat9(g,croute,rnd,-.75-t*1.15,(rnd()-.5)*.5*t,(rnd()-.5)*.6*t,.055+rnd()*.075*(1-t));}
+    break;}
+  case 28:{ // SUPERNOVA — l'instant est FIGÉ : le cœur vient d'éclater, les morceaux sont encore
+    // en vol et les ondes n'ont pas fini de passer. Rien ne tient plus ensemble.
+    put9(g,fgSph,feu,0,0,0).scale.set(.26,.26,.26);
+    put9(g,fgSph,lueur(E.flam,.34),0,0,0).scale.set(.60,.60,.60);
+    for(let k=0;k<18;k++){const an=k/18*6.2832,r=.52+rnd()*.72;
+      eclat9(g,croute,rnd,Math.cos(an)*r,Math.sin(an*1.7)*r*.62,Math.sin(an)*r,.06+rnd()*.10);}
+    for(let k=0;k<4;k++){const t=new THREE.Mesh(new THREE.TorusGeometry(.66+k*.32,.028,8,30),
+      lueur(E.flam,.85-k*.19));t.rotation.y=Math.PI/2;t.position.x=-k*.20;g.add(t);}
+    break;}
+  case 29:{ // TROU NOIR — PLUS RIEN NE S'ÉCHAPPE, MÊME PAS TOI. La cage qui devait le contenir
+    // est ASPIRÉE : ses barreaux se courbent vers le centre, et les débris tombent en spirale.
+    put9(g,fgSph,new THREE.MeshBasicMaterial({color:0x030206}),0,0,0).scale.set(.40,.40,.40);
+    const d=new THREE.Mesh(new THREE.TorusGeometry(.94,.075,10,48),feu);
+    d.rotation.x=Math.PI/2.15;d.scale.set(1,1,.20);g.add(d);
+    const d2=new THREE.Mesh(new THREE.TorusGeometry(.66,.045,10,44),lueur(E.flam,.6));
+    d2.rotation.x=Math.PI/2.15;d2.scale.set(1,1,.20);g.add(d2);
+    for(let k=0;k<9;k++){                                              // les barreaux happés
+      const an=k/9*6.2832,pts=[];
+      for(let j=0;j<=5;j++){const t=j/5,r=.86-t*t*.48,y=(t-.5)*1.25*(1-t*.45);
+        pts.push(new THREE.Vector3(Math.cos(an+t*.9)*r,y,Math.sin(an+t*.9)*r));}
+      g.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),16,.030,6,false),croute));}
+    for(let k=0;k<12;k++){const an=k/12*6.2832*2.4,r=1.05-k*.055;      // la spirale de débris
+      eclat9(g,croute,rnd,Math.cos(an)*r,(rnd()-.5)*.16,Math.sin(an)*r*.55,.04+rnd()*.05);}
+    break;}
+  }
+
+  // ---------- LES PIÈCES COMMUNES DÉCLARÉES DANS LA TABLE ----------
+  if(has('tuyere')){
+    const t=put9(g,geoTuy9(),feu,a==='pu'?-2.30:(a==='ra'?-2.36:(a==='pl'?-2.06:-.80)),0,0);
+    t.rotation.y=Math.PI;
+  }
+  if(has('coneEntree'))put9(g,tourX([[.005,0],[.32,.52]],22),chrome,1.15,0,0).rotation.y=Math.PI;
+  if(has('cellules'))for(let s=0;s<2;s++)
+    put9(g,profX([[-.13,0],[.13,0],[.13,.42],[-.13,.42]],.16,.02),feu,-.30,-.21,(s?1:-1)*.26);
+  if(has('anneaux2'))for(let k=0;k<2;k++){
+    const t=new THREE.Mesh(new THREE.TorusGeometry(.24-k*.05,.04,7,20),feu);
+    t.rotation.y=Math.PI/2;t.position.x=-1.95-k*.26;g.add(t);}
+  if(has('filtre')){                                       // le filtre à huile, tourné, sur le flanc
+    const f=put9(g,tourX([[.02,0],[.115,.02],[.125,.06],[.125,.28],[.11,.31]],16),sombre,XE*.30,-.22,.44);
+    f.rotation.y=-.4;}
+  if(has('wastegate'))put9(g,tourX([[.05,0],[.10,.02],[.10,.18],[.06,.21]],14),chrome,XE-.34,.30,.36);
+  // L'ALTERNATEUR et le faisceau, semés : c'est ce désordre contrôlé qui fait qu'un vrai moteur
+  // n'est jamais symétrique ni propre.
+  if(piston&&!ep){
+    const ax=-XE*.5+(rnd()-.5)*.12;
+    const al=put9(g,tourX([[.03,0],[.135,.02],[.145,.06],[.145,.28],[.135,.32]],16),bloc,ax,.24,.46);
+    al.rotation.y=.35;
+    serp9(g,[ax,.38,.46],[XE*.2,.56,.30],sombre,.026,rnd,.18);
+    for(let k=0;k<7;k++)bou9(g,chrome,(rnd()-.5)*L*.9,-.06-rnd()*.26,.315,.026);
+  }
   return g;
 }
 /* <<<FIN MOTEURS>>> */
@@ -5489,6 +6168,42 @@ function engSwapSnd(){ // la scène complète du remplacement
     g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(.16,t0+.05);
     g.gain.setValueAtTime(.16,t0+.42);g.gain.exponentialRampToValueAtTime(.001,t0+.72);
     o.connect(lp);lp.connect(g);g.connect(MASTER);o.start(t0);o.stop(t0+.75);
+    engFan9(t0+.06);                        // et la fanfare, calée sur la RÉVÉLATION
+  }catch(e){}
+}
+/* LA FANFARE DE PALIER — quatre notes qui MONTENT, en cloche.
+   ⚠ POURQUOI DES CLOCHES ET PAS UNE NAPPE. Une récompense doit s'entendre par-dessus un moteur
+   à plein régime et du vent : il lui faut de l'ATTAQUE et des aigus, pas du corps — c'est le
+   registre que la mécanique du jeu n'occupe pas. Chaque note = une sinusoïde fondamentale plus
+   une partielle INHARMONIQUE à 2,76× : c'est ce rapport non entier qui fait « cloche » et non
+   « orgue » (le même truc que les clanks de tôle du montage).
+   ⚠ ET ÇA MONTE. Un accord plaqué dirait « c'est arrivé » ; un arpège ASCENDANT dit « tu es
+   monté d'un cran », ce qui est exactement l'information. */
+function engFan9(t0){
+  if(!AC)return;
+  try{
+    const NOTES=[523.25,659.25,783.99,1046.50];   // do - mi - sol - do : le plus lisible qui soit
+    for(let k=0;k<NOTES.length;k++){
+      const t=t0+k*.082, der=(k===NOTES.length-1), dur=der?1.05:.42;
+      for(let h=0;h<2;h++){                       // h=0 la fondamentale, h=1 la partielle de cloche
+        const o=AC.createOscillator(),g=AC.createGain();
+        o.type='sine';o.frequency.setValueAtTime(NOTES[k]*(h?2.76:1),t);
+        const v=(h?.030:.085)*(der?1.25:1);
+        g.gain.setValueAtTime(0,t);
+        g.gain.linearRampToValueAtTime(v,t+.008);  // attaque quasi nulle : c'est ça, un percuté
+        g.gain.exponentialRampToValueAtTime(.0008,t+dur*(h?.55:1));
+        o.connect(g);g.connect(MASTER);o.start(t);o.stop(t+dur+.05);
+      }
+    }
+    // le SCINTILLEMENT : un souffle très filtré haut, qui traîne derrière la dernière note. Il ne
+    // s'entend pas tout seul, il fait juste durer l'éclat une demi-seconde de plus.
+    const n=AC.createBufferSource(),nb=AC.createBuffer(1,AC.sampleRate*.5,AC.sampleRate),d=nb.getChannelData(0);
+    for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length);
+    n.buffer=nb;
+    const bp=AC.createBiquadFilter();bp.type='bandpass';bp.frequency.value=5200;bp.Q.value=1.4;
+    const ng=AC.createGain();ng.gain.setValueAtTime(.055,t0+.20);
+    ng.gain.exponentialRampToValueAtTime(.0006,t0+.80);
+    n.connect(bp);bp.connect(ng);ng.connect(MASTER);n.start(t0+.20);
   }catch(e){}
 }
 function subBoom(vol){ // basse sourde d'impact
@@ -5825,7 +6540,7 @@ const SAVE={
     const c=this.def();
     if(!d||typeof d!=='object')return c;
     c.best=Math.max(0,Math.round(+d.best)||0);
-    c.bestCar=Math.min(23,Math.max(0,Math.round(+d.bestCar)||0));c.equipped=Math.min(c.bestCar,Math.max(0,Math.round(+d.equipped)||0)); // 24 caisses : le clamp a 13 ecretait la moitie du roster
+    c.bestCar=Math.min(CARS.length-1,Math.max(0,Math.round(+d.bestCar)||0));c.equipped=Math.min(c.bestCar,Math.max(0,Math.round(+d.equipped)||0)); // borné sur CARS.length : une gamme qui rétrécit ne doit pas laisser passer un index périmé
     if(Array.isArray(d.leaders))c.leaders=d.leaders
       .filter(e=>e&&typeof e.n==='string'&&isFinite(+e.s))
       .slice(0,10).map(e=>({n:e.n.slice(0,8),s:Math.max(0,Math.round(+e.s))}));
@@ -5998,7 +6713,7 @@ function renderLeaders(hl){
 function setBestChip(){
   const bc=SAVE.d.bestCar;
   bestChip.textContent=(best>0?(TR('RECORD')+'  '+fmt(best)):TR('AUCUN RECORD — À TOI DE JOUER'))+
-    (bc>0?('  ·  '+TR('MEILLEURE CAISSE')+' : '+TR(CARS[Math.min(bc,23)].name)):'');
+    (bc>0?('  ·  '+TR('MEILLEURE CAISSE')+' : '+TR(CARS[Math.min(bc,CARS.length-1)].name)):'');
 }
 function commitName(){
   if(pendingScore==null)return;
@@ -8369,20 +9084,53 @@ function loop(now){
      ⚠ elles partent du CAPOT (devant l'habitacle) et non du centre de la caisse : au centre on
      croirait à une explosion, à l'avant on lit un atelier. Débit fort au début puis qui retombe,
      calé sur la même courbe que le son (la visseuse ralentit, les étincelles se raréfient). */
+  /* ---- LA SCÈNE EN TROIS TEMPS. C'est la structure qui fait la satisfaction, pas la quantité
+     d'effets : on MONTE (bruit d'atelier, étincelles), la pièce SE POSE (le creux, le clank), puis
+     on RÉVÈLE (l'onde s'ouvre, la caisse s'illumine, les étincelles montent en spirale). Sans le
+     temps mort de la pose, la révélation n'arrive de nulle part et ne récompense rien. */
   if(engSwapT>0&&running&&!gameOver&&mode!=='boom'){
-    const p8=carGroup.position,q8=engSwapT/1.25,e8=q8*q8;
-    tmp3.set(0,0,1).applyQuaternion(carGroup.quaternion);           // le nez de la caisse
-    // ⚠ DÉBIT CONTENU et vie COURTE. Le premier réglage (70/s, 0,5 s de vie) noyait la caisse dans
-    // un nuage doré : ça lisait « explosion », exactement ce qu'on voulait éviter. Une soudure, ce
-    // sont quelques points très vifs qui meurent vite — c'est la BRIÈVETÉ qui fait l'étincelle.
-    if(Math.random()<dt*22*e8)
+    const p8=carGroup.position,q8=engSwapT/T_SWAP,u8=1-q8;
+    sw1.set(1,0,0).applyQuaternion(carGroup.quaternion);   // droite de la caisse
+    sw2.set(0,1,0).applyQuaternion(carGroup.quaternion);   // son HAUT — c'est lui qui fait que
+    sw3.set(0,0,1).applyQuaternion(carGroup.quaternion);   // tout marche aussi sous la dalle
+    // ---- 1. LE MONTAGE : la soudure au CAPOT (jamais au centre : au centre on lit une explosion,
+    // à l'avant on lit un atelier). Débit contenu et vie COURTE — c'est la BRIÈVETÉ qui fait
+    // l'étincelle ; le premier réglage (70/s, .5 s de vie) noyait la caisse dans un nuage doré.
+    const mo=Math.max(0,1-u8/.40);
+    if(Math.random()<dt*24*mo*mo)
       spawnP(sparkGold,
-        p8.x+tmp3.x*1.5+(Math.random()-.5)*.5, p8.y+.60+Math.random()*.18, p8.z+tmp3.z*1.5+(Math.random()-.5)*.5,
+        p8.x+sw3.x*1.5+(Math.random()-.5)*.5, p8.y+.60+Math.random()*.18, p8.z+sw3.z*1.5+(Math.random()-.5)*.5,
         (Math.random()-.5)*5, 2.6+Math.random()*3.4, (Math.random()-.5)*5, .12+Math.random()*.12);
-    if(Math.random()<dt*5*e8)                                        // une braise de temps en temps
-      spawnP(embers,p8.x+tmp3.x*1.4,p8.y+.58,p8.z+tmp3.z*1.4,
+    if(Math.random()<dt*5*mo*mo)
+      spawnP(embers,p8.x+sw3.x*1.4,p8.y+.58,p8.z+sw3.z*1.4,
         (Math.random()-.5)*3,1.4+Math.random()*2,(Math.random()-.5)*3,.18+Math.random()*.16);
-  }
+    // ---- 3. LA RÉVÉLATION (la pose, elle, est un SILENCE visuel : le creux de la vignette)
+    if(u8>.38){
+      const rv=Math.min(1,(u8-.38)/.44);
+      // L'ONDE : elle s'ouvre VITE puis freine (racine), comme une onde de choc qui perd son
+      // énergie. À vitesse constante on lirait un cerceau qu'on écarte à la main.
+      const ray=.5+Math.sqrt(rv)*5.0;
+      swapRing.visible=true;
+      swapRing.position.set(p8.x+sw2.x*.10,p8.y+sw2.y*.10,p8.z+sw2.z*.10);
+      swapRing.quaternion.copy(carGroup.quaternion);swapRing.rotateX(-Math.PI/2);
+      swapRing.scale.set(ray,ray,1);
+      swapRing.material.opacity=.95*(1-rv)*(1-rv);
+      // LE FLASH : il tape d'un coup à la pose et retombe. La lumière sur la CAISSE est ce qui
+      // fait que la scène se passe dans le monde et pas dans le HUD.
+      const fl=Math.exp(-rv*5.2);
+      swapLight.position.set(p8.x+sw2.x*.8,p8.y+sw2.y*.8,p8.z+sw2.z*.8);
+      swapLight.intensity=3.4*fl;
+      // LA SPIRALE : les étincelles TOURNENT autour de la caisse en montant. Un jet vertical ne
+      // dirait rien ; c'est la rotation qui raconte « on visse, c'est fini, ça brille ».
+      for(let k=0;k<2;k++)if(Math.random()<dt*46*(1-rv*.55)){
+        const an=rv*13+k*3.14+Math.random()*.4, r9=1.55-rv*.45, h9=rv*2.3+Math.random()*.35;
+        const cx=Math.cos(an)*r9,cz=Math.sin(an)*r9;
+        spawnP(sparkGold,
+          p8.x+sw1.x*cx+sw3.x*cz+sw2.x*h9, p8.y+sw1.y*cx+sw3.y*cz+sw2.y*h9+.2, p8.z+sw1.z*cx+sw3.z*cz+sw2.z*h9,
+          sw2.x*3.2-sw1.x*cz*.9, sw2.y*3.2+2.0, sw2.z*3.2-sw1.z*cz*.9, .26+Math.random()*.20);
+      }
+    }
+  }else if(swapRing.visible){swapRing.visible=false;swapLight.intensity=0;}
   try{musicTick(dt,musMvt);updateDolphins(dt);updateSerpent(dt);updateBoomArt(dt);}catch(e){if(!loop._crWarn){console.warn('créatures/musique',e);loop._crWarn=1;}}
   if(POST_ON&&composer)composer.render(); // ACES + bloom
   else renderer.render(scene,camera);      // repli si le post n'a pas pu se charger
