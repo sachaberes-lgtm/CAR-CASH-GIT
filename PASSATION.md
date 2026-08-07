@@ -79,12 +79,15 @@ bien dans le fichier.
 - **Animation de changement de palier** : clé à chocs + clanks + démarreur, étincelles de soudure au
   capot, vignette qui s'emballe.
 - **Flux de pièces indexé sur la progression** : 20 pièces/1000 m en zone 1 → 99 en zone 6.
-- **Le vol se pilote à l'INCLINAISON (2026-08-05)** : le braquage commande une inclinaison qui
-  s'établit en ~0,2 s, et c'est elle qui fait tourner — plus de lacet instantané, et la **rôtissoire
-  est supprimée** (la caisse tournait sur son axe à 172 °/s en permanence, ce qui rendait les ailes
-  absurdes). Les ailerons se braquent en opposition. ⚠ gameplay préservé : à inclinaison pleine la
-  formule de lacet est identique à l'ancienne, seuls l'entrée et la sortie de virage changent.
-  `AIR_BANK_RATE` est le bouton « ça tourne trop direct », `AIR_BANK_MAX` ne change que l'angle vu.
+- **Vol : la RÔTISSOIRE supprimée, le lacet INCHANGÉ (2026-08-05, en 2 passes)** — ⚠ leçon utile :
+  j'avais confondu deux problèmes. Les ailes étaient incohérentes à cause de `airRoll += 3.0*dtF`,
+  qui faisait tourner la caisse sur son axe à **172 °/s en permanence**, sans aucun rapport avec le
+  pilotage : c'était **visuel**. J'y ai d'abord répondu en faisant passer le lacet PAR l'inclinaison,
+  ce qui ajoutait ~0,2 s de latence au braquage — le user a immédiatement préféré l'ancienne
+  conduite, et il avait raison : dans un runner arcade où l'on vise ses réceptions, la nervosité
+  prime. **État final** : la ligne de lacet est celle d'origine au caractère près, `airBank` est un
+  pur effet visuel (ailerons en opposition compris) et **ne doit JAMAIS revenir dans `yawIn`**.
+  Vérifié par diff : 0 différence sur les 27 lignes qui touchent la trajectoire.
 - Bugs corrigés : 1,61 € au menu **et** au départ, centimes invisibles, tremplins qui bloquaient,
   traversée de route, volant mort en vol vertical, rectangle à l'horizon, soleil terne.
 

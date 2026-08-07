@@ -7246,11 +7246,11 @@ let steer=0,money=START_CASH,levelCash=0,boost=0,fallT=0,fallTR=0,padCd=0,shake=
    penchent du côté où l'on tourne, et il y a une mise en virage puis une sortie.
    `airRollT` = la TURBULENCE, gardée à part : les nuages doivent pouvoir chahuter la caisse sans
    que le pilotage l'efface à la frame suivante. Elle s'amortit toute seule.
-   ⚠ AIR_BANK_MAX est un ANGLE VISUEL, pas un réglage de maniabilité : le taux de lacet à
-   inclinaison pleine reste celui d'avant, donc changer cette valeur penche la caisse sans rien
-   toucher au gameplay. AIR_BANK_RATE, lui, décide de la vivacité de la mise en virage
-   (5.2 ≈ 0,19 s pour s'établir) — c'est LUI le bouton « ça tourne trop direct ». */
-const AIR_BANK_MAX=0.92, AIR_BANK_RATE=5.2;
+   ⚠ CES DEUX VALEURS SONT PUREMENT VISUELLES (2e passe) : le lacet ne les lit PAS. Les toucher
+   penche la caisse plus ou moins, plus ou moins vite, sans rien changer à la maniabilité — la
+   conduite en vol est restée exactement celle d'origine. AIR_BANK_MAX = l'angle atteint à fond,
+   AIR_BANK_RATE = la vivacité avec laquelle la caisse s'engage (7.6 ≈ 0,13 s). */
+const AIR_BANK_MAX=0.92, AIR_BANK_RATE=7.6;
 let airBank=0,airRollT=0;
 let airRoll=0; // inclinaison VISUELLE effective = commande + turbulence
 // TREMPLIN HÉROS : gapArmed = variante du tremplin qui a lancé CE vol (0 = vol ordinaire, 1/2/3 = v+1),
@@ -9086,24 +9086,23 @@ function loop(now){
       }
       // chute pilotée : un peu de lacet, c'est tout — la voiture est LOURDE
       // (le lacet gagne un peu d'autorité à grande vitesse → vol simplifié)
-      /* ---- LE VIRAGE EN VOL SE FAIT À L'INCLINAISON (2026-08-05) --------------------------------
-         ⚠ AVANT : `yawIn = steer * …` — le braquage tournait la trajectoire INSTANTANÉMENT, à plat.
-         Une caisse ailes sorties qui pivote comme une toupie de bureau, ça ne se lit pas : rien
-         n'explique le virage. Un engin à ailes s'INCLINE d'abord, et c'est l'inclinaison qui le fait
-         tourner — la portance bascule vers l'intérieur du virage.
-         MAINTENANT : le braquage commande une INCLINAISON (`airBank`) qui s'établit en ~0,2 s, et
-         le lacet est proportionnel à cette inclinaison. Conséquences :
-           · on ne tourne plus « direct » : il y a une mise en virage, puis une sortie ;
-           · les ailes deviennent cohérentes — elles penchent DU CÔTÉ où l'on tourne.
-         ⚠ GAMEPLAY PRÉSERVÉ, et c'est délibéré : à inclinaison PLEINE le taux de lacet est
-         exactement celui d'avant (le rapport `airBank/AIR_BANK_MAX` vaut alors 1, donc la formule
-         redevient identique au terme près). Seuls l'entrée et la sortie de virage changent. Les
-         vrilles comptées par le jeu suivent `yawAcc`, qui est nourri pareil : les figures et leurs
-         seuils ne bougent pas d'un degré. */
-      airBank+=(steer*AIR_BANK_MAX-airBank)*Math.min(1,dtF*AIR_BANK_RATE);
-      const yawIn=(airBank/AIR_BANK_MAX)*(1.15+Math.min(.6,fallVel.length()*.004))*dtF;
+      /* ---- LE LACET EST DIRECT, L'INCLINAISON EST VISUELLE (2026-08-05, 2e passe) ---------------
+         ⚠ J'AVAIS CONFONDU DEUX PROBLÈMES. Les ailes étaient incohérentes à cause de la RÔTISSOIRE
+         (la caisse tournait sur son axe à 172 °/s en permanence, sans rapport avec le pilotage) —
+         c'était un problème VISUEL. J'y avais répondu en faisant passer le lacet PAR l'inclinaison,
+         ce qui ajoutait ~0,2 s de latence au braquage : dans un runner arcade où l'on vise ses
+         réceptions, ça se paie cash, et le user a immédiatement préféré l'ancienne conduite.
+         LA BONNE RÉPONSE : le lacet redevient DIRECT, exactement comme avant (cette ligne est
+         l'originale, au caractère près), et l'inclinaison devient un pur EFFET VISUEL qui suit le
+         braquage. On garde donc la nervosité d'origine ET des ailes qui veulent dire quelque chose.
+         ⚠ RÈGLE À NE PAS REPERDRE : `airBank` ne doit JAMAIS revenir dans le calcul de `yawIn`.
+         C'est de la mise en scène, pas de la maniabilité. */
+      const yawIn=steer*(1.15+Math.min(.6,fallVel.length()*.004))*dtF;
       fallVel.applyAxisAngle(AXIS_Y,yawIn);
       yawAcc+=yawIn;
+      // l'inclinaison SUIT le braquage sans le contraindre — assez vive (τ≈0,13 s) pour que la
+      // caisse paraisse s'engager dans le virage plutôt que de tourner à plat puis pencher après.
+      airBank+=(steer*AIR_BANK_MAX-airBank)*Math.min(1,dtF*AIR_BANK_RATE);
       if(nitroOn){ // RÉACTEUR : poussée depuis l'arrière façon Rocket League (modérée)
         tmp.copy(fallVel);
         if(tmp.lengthSq()>1)tmp.normalize();else tmp.set(0,0,1);
