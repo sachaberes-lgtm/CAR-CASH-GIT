@@ -46,6 +46,17 @@
   button:hover{border-color:var(--cy);color:var(--cy);box-shadow:0 0 14px rgba(125,255,236,.25)}
   button.on{background:rgba(125,255,236,.16);border-color:var(--cy);color:var(--cy)}
   #hint{position:absolute;top:14px;left:20px;font-size:7px;color:#5a5580;line-height:1.9;pointer-events:none}
+  /* ---- LA BARRE DE RÉGIMES : on ne juge pas une voix de moteur sur un arrêt sur image ---- */
+  #regBar{position:absolute;left:20px;bottom:150px;display:flex;gap:7px;align-items:center;z-index:4}
+  #regBar button{font-size:7px;padding:8px 10px}
+  #bGaz{border-color:var(--or);color:var(--or)}
+  #bGaz:hover{box-shadow:0 0 16px rgba(255,215,94,.35)}
+  #bGaz.go{background:rgba(255,215,94,.2);color:#fff4c8}
+  #jauge{position:absolute;left:20px;bottom:126px;width:250px;height:5px;
+    background:rgba(125,255,236,.12);border-radius:3px;overflow:hidden;z-index:4}
+  #jRpm{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,#7dffec,#ffd75e,#ff6a3c)}
+  #jChg{position:absolute;left:0;bottom:-7px;height:3px;width:0;background:#ff3ec8;border-radius:2px}
+  #regLbl{position:absolute;left:280px;bottom:120px;font-size:6.5px;color:#8f84c8;line-height:1.9;z-index:4}
   #err{position:absolute;inset:0;display:none;place-content:center;text-align:center;padding:40px;
     font-size:9px;line-height:2.2;color:#ff8a8a}
   #err code{color:var(--or);font-size:8px}
@@ -72,11 +83,21 @@
     <div id="list"></div>
   </div>
   <div id="main">
-    <div id="hint">glisser : tourner<br>molette : zoomer<br>← → : palier suivant</div>
+    <div id="hint">glisser : tourner<br>molette : zoomer<br>← → : palier suivant<br>G : coup de gaz</div>
     <div id="topBar">
       <button id="bSpin" class="on">↻ ROTATION</button>
       <button id="bGrid">▦ LES 30</button>
     </div>
+    <div id="regBar">
+      <button id="bSon">▶ SON</button>
+      <button id="bGaz">⚡ COUP DE GAZ</button>
+      <button class="reg" data-r="ralenti">RALENTI</button>
+      <button class="reg" data-r="roule">ROULE</button>
+      <button class="reg" data-r="plein">PLEIN GAZ</button>
+      <button class="reg" data-r="lache">LÂCHER</button>
+    </div>
+    <div id="jauge"><div id="jRpm"></div><div id="jChg"></div></div>
+    <div id="regLbl"></div>
     <div id="hud">
       <div id="eName">—</div>
       <div id="eDesc"></div>
@@ -129,7 +150,7 @@ const fgCone=new THREE.ConeGeometry(1,1,14),fgCyl=new THREE.CylinderGeometry(1,1
 const mesh9=(geo,mat,sx,sy,sz,px,py,pz,rz)=>{const m=new THREE.Mesh(geo,mat);
   m.scale.set(sx,sy,sz);m.position.set(px||0,py||0,pz||0);if(rz)m.rotation.z=rz;return m;};
 
-let ENGINE_TIERS=null,ENG_CAP=null,mkEngine=null;
+let ENGINE_TIERS=null,ENG_CAP=null,mkEngine=null,SON=null;
 
 // ---- extraction depuis le jeu -------------------------------------------------------
 function extraire(src){
@@ -141,6 +162,12 @@ function extraire(src){
   // une référence dans le vide. Les balises rendent aussi l'extraction insensible aux prochaines
   // retouches — on pourra ajouter des helpers dedans sans jamais retoucher cette page.
   const sMot  =bloc(/\/\* <<<MOTEURS>>>[\s\S]*?<<<FIN MOTEURS>>> \*\//,'bloc <<<MOTEURS>>>');
+  // LE SON, deuxième bloc balisé. ⚠ il est PUR (aucun nœud audio, aucun global de partie) :
+  // c'est pour ça qu'on peut l'exécuter ici et faire ENTENDRE les 30 voix sans en recopier une
+  // ligne. Une palette de 30 timbres qu'on ne peut pas comparer à l'oreille n'est pas une
+  // palette, c'est un tableau de nombres.
+  const sSon  =bloc(/\/\* <<<SON-MOTEUR>>>[\s\S]*?<<<FIN SON-MOTEUR>>> \*\//,'bloc <<<SON-MOTEUR>>>');
+  SON=new Function(sSon+'\nreturn {ENG_SND,engSndParams,engLoadStep,engWave9,engCurve9};')();
   // évalué dans une fonction à qui on passe explicitement les dépendances : rien ne fuit,
   // et si le bloc se met un jour à utiliser un helper de plus, l'erreur sera parlante.
   const f=new Function('THREE','envTex','mesh9','fgCyl','fgCone','fgSph',
@@ -174,10 +201,23 @@ function poser(i){
   const bb=new THREE.Box3().setFromObject(mesh);
   const rx=Math.max(Math.abs(bb.min.x),Math.abs(bb.max.x)),rz=Math.max(Math.abs(bb.min.z),Math.abs(bb.max.z));
   const rxz=Math.max(.001,Math.hypot(rx,rz)),ry=Math.max(.001,(bb.max.y-bb.min.y)/2);
-  const halfV=Math.tan(camera.fov*Math.PI/360),halfH=halfV*camera.aspect;
-  dist=Math.max(rxz/halfH,ry/halfV)*1.55;
+  recadrer();
   mesh.position.y=-(bb.min.y+bb.max.y)/2;
+  mesh.userData.y0=mesh.position.y;              // la hauteur de repos : le tremblement oscille AUTOUR
   cur=i;
+  /* ---- l'aperçu vivant se rebranche sur la nouvelle pièce ----
+     ⚠ on recense les matériaux qui ont un `emissive` : ce sont eux qui ROUGISSENT en charge.
+     Les matériaux sont neufs à chaque `mkEngine`, donc la liste doit être refaite ici. */
+  mats=[];mesh.traverse(o=>{if(o.isMesh&&o.material&&o.material.emissive&&mats.indexOf(o.material)<0)mats.push(o.material);});
+  if(!feu){feu=new THREE.Mesh(feuGeo,feuMat);
+    // ⚠ PAS DROIT DERRIÈRE : la caméra tourne autour, une flamme dans l'axe se verrait de bout
+    // et ne lirait plus que comme un disque. On la couche en biais pour en voir le PROFIL.
+    feu.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),new THREE.Vector3(-.9,-.2,-.38).normalize());
+    pivot.add(feu);}
+  feu.userData.base=rxz*1.05;                    // elle se dimensionne sur la pièce, comme en jeu
+  feu.position.set(-rxz*.96,mesh.position.y-ry*.10,-rxz*.18);
+  feu.visible=false;chaleur=0;
+  if(NA)audioTier(i);
   const E=ENGINE_TIERS[i];
   $('eName').textContent=(i+1)+'.  '+E.n;
   $('eDesc').textContent=E.d;
@@ -200,8 +240,26 @@ function poser(i){
 const st=(l,v)=>'<div class="st">'+l+'<b>'+v+'</b></div>';
 
 function resize(){
+  /* ⚠ UN PANNEAU À 0×0 DONNE UN `aspect` NaN, ET NaN EST CONTAGIEUX. Il part dans la matrice de
+     projection, puis dans le `dist` calculé par `poser()` (qui divise par la demi-ouverture
+     horizontale), et la caméra ne revient JAMAIS : plus rien ne s'affiche, même une fois le
+     panneau redimensionné. Ça arrive dès que la page est ouverte dans un onglet caché, un
+     panneau replié ou une fenêtre pas encore mise en page. Même piège que sur `voitures.html`.
+     On refuse donc de se redimensionner tant qu'on n'a pas de vraies dimensions. */
   const w=main.clientWidth,h=main.clientHeight;
+  if(w<2||h<2)return;
   renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();
+  if(mesh)recadrer();                      // le cadrage dépend de l'aspect : il se refait ici
+}
+// LE CADRAGE, sorti de `poser()` : la pièce tourne autour de Y, donc ce qui doit tenir dans le
+// champ est son rayon dans le plan XZ, pas le coin de sa boîte.
+function recadrer(){
+  if(!mesh||!(camera.aspect>0))return;
+  const bb=new THREE.Box3().setFromObject(mesh);
+  const rx=Math.max(Math.abs(bb.min.x),Math.abs(bb.max.x)),rz=Math.max(Math.abs(bb.min.z),Math.abs(bb.max.z));
+  const rxz=Math.max(.001,Math.hypot(rx,rz)),ry=Math.max(.001,(bb.max.y-bb.min.y)/2);
+  const halfV=Math.tan(camera.fov*Math.PI/360),halfH=halfV*camera.aspect;
+  dist=Math.max(rxz/halfH,ry/halfV)*1.55;
 }
 addEventListener('resize',resize);
 
@@ -209,6 +267,8 @@ let last=performance.now();
 function boucle(now){
   requestAnimationFrame(boucle);
   const dt=Math.min(.05,(now-last)/1000);last=now;
+  tSim+=dt;
+  try{if(SON&&mesh){simu(dt);vivre(dt);}}catch(e){if(!boucle._w){console.warn('aperçu',e);boucle._w=1;}}
   if(spin)ang+=dt*.55;
   camera.position.set(Math.sin(ang)*Math.cos(pitch)*dist,Math.sin(pitch)*dist,Math.cos(ang)*Math.cos(pitch)*dist);
   camera.lookAt(0,0,0);
@@ -227,8 +287,187 @@ addEventListener('keydown',e=>{
   if(e.code==='ArrowRight')poser((cur+1)%ENGINE_TIERS.length);
   else if(e.code==='ArrowLeft')poser((cur-1+ENGINE_TIERS.length)%ENGINE_TIERS.length);
   else if(e.code==='Space'){e.preventDefault();spin=!spin;$('bSpin').classList.toggle('on',spin);}
+  else if(e.code==='KeyG'){$('bGaz').click();}   // G = coup de gaz (Espace sert déjà à la rotation)
 });
 $('bSpin').addEventListener('click',()=>{spin=!spin;$('bSpin').classList.toggle('on',spin);});
+
+/* ============================================================================================
+   L'APERÇU VIVANT : voir le moteur POUSSER et l'entendre.
+   ⚠ POURQUOI ÇA MANQUAIT. On a écrit 30 voix et 30 flammes sans jamais pouvoir en écouter deux
+   à la suite. Une palette qu'on ne peut pas comparer n'en est pas une : c'est ici qu'on juge si
+   le V12 hurle plus haut que le V8, si le statoréacteur ne siffle vraiment pas, et si « pleine
+   charge » et « stabilisé » sont deux sons ou un seul.
+   ⚠ RIEN N'EST RECOPIÉ DU JEU : les formules viennent du bloc <<<SON-MOTEUR>>> extrait plus
+   haut. L'atelier ne fait que les appliquer à SES nœuds et à SON mesh.
+   ========================================================================================== */
+let AC=null,NA=null;                                   // le contexte et le sac de nœuds
+let RUN={rpm:.05,charge:0,ovr:0,drift:0,thr:0};
+let regime='ralenti',gazT=-1,sonOn=false,tSim=0;
+/* LES RÉGIMES. `thr` = pédale, `tgt` = régime visé. La CHARGE, elle, n'est pas réglée à la
+   main : elle se déduit de la VARIATION du régime, exactement comme en jeu (`engLoadStep`).
+   C'est ce qui fait que « PLEIN GAZ » sonne d'abord chargé (ça monte) puis se calme (ça tient) —
+   et c'est précisément la nuance qu'on veut pouvoir entendre. */
+const REGIMES={
+  ralenti:{thr:0,tgt:.05,l:'ralenti — gaz fermés, le moteur respire'},
+  roule:  {thr:1,tgt:.52,l:'stabilisé — on tient sa vitesse : rond et discret'},
+  plein:  {thr:1,tgt:1.0,l:'pleine charge — rauque, plein, le filtre grand ouvert'},
+  lache:  {thr:0,tgt:.02,l:'lâcher — frein moteur et pop-corn d\'échappement'}
+};
+function audioOn(){
+  if(AC)return true;
+  try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return false;}
+  const N={};
+  // le même limiteur doux que le jeu : on juge un timbre, pas un niveau qui clippe
+  N.out=AC.createGain();N.out.gain.value=.9;
+  const lim=AC.createWaveShaper();lim.curve=SON.engCurve9(1.3);lim.oversample='2x';
+  N.out.connect(lim);lim.connect(AC.destination);
+  N.mix=AC.createGain();N.mix.gain.value=.5;
+  N.osc=AC.createOscillator();N.osc2=AC.createOscillator();
+  const o2g=AC.createGain();o2g.gain.value=.6;
+  N.osc.connect(N.mix);N.osc2.connect(o2g);o2g.connect(N.mix);
+  N.sub=AC.createOscillator();N.sub.type='sine';N.sub.frequency.value=25;
+  N.subG=AC.createGain();N.sub.connect(N.subG);N.subG.connect(N.mix);
+  const wn=len=>{const n=Math.floor(AC.sampleRate*len),b=AC.createBuffer(1,n,AC.sampleRate),c=b.getChannelData(0);
+    for(let i=0;i<n;i++)c[i]=Math.random()*2-1;return b;};
+  const pk=len=>{const n=Math.floor(AC.sampleRate*len),b=AC.createBuffer(1,n,AC.sampleRate),c=b.getChannelData(0);
+    let b0=0,b1=0,b2=0,m=0;
+    for(let i=0;i<n;i++){const w=Math.random()*2-1;
+      b0=.99765*b0+w*.0990460;b1=.96300*b1+w*.2965164;b2=.57000*b2+w*1.0526913;
+      const v=b0+b1+b2+w*.1848;c[i]=v;const a=Math.abs(v);if(a>m)m=a;}
+    for(let i=0;i<n;i++)c[i]/=(m||1);return b;};
+  const src=(buf,f)=>{const s2=AC.createBufferSource();s2.buffer=buf;s2.loop=true;s2.connect(f);s2.start();return s2;};
+  N.nzF=AC.createBiquadFilter();N.nzF.type='bandpass';N.nzF.frequency.value=800;N.nzF.Q.value=.8;
+  N.nzG=AC.createGain();N.nzG.gain.value=0;src(wn(2),N.nzF);N.nzF.connect(N.nzG);N.nzG.connect(N.mix);
+  N.pre=AC.createGain();N.post=AC.createGain();
+  N.sh=AC.createWaveShaper();N.sh.oversample='2x';
+  N.eq=AC.createBiquadFilter();N.eq.type='peaking';N.eq.frequency.value=2900;N.eq.Q.value=1.1;
+  N.lp=AC.createBiquadFilter();N.lp.type='lowpass';N.lp.frequency.value=500;
+  N.g=AC.createGain();N.g.gain.value=0;
+  N.mix.connect(N.pre);N.pre.connect(N.sh);N.sh.connect(N.post);N.post.connect(N.eq);
+  N.eq.connect(N.lp);N.lp.connect(N.g);N.g.connect(N.out);
+  N.lfo=AC.createOscillator();N.lfo.type='sine';N.lfo.frequency.value=11;
+  N.lfoG=AC.createGain();N.lfoG.gain.value=0;N.lfo.connect(N.lfoG);N.lfoG.connect(N.g.gain);
+  N.whine=AC.createOscillator();N.whine.type='sawtooth';
+  {const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=9000;
+   N.whineG=AC.createGain();N.whineG.gain.value=0;N.whine.connect(f);f.connect(N.whineG);N.whineG.connect(N.g);}
+  N.tickO=AC.createOscillator();
+  {const re=new Float32Array(13),im=new Float32Array(13);
+   for(let k=1;k<=12;k++)im[k]=1/Math.pow(k,.35);
+   N.tickO.setPeriodicWave(AC.createPeriodicWave(re,im));
+   const f=AC.createBiquadFilter();f.type='bandpass';f.frequency.value=1700;f.Q.value=.7;
+   N.tickG=AC.createGain();N.tickG.gain.value=0;
+   src(pk(2),f);f.connect(N.tickG);N.tickG.connect(N.mix);N.tickO.connect(N.tickG.gain);}
+  {const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=2400;
+   N.pinkG=AC.createGain();N.pinkG.gain.value=0;src(pk(3),f);f.connect(N.pinkG);N.pinkG.connect(N.mix);}
+  N.transO=AC.createOscillator();N.transO.type='triangle';
+  {const f=AC.createBiquadFilter();f.type='bandpass';f.frequency.value=2600;f.Q.value=2.2;
+   N.transG=AC.createGain();N.transG.gain.value=0;N.transO.connect(f);f.connect(N.transG);N.transG.connect(N.g);}
+  N.diffO=AC.createOscillator();N.diffO.type='triangle';
+  {const f=AC.createBiquadFilter();f.type='bandpass';f.frequency.value=900;f.Q.value=1.6;
+   N.diffG=AC.createGain();N.diffG.gain.value=0;N.diffO.connect(f);f.connect(N.diffG);N.diffG.connect(N.g);}
+  N.ovrF=AC.createBiquadFilter();N.ovrF.type='bandpass';N.ovrF.frequency.value=420;N.ovrF.Q.value=1.9;
+  N.ovrG=AC.createGain();N.ovrG.gain.value=0;src(pk(2),N.ovrF);N.ovrF.connect(N.ovrG);N.ovrG.connect(N.g);
+  for(const o of [N.osc,N.osc2,N.sub,N.lfo,N.whine,N.tickO,N.transO,N.diffO])o.start();
+  NA=N;audioTier(cur);return true;
+}
+function audioTier(i){                                   // charger la voix d'un palier
+  if(!NA)return;
+  const e=SON.ENG_SND[Math.min(SON.ENG_SND.length-1,i)];
+  const w=SON.engWave9(AC,e);
+  NA.osc.setPeriodicWave(w);NA.osc2.setPeriodicWave(w);
+  NA.sh.curve=SON.engCurve9(e.dr);
+}
+/* LE PAS DE SIMULATION — commun au son ET à l'image, pour qu'ils ne puissent pas se contredire.
+   ⚠ On se sert du RÉGIME comme substitut de la vitesse pour nourrir `engLoadStep` : à l'atelier
+   il n'y a pas de voiture, mais la charge ne dépend que de la VARIATION, pas de l'unité. */
+function simu(dt){
+  if(gazT>=0){                                            // LE COUP DE GAZ, scénarisé
+    gazT+=dt;
+    if(gazT<1.35){regime='plein';}
+    else if(gazT<2.55){regime='lache';}
+    else {gazT=-1;regime='ralenti';$('bGaz').classList.remove('go');}
+  }
+  const R=REGIMES[regime]||REGIMES.ralenti;
+  const prev=RUN.rpm;
+  RUN.rpm+=(R.tgt-RUN.rpm)*Math.min(1,dt*(R.tgt>RUN.rpm?3.4:2.0));
+  RUN.thr=R.thr;
+  const dSn=(RUN.rpm-prev)/Math.max(.001,dt);
+  const L=SON.engLoadStep(RUN,R.thr,RUN.rpm,dSn,dt);
+  RUN.charge=L.charge;RUN.ovr=L.ovr;RUN.drift=L.drift;
+  $('jRpm').style.width=(RUN.rpm*100).toFixed(1)+'%';
+  $('jChg').style.width=(RUN.charge*100).toFixed(1)+'%';
+  $('regLbl').textContent=R.l+'  ·  charge '+RUN.charge.toFixed(2)+'  ·  frein '+RUN.ovr.toFixed(2);
+  if(!NA||!sonOn)return null;
+  const e=SON.ENG_SND[Math.min(SON.ENG_SND.length-1,cur)];
+  const wob=e.wob?Math.sin(tSim*12.7)*Math.sin(tSim*3.1)*e.wob*Math.max(0,1-RUN.rpm*3.5):0;
+  const P=SON.engSndParams(e,{rpm:RUN.rpm,charge:RUN.charge,ovr:RUN.ovr,drift:RUN.drift,
+    nA:0,thr:R.thr,vsp:RUN.rpm*.9,wob:wob,boost:false,cloudIn:0,dk:1});
+  const T=AC.currentTime,N=NA;
+  N.osc.frequency.setTargetAtTime(P.fF,T,.035);N.osc2.frequency.setTargetAtTime(P.fF,T,.04);
+  N.osc2.detune.setTargetAtTime(P.detune,T,.07);
+  N.sub.frequency.setTargetAtTime(P.subF,T,.05);
+  N.nzF.frequency.setTargetAtTime(P.nzF,T,.06);N.nzG.gain.setTargetAtTime(P.nzG,T,.07);
+  if(P.whineOn)N.whine.frequency.setTargetAtTime(P.whineF,T,.04);
+  N.whineG.gain.setTargetAtTime(P.whineG,T,.06);
+  N.pre.gain.setTargetAtTime(P.drv,T,.06);N.post.gain.setTargetAtTime(P.post,T,.06);
+  N.eq.gain.setTargetAtTime(P.eq,T,.09);N.mix.gain.setTargetAtTime(P.mix,T,.05);
+  N.subG.gain.setTargetAtTime(P.subG,T,.08);
+  N.tickO.frequency.setTargetAtTime(P.tickF,T,.03);N.tickG.gain.setTargetAtTime(P.tickG,T,.07);
+  N.pinkG.gain.setTargetAtTime(P.pinkG,T,.10);
+  N.transO.frequency.setTargetAtTime(P.transF,T,.08);N.diffO.frequency.setTargetAtTime(P.diffF,T,.08);
+  N.transG.gain.setTargetAtTime(P.transG,T,.10);N.diffG.gain.setTargetAtTime(P.diffG,T,.10);
+  N.ovrF.frequency.setTargetAtTime(P.ovrF,T,.06);N.ovrG.gain.setTargetAtTime(P.ovrG,T,.05);
+  N.lp.frequency.setTargetAtTime(P.lp,T,.06);
+  N.g.gain.setTargetAtTime(P.ev*2.6,T,.08);              // ×2,6 : ici il n'y a ni vent ni musique
+  N.lfo.frequency.setTargetAtTime(P.lfoF,T,.1);N.lfoG.gain.setTargetAtTime(P.lfoG*2.6,T,.1);
+  return P;
+}
+// ---- LE MOTEUR VIT : il TREMBLE au régime, il CHAUFFE en charge, il CRACHE sa flamme ----
+// ⚠ le tremblement n'est pas un bruit aléatoire : un moteur BAT à une fréquence. C'est ce
+// battement régulier — plus une petite dérive irrégulière, les ratés — qui le fait lire comme
+// une machine et non comme un objet secoué.
+let mats=[],feu=null,chaleur=0;
+const feuMat=new THREE.MeshBasicMaterial({color:0xffa855,transparent:true,opacity:0,
+  blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
+const feuGeo=(function(){const g=new THREE.ConeGeometry(.19,.72,14,1,true);
+  g.translate(0,-.36,0);return g;})();
+function vivre(dt,bb){
+  const e=SON.ENG_SND[Math.min(SON.ENG_SND.length-1,cur)];
+  const E=ENGINE_TIERS[cur];
+  const hz=10+RUN.rpm*30, w=tSim*hz*6.2832;
+  const bat=Math.sin(w), rate=Math.sin(w*.37+1.3)*.45+Math.sin(w*2.13)*.22;
+  const amp=.006+RUN.rpm*.012+RUN.charge*.010;
+  mesh.position.x=rate*amp*1.6;
+  mesh.position.y=(mesh.userData.y0||0)+(bat*.55+rate*.45)*amp*3;
+  mesh.rotation.z=(bat*.6+rate*.4)*amp*.75;
+  const cib=RUN.charge*.9+RUN.rpm*.15;
+  chaleur+=(cib-chaleur)*Math.min(1,dt*(cib>chaleur?3.2:1.6)); // la fonte monte vite, retombe lentement
+  for(const m of mats)m.emissive.setRGB(chaleur*.60,chaleur*.12,chaleur*.02);
+  if(feu){
+    const k=Math.max(0,chaleur-.18)/.82;
+    const fhz=e.fHz||40, ji=e.fJit==null?.3:e.fJit;
+    const pal=1+Math.sin(tSim*fhz)*.16*(1-ji*.4)
+      +(Math.sin(tSim*fhz*.41+1.7)*.5+Math.sin(tSim*fhz*1.63)*.3)*.34*ji;
+    feu.visible=k>.02;
+    if(feu.visible){const b=feu.userData.base;
+      feu.scale.set(b,b*k*pal*1.35*(e.fLen||1),b);
+      feuMat.color.setHex(E.flam);feuMat.opacity=.72*k;}
+  }
+}
+// ---- pilotage de la barre ----
+$('bSon').addEventListener('click',()=>{
+  if(!sonOn){if(!audioOn())return;if(AC.state==='suspended')AC.resume();sonOn=true;$('bSon').classList.add('on');$('bSon').textContent='⏸ SON';}
+  else{sonOn=false;$('bSon').classList.remove('on');$('bSon').textContent='▶ SON';
+       if(NA)NA.g.gain.setTargetAtTime(0,AC.currentTime,.05);}
+});
+$('bGaz').addEventListener('click',()=>{
+  if(!sonOn)$('bSon').click();
+  gazT=0;$('bGaz').classList.add('go');
+});
+for(const b of document.querySelectorAll('.reg'))b.addEventListener('click',()=>{
+  gazT=-1;$('bGaz').classList.remove('go');regime=b.dataset.r;
+  for(const o of document.querySelectorAll('.reg'))o.classList.toggle('on',o===b);
+});
 
 // ---- LA PLANCHE CONTACT : les 30 côte à côte -----------------------------------------
 // Une seule vue permet de répondre à « est-ce que deux paliers voisins se ressemblent trop ? ».

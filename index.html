@@ -1423,7 +1423,11 @@ function updateClouds(dt,t){
         fallVel.y+=7*k*dtF;
         fallVel.x+=(Math.random()-.5)*6*k*dtF;
         fallVel.z+=(Math.random()-.5)*6*k*dtF;
-        airRoll+=(Math.random()-.5)*2.4*k*dtF; // TURBULENCE : la ouate chahute la vrille
+        // TURBULENCE : la ouate chahute l'assiette. ⚠ elle écrit dans `airRollT` et NON dans
+        // `airRoll` : ce dernier est désormais RECALCULÉ chaque frame depuis l'inclinaison commandée,
+        // donc y ajouter quoi que ce soit serait effacé à la frame suivante. À part, elle s'amortit
+        // et se superpose — la caisse est secouée sans perdre son assiette de virage.
+        airRollT+=(Math.random()-.5)*2.4*k*dtF;
         shake=Math.max(shake,.13*k);          // …et secoue la caméra — on SENT la matière
         if(c.refT>0){const rf=Math.min(c.refT,dtF*.9);c.refT-=rf;fallT=Math.max(0,fallT-rf);fallTR=Math.max(0,fallTR-rf/AIR_RATE);airFlash=.55;} // la jauge réelle est rendue au même RYTHME (rf est en temps-sim)
       }else if(k>.1){
@@ -2854,7 +2858,11 @@ const jetGlowM=new THREE.SpriteMaterial({map:lampTex,color:0xff9040,transparent:
 const JETS={shells:[],cores:[],glows:[],k:0}; // rempli par buildCar, animé chaque frame
 const CARPOOL={head:null,tail:null,jet:null}; // FLAQUES DE LUMIÈRE AU SOL (phares AV / feux AR / halo nitro) — rempli par buildCar, le halo nitro est piloté par JETS.k
 let carWingL=null,carWingR=null,wingT=0;
-let carProps=[],propSpin=0; // LES PALES (gabarit `requin`) : recensées ici, tournées par la boucle // MINI-AILES/PLANEURS : repliées au sol, déployées en vol (buildCar les crée, la boucle les anime)
+let carProps=[],propSpin=0; // LES PALES (gabarit `requin`) : recensées ici, tournées par la boucle
+// LES AILERONS QUI SORTENT EN VOL : chacun est un PIVOT posé à sa base, dont la boucle étire le Y
+// avec `wingT`. ⚠ le pivot est indispensable : `finShape` centre sa géométrie, donc un scale.y
+// appliqué au mesh ferait pousser l'aileron des DEUX côtés — moitié dans la carrosserie.
+let carFins=[];
 // ---- MATIÈRES GÉNÉRATIVES DES CAISSES (`MATV`) — jumelles de `MAT9` côté moteurs -------------
 // Trois peaux peintes PAR LE CODE, jamais un fichier image : peinture à paillettes, pâtisserie
 // industrielle et peau de requin. ⚠ calculées UNE fois et partagées (comme MAT9) — sans ce cache,
@@ -3322,6 +3330,30 @@ const SHAPES={
     }
     for(const sd of [-1,1])                                        // ENDPLATES de l'aileron
       B(.035,H*.26,L*.19,carb,sd*W*.52,y0+H*1.30,-L*.42);
+    // ---- LE COMPARTIMENT MOTEUR SOUS LA VITRE : c'est LÀ que se joue « préparée ». Un bloc nu
+    // sous une vitre, c'est un carton ; il faut la TUYAUTERIE — l'escargot du turbo, la durite qui
+    // fait le tour, la wastegate qui sort par le flanc. On les sème, elles ne se posent pas.
+    {const esc=K.cyl(H*.15,H*.15,W*.13,K.dark,W*.19,y0+H*.36,L*.20,14);esc.rotation.z=Math.PI/2;
+     K.cyl(H*.09,H*.06,W*.10,K.chrome,W*.28,y0+H*.36,L*.20,12).rotation.z=Math.PI/2;   // la turbine
+     K.cyl(.048,.048,L*.30,K.chrome,W*.22,y0+H*.30,L*.10,8).rotation.x=Math.PI/2;      // ligne d'admission
+     K.cyl(.048,.048,W*.40,K.chrome,-W*.02,y0+H*.30,-L*.04,8).rotation.z=Math.PI/2;    // sa traversée
+     for(let c9=0;c9<4;c9++)                                                            // colliers
+       K.cyl(.056,.056,.022,K.acc,W*.22,y0+H*.30,L*(.02+c9*.06),8).rotation.x=Math.PI/2;
+     const wg=K.cyl(.052,.052,W*.22,K.chrome,W*.34,y0+H*.24,L*.16,8);wg.rotation.z=Math.PI/2.6;}
+    for(const sd of [-1,1]){                                       // GOUJONS de capot (les 4 pions
+      for(const gz of [1,-1])                                      // qui remplacent la serrure)
+        K.cyl(.026,.026,.05,K.chrome,sd*W*.36,y0+H*.50,L*(gz>0?.40:.12),8);}
+    for(let v9=0;v9<6;v9++)                                        // GÉNÉRATEURS DE VORTEX sur le toit :
+      B(.02,.05,L*.045,K.acc,(v9/5-.5)*W*.52,y0+H*.96,-L*.30).rotation.y=(v9%2?.3:-.3);
+    // FREINS : disque percé + étrier. Une caisse kittée se reconnaît AUSSI par les roues, et c'est
+    // le seul endroit où on peut le dire ici (la jante, elle, est commune à toute la gamme).
+    for(const sd of [-1,1])for(const fz of [1,-1]){
+      const zw=L/2-.75;
+      const dq=K.cyl(.27,.27,.035,K.chrome,sd*(W/2-.10),.40*.94,fz*zw,16);dq.rotation.z=Math.PI/2;
+      for(let h9=0;h9<8;h9++){const a9=h9/8*6.283;                 // les PERÇAGES du disque
+        K.cyl(.022,.022,.05,K.dark,sd*(W/2-.10),.40*.94+Math.cos(a9)*.17,fz*zw+Math.sin(a9)*.17,6).rotation.z=Math.PI/2;}
+      const et=B(.07,.16,.09,K.acc,sd*(W/2-.10),.40*.94+.19,fz*zw);et.rotation.x=.2; // l'étrier
+    }
     return {hl:[W*.32,y0+H*.40,L/2+.06],tl:[W*.34,y0+H*.66,-L/2-.04],wr:.94,doors:1,sp:0};
   },
   // 14. LE CHAT POP-TART — un pavé de pâtisserie sur quatre roulettes, tête de chat à l'avant.
@@ -3399,13 +3431,26 @@ const SHAPES={
       envMap:envTex,reflectivity:.62,combine:THREE.MixOperation});
     rimify(peau);
     {const bd=new THREE.Mesh(geo,peau);bd.scale.set(R,.53,1);bd.position.set(0,y0+H*.46,-L*.02);carGroup.add(bd);}
-    K.sph(W*.33,H*.36,L*.27,K.glass,0,y0+H*.80,L*.02);          // LA BULLE, posée sur le dos
+    // LA BULLE : elle couvre presque tout le dos, comme sur la planche — c'est elle qui fait lire
+    // « habitacle transparent » et pas « pare-brise ». Et on VOIT dedans : sans sièges, une bulle
+    // vide ressemble à une verrière de maquette.
+    K.sph(W*.40,H*.42,L*.32,K.glass,0,y0+H*.80,L*.00);
+    for(const sd of [-1,1]){
+      const as=new THREE.MeshPhongMaterial({color:0x2c4468,shininess:24,specular:0x556688});
+      B(W*.24,H*.30,L*.09,as,sd*W*.15,y0+H*.74,-L*.06);          // dossier
+      B(W*.24,H*.07,L*.16,as,sd*W*.15,y0+H*.60,L*.02);           // assise
+    }
+    // L'AILERON DORSAL, SUR PIVOT : rangé au ras du dos au sol, dressé en vol (voir carFins)
+    {const DOR=finShape([[0,0],[.34,.08],[.30,.34],[.12,.60],[-.06,.66],[-.18,.40],[-.16,.10]],.055);
+     const finM2=new THREE.MeshPhongMaterial({color:0x4a86bc,shininess:90,specular:0xdff4ff,
+       envMap:envTex,reflectivity:.4,combine:THREE.MixOperation});
+     const piv=new THREE.Group();piv.position.set(0,y0+H*.92,-L*.18);
+     const f9=new THREE.Mesh(DOR,finM2);f9.scale.setScalar(W*.72);
+     f9.position.y=W*.72*.33;f9.rotation.y=Math.PI/2;piv.add(f9);   // décalé pour pousser vers le HAUT
+     carGroup.add(piv);carFins.push(piv);}
     // LES NAGEOIRES : des LAMES falciformes extrudées, comme dans l'aperçu des dauphins
     const finM=new THREE.MeshPhongMaterial({color:0x4a86bc,shininess:90,specular:0xdff4ff,
       envMap:envTex,reflectivity:.4,combine:THREE.MixOperation});
-    {const DOR=finShape([[0,0],[.34,.08],[.30,.34],[.12,.60],[-.06,.66],[-.18,.40],[-.16,.10]],.05);
-     const d9=new THREE.Mesh(DOR,finM);d9.scale.setScalar(W*.66);
-     d9.position.set(0,y0+H*1.06,-L*.16);d9.rotation.y=Math.PI/2;d9.rotation.x=-.16;carGroup.add(d9);}
     {const PEC=finShape([[0,0],[.10,.05],[.44,.02],[.62,-.10],[.40,-.16],[.10,-.10]],.035);
      for(const sd of [-1,1]){const p9=new THREE.Mesh(PEC,finM);p9.scale.setScalar(W*.62);
        p9.position.set(sd*W*.42,y0+H*.34,L*.12);p9.rotation.set(sd*.55,sd*-1.15,-.30);carGroup.add(p9);}}
@@ -3432,6 +3477,10 @@ function buildCar(spec){
   while(carGroup.children.length)carGroup.remove(carGroup.children[0]);
   wheels.length=0;
   JETS.shells.length=0;JETS.cores.length=0;JETS.glows.length=0; // les plumes de l'ancienne caisse partent avec elle
+  // ⚠ LES AILERONS SE VIDENT ICI, PAS PLUS BAS. Le bloc des mini-ailes tourne APRÈS le gabarit :
+  // y remettre ce reset effaçait l'aileron que le gabarit venait tout juste d'enregistrer, et il
+  // ne se déployait jamais. Tout ce qu'un GABARIT peut remplir doit être vidé AVANT qu'il ne tourne.
+  carFins.length=0;
   const lvl=CARS.indexOf(spec),wreck=lvl===0;
   // brillance qui explose avec le niveau — l'épave est mate et rouillée
   const shin=wreck?16:50+lvl*34;                       // la brillance GRIMPE fort par niveau
@@ -3853,6 +3902,10 @@ window.dbgScene=function(){return {car:carGroup,scene:scene,contact:contactShado
 window.dbgState=function(){return {started:started,running:running,paused:paused,gameOver:gameOver,mode:mode,
   /* flux des PIÈCES : sans ces trois-là, régler leur arrivée se fait à l'aveugle */
   engTier:engTier,coinsGot:coinsGot,prochainPalier:(ENGINE_TIERS[engTier+1]||{}).coins||null,
+  /* VOL : l'inclinaison commandée, sa consigne, et le braquage qui la pilote — c'est avec ça
+     qu'on règle « ça tourne trop direct » au lieu d'en juger à l'œil sur une caisse qui file */
+  steer:+steer.toFixed(3),airBank:+airBank.toFixed(3),bankCible:+(steer*AIR_BANK_MAX).toFixed(3),
+  airRoll:+airRoll.toFixed(3),
 vA:+vA.toFixed(2),s:+s.toFixed(1),lat:+lat.toFixed(2),side:side,driveDir:driveDir,gapArmed:gapArmed,fallT:+fallT.toFixed(2),level:level,introD:introD,hopY:+hopY.toFixed(2),hOff:+curHOff.toFixed(2),latOff:+curLatOff.toFixed(2),dolphT:+dolphT.toFixed(2),dolphGain:+dolphGain.toFixed(2),chainVal:+chainVal.toFixed(2),fvy:+fallVel.y.toFixed(2),fspd:+fallVel.length().toFixed(1)};}; // état interne (lecture seule) — hOff/dolph* : calibrage du DAUPHIN
 // TREMPLINS de la zone courante : archétype, longueur de piste, et chaque lèvre (position + variante).
 // `dbgGap(true)` téléporte à 220 m avant la 1re lèvre — pour juger le gap sans refaire la course d'élan.
@@ -6309,6 +6362,72 @@ const ENGINES=[
             Un V8 crache par à-coups, une turbine tient un cône stable, un pulsoréacteur bégaie.
    ⚠ `ENGINES` reste en place mais n'est PLUS la source du son en jeu : le bruit du moteur, c'est
    le moteur, jamais la caisse. */
+/* <<<SON-MOTEUR>>> ------------------------------------------------------------------------
+   LES FORMULES DU SON, SORTIES DE LA BOUCLE (2026-08-05).
+   ⚠ POURQUOI UN BLOC BALISÉ. `moteurs.html` doit pouvoir faire ENTENDRE chaque palier — sinon
+   personne, moi le premier, ne peut juger une palette de 30 voix. Or l'atelier ne recopie jamais
+   le jeu : il l'exécute. Ces formules sont donc PURES (aucune référence à un nœud audio, à une
+   variable de partie ni au DOM) et prennent tout par `st`. Le jeu les applique à ses nœuds,
+   l'atelier aux siens, et les deux ne peuvent pas diverger.
+   ⚠ NE RIEN METTRE ICI QUI DÉPENDE DE `AC`, de `loop`, de `mode` ou d'un global de partie.
+   ------------------------------------------------------------------------------------------ */
+function engCurve9(k){ // la courbe de saturation, dupliquée ici pour que le bloc se suffise
+  const n=1024,c=new Float32Array(n);
+  for(let i=0;i<n;i++){const x=i*2/n-1;c[i]=Math.tanh(x*k)/Math.tanh(k);}
+  return c;
+}
+/* L'ONDE DU PALIER : les harmoniques de `h` deviennent une PeriodicWave. Mise en cache SUR la
+   fiche (`e.w`) — 30 moteurs × un tableau de Fourier, autant ne le construire qu'une fois. */
+function engWave9(AC9,e){
+  if(!e.w){const re=new Float32Array(e.h.length+1),im=new Float32Array(e.h.length+1);
+    for(let i=0;i<e.h.length;i++)im[i+1]=e.h[i];
+    e.w=AC9.createPeriodicWave(re,im);}
+  return e.w;
+}
+/* TOUS LES RÉGLAGES D'UNE FRAME, pour un moteur `e` dans un état `st`.
+   st = {rpm 0..1 · charge 0..1 · ovr 0..1 · drift −.5..+.5 · nA nitro 0..1 · thr 0|1 ·
+         vsp vitesse normalisée · wob · boost · cloudIn · dk ducking} */
+function engSndParams(e,st){
+  const nA=st.nA||0, ch=st.charge||0, ov=st.ovr||0, rpm=st.rpm||0, dr=st.drift||0;
+  const meca=e.gr>1?1:0;
+  const fF=(e.i+rpm*e.r)*(1+.12*nA)*(1+(st.wob||0));
+  const drv=.42+ch*2.45+ov*-.16;
+  const lpB=Math.max(240,Math.min(6200,e.fq+fF*e.fr));
+  const ev=(.019+.026*rpm+.009*ch)*(1-.24*nA)*e.vol*(st.dk==null?1:st.dk);
+  const vsp=st.vsp||0;
+  return {
+    fF:fF, detune:7+ch*19, subF:Math.max(24,fF*.5),
+    nzF:Math.min(6200,Math.max(300,fF*6*(.72+ch*.62))),
+    nzG:(.06+.26*ch+.08*rpm)*(e.nz||1)*(1-.5*nA),
+    whineOn:!!e.whine, whineF:e.whine?Math.min(13500,fF*e.whine):2000,
+    whineG:e.whine?(.10+.16*ch)*Math.pow(Math.min(1,rpm),.7)*(1-.45*nA)*(1-ov*.7):0,
+    drv:drv, post:1.05/Math.pow(drv,.55), eq:-8.0+ch*7.0,
+    mix:.42+.20*ch+.10*(st.thr||0)+.05*nA,
+    subG:e.sub*(.34+.30*ch),
+    tickF:Math.max(6,fF), tickG:meca*(.012+.055*ch+.018*rpm)*(1-.5*nA),
+    pinkG:(.020+.030*rpm+.020*ch)*(1-.4*nA),
+    transF:240+vsp*2300*(1+dr*.004), diffF:120+vsp*760,
+    transG:meca*(.008+.026*ch+.010*vsp)*(1-.55*nA),
+    diffG:meca*(.006+.014*ch+.012*vsp)*(1-.55*nA),
+    ovrF:200+rpm*900, ovrG:meca*ov*(.030+.070*rpm)*(1-.6*nA),
+    lp:lpB*(.62+ch*.55)*(1-ov*.45)*(1+(st.boost?.06:0))*(1+dr*.015)*(1-.25*nA)*(1-.45*(st.cloudIn||0)),
+    ev:ev, lfoF:Math.min(40,Math.max(4,fF*.35)),
+    lfoG:ev*e.lope*(e.lk?1:Math.max(0,1-rpm*3.2))
+  };
+}
+/* LE MODÈLE DE CHARGE, lui aussi pur : on lui donne l'état précédent, il rend le suivant.
+   ⚠ C'est LA pièce qui manquait au son du jeu : trois états (pleine charge / stabilisé / lâché)
+   là où il n'y avait qu'un booléen `thr`. Mise ici pour que l'atelier simule EXACTEMENT la même
+   dynamique — sinon l'aperçu mentirait sur le seul point qui compte. */
+function engLoadStep(prev,thr,rpm,dSn,dt){
+  const cCib=thr?Math.max(0,Math.min(1,.26+dSn*2.6)):0;
+  const oCib=(!thr&&rpm>.20)?Math.min(1,(rpm-.20)*2.4):0;
+  return {
+    charge:prev.charge+(cCib-prev.charge)*Math.min(1,dt*(cCib>prev.charge?9:3.4)),
+    ovr:prev.ovr+(oCib-prev.ovr)*Math.min(1,dt*(oCib>prev.ovr?10:4.5)),
+    drift:prev.drift+((Math.random()-.5)*.9-prev.drift)*Math.min(1,dt*1.6)
+  };
+}
 const ENG_SND=[
  {i:15, r:95,  h:[1,.42,.88,.30,.20],                     sub:.42,dr:2.7,fq:180,fr:2.3,gr:4,lope:.34,wob:.065,crk:.18,vol:1.15,nz:1.15,fLen:.75,fHz:26,fJit:.55}, //  1 ROUILLÉ : deux pattes qui toussent
  {i:18, r:150, h:[1,.30,.92,.26,.34,.16],                 sub:.46,dr:2.2,fq:210,fr:2.6,gr:4,lope:.26,wob:.030,crk:.24,vol:1.08,nz:1.05,fLen:.80,fHz:31,fJit:.42}, //  2 BICYLINDRE : le twin qui claque
@@ -6349,6 +6468,7 @@ const ENG_SND=[
  {i:120,r:2900,h:[1,.16,.09,.15,.06,.10,.04],             sub:.80,dr:1.4, fq:820,fr:5.7,gr:1,lope:0,wob:0,crk:0,vol:1.08,nz:2.2,fLen:1.44,fHz:19,fJit:.24,whine:28}, // 29 SUPERNOVA
  {i:56, r:3300,h:[1,.05,.02,.07,.015],                    sub:1.00,dr:1.3, fq:900,fr:5.8,gr:1,lope:0,wob:0,crk:0,vol:1.10,nz:1.3,fLen:1.50,fHz:6, fJit:.05,whine:34}  // 30 TROU NOIR : le plus GRAVE et le plus AIGU à la fois, rien au milieu
 ];
+/* <<<FIN SON-MOTEUR>>> */
 function engCurve(k){ // courbe de saturation tanh — le grain qui devient hargne quand on pousse dedans
   const n=256,c=new Float32Array(n);
   for(let i=0;i<n;i++){const x=i/(n-1)*2-1;c[i]=Math.tanh(x*k)/Math.tanh(k);}
@@ -6361,12 +6481,8 @@ function engCurve(k){ // courbe de saturation tanh — le grain qui devient harg
 function engSetTier(lv){ // changement de palier → nouveau timbre (onde harmonique + grain + sub), à chaud
   if(!AC||!osc)return;
   const e=ENG_SND[lv]||ENG_SND[0];engLvl=lv;engGear=1;engShiftT=0;
-  if(!e.w){ // l'onde périodique du profil, construite une fois puis cachée
-    const re=new Float32Array(e.h.length+1),im=new Float32Array(e.h.length+1);
-    for(let i=0;i<e.h.length;i++)im[i+1]=e.h[i];
-    e.w=AC.createPeriodicWave(re,im);
-  }
-  osc.setPeriodicWave(e.w);osc2.setPeriodicWave(e.w);osc2.detune.value=7;
+  const w=engWave9(AC,e);                       // l'onde du palier — fabriquée par le bloc balisé
+  osc.setPeriodicWave(w);osc2.setPeriodicWave(w);osc2.detune.value=7;
   engSubG.gain.value=e.sub*.5;
   engShaper.curve=engCurve(e.dr);
 }
@@ -7124,7 +7240,19 @@ function vmaxShow(){return CARS[0].maxKmh*SPD*lateMul()*(ENGINE_TIERS[engTier]||
 let mode='drive',s=0,lat=0,psi=0,vA=0,vL=0,side=1,driveDir=1; // driveDir : sens de conduite le long du ruban (+1/-1). TOUJOURS 1 en course ; dans le PARC il suit le sens d'atterrissage → les routes se roulent dans les DEUX sens (pas de sens imposé)
 const START_CASH=1.61; // la mise de depart, clin d'oeil au studio 1.61
 let steer=0,money=START_CASH,levelCash=0,boost=0,fallT=0,fallTR=0,padCd=0,shake=0,combo=0,comboT=0,graceT=0,safeS=0,yawAcc=0,edgeT=0,squashT=0,momT=0,styleM=0,fever=0,streak=0,slowT=0,steerHold=0,aheadV=0,sideCd=0,slipT=0,oilCd=0,hitT=0,insUsed=false,feverArmed=false,lastSpaceT=0,rollover=0,idleT=0,driftT=0,driftYaw=0;
-let airRoll=0; // vrille visuelle en vol
+/* ---- VOL À L'INCLINAISON : la caisse a des AILES, elle doit voler comme telle (2026-08-05) ----
+   `airBank` = l'inclinaison COMMANDÉE par le braquage. Elle s'établit progressivement, et c'est
+   elle — pas le braquage brut — qui fait tourner la trajectoire. Le résultat visuel : les ailes
+   penchent du côté où l'on tourne, et il y a une mise en virage puis une sortie.
+   `airRollT` = la TURBULENCE, gardée à part : les nuages doivent pouvoir chahuter la caisse sans
+   que le pilotage l'efface à la frame suivante. Elle s'amortit toute seule.
+   ⚠ AIR_BANK_MAX est un ANGLE VISUEL, pas un réglage de maniabilité : le taux de lacet à
+   inclinaison pleine reste celui d'avant, donc changer cette valeur penche la caisse sans rien
+   toucher au gameplay. AIR_BANK_RATE, lui, décide de la vivacité de la mise en virage
+   (5.2 ≈ 0,19 s pour s'établir) — c'est LUI le bouton « ça tourne trop direct ». */
+const AIR_BANK_MAX=0.92, AIR_BANK_RATE=5.2;
+let airBank=0,airRollT=0;
+let airRoll=0; // inclinaison VISUELLE effective = commande + turbulence
 // TREMPLIN HÉROS : gapArmed = variante du tremplin qui a lancé CE vol (0 = vol ordinaire, 1/2/3 = v+1),
 // lu au verdict d'atterrissage pour le GAP FRANCHI ; rampCd empêche de re-catapulter en reposant dessus.
 let gapArmed=0,rampCd=0;
@@ -7433,7 +7561,7 @@ function checkUpgrade(){
   SAVE.flush();
 }
 function startFall(impU,impF){
-  mode='fall';fallT=0;fallTR=0;yawAcc=0;momT=0;airRoll=0;
+  mode='fall';fallT=0;fallTR=0;yawAcc=0;momT=0;airRoll=0;airBank=0;airRollT=0; // on décolle à plat, jamais en travers
   // TEMPO DE VOL ∝ VITESSE (2026-07-20, dosage DOUX sur base V1) : =1 jusqu'à 450 km/h affichés
   // (basse/moyenne vitesse : rigoureusement l'existant), puis +1 tous les 1800 km/h, CAP 1.35 —
   // loin du 2.3 de l'ancienne ère (qui compensait SPD=.25) : l'endgame TRAVERSE sa phase aérienne
@@ -8958,7 +9086,22 @@ function loop(now){
       }
       // chute pilotée : un peu de lacet, c'est tout — la voiture est LOURDE
       // (le lacet gagne un peu d'autorité à grande vitesse → vol simplifié)
-      const yawIn=steer*(1.15+Math.min(.6,fallVel.length()*.004))*dtF;
+      /* ---- LE VIRAGE EN VOL SE FAIT À L'INCLINAISON (2026-08-05) --------------------------------
+         ⚠ AVANT : `yawIn = steer * …` — le braquage tournait la trajectoire INSTANTANÉMENT, à plat.
+         Une caisse ailes sorties qui pivote comme une toupie de bureau, ça ne se lit pas : rien
+         n'explique le virage. Un engin à ailes s'INCLINE d'abord, et c'est l'inclinaison qui le fait
+         tourner — la portance bascule vers l'intérieur du virage.
+         MAINTENANT : le braquage commande une INCLINAISON (`airBank`) qui s'établit en ~0,2 s, et
+         le lacet est proportionnel à cette inclinaison. Conséquences :
+           · on ne tourne plus « direct » : il y a une mise en virage, puis une sortie ;
+           · les ailes deviennent cohérentes — elles penchent DU CÔTÉ où l'on tourne.
+         ⚠ GAMEPLAY PRÉSERVÉ, et c'est délibéré : à inclinaison PLEINE le taux de lacet est
+         exactement celui d'avant (le rapport `airBank/AIR_BANK_MAX` vaut alors 1, donc la formule
+         redevient identique au terme près). Seuls l'entrée et la sortie de virage changent. Les
+         vrilles comptées par le jeu suivent `yawAcc`, qui est nourri pareil : les figures et leurs
+         seuils ne bougent pas d'un degré. */
+      airBank+=(steer*AIR_BANK_MAX-airBank)*Math.min(1,dtF*AIR_BANK_RATE);
+      const yawIn=(airBank/AIR_BANK_MAX)*(1.15+Math.min(.6,fallVel.length()*.004))*dtF;
       fallVel.applyAxisAngle(AXIS_Y,yawIn);
       yawAcc+=yawIn;
       if(nitroOn){ // RÉACTEUR : poussée depuis l'arrière façon Rocket League (modérée)
@@ -9112,7 +9255,16 @@ function loop(now){
       tmp2.crossVectors(tmp,tmp3);
       mat4.makeBasis(tmp3,tmp2,tmp);
       qTmp.setFromRotationMatrix(mat4);
-      airRoll+=(3.0+steer*2.2+Math.min(2,fallT*.5))*dtF; // VRILLE : la caisse tourne sur elle-même (suit le vol accéléré)
+      /* ⚠ LA RÔTISSOIRE EST SUPPRIMÉE (2026-08-05). `airRoll += 3.0*dtF` faisait tourner la caisse
+         sur son axe à ~172°/s EN PERMANENCE, braquage ou pas. Avec les mini-ailes déployées c'est
+         illisible : rien ne relie ce mouvement à ce que fait le joueur, et des ailes qui tournent
+         comme un poulet rôti ne veulent rien dire.
+         Désormais l'inclinaison EST la commande : la caisse penche du côté où elle tourne, et
+         revient à plat quand on lâche. La turbulence des nuages s'ajoute par-dessus et s'amortit.
+         ⚠ CE N'EST PAS LA FIGURE « VRILLE » DU JEU : celle-là se compte en demi-tours de LACET
+         (`yawAcc`), qui n'a pas bougé. Les figures et leurs seuils sont intacts. */
+      airRollT*=Math.max(0,1-dtF*2.4);                  // la turbulence retombe
+      airRoll=airBank+airRollT;
       qTmp2.setFromAxisAngle(tmp,airRoll);
       qTmp.premultiply(qTmp2);
       carGroup.quaternion.slerp(qTmp,Math.min(1,dt*8));
@@ -9403,6 +9555,9 @@ function loop(now){
       propSpin+=dt*(3.5+wingT*36);
       for(const p9 of carProps)p9.m.rotation.y=p9.b+propSpin;
     }
+    // L'AILERON DORSAL SORT AVEC LES BRAS : couché dans le dos au sol, dressé en vol. Même `wingT`,
+    // donc la caisse a UN seul geste — elle s'ouvre — au lieu de deux animations qui se cherchent.
+    if(carFins.length)for(const f9 of carFins)f9.scale.y=.07+.93*wingT;
     // le reflet de la traînée GLISSE sur la route derrière la caisse (même couleur que le ruban)
     trailLight.position.copy(carGroup.position).addScaledVector(hsF,-9).addScaledVector(hsU,1.1);
     trailLight.intensity+=(trailK*1.5-trailLight.intensity)*Math.min(1,dt*10); // ×1.7→1.5 : le RUBAN garde la vedette, son reflet accompagne sans s'additionner brutalement au reste
@@ -9447,16 +9602,16 @@ function loop(now){
            donc les deux sonnaient pareil. La charge se lit dans l'ACCÉLÉRATION RÉELLE : si le
            régime normalisé monte, le moteur pousse contre quelque chose.
            Trois états, un seul continuum : 1 = pleine charge · ~.3 = stabilisé · 0 = lâché. */
+        /* ================= LA CHARGE : les trois états du moteur =================
+           ⚠ LA CHARGE N'EST PAS LA PÉDALE. Pied au plancher à 300 km/h sur le plat, un moteur
+           travaille peu — il tient une vitesse. Pied au plancher en reprise, il donne tout.
+           Ce sont deux sons TRÈS différents, et le jeu ne connaissait que `thr` (0/1) : les deux
+           sonnaient pareil. La charge se lit dans l'ACCÉLÉRATION RÉELLE.
+           ⚠ Le calcul vit dans le bloc balisé <<<SON-MOTEUR>>> : `moteurs.html` l'exécute tel
+           quel pour son aperçu, donc l'atelier ne peut pas mentir sur la dynamique. */
         const dv9=(sN-(loop._sN==null?sN:loop._sN))/Math.max(.001,dt);loop._sN=sN;
-        const cCib=thr?Math.max(0,Math.min(1,.26+dv9*2.6)):0;
-        // monte VITE (le coup de gaz est instantané), retombe plus lentement (l'inertie thermique)
-        charge9+=(cCib-charge9)*Math.min(1,dt*(cCib>charge9?9:3.4));
-        // LE SUR-RÉGIME : gaz lâchés alors que ça tourne encore haut = frein moteur
-        const oCib=(!thr&&engRpm>.20)?Math.min(1,(engRpm-.20)*2.4):0;
-        ovr9+=(oCib-ovr9)*Math.min(1,dt*(oCib>ovr9?10:4.5));
-        // une DÉRIVE lente et irrégulière : aucune machine ne tient une valeur parfaitement fixe,
-        // et c'est cette micro-instabilité qui empêche l'oreille de « décrocher » du son
-        drift9+=((Math.random()-.5)*.9-drift9)*Math.min(1,dt*1.6);
+        {const L9=engLoadStep({charge:charge9,ovr:ovr9,drift:drift9},thr,engRpm,dv9,dt);
+         charge9=L9.charge;ovr9=L9.ovr;drift9=L9.drift;}
         /* LE POP-CORN D'ÉCHAPPEMENT. Il existait déjà mais ne se déclenchait qu'à l'INSTANT du
            lâcher. Un vrai échappement continue de péter pendant toute la décélération, de plus
            en plus espacé — c'est la traîne qui fait le plaisir, pas le premier pop. */
@@ -9464,105 +9619,40 @@ function loop(now){
         else if(ovr9>.25&&eng.crk>0&&Math.random()<dt*7*eng.crk*ovr9*ovr9)crackle(eng.crk*.55);
         engWasUp=up;
         const wob=eng.wob?Math.sin(t*12.7)*Math.sin(t*3.1)*eng.wob*Math.max(0,1-engRpm*3.5):0; // l'épave respire au ralenti
-        const fF=(eng.i+engRpm*eng.r)*(1+.12*nA)*(1+wob); // fréquence d'explosion (+12% sous nitro : la poussée s'entend, sans hurler)
-        osc.frequency.setTargetAtTime(fF,AC.currentTime,.035);
-        osc2.frequency.setTargetAtTime(fF,AC.currentTime,.04);
-        /* ---- L'ÉPAISSEUR : le désaccord s'ouvre avec la charge ----
-           ⚠ POURQUOI CE POSTE EXISTE. Diagnostic sur les 30 : 28 moteurs gagnent au moins une
-           harmonique quand le filtre s'ouvre en charge, mais DEUX n'en gagnent aucune — la
-           TURBINE À PLASMA et le TROU NOIR, dont la table d'harmoniques est quasi vide (leur son
-           est porté par le souffle et le sifflement, pas par l'onde). Sur eux, la charge ne
-           pouvait donc rien changer au timbre par le filtre.
-           Le désaccord, lui, marche sur TOUS : deux voix qui s'écartent battent l'une contre
-           l'autre, et cette RUGOSITÉ s'entend comme de l'épaisseur — c'est le « plus plein »
-           demandé, et ça ne dépend d'aucune harmonique. 7 cents en stabilisé (deux voix qui se
-           confondent), 26 à fond (ça gronde). */
-        osc2.detune.setTargetAtTime(7+charge9*19,AC.currentTime,.07);
-        engSub.frequency.setTargetAtTime(Math.max(24,fF*.5),AC.currentTime,.05);
-        /* ⚠ POUR LES RÉACTEURS, C'EST LE BRUIT QUI PORTE LA CHARGE — pas l'onde.
-           Mesuré : sur le TROU NOIR, la charge ne faisait bouger le timbre que de 4 % (contre
-           57 % sur le V8 ATMO). Deux raisons, toutes deux structurelles : son passe-bas sature
-           au plafond de 7800 Hz dans les trois états, et sa table d'harmoniques est quasi vide —
-           il n'y a rien à saturer. Un réacteur n'a pas de « charge » au sens d'un piston : ce qui
-           change quand il pousse, c'est le DÉBIT D'AIR. On fait donc porter la charge par la
-           bande passante et le niveau du souffle, qui est de toute façon la matière même de ces
-           moteurs (`nz` monte jusqu'à 3,4 sur le statoréacteur). */
-        engNzF.frequency.setTargetAtTime(Math.min(6200,Math.max(300,fF*6*(.72+charge9*.62))),AC.currentTime,.06);
-        // ⚠ `nz` : LE LIT DE BRUIT PAR MOTEUR. À partir du statoréacteur il n'y a plus une seule
-        // pièce mobile — ce qu'on entend n'est plus une onde mais de l'air maltraité. Sans ce
-        // poste, un « réacteur » n'était qu'un synthé qui monte, et les dix derniers paliers se
-        // ressemblaient tous. C'est le levier le moins cher et le plus payant de la palette.
-        engNzG.gain.setTargetAtTime((.06+.26*charge9+.08*engRpm)*(eng.nz||1)*(1-.5*nA),AC.currentTime,.07); // l'admission s'efface sous nitro
-        // ⚠ le TURBO monte avec la CHARGE, pas avec la pédale : c'est le débit de gaz qui le fait
-        // tourner. Et il RETOMBE au lâcher (le blow-off, lui, est déjà géré à part).
-        if(eng.whine){engWhine.frequency.setTargetAtTime(Math.min(13500,fF*eng.whine),AC.currentTime,.04);
-          engWhineG.gain.setTargetAtTime((.10+.16*charge9)*Math.pow(Math.min(1,engRpm),.7)*(1-.45*nA)*(1-ovr9*.7),AC.currentTime,.06);
-        }else engWhineG.gain.setTargetAtTime(0,AC.currentTime,.06);
-        /* ---- LE TIMBRE SUIT LA CHARGE ----
-           `engPre` pousse dans la saturation (rauque), `engPost` rattrape le niveau pour que ce
-           soit le TIMBRE qui change et pas le volume, `engEq` referme le trou anti-fatigue quand
-           on pousse et le creuse en stabilisé. Les trois bougent ensemble : c'est ce trio qui
-           fait qu'on ENTEND la différence entre « à fond » et « je tiens ma vitesse ». */
-        // ⚠ VALEURS RÉGLÉES À LA MESURE, pas à l'oreille (je n'entends pas le jeu). Chaîne rejouée
-        // dans un OfflineAudioContext aux trois états, spectre comparé. Premier réglage : le
-        // centroïde ne montait que de 12 % entre stabilisé et pleine charge — audible, mais pas
-        // « radical ». En élargissant le drive et le creux anti-fatigue on passe à +32 % de
-        // centroïde et +75 % d'énergie au-dessus de 2 kHz, pour seulement +2,4 dB de niveau.
-        const drv=.42+charge9*2.45+ovr9*-.16;
-        engPre.gain.setTargetAtTime(drv,AC.currentTime,.06);
-        engPost.gain.setTargetAtTime(1.05/Math.pow(drv,.55),AC.currentTime,.06); // rattrapage partiel
-        engEq.gain.setTargetAtTime(-8.0+charge9*7.0,AC.currentTime,.09);          // −8 dB stabilisé → −1 dB à fond
-        engMix.gain.setTargetAtTime(.42+.20*charge9+.10*thr+.05*nA,AC.currentTime,.05);
-        engSubG.gain.setTargetAtTime(eng.sub*(.34+.30*charge9),AC.currentTime,.08); // la poitrine gonfle en charge
-        /* ---- LES CHUFFS : une bouffée par explosion. Peu en stabilisé, dense à fond. ----
-           ⚠ réservés aux moteurs à PISTONS (`gr>1`) : une turbine n'a pas d'explosions discrètes,
-           lui coller des chuffs la ferait sonner comme un gros diesel. */
-        const meca=eng.gr>1?1:0;
-        engTickO.frequency.setTargetAtTime(Math.max(6,fF),AC.currentTime,.03);
-        engTickG.gain.setTargetAtTime(meca*(.012+.055*charge9+.018*engRpm)*(1-.5*nA),AC.currentTime,.07);
-        pinkG.gain.setTargetAtTime((.020+.030*engRpm+.020*charge9)*(1-.4*nA),AC.currentTime,.10);
-        /* ---- BOÎTE ET PONT : leur hauteur suit la VITESSE, jamais le régime ----
-           C'est ce qui les rend audibles comme des pièces séparées : au passage de rapport le
-           moteur retombe d'un coup, elles non. Pas de boîte sur les turbines (`gr===1`), donc
-           pas un son : le palier 20 change de nature, et ça s'entend à ça aussi. */
-        const vsp=Math.min(1.15,spd3/Math.max(1,vmaxShow()));
-        transO.frequency.setTargetAtTime(240+vsp*2300*(1+drift9*.004),AC.currentTime,.08);
-        diffO.frequency.setTargetAtTime(120+vsp*760,AC.currentTime,.08);
-        transG.gain.setTargetAtTime(meca*(.008+.026*charge9+.010*vsp)*(1-.55*nA),AC.currentTime,.10);
-        diffG.gain.setTargetAtTime(meca*(.006+.014*charge9+.012*vsp)*(1-.55*nA),AC.currentTime,.10);
-        /* ---- LE FREIN MOTEUR : creux, filtré, il DESCEND avec le régime ---- */
-        ovrF.frequency.setTargetAtTime(200+engRpm*900,AC.currentTime,.06);
-        ovrG.gain.setTargetAtTime(meca*ovr9*(.030+.070*engRpm)*(1-.6*nA),AC.currentTime,.05);
-        // SOUS NITRO LE MOTEUR S'INCLINE : filtre qui se referme (×(1-.25·nA)), plafond doux à 7800 Hz —
-        // c'est la FLAMME qui domine, le moteur gronde DERRIÈRE elle au lieu de lui hurler dessus
-        // ⚠ le filtre suit la CHARGE et non plus la pédale : s'ouvre grand en reprise (brillant,
-        // agressif), se referme en stabilisé (rond, discret) et se referme ENCORE au lâcher (il
-        // ne reste que de la mécanique). Le `drift9` lui donne une respiration de ±1,5 % —
-        // imperceptible consciemment, mais c'est ce qui empêche le son de se figer.
-        /* ⚠ LA CHARGE AGIT EN FACTEUR, PAS EN ADDITION. Deux bugs trouvés à la mesure, tous
-           deux causés par des termes additifs (+1550 en charge, −560 au lâcher) sur une
-           fréquence dont l'échelle varie d'un facteur 20 entre le premier et le dernier palier :
-             1. EN BAS — le MOTEUR ROUILLÉ a une base à ~370 Hz. Lui retirer 560 au lâcher
-                donnait une fréquence de coupure NÉGATIVE : le biquad la borne à 0 et le moteur
-                devenait littéralement MUET dès qu'on lâchait les gaz. (Mesuré : −∞ dB.)
-             2. EN HAUT — le H16 F1 et le TROU NOIR dépassent le plafond de 7800 Hz dans TOUS
-                les états : la charge ne changeait plus rien au timbre (aigus ×0,99) et ne
-                faisait plus que monter le volume (+4,4 dB). Exactement l'inverse du but.
-           En multiplicatif, les trois états gardent le même écart RELATIF (×1,5 entre stabilisé
-           et pleine charge) quel que soit le moteur — et plus aucun cas dégénéré. */
-        const lpB=Math.max(240,Math.min(6200,eng.fq+fF*eng.fr));
-        filt.frequency.setTargetAtTime(lpB*(.62+charge9*.55)*(1-ovr9*.45)*(1+(boost>0?.06:0))
-          *(1+drift9*.015)*(1-.25*nA)*(1-.45*cloudInS),AC.currentTime,.06);
-        // ⚠ le stabilisé est VOLONTAIREMENT plus bas que la reprise : c'est là qu'on passe le plus
-        // de temps, et un niveau constant à fond est ce qui use l'oreille au bout d'une heure.
-        const ev=(.019+.026*engRpm+.009*charge9)*(1-.24*nA)*eng.vol*dk;
-        gainN.gain.setTargetAtTime(ev,AC.currentTime,.08); // (dk = announcer + gros événements)
-        engLfo.frequency.setTargetAtTime(Math.min(40,Math.max(4,fF*.35)),AC.currentTime,.1);
-        // ⚠ `lk:1` GARDE la modulation à tous les régimes. Un ronron de ralenti s'efface quand ça
-        // monte (d'où le `1-engRpm*3.2`), mais le PULSORÉACTEUR n'a pas de ralenti : il bat à sa
-        // fréquence de détonation et rien d'autre. Sans cette exception il perdait son hachoir
-        // dès qu'on accélérait, c'est-à-dire exactement quand on l'écoute.
-        engLfoG.gain.setTargetAtTime(ev*eng.lope*(eng.lk?1:Math.max(0,1-engRpm*3.2)),AC.currentTime,.1);
+        /* ---- TOUS LES RÉGLAGES EN UN APPEL ----
+           Les formules sont dans <<<SON-MOTEUR>>>, la boucle ne fait plus que les APPLIQUER.
+           ⚠ C'est ce découpage qui permet à l'atelier de faire entendre les 30 voix sans en
+           recopier une ligne. Une palette de 30 timbres qu'on ne peut pas écouter côte à côte
+           n'est pas une palette, c'est un tableau de nombres. */
+        const P9=engSndParams(eng,{rpm:engRpm,charge:charge9,ovr:ovr9,drift:drift9,nA:nA,thr:thr,
+          vsp:Math.min(1.15,spd3/Math.max(1,vmaxShow())),wob:wob,boost:boost>0,cloudIn:cloudInS,dk:dk});
+        const T=AC.currentTime;
+        osc.frequency.setTargetAtTime(P9.fF,T,.035);
+        osc2.frequency.setTargetAtTime(P9.fF,T,.04);
+        osc2.detune.setTargetAtTime(P9.detune,T,.07);   // l'ÉPAISSEUR : deux voix qui s'écartent battent
+        engSub.frequency.setTargetAtTime(P9.subF,T,.05);
+        engNzF.frequency.setTargetAtTime(P9.nzF,T,.06);
+        engNzG.gain.setTargetAtTime(P9.nzG,T,.07);
+        if(P9.whineOn)engWhine.frequency.setTargetAtTime(P9.whineF,T,.04);
+        engWhineG.gain.setTargetAtTime(P9.whineG,T,.06);
+        engPre.gain.setTargetAtTime(P9.drv,T,.06);
+        engPost.gain.setTargetAtTime(P9.post,T,.06);
+        engEq.gain.setTargetAtTime(P9.eq,T,.09);
+        engMix.gain.setTargetAtTime(P9.mix,T,.05);
+        engSubG.gain.setTargetAtTime(P9.subG,T,.08);
+        engTickO.frequency.setTargetAtTime(P9.tickF,T,.03);
+        engTickG.gain.setTargetAtTime(P9.tickG,T,.07);
+        pinkG.gain.setTargetAtTime(P9.pinkG,T,.10);
+        transO.frequency.setTargetAtTime(P9.transF,T,.08);
+        diffO.frequency.setTargetAtTime(P9.diffF,T,.08);
+        transG.gain.setTargetAtTime(P9.transG,T,.10);
+        diffG.gain.setTargetAtTime(P9.diffG,T,.10);
+        ovrF.frequency.setTargetAtTime(P9.ovrF,T,.06);
+        ovrG.gain.setTargetAtTime(P9.ovrG,T,.05);
+        filt.frequency.setTargetAtTime(P9.lp,T,.06);
+        gainN.gain.setTargetAtTime(P9.ev,T,.08);
+        engLfo.frequency.setTargetAtTime(P9.lfoF,T,.1);
+        engLfoG.gain.setTargetAtTime(P9.lfoG,T,.1);
       }else if(gainN){
         // en vol : un souffle de moteur résiduel ; MORT ('boom') : coupé NET — et on retombe au
         // ralenti pour que la reprise ne reparte pas d'un régime fantôme aigu
@@ -9717,7 +9807,13 @@ function loop(now){
   // MINI-AILES : déployées en vol, repliées au sol (lissé)
   if(carWingL){const tgt=(mode==='fall'&&!garageOn)?1:0;wingT+=(tgt-wingT)*Math.min(1,dt*6);
     const sc=.05+.95*wingT;carWingL.scale.x=sc;carWingR.scale.x=sc; // RÉTRACTÉES dans la caisse au sol → DÉPLOYÉES en vol (fini les ailerons parasites)
-    carWingL.rotation.z=.16*wingT;carWingR.rotation.z=-.16*wingT;}  // léger dièdre de planeur une fois sorties
+    /* AILERONS : les deux ailes se braquent en OPPOSITION avec l'inclinaison — celle de l'intérieur
+       du virage se lève, celle de l'extérieur plonge. C'est ce qui, sur un vrai engin, PROVOQUE
+       l'inclinaison ; le voir à l'écran explique enfin pourquoi la caisse penche. Sans ça les ailes
+       subissaient le mouvement au lieu de le causer, et ne servaient à rien.
+       ⚠ purement visuel : la portance et le lacet ne lisent pas ces angles. */
+    const ail=(airBank/AIR_BANK_MAX)*.34*wingT;
+    carWingL.rotation.z=.16*wingT-ail;carWingR.rotation.z=-.16*wingT-ail;}  // dièdre de planeur + gouverne
   // COMÈTE : la caisse BRÛLE en permanence — la boucle est bouclée, on repart en feu (les 3 derniers paliers la gardent allumée)
   if(engTier>=ENG_CAP.comete&&running&&!gameOver&&mode!=='boom'){
     const p9=carGroup.position;

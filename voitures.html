@@ -182,7 +182,7 @@ function moduleVoitures(src,carGroup){
   const sVoit =bloc(/\/\* <<<VOITURES>>>[\s\S]*?<<<FIN VOITURES>>> \*\//,'bloc <<<VOITURES>>>');
   const f=new Function('THREE','envTex','carGroup',
     sCars+'\n'+sUnl+'\n'+sVoit
-    +'\nreturn {CARS,CAR_UNLOCK,buildCar,carProfile,RIM_U,JETS,CARPOOL,wheels,carProps,ailes:()=>[carWingL,carWingR]};');
+    +'\nreturn {CARS,CAR_UNLOCK,buildCar,carProfile,RIM_U,JETS,CARPOOL,wheels,carProps,carFins,ailes:()=>[carWingL,carWingR]};');
   return f(THREE,envTex,carGroup);
 }
 
@@ -239,9 +239,11 @@ function appliquerLumieres(grp,on){
 // l'étal portent deux planches horizontales qui n'existent pas quand on roule — et la silhouette
 // de côté, elle, s'en trouve faussée. Mettre `d=1` ici pour revoir l'état EN VOL.
 function poserAiles(m,d){
-  const [a,b]=m.ailes();if(!a)return;
-  const sc=.05+.95*(d||0);
-  a.scale.x=b.scale.x=sc;a.rotation.z=.16*(d||0);b.rotation.z=-.16*(d||0);
+  d=d||0;
+  const [a,b]=m.ailes();
+  if(a){const sc=.05+.95*d;a.scale.x=b.scale.x=sc;a.rotation.z=.16*d;b.rotation.z=-.16*d;}
+  // les AILERONS DÉPLOYABLES suivent le même taux : au sol ils sont couchés, en vol ils se dressent
+  for(const f of m.carFins)f.scale.y=.07+.93*d;
 }
 // La boîte de la CAISSE : les flaques mesurent jusqu'à 4,6 longueurs de voiture — les inclure
 // donnerait un cadrage calé sur le faisceau des phares, pas sur la carrosserie.
