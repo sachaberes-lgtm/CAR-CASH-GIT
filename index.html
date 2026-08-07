@@ -2219,7 +2219,7 @@ const CARS=[
   fx:{jet:0xff64d2,core:0xffd8f2,trail:[1.5,.35,1.1],light:0xff5ec8,rainbow:1},
   desc:'Une pâtisserie industrielle avec une tête de chat et quatre roulettes. Personne n\'a demandé pourquoi. Tout le monde a demandé comment.'},
  {name:'REQUIN',          shape:'requin',  color:0x3a6ea8,accent:0xdfe9f2,maxKmh:600,accel:68,turn:3.22,h:.95,w:1.98,l:3.3,spoiler:0,glow:0x9adfff,
-  fx:{jet:0x7ff0d8,core:0xe6fffa,trail:[.30,1.35,1.15],light:0x5fe6d0},
+  fx:{jet:0x86f2ff,core:0xffffff,trail:[.42,1.30,1.45],light:0x62d8ff,spray:1},
   desc:'Bulle de verre, museau de grand blanc, quatre bras d\'hélices repliés dans les flancs. Au sol il roule. En l\'air, il chasse.'},
 ];
 // ---- VALEUR D'UNE PIÈCE — UNE ENTRÉE PAR PALIER MOTEUR (30) ---------------------------------
@@ -2672,14 +2672,19 @@ const trailL=mkTrail(),trailR=mkTrail();let trailK=0;
    a donc RB_ROWS sommets en travers, chacun avec SA couleur fixe. C'est la seule façon d'obtenir
    les six barres nettes de la référence plutôt qu'un dégradé sale.
    Il ne sert qu'aux caisses qui déclarent `fx.rainbow` — sinon il reste invisible et ne coûte rien. */
-const RB_ROWS=7,RB_COLS=[[1,.16,.16],[1,.55,.10],[1,.92,.16],[.28,.92,.30],[.24,.60,1],[.62,.32,1]];
+// ⚠ DEUX SOMMETS PAR BANDE, PAS UN. Avec une rangée par couleur, le GPU dégrade du rouge vers
+// l'orange vers le jaune… et on obtient un joli dégradé — qui n'est PAS un arc-en-ciel de Nyan Cat.
+// Ce qu'il faut, ce sont six barres FRANCHES : on double donc chaque rangée (haut et bas de bande
+// portent la MÊME couleur), et l'interpolation n'a plus nulle part où baver.
+const RB_BANDS=[[1.35,.18,.20],[1.35,.62,.10],[1.32,1.18,.16],[.26,1.20,.30],[.20,.66,1.35],[.72,.30,1.35]];
+const RB_ROWS=RB_BANDS.length*2;
 const rainbow=(function(){
   const g=new THREE.BufferGeometry();
   const pos=new Float32Array(TRAIL_N*RB_ROWS*3),col=new Float32Array(TRAIL_N*RB_ROWS*3);
   g.setAttribute('position',new THREE.BufferAttribute(pos,3));
   g.setAttribute('color',new THREE.BufferAttribute(col,3));
   const idx=[];
-  for(let i=0;i<TRAIL_N-1;i++)for(let r=0;r<RB_ROWS-1;r++){
+  for(let i=0;i<TRAIL_N-1;i++)for(let r=0;r<RB_ROWS-1;r+=2){ // on ne referme que l'INTÉRIEUR des bandes
     const a=i*RB_ROWS+r,b=a+RB_ROWS;idx.push(a,b,a+1,b,b+1,a+1);}
   g.setIndex(idx);
   const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,
@@ -2688,7 +2693,8 @@ const rainbow=(function(){
   const hist=[];for(let i=0;i<TRAIL_N;i++)hist.push(new THREE.Vector3());
   return {m,pos,col,hist,init:false};
 })();
-function rainbowStep(px,py,pz,k){
+const rbU=new THREE.Vector3();
+function rainbowStep(px,py,pz,k,t){
   const tr=rainbow;
   if(k<.03){tr.m.visible=false;tr.init=false;return;}
   const h=tr.hist;
@@ -2701,14 +2707,26 @@ function rainbowStep(px,py,pz,k){
     rbS.crossVectors(rbD,rbV);
     const l2=rbS.lengthSq();
     if(l2>1e-9)rbS.multiplyScalar(1/Math.sqrt(l2));else rbS.set(0,0,0);
-    const age=i/(TRAIL_N-1),W=.30+1.05*(1-age*.35);       // large tout de suite, à peine effilé
+    rbU.crossVectors(rbS,rbD);                             // la normale du ruban : l'axe de l'ONDULATION
+    const lu=rbU.lengthSq();if(lu>1e-9)rbU.multiplyScalar(1/Math.sqrt(lu));else rbU.set(0,1,0);
+    const age=i/(TRAIL_N-1);
+    // LARGEUR CONSTANTE : le ruban de Nyan Cat est une BANNIÈRE, pas une flamme. L'effiler par
+    // l'arrière (ce que fait une traînée de réacteur) lui donnait une pointe de comète — joli,
+    // mais ce n'est plus la référence. Il ne perd que son opacité, jamais sa largeur.
+    const W=1.28;
+    // L'ONDULATION : dans l'animation d'origine la bannière ROULE. Une sinusoïde qui remonte le
+    // ruban suffit, et c'est elle qui transforme une planche plate en tissu qui claque au vent.
+    const wav=Math.sin(t*7.5-i*.62)*.30*(1-age*.25);
     let f=(1-age*age)*k;
     const dC=rbV.length();
     f*=Math.min(1,Math.max(0,(dC-3.2)/4.2));               // même fondu près caméra que les rubans
     for(let r=0;r<RB_ROWS;r++){
-      const o=(r/(RB_ROWS-1)-.5)*2*W,j=(i*RB_ROWS+r)*3;
-      P[j]=p.x+rbS.x*o;P[j+1]=p.y+rbS.y*o;P[j+2]=p.z+rbS.z*o;
-      const c=RB_COLS[Math.min(RB_COLS.length-1,r)];       // une bande PLEINE par rangée, pas un dégradé
+      const band=r>>1,edge=r&1;                            // deux sommets par bande = bords FRANCS
+      const o=((band+edge)/RB_BANDS.length-.5)*2*W,j=(i*RB_ROWS+r)*3;
+      P[j]  =p.x+rbS.x*o+rbU.x*wav;
+      P[j+1]=p.y+rbS.y*o+rbU.y*wav;
+      P[j+2]=p.z+rbS.z*o+rbU.z*wav;
+      const c=RB_BANDS[band];
       C[j]=c[0]*f;C[j+1]=c[1]*f;C[j+2]=c[2]*f;
     }
   }
@@ -2716,6 +2734,7 @@ function rainbowStep(px,py,pz,k){
   tr.m.geometry.attributes.position.needsUpdate=true;
   tr.m.geometry.attributes.color.needsUpdate=true;
 }
+
 const rbD=new THREE.Vector3(),rbS=new THREE.Vector3(),rbV=new THREE.Vector3();
 function trailStep(tr,px,py,pz,cr,cg,cb,k,wMul){
   if(k<.03){tr.m.visible=false;tr.init=false;return;}
@@ -2896,6 +2915,35 @@ const MATV={_c:{},get(k){return this._c[k]||(this._c[k]=this['_'+k]());},
       c.fillStyle=Math.random()<.22?'#ffffff':'#9dff42';
       c.fillRect(x,32-h/2,w,h);x+=w+5+Math.random()*7;}
     c.fillStyle='rgba(157,255,66,.28)';c.fillRect(0,54,256,4);
+    return this._tex(cv);
+  },
+  // CARBONE, SERGÉ 2/2, TISSÉ PAR LE CODE. ⚠ ce qui fait lire le carbone n'est pas la couleur
+  // (du noir reste du noir) mais le fait que le REFLET COURT LE LONG DES MÈCHES : d'où des tuiles
+  // alternées où le dégradé change de sens d'une case à l'autre. Sans cette alternance, on obtient
+  // du damier gris — un tissu, pas de la fibre.
+  _carbone(){
+    const cv=document.createElement('canvas');cv.width=cv.height=128;const c=cv.getContext('2d');
+    c.fillStyle='#141519';c.fillRect(0,0,128,128);
+    const T=16;
+    for(let y=0;y<128;y+=T)for(let x=0;x<128;x+=T){
+      const sens=(((x/T)+(y/T))&2)===0;                    // sergé 2/2 : deux cases dans un sens, deux dans l'autre
+      const g=sens?c.createLinearGradient(x,y,x+T,y+T):c.createLinearGradient(x+T,y,x,y+T);
+      g.addColorStop(0,'#3a3d47');g.addColorStop(.5,'#191b21');g.addColorStop(1,'#3a3d47');
+      c.fillStyle=g;c.fillRect(x,y,T,T);
+      c.strokeStyle='rgba(0,0,0,.35)';c.lineWidth=1;c.strokeRect(x+.5,y+.5,T-1,T-1);
+    }
+    return this._tex(cv);
+  },
+  // STICKERS DE FLANC : des blocs et des chevrons, pas du texte. À 60 px de haut en course, un
+  // lettrage lisible n'existe pas — ce qu'on reconnaît d'une caisse kittée, c'est le RYTHME.
+  _stickers(){
+    const cv=document.createElement('canvas');cv.width=256;cv.height=64;const c=cv.getContext('2d');
+    c.clearRect(0,0,256,64);
+    c.fillStyle='rgba(255,255,255,.90)';
+    for(let i=0;i<5;i++){const x=18+i*46,w=8+Math.random()*16;
+      c.beginPath();c.moveTo(x,10);c.lineTo(x+w,10);c.lineTo(x+w-11,54);c.lineTo(x-11,54);c.closePath();c.fill();}
+    c.fillStyle='rgba(20,26,14,.92)';c.fillRect(0,26,256,5);
+    c.fillStyle='rgba(255,255,255,.75)';c.fillRect(0,33,256,2);
     return this._tex(cv);
   },
   // PEAU DE REQUIN : le CONTRE-OMBRAGE. Un requin n'est pas bleu, il est sombre dessus et blanc
@@ -3157,9 +3205,23 @@ const SHAPES={
       B(.09,H*.20,L*.66,K.acc,sd*(W/2+.03),y0+H*.14,-L*.02);     // JUPES larges
       B(.10,.09,.16,K.acc,sd*(W/2+.10),y0+H*.78,L*.14);
     }
-    B(W*1.06,.06,L*.20,K.acc,0,y0+H*1.32,-L*.42);
+    const carb=new THREE.MeshPhongMaterial({map:MATV.get('carbone'),shininess:150,specular:0xbfc6d2,
+      envMap:envTex,reflectivity:.34,combine:THREE.MixOperation});
+    B(W*1.06,.06,L*.20,carb,0,y0+H*1.32,-L*.42);                 // LE PLAN de l'aileron : en carbone
+    B(W*1.02,.035,L*.07,carb,0,y0+H*1.24,-L*.50).rotation.x=.34;  // et son volet Gurney
     B(W*1.02,H*.18,.16,K.acc,0,y0+H*.16,L/2+.10);                // pare-chocs kitté + lame
     B(W*.98,.05,.30,K.dark,0,y0+H*.04,L/2+.18);
+    // LES CANARDS : quatre petites lames de chaque côté du bouclier. C'est le détail le plus « kitté »
+    // qui soit, et il ne coûte que quatre boîtes — bien plus rentable qu'un aileron de plus.
+    for(const sd of [-1,1])for(const cz of [0,1]){
+      const cn=B(W*.16,.028,L*.055,K.acc,sd*W*(.36+cz*.06),y0+H*(.22+cz*.16),L/2+.02);
+      cn.rotation.set(0,sd*-.30,sd*.42);}
+    // STICKERS : une bande sur chaque flanc, à hauteur de bas de caisse
+    for(const sd of [-1,1]){
+      const st9=new THREE.Mesh(new THREE.PlaneGeometry(L*.52,H*.22),
+        new THREE.MeshBasicMaterial({map:MATV.get('stickers'),transparent:true,side:THREE.DoubleSide}));
+      st9.position.set(sd*(W*.475),y0+H*.34,-L*.04);st9.rotation.y=sd*Math.PI/2;carGroup.add(st9);
+    }
     // L'INTERCOOLER dans la bouche du pare-chocs : c'est LE détail qui dit « préparée », pas « peinte »
     B(W*.54,H*.17,.08,K.dark,0,y0+H*.26,L/2+.055);
     for(let i9=0;i9<7;i9++)B(W*.052,H*.13,.03,K.chrome,(i9/6-.5)*W*.46,y0+H*.26,L/2+.10);
@@ -3168,7 +3230,17 @@ const SHAPES={
       new THREE.MeshBasicMaterial({map:MATV.get('banner'),transparent:true}));
     ban.position.set(0,y0+H*.80,L*.02);ban.rotation.x=-.62;carGroup.add(ban);
     for(const sd of [-1,1]){
-      K.sph(W*.13,H*.30,L*.22,vernis,sd*(W/2-.02),y0+H*.34,-L*.24); // ARCHES arrière élargies
+      // ⚠ UNE ARCHE SE POSE SUR SON ESSIEU. Calée « à peu près à l'arrière » (-L*.24) elle tombait
+      // au milieu du flanc, devant la roue : on lisait un pod accroché à la caisse, pas une aile
+      // élargie. `zw` est la VRAIE position de roue — la même que celle du montage des roues.
+      const zw=L/2-.75;
+      for(const fz of [1,-1]){
+        K.sph(W*.115,H*.30,L*.175,vernis,sd*(W/2-.02),y0+H*.32,fz*zw);
+        for(let rv=0;rv<5;rv++){                                     // et leurs RIVETS : le signe
+          const a9=-.6+rv*.30;                                       // qu'une aile a été GREFFÉE,
+          K.cyl(.017,.017,.02,K.chrome,sd*(W/2+.04),y0+H*(.40+Math.sin(a9)*.22),fz*zw+Math.cos(a9)*L*.085,6)
+            .rotation.z=Math.PI/2;}                                  // pas moulée avec la caisse
+      }
       B(.05,H*.44,.05,K.chrome,sd*W*.24,y0+H*.72,-L*.06);           // arceau visible sous la vitre
     }
     B(W*.46,.05,.05,K.chrome,0,y0+H*.94,-L*.06);
@@ -3225,8 +3297,10 @@ const SHAPES={
   //     pivots des mini-ailes (`wings:'props'`) : zéro nouvelle mécanique dans la boucle.
   requin(K){
     const {W,H,L,y0,box:B,spec}=K;
-    const peau=new THREE.MeshPhongMaterial({color:spec.color,map:MATV.get('skin'),shininess:64,
-      specular:0xdfe9f2,envMap:envTex,reflectivity:.42,combine:THREE.MixOperation});
+    // PEAU MOUILLÉE : un requin qui sort de l'eau BRILLE. Le spéculaire serré (shininess 150) et
+    // le reflet de ciel poussé sont ce qui vend « il ruisselle » — la teinte, elle, ne suffit pas.
+    const peau=new THREE.MeshPhongMaterial({color:spec.color,map:MATV.get('skin'),shininess:150,
+      specular:0xffffff,envMap:envTex,reflectivity:.66,combine:THREE.MixOperation});
     rimify(peau);
     K.sph(W*.48,H*.46,L*.46,peau,0,y0+H*.42,-L*.02);              // le corps, une goutte ronde
     K.sph(W*.40,H*.40,L*.34,K.glass,0,y0+H*.54,L*.04);            // LA BULLE
@@ -3548,6 +3622,9 @@ function engVigBuild(){
    // dehors du rayon balayé par la pièce, et elle part vers la gauche — elle sort toujours.
    engVigFeu.position.set(-rxz*k*.94,engVigBaseY-ry*k*.10,-(rxz*k*.18));}
   const E=ENGINE_TIERS[t]||ENGINE_TIERS[0];
+  // ⚠ la flamme prend la TEINTE DU PALIER (`E.flam`). Elle était figée en orange `0xffa855` pour
+  // les trente : la table portait une couleur par moteur que personne n'affichait jamais.
+  engVigFeuMat.color.setHex(E.flam);
   // légende COURTE : « PALIER 7 / 30 · POUSSÉE ×1.50 » passait à la ligne dans le cadre étroit
   const lg=(t+1)+'/'+ENGINE_TIERS.length+'  ·  ×'+E.push.toFixed(2);
   if(engVigCapEl)engVigCapEl.firstChild.nodeValue=TR(E.n);
@@ -3603,16 +3680,32 @@ function engVigRender(dt){
   engVigMesh.position.x=rate9*amp9*1.6;
   engVigMesh.position.y=engVigBaseY+(bat9*.55+rate9*.45)*amp9*3.0;
   engVigMesh.rotation.z=(bat9*.6+rate9*.4)*amp9*.75;
-  // la chauffe : cible haute à la nitro, sinon proportionnelle au régime
-  const cible9=nitroOn?1:reg9*.34;
+  /* la chauffe : pleine à la nitro, sinon LE GAZ d'abord et le régime ensuite.
+     ⚠ Avant : `reg9*.34` — uniquement la part de vitesse atteinte. Donc en début de partie, où
+     l'on passe son temps pied au plancher SANS aller vite, la cible plafonnait à ~.10 et la
+     flamme (seuil .30) ne sortait JAMAIS. On récompensait la vitesse déjà acquise au lieu de
+     l'effort en cours. C'est l'appui sur la flèche qui doit s'entendre ET se voir. */
+  const cible9=nitroOn?1:(gasOn?.34:0)+reg9*.30;
   engVigHeat+=(cible9-engVigHeat)*Math.min(1,dt*(cible9>engVigHeat?3.2:1.6)); // monte plus vite qu'elle ne retombe
   for(const m9 of engVigMats)m9.emissive.setRGB(engVigHeat*.60,engVigHeat*.12,engVigHeat*.02);
-  if(engVigFeu){ // la flamme au cul du moteur : elle ne sort QUE quand on pousse
-    const k9=Math.max(0,engVigHeat-.30)/.70, pal9=.84+Math.sin(engVigT*47)*.12+Math.sin(engVigT*23.7)*.06;
+  /* ---- LA FLAMME, UNE PAR MOTEUR (2026-08-05) ----
+     Elle palpitait à 47 Hz pour les trente. Or ce qui distingue une flamme, c'est sa CADENCE et
+     sa régularité, pas sa couleur : un V8 crache par à-coups (lent et très irrégulier), une
+     turbine tient un cône stable (rapide, presque lisse), un pulsoréacteur BÉGAIE. Trois champs
+     suffisent — `fHz` la cadence, `fJit` l'irrégularité, `fLen` la longueur — et ils viennent de
+     la même table que le son, donc l'œil et l'oreille racontent la même chose. */
+  if(engVigFeu){
+    const S9=ENG_SND[Math.min(ENG_SND.length-1,engVigTier())]||ENG_SND[0];
+    const k9=Math.max(0,engVigHeat-.24)/.76;
+    const hz=S9.fHz||40, ji=S9.fJit==null?.3:S9.fJit;
+    // la palpitation : une porteuse RÉGULIÈRE (la machine bat) + une dérive irrégulière dosée par
+    // `fJit` (les à-coups). À jitter nul on obtient le cône propre d'une turbine.
+    const pal9=1+Math.sin(engVigT*hz)*.16*(1-ji*.4)
+                +(Math.sin(engVigT*hz*.41+1.7)*.5+Math.sin(engVigT*hz*1.63)*.3)*.34*ji;
     engVigFeu.visible=k9>.02;
     if(engVigFeu.visible){
       const b9=engVigFeuBase;
-      engVigFeu.scale.set(b9,b9*k9*pal9*1.35,b9); // la LONGUEUR palpite, la largeur suit le moteur
+      engVigFeu.scale.set(b9,b9*k9*pal9*1.35*(S9.fLen||1),b9); // la LONGUEUR palpite, la largeur suit le moteur
       engVigFeu.material.opacity=.72*k9;
     }
   }
@@ -5486,6 +5579,11 @@ function clearBoom(){
 // étincelles de collecte / d'impact
 const sparkGold=makePool(140,.9,0xffd75e,1);sparkGold.mesh.material.blending=THREE.AdditiveBlending;
 const sparkBlue=makePool(70,.9,0x5ee6ff,1);sparkBlue.mesh.material.blending=THREE.AdditiveBlending;
+// L'EAU DU REQUIN : des GOUTTES, pas des braises. Ce qui distingue de l'eau du feu, ce n'est pas la
+// couleur — c'est le comportement : ça part en gerbe, ça RETOMBE (gravité positive dans updatePool)
+// et ça meurt vite. Une flamme monte, une gerbe tombe ; l'œil fait la différence tout seul.
+const spray=makePool(150,.62,0xc8f4ff,.92);spray.mesh.material.blending=THREE.AdditiveBlending;
+const foam=makePool(80,1.45,0xf2fdff,.34);  // l'écume : plus grosse, plus molle, elle traîne derrière
 // MORCEAUX DE NUAGE : quand on défonce un banc, il éclate en mille bouts de ouate au point de contact
 const cloudBits=makePool(150,2.8,0xf3eff9,.9);
 // ÉCLABOUSSURE DE FRUIT : gouttelettes à la COULEUR du fruit croqué. Un seul pool dont on repeint le
@@ -6071,14 +6169,88 @@ const ENGINES=[
  {i:140,r:2800,h:[1,.1,.06,.1,.03,.07],                      sub:.74,dr:1.2,fq:820,fr:5.8,gr:1,lope:0,  wob:0,   crk:0,  vol:1.02,whine:29},// singularité : la lumière plie
  {i:160,r:3200,h:[1,.2,.1,.16,.07,.11,.04,.06],              sub:.8, dr:1.35,fq:900,fr:5.8,gr:1,lope:0, wob:0,   crk:0,  vol:1.06,whine:33},// dieu-vitesse : l'orgue de l'apocalypse
 ];
+/* ================= LES 30 VOIX — UNE PAR MOTEUR (2026-08-05) =================
+   ⚠ C'ÉTAIT LE PLUS GROS MANQUE DU JEU (noté tel quel dans la passation). Les 30 paliers se
+   partageaient les 24 timbres de `ENGINES` — des voix de CARROSSERIE — par une règle de trois :
+   `Math.round(engTier*23/29)`. Conséquence : le NOMBRE DE CYLINDRES, la seule chose qui décide
+   vraiment du son d'un moteur, n'entrait nulle part dans le calcul. Un V12 et un 5-cylindres
+   pouvaient tomber sur la même voix, et deux paliers voisins sur la même à coup sûr (24 voix
+   pour 30 paliers : six doublons garantis, par construction).
+
+   LA PHYSIQUE, en une ligne : sur un quatre-temps il se produit `régime × cylindres / 120`
+   explosions par seconde, et c'est ce nombre-là qu'on entend comme une HAUTEUR. Un V12 explose
+   six fois plus souvent qu'un bicylindre au même régime : il ne gronde pas plus fort, il CHANTE
+   plus haut. `i` (le ralenti) et `r` (l'étendue jusqu'à la rupture) suivent donc cylindres ×
+   régime maxi — c'est ce qui range les 30 voix dans un ordre qui S'ENTEND.
+
+   Les autres postes disent le CARACTÈRE :
+     h    — les harmoniques. Peu de cylindres → impairs dominants, ça bourdonne ; beaucoup →
+            empilement dense et lisse, ça hurle. Turbine → presque une sinusoïde.
+     nz   — le lit de BRUIT (multiplie l'admission). C'est LUI, pas la forme d'onde, qui fait un
+            réacteur : à partir du statoréacteur il n'y a plus une seule pièce mobile, juste de
+            l'air maltraité. Sans ce poste, un « réacteur » n'est qu'un synthé qui monte.
+     gr   — les rapports. 1 = pas de boîte : la turbine monte d'un trait, sans rupture.
+     lope — le RONRON de ralenti (gros V8, bicylindre). ⚠ `lk:1` le GARDE à tous les régimes :
+            c'est ce qui fait le hachoir du PULSORÉACTEUR, qui bat à ~45 Hz par construction et
+            ne connaît pas d'autre régime que celui-là.
+     crk  — les crépitements au lâcher. Atmo et carburateur pétaradent ; une turbine, jamais.
+     whine— le sifflement (turbo, compresseur, rotor, turbine), en multiple de la fondamentale.
+     fLen/fHz/fJit — LA FLAMME de la vignette : longueur, fréquence de palpitation, irrégularité.
+            Un V8 crache par à-coups, une turbine tient un cône stable, un pulsoréacteur bégaie.
+   ⚠ `ENGINES` reste en place mais n'est PLUS la source du son en jeu : le bruit du moteur, c'est
+   le moteur, jamais la caisse. */
+const ENG_SND=[
+ {i:15, r:95,  h:[1,.42,.88,.30,.20],                     sub:.42,dr:2.7,fq:180,fr:2.3,gr:4,lope:.34,wob:.065,crk:.18,vol:1.15,nz:1.15,fLen:.75,fHz:26,fJit:.55}, //  1 ROUILLÉ : deux pattes qui toussent
+ {i:18, r:150, h:[1,.30,.92,.26,.34,.16],                 sub:.46,dr:2.2,fq:210,fr:2.6,gr:4,lope:.26,wob:.030,crk:.24,vol:1.08,nz:1.05,fLen:.80,fHz:31,fJit:.42}, //  2 BICYLINDRE : le twin qui claque
+ {i:24, r:200, h:[1,.26,.86,.22,.46,.18,.24],             sub:.44,dr:1.9,fq:240,fr:2.8,gr:5,lope:.15,wob:.016,crk:.20,vol:1.04,nz:1,   fLen:.82,fHz:34,fJit:.34}, //  3 3 CYLINDRES : le battement bancal
+ {i:30, r:250, h:[1,.40,.80,.30,.44,.22,.26,.12],         sub:.46,dr:1.8,fq:270,fr:3.0,gr:5,lope:.11,wob:.010,crk:.22,vol:1,   nz:1,   fLen:.85,fHz:37,fJit:.30}, //  4 4 EN LIGNE
+ {i:31, r:300, h:[1,.34,.86,.28,.52,.26,.32,.15,.10],     sub:.42,dr:1.9,fq:310,fr:3.3,gr:5,lope:.08,wob:.007,crk:.34,vol:1,   nz:1,   fLen:.88,fHz:41,fJit:.28}, //  5 4 SOUPAPES : ça respire par le nez
+ {i:30, r:285, h:[1,.38,.74,.32,.40,.24,.22,.12],         sub:.52,dr:2.0,fq:290,fr:3.1,gr:5,lope:.09,wob:.008,crk:.58,vol:1.02,nz:1.35,fLen:.92,fHz:33,fJit:.44,whine:9},  //  6 4 EN LIGNE TURBO : le sifflet + ça pète
+ {i:38, r:350, h:[1,.44,.70,.50,.36,.30,.20,.14],         sub:.50,dr:1.9,fq:320,fr:3.3,gr:5,lope:.13,wob:.024,crk:.28,vol:1.04,nz:1.1, fLen:.88,fHz:36,fJit:.38,whine:7},  //  7 5 CYLINDRES : le warble impair, inimitable
+ {i:45, r:400, h:[1,.48,.72,.46,.48,.30,.30,.18,.14],     sub:.52,dr:1.8,fq:340,fr:3.6,gr:6,lope:.09,wob:.006,crk:.30,vol:1,   nz:1,   fLen:.90,fHz:40,fJit:.30}, //  8 V6 : la forme fait le son
+ {i:45, r:420, h:[1,.42,.66,.44,.42,.28,.26,.16,.12],     sub:.58,dr:2.0,fq:330,fr:3.5,gr:6,lope:.08,wob:.006,crk:.46,vol:1.04,nz:1.4, fLen:.96,fHz:34,fJit:.46,whine:11}, //  9 V6 BITURBO : deux escargots, zéro patience
+ {i:30, r:320, h:[1,.22,.94,.20,.56,.16,.30,.10],         sub:.48,dr:2.0,fq:300,fr:3.2,gr:5,lope:.20,wob:.014,crk:.34,vol:1.06,nz:1.1, fLen:.84,fHz:30,fJit:.40}, // 10 BOXER : le contretemps à plat
+ {i:58, r:500, h:[1,.92,.44,.70,.32,.40,.24,.18,.12],     sub:.88,dr:2.3,fq:250,fr:2.7,gr:6,lope:.24,wob:.020,crk:.62,vol:1.12,nz:1,   fLen:1.02,fHz:24,fJit:.62}, // 11 V8 ATMO : LE grondement, et ça crache
+ {i:58, r:480, h:[1,.86,.48,.66,.36,.38,.26,.20,.14],     sub:.90,dr:2.4,fq:260,fr:2.8,gr:6,lope:.20,wob:.016,crk:.50,vol:1.14,nz:1.2, fLen:1.06,fHz:27,fJit:.55,whine:13}, // 12 V8 COMPRESSÉ : le Roots par-dessus
+ {i:74, r:700, h:[1,.34,.78,.56,.66,.42,.52,.32,.32,.20,.22],sub:.40,dr:1.7,fq:430,fr:4.3,gr:7,lope:.05,wob:.004,crk:.62,vol:1,nz:.95,fLen:1.05,fHz:46,fJit:.34}, // 13 V10 : dix cylindres, zéro argument
+ {i:88, r:860, h:[1,.30,.72,.58,.74,.50,.60,.40,.42,.28,.30,.16],sub:.34,dr:1.6,fq:500,fr:4.6,gr:7,lope:.04,wob:.003,crk:.60,vol:1,nz:.9,fLen:1.10,fHz:52,fJit:.28}, // 14 V12 : le hurlement à l'unisson
+ {i:88, r:700, h:[1,.52,.60,.62,.54,.48,.44,.34,.30,.22,.18],sub:.44,dr:1.5,fq:460,fr:4.2,gr:7,lope:.04,wob:.003,crk:.40,vol:.98,nz:.9,fLen:1.06,fHz:48,fJit:.24}, // 15 W12 : deux V6 mariés, donc plus lisse
+ {i:116,r:1000,h:[1,.28,.68,.56,.76,.52,.64,.44,.46,.32,.34,.20,.16],sub:.32,dr:1.55,fq:560,fr:4.8,gr:8,lope:.03,wob:.002,crk:.58,vol:1,nz:.88,fLen:1.14,fHz:58,fJit:.26}, // 16 V16
+ {i:118,r:1400,h:[1,.24,.80,.44,.86,.46,.70,.38,.50,.30,.34,.22],sub:.26,dr:1.9,fq:640,fr:5.0,gr:8,lope:.02,wob:.002,crk:.75,vol:1.04,nz:.95,fLen:1.18,fHz:66,fJit:.36}, // 17 H16 F1 : interdit en course, logique
+ {i:60, r:620, h:[1,.44,.62,.48,.44,.32,.28,.20,.16],     sub:.72,dr:2.1,fq:360,fr:3.6,gr:7,lope:.06,wob:.005,crk:.55,vol:1.10,nz:1.7, fLen:1.12,fHz:30,fJit:.52,whine:15}, // 18 QUADRITURBO : quatre escargots
+ // ⚠ LE ROTATIF N'EST PAS UN 3-CYLINDRES. Un rotor allume TROIS fois par tour, un cylindre de
+ // quatre-temps une fois tous les DEUX tours : un tri-rotor sonne donc comme un NEUF-cylindres.
+ // C'est toute l'explication du hurlement de la 787B, et ça se met dans `i`/`r`, pas ailleurs.
+ {i:80, r:950, h:[1,.16,.62,.12,.48,.10,.30,.08],         sub:.34,dr:2.2,fq:620,fr:5.2,gr:6,lope:.02,wob:.002,crk:.58,vol:1.02,nz:1.15,fLen:1.10,fHz:72,fJit:.40,whine:8},  // 19 ROTATIF TRIPLE
+ // ---- PLUS DE PISTONS : à partir d'ici c'est le LIT DE BRUIT qui porte le son, pas l'onde ----
+ {i:52, r:1150,h:[1,.14,.08,.16,.05,.09],                 sub:.62,dr:1.25,fq:420,fr:4.6,gr:1,lope:0,wob:0,crk:0,vol:1,   nz:2.3, fLen:1.20,fHz:14,fJit:.10,whine:16}, // 20 TURBINE À GAZ : le souffle + la roue
+ {i:60, r:1350,h:[1,.10,.05,.12,.03],                     sub:.58,dr:1.2, fq:520,fr:5.0,gr:1,lope:0,wob:0,crk:0,vol:1.02,nz:1.9, fLen:1.26,fHz:11,fJit:.07,whine:23}, // 21 TURBINE À PLASMA : plus pur, plus haut
+ // le STATORÉACTEUR n'a AUCUNE pièce mobile : pas de rotor, donc pas de sifflement. Rien qu'un
+ // rugissement d'air. C'est le seul de la famille sans `whine`, et c'est ça qui le distingue.
+ {i:44, r:900, h:[1,.06,.03,.05,.02],                     sub:.86,dr:1.5, fq:380,fr:3.8,gr:1,lope:0,wob:0,crk:0,vol:1.08,nz:3.4, fLen:1.34,fHz:9, fJit:.16}, // 22 STATORÉACTEUR : il agresse l'air
+ // le PULSORÉACTEUR bat à ~45 Hz par CONSTRUCTION (la V-1 : son bourdon de scie, c'est sa
+ // fréquence de détonation). Sa hauteur ne monte donc presque pas — c'est le HACHOIR qui monte.
+ {i:45, r:150, h:[1,.85,.70,.60,.50,.42,.34,.28,.22,.18], sub:.80,dr:3.2, fq:520,fr:6.5,gr:1,lope:.60,lk:1,wob:0,crk:.85,vol:1.10,nz:1.6,fLen:1.10,fHz:45,fJit:.85}, // 23 PULSORÉACTEUR
+ {i:70, r:1500,h:[1,.18,.10,.20,.06,.10],                 sub:.74,dr:1.35,fq:500,fr:5.2,gr:1,lope:0,wob:0,crk:.20,vol:1.06,nz:2.0,fLen:1.28,fHz:13,fJit:.14,whine:12}, // 24 RÉACTEUR NUCLÉAIRE : le cœur ronfle
+ {i:82, r:1750,h:[1,.09,.04,.11,.03],                     sub:.66,dr:1.2, fq:600,fr:5.4,gr:1,lope:0,wob:0,crk:0,vol:1.02,nz:1.7,fLen:1.32,fHz:10,fJit:.06,whine:26}, // 25 CŒUR À FUSION : une étoile tient une note
+ {i:64, r:2100,h:[1,.07,.03,.09,.02],                     sub:.92,dr:1.15,fq:460,fr:4.8,gr:1,lope:0,wob:0,crk:0,vol:1.04,nz:1.5,fLen:1.24,fHz:8, fJit:.09,whine:9},  // 26 ANTIMATIÈRE : le sub qui aspire
+ {i:96, r:2400,h:[1,.13,.07,.12,.04,.08],                 sub:.60,dr:1.25,fq:700,fr:5.6,gr:1,lope:0,wob:0,crk:0,vol:1,   nz:1.6,fLen:1.30,fHz:17,fJit:.20,whine:32}, // 27 DISTORSION : la route qui recule
+ {i:88, r:2200,h:[1,.22,.12,.18,.08,.11],                 sub:.72,dr:1.5, fq:620,fr:5.4,gr:1,lope:0,wob:0,crk:.25,vol:1.08,nz:2.6,fLen:1.40,fHz:15,fJit:.30,whine:18}, // 28 COMÈTE : elle BRÛLE, donc elle rugit
+ {i:120,r:2900,h:[1,.16,.09,.15,.06,.10,.04],             sub:.80,dr:1.4, fq:820,fr:5.7,gr:1,lope:0,wob:0,crk:0,vol:1.08,nz:2.2,fLen:1.44,fHz:19,fJit:.24,whine:28}, // 29 SUPERNOVA
+ {i:56, r:3300,h:[1,.05,.02,.07,.015],                    sub:1.00,dr:1.3, fq:900,fr:5.8,gr:1,lope:0,wob:0,crk:0,vol:1.10,nz:1.3,fLen:1.50,fHz:6, fJit:.05,whine:34}  // 30 TROU NOIR : le plus GRAVE et le plus AIGU à la fois, rien au milieu
+];
 function engCurve(k){ // courbe de saturation tanh — le grain qui devient hargne quand on pousse dedans
   const n=256,c=new Float32Array(n);
   for(let i=0;i<n;i++){const x=i/(n-1)*2-1;c[i]=Math.tanh(x*k)/Math.tanh(k);}
   return c;
 }
-function engSetCar(lv){ // changement de caisse → nouveau timbre (onde harmonique + grain + sub), à chaud
+// ⚠ RENOMMÉ `engSetTier` (2026-08-05) : il ne charge plus une voix de CAISSE mais la voix du
+// PALIER MOTEUR. Le nom `engSetCar` mentait depuis qu'on a tranché « le bruit du moteur, c'est
+// le moteur » — et un nom qui ment finit toujours par faire recâbler quelqu'un à la mauvaise
+// source. `lv` est maintenant un index de `ENG_SND`, c'est-à-dire `engTier` lui-même.
+function engSetTier(lv){ // changement de palier → nouveau timbre (onde harmonique + grain + sub), à chaud
   if(!AC||!osc)return;
-  const e=ENGINES[lv];engLvl=lv;engGear=1;engShiftT=0;
+  const e=ENG_SND[lv]||ENG_SND[0];engLvl=lv;engGear=1;engShiftT=0;
   if(!e.w){ // l'onde périodique du profil, construite une fois puis cachée
     const re=new Float32Array(e.h.length+1),im=new Float32Array(e.h.length+1);
     for(let i=0;i<e.h.length;i++)im[i+1]=e.h[i];
@@ -6167,7 +6339,7 @@ function initAudio(){
   engWhineG=AC.createGain();engWhineG.gain.value=0;
   engWhine.connect(ewf);ewf.connect(engWhineG);engWhineG.connect(gainN);
   osc.start();osc2.start();engSub.start();enz.start();engLfo.start();engWhine.start();
-  engSetCar(0); // on démarre toujours au timbre du moteur d'origine
+  engSetTier(0); // on démarre toujours au timbre du moteur d'origine
   // vent
   const wsrc=AC.createBufferSource();wsrc.buffer=noiseBuf(2);wsrc.loop=true;
   windF=AC.createBiquadFilter();windF.type='lowpass';windF.frequency.value=500;windF.Q.value=.2;
@@ -6731,6 +6903,10 @@ sndRefresh();
 // ---------- ÉTAT ----------
 const keys={};
 let AUTO_GAS=false; // mobile : accélération auto (le doigt sert à tourner/freiner/nitro) — voir bloc MOBILE en fin de fichier
+// LE GAZ, exposé : la vignette a besoin de savoir qu'on POUSSE, pas seulement qu'on va vite.
+// (posé une fois par frame dans la physique, à côté de son `up` — une seule vérité, pas deux
+// façons de relire les touches qui divergeraient le jour où on remappe le clavier)
+let gasOn=false;
 addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight'].includes(e.code))e.preventDefault();if(e.code==='KeyP')togglePause();if(e.code==='Enter'&&started&&gameOver&&pendingScore==null){resetGame();}
   if(e.code==='Space'&&!e.repeat&&started&&!gameOver){ // double-tap NITRO (<280 ms) = BRAQUAGE (e.repeat : une touche MAINTENUE ne compte pas)
     const n9=performance.now();
@@ -8167,6 +8343,7 @@ function loop(now){
           eng9=ENGINE_TIERS[engTier]||ENGINE_TIERS[0],
           maxSp=CARS[0].maxKmh/3.6*late*eng9.push,acc9=CARS[0].accel*late*(1+(eng9.push-1)*.6);
     const up=AUTO_GAS||keys.KeyW||keys.KeyZ||keys.ArrowUp,dn=keys.KeyS||keys.ArrowDown;
+    gasOn=up;
     const lf=keys.KeyA||keys.KeyQ||keys.ArrowLeft,rt=keys.KeyD||keys.ArrowRight;
     // POUVOIRS : les minuteurs s'égrènent, l'airtime infini rend une jauge neuve en expirant
     pwrNitroT=Math.max(0,pwrNitroT-dt);
@@ -8869,6 +9046,8 @@ function loop(now){
     updatePool(smokePool,dt,2.5);
     updatePool(sparkGold,dt,-8);
     updatePool(sparkBlue,dt,-5);
+    updatePool(spray,dt,9);   // ⚠ gravité POSITIVE : l'eau retombe (c'est tout ce qui la sépare d'une étincelle)
+    updatePool(foam,dt,2.4);
     updatePool(cloudBits,dt,-2.2); // les morceaux de nuage retombent doucement
     updatePool(juicePool,dt,-16);  // le jus retombe VITE : c'est lourd, une goutte
     updatePool(boomTom,dt,-22);
@@ -9003,8 +9182,30 @@ function loop(now){
       const rk=(mode==='boom'||nitroBlue)?0:trailK;
       rainbowStep(carGroup.position.x+hsF.x*tz9+hsU.x*.62,
                   carGroup.position.y+hsF.y*tz9+hsU.y*.62,
-                  carGroup.position.z+hsF.z*tz9+hsU.z*.62,rk);
+                  carGroup.position.z+hsF.z*tz9+hsU.z*.62,rk,t);
     }else if(rainbow.m.visible){rainbow.m.visible=false;rainbow.init=false;}
+    // LA GERBE D'EAU : la caisse qui déclare `fx.spray` ne crache pas du feu mais de l'EAU. On sème
+    // à la tuyère, en cône, avec une composante latérale franche — une gerbe s'ÉVASE, un jet de
+    // réacteur non. Comme le reste des signatures : uniquement sous poussée, jamais en réserve bleue.
+    if(FXT&&FXT.spray&&trailK>.05&&mode!=='boom'&&!nitroBlue){
+      const nj=(1+(Math.random()*3|0));
+      for(let q9=0;q9<nj;q9++){
+        const sx=(Math.random()<.5?-1:1)*spec9.w*.22;
+        const bx=carGroup.position.x+hsF.x*tz9+hsR.x*sx+hsU.x*.43,
+              by=carGroup.position.y+hsF.y*tz9+hsR.y*sx+hsU.y*.43,
+              bz=carGroup.position.z+hsF.z*tz9+hsR.z*sx+hsU.z*.43;
+        const pw=10+Math.random()*16,ev=(Math.random()-.5)*7; // ev = l'évasement, la signature de la gerbe
+        spawnP(spray,bx,by,bz,
+          -hsF.x*pw+hsR.x*ev+(Math.random()-.5)*2,
+          -hsF.y*pw+hsU.y*(1.5+Math.random()*3),
+          -hsF.z*pw+hsR.z*ev+(Math.random()-.5)*2,
+          .22+Math.random()*.26);
+      }
+      if(Math.random()<.5)spawnP(foam,
+        carGroup.position.x-hsF.x*3.2,carGroup.position.y-hsF.y*3.2+.2,carGroup.position.z-hsF.z*3.2,
+        -hsF.x*4+(Math.random()-.5)*3,-hsF.y*4+1.2,-hsF.z*4+(Math.random()-.5)*3,
+        .45+Math.random()*.5);
+    }
     // LES HÉLICES DU REQUIN : elles brassent doucement au sol et s'emballent en vol (`wingT` est
     // déjà le taux de déploiement des bras — une seule variable pilote la sortie ET le régime).
     if(carProps.length){
@@ -9023,13 +9224,17 @@ function loop(now){
       nA+=((nitroOn&&mode!=='boom'?1:0)-nA)*Math.min(1,dt*6); // rampe nitro : le moteur gonfle, ne saute pas
       if(osc&&gainN&&mode==='drive'){
         // LE BRUIT DU MOTEUR, C'EST LE MOTEUR — jamais la caisse (règle posée par le user, 2026-08-03).
-        // ⚠ le timbre était bien RECHARGÉ depuis le palier moteur (engSetCar ci-dessous), mais la
+        // ⚠ le timbre était bien RECHARGÉ depuis le palier moteur (engSetTier ci-dessous), mais la
         // ligne suivante lisait encore `ENGINES[level]` : la BOÎTE DE VITESSES, le ralenti et les
         // crépitements venaient donc toujours de la carrosserie choisie au garage. Deux sources
         // pour un seul son. On lit désormais `engLvl`, l'index réellement chargé.
         // ⚠ et on recharge AVANT de lire, sinon la boîte a une frame de retard au changement de palier.
-        {const et9=Math.min(ENGINES.length-1,Math.round(engTier*(ENGINES.length-1)/(ENGINE_TIERS.length-1))); if(engLvl!==et9)engSetCar(et9);}
-        const eng=ENGINES[engLvl<0?0:engLvl];
+        // ⚠ LA RÈGLE DE TROIS EST MORTE (2026-08-05). On projetait 30 paliers sur les 24 voix de
+        // `ENGINES` : six doublons GARANTIS par construction, et surtout le nombre de cylindres
+        // — ce qui fait la hauteur d'un moteur — n'entrait pas dans le calcul. `ENG_SND` a une
+        // ligne PAR PALIER : l'index, c'est `engTier`, sans conversion.
+        {if(engLvl!==engTier)engSetTier(engTier);}
+        const eng=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0];
         const thr=up?1:0,sN=Math.min(1.06,spd3/Math.max(1,vmaxShow())); // régime = part de la vitesse RÉELLEMENT atteignable (la fiche de la carrosserie n'a plus rien à voir avec ce que la caisse fait)
         // BOÎTE VIRTUELLE : rapports courts en bas, longs en haut. Montée → CHUNK → chute →
         // remontée : la respiration qui rend l'accélération grisante (une rampe nue est monotone)
@@ -9052,7 +9257,11 @@ function loop(now){
         osc2.frequency.setTargetAtTime(fF,AC.currentTime,.04);
         engSub.frequency.setTargetAtTime(Math.max(24,fF*.5),AC.currentTime,.05);
         engNzF.frequency.setTargetAtTime(Math.min(4800,Math.max(300,fF*6)),AC.currentTime,.06);
-        engNzG.gain.setTargetAtTime((.1+.16*thr+.08*engRpm)*(1-.5*nA),AC.currentTime,.07); // l'admission s'efface sous nitro (le souffle blanc dégage)
+        // ⚠ `nz` : LE LIT DE BRUIT PAR MOTEUR. À partir du statoréacteur il n'y a plus une seule
+        // pièce mobile — ce qu'on entend n'est plus une onde mais de l'air maltraité. Sans ce
+        // poste, un « réacteur » n'était qu'un synthé qui monte, et les dix derniers paliers se
+        // ressemblaient tous. C'est le levier le moins cher et le plus payant de la palette.
+        engNzG.gain.setTargetAtTime((.1+.16*thr+.08*engRpm)*(eng.nz||1)*(1-.5*nA),AC.currentTime,.07); // l'admission s'efface sous nitro
         if(eng.whine){engWhine.frequency.setTargetAtTime(Math.min(13500,fF*eng.whine),AC.currentTime,.04);
           engWhineG.gain.setTargetAtTime((.16+.1*thr)*Math.pow(Math.min(1,engRpm),.7)*(1-.45*nA),AC.currentTime,.06);
         }else engWhineG.gain.setTargetAtTime(0,AC.currentTime,.06);
@@ -9063,12 +9272,16 @@ function loop(now){
         const ev=(.02+.028*engRpm+.013*thr)*(1-.24*nA)*eng.vol*dk;
         gainN.gain.setTargetAtTime(ev,AC.currentTime,.08); // (dk = announcer + gros événements)
         engLfo.frequency.setTargetAtTime(Math.min(40,Math.max(4,fF*.35)),AC.currentTime,.1);
-        engLfoG.gain.setTargetAtTime(ev*eng.lope*Math.max(0,1-engRpm*3.2),AC.currentTime,.1); // le RONRON s'efface quand ça monte
+        // ⚠ `lk:1` GARDE la modulation à tous les régimes. Un ronron de ralenti s'efface quand ça
+        // monte (d'où le `1-engRpm*3.2`), mais le PULSORÉACTEUR n'a pas de ralenti : il bat à sa
+        // fréquence de détonation et rien d'autre. Sans cette exception il perdait son hachoir
+        // dès qu'on accélérait, c'est-à-dire exactement quand on l'écoute.
+        engLfoG.gain.setTargetAtTime(ev*eng.lope*(eng.lk?1:Math.max(0,1-engRpm*3.2)),AC.currentTime,.1);
       }else if(gainN){
         // en vol : un souffle de moteur résiduel ; MORT ('boom') : coupé NET — et on retombe au
         // ralenti pour que la reprise ne reparte pas d'un régime fantôme aigu
         gainN.gain.setTargetAtTime(mode==='fall'?.004:0,AC.currentTime,mode==='boom'?.05:.1);
-        if(mode==='boom'){engRpm=0;const e0=ENGINES[engLvl<0?0:engLvl]; // idem : le ralenti de la mort suit le MOTEUR
+        if(mode==='boom'){engRpm=0;const e0=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0]; // idem : le ralenti de la mort suit le MOTEUR
           osc.frequency.setTargetAtTime(e0.i,AC.currentTime,.3);osc2.frequency.setTargetAtTime(e0.i,AC.currentTime,.3);}
         engLfoG.gain.setTargetAtTime(0,AC.currentTime,.1);
         engWhineG.gain.setTargetAtTime(0,AC.currentTime,.1);
