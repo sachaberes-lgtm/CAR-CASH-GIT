@@ -42,6 +42,7 @@ bien dans le fichier.
 | Déblocage des caisses | `CAR_UNLOCK`, `carUnlocked(i)`, `carScan()` |
 | Flux de pièces | `spawnPickups()`, facteur `rich` |
 | Animation de palier | `addCoins()` → `engSwapT` + `engSwapSnd()` |
+| Vol : inclinaison / ailerons | `airBank`, `AIR_BANK_MAX`, `AIR_BANK_RATE` |
 
 ## LES TROIS ATELIERS (pages autonomes)
 - **`moteurs.html`** — revue des 30 moteurs. ⚠ il ne recopie pas le jeu : il **lit `index.html` au
@@ -78,6 +79,12 @@ bien dans le fichier.
 - **Animation de changement de palier** : clé à chocs + clanks + démarreur, étincelles de soudure au
   capot, vignette qui s'emballe.
 - **Flux de pièces indexé sur la progression** : 20 pièces/1000 m en zone 1 → 99 en zone 6.
+- **Le vol se pilote à l'INCLINAISON (2026-08-05)** : le braquage commande une inclinaison qui
+  s'établit en ~0,2 s, et c'est elle qui fait tourner — plus de lacet instantané, et la **rôtissoire
+  est supprimée** (la caisse tournait sur son axe à 172 °/s en permanence, ce qui rendait les ailes
+  absurdes). Les ailerons se braquent en opposition. ⚠ gameplay préservé : à inclinaison pleine la
+  formule de lacet est identique à l'ancienne, seuls l'entrée et la sortie de virage changent.
+  `AIR_BANK_RATE` est le bouton « ça tourne trop direct », `AIR_BANK_MAX` ne change que l'angle vu.
 - Bugs corrigés : 1,61 € au menu **et** au départ, centimes invisibles, tremplins qui bloquaient,
   traversée de route, volant mort en vol vertical, rectangle à l'horizon, soleil terne.
 
