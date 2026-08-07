@@ -2215,7 +2215,7 @@ const CARS=[
  {name:'ACIDE',           shape:'tuner',   color:0x5cff1e,accent:0x123a08,maxKmh:520,accel:60,turn:3.18,h:.62,w:1.88,l:4.1,spoiler:0,glow:0x8dff2a,
   fx:{jet:0x7cff28,core:0xe8ffb4,trail:[.52,1.55,.10],light:0x6fe81e},
   desc:'Compacte japonaise passée au bain d\'acide : capot vitré sur le bloc, aileron de table à repasser, échappement qui crache vert.'},
- {name:'CHAT POP-TART',   shape:'poptart', color:0xf6b98a,accent:0xf78fb8,maxKmh:560,accel:64,turn:3.2, h:.52,w:1.95,l:3.4,spoiler:0,glow:0xff5ec8,
+ {name:'CHAT POP-TART',   shape:'poptart', color:0xf6b98a,accent:0xf78fb8,maxKmh:560,accel:64,turn:3.2, h:.80,w:1.95,l:3.4,spoiler:0,glow:0xff5ec8,
   fx:{jet:0xff64d2,core:0xffd8f2,trail:[1.5,.35,1.1],light:0xff5ec8,rainbow:1},
   desc:'Une pâtisserie industrielle avec une tête de chat et quatre roulettes. Personne n\'a demandé pourquoi. Tout le monde a demandé comment.'},
  {name:'REQUIN',          shape:'requin',  color:0x3a6ea8,accent:0xdfe9f2,maxKmh:600,accel:68,turn:3.22,h:.95,w:1.98,l:3.3,spoiler:0,glow:0x9adfff,
@@ -2963,6 +2963,66 @@ const MATV={_c:{},get(k){return this._c[k]||(this._c[k]=this['_'+k]());},
 const SPH9=new THREE.SphereGeometry(1,16,12); // la boule partagée par les gabarits (bulles, museaux, têtes)
 // SILHOUETTE DE PROFIL : la « gueule » de chaque gabarit — points (z=longueur,y=hauteur) extrudés
 // sur la largeur. Capots plongeants, fastbacks, coins furtifs : impossibles en boîtes, gratuits ici.
+/* ---- LE LOFT : un corps ANIMAL, pas un tas de boules ------------------------------------------
+   ⚠ POURQUOI. Les caisses fantastiques étaient montées en sphères aplaties empilées : ça donne un
+   galet, jamais un être vivant. Un animal se lit à sa LIGNE — un rayon qui enfle au thorax puis
+   s'étrangle au pédoncule — et à son CONTRE-OMBRAGE, sombre dessus, clair dessous. Les deux se
+   fabriquent d'un coup en loftant des anneaux le long d'une épine, avec la couleur peinte DANS les
+   sommets (donc gratuite : ni texture, ni deuxième matériau).
+   La recette vient de `dauphins.html`, écrite pour la figure LE DAUPHIN — on la rapatrie ici au
+   lieu d'en refaire une approximation.
+   `prof` = [[u,rayon],…] de u=0 (le nez) à u=1 (la queue). Nez vers +Z, comme toute caisse.
+   ---------------------------------------------------------------------------------------------- */
+function loftBody(prof,o){
+  o=o||{};
+  const LEN=o.len||1,RINGS=o.rings||44,SEG=o.seg||22,
+        arch=o.arch||0,droop=o.droop||0,wid=o.wid||1,flat=o.flat||.88;
+  // ⚠ `flat` (l'aplatissement du ventre) et `bel` (sa COULEUR) sont deux clés DISTINCTES. Les avoir
+  // toutes deux nommées `belly` faisait gagner la seconde : le bas de chaque anneau se multipliait
+  // par 16 055 551 et la caisse mesurait 16 000 km de haut, hors champ, écran vide.
+  const cT=new THREE.Color(o.top!=null?o.top:0x2f5a86),
+        cS=new THREE.Color(o.side!=null?o.side:0x7fb8dc),
+        cB=new THREE.Color(o.bel!=null?o.bel:0xf2ffff);
+  const rad=u=>{ // interpolation DOUCE entre les points du profil (une lerp droite fait des angles)
+    for(let i=0;i<prof.length-1;i++)if(u<=prof[i+1][0]){
+      const a=prof[i],b=prof[i+1];let t=(u-a[0])/(b[0]-a[0]||1);
+      t=.5-.5*Math.cos(t*Math.PI);
+      return a[1]+(b[1]-a[1])*t;}
+    return prof[prof.length-1][1];
+  };
+  const pos=[],col=[],idx=[],tmpC=new THREE.Color();
+  for(let i=0;i<RINGS;i++){
+    const u=i/(RINGS-1),z=LEN*.5-u*LEN,r=rad(u);
+    const sy=arch*Math.sin(Math.PI*Math.min(1,u*1.02))-(u<.18?(.18-u)*droop:0);
+    for(let j=0;j<=SEG;j++){
+      const a=j/SEG*Math.PI*2;
+      let py=Math.cos(a)*r;const px=Math.sin(a)*r*wid;
+      if(py<0)py*=flat;                                   // ventre aplati : c'est ce qui pose l'animal
+      pos.push(px,sy+py,z);
+      const t=(Math.cos(a)+1)/2;                          // 1 = dos, 0 = ventre
+      tmpC.copy(cB).lerp(cS,Math.min(1,t*1.5)).lerp(cT,Math.max(0,t-.55)*2.2);
+      col.push(tmpC.r,tmpC.g,tmpC.b);
+    }
+  }
+  const rw=SEG+1;
+  for(let i=0;i<RINGS-1;i++)for(let j=0;j<SEG;j++){
+    const a=i*rw+j,b=a+1,c=a+rw,d=c+1;idx.push(a,c,b,b,c,d);}
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+  g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
+  g.setIndex(idx);g.computeVertexNormals();
+  return g;
+}
+// AILERON : un contour 2D extrudé et biseauté. Une nageoire est une LAME, pas un cône — c'est sa
+// silhouette falciforme qui la fait lire, et un cône n'en a aucune.
+function finShape(pts,depth){
+  const sh=new THREE.Shape();
+  sh.moveTo(pts[0][0],pts[0][1]);
+  for(let i=1;i<pts.length;i++)sh.lineTo(pts[i][0],pts[i][1]);
+  const g=new THREE.ExtrudeGeometry(sh,{depth:depth,bevelEnabled:true,bevelThickness:depth*.6,
+    bevelSize:depth*.5,bevelSegments:2,steps:1});
+  g.center();g.computeVertexNormals();return g;
+}
 function carProfile(pts,w){
   const s=new THREE.Shape();
   s.moveTo(pts[0][0],pts[0][1]);
@@ -3225,6 +3285,18 @@ const SHAPES={
     // L'INTERCOOLER dans la bouche du pare-chocs : c'est LE détail qui dit « préparée », pas « peinte »
     B(W*.54,H*.17,.08,K.dark,0,y0+H*.26,L/2+.055);
     for(let i9=0;i9<7;i9++)B(W*.052,H*.13,.03,K.chrome,(i9/6-.5)*W*.46,y0+H*.26,L/2+.10);
+    // ---- LA LEÇON DES MOTEURS : on ne POSE pas les détails un par un, on les SÈME. Chaque boucle
+    // ci-dessous rend une pièce entière (extracteurs, grille, sorties d'échappement, boulons) et
+    // c'est cette DENSITÉ régulière — pas un accessoire de plus — qui fait « caisse préparée ».
+    for(let v9=0;v9<4;v9++){                                       // EXTRACTEURS de capot
+      const zz=L*(.18+v9*.045);
+      B(W*.30,.022,L*.030,K.dark,0,y0+H*.492,zz).rotation.x=-.36;
+      B(W*.30,.012,L*.012,K.chrome,0,y0+H*.502,zz-L*.014);
+    }
+    {const gN=7;for(let g9=0;g9<gN;g9++)                            // GRILLE de calandre, barre à barre
+      B(W*.012,H*.14,.02,K.chrome,(g9/(gN-1)-.5)*W*.44,y0+H*.28,L/2+.075);}
+    for(let b9=0;b9<9;b9++)                                        // BOULONS de lame avant
+      K.cyl(.016,.016,.02,K.chrome,(b9/8-.5)*W*.86,y0+H*.055,L/2+.24,6).rotation.x=Math.PI/2;
     // LE BANDEAU de pare-brise : posé À PLAT sur la vitre, il attrape le regard avant la couleur
     const ban=new THREE.Mesh(new THREE.PlaneGeometry(W*.66,H*.20),
       new THREE.MeshBasicMaterial({map:MATV.get('banner'),transparent:true}));
@@ -3244,7 +3316,12 @@ const SHAPES={
       B(.05,H*.44,.05,K.chrome,sd*W*.24,y0+H*.72,-L*.06);           // arceau visible sous la vitre
     }
     B(W*.46,.05,.05,K.chrome,0,y0+H*.94,-L*.06);
-    K.cyl(.15,.17,.32,K.chrome,W*.22,y0+.06,-L/2-.16,12).rotation.x=Math.PI/2; // canon d'échappement
+    for(const sd of [-1,1]){                                       // DEUX canons d'échappement,
+      K.cyl(.13,.15,.34,K.chrome,sd*W*.22,y0+.06,-L/2-.16,12).rotation.x=Math.PI/2; // chacun sa
+      K.cyl(.105,.105,.06,K.dark,sd*W*.22,y0+.06,-L/2-.31,12).rotation.x=Math.PI/2; // gueule noire
+    }
+    for(const sd of [-1,1])                                        // ENDPLATES de l'aileron
+      B(.035,H*.26,L*.19,carb,sd*W*.52,y0+H*1.30,-L*.42);
     return {hl:[W*.32,y0+H*.40,L/2+.06],tl:[W*.34,y0+H*.66,-L/2-.04],wr:.94,doors:1,sp:0};
   },
   // 14. LE CHAT POP-TART — un pavé de pâtisserie sur quatre roulettes, tête de chat à l'avant.
@@ -3257,10 +3334,20 @@ const SHAPES={
     // ⚠ LA CAISSE POSE PLUS BAS QUE LES AUTRES. Un pavé de pâtisserie sur des roues de berline,
     // ce sont quatre roulettes qui flottent sous une planche : ici le dessous du gâteau descend
     // JUSQUE sur des roulettes minuscules, et c'est ce contact qui rend l'objet crédible.
-    const cy=.44;
+    // ⚠ ELLE ÉTAIT TROP PLATE (retour du user). Une pop-tart est un COUSSIN fourré, pas une carte
+    // à jouer : la tranche doit se VOIR, et c'est elle qui porte la pâte festonnée. On épaissit le
+    // pavé ET on lui ajoute un bourrelet de bord — le pincement de la fourchette, qui fait déborder
+    // la pâte sur tout le pourtour et donne l'ombre franche qui manquait.
+    const cy=.56;
     // BoxGeometry : +X, -X, +Y, -Y, +Z, -Z → le glaçage sur le dessus, la pâte partout ailleurs
-    const tart=new THREE.Mesh(new THREE.BoxGeometry(W*.96,H*.60,L*.78),[cro,cro,gla,cro,cro,cro]);
+    const tart=new THREE.Mesh(new THREE.BoxGeometry(W*.94,H*.56,L*.76),[cro,cro,gla,cro,cro,cro]);
     tart.position.set(0,cy,-L*.08);carGroup.add(tart);
+    // LE BOURRELET : quatre boudins de pâte le long des arêtes basses. Sans eux, le pavé garde des
+    // angles vifs de brique ; avec eux, il gonfle comme une pâtisserie qui a cuit.
+    for(const sd of [-1,1]){
+      K.cyl(H*.13,H*.13,L*.76,cro,sd*W*.47,cy-H*.20,-L*.08,10).rotation.x=Math.PI/2;
+      K.cyl(H*.13,H*.13,W*.94,cro,0,cy-H*.20,-L*.08+sd*L*.38,10).rotation.z=Math.PI/2;
+    }
     // LA TÊTE : elle DÉPASSE franchement du pavé — collée dessus on lirait un dessin imprimé,
     // pas un chat qui conduit. Boule aplatie, oreilles, joues, museau, moustaches.
     // ⚠ MAT, PAS BRILLANT. À shininess 16 avec un spéculaire clair, la boule attrapait un point
@@ -3290,45 +3377,55 @@ const SHAPES={
     // ressortaient par-dessus le glaçage comme quatre lattes noires. Sa signature de vol, c'est
     // l'arc-en-ciel (`fx.rainbow`), pas des ailerons.
     return {hl:[W*.28,cy-H*.24,L*.42],tl:[W*.32,cy-H*.10,-L*.46],wr:.58,wx:W/2-.11,wz:L/2-.62,
-            split:0,skirt:0,sp:0,doors:0,wings:'none',glowX:W*.47,glowY:cy-H*.36,glowL:L*.74,glowF:0};
+            split:0,skirt:0,sp:0,doors:0,wings:'none',glowX:W*.47,glowY:cy-H*.40,glowL:L*.74,glowF:0};
   },
   // 15. LE REQUIN — bulle de verre sur un corps rond, museau de grand blanc, et QUATRE BRAS
   //     D'HÉLICES repliés dans les flancs au sol / déployés en vol. Les bras réutilisent les
   //     pivots des mini-ailes (`wings:'props'`) : zéro nouvelle mécanique dans la boucle.
   requin(K){
     const {W,H,L,y0,box:B,spec}=K;
-    // PEAU MOUILLÉE : un requin qui sort de l'eau BRILLE. Le spéculaire serré (shininess 150) et
-    // le reflet de ciel poussé sont ce qui vend « il ruisselle » — la teinte, elle, ne suffit pas.
-    const peau=new THREE.MeshPhongMaterial({color:spec.color,map:MATV.get('skin'),shininess:150,
-      specular:0xffffff,envMap:envTex,reflectivity:.66,combine:THREE.MixOperation});
+    // ---- LE CORPS EST LOFTÉ, plus empilé. Profil de cétacé : museau fin, thorax plein au tiers
+    // avant, puis un long étranglement jusqu'au pédoncule. C'est CETTE ligne qui fait l'animal ;
+    // la peau et les dents ne font que la décorer.
+    const R=W*.50;
+    const geo=loftBody([[0,.06],[.05,.16],[.11,.30],[.18,.52],[.27,.78],[.38,.96],
+                        [.50,1.00],[.63,.86],[.75,.62],[.86,.38],[.94,.20],[1,.08]],
+      // ⚠ arch/droop sont en unités de PROFIL (rayon max = 1), pas en mètres : le loft se met à
+      // l'échelle APRÈS. Les avoir donnés en H (mètres) puis remis à l'échelle faisait un poisson
+      // de deux mètres de haut pour une caisse d'un mètre.
+      {len:L*1.02,rings:52,seg:24,arch:.16,droop:.52,wid:.92,flat:.82,
+       top:0x1f4a7a,side:0x5f9fd0,bel:0xf4feff});
+    const peau=new THREE.MeshPhongMaterial({vertexColors:true,shininess:150,specular:0xffffff,
+      envMap:envTex,reflectivity:.62,combine:THREE.MixOperation});
     rimify(peau);
-    K.sph(W*.48,H*.46,L*.46,peau,0,y0+H*.42,-L*.02);              // le corps, une goutte ronde
-    K.sph(W*.40,H*.40,L*.34,K.glass,0,y0+H*.54,L*.04);            // LA BULLE
-    // LE MUSEAU : il PLONGE vers le sol et sort du corps. Rentré dans la boule, on ne lisait plus
-    // qu'un galet bleu — c'est le nez pointu et la bouche EN DESSOUS qui font le requin.
-    const mu=K.sph(W*.28,H*.22,L*.30,peau,0,y0+H*.20,L*.36);mu.rotation.x=-.40;
-    const bou=B(W*.46,H*.09,L*.13,K.dark,0,y0+H*.11,L*.44);bou.rotation.x=-.26;
-    for(let i9=0;i9<7;i9++){const t=(i9/6-.5)*W*.42;             // deux rangées de dents
-      K.con(.036,.10,K.acc,t,y0+H*.155,L*.455,4);
-      K.con(.030,.085,K.acc,t,y0+H*.065,L*.455,4).rotation.z=Math.PI;}
+    {const bd=new THREE.Mesh(geo,peau);bd.scale.set(R,.53,1);bd.position.set(0,y0+H*.46,-L*.02);carGroup.add(bd);}
+    K.sph(W*.33,H*.36,L*.27,K.glass,0,y0+H*.80,L*.02);          // LA BULLE, posée sur le dos
+    // LES NAGEOIRES : des LAMES falciformes extrudées, comme dans l'aperçu des dauphins
+    const finM=new THREE.MeshPhongMaterial({color:0x4a86bc,shininess:90,specular:0xdff4ff,
+      envMap:envTex,reflectivity:.4,combine:THREE.MixOperation});
+    {const DOR=finShape([[0,0],[.34,.08],[.30,.34],[.12,.60],[-.06,.66],[-.18,.40],[-.16,.10]],.05);
+     const d9=new THREE.Mesh(DOR,finM);d9.scale.setScalar(W*.66);
+     d9.position.set(0,y0+H*1.06,-L*.16);d9.rotation.y=Math.PI/2;d9.rotation.x=-.16;carGroup.add(d9);}
+    {const PEC=finShape([[0,0],[.10,.05],[.44,.02],[.62,-.10],[.40,-.16],[.10,-.10]],.035);
+     for(const sd of [-1,1]){const p9=new THREE.Mesh(PEC,finM);p9.scale.setScalar(W*.62);
+       p9.position.set(sd*W*.42,y0+H*.34,L*.12);p9.rotation.set(sd*.55,sd*-1.15,-.30);carGroup.add(p9);}}
+    {const FLU=finShape([[0,0],[.10,.06],[.46,.10],[.66,.02],[.50,-.06],[.14,-.06]],.04);
+     for(const sd of [-1,1]){const f9=new THREE.Mesh(FLU,finM);f9.scale.setScalar(W*.60);
+       f9.position.set(sd*W*.17,y0+H*.50,-L*.54);f9.rotation.set(0,sd*.35+Math.PI/2,sd*.34);carGroup.add(f9);}}
+    // LE MUSEAU : la bouche court SOUS le nez (un requin mord par en dessous), deux rangées de dents
+    const bou=B(W*.34,H*.07,L*.13,K.dark,0,y0+H*.30,L*.44);bou.rotation.x=-.24;
+    for(let i9=0;i9<8;i9++){const t=(i9/7-.5)*W*.30;
+      K.con(.028,.080,K.acc,t,y0+H*.345,L*.455,4);
+      K.con(.024,.070,K.acc,t,y0+H*.265,L*.455,4).rotation.z=Math.PI;}
     for(const sd of [-1,1]){
-      K.sph(W*.06,H*.055,L*.045,K.dark,sd*W*.25,y0+H*.30,L*.30); // yeux
-      for(let f=0;f<5;f++)B(.022,H*.10,.022,K.dark,sd*W*.45,y0+H*.30,L*(.10-f*.05)); // fentes branchiales
-      // CARÉNAGES DE ROUE : sans eux les quatre roues pendent DANS LE VIDE sous une sphère qui
-      // s'affine à ses extrémités — la caisse se lisait en pièces détachées.
-      for(const fz of [1,-1])K.sph(W*.16,H*.30,L*.20,peau,sd*(W/2-.16),y0+H*.24,fz*(L/2-.72));
+      K.sph(W*.050,H*.05,L*.04,K.dark,sd*W*.24,y0+H*.54,L*.34);   // œil
+      K.sph(W*.015,H*.014,L*.011,K.chrome,sd*W*.225,y0+H*.565,L*.356); // sa bille de lumière
+      for(let f=0;f<5;f++)B(.020,H*.10,.020,K.dark,sd*W*.42,y0+H*.50,L*(.20-f*.05)); // fentes branchiales
+      // CARÉNAGES DE ROUE : sans eux les roues pendent sous un corps qui s'affine à ses extrémités
+      for(const fz of [1,-1])K.sph(W*.14,H*.26,L*.18,peau,sd*(W/2-.14),y0+H*.30,fz*(L/2-.72));
     }
-    // ⚠ NAGEOIRES = PANNEAUX PLATS. Un cône aplati PUIS tourné voit ses axes tourner avec lui :
-    // l'aplatissement partait dans la mauvaise direction et chaque pectorale ressortait en torpille
-    // collée au flanc. Une simple lame inclinée dit « poisson » mieux et coûte un mesh.
-    for(const sd of [-1,1]){
-      const pec=B(W*.34,.05,L*.20,peau,sd*W*.48,y0+H*.18,L*.02);
-      pec.rotation.set(0,sd*.34,sd*-.42);}                            // dièdre tombant vers l'arrière
-    K.con(W*.13,H*.48,peau,0,y0+H*.92,-L*.10,4).rotation.y=Math.PI/4; // AILERON DORSAL
-    B(.055,H*.44,L*.20,peau,0,y0+H*.52,-L*.48);                       // caudale : le lobe VERTICAL
-    for(const sd of [-1,1]){const lo=B(W*.26,.05,L*.15,peau,sd*W*.14,y0+H*.28,-L*.50);lo.rotation.z=sd*-.55;} // et les deux lobes bas
-    return {hl:[W*.24,y0+H*.30,L*.38],tl:[W*.28,y0+H*.50,-L*.40],wr:.90,wx:W/2-.02,wz:L/2-.72,
-            split:0,skirt:0,sp:0,doors:0,wings:'props',glowX:W*.46,glowY:y0+H*.14,glowL:L*.66,glowF:0};
+    return {hl:[W*.22,y0+H*.34,L*.40],tl:[W*.26,y0+H*.56,-L*.42],wr:.90,wx:W/2-.02,wz:L/2-.72,
+            split:0,skirt:0,sp:0,doors:0,wings:'props',glowX:W*.44,glowY:y0+H*.14,glowL:L*.62,glowF:0};
   }
 };
 function buildCar(spec){
@@ -5872,6 +5969,12 @@ function musicTick(dt,mvt){
 window.playMusic=playMusic;window.stopMusic=stopMusic;window.MUSIC=MUSIC;
 window.musicStartRun=musicStartRun;window.musicMenu=musicMenu;window.musicStop=musicStop;
 window.dbgAudio=function(){const g=n=>(n&&n.gain)?+n.gain.value.toFixed(4):null;return{
+  // LA CHARGE en premier : c'est elle qu'on vient vérifier. À fond en reprise elle doit frôler 1,
+  // stabilisé retomber vers .25-.35, et gaz lâchés tomber à 0 pendant que `ovr` monte.
+  charge:+charge9.toFixed(2),ovr:+ovr9.toFixed(2),rpm:+engRpm.toFixed(2),gear:engGear,
+  drive:g(engPre),rattrapage:g(engPost),antiFatigue:engEq?+engEq.gain.value.toFixed(1):null,
+  chuffs:g(engTickG),rose:g(pinkG),boite:g(transG),pont:g(diffG),freinMoteur:g(ovrG),
+  palier:engLvl+1,voix:(ENG_SND[engLvl]||{}).gr>1?'pistons':'turbine',
   eng:g(gainN),wind:g(windG),whine:g(engWhineG),skid:g(skidG),siren:g(sirG),lfo:g(engLfoG),
   music:g(musicGain),sfx:g(musicSfxGain),acState:AC?AC.state:'no-AC',
   survOn:(typeof SURV!=='undefined')?SURV.on:'?',mode:mode,running:running,nitroOn:nitroOn};};
@@ -6133,6 +6236,13 @@ function updateMoneyRain(dt,t){
 }
 // ---------- AUDIO ----------
 let AC=null,osc=null,osc2=null,filt=null,gainN=null,windG=null,windF=null,skidG=null,jetG=null,jetF=null,jetLowG=null,jetOsc=null,jetOscG=null,whF=null,whG=null;
+// LA CHARGE — l'état interne du moteur. ⚠ Ce n'est PAS la position de l'accélérateur : c'est ce
+// que le moteur ENDURE. Pied au plancher à 300 sur le plat, la charge est faible ; pied au
+// plancher en reprise, elle est maximale. Sans cette distinction, « à fond » et « stabilisé »
+// sonnent pareil — c'est exactement le défaut qu'on corrige.
+let charge9=0,ovr9=0,drift9=0;
+let engPre=null,engPost=null,engEq=null,engTickG=null,engTickO=null,
+    transO=null,transG=null,diffO=null,diffG=null,pinkG=null,ovrF=null,ovrG=null;
 let MASTER=null,engMix=null,engSub=null,engSubG=null,engNzF=null,engNzG=null,engShaper=null,engLfo=null,engLfoG=null,engWhine=null,engWhineG=null,
     skF1=null,skF2=null,skLfo=null,skD1=null,skD2=null,jcFb=null,jcDep=null,jetDist=null,jrG=null,jrF=null,jrDep=null;
 let engLvl=-1,engGear=1,engRpm=0,engShiftT=0,engWasUp=false,nA=0,duckT=0;
@@ -6281,6 +6391,19 @@ function noiseBuf(len){
   for(let i=0;i<n;i++)ch[i]=Math.random()*2-1;
   return b;
 }
+function pinkBuf(len){ // BRUIT ROSE : −3 dB/octave, le bruit des matières et des machines.
+  // ⚠ le blanc est trop brillant (ça siffle), le brun trop sourd (ça gronde) : le rose est le
+  // seul qui s'entend comme de la MATIÈRE. C'est le lit sur lequel tout le reste se pose.
+  // Filtre de Paul Kellett : trois pôles, coût nul, spectre juste à ±0,5 dB.
+  const n=Math.floor(AC.sampleRate*len),b=AC.createBuffer(1,n,AC.sampleRate),ch=b.getChannelData(0);
+  let b0=0,b1=0,b2=0,m=0;
+  for(let i=0;i<n;i++){const w=Math.random()*2-1;
+    b0=.99765*b0+w*.0990460;b1=.96300*b1+w*.2965164;b2=.57000*b2+w*1.0526913;
+    const v=b0+b1+b2+w*.1848;ch[i]=v;const a=Math.abs(v);if(a>m)m=a;}
+  const d0=ch[0]/(m||1),d1=ch[n-1]/(m||1);
+  for(let i=0;i<n;i++)ch[i]=ch[i]/(m||1)-(d0+(d1-d0)*i/n); // normalisé + boucle sans couture
+  return b;
+}
 function brownBuf(len){ // bruit BROWN : blanc intégré — grave et rond PAR NATURE, zéro chuintement.
   // C'est le timbre de l'océan et des fusées : la matière première d'une flamme douce.
   const n=Math.floor(AC.sampleRate*len),b=AC.createBuffer(1,n,AC.sampleRate),ch=b.getChannelData(0);
@@ -6325,9 +6448,72 @@ function initAudio(){
   engNzG=AC.createGain();engNzG.gain.value=0;
   enz.connect(engNzF);engNzF.connect(engNzG);engNzG.connect(engMix);
   engShaper=AC.createWaveShaper();engShaper.oversample='2x';
+  /* ---- L'ÉTAGE DE CHARGE : c'est ICI que se joue « rauque à fond / rond en stabilisé » ----
+     ⚠ ON NE CHANGE PAS LA COURBE DE SATURATION. La dureté d'un waveshaper dépend du NIVEAU
+     qu'on lui envoie, pas de sa forme : pousser fort dedans écrête et fabrique des harmoniques
+     impairs (= rauque), l'effleurer laisse le signal propre (= rond). Recalculer `curve` à
+     chaque frame coûterait un Float32Array par frame ET produirait des sauts audibles ; un
+     simple gain d'entrée donne la même chose, en continu et pour rien.
+     ⚠ ET UN GAIN DE RATTRAPAGE DERRIÈRE. Sans lui, « plus de charge » voudrait surtout dire
+     « plus fort », et on aurait juste un jeu qui hurle — le compresseur du MASTER écraserait
+     tout et l'oreille fatiguerait en dix minutes. Le rattrapage compense l'essentiel du niveau
+     pour que ce soit le TIMBRE qui change, pas le volume. */
+  engPre=AC.createGain();engPre.gain.value=.6;
+  engPost=AC.createGain();engPost.gain.value=1;
+  /* ---- L'ÉGALISEUR ANTI-FATIGUE ----
+     La fatigue auditive vit entre 2 et 4 kHz : c'est là que l'oreille est le plus sensible et
+     c'est exactement la bande qu'un moteur saturé remplit. On y creuse un trou qui se REFERME
+     quand on pousse (la hargne a le droit de piquer) et se CREUSE en stabilisé, là où le son
+     doit se faire oublier. C'est le poste qui décide si on tient une heure de jeu. */
+  engEq=AC.createBiquadFilter();engEq.type='peaking';engEq.frequency.value=2900;
+  engEq.Q.value=1.1;engEq.gain.value=-5;
   filt=AC.createBiquadFilter();filt.type='lowpass';filt.frequency.value=500;
   gainN=AC.createGain();gainN.gain.value=0;
-  engMix.connect(engShaper);engShaper.connect(filt);filt.connect(gainN);gainN.connect(MASTER);
+  engMix.connect(engPre);engPre.connect(engShaper);engShaper.connect(engPost);
+  engPost.connect(engEq);engEq.connect(filt);filt.connect(gainN);gainN.connect(MASTER);
+  /* ---- LES CHUFFS DE COMBUSTION : une bouffée PAR EXPLOSION ----
+     ⚠ ce qui manque à un moteur de synthé, c'est le GRAIN : un vrai moteur n'émet pas un son
+     continu, il émet une rafale d'explosions. On module donc un souffle par un train
+     d'impulsions calé sur la fréquence d'explosion (`fF`) — même horloge que la fondamentale,
+     donc jamais de battement parasite. C'est ce qui fait entendre les cylindres UN PAR UN en bas
+     du compte-tours, et une texture dense en haut. */
+  {const N=12,re=new Float32Array(N+1),im=new Float32Array(N+1);
+   for(let k=1;k<=N;k++)im[k]=1/Math.pow(k,.35);           // train d'impulsions doux (pas un Dirac : ça claquerait)
+   engTickO=AC.createOscillator();engTickO.setPeriodicWave(AC.createPeriodicWave(re,im));
+   const tsrc=AC.createBufferSource();tsrc.buffer=pinkBuf(2);tsrc.loop=true;
+   const tf=AC.createBiquadFilter();tf.type='bandpass';tf.frequency.value=1700;tf.Q.value=.7;
+   engTickG=AC.createGain();engTickG.gain.value=0;
+   tsrc.connect(tf);tf.connect(engTickG);engTickG.connect(engMix);
+   engTickO.connect(engTickG.gain);                        // l'oscillateur MODULE le gain du souffle
+   tsrc.start();engTickO.start();}
+  /* ---- LE LIT DE BRUIT ROSE : la complexité de fond ----
+     Toujours présent, très bas. Il ne s'entend pas tout seul ; il empêche le moteur de sonner
+     comme un synthétiseur propre, ce qu'aucun objet mécanique n'est. */
+  {const psrc=AC.createBufferSource();psrc.buffer=pinkBuf(3);psrc.loop=true;
+   const pf=AC.createBiquadFilter();pf.type='lowpass';pf.frequency.value=2400;
+   pinkG=AC.createGain();pinkG.gain.value=0;
+   psrc.connect(pf);pf.connect(pinkG);pinkG.connect(engMix);psrc.start();}
+  /* ---- LA TRANSMISSION ET LE PONT ----
+     ⚠ LEUR HAUTEUR SUIT LA VITESSE DE LA VOITURE, PAS LE RÉGIME MOTEUR. C'est toute la
+     différence : au passage de rapport le moteur RETOMBE alors que la boîte, elle, continue.
+     Un sifflement qui redescendrait avec le moteur se confondrait avec lui et ne dirait rien.
+     Deux voix : la boîte (aiguë, denture droite) et le pont (plus grave, plus sourd). */
+  transO=AC.createOscillator();transO.type='triangle';transO.frequency.value=800;
+  {const tf2=AC.createBiquadFilter();tf2.type='bandpass';tf2.frequency.value=2600;tf2.Q.value=2.2;
+   transG=AC.createGain();transG.gain.value=0;
+   transO.connect(tf2);tf2.connect(transG);transG.connect(gainN);transO.start();}
+  diffO=AC.createOscillator();diffO.type='triangle';diffO.frequency.value=380;
+  {const df=AC.createBiquadFilter();df.type='bandpass';df.frequency.value=900;df.Q.value=1.6;
+   diffG=AC.createGain();diffG.gain.value=0;
+   diffO.connect(df);df.connect(diffG);diffG.connect(gainN);diffO.start();}
+  /* ---- LE FREIN MOTEUR : ce qu'on entend quand on LÂCHE ----
+     Gaz coupés à haut régime, la combustion s'arrête mais la mécanique tourne encore : il reste
+     une dépression d'admission et un échappement qui se vide. C'est creux, filtré, et ça
+     DESCEND avec le régime. Sans cette couche, lâcher les gaz ne faisait que baisser le volume. */
+  {const osrc=AC.createBufferSource();osrc.buffer=pinkBuf(2);osrc.loop=true;
+   ovrF=AC.createBiquadFilter();ovrF.type='bandpass';ovrF.frequency.value=420;ovrF.Q.value=1.9;
+   ovrG=AC.createGain();ovrG.gain.value=0;
+   osrc.connect(ovrF);ovrF.connect(ovrG);ovrG.connect(gainN);osrc.start();}
   // RONRONNEMENT : LFO d'amplitude 8-15 Hz (la rugosité psychoacoustique que l'oreille adore),
   // profond au ralenti, qui s'efface dès qu'on monte dans les tours — le chat devient fauve
   engLfo=AC.createOscillator();engLfo.type='sine';engLfo.frequency.value=11;
@@ -7512,6 +7698,11 @@ function endGame(){
   if(windG)windG.gain.setTargetAtTime(0,AC.currentTime,.2);
   if(engLfoG)engLfoG.gain.setTargetAtTime(0,AC.currentTime,.2);
   if(engWhineG)engWhineG.gain.setTargetAtTime(0,AC.currentTime,.2);
+  // ⚠ les couches mécaniques aussi : elles vivent hors du `gainN` principal (boîte, pont et
+  // frein moteur y sont branchés en parallèle). Les oublier laissait un sifflement de boîte
+  // tourner en boucle sur l'écran de fin, sans rien à l'écran pour l'expliquer.
+  for(const n9 of [transG,diffG,ovrG,engTickG,pinkG])if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.2);
+  charge9=0;ovr9=0;
   AIP.commit(); // ta manière de jouer entre dans la mémoire des poursuivantes
   SAVE.d.best=best;SAVE.flush(); // fin de run : tout part sur le disque, quoi qu'il arrive
   const sc=Math.round(money);
@@ -9249,27 +9440,122 @@ function loop(now){
           if(engShiftT>0){engShiftT-=dt;tgt*=.66;} // gaz coupés le temps du passage
         }else tgt=sN; // turbine/onduleur : montée continue, zéro rupture
         engRpm+=(tgt-engRpm)*Math.min(1,dt*(tgt>engRpm?8:5.5)); // monte nerveux, retombe un peu plus lent
-        if(engWasUp&&!up&&engRpm>.42&&eng.crk>0&&Math.random()<eng.crk)crackle(eng.crk); // lâcher haut dans les tours : ça pète
+        /* ================= LA CHARGE : les trois états du moteur =================
+           ⚠ LA CHARGE N'EST PAS LA PÉDALE. Pied au plancher à 300 km/h sur le plat, un moteur
+           travaille peu — il tient une vitesse. Pied au plancher en reprise, il donne tout.
+           Ce sont deux sons TRÈS différents, et jusqu'ici le jeu ne connaissait que `thr` (0/1),
+           donc les deux sonnaient pareil. La charge se lit dans l'ACCÉLÉRATION RÉELLE : si le
+           régime normalisé monte, le moteur pousse contre quelque chose.
+           Trois états, un seul continuum : 1 = pleine charge · ~.3 = stabilisé · 0 = lâché. */
+        const dv9=(sN-(loop._sN==null?sN:loop._sN))/Math.max(.001,dt);loop._sN=sN;
+        const cCib=thr?Math.max(0,Math.min(1,.26+dv9*2.6)):0;
+        // monte VITE (le coup de gaz est instantané), retombe plus lentement (l'inertie thermique)
+        charge9+=(cCib-charge9)*Math.min(1,dt*(cCib>charge9?9:3.4));
+        // LE SUR-RÉGIME : gaz lâchés alors que ça tourne encore haut = frein moteur
+        const oCib=(!thr&&engRpm>.20)?Math.min(1,(engRpm-.20)*2.4):0;
+        ovr9+=(oCib-ovr9)*Math.min(1,dt*(oCib>ovr9?10:4.5));
+        // une DÉRIVE lente et irrégulière : aucune machine ne tient une valeur parfaitement fixe,
+        // et c'est cette micro-instabilité qui empêche l'oreille de « décrocher » du son
+        drift9+=((Math.random()-.5)*.9-drift9)*Math.min(1,dt*1.6);
+        /* LE POP-CORN D'ÉCHAPPEMENT. Il existait déjà mais ne se déclenchait qu'à l'INSTANT du
+           lâcher. Un vrai échappement continue de péter pendant toute la décélération, de plus
+           en plus espacé — c'est la traîne qui fait le plaisir, pas le premier pop. */
+        if(engWasUp&&!up&&engRpm>.42&&eng.crk>0&&Math.random()<eng.crk)crackle(eng.crk);
+        else if(ovr9>.25&&eng.crk>0&&Math.random()<dt*7*eng.crk*ovr9*ovr9)crackle(eng.crk*.55);
         engWasUp=up;
         const wob=eng.wob?Math.sin(t*12.7)*Math.sin(t*3.1)*eng.wob*Math.max(0,1-engRpm*3.5):0; // l'épave respire au ralenti
         const fF=(eng.i+engRpm*eng.r)*(1+.12*nA)*(1+wob); // fréquence d'explosion (+12% sous nitro : la poussée s'entend, sans hurler)
         osc.frequency.setTargetAtTime(fF,AC.currentTime,.035);
         osc2.frequency.setTargetAtTime(fF,AC.currentTime,.04);
+        /* ---- L'ÉPAISSEUR : le désaccord s'ouvre avec la charge ----
+           ⚠ POURQUOI CE POSTE EXISTE. Diagnostic sur les 30 : 28 moteurs gagnent au moins une
+           harmonique quand le filtre s'ouvre en charge, mais DEUX n'en gagnent aucune — la
+           TURBINE À PLASMA et le TROU NOIR, dont la table d'harmoniques est quasi vide (leur son
+           est porté par le souffle et le sifflement, pas par l'onde). Sur eux, la charge ne
+           pouvait donc rien changer au timbre par le filtre.
+           Le désaccord, lui, marche sur TOUS : deux voix qui s'écartent battent l'une contre
+           l'autre, et cette RUGOSITÉ s'entend comme de l'épaisseur — c'est le « plus plein »
+           demandé, et ça ne dépend d'aucune harmonique. 7 cents en stabilisé (deux voix qui se
+           confondent), 26 à fond (ça gronde). */
+        osc2.detune.setTargetAtTime(7+charge9*19,AC.currentTime,.07);
         engSub.frequency.setTargetAtTime(Math.max(24,fF*.5),AC.currentTime,.05);
-        engNzF.frequency.setTargetAtTime(Math.min(4800,Math.max(300,fF*6)),AC.currentTime,.06);
+        /* ⚠ POUR LES RÉACTEURS, C'EST LE BRUIT QUI PORTE LA CHARGE — pas l'onde.
+           Mesuré : sur le TROU NOIR, la charge ne faisait bouger le timbre que de 4 % (contre
+           57 % sur le V8 ATMO). Deux raisons, toutes deux structurelles : son passe-bas sature
+           au plafond de 7800 Hz dans les trois états, et sa table d'harmoniques est quasi vide —
+           il n'y a rien à saturer. Un réacteur n'a pas de « charge » au sens d'un piston : ce qui
+           change quand il pousse, c'est le DÉBIT D'AIR. On fait donc porter la charge par la
+           bande passante et le niveau du souffle, qui est de toute façon la matière même de ces
+           moteurs (`nz` monte jusqu'à 3,4 sur le statoréacteur). */
+        engNzF.frequency.setTargetAtTime(Math.min(6200,Math.max(300,fF*6*(.72+charge9*.62))),AC.currentTime,.06);
         // ⚠ `nz` : LE LIT DE BRUIT PAR MOTEUR. À partir du statoréacteur il n'y a plus une seule
         // pièce mobile — ce qu'on entend n'est plus une onde mais de l'air maltraité. Sans ce
         // poste, un « réacteur » n'était qu'un synthé qui monte, et les dix derniers paliers se
         // ressemblaient tous. C'est le levier le moins cher et le plus payant de la palette.
-        engNzG.gain.setTargetAtTime((.1+.16*thr+.08*engRpm)*(eng.nz||1)*(1-.5*nA),AC.currentTime,.07); // l'admission s'efface sous nitro
+        engNzG.gain.setTargetAtTime((.06+.26*charge9+.08*engRpm)*(eng.nz||1)*(1-.5*nA),AC.currentTime,.07); // l'admission s'efface sous nitro
+        // ⚠ le TURBO monte avec la CHARGE, pas avec la pédale : c'est le débit de gaz qui le fait
+        // tourner. Et il RETOMBE au lâcher (le blow-off, lui, est déjà géré à part).
         if(eng.whine){engWhine.frequency.setTargetAtTime(Math.min(13500,fF*eng.whine),AC.currentTime,.04);
-          engWhineG.gain.setTargetAtTime((.16+.1*thr)*Math.pow(Math.min(1,engRpm),.7)*(1-.45*nA),AC.currentTime,.06);
+          engWhineG.gain.setTargetAtTime((.10+.16*charge9)*Math.pow(Math.min(1,engRpm),.7)*(1-.45*nA)*(1-ovr9*.7),AC.currentTime,.06);
         }else engWhineG.gain.setTargetAtTime(0,AC.currentTime,.06);
-        engMix.gain.setTargetAtTime(.42+.6*thr+.05*nA,AC.currentTime,.05); // pousser dans la saturation = la hargne
+        /* ---- LE TIMBRE SUIT LA CHARGE ----
+           `engPre` pousse dans la saturation (rauque), `engPost` rattrape le niveau pour que ce
+           soit le TIMBRE qui change et pas le volume, `engEq` referme le trou anti-fatigue quand
+           on pousse et le creuse en stabilisé. Les trois bougent ensemble : c'est ce trio qui
+           fait qu'on ENTEND la différence entre « à fond » et « je tiens ma vitesse ». */
+        // ⚠ VALEURS RÉGLÉES À LA MESURE, pas à l'oreille (je n'entends pas le jeu). Chaîne rejouée
+        // dans un OfflineAudioContext aux trois états, spectre comparé. Premier réglage : le
+        // centroïde ne montait que de 12 % entre stabilisé et pleine charge — audible, mais pas
+        // « radical ». En élargissant le drive et le creux anti-fatigue on passe à +32 % de
+        // centroïde et +75 % d'énergie au-dessus de 2 kHz, pour seulement +2,4 dB de niveau.
+        const drv=.42+charge9*2.45+ovr9*-.16;
+        engPre.gain.setTargetAtTime(drv,AC.currentTime,.06);
+        engPost.gain.setTargetAtTime(1.05/Math.pow(drv,.55),AC.currentTime,.06); // rattrapage partiel
+        engEq.gain.setTargetAtTime(-8.0+charge9*7.0,AC.currentTime,.09);          // −8 dB stabilisé → −1 dB à fond
+        engMix.gain.setTargetAtTime(.42+.20*charge9+.10*thr+.05*nA,AC.currentTime,.05);
+        engSubG.gain.setTargetAtTime(eng.sub*(.34+.30*charge9),AC.currentTime,.08); // la poitrine gonfle en charge
+        /* ---- LES CHUFFS : une bouffée par explosion. Peu en stabilisé, dense à fond. ----
+           ⚠ réservés aux moteurs à PISTONS (`gr>1`) : une turbine n'a pas d'explosions discrètes,
+           lui coller des chuffs la ferait sonner comme un gros diesel. */
+        const meca=eng.gr>1?1:0;
+        engTickO.frequency.setTargetAtTime(Math.max(6,fF),AC.currentTime,.03);
+        engTickG.gain.setTargetAtTime(meca*(.012+.055*charge9+.018*engRpm)*(1-.5*nA),AC.currentTime,.07);
+        pinkG.gain.setTargetAtTime((.020+.030*engRpm+.020*charge9)*(1-.4*nA),AC.currentTime,.10);
+        /* ---- BOÎTE ET PONT : leur hauteur suit la VITESSE, jamais le régime ----
+           C'est ce qui les rend audibles comme des pièces séparées : au passage de rapport le
+           moteur retombe d'un coup, elles non. Pas de boîte sur les turbines (`gr===1`), donc
+           pas un son : le palier 20 change de nature, et ça s'entend à ça aussi. */
+        const vsp=Math.min(1.15,spd3/Math.max(1,vmaxShow()));
+        transO.frequency.setTargetAtTime(240+vsp*2300*(1+drift9*.004),AC.currentTime,.08);
+        diffO.frequency.setTargetAtTime(120+vsp*760,AC.currentTime,.08);
+        transG.gain.setTargetAtTime(meca*(.008+.026*charge9+.010*vsp)*(1-.55*nA),AC.currentTime,.10);
+        diffG.gain.setTargetAtTime(meca*(.006+.014*charge9+.012*vsp)*(1-.55*nA),AC.currentTime,.10);
+        /* ---- LE FREIN MOTEUR : creux, filtré, il DESCEND avec le régime ---- */
+        ovrF.frequency.setTargetAtTime(200+engRpm*900,AC.currentTime,.06);
+        ovrG.gain.setTargetAtTime(meca*ovr9*(.030+.070*engRpm)*(1-.6*nA),AC.currentTime,.05);
         // SOUS NITRO LE MOTEUR S'INCLINE : filtre qui se referme (×(1-.25·nA)), plafond doux à 7800 Hz —
         // c'est la FLAMME qui domine, le moteur gronde DERRIÈRE elle au lieu de lui hurler dessus
-        filt.frequency.setTargetAtTime(Math.min(7800,eng.fq+fF*eng.fr+thr*850+(boost>0?400:0))*(1-.25*nA)*(1-.45*cloudInS),AC.currentTime,.06); // sombre au ralenti, s'ouvre à fond — feutré dans la ouate
-        const ev=(.02+.028*engRpm+.013*thr)*(1-.24*nA)*eng.vol*dk;
+        // ⚠ le filtre suit la CHARGE et non plus la pédale : s'ouvre grand en reprise (brillant,
+        // agressif), se referme en stabilisé (rond, discret) et se referme ENCORE au lâcher (il
+        // ne reste que de la mécanique). Le `drift9` lui donne une respiration de ±1,5 % —
+        // imperceptible consciemment, mais c'est ce qui empêche le son de se figer.
+        /* ⚠ LA CHARGE AGIT EN FACTEUR, PAS EN ADDITION. Deux bugs trouvés à la mesure, tous
+           deux causés par des termes additifs (+1550 en charge, −560 au lâcher) sur une
+           fréquence dont l'échelle varie d'un facteur 20 entre le premier et le dernier palier :
+             1. EN BAS — le MOTEUR ROUILLÉ a une base à ~370 Hz. Lui retirer 560 au lâcher
+                donnait une fréquence de coupure NÉGATIVE : le biquad la borne à 0 et le moteur
+                devenait littéralement MUET dès qu'on lâchait les gaz. (Mesuré : −∞ dB.)
+             2. EN HAUT — le H16 F1 et le TROU NOIR dépassent le plafond de 7800 Hz dans TOUS
+                les états : la charge ne changeait plus rien au timbre (aigus ×0,99) et ne
+                faisait plus que monter le volume (+4,4 dB). Exactement l'inverse du but.
+           En multiplicatif, les trois états gardent le même écart RELATIF (×1,5 entre stabilisé
+           et pleine charge) quel que soit le moteur — et plus aucun cas dégénéré. */
+        const lpB=Math.max(240,Math.min(6200,eng.fq+fF*eng.fr));
+        filt.frequency.setTargetAtTime(lpB*(.62+charge9*.55)*(1-ovr9*.45)*(1+(boost>0?.06:0))
+          *(1+drift9*.015)*(1-.25*nA)*(1-.45*cloudInS),AC.currentTime,.06);
+        // ⚠ le stabilisé est VOLONTAIREMENT plus bas que la reprise : c'est là qu'on passe le plus
+        // de temps, et un niveau constant à fond est ce qui use l'oreille au bout d'une heure.
+        const ev=(.019+.026*engRpm+.009*charge9)*(1-.24*nA)*eng.vol*dk;
         gainN.gain.setTargetAtTime(ev,AC.currentTime,.08); // (dk = announcer + gros événements)
         engLfo.frequency.setTargetAtTime(Math.min(40,Math.max(4,fF*.35)),AC.currentTime,.1);
         // ⚠ `lk:1` GARDE la modulation à tous les régimes. Un ronron de ralenti s'efface quand ça
@@ -9285,6 +9571,9 @@ function loop(now){
           osc.frequency.setTargetAtTime(e0.i,AC.currentTime,.3);osc2.frequency.setTargetAtTime(e0.i,AC.currentTime,.3);}
         engLfoG.gain.setTargetAtTime(0,AC.currentTime,.1);
         engWhineG.gain.setTargetAtTime(0,AC.currentTime,.1);
+        // en vol il n'y a plus ni charge, ni boîte, ni frein moteur : les roues ne touchent rien
+        for(const n9 of [transG,diffG,ovrG,engTickG,pinkG])if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.12);
+        charge9+=(0-charge9)*Math.min(1,dt*4);ovr9+=(0-ovr9)*Math.min(1,dt*4);
       }
       if(windG){
         // MORT ('boom') : coupé NET — sinon spd3 (=speedKmh figé au crash) laisse le vent souffler à fond pour toujours
