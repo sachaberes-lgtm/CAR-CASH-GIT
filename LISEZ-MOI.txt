@@ -1,0 +1,66 @@
+CASH CAR — NIVEAU 1 « CHROME LEDGER »
+=====================================
+
+POUR JOUER
+----------
+  Mac    : double-clic sur JOUER.command
+           (si macOS bloque : clic droit > Ouvrir > Ouvrir)
+  Windows: double-clic sur JOUER.bat
+
+Une fenêtre noire s'ouvre : LAISSE-LA OUVERTE pendant que tu joues, c'est le serveur.
+Le navigateur s'ouvre tout seul. Clique sur l'écran-titre pour lancer le son.
+
+/!\ NE DOUBLE-CLIQUE PAS index.html DIRECTEMENT.
+    Le jeu se lancera, mais MUET : un navigateur refuse de charger les mp3 depuis un
+    simple fichier. Et sans la musique, tout le décor du niveau 1 reste éteint —
+    il est branché sur l'analyse du morceau.
+
+Il faut Python (déjà là sur Mac). Sinon : https://www.python.org
+
+
+LES COMMANDES
+-------------
+  <-  ->          diriger        (ou A/Q et D)
+  Haut            accélérer      (ou W/Z)
+  Bas             freiner        (ou S)
+  Espace          NITRO
+                  -> double-tap rapide = BRAQUAGE, quand la jauge de style clignote
+                  -> en l'air : pousser (haut) / redresser (bas)
+  P               pause
+  Entrée          rejouer, sur l'écran de fin
+
+Sur téléphone, l'écran affiche ses propres commandes tactiles (et l'accélération
+devient automatique).
+
+
+CE QU'IL FAUT REGARDER
+----------------------
+Le niveau 1 dure exactement le temps du morceau (3 min 14). À la fin : célébration,
+la musique s'arrête, et la partie CONTINUE. Ce n'est pas un game over.
+
+Le CIEL joue la musique. Il y a un métronome qui verrouille le tempo du morceau, donc
+le décor reste en mesure même dans les passages calmes :
+  - une roue de quartiers qui tourne, et une contre-roue à l'envers (leur moiré ne se
+    répète jamais) ;
+  - des ondes qui partent du zénith à chaque coup de grosse caisse ;
+  - un grésil fin sur les charlestons et les cymbales ;
+  - des vagues de couleur qui repeignent TOUT le ciel — soleil, lune, étoiles compris ;
+  - le soleil « 1.61 » qui gonfle sur les frappes, et le limbe de la Terre qui s'embrase.
+
+La couleur du décor suit celle des rails de la piste : à chaque portail, la nuit change
+de couleur.
+
+
+BONUS : atelier-fond.html
+-------------------------
+Une fois le serveur lancé, ouvre :  http://localhost:8000/atelier-fond.html
+Le ciel seul, plein écran, sur le vrai morceau — avec le tempo qui se verrouille en
+direct sous les yeux. Glisse à la souris pour regarder autour.
+
+
+PROBLÈMES CONNUS
+----------------
+- Pas de son ? Clique une fois dans la page : les navigateurs exigent un geste avant
+  d'autoriser l'audio.
+- Une vieille version s'affiche ? Recharge en forçant (Cmd+Shift+R / Ctrl+Shift+R).
+  Le jeu installe un service worker qui met en cache un peu trop bien.
