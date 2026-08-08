@@ -8122,6 +8122,19 @@ function lateMul(){return 1+Math.min(.5,Math.max(0,engTier-8)*.035);}
 // carrosserie, jusqu'à 1900) alors que la caisse plafonne en vrai à CARS[0]×moteur donnait un ratio
 // minuscule — plus aucun frisson, plus de speed lines, quelle que soit l'allure.
 function vmaxShow(){return CARS[0].maxKmh*SPD*lateMul()*(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).push;}
+/* ---- V_TOP : LE PLAFOND DU JEU, et pourquoi la sensation de vitesse s'était éteinte ------------
+   Sacha, 2026-08-09 : « les tremblements caméra ont disparu ». Le code du tremblement, lui, est
+   IDENTIQUE au caractère près à celui de la V3 — et il tape même 2× plus fort ici, faute de
+   `calm9` (le plané supersonique ne se déclenche jamais). Ce n'est donc pas lui.
+   LA VRAIE CAUSE est une histoire d'ÉCHELLE. Dans la gamme des 24, la VOITURE portait la vitesse :
+   DIEU-VITESSE affichait 1900 × SPD × overdrive ≈ 1425 km/h, et TOUS les seuils de sensation ont
+   été calés sur cette règle-là. Depuis que c'est le MOTEUR qui porte la vitesse (CARS[0] × palier),
+   le jeu plafonne à ~599 : le compteur ne gonfle plus (seuil 760), ne rougit plus (920), le vent
+   reste inaudible (560), les filés d'air ne passent pas le 1er palier. Rien n'était « cassé » — les
+   seuils visaient simplement des vitesses devenues INATTEIGNABLES.
+   ⚠ TOUT SEUIL DE SENSATION EXPRIMÉ EN KM/H SE RÉFÈRE DÉSORMAIS À `V_TOP`. Si le dernier palier
+   moteur bouge, ou si la voiture se remet à porter la vitesse, il n'y a que cette ligne à relire. */
+const V_TOP=CARS[0].maxKmh*SPD*1.5*ENGINE_TIERS[ENGINE_TIERS.length-1].push; // 1.5 = plafond de lateMul()
 let mode='drive',s=0,lat=0,psi=0,vA=0,vL=0,side=1,driveDir=1; // driveDir : sens de conduite le long du ruban (+1/-1). TOUJOURS 1 en course ; dans le PARC il suit le sens d'atterrissage → les routes se roulent dans les DEUX sens (pas de sens imposé)
 const START_CASH=1.61; // la mise de depart, clin d'oeil au studio 1.61
 let steer=0,money=START_CASH,levelCash=0,boost=0,fallT=0,fallTR=0,padCd=0,shake=0,combo=0,comboT=0,graceT=0,safeS=0,yawAcc=0,edgeT=0,squashT=0,momT=0,styleM=0,fever=0,streak=0,slowT=0,steerHold=0,aheadV=0,sideCd=0,slipT=0,oilCd=0,hitT=0,insUsed=false,feverArmed=false,lastSpaceT=0,rollover=0,idleT=0,driftT=0,driftYaw=0;
@@ -9630,8 +9643,11 @@ function loop(now){
       const vF=vA;
       boost=Math.max(0,boost-dt);
       speedKmh=Math.abs(vF)*3.6*SPD*spdMult;
-      // PURE SPEED : 3 s de nitro soutenu à +400 km/h sur la route
-      if(nitroOn&&speedKmh>400){
+      // PURE SPEED : 3 s de nitro soutenu à HAUT RÉGIME sur la route. Le seuil était de 400 km/h en
+      // dur — 28 % du plafond de l'époque (1425), soit un exploit de mi-partie ; sur le plafond
+      // actuel (V_TOP ≈ 599) c'était devenu 67 %, donc réservé aux tout derniers moteurs. Remis à
+      // 55 % du plafond : la voix se mérite, mais elle ne se cache plus derrière le palier 29.
+      if(nitroOn&&speedKmh>V_TOP*.55){
         pureT+=dt;
         if(pureT>3&&pureArmed){pureArmed=false;const tx=annSpeak('pureSpeed',2);if(tx)trickMsg(tx,2);noiseBurst(.5,.12,1200);}
       }else{pureT=0;pureArmed=true;}
@@ -9845,8 +9861,8 @@ function loop(now){
           }
         }
         // traits d'AIR : discrets, de plus en plus nombreux à mesure que ça accélère
-        if(speedKmh>140){ // seuils ×2 (SPD .25→.5 : km/h doublés) — mêmes traits d'air au même état-caisse
-          const nS9=speedKmh>640?4:speedKmh>460?3:speedKmh>280?2:1;
+        if(speedKmh>V_TOP*.10){ // seuils calés sur le PLAFOND DU JEU (voir V_TOP) — sinon aucun palier ne tombe
+          const nS9=speedKmh>V_TOP*.45?4:speedKmh>V_TOP*.32?3:speedKmh>V_TOP*.20?2:1;
           for(let k9=0;k9<nS9;k9++)if(Math.random()<.85){
             tmp2.copy(carGroup.position).addScaledVector(fwdW,10+Math.random()*40);
             tmp2.addScaledVector(tmp,(Math.random()-.5)*30);
@@ -9881,7 +9897,7 @@ function loop(now){
             .04+Math.random()*.04+(nitroOn?.03:0));
         }
         // backfire : pop de flammes quand on relâche les gaz à haut régime
-        if(!up&&loop._wasUp&&speedKmh>280){ // seuil ×2 (SPD .25→.5) : le backfire reste réservé au HAUT régime
+        if(!up&&loop._wasUp&&speedKmh>V_TOP*.20){ // le backfire reste réservé au HAUT régime (voir V_TOP)
           for(let k=0;k<6;k++){
             const sd3=k%2?-1:1;
             tmp2.copy(carGroup.position).addScaledVector(fwdW,-spec.l/2-.2).addScaledVector(tmp,sd3*spec.w*.22).addScaledVector(F.n,.43);
@@ -9928,7 +9944,13 @@ function loop(now){
         // passé ~350 km/h affichés, l'air ne lutte plus, la caisse fend — les vibrations fondent à 30 %.
         const vmx9=vmaxShow(),
               spdN=THREE.MathUtils.clamp((speedKmh-vmx9*.60)/(vmx9*.55),0,1),
-              calm9=1-.7*THREE.MathUtils.smoothstep(speedKmh,700,1800), // fenêtre DOUBLÉE (SPD .25→.5 : les km/h affichés ont doublé) — le plané supersonique calme au même état-caisse qu'avant, pas dès le mid-game
+              // ⚠ CALM9 EST VOLONTAIREMENT LAISSÉ SUR L'ÉCHELLE ABSOLUE, seul de tous les seuils.
+              // C'est le « plané supersonique » : passé ~700 km/h l'air ne lutte plus, la caisse
+              // FEND, et les vibrations fondent à 30 %. Le jeu plafonnant à V_TOP ≈ 599, il ne se
+              // déclenche plus jamais — et c'est JUSTE : on n'est plus supersonique. Le recaler sur
+              // V_TOP rendrait le tremblement PLUS FAIBLE au sommet, exactement l'inverse de ce
+              // qu'on cherche ici. À rouvrir seulement si le plafond du jeu repasse au-dessus de 700.
+              calm9=1-.7*THREE.MathUtils.smoothstep(speedKmh,700,1800),
               spdSh=spdN*spdN*CAM_SHAKE_V*.42*calm9*(nitroOn?1.3:1); // FRISSON, pas séisme : à vmax de croisière ≈ .10 d'amplitude (la sensation vient du FOV + speed lines, le tremblement signale juste la LIMITE)
         if(spdSh>0&&!window.dbgNoShake){
           camera.position.addScaledVector(F.n,(Math.random()-.5)*spdSh);
@@ -10099,9 +10121,9 @@ function loop(now){
         if(hot!==caseHot){caseHot=hot;caseHud.className=hot?'hot':'';}
         if(hot){heartT-=dt;if(heartT<=0){heartT=.86;heartBeat();}}
       }
-      if(speedKmh>120){ // traits d'air aussi en vol (seuils ×2 : SPD .25→.5)
+      if(speedKmh>V_TOP*.085){ // traits d'air aussi en vol (seuils calés sur V_TOP)
         tmp.copy(fallVel).normalize();
-        const nS9=speedKmh>480?3:speedKmh>260?2:1;
+        const nS9=speedKmh>V_TOP*.34?3:speedKmh>V_TOP*.185?2:1;
         for(let k9=0;k9<nS9;k9++){
           tmp2.copy(fallPos).addScaledVector(tmp,10+Math.random()*30);
           tmp2.x+=(Math.random()-.5)*22;tmp2.y+=(Math.random()-.5)*16;tmp2.z+=(Math.random()-.5)*22;
@@ -10143,7 +10165,7 @@ function loop(now){
       const fovAir=76-bigAir*22; // ZOOM cinématique : le champ se resserre avec l'ampleur du saut (76° petit air → 54° gros air)
       camera.fov+=(fovAir-camera.fov)*Math.min(1,dt*4);
       camera.updateProjectionMatrix();
-      const fshN=THREE.MathUtils.clamp((speedKmh-180)/360,0,1.2),fsh=fshN*fshN*CAM_SHAKE_V;
+      const fshN=THREE.MathUtils.clamp((speedKmh-V_TOP*.13)/(V_TOP*.25),0,1.2),fsh=fshN*fshN*CAM_SHAKE_V; // tremblement EN VOL (voir V_TOP)
       if(fsh>0){
         camera.position.x+=(Math.random()-.5)*fsh;
         camera.position.y+=(Math.random()-.5)*fsh;
@@ -10230,7 +10252,7 @@ function loop(now){
     tmp2.set(0,1,0).applyQuaternion(carGroup.quaternion);
     let trc;
     if(nitroOn)trc=nitroBlue?[.35,.55,1]:[1,.6,.15];
-    else{const ti=Math.max(0,Math.min(.3,(speedKmh-380)/1000));trc=[ti*.8,ti*.9,ti];} // seuil ×2 (SPD .25→.5) : la traînée se teinte au même état-caisse qu'avant
+    else{const ti=Math.max(0,Math.min(.3,(speedKmh-V_TOP*.27)/(V_TOP*.70)));trc=[ti*.8,ti*.9,ti];} // la traînée se teinte au haut régime (voir V_TOP)
     trailPush(
       carGroup.position.x-tmp3.x*2.2-tmp.x*.95+tmp2.x*.45,
       carGroup.position.y-tmp3.y*2.2-tmp.y*.95+tmp2.y*.45,
@@ -10536,7 +10558,7 @@ function loop(now){
       }
       if(whG){ // sifflement d'air : la signature des vitesses folles (>330 km/h)
         // MORT : coupé NET (même piège que le vent : sinon le sifflement reste bloqué à fond après le crash)
-        whG.gain.setTargetAtTime(mode==='boom'?0:Math.min(.06,Math.max(0,(spd3-560)/4400))*(1-.7*cloudInS)*(1-.5*nA)*dk,AC.currentTime,mode==='boom'?.08:.12); // seuil+pente ×2 (SPD .25→.5 : spd3 a doublé) — le sifflement reste la signature des VITESSES FOLLES, pas un fond permanent
+        whG.gain.setTargetAtTime(mode==='boom'?0:Math.min(.06,Math.max(0,(spd3-V_TOP*.39)/(V_TOP*3.1)))*(1-.7*cloudInS)*(1-.5*nA)*dk,AC.currentTime,mode==='boom'?.08:.12); // seuil+pente ×2 (SPD .25→.5 : spd3 a doublé) — le sifflement reste la signature des VITESSES FOLLES, pas un fond permanent
         whF.frequency.setTargetAtTime(2000+spd3*1.2,AC.currentTime,.1); // coef ÷2 : même pitch au même état-caisse
       }
       if(cloudInS>.45&&!loop._cldWas)noiseBurst(.45,.08,520); // percée dans la ouate : fwoosh de coton
@@ -10589,10 +10611,10 @@ function loop(now){
     if(speedKmh>runStats.vmax)runStats.vmax=speedKmh;
     elSpeed.textContent=Math.round(speedKmh);
     // le compteur VIT : il gonfle et vire au rouge quand ça devient déraisonnable
-    const spdP=Math.min(.24,Math.max(0,(speedKmh-760)/1300)+(nitroOn?.05:0)); // seuils ×2 (SPD .25→.5 : km/h affichés doublés) — le compteur gonfle/rougit au même RÉGIME RESSENTI qu'avant
+    const spdP=Math.min(.24,Math.max(0,(speedKmh-V_TOP*.53)/(V_TOP*.91))+(nitroOn?.05:0)); // le compteur GONFLE au haut régime (voir V_TOP)
     elSpeed.style.transform='scale('+(1+spdP).toFixed(3)+')';
-    elSpeed.style.color=speedKmh>920?'#ff5040':'';
-    speedFx.style.opacity=Math.max(0,Math.min(.95,(speedKmh-280)/560));
+    elSpeed.style.color=speedKmh>V_TOP*.65?'#ff5040':'';   // …et ROUGIT quand ça devient déraisonnable
+    speedFx.style.opacity=Math.max(0,Math.min(.95,(speedKmh-V_TOP*.20)/(V_TOP*.39)));
     // panneaux HUD MASQUÉS (#carInfo/#cpInfo/#record en display:none) : on ne reconstruit leur texte (fmtC/fmt alloue) QUE quand la valeur change
     paintCarHud();
     if(loop._money!==money){loop._money=money;elMoney.innerHTML=fmtGta(money); // un parse HTML seulement quand le compte bouge
