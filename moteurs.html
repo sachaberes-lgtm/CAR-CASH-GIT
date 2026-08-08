@@ -341,10 +341,14 @@ function audioOn(){
   N.pre=AC.createGain();N.post=AC.createGain();
   N.sh=AC.createWaveShaper();N.sh.oversample='2x';
   N.eq=AC.createBiquadFilter();N.eq.type='peaking';N.eq.frequency.value=2900;N.eq.Q.value=1.1;
+  // LA GORGE DU CONDUIT — fixe, elle ne suit pas le régime. Sans elle on entend un synthé qui
+  // glisse ; avec elle on entend un tuyau. (Relevée sur un vrai échappement : un pic qui reste
+  // planté à la même fréquence quel que soit le régime.)
+  N.fmt=AC.createBiquadFilter();N.fmt.type='peaking';N.fmt.frequency.value=95;N.fmt.Q.value=1.2;N.fmt.gain.value=0;
   N.lp=AC.createBiquadFilter();N.lp.type='lowpass';N.lp.frequency.value=500;
   N.g=AC.createGain();N.g.gain.value=0;
   N.mix.connect(N.pre);N.pre.connect(N.sh);N.sh.connect(N.post);N.post.connect(N.eq);
-  N.eq.connect(N.lp);N.lp.connect(N.g);N.g.connect(N.out);
+  N.eq.connect(N.fmt);N.fmt.connect(N.lp);N.lp.connect(N.g);N.g.connect(N.out);
   N.lfo=AC.createOscillator();N.lfo.type='sine';N.lfo.frequency.value=11;
   N.lfoG=AC.createGain();N.lfoG.gain.value=0;N.lfo.connect(N.lfoG);N.lfoG.connect(N.g.gain);
   N.whine=AC.createOscillator();N.whine.type='sawtooth';
@@ -376,6 +380,8 @@ function audioTier(i){                                   // charger la voix d'un
   const w=SON.engWave9(AC,e);
   NA.osc.setPeriodicWave(w);NA.osc2.setPeriodicWave(w);
   NA.sh.curve=SON.engCurve9(e.dr);
+  const F=e.fmt||[110,1.2,3];
+  NA.fmt.frequency.value=F[0];NA.fmt.Q.value=F[1];NA.fmt.gain.value=F[2];
 }
 /* LE PAS DE SIMULATION — commun au son ET à l'image, pour qu'ils ne puissent pas se contredire.
    ⚠ On se sert du RÉGIME comme substitut de la vitesse pour nourrir `engLoadStep` : à l'atelier

@@ -549,7 +549,7 @@
   <button id="resetBtn">⟲ <span class="blabel">RESET</span></button>
   <button id="sndBtn" class="sndBtn">🔊 <span class="blabel">SON</span></button>
   <button id="voxBtn" class="sndBtn">🎙 <span class="blabel">VOIX</span></button>
-  <button id="musBtn" class="sndBtn">🎵 <span class="blabel">RADIO 1.61</span></button>
+  <button id="musBtn" class="sndBtn">🎵 <span class="blabel">LVL 1</span></button>
   <div id="speedo" class="panel"><div id="speedVal">0</div><div id="speedUnit">km/h</div></div>
   <div id="cpInfo" class="panel">Prochaine voiture à <span id="cpDist"></span><div id="cpBar"><div id="cpFill"></div></div></div>
   <div id="feverGlow"></div>
@@ -593,7 +593,7 @@
     <div class="setRow" id="langRow"><span>Langue · Language</span><b id="tgLang">FR</b></div>
     <div class="setSec">Audio</div>
     <div class="setRow" data-tg="sndBtn"><span>Effets sonores</span><b id="tgSnd">ON</b></div>
-    <div class="setRow" data-tg="musBtn"><span>Radio 1.61</span><b id="tgMus">ON</b></div>
+    <div class="setRow" data-tg="musBtn"><span>Musique — LVL 1</span><b id="tgMus">ON</b></div>
     <div class="setRow" data-tg="voxBtn"><span>Voix de l'annonceur</span><b id="tgVox">ON</b></div>
     <div class="setSec">Commandes</div>
     <div class="setKeys" id="setKb">
@@ -1005,6 +1005,11 @@ function updateContactShadow(){ // appelée juste avant le rendu
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
 const ROAD_HALF=14, THICK=2.6;
 let pts=[],T=[],Nn=[],B=[],L=0,NP=0,trackMinY=-1e9; // trackMinY : plancher du monde (référence du plongeon fatal)
+/* NÉON RÉACTIF (2026-08-07) : on garde une poignée sur les matériaux des rails et de leur nappe
+   pour les faire COGNER au beat. ⚠ ce sont des MATÉRIAUX, pas des meshes : la piste est rebâtie à
+   chaque zone, donc ces listes se vident avec `trackMeshes` — sinon on garderait des références
+   sur des matériaux disposés et le pouls s'appliquerait dans le vide. */
+const NEON_RAILS=[],NEON_GLOW=[];
 const trackMeshes=[];let PADS=[];let BUMPS=[];let CONES=[];let FLYCONES=[];let portalMesh=null;
 // TREMPLINS HÉROS (motif « gap catapulte », voir genCtrl/gapRun) : {s:lèvre, s0/s1:couloir gardé NU, v:variante}
 let RAMPS=[];
@@ -1735,7 +1740,7 @@ function genPark(rnd){
 }
 function buildTrack(seed){
   for(const m of trackMeshes){scene.remove(m);if(m.geometry)m.geometry.dispose();if(m.material&&m.material.dispose)m.material.dispose();}
-  trackMeshes.length=0;PADS=[];BUMPS=[];CONES=[];FLYCONES=[];OILS=[];RAMPS=[];
+  trackMeshes.length=0;NEON_RAILS.length=0;NEON_GLOW.length=0;PADS=[];BUMPS=[];CONES=[];FLYCONES=[];OILS=[];RAMPS=[];
   const rnd=mulberry32(seed);
   const ctrl=PARK.on?genPark(rnd):genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course
   const curve=new THREE.CatmullRomCurve3(ctrl,false,'catmullrom',0.5);
@@ -1852,6 +1857,8 @@ function buildTrack(seed){
     g2.setAttribute('position',new THREE.Float32BufferAttribute(ep,3));
     g2.setIndex(ei);
     const e=new THREE.Mesh(g2,new THREE.MeshBasicMaterial({color:accC,side:THREE.DoubleSide}));
+    e.material.userData.base=accC.clone(); // la teinte d'accent de la zone, à retrouver après chaque pulsation
+    NEON_RAILS.push(e.material);
     scene.add(e);trackMeshes.push(e);
   }
   // NAPPE DE LUEUR sous chaque bande : additif qui saigne vers l intérieur du bitume — sans fog, le néon perce
@@ -1874,6 +1881,8 @@ function buildTrack(seed){
     g3.setAttribute('color',new THREE.Float32BufferAttribute(gc,3));
     g3.setIndex(gi);
     const nm=new THREE.Mesh(g3,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide,transparent:true,opacity:.78,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
+    nm.material.userData.base=.78; // opacité de repos — la pulsation part de là et y revient
+    NEON_GLOW.push(nm.material);
     nm.renderOrder=1;scene.add(nm);trackMeshes.push(nm);
   }
   // ligne centrale pointillée — sodium doré, comme les vraies voies rapides la nuit (les DEUX faces : zéro dessus-dessous)
@@ -2273,7 +2282,7 @@ const I18N={
  'GAME OVER':'GAME OVER','VALIDER':'CONFIRM','★ NOUVEAU RECORD — TON NOM':'★ NEW RECORD — YOUR NAME',
  '▸ CLIQUE LE LOGO POUR JOUER':'▸ CLICK THE LOGO TO PLAY','▸ CLIQUE LE LOGO POUR REJOUER':'▸ CLICK THE LOGO TO PLAY AGAIN',
  '🚗 Garage':'🚗 Garage','⚙︎ Réglages':'⚙︎ Settings','Réglages':'Settings','Langue':'Language',
- 'Audio':'Audio','Effets sonores':'Sound effects','Radio 1.61':'Radio 1.61','Voix de l\'annonceur':'Announcer voice',
+ 'Audio':'Audio','Effets sonores':'Sound effects','Musique — LVL 1':'Music — LVL 1','Voix de l\'annonceur':'Announcer voice',
  'Commandes':'Controls','Sauvegarde':'Save','📋 Copier ma sauvegarde':'📋 Copy my save',
  'conduire · piloter en vol':'drive · steer in flight','nitro · double-tap = DÉCOLLAGE':'nitro · double-tap = LIFT-OFF',
  'drift':'drift','replacer la caisse':'respawn the car','pause':'pause','rejouer':'play again',
@@ -5909,10 +5918,16 @@ let musicLowShelf=null,musicChorusDelay=null,musicChorusWet=null,musChorusEnv=0;
 let MUSIC_PULSE=0,MUSIC_BEAT=0,musicOn=false,musicBass=0;
 // ---- CONFIG BANDE-SON : glisse tes fichiers dans assets/audio/music/ et liste-les ici ----
 // `run` = playlist de COURSE (jouée à la suite, en boucle si la partie dure) · `menu` = thème de menu (optionnel).
+/* ---- LA BANDE-SON — NIVEAU 1 (2026-08-07) ------------------------------------------------
+   « Chrome Ledger » devient LE morceau du premier niveau, et la radio s'appelle désormais LVL 1 :
+   on ne présente plus une playlist mais UN niveau qui a sa musique. Le reste du système (filtre
+   qui s'ouvre avec la vitesse, tape-stop de fin, ciel qui pulse) n'a pas bougé.
+   ⚠ le fichier a été RENOMMÉ sans espace ni majuscule : « Chrome Ledger.mp3 » aurait exigé un
+   encodage d'URL, et un espace non encodé casse le chargement en silence sur certains serveurs. */
 const MUSIC={
   menu:'', // ex : 'assets/audio/music/menu.mp3'
-  run:['assets/audio/music/nettspend-nothinglikeuuu.mp3'],  // piste par défaut si aucun morceau dédié au niveau
-  byLevel:[] // MODE HISTOIRE : un morceau par niveau (index 0..23). Vide = on garde `run`. Ex : byLevel[0]='assets/audio/music/niv0.mp3'
+  run:['assets/audio/music/lvl1-chrome-ledger.mp3'],
+  byLevel:[] // MODE HISTOIRE : un morceau par niveau. Vide = on garde `run`. Ex : byLevel[1]='…/niv2.mp3'
 };
 let musicIdx=0,musicMode='none',musicBaseVol=.85,musicBoostEnv=0;
 const MUSIC_FILT_REST=1500; // Hz : caisse à l'ARRÊT = son sourd/étouffé (réglable) — le mouvement rouvre le filtre jusqu'à MUSIC_FILT_OPEN
@@ -6006,10 +6021,28 @@ function musicTick(dt,mvt){
   musChorusEnv+=(boostAmt-musChorusEnv)*Math.min(1,dt*6);
   if(musicLowShelf)musicLowShelf.gain.setTargetAtTime(musChorusEnv*6.5,AC.currentTime,.08);    // +6,5 dB de grave au boost
   if(musicChorusWet)musicChorusWet.gain.setTargetAtTime(musChorusEnv*0.5,AC.currentTime,.08);  // chorus qui s'ouvre au boost
-  const lvlK=1+Math.min(1.3,(typeof level!=='undefined'?level:0)*.06); // PROGRESSIF AU NIVEAU : l'endgame pulse plus fort
+  /* ⚠ RELIQUAT CORRIGÉ (2026-08-07) : `lvlK` lisait `level`, c'est-à-dire l'index de la CAISSE —
+     depuis qu'on la choisit au garage, l'intensité du ciel dépendait donc de la carrosserie
+     équipée, pas de la progression. Elle suit désormais le PALIER MOTEUR, la seule vraie
+     progression d'une partie (même famille de bug que l'overdrive et le timbre moteur). */
+  const lvlK=1+Math.min(1.3,(typeof engTier!=='undefined'?engTier:0)*.028);
   skyU.uPulse.value=Math.min(1.7,(MUSIC_PULSE*.5+MUSIC_BEAT*.6)*lvlK*(1+musicBoostEnv*.5)); // LE CIEL RESPIRE + COGNE au boost (plafonné)
   if(bloomPass){if(musicTick._bloom==null)musicTick._bloom=bloomPass.strength;
     bloomPass.strength=musicTick._bloom*(1+MUSIC_BEAT*.6*lvlK+musicBoostEnv*.3);} // et le bloom cogne au beat + au boost
+  /* ---- LES RAILS NÉON COGNENT AU BEAT (2026-08-07) --------------------------------------------
+     Le pari « épique mais jouable » se joue ICI plutôt que dans un effet plein écran : les rails
+     bordent la route, donc les faire pulser rend la piste PLUS lisible au lieu de la noyer. Un
+     flash global, lui, aurait été spectaculaire trois secondes puis insupportable — et aveuglant
+     pile au moment où l'on vise une réception.
+     ⚠ deux garde-fous : (1) on repart TOUJOURS de la teinte d'accent mémorisée (`userData.base`),
+     jamais de la couleur courante — sinon chaque frame multiplie la précédente et le néon part au
+     blanc en une seconde ; (2) le beat seul pilote, pas l'énergie moyenne : sur un morceau dense
+     l'énergie ne redescend jamais et les rails resteraient allumés à fond, ce qui ne pulse plus. */
+  {const kb=MUSIC_BEAT*.85+musicBoostEnv*.15;
+   for(let i=0;i<NEON_RAILS.length;i++){const m=NEON_RAILS[i],b=m.userData.base;
+     if(b)m.color.setRGB(b.r*(1+kb*1.35),b.g*(1+kb*1.35),b.b*(1+kb*1.35));}
+   for(let i=0;i<NEON_GLOW.length;i++){const m=NEON_GLOW[i],b=m.userData.base;
+     if(b!=null)m.opacity=Math.min(1,b*(1+kb*.55));}}
 }
 // hooks console : brancher/tester avant l'arrivée des vrais fichiers
 window.playMusic=playMusic;window.stopMusic=stopMusic;window.MUSIC=MUSIC;
@@ -6026,6 +6059,21 @@ window.dbgAudio=function(){const g=n=>(n&&n.gain)?+n.gain.value.toFixed(4):null;
   survOn:(typeof SURV!=='undefined')?SURV.on:'?',mode:mode,running:running,nitroOn:nitroOn};};
 window.dbgDolphins=function(sec){dolShow=sec||4;}; // forcer les 2 dauphins
 window.dbgSerpent=function(sec){serpShow=sec||3;};  // forcer le serpent
+/* `dbgBeat(v)` — force un coup de grosse caisse (0..1) pour VOIR la réaction sans dépendre de
+   l'audio. Indispensable : en test automatisé il n'y a pas de sortie son, l'analyseur ne rend que
+   des zéros, et le réactif serait donc invérifiable. Rend l'état des rails néon avant/après. */
+window.dbgBeat=function(v){
+  const k=v==null?1:Math.max(0,Math.min(1,v));
+  const avant=NEON_RAILS.length?NEON_RAILS[0].color.clone():null;
+  MUSIC_BEAT=k;MUSIC_PULSE=Math.max(MUSIC_PULSE,k*.6);
+  try{musicTick(1/60,0);}catch(e){return {erreur:String(e.message)};}
+  const r=NEON_RAILS[0],g=NEON_GLOW[0];
+  return {beatForce:k,rails:NEON_RAILS.length,nappes:NEON_GLOW.length,
+    railAvant:avant?[+avant.r.toFixed(3),+avant.g.toFixed(3),+avant.b.toFixed(3)]:null,
+    railApres:r?[+r.color.r.toFixed(3),+r.color.g.toFixed(3),+r.color.b.toFixed(3)]:null,
+    railBase:r&&r.userData.base?[+r.userData.base.r.toFixed(3),+r.userData.base.g.toFixed(3),+r.userData.base.b.toFixed(3)]:null,
+    nappeOpacite:g?+g.opacity.toFixed(3):null,ciel:+skyU.uPulse.value.toFixed(3)};
+};
 window.dbgMusic=function(){return {on:musicOn,pulse:+MUSIC_PULSE.toFixed(3),beat:+MUSIC_BEAT.toFixed(3),sky:+skyU.uPulse.value.toFixed(3),
   boostEnv:+musicBoostEnv.toFixed(3),filtHz:musicFilt?Math.round(musicFilt.frequency.value):null,mode:musicMode};};
 window.dbgPlanetLook=function(){ // MODE PHOTO : braque la caméra sur la planète, rend, et MESURE ses couleurs
@@ -6287,7 +6335,7 @@ let AC=null,osc=null,osc2=null,filt=null,gainN=null,windG=null,windF=null,skidG=
 // plancher en reprise, elle est maximale. Sans cette distinction, « à fond » et « stabilisé »
 // sonnent pareil — c'est exactement le défaut qu'on corrige.
 let charge9=0,ovr9=0,drift9=0;
-let engPre=null,engPost=null,engEq=null,engTickG=null,engTickO=null,
+let engPre=null,engPost=null,engEq=null,engFmt=null,engTickG=null,engTickO=null,
     transO=null,transG=null,diffO=null,diffG=null,pinkG=null,ovrF=null,ovrG=null;
 let MASTER=null,engMix=null,engSub=null,engSubG=null,engNzF=null,engNzG=null,engShaper=null,engLfo=null,engLfoG=null,engWhine=null,engWhineG=null,
     skF1=null,skF2=null,skLfo=null,skD1=null,skD2=null,jcFb=null,jcDep=null,jetDist=null,jrG=null,jrF=null,jrDep=null;
@@ -6422,44 +6470,49 @@ function engLoadStep(prev,thr,rpm,dSn,dt){
   };
 }
 const ENG_SND=[
- {i:15, r:95,  h:[1,.42,.88,.30,.20],                     sub:.42,dr:2.7,fq:180,fr:2.3,gr:4,lope:.34,wob:.065,crk:.18,vol:1.15,nz:1.15,fLen:.75,fHz:26,fJit:.55}, //  1 ROUILLÉ : deux pattes qui toussent
- {i:18, r:150, h:[1,.30,.92,.26,.34,.16],                 sub:.46,dr:2.2,fq:210,fr:2.6,gr:4,lope:.26,wob:.030,crk:.24,vol:1.08,nz:1.05,fLen:.80,fHz:31,fJit:.42}, //  2 BICYLINDRE : le twin qui claque
- {i:24, r:200, h:[1,.26,.86,.22,.46,.18,.24],             sub:.44,dr:1.9,fq:240,fr:2.8,gr:5,lope:.15,wob:.016,crk:.20,vol:1.04,nz:1,   fLen:.82,fHz:34,fJit:.34}, //  3 3 CYLINDRES : le battement bancal
- {i:30, r:250, h:[1,.40,.80,.30,.44,.22,.26,.12],         sub:.46,dr:1.8,fq:270,fr:3.0,gr:5,lope:.11,wob:.010,crk:.22,vol:1,   nz:1,   fLen:.85,fHz:37,fJit:.30}, //  4 4 EN LIGNE
- {i:31, r:300, h:[1,.34,.86,.28,.52,.26,.32,.15,.10],     sub:.42,dr:1.9,fq:310,fr:3.3,gr:5,lope:.08,wob:.007,crk:.34,vol:1,   nz:1,   fLen:.88,fHz:41,fJit:.28}, //  5 4 SOUPAPES : ça respire par le nez
- {i:30, r:285, h:[1,.38,.74,.32,.40,.24,.22,.12],         sub:.52,dr:2.0,fq:290,fr:3.1,gr:5,lope:.09,wob:.008,crk:.58,vol:1.02,nz:1.35,fLen:.92,fHz:33,fJit:.44,whine:9},  //  6 4 EN LIGNE TURBO : le sifflet + ça pète
- {i:38, r:350, h:[1,.44,.70,.50,.36,.30,.20,.14],         sub:.50,dr:1.9,fq:320,fr:3.3,gr:5,lope:.13,wob:.024,crk:.28,vol:1.04,nz:1.1, fLen:.88,fHz:36,fJit:.38,whine:7},  //  7 5 CYLINDRES : le warble impair, inimitable
- {i:45, r:400, h:[1,.48,.72,.46,.48,.30,.30,.18,.14],     sub:.52,dr:1.8,fq:340,fr:3.6,gr:6,lope:.09,wob:.006,crk:.30,vol:1,   nz:1,   fLen:.90,fHz:40,fJit:.30}, //  8 V6 : la forme fait le son
- {i:45, r:420, h:[1,.42,.66,.44,.42,.28,.26,.16,.12],     sub:.58,dr:2.0,fq:330,fr:3.5,gr:6,lope:.08,wob:.006,crk:.46,vol:1.04,nz:1.4, fLen:.96,fHz:34,fJit:.46,whine:11}, //  9 V6 BITURBO : deux escargots, zéro patience
- {i:30, r:320, h:[1,.22,.94,.20,.56,.16,.30,.10],         sub:.48,dr:2.0,fq:300,fr:3.2,gr:5,lope:.20,wob:.014,crk:.34,vol:1.06,nz:1.1, fLen:.84,fHz:30,fJit:.40}, // 10 BOXER : le contretemps à plat
- {i:58, r:500, h:[1,.92,.44,.70,.32,.40,.24,.18,.12],     sub:.88,dr:2.3,fq:250,fr:2.7,gr:6,lope:.24,wob:.020,crk:.62,vol:1.12,nz:1,   fLen:1.02,fHz:24,fJit:.62}, // 11 V8 ATMO : LE grondement, et ça crache
- {i:58, r:480, h:[1,.86,.48,.66,.36,.38,.26,.20,.14],     sub:.90,dr:2.4,fq:260,fr:2.8,gr:6,lope:.20,wob:.016,crk:.50,vol:1.14,nz:1.2, fLen:1.06,fHz:27,fJit:.55,whine:13}, // 12 V8 COMPRESSÉ : le Roots par-dessus
- {i:74, r:700, h:[1,.34,.78,.56,.66,.42,.52,.32,.32,.20,.22],sub:.40,dr:1.7,fq:430,fr:4.3,gr:7,lope:.05,wob:.004,crk:.62,vol:1,nz:.95,fLen:1.05,fHz:46,fJit:.34}, // 13 V10 : dix cylindres, zéro argument
- {i:88, r:860, h:[1,.30,.72,.58,.74,.50,.60,.40,.42,.28,.30,.16],sub:.34,dr:1.6,fq:500,fr:4.6,gr:7,lope:.04,wob:.003,crk:.60,vol:1,nz:.9,fLen:1.10,fHz:52,fJit:.28}, // 14 V12 : le hurlement à l'unisson
- {i:88, r:700, h:[1,.52,.60,.62,.54,.48,.44,.34,.30,.22,.18],sub:.44,dr:1.5,fq:460,fr:4.2,gr:7,lope:.04,wob:.003,crk:.40,vol:.98,nz:.9,fLen:1.06,fHz:48,fJit:.24}, // 15 W12 : deux V6 mariés, donc plus lisse
- {i:116,r:1000,h:[1,.28,.68,.56,.76,.52,.64,.44,.46,.32,.34,.20,.16],sub:.32,dr:1.55,fq:560,fr:4.8,gr:8,lope:.03,wob:.002,crk:.58,vol:1,nz:.88,fLen:1.14,fHz:58,fJit:.26}, // 16 V16
- {i:118,r:1400,h:[1,.24,.80,.44,.86,.46,.70,.38,.50,.30,.34,.22],sub:.26,dr:1.9,fq:640,fr:5.0,gr:8,lope:.02,wob:.002,crk:.75,vol:1.04,nz:.95,fLen:1.18,fHz:66,fJit:.36}, // 17 H16 F1 : interdit en course, logique
- {i:60, r:620, h:[1,.44,.62,.48,.44,.32,.28,.20,.16],     sub:.72,dr:2.1,fq:360,fr:3.6,gr:7,lope:.06,wob:.005,crk:.55,vol:1.10,nz:1.7, fLen:1.12,fHz:30,fJit:.52,whine:15}, // 18 QUADRITURBO : quatre escargots
+ {i:15, r:95,  h:[1,.42,.88,.30,.20],                     sub:.42,dr:2.7,fq:180,fr:2.3,gr:4,lope:.34,wob:.065,crk:.18,vol:1.15,nz:1.15,fLen:.75,fHz:26,fJit:.55,fmt:[210,1.6,5.0]}, //  1 ROUILLÉ : deux pattes qui toussent
+ {i:18, r:150, h:[1,.30,.92,.26,.34,.16],                 sub:.46,dr:2.2,fq:210,fr:2.6,gr:4,lope:.26,wob:.030,crk:.24,vol:1.08,nz:1.05,fLen:.80,fHz:31,fJit:.42,fmt:[185,1.7,5.4]}, //  2 BICYLINDRE : le twin qui claque
+ {i:24, r:200, h:[1,.26,.86,.22,.46,.18,.24],             sub:.44,dr:1.9,fq:240,fr:2.8,gr:5,lope:.15,wob:.016,crk:.20,vol:1.04,nz:1,   fLen:.82,fHz:34,fJit:.34,fmt:[168,1.5,4.4]}, //  3 3 CYLINDRES : le battement bancal
+ {i:30, r:250, h:[1,.40,.80,.30,.44,.22,.26,.12],         sub:.46,dr:1.8,fq:270,fr:3.0,gr:5,lope:.11,wob:.010,crk:.22,vol:1,   nz:1,   fLen:.85,fHz:37,fJit:.30,fmt:[150,1.4,4.0]}, //  4 4 EN LIGNE
+ {i:31, r:300, h:[1,.34,.86,.28,.52,.26,.32,.15,.10],     sub:.42,dr:1.9,fq:310,fr:3.3,gr:5,lope:.08,wob:.007,crk:.34,vol:1,   nz:1,   fLen:.88,fHz:41,fJit:.28,fmt:[146,1.5,4.2]}, //  5 4 SOUPAPES : ça respire par le nez
+ {i:30, r:285, h:[1,.38,.74,.32,.40,.24,.22,.12],         sub:.52,dr:2.0,fq:290,fr:3.1,gr:5,lope:.09,wob:.008,crk:.58,vol:1.02,nz:1.35,fLen:.92,fHz:33,fJit:.44,whine:9,fmt:[132,1.2,3.4]},  //  6 4 EN LIGNE TURBO : le sifflet + ça pète
+ {i:38, r:350, h:[1,.44,.70,.50,.36,.30,.20,.14],         sub:.50,dr:1.9,fq:320,fr:3.3,gr:5,lope:.13,wob:.024,crk:.28,vol:1.04,nz:1.1, fLen:.88,fHz:36,fJit:.38,whine:7,fmt:[138,1.4,4.6]},  //  7 5 CYLINDRES : le warble impair, inimitable
+ {i:45, r:400, h:[1,.48,.72,.46,.48,.30,.30,.18,.14],     sub:.52,dr:1.8,fq:340,fr:3.6,gr:6,lope:.09,wob:.006,crk:.30,vol:1,   nz:1,   fLen:.90,fHz:40,fJit:.30,fmt:[124,1.3,4.0]}, //  8 V6 : la forme fait le son
+ {i:45, r:420, h:[1,.42,.66,.44,.42,.28,.26,.16,.12],     sub:.58,dr:2.0,fq:330,fr:3.5,gr:6,lope:.08,wob:.006,crk:.46,vol:1.04,nz:1.4, fLen:.96,fHz:34,fJit:.46,whine:11,fmt:[118,1.1,3.2]}, //  9 V6 BITURBO : deux escargots, zéro patience
+ // ⚠ PROFIL HARMONIQUE MESURÉ sur un vrai échappement de WRX (ralenti ~710 tr/min, F0 23,75 Hz).
+ // La leçon vaut d'être notée : LA FONDAMENTALE N'EST PAS LA PLUS FORTE — le 3e ordre domine à
+ // ×2,19. Toutes mes tables partaient de `1` puis décroissaient, c'est-à-dire d'un buzzer et non
+ // d'un tuyau. Je ne généralise PAS ce profil (un V12 n'a aucune raison de ressembler à un
+ // boxer) : il reste ici, sur la caisse qui l'a produit.
+ {i:30, r:320, h:[1,1.77,2.19,1.29,.65,.44,.29,.75,.31,.16],sub:.48,dr:2.0,fq:300,fr:3.2,gr:5,lope:.20,wob:.014,crk:.34,vol:1.06,nz:1.1, fLen:.84,fHz:30,fJit:.40,fmt:[95,1.3,4.1]}, // 10 BOXER : profil relevé sur le réel
+ {i:58, r:500, h:[1,.92,.44,.70,.32,.40,.24,.18,.12],     sub:.88,dr:2.3,fq:250,fr:2.7,gr:6,lope:.24,wob:.020,crk:.62,vol:1.12,nz:1,   fLen:1.02,fHz:24,fJit:.62,fmt:[ 88,1.5,5.6]}, // 11 V8 ATMO : LE grondement, et ça crache
+ {i:58, r:480, h:[1,.86,.48,.66,.36,.38,.26,.20,.14],     sub:.90,dr:2.4,fq:260,fr:2.8,gr:6,lope:.20,wob:.016,crk:.50,vol:1.14,nz:1.2, fLen:1.06,fHz:27,fJit:.55,whine:13,fmt:[ 84,1.4,5.0]}, // 12 V8 COMPRESSÉ : le Roots par-dessus
+ {i:74, r:700, h:[1,.34,.78,.56,.66,.42,.52,.32,.32,.20,.22],sub:.40,dr:1.7,fq:430,fr:4.3,gr:7,lope:.05,wob:.004,crk:.62,vol:1,nz:.95,fLen:1.05,fHz:46,fJit:.34,fmt:[104,1.6,4.8]}, // 13 V10 : dix cylindres, zéro argument
+ {i:88, r:860, h:[1,.30,.72,.58,.74,.50,.60,.40,.42,.28,.30,.16],sub:.34,dr:1.6,fq:500,fr:4.6,gr:7,lope:.04,wob:.003,crk:.60,vol:1,nz:.9,fLen:1.10,fHz:52,fJit:.28,fmt:[112,1.7,4.6]}, // 14 V12 : le hurlement à l'unisson
+ {i:88, r:700, h:[1,.52,.60,.62,.54,.48,.44,.34,.30,.22,.18],sub:.44,dr:1.5,fq:460,fr:4.2,gr:7,lope:.04,wob:.003,crk:.40,vol:.98,nz:.9,fLen:1.06,fHz:48,fJit:.24,fmt:[ 98,1.5,4.0]}, // 15 W12 : deux V6 mariés, donc plus lisse
+ {i:116,r:1000,h:[1,.28,.68,.56,.76,.52,.64,.44,.46,.32,.34,.20,.16],sub:.32,dr:1.55,fq:560,fr:4.8,gr:8,lope:.03,wob:.002,crk:.58,vol:1,nz:.88,fLen:1.14,fHz:58,fJit:.26,fmt:[118,1.8,4.4]}, // 16 V16
+ {i:118,r:1400,h:[1,.24,.80,.44,.86,.46,.70,.38,.50,.30,.34,.22],sub:.26,dr:1.9,fq:640,fr:5.0,gr:8,lope:.02,wob:.002,crk:.75,vol:1.04,nz:.95,fLen:1.18,fHz:66,fJit:.36,fmt:[136,2.0,5.2]}, // 17 H16 F1 : interdit en course, logique
+ {i:60, r:620, h:[1,.44,.62,.48,.44,.32,.28,.20,.16],     sub:.72,dr:2.1,fq:360,fr:3.6,gr:7,lope:.06,wob:.005,crk:.55,vol:1.10,nz:1.7, fLen:1.12,fHz:30,fJit:.52,whine:15,fmt:[ 92,1.2,3.6]}, // 18 QUADRITURBO : quatre escargots
  // ⚠ LE ROTATIF N'EST PAS UN 3-CYLINDRES. Un rotor allume TROIS fois par tour, un cylindre de
  // quatre-temps une fois tous les DEUX tours : un tri-rotor sonne donc comme un NEUF-cylindres.
  // C'est toute l'explication du hurlement de la 787B, et ça se met dans `i`/`r`, pas ailleurs.
- {i:80, r:950, h:[1,.16,.62,.12,.48,.10,.30,.08],         sub:.34,dr:2.2,fq:620,fr:5.2,gr:6,lope:.02,wob:.002,crk:.58,vol:1.02,nz:1.15,fLen:1.10,fHz:72,fJit:.40,whine:8},  // 19 ROTATIF TRIPLE
+ {i:80, r:950, h:[1,.16,.62,.12,.48,.10,.30,.08],         sub:.34,dr:2.2,fq:620,fr:5.2,gr:6,lope:.02,wob:.002,crk:.58,vol:1.02,nz:1.15,fLen:1.10,fHz:72,fJit:.40,whine:8,fmt:[158,1.9,5.8]},  // 19 ROTATIF TRIPLE
  // ---- PLUS DE PISTONS : à partir d'ici c'est le LIT DE BRUIT qui porte le son, pas l'onde ----
- {i:52, r:1150,h:[1,.14,.08,.16,.05,.09],                 sub:.62,dr:1.25,fq:420,fr:4.6,gr:1,lope:0,wob:0,crk:0,vol:1,   nz:2.3, fLen:1.20,fHz:14,fJit:.10,whine:16}, // 20 TURBINE À GAZ : le souffle + la roue
- {i:60, r:1350,h:[1,.10,.05,.12,.03],                     sub:.58,dr:1.2, fq:520,fr:5.0,gr:1,lope:0,wob:0,crk:0,vol:1.02,nz:1.9, fLen:1.26,fHz:11,fJit:.07,whine:23}, // 21 TURBINE À PLASMA : plus pur, plus haut
+ {i:52, r:1150,h:[1,.14,.08,.16,.05,.09],                 sub:.62,dr:1.25,fq:420,fr:4.6,gr:1,lope:0,wob:0,crk:0,vol:1,   nz:2.3, fLen:1.20,fHz:14,fJit:.10,whine:16,fmt:[ 74,0.8,3.0]}, // 20 TURBINE À GAZ : le souffle + la roue
+ {i:60, r:1350,h:[1,.10,.05,.12,.03],                     sub:.58,dr:1.2, fq:520,fr:5.0,gr:1,lope:0,wob:0,crk:0,vol:1.02,nz:1.9, fLen:1.26,fHz:11,fJit:.07,whine:23,fmt:[ 68,0.7,2.6]}, // 21 TURBINE À PLASMA : plus pur, plus haut
  // le STATORÉACTEUR n'a AUCUNE pièce mobile : pas de rotor, donc pas de sifflement. Rien qu'un
  // rugissement d'air. C'est le seul de la famille sans `whine`, et c'est ça qui le distingue.
- {i:44, r:900, h:[1,.06,.03,.05,.02],                     sub:.86,dr:1.5, fq:380,fr:3.8,gr:1,lope:0,wob:0,crk:0,vol:1.08,nz:3.4, fLen:1.34,fHz:9, fJit:.16}, // 22 STATORÉACTEUR : il agresse l'air
+ {i:44, r:900, h:[1,.06,.03,.05,.02],                     sub:.86,dr:1.5, fq:380,fr:3.8,gr:1,lope:0,wob:0,crk:0,vol:1.08,nz:3.4, fLen:1.34,fHz:9, fJit:.16,fmt:[ 58,0.5,3.4]}, // 22 STATORÉACTEUR : il agresse l'air
  // le PULSORÉACTEUR bat à ~45 Hz par CONSTRUCTION (la V-1 : son bourdon de scie, c'est sa
  // fréquence de détonation). Sa hauteur ne monte donc presque pas — c'est le HACHOIR qui monte.
- {i:45, r:150, h:[1,.85,.70,.60,.50,.42,.34,.28,.22,.18], sub:.80,dr:3.2, fq:520,fr:6.5,gr:1,lope:.60,lk:1,wob:0,crk:.85,vol:1.10,nz:1.6,fLen:1.10,fHz:45,fJit:.85}, // 23 PULSORÉACTEUR
- {i:70, r:1500,h:[1,.18,.10,.20,.06,.10],                 sub:.74,dr:1.35,fq:500,fr:5.2,gr:1,lope:0,wob:0,crk:.20,vol:1.06,nz:2.0,fLen:1.28,fHz:13,fJit:.14,whine:12}, // 24 RÉACTEUR NUCLÉAIRE : le cœur ronfle
- {i:82, r:1750,h:[1,.09,.04,.11,.03],                     sub:.66,dr:1.2, fq:600,fr:5.4,gr:1,lope:0,wob:0,crk:0,vol:1.02,nz:1.7,fLen:1.32,fHz:10,fJit:.06,whine:26}, // 25 CŒUR À FUSION : une étoile tient une note
- {i:64, r:2100,h:[1,.07,.03,.09,.02],                     sub:.92,dr:1.15,fq:460,fr:4.8,gr:1,lope:0,wob:0,crk:0,vol:1.04,nz:1.5,fLen:1.24,fHz:8, fJit:.09,whine:9},  // 26 ANTIMATIÈRE : le sub qui aspire
- {i:96, r:2400,h:[1,.13,.07,.12,.04,.08],                 sub:.60,dr:1.25,fq:700,fr:5.6,gr:1,lope:0,wob:0,crk:0,vol:1,   nz:1.6,fLen:1.30,fHz:17,fJit:.20,whine:32}, // 27 DISTORSION : la route qui recule
- {i:88, r:2200,h:[1,.22,.12,.18,.08,.11],                 sub:.72,dr:1.5, fq:620,fr:5.4,gr:1,lope:0,wob:0,crk:.25,vol:1.08,nz:2.6,fLen:1.40,fHz:15,fJit:.30,whine:18}, // 28 COMÈTE : elle BRÛLE, donc elle rugit
- {i:120,r:2900,h:[1,.16,.09,.15,.06,.10,.04],             sub:.80,dr:1.4, fq:820,fr:5.7,gr:1,lope:0,wob:0,crk:0,vol:1.08,nz:2.2,fLen:1.44,fHz:19,fJit:.24,whine:28}, // 29 SUPERNOVA
- {i:56, r:3300,h:[1,.05,.02,.07,.015],                    sub:1.00,dr:1.3, fq:900,fr:5.8,gr:1,lope:0,wob:0,crk:0,vol:1.10,nz:1.3,fLen:1.50,fHz:6, fJit:.05,whine:34}  // 30 TROU NOIR : le plus GRAVE et le plus AIGU à la fois, rien au milieu
+ {i:45, r:150, h:[1,.85,.70,.60,.50,.42,.34,.28,.22,.18], sub:.80,dr:3.2, fq:520,fr:6.5,gr:1,lope:.60,lk:1,wob:0,crk:.85,vol:1.10,nz:1.6,fLen:1.10,fHz:45,fJit:.85,fmt:[ 96,2.2,6.4]}, // 23 PULSORÉACTEUR
+ {i:70, r:1500,h:[1,.18,.10,.20,.06,.10],                 sub:.74,dr:1.35,fq:500,fr:5.2,gr:1,lope:0,wob:0,crk:.20,vol:1.06,nz:2.0,fLen:1.28,fHz:13,fJit:.14,whine:12,fmt:[ 64,0.7,3.0]}, // 24 RÉACTEUR NUCLÉAIRE : le cœur ronfle
+ {i:82, r:1750,h:[1,.09,.04,.11,.03],                     sub:.66,dr:1.2, fq:600,fr:5.4,gr:1,lope:0,wob:0,crk:0,vol:1.02,nz:1.7,fLen:1.32,fHz:10,fJit:.06,whine:26,fmt:[ 56,0.6,2.4]}, // 25 CŒUR À FUSION : une étoile tient une note
+ {i:64, r:2100,h:[1,.07,.03,.09,.02],                     sub:.92,dr:1.15,fq:460,fr:4.8,gr:1,lope:0,wob:0,crk:0,vol:1.04,nz:1.5,fLen:1.24,fHz:8, fJit:.09,whine:9,fmt:[ 46,0.5,2.8]},  // 26 ANTIMATIÈRE : le sub qui aspire
+ {i:96, r:2400,h:[1,.13,.07,.12,.04,.08],                 sub:.60,dr:1.25,fq:700,fr:5.6,gr:1,lope:0,wob:0,crk:0,vol:1,   nz:1.6,fLen:1.30,fHz:17,fJit:.20,whine:32,fmt:[ 62,0.8,2.2]}, // 27 DISTORSION : la route qui recule
+ {i:88, r:2200,h:[1,.22,.12,.18,.08,.11],                 sub:.72,dr:1.5, fq:620,fr:5.4,gr:1,lope:0,wob:0,crk:.25,vol:1.08,nz:2.6,fLen:1.40,fHz:15,fJit:.30,whine:18,fmt:[ 70,0.9,3.6]}, // 28 COMÈTE : elle BRÛLE, donc elle rugit
+ {i:120,r:2900,h:[1,.16,.09,.15,.06,.10,.04],             sub:.80,dr:1.4, fq:820,fr:5.7,gr:1,lope:0,wob:0,crk:0,vol:1.08,nz:2.2,fLen:1.44,fHz:19,fJit:.24,whine:28,fmt:[ 52,0.6,3.0]}, // 29 SUPERNOVA
+ {i:56, r:3300,h:[1,.05,.02,.07,.015],                    sub:1.00,dr:1.3, fq:900,fr:5.8,gr:1,lope:0,wob:0,crk:0,vol:1.10,nz:1.3,fLen:1.50,fHz:6, fJit:.05,whine:34,fmt:[38,0.4,2.6]}  // 30 TROU NOIR : le plus GRAVE et le plus AIGU à la fois, rien au milieu
 ];
 /* <<<FIN SON-MOTEUR>>> */
 function engCurve(k){ // courbe de saturation tanh — le grain qui devient hargne quand on pousse dedans
@@ -6476,6 +6529,9 @@ function engSetTier(lv){ // changement de palier → nouveau timbre (onde harmon
   const e=ENG_SND[lv]||ENG_SND[0];engLvl=lv;engGear=1;engShiftT=0;
   const w=engWave9(AC,e);                       // l'onde du palier — fabriquée par le bloc balisé
   osc.setPeriodicWave(w);osc2.setPeriodicWave(w);osc2.detune.value=7;
+  // LA GORGE du palier : fixe, elle ne suit pas le régime (c'est tout l'intérêt)
+  if(engFmt){const F=e.fmt||[110,1.2,3];
+    engFmt.frequency.value=F[0];engFmt.Q.value=F[1];engFmt.gain.value=F[2];}
   engSubG.gain.value=e.sub*.5;
   engShaper.curve=engCurve(e.dr);
 }
@@ -6576,10 +6632,22 @@ function initAudio(){
      doit se faire oublier. C'est le poste qui décide si on tient une heure de jeu. */
   engEq=AC.createBiquadFilter();engEq.type='peaking';engEq.frequency.value=2900;
   engEq.Q.value=1.1;engEq.gain.value=-5;
+  /* ---- LE FORMANT DU CONDUIT : la GORGE de l'échappement ----
+     ⚠ TROUVÉ EN ANALYSANT UN VRAI ENREGISTREMENT (échappement de WRX fourni par Sacha, FFT sur
+     trois régimes). Tous les filtres du moteur suivaient la fréquence d'explosion — donc tout
+     glissait ensemble avec le régime, et c'est précisément ce qui fait « synthé » plutôt que
+     « tuyau ». Sur le vrai enregistrement, un pic de +4,1 dB à ~95 Hz reste PLANTÉ AU MÊME
+     ENDROIT au ralenti, en charge et à mi-régime : c'est le conduit qui résonne, pas le moteur.
+     Un corps résonant ne se déplace pas quand ce qui l'excite change de hauteur.
+     Ce poste est FIXE par palier (posé dans engSetTier, jamais dans la boucle) et il donne à
+     chaque moteur sa cavité : un pot de bicylindre résonne haut et court, un collecteur de V8
+     bas et large, une tuyère de réacteur très bas et très flou. */
+  engFmt=AC.createBiquadFilter();engFmt.type='peaking';engFmt.frequency.value=95;
+  engFmt.Q.value=1.2;engFmt.gain.value=0;
   filt=AC.createBiquadFilter();filt.type='lowpass';filt.frequency.value=500;
   gainN=AC.createGain();gainN.gain.value=0;
   engMix.connect(engPre);engPre.connect(engShaper);engShaper.connect(engPost);
-  engPost.connect(engEq);engEq.connect(filt);filt.connect(gainN);gainN.connect(MASTER);
+  engPost.connect(engEq);engEq.connect(engFmt);engFmt.connect(filt);filt.connect(gainN);gainN.connect(MASTER);
   /* ---- LES CHUFFS DE COMBUSTION : une bouffée PAR EXPLOSION ----
      ⚠ ce qui manque à un moteur de synthé, c'est le GRAIN : un vrai moteur n'émet pas un son
      continu, il émet une rafale d'explosions. On module donc un souffle par un train
@@ -7184,7 +7252,7 @@ const sndBtnEl=document.getElementById('sndBtn'),voxBtnEl=document.getElementByI
 function sndRefresh(){
   sndBtnEl.innerHTML=(SND.sfx?'🔊':'🔇')+' <span class="blabel">SON</span>';sndBtnEl.classList.toggle('off',!SND.sfx); // garde le span → masquable en icône seule sur mobile
   voxBtnEl.innerHTML=(SND.voice?'🎙':'🤐')+' <span class="blabel">VOIX</span>';voxBtnEl.classList.toggle('off',!SND.voice);
-  if(musBtnEl){musBtnEl.innerHTML=(SND.music?'🎵':'🎵')+' <span class="blabel">RADIO 1.61</span>';musBtnEl.classList.toggle('off',!SND.music);}
+  if(musBtnEl){musBtnEl.innerHTML='🎵 <span class="blabel">LVL 1</span>';musBtnEl.classList.toggle('off',!SND.music);} // ⚠ ce libellé est RECONSTRUIT à chaque bascule : le laisser à « RADIO 1.61 » le faisait revenir au 1er clic
   try{if(AC){if(SND.sfx)AC.resume();else AC.suspend();}}catch(e){} // suspend = silence total du moteur audio
   if(!SND.voice)annStop();
 }
