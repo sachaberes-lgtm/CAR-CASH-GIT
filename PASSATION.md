@@ -42,7 +42,7 @@ bien dans le fichier.
 | Déblocage des caisses | `CAR_UNLOCK`, `carUnlocked(i)`, `carScan()` |
 | Flux de pièces | `spawnPickups()`, facteur `rich` |
 | Animation de palier | `addCoins()` → `engSwapT` + `engSwapSnd()` |
-| Vol : inclinaison / ailerons | `airBank`, `AIR_BANK_MAX`, `AIR_BANK_RATE` |
+| Vol : la vrille (parti pris) | `airRoll` — ⚠ ne pas « corriger », voir plus bas |
 
 ## LES TROIS ATELIERS (pages autonomes)
 - **`moteurs.html`** — revue des 30 moteurs. ⚠ il ne recopie pas le jeu : il **lit `index.html` au
@@ -79,15 +79,16 @@ bien dans le fichier.
 - **Animation de changement de palier** : clé à chocs + clanks + démarreur, étincelles de soudure au
   capot, vignette qui s'emballe.
 - **Flux de pièces indexé sur la progression** : 20 pièces/1000 m en zone 1 → 99 en zone 6.
-- **Vol : la RÔTISSOIRE supprimée, le lacet INCHANGÉ (2026-08-05, en 2 passes)** — ⚠ leçon utile :
-  j'avais confondu deux problèmes. Les ailes étaient incohérentes à cause de `airRoll += 3.0*dtF`,
-  qui faisait tourner la caisse sur son axe à **172 °/s en permanence**, sans aucun rapport avec le
-  pilotage : c'était **visuel**. J'y ai d'abord répondu en faisant passer le lacet PAR l'inclinaison,
-  ce qui ajoutait ~0,2 s de latence au braquage — le user a immédiatement préféré l'ancienne
-  conduite, et il avait raison : dans un runner arcade où l'on vise ses réceptions, la nervosité
-  prime. **État final** : la ligne de lacet est celle d'origine au caractère près, `airBank` est un
-  pur effet visuel (ailerons en opposition compris) et **ne doit JAMAIS revenir dans `yawIn`**.
-  Vérifié par diff : 0 différence sur les 27 lignes qui touchent la trajectoire.
+- **Vol : LA VRILLE EST UN PARTI PRIS — ne pas la « corriger » (tranché 2026-08-05).** La caisse
+  tourne sur elle-même en vol, en permanence (`airRoll += (3.0+steer*2.2+…)*dtF`, ~190 °/s). J'ai
+  cru à une incohérence (des ailes déployées sur un engin qui fait le poulet rôti) et j'ai tenté
+  DEUX corrections : le virage à l'inclinaison pilotant le lacet — ~0,2 s de latence, refusé — puis
+  l'inclinaison en pur décor — refusée aussi. **Le user a tranché deux fois pour la vrille.** C'est
+  un choix ARCADE assumé : la lisibilité aéronautique n'est pas le sujet du jeu. Tout a été
+  intégralement remis à l'identique (vérifié par diff, 0 ligne d'écart) et les variables
+  `airBank`/`airRollT`/`AIR_BANK_*` ont été RETIRÉES — les laisser aurait fait croire à un réglage
+  disponible. ⚠ à ne pas confondre avec la FIGURE « vrille » qui paye : elle se compte en demi-tours
+  de LACET (`yawAcc`) et n'a rien à voir avec cette rotation visuelle.
 - Bugs corrigés : 1,61 € au menu **et** au départ, centimes invisibles, tremplins qui bloquaient,
   traversée de route, volant mort en vol vertical, rectangle à l'horizon, soleil terne.
 

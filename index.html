@@ -1423,11 +1423,7 @@ function updateClouds(dt,t){
         fallVel.y+=7*k*dtF;
         fallVel.x+=(Math.random()-.5)*6*k*dtF;
         fallVel.z+=(Math.random()-.5)*6*k*dtF;
-        // TURBULENCE : la ouate chahute l'assiette. ⚠ elle écrit dans `airRollT` et NON dans
-        // `airRoll` : ce dernier est désormais RECALCULÉ chaque frame depuis l'inclinaison commandée,
-        // donc y ajouter quoi que ce soit serait effacé à la frame suivante. À part, elle s'amortit
-        // et se superpose — la caisse est secouée sans perdre son assiette de virage.
-        airRollT+=(Math.random()-.5)*2.4*k*dtF;
+        airRoll+=(Math.random()-.5)*2.4*k*dtF; // TURBULENCE : la ouate chahute la vrille
         shake=Math.max(shake,.13*k);          // …et secoue la caméra — on SENT la matière
         if(c.refT>0){const rf=Math.min(c.refT,dtF*.9);c.refT-=rf;fallT=Math.max(0,fallT-rf);fallTR=Math.max(0,fallTR-rf/AIR_RATE);airFlash=.55;} // la jauge réelle est rendue au même RYTHME (rf est en temps-sim)
       }else if(k>.1){
@@ -3902,10 +3898,7 @@ window.dbgScene=function(){return {car:carGroup,scene:scene,contact:contactShado
 window.dbgState=function(){return {started:started,running:running,paused:paused,gameOver:gameOver,mode:mode,
   /* flux des PIÈCES : sans ces trois-là, régler leur arrivée se fait à l'aveugle */
   engTier:engTier,coinsGot:coinsGot,prochainPalier:(ENGINE_TIERS[engTier+1]||{}).coins||null,
-  /* VOL : l'inclinaison commandée, sa consigne, et le braquage qui la pilote — c'est avec ça
-     qu'on règle « ça tourne trop direct » au lieu d'en juger à l'œil sur une caisse qui file */
-  steer:+steer.toFixed(3),airBank:+airBank.toFixed(3),bankCible:+(steer*AIR_BANK_MAX).toFixed(3),
-  airRoll:+airRoll.toFixed(3),
+  steer:+steer.toFixed(3),airRoll:+airRoll.toFixed(3),
 vA:+vA.toFixed(2),s:+s.toFixed(1),lat:+lat.toFixed(2),side:side,driveDir:driveDir,gapArmed:gapArmed,fallT:+fallT.toFixed(2),level:level,introD:introD,hopY:+hopY.toFixed(2),hOff:+curHOff.toFixed(2),latOff:+curLatOff.toFixed(2),dolphT:+dolphT.toFixed(2),dolphGain:+dolphGain.toFixed(2),chainVal:+chainVal.toFixed(2),fvy:+fallVel.y.toFixed(2),fspd:+fallVel.length().toFixed(1)};}; // état interne (lecture seule) — hOff/dolph* : calibrage du DAUPHIN
 // TREMPLINS de la zone courante : archétype, longueur de piste, et chaque lèvre (position + variante).
 // `dbgGap(true)` téléporte à 220 m avant la 1re lèvre — pour juger le gap sans refaire la course d'élan.
@@ -7240,19 +7233,13 @@ function vmaxShow(){return CARS[0].maxKmh*SPD*lateMul()*(ENGINE_TIERS[engTier]||
 let mode='drive',s=0,lat=0,psi=0,vA=0,vL=0,side=1,driveDir=1; // driveDir : sens de conduite le long du ruban (+1/-1). TOUJOURS 1 en course ; dans le PARC il suit le sens d'atterrissage → les routes se roulent dans les DEUX sens (pas de sens imposé)
 const START_CASH=1.61; // la mise de depart, clin d'oeil au studio 1.61
 let steer=0,money=START_CASH,levelCash=0,boost=0,fallT=0,fallTR=0,padCd=0,shake=0,combo=0,comboT=0,graceT=0,safeS=0,yawAcc=0,edgeT=0,squashT=0,momT=0,styleM=0,fever=0,streak=0,slowT=0,steerHold=0,aheadV=0,sideCd=0,slipT=0,oilCd=0,hitT=0,insUsed=false,feverArmed=false,lastSpaceT=0,rollover=0,idleT=0,driftT=0,driftYaw=0;
-/* ---- VOL À L'INCLINAISON : la caisse a des AILES, elle doit voler comme telle (2026-08-05) ----
-   `airBank` = l'inclinaison COMMANDÉE par le braquage. Elle s'établit progressivement, et c'est
-   elle — pas le braquage brut — qui fait tourner la trajectoire. Le résultat visuel : les ailes
-   penchent du côté où l'on tourne, et il y a une mise en virage puis une sortie.
-   `airRollT` = la TURBULENCE, gardée à part : les nuages doivent pouvoir chahuter la caisse sans
-   que le pilotage l'efface à la frame suivante. Elle s'amortit toute seule.
-   ⚠ CES DEUX VALEURS SONT PUREMENT VISUELLES (2e passe) : le lacet ne les lit PAS. Les toucher
-   penche la caisse plus ou moins, plus ou moins vite, sans rien changer à la maniabilité — la
-   conduite en vol est restée exactement celle d'origine. AIR_BANK_MAX = l'angle atteint à fond,
-   AIR_BANK_RATE = la vivacité avec laquelle la caisse s'engage (7.6 ≈ 0,13 s). */
-const AIR_BANK_MAX=0.92, AIR_BANK_RATE=7.6;
-let airBank=0,airRollT=0;
-let airRoll=0; // inclinaison VISUELLE effective = commande + turbulence
+/* ⚠ LE VOL EN VRILLE EST UN PARTI PRIS, PAS UN OUBLI (tranché par le user, 2026-08-05).
+   J'ai tenté deux fois de « corriger » la rotation de la caisse en vol — d'abord en la remplaçant
+   par une inclinaison de virage pilotant le lacet (trop de latence au braquage), puis en gardant
+   l'inclinaison en pur décor. Le user a essayé et tranché les deux fois POUR LA VRILLE.
+   Les variables `airBank` / `airRollT` / `AIR_BANK_*` ont donc été RETIRÉES : les laisser en place
+   aurait fait croire à un réglage disponible alors que plus rien ne les lit. */
+let airRoll=0; // vrille visuelle en vol
 // TREMPLIN HÉROS : gapArmed = variante du tremplin qui a lancé CE vol (0 = vol ordinaire, 1/2/3 = v+1),
 // lu au verdict d'atterrissage pour le GAP FRANCHI ; rampCd empêche de re-catapulter en reposant dessus.
 let gapArmed=0,rampCd=0;
@@ -7561,7 +7548,7 @@ function checkUpgrade(){
   SAVE.flush();
 }
 function startFall(impU,impF){
-  mode='fall';fallT=0;fallTR=0;yawAcc=0;momT=0;airRoll=0;airBank=0;airRollT=0; // on décolle à plat, jamais en travers
+  mode='fall';fallT=0;fallTR=0;yawAcc=0;momT=0;airRoll=0;
   // TEMPO DE VOL ∝ VITESSE (2026-07-20, dosage DOUX sur base V1) : =1 jusqu'à 450 km/h affichés
   // (basse/moyenne vitesse : rigoureusement l'existant), puis +1 tous les 1800 km/h, CAP 1.35 —
   // loin du 2.3 de l'ancienne ère (qui compensait SPD=.25) : l'endgame TRAVERSE sa phase aérienne
@@ -9086,23 +9073,11 @@ function loop(now){
       }
       // chute pilotée : un peu de lacet, c'est tout — la voiture est LOURDE
       // (le lacet gagne un peu d'autorité à grande vitesse → vol simplifié)
-      /* ---- LE LACET EST DIRECT, L'INCLINAISON EST VISUELLE (2026-08-05, 2e passe) ---------------
-         ⚠ J'AVAIS CONFONDU DEUX PROBLÈMES. Les ailes étaient incohérentes à cause de la RÔTISSOIRE
-         (la caisse tournait sur son axe à 172 °/s en permanence, sans rapport avec le pilotage) —
-         c'était un problème VISUEL. J'y avais répondu en faisant passer le lacet PAR l'inclinaison,
-         ce qui ajoutait ~0,2 s de latence au braquage : dans un runner arcade où l'on vise ses
-         réceptions, ça se paie cash, et le user a immédiatement préféré l'ancienne conduite.
-         LA BONNE RÉPONSE : le lacet redevient DIRECT, exactement comme avant (cette ligne est
-         l'originale, au caractère près), et l'inclinaison devient un pur EFFET VISUEL qui suit le
-         braquage. On garde donc la nervosité d'origine ET des ailes qui veulent dire quelque chose.
-         ⚠ RÈGLE À NE PAS REPERDRE : `airBank` ne doit JAMAIS revenir dans le calcul de `yawIn`.
-         C'est de la mise en scène, pas de la maniabilité. */
+      // chute pilotée : un peu de lacet, c'est tout — la voiture est LOURDE
+      // (le lacet gagne un peu d'autorité à grande vitesse → vol simplifié)
       const yawIn=steer*(1.15+Math.min(.6,fallVel.length()*.004))*dtF;
       fallVel.applyAxisAngle(AXIS_Y,yawIn);
       yawAcc+=yawIn;
-      // l'inclinaison SUIT le braquage sans le contraindre — assez vive (τ≈0,13 s) pour que la
-      // caisse paraisse s'engager dans le virage plutôt que de tourner à plat puis pencher après.
-      airBank+=(steer*AIR_BANK_MAX-airBank)*Math.min(1,dtF*AIR_BANK_RATE);
       if(nitroOn){ // RÉACTEUR : poussée depuis l'arrière façon Rocket League (modérée)
         tmp.copy(fallVel);
         if(tmp.lengthSq()>1)tmp.normalize();else tmp.set(0,0,1);
@@ -9254,16 +9229,14 @@ function loop(now){
       tmp2.crossVectors(tmp,tmp3);
       mat4.makeBasis(tmp3,tmp2,tmp);
       qTmp.setFromRotationMatrix(mat4);
-      /* ⚠ LA RÔTISSOIRE EST SUPPRIMÉE (2026-08-05). `airRoll += 3.0*dtF` faisait tourner la caisse
-         sur son axe à ~172°/s EN PERMANENCE, braquage ou pas. Avec les mini-ailes déployées c'est
-         illisible : rien ne relie ce mouvement à ce que fait le joueur, et des ailes qui tournent
-         comme un poulet rôti ne veulent rien dire.
-         Désormais l'inclinaison EST la commande : la caisse penche du côté où elle tourne, et
-         revient à plat quand on lâche. La turbulence des nuages s'ajoute par-dessus et s'amortit.
-         ⚠ CE N'EST PAS LA FIGURE « VRILLE » DU JEU : celle-là se compte en demi-tours de LACET
-         (`yawAcc`), qui n'a pas bougé. Les figures et leurs seuils sont intacts. */
-      airRollT*=Math.max(0,1-dtF*2.4);                  // la turbulence retombe
-      airRoll=airBank+airRollT;
+      /* ⚠ LA VRILLE EST VOULUE — NE PAS LA « CORRIGER » (tranché par le user, 2026-08-05).
+         La caisse tourne sur elle-même en vol, en permanence. J'ai cru à une incohérence (des ailes
+         déployées sur un engin qui fait le poulet rôti) et je l'ai remplacée par une inclinaison de
+         virage : le user a essayé les deux et TRANCHÉ pour la vrille, deux fois. C'est un parti pris
+         ARCADE, pas un oubli — la lisibilité aéronautique n'est pas le sujet de ce jeu.
+         ⚠ à ne pas confondre avec la FIGURE « vrille » qui paye : celle-là se compte en demi-tours
+         de LACET (`yawAcc`) et n'a rien à voir avec cette rotation visuelle. */
+      airRoll+=(3.0+steer*2.2+Math.min(2,fallT*.5))*dtF; // VRILLE : la caisse tourne sur elle-même (suit le vol accéléré)
       qTmp2.setFromAxisAngle(tmp,airRoll);
       qTmp.premultiply(qTmp2);
       carGroup.quaternion.slerp(qTmp,Math.min(1,dt*8));
@@ -9806,13 +9779,7 @@ function loop(now){
   // MINI-AILES : déployées en vol, repliées au sol (lissé)
   if(carWingL){const tgt=(mode==='fall'&&!garageOn)?1:0;wingT+=(tgt-wingT)*Math.min(1,dt*6);
     const sc=.05+.95*wingT;carWingL.scale.x=sc;carWingR.scale.x=sc; // RÉTRACTÉES dans la caisse au sol → DÉPLOYÉES en vol (fini les ailerons parasites)
-    /* AILERONS : les deux ailes se braquent en OPPOSITION avec l'inclinaison — celle de l'intérieur
-       du virage se lève, celle de l'extérieur plonge. C'est ce qui, sur un vrai engin, PROVOQUE
-       l'inclinaison ; le voir à l'écran explique enfin pourquoi la caisse penche. Sans ça les ailes
-       subissaient le mouvement au lieu de le causer, et ne servaient à rien.
-       ⚠ purement visuel : la portance et le lacet ne lisent pas ces angles. */
-    const ail=(airBank/AIR_BANK_MAX)*.34*wingT;
-    carWingL.rotation.z=.16*wingT-ail;carWingR.rotation.z=-.16*wingT-ail;}  // dièdre de planeur + gouverne
+    carWingL.rotation.z=.16*wingT;carWingR.rotation.z=-.16*wingT;}  // léger dièdre de planeur une fois sorties
   // COMÈTE : la caisse BRÛLE en permanence — la boucle est bouclée, on repart en feu (les 3 derniers paliers la gardent allumée)
   if(engTier>=ENG_CAP.comete&&running&&!gameOver&&mode!=='boom'){
     const p9=carGroup.position;
