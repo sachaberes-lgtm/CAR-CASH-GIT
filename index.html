@@ -557,7 +557,9 @@ const SUN_PERP=new THREE.Vector3().crossVectors(SUN_DIR,new THREE.Vector3(0,1,0)
 const IS_TOUCH=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||('ontouchstart'in window)||navigator.maxTouchPoints>0;
 const IS_MOBILE=IS_TOUCH&&((window.matchMedia&&matchMedia('(hover:none)').matches)||Math.min(innerWidth,innerHeight)<820);
 const IS_LOW_END=IS_MOBILE||(navigator.hardwareConcurrency>0&&navigator.hardwareConcurrency<=4);
+const IS_SIM=(typeof location!=='undefined')&&/sim=1/.test(location.search); // mode SIMULATION : logique 100 % réelle, rendu GPU coupé (tests headless)
 const renderer=new THREE.WebGLRenderer({antialias:!IS_MOBILE&&!IS_LOW_END,powerPreference:'high-performance'});
+if(IS_SIM)renderer.render=function(){}; // on garde la scène, on ne peint plus rien (les tests de logique IA n'ont pas besoin de pixels)
 renderer.setSize(innerWidth,innerHeight);
 document.body.appendChild(renderer.domElement);
 let DPR_CAP=Math.min(devicePixelRatio,IS_MOBILE?1.25:1.5),curDPR=IS_MOBILE?1:Math.min(DPR_CAP,devicePixelRatio),dprT=0; // RÉSOLUTION ADAPTATIVE — cap desktop 1.5 : sur Retina, 1.75→1.5 = −26 % de pixels, invisible sous bloom+grain (écran 1× : min() ne change rien)
@@ -2175,6 +2177,7 @@ function buildParkPilots(){
 }
 // mise à jour LOCALE des pilotes (le jour du multi : remplacer ce corps par l'état reçu du serveur)
 const _pil=new THREE.Matrix4(),_pilT=new THREE.Vector3(),_pilN=new THREE.Vector3(),_pilB=new THREE.Vector3();
+const _pilT2=new THREE.Vector3(),_pilB2=new THREE.Vector3(); // temp particules pilotes (jamais d'alloc chaude)
 function parkPilotsTick(dt){
   parkPilotsTick.n=(parkPilotsTick.n|0)+1; // compteur de frames (dbgPark) : prouve que le lobby tourne
   for(const p of PARK_PILOTS){
@@ -2185,6 +2188,30 @@ function parkPilotsTick(dt){
       p.grp.position.copy(FH.p).addScaledVector(FH.b,p.lat).addScaledVector(FH.n,.2);
       _pilT.copy(FH.t).multiplyScalar(p.dir);_pilN.copy(FH.n);_pilB.crossVectors(_pilN,_pilT);
       p.grp.quaternion.setFromRotationMatrix(_pil.makeBasis(_pilB,_pilN,_pilT));
+      // PARTICULES DES PILOTES — les MÊMES que le joueur (braises + traits d'air) : un lobby vivant
+      // se voit, une rangée de caisses muettes non. Dosées, pas besoin de la densité du joueur.
+      if(p.grp.position.distanceToSquared(carGroup.position)<40000&&Math.random()<.6){ // 200 m autour de toi
+        // braises d'échappement le long de l'axe du pilote
+        _pilT2.copy(_pilT).multiplyScalar(-1.6);_pilB2.copy(_pilB).multiplyScalar((Math.random()<.5?-1:1)*.5);
+        tmp2.copy(p.grp.position).add(_pilT2).add(_pilB2).addScaledVector(_pilN,.43);
+        spawnP(flames,tmp2.x+(Math.random()-.5)*.10,tmp2.y+(Math.random()-.5)*.10,tmp2.z+(Math.random()-.5)*.10,
+          _pilT.x*2.2+(Math.random()-.5)*.7,.3+Math.random()*.5,_pilT.z*2.2+(Math.random()-.5)*.7,.18+Math.random()*.12);
+        if(Math.random()<.5)spawnP(flameCore,tmp2.x+(Math.random()-.5)*.10,tmp2.y+(Math.random()-.5)*.10,tmp2.z+(Math.random()-.5)*.10,
+          _pilT.x*2.6+(Math.random()-.5)*.5,.3+Math.random()*.5,_pilT.z*2.6+(Math.random()-.5)*.5,.12+Math.random()*.1);
+        // fumée de gomme dans les virages (le pilote tourne : son cap change → trace comme le joueur)
+        if(p.dir!==p._prevDir&&Math.random()<.7){
+          _pilT2.copy(_pilT).multiplyScalar(-1.2);_pilB2.copy(_pilB).multiplyScalar((Math.random()<.5?-1:1)*.9);
+          tmp2.copy(p.grp.position).add(_pilT2).add(_pilB2).addScaledVector(_pilN,.2);
+          spawnP(dust,tmp2.x,tmp2.y,tmp2.z,-_pilT.x*2.8+_pilB.x*2.2*Math.sign(p.dir)+(Math.random()-.5)*1.5,.7+Math.random()*.6,-_pilT.z*2.8+_pilB.z*2.2*Math.sign(p.dir)+(Math.random()-.5)*1.5,.3+Math.random()*.3);
+        }
+        p._prevDir=p.dir;
+        // traits d'air à haute vitesse (même seuil que le joueur)
+        if(p.v*SPD*3.6>140&&Math.random()<.4){
+          tmp2.copy(p.grp.position).addScaledVector(_pilT,10+Math.random()*30).addScaledVector(_pilB,(Math.random()-.5)*24).addScaledVector(_pilN,1+Math.random()*8);
+          const lnB=4+p.v*SPD*3.6*.035;
+          spawnStreak(tmp2.x,tmp2.y,tmp2.z,_pilT.x*lnB,_pilT.y*lnB,_pilT.z*lnB);
+        }
+      }
     }else{
       p.a+=p.v/p.r*dt*SPD;
       p.grp.position.set(Math.cos(p.a)*p.r,PARK_GROUND_Y+.1,Math.sin(p.a)*p.r);
@@ -3148,6 +3175,13 @@ buildCar(CARS[0]);
 window.dbgCar=function(i){buildCar(CARS[Math.max(0,Math.min(23,i|0))]);}; // console : dbgCar(16) → prévisualiser un gabarit sans farmer les milliards (visuel pur, ne touche pas au niveau)
 window.dbgScene=function(){return {car:carGroup,scene:scene,contact:contactShadow,shadow:shadow};}; // dissection console (visuel pur)
 window.dbgState=function(){return {started:started,running:running,paused:paused,gameOver:gameOver,mode:mode,vA:+vA.toFixed(2),s:+s.toFixed(1),lat:+lat.toFixed(2),side:side,driveDir:driveDir,gapArmed:gapArmed,fallT:+fallT.toFixed(2),level:level,introD:introD,hopY:+hopY.toFixed(2),hOff:+curHOff.toFixed(2),latOff:+curLatOff.toFixed(2),dolphT:+dolphT.toFixed(2),dolphGain:+dolphGain.toFixed(2),chainVal:+chainVal.toFixed(2),fvy:+fallVel.y.toFixed(2),fspd:+fallVel.length().toFixed(1)};}; // état interne (lecture seule) — hOff/dolph* : calibrage du DAUPHIN
+window.__dbgBots=function(){ // état complet des bots IA + journal des morts (pour tests externes)
+  if(typeof SURV==='undefined'||!SURV.on)return {on:false};
+  return {on:SURV.on,t:+SURV.t.toFixed(1),deaths:SURV._deaths||[],
+    bots:SURV.bots.map(b=>({n:b.name,a:b.alive,air:b.air,cut:b.cut,cutFly:b.cutFly,cutI:b.cutI,
+      rel:+((b.totD-SURV.pBase)%L).toFixed(0),v:+b.v.toFixed(0),lat:+b.lat.toFixed(1),phi:+b.phi.toFixed(2),
+      fT:+b.fT.toFixed(1),fTR:+b.fTR.toFixed(1),airH:+b.airH.toFixed(1),vy:+b.fVel.y.toFixed(1),
+      nitro:+b.nitroR.toFixed(2),nT:+b.nT.toFixed(1),pbi:b.pbi,zone:b.zoneMark}))};};
 // TREMPLINS de la zone courante : archétype, longueur de piste, et chaque lèvre (position + variante).
 // `dbgGap(true)` téléporte à 220 m avant la 1re lèvre — pour juger le gap sans refaire la course d'élan.
 window.dbgGap=function(go){
@@ -5237,7 +5271,7 @@ impBtn.addEventListener('click',e=>{e.stopPropagation();
 // parcourue (SURV.pBase+s pour le joueur : les écarts survivent aux portails, téléportation invisible).
 // Couperet toutes les 60 s : le DERNIER explose. LOD partout : sim 1D permanente, mesh+gyros seulement
 // à portée de vue, 2 vraies lumières (pool) pour les plus proches, sirène unique dosée à la distance.
-const SURV={armed:false,on:false,t:0,over:false,_r:0,pBase:0,ph:0,last:false};
+const SURV={armed:false,on:false,t:0,over:false,_r:0,pBase:0,ph:0,last:false,cutMem:new Map()}; // cutMem = MÉMOIRE DE LA MEUTE (Q-learning léger) : clé "iB|j" → {t,w,g} tentatives/réussites/gain total
 SURV.bots=[];
 // personnalités : plus PERSONNE n'a de bonus de vitesse — tout le monde a TA caisse et TES lois.
 // La différence se joue au CERVEAU : agro = dépasse/bloque · err = fréquence des fautes ·
@@ -5385,7 +5419,7 @@ const FB={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:ne
 const svM4=new THREE.Matrix4(),svT1=new THREE.Vector3(); // temp partagé de la meute (jamais d'alloc chaude)
 function survStart(){
   for(const b of SURV.bots)if(b.mesh)scene.remove(b.mesh.g); // grand ménage de l'escadron précédent
-  SURV.on=SURV.armed&&!PARK.on;SURV.t=0;SURV.over=false;SURV.bots=[];SURV._r=0;SURV.pBase=0;SURV.ph=0;SURV.last=false; // FREESTYLE : jamais de police dans le parc
+  SURV.on=SURV.armed&&!PARK.on;SURV.t=0;SURV.over=false;SURV.bots=[];SURV._r=0;SURV.pBase=0;SURV.ph=0;SURV.last=false;SURV.cutMem=new Map(); // nouvelle piste → nouvelle mémoire (chaque course réapprend LA piste du jour, comme toi)
   SURV.jumpZones=[];SURV.pMode=mode;SURV._launchD=0;SURV._launchT=0; // mémoire de tes décollages sur CETTE piste
   survHudEl.style.display=SURV.on?'block':'none';
   lastAlertEl.style.display='none';
@@ -5407,12 +5441,21 @@ function survStart(){
     SURV.bots.push({name:p.n,agro:agro,err:p.err,rea:p.rea,line:line,marg:marg,alive:true,
       appJump:appJump,appBoost:appBoost,
       totD:s+(i-3)*34+(Math.random()*2-1)*12, // la meute encadre le joueur dès le départ
-      v:24,lat:(Math.random()*2-1)*(ROAD_HALF-4),latT:0,lane:(Math.random()*2-1)*.6,
+      v:58,lat:(Math.random()*2-1)*(ROAD_HALF-4),latT:0,lane:(Math.random()*2-1)*.6, // v:58 ≈ 104 km/h — la meute ROULE déjà au départ, sinon le premier gap la mangerait
       phi:0,steer:0,sHold:0,momT:0,pbi:-1,cornerV:1e9,think:Math.random()*.25,
       nitroR:1.2,nT:0,boostT:0,padB:0,padCd:0,slipT:0,oilCd:0,errT:0,errK:0,ph:Math.random(),
       air:false,airH:0,vy:0,spin:0,spinV:0,jumpCD:1+Math.random()*2,zoneMark:-1,
+      fPos:new THREE.Vector3(),fVel:new THREE.Vector3(),fT:0,fTR:0,airPitch:0,airYaw:0,gapSee:0, // VOL VECTORIEL (même kit que toi) : position/vitesse 3D, temps sim/réel de vol, assiette, lacet aérien, mémoire du gap approché
+      cut:0,cutCd:0,cutDir:1,cutFly:0,cutT:0,cutI:-1,cutKey:'',cutEst:0,cutD0:0, // RACCOURCI : LA CORDE entre deux segments — cutI = la cible exacte à viser en vol ; cutKey/cutEst/cutD0 = trace d'apprentissage (mémoire de la meute, gain mesuré au décollage)
       trail:botTrails[i],trailK:0, // son ruban bleu personnel
       mesh:mkPolice(i)});
+    // SPAWN SÉCURISÉ : jamais dans un trou ni sous une dalle — on décale en avant jusqu'à une dalle
+    {
+      let s9=SURV.bots[i].totD-SURV.pBase,guard=0;
+      while(s9<8||s9>L-8||holeAtS(s9)){s9+=6;guard++;if(guard>400)break;}
+      SURV.bots[i].totD=SURV.pBase+s9;
+      SURV.bots[i].lat=THREE.MathUtils.clamp(SURV.bots[i].lat,-(ROAD_HALF-3),ROAD_HALF-3);
+    }
     SURV.bots[i].latT=SURV.bots[i].lane*(ROAD_HALF-5);
   }
   survRender();
@@ -5438,8 +5481,10 @@ function svClockDraw(){ // minuteur circulaire PIXEL-ART : 20×20 upscalé net �
   if(svSecsEl){const sLeft=Math.max(0,Math.ceil(left));svSecsEl.textContent='0:'+String(sLeft).padStart(2,'0');
     svSecsEl.style.color=left<10?'#ff5040':'#ffd75e';}
 }
-function botBoom(b){ // une unité saute : gerbe or+bleu, champignon, et le son si c'est proche
+function botBoom(b,why){ // une unité saute : gerbe or+bleu, champignon, et le son si c'est proche
   b.alive=false;b.mesh.g.visible=false;
+  if(!SURV._deaths)SURV._deaths=[];
+  if(SURV._deaths.length<80)SURV._deaths.push({t:+SURV.t.toFixed(1),name:b.name,why:why||'?',rel:+((b.totD-SURV.pBase)%L).toFixed(0),v:+b.v.toFixed(0),air:b.air,airH:+b.airH.toFixed(1),fT:+b.fT.toFixed(1),fTR:+b.fTR.toFixed(1)});
   const rel=THREE.MathUtils.clamp(b.totD-SURV.pBase,1,L-2);
   frameAt(rel,FB);FB.p.addScaledVector(FB.n,.8);
   sparkBurst(sparkGold,FB.p,36,20);sparkBurst(sparkBlue,FB.p,28,16);
@@ -5513,7 +5558,63 @@ function survTick(dt){
       for(const o9 of OILS){if(o9.face!==1)continue;const d9=o9.s-rel;
         if(d9>2&&d9<oLook&&d9<obD&&Math.abs(o9.lat-lT)<o9.r+1){obD=d9;obLat=o9.lat;obW=o9.r+1;}}
       if(obD<1e9)lT=obLat+(lT>=obLat?1:-1)*(obW+1.6);
-      b.latT=THREE.MathUtils.clamp(lT,-(ROAD_HALF-2.4),ROAD_HALF-2.4);
+      // RACCOURCI : LA CORDE — un point de piste proche EN LIGNE DROITE mais loin EN ARC (la courbe fait
+      // un détour, la ligne coupe). C'est exactement « tracer une ligne imaginaire entre deux segments ».
+      // Le bot mesure le GAIN = distance-arc - distance-3D ; si couper fait gagner du terrain, il y va.
+      if(b.cutT>0)b.cutT-=dt;if(b.cutT<=0&&b.cut&&!b.air){b.cut=0;b.cutKey='';} // abandon si trop long à atteindre le bord (la corde n'est pas tentée → pas de trace d'apprentissage)
+      if(!b.air&&b.cutCd<=0&&!b.cut){
+        // RACCOURCI = CHUTE contrôlée : une route passe NETTEMENT PLUS BAS et proche horizontalement
+        // (les routes SE CROISENT). On sort du bord, on se laisse tomber, la gravité amène sur la dalle du dessous.
+        // MESURE DEPUIS LE BORD (pas le centre) : c'est du bord qu'il saute, la cible doit être presque SOUS lui.
+        // Q-LEARNING LÉGER : chaque cible a un SCORE = gain géométrique × confiance apprise par la meute
+        // (réussites/tentatives dans SURV.cutMem). Au début tout est inconnu → exploration = on tente tout.
+        // Après quelques tours, les cordes qui gagnent vRAIMENT ressortent et sont tentées en priorité :
+        // la meute se comporte comme des humains qui ont appris LA piste du jour.
+        const iB=bi;
+        const lookI=Math.min(NP-1,iB+Math.max(10,Math.round(430/segL9)));
+        // position du bord de chaque côté (lat ± ROAD_HALF) au point courant
+        svT1.copy(pts[iB]).addScaledVector(B[iB],ROAD_HALF);
+        dTmp.copy(pts[iB]).addScaledVector(B[iB],-ROAD_HALF);
+        let bestJ=-1,bestScore=0;
+        const eps=Math.max(.14,.5-SURV.t*.005); // epsilon décroissant : explore beaucoup au début, exploite ensuite (comme un apprentissage)
+        for(let j=iB+6;j<lookI;j+=2){
+          const dxL=pts[j].x-svT1.x,dyL=pts[j].y-svT1.y,dzL=pts[j].z-svT1.z;
+          const dxR=pts[j].x-dTmp.x,dyR=pts[j].y-dTmp.y,dzR=pts[j].z-dTmp.z;
+          const dL=Math.sqrt(dxL*dxL+dyL*dyL+dzL*dzL),dR=Math.sqrt(dxR*dxR+dyR*dyR+dzR*dzR);
+          const d3=Math.min(dL,dR);          // distance depuis le bord LE PLUS PROCHE
+          if(d3<8||d3>60)continue;           // la dalle du dessous doit être proche du bord (8-60 u)
+          const dy=pts[iB].y-pts[j].y;
+          if(dy<10||dy>60)continue;          // nettement PLUS BASSE (10-60 u) : la chute est jouable
+          const dArc=(j-iB)*segL9;           // distance le long de la route
+          const gain=dArc-d3;                // CE QU'ON GAGNE en coupant
+          if(gain<25)continue;               // trop maigre pour tenter
+          // ——— APPRENTISSAGE : la meute a-t-elle déjà essayé cette corde ? ———
+          const key=iB+'|'+j;
+          const mem=SURV.cutMem.get(key);
+          let score=gain;                    // gain géométrique pur (première fois = exploration)
+          if(mem&&mem.t>0){
+            const winR=mem.w/mem.t;          // taux de réussite appris
+            score=gain*(.75+.35*winR);       // une corde qui réussit souvent vaut plus qu'une inconnue
+            if(Math.random()<eps*.25)score=gain; // exploration : on re-tente quand même parfois les cordes ratées (on ne sait jamais)
+          }
+          if(score>bestScore){bestScore=score;bestJ=j;}
+        }
+        if(bestJ>=0){ // un croisement existe — mais on ne le tente PAS à chaque tick (sinon spam)
+          b.cutCd=3+Math.random()*3; // cooldown posé QUOI QU'IL ARRIVE (réessai = ~1 fois par 3-6 s max)
+          const mem=SURV.cutMem.get(iB+'|'+bestJ);
+          const known=(mem&&mem.t>0)?mem.w/mem.t:.3; // confiance apprise (0.3 = valeur d'exploration)
+          if(Math.random()<b.agro*(.28+known*.55)){ // une corde déjà réussie → tentée BIEN plus souvent
+            b.cut=1;b.cutT=1.8;b.cutI=bestJ;b.cutKey=iB+'|'+bestJ;b.cutEst=bestScore;b.cutCd=7+Math.random()*6; // cooldown LONG après décision : un humain ne re-tente pas un saut raté tout de suite
+            // sortir du bord qui est le PLUS PROCHE de la cible
+            const dxL=pts[bestJ].x-svT1.x,dzL=pts[bestJ].z-svT1.z;
+            const dxR=pts[bestJ].x-dTmp.x,dzR=pts[bestJ].z-dTmp.z;
+            b.cutDir=(dxL*dxL+dzL*dzL)<=(dxR*dxR+dzR*dzR)?1:-1;
+            b.latT=b.cutDir*(ROAD_HALF+2.5); // vise AU-DELÀ du bord : il faut |lat|>ROAD_HALF pour décoller
+            // PAS de nitro aérienne pour le raccourci : c'est une CHUTE, pas un vol plané
+          }
+        }
+      }
+      if(!b.cut)b.latT=THREE.MathUtils.clamp(b.latT,-(ROAD_HALF-2.4),ROAD_HALF-2.4);
       // NITRO : une RESSOURCE (même jauge, même recharge que toi) — il l'allume dès que la route se dégage
       if(b.nT<=0&&b.nitroR>.35&&b.slipT<=0&&b.cornerV>b.v*1.12&&(ahead==null||aG>10)){
         let env=b.appBoost*(ahead!=null?1.5:.9);           // même seul, il envoie : le spectacle des traînées bleues
@@ -5521,8 +5622,33 @@ function survTick(dt){
         if(racers[racers.length-1]===b)env*=1.6;           // le condamné du classement se bat
         if(Math.random()<env*.7)b.nT=.7+Math.random()*1.2; // plus souvent, plus longtemps — la jauge régule de toute façon
       }
+      // GAP EN VUE : il ANTICIPE le trou (comme toi) — accélère/nitro AVANT la lèvre pour arriver lancé
+      // (un humain voit le vide et appuie ; sans ça il arriverait trop lent et plongerait)
+      if(!b.air){
+        let gapAhead=false,distGap=1e9;
+        for(let k9=0;k9<8;k9++){
+          const d9=30+k9*22;
+          if(rel+d9>0&&rel+d9<L&&holeAtS(rel+d9)){gapAhead=true;distGap=d9;break;}
+        }
+        if(gapAhead&&b.v*SPD*3.6<135){ // trop lent pour le trou qui vient → on envoie la nitro
+          if(b.nT<=0&&b.nitroR>.25)b.nT=.6+Math.random()*.7;
+        }
+      }
+      // NITRO AÉRIENNE : EN VOL il allume pour sculpter sa trajectoire — surtout s'il survole un gap
+      // (même logique que toi : le réacteur sert à porter le saut, pas à faire joli)
+      if(b.air&&b.nT<=0&&b.nitroR>.3){
+        let envA=b.appBoost*.9;
+        // un trou ou une rampe devant = le moment de pousser le réacteur (portée = vie)
+        for(let k9=0;k9<4;k9++){
+          const d9=20+k9*26;
+          if(rel+d9>0&&rel+d9<L&&(holeAtS(rel+d9)||RAMPS.some(r9=>Math.abs(rel+d9-r9.s)<12))){envA*=2.1;break;}
+        }
+        if(SURV.t>48)envA*=1.5;
+        if(Math.random()<envA*.6)b.nT=.9+Math.random()*1.4; // plus long en l'air : le saut se mérite
+      }
     }
     if(b.errT>0)b.errT-=dt;
+    if(b.cutCd>0)b.cutCd-=dt;
     // ============ LE MOTEUR : copie conforme de TES équations — rien de plus, rien de moins ============
     const brk=b.v>b.cornerV*1.05||(b.errT>0&&b.errK===0);  // frein réel ou coup de frein fautif
     const lift=b.v>b.cornerV*.96;                          // pied levé à l'approche : un humain ne freine pas sec
@@ -5532,6 +5658,7 @@ function survTick(dt){
       let a9=0;
       if(brk)a9=b.v>2?-acc9*1.5:-acc9*.5;
       else if(!lift)a9=acc9*(b.v<maxSp9?1:.55)*(b.padB>0?1.5:1)*momF;
+      if(b.cut&&!b.air&&Math.abs(b.lat)>ROAD_HALF-5)a9=-acc9*2.2; // RACCOURCI : il FREINE en approchant du bord — une chute lente pose, une chute à 250 km/h dépasse la cible
       b.v+=a9*dt;
       b.v+=-GRAV*T[bi].y*Math.cos(b.phi)*dt;               // la pente pousse ou retient, comme toi
       b.v-=b.v*Math.abs(b.v)*(acc9/(maxSp9*maxSp9*5.8))*dt; // même traînée, même terminal
@@ -5539,10 +5666,10 @@ function survTick(dt){
       if(!brk&&lift)b.v*=Math.max(0,1-.4*dt);              // pied levé = même frein moteur
     }
     b.nT-=dt;
-    const nOn=b.nT>0&&!brk&&b.nitroR>.005;
+    const nOn=b.nT>0&&!brk&&!b.air&&b.nitroR>.005; // nitro SOL : même règle qu'avant
     if(nOn){b.v+=30*dt;b.nitroR=Math.max(0,b.nitroR-dt);}  // même poussée, même consommation
     b.nitroR=Math.min(2,b.nitroR+.2*dt);                   // même recharge que ta jauge
-    b.boostT=nOn?1:0;                                      // la flamme du réacteur suit la VRAIE combustion
+    b.boostT=(nOn||(b.air&&b.nT>0&&b.nitroR>.005))?1:0;    // la flamme du réacteur suit la VRAIE combustion
     b.padB=Math.max(0,b.padB-dt);
     if(b.v<0)b.v=0;
     // ============ LA DIRECTION : même volant, même inertie, même plafond TURN_HS ============
@@ -5566,37 +5693,227 @@ function survTick(dt){
     b.lat+=b.v*Math.sin(b.phi)*dt*SPD;
     b.totD+=b.v*Math.cos(b.phi)*dt*SPD;
     // ============ VOL & BORD : mêmes règles — la roue sort, la caisse décolle ============
+    // VOL VECTORIEL (2026-08-08) : les bots volent AVEC la physique du joueur — fallVel 3D,
+    // gravité FALL_G, nitro aérienne directionnelle (poussée le long de la vitesse + assiette),
+    // atterrissage visé avec perte de vitesse, plongeon si raté. Fini le vol « 1D décoratif ».
     if(b.air){
-      b.vy-=26*dt;b.airH+=b.vy*dt;
-      b.spin+=b.spinV*dt;b.spinV*=Math.max(0,1-dt*.5);
-      if(b.airH<=0){ // la retombée
-        b.air=false;b.airH=0;b.vy=0;b.spin=0;b.spinV=0;b.jumpCD=1+Math.random()*1.6;
-        if(Math.abs(b.lat)>ROAD_HALF){botBoom(b);continue;} // retombé À CÔTÉ : le vide ne pardonne pas, même à eux
-        if(rel>0&&rel<L&&holeAtS(rel)){botBoom(b);continue;} // retombé DANS le trou : il n'a pas passé le gap, point
-        if(b.mesh.g.visible)sparkBurst(sparkGold,b.mesh.g.position,7,7);
+      // ---- intégration vectorielle (même kit que toi) ----
+      const dtF=dt*THREE.MathUtils.clamp(1+Math.max(0,b.v*3.6*SPD-450)/1800,1,1.35); // AIR_RATE du bot, même tempo que le joueur
+      b.fT+=dtF;b.fTR+=dt;                                 // fT = temps-sim (assiette), fTR = temps RÉEL (jauge d'airtime)
+      b.spin+=b.spinV*dtF;b.spinV*=Math.max(0,1-dt*.5);    // la vrille reste visible
+      b.fVel.y-=FALL_G*dtF;                                   // gravité 33, comme toi
+      let yawIn9;
+      if(b.cutFly&&b.cutI>=0){ // RACCOURCI : braque HORIZONTALEMENT vers la cible pts[cutI] (le volant de la route ne sert plus)
+        const tC=pts[b.cutI];
+        const dxH=tC.x-b.fPos.x,dzH=tC.z-b.fPos.z,distH=Math.hypot(dxH,dzH)||1;
+        const curAng=Math.atan2(b.fVel.x,b.fVel.z),tgtAng=Math.atan2(dxH,dzH);
+        let dAng=tgtAng-curAng;while(dAng>Math.PI)dAng-=Math.PI*2;while(dAng<-Math.PI)dAng+=Math.PI*2;
+        const turn=(Math.abs(dAng)>1.2?1:1.35)*THREE.MathUtils.clamp(dAng*2.2,-1,1)*Math.min(1.15,80/Math.max(30,distH));
+        yawIn9=turn*dtF;
+      }else if(!b.cutFly&&b.pbi>=0&&b.airH>2){ // ÉJECTION : il RATTRAPE la route — braque vers le point de piste LE PLUS PROCHE (mini-scan, comme un humain qui voit le sol et se jette dessus) — activé dès 2 u (pas seulement en chute haute, sinon il "flotte" à côté sans se poser)
+        let bj9=b.pbi,bd9=1e9;
+        for(let i9=Math.max(2,b.pbi-200);i9<=Math.min(NP-3,b.pbi+200);i9+=2){
+          const dx9=b.fPos.x-pts[i9].x,dy9=b.fPos.y-pts[i9].y,dz9=b.fPos.z-pts[i9].z;
+          const dd9=dx9*dx9+dy9*dy9+dz9*dz9;
+          if(dd9<bd9){bd9=dd9;bj9=i9;}
+        }
+        const tC=pts[bj9];
+        const dxH=tC.x-b.fPos.x,dzH=tC.z-b.fPos.z,distH=Math.hypot(dxH,dzH)||1;
+        const curAng=Math.atan2(b.fVel.x,b.fVel.z),tgtAng=Math.atan2(dxH,dzH);
+        let dAng=tgtAng-curAng;while(dAng>Math.PI)dAng-=Math.PI*2;while(dAng<-Math.PI)dAng+=Math.PI*2;
+        const turn=THREE.MathUtils.clamp(dAng*2.6,-1,1)*Math.min(1.4,120/Math.max(25,distH));
+        yawIn9=turn*dtF;
+      }else yawIn9=b.steer*(1.15+Math.min(.6,b.fVel.length()*.004))*dtF; // sinon : le volant tourne le vecteur vitesse, comme toi
+      b.fVel.applyAxisAngle(AXIS_Y,yawIn9);b.airYaw+=yawIn9;
+      const nAir=(b.nT>0&&b.nitroR>.005)||(b.airH>-2&&b.airH<16&&b.fVel.y<-4&&b.nitroR>.12); // NITRO AÉRIENNE : sa propre condition (le sol a déjà sa logique) + CABRAGE D'ATTERRISSAGE forcé près du sol
+      if(nAir){                                                // NITRO AÉRIENNE façon Rocket League
+        b.nT-=dtF;b.nitroR=Math.max(0,b.nitroR-dtF);           // même consommation que toi
+        tmp.copy(b.fVel);if(tmp.lengthSq()>1)tmp.normalize();else tmp.set(0,0,1);
+        b.fVel.addScaledVector(tmp,(b.nitroR<=.01?70:52)*dtF); // poussée le long de la vitesse (réserve bleue = 70)
       }
-    }else{
-      const hb9=(rel>0&&rel<L)?holeAtS(rel):null;
-      if(hb9){ // LE TROU : la dalle a disparu sous ses roues — il s'envoie, exactement comme toi
-        b.air=true;b.airH=.01;b.spinV=(Math.random()-.5)*2.5;
-        b.vy=13*Math.min(3.5,1.15*(hb9.s1-hb9.s0)/Math.max(20,b.v*SPD)); // vy calé sur la LARGEUR du trou : il vise l'autre bord
-      }else if(Math.abs(b.lat)>ROAD_HALF){ // le BORD : même sanction que toi — ça décolle, à lui de revenir
-        b.air=true;b.airH=.01;b.vy=6;b.spinV=(Math.random()-.5)*2;
-      }else{
-        b.jumpCD-=dt;
-        if(b.jumpCD<=0){ // « il a vu où tu sautes » : TES spots sont leurs SEULS tremplins — plus de saut sorti de nulle part
-          for(let zi=0;zi<SURV.jumpZones.length;zi++){
-            const z=SURV.jumpZones[zi];
-            if(zi!==b.zoneMark&&Math.abs(z.d-b.totD)<8){
-              b.zoneMark=zi;
-              if(Math.random()<.25+b.appJump*.6){ // l'appétit hérité de TOI décide s'il OSE
-                const air9=z.dur*(.7+b.appJump*.5);
-                b.air=true;b.airH=.01;b.vy=13*Math.min(air9,4); // vy=G·t/2 : il reproduit la DURÉE de ton vol
-                b.spinV=(Math.random()<.5?-1:1)*(1+b.agro*5.5)*(air9>1.5?1:.35);
-                b.jumpCD=2.2;
-              }
-              break;
+      // RACCOURCI : la nitro S'ALLUME EN VOL pour porter vers la cible (la vitesse pointe déjà dessus → la poussée aide, elle ne fait plus monter)
+      if(b.cutFly&&b.cutI>=0&&b.nT<=0&&b.nitroR>.15){
+        b.nT=.8+Math.random()*.6; // un coup de réacteur pour finir le saut (comme toi sur un gros gap)
+      }
+      // ABANDON DU RACCOURCI : après 1,5 s de vol sans atterrir, le saut est raté → on coupe la visée
+      // et le bot REVIENT sur la dalle la plus proche (comme un humain qui se repose après un raté)
+      if(b.cutFly&&b.fT>1.5){
+        if(b.cutKey){ // ——— PÉNALITÉ : abandon = échec de corde (mais pas la mort : il retombe ailleurs, pas grave) ———
+          let m9=SURV.cutMem.get(b.cutKey);
+          if(!m9){m9={t:0,w:0,g:0};SURV.cutMem.set(b.cutKey,m9);}
+          m9.t++; // échec sec : la meute saura que cette corde ne se pose pas
+        }
+        b.cutFly=0;b.cutI=-1;b.cutKey=''; // l'abandon n'est PAS une réussite : on oublie la corde pour ce vol
+      }
+      // ASSIETTE pilotée (HORS nitro : un pilote se redresse même réserve vide) — vise la route devant,
+      // ou la CIBLE exacte pts[cutI] pendant un raccourci (ligne imaginaire entre deux segments).
+      {
+        const jA=Math.min(NP-1,b.pbi+Math.max(1,Math.round(Math.min(70,b.v*SPD*1.4)/segL9)));
+        const dhA=pts[jA].y-(b.pbi>=0?pts[b.pbi].y:b.fPos.y);
+        let pitT;
+        if(b.cutFly&&b.cutI>=0){ // CHUTE pilotée vers la dalle du dessous : assiette neutre pendant la chute, puis CABRAGE d'amortissement à l'approche de la CIBLE
+          pitT=0;
+          // amortir UNIQUEMENT quand la dalle la plus proche EST la cible (biN≈cutI) — sinon on looperait sur la dalle quittée
+          if(b.fVel.y<-8&&b.airH<22&&Math.abs(bi-b.cutI)<24)pitT=.6;
+        }else{
+          pitT=b.cutFly?THREE.MathUtils.clamp(-dhA/Math.max(20,b.v*SPD*1.4)*3.4-.55,-1.05,-.15)
+                             :THREE.MathUtils.clamp(-dhA/Math.max(20,b.v*SPD*1.4)*2.6,-.85,.85);
+        }
+        // CABRAGE D'ATTERRISSAGE : proche de la dalle et en descente rapide → il cabre pour poser doux
+        // (sans ça il traverse le sol : vN>fenêtre = jamais d'atterrissage = plongeon)
+        // ⚠️ JAMAIS pendant un raccourci volontaire : la dalle la plus proche est celle qu'il QUITTE,
+        // le cabrage le ferait loopinger au lieu de plonger vers sa cible.
+        if(!b.cutFly&&b.airH>-2&&b.airH<16&&b.fVel.y<-3)pitT=Math.max(pitT,.55);
+        b.airPitch+=THREE.MathUtils.clamp(pitT-b.airPitch,-1.7*dtF,1.7*dtF);
+        const spd9=b.fVel.length();
+        if(spd9>1){
+          const hxz9=Math.hypot(b.fVel.x,b.fVel.z);
+          let pit9=Math.atan2(b.fVel.y,hxz9);
+          pit9=THREE.MathUtils.clamp(pit9+b.airPitch*1.7*dtF,-1.13,1.13); // plafond ±65° comme toi
+          const nH9=Math.cos(pit9)*spd9,hs9=hxz9>.001?nH9/hxz9:1;
+          b.fVel.set(b.fVel.x*hs9,Math.sin(pit9)*spd9,b.fVel.z*hs9);
+        }
+      }
+      b.fPos.addScaledVector(b.fVel,dtF*SPD);
+      b.v=Math.max(2,b.fVel.length());                        // la vitesse du bot suit SA vitesse 3D (affichage/traînée)
+      // ---- projection sur la courbe : RENDU en position 3D réelle (fPos), ATTERRISSAGE avec rayon max ----
+      // Scan GLOBAL par pas de 2 (comme tryLand du joueur) : les routes SE CROISENT — la dalle
+      // d'atterrissage peut être à un index lointain de la piste, pas juste devant.
+      // ⚠️ Le totD n'est PAS écrasé pendant le vol (il suivrait le point 3D le plus proche → la piste
+      // qui se croise téléporterait le classement). Il n'est mis à jour QU'à l'atterrissage : le bot qui
+      // coupe un raccourci gagne exactement le terrain du raccourci.
+      let biN=-1,bdN=1e9;
+      for(let i=2;i<NP-2;i+=2){
+        const dx=b.fPos.x-pts[i].x,dy=b.fPos.y-pts[i].y,dz=b.fPos.z-pts[i].z;
+        const dd=dx*dx+dy*dy+dz*dz;
+        if(dd<bdN){bdN=dd;biN=i;}
+      }
+      if(biN>=0){
+        dTmp.subVectors(b.fPos,pts[biN]);
+        const hOff=dTmp.dot(Nn[biN]),latOff=dTmp.dot(B[biN]);
+        b.airH=hOff; // le cabrage d'atterrissage lit airH : il DOIT suivre la vraie hauteur pendant tout le vol (sinon il ne se déclenche jamais)
+        const vN=b.fVel.dot(Nn[biN]);
+        // rayon d'atterrissage : 90 u pour TOUT vol (routes croisées = seconde chance réaliste :
+        // un bot éjecté peut rattraper la route du dessous), 160 u quand il coupe volontairement
+        const landRad9=b.cutFly?25600:8100;
+        if(bdN<landRad9){
+          // ---- ATTERRISSAGE : fenêtres de contact (comme tryLand, face du dessus seulement) ----
+          let sideL=0;
+          if(b.fT>.35&&hOff>(b.cutFly?-15:-8)&&hOff<(b.cutFly?10:6)&&vN<(b.cutFly?80:35))sideL=1; // raccourci = crash contrôlé (vN 80) ; éjection = pose de secours large (fenêtre hOff -8..6 et vN 35 : mieux vaut se poser en catastrophe que traverser la dalle)
+          if(sideL&&Math.abs(latOff)<(b.cutFly?ROAD_HALF+6:ROAD_HALF+8)&&!holeAtI(biN)){  // jamais sur le vide ; raccourci = rattrape le bord en glissant ; éjection = même réflexe (un humain qui se rate glisse sur le bord, il ne tombe pas raide)
+            const impact9=Math.abs(vN),bigness9=Math.max(0,b.fT-.8);
+            const landLoss9=Math.min(.52,bigness9*.15+impact9*.008); // même décélération que toi
+            b.v*=(1-landLoss9);
+            b.lat=latOff*sideL;
+            b.totD=SURV.pBase+THREE.MathUtils.clamp(biN/(NP-1)*L,-60,L+60); // LE GAIN DU RACCOURCI : il se pose sur la dalle (lointaine) et son classement suit
+            // ——— RÉCOMPENSE Q-LEARNING : cette corde vient de RÉUSSIR — la meute la notera mieux ———
+            // Seulement si le classement a VRAIMENT gagné du terrain (un atterrissage raté près du bord ne récompense pas)
+            if(b.cutKey&&b.totD-b.cutD0>20){
+              let m9=SURV.cutMem.get(b.cutKey);
+              if(!m9){m9={t:0,w:0,g:0};SURV.cutMem.set(b.cutKey,m9);}
+              m9.t++;m9.w++;m9.g+=b.cutEst;
+            }else if(b.cutKey&&b.totD-b.cutD0<=20&&b.cutD0>0){ // atterri SANS gagner : la corde a ÉCHOUÉ (raté la dalle, retombé près du bord)
+              let m9=SURV.cutMem.get(b.cutKey);
+              if(!m9){m9={t:0,w:0,g:0};SURV.cutMem.set(b.cutKey,m9);}
+              m9.t++;
             }
+            b.air=false;b.airH=0;b.fT=0;b.fTR=0;b.fVel.set(0,0,0);b.airPitch=0;b.airYaw=0;
+            b.spin=0;b.spinV=0;b.jumpCD=1+Math.random()*1.6;b.cutFly=0;b.cutI=-1;b.cutKey=''; // fin du plongeon-raccourci : on est posé
+            if(b.mesh.g.visible)sparkBurst(sparkGold,b.mesh.g.position,7,7);
+          }else if(!b.cutFly&&(hOff<-THICK-40||b.fTR>8)){botBoom(b,'plongeon-sous-dalle');continue;} // plongeon SEULEMENT si vol non volontaire (le raccourci plonge EXPRÈS)
+          else if(b.cutFly&&(b.fTR>9||(b.fVel.y>30&&b.fT>3&&hOff<0))){
+            if(b.cutKey){ // ——— PÉNALITÉ Q-LEARNING : cette corde a ÉCHOUÉ — la meute la notera moins bien ———
+              let m9=SURV.cutMem.get(b.cutKey);
+              if(!m9){m9={t:0,w:0,g:0};SURV.cutMem.set(b.cutKey,m9);}
+              m9.t++;if(m9.w>m9.t*.5)m9.w=Math.max(0,m9.t*.5); // on fait redescendre le taux de réussite (jamais en dessous de 50% pour garder un peu d'audace)
+            }
+            botBoom(b,b.fTR>9?'raccourci-airtime':'raccourci-rate');continue; // un raccourci a une fenêtre plus large, mais pas infinie
+          }
+        }else if(!b.cutFly&&b.fTR>8){botBoom(b,'airtime-vide');continue;} // loin de toute dalle trop longtemps (hors raccourci)
+        else if(b.cutFly&&b.fTR>9){if(b.cutKey){let m9=SURV.cutMem.get(b.cutKey);if(!m9){m9={t:0,w:0,g:0};SURV.cutMem.set(b.cutKey,m9);}m9.t++;if(m9.w>m9.t*.5)m9.w=Math.max(0,m9.t*.5);}botBoom(b,'raccourci-airtime');continue;}
+      }else if(b.fTR>8){botBoom(b,'airtime-perdu');continue;}                  // perdu au-dessus du vide trop longtemps
+    }else{
+      // ---- AU SOL : trois façons de décoller, comme toi ----
+      const hb9=(rel>0&&rel<L)?holeAtS(rel):null;
+      if(hb9){ // LE TROU : la dalle disparaît — s'il est lancé il s'envole, sinon il TOMBE (et peut attraper une route en dessous : le raccourci risqué)
+        if(b.v*SPD*3.6>=100||b.padB>0){                        // assez lancé → il s'envoie par-dessus
+          const w9=Math.min(3.5,1.15*(hb9.s1-hb9.s0)/Math.max(20,b.v*SPD));
+          frameAt(rel,F);if(side<0){F.n.multiplyScalar(-1);F.b.multiplyScalar(-1);}
+          b.fPos.copy(F.p).addScaledVector(F.b,b.lat).addScaledVector(F.n,.6);
+          b.fVel.copy(F.t).multiplyScalar(b.v*1.05).addScaledVector(F.n,13*w9);
+          if(b.fVel.y>70)b.fVel.y=70;
+          b.air=true;b.fT=0;b.fTR=0;b.airPitch=0;b.airYaw=0;b.spinV=(Math.random()-.5)*2.5;
+        }else{ // trop lent : CHUTE LIBRE (comme toi) — recherche LARGE : il peut attraper une route en dessous, ou plonger
+          frameAt(rel,F);if(side<0){F.n.multiplyScalar(-1);F.b.multiplyScalar(-1);}
+          b.fPos.copy(F.p).addScaledVector(F.b,b.lat).addScaledVector(F.n,.6);
+          b.fVel.copy(F.t).multiplyScalar(b.v*.9).addScaledVector(F.n,1.1);
+          b.air=true;b.fT=0;b.fTR=0;b.airPitch=0;b.airYaw=0;b.spinV=(Math.random()-.5)*3;
+          b.cutFly=1; // recherche d'atterrissage élargie : le filet de sécurité du raccourci
+        }
+      }else if(b.cut&&b.cutI>=0){ // RACCOURCI : SAUT AU BON MOMENT — seulement quand la cible est PROCHE et DEVANT
+        frameAt(rel,F);if(side<0){F.n.multiplyScalar(-1);F.b.multiplyScalar(-1);}
+        const tC9=pts[b.cutI];
+        // position actuelle sur la route
+        b.fPos.copy(F.p).addScaledVector(F.b,b.lat).addScaledVector(F.n,.6);
+        const vx9=tC9.x-b.fPos.x,vy9=tC9.y-b.fPos.y,vz9=tC9.z-b.fPos.z;
+        const d3c=Math.sqrt(vx9*vx9+vy9*vy9+vz9*vz9)||1;
+        const dH=Math.hypot(vx9,vz9)||1;
+        const devant=(vx9*F.t.x+vz9*F.t.z)>-2; // la cible doit être DEVANT (pas derrière)
+        if(d3c<60&&dH<55&&devant&&b.v>18){ // à portée : 60 u max, pas trop latéral, devant, assez de vitesse
+          // temps de vol estimé : la cible est déjà PLUS BASSE, la gravité aide — on vise la cible directe
+          // avec une compensation LÉGÈRE (20 %) pour la chute pendant le vol
+          const tFly=Math.min(2.2,d3c/Math.max(15,b.v));
+          const aimY=tC9.y+0.5*FALL_G*tFly*tFly*SPD*0.2; // compensation légère : on veut arriver SUR la dalle, pas au-dessus
+          const ax=aimY-b.fPos.y;
+          const dA=Math.sqrt(vx9*vx9+ax*ax+vz9*vz9)||1;
+          b.fVel.set(vx9/dA*b.v*.95,ax/dA*b.v*.95,vz9/dA*b.v*.95); // vitesse POINTANT vers la cible (avec compensation)
+          b.air=true;b.fT=0;b.fTR=0;b.airPitch=0;b.airYaw=0;b.spinV=(Math.random()-.5)*1.5;
+          b.cutFly=1;b.nT=0;b.nitroR=Math.min(b.nitroR,.3);b.cutD0=b.totD; // zéro nitro : c'est une chute, pas un vol plané
+        }
+      }else if(Math.abs(b.lat)>ROAD_HALF){ // le BORD : même sanction que toi — ça décolle, à lui de revenir
+        frameAt(rel,F);if(side<0){F.n.multiplyScalar(-1);F.b.multiplyScalar(-1);}
+        b.fPos.copy(F.p).addScaledVector(F.b,b.lat).addScaledVector(F.n,.6);
+        b.fVel.copy(F.t).multiplyScalar(b.v).addScaledVector(F.n,6);
+        if(b.fVel.y>70)b.fVel.y=70;
+        // ÉJECTION ACCIDENTELLE : on coupe la nitro résiduelle du sol (sinon elle pousse le long de la
+        // pente et le bot s'envole comme une fusée à +200 u). Sauf si un gap/rampe justifie de pousser.
+        let keepN=false;
+        for(let k9=0;k9<5;k9++){const d9=15+k9*22;if(rel+d9>0&&rel+d9<L&&(holeAtS(rel+d9)||RAMPS.some(r9=>Math.abs(rel+d9-r9.s)<14))){keepN=true;break;}}
+        if(!keepN)b.nT=0;
+        b.air=true;b.fT=0;b.fTR=0;b.airPitch=0;b.airYaw=0;b.spinV=(Math.random()-.5)*2;
+        if(b.cut){b.cutFly=1;b.nT=0;b.nitroR=Math.min(b.nitroR,.3);b.cutD0=b.totD;} // RACCOURCI : chute VOLONTAIRE — zéro nitro (elle pousserait le long de la pente et ferait monter)
+      }else{
+        // TREMPLINS HÉROS (RAMPS) : les bots les prennent comme toi — pas de saut sorti de nulle part
+        b.jumpCD-=dt;
+        if(b.jumpCD<=0)for(const r9 of RAMPS){
+          if(Math.abs(rel-r9.s)>7)continue;
+          b.jumpCD=2.2;
+          if(b.v*SPD*3.6>=110){ // assez lancé → catapulte
+            frameAt(rel,F);if(side<0){F.n.multiplyScalar(-1);F.b.multiplyScalar(-1);}
+            b.fPos.copy(F.p).addScaledVector(F.b,b.lat).addScaledVector(F.n,.6);
+            b.fVel.copy(F.t).multiplyScalar(b.v*1.14).addScaledVector(F.n,6.6+(r9.v===1?1.4:0));
+            if(b.fVel.y>70)b.fVel.y=70;
+            b.air=true;b.fT=0;b.fTR=0;b.airPitch=0;b.airYaw=0;b.spinV=(Math.random()-.5)*2.5;
+            b.gapSee=r9.v+1;
+          } // trop lent : il ne décolle pas, la rampe le laisse retomber (même sort que toi)
+          break;
+        }
+        // « il a vu où tu sautes » : TES spots restent leurs tremplins (Drivatar) — avec la nouvelle physique
+        if(!b.air&&b.jumpCD<=0)for(let zi=0;zi<SURV.jumpZones.length;zi++){
+          const z=SURV.jumpZones[zi];
+          if(zi!==b.zoneMark&&Math.abs(z.d-b.totD)<8){
+            b.zoneMark=zi;
+            if(Math.random()<.25+b.appJump*.6){ // l'appétit hérité de TOI décide s'il OSE
+              const air9=z.dur*(.7+b.appJump*.5);
+              frameAt(rel,F);if(side<0){F.n.multiplyScalar(-1);F.b.multiplyScalar(-1);}
+              b.fPos.copy(F.p).addScaledVector(F.b,b.lat).addScaledVector(F.n,.6);
+              b.fVel.copy(F.t).multiplyScalar(b.v).addScaledVector(F.n,13*Math.min(air9,4));
+              if(b.fVel.y>70)b.fVel.y=70;
+              b.air=true;b.fT=0;b.fTR=0;b.airPitch=0;b.airYaw=0;
+              b.spinV=(Math.random()<.5?-1:1)*(1+b.agro*5.5)*(air9>1.5?1:.35);
+              b.jumpCD=2.2;
+            }
+            break;
           }
         }
       }
@@ -5633,20 +5950,74 @@ function survTick(dt){
   for(const b of SURV.bots){
     if(!b.alive){b.trailK=0;trailStep(b.trail,0,0,0,0,0,0,0);continue;}
     const rel=b.totD-SURV.pBase;
-    const gap=Math.abs(rel-s);
+    // GAP EN DISTANCE 3D RÉELLE (et non en arc de piste) : pendant un RACCOURCI le bot vole entre deux
+    // routes qui se croisent — |rel-s| peut dire 2000 u alors qu'il est à 20 u de toi. Sans ça le mesh
+    // disparaît et AUCUNE particule ne se déclenche (le joueur, lui, a ses particules partout).
+    let gap;
+    if(b.air){
+      const dX9=carGroup.position.x-b.fPos.x,dY9=carGroup.position.y-b.fPos.y,dZ9=carGroup.position.z-b.fPos.z;
+      gap=Math.sqrt(dX9*dX9+dY9*dY9+dZ9*dZ9);
+    }else gap=Math.abs(rel-s);
     if(rel>2&&rel<L-4){
       frameAt(rel,FB);
       // TRAÎNÉE BLEUE : mise à jour SANS limite de distance — la grosse signature de la meute se voit de LOIN (fog:false)
       b.trailK+=((b.boostT>0?1:0)-b.trailK)*Math.min(1,dt*(b.boostT>0?16:5));
-      svT1.copy(FB.p).addScaledVector(FB.b,b.lat).addScaledVector(FB.n,1.05+b.airH).addScaledVector(FB.t,-2.5);
+      if(b.air){svT1.copy(b.fPos);svT1.y+=1.05;} // EN VOL : la traînée suit la position 3D RÉELLE (pas la projection — les routes se croisent)
+      else svT1.copy(FB.p).addScaledVector(FB.b,b.lat).addScaledVector(FB.n,1.05+b.airH).addScaledVector(FB.t,-2.5);
       trailStep(b.trail,svT1.x,svT1.y,svT1.z,.5,.62,1.55,b.trailK,1.7);
       if(gap<340){
       const m=b.mesh.g;
+      if(b.air){ // EN VOL : position 3D réelle — le mesh flotte où la physique le met, pas sur la projection
+        m.position.copy(b.fPos);
+        m.quaternion.setFromRotationMatrix(svM4.makeBasis(FB.b,FB.n,FB.t));
+        m.rotateY(b.phi);if(b.spin)m.rotateZ(b.spin);
+      }else{
       m.position.copy(FB.p).addScaledVector(FB.b,b.lat).addScaledVector(FB.n,.56+b.airH); // la hauteur de VOL soulève la caisse
       m.quaternion.setFromRotationMatrix(svM4.makeBasis(FB.b,FB.n,FB.t));
       m.rotateY(b.phi); // le cap RÉEL de la sim : on VOIT les braquages, contre-braquages et embardées
       if(b.spin)m.rotateZ(b.spin); // la vrille policière : barrel roll autour de l'axe de route
+      }
       m.visible=true;
+      // BURST DE DÉCOLLAGE : les mêmes particules que toi quand tu quittes le sol (dust + braises qui
+      // se dispersent, ligne ~5000) — la meute doit "exploser" pareil quand elle décolle
+      if(b.air&&!b._lastAir){
+        for(let k9=0;k9<10;k9++){
+          spawnP(dust,m.position.x,m.position.y,m.position.z,(Math.random()-.5)*7,-1-Math.random()*3,(Math.random()-.5)*7,.4+Math.random()*.3);
+          if(k9<6)spawnP(flameCore,m.position.x,m.position.y,m.position.z,(Math.random()-.5)*9,-2-Math.random()*3,(Math.random()-.5)*9,.25);
+        }
+      }
+      b._lastAir=b.air;
+      // PARTICULES DE LA MEUTE — les MÊMES que le joueur (ligne 6350+), dosées LOD : un humain voit la
+      // fumée de gomme, les braises d'échappement et les traits d'air des autres caisses, pas que la sienne
+      if(gap<340){
+        const spK=b.v*SPD*3.6; // km/h réel du bot
+        const bsp=1+(b.boostT>0?1:0); // nitro = braises plus denses
+        // repère du bot : au sol = route ; EN VOL = direction réelle de la vitesse (sinon les particules
+        // sortent selon l'ancienne route, à l'envers du vol)
+        tmp3.set(FB.t.x,FB.t.y,FB.t.z);tmp2.set(FB.b.x,FB.b.y,FB.b.z);
+        if(b.air&&b.fVel.lengthSq()>1){tmp3.copy(b.fVel).normalize();tmp2.set(-tmp3.z,0,tmp3.x).normalize();}
+        // 1) FUMÉE DE GOMME : seulement quand il glisse (|phi| proche du crissement), comme le joueur
+        const drfB=Math.max(0,Math.min(1,(Math.abs(b.phi)-.32)*1.5))*Math.min(1,Math.abs(b.v)/35);
+        if(drfB>0&&Math.abs(b.v)>14&&Math.random()<.8&&!b.air){
+          svT1.copy(m.position).addScaledVector(tmp3,-1.4).addScaledVector(tmp2,(Math.random()<.5?-1:1)*.8);
+          spawnP(dust,svT1.x,svT1.y,svT1.z,-tmp3.x*3+tmp2.x*2.5*drfB+(Math.random()-.5)*1.5,.8+Math.random()*.6,-tmp3.z*3+tmp2.z*2.5*drfB+(Math.random()-.5)*1.5,.3+Math.random()*.3);
+        }
+        // 2) BRAISES D'ÉCHAPPEMENT : flux serré le long de l'axe, comme les tiennes
+        if(spK>40&&Math.random()<.85){
+          svT1.copy(m.position).addScaledVector(tmp3,-1.6).addScaledVector(tmp2,(Math.random()<.5?-1:1)*.5).addScaledVector(FB.n,.43);
+          const vsp9=b.boostT>0?.6:.9;
+          spawnP(flames,svT1.x+(Math.random()-.5)*.10,svT1.y+(Math.random()-.5)*.10,svT1.z+(Math.random()-.5)*.10,
+            tmp3.x*vsp9*bsp*2.2+(Math.random()-.5)*.7,.4+Math.random()*.5,tmp3.z*vsp9*bsp*2.2+(Math.random()-.5)*.7,.18+Math.random()*.12);
+          if(Math.random()<.5)spawnP(flameCore,svT1.x+(Math.random()-.5)*.10,svT1.y+(Math.random()-.5)*.10,svT1.z+(Math.random()-.5)*.10,
+            tmp3.x*vsp9*bsp*2.6+(Math.random()-.5)*.5,.4+Math.random()*.5,tmp3.z*vsp9*bsp*2.6+(Math.random()-.5)*.5,.12+Math.random()*.1);
+        }
+        // 3) TRAITS D'AIR : discrets, à haute vitesse — même seuil que le joueur (140 km/h)
+        if(spK>140&&Math.random()<.5){
+          svT1.copy(m.position).addScaledVector(tmp3,10+Math.random()*30).addScaledVector(tmp2,(Math.random()-.5)*24).addScaledVector(FB.n,1+Math.random()*8);
+          const lnB=4+spK*.035;
+          spawnStreak(svT1.x,svT1.y,svT1.z,tmp3.x*lnB,tmp3.y*lnB,tmp3.z*lnB);
+        }
+      }
       const bph=((SURV.ph+b.ph)%1)<.5; // chaque rampe bat sur SA phase — la meute scintille
       b.mesh.lampR.material=bph?gyroRedOn:gyroRedOff;
       b.mesh.lampB.material=bph?gyroBluOff:gyroBluOn;
@@ -7234,6 +7605,19 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){ // ?touch=1 : tester l'UI ta
 // PWA : enregistrement du service worker (offline + installable). Sans effet en file:// ou sans HTTPS/localhost.
 if('serviceWorker'in navigator){ addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); }); }
 /* ============ fin ajout MOBILE / PWA ============ */
+// ---- MODE SIMULATION (?sim=1) : exporte l'API de logique IA pour les tests headless (Node/browser) ----
+// L'IIFE isole tout ; ce bloc (DANS l'IIFE) donne accès aux fonctions internes sans changer le jeu normal.
+if(IS_SIM){
+  window.__SIM={buildTrack:buildTrack,survStart:survStart,survTick:survTick,frameAt:frameAt,
+    holeAtS:holeAtS,holeAtI:holeAtI,genCtrl:genCtrl,genPark:genPark,mulberry32:mulberry32,
+    get SURV(){return SURV;},get CARS(){return CARS;},get pts(){return pts;},get T(){return T;},
+    get Nn(){return Nn;},get B(){return B;},get L(){return L;},get NP(){return NP;},
+    get mode(){return mode;},get s(){return s;},set s(v){s=v;},get vA(){return vA;},set vA(v){vA=v;},
+    set level(v){level=v;},get level(){return level;},get RAMPS(){return RAMPS;},get PADS(){return PADS;},
+    get CONES(){return CONES;},get OILS(){return OILS;},get trackMinY(){return trackMinY;},
+    get ROAD_HALF(){return ROAD_HALF;},get THICK(){return THICK;},get SPD(){return SPD;},get FALL_G(){return FALL_G;},
+  };
+}
 requestAnimationFrame(loop);
 })();
 </script>
