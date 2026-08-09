@@ -980,8 +980,11 @@ const planetGroup=(function(){
   const tex=new THREE.CanvasTexture(cv);tex.wrapS=THREE.RepeatWrapping;
   // ⚠ le grade final (expo + saturation + bloom) BRÛLE tout ce qui est clair : mesurée à [253,231,239],
   // la planète ressortait BLANCHE. On la rentre donc volontairement sombre — c'est le post qui la rallume.
+  // ⚠ `transparent` : la planète n'appartient plus qu'à UN biome (« EN ORBITE », le dernier du
+  // cycle). Elle doit donc pouvoir se FONDRE pendant les 4 s de transition — sans ça, elle
+  // apparaîtrait et disparaîtrait d'un coup en plein fondu de ciel, ce qui se lit comme un bug.
   const globe=new THREE.Mesh(new THREE.SphereGeometry(PLANET_R,44,30),
-    new THREE.MeshBasicMaterial({map:tex,fog:false,color:0x55708c})); // teinte multiplicative : garde le bleu-vert au lieu de saturer
+    new THREE.MeshBasicMaterial({map:tex,fog:false,color:0x55708c,transparent:true,opacity:1})); // teinte multiplicative : garde le bleu-vert au lieu de saturer
   globe.rotation.z=.28; // axe incliné, comme la vraie
   g.add(globe);
   // ATMOSPHÈRE : un liseré bleu qui déborde du disque (BackSide = on ne voit que le pourtour)
@@ -2702,113 +2705,107 @@ const envTex=(function(){ // le ciel réfléchi par les carrosseries — repeint
   for(let i=0;i<6;i++){const cv=document.createElement('canvas');cv.width=cv.height=64;envCvs.push(cv);}
   const t=new THREE.CubeTexture(envCvs);return t;
 })();
-// ============================================================================
-//  BIOMES — LE CYCLE DU CIEL : 10 ambiances, lerpées ~4 s au portail
-//  (uniforms/couleurs UNIQUEMENT — jamais de recompilation shader).
-//  Le tour du cadran, dans l'ordre : AUBE (heure bleue) · LEVER · MATIN · MIDI ·
-//  APREM · GOLDEN · COUCHANT · SOIR · NUIT, plus l'ORAGE en joker météo.
-//  Les 9 « jour » sont tirées au HASARD (jamais deux fois la même de suite) au
-//  départ et à chaque portail — au 3e portail de la MÊME partie, la VRAIE NUIT
-//  tombe pour de bon (le mode débloqué, phares rois).
-//  ⚠ bioLerp parcourt TOUTES les clés numériques : un biome à qui il manque un
-//  champ garderait la valeur du précédent en plein fondu. Copier le gabarit entier.
-// ============================================================================
+/* ============================================================================================
+   REFONTE TOTALE DU CIEL (Sacha, 2026-08-09) — SIX AMBIANCES, DANS L'ORDRE DES HEURES.
+   L'ancien lot en comptait DIX, tirées AU HASARD à chaque portail : deux zones voisines pouvaient
+   sauter de plein midi à la nuit noire, l'œil ne lisait aucun voyage, et cinq d'entre elles se
+   ressemblaient trop pour justifier leur place (aube/lever, matin/midi, aprem/golden).
+   On garde donc SIX ambiances franches, et surtout on les enchaîne DANS L'ORDRE — le ciel raconte
+   une journée, du premier jour à l'orbite. Les zones ayant été divisées par deux, on en traverse
+   le cycle complet deux fois plus vite : c'était le but de la manœuvre.
+     1 AURORE · 2 JOURNÉE · 3 GOLDEN HOUR · 4 SOIR · 5 NUIT · 6 LA PLANÈTE
+   ⚠ LA PLANÈTE N'APPARTIENT PLUS QU'AU 6e. Elle était plantée dans le ciel en PERMANENCE, quelle
+   que soit l'heure — une Terre vue de l'orbite au-dessus d'un plein midi terrestre, ça ne voulait
+   rien dire, et surtout ça banalisait la plus grosse image du jeu. Le champ `planet` (0/1) la
+   fond à l'entrée du dernier biome : elle redevient un ÉVÉNEMENT.
+   ⚠ bioLerp parcourt TOUTES les clés numériques : un biome à qui il manque un champ garderait la
+   valeur du précédent en plein fondu. Les six portent le gabarit ENTIER, `planet` compris.
+   ⚠ les couleurs de LUMIÈRE (hemiS/hemiG/sunC/fillC/kickC/fog) doivent rester dans 0..1 —
+   au-dessus, `Color.getHexString()` DÉBORDE (un bleu à 1.02 ressortait en vert). Seuls
+   volSun/volSky/volGnd (uniformes des nuages) dépassent 1 volontairement : c'est du HDR assumé.
+   ========================================================================================== */
 let zoneArch='FLOW'; // posé par genCtrl (ADN de piste) — plus utilisé par les biomes, gardé pour debug
 const BIOMES={
-  // ---- L'HEURE BLEUE : juste avant que le soleil casse l'horizon ----
-  // Le ciel est déjà lumineux mais le soleil est encore SOUS la ligne : tout est bleu-indigo, froid,
-  // et une seule estafilade magenta traîne à l'horizon. Rien à voir avec la NUIT (noire) : ici ça
-  // respire, les étoiles s'éteignent une à une et la ville brûle encore ses néons.
-  aube:{ nm:'L\'HEURE BLEUE', skyMul:[.62,.80,1.22],skyLift:[.02,.05,.11],sunTint:[.95,.42,.55],sunHalo:.34,city:.60,stars:.95,moon:1.15,
-    fog:[.15,.23,.41],fogN:420,fogF:2700,
-    hemiS:[.40,.55,.82],hemiG:[.07,.09,.21],hemiI:.46, sunC:[.86,.56,.64],sunI:.72,
-    fillC:[.24,.47,.74],fillI:.30, kickC:[.88,.34,.62],kickI:.17,
-    volSun:[1.30,.88,1.05],volSky:[.22,.33,.64],volGnd:[.06,.08,.19],volAmb:.48,
-    expo:.73,sat:1.31,
-    env:[[0,'#0f1a3e'],[.3,'#1e3260'],[.48,'#4a5a8e'],[.58,'#8e5a86'],[.66,'#2a2a52'],[1,'#0c1028']],eS1:[190,150,220,.40],eS2:[110,180,240,.30]},
-  // ---- LEVER DE SOLEIL : la fournaise perce, les ombres restent glacées ----
-  // LE contraste le plus photogénique du jeu : lumière corail brûlante d'un côté, remplissage CYAN
-  // franc de l'autre. C'est ce grand écart chaud/froid qui fait toute la beauté d'un vrai lever.
-  lever:{ nm:'LEVER DE SOLEIL', skyMul:[1.16,.94,1.06],skyLift:[.11,.05,.06],sunTint:[1,.52,.34],sunHalo:1.25,city:.22,stars:.10,moon:.32,
-    fog:[.73,.53,.53],fogN:390,fogF:2400,
-    hemiS:[.80,.69,.84],hemiG:[.16,.18,.31],hemiI:.60, sunC:[1,.66,.42],sunI:1.46,
-    fillC:[.30,.49,.82],fillI:.31, kickC:[1,.48,.38],kickI:.19,
-    volSun:[2.30,1.25,.85],volSky:[.42,.45,.73],volGnd:[.16,.13,.23],volAmb:.61,
-    expo:.90,sat:1.37,
-    env:[[0,'#2e5a9e'],[.3,'#7a7ab0'],[.48,'#f09a72'],[.58,'#ffb870'],[.66,'#6a5a70'],[1,'#2a3050']],eS1:[255,190,140,.52],eS2:[130,190,255,.34]},
-  // ---- MATIN CLAIR : l'air lavé, la lumière propre ----
-  // Le biome le plus NET du jeu : cyan franc, soleil blanc-doré, zéro rose. Il sert de respiration
-  // au milieu de tout ce violet — c'est justement son contraste avec le reste qui le rend beau.
-  matin:{ nm:'MATIN CLAIR', skyMul:[1.00,1.26,1.76],skyLift:[.05,.10,.17],sunTint:[1,.92,.74],sunHalo:.70,city:0,stars:0,moon:.08,
-    fog:[.62,.75,.89],fogN:520,fogF:3200,
-    hemiS:[.81,.91,1.0],hemiG:[.30,.34,.43],hemiI:.88, sunC:[1,.95,.84],sunI:1.30,
-    fillC:[.48,.63,.89],fillI:.24, kickC:[1,.86,.68],kickI:.08,
-    volSun:[2.00,1.85,1.55],volSky:[.58,.72,.96],volGnd:[.34,.38,.49],volAmb:.84,
-    expo:1.04,sat:1.20,
-    env:[[0,'#4a8ad8'],[.3,'#8ab4e8'],[.48,'#d8e4f2'],[.58,'#f2ecd8'],[.66,'#9aa8bc'],[1,'#5a6c8a']],eS1:[255,250,235,.44],eS2:[160,205,250,.32]},
-  // ---- PLEIN MIDI : le soleil au zénith, la lumière qui cogne ----
-  // Le plus LUMINEUX : bleu cobalt profond au-dessus, soleil quasi blanc, ombres courtes et dures.
-  // Saturation volontairement plus basse — à cette heure c'est la LUMIÈRE qui claque, pas la teinte.
-  midi:{ nm:'PLEIN MIDI', skyMul:[.88,1.20,1.88],skyLift:[.03,.07,.15],sunTint:[1,.97,.90],sunHalo:.55,city:0,stars:0,moon:0,
+  /* 1. AURORE — le premier jour. Le soleil n'a pas encore percé : le ciel est ENCORE bleu-indigo,
+     froid, et une seule estafilade rose-corail brûle au ras de l'horizon. Les étoiles s'éteignent
+     une à une, la lune est basse, la ville n'a pas fini sa nuit. C'est le GRAND ÉCART du lot :
+     lumière corail rasante d'un côté, remplissage cyan franc de l'autre — c'est ce contraste-là,
+     et lui seul, qui fait la beauté d'un vrai lever. */
+  aurore:{ nm:'AURORE', planet:0,
+    skyMul:[.86,.88,1.20],skyLift:[.07,.05,.09],sunTint:[1,.48,.42],sunHalo:.95,city:.35,stars:.55,moon:.90,
+    fog:[.48,.40,.52],fogN:400,fogF:2600,
+    hemiS:[.58,.62,.86],hemiG:[.10,.12,.24],hemiI:.54, sunC:[1,.60,.44],sunI:1.22,
+    fillC:[.27,.50,.80],fillI:.32, kickC:[1,.42,.52],kickI:.18,
+    volSun:[1.90,1.05,.92],volSky:[.32,.40,.70],volGnd:[.12,.11,.21],volAmb:.55,
+    expo:.82,sat:1.34,
+    env:[[0,'#16244e'],[.3,'#2e4478'],[.48,'#a86a86'],[.58,'#f0946a'],[.66,'#3a3358'],[1,'#101638']],eS1:[255,175,150,.46],eS2:[125,185,245,.33]},
+  /* 2. JOURNÉE — l'air lavé, la lumière qui cogne. Le biome le plus NET et le plus LUMINEUX :
+     cobalt profond au-dessus, soleil quasi blanc, ombres courtes et dures, zéro rose. Saturation
+     volontairement BASSE — à cette heure c'est la lumière qui claque, pas la teinte. Il sert de
+     respiration : c'est son contraste avec les cinq autres qui le rend beau. */
+  journee:{ nm:'PLEIN JOUR', planet:0,
+    skyMul:[.88,1.22,1.86],skyLift:[.04,.08,.16],sunTint:[1,.96,.88],sunHalo:.58,city:0,stars:0,moon:0,
     fog:[.70,.81,.96],fogN:580,fogF:3500,
     hemiS:[.85,.92,1.0],hemiG:[.38,.36,.39],hemiI:.95, sunC:[1,.99,.94],sunI:1.42,
     fillC:[.42,.57,.93],fillI:.18, kickC:[1,.92,.80],kickI:.06,
     volSun:[2.30,2.20,2.00],volSky:[.55,.70,1.00],volGnd:[.38,.40,.49],volAmb:.92,
-    expo:1.06,sat:1.16,
+    expo:1.08,sat:1.14,
     env:[[0,'#2a72d8'],[.3,'#6aa2e8'],[.48,'#cfe2f5'],[.58,'#ffffff'],[.66,'#a8b4c4'],[1,'#68788e']],eS1:[255,255,250,.48],eS2:[150,200,255,.30]},
-  aprem:{ nm:'FIN D\'APRÈS-MIDI', skyMul:[1.22,1.38,1.70],skyLift:[.06,.10,.18],sunTint:[1,.80,.55],sunHalo:.85,city:0,stars:0,moon:.15,
-    fog:[.66,.70,.82],fogN:460,fogF:3000,
-    hemiS:[.85,.88,.95],hemiG:[.32,.30,.38],hemiI:.78, sunC:[1,.88,.72],sunI:1.15,
-    fillC:[.55,.62,.80],fillI:.22, kickC:[1,.75,.60],kickI:.08,
-    volSun:[1.75,1.55,1.30],volSky:[.60,.66,.88],volGnd:[.34,.34,.44],volAmb:.78,
-    expo:1.00,sat:1.18,
-    env:[[0,'#7fa8d8'],[.3,'#a8c0e0'],[.48,'#e8d4b8'],[.58,'#f2d8a8'],[.66,'#98a0b8'],[1,'#5a6a92']],eS1:[255,244,220,.42],eS2:[180,210,245,.3]},
-  golden:{ nm:'GOLDEN HOUR', skyMul:[1.30,1.05,.92],skyLift:[.12,.05,.02],sunTint:[1,.62,.30],sunHalo:1.15,city:.15,stars:0,moon:.25,
-    fog:[.80,.55,.38],fogN:400,fogF:2500,
-    hemiS:[.95,.78,.62],hemiG:[.26,.20,.26],hemiI:.60, sunC:[1,.72,.36],sunI:1.55,
-    fillC:[.42,.48,.72],fillI:.20, kickC:[1,.55,.35],kickI:.14,
-    volSun:[2.2,1.35,.75],volSky:[.52,.44,.58],volGnd:[.24,.17,.18],volAmb:.62,
-    expo:.94,sat:1.34,
+  /* 3. GOLDEN HOUR — l'heure dorée, la vitrine du jeu. Soleil RASANT et ambre, tout le bitume
+     s'allume par la tranche, les ombres s'allongent à l'infini. C'est la seule heure où la lumière
+     est plus intéressante que le ciel : halo large, fog chaud, et le décor entier vire au miel. */
+  golden:{ nm:'GOLDEN HOUR', planet:0,
+    skyMul:[1.32,1.04,.90],skyLift:[.13,.05,.02],sunTint:[1,.60,.28],sunHalo:1.20,city:.15,stars:0,moon:.25,
+    fog:[.82,.55,.36],fogN:400,fogF:2500,
+    hemiS:[.96,.78,.60],hemiG:[.26,.20,.26],hemiI:.62, sunC:[1,.72,.34],sunI:1.58,
+    fillC:[.42,.48,.72],fillI:.20, kickC:[1,.55,.35],kickI:.15,
+    volSun:[2.25,1.35,.72],volSky:[.52,.44,.58],volGnd:[.24,.17,.18],volAmb:.63,
+    expo:.95,sat:1.36,
     env:[[0,'#5a7ab8'],[.3,'#c88a70'],[.48,'#f2b04a'],[.58,'#ffc060'],[.66,'#7a5a58'],[1,'#3a3a5e']],eS1:[255,214,130,.55],eS2:[255,170,90,.35]},
-  couchant:{ nm:'DÉBUT DE SOIRÉE', skyMul:[1.05,.85,1.05],skyLift:[.05,.02,.06],sunTint:[1,.48,.30],sunHalo:.95,city:.55,stars:.25,moon:.5,
-    fog:[.58,.36,.48],fogN:380,fogF:2300,
-    hemiS:[.80,.58,.72],hemiG:[.18,.15,.26],hemiI:.50, sunC:[1,.55,.34],sunI:1.30,
-    fillC:[.36,.42,.78],fillI:.24, kickC:[1,.35,.60],kickI:.18,
-    volSun:[2.0,1.0,.70],volSky:[.44,.34,.62],volGnd:[.18,.11,.20],volAmb:.56,
-    expo:.84,sat:1.40,
-    env:[[0,'#3a4a8e'],[.3,'#7a4a86'],[.48,'#e87a9a'],[.58,'#e8925e'],[.66,'#4a3a5e'],[1,'#242046']],eS1:[255,180,190,.5],eS2:[150,190,240,.3]},
-  soir:{ nm:'SOIRÉE', skyMul:[.80,.75,1.0],skyLift:[.01,.01,.03],sunTint:[1,.38,.30],sunHalo:.55,city:1.5,stars:1,moon:1,
+  /* 4. SOIR — le soleil est passé sous la ligne, il n'en reste qu'une braise. Le ciel bascule au
+     bleu-violet profond et LA VILLE S'ALLUME : c'est le seul biome où les néons de l'horizon
+     dominent le soleil. Saturation haute, kick magenta franc — le moment le plus « Vice » du lot. */
+  soir:{ nm:'SOIRÉE', planet:0,
+    skyMul:[.80,.74,1.02],skyLift:[.01,.01,.04],sunTint:[1,.36,.30],sunHalo:.52,city:1.55,stars:1.0,moon:1.0,
     fog:[.30,.18,.34],fogN:400,fogF:2500,
     hemiS:[.66,.48,.68],hemiG:[.12,.11,.22],hemiI:.46, sunC:[1,.44,.26],sunI:1.15,
-    fillC:[.31,.46,.91],fillI:.26, kickC:[1,.24,.62],kickI:.24,
-    volSun:[1.6,.85,.65],volSky:[.28,.26,.56],volGnd:[.11,.07,.16],volAmb:.52,
-    expo:.78,sat:1.46,
-    env:[[0,'#1e1e50'],[.3,'#5e3676'],[.48,'#cc5e8e'],[.58,'#cc7a48'],[.66,'#42324e'],[1,'#181236']],eS1:[240,150,190,.5],eS2:[120,200,235,.32]},
-  nuit:{ nm:'NUIT NOIRE', skyMul:[.42,.46,.72],skyLift:[0,0,0],sunTint:[.45,.32,.42],sunHalo:.12,city:.75,stars:1.9,moon:1.7,
-    fog:[.066,.09,.19],fogN:460,fogF:2900,
-    hemiS:[.23,.29,.46],hemiG:[.04,.05,.12],hemiI:.32, sunC:[.58,.68,.90],sunI:.80,
-    fillC:[.18,.29,.78],fillI:.22, kickC:[.42,.48,.87],kickI:.14,
-    volSun:[1.0,1.1,1.4],volSky:[.15,.19,.42],volGnd:[.04,.05,.11],volAmb:.42,
-    expo:.64,sat:1.24,
+    fillC:[.31,.46,.91],fillI:.26, kickC:[1,.24,.62],kickI:.25,
+    volSun:[1.60,.85,.65],volSky:[.28,.26,.56],volGnd:[.11,.07,.16],volAmb:.52,
+    expo:.77,sat:1.46,
+    env:[[0,'#1e1e50'],[.3,'#5e3676'],[.48,'#cc5e8e'],[.58,'#cc7a48'],[.66,'#42324e'],[1,'#181236']],eS1:[240,150,190,.50],eS2:[120,200,235,.32]},
+  /* 5. NUIT — la vraie. Plus de soleil du tout : une lune haute, des étoiles doublées, et LES
+     PHARES DEVIENNENT ROIS. L'exposition tombe au plancher du jeu pour que les lumières de la
+     caisse — phares, néon sous caisse, réacteur — soient enfin la principale source de l'image. */
+  nuit:{ nm:'NUIT NOIRE', planet:0,
+    skyMul:[.40,.44,.70],skyLift:[0,0,0],sunTint:[.42,.30,.40],sunHalo:.10,city:.75,stars:2.0,moon:1.8,
+    fog:[.060,.085,.185],fogN:460,fogF:2900,
+    hemiS:[.22,.28,.45],hemiG:[.04,.05,.12],hemiI:.30, sunC:[.56,.66,.90],sunI:.78,
+    fillC:[.18,.29,.78],fillI:.22, kickC:[.42,.48,.87],kickI:.15,
+    volSun:[1.00,1.10,1.40],volSky:[.15,.19,.42],volGnd:[.04,.05,.11],volAmb:.42,
+    expo:.62,sat:1.26,
     env:[[0,'#0e1434'],[.3,'#1c2650'],[.48,'#32406e'],[.58,'#3a4a80'],[.66,'#1a2244'],[1,'#080c20']],eS1:[170,195,255,.35],eS2:[120,150,230,.25]},
-  // ---- ORAGE VIOLET : le ciel tourne au bleu de contusion, l'or passe DESSOUS ----
-  // Le coup d'éclat du lot, et le seul qui ne soit pas une heure mais une MÉTÉO. Recette : on
-  // ASSOMBRIT tout (expo au plancher, plafond violet, brume qui se referme à 1900) SAUF une fente
-  // d'or brûlant sous la couche de nuages — plus un kick violet électrique. Saturation POUSSÉE au
-  // maximum du jeu (1.54) : c'est elle qui empêche le sombre de virer au gris et garde le côté
-  // pétant. Zéro étoile, zéro lune (tout est bouché), mais la ville rallume ses néons en plein jour.
-  orage:{ nm:'ORAGE VIOLET', skyMul:[.70,.66,.97],skyLift:[.02,.02,.05],sunTint:[1,.72,.38],sunHalo:.72,city:.90,stars:0,moon:0,
-    fog:[.26,.24,.39],fogN:300,fogF:1900,
-    hemiS:[.44,.40,.61],hemiG:[.08,.08,.15],hemiI:.43, sunC:[1,.70,.34],sunI:1.32,
-    fillC:[.22,.45,.59],fillI:.31, kickC:[.70,.35,1.0],kickI:.27,
-    volSun:[2.10,1.30,.70],volSky:[.30,.28,.51],volGnd:[.07,.06,.13],volAmb:.44,
-    expo:.74,sat:1.54,
-    env:[[0,'#241e3a'],[.3,'#3a3252'],[.48,'#6a5a6e'],[.58,'#c8923e'],[.66,'#2e2a42'],[1,'#141020']],eS1:[255,190,90,.42],eS2:[120,220,220,.30]},
+  /* 6. LA PLANÈTE — le bout du voyage, et le seul biome où la Terre barre le ciel (`planet:1`).
+     On n'est plus à une heure de la journée : on est EN ORBITE. Indigo profond, limbe bleu qui
+     déborde, contre-jour glacé et kick magenta — c'est la signature du jeu, rendue RARE pour
+     qu'elle reprenne son effet. La lumière vient d'en haut et de côté, jamais de face : le soleil
+     est réduit à un point dur, c'est le REFLET de la planète qui éclaire la caisse. */
+  planete:{ nm:'EN ORBITE', planet:1,
+    skyMul:[.58,.60,1.05],skyLift:[.01,.02,.07],sunTint:[.80,.72,1.0],sunHalo:.30,city:.45,stars:1.5,moon:.30,
+    fog:[.13,.14,.30],fogN:440,fogF:3000,
+    hemiS:[.36,.44,.72],hemiG:[.06,.07,.17],hemiI:.40, sunC:[.72,.80,1.0],sunI:1.00,
+    fillC:[.24,.40,.86],fillI:.30, kickC:[1,.30,.72],kickI:.26,
+    volSun:[1.35,1.45,1.85],volSky:[.20,.26,.55],volGnd:[.06,.07,.15],volAmb:.46,
+    expo:.71,sat:1.40,
+    env:[[0,'#0c1236'],[.3,'#1a2a5e'],[.48,'#3e5a9e'],[.58,'#6f9ed0'],[.66,'#24244e'],[1,'#0a0c24']],eS1:[150,200,255,.42],eS2:[255,110,200,.28]},
 };
-// Le tirage du jour, dans l'ordre des heures (+ l'ORAGE en joker météo) — la NUIT ne se tire pas,
-// elle se MÉRITE (3 portails). 9 ambiances en rotation : deux parties ne se ressemblent plus.
-const BIO_DAY=['aube','lever','matin','midi','aprem','golden','couchant','soir','orage'];
-const BIO={cur:JSON.parse(JSON.stringify(BIOMES.golden)),from:null,to:BIOMES.golden,k:1,dur:4,name:'golden'};
+/* LE CYCLE, DANS L'ORDRE — et c'est tout le changement. Avant, chaque portail TIRAIT AU HASARD
+   parmi neuf heures : on pouvait passer de plein midi à la nuit noire en franchissant une porte,
+   et l'œil ne lisait aucun voyage. Désormais on avance d'un cran à chaque portail, toujours dans
+   le même sens, et on boucle. Le ciel raconte une journée, et on sait toujours ce qui vient.
+   ⚠ la NUIT ne se « mérite » plus au 3e portail (l'ancienne règle) : elle est simplement la 5e
+   station du cycle. Avec des zones deux fois plus courtes, on y arrive vite et on en ressort. */
+const BIO_CYCLE=['aurore','journee','golden','soir','nuit','planete'];
+const BIO={cur:JSON.parse(JSON.stringify(BIOMES.aurore)),from:null,to:BIOMES.aurore,k:1,dur:4,name:'aurore',i:0}; // `i` : où l'on en est dans le cycle
 function bioLerp(a,b,e,out){ // mixe deux biomes champ à champ (tableaux = composantes, nombres = scalaires)
   for(const key in b){ const bv=b[key];
     if(typeof bv==='number')out[key]=a[key]+(bv-a[key])*e;
@@ -2831,9 +2828,21 @@ function bioApply(c){ // pousse l'ambiance mélangée dans TOUS les organes (uni
   sunSprite.material.opacity=Math.min(1,.15+c.sunHalo*.85);
   horizonGlow.material.opacity=.8*c.sunHalo;
   for(const r9 of RAYS)r9.material.opacity=RAY_OPACITY*c.sunHalo;
+  // LA PLANÈTE N'APPARTIENT QU'AU DERNIER BIOME. Elle barrait le ciel en PERMANENCE, à toute heure
+  // — une Terre vue de l'orbite au-dessus d'un plein midi terrestre, ça ne raconte rien, et surtout
+  // ça banalisait la plus grosse image du jeu. `planet` la fond (0→1) pendant la transition ; on
+  // la sort carrément de la scène en dessous de 0,5 % pour ne pas payer un draw call de 1 560 de
+  // rayon pour rien. ⚠ `bioK` est relu chaque frame par le bloc musical, qui pilote atmo et limbe :
+  // sans ce facteur, le halo se rallumerait tout seul au premier coup de grosse caisse.
+  if(planetGroup){
+    const pk=c.planet===undefined?1:THREE.MathUtils.clamp(c.planet,0,1);
+    planetGroup.userData.bioK=pk;
+    planetGroup.visible=pk>.005;
+    planetGroup.userData.globe.material.opacity=pk;
+  }
 }
 function bioGo(name,dur){ // lance le voyage vers un biome (reflets carrosserie repeints tout de suite : discret)
-  if(!BIOMES[name])name='golden';
+  if(!BIOMES[name])name='aurore';
   BIO.from=JSON.parse(JSON.stringify(BIO.cur));BIO.to=BIOMES[name];BIO.k=0;BIO.dur=dur||4;BIO.name=name;
   paintEnv(BIO.to.env,BIO.to.eS1,BIO.to.eS2);
 }
@@ -6947,8 +6956,12 @@ function musicTick(dt,mvt){
   }
   if(planetGroup&&planetGroup.userData.halo){
     const p=LVLFX.planetK*gk;
-    planetGroup.userData.halo.material.opacity=Math.min(.72,.10+p*.42);
-    planetGroup.userData.atmo.material.opacity=Math.min(.80,.20+p*.34);
+    // ⚠ ×`bioK` : la planète n'est visible que dans le biome « EN ORBITE » (voir bioApply). Sans ce
+    // facteur, atmosphère et limbe se rallumeraient tout seuls au premier coup de grosse caisse —
+    // deux coquilles additives flottant dans un ciel de plein midi, sans globe derrière.
+    const bk=planetGroup.userData.bioK===undefined?1:planetGroup.userData.bioK;
+    planetGroup.userData.halo.material.opacity=Math.min(.72,.10+p*.42)*bk;
+    planetGroup.userData.atmo.material.opacity=Math.min(.80,.20+p*.34)*bk;
     planetGroup.userData.halo.material.color.copy(LVLFX.acc).lerp(LVLFX.acc2,LVLFX.flip).lerp(PLANET_BLEU,1-Math.min(1,p*.9)); // au repos le limbe reste BLEU (c'est la Terre) ; il prend l'accent quand ça cogne
   }
   /* ---- LES RAILS NÉON COGNENT AU BEAT (2026-08-07) --------------------------------------------
@@ -8815,15 +8828,15 @@ function tryLand(dt){
 function newTrack(){
   const sd=(Math.random()*1e9)|0;
   buildTrack(sd);
-  // LE CYCLE DU CIEL : au départ et à chaque portail on tire une heure du jour au hasard
-  // (jamais deux fois la même de suite) — au 3e portail de la MÊME partie, la VRAIE NUIT
-  // tombe pour de bon (runStats.zones est ++ AVANT newTrack au portail, remis à 0 par resetGame).
-  let nb9;
-  if(runStats.zones>=3)nb9='nuit';
-  else do{nb9=BIO_DAY[(Math.random()*BIO_DAY.length)|0];}while(nb9===BIO.name);
-  const nightFalls=started&&nb9==='nuit'&&BIO.name!=='nuit'; // capturé AVANT bioGo (qui écrase BIO.name)
+  // LE CYCLE DU CIEL — DANS L'ORDRE, un cran par portail (voir BIO_CYCLE). On démarre toujours à
+  // l'AURORE et on remonte les heures jusqu'à l'orbite, puis on boucle. `runStats.zones` compte les
+  // portails franchis dans CETTE partie (++ AVANT newTrack, remis à 0 par resetGame) : il donne
+  // donc directement le rang dans le cycle, sans état supplémentaire à tenir.
+  const nb9=BIO_CYCLE[(runStats.zones||0)%BIO_CYCLE.length];
+  BIO.i=(runStats.zones||0)%BIO_CYCLE.length;
+  const chg=started&&nb9!==BIO.name; // capturé AVANT bioGo (qui écrase BIO.name)
   bioGo(nb9,started?4:.01); // lerp 4 s au portail (et au replay), instantané au boot
-  if(nightFalls)showMsg('LA NUIT TOMBE…','#9ac8ff'); // le déblocage s'annonce
+  if(chg)showMsg((BIOMES[nb9]||{}).nm||'','#9ac8ff'); // on annonce l'heure où l'on vient d'entrer
   computeMinimap();
   spawnPickups(mulberry32(sd^0x9e3779b9));
   s=0;lat=0;psi=0;side=1;driveDir=1;prevTvalid=false;safeS=0;
