@@ -5682,28 +5682,16 @@ function spawnPickups(rnd){
       ss+=esp(n*st+60+rnd()*50);
     }
   }
-  // ---- FRUITS EN VOL : des grappes SUSPENDUES au-dessus et sur les côtés de la route. On ne les
-  // attrape qu'en l'air — elles récompensent le saut, et donnent une raison de viser une trajectoire.
-  for(let ss=520+rnd()*700;ss<L-160;ss+=520+rnd()*760){
-    if(holeAtS(ss))continue;
-    frameAt(ss,F);mat4b.makeBasis(F.b,F.n,F.t);
-    const fi=fruitPick(),n9=3+((rnd()*3)|0);
-    const cote=(rnd()<.5?-1:1)*(rnd()<.45?0:1);          // au-dessus de l'axe, ou décalé sur un flanc
-    const haut=9+rnd()*16;                                // à hauteur de saut, jamais hors de portée
-    for(let k=0;k<n9;k++){
-      const sp=ss+k*10,lt=cote*(6+rnd()*10),hh=haut+Math.sin(k/(n9-1||1)*Math.PI)*5; // en arc, comme un chapelet
-      if(sp>L-60||holeAtS(sp))continue;
-      frameAt(sp,F);mat4b.makeBasis(F.b,F.n,F.t);
-      for(const face of [1,-1]){
-        const m=mkFruit(fi);
-        m.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,face>0?hh:-(THICK+hh));
-        m.quaternion.setFromRotationMatrix(mat4b);
-        scene.add(m);
-        pickups.push({s:sp,lat:lt,face:face,nitro:true,fruit:fi,mesh:m,taken:false,air:true,
-          ax:F.n.clone().multiplyScalar(face)});
-      }
-    }
-  }
+  /* ---- LES FRUITS EN VOL SONT SUPPRIMÉS (demande de Sacha, 2026-08-09 : « enlève les items dans
+     les airs »). C'étaient des grappes de fruits suspendues de 9 à 30 m AU-DESSUS de la route, en
+     arc, sur les deux faces — attrapables seulement en sautant.
+     ⚠ NE PAS LES RÉINTRODUIRE sans demande explicite.
+     Deux vérifications faites avant de couper, pour ne rien casser en silence :
+       · `spawnPickups` reçoit son PROPRE flux seedé (`mulberry32(...)`) et n'est pas appelé au
+         milieu de la génération de piste — retirer ces tirages `rnd()` ne décale donc RIEN d'autre
+         que la position des orbes de pouvoir tirées juste en dessous (voir l'avertissement du
+         CLAUDE.md sur les appels `rnd()`, qui vaut pour `buildTrack`, pas ici) ;
+       · le champ `air:true` qu'ils portaient n'était LU nulle part — aucun code orphelin. ---- */
   // POUVOIRS : orbes rares, hautes et brillantes — on les voit de loin, on les vise (miroir deux faces, intervalle doublé)
   const kinds='nav';
   for(let ss=380+rnd()*260;ss<L-140;ss+=860+rnd()*760){
