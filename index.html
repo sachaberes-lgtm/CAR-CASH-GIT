@@ -8315,6 +8315,7 @@ let steer=0,money=START_CASH,levelCash=0,boost=0,fallT=0,fallTR=0,padCd=0,shake=
    Les variables `airBank` / `airRollT` / `AIR_BANK_*` ont donc été RETIRÉES : les laisser en place
    aurait fait croire à un réglage disponible alors que plus rien ne les lit. */
 let airRoll=0; // vrille visuelle en vol
+let airFlip=0; // LE SALTO : rotation LIBRE du corps autour de son axe lateral (backflip/frontflip). Sans borne, contrairement a l'assiette de la TRAJECTOIRE — voir le bloc du salto dans la boucle
 // TREMPLIN HÉROS : gapArmed = variante du tremplin qui a lancé CE vol (0 = vol ordinaire, 1/2/3 = v+1),
 // lu au verdict d'atterrissage pour le GAP FRANCHI ; rampCd empêche de re-catapulter en reposant dessus.
 let gapArmed=0,rampCd=0;
@@ -8515,7 +8516,7 @@ function trickMsg(txt,tier){ // tier: 1 MONSTRE · 2 DOUBLE · 3 TRIPLE (ou true
 // ---- CHAÎNE DE FIGURES : chaque exploit aérien se NOMME à l'instant où il naît et gonfle la
 // chaîne. Rien n'est payé en vol : tout se cashe à l'atterrissage (grade × face × série) —
 // et tout S'ENVOLE si on explose. La redite paye de moins en moins : varie le menu !
-let chain=0,chainVal=0,chainMult=1,chainSeen={},spinHalf=0,
+let chain=0,chainVal=0,chainMult=1,chainSeen={},spinHalf=0,flipHalf=0,
     curNear=false,curHOff=0,curLatOff=0,lastNearY=0,lastNearH2=0,lastNearS=0, // lastNearH2 : distance HORIZONTALE² au bitume (au-dessus d'un trou elle explose → l'ombre de contact se cache) · lastNearS : où l'on en est SUR la piste pendant un vol (recentre le LOD de proximité)
     trkMeteor=false,
     dolphT=0,dolphGain=0,trkDolph=false, // LE DAUPHIN : nager au ras de la dalle
@@ -8625,7 +8626,7 @@ function checkUpgrade(){
   SAVE.flush();
 }
 function startFall(impU,impF){
-  mode='fall';fallT=0;fallTR=0;yawAcc=0;momT=0;airRoll=0;
+  mode='fall';fallT=0;fallTR=0;yawAcc=0;momT=0;airRoll=0;airFlip=0;
   // TEMPO DE VOL ∝ VITESSE (2026-07-20, dosage DOUX sur base V1) : =1 jusqu'à 450 km/h affichés
   // (basse/moyenne vitesse : rigoureusement l'existant), puis +1 tous les 1800 km/h, CAP 1.35 —
   // loin du 2.3 de l'ancienne ère (qui compensait SPD=.25) : l'endgame TRAVERSE sa phase aérienne
@@ -8651,7 +8652,7 @@ function startFall(impU,impF){
   hopY=0;hopV=0; // un dos d'âne en cours ne doit pas laisser de décalage fantôme
   lastNearY=fallPos.y; // référence du plongeon fatal tant que tryLand n'a pas mieux
   // chaîne neuve : le vol commence, tout est à prouver
-  chain=0;chainVal=rollover;chainMult=1;chainSeen={};spinHalf=0;
+  chain=0;chainVal=rollover;chainMult=1;chainSeen={};spinHalf=0;flipHalf=0;
   if(rollover>0){trickMsg('REPORT +'+Math.round(rollover),false);rollover=0;} // le PARFAIT d'avant paye d'avance
   trkMeteor=false;curNear=false;
   dolphT=0;dolphGain=0;trkDolph=false;caseHot=false;heartT=0;ladderI=0;caseHud.style.opacity=0;caseHud.className='';
@@ -10597,6 +10598,23 @@ function loop(now){
           }
         }
       }
+      /* ---- LE SALTO : BACKFLIP / FRONTFLIP -------------------------------------------------
+         Sacha, 2026-08-09 : « avec le nitro aérien on est bloqué sur la rotation verticale, on
+         devrait pouvoir faire des backflip ou des frontflip ».
+         ⚠ POURQUOI C'ÉTAIT IMPOSSIBLE, et pourquoi aucun réglage n'y aurait rien changé : le
+         tangage ci-dessus fait tourner le VECTEUR VITESSE. Son assiette vaut `atan2(vy,hxz)` avec
+         `hxz>=0` — elle est donc bornée à ±90° PAR CONSTRUCTION, et passer au-delà retournerait le
+         cap horizontal. Le clamp à ±65° n'était qu'une garde anti-gimbal posée sur une limite qui
+         existait déjà dans les maths.
+         CE QU'EST VRAIMENT UN SALTO — la leçon de Rocket League : une rotation du CORPS, pas de la
+         trajectoire. Une caisse qui fait un backflip suit toujours sa parabole.
+         On sépare donc les deux : la TRAJECTOIRE garde son pilotage borné (c'est la visée), et le
+         CORPS tourne librement autour de son axe latéral (c'est la figure). `airFlip` n'a aucune
+         borne — on enchaîne les tours tant qu'on tient la touche. Au réacteur : un tour en ~1,5 s. */
+      {
+        const wF=((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0); // ↑ = piqué → FRONTFLIP · frein = cabré → BACKFLIP
+        if(wF!==0)airFlip+=(nitroOn?4.2:1.5)*wF*dtF;                   // sans réacteur on incline à peine : le salto est une figure de NITRO
+      }
       if(PARK.on&&fallVel.lengthSq()>PARK_VCAP*PARK_VCAP)fallVel.setLength(PARK_VCAP); // PARC : la nitro infinie ne t'emballe pas non plus EN L'AIR — vol rapide mais pilotable
       fallPos.addScaledVector(fallVel,dtF*SPD);
       carGroup.position.copy(fallPos);
@@ -10606,6 +10624,17 @@ function loop(now){
         const halfs=Math.floor(Math.abs(yawAcc)/Math.PI); // vrilles : un cri par demi-tour de lacet
         if(halfs>spinHalf&&fallT>.45){spinHalf=halfs;
           addTrick('vrille',halfs===1?'180°':halfs===2?'VRILLE 360 — LAVE-LINGE !':halfs===3?'540° !!':(halfs*180)+'° — ESSOREUSE COSMIQUE !!',3.5*halfs,halfs>=4?3:(halfs>=2?2:false),true);}
+        // LE SALTO se paye comme la vrille : un cri par DEMI-TOUR, en échelle (`raw`), donc la
+        // redite ne décote pas. Le signe dit la figure — piqué = frontflip, cabré = backflip.
+        const fh=Math.floor(Math.abs(airFlip)/Math.PI);
+        if(fh>flipHalf&&fallT>.3){flipHalf=fh;
+          const av=airFlip<0;
+          addTrick('salto',
+            fh===1?(av?'DEMI-FRONTFLIP':'DEMI-BACKFLIP')
+           :fh===2?(av?'🔄 FRONTFLIP !':'🔄 BACKFLIP !')
+           :fh===3?(av?'FRONTFLIP ET DEMI !!':'BACKFLIP ET DEMI !!')
+           :(av?'× FRONTFLIP '+(fh/2|0)+' TOURS !!':'× BACKFLIP '+(fh/2|0)+' TOURS !!'),
+            4*fh, fh>=4?3:(fh>=2?2:false), true);}
         if(!trkMeteor&&nitroOn&&nitroAirT>1.2){trkMeteor=true;addTrick('meteo','MÉTÉORE',8,2);}
         if(curNear){ // radar de dalle (rempli par tryLand à la frame précédente)
           if(Math.abs(curLatOff)<ROAD_HALF&&curHOff>2.2&&curHOff<12){
@@ -10685,6 +10714,10 @@ function loop(now){
          ARCADE, pas un oubli — la lisibilité aéronautique n'est pas le sujet de ce jeu.
          ⚠ à ne pas confondre avec la FIGURE « vrille » qui paye : celle-là se compte en demi-tours
          de LACET (`yawAcc`) et n'a rien à voir avec cette rotation visuelle. */
+      // LE SALTO d'abord : rotation autour de l'axe LATÉRAL (`tmp3`, le X du repère monté juste
+      // au-dessus). C'est le seul axe qui donne un backflip ; `tmp` (l'axe d'avancement) donne la
+      // vrille. ⚠ `tmp3` est réutilisé plus bas par la caméra — ne pas déplacer ces lignes après.
+      if(airFlip!==0){qTmp2.setFromAxisAngle(tmp3,airFlip);qTmp.premultiply(qTmp2);}
       airRoll+=(3.0+steer*2.2+Math.min(2,fallT*.5))*dtF; // VRILLE : la caisse tourne sur elle-même (suit le vol accéléré)
       qTmp2.setFromAxisAngle(tmp,airRoll);
       qTmp.premultiply(qTmp2);
