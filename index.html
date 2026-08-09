@@ -157,7 +157,12 @@
   /* SANS CADRE (2026-08-03) : la bordure + le fond faisaient une vignette « fenêtre de logiciel »
      collée sur le ciel. Le moteur flotte désormais librement dans le HUD, comme la caisse flotte
      dans le monde. Le rectangle n'apportait rien : le quad WebGL a déjà un fond transparent. */
-  #engVig{position:absolute;top:150px;left:16px;width:196px;height:132px;display:none}
+  /* ⚠ TAILLE MONTÉE de 196×132 à 300×202 (Sacha, 2026-08-09 : « l'affichage du moteur doit
+     s'afficher en plus grand »). Le moteur est la vraie jauge de progression du jeu — il portait
+     jusqu'ici la taille d'une pastille. Le rapport 1,485 est conservé (le cadrage 3D en dépend).
+     ⚠ `#engPop`, le badge de palier, se pose EXACTEMENT sur ce rectangle : ses quatre valeurs
+     doivent rester identiques, ici comme dans le bloc mobile. */
+  #engVig{position:absolute;top:150px;left:16px;width:300px;height:202px;display:none}
   /* LE MOTEUR DE FIN DE PARTIE : plus grand, centré, il tient la place d'un trophée. */
   #endEng{position:relative;width:min(320px,72vw);height:min(212px,48vw);margin:6px auto 2px;display:none}
   #endEngCv{width:100%;height:100%;display:block}
@@ -165,19 +170,19 @@
     line-height:1.6;letter-spacing:.5px;text-align:center;color:#7dffec;
     text-shadow:0 0 10px rgba(125,255,236,.6),0 2px 5px rgba(0,0,0,.95)}
   #endEngTier{display:block;color:#ffd75e;font-size:7px;opacity:.95;margin-top:4px}
-  #engVigCap{position:absolute;left:0;right:0;bottom:0;padding:4px 8px 5px;
-    font-family:var(--pix);font-size:7px;line-height:1.5;letter-spacing:.5px;text-align:center;
+  #engVigCap{position:absolute;left:0;right:0;bottom:0;padding:5px 8px 6px;
+    font-family:var(--pix);font-size:10px;line-height:1.5;letter-spacing:.5px;text-align:center;
     color:#7dffec;
     /* plus de bandeau derrière : c'est l'ombre portée qui décolle le texte du ciel */
     text-shadow:0 0 8px rgba(125,255,236,.55),0 2px 4px rgba(0,0,0,.9),0 0 14px rgba(0,0,0,.75)}
-  #engVigTier{display:block;color:#ffd75e;font-size:6px;opacity:.9;margin-top:2px}
+  #engVigTier{display:block;color:#ffd75e;font-size:8px;opacity:.9;margin-top:3px}
   /* ---- LE BADGE DE PALIER : la récompense qui CLAQUE ----
      ⚠ il se pose SUR la vignette du moteur, jamais au centre de l'écran. Ce qui vient de
      changer, c'est CETTE pièce-là : l'œil doit y aller. Un bandeau de plus au milieu se
      lirait comme un message parmi les autres, et on récompenserait le joueur nulle part.
      ⚠ Le geste, c'est l'ÉLASTIQUE : ça dépasse la taille finale puis ça se repose. Une montée
      linéaire vers la bonne taille ne procure rien — c'est le dépassement qui fait la joie. */
-  #engPop{position:absolute;top:150px;left:16px;width:196px;height:132px;display:none;
+  #engPop{position:absolute;top:150px;left:16px;width:300px;height:202px;display:none; /* ⚠ MÊME rectangle que #engVig */
     pointer-events:none;z-index:7;overflow:visible}
   #engPop.on{display:block}
   .epOnde{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;
@@ -219,7 +224,7 @@
   #epNom{display:block;margin-top:7px;font-size:7px;color:#7dffec;
     text-shadow:0 0 12px rgba(125,255,236,.85)}
   @media (max-width:820px){
-    #engPop{top:56px;left:10px;width:118px;height:80px}
+    #engPop{top:56px;left:10px;width:170px;height:114px} /* ⚠ MÊME rectangle que #engVig mobile */
     #epGear{font-size:36px}#epNum{font-size:19px}#epNum i{font-size:5px;margin-bottom:4px}
     #epNom{font-size:5px;margin-top:5px}}
   #record{position:absolute;top:150px;left:50%;transform:translateX(-50%);font-size:9px;color:#8f84c8}
@@ -497,8 +502,8 @@
     .trick{font-size:13px}.trick.big,.trick.m1{font-size:19px}.trick.m2{font-size:23px}.trick.m3{font-size:29px}
     #chainHud{font-size:12px;padding:4px 11px}#caseHud{font-size:12px;padding:3px 10px}
     /* le pouce a besoin de l'écran : la vignette rétrécit et se cale sous l'argent */
-    #engVig{top:56px;left:10px;width:118px;height:80px;border-radius:9px}
-    #engVigCap{font-size:5px;padding:3px 4px 4px}#engVigTier{font-size:4px}
+    #engVig{top:56px;left:10px;width:170px;height:114px;border-radius:9px} /* grossi comme sur desktop */
+    #engVigCap{font-size:7px;padding:4px 5px 5px}#engVigTier{font-size:6px}
   }
 </style>
 </head>
@@ -1710,7 +1715,12 @@ function genCtrl(rnd,startPos,startPhi){
   const W=AR.w.map(v=>v*(0.35+rnd()*1.7));
   const wsum=W.reduce((a,b)=>a+b,0);
   const pick=()=>{let x=rnd()*wsum;for(let k=0;k<13;k++){x-=W[k];if(x<0)return k;}return 5;};
-  const LEN=7200*(1+Math.min(1.1,level*.07)); // zones plus longues à haute vitesse (sinon 13 s et portail)
+  // ZONES DEUX FOIS PLUS COURTES (Sacha, 2026-08-09 : « les niveaux doivent être deux fois plus
+  // courts pour changer de biome plus souvent »). Le portail = le changement d'ambiance : c'est LUI
+  // qu'on vient chercher, et il tombait toutes les 7 200 unités. Divisé par deux → on traverse le
+  // cadran du ciel deux fois plus vite. La montée avec le niveau est CONSERVÉE (sinon, à 600 km/h,
+  // une zone se boucle en quelques secondes et le portail devient du clignotement).
+  const LEN=3600*(1+Math.min(1.1,level*.07));
   // ---- LE GAP CATAPULTE : le grand geste du générateur — RARE, et il y a un VRAI TROU ----
   // Tout est COLINÉAIRE : la route d'en face est droit devant, on lit la promesse d'un coup d'œil
   // (condition non négociable pour que ça marche à 1200 km/h). La recette, dans l'ordre :
@@ -8312,6 +8322,8 @@ let gapArmed=0,rampCd=0;
 // fallUnder s'arme si on passe SOUS la route pendant le vol (côté opposé au départ, dans la largeur
 // de la dalle) ; le trick ne se VALIDE qu'à l'atterrissage, sur la même face que le départ (tryLand).
 let nitroAirT=0,fallUnder=false,fallStartSide=1,pureT=0,pureArmed=true;
+let fallUnderT=0;              // temps CUMULÉ passé sous la dalle pendant CE vol
+const SNAKE_MIN=.30;           // …et ce qu'il en faut pour que ça compte comme un SNAKE LOOP (voir tryLand)
 let bounceN=0,airFlash=0; // BUMPS : rebonds sur la tranche de la dalle pendant CE vol
 let runStats={tricks:0,bumps:0,zones:0,vmax:0,chainMax:0,gaps:0,surv:0}; // bilan de la run (écran de fin) + les exploits versés aux compteurs À VIE qui débloquent les caisses
 let hopY=0,hopV=0; // petit saut de dos d'âne
@@ -8620,7 +8632,7 @@ function startFall(impU,impF){
   // au lieu de flotter, sans virer missile. Parabole DANS L'ESPACE, viseur, seuils de figures et
   // paiements (fallT temps-sim) INCHANGÉS — seul le temps réel du vol se compresse un peu.
   AIR_RATE=THREE.MathUtils.clamp(1+Math.max(0,Math.abs(vA)*3.6*SPD-450)/1800,1,1.35);
-  nitroAirT=0;fallUnder=false;fallStartSide=side; // SNAKE LOOP : côté de départ figé, passage dessous à prouver
+  nitroAirT=0;fallUnder=false;fallUnderT=0;fallStartSide=side; // SNAKE LOOP : côté de départ figé, passage dessous à prouver (fallUnderT : le temps qu'il faut y rester)
   gapArmed=0; // vol ordinaire par défaut — la catapulte réarme JUSTE APRÈS cet appel
   bounceN=0;flightId++; // nouveau vol : compteur de bumps et budget d'airtime des nuages remis à zéro
   if(Math.abs(vA)*3.6*SPD>400)annSpeak('launch400',1); // éjecté à +400 km/h (1 fois sur 3)
@@ -8672,7 +8684,15 @@ function tryLand(dt){
   curNear=true;curHOff=hOff;curLatOff=latOff; // radar de dalle : nourrit LE DAUPHIN dans la boucle
   // SNAKE LOOP v2 : passer SOUS la route pendant le vol — côté OPPOSÉ à la face de départ, dans la
   // largeur de la dalle — puis reposer la caisse sur la face de DÉPART (validé à l'atterrissage).
-  if(!fallUnder&&Math.abs(latOff)<ROAD_HALF&&(fallStartSide>0?hOff<-THICK-1:hOff>1))fallUnder=true;
+  // ⚠ IL FAUT VRAIMENT PASSER DESSOUS, pas frôler le bord (Sacha, 2026-08-09 : « l'animation du
+  // serpent doit être déclenchée QUE lorsqu'on pose un snake loop »). Le serpent était déjà gardé
+  // par `snaked` — c'est la DÉTECTION qui était trop tendre : `fallUnder` s'armait sur UNE SEULE
+  // frame passée sous la dalle. Un rebond de tranche, un saut qui mord le bord par en dessous, et
+  // la figure était validée à l'atterrissage : serpent néon, +14 de chaîne et la voix, pour rien.
+  // On demande maintenant `SNAKE_MIN` de temps de vol RÉELLEMENT sous la route — un vrai passage.
+  if(Math.abs(latOff)<ROAD_HALF&&(fallStartSide>0?hOff<-THICK-1:hOff>1)){
+    fallUnderT+=dt;if(fallUnderT>=SNAKE_MIN)fallUnder=true;
+  }else fallUnderT=Math.max(0,fallUnderT-dt*2); // on ressort : le compteur retombe vite (pas d'accumulation par à-coups)
   const vN=fallVel.dot(Nn[bestI]);
   // FLANC de la dalle : la caisse COGNE la tranche et REBONDIT — c'est le BUMP.
   // Demi-jauge d'airtime rendue + du STYLE + le feedback (message, son, secousse).
@@ -8830,7 +8850,7 @@ function resetGame(){
   coinsGot=0;engTier=0;engSwapT=0; // le moteur se remonte à chaque run (c'est la progression DE LA PARTIE)
   pwrNitroT=0;pwrAirT=0;pwrSpdT=0;
   nextRainAt=4e3;moneyRainT=0;sideCd=0;slipT=0;oilCd=0;
-  nitroAirT=0;fallUnder=false;pureT=0;pureArmed=true;gapArmed=0;rampCd=0;annStop();
+  nitroAirT=0;fallUnder=false;fallUnderT=0;pureT=0;pureArmed=true;gapArmed=0;rampCd=0;annStop();
   bounceN=0;airFlash=0;flightId=0;
   chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;dolphT=0;trkDolph=false;
@@ -10606,7 +10626,14 @@ function loop(now){
             const prox=1-(curHOff-2.2)/9.8; // 1 = à ras (2,2 m, une frame du contact), 0 = à 12 m
             const dInc=14*prox*prox*dtF;    // le magot grimpe au CARRÉ de la proximité
             dolphT+=dtF;chainVal+=dInc;dolphGain+=dInc;addStyle(6*prox*dtF);
-            dolShow=.7; // LES 2 DAUPHINS bondissent de chaque côté et se croisent tant qu'on frôle la dalle
+            // LES 2 DAUPHINS bondissent de chaque côté et se croisent tant qu'on frôle la dalle.
+            // ⚠ IL FAUT UNE SECONDE DE VOL AU-DESSUS DE LA ROUTE (Sacha, 2026-08-09 : « l'animation
+            // du dauphin apparaît trop souvent »). Avant, `dolShow` s'armait dès la PREMIÈRE frame
+            // passée dans la bande : le moindre saut rasant, le moindre rebond de tranche faisait
+            // surgir les deux bêtes — elles étaient partout, donc elles ne voulaient plus rien dire.
+            // `dolphT` compte le temps RÉELLEMENT passé à raser la dalle : au-delà d'une seconde,
+            // ce n'est plus un accident de trajectoire, c'est un vol tenu — et ça se fête.
+            if(dolphT>1)dolShow=.7;
             if(!trkDolph&&dolphT>.25){trkDolph=true;addTrick('dauphin','🐬 LE DAUPHIN !',3,2);}
             if(dolphT>.15){ // le nom s'affiche VITE et RESTE tant que les points comptent — on voit POURQUOI ça monte
               chainHud.textContent='🐬 LE DAUPHIN +'+Math.round(dolphGain)+' · CHAÎNE ×'+Math.min(6,chainMult).toFixed(1);
