@@ -8328,7 +8328,43 @@ let steer=0,money=START_CASH,levelCash=0,boost=0,fallT=0,fallTR=0,padCd=0,shake=
    Les variables `airBank` / `airRollT` / `AIR_BANK_*` ont donc été RETIRÉES : les laisser en place
    aurait fait croire à un réglage disponible alors que plus rien ne les lit. */
 let airRoll=0; // vrille visuelle en vol
-let airFlip=0; // LE SALTO : rotation LIBRE du corps autour de son axe lateral (backflip/frontflip). Sans borne, contrairement a l'assiette de la TRAJECTOIRE — voir le bloc du salto dans la boucle
+/* ---- LE LOOPING : on pilote comme un petit avion ------------------------------------------------
+   Sacha, 2026-08-09 : « on doit pouvoir conduire la voiture comme un petit avion et du coup faire
+   des loopings, mais grâce au boost ».
+   ⚠ POURQUOI L'ANCIEN CODE NE POUVAIT PAS BOUCLER. Il re-paramétrait l'assiette en `atan2(vy,hxz)`
+   puis reconstruisait le vecteur. Or `hxz>=0` : cette assiette est bornée à ±90° PAR CONSTRUCTION.
+   Le clamp à ±65° n'était qu'une garde posée sur une limite qui existait déjà dans les maths.
+   ⚠ ET POURQUOI LA PREMIÈRE RÉÉCRITURE NE MARCHAIT PAS NON PLUS — attrapé en simulant la boucle
+   hors du jeu, pas à la lecture : faire tourner la vitesse autour de `up × vitesse` recalculé À
+   CHAQUE FRAME, c'est faire tourner autour d'un axe qui DÉPEND de ce qu'on fait tourner. Quand la
+   trajectoire approche la verticale, ce produit vectoriel s'effondre, l'axe bascule de signe, et le
+   vol se FIGE plein bas (mesuré : vy=-100 immobile pendant 3 s). C'est exactement la singularité
+   qu'on croyait avoir fuie.
+   LE REMÈDE : un LOOPING SE FAIT DANS UN PLAN. On fige donc l'axe au moment où le pilote commence à
+   tirer, et on le garde tant qu'il tire — le vol décrit une vraie boucle plane, comme un avion.
+   L'axe n'est rafraîchi que lorsque la trajectoire est FRANCHEMENT hors de la verticale, là où le
+   produit vectoriel est fiable ; près de la verticale on garde le dernier bon axe. */
+let airLoop=0;                         // rotation CUMULÉE de la trajectoire (c'est elle qui paye le LOOPING)
+const loopAx=new THREE.Vector3(1,0,0); // l'axe du plan de boucle
+let loopAxSet=false,loopIdle=0;        // …figé tant qu'on tire, réarmé dès qu'on lâche
+function loopTurn(wPitch,rate,dtF){
+  loopIdle=0;
+  if(!loopAxSet){ // ON N'ARME L'AXE QU'UNE FOIS, au moment où le pilote commence à tirer
+    tmp2.set(0,1,0).cross(fallVel);      // latéral = up × vitesse
+    if(tmp2.lengthSq()<1e-4)tmp2.set(1,0,0).applyQuaternion(carGroup.quaternion); // vol pile vertical : repli sur la caisse
+    loopAx.copy(tmp2).normalize();loopAxSet=true;
+  }
+  /* ⚠ POURQUOI L'AXE EST FIGÉ, et pas recalculé chaque frame comme dans ma première version :
+     `up × vitesse` CHANGE DE SIGNE quand la trajectoire franchit la verticale. Recalculé, l'axe se
+     retournait en plein passage, la rotation repartait en arrière, et le vol restait COLLÉ plein
+     bas — mesuré hors du jeu : vy=-100 immobile, la boucle ne se fermait jamais. Un looping se fait
+     DANS UN PLAN : on choisit ce plan au départ du geste, et on s'y tient. */
+  // ⚠ LE SIGNE : autour de (up × vitesse), une rotation POSITIVE envoie le nez vers le BAS, alors
+  // que `wPitch` vaut -1 pour le piqué (convention du jeu, comme au sol). D'où l'inversion.
+  const dAng=-rate*wPitch*dtF;
+  fallVel.applyAxisAngle(loopAx,dAng);
+  airLoop+=dAng;
+}
 // TREMPLIN HÉROS : gapArmed = variante du tremplin qui a lancé CE vol (0 = vol ordinaire, 1/2/3 = v+1),
 // lu au verdict d'atterrissage pour le GAP FRANCHI ; rampCd empêche de re-catapulter en reposant dessus.
 let gapArmed=0,rampCd=0;
@@ -8529,7 +8565,7 @@ function trickMsg(txt,tier){ // tier: 1 MONSTRE · 2 DOUBLE · 3 TRIPLE (ou true
 // ---- CHAÎNE DE FIGURES : chaque exploit aérien se NOMME à l'instant où il naît et gonfle la
 // chaîne. Rien n'est payé en vol : tout se cashe à l'atterrissage (grade × face × série) —
 // et tout S'ENVOLE si on explose. La redite paye de moins en moins : varie le menu !
-let chain=0,chainVal=0,chainMult=1,chainSeen={},spinHalf=0,flipHalf=0,
+let chain=0,chainVal=0,chainMult=1,chainSeen={},spinHalf=0,loopDone=0,
     curNear=false,curHOff=0,curLatOff=0,lastNearY=0,lastNearH2=0,lastNearS=0, // lastNearH2 : distance HORIZONTALE² au bitume (au-dessus d'un trou elle explose → l'ombre de contact se cache) · lastNearS : où l'on en est SUR la piste pendant un vol (recentre le LOD de proximité)
     trkMeteor=false,
     dolphT=0,dolphGain=0,trkDolph=false, // LE DAUPHIN : nager au ras de la dalle
@@ -8639,7 +8675,7 @@ function checkUpgrade(){
   SAVE.flush();
 }
 function startFall(impU,impF){
-  mode='fall';fallT=0;fallTR=0;yawAcc=0;momT=0;airRoll=0;airFlip=0;
+  mode='fall';fallT=0;fallTR=0;yawAcc=0;momT=0;airRoll=0;airLoop=0;loopAxSet=false;loopIdle=9;
   // TEMPO DE VOL ∝ VITESSE (2026-07-20, dosage DOUX sur base V1) : =1 jusqu'à 450 km/h affichés
   // (basse/moyenne vitesse : rigoureusement l'existant), puis +1 tous les 1800 km/h, CAP 1.35 —
   // loin du 2.3 de l'ancienne ère (qui compensait SPD=.25) : l'endgame TRAVERSE sa phase aérienne
@@ -8665,7 +8701,7 @@ function startFall(impU,impF){
   hopY=0;hopV=0; // un dos d'âne en cours ne doit pas laisser de décalage fantôme
   lastNearY=fallPos.y; // référence du plongeon fatal tant que tryLand n'a pas mieux
   // chaîne neuve : le vol commence, tout est à prouver
-  chain=0;chainVal=rollover;chainMult=1;chainSeen={};spinHalf=0;flipHalf=0;
+  chain=0;chainVal=rollover;chainMult=1;chainSeen={};spinHalf=0;loopDone=0;
   if(rollover>0){trickMsg('REPORT +'+Math.round(rollover),false);rollover=0;} // le PARFAIT d'avant paye d'avance
   trkMeteor=false;curNear=false;
   dolphT=0;dolphGain=0;trkDolph=false;caseHot=false;heartT=0;ladderI=0;caseHud.style.opacity=0;caseHud.className='';
@@ -10505,6 +10541,7 @@ function loop(now){
       }
     }else if(mode==='fall'){ // ---- VOL : maniabilité aérienne propre ----
       const dtF=dt*AIR_RATE; // temps de vol accéléré : même arc dans l'espace, moins de temps réel à flotter
+      loopIdle+=dtF;if(loopIdle>.05)loopAxSet=false; // on a lâché le tangage → le prochain looping choisira un nouveau plan
       fallT+=dtF;fallTR+=dt; // fallT = temps-sim (figures/paiements) ; fallTR = temps RÉEL (jauge des 6 s — sinon le chrono file à ×1,6)
       if(nitroOn)nitroAirT+=dtF; // temps de réacteur dans CE vol (METEOR / MEGA METEOR)
       fallVel.y-=FALL_G*dtF;
@@ -10538,32 +10575,24 @@ function loop(now){
         tmp.copy(fallVel);
         if(tmp.lengthSq()>1)tmp.normalize();else tmp.set(0,0,1);
         fallVel.addScaledVector(tmp,(nitroBlue?70:52)*dtF); // RÉACTEUR façon Rocket League (2026-07-20, était 49/34) : en l'air la nitro POUSSE vraiment — on sculpte sa trajectoire, on ne la subit plus
-        // ↑/AVANT : PIQUÉ · ↓/FREIN : CABRÉ. On fait TOURNER la vitesse en tangage (pitch) au lieu
-        // d'ajouter à .y : ajouter ±12 à un vecteur de 145 puis reclamper ne pliait la trajectoire que
-        // de ~4°/s (« le nitro haut/bas ne marche plus » — surtout au plafond de vitesse du parc). La
-        // ROTATION donne une autorité FORTE et INDÉPENDANTE de la vitesse (on plie autant à 260 qu'à 80).
-        // BORNÉE à ±65° d'assiette → jamais vertical → pas de gimbal-lock, pas de vrille coincée.
-        const wPitch=((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0); // -1 = piqué, +1 = cabré
-        if(wPitch!==0){
-          const spd=fallVel.length();
-          if(spd>1){
-            // ⚠ ANTI-BLOCAGE : trajectoire quasi VERTICALE → hxz≈0, atan2 sature à ±90° (hors du clamp ±65°)
-            // et la remise à l'échelle divise par ~0 : les commandes semblaient MORTES. On garde toujours
-            // un cap horizontal exploitable (repli sur le nez de la caisse si la vitesse est verticale).
-            let hxz=Math.hypot(fallVel.x,fallVel.z);
-            if(hxz<spd*.12){ // presque à la verticale : on rétablit un minimum d'horizontale
-              tmp3.set(0,0,1).applyQuaternion(carGroup.quaternion);
-              let hx=tmp3.x,hz=tmp3.z,hl=Math.hypot(hx,hz);
-              if(hl<1e-3){hx=1;hz=0;hl=1;}
-              const need=spd*.12;
-              fallVel.x=hx/hl*need;fallVel.z=hz/hl*need;hxz=need;
-            }
-            let pit=Math.atan2(fallVel.y,hxz);
-            pit=THREE.MathUtils.clamp(pit+1.7*wPitch*dtF,-1.13,1.13); // 1.7 rad/s ≈ 97°/s, plafond ±65°
-            const nH=Math.cos(pit)*spd,hs=nH/hxz;
-            fallVel.set(fallVel.x*hs,Math.sin(pit)*spd,fallVel.z*hs); // même vitesse, nouvelle assiette
-          }
-        }
+        /* ---- ON PILOTE COMME UN PETIT AVION : LE LOOPING -------------------------------------
+           Sacha, 2026-08-09 : « je parlais du déplacement avec le nitro, on doit pouvoir conduire
+           la voiture comme un petit avion et du coup faire des loopings, mais grâce au boost ».
+           ⚠ POURQUOI ÇA BLOQUAIT. L'ancien code re-paramétrait l'assiette en `atan2(vy,hxz)` puis
+           reconstruisait le vecteur. Or `hxz>=0` : cette assiette est bornée à ±90° PAR
+           CONSTRUCTION — passer au-delà retournait le cap horizontal au lieu de continuer la
+           boucle. Le clamp à ±65° n'était qu'une garde posée sur une limite qui existait déjà dans
+           les maths, plus tout un rattrapage anti-division-par-zéro près de la verticale.
+           LE REMÈDE est plus simple que le problème : on ne re-paramètre plus rien, on FAIT TOURNER
+           le vecteur vitesse autour de son axe latéral (`applyAxisAngle`). Une rotation de vecteur
+           n'a ni borne ni singularité : le nez monte, passe la verticale, part sur le dos, redescend
+           — la trajectoire BOUCLE pour de vrai. La caisse suit d'elle-même, son repère de vol étant
+           déjà construit sur la direction de la vitesse : on la voit prendre le looping.
+           L'AXE : perpendiculaire à la vitesse ET à la verticale du monde. Si l'on vole pile à la
+           verticale ce produit vectoriel s'annule — on se rabat alors sur l'axe latéral de la
+           caisse, qui, lui, est toujours défini. C'est la seule garde nécessaire. */
+        const wPitch=((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0); // ↑ = piqué · frein = cabré
+        if(wPitch!==0&&fallVel.lengthSq()>1)loopTurn(wPitch,2.4,dtF);      // 2,4 rad/s ≈ 137°/s → un looping en ~2,6 s
         // jet visible au point de poussée arrière : panache conique, jamais deux fois pareil
         flames.mesh.material.color.set(nitroBlue?0x3a5bff:0xff8020);
         flameCore.mesh.material.color.set(nitroBlue?0xbfd6ff:0xffd9a0);
@@ -10591,42 +10620,12 @@ function loop(now){
         if(Math.random()<.5)spawnP(sparkBlue,
           carGroup.position.x-tmp3.x*2.5,carGroup.position.y-tmp3.y*2.5,carGroup.position.z-tmp3.z*2.5,
           -tmp3.x*20+(Math.random()-.5)*6,-tmp3.y*20+(Math.random()-.5)*6,-tmp3.z*20+(Math.random()-.5)*6,.3);
-      } else { // VOL SANS BOOST : léger pilotage haut/bas — assez pour infléchir la trajectoire, bien moins qu'au réacteur
+      } else { // VOL SANS BOOST : on infléchit, on ne pilote pas — le looping est une figure de NITRO
         const wPitch=((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0); // ↑ piqué · ↓ cabré
-        if(wPitch!==0){
-          const spd=fallVel.length();
-          if(spd>1){
-            let hxz=Math.hypot(fallVel.x,fallVel.z);
-            if(hxz<spd*.12){ // même anti-blocage qu'au boost : jamais de trajectoire 100 % verticale
-              tmp3.set(0,0,1).applyQuaternion(carGroup.quaternion);
-              let hx=tmp3.x,hz=tmp3.z,hl=Math.hypot(hx,hz);
-              if(hl<1e-3){hx=1;hz=0;hl=1;}
-              const need=spd*.12;
-              fallVel.x=hx/hl*need;fallVel.z=hz/hl*need;hxz=need;
-            }
-            let pit=Math.atan2(fallVel.y,hxz);
-            pit=THREE.MathUtils.clamp(pit+0.62*wPitch*dtF,-1.13,1.13); // 0.62 rad/s ≈ 35°/s (vs 1.7 au boost) : on infléchit, on ne pilote pas
-            const nH=Math.cos(pit)*spd,hs=nH/hxz;
-            fallVel.set(fallVel.x*hs,Math.sin(pit)*spd,fallVel.z*hs);
-          }
-        }
-      }
-      /* ---- LE SALTO : BACKFLIP / FRONTFLIP -------------------------------------------------
-         Sacha, 2026-08-09 : « avec le nitro aérien on est bloqué sur la rotation verticale, on
-         devrait pouvoir faire des backflip ou des frontflip ».
-         ⚠ POURQUOI C'ÉTAIT IMPOSSIBLE, et pourquoi aucun réglage n'y aurait rien changé : le
-         tangage ci-dessus fait tourner le VECTEUR VITESSE. Son assiette vaut `atan2(vy,hxz)` avec
-         `hxz>=0` — elle est donc bornée à ±90° PAR CONSTRUCTION, et passer au-delà retournerait le
-         cap horizontal. Le clamp à ±65° n'était qu'une garde anti-gimbal posée sur une limite qui
-         existait déjà dans les maths.
-         CE QU'EST VRAIMENT UN SALTO — la leçon de Rocket League : une rotation du CORPS, pas de la
-         trajectoire. Une caisse qui fait un backflip suit toujours sa parabole.
-         On sépare donc les deux : la TRAJECTOIRE garde son pilotage borné (c'est la visée), et le
-         CORPS tourne librement autour de son axe latéral (c'est la figure). `airFlip` n'a aucune
-         borne — on enchaîne les tours tant qu'on tient la touche. Au réacteur : un tour en ~1,5 s. */
-      {
-        const wF=((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0); // ↑ = piqué → FRONTFLIP · frein = cabré → BACKFLIP
-        if(wF!==0)airFlip+=(nitroOn?4.2:1.5)*wF*dtF;                   // sans réacteur on incline à peine : le salto est une figure de NITRO
+        // MÊME rotation qu'au réacteur (donc bouclable elle aussi), mais à 0,62 rad/s ≈ 35°/s :
+        // un looping demanderait 10 s de chute, ce qui n'arrive pas. C'est le BOOST qui fait la
+        // figure — sans lui on corrige sa parabole, et c'est tout.
+        if(wPitch!==0&&fallVel.lengthSq()>1)loopTurn(wPitch,0.62,dtF);
       }
       if(PARK.on&&fallVel.lengthSq()>PARK_VCAP*PARK_VCAP)fallVel.setLength(PARK_VCAP); // PARC : la nitro infinie ne t'emballe pas non plus EN L'AIR — vol rapide mais pilotable
       fallPos.addScaledVector(fallVel,dtF*SPD);
@@ -10637,17 +10636,13 @@ function loop(now){
         const halfs=Math.floor(Math.abs(yawAcc)/Math.PI); // vrilles : un cri par demi-tour de lacet
         if(halfs>spinHalf&&fallT>.45){spinHalf=halfs;
           addTrick('vrille',halfs===1?'180°':halfs===2?'VRILLE 360 — LAVE-LINGE !':halfs===3?'540° !!':(halfs*180)+'° — ESSOREUSE COSMIQUE !!',3.5*halfs,halfs>=4?3:(halfs>=2?2:false),true);}
-        // LE SALTO se paye comme la vrille : un cri par DEMI-TOUR, en échelle (`raw`), donc la
-        // redite ne décote pas. Le signe dit la figure — piqué = frontflip, cabré = backflip.
-        const fh=Math.floor(Math.abs(airFlip)/Math.PI);
-        if(fh>flipHalf&&fallT>.3){flipHalf=fh;
-          const av=airFlip<0;
-          addTrick('salto',
-            fh===1?(av?'DEMI-FRONTFLIP':'DEMI-BACKFLIP')
-           :fh===2?(av?'🔄 FRONTFLIP !':'🔄 BACKFLIP !')
-           :fh===3?(av?'FRONTFLIP ET DEMI !!':'BACKFLIP ET DEMI !!')
-           :(av?'× FRONTFLIP '+(fh/2|0)+' TOURS !!':'× BACKFLIP '+(fh/2|0)+' TOURS !!'),
-            4*fh, fh>=4?3:(fh>=2?2:false), true);}
+        // LE LOOPING se paye au TOUR COMPLET de trajectoire (`airLoop` cumule la rotation RÉELLE
+        // du vecteur vitesse). Un demi-tour n'est qu'un renversement — ce qui se fête, c'est la
+        // boucle bouclée. Échelle brute (`raw`) : la redite ne décote pas.
+        const lp=Math.floor(Math.abs(airLoop)/6.2832);
+        if(lp>loopDone&&fallT>.3){loopDone=lp;
+          addTrick('looping', lp===1?'🔁 LOOPING !':lp===2?'DOUBLE LOOPING !!':lp+' LOOPINGS !!!',
+            10*lp, lp>=3?3:2, true);}
         if(!trkMeteor&&nitroOn&&nitroAirT>1.2){trkMeteor=true;addTrick('meteo','MÉTÉORE',8,2);}
         if(curNear){ // radar de dalle (rempli par tryLand à la frame précédente)
           if(Math.abs(curLatOff)<ROAD_HALF&&curHOff>2.2&&curHOff<12){
@@ -10727,10 +10722,6 @@ function loop(now){
          ARCADE, pas un oubli — la lisibilité aéronautique n'est pas le sujet de ce jeu.
          ⚠ à ne pas confondre avec la FIGURE « vrille » qui paye : celle-là se compte en demi-tours
          de LACET (`yawAcc`) et n'a rien à voir avec cette rotation visuelle. */
-      // LE SALTO d'abord : rotation autour de l'axe LATÉRAL (`tmp3`, le X du repère monté juste
-      // au-dessus). C'est le seul axe qui donne un backflip ; `tmp` (l'axe d'avancement) donne la
-      // vrille. ⚠ `tmp3` est réutilisé plus bas par la caméra — ne pas déplacer ces lignes après.
-      if(airFlip!==0){qTmp2.setFromAxisAngle(tmp3,airFlip);qTmp.premultiply(qTmp2);}
       airRoll+=(3.0+steer*2.2+Math.min(2,fallT*.5))*dtF; // VRILLE : la caisse tourne sur elle-même (suit le vol accéléré)
       qTmp2.setFromAxisAngle(tmp,airRoll);
       qTmp.premultiply(qTmp2);
