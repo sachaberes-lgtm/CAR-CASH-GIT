@@ -2361,18 +2361,30 @@ const CARS=[
   desc:'Pick-up de chantier : benne ouverte, arceau, pare-buffle et garde au sol de tracteur. Elle ne double pas, elle DÉPLACE.'},
  {name:'LE FRELON',       shape:'frelon',  color:0xc23b2e,accent:0x701f18,maxKmh:253,accel:29,turn:2.7, h:.68,w:1.85,l:3.9,spoiler:0,
   desc:'Petite, teigneuse, elle pétarade comme un 14 juillet. Le premier vrai sourire du compteur.'},
+ {name:'LA LONGUE ANGLAISE',shape:'etype',color:0x1d4f2e,accent:0xd8d2c0,maxKmh:265,accel:30,turn:2.68,h:.62,w:1.78,l:4.6,spoiler:0,
+  desc:'Un capot à rallonge, un habitacle en bout de course et du chrome partout. Elle ne court pas : elle DÉFILE.'},
  {name:'GROS BLOC',       shape:'muscle',  color:0x2f2f38,accent:0x15151c,maxKmh:306,accel:35,turn:2.85,h:.60,w:2.00,l:4.9,spoiler:1,
   desc:'Un V8 qui boit de l\'essence et crache du respect. L\'écologie te fait coucou dans le rétro. Tu n\'as pas de rétro.'},
  {name:'DIVA BLANCHE',    shape:'berline', color:0xe8e8e8,accent:0x999999,maxKmh:278,accel:32,turn:2.8, h:.64,w:2.00,l:5.5,spoiler:0,
   desc:'Limousine à calandre droite et emblème chromé. Elle refuse de rouler à moins de 200. Toi aussi, maintenant.'},
+ {name:'LA RAIE 🇺🇸',      shape:'stingray',color:0x8e1f1f,accent:0xe8e4d8,maxKmh:320,accel:37,turn:2.86,h:.56,w:2.02,l:4.6,spoiler:0,
+  desc:'Capot à bosse, lunette fendue en deux, quatre tuyaux qui courent sous les portières. Elle ne chuchote jamais.'},
  {name:'SCALPEL VERT',    shape:'gt',      color:0x1d5c3a,accent:0x0f3222,maxKmh:337,accel:39,turn:2.9, h:.48,w:1.94,l:4.35,spoiler:1,
   desc:'Fastback en goutte d\'eau, moteur derrière l\'essieu. Elle découpe les virages pendant que les autres les négocient.'},
+ {name:'TARGA 77',        shape:'targa',   color:0xe4e0d6,accent:0x2b2b30,maxKmh:355,accel:41,turn:2.94,h:.52,w:1.92,l:4.3,spoiler:1,
+  desc:'Même école que la verte, mais le toit s\'enlève et un arceau brossé barre le ciel. Deux phares ronds, plantés sur les ailes.'},
  {name:'BALLE D\'ARGENT', shape:'balle',   color:0xc0c8d0,accent:0x707880,maxKmh:371,accel:43,turn:3.0, h:.5, w:2.0, l:4.4,spoiler:1,
   desc:'Une balle avec des sièges. Le pare-brise sert surtout à voir le futur arriver beaucoup trop vite.'},
+ {name:'DÉCAPOTÉE',       shape:'spider',  color:0xf2c230,accent:0x3a2f18,maxKmh:390,accel:45,turn:3.02,h:.50,w:1.94,l:4.2,spoiler:0,
+  desc:'Pas de toit, pas d\'excuse. Deux arceaux derrière les têtes, un pare-brise coupé ras. Le vent fait partie du prix.'},
  {name:'VEUVE NOIRE',     shape:'wedge',   color:0x111118,accent:0xdd2222,maxKmh:408,accel:47,turn:3.05,h:.44,w:2.12,l:4.7,spoiler:1,
   desc:'Un coin de tôle posé au ras du sol, deux écopes dans les flancs. Ceux qui l\'ont doublée en parlent encore. Ah non : personne.'},
+ {name:'GROUPE B',        shape:'groupeb', color:0x2e5fb5,accent:0xf0f2f5,maxKmh:430,accel:50,turn:3.12,h:.72,w:2.00,l:4.1,spoiler:1,
+  desc:'La catégorie qu\'on a fini par interdire. Ailes-caisses boulonnées, rampe de phares, bavettes qui traînent. Elle passe PARTOUT.'},
  {name:'EL PATRON 🏁',    shape:'hyper',   color:0xffc400,accent:0x1a1a1a,maxKmh:449,accel:52,turn:3.1, h:.58,w:2.26,l:4.55,spoiler:1,
   desc:'Le taureau doré, arche de toit bicolore et fer à cheval en calandre. L\'assurance a été résiliée d\'office.'},
+ {name:'LA ROUGE 🐎',     shape:'berlinetta',color:0xd51920,accent:0x1a1a1c,maxKmh:470,accel:54,turn:3.13,h:.50,w:2.04,l:4.9,spoiler:0,
+  desc:'Douze cylindres posés loin derrière le nez, quatre feux ronds et des griffes dans les ailes. Le rouge n\'est pas une couleur, c\'est une déclaration.'},
  {name:'FORMULE OR 🏎️',   shape:'formula', color:0xffdf40,accent:0x22242a,maxKmh:494,accel:57,turn:3.15,h:.40,w:2.10,l:4.8,spoiler:0,glow:0xfff0a0,
   desc:'Un aileron, un baquet, et tes économies peintes en doré. Le circuit appelle ça de la triche. Nous, du talent.'},
  {name:'LE MANS 24',      shape:'lemans',  color:0xe8ecf2,accent:0xff5a1a,maxKmh:543,accel:62,turn:3.2, h:.46,w:2.18,l:5.35,spoiler:0,
@@ -3995,6 +4007,139 @@ const SHAPES={
     }
     return {hl:[W*.22,y0+H*.34,L*.40],tl:[W*.26,y0+H*.56,-L*.42],wr:.90,wx:W/2-.02,wz:L/2-.72,
             split:0,skirt:0,sp:0,doors:0,wings:'props',glowX:W*.44,glowY:y0+H*.14,glowL:L*.62,glowF:0};
+  },
+  /* ============================================================================================
+     LES SIX CLASSIQUES (2026-08-09) — « des formes plus classiques, genre porsche ferrari
+     lamborghini ». Trois de ces écoles étaient DÉJÀ là et n'ont pas été refaites : le fastback à
+     moteur arrière (`gt`), le coin à moteur central (`wedge`) et l'hypercar au fer à cheval
+     (`hyper`). Voici les six écoles qui manquaient. Chacune tient sur le trait qu'on reconnaît
+     à cent mètres, pas sur la marque : le capot à rallonge, l'arceau targa, l'arceau de roadster,
+     les sorties latérales, les ailes-caisses du rallye, le long nez anglais.
+     ⚠ AUCUNE MARQUE N'EST NOMMÉE — ici comme ailleurs dans la gamme, on cite l'ÉCOLE, jamais le
+     constructeur. C'est la règle du fichier depuis la première caisse.
+     ========================================================================================== */
+  // 30. LA BERLINETTA V12 — l'école italienne du moteur AVANT-central : capot à rallonge, habitacle
+  //     rejeté sur l'essieu arrière, QUATRE FEUX RONDS, et les griffes d'aération dans le flanc.
+  berlinetta(K){
+    const {W,H,L,y0,box:B}=K;
+    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.22*H],[.24*L,.36*H],[-.04*L,.42*H],[-.16*L,.86*H],[-.40*L,.84*H],[-.50*L,.52*H]],W*.96,K.body);
+    K.prof([[-.06*L,.46*H],[-.16*L,.82*H],[-.36*L,.80*H],[-.44*L,.52*H]],W*.70,K.glass);
+    B(W*.30,H*.10,L*.30,K.body,0,y0+H*.42,L*.14).rotation.x=-.05;   // le renflement du capot : il y a un V12 dessous
+    for(const sd of [-1,1]){
+      for(let g9=0;g9<3;g9++)                                        // LES GRIFFES : trois lames dans l'aile
+        B(.05,H*.10,L*.11,K.dark,sd*(W/2+.01),y0+H*(.34+g9*.055),-L*(.02+g9*.025)).rotation.z=sd*.12;
+      K.sph(W*.11,H*.30,L*.24,K.body,sd*(W/2-.02),y0+H*.34,-L*.28);  // hanches arrière pleines
+      B(.07,H*.14,L*.56,K.acc,sd*(W/2+.02),y0+H*.10,-L*.02);
+      for(const dz of [.10,.24])                                     // LES QUATRE FEUX RONDS
+        K.cyl(.10,.10,.05,K.acc,sd*(W*dz+W*.06),y0+H*.62,-L/2-.02,14).rotation.x=Math.PI/2;
+    }
+    const gr=K.cyl(W*.26,W*.26,.09,K.dark,0,y0+H*.24,L/2+.01,18);gr.rotation.x=Math.PI/2;gr.scale.y=.52; // la bouche OVALE
+    K.cyl(W*.055,W*.055,.11,K.chrome,0,y0+H*.24,L/2+.03,12).rotation.x=Math.PI/2;
+    B(W*.80,.05,L*.09,K.acc,0,y0+H*.86,-L*.44);                      // lèvre de coffre, discrète
+    return {hl:[W*.32,y0+H*.36,L*.46],tl:[W*.24,y0+H*.62,-L/2-.05],wz:L/2-.80,doors:1,sp:0};
+  },
+  // 31. LA TARGA — l'école allemande à moteur arrière, MAIS le toit s'enlève : un ARCEAU brossé
+  //     large comme la caisse, deux phares ronds DRESSÉS sur les ailes, et le becquet canard.
+  targa(K){
+    const {W,H,L,y0,box:B}=K;
+    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.28*H],[.26*L,.44*H],[-.04*L,.56*H],[-.34*L,.60*H],[-.50*L,.52*H]],W*.94,K.body);
+    K.prof([[.06*L,.52*H],[-.02*L,.88*H],[-.14*L,.88*H],[-.18*L,.56*H]],W*.68,K.glass); // pare-brise SEUL
+    B(W*.90,H*.13,L*.10,K.chrome,0,y0+H*.86,-L*.20);                 // L'ARCEAU TARGA, brossé, plein cadre
+    for(const sd of [-1,1]){
+      B(.07,H*.34,L*.10,K.chrome,sd*W*.42,y0+H*.70,-L*.20);          // ses montants
+      K.sph(W*.11,H*.26,L*.16,K.body,sd*(W/2-.03),y0+H*.46,L*.30);   // ailes AV bombées, phares DESSUS
+      K.cyl(.115,.115,.06,K.chrome,sd*W*.32,y0+H*.60,L*.34,14).rotation.x=Math.PI/2;
+      K.sph(W*.12,H*.30,L*.22,K.body,sd*(W/2-.02),y0+H*.40,-L*.28);  // hanches ARRIÈRE, plus larges
+      B(.08,H*.16,L*.54,K.acc,sd*(W/2+.02),y0+H*.10,0);
+    }
+    K.prof([[-.28*L,.60*H],[-.40*L,.74*H],[-.50*L,.70*H],[-.48*L,.58*H]],W*.86,K.body); // LE CANARD
+    for(let f9=0;f9<9;f9++)B(W*.055,.02,L*.10,K.dark,(f9/8-.5)*W*.62,y0+H*.62,-L*.40);  // grille de capot moteur
+    return {hl:[W*.32,y0+H*.60,L*.36],tl:[W*.34,y0+H*.50,-L/2-.05],wz:L/2-.78,doors:1,sp:0};
+  },
+  // 32. LE ROADSTER — pas de toit, pas d'excuse : pare-brise COUPÉ, deux ARCEAUX derrière les têtes,
+  //     et le couvre-tonneau bombé qui file vers le coffre. On voit l'intérieur, c'est le sujet.
+  spider(K){
+    const {W,H,L,y0,box:B}=K;
+    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.26*H],[.22*L,.40*H],[-.10*L,.44*H],[-.40*L,.50*H],[-.50*L,.44*H]],W*.94,K.body);
+    B(W*.66,H*.24,L*.34,K.dark,0,y0+H*.34,-L*.04);                   // l'HABITACLE OUVERT, creusé
+    for(const sd of [-1,1]){
+      B(W*.24,H*.16,L*.24,K.acc,sd*W*.20,y0+H*.40,-L*.04);           // les deux baquets
+      K.cyl(W*.09,W*.09,H*.26,K.chrome,sd*W*.22,y0+H*.62,-L*.22,10); // LES ARCEAUX, un par tête
+      K.sph(W*.09,H*.24,L*.20,K.body,sd*(W/2-.02),y0+H*.34,L*.26);
+      B(.07,H*.14,L*.58,K.acc,sd*(W/2+.02),y0+H*.10,0);
+    }
+    const pb=K.prof([[.10*L,.44*H],[.02*L,.72*H],[-.14*L,.70*H],[-.10*L,.44*H]],W*.66,K.glass); // pare-brise COUPÉ, bas
+    K.sph(W*.44,H*.26,L*.20,K.body,0,y0+H*.46,-L*.32);               // le couvre-tonneau, bombé
+    B(W*.86,.05,L*.08,K.chrome,0,y0+H*.30,L/2+.02);                  // pare-chocs chromé
+    B(W*.86,.05,L*.08,K.chrome,0,y0+H*.30,-L/2-.02);
+    return {hl:[W*.30,y0+H*.36,L*.46],tl:[W*.30,y0+H*.40,-L/2-.05],doors:1,sp:0,wings:'none'};
+  },
+  // 33. LA RAIE — l'école américaine du gros V8 devant : capot À BOSSE, lunette arrière FENDUE par
+  //     une nervure, et les quatre sorties d'échappement qui courent SOUS les portières.
+  stingray(K){
+    const {W,H,L,y0,box:B}=K;
+    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.24*H],[.30*L,.40*H],[.06*L,.44*H],[-.10*L,.82*H],[-.34*L,.80*H],[-.50*L,.46*H]],W*.94,K.body);
+    K.prof([[-.02*L,.48*H],[-.12*L,.78*H],[-.30*L,.76*H],[-.38*L,.50*H]],W*.66,K.glass);
+    B(.05,H*.34,L*.30,K.body,0,y0+H*.66,-L*.20);                     // LA NERVURE qui FEND la lunette
+    B(W*.34,H*.13,L*.26,K.body,0,y0+H*.46,L*.20);                    // la BOSSE du capot
+    B(W*.20,H*.05,L*.16,K.dark,0,y0+H*.53,L*.20);                    // sa prise d'air
+    for(const sd of [-1,1]){
+      for(let p9=0;p9<4;p9++)                                        // LES SORTIES LATÉRALES, sous la portière
+        K.cyl(.055,.055,L*.30,K.chrome,sd*(W/2+.04),y0+H*.16,-L*(.04+p9*.012),8).rotation.x=Math.PI/2;
+      K.sph(W*.12,H*.32,L*.22,K.body,sd*(W/2-.02),y0+H*.36,L*.26);   // ailes avant hautes
+      K.sph(W*.12,H*.30,L*.22,K.body,sd*(W/2-.02),y0+H*.34,-L*.28);
+      for(const dz of [.10,.23])                                     // quatre feux ronds, comme la berlinetta
+        K.cyl(.095,.095,.05,K.acc,sd*(W*dz+W*.06),y0+H*.56,-L/2-.02,14).rotation.x=Math.PI/2;
+    }
+    B(W*.70,H*.14,.10,K.dark,0,y0+H*.24,L/2+.03);
+    return {hl:[W*.30,y0+H*.42,L*.44],tl:[W*.22,y0+H*.56,-L/2-.05],doors:1,slats:1,sp:0};
+  },
+  // 34. LE GROUPE B — la catégorie qu'on a interdite : caisse CUBIQUE, deux AILES-CAISSES qui
+  //     débordent franchement, une rampe de phares sur le capot et des bavettes qui traînent.
+  groupeb(K){
+    const {W,H,L,y0,box:B}=K;
+    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.34*H],[.30*L,.42*H],[.14*L,.50*H],[.02*L,.94*H],[-.36*L,.96*H],[-.44*L,.62*H],[-.50*L,.58*H]],W*.92,K.body);
+    K.prof([[.04*L,.56*H],[-.02*L,.90*H],[-.32*L,.92*H],[-.38*L,.60*H]],W*.76,K.glass);
+    B(W*.52,H*.12,L*.14,K.dark,0,y0+H*.98,-L*.10);                   // l'écope de toit
+    for(const sd of [-1,1]){
+      for(const fz of [1,-1]){                                       // LES AILES-CAISSES : franches, boulonnées
+        B(W*.20,H*.30,L*.30,K.body,sd*(W/2+.06),y0+H*.34,fz*(L/2-.78));
+        for(let r9=0;r9<5;r9++)                                      // et leurs boulons, tout autour
+          K.cyl(.022,.022,.03,K.chrome,sd*(W/2+.16),y0+H*(.20+r9*.075),fz*(L/2-.78),6).rotation.z=Math.PI/2;
+      }
+      B(.09,H*.20,L*.36,K.dark,sd*(W/2+.13),y0+H*.10,-L*.30);        // bavettes
+      B(.07,H*.60,L*.10,K.acc,sd*W*.40,y0+H*1.14,-L*.44);            // pylônes d'aileron
+    }
+    for(let l9=0;l9<4;l9++){                                         // LA RAMPE DE PHARES sur le capot
+      const x9=(l9/3-.5)*W*.52;
+      K.cyl(.10,.10,.07,K.chrome,x9,y0+H*.58,L*.28,12).rotation.x=Math.PI/2;
+    }
+    B(W*1.14,.06,L*.20,K.acc,0,y0+H*1.42,-L*.44);                    // L'AILERON, plus large que tout
+    B(W*1.00,H*.16,.12,K.dark,0,y0+H*.22,L/2+.05);
+    return {hl:[W*.34,y0+H*.44,L*.46],tl:[W*.34,y0+H*.60,-L/2-.05],wx:W/2+.10,doors:1,slats:1};
+  },
+  // 35. LA LONGUE ANGLAISE — le grand tourisme des années 60 : un capot À RALLONGE, rond et poli,
+  //     un tout petit habitacle repoussé sur l'arrière, et du CHROME partout. Elle ne court pas :
+  //     elle défile.
+  etype(K){
+    const {W,H,L,y0,box:B}=K;
+    K.prof([[-.50*L,.06*H],[.50*L,.10*H],[.48*L,.30*H],[.20*L,.44*H],[-.06*L,.50*H],[-.20*L,.84*H],[-.42*L,.80*H],[-.50*L,.48*H]],W*.88,K.body);
+    K.prof([[-.08*L,.54*H],[-.18*L,.80*H],[-.38*L,.78*H],[-.44*L,.52*H]],W*.64,K.glass);
+    K.sph(W*.30,H*.16,L*.30,K.body,0,y0+H*.46,L*.18);                // le renflement, tout en longueur
+    const oval=K.cyl(W*.17,W*.17,.10,K.dark,0,y0+H*.26,L/2+.01,18);oval.rotation.x=Math.PI/2;oval.scale.y=.60;
+    for(let b9=0;b9<7;b9++)                                          // les barres chromées de la bouche
+      B(W*.012,H*.10,.03,K.chrome,(b9/6-.5)*W*.26,y0+H*.26,L/2+.045);
+    for(const sd of [-1,1]){
+      const ph=K.sph(W*.09,H*.13,L*.10,K.glass,sd*W*.30,y0+H*.40,L*.36); // PHARES CARÉNÉS sous plexi
+      K.cyl(.085,.085,.05,K.chrome,sd*W*.30,y0+H*.40,L*.37,14).rotation.x=Math.PI/2;
+      K.sph(W*.10,H*.26,L*.20,K.body,sd*(W/2-.03),y0+H*.34,L*.24);
+      B(.06,H*.12,L*.50,K.chrome,sd*(W/2+.02),y0+H*.12,-L*.04);      // baguette chromée de bas de caisse
+      K.cyl(.05,.05,.14,K.chrome,sd*W*.18,y0+H*.10,-L/2-.06,10).rotation.x=Math.PI/2; // double sortie centrale
+    }
+    B(W*.84,.07,L*.10,K.chrome,0,y0+H*.20,L/2+.06);                  // PARE-CHOCS chromés, avant…
+    B(W*.84,.07,L*.10,K.chrome,0,y0+H*.24,-L/2-.05);                 // …et arrière
+    B(.05,H*.30,.05,K.chrome,0,y0+H*.62,L*.44);                      // le mât de calandre
+    return {hl:[W*.30,y0+H*.40,L*.40],tl:[W*.28,y0+H*.40,-L/2-.04],wr:1.02,wz:L/2-.82,doors:1,sp:0,skirt:0};
   }
 };
 function buildCar(spec){
@@ -4723,43 +4868,52 @@ const ENG_CAP={billets:12,aimant:15,comete:27};
    comparer à `bestCar` (qui n'est plus qu'un indicateur d'avancement) laisserait passer des trous.
    ⚠ La caisse est COSMÉTIQUE : rien ici ne touche à la vitesse ni à la valeur des pièces. */
 const CAR_UNLOCK=[
-  null,                 // LA HONTE — le point de départ, jamais verrouillée
-  {k:'cash',  v:2.5e3}, // CAISSE À SAVON
-  {k:'tricks',v:25},    // PAPA MOBILE
+  null,                 // 0  LA HONTE — le point de départ, jamais verrouillée
+  {k:'cash',  v:2.5e3}, // 1  CAISSE À SAVON
+  {k:'tricks',v:25},    // 2  PAPA MOBILE
   {k:'eng',   v:4},     // 3  LE CONTREMAÎTRE
   {k:'bumps', v:35},    // 4  LE FRELON — la teigneuse : elle s'arrache sur la tranche
-  {k:'bumps', v:60},    // 5  GROS BLOC
-  {k:'cash',  v:9e4},   // 6  DIVA BLANCHE
-  {k:'eng',   v:10},    // 7  SCALPEL VERT
-  {k:'kmh',   v:420},   // 8  BALLE D'ARGENT — une balle se mérite au compteur
-  {k:'gaps',  v:5},     // 9  VEUVE NOIRE
-  {k:'cash',  v:4e6},   // 10 EL PATRON
-  {k:'chain', v:12},    // 11 FORMULE OR
-  {k:'kmh',   v:900},   // 12 LE MANS 24 — ⚠ AU BORD DU PLAFOND : la caisse monte à ~599 km/h affichés
+  // ---- LES SIX CLASSIQUES sont semées DANS la progression, pas empilées à la fin : ce sont des
+  // caisses de milieu de gamme, elles doivent tomber quand on y est. Chacune sur un terrain qui
+  // n'est pas déjà pris par sa voisine immédiate. ----
+  {k:'cash',  v:2.2e4}, // 5  LA LONGUE ANGLAISE — la première caisse « de collection » : elle s'achète
+  {k:'bumps', v:60},    // 6  GROS BLOC
+  {k:'cash',  v:9e4},   // 7  DIVA BLANCHE
+  {k:'tricks',v:90},    // 8  LA RAIE 🇺🇸
+  {k:'eng',   v:10},    // 9  SCALPEL VERT
+  {k:'eng',   v:13},    // 10 TARGA 77 — même école que la verte, un moteur plus loin
+  {k:'kmh',   v:420},   // 11 BALLE D'ARGENT — une balle se mérite au compteur
+  {k:'chain', v:8},     // 12 DÉCAPOTÉE — sans toit, il faut savoir enchaîner
+  {k:'gaps',  v:5},     // 13 VEUVE NOIRE
+  {k:'gaps',  v:14},    // 14 GROUPE B — elle passe PARTOUT, alors on lui demande du vide
+  {k:'cash',  v:4e6},   // 15 EL PATRON
+  {k:'eng',   v:18},    // 16 LA ROUGE 🐎 — douze cylindres, ça se mérite au moteur
+  {k:'chain', v:12},    // 17 FORMULE OR
+  {k:'kmh',   v:900},   // 18 LE MANS 24 — ⚠ AU BORD DU PLAFOND : la caisse monte à ~599 km/h affichés
                         //    (CARS[0] × moteur max), donc les 900 ne tombent QU'AVEC l'orbe SPEED UP
                         //    (×1,6 → 958). C'est jouable, mais c'est une condition d'orfèvre : si un
                         //    jour elle bloque les joueurs, c'est ce chiffre-là qu'il faut baisser.
-  {k:'zones', v:4},     // 13 NÉON OUTLAW — il faut TENIR : quatre portails dans la même partie
-  {k:'eng',   v:16},    // 14 COMBUSTION
-  {k:'surv',  v:1},     // 15 COMÈTE — la couronne : gagner une partie en Survivant
+  {k:'zones', v:4},     // 19 NÉON OUTLAW — il faut TENIR : quatre portails dans la même partie
+  {k:'eng',   v:16},    // 20 COMBUSTION
+  {k:'surv',  v:1},     // 21 COMÈTE — la couronne : gagner une partie en Survivant
   // ---- LES DIX MONSTRES : chacune sur un TERRAIN différent, jamais deux fois le même exploit
   // d'affilée. C'est ce qui empêche l'endgame de se résumer à « farmer des pièces ». ----
-  {k:'eng',   v:20},    // 16 INTERDITE
-  {k:'gaps',  v:30},    // 17 ONDE DE CHOC — le vide, trente fois
-  {k:'tricks',v:400},   // 18 RAZOR-9
-  {k:'zones', v:7},     // 19 GOUDRON FANTÔME
-  {k:'chain', v:30},    // 20 TÊTE CHERCHEUSE — une chaîne de trente figures en un seul vol
-  {k:'cash',  v:5e9},   // 21 PLASMA ROYAL
-  {k:'eng',   v:25},    // 22 ANTIMATIÈRE
-  {k:'zones', v:10},    // 23 ÉCLIPSE VII
-  {k:'bumps', v:600},   // 24 SINGULARITÉ
-  {k:'eng',   v:29},    // 25 DIEU-VITESSE — le DERNIER moteur (« TROU NOIR »), rien au-dessus
+  {k:'eng',   v:20},    // 22 INTERDITE
+  {k:'gaps',  v:30},    // 23 ONDE DE CHOC — le vide, trente fois
+  {k:'tricks',v:400},   // 24 RAZOR-9
+  {k:'zones', v:7},     // 25 GOUDRON FANTÔME
+  {k:'chain', v:30},    // 26 TÊTE CHERCHEUSE — une chaîne de trente figures en un seul vol
+  {k:'cash',  v:5e9},   // 27 PLASMA ROYAL
+  {k:'eng',   v:25},    // 28 ANTIMATIÈRE
+  {k:'zones', v:10},    // 29 ÉCLIPSE VII
+  {k:'bumps', v:600},   // 30 SINGULARITÉ
+  {k:'eng',   v:29},    // 31 DIEU-VITESSE — le DERNIER moteur (« TROU NOIR »), rien au-dessus
   // ---- LES TROIS FANTASTIQUES : OFFERTES. `carStat('prem')` vaut 0 et le seuil est 0, donc elles
   // sont ouvertes d'entrée. Le jour où elles deviennent payantes, il n'y a qu'un 0 à passer à 1
   // ici et un `ex.prem` à poser à l'achat — aucun autre code à toucher.
-  {k:'prem',  v:0},     // 26 ACIDE
-  {k:'prem',  v:0},     // 27 CHAT POP-TART
-  {k:'prem',  v:0}      // 28 REQUIN
+  {k:'prem',  v:0},     // 32 ACIDE
+  {k:'prem',  v:0},     // 33 CHAT POP-TART
+  {k:'prem',  v:0}      // 34 REQUIN
 ];
 function carStat(k){return k==='cash'?(SAVE.d.best||0):((SAVE.d.ex&&SAVE.d.ex[k])||0);}
 function carUnlocked(i){
