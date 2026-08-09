@@ -1,19 +1,78 @@
 # CASH CAR — guide projet pour Claude Code
 
+> ## ⚠⚠ LIS CECI D'ABORD — LA FUSION DU 2026-08-09
+> **La base du jeu a CHANGÉ.** Tout ce qui suit ce bloc décrit l'ancienne version (branche `main`)
+> et n'est plus exact partout. La branche de travail est désormais **`fusion`**.
+>
+> Il existait deux jeux en parallèle. `CASH-CAR 2` (le neuf, 9 août) était parti d'un tronc
+> ANTÉRIEUR au parc v2 : il n'avait ni l'océan, ni les quartiers, ni le lobby, ni l'IA police du
+> 8 août — mais il apportait la musique, les moteurs, une gamme refaite, les créatures et le
+> bilingue. On a trié, puis fusionné. **Décisions de Sacha, à ne pas ré-ouvrir sans lui :**
+> - **Base = CASH-CAR 2.** Tout son contenu neuf est gardé.
+> - **Le PARC reste celui de CASH-CAR 2 (v1, la sphère).** Le parc v2 (océan, plongée, 5 quartiers,
+>   lobby 30 places, 9 pilotes, mini-jeux chronométrés, big air, retour au tremplin) **n'est PAS
+>   rapatrié**. Toute la longue section « Mode PARC / LOBBY FREESTYLE » plus bas décrit du code qui
+>   **n'existe pas** dans cette branche — ne pas partir le chercher. Il dort sur `main`.
+> - **Les caisses des deux gammes sont fusionnées : LES 29.**
+> - **L'IA police apprenante du 8 août est rapatriée.**
+>
+> **Trois branches de sauvegarde, rien n'est perdu :** `main` (parc v2 complet) ·
+> `ia-police-v3` (l'état exact du dossier où Sacha jouait, travail du 8 août jamais commité) ·
+> `base-cash-car-2` (l'import brut du neuf, avant fusion).
+>
+> **CE QUI A CHANGÉ EN PROFONDEUR (et invalide les sections d'en dessous) :**
+> - **La VITESSE vient du MOTEUR, plus de la voiture.** `maxSp` et `vmaxShow()` lisent
+>   `CARS[0] × ENGINE_TIERS[engTier].push` — la caisse équipée n'est plus que carrosserie et nom.
+>   30 paliers moteur achetés en PIÈCES ; les caisses se débloquent sur des EXPLOITS (`CAR_UNLOCK`),
+>   plus sur des seuils d'argent (`THRESH` a disparu).
+> - **`V_TOP`** = le plafond réel du jeu (≈ 599 km/h). **Tout seuil de sensation exprimé en km/h
+>   s'y réfère.** Ils étaient en dur, calés sur les 1425 km/h de la gamme des 24 : plus aucun ne
+>   tombait, d'où « les tremblements ont disparu ». Une seule ligne à relire si le plafond bouge.
+> - **`SHAPES` : 29 gabarits, un par caisse, zéro doublon.** Règle fondatrice — le constructeur
+>   refuse de deviner. ⚠ **`U=Math.max(H,W*.30)`** : les monstres ont `h` .28-.36, tout détail
+>   dimensionné sur `H` sort à 2 cm et disparaît (ou plonge sous le bitume). Vu à l'image, corrigé.
+> - **Niveau musical** « Chrome Ledger » : le ciel joue le morceau (métronome `BCLK`).
+>   `assets/audio/music/lvl1-chrome-ledger.mp3` — 4,6 Mo, indispensable.
+> - **FR/EN** (`TR`, `I18N`, `applyLangDOM`) : `TR` retombe en français en silence, donc une
+>   chaîne neuve sans traduction ne casse rien.
+> - Ajouts : la planète, les dauphins, le serpent, l'étal de fruits, le garage, `START_CASH`.
+>
+> **⚠ NE PLUS CÂBLER D'EFFET SUR UN NUMÉRO DE CAISSE.** L'explosion lisait `level===11/>=12/===13`,
+> hérités des 24 : dans la gamme des 15 la « plus grosse explosion du jeu » revenait à une
+> PÂTISSERIE, sans que rien ne plante. Lire la FICHE (`glow`, `rocket`, `maxKmh`).
+
 ## Le jeu
 Runner arcade 3D dans le ciel (Three.js r128). On conduit sur un ruban de route suspendu,
 on saute, vrille, rebondit sur les tranches, traverse des nuages, ramasse pièces et nitro.
-Une seule vie. 24 voitures à débloquer en gagnant de l'argent — 14 « civiles » variées puis
-10 MONSTRES endgame de vitesse pure (730 → 1900 km/h, toutes au-dessus de l'ex-reine COMÈTE 657).
-Langue : français. Ton du flavour : fun, arrogant, cash, speed-addict, second degré.
+Une seule vie. **29 voitures**, une silhouette unique chacune : 16 « civiles » variées, puis
+10 MONSTRES endgame (730 → 1900 km/h, au-dessus de l'ex-reine COMÈTE 657), puis 3 FANTASTIQUES
+offertes (ACIDE, CHAT POP-TART, REQUIN). Elles se débloquent sur des EXPLOITS, pas sur l'argent ;
+la vitesse, elle, s'achète au MOTEUR (30 paliers).
+Langue : français **et anglais**. Ton du flavour : fun, arrogant, cash, speed-addict, second degré.
 
 ## Structure
-- `index.html` — TOUT le jeu (HTML + CSS + JS dans un seul fichier, ~3200 lignes). C'est voulu : ne pas le découper sans demande explicite.
+- `index.html` — TOUT le jeu (HTML + CSS + JS dans un seul fichier, ~10 800 lignes). C'est voulu : ne pas le découper sans demande explicite.
 - `assets/audio/announcer/*.mp3` — 9 voix d'annonceur. Le TITRE du fichier = la condition de déclenchement.
+- `assets/audio/music/lvl1-chrome-ledger.mp3` — le morceau du niveau 1. Sans lui, tout le décor musical reste éteint.
+- `atelier-fond.html` — le ciel seul, plein écran, sur le morceau : pour régler le décor.
 
 ## Lancer / tester
 - Serveur local : `python -m http.server 8000` (ou `npx serve`) puis http://localhost:8000 — nécessaire pour que les mp3 chargent proprement.
 - Vérif syntaxe rapide : extraire le JS entre `<script>` et `</script>` puis `node --check`.
+- **`?sim=1`** (`IS_SIM`) : logique 100 % réelle, rendu GPU coupé — c'est LE mode pour tester l'IA
+  ou une mécanique sans pixels. Avec `dbgStep(n,ms)` (la boucle avancée à la main), `dbgState()`
+  et `__dbgBots()` (état complet de la meute), tout le gameplay est vérifiable hors écran.
+- ⚠ **Sacha JOUE depuis `Desktop\CAR CAHS V3`**, pas depuis le dépôt : recopier `index.html`
+  (et `assets/`) là-bas après chaque changement, sinon il ne voit rien.
+- **VOIR un rendu depuis une session headless** (technique qui MARCHE, 2026-08-09) :
+  (1) `resize_window` sur le pane — sans ça le canvas est en **0×0** et tout est noir ;
+  (2) le canvas WebGL est le **dernier** `<canvas>` de la page (les 5 premiers sont des 2D :
+  `fxCv`, `slCv`, `airPie`, `minimap`, `endEngCv`) ; (3) `drawImage` depuis lui rend du NOIR
+  (pas de `preserveDrawingBuffer`) → utiliser **`gl.readPixels`** juste après le rendu, puis
+  RETOURNER l'image ligne par ligne ; (4) `dbgView(a,d,h)` pose la caméra et rend une frame ;
+  (5) poster le PNG à un petit serveur Node qui l'écrit sur disque, puis le lire.
+  Pour juger une carrosserie : masquer tout sauf `carGroup` et les lumières (sinon le décor, la
+  planète, l'étal et les rubans de traînée mangent la vignette).
 - Déploiement : zipper `index.html` + `assets/` et glisser le zip sur Netlify Drop.
 - Pas de build, pas de dépendances, pas de framework. Three.js vient du CDN cloudflare (r128 — NE PAS changer de version sans tester : l'API a bougé après r128).
 
