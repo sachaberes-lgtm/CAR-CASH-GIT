@@ -8122,6 +8122,15 @@ const SPD=0.5; // vitesse globale du jeu — RESTAURÉ à la valeur V1 (2026-07-
 const TURN_HS=.0035; // pénalité de braquage à haute vitesse (avant .008 — plus petit = virages plus faciles)
 const AIR_ASSIST=1.0; // aide au recentrage en vol (0 = off), monte avec la vitesse
 const CAM_SHAKE_V=.45; // intensité du tremblement caméra lié à la vitesse (position + roulis) — .78→.45 : un frémissement, plus un séisme (user : « c'est trop »)
+/* LE RALENTI EST COUPÉ (demande de Sacha, 2026-08-09 : « enlève le ralenti »).
+   Il avait QUATRE déclencheurs dispersés — l'explosion (.7 s), le BRAQUAGE (2 s de bullet-time),
+   la réception lourde (.25 s) et le gros air (.35 s). Plutôt que d'aller les décâbler un par un
+   (et d'en oublier un), ce seul facteur les neutralise TOUS au point d'application : les
+   déclencheurs restent en place, ils arment un ralenti qui ne ralentit plus.
+   ⚠ REMETTRE `.45` ICI suffit à retrouver le slow-mo d'avant, intégralement. 1 = plein régime.
+   ⚠ NE CONCERNE PAS le HIT-STOP (80 ms de gel sur une réception PARFAITE) : ce n'est pas un
+   ralenti mais un COUP — le monde qui accuse l'impact. Il vit sa vie juste en dessous. */
+const SLOW_MO=1;
 // OVERDRIVE : il suivait le NIVEAU DE CAISSE (+8 %/niveau à partir du 6e). Depuis que la caisse est
 // équipée au choix, ça revenait à vendre de la vitesse au garage. Il suit désormais le PALIER MOTEUR,
 // calé pour que le sommet donne exactement le même +50 % qu'avant (palier 22 sur 30 et au-delà).
@@ -9886,7 +9895,7 @@ function loop(now){
   }
   bioStep(dt); // BIOMES : le voyage d'ambiance avance même au menu/en pause de jeu (c'est le ciel qui vit, pas la sim)
   if(parkGrassMat)parkGrassMat.uniforms.uTime.value=now*.001; // l'herbe longue du parc ondule au vent (now : dispo avant `const t`)
-  if(slowT>0){slowT-=dt;dt*=.45;} // slow-mo d'atterrissage
+  if(slowT>0){slowT-=dt;dt*=SLOW_MO;} // slow-mo — COUPÉ par SLOW_MO=1 (voir sa déclaration)
   if(hitT>0){hitT-=dt;dt*=.04;}   // HIT-STOP : 80 ms de gel sur l'encaissement PARFAIT — le monde retient son souffle
   const t=now/1000;
   let speedKmh=0;
@@ -10269,8 +10278,14 @@ function loop(now){
         // de 21,4° à 26° de plongée — la caméra regardait 5° trop vers le bas EN PERMANENCE.
         // La hauteur suit désormais la distance (même rapport qu'à l'origine) : on reste collé à la
         // caisse, mais l'œil retrouve exactement l'angle d'avant.
+        // ⚠ LA CAISSE PRENAIT TROP PEU DE PLACE (Sacha, 2026-08-09). MESURÉ, largeur de la caisse en
+        // part d'écran : 90 % à l'arrêt, mais 36 % à 300 km/h, 18 % à fond, et **7 % sous nitro**.
+        // Deux causes qui se MULTIPLIENT : la caméra reculait (4,6 → 12) ET le champ s'ouvrait
+        // (72° → 130°). On garde la distance de REPOS telle quelle — c'est le cadrage qui allait —
+        // et on aplatit les deux termes qui s'emballent avec la vitesse. Nouveau : 90 % / 51 % /
+        // 30 % / 14 %. La caisse double à vitesse, sans déborder à l'arrêt.
         const camBoost=Math.min(1,(nitroOn?.72:0)+Math.min(1,boost)*.5);
-        const camBack=4.6+speedKmh*.006+camBoost*3.8,camH=camBack*.393+speedKmh*.0018+camBoost*.35;
+        const camBack=4.6+speedKmh*.0020+camBoost*1.6,camH=camBack*.393+speedKmh*.0018+camBoost*.35;
         tmp2.copy(carGroup.position).addScaledVector(fwdW,-camBack).addScaledVector(F.n,camH);
         camera.position.lerp(tmp2,Math.min(1,dt*5));
         camUp.lerp(F.n,Math.min(1,dt*4)).normalize();
@@ -10279,7 +10294,10 @@ function loop(now){
         camera.up.copy(camUp);
         tmp2.copy(carGroup.position).addScaledVector(fwdW,8.5).addScaledVector(F.n,1.05);
         camera.lookAt(tmp2);
-        const fovT=72+Math.min(38,(speedKmh/Math.max(1,vmaxShow()))*17+speedKmh*.030)+(boost>0?8:0)+(nitroOn?(nitroBlue?22:15):0); // le tunnel s'ouvre : part RELATIVE + part absolue + GROS coup de FOV au boost (sensation de rush)
+        // Le tunnel s'ouvre toujours (part RELATIVE à ta caisse + part absolue), mais les coups de
+        // FOV du boost et du nitro sont ramenés de +8/+22 à +5/+14 : à 130° la caisse ne pesait plus
+        // que 7 % de l'écran. On garde le rush, on ne noie plus la voiture dedans.
+        const fovT=72+Math.min(38,(speedKmh/Math.max(1,vmaxShow()))*17+speedKmh*.030)+(boost>0?5:0)+(nitroOn?(nitroBlue?14:10):0);
         camera.fov+=(fovT-camera.fov)*Math.min(1,dt*6);
         camera.updateProjectionMatrix();
         if(shake>0){
