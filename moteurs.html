@@ -209,13 +209,17 @@ function poser(i){
      ⚠ on recense les matériaux qui ont un `emissive` : ce sont eux qui ROUGISSENT en charge.
      Les matériaux sont neufs à chaque `mkEngine`, donc la liste doit être refaite ici. */
   mats=[];mesh.traverse(o=>{if(o.isMesh&&o.material&&o.material.emissive&&mats.indexOf(o.material)<0)mats.push(o.material);});
-  if(!feu){feu=new THREE.Mesh(feuGeo,feuMat);
-    // ⚠ PAS DROIT DERRIÈRE : la caméra tourne autour, une flamme dans l'axe se verrait de bout
-    // et ne lirait plus que comme un disque. On la couche en biais pour en voir le PROFIL.
-    feu.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),new THREE.Vector3(-.9,-.2,-.38).normalize());
-    pivot.add(feu);}
-  feu.userData.base=rxz*1.05;                    // elle se dimensionne sur la pièce, comme en jeu
-  feu.position.set(-rxz*.96,mesh.position.y-ry*.10,-rxz*.18);
+  /* ⚠ LA FLAMME EST FILLE DU MOTEUR, jamais posée dans le pivot. Même bug qu'en jeu sinon : la
+     pièce tourne, la flamme reste plantée à côté, sans rapport avec le tuyau. `mkEngine` déclare
+     l'ancre (`userData.echap`) — l'atelier ne devine rien, il la lit. */
+  if(!feu)feu=new THREE.Mesh(feuGeo,feuMat);
+  if(feu.parent)feu.parent.remove(feu);
+  mesh.add(feu);
+  const A=mesh.userData.echap||{p:[-rxz*.9,0,0],d:[-1,0,0]};
+  feu.position.set(A.p[0],A.p[1],A.p[2]);
+  feu.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),
+    new THREE.Vector3(A.d[0],A.d[1],A.d[2]).normalize());
+  feu.userData.base=rxz*.42;                     // en unités du moteur, comme en jeu
   feu.visible=false;chaleur=0;
   if(NA)audioTier(i);
   const E=ENGINE_TIERS[i];

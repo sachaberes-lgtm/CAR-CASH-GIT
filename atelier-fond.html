@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ATELIER — LE FOND DU NIVEAU 1</title>
+<!--
+  L'ATELIER DU FOND — quatrième atelier du projet, même principe que `moteurs.html` et
+  `voitures.html` : il ne RECOPIE rien. Il LIT `index.html` au chargement et exécute les deux blocs
+  balisés <<<CIEL>>> (le dôme et ses uniformes) et <<<FOND>>> (le métronome et le décor). Impossible
+  qu'il dérive du jeu.
+
+  POURQUOI IL EXISTE. Le fond du niveau réagit à la musique : on ne peut pas le juger en console, et
+  on ne peut pas le juger en lançant une partie (on conduit, on ne regarde pas le ciel). Ici on met
+  le VRAI morceau, on regarde le VRAI ciel plein écran, et on voit le tempo se verrouiller.
+
+  ⚠ À SERVIR EN HTTP (`python3 -m http.server 8000`) : en file:// le fetch d'index.html et le
+  chargement du mp3 sont bloqués.
+-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+  :root{--enc:#0b0718;--tr:#ffd75e;--ne:#3ee6f0}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--enc);color:#eaf6ff;overflow:hidden;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  canvas{display:block}
+  #cv{position:fixed;inset:0}
+  /* le HUD flotte par-dessus : on juge le ciel, pas l'interface */
+  #panneau{position:fixed;left:16px;top:16px;width:296px;max-height:calc(100vh - 32px);overflow:auto;
+    background:rgba(10,6,26,.82);border:1px solid rgba(62,230,240,.35);border-radius:12px;
+    padding:14px 16px;backdrop-filter:blur(8px);font-size:13px;z-index:5}
+  h1{margin:0 0 2px;font-size:15px;letter-spacing:2.5px;color:var(--ne)}
+  .ss{margin:0 0 12px;font-size:11px;opacity:.55;letter-spacing:.6px}
+  .grp{border-top:1px solid rgba(255,255,255,.10);padding-top:10px;margin-top:10px}
+  .grp>b{display:block;font-size:10px;letter-spacing:1.6px;opacity:.55;margin-bottom:7px}
+  label{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:12px}
+  label span:first-child{flex:0 0 78px;opacity:.75}
+  input[type=range]{flex:1;accent-color:var(--ne);min-width:0}
+  .v{flex:0 0 40px;text-align:right;font-variant-numeric:tabular-nums;color:var(--tr);font-size:11px}
+  button{background:rgba(62,230,240,.10);border:1px solid rgba(62,230,240,.45);color:#cff6ff;
+    border-radius:8px;padding:7px 10px;cursor:pointer;font-size:12px;font-weight:600}
+  button:hover{background:rgba(62,230,240,.24)}
+  button.on{background:var(--tr);border-color:var(--tr);color:#20160a}
+  .rang{display:flex;gap:6px;flex-wrap:wrap}
+  .pastille{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0}
+  .pastille.on{border-color:#fff;box-shadow:0 0 10px currentColor}
+  #lect{font-family:ui-monospace,Menlo,monospace;font-size:11px;line-height:1.75;white-space:pre;
+    color:#9fe9c8;margin-top:4px}
+  #etat{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;
+    font-size:13px;letter-spacing:1px;opacity:.8;z-index:6}
+  /* LA JAUGE DE TEMPO : une barre qui se remplit à chaque temps. C'est le seul moyen de VOIR
+     d'un coup d'œil si le métronome est en phase avec ce qu'on entend. */
+  #metro{height:5px;background:rgba(255,255,255,.10);border-radius:3px;overflow:hidden;margin:8px 0 2px}
+  #metroF{height:100%;width:0;background:var(--tr)}
+  .astuce{font-size:10.5px;opacity:.45;line-height:1.5;margin-top:9px}
+</style></head><body>
+<canvas id="cv"></canvas>
+<div id="etat">lecture de index.html…</div>
+<div id="panneau" hidden>
+  <h1>LE FOND — NIVEAU 1</h1>
+  <p class="ss">lu dans index.html · blocs &lt;&lt;&lt;CIEL&gt;&gt;&gt; + &lt;&lt;&lt;FOND&gt;&gt;&gt;</p>
+
+  <div class="grp"><b>LA MUSIQUE</b>
+    <div class="rang">
+      <button id="bJouer">▶ CHROME LEDGER</button>
+      <button id="bMetro">MÉTRONOME</button>
+    </div>
+    <label><span>tempo simulé</span><input type="range" id="sBpm" min="60" max="180" value="128"><span class="v" id="vBpm">128</span></label>
+    <div id="metro"><div id="metroF"></div></div>
+  </div>
+
+  <div class="grp"><b>LE PILOTAGE</b>
+    <label><span>présence</span><input type="range" id="sPres" min="0" max="100" value="100"><span class="v" id="vPres">1.00</span></label>
+    <label><span>boost</span><input type="range" id="sBoost" min="0" max="100" value="0"><span class="v" id="vBoost">0.00</span></label>
+    <div class="rang" style="margin-top:8px">
+      <button id="bCoup">COUP ⏎</button><button id="bBlast">EMBRASEMENT</button><button id="bNu">CIEL NU</button>
+    </div>
+  </div>
+
+  <div class="grp"><b>ACCENT DE ZONE</b>
+    <div class="rang" id="pastilles"></div>
+  </div>
+
+  <div class="grp"><b>MESURES</b>
+    <div id="lect"></div>
+  </div>
+  <p class="astuce">glisser = regarder autour · molette = focale<br>
+    le ciel est celui du jeu, biome par défaut (Vice City nuit).</p>
+</div>
+<script>
+/* ---------------------------------------------------------------------------
+   1. LIRE LE JEU. On extrait les deux blocs balisés et on les EXÉCUTE. Les marqueurs sont posés
+   DANS des commentaires : la découpe laisse donc un `/*` orphelin au début et un `/*` non refermé
+   à la fin — d'où le rhabillage `'/*' + tranche + '* /'`. Sans lui, tout le bloc part en
+   commentaire et on obtient un `undefined` incompréhensible.
+--------------------------------------------------------------------------- */
+const etat=document.getElementById('etat');
+function bloc(src,nom){
+  const a=src.indexOf('<<<'+nom+'>>>'), b=src.indexOf('<<<FIN '+nom+'>>>');
+  if(a<0||b<0)throw new Error('bloc <<<'+nom+'>>> introuvable dans index.html');
+  return '/*'+src.slice(a,b)+'*/';
+}
+let skyU,skyDome,FOND,CIEL,renderer,camera,scene3,anaG,audioEl,AC,ana,anaData;
+let jouer=false,metro=false,tPrec=0,pulse=0,beatL=0,hiL=0,bassPrec=0,onsetSim=0,tSim=0;
+let accent=new THREE.Color(0xf24aa0);
+const BLEU_TERRE=new THREE.Color(0x6fc0ff); // même valeur que `PLANET_BLEU` côté jeu
+
+(async function boot(){
+ try{
+  // ⚠ URL unique : le service worker du jeu sert des copies périmées (piège documenté du projet).
+  const src=await (await fetch('index.html?x='+Date.now(),{cache:'no-store'})).text();
+  const stub={add(){}};                                   // le bloc CIEL ne demande qu'un objet qui sait `add`
+  const ciel=new Function('THREE','scene',bloc(src,'CIEL')
+    +'\nreturn {skyU,skyDome,sunSprite,planetGroup,SUN_DIR,PLANET_DIR,PLANET_D};')(THREE,stub);
+  skyU=ciel.skyU;skyDome=ciel.skyDome;CIEL=ciel;
+  FOND=new Function('THREE','skyU',bloc(src,'FOND')+'\nreturn {lvlTick,lvlKick,lvlBlast,BCLK,LVLFX};')(THREE,skyU);
+  demarrer();
+ }catch(e){etat.textContent='❌ '+e.message+'\n(servir en HTTP : python3 -m http.server 8000)';etat.style.whiteSpace='pre';}
+})();
+
+/* ---------------------------------------------------------------------------
+   2. LA SCÈNE. Rien d'autre que le dôme : c'est le fond qu'on vient juger, pas la piste.
+   Focale et cadrage repris du jeu (fov 72, regard légèrement au-dessus de l'horizon).
+--------------------------------------------------------------------------- */
+function demarrer(){
+  etat.hidden=true;document.getElementById('panneau').hidden=false;
+  renderer=new THREE.WebGLRenderer({canvas:document.getElementById('cv'),antialias:true});
+  renderer.setPixelRatio(Math.min(2,devicePixelRatio));
+  scene3=new THREE.Scene();
+  camera=new THREE.PerspectiveCamera(72,1,.1,9800);
+  scene3.add(skyDome);skyDome.position.set(0,0,0);
+  /* LES ASTRES. Le bloc CIEL les a construits mais les a donnés à un `scene` bidon : c'est ici
+     qu'on les accroche pour de vrai, aux distances du jeu. Sans eux l'atelier mentirait sur la
+     seule question qui compte pour le 1.61 — est-ce qu'il est trop gros ? */
+  scene3.add(CIEL.sunSprite);CIEL.sunSprite.position.copy(CIEL.SUN_DIR).multiplyScalar(3600);
+  scene3.add(CIEL.planetGroup);CIEL.planetGroup.position.copy(CIEL.PLANET_DIR).multiplyScalar(CIEL.PLANET_D);
+  redim();addEventListener('resize',redim);
+  brancherUI();
+  requestAnimationFrame(boucle);
+}
+function redim(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+
+// regard : lacet/tangage à la souris, exactement comme on tournerait la tête en conduisant
+let yaw=0,pit=.12,drag=false,mx=0,my=0;
+addEventListener('mousedown',e=>{if(e.target.closest('#panneau'))return;drag=true;mx=e.clientX;my=e.clientY;});
+addEventListener('mouseup',()=>drag=false);
+addEventListener('mousemove',e=>{if(!drag)return;yaw-=(e.clientX-mx)*.004;pit=Math.max(-.5,Math.min(1.2,pit+(e.clientY-my)*.003));mx=e.clientX;my=e.clientY;});
+addEventListener('wheel',e=>{if(e.target.closest('#panneau'))return;camera.fov=Math.max(35,Math.min(110,camera.fov+e.deltaY*.03));camera.updateProjectionMatrix();},{passive:true});
+
+/* ---------------------------------------------------------------------------
+   3. L'ANALYSE. Copie CONFORME de celle du jeu (fftSize 256, lissage .55, grave = les 18 % du bas,
+   transitoire = nouveauté de la basse ×3,2). C'est la seule chose que l'atelier reproduit, et c'est
+   assumé : elle vit dans le graphe audio du jeu, indissociable de son bus. Si elle change là-bas,
+   la changer ici — le reste (métronome, roue, ondes) est le code du jeu, pas une copie.
+--------------------------------------------------------------------------- */
+function audioBrancher(){
+  if(AC)return;
+  AC=new (window.AudioContext||window.webkitAudioContext)();
+  audioEl=new Audio('assets/audio/music/lvl1-chrome-ledger.mp3');
+  audioEl.crossOrigin='anonymous';audioEl.loop=true;
+  const s=AC.createMediaElementSource(audioEl);
+  anaG=AC.createGain();anaG.gain.value=.85;
+  ana=AC.createAnalyser();ana.fftSize=256;ana.smoothingTimeConstant=.55;
+  s.connect(anaG);anaG.connect(AC.destination);anaG.connect(ana);
+  anaData=new Uint8Array(ana.frequencyBinCount);
+}
+function analyser(dt){
+  let cible=0,onset=0,hiT=0;
+  if(jouer&&ana){
+    ana.getByteFrequencyData(anaData);
+    const n=anaData.length;let tot=0,bass=0,hi=0,bN=Math.max(1,(n*.18)|0),hN=Math.max(1,(n*.55)|0);
+    for(let i=0;i<n;i++){const v=anaData[i]/255;tot+=v;if(i<bN)bass+=v;if(i>=hN)hi+=v;}
+    tot/=n;bass/=bN;hi/=Math.max(1,n-hN);
+    cible=Math.min(1,tot*1.7);
+    onset=Math.max(0,bass-bassPrec)*3.2;bassPrec=bass;
+    hiT=Math.min(1,hi*2.3);
+  }else bassPrec=0;
+  if(metro){ // MÉTRONOME : un train de coups parfaitement régulier, pour isoler le décor du morceau
+    const per=60/(+document.getElementById('sBpm').value);
+    tSim+=dt;if(tSim>=per){tSim-=per;onsetSim=.9;}
+    onset=Math.max(onset,onsetSim);onsetSim*=.0001;
+    cible=Math.max(cible,.35);
+    hiT=Math.max(hiT,.30+.30*Math.abs(Math.sin(tSim/per*Math.PI*4))); // un charleston en croches, pour voir le grésil
+  }
+  pulse+=(cible-pulse)*Math.min(1,dt*8);
+  beatL=Math.max(0,Math.min(1,beatL-dt*3.4));if(onset>beatL)beatL=Math.min(1,onset);
+  hiL+=(hiT-hiL)*Math.min(1,dt*(hiT>hiL?24:11)); // aigus : attaque instantanée, retombée franche
+  return onset;
+}
+
+/* ---------------------------------------------------------------------------
+   4. LA BOUCLE. Elle ne fait qu'appeler `lvlTick` du jeu avec ce qu'elle observe — donc tout ce
+   qu'on voit ici est EXACTEMENT ce que le jeu affichera.
+--------------------------------------------------------------------------- */
+function boucle(t){
+  requestAnimationFrame(boucle);
+  // ⚠ borné DES DEUX CÔTÉS : un horodatage rAF antérieur au précédent donne un dt NÉGATIF, et tout
+  // ce qui décroît se met alors à croître (c'est ce qui a fait exploser le soleil, voir <<<FOND>>>).
+  const dt=Math.max(0,Math.min(.05,(t-tPrec)/1000||.016));tPrec=t;
+  const onset=analyser(dt);
+  const pres=+document.getElementById('sPres').value/100;
+  const boost=+document.getElementById('sBoost').value/100;
+  FOND.lvlTick(dt,{onset:onset,pulse:pulse,beat:beatL,hi:hiL,boost:boost,surge:0,on:pres>.005,acc:accent});
+  // ⚠ le curseur PRÉSENCE court-circuite la rampe de 2 s : en atelier on veut voir un état, pas
+  // attendre qu'il s'installe. `lvlTick` a déjà tourné, on écrase juste sa sortie.
+  FOND.LVLFX.k=pres;skyU.uLvl.value=pres;
+  /* LES ASTRES : le MÊME code d'application que le jeu, à la ligne près. `lvlTick` a calculé
+     `sunK`/`planetK` ; ici comme là-bas on ne fait que les poser. Si ça diverge un jour, c'est
+     ici qu'il faut regarder — le calcul, lui, ne peut pas diverger, il est partagé. */
+  const L=FOND.LVLFX;
+  const s=CIEL.sunSprite.userData.base*(1+L.sunK*.30*pres);
+  CIEL.sunSprite.scale.set(s,s,1);
+  const b=1+L.sunK*1.05*pres;
+  CIEL.sunSprite.material.color.setRGB(b,b*(1-L.sunK*.05*pres),b*(1-L.sunK*.10*pres));
+  const p=L.planetK*pres,ud=CIEL.planetGroup.userData;
+  ud.halo.material.opacity=Math.min(.72,.10+p*.42);
+  ud.atmo.material.opacity=Math.min(.80,.20+p*.34);
+  ud.halo.material.color.copy(L.acc).lerp(L.acc2,L.flip).lerp(BLEU_TERRE,1-Math.min(1,p*.9));
+  ud.globe.rotation.y=t/1000*.014;
+  skyU.uTime.value=t/1000;
+  camera.rotation.set(0,0,0);camera.rotateY(yaw);camera.rotateX(pit-.12);
+  renderer.render(scene3,camera);
+  lire();
+}
+let lastLect=0;
+function lire(){
+  if(performance.now()-lastLect<120)return;lastLect=performance.now();
+  const B=FOND.BCLK,L=FOND.LVLFX,A=skyU.uRingA.value,R=skyU.uRingR.value,c=['x','y','z','w'];
+  let ondes=0;for(let i=0;i<4;i++)if(A[c[i]]>0)ondes++;
+  const ph=B.ph-Math.floor(B.ph);
+  document.getElementById('metroF').style.width=(100*(1-ph)).toFixed(0)+'%';
+  document.getElementById('lect').textContent=
+    'tempo      '+Math.round(60/Math.max(.05,B.per)).toString().padStart(3)+' BPM\n'+
+    'confiance  '+B.conf.toFixed(2)+'\n'+
+    'temps      '+B.n+'   mesure '+(1+(Math.floor(B.ph)%4))+'/4\n'+
+    'énergie    '+pulse.toFixed(2)+'   frappe '+beatL.toFixed(2)+'\n'+
+    'aigus      '+hiL.toFixed(2)+'\n'+
+    'roue       '+L.spin.toFixed(2)+'  sens '+(L.dir>0?'→':'←')+'\n'+
+    'bascule    '+L.flip.toFixed(2)+'   ondes '+ondes+'/4\n'+
+    'onde coul. v'+L.waveV.toFixed(2)+'  teinte '+L.hueA.toFixed(3)+'\n'+
+    'soleil     ×'+(CIEL.sunSprite.scale.x/CIEL.sunSprite.userData.base).toFixed(2)+'  ('+Math.round(CIEL.sunSprite.scale.x)+')\n'+
+    'limbe      '+CIEL.planetGroup.userData.halo.material.opacity.toFixed(2)+'\n'+
+    'accent     #'+L.acc.getHexString()+'\n'+
+    'complém.   #'+L.acc2.getHexString();
+}
+
+/* ------------------------------- 5. LES BOUTONS ------------------------------- */
+function brancherUI(){
+  const $=id=>document.getElementById(id);
+  const maj=(s,v,f)=>{const e=$(s),o=$(v);const r=()=>{o.textContent=f(+e.value);};e.oninput=r;r();};
+  maj('sPres','vPres',x=>(x/100).toFixed(2));
+  maj('sBoost','vBoost',x=>(x/100).toFixed(2));
+  maj('sBpm','vBpm',x=>x);
+  $('bJouer').onclick=function(){
+    audioBrancher();if(AC.state==='suspended')AC.resume();
+    jouer=!jouer;this.classList.toggle('on',jouer);
+    if(jouer){audioEl.play().catch(e=>{etat.hidden=false;etat.textContent='mp3 illisible : '+e.message;});}
+    else audioEl.pause();
+  };
+  $('bMetro').onclick=function(){metro=!metro;this.classList.toggle('on',metro);};
+  $('bCoup').onclick=()=>FOND.lvlKick(1);
+  $('bBlast').onclick=()=>FOND.lvlBlast();
+  // CIEL NU : la comparaison qui compte — à uLvl=0 le ciel doit être celui d'AVANT, au pixel près
+  $('bNu').onclick=function(){const s=$('sPres');s.value=s.value>0?0:100;s.dispatchEvent(new Event('input'));
+    this.classList.toggle('on',s.value==='0');};
+  addEventListener('keydown',e=>{if(e.code==='Enter'){e.preventDefault();FOND.lvlKick(1);}});
+  // les 6 accents de zone du jeu (ACCENTS dans buildTrack) : le fond doit tenir avec chacun
+  const ACC=[0xf24aa0,0x3ee6f0,0xffb445,0x50f0a8,0xa06bff,0xff6a55];
+  const box=$('pastilles');
+  ACC.forEach((h,i)=>{
+    const b=document.createElement('button');b.className='pastille'+(i===0?' on':'');
+    const c=new THREE.Color(h);b.style.background=b.style.color='#'+c.getHexString();
+    b.onclick=()=>{[...box.children].forEach(x=>x.classList.remove('on'));b.classList.add('on');
+      accent=new THREE.Color(h);};
+    box.appendChild(b);
+  });
+}
+</script></body></html>

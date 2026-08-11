@@ -656,20 +656,49 @@ const scene=new THREE.Scene();
 // CIEL « VICE CITY NUIT » : rose Miami / violet, mais ASSOMBRI — indigo profond au zénith,
 // grande brume rose sombre, ambre au ras du couchant, étoiles, lune. La nuit tombe pour de bon.
 scene.background=new THREE.Color(0x0d0820); // fond NUIT violet TRÈS sombre (le ciel dôme couvre, ceci teinte les trouées)
+/* <<<CIEL>>> — TOUT LE FIRMAMENT : le dôme et ses uniformes, le soleil « 1.61 », la nappe
+   d'horizon, la Terre. ⚠ ce bloc ne dépend QUE de `THREE`, de `document` (les textures sont peintes
+   en canvas) et de `scene` — un objet qui sait faire `add`, rien de plus.
+   `atelier-fond.html` l'exécute tel quel : il montre donc le VRAI ciel du jeu, astres compris, et
+   jamais une copie qui dériverait. C'est la seule façon de juger « est-ce que le 1.61 est trop
+   gros » sans lancer une partie. */
 const SUN_DIR=new THREE.Vector3(.38,.10,-.90).normalize(); // soleil TRÈS BAS (~5,9°) : lumière rasante, ombres longues
 // GRADE DE CIEL (biomes) : uniforms à IDENTITÉ NEUTRE — réglages par défaut = rendu Vice City actuel au pixel près.
 // La palette reste bakée dans le shader ; le biome la teinte (×mul, +lift horizon) et dose soleil/ville/étoiles/lune.
 const skyU={uTime:{value:0},uSunDir:{value:SUN_DIR},
   uSkyMul:{value:new THREE.Vector3(1,1,1)},uSkyLift:{value:new THREE.Vector3(0,0,0)},
   uSunTint:{value:new THREE.Vector3(1,.40,.28)},uSunHalo:{value:1},uCity:{value:1},uStars:{value:1},uMoon:{value:1},
-  uPulse:{value:0}}; // MUSIQUE : le ciel respire en rythme (piloté par l'analyseur audio, 0 = neutre = rendu d'origine)
+  uPulse:{value:0}, // MUSIQUE : le ciel respire en rythme (piloté par l'analyseur audio, 0 = neutre = rendu d'origine)
+  /* ---- LE FOND DU NIVEAU (2026-08-08) : le décor JOUE la musique, façon Geometry Dash / Super Hexagon.
+     ⚠ `uLvl` est l'INTERRUPTEUR GÉNÉRAL : à 0 le ciel rend EXACTEMENT ce qu'il rendait avant, au pixel
+     près (tout le bloc est sous un `if`). C'est la règle du projet — un effet neuf ne doit jamais
+     déplacer d'un poil le rendu qu'on avait déjà validé quand il est éteint. */
+  uLvl:{value:0},      // 0..1 : présence du décor de niveau (monte avec la musique, retombe à la fin)
+  uSpin:{value:0},     // rotation de LA ROUE, en cycles de quartier (à-coups sur les frappes)
+  uBeatK:{value:0},    // la frappe, mise en forme pour le décor (≠ uPulse qui est l'énergie moyenne)
+  uFlip:{value:0},     // LA BASCULE : 0/1, les deux teintes s'échangent une fois par phrase
+  uBar:{value:0},      // 0..1 dans la mesure — donne au décor une structure, pas juste des flashes
+  uAcc:{value:new THREE.Color(0xf24aa0)},   // l'accent de la zone (celui des rails) : le fond parle la MÊME couleur que la piste
+  uAcc2:{value:new THREE.Color(0x3ee6f0)},  // sa complémentaire : la seconde voix de la bascule
+  uRingR:{value:new THREE.Vector4(9,9,9,9)},// 4 ONDES : rayon angulaire depuis le zénith (9 = éteinte, hors du ciel)
+  uRingA:{value:new THREE.Vector4(0,0,0,0)},// …et leur amplitude
+  uHi:{value:0},       // LES AIGUS : charleston, cymbales, souffle — ce qui scintille et grésille
+  uWave:{value:0},     // phase de L'ONDE DE COULEUR qui roule sur tout le ciel (en tours)
+  uHueAmp:{value:0}};  // …et son amplitude, en tours de teinte (0,5 = à l'opposé du spectre)
 const skyDome=(function(){
   const mat=new THREE.ShaderMaterial({uniforms:skyU,side:THREE.BackSide,depthWrite:false,
     vertexShader:'varying vec3 vDir;void main(){vDir=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
     fragmentShader:[
       'varying vec3 vDir;uniform vec3 uSunDir;uniform float uTime;',
       'uniform vec3 uSkyMul,uSkyLift,uSunTint;uniform float uSunHalo,uCity,uStars,uMoon,uPulse;', // grade biome (identité par défaut) + uPulse musique
+      'uniform float uLvl,uSpin,uBeatK,uFlip,uBar,uHi,uWave,uHueAmp;uniform vec3 uAcc,uAcc2;uniform vec4 uRingR,uRingA;', // LE FOND DU NIVEAU
       'float hash21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}',
+      /* ROTATION DE TEINTE AUTOUR DE L AXE DES GRIS (Rodrigues). ⚠ c est LA fonction qui permet les
+         ondes de couleur : on ne REPEINT pas le ciel (ce qui effacerait le couchant, les etoiles et
+         tout le degrade peint a la main), on fait TOURNER sa teinte. Le ciel reste lui-meme, il
+         change juste de couleur — un remplacement aurait donne un aplat, pas une onde. */
+      'vec3 hueRot(vec3 c,float a){vec3 k=vec3(.57735);float cs=cos(a),sn=sin(a);',
+      '  return c*cs+cross(k,c)*sn+k*dot(k,c)*(1.-cs);}',
       'void main(){',
       '  float y=vDir.y;',
       // VICE CITY NUIT (assombri) : indigo profond au zénith → violet → grande brume ROSE sombre → corail → ambre au ras du soleil
@@ -700,6 +729,72 @@ const skyDome=(function(){
       '  float cband=smoothstep(.13,.008,abs(y+.03));',
       '  vec3 neon=mix(vec3(1.,.30,.62),vec3(.36,.78,1.),.5+.5*sin(az*2.+2.0));',
       '  col+=neon*cty*cband*(1.-smoothstep(.15,.75,sd))*.42*uCity*(1.+uPulse*.9);', // la ville s éteint sous l orage, hurle en NÉON TOTAL — et clignote au beat
+      /* ======================= LE FOND DU NIVEAU — QUATRE COUCHES ==========================
+         LE PARI : un fond de rythme (Geometry Dash, Super Hexagon) dans un jeu où l on VISE une
+         réception. Donc tout se passe HAUT et sur les CÔTÉS, jamais dans la bande d horizon où l on
+         lit la route — c est `mk` qui garantit ça, et c est la seule raison pour laquelle l effet
+         peut être aussi violent sans rendre le jeu injouable.
+           1. LA ROUE     — des quartiers alternés qui tournent autour du zénith (Super Hexagon).
+           2. LES ONDES   — chaque coup de grosse caisse part du zénith et DÉFERLE jusqu à l horizon.
+           3. LA LUEUR    — deux écharpes lentes : la part qui VIT même quand le morceau respire.
+           4. LES PILIERS — un égaliseur qui monte de l horizon, un barreau par secteur du ciel.
+         ⚠ les couches 1, 3 et 4 vivent en PERMANENCE et ne font que gonfler sur la frappe ; seule
+         la 2 naît du beat. Un fond qui n existe QUE sur les coups clignote, il ne « joue » pas. */
+      '  if(uLvl>.001){',
+      '    float dz=acos(clamp(y,-1.,1.));',                       // angle depuis le ZÉNITH : 0 en haut, 1.57 à l horizon
+      /* ⚠ TOUT LE CHAMP VISUEL (2026-08-08). La 1re version protégeait la bande d horizon d un
+         `smoothstep(-.02,.15,y)` : le decor n existait qu au-DESSUS de la route, donc en conduite
+         — ou l on regarde droit devant — on ne voyait presque rien. Le masque ne coupe plus, il
+         DOSE : le bas du ciel joue a 62 %, le haut a 100 %. La route reste lisible parce qu elle
+         est un objet 3D DEVANT le dome : elle se decoupe sur le fond au lieu d etre noyee. */
+      '    float mk=uLvl*(.62+.38*smoothstep(-.45,.12,y));',
+      '    mk*=1.-smoothstep(.10,.62,sd)*.42;',                    // le soleil garde son coeur ; il n est plus sanctuarise
+      '    vec3 A=mix(uAcc,uAcc2,uFlip),Bc=mix(uAcc2,uAcc,uFlip);',// LA BASCULE : sur les phrases, les deux teintes s echangent
+      /* ⚠ LES QUATRE COUCHES S ACCUMULENT DANS `fx`, PAS DANS `col`. Mesure a l origine de ce choix :
+         en ajoutant directement, une frappe pleine cramait 13 a 22 % de l ecran en BLANC PUR. Or un
+         blanc pur n a plus de teinte — l onde de couleur s effacait donc exactement au moment ou
+         elle devait etre la plus spectaculaire. En passant par `fx` on peut ajouter la somme avec un
+         amortissement (voir plus bas) : les fortes valeurs se tassent au lieu de buter au plafond. */
+      '    vec3 fx=vec3(0.);',
+      '    float wf=fract(az*2.5464790+uSpin);',                   // LA ROUE : 16 quartiers par tour (16/2π)
+      '    float we=smoothstep(0.,.055,wf)*smoothstep(.5,.445,wf);',
+      '    float wg=.075+uPulse*.100+uBeatK*.260;',
+      '    fx+=A*we*wg*mk;',
+      '    fx+=Bc*(1.-we)*wg*.42*mk;',                             // l autre quartier sur deux, plus discret : le ciel est a DEUX temps
+      /* LA CONTRE-ROUE : 7 quartiers, sens INVERSE, vitesse 1,7×. Deux comptes premiers entre eux et
+         deux vitesses irrationnelles l une par rapport a l autre = leur moire ne se repete JAMAIS.
+         C est ca, le generatif : pas du bruit, deux regles simples qui ne retombent pas en phase. */
+      '    float wf2=fract(az*1.1140846-uSpin*1.7+.37);',
+      '    float we2=smoothstep(0.,.09,wf2)*smoothstep(.5,.41,wf2);',
+      '    fx+=Bc*we2*we*wg*1.05*mk;',                             // l INTERSECTION des deux roues : des losanges qui derivent
+      '    vec4 rd=vec4(dz)-uRingR;vec4 r2=rd*rd;',                // LES ONDES : la grosse caisse deferle du zenith
+      '    vec4 rg=exp(-r2*150.)*uRingA;vec4 rh=exp(-r2*7.)*uRingA;',
+      '    fx+=(A*(rg.x+rg.y+rg.z+rg.w)*1.05+Bc*(rh.x+rh.y+rh.z+rh.w)*.22)*mk;',
+      '    float au=sin(az*2.+uTime*.12)*.5+.5;au*=au;',           // LA LUEUR : deux echarpes lentes, la part qui vit au calme
+      '    float au2=sin(az*3.-uTime*.085+1.7)*.5+.5;',
+      '    float band=smoothstep(.85,.10,dz)*smoothstep(.02,.30,dz);',
+      '    fx+=mix(A,Bc,au2)*au*band*(.070+uPulse*.150+uBeatK*.090)*mk;',
+      '    float pa=az*4.1380285+.5;',                             // LES PILIERS : 26 barreaux — volontairement PAS 16, sinon ils se superposent a la roue
+      '    float pid=floor(pa),pfr=fract(pa)-.5;',
+      '    float phh=hash21(vec2(pid,3.7));',
+      '    float hgt=.045+phh*.070+(uPulse*.090+uBeatK*.130+uHi*.070)*(.35+.65*fract(phh*7.3+uBar));',
+      '    float pil=smoothstep(.34,.20,abs(pfr))*smoothstep(hgt,hgt*.15,y)*step(.004,y);',
+      '    fx+=mix(A,Bc,phh)*pil*(.16+uBeatK*.52)*uLvl*(1.-smoothstep(.06,.5,sd));',
+      /* LE GRESIL — LES AIGUS. Charleston et cymbales ne sont pas des coups, ce sont des GRAINS : ils
+         demandent une reponse a haute frequence SPATIALE (une trame fine) et TEMPORELLE. D ou le
+         `floor(uTime*21.)` : la trame est retiree 21 fois par seconde, donc elle GRESILLE au lieu de
+         glisser. Un effet qui se deplace lirait comme du mouvement ; un effet qui se retire lit comme
+         du souffle. Le seuil descend avec `uHi` : plus il y a d aigus, plus il y a de grains allumes. */
+      '    vec2 sc=vec2(az*46.,y*38.);',
+      '    float gr=hash21(floor(sc)+floor(uTime*21.));',
+      '    float spk=step(.988-uHi*.10,gr)*uHi;',
+      '    fx+=mix(A,Bc,fract(gr*7.))*spk*1.6*uLvl;',
+      /* L AMORTISSEMENT. `fx/(1+fx*.55)` : quasi lineaire tant que le decor est discret, et de plus
+         en plus tasse quand tout tombe en meme temps (roue + onde + gresil + pilier sur la meme
+         frappe). L apport ne peut plus depasser ~1,8 quoi qu il arrive, donc plus jamais quatre
+         couches qui s empilent en mur blanc. */
+      '    col+=fx/(1.+fx*.55);',
+      '  }',
       // ÉTOILES : elles s allument avec la nuit, scintillent doucement, jamais dans le halo du soleil
       '  vec2 sg=vec2(az*10.1859,vDir.y*22.);', // 64 cellules par tour → zéro couture
       '  vec2 sid=floor(sg),sfr=fract(sg);',
@@ -716,6 +811,31 @@ const skyDome=(function(){
       '  col+=vec3(.28,.32,.55)*pow(max(md,0.),90.)*.20*uMoon;',         // halo large qui fond dans la nuit
       '  float w=sin(vDir.x*8.+uTime*.05)*sin(vDir.z*7.-uTime*.04);', // voile tres subtil qui vit
       '  col+=vec3(.016,.010,.016)*w*smoothstep(.05,.4,y);',
+      /* ================== L ONDE DE COULEUR — le grand effet du niveau 1 ==================
+         ⚠ ELLE EST PLACEE ICI, TOUT A LA FIN, ET C EST LE POINT. Mise dans le bloc des quatre
+         couches, elle n aurait teinte que ce que le decor AJOUTE. A cet endroit elle emporte TOUT :
+         le degrade du couchant, le soleil, la lune, les etoiles, la ville. Le ciel entier change de
+         couleur d un seul mouvement — c est ce qu on veut dire par spectaculaire.
+         ⚠ ET C EST UNE ROTATION DE TEINTE, PAS UN REMPLACEMENT. Repeindre le ciel d une couleur
+         donnerait un aplat mort ; le faire TOURNER garde le modele, les degrades, le relief — le
+         ciel reste ce ciel-la, il a juste change de couleur.
+         DEUX FRONTS qui se croisent (sens opposes, vitesses et frequences differentes) : leur
+         interference ne se repete pas, donc l onde n a jamais deux fois la meme forme. */
+      '  if(uLvl>.001){',
+      '    float dzw=acos(clamp(y,-1.,1.));',
+      '    float w1=sin(dzw*3.4-uWave*6.2831853+az*.60);',        // le front principal roule du zenith vers l horizon
+      '    float w2=sin(dzw*1.7-uWave*3.9000000-az*.35+2.1);',    // le second, plus lent et en sens inverse
+      '    float amp=uHueAmp*uLvl;',
+      '    col=hueRot(col,(w1*.70+w2*.45)*amp*6.2831853);',
+      '    col*=1.+(w1*.5+.5)*amp*.55*uLvl;',                     // …et la crete de l onde ECLAIRE en passant
+      /* L EPAULE. Tout ce qui depasse .78 est comprime vers 1 SANS JAMAIS L ATTEINDRE (asymptote).
+         ⚠ ce n est pas un `min()` : un ecretage met les trois canaux a la meme valeur, donc du blanc
+         pur, donc plus de teinte du tout — on perdrait la couleur pile sur les frappes, la ou elle
+         doit crier. L epaule garde les canaux ORDONNES et distincts : ca devient tres clair, ca
+         reste colore. C est la difference entre une lumiere et un trou dans l image. */
+      '    vec3 ex=max(col-vec3(.78),vec3(0.));',
+      '    col=min(col,vec3(.78))+ex/(1.+ex*4.55);',
+      '  }',
       '  col+=vec3((fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453)-.5)/160.);', // dither
       '  gl_FragColor=vec4(col,1.);',
       '}'].join('\n')});
@@ -770,7 +890,15 @@ const sunSprite=(function(){
   // → gros clignotement à l'horizon. Le trio soleil/nappe/rayons dessine toujours JUSTE après le
   // skyDome (-9), donc toujours DERRIÈRE les nuages : ordre fixe, plus aucun flip possible.
   sp.renderOrder=-8;
-  sp.scale.set(940,940,1);return sp; // contenu et fondu : un couchant qui se noie dans la nuit, pas un projecteur
+  /* LE 1.61 DEVIENT UN ASTRE (2026-08-08). Il était « contenu » : 940 d'échelle à 3600 de distance,
+     soit ~15° — un logo posé à l'horizon. Il passe à 2050, soit **~31° de large, 43 % de la hauteur
+     d'écran** : on ne le regarde plus, il nous regarde. C'est l'ancre du niveau 1, le point fixe
+     autour duquel tout le reste tourne. ⚠ l'échelle est la SEULE chose que la musique pilote ici
+     (`sunSprite.scale`) : l'opacité appartient aux BIOMES (`bioApply`) et la lui disputer ferait
+     clignoter le soleil à chaque portail. Le battement passe donc par `material.color`, que
+     personne d'autre n'écrit. */
+  sp.userData.base=2050;
+  sp.scale.set(2050,2050,1);return sp;
 })();
 // LUEUR D'HORIZON + RAYONS CRÉPUSCULAIRES (purement visuels — constantes réglables)
 const GLOW_DROP=260,RAY_LIFT=520,RAY_OFF=[-520,-180,150,480],RAY_ANGLES=[-.42,-.15,.12,.38],RAY_OPACITY=.12;
@@ -857,13 +985,25 @@ const planetGroup=(function(){
     new THREE.MeshBasicMaterial({color:0x8fd4ff,transparent:true,opacity:.20,side:THREE.BackSide,
       blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
   g.add(atmo);
+  /* LE LIMBE QUI RESPIRE (2026-08-08) — « fais briller certains éléments comme la planète ».
+     ⚠ ON NE TOUCHE PAS AU GLOBE. La doc juste au-dessus le dit : le grade final BRÛLE tout ce qui
+     est clair, la planète est rentrée volontairement sombre pour que le post la rallume. Éclairer
+     la TEXTURE la ramènerait au blanc plat qu'on avait déjà corrigé une fois. C'est donc le LIMBE,
+     et lui seul, qui prend la musique : une seconde coquille additive plus large que la première,
+     dont l'opacité et la teinte cognent au beat. Un halo qui gonfle autour d'un globe sombre se lit
+     comme une atmosphère qui s'illumine ; un globe qui blanchit se lit comme un bug. */
+  const halo=new THREE.Mesh(new THREE.SphereGeometry(PLANET_R*1.135,36,24),
+    new THREE.MeshBasicMaterial({color:0x6fc0ff,transparent:true,opacity:.10,side:THREE.BackSide,
+      blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
+  g.add(halo);
   // ⚠ le renderOrder d'un GROUP ne se propage PAS aux enfants (mesuré : la planète n'apparaissait
   // pas du tout — différence de pixels 0). Comme tout astre, elle se dessine en PREMIER, sans test
   // de profondeur : le ciel derrière, tout le reste (nuages, route) la recouvre naturellement ensuite.
   g.traverse(o=>{if(o.material){o.material.depthWrite=false;o.material.depthTest=false;o.renderOrder=-8;}});
-  g.userData.globe=globe;
+  g.userData.globe=globe;g.userData.atmo=atmo;g.userData.halo=halo;
   scene.add(g);return g;
 })();
+/* <<<FIN CIEL>>> */
 const RAYS=(function(){ // 3-4 faisceaux diffus en éventail derrière les nuages (discrets)
   const cv=document.createElement('canvas');cv.width=64;cv.height=256;
   const c=cv.getContext('2d');
@@ -3762,25 +3902,27 @@ function engVigBuild(){
    // On les collecte au build plutôt que de traverser l'arbre à chaque frame.
    engVigMats=[];
    engVigMesh.traverse(o=>{if(o.isMesh&&o.material&&o.material.emissive&&engVigMats.indexOf(o.material)<0)engVigMats.push(o.material);});
-   // la flamme se pose DERRIÈRE le bloc, à sa taille — un moteur plus gros crache plus large
-   if(!engVigFeu){engVigFeu=new THREE.Mesh(engVigFeuGeo,engVigFeuMat);engVigFeu.visible=false;
-     // ⚠ PAS DROIT DERRIÈRE : la caméra regarde l'axe -Z, donc une flamme alignée dessus se voit
-     // DE BOUT et ne lit plus que comme un disque orange. On la couche en biais (arrière-gauche,
-     // légèrement plongeante) : on en voit le PROFIL, donc la longueur, donc une flamme.
-     engVigFeu.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),
-       new THREE.Vector3(-.88,-.22,-.42).normalize());}
+   /* ---- LA FLAMME EST ACCROCHÉE AU POT, PAS POSÉE DANS LA SCÈNE ----
+      ⚠ LE BUG QU'ON VIENT DE CORRIGER. Elle était ajoutée à `engVigScene` à une position fixe
+      calculée sur le rayon d'encombrement. Or la pièce TOURNE (`engVigMesh.rotation.y`) : la
+      flamme, elle, ne tournait pas. Résultat visible en jeu : un cône orange planté à côté du
+      moteur, sans rapport avec le tuyau, immobile pendant que le bloc tourne.
+      Le correctif précédent (« la sortir du gabarit pour qu'elle ne disparaisse jamais derrière
+      le bloc ») soignait un symptôme et fabriquait celui-ci. La vraie réponse : elle devient
+      FILLE du moteur, posée sur l'ancre que `mkEngine` déclare (`userData.echap`). Elle tourne
+      donc avec lui, elle part du bon endroit et dans le bon sens — et si elle passe une demi-
+      seconde derrière le bloc au fil de la rotation, c'est juste : un pot tourne aussi. */
+   if(!engVigFeu){engVigFeu=new THREE.Mesh(engVigFeuGeo,engVigFeuMat);engVigFeu.visible=false;}
    if(engVigFeu.parent)engVigFeu.parent.remove(engVigFeu);
-   engVigScene.add(engVigFeu);
-   // ⚠ LA FLAMME SE DIMENSIONNE SUR LE MOTEUR. Elle était à taille fixe (rayon .19) alors que le
-   // cadrage automatique amène toujours la pièce à ~1,09 de rayon : elle était donc six fois trop
-   // petite et se perdait derrière le bloc — « on ne voit pas la flamme quand on turbo ». Sa taille
-   // suit désormais l'encombrement réel, donc elle reste lisible sur les 30 paliers.
-   engVigFeuBase=rxz*k*1.15;
-   // ⚠ ELLE DÉMARRE AU BORD DU GABARIT, PAS DEDANS. Le moteur TOURNE et la flamme, elle, est fixe
-   // dans la scène : posée près du centre, elle passait derrière le bloc et disparaissait (mesuré :
-   // le remplissage BAISSAIT au boost au lieu de monter). Son origine est donc calée juste en
-   // dehors du rayon balayé par la pièce, et elle part vers la gauche — elle sort toujours.
-   engVigFeu.position.set(-rxz*k*.94,engVigBaseY-ry*k*.10,-(rxz*k*.18));}
+   engVigMesh.add(engVigFeu);                    // ⚠ FILLE DU MOTEUR : c'est tout le correctif
+   const A=engVigMesh.userData.echap||{p:[-rxz*.9,0,0],d:[-1,0,0]};
+   engVigFeu.position.set(A.p[0],A.p[1],A.p[2]);
+   engVigFeu.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),
+     new THREE.Vector3(A.d[0],A.d[1],A.d[2]).normalize());
+   // ⚠ TAILLE EN UNITÉS DU MOTEUR, plus en unités d'écran : la flamme hérite maintenant de
+   // l'échelle de cadrage `k` par son parent. La multiplier par `k` une seconde fois la rendait
+   // gigantesque sur les petits moteurs et minuscule sur les gros.
+   engVigFeuBase=rxz*.42;}
   const E=ENGINE_TIERS[t]||ENGINE_TIERS[0];
   // ⚠ la flamme prend la TEINTE DU PALIER (`E.flam`). Elle était figée en orange `0xffa855` pour
   // les trente : la table portait une couleur par moteur que personne n'affichait jamais.
@@ -4677,6 +4819,21 @@ function corps9(g,K,S,MT,rnd,ep,carbo){
     g.add(bk);
   }
 }
+/* ---- L'ANCRE D'ÉCHAPPEMENT : où sort le feu, et dans quelle direction ----
+   ⚠ C'est LE MOTEUR qui la déclare, parce que c'est lui qui sait où est son tuyau. La vignette
+   ne devine plus : elle accroche la flamme là, comme FILLE du moteur, donc la flamme tourne
+   avec lui. Avant, la flamme était posée dans la SCÈNE à une position fixe calculée sur le
+   rayon d'encombrement : le moteur tournait, elle non — on la voyait flotter à côté du bloc,
+   détachée du pot. Le correctif d'alors (« la sortir du gabarit pour qu'elle ne disparaisse
+   jamais derrière le bloc ») traitait le symptôme et fabriquait celui-ci.
+   `p` et `d` sont en coordonnées LOCALES du groupe : la mise à l'échelle du cadrage s'applique
+   ensuite toute seule, puisque la flamme est accrochée dessous. */
+function echap9(g,m,len){
+  const q=m.quaternion;
+  const v=new THREE.Vector3(len,0,0).applyQuaternion(q).add(m.position);
+  const d=new THREE.Vector3(1,0,0).applyQuaternion(q);
+  g.userData.echap={p:[v.x,v.y,v.z],d:[d.x,d.y,d.z]};
+}
 // ---- LE COLLECTEUR : des tubes qui sortent du FLANC de la culasse, s'écartent, plongent et se
 // rejoignent — et qui suivent l'inclinaison du banc, sinon un V a ses tuyaux dans le vide.
 function collect9(g,K,S,mat,b){
@@ -4698,6 +4855,14 @@ function collect9(g,K,S,mat,b){
   gr.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([
     new THREE.Vector3(0,-.32,.42),new THREE.Vector3(L*.34,-.38,.46),
     new THREE.Vector3(L*.64,-.42,.36)]),14,.095,10,false),mat));
+  // la sortie du PREMIER banc sert d'ancre : c'est de là que sort le feu (les autres bancs
+  // sortent au même endroit à la symétrie près, une seule flamme suffit à le raconter)
+  if(b===0){
+    const e=new THREE.Vector3(L*.64,-.42,.36).applyAxisAngle(new THREE.Vector3(1,0,0),gr.rotation.x);
+    e.y+=et*.28;
+    const d=new THREE.Vector3(.92,-.14,-.08).normalize().applyAxisAngle(new THREE.Vector3(1,0,0),gr.rotation.x);
+    g.userData.echap={p:[e.x,e.y,e.z],d:[d.x,d.y,d.z]};
+  }
   g.add(gr);
 }
 // ---- L'ESCARGOT DE TURBO : carter en volute + tube. Deux cylindres croisés ne font pas un turbo.
@@ -4838,7 +5003,7 @@ function mkEngine(i){
   }
   if(has('pot')){                                          // LE POT : un tube tourné, pas un cylindre
     const t=put9(g,tourX([[.09,0],[.105,.05],[.105,.80],[.135,.86],[.15,.92]],16),chaud,XE*.5,-.30,.42);
-    t.rotation.z=-.30;t.rotation.y=-.35;
+    t.rotation.z=-.30;t.rotation.y=-.35;echap9(g,t,.92);
   }
 
   // ================= LA SIGNATURE DE CHAQUE PALIER =================
@@ -4863,7 +5028,7 @@ function mkEngine(i){
     const kk=put9(g,tourX([[.028,0],[.032,.28]],10),chrome,-(XE+.10),-.14,.30);kk.rotation.z=.95;
     put9(g,tourX([[.05,0],[.085,.03],[.085,.09]],12),sombre,-(XE+.30),.02,.30);
     const mg=put9(g,tourX([[.075,0],[.085,.06],[.085,.62],[.135,.76],[.155,.82]],16),chrome,XE*.35,-.26,.44);
-    mg.rotation.y=-.55;mg.rotation.z=.22;                            // le mégaphone qui remonte
+    mg.rotation.y=-.55;mg.rotation.z=.22;echap9(g,mg,.82);           // le mégaphone qui remonte
     break;}
   case 4:{ // 4 SOUPAPES — DEUX BOSSAGES d'arbre à cames qui ÉLARGISSENT le haut du moteur.
     // De simples tubes de came ne suffisaient pas : trop fins, ils disparaissaient au recadrage.
@@ -4929,7 +5094,7 @@ function mkEngine(i){
     break;}
   case 18:{ // ROTATIF — le hurlement sort par UN tube unique, énorme, sur le flanc
     const t=put9(g,tourX([[.12,0],[.135,.05],[.135,1.0],[.175,1.06],[.19,1.12]],18),chaud,.30,-.20,.46);
-    t.rotation.y=-.5;t.rotation.z=-.16;
+    t.rotation.y=-.5;t.rotation.z=-.16;echap9(g,t,1.12);
     break;}
   case 19:{ // TURBINE À GAZ — les étages du compresseur axial, l'un derrière l'autre
     for(let k=0;k<8;k++)
@@ -5027,7 +5192,7 @@ function mkEngine(i){
   // ---------- LES PIÈCES COMMUNES DÉCLARÉES DANS LA TABLE ----------
   if(has('tuyere')){
     const t=put9(g,geoTuy9(),feu,a==='pu'?-2.30:(a==='ra'?-2.36:(a==='pl'?-2.06:-.80)),0,0);
-    t.rotation.y=Math.PI;
+    t.rotation.y=Math.PI;echap9(g,t,.78);                  // la tuyère : le feu sort DU col, vers l'arrière
   }
   if(has('coneEntree'))put9(g,tourX([[.005,0],[.32,.52]],22),chrome,1.15,0,0).rotation.y=Math.PI;
   if(has('cellules'))for(let s=0;s<2;s++)
@@ -5048,6 +5213,11 @@ function mkEngine(i){
     serp9(g,[ax,.38,.46],[XE*.2,.56,.30],sombre,.026,rnd,.18);
     for(let k=0;k<7;k++)bou9(g,chrome,(rnd()-.5)*L*.9,-.06-rnd()*.26,.315,.026);
   }
+  /* ⚠ GARANTI PAR LE CODE, comme l'échappement lui-même : un moteur sort TOUJOURS avec une
+     ancre de flamme. Les exotiques (nacelles, couronne, disque d'accrétion) n'ont pas de tuyau
+     nommé ; à défaut, le feu sort par l'arrière de la pièce. Sans ce filet, la vignette
+     retomberait sur une position par défaut et on retrouverait la flamme décrochée. */
+  if(!g.userData.echap)g.userData.echap={p:[-(piston?S.L*.5+.12:1.05),0,0],d:[-1,0,0]};
   return g;
 }
 /* <<<FIN MOTEURS>>> */
@@ -5924,7 +6094,8 @@ function updateSerpent(dt){
    ========================================================================== */
 let musicEl=null,musicSrc=null,musicGain=null,musicSfxGain=null,musicFilt=null,musicAna=null,musicData=null;
 let musicLowShelf=null,musicChorusDelay=null,musicChorusWet=null,musChorusEnv=0; // BASS BOOST + CHORUS au boost
-let MUSIC_PULSE=0,MUSIC_BEAT=0,musicOn=false,musicBass=0;
+let MUSIC_PULSE=0,MUSIC_BEAT=0,MUSIC_HI=0,musicOn=false,musicBass=0;
+const PLANET_BLEU=new THREE.Color(0x6fc0ff); // la teinte de repos du limbe : au calme la Terre reste la Terre
 let MUSIC_CHAM=0;                     // phase du CAMÉLÉON : elle n'avance jamais à reculons, elle accélère
 let NIVEAU_FX=0;                      // surge visuel de FIN DE NIVEAU (s'éteint tout seul)
 const beatFxEl=document.getElementById('beatFx'); // le voile de bord qui flashe sur la grosse caisse
@@ -5965,7 +6136,15 @@ function playMusic(url,opt){opt=opt||{};
   if(!musicGain)musicGraph();
   if(musicSrc){try{musicSrc.disconnect();}catch(e){}}
   if(musicEl){try{musicEl.pause();}catch(e){}}
-  musicEl=new Audio(url);musicEl.loop=opt.loop!==false;musicEl.crossOrigin='anonymous';
+  musicEl=new Audio(url);musicEl.loop=opt.loop!==false;
+  /* ⚠ `crossOrigin` SEULEMENT si le morceau vient d'un AUTRE domaine (2026-08-07).
+     Il était posé sans condition. Conséquence quand quelqu'un ouvre le jeu par double-clic
+     (`file://`) : la requête CORS échoue, l'élément devient « teinté », et
+     `createMediaElementSource` ne rend alors QUE DU SILENCE — pas d'erreur, pas de message, juste
+     un jeu muet. Et comme le fond réagit à l'analyseur audio, il ne bougeait plus non plus.
+     Pour un fichier local ou servi depuis la même origine, l'attribut n'apporte rien et coûte
+     tout : on ne le met donc que là où il sert vraiment. */
+  if(/^https?:\/\//i.test(url)&&url.indexOf(location.origin)!==0)musicEl.crossOrigin='anonymous';
   try{musicSrc=AC.createMediaElementSource(musicEl);musicSrc.connect(musicFilt);}catch(e){musicSrc=null;} // src → filtre → gain
   musicGain.gain.value=opt.volume!=null?opt.volume:musicBaseVol;
   if(musicFilt){musicFilt.frequency.cancelScheduledValues(AC.currentTime);musicFilt.frequency.value=20000;}
@@ -5978,6 +6157,12 @@ function musicStartRun(){ // au début d'une partie (start / resetGame)
   if(!SND.music||!MUSIC.run.length)return;
   if(!AC){try{initAudio();}catch(e){return;}} if(!musicGain)musicGraph();
   musicMode='run';musicIdx=0;niveauFini=false;NIVEAU_FX=0;musicPlayCurrent(); // nouvelle partie = niveau rejouable
+  /* LE LEVER DU NIVEAU : le décor repart de zéro et remonte avec le morceau (≈2 s), avec une onde
+     d'ouverture. On remet AUSSI le métronome à plat : garder la confiance et la phase du run
+     précédent ferait démarrer le nouveau à contretemps pendant plusieurs secondes. */
+  LVLFX.k=0;LVLFX.spin=0;LVLFX.flip=LVLFX.flipTo=0;LVLFX.dir=1;
+  BCLK.ph=0;BCLK.n=0;BCLK.conf=0;BCLK.miss=0;BCLK.last=BCLK.t-9;BCLK.per=.5;BCLK.force=0;
+  try{lvlBlast();}catch(e){}
 }
 function musicMenu(){ // thème de menu (game over / accueil), en boucle
   if(!SND.music||!MUSIC.menu||!AC||!musicGain)return;
@@ -6020,6 +6205,7 @@ function finDeNiveau(){
   try{trickMsg('★ FIN DU NIVEAU 1',3);}catch(e){}
   try{fanfare();}catch(e){}
   try{sparkBurst(sparkGold,carGroup.position,34,18);}catch(e){}
+  try{lvlBlast();}catch(e){} // le ciel se vide de ses quatre ondes d'un coup — puis le décor s'éteint avec la musique
   shake=Math.max(shake,.55);duckT=Math.max(duckT,.5);
 }
 window.finDeNiveau=finDeNiveau;
@@ -6039,18 +6225,164 @@ function musicStop(tape){ // fin de partie : coupure « tape-stop » (ralenti + 
   let r=1;const iv=setInterval(()=>{r-=.09;try{el.playbackRate=Math.max(.1,r);}catch(e){}if(r<=.1)clearInterval(iv);},45); // la bande ralentit
   setTimeout(()=>{try{el.pause();el.playbackRate=1;}catch(e){}if(musicGain)musicGain.gain.value=musicBaseVol;musicOn=false;},1150);
 }
+/* <<<FOND>>> ==================================================================
+   LE FOND DU NIVEAU 1 — le décor JOUE la musique
+   ----------------------------------------------------------------------------
+   ⚠ RÈGLE DU BLOC BALISÉ (la même que <<<MOTEURS>>> et <<<VOITURES>>>) : ce qui suit ne dépend QUE
+   de `THREE` et de `skyU`. Aucune globale du jeu — pas de `running`, pas de `MUSIC_PULSE`, pas de
+   `NEON_RAILS` : tout entre par le paramètre `S` de `lvlTick`. C'est ce qui permet à
+   `atelier-fond.html` d'EXÉCUTER ce bloc tel quel, sur le vrai morceau, sans lancer une partie —
+   et donc de juger l'esthétique, ce qu'aucune console ne sait faire. Y glisser une référence au
+   jeu casserait l'atelier EN SILENCE.
+   ----------------------------------------------------------------------------
+   POURQUOI UN MÉTRONOME ET PAS SEULEMENT L ANALYSEUR. Brancher un décor directement sur
+   `MUSIC_BEAT` donne un fond qui SURSAUTE : il n'existe que sur les coups, et il meurt dès que le
+   morceau respire (un pont sans grosse caisse fige tout l'écran). Geometry Dash et Super Hexagon ne
+   font pas ça — chez eux le décor TOURNE en mesure, en continu, et les frappes ne font que le
+   bousculer. On tient donc une horloge : les coups détectés servent à ESTIMER le tempo et à
+   RECALER la phase, jamais à piloter directement. Entre deux coups, le décor continue tout seul.
+   ⚠ le repliement d'octave (`r>1.55` / `r<.68`) n'est pas un détail : sans lui, un morceau qui passe
+   en double-croches double le tempo estimé et le décor part au galop pour ne plus jamais revenir.
+   ========================================================================== */
+/* ⚠ LA BASE DE TEMPS EST `dt`, PAS L'HORLOGE MURALE. Ni `performance.now()` ni `AC.currentTime` :
+   le temps audio se FIGE quand le contexte est suspendu (bouton SON) et le métronome repartirait en
+   vrille au rallumage ; et le temps mur rend le système intestable — un onglet caché bride les
+   timers, on ne peut plus rejouer une séquence de coups. `BCLK.t` s'accumule depuis le `dt` de la
+   boucle : identique au temps réel en jeu, et pilotable image par image en vérification. */
+const BCLK={t:0,per:.5,ph:0,last:-9,conf:0,miss:0,n:0,force:0}; // per = durée d'un temps (s) · ph = phase, en temps
+const LVLFX={k:0,spin:0,dir:1,flip:0,flipTo:0,ri:0,
+  wave:0,waveV:0,hueA:0,hueTo:0,      // L'ONDE DE COULEUR : sa phase, sa vitesse, son amplitude
+  sunK:0,planetK:0,                   // L'ÉCLAT DES ASTRES — le bloc les CALCULE, le jeu les APPLIQUE (voir plus bas)
+  acc:new THREE.Color(0xf24aa0),acc2:new THREE.Color(0x3ee6f0),_src:null,_h:{h:0,s:0,l:0}};
+function beatClockHit(now){ // un coup entendu : il corrige le TEMPO puis la PHASE, il ne déclenche rien
+  const d=now-BCLK.last;BCLK.last=now;
+  if(d>.26&&d<1.15){
+    let c=d;const r=d/BCLK.per;                                   // repliement d'octave : un coup sur deux ou deux par temps ne doivent pas changer le tempo
+    if(r>1.55)c=d/Math.max(1,Math.round(r));else if(r<.68)c=d*Math.max(1,Math.round(1/r));
+    if(Math.abs(c/BCLK.per-1)<.14){BCLK.per+=(c-BCLK.per)*.16;BCLK.conf=Math.min(1,BCLK.conf+.10);BCLK.miss=0;}
+    else if(++BCLK.miss>3){BCLK.per=Math.max(.28,Math.min(1.10,d));BCLK.conf=.15;BCLK.miss=0;} // 4 coups de suite à côté = c'est NOUS qui avions tort : on adopte le nouveau tempo
+    else BCLK.conf=Math.max(0,BCLK.conf-.06);
+  }
+  const f=BCLK.ph-Math.floor(BCLK.ph),err=f>.5?f-1:f;             // erreur signée vers le temps le PLUS PROCHE (devant ou derrière)
+  BCLK.ph-=err*(.30+BCLK.conf*.35);                               // ⚠ recalage DOUX : un saut de phase se voit comme une saccade
+}
+function lvlFlip(){ // LA BASCULE façon Geometry Dash : les deux teintes s'échangent ET la roue change de sens
+  LVLFX.flipTo=LVLFX.flipTo?0:1;LVLFX.dir=-LVLFX.dir;
+}
+function lvlKick(k){ // une ONDE part du zénith + la roue prend un à-coup (elle ne glisse pas, elle COGNE)
+  const c=['x','y','z','w'][LVLFX.ri&3];LVLFX.ri++;
+  skyU.uRingR.value[c]=.02;skyU.uRingA.value[c]=Math.min(1,.30+k*.85);
+  LVLFX.spin+=LVLFX.dir*k*.045;
+  /* L'ONDE DE COULEUR PART SUR LE COUP. ⚠ on donne de la VITESSE, on ne saute pas la phase : un
+     saut ferait clignoter tout le ciel d'une couleur à l'autre en une frame, ce qui est un défaut
+     de rendu, pas un effet. Là, le front s'élance et se propage — on le VOIT traverser. */
+  LVLFX.waveV=Math.max(LVLFX.waveV,.22+k*.62);
+  LVLFX.hueTo=Math.min(.30,LVLFX.hueTo+k*.16); // et l'amplitude de teinte s'ouvre à chaque frappe
+}
+function lvlBlast(){ // l'embrasement : les 4 ondes d'un coup (début et fin de niveau)
+  const R=skyU.uRingR.value,A=skyU.uRingA.value,c=['x','y','z','w'];
+  for(let i=0;i<4;i++){R[c[i]]=i*.16;A[c[i]]=1;}
+}
+/* `lvlTick(dt, S)` — S est TOUT ce que le fond sait du monde extérieur :
+     S.onset  la nouveauté de basse de la frame (l'analyseur), c'est elle qui nourrit le métronome
+     S.pulse  l'énergie moyenne du morceau (0..1)     S.beat  la frappe déjà lissée (0..1)
+     S.boost  l'ouverture nitro/vitesse (0..1)        S.surge l'embrasement de fin de niveau (0..1)
+     S.on     le décor doit-il être allumé            S.acc   la teinte d'accent de la zone (THREE.Color)
+   Aucune de ces valeurs n'est lue dans une globale : c'est la condition pour que l'atelier existe. */
+function lvlTick(dt,S){
+  S=S||{};
+  /* ⚠ DEUX GARDE-FOUS D'ENTRÉE, ET ILS ONT TOUS LES DEUX SERVI (trouvés en atelier, 2026-08-08).
+     (1) `dt` BORNÉ À ZÉRO : un `dt` NÉGATIF (horodatage rAF antérieur au précédent — ça arrive au
+     réveil d'un onglet, au premier tour de boucle, ou en pas-à-pas) inverse toutes les décroissances.
+     Mesuré : la frappe, censée retomber, MONTAIT — 14,19 au lieu de ≤1, et le soleil gonflait à
+     ×3,37. Une régression invisible en jeu normal, garantie de sortir un jour.
+     (2) LES ENTRÉES SONT PINCÉES À [0,1] : ce bloc a deux appelants (le jeu et l'atelier) et rend
+     des facteurs d'ÉCHELLE. Faire confiance à l'appelant, c'est accepter qu'une valeur aberrante
+     devienne un astre de 7 000 unités. Un bloc partagé se défend à sa frontière. */
+  dt=Math.max(0,Math.min(.1,dt||0));
+  const cl=v=>v>0?(v<1?v:1):0;
+  const sBeat=cl(S.beat),sPulse=cl(S.pulse),sBoost=cl(S.boost),sSurge=cl(S.surge),sHi=cl(S.hi);
+  /* ONSET → MÉTRONOME. La période réfractaire (.20 s) est indispensable : une frappe s'étale sur
+     plusieurs frames et compterait sinon pour cinq coups — tempo estimé cinq fois trop rapide.
+     `BCLK.force` est l'entrée de vérification, elle emprunte EXACTEMENT ce chemin-là. */
+  BCLK.t+=dt;
+  const bk=Math.max(S.onset||0,BCLK.force);BCLK.force=0;
+  if(bk>.17&&BCLK.t-BCLK.last>.20){beatClockHit(BCLK.t);lvlKick(Math.min(1,bk));}
+  /* LE MÉTRONOME AVANCE TOUT SEUL — c'est lui qui garde le décor en mesure quand la grosse caisse
+     se tait. Il ne s'arrête jamais ; quand la musique est coupée, `LVLFX.k` tombe à 0 et rien ne
+     se voit, mais l'horloge est déjà à l'heure quand le morceau revient. */
+  const p0=BCLK.ph;BCLK.ph+=dt/Math.max(.2,BCLK.per);
+  if(Math.floor(BCLK.ph)>Math.floor(p0)){BCLK.n++;if(BCLK.n%8===0)lvlFlip();} // une bascule par PHRASE (8 temps), pas par temps : sinon c'est un gyrophare
+  /* PRÉSENCE : le décor s'allume AVEC le morceau et s'éteint avec lui. Montée lente (≈2 s) : le
+     niveau se LÈVE au lieu d'apparaître, ce qui donne au départ de course son moment. */
+  const want=S.on?1:0,pulse=sPulse,boost=sBoost,surge=sSurge;
+  LVLFX.k+=(want-LVLFX.k)*Math.min(1,dt*(want?.5:1.1));
+  LVLFX.spin+=dt*LVLFX.dir*(.012+pulse*.052+boost*.022+surge*.16); // la roue tourne d'autant plus vite que ça cogne
+  LVLFX.flip+=(LVLFX.flipTo-LVLFX.flip)*Math.min(1,dt*3.2);
+  const R=skyU.uRingR.value,A=skyU.uRingA.value,cc=['x','y','z','w'];
+  for(let i=0;i<4;i++){const c=cc[i];if(A[c]>0){
+    R[c]+=dt*(1.5+A[c]*.7);A[c]-=dt*.9;                            // l'onde déferle du zénith (0) vers l'horizon (1,57) puis meurt derrière
+    if(A[c]<=0||R[c]>2.0){A[c]=0;R[c]=9;}}}
+  /* LE FOND PARLE LA COULEUR DE LA ZONE. On prend l'accent des rails plutôt qu'une teinte tirée au
+     hasard : le portail change la couleur de la nuit, le ciel doit changer avec elle.
+     ⚠ recalculé SEULEMENT quand la zone change (comparaison d'identité) — un getHSL par frame pour
+     une valeur constante, c'est le genre de gaspillage qui s'accumule. */
+  if(S.acc&&LVLFX._src!==S.acc){
+    LVLFX._src=S.acc;LVLFX.acc.copy(S.acc);
+    const H=S.acc.getHSL(LVLFX._h);
+    LVLFX.acc2.setHSL((H.h+.47)%1,Math.min(1,H.s*1.05),Math.min(.72,H.l*1.10)); // la complémentaire : assez loin pour que la bascule SE VOIE, pas assez pour renier la zone
+  }
+  /* L'ONDE DE COULEUR. Une vitesse qui décroît (frottement) plutôt qu'une position imposée : chaque
+     frappe RELANCE le front, et entre deux coups il continue sur son erre au lieu de s'arrêter net.
+     Un plancher de vitesse (.14) garantit que le ciel respire même sur un passage calme.
+     ⚠ l'amplitude `hueA` FUIT en permanence (−.30/s) : sans cette fuite elle s'empilerait frappe
+     après frappe et le ciel finirait en arc-en-ciel permanent — spectaculaire dix secondes, puis
+     illisible. Elle monte vite (dt*4) et redescend lentement (dt*1.2) : ça monte en pression sur
+     un passage dense, ça retombe sur un pont. */
+  LVLFX.waveV=Math.max(.14+pulse*.30,LVLFX.waveV-dt*.55);
+  LVLFX.wave+=dt*LVLFX.waveV;
+  LVLFX.hueTo=Math.max(0,LVLFX.hueTo-dt*.30);
+  const hueCible=Math.min(.34,LVLFX.hueTo+pulse*.10+surge*.30);
+  LVLFX.hueA+=(hueCible-LVLFX.hueA)*Math.min(1,dt*(hueCible>LVLFX.hueA?4:1.2));
+  /* L'ÉCLAT DES ASTRES. Le bloc CALCULE, il n'applique pas : il n'a pas le droit de connaître
+     `sunSprite` ni `planetGroup` (règle du bloc balisé). Le jeu et l'atelier lisent ces deux
+     nombres et les posent sur leurs objets — même valeur des deux côtés, forcément. */
+  const hi=sHi;
+  LVLFX.sunK=Math.min(1.6,pulse*.30+sBeat*.55+boost*.22+surge*1.10);   // le 1.61 GONFLE sur la frappe — plafonné : c'est une ÉCHELLE, pas une couleur
+  LVLFX.planetK=Math.min(1.6,pulse*.35+sBeat*.45+hi*.30+surge*1.20);   // le limbe de la Terre s'embrase
+  skyU.uLvl.value=LVLFX.k;
+  skyU.uSpin.value=LVLFX.spin;
+  skyU.uBeatK.value=Math.min(1,Math.pow(sBeat,1.35)*1.05+surge*.55); // ⚠ élevé à la puissance, comme le voile : sur un morceau dense seuls les VRAIS coups doivent ressortir
+  skyU.uFlip.value=LVLFX.flip;
+  skyU.uBar.value=(BCLK.ph*.25)%1;
+  skyU.uHi.value=hi;
+  skyU.uWave.value=LVLFX.wave;
+  skyU.uHueAmp.value=LVLFX.hueA;
+  skyU.uAcc.value.copy(LVLFX.acc);skyU.uAcc2.value.copy(LVLFX.acc2);
+}
+/* <<<FIN FOND>>> ========================================================== */
 function musicTick(dt,mvt){
-  let target=0,beat=0;
+  let target=0,beat=0,hiT=0;
   if(musicOn&&musicAna){
     musicAna.getByteFrequencyData(musicData);
-    const nB=musicData.length;let tot=0,bass=0,bN=Math.max(1,(nB*.18)|0);
-    for(let i=0;i<nB;i++){const v=musicData[i]/255;tot+=v;if(i<bN)bass+=v;}
-    tot/=nB;bass/=bN;
+    /* TROIS BANDES, PAS DEUX (2026-08-08). Les AIGUS manquaient — or c'est là que vit le tempo
+       RAPIDE d'un morceau : charleston, cymbales, souffle. Avec la seule basse, le décor ne
+       connaissait que la pulsation lente et restait lisse entre deux coups. Le haut du spectre
+       (les 45 % supérieurs des bins) alimente désormais tout ce qui doit grésiller. */
+    const nB=musicData.length;let tot=0,bass=0,hi=0,bN=Math.max(1,(nB*.18)|0),hN=Math.max(1,(nB*.55)|0);
+    for(let i=0;i<nB;i++){const v=musicData[i]/255;tot+=v;if(i<bN)bass+=v;if(i>=hN)hi+=v;}
+    tot/=nB;bass/=bN;hi/=Math.max(1,nB-hN);
     target=Math.min(1,tot*1.7);
     beat=Math.max(0,bass-musicBass)*3.2;musicBass=bass; // transitoire = coup de grosse caisse
-  }else musicBass=0;
+    hiT=Math.min(1,hi*2.3);
+  }else {musicBass=0;hiT=0;}
+  /* ⚠ LES AIGUS MONTENT VITE ET DESCENDENT VITE. Les lisser comme l'énergie moyenne (dt*8) les
+     transformerait en nappe continue : on perdrait exactement ce qu'on est venu chercher, le
+     GRAIN. Attaque quasi instantanée (dt*24), retombée franche (dt*11). */
+  MUSIC_HI+=(hiT-MUSIC_HI)*Math.min(1,dt*(hiT>MUSIC_HI?24:11));
   MUSIC_PULSE+=(target-MUSIC_PULSE)*Math.min(1,dt*8);        // énergie : montée/descente douce
   MUSIC_BEAT=Math.max(0,MUSIC_BEAT-dt*3.4);if(beat>MUSIC_BEAT)MUSIC_BEAT=Math.min(1,beat); // beat : attaque nette, chute rapide
+  musicTick._onset=beat; // la nouveauté de basse brute part telle quelle au métronome du fond (voir <<<FOND>>>)
   // ---- LE MOUVEMENT OUVRE LE SON : rouler = musique dans les oreilles, s'arrêter = filtre feutré + volume qui baisse ----
   // (mvt = 0..1 mouvement de la caisse ; la nitro/boost poussent en plus vers le plein) — « la musique n'avance pas sans toi »
   let bt=0;
@@ -6079,6 +6411,29 @@ function musicTick(dt,mvt){
   skyU.uPulse.value=Math.min(1.7,(MUSIC_PULSE*.5+MUSIC_BEAT*.6)*lvlK*(1+musicBoostEnv*.5)); // LE CIEL RESPIRE + COGNE au boost (plafonné)
   if(bloomPass){if(musicTick._bloom==null)musicTick._bloom=bloomPass.strength;
     bloomPass.strength=musicTick._bloom*(1+MUSIC_BEAT*.6*lvlK+musicBoostEnv*.3);} // et le bloom cogne au beat + au boost
+  /* LE FOND DU NIVEAU : roue, ondes, lueur, piliers — tout ce qui joue la musique dans le ciel.
+     On lui PASSE le monde plutôt qu'il n'aille le chercher : c'est ce qui garde le bloc <<<FOND>>>
+     exécutable dans l'atelier. L'accent vient des rails, donc le ciel et la piste sont toujours de
+     la même couleur — sans avoir à répéter la règle à deux endroits. */
+  lvlTick(dt,{onset:musicTick._onset||0,pulse:MUSIC_PULSE,beat:MUSIC_BEAT,hi:MUSIC_HI,boost:musicBoostEnv,surge:surge,
+    on:(musicOn&&musicMode==='run'&&running&&!gameOver),
+    acc:(NEON_RAILS.length&&NEON_RAILS[0].userData.base)||null});
+  /* LES ASTRES PRENNENT LA MUSIQUE. `lvlTick` a calculé l'éclat, on le POSE ici sur les objets —
+     le bloc <<<FOND>>> ne connaît ni le soleil ni la planète, c'est la règle qui garde l'atelier
+     vivant. ⚠ le soleil se pilote en ÉCHELLE et en COULEUR, jamais en opacité : l'opacité
+     appartient aux biomes (`bioApply`), et se la disputer le ferait clignoter à chaque portail. */
+  const gk=LVLFX.k;
+  if(sunSprite&&sunSprite.userData.base){
+    const s=sunSprite.userData.base*(1+LVLFX.sunK*.30*gk);
+    sunSprite.scale.set(s,s,1);
+    const b=1+LVLFX.sunK*1.05*gk;sunSprite.material.color.setRGB(b,b*(1-LVLFX.sunK*.05*gk),b*(1-LVLFX.sunK*.10*gk)); // il ROUGIT en gonflant : une étoile qui pousse vire au chaud
+  }
+  if(planetGroup&&planetGroup.userData.halo){
+    const p=LVLFX.planetK*gk;
+    planetGroup.userData.halo.material.opacity=Math.min(.72,.10+p*.42);
+    planetGroup.userData.atmo.material.opacity=Math.min(.80,.20+p*.34);
+    planetGroup.userData.halo.material.color.copy(LVLFX.acc).lerp(LVLFX.acc2,LVLFX.flip).lerp(PLANET_BLEU,1-Math.min(1,p*.9)); // au repos le limbe reste BLEU (c'est la Terre) ; il prend l'accent quand ça cogne
+  }
   /* ---- LES RAILS NÉON COGNENT AU BEAT (2026-08-07) --------------------------------------------
      Le pari « épique mais jouable » se joue ICI plutôt que dans un effet plein écran : les rails
      bordent la route, donc les faire pulser rend la piste PLUS lisible au lieu de la noyer. Un
@@ -6153,10 +6508,12 @@ window.dbgSerpent=function(sec){serpShow=sec||3;};  // forcer le serpent
 /* `dbgBeat(v)` — force un coup de grosse caisse (0..1) pour VOIR la réaction sans dépendre de
    l'audio. Indispensable : en test automatisé il n'y a pas de sortie son, l'analyseur ne rend que
    des zéros, et le réactif serait donc invérifiable. Rend l'état des rails néon avant/après. */
-window.dbgBeat=function(v){
+window.dbgBeat=function(v,aigus){
   const k=v==null?1:Math.max(0,Math.min(1,v));
+  if(aigus!=null)MUSIC_HI=Math.max(0,Math.min(1,aigus)); // injecte aussi des AIGUS : sans eux le grésil et le limbe restent muets en test
   const avant=NEON_RAILS.length?NEON_RAILS[0].color.clone():null;
   MUSIC_BEAT=k;MUSIC_PULSE=Math.max(MUSIC_PULSE,k*.6);
+  BCLK.force=k; // le coup emprunte le chemin de l'analyseur (détection d'onset dans musicTick) : on teste le VRAI code
   try{musicTick(1/60,0);}catch(e){return {erreur:String(e.message)};}
   const r=NEON_RAILS[0],g=NEON_GLOW[0];
   return {beatForce:k,rails:NEON_RAILS.length,nappes:NEON_GLOW.length,
@@ -6167,6 +6524,21 @@ window.dbgBeat=function(v){
 };
 window.dbgMusic=function(){return {on:musicOn,pulse:+MUSIC_PULSE.toFixed(3),beat:+MUSIC_BEAT.toFixed(3),sky:+skyU.uPulse.value.toFixed(3),
   boostEnv:+musicBoostEnv.toFixed(3),filtHz:musicFilt?Math.round(musicFilt.frequency.value):null,mode:musicMode};};
+/* `dbgLvl()` — l'état du FOND DU NIVEAU : présence, tempo verrouillé, phase, roue, ondes vivantes.
+   `dbgLvl(1)` force le décor à fond sans musique (pour juger l'esthétique à l'arrêt).
+   ⚠ le BPM affiché n'a de sens que si `conf` est haute : à 0 l'horloge tourne à vide sur 120. */
+window.dbgLvl=function(force){
+  if(force!=null){LVLFX.k=Math.max(0,Math.min(1,+force||0));skyU.uLvl.value=LVLFX.k;}
+  const A=skyU.uRingA.value,R=skyU.uRingR.value,c=['x','y','z','w'],on=[];
+  for(let i=0;i<4;i++)if(A[c[i]]>0)on.push({r:+R[c[i]].toFixed(2),a:+A[c[i]].toFixed(2)});
+  return {presence:+LVLFX.k.toFixed(3),horloge:+BCLK.t.toFixed(2),bpm:Math.round(60/Math.max(.05,BCLK.per)),confiance:+BCLK.conf.toFixed(2),
+    temps:BCLK.n,phaseMesure:+skyU.uBar.value.toFixed(2),roue:+LVLFX.spin.toFixed(3),sens:LVLFX.dir,
+    bascule:+LVLFX.flip.toFixed(2),frappe:+skyU.uBeatK.value.toFixed(3),ondes:on,
+    aigus:+skyU.uHi.value.toFixed(3),ondeCouleur:+LVLFX.wave.toFixed(2),vitesseOnde:+LVLFX.waveV.toFixed(3),
+    amplitudeTeinte:+LVLFX.hueA.toFixed(3),eclatSoleil:+LVLFX.sunK.toFixed(2),eclatTerre:+LVLFX.planetK.toFixed(2),
+    echelleSoleil:Math.round(sunSprite.scale.x),limbe:+planetGroup.userData.halo.material.opacity.toFixed(3),
+    accent:'#'+LVLFX.acc.getHexString(),bascule2:'#'+LVLFX.acc2.getHexString()};
+};
 window.dbgPlanetLook=function(){ // MODE PHOTO : braque la caméra sur la planète, rend, et MESURE ses couleurs
   camera.lookAt(planetGroup.position);camera.updateMatrixWorld();
   if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
@@ -10349,7 +10721,10 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){ // ?touch=1 : tester l'UI ta
     pb.addEventListener('touchstart',pv,{passive:false}); pb.addEventListener('click',pv); }
 }
 // PWA : enregistrement du service worker (offline + installable). Sans effet en file:// ou sans HTTPS/localhost.
-if('serviceWorker'in navigator){ addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); }); }
+/* ⚠ PAS DE SERVICE WORKER EN `file://` : il ne PEUT PAS s'y enregistrer, et la tentative laisse une
+   erreur rouge en console (« unknown error when fetching the script ») chez quiconque ouvre le jeu
+   par double-clic — inquiétant pour rien. On ne l'installe donc que là où il fonctionne, en http(s). */
+if('serviceWorker'in navigator&&location.protocol!=='file:'){ addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); }); }
 /* ============ fin ajout MOBILE / PWA ============ */
 requestAnimationFrame(loop);
 })();
