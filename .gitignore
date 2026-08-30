@@ -6,3 +6,6 @@ node_modules/
 Thumbs.db
 .DS_Store
 .vscode/
+
+# sauvegardes locales avant gros chantier (jamais versionnées)
+index.html.bak-*
