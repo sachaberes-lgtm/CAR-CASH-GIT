@@ -476,7 +476,7 @@
   #tLeft{left:16px}
   #tRight{left:calc(min(84px,21vh) + 30px)}
   /* --- pouce DROIT : NITRO énorme. Une VRAIE touche d'arcade : plaque orange, biseau, épaisseur. --- */
-  #tNitro{right:16px;bottom:16px;width:min(122px,30vh);height:min(122px,30vh);font-size:13px;letter-spacing:2px;
+  #tNitro{right:calc(env(safe-area-inset-right,0px) + 16px);bottom:calc(env(safe-area-inset-bottom,0px) + 16px);width:min(122px,30vh);height:min(122px,30vh);font-size:13px;letter-spacing:2px;
     border:0;border-radius:0;color:#2a1000;background:linear-gradient(180deg,#ffc074,#ff8c1a 52%,#d05e00);
     clip-path:polygon(12px 0,calc(100% - 12px) 0,100% 12px,100% calc(100% - 12px),calc(100% - 12px) 100%,12px 100%,0 calc(100% - 12px),0 12px);
     filter:drop-shadow(0 7px 0 #7a3200);text-shadow:0 1px 0 rgba(255,255,255,.4);
@@ -650,7 +650,7 @@
   /* ------- PORTRAIT : L'ORIENTATION NORMALE DU JEU (le paysage n'est plus qu'un repli) ------- */
   @media (orientation:portrait){
     body.touch #tSteer{width:52%}
-    body.touch #tNitro{width:min(128px,17vh);height:min(128px,17vh);right:14px;bottom:18px}
+    body.touch #tNitro{width:min(128px,17vh);height:min(128px,17vh);right:calc(env(safe-area-inset-right,0px) + 14px);bottom:calc(env(safe-area-inset-bottom,0px) + 18px)}
     body.touch #airPie{top:15%;right:5%;width:72px;height:72px}
   }
   /* ------- RESPONSIVE : écrans étroits / mobile — le HUD ne se chevauche plus ------- */
