@@ -2,12 +2,6 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<!-- ANTI-CACHE (2026-07-20) : le navigateur servait une ANCIENNE copie d'index.html en cache — les
-     correctifs récents n'apparaissaient jamais (« ça marche toujours pas »). On force le rechargement
-     frais à chaque ouverture. Sur file:// c'est sans effet, mais le jeu se lance via http.server. -->
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
 <title>CASH CAR</title>
 <meta name="description" content="CASH CAR — runner arcade 3D : fonce, saute, vrille, surfe les nuages et amasse une fortune. Une seule vie.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
@@ -11696,11 +11690,10 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   },true);
   mGo('home');
 }
-// PWA : enregistrement du service worker (offline + installable). Sans effet en file:// ou sans HTTPS/localhost.
-/* ⚠ PAS DE SERVICE WORKER EN `file://` : il ne PEUT PAS s'y enregistrer, et la tentative laisse une
-   erreur rouge en console (« unknown error when fetching the script ») chez quiconque ouvre le jeu
-   par double-clic — inquiétant pour rien. On ne l'installe donc que là où il fonctionne, en http(s). */
-if('serviceWorker'in navigator&&location.protocol!=='file:'){ addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); }); }
+// PWA : enregistrement du service worker (offline + installable), en http(s) uniquement et HORS Capacitor.
+// Sous Capacitor (app native iOS), window.Capacitor est défini et le protocole est capacitor:// — un
+// service worker n'y a pas sa place : on ne l'installe pas.
+if('serviceWorker'in navigator&&!window.Capacitor&&(location.protocol==='http:'||location.protocol==='https:')){ addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); }); }
 /* ============ fin ajout MOBILE / PWA ============ */
 requestAnimationFrame(loop);
 })();
