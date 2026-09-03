@@ -19,9 +19,9 @@
 <meta name="apple-mobile-web-app-title" content="CASH CAR">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon.svg">
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
-  :root{--pix:'Press Start 2P',monospace}
+@font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/pressstart2p.woff2') format('woff2');}
+:root{--pix:'Press Start 2P',monospace}
   html,body{margin:0;padding:0;overflow:hidden;background:#ffffff;font-family:var(--pix);user-select:none}
   canvas{display:block}
   #hud{position:fixed;inset:0;pointer-events:none;color:#fff;z-index:2} /* au-dessus du canvas filtré (le filter crée un contexte d'empilement) */
