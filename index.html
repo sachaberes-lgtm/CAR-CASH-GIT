@@ -8037,7 +8037,11 @@ const SAVE={
     this.flush();
   },
   mark(){this.dirty=true;},
-  flush(){try{this.d.v=this.V;localStorage[this.K]=JSON.stringify(this.d);this.dirty=false;}catch(e){}},
+  flush(){try{this.d.v=this.V;const s=JSON.stringify(this.d);localStorage[this.K]=s;this.dirty=false;
+    // P0-03 : miroir natif sous Capacitor — NSUserDefaults (Preferences) survit aux purges WKWebView.
+    // Le web n'a pas ce plugin : la garde saute et on reste sur localStorage seul.
+    if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences){try{window.Capacitor.Plugins.Preferences.set({key:this.K,value:s});}catch(e){}}
+  }catch(e){}},
   export(){return btoa(unescape(encodeURIComponent(JSON.stringify(this.d))));}, // code à copier-coller
   import(code){ // rend true si le code est valide — la désinfection repasse derrière
     try{
@@ -8047,6 +8051,13 @@ const SAVE={
     }catch(e){return false;}
   }
 };
+// P0-03 : sous Capacitor, si le localStorage a été purgé mais que les Preferences natifs ont encore la
+// sauvegarde, on la sème puis on recharge UNE fois (le boot est synchrone, impossible de le bloquer).
+if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences&&!localStorage[SAVE.K]){
+  try{window.Capacitor.Plugins.Preferences.get({key:SAVE.K}).then(function(r){
+    if(r&&r.value){try{localStorage[SAVE.K]=r.value;}catch(e){}location.reload();}
+  }).catch(function(){});}catch(e){}
+}
 SAVE.load();
 setInterval(()=>{if(SAVE.dirty)SAVE.flush();},30000); // le filet : rien ne se perd plus de 30 s
 SND.sfx=SAVE.d.sfx;SND.voice=SAVE.d.vox;SND.music=SAVE.d.mus;
