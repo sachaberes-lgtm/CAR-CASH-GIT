@@ -1,0 +1,109 @@
+# CASH CAR — Backlog App Store
+# Source de vérité unique. Une tâche = une exécution = un commit.
+# status ∈ {DONE, BLOCKED, HUMAIN, SKIP} · Les tâches [HUMAIN] ne sont JAMAIS exécutées par un agent.
+# Dépôt de travail : game/ (branche appstore-backlog). JAMAIS reference/sandbox/ (recette gelée).
+
+meta:
+  generated: 2026-09-03
+  audit:
+    note: "game/index.html = 11 709 lignes (le '6099 lignes' de l'audit initial est périmé, le jeu a grossi après la fusion 30/08)."
+    cdn_restants: true
+    conclusion: "Bundling local NON fait sur game/ → P0-01 et P0-02 à exécuter (pas done)."
+
+# --- Ordre d'exécution agent (sans intervention humaine) ---
+tasks:
+  P0-01:
+    title: "Vendoriser Three.js r128 + 6 modules postprocessing en local"
+    status: DONE
+    critere: "0 src=\"https://…\" restant dans index.html (hors namespace SVG)."
+    deps: []
+  P0-02:
+    title: "Embarquer Press Start 2P en woff2 local, supprimer le lien Google Fonts"
+    status: DONE
+    critere: "Aucune référence fonts.googleapis.com ; @font-face locale charge le woff2."
+    deps: [P0-01]
+  P1-01:
+    title: "Figer capacitor.config (appId, appName) + Info.plist paysage forcé, iOS 16 min"
+    status: TODO
+    critere: "capacitor.config figé ; Info.plist UISupportedInterfaceOrientations = paysage seul ; MinimumOSVersion 16.0."
+    deps: [P0-01]
+  P1-05:
+    title: "PrivacyInfo.xcprivacy (aucune collecte, raisons d'API des plugins)"
+    status: TODO
+    critere: "PrivacyInfo.xcprivacy présent, colle aux APIs réellement utilisées par les plugins Capacitor."
+    deps: [P1-01]
+  P2-05:
+    title: "ITSAppUsesNonExemptEncryption = NO dans Info.plist"
+    status: TODO
+    critere: "Clé présente avec valeur NO, le build ne remonte plus de question d'export compliance."
+    deps: [P1-01]
+  P0-04:
+    title: "Retirer meta anti-cache ; ne plus enregistrer sw.js sous Capacitor"
+    status: TODO
+    critere: "Meta Cache-Control/Pragma/Expires retirées ; enregistrement du service worker conditionné hors Capacitor."
+    deps: [P0-01]
+  P0-06:
+    title: "Safe areas sur HUD et pads, neutraliser requestFullscreen/orientation.lock"
+    status: TODO
+    critere: "HUD/pads ne débordent pas sur l'encoche ; appels fullscreen/orientation.lock inertes sous iOS."
+    deps: [P0-01]
+  P0-05:
+    title: "Déverrouillage audio au 1er geste + préchargement WebAudio + session audio native"
+    status: TODO
+    critere: "AudioContext résumé/créé au premier gesture ; préchargement des mp3 ; session audio déclarée via Capacitor."
+    deps: [P0-01]
+  P0-07:
+    title: "Pause/reprise sur événements de cycle de vie de l'app"
+    status: TODO
+    critere: "Le jeu se met en pause à l'arrière-plan et reprend proprement au retour."
+    deps: [P0-01]
+  P0-03:
+    title: "Sauvegarde via Capacitor Preferences avec repli localStorage"
+    status: TODO
+    critere: "Progression persistée via Preferences sous Capacitor, repli localStorage sur le web."
+    deps: [P0-01]
+  P1-02:
+    title: "Icône 1024x1024 opaque + AppIcon set + launch screen natif"
+    status: TODO
+    critere: "Icône 1024 sans alpha + AppIcon.appiconset complet + launch screen natif configuré."
+    deps: [P1-01]
+  P1-03:
+    title: "Archive Release avec Xcode 26 / SDK iOS 26, Validate OK"
+    status: TODO
+    critere: "xcodebuild archive réussi + xcrun altool/xcodebuild -exportOptionsPlist Validate OK."
+    deps: [P1-02]
+  P2-03:
+    title: "Rédiger + publier la page politique de confidentialité (aucune collecte)"
+    status: TODO
+    critere: "Page en ligne, URL stable, décrivant l'absence réelle de collecte."
+    deps: []
+  P2-04:
+    title: "Publier la page support"
+    status: TODO
+    critere: "Page support en ligne avec contact + FAQ."
+    deps: [P2-03]
+  P3-01:
+    title: "Captures paysage 2868x1320 (6,9\"), 1 à 10 images"
+    status: TODO
+    critere: "Screenshots au format exact, depuis un build réel (simulateur ou appareil)."
+    deps: [P1-03]
+  P3-02:
+    title: "App preview vidéo 15-30 s (optionnel)"
+    status: SKIP
+    critere: null
+    deps: [P3-01]
+  P4-01:
+    title: "Passe QA device : mode avion, cold start, rotation, appel entrant, 30 min sans crash"
+    status: TODO
+    critere: "Checklist QA validée sur appareil physique."
+    deps: [P1-03]
+
+# --- [HUMAIN] — bloquants, Sacha uniquement, jamais exécutés par un agent ---
+humain:
+  P1-04: "Apple Developer Program (99 €/an, vérif identité, plusieurs jours) — CHEMIN CRITIQUE, à lancer en premier."
+  P2-01: "Statut de commerçant DSA dans App Store Connect (sinon retrait UE)."
+  P2-02: "Questionnaire de classification d'âge (nouveau système post janv. 2026)."
+  P2-06: "Nom public définitif, catégorie, prix, description FR/EN, mots-clés."
+  P4-02: "Décision iPhone seul ou iPhone + iPad pour la v1."
+  P4-03: "Preuves de droits : Suno (abo payant à la génération), ElevenLabs, licence OFL."
+  P4-04: "Modèle économique v1 : gratuit ou payant."
