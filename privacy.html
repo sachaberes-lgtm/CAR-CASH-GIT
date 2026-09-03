@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CASH CAR — Politique de confidentialité / Privacy Policy</title>
+<style>
+  :root{
+    --bg:#0a0610;
+    --bg2:#12081f;
+    --panel:#171029;
+    --panel2:#1d1233;
+    --ink:#f5ecff;
+    --ink-dim:#b9a9d6;
+    --pink:#ff3ec8;
+    --cyan:#00eaff;
+    --line:#2a1a44;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:radial-gradient(1200px 700px at 50% -10%, #1a0f2e 0%, var(--bg) 60%),
+               linear-gradient(180deg, var(--bg2), var(--bg));
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.6;
+    min-height:100vh;
+  }
+  .top{
+    position:sticky;top:0;z-index:10;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 20px;
+    background:rgba(10,6,16,.85);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{font-weight:800;font-size:18px;letter-spacing:.06em}
+  .brand .c{color:var(--pink)}
+  .brand .d{color:var(--cyan)}
+  .lang-switch{
+    display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;
+  }
+  .lang-switch button{
+    appearance:none;border:0;cursor:pointer;background:transparent;color:var(--ink-dim);
+    font:inherit;font-size:13px;font-weight:600;padding:6px 14px;letter-spacing:.02em;
+  }
+  .lang-switch button.active{
+    background:linear-gradient(90deg,var(--pink),var(--cyan));color:#0a0610;
+  }
+  main{
+    max-width:820px;margin:0 auto;padding:40px 22px 80px;
+  }
+  h1{
+    font-size:34px;line-height:1.15;margin:0 0 6px;font-weight:800;
+  }
+  h1 .accent{background:linear-gradient(90deg,var(--pink),var(--cyan));
+    -webkit-background-clip:text;background-clip:text;color:transparent;}
+  .sub{color:var(--ink-dim);margin:0 0 32px;font-size:15px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:22px 24px;margin:0 0 18px;}
+  h2{font-size:18px;margin:0 0 12px;font-weight:700;display:flex;align-items:center;gap:9px}
+  h2::before{content:"";width:6px;height:18px;border-radius:3px;
+    background:linear-gradient(var(--pink),var(--cyan));flex:none}
+  p{margin:0 0 12px;color:var(--ink)}
+  p:last-child{margin-bottom:0}
+  ul{margin:0 0 12px;padding-left:20px}
+  li{margin:6px 0;color:var(--ink)}
+  .muted{color:var(--ink-dim)}
+  code{background:var(--panel2);border:1px solid var(--line);border-radius:6px;
+    padding:1px 7px;font-size:.9em;color:var(--cyan)}
+  .pill{display:inline-block;background:var(--panel2);border:1px solid var(--line);
+    border-radius:999px;padding:3px 12px;font-size:12px;margin:6px 6px 0 0;color:var(--ink-dim)}
+  .hl{color:var(--cyan);font-weight:600}
+  a{color:var(--pink);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .updated{color:var(--ink-dim);font-size:12px;margin-top:26px;text-align:center}
+  .fr.block,.en.block{display:none}
+  body.lang-fr .fr.block{display:block}
+  body.lang-en .en.block{display:block}
+</style>
+</head>
+<body class="lang-fr">
+  <div class="top">
+    <div class="brand"><span class="c">CASH</span> <span class="d">CAR</span></div>
+    <div class="lang-switch" role="group" aria-label="Langue / Language">
+      <button id="btn-fr" class="active" type="button">FR</button>
+      <button id="btn-en" type="button">EN</button>
+    </div>
+  </div>
+
+  <main>
+
+    <!-- ============ FRANÇAIS ============ -->
+    <div class="fr block">
+      <h1>Politique de <span class="accent">confidentialité</span></h1>
+      <p class="sub">En clair et sans jargon : CASH CAR ne collecte rien.</p>
+
+      <section>
+        <h2>En résumé</h2>
+        <p><span class="hl">CASH CAR</span> est un jeu de course arcade entièrement
+        <strong>hors ligne</strong>, en mode solo. Il n'y a <strong>ni compte, ni serveur,
+        ni backend</strong>. Le jeu ne se connecte à aucun réseau et n'envoie aucune donnée
+        où que ce soit.</p>
+      </section>
+
+      <section>
+        <h2>Ce que nous collectons</h2>
+        <p><strong>Rien.</strong> CASH CAR ne collecte aucune donnée personnelle :</p>
+        <ul>
+          <li>aucun identifiant, nom, e-mail ou numéro de téléphone ;</li>
+          <li>aucune donnée d'analyse (analytics), aucune télémétrie, aucun suivi ;</li>
+          <li>aucune publicité, aucun SDK publicitaire, aucun cookie de suivi ;</li>
+          <li>aucune requête réseau — le jeu fonctionne totalement hors ligne.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Stockage local uniquement</h2>
+        <p>Tout ce que le jeu enregistre reste <strong>sur votre appareil</strong>, dans le
+        stockage local du navigateur/WebView (<code>localStorage</code>). Ces données ne
+        quittent jamais votre appareil et ne sont transmises à personne. Il s'agit uniquement
+        de vos réglages et de votre progression :</p>
+        <span class="pill">Préférence de langue</span>
+        <span class="pill">Meilleur score</span>
+        <span class="pill">Classement local</span>
+        <span class="pill">Voiture préférée</span>
+        <span class="pill">Réglages son / voix</span>
+        <span class="pill">Progression du garage</span>
+        <p class="muted">Ces informations servent uniquement à mémoriser votre partie entre
+        deux sessions, sur ce seul appareil.</p>
+      </section>
+
+      <section>
+        <h2>Pas de cookies</h2>
+        <p>Le jeu n'utilise pas de cookies et ne dépose aucun traceur. Une politique de
+        consentement aux cookies n'est donc pas nécessaire.</p>
+      </section>
+
+      <section>
+        <h2>Aucune publicité, aucun tiers</h2>
+        <p>CASH CAR ne contient aucune publicité et ne partage aucune donnée avec des tiers,
+        pour la simple raison qu'il n'en collecte aucune.</p>
+      </section>
+
+      <section>
+        <h2>Enfants</h2>
+        <p>CASH CAR ne collecte aucune information, y compris auprès des enfants. Comme aucune
+        donnée personnelle n'est recueillie, il n'y a aucune donnée à protéger, quelle que soit
+        la tranche d'âge. Le jeu n'impose pas de restriction d'âge pour cette raison.</p>
+      </section>
+
+      <section>
+        <h2>Supprimer vos données</h2>
+        <p>Puisque tout est stocké localement, la suppression est entièrement entre vos mains :
+        <strong>désinstaller l'application</strong> (ou effacer le stockage du site dans votre
+        navigateur) supprime définitivement toutes les données du jeu de votre appareil.</p>
+      </section>
+
+      <section>
+        <h2>Modifications de cette politique</h2>
+        <p>Cette politique pourra être mise à jour ponctuellement pour refléter l'évolution du
+        jeu. Toute modification sera publiée sur cette page avec une date de mise à jour.</p>
+      </section>
+
+      <section>
+        <h2>Contact</h2>
+        <p>Pour toute question sur la confidentialité, écrivez-nous à
+        <a href="mailto:support@example.com">support@example.com</a>.</p>
+      </section>
+
+      <p class="updated">Dernière mise à jour : 3 septembre 2026</p>
+    </div>
+
+    <!-- ============ ENGLISH ============ -->
+    <div class="en block">
+      <h1>Privacy <span class="accent">Policy</span></h1>
+      <p class="sub">Plain and simple: CASH CAR collects nothing.</p>
+
+      <section>
+        <h2>At a glance</h2>
+        <p><span class="hl">CASH CAR</span> is a fully <strong>offline</strong>, single-player
+        arcade racing game. There is <strong>no account, no server, and no backend</strong>.
+        The game does not connect to any network and does not send any data anywhere.</p>
+      </section>
+
+      <section>
+        <h2>What we collect</h2>
+        <p><strong>Nothing.</strong> CASH CAR does not collect any personal data:</p>
+        <ul>
+          <li>no identifiers, names, emails or phone numbers;</li>
+          <li>no analytics, no telemetry, no tracking;</li>
+          <li>no advertising, no ad SDKs, no tracking cookies;</li>
+          <li>no network requests — the game runs entirely offline.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Local storage only</h2>
+        <p>Everything the game saves stays <strong>on your device</strong>, in the browser/WebView
+        local storage (<code>localStorage</code>). This data never leaves your device and is never
+        transmitted to anyone. It is limited to your settings and progress:</p>
+        <span class="pill">Language preference</span>
+        <span class="pill">Best score</span>
+        <span class="pill">Local leaderboard</span>
+        <span class="pill">Favorite car</span>
+        <span class="pill">Sound / voice settings</span>
+        <span class="pill">Garage progression</span>
+        <p class="muted">This information is only used to remember your game between sessions,
+        on this single device.</p>
+      </section>
+
+      <section>
+        <h2>No cookies</h2>
+        <p>The game does not use cookies and stores no trackers, so no cookie-consent policy
+        is required.</p>
+      </section>
+
+      <section>
+        <h2>No advertising, no third parties</h2>
+        <p>CASH CAR contains no advertising and shares no data with third parties — simply
+        because it collects none.</p>
+      </section>
+
+      <section>
+        <h2>Children</h2>
+        <p>CASH CAR does not collect any information, including from children. Since no personal
+        data is gathered, there is no data to protect regardless of age group. For this reason,
+        the game imposes no age restriction.</p>
+      </section>
+
+      <section>
+        <h2>Deleting your data</h2>
+        <p>Because everything is stored locally, deletion is entirely in your hands:
+        <strong>uninstalling the app</strong> (or clearing the site's storage in your browser)
+        permanently removes all game data from your device.</p>
+      </section>
+
+      <section>
+        <h2>Changes to this policy</h2>
+        <p>This policy may be updated from time to time to reflect changes to the game. Any
+        changes will be posted on this page with an updated date.</p>
+      </section>
+
+      <section>
+        <h2>Contact</h2>
+        <p>For any privacy-related question, write to us at
+        <a href="mailto:support@example.com">support@example.com</a>.</p>
+      </section>
+
+      <p class="updated">Last updated: September 3, 2026</p>
+    </div>
+
+  </main>
+
+  <script>
+    (function(){
+      var body=document.body,fr=document.getElementById('btn-fr'),en=document.getElementById('btn-en');
+      // Langue déjà choisie ? (stockage purement local, sans aucune donnée personnelle)
+      var saved='';
+      try{ saved=localStorage.getItem('ccLang'); }catch(e){}
+      function apply(lang){
+        body.classList.remove('lang-fr','lang-en');
+        body.classList.add('lang-'+lang);
+        fr.classList.toggle('active', lang==='fr');
+        en.classList.toggle('active', lang==='en');
+        try{ localStorage.setItem('ccLang',lang); }catch(e){}
+      }
+      apply((saved==='en')?'en':'fr');
+      fr.addEventListener('click',function(){apply('fr');});
+      en.addEventListener('click',function(){apply('en');});
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CASH CAR — Support / Assistance</title>
+<style>
+  :root{
+    --bg:#0a0610;
+    --bg2:#12081f;
+    --panel:#171029;
+    --panel2:#1d1233;
+    --ink:#f5ecff;
+    --ink-dim:#b9a9d6;
+    --pink:#ff3ec8;
+    --cyan:#00eaff;
+    --line:#2a1a44;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:radial-gradient(1200px 700px at 50% -10%, #1a0f2e 0%, var(--bg) 60%),
+               linear-gradient(180deg, var(--bg2), var(--bg));
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.6;
+    min-height:100vh;
+  }
+  .top{
+    position:sticky;top:0;z-index:10;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 20px;
+    background:rgba(10,6,16,.85);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{font-weight:800;font-size:18px;letter-spacing:.06em}
+  .brand .c{color:var(--pink)}
+  .brand .d{color:var(--cyan)}
+  .lang-switch{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+  .lang-switch button{
+    appearance:none;border:0;cursor:pointer;background:transparent;color:var(--ink-dim);
+    font:inherit;font-size:13px;font-weight:600;padding:6px 14px;letter-spacing:.02em;
+  }
+  .lang-switch button.active{background:linear-gradient(90deg,var(--pink),var(--cyan));color:#0a0610}
+  main{max-width:820px;margin:0 auto;padding:40px 22px 80px}
+  h1{font-size:34px;line-height:1.15;margin:0 0 6px;font-weight:800}
+  h1 .accent{background:linear-gradient(90deg,var(--pink),var(--cyan));
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--ink-dim);margin:0 0 32px;font-size:15px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:22px 24px;margin:0 0 18px}
+  h2{font-size:18px;margin:0 0 12px;font-weight:700;display:flex;align-items:center;gap:9px}
+  h2::before{content:"";width:6px;height:18px;border-radius:3px;
+    background:linear-gradient(var(--pink),var(--cyan));flex:none}
+  a{color:var(--pink);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .email{
+    display:inline-block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    padding:10px 16px;color:var(--cyan);font-size:15px;
+  }
+  .qa{margin:0 0 14px}
+  .qa:last-child{margin-bottom:0}
+  .q{font-weight:700;color:var(--ink);margin:0 0 4px}
+  .q::before{content:"Q. ";color:var(--pink)}
+  .a{margin:0;color:var(--ink-dim)}
+  .a::before{content:"A. ";color:var(--cyan);font-weight:700}
+  .muted{color:var(--ink-dim);font-size:13px}
+  .ver{
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;
+    background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+    padding:6px 12px;color:var(--cyan);display:inline-block;margin-top:4px;
+  }
+  .fr.block,.en.block{display:none}
+  body.lang-fr .fr.block{display:block}
+  body.lang-en .en.block{display:block}
+</style>
+</head>
+<body class="lang-fr">
+  <div class="top">
+    <div class="brand"><span class="c">CASH</span> <span class="d">CAR</span></div>
+    <div class="lang-switch" role="group" aria-label="Langue / Language">
+      <button id="btn-fr" class="active" type="button">FR</button>
+      <button id="btn-en" type="button">EN</button>
+    </div>
+  </div>
+
+  <main>
+
+    <!-- ============ FRANÇAIS ============ -->
+    <div class="fr block">
+      <h1>Support <span class="accent">CASH CAR</span></h1>
+      <p class="sub">Besoin d'aide ? On est là.</p>
+
+      <section>
+        <h2>Nous contacter</h2>
+        <p>Pour tout problème, question ou suggestion, écrivez-nous à :</p>
+        <p><a class="email" href="mailto:support@example.com">support@example.com</a></p>
+        <p class="muted">Décrivez votre problème, votre appareil (iPhone/iPad/autre) et la version
+        du jeu indiquée ci-dessous : on vous répondra plus vite.</p>
+      </section>
+
+      <section>
+        <h2>Questions fréquentes</h2>
+
+        <div class="qa">
+          <p class="q">Le jeu a-t-il besoin d'Internet ?</p>
+          <p class="a">Non. CASH CAR est entièrement hors ligne : vous pouvez jouer partout,
+          même en mode avion, sans connexion.</p>
+        </div>
+
+        <div class="qa">
+          <p class="q">Comment installer le jeu ?</p>
+          <p class="a">Sur iOS, installez-le via l'App Store (ou le lien fourni par votre
+          installateur). En version web, ouvrez simplement la page dans votre navigateur.
+          Aucune connexion n'est requise pour jouer.</p>
+        </div>
+
+        <div class="qa">
+          <p class="q">Ma sauvegarde est-elle conservée après une mise à jour ?</p>
+          <p class="a">Oui. Votre progression et vos réglages sont stockés localement sur
+          votre appareil et restent en place lors des mises à jour de l'application.</p>
+        </div>
+
+        <div class="qa">
+          <p class="q">Que se passe-t-il si je désinstalle l'application ?</p>
+          <p class="a">Toutes les données locales (scores, progression, réglages) sont
+          supprimées avec l'application. Elles ne sont sauvegardées nulle part ailleurs :
+          pensez à noter votre code de sauvegarde si vous souhaitez les conserver.</p>
+        </div>
+
+        <div class="qa">
+          <p class="q">Comment remettre le jeu à zéro ?</p>
+          <p class="a">Désinstallez puis réinstallez l'application, ou effacez le stockage
+          du site dans votre navigateur (version web).</p>
+        </div>
+
+        <div class="qa">
+          <p class="q">L'écran est à l'envers ou mal orienté.</p>
+          <p class="a">Le jeu est conçu pour le paysage. Tournez votre appareil et vérifiez
+          que la rotation d'écran n'est pas verrouillée dans les réglages de votre appareil.</p>
+        </div>
+
+        <div class="qa">
+          <p class="q">Je n'ai pas de son.</p>
+          <p class="a">Vérifiez que votre appareil n'est pas en silencieux, puis réglez les
+          options son et voix dans le menu du jeu.</p>
+        </div>
+
+        <div class="qa">
+          <p class="q">Les performances sont saccadées sur mon appareil.</p>
+          <p class="a">Réduisez la qualité d'image dans les réglages du jeu (résolution
+          « rapide »), fermez les autres applications, et vérifiez que votre appareil est à jour.</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>Version du jeu</h2>
+        <p class="muted">Indiquez cette référence lors de votre demande d'aide :</p>
+        <span class="ver">2026-07-20 v5</span>
+      </section>
+    </div>
+
+    <!-- ============ ENGLISH ============ -->
+    <div class="en block">
+      <h1>Support <span class="accent">CASH CAR</span></h1>
+      <p class="sub">Need a hand? We're here.</p>
+
+      <section>
+        <h2>Contact us</h2>
+        <p>For any issue, question or suggestion, email us at:</p>
+        <p><a class="email" href="mailto:support@example.com">support@example.com</a></p>
+        <p class="muted">Please describe your problem, your device (iPhone/iPad/other) and the
+        game version shown below — it helps us reply faster.</p>
+      </section>
+
+      <section>
+        <h2>Frequently asked questions</h2>
+
+        <div class="qa">
+          <p class="q">Does the game need an internet connection?</p>
+          <p class="a">No. CASH CAR is fully offline: you can play anywhere, even in airplane
+          mode, with no connection at all.</p>
+        </div>
+
+        <div class="qa">
+          <p class="q">How do I install the game?</p>
+          <p class="a">On iOS, install it from the App Store (or the link provided by your
+          installer). In the web version, just open the page in your browser. No connection is
+          required to play.</p>
+        </div>
+
+        <div class="qa">
+          <p class="q">Is my save kept after an update?</p>
+          <p class="a">Yes. Your progress and settings are stored locally on your device and
+          remain in place across app updates.</p>
+        </div>
+
+        <div class="qa">
+          <p class="q">What happens if I uninstall the app?</p>
+          <p class="a">All local data (scores, progress, settings) is removed together with the
+          app. It isn't backed up anywhere else — if you want to keep it, note down your save code.</p>
+        </div>
+
+        <div class="qa">
+          <p class="q">How do I reset the game?</p>
+          <p class="a">Uninstall and reinstall the app, or clear the site's storage in your
+          browser (web version).</p>
+        </div>
+
+        <div class="qa">
+          <p class="q">The screen is upside down or rotated.</p>
+          <p class="a">The game is designed for landscape. Rotate your device and make sure
+          screen rotation isn't locked in your device settings.</p>
+        </div>
+
+        <div class="qa">
+          <p class="q">I have no sound.</p>
+          <p class="a">Make sure your device isn't muted, then adjust the sound and voice
+          options in the in-game menu.</p>
+        </div>
+
+        <div class="qa">
+          <p class="q">Performance is choppy on my device.</p>
+          <p class="a">Lower the graphics quality in the game settings ("fast" resolution),
+          close other apps, and make sure your device is up to date.</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>Game version</h2>
+        <p class="muted">Mention this reference when you ask for help:</p>
+        <span class="ver">2026-07-20 v5</span>
+      </section>
+    </div>
+
+  </main>
+
+  <script>
+    (function(){
+      var body=document.body,fr=document.getElementById('btn-fr'),en=document.getElementById('btn-en');
+      var saved='';
+      try{ saved=localStorage.getItem('ccLang'); }catch(e){}
+      function apply(lang){
+        body.classList.remove('lang-fr','lang-en');
+        body.classList.add('lang-'+lang);
+        fr.classList.toggle('active', lang==='fr');
+        en.classList.toggle('active', lang==='en');
+        try{ localStorage.setItem('ccLang',lang); }catch(e){}
+      }
+      apply((saved==='en')?'en':'fr');
+      fr.addEventListener('click',function(){apply('fr');});
+      en.addEventListener('click',function(){apply('en');});
+    })();
+  </script>
+</body>
+</html>
