@@ -2726,6 +2726,7 @@ const I18N={
  '★ DÉCOLLAGE PRÊT — double-tape NITRO ! ★':'★ LIFT-OFF READY — double-tap NITRO! ★',
  '🏆 CHAMPION SURVIVANT — JAUGE OFFERTE !':'🏆 SURVIVOR CHAMPION — FREE GAUGE!',
  '🪦 ÉLIMINÉ — DERNIER DE LA MINUTE !':'🪦 ELIMINATED — LAST OF THE MINUTE!',
+ '⚠ ATTENTION !<br>VOUS ÊTES DERNIER<br>EXPLOSION DANS : 00:':'⚠ WARNING!<br>YOU ARE LAST<br>EXPLOSION IN : 00:',
  'PILE AU CENTRE 🎯':'DEAD CENTRE 🎯','À RECULONS — MÊME PAS REGARDÉ !':'BACKWARDS — DIDN\'T EVEN LOOK!',
  'FACE CACHÉE ×2':'HIDDEN FACE ×2','🚀 GAP FRANCHI !':'🚀 GAP CLEARED!','🚀 DOUBLE GAP — MONSTRUEUX !':'🚀 DOUBLE GAP — MONSTROUS!',
  'CHAÎNE PERDUE':'CHAIN LOST','REPORT +':'CARRY-OVER +','⚠ ROULE OU CRÈVE — ':'⚠ DRIVE OR DIE — ',
@@ -9249,7 +9250,7 @@ function survTick(dt){
   SURV.last=alive.length>0&&pRank>alive.length;
   if(SURV.last&&!gameOver){
     const left=Math.max(0,Math.ceil(60-SURV.t));
-    lastAlertEl.innerHTML='⚠ ATTENTION !<br>VOUS ÊTES DERNIER<br>EXPLOSION DANS : 00:'+String(left).padStart(2,'0');
+    lastAlertEl.innerHTML=TR('⚠ ATTENTION !<br>VOUS ÊTES DERNIER<br>EXPLOSION DANS : 00:')+String(left).padStart(2,'0');
     lastAlertEl.style.display='block';
   }else lastAlertEl.style.display='none';
   if(SURV.t>=60){ // ---- LE COUPERET ----
