@@ -5,7 +5,7 @@
 
 meta:
   generated: 2026-09-03
-  updated: 2026-09-03 (session 1 — code + config iOS complets, build simulateur OK)
+  updated: 2026-09-04 (session 2 — musique récupérée, archive Release sans signature = SUCCÈS)
   audit:
     note: "game/index.html = 11 709 lignes au lancement (l'audit '6099 lignes' était périmé)."
     cdn_restants: true
@@ -30,7 +30,7 @@ tasks:
   P1-03:
     title: "Archive Release + Validate (Xcode 26 / SDK iOS 26)"
     status: BLOCKED
-    note: "Build simulateur SUCCÈS + app lancée + jeu rendu (portrait). Archive+Validate exige la signature (Apple ID / compte dev — HUMAIN)."
+    note: "Build simulateur SUCCÈS + app lancée + jeu rendu (portrait). Archive Release SANS signature = SUCCÈS (prouvé 2026-09-04, 13 Mo). Archive+Validate exige la signature (Apple ID / compte dev — HUMAIN)."
   P2-03:
     title: "Page politique de confidentialité + publication"
     status: BLOCKED
@@ -48,7 +48,7 @@ humain:
   P4-02: "Décision iPhone seul ou iPhone + iPad."
   P4-03: "Preuves de droits : Suno, ElevenLabs, licence OFL."
   P4-04: "Modèle économique v1 : gratuit ou payant."
-  PAGES-TOGGLE: "Activer GitHub Pages sur car-crash (Settings→Pages→Deploy from branch→gh-pages)."
+  PAGES-TOGGLE: "Activer GitHub Pages sur CAR-CASH-GIT (Settings→Pages→Deploy from branch→gh-pages)."
 
 complementaire:
-  AUDIO_MANQUANT: "Référencé par le code mais absent du dépôt (Mac) : assets/audio/music/lvl1-neon-cash-car-v3.mp3, menu.mp3, assets/audio/death/{minecraft,explosion,eww,gong}.mp3. Le jeu les gère proprement (404 ignorés), mais à récupérer (~/Downloads/CASH-CAR 2/) pour la v1."
+  AUDIO_MANQUANT: "RÉSOLU (2026-09-04) : musique lvl1-neon-cash-car-v3.mp3 récupérée depuis ~/Downloads/CASH-CAR 2/ (fichier source lvl1-chrome-ledger.mp3, 4,6 Mo). Reste : assets/audio/death/{minecraft,explosion,eww,gong}.mp3 — introuvables partout, sons spécifiques (Sacha doit les fournir). menu.mp3 non requis (MUSIC.menu='')."
