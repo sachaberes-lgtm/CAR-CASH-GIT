@@ -8700,8 +8700,8 @@ function engFan9(t0){
     const n=AC.createBufferSource(),nb=AC.createBuffer(1,AC.sampleRate*.5,AC.sampleRate),d=nb.getChannelData(0);
     for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length);
     n.buffer=nb;
-    const bp=AC.createBiquadFilter();bp.type='bandpass';bp.frequency.value=5200;bp.Q.value=1.4;
-    const ng=AC.createGain();ng.gain.setValueAtTime(.055,t0+.20);
+    const bp=AC.createBiquadFilter();bp.type='bandpass';bp.frequency.value=3400;bp.Q.value=1.4; // était 5200 : voir sparkle
+    const ng=AC.createGain();ng.gain.setValueAtTime(.022,t0+.20);
     ng.gain.exponentialRampToValueAtTime(.0006,t0+.80);
     n.connect(bp);bp.connect(ng);ng.connect(MASTER);n.start(t0+.20);
   }catch(e){}
@@ -8797,13 +8797,20 @@ function chimeNote(f,t,vol,dur){ // note cloche : sinus + partiel triangle à l'
     o.start(t0);o.stop(t0+dur+.05);o2.start(t0);o2.stop(t0+dur+.05);
   }catch(e){}
 }
+let _spkT=0; // dernier scintillement : sans garde-fou ils s'empilent en rafale sous nitro
 function sparkle(t,vol){ // poussière d'or : souffle bandpass très bref
-  if(!AC)return;
+  if(!AC||isMuted('reward'))return;
+  /* ⚠ NE PAS REMONTER LA BANDE NI LE VOLUME SANS MESURER.
+     Mesuré sur l'enregistrement d'un joueur : des salves à 4,6-6,8 kHz, jusqu'à 71 %
+     de l'énergie au-dessus de 4 kHz. C'était CE son, le « strident » signalé. La bande
+     était à 5 200 Hz — le pic exact de sensibilité de l'oreille — et `sparkle` part à
+     chaque figure posée : sous nitro on est en l'air en permanence, donc en rafale. */
+  const _now=AC.currentTime; if(_now-_spkT<.09)return; _spkT=_now;
   try{
     const src=AC.createBufferSource();src.buffer=noiseBuf(.09);
-    const f=AC.createBiquadFilter();f.type='bandpass';f.frequency.value=5200;f.Q.value=1.2;
+    const f=AC.createBiquadFilter();f.type='bandpass';f.frequency.value=3400;f.Q.value=1.2;
     const g=AC.createGain();const t0=AC.currentTime+t;
-    g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(vol,t0+.01);
+    g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(vol*.4,t0+.01);
     g.gain.exponentialRampToValueAtTime(.0008,t0+.09);
     src.connect(f);f.connect(g);g.connect(MASTER);src.start(t0);src.stop(t0+.14);
   }catch(e){}
@@ -9000,11 +9007,13 @@ function annPreload(){ // réchauffe le cache HTTP dès le 1er geste : la voix p
        HTMLAudio : il ne passe PAS par le bus WebAudio, donc `AC.suspend()` (le bouton SON) ne le
        coupe pas tout seul. Sans ce gate explicite, couper le son laisserait les morts sonores. */
 const DEATH_DIR='assets/audio/death/';
+// ⚠ SONS DE SYNTHÈSE (placeholders) : les originaux sous licence (minecraft/explosion/eww/gong)
+//   restent à fournir par Sacha. Format AAC .m4a (WKWebView natif — afconvert ne sait pas encoder mp3).
 const DEATH_LIB=[
-  {f:'minecraft.mp3', v:.80, max:2.6},  // le boum pixelisé — la référence que tout le monde reconnaît
-  {f:'explosion.mp3', v:.70, max:4.5},  // la vraie déflagration (8,4 s à l'origine : on garde le souffle, pas la traîne)
-  {f:'eww.mp3',       v:.95, max:2.3},  // « ewwwww » — le seul qui COMMENTE la mort au lieu de l'illustrer
-  {f:'gong.mp3',      v:.85, max:3.6}   // le gong : la sanction solennelle, à contre-emploi total
+  {f:'minecraft.m4a', v:.80, max:2.6},  // boum pixelisé (synthèse — placeholder)
+  {f:'explosion.m4a', v:.70, max:4.5},  // déflagration (synthèse — placeholder)
+  {f:'eww.m4a',       v:.95, max:2.3},  // « ewwwww » (voix TTS — placeholder)
+  {f:'gong.m4a',      v:.85, max:3.6}   // gong (synthèse — placeholder)
 ];
 let deathLast=-1,deathEls=[];
 for(const d of DEATH_LIB)d.dead=true; // DEMO: samples not shipped — silent, never a 404

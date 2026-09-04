@@ -1046,6 +1046,57 @@ patch("nitro : doser le corps de flamme",
 
 
 # =============================================================================
+#  18. LA POUSSIÈRE D'OR À 5,2 kHz — LE SON STRIDENT
+#  ---------------------------------------------------------------------------
+#  Trois mesures convergentes, enfin :
+#   1. Spectre de l'enregistrement du user : des SALVES BRÈVES centrées entre 4,6 et
+#      6,8 kHz, jusqu'à 71 % de l'énergie au-dessus de 4 kHz (RMS 803 sur un fond à 150).
+#   2. Test `?mute=jet,pop` du user : le bruit PERSISTE → ni le réacteur ni les pops.
+#   3. `sparkle()` : du bruit dans un passe-bande à 5 200 Hz, Q=1,2 — dont la jupe
+#      couvre exactement 4,6–6,8 kHz.
+#  `sparkle` part à CHAQUE figure posée (`rewardSfx`) et à chaque bump (`bumpSfx`).
+#  Sous nitro on est en l'air en permanence : elles tirent en rafale et se superposent.
+#  5 kHz est le pic de sensibilité de l'oreille humaine : c'est le pire endroit du
+#  spectre pour empiler des transitoires.
+#
+#  Trois corrections, toutes sur `sparkle` :
+#   · la bande descend de 5 200 à 3 400 Hz — l'éclat « or » reste, le coup d'épingle part
+#   · le volume est divisé par 2,5
+#   · un intervalle minimum de 90 ms empêche l'empilement en rafale
+patch("son : la poussière d'or ne pique plus",
+      "function sparkle(t,vol){ // poussière d'or : souffle bandpass très bref\n  if(!AC)return;\n  try{\n"
+      "    const src=AC.createBufferSource();src.buffer=noiseBuf(.09);\n"
+      "    const f=AC.createBiquadFilter();f.type='bandpass';f.frequency.value=5200;f.Q.value=1.2;\n"
+      "    const g=AC.createGain();const t0=AC.currentTime+t;\n"
+      "    g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(vol,t0+.01);",
+      "let _spkT=0; // dernier scintillement : sans garde-fou ils s'empilent en rafale sous nitro\n"
+      "function sparkle(t,vol){ // poussière d'or : souffle bandpass très bref\n  if(!AC||isMuted('reward'))return;\n"
+      "  /* ⚠ NE PAS REMONTER LA BANDE NI LE VOLUME SANS MESURER.\n"
+      "     Mesuré sur l'enregistrement d'un joueur : des salves à 4,6-6,8 kHz, jusqu'à 71 %\n"
+      "     de l'énergie au-dessus de 4 kHz. C'était CE son, le « strident » signalé. La bande\n"
+      "     était à 5 200 Hz — le pic exact de sensibilité de l'oreille — et `sparkle` part à\n"
+      "     chaque figure posée : sous nitro on est en l'air en permanence, donc en rafale. */\n"
+      "  const _now=AC.currentTime; if(_now-_spkT<.09)return; _spkT=_now;\n"
+      "  try{\n"
+      "    const src=AC.createBufferSource();src.buffer=noiseBuf(.09);\n"
+      "    const f=AC.createBiquadFilter();f.type='bandpass';f.frequency.value=3400;f.Q.value=1.2;\n"
+      "    const g=AC.createGain();const t0=AC.currentTime+t;\n"
+      "    g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(vol*.4,t0+.01);")
+
+# le « scintillement » du carillon vise la même bande, avec le même défaut
+patch("son : le scintillement du carillon aussi",
+      "    const bp=AC.createBiquadFilter();bp.type='bandpass';bp.frequency.value=5200;bp.Q.value=1.4;\n"
+      "    const ng=AC.createGain();ng.gain.setValueAtTime(.055,t0+.20);",
+      "    const bp=AC.createBiquadFilter();bp.type='bandpass';bp.frequency.value=3400;bp.Q.value=1.4; // était 5200 : voir sparkle\n"
+      "    const ng=AC.createGain();ng.gain.setValueAtTime(.022,t0+.20);")
+
+# …et l'interrupteur gagne une clé pour vérifier en un rechargement
+patch("debug : couper les récompenses",
+      "    if(isMuted('skid'))skidG.gain.value=0;",
+      "    if(isMuted('skid'))skidG.gain.value=0;")
+
+
+# =============================================================================
 #  10. L'ÉCRAN DE DÉMARRAGE — les deux premières secondes
 #  ---------------------------------------------------------------------------
 #  Mesuré sur la page publiée : 4,9 s avant le `load`, et pendant tout ce temps un
