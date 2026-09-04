@@ -86,6 +86,21 @@ redéploie — sinon l'aperçu Slack cherche son image à une adresse qui n'exis
 aucun JavaScript : c'est pour ça que les balises sont tout en haut du fichier et que
 l'image est un vrai fichier à côté, pas un data-URI.
 
+### Deux réglages qui ne se font QUE dans le tableau de bord
+
+Le connecteur Vercel de l'agent est en lecture seule sur les projets (403 sur
+`update_project`, 400 sur `unpause_project`) : ces deux-là se font à la main, une fois.
+
+1. **Protection de déploiement → désactivée.** Par défaut, le projet renvoie un `302`
+   vers `vercel.com/sso-api` : n'importe qui ouvrant le lien tombe sur une page de
+   connexion Vercel. C'est rédhibitoire pour une démo publique.
+   *Settings → Deployment Protection → Vercel Authentication → Disabled.*
+2. **Projet en pause → repris.** Le projet est `live: false` et tout déploiement
+   ressort `BLOCKED` sans même produire de log de build.
+
+Tant que ces deux points ne sont pas réglés, le lien ne sert rien — quel que soit
+le contenu du dépôt.
+
 ## L'image d'aperçu
 
 ```bash
