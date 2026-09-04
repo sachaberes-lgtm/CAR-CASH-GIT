@@ -1,0 +1,25 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+
+  "//": "Le dossier déployable n'est pas à la racine du dépôt (elle contient le jeu complet et ce README). On le recopie explicitement dans un dossier de sortie plutôt que de compter sur un réglage 'Root Directory' du tableau de bord : le déploiement est ainsi décrit PAR LE DÉPÔT, il survit à un ré-import et il se relit.",
+  "buildCommand": "rm -rf .vercel-static && cp -R demo/cash-car-demo .vercel-static",
+  "outputDirectory": ".vercel-static",
+
+  "headers": [
+    {
+      "//": "three.js, la police et les voix ne changent qu'avec le moteur du jeu : on les met en cache un an. C'est ce qui rend la 2e visite instantanée.",
+      "source": "/(vendor|assets)/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "//": "La page, elle, doit toujours être fraîche : c'est elle qui change à chaque build.",
+      "source": "/",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
+    }
+  ]
+}

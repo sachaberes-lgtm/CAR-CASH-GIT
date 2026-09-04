@@ -24,7 +24,7 @@ import base64, json, os, re, sys
 # Public base URL of the deployed demo. Open Graph needs ABSOLUTE urls — Slackbot
 # will not resolve a relative og:image — so this is the one line to change if the
 # demo lands on a different host or domain.
-BASE = 'https://cash-car-demo.vercel.app'
+BASE = 'https://car-cash-git.vercel.app'
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 
