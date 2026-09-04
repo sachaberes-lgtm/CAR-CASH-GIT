@@ -2816,7 +2816,11 @@ const I18N={
  'Deux grammes d\'antimatière et un mépris total des lois de la physique. Newton s\'est retourné. Trop lentement.':'Two grams of antimatter and utter contempt for the laws of physics. Newton turned in his grave. Too slowly.',
  'Quand elle passe devant le soleil : trois secondes de nuit. Les astronomes l\'ont classée phénomène céleste.':'When it crosses the sun: three seconds of night. Astronomers classified it as a celestial event.',
  'La lumière a demandé un délai. Le temps s\'excuse au passage. Tu ne conduis plus : tu plies la carte.':'Light asked for an extension. Time apologises as you pass. You\'re not driving any more: you\'re folding the map.',
- 'Plus de route. Plus de son. Plus de rivaux. Juste toi, et l\'univers qui essaie de suivre. Il n\'y arrive pas.':'No more road. No more sound. No more rivals. Just you, and the universe trying to keep up. It can\'t.'
+ 'Plus de route. Plus de son. Plus de rivaux. Juste toi, et l\'univers qui essaie de suivre. Il n\'y arrive pas.':'No more road. No more sound. No more rivals. Just you, and the universe trying to keep up. It can\'t.',
+ // ---- descriptions des modes (menu mobile) ----
+ 'Sept voitures de police sur la piste, à armes égales. Toutes les 60 secondes, le dernier explose. Une place à prendre : la première.':'Seven police cars on the track, evenly matched. Every 60 seconds, the last one blows up. One spot to take: first place.',
+ 'Pas de course, pas de police, pas de mort : un terrain de figures avec ses rampes. On y va pour apprendre à voler.':'No race, no cops, no death: a trick park with its ramps. Go there to learn to fly.',
+ 'On s\'entraîne sur la vraie piste : la caisse se replace au lieu de mourir. Idéal pour les sauts — mais aucun score n\'est enregistré.':'Practice on the real track: the car respawns instead of dying. Great for jumps — but no score is saved.'
 };
 // ⚠ nommée TR et non T : `T` est DÉJÀ le tableau des tangentes de la piste (T[bi].y) — la
 // collision faisait planter tout le script au parsing, écran noir muet.
@@ -2831,7 +2835,7 @@ function applyLangDOM(){
   const put=(sel,txt)=>{const e=document.querySelector(sel);if(e)e.textContent=txt;};
   // ⚠ que des éléments à texte PUR : #cpInfo par exemple contient <span id=cpDist> et #cpBar,
   // lui écrire un textContent supprimerait ses enfants (donc la jauge de progression).
-  for(const e of document.querySelectorAll('[data-fr],#gTitle,#gHint,#gEquip,#tagline,#goTxt,#nameSave,#setHead>span,#saveExp,#saveImp,#nitroLbl,#speedUnit,.setSec,.setRow>span,.setKeys span,#nameEntry>span,.blabel')){
+  for(const e of document.querySelectorAll('[data-fr],#gTitle,#gHint,#gEquip,#tagline,#goTxt,#nameSave,#setHead>span,#saveExp,#saveImp,#nitroLbl,#speedUnit,.setSec,.setRow>span,.setKeys span,#nameEntry>span,.blabel,.mmD')){
     if(e.dataset.fr===undefined)e.dataset.fr=e.textContent;
     e.textContent=TR(e.dataset.fr);
   }
@@ -7889,11 +7893,13 @@ function annPreload(){ // réchauffe le cache HTTP dès le 1er geste : la voix p
        HTMLAudio : il ne passe PAS par le bus WebAudio, donc `AC.suspend()` (le bouton SON) ne le
        coupe pas tout seul. Sans ce gate explicite, couper le son laisserait les morts sonores. */
 const DEATH_DIR='assets/audio/death/';
+// ⚠ SONS DE SYNTHÈSE (placeholders) : les originaux sous licence (minecraft/explosion/eww/gong)
+//   restent à fournir par Sacha. Format AAC .m4a (WKWebView natif — afconvert ne sait pas encoder mp3).
 const DEATH_LIB=[
-  {f:'minecraft.mp3', v:.80, max:2.6},  // le boum pixelisé — la référence que tout le monde reconnaît
-  {f:'explosion.mp3', v:.70, max:4.5},  // la vraie déflagration (8,4 s à l'origine : on garde le souffle, pas la traîne)
-  {f:'eww.mp3',       v:.95, max:2.3},  // « ewwwww » — le seul qui COMMENTE la mort au lieu de l'illustrer
-  {f:'gong.mp3',      v:.85, max:3.6}   // le gong : la sanction solennelle, à contre-emploi total
+  {f:'minecraft.m4a', v:.80, max:2.6},  // boum pixelisé (synthèse — placeholder)
+  {f:'explosion.m4a', v:.70, max:4.5},  // déflagration (synthèse — placeholder)
+  {f:'eww.m4a',       v:.95, max:2.3},  // « ewwwww » (voix TTS — placeholder)
+  {f:'gong.m4a',      v:.85, max:3.6}   // gong (synthèse — placeholder)
 ];
 let deathLast=-1,deathEls=[];
 function deathPreload(){
