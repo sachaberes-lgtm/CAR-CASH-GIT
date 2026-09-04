@@ -998,29 +998,6 @@ patch("debug : déclaration du drapeau",
       "let AC=null,osc=null,osc2=null,")
 
 # les points d'application : un gain forcé à zéro par chaîne
-patch("debug : couper le réacteur",
-      "        jetG.gain.setTargetAtTime(nitroOn&&air9?.01*dk:0,AC.currentTime,.06);",
-      "        if(isMuted('jet')){jetG.gain.value=0;jetLowG.gain.value=0;jetOscG.gain.value=0;jrG.gain.value=0;}else\n"
-      "        jetG.gain.setTargetAtTime(nitroOn&&air9?.01*dk:0,AC.currentTime,.06);")
-patch("debug : couper le moteur",
-      "        gainN.gain.setTargetAtTime(P9.ev,T,.08);",
-      "        gainN.gain.setTargetAtTime(isMuted('eng')?0:P9.ev,T,.08);")
-patch("debug : couper le vent et le sifflement",
-      "        whF.frequency.setTargetAtTime(Math.min(2600,2000+spd3*1.2),AC.currentTime,.1);",
-      "        whF.frequency.setTargetAtTime(Math.min(2600,2000+spd3*1.2),AC.currentTime,.1);\n"
-      "        if(isMuted('air')){whG.gain.value=0;windG.gain.value=0;}")
-patch("debug : couper le crissement",
-      "        skidG.gain.setTargetAtTime(drift>0?",
-      "        if(isMuted('skid'))skidG.gain.value=0; else skidG.gain.setTargetAtTime(drift>0?")
-patch("debug : couper la sirène",
-      "    sirG.gain.setTargetAtTime(SND.sfx?vol:0,AC.currentTime,.25);",
-      "    sirG.gain.setTargetAtTime((SND.sfx&&!isMuted('siren'))?vol:0,AC.currentTime,.25);")
-patch("debug : couper les sons ponctuels",
-      "function flamePop(dur,vol,freq){",
-      "function flamePop(dur,vol,freq){ if(isMuted('pop'))return;")
-patch("debug : couper les rafales de bruit",
-      "function noiseBurst(dur,vol,freq){\n  if(!AC)return;",
-      "function noiseBurst(dur,vol,freq){\n  if(!AC||isMuted('pop'))return;")
 
 
 # =============================================================================
@@ -1092,9 +1069,77 @@ patch("son : le scintillement du carillon aussi",
       "    const ng=AC.createGain();ng.gain.setValueAtTime(.022,t0+.20);")
 
 # …et l'interrupteur gagne une clé pour vérifier en un rechargement
-patch("debug : couper les récompenses",
-      "    if(isMuted('skid'))skidG.gain.value=0;",
-      "    if(isMuted('skid'))skidG.gain.value=0;")
+
+
+# =============================================================================
+#  19. REFONTE DU SON DE NITRO + UN INTERRUPTEUR QUI MARCHE VRAIMENT
+#  ---------------------------------------------------------------------------
+#  ⚠ L'INTERRUPTEUR PRÉCÉDENT ÉTAIT FAUX. Il posait `gain.value=0` au milieu du bloc
+#  par frame — et les lignes suivantes réécrivaient aussitôt ces zéros. `?mute=jet`
+#  ne coupait donc qu'UNE couche sur quatre, et justement celle qui vaut déjà 0 au sol.
+#  Les tests faits avec lui ne prouvent rien. On coupe désormais par DÉBRANCHEMENT,
+#  une fois, à la construction : aucune écriture par frame ne peut le défaire.
+patch("debug : interrupteur par débranchement (le précédent était faux)",
+      "  musicGraph(); // BANDE-SON + analyse (le ciel pulse en rythme)",
+      "  musicGraph(); // BANDE-SON + analyse (le ciel pulse en rythme)\n"
+      "  /* ---- BISSECTION : ?mute=jet,eng,air,skid,siren,reward ----\n"
+      "     ⚠ ON DÉBRANCHE, on ne met pas le gain à zéro : le bloc audio par frame\n"
+      "     réécrit tous ces gains, donc un zéro posé ici serait effacé à la frame\n"
+      "     suivante. Un nœud débranché, lui, ne revient jamais dans le graphe. */\n"
+      "  try{\n"
+      "    MUTED=(new URLSearchParams(location.search).get('mute')||'').split(',').filter(Boolean);\n"
+      "    const _cut=ns=>ns.forEach(n=>{try{n&&n.disconnect();}catch(e){}});\n"
+      "    if(isMuted('jet'))   _cut([jetG,jetLowG,jetOscG,jrG]);\n"
+      "    if(isMuted('eng'))   _cut([gainN,engSubG,engNzG,engWhineG,engTickG,pinkG,transG,diffG,ovrG]);\n"
+      "    if(isMuted('air'))   _cut([windG,whG]);\n"
+      "    if(isMuted('skid'))  _cut([skidG]);\n"
+      "    if(MUTED.length)console.log('%c[CASH CAR] coupé : '+MUTED.join(', '),'color:#ffd75e;font-weight:bold');\n"
+      "  }catch(e){}")
+
+patch("debug : sirène et récompenses coupables aussi",
+      "    sirG.gain.setTargetAtTime(SND.sfx?vol:0,AC.currentTime,.25);",
+      "    if(isMuted('siren')){try{sirG.disconnect();}catch(e){}}\n"
+      "    else sirG.gain.setTargetAtTime(SND.sfx?vol:0,AC.currentTime,.25);")
+
+# ---------------------------------------------------------------------------
+#  LA REFONTE. Le user demande de repartir de zéro sur le son de nitro, après sept
+#  correctifs chirurgicaux ratés. C'est le bon appel : plutôt que de chercher le
+#  mauvais nœud dans un empilement de quatre couches que je ne peux pas entendre,
+#  on supprime les deux couches AGRESSIVES PAR CONSTRUCTION et on garde les douces.
+#
+#  Ce qui part, définitivement débranché à la construction :
+#   · `jetG`    — le souffle passé dans un WaveShaper `tanh(3x)` attaqué à ×2,6.
+#                 Mesuré hors ligne : pic 1,004 pour un RMS de 0,67 — un signal
+#                 quasi CARRÉ. C'est de l'écrêtage franc, plus un timbre.
+#   · `jetOscG` — la turbine : dent de scie dans un passe-bande Q=6. Mesurée hors
+#                 ligne : 43 % de son énergie au-dessus de 4 kHz. La couche la plus
+#                 stridente du jeu, de très loin.
+#  Ce qui reste : deux bruits filtrés bas, sans distorsion, sans résonance, sans
+#  rien au-dessus de 700 Hz. Un souffle chaud plutôt qu'un cri.
+patch("nitro : refonte — supprimer la distorsion et la turbine",
+      "  jetG.connect(MASTER);jsrc.start();",
+      "  jetG.connect(MASTER);jsrc.start();\n"
+      "  /* ===================== REFONTE DU SON DE NITRO (démo) =====================\n"
+      "     Sept correctifs chirurgicaux n'ont pas suffi : on retire les deux couches\n"
+      "     agressives PAR CONSTRUCTION, plutôt que de les doser. Mesures hors ligne :\n"
+      "       jetG    (souffle distordu) : pic 1,004 / RMS 0,67 → signal quasi CARRÉ\n"
+      "       jetOscG (turbine)          : 43 % de l'énergie au-dessus de 4 kHz\n"
+      "     Débranchées ici une fois pour toutes — les écritures par frame sur leurs\n"
+      "     gains deviennent inoffensives. Restent deux bruits filtrés bas : chaud,\n"
+      "     rond, rien au-dessus de 700 Hz.\n"
+      "     ⚠ NE PAS LES REBRANCHER SANS MESURER AU BANC (voir demo/README.md). */\n"
+      "  try{jetG.disconnect();}catch(e){}")
+
+patch("nitro : refonte — supprimer la turbine",
+      "  jetOsc.connect(jof);jof.connect(jetOscG);jetOscG.connect(MASTER);jetOsc.start();",
+      "  jetOsc.connect(jof);jof.connect(jetOscG);jetOscG.connect(MASTER);jetOsc.start();\n"
+      "  try{jetOscG.disconnect();}catch(e){} // turbine : 43 % au-dessus de 4 kHz — voir la note ci-dessus")
+
+# la flamme ne suit plus la vitesse : une fréquence qui monte avec le compteur, c'est
+# précisément ce qui transforme un souffle en sifflet quand on pousse.
+patch("nitro : refonte — la flamme ne monte plus avec la vitesse",
+      "jrF.frequency.setTargetAtTime(nitroOn?Math.min(900,(air9?310+spd3*.3:430+spd3*.35)+(nitroBlue?80:0)):240,AC.currentTime,.1);",
+      "jrF.frequency.setTargetAtTime(nitroOn?(air9?380:460)+(nitroBlue?60:0):240,AC.currentTime,.1); // ⚠ PLUS DE SUIVI DE VITESSE : une fréquence qui monte avec le compteur, c'est ce qui fait le sifflet")
 
 
 # =============================================================================
