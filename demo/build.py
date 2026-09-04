@@ -810,7 +810,8 @@ patch("son : le limiteur de sortie limite au lieu d'amplifier",
       "  // harmoniques jusqu'à 12 kHz). Ici la pente vaut 1 et le plafond tanh(k)/k = 0,66.\n"
       "  lim.curve=(function(k){const n=1024,c=new Float32Array(n);\n"
       "    for(let i=0;i<n;i++){const x=i/(n-1)*2-1;c[i]=Math.tanh(x*k)/k;}return c;})(1.3);\n"
-      "  lim.oversample='4x'; // 2x laissait replier de l'aliasing dans l'aigu")
+      "  lim.oversample='2x'; // ⚠ PAS 4x : j'y étais passé pour l'aliasing, mais ça double la\n"
+      "  // charge CPU du bus maître — sur une machine limite, ça fabrique des coupures audio.")
 
 patch("son : niveau maître",
       "  MASTER=AC.createGain();\n",

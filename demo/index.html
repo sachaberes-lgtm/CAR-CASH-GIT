@@ -3861,7 +3861,11 @@ const I18N={
  'Deux grammes d\'antimatière et un mépris total des lois de la physique. Newton s\'est retourné. Trop lentement.':'Two grams of antimatter and utter contempt for the laws of physics. Newton turned in his grave. Too slowly.',
  'Quand elle passe devant le soleil : trois secondes de nuit. Les astronomes l\'ont classée phénomène céleste.':'When it crosses the sun: three seconds of night. Astronomers classified it as a celestial event.',
  'La lumière a demandé un délai. Le temps s\'excuse au passage. Tu ne conduis plus : tu plies la carte.':'Light asked for an extension. Time apologises as you pass. You\'re not driving any more: you\'re folding the map.',
- 'Plus de route. Plus de son. Plus de rivaux. Juste toi, et l\'univers qui essaie de suivre. Il n\'y arrive pas.':'No more road. No more sound. No more rivals. Just you, and the universe trying to keep up. It can\'t.'
+ 'Plus de route. Plus de son. Plus de rivaux. Juste toi, et l\'univers qui essaie de suivre. Il n\'y arrive pas.':'No more road. No more sound. No more rivals. Just you, and the universe trying to keep up. It can\'t.',
+ // ---- descriptions des modes (menu mobile) ----
+ 'Sept voitures de police sur la piste, à armes égales. Toutes les 60 secondes, le dernier explose. Une place à prendre : la première.':'Seven police cars on the track, evenly matched. Every 60 seconds, the last one blows up. One spot to take: first place.',
+ 'Pas de course, pas de police, pas de mort : un terrain de figures avec ses rampes. On y va pour apprendre à voler.':'No race, no cops, no death: a trick park with its ramps. Go there to learn to fly.',
+ 'On s\'entraîne sur la vraie piste : la caisse se replace au lieu de mourir. Idéal pour les sauts — mais aucun score n\'est enregistré.':'Practice on the real track: the car respawns instead of dying. Great for jumps — but no score is saved.'
 };
 // ⚠ nommée TR et non T : `T` est DÉJÀ le tableau des tangentes de la piste (T[bi].y) — la
 // collision faisait planter tout le script au parsing, écran noir muet.
@@ -8434,7 +8438,8 @@ function initAudio(){
   // harmoniques jusqu'à 12 kHz). Ici la pente vaut 1 et le plafond tanh(k)/k = 0,66.
   lim.curve=(function(k){const n=1024,c=new Float32Array(n);
     for(let i=0;i<n;i++){const x=i/(n-1)*2-1;c[i]=Math.tanh(x*k)/k;}return c;})(1.3);
-  lim.oversample='4x'; // 2x laissait replier de l'aliasing dans l'aigu
+  lim.oversample='2x'; // ⚠ PAS 4x : j'y étais passé pour l'aliasing, mais ça double la
+  // charge CPU du bus maître — sur une machine limite, ça fabrique des coupures audio.
   MASTER.connect(cmp);cmp.connect(lim);lim.connect(AC.destination);
   musicGraph(); // BANDE-SON + analyse (le ciel pulse en rythme)
   /* ---- BISSECTION À L'OREILLE : ?mute=jet,eng,air,skid,siren,pop ----
