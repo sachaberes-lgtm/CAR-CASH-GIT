@@ -34,6 +34,8 @@
   body>canvas{filter:saturate(1.12) contrast(1.05) brightness(.97)} /* l'ACES (passe post) fait le gros de l'étalonnage ; ce filtre ajoute un pop + un assombrissement final */
   #scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.14) 0 2px,transparent 2px 4px);opacity:.22}
   #speedFx{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 42%,rgba(45,20,55,.55) 100%);opacity:0}
+  /* ACCESSIBILITÉ : iOS « Réduire les animations » → grain CRT + vignette vitesse coupés */
+  html[data-reduced-motion="1"] #scan,html[data-reduced-motion="1"] #speedFx{display:none}
   /* immersion nuage : voile blanc laiteux quand on traverse un banc */
   #cloudFx{position:absolute;inset:0;opacity:0;pointer-events:none;
     background:radial-gradient(ellipse at 50% 55%,rgba(250,240,248,.62) 0%,rgba(232,222,240,.42) 55%,rgba(214,206,230,.14) 100%)}
@@ -675,7 +677,7 @@
 </style>
 </head>
 <body>
-<div id="splash">
+<div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
   <div id="spStage">
     <div id="spNum" class="tease">1.61</div>
@@ -693,9 +695,9 @@
   <div id="scan"></div>
   <div id="speedFx"></div>
   <div id="garage">
-    <div id="gTop"><span id="gTitle">GARAGE</span><button id="gClose">✕</button></div>
+    <div id="gTop"><span id="gTitle">GARAGE</span><button id="gClose" aria-label="Fermer">✕</button></div>
     <div id="gBottom">
-      <button id="gPrev" class="gNav">◀</button>
+      <button id="gPrev" class="gNav" aria-label="Caisse précédente">◀</button>
       <div id="gCard">
         <div id="gName">LA HONTE</div>
         <div id="gMeta"><span id="gLvl">CAISSE 1 / 15</span><span id="gSpd"></span></div>
@@ -703,13 +705,13 @@
         <button id="gEquip" class="saveBtn">ÉQUIPER</button>
         <div id="gHint">glisse pour tourner · molette pour zoomer</div>
       </div>
-      <button id="gNext" class="gNav">▶</button>
+      <button id="gNext" class="gNav" aria-label="Caisse suivante">▶</button>
     </div>
   </div>
   <div id="stall">
-    <div id="gTop"><span id="stTitle" class="gTitle">ÉTAL — RÉGLAGE DES FRUITS</span><button id="stClose">✕</button></div>
+    <div id="gTop"><span id="stTitle" class="gTitle">ÉTAL — RÉGLAGE DES FRUITS</span><button id="stClose" aria-label="Fermer">✕</button></div>
     <div id="gBottom">
-      <button id="stPrev" class="gNav">◀</button>
+      <button id="stPrev" class="gNav" aria-label="Fruit précédent">◀</button>
       <div id="gCard">
         <div id="stName">POMME</div>
         <div class="stRow"><span>Boost rendu</span><b id="stBoostV">0.50</b></div>
@@ -718,7 +720,7 @@
         <input id="stFreq" class="stSlider" type="range" min="0" max="30" step="1">
         <div id="stRare">soit 12 % des fruits de la piste</div>
       </div>
-      <button id="stNext" class="gNav">▶</button>
+      <button id="stNext" class="gNav" aria-label="Fruit suivant">▶</button>
     </div>
   </div>
   <div id="carInfo" class="panel"><div id="carName">LA HONTE</div><div id="carLevel">MOTEUR ROUILLÉ</div></div>
@@ -746,7 +748,7 @@
   <div id="survHud"></div>
   <div id="lastAlert"></div>
 </div>
-<div id="overlay">
+<div id="overlay" role="button" tabindex="0" aria-label="Menu principal CASH CAR">
   <h1><span class="lg gold" data-t="CASH">CASH</span><span class="lg grad" data-t="CAR">CAR</span></h1>
   <div id="tagline">cours après le cash · ne tombe jamais</div>
   <h2 id="ovSub" style="display:none">GAME OVER</h2>
@@ -758,7 +760,7 @@
   <div id="endEng"><canvas id="endEngCv" width="320" height="214"></canvas><div id="endEngCap">MOTEUR ROUILLÉ<span id="endEngTier">PALIER 1 / 30</span></div></div>
   <div id="nameEntry"><span>★ NOUVEAU RECORD — TON NOM</span><input id="nameInput" maxlength="8" autocomplete="off" spellcheck="false"><button id="nameSave">VALIDER</button></div>
   <div id="lbBox"></div>
-  <div class="go" id="goTxt">▸ CLIQUE LE LOGO POUR JOUER</div>
+  <div class="go" id="goTxt" role="button" tabindex="0" aria-label="Jouer">▸ CLIQUE LE LOGO POUR JOUER</div>
   <div id="saveRow">
     <button id="garageBtn" class="saveBtn">🚗 Garage</button>
     <button id="setBtn" class="saveBtn">⚙︎ Réglages</button>
@@ -858,13 +860,13 @@
   </div>
 </div>
 <div id="touchCtl">
-  <div id="tSteer"><div id="tStick"><div id="tKnob"></div></div><div id="tSteerHint">GLISSE POUR TOURNER</div></div>
-  <div id="tLeft" class="tbtn">◀</div>
-  <div id="tRight" class="tbtn">▶</div>
-  <div id="tNitro" class="tbtn">NITRO</div>
+  <div id="tSteer" role="button" tabindex="0" aria-label="Volant — glisse pour tourner"><div id="tStick"><div id="tKnob"></div></div><div id="tSteerHint">GLISSE POUR TOURNER</div></div>
+  <div id="tLeft" class="tbtn" role="button" tabindex="0" aria-label="Gauche">◀</div>
+  <div id="tRight" class="tbtn" role="button" tabindex="0" aria-label="Droite">▶</div>
+  <div id="tNitro" class="tbtn" role="button" tabindex="0" aria-label="Nitro">NITRO</div>
 </div>
 <div id="tSet">
-  <div id="tGear">⚙</div>
+  <div id="tGear" role="button" tabindex="0" aria-label="Réglages">⚙</div>
   <div id="tPanel"><div id="tpIn">
     <div class="tpH">PAUSE</div>
     <div class="tp go" data-a="close">▶ REPRENDRE</div>
@@ -1278,6 +1280,8 @@ const SUN_PERP=new THREE.Vector3().crossVectors(SUN_DIR,new THREE.Vector3(0,1,0)
 const IS_TOUCH=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||('ontouchstart'in window)||navigator.maxTouchPoints>0;
 const IS_MOBILE=IS_TOUCH&&((window.matchMedia&&matchMedia('(hover:none)').matches)||Math.min(innerWidth,innerHeight)<820);
 const IS_LOW_END=IS_MOBILE||(navigator.hardwareConcurrency>0&&navigator.hardwareConcurrency<=4);
+const REDUCED_MOTION=(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)||false; // ACCESSIBILITÉ : iOS « Réduire les animations » → coupe bloom + grain + effets de vitesse
+if(REDUCED_MOTION)document.documentElement.setAttribute('data-reduced-motion','1');
 const renderer=new THREE.WebGLRenderer({antialias:!IS_MOBILE&&!IS_LOW_END,powerPreference:'high-performance'});
 renderer.setSize(innerWidth,innerHeight);
 document.body.appendChild(renderer.domElement);
@@ -1371,6 +1375,7 @@ if(CAN_POST){ try{
   const bSc=IS_MOBILE?.42:IS_LOW_END?.52:.55; // bloom demi-résolution un cran plus bas sur desktop : le flou EST le produit, personne ne voit la différence
   const bRes=new THREE.Vector2(Math.max(320,Math.round(w*bSc)),Math.max(240,Math.round(h*bSc)));
   bloomPass=new THREE.UnrealBloomPass(bRes,IS_MOBILE?0.44:0.54,IS_MOBILE?0.44:.5,0.92);
+  if(REDUCED_MOTION)bloomPass.enabled=false; // reduced-motion : bloom coupé
   composer.addPass(bloomPass);
   acesPass=new THREE.ShaderPass(ACESShader);acesPass.renderToScreen=true;composer.addPass(acesPass);
   POST_ON=true;
@@ -10973,7 +10978,7 @@ function loop(now){
     const spdP=Math.min(.24,Math.max(0,(speedKmh-760)/1300)+(nitroOn?.05:0)); // seuils ×2 (SPD .25→.5 : km/h affichés doublés) — le compteur gonfle/rougit au même RÉGIME RESSENTI qu'avant
     elSpeed.style.transform='scale('+(1+spdP).toFixed(3)+')';
     elSpeed.style.color=speedKmh>920?'#ff5040':'';
-    speedFx.style.opacity=Math.max(0,Math.min(.95,(speedKmh-280)/560));
+    if(!REDUCED_MOTION)speedFx.style.opacity=Math.max(0,Math.min(.95,(speedKmh-280)/560)); // reduced-motion : vignette vitesse coupée
     // panneaux HUD MASQUÉS (#carInfo/#cpInfo/#record en display:none) : on ne reconstruit leur texte (fmtC/fmt alloue) QUE quand la valeur change
     paintCarHud();
     if(loop._money!==money){loop._money=money;elMoney.innerHTML=fmtGta(money); // un parse HTML seulement quand le compte bouge
