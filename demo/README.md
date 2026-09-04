@@ -162,6 +162,20 @@ viewport obtenu, donc on lit la taille réelle et on y découpe le format 1200×
 - **Langue** : anglais par défaut. La démo complète au passage la traduction du jeu — le
   HUD Survivant (`TOI`, `EN TÊTE`, l'alarme de dernière place) et la coque mobile étaient
   écrits en dur, hors du dictionnaire, et « Restaurer un code » n'avait aucune entrée EN.
+- **Audio — l'intro studio retirée** : c'était la vraie cause du « son strident puis
+  plus rien ». Mesuré : analyse spectrale de l'enregistrement fourni (saturation à
+  **pleine échelle**, RMS 32 400/32 767, pics à 316 et 1000 Hz — donc un grave écrêté,
+  pas un aigu) + instrumentation de la page (deux contextes audio ; le premier atteint
+  0,808 de pic puis passe à `closed`). Ce premier contexte, c'est l'intro « 1.61 » :
+  `master.gain = 1` derrière un simple compresseur, **aucun limiteur**, là où la chaîne
+  du jeu a `MASTER → compresseur → WaveShaper limiteur`. Elle saturait, puis
+  `iAC.close()` coupait tout le son d'un coup. Le bloc `#splash` est supprimé : la
+  séquence se désarme d'elle-même, le contexte n'est jamais créé, et on gagne six
+  secondes avant de jouer. Vérifié après coup : **1 seul contexte audio, 0 valeur non
+  finie, 0 erreur JS** sur une partie avec nitro.
+- **Audio — marge du limiteur** : `MASTER` n'avait pas de gain explicite (donc 1). La
+  somme des couches poussait le WaveShaper hors de sa zone d'arrondi — il n'adoucissait
+  plus, il écrêtait. Posé à `.72`.
 - **Audio — les sifflets** : quatre fréquences pilotées par la vitesse n'avaient
   **aucun plafond**, et trois alimentaient des passe-bande à Q élevé. Un passe-bande à
   Q=14 n'est plus une couleur, c'est un sinus — et il montait avec la vitesse droit
@@ -185,6 +199,12 @@ viewport obtenu, donc on lit la taille réelle et on y découpe le format 1200×
   vitesse non finie suffisait à tout tuer. Assaini à la source.
 - **Audio** : voix de l'annonceur embarquées. Musique et sons de mort ne sont pas
   distribués dans ce dépôt → désarmés, zéro 404.
+- **Console** : `MeshLambertMaterial` n'accepte pas `flatShading` en three r128 — la
+  propriété était ignorée (aucun effet visuel perdu) mais criait 18 fois à l'ouverture
+  du garage. Retirée du helper ET de la surcharge du sol, qui la réinjectait.
+- **Mobile** : le panneau de pause était resté en français. Il ne passe pas par
+  `applyLangDOM` et ses libellés sont réécrits en dur par `panSync` — il fallait
+  traduire le gabarit ET le réécrivain.
 - **Sauvegarde** : clé `cashcarDemoSave` — jouer à la démo n'écrase pas la progression du jeu complet.
 
 ## Connu, non corrigé

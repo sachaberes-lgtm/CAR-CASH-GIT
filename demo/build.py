@@ -730,6 +730,133 @@ patch("son : assainir la vitesse à la source",
 
 
 # =============================================================================
+#  13. LE SON QUI SATURE PUIS MEURT — MESURÉ, PLUS DEVINÉ
+#  ---------------------------------------------------------------------------
+#  J'avais deviné deux fois (turbine de la nitro, puis sifflement d'air). Analyse
+#  spectrale de l'enregistrement fourni par le user + instrumentation de la page
+#  en Chrome headless. Ce que ça dit, noir sur blanc :
+#
+#   · l'enregistrement SATURE À PLEINE ÉCHELLE (RMS 32 400 sur 32 767 possibles)
+#     entre 7,6 s et 10,1 s, avec ses pics à 316 et 1000 Hz — donc PAS un aigu :
+#     un signal grave écrêté, dont l'écrêtage fabrique toute la série harmonique.
+#     C'est ça qu'on entend comme « strident horrible ».
+#   · puis SILENCE TOTAL de 10,2 s à la fin (9,5 secondes). Le son ne revient pas.
+#   · en headless : DEUX contextes audio. Le premier atteint un pic de 0,808 puis
+#     passe à l'état `closed`. Le second (celui du jeu) ne dépasse jamais 0,000.
+#
+#  Le premier contexte, c'est l'INTRO « 1.61 » (`iAC`), et il explique les deux
+#  moitiés du symptôme :
+#     master.gain = 1  →  compresseur seul, AUCUN limiteur derrière
+#  là où la chaîne du JEU est correctement protégée :
+#     MASTER → compresseur → WaveShaper limiteur → destination
+#  L'intro tape donc à plein régime sans filet — elle sature. Puis, à la fin de la
+#  séquence, `iAC.close()` : le son s'arrête net et ne revient jamais. Ce n'est pas
+#  la nitro : c'est l'intro qui hurle, et sa fermeture qu'on prend pour une panne.
+#
+#  Pour une DÉMO, la réponse n'est pas de rafistoler le mixage de l'intro : c'est de
+#  la retirer. Six secondes de logo studio avant de jouer, sur un lien qu'on ouvre
+#  depuis un canal, c'est déjà une raison de fermer l'onglet — et c'est le seul
+#  morceau d'audio non limité du fichier. On supprime le bloc `#splash` : l'intro se
+#  désactive d'elle-même (`if(!sp9)return;`), `iAC` n'est jamais créé, et `start()`
+#  ne teste plus qu'un élément absent. On tombe directement dans le garage.
+patch("intro : retirer le logo studio (le seul audio non limité)",
+      """<div id="splash">
+  <canvas id="fxCv"></canvas>
+  <div id="spStage">
+    <div id="spNum" class="tease">1.61</div>
+    <div id="spPres">PRÉSENTE</div>
+    <div id="spTitle"><span class="lg gold" data-t="CASH">CASH</span><span class="lg grad" data-t="CAR">CAR</span></div>
+    <div id="spHint">CLIQUE</div>
+  </div>
+  <div id="spFlash"></div>
+</div>
+""",
+      "<!-- DÉMO : l'intro studio « 1.61 » est retirée. C'était SIX SECONDES avant de\n"
+      "     jouer, et le seul audio du fichier sans limiteur (master.gain=1, compresseur\n"
+      "     seul) : il saturait, puis `iAC.close()` coupait tout le son d'un coup. Sans ce\n"
+      "     bloc, la séquence se désarme seule (`if(!sp9)return;`) et le contexte audio de\n"
+      "     l'intro n'est jamais créé. On ouvre directement sur le garage. -->\n")
+
+# ---- de la marge pour le limiteur du jeu
+# MASTER n'avait pas de gain explicite (donc 1). Toutes les couches — moteur, jet,
+# vent, crissement, sirène, annonceur — s'y additionnent avant un WaveShaper qui,
+# poussé trop fort, ne limite plus : il ÉCRÊTE, et un écrêtage franc s'entend comme
+# une saturation agressive. 0,72 rend au limiteur son rôle d'arrondi.
+patch("son : rendre de la marge au limiteur",
+      "  MASTER=AC.createGain();\n",
+      "  MASTER=AC.createGain();MASTER.gain.value=.72; // ⚠ MARGE POUR LE LIMITEUR :\n"
+      "  // sans gain explicite il valait 1, et la somme des couches poussait le WaveShaper\n"
+      "  // au-delà de sa zone d'arrondi — il n'adoucissait plus, il écrêtait.\n")
+
+
+# =============================================================================
+#  14. DERNIÈRE PASSE — CE QUE L'AUDIT A TROUVÉ
+# =============================================================================
+
+# ---- La coque de PAUSE mobile était restée en français. Elle ne passe pas par
+# `applyLangDOM` (ni `[data-fr]`, ni dans sa liste de sélecteurs) et ses libellés
+# sont RÉÉCRITS en dur par `panSync` à chaque ouverture — donc traduire le HTML seul
+# n'aurait rien donné. On traduit les deux : le gabarit ET le réécrivain.
+patch("mobile : panneau de pause en anglais (gabarit)",
+      """    <div class="tpH">PAUSE</div>
+    <div class="tp go" data-a="close">▶ REPRENDRE</div>
+    <div class="tpH">RÉGLAGES</div>
+    <div class="tp" data-a="snd">🔊 SON</div>
+    <div class="tp" data-a="vox">🎙 VOIX</div>
+    <div class="tp" data-a="mus">🎵 MUSIQUE</div>
+    <div class="tp" data-a="ctl">🕹 VOLANT</div>
+    <div class="tp" data-a="q">⚡ IMAGE : RAPIDE</div>
+    <div class="tp" data-a="surv">🏁 SURVIVANT : OFF</div>
+    <div class="tpH" data-g="run">LA PARTIE</div>
+    <div class="tp" data-a="resp" data-g="run">↺ REPLACER LA CAISSE</div>
+    <div class="tp" data-a="reset" data-g="run">⟲ RECOMMENCER</div>
+    <div class="tp" data-a="quit" data-g="run">⏏ QUITTER</div>""",
+      """    <div class="tpH">PAUSE</div>
+    <div class="tp go" data-a="close">▶ RESUME</div>
+    <div class="tpH">SETTINGS</div>
+    <div class="tp" data-a="snd">🔊 SFX</div>
+    <div class="tp" data-a="vox">🎙 VOICE</div>
+    <div class="tp" data-a="mus">🎵 MUSIC</div>
+    <div class="tp" data-a="ctl">🕹 WHEEL</div>
+    <div class="tp" data-a="q">⚡ GRAPHICS: FAST</div>
+    <div class="tp" data-a="surv">🏁 SURVIVOR: OFF</div>
+    <div class="tpH" data-g="run">THIS RUN</div>
+    <div class="tp" data-a="resp" data-g="run">↺ RESPAWN THE CAR</div>
+    <div class="tp" data-a="reset" data-g="run">⟲ START OVER</div>
+    <div class="tp" data-a="quit" data-g="run">⏏ QUIT</div>""")
+
+patch("mobile : panneau de pause en anglais (libellés réécrits)",
+      """      if(a==='close')e.textContent=run?'▶ REPRENDRE':'✕ FERMER';
+      else if(a==='snd'){e.textContent=(SND.sfx?'🔊':'🔇')+' SON';e.classList.toggle('off',!SND.sfx);}
+      else if(a==='vox'){e.textContent=(SND.voice?'🎙':'🤐')+' VOIX';e.classList.toggle('off',!SND.voice);}
+      else if(a==='mus'){e.textContent=(SND.music?'🎵':'🔕')+' MUSIQUE';e.classList.toggle('off',!SND.music);}
+      else if(a==='ctl')e.textContent=TCTL.pad?'⬅➡ FLECHES':'🕹 VOLANT';
+      else if(a==='q'){const f=SAVE.d.q!=='net';e.textContent=f?'⚡ IMAGE : RAPIDE':'✨ IMAGE : NETTE';e.classList.toggle('off',f);}""",
+      """      if(a==='close')e.textContent=run?'▶ RESUME':'✕ CLOSE';
+      else if(a==='snd'){e.textContent=(SND.sfx?'🔊':'🔇')+' SFX';e.classList.toggle('off',!SND.sfx);}
+      else if(a==='vox'){e.textContent=(SND.voice?'🎙':'🤐')+' VOICE';e.classList.toggle('off',!SND.voice);}
+      else if(a==='mus'){e.textContent=(SND.music?'🎵':'🔕')+' MUSIC';e.classList.toggle('off',!SND.music);}
+      else if(a==='ctl')e.textContent=TCTL.pad?'⬅➡ ARROWS':'🕹 WHEEL';
+      else if(a==='q'){const f=SAVE.d.q!=='net';e.textContent=f?'⚡ GRAPHICS: FAST':'✨ GRAPHICS: SHARP';e.classList.toggle('off',f);}""")
+
+patch("mobile : consigne du volant en anglais",
+      '<div id="tSteerHint">GLISSE POUR TOURNER</div>',
+      '<div id="tSteerHint">DRAG TO STEER</div>')
+
+# ---- 18 avertissements three.js à chaque ouverture du garage. `MeshLambertMaterial`
+# n'accepte pas `flatShading` en r128 : la propriété est IGNORÉE (donc aucun effet
+# visuel à perdre) mais chaque matériau crie dans la console. Sur une démo qu'on
+# ouvre devant des gens qui ouvrent les devtools, c'est de la négligence gratuite.
+patch("console : supprimer les avertissements three.js (helper)",
+      "flatShading:true,fog:false},o||{}));",
+      "fog:false},o||{})); // ⚠ pas de `flatShading` : MeshLambertMaterial l'ignore en r128 et crie dans la console")
+# …et le sol le repassait par l'objet de surcharge, ce qui réinjectait la propriété
+patch("console : supprimer le dernier avertissement (sol)",
+      "    sol   :L(0xffffff,0x090b10,{flatShading:false}),",
+      "    sol   :L(0xffffff,0x090b10),  // (plus de `flatShading` ici non plus : même avertissement)")
+
+
+# =============================================================================
 #  10. L'ÉCRAN DE DÉMARRAGE — les deux premières secondes
 #  ---------------------------------------------------------------------------
 #  Mesuré sur la page publiée : 4,9 s avant le `load`, et pendant tout ce temps un

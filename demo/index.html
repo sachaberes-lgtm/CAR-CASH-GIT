@@ -697,16 +697,11 @@
 </style>
 </head>
 <body>
-<div id="splash">
-  <canvas id="fxCv"></canvas>
-  <div id="spStage">
-    <div id="spNum" class="tease">1.61</div>
-    <div id="spPres">PRÉSENTE</div>
-    <div id="spTitle"><span class="lg gold" data-t="CASH">CASH</span><span class="lg grad" data-t="CAR">CAR</span></div>
-    <div id="spHint">CLIQUE</div>
-  </div>
-  <div id="spFlash"></div>
-</div>
+<!-- DÉMO : l'intro studio « 1.61 » est retirée. C'était SIX SECONDES avant de
+     jouer, et le seul audio du fichier sans limiteur (master.gain=1, compresseur
+     seul) : il saturait, puis `iAC.close()` coupait tout le son d'un coup. Sans ce
+     bloc, la séquence se désarme seule (`if(!sp9)return;`) et le contexte audio de
+     l'intro n'est jamais créé. On ouvre directement sur le garage. -->
 <div id="hud">
   <canvas id="slCv"></canvas>
   <div id="cloudFx"></div>
@@ -892,7 +887,7 @@
   </div>
 </div>
 <div id="touchCtl">
-  <div id="tSteer"><div id="tStick"><div id="tKnob"></div></div><div id="tSteerHint">GLISSE POUR TOURNER</div></div>
+  <div id="tSteer"><div id="tStick"><div id="tKnob"></div></div><div id="tSteerHint">DRAG TO STEER</div></div>
   <div id="tLeft" class="tbtn">◀</div>
   <div id="tRight" class="tbtn">▶</div>
   <div id="tNitro" class="tbtn">NITRO</div>
@@ -901,18 +896,18 @@
   <div id="tGear">⚙</div>
   <div id="tPanel"><div id="tpIn">
     <div class="tpH">PAUSE</div>
-    <div class="tp go" data-a="close">▶ REPRENDRE</div>
-    <div class="tpH">RÉGLAGES</div>
-    <div class="tp" data-a="snd">🔊 SON</div>
-    <div class="tp" data-a="vox">🎙 VOIX</div>
-    <div class="tp" data-a="mus">🎵 MUSIQUE</div>
-    <div class="tp" data-a="ctl">🕹 VOLANT</div>
-    <div class="tp" data-a="q">⚡ IMAGE : RAPIDE</div>
-    <div class="tp" data-a="surv">🏁 SURVIVANT : OFF</div>
-    <div class="tpH" data-g="run">LA PARTIE</div>
-    <div class="tp" data-a="resp" data-g="run">↺ REPLACER LA CAISSE</div>
-    <div class="tp" data-a="reset" data-g="run">⟲ RECOMMENCER</div>
-    <div class="tp" data-a="quit" data-g="run">⏏ QUITTER</div>
+    <div class="tp go" data-a="close">▶ RESUME</div>
+    <div class="tpH">SETTINGS</div>
+    <div class="tp" data-a="snd">🔊 SFX</div>
+    <div class="tp" data-a="vox">🎙 VOICE</div>
+    <div class="tp" data-a="mus">🎵 MUSIC</div>
+    <div class="tp" data-a="ctl">🕹 WHEEL</div>
+    <div class="tp" data-a="q">⚡ GRAPHICS: FAST</div>
+    <div class="tp" data-a="surv">🏁 SURVIVOR: OFF</div>
+    <div class="tpH" data-g="run">THIS RUN</div>
+    <div class="tp" data-a="resp" data-g="run">↺ RESPAWN THE CAR</div>
+    <div class="tp" data-a="reset" data-g="run">⟲ START OVER</div>
+    <div class="tp" data-a="quit" data-g="run">⏏ QUIT</div>
   </div></div>
 </div>
 <style>
@@ -8410,7 +8405,9 @@ function initAudio(){
   if(!SND.sfx)try{AC.suspend();}catch(e){} // le mute SON survit au redémarrage
   // BUS MASTER : tout le WebAudio passe par compresseur + limiteur doux tanh — niveau perçu
   // stable, jamais de clip numérique, pas de fatigue d'oreille sur une longue session
-  MASTER=AC.createGain();
+  MASTER=AC.createGain();MASTER.gain.value=.72; // ⚠ MARGE POUR LE LIMITEUR :
+  // sans gain explicite il valait 1, et la somme des couches poussait le WaveShaper
+  // au-delà de sa zone d'arrondi — il n'adoucissait plus, il écrêtait.
   const cmp=AC.createDynamicsCompressor();
   cmp.threshold.value=-16;cmp.knee.value=12;cmp.ratio.value=4;cmp.attack.value=.004;cmp.release.value=.16;
   const lim=AC.createWaveShaper();lim.curve=engCurve(1.3);lim.oversample='2x';
@@ -10404,12 +10401,12 @@ function buildGarageRoom(){
   const BX=new THREE.BoxGeometry(1,1,1),CY=new THREE.CylinderGeometry(.5,.5,1,14),
         CY8=new THREE.CylinderGeometry(.5,.5,1,7),TOR=new THREE.TorusGeometry(.34,.16,7,16),
         CN=new THREE.ConeGeometry(.5,1,12),PL=new THREE.PlaneGeometry(1,1);
-  const L=(c,e,o)=>new THREE.MeshLambertMaterial(Object.assign({color:c,emissive:e===undefined?0:e,flatShading:true,fog:false},o||{}));
+  const L=(c,e,o)=>new THREE.MeshLambertMaterial(Object.assign({color:c,emissive:e===undefined?0:e,fog:false},o||{})); // ⚠ pas de `flatShading` : MeshLambertMaterial l'ignore en r128 et crie dans la console
   const BA=(c,o)=>new THREE.MeshBasicMaterial(Object.assign({color:c,fog:false},o||{}));
   // La PALETTE : béton froid, ferraille bleu nuit, et quatre couleurs franches (rouge servante,
   // jaune sécurité, bleu fût, orange palan) qui suffisent à faire lire « atelier » d'un coup d'œil.
   const M={
-    sol   :L(0xffffff,0x090b10,{flatShading:false}),
+    sol   :L(0xffffff,0x090b10),  // (plus de `flatShading` ici non plus : même avertissement)
     mur   :L(0x3c4557,0x0c0f16), bas:L(0x1c2433,0x06080e), toit:L(0x101319,0x030408),
     fer   :L(0x232a38,0x070910), acier:L(0x6b7688,0x101319), chrome:L(0xc2cbd8,0x171b21),
     noir  :L(0x15181f,0x040609), pneu:L(0x1a1c21,0x050608),
@@ -12626,12 +12623,12 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     const run=(started&&!gameOver),el=pan.querySelectorAll('.tp,.tpH');
     for(let i=0;i<el.length;i++){ const e=el[i],a=e.getAttribute('data-a'),g=e.getAttribute('data-g');
       if(g)e.style.display=((g==='run')===run)?'':'none'; // « LA PARTIE » n'existe qu'en jeu
-      if(a==='close')e.textContent=run?'▶ REPRENDRE':'✕ FERMER';
-      else if(a==='snd'){e.textContent=(SND.sfx?'🔊':'🔇')+' SON';e.classList.toggle('off',!SND.sfx);}
-      else if(a==='vox'){e.textContent=(SND.voice?'🎙':'🤐')+' VOIX';e.classList.toggle('off',!SND.voice);}
-      else if(a==='mus'){e.textContent=(SND.music?'🎵':'🔕')+' MUSIQUE';e.classList.toggle('off',!SND.music);}
-      else if(a==='ctl')e.textContent=TCTL.pad?'⬅➡ FLECHES':'🕹 VOLANT';
-      else if(a==='q'){const f=SAVE.d.q!=='net';e.textContent=f?'⚡ IMAGE : RAPIDE':'✨ IMAGE : NETTE';e.classList.toggle('off',f);}
+      if(a==='close')e.textContent=run?'▶ RESUME':'✕ CLOSE';
+      else if(a==='snd'){e.textContent=(SND.sfx?'🔊':'🔇')+' SFX';e.classList.toggle('off',!SND.sfx);}
+      else if(a==='vox'){e.textContent=(SND.voice?'🎙':'🤐')+' VOICE';e.classList.toggle('off',!SND.voice);}
+      else if(a==='mus'){e.textContent=(SND.music?'🎵':'🔕')+' MUSIC';e.classList.toggle('off',!SND.music);}
+      else if(a==='ctl')e.textContent=TCTL.pad?'⬅➡ ARROWS':'🕹 WHEEL';
+      else if(a==='q'){const f=SAVE.d.q!=='net';e.textContent=f?'⚡ GRAPHICS: FAST':'✨ GRAPHICS: SHARP';e.classList.toggle('off',f);}
       else if(a==='surv'){e.textContent='🏁 SURVIVANT : '+(SURV.armed?'ON':'OFF');e.classList.toggle('off',!SURV.armed);} }
     const hd=pan.querySelector('.tpH'); if(hd)hd.textContent=run?'PAUSE':'CASH CAR'; }
   function panOpen(o){ if(!pan)return;
