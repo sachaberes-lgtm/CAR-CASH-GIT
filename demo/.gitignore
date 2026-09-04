@@ -1,0 +1,8 @@
+# Variante générée UNIQUEMENT pour la publication en Artifact claude.ai : c'est
+# `cash-car-demo/index.html` moins son squelette HTML. 2,4 Mo de doublon —
+# `python3 build.py` la refabrique en une seconde.
+cash-car-demo.artifact.html
+
+# Profil jetable de Chrome headless (capture-og.sh)
+.chrome-profile/
+__pycache__/

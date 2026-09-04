@@ -1,0 +1,136 @@
+# CASH CAR — démo publique
+
+Version réduite du jeu, faite pour être **envoyée par lien** : mode Survivant + garage,
+en anglais, sans classement. Le jeu complet (`../game/`) n'est jamais modifié.
+
+## Fabriquer
+
+```bash
+python3 build.py /chemin/vers/game
+```
+
+Ce dossier fabrique la démo **à partir du jeu complet** ; il ne le contient pas. À côté
+du jeu (`~/cash-car/demo/`), le chemin par défaut `../game` suffit et l'argument est
+inutile. Depuis un clone isolé, il faut le donner — ou poser `CASHCAR_GAME`.
+
+Le script applique ~85 patchs **vérifiés** à une copie de `game/index.html`. Si un motif
+ne se trouve plus, le build **s'arrête** en nommant le patch en défaut, au lieu de
+produire un fichier à moitié converti. Les patchs purement cosmétiques sont marqués
+facultatifs (`opt=True`) : leur disparition est signalée (`⊘`) sans casser le build.
+
+> Le jeu évolue vite. Le 03/09, l'amont a bundlé three.js en local, remplacé Google
+> Fonts par une police locale, supprimé l'écran « tourne ton téléphone » et réécrit
+> l'enregistrement du service worker — quatre patchs sont tombés d'un coup. C'est le
+> comportement voulu : mieux vaut un build qui s'arrête qu'une démo à moitié anglaise.
+
+## Ce qui sort
+
+| Sortie | À quoi ça sert | Poids |
+|---|---|---|
+| `cash-car-demo/` | le dossier à **déployer** — c'est ce qu'on met derrière un lien | 838 Ko + 17 fichiers |
+| `index.html` | **un seul fichier**, tout embarqué : à envoyer par mail, à ouvrir en double-clic | 2,4 Mo |
+| `cash-car-demo.artifact.html` | le même, sans squelette `<html>/<head>/<body>` : pour publier en Artifact claude.ai *(non versionné)* | 2,4 Mo |
+
+### Pourquoi deux emballages du même jeu
+
+Mesuré sur la page publiée en monofichier : **4,9 s** avant le `load`, et pendant tout
+ce temps un écran blanc. Quelqu'un qui reçoit un lien dans un canal ne regarde pas une
+page blanche pendant cinq secondes — il referme.
+
+- La version **hébergée** garde three.js, la police et les voix en **fichiers à côté**.
+  Le HTML tombe à 838 Ko (≈180 Ko sur le réseau une fois compressé), le navigateur peint
+  presque tout de suite, tire three.js en parallèle et les voix seulement au premier
+  geste. Les fichiers sont copiés depuis le jeu **à chaque build** : pas de dérive
+  possible entre le moteur du jeu et celui de la démo.
+- La version **un fichier** embarque tout en data-URI. Plus lente à ouvrir, mais
+  rigoureusement autonome : elle marche en `file://`, derrière un pare-feu, et l'Artifact
+  n'a de toute façon droit qu'à une seule page.
+
+Les deux sortent du **même jeu patché à l'identique** : la bifurcation ne porte que sur
+l'emballage. Et les deux ouvrent sur un **écran de démarrage** posé tout en haut du
+document — avant la feuille de style du jeu, avant le moindre octet de three.js — pour
+que le navigateur ait quelque chose à peindre dès les premiers kilo-octets.
+
+**Aucune des deux ne dépend d'un hôte externe** : ni CDN, ni Google Fonts, ni requête
+tierce. Rien à négocier avec un pare-feu d'entreprise ou une politique de sécurité.
+
+## Déployer
+
+Le nom du dossier EST le nom du projet Vercel, donc le domaine : déployer depuis
+`cash-car-demo/` donne `cash-car-demo.vercel.app`, ce que visent les balises Open Graph.
+
+```bash
+cd demo/cash-car-demo
+npx vercel@latest login
+npx vercel@latest deploy --prod --yes
+```
+
+⚠ Si l'URL de production n'est pas exactement `https://cash-car-demo.vercel.app`, change
+la constante `BASE` en haut de `build.py`, relance le build et redéploie — sinon l'aperçu
+Slack n'aura pas d'image. Slackbot ne lit que les 32 premiers Ko d'une page et n'exécute
+aucun JavaScript : c'est pour ça que les balises sont tout en haut du fichier et que
+l'image est un vrai fichier à côté, pas un data-URI.
+
+## L'image d'aperçu
+
+```bash
+./capture-og.sh
+```
+
+À relancer **dès que l'écran d'accueil change**. Le harnais (`capture-og.html` +
+`capture-og.mjs`) ouvre la démo dans Chrome headless, franchit l'intro « 1.61 », laisse
+l'accueil se poser, puis capture par le protocole DevTools.
+
+Trois pièges, tous contournés dans le script — ne pas les réintroduire :
+`chrome --screenshot` ne rend jamais la main (le plateau de l'atelier tourne sans fin,
+le budget de temps virtuel ne s'épuise pas) ; `setDeviceMetricsOverride` change le cadre
+de capture sans relayouter la page (bandes noires) ; et la fenêtre demandée n'est pas le
+viewport obtenu, donc on lit la taille réelle et on y découpe le format 1200×630 centré.
+
+## Ce que la démo change
+
+- **Écran d'accueil** : c'est le GARAGE. La caisse tourne sur son plateau, le menu flotte
+  par-dessus — titre, sceau « Demo edition for Public AI », et trois boutons : *Play
+  survivor mode*, *Change car*, *Settings*. Le bouton Garage a disparu : on y est déjà.
+  *Change car* déplie la fiche de sélection sur la même scène 3D. La fin de partie
+  ramène au même endroit.
+  - l'overlay ne capte plus le clic (`pointer-events:none`, sauf ses enfants) pour que
+    le glisser-tourner du garage passe à travers ;
+  - le « clique n'importe où pour jouer » est retiré : il partait en course au moindre
+    geste de rotation ;
+  - `leaveStage()` **respawn** la caisse. Sans ça on lançait la partie avec une voiture
+    en chute libre à 1500 m — elle tournoyait dans le vide, compteur à zéro.
+- **Piste** : le **tremplin** (« gap catapulte ») est retiré — il posait une rampe, une lèvre,
+  puis un TROU dans la dalle. `gapRun` pose désormais du bitume continu de portée équivalente :
+  on ne peut pas juste supprimer l'appel, l'archétype ALPIN clôt sa zone dessus et le module
+  aléatoire n°10 compte sur sa longueur. Chaîne vérifiée : `GAPMARK` → `HOLES` → `RAMPS`, les
+  trois restent vides, donc plus de trou, plus de lèvre, plus de catapulte.
+- **Garage** : c'était la seule surface du jeu écrite en Segoe UI au lieu de la police
+  pixel — fiche, titre, description et légende repassent en `Press Start 2P` (tailles
+  redescendues et interligne ouvert, la police est large ; les flèches ◀ ▶ gardent une
+  pile sans-serif, ces glyphes n'existent pas en 8 bits).
+- **Clavier** : mort tant que la scène d'accueil est à l'écran. Espace (= nitro) lançait
+  une partie depuis la vitrine. Un écouteur en phase de **capture** coupe tout avant les
+  handlers du jeu, plutôt que de les patcher un par un et d'en oublier un au prochain
+  raccourci ajouté. Conséquence assumée : Échap ne referme plus la fiche, c'est le ✕.
+- **Garage** : le bouton ÉQUIPER était peint en `opacity .5/.7` pour dire « verrouillée » /
+  « déjà à toi ». Tout étant débloqué dans la démo, cette grisaille ne disait plus rien et
+  rendait le bouton illisible : plaque dorée pleine largeur quand il y a un geste à faire,
+  plaque verte quand c'est déjà ta caisse.
+- **Modes** : Survivant armé d'office. Course solo, parc freestyle et bac à sable retirés.
+- **Roster** : les 15 caisses ouvertes (une vitrine dont 14/15 sont verrouillées ne montre rien).
+- **Classement** : le TOP 10 et la saisie de nom sont retirés ; le record personnel reste.
+- **Langue** : anglais par défaut. La démo complète au passage la traduction du jeu — le
+  HUD Survivant (`TOI`, `EN TÊTE`, l'alarme de dernière place) et la coque mobile étaient
+  écrits en dur, hors du dictionnaire, et « Restaurer un code » n'avait aucune entrée EN.
+- **Audio** : voix de l'annonceur embarquées. Musique et sons de mort ne sont pas
+  distribués dans ce dépôt → désarmés, zéro 404.
+- **Sauvegarde** : clé `cashcarDemoSave` — jouer à la démo n'écrase pas la progression du jeu complet.
+
+## Connu, non corrigé
+
+Le jeu se met en pause quand l'onglet passe en arrière-plan (`visibilitychange`, ligne
+~12459 de `game/index.html`) et **ne reprend pas** au retour : le message « PAUSE »
+s'efface au bout de 2,2 s, et sur ordinateur seule la touche `P` relance. Quelqu'un qui
+change d'onglet revient sur un jeu figé sans rien pour le lui dire. C'est un comportement
+du jeu complet, pas de la démo — non touché ici, mais à surveiller pour une démo publique.
