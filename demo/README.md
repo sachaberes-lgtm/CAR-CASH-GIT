@@ -69,11 +69,10 @@ compris à l'intérieur d'un bloc `headers` (premier build en erreur pour ça).
 
 ### À la main, sans git
 
-Le domaine de production est **`https://car-cash-git-scar1.vercel.app`**, et pas
-`car-cash-git.vercel.app` : Vercel suffixe du slug de l'équipe (`scar1`) quand le nom
-court est déjà pris ailleurs. Le nom court renvoie un 404 qui n'a rien à voir avec ce
-dépôt. C'est le domaine suffixé que vise la constante `BASE` en haut de `build.py` ;
-`get_project` le donne dans son champ `domains`.
+Le domaine de production est **`https://car-cash-git.vercel.app`** — c'est ce que vise
+la constante `BASE` en haut de `build.py`. Le projet répond aussi sur
+`car-cash-git-scar1.vercel.app`. En cas de doute, `get_project` liste les domaines réels
+dans son champ `domains` : ne pas les deviner à partir du nom du dépôt.
 
 ```bash
 cd demo/cash-car-demo
@@ -99,14 +98,17 @@ git config --global user.name  "Sacha Beres"
 git config --global user.email "sachaberes@gmail.com"
 ```
 
-**La protection de déploiement.** Elle est active par défaut : le domaine renvoie un
-`302` vers `vercel.com/sso-api`, donc n'importe qui ouvrant le lien tombe sur une page
-de connexion Vercel. Rédhibitoire pour une démo publique, et invisible tant qu'on teste
-depuis un navigateur déjà connecté.
-*Settings → Deployment Protection → Vercel Authentication → Disabled.*
+**Le `302` vers `vercel.com/sso-api`.** Tant qu'aucun déploiement de production n'a
+abouti, le domaine renvoie vers une page de connexion Vercel — on croit à une protection
+de déploiement à désactiver. Elle s'est levée toute seule au premier déploiement réussi.
+Si elle revient un jour : *Settings → Deployment Protection → Vercel Authentication →
+Disabled* (à faire à la main, le connecteur de l'agent est en lecture seule sur les
+projets — 403 sur `update_project`).
 
-Le connecteur Vercel de l'agent est en lecture seule sur les projets (403 sur
-`update_project`), donc ce second point se fait à la main, une fois.
+**Le domaine court n'existe pas d'avance.** `car-cash-git.vercel.app` n'apparaît dans
+les `domains` du projet qu'une fois la première production en ligne. Avant ça, le nom
+court renvoie un 404 qui appartient à quelqu'un d'autre — et on cherche longtemps une
+erreur de configuration qui n'existe pas.
 
 ## L'image d'aperçu
 
