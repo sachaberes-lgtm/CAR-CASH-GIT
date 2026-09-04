@@ -895,6 +895,64 @@ patch("console : supprimer le dernier avertissement (sol)",
 
 
 # =============================================================================
+#  15. LA FUITE DE NŒUDS AUDIO — LA VRAIE CAUSE
+#  ---------------------------------------------------------------------------
+#  Isolé par bissection AVEC le user (voix seule = aucun problème → le coupable est
+#  dans la chaîne SFX, pas dans l'annonceur, et pas dans le limiteur que j'avais
+#  passé quatre tours à « corriger »).
+#
+#  `flamePop` et `noiseBurst` construisent chacun trois nœuds — source, filtre, gain —
+#  les câblent sur MASTER… et ne les arrêtent JAMAIS :
+#      src.connect(f);f.connect(g);g.connect(MASTER);src.start();     // pas de stop()
+#  `crackle` et `subBoom`, eux, appellent bien `.stop()`. Ces deux-là ont été oubliés.
+#
+#  Or `flamePop` tourne à 25 appels/seconde pendant la nitro, et chaque appel alloue
+#  EN PLUS un buffer de bruit neuf (`brownBuf` : deux passes sur ~3000 échantillons).
+#  Trente secondes de nitro = ~750 buffers et ~1500 nœuds filtre+gain qui restent
+#  branchés sur le bus maître pour toujours. Le graphe grossit sans fin, le thread
+#  audio finit par ne plus tenir la cadence : ça crachote (le « strident »), puis il
+#  lâche (le « son coupé »). Les deux moitiés du symptôme, une seule cause.
+#
+#  Deux correctifs : on ARRÊTE et on DÉBRANCHE, et on met les buffers en cache.
+
+patch("audio : flamePop ne fuit plus",
+      "    src.connect(f);f.connect(g);g.connect(MASTER);src.start();\n  }catch(e){}\n}\nfunction initAudio(){",
+      "    src.connect(f);f.connect(g);g.connect(MASTER);src.start();\n"
+      "    // ⚠ SANS CES DEUX LIGNES, CHAQUE POP RESTE CÂBLÉ SUR MASTER À VIE.\n"
+      "    // flamePop tourne à 25 appels/s sous nitro : le graphe grossit sans fin, le thread\n"
+      "    // audio décroche (grésillement) puis lâche (silence total). C'était LE bug.\n"
+      "    src.stop(AC.currentTime+dur+.05);\n"
+      "    src.onended=function(){try{src.disconnect();f.disconnect();g.disconnect();}catch(e){}};\n"
+      "  }catch(e){}\n}\nfunction initAudio(){")
+
+patch("audio : noiseBurst ne fuit plus",
+      "    src.connect(f);f.connect(g);g.connect(MASTER);src.start();\n  }catch(e){}\n}\n/* ---- LE CHANGEMENT DE MOTEUR",
+      "    src.connect(f);f.connect(g);g.connect(MASTER);src.start();\n"
+      "    src.stop(AC.currentTime+dur+.05);   // même oubli que flamePop : sans stop, ça s'empile\n"
+      "    src.onended=function(){try{src.disconnect();f.disconnect();g.disconnect();}catch(e){}};\n"
+      "  }catch(e){}\n}\n/* ---- LE CHANGEMENT DE MOTEUR")
+
+# ---- …et on arrête de fabriquer un buffer de bruit neuf à chaque pop.
+# `brownBuf` fait deux passes sur ~3000 échantillons. À 25 appels/s, sous nitro, ça
+# reste du gaspillage même une fois la fuite bouchée. On quantifie la durée au
+# centième de seconde et on garde les buffers : une poignée suffit à tout couvrir.
+patch("audio : mettre les buffers de bruit en cache",
+      "function brownBuf(len){",
+      "const _bufCache={};\n"
+      "function cachedBuf(kind,len){ // ⚠ quantifié au 1/100 s, sinon chaque appel serait un raté de cache\n"
+      "  const k=kind+Math.max(1,Math.round(len*100));\n"
+      "  return _bufCache[k]||(_bufCache[k]=(kind==='b'?brownBuf:noiseBuf)(Math.max(1,Math.round(len*100))/100));\n"
+      "}\n"
+      "function brownBuf(len){")
+patch("audio : flamePop puise dans le cache",
+      "const src=AC.createBufferSource();src.buffer=brownBuf(dur+.02);",
+      "const src=AC.createBufferSource();src.buffer=cachedBuf('b',dur+.02);")
+patch("audio : noiseBurst puise dans le cache",
+      "const src=AC.createBufferSource();src.buffer=noiseBuf(dur);\n    const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=freq;",
+      "const src=AC.createBufferSource();src.buffer=cachedBuf('n',dur);\n    const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=freq;")
+
+
+# =============================================================================
 #  10. L'ÉCRAN DE DÉMARRAGE — les deux premières secondes
 #  ---------------------------------------------------------------------------
 #  Mesuré sur la page publiée : 4,9 s avant le `load`, et pendant tout ce temps un

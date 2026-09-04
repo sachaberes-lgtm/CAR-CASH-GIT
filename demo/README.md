@@ -187,6 +187,31 @@ viewport obtenu, donc on lit la taille réelle et on y découpe le format 1200×
   séquence se désarme d'elle-même, le contexte n'est jamais créé, et on gagne six
   secondes avant de jouer. Vérifié après coup : **1 seul contexte audio, 0 valeur non
   finie, 0 erreur JS** sur une partie avec nitro.
+- **Audio — LA FUITE DE NŒUDS (la vraie cause)** : isolée par bissection avec le user
+  — voix de l'annonceur seule = aucun problème, donc le coupable était dans la chaîne
+  SFX, et aucun de mes correctifs précédents ne pouvait marcher.
+
+  `flamePop` et `noiseBurst` construisent trois nœuds (source, filtre, gain), les
+  câblent sur `MASTER`… et ne les arrêtent **jamais** :
+
+  | | `stop()` | `disconnect()` |
+  |---|---|---|
+  | `crackle` | ✅ | — |
+  | `subBoom` | ✅ | — |
+  | **`flamePop`** | ❌ | ❌ |
+  | **`noiseBurst`** | ❌ | ❌ |
+
+  Or `flamePop` tourne à **25 appels/seconde** pendant la nitro, et chaque appel
+  allouait en plus un buffer de bruit neuf (`brownBuf` : deux passes sur ~3000
+  échantillons, aucun cache). Le graphe audio grossit sans fin, le thread ne tient
+  plus la cadence : ça grésille — le « strident » — puis il lâche — le « son coupé ».
+  Les deux moitiés du symptôme, une seule cause.
+
+  Corrigé : `stop()` + `disconnect()` sur `onended`, et buffers mis en cache (durée
+  quantifiée au 1/100 s). Mesuré sur 30 s de nitro maintenue : **8 buffers** alloués
+  au lieu d'un par pop, et **45 débranchements pour 56 branchements** — le graphe
+  reste borné.
+
 - **Audio — le « limiteur » de sortie était une distorsion** : la vraie cause, trouvée
   en construisant un banc d'essai (spectrogramme de la sortie + coupure sélective des
   chaînes) au lieu de lire le code.

@@ -68,6 +68,8 @@
   body>canvas{filter:saturate(1.12) contrast(1.05) brightness(.97)} /* l'ACES (passe post) fait le gros de l'étalonnage ; ce filtre ajoute un pop + un assombrissement final */
   #scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.14) 0 2px,transparent 2px 4px);opacity:.22}
   #speedFx{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 42%,rgba(45,20,55,.55) 100%);opacity:0}
+  /* ACCESSIBILITÉ : iOS « Réduire les animations » → grain CRT + vignette vitesse coupés */
+  html[data-reduced-motion="1"] #scan,html[data-reduced-motion="1"] #speedFx{display:none}
   /* immersion nuage : voile blanc laiteux quand on traverse un banc */
   #cloudFx{position:absolute;inset:0;opacity:0;pointer-events:none;
     background:radial-gradient(ellipse at 50% 55%,rgba(250,240,248,.62) 0%,rgba(232,222,240,.42) 55%,rgba(214,206,230,.14) 100%)}
@@ -1424,6 +1426,8 @@ const SUN_PERP=new THREE.Vector3().crossVectors(SUN_DIR,new THREE.Vector3(0,1,0)
 const IS_TOUCH=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||('ontouchstart'in window)||navigator.maxTouchPoints>0;
 const IS_MOBILE=IS_TOUCH&&((window.matchMedia&&matchMedia('(hover:none)').matches)||Math.min(innerWidth,innerHeight)<820);
 const IS_LOW_END=IS_MOBILE||(navigator.hardwareConcurrency>0&&navigator.hardwareConcurrency<=4);
+const REDUCED_MOTION=(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)||false; // ACCESSIBILITÉ : iOS « Réduire les animations » → coupe bloom + grain + effets de vitesse
+if(REDUCED_MOTION)document.documentElement.setAttribute('data-reduced-motion','1');
 const renderer=new THREE.WebGLRenderer({antialias:!IS_MOBILE&&!IS_LOW_END,powerPreference:'high-performance'});
 renderer.setSize(innerWidth,innerHeight);
 document.body.appendChild(renderer.domElement);
@@ -7467,6 +7471,11 @@ function pinkBuf(len){ // BRUIT ROSE : −3 dB/octave, le bruit des matières et
   for(let i=0;i<n;i++)ch[i]=ch[i]/(m||1)-(d0+(d1-d0)*i/n); // normalisé + boucle sans couture
   return b;
 }
+const _bufCache={};
+function cachedBuf(kind,len){ // ⚠ quantifié au 1/100 s, sinon chaque appel serait un raté de cache
+  const k=kind+Math.max(1,Math.round(len*100));
+  return _bufCache[k]||(_bufCache[k]=(kind==='b'?brownBuf:noiseBuf)(Math.max(1,Math.round(len*100))/100));
+}
 function brownBuf(len){ // bruit BROWN : blanc intégré — grave et rond PAR NATURE, zéro chuintement.
   // C'est le timbre de l'océan et des fusées : la matière première d'une flamme douce.
   const n=Math.floor(AC.sampleRate*len),b=AC.createBuffer(1,n,AC.sampleRate),ch=b.getChannelData(0);
@@ -7480,11 +7489,16 @@ function flamePop(dur,vol,freq){ // pop de combustion : tranche de bruit BROWN f
   // jamais un « tss » blanc. La pluie de ces pops = le crépitement du feu, sans tapis de souffle.
   if(!AC)return;
   try{
-    const src=AC.createBufferSource();src.buffer=brownBuf(dur+.02);
+    const src=AC.createBufferSource();src.buffer=cachedBuf('b',dur+.02);
     const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=freq;f.Q.value=.7;
     const g=AC.createGain();g.gain.setValueAtTime(vol,AC.currentTime);
     g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+dur);
     src.connect(f);f.connect(g);g.connect(MASTER);src.start();
+    // ⚠ SANS CES DEUX LIGNES, CHAQUE POP RESTE CÂBLÉ SUR MASTER À VIE.
+    // flamePop tourne à 25 appels/s sous nitro : le graphe grossit sans fin, le thread
+    // audio décroche (grésillement) puis lâche (silence total). C'était LE bug.
+    src.stop(AC.currentTime+dur+.05);
+    src.onended=function(){try{src.disconnect();f.disconnect();g.disconnect();}catch(e){}};
   }catch(e){}
 }
 function initAudio(){
@@ -7674,11 +7688,13 @@ function initAudio(){
 function noiseBurst(dur,vol,freq){
   if(!AC)return;
   try{
-    const src=AC.createBufferSource();src.buffer=noiseBuf(dur);
+    const src=AC.createBufferSource();src.buffer=cachedBuf('n',dur);
     const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=freq;
     const g=AC.createGain();g.gain.setValueAtTime(vol,AC.currentTime);
     g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+dur);
     src.connect(f);f.connect(g);g.connect(MASTER);src.start();
+    src.stop(AC.currentTime+dur+.05);   // même oubli que flamePop : sans stop, ça s'empile
+    src.onended=function(){try{src.disconnect();f.disconnect();g.disconnect();}catch(e){}};
   }catch(e){}
 }
 /* ---- LE CHANGEMENT DE MOTEUR : on ENTEND qu'on bricole (2026-08-03) ------------------------
