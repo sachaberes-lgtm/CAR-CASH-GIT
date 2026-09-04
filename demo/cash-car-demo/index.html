@@ -10995,7 +10995,11 @@ function loop(now){
     trailLight.color.setRGB(Math.min(1,tcr),Math.min(1,tcg),Math.min(1,tcb));
     // sons continus
     if(AC){
-      const spd3=speedKmh;
+      // ⚠ SOURCE UNIQUE DES 26 ÉCRITURES D'AudioParam DE CE BLOC. Un NaN qui passe ici
+      // n'est pas un glitch d'une frame : il éteint le nœud pour toute la session (voir
+      // la note sur `drv` dans engSndParams). `Math.min/max` propagent NaN, d'où le `||0`
+      // final qui le rattrape — NaN étant falsy, la vitesse retombe à 0 et le son survit.
+      const spd3=Math.min(2000,Math.max(0,speedKmh))||0;
       if(duckT>0)duckT=Math.max(0,duckT-dt*2.6); // les gros événements creusent le mix, puis il respire
       const dk=(1-.5*duckT)*(ANN.duck?ANN_DUCK:1);
       nA+=((nitroOn&&mode!=='boom'?1:0)-nA)*Math.min(1,dt*6); // rampe nitro : le moteur gonfle, ne saute pas
@@ -11125,7 +11129,7 @@ function loop(now){
         const jb=nitroOn?(nitroBlue?.52:.4):0;
         jrG.gain.setTargetAtTime(jb*(air9?1.1:1.05)*(.84+.32*Math.random())*dk,AC.currentTime,.08); // turbulence lente
         jrDep.gain.setTargetAtTime(jb*(air9?.22:.16)*dk,AC.currentTime,.1); // flutter 5 Hz : la flamme respire
-        jrF.frequency.setTargetAtTime(nitroOn?(air9?310+spd3*.3:430+spd3*.35)+(nitroBlue?80:0):240,AC.currentTime,.1); // un poil plus mordante au sol
+        jrF.frequency.setTargetAtTime(nitroOn?Math.min(900,(air9?310+spd3*.3:430+spd3*.35)+(nitroBlue?80:0)):240,AC.currentTime,.1); // un poil plus mordante au sol
         // PLUS AUCUNE couche de bruit blanc continue : souffle médium coupé, grave blanc réduit
         // à un fond — tout le caractère vient du rumble brown + des pops bruns
         jetG.gain.setTargetAtTime(nitroOn&&air9?.01*dk:0,AC.currentTime,.06);
@@ -11133,8 +11137,11 @@ function loop(now){
         jetOscG.gain.setTargetAtTime(nitroOn&&!air9?.003:0,AC.currentTime,.09); // pointe de turbine au sol
         jcFb.gain.setTargetAtTime(.12,AC.currentTime,.1);jcDep.gain.setTargetAtTime(.0002,AC.currentTime,.12); // peigne+flanger au repos (ils chuintaient)
         if(nitroOn){
-          jetF.frequency.setTargetAtTime(320+spd3*.6+(nitroBlue?180:0),AC.currentTime,.07);
-          jetOsc.frequency.setTargetAtTime(900+spd3*3.5+(nitroBlue?400:0),AC.currentTime,.08);
+          // ⚠ LES DEUX PLAFONDS SONT LE CORRECTIF DU SIFFLET — ne pas les retirer.
+          // jetOsc est une dent de scie dans un passe-bande Q=6 centré sur 2400 Hz :
+          // au-dessus de ce centre elle perd ses harmoniques et devient un cri pur.
+          jetF.frequency.setTargetAtTime(Math.min(1800,320+spd3*.6+(nitroBlue?180:0)),AC.currentTime,.07);
+          jetOsc.frequency.setTargetAtTime(Math.min(2400,900+spd3*3.5+(nitroBlue?400:0)),AC.currentTime,.08);
           // pétillement en pops BRUNS, discrets et distincts : ça crépite, ça ne souffle pas.
           // (moins denses qu'avant : 25/s de pops ronds > 50/s de pops blancs qui fusionnent en tapis)
           if(Math.random()<dt*(air9?9:25))flamePop(.02+Math.random()*.05,air9?.05+Math.random()*.06:.1+Math.random()*.14,(air9?300:380)+Math.random()*260);

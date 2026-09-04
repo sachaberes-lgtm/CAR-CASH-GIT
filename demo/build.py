@@ -649,6 +649,49 @@ patch_re("piste : tremplin retiré",
 
 
 # =============================================================================
+#  12. LE SIFFLET DE LA NITRO
+#  ---------------------------------------------------------------------------
+#  Signalé par le user : « un gros son strident horrible » à l'allumage de la nitro.
+#  `jetOsc` est une DENT DE SCIE envoyée dans un passe-bande Q=6 centré sur 2400 Hz,
+#  et sa fréquence vaut `900 + vitesse*3,5` — SANS PLAFOND. Toutes les autres
+#  fréquences du moteur sont bornées (nzF min 6200, whineF min 13500, lp min 6200,
+#  lfoF min 40) ; ces trois-là ont été oubliées. Passé ~370 km/h la fondamentale
+#  grimpe au-dessus du centre du filtre : les harmoniques tombent, il ne reste
+#  qu'une sinusoïde nue dans l'aigu. C'est ça, le sifflet.
+#
+#  On BORNE, on ne redessine pas : sous les vitesses de croisière la nitro sonne
+#  exactement comme avant (le plafond de 2400 Hz n'est atteint qu'à 428 km/h, 314
+#  en nitro bleue). Au-delà, la turbine tient sa note au lieu de partir en cri.
+patch("nitro : plafonner la turbine",
+      "          jetF.frequency.setTargetAtTime(320+spd3*.6+(nitroBlue?180:0),AC.currentTime,.07);\n"
+      "          jetOsc.frequency.setTargetAtTime(900+spd3*3.5+(nitroBlue?400:0),AC.currentTime,.08);",
+      "          // ⚠ LES DEUX PLAFONDS SONT LE CORRECTIF DU SIFFLET — ne pas les retirer.\n"
+      "          // jetOsc est une dent de scie dans un passe-bande Q=6 centré sur 2400 Hz :\n"
+      "          // au-dessus de ce centre elle perd ses harmoniques et devient un cri pur.\n"
+      "          jetF.frequency.setTargetAtTime(Math.min(1800,320+spd3*.6+(nitroBlue?180:0)),AC.currentTime,.07);\n"
+      "          jetOsc.frequency.setTargetAtTime(Math.min(2400,900+spd3*3.5+(nitroBlue?400:0)),AC.currentTime,.08);")
+
+patch("nitro : plafonner le corps de flamme",
+      "jrF.frequency.setTargetAtTime(nitroOn?(air9?310+spd3*.3:430+spd3*.35)+(nitroBlue?80:0):240,AC.currentTime,.1);",
+      "jrF.frequency.setTargetAtTime(nitroOn?Math.min(900,(air9?310+spd3*.3:430+spd3*.35)+(nitroBlue?80:0)):240,AC.currentTime,.1);")
+
+# ---- …et la seconde moitié du symptôme : « ça se désactive complètement ».
+# Un NaN écrit dans un AudioParam n'est pas une valeur passagère : il ÉTEINT le nœud
+# pour toute la session. Le fichier porte déjà ce constat noir sur blanc à propos de
+# `drv` (« un NaN écrit dans un AudioParam ne se répare pas »). Or `spd3` alimente
+# les 26 écritures du bloc moteur : il suffit que la vitesse passe non finie une
+# seule frame — un dt aberrant au lancement, une division par zéro — pour que tout
+# le moteur devienne muet définitivement. On assainit à la SOURCE, une fois.
+patch("audio : assainir la vitesse à la source",
+      "      const spd3=speedKmh;",
+      "      // ⚠ SOURCE UNIQUE DES 26 ÉCRITURES D'AudioParam DE CE BLOC. Un NaN qui passe ici\n"
+      "      // n'est pas un glitch d'une frame : il éteint le nœud pour toute la session (voir\n"
+      "      // la note sur `drv` dans engSndParams). `Math.min/max` propagent NaN, d'où le `||0`\n"
+      "      // final qui le rattrape — NaN étant falsy, la vitesse retombe à 0 et le son survit.\n"
+      "      const spd3=Math.min(2000,Math.max(0,speedKmh))||0;")
+
+
+# =============================================================================
 #  10. L'ÉCRAN DE DÉMARRAGE — les deux premières secondes
 #  ---------------------------------------------------------------------------
 #  Mesuré sur la page publiée : 4,9 s avant le `load`, et pendant tout ce temps un
