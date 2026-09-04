@@ -199,7 +199,7 @@ patch("survivor HUD: lead",
       "const gap=r.alive?(rk===0?'EN TÊTE':'+'+Math.round(leadD-r.totD)+' m'):'';",
       "const gap=r.alive?(rk===0?'LEAD':'+'+Math.round(leadD-r.totD)+' m'):'';")
 patch("survivor HUD: last-place alarm",
-      "lastAlertEl.innerHTML='⚠ ATTENTION !<br>VOUS ÊTES DERNIER<br>EXPLOSION DANS : 00:'+String(left).padStart(2,'0');",
+      "lastAlertEl.innerHTML=TR('⚠ ATTENTION !<br>VOUS ÊTES DERNIER<br>EXPLOSION DANS : 00:')+String(left).padStart(2,'0');",
       "lastAlertEl.innerHTML='⚠ WARNING<br>YOU ARE LAST<br>EXPLODING IN 00:'+String(left).padStart(2,'0');")
 
 # No neighbouring files at all: the standalone demo is one file, so the PWA
@@ -1129,6 +1129,31 @@ patch("nitro : refonte — supprimer la distorsion et la turbine",
       "     rond, rien au-dessus de 700 Hz.\n"
       "     ⚠ NE PAS LES REBRANCHER SANS MESURER AU BANC (voir demo/README.md). */\n"
       "  try{jetG.disconnect();}catch(e){}")
+
+# ---------------------------------------------------------------------------
+#  SUPPRESSION TOTALE DU SON DE NITRO (demandé par le user)
+#  Après huit tentatives de correction ciblée, la nitro reste la source d'un bruit
+#  que je n'ai jamais réussi à reproduire ni à identifier. On la rend MUETTE :
+#  les quatre couches sont débranchées du graphe à la construction, et les pops de
+#  flamme — qui ne servent qu'à elle — ne partent plus du tout.
+#  Le reste du jeu garde tout son son : moteur, vent, crissement, sirène, récompenses.
+#  ⚠ Pour la remettre un jour : il faudra d'abord SAVOIR ce qui grinçait. Rebrancher
+#  à l'aveugle ramènerait le défaut avec.
+patch("nitro : suppression totale du son",
+      "  const jrLfo=AC.createOscillator();jrLfo.type='sine';jrLfo.frequency.value=5.3;",
+      "  /* ⚠ NITRO MUETTE — DEMANDE EXPLICITE DU USER, APRÈS HUIT CORRECTIFS RATÉS.\n"
+      "     Les quatre couches du réacteur sont débranchées du graphe. Le bruit signalé\n"
+      "     n'a jamais pu être reproduit ni isolé ; tant qu'il ne l'est pas, la nitro se\n"
+      "     joue en silence. Le reste du jeu garde son son. NE PAS REBRANCHER SANS AVOIR\n"
+      "     identifié la cause : ça ramènerait le défaut avec. */\n"
+      "  setTimeout(function(){ for(const n of [jetG,jetLowG,jetOscG,jrG]) try{n.disconnect();}catch(e){} },0);\n"
+      "  const jrLfo=AC.createOscillator();jrLfo.type='sine';jrLfo.frequency.value=5.3;")
+
+# les pops de flamme ne servent QUE la nitro (appelés dans `if(nitroOn)`) : ils partent aussi
+patch("nitro : plus de pops de flamme",
+      "function flamePop(dur,vol,freq){ // pop de combustion",
+      "function flamePop(dur,vol,freq){ return; // ⚠ NITRO MUETTE : ces pops ne servent qu'à elle (voir initAudio)\n"
+      "// pop de combustion")
 
 patch("nitro : refonte — supprimer la turbine",
       "  jetOsc.connect(jof);jof.connect(jetOscG);jetOscG.connect(MASTER);jetOsc.start();",

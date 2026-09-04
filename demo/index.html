@@ -3771,6 +3771,7 @@ const I18N={
  '★ DÉCOLLAGE PRÊT — double-tape NITRO ! ★':'★ LIFT-OFF READY — double-tap NITRO! ★',
  '🏆 CHAMPION SURVIVANT — JAUGE OFFERTE !':'🏆 SURVIVOR CHAMPION — FREE GAUGE!',
  '🪦 ÉLIMINÉ — DERNIER DE LA MINUTE !':'🪦 ELIMINATED — LAST OF THE MINUTE!',
+ '⚠ ATTENTION !<br>VOUS ÊTES DERNIER<br>EXPLOSION DANS : 00:':'⚠ WARNING!<br>YOU ARE LAST<br>EXPLOSION IN : 00:',
  'PILE AU CENTRE 🎯':'DEAD CENTRE 🎯','À RECULONS — MÊME PAS REGARDÉ !':'BACKWARDS — DIDN\'T EVEN LOOK!',
  'FACE CACHÉE ×2':'HIDDEN FACE ×2','🚀 GAP FRANCHI !':'🚀 GAP CLEARED!','🚀 DOUBLE GAP — MONSTRUEUX !':'🚀 DOUBLE GAP — MONSTROUS!',
  'CHAÎNE PERDUE':'CHAIN LOST','REPORT +':'CARRY-OVER +','⚠ ROULE OU CRÈVE — ':'⚠ DRIVE OR DIE — ',
@@ -3899,7 +3900,7 @@ function applyLangDOM(){
   const put=(sel,txt)=>{const e=document.querySelector(sel);if(e)e.textContent=txt;};
   // ⚠ que des éléments à texte PUR : #cpInfo par exemple contient <span id=cpDist> et #cpBar,
   // lui écrire un textContent supprimerait ses enfants (donc la jauge de progression).
-  for(const e of document.querySelectorAll('[data-fr],#gTitle,#gHint,#gEquip,#tagline,#goTxt,#nameSave,#setHead>span,#saveExp,#saveImp,#nitroLbl,#speedUnit,.setSec,.setRow>span,.setKeys span,#nameEntry>span,.blabel,.mmD')){
+  for(const e of document.querySelectorAll('[data-fr],#gTitle,#gHint,#gEquip,#tagline,#goTxt,#nameSave,#setHead>span,#saveExp,#saveImp,#nitroLbl,#speedUnit,.setSec,.setRow>span,.setKeys span,#nameEntry>span,.blabel,.mmD,.stRow>span')){
     if(e.dataset.fr===undefined)e.dataset.fr=e.textContent;
     e.textContent=TR(e.dataset.fr);
   }
@@ -8408,7 +8409,8 @@ function brownBuf(len){ // bruit BROWN : blanc intégré — grave et rond PAR N
   for(let i=0;i<n;i++)ch[i]=ch[i]/(m||1)-(d0+(d1-d0)*i/n); // normalisé + boucle sans couture
   return b;
 }
-function flamePop(dur,vol,freq){ // pop de combustion : tranche de bruit BROWN filtrée — un « plop » rond,
+function flamePop(dur,vol,freq){ return; // ⚠ NITRO MUETTE : ces pops ne servent qu'à elle (voir initAudio)
+// pop de combustion : tranche de bruit BROWN filtrée — un « plop » rond,
   // jamais un « tss » blanc. La pluie de ces pops = le crépitement du feu, sans tapis de souffle.
   if(!AC)return;
   try{
@@ -8638,6 +8640,12 @@ function initAudio(){
   const jrF2=AC.createBiquadFilter();jrF2.type='lowpass';jrF2.frequency.value=620;
   jrG=AC.createGain();jrG.gain.value=0;
   jr.connect(jrF);jrF.connect(jrF2);jrF2.connect(jrG);jrG.connect(MASTER);jr.start();
+  /* ⚠ NITRO MUETTE — DEMANDE EXPLICITE DU USER, APRÈS HUIT CORRECTIFS RATÉS.
+     Les quatre couches du réacteur sont débranchées du graphe. Le bruit signalé
+     n'a jamais pu être reproduit ni isolé ; tant qu'il ne l'est pas, la nitro se
+     joue en silence. Le reste du jeu garde son son. NE PAS REBRANCHER SANS AVOIR
+     identifié la cause : ça ramènerait le défaut avec. */
+  setTimeout(function(){ for(const n of [jetG,jetLowG,jetOscG,jrG]) try{n.disconnect();}catch(e){} },0);
   const jrLfo=AC.createOscillator();jrLfo.type='sine';jrLfo.frequency.value=5.3;
   jrDep=AC.createGain();jrDep.gain.value=0;
   jrLfo.connect(jrDep);jrDep.connect(jrG.gain);jrLfo.start();
@@ -10972,7 +10980,7 @@ function openStall(mode){
   if(started&&!gameOver){showMsg('Ça se visite depuis le menu');return;}
   stallMode=mode||'fruit';stallI=stallMode==='moteur'?engTier:0;
   stEl.classList.toggle('moteur',stallMode==='moteur');
-  $('stTitle').textContent=stallMode==='moteur'?'ATELIER — LES MOTEURS':'ÉTAL — RÉGLAGE DES FRUITS';
+  $('stTitle').textContent=TR(stallMode==='moteur'?'ATELIER — LES MOTEURS':'ÉTAL — RÉGLAGE DES FRUITS');
   stallOn=true;stEl.classList.add('on');document.body.classList.add('inStall');
   overlay.style.display='none';
   if(pigGroup)pigGroup.visible=false;
