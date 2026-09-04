@@ -56,8 +56,21 @@ tierce. Rien à négocier avec un pare-feu d'entreprise ou une politique de séc
 
 ## Déployer
 
-Le nom du dossier EST le nom du projet Vercel, donc le domaine : déployer depuis
-`cash-car-demo/` donne `cash-car-demo.vercel.app`, ce que visent les balises Open Graph.
+Le dépôt porte un `vercel.json` à sa racine : c'est lui qui dit à Vercel de servir
+`demo/cash-car-demo` et non la racine (qui n'a pas d'`index.html` — d'où le 404 du
+premier essai). On le décrit **dans le dépôt** plutôt que par le réglage « Root
+Directory » du tableau de bord : le déploiement se relit, et il survit à un ré-import
+du projet. Il pose aussi les en-têtes de cache — un an sur `vendor/` et `assets/`, qui
+ne changent qu'avec le moteur du jeu ; jamais sur la page. C'est ce qui rend la
+deuxième visite instantanée.
+
+⚠ Pas de commentaires dans ce fichier : le schéma Vercel refuse les clés `//`, y
+compris à l'intérieur d'un bloc `headers` (premier build en erreur pour ça).
+
+### À la main, sans git
+
+Le domaine de production est `https://car-cash-git.vercel.app` (Vercel nomme le projet
+d'après le dépôt). C'est ce que vise la constante `BASE` en haut de `build.py`.
 
 ```bash
 cd demo/cash-car-demo
@@ -65,9 +78,8 @@ npx vercel@latest login
 npx vercel@latest deploy --prod --yes
 ```
 
-⚠ Si l'URL de production n'est pas exactement `https://cash-car-demo.vercel.app`, change
-la constante `BASE` en haut de `build.py`, relance le build et redéploie — sinon l'aperçu
-Slack n'aura pas d'image. Slackbot ne lit que les 32 premiers Ko d'une page et n'exécute
+⚠ Si le domaine change, change `BASE` en haut de `build.py`, relance le build et
+redéploie — sinon l'aperçu Slack cherche son image à une adresse qui n'existe pas. Slackbot ne lit que les 32 premiers Ko d'une page et n'exécute
 aucun JavaScript : c'est pour ça que les balises sont tout en haut du fichier et que
 l'image est un vrai fichier à côté, pas un data-URI.
 
