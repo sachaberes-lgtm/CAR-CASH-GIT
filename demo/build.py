@@ -649,42 +649,80 @@ patch_re("piste : tremplin retiré",
 
 
 # =============================================================================
-#  12. LE SIFFLET DE LA NITRO
+#  12. LES SIFFLETS — SCAN COMPLET DU CODE SON
 #  ---------------------------------------------------------------------------
-#  Signalé par le user : « un gros son strident horrible » à l'allumage de la nitro.
-#  `jetOsc` est une DENT DE SCIE envoyée dans un passe-bande Q=6 centré sur 2400 Hz,
-#  et sa fréquence vaut `900 + vitesse*3,5` — SANS PLAFOND. Toutes les autres
-#  fréquences du moteur sont bornées (nzF min 6200, whineF min 13500, lp min 6200,
-#  lfoF min 40) ; ces trois-là ont été oubliées. Passé ~370 km/h la fondamentale
-#  grimpe au-dessus du centre du filtre : les harmoniques tombent, il ne reste
-#  qu'une sinusoïde nue dans l'aigu. C'est ça, le sifflet.
+#  Premier diagnostic (la turbine de la nitro) : juste, mais ce n'était PAS la cause
+#  principale. Le user a retrouvé le même bruit en passant sur un booster.
 #
-#  On BORNE, on ne redessine pas : sous les vitesses de croisière la nitro sonne
-#  exactement comme avant (le plafond de 2400 Hz n'est atteint qu'à 428 km/h, 314
-#  en nitro bleue). Au-delà, la turbine tient sa note au lieu de partir en cri.
-patch("nitro : plafonner la turbine",
+#  Scan de toutes les écritures de fréquence du moteur audio. Le jeu borne
+#  soigneusement la plupart (`nzF` 6200, `whineF` 13500, `lp` 6200, `lfoF` 40) —
+#  mais QUATRE fréquences pilotées par la vitesse n'ont aucun plafond, et trois
+#  d'entre elles alimentent des passe-bande à Q ÉLEVÉ. Un passe-bande à Q=14, ce
+#  n'est plus une couleur : c'est un sinus. Et il monte avec la vitesse, droit dans
+#  les 3-4 kHz — le pic exact de sensibilité de l'oreille humaine.
+#
+#    whF   Q=14   2000 + v*1,2   ← LE COUPABLE. S'allume à 560 km/h, ce qu'un
+#                                  booster fait franchir d'un coup. 3 kHz à 900 km/h.
+#    skF2  Q=10   (900+…)*1,56   ← le crissement de drift, même famille
+#    skF1  Q=8    900 + …
+#    jetOsc  (dent de scie dans un passe-bande Q=6)  ← corrigé au commit précédent
+#
+#  On borne les fréquences ET on assouplit les deux Q extrêmes. Baisser Q ne coupe
+#  pas le son : il élargit la cloche, donc on entend du VENT au lieu d'un sifflet.
+#  C'est ce que le sifflement d'air était censé être — le commentaire du jeu dit
+#  « la signature des vitesses folles », pas une alarme.
+
+patch("son : le sifflement d'air ne siffle plus (Q=14)",
+      "  whF=AC.createBiquadFilter();whF.type='bandpass';whF.frequency.value=2600;whF.Q.value=14;",
+      "  // ⚠ Q ABAISSÉ DE 14 À 5 — c'était LA cause du bruit strident signalé sur booster.\n"
+      "  // À Q=14 un passe-bande ne colore plus le bruit, il en extrait un sinus ; piloté par\n"
+      "  // la vitesse sans plafond, ce sinus montait dans les 3-4 kHz, pile sur le pic de\n"
+      "  // sensibilité de l'oreille. À Q=5 la cloche est large : on entend du vent.\n"
+      "  whF=AC.createBiquadFilter();whF.type='bandpass';whF.frequency.value=2600;whF.Q.value=5;")
+
+patch("son : plafonner le sifflement d'air",
+      "        whF.frequency.setTargetAtTime(2000+spd3*1.2,AC.currentTime,.1);",
+      "        whF.frequency.setTargetAtTime(Math.min(2600,2000+spd3*1.2),AC.currentTime,.1); // ⚠ PLAFOND : au-delà on quitte le vent pour l'alarme")
+
+patch("son : adoucir les deux passe-bande du crissement",
+      "  skF1=AC.createBiquadFilter();skF1.type='bandpass';skF1.frequency.value=950;skF1.Q.value=8;\n"
+      "  skF2=AC.createBiquadFilter();skF2.type='bandpass';skF2.frequency.value=1480;skF2.Q.value=10;",
+      "  // Q 8/10 → 5/6 : le crissement garde son mordant sans virer au sifflet quand la\n"
+      "  // vitesse pousse ses deux bandes vers l'aigu (même famille de défaut que whF).\n"
+      "  skF1=AC.createBiquadFilter();skF1.type='bandpass';skF1.frequency.value=950;skF1.Q.value=5;\n"
+      "  skF2=AC.createBiquadFilter();skF2.type='bandpass';skF2.frequency.value=1480;skF2.Q.value=6;")
+
+# `windF` est un passe-BAS à Q=.2 : il ne peut pas siffler, quoi qu'on lui donne.
+# On le borne quand même — pour que l'invariant se vérifie d'un coup d'œil : plus
+# AUCUNE fréquence pilotée par la vitesse n'est laissée libre dans ce fichier.
+patch("son : plafonner le vent (cohérence)",
+      "        windF.frequency.setTargetAtTime((280+spd3*1.25)*(1-.6*cloudInS)+(mode==='fall'?260:0),AC.currentTime,.15);",
+      "        windF.frequency.setTargetAtTime(Math.min(3200,(280+spd3*1.25)*(1-.6*cloudInS)+(mode==='fall'?260:0)),AC.currentTime,.15);")
+
+patch("son : plafonner le crissement",
+      "          const sq=900+drift*430+spd3*.35;",
+      "          const sq=Math.min(1750,900+drift*430+spd3*.35); // plafond : skF2 tape à sq*1,56, donc 2730 Hz au plus haut")
+
+patch("son : plafonner la turbine de la nitro",
       "          jetF.frequency.setTargetAtTime(320+spd3*.6+(nitroBlue?180:0),AC.currentTime,.07);\n"
       "          jetOsc.frequency.setTargetAtTime(900+spd3*3.5+(nitroBlue?400:0),AC.currentTime,.08);",
-      "          // ⚠ LES DEUX PLAFONDS SONT LE CORRECTIF DU SIFFLET — ne pas les retirer.\n"
       "          // jetOsc est une dent de scie dans un passe-bande Q=6 centré sur 2400 Hz :\n"
       "          // au-dessus de ce centre elle perd ses harmoniques et devient un cri pur.\n"
       "          jetF.frequency.setTargetAtTime(Math.min(1800,320+spd3*.6+(nitroBlue?180:0)),AC.currentTime,.07);\n"
       "          jetOsc.frequency.setTargetAtTime(Math.min(2400,900+spd3*3.5+(nitroBlue?400:0)),AC.currentTime,.08);")
 
-patch("nitro : plafonner le corps de flamme",
+patch("son : plafonner le corps de flamme",
       "jrF.frequency.setTargetAtTime(nitroOn?(air9?310+spd3*.3:430+spd3*.35)+(nitroBlue?80:0):240,AC.currentTime,.1);",
       "jrF.frequency.setTargetAtTime(nitroOn?Math.min(900,(air9?310+spd3*.3:430+spd3*.35)+(nitroBlue?80:0)):240,AC.currentTime,.1);")
 
 # ---- …et la seconde moitié du symptôme : « ça se désactive complètement ».
 # Un NaN écrit dans un AudioParam n'est pas une valeur passagère : il ÉTEINT le nœud
 # pour toute la session. Le fichier porte déjà ce constat noir sur blanc à propos de
-# `drv` (« un NaN écrit dans un AudioParam ne se répare pas »). Or `spd3` alimente
-# les 26 écritures du bloc moteur : il suffit que la vitesse passe non finie une
-# seule frame — un dt aberrant au lancement, une division par zéro — pour que tout
-# le moteur devienne muet définitivement. On assainit à la SOURCE, une fois.
-patch("audio : assainir la vitesse à la source",
+# `drv`. Or `spd3` alimente les 26 écritures du bloc moteur : une seule frame de
+# vitesse non finie suffit à tout tuer définitivement. On assainit à la SOURCE.
+patch("son : assainir la vitesse à la source",
       "      const spd3=speedKmh;",
-      "      // ⚠ SOURCE UNIQUE DES 26 ÉCRITURES D'AudioParam DE CE BLOC. Un NaN qui passe ici\n"
+      "      // ⚠ SOURCE UNIQUE DES ÉCRITURES D'AudioParam DE CE BLOC. Un NaN qui passe ici\n"
       "      // n'est pas un glitch d'une frame : il éteint le nœud pour toute la session (voir\n"
       "      // la note sur `drv` dans engSndParams). `Math.min/max` propagent NaN, d'où le `||0`\n"
       "      // final qui le rattrape — NaN étant falsy, la vitesse retombe à 0 et le son survit.\n"

@@ -7614,8 +7614,10 @@ function initAudio(){
   // CRISSEMENT v2 : deux bandes résonantes non harmoniques (950/1480 Hz) + LFO de STICK-SLIP
   // qui fait brouter les fréquences — la gomme accroche-lâche, le crissement VIT au lieu de siffler
   const ssrc=AC.createBufferSource();ssrc.buffer=noiseBuf(1.3);ssrc.loop=true;
-  skF1=AC.createBiquadFilter();skF1.type='bandpass';skF1.frequency.value=950;skF1.Q.value=8;
-  skF2=AC.createBiquadFilter();skF2.type='bandpass';skF2.frequency.value=1480;skF2.Q.value=10;
+  // Q 8/10 → 5/6 : le crissement garde son mordant sans virer au sifflet quand la
+  // vitesse pousse ses deux bandes vers l'aigu (même famille de défaut que whF).
+  skF1=AC.createBiquadFilter();skF1.type='bandpass';skF1.frequency.value=950;skF1.Q.value=5;
+  skF2=AC.createBiquadFilter();skF2.type='bandpass';skF2.frequency.value=1480;skF2.Q.value=6;
   skidG=AC.createGain();skidG.gain.value=0;
   ssrc.connect(skF1);ssrc.connect(skF2);skF1.connect(skidG);skF2.connect(skidG);skidG.connect(MASTER);ssrc.start();
   skLfo=AC.createOscillator();skLfo.type='triangle';skLfo.frequency.value=12;
@@ -7623,7 +7625,11 @@ function initAudio(){
   skLfo.connect(skD1);skD1.connect(skF1.frequency);skLfo.connect(skD2);skD2.connect(skF2.frequency);skLfo.start();
   // SIFFLEMENT D'AIR : n'existe qu'aux vitesses folles (l'oreille sait qu'on va TRÈS vite)
   const wsrc2=AC.createBufferSource();wsrc2.buffer=noiseBuf(1.4);wsrc2.loop=true;
-  whF=AC.createBiquadFilter();whF.type='bandpass';whF.frequency.value=2600;whF.Q.value=14;
+  // ⚠ Q ABAISSÉ DE 14 À 5 — c'était LA cause du bruit strident signalé sur booster.
+  // À Q=14 un passe-bande ne colore plus le bruit, il en extrait un sinus ; piloté par
+  // la vitesse sans plafond, ce sinus montait dans les 3-4 kHz, pile sur le pic de
+  // sensibilité de l'oreille. À Q=5 la cloche est large : on entend du vent.
+  whF=AC.createBiquadFilter();whF.type='bandpass';whF.frequency.value=2600;whF.Q.value=5;
   whG=AC.createGain();whG.gain.value=0;
   wsrc2.connect(whF);whF.connect(whG);whG.connect(MASTER);wsrc2.start();
   // réacteur nitro : souffle + grondement grave + sifflement de turbine (3 couches)
@@ -10995,7 +11001,7 @@ function loop(now){
     trailLight.color.setRGB(Math.min(1,tcr),Math.min(1,tcg),Math.min(1,tcb));
     // sons continus
     if(AC){
-      // ⚠ SOURCE UNIQUE DES 26 ÉCRITURES D'AudioParam DE CE BLOC. Un NaN qui passe ici
+      // ⚠ SOURCE UNIQUE DES ÉCRITURES D'AudioParam DE CE BLOC. Un NaN qui passe ici
       // n'est pas un glitch d'une frame : il éteint le nœud pour toute la session (voir
       // la note sur `drv` dans engSndParams). `Math.min/max` propagent NaN, d'où le `||0`
       // final qui le rattrape — NaN étant falsy, la vitesse retombe à 0 et le son survit.
@@ -11103,12 +11109,12 @@ function loop(now){
       if(windG){
         // MORT ('boom') : coupé NET — sinon spd3 (=speedKmh figé au crash) laisse le vent souffler à fond pour toujours
         windG.gain.setTargetAtTime(mode==='boom'?0:Math.min(.05,spd3*.0001+(mode==='fall'?.018:0)+cloudInS*.02)*dk,AC.currentTime,mode==='boom'?.08:.15); // coef ÷2 (SPD .25→.5 : spd3 a doublé) — le vent garde sa montée progressive au lieu de saturer dès le mid-game
-        windF.frequency.setTargetAtTime((280+spd3*1.25)*(1-.6*cloudInS)+(mode==='fall'?260:0),AC.currentTime,.15); // le nuage étouffe le vent, l'air libre l'aère (coef ÷2 : même pitch au même état-caisse)
+        windF.frequency.setTargetAtTime(Math.min(3200,(280+spd3*1.25)*(1-.6*cloudInS)+(mode==='fall'?260:0)),AC.currentTime,.15); // le nuage étouffe le vent, l'air libre l'aère (coef ÷2 : même pitch au même état-caisse)
       }
       if(whG){ // sifflement d'air : la signature des vitesses folles (>330 km/h)
         // MORT : coupé NET (même piège que le vent : sinon le sifflement reste bloqué à fond après le crash)
         whG.gain.setTargetAtTime(mode==='boom'?0:Math.min(.06,Math.max(0,(spd3-560)/4400))*(1-.7*cloudInS)*(1-.5*nA)*dk,AC.currentTime,mode==='boom'?.08:.12); // seuil+pente ×2 (SPD .25→.5 : spd3 a doublé) — le sifflement reste la signature des VITESSES FOLLES, pas un fond permanent
-        whF.frequency.setTargetAtTime(2000+spd3*1.2,AC.currentTime,.1); // coef ÷2 : même pitch au même état-caisse
+        whF.frequency.setTargetAtTime(Math.min(2600,2000+spd3*1.2),AC.currentTime,.1); // ⚠ PLAFOND : au-delà on quitte le vent pour l'alarme // coef ÷2 : même pitch au même état-caisse
       }
       if(cloudInS>.45&&!loop._cldWas)noiseBurst(.45,.08,520); // percée dans la ouate : fwoosh de coton
       loop._cldWas=cloudInS>.45;
@@ -11116,7 +11122,7 @@ function loop(now){
         const drift=(mode==='drive')?Math.max(0,Math.min(1,(Math.abs(psi)+Math.abs(driftYaw)*1.6-.32)*1.5))*Math.min(1,Math.abs(vA)/35):0; // …et il CRISSE (même mesure que la fumée)
         skidG.gain.setTargetAtTime(drift>0?Math.min(.17,Math.pow(drift,1.3)*.15*(.4+Math.min(1,spd3/380)))*dk:0,AC.currentTime,.05);
         if(drift>0){
-          const sq=900+drift*430+spd3*.35;
+          const sq=Math.min(1750,900+drift*430+spd3*.35); // plafond : skF2 tape à sq*1,56, donc 2730 Hz au plus haut
           skF1.frequency.setTargetAtTime(sq,AC.currentTime,.05);skF2.frequency.setTargetAtTime(sq*1.56,AC.currentTime,.05);
           skD1.gain.setTargetAtTime(40+130*drift,AC.currentTime,.1);skD2.gain.setTargetAtTime(60+200*drift,AC.currentTime,.1); // le broutage stick-slip suit la glisse
           skLfo.frequency.setTargetAtTime(9+drift*7,AC.currentTime,.1);
@@ -11137,7 +11143,6 @@ function loop(now){
         jetOscG.gain.setTargetAtTime(nitroOn&&!air9?.003:0,AC.currentTime,.09); // pointe de turbine au sol
         jcFb.gain.setTargetAtTime(.12,AC.currentTime,.1);jcDep.gain.setTargetAtTime(.0002,AC.currentTime,.12); // peigne+flanger au repos (ils chuintaient)
         if(nitroOn){
-          // ⚠ LES DEUX PLAFONDS SONT LE CORRECTIF DU SIFFLET — ne pas les retirer.
           // jetOsc est une dent de scie dans un passe-bande Q=6 centré sur 2400 Hz :
           // au-dessus de ce centre elle perd ses harmoniques et devient un cri pur.
           jetF.frequency.setTargetAtTime(Math.min(1800,320+spd3*.6+(nitroBlue?180:0)),AC.currentTime,.07);

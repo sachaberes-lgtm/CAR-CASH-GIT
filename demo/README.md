@@ -162,14 +162,23 @@ viewport obtenu, donc on lit la taille réelle et on y découpe le format 1200×
 - **Langue** : anglais par défaut. La démo complète au passage la traduction du jeu — le
   HUD Survivant (`TOI`, `EN TÊTE`, l'alarme de dernière place) et la coque mobile étaient
   écrits en dur, hors du dictionnaire, et « Restaurer un code » n'avait aucune entrée EN.
-- **Audio — le sifflet de la nitro** : `jetOsc` est une dent de scie envoyée dans un
-  passe-bande Q=6 centré sur 2400 Hz, et sa fréquence valait `900 + vitesse*3,5`
-  **sans plafond**. Toutes les autres fréquences du moteur sont bornées (`nzF` 6200,
-  `whineF` 13500, `lp` 6200, `lfoF` 40) ; ces trois-là avaient été oubliées. Passé
-  ~370 km/h la fondamentale grimpe au-dessus du centre du filtre, les harmoniques
-  tombent, et il ne reste qu'une sinusoïde nue dans l'aigu. Bornées à 2400 / 1800 /
-  900 Hz : sous les vitesses de croisière rien ne change, au-delà la turbine tient sa
-  note au lieu de partir en cri. **Ce bug est dans le jeu complet**, pas dans la démo.
+- **Audio — les sifflets** : quatre fréquences pilotées par la vitesse n'avaient
+  **aucun plafond**, et trois alimentaient des passe-bande à Q élevé. Un passe-bande à
+  Q=14 n'est plus une couleur, c'est un sinus — et il montait avec la vitesse droit
+  dans les 3-4 kHz, le pic de sensibilité de l'oreille.
+
+  | filtre | Q | fréquence | rôle |
+  |---|---|---|---|
+  | `whF` | **14 → 5** | `2000 + v*1,2` → plafond 2600 | le sifflement d'air, **le coupable** : il s'allume à 560 km/h, ce qu'un booster fait franchir d'un coup |
+  | `skF2` | 10 → 6 | `sq*1,56` → plafond 2730 | crissement de drift |
+  | `skF1` | 8 → 5 | `sq` → plafond 1750 | crissement de drift |
+  | `jetOsc` | (Q=6 en aval) | `900 + v*3,5` → plafond 2400 | turbine de la nitro |
+
+  Baisser Q ne coupe pas le son : ça élargit la cloche, donc on entend du **vent** au
+  lieu d'un sifflet. C'est ce que le jeu voulait — son propre commentaire dit « la
+  signature des vitesses folles », pas une alarme. `windF` et `jrF` sont bornés par
+  cohérence : plus aucune fréquence pilotée par la vitesse n'est libre dans le fichier.
+  **Ces bugs sont dans le jeu complet**, pas dans la démo.
 - **Audio — le silence définitif qui suivait** : un `NaN` écrit dans un `AudioParam`
   éteint le nœud pour toute la session (le fichier le dit déjà noir sur blanc à propos
   de `drv`). `spd3` alimente les 26 écritures du bloc moteur : une seule frame de
