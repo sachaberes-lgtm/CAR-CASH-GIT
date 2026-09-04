@@ -759,23 +759,15 @@ patch("son : assainir la vitesse à la source",
 #  morceau d'audio non limité du fichier. On supprime le bloc `#splash` : l'intro se
 #  désactive d'elle-même (`if(!sp9)return;`), `iAC` n'est jamais créé, et `start()`
 #  ne teste plus qu'un élément absent. On tombe directement dans le garage.
-patch("intro : retirer le logo studio (le seul audio non limité)",
-      """<div id="splash">
-  <canvas id="fxCv"></canvas>
-  <div id="spStage">
-    <div id="spNum" class="tease">1.61</div>
-    <div id="spPres">PRÉSENTE</div>
-    <div id="spTitle"><span class="lg gold" data-t="CASH">CASH</span><span class="lg grad" data-t="CAR">CAR</span></div>
-    <div id="spHint">CLIQUE</div>
-  </div>
-  <div id="spFlash"></div>
-</div>
-""",
+patch_re("intro : retirer le logo studio (le seul audio non limité)",
+      r'<div id="splash".*?\n</div>\n',
       "<!-- DÉMO : l'intro studio « 1.61 » est retirée. C'était SIX SECONDES avant de\n"
       "     jouer, et le seul audio du fichier sans limiteur (master.gain=1, compresseur\n"
-      "     seul) : il saturait, puis `iAC.close()` coupait tout le son d'un coup. Sans ce\n"
-      "     bloc, la séquence se désarme seule (`if(!sp9)return;`) et le contexte audio de\n"
-      "     l'intro n'est jamais créé. On ouvre directement sur le garage. -->\n")
+      "     seul). Sans ce bloc, la séquence se désarme seule (`if(!sp9)return;`) et son\n"
+      "     contexte audio n'est jamais créé. On ouvre directement sur le garage.\n"
+      "     ⚠ Motif SOUPLE À DESSEIN : le jeu ajoute des attributs sur #splash (ARIA,\n"
+      "     tabindex…) sans prévenir, et une ancre exacte casse à chaque fois. -->\n",
+      re.S)
 
 # ---- de la marge pour le limiteur du jeu
 # MASTER n'avait pas de gain explicite (donc 1). Toutes les couches — moteur, jet,
@@ -950,6 +942,84 @@ patch("audio : flamePop puise dans le cache",
 patch("audio : noiseBurst puise dans le cache",
       "const src=AC.createBufferSource();src.buffer=noiseBuf(dur);\n    const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=freq;",
       "const src=AC.createBufferSource();src.buffer=cachedBuf('n',dur);\n    const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=freq;")
+
+
+# =============================================================================
+#  16. LE SON QUI NE REVIENT JAMAIS  +  UN INTERRUPTEUR DE BISSECTION
+# =============================================================================
+
+# ---- (a) LA PAUSE QUI SUSPEND L'AUDIO POUR TOUJOURS
+# Le jeu met en pause quand l'onglet passe en arrière-plan — ce qui suspend le
+# contexte audio. Au retour, `audioKick()` exige `!paused`, or `paused` est resté
+# vrai : le son ne revient JAMAIS, et rien ne le dit au joueur. Le message « PAUSE »
+# s'efface en 2,2 s, et sur ordinateur seule la touche P relance.
+# C'est exactement la moitié « puis ça a coupé le son » de l'enregistrement — et
+# lancer un enregistrement d'écran suffit à déclencher la mise en arrière-plan.
+# Sur une démo qu'on ouvre depuis un canal, où l'on change d'onglet en permanence,
+# c'est rédhibitoire. On reprend automatiquement au retour.
+patch("audio : reprendre quand l'onglet revient",
+      "addEventListener('visibilitychange',function(){ if(document.hidden)return; wakeAsk(); audioKick(); });",
+      "addEventListener('visibilitychange',function(){ if(document.hidden)return; wakeAsk();\n"
+      "  // ⚠ REPRISE AUTOMATIQUE — NE PAS RETIRER.\n"
+      "  // La mise en pause d'arrière-plan appelle AC.suspend(). Au retour, `audioKick()`\n"
+      "  // exige `!paused` — mais `paused` est resté vrai, donc le son ne revenait JAMAIS.\n"
+      "  // Le joueur croit le jeu cassé : rien à l'écran ne dit qu'il faut appuyer sur P.\n"
+      "  if(paused&&started&&!gameOver)togglePause();\n"
+      "  audioKick(); });")
+
+# ---- (b) L'INTERRUPTEUR : couper une chaîne SFX par l'URL, pour isoler à l'oreille
+# Six chaînes peuvent produire le bruit signalé. Plutôt que de continuer à deviner,
+# on rend la bissection faisable en trois rechargements par la personne qui ENTEND.
+#   ?mute=jet      réacteur / nitro
+#   ?mute=eng      moteur
+#   ?mute=air      vent + sifflement d'air
+#   ?mute=skid     crissement de pneus
+#   ?mute=siren    sirène de police
+#   ?mute=pop      pops de flamme, crépitements, impacts (sons ponctuels)
+# Plusieurs à la fois : ?mute=jet,pop
+patch("debug : interrupteur de coupure par l'URL",
+      "  musicGraph(); // BANDE-SON + analyse (le ciel pulse en rythme)",
+      "  musicGraph(); // BANDE-SON + analyse (le ciel pulse en rythme)\n"
+      "  /* ---- BISSECTION À L'OREILLE : ?mute=jet,eng,air,skid,siren,pop ----\n"
+      "     Six chaînes peuvent produire un son parasite. Deviner coûte cher ; laisser\n"
+      "     celui qui ENTEND couper une chaîne à la fois coûte trois rechargements. */\n"
+      "  try{\n"
+      "    const _m=(new URLSearchParams(location.search).get('mute')||'').split(',').filter(Boolean);\n"
+      "    if(_m.length){\n"
+      "      MUTED=_m; console.log('%c[CASH CAR] chaînes coupées : '+_m.join(', '),'color:#ffd75e;font-weight:bold');\n"
+      "    }\n"
+      "  }catch(e){}")
+
+patch("debug : déclaration du drapeau",
+      "let AC=null,osc=null,osc2=null,",
+      "let MUTED=[]; // chaînes SFX coupées par ?mute= (voir initAudio) — vide en temps normal\n"
+      "const isMuted=n=>MUTED.indexOf(n)>=0;\n"
+      "let AC=null,osc=null,osc2=null,")
+
+# les points d'application : un gain forcé à zéro par chaîne
+patch("debug : couper le réacteur",
+      "        jetG.gain.setTargetAtTime(nitroOn&&air9?.01*dk:0,AC.currentTime,.06);",
+      "        if(isMuted('jet')){jetG.gain.value=0;jetLowG.gain.value=0;jetOscG.gain.value=0;jrG.gain.value=0;}else\n"
+      "        jetG.gain.setTargetAtTime(nitroOn&&air9?.01*dk:0,AC.currentTime,.06);")
+patch("debug : couper le moteur",
+      "        gainN.gain.setTargetAtTime(P9.ev,T,.08);",
+      "        gainN.gain.setTargetAtTime(isMuted('eng')?0:P9.ev,T,.08);")
+patch("debug : couper le vent et le sifflement",
+      "        whF.frequency.setTargetAtTime(Math.min(2600,2000+spd3*1.2),AC.currentTime,.1);",
+      "        whF.frequency.setTargetAtTime(Math.min(2600,2000+spd3*1.2),AC.currentTime,.1);\n"
+      "        if(isMuted('air')){whG.gain.value=0;windG.gain.value=0;}")
+patch("debug : couper le crissement",
+      "        skidG.gain.setTargetAtTime(drift>0?",
+      "        if(isMuted('skid'))skidG.gain.value=0; else skidG.gain.setTargetAtTime(drift>0?")
+patch("debug : couper la sirène",
+      "    sirG.gain.setTargetAtTime(SND.sfx?vol:0,AC.currentTime,.25);",
+      "    sirG.gain.setTargetAtTime((SND.sfx&&!isMuted('siren'))?vol:0,AC.currentTime,.25);")
+patch("debug : couper les sons ponctuels",
+      "function flamePop(dur,vol,freq){",
+      "function flamePop(dur,vol,freq){ if(isMuted('pop'))return;")
+patch("debug : couper les rafales de bruit",
+      "function noiseBurst(dur,vol,freq){\n  if(!AC)return;",
+      "function noiseBurst(dur,vol,freq){\n  if(!AC||isMuted('pop'))return;")
 
 
 # =============================================================================
