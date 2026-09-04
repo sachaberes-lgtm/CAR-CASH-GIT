@@ -86,20 +86,27 @@ redéploie — sinon l'aperçu Slack cherche son image à une adresse qui n'exis
 aucun JavaScript : c'est pour ça que les balises sont tout en haut du fichier et que
 l'image est un vrai fichier à côté, pas un data-URI.
 
-### Deux réglages qui ne se font QUE dans le tableau de bord
+### Deux pièges rencontrés, et ce qu'ils avaient l'air d'être
+
+**L'identité git.** Cette machine n'avait ni `user.name` ni `user.email` : git
+fabriquait `sachaberes@MacBook-Air-di-Sacha.local`, que Vercel refuse — il ne peut pas
+rattacher le commit à un compte, et bloque le déploiement. Les déploiements ressortaient
+`BLOCKED` **sans un seul log de build**, ce qui ressemble beaucoup à un projet en pause :
+`get_project` renvoyait bien `live: false`. La vraie cause était trois lignes plus haut.
+
+```bash
+git config --global user.name  "Sacha Beres"
+git config --global user.email "sachaberes@gmail.com"
+```
+
+**La protection de déploiement.** Elle est active par défaut : le domaine renvoie un
+`302` vers `vercel.com/sso-api`, donc n'importe qui ouvrant le lien tombe sur une page
+de connexion Vercel. Rédhibitoire pour une démo publique, et invisible tant qu'on teste
+depuis un navigateur déjà connecté.
+*Settings → Deployment Protection → Vercel Authentication → Disabled.*
 
 Le connecteur Vercel de l'agent est en lecture seule sur les projets (403 sur
-`update_project`, 400 sur `unpause_project`) : ces deux-là se font à la main, une fois.
-
-1. **Protection de déploiement → désactivée.** Par défaut, le projet renvoie un `302`
-   vers `vercel.com/sso-api` : n'importe qui ouvrant le lien tombe sur une page de
-   connexion Vercel. C'est rédhibitoire pour une démo publique.
-   *Settings → Deployment Protection → Vercel Authentication → Disabled.*
-2. **Projet en pause → repris.** Le projet est `live: false` et tout déploiement
-   ressort `BLOCKED` sans même produire de log de build.
-
-Tant que ces deux points ne sont pas réglés, le lien ne sert rien — quel que soit
-le contenu du dépôt.
+`update_project`), donc ce second point se fait à la main, une fois.
 
 ## L'image d'aperçu
 
