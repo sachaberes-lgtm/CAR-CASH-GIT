@@ -2711,6 +2711,8 @@ const I18N={
  '🏆 TOP 10':'🏆 TOP 10','Aucun score — sois le premier !':'No score yet — be the first!',
  'AUCUN RECORD — À TOI DE JOUER':'NO RECORD YET — YOUR MOVE','RECORD':'RECORD','MEILLEURE CAISSE':'BEST CAR',
  'record : ':'best : ','Prochaine voiture à':'Next car at',
+ 'PRÉSENTE':'PRESENTS','Boost rendu':'Boost yield','Fréquence d\'apparition':'Spawn frequency',
+ 'ÉTAL — RÉGLAGE DES FRUITS':'STALL — FRUIT SETTINGS','ATELIER — LES MOTEURS':'WORKSHOP — ENGINES',
  '🛝 Parc freestyle':'🛝 Freestyle park','🏁 Survivant':'🏁 Survivor','ON':'ON','OFF':'OFF',
  'Le garage se visite depuis le menu':'The garage is visited from the menu',
  'Ça se visite depuis le menu':'That is visited from the menu',
@@ -2835,7 +2837,7 @@ function applyLangDOM(){
   const put=(sel,txt)=>{const e=document.querySelector(sel);if(e)e.textContent=txt;};
   // ⚠ que des éléments à texte PUR : #cpInfo par exemple contient <span id=cpDist> et #cpBar,
   // lui écrire un textContent supprimerait ses enfants (donc la jauge de progression).
-  for(const e of document.querySelectorAll('[data-fr],#gTitle,#gHint,#gEquip,#tagline,#goTxt,#nameSave,#setHead>span,#saveExp,#saveImp,#nitroLbl,#speedUnit,.setSec,.setRow>span,.setKeys span,#nameEntry>span,.blabel,.mmD')){
+  for(const e of document.querySelectorAll('[data-fr],#gTitle,#gHint,#gEquip,#tagline,#goTxt,#nameSave,#setHead>span,#saveExp,#saveImp,#nitroLbl,#speedUnit,.setSec,.setRow>span,.setKeys span,#nameEntry>span,.blabel,.mmD,.stRow>span')){
     if(e.dataset.fr===undefined)e.dataset.fr=e.textContent;
     e.textContent=TR(e.dataset.fr);
   }
@@ -9792,7 +9794,7 @@ function openStall(mode){
   if(started&&!gameOver){showMsg('Ça se visite depuis le menu');return;}
   stallMode=mode||'fruit';stallI=stallMode==='moteur'?engTier:0;
   stEl.classList.toggle('moteur',stallMode==='moteur');
-  $('stTitle').textContent=stallMode==='moteur'?'ATELIER — LES MOTEURS':'ÉTAL — RÉGLAGE DES FRUITS';
+  $('stTitle').textContent=TR(stallMode==='moteur'?'ATELIER — LES MOTEURS':'ÉTAL — RÉGLAGE DES FRUITS');
   stallOn=true;stEl.classList.add('on');document.body.classList.add('inStall');
   overlay.style.display='none';
   if(pigGroup)pigGroup.visible=false;
