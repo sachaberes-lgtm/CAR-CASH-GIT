@@ -881,7 +881,7 @@
     <div class="setSec">Commandes</div>
     <div class="setKeys" id="setKb">
       <span><i>Z Q S D</i> / <i>← ↑ ↓ →</i></span><span>conduire · piloter en vol</span>
-      <span><i>Espace</i></span><span>nitro · double-tap = DÉCOLLAGE</span>
+      <span><i>Espace</i></span><span>nitro</span>
       <span><i>↓</i> + direction</span><span>drift</span>
       <span><i>R</i></span><span>replacer la caisse</span>
       <span><i>P</i></span><span>pause</span>
@@ -891,7 +891,7 @@
       <span><i>Pad gauche</i></span><span>volant · tirer vers le bas = frein</span>
       <span><i>Pad + frein</i></span><span>drift</span>
       <span><i>En vol</i></span><span>le pad devient un joystick (haut/bas)</span>
-      <span><i>NITRO</i></span><span>pouce droit · double-tap = DÉCOLLAGE</span>
+      <span><i>NITRO</i></span><span>pouce droit</span>
       <span><i>⏸</i></span><span>pause</span>
     </div>
     <div class="setSec">Sauvegarde</div>
@@ -1023,6 +1023,7 @@
 #gHint{font-family:var(--pix);font-size:7px;letter-spacing:2px;margin-top:12px}
 #gTitle,.gTitle{font-family:var(--pix);font-size:12px;font-weight:400;letter-spacing:3px}
 .gNav{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+#styleBar,#feverGlow{display:none!important}         /* jauge du DÉCOLLAGE : le mécanisme est retiré */
 #musBtn,.setRow[data-tg="musBtn"]{display:none!important}          /* no soundtrack shipped: */
 #mob .pbtn[data-m="mus"],#tpIn .tp[data-a="mus"]{display:none!important}   /* hide its controls */
 #demoTag{position:fixed;left:10px;top:10px;z-index:60;pointer-events:none;
@@ -8541,13 +8542,15 @@ function styleFromBoost(dt){
   // suffisent, et la fuite (13 %/s) fait qu'il faut les ENCHAÎNER. C'est ça, « sans lâcher ».
   if(fever>0)return;
   styleM=Math.min(100,styleM+40*dt);
-  if(styleM>=100&&!feverArmed){feverArmed=true;showMsg('★ DÉCOLLAGE PRÊT — double-tape NITRO ! ★','#ff3ec8');chimeNote(1244,0,.14,.26);}
+  /* DÉMO : le DÉCOLLAGE est retiré — on n'arme plus rien. Voir aussi heistFire(),
+     neutralisée, et #styleBar masquée. Retirer les trois ensemble : ne masquer que
+     la barre laisserait un double-tap secret qui fige le temps. */
 }
 // ---------- LE DÉCOLLAGE : double-tap NITRO — la caisse s'ARRACHE vers le ciel, le temps se fige ----------
 // (remplace l'ancien « braquage », qui ne faisait que doubler les gains : un bonus comptable, aucun geste.
 //  Le ×2 est conservé, mais COLLÉ à l'action — un seul appui, un événement qu'on VOIT.)
 // Le ralenti est mesuré : sur 60 frames la caisse fait 25,8 u contre 52,2 u — le monde défile 2× moins vite.
-function heistFire(){
+function heistFire(){ return; // DÉMO : décollage retiré (voir la note sur l'armement)
   feverArmed=false;fever=10;styleM=0;hap([16,40,16]); // deux coups secs : le braquage se SENT dans la main
   slowT=Math.max(slowT,2);            // 2 s de bullet-time
   if(mode==='drive'&&!introD){

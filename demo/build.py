@@ -338,6 +338,7 @@ patch("demo stylesheet",
 #mob .pbtn[data-m="modes"]{display:none!important}   /* the MODES screen has one mode left */
 #tpIn .tp[data-a="surv"]{display:none!important}     /* in-game pause: same */
 #lbBox,#nameEntry{display:none!important}            /* no leaderboard, so no name prompt */
+#styleBar,#feverGlow{display:none!important}         /* jauge du DÉCOLLAGE : le mécanisme est retiré */
 #musBtn,.setRow[data-tg="musBtn"]{display:none!important}          /* no soundtrack shipped: */
 #mob .pbtn[data-m="mus"],#tpIn .tp[data-a="mus"]{display:none!important}   /* hide its controls */
 #demoTag{position:fixed;left:10px;top:10px;z-index:60;pointer-events:none;
@@ -1227,6 +1228,35 @@ patch("nitro : piloter le nouveau son",
       "          nzBodyF.frequency.setTargetAtTime(_bl?560:520,AC.currentTime,.20);      // la bleue, à peine plus ouverte\n"
       "        }\n"
       "        jetG.gain.setTargetAtTime(nitroOn&&air9?.01*dk:0,AC.currentTime,.06);")
+
+
+# =============================================================================
+#  21. LE DÉCOLLAGE ET SA JAUGE VIOLETTE — RETIRÉS
+#  ---------------------------------------------------------------------------
+#  La barre magenta au-dessus de la nitro (`#styleBar`) ne servait qu'à armer le
+#  DÉCOLLAGE : jauge pleine → double-tap NITRO → la caisse s'arrache, tout ×2 pendant
+#  10 s, bullet-time. Un mécanisme de plus à expliquer sur une démo où l'on veut
+#  qu'un inconnu comprenne en dix secondes.
+#  On le retire par les DEUX bouts — l'armement et le déclencheur — plutôt qu'en
+#  masquant seulement la barre : un raccourci caché qui fige le temps sans prévenir
+#  serait pire que la barre elle-même.
+patch("décollage : ne plus armer",
+      "  if(styleM>=100&&!feverArmed){feverArmed=true;showMsg('★ DÉCOLLAGE PRÊT — double-tape NITRO ! ★','#ff3ec8');chimeNote(1244,0,.14,.26);}",
+      "  /* DÉMO : le DÉCOLLAGE est retiré — on n'arme plus rien. Voir aussi heistFire(),\n"
+      "     neutralisée, et #styleBar masquée. Retirer les trois ensemble : ne masquer que\n"
+      "     la barre laisserait un double-tap secret qui fige le temps. */")
+
+patch("décollage : neutraliser le déclencheur",
+      "function heistFire(){\n  feverArmed=false;fever=10;styleM=0;hap([16,40,16]);",
+      "function heistFire(){ return; // DÉMO : décollage retiré (voir la note sur l'armement)\n"
+      "  feverArmed=false;fever=10;styleM=0;hap([16,40,16]);")
+
+patch("décollage : retirer la consigne clavier",
+      "      <span><i>Espace</i></span><span>nitro · double-tap = DÉCOLLAGE</span>",
+      "      <span><i>Espace</i></span><span>nitro</span>")
+patch("décollage : retirer la consigne tactile",
+      "      <span><i>NITRO</i></span><span>pouce droit · double-tap = DÉCOLLAGE</span>",
+      "      <span><i>NITRO</i></span><span>pouce droit</span>")
 
 
 # =============================================================================
