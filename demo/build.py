@@ -782,11 +782,20 @@ patch("intro : retirer le logo studio (le seul audio non limité)",
 # vent, crissement, sirène, annonceur — s'y additionnent avant un WaveShaper qui,
 # poussé trop fort, ne limite plus : il ÉCRÊTE, et un écrêtage franc s'entend comme
 # une saturation agressive. 0,72 rend au limiteur son rôle d'arrondi.
-patch("son : rendre de la marge au limiteur",
+# MESURÉ, prise d'écoute sur chaque nœud, nitro maintenue : la sortie maître atteint
+# déjà **0,732** à 80 km/h. `engPre` sort à 4,83 et `jPre` à 2,14 — le moteur et le
+# réacteur sont VOLONTAIREMENT poussés dans la saturation (c'est leur timbre), mais
+# personne ne rattrape le niveau derrière. Résultat : passé une vitesse modeste, tout
+# se colle contre le WaveShaper de sortie — et un WaveShaper ne limite pas, il DISTORD.
+# D'où la saturation à pleine échelle relevée dans l'enregistrement du user.
+# Sans gain explicite MASTER valait 1 : à 80 km/h on était donc déjà À FOND.
+# .34 laisse au limiteur son rôle de filet, au lieu d'en faire l'effet principal.
+patch("son : baisser le niveau maître (la vraie cause de la saturation)",
       "  MASTER=AC.createGain();\n",
-      "  MASTER=AC.createGain();MASTER.gain.value=.72; // ⚠ MARGE POUR LE LIMITEUR :\n"
-      "  // sans gain explicite il valait 1, et la somme des couches poussait le WaveShaper\n"
-      "  // au-delà de sa zone d'arrondi — il n'adoucissait plus, il écrêtait.\n")
+      "  MASTER=AC.createGain();MASTER.gain.value=.34; // ⚠ NE PAS REMONTER SANS MESURER.\n"
+      "  // Sans valeur explicite ce gain vaut 1 : la sortie atteignait alors 0,73 dès 80 km/h,\n"
+      "  // et se collait contre le WaveShaper de sortie à vitesse réelle. Or ce WaveShaper ne\n"
+      "  // limite pas : il distord. C'est ce qui produisait le son saturé signalé en jeu.\n")
 
 
 # =============================================================================

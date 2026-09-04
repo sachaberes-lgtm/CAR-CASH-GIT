@@ -173,9 +173,23 @@ viewport obtenu, donc on lit la taille réelle et on y découpe le format 1200×
   séquence se désarme d'elle-même, le contexte n'est jamais créé, et on gagne six
   secondes avant de jouer. Vérifié après coup : **1 seul contexte audio, 0 valeur non
   finie, 0 erreur JS** sur une partie avec nitro.
-- **Audio — marge du limiteur** : `MASTER` n'avait pas de gain explicite (donc 1). La
-  somme des couches poussait le WaveShaper hors de sa zone d'arrondi — il n'adoucissait
-  plus, il écrêtait. Posé à `.72`.
+- **Audio — le niveau maître, la vraie cause de la saturation** : mesuré avec une prise
+  d'écoute sur chaque nœud, nitro maintenue. `MASTER` n'avait **aucun gain explicite**
+  (donc 1), et la sortie atteignait déjà **0,732** à 80 km/h. Le moteur (`engPre` sort à
+  4,83) et le réacteur (`jPre` à 2,14) sont *volontairement* poussés dans la saturation —
+  c'est leur timbre — mais personne ne rattrapait le niveau derrière. Passé une vitesse
+  modeste, tout se collait contre le WaveShaper de sortie. Or un WaveShaper ne limite
+  pas : il **distord**. D'où la saturation à pleine échelle de l'enregistrement.
+
+  | | avant | après (`MASTER.gain = .34`) |
+  |---|---|---|
+  | pic de sortie | 0,732 | **0,392** |
+  | niveau moyen | — | 0,253 |
+  | frames > 0,9 | — | **0** |
+  | frames saturées | — | **0** |
+
+  ⚠ Ne pas remonter ce gain sans refaire la mesure : c'est le seul garde-fou entre le
+  mix et un limiteur qui distord.
 - **Audio — les sifflets** : quatre fréquences pilotées par la vitesse n'avaient
   **aucun plafond**, et trois alimentaient des passe-bande à Q élevé. Un passe-bande à
   Q=14 n'est plus une couleur, c'est un sinus — et il montait avec la vitesse droit
