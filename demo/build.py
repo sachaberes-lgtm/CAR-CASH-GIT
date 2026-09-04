@@ -1023,6 +1023,29 @@ patch("debug : couper les rafales de bruit",
 
 
 # =============================================================================
+#  17. LE CORPS DE FLAMME ÉCRASAIT TOUT LE MIX
+#  ---------------------------------------------------------------------------
+#  Le user a confirmé trois fois : c'est LA NITRO. Relevé des gains de la chaîne,
+#  au moment où elle joue :
+#      corps de flamme (jrG) .... 0,72   ← sur un bruit brown DÉJÀ normalisé à ±1
+#      grave (jetLowG) .......... 0,08
+#      moteur (gainN) ........... 0,05
+#      souffle (jetG) ........... 0,01
+#      turbine (jetOscG) ........ 0,003
+#  Une couche 10 à 200 fois plus forte que toutes les autres. À elle seule elle colle
+#  le limiteur au plafond dès l'appui, et tout le reste du mix passe à travers sa
+#  saturation. Le commentaire du jeu dit « C'est LUI la nitro » : la flamme DOIT
+#  dominer, d'accord — mais dominer, ce n'est pas saturer le bus à soi tout seul.
+#  0,14 / 0,18 la laisse 3 à 4 fois au-dessus de la couche suivante, sans pinner.
+patch("nitro : doser le corps de flamme",
+      "        const jb=nitroOn?(nitroBlue?.52:.4):0;",
+      "        // ⚠ NE PAS REMONTER SANS MESURER. À .4/.52 cette seule couche atteignait 0,72\n"
+      "        // sur un bruit normalisé à ±1 — dix fois la couche suivante — et saturait le bus\n"
+      "        // maître dès l'appui sur la nitro. Elle reste la voix dominante, sans écraser.\n"
+      "        const jb=nitroOn?(nitroBlue?.18:.14):0;")
+
+
+# =============================================================================
 #  10. L'ÉCRAN DE DÉMARRAGE — les deux premières secondes
 #  ---------------------------------------------------------------------------
 #  Mesuré sur la page publiée : 4,9 s avant le `load`, et pendant tout ce temps un

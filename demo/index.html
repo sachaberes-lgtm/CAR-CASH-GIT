@@ -12091,7 +12091,10 @@ function loop(now){
         // EN L'AIR le jet fend l'air (whoosh flangé + turbine, le grave s'évapore)
         const air9=mode==='fall';
         // LA FLAMME = le rumble brown, sol COMME air. Rond, chaud, PRÉSENT — aucun aigu à arracher.
-        const jb=nitroOn?(nitroBlue?.52:.4):0;
+        // ⚠ NE PAS REMONTER SANS MESURER. À .4/.52 cette seule couche atteignait 0,72
+        // sur un bruit normalisé à ±1 — dix fois la couche suivante — et saturait le bus
+        // maître dès l'appui sur la nitro. Elle reste la voix dominante, sans écraser.
+        const jb=nitroOn?(nitroBlue?.18:.14):0;
         jrG.gain.setTargetAtTime(jb*(air9?1.1:1.05)*(.84+.32*Math.random())*dk,AC.currentTime,.08); // turbulence lente
         jrDep.gain.setTargetAtTime(jb*(air9?.22:.16)*dk,AC.currentTime,.1); // flutter 5 Hz : la flamme respire
         jrF.frequency.setTargetAtTime(nitroOn?Math.min(900,(air9?310+spd3*.3:430+spd3*.35)+(nitroBlue?80:0)):240,AC.currentTime,.1); // un poil plus mordante au sol
