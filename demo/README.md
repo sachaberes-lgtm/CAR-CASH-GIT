@@ -85,7 +85,21 @@ redéploie — sinon l'aperçu Slack cherche son image à une adresse qui n'exis
 aucun JavaScript : c'est pour ça que les balises sont tout en haut du fichier et que
 l'image est un vrai fichier à côté, pas un data-URI.
 
-### Deux pièges rencontrés, et ce qu'ils avaient l'air d'être
+### Mesurer, pas déduire
+
+Quatre diagnostics tirés de la seule lecture du code se sont révélés faux (turbine de
+la nitro, sifflement d'air, intro studio, niveau maître). Ce qui a tranché, c'est un
+**banc d'essai** : un spectrogramme de la sortie réelle, une prise d'écoute sur chaque
+nœud de gain, et de quoi couper les chaînes une par une.
+
+⚠ Deux pièges du banc, à ne pas réapprendre :
+- **Le panneau de navigateur masqué fausse tout.** `visibilityState` passe à `hidden`,
+  le jeu s'auto-mets en pause et le navigateur bride l'animation : vitesse 0, audio
+  nul. Le banc force `visibilityState` à `visible`.
+- **Chrome headless ne rend pas l'audio de façon fiable** (1 échantillon sur 260).
+  Les mesures valables viennent du navigateur réel.
+
+### Deux pièges rencontrés côté Vercel
 
 **L'identité git.** Cette machine n'avait ni `user.name` ni `user.email` : git
 fabriquait `sachaberes@MacBook-Air-di-Sacha.local`, que Vercel refuse — il ne peut pas
@@ -173,23 +187,35 @@ viewport obtenu, donc on lit la taille réelle et on y découpe le format 1200×
   séquence se désarme d'elle-même, le contexte n'est jamais créé, et on gagne six
   secondes avant de jouer. Vérifié après coup : **1 seul contexte audio, 0 valeur non
   finie, 0 erreur JS** sur une partie avec nitro.
-- **Audio — le niveau maître, la vraie cause de la saturation** : mesuré avec une prise
-  d'écoute sur chaque nœud, nitro maintenue. `MASTER` n'avait **aucun gain explicite**
-  (donc 1), et la sortie atteignait déjà **0,732** à 80 km/h. Le moteur (`engPre` sort à
-  4,83) et le réacteur (`jPre` à 2,14) sont *volontairement* poussés dans la saturation —
-  c'est leur timbre — mais personne ne rattrapait le niveau derrière. Passé une vitesse
-  modeste, tout se collait contre le WaveShaper de sortie. Or un WaveShaper ne limite
-  pas : il **distord**. D'où la saturation à pleine échelle de l'enregistrement.
+- **Audio — le « limiteur » de sortie était une distorsion** : la vraie cause, trouvée
+  en construisant un banc d'essai (spectrogramme de la sortie + coupure sélective des
+  chaînes) au lieu de lire le code.
 
-  | | avant | après (`MASTER.gain = .34`) |
+  `lim` n'est pas un limiteur. Sa courbe vaut `tanh(x*k)/tanh(k)`, normalisée pour que
+  ±1 sorte à ±1. Sa **pente à l'origine** vaut donc `k/tanh(k)` = **×1,51** : elle
+  *ré-amplifie* tout signal faible. C'est exactement pourquoi baisser `MASTER`
+  (1 → .72 → .34) n'a **jamais rien changé** — la courbe le remontait à chaque fois. Et
+  sur les forts signaux elle sature en fabriquant la série harmonique complète.
+
+  Corrigé par `tanh(x*k)/k` : pente 1 à l'origine (les signaux faibles passent
+  inchangés), plafond `tanh(k)/k` = 0,66. Elle limite au lieu d'amplifier. Passage en
+  `oversample='4x'`, 2x laissait replier de l'aliasing dans l'aigu.
+
+  | mesuré, nitro maintenue | avant | après |
   |---|---|---|
-  | pic de sortie | 0,732 | **0,392** |
-  | niveau moyen | — | 0,253 |
-  | frames > 0,9 | — | **0** |
-  | frames saturées | — | **0** |
+  | pic de sortie | **1,14** *(au-dessus du maximum)* | 0,431 |
+  | frames ≥ 0,9 | — | **0** |
+  | dureté (énergie > 5 kHz) | **0,23** | **0,0012** |
+  | spectre | traîne harmonique jusqu'à **12 kHz** | rien au-dessus de 480 Hz |
 
-  ⚠ Ne pas remonter ce gain sans refaire la mesure : c'est le seul garde-fou entre le
-  mix et un limiteur qui distord.
+  ⚠ Ne pas rebrancher `engCurve` sur le bus maître, et ne pas remonter `MASTER.gain`
+  (.62) sans refaire la mesure. `engShaper` et `jetDist` gardent `engCurve` : leur
+  distorsion est voulue, sur leur propre chaîne.
+
+  ⚠ **Débrancher `lim` coupe tout le son** (vérifié : pic 0,000). Le câblage
+  `MASTER → compresseur → lim → destination` doit rester tel quel.
+
+
 - **Audio — les sifflets** : quatre fréquences pilotées par la vitesse n'avaient
   **aucun plafond**, et trois alimentaient des passe-bande à Q élevé. Un passe-bande à
   Q=14 n'est plus une couleur, c'est un sinus — et il montait avec la vitesse droit

@@ -790,12 +790,41 @@ patch("intro : retirer le logo studio (le seul audio non limité)",
 # D'où la saturation à pleine échelle relevée dans l'enregistrement du user.
 # Sans gain explicite MASTER valait 1 : à 80 km/h on était donc déjà À FOND.
 # .34 laisse au limiteur son rôle de filet, au lieu d'en faire l'effet principal.
-patch("son : baisser le niveau maître (la vraie cause de la saturation)",
+# ---- LE LIMITEUR DE SORTIE ÉTAIT UNE DISTORSION
+# Mesuré au banc (spectrogramme de la sortie, nitro maintenue, 268 km/h) : pic à
+# **1,14** — AU-DESSUS de la pleine échelle — fondamentale à 381 Hz et traîne
+# harmonique jusqu'à 12 kHz. La signature d'un écrêtage, pas d'un aigu.
+#
+# La cause : `lim` n'est pas un limiteur. Sa courbe vaut
+#     tanh(x*k) / tanh(k)
+# normalisée pour que ±1 sorte à ±1. Sa PENTE À L'ORIGINE vaut donc k/tanh(k) =
+# ×1,51 pour k=1,3 : elle RÉ-AMPLIFIE tout signal faible. C'est exactement pourquoi
+# baisser `MASTER` (1 → .72 → .34) n'a jamais rien changé — la courbe le remontait
+# à chaque fois. Et sur les forts signaux elle sature en fabriquant la série
+# harmonique complète.
+#
+# ⚠ Débrancher `lim` du bus coupait tout le son (vérifié au banc : pic 0,000). On ne
+# touche donc PAS au câblage : on corrige la courbe. `tanh(x*k)/k` a une pente de 1
+# à l'origine — les signaux faibles passent inchangés — et plafonne à tanh(k)/k =
+# 0,66, donc elle limite vraiment au lieu d'amplifier. Passage en 4x pour que la
+# saturation résiduelle ne replie pas d'aliasing dans l'aigu.
+# `engShaper` et `jetDist` gardent `engCurve` : leur distorsion est voulue.
+patch("son : le limiteur de sortie limite au lieu d'amplifier",
+      "  const lim=AC.createWaveShaper();lim.curve=engCurve(1.3);lim.oversample='2x';",
+      "  const lim=AC.createWaveShaper();\n"
+      "  // ⚠ PENTE UNITAIRE — NE PAS REVENIR À `engCurve` ICI. engCurve normalise par\n"
+      "  // tanh(k), ce qui donne une pente de ×1,51 à l'origine : sur le bus maître elle\n"
+      "  // ré-amplifiait le mix au lieu de le tenir, puis le saturait (mesuré : 1,14 de pic,\n"
+      "  // harmoniques jusqu'à 12 kHz). Ici la pente vaut 1 et le plafond tanh(k)/k = 0,66.\n"
+      "  lim.curve=(function(k){const n=1024,c=new Float32Array(n);\n"
+      "    for(let i=0;i<n;i++){const x=i/(n-1)*2-1;c[i]=Math.tanh(x*k)/k;}return c;})(1.3);\n"
+      "  lim.oversample='4x'; // 2x laissait replier de l'aliasing dans l'aigu")
+
+patch("son : niveau maître",
       "  MASTER=AC.createGain();\n",
-      "  MASTER=AC.createGain();MASTER.gain.value=.34; // ⚠ NE PAS REMONTER SANS MESURER.\n"
-      "  // Sans valeur explicite ce gain vaut 1 : la sortie atteignait alors 0,73 dès 80 km/h,\n"
-      "  // et se collait contre le WaveShaper de sortie à vitesse réelle. Or ce WaveShaper ne\n"
-      "  // limite pas : il distord. C'est ce qui produisait le son saturé signalé en jeu.\n")
+      "  MASTER=AC.createGain();MASTER.gain.value=.62; // ⚠ NE PAS REMONTER SANS MESURER AU BANC.\n"
+      "  // Sans valeur explicite ce gain vaut 1, et le mix arrivait saturé sur la sortie.\n")
+
 
 
 # =============================================================================

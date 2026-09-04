@@ -8405,13 +8405,18 @@ function initAudio(){
   if(!SND.sfx)try{AC.suspend();}catch(e){} // le mute SON survit au redémarrage
   // BUS MASTER : tout le WebAudio passe par compresseur + limiteur doux tanh — niveau perçu
   // stable, jamais de clip numérique, pas de fatigue d'oreille sur une longue session
-  MASTER=AC.createGain();MASTER.gain.value=.34; // ⚠ NE PAS REMONTER SANS MESURER.
-  // Sans valeur explicite ce gain vaut 1 : la sortie atteignait alors 0,73 dès 80 km/h,
-  // et se collait contre le WaveShaper de sortie à vitesse réelle. Or ce WaveShaper ne
-  // limite pas : il distord. C'est ce qui produisait le son saturé signalé en jeu.
+  MASTER=AC.createGain();MASTER.gain.value=.62; // ⚠ NE PAS REMONTER SANS MESURER AU BANC.
+  // Sans valeur explicite ce gain vaut 1, et le mix arrivait saturé sur la sortie.
   const cmp=AC.createDynamicsCompressor();
   cmp.threshold.value=-16;cmp.knee.value=12;cmp.ratio.value=4;cmp.attack.value=.004;cmp.release.value=.16;
-  const lim=AC.createWaveShaper();lim.curve=engCurve(1.3);lim.oversample='2x';
+  const lim=AC.createWaveShaper();
+  // ⚠ PENTE UNITAIRE — NE PAS REVENIR À `engCurve` ICI. engCurve normalise par
+  // tanh(k), ce qui donne une pente de ×1,51 à l'origine : sur le bus maître elle
+  // ré-amplifiait le mix au lieu de le tenir, puis le saturait (mesuré : 1,14 de pic,
+  // harmoniques jusqu'à 12 kHz). Ici la pente vaut 1 et le plafond tanh(k)/k = 0,66.
+  lim.curve=(function(k){const n=1024,c=new Float32Array(n);
+    for(let i=0;i<n;i++){const x=i/(n-1)*2-1;c[i]=Math.tanh(x*k)/k;}return c;})(1.3);
+  lim.oversample='4x'; // 2x laissait replier de l'aliasing dans l'aigu
   MASTER.connect(cmp);cmp.connect(lim);lim.connect(AC.destination);
   musicGraph(); // BANDE-SON + analyse (le ciel pulse en rythme)
   // MOTEUR v2 : 2 oscillateurs à onde harmonique (le timbre de la caisse) désaccordés de 7 cents
