@@ -69,8 +69,11 @@ compris à l'intérieur d'un bloc `headers` (premier build en erreur pour ça).
 
 ### À la main, sans git
 
-Le domaine de production est `https://car-cash-git.vercel.app` (Vercel nomme le projet
-d'après le dépôt). C'est ce que vise la constante `BASE` en haut de `build.py`.
+Le domaine de production est **`https://car-cash-git-scar1.vercel.app`**, et pas
+`car-cash-git.vercel.app` : Vercel suffixe du slug de l'équipe (`scar1`) quand le nom
+court est déjà pris ailleurs. Le nom court renvoie un 404 qui n'a rien à voir avec ce
+dépôt. C'est le domaine suffixé que vise la constante `BASE` en haut de `build.py` ;
+`get_project` le donne dans son champ `domains`.
 
 ```bash
 cd demo/cash-car-demo
