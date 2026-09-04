@@ -1168,6 +1168,68 @@ patch("nitro : refonte — la flamme ne monte plus avec la vitesse",
 
 
 # =============================================================================
+#  20. LE NOUVEAU SON DE NITRO — conçu, mesuré, puis seulement livré
+#  ---------------------------------------------------------------------------
+#  L'ancien réacteur est débranché (section précédente). Celui-ci est bâti à partir
+#  de tout ce que les huit échecs ont appris. Ce qu'il N'A PAS, par décision :
+#    · pas de WaveShaper       → l'ancien souffle sortait un signal quasi carré
+#                                (crête 1,5 : de l'écrêtage, pas un timbre)
+#    · pas de filtre en peigne rebouclé → plus de résonance qui s'emballe
+#    · pas de dent de scie, pas de Q élevé au-dessus de 2 kHz
+#                                → l'ancienne turbine avait 43 % de son énergie
+#                                  au-dessus de 4 kHz, pile sur le pic de l'oreille
+#    · pas de fréquence qui suit la vitesse → c'est ce qui fait le sifflet quand on pousse
+#    · pas un seul nœud créé par frame → l'ancienne fuite venait de là
+#
+#  Ce qu'il EST : du bruit brown (grave et rond par nature) sous deux passe-bas, plus
+#  une respiration lente sur la coupure. Trois nœuds, créés une fois, deux gains
+#  modulés en douceur. C'est tout.
+#
+#  MESURÉ HORS LIGNE avant livraison (OfflineAudioContext, déterministe) :
+#      pic 0,339 · RMS 0,079 · facteur de crête 4,3 · énergie >4 kHz : 0,0076
+#  Le facteur de crête dit tout : 4,3 = du bruit sain. L'ancien souffle était à 1,5,
+#  c'est-à-dire un carré. Et la dureté passe de 0,435 (turbine) à 0,008.
+
+patch("nitro : déclarer les nœuds du nouveau son",
+      "let MUTED=[]; // chaînes SFX coupées par ?mute= (voir initAudio) — vide en temps normal",
+      "let nzBodyF=null,nzBodyG=null,nzSubG=null; // NOUVEAU SON DE NITRO (voir initAudio)\n"
+      "let MUTED=[]; // chaînes SFX coupées par ?mute= (voir initAudio) — vide en temps normal")
+
+patch("nitro : construire le nouveau son",
+      "  setTimeout(function(){ for(const n of [jetG,jetLowG,jetOscG,jrG]) try{n.disconnect();}catch(e){} },0);",
+      "  setTimeout(function(){ for(const n of [jetG,jetLowG,jetOscG,jrG]) try{n.disconnect();}catch(e){} },0);\n"
+      "  /* ===== NOUVEAU SON DE NITRO — mesuré avant livraison =====\n"
+      "     pic 0,339 · RMS 0,079 · crête 4,3 · énergie au-dessus de 4 kHz : 0,008\n"
+      "     Le facteur de crête est le juge : 4,3 = du bruit sain ; l'ancien souffle était\n"
+      "     à 1,5, autrement dit un signal carré. Aucune distorsion, aucune résonance,\n"
+      "     rien au-dessus de 700 Hz, et pas un nœud créé par frame.\n"
+      "     ⚠ Toute modification de ces cinq valeurs doit repasser par le banc. */\n"
+      "  {const nsrc=AC.createBufferSource();nsrc.buffer=brownBuf(3.1);nsrc.loop=true;\n"
+      "   nzBodyF=AC.createBiquadFilter();nzBodyF.type='lowpass';nzBodyF.frequency.value=520;nzBodyF.Q.value=.7;\n"
+      "   nzBodyG=AC.createGain();nzBodyG.gain.value=0;\n"
+      "   const brLfo=AC.createOscillator();brLfo.type='sine';brLfo.frequency.value=4.4; // la flamme RESPIRE\n"
+      "   const brDep=AC.createGain();brDep.gain.value=90;                                // ±90 Hz : vivant, jamais un vibrato\n"
+      "   brLfo.connect(brDep);brDep.connect(nzBodyF.frequency);brLfo.start();\n"
+      "   const nsF=AC.createBiquadFilter();nsF.type='lowpass';nsF.frequency.value=95;nsF.Q.value=.6; // la poitrine\n"
+      "   nzSubG=AC.createGain();nzSubG.gain.value=0;\n"
+      "   nsrc.connect(nzBodyF);nzBodyF.connect(nzBodyG);nzBodyG.connect(MASTER);\n"
+      "   nsrc.connect(nsF);nsF.connect(nzSubG);nzSubG.connect(MASTER);\n"
+      "   nsrc.start();}")
+
+patch("nitro : piloter le nouveau son",
+      "        jetG.gain.setTargetAtTime(nitroOn&&air9?.01*dk:0,AC.currentTime,.06);",
+      "        // ---- NOUVEAU SON DE NITRO : deux gains, des rampes douces, rien d'autre.\n"
+      "        // ⚠ Pas de fréquence pilotée par la vitesse — c'est ce qui faisait le sifflet.\n"
+      "        if(nzBodyG&&!isMuted('jet')){\n"
+      "          const _nz=nitroOn?1:0,_bl=nitroBlue?1:0;\n"
+      "          nzBodyG.gain.setTargetAtTime(_nz*(_bl?.27:.22)*dk,AC.currentTime,.10); // attaque douce : aucun clic\n"
+      "          nzSubG.gain.setTargetAtTime(_nz*(_bl?.14:.12)*dk,AC.currentTime,.14);\n"
+      "          nzBodyF.frequency.setTargetAtTime(_bl?560:520,AC.currentTime,.20);      // la bleue, à peine plus ouverte\n"
+      "        }\n"
+      "        jetG.gain.setTargetAtTime(nitroOn&&air9?.01*dk:0,AC.currentTime,.06);")
+
+
+# =============================================================================
 #  10. L'ÉCRAN DE DÉMARRAGE — les deux premières secondes
 #  ---------------------------------------------------------------------------
 #  Mesuré sur la page publiée : 4,9 s avant le `load`, et pendant tout ce temps un

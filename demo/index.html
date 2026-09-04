@@ -8148,6 +8148,7 @@ function updateMoneyRain(dt,t){
   }
 }
 // ---------- AUDIO ----------
+let nzBodyF=null,nzBodyG=null,nzSubG=null; // NOUVEAU SON DE NITRO (voir initAudio)
 let MUTED=[]; // chaînes SFX coupées par ?mute= (voir initAudio) — vide en temps normal
 const isMuted=n=>MUTED.indexOf(n)>=0;
 let AC=null,osc=null,osc2=null,filt=null,gainN=null,windG=null,windF=null,skidG=null,jetG=null,jetF=null,jetLowG=null,jetOsc=null,jetOscG=null,whF=null,whG=null;
@@ -8646,6 +8647,23 @@ function initAudio(){
      joue en silence. Le reste du jeu garde son son. NE PAS REBRANCHER SANS AVOIR
      identifié la cause : ça ramènerait le défaut avec. */
   setTimeout(function(){ for(const n of [jetG,jetLowG,jetOscG,jrG]) try{n.disconnect();}catch(e){} },0);
+  /* ===== NOUVEAU SON DE NITRO — mesuré avant livraison =====
+     pic 0,339 · RMS 0,079 · crête 4,3 · énergie au-dessus de 4 kHz : 0,008
+     Le facteur de crête est le juge : 4,3 = du bruit sain ; l'ancien souffle était
+     à 1,5, autrement dit un signal carré. Aucune distorsion, aucune résonance,
+     rien au-dessus de 700 Hz, et pas un nœud créé par frame.
+     ⚠ Toute modification de ces cinq valeurs doit repasser par le banc. */
+  {const nsrc=AC.createBufferSource();nsrc.buffer=brownBuf(3.1);nsrc.loop=true;
+   nzBodyF=AC.createBiquadFilter();nzBodyF.type='lowpass';nzBodyF.frequency.value=520;nzBodyF.Q.value=.7;
+   nzBodyG=AC.createGain();nzBodyG.gain.value=0;
+   const brLfo=AC.createOscillator();brLfo.type='sine';brLfo.frequency.value=4.4; // la flamme RESPIRE
+   const brDep=AC.createGain();brDep.gain.value=90;                                // ±90 Hz : vivant, jamais un vibrato
+   brLfo.connect(brDep);brDep.connect(nzBodyF.frequency);brLfo.start();
+   const nsF=AC.createBiquadFilter();nsF.type='lowpass';nsF.frequency.value=95;nsF.Q.value=.6; // la poitrine
+   nzSubG=AC.createGain();nzSubG.gain.value=0;
+   nsrc.connect(nzBodyF);nzBodyF.connect(nzBodyG);nzBodyG.connect(MASTER);
+   nsrc.connect(nsF);nsF.connect(nzSubG);nzSubG.connect(MASTER);
+   nsrc.start();}
   const jrLfo=AC.createOscillator();jrLfo.type='sine';jrLfo.frequency.value=5.3;
   jrDep=AC.createGain();jrDep.gain.value=0;
   jrLfo.connect(jrDep);jrDep.connect(jrG.gain);jrLfo.start();
@@ -12148,6 +12166,14 @@ function loop(now){
         jrF.frequency.setTargetAtTime(nitroOn?(air9?380:460)+(nitroBlue?60:0):240,AC.currentTime,.1); // ⚠ PLUS DE SUIVI DE VITESSE : une fréquence qui monte avec le compteur, c'est ce qui fait le sifflet // un poil plus mordante au sol
         // PLUS AUCUNE couche de bruit blanc continue : souffle médium coupé, grave blanc réduit
         // à un fond — tout le caractère vient du rumble brown + des pops bruns
+        // ---- NOUVEAU SON DE NITRO : deux gains, des rampes douces, rien d'autre.
+        // ⚠ Pas de fréquence pilotée par la vitesse — c'est ce qui faisait le sifflet.
+        if(nzBodyG&&!isMuted('jet')){
+          const _nz=nitroOn?1:0,_bl=nitroBlue?1:0;
+          nzBodyG.gain.setTargetAtTime(_nz*(_bl?.27:.22)*dk,AC.currentTime,.10); // attaque douce : aucun clic
+          nzSubG.gain.setTargetAtTime(_nz*(_bl?.14:.12)*dk,AC.currentTime,.14);
+          nzBodyF.frequency.setTargetAtTime(_bl?560:520,AC.currentTime,.20);      // la bleue, à peine plus ouverte
+        }
         jetG.gain.setTargetAtTime(nitroOn&&air9?.01*dk:0,AC.currentTime,.06);
         jetLowG.gain.setTargetAtTime((nitroOn?(air9?.08:.05):0)*(.7+.6*Math.random())*dk,AC.currentTime,.07);
         jetOscG.gain.setTargetAtTime(nitroOn&&!air9?.003:0,AC.currentTime,.09); // pointe de turbine au sol

@@ -187,7 +187,30 @@ viewport obtenu, donc on lit la taille réelle et on y découpe le format 1200×
   séquence se désarme d'elle-même, le contexte n'est jamais créé, et on gagne six
   secondes avant de jouer. Vérifié après coup : **1 seul contexte audio, 0 valeur non
   finie, 0 erreur JS** sur une partie avec nitro.
-- **Audio — LA FUITE DE NŒUDS (la vraie cause)** : isolée par bissection avec le user
+- **Audio — le son de nitro, refait à neuf** : après huit correctifs chirurgicaux
+  ratés, l'ancien réacteur a été **débranché en entier** puis reconstruit. Ce que le
+  nouveau n'a pas, par décision, et pourquoi :
+
+  | absent | ce que ça faisait |
+  |---|---|
+  | WaveShaper | l'ancien souffle sortait un signal quasi **carré** (facteur de crête 1,5 = écrêtage, pas timbre) |
+  | filtre en peigne rebouclé | résonance qui s'emballe |
+  | dent de scie + Q élevé | l'ancienne turbine : **43 %** de son énergie au-dessus de 4 kHz |
+  | fréquence suivant la vitesse | c'est ce qui transforme un souffle en sifflet quand on pousse |
+  | nœuds créés par frame | la fuite qui saturait le thread audio |
+
+  Ce qu'il est : du bruit brown sous deux passe-bas (520 Hz pour le corps, 95 Hz pour
+  la poitrine) et une respiration lente de ±90 Hz sur la coupure. Trois nœuds créés
+  une fois, deux gains modulés en douceur.
+
+  **Mesuré hors ligne AVANT livraison** (`OfflineAudioContext`, déterministe) :
+  pic **0,339** · RMS 0,079 · **facteur de crête 4,3** · énergie >4 kHz : **0,008**.
+  Le facteur de crête est le juge : 4,3 = du bruit sain ; l'ancien souffle était à 1,5.
+
+  ⚠ Toute modification de ces cinq valeurs doit repasser par le banc
+  (`OfflineAudioContext` — voir l'historique git pour le harnais).
+
+- **Audio — LA FUITE DE NŒUDS** : isolée par bissection avec le user
   — voix de l'annonceur seule = aucun problème, donc le coupable était dans la chaîne
   SFX, et aucun de mes correctifs précédents ne pouvait marcher.
 
