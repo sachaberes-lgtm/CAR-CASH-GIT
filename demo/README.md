@@ -140,6 +140,20 @@ le budget de temps virtuel ne s'épuise pas) ; `setDeviceMetricsOverride` change
 de capture sans relayouter la page (bandes noires) ; et la fenêtre demandée n'est pas le
 viewport obtenu, donc on lit la taille réelle et on y découpe le format 1200×630 centré.
 
+## Vérifications de la version livrée
+
+| contrôle | résultat |
+|---|---|
+| syntaxe JS | valide |
+| ressources externes | **aucune** — ni CDN, ni Google Fonts, ni requête tierce |
+| requêtes en erreur | **aucune** (17 fichiers voisins, tous 200/206) |
+| console | propre |
+| page (chemin critique) | 849 Ko → **310 Ko compressés** |
+| three.js | 589 Ko → 146 Ko, en cache un an |
+| total déployé | 2,2 Mo → 1,2 Mo compressés |
+| écran d'accueil, garage, sélection, équipement, partie | testés un par un |
+| mobile (375×812) | testé — menu, garage et réglages en anglais |
+
 ## Ce que la démo change
 
 - **Écran d'accueil** : c'est le GARAGE. La caisse tourne sur son plateau, le menu flotte

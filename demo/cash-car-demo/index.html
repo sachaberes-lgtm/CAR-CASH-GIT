@@ -32,8 +32,8 @@
 <meta property="og:title" content="CASH CAR — Survivor Demo">
 <meta property="og:description" content="Seven police cars on the track. Every 60 seconds, whoever is last explodes. A 3D arcade runner that plays in the browser — no install, no sign-up.">
 <meta property="og:url" content="https://car-cash-git.vercel.app/">
-<meta property="og:image" content="https://car-cash-git.vercel.app/og.png">
-<meta property="og:image:type" content="image/png">
+<meta property="og:image" content="https://car-cash-git.vercel.app/og.jpg">
+<meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="The CASH CAR title screen, gold pixel lettering over a neon sky.">
@@ -6550,7 +6550,11 @@ const MUSIC_FILT_OPEN=20000; // …et s'ouvre en grand quand on booste (approche
 function musicGraph(){ // appelé dans initAudio une fois MASTER prêt
   musicGain=AC.createGain();musicGain.gain.value=musicBaseVol;musicGain.connect(MASTER); // BANDE-SON
   musicSfxGain=AC.createGain();musicSfxGain.gain.value=1;musicSfxGain.connect(MASTER);   // bus SFX culture pop (mêlés à la BO, hors analyse)
-  musicFilt=AC.createBiquadFilter();musicFilt.type='lowpass';musicFilt.frequency.value=20000; // sert au TAPE-STOP de fin + filtre-mouvement
+  musicFilt=AC.createBiquadFilter();musicFilt.type='lowpass';
+  // ⚠ borné à Nyquist : 20 000 Hz dépasse la limite quand le contexte tourne à 24 kHz,
+  // et le navigateur le signale à chaque ouverture. Même effet (un passe-bas au plafond
+  // ne filtre rien), sans l'avertissement.
+  musicFilt.frequency.value=Math.min(20000,AC.sampleRate/2-1); // sert au TAPE-STOP de fin + filtre-mouvement
   // BASS BOOST (low-shelf, monte au boost) puis CHORUS (delay modulé, wet au boost) → musicGain
   musicLowShelf=AC.createBiquadFilter();musicLowShelf.type='lowshelf';musicLowShelf.frequency.value=115;musicLowShelf.gain.value=0;
   musicFilt.connect(musicLowShelf);musicLowShelf.connect(musicGain); // chemin SEC
@@ -6579,7 +6583,7 @@ function playMusic(url,opt){opt=opt||{};
   if(/^https?:\/\//i.test(url)&&url.indexOf(location.origin)!==0)musicEl.crossOrigin='anonymous';
   try{musicSrc=AC.createMediaElementSource(musicEl);musicSrc.connect(musicFilt);}catch(e){musicSrc=null;} // src → filtre → gain
   musicGain.gain.value=opt.volume!=null?opt.volume:musicBaseVol;
-  if(musicFilt){musicFilt.frequency.cancelScheduledValues(AC.currentTime);musicFilt.frequency.value=20000;}
+  if(musicFilt){musicFilt.frequency.cancelScheduledValues(AC.currentTime);musicFilt.frequency.value=Math.min(20000,AC.sampleRate/2-1);}
   const pr=musicEl.play();if(pr&&pr.catch)pr.catch(()=>{});
   musicOn=true;return musicEl;
 }

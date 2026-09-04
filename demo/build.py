@@ -1260,6 +1260,30 @@ patch("décollage : retirer la consigne tactile",
 
 
 # =============================================================================
+#  22. DERNIÈRE PASSE — CONSOLE ET POIDS
+# =============================================================================
+
+# ---- Le seul avertissement restant en console. `musicFilt` est posé à 20 000 Hz,
+# au-dessus de Nyquist quand le contexte tourne à 24 kHz (ce qui arrive selon la
+# sortie audio du système) : le navigateur borne et le signale. Sans effet sonore —
+# 20 000 Hz sur un passe-bas veut dire « ne filtre rien » — mais du bruit gratuit
+# dans la console d'une démo qu'on ouvre devant des gens qui l'ouvrent.
+patch("console : plus d'avertissement de filtre",
+      "musicFilt=AC.createBiquadFilter();musicFilt.type='lowpass';musicFilt.frequency.value=20000;",
+      "musicFilt=AC.createBiquadFilter();musicFilt.type='lowpass';\n"
+      "  // ⚠ borné à Nyquist : 20 000 Hz dépasse la limite quand le contexte tourne à 24 kHz,\n"
+      "  // et le navigateur le signale à chaque ouverture. Même effet (un passe-bas au plafond\n"
+      "  // ne filtre rien), sans l'avertissement.\n"
+      "  musicFilt.frequency.value=Math.min(20000,AC.sampleRate/2-1);")
+patch("console : idem à la reprise",
+      "if(musicFilt){musicFilt.frequency.cancelScheduledValues(AC.currentTime);musicFilt.frequency.value=20000;}",
+      "if(musicFilt){musicFilt.frequency.cancelScheduledValues(AC.currentTime);musicFilt.frequency.value=Math.min(20000,AC.sampleRate/2-1);}")
+
+# ---- L'image d'aperçu passe en JPEG : 436 Ko → 125 Ko. Slack la télécharge à chaque
+# première résolution du lien ; un PNG de 436 Ko retarde l'affichage de la carte pour
+# rien, une capture de rendu 3D ne perd rien en JPEG.
+
+# =============================================================================
 #  10. L'ÉCRAN DE DÉMARRAGE — les deux premières secondes
 #  ---------------------------------------------------------------------------
 #  Mesuré sur la page publiée : 4,9 s avant le `load`, et pendant tout ce temps un
@@ -1413,8 +1437,8 @@ OG = ('<meta property="og:type" content="website">\n'
       '<meta property="og:description" content="Seven police cars on the track. Every 60 seconds, '
       'whoever is last explodes. A 3D arcade runner that plays in the browser — no install, no sign-up.">\n'
       '<meta property="og:url" content="' + BASE + '/">\n'
-      '<meta property="og:image" content="' + BASE + '/og.png">\n'
-      '<meta property="og:image:type" content="image/png">\n'
+      '<meta property="og:image" content="' + BASE + '/og.jpg">\n'
+      '<meta property="og:image:type" content="image/jpeg">\n'
       '<meta property="og:image:width" content="1200">\n'
       '<meta property="og:image:height" content="630">\n'
       '<meta property="og:image:alt" content="The CASH CAR title screen, gold pixel lettering over a neon sky.">\n'
