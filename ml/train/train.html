@@ -8714,36 +8714,495 @@ function checkUpgrade(){
   }
   SAVE.flush();
 }
-function startFall(impU,impF){
-  mode='fall';fallT=0;fallTR=0;yawAcc=0;momT=0;airRoll=0;
-  // TEMPO DE VOL ∝ VITESSE (2026-07-20, dosage DOUX sur base V1) : =1 jusqu'à 450 km/h affichés
-  // (basse/moyenne vitesse : rigoureusement l'existant), puis +1 tous les 1800 km/h, CAP 1.35 —
-  // loin du 2.3 de l'ancienne ère (qui compensait SPD=.25) : l'endgame TRAVERSE sa phase aérienne
-  // au lieu de flotter, sans virer missile. Parabole DANS L'ESPACE, viseur, seuils de figures et
-  // paiements (fallT temps-sim) INCHANGÉS — seul le temps réel du vol se compresse un peu.
-  AIR_RATE=THREE.MathUtils.clamp(1+Math.max(0,Math.abs(vA)*3.6*SPD-450)/1800,1,1.35);
-  nitroAirT=0;fallUnder=false;fallStartSide=side; // SNAKE LOOP : côté de départ figé, passage dessous à prouver
-  gapArmed=0; // vol ordinaire par défaut — la catapulte réarme JUSTE APRÈS cet appel
-  bounceN=0;flightId++; // nouveau vol : compteur de bumps et budget d'airtime des nuages remis à zéro
-  if(Math.abs(vA)*3.6*SPD>400)annSpeak('launch400',1); // éjecté à +400 km/h (1 fois sur 3)
-  frameAt(s,F);
-  if(side<0){F.n.multiplyScalar(-1);F.b.multiplyScalar(-1);}
-  fallPos.copy(F.p).addScaledVector(F.b,lat).addScaledVector(F.n,(side<0?THICK:0)+.6);
-  fallVel.copy(F.t).multiplyScalar(vA*driveDir*(impF||1)).addScaledVector(F.b,vL*driveDir).addScaledVector(F.n,impU||.9); // driveDir : on décolle dans le sens où l'on roulait (le parc autorise les deux)
-  // INERTIE RÉELLE (2026-07-20) : fini le plafond TOTAL de 95 qui bridait l'éjection — éjecté à
-  // 300 km/h, on VOLE à 300 km/h (le compteur ne s'effondre plus au décollage), et la gravité en
-  // RAJOUTE en descente, comme une vraie chute. Seule la composante VERTICALE est bornée (70) :
-  // une crête ALPIN prise à 1900 km/h ne catapulte plus en orbite et la jauge des 6 s reste tenable
-  // (vol balistique max ≈ 4,2 s-sim). L'ancien 3e paramètre capV de la CATAPULTE est retiré : il ne
-  // servait qu'à rendre la portée ∝ vitesse malgré le plafond total — l'horizontale conservée le
-  // fait désormais NATIVEMENT (portée = vx·2vy/g, vx vrai).
-  if(fallVel.y>70)fallVel.y=70;
-  hopY=0;hopV=0; // un dos d'âne en cours ne doit pas laisser de décalage fantôme
-  lastNearY=fallPos.y; // référence du plongeon fatal tant que tryLand n'a pas mieux
-  // chaîne neuve : le vol commence, tout est à prouver
+/* ================================================================================================
+   LA PHYSIQUE UNIQUE — UN SEUL MOTEUR POUR LE JOUEUR ET POUR LES BOTS
+   ------------------------------------------------------------------------------------------------
+   AVANT : la physique du joueur vivait dans `loop`, et le mode entrainement en gardait une COPIE
+   (TRAIN.groundPhysics / airPhysics / startFallBot / tryLandBot / obstacles). Trois passes de
+   correction et deux agents critiques n'ont pas suffi a faire tenir les deux versions ensemble.
+   On a donc arrete de corriger la copie : ON A SUPPRIME LA COPIE. Il n'existe plus qu'un seul
+   corps de physique — celui-ci. Le joueur l'appelle avec ses touches, les bots avec les quatre
+   sorties de leur cerveau. Une divergence est desormais IMPOSSIBLE PAR CONSTRUCTION.
+
+     stepCar(car, input, dt, world)
+       car   : TOUT l'etat de la caisse (position, vitesse, cap, vol, nitro, minuteurs...) ET ses
+               temporaires PRIVES (_F, _a.._d, _m4, _q) — plus un seul tmp2/tmp3/F global dans la
+               physique : c'etait la source de la moitie des divergences.
+       input : {steer:-1..1 · gas:-1..1 (>.5 accelere, <-.5 freine) · nitro:bool · pitch:-1..1}
+       world : {rnd:fn (source d'alea) · ev:tableau|null (ou deposer les evenements)}
+       retour: world.ev rempli. La physique ne fait AUCUN bruit, ne verse AUCUN dollar, n'affiche
+               RIEN : elle CRIE ce qui vient d'arriver, l'appelant en fait ce qu'il veut.
+
+   ATTENTION — NOMS : ce sont ceux du JOUEUR (s, lat, v(=vA), vL, psi, fallT, fallTR...). Le joueur
+   est la reference, donc c'est lui qui garde son vocabulaire ; les bots s'y sont alignes.
+   ATTENTION — La PISTE (pts/T/Nn/B/L/NP/PADS/RAMPS/BUMPS/CONES/OILS) reste globale : joueur et bots
+   roulent sur la MEME, c'est justement ce que l'isomorphisme exige.
+   ================================================================================================ */
+const CAR_W0={rnd:Math.random,ev:null}; // monde par defaut : alea reel, personne n'ecoute
+function carEv(w,t,d){ if(!w.ev)return; d=d||{}; d.type=t; w.ev.push(d); }
+function makeCar(){
+  return {
+    // ---- conduite ----
+    mode:'drive', s:0, lat:0, v:0, vL:0, psi:0, side:1, driveDir:1,
+    steer:0, steerHold:0, momT:0, driftT:0,
+    graceT:0, sideCd:0, slipT:0, boost:0, padCd:0, rampCd:0, oilCd:0,
+    hopY:0, hopV:0, idleT:0, safeS:0, pureT:0, pureArmed:true, sPrev:0, kmh:0,
+    nitroR:2, nitroX:0, nitroOn:false, nitroBlue:false,
+    // ---- ce qui ne concerne QUE le joueur : neutre chez les bots, donc meme code des deux cotes ----
+    pwrNitroT:0, pwrSpdT:0, pwrAirT:0, introD:false, park:false,
+    // ---- vol ----
+    fallT:0, fallTR:0, dtF:0, yawAcc:0, airRate:1, nitroAirT:0, airRoll:0,
+    fallUnder:false, fallStartSide:1, bounceN:0, gapArmed:0,
+    lastNearY:0, lastNearS:0, lastNearH2:0,
+    curNear:false, curHOff:0, curLatOff:0,     // radar de dalle rempli par carTryLand
+    rdNear:false, rdHOff:0, rdLatOff:0,        // ...recopie au debut du pas : ce que LA FRAME D'AVANT a vu
+    landI:-1, landH:0, landL:0, landImp:0,     // viseur d'atterrissage (rendu par le joueur)
+    fallPos:new THREE.Vector3(), fallVel:new THREE.Vector3(),
+    prevTv:new THREE.Vector3(), prevTvalid:false,
+    quat:new THREE.Quaternion(),               // orientation PHYSIQUE (le nez sert a l'anti-blocage)
+    // ---- temporaires PRIVES ----
+    _F:{p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},
+    _a:new THREE.Vector3(),_b:new THREE.Vector3(),_c:new THREE.Vector3(),_d:new THREE.Vector3(),
+    _m4:new THREE.Matrix4(),_q:new THREE.Quaternion(),_q2:new THREE.Quaternion()
+  };
+}
+// LA MORT : la physique la DECLARE (mode='boom' tout de suite, comme explode() cote joueur — les
+// gardes mode==='drive' en dessous doivent voir le changement dans la MEME frame), et elle dit
+// d'ou elle vient (from) : le bank-or-bust ne perd la chaine que si l'on mourait EN VOL.
+function carBoom(car,w,why){ carEv(w,'boom',{why:why,from:car.mode}); car.mode='boom'; }
+
+/* ---------- LE NEZ DE LA CAISSE : d'ou part l'anti-blocage aerien ----------
+   Le joueur le lisait sur carGroup.quaternion, les bots sur un cap fige au decollage : deux
+   directions de recuperation differentes en plongeon vertical (bug #8 du critic). Desormais c'est
+   la MEME orientation physique, tenue ici, que le rendu se contente de recopier. */
+function carNose(car,out){ return out.set(0,0,1).applyQuaternion(car.quat); }
+
+/* ---------- DECOLLAGE (ex-startFall, partie physique) ---------- */
+function carStartFall(car,impU,impF,w){
+  const F=car._F;
+  car.mode='fall';car.fallT=0;car.fallTR=0;car.yawAcc=0;car.momT=0;car.airRoll=0;
+  // TEMPO DE VOL proportionnel a la VITESSE : =1 jusqu'a 450 km/h affiches, puis +1 tous les
+  // 1800 km/h, CAP 1.35 — l'endgame TRAVERSE sa phase aerienne au lieu de flotter.
+  car.airRate=THREE.MathUtils.clamp(1+Math.max(0,Math.abs(car.v)*3.6*SPD-450)/1800,1,1.35);
+  car.nitroAirT=0;car.fallUnder=false;car.fallStartSide=car.side; // SNAKE LOOP : cote de depart fige
+  car.gapArmed=0;                                                 // la catapulte rearme JUSTE APRES
+  car.bounceN=0;
+  frameAt(car.s,F);
+  if(car.side<0){F.n.multiplyScalar(-1);F.b.multiplyScalar(-1);}
+  car.fallPos.copy(F.p).addScaledVector(F.b,car.lat).addScaledVector(F.n,(car.side<0?THICK:0)+.6);
+  car.fallVel.copy(F.t).multiplyScalar(car.v*car.driveDir*(impF||1))
+    .addScaledVector(F.b,car.vL*car.driveDir)
+    .addScaledVector(F.n,impU||.9);
+  // INERTIE REELLE : pas de plafond TOTAL (ejecte a 300 km/h, on VOLE a 300) — seule la VERTICALE
+  // est bornee a 70, sinon une crete ALPIN prise a 1900 km/h catapulte en orbite.
+  if(car.fallVel.y>70)car.fallVel.y=70;
+  car.hopY=0;car.hopV=0;              // un dos d'ane en cours ne laisse pas de decalage fantome
+  car.dtF=0;                          // la frame de decollage ne consomme pas de temps de vol
+  car.lastNearY=car.fallPos.y;        // reference du plongeon fatal tant que carTryLand n'a pas mieux
+  car.curNear=false;
+  carEv(w||CAR_W0,'takeoff',{});
+}
+
+/* ---------- ATTERRISSAGE (ex-tryLand, partie physique) ----------
+   Retourne true si la caisse s'est POSEE. Les donnees du verdict (grade, face, snake loop, gap...)
+   partent en evenement : c'est le joueur qui encaisse, la physique ne compte pas d'argent. */
+function carTryLand(car,dt,w){
+  let bestI=-1,bd=1e9;
+  const P=car.fallPos,V=car.fallVel,D=car._d;
+  for(let i=0;i<NP;i+=2){
+    if(holeAtI(i))continue;           // LE VIDE : on ne se pose pas sur une dalle qui n'existe pas
+    const dx=P.x-pts[i].x,dy=P.y-pts[i].y,dz=P.z-pts[i].z;
+    const dd=dx*dx+dy*dy+dz*dz;
+    if(dd<bd){bd=dd;bestI=i;}
+  }
+  if(bestI<0)return false;
+  car.lastNearY=pts[bestI].y;         // altitude de la route la plus proche (plongeon fatal)
+  {const hx=P.x-pts[bestI].x,hz=P.z-pts[bestI].z;car.lastNearH2=hx*hx+hz*hz;} // bitume ou vide dessous ?
+  car.lastNearS=bestI/(NP-1)*L;       // ou l'on en est SUR la piste (le LOD s'y recentre)
+  if(bd>1600)return false;
+  D.subVectors(P,pts[bestI]);
+  const hOff=D.dot(Nn[bestI]),latOff=D.dot(B[bestI]);
+  car.curNear=true;car.curHOff=hOff;car.curLatOff=latOff; // radar de dalle : nourrit LE DAUPHIN
+  // SNAKE LOOP v2 : passer SOUS la route, cote OPPOSE a la face de depart, dans la largeur de dalle.
+  if(!car.fallUnder&&Math.abs(latOff)<ROAD_HALF&&(car.fallStartSide>0?hOff<-THICK-1:hOff>1))car.fallUnder=true;
+  const vN=V.dot(Nn[bestI]),vB=V.dot(B[bestI]);
+  // ANTI-TUNNEL : ou etait la caisse a la frame d'avant, dans le repere de la dalle ?
+  const prevH=hOff-vN*dt*SPD,prevL=latOff-vB*dt*SPD;
+  const bumpIn=Math.abs(latOff)>=ROAD_HALF&&Math.abs(latOff)<ROAD_HALF+2.6&&vB*Math.sign(latOff)<-3;
+  const bumpThru=Math.abs(prevL)>=ROAD_HALF&&Math.abs(latOff)<ROAD_HALF&&Math.sign(prevL)*vB<-3;
+  if(car.sideCd<=0&&hOff>-THICK-.8&&hOff<.8&&(bumpIn||bumpThru)){
+    // LA TRANCHE : la caisse COGNE le flanc de la dalle et REBONDIT — c'est le BUMP.
+    const sg=bumpThru?Math.sign(prevL):Math.sign(latOff),impB=Math.abs(vB);
+    V.addScaledVector(B[bestI],-vB*1.65);   // reflexion amortie sur la paroi
+    V.multiplyScalar(.78);
+    V.y+=2.4;                                // la tranche RENVOIE la caisse vers le ciel
+    P.copy(pts[bestI]).addScaledVector(B[bestI],sg*(ROAD_HALF+1.8)).addScaledVector(Nn[bestI],hOff);
+    car.sideCd=.35;
+    car.bounceN++;
+    car.fallT=Math.max(0,car.fallT-AIR_MAX*.5);car.fallTR=Math.max(0,car.fallTR-AIR_MAX*.5); // demi-jauge rendue
+    carEv(w,'bump',{n:car.bounceN,imp:impB});
+    return false;                            // toujours en vol — enchaine les bumps !
+  }
+  let sideL=0;
+  if(car.fallT>.35&&hOff>-1.2&&hOff<3&&vN<4.5)sideL=1;                        // face du dessus
+  else if(car.fallT>.1&&prevH>-1.2&&hOff<=-1.2&&vN<4.5)sideL=1;               // dessus PERCE en une frame
+  else if(car.fallT>.35&&hOff>-THICK-3&&hOff<-THICK+1.2&&vN>-4.5)sideL=-1;    // face du dessous
+  else if(car.fallT>.1&&prevH<-THICK+1.2&&hOff>=-THICK+1.2&&vN>-4.5)sideL=-1; // dessous perce en montant
+  if(!sideL||(Math.abs(latOff)>=ROAD_HALF&&Math.abs(prevL)>=ROAD_HALF))return false;
+  car.s=THREE.MathUtils.clamp(bestI/(NP-1)*L+THREE.MathUtils.clamp(D.dot(T[bestI]),-2,2),0,L-1);
+  car.side=sideL;car.lat=THREE.MathUtils.clamp(latOff,-ROAD_HALF+.6,ROAD_HALF-.6)*sideL;
+  // RECEPTION EN GLISSE : la caisse se pose de travers et rattrape — pas un psi=0 sec
+  {const vTan=V.dot(T[bestI]),vLat=V.dot(B[bestI])*sideL;
+   car.psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+6)*.85,-.62,.62);
+   car.driftT=Math.max(car.driftT,Math.min(1,.45+Math.abs(car.psi)));}
+  car.v=V.dot(T[bestI]);car.vL=V.dot(B[bestI])*.4*sideL;
+  if(car.park){car.driveDir=car.v<0?-1:1;car.v=Math.abs(car.v);}else car.driveDir=1;
+  const impact=Math.abs(vN);
+  const bigness=Math.max(0,car.fallT-.8);
+  const landLoss=Math.min(.52,bigness*.15+impact*.008); // l'impact ralentit la caisse
+  car.v*=(1-landLoss);car.vL*=(1-landLoss);
+  car.prevTvalid=false;car.mode='drive';
+  carEv(w,'land',{impact:impact,landLoss:landLoss,sideL:sideL,latOff:latOff,fallT:car.fallT,
+                  snaked:car.fallUnder&&sideL===car.fallStartSide,gapArmed:car.gapArmed});
+  car.gapArmed=0; // la catapulte est encaissee : le prochain vol repart vierge
+  return true;
+}
+
+/* ---------- AU SOL ---------- */
+function carDrive(car,input,dt,w){
+  const spec=CARS[0],late=lateMul(),
+        eng9=ENGINE_TIERS[engTier]||ENGINE_TIERS[0],
+        maxSp=CARS[0].maxKmh/3.6*late*eng9.push,acc9=CARS[0].accel*late*(1+(eng9.push-1)*.6);
+  const up=input.gas>.5,dn=input.gas<-.5,target=input.steer,F=car._F;
+  // ANTI-IDLE : la musique n'avance pas sans toi — reste quasi a l'arret et la caisse explose
+  const idleKmh=Math.abs(car.v)*3.6*SPD;
+  if(!car.introD&&!car.park&&car.graceT<=0&&idleKmh<22){
+    car.idleT+=dt;
+    if(car.idleT>1.6)carEv(w,'idle',{left:Math.max(0,6-car.idleT)});
+    if(car.idleT>=6){car.idleT=0;carBoom(car,w,'idle');}
+  }else car.idleT=Math.max(0,car.idleT-dt*2.5);
+  frameAt(car.s,F);
+  if(car.side<0){F.n.multiplyScalar(-1);F.b.multiplyScalar(-1);}
+  // cap MONDE : la route tourne sous la voiture
+  if(car.prevTvalid){
+    car._a.crossVectors(car.prevTv,F.t);
+    const dyaw=Math.atan2(car._a.dot(F.n),car.prevTv.dot(F.t));
+    car.psi=THREE.MathUtils.clamp(car.psi-dyaw,-1.4,1.4);
+  }
+  car.prevTv.copy(F.t);car.prevTvalid=true;
+  // MOMENTUM : tenir la ligne droite fait monter la puissance en exponentiel
+  if(up&&Math.abs(car.steer)<.2&&Math.abs(car.psi)<.25)car.momT+=dt;
+  else car.momT=Math.max(0,car.momT-dt*3);
+  const momF=1+Math.min(1.8,car.momT*car.momT*.1);
+  let a=0;
+  if(up)a=acc9*(car.v<maxSp?1:.55)*(car.boost>0?1.5:1)*momF; // ca pousse TOUJOURS sur la route
+  if(dn)a=car.v>2?-acc9*1.5:-acc9*.5;
+  car.v+=a*dt;
+  if(car.nitroOn)car.v+=(car.nitroBlue?48:30)*eng9.push*dt;  // LE MOTEUR pousse : le palier multiplie
+  car.v+=-GRAV*F.t.y*Math.cos(car.psi)*car.driveDir*dt;      // la pente selon le SENS reel de marche
+  car.v-=car.v*Math.abs(car.v)*(acc9/(maxSp*maxSp*5.8))*dt;  // trainee (terminal ~2,4x la vmax)
+  car.v*=Math.max(0,1-.03*dt);
+  if(!up&&!dn&&!car.nitroOn)car.v*=Math.max(0,1-.4*dt);
+  if(car.park&&car.v>PARK_VCAP)car.v=PARK_VCAP;              // PARC : gouverneur de vitesse
+  if(car.v<-8)car.v=-8;
+  if(car.introD){car.v=0;car.momT=0;car.steer=0;car.psi=0;}  // LARGAGE : controles geles
+  if(Math.abs(target)>.1)car.steerHold=Math.min(.3,car.steerHold+dt);else car.steerHold=0;
+  car.psi+=(car.slipT>0?.18:1)*car.steer*(.55+.45*(car.steerHold/.3))*spec.turn*.75
+          *THREE.MathUtils.clamp(car.v/8,-1,1)*(1/(1+Math.abs(car.v)*TURN_HS))*(dn?1.3:1)*dt;
+  car.driftT=Math.max(0,car.driftT-dt*2.2);                  // retombe apres une pose en travers
+  car.psi=THREE.MathUtils.clamp(car.psi,-1.4,1.4);
+  car.vL=car.v*Math.sin(car.psi);
+  const spdMult=car.pwrSpdT>0?1.6:1;                         // SPEED UP : le sol defile +60 %
+  car.lat+=car.vL*car.driveDir*dt*SPD*spdMult;
+  car.sPrev=car.s;  // ATTENTION : memorise AVANT l'avance — les tremplins se testent sur le SEGMENT
+  car.s+=car.v*Math.cos(car.psi)*car.driveDir*dt*SPD*spdMult;
+  const vF=car.v;
+  car.boost=Math.max(0,car.boost-dt);
+  car.kmh=Math.abs(vF)*3.6*SPD*spdMult;
+  // PURE SPEED : 3 s de nitro soutenu a +400 km/h sur la route
+  if(car.nitroOn&&car.kmh>400){
+    car.pureT+=dt;
+    if(car.pureT>3&&car.pureArmed){car.pureArmed=false;carEv(w,'pure',{});}
+  }else{car.pureT=0;car.pureArmed=true;}
+  // point de respawn sur
+  if(car.side>0&&F.n.y>.5&&Math.abs(car.lat)<ROAD_HALF-2&&Math.abs(car.psi)<.5)car.safeS=car.s;
+  // BORD : la voiture depasse le cote de la route -> elle bascule et tombe dans le vide
+  if(Math.abs(car.lat)>ROAD_HALF){
+    const out=Math.sign(car.lat);
+    if(car.graceT<=0)carStartFall(car,3.4,1.04,w);            // petit boost de saut en sortie de route
+    else{car.lat=out*ROAD_HALF;if(car.vL*out>0)car.vL=0;}
+  }
+  if(car.graceT<=0&&F.n.y*1<-.15&&Math.abs(vF)<7)carStartFall(car,undefined,undefined,w);
+  // PORTAIL : fin de zone (le joueur regenere la piste, l'entrainement s'en moque)
+  if(car.mode==='drive'&&car.park&&((car.s>L-32&&car.driveDir>0)||(car.s<6&&car.driveDir<0)))carEv(w,'portal',{park:true});
+  else if(car.mode==='drive'&&!car.park&&car.s>L-32)carEv(w,'portal',{park:false});
+  // pads turbo
+  car.padCd=Math.max(0,car.padCd-dt);
+  if(car.mode==='drive'&&car.padCd<=0)for(const p of PADS){
+    if(Math.abs(car.s-p)<6&&Math.abs(car.lat)<ROAD_HALF){
+      car.v+=14;car.boost=Math.max(car.boost,1.2);car.padCd=1.5;
+      carEv(w,'pad',{});
+      break;
+    }
+  }
+  // ---- LA CATAPULTE : le tremplin heros envoie la caisse par-dessus le vide ----
+  // ATTENTION — BALAYAGE, PAS UN POINT : dans l'endgame on avance de ~9 unites par frame, la levre
+  // passait ENTRE deux frames et la catapulte ne partait pas — on tombait dans le trou juste derriere.
+  car.rampCd=Math.max(0,car.rampCd-dt);
+  if(car.mode==='drive'&&car.rampCd<=0&&Math.abs(car.lat)<ROAD_HALF-1)for(const r9 of RAMPS){
+    const sA9=Math.min(car.sPrev,car.s)-7,sB9=Math.max(car.sPrev,car.s)+7;
+    if(r9.s<sA9||r9.s>sB9)continue;
+    if(Math.abs(car.v)*3.6*SPD<110)break;   // au pas : la levre ne catapulte personne
+    car.rampCd=1.4;                         // on ne se relance pas en retombant sur sa propre levre
+    carStartFall(car,6.6+(r9.v===1?1.4:0),1.14,w);
+    car.gapArmed=r9.v+1;                    // ARME APRES le decollage (qui remet a 0)
+    car.boost=Math.max(car.boost,1.5);
+    carEv(w,'ramp',{v:r9.v});
+    break;
+  }
+  // LE VIDE SOUS LES ROUES : la dalle s'est arretee et on est encore dessus — donc on tombe
+  if(car.mode==='drive'&&holeAtS(car.s))carStartFall(car,1.1,1,w);
+  // dos d'ane : petit saut — sur les DEUX faces (hopY suit F.n deja retournee quand side<0)
+  if(car.mode==='drive'&&car.hopY===0&&Math.abs(vF)>10)for(const b9 of BUMPS){
+    if(Math.abs(car.s-b9)<2.2){
+      car.hopV=2.4+Math.min(3.2,Math.abs(vF)*.045);
+      car.v*=.97;
+      carEv(w,'hop',{});
+      break;
+    }
+  }
+  if(car.hopY>0||car.hopV!==0){
+    car.hopY+=car.hopV*dt;car.hopV-=26*dt;
+    if(car.hopY<=0){car.hopY=0;car.hopV=0;carEv(w,'hopland',{});} // SPLAT.
+  }
+  // plots orange : les percuter les envoie valser
+  if(car.mode==='drive')for(const c9 of CONES){
+    if(c9.hit||c9.face!==car.side||Math.abs(car.s-c9.s)>2.6)continue; // chaque plot vit sur SA face
+    if(Math.abs(car.lat-c9.lat)<1.6){
+      c9.hit=true;
+      car.v*=.985;
+      carEv(w,'cone',{c:c9,sg:car.lat-c9.lat>0?-1:1});
+    }
+  }
+  // FLAQUES D'HUILE : passer dessus fait GLISSER (controle coupe un instant, la caisse chasse)
+  car.oilCd=Math.max(0,car.oilCd-dt);
+  if(car.mode==='drive'&&car.oilCd<=0)for(const o9 of OILS){
+    if(o9.face!==car.side)continue;         // chaque flaque vit sur SA face
+    if(Math.abs(car.s-o9.s)>o9.r+2)continue;
+    if(Math.abs(car.lat-o9.lat)<o9.r+.6){
+      car.slipT=.75;car.oilCd=1.2;
+      carEv(w,'oil',{});
+      break;
+    }
+  }
+  if(car.slipT>0){ // la voiture chasse : direction quasi coupee + embardee aleatoire
+    car.slipT-=dt;
+    car.psi+=(w.rnd()-.5)*2.6*dt*Math.min(1,Math.abs(car.v)/12);
+    car.psi=THREE.MathUtils.clamp(car.psi,-1.4,1.4);
+  }
+  // ORIENTATION physique au sol : la caisse REGARDE son sens de marche (le PARC autorise -T).
+  // (le TOKYO DRIFT du joueur est une rotation d'IMAGE, posee par le rendu — jamais ici.)
+  car._b.copy(F.t).multiplyScalar(Math.cos(car.psi)*car.driveDir).addScaledVector(F.b,Math.sin(car.psi)*car.driveDir).normalize();
+  car._a.crossVectors(F.n,car._b).normalize();
+  car._m4.makeBasis(car._a,F.n,car._b);
+  car.quat.setFromRotationMatrix(car._m4);
+}
+
+/* ---------- LE TANGAGE : on TOURNE le vecteur vitesse ----------
+   Ajouter a .y ne pliait la trajectoire que de ~4 deg/s ; la ROTATION donne une autorite FORTE et
+   INDEPENDANTE de la vitesse (on plie autant a 260 qu'a 80), BORNEE a +-65 deg -> jamais vertical,
+   pas de gimbal-lock, pas de vrille coincee. */
+function carPitch(car,wPitch,rate,dtF){
+  const V=car.fallVel,spd=V.length();
+  if(spd<=1)return;
+  let hxz=Math.hypot(V.x,V.z);
+  if(hxz<spd*.12){ // presque a la verticale : on retablit un minimum d'horizontale (repli sur le nez)
+    carNose(car,car._c);
+    let hx=car._c.x,hz=car._c.z,hl=Math.hypot(hx,hz);
+    if(hl<1e-3){hx=1;hz=0;hl=1;}
+    const need=spd*.12;
+    V.x=hx/hl*need;V.z=hz/hl*need;hxz=need;
+  }
+  let pit=Math.atan2(V.y,hxz);
+  pit=THREE.MathUtils.clamp(pit+rate*wPitch*dtF,-1.13,1.13); // plafond +-65 deg
+  const nH=Math.cos(pit)*spd,hs=nH/hxz;
+  V.set(V.x*hs,Math.sin(pit)*spd,V.z*hs);                    // meme vitesse, nouvelle assiette
+}
+
+/* ---------- EN VOL ---------- */
+function carFall(car,input,dt,w){
+  const dtF=dt*car.airRate; // temps de vol accelere : meme arc dans l'espace, moins de temps a flotter
+  car.dtF=dtF;
+  const V=car.fallVel,P=car.fallPos;
+  // le radar de dalle de la frame D'AVANT (c'est lui que les figures lisent), puis on l'efface
+  car.rdNear=car.curNear;car.rdHOff=car.curHOff;car.rdLatOff=car.curLatOff;car.curNear=false;
+  car.fallT+=dtF;car.fallTR+=dt; // fallT = temps-sim (figures/paiements) · fallTR = temps REEL (jauge)
+  if(car.nitroOn)car.nitroAirT+=dtF;
+  V.y-=FALL_G*dtF;
+  // ATTENTION — ANTI-BLOCAGE DU LACET : trajectoire quasi VERTICALE -> la faire tourner autour de Y
+  // ne change plus rien, le volant est MORT en plein vol. On retablit un minimum d'horizontale
+  // (repli sur le nez), mais UNIQUEMENT quand on braque vraiment — et a vitesse TOTALE conservee
+  // (sinon on offrirait de la portee gratuite sur chaque saut vertical).
+  if(Math.abs(car.steer)>.15){
+    const spdY=V.length(),hxz0=Math.hypot(V.x,V.z);
+    if(spdY>1&&hxz0<spdY*.12){
+      carNose(car,car._c);
+      let hx=car._c.x,hz=car._c.z,hl=Math.hypot(hx,hz);
+      if(hl<1e-3){hx=1;hz=0;hl=1;}
+      const need=spdY*.12,vy2=Math.sqrt(Math.max(0,spdY*spdY-need*need));
+      V.set(hx/hl*need,(V.y<0?-1:1)*vy2,hz/hl*need);
+    }
+  }
+  // chute pilotee : un peu de lacet, c'est tout — la voiture est LOURDE
+  const yawIn=car.steer*(1.15+Math.min(.6,V.length()*.004))*dtF;
+  V.applyAxisAngle(AXIS_Y,yawIn);
+  car.yawAcc+=yawIn;
+  const wPitch=input.pitch||0; // -1 = pique · +1 = cabre
+  if(car.nitroOn){ // REACTEUR : poussee depuis l'arriere facon Rocket League
+    car._a.copy(V);
+    if(car._a.lengthSq()>1)car._a.normalize();else car._a.set(0,0,1);
+    V.addScaledVector(car._a,(car.nitroBlue?70:52)*dtF);
+    if(wPitch!==0)carPitch(car,wPitch,1.7,dtF);
+  }else if(wPitch!==0)carPitch(car,wPitch,0.62,dtF); // SANS BOOST : on inflechit, on ne pilote pas
+  if(car.park&&V.lengthSq()>PARK_VCAP*PARK_VCAP)V.setLength(PARK_VCAP); // PARC : pas d'emballement en l'air
+  P.addScaledVector(V,dtF*SPD);
+  car.kmh=V.length()*3.6*SPD;
+  // ---- orientation : le nez suit la trajectoire, PAS de vrille surprise ----
+  car._a.copy(V).normalize();
+  car._b.set(0,1,0);
+  car._c.crossVectors(car._b,car._a);
+  // ATTENTION : vitesse quasi VERTICALE -> (0,1,0)x vitesse ~ 0, le repere degenere et la caisse
+  // reste COINCEE en vrille. Right de secours dans ce cas -> orientation stable.
+  if(car._c.lengthSq()<.0009)car._c.set(1,0,0);
+  car._c.normalize();
+  car._b.crossVectors(car._a,car._c);
+  car._m4.makeBasis(car._c,car._b,car._a);
+  car._q.setFromRotationMatrix(car._m4);
+  /* ATTENTION — LA VRILLE EST VOULUE, NE PAS LA CORRIGER (tranche par le user, 2026-08-05). Parti
+     pris ARCADE. A ne pas confondre avec la FIGURE vrille qui paye : celle-la compte les demi-tours
+     de LACET (yawAcc). Elle tourne AUTOUR de la vitesse -> elle ne bouge pas le nez. */
+  car.airRoll+=(3.0+car.steer*2.2+Math.min(2,car.fallT*.5))*dtF;
+  car._q2.setFromAxisAngle(car._a,car.airRoll);
+  car._q.premultiply(car._q2);
+  car.quat.slerp(car._q,Math.min(1,dt*8));
+  // ---- VISEUR D'ATTERRISSAGE (+ l'assistance de recentrage, qui est de la VRAIE physique) ----
+  car.landI=-1;
+  car._a.copy(P);car._b.copy(V);
+  for(let st2=0;st2<14;st2++){ // meme integration que la vraie chute : vel/seconde, position xSPD
+    car._b.y-=FALL_G*.12;
+    car._a.addScaledVector(car._b,.12*SPD);
+    let bi=-1,bdd=400;
+    for(let i2=0;i2<NP;i2+=8){
+      if(holeAtI(i2))continue;   // le viseur ne promet jamais un atterrissage dans le vide
+      const dx=car._a.x-pts[i2].x,dy=car._a.y-pts[i2].y,dz=car._a.z-pts[i2].z,dd2=dx*dx+dy*dy+dz*dz;
+      if(dd2<bdd){bdd=dd2;bi=i2;}
+    }
+    if(bi>=0){
+      car._d.subVectors(car._a,pts[bi]);
+      const h2=car._d.dot(Nn[bi]),l2=car._d.dot(B[bi]);
+      if(Math.abs(l2)<ROAD_HALF&&h2>-THICK-1&&h2<3){
+        car.landI=bi;car.landH=h2;car.landL=l2;
+        car.landImp=Math.abs(car._b.dot(Nn[bi])); // impact PREDIT — meme unite que le verdict
+        // assistance d'atterrissage : recentre doucement (d'autant plus qu'on va vite)
+        const asF=AIR_ASSIST*THREE.MathUtils.clamp(V.length()/60,.2,1.4);
+        V.addScaledVector(B[bi],-l2*asF*dt*.5);
+        break;
+      }
+    }
+  }
+  if(carTryLand(car,dtF,w))return;
+  // trop longtemps en l'air, ou sous le point le plus BAS de toute la piste : c'est fini
+  if((car.fallTR>AIR_MAX&&car.pwrAirT<=0)||P.y<trackMinY-120)carBoom(car,w,car.fallTR>AIR_MAX?'airtime':'void');
+}
+
+/* ---------- LE PAS : c'est TOUT ce qui fait avancer une caisse, joueur ou bot ---------- */
+function stepCar(car,input,dt,world){
+  const w=world||CAR_W0;
+  if(w.ev)w.ev.length=0;
+  // POUVOIRS : les minuteurs s'egrenent, l'airtime infini rend une jauge neuve en expirant
+  car.pwrNitroT=Math.max(0,car.pwrNitroT-dt);
+  car.pwrSpdT=Math.max(0,car.pwrSpdT-dt);
+  if(car.pwrAirT>0){car.pwrAirT-=dt;if(car.pwrAirT<=0){car.pwrAirT=0;if(car.mode==='fall'){car.fallT=0;car.fallTR=0;carEv(w,'airflash',{});}}}
+  // NITRO : recharge (plafond = reserve MOTEUR), hysteresis anti-clignotement, puis consommation
+  const NRMAX=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2;
+  car.nitroR=Math.min(NRMAX,car.nitroR+.2*dt);
+  if(car.pwrNitroT>0||car.park)car.nitroR=2; // NITRO INFINIE : rien ne se consomme
+  const wantN=!!input.nitro;
+  car.nitroOn=wantN&&(car.nitroOn?(car.nitroR+car.nitroX)>.005:(car.nitroR+car.nitroX)>.3);
+  if(car.nitroOn&&car.pwrNitroT<=0&&!car.park){
+    let take=dt;
+    if(car.nitroR>=take)car.nitroR-=take;
+    else{take-=car.nitroR;car.nitroR=0;car.nitroX=Math.max(0,car.nitroX-take);}
+  }
+  car.nitroBlue=car.nitroOn&&car.nitroR<=.01; // reserve bleue = plus puissante
+  car.steer+=(input.steer-car.steer)*Math.min(1,dt*18);
+  car.graceT=Math.max(0,car.graceT-dt);
+  car.sideCd=Math.max(0,car.sideCd-dt);
+  if(car.mode==='drive')carDrive(car,input,dt,w);
+  else if(car.mode==='fall')carFall(car,input,dt,w);
+  return w.ev;
+}
+/* ================================================================================================
+   LE JOUEUR BRANCHE SES TOUCHES SUR LA PHYSIQUE UNIQUE
+   ------------------------------------------------------------------------------------------------
+   PCAR est LA caisse du joueur : le meme objet que celui des bots, le meme stepCar. Les globales
+   historiques (s, lat, vA, psi, mode, fallT...) restent la verite pour TOUT le reste du fichier
+   (rendu, HUD, nuages, moteur, camera) : on les recopie AVANT le pas et APRES. Ce va-et-vient est
+   mecanique et betement verifiable — c'est exactement ce que mesure ml/train/check-iso.js.
+   ================================================================================================ */
+const PCAR=makeCar();
+PCAR.fallPos=fallPos;PCAR.fallVel=fallVel;PCAR.prevTv=prevTv; // MEMES objets : zero copie de vecteur
+const PWORLD={rnd:Math.random,ev:[]};
+const PIN={steer:0,gas:0,nitro:false,pitch:0};
+function pcarPush(){ // globales -> caisse
+  const c=PCAR;
+  c.mode=mode;c.s=s;c.lat=lat;c.v=vA;c.vL=vL;c.psi=psi;c.side=side;c.driveDir=driveDir;
+  c.steer=steer;c.steerHold=steerHold;c.momT=momT;c.driftT=driftT;
+  c.graceT=graceT;c.sideCd=sideCd;c.slipT=slipT;c.boost=boost;
+  c.padCd=padCd;c.rampCd=rampCd;c.oilCd=oilCd;c.hopY=hopY;c.hopV=hopV;
+  c.idleT=idleT;c.safeS=safeS;c.pureT=pureT;c.pureArmed=pureArmed;
+  c.nitroR=nitroR;c.nitroX=nitroX;c.nitroOn=nitroOn;c.nitroBlue=nitroBlue;
+  c.pwrNitroT=pwrNitroT;c.pwrSpdT=pwrSpdT;c.pwrAirT=pwrAirT;
+  c.introD=introD;c.park=PARK.on;
+  c.fallT=fallT;c.fallTR=fallTR;c.yawAcc=yawAcc;c.airRate=AIR_RATE;c.nitroAirT=nitroAirT;c.airRoll=airRoll;
+  c.fallUnder=fallUnder;c.fallStartSide=fallStartSide;c.bounceN=bounceN;c.gapArmed=gapArmed;
+  c.lastNearY=lastNearY;c.lastNearS=lastNearS;c.lastNearH2=lastNearH2;
+  c.curNear=curNear;c.curHOff=curHOff;c.curLatOff=curLatOff;c.prevTvalid=prevTvalid;
+}
+function pcarPull(){ // caisse -> globales
+  const c=PCAR;
+  mode=c.mode;s=c.s;lat=c.lat;vA=c.v;vL=c.vL;psi=c.psi;side=c.side;driveDir=c.driveDir;
+  steer=c.steer;steerHold=c.steerHold;momT=c.momT;driftT=c.driftT;
+  graceT=c.graceT;sideCd=c.sideCd;slipT=c.slipT;boost=c.boost;
+  padCd=c.padCd;rampCd=c.rampCd;oilCd=c.oilCd;hopY=c.hopY;hopV=c.hopV;
+  idleT=c.idleT;safeS=c.safeS;pureT=c.pureT;pureArmed=c.pureArmed;
+  nitroR=c.nitroR;nitroX=c.nitroX;nitroOn=c.nitroOn;nitroBlue=c.nitroBlue;
+  pwrNitroT=c.pwrNitroT;pwrSpdT=c.pwrSpdT;pwrAirT=c.pwrAirT;
+  fallT=c.fallT;fallTR=c.fallTR;yawAcc=c.yawAcc;AIR_RATE=c.airRate;nitroAirT=c.nitroAirT;airRoll=c.airRoll;
+  fallUnder=c.fallUnder;fallStartSide=c.fallStartSide;bounceN=c.bounceN;gapArmed=c.gapArmed;
+  lastNearY=c.lastNearY;lastNearS=c.lastNearS;lastNearH2=c.lastNearH2;
+  curNear=c.curNear;curHOff=c.curHOff;curLatOff=c.curLatOff;prevTvalid=c.prevTvalid;
+}
+// LES QUATRE COMMANDES — exactement celles que le cerveau des bots produit
+// (gas : le frein l'emporte sur le gaz, comme avant ; pitch : -1 pique, +1 cabre)
+function pcarInput(){
+  const up=AUTO_GAS||keys.KeyW||keys.KeyZ||keys.ArrowUp,dn=keys.KeyS||keys.ArrowDown;
+  const lf=keys.KeyA||keys.KeyQ||keys.ArrowLeft,rt=keys.KeyD||keys.ArrowRight;
+  const pitT=TCTL.act?TCTL.sv:0;
+  PIN.steer=TCTL.act?TCTL.st:(lf?1:0)-(rt?1:0); // VOLANT TACTILE : le pouce prend la main
+  PIN.gas=dn?-1:(up?1:0);
+  PIN.nitro=!!(keys.ShiftLeft||keys.ShiftRight||keys.Space);
+  PIN.pitch=pitT!==0?(Math.abs(pitT)<.12?0:-pitT):(((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0));
+  return PIN;
+}
+/* ---------- LE DECOLLAGE : la partie qui fait du BRUIT (la physique, elle, est dans carStartFall) ---------- */
+function fallTakeoffFx(){
+  if(Math.abs(vA)*3.6*SPD>400)annSpeak('launch400',1); // ejecte a +400 km/h (1 fois sur 3)
+  flightId++;                                          // budget d'airtime des nuages remis a zero
+  // chaine neuve : le vol commence, tout est a prouver
   chain=0;chainVal=rollover;chainMult=1;chainSeen={};spinHalf=0;
   if(rollover>0){trickMsg(TR('REPORT +')+Math.round(rollover),false);rollover=0;} // le PARFAIT d'avant paye d'avance
-  trkMeteor=false;curNear=false;
+  trkMeteor=false;
   dolphT=0;dolphGain=0;trkDolph=false;caseHot=false;heartT=0;ladderI=0;caseHud.style.opacity=0;caseHud.className='';
   chainHud.style.opacity=0;chainHud.classList.remove('pulse');
   // le boost se disperse en petites particules
@@ -8755,143 +9214,154 @@ function startFall(impU,impF){
   }
   whoosh();
 }
-const dTmp=new THREE.Vector3();
-function tryLand(dt){
-  let bestI=-1,bd=1e9;
-  for(let i=0;i<NP;i+=2){
-    if(holeAtI(i))continue; // LE VIDE : on ne se pose pas sur une dalle qui n'existe pas
-    const dx=fallPos.x-pts[i].x,dy=fallPos.y-pts[i].y,dz=fallPos.z-pts[i].z;
-    const dd=dx*dx+dy*dy+dz*dz;
-    if(dd<bd){bd=dd;bestI=i;}
+// startFall reste appelable de l'exterieur (double-tap NITRO) : physique + effets, comme avant
+function startFall(impU,impF){
+  pcarPush();
+  carStartFall(PCAR,impU,impF,CAR_W0);
+  pcarPull();
+  fallTakeoffFx();
+}
+const dTmp=new THREE.Vector3(); // scratch de l'explosion (les debris s'en servent)
+
+/* ================================================================================================
+   CE QUE LA PHYSIQUE A CRIE — le joueur encaisse, fait du bruit et allume l'ecran.
+   La physique ne verse pas un dollar ; TOUT l'argent se decide ici.
+   ================================================================================================ */
+function pcarEvents(evs,dt){
+  for(let i=0;i<evs.length;i++){
+    const e=evs[i];
+    switch(e.type){
+    case 'idle': // ROULE OU CREVE : le compte a rebours et son TIC qui s'accelere vers le boom
+      showMsg(TR('⚠ ROULE OU CRÈVE — ')+e.left.toFixed(1)+'s','#ff4d4d');
+      loop._tickT=(loop._tickT||0)-dt;
+      if(loop._tickT<=0){loop._tickT=Math.max(.10,e.left*.22);chimeNote(660+(e.left<1?900:0),0,.05,.22);subBoom(.05);}
+      break;
+    case 'boom': // FREESTYLE : la mort n'existe pas dans le parc — on repart
+      airPie.style.display='none';
+      if(PARK.on&&e.from==='fall')parkRespawn();
+      else{mode=e.from;explode();} // on rend a explode() le mode qui a tue : le bank-or-bust ne
+      break;                       // perd la mallette que si l'on mourait EN VOL
+    case 'takeoff': fallTakeoffFx(); break;
+    case 'airflash': airFlash=.6; break;
+    case 'portal':
+      if(e.park){
+        portalSnd();shake=.35;nitroR=2;PCAR.nitroR=2;
+        showMsg('✦ NOUVEAU SECTEUR','#7dffec');
+        newTrack();
+      }else{
+        portalSnd();boostSnd();shake=.5;
+        const zb=denom()*24*(fever>0?2:1);
+        money+=zb;levelCash+=zb;checkUpgrade(); // portail : 40 -> 24 (regulation 2026-07-30)
+        runStats.zones++;
+        nitroR=2;PCAR.nitroR=2; // le portail regonfle la nitro : chaque zone repart pied au plancher
+        trickMsg(pickL(ZONE_LINES)+' +'+fmtC(zb),true);
+        flyCash(carGroup.position,8);
+        SURV.pBase+=s; // la course traverse le portail : les ecarts restent vrais
+        newTrack();
+      }
+      break;
+    case 'pure':{const tx=annSpeak('pureSpeed',2);if(tx)trickMsg(tx,2);noiseBurst(.5,.12,1200);}break;
+    case 'pad': boostSnd();shake=Math.max(shake,.3); break;
+    case 'ramp':
+      shake=Math.max(shake,.55);
+      boostSnd();duckT=Math.max(duckT,.35);
+      trickMsg('🚀 CATAPULTE !',2);
+      sparkBurst(sparkGold,fallPos,20,14);
+      break;
+    case 'hop':
+      shake=Math.max(shake,.15);noiseBurst(.12,.1,300);
+      if(Math.random()<.5)dropChip(1);
+      break;
+    case 'hopland': squashT=Math.max(squashT,.15);if(introD)smashPig(); break; // SPLAT.
+    case 'cone':{ // il valse en s'ELOIGNANT de sa dalle
+      const c9=e.c;
+      const kv=new THREE.Vector3().copy(PCAR._F.t).multiplyScalar(Math.max(8,Math.abs(vA)*.55))
+        .addScaledVector(PCAR._F.b,e.sg*(2+Math.random()*4))
+        .addScaledVector(PCAR._F.n,(5+Math.random()*5)*side);
+      FLYCONES.push({m:c9.mesh,v:kv,rx:(Math.random()-.5)*16,rz:(Math.random()-.5)*16,life:1.6});
+      shake=Math.max(shake,.14);
+      noiseBurst(.09,.08,520);
+      sparkBurst(sparkGold,c9.mesh.position,5,6);
+      addStyle(2);
+      break;}
+    case 'oil':
+      shake=Math.max(shake,.2);
+      noiseBurst(.35,.12,1900); // long crissement
+      if(navigator.vibrate)navigator.vibrate(60);
+      break;
+    case 'bump':{ // ---- BUMP / DOUBLE BUMP / TRIPLE BUMP : figure GRATUITE (style, zero dollar) ----
+      const n=e.n,impB=e.imp;
+      runStats.bumps++;airFlash=.6;
+      addTrick('bump',n===1?'BUMP':n===2?'DOUBLE BUMP':n===3?'TRIPLE BUMP — LA DALLE EN PLEURE':'MEGA BUMP x'+n+' 💥',
+        0,Math.min(3,n),true,true); // free=true : longer la tranche ne remplit plus la mallette
+      bumpSfx(n);
+      thud(impB);noiseBurst(.14,.09,1100); // choc + froissement de tole
+      shake=Math.min(1.3,.3+impB*.03);
+      dropChip(2+Math.floor(Math.min(4,impB*.12)));
+      sparkBurst(sparkGold,carGroup.position,12,10);
+      squashT=Math.max(squashT,.22);
+      break;}
+    case 'land': pcarLandVerdict(e); break;
+    }
   }
-  if(bestI<0)return false;
-  lastNearY=pts[bestI].y; // altitude de la route la plus proche (référence du plongeon fatal)
-  {const hx=fallPos.x-pts[bestI].x,hz=fallPos.z-pts[bestI].z;lastNearH2=hx*hx+hz*hz;} // à plat : sert à savoir si on survole du BITUME ou du VIDE
-  lastNearS=bestI/(NP-1)*L; // position le long de la piste PENDANT le vol (le LOD de proximité s'y recentre)
-  if(bd>1600)return false;
-  dTmp.subVectors(fallPos,pts[bestI]);
-  const hOff=dTmp.dot(Nn[bestI]),latOff=dTmp.dot(B[bestI]);
-  curNear=true;curHOff=hOff;curLatOff=latOff; // radar de dalle : nourrit LE DAUPHIN dans la boucle
-  // SNAKE LOOP v2 : passer SOUS la route pendant le vol — côté OPPOSÉ à la face de départ, dans la
-  // largeur de la dalle — puis reposer la caisse sur la face de DÉPART (validé à l'atterrissage).
-  if(!fallUnder&&Math.abs(latOff)<ROAD_HALF&&(fallStartSide>0?hOff<-THICK-1:hOff>1))fallUnder=true;
-  const vN=fallVel.dot(Nn[bestI]);
-  // FLANC de la dalle : la caisse COGNE la tranche et REBONDIT — c'est le BUMP.
-  // Demi-jauge d'airtime rendue + du STYLE + le feedback (message, son, secousse).
-  // ZÉRO argent : le bump ne verse RIEN, ni direct ni via la chaîne (figure `free`) —
-  // longer la tranche à l'infini ne remplit plus la mallette (exploit fermé).
-  const vB=fallVel.dot(B[bestI]);
-  // ANTI-TUNNEL : où était la caisse à la frame d'avant, dans le repère de la dalle ?
-  // À grande vitesse le pas d'une frame dépasse les fenêtres de contact — on teste la TRAVERSÉE.
-  const prevH=hOff-vN*dt*SPD,prevL=latOff-vB*dt*SPD;
-  const bumpIn=Math.abs(latOff)>=ROAD_HALF&&Math.abs(latOff)<ROAD_HALF+2.6&&vB*Math.sign(latOff)<-3;
-  const bumpThru=Math.abs(prevL)>=ROAD_HALF&&Math.abs(latOff)<ROAD_HALF&&Math.sign(prevL)*vB<-3; // paroi percée en une frame
-  if(sideCd<=0&&hOff>-THICK-.8&&hOff<.8&&(bumpIn||bumpThru)){
-    const sg=bumpThru?Math.sign(prevL):Math.sign(latOff),impB=Math.abs(vB);
-    fallVel.addScaledVector(B[bestI],-vB*1.65); // réflexion amortie sur la paroi
-    fallVel.multiplyScalar(.78);
-    fallVel.y+=2.4; // la tranche RENVOIE la caisse vers le ciel
-    fallPos.copy(pts[bestI]).addScaledVector(B[bestI],sg*(ROAD_HALF+1.8)).addScaledVector(Nn[bestI],hOff);
-    sideCd=.35;
-    // ---- BUMP / DOUBLE BUMP / TRIPLE BUMP : figure GRATUITE (compte pour le HUD/style, zéro dollar) ----
-    bounceN++;runStats.bumps++;
-    fallT=Math.max(0,fallT-AIR_MAX*.5);fallTR=Math.max(0,fallTR-AIR_MAX*.5);airFlash=.6; // DEMI-JAUGE d'airtime rendue (sim + réelle)
-    addTrick('bump',bounceN===1?'BUMP':bounceN===2?'DOUBLE BUMP':bounceN===3?'TRIPLE BUMP — LA DALLE EN PLEURE':'MEGA BUMP x'+bounceN+' 💥',
-      0,Math.min(3,bounceN),true,true); // free=true : le bump NE PAYE PLUS (fini la machine à cash en longeant la tranche) — il rend l'airtime et le style, c'est tout
-    bumpSfx(bounceN);
-    thud(impB);noiseBurst(.14,.09,1100); // choc + froissement de tôle
-    shake=Math.min(1.3,.3+impB*.03);
-    dropChip(2+Math.floor(Math.min(4,impB*.12))); // ça casse ENCORE PLUS de bouts
-    sparkBurst(sparkGold,carGroup.position,12,10);
-    squashT=Math.max(squashT,.22);
-    return false; // toujours en vol — enchaîne les bumps !
-  }
-  let sideL=0;
-  if(fallT>.35&&hOff>-1.2&&hOff<3&&vN<4.5)sideL=1;                     // face du dessus (fenêtre élargie)
-  else if(fallT>.1&&prevH>-1.2&&hOff<=-1.2&&vN<4.5)sideL=1;      // dessus PERCÉ : TOUTE traversée du plan supérieur est rattrapée (plus de seuil d'amplitude → fini la caisse qui passe à travers la route)
-  else if(fallT>.35&&hOff>-THICK-3&&hOff<-THICK+1.2&&vN>-4.5)sideL=-1; // face du dessous
-  else if(fallT>.1&&prevH<-THICK+1.2&&hOff>=-THICK+1.2&&vN>-4.5)sideL=-1; // dessous percé en montant : idem, toute traversée compte
-  // ⚠ LE DERNIER AXE SANS BALAYAGE (2026-08-03) — c'est LUI, « je passe à travers la route parfois ».
-  // La traversée du plan de la dalle est rattrapée depuis longtemps (prevH, juste au-dessus), mais le
-  // test LATÉRAL ne regardait que la position de CETTE frame. Une caisse qui perce le plan tout en
-  // sortant sur le côté dans la même frame se retrouvait avec |latOff| déjà hors dalle : refusée par
-  // l'atterrissage, et hors de la fenêtre du BUMP si elle s'éloignait — donc elle traversait le bitume.
-  // `prevL` existait déjà (calculé pour le bump) : il suffisait de s'en servir. On accepte si la caisse
-  // était SUR la dalle à un bout OU l'autre du segment, et on ramène `lat` dans la largeur.
-  if(!sideL||(Math.abs(latOff)>=ROAD_HALF&&Math.abs(prevL)>=ROAD_HALF))return false;
-  s=THREE.MathUtils.clamp(bestI/(NP-1)*L+THREE.MathUtils.clamp(dTmp.dot(T[bestI]),-2,2),0,L-1);
-  side=sideL;lat=THREE.MathUtils.clamp(latOff,-ROAD_HALF+.6,ROAD_HALF-.6)*sideL;
-  // RÉCEPTION EN GLISSE : la caisse se pose de travers et rattrape — petit drift au lieu d'un psi=0 sec
-  {const vTan=fallVel.dot(T[bestI]),vLat=fallVel.dot(B[bestI])*sideL;
-   psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+6)*.85,-.62,.62);
-   driftT=Math.max(driftT,Math.min(1,.45+Math.abs(psi)));} // …et la fumée/le crissement suivent tout seuls
-  vA=fallVel.dot(T[bestI]);vL=fallVel.dot(B[bestI])*.4*sideL;
-  if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1; // PARC : on repart dans le sens d'atterrissage (les deux directions roulent) ; COURSE : toujours vers l'avant
-  // ATTERRISSAGE : l'impact ralentit la caisse — d'autant plus que le saut etait gros
-  const impact=Math.abs(vN);
-  const bigness=Math.max(0,fallT-.8);
-  const landLoss=Math.min(.52,bigness*.15+impact*.008); // un peu plus doux qu'avant
-  vA*=(1-landLoss);vL*=(1-landLoss);
+}
+/* ---------- LE VERDICT : la CHAINE se cashe — grade de reception x face x serie ---------- */
+function pcarLandVerdict(e){
+  const impact=e.impact,landLoss=e.landLoss,sideL=e.sideL,latOff=e.latOff,fT=e.fallT;
+  airPie.style.display='none';
   if(landLoss>.2)dropChip(2);
-  if(landLoss>.28&&fallT>1.6)slowT=Math.max(slowT,.25);
-  prevTvalid=false;mode='drive';
+  if(landLoss>.28&&fT>1.6)slowT=Math.max(slowT,.25);
   sparkBurst(sparkGold,carGroup.position,10,9);
-  thud(Math.abs(vN));shake=Math.min(1.4,.35+Math.abs(vN)*.05+landLoss*.6);
-  // ---- LE VERDICT : la CHAÎNE se cashe — grade de réception × face × série ----
-  if(fallT>.7||chain>0){
-    // le grade juge tout le vol : pose soyeuse = jackpot, pose écrasée = décote
+  thud(impact);shake=Math.min(1.4,.35+impact*.05+landLoss*.6);
+  if(fT>.7||chain>0){
+    // le grade juge tout le vol : pose soyeuse = jackpot, pose ecrasee = decote
     let g=1,gTxt='';
     if(impact<4.5&&landLoss<.2){g=1.5;gTxt='PARFAIT ! ';hitT=.08;hap(15);}
     else if(impact>=10){g=.65;gTxt='POSÉ LOURD — AÏE… ';}
-    if(fever>0){ // BRAQUAGE : tous les grades montent d'un cran — même la casse pardonne
+    if(fever>0){ // BRAQUAGE : tous les grades montent d'un cran — meme la casse pardonne
       if(g===1.5){g=2;gTxt='DIVIN !! ';}
       else if(g===1){g=1.5;gTxt='PARFAIT (BOOST ×2) ! ';hitT=.08;hap(15);}
       else{g=1;gTxt='';}
     }
-    rollover=g>=1.5?chainVal*.1:0; // ROLLOVER : un PARFAIT reporte 10 % — la fortune voyage au vol suivant
-    const snaked=fallUnder&&sideL===fallStartSide; // SNAKE LOOP v2 : passé SOUS la route, reposé face de départ
-    if(snaked){chainVal+=14;chainMult+=.5;serpShow=2.6;} // la figure paye sa part + LE SERPENT néon se love autour de la caisse
-    // GAP FRANCHI : le vol vient d'une CATAPULTE et il a vraiment traversé — le grand geste de la zone se paye
-    const gapOk=gapArmed>0&&fallT>.9;
+    rollover=g>=1.5?chainVal*.1:0; // ROLLOVER : un PARFAIT reporte 10 % au vol suivant
+    if(e.snaked){chainVal+=14;chainMult+=.5;serpShow=2.6;} // SNAKE LOOP + LE SERPENT neon
+    const gapOk=e.gapArmed>0&&fT>.9; // GAP FRANCHI : le vol vient d'une CATAPULTE et il a traverse
     if(gapOk){
-      chainVal+=gapArmed===3?26:(gapArmed===2?20:16);chainMult+=.6;
-      runStats.gaps++; // compté pour les DÉFIS de déblocage (cumul à vie, versé dans endGame)
-      trickMsg(gapArmed===3?'🚀 DOUBLE GAP — MONSTRUEUX !':'🚀 GAP FRANCHI !',3);
+      chainVal+=e.gapArmed===3?26:(e.gapArmed===2?20:16);chainMult+=.6;
+      runStats.gaps++; // compte pour les DEFIS de deblocage
+      trickMsg(e.gapArmed===3?'🚀 DOUBLE GAP — MONSTRUEUX !':'🚀 GAP FRANCHI !',3);
     }
-    if(Math.abs(latOff)<ROAD_HALF*.3){chainVal+=4;chainMult+=.2;trickMsg('PILE AU CENTRE 🎯',false);} // posé sur l'axe
-    if(vA<-3){chainVal+=6;chainMult+=.3;trickMsg('À RECULONS — MÊME PAS REGARDÉ !',2);}              // posé en marche arrière
+    if(Math.abs(latOff)<ROAD_HALF*.3){chainVal+=4;chainMult+=.2;trickMsg('PILE AU CENTRE 🎯',false);}
+    if(vA<-3){chainVal+=6;chainMult+=.3;trickMsg('À RECULONS — MÊME PAS REGARDÉ !',2);}
     if(sideL<0&&chainVal>0)trickMsg('FACE CACHÉE ×2',2);
     streak++;
     const gain=Math.round(denom()*chainVal*Math.min(6,chainMult)*g
       *(sideL<0?2:1)*(streak>=2?1+Math.min(1,streak*.1):1)*(fever>0?2:1));
-    if(gain>0){ // l'airtime brut ne rapporte RIEN : sans chaîne à casher, la pose est muette
+    if(gain>0){ // l'airtime brut ne rapporte RIEN : sans chaine a casher, la pose est muette
       money+=gain;levelCash+=gain;checkUpgrade();
       runStats.tricks++;
-      // ---- ANNOUNCER : la réplique la plus RARE l'emporte (chacune tombe 1 fois sur 3) ----
+      // ---- ANNOUNCER : la replique la plus RARE l'emporte (chacune tombe 1 fois sur 3) ----
       const q=gain/denom();
       let vKey=q>=140?'m3':(q>=45?'m2':'m1');
       let vTier=q>=140?3:(q>=45?2:1),vPrio=vTier;
-      if(nitroOn&&nitroAirT>1){vKey='meteor';vTier=Math.max(vTier,2);vPrio=4;}    // impact en pleine poussée
-      if(snaked){vKey='snakeLoop';vTier=3;vPrio=5;}                               // passé dessous, reposé côté départ
-      if(gapOk){vTier=3;vPrio=Math.max(vPrio,5);if(q<45)vKey='m2';}               // traverser le vide mérite au moins le DOUBLE MONSTRE
-      if(nitroOn&&nitroAirT>5){vKey='megaMeteor';vTier=3;vPrio=6;}                // 5 s de réacteur : l'ultime
+      if(nitroOn&&nitroAirT>1){vKey='meteor';vTier=Math.max(vTier,2);vPrio=4;}
+      if(e.snaked){vKey='snakeLoop';vTier=3;vPrio=5;}
+      if(gapOk){vTier=3;vPrio=Math.max(vPrio,5);if(q<45)vKey='m2';}
+      if(nitroOn&&nitroAirT>5){vKey='megaMeteor';vTier=3;vPrio=6;}
       const vTxt=annSpeak(vKey,vPrio)||'MONSTRE';
       trickMsg(gTxt+vTxt+'  +'+fmtC(gain),vTier);
-      flyCash(carGroup.position,Math.min(10,3+Math.floor(Math.log10(q+1)*2.5))); // la paye VOYAGE jusqu'au compteur
-      // LES FIGURES RAPPORTENT DES PIÈCES : une belle chaîne fait progresser le MOTEUR, pas seulement
-      // le portefeuille. 2 pièces pour une figure honnête, jusqu'à ~18 pour un enchaînement monstrueux.
+      flyCash(carGroup.position,Math.min(10,3+Math.floor(Math.log10(q+1)*2.5)));
+      // LES FIGURES RAPPORTENT DES PIECES : une belle chaine fait progresser le MOTEUR
       addCoins(Math.max(2,Math.min(18,Math.round(2+q/6))));
-      rewardSfx(vKey,vTier); // signature sonore courte assortie à la récompense
-      landBoom(carGroup.position,vTier); // P'TIT BOOM D'ATTERRISSAGE : toute figure MONSTER+ éclate à la pose (calibré sur le tier)
-      boost=Math.max(boost,1.2);
+      rewardSfx(vKey,vTier);
+      landBoom(carGroup.position,vTier); // P'TIT BOOM D'ATTERRISSAGE, calibre sur le tier
+      boost=Math.max(boost,1.2);PCAR.boost=boost;
       addStyle(14+chain*4);
     }
-    if(fallT>2)slowT=.35; // slow-mo savoureux sur les gros airs
+    if(fT>2)slowT=.35; // slow-mo savoureux sur les gros airs
   }
   chainHud.style.opacity=0;
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;
-  gapArmed=0; // la catapulte est encaissée : le prochain vol repart vierge
-  return true;
 }
 function newTrack(){
   const sd=(Math.random()*1e9)|0;
@@ -10207,212 +10677,29 @@ function loop(now){
     // depuis que la caisse équipée s'applique, ce seul champ suffisait à donner à une caisse tardive
     // un rayon de braquage deux fois meilleur — de la performance déguisée en cosmétique. Toutes les
     // caisses PILOTENT donc pareil ; CARS[level] ne sert plus qu'à la carrosserie et au nom.
-    const spec=CARS[0],late=lateMul(),
-          eng9=ENGINE_TIERS[engTier]||ENGINE_TIERS[0],
-          maxSp=CARS[0].maxKmh/3.6*late*eng9.push,acc9=CARS[0].accel*late*(1+(eng9.push-1)*.6);
-    const up=AUTO_GAS||keys.KeyW||keys.KeyZ||keys.ArrowUp,dn=keys.KeyS||keys.ArrowDown;
+    const spec=CARS[0]; // (puissance, vitesse max et braquage vivent maintenant DANS stepCar)
+    if(keys.KeyR&&mode==='drive'){respawn();keys.KeyR=false;}
+    // ================== LE PAS DE PHYSIQUE ==================
+    // Une seule ligne, et c'est EXACTEMENT le moteur que les bots d'entrainement utilisent.
+    // Tout ce qui suit dans cette boucle est du RENDU, du SON et de l'ARGENT : plus une equation.
+    const modeWas=mode;
+    pcarPush();
+    const evs=stepCar(PCAR,pcarInput(),dt,PWORLD);
+    pcarPull();
+    // les commandes relues depuis PIN : UN SEUL endroit lit le clavier (pcarInput)
+    const target=PIN.steer,up=PIN.gas>.5,dn=PIN.gas<-.5,vF=vA;
     gasOn=up;
-    const lf=keys.KeyA||keys.KeyQ||keys.ArrowLeft,rt=keys.KeyD||keys.ArrowRight;
-    // POUVOIRS : les minuteurs s'égrènent, l'airtime infini rend une jauge neuve en expirant
-    pwrNitroT=Math.max(0,pwrNitroT-dt);
-    pwrSpdT=Math.max(0,pwrSpdT-dt);
-    if(pwrAirT>0){pwrAirT-=dt;if(pwrAirT<=0){pwrAirT=0;if(mode==='fall'){fallT=0;fallTR=0;airFlash=.6;}}}
-    // nitro : 2s regen (10s de recharge) + 2s réserve (bidons bleus)
-    // CAPACITÉ MOTEUR : la réserve de nitro s'élargit avec le palier (2,0 → 3,6 au réacteur)
-    const NRMAX=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2;
-    nitroR=Math.min(NRMAX,nitroR+.2*dt);
-    if(pwrNitroT>0||PARK.on)nitroR=2; // NITRO INFINIE : jauge pleine, rien ne se consomme (pouvoir OU parc freestyle : c'est un parc, pas une course)
-    const wantN=keys.ShiftLeft||keys.ShiftRight||keys.Space;
-    nitroOn=wantN&&(nitroOn?(nitroR+nitroX)>.005:(nitroR+nitroX)>.3); // hystérésis anti-clignotement
-    if(nitroOn&&pwrNitroT<=0&&!PARK.on){
-      let take=dt;
-      if(nitroR>=take)nitroR-=take;
-      else{take-=nitroR;nitroR=0;nitroX=Math.max(0,nitroX-take);}
-    }
-    nitroBlue=nitroOn&&nitroR<=.01; // réserve bleue = plus puissante
-    // TURBO v2 : spool à l'enclenchement (au sol), blow-off + flutter à la relâche (partout)
-    if(nitroOn&&!loop._nOn&&mode==='drive')nitroSpool();
-    if(nitroOn){nitroHeldT+=dt;styleFromBoost(dt);} // TENIR le boost remplit la jauge rose — la seule source
+    speedKmh=PCAR.kmh;
+    if(mode==='fall')carGroup.position.copy(fallPos); // les effets visent la position a jour
+    pcarEvents(evs,dt);                               // ...et la physique paye ses factures
+    // TURBO v2 : spool a l'enclenchement (au sol), blow-off + flutter a la relache (partout)
+    if(nitroOn&&!loop._nOn&&modeWas==='drive')nitroSpool();
+    if(nitroOn){nitroHeldT+=dt;styleFromBoost(dt);} // TENIR le boost remplit la jauge rose
     if(!nitroOn&&loop._nOn&&nitroHeldT>.35)blowOff();
     if(!nitroOn)nitroHeldT=0;
     loop._nOn=nitroOn;
-    if(keys.KeyR&&mode==='drive'){respawn();keys.KeyR=false;}
-    const target=TCTL.act?TCTL.st:(lf?1:0)-(rt?1:0); // VOLANT TACTILE : le pouce prend la main sur le tout-ou-rien (même lissage derrière)
-    steer+=(target-steer)*Math.min(1,dt*18);
-    graceT=Math.max(0,graceT-dt);
-    sideCd=Math.max(0,sideCd-dt);
     if(mode==='drive'){
       landMark.visible=false;
-      // ANTI-IDLE : la musique n'avance pas sans toi — reste quasi à l'arrêt trop longtemps et la caisse explose
-      const idleKmh=Math.abs(vA)*3.6*SPD;
-      if(!introD&&!PARK.on&&graceT<=0&&idleKmh<22){
-        idleT+=dt;
-        if(idleT>1.6){
-          showMsg(TR('⚠ ROULE OU CRÈVE — ')+Math.max(0,6-idleT).toFixed(1)+'s','#ff4d4d'); // compte à rebours vivant
-          loop._tickT=(loop._tickT||0)-dt; // TIC d'amorce qui S'ACCÉLÈRE vers le boom
-          if(loop._tickT<=0){loop._tickT=Math.max(.10,(6-idleT)*.22);chimeNote(660+ (6-idleT<1?900:0),0,.05,.22);subBoom(.05);}
-        }
-        if(idleT>=6){idleT=0;explode();}
-      }else{idleT=Math.max(0,idleT-dt*2.5);loop._tickT=0;}
-      frameAt(s,F);
-      if(side<0){F.n.multiplyScalar(-1);F.b.multiplyScalar(-1);}
-      // cap MONDE : la route tourne sous la voiture
-      if(prevTvalid){
-        tmp.crossVectors(prevTv,F.t);
-        const dyaw=Math.atan2(tmp.dot(F.n),prevTv.dot(F.t));
-        psi=THREE.MathUtils.clamp(psi-dyaw,-1.4,1.4);
-      }
-      prevTv.copy(F.t);prevTvalid=true;
-      // MOMENTUM : tenir la ligne droite fait monter la puissance en exponentiel
-      if(up&&Math.abs(steer)<.2&&Math.abs(psi)<.25)momT+=dt;
-      else momT=Math.max(0,momT-dt*3);
-      const momF=1+Math.min(1.8,momT*momT*.1);
-      let a=0;
-      if(up)a=acc9*(vA<maxSp?1:.55)*(boost>0?1.5:1)*momF; // ça pousse TOUJOURS sur la route
-      if(dn)a=vA>2?-acc9*1.5:-acc9*.5;
-      vA+=a*dt;
-      if(nitroOn)vA+=(nitroBlue?48:30)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*dt; // LE MOTEUR pousse : le palier multiplie la nitro
-      vA+=-GRAV*F.t.y*Math.cos(psi)*driveDir*dt; // la pente accélère/freine selon le SENS réel de marche
-      // pas de plafond : seule la traînée résiste (terminal ≈ 2,4x la vitesse max de la caisse)
-      vA-=vA*Math.abs(vA)*(acc9/(maxSp*maxSp*5.8))*dt;
-      vA*=Math.max(0,1-.03*dt);
-      if(!up&&!dn&&!nitroOn)vA*=Math.max(0,1-.4*dt);
-      if(PARK.on&&vA>PARK_VCAP)vA=PARK_VCAP; // PARC : gouverneur de vitesse — la nitro infinie POUSSE mais ne s'emballe pas (contrôlable)
-      if(vA<-8)vA=-8;
-      if(introD){vA=0;momT=0;steer=0;psi=0;} // LARGAGE : chute verticale, contrôles gelés
-      if(Math.abs(target)>.1)steerHold=Math.min(.3,steerHold+dt);else steerHold=0;
-      psi+=(slipT>0?.18:1)*steer*(.55+.45*(steerHold/.3))*spec.turn*.75*THREE.MathUtils.clamp(vA/8,-1,1)*(1/(1+Math.abs(vA)*TURN_HS))*(dn?1.3:1)*dt;
-      // ---- DRIFT : FREIN + BRAQUAGE à bonne vitesse = le train arrière décroche ----
-      // (mobile OK : le frein = tirer le pad vers le bas, déjà mappé sur ArrowDown)
-      // Le CAP part plus vite que la TRAJECTOIRE (psi grimpe) mais la caisse continue de filer
-      // vers l'avant (vL atténué) : c'est exactement la sensation de glisse. Zéro nouvelle physique.
-      // DRIFT DE CONDUITE ABANDONNÉ (2026-07-30) : la glisse ne se RESSENTAIT pas — dans ce modèle le cap
-      // EST la trajectoire (vL=vA·sin psi), donc « décrocher » ne fait que tourner plus, sans sensation.
-      // Il faudrait une vraie vitesse latérale indépendante du cap : refonte à part, pas un réglage.
-      // (la RÉCEPTION EN GLISSE à l'atterrissage, elle, reste — c'est un effet ponctuel bien visible)
-      driftT=Math.max(0,driftT-dt*2.2); // retombe après un atterrissage en travers
-      psi=THREE.MathUtils.clamp(psi,-1.4,1.4);
-      vL=vA*Math.sin(psi);
-      const spdMult=pwrSpdT>0?1.6:1; // SPEED UP : le sol défile +60% plus vite, sans casser la physique
-      lat+=vL*driveDir*dt*SPD*spdMult;
-      const sPrev9=s; // ⚠ mémorisé AVANT l'avance : les tremplins se testent sur le SEGMENT parcouru, pas sur un point
-      s+=vA*Math.cos(psi)*driveDir*dt*SPD*spdMult; // avance le long du ruban dans le SENS de conduite (parc : avant OU arrière)
-      const vF=vA;
-      boost=Math.max(0,boost-dt);
-      speedKmh=Math.abs(vF)*3.6*SPD*spdMult;
-      // PURE SPEED : 3 s de nitro soutenu à +400 km/h sur la route
-      if(nitroOn&&speedKmh>400){
-        pureT+=dt;
-        if(pureT>3&&pureArmed){pureArmed=false;const tx=annSpeak('pureSpeed',2);if(tx)trickMsg(tx,2);noiseBurst(.5,.12,1200);}
-      }else{pureT=0;pureArmed=true;}
-      // point de respawn sûr
-      if(side>0&&F.n.y>.5&&Math.abs(lat)<ROAD_HALF-2&&Math.abs(psi)<.5)safeS=s;
-      // BORD : si la voiture dépasse le côté de la route, elle bascule et tombe dans le vide.
-      if(Math.abs(lat)>ROAD_HALF){
-        const out=Math.sign(lat);
-        if(graceT<=0)startFall(3.4,1.04); // petit boost de saut en sortie de route
-        else{lat=out*ROAD_HALF;if(vL*out>0)vL=0;}
-      }
-      if(graceT<=0&&F.n.y*1<-.15&&Math.abs(vF)<7)startFall();
-      // PORTAIL : fin de zone
-      if(mode==='drive'&&PARK.on&&((s>L-32&&driveDir>0)||(s<6&&driveDir<0))){ // FREESTYLE : on ne régénère QUE si on sort par le bout vers lequel on roule (les deux sens sont valides, s=0 au spawn ne déclenche rien)
-        portalSnd();shake=.35;nitroR=2;
-        showMsg('✦ NOUVEAU SECTEUR','#7dffec');
-        newTrack();
-      }else if(mode==='drive'&&!PARK.on&&s>L-32){
-        {
-          portalSnd();boostSnd();shake=.5;
-          const zb=denom()*24*(fever>0?2:1);money+=zb;levelCash+=zb;checkUpgrade(); // portail : 40→24 (régulation 2026-07-30)
-          runStats.zones++;
-          nitroR=2; // le portail regonfle la nitro : chaque zone repart pied au plancher
-          trickMsg(pickL(ZONE_LINES)+' +'+fmtC(zb),true);
-          flyCash(carGroup.position,8);
-          SURV.pBase+=s; // la course traverse le portail : les écarts restent vrais (téléportation invisible)
-          newTrack();
-        }
-      }
-      // pads turbo
-      padCd=Math.max(0,padCd-dt);
-      if(mode==='drive'&&padCd<=0)for(const p of PADS){
-        if(Math.abs(s-p)<6&&Math.abs(lat)<ROAD_HALF){
-          vA+=14;boost=Math.max(boost,1.2);padCd=1.5;
-          boostSnd();shake=Math.max(shake,.3);
-          break;
-        }
-      }
-      // ---- LA CATAPULTE : le tremplin héros envoie la caisse par-dessus le vide ----
-      // Rien à voir avec un dos d'âne (qui fait sautiller) : ici on QUITTE la dalle d'un coup de reins,
-      // la route d'en face est déjà dans le pare-brise et le viseur d'atterrissage prend le relais.
-      // Trop lent = pas de décollage : on franchit la lèvre et on plonge dans le gouffre — dont le fond
-      // est roulable et la remontée praticable. Rater coûte du temps et du style, jamais la partie.
-      rampCd=Math.max(0,rampCd-dt);
-      if(mode==='drive'&&rampCd<=0&&Math.abs(lat)<ROAD_HALF-1)for(const r9 of RAMPS){
-        // ⚠ BALAYAGE, PAS UN POINT (2026-08-03) : le test était `|s - lèvre| > 7`, soit une fenêtre de
-        // 14 unités. Dans l'endgame on avance de ~9 unités par frame, et le moindre à-coup de frame
-        // (un GC, un portail) fait un pas de 25+ : la lèvre passait ENTRE deux frames, la catapulte ne
-        // se déclenchait pas — et comme le trou est juste derrière, on tombait dedans au lieu de sauter.
-        // C'est ça, « parfois le tremplin bloque ». On teste désormais le SEGMENT réellement parcouru.
-        const sA9=Math.min(sPrev9,s)-7,sB9=Math.max(sPrev9,s)+7;
-        if(r9.s<sA9||r9.s>sB9)continue;
-        if(Math.abs(vA)*3.6*SPD<110)break; // au pas : la lèvre ne catapulte personne — et le vide attend juste derrière
-        rampCd=1.4;                        // on ne se relance pas en retombant sur sa propre lèvre
-        startFall(6.6+(r9.v===1?1.4:0),1.14); // pop vertical + poussée avant — l'inertie réelle fait payer la vitesse toute seule (portée ∝ vx conservé)
-        gapArmed=r9.v+1;                   // ARMÉ APRÈS startFall (qui remet à 0) : le verdict saura d'où vient ce vol
-        boost=Math.max(boost,1.5);shake=Math.max(shake,.55);
-        boostSnd();duckT=Math.max(duckT,.35);
-        trickMsg('🚀 CATAPULTE !',2);
-        sparkBurst(sparkGold,fallPos,20,14);
-        break;
-      }
-      // LE VIDE SOUS LES ROUES : la dalle s'est arrêtée et on est encore dessus — donc on tombe.
-      // Pas de fond, pas de filet : c'est la sanction de qui arrive trop lentement sur la lèvre.
-      if(mode==='drive'&&holeAtS(s))startFall(1.1,1);
-      // dos d'âne : petit saut — sur les DEUX faces (hopY suit F.n déjà retournée quand side<0)
-      if(mode==='drive'&&hopY===0&&Math.abs(vF)>10)for(const b9 of BUMPS){
-        if(Math.abs(s-b9)<2.2){
-          hopV=2.4+Math.min(3.2,Math.abs(vF)*.045);
-          vA*=.97;shake=Math.max(shake,.15);noiseBurst(.12,.1,300);
-          if(Math.random()<.5)dropChip(1);
-          break;
-        }
-      }
-      if(hopY>0||hopV!==0){
-        hopY+=hopV*dt;hopV-=26*dt;
-        if(hopY<=0){hopY=0;hopV=0;squashT=Math.max(squashT,.15);if(introD)smashPig();} // SPLAT.
-      }
-      // plots orange : les percuter les envoie valser (étincelles + petite perte de vitesse)
-      if(mode==='drive')for(const c9 of CONES){
-        if(c9.hit||c9.face!==side||Math.abs(s-c9.s)>2.6)continue; // chaque plot vit sur SA face
-        if(Math.abs(lat-c9.lat)<1.6){
-          c9.hit=true;
-          const kv=new THREE.Vector3().copy(F.t).multiplyScalar(Math.max(8,Math.abs(vA)*.55))
-            .addScaledVector(F.b,(lat-c9.lat>0?-1:1)*(2+Math.random()*4))
-            .addScaledVector(F.n,(5+Math.random()*5)*side); // il valse en s'ÉLOIGNANT de sa dalle
-          FLYCONES.push({m:c9.mesh,v:kv,rx:(Math.random()-.5)*16,rz:(Math.random()-.5)*16,life:1.6});
-          vA*=.985;shake=Math.max(shake,.14);
-          noiseBurst(.09,.08,520);
-          sparkBurst(sparkGold,c9.mesh.position,5,6);
-          addStyle(2);
-        }
-      }
-      // FLAQUES D'HUILE : passer dessus fait GLISSER (contrôle coupé un instant, la caisse chasse)
-      oilCd=Math.max(0,oilCd-dt);
-      if(mode==='drive'&&oilCd<=0)for(const o9 of OILS){
-        if(o9.face!==side)continue; // chaque flaque vit sur SA face
-        if(Math.abs(s-o9.s)>o9.r+2)continue;
-        if(Math.abs(lat-o9.lat)<o9.r+.6){
-          slipT=.75;oilCd=1.2;
-          shake=Math.max(shake,.2);
-          noiseBurst(.35,.12,1900); // long crissement
-          if(navigator.vibrate)navigator.vibrate(60);
-          break;
-        }
-      }
-      if(slipT>0){ // la voiture chasse : direction quasi coupée + embardée aléatoire
-        slipT-=dt;
-        psi+=(Math.random()-.5)*2.6*dt*Math.min(1,Math.abs(vA)/12);
-        psi=THREE.MathUtils.clamp(psi,-1.4,1.4);
-      }
       // des petits bouts se détachent par moments (réalisme, surtout l'épave)
       chipT-=dt;
       if(chipT<=0){
@@ -10616,70 +10903,14 @@ function loop(now){
         airPie.style.display='none';
       }
     }else if(mode==='fall'){ // ---- VOL : maniabilité aérienne propre ----
-      const dtF=dt*AIR_RATE; // temps de vol accéléré : même arc dans l'espace, moins de temps réel à flotter
-      fallT+=dtF;fallTR+=dt; // fallT = temps-sim (figures/paiements) ; fallTR = temps RÉEL (jauge des 6 s — sinon le chrono file à ×1,6)
-      if(nitroOn)nitroAirT+=dtF; // temps de réacteur dans CE vol (METEOR / MEGA METEOR)
-      fallVel.y-=FALL_G*dtF;
-      // ⚠ ANTI-BLOCAGE DU LACET (2026-08-03) — MÊME PIÈGE QUE LE TANGAGE, jamais traité de ce côté.
-      // Le lacet fait TOURNER le vecteur vitesse autour de Y. Si la trajectoire est quasi VERTICALE
-      // (gros décollage, plongeon de crête), sa composante horizontale est ~nulle : la faire tourner
-      // ne change plus rien de perceptible, le volant est MORT en plein vol. D'où le « sens bloqué »
-      // qui n'arrive que PARFOIS — précisément quand on part ou tombe droit.
-      // On rétablit donc un minimum d'horizontale (repli sur le nez de la caisse), mais UNIQUEMENT
-      // quand le joueur braque vraiment : c'est une correction d'INTENTION, pas une force parasite.
-      // ⚠ la vitesse TOTALE est conservée (on reprend en vertical ce qu'on donne en horizontal),
-      // sinon on offrirait de la portée gratuite sur chaque saut vertical.
-      if(Math.abs(steer)>.15){
-        const spdY=fallVel.length(),hxz0=Math.hypot(fallVel.x,fallVel.z);
-        if(spdY>1&&hxz0<spdY*.12){
-          tmp3.set(0,0,1).applyQuaternion(carGroup.quaternion);
-          let hx=tmp3.x,hz=tmp3.z,hl=Math.hypot(hx,hz);
-          if(hl<1e-3){hx=1;hz=0;hl=1;}
-          const need=spdY*.12,vy2=Math.sqrt(Math.max(0,spdY*spdY-need*need));
-          fallVel.set(hx/hl*need,(fallVel.y<0?-1:1)*vy2,hz/hl*need);
-        }
-      }
-      // chute pilotée : un peu de lacet, c'est tout — la voiture est LOURDE
-      // (le lacet gagne un peu d'autorité à grande vitesse → vol simplifié)
-      // chute pilotée : un peu de lacet, c'est tout — la voiture est LOURDE
-      // (le lacet gagne un peu d'autorité à grande vitesse → vol simplifié)
-      const yawIn=steer*(1.15+Math.min(.6,fallVel.length()*.004))*dtF;
-      fallVel.applyAxisAngle(AXIS_Y,yawIn);
-      yawAcc+=yawIn;
-      if(nitroOn){ // RÉACTEUR : poussée depuis l'arrière façon Rocket League (modérée)
-        tmp.copy(fallVel);
-        if(tmp.lengthSq()>1)tmp.normalize();else tmp.set(0,0,1);
-        fallVel.addScaledVector(tmp,(nitroBlue?70:52)*dtF); // RÉACTEUR façon Rocket League (2026-07-20, était 49/34) : en l'air la nitro POUSSE vraiment — on sculpte sa trajectoire, on ne la subit plus
-        // ↑/AVANT : PIQUÉ · ↓/FREIN : CABRÉ. On fait TOURNER la vitesse en tangage (pitch) au lieu
-        // d'ajouter à .y : ajouter ±12 à un vecteur de 145 puis reclamper ne pliait la trajectoire que
-        // de ~4°/s (« le nitro haut/bas ne marche plus » — surtout au plafond de vitesse du parc). La
-        // ROTATION donne une autorité FORTE et INDÉPENDANTE de la vitesse (on plie autant à 260 qu'à 80).
-        // BORNÉE à ±65° d'assiette → jamais vertical → pas de gimbal-lock, pas de vrille coincée.
-        // VOLANT TACTILE : l'assiette devient ANALOGIQUE (pouce vers le HAUT = piqué, vers le BAS =
-        // cabré) — même levier, dosé. Zone morte large : tourner ne doit jamais cabrer par accident.
-        const pitT=TCTL.act?TCTL.sv:0;
-        const wPitch=pitT!==0?(Math.abs(pitT)<.12?0:-pitT):((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0); // -1 = piqué, +1 = cabré
-        if(wPitch!==0){
-          const spd=fallVel.length();
-          if(spd>1){
-            // ⚠ ANTI-BLOCAGE : trajectoire quasi VERTICALE → hxz≈0, atan2 sature à ±90° (hors du clamp ±65°)
-            // et la remise à l'échelle divise par ~0 : les commandes semblaient MORTES. On garde toujours
-            // un cap horizontal exploitable (repli sur le nez de la caisse si la vitesse est verticale).
-            let hxz=Math.hypot(fallVel.x,fallVel.z);
-            if(hxz<spd*.12){ // presque à la verticale : on rétablit un minimum d'horizontale
-              tmp3.set(0,0,1).applyQuaternion(carGroup.quaternion);
-              let hx=tmp3.x,hz=tmp3.z,hl=Math.hypot(hx,hz);
-              if(hl<1e-3){hx=1;hz=0;hl=1;}
-              const need=spd*.12;
-              fallVel.x=hx/hl*need;fallVel.z=hz/hl*need;hxz=need;
-            }
-            let pit=Math.atan2(fallVel.y,hxz);
-            pit=THREE.MathUtils.clamp(pit+1.7*wPitch*dtF,-1.13,1.13); // 1.7 rad/s ≈ 97°/s, plafond ±65°
-            const nH=Math.cos(pit)*spd,hs=nH/hxz;
-            fallVel.set(fallVel.x*hs,Math.sin(pit)*spd,fallVel.z*hs); // même vitesse, nouvelle assiette
-          }
-        }
-        // jet visible au point de poussée arrière : panache conique, jamais deux fois pareil
+      // ---- LA PHYSIQUE DU VOL EST DEJA FAITE (stepCar, le meme moteur que les bots) ----
+      // Il ne reste ici que ce qui se VOIT, s'ENTEND et se PAYE.
+      const dtF=PCAR.dtF; // temps-sim consomme par le pas (0 sur la frame de decollage)
+      carGroup.position.copy(fallPos);
+      carGroup.scale.set(1,1,1);
+      carGroup.quaternion.copy(PCAR.quat); // orientation calculee par la physique (nez + vrille arcade)
+      shadow.position.y=-99999;
+      if(nitroOn){ // jet visible au point de poussee arriere : panache conique, jamais deux fois pareil
         flames.mesh.material.color.set(nitroBlue?0x3a5bff:0xff8020);
         flameCore.mesh.material.color.set(nitroBlue?0xbfd6ff:0xffd9a0);
         embers.mesh.material.color.set(nitroBlue?0x8ab8ff:0xffb24a);
@@ -10706,79 +10937,44 @@ function loop(now){
         if(Math.random()<.5)spawnP(sparkBlue,
           carGroup.position.x-tmp3.x*2.5,carGroup.position.y-tmp3.y*2.5,carGroup.position.z-tmp3.z*2.5,
           -tmp3.x*20+(Math.random()-.5)*6,-tmp3.y*20+(Math.random()-.5)*6,-tmp3.z*20+(Math.random()-.5)*6,.3);
-      } else { // VOL SANS BOOST : léger pilotage haut/bas — assez pour infléchir la trajectoire, bien moins qu'au réacteur
-        const wPitch=((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0); // ↑ piqué · ↓ cabré
-        if(wPitch!==0){
-          const spd=fallVel.length();
-          if(spd>1){
-            let hxz=Math.hypot(fallVel.x,fallVel.z);
-            if(hxz<spd*.12){ // même anti-blocage qu'au boost : jamais de trajectoire 100 % verticale
-              tmp3.set(0,0,1).applyQuaternion(carGroup.quaternion);
-              let hx=tmp3.x,hz=tmp3.z,hl=Math.hypot(hx,hz);
-              if(hl<1e-3){hx=1;hz=0;hl=1;}
-              const need=spd*.12;
-              fallVel.x=hx/hl*need;fallVel.z=hz/hl*need;hxz=need;
-            }
-            let pit=Math.atan2(fallVel.y,hxz);
-            pit=THREE.MathUtils.clamp(pit+0.62*wPitch*dtF,-1.13,1.13); // 0.62 rad/s ≈ 35°/s (vs 1.7 au boost) : on infléchit, on ne pilote pas
-            const nH=Math.cos(pit)*spd,hs=nH/hxz;
-            fallVel.set(fallVel.x*hs,Math.sin(pit)*spd,fallVel.z*hs);
-          }
-        }
       }
-      if(PARK.on&&fallVel.lengthSq()>PARK_VCAP*PARK_VCAP)fallVel.setLength(PARK_VCAP); // PARC : la nitro infinie ne t'emballe pas non plus EN L'AIR — vol rapide mais pilotable
-      fallPos.addScaledVector(fallVel,dtF*SPD);
-      carGroup.position.copy(fallPos);
-      speedKmh=fallVel.length()*3.6*SPD;
-      // ---- FIGURES EN VOL : chaque exploit se nomme à la seconde où il naît ----
+      speedKmh=PCAR.kmh;
+      // ---- FIGURES EN VOL : chaque exploit se nomme a la seconde ou il nait ----
       {
         const halfs=Math.floor(Math.abs(yawAcc)/Math.PI); // vrilles : un cri par demi-tour de lacet
         if(halfs>spinHalf&&fallT>.45){spinHalf=halfs;
           addTrick('vrille',halfs===1?'180°':halfs===2?'VRILLE 360 — LAVE-LINGE !':halfs===3?'540° !!':(halfs*180)+'° — ESSOREUSE COSMIQUE !!',3.5*halfs,halfs>=4?3:(halfs>=2?2:false),true);}
         if(!trkMeteor&&nitroOn&&nitroAirT>1.2){trkMeteor=true;addTrick('meteo','MÉTÉORE',8,2);}
-        if(curNear){ // radar de dalle (rempli par tryLand à la frame précédente)
-          if(Math.abs(curLatOff)<ROAD_HALF&&curHOff>2.2&&curHOff<12){
-            // ---- LE DAUPHIN : nager au ras de la dalle. Plus on frôle, plus ça paye ----
-            // Précision et danger immédiat : le gain grimpe au CARRÉ de la proximité, s'effondre dès
-            // qu'on s'écarte, et s'arrête net si on touche (la chaîne se cashe à l'atterrissage).
-            //
-            // ⚠ RÉPARÉ le 2026-07-20 — la figure ne se déclenchait PLUS JAMAIS. Deux causes, mesurées :
-            //  (1) STRUCTURE : la bande était 0,9→7 m, or `tryLand` fait ATTERRIR dès que hOff<3.
-            //      La zone la plus payante (prox→1) tombait donc À L'INTÉRIEUR de la fenêtre
-            //      d'atterrissage : viser le maximum revenait à se poser. Il ne restait qu'une
-            //      tranche utile de 4 m, et sur 857 frames de vol mesurées : ZÉRO passage dedans.
-            //  (2) MONTANT : même tenue parfaitement, la bande plafonnait à ~1,4/s, soit ~8 de
-            //      chaîne sur un vol ENTIER de 6 s — quand une simple vrille 360 en donne 7 d'un coup.
-            // Correctif : la bande démarre À 2,2 (juste au-dessus du seuil d'atterrissage, donc le
-            // point le plus payant est aussi le plus risqué — on est à une frame de toucher) et monte
-            // à 12 m, ce qui la rend enfin TENABLE. Gain ×4,4 pour peser face aux autres figures.
-            const prox=1-(curHOff-2.2)/9.8; // 1 = à ras (2,2 m, une frame du contact), 0 = à 12 m
-            const dInc=14*prox*prox*dtF;    // le magot grimpe au CARRÉ de la proximité
+        if(PCAR.rdNear){ // radar de dalle (rempli par la physique a la frame precedente)
+          if(Math.abs(PCAR.rdLatOff)<ROAD_HALF&&PCAR.rdHOff>2.2&&PCAR.rdHOff<12){
+            // ---- LE DAUPHIN : nager au ras de la dalle. Plus on frole, plus ca paye ----
+            // La bande demarre A 2,2 (juste au-dessus du seuil d'atterrissage : le point le plus
+            // payant est aussi le plus risque, on est a une frame de toucher) et monte a 12 m.
+            const prox=1-(PCAR.rdHOff-2.2)/9.8; // 1 = a ras, 0 = a 12 m
+            const dInc=14*prox*prox*dtF;        // le magot grimpe au CARRE de la proximite
             dolphT+=dtF;chainVal+=dInc;dolphGain+=dInc;addStyle(6*prox*dtF);
-            dolShow=.7; // LES 2 DAUPHINS bondissent de chaque côté et se croisent tant qu'on frôle la dalle
+            dolShow=.7; // LES 2 DAUPHINS bondissent de chaque cote tant qu'on frole la dalle
             if(!trkDolph&&dolphT>.25){trkDolph=true;addTrick('dauphin','🐬 LE DAUPHIN !',3,2);}
-            if(dolphT>.15){ // le nom s'affiche VITE et RESTE tant que les points comptent — on voit POURQUOI ça monte
+            if(dolphT>.15){ // le nom s'affiche VITE et RESTE tant que les points comptent
               chainHud.textContent='🐬 LE DAUPHIN +'+Math.round(dolphGain)+' · CHAÎNE ×'+Math.min(6,chainMult).toFixed(1);
               chainHud.style.opacity=1;
             }
-            if(prox>.45&&Math.random()<dt*22) // écume dorée sous la caisse quand on frôle vraiment
+            if(prox>.45&&Math.random()<dt*22) // ecume doree sous la caisse quand on frole vraiment
               spawnP(sparkGold,fallPos.x,fallPos.y-1.1,fallPos.z,(Math.random()-.5)*6,-2-Math.random()*4,(Math.random()-.5)*6,.3);
           }
-          curNear=false;
         }
       }
-      // ---- LA MALLETTE : la valeur en jeu sous les yeux — elle tremble quand ça devient gros ----
-      // (chainVal>0 et plus fallT : l'airtime seul ne vaut rien, une mallette vide n'a rien à montrer)
+      // ---- LA MALLETTE : la valeur en jeu sous les yeux — elle tremble quand ca devient gros ----
       if(chain>0||chainVal>0){
         const est=chainEst();
         caseHud.textContent='💰 '+fmtC(est);
-        caseHud.style.fontSize=Math.min(30,17+est/denom()*.055)+'px'; // le magot GONFLE à l'écran
+        caseHud.style.fontSize=Math.min(30,17+est/denom()*.055)+'px'; // le magot GONFLE a l'ecran
         caseHud.style.opacity=1;
-        const hot=est>denom()*20; // au-delà, c'est de la nitroglycérine : tremblement + cœur
+        const hot=est>denom()*20; // au-dela, c'est de la nitroglycerine : tremblement + coeur
         if(hot!==caseHot){caseHot=hot;caseHud.className=hot?'hot':'';}
         if(hot){heartT-=dt;if(heartT<=0){heartT=.86;heartBeat();}}
       }
-      if(speedKmh>120){ // traits d'air aussi en vol (seuils ×2 : SPD .25→.5)
+      if(speedKmh>120){ // traits d'air aussi en vol (seuils x2 : SPD .25 -> .5)
         tmp.copy(fallVel).normalize();
         const nS9=speedKmh>480?3:speedKmh>260?2:1;
         for(let k9=0;k9<nS9;k9++){
@@ -10788,38 +10984,15 @@ function loop(now){
           spawnStreak(tmp2.x,tmp2.y,tmp2.z,tmp.x*ln9,tmp.y*ln9,tmp.z*ln9);
         }
       }
-      // orientation stable : le nez suit la trajectoire, PAS de vrille surprise
-      carGroup.scale.set(1,1,1);
+      // CAMERA DYNAMIQUE EN VOL : plus le saut est GROS, plus on zoome et on suit serre
       tmp.copy(fallVel).normalize();
-      tmp2.set(0,1,0);
-      tmp3.crossVectors(tmp2,tmp);
-      // ⚠ vitesse quasi VERTICALE (piqué à pic) : (0,1,0)×vitesse → ~0, le repère dégénère et la caisse
-      // reste COINCÉE en vrille. Right de secours dans ce cas → orientation stable, plus de blocage.
-      if(tmp3.lengthSq()<.0009)tmp3.set(1,0,0);
-      tmp3.normalize();
-      tmp2.crossVectors(tmp,tmp3);
-      mat4.makeBasis(tmp3,tmp2,tmp);
-      qTmp.setFromRotationMatrix(mat4);
-      /* ⚠ LA VRILLE EST VOULUE — NE PAS LA « CORRIGER » (tranché par le user, 2026-08-05).
-         La caisse tourne sur elle-même en vol, en permanence. J'ai cru à une incohérence (des ailes
-         déployées sur un engin qui fait le poulet rôti) et je l'ai remplacée par une inclinaison de
-         virage : le user a essayé les deux et TRANCHÉ pour la vrille, deux fois. C'est un parti pris
-         ARCADE, pas un oubli — la lisibilité aéronautique n'est pas le sujet de ce jeu.
-         ⚠ à ne pas confondre avec la FIGURE « vrille » qui paye : celle-là se compte en demi-tours
-         de LACET (`yawAcc`) et n'a rien à voir avec cette rotation visuelle. */
-      airRoll+=(3.0+steer*2.2+Math.min(2,fallT*.5))*dtF; // VRILLE : la caisse tourne sur elle-même (suit le vol accéléré)
-      qTmp2.setFromAxisAngle(tmp,airRoll);
-      qTmp.premultiply(qTmp2);
-      carGroup.quaternion.slerp(qTmp,Math.min(1,dt*8));
-      shadow.position.y=-99999;
-      // CAMÉRA DYNAMIQUE EN VOL : plus le saut est GROS, plus on zoome et on suit serré → la caisse reste héroïque (fini le point minuscule)
-      const bigAir=THREE.MathUtils.clamp((fallT-0.5)/2.2,0,1); // 0 au décollage → 1 sur un gros air
-      tmp2.copy(fallPos).addScaledVector(tmp,-(9.0-bigAir*2.6)*(1-POR*.16));tmp2.y+=(3.5+bigAir*2.4)*(1+POR*.12); // on se rapproche et on monte (angle plus épique)
-      camera.position.lerp(tmp2,Math.min(1,dt*(3+bigAir*4.5))); // suivi PLUS VIF en gros air : la caméra ne décroche plus
+      const bigAir=THREE.MathUtils.clamp((fallT-0.5)/2.2,0,1); // 0 au decollage -> 1 sur un gros air
+      tmp2.copy(fallPos).addScaledVector(tmp,-(9.0-bigAir*2.6)*(1-POR*.16));tmp2.y+=(3.5+bigAir*2.4)*(1+POR*.12);
+      camera.position.lerp(tmp2,Math.min(1,dt*(3+bigAir*4.5))); // suivi PLUS VIF en gros air
       camUp.lerp(tmp3.set(0,1,0),Math.min(1,dt*2)).normalize();
       camera.up.copy(camUp);
       camera.lookAt(fallPos);
-      const fovAir=(76-bigAir*22)*FOV_K; // ZOOM cinématique : le champ se resserre avec l'ampleur du saut (76° petit air → 54° gros air)
+      const fovAir=(76-bigAir*22)*FOV_K; // ZOOM cinematique : 76° petit air -> 54° gros air
       camera.fov+=(fovAir-camera.fov)*Math.min(1,dt*4);
       camera.updateProjectionMatrix();
       const fshN=THREE.MathUtils.clamp((speedKmh-180)/360,0,1.2),fsh=fshN*fshN*CAM_SHAKE_V;
@@ -10830,38 +11003,19 @@ function loop(now){
         camera.rotateZ((Math.random()-.5)*fsh*.05); // le vent secoue aussi l'horizon
       }
       elTurn.style.opacity=0;
-      // viseur : où vais-je atterrir ?
+      // viseur : ou vais-je atterrir ? (la physique a fait le calcul ET l'assistance de recentrage)
       landMark.visible=false;
-      tmp2.copy(fallPos);tmp3.copy(fallVel);
-      for(let st2=0;st2<14;st2++){ // même intégration que la vraie chute : vel par seconde, position ×SPD
-        tmp3.y-=FALL_G*.12;
-        tmp2.addScaledVector(tmp3,.12*SPD);
-        let bi=-1,bdd=400;
-        for(let i2=0;i2<NP;i2+=8){
-          if(holeAtI(i2))continue; // le viseur ne promet jamais un atterrissage dans le vide
-          const dx=tmp2.x-pts[i2].x,dy=tmp2.y-pts[i2].y,dz=tmp2.z-pts[i2].z,dd2=dx*dx+dy*dy+dz*dz;
-          if(dd2<bdd){bdd=dd2;bi=i2;}
-        }
-        if(bi>=0){
-          dTmp.subVectors(tmp2,pts[bi]);
-          const h2=dTmp.dot(Nn[bi]),l2=dTmp.dot(B[bi]);
-          if(Math.abs(l2)<ROAD_HALF&&h2>-THICK-1&&h2<3){
-            landMark.position.copy(pts[bi]).addScaledVector(B[bi],l2).addScaledVector(Nn[bi],h2>-1.3?.3:-THICK-.3);
-            landMark.quaternion.setFromRotationMatrix(mat4.makeBasis(T[bi],B[bi],Nn[bi]));
-            landMark.visible=true;
-            const impP=Math.abs(tmp3.dot(Nn[bi])); // impact PRÉDIT — même unité que le verdict d'atterrissage
-            landMark.material.color.setHex(impP<4.5?0xffd75e:impP>=10?0xff5040:0xffffff); // or = fenêtre PARFAIT, rouge = posé lourd
-            landMark.scale.setScalar(impP<4.5?1+Math.sin(t*10)*.12:1); // l'anneau OR pulse : vas-y, c'est maintenant
-            // assistance d'atterrissage : recentre doucement (d'autant plus qu'on va vite)
-            const asF=AIR_ASSIST*THREE.MathUtils.clamp(fallVel.length()/60,.2,1.4);
-            fallVel.addScaledVector(B[bi],-l2*asF*dt*.5);
-            break;
-          }
-        }
+      if(PCAR.landI>=0){
+        const bi=PCAR.landI,h2=PCAR.landH,l2=PCAR.landL,impP=PCAR.landImp;
+        landMark.position.copy(pts[bi]).addScaledVector(B[bi],l2).addScaledVector(Nn[bi],h2>-1.3?.3:-THICK-.3);
+        landMark.quaternion.setFromRotationMatrix(mat4.makeBasis(T[bi],B[bi],Nn[bi]));
+        landMark.visible=true;
+        landMark.material.color.setHex(impP<4.5?0xffd75e:impP>=10?0xff5040:0xffffff); // or = fenetre PARFAIT, rouge = pose lourd
+        landMark.scale.setScalar(impP<4.5?1+Math.sin(t*10)*.12:1); // l'anneau OR pulse : vas-y, c'est maintenant
       }
-      // camembert de temps de vol (cyan plein pendant AIRTIME INFINI : c'est le pouvoir qui s'égrène)
+      // camembert de temps de vol (cyan plein pendant AIRTIME INFINI : c'est le pouvoir qui s'egrene)
       airPie.style.display='block';
-      const fr=pwrAirT>0?Math.min(1,pwrAirT/10):Math.max(0,1-fallTR/AIR_MAX); // jauge en temps RÉEL : 6 s affichées = 6 s vécues
+      const fr=pwrAirT>0?Math.min(1,pwrAirT/10):Math.max(0,1-fallTR/AIR_MAX); // jauge en temps REEL
       pieCtx.clearRect(0,0,74,74);
       pieCtx.beginPath();pieCtx.arc(37,37,33,0,7);pieCtx.fillStyle='rgba(0,0,0,.35)';pieCtx.fill();
       pieCtx.beginPath();pieCtx.moveTo(37,37);
@@ -10877,8 +11031,6 @@ function loop(now){
       }
       pieCtx.fillStyle='#fff';pieCtx.font='bold 15px monospace';pieCtx.textAlign='center';
       pieCtx.fillText((pwrAirT>0?pwrAirT:Math.max(0,AIR_MAX-fallTR)).toFixed(1),37,42);
-      if(tryLand(dtF)){airPie.style.display='none';}
-      else if((fallTR>AIR_MAX&&pwrAirT<=0)||fallPos.y<trackMinY-120){airPie.style.display='none';if(PARK.on)parkRespawn();else explode();} // FREESTYLE : trop long en l'air ou chute dans le vide = on repart, jamais de mort // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
     }else if(mode==='boom'){ // ---- EXPLOSION ----
       boomT+=dt;
       for(const d of debris){
@@ -12029,12 +12181,16 @@ if(IS_TRAIN){
 (function(){
 'use strict';
 
-/* ---------- PETIT MLP 12 → 16 → 3 (pur JS, pas de lib) ---------- */
+/* ---------- PETIT MLP 12 → 16 → 4 (pur JS, pas de lib) ----------
+   Sorties = les VRAIES commandes du joueur : [0] volant, [1] gaz, [2] nitro, [3] pitch aérien */
 function MLP(w){ this.w=w||new Float32Array(MLP.SIZE); }
-MLP.IN=12; MLP.HID=16; MLP.OUT=3;
+MLP.IN=12; MLP.HID=16; MLP.OUT=4;
+// SOURCE D'ALEA du reseau — remplacable pour rendre un run REPRODUCTIBLE (TRAIN la seme).
+// Rien d'autre ne change : meme topologie, memes taux, memes maths.
+MLP.rnd=Math.random;
 MLP.SIZE=(MLP.IN+1)*MLP.HID + (MLP.HID+1)*MLP.OUT;
-MLP.random=function(){ const w=new Float32Array(MLP.SIZE); for(let i=0;i<MLP.SIZE;i++) w[i]=(Math.random()*2-1)*0.8; return new MLP(w); };
-MLP.crossover=function(a,b){ const w=new Float32Array(MLP.SIZE); for(let i=0;i<MLP.SIZE;i++) w[i]=Math.random()<0.5?a.w[i]:b.w[i]; return new MLP(w); };
+MLP.random=function(){ const w=new Float32Array(MLP.SIZE); for(let i=0;i<MLP.SIZE;i++) w[i]=(MLP.rnd()*2-1)*0.8; return new MLP(w); };
+MLP.crossover=function(a,b){ const w=new Float32Array(MLP.SIZE); for(let i=0;i<MLP.SIZE;i++) w[i]=MLP.rnd()<0.5?a.w[i]:b.w[i]; return new MLP(w); };
 MLP.prototype.forward=function(inArr,out){
   const w=this.w; let p=0;
   for(let i=0;i<MLP.HID;i++){
@@ -12050,10 +12206,10 @@ MLP.prototype.forward=function(inArr,out){
   return out;
 };
 MLP.prototype.mutate=function(sigma,rate){
-  for(let i=0;i<this.w.length;i++) if(Math.random()<rate) this.w[i]+=randGauss()*sigma;
+  for(let i=0;i<this.w.length;i++) if(MLP.rnd()<rate) this.w[i]+=randGauss()*sigma;
 };
 function randGauss(){
-  const u=Math.random(),v=Math.random();
+  const u=MLP.rnd(),v=MLP.rnd();
   return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
 }
 
@@ -12061,21 +12217,38 @@ function randGauss(){
 const TRAIN={
   POP:24, GEN:0, genSinceTrack:0, seed:1,
   bots:[], running:false, genTime:0, matchDuration:45, simSpeed:1,
-  record:0, camBot:0,
+  record:0, camBot:0, acc:0,
+  // ALEA SEME : sans lui, deux runs du MEME cerveau ne donnent pas le meme score (positions de
+  // depart, embardees d'huile). L'EVOLUTION, elle, garde Math.random : c'est elle qui doit explorer.
+  rngSeed:1234567, rnd:null, world:null, deaths:{},
   tmpV:new THREE.Vector3(),
   tmpF:{p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},
   inArr:new Float32Array(MLP.IN),
   outArr:new Float32Array(MLP.HID+MLP.OUT),
   dTmp:new THREE.Vector3()
 };
+TRAIN.rnd=mulberry32(TRAIN.rngSeed);
+TRAIN.reseed=function(n){ TRAIN.rngSeed=n>>>0; TRAIN.rnd=mulberry32(TRAIN.rngSeed); };
+MLP.rnd=function(){ return TRAIN.rnd(); }; // meme robinet pour l'evolution : un seed = un run
+// le monde des bots : meme physique que le joueur, mais un alea REPRODUCTIBLE
+TRAIN.world={ rnd:function(){ return TRAIN.rnd(); }, ev:[] };
 
 TRAIN.init=function(){
+  // ON FERME LE MENU : en ?train=1 personne ne clique sur JOUER, et l'overlay recouvrait tout.
+  try{
+    overlay.style.display='none';overlay.classList.remove('picking');
+    const hp=$('hPlay');if(hp)hp.style.display='none';
+    if(parkBtnEl)parkBtnEl.style.display='none';
+    if(survBtnEl)survBtnEl.style.display='none';
+    if(typeof leaveStage==='function')leaveStage(); // la scene de menu (podium, caisse qui tourne) s'en va
+    document.body.classList.remove('dead');
+  }catch(e){}
   // HUD survie normal : on le cache (le mode train a son propre HUD)
   if(survHudEl) survHudEl.style.display='none';
   if(lastAlertEl) lastAlertEl.style.display='none';
   // Le joueur humain n'existe pas ici : on cache sa caisse
   carGroup.visible=false;
-  // Performance : on coupe gyros, sirène et trails lourds dès le départ
+  // Performance : on coupe gyros, sirene et trails lourds des le depart
   for(const l of gyroLights) l.intensity=0;
   botJetLight.intensity=0;
   try{ if(sirG) sirG.gain.setTargetAtTime(0,AC.currentTime,.1); }catch(e){}
@@ -12087,27 +12260,35 @@ TRAIN.init=function(){
   // On remplace les fonctions Survivant par nos versions
   TRAIN.origSurvStart=survStart;
   TRAIN.origSurvTick=survTick;
-  survStart=function(){}; // rien à démarrer, tout est géré par TRAIN
+  survStart=function(){}; // rien a demarrer, tout est gere par TRAIN
   survTick=function(dt){ if(TRAIN.running) TRAIN.tick(dt); };
   TRAIN.origLoop=loop;
   loop=TRAIN.loop;
-  // Contrôles
+  // Controles
   addEventListener('keydown',TRAIN.key);
 };
 
-/* ---------- BOUCLE DE RENDU TRAIN ---------- */
+/* ---------- BOUCLE DE RENDU TRAIN : PAS DE TEMPS FIXE ----------
+   L'ancienne boucle avancait de `min((now-last)/1000,.05)` : la physique dependait donc du nombre
+   d'images par seconde de la machine. Deux runs du meme cerveau ne donnaient pas le meme score, et
+   sim-train.js (a 1/60 s pile) ne pouvait pas retomber sur ce que montrait le navigateur.
+   Desormais : accumulateur + sous-pas FIXES de 1/60 s. L'affichage peut ramer, la sim ne bouge pas. */
+const TRAIN_DT=1/60, TRAIN_SUB_MAX=16; // 16 sous-pas = on encaisse x4 de vitesse a 15 fps
 TRAIN.loop=function(now){
   requestAnimationFrame(loop);
   if(document.hidden){ last=now; return; }
-  let dt=Math.min((now-last)/1000,0.05); last=now;
-  dt*=TRAIN.simSpeed;
+  const real=Math.min((now-last)/1000,0.25); last=now;
   const t=now/1000;
-  bioStep(dt);
-  if(TRAIN.running){
-    try{ TRAIN.tick(dt); }catch(e){ console.error('TRAIN.tick',e); }
-    TRAIN.camTick(dt);
+  bioStep(real); // le ciel vit en temps REEL : c'est de l'ambiance, pas de la simulation
+  TRAIN.acc+=real*TRAIN.simSpeed;
+  let n9=0;
+  while(TRAIN.acc>=TRAIN_DT && n9<TRAIN_SUB_MAX){
+    TRAIN.acc-=TRAIN_DT; n9++;
+    if(TRAIN.running){ try{ TRAIN.tick(TRAIN_DT); }catch(e){ console.error('TRAIN.tick',e); } }
   }
-  // Ciel et ambiance suivent la caméra
+  if(TRAIN.acc>TRAIN_DT*TRAIN_SUB_MAX) TRAIN.acc=0; // onglet endormi : on ne rattrape pas l'infini
+  if(TRAIN.running) TRAIN.camTick(real);
+  // Ciel et ambiance suivent la camera
   skyDome.position.copy(camera.position);
   skyU.uTime.value=t;
   if(acesPass) acesPass.uniforms.uSpeed.value=0;
@@ -12120,10 +12301,10 @@ TRAIN.loop=function(now){
     RAYS[r9].position.copy(camera.position).addScaledVector(SUN_DIR,3500).addScaledVector(SUN_PERP,RAY_OFF[r9]);
     RAYS[r9].position.y+=RAY_LIFT;
   }
-  // Ombre centrée sur le bot suivi
+  // Ombre centree sur le bot suivi
   const cb=TRAIN.bots[TRAIN.camBot];
   if(cb && cb.alive){
-    if(cb.air) shadV.copy(cb.fPos); else { frameAt(cb.totD-SURV.pBase,TRAIN.tmpF); shadV.copy(TRAIN.tmpF.p); }
+    if(cb.mode==='fall') shadV.copy(cb.fallPos); else { frameAt(cb.s,TRAIN.tmpF); shadV.copy(TRAIN.tmpF.p); }
   }else shadV.copy(camera.position);
   const ts9=68/sun.shadow.mapSize.x;
   shadV.addScaledVector(SUN_PERP,Math.round(shadV.dot(SUN_PERP)/ts9)*ts9-shadV.dot(SUN_PERP));
@@ -12132,10 +12313,10 @@ TRAIN.loop=function(now){
   sun.position.copy(shadV).addScaledVector(SUN_DIR,160);
   sun.target.updateMatrixWorld();
   if(POST_ON&&composer) composer.render(); else renderer.render(scene,camera);
-  try{ engVigRender(dt); }catch(e){}
+  try{ engVigRender(real); }catch(e){}
 };
 
-/* ---------- MOTEUR D'ENTRAÎNEMENT ---------- */
+/* ---------- MOTEUR D'ENTRAINEMENT ---------- */
 TRAIN.tick=function(dt){
   TRAIN.genTime+=dt;
   let aliveCount=0;
@@ -12145,200 +12326,60 @@ TRAIN.tick=function(dt){
   TRAIN.hudTick();
 };
 
+/* ---------- UN PAS DE BOT ----------
+   Il n'y a plus RIEN de physique ici : le cerveau produit quatre commandes, stepCar fait le reste —
+   exactement le meme code que celui qui fait rouler le joueur. */
 TRAIN.botStep=function(b,dt){
-  // Cerveau : tick humain ~10 Hz, entre deux ticks on garde les décisions
+  // Cerveau : tick humain ~10 Hz, entre deux ticks on garde les decisions
   b.think-=dt;
   if(b.think<=0){
     b.think=0.1;
     TRAIN.brainInput(b);
     b.brain.forward(TRAIN.inArr,TRAIN.outArr);
-    b.latT=TRAIN.outArr[MLP.HID+0]*ROAD_HALF;
-    b.nitroWant=TRAIN.outArr[MLP.HID+1];
-    b.jumpWant=TRAIN.outArr[MLP.HID+2];
+    // Les 4 sorties = les VRAIES commandes du joueur (pas de triche de position)
+    b.in.steer=TRAIN.outArr[MLP.HID+0];              // volant (-1..1)
+    b.in.gas  =TRAIN.outArr[MLP.HID+1];              // gaz : >.5 accelere, <-.5 freine
+    b.in.nitro=TRAIN.outArr[MLP.HID+2]>0.5;          // nitro
+    b.in.pitch=TRAIN.outArr[MLP.HID+3];              // pitch aerien : -1 pique, +1 cabre
   }
-  if(!b.air) TRAIN.groundPhysics(b,dt);
-  else TRAIN.airPhysics(b,dt);
-  TRAIN.obstacles(b,dt);
-};
-
-/* ---------- PHYSIQUE SOL (inspirée de survTick, simplifiée) ---------- */
-TRAIN.groundPhysics=function(b,dt){
-  const spec9=CARS[0], late9=lateMul(), push9=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).push,
-        maxSp9=spec9.maxKmh/3.6*late9*push9,
-        acc9=spec9.accel*late9*(1+(push9-1)*.6),
-        tc9=spec9.turn*.75;
-  const rel=b.totD-SURV.pBase;
-  const bi=Math.floor(THREE.MathUtils.clamp(rel/L,0,1)*(NP-1));
-  b.pbi=bi;
-  // Momentum ligne droite
-  const brk=b.v>b.cornerV*1.05;
-  const lift=b.v>b.cornerV*.96;
-  if(!brk && Math.abs(b.steer)<.2 && Math.abs(b.phi)<.25) b.momT+=dt; else b.momT=Math.max(0,b.momT-dt*3);
-  const momF=1+Math.min(1.8,b.momT*b.momT*.1);
-  let a9=0;
-  if(brk) a9=b.v>2?-acc9*1.5:-acc9*.5;
-  else if(!lift) a9=acc9*(b.v<maxSp9?1:.55)*(b.padB>0?1.5:1)*momF;
-  b.v+=a9*dt;
-  b.v+=-GRAV*T[bi].y*Math.cos(b.phi)*dt;
-  b.v-=b.v*Math.abs(b.v)*(acc9/(maxSp9*maxSp9*5.8))*dt;
-  b.v*=Math.max(0,1-.03*dt);
-  if(!brk && lift) b.v*=Math.max(0,1-.4*dt);
-  if(b.v<0) b.v=0;
-  // Nitro
-  b.nT-=dt;
-  const nOn=b.nT>0 && !brk && b.nitroR>.005 && b.nitroWant>0.5;
-  if(nOn){ b.v+=30*dt; b.nitroR=Math.max(0,b.nitroR-dt); }
-  b.nitroR=Math.min(2,b.nitroR+.2*dt);
-  b.boostT=nOn?1:0;
-  // Direction
-  const dL9=b.latT-b.lat;
-  const phiT=THREE.MathUtils.clamp(dL9/(Math.max(6,b.v*SPD)*.9),-.62,.62);
-  let st=THREE.MathUtils.clamp((phiT-b.phi)*4,-1,1);
-  b.steer+=(st-b.steer)*Math.min(1,dt*18);
-  if(Math.abs(b.steer)>.1) b.sHold=Math.min(.3,b.sHold+dt); else b.sHold=0;
-  b.phi+=b.steer*(.55+.45*Math.min(1,b.sHold/.3))*tc9*THREE.MathUtils.clamp(b.v/8,-1,1)*(1/(1+Math.abs(b.v)*TURN_HS))*dt;
-  b.phi=THREE.MathUtils.clamp(b.phi,-1.4,1.4);
-  // Intégration lat/long
-  b.lat+=b.v*Math.sin(b.phi)*dt*SPD;
-  b.totD+=b.v*Math.cos(b.phi)*dt*SPD;
-  // Vitesse de passage des virages devant
-  const segL9=L/(NP-1);
-  const look=THREE.MathUtils.clamp((b.v*b.v*SPD)/(2*acc9*1.5)+30,24,230);
-  let vSafe=1e9;
-  for(let k9=1;k9<=3;k9++){
-    const d9=look*k9/3;
-    const j9=Math.min(NP-1,bi+Math.max(1,Math.round(d9/segL9)));
-    const dot=T[bi].dot(T[j9]);
-    if(dot>=0.9999) continue;
-    const kap=Math.acos(THREE.MathUtils.clamp(dot,-1,1))/Math.max(1,d9);
-    if(kap>1e-4){
-      const kS=kap*SPD, vs=(-kS+Math.sqrt(kS*kS+4*kS*TURN_HS*tc9))/(2*kS*TURN_HS);
-      if(vs<vSafe) vSafe=vs;
-    }
-  }
-  b.cornerV=vSafe*0.85;
-  // Déclenchement du vol
-  const rel2=b.totD-SURV.pBase;
-  if(rel2>0 && rel2<L && holeAtS(rel2)){
-    TRAIN.startFallBot(b, 7 + Math.min(8, b.v*SPD*0.06));
-  }else if(Math.abs(b.lat)>ROAD_HALF){
-    TRAIN.startFallBot(b, 6.5);
-  }else if(b.jumpWant>0.6 && b.jumpCD<=0){
-    TRAIN.startFallBot(b, 9 + Math.min(6, b.v*SPD*0.05));
-    b.jumpCD=1.5;
-  }
-  if(b.jumpCD>0) b.jumpCD-=dt;
-};
-
-/* ---------- DÉCOLLAGE (formules du joueur, simplifiées) ---------- */
-TRAIN.startFallBot=function(b, impU){
-  if(b.air) return;
-  b.air=true; b.fT=0; b.fTR=0;
-  const rel=b.totD-SURV.pBase;
-  const bi=Math.floor(THREE.MathUtils.clamp(rel/L,0,1)*(NP-1));
-  frameAt(rel,TRAIN.tmpF);
-  b.fPos.copy(TRAIN.tmpF.p).addScaledVector(TRAIN.tmpF.b, b.lat).addScaledVector(TRAIN.tmpF.n, 0.6);
-  const vLat=b.v*Math.sin(b.phi);
-  b.fVel.copy(TRAIN.tmpF.t).multiplyScalar(b.v*SPD).addScaledVector(TRAIN.tmpF.b, vLat).addScaledVector(TRAIN.tmpF.n, impU||0.9);
-  if(b.fVel.y>70) b.fVel.y=70;
-  b.flyStartTotD=b.totD;
-};
-
-/* ---------- VOL VECTORIEL ---------- */
-TRAIN.airPhysics=function(b,dt){
-  const AIR_RATE=THREE.MathUtils.clamp(1+Math.max(0,Math.abs(b.v)*3.6*SPD-450)/1800,1,1.35);
-  const dtF=dt*AIR_RATE;
-  b.fT+=dtF; b.fTR+=dt;
-  b.fVel.y-=FALL_G*dtF;
-  // Nitro aérienne = poussée le long de fVel
-  const nAir=b.nitroWant>0.5 && b.nT>0 && b.nitroR>.005;
-  if(nAir){
-    TRAIN.tmpV.copy(b.fVel);
-    if(TRAIN.tmpV.lengthSq()>0.0001) TRAIN.tmpV.normalize(); else TRAIN.tmpV.copy(T[b.pbi]||AXIS_Y);
-    const boost=b.nitroR<=0.01?70:52;
-    b.fVel.addScaledVector(TRAIN.tmpV, boost*dtF);
-    b.nitroR=Math.max(0,b.nitroR-dt);
-    b.nT=Math.max(b.nT,0.25);
-    b.boostT=1;
-  }
-  b.fPos.addScaledVector(b.fVel, dtF*SPD);
-  b.v=Math.max(2,b.fVel.length());
-  if(TRAIN.tryLandBot(b,dtF)) return;
-  if(b.fTR>6.5){ TRAIN.kill(b,'airtime'); return; }
-};
-
-/* ---------- ATTERRISSAGE (logique tryLand du joueur, allégée) ---------- */
-TRAIN.tryLandBot=function(b,dt){
-  let bestI=-1,bd=1e9;
-  for(let i=0;i<NP;i+=2){
-    if(holeAtI(i)) continue;
-    const dx=b.fPos.x-pts[i].x, dy=b.fPos.y-pts[i].y, dz=b.fPos.z-pts[i].z;
-    const dd=dx*dx+dy*dy+dz*dz;
-    if(dd<bd){ bd=dd; bestI=i; }
-  }
-  if(bestI<0) return false;
-  if(bd>1600) return false;
-  TRAIN.dTmp.subVectors(b.fPos,pts[bestI]);
-  const hOff=TRAIN.dTmp.dot(Nn[bestI]);
-  const latOff=TRAIN.dTmp.dot(B[bestI]);
-  const vN=b.fVel.dot(Nn[bestI]);
-  // Fenêtre de contact face DESSUS
-  if(b.fT>.35 && hOff>-1.2 && hOff<3 && vN<9 && Math.abs(latOff)<ROAD_HALF){
-    const rel=THREE.MathUtils.clamp(bestI/(NP-1)*L + THREE.MathUtils.clamp(TRAIN.dTmp.dot(T[bestI]),-2,2), 0, L-1);
-    const gain=rel-(b.totD-SURV.pBase);
-    b.totD=SURV.pBase+rel;
-    b.lat=THREE.MathUtils.clamp(latOff,-ROAD_HALF+0.6,ROAD_HALF-0.6);
-    b.phi=Math.atan2(b.fVel.dot(B[bestI]), b.fVel.dot(T[bestI]));
-    b.v=Math.max(2,b.fVel.length());
-    b.air=false;
+  const wasAir=(b.mode==='fall');
+  stepCar(b,b.in,dt,TRAIN.world);
+  TRAIN.botEvents(b);
+  b.boostT=b.nitroOn?1:0;                            // le jet du mesh suit la VRAIE combustion
+  b.totD=SURV.pBase+b.s;
+  if(b.mode==='boom'){ TRAIN.kill(b,b.deathWhy||'crash'); return; }
+  if(!wasAir && b.mode==='fall') b.flyStartTotD=b.totD;   // il vient de decoller
+  else if(wasAir && b.mode==='drive'){                    // il vient de se poser
+    const gain=b.totD-b.flyStartTotD;                     // GAIN DE COUPE : la dalle visee etait loin
     b.landings++;
     if(gain>20){ b.goodCuts++; b.cutGain+=gain; }
-    // Perte de vitesse à l'atterrissage
-    const impact=Math.abs(vN);
-    const landLoss=Math.min(.52, Math.max(0,b.fT-.8)*.15 + impact*.008);
-    b.v*=(1-landLoss);
-    return true;
   }
-  // Mort sous la piste
-  if(hOff<-THICK-40){ TRAIN.kill(b,'under'); return true; }
-  return false;
 };
-
-/* ---------- OBSTACLES (mêmes règles que la meute) ---------- */
-TRAIN.obstacles=function(b,dt){
-  const rel=b.totD-SURV.pBase;
-  if(b.air || rel<=0 || rel>=L) return;
-  const bi=b.pbi;
-  for(const c9 of CONES){
-    if(c9.hit || c9.face!==1 || Math.abs(rel-c9.s)>2.6) continue;
-    if(Math.abs(b.lat-c9.lat)<1.6){
-      c9.hit=true;
-      const kv=new THREE.Vector3().copy(T[bi]).multiplyScalar(Math.max(8,b.v*.55))
-        .addScaledVector(B[bi],(b.lat-c9.lat>0?-1:1)*(2+Math.random()*4))
-        .addScaledVector(Nn[bi],5+Math.random()*5);
-      FLYCONES.push({m:c9.mesh,v:kv,rx:(Math.random()-.5)*16,rz:(Math.random()-.5)*16,life:1.6});
-      b.v*=.985;
+// Les evenements que la physique crie : ici on ne garde que ce qui se VOIT sur la piste.
+TRAIN.botEvents=function(b){
+  const evs=TRAIN.world.ev;
+  for(let i=0;i<evs.length;i++){
+    const e=evs[i];
+    if(e.type==='cone'){ // les plots valsent : c'est le seul retour visuel qu'on garde en entrainement
+      const F=b._F;
+      const kv=new THREE.Vector3().copy(F.t).multiplyScalar(Math.max(8,Math.abs(b.v)*.55))
+        .addScaledVector(F.b,e.sg*(2+TRAIN.rnd()*4))
+        .addScaledVector(F.n,(5+TRAIN.rnd()*5)*b.side);
+      FLYCONES.push({m:e.c.mesh,v:kv,rx:(TRAIN.rnd()-.5)*16,rz:(TRAIN.rnd()-.5)*16,life:1.6});
     }
+    else if(e.type==='boom') b.deathWhy=e.why; // pourquoi il meurt : le bilan de generation le compte
+    // 'portail' est ignore : en entrainement on ne regenere pas la piste au milieu d'une manche.
   }
-  b.oilCd=Math.max(0,b.oilCd-dt);
-  if(b.oilCd<=0) for(const o9 of OILS){
-    if(o9.face!==1 || Math.abs(rel-o9.s)>o9.r+2) continue;
-    if(Math.abs(b.lat-o9.lat)<o9.r+.6){ b.slipT=.75; b.oilCd=1.2; break; }
-  }
-  b.padCd=Math.max(0,b.padCd-dt);
-  if(b.padCd<=0) for(const p9 of PADS){
-    if(Math.abs(rel-p9)<6 && Math.abs(b.lat)<ROAD_HALF){ b.v+=14; b.padB=Math.max(b.padB,1.2); b.padCd=1.5; break; }
-  }
-  if(b.slipT>0){
-    b.slipT-=dt;
-    b.phi+=(Math.random()-.5)*2.6*dt*Math.min(1,Math.abs(b.v)/12);
-  }
-  b.padB=Math.max(0,b.padB-dt);
 };
 
-/* ---------- ENTRÉES DU CERVEAU (normalisées ~[-1,1]) ---------- */
+/* ---------- ENTRÉES DU CERVEAU (normalisées ~[-1,1]) ----------
+   Inchangées (autre mandat). Seuls les NOMS de champs suivent la caisse unique : rel = car.s,
+   air = mode==='fall', fPos/fVel = fallPos/fallVel.
+   ⚠ arr[0] lit `b.v` : comme chez le joueur, `v` est désormais GELÉ pendant le vol (c'était la
+   divergence n°9 du critic — les bots recalculaient `v` sur la vitesse aérienne). Le cerveau n'a
+   donc plus la vitesse horizontale en l'air : à re-qualifier quand on retouchera les entrées. */
 TRAIN.brainInput=function(b){
-  const rel=b.totD-SURV.pBase;
+  const rel=b.s;
   const bi=Math.floor(THREE.MathUtils.clamp(rel/L,0,1)*(NP-1));
   const segL=L/(NP-1);
   const arr=TRAIN.inArr;
@@ -12377,38 +12418,31 @@ TRAIN.brainInput=function(b){
   arr[5]=bestJ>=0?THREE.MathUtils.clamp(bestDy/60,-1,1):0;
   arr[6]=bestJ>=0?THREE.MathUtils.clamp(bestGain/300,-1,1):-1;
   arr[7]=THREE.MathUtils.clamp(b.nitroR/2,-1,1);
-  arr[8]=b.air?1:0;
-  if(b.air){
+  arr[8]=b.mode==='fall'?1:0;
+  if(b.mode==='fall'){
     frameAt(rel,TRAIN.tmpF);
-    arr[9]=THREE.MathUtils.clamp((b.fPos.y-TRAIN.tmpF.p.y)/40,-1,1);
-    arr[10]=THREE.MathUtils.clamp(b.fVel.y/30,-1,1);
+    arr[9]=THREE.MathUtils.clamp((b.fallPos.y-TRAIN.tmpF.p.y)/40,-1,1);
+    arr[10]=THREE.MathUtils.clamp(b.fallVel.y/30,-1,1);
   }else{ arr[9]=0; arr[10]=0; }
-  arr[11]=THREE.MathUtils.clamp(b.fVel.y/30,-1,1);
+  arr[11]=THREE.MathUtils.clamp(b.fallVel.y/30,-1,1);
 };
 
-/* ---------- MISES À JOUR DES MESHES ---------- */
+/* ---------- MISES À JOUR DES MESHES ----------
+   L'orientation ne se recalcule plus ici : elle SORT de la physique (car.quat), exactement comme
+   celle du joueur. Une caisse qui vole penchée, c'est ce que le moteur a decide, pas le rendu. */
 TRAIN.updateMeshes=function(dt){
   for(let i=0;i<TRAIN.bots.length;i++){
     const b=TRAIN.bots[i];
     const m=b.mesh.g;
     if(!b.alive){ m.visible=false; continue; }
-    const rel=b.totD-SURV.pBase;
+    const rel=b.s;
     if(rel<0 || rel>L){ m.visible=false; continue; }
-    if(!b.air){
+    if(b.mode!=='fall'){
       frameAt(rel,TRAIN.tmpF);
-      m.position.copy(TRAIN.tmpF.p).addScaledVector(TRAIN.tmpF.b,b.lat).addScaledVector(TRAIN.tmpF.n,0.56);
-      m.quaternion.setFromRotationMatrix(svM4.makeBasis(TRAIN.tmpF.b,TRAIN.tmpF.n,TRAIN.tmpF.t));
-      m.rotateY(b.phi);
-    }else{
-      m.position.copy(b.fPos);
-      if(b.fVel.lengthSq()>0.0001){
-        TRAIN.tmpV.copy(b.fVel).normalize();
-        const up=AXIS_Y;
-        const right=TRAIN.dTmp.crossVectors(up,TRAIN.tmpV).normalize();
-        const fwd=TRAIN.tmpV;
-        m.quaternion.setFromRotationMatrix(svM4.makeBasis(right,up,fwd));
-      }
-    }
+      if(b.side<0){TRAIN.tmpF.n.multiplyScalar(-1);TRAIN.tmpF.b.multiplyScalar(-1);} // face du dessous
+      m.position.copy(TRAIN.tmpF.p).addScaledVector(TRAIN.tmpF.b,b.lat).addScaledVector(TRAIN.tmpF.n,(b.side<0?THICK:0)+b.hopY);
+    }else m.position.copy(b.fallPos);
+    m.quaternion.copy(b.quat);
     m.visible=true;
     const jOn=b.boostT>0;
     b.mesh.jet.visible=jOn;
@@ -12427,10 +12461,10 @@ TRAIN.camTick=function(dt){
   if(!cb || !cb.alive) cb=TRAIN.bestAlive();
   if(!cb) return;
   TRAIN.camBot=TRAIN.bots.indexOf(cb);
-  const rel=cb.totD-SURV.pBase;
+  const rel=cb.s;
   frameAt(rel,TRAIN.tmpF);
   let targetPos;
-  if(cb.air) targetPos=cb.fPos;
+  if(cb.mode==='fall') targetPos=cb.fallPos;
   else targetPos=TRAIN.tmpF.p.clone().addScaledVector(TRAIN.tmpF.b,cb.lat).addScaledVector(TRAIN.tmpF.n,0.6);
   const camBack=8, camH=4.5;
   TRAIN.tmpV.copy(TRAIN.tmpF.p).addScaledVector(TRAIN.tmpF.b,cb.lat).addScaledVector(TRAIN.tmpF.n,camH).addScaledVector(TRAIN.tmpF.t,-camBack);
@@ -12447,25 +12481,39 @@ TRAIN.bestAlive=function(){
 };
 
 /* ---------- NEUROÉVOLUTION ---------- */
+// UN BOT = UNE CAISSE DE JOUEUR (makeCar) + un cerveau. Plus aucun champ « special bot » :
+// s'il roule, c'est avec l'etat du joueur, sinon il ne roule pas pareil.
 TRAIN.makeBot=function(weights){
-  const brain=weights?new MLP(new Float32Array(weights)):MLP.random();
-  const mesh=mkPolice(TRAIN.bots.length%3);
-  return {
-    brain, mesh,
-    alive:true, totD:0, v:24, lat:0, latT:0, phi:0, steer:0, sHold:0,
-    nitroR:1.2, nT:0, boostT:0, padB:0, padCd:0, slipT:0, oilCd:0,
-    air:false, fT:0, fTR:0,
-    fPos:new THREE.Vector3(), fVel:new THREE.Vector3(),
-    think:0, nitroWant:0, jumpWant:0, jumpCD:0,
-    fitness:0, landings:0, goodCuts:0, cutGain:0,
-    cornerV:1e9, momT:0, pbi:-1, flyStartTotD:0
-  };
+  const b=makeCar();
+  b.brain=weights?new MLP(new Float32Array(weights)):MLP.random();
+  b.mesh=mkPolice(TRAIN.bots.length%3);
+  b.in={steer:0,gas:0,nitro:false,pitch:0}; // les 4 commandes que le cerveau produit
+  b.alive=true; b.totD=0; b.think=0; b.boostT=0;
+  b.fitness=0; b.landings=0; b.goodCuts=0; b.cutGain=0; b.flyStartTotD=0;
+  b.v=26; b.nitroR=1.2; b.graceT=1.6;
+  return b;
+};
+// remise a neuf entre deux manches : on repart des defauts de makeCar, rien ne traine
+TRAIN.resetBot=function(b){
+  const d=makeCar();
+  for(const k in d){
+    if(k.charAt(0)==='_') continue;                       // temporaires : deja alloues
+    if(k==='fallPos'||k==='fallVel'||k==='prevTv'||k==='quat'){ b[k].copy(d[k]); continue; }
+    b[k]=d[k];
+  }
+  b.in.steer=0; b.in.gas=0; b.in.nitro=false; b.in.pitch=0;
+  b.alive=true; b.think=0; b.boostT=0;
+  b.fitness=0; b.landings=0; b.goodCuts=0; b.cutGain=0; b.flyStartTotD=0;
+  b.v=26; b.nitroR=1.2; b.graceT=1.6;
+  b.s=(TRAIN.rnd()*2-1)*20;
+  b.lat=(TRAIN.rnd()*2-1)*(ROAD_HALF-4);
+  b.totD=SURV.pBase+b.s;
 };
 
 TRAIN.tournament=function(sorted){
   let best=null;
   for(let i=0;i<3;i++){
-    const idx=Math.floor(Math.random()*Math.max(1,Math.floor(sorted.length*.5)));
+    const idx=Math.floor(TRAIN.rnd()*Math.max(1,Math.floor(sorted.length*.5)));
     const cand=sorted[idx];
     if(!best || cand.fitness>best.fitness) best=cand;
   }
@@ -12493,27 +12541,14 @@ TRAIN.newGen=function(first){
   TRAIN.GEN++;
   TRAIN.genSinceTrack++;
   if(TRAIN.genSinceTrack>=5 || first){
-    TRAIN.seed=Math.floor(Math.random()*1e9);
+    TRAIN.seed=Math.floor(TRAIN.rnd()*1e9);
     buildTrack(TRAIN.seed);
     TRAIN.genSinceTrack=0;
   }
   SURV.pBase=0;
-  for(let i=0;i<TRAIN.bots.length;i++){
-    const b=TRAIN.bots[i];
-    b.alive=true;
-    b.totD=(Math.random()*2-1)*20;
-    b.v=24;
-    b.lat=(Math.random()*2-1)*(ROAD_HALF-4);
-    b.latT=0; b.phi=0; b.steer=0; b.sHold=0;
-    b.air=false; b.fT=0; b.fTR=0;
-    b.nitroR=1.2; b.nT=0; b.boostT=0;
-    b.padB=0; b.padCd=0; b.slipT=0; b.oilCd=0;
-    b.think=0; b.nitroWant=0; b.jumpWant=0; b.jumpCD=0;
-    b.fitness=0; b.landings=0; b.goodCuts=0; b.cutGain=0;
-    b.cornerV=1e9; b.momT=0; b.pbi=-1; b.flyStartTotD=0;
-    b.mesh.g.visible=true;
-  }
+  for(let i=0;i<TRAIN.bots.length;i++){ TRAIN.resetBot(TRAIN.bots[i]); TRAIN.bots[i].mesh.g.visible=true; }
   TRAIN.genTime=0;
+  TRAIN.acc=0;
 };
 
 TRAIN.endGen=function(){
@@ -12523,12 +12558,17 @@ TRAIN.endGen=function(){
   }
   let best=0,alive=0;
   for(const b of TRAIN.bots){ if(b.fitness>best) best=b.fitness; if(b.alive) alive++; }
-  console.log('TRAIN gen',TRAIN.GEN,'best',Math.round(best),'alive',alive,'record',Math.round(TRAIN.record));
+  // LE BILAN DES MORTS : sans lui on ne sait pas si la population meurt de tomber, de trop voler
+  // ou de rester plantee — trois problemes qui n'appellent pas du tout les memes reglages.
+  const dw=Object.keys(TRAIN.deaths).map(k=>k+' '+TRAIN.deaths[k]).join(', ')||'aucune';
+  console.log('TRAIN gen',TRAIN.GEN,'best',Math.round(best),'alive',alive,'record',Math.round(TRAIN.record),'| morts :',dw);
+  TRAIN.deaths={};
   TRAIN.newGen(false);
 };
 
 TRAIN.kill=function(b,why){
   b.alive=false;
+  TRAIN.deaths[why]=(TRAIN.deaths[why]||0)+1;
   b.mesh.g.visible=false;
   b.fitness=b.totD + 150*b.goodCuts;
   if(b.fitness>TRAIN.record) TRAIN.record=b.fitness;
@@ -12579,6 +12619,51 @@ TRAIN.key=function(e){
 
 /* ---------- DÉMARRAGE DU MODE TRAIN ---------- */
 TRAIN.init();
+// HOOK SIM : expose TRAIN au simulateur headless (inactif en jeu normal)
+if(typeof location!=='undefined'&&/sim=1/.test(location.search))window.__TRAIN=TRAIN;
+/* HOOK ISO : de quoi rejouer la MEME sequence d'entrees par les DEUX chemins (joueur / bot) et
+   mesurer l'ecart. Si stepCar est bien partage, l'ecart est nul au bit pres ; s'il reste une copie
+   de physique quelque part, ou si le va-et-vient globales<->PCAR perd un champ, ca se voit ici.
+   Voir ml/train/check-iso.js. Inactif en jeu normal. */
+if(typeof location!=='undefined'&&/sim=1/.test(location.search))window.__ISO={
+  stepCar:stepCar, makeCar:makeCar, PCAR:PCAR, PWORLD:PWORLD, buildTrack:buildTrack,
+  track:function(){ return {L:L,NP:NP,PADS:PADS.length,RAMPS:RAMPS.length,CONES:CONES.length,OILS:OILS.length,HOLES:HOLES.length}; },
+  // CHEMIN JOUEUR : exactement ce que fait la boucle de jeu — globales -> stepCar -> globales
+  playerStep:function(input,dt){ pcarPush(); const e=stepCar(PCAR,input,dt,PWORLD); pcarPull(); return e; },
+  setPlayer:function(o){
+    mode=o.mode;s=o.s;lat=o.lat;vA=o.v;vL=o.vL;psi=o.psi;side=o.side;driveDir=o.driveDir;
+    steer=o.steer;steerHold=o.steerHold;momT=o.momT;driftT=o.driftT;graceT=o.graceT;sideCd=o.sideCd;
+    slipT=o.slipT;boost=o.boost;padCd=o.padCd;rampCd=o.rampCd;oilCd=o.oilCd;hopY=o.hopY;hopV=o.hopV;
+    idleT=o.idleT;safeS=o.safeS;pureT=o.pureT;pureArmed=o.pureArmed;
+    nitroR=o.nitroR;nitroX=o.nitroX;nitroOn=o.nitroOn;nitroBlue=o.nitroBlue;
+    pwrNitroT=o.pwrNitroT;pwrSpdT=o.pwrSpdT;pwrAirT=o.pwrAirT;
+    fallT=o.fallT;fallTR=o.fallTR;yawAcc=o.yawAcc;AIR_RATE=o.airRate;nitroAirT=o.nitroAirT;airRoll=o.airRoll;
+    fallUnder=o.fallUnder;fallStartSide=o.fallStartSide;bounceN=o.bounceN;gapArmed=o.gapArmed;
+    lastNearY=o.lastNearY;lastNearS=o.lastNearS;lastNearH2=o.lastNearH2;
+    curNear=o.curNear;curHOff=o.curHOff;curLatOff=o.curLatOff;prevTvalid=o.prevTvalid;
+    fallPos.set(o.fx,o.fy,o.fz);fallVel.set(o.vx,o.vy,o.vz);prevTv.set(o.px,o.py,o.pz);
+    PCAR.quat.set(o.qx,o.qy,o.qz,o.qw);PCAR.dtF=o.dtF;
+    PCAR.rdNear=o.rdNear;PCAR.rdHOff=o.rdHOff;PCAR.rdLatOff=o.rdLatOff;
+    PCAR.sPrev=o.sPrev;PCAR.kmh=o.kmh;PCAR.landI=o.landI;
+  },
+  getPlayer:function(){ return {
+    mode:mode,s:s,lat:lat,v:vA,vL:vL,psi:psi,side:side,driveDir:driveDir,
+    steer:steer,steerHold:steerHold,momT:momT,driftT:driftT,graceT:graceT,sideCd:sideCd,
+    slipT:slipT,boost:boost,padCd:padCd,rampCd:rampCd,oilCd:oilCd,hopY:hopY,hopV:hopV,
+    idleT:idleT,safeS:safeS,pureT:pureT,pureArmed:pureArmed,
+    nitroR:nitroR,nitroX:nitroX,nitroOn:nitroOn,nitroBlue:nitroBlue,
+    pwrNitroT:pwrNitroT,pwrSpdT:pwrSpdT,pwrAirT:pwrAirT,
+    fallT:fallT,fallTR:fallTR,yawAcc:yawAcc,airRate:AIR_RATE,nitroAirT:nitroAirT,airRoll:airRoll,
+    fallUnder:fallUnder,fallStartSide:fallStartSide,bounceN:bounceN,gapArmed:gapArmed,
+    lastNearY:lastNearY,lastNearS:lastNearS,lastNearH2:lastNearH2,
+    curNear:curNear,curHOff:curHOff,curLatOff:curLatOff,prevTvalid:prevTvalid,
+    fx:fallPos.x,fy:fallPos.y,fz:fallPos.z,vx:fallVel.x,vy:fallVel.y,vz:fallVel.z,
+    px:prevTv.x,py:prevTv.y,pz:prevTv.z,
+    qx:PCAR.quat.x,qy:PCAR.quat.y,qz:PCAR.quat.z,qw:PCAR.quat.w,
+    dtF:PCAR.dtF,rdNear:PCAR.rdNear,rdHOff:PCAR.rdHOff,rdLatOff:PCAR.rdLatOff,
+    sPrev:PCAR.sPrev,kmh:PCAR.kmh,landI:PCAR.landI
+  };}
+};
 })();
 }
 

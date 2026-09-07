@@ -1,127 +1,38 @@
 #!/usr/bin/env node
 // Simulateur headless du mode TRAIN de train.html.
-// Charge le vrai script, stub DOM/WebGL/audio, démarre en ?train=1, et fait tourner TRAIN.tick.
-const fs=require('fs');
-const path=require('path');
-const vm=require('vm');
-const THREE=require('../sim/node_modules/three');
+// L'environnement (stubs DOM/WebGL/audio + chargement du script) vit dans sim-env.js : sim-train.js
+// et check-iso.js chargent ainsi EXACTEMENT le meme jeu.
+const {loadGame}=require('./sim-env');
 
-const HTML=path.join(__dirname,'train.html');
-const html=fs.readFileSync(HTML,'utf8');
-const blocks=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
-const code=blocks.find(b=>b.includes('survTick')&&b.includes('buildTrack'));
-if(!code){ console.error('script principal introuvable'); process.exit(1); }
-
-// ---------- stubs DOM ----------
-function fakeEl(id){
-  const el={
-    id,style:{},dataset:{},children:[],value:'',textContent:'',innerHTML:'',
-    className:'',classList:{add(){},remove(){},toggle(){},contains(){return false;}},
-    addEventListener(){},removeEventListener(){},appendChild(c){this.children.push(c);return c;},
-    removeChild(){},insertBefore(c){this.children.unshift(c);return c;},setAttribute(){},
-    getAttribute(){return null;},focus(){},blur(){},click(){},scrollIntoView(){},
-    getBoundingClientRect(){return{left:0,top:0,width:1,height:1};},
-    getContext(){return fakeCtx;},contains(){return false;},
-    querySelector(){return null;},querySelectorAll(){return [];},
-    setPointerCapture(){},releasePointerCapture(){},requestFullscreen(){},
-    insertAdjacentHTML(){},
-    width:0,height:0,offsetWidth:100,offsetHeight:100,parentNode:null,
-  };
-  return el;
-}
-const fakeCtx=new Proxy({},{
-  get(t,p){
-    if(p==='canvas')return fakeEl('canvas');
-    if(p==='createLinearGradient'||p==='createRadialGradient'||p==='createPattern') return ()=>({addColorStop(){}});
-    if(p==='getImageData'||p==='createImageData') return ()=>({data:new Uint8ClampedArray(4),width:1,height:1});
-    if(p==='measureText') return ()=>({width:0});
-    if(p==='getContext') return ()=>fakeCtx;
-    return typeof p==='string'?(()=>{}):undefined;
-  },set(){return true;}
-});
-const els={};
-const documentStub={
-  body:fakeEl('body'),head:fakeEl('head'),documentElement:fakeEl('html'),
-  createElement(tag){return fakeEl(tag);},
-  getElementById(id){if(!els[id])els[id]=fakeEl(id);return els[id];},
-  querySelector(sel){return null;},
-  querySelectorAll(){return [];},
-  addEventListener(){},removeEventListener(){},
-  createElementNS(){return fakeEl('ns');},
-  createTextNode(){return{nodeType:3,textContent:''};},
-  createDocumentFragment(){return fakeEl('frag');},
-  hasFocus(){return false;},
-  title:'',hidden:false,visibilityState:'visible',
-  exitFullscreen(){},cookie:'',
-  fonts:{ready:Promise.resolve(),add(){},load(){return Promise.resolve([]);}},
-};
-const windowStub={
-  innerWidth:1280,innerHeight:720,devicePixelRatio:1,
-  addEventListener(){},removeEventListener(){},dispatchEvent(){return true;},
-  matchMedia(){return{matches:false,addListener(){},removeListener(){},addEventListener(){},removeEventListener(){}};},
-  requestAnimationFrame(){return 0;},cancelAnimationFrame(){},
-  getComputedStyle(){return{display:'block',opacity:1};},
-  location:{search:'?train=1',href:'http://localhost/train.html?train=1'},
-  navigator:{hardwareConcurrency:8,maxTouchPoints:0,userAgent:'sim'},
-  AudioContext:function(){return{currentTime:0,state:'running',createGain(){return fakeNode();},createOscillator(){return fakeNode();},createBufferSource(){return fakeNode();},createDelay(){return fakeNode();},createFilter(){return fakeNode();},createPanner(){return fakeNode();},createStereoPanner(){return fakeNode();},createAnalyser(){return fakeNode();},createConvolver(){return fakeNode();},createBuffer(){return{getChannelData(){return new Float32Array(2);}};},destination:fakeNode(),resume(){return Promise.resolve();}};},
-  setTimeout,clearTimeout,setInterval,clearInterval,
-  performance:{now:()=>Date.now()},
-  requestIdleCallback(){return 0;},cancelIdleCallback(){},
-  scrollTo(){},alert(){},confirm(){return true;},prompt(){return null;},
-  open(){return null;},close(){},stop(){},
-};
-function fakeNode(){
-  return new Proxy({}, {get(t,p){ if(p==='connect'||p==='disconnect'||p==='start'||p==='stop'||p==='setTargetAtTime'||p==='exponentialRampToValueAtTime'||p==='linearRampToValueAtTime'||p==='setValueAtTime'||p==='cancelScheduledValues') return ()=>{}; if(p==='frequency'||p==='gain'||p==='detune'||p==='type'||p==='value'||p==='playbackRate') return{value:0,setValueAtTime(){},linearRampToValueAtTime(){}}; return undefined; },set(){return true;}});
-}
-THREE.WebGLRenderer=function(opts){
-  return{domElement:fakeEl('canvas'),setSize(){},setPixelRatio(){},render(){},dispose(){},setClearColor(){},shadowMap:{enabled:false,type:0,autoUpdate:false,needsUpdate:false},info:{render:{calls:0}},getContext(){return null;},setAnimationLoop(){},capabilities:{},outputEncoding:0,toneMapping:0,xr:{addEventListener(){}},getSize(){return{width:1280,height:720};},setViewport(){},setScissor(){},setScissorTest(){},resetState(){},initTexture(){},setRenderTarget(){},clear(){},compile(){},getPixelRatio(){return 1;}};
-};
-
-// ---------- contexte ----------
-const sandbox={
-  console,THREE,Math,JSON,Date,Array,Object,String,Number,Boolean,
-  Promise,RegExp,Error,Uint8Array,Uint16Array,Uint32Array,Int8Array,Int16Array,Int32Array,
-  Float32Array,Float64Array,ArrayBuffer,Map,Set,WeakMap,WeakSet,Symbol,Proxy,Reflect,
-  parseInt,parseFloat,isNaN,isFinite,encodeURIComponent,decodeURIComponent,encodeURI,decodeURI,
-  TextDecoder,TextEncoder,setTimeout,clearTimeout,setInterval,clearInterval,queueMicrotask,
-  document:documentStub,window:windowStub,navigator:windowStub.navigator,
-  innerWidth:1280,innerHeight:720,devicePixelRatio:1,screen:{width:1280,height:720},
-  localStorage:{getItem(){return null;},setItem(){},removeItem(){}},
-  sessionStorage:{getItem(){return null;},setItem(){},removeItem(){}},
-  location:windowStub.location,performance:windowStub.performance,
-  addEventListener(){},removeEventListener(){},requestAnimationFrame(){return 0;},cancelAnimationFrame(){},
-  matchMedia:windowStub.matchMedia,AudioContext:windowStub.AudioContext,webkitAudioContext:windowStub.AudioContext,
-  atob:(s)=>Buffer.from(s,'base64').toString('binary'),btoa:(s)=>Buffer.from(s,'binary').toString('base64'),
-  IS_SIM:true,devicePixelRatio:1,
-};
-sandbox.globalThis=sandbox;
-sandbox.self=sandbox;
-sandbox.top=sandbox;
-sandbox.window=new Proxy(sandbox,{get(t,p){ if(p in t)return t[p]; return windowStub[p]; },set(t,p,v){ t[p]=v; return true; }});
-vm.createContext(sandbox);
-
-// ---------- exécution ----------
-try{
-  vm.runInContext(code,sandbox,{filename:'train.html'});
-} catch(e){
-  console.error('ERREUR AU CHARGEMENT:',e.message);
-  console.error(e.stack);
+const g=loadGame('?train=1&sim=1');
+const vmGet=g.get;
+console.log('Chargement OK. IS_TRAIN=',vmGet('typeof IS_TRAIN'));
+const T=vmGet('__TRAIN');
+if(typeof T!=='object'||!T.bots){
+  console.error('__TRAIN non initialisé');
   process.exit(1);
 }
-console.log('Chargement OK. IS_TRAIN=',vm.runInContext('typeof IS_TRAIN',sandbox),'TRAIN=',vm.runInContext('typeof TRAIN',sandbox));
-if(vm.runInContext('typeof TRAIN',sandbox)!=='object'){
-  console.error('TRAIN non initialisé');
-  process.exit(1);
+// GRAINE : depuis que tout l'aléa du mode train passe par TRAIN.rnd, un run est REPRODUCTIBLE.
+// `node sim-train.js --seed 42` (ou TRAIN_SEED=42) rejoue une autre population sur une autre piste —
+// c'est ce qui permet de COMPARER deux versions du code au lieu de comparer deux coups de chance.
+{
+  const a=process.argv.indexOf('--seed');
+  const sd=a>0?parseInt(process.argv[a+1],10):(process.env.TRAIN_SEED?parseInt(process.env.TRAIN_SEED,10):null);
+  if(sd!==null&&!isNaN(sd)){
+    T.reseed(sd); T.GEN=0; T.record=0; T.genSinceTrack=99;
+    T.newGen(true);                       // population ET piste retirees a cette graine
+    console.log('Graine TRAIN :',sd);
+  }
 }
-
-const T=vm.runInContext('TRAIN',sandbox);
 console.log('Génération initiale:',T.GEN,'bots:',T.bots.length);
 
-// Simulation : 60 s en dt=1s pour dépasser la durée d'une manche (45s)
-const DT=1;
-const STEPS=60;
+// Simulation : pas de temps IDENTIQUE à la boucle de rendu réelle (1/60 s), sinon la
+// physique diverge (isomorphisme sim/course). On simule 3 manches de 45 s = 8100 ticks.
+const DT=1/60;
+const STEPS=Math.round(45/DT)*3;
 let lastGen=T.GEN;
 let maxTotD=0;
+let bestEver=0;
 for(let i=0;i<STEPS;i++){
   try{
     T.tick(DT);
@@ -132,19 +43,17 @@ for(let i=0;i<STEPS;i++){
   }
   for(const b of T.bots) if(b.alive && b.totD>maxTotD) maxTotD=b.totD;
   if(T.GEN>lastGen){
-    console.log('Génération',T.GEN,'démarrée au tick',i);
+    console.log('Génération',T.GEN,'démarrée au tick',i,'(t='+Math.round(i*DT)+'s)');
     lastGen=T.GEN;
   }
 }
 
 const alive=T.bots.filter(b=>b.alive).length;
-console.log('FIN SIM : génération',T.GEN,'vivants',alive,'/24','max totD',maxTotD.toFixed(1));
-if(T.GEN<2){
-  console.error('ECHEC : la génération 2 n\'a pas démarré');
-  process.exit(1);
-}
-if(alive===0){
-  console.error('ECHEC : aucun bot vivant en fin de sim');
+console.log('FIN SIM : génération',T.GEN,'vivants',alive,'/24','max totD',maxTotD.toFixed(1),
+            'record',Math.round(T.record));
+console.log('RESUME '+JSON.stringify({gen:T.GEN,record:Math.round(T.record),maxTotD:Math.round(maxTotD)}));
+if(T.GEN<3){
+  console.error('ECHEC : pas assez de générations enchaînées');
   process.exit(1);
 }
 console.log('SIM TRAIN OK');
