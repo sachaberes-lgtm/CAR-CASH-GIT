@@ -1,0 +1,37 @@
+
+══════════ LIGNE DE BASE — 10 runs × 180 s de sim ══════════
+
+run  durée  portails  zones  1re_zone  z.prop  z.consom  décol  bord  trou  zone  morts  couperet  fin
+  1     60         0      0         —       0         0      5     5     0     0      7         2  meute au tapis
+  2     60         0      0         —       0         0      7     7     0     0      7         1  meute au tapis
+  3     60         0      0         —       0         0      6     6     0     0      7         1  meute au tapis
+  4     60         0      0         —       0         0      6     6     0     0      7         1  meute au tapis
+  5     60         0      0         —       0         0      8     8     0     0      7         2  meute au tapis
+  6     60         0      1      45.1       1         1      6     5     0     1      7         1  meute au tapis
+  7     60         0      1      52.2       0         0      6     6     0     0      7         2  meute au tapis
+  8     60         0      0         —       0         0      5     5     0     0      7         2  meute au tapis
+  9     60         0      0         —       0         0      8     8     0     0      7         0  meute au tapis
+ 10     60         0      0         —       0         0      5     5     0     0      7         2  meute au tapis
+
+── MOYENNES ──
+  zones enregistrées / run ......... 0.20
+  1re zone (s) ..................... 48.7   (8 run(s) sans aucune zone)
+  zones PROPOSÉES à un bot / run ... 0.10
+  zones CONSOMMÉES / run .......... 0.10
+  décollages / run ................ 6.20   (bord 6.10 · trou 0.00 · zone 0.10)
+  morts de bot / run .............. 7.00   dont couperet 1.40
+  part de distance faite EN VOL ... 0.681 %
+  survie moyenne .................. 0s=7.0  10s=7.0  20s=5.7  30s=4.5  40s=4.1  50s=3.6  60s=3.1
+
+── PAR PILOTE (moyenne sur 10 runs) ──
+pilote  décol  bord  trou  zone   posé/total  taux    d.vol   d.sol   %vol    écartMéd  écartFin  morts(bord/trou/coup)
+RICO     0.90  0.90  0.00  0.00         2/9   22.2%      13    1893   0.67%      -428      -882   10 (7/0/3)
+JADE     1.20  1.20  0.00  0.00        2/12   16.7%      12    1656   0.71%      -184      -466   10 (10/0/0)
+MOMO     0.90  0.90  0.00  0.00         0/9    0.0%       9    1628   0.53%      -220      -631   10 (9/0/1)
+ZAZA     0.80  0.80  0.00  0.00         0/7    0.0%       7    2143   0.33%      -411     -1059   10 (7/0/3)
+LULU     1.00  1.00  0.00  0.00        1/10   10.0%      12    2663   0.46%      -332      -949   10 (9/0/1)
+KIKI     0.90  0.90  0.00  0.00         0/9    0.0%       8    1922   0.41%      -212      -688   10 (9/0/1)
+BOB      0.50  0.40  0.00  0.10         0/5    0.0%       6    3570   0.17%      -502     -1502   10 (4/1/5)
+
+JSON complet : out/baseline.json
+

@@ -1,11 +1,40 @@
-﻿.claude/
+﻿# macOS
+.DS_Store
+Thumbs.db
+
+# Dépendances et caches
+node_modules/
+__pycache__/
+.chrome-profile/
+.claude/
+
+# Sauvegardes locales avant gros chantier (jamais versionnées)
+index.html.bak-*
+
+# Archives et gros binaires (ne doivent jamais entrer dans git)
 *.zip
 *.rar
-CASH-CAR-projet-claude-code/
-node_modules/
-Thumbs.db
-.DS_Store
-.vscode/
+*.tar.gz
+*.bundle
+*.pcm
+*.dSYM
 
-# sauvegardes locales avant gros chantier (jamais versionnées)
-index.html.bak-*
+# Sorties de build de la démo : refabriquées par `python3 demo/build.py`,
+# elles n'ont pas à alourdir l'historique du dépôt source.
+demo/cash-car-demo/
+demo/index.html
+demo/cash-car-demo.artifact.html
+
+# Sorties de build iOS (refabriquées par xcodebuild / ios/build.sh)
+ios/cashcar/ios/App/build/
+build/
+DerivedData/
+
+# Historiques git préservés des anciens dépôts imbriqués (lecture seule,
+# conservés par sécurité mais jamais versionnés dans ce dépôt).
+.git-archived/
+**/.git-archived/
+
+# Secrets — ne doit jamais entrer dans git
+.env
+*.key
