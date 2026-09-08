@@ -40,6 +40,32 @@ http.createServer((req,res)=>{
     });
     return;
   }
+  // ---- reception du CHAMPION (mode entrainement) ----
+  // Trouve par Sacha le 2026-09-09 : le mode entrainement n ecrivait RIEN. Deux runs a la
+  // generation 139 et 148 ont ete perdus en rechargeant. Ici le champion atterrit sur le disque,
+  // et train.html repart de lui a la generation 0 : la progression s accumule enfin.
+  if(req.method==='POST'&&u.pathname==='/train-save'){
+    let raw='';
+    req.on('data',c=>{ raw+=c; if(raw.length>20e6){ res.writeHead(413);res.end();req.destroy(); } });
+    req.on('end',()=>{
+      try{
+        const j=JSON.parse(raw);
+        if(!Array.isArray(j.w)||!j.w.length) throw new Error('pas de poids');
+        fs.mkdirSync(path.join(ROOT,'results'),{recursive:true});
+        fs.writeFileSync(path.join(ROOT,'results','champion.json'),raw);
+        // …et une copie horodatee : on ne veut plus jamais ECRASER un bon cerveau par un moins bon
+        const hist=path.join(ROOT,'results','champions');
+        fs.mkdirSync(hist,{recursive:true});
+        fs.writeFileSync(path.join(hist,'gen'+String(j.gen||0).padStart(5,"0")+'-note'+(j.note||0)+'.json'),raw);
+        console.log('  champion recu : gen '+j.gen+', note '+j.note+' ('+(raw.length/1024|0)+' Ko)');
+        res.writeHead(200,{'Content-Type':'application/json'});res.end('{"ok":true}');
+      }catch(e){
+        console.error('  champion REFUSE ('+e.message+')');
+        res.writeHead(400);res.end('{"ok":false}');
+      }
+    });
+    return;
+  }
   // ---- service statique ----
   let p=decodeURIComponent(u.pathname);
   if(p==='/')p='/train.html';

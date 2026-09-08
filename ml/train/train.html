@@ -1585,6 +1585,62 @@ const holeAtS=sv=>{if(!HOLES.length)return null;for(const h of HOLES)if(sv>h.s0&
 // segments i0→i1). Les inclure faisait deux bandes mortes d'où l'on ne pouvait pas se poser — donc un
 // atterrissage pile sur le bord d'en face échouait et la caisse repartait dans le vide.
 const holeAtI=i=>{if(!HOLES.length)return false;for(const h of HOLES)if(i>h.i0&&i<h.i1)return true;return false;};
+/* ================================================================================================
+   GRILLE SPATIALE DE LA PISTE — le plus-proche local, au lieu de balayer les NP points.
+   ------------------------------------------------------------------------------------------------
+   PROFILAGE (2026-09-08) : un pas de physique coûte 26,7 µs au sol, 172,8 µs en vol (6,5× plus).
+   La cause : carTryLand balaye NP/2 points (i+=2) et le viseur d'atterrissage 14 × NP/8, À CHAQUE
+   frame, PAR voiture. Comme ~91 % des vols finissent en mort, c'est là que part presque tout.
+   Ici : une grille UNIFORME (cellules de GRID_CS unités) construite dans buildTrack, et une requête
+   qui rend EXACTEMENT le même plus-proche que l'ancien balayage linéaire — même distance, même
+   départage (indice le plus petit parmi les ex æquo), même filtre de trou et de pas (stride).
+   → check-iso.js doit rester à 0.000e+0 : c'est le filet qui rend cette optimisation sans risque.
+   ================================================================================================ */
+let TRACK_GRID=null;
+const GRID_CS=20; // taille de cellule (unités monde). ~2× ROAD_HALF : quelques points par cellule.
+function nearestPts(q,stride,capSq){
+  const G=TRACK_GRID;
+  if(!G) return {i:-1,d2:capSq};
+  const Qx=q.x-G.minX,Qy=q.y-G.minY,Qz=q.z-G.minZ;
+  // CLAMP de la cellule de départ : un point HORS de la boîte englobante (haut au-dessus de la piste,
+  // ou à côté) part du bord le plus proche — la couronne grossit depuis là et reste rapide. Sans
+  // clamp, la cellule de départ est hors bornes, la recherche dégénère en balayage complet.
+  let cx=Math.max(0,Math.min(G.nx-1,Math.floor(Qx*G.inv)));
+  let cy=Math.max(0,Math.min(G.ny-1,Math.floor(Qy*G.inv)));
+  let cz=Math.max(0,Math.min(G.nz-1,Math.floor(Qz*G.inv)));
+  let bestI=-1,bestD=capSq;
+  const maxR=Math.max(G.nx,G.ny,G.nz);
+  // Couronnes de Chebyshev croissantes. BORNE D'ARRÊT : toute cellule à distance de Chebyshev >= r+1
+  // est à distance >= r*cs de q (preuve : sur l'axe dominant, dx >= r+1 → distX >= (r+1)*cs - ox >= r*cs,
+  // ox étant l'offset de q dans la cellule de départ, clampé dans [0,cs) ou au bord). Le `<` strict
+  // garde les ex æquo à distance exacte r*cs : on les visite, le départage par indice reste exact.
+  for(let r=0;r<=maxR;r++){
+    for(let dx=-r;dx<=r;dx++)for(let dy=-r;dy<=r;dy++)for(let dz=-r;dz<=r;dz++){
+      if(Math.abs(dx)!==r&&Math.abs(dy)!==r&&Math.abs(dz)!==r)continue; // intérieur déjà balayé
+      const ix=cx+dx,iy=cy+dy,iz=cz+dz;
+      if(ix<0||iy<0||iz<0||ix>=G.nx||iy>=G.ny||iz>=G.nz)continue;
+      // filtre rapide : distance min de q à la BOÎTE de la cellule (borne inférieure du contenu)
+      const bx0=ix*G.cs,by0=iy*G.cs,bz0=iz*G.cs;
+      const ddx=Qx<bx0?bx0-Qx:(Qx>bx0+G.cs?Qx-bx0-G.cs:0);
+      const ddy=Qy<by0?by0-Qy:(Qy>by0+G.cs?Qy-by0-G.cs:0);
+      const ddz=Qz<bz0?bz0-Qz:(Qz>bz0+G.cs?Qz-bz0-G.cs:0);
+      if(ddx*ddx+ddy*ddy+ddz*ddz>bestD)continue;
+      const cell=G.cells[(ix*G.ny+iy)*G.nz+iz];
+      if(!cell)continue;
+      for(let k=0;k<cell.length;k++){
+        const i=cell[k];
+        if(i%stride)continue;
+        if(holeAtI(i))continue;
+        const p=pts[i];
+        const px=q.x-p.x,py=q.y-p.y,pz=q.z-p.z;
+        const d2=px*px+py*py+pz*pz;
+        if(d2<bestD||(d2===bestD&&i<bestI)){bestD=d2;bestI=i;} // départage : indice le plus petit
+      }
+    }
+    if(bestD<(r*G.cs)*(r*G.cs))break; // plus aucune cellule restante ne peut battre bestD
+  }
+  return {i:bestI,d2:bestD};
+}
 // plots de chantier orange (percutables — ils valdinguent)
 const coneGeo=new THREE.CylinderGeometry(.055,.3,.95,10);
 const coneBandGeo=new THREE.CylinderGeometry(.185,.24,.2,10);
@@ -2297,6 +2353,22 @@ function buildTrack(seed){
   const N=Math.min(PARK.on?11000:9000,Math.max(3000,Math.round(L))); // parc : plus long → plus de points pour garder les loops lisses
   pts=curve.getSpacedPoints(N);NP=pts.length;
   trackMinY=Infinity;for(let i=0;i<NP;i++)if(pts[i].y<trackMinY)trackMinY=pts[i].y; // plancher du monde
+  // GRILLE SPATIALE (voir nearestPts) : on la reconstruit ici, à chaque nouvelle piste. Les points
+  // sont désormais figés (lus partout, jamais modifiés) — la grille reste valide toute la manche.
+  {
+    let minX=1e9,minY=1e9,minZ=1e9,maxX=-1e9,maxY=-1e9,maxZ=-1e9;
+    for(let i=0;i<NP;i++){const p=pts[i];if(p.x<minX)minX=p.x;if(p.x>maxX)maxX=p.x;if(p.y<minY)minY=p.y;if(p.y>maxY)maxY=p.y;if(p.z<minZ)minZ=p.z;if(p.z>maxZ)maxZ=p.z;}
+    const cs=GRID_CS, inv=1/cs;
+    const nx=Math.max(1,Math.ceil((maxX-minX)*inv)+1),ny=Math.max(1,Math.ceil((maxY-minY)*inv)+1),nz=Math.max(1,Math.ceil((maxZ-minZ)*inv)+1);
+    const cells=new Array(nx*ny*nz);
+    for(let i=0;i<NP;i++){
+      const p=pts[i];
+      const ix=Math.floor((p.x-minX)*inv),iy=Math.floor((p.y-minY)*inv),iz=Math.floor((p.z-minZ)*inv);
+      const k=(ix*ny+iy)*nz+iz;
+      (cells[k]||(cells[k]=[])).push(i);
+    }
+    TRACK_GRID={minX,minY,minZ,cs,inv,nx,ny,nz,cells};
+  }
   T=[];Nn=[];B=[];
   for(let i=0;i<NP;i++){
     const j=Math.min(i+1,NP-1),k=Math.max(i-1,0);
@@ -8809,14 +8881,9 @@ function carStartFall(car,impU,impF,w){
    Retourne true si la caisse s'est POSEE. Les donnees du verdict (grade, face, snake loop, gap...)
    partent en evenement : c'est le joueur qui encaisse, la physique ne compte pas d'argent. */
 function carTryLand(car,dt,w){
-  let bestI=-1,bd=1e9;
   const P=car.fallPos,V=car.fallVel,D=car._d;
-  for(let i=0;i<NP;i+=2){
-    if(holeAtI(i))continue;           // LE VIDE : on ne se pose pas sur une dalle qui n'existe pas
-    const dx=P.x-pts[i].x,dy=P.y-pts[i].y,dz=P.z-pts[i].z;
-    const dd=dx*dx+dy*dy+dz*dz;
-    if(dd<bd){bd=dd;bestI=i;}
-  }
+  const nq=nearestPts(P,2,1e9);        // GRILLE SPATIALE : même plus-proche que l'ancien balayage i+=2
+  let bestI=nq.i,bd=nq.d2;
   if(bestI<0)return false;
   car.lastNearY=pts[bestI].y;         // altitude de la route la plus proche (plongeon fatal)
   {const hx=P.x-pts[bestI].x,hz=P.z-pts[bestI].z;car.lastNearH2=hx*hx+hz*hz;} // bitume ou vide dessous ?
@@ -9093,12 +9160,8 @@ function carFall(car,input,dt,w){
   for(let st2=0;st2<14;st2++){ // meme integration que la vraie chute : vel/seconde, position xSPD
     car._b.y-=FALL_G*.12;
     car._a.addScaledVector(car._b,.12*SPD);
-    let bi=-1,bdd=400;
-    for(let i2=0;i2<NP;i2+=8){
-      if(holeAtI(i2))continue;   // le viseur ne promet jamais un atterrissage dans le vide
-      const dx=car._a.x-pts[i2].x,dy=car._a.y-pts[i2].y,dz=car._a.z-pts[i2].z,dd2=dx*dx+dy*dy+dz*dz;
-      if(dd2<bdd){bdd=dd2;bi=i2;}
-    }
+    const nq=nearestPts(car._a,8,400); // GRILLE : plus-proche dans 20 unités (ancien balayage i+=8, bdd=400)
+    const bi=nq.i;
     if(bi>=0){
       car._d.subVectors(car._a,pts[bi]);
       const h2=car._d.dot(Nn[bi]),l2=car._d.dot(B[bi]);
@@ -9180,11 +9243,18 @@ function stepCar(car,input,dt,world){
    RESTENT 12 entrees. ATTENTION : leur ORDRE a change — un cerveau entraine avant cette date n'est
    plus compatible (clone.js le detecte par la taille du vecteur de poids).
    ================================================================================================ */
-const BRAIN_IN=11;
+const BRAIN_IN=12;
 const biV=new THREE.Vector3(),biP=new THREE.Vector3();
 const biF={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
 function carBrainInput(car,arr){
-  const rel=car.s;
+  /* ⚠ EN VOL, `car.s` EST GELE : stepCar ne le met a jour qu a l atterrissage. Tout ce qui derive
+     de `bi` — les DEUX COURBURES et le DETECTEUR DE RACCOURCI — restait donc CONSTANT pendant les
+     6 s de vol. Le cerveau voyait la meme chose a chaque image, sortait la meme commande, et la
+     tenait : « des qu elles sont en l air elles partent en virage a fond a gauche » (Sacha, mesure
+     du 2026-09-08 : 6 entrees sur 11 figees en vol). `car.lastNearS` — la position sur le ruban de
+     la dalle la plus proche — est recalculee A CHAQUE FRAME de vol par carTryLand : on s en sert
+     comme reference tant qu on est en l air. Trois entrees se remettent a vivre, gratuitement. */
+  const rel=(car.mode==='fall'&&car.lastNearS>0)?car.lastNearS:car.s;
   const bi=Math.floor(THREE.MathUtils.clamp(rel/L,0,1)*(NP-1));
   const segL=L/(NP-1);
   const cl=THREE.MathUtils.clamp;
@@ -9240,6 +9310,19 @@ function carBrainInput(car,arr){
     }else{ arr[8]=-1; arr[9]=0; }                 // pas de dalle en vue
   }else{ arr[8]=0; arr[9]=0; }
   arr[10]=cl(car.fallVel.y/300,-1,1);             // vitesse verticale (toujours, non redondante)
+  /* ---- LE CAP EN VOL : l entree qui manquait vraiment ----
+     Meme avec le viseur (arr[8]/arr[9]), rien ne disait au cerveau DANS QUELLE DIRECTION IL VOLE
+     par rapport au ruban qu il vise. `psi` est gele au decollage, donc il pouvait tenir un virage
+     a fond six secondes sans jamais « savoir » qu il tournait le dos a la route. Ici : l angle
+     signe entre sa direction horizontale et la tangente de la dalle visee, ramene sur -1..1.
+     0 = aligne sur le ruban · +/-1 = dos a la route. C est le retour d etat du lacet en vol. */
+  if(car.mode==='fall'&&car.landI>=0){
+    const vx=car.fallVel.x,vz=car.fallVel.z,h=Math.hypot(vx,vz);
+    if(h>1e-3){
+      const tg=T[car.landI];
+      arr[11]=cl(Math.atan2(tg.z*vx-tg.x*vz, tg.x*vx+tg.z*vz)/Math.PI,-1,1);
+    }else arr[11]=0;
+  }else arr[11]=0;
   return arr;
 }
 /* ================================================================================================
@@ -12472,9 +12555,12 @@ TRAIN.init=function(){
   // partirait au hasard puis serait remplacee en cours de route — resultat illisible.
   TRAIN.boot=function(){ TRAIN.newGen(true); TRAIN.running=true; };
   if(TRAIN.useClone&&typeof fetch==='function'){
-    fetch('results/cloned-brain.json',{cache:'no-store'})
-      .then(r=>r.ok?r.json():null)
-      .then(j=>{ if(j&&j.w&&j.w.length===MLP.SIZE) TRAIN.seedBrain=Float32Array.from(j.w);
+    // On cherche D ABORD le champion sauvegarde (la progression accumulee), et seulement a
+    // defaut le cerveau clone. Un seul chemin de chargement pour les deux.
+    fetch(TRAIN.SAVE_NAME,{cache:'no-store'})
+      .then(r=>r.ok?r.json():fetch('results/cloned-brain.json',{cache:'no-store'}).then(r2=>r2.ok?r2.json():null))
+      .then(j=>{ if(j&&j.w&&j.w.length===MLP.SIZE){ TRAIN.seedBrain=Float32Array.from(j.w);
+                   console.log('TRAIN : reprise depuis un cerveau sauvegarde (gen '+(j.gen||'?')+', note '+(j.note||'?')+')'); }
                  else if(j) console.warn('TRAIN : cloned-brain.json au mauvais format, ignore'); })
       .catch(()=>{})
       .then(()=>TRAIN.boot());
@@ -12901,6 +12987,9 @@ TRAIN.endGen=function(){
   const dw=Object.keys(TRAIN.deaths).map(k=>k+' '+TRAIN.deaths[k]).join(', ')||'aucune';
   console.log('TRAIN gen',TRAIN.GEN,'best',Math.round(best),'alive',alive,'record',Math.round(TRAIN.record),'| morts :',dw);
   TRAIN.deaths={};
+  // AUTOSAVE : on garde le champion AVANT de renouveler la population, sinon un onglet ferme
+  // entre deux generations emporte tout (c est exactement ce qui est arrive aux gen 139 et 148).
+  if(TRAIN.AUTOSAVE>0 && TRAIN.GEN%TRAIN.AUTOSAVE===0) TRAIN.saveChampion(true);
   TRAIN.newGen(false);
 };
 
@@ -12917,9 +13006,10 @@ TRAIN.makeHud=function(){
   d.id='trainHud';
   d.style.cssText='position:fixed;top:10px;left:10px;z-index:100;color:#fff;font-family:var(--pix);font-size:11px;text-shadow:1px 1px 0 #000;pointer-events:none;line-height:1.6;';
   d.innerHTML='<div>GÉN <span id="thGen">0</span> · piste <span id="thEval">1</span>/'+TRAIN.EVAL_TRACKS+'</div>'+
-    '<div>best <span id="thBest">0</span> m</div>'+
+    '<div>loin <span id="thDist">0</span> m &nbsp; note <span id="thBest">0</span></div>'+
     '<div>vivants <span id="thAlive">0</span>/'+TRAIN.POP+'</div>'+
-    '<div>record <span id="thRec">0</span> m</div>'+
+    '<div>meilleure note <span id="thRec">0</span></div>'+
+    '<div id="thSave" style="opacity:0;transition:opacity .3s;color:#7dff9b"></div>'+
     '<div id="thSpeed" style="color:#7dff9a;cursor:pointer;pointer-events:auto;display:inline-block;margin-top:4px;">×1</div>';
   document.body.appendChild(d);
   TRAIN.hudEl=d;
@@ -12931,9 +13021,10 @@ TRAIN.hudTick=function(){
   if(!TRAIN.hudEl) return;
   $('thGen').textContent=TRAIN.GEN;
   $('thEval').textContent=Math.min(TRAIN.evalIdx+1,TRAIN.EVAL_TRACKS);
-  let best=0,alive=0;
-  for(const b of TRAIN.bots){ if(b.alive) alive++; if(b.fitness>best) best=b.fitness; }
+  let best=0,alive=0,loin=0;
+  for(const b of TRAIN.bots){ if(b.alive) alive++; if(b.fitness>best) best=b.fitness; if(b.s>loin) loin=b.s; }
   $('thBest').textContent=Math.round(best);
+  $('thDist').textContent=Math.round(loin);
   $('thAlive').textContent=alive;
   $('thRec').textContent=Math.round(TRAIN.record);
 };
@@ -12945,7 +13036,46 @@ TRAIN.toggleSpeed=function(){
   const sp=$('thSpeed'); if(sp) sp.textContent='×'+TRAIN.simSpeed;
 };
 
+/* ================================================================================================
+   LA PROGRESSION NE DOIT PLUS ETRE JETABLE
+   ------------------------------------------------------------------------------------------------
+   Trouve par Sacha le 2026-09-09 : le mode entrainement gardait TOUTE la population en memoire de
+   l onglet et n ecrivait RIEN. Deux runs a la generation 139 et 148 ont ete perdus en rechargeant —
+   irrecuperables, `window.__TRAIN` n etant meme pas expose sans `?sim=1`. On remplissait un seau
+   sans fond : chaque seance repartait de cerveaux au hasard. Une evolution a besoin de milliers de
+   generations ; sans persistance on ne depassera jamais une seule seance.
+   Desormais : S sauvegarde le champion, et la generation 0 repart de lui (la voie de chargement
+   par `fetch` existait deja pour le clonage — on la reutilise, un seul chemin).
+   ================================================================================================ */
+TRAIN.SAVE_NAME='results/champion.json';
+TRAIN.saveChampion=function(auto){
+  let best=null;
+  for(const b of TRAIN.bots) if(!best||b.fitness>best.fitness) best=b;
+  if(!best||!best.brain){ TRAIN.flash('rien a sauvegarder'); return; }
+  const j=JSON.stringify({v:1,in:MLP.IN,hid:MLP.HID,out:MLP.OUT,size:MLP.SIZE,
+    gen:TRAIN.GEN, note:Math.round(best.fitness), record:Math.round(TRAIN.record),
+    date:new Date().toISOString(), w:Array.from(best.brain.w,x=>+x.toFixed(6))});
+  // Le serveur d enregistrement (rec-server.js) accepte les POST : le fichier atterrit tout seul.
+  fetch('/train-save',{method:'POST',headers:{'Content-Type':'application/json'},body:j})
+    .then(r=>{ if(!r.ok)throw 0; TRAIN.flash('champion sauve — gen '+TRAIN.GEN); })
+    .catch(()=>{  // pas de serveur : on retombe sur un telechargement classique
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(new Blob([j],{type:'application/json'}));
+      a.download='champion.json'; document.body.appendChild(a); a.click();
+      setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000);
+      TRAIN.flash('champion telecharge — a mettre dans results/');
+    });
+};
+// SAUVEGARDE AUTOMATIQUE : toutes les N generations, pour qu un onglet ferme ne coute plus rien.
+TRAIN.AUTOSAVE=+((location.search.match(/[?&]autosave=(\d+)/)||[])[1])||10;
+TRAIN.flash=function(txt){
+  const e=$('thSave'); if(!e)return;
+  e.textContent=txt; e.style.opacity=1;
+  clearTimeout(TRAIN._flashT); TRAIN._flashT=setTimeout(()=>{e.style.opacity=0;},2600);
+};
+
 TRAIN.key=function(e){
+  if(e.code==='KeyS'){ e.preventDefault(); TRAIN.saveChampion(false); }
   if(e.code==='Space'){ e.preventDefault(); TRAIN.toggleSpeed(); }
   if(e.code==='KeyC'){
     for(let i=1;i<=TRAIN.bots.length;i++){
@@ -12992,6 +13122,9 @@ if(typeof location!=='undefined'&&/sim=1/.test(location.search))window.__ISO={
       const v=new THREE.Vector3().crossVectors(T[bi],T[j]); c[d]=kap*Math.sign(v.dot(Nn[bi])); }
     return c; },
   track:function(){ return {L:L,NP:NP,PADS:PADS.length,RAMPS:RAMPS.length,CONES:CONES.length,OILS:OILS.length,HOLES:HOLES.length}; },
+  // GRILLE SPATIALE : expose la requête + les données de piste pour le benchmark de nearestPts.
+  // (pts/NP/holeAtI/nearestPts sont des bindings top-level du script, invisibles du getter.)
+  grid:function(){ return {nearestPts:nearestPts, pts:pts, NP:NP, holeAtI:holeAtI}; },
   // CHEMIN JOUEUR : exactement ce que fait la boucle de jeu — globales -> stepCar -> globales
   playerStep:function(input,dt){ pcarPush(); const e=stepCar(PCAR,input,dt,PWORLD); pcarPull(); return e; },
   setPlayer:function(o){
