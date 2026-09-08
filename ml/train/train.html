@@ -1610,31 +1610,44 @@ function nearestPts(q,stride,capSq){
   let cz=Math.max(0,Math.min(G.nz-1,Math.floor(Qz*G.inv)));
   let bestI=-1,bestD=capSq;
   const maxR=Math.max(G.nx,G.ny,G.nz);
+  // VISITE d'une cellule : bornes + borne inférieure (boîte de la cellule) + scan du contenu.
+  // Idempotente : une cellule d'arête visitée deux fois ne change rien (même d2, même départage).
+  const visit=(ix,iy,iz)=>{
+    if(ix<0||iy<0||iz<0||ix>=G.nx||iy>=G.ny||iz>=G.nz)return;
+    const bx0=ix*G.cs,by0=iy*G.cs,bz0=iz*G.cs;
+    const ddx=Qx<bx0?bx0-Qx:(Qx>bx0+G.cs?Qx-bx0-G.cs:0);
+    const ddy=Qy<by0?by0-Qy:(Qy>by0+G.cs?Qy-by0-G.cs:0);
+    const ddz=Qz<bz0?bz0-Qz:(Qz>bz0+G.cs?Qz-bz0-G.cs:0);
+    if(ddx*ddx+ddy*ddy+ddz*ddz>bestD)return;
+    const cell=G.cells[(ix*G.ny+iy)*G.nz+iz];
+    if(!cell)return;
+    for(let k=0;k<cell.length;k++){
+      const i=cell[k];
+      if(i%stride)continue;
+      if(holeAtI(i))continue;
+      const p=pts[i];
+      const px=q.x-p.x,py=q.y-p.y,pz=q.z-p.z;
+      const d2=px*px+py*py+pz*pz;
+      if(d2<bestD||(d2===bestD&&i<bestI)){bestD=d2;bestI=i;} // départage : indice le plus petit
+    }
+  };
   // Couronnes de Chebyshev croissantes. BORNE D'ARRÊT : toute cellule à distance de Chebyshev >= r+1
   // est à distance >= r*cs de q (preuve : sur l'axe dominant, dx >= r+1 → distX >= (r+1)*cs - ox >= r*cs,
   // ox étant l'offset de q dans la cellule de départ, clampé dans [0,cs) ou au bord). Le `<` strict
   // garde les ex æquo à distance exacte r*cs : on les visite, le départage par indice reste exact.
+  // On n'énumère que la SURFACE de chaque cube (6 faces), pas son intérieur (déjà balayé aux anneaux
+  // précédents) : O(r²) par anneau, pas O(r³). C'est ce qui évite l'explosion quand une voiture est
+  // loin de la piste (bestD grand → r grand) : l'ancien balayage du cube entier faisait (2r+1)³.
   for(let r=0;r<=maxR;r++){
-    for(let dx=-r;dx<=r;dx++)for(let dy=-r;dy<=r;dy++)for(let dz=-r;dz<=r;dz++){
-      if(Math.abs(dx)!==r&&Math.abs(dy)!==r&&Math.abs(dz)!==r)continue; // intérieur déjà balayé
-      const ix=cx+dx,iy=cy+dy,iz=cz+dz;
-      if(ix<0||iy<0||iz<0||ix>=G.nx||iy>=G.ny||iz>=G.nz)continue;
-      // filtre rapide : distance min de q à la BOÎTE de la cellule (borne inférieure du contenu)
-      const bx0=ix*G.cs,by0=iy*G.cs,bz0=iz*G.cs;
-      const ddx=Qx<bx0?bx0-Qx:(Qx>bx0+G.cs?Qx-bx0-G.cs:0);
-      const ddy=Qy<by0?by0-Qy:(Qy>by0+G.cs?Qy-by0-G.cs:0);
-      const ddz=Qz<bz0?bz0-Qz:(Qz>bz0+G.cs?Qz-bz0-G.cs:0);
-      if(ddx*ddx+ddy*ddy+ddz*ddz>bestD)continue;
-      const cell=G.cells[(ix*G.ny+iy)*G.nz+iz];
-      if(!cell)continue;
-      for(let k=0;k<cell.length;k++){
-        const i=cell[k];
-        if(i%stride)continue;
-        if(holeAtI(i))continue;
-        const p=pts[i];
-        const px=q.x-p.x,py=q.y-p.y,pz=q.z-p.z;
-        const d2=px*px+py*py+pz*pz;
-        if(d2<bestD||(d2===bestD&&i<bestI)){bestD=d2;bestI=i;} // départage : indice le plus petit
+    if(r===0){ visit(cx,cy,cz); }
+    else{
+      for(let a=-r;a<=r;a++)for(let b=-r;b<=r;b++){
+        visit(cx+r,cy+a,cz+b); // face X+
+        visit(cx-r,cy+a,cz+b); // face X-
+        visit(cx+a,cy+r,cz+b); // face Y+
+        visit(cx+a,cy-r,cz+b); // face Y-
+        visit(cx+a,cy+b,cz+r); // face Z+
+        visit(cx+a,cy+b,cz-r); // face Z-
       }
     }
     if(bestD<(r*G.cs)*(r*G.cs))break; // plus aucune cellule restante ne peut battre bestD
@@ -9244,6 +9257,7 @@ function stepCar(car,input,dt,world){
    plus compatible (clone.js le detecte par la taille du vecteur de poids).
    ================================================================================================ */
 const BRAIN_IN=12;
+const FLYFIX=!/[?&]flyfix=0/.test(location.search);
 const biV=new THREE.Vector3(),biP=new THREE.Vector3();
 const biF={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
 function carBrainInput(car,arr){
@@ -9254,7 +9268,7 @@ function carBrainInput(car,arr){
      du 2026-09-08 : 6 entrees sur 11 figees en vol). `car.lastNearS` — la position sur le ruban de
      la dalle la plus proche — est recalculee A CHAQUE FRAME de vol par carTryLand : on s en sert
      comme reference tant qu on est en l air. Trois entrees se remettent a vivre, gratuitement. */
-  const rel=(car.mode==='fall'&&car.lastNearS>0)?car.lastNearS:car.s;
+  const rel=(car.mode==='fall'&&car.lastNearS>0&&FLYFIX)?car.lastNearS:car.s;
   const bi=Math.floor(THREE.MathUtils.clamp(rel/L,0,1)*(NP-1));
   const segL=L/(NP-1);
   const cl=THREE.MathUtils.clamp;
@@ -9316,7 +9330,7 @@ function carBrainInput(car,arr){
      a fond six secondes sans jamais « savoir » qu il tournait le dos a la route. Ici : l angle
      signe entre sa direction horizontale et la tangente de la dalle visee, ramene sur -1..1.
      0 = aligne sur le ruban · +/-1 = dos a la route. C est le retour d etat du lacet en vol. */
-  if(car.mode==='fall'&&car.landI>=0){
+  if(car.mode==='fall'&&car.landI>=0&&FLYFIX){
     const vx=car.fallVel.x,vz=car.fallVel.z,h=Math.hypot(vx,vz);
     if(h>1e-3){
       const tg=T[car.landI];
