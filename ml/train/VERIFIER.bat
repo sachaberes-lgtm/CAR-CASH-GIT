@@ -38,13 +38,10 @@ node check-eval.js
 if errorlevel 1 set ECHEC=1 & goto :fin
 
 echo.
-echo ================ 5/5  CLONAGE COMPORTEMENTAL ================
-echo  (entraine un cerveau sur les parties de results\demos\ — passe son tour s'il n'y en a pas)
-node clone.js
-if errorlevel 1 (
-  echo.
-  echo  [clonage saute : voir le message ci-dessus. Le reste de la verification reste valable.]
-)
+echo ================ 5/5  PERSISTANCE ================
+echo  (un champion ecrit sur le disque est-il RELU au demarrage suivant ?)
+node check-persist.js
+if errorlevel 1 set ECHEC=1 & goto :fin
 
 :fin
 echo.
