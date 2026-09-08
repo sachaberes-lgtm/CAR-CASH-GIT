@@ -12845,6 +12845,27 @@ if(typeof location!=='undefined'&&/sim=1/.test(location.search))window.__TRAIN=T
    Voir ml/train/check-iso.js. Inactif en jeu normal. */
 if(typeof location!=='undefined'&&/sim=1/.test(location.search))window.__ISO={
   stepCar:stepCar, makeCar:makeCar, PCAR:PCAR, PWORLD:PWORLD, buildTrack:buildTrack,
+  // DIAGNOSTIC du detecteur de raccourci : quel filtre rejette les candidats ?
+  diagCroisement:function(s){
+    const bi=Math.floor(THREE.MathUtils.clamp(s/L,0,1)*(NP-1)), segL=L/(NP-1);
+    const lookI=Math.min(NP-1,bi+Math.max(10,Math.round(430/segL)));
+    const r={candidats:0,rejetDist:0,rejetHauteur:0,rejetGain:0,retenus:0,meilleurGain:-1e9,dyVus:[],d3Vus:[]};
+    const a=new THREE.Vector3(),b=new THREE.Vector3();
+    for(let j=bi+6;j<lookI;j+=2){
+      if(holeAtI(j))continue;
+      r.candidats++;
+      a.copy(pts[bi]).sub(b.copy(pts[j]).addScaledVector(B[j],ROAD_HALF)); const dL=a.length();
+      a.copy(pts[bi]).sub(b.copy(pts[j]).addScaledVector(B[j],-ROAD_HALF)); const dR=a.length();
+      const d3=Math.min(dL,dR), dy=pts[bi].y-pts[j].y;
+      if(r.d3Vus.length<4000){r.d3Vus.push(d3);r.dyVus.push(dy);}
+      if(d3<8||d3>60){r.rejetDist++;continue;}
+      if(dy<10||dy>60){r.rejetHauteur++;continue;}
+      const gain=(j-bi)*segL-d3;
+      if(gain>r.meilleurGain)r.meilleurGain=gain;
+      if(gain<25){r.rejetGain++;continue;}
+      r.retenus++;
+    }
+    return r; },
   courbures:function(s){ const c={s:s}; const bi=Math.floor(THREE.MathUtils.clamp(s/L,0,1)*(NP-1)), segL=L/(NP-1);
     for(const d of [40,120,300]){ const j=Math.min(NP-1,bi+Math.max(1,Math.round(d/segL))); const dot=T[bi].dot(T[j]);
       if(dot>=0.9999){c[d]=0;continue;} const kap=Math.acos(THREE.MathUtils.clamp(dot,-1,1))/Math.max(1,d);

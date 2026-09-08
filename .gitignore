@@ -22,7 +22,16 @@ desktop.ini
 ml/train/train.backup-*.html
 
 # --- Demos et cerveaux entraines : des DONNEES, pas du code (elles se refont) ---
-ml/train/results/
+# --- Donnees d entrainement ---
+# ⚠ LES DEMOS SONT VERSIONNEES, ET C EST VOLONTAIRE.
+# Le 2026-09-08, deux sessions de jeu ont ete detruites par un menage de fichiers non suivis :
+# elles etaient gitignorees, donc invisibles pour git et sans sauvegarde. Ce sont les SEULES
+# donnees que le projet ne sait pas regenerer — un cerveau se re-entraine, une piste se
+# reconstruit depuis sa graine, une partie jouee ne revient jamais. Elles restent donc dans le
+# depot (400-800 Ko piece, on peut se le permettre).
+ml/train/results/cloned-brain.json
+ml/train/results/archive/
+ml/train/results/archive-*/
 
 # --- Archive locale : vieilles versions et experiences terminees ---
 _archive/
