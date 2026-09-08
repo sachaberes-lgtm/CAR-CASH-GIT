@@ -41,7 +41,7 @@ else{
   // headless ne sortirait plus les memes chiffres que le navigateur.
   if(graine||T.seedBrain){
     if(graine){ T.reseed(sd); T.record=0; }
-    T.GEN=0; T.genSinceTrack=99;
+    T.GEN=0; T.evalIdx=0;
     T.newGen(true);
     if(graine) console.log('Graine TRAIN :',sd);
   }
@@ -49,13 +49,17 @@ else{
 console.log('Génération initiale:',T.GEN,'bots:',T.bots.length);
 
 // Simulation : pas de temps IDENTIQUE à la boucle de rendu réelle (1/60 s), sinon la
-// physique diverge (isomorphisme sim/course). On simule 3 manches de 45 s = 8100 ticks.
+// physique diverge (isomorphisme sim/course). Chaque génération = EVAL_TRACKS manches ;
+// on simule jusqu'à 4 générations (ou un garde-fou de ticks), assez pour voir la sélection
+// enchaîner malgré l'évaluation multi-pistes.
 const DT=1/60;
-const STEPS=Math.round(45/DT)*3;
+const EVALS=T.EVAL_TRACKS||3;
+const TARGET_GEN=4;                             // 3 générations enchaînées, puis on s'arrête
+const MAX_TICKS=Math.round(45/DT)*EVALS*TARGET_GEN;
 let lastGen=T.GEN;
 let maxTotD=0;
 let bestEver=0;
-for(let i=0;i<STEPS;i++){
+for(let i=0;i<MAX_TICKS && T.GEN<TARGET_GEN;i++){
   try{
     T.tick(DT);
   }catch(e){

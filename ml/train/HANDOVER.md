@@ -53,6 +53,7 @@ Concrètement :
 | `node check-iso.js` | joueur et bots = même physique | **`écart max 0.000e+0`** |
 | `node check-actions.js` | le bot ne peut pas produire une commande inhumaine | **`PASS`**, 24 états |
 | `node sim-train.js` | l'entraînement tourne, déterministe | `SIM TRAIN OK` |
+| `node check-eval.js` | chaque voiture est notée sur N pistes distinctes, en moyenne | **`PASS`** |
 | `node clone.js` | entraîne un cerveau sur `results/demos/` | passe son tour s'il n'y a rien |
 | `node check-live.js` | **les trois chiffres que le propriétaire regarde** | voir §6 |
 
@@ -128,6 +129,19 @@ plus le cas, quelque chose a introduit de l'aléa non semé.
 C'est implémenté : on classe, **la moitié haute garde son cerveau INTACT**, la moitié basse est
 remplacée par des enfants des survivantes (croisement + mutation 0,12 / 0,18).
 
+**L'ÉVALUATION MULTI-PISTES, faite le 2026-09-08 (correctif §7.1)**
+Le protocole qui notait chaque voiture sur UNE piste réutilisée 5 générations fabriquait de la
+récitation (champion 2456 sur sa piste, 38 sur une inconnue). Désormais :
+- chaque génération court **`EVAL_TRACKS` pistes DIFFÉRENTES** (défaut **3**, modifiable par
+  `?tracks=N` dans l'URL) ;
+- la note de sélection est la **moyenne arithmétique** de la fitness sur ces pistes
+  (`b.fitness = b.fitnessSum / b.evalCount`, accumulée dans `TRAIN.endGen`) ;
+- `TRAIN.startEval()` régénère la piste à CHAQUE manche (le `genSinceTrack>=5` a été supprimé) ;
+- aucune piste n'est vue deux fois, ni dans une génération, ni d'une génération à l'autre.
+
+C'est vérifié mécaniquement par `node check-eval.js` (voir §3). Le « point de départ à battre » de
+`check-live.js` ne change PAS : il mesure la génération 0 aléatoire, en amont de la sélection.
+
 ⚠ **LE CLONAGE COMPORTEMENTAL EST ABANDONNÉ.** Le propriétaire ne veut pas de démonstrations : il
 veut que chacune se débrouille. `results/demos/`, `clone.js`, `ENREGISTRER.bat` et `rec-server.js`
 restent dans le dépôt et fonctionnent, mais **ne sont plus sur le chemin principal**. Ne pas
@@ -150,13 +164,13 @@ au §7.1. **C'est là qu'il faut travailler en priorité.**
 
 ## 7. CE QU'IL RESTE À FAIRE, PAR EFFET DÉCROISSANT
 
-1. **Le protocole d'évaluation fabrique de la récitation.** Mesuré : un champion fait **2456** sur la
-   piste qu'il a apprise et **38** sur une inconnue. Et `newTrack` régénère la piste toutes les 5
-   générations, donc la mémorisation est jetée avant de servir. → **Noter chaque voiture sur
-   plusieurs pistes et moyenner.** C'est le correctif à plus fort effet, et il ne coûte rien au temps
-   de jeu du propriétaire.
+1. ~~**Le protocole d'évaluation fabrique de la récitation.**~~ **FAIT le 2026-09-08** : chaque
+   voiture est notée sur `EVAL_TRACKS` pistes distinctes et la note est la moyenne (§6,
+   `node check-eval.js`). Le champion ne peut plus mémoriser un parcours.
 2. **12 cœurs, un seul utilisé.** Un lanceur `child_process` qui répartit les graines = ×8
    d'expérience à temps égal. Travail d'infrastructure, fichiers disjoints, sans risque.
+   ⚠ Avec l'évaluation multi-pistes, une génération coûte `EVAL_TRACKS` manches : ce point devient
+   encore plus rentable.
 3. **Le détecteur de raccourci ne se déclenche jamais** (0 % en course). Mesuré : sa fenêtre de
    distance 3D est 8-60 m alors que la distance réelle entre deux bouts de piste a une **médiane de
    159 m**. Les seuils ont été réglés pour une géométrie que le générateur ne produit pas.

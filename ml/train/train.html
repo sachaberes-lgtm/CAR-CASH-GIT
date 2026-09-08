@@ -12398,8 +12398,13 @@ function randGauss(){
 
 /* ---------- NAMESPACE TRAIN ---------- */
 const TRAIN={
-  POP:(+((location.search.match(/[?&]pop=(\d+)/)||[])[1])||24), GEN:0, genSinceTrack:0, seed:1,
+  POP:(+((location.search.match(/[?&]pop=(\d+)/)||[])[1])||24), GEN:0, seed:1,
   bots:[], running:false, genTime:0, matchDuration:45, simSpeed:1,
+  // EVAL_TRACKS : combien de pistes DIFFERENTES chaque voiture court avant d etre notee.
+  // La note de selection = MOYENNE sur ces pistes. Une piste = un parcours = une chance de le
+  // memoriser : en moyennant, la memorisation ne paie plus (HANDOVER §7.1, champion 2456 -> 38
+  // sur une piste inconnue). ?tracks=N pour changer (defaut 3).
+  EVAL_TRACKS:(+((location.search.match(/[?&]tracks=(\d+)/)||[])[1])||3), evalIdx:0,
   record:0, camBot:0, acc:0,
   // ALEA SEME : sans lui, deux runs du MEME cerveau ne donnent pas le meme score (positions de
   // depart, embardees d'huile). L'EVOLUTION, elle, garde Math.random : c'est elle qui doit explorer.
@@ -12657,7 +12662,8 @@ TRAIN.makeBot=function(weights){
   b.mesh=mkPolice(TRAIN.bots.length%3);
   b.in={steer:0,gas:0,nitro:false,pitch:0}; // les 4 commandes que le cerveau produit
   b.alive=true; b.totD=0; b.think=0; b.boostT=0;
-  b.fitness=0; b.landings=0; b.goodCuts=0; b.cutGain=0; b.flyStartTotD=0;
+  b.fitness=0; b.fitnessSum=0; b.evalCount=0;
+  b.landings=0; b.goodCuts=0; b.cutGain=0; b.flyStartTotD=0;
   b.ctrl=0; b.outs=0; b.aliveT=0; b.finished=false; b.finishT=0;
   b.v=26; b.nitroR=1.2; b.graceT=1.6;
   return b;
@@ -12765,12 +12771,16 @@ TRAIN.newGen=function(first){
     if(TRAIN.GEN===0) console.log('TRAIN : generation 0 ALEATOIRE'+(TRAIN.useClone?' (aucun cerveau clone trouve)':' (?clone=0)'));
   }
   TRAIN.GEN++;
-  TRAIN.genSinceTrack++;
-  if(TRAIN.genSinceTrack>=5 || first){
-    TRAIN.seed=Math.floor(TRAIN.rnd()*1e9);
-    buildTrack(TRAIN.seed);
-    TRAIN.genSinceTrack=0;
-  }
+  TRAIN.evalIdx=0;
+  for(const b of TRAIN.bots){ b.fitnessSum=0; b.evalCount=0; }
+  TRAIN.startEval();
+};
+
+TRAIN.startEval=function(){
+  // NOUVELLE PISTE, MEMES CERVEAUX : chaque manche d'une generation se court sur un parcours
+  // different. On ne note et on ne selectionne qu'a la fin (moyenne sur EVAL_TRACKS pistes).
+  TRAIN.seed=Math.floor(TRAIN.rnd()*1e9);
+  buildTrack(TRAIN.seed);
   SURV.pBase=0;
   for(let i=0;i<TRAIN.bots.length;i++){ TRAIN.resetBot(TRAIN.bots[i]); TRAIN.bots[i].mesh.g.visible=true; }
   TRAIN.genTime=0;
@@ -12778,12 +12788,19 @@ TRAIN.newGen=function(first){
 };
 
 TRAIN.endGen=function(){
-  for(const b of TRAIN.bots) if(b.alive){
-    b.fitness=TRAIN.fitness(b);
-    if(b.fitness>TRAIN.record) TRAIN.record=b.fitness;
+  // FIN D'UNE MANCHE : on accumule la note de CHAQUE voiture (morte ou pas) dans sa moyenne.
+  for(const b of TRAIN.bots){ b.fitnessSum+=TRAIN.fitness(b); b.evalCount++; }
+  TRAIN.evalIdx++;
+  if(TRAIN.evalIdx<TRAIN.EVAL_TRACKS){
+    // il reste des pistes a jouer dans cette generation : on change de piste, on NE selectionne PAS.
+    TRAIN.startEval();
+    return;
   }
+  // toutes les pistes de la generation sont jouees : la note de selection est la MOYENNE.
+  for(const b of TRAIN.bots) b.fitness=b.fitnessSum/Math.max(1,b.evalCount);
   let best=0,alive=0;
   for(const b of TRAIN.bots){ if(b.fitness>best) best=b.fitness; if(b.alive) alive++; }
+  if(best>TRAIN.record) TRAIN.record=best;
   // LE BILAN DES MORTS : sans lui on ne sait pas si la population meurt de tomber, de trop voler
   // ou de rester plantee — trois problemes qui n'appellent pas du tout les memes reglages.
   const dw=Object.keys(TRAIN.deaths).map(k=>k+' '+TRAIN.deaths[k]).join(', ')||'aucune';
@@ -12796,8 +12813,7 @@ TRAIN.kill=function(b,why){
   b.alive=false;
   TRAIN.deaths[why]=(TRAIN.deaths[why]||0)+1;
   b.mesh.g.visible=false;
-  b.fitness=TRAIN.fitness(b);
-  if(b.fitness>TRAIN.record) TRAIN.record=b.fitness;
+  b.fitness=TRAIN.fitness(b);   // fige la note de la manche au moment de la mort (affichage HUD)
 };
 
 /* ---------- HUD + CONTRÔLES ---------- */
@@ -12805,7 +12821,7 @@ TRAIN.makeHud=function(){
   const d=document.createElement('div');
   d.id='trainHud';
   d.style.cssText='position:fixed;top:10px;left:10px;z-index:100;color:#fff;font-family:var(--pix);font-size:11px;text-shadow:1px 1px 0 #000;pointer-events:none;line-height:1.6;';
-  d.innerHTML='<div>GÉN <span id="thGen">0</span></div>'+
+  d.innerHTML='<div>GÉN <span id="thGen">0</span> · piste <span id="thEval">1</span>/'+TRAIN.EVAL_TRACKS+'</div>'+
     '<div>best <span id="thBest">0</span> m</div>'+
     '<div>vivants <span id="thAlive">0</span>/'+TRAIN.POP+'</div>'+
     '<div>record <span id="thRec">0</span> m</div>'+
@@ -12819,6 +12835,7 @@ TRAIN.makeHud=function(){
 TRAIN.hudTick=function(){
   if(!TRAIN.hudEl) return;
   $('thGen').textContent=TRAIN.GEN;
+  $('thEval').textContent=Math.min(TRAIN.evalIdx+1,TRAIN.EVAL_TRACKS);
   let best=0,alive=0;
   for(const b of TRAIN.bots){ if(b.alive) alive++; if(b.fitness>best) best=b.fitness; }
   $('thBest').textContent=Math.round(best);

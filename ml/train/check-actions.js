@@ -48,7 +48,7 @@ function mulberry32(a){ return function(){ a|=0;a=a+0x6D2B79F5|0; let t=Math.imu
 const rnd=mulberry32(4242);
 
 // On fait tourner le VRAI botStep : c est lui qu on audite, pas une copie de sa logique.
-T.reseed(7); T.GEN=0; T.genSinceTrack=99; T.newGen(true);
+T.reseed(7); T.GEN=0; T.evalIdx=0; T.newGen(true);
 const bot=T.bots[0];
 const vus=new Set();
 let fautes=0, exemples=[];

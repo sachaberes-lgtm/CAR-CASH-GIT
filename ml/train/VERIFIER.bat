@@ -32,6 +32,12 @@ node sim-train.js
 if errorlevel 1 set ECHEC=1 & goto :fin
 
 echo.
+echo ================ 4bis/5  PROTOCOLE D'EVALUATION ================
+echo  (chaque voiture est-elle notee sur plusieurs pistes DISTINCTES, et en moyenne ?)
+node check-eval.js
+if errorlevel 1 set ECHEC=1 & goto :fin
+
+echo.
 echo ================ 5/5  CLONAGE COMPORTEMENTAL ================
 echo  (entraine un cerveau sur les parties de results\demos\ — passe son tour s'il n'y en a pas)
 node clone.js

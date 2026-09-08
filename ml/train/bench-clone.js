@@ -41,7 +41,7 @@ function run(mode,seed){
     if(CLONE.w.length!==T.bots[0].brain.w.length) throw new Error('cloned-brain.json au mauvais format');
     T.seedBrain=Float32Array.from(CLONE.w);
   }
-  T.reseed(seed); T.record=0; T.GEN=0; T.genSinceTrack=99;
+  T.reseed(seed); T.record=0; T.GEN=0; T.evalIdx=0;
   T.newGen(true);
 
   const deaths={}; const k0=T.kill;

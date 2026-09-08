@@ -31,7 +31,7 @@ function manche(seed){
       return {err:'cloned-brain.json a '+brain.w.length+' poids, le jeu en attend '+T.bots[0].brain.w.length};
     T.seedBrain=Float32Array.from(brain.w);
   }
-  T.reseed(seed); T.GEN=0; T.genSinceTrack=99; T.newGen(true);
+  T.reseed(seed); T.GEN=0; T.evalIdx=0; T.newGen(true);
   const log=console.log; console.log=()=>{};
   let sv=0,sn=0, ecart2=null, surRoute5=null;
   for(let i=0;i<Math.round(10/DT);i++){
