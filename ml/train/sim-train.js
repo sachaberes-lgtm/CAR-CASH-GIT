@@ -12,16 +12,38 @@ if(typeof T!=='object'||!T.bots){
   console.error('__TRAIN non initialisé');
   process.exit(1);
 }
+// LE CERVEAU CLONE : le navigateur va le chercher avec fetch, le headless n'a que le disque.
+// `--random` force le demarrage aleatoire : c'est comme ca qu'on compare amorce contre hasard.
+const FORCE_RANDOM=process.argv.indexOf('--random')>0;
+if(FORCE_RANDOM) T.useClone=false;
+else{
+  const fs=require('fs'),path=require('path');
+  const f=path.join(__dirname,'results','cloned-brain.json');
+  if(fs.existsSync(f)){
+    try{
+      const j=JSON.parse(fs.readFileSync(f,'utf8'));
+      if(j.w&&j.w.length===T.bots[0].brain.w.length){
+        T.seedBrain=Float32Array.from(j.w);
+        console.log('Cerveau clone charge ('+j.pas+' pas de demo, validation '+j.erreurValidation+')');
+      }else console.error('cloned-brain.json au mauvais format, ignore');
+    }catch(e){ console.error('cloned-brain.json illisible : '+e.message); }
+  }
+}
 // GRAINE : depuis que tout l'aléa du mode train passe par TRAIN.rnd, un run est REPRODUCTIBLE.
 // `node sim-train.js --seed 42` (ou TRAIN_SEED=42) rejoue une autre population sur une autre piste —
 // c'est ce qui permet de COMPARER deux versions du code au lieu de comparer deux coups de chance.
 {
   const a=process.argv.indexOf('--seed');
   const sd=a>0?parseInt(process.argv[a+1],10):(process.env.TRAIN_SEED?parseInt(process.env.TRAIN_SEED,10):null);
-  if(sd!==null&&!isNaN(sd)){
-    T.reseed(sd); T.GEN=0; T.record=0; T.genSinceTrack=99;
-    T.newGen(true);                       // population ET piste retirees a cette graine
-    console.log('Graine TRAIN :',sd);
+  const graine=(sd!==null&&!isNaN(sd));
+  // On ne repeuple QUE s'il y a une raison : une graine imposee, ou un cerveau clone arrive apres
+  // que TRAIN.init a deja peuple sans lui. Repeupler pour rien consommerait de l'alea en plus et le
+  // headless ne sortirait plus les memes chiffres que le navigateur.
+  if(graine||T.seedBrain){
+    if(graine){ T.reseed(sd); T.record=0; }
+    T.GEN=0; T.genSinceTrack=99;
+    T.newGen(true);
+    if(graine) console.log('Graine TRAIN :',sd);
   }
 }
 console.log('Génération initiale:',T.GEN,'bots:',T.bots.length);

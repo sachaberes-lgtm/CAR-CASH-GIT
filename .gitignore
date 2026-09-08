@@ -20,3 +20,6 @@ desktop.ini
 .tmp.*
 # --- Sauvegardes horodatees de train.html (900 Ko piece : elles restent en local) ---
 ml/train/train.backup-*.html
+
+# --- Demos et cerveaux entraines : des DONNEES, pas du code (elles se refont) ---
+ml/train/results/

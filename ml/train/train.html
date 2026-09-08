@@ -9143,6 +9143,66 @@ function stepCar(car,input,dt,world){
   return w.ev;
 }
 /* ================================================================================================
+   LES 12 ENTREES DU CERVEAU — UNE SEULE DEFINITION, pour les bots ET pour l'enregistrement
+   ------------------------------------------------------------------------------------------------
+   Le mode ?rec=1 doit voir EXACTEMENT ce que verra le bot. Si l'enregistrement et l'entrainement ne
+   lisent pas le meme monde, le clonage apprend a repondre a des questions qu'on ne lui posera
+   jamais. Meme raison que pour stepCar : une seule copie, jamais deux.
+   ATTENTION : `car.v` est GELE pendant le vol (comme chez le joueur) — le cerveau n'a donc pas la
+   vitesse horizontale en l'air. C'est voulu, c'est l'isomorphisme ; a re-qualifier si on retouche
+   un jour les entrees.
+   ================================================================================================ */
+const BRAIN_IN=12;
+const biV=new THREE.Vector3(),biP=new THREE.Vector3();
+const biF={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
+function carBrainInput(car,arr){
+  const rel=car.s;
+  const bi=Math.floor(THREE.MathUtils.clamp(rel/L,0,1)*(NP-1));
+  const segL=L/(NP-1);
+  arr[0]=THREE.MathUtils.clamp(car.v/80,-1,1);
+  arr[1]=THREE.MathUtils.clamp(car.lat/ROAD_HALF,-1,1);
+  // Courbure devant
+  let crv=0;
+  const j1=Math.min(NP-1,bi+Math.max(1,Math.round(40/segL)));
+  const dot=T[bi].dot(T[j1]);
+  if(dot<0.9999){
+    const kap=Math.acos(THREE.MathUtils.clamp(dot,-1,1))/Math.max(1,40);
+    biV.crossVectors(T[bi],T[j1]);
+    crv=kap*Math.sign(biV.dot(Nn[bi]));
+  }
+  arr[2]=THREE.MathUtils.clamp(crv*300,-1,1);
+  // Distance au prochain trou
+  let holeD=999;
+  for(let i=bi;i<NP;i+=2){ if(holeAtI(i)){ holeD=(i-bi)*segL; break; } }
+  arr[3]=THREE.MathUtils.clamp(1-holeD/200,-1,1);
+  // Meilleur croisement devant
+  let bestGain=-999,bestJ=-1,bestDy=0;
+  const lookI=Math.min(NP-1,bi+Math.max(10,Math.round(430/segL)));
+  for(let j=bi+6;j<lookI;j+=2){
+    if(holeAtI(j)) continue;
+    biV.copy(pts[bi]).sub(biP.copy(pts[j]).addScaledVector(B[j],ROAD_HALF)); const dL=biV.length();
+    biV.copy(pts[bi]).sub(biP.copy(pts[j]).addScaledVector(B[j],-ROAD_HALF)); const dR=biV.length();
+    const d3=Math.min(dL,dR);
+    if(d3<8 || d3>60) continue;
+    const dy=pts[bi].y-pts[j].y;
+    if(dy<10 || dy>60) continue;
+    const gain=(j-bi)*segL-d3;
+    if(gain>=25 && gain>bestGain){ bestGain=gain; bestJ=j; bestDy=dy; }
+  }
+  arr[4]=bestJ>=0?THREE.MathUtils.clamp(1-bestGain/300,-1,1):-1;
+  arr[5]=bestJ>=0?THREE.MathUtils.clamp(bestDy/60,-1,1):0;
+  arr[6]=bestJ>=0?THREE.MathUtils.clamp(bestGain/300,-1,1):-1;
+  arr[7]=THREE.MathUtils.clamp(car.nitroR/2,-1,1);
+  arr[8]=car.mode==='fall'?1:0;
+  if(car.mode==='fall'){
+    frameAt(rel,biF);
+    arr[9]=THREE.MathUtils.clamp((car.fallPos.y-biF.p.y)/40,-1,1);
+    arr[10]=THREE.MathUtils.clamp(car.fallVel.y/30,-1,1);
+  }else{ arr[9]=0; arr[10]=0; }
+  arr[11]=THREE.MathUtils.clamp(car.fallVel.y/30,-1,1);
+  return arr;
+}
+/* ================================================================================================
    LE JOUEUR BRANCHE SES TOUCHES SUR LA PHYSIQUE UNIQUE
    ------------------------------------------------------------------------------------------------
    PCAR est LA caisse du joueur : le meme objet que celui des bots, le meme stepCar. Les globales
@@ -9154,6 +9214,86 @@ const PCAR=makeCar();
 PCAR.fallPos=fallPos;PCAR.fallVel=fallVel;PCAR.prevTv=prevTv; // MEMES objets : zero copie de vecteur
 const PWORLD={rnd:Math.random,ev:[]};
 const PIN={steer:0,gas:0,nitro:false,pitch:0};
+/* ================================================================================================
+   ?rec=1 — L'ENREGISTREUR : je joue, la machine regarde
+   ------------------------------------------------------------------------------------------------
+   A chaque pas de physique on note DEUX choses : ce que le cerveau VERRAIT (les 12 entrees, via la
+   fonction unique carBrainInput) et ce que le joueur A FAIT (les 4 commandes, telles que stepCar
+   les recoit). C'est exactement la paire question/reponse dont le clonage comportemental a besoin.
+   L'etat est pris AVANT le pas, la commande est celle de CE pas : on n'apprend pas a repondre a
+   une question posee apres coup.
+   HORS ?rec=1, rien de tout ca n'existe : pas de HUD, pas de tableau, pas une ligne executee dans
+   la boucle (la garde `REC.on` est fausse et le bloc d'init n'est meme pas entre).
+   ================================================================================================ */
+const IS_REC=/[?&]rec=1/.test(location.search);
+const REC={
+  on:false, rows:[], buf:new Float32Array(BRAIN_IN), el:null, t0:0, saved:0,
+  // une ligne = 12 entrees + 4 commandes. `nitro` est note 1/0 : c'est la commande BRUTE,
+  // clone.js decide seul comment en faire une cible pour un tanh.
+  sample:function(car,inp){
+    carBrainInput(car,REC.buf);
+    const r=new Array(BRAIN_IN+4);
+    for(let i=0;i<BRAIN_IN;i++) r[i]=Math.round(REC.buf[i]*1e4)/1e4;
+    r[BRAIN_IN  ]=Math.round(inp.steer*1e4)/1e4;
+    r[BRAIN_IN+1]=inp.gas;
+    r[BRAIN_IN+2]=inp.nitro?1:0;
+    r[BRAIN_IN+3]=Math.round((inp.pitch||0)*1e4)/1e4;
+    REC.rows.push(r);
+  },
+  toggle:function(){
+    if(REC.on){ REC.on=false; REC.save(); }
+    else{ REC.on=true; REC.rows.length=0; REC.t0=Date.now(); }
+    REC.paint();
+  },
+  paint:function(){
+    if(!REC.el)return;
+    const n=REC.rows.length;
+    REC.el.textContent=(REC.on?'● REC  ':'■ PRET  ')+n+' pas'+(n?'  ('+(n/60).toFixed(0)+'s)':'')
+      +(REC.saved?'   ✓ '+REC.saved+' demo(s)':'');
+    REC.el.style.background=REC.on?'#8e1230':'#22305c';
+  },
+  save:function(){
+    if(!REC.rows.length){ REC.msg('rien a enregistrer'); return; }
+    const d=new Date(),p=n=>String(n).padStart(2,'0');
+    const stamp=d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'-'+p(d.getHours())+p(d.getMinutes())+p(d.getSeconds());
+    const name='demo-'+stamp+'.json';
+    const payload=JSON.stringify({v:1,in:BRAIN_IN,out:4,
+      cols:['in0..in11','steer','gas','nitro','pitch'],
+      frames:REC.rows.length,secondes:+(REC.rows.length/60).toFixed(1),
+      date:d.toISOString(),rows:REC.rows});
+    REC.rows=[];
+    // 1) on tente le serveur d'enregistrement (ENREGISTRER.bat) : le fichier atterrit tout seul
+    //    dans results/demos/. 2) sinon, telechargement classique — a deposer soi-meme dans le dossier.
+    fetch('/rec-save?name='+encodeURIComponent(name),{method:'POST',headers:{'Content-Type':'application/json'},body:payload})
+      .then(r=>{ if(!r.ok)throw 0; REC.saved++; REC.msg('enregistre : results/demos/'+name); REC.paint(); })
+      .catch(()=>{ REC.download(name,payload); REC.saved++; REC.msg('telecharge : '+name+' → a mettre dans ml/train/results/demos/'); REC.paint(); });
+  },
+  download:function(name,txt){
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([txt],{type:'application/json'}));
+    a.download=name;document.body.appendChild(a);a.click();
+    setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000);
+  },
+  msg:function(t){ if(REC.el2)REC.el2.textContent=t; console.log('[REC] '+t); }
+};
+if(IS_REC){
+  // Le bandeau : opaque, coins coupes, dans le coin bas-gauche (on ne masque ni la caisse ni la jauge)
+  const w=document.createElement('div');
+  w.style.cssText='position:fixed;left:calc(env(safe-area-inset-left,0px) + 10px);bottom:calc(env(safe-area-inset-bottom,0px) + 10px);z-index:200;font-family:var(--pix);font-size:10px;color:#dfeeff;text-align:left;';
+  const b=document.createElement('div');
+  b.id='recBtn';
+  b.style.cssText='background:#22305c;color:#dfeeff;padding:12px 16px;min-width:150px;min-height:44px;box-sizing:border-box;cursor:pointer;user-select:none;border:0;clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px);line-height:20px;';
+  const m=document.createElement('div');
+  m.style.cssText='margin-top:6px;font-family:Segoe UI,system-ui,sans-serif;font-size:11px;color:#9fe8ff;max-width:320px;';
+  m.textContent='E ou clic = demarrer / arreter l\'enregistrement';
+  w.appendChild(b);w.appendChild(m);document.body.appendChild(w);
+  REC.el=b;REC.el2=m;REC.paint();
+  b.addEventListener('click',e=>{e.stopPropagation();REC.toggle();});
+  addEventListener('keydown',e=>{ if(e.code==='KeyE'&&!e.repeat){e.preventDefault();REC.toggle();} });
+  // le compteur vit : sans lui on enregistre a l aveugle et on ne sait pas si ca prend
+  setInterval(()=>{ if(REC.on)REC.paint(); },250);
+  console.log('[REC] mode enregistrement actif — E pour demarrer/arreter');
+}
 function pcarPush(){ // globales -> caisse
   const c=PCAR;
   c.mode=mode;c.s=s;c.lat=lat;c.v=vA;c.vL=vL;c.psi=psi;c.side=side;c.driveDir=driveDir;
@@ -10684,7 +10824,9 @@ function loop(now){
     // Tout ce qui suit dans cette boucle est du RENDU, du SON et de l'ARGENT : plus une equation.
     const modeWas=mode;
     pcarPush();
-    const evs=stepCar(PCAR,pcarInput(),dt,PWORLD);
+    const pin9=pcarInput();
+    if(REC.on)REC.sample(PCAR,pin9); // ?rec=1 : ce que le cerveau VERRAIT + ce que j'ai FAIT
+    const evs=stepCar(PCAR,pin9,dt,PWORLD);
     pcarPull();
     // les commandes relues depuis PIN : UN SEUL endroit lit le clavier (pcarInput)
     const target=PIN.steer,up=PIN.gas>.5,dn=PIN.gas<-.5,vF=vA;
@@ -12184,7 +12326,7 @@ if(IS_TRAIN){
 /* ---------- PETIT MLP 12 → 16 → 4 (pur JS, pas de lib) ----------
    Sorties = les VRAIES commandes du joueur : [0] volant, [1] gaz, [2] nitro, [3] pitch aérien */
 function MLP(w){ this.w=w||new Float32Array(MLP.SIZE); }
-MLP.IN=12; MLP.HID=16; MLP.OUT=4;
+MLP.IN=BRAIN_IN; MLP.HID=16; MLP.OUT=4; // IN vient de carBrainInput : un seul chiffre a changer
 // SOURCE D'ALEA du reseau — remplacable pour rendre un run REPRODUCTIBLE (TRAIN la seme).
 // Rien d'autre ne change : meme topologie, memes taux, memes maths.
 MLP.rnd=Math.random;
@@ -12221,6 +12363,9 @@ const TRAIN={
   // ALEA SEME : sans lui, deux runs du MEME cerveau ne donnent pas le meme score (positions de
   // depart, embardees d'huile). L'EVOLUTION, elle, garde Math.random : c'est elle qui doit explorer.
   rngSeed:1234567, rnd:null, world:null, deaths:{},
+  // AMORCAGE : si un cerveau clone est disponible, la generation 0 part de LUI. ?clone=0 pour
+  // revenir au demarrage aleatoire — c est le seul moyen de mesurer si l amorcage sert a quelque chose.
+  useClone:!/[?&]clone=0/.test(location.search), seedBrain:null, seedSigma:0.10, seedRate:0.25,
   tmpV:new THREE.Vector3(),
   tmpF:{p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},
   inArr:new Float32Array(MLP.IN),
@@ -12254,9 +12399,17 @@ TRAIN.init=function(){
   try{ if(sirG) sirG.gain.setTargetAtTime(0,AC.currentTime,.1); }catch(e){}
   // HUD train
   TRAIN.makeHud();
-  // Population initiale
-  TRAIN.newGen(true);
-  TRAIN.running=true;
+  // LE CERVEAU CLONE, s il existe : on l attend avant de peupler la generation 0, sinon elle
+  // partirait au hasard puis serait remplacee en cours de route — resultat illisible.
+  TRAIN.boot=function(){ TRAIN.newGen(true); TRAIN.running=true; };
+  if(TRAIN.useClone&&typeof fetch==='function'){
+    fetch('results/cloned-brain.json',{cache:'no-store'})
+      .then(r=>r.ok?r.json():null)
+      .then(j=>{ if(j&&j.w&&j.w.length===MLP.SIZE) TRAIN.seedBrain=Float32Array.from(j.w);
+                 else if(j) console.warn('TRAIN : cloned-brain.json au mauvais format, ignore'); })
+      .catch(()=>{})
+      .then(()=>TRAIN.boot());
+  }else TRAIN.boot();
   // On remplace les fonctions Survivant par nos versions
   TRAIN.origSurvStart=survStart;
   TRAIN.origSurvTick=survTick;
@@ -12372,60 +12525,8 @@ TRAIN.botEvents=function(b){
   }
 };
 
-/* ---------- ENTRÉES DU CERVEAU (normalisées ~[-1,1]) ----------
-   Inchangées (autre mandat). Seuls les NOMS de champs suivent la caisse unique : rel = car.s,
-   air = mode==='fall', fPos/fVel = fallPos/fallVel.
-   ⚠ arr[0] lit `b.v` : comme chez le joueur, `v` est désormais GELÉ pendant le vol (c'était la
-   divergence n°9 du critic — les bots recalculaient `v` sur la vitesse aérienne). Le cerveau n'a
-   donc plus la vitesse horizontale en l'air : à re-qualifier quand on retouchera les entrées. */
-TRAIN.brainInput=function(b){
-  const rel=b.s;
-  const bi=Math.floor(THREE.MathUtils.clamp(rel/L,0,1)*(NP-1));
-  const segL=L/(NP-1);
-  const arr=TRAIN.inArr;
-  arr[0]=THREE.MathUtils.clamp(b.v/80,-1,1);
-  arr[1]=THREE.MathUtils.clamp(b.lat/ROAD_HALF,-1,1);
-  // Courbure devant
-  let crv=0;
-  const j1=Math.min(NP-1,bi+Math.max(1,Math.round(40/segL)));
-  const dot=T[bi].dot(T[j1]);
-  if(dot<0.9999){
-    const kap=Math.acos(THREE.MathUtils.clamp(dot,-1,1))/Math.max(1,40);
-    TRAIN.tmpV.crossVectors(T[bi],T[j1]);
-    crv=kap*Math.sign(TRAIN.tmpV.dot(Nn[bi]));
-  }
-  arr[2]=THREE.MathUtils.clamp(crv*300,-1,1);
-  // Distance au prochain trou
-  let holeD=999;
-  for(let i=bi;i<NP;i+=2){ if(holeAtI(i)){ holeD=(i-bi)*segL; break; } }
-  arr[3]=THREE.MathUtils.clamp(1-holeD/200,-1,1);
-  // Meilleur croisement devant
-  let bestGain=-999,bestJ=-1,bestDy=0,bestD3=0;
-  const lookI=Math.min(NP-1,bi+Math.max(10,Math.round(430/segL)));
-  for(let j=bi+6;j<lookI;j+=2){
-    if(holeAtI(j)) continue;
-    TRAIN.tmpV.subVectors(pts[bi],pts[j].clone().addScaledVector(B[j],ROAD_HALF)); const dL=TRAIN.tmpV.length();
-    TRAIN.tmpV.subVectors(pts[bi],pts[j].clone().addScaledVector(B[j],-ROAD_HALF)); const dR=TRAIN.tmpV.length();
-    const d3=Math.min(dL,dR);
-    if(d3<8 || d3>60) continue;
-    const dy=pts[bi].y-pts[j].y;
-    if(dy<10 || dy>60) continue;
-    const dArc=(j-bi)*segL;
-    const gain=dArc-d3;
-    if(gain>=25 && gain>bestGain){ bestGain=gain; bestJ=j; bestDy=dy; bestD3=d3; }
-  }
-  arr[4]=bestJ>=0?THREE.MathUtils.clamp(1-bestGain/300,-1,1):-1;
-  arr[5]=bestJ>=0?THREE.MathUtils.clamp(bestDy/60,-1,1):0;
-  arr[6]=bestJ>=0?THREE.MathUtils.clamp(bestGain/300,-1,1):-1;
-  arr[7]=THREE.MathUtils.clamp(b.nitroR/2,-1,1);
-  arr[8]=b.mode==='fall'?1:0;
-  if(b.mode==='fall'){
-    frameAt(rel,TRAIN.tmpF);
-    arr[9]=THREE.MathUtils.clamp((b.fallPos.y-TRAIN.tmpF.p.y)/40,-1,1);
-    arr[10]=THREE.MathUtils.clamp(b.fallVel.y/30,-1,1);
-  }else{ arr[9]=0; arr[10]=0; }
-  arr[11]=THREE.MathUtils.clamp(b.fallVel.y/30,-1,1);
-};
+/* ---------- ENTREES DU CERVEAU : on appelle LA fonction, on n en refait pas une ---------- */
+TRAIN.brainInput=function(b){ carBrainInput(b,TRAIN.inArr); };
 
 /* ---------- MISES À JOUR DES MESHES ----------
    L'orientation ne se recalcule plus ici : elle SORT de la physique (car.quat), exactement comme
@@ -12534,9 +12635,21 @@ TRAIN.newGen=function(first){
     // Nettoyage anciens meshes
     for(const b of TRAIN.bots) if(b.mesh && b.mesh.g) scene.remove(b.mesh.g);
     TRAIN.bots=newBots;
+  }else if(TRAIN.useClone&&TRAIN.seedBrain){
+    // LA GENERATION 0 N EST PLUS UN TIRAGE AU SORT : un exemplaire EXACT du cerveau clone
+    // (pour ne rien perdre de ce qu il sait), puis 23 variantes legerement bousculees — c est
+    // la diversite qui donne quelque chose a selectionner des la premiere manche.
+    TRAIN.bots=[TRAIN.makeBot(TRAIN.seedBrain)];
+    for(let i=1;i<TRAIN.POP;i++){
+      const b=TRAIN.makeBot(TRAIN.seedBrain);
+      b.brain.mutate(TRAIN.seedSigma,TRAIN.seedRate);
+      TRAIN.bots.push(b);
+    }
+    console.log('TRAIN : generation 0 AMORCEE par results/cloned-brain.json');
   }else{
     TRAIN.bots=[];
     for(let i=0;i<TRAIN.POP;i++) TRAIN.bots.push(TRAIN.makeBot(null));
+    if(TRAIN.GEN===0) console.log('TRAIN : generation 0 ALEATOIRE'+(TRAIN.useClone?' (aucun cerveau clone trouve)':' (?clone=0)'));
   }
   TRAIN.GEN++;
   TRAIN.genSinceTrack++;
