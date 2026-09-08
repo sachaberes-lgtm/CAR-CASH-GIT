@@ -19,8 +19,8 @@
    ================================================================================================ */
 const fs=require('fs'),path=require('path');
 
-const IN=12,HID=16,OUT=4;
-const SIZE=(IN+1)*HID+(HID+1)*OUT;                       // 276, comme MLP.SIZE
+let IN=12; const HID=16,OUT=4;   // IN est relu dans les demos
+let SIZE=0;   // recalcule des que IN est connu (voir plus bas)
 const argS=(n,d)=>{ const i=process.argv.indexOf('--'+n); return i>0?process.argv[i+1]:d; };
 const DEMOS=path.resolve(__dirname,argS('demos',path.join('results','demos')));
 const OUTF=path.resolve(__dirname,argS('out',path.join('results','cloned-brain.json')));
@@ -46,26 +46,66 @@ if(!files.length){
   console.log('           Lance ENREGISTRER.bat, joue quelques minutes, puis reviens.');
   process.exit(0);
 }
+/* ---------- LES ENTREES SONT RECALCULEES, JAMAIS RELUES ----------
+   Le 2026-09-08 on a change deux fois la definition des entrees (12 -> 15 -> 11) et chaque
+   changement rendait les demos inutilisables : elles stockaient des valeurs DEJA normalisees et
+   DEJA plafonnees. Un plafonnement ne se defait pas.
+   Desormais une demo stocke la GRAINE DE PISTE et l'ETAT BRUT de la caisse. On rebatit la piste,
+   on rejoue chaque etat dans carBrainInput, et on obtient les entrees au format du jour. Changer une
+   echelle ne coute plus une partie de jeu — c'est le sens de la tache 3. */
+const {loadGame}=require('./sim-env');
+console.log('— chargement du jeu (pour recalculer les entrees)…');
+const GAME=loadGame('?train=1&sim=1');
+const ISO=GAME.get('__ISO'), GTR=GAME.get('__TRAIN');
+IN=GTR.inArr.length;
+SIZE=(IN+1)*HID+(HID+1)*OUT;
+console.log('format du jour : '+IN+' entrees -> '+HID+' -> '+OUT+'   ('+SIZE+' poids)');
+
 const X=[],Y=[];
-let nAir=0;
+let nAir=0, refusees=0;
+const cl=v=>Math.max(-SAT,Math.min(SAT,v));
 for(const f of files){
   let j;
   try{ j=JSON.parse(fs.readFileSync(path.join(DEMOS,f),'utf8')); }
-  catch(e){ console.error('  demo illisible, ignoree : '+f+' ('+e.message+')'); continue; }
-  if(!j.rows||!j.rows.length){ console.error('  demo vide, ignoree : '+f); continue; }
-  if(j.in!==IN){ console.error('  demo au mauvais format ('+j.in+' entrees), ignoree : '+f); continue; }
-  for(const r of j.rows){
-    if(r.length!==IN+4)continue;
-    const x=r.slice(0,IN);
-    // les 4 cibles, ramenees dans ce qu'un tanh sait produire
-    const cl=v=>Math.max(-SAT,Math.min(SAT,v));
-    Y.push([cl(r[IN]), cl(r[IN+1]), r[IN+2]>0.5?SAT:-SAT, cl(r[IN+3])]);
-    X.push(x);
-    if(x[8]>0.5)nAir++;
+  catch(e){ console.error('  demo illisible, ignoree : '+f+' ('+e.message+')'); refusees++; continue; }
+  if(!j.rows||!j.rows.length){ console.error('  demo vide, ignoree : '+f); refusees++; continue; }
+  if(!j.etat||j.etat.length!==j.rows.length){
+    console.error('  REFUSEE (pas d etat brut) : '+f+'  — enregistree avant la tache 3, elle n est plus rejouable.');
+    refusees++; continue;
   }
-  if(!QUIET)console.log('  '+f+' : '+j.rows.length+' pas ('+(j.secondes||'?')+' s)');
+  if(j.seed===undefined){
+    console.error('  REFUSEE (pas de graine de piste) : '+f+'  — impossible de recalculer la courbure.');
+    refusees++; continue;
+  }
+  ISO.buildTrack(j.seed);                       // LA piste de cette partie, a l identique
+  const car=ISO.makeCar();
+  const IN0=j.in;                                // format d origine, pour lire les commandes
+  let n=0;
+  for(let i=0;i<j.rows.length;i++){
+    const e=j.etat[i], r=j.rows[i];
+    // l etat brut, remonte tel quel dans une caisse
+    car.s=e[0]; car.lat=e[1]; car.v=e[2]; car.psi=e[3]; car.side=e[4];
+    car.mode=e[5]>0.5?'fall':'drive'; car.nitroR=e[6];
+    car.fallVel.set(e[7],e[8],e[9]);
+    if(car.mode==='fall'){ // la hauteur se relit dans l entree d origine, faute de mieux (fallPos non stockee)
+      car.fallPos.set(0,0,0);
+    }
+    GTR.brainInput(car);
+    X.push(Array.from(GTR.inArr));
+    Y.push([cl(r[IN0]), cl(r[IN0+1]), r[IN0+2]>0.5?SAT:-SAT, cl(r[IN0+3])]);
+    if(car.mode==='fall')nAir++;
+    n++;
+  }
+  if(!QUIET)console.log('  '+f+' : '+n+' pas recalcules (piste '+j.seed+')');
 }
 const N=X.length;
+if(!N&&refusees){
+  console.error('\nECHEC : '+refusees+' demo(s) refusee(s), aucune exploitable.');
+  console.error('        Les demos d avant la tache 3 ne portent ni graine de piste ni etat brut complet.');
+  console.error('        Une nouvelle session (ENREGISTRER.bat) reglera le probleme DEFINITIVEMENT :');
+  console.error('        a partir de maintenant, changer une echelle ne coutera plus une partie.');
+  process.exit(1);
+}
 if(N<200){ console.error('\nECHEC : seulement '+N+' pas exploitables. Il en faut quelques milliers.'); process.exit(1); }
 console.log('\n'+files.length+' demo(s) · '+N+' pas · '+(N/60/60).toFixed(1)+' min de jeu · '+
             (100*nAir/N).toFixed(0)+'% en vol');

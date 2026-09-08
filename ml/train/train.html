@@ -2285,7 +2285,9 @@ function genPark(rnd){
   straight(150,-30,2);                 // SORTIE propre (le bouclage se fait par newTrack → nouveau secteur)
   return ctrl;
 }
+let TRACK_SEED=0;   // la graine de la piste COURANTE — c est elle qui rend une demo rejouable
 function buildTrack(seed){
+  TRACK_SEED=seed;
   for(const m of trackMeshes){scene.remove(m);if(m.geometry)m.geometry.dispose();if(m.material&&m.material.dispose)m.material.dispose();}
   trackMeshes.length=0;NEON_RAILS.length=0;NEON_GLOW.length=0;PADS=[];BUMPS=[];CONES=[];FLYCONES=[];OILS=[];RAMPS=[];
   const rnd=mulberry32(seed);
@@ -9152,30 +9154,59 @@ function stepCar(car,input,dt,world){
    vitesse horizontale en l'air. C'est voulu, c'est l'isomorphisme ; a re-qualifier si on retouche
    un jour les entrees.
    ================================================================================================ */
-const BRAIN_IN=12;
+/* ================================================================================================
+   LES ENTREES DU CERVEAU — UNE SEULE DEFINITION, pour l'enregistrement ET pour les bots
+   ------------------------------------------------------------------------------------------------
+   ⚠ RE-NORMALISATION DU 2026-09-08. L'audit des 15 entrees precedentes a montre que 8 d'entre elles
+   etaient SATUREES ou MORTES : le reseau pilotait avec 4 nombres utiles et 11 constantes. Les
+   echelles avaient ete devinees, jamais mesurees. Elles viennent desormais des PERCENTILES observes.
+
+   Ce qui a ete mesure (2e demo, 6500 pas + 6 pistes, 3600 points) :
+     vitesse      p5  68,5  p50 135,1  p95 238,8 m/s   -> /80 saturait 93 % du temps
+     psi          p5 -0,28  p50 -0,01  p95  0,21 rad   -> /1,4 n'utilisait qu'un septieme de la plage
+     vy en vol    p5 -272   p50 -134   p95   78  m/s   -> /30 saturait 74 % du temps
+     courbure 40  |p95| 0,0208   ·  120 : 0,0162  ·  300 : 0,0080  (rad/m)
+                  -> x300 saturait au-dela de 0,0033, soit 16 % du p95 : facteur 6 de trop
+
+   SUPPRIMEES (3) :
+     · « trou devant »       : active 0,0 % du temps sur 5 pistes — constante, pure perte de poids
+     · « croisement dy »     : 99 % a zero
+     · « courbure a 40 m »   : correlee a 0,654 avec celle a 120 m. ⚠ Le mandat demandait de retirer
+       « la plus plate des trois » — c'etait la 300 m d'apres l'ancien tableau, mais sa platitude
+       n'etait qu'un artefact de l'ecrasement : une fois remise a l'echelle, c'est la PLUS
+       INDEPENDANTE des trois (correlee a 0,06 et 0,11 avec les autres). La retirer aurait coute
+       l'anticipation lointaine. On retire la redondante a la place.
+
+   RESTENT 12 entrees. ATTENTION : leur ORDRE a change — un cerveau entraine avant cette date n'est
+   plus compatible (clone.js le detecte par la taille du vecteur de poids).
+   ================================================================================================ */
+const BRAIN_IN=11;
 const biV=new THREE.Vector3(),biP=new THREE.Vector3();
 const biF={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
 function carBrainInput(car,arr){
   const rel=car.s;
   const bi=Math.floor(THREE.MathUtils.clamp(rel/L,0,1)*(NP-1));
   const segL=L/(NP-1);
-  arr[0]=THREE.MathUtils.clamp(car.v/80,-1,1);
-  arr[1]=THREE.MathUtils.clamp(car.lat/ROAD_HALF,-1,1);
-  // Courbure devant
-  let crv=0;
-  const j1=Math.min(NP-1,bi+Math.max(1,Math.round(40/segL)));
-  const dot=T[bi].dot(T[j1]);
-  if(dot<0.9999){
-    const kap=Math.acos(THREE.MathUtils.clamp(dot,-1,1))/Math.max(1,40);
-    biV.crossVectors(T[bi],T[j1]);
-    crv=kap*Math.sign(biV.dot(Nn[bi]));
-  }
-  arr[2]=THREE.MathUtils.clamp(crv*300,-1,1);
-  // Distance au prochain trou
-  let holeD=999;
-  for(let i=bi;i<NP;i+=2){ if(holeAtI(i)){ holeD=(i-bi)*segL; break; } }
-  arr[3]=THREE.MathUtils.clamp(1-holeD/200,-1,1);
-  // Meilleur croisement devant
+  const cl=THREE.MathUtils.clamp;
+  // COURBURE a une distance donnee — signee, en rad/m
+  const courbure=d=>{
+    const j=Math.min(NP-1,bi+Math.max(1,Math.round(d/segL)));
+    const dot=T[bi].dot(T[j]);
+    if(dot>=0.9999)return 0;
+    const kap=Math.acos(cl(dot,-1,1))/Math.max(1,d);
+    biV.crossVectors(T[bi],T[j]);
+    return kap*Math.sign(biV.dot(Nn[bi]));
+  };
+  // ---- ce que la caisse sait d'elle-meme ----
+  arr[0]=cl((car.v-135)/110,-1,1);        // VITESSE, centree sur ta mediane (135 m/s = 243 km/h)
+  arr[1]=cl(car.lat/ROAD_HALF,-1,1);      // position laterale (bornee par la route : deja saine)
+  arr[2]=cl(car.psi/0.5,-1,1);            // CAP relatif a la route — l'entree la plus saine du lot
+  arr[3]=cl(car.nitroR/2.2,-1,1);         // reserve de nitro (max observe 2,21)
+  arr[4]=car.mode==='fall'?1:0;           // en vol ?
+  // ---- ce que la route lui montre ----
+  arr[5]=cl(courbure(120)*55,-1,1);       // la courbe qui arrive  (|p95| 0,0162)
+  arr[6]=cl(courbure(300)*110,-1,1);      // celle d'apres         (|p95| 0,0080)
+  // ---- le raccourci : rare (actif 4,7 % du temps) mais c'est LUI l'enjeu du jeu ----
   let bestGain=-999,bestJ=-1,bestDy=0;
   const lookI=Math.min(NP-1,bi+Math.max(10,Math.round(430/segL)));
   for(let j=bi+6;j<lookI;j+=2){
@@ -9189,17 +9220,16 @@ function carBrainInput(car,arr){
     const gain=(j-bi)*segL-d3;
     if(gain>=25 && gain>bestGain){ bestGain=gain; bestJ=j; bestDy=dy; }
   }
-  arr[4]=bestJ>=0?THREE.MathUtils.clamp(1-bestGain/300,-1,1):-1;
-  arr[5]=bestJ>=0?THREE.MathUtils.clamp(bestDy/60,-1,1):0;
-  arr[6]=bestJ>=0?THREE.MathUtils.clamp(bestGain/300,-1,1):-1;
-  arr[7]=THREE.MathUtils.clamp(car.nitroR/2,-1,1);
-  arr[8]=car.mode==='fall'?1:0;
+  arr[7]=bestJ>=0?cl(bestGain/300,-1,1):-1;   // combien il rapporterait
+  // (« croisement dy » supprimee ici : 99 % a zero dans la demo, et le detecteur entier ne se
+  //  declenche JAMAIS pendant une course reelle — voir le rapport. arr[8] reprend le vol.)
+  // ---- le vol ----
   if(car.mode==='fall'){
     frameAt(rel,biF);
-    arr[9]=THREE.MathUtils.clamp((car.fallPos.y-biF.p.y)/40,-1,1);
-    arr[10]=THREE.MathUtils.clamp(car.fallVel.y/30,-1,1);
-  }else{ arr[9]=0; arr[10]=0; }
-  arr[11]=THREE.MathUtils.clamp(car.fallVel.y/30,-1,1);
+    arr[8]=cl((car.fallPos.y-biF.p.y)/40,-1,1);   // hauteur au-dessus de la route
+    arr[9]=cl(car.fallVel.y/300,-1,1);            // vitesse verticale (p5 -272, p95 +78)
+  }else{ arr[8]=0; arr[9]=0; }
+  arr[10]=cl(car.fallVel.y/300,-1,1);             // idem, non conditionnee au vol
   return arr;
 }
 /* ================================================================================================
@@ -9227,7 +9257,7 @@ const PIN={steer:0,gas:0,nitro:false,pitch:0};
    ================================================================================================ */
 const IS_REC=/[?&]rec=1/.test(location.search);
 const REC={
-  on:false, rows:[], buf:new Float32Array(BRAIN_IN), el:null, t0:0, saved:0,
+  on:false, rows:[], etat:[], buf:new Float32Array(BRAIN_IN), el:null, t0:0, saved:0,
   // une ligne = 12 entrees + 4 commandes. `nitro` est note 1/0 : c'est la commande BRUTE,
   // clone.js decide seul comment en faire une cible pour un tanh.
   sample:function(car,inp){
@@ -9239,10 +9269,15 @@ const REC={
     r[BRAIN_IN+2]=inp.nitro?1:0;
     r[BRAIN_IN+3]=Math.round((inp.pitch||0)*1e4)/1e4;
     REC.rows.push(r);
+    // L ETAT BRUT, en plus des entrees : le jour ou l on ajoute une entree (ca vient d arriver),
+    // on peut en recalculer une partie au lieu de jeter la partie a la poubelle.
+    const q=v=>Math.round(v*1e3)/1e3;
+    REC.etat.push([q(car.s),q(car.lat),q(car.v),q(car.psi),car.side,car.mode==='fall'?1:0,
+                   q(car.nitroR),q(car.fallVel.x),q(car.fallVel.y),q(car.fallVel.z)]);
   },
   toggle:function(){
     if(REC.on){ REC.on=false; REC.save(); }
-    else{ REC.on=true; REC.rows.length=0; REC.t0=Date.now(); }
+    else{ REC.on=true; REC.rows.length=0; REC.etat.length=0; REC.t0=Date.now(); }
     REC.paint();
   },
   paint:function(){
@@ -9258,10 +9293,12 @@ const REC={
     const stamp=d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'-'+p(d.getHours())+p(d.getMinutes())+p(d.getSeconds());
     const name='demo-'+stamp+'.json';
     const payload=JSON.stringify({v:1,in:BRAIN_IN,out:4,
-      cols:['in0..in11','steer','gas','nitro','pitch'],
+      cols:['in0..in'+(BRAIN_IN-1),'steer','gas','nitro','pitch'],
+      seed:TRACK_SEED,   // LA GRAINE : clone.js rebatit la piste et RECALCULE les entrees
+      colsEtat:['s','lat','v','psi','side','enVol','nitroR','fvx','fvy','fvz'],
       frames:REC.rows.length,secondes:+(REC.rows.length/60).toFixed(1),
-      date:d.toISOString(),rows:REC.rows});
-    REC.rows=[];
+      date:d.toISOString(),rows:REC.rows,etat:REC.etat});
+    REC.rows=[];REC.etat=[];
     // 1) on tente le serveur d'enregistrement (ENREGISTRER.bat) : le fichier atterrit tout seul
     //    dans results/demos/. 2) sinon, telechargement classique — a deposer soi-meme dans le dossier.
     fetch('/rec-save?name='+encodeURIComponent(name),{method:'POST',headers:{'Content-Type':'application/json'},body:payload})
@@ -12357,7 +12394,7 @@ function randGauss(){
 
 /* ---------- NAMESPACE TRAIN ---------- */
 const TRAIN={
-  POP:24, GEN:0, genSinceTrack:0, seed:1,
+  POP:(+((location.search.match(/[?&]pop=(\d+)/)||[])[1])||24), GEN:0, genSinceTrack:0, seed:1,
   bots:[], running:false, genTime:0, matchDuration:45, simSpeed:1,
   record:0, camBot:0, acc:0,
   // ALEA SEME : sans lui, deux runs du MEME cerveau ne donnent pas le meme score (positions de
@@ -12489,19 +12526,45 @@ TRAIN.botStep=function(b,dt){
     b.think=0.1;
     TRAIN.brainInput(b);
     b.brain.forward(TRAIN.inArr,TRAIN.outArr);
-    // Les 4 sorties = les VRAIES commandes du joueur (pas de triche de position)
-    b.in.steer=TRAIN.outArr[MLP.HID+0];              // volant (-1..1)
-    b.in.gas  =TRAIN.outArr[MLP.HID+1];              // gaz : >.5 accelere, <-.5 freine
-    b.in.nitro=TRAIN.outArr[MLP.HID+2]>0.5;          // nitro
-    b.in.pitch=TRAIN.outArr[MLP.HID+3];              // pitch aerien : -1 pique, +1 cabre
+    /* ---- L ESPACE D ACTION DU BOT = CELUI DU JOUEUR, EXACTEMENT ----
+       Le bot ne produit plus quatre commandes independantes : il choisit un ETAT DE TOUCHES, et
+       gaz/assiette en DECOULENT — exactement ce que pcarInput fait pour le clavier.
+       Pourquoi : au clavier, tenir le gaz (fleche HAUT) impose le PIQUE, et cabrer impose de lacher
+       le gaz. L ancien mapping donnait au bot quatre canaux libres : il tenait le cabre a fond tout
+       en gardant le gaz — une commande qu aucun humain ne peut produire (mesure du 2026-09-08 :
+       assiette moyenne +0,88 en permanence, d ou les voitures qui montaient en chandelle).
+       Second defaut repare ici : `gas` etait la sortie CONTINUE du reseau, or la physique lit
+       `gas>0.5`. Le reseau repondait 0,374 en moyenne — sous le seuil — donc les voitures roulaient
+       en ROUE LIBRE et se trainaient a 83 km/h. Une touche est binaire : on la decide, on ne la dose pas.
+       ⚠ Le volant est discretise pour la meme raison : au clavier il vaut -1, 0 ou +1. Le lissage
+       (`steer += (cible-steer)*dt*18`) vit dans stepCar et s applique pareil au joueur. */
+    const up9=TRAIN.outArr[MLP.HID+1]>0;             // « je tiens la fleche HAUT »
+    const dn9=TRAIN.outArr[MLP.HID+3]>0;             // « je tiens la fleche BAS » (frein au sol, cabre en vol)
+    const lf9=TRAIN.outArr[MLP.HID+0]>0.33, rt9=TRAIN.outArr[MLP.HID+0]<-0.33;
+    b.in.steer=(lf9?1:0)-(rt9?1:0);                  // exactement (lf?1:0)-(rt?1:0) cote joueur
+    b.in.gas  =dn9?-1:(up9?1:0);                     // exactement PIN.gas
+    b.in.pitch=(up9?-1:0)+(dn9?1:0);                 // exactement PIN.pitch (branche clavier)
+    b.in.nitro=TRAIN.outArr[MLP.HID+2]>0;            // Maj/Espace : une touche, pas un dosage
   }
-  const wasAir=(b.mode==='fall');
+  const wasAir=(b.mode==='fall'), sAvant=b.s;
   stepCar(b,b.in,dt,TRAIN.world);
   TRAIN.botEvents(b);
   b.boostT=b.nitroOn?1:0;                            // le jet du mesh suit la VRAIE combustion
   b.totD=SURV.pBase+b.s;
+  b.aliveT+=dt;
+  // CONTROLE : les metres gagnes AU SOL, ponderes par le centrage. Rouler au ras du bord ne
+  // rapporte rien ; c'est la le gradient que l'evolution n'avait pas.
+  if(!wasAir && b.mode==='drive'){
+    const ds=b.s-sAvant;
+    if(ds>0) b.ctrl+=ds*Math.max(0,1-Math.abs(b.lat)/ROAD_HALF);
+  }
+  // ARRIVEE : la ligne, au bout de la zone
+  if(!b.finished && b.s>L-32){ b.finished=true; b.finishT=b.aliveT; TRAIN.kill(b,'arrivee'); return; }
   if(b.mode==='boom'){ TRAIN.kill(b,b.deathWhy||'crash'); return; }
-  if(!wasAir && b.mode==='fall') b.flyStartTotD=b.totD;   // il vient de decoller
+  if(!wasAir && b.mode==='fall'){
+    b.flyStartTotD=b.totD;                               // il vient de decoller
+    if(Math.abs(b.lat)>=ROAD_HALF-1.5) b.outs++;         // ...et c'etait PAR LE BORD : ca se paye
+  }
   else if(wasAir && b.mode==='drive'){                    // il vient de se poser
     const gain=b.totD-b.flyStartTotD;                     // GAIN DE COUPE : la dalle visee etait loin
     b.landings++;
@@ -12591,6 +12654,7 @@ TRAIN.makeBot=function(weights){
   b.in={steer:0,gas:0,nitro:false,pitch:0}; // les 4 commandes que le cerveau produit
   b.alive=true; b.totD=0; b.think=0; b.boostT=0;
   b.fitness=0; b.landings=0; b.goodCuts=0; b.cutGain=0; b.flyStartTotD=0;
+  b.ctrl=0; b.outs=0; b.aliveT=0; b.finished=false; b.finishT=0;
   b.v=26; b.nitroR=1.2; b.graceT=1.6;
   return b;
 };
@@ -12605,10 +12669,47 @@ TRAIN.resetBot=function(b){
   b.in.steer=0; b.in.gas=0; b.in.nitro=false; b.in.pitch=0;
   b.alive=true; b.think=0; b.boostT=0;
   b.fitness=0; b.landings=0; b.goodCuts=0; b.cutGain=0; b.flyStartTotD=0;
+  b.ctrl=0; b.outs=0; b.aliveT=0; b.finished=false; b.finishT=0;
   b.v=26; b.nitroR=1.2; b.graceT=1.6;
   b.s=(TRAIN.rnd()*2-1)*20;
   b.lat=(TRAIN.rnd()*2-1)*(ROAD_HALF-4);
   b.totD=SURV.pBase+b.s;
+};
+
+/* ================================================================================================
+   LA NOTE — ce qu'on demande vraiment aux voitures
+   ------------------------------------------------------------------------------------------------
+   AVANT : `totD + 150*goodCuts`. Deux defauts mesures le 2026-09-08 :
+     · la prime de coupe ne pesait que 8,5 % et payait le SAUT alors que les bots ne savent pas se
+       poser (0,3 atterrissage par bot) — elle poussait dans la mauvaise direction ;
+     · surtout, la note ne voyait que la distance FINALE. Un bot au milieu de la route et un bot a
+       un cheveu du bord avaient exactement le meme score jusqu'a la seconde ou l'un tombait.
+       L'evolution n'avait donc AUCUN gradient pour apprendre a tenir sa ligne : elle ne pouvait que
+       constater la mort apres coup. Et 100 % des decollages se font PAR LE BORD.
+   MAINTENANT, dans l'ordre de ce qui compte :
+     · PROGRESSION le long du ruban (c'est l'objectif : aller loin, donc vite, dans le temps imparti) ;
+     · CONTROLE : chaque metre parcouru compte double s'il est fait au CENTRE, zero s'il est fait au
+       bord. C'est le signal dense qui manquait — tenir sa ligne se met a payer metre par metre ;
+     · SORTIE DE ROUTE : chaque passage par-dessus le bord coute. C'est l'action « jamais benefique »
+       qu'on punit pour que l'exploration aille voir ailleurs ;
+     · ARRIVEE : gros bonus pour franchir la ligne, plus une prime au temps restant — « le plus vite
+       possible » devient litteral le jour ou ils y arriveront.
+   (Forme classique du probleme : progression par segment + pression temporelle, comme le banc
+   CarRacing de reference. Ce qu'on n'a PAS mis : une penalite par frame — tant que la ligne est hors
+   d'atteinte en une manche, elle ne ferait que punir la survie.)
+   ================================================================================================ */
+TRAIN.W_CUT=0;      // ANCIENNE prime de coupe — gardee a 0 pour pouvoir REJOUER l ancienne note
+                    // et comparer les deux a la meme aune (W_CTRL=0,W_OUT=0,W_CUT=150).
+TRAIN.W_CTRL=1.0;   // un metre au centre vaut deux metres au bord
+TRAIN.W_OUT=120;    // ce que coute une sortie de route
+TRAIN.W_FIN=3000;   // franchir la ligne
+TRAIN.W_TEMPS=40;   // ...et chaque seconde gagnee pour le faire
+TRAIN.fitness=function(b){
+  return b.totD
+       + TRAIN.W_CUT*(b.goodCuts||0)
+       + TRAIN.W_CTRL*(b.ctrl||0)
+       - TRAIN.W_OUT*(b.outs||0)
+       + (b.finished?TRAIN.W_FIN+TRAIN.W_TEMPS*Math.max(0,TRAIN.matchDuration-b.finishT):0);
 };
 
 TRAIN.tournament=function(sorted){
@@ -12666,7 +12767,7 @@ TRAIN.newGen=function(first){
 
 TRAIN.endGen=function(){
   for(const b of TRAIN.bots) if(b.alive){
-    b.fitness=b.totD + 150*b.goodCuts;
+    b.fitness=TRAIN.fitness(b);
     if(b.fitness>TRAIN.record) TRAIN.record=b.fitness;
   }
   let best=0,alive=0;
@@ -12683,7 +12784,7 @@ TRAIN.kill=function(b,why){
   b.alive=false;
   TRAIN.deaths[why]=(TRAIN.deaths[why]||0)+1;
   b.mesh.g.visible=false;
-  b.fitness=b.totD + 150*b.goodCuts;
+  b.fitness=TRAIN.fitness(b);
   if(b.fitness>TRAIN.record) TRAIN.record=b.fitness;
 };
 
@@ -12740,6 +12841,11 @@ if(typeof location!=='undefined'&&/sim=1/.test(location.search))window.__TRAIN=T
    Voir ml/train/check-iso.js. Inactif en jeu normal. */
 if(typeof location!=='undefined'&&/sim=1/.test(location.search))window.__ISO={
   stepCar:stepCar, makeCar:makeCar, PCAR:PCAR, PWORLD:PWORLD, buildTrack:buildTrack,
+  courbures:function(s){ const c={s:s}; const bi=Math.floor(THREE.MathUtils.clamp(s/L,0,1)*(NP-1)), segL=L/(NP-1);
+    for(const d of [40,120,300]){ const j=Math.min(NP-1,bi+Math.max(1,Math.round(d/segL))); const dot=T[bi].dot(T[j]);
+      if(dot>=0.9999){c[d]=0;continue;} const kap=Math.acos(THREE.MathUtils.clamp(dot,-1,1))/Math.max(1,d);
+      const v=new THREE.Vector3().crossVectors(T[bi],T[j]); c[d]=kap*Math.sign(v.dot(Nn[bi])); }
+    return c; },
   track:function(){ return {L:L,NP:NP,PADS:PADS.length,RAMPS:RAMPS.length,CONES:CONES.length,OILS:OILS.length,HOLES:HOLES.length}; },
   // CHEMIN JOUEUR : exactement ce que fait la boucle de jeu — globales -> stepCar -> globales
   playerStep:function(input,dt){ pcarPush(); const e=stepCar(PCAR,input,dt,PWORLD); pcarPull(); return e; },
