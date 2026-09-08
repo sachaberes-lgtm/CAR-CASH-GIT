@@ -9273,7 +9273,11 @@ const REC={
     // on peut en recalculer une partie au lieu de jeter la partie a la poubelle.
     const q=v=>Math.round(v*1e3)/1e3;
     REC.etat.push([q(car.s),q(car.lat),q(car.v),q(car.psi),car.side,car.mode==='fall'?1:0,
-                   q(car.nitroR),q(car.fallVel.x),q(car.fallVel.y),q(car.fallVel.z)]);
+                   q(car.nitroR),q(car.fallVel.x),q(car.fallVel.y),q(car.fallVel.z),
+                   TRACK_SEED]);  // LA GRAINE, PAR FRAME : une partie traverse des portails et
+                                  // des morts, donc plusieurs pistes. Une seule graine par
+                                  // fichier aurait fait recalculer les frames d avant sur la
+                                  // mauvaise piste — et brule la session en silence.
   },
   toggle:function(){
     if(REC.on){ REC.on=false; REC.save(); }
@@ -9295,7 +9299,7 @@ const REC={
     const payload=JSON.stringify({v:1,in:BRAIN_IN,out:4,
       cols:['in0..in'+(BRAIN_IN-1),'steer','gas','nitro','pitch'],
       seed:TRACK_SEED,   // LA GRAINE : clone.js rebatit la piste et RECALCULE les entrees
-      colsEtat:['s','lat','v','psi','side','enVol','nitroR','fvx','fvy','fvz'],
+      colsEtat:['s','lat','v','psi','side','enVol','nitroR','fvx','fvy','fvz','seed'],
       frames:REC.rows.length,secondes:+(REC.rows.length/60).toFixed(1),
       date:d.toISOString(),rows:REC.rows,etat:REC.etat});
     REC.rows=[];REC.etat=[];

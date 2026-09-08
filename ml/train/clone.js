@@ -73,16 +73,20 @@ for(const f of files){
     console.error('  REFUSEE (pas d etat brut) : '+f+'  — enregistree avant la tache 3, elle n est plus rejouable.');
     refusees++; continue;
   }
-  if(j.seed===undefined){
-    console.error('  REFUSEE (pas de graine de piste) : '+f+'  — impossible de recalculer la courbure.');
+  if(j.etat[0].length<11){
+    console.error('  REFUSEE (pas de graine PAR FRAME) : '+f);
+    console.error('              Une partie traverse plusieurs pistes (portails, morts) et');
+    console.error('              l enregistrement continue a travers : une graine unique ferait');
+    console.error('              recalculer les frames d avant sur la mauvaise piste.');
     refusees++; continue;
   }
-  ISO.buildTrack(j.seed);                       // LA piste de cette partie, a l identique
   const car=ISO.makeCar();
   const IN0=j.in;                                // format d origine, pour lire les commandes
-  let n=0;
+  let n=0, seedCourante=null, nPistes=0;
   for(let i=0;i<j.rows.length;i++){
     const e=j.etat[i], r=j.rows[i];
+    // LA PISTE DE CETTE FRAME : on ne rebatit que quand elle change (portail ou mort)
+    if(e[10]!==seedCourante){ seedCourante=e[10]; ISO.buildTrack(seedCourante); nPistes++; }
     // l etat brut, remonte tel quel dans une caisse
     car.s=e[0]; car.lat=e[1]; car.v=e[2]; car.psi=e[3]; car.side=e[4];
     car.mode=e[5]>0.5?'fall':'drive'; car.nitroR=e[6];
@@ -96,7 +100,7 @@ for(const f of files){
     if(car.mode==='fall')nAir++;
     n++;
   }
-  if(!QUIET)console.log('  '+f+' : '+n+' pas recalcules (piste '+j.seed+')');
+  if(!QUIET)console.log('  '+f+' : '+n+' pas recalcules sur '+nPistes+' piste(s)');
 }
 const N=X.length;
 if(!N&&refusees){
