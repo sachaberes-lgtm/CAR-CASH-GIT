@@ -197,10 +197,12 @@ au §7.1. **C'est là qu'il faut travailler en priorité.**
    maintenant ». Quand un raccourci est visible (arr[7]>0) ET que le MLP signale couper, le pilote
    vise le BORD choisi par steer -> la caisse décolle, et le MLP reprend la main en vol (viseur).
    **Mesuré (8 graines × 25 gen)** : moyenne 3140 m (vs 2936 sans coupe), aucune graine sous 2958
-   (vs 1179 en MLP pur), morts airtime 36→370 (les bots sautent). MAIS **0 bonne coupe rentable
-   n'a émergé** : ils décollent et n'atterrissent jamais avec un gain net > 20 m. La VOLTIGE est le
-   goulot d'étranglement — il reste (b) le gymnase aérien : caisse placée en l'air, dalle à
-   atteindre, épisodes de ~3 s = 15× plus d'essais qu'une manche de 45 s.
+   (vs 1179 en MLP pur), morts airtime 36→370 (les bots sautent). ⚠ Mesure POPULATION (le proprio,
+   pas le champion seul) : **217 décollages · 19 atterrissages · 11 bonnes coupes** — gain d'arc
+   médiane 41 m · p95 1505 m · max 1719 m. La décision de couper FONCTIONNE : de vrais raccourcis
+   émergent. Le « 0 coupe » était un bug de MON instrumentation (multi-train ne lisait que le
+   champion, pas la meute). Le vrai chantier : le taux d'atterrissage (19/217 ≈ 9 %) — (b) le
+   gymnase aérien reste la bonne suite.
 5. **La fitness** : `totD + contrôle − sorties + arrivée`. L'ancienne est rejouable via
    `W_CTRL=0, W_OUT=0, W_CUT=150`. Un A/B a montré **aucun effet** — le problème était en amont.
 6. **Algorithme** : la sélection actuelle (élitisme + tournoi) est le maillon faible. CMA-ES sur 260
