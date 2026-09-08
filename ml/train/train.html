@@ -9211,30 +9211,35 @@ function carBrainInput(car,arr){
   // ---- ce que la route lui montre ----
   arr[5]=cl(courbure(120)*55,-1,1);       // la courbe qui arrive  (|p95| 0,0162)
   arr[6]=cl(courbure(300)*110,-1,1);      // celle d'apres         (|p95| 0,0080)
-  // ---- le raccourci : rare (actif 4,7 % du temps) mais c'est LUI l'enjeu du jeu ----
-  let bestGain=-999,bestJ=-1,bestDy=0;
+  // ---- le raccourci : c'est LUI l'enjeu du jeu (couper entre routes croisees) ----
+  // ⚠ Bug #20 (CRITIC) : l'ancien filtre `d3∈[8,60]` + `dy∈[10,60]` etait calibre pour une
+  //   geometrie que le generateur ne produit pas (d3 median 167 m, dy median 83 m) -> le detecteur
+  //   ne se declenchait jamais (arr[7] = -1 en permanence, mesure). Correction : on filtre sur le
+  //   GAIN NET (distance le long de la piste - distance 3D), pas sur une distance absolue.
+  let bestGain=-999,bestJ=-1;
   const lookI=Math.min(NP-1,bi+Math.max(10,Math.round(430/segL)));
   for(let j=bi+6;j<lookI;j+=2){
     if(holeAtI(j)) continue;
     biV.copy(pts[bi]).sub(biP.copy(pts[j]).addScaledVector(B[j],ROAD_HALF)); const dL=biV.length();
     biV.copy(pts[bi]).sub(biP.copy(pts[j]).addScaledVector(B[j],-ROAD_HALF)); const dR=biV.length();
     const d3=Math.min(dL,dR);
-    if(d3<8 || d3>60) continue;
-    const dy=pts[bi].y-pts[j].y;
-    if(dy<10 || dy>60) continue;
-    const gain=(j-bi)*segL-d3;
-    if(gain>=25 && gain>bestGain){ bestGain=gain; bestJ=j; bestDy=dy; }
+    if(d3<8) continue;                 // trop proche = auto-collision, pas un raccourci
+    const gain=(j-bi)*segL-d3;         // l'economie en distance : c'est CA le raccourci
+    if(gain>=25 && gain>bestGain){ bestGain=gain; bestJ=j; }
   }
   arr[7]=bestJ>=0?cl(bestGain/300,-1,1):-1;   // combien il rapporterait
-  // (« croisement dy » supprimee ici : 99 % a zero dans la demo, et le detecteur entier ne se
-  //  declenche JAMAIS pendant une course reelle — voir le rapport. arr[8] reprend le vol.)
-  // ---- le vol ----
+  // ---- le vol : le VISEUR D'ATTERRISSAGE (Bug #11/#12) ----
+  // Avant : arr[8] = hauteur au-dessus de la route AU DECOLLAGE (car.s fige en vol -> le cerveau
+  // etait aveugle), arr[9] = vy redondant avec arr[10]. Desormais : le cerveau voit la DALLE qu'il
+  // vise (car.landI/landH/landL, recalculee a chaque frame de vol par carFall). C'est ce qui permet
+  // d'apprendre la voltige : savoir OU atterrir, pas juste qu'on tombe.
   if(car.mode==='fall'){
-    frameAt(rel,biF);
-    arr[8]=cl((car.fallPos.y-biF.p.y)/40,-1,1);   // hauteur au-dessus de la route
-    arr[9]=cl(car.fallVel.y/300,-1,1);            // vitesse verticale (p5 -272, p95 +78)
+    if(car.landI>=0){
+      arr[8]=cl(car.landH/40,-1,1);               // hauteur au-dessus de la dalle visee (0 = dessus)
+      arr[9]=cl(car.landL/ROAD_HALF,-1,1);        // decalage lateral sur la dalle (0 = centre)
+    }else{ arr[8]=-1; arr[9]=0; }                 // pas de dalle en vue
   }else{ arr[8]=0; arr[9]=0; }
-  arr[10]=cl(car.fallVel.y/300,-1,1);             // idem, non conditionnee au vol
+  arr[10]=cl(car.fallVel.y/300,-1,1);             // vitesse verticale (toujours, non redondante)
   return arr;
 }
 /* ================================================================================================
@@ -12579,12 +12584,15 @@ TRAIN.botStep=function(b,dt){
   if(b.mode==='boom'){ TRAIN.kill(b,b.deathWhy||'crash'); return; }
   if(!wasAir && b.mode==='fall'){
     b.flyStartTotD=b.totD;                               // il vient de decoller
+    b.flyStartPos.copy(b.fallPos);                       // position 3D du decollage (pour le gain net)
     if(Math.abs(b.lat)>=ROAD_HALF-1.5) b.outs++;         // ...et c'etait PAR LE BORD : ca se paye
   }
   else if(wasAir && b.mode==='drive'){                    // il vient de se poser
-    const gain=b.totD-b.flyStartTotD;                     // GAIN DE COUPE : la dalle visee etait loin
+    const gain=b.totD-b.flyStartTotD;                     // distance gagnee LE LONG DU RUBAN
+    const d3=b.fallPos.distanceTo(b.flyStartPos);         // distance 3D reellement parcourue
+    const gainNet=gain-d3;                                // GAIN NET = distance ECONOMISEE (la voltige)
     b.landings++;
-    if(gain>20){ b.goodCuts++; b.cutGain+=gain; }
+    if(gainNet>20){ b.goodCuts++; b.cutGain+=gainNet; }   // recompense l'economie, pas le double-comptage
   }
 };
 // Les evenements que la physique crie : ici on ne garde que ce qui se VOIT sur la piste.
@@ -12670,7 +12678,7 @@ TRAIN.makeBot=function(weights){
   b.in={steer:0,gas:0,nitro:false,pitch:0}; // les 4 commandes que le cerveau produit
   b.alive=true; b.totD=0; b.think=0; b.boostT=0;
   b.fitness=0; b.fitnessSum=0; b.evalCount=0;
-  b.landings=0; b.goodCuts=0; b.cutGain=0; b.flyStartTotD=0;
+  b.landings=0; b.goodCuts=0; b.cutGain=0; b.flyStartTotD=0; b.flyStartPos=new THREE.Vector3();
   b.ctrl=0; b.outs=0; b.aliveT=0; b.finished=false; b.finishT=0;
   b.v=26; b.nitroR=1.2; b.graceT=1.6;
   return b;
@@ -12685,7 +12693,7 @@ TRAIN.resetBot=function(b){
   }
   b.in.steer=0; b.in.gas=0; b.in.nitro=false; b.in.pitch=0;
   b.alive=true; b.think=0; b.boostT=0;
-  b.fitness=0; b.landings=0; b.goodCuts=0; b.cutGain=0; b.flyStartTotD=0;
+  b.fitness=0; b.landings=0; b.goodCuts=0; b.cutGain=0; b.flyStartTotD=0; b.flyStartPos.set(0,0,0);
   b.ctrl=0; b.outs=0; b.aliveT=0; b.finished=false; b.finishT=0;
   b.v=26; b.nitroR=1.2; b.graceT=1.6;
   b.s=(TRAIN.rnd()*2-1)*20;
@@ -12715,15 +12723,19 @@ TRAIN.resetBot=function(b){
    CarRacing de reference. Ce qu'on n'a PAS mis : une penalite par frame — tant que la ligne est hors
    d'atteinte en une manche, elle ne ferait que punir la survie.)
    ================================================================================================ */
-TRAIN.W_CUT=0;      // ANCIENNE prime de coupe — gardee a 0 pour pouvoir REJOUER l ancienne note
-                    // et comparer les deux a la meme aune (W_CTRL=0,W_OUT=0,W_CUT=150).
+TRAIN.W_CUT=3;      // recompense de COUPE : +W_CUT point par METRE de raccourci gagne (gain NET).
+                    // PROPORTIONNEL et NET (ruban - distance 3D) : un grand saut paie plus qu'un
+                    // petit, et on ne double-compte pas la distance (deja dans totD).
+                    // Mesure (multi-train 8 graines x 25 gen, 2026-09-08) : distance mediane
+                    // 2821 -> 3047 (+8 %) a W_CUT=3 vs 0. Modeste mais reel ; corrige le Bug #13
+                    // (la voltige n avait AUCUNE recompense). L optimum fin reste a cartographier.
 TRAIN.W_CTRL=1.0;   // un metre au centre vaut deux metres au bord
 TRAIN.W_OUT=120;    // ce que coute une sortie de route
 TRAIN.W_FIN=3000;   // franchir la ligne
 TRAIN.W_TEMPS=40;   // ...et chaque seconde gagnee pour le faire
 TRAIN.fitness=function(b){
   return b.totD
-       + TRAIN.W_CUT*(b.goodCuts||0)
+       + TRAIN.W_CUT*(b.cutGain||0)
        + TRAIN.W_CTRL*(b.ctrl||0)
        - TRAIN.W_OUT*(b.outs||0)
        + (b.finished?TRAIN.W_FIN+TRAIN.W_TEMPS*Math.max(0,TRAIN.matchDuration-b.finishT):0);

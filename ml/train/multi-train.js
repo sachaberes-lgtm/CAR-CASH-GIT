@@ -19,13 +19,18 @@ const arg=(n,d)=>{ const i=process.argv.indexOf('--'+n); return i>0?parseInt(pro
 const NSEEDS=Math.min(arg('seeds',8), Math.max(1,os.cpus().length));
 const GENS=arg('gens',25);
 const SIM=path.join(__dirname,'sim-train.js');
+// --wcut X : poids de la recompense de coupe (A/B xp-coupe). Absent = celui du code.
+const wcutIdx=process.argv.indexOf('--wcut');
+const WCUT=wcutIdx>0?process.argv[wcutIdx+1]:null;
 
 function median(a){ const b=a.slice().sort((x,y)=>x-y); const n=b.length;
   return n?Math.round(n%2?b[(n-1)/2]:(b[n/2-1]+b[n/2])/2):0; }
 
 function run(seed){
   return new Promise((res)=>{
-    const p=spawn('node',[SIM,'--seed',String(seed),'--gens',String(GENS),'--random'],{cwd:__dirname});
+    const args=[SIM,'--seed',String(seed),'--gens',String(GENS),'--random'];
+    if(WCUT!==null) args.push('--wcut',WCUT);
+    const p=spawn('node',args,{cwd:__dirname});
     let out='',err='';
     p.stdout.on('data',d=>out+=d);
     p.stderr.on('data',d=>err+=d);
@@ -41,24 +46,31 @@ function run(seed){
 (async()=>{
   const t0=Date.now();
   const seeds=Array.from({length:NSEEDS},(_,k)=>1000+k*101);  // graines bien distinctes
-  console.log('multi-train — '+NSEEDS+' cœurs, '+NSEEDS+' graines, '+GENS+' générations chacune\n');
+  console.log('multi-train — '+NSEEDS+' cœurs, '+NSEEDS+' graines, '+GENS+' générations chacune'+
+              (WCUT!==null?' · W_CUT='+WCUT:'')+'\n');
   const results=await Promise.all(seeds.map(run));
   results.sort((a,b)=>a.seed-b.seed);
 
-  console.log(' graine | record | générations | OK');
-  let ok=0; const records=[];
+  console.log(' graine | distance | fitness | générations | OK');
+  let ok=0; const dists=[]; const fits=[]; const deaths={};
   for(const r of results){
-    const rec=r.resume?r.resume.record:null;
+    const dist=r.resume?r.resume.maxTotD:null;    // la DISTANCE (ce qui compte : aller loin)
+    const fit=r.resume?r.resume.record:null;      // la FITNESS (gonflee par W_CUT*cutGain)
     const gen=r.resume?r.resume.gen:null;
     const fin=(r.code===0);
-    if(fin) ok++; if(rec!=null) records.push(rec);
-    console.log(String(r.seed).padStart(7)+' | '+(rec!=null?String(rec).padStart(6):'   —  ')+
+    if(fin) ok++; if(dist!=null) dists.push(dist); if(fit!=null) fits.push(fit);
+    if(r.resume&&r.resume.deaths) for(const k in r.resume.deaths) deaths[k]=(deaths[k]||0)+r.resume.deaths[k];
+    console.log(String(r.seed).padStart(7)+' | '+(dist!=null?String(dist).padStart(8):'   —   ')+
+                ' | '+(fit!=null?String(fit).padStart(7):'   —  ')+
                 ' | '+(gen!=null?String(gen).padStart(11):'   —  ')+' | '+(fin?'OK':'ECHEC'));
   }
   const dt=((Date.now()-t0)/1000);
-  console.log('\n meilleur record : '+(records.length?Math.max(...records):'—')+
-              ' · médiane : '+(records.length?median(records):'—')+
-              ' · moyenne : '+(records.length?Math.round(records.reduce((a,b)=>a+b,0)/records.length):'—'));
+  console.log('\n DISTANCE (totD)  : meilleur '+(dists.length?Math.max(...dists):'—')+
+              ' · médiane '+(dists.length?median(dists):'—')+
+              ' · moyenne '+(dists.length?Math.round(dists.reduce((a,b)=>a+b,0)/dists.length):'—'));
+  console.log(' fitness  (note)  : meilleur '+(fits.length?Math.max(...fits):'—')+
+              ' · médiane '+(fits.length?median(fits):'—'));
+  if(Object.keys(deaths).length) console.log(' morts cumulés : '+Object.keys(deaths).map(k=>k+' '+deaths[k]).join(' · '));
   console.log(' '+ok+'/'+NSEEDS+' graines terminées en '+dt.toFixed(0)+' s de mur ('+NSEEDS+' évolutions indépendantes)');
   process.exit(ok===NSEEDS?0:1);
 })();

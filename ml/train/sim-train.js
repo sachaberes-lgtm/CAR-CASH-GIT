@@ -32,6 +32,9 @@ else{
 // GRAINE : depuis que tout l'aléa du mode train passe par TRAIN.rnd, un run est REPRODUCTIBLE.
 // `node sim-train.js --seed 42` (ou TRAIN_SEED=42) rejoue une autre population sur une autre piste —
 // c'est ce qui permet de COMPARER deux versions du code au lieu de comparer deux coups de chance.
+// `--wcut X` force le poids de la recompense de coupe (pour l A/B xp-coupe, defaut = celui du code).
+const WCUT=(()=>{ const i=process.argv.indexOf('--wcut'); return i>0?parseFloat(process.argv[i+1]):null; })();
+if(WCUT!==null && isFinite(WCUT)) T.W_CUT=WCUT;
 {
   const a=process.argv.indexOf('--seed');
   const sd=a>0?parseInt(process.argv[a+1],10):(process.env.TRAIN_SEED?parseInt(process.env.TRAIN_SEED,10):null);
@@ -69,6 +72,12 @@ T.newGen=function(first){
   return n0.apply(T,arguments);
 };
 
+// BILAN DES MORTS : hooke T.kill pour compter les causes sur TOUTE la sim (idle / airtime / void /
+// arrivee...). C'est le signal qui dit si une recompense pousse a sauter (airtime) ou a finir.
+const deaths={};
+const k0=T.kill;
+T.kill=function(b,why){ deaths[why]=(deaths[why]||0)+1; return k0.apply(T,arguments); };
+
 let lastGen=T.GEN;
 let maxTotD=0;
 for(let i=0;i<MAX_TICKS && T.GEN<TARGET_GEN;i++){
@@ -89,7 +98,7 @@ for(let i=0;i<MAX_TICKS && T.GEN<TARGET_GEN;i++){
 const alive=T.bots.filter(b=>b.alive).length;
 console.log('FIN SIM : génération',T.GEN,'vivants',alive,'/24','max totD',maxTotD.toFixed(1),
             'record',Math.round(T.record));
-console.log('RESUME '+JSON.stringify({gen:T.GEN,record:Math.round(T.record),maxTotD:Math.round(maxTotD),courbe:courbe}));
+console.log('RESUME '+JSON.stringify({gen:T.GEN,record:Math.round(T.record),maxTotD:Math.round(maxTotD),courbe:courbe,deaths:deaths}));
 if(T.GEN<TARGET_GEN){
   console.error('ECHEC : '+T.GEN+' generations sur '+TARGET_GEN+' demandees');
   process.exit(1);
