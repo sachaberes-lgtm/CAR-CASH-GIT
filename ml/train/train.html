@@ -12426,6 +12426,12 @@ const TRAIN={
   // ALEA SEME : sans lui, deux runs du MEME cerveau ne donnent pas le meme score (positions de
   // depart, embardees d'huile). L'EVOLUTION, elle, garde Math.random : c'est elle qui doit explorer.
   rngSeed:1234567, rnd:null, world:null, deaths:{},
+  // BILAN DU VOL, accumulé sur TOUTES les manches et TOUTES les générations (jamais remis à zéro
+  // par resetBot/makeBot, contrairement à b.landings/b.goodCuts qui ne vivent qu'une manche).
+  // C'est LA métrique de santé de la voltige : le taux d'atterrissage = landings/takeoffs.
+  // ⚠ Leçon du 2026-09-08 : lire b.goodCuts après le dernier newGen() renvoie TOUJOURS 0 (les bots
+  // viennent d'être re-créés) — une métrique structurellement nulle passe « au vert » sans rien dire.
+  airStats:{takeoffs:0, landings:0, goodCuts:0},
   // AMORCAGE : si un cerveau clone est disponible, la generation 0 part de LUI. ?clone=0 pour
   // revenir au demarrage aleatoire — c est le seul moyen de mesurer si l amorcage sert a quelque chose.
   useClone:!/[?&]clone=0/.test(location.search), seedBrain:null, seedSigma:0.10, seedRate:0.25,
@@ -12593,6 +12599,7 @@ TRAIN.botStep=function(b,dt){
   if(!b.finished && b.s>L-32){ b.finished=true; b.finishT=b.aliveT; TRAIN.kill(b,'arrivee'); return; }
   if(b.mode==='boom'){ TRAIN.kill(b,b.deathWhy||'crash'); return; }
   if(!wasAir && b.mode==='fall'){
+    TRAIN.airStats.takeoffs++;                           // UN DECOLLAGE (compteur global, jamais remis a zero)
     b.flyStartTotD=b.totD;                               // il vient de decoller
     b.flyStartPos.copy(b.fallPos);                       // position 3D du decollage (pour le gain net)
     if(Math.abs(b.lat)>=ROAD_HALF-1.5) b.outs++;         // ...et c'etait PAR LE BORD : ca se paye
@@ -12602,7 +12609,8 @@ TRAIN.botStep=function(b,dt){
     const d3=b.fallPos.distanceTo(b.flyStartPos);         // distance 3D reellement parcourue
     const gainNet=gain-d3;                                // GAIN NET = distance ECONOMISEE (la voltige)
     b.landings++;
-    if(gainNet>20){ b.goodCuts++; b.cutGain+=gainNet; }   // recompense l'economie, pas le double-comptage
+    TRAIN.airStats.landings++;                           // UN ATTERRISSAGE (le taux landings/takeoffs = santé)
+    if(gainNet>20){ b.goodCuts++; b.cutGain+=gainNet; TRAIN.airStats.goodCuts++; } // coupe rentable
   }
 };
 // Les evenements que la physique crie : ici on ne garde que ce qui se VOIT sur la piste.

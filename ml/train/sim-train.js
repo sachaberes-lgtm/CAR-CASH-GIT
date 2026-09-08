@@ -80,6 +80,10 @@ const deaths={};
 const k0=T.kill;
 T.kill=function(b,why){ deaths[why]=(deaths[why]||0)+1; return k0.apply(T,arguments); };
 
+// BILAN DU VOL : on remet le compteur global à zéro POUR CE RUN (loadGame partage le même objet
+// entre les runs headless), puis on le lit à la fin. Il est accumulé par botStep sur TOUTES les
+// manches et générations — contrairement à b.goodCuts qui ne vit qu'une manche (resetBot).
+T.airStats={takeoffs:0, landings:0, goodCuts:0};
 let lastGen=T.GEN;
 let maxTotD=0;
 for(let i=0;i<MAX_TICKS && T.GEN<TARGET_GEN;i++){
@@ -98,15 +102,17 @@ for(let i=0;i<MAX_TICKS && T.GEN<TARGET_GEN;i++){
 }
 
 const alive=T.bots.filter(b=>b.alive).length;
-// LE CHAMPION : sa fitness, sa distance, et S'IL COUPE (bonnes coupes + gain net). C'est ce qui
-// mesure la DECISION DE COUPER (§7.4) : un champion qui ne coupe jamais = la decision n'a pas émergé.
-let bestBot=T.bots[0];
-for(const b of T.bots) if(b.fitness>bestBot.fitness) bestBot=b;
-const champCuts=bestBot.goodCuts||0, champGain=Math.round(bestBot.cutGain||0);
+// BILAN DU VOL (compteur GLOBAL, jamais remis à zéro par le cycle de vie des bots) : c'est LA
+// métrique de la voltige. Taux d'atterrissage = landings/takeoffs — si les bots sautent sans jamais
+// se poser, ce ratio s'effondre et on le VOIT (leçon : une métrique structurellement nulle passe
+// « au vert » sans rien signaler).
+const as=T.airStats||{takeoffs:0,landings:0,goodCuts:0};
+const tauxAt=as.takeoffs>0?Math.round(100*as.landings/as.takeoffs):0;
 console.log('FIN SIM : génération',T.GEN,'vivants',alive,'/24','max totD',maxTotD.toFixed(1),
-            'record',Math.round(T.record),'cuts',champCuts,'gain',champGain);
+            'record',Math.round(T.record),
+            'décol',as.takeoffs,'atter',as.landings,'('+tauxAt+'%)','bonnes coupes',as.goodCuts);
 console.log('RESUME '+JSON.stringify({gen:T.GEN,record:Math.round(T.record),maxTotD:Math.round(maxTotD),
-            cuts:champCuts,cutGain:champGain,courbe:courbe,deaths:deaths}));
+            air:as, tauxAtterrissage:tauxAt, courbe:courbe, deaths:deaths}));
 if(T.GEN<TARGET_GEN){
   console.error('ECHEC : '+T.GEN+' generations sur '+TARGET_GEN+' demandees');
   process.exit(1);

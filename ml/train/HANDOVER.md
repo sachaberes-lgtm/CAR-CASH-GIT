@@ -40,6 +40,14 @@ Concrètement :
 - **Attention aux ratios de composition.** « % de morts en airtime » monte quand les autres causes
   de mort disparaissent : ça ressemble à une régression alors que c'est un progrès. Mesure des taux,
   pas des parts.
+- **Une métrique structurellement nulle passe « au vert » sans rien signaler.** Le 2026-09-08,
+  l'agent a lu `b.goodCuts` après le dernier `newGen()` : `startEval()` appelle `resetBot()` à chaque
+  manche, donc ce compteur ne peut renvoyer que 0. C'est la même famille d'erreur que le ratio de
+  composition. **Avant de conclure sur un chiffre, vérifier qu'il peut prendre une autre valeur.**
+  Correctif : `TRAIN.airStats` (décollages/atterrissages/bonnes coupes) est un compteur GLOBAL
+  accumulé par `botStep`, jamais remis à zéro par le cycle de vie des bots. Le taux d'atterrissage =
+  `landings/takeoffs` est LA métrique de santé de la voltige (mesuré : MLP pur ~9 %, pilote+coupe
+  ~24 %).
 
 ---
 
@@ -197,12 +205,11 @@ au §7.1. **C'est là qu'il faut travailler en priorité.**
    maintenant ». Quand un raccourci est visible (arr[7]>0) ET que le MLP signale couper, le pilote
    vise le BORD choisi par steer -> la caisse décolle, et le MLP reprend la main en vol (viseur).
    **Mesuré (8 graines × 25 gen)** : moyenne 3140 m (vs 2936 sans coupe), aucune graine sous 2958
-   (vs 1179 en MLP pur), morts airtime 36→370 (les bots sautent). ⚠ Mesure POPULATION (le proprio,
-   pas le champion seul) : **217 décollages · 19 atterrissages · 11 bonnes coupes** — gain d'arc
-   médiane 41 m · p95 1505 m · max 1719 m. La décision de couper FONCTIONNE : de vrais raccourcis
-   émergent. Le « 0 coupe » était un bug de MON instrumentation (multi-train ne lisait que le
-   champion, pas la meute). Le vrai chantier : le taux d'atterrissage (19/217 ≈ 9 %) — (b) le
-   gymnase aérien reste la bonne suite.
+   (vs 1179 en MLP pur), morts airtime 36→370 (les bots sautent).
+   **Métrique de santé de la voltige = taux d'atterrissage** (`TRAIN.airStats.landings/takeoffs`,
+   compteur global, jamais remis à zéro). Mesuré : **MLP pur ~9 % · pilote+coupe ~24 %** — les bots
+   sautent (217 décollages) mais ~91 % des vols ne reviennent jamais. C'est ÇA le goulot : la
+   réception, pas la décision de sauter. → (b) le gymnase aérien est la bonne suite.
 5. **La fitness** : `totD + contrôle − sorties + arrivée`. L'ancienne est rejouable via
    `W_CTRL=0, W_OUT=0, W_CUT=150`. Un A/B a montré **aucun effet** — le problème était en amont.
 6. **Algorithme** : la sélection actuelle (élitisme + tournoi) est le maillon faible. CMA-ES sur 260
