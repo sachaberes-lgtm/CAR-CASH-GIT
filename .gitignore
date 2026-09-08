@@ -23,3 +23,9 @@ ml/train/train.backup-*.html
 
 # --- Demos et cerveaux entraines : des DONNEES, pas du code (elles se refont) ---
 ml/train/results/
+
+# --- Archive locale : vieilles versions et experiences terminees ---
+_archive/
+
+# --- Pistes generees : donnees, pas du code (track.js les refait) ---
+ml/sim/track-*.json
