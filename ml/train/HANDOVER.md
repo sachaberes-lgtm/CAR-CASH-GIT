@@ -178,13 +178,23 @@ au §7.1. **C'est là qu'il faut travailler en priorité.**
    × 25 générations = 102 s de mur, contre ~54 s pour une graine seule en série (8× = 432 s).
    Gain réel **~4×**, plafonné par la contention mémoire (8 process flottants lourds sur 12 cœurs
    logiques), pas par le code.
-3. **Le détecteur de raccourci ne se déclenche jamais** (0 % en course). Mesuré : sa fenêtre de
-   distance 3D est 8-60 m alors que la distance réelle entre deux bouts de piste a une **médiane de
-   159 m**. Les seuils ont été réglés pour une géométrie que le générateur ne produit pas.
-   ⚠ Élargir change la **définition** d'un raccourci : décision de conception, à faire valider.
-4. **Porter le pilote de `survTick`** comme contrôleur au sol, et réduire l'apprentissage au vol
-   (idée du propriétaire). Le gymnase aérien conçu avec lui : caisse placée en l'air, dalle à
-   atteindre, épisodes de ~3 s — **15× plus d'essais** qu'une manche de 45 s.
+3. ~~**Le détecteur de raccourci ne se déclenche jamais** (0 % en course).~~ **FAIT le 2026-09-08**
+   (commit `7b0d76c`) : le filtre est passé sur le GAIN NET (distance le long de la piste − distance
+   3D) au lieu d'une fenêtre absolue obsolète → mesuré **0 % → 67 % actif**. Viseur d'atterrissage
+   exposé (arr[8]=dalle visée, arr[9]=décalage latéral) et récompense de coupe PROPORTIONNELLE au
+   gain net (W_CUT=3, +8 % de distance médiane mesuré).
+4. **Porter le pilote de `survTick` comme contrôleur au sol** (idée du propriétaire).
+   ✅ PILOTE AU SOL FAIT le 2026-09-08 : `TRAIN.groundPilot` (point de corde + volant du Survivant,
+   `phiT=clamp(Δlat/(max(6,v·SPD)·0,9),±0,62)` puis `st=clamp((phiT−psi)·4,±1)`) produit les 4
+   commandes discrètes AU SOL ; `?auto=1` / `--auto` l'active, le MLP ne garde que le VOL.
+   **Mesuré (xp-pilote.js)** : seul, avec un cerveau aléatoire, le pilote roule **2366 m à 210 km/h,
+   100 % sur la route** (vs 14 m / 69 km/h / 72 % pour le MLP aléatoire). MAIS en évolution complète
+   (8 graines × 25 gen), le pilote au sol NE BAT PAS le MLP pur en distance (médiane 2898 vs 3047 m) :
+   il ne COUPE pas, donc il plafonne à la piste sans voltige. Il apporte la ROBUSTESSE : écart entre
+   graines ~700 m (vs ~2200), morts idle 1915→0, airtime 1799→36.
+   → RESTE (décision de conception à valider) : (a) donner au MLP une sortie « couper » qui override
+   le pilote au sol quand un raccourci est visible (arr[7]>0), OU (b) le gymnase aérien — caisse
+   placée en l'air, dalle à atteindre, épisodes de ~3 s = 15× plus d'essais qu'une manche de 45 s.
 5. **La fitness** : `totD + contrôle − sorties + arrivée`. L'ancienne est rejouable via
    `W_CTRL=0, W_OUT=0, W_CUT=150`. Un A/B a montré **aucun effet** — le problème était en amont.
 6. **Algorithme** : la sélection actuelle (élitisme + tournoi) est le maillon faible. CMA-ES sur 260

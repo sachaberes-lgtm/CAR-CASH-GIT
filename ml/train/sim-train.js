@@ -4,7 +4,9 @@
 // et check-iso.js chargent ainsi EXACTEMENT le meme jeu.
 const {loadGame}=require('./sim-env');
 
-const g=loadGame('?train=1&sim=1');
+// --auto : porter le pilote du Survivant comme contrôleur au sol (TRAIN.AUTO_GROUND, §7.4).
+const AUTO=process.argv.indexOf('--auto')>0;
+const g=loadGame('?train=1&sim=1'+(AUTO?'&auto=1':''));
 const vmGet=g.get;
 console.log('Chargement OK. IS_TRAIN=',vmGet('typeof IS_TRAIN'));
 const T=vmGet('__TRAIN');

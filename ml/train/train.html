@@ -12417,6 +12417,11 @@ const TRAIN={
   // recitation, c est la piste NEUVE a chaque generation (jamais vue deux fois), pas la moyenne.
   // Defaut 1 = selection a chaque manche. ?tracks=N reste la pour reproduire l A/B.
   EVAL_TRACKS:(+((location.search.match(/[?&]tracks=(\d+)/)||[])[1])||1), evalIdx:0,
+  // AUTO_GROUND : porter le pilote du mode Survivant comme CONTROLEUR AU SOL (idée §7.4 du
+  // propriétaire). Au sol, le MLP ne conduit plus : c'est un pilote déterministe (point de corde +
+  // volant hérité du Survivant) qui produit les 4 commandes. Le cerveau ne garde que le VOL.
+  // ?auto=1 l'active ; défaut 0 pour ne jamais surprendre l'ancien comportement (A/B reproductible).
+  AUTO_GROUND:/([?&]auto=1)/.test(location.search)?1:0,
   record:0, camBot:0, acc:0,
   // ALEA SEME : sans lui, deux runs du MEME cerveau ne donnent pas le meme score (positions de
   // depart, embardees d'huile). L'EVOLUTION, elle, garde Math.random : c'est elle qui doit explorer.
@@ -12547,6 +12552,10 @@ TRAIN.botStep=function(b,dt){
     b.think=0.1;
     TRAIN.brainInput(b);
     b.brain.forward(TRAIN.inArr,TRAIN.outArr);
+    if(TRAIN.AUTO_GROUND && b.mode==='drive'){
+      // AU SOL : le pilote déterministe conduit (§7.4). Le MLP ne garde que le VOL.
+      TRAIN.groundPilot(b);
+    } else {
     /* ---- L ESPACE D ACTION DU BOT = CELUI DU JOUEUR, EXACTEMENT ----
        Le bot ne produit plus quatre commandes independantes : il choisit un ETAT DE TOUCHES, et
        gaz/assiette en DECOULENT — exactement ce que pcarInput fait pour le clavier.
@@ -12566,6 +12575,7 @@ TRAIN.botStep=function(b,dt){
     b.in.gas  =dn9?-1:(up9?1:0);                     // exactement PIN.gas
     b.in.pitch=(up9?-1:0)+(dn9?1:0);                 // exactement PIN.pitch (branche clavier)
     b.in.nitro=TRAIN.outArr[MLP.HID+2]>0;            // Maj/Espace : une touche, pas un dosage
+    }
   }
   const wasAir=(b.mode==='fall'), sAvant=b.s;
   stepCar(b,b.in,dt,TRAIN.world);
@@ -12614,6 +12624,52 @@ TRAIN.botEvents=function(b){
 
 /* ---------- ENTREES DU CERVEAU : on appelle LA fonction, on n en refait pas une ---------- */
 TRAIN.brainInput=function(b){ carBrainInput(b,TRAIN.inArr); };
+
+/* ---------- PILOTE AU SOL (porté du mode Survivant, idée §7.4) ----------
+   Le MLP n'a plus à apprendre « rouler droit sur la route » : c'est un sous-problème que le pilote
+   du Survivant résout déjà bien. On le porte comme contrôleur AU SOL. Le cerveau ne garde que le
+   VOL (la voltige, le vrai enjeu du jeu).
+   Ceci N'EST PAS une copie de physique : groundPilot ne fait que produire les 4 commandes discrètes
+   {steer,gas,nitro,pitch} que stepCar consomme — exactement l'ensemble de manette du joueur
+   (check-actions reste donc satisfait). Formule héritée du Survivant :
+       phiT = clamp(Δlat/(max(6,v·SPD)·0,9), ±0,62)   puis   st = clamp((phiT−psi)·4, ±1). */
+TRAIN.groundPilot=function(b){
+  const cl=THREE.MathUtils.clamp;
+  const rel=b.s, bi=Math.floor(cl(rel/L,0,1)*(NP-1));
+  const segL=L/(NP-1);
+  // courbure SIGNÉE à distance d — la même définition que carBrainInput (un seul monde)
+  const courbure=d=>{
+    const j=Math.min(NP-1,bi+Math.max(1,Math.round(d/segL)));
+    const dot=T[bi].dot(T[j]);
+    if(dot>=0.9999)return 0;
+    const kap=Math.acos(cl(dot,-1,1))/Math.max(1,d);
+    biV.crossVectors(T[bi],T[j]);
+    return kap*Math.sign(biV.dot(Nn[bi]));
+  };
+  const tc9=CARS[0].turn*.75;
+  // ANTICIPATION : 3 échantillons de courbure devant -> vitesse de passage + côté du virage
+  const look=cl(b.v*SPD*1.4+16,24,230);
+  let vSafe=1e9,crv=0;
+  for(let k=1;k<=3;k++){
+    const d=look*k/3, kap=courbure(d);
+    if(Math.abs(kap)>1e-4){
+      const kS=Math.abs(kap)*SPD, vs=(-kS+Math.sqrt(kS*kS+4*kS*TURN_HS*tc9))/(2*kS*TURN_HS);
+      if(vs<vSafe){vSafe=vs;crv=kap;}
+    }
+  }
+  // POINT DE CORDE : on serre l'intérieur du virage annoncé, sinon la ligne du milieu
+  const lT=cl(Math.abs(crv)>.004?Math.sign(crv)*(ROAD_HALF-3.4):0,-(ROAD_HALF-2.4),ROAD_HALF-2.4);
+  // VOLANT hérité du Survivant : angle cible pour rejoindre la ligne, puis commande proportionnelle
+  const phiT=cl((lT-b.lat)/(Math.max(6,b.v*SPD)*.9),-.62,.62);
+  const st=cl((phiT-b.psi)*4,-1,1);
+  b.in.steer = st>0.15?1:(st<-0.15?-1:0);
+  // GAZ / FREIN selon la vitesse de passage (mêmes freins que le joueur, discrétisés en une touche)
+  const brk=b.v>vSafe*1.05;
+  b.in.gas = brk?-1:1;
+  b.in.pitch=0;                       // au sol, l'assiette n'agit pas (carDrive ne la lit pas)
+  b.in.nitro=(!brk&&b.nitroR>.35&&b.v<vSafe*1.12&&Math.abs(b.psi)<.5);
+  return b.in;
+};
 
 /* ---------- MISES À JOUR DES MESHES ----------
    L'orientation ne se recalcule plus ici : elle SORT de la physique (car.quat), exactement comme

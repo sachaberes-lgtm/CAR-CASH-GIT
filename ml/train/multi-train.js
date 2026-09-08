@@ -22,6 +22,8 @@ const SIM=path.join(__dirname,'sim-train.js');
 // --wcut X : poids de la recompense de coupe (A/B xp-coupe). Absent = celui du code.
 const wcutIdx=process.argv.indexOf('--wcut');
 const WCUT=wcutIdx>0?process.argv[wcutIdx+1]:null;
+// --auto : pilote du Survivant comme contrôleur au sol (TRAIN.AUTO_GROUND, §7.4).
+const AUTO=process.argv.indexOf('--auto')>0;
 
 function median(a){ const b=a.slice().sort((x,y)=>x-y); const n=b.length;
   return n?Math.round(n%2?b[(n-1)/2]:(b[n/2-1]+b[n/2])/2):0; }
@@ -30,6 +32,7 @@ function run(seed){
   return new Promise((res)=>{
     const args=[SIM,'--seed',String(seed),'--gens',String(GENS),'--random'];
     if(WCUT!==null) args.push('--wcut',WCUT);
+    if(AUTO) args.push('--auto');
     const p=spawn('node',args,{cwd:__dirname});
     let out='',err='';
     p.stdout.on('data',d=>out+=d);
@@ -47,7 +50,7 @@ function run(seed){
   const t0=Date.now();
   const seeds=Array.from({length:NSEEDS},(_,k)=>1000+k*101);  // graines bien distinctes
   console.log('multi-train — '+NSEEDS+' cœurs, '+NSEEDS+' graines, '+GENS+' générations chacune'+
-              (WCUT!==null?' · W_CUT='+WCUT:'')+'\n');
+              (WCUT!==null?' · W_CUT='+WCUT:'')+(AUTO?' · PILOTE AU SOL':'')+'\n');
   const results=await Promise.all(seeds.map(run));
   results.sort((a,b)=>a.seed-b.seed);
 
