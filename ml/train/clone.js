@@ -21,8 +21,9 @@ const fs=require('fs'),path=require('path');
 
 const IN=12,HID=16,OUT=4;
 const SIZE=(IN+1)*HID+(HID+1)*OUT;                       // 276, comme MLP.SIZE
-const DEMOS=path.join(__dirname,'results','demos');
-const OUTF=path.join(__dirname,'results','cloned-brain.json');
+const argS=(n,d)=>{ const i=process.argv.indexOf('--'+n); return i>0?process.argv[i+1]:d; };
+const DEMOS=path.resolve(__dirname,argS('demos',path.join('results','demos')));
+const OUTF=path.resolve(__dirname,argS('out',path.join('results','cloned-brain.json')));
 
 const arg=(n,d)=>{ const i=process.argv.indexOf('--'+n); return i>0?parseFloat(process.argv[i+1]):d; };
 const EPOCHS=arg('epochs',600), LR0=arg('lr',0.05), SEED=arg('seed',1);
@@ -35,13 +36,13 @@ const rnd=mulberry32(SEED);
 
 /* ---------- 1. LES DEMOS ---------- */
 if(!fs.existsSync(DEMOS)){
-  console.log('clone.js : aucun dossier results/demos — rien a apprendre.');
+  console.log('clone.js : aucun dossier '+DEMOS+' — rien a apprendre.');
   console.log('           Lance ENREGISTRER.bat, joue quelques minutes, puis reviens.');
   process.exit(0);
 }
 const files=fs.readdirSync(DEMOS).filter(f=>/^demo-.*\.json$/.test(f)).sort();
 if(!files.length){
-  console.log('clone.js : aucune demo dans results/demos — rien a apprendre.');
+  console.log('clone.js : aucune demo dans '+DEMOS+' — rien a apprendre.');
   console.log('           Lance ENREGISTRER.bat, joue quelques minutes, puis reviens.');
   process.exit(0);
 }
@@ -178,6 +179,6 @@ fs.writeFileSync(OUTF,JSON.stringify({
   date:new Date().toISOString(),
   w:Array.from(W,x=>+x.toFixed(6))
 },null,1));
-console.log('\ncerveau ecrit : results/cloned-brain.json');
+console.log('\ncerveau ecrit : '+OUTF);
 console.log('Il servira de graine a la generation 0 (TRAIN.newGen). ?clone=0 pour revenir au hasard.');
 process.exit(0);
