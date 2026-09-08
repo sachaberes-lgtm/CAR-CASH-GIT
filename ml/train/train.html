@@ -12728,11 +12728,19 @@ TRAIN.tournament=function(sorted){
 
 TRAIN.newGen=function(first){
   if(!first){
+    /* ---- LA REGLE, telle que le proprietaire la veut (2026-09-08) ----
+       « chacune se demerde pour faire la meilleure course, et la moitie la plus nulle se fait
+        remplacer ». Donc : on classe, LA MOITIE QUI SURVIT GARDE SON CERVEAU INTACT, et les 12
+       plus nulles sont remplacees par des enfants des survivantes.
+       Ce que ca remplace : un elitisme a 4 + un tournoi qui rebrassait toute la population a
+       chaque generation. Ici la moitie haute est CONSERVEE telle quelle — un bon cerveau n est
+       jamais perdu par accident de tirage. */
     const sorted=TRAIN.bots.slice().sort((a,b)=>b.fitness-a.fitness);
+    const GARDE=Math.floor(TRAIN.POP/2);
     const newBots=[];
-    for(let i=0;i<4;i++) newBots.push(TRAIN.makeBot(sorted[i].brain.w));
-    while(newBots.length<TRAIN.POP){
-      const p1=TRAIN.tournament(sorted), p2=TRAIN.tournament(sorted);
+    for(let i=0;i<GARDE;i++) newBots.push(TRAIN.makeBot(sorted[i].brain.w)); // les meilleures, intactes
+    while(newBots.length<TRAIN.POP){                                        // …et autant d enfants
+      const p1=sorted[Math.floor(TRAIN.rnd()*GARDE)], p2=sorted[Math.floor(TRAIN.rnd()*GARDE)];
       const child=MLP.crossover(p1.brain,p2.brain);
       child.mutate(0.12,0.18);
       newBots.push(TRAIN.makeBot(child.w));
