@@ -192,9 +192,15 @@ au §7.1. **C'est là qu'il faut travailler en priorité.**
    (8 graines × 25 gen), le pilote au sol NE BAT PAS le MLP pur en distance (médiane 2898 vs 3047 m) :
    il ne COUPE pas, donc il plafonne à la piste sans voltige. Il apporte la ROBUSTESSE : écart entre
    graines ~700 m (vs ~2200), morts idle 1915→0, airtime 1799→36.
-   → RESTE (décision de conception à valider) : (a) donner au MLP une sortie « couper » qui override
-   le pilote au sol quand un raccourci est visible (arr[7]>0), OU (b) le gymnase aérien — caisse
-   placée en l'air, dalle à atteindre, épisodes de ~3 s = 15× plus d'essais qu'une manche de 45 s.
+   → (a) DÉCISION DE COUPER FAITE le 2026-09-08 : au sol, les sorties steer (HID+0) et nitro (HID+2)
+   du MLP sont LIBRES (le pilote les ignore) — on les lit comme « de quel côté » et « couper
+   maintenant ». Quand un raccourci est visible (arr[7]>0) ET que le MLP signale couper, le pilote
+   vise le BORD choisi par steer -> la caisse décolle, et le MLP reprend la main en vol (viseur).
+   **Mesuré (8 graines × 25 gen)** : moyenne 3140 m (vs 2936 sans coupe), aucune graine sous 2958
+   (vs 1179 en MLP pur), morts airtime 36→370 (les bots sautent). MAIS **0 bonne coupe rentable
+   n'a émergé** : ils décollent et n'atterrissent jamais avec un gain net > 20 m. La VOLTIGE est le
+   goulot d'étranglement — il reste (b) le gymnase aérien : caisse placée en l'air, dalle à
+   atteindre, épisodes de ~3 s = 15× plus d'essais qu'une manche de 45 s.
 5. **La fitness** : `totD + contrôle − sorties + arrivée`. L'ancienne est rejouable via
    `W_CTRL=0, W_OUT=0, W_CUT=150`. Un A/B a montré **aucun effet** — le problème était en amont.
 6. **Algorithme** : la sélection actuelle (élitisme + tournoi) est le maillon faible. CMA-ES sur 260

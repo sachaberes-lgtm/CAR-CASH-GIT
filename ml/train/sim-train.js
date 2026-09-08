@@ -98,9 +98,15 @@ for(let i=0;i<MAX_TICKS && T.GEN<TARGET_GEN;i++){
 }
 
 const alive=T.bots.filter(b=>b.alive).length;
+// LE CHAMPION : sa fitness, sa distance, et S'IL COUPE (bonnes coupes + gain net). C'est ce qui
+// mesure la DECISION DE COUPER (§7.4) : un champion qui ne coupe jamais = la decision n'a pas émergé.
+let bestBot=T.bots[0];
+for(const b of T.bots) if(b.fitness>bestBot.fitness) bestBot=b;
+const champCuts=bestBot.goodCuts||0, champGain=Math.round(bestBot.cutGain||0);
 console.log('FIN SIM : génération',T.GEN,'vivants',alive,'/24','max totD',maxTotD.toFixed(1),
-            'record',Math.round(T.record));
-console.log('RESUME '+JSON.stringify({gen:T.GEN,record:Math.round(T.record),maxTotD:Math.round(maxTotD),courbe:courbe,deaths:deaths}));
+            'record',Math.round(T.record),'cuts',champCuts,'gain',champGain);
+console.log('RESUME '+JSON.stringify({gen:T.GEN,record:Math.round(T.record),maxTotD:Math.round(maxTotD),
+            cuts:champCuts,cutGain:champGain,courbe:courbe,deaths:deaths}));
 if(T.GEN<TARGET_GEN){
   console.error('ECHEC : '+T.GEN+' generations sur '+TARGET_GEN+' demandees');
   process.exit(1);

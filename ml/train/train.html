@@ -12657,14 +12657,26 @@ TRAIN.groundPilot=function(b){
       if(vs<vSafe){vSafe=vs;crv=kap;}
     }
   }
-  // POINT DE CORDE : on serre l'intérieur du virage annoncé, sinon la ligne du milieu
-  const lT=cl(Math.abs(crv)>.004?Math.sign(crv)*(ROAD_HALF-3.4):0,-(ROAD_HALF-2.4),ROAD_HALF-2.4);
+  // DÉCISION DE COUPER (§7.4, option a) : au sol, les sorties steer (HID+0) et nitro (HID+2) sont
+  // LIBRES (le pilote les ignore). On les lit donc comme « de quel côté » et « couper maintenant ».
+  // Si un raccourci est visible (inArr[7]>0) ET que le MLP signale couper, le pilote vise le BORD
+  // choisi par steer -> la caisse sort de la route et décolle (carDrive), et le MLP reprend la main
+  // en vol (viseur arr[8]/arr[9]). Sinon : point de corde habituel.
+  const cut = TRAIN.inArr[7]>0 && TRAIN.outArr[MLP.HID+2]>0.5;
+  let lT;
+  if(cut){
+    const side=TRAIN.outArr[MLP.HID+0]>0?1:-1;
+    lT=side*(ROAD_HALF-1.0);        // AU-DELÀ du clamp normal : viser le bord pour décoller
+  }else{
+    lT=cl(Math.abs(crv)>.004?Math.sign(crv)*(ROAD_HALF-3.4):0,-(ROAD_HALF-2.4),ROAD_HALF-2.4);
+  }
   // VOLANT hérité du Survivant : angle cible pour rejoindre la ligne, puis commande proportionnelle
   const phiT=cl((lT-b.lat)/(Math.max(6,b.v*SPD)*.9),-.62,.62);
   const st=cl((phiT-b.psi)*4,-1,1);
   b.in.steer = st>0.15?1:(st<-0.15?-1:0);
-  // GAZ / FREIN selon la vitesse de passage (mêmes freins que le joueur, discrétisés en une touche)
-  const brk=b.v>vSafe*1.05;
+  // GAZ / FREIN selon la vitesse de passage (mêmes freins que le joueur, discrétisés en une touche).
+  // En mode coupe on garde le pied au plancher : il faut de la vitesse pour s'envoyer par-dessus.
+  const brk=!cut && b.v>vSafe*1.05;
   b.in.gas = brk?-1:1;
   b.in.pitch=0;                       // au sol, l'assiette n'agit pas (carDrive ne la lit pas)
   b.in.nitro=(!brk&&b.nitroR>.35&&b.v<vSafe*1.12&&Math.abs(b.psi)<.5);

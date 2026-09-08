@@ -55,13 +55,15 @@ function run(seed){
   results.sort((a,b)=>a.seed-b.seed);
 
   console.log(' graine | distance | fitness | générations | OK');
-  let ok=0; const dists=[]; const fits=[]; const deaths={};
+  let ok=0; const dists=[]; const fits=[]; const cuts=[]; const gains=[]; const deaths={};
   for(const r of results){
     const dist=r.resume?r.resume.maxTotD:null;    // la DISTANCE (ce qui compte : aller loin)
     const fit=r.resume?r.resume.record:null;      // la FITNESS (gonflee par W_CUT*cutGain)
     const gen=r.resume?r.resume.gen:null;
     const fin=(r.code===0);
     if(fin) ok++; if(dist!=null) dists.push(dist); if(fit!=null) fits.push(fit);
+    if(r.resume&&r.resume.cuts!=null) cuts.push(r.resume.cuts);
+    if(r.resume&&r.resume.cutGain!=null) gains.push(r.resume.cutGain);
     if(r.resume&&r.resume.deaths) for(const k in r.resume.deaths) deaths[k]=(deaths[k]||0)+r.resume.deaths[k];
     console.log(String(r.seed).padStart(7)+' | '+(dist!=null?String(dist).padStart(8):'   —   ')+
                 ' | '+(fit!=null?String(fit).padStart(7):'   —  ')+
@@ -74,6 +76,7 @@ function run(seed){
   console.log(' fitness  (note)  : meilleur '+(fits.length?Math.max(...fits):'—')+
               ' · médiane '+(fits.length?median(fits):'—'));
   if(Object.keys(deaths).length) console.log(' morts cumulés : '+Object.keys(deaths).map(k=>k+' '+deaths[k]).join(' · '));
+  console.log(' coupes du champion : '+cuts.join(' · ')+'  (bonnes coupes)  ·  gain net cumulé : '+gains.reduce((a,b)=>a+b,0)+' m');
   console.log(' '+ok+'/'+NSEEDS+' graines terminées en '+dt.toFixed(0)+' s de mur ('+NSEEDS+' évolutions indépendantes)');
   process.exit(ok===NSEEDS?0:1);
 })();
