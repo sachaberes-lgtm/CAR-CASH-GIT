@@ -92,6 +92,29 @@ function loadGame(search){
     addEventListener(){},removeEventListener(){},requestAnimationFrame(){return 0;},cancelAnimationFrame(){},
     matchMedia:windowStub.matchMedia,AudioContext:windowStub.AudioContext,webkitAudioContext:windowStub.AudioContext,
     atob:(s)=>Buffer.from(s,'base64').toString('binary'),btoa:(s)=>Buffer.from(s,'binary').toString('base64'),
+    // HEADLESS : pas de serveur d'enregistrement. `fetch('/train-save', POST)` est intercepté ici et
+    // écrit DIRECTEMENT results/champion.json + results/champions/ (même logique que rec-server.js).
+    // Sans ce stub, l'autosave du mode entraînement lève `fetch is not defined` et tue le run à gen 10.
+    fetch:(url,opts)=>{
+      return new Promise((resolve,reject)=>{
+        const u=String(url||'');
+        if(opts&&opts.method==='POST'&&/\/train-save/.test(u)){
+          try{
+            const raw=opts.body, j=JSON.parse(raw);
+            if(!Array.isArray(j.w)||!j.w.length) return resolve({ok:false});
+            const resDir=path.join(__dirname,'results');
+            fs.mkdirSync(resDir,{recursive:true});
+            fs.writeFileSync(path.join(resDir,'champion.json'),raw);
+            const hist=path.join(resDir,'champions');
+            fs.mkdirSync(hist,{recursive:true});
+            fs.writeFileSync(path.join(hist,'gen'+String(j.gen||0).padStart(5,'0')+'-note'+(j.note||0)+'.json'),raw);
+            resolve({ok:true});
+          }catch(e){ resolve({ok:false}); }
+        }else{
+          reject(new Error('fetch indisponible en headless : '+u));
+        }
+      });
+    },
     IS_SIM:true,devicePixelRatio:1,
   };
   sandbox.globalThis=sandbox;

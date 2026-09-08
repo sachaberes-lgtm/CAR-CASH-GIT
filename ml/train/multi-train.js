@@ -81,5 +81,23 @@ function run(seed){
   const tauxAt=airTake>0?Math.round(100*airLand/airTake):0;
   console.log(' VOL (toutes générations) : décollages '+airTake+' · atterrissages '+airLand+' ('+tauxAt+' %) · bonnes coupes '+airCut);
   console.log(' '+ok+'/'+NSEEDS+' graines terminées en '+dt.toFixed(0)+' s de mur ('+NSEEDS+' évolutions indépendantes)');
+  // PERSISTANCE DE L'AGREGAT : les medianes/moyennes multi-graines partaient en stdout et etaient
+  // perdues. On les ecrit dans results/runs/multi-<horodatage>.json (meme motivation que sim-train.js).
+  try{
+    const fs=require('fs'),path=require('path');
+    const runsDir=path.join(__dirname,'results','runs');
+    fs.mkdirSync(runsDir,{recursive:true});
+    const stamp=new Date().toISOString().replace(/[:.]/g,'-');
+    const nom='multi-'+stamp+'.json';
+    const out=JSON.stringify({date:new Date().toISOString(), seeds:NSEEDS, gens:GENS, wcut:WCUT,
+      auto:AUTO, noflyfix:NOFLYFIX, wallSec:Math.round(dt),
+      dist:{meilleur:dists.length?Math.max(...dists):null, mediane:dists.length?median(dists):null,
+            moyenne:dists.length?Math.round(dists.reduce((a,b)=>a+b,0)/dists.length):null, parSeed:results.map(r=>r.resume?{seed:r.seed,maxTotD:r.resume.maxTotD,gen:r.resume.gen}:{seed:r.seed,erreur:true})},
+      fit:{meilleur:fits.length?Math.max(...fits):null, mediane:fits.length?median(fits):null},
+      vol:{takeoffs:airTake, landings:airLand, tauxAtterrissage:tauxAt, bonnesCoupes:airCut},
+      deaths:deaths});
+    fs.writeFileSync(path.join(runsDir,nom),out);
+    console.log('  → agrégat écrit : results/runs/'+nom);
+  }catch(e){ console.error('  persistance agrégat échouée : '+e.message); }
   process.exit(ok===NSEEDS?0:1);
 })();

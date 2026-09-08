@@ -53,9 +53,11 @@ console.log('— champion temoin ecrit dans results/champion.json (gen 1234)');
 g=loadGame('?train=1&sim=1');
 T=g.get('__TRAIN');
 const j=JSON.parse(fs.readFileSync(CH,'utf8'));
-if(j.w.length!==T.bots[0].brain.w.length){
-  console.error('\nECHEC — format incompatible : le fichier a '+j.w.length+' poids, le jeu en attend '+
-                T.bots[0].brain.w.length+'.');
+// NOTE : on compare au SIZE capture au premier chargement (?clone=0, amorcage SYNCHRONE). Depuis le
+// stub fetch de sim-env.js, un chargement SANS ?clone=0 passe par l'amorcage ASYNCHRONE du navigateur
+// (useClone && typeof fetch==='function') : T.bots n'est pas encore peuple quand on arrive ici.
+if(j.w.length!==SIZE){
+  console.error('\nECHEC — format incompatible : le fichier a '+j.w.length+' poids, le jeu en attend '+SIZE+'.');
   fin(1);
 }
 T.seedBrain=Float32Array.from(j.w);

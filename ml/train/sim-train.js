@@ -38,6 +38,7 @@ else{
 // `--wcut X` force le poids de la recompense de coupe (pour l A/B xp-coupe, defaut = celui du code).
 const WCUT=(()=>{ const i=process.argv.indexOf('--wcut'); return i>0?parseFloat(process.argv[i+1]):null; })();
 if(WCUT!==null && isFinite(WCUT)) T.W_CUT=WCUT;
+let RUN_SEED=null;   // la graine, remontee en portee de fonction pour nommer le fichier de resultat
 {
   const a=process.argv.indexOf('--seed');
   const sd=a>0?parseInt(process.argv[a+1],10):(process.env.TRAIN_SEED?parseInt(process.env.TRAIN_SEED,10):null);
@@ -46,7 +47,7 @@ if(WCUT!==null && isFinite(WCUT)) T.W_CUT=WCUT;
   // que TRAIN.init a deja peuple sans lui. Repeupler pour rien consommerait de l'alea en plus et le
   // headless ne sortirait plus les memes chiffres que le navigateur.
   if(graine||T.seedBrain){
-    if(graine){ T.reseed(sd); T.record=0; }
+    if(graine){ T.reseed(sd); T.record=0; RUN_SEED=sd; }
     T.GEN=0; T.evalIdx=0;
     T.newGen(true);
     if(graine) console.log('Graine TRAIN :',sd);
@@ -114,6 +115,20 @@ console.log('FIN SIM : génération',T.GEN,'vivants',alive,'/24','max totD',maxT
             'décol',as.takeoffs,'atter',as.landings,'('+tauxAt+'%)','bonnes coupes',as.goodCuts);
 console.log('RESUME '+JSON.stringify({gen:T.GEN,record:Math.round(T.record),maxTotD:Math.round(maxTotD),
             air:as, tauxAtterrissage:tauxAt, courbe:courbe, deaths:deaths}));
+// PERSISTANCE DES RESULTATS : le RESUME partait en stdout et etait perdu des que le process se
+// terminait (trouve par Sacha le 2026-09-09). On l'ecrit aussi dans results/runs/run-<graine>.json :
+// un run reproductible laisse une trace, comparer deux versions du code ne depend plus de la console.
+try{
+  const fs=require('fs'),path=require('path');
+  const runsDir=path.join(__dirname,'results','runs');
+  fs.mkdirSync(runsDir,{recursive:true});
+  const nom='run-'+(RUN_SEED!=null?('seed'+RUN_SEED):'auto')+(NOFLYFIX?'-noflyfix':'')+'.json';
+  const out=JSON.stringify({seed:RUN_SEED,gens:TARGET_GEN,wcut:T.W_CUT,auto:!!T.AUTO_GROUND,
+    noflyfix:NOFLYFIX, date:new Date().toISOString(), gen:T.GEN, record:Math.round(T.record),
+    maxTotD:Math.round(maxTotD), air:as, tauxAtterrissage:tauxAt, courbe:courbe, deaths:deaths});
+  fs.writeFileSync(path.join(runsDir,nom),out);
+  console.log('  → resultat ecrit : results/runs/'+nom);
+}catch(e){ console.error('  persistance RESUME echouee : '+e.message); }
 if(T.GEN<TARGET_GEN){
   console.error('ECHEC : '+T.GEN+' generations sur '+TARGET_GEN+' demandees');
   process.exit(1);
