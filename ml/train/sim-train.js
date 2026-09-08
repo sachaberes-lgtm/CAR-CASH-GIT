@@ -49,16 +49,28 @@ else{
 console.log('Génération initiale:',T.GEN,'bots:',T.bots.length);
 
 // Simulation : pas de temps IDENTIQUE à la boucle de rendu réelle (1/60 s), sinon la
-// physique diverge (isomorphisme sim/course). Chaque génération = EVAL_TRACKS manches ;
-// on simule jusqu'à 4 générations (ou un garde-fou de ticks), assez pour voir la sélection
-// enchaîner malgré l'évaluation multi-pistes.
+// physique diverge (isomorphisme sim/course). `--gens N` = generations a enchainer (defaut 4,
+// rapide pour VERIFIER ; multi-train.js en demande plus).
+const GENS=(()=>{ const i=process.argv.indexOf('--gens'); return i>0?parseInt(process.argv[i+1],10):4; })();
 const DT=1/60;
-const EVALS=T.EVAL_TRACKS||3;
-const TARGET_GEN=4;                             // 3 générations enchaînées, puis on s'arrête
+const EVALS=T.EVAL_TRACKS||1;
+const TARGET_GEN=GENS;
 const MAX_TICKS=Math.round(45/DT)*EVALS*TARGET_GEN;
+
+// COURBE D'APPRENTISSAGE : meilleure fitness a chaque SELECTION. On hooke newGen (une fois par
+// generation), pas endGen (qui tourne a chaque manche quand EVAL_TRACKS>1).
+const courbe=[];
+const n0=T.newGen;
+T.newGen=function(first){
+  if(!first){
+    const s=T.bots.slice().sort((a,b)=>b.fitness-a.fitness);
+    if(s.length) courbe.push(Math.round(s[0].fitness));
+  }
+  return n0.apply(T,arguments);
+};
+
 let lastGen=T.GEN;
 let maxTotD=0;
-let bestEver=0;
 for(let i=0;i<MAX_TICKS && T.GEN<TARGET_GEN;i++){
   try{
     T.tick(DT);
@@ -77,9 +89,9 @@ for(let i=0;i<MAX_TICKS && T.GEN<TARGET_GEN;i++){
 const alive=T.bots.filter(b=>b.alive).length;
 console.log('FIN SIM : génération',T.GEN,'vivants',alive,'/24','max totD',maxTotD.toFixed(1),
             'record',Math.round(T.record));
-console.log('RESUME '+JSON.stringify({gen:T.GEN,record:Math.round(T.record),maxTotD:Math.round(maxTotD)}));
-if(T.GEN<3){
-  console.error('ECHEC : pas assez de générations enchaînées');
+console.log('RESUME '+JSON.stringify({gen:T.GEN,record:Math.round(T.record),maxTotD:Math.round(maxTotD),courbe:courbe}));
+if(T.GEN<TARGET_GEN){
+  console.error('ECHEC : '+T.GEN+' generations sur '+TARGET_GEN+' demandees');
   process.exit(1);
 }
 console.log('SIM TRAIN OK');

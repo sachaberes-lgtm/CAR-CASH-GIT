@@ -172,8 +172,12 @@ au §7.1. **C'est là qu'il faut travailler en priorité.**
    est régénérée à CHAQUE génération (plus de `genSinceTrack>=5`), aucun parcours n'est vu deux
    fois. Le multi-piste « moyenner sur N pistes » a été TESTÉ et mesuré NÉGATIF (§6) : la sélection
    à chaque manche l'emporte, `EVAL_TRACKS` est ramené à 1.
-2. **12 cœurs, un seul utilisé.** Un lanceur `child_process` qui répartit les graines = ×8
-   d'expérience à temps égal. Travail d'infrastructure, fichiers disjoints, sans risque.
+2. ~~**12 cœurs, un seul utilisé.**~~ **FAIT le 2026-09-08** : `multi-train.js` répartit N graines
+   sur N cœurs (`node multi-train.js --seeds 8 --gens 25`), chacune = une évolution indépendante.
+   `sim-train.js` accepte `--gens N` et expose une courbe d'apprentissage. **Mesuré** : 8 graines
+   × 25 générations = 102 s de mur, contre ~54 s pour une graine seule en série (8× = 432 s).
+   Gain réel **~4×**, plafonné par la contention mémoire (8 process flottants lourds sur 12 cœurs
+   logiques), pas par le code.
 3. **Le détecteur de raccourci ne se déclenche jamais** (0 % en course). Mesuré : sa fenêtre de
    distance 3D est 8-60 m alors que la distance réelle entre deux bouts de piste a une **médiane de
    159 m**. Les seuils ont été réglés pour une géométrie que le générateur ne produit pas.
