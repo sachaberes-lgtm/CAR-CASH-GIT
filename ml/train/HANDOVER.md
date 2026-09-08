@@ -120,12 +120,31 @@ plus le cas, quelque chose a introduit de l'aléa non semé.
 
 *Repère : le propriétaire, en jouant, roule à **243 km/h de médiane**.*
 
-**CE QUI BLOQUE, ET C'EST LA PREMIÈRE CHOSE À FAIRE**
-`results/demos/` est **vide**. Sans démo, pas de clonage. Demander au propriétaire de lancer
-`ENREGISTRER.bat` et de jouer **2-3 minutes de conduite propre** — tenir la route, corriger ses
-dérives, varier la vitesse, **pas de saut volontaire**.
-⚠ Le brief inverse (« sors de la route pour sauter ») a déjà été donné une fois : il a produit un
-clone qui poussait vers le fossé à toutes les positions. Ne pas le refaire.
+**LA RÈGLE DE SÉLECTION, telle que le propriétaire la veut** (tranché le 2026-09-08)
+> *« mettre les voitures avec la même physique et les mêmes règles que le joueur, les mêmes
+> contrôles, et après chacune se démerde pour faire la meilleure course, et la moitié la plus nulle
+> se fait remplacer. »*
+
+C'est implémenté : on classe, **la moitié haute garde son cerveau INTACT**, la moitié basse est
+remplacée par des enfants des survivantes (croisement + mutation 0,12 / 0,18).
+
+⚠ **LE CLONAGE COMPORTEMENTAL EST ABANDONNÉ.** Le propriétaire ne veut pas de démonstrations : il
+veut que chacune se débrouille. `results/demos/`, `clone.js`, `ENREGISTRER.bat` et `rec-server.js`
+restent dans le dépôt et fonctionnent, mais **ne sont plus sur le chemin principal**. Ne pas
+redemander de session de jeu sans son accord explicite.
+
+**ÇA MARCHE : l'évolution pure apprend.** 25 générations, départ aléatoire, distance du meilleur :
+
+| | gén. 1 | gén. 5 | gén. 10 | gén. 15 | gén. 20 | gén. 25 |
+|---|---|---|---|---|---|---|
+| graine 3 | 1733 | 1726 | **220** | 1587 | 2744 | 2815 |
+| graine 5 | 364 | 235 | 653 | 672 | 641 | 620 |
+| graine 7 | 64 | 493 | 1694 | 2669 | 3531 | **3711** |
+
+⚠ **L'effondrement de la graine 3 à la génération 10 est le problème n°1.** `newTrack` régénère la
+piste toutes les 5 générations : la population avait mémorisé ce parcours, on le lui retire, tout est
+à refaire. C'est la preuve directe, dans les chiffres de l'entraînement lui-même, du problème décrit
+au §7.1. **C'est là qu'il faut travailler en priorité.**
 
 ---
 
