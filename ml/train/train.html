@@ -12401,10 +12401,12 @@ const TRAIN={
   POP:(+((location.search.match(/[?&]pop=(\d+)/)||[])[1])||24), GEN:0, seed:1,
   bots:[], running:false, genTime:0, matchDuration:45, simSpeed:1,
   // EVAL_TRACKS : combien de pistes DIFFERENTES chaque voiture court avant d etre notee.
-  // La note de selection = MOYENNE sur ces pistes. Une piste = un parcours = une chance de le
-  // memoriser : en moyennant, la memorisation ne paie plus (HANDOVER §7.1, champion 2456 -> 38
-  // sur une piste inconnue). ?tracks=N pour changer (defaut 3).
-  EVAL_TRACKS:(+((location.search.match(/[?&]tracks=(\d+)/)||[])[1])||3), evalIdx:0,
+  // MESURE (xp-generalisation.js, 2026-09-08) : moyenner sur plusieurs pistes NE PAIE PAS.
+  // Retarder la selection a une fois toutes les N manches = Nx moins d etapes d evolution, et le
+  // net est NEGATIF sur pistes fraiches (multi 658-1535 m vs mono 1934-2054 m). Ce qui tue la
+  // recitation, c est la piste NEUVE a chaque generation (jamais vue deux fois), pas la moyenne.
+  // Defaut 1 = selection a chaque manche. ?tracks=N reste la pour reproduire l A/B.
+  EVAL_TRACKS:(+((location.search.match(/[?&]tracks=(\d+)/)||[])[1])||1), evalIdx:0,
   record:0, camBot:0, acc:0,
   // ALEA SEME : sans lui, deux runs du MEME cerveau ne donnent pas le meme score (positions de
   // depart, embardees d'huile). L'EVOLUTION, elle, garde Math.random : c'est elle qui doit explorer.

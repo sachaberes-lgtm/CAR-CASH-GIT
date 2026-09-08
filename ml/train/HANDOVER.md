@@ -129,18 +129,22 @@ plus le cas, quelque chose a introduit de l'aléa non semé.
 C'est implémenté : on classe, **la moitié haute garde son cerveau INTACT**, la moitié basse est
 remplacée par des enfants des survivantes (croisement + mutation 0,12 / 0,18).
 
-**L'ÉVALUATION MULTI-PISTES, faite le 2026-09-08 (correctif §7.1)**
-Le protocole qui notait chaque voiture sur UNE piste réutilisée 5 générations fabriquait de la
-récitation (champion 2456 sur sa piste, 38 sur une inconnue). Désormais :
-- chaque génération court **`EVAL_TRACKS` pistes DIFFÉRENTES** (défaut **3**, modifiable par
-  `?tracks=N` dans l'URL) ;
-- la note de sélection est la **moyenne arithmétique** de la fitness sur ces pistes
-  (`b.fitness = b.fitnessSum / b.evalCount`, accumulée dans `TRAIN.endGen`) ;
-- `TRAIN.startEval()` régénère la piste à CHAQUE manche (le `genSinceTrack>=5` a été supprimé) ;
-- aucune piste n'est vue deux fois, ni dans une génération, ni d'une génération à l'autre.
+**LA RÉCITATION, mesurée et tranchée le 2026-09-08**
 
-C'est vérifié mécaniquement par `node check-eval.js` (voir §3). Le « point de départ à battre » de
-`check-live.js` ne change PAS : il mesure la génération 0 aléatoire, en amont de la sélection.
+Le protocole qui notait chaque voiture sur UNE piste réutilisée 5 générations fabriquait de la
+récitation (champion 2456 sur sa piste, 38 sur une inconnue). Deux correctifs ont été testés :
+
+1. **Piste neuve à chaque génération** (suppression du `genSinceTrack>=5`) — une piste n'est jamais
+   vue deux fois, donc personne ne peut la mémoriser. **C'est LE correctif, il est en place.**
+2. **Noter sur plusieurs pistes et moyenner** (`EVAL_TRACKS`) — testé (`xp-generalisation.js`),
+   **mesuré NÉGATIF** : moyennant 3 pistes, la sélection ne se fait plus qu'une fois toutes les 3
+   manches (= 3× moins d'étapes d'évolution), et sur pistes fraîches le multi-piste est SOUS le
+   mono-piste (seed 3 : 1535 vs 2054 m ; seed 7 : 658 vs 1934 m). **Défaut ramené à 1**
+   (= sélection à chaque manche). L'option `?tracks=N` reste, pour reproduire l'A/B.
+
+`check-eval.js` (voir §3) vérifie que l'option multi-piste, si activée, est correcte (pistes
+distinctes + moyenne exacte). Le « point de départ à battre » de `check-live.js` ne change PAS :
+il mesure la génération 0 aléatoire, en amont de la sélection.
 
 ⚠ **LE CLONAGE COMPORTEMENTAL EST ABANDONNÉ.** Le propriétaire ne veut pas de démonstrations : il
 veut que chacune se débrouille. `results/demos/`, `clone.js`, `ENREGISTRER.bat` et `rec-server.js`
@@ -164,13 +168,12 @@ au §7.1. **C'est là qu'il faut travailler en priorité.**
 
 ## 7. CE QU'IL RESTE À FAIRE, PAR EFFET DÉCROISSANT
 
-1. ~~**Le protocole d'évaluation fabrique de la récitation.**~~ **FAIT le 2026-09-08** : chaque
-   voiture est notée sur `EVAL_TRACKS` pistes distinctes et la note est la moyenne (§6,
-   `node check-eval.js`). Le champion ne peut plus mémoriser un parcours.
+1. ~~**Le protocole d'évaluation fabrique de la récitation.**~~ **RÉSOLU le 2026-09-08** : la piste
+   est régénérée à CHAQUE génération (plus de `genSinceTrack>=5`), aucun parcours n'est vu deux
+   fois. Le multi-piste « moyenner sur N pistes » a été TESTÉ et mesuré NÉGATIF (§6) : la sélection
+   à chaque manche l'emporte, `EVAL_TRACKS` est ramené à 1.
 2. **12 cœurs, un seul utilisé.** Un lanceur `child_process` qui répartit les graines = ×8
    d'expérience à temps égal. Travail d'infrastructure, fichiers disjoints, sans risque.
-   ⚠ Avec l'évaluation multi-pistes, une génération coûte `EVAL_TRACKS` manches : ce point devient
-   encore plus rentable.
 3. **Le détecteur de raccourci ne se déclenche jamais** (0 % en course). Mesuré : sa fenêtre de
    distance 3D est 8-60 m alors que la distance réelle entre deux bouts de piste a une **médiane de
    159 m**. Les seuils ont été réglés pour une géométrie que le générateur ne produit pas.
