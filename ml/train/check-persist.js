@@ -22,17 +22,18 @@
 
    Usage : node check-persist.js
    ================================================================================================ */
+const os=require('os');
 const fs=require('fs'),path=require('path');
 const {loadGame}=require('./sim-env');
 
-const RES=path.join(__dirname,'results');
-const CH=path.join(RES,'champion.json');
-const SAUVE=CH+'.check-persist-backup';
+// TEMOIN DANS UN CHEMIN TEMPORAIRE DEDIE — jamais results/champion.json. Un test ne doit
+// JAMAIS ecrire dans le chemin de production qu il teste : avant cette correction, le temoin
+// fuyait dans results/champion.json (fichier VERSIONNE) et le navigateur (train.html, useClone)
+// repartait de ce faux champion a la generation 0, empoisonnant toute mesure (bug #38).
+const RES=path.join(os.tmpdir(),'check-persist');
+const CH=path.join(RES,'temoin.json');
 
-let restaurer=null;
-if(fs.existsSync(CH)){ fs.copyFileSync(CH,SAUVE); restaurer=()=>fs.copyFileSync(SAUVE,CH); }
-else restaurer=()=>{ try{ fs.unlinkSync(CH); }catch(e){} };
-function fin(code){ try{ restaurer(); fs.existsSync(SAUVE)&&fs.unlinkSync(SAUVE); }catch(e){} process.exit(code); }
+function fin(code){ try{ fs.unlinkSync(CH); }catch(e){} process.exit(code); }
 
 console.log('— chargement du jeu…');
 let g=loadGame('?train=1&sim=1&clone=0');
@@ -46,7 +47,7 @@ for(let i=0;i<SIZE;i++) temoin[i]=+(Math.sin(i*0.7)*0.5).toFixed(6);   // signat
 fs.mkdirSync(RES,{recursive:true});
 fs.writeFileSync(CH,JSON.stringify({v:1,in:T.inArr.length,hid:16,out:4,size:SIZE,
   gen:1234,note:99999,date:new Date().toISOString(),w:temoin}));
-console.log('— champion temoin ecrit dans results/champion.json (gen 1234)');
+console.log('— champion temoin ecrit dans '+CH+' (gen 1234)');
 
 /* ---------- 2. ON REDEMARRE : la generation 0 doit en partir ---------- */
 // Le navigateur lit le fichier par `fetch` ; en headless on emprunte le meme chemin que sim-train.js.
