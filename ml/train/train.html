@@ -12486,7 +12486,7 @@ if(IS_TRAIN){
 /* ---------- PETIT MLP 12 → 16 → 4 (pur JS, pas de lib) ----------
    Sorties = les VRAIES commandes du joueur : [0] volant, [1] gaz, [2] nitro, [3] pitch aérien */
 function MLP(w){ this.w=w||new Float32Array(MLP.SIZE); }
-MLP.IN=BRAIN_IN; MLP.HID=16; MLP.OUT=4; // IN vient de carBrainInput : un seul chiffre a changer
+MLP.IN=BRAIN_IN; MLP.HID=32; MLP.OUT=4; // IN vient de carBrainInput : un seul chiffre a changer
 // SOURCE D'ALEA du reseau — remplacable pour rendre un run REPRODUCTIBLE (TRAIN la seme).
 // Rien d'autre ne change : meme topologie, memes taux, memes maths.
 MLP.rnd=Math.random;
@@ -12713,8 +12713,7 @@ TRAIN.botStep=function(b,dt){
   TRAIN.botEvents(b);
   b.boostT=b.nitroOn?1:0;                            // le jet du mesh suit la VRAIE combustion
   b.totD=SURV.pBase+b.s;
-    if(Math.abs(b.v)>b.vmax) b.vmax=Math.abs(b.v);   // vitesse de pointe (signal de selection « rapidite »)
-    b.aliveT+=dt;
+  b.aliveT+=dt;
   // CONTROLE : les metres gagnes AU SOL, ponderes par le centrage. Rouler au ras du bord ne
   // rapporte rien ; c'est la le gradient que l'evolution n'avait pas.
   if(!wasAir && b.mode==='drive'){
@@ -12991,21 +12990,15 @@ TRAIN.newGen=function(first){
        chaque generation. Ici la moitie haute est CONSERVEE telle quelle — un bon cerveau n est
        jamais perdu par accident de tirage. */
     const sorted=TRAIN.bots.slice().sort((a,b)=>b.fitness-a.fitness);
-        const GARDE=Math.floor(TRAIN.POP/2);
-        const VIT_SLOTS=3;                                     // slots de VITESSE : garder aussi les plus rapides
-        const bySpeed=TRAIN.bots.slice().sort((a,b)=>b.vmax-a.vmax);
-        const newBots=[], elite=[];
-        for(let i=0;i<GARDE-VIT_SLOTS;i++){ newBots.push(TRAIN.makeBot(sorted[i].brain.w)); elite.push(sorted[i]); } // par distance
-        for(let i=0;i<TRAIN.bots.length && elite.length<GARDE;i++){                                                   // par vitesse
-          if(elite.indexOf(bySpeed[i])>=0) continue;
-          newBots.push(TRAIN.makeBot(bySpeed[i].brain.w)); elite.push(bySpeed[i]);
-        }
-        while(newBots.length<TRAIN.POP){                                        // …et autant d enfants
-          const p1=elite[Math.floor(TRAIN.rnd()*elite.length)], p2=elite[Math.floor(TRAIN.rnd()*elite.length)];
-          const child=MLP.crossover(p1.brain,p2.brain);
-          child.mutate(0.12,0.18);
-          newBots.push(TRAIN.makeBot(child.w));
-        }
+    const GARDE=Math.floor(TRAIN.POP/2);
+    const newBots=[];
+    for(let i=0;i<GARDE;i++) newBots.push(TRAIN.makeBot(sorted[i].brain.w)); // les meilleures, intactes
+    while(newBots.length<TRAIN.POP){                                        // …et autant d enfants
+      const p1=sorted[Math.floor(TRAIN.rnd()*GARDE)], p2=sorted[Math.floor(TRAIN.rnd()*GARDE)];
+      const child=MLP.crossover(p1.brain,p2.brain);
+      child.mutate(0.12,0.18);
+      newBots.push(TRAIN.makeBot(child.w));
+    }
     // Nettoyage anciens meshes
     for(const b of TRAIN.bots) if(b.mesh && b.mesh.g) scene.remove(b.mesh.g);
     TRAIN.bots=newBots;
@@ -13027,7 +13020,7 @@ TRAIN.newGen=function(first){
   }
   TRAIN.GEN++;
   TRAIN.evalIdx=0;
-  for(const b of TRAIN.bots){ b.fitnessSum=0; b.evalCount=0; b.vmax=0; }
+  for(const b of TRAIN.bots){ b.fitnessSum=0; b.evalCount=0; }
   TRAIN.startEval();
 };
 

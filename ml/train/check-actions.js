@@ -20,7 +20,7 @@ const N=parseInt(process.argv[2]||'10000',10);
 console.log('— chargement…');
 const g=loadGame('?train=1&sim=1');
 const T=g.get('__TRAIN');
-const HID=T.inArr?16:16, OUT=4;
+const OUT=4; const HID=T.outArr.length-OUT;   // HID réel lu sur outArr (HID+OUT cases), plus de HID codé en dur
 
 /* ---------- 1. L ENSEMBLE ATTEIGNABLE PAR UN HUMAIN ----------
    On enumere les etats de touches possibles et on applique la MEME formule que pcarInput :
