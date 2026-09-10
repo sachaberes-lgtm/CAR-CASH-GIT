@@ -12910,11 +12910,14 @@ TRAIN.resetBot=function(b){
 // comme pour un saut normal (mode, airRate, fallT, repere), puis on souleve le point de depart.
 // carFall/carTryLand consomment ensuite cet etat a l'identique -> check-iso reste 0.000e+0.
 TRAIN.airSpawn=function(b){
-  b.v=30;                                               // vitesse horizontale realiste de vol
+  // SPAWN A LA DYNAMIQUE D'UN VRAI SAUT POSE (mesure results/jump-vectors.json, n=22) : vite
+  // vers l'avant (~104-108 m/s) et en leger descente. L'ancienne "chute droite" (30 m/s, 20-38 m,
+  // Vy=0) posait a 99 % sans rien apprendre ; le vrai saut est RAPIDE et DESCEND, il faut piloter.
   carStartFall(b,0,1,TRAIN.world);                      // l'etat de vol (mode='fall', fallPos/fallVel, flags)
-  b.fallPos.addScaledVector(b._F.n,20+TRAIN.rnd()*18);  // 20-38 m au-dessus du ruban (borne carTryLand 40 m)
-  b.fallVel.copy(b._F.t).multiplyScalar(30);            // ~30 m/s le long de la tangente
-  b.fallVel.y=0;                                        // chute amorcee a vitesse VERTICALE nulle
+  b.fallPos.addScaledVector(b._F.n,14+TRAIN.rnd()*8);   // 14-22 m au-dessus (descente, pas chute 20-38 m)
+  b.fallVel.copy(b._F.t).multiplyScalar(104+TRAIN.rnd()*8); // ~104-112 m/s vers l'avant (vitesse reelle)
+  b.fallVel.y=-18-TRAIN.rnd()*8;                        // descente ~-18..-26 m/s (saut reel, pas chute libre)
+  b.v=104;
   // BILAN HONNETE : ce vol compte comme un decollage (sinon des atterrissages sans decollage
   // gonfleraient le taux landings/takeoffs), et la reference 'distance' part de CE point.
   TRAIN.airStats.takeoffs++;
