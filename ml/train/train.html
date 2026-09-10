@@ -12553,7 +12553,7 @@ const TRAIN={
   // C'est LA métrique de santé de la voltige : le taux d'atterrissage = landings/takeoffs.
   // ⚠ Leçon du 2026-09-08 : lire b.goodCuts après le dernier newGen() renvoie TOUJOURS 0 (les bots
   // viennent d'être re-créés) — une métrique structurellement nulle passe « au vert » sans rien dire.
-  airStats:{takeoffs:0, landings:0, goodCuts:0},
+  airStats:{takeoffs:0, landings:0, goodCuts:0, takeoffsBord:0, takeoffsAutre:0},
   // AMORCAGE : si un cerveau clone est disponible, la generation 0 part de LUI. ?clone=0 pour
   // revenir au demarrage aleatoire — c est le seul moyen de mesurer si l amorcage sert a quelque chose.
   useClone:!/[?&]clone=0/.test(location.search), seedBrain:null, seedSigma:0.10, seedRate:0.25,
@@ -12727,7 +12727,11 @@ TRAIN.botStep=function(b,dt){
     TRAIN.airStats.takeoffs++;                           // UN DECOLLAGE (compteur global, jamais remis a zero)
     b.flyStartTotD=b.totD;                               // il vient de decoller
     b.flyStartPos.copy(b.fallPos);                       // position 3D du decollage (pour le gain net)
-    if(Math.abs(b.lat)>=ROAD_HALF-1.5) b.outs++;         // ...et c'etait PAR LE BORD : ca se paye
+    // CAUSE DU DECOLLAGE : PAR LE BORD (|lat| colle au bord) vs AUTRE (envers <7 m/s, tremplin,
+    // trou...). Fable a mesure qu un bot ne decolle QUE par le bord ou a l envers ; les dos d ane
+    // (hop) font un petit bond SANS passer en mode fall — ils ne sont pas des decollages.
+    if(Math.abs(b.lat)>=ROAD_HALF-1.5){ b.outs++; TRAIN.airStats.takeoffsBord++; } // ...le BORD : ca se paye
+    else TRAIN.airStats.takeoffsAutre++;                 // envers / tremplin / trou : « autre »
   }
   else if(wasAir && b.mode==='drive'){                    // il vient de se poser
     const gain=b.totD-b.flyStartTotD;                     // distance gagnee LE LONG DU RUBAN
@@ -12921,6 +12925,7 @@ TRAIN.airSpawn=function(b){
   // BILAN HONNETE : ce vol compte comme un decollage (sinon des atterrissages sans decollage
   // gonfleraient le taux landings/takeoffs), et la reference 'distance' part de CE point.
   TRAIN.airStats.takeoffs++;
+  TRAIN.airStats.takeoffsAutre++;                        // spawn aerien = « autre » (pas un decollage par le bord)
   b.flyStartTotD=b.totD;
   b.flyStartPos.copy(b.fallPos);
 };
@@ -13057,9 +13062,15 @@ TRAIN.endGen=function(){
   // toutes les pistes de la generation sont jouees : la note de selection est la MOYENNE des
   // scores de rang (bornee [0,POP-1], comparable entre genomes, insensible aux pistes extremes).
   for(const b of TRAIN.bots) b.fitness=b.fitnessSum/Math.max(1,b.evalCount);
-  let best=0,alive=0;
-  for(const b of TRAIN.bots){ if(b.fitness>best) best=b.fitness; if(b.alive) alive++; }
-  if(best>TRAIN.record) TRAIN.record=best;
+  let best=0,bestDist=0,alive=0;
+  for(const b of TRAIN.bots){ if(b.fitness>best) best=b.fitness; if(b.totD>bestDist) bestDist=b.totD; if(b.alive) alive++; }
+  // RECORD = DISTANCE MAX (totD), PAS LE RANG. Depuis la selection « par rang » (e62f924), `best`
+  // est un score de rang borne [0,POP-1] qui ne dit RIEN du progres reel : la distance est LE
+  // signal d evaluation qu on veut voir grimper, le rang reste le mecanisme de selection interne.
+  if(bestDist>TRAIN.record){
+    TRAIN.record=bestDist;                      // record = distance max atteinte sur la manche
+    TRAIN.saveChampion(true);                   // nouveau record de distance -> sauvegarde IMMEDIATE
+  }                                            // (pas seulement a l intervalle AUTOSAVE)
   // LE BILAN DES MORTS : sans lui on ne sait pas si la population meurt de tomber, de trop voler
   // ou de rester plantee — trois problemes qui n'appellent pas du tout les memes reglages.
   const dw=Object.keys(TRAIN.deaths).map(k=>k+' '+TRAIN.deaths[k]).join(', ')||'aucune';

@@ -64,14 +64,19 @@ const EVALS=T.EVAL_TRACKS||1;
 const TARGET_GEN=GENS;
 const MAX_TICKS=Math.round(45/DT)*EVALS*TARGET_GEN;
 
-// COURBE D'APPRENTISSAGE : meilleure fitness a chaque SELECTION. On hooke newGen (une fois par
-// generation), pas endGen (qui tourne a chaque manche quand EVAL_TRACKS>1).
+// COURBE D'APPRENTISSAGE : meilleure DISTANCE a chaque SELECTION, plus le rang. On hooke newGen
+// (une fois par generation), pas endGen (qui tourne a chaque manche quand EVAL_TRACKS>1).
 const courbe=[];
+let genMaxTotD=0;   // meilleure DISTANCE (totD) observee sur la generation en cours (toutes manches)
 const n0=T.newGen;
 T.newGen=function(first){
   if(!first){
-    const s=T.bots.slice().sort((a,b)=>b.fitness-a.fitness);
-    if(s.length) courbe.push(Math.round(s[0].fitness));
+    // COURBE = DISTANCE, PAS LE RANG : depuis la selection « par rang » (e62f924), s[0].fitness est
+    // un rang [0,POP-1] qui ne dit rien du progres. On pousse le meilleur totD observe SUR LA
+    // GENERATION (genMaxTotD, alimente a chaque tick et remis a zero ici) — plus fidele que le
+    // totD du meilleur bot a la selection, qui ne refleterait que la DERNIERE manche.
+    courbe.push(Math.round(genMaxTotD));
+    genMaxTotD=0;
   }
   return n0.apply(T,arguments);
 };
@@ -85,7 +90,7 @@ T.kill=function(b,why){ deaths[why]=(deaths[why]||0)+1; return k0.apply(T,argume
 // BILAN DU VOL : on remet le compteur global à zéro POUR CE RUN (loadGame partage le même objet
 // entre les runs headless), puis on le lit à la fin. Il est accumulé par botStep sur TOUTES les
 // manches et générations — contrairement à b.goodCuts qui ne vit qu'une manche (resetBot).
-T.airStats={takeoffs:0, landings:0, goodCuts:0};
+T.airStats={takeoffs:0, landings:0, goodCuts:0, takeoffsBord:0, takeoffsAutre:0};
 let lastGen=T.GEN;
 let maxTotD=0;
 for(let i=0;i<MAX_TICKS && T.GEN<TARGET_GEN;i++){
@@ -97,6 +102,7 @@ for(let i=0;i<MAX_TICKS && T.GEN<TARGET_GEN;i++){
     process.exit(1);
   }
   for(const b of T.bots) if(b.alive && b.totD>maxTotD) maxTotD=b.totD;
+  for(const b of T.bots) if(b.alive && b.totD>genMaxTotD) genMaxTotD=b.totD;   // meilleure DISTANCE de la gen
   if(T.GEN>lastGen){
     console.log('Génération',T.GEN,'démarrée au tick',i,'(t='+Math.round(i*DT)+'s)');
     lastGen=T.GEN;
@@ -108,13 +114,16 @@ const alive=T.bots.filter(b=>b.alive).length;
 // métrique de la voltige. Taux d'atterrissage = landings/takeoffs — si les bots sautent sans jamais
 // se poser, ce ratio s'effondre et on le VOIT (leçon : une métrique structurellement nulle passe
 // « au vert » sans rien signaler).
-const as=T.airStats||{takeoffs:0,landings:0,goodCuts:0};
+const as=T.airStats||{takeoffs:0,landings:0,goodCuts:0,takeoffsBord:0,takeoffsAutre:0};
 const tauxAt=as.takeoffs>0?Math.round(100*as.landings/as.takeoffs):0;
+const decolBord=as.takeoffsBord||0, decolAutre=as.takeoffsAutre||0;
 console.log('FIN SIM : génération',T.GEN,'vivants',alive,'/24','max totD',maxTotD.toFixed(1),
             'record',Math.round(T.record),
-            'décol',as.takeoffs,'atter',as.landings,'('+tauxAt+'%)','bonnes coupes',as.goodCuts);
+            'décol',as.takeoffs,'(bord',decolBord,'/ autre',decolAutre+')',
+            'atter',as.landings,'('+tauxAt+'%)','bonnes coupes',as.goodCuts);
 console.log('RESUME '+JSON.stringify({gen:T.GEN,record:Math.round(T.record),maxTotD:Math.round(maxTotD),
-            air:as, tauxAtterrissage:tauxAt, courbe:courbe, deaths:deaths}));
+            air:as, decollages:{total:as.takeoffs,bord:decolBord,autre:decolAutre},
+            tauxAtterrissage:tauxAt, courbe:courbe, deaths:deaths}));
 // PERSISTANCE DES RESULTATS : le RESUME partait en stdout et etait perdu des que le process se
 // terminait (trouve par Sacha le 2026-09-09). On l'ecrit aussi dans results/runs/run-<graine>.json :
 // un run reproductible laisse une trace, comparer deux versions du code ne depend plus de la console.
@@ -125,7 +134,8 @@ try{
   const nom='run-'+(RUN_SEED!=null?('seed'+RUN_SEED):'auto')+(NOFLYFIX?'-noflyfix':'')+'.json';
   const out=JSON.stringify({seed:RUN_SEED,gens:TARGET_GEN,wcut:T.W_CUT,auto:!!T.AUTO_GROUND,
     noflyfix:NOFLYFIX, date:new Date().toISOString(), gen:T.GEN, record:Math.round(T.record),
-    maxTotD:Math.round(maxTotD), air:as, tauxAtterrissage:tauxAt, courbe:courbe, deaths:deaths});
+    maxTotD:Math.round(maxTotD), air:as, decollages:{total:as.takeoffs,bord:decolBord,autre:decolAutre},
+    tauxAtterrissage:tauxAt, courbe:courbe, deaths:deaths});
   fs.writeFileSync(path.join(runsDir,nom),out);
   console.log('  → resultat ecrit : results/runs/'+nom);
 }catch(e){ console.error('  persistance RESUME echouee : '+e.message); }
