@@ -12531,11 +12531,19 @@ const TRAIN={
   // volant hérité du Survivant) qui produit les 4 commandes. Le cerveau ne garde que le VOL.
   // ?auto=1 l'active ; défaut 0 pour ne jamais surprendre l'ancien comportement (A/B reproductible).
   AUTO_GROUND:/([?&]auto=1)/.test(location.search)?1:0,
-  // AIR_SPAWN : fraction des reinitialisations qui demarre EN VOL (mode 'fall') au-dessus de la
-  // piste, pour apprendre a ATTERRIR avant d'apprendre a decoller (curriculum : l'atterrissage
-  // est le goulot, 79 % des vols meurent en l'air). Surcharge par ?air=0.3 ; borne [0,1]. Ne
-  // touche PAS la physique : l'etat de vol est construit par carStartFall (check-iso = 0.000e+0).
+  // AIR_SPAWN : active le spawn aerien STRATIFIE (voir AIR_CYCLE). Ce n'est PLUS une fraction de
+  // reinitialisations tiree au sort PAR BOT (un vol ~20x plus letal qu'un sol faussait la fitness
+  // d'un genome selon son tirage) : c'est un simple interrupteur + la reference pour AIR_CYCLE.
+  // Surcharge par ?air=0.3 ; borne [0,1]. 0 = aucun spawn aerien. Ne touche PAS la physique :
+  // l'etat de vol est construit par carStartFall (check-iso = 0.000e+0).
   AIR_SPAWN:(()=>{const m=location.search.match(/[?&]air=([0-9.]+)/);return m?Math.min(1,Math.max(0,+m[1])):0.3;})(),
+  // AIR_CYCLE : le spawn aerien est decide PAR MANCHE (une fois dans startEval), pas par bot.
+  // TRAIN.airManche = (evalIdx % AIR_CYCLE === 0) : TOUS les bots d'une manche aerienne demarrent
+  // en vol, tous ceux d'une manche sol restent au sol — chaque genome voit LE MEME melange de
+  // manches, deterministe. Surcharge par ?aircycle=N ; 0 desactive. Defaut 4 (~25 % des manches,
+  // l'ordre de grandeur de l'ancien AIR_SPAWN=0.3). evalIdx repart a 0 a chaque generation, donc
+  // la 1re manche de chaque generation est aerienne — identique pour tous les genomes.
+  AIR_CYCLE:(()=>{const m=location.search.match(/[?&]aircycle=(\d+)/);return m?Math.max(0,+m[1]):4;})(),
   record:0, camBot:0, acc:0,
   // ALEA SEME : sans lui, deux runs du MEME cerveau ne donnent pas le meme score (positions de
   // depart, embardees d'huile). L'EVOLUTION, elle, garde Math.random : c'est elle qui doit explorer.
@@ -12892,7 +12900,7 @@ TRAIN.resetBot=function(b){
   b.s=(TRAIN.rnd()*2-1)*20;
   b.lat=(TRAIN.rnd()*2-1)*(ROAD_HALF-4);
   b.totD=SURV.pBase+b.s;
-  if(TRAIN.AIR_SPAWN>0&&TRAIN.rnd()<TRAIN.AIR_SPAWN)TRAIN.airSpawn(b);          // SPAWN AERIEN (curriculum)
+  if(TRAIN.airManche)TRAIN.airSpawn(b);                                        // SPAWN AERIEN stratifie (par manche)
 };
 
 // SPAWN AERIEN : une fraction des reinitialisations (TRAIN.AIR_SPAWN) demarre EN VOL (mode
@@ -13014,21 +13022,37 @@ TRAIN.startEval=function(){
   TRAIN.seed=Math.floor(TRAIN.rnd()*1e9);
   buildTrack(TRAIN.seed);
   SURV.pBase=0;
+  // SPAWN AERIEN STRATIFIE : la decision est prise UNE FOIS par manche, avant de reinitialiser
+  // les bots, donc IDENTIQUE pour toute la population (deterministe, plus de tirage par bot).
+  TRAIN.airManche=TRAIN.AIR_SPAWN>0&&TRAIN.AIR_CYCLE>0&&(TRAIN.evalIdx%TRAIN.AIR_CYCLE===0);
   for(let i=0;i<TRAIN.bots.length;i++){ TRAIN.resetBot(TRAIN.bots[i]); TRAIN.bots[i].mesh.g.visible=true; }
   TRAIN.genTime=0;
   TRAIN.acc=0;
 };
 
 TRAIN.endGen=function(){
-  // FIN D'UNE MANCHE : on accumule la note de CHAQUE voiture (morte ou pas) dans sa moyenne.
-  for(const b of TRAIN.bots){ b.fitnessSum+=TRAIN.fitness(b); b.evalCount++; }
+  // FIN D'UNE MANCHE : on accumule un SCORE DE RANG, pas la note brute. La note brute (totD +
+  // arrivee) est d'echelle variable et une piste dure creuse un trou qui domine la moyenne ; le
+  // rang (POP - rang : meilleur = POP-1, pire = 0) est borne [0,POP-1] et insensible aux pistes
+  // extremes. Ex-aequo : moyenne des rangs (les bots a note identique partagent le meme score).
+  const notes=TRAIN.bots.map((b,i)=>({i:i,n:TRAIN.fitness(b)}));
+  notes.sort((a,b)=>b.n-a.n);
+  let r=0;
+  while(r<notes.length){
+    let r2=r+1;
+    while(r2<notes.length&&notes[r2].n===notes[r].n) r2++;
+    const rangMoyen=(2*TRAIN.POP-r-r2-1)/2;     // moyenne des rangs POP-1-r .. POP-1-(r2-1)
+    for(let k=r;k<r2;k++){ const b=TRAIN.bots[notes[k].i]; b.fitnessSum+=rangMoyen; b.evalCount++; }
+    r=r2;
+  }
   TRAIN.evalIdx++;
   if(TRAIN.evalIdx<TRAIN.EVAL_TRACKS){
     // il reste des pistes a jouer dans cette generation : on change de piste, on NE selectionne PAS.
     TRAIN.startEval();
     return;
   }
-  // toutes les pistes de la generation sont jouees : la note de selection est la MOYENNE.
+  // toutes les pistes de la generation sont jouees : la note de selection est la MOYENNE des
+  // scores de rang (bornee [0,POP-1], comparable entre genomes, insensible aux pistes extremes).
   for(const b of TRAIN.bots) b.fitness=b.fitnessSum/Math.max(1,b.evalCount);
   let best=0,alive=0;
   for(const b of TRAIN.bots){ if(b.fitness>best) best=b.fitness; if(b.alive) alive++; }
