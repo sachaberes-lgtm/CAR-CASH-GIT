@@ -12680,7 +12680,7 @@ TRAIN.botStep=function(b,dt){
   // Cerveau : tick humain ~10 Hz, entre deux ticks on garde les decisions
   b.think-=dt;
   if(b.think<=0){
-    b.think=0.1;
+    b.think=1/30;  // 30 Hz (au lieu de ~10 Hz) : braquage/gaz plus fin en virage
     TRAIN.brainInput(b);
     b.brain.forward(TRAIN.inArr,TRAIN.outArr);
     if(TRAIN.AUTO_GROUND && b.mode==='drive'){
