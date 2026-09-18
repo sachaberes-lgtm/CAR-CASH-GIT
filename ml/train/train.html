@@ -12486,7 +12486,7 @@ if(IS_TRAIN){
 /* ---------- PETIT MLP 12 → 16 → 4 (pur JS, pas de lib) ----------
    Sorties = les VRAIES commandes du joueur : [0] volant, [1] gaz, [2] nitro, [3] pitch aérien */
 function MLP(w){ this.w=w||new Float32Array(MLP.SIZE); }
-MLP.IN=BRAIN_IN; MLP.HID=32; MLP.OUT=4; // IN vient de carBrainInput : un seul chiffre a changer
+MLP.IN=BRAIN_IN; MLP.HID=16; MLP.OUT=4; // IN vient de carBrainInput : un seul chiffre a changer
 // SOURCE D'ALEA du reseau — remplacable pour rendre un run REPRODUCTIBLE (TRAIN la seme).
 // Rien d'autre ne change : meme topologie, memes taux, memes maths.
 MLP.rnd=Math.random;
@@ -12680,7 +12680,7 @@ TRAIN.botStep=function(b,dt){
   // Cerveau : tick humain ~10 Hz, entre deux ticks on garde les decisions
   b.think-=dt;
   if(b.think<=0){
-    b.think=1/30;  // 30 Hz (au lieu de ~10 Hz) : braquage/gaz plus fin en virage
+    b.think=0.1;
     TRAIN.brainInput(b);
     b.brain.forward(TRAIN.inArr,TRAIN.outArr);
     if(TRAIN.AUTO_GROUND && b.mode==='drive'){
