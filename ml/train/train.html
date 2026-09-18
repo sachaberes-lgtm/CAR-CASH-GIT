@@ -12518,7 +12518,7 @@ function randGauss(){
 /* ---------- NAMESPACE TRAIN ---------- */
 const TRAIN={
   POP:(+((location.search.match(/[?&]pop=(\d+)/)||[])[1])||24), GEN:0, seed:1,
-  bots:[], running:false, genTime:0, matchDuration:45, simSpeed:1,
+  bots:[], running:false, genTime:0, matchDuration:150, simSpeed:1,
   // EVAL_TRACKS : combien de pistes DIFFERENTES chaque voiture court avant d etre notee.
   // MESURE (xp-generalisation.js, 2026-09-08) : moyenner sur plusieurs pistes NE PAIE PAS.
   // Retarder la selection a une fois toutes les N manches = Nx moins d etapes d evolution, et le

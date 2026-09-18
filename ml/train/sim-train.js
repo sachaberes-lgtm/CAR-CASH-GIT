@@ -62,7 +62,7 @@ const GENS=(()=>{ const i=process.argv.indexOf('--gens'); return i>0?parseInt(pr
 const DT=1/60;
 const EVALS=T.EVAL_TRACKS||1;
 const TARGET_GEN=GENS;
-const MAX_TICKS=Math.round(45/DT)*EVALS*TARGET_GEN;
+const MAX_TICKS=Math.round(T.matchDuration/DT)*EVALS*TARGET_GEN;
 
 // COURBE D'APPRENTISSAGE : meilleure DISTANCE a chaque SELECTION, plus le rang. On hooke newGen
 // (une fois par generation), pas endGen (qui tourne a chaque manche quand EVAL_TRACKS>1).
