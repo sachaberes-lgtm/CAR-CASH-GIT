@@ -137,7 +137,7 @@ if (!champ.length) {
     netSize + ' poids. Rien à évaluer — sortie propre, aucune donnée inventée.');
   process.exit(0);
 }
-champ.sort((a, b) => (b.note - a.note) || (b.gen - a.gen));   // meilleurs d'abord (champ `note`)
+champ.sort((a, b) => (b.record - a.record) || (b.gen - a.gen));   // meilleurs d'abord (par RECORD = distance, pas `note` qui mélange rang/ancienne distance)
 const nbCompatibles = champ.length;
 const kEval = Math.min(K !== null ? K : nbCompatibles, MAX_CHAMPIONS, nbCompatibles);
 if (K !== null && K > kEval) console.log('  K=' + K + ' demandé mais ' + nbCompatibles + ' compatible(s) (plafond ' + MAX_CHAMPIONS + ') → évalués : ' + kEval);

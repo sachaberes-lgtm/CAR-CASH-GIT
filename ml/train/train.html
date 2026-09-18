@@ -12519,6 +12519,8 @@ function randGauss(){
 const TRAIN={
   POP:(+((location.search.match(/[?&]pop=(\d+)/)||[])[1])||24), GEN:0, seed:1,
   bots:[], running:false, genTime:0, matchDuration:150, simSpeed:1,
+  trackLen:function(){return L;},   // (mesure) longueur totale de la piste courante, en mètres
+  V_REF:60,                        // vitesse de référence (m/s) : matchDuration = L/V_REF → finir reste faisable sur toute piste
   // EVAL_TRACKS : combien de pistes DIFFERENTES chaque voiture court avant d etre notee.
   // MESURE (xp-generalisation.js, 2026-09-08) : moyenner sur plusieurs pistes NE PAIE PAS.
   // Retarder la selection a une fois toutes les N manches = Nx moins d etapes d evolution, et le
@@ -13029,6 +13031,7 @@ TRAIN.startEval=function(){
   // different. On ne note et on ne selectionne qu'a la fin (moyenne sur EVAL_TRACKS pistes).
   TRAIN.seed=Math.floor(TRAIN.rnd()*1e9);
   buildTrack(TRAIN.seed);
+  TRAIN.matchDuration=L/TRAIN.V_REF;   // durée ∝ longueur : ~148 s sur la piste médiane (8901 m)
   SURV.pBase=0;
   // SPAWN AERIEN STRATIFIE : la decision est prise UNE FOIS par manche, avant de reinitialiser
   // les bots, donc IDENTIQUE pour toute la population (deterministe, plus de tirage par bot).
