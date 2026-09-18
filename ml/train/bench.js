@@ -175,6 +175,7 @@ for (let c = 0; c < selected.length; c++) {
   }
   results.push({ file: ch.file, gen: ch.gen, note: ch.note, record: ch.record, totDs, perTrack, nFin, finishTs });
   const med = median(totDs), tm = trimmedMean(totDs, 10), sd = ecartType(totDs);
+  results[results.length - 1].med = med;
   const mn = Math.min(...totDs), mx = Math.max(...totDs);
   console.log('\n=== CHAMP ' + results.length + '/' + kEval + ' : ' + ch.file + ' ===');
   console.log('  gen=' + ch.gen + '  note(stockée)=' + ch.note + '  record=' + ch.record + '  w.length=' + ch.w.length);
@@ -187,6 +188,15 @@ for (let c = 0; c < selected.length; c++) {
     (nFin ? ('    t_arrivée médian : ' + fmt(median(finishTs)) + ' s') : '    (aucune arrivée : totD seul parle)'));
   console.log('    σ_moy = σ/√N = ' + fmt(sd / Math.sqrt(N)) + '  (bruit du banc divisé par la racine du nombre de pistes)');
 }
+
+// ---------- 6b. CLASSEMENT final par distance MÉDIANE ----------
+// (le `record` = distance MAX sur UNE piste chanceuse ne prédit pas la capacité à finir :
+//  mesuré 4 % vs 33 % de finition pour deux champions à record quasi égal. On classe par MÉDIANE.)
+results.sort((a, b) => b.med - a.med);
+console.log('\n════════════ CLASSEMENT par distance MÉDIANE (sélecteur réel) ════════════');
+results.forEach((r, i) => {
+  console.log('  #' + (i + 1) + '  ' + r.file + '  gen=' + r.gen + '  médiane=' + fmt(r.med) + ' m  finishes=' + r.nFin + '/' + N + '  record=' + r.record);
+});
 
 // ---------- 7. Comparaison appariée (mêmes graines pour tous) ----------
 if (kEval >= 2) {
