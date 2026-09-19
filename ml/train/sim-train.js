@@ -121,7 +121,7 @@ console.log('FIN SIM : génération',T.GEN,'vivants',alive,'/24','max totD',maxT
             'record',Math.round(T.record),
             'décol',as.takeoffs,'(bord',decolBord,'/ autre',decolAutre+')',
             'atter',as.landings,'('+tauxAt+'%)','bonnes coupes',as.goodCuts);
-console.log('RESUME '+JSON.stringify({gen:T.GEN,record:Math.round(T.record),maxTotD:Math.round(maxTotD),V_REF:TRAIN.V_REF,
+console.log('RESUME '+JSON.stringify({gen:T.GEN,record:Math.round(T.record),maxTotD:Math.round(maxTotD),V_REF:T.V_REF,
             air:as, decollages:{total:as.takeoffs,bord:decolBord,autre:decolAutre},
             tauxAtterrissage:tauxAt, courbe:courbe, deaths:deaths}));
 // PERSISTANCE DES RESULTATS : le RESUME partait en stdout et etait perdu des que le process se
@@ -132,7 +132,7 @@ try{
   const runsDir=path.join(__dirname,'results','runs');
   fs.mkdirSync(runsDir,{recursive:true});
   const nom='run-'+(RUN_SEED!=null?('seed'+RUN_SEED):'auto')+(NOFLYFIX?'-noflyfix':'')+'.json';
-  const out=JSON.stringify({seed:RUN_SEED,gens:TARGET_GEN,wcut:T.W_CUT,auto:!!T.AUTO_GROUND,V_REF:TRAIN.V_REF,
+  const out=JSON.stringify({seed:RUN_SEED,gens:TARGET_GEN,wcut:T.W_CUT,auto:!!T.AUTO_GROUND,V_REF:T.V_REF,
     noflyfix:NOFLYFIX, date:new Date().toISOString(), gen:T.GEN, record:Math.round(T.record),
     maxTotD:Math.round(maxTotD), air:as, decollages:{total:as.takeoffs,bord:decolBord,autre:decolAutre},
     tauxAtterrissage:tauxAt, courbe:courbe, deaths:deaths});
