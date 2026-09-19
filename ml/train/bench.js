@@ -189,13 +189,21 @@ for (let c = 0; c < selected.length; c++) {
   console.log('    σ_moy = σ/√N = ' + fmt(sd / Math.sqrt(N)) + '  (bruit du banc divisé par la racine du nombre de pistes)');
 }
 
-// ---------- 6b. CLASSEMENT final par distance MÉDIANE ----------
-// (le `record` = distance MAX sur UNE piste chanceuse ne prédit pas la capacité à finir :
-//  mesuré 4 % vs 33 % de finition pour deux champions à record quasi égal. On classe par MÉDIANE.)
-results.sort((a, b) => b.med - a.med);
-console.log('\n════════════ CLASSEMENT par distance MÉDIANE (sélecteur réel) ════════════');
+// ---------- 6b. CLASSEMENT final : TAUX DE FINITION d'abord, temps de finition ensuite ----------
+// (décision du propriétaire : choisir le champion par finition sur pistes jamais vues ; la distance
+//  médiane reste pour l'ENTRAÎNEMENT. Le `record` est inutile — 4 champions à record identique ont
+//  des finitions 0 à 2/5. On classe : finitions ↓, puis temps de finition ↑, puis médiane ↓.)
+results.sort((a, b) => {
+  if (b.nFin !== a.nFin) return b.nFin - a.nFin;
+  if (a.nFin > 0) return median(a.finishTs) - median(b.finishTs);
+  return b.med - a.med;
+});
+console.log('\n════════════ CLASSEMENT (finition ↓, temps ↓, distance ↓) ════════════');
 results.forEach((r, i) => {
-  console.log('  #' + (i + 1) + '  ' + r.file + '  gen=' + r.gen + '  médiane=' + fmt(r.med) + ' m  finishes=' + r.nFin + '/' + N + '  record=' + r.record);
+  console.log('  #' + (i + 1) + '  ' + r.file + '  gen=' + r.gen +
+    '  finitions=' + r.nFin + '/' + N +
+    (r.finishTs.length ? '  t_médian=' + fmt(median(r.finishTs)) + ' s' : '') +
+    '  médiane=' + fmt(r.med) + ' m');
 });
 
 // ---------- 7. Comparaison appariée (mêmes graines pour tous) ----------
