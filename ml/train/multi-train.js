@@ -90,7 +90,7 @@ function run(seed){
     const stamp=new Date().toISOString().replace(/[:.]/g,'-');
     const nom='multi-'+stamp+'.json';
     const out=JSON.stringify({date:new Date().toISOString(), seeds:NSEEDS, gens:GENS, wcut:WCUT,
-      auto:AUTO, noflyfix:NOFLYFIX, wallSec:Math.round(dt),
+      auto:AUTO, noflyfix:NOFLYFIX, V_REF:(results[0]&&results[0].resume?results[0].resume.V_REF:null), wallSec:Math.round(dt),
       dist:{meilleur:dists.length?Math.max(...dists):null, mediane:dists.length?median(dists):null,
             moyenne:dists.length?Math.round(dists.reduce((a,b)=>a+b,0)/dists.length):null, parSeed:results.map(r=>r.resume?{seed:r.seed,maxTotD:r.resume.maxTotD,gen:r.resume.gen}:{seed:r.seed,erreur:true})},
       fit:{meilleur:fits.length?Math.max(...fits):null, mediane:fits.length?median(fits):null},
