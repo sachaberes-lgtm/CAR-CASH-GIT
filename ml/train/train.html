@@ -12967,9 +12967,11 @@ TRAIN.W_CTRL=1.0;   // un metre au centre vaut deux metres au bord
 TRAIN.W_OUT=120;    // ce que coute une sortie de route
 TRAIN.W_FIN=3000;   // franchir la ligne
 TRAIN.W_TEMPS=40;   // ...et chaque seconde gagnee pour le faire
+TRAIN.W_DEATH=2500; // pénalité de MORT (mode boom) : casser le local optimum « couper fort, mourir tard »
 TRAIN.fitness=function(b){
   return b.totD
-       + (b.finished?TRAIN.W_FIN+TRAIN.W_TEMPS*Math.max(0,TRAIN.matchDuration-b.finishT):0);
+         + (b.finished?TRAIN.W_FIN+TRAIN.W_TEMPS*Math.max(0,TRAIN.matchDuration-b.finishT):0)
+         - (b.mode==='boom'?TRAIN.W_DEATH:0);
 };
 
 TRAIN.tournament=function(sorted){
