@@ -19,8 +19,9 @@
    v12 (2026-09-05) : radio (fin des niveaux), dynamique de camera, garage (swipe/tap/zoom), intro,
    menu — plus un `no-store` explicite sur le fetch de navigation (voir plus bas).
    v13 (2026-09-23) : la VILLE VOXEL sous les nuages, et un 3e morceau dans la radio.
-   v14 (2026-09-23) : radio reduite a UN seul morceau (reglage temporaire, demande du user). */
-const CACHE = 'cashcar-v14';
+   v14 (2026-09-23) : radio reduite a UN seul morceau (reglage temporaire, demande du user).
+   v15 (2026-09-24) : moteur qui ronronne (plus de moustique), musique devant, gamme en briques. */
+const CACHE = 'cashcar-v15';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

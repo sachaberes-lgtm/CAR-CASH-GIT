@@ -3286,7 +3286,7 @@ let sOffset=0;
 // reconnaît que 24 variantes d'une seule. ⚠ toutes au-dessus de l'ex-reine
 // (657 km/h) et de plus en plus extrêmes. Le skin = le palier visuel ; `desc` = la carte de déblocage.
 const CARS=[
- // ---- LA GAMME DES 15 (2026-08-05) : UNE SILHOUETTE PAR CAISSE, point. ----------------------
+ // ---- LA GAMME (2026-08-05, ramenée à 6 le 2026-09-24) : UNE SILHOUETTE PAR CAISSE, point. -----
  // ⚠ RÈGLE FONDATRICE, mesurée puis gravée : `shape` est DÉCLARÉ ici, une valeur unique par
  // caisse, et le constructeur refuse de deviner. L'ancienne gamme de 24 tirait son gabarit d'une
  // échelle de niveaux (`lvl>=14?'rocket':…`) : 10 caisses partageaient `rocket` et 4 `gt`, ce qui
@@ -3296,38 +3296,21 @@ const CARS=[
  // Chaque ligne a une RÉFÉRENCE réelle (ou assumée fantastique) et un trait qui se lit de loin.
  {name:'LA HONTE',        shape:'epave',   color:0x7a4a2b,accent:0x4d2e1a,maxKmh:190,accel:22,turn:2.4, h:.75,w:1.90,l:4.0,spoiler:0,
   desc:'Elle démarre par pitié. Fais des thunes et oublie-la vite.'},
- {name:'CAISSE À SAVON',  shape:'kei',     color:0xb8b09a,accent:0x6b6656,maxKmh:209,accel:24,turn:2.5, h:.85,w:1.72,l:3.2,spoiler:0,
-  desc:'Ça roule. Vu d\'où tu viens, c\'est déjà un miracle.'},
- {name:'PAPA MOBILE',     shape:'break',   color:0x4a6b9c,accent:0x2b3f5c,maxKmh:230,accel:26,turn:2.6, h:.90,w:1.90,l:4.7,spoiler:0,
-  desc:'Conçue pour rouler prudemment. Toi, prudent ? On y croit fort.'},
- {name:'LE CONTREMAÎTRE', shape:'pickup',  color:0xd0742a,accent:0x2a2c30,maxKmh:248,accel:28,turn:2.55,h:.95,w:2.05,l:5.3,spoiler:0,
-  desc:'Elle ne double pas. Elle DÉPLACE.'},
- {name:'GROS BLOC',       shape:'muscle',  color:0x2f2f38,accent:0x15151c,maxKmh:306,accel:35,turn:2.85,h:.60,w:2.00,l:4.9,spoiler:1,
-  desc:'L\'écologie te fait coucou dans le rétro. T\'as pas de rétro.'},
- {name:'DIVA BLANCHE',    shape:'berline', color:0xe8e8e8,accent:0x999999,maxKmh:278,accel:32,turn:2.8, h:.64,w:2.00,l:5.5,spoiler:0,
-  desc:'Refuse de rouler sous 200. Toi aussi, maintenant.'},
- {name:'SCALPEL VERT',    shape:'gt',      color:0x1d5c3a,accent:0x0f3222,maxKmh:337,accel:39,turn:2.9, h:.48,w:1.94,l:4.35,spoiler:1,
-  desc:'Elle découpe les virages. Les autres les négocient.'},
- {name:'VEUVE NOIRE',     shape:'wedge',   color:0x111118,accent:0xdd2222,maxKmh:408,accel:47,turn:3.05,h:.44,w:2.12,l:4.7,spoiler:1,
-  desc:'Ceux qui l\'ont doublée en parlent encore. Ah non : personne.'},
- {name:'EL PATRON 🏁',    shape:'hyper',   color:0xffc400,accent:0x1a1a1a,maxKmh:449,accel:52,turn:3.1, h:.58,w:2.26,l:4.55,spoiler:1,
-  desc:'Le taureau doré. Assurance résiliée d\'office.'},
- {name:'FORMULE OR 🏎️',   shape:'formula', color:0xffdf40,accent:0x22242a,maxKmh:494,accel:57,turn:3.15,h:.40,w:2.10,l:4.8,spoiler:0,glow:0xfff0a0,
-  desc:'Le circuit appelle ça tricher. Nous, du talent.'},
- {name:'LE MANS 24',      shape:'lemans',  color:0xe8ecf2,accent:0xff5a1a,maxKmh:543,accel:62,turn:3.2, h:.46,w:2.18,l:5.35,spoiler:0,
-  desc:'Prototype d\'endurance. Faite pour rouler la nuit entière.'},
- {name:'COMÈTE 👑',       shape:'proto',   color:0x0a0a12,accent:0xffd75e,maxKmh:657,accel:75,turn:3.25,h:.36,w:2.08,l:5.05,spoiler:1,glow:0xffffff,rocket:1,
-  desc:'La reine du ciel, et elle le sait.'},
- // ---- LES TROIS FANTASTIQUES : matières GÉNÉRATIVES, offertes pour l'instant (voir CAR_UNLOCK) ----
- {name:'ACIDE',           shape:'tuner',   color:0x5cff1e,accent:0x123a08,maxKmh:520,accel:60,turn:3.18,h:.62,w:1.88,l:4.1,spoiler:0,glow:0x8dff2a,
-  fx:{jet:0x7cff28,core:0xe8ffb4,trail:[.52,1.55,.10],light:0x6fe81e},
-  desc:'Passée au bain d\'acide. Ça se voit.'},
- {name:'CHAT POP-TART',   shape:'poptart', color:0xf6b98a,accent:0xf78fb8,maxKmh:560,accel:64,turn:3.2, h:.80,w:1.95,l:3.4,spoiler:0,glow:0xff5ec8,
-  fx:{jet:0xff64d2,core:0xffd8f2,trail:[1.5,.35,1.1],light:0xff5ec8,rainbow:1},
-  desc:'Personne n\'a demandé pourquoi. Tout le monde a demandé comment.'},
- {name:'REQUIN',          shape:'requin',  color:0x3a6ea8,accent:0xdfe9f2,maxKmh:600,accel:68,turn:3.22,h:.95,w:1.98,l:3.3,spoiler:0,glow:0x9adfff,
-  fx:{jet:0x86f2ff,core:0xffffff,trail:[.42,1.30,1.45],light:0x62d8ff,spray:1},
-  desc:'Au sol, il roule. En l\'air, il chasse.'},
+ // ---- LES CINQ (2026-09-24) : la gamme repart de zéro. Verdict du user : « à part la honte, tout
+ // est un peu fade ». Cinq voitures VRAIES, que l'argent a rendues célèbres, cinq silhouettes qui
+ // n'ont rien en commun, cinq couleurs franches — et maçonnées en briques (voir `voxGeo`).
+ // `l`/`w`/`h` = les cotes RÉELLES du modèle : le hors-tout de la caisse en briques les respecte,
+ // parce que les flaques de lumière, les traînées et la plume s'y calent.
+ {name:'ELDORADO',        shape:'eldorado',color:0xff6fae,accent:0xe8ebef,maxKmh:232,accel:26,turn:2.6, h:1.30,w:2.02,l:5.70,spoiler:0,
+  desc:'Rose bonbon, ailerons de requin et une banquette pour trois avocats.'},
+ {name:'LE CAÏD',         shape:'caid',    color:0x86f51c,accent:0x16171b,maxKmh:275,accel:31,turn:2.7, h:1.95,w:1.98,l:4.84,spoiler:0,
+  desc:'Trois tonnes de cube. Personne ne t\'a jamais demandé de te pousser.'},
+ {name:'SA MAJESTÉ',      shape:'majeste', color:0x2356e8,accent:0xf1e9d8,maxKmh:320,accel:36,turn:2.85,h:1.63,w:2.02,l:5.76,spoiler:0,
+  desc:'Tu ne conduis pas. On te conduit. Même quand c\'est toi qui conduis.'},
+ {name:'ROSSO 40',        shape:'rosso',   color:0xe8121c,accent:0x131417,maxKmh:420,accel:48,turn:3.05,h:1.12,w:1.98,l:4.36,spoiler:0,
+  desc:'Rouge course, aileron plateau. Elle ne s\'achète pas : elle se gagne en course.'},
+ {name:'POSTER 84',       shape:'poster',  color:0xffc414,accent:0x131417,maxKmh:480,accel:55,turn:3.15,h:1.07,w:2.00,l:4.14,spoiler:0,
+  desc:'Elle était punaisée au mur de ta chambre. Maintenant, c\'est toi qui la conduis.'},
 ];
 // ---- VALEUR D'UNE PIÈCE — UNE ENTRÉE PAR PALIER MOTEUR (30) ---------------------------------
 // ⚠ Cette table est indexée par `engTier` depuis que les PIÈCES portent la progression, mais elle
@@ -3490,6 +3473,12 @@ const I18N={
  'Tu ne brûles plus le carburant. Tu brûles le ciel.':'You don\'t burn fuel any more. You burn the sky.',
  'Plus rien ne s\'échappe. Même pas toi.':'Nothing escapes any more. Not even you.',
  // ---- voitures ----
+ 'ELDORADO':'ELDORADO','LE CAÏD':'THE BOSS','SA MAJESTÉ':'HER MAJESTY','ROSSO 40':'ROSSO 40','POSTER 84':'POSTER 84',
+ 'Rose bonbon, ailerons de requin et une banquette pour trois avocats.':'Candy pink, shark fins, and a bench seat for three lawyers.',
+ 'Trois tonnes de cube. Personne ne t\'a jamais demandé de te pousser.':'Three tons of cube. Nobody has ever asked you to move over.',
+ 'Tu ne conduis pas. On te conduit. Même quand c\'est toi qui conduis.':'You don\'t drive. You are driven. Even when you\'re the one driving.',
+ 'Rouge course, aileron plateau. Elle ne s\'achète pas : elle se gagne en course.':'Racing red, a wing like a tray. You can\'t buy her: you win her in a race.',
+ 'Elle était punaisée au mur de ta chambre. Maintenant, c\'est toi qui la conduis.':'She was pinned to your bedroom wall. Now you\'re the one driving her.',
  'LA HONTE':'THE SHAME','CAISSE À SAVON':'SOAPBOX','PAPA MOBILE':'DAD-MOBILE','LE FRELON':'THE HORNET',
  'DIVA BLANCHE':'WHITE DIVA','GROS BLOC':'BIG BLOCK','SCALPEL VERT':'GREEN SCALPEL','BALLE D\'ARGENT':'SILVER BULLET',
  'VEUVE NOIRE':'BLACK WIDOW','EL PATRON 🏁':'EL PATRON 🏁','FORMULE OR 🏎️':'GOLD FORMULA 🏎️','NÉON OUTLAW':'NEON OUTLAW',
@@ -3522,7 +3511,7 @@ const I18N={
  'Plus de route. Plus de son. Plus de rivaux. Juste toi, et l\'univers qui essaie de suivre. Il n\'y arrive pas.':'No more road. No more sound. No more rivals. Just you, and the universe trying to keep up. It can\'t.'
 };
 const I18N_ZH={
- "GARAGE":"车库","ÉQUIPER":"装备","✓ ÉQUIPÉE":"✓ 已装备","🔒 VERROUILLÉE":"🔒 未解锁","glisse pour tourner · molette pour zoomer":"拖动旋转 · 滚轮缩放","clique sur CASH CAR — le son s'allume avec toi":"点击 CASH CAR — 声音与你同步点亮","cours après le cash · ne tombe jamais":"追钱不停 · 绝不摔落","GAME OVER":"游戏结束","VALIDER":"确认","★ NOUVEAU RECORD — TON NOM":"★ 新纪录 — 输入你的名字","Prêt à repartir ?":"准备好再来一局？","Jouer":"开始","Garage":"车库","Réglages":"设置","Freestyle · off":"花式模式 · 关","Survivant · off":"生存模式 · 关","Réglages":"设置","Langue":"语言","Freestyle":"花式模式","Survivant":"生存模式","on":"开","off":"关","Audio":"音频","Effets sonores":"音效","Voix de l'annonceur":"解说声音","Devise":"货币","Commandes":"操作","Sauvegarde":"存档","📋 Copier ma sauvegarde":"📋 复制我的存档","conduire · piloter en vol":"驾驶 · 飞行中操控","nitro · double-tap = DÉCOLLAGE":"氮气 · 双击 = 起飞","drift":"漂移","replacer la caisse":"重置座驾位置","pause":"暂停","rejouer":"重新开始","Espace":"空格键","Entrée":"回车键","Pad gauche":"左侧摇杆","Pad + frein":"摇杆 + 刹车","En vol":"飞行中","volant · tirer vers le bas = frein":"方向 · 下拉 = 刹车","le pad devient un joystick (haut/bas)":"摇杆变成操纵杆（上/下）","pouce droit · double-tap = DÉCOLLAGE":"右拇指 · 双击 = 起飞","NITRO INFINIE — 6 s À FOND !":"无限氮气 — 6秒全力冲刺！","NITRO ∞":"氮气 ∞","🪂 AIRTIME INFINI — 10 s DE VOL !":"🪂 无限滞空 — 10秒飞行！","AIR ∞":"滞空 ∞","⚡ VITESSE +60% — 6 s !":"⚡ 速度 +60% — 6秒！","VITESSE +60%":"速度 +60%","Volumes":"音量","Musique":"音乐","Effets et moteur":"音效与引擎","Voix":"语音","Sur iPhone, le volume de la voix est verrouillé par le système.":"在iPhone上，语音音量由系统锁定。","NITRO (ESPACE)":"氮气（空格键）","km/h":"km/h","SON":"音效","VOIX":"语音","RESET":"重置","MUS":"音乐","🏆 TOP 10":"🏆 排行榜前十","Aucun score — sois le premier !":"暂无记录 — 抢占第一！","AUCUN RECORD — À TOI DE JOUER":"暂无纪录 — 该你上场了","RECORD":"纪录","MEILLEURE CAISSE":"最佳座驾","record : ":"纪录：","Prochaine voiture à":"下一辆车需要","🛝 Parc freestyle":"🛝 花式公园","🏁 Survivant":"🏁 生存模式","ON":"开","OFF":"关","Le garage se visite depuis le menu":"车库要从菜单进入","Ça se visite depuis le menu":"这个要从菜单进入","MODE SURVIVANT AU PROCHAIN DÉPART":"生存模式将在下局启动","SURVIVANT DÉSARMÉ":"生存模式已关闭","PAUSE":"暂停","GO !":"出发！","MOTEUR MAX":"满级引擎","PIÈCES":"金币","pièces de ":"价值 ","FIGURES":"花式","CHAÎNE MAX":"最长连击","BUMPS":"弹跳","ZONES":"区域","GAPS":"缺口","VMAX":"最高时速","🔑 DÉBLOQUÉ : ":"🔑 已解锁：","PALIER":"等级","CAISSE":"座驾","NIVEAU":"等级","COMPTE":"账户","VIREMENT":"转账","AURA":"灵气","NOUVEAU RANG !":"新段位！","IL TE MANQUE":"还差","EST À TOI":"归你了","débités":"已扣除","JOUER AVEC CELLE-CI":"就开这辆车","ACHETER — ":"购买 — ","IL MANQUE ":"还差 ","ANONYME":"无名之辈","REMARQUÉ":"小有名气","ON PARLE DE TOI":"大家都在聊你","RÉPUTÉ":"声名在外","LÉGENDE LOCALE":"本地传奇","STAR DU BITUME":"柏油路巨星","MYTHE":"神话","DIVINITÉ DU CIEL":"天空之神","↻ ON REPART":"↻ 重新出发","✦ NOUVEAU SECTEUR":"✦ 新区域","LA NUIT TOMBE…":"夜幕降临…","🚀 CATAPULTE !":"🚀 弹射起飞！","🚀 DÉCOLLAGE — TOUT ×2 ! ★":"🚀 起飞 — 一切 ×2！★","★ DÉCOLLAGE PRÊT — double-tape NITRO ! ★":"★ 起飞就绪 — 双击氮气！★","🏆 CHAMPION SURVIVANT — JAUGE OFFERTE !":"🏆 生存冠军 — 免费能量槽！","🪦 ÉLIMINÉ — DERNIER DE LA MINUTE !":"🪦 出局 — 本分钟垫底！","PILE AU CENTRE 🎯":"正中靶心 🎯","À RECULONS — MÊME PAS REGARDÉ !":"倒着来的 — 看都没看！","FACE CACHÉE ×2":"隐藏面 ×2","🚀 GAP FRANCHI !":"🚀 缺口飞跃成功！","🚀 DOUBLE GAP — MONSTRUEUX !":"🚀 双重缺口 — 简直变态！","CHAÎNE PERDUE":"连击中断","REPORT +":"结转 +","⚠ ROULE OU CRÈVE — ":"⚠ 不跑就死 — ","🐷 TIRELIRE ÉVENTRÉE +":"🐷 存钱罐爆了 +","💸 TU COMPTES EN ":"💸 你现在的单位是","🐷 TIRELIRE ÉVENTRÉE — ":"🐷 存钱罐爆了 — "," EN POCHE":" 到手","🛡 L'ASSURANCE RÉPOND — ":"🛡 保险生效 — ","POUSSÉE ×":"推力 ×","ELLE EST À TOI":"她是你的了","CLÉS EN MAIN":"钥匙在手","LIVRÉE, RODÉE, VOLÉE":"交付、磨合、偷来的","TU CHANGES DE MONDE":"你换了个世界","SIGNÉ, EMBARQUÉ":"签了字，上车了","ELLE T'ATTENDAIT":"她一直在等你","NOUVEAU JOUET":"新玩具到手","ENCARTÉE AU GARAGE":"已停进车库","GO ! NE MEURS PAS":"出发！别死了","PIED AU PLANCHER — QUESTIONS APRÈS":"油门踩到底 — 问题晚点再说","LA PRUDENCE RESTE AU GARAGE":"谨慎这东西留在车库里","ROULE COMME SI L'ESSENCE ÉTAIT GRATUITE":"开得像油不要钱一样","LE FREIN, C'EST LA PÉDALE DES AUTRES":"刹车？那是别人的踏板","VAS-Y. LE CIEL REGARDE.":"冲吧，天空在看着你。","NOUVELLE ZONE !":"新区域！","ZONE AVALÉE — SUIVANTE !":"区域吞下 — 下一个！","ENCORE UNE ZONE AU COMPTEUR !":"计数器又多了一个区域！","LA ROUTE EST À TOI !":"这条路是你的！","ZONE SUIVANTE — ON RALENTIT PAS !":"下一区域 — 绝不减速！","💸 IL PLEUT DES BILLETS — PARAPLUIE INUTILE":"💸 钞票如雨 — 雨伞没用","💸 LA BANQUE A APPELÉ : ELLE ABANDONNE":"💸 银行打来电话：它投降了","💸 TON COMPTE A LE VERTIGE":"💸 你的账户开始眩晕","💸 L'ARGENT TOMBE PLUS VITE QUE TOI":"💸 钱掉得比你还快","LA ROUTE GAGNE. CETTE FOIS.":"这次，路赢了。","LE BITUME SE SOUVIENDRA DE TOI":"柏油路会记住你","MÊME LES LÉGENDES TOUCHENT LE SOL":"传奇也会落地","CRASH TEST RÉUSSI. ENFIN… TEST.":"碰撞测试成功。呃…算是测试吧。","LA GRAVITÉ : 1 — TOI : 0":"重力：1 — 你：0","T'ES MORT. LES THUNES, ELLES, RESTENT.":"你死了。钱倒是留下了。","REVIENS. LA VITESSE S'ENNUIE DÉJÀ.":"回来吧，速度已经无聊了。","🏆 RECORD — LES AUTRES JOUENT À UN AUTRE JEU":"🏆 破纪录了 — 别人都在玩另一个游戏","🏆 LE LEADERBOARD A DEMANDÉ TON AUTOGRAPHE":"🏆 排行榜找你要签名了","🏆 RECORD ÉCRASÉ — COMME TES SUSPENSIONS":"🏆 纪录被碾碎 — 跟你的悬挂一样","🏆 HISTORIQUE. LA ROUTE S'EN REMET À PEINE.":"🏆 载入史册。这条路差点缓不过来。","MOTEUR ROUILLÉ":"生锈引擎","BICYLINDRE":"双缸","3 CYLINDRES":"三缸","4 EN LIGNE":"直列四缸","4 SOUPAPES":"四气门","4 EN LIGNE TURBO":"涡轮直列四缸","5 CYLINDRES":"五缸","V6 BITURBO":"双涡轮V6","BOXER À PLAT":"水平对置","V8 ATMO":"自然吸气V8","V8 COMPRESSÉ":"机械增压V8","QUADRITURBO":"四涡轮","ROTATIF TRIPLE":"三转子","TURBINE À GAZ":"燃气涡轮","TURBINE À PLASMA":"等离子涡轮","STATORÉACTEUR":"冲压喷气发动机","PULSORÉACTEUR":"脉冲喷气发动机","RÉACTEUR NUCLÉAIRE":"核反应堆","CŒUR À FUSION":"聚变核心","MOTEUR À DISTORSION":"曲速引擎","COMÈTE":"彗星","TROU NOIR":"黑洞","Il tousse, il fume, il prie. Mais il tourne.":"它咳嗽，冒烟，祈祷。但它还在转。","Deux cylindres. Un qui pousse, un qui regarde.":"两个气缸，一个卖力推，一个袖手看。","Deux qui toussent, un qui prie.":"两个咳嗽的，外加一个祈祷的。","Le premier moteur qui ne s'excuse pas.":"第一台不会道歉的引擎。","Il respire enfin par le nez.":"它终于学会了用鼻子呼吸。","Le premier vrai souffle. Ça siffle.":"第一口真正的呼吸，还带哨音。","Un chiffre impair, un bruit inoubliable.":"一个奇数缸，一种忘不掉的声音。","La forme fait le son. Le son fait le reste.":"形状决定声音，声音决定一切。","Deux turbos, zéro patience.":"两个涡轮，零耐心。","Le centre de gravité au ras du bitume.":"重心几乎贴着地面。","Le grondement qui fait trembler la dalle.":"那声轰鸣，震得路面发抖。","Un compresseur, et la dalle demande grâce.":"加一个机械增压，路面求饶。","Dix cylindres, zéro argument.":"十个气缸，没什么好争的。","Douze cylindres qui hurlent à l'unisson.":"十二个气缸齐声怒吼。","Deux V6 mariés de force. Ça marche.":"两台V6被硬凑成一对，但真管用。","Seize. Parce que quinze, c'était ridicule.":"十六缸。十五缸？太荒唐了。","Seize cylindres en H. Interdit en course. Logique.":"H型十六缸，赛场禁用，合情合理。","Quatre escargots, une seule idée.":"四只蜗牛，一个念头。","Pas de pistons. Que du hurlement.":"没有活塞，只有咆哮。","L'hélicoptère a appelé. Il veut son moteur.":"直升机打来电话，要回它的引擎。","Plus de pistons. Un souffle continu, bleu.":"不再有活塞，只剩一道持续的蓝色气流。","Il n'avale plus l'air. Il l'agresse.":"它不再吸入空气，它在攻击空气。","Un battement par milliseconde. C'est le tien qui suit.":"每毫秒跳动一次。跟不上的，是你的心跳。","Tu roules avec un cœur de centrale sous le capot.":"引擎盖下装着一座发电站的心脏。","Une petite étoile, sanglée sous le capot.":"一颗小小的恒星，被绑在引擎盖下。","Un gramme. Un seul. Ne freine pas.":"一克。仅仅一克。别踩刹车。","Ce n'est plus toi qui avances. C'est la route qui recule.":"不是你在前进，是这条路在后退。","La caisse est EN FEU. Comme au premier jour.":"座驾着火了。跟第一天一样。","Tu ne brûles plus le carburant. Tu brûles le ciel.":"你烧的不再是燃料，是整片天空。","Plus rien ne s'échappe. Même pas toi.":"什么都逃不掉了。连你也不例外。","LA HONTE":"耻辱","CAISSE À SAVON":"肥皂盒车","PAPA MOBILE":"老爸座驾","LE FRELON":"大黄蜂","DIVA BLANCHE":"白色天后","GROS BLOC":"大块头","SCALPEL VERT":"绿色手术刀","BALLE D'ARGENT":"银色子弹","VEUVE NOIRE":"黑寡妇","EL PATRON 🏁":"老大 🏁","FORMULE OR 🏎️":"黄金方程式 🏎️","NÉON OUTLAW":"霓虹亡命徒","COMBUSTION 🚀":"燃爆 🚀","COMÈTE 👑":"彗星 👑","INTERDITE":"禁品","ONDE DE CHOC":"冲击波","GOUDRON FANTÔME":"幽灵沥青","TÊTE CHERCHEUSE":"追踪导弹","PLASMA ROYAL":"皇家等离子","ANTIMATIÈRE":"反物质","ÉCLIPSE VII":"日蚀七号","SINGULARITÉ":"奇点","DIEU-VITESSE 👑":"速度之神 👑","Trois cylindres : deux qui toussent, un qui prie. Elle démarre par pitié. Fais des thunes et oublie-la vite.":"三个气缸：两个咳嗽，一个祈祷。它是靠可怜才发动的。赶紧赚钱，然后忘了它。","Le moteur d'une tondeuse, le charisme d'un caddie. Mais ça roule — et vu d'où tu viens, c'est déjà un miracle.":"割草机的引擎，购物车的魅力。但它能跑——鉴于你的出身，这已经是奇迹了。","Sièges chauffants, porte-gobelets, zéro gloire. Conçue pour conduire prudemment. Toi ? Prudent ? On y croit très fort.":"座椅加热，杯架齐全，毫无荣耀。专为谨慎驾驶设计。你？谨慎？我们非常、非常相信。","Petite, teigneuse, elle pétarade comme un 14 juillet. Le premier vrai sourire du compteur.":"小巧凶悍，噼里啪啦像国庆烟花。仪表盘上第一次真正的微笑。","Elle refuse de rouler à moins de 200. Toi aussi, maintenant. Vous allez très bien vous entendre.":"它拒绝以低于200的速度行驶。现在你也一样。你们会处得很好。","Un V8 qui boit de l'essence et crache du respect. L'écologie te fait coucou dans le rétro. Tu n'as pas de rétro.":"一台V8，喝汽油，吐尊重。环保主义在后视镜里跟你招手。可惜你没有后视镜。","Chirurgicale. Elle découpe les virages pendant que les autres les négocient. Toi, tu ne négocies plus rien.":"精准如手术刀。别人在弯道里谈判，它直接切开弯道。而你，什么都不用谈了。","Une balle avec des sièges. Le pare-brise sert surtout à voir le futur arriver beaucoup trop vite.":"一颗装了座椅的子弹。挡风玻璃的作用，主要是看着未来来得太快。","Ceux qui l'ont doublée en parlent encore. Ah non, pardon : personne ne l'a jamais doublée.":"超过它的人至今还在津津乐道。啊不，抱歉：从来没人超过它。","Le taureau doré. 449 au compteur, l'assurance résiliée d'office. C'est ici que les vrais chiffres commencent.":"金色公牛。时速表449，保险自动作废。真正的数字，从这里开始。","Un aileron, un baquet, et tes économies peintes en doré. Le circuit appelle ça de la triche. Nous, du talent.":"一片尾翼，一张桶形座椅，还有你被喷成金色的存款。赛道称之为作弊。我们叫它天赋。","Prototype volé d'un labo qui nie son existence. Le néon rose ? Pour qu'on sache QUI vient de te mettre 3 secondes.":"从一个否认自身存在的实验室偷来的原型车。粉色霓虹灯？是为了让大家知道是谁把你甩开了三秒。","Homologuée nulle part, immatriculée par erreur. Le rétroviseur est en option : rien ne revient jamais de derrière.":"哪里都没有通过认证，注册纯属失误。后视镜是选配——反正没什么东西能从后面追上来。","657 km/h. Longtemps la reine incontestée du ciel. Aujourd'hui : l'échauffement. Bienvenue dans le vrai jeu.":"时速657公里。曾长期统治天空，无可争议。而今天，这只是热身。欢迎来到真正的游戏。","Le dossier d'homologation a explosé en vol. Littéralement. Première caisse officiellement bannie dans 194 pays.":"认证文件在飞行中爆炸了。字面意义上的爆炸。史上第一辆被194个国家正式封禁的座驾。","Elle klaxonne en BANG supersonique. Les pigeons ont porté plainte. Le mur du son a demandé une protection rapprochée.":"它按喇叭的方式是超音速爆音。鸽子已经报了警。音障申请了贴身保护。","Neuf turbines, zéro compromis. L'ingénieur qui l'a conçue s'est enfui en courant. Pas assez vite.":"九台涡轮，零妥协。设计它的工程师拔腿就跑。可惜跑得不够快。","Si rapide que les radars flashent une image vide. Les amendes sont envoyées à ton ombre. Elle non plus ne suit pas.":"快到测速摄像头只拍到一片空白。罚单寄给了你的影子。它也跟不上。","Techniquement, un missile avec des clignotants. Jamais utilisés, évidemment. L'horizon a officiellement peur.":"严格来说，这是一枚装了转向灯的导弹。当然，从没用过。地平线已经正式感到害怕。","Le moteur tourne au plasma pur et au mépris. Les vitres sont teintées pour protéger les témoins.":"引擎靠纯等离子和轻蔑运转。车窗贴膜是为了保护目击者。","Deux grammes d'antimatière et un mépris total des lois de la physique. Newton s'est retourné. Trop lentement.":"两克反物质，加上对物理定律的彻底蔑视。牛顿在棺材里翻了个身。可惜翻得太慢。","Quand elle passe devant le soleil : trois secondes de nuit. Les astronomes l'ont classée phénomène céleste.":"当它从太阳前掠过：黑夜降临三秒。天文学家已将其列为天文现象。","La lumière a demandé un délai. Le temps s'excuse au passage. Tu ne conduis plus : tu plies la carte.":"光都申请了延期。时间经过时连声道歉。你已经不是在开车了：你在折叠地图。","Plus de route. Plus de son. Plus de rivaux. Juste toi, et l'univers qui essaie de suivre. Il n'y arrive pas.":"没有路了。没有声音了。没有对手了。只剩你，和一个拼命想跟上的宇宙。它跟不上。"
+ "GARAGE":"车库","ÉQUIPER":"装备","✓ ÉQUIPÉE":"✓ 已装备","🔒 VERROUILLÉE":"🔒 未解锁","glisse pour tourner · molette pour zoomer":"拖动旋转 · 滚轮缩放","clique sur CASH CAR — le son s'allume avec toi":"点击 CASH CAR — 声音与你同步点亮","cours après le cash · ne tombe jamais":"追钱不停 · 绝不摔落","GAME OVER":"游戏结束","VALIDER":"确认","★ NOUVEAU RECORD — TON NOM":"★ 新纪录 — 输入你的名字","Prêt à repartir ?":"准备好再来一局？","Jouer":"开始","Garage":"车库","Réglages":"设置","Freestyle · off":"花式模式 · 关","Survivant · off":"生存模式 · 关","Réglages":"设置","Langue":"语言","Freestyle":"花式模式","Survivant":"生存模式","on":"开","off":"关","Audio":"音频","Effets sonores":"音效","Voix de l'annonceur":"解说声音","Devise":"货币","Commandes":"操作","Sauvegarde":"存档","📋 Copier ma sauvegarde":"📋 复制我的存档","conduire · piloter en vol":"驾驶 · 飞行中操控","nitro · double-tap = DÉCOLLAGE":"氮气 · 双击 = 起飞","drift":"漂移","replacer la caisse":"重置座驾位置","pause":"暂停","rejouer":"重新开始","Espace":"空格键","Entrée":"回车键","Pad gauche":"左侧摇杆","Pad + frein":"摇杆 + 刹车","En vol":"飞行中","volant · tirer vers le bas = frein":"方向 · 下拉 = 刹车","le pad devient un joystick (haut/bas)":"摇杆变成操纵杆（上/下）","pouce droit · double-tap = DÉCOLLAGE":"右拇指 · 双击 = 起飞","NITRO INFINIE — 6 s À FOND !":"无限氮气 — 6秒全力冲刺！","NITRO ∞":"氮气 ∞","🪂 AIRTIME INFINI — 10 s DE VOL !":"🪂 无限滞空 — 10秒飞行！","AIR ∞":"滞空 ∞","⚡ VITESSE +60% — 6 s !":"⚡ 速度 +60% — 6秒！","VITESSE +60%":"速度 +60%","Volumes":"音量","Musique":"音乐","Effets et moteur":"音效与引擎","Voix":"语音","Sur iPhone, le volume de la voix est verrouillé par le système.":"在iPhone上，语音音量由系统锁定。","NITRO (ESPACE)":"氮气（空格键）","km/h":"km/h","SON":"音效","VOIX":"语音","RESET":"重置","MUS":"音乐","🏆 TOP 10":"🏆 排行榜前十","Aucun score — sois le premier !":"暂无记录 — 抢占第一！","AUCUN RECORD — À TOI DE JOUER":"暂无纪录 — 该你上场了","RECORD":"纪录","MEILLEURE CAISSE":"最佳座驾","record : ":"纪录：","Prochaine voiture à":"下一辆车需要","🛝 Parc freestyle":"🛝 花式公园","🏁 Survivant":"🏁 生存模式","ON":"开","OFF":"关","Le garage se visite depuis le menu":"车库要从菜单进入","Ça se visite depuis le menu":"这个要从菜单进入","MODE SURVIVANT AU PROCHAIN DÉPART":"生存模式将在下局启动","SURVIVANT DÉSARMÉ":"生存模式已关闭","PAUSE":"暂停","GO !":"出发！","MOTEUR MAX":"满级引擎","PIÈCES":"金币","pièces de ":"价值 ","FIGURES":"花式","CHAÎNE MAX":"最长连击","BUMPS":"弹跳","ZONES":"区域","GAPS":"缺口","VMAX":"最高时速","🔑 DÉBLOQUÉ : ":"🔑 已解锁：","PALIER":"等级","CAISSE":"座驾","NIVEAU":"等级","COMPTE":"账户","VIREMENT":"转账","AURA":"灵气","NOUVEAU RANG !":"新段位！","IL TE MANQUE":"还差","EST À TOI":"归你了","débités":"已扣除","JOUER AVEC CELLE-CI":"就开这辆车","ACHETER — ":"购买 — ","IL MANQUE ":"还差 ","ANONYME":"无名之辈","REMARQUÉ":"小有名气","ON PARLE DE TOI":"大家都在聊你","RÉPUTÉ":"声名在外","LÉGENDE LOCALE":"本地传奇","STAR DU BITUME":"柏油路巨星","MYTHE":"神话","DIVINITÉ DU CIEL":"天空之神","↻ ON REPART":"↻ 重新出发","✦ NOUVEAU SECTEUR":"✦ 新区域","LA NUIT TOMBE…":"夜幕降临…","🚀 CATAPULTE !":"🚀 弹射起飞！","🚀 DÉCOLLAGE — TOUT ×2 ! ★":"🚀 起飞 — 一切 ×2！★","★ DÉCOLLAGE PRÊT — double-tape NITRO ! ★":"★ 起飞就绪 — 双击氮气！★","🏆 CHAMPION SURVIVANT — JAUGE OFFERTE !":"🏆 生存冠军 — 免费能量槽！","🪦 ÉLIMINÉ — DERNIER DE LA MINUTE !":"🪦 出局 — 本分钟垫底！","PILE AU CENTRE 🎯":"正中靶心 🎯","À RECULONS — MÊME PAS REGARDÉ !":"倒着来的 — 看都没看！","FACE CACHÉE ×2":"隐藏面 ×2","🚀 GAP FRANCHI !":"🚀 缺口飞跃成功！","🚀 DOUBLE GAP — MONSTRUEUX !":"🚀 双重缺口 — 简直变态！","CHAÎNE PERDUE":"连击中断","REPORT +":"结转 +","⚠ ROULE OU CRÈVE — ":"⚠ 不跑就死 — ","🐷 TIRELIRE ÉVENTRÉE +":"🐷 存钱罐爆了 +","💸 TU COMPTES EN ":"💸 你现在的单位是","🐷 TIRELIRE ÉVENTRÉE — ":"🐷 存钱罐爆了 — "," EN POCHE":" 到手","🛡 L'ASSURANCE RÉPOND — ":"🛡 保险生效 — ","POUSSÉE ×":"推力 ×","ELLE EST À TOI":"她是你的了","CLÉS EN MAIN":"钥匙在手","LIVRÉE, RODÉE, VOLÉE":"交付、磨合、偷来的","TU CHANGES DE MONDE":"你换了个世界","SIGNÉ, EMBARQUÉ":"签了字，上车了","ELLE T'ATTENDAIT":"她一直在等你","NOUVEAU JOUET":"新玩具到手","ENCARTÉE AU GARAGE":"已停进车库","GO ! NE MEURS PAS":"出发！别死了","PIED AU PLANCHER — QUESTIONS APRÈS":"油门踩到底 — 问题晚点再说","LA PRUDENCE RESTE AU GARAGE":"谨慎这东西留在车库里","ROULE COMME SI L'ESSENCE ÉTAIT GRATUITE":"开得像油不要钱一样","LE FREIN, C'EST LA PÉDALE DES AUTRES":"刹车？那是别人的踏板","VAS-Y. LE CIEL REGARDE.":"冲吧，天空在看着你。","NOUVELLE ZONE !":"新区域！","ZONE AVALÉE — SUIVANTE !":"区域吞下 — 下一个！","ENCORE UNE ZONE AU COMPTEUR !":"计数器又多了一个区域！","LA ROUTE EST À TOI !":"这条路是你的！","ZONE SUIVANTE — ON RALENTIT PAS !":"下一区域 — 绝不减速！","💸 IL PLEUT DES BILLETS — PARAPLUIE INUTILE":"💸 钞票如雨 — 雨伞没用","💸 LA BANQUE A APPELÉ : ELLE ABANDONNE":"💸 银行打来电话：它投降了","💸 TON COMPTE A LE VERTIGE":"💸 你的账户开始眩晕","💸 L'ARGENT TOMBE PLUS VITE QUE TOI":"💸 钱掉得比你还快","LA ROUTE GAGNE. CETTE FOIS.":"这次，路赢了。","LE BITUME SE SOUVIENDRA DE TOI":"柏油路会记住你","MÊME LES LÉGENDES TOUCHENT LE SOL":"传奇也会落地","CRASH TEST RÉUSSI. ENFIN… TEST.":"碰撞测试成功。呃…算是测试吧。","LA GRAVITÉ : 1 — TOI : 0":"重力：1 — 你：0","T'ES MORT. LES THUNES, ELLES, RESTENT.":"你死了。钱倒是留下了。","REVIENS. LA VITESSE S'ENNUIE DÉJÀ.":"回来吧，速度已经无聊了。","🏆 RECORD — LES AUTRES JOUENT À UN AUTRE JEU":"🏆 破纪录了 — 别人都在玩另一个游戏","🏆 LE LEADERBOARD A DEMANDÉ TON AUTOGRAPHE":"🏆 排行榜找你要签名了","🏆 RECORD ÉCRASÉ — COMME TES SUSPENSIONS":"🏆 纪录被碾碎 — 跟你的悬挂一样","🏆 HISTORIQUE. LA ROUTE S'EN REMET À PEINE.":"🏆 载入史册。这条路差点缓不过来。","MOTEUR ROUILLÉ":"生锈引擎","BICYLINDRE":"双缸","3 CYLINDRES":"三缸","4 EN LIGNE":"直列四缸","4 SOUPAPES":"四气门","4 EN LIGNE TURBO":"涡轮直列四缸","5 CYLINDRES":"五缸","V6 BITURBO":"双涡轮V6","BOXER À PLAT":"水平对置","V8 ATMO":"自然吸气V8","V8 COMPRESSÉ":"机械增压V8","QUADRITURBO":"四涡轮","ROTATIF TRIPLE":"三转子","TURBINE À GAZ":"燃气涡轮","TURBINE À PLASMA":"等离子涡轮","STATORÉACTEUR":"冲压喷气发动机","PULSORÉACTEUR":"脉冲喷气发动机","RÉACTEUR NUCLÉAIRE":"核反应堆","CŒUR À FUSION":"聚变核心","MOTEUR À DISTORSION":"曲速引擎","COMÈTE":"彗星","TROU NOIR":"黑洞","Il tousse, il fume, il prie. Mais il tourne.":"它咳嗽，冒烟，祈祷。但它还在转。","Deux cylindres. Un qui pousse, un qui regarde.":"两个气缸，一个卖力推，一个袖手看。","Deux qui toussent, un qui prie.":"两个咳嗽的，外加一个祈祷的。","Le premier moteur qui ne s'excuse pas.":"第一台不会道歉的引擎。","Il respire enfin par le nez.":"它终于学会了用鼻子呼吸。","Le premier vrai souffle. Ça siffle.":"第一口真正的呼吸，还带哨音。","Un chiffre impair, un bruit inoubliable.":"一个奇数缸，一种忘不掉的声音。","La forme fait le son. Le son fait le reste.":"形状决定声音，声音决定一切。","Deux turbos, zéro patience.":"两个涡轮，零耐心。","Le centre de gravité au ras du bitume.":"重心几乎贴着地面。","Le grondement qui fait trembler la dalle.":"那声轰鸣，震得路面发抖。","Un compresseur, et la dalle demande grâce.":"加一个机械增压，路面求饶。","Dix cylindres, zéro argument.":"十个气缸，没什么好争的。","Douze cylindres qui hurlent à l'unisson.":"十二个气缸齐声怒吼。","Deux V6 mariés de force. Ça marche.":"两台V6被硬凑成一对，但真管用。","Seize. Parce que quinze, c'était ridicule.":"十六缸。十五缸？太荒唐了。","Seize cylindres en H. Interdit en course. Logique.":"H型十六缸，赛场禁用，合情合理。","Quatre escargots, une seule idée.":"四只蜗牛，一个念头。","Pas de pistons. Que du hurlement.":"没有活塞，只有咆哮。","L'hélicoptère a appelé. Il veut son moteur.":"直升机打来电话，要回它的引擎。","Plus de pistons. Un souffle continu, bleu.":"不再有活塞，只剩一道持续的蓝色气流。","Il n'avale plus l'air. Il l'agresse.":"它不再吸入空气，它在攻击空气。","Un battement par milliseconde. C'est le tien qui suit.":"每毫秒跳动一次。跟不上的，是你的心跳。","Tu roules avec un cœur de centrale sous le capot.":"引擎盖下装着一座发电站的心脏。","Une petite étoile, sanglée sous le capot.":"一颗小小的恒星，被绑在引擎盖下。","Un gramme. Un seul. Ne freine pas.":"一克。仅仅一克。别踩刹车。","Ce n'est plus toi qui avances. C'est la route qui recule.":"不是你在前进，是这条路在后退。","La caisse est EN FEU. Comme au premier jour.":"座驾着火了。跟第一天一样。","Tu ne brûles plus le carburant. Tu brûles le ciel.":"你烧的不再是燃料，是整片天空。","Plus rien ne s'échappe. Même pas toi.":"什么都逃不掉了。连你也不例外。","LA HONTE":"耻辱","ELDORADO":"黄金国","LE CAÏD":"老大哥","SA MAJESTÉ":"女王陛下","ROSSO 40":"红色40","POSTER 84":"海报84","Rose bonbon, ailerons de requin et une banquette pour trois avocats.":"糖果粉，鲨鱼尾鳍，外加一张够坐三个律师的长椅。","Trois tonnes de cube. Personne ne t'a jamais demandé de te pousser.":"三吨重的方块。从来没人敢叫你让开。","Tu ne conduis pas. On te conduit. Même quand c'est toi qui conduis.":"你不是在开车，是车在伺候你。哪怕握方向盘的是你。","Rouge course, aileron plateau. Elle ne s'achète pas : elle se gagne en course.":"赛道红，托盘尾翼。她买不到：只能在比赛里赢回来。","Elle était punaisée au mur de ta chambre. Maintenant, c'est toi qui la conduis.":"她曾被钉在你卧室的墙上。现在，开她的人是你。","CAISSE À SAVON":"肥皂盒车","PAPA MOBILE":"老爸座驾","LE FRELON":"大黄蜂","DIVA BLANCHE":"白色天后","GROS BLOC":"大块头","SCALPEL VERT":"绿色手术刀","BALLE D'ARGENT":"银色子弹","VEUVE NOIRE":"黑寡妇","EL PATRON 🏁":"老大 🏁","FORMULE OR 🏎️":"黄金方程式 🏎️","NÉON OUTLAW":"霓虹亡命徒","COMBUSTION 🚀":"燃爆 🚀","COMÈTE 👑":"彗星 👑","INTERDITE":"禁品","ONDE DE CHOC":"冲击波","GOUDRON FANTÔME":"幽灵沥青","TÊTE CHERCHEUSE":"追踪导弹","PLASMA ROYAL":"皇家等离子","ANTIMATIÈRE":"反物质","ÉCLIPSE VII":"日蚀七号","SINGULARITÉ":"奇点","DIEU-VITESSE 👑":"速度之神 👑","Trois cylindres : deux qui toussent, un qui prie. Elle démarre par pitié. Fais des thunes et oublie-la vite.":"三个气缸：两个咳嗽，一个祈祷。它是靠可怜才发动的。赶紧赚钱，然后忘了它。","Le moteur d'une tondeuse, le charisme d'un caddie. Mais ça roule — et vu d'où tu viens, c'est déjà un miracle.":"割草机的引擎，购物车的魅力。但它能跑——鉴于你的出身，这已经是奇迹了。","Sièges chauffants, porte-gobelets, zéro gloire. Conçue pour conduire prudemment. Toi ? Prudent ? On y croit très fort.":"座椅加热，杯架齐全，毫无荣耀。专为谨慎驾驶设计。你？谨慎？我们非常、非常相信。","Petite, teigneuse, elle pétarade comme un 14 juillet. Le premier vrai sourire du compteur.":"小巧凶悍，噼里啪啦像国庆烟花。仪表盘上第一次真正的微笑。","Elle refuse de rouler à moins de 200. Toi aussi, maintenant. Vous allez très bien vous entendre.":"它拒绝以低于200的速度行驶。现在你也一样。你们会处得很好。","Un V8 qui boit de l'essence et crache du respect. L'écologie te fait coucou dans le rétro. Tu n'as pas de rétro.":"一台V8，喝汽油，吐尊重。环保主义在后视镜里跟你招手。可惜你没有后视镜。","Chirurgicale. Elle découpe les virages pendant que les autres les négocient. Toi, tu ne négocies plus rien.":"精准如手术刀。别人在弯道里谈判，它直接切开弯道。而你，什么都不用谈了。","Une balle avec des sièges. Le pare-brise sert surtout à voir le futur arriver beaucoup trop vite.":"一颗装了座椅的子弹。挡风玻璃的作用，主要是看着未来来得太快。","Ceux qui l'ont doublée en parlent encore. Ah non, pardon : personne ne l'a jamais doublée.":"超过它的人至今还在津津乐道。啊不，抱歉：从来没人超过它。","Le taureau doré. 449 au compteur, l'assurance résiliée d'office. C'est ici que les vrais chiffres commencent.":"金色公牛。时速表449，保险自动作废。真正的数字，从这里开始。","Un aileron, un baquet, et tes économies peintes en doré. Le circuit appelle ça de la triche. Nous, du talent.":"一片尾翼，一张桶形座椅，还有你被喷成金色的存款。赛道称之为作弊。我们叫它天赋。","Prototype volé d'un labo qui nie son existence. Le néon rose ? Pour qu'on sache QUI vient de te mettre 3 secondes.":"从一个否认自身存在的实验室偷来的原型车。粉色霓虹灯？是为了让大家知道是谁把你甩开了三秒。","Homologuée nulle part, immatriculée par erreur. Le rétroviseur est en option : rien ne revient jamais de derrière.":"哪里都没有通过认证，注册纯属失误。后视镜是选配——反正没什么东西能从后面追上来。","657 km/h. Longtemps la reine incontestée du ciel. Aujourd'hui : l'échauffement. Bienvenue dans le vrai jeu.":"时速657公里。曾长期统治天空，无可争议。而今天，这只是热身。欢迎来到真正的游戏。","Le dossier d'homologation a explosé en vol. Littéralement. Première caisse officiellement bannie dans 194 pays.":"认证文件在飞行中爆炸了。字面意义上的爆炸。史上第一辆被194个国家正式封禁的座驾。","Elle klaxonne en BANG supersonique. Les pigeons ont porté plainte. Le mur du son a demandé une protection rapprochée.":"它按喇叭的方式是超音速爆音。鸽子已经报了警。音障申请了贴身保护。","Neuf turbines, zéro compromis. L'ingénieur qui l'a conçue s'est enfui en courant. Pas assez vite.":"九台涡轮，零妥协。设计它的工程师拔腿就跑。可惜跑得不够快。","Si rapide que les radars flashent une image vide. Les amendes sont envoyées à ton ombre. Elle non plus ne suit pas.":"快到测速摄像头只拍到一片空白。罚单寄给了你的影子。它也跟不上。","Techniquement, un missile avec des clignotants. Jamais utilisés, évidemment. L'horizon a officiellement peur.":"严格来说，这是一枚装了转向灯的导弹。当然，从没用过。地平线已经正式感到害怕。","Le moteur tourne au plasma pur et au mépris. Les vitres sont teintées pour protéger les témoins.":"引擎靠纯等离子和轻蔑运转。车窗贴膜是为了保护目击者。","Deux grammes d'antimatière et un mépris total des lois de la physique. Newton s'est retourné. Trop lentement.":"两克反物质，加上对物理定律的彻底蔑视。牛顿在棺材里翻了个身。可惜翻得太慢。","Quand elle passe devant le soleil : trois secondes de nuit. Les astronomes l'ont classée phénomène céleste.":"当它从太阳前掠过：黑夜降临三秒。天文学家已将其列为天文现象。","La lumière a demandé un délai. Le temps s'excuse au passage. Tu ne conduis plus : tu plies la carte.":"光都申请了延期。时间经过时连声道歉。你已经不是在开车了：你在折叠地图。","Plus de route. Plus de son. Plus de rivaux. Juste toi, et l'univers qui essaie de suivre. Il n'y arrive pas.":"没有路了。没有声音了。没有对手了。只剩你，和一个拼命想跟上的宇宙。它跟不上。"
 };
 
 // ⚠ nommée TR et non T : `T` est DÉJÀ le tableau des tangentes de la piste (T[bi].y) — la
@@ -4184,7 +4173,132 @@ function carProfile(pts,w){
   g.rotateY(-Math.PI/2);g.translate(w/2-bev,0,0); // longueur → Z (avant en +Z), largeur centrée sur X (bev compris)
   return g;
 }
-/* ---- LES 15 SILHOUETTES ---------------------------------------------------------------------
+/* ---- LA GAMME EN BRIQUES (2026-09-24) -------------------------------------------------------
+   Verdict du user : « enlève tous les coins arrondis, faisons du pixel ». Les cinq caisses de la
+   gamme sont MAÇONNÉES en voxels : chaque gabarit est une fonction f(x,y,z) qui dit, pour le CENTRE
+   de chaque brique, de quoi elle est faite (tôle, chrome, verre, cuir, feu…) — ou rien.
+   ⚠ POURQUOI UNE FONCTION ET PAS UNE LISTE DE BOÎTES : une boîte ne sait pas suivre une pente, une
+   fonction si — et l'escalier qui en résulte EST le style demandé. Pas un seul biseau, pas une
+   sphère, pas un cylindre : même les roues sont des disques de briques.
+   ⚠ UNE SEULE BRIQUE (`VOX_CAR`) pour les cinq caisses ET leurs roues. Deux caisses rangées côte à
+   côte au garage ont la même trame, exactement comme la ville n'a qu'une maille. La grille est
+   ANCRÉE (y=0 au sol, x centré sur une colonne, z sur un multiple de la brique) : jamais sur la
+   boîte englobante, sinon chaque caisse aurait sa trame à elle.
+   ⚠ ON NE POSE QUE LA COQUILLE : une face n'existe que si sa voisine est vide. L'intérieur d'une
+   caisse ne se voit jamais et coûterait 90 % des triangles pour rien.
+   ⚠ L'OMBRE DES COINS EST CUITE DANS LES SOMMETS (occlusion ambiante façon MagicaVoxel) : un coin
+   rentrant s'assombrit, une arête sortante reste franche. C'est ce qui fait passer du « tas de
+   cubes » au « jouet en résine laquée » — et c'est gratuit : pas de texture, pas de passe de rendu.
+   Rien de RUGUEUX ici, à dessein : ni bruit, ni grain, ni paillettes. La géométrie s'ombre
+   elle-même, la laque reflète le ciel, et c'est tout (une tôle bruitée en pixels lit « sale »).
+   ⚠ UNE GÉOMÉTRIE PAR MATIÈRE (laque, chrome, or, cuir, mat, verre, feux) : 5 à 7 draw calls par
+   caisse, quelle que soit la richesse du dessin. La COULEUR vit dans les sommets, donc une caisse
+   peut avoir dix teintes de laque (bicolore, liseré, capots) pour le même appel.
+   LA HONTE n'est PAS concernée (demande explicite : « ne rien changer ») — elle garde son épave.
+   -------------------------------------------------------------------------------------------- */
+const VOX_CAR=.075;                  // LA BRIQUE DES CAISSES : 7,5 cm — l'escalier se VOIT en course
+const VX_AO=[.64,.78,.90,1];          // occlusion par sommet : 0 = coin pris entre deux murs, 3 = à l'air libre
+// ⚠ DOSÉE BAS : à .56 chaque marche d'une pente douce (le nez de la Countach) se soulignait d'un trait
+// noir, et le capot se lisait en mille-feuille au lieu d'une tôle en escalier.
+const VXU={
+  cl:(v,a,b)=>v<a?a:v>b?b:v,
+  // point dans polygone (lancer de rayon) sur une silhouette de profil [z,y] — nez en +Z
+  poly(p,z,y){let c=false;
+    for(let i=0,j=p.length-1;i<p.length;j=i++){
+      const zi=p[i][0],yi=p[i][1],zj=p[j][0],yj=p[j][1];
+      if((yi>y)!==(yj>y)&&z<(zj-zi)*(y-yi)/(yj-yi)+zi)c=!c;}
+    return c;}
+};
+/* LE MAÇON. `o` = {hx, y1, z0, z1, f, pal} (grille ancrée au sol) ou {cen:1, hx, hy, hz, …}
+   (grille centrée sur l'origine — les roues). `pal` : clé → {g: matière, c: couleur}.
+   `f(x,y,z,hx)` reçoit le centre de la brique et la demi-largeur EFFECTIVE de la grille (utile pour
+   viser la couche extérieure d'une roue). Rend {matière: BufferGeometry}. */
+function voxGeo(o){
+  const V=VOX_CAR,NX=2*Math.round(o.hx/V)+1,X0=-NX*V/2;
+  let NY,Y0,NZ,Z0;
+  if(o.cen){NY=2*Math.round(o.hy/V)+1;Y0=-NY*V/2;NZ=2*Math.round(o.hz/V)+1;Z0=-NZ*V/2;}
+  else{Y0=0;NY=Math.ceil(o.y1/V);Z0=Math.floor(o.z0/V)*V;NZ=Math.ceil((o.z1-Z0)/V);}
+  const HX=NX*V/2,keys=Object.keys(o.pal),G=new Uint8Array(NX*NY*NZ);
+  const id=(i,j,k)=>(k*NY+j)*NX+i;
+  for(let k=0;k<NZ;k++){const z=Z0+(k+.5)*V;
+    for(let j=0;j<NY;j++){const y=Y0+(j+.5)*V;
+      for(let i=0;i<NX;i++){const r=o.f(X0+(i+.5)*V,y,z,HX);
+        if(r){const q=keys.indexOf(r);if(q>=0)G[id(i,j,k)]=q+1;}}}}
+  const occ=(i,j,k)=>(i<0||j<0||k<0||i>=NX||j>=NY||k>=NZ||!G[id(i,j,k)])?0:1;
+  const B={},col=new THREE.Color(),p=[0,0,0],q=[0,0,0],c=[0,0,0],ao=[0,0,0,0],CU=[[0,0],[1,0],[1,1],[0,1]];
+  for(let k=0;k<NZ;k++)for(let j=0;j<NY;j++)for(let i=0;i<NX;i++){
+    const t=G[id(i,j,k)];if(!t)continue;
+    const ent=o.pal[keys[t-1]],b=B[ent.g]||(B[ent.g]={P:[],N:[],C:[],I:[]});
+    col.setHex(ent.c);
+    for(let a=0;a<3;a++)for(let s=-1;s<=1;s+=2){
+      q[0]=i;q[1]=j;q[2]=k;q[a]+=s;
+      if(occ(q[0],q[1],q[2]))continue;                      // voisine pleine : face invisible, on ne la pose pas
+      const t1=(a+1)%3,t2=(a+2)%3,base=b.P.length/3;
+      for(let v=0;v<4;v++){
+        const u=CU[v][0],w=CU[v][1];
+        p[0]=i;p[1]=j;p[2]=k;if(s>0)p[a]++;p[t1]+=u;p[t2]+=w;
+        b.P.push(X0+p[0]*V,Y0+p[1]*V,Z0+p[2]*V);
+        b.N.push(a===0?s:0,a===1?s:0,a===2?s:0);
+        // L'OCCLUSION : les trois briques qui entourent ce coin, dans la couche d'air devant la face
+        const du=u?1:-1,dw=w?1:-1;
+        c[0]=q[0];c[1]=q[1];c[2]=q[2];c[t1]+=du;const s1=occ(c[0],c[1],c[2]);
+        c[t1]-=du;c[t2]+=dw;const s2=occ(c[0],c[1],c[2]);
+        c[t1]+=du;const cr=occ(c[0],c[1],c[2]);
+        const lv=(s1&&s2)?0:3-(s1+s2+cr);ao[v]=lv;
+        const f9=VX_AO[lv];b.C.push(col.r*f9,col.g*f9,col.b*f9);
+      }
+      // ⚠ la diagonale du quad suit l'ombre : sans ce retournement, l'occlusion s'interpole en
+      // travers de la face et dessine une DIAGONALE sombre sur chaque brique de coin
+      const r0=ao[0]+ao[2]<ao[1]+ao[3]?1:0,A=[0,1,2,3].map(n=>base+(n+r0)%4);
+      if(s>0)b.I.push(A[0],A[1],A[2],A[0],A[2],A[3]);else b.I.push(A[0],A[2],A[1],A[0],A[3],A[2]);
+    }
+  }
+  const out={};
+  for(const g in B){const b=B[g],geo=new THREE.BufferGeometry();
+    geo.setAttribute('position',new THREE.Float32BufferAttribute(b.P,3));
+    geo.setAttribute('normal',new THREE.Float32BufferAttribute(b.N,3));
+    geo.setAttribute('color',new THREE.Float32BufferAttribute(b.C,3));
+    geo.setIndex(b.I);out[g]=geo;}
+  return out;
+}
+/* LES MATIÈRES DES BRIQUES. La couleur vient des SOMMETS ; la matière ne dit que comment la
+   surface répond à la lumière. ⚠ `uGlow` : une part de la couleur est rendue SANS lumière. Le jeu
+   se joue de nuit (hemi .40, expo .71) : sans ce plancher, un jaune Giallo sort moutarde et un
+   bleu royal sort noir — or on a demandé de la COULEUR. Le liseré RIM reste celui de toute la gamme.
+   ⚠ LE CHROME NE SE FAIT PAS AU REFLET. Sur une brique, chaque face est un plan parfait : elle renvoie
+   UNE couleur de ciel, et le ciel du jeu est nuit violette. À 80 % de reflet (la recette des caisses
+   lisses), pare-chocs et jantes sortaient gris ardoise — du plomb. Le chrome d'un jouet voxel, c'est
+   du presque-blanc qui s'allume au spéculaire : 36 % de ciel, un plancher lumineux, et c'est tout.
+   ⚠ reflets DOSÉS : la laque prend 22 % du ciel, pas plus. Plus haut, les flancs d'une caisse
+   voxel (des plans parfaits) renverraient un aplat de ciel uniforme et la teinte disparaîtrait. */
+// ⚠ SPÉCULAIRE DE LA LAQUE BAS ET LARGE (0x3c, 48) : une marche de capot est un petit plan parfait,
+// et un point chaud Phong serré l'allumait EN ENTIER, d'un coup, quand la caisse tournait — un
+// clignotement de faces blanches. Le brillant de la laque vient du reflet de ciel, pas du point chaud.
+const VX_MAT={p:{sh:48,sp:0x3c3c3c,rf:.22,gl:.14}, // LAQUE : la carrosserie
+              c:{sh:200,sp:0xffffff,rf:.36,gl:.20},  // CHROME — ⚠ voir plus bas
+              o:{sh:170,sp:0xffd488,rf:.30,gl:.12},  // OR / LAITON
+              s:{sh:26, sp:0x3a3a3a,rf:0,  gl:.10},  // CUIR, TOILE, SATINÉ
+              m:{sh:12, sp:0x1c1c1c,rf:0,  gl:0},    // MAT : caoutchouc, grilles, plastiques
+              g:{sh:240,sp:0xffffff,rf:.55,gl:.03}}; // VERRE et laqué noir
+function voxMat(g){
+  if(g==='l'){const m=new THREE.MeshBasicMaterial({vertexColors:true});m.userData.vox=1;return m;} // FEUX : ils éclairent, ils ne sont pas éclairés
+  const P=VX_MAT[g]||VX_MAT.m;
+  const m=new THREE.MeshPhongMaterial({vertexColors:true,shininess:P.sh,specular:P.sp});
+  if(P.rf>0){m.envMap=envTex;m.reflectivity=P.rf;m.combine=THREE.MixOperation;}
+  const uG={value:P.gl};
+  m.onBeforeCompile=function(sh){
+    sh.uniforms.uGlow=uG;sh.uniforms.uRimC=RIM_U.uRimC;sh.uniforms.uRimStr=RIM_U.uRimStr;sh.uniforms.uRimPow=RIM_U.uRimPow;sh.uniforms.uSunV=RIM_U.uSunV;
+    sh.fragmentShader=sh.fragmentShader
+      .replace('#include <common>','#include <common>\nuniform float uGlow;uniform vec3 uRimC;uniform vec3 uSunV;uniform float uRimStr;uniform float uRimPow;')
+      .replace('#include <dithering_fragment>',
+        'float rimF=pow(1.-saturate(dot(normalize(normal),normalize(vViewPosition))),uRimPow);\n'+
+        'rimF*=smoothstep(-.25,.55,dot(normalize(normal),uSunV));\n'+
+        'gl_FragColor.rgb+=uRimC*rimF*uRimStr*.5+vColor*uGlow;\n#include <dithering_fragment>');
+  };
+  m.userData.vox=1;return m;
+}
+
+/* ---- LES 6 SILHOUETTES (LA HONTE + LES CINQ, 2026-09-24) ---------------------------------------
    UNE ENTRÉE = UNE CAISSE. Chaque gabarit monte son corps avec la boîte à outils `K` et rend une
    FICHE D'ANCRAGES : où vont les phares, les feux, les roues, et quels accessoires communs il veut.
    ⚠ POURQUOI CETTE FORME. L'ancien `buildCar` choisissait le gabarit par SEUILS de niveau
@@ -4217,406 +4331,306 @@ const SHAPES={
     B(.04,H*.40,L*.35,K.rust,W/2+.05,y0+H*.45,L*.10);
     return {doors:1};
   },
-  // 2. LA KEI-CAR — UN SEUL VOLUME, haut et court, roues aux quatre coins, galerie de toit.
-  //    Le trait qui la sauve du cube : la ceinture de vitres qui fait TOUT le tour.
-  kei(K){
-    const {W,H,L,y0,box:B}=K;
-    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.30*H],[.46*L,.55*H],[.30*L,.62*H],[.20*L,1.02*H],[-.44*L,1.06*H],[-.50*L,.92*H]],W*.96,K.body);
-    K.prof([[.18*L,.66*H],[.13*L,1.00*H],[-.40*L,1.03*H],[-.42*L,.66*H]],W*.86,K.glass);
-    B(W*.90,H*.09,L*.62,K.acc,0,y0+H*1.06,-L*.10);
-    for(const sd of [-1,1]){
-      B(.05,.05,L*.50,K.chrome,sd*W*.30,y0+H*1.15,-L*.08);      // longerons de galerie
-      B(.09,.09,.16,K.acc,sd*(W/2+.09),y0+H*.86,L*.16);
-    }
-    for(const zz of [-.26,0,.26])B(W*.66,.04,.05,K.chrome,0,y0+H*1.15,zz*L); // traverses
-    B(W*.62,H*.16,.07,K.dark,0,y0+H*.36,L/2+.06);
-    return {hl:[W*.34,y0+H*.44,L/2+.10],tl:[W*.34,y0+H*.88,-L/2-.06],wr:.84,wz:L/2-.52,doors:1,split:0};
-  },
-  // 3. LE BREAK — long toit DROIT et hayon VERTICAL. Deux traits, et on ne la confond avec rien.
-  break(K){
-    const {W,H,L,y0,box:B}=K;
-    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.34*H],[.30*L,.40*H],[.14*L,.44*H],[.06*L,.96*H],[-.44*L,.98*H],[-.50*L,.88*H],[-.50*L,.34*H]],W*.96,K.body);
-    K.prof([[.05*L,.52*H],[-.01*L,.93*H],[-.42*L,.95*H],[-.44*L,.52*H]],W*.80,K.glass);
-    B(W*.86,H*.08,L*.52,K.acc,0,y0+H*.98,-L*.16);
-    for(const sd of [-1,1]){
-      B(.06,.07,L*.44,K.chrome,sd*W*.28,y0+H*1.04,-L*.14);      // BARRES DE TOIT : la signature du break
-      B(.09,.09,.16,K.acc,sd*(W/2+.10),y0+H*.80,L*.14);
-      B(.07,H*.20,L*.60,K.acc,sd*(W/2+.02),y0+H*.12,0);
-    }
-    B(W*.58,H*.18,.07,K.dark,0,y0+H*.40,L/2+.08);
-    B(W*.92,H*.10,.06,K.acc,0,y0+H*.86,-L/2-.02);               // baguette de hayon
-    return {hl:[W*.32,y0+H*.46,L/2+.12],tl:[W*.38,y0+H*.72,-L/2-.06],wz:L/2-.82,doors:1,slats:1};
-  },
-  // 4. LE PICK-UP — cabine et BENNE OUVERTE, arceau, pare-buffle, roues de tracteur.
-  //    Le seul creux de la gamme : de trois quarts on voit DEDANS, aucune autre caisse ne fait ça.
-  pickup(K){
-    const {W,H,L,y0,box:B}=K;
-    const ch=y0+.20;                                            // châssis relevé : garde au sol de chantier
-    // TROIS VOLUMES SÉPARÉS — capot, cabine, benne. C'est la SÉPARATION qui fait lire le pick-up ;
-    // ⚠ le premier jet dessinait la cabine d'un seul profil dont les points revenaient en arrière :
-    // le polygone se recoupait et sortait en éclat de tôle. Un profil doit faire le tour SANS croiser.
-    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.36*H],[.46*L,.46*H],[.15*L,.48*H],[.15*L,.34*H],[-.50*L,.34*H]],W*.96,K.body,ch);
-    K.prof([[.14*L,.46*H],[.05*L,.98*H],[-.21*L,1.00*H],[-.23*L,.46*H]],W*.92,K.body,ch);   // CABINE
-    K.prof([[.11*L,.54*H],[.04*L,.94*H],[-.19*L,.96*H],[-.21*L,.54*H]],W*.78,K.glass,ch);   // vitrage
-    B(W*.94,H*.09,L*.30,K.acc,0,ch+H*1.01,-L*.07);              // toit de cabine
-    // LA BENNE : plancher + trois parois. On voit DEDANS de trois quarts — aucune autre caisse ne fait ça.
-    B(W*.96,.07,L*.48,K.body,0,ch+H*.38,-L*.26);
-    B(W*.96,H*.34,.07,K.body,0,ch+H*.55,-L*.49);
-    for(const sd of [-1,1]){
-      B(.07,H*.34,L*.48,K.body,sd*W*.47,ch+H*.55,-L*.26);
-      B(.10,.10,.18,K.acc,sd*(W/2+.11),ch+H*.80,L*.06);         // rétros de camion
-      B(.06,H*.52,.06,K.chrome,sd*W*.32,ch+H*1.10,-L*.27);      // ARCEAU : deux montants…
-      B(W*.16,H*.26,L*.26,K.body,sd*W*.42,ch+H*.12,L*.32);      // ailes avant proéminentes
-    }
-    B(W*.72,.08,.08,K.chrome,0,ch+H*1.36,-L*.27);               // …et la traverse
-    for(const xx of [-.18,.18])K.cyl(.06,.06,.13,K.chrome,xx*W,ch+H*1.43,-L*.27,10).rotation.x=Math.PI/2; // 2 phares de toit
-    B(W*1.04,H*.24,.14,K.dark,0,ch+H*.20,L*.50);                // PARE-BUFFLE
-    for(const xx of [-.24,0,.24])B(.07,H*.44,.07,K.chrome,xx*W,ch+H*.40,L*.52);
-    return {hl:[W*.34,ch+H*.52,L*.50],tl:[W*.36,ch+H*.52,-L*.50],wr:1.22,wx:W/2+.05,wz:L/2-.98,doors:1,split:0,skirt:0};
-  },
-  // 5. LA MUSCLE US — capot INTERMINABLE, hanches, prise d'air sur le nez.
-  muscle(K){
-    const {W,H,L,y0,box:B}=K;
-    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.40*H],[.44*L,.52*H],[.02*L,.55*H],[-.30*L,.60*H],[-.46*L,.62*H],[-.50*L,.50*H]],W*.96,K.body);
-    K.prof([[.06*L,.50*H],[-.04*L,.95*H],[-.24*L,.93*H],[-.34*L,.55*H]],W*.70,K.glass);
-    B(W*.56,.05,L*.20,K.acc,0,y0+H*.91,-L*.13).rotation.x=.06;
-    B(W*.30,H*.16,L*.16,K.acc,0,y0+H*.60,L*.22);                 // le SCOOP
-    for(const sd of [-1,1]){
-      B(W*.12,H*.36,L*.30,K.body,sd*(W/2-.01),y0+H*.40,-L*.28);  // hanches
-      B(.09,.09,.16,K.acc,sd*(W/2+.10),y0+H*.92,L*.10);
-      B(.08,H*.22,L*.60,K.acc,sd*(W/2+.02),y0+H*.10,0);
-    }
-    B(W*.55,H*.2,.07,K.dark,0,y0+H*.40,L/2+.08);
-    return {doors:1,slats:1};
-  },
-  // 6. LA BERLINE DE LUXE — trois volumes francs, calandre HAUTE ET DROITE, emblème chromé.
-  berline(K){
-    const {W,H,L,y0,box:B}=K;
-    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.46*H],[.44*L,.52*H],[.16*L,.54*H],[.02*L,.94*H],[-.28*L,.96*H],[-.40*L,.58*H],[-.50*L,.54*H]],W*.96,K.body);
-    K.prof([[.01*L,.60*H],[-.03*L,.92*H],[-.26*L,.93*H],[-.30*L,.60*H]],W*.80,K.glass);
-    B(W*.72,H*.07,L*.30,K.acc,0,y0+H*.95,-L*.13);
-    B(W*.46,H*.40,.10,K.dark,0,y0+H*.36,L/2+.05);                // LA CALANDRE, droite et haute
-    B(W*.50,H*.44,.05,K.chrome,0,y0+H*.36,L/2+.02);              // son encadrement
-    const em=K.cyl(.07,.07,.03,K.chrome,0,y0+H*.52,L/2+.11,10);em.rotation.x=Math.PI/2; // l'emblème
-    for(const sd of [-1,1]){
-      B(.10,.09,.17,K.chrome,sd*(W/2+.10),y0+H*.86,L*.12);
-      B(.04,.05,L*.50,K.chrome,sd*(W*.40),y0+H*.60,-L*.06);      // encadrement de vitres chromé
-      B(.07,H*.16,L*.60,K.acc,sd*(W/2+.02),y0+H*.10,0);
-    }
-    return {hl:[W*.34,y0+H*.44,L/2+.10],tl:[W*.34,y0+H*.50,-L/2-.08],wz:L/2-.86,doors:1,slats:1};
-  },
-  // 7. LA GT À MOTEUR ARRIÈRE — le FASTBACK en goutte d'eau, ailes bombées.
-  gt(K){
-    const {W,H,L,y0,box:B}=K;
-    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.30*H],[.20*L,.48*H],[-.10*L,.58*H],[-.44*L,.62*H],[-.50*L,.56*H]],W*.96,K.body);
-    K.prof([[.14*L,.44*H],[-.02*L,.94*H],[-.24*L,.92*H],[-.36*L,.54*H]],W*.70,K.glass);
-    B(W*.56,.05,L*.20,K.acc,0,y0+H*.90,-L*.13).rotation.x=.06;
-    for(const sd of [-1,1]){
-      K.sph(W*.10,H*.34,L*.20,K.body,sd*(W/2-.02),y0+H*.44,L*.24); // ailes bombées AV
-      K.sph(W*.11,H*.32,L*.22,K.body,sd*(W/2-.02),y0+H*.42,-L*.26);
-      B(.08,H*.22,L*.60,K.acc,sd*(W/2+.02),y0+H*.10,0);
-    }
-    return {};
-  },
-  // 8. LE COIN — supercar à moteur central : nez au ras du sol, deux ÉCOPES dans les flancs.
-  wedge(K){
-    const {W,H,L,y0,box:B}=K;
-    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.10*H],[.22*L,.34*H],[-.06*L,.66*H],[-.34*L,.68*H],[-.50*L,.50*H]],W*.96,K.body);
-    K.prof([[.10*L,.44*H],[-.04*L,.86*H],[-.22*L,.84*H],[-.28*L,.56*H]],W*.62,K.glass);
-    for(const sd of [-1,1]){
-      B(.09,H*.30,L*.26,K.dark,sd*(W/2-.01),y0+H*.36,-L*.06);    // LES ÉCOPES, creusées dans le flanc
-      B(.05,H*.10,L*.30,K.acc,sd*(W/2+.03),y0+H*.50,-L*.06);
-      B(.08,H*.16,L*.62,K.acc,sd*(W/2+.02),y0+H*.08,0);
-    }
-    B(W*.62,H*.06,L*.14,K.dark,0,y0+H*.70,-L*.34);               // grille de capot moteur
-    for(const zz of [-.30,-.36,-.42])B(W*.58,.02,.02,K.chrome,0,y0+H*.73,zz*L);
-    return {hl:[W*.34,y0+H*.26,L*.44],tl:[W*.32,y0+H*.60,-L/2-.06]};
-  },
-  // 9. L'HYPERCAR — l'ARCHE DE TOIT bicolore qui court du nez au coffre, fer à cheval en calandre.
-  hyper(K){
-    const {W,H,L,y0,box:B}=K;
-    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.26*H],[.26*L,.46*H],[.04*L,.72*H],[-.26*L,.74*H],[-.44*L,.58*H],[-.50*L,.46*H]],W*.98,K.body);
-    K.prof([[.12*L,.52*H],[-.02*L,.96*H],[-.24*L,.94*H],[-.32*L,.60*H]],W*.66,K.glass);
-    // L'ARCHE : une bande accent qui passe PAR-DESSUS l'habitacle — le trait signature, visible de partout
-    for(const sd of [-1,1]){
-      const arc=K.prof([[.30*L,.44*H],[.10*L,.80*H],[-.14*L,1.00*H],[-.34*L,.78*H],[-.46*L,.56*H],[-.44*L,.50*H],[-.16*L,.92*H],[.08*L,.72*H],[.28*L,.38*H]],.06,K.acc);
-      arc.position.x=sd*W*.30;
-      B(.10,H*.26,L*.28,K.dark,sd*(W/2-.01),y0+H*.40,-L*.02);
-      B(.08,H*.16,L*.64,K.acc,sd*(W/2+.02),y0+H*.08,0);
-    }
-    const fer=K.cyl(W*.20,W*.20,.10,K.chrome,0,y0+H*.30,L/2+.02,16); // le FER À CHEVAL
-    fer.rotation.x=Math.PI/2;fer.scale.z=1.5;
-    K.cyl(W*.15,W*.15,.14,K.dark,0,y0+H*.30,L/2+.04,16).rotation.x=Math.PI/2;
-    return {hl:[W*.36,y0+H*.40,L*.46],tl:[W*.34,y0+H*.56,-L/2-.06]};
-  },
-  // 10. LA MONOPLACE — roues DEHORS, pontons, aileron biplan. Aucune carrosserie autour des roues.
-  formula(K){
-    const {W,H,L,y0,box:B}=K;
-    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.20*H],[.30*L,.26*H],[.06*L,.30*H],[-.04*L,.70*H],[-.14*L,.66*H],[-.30*L,.44*H],[-.50*L,.38*H]],W*.42,K.body);
-    for(const sd of [-1,1]){
-      B(W*.26,H*.34,L*.36,K.body,sd*W*.32,y0+H*.20,-L*.06);
-      B(.03,H*.16,L*.10,K.dark,sd*W*.51,y0+H*.16,L*.46);
-      B(.03,H*.44,L*.11,K.dark,sd*W*.46,y0+H*1.18,-L*.44);
-    }
-    B(W*1.02,.05,L*.10,K.acc,0,y0+H*.10,L*.46);
-    for(const wy of [1.05,1.32])B(W*.92,.045,L*.09,K.acc,0,y0+H*wy,-L*.44);
-    B(W*.16,H*.22,L*.12,K.acc,0,y0+H*.78,-L*.09);                // boîte à air
-    B(W*.20,H*.10,L*.14,K.dark,0,y0+H*.60,L*.02);                // baquet ouvert
-    B(W*.18,H*.12,.02,K.glass,0,y0+H*.52,L*.10).rotation.x=-.5;
-    return {hl:[W*.10,y0+H*.24,L*.46],tl:[W*.14,y0+H*.30,-L/2-.06],wx:W/2+.16,split:0,skirt:0,sp:0};
-  },
-  // 11. LE PROTOTYPE D'ENDURANCE — dérive dorsale reliée à un aileron de porte-avions,
-  //     quatre phares longue portée. Long, bas, et cette ombre de requin sur le dos.
-  lemans(K){
-    const {W,H,L,y0,box:B}=K;
-    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.18*H],[.28*L,.36*H],[.02*L,.60*H],[-.22*L,.64*H],[-.42*L,.52*H],[-.50*L,.44*H]],W*.98,K.body);
-    K.prof([[.10*L,.46*H],[-.02*L,.88*H],[-.20*L,.86*H],[-.26*L,.54*H]],W*.60,K.glass);
-    B(.06,H*.44,L*.44,K.acc,0,y0+H*.86,-L*.20);                  // LA DÉRIVE DORSALE
-    for(const sd of [-1,1]){
-      B(.10,H*.34,L*.28,K.dark,sd*(W/2-.01),y0+H*.34,-L*.10);
-      B(.07,H*.90,L*.10,K.acc,sd*W*.40,y0+H*.96,-L*.46);         // pylônes de l'aileron
-      B(W*.16,H*.26,L*.30,K.body,sd*W*.42,y0+H*.30,L*.24);       // passages de roue AV carénés
-    }
-    B(W*1.06,.06,L*.20,K.acc,0,y0+H*1.42,-L*.46);                // L'AILERON, plus large que la caisse
-    B(W*1.02,.05,L*.10,K.acc,0,y0+H*.10,L*.48);
-    for(const sd of [-1,1])for(const dx of [.07,.19])            // QUATRE phares longue portée
-      K.cyl(.09,.09,.05,K.chrome,sd*(W*dx+W*.10),y0+H*.34,L*.47,10).rotation.x=Math.PI/2;
-    return {hl:[W*.24,y0+H*.34,L*.48],tl:[W*.32,y0+H*.48,-L/2-.06],sp:0};
-  },
-  // 12. LE FURTIF — coin plat, bulle de verre, dérive. La reine : on ne lui voit aucune ligne droite.
-  proto(K){
-    const {W,H,L,y0,box:B}=K;
-    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.16*H],[.10*L,.40*H],[-.30*L,.52*H],[-.50*L,.50*H]],W*.94,K.body);
-    K.sph(W*.30,H*.52,L*.20,K.glass,0,y0+H*.42,L*.02);
-    B(.04,H*.42,L*.30,K.acc,0,y0+H*.62,-L*.34);
-    for(const sd of [-1,1])B(.06,H*.20,L*.24,K.dark,sd*(W/2+.01),y0+H*.28,-L*.14);
-    return {hl:[W*.30,y0+H*.30,L*.44],tl:[W*.30,y0+H*.44,-L/2-.06]};
-  },
   /* ============================================================================================
-     LES TROIS FANTASTIQUES — d'après les planches de référence. Matières GÉNÉRATIVES (`MATV`).
+     LES CINQ — des voitures VRAIES, que l'argent a rendues célèbres, chacune réduite à ce qui la
+     fait reconnaître à 200 m : l'aileron du Cadillac 59, la roue de secours du G, la calandre
+     temple de la Rolls, le plateau de la F40, le coin de la Countach. Les noms restent sans marque.
+     Repère : nez en +Z, conducteur à GAUCHE (+X), y=0 au sol. Tout se règle en MÈTRES dans `f` ;
+     la brique décide ensuite. ⚠ une ligne fine (liseré, jonc) s'écrit sur UNE brique : [a, a+V).
+     ⚠ les parités de motifs (calandres, persiennes) se calculent sur Math.round(ax/V) : sur une
+     grille centrée, ax vaut m·V à l'epsilon près, et un floor tomberait une fois sur deux à côté.
      ========================================================================================== */
-  // 13. ACIDE — compacte japonaise kittée : CAPOT VITRÉ sur le bloc, aileron de table à repasser,
-  //     pare-chocs proéminent, peinture à paillettes. Le trait qui la vend : on voit le moteur.
-  tuner(K){
-    const {W,H,L,y0,box:B,spec}=K;
-    const vernis=new THREE.MeshPhongMaterial({color:spec.color,map:MATV.get('flake'),emissive:spec.color,
-      emissiveIntensity:.26,shininess:220,specular:0xffffff,envMap:envTex,reflectivity:.72,combine:THREE.MixOperation});
-    rimify(vernis);
-    // trois volumes de hatch : capot court, pare-brise très incliné, toit, hayon coupé net
-    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.34*H],[.34*L,.42*H],[.16*L,.46*H],[.02*L,.90*H],[-.34*L,.94*H],[-.44*L,.62*H],[-.50*L,.56*H]],W*.94,vernis);
-    K.prof([[.02*L,.52*H],[-.04*L,.88*H],[-.32*L,.90*H],[-.40*L,.60*H]],W*.78,K.glass);
-    // LE CAPOT VITRÉ : une vitre à plat au-dessus d'un bloc moteur sommaire — c'est ça, la caisse
-    B(W*.62,.03,L*.26,K.glass,0,y0+H*.47,L*.28).rotation.x=.06;
-    B(W*.44,H*.20,L*.18,K.dark,0,y0+H*.34,L*.28);                // le bloc
-    for(const xx of [-.13,0,.13])K.cyl(.045,.045,H*.22,K.acc,xx*W,y0+H*.42,L*.28,8); // 4 bougies alignées
-    K.cyl(.05,.05,L*.20,K.chrome,W*.16,y0+H*.40,L*.28,8).rotation.x=Math.PI/2;       // durite
-    // L'AILERON GT : deux pylônes droits + un plan qui dépasse largement du hayon
-    for(const sd of [-1,1]){
-      B(.06,H*.52,L*.07,K.acc,sd*W*.34,y0+H*1.06,-L*.42);
-      B(.09,H*.20,L*.66,K.acc,sd*(W/2+.03),y0+H*.14,-L*.02);     // JUPES larges
-      B(.10,.09,.16,K.acc,sd*(W/2+.10),y0+H*.78,L*.14);
-    }
-    const carb=new THREE.MeshPhongMaterial({map:MATV.get('carbone'),shininess:150,specular:0xbfc6d2,
-      envMap:envTex,reflectivity:.34,combine:THREE.MixOperation});
-    B(W*1.06,.06,L*.20,carb,0,y0+H*1.32,-L*.42);                 // LE PLAN de l'aileron : en carbone
-    B(W*1.02,.035,L*.07,carb,0,y0+H*1.24,-L*.50).rotation.x=.34;  // et son volet Gurney
-    B(W*1.02,H*.18,.16,K.acc,0,y0+H*.16,L/2+.10);                // pare-chocs kitté + lame
-    B(W*.98,.05,.30,K.dark,0,y0+H*.04,L/2+.18);
-    // LES CANARDS : quatre petites lames de chaque côté du bouclier. C'est le détail le plus « kitté »
-    // qui soit, et il ne coûte que quatre boîtes — bien plus rentable qu'un aileron de plus.
-    for(const sd of [-1,1])for(const cz of [0,1]){
-      const cn=B(W*.16,.028,L*.055,K.acc,sd*W*(.36+cz*.06),y0+H*(.22+cz*.16),L/2+.02);
-      cn.rotation.set(0,sd*-.30,sd*.42);}
-    // STICKERS : une bande sur chaque flanc, à hauteur de bas de caisse
-    for(const sd of [-1,1]){
-      const st9=new THREE.Mesh(new THREE.PlaneGeometry(L*.52,H*.22),
-        new THREE.MeshBasicMaterial({map:MATV.get('stickers'),transparent:true,side:THREE.DoubleSide}));
-      st9.position.set(sd*(W*.475),y0+H*.34,-L*.04);st9.rotation.y=sd*Math.PI/2;carGroup.add(st9);
-    }
-    // L'INTERCOOLER dans la bouche du pare-chocs : c'est LE détail qui dit « préparée », pas « peinte »
-    B(W*.54,H*.17,.08,K.dark,0,y0+H*.26,L/2+.055);
-    for(let i9=0;i9<7;i9++)B(W*.052,H*.13,.03,K.chrome,(i9/6-.5)*W*.46,y0+H*.26,L/2+.10);
-    // ---- LA LEÇON DES MOTEURS : on ne POSE pas les détails un par un, on les SÈME. Chaque boucle
-    // ci-dessous rend une pièce entière (extracteurs, grille, sorties d'échappement, boulons) et
-    // c'est cette DENSITÉ régulière — pas un accessoire de plus — qui fait « caisse préparée ».
-    for(let v9=0;v9<4;v9++){                                       // EXTRACTEURS de capot
-      const zz=L*(.18+v9*.045);
-      B(W*.30,.022,L*.030,K.dark,0,y0+H*.492,zz).rotation.x=-.36;
-      B(W*.30,.012,L*.012,K.chrome,0,y0+H*.502,zz-L*.014);
-    }
-    {const gN=7;for(let g9=0;g9<gN;g9++)                            // GRILLE de calandre, barre à barre
-      B(W*.012,H*.14,.02,K.chrome,(g9/(gN-1)-.5)*W*.44,y0+H*.28,L/2+.075);}
-    for(let b9=0;b9<9;b9++)                                        // BOULONS de lame avant
-      K.cyl(.016,.016,.02,K.chrome,(b9/8-.5)*W*.86,y0+H*.055,L/2+.24,6).rotation.x=Math.PI/2;
-    // LE BANDEAU de pare-brise : posé À PLAT sur la vitre, il attrape le regard avant la couleur
-    const ban=new THREE.Mesh(new THREE.PlaneGeometry(W*.66,H*.20),
-      new THREE.MeshBasicMaterial({map:MATV.get('banner'),transparent:true}));
-    ban.position.set(0,y0+H*.80,L*.02);ban.rotation.x=-.62;carGroup.add(ban);
-    for(const sd of [-1,1]){
-      // ⚠ UNE ARCHE SE POSE SUR SON ESSIEU. Calée « à peu près à l'arrière » (-L*.24) elle tombait
-      // au milieu du flanc, devant la roue : on lisait un pod accroché à la caisse, pas une aile
-      // élargie. `zw` est la VRAIE position de roue — la même que celle du montage des roues.
-      const zw=L/2-.75;
-      for(const fz of [1,-1]){
-        K.sph(W*.115,H*.30,L*.175,vernis,sd*(W/2-.02),y0+H*.32,fz*zw);
-        for(let rv=0;rv<5;rv++){                                     // et leurs RIVETS : le signe
-          const a9=-.6+rv*.30;                                       // qu'une aile a été GREFFÉE,
-          K.cyl(.017,.017,.02,K.chrome,sd*(W/2+.04),y0+H*(.40+Math.sin(a9)*.22),fz*zw+Math.cos(a9)*L*.085,6)
-            .rotation.z=Math.PI/2;}                                  // pas moulée avec la caisse
-      }
-      B(.05,H*.44,.05,K.chrome,sd*W*.24,y0+H*.72,-L*.06);           // arceau visible sous la vitre
-    }
-    B(W*.46,.05,.05,K.chrome,0,y0+H*.94,-L*.06);
-    for(const sd of [-1,1]){                                       // DEUX canons d'échappement,
-      K.cyl(.13,.15,.34,K.chrome,sd*W*.22,y0+.06,-L/2-.16,12).rotation.x=Math.PI/2; // chacun sa
-      K.cyl(.105,.105,.06,K.dark,sd*W*.22,y0+.06,-L/2-.31,12).rotation.x=Math.PI/2; // gueule noire
-    }
-    for(const sd of [-1,1])                                        // ENDPLATES de l'aileron
-      B(.035,H*.26,L*.19,carb,sd*W*.52,y0+H*1.30,-L*.42);
-    // ---- LE COMPARTIMENT MOTEUR SOUS LA VITRE : c'est LÀ que se joue « préparée ». Un bloc nu
-    // sous une vitre, c'est un carton ; il faut la TUYAUTERIE — l'escargot du turbo, la durite qui
-    // fait le tour, la wastegate qui sort par le flanc. On les sème, elles ne se posent pas.
-    {const esc=K.cyl(H*.15,H*.15,W*.13,K.dark,W*.19,y0+H*.36,L*.20,14);esc.rotation.z=Math.PI/2;
-     K.cyl(H*.09,H*.06,W*.10,K.chrome,W*.28,y0+H*.36,L*.20,12).rotation.z=Math.PI/2;   // la turbine
-     K.cyl(.048,.048,L*.30,K.chrome,W*.22,y0+H*.30,L*.10,8).rotation.x=Math.PI/2;      // ligne d'admission
-     K.cyl(.048,.048,W*.40,K.chrome,-W*.02,y0+H*.30,-L*.04,8).rotation.z=Math.PI/2;    // sa traversée
-     for(let c9=0;c9<4;c9++)                                                            // colliers
-       K.cyl(.056,.056,.022,K.acc,W*.22,y0+H*.30,L*(.02+c9*.06),8).rotation.x=Math.PI/2;
-     const wg=K.cyl(.052,.052,W*.22,K.chrome,W*.34,y0+H*.24,L*.16,8);wg.rotation.z=Math.PI/2.6;}
-    for(const sd of [-1,1]){                                       // GOUJONS de capot (les 4 pions
-      for(const gz of [1,-1])                                      // qui remplacent la serrure)
-        K.cyl(.026,.026,.05,K.chrome,sd*W*.36,y0+H*.50,L*(gz>0?.40:.12),8);}
-    for(let v9=0;v9<6;v9++)                                        // GÉNÉRATEURS DE VORTEX sur le toit :
-      B(.02,.05,L*.045,K.acc,(v9/5-.5)*W*.52,y0+H*.96,-L*.30).rotation.y=(v9%2?.3:-.3);
-    // FREINS : disque percé + étrier. Une caisse kittée se reconnaît AUSSI par les roues, et c'est
-    // le seul endroit où on peut le dire ici (la jante, elle, est commune à toute la gamme).
-    for(const sd of [-1,1])for(const fz of [1,-1]){
-      const zw=L/2-.75;
-      const dq=K.cyl(.27,.27,.035,K.chrome,sd*(W/2-.10),.40*.94,fz*zw,16);dq.rotation.z=Math.PI/2;
-      for(let h9=0;h9<8;h9++){const a9=h9/8*6.283;                 // les PERÇAGES du disque
-        K.cyl(.022,.022,.05,K.dark,sd*(W/2-.10),.40*.94+Math.cos(a9)*.17,fz*zw+Math.sin(a9)*.17,6).rotation.z=Math.PI/2;}
-      const et=B(.07,.16,.09,K.acc,sd*(W/2-.10),.40*.94+.19,fz*zw);et.rotation.x=.2; // l'étrier
-    }
-    return {hl:[W*.32,y0+H*.40,L/2+.06],tl:[W*.34,y0+H*.66,-L/2-.04],wr:.94,doors:1,sp:0};
+  // 2. ELDORADO — Cadillac Eldorado Biarritz 1959. Le plus long, le plus rose, les plus hauts
+  //    ailerons jamais vissés sur une voiture, deux obus de feux par aile, et à ciel ouvert.
+  eldorado(K){
+    const {W,V}=K,hw=W/2,U=VXU,m9=a=>Math.round(a/V);
+    const R=.38,ZF=1.70,ZR=-1.62;
+    const hb=z=>hw-Math.max(0,Math.abs(z)-2.40)*.30;              // chanfreins DROITS aux quatre coins
+    const well=(z,y)=>Math.hypot(z-ZF,y-R)<R+.08||Math.hypot(z-ZR,y-R)<R+.07;
+    const belt=z=>z>.55?.93-(z-.55)*.035:.93;                       // le capot plonge à peine vers le nez
+    const finTop=z=>.93+.44*U.cl((-.40-z)/2.30,0,1);                // l'aileron monte en rampe jusqu'à la poupe
+    const wsZ=y=>.60-(y-.93)*.22;                                   // pare-brise panoramique, presque droit
+    // ⚠ couché à 30° il devenait un ESCALIER de lames sombres (on lisait des persiennes, pas une vitre) :
+    // une vitre en briques doit rester proche de la verticale pour rester un plan.
+    const bijou=(ax,y)=>(m9(ax)+Math.floor(y/V))&1?'c':'k';         // la calandre en damier de pierres
+    K.vox({hx:hw+.02,y1:1.40,z0:-3.02,z1:2.96,pal:{
+        p:{g:'p',c:0xff6fae},c:{g:'c',c:0xe8ebef},k:{g:'m',c:0x17171c},s:{g:'s',c:0xf6efe3},
+        S:{g:'s',c:0xe9e2d2},g:{g:'g',c:0x3a6a88},W:{g:'l',c:0xfff3cf},L:{g:'l',c:0xff2236}},
+      f:(x,y,z)=>{
+        const ax=Math.abs(x);
+        if(z<-2.84&&z>-3.00&&ax>.38&&ax<.52&&y>.32&&y<.46)return 'c';          // les deux pots
+        if(y>.26&&y<.50){                                                        // PARE-CHOCS massifs
+          if(z>2.64&&z<2.92&&ax<hb(z)-.02)return 'c';
+          if(z<-2.68&&z>-2.94&&ax<hw-.10)return 'c';
+        }
+        if(z>2.76||z<-2.80||y<.28)return 0;
+        const b=hb(z);if(ax>b)return 0;
+        if(ax>.50&&well(z,y))return 0;
+        const bt=belt(z);
+        if(y>=bt){                                                               // ---- AU-DESSUS DE LA CEINTURE
+          if(z<-.40&&ax>b-.20){                                                  // L'AILERON, lame sur le bord de l'aile
+            const t=finTop(z);if(y>=t)return 0;
+            if(z<-2.58&&((y>t-.28&&y<t-.19)||(y>t-.15&&y<t-.06)))return 'L';     // les deux OBUS de feux
+            return 'p';}
+          if(z<-1.30&&z>-1.66&&ax<b-.18&&y<bt+.10)return 'S';                    // la capote repliée
+          const ws=wsZ(y);
+          if(y<1.30+V&&z>ws-.10&&z<ws+.02&&ax<b-.12)                             // pare-brise : cadre chromé + vitre
+            return (y>=1.30||ax>b-.22)?'c':'g';
+          if(ax<b-.16){
+            if(z>-.34&&z<-.18&&y<1.04)return 's';                                // dossier avant
+            if(z>-1.28&&z<-1.12&&y<1.02)return 's';                              // dossier arrière
+            if(x>.20&&x<.52&&z>.26&&z<.34&&y>.95&&y<1.03)return 'k';            // le volant, côté conducteur
+          }
+          if(ax<V*.6&&z>2.36&&z<2.62&&y<bt+V)return 'c';                        // la mascotte de capot
+          return 0;
+        }
+        if(z>-1.30&&z<.52&&ax<b-.14&&y>.62){                                    // HABITACLE OUVERT : banquettes
+          if(z>-.34&&z<.18&&y<.72)return 's';
+          if(z<-.80&&y<.70)return 's';
+          if(z>.40)return 'p';                                                   // planche de bord, couleur caisse
+          return 0;}
+        if(z>2.62&&y>.50&&y<.84){                                                // FACE : damier + quatre phares
+          if(ax<.52)return bijou(ax,y);
+          if(y>.64&&y<.80&&((ax>.56&&ax<.70)||(ax>.74&&ax<.88)))return 'W';
+        }
+        if(z<-2.66&&y>.52&&y<.70&&ax<.78)return bijou(ax,y);                    // la seconde calandre, à la poupe
+        if(ax>b-V*1.01){                                                         // les joncs chromés du flanc
+          if(y>=.62&&y<.62+V&&z>-2.40&&z<2.30&&!well(z,y+.03))return 'c';
+          if(y<.28+V)return 'c';
+        }
+        return 'p';
+      }});
+    return {hl:[.72,.72,2.80],tl:[.91,1.06,-2.82],wx:.80,wzF:ZF,wzR:-ZR,
+      pix:{R:R,w:.22,pal:{k:{g:'m',c:0x141416},w:{g:'s',c:0xf4f1ea},c:{g:'c',c:0xe8ebef},o:{g:'o',c:0xffc64a}},
+        f:(x,y,z,hx)=>{const r=Math.hypot(y,z),out=Math.abs(x)>hx-V;
+          if(r>R)return 0;if(r>R*.80)return 'k';
+          if(r>R*.58)return out?'w':'k';                                         // LE FLANC BLANC, signature de l'époque
+          if(out&&r>R*.40&&r<R*.48)return 'k';                                   // la gorge de l'enjoliveur
+          if(out&&r<R*.16)return 'o';                                            // le blason au centre
+          return 'c';}}};
   },
-  // 14. LE CHAT POP-TART — un pavé de pâtisserie sur quatre roulettes, tête de chat à l'avant.
-  //     ⚠ la pâtisserie ne tient QUE par la texture générative : glaçage sur le dessus, pâte sur
-  //     la tranche. Un pavé rose uni lit « brique », pas « pop-tart ».
-  poptart(K){
-    const {W,H,L,y0,box:B}=K;
-    const gla=new THREE.MeshPhongMaterial({map:MATV.get('icing'),shininess:26,specular:0x554433}),
-          cro=new THREE.MeshPhongMaterial({map:MATV.get('crust'),shininess:12,specular:0x332211});
-    // ⚠ LA CAISSE POSE PLUS BAS QUE LES AUTRES. Un pavé de pâtisserie sur des roues de berline,
-    // ce sont quatre roulettes qui flottent sous une planche : ici le dessous du gâteau descend
-    // JUSQUE sur des roulettes minuscules, et c'est ce contact qui rend l'objet crédible.
-    // ⚠ ELLE ÉTAIT TROP PLATE (retour du user). Une pop-tart est un COUSSIN fourré, pas une carte
-    // à jouer : la tranche doit se VOIR, et c'est elle qui porte la pâte festonnée. On épaissit le
-    // pavé ET on lui ajoute un bourrelet de bord — le pincement de la fourchette, qui fait déborder
-    // la pâte sur tout le pourtour et donne l'ombre franche qui manquait.
-    const cy=.56;
-    // BoxGeometry : +X, -X, +Y, -Y, +Z, -Z → le glaçage sur le dessus, la pâte partout ailleurs
-    const tart=new THREE.Mesh(new THREE.BoxGeometry(W*.94,H*.56,L*.76),[cro,cro,gla,cro,cro,cro]);
-    tart.position.set(0,cy,-L*.08);carGroup.add(tart);
-    // LE BOURRELET : quatre boudins de pâte le long des arêtes basses. Sans eux, le pavé garde des
-    // angles vifs de brique ; avec eux, il gonfle comme une pâtisserie qui a cuit.
-    for(const sd of [-1,1]){
-      K.cyl(H*.13,H*.13,L*.76,cro,sd*W*.47,cy-H*.20,-L*.08,10).rotation.x=Math.PI/2;
-      K.cyl(H*.13,H*.13,W*.94,cro,0,cy-H*.20,-L*.08+sd*L*.38,10).rotation.z=Math.PI/2;
-    }
-    // LA TÊTE : elle DÉPASSE franchement du pavé — collée dessus on lirait un dessin imprimé,
-    // pas un chat qui conduit. Boule aplatie, oreilles, joues, museau, moustaches.
-    // ⚠ MAT, PAS BRILLANT. À shininess 16 avec un spéculaire clair, la boule attrapait un point
-    // chaud de studio et ressortait CHROMÉE : on lisait une torpille en inox, pas un chat.
-    // Et elle était plus LONGUE que large (L*.20 = .68 de profondeur) — d'où la forme d'obus.
-    // Une tête de chat est un carré arrondi : à peu près aussi large que haute, courte en profondeur.
-    const gris=new THREE.MeshPhongMaterial({color:0x74747e,shininess:5,specular:0x141418}),
-          rose=new THREE.MeshBasicMaterial({color:0xf98cb8});
-    // ⚠ LES TRAITS SE POSENT SUR LA COQUE, PAS DEDANS. Placés « à peu près devant » (z=L*.50) ils
-    // tombaient À L'INTÉRIEUR de la boule : le chat n'avait plus de visage. Le nez de l'ellipsoïde
-    // est à `z = centre + demi-profondeur` = L*.555 — tout ce qui doit se voir est calé là-dessus.
-    K.sph(W*.28,H*.60,L*.125,gris,0,cy+H*.10,L*.43);
-    for(const sd of [-1,1]){
-      const or=K.con(W*.13,H*.50,gris,sd*W*.17,cy+H*.88,L*.42,4);or.rotation.y=Math.PI/4;  // oreilles DESSUS
-      const oi=K.con(W*.068,H*.28,rose,sd*W*.17,cy+H*.86,L*.45,4);oi.rotation.y=Math.PI/4; // INTÉRIEUR d'oreille
-      K.sph(W*.070,H*.085,L*.022,rose,sd*W*.145,cy-H*.05,L*.535); // joues
-      K.sph(W*.042,H*.080,L*.026,K.dark,sd*W*.11,cy+H*.18,L*.545); // yeux
-      K.sph(W*.013,H*.022,L*.010,K.chrome,sd*W*.105,cy+H*.23,L*.556); // le reflet dans l'œil : sans lui, deux trous
-      K.sph(W*.085,H*.075,L*.075,gris,sd*W*.28,cy-H*.40,L*.26); // pattes avant posées sur le pavé
-      for(const a of [-.14,0,.14]){                              // moustaches, ancrées AU MUSEAU
-        const m9=B(W*.20,.012,.012,K.chrome,sd*W*.26,cy+H*.02+a*H*.5,L*.53);m9.rotation.z=sd*a;}
-    }
-    K.sph(W*.042,H*.042,L*.020,rose,0,cy+H*.03,L*.556);           // truffe
-    for(const sd of [-1,1]){const b9=B(W*.070,.014,.014,K.dark,sd*W*.038,cy-H*.10,L*.553);b9.rotation.z=sd*.55;} // la bouche en « w »
-    const q=B(W*.07,H*.14,L*.30,gris,0,cy+H*.20,-L*.52);q.rotation.x=-.55; // la queue
-    // ⚠ `wings:'none'` : les panneaux de planeur génériques sont plus PROFONDS que ce gâteau et
-    // ressortaient par-dessus le glaçage comme quatre lattes noires. Sa signature de vol, c'est
-    // l'arc-en-ciel (`fx.rainbow`), pas des ailerons.
-    return {hl:[W*.28,cy-H*.24,L*.42],tl:[W*.32,cy-H*.10,-L*.46],wr:.58,wx:W/2-.11,wz:L/2-.62,
-            split:0,skirt:0,sp:0,doors:0,wings:'none',glowX:W*.47,glowY:cy-H*.40,glowL:L*.74,glowF:0};
+  // 3. LE CAÏD — Mercedes G63. Un cube de trois tonnes : passages de roue CARRÉS, clignotants posés
+  //    sur les ailes, charnières apparentes, sorties latérales, et la roue de secours sur la porte.
+  caid(K){
+    const {W,V}=K,hw=W/2,m9=a=>Math.round(a/V);
+    const R=.44,ZF=1.47,ZR=-1.42;
+    const arch=(z,y)=>(Math.abs(z-ZF)<R+.07||Math.abs(z-ZR)<R+.07)&&y<2*R+.06;   // passages CARRÉS
+    const flare=(z,y)=>(Math.abs(z-ZF)<R+.18||Math.abs(z-ZR)<R+.18)&&y<2*R+.17;
+    const wsZ=y=>.72-(y-1.18)*.10;                                  // pare-brise presque droit
+    K.vox({hx:hw+.12,y1:1.98,z0:-2.50,z1:2.44,pal:{
+        p:{g:'p',c:0x86f51c},k:{g:'m',c:0x16171b},K:{g:'g',c:0x0c0d10},c:{g:'c',c:0xe8ebef},
+        g:{g:'g',c:0x131c28},W:{g:'l',c:0xfff4d8},L:{g:'l',c:0xff2030},O:{g:'l',c:0xffa21a}},
+      f:(x,y,z)=>{
+        const ax=Math.abs(x);
+        {const r=Math.hypot(x,y-1.04);                                           // LA ROUE DE SECOURS
+         if(z<-2.20&&z>-2.46&&r<.40){if(r<.09)return 'c';if(r<.31)return z<-2.38?'p':'k';return 'k';}}
+        if(z<-2.18&&z>-2.36&&ax>.38&&ax<.50&&y>.34&&y<.44)return 'c';           // pots (ancre de la plume)
+        if(ax>.92&&ax<1.05&&y>.40&&y<.48&&((z>-1.00&&z<-.92)||(z>-.88&&z<-.80)))return 'c'; // sorties latérales
+        if(ax>.88&&ax<1.10&&y>1.30&&y<1.46&&z>.48&&z<.62)return 'p';            // rétroviseurs
+        if(y>.38&&y<.64){                                                        // boucliers noirs
+          if(z>2.18&&z<2.40&&ax<hw-.04)return (z>2.30&&y>.46&&y<.56&&ax>.60&&ax<.76)?'W':'k';
+          if(z<-2.14&&z>-2.30&&ax<hw-.04)return 'k';
+        }
+        if(z>2.28||z<-2.20||y<.40)return 0;
+        if(y<.48){if(ax>.76&&ax<hw+.03&&z>-1.00&&z<.98)return 'k';return ax<hw-.18?'k':0;} // marchepieds + soubassement
+        const bw=flare(z,y)&&y<1.02?hw:hw-.05;
+        if(ax>bw)return 0;
+        if(ax>.52&&arch(z,y))return 0;
+        if(y<1.16){
+          if(z>2.20&&y>.66&&y<1.10){                                             // LA FACE
+            if(ax<.50)return (ax>.50-V||y>1.10-V||y<.66+V)?'c':(m9(ax)&1?'c':'K');   // calandre à barreaux
+            const hr=Math.hypot(ax-.73,y-.89);if(hr<.15)return hr<.09?'W':'c';       // phares RONDS… en briques
+          }
+          if(z<-2.12&&y>.70&&y<1.12&&ax>.76&&ax<.92)return 'L';
+          if(ax>bw-V*1.01){
+            if(((y>=.66&&y<.66+V)||(y>=1.00&&y<1.00+V))&&((z>.44&&z<.56)||(z>-.52&&z<-.40)))return 'c'; // CHARNIÈRES
+            if(y>=1.06&&y<1.06+V&&((z>.06&&z<.22)||(z>-.98&&z<-.82)))return 'c';                         // poignées
+            if(y>=1.16-V&&!flare(z,.5))return 'K';                                                        // joint de ceinture
+          }
+          return 'p';
+        }
+        if(y<1.24&&ax>.76&&ax<.88&&z>2.02&&z<2.17)return 'O';                  // clignotants SUR les ailes
+        if(y<1.23&&ax<.36&&z>.95&&z<2.10)return 'p';                            // bossage de capot
+        const cw=.90-(y-1.16)*.05;
+        if(z>wsZ(y)||z<-2.18||ax>cw||y>1.94)return 0;
+        if(y>1.84)return 'p';                                                    // le toit
+        if(y<1.24)return 'p';
+        if(ax>cw-V*1.01)                                                         // flancs : montants A B C D + vitres
+          return (z>wsZ(y)-.10||(z>-.58&&z<-.44)||(z>-1.62&&z<-1.48)||z<-2.04)?'p':'g';
+        if(z>wsZ(y)-V*1.01||z<-2.18+V*1.01)return ax>cw-.10?'p':'g';           // pare-brise, lunette
+        return 'g';
+      }});
+    return {hl:[.73,.89,2.34],tl:[.84,.92,-2.26],wx:.80,wzF:ZF,wzR:-ZR,
+      pix:{R:R,w:.28,pal:{k:{g:'m',c:0x131316},s:{g:'s',c:0x1d1f24},c:{g:'c',c:0xe8ebef}},
+        f:(x,y,z,hx)=>{const r=Math.hypot(y,z),out=Math.abs(x)>hx-V;
+          if(r>R)return 0;if(r>R*.66)return 'k';
+          if(!out)return 'k';
+          if(r>R*.58)return 'c';                                                 // la lèvre polie
+          if(r<R*.17)return 'c';
+          const a=((Math.atan2(y,z)/(2*Math.PI)*6)%1+1)%1;                       // six branches noires
+          return Math.abs(a-.5)<.19?'s':0;}}};
   },
-  // 15. LE REQUIN — bulle de verre sur un corps rond, museau de grand blanc, et QUATRE BRAS
-  //     D'HÉLICES repliés dans les flancs au sol / déployés en vol. Les bras réutilisent les
-  //     pivots des mini-ailes (`wings:'props'`) : zéro nouvelle mécanique dans la boucle.
-  requin(K){
-    const {W,H,L,y0,box:B,spec}=K;
-    // ---- LE CORPS EST LOFTÉ, plus empilé. Profil de cétacé : museau fin, thorax plein au tiers
-    // avant, puis un long étranglement jusqu'au pédoncule. C'est CETTE ligne qui fait l'animal ;
-    // la peau et les dents ne font que la décorer.
-    const R=W*.50;
-    const geo=loftBody([[0,.06],[.05,.16],[.11,.30],[.18,.52],[.27,.78],[.38,.96],
-                        [.50,1.00],[.63,.86],[.75,.62],[.86,.38],[.94,.20],[1,.08]],
-      // ⚠ arch/droop sont en unités de PROFIL (rayon max = 1), pas en mètres : le loft se met à
-      // l'échelle APRÈS. Les avoir donnés en H (mètres) puis remis à l'échelle faisait un poisson
-      // de deux mètres de haut pour une caisse d'un mètre.
-      {len:L*1.02,rings:52,seg:24,arch:.16,droop:.52,wid:.92,flat:.82,
-       top:0x1f4a7a,side:0x5f9fd0,bel:0xf4feff});
-    const peau=new THREE.MeshPhongMaterial({vertexColors:true,shininess:150,specular:0xffffff,
-      envMap:envTex,reflectivity:.62,combine:THREE.MixOperation});
-    rimify(peau);
-    {const bd=new THREE.Mesh(geo,peau);bd.scale.set(R,.53,1);bd.position.set(0,y0+H*.46,-L*.02);carGroup.add(bd);}
-    // LA BULLE : elle couvre presque tout le dos, comme sur la planche — c'est elle qui fait lire
-    // « habitacle transparent » et pas « pare-brise ». Et on VOIT dedans : sans sièges, une bulle
-    // vide ressemble à une verrière de maquette.
-    K.sph(W*.40,H*.42,L*.32,K.glass,0,y0+H*.80,L*.00);
-    for(const sd of [-1,1]){
-      const as=new THREE.MeshPhongMaterial({color:0x2c4468,shininess:24,specular:0x556688});
-      B(W*.24,H*.30,L*.09,as,sd*W*.15,y0+H*.74,-L*.06);          // dossier
-      B(W*.24,H*.07,L*.16,as,sd*W*.15,y0+H*.60,L*.02);           // assise
-    }
-    // L'AILERON DORSAL, SUR PIVOT : rangé au ras du dos au sol, dressé en vol (voir carFins)
-    {const DOR=finShape([[0,0],[.34,.08],[.30,.34],[.12,.60],[-.06,.66],[-.18,.40],[-.16,.10]],.055);
-     const finM2=new THREE.MeshPhongMaterial({color:0x4a86bc,shininess:90,specular:0xdff4ff,
-       envMap:envTex,reflectivity:.4,combine:THREE.MixOperation});
-     const piv=new THREE.Group();piv.position.set(0,y0+H*.92,-L*.18);
-     const f9=new THREE.Mesh(DOR,finM2);f9.scale.setScalar(W*.72);
-     f9.position.y=W*.72*.33;f9.rotation.y=Math.PI/2;piv.add(f9);   // décalé pour pousser vers le HAUT
-     carGroup.add(piv);carFins.push(piv);}
-    // LES NAGEOIRES : des LAMES falciformes extrudées, comme dans l'aperçu des dauphins
-    const finM=new THREE.MeshPhongMaterial({color:0x4a86bc,shininess:90,specular:0xdff4ff,
-      envMap:envTex,reflectivity:.4,combine:THREE.MixOperation});
-    {const PEC=finShape([[0,0],[.10,.05],[.44,.02],[.62,-.10],[.40,-.16],[.10,-.10]],.035);
-     for(const sd of [-1,1]){const p9=new THREE.Mesh(PEC,finM);p9.scale.setScalar(W*.62);
-       p9.position.set(sd*W*.42,y0+H*.34,L*.12);p9.rotation.set(sd*.55,sd*-1.15,-.30);carGroup.add(p9);}}
-    {const FLU=finShape([[0,0],[.10,.06],[.46,.10],[.66,.02],[.50,-.06],[.14,-.06]],.04);
-     for(const sd of [-1,1]){const f9=new THREE.Mesh(FLU,finM);f9.scale.setScalar(W*.60);
-       f9.position.set(sd*W*.17,y0+H*.50,-L*.54);f9.rotation.set(0,sd*.35+Math.PI/2,sd*.34);carGroup.add(f9);}}
-    // LE MUSEAU : la bouche court SOUS le nez (un requin mord par en dessous), deux rangées de dents
-    const bou=B(W*.34,H*.07,L*.13,K.dark,0,y0+H*.30,L*.44);bou.rotation.x=-.24;
-    for(let i9=0;i9<8;i9++){const t=(i9/7-.5)*W*.30;
-      K.con(.028,.080,K.acc,t,y0+H*.345,L*.455,4);
-      K.con(.024,.070,K.acc,t,y0+H*.265,L*.455,4).rotation.z=Math.PI;}
-    for(const sd of [-1,1]){
-      K.sph(W*.050,H*.05,L*.04,K.dark,sd*W*.24,y0+H*.54,L*.34);   // œil
-      K.sph(W*.015,H*.014,L*.011,K.chrome,sd*W*.225,y0+H*.565,L*.356); // sa bille de lumière
-      for(let f=0;f<5;f++)B(.020,H*.10,.020,K.dark,sd*W*.42,y0+H*.50,L*(.20-f*.05)); // fentes branchiales
-      // CARÉNAGES DE ROUE : sans eux les roues pendent sous un corps qui s'affine à ses extrémités
-      for(const fz of [1,-1])K.sph(W*.14,H*.26,L*.18,peau,sd*(W/2-.14),y0+H*.30,fz*(L/2-.72));
-    }
-    return {hl:[W*.22,y0+H*.34,L*.40],tl:[W*.26,y0+H*.56,-L*.42],wr:.90,wx:W/2-.02,wz:L/2-.72,
-            split:0,skirt:0,sp:0,doors:0,wings:'props',glowX:W*.44,glowY:y0+H*.14,glowL:L*.62,glowF:0};
+  // 4. SA MAJESTÉ — Rolls-Royce Phantom. Haute, longue, bicolore, un liseré d'or peint à la main ;
+  //    la calandre temple dépasse du nez, et la dame ailée se tient dessus.
+  majeste(K){
+    const {W,V}=K,hw=W/2,U=VXU,m9=a=>Math.round(a/V);
+    const R=.43,ZF=1.93,ZR=-1.62;
+    const PRO=[[2.88,.30],[2.88,1.03],[1.02,1.07],[.18,1.60],[-1.38,1.63],[-2.12,1.13],[-2.88,1.09],[-2.88,.30]];
+    const well=(z,y)=>Math.hypot(z-ZF,y-R)<R+.07||Math.hypot(z-ZR,y-R)<R+.07;
+    const wsZ=y=>1.02+(y-1.07)*(.18-1.02)/(1.60-1.07);
+    const rwZ=y=>-2.12+(y-1.13)*(-1.38+2.12)/(1.63-1.13);
+    K.vox({hx:hw+.12,y1:1.70,z0:-3.02,z1:3.00,pal:{
+        p:{g:'p',c:0x2356e8},u:{g:'p',c:0xf1e9d8},o:{g:'o',c:0xffc24a},c:{g:'c',c:0xe8ebef},
+        k:{g:'m',c:0x15161a},K:{g:'g',c:0x0b0c10},g:{g:'g',c:0x17243a},W:{g:'l',c:0xfff6e0},L:{g:'l',c:0xff1f30}},
+      f:(x,y,z)=>{
+        const ax=Math.abs(x);
+        if(z>2.84&&z<2.98&&ax<.36&&y>.46&&y<1.12)                              // LA CALANDRE PANTHÉON
+          return (ax>.36-V||y>1.12-V||y<.46+V)?'c':(m9(ax)&1?'K':'c');
+        if(ax<V*.6&&z>2.84&&z<2.94&&y>=1.12&&y<1.30)return 'c';                 // l'Esprit d'Extase…
+        if(ax<V*1.6&&z>2.76&&z<2.86&&y>1.18&&y<1.25)return 'c';                 // …et ses ailes ouvertes
+        if(z<-2.84&&z>-3.00&&ax>.38&&ax<.52&&y>.33&&y<.43)return 'c';           // pots
+        if(ax>.92&&ax<1.12&&y>1.12&&y<1.26&&z>.84&&z<.98)return 'u';            // rétroviseurs
+        if(!U.poly(PRO,z,y))return 0;
+        if(ax>.52&&well(z,y))return 0;
+        if(y>1.07){                                                              // ---- LA CABINE
+          const cw=.92-(y-1.07)*.14;if(ax>cw)return 0;
+          const side=ax>cw-V*1.01;
+          if(y>1.52)return (side&&y<1.52+V)?'c':'u';                             // jonc de pavillon + toit ivoire
+          if(y<1.13)return side?'c':'u';                                         // jonc de ceinture
+          const nearWS=z>wsZ(y)-.10,nearRW=z<rwZ(y)+.10;
+          if(side)return (nearWS||z<-1.20||(z>-.66&&z<-.52))?'K':'g';            // montants laqués, gros montant C
+          if(nearWS)return ax>cw-.12?'K':'g';
+          if(nearRW)return ax>.62?'u':'g';
+          return 'g';
+        }
+        const b=hw-Math.max(0,Math.abs(z)-2.60)*.20;if(ax>b)return 0;
+        if(z>2.80){                                                              // la face
+          if(y>.84&&y<.94&&ax>.44&&ax<.88)return 'W';                            // phares en fente
+          if(y>.32&&y<.47&&ax<.82)return y>.47-V?'c':'k';                        // prise d'air basse
+        }
+        if(z<-2.82&&y>.66&&y<1.02&&ax>.76&&ax<.96)return 'L';                  // feux verticaux
+        if(z<-2.82&&y>=.74&&y<.74+V&&ax<.72)return 'c';                         // jonc de coffre
+        if(ax<V*.6&&y>.99&&z>1.02&&z<2.84)return 'c';                           // l'arête d'inox du capot
+        if(ax>b-V*1.01&&y>=.84&&y<.84+V&&((z>.20&&z<.36)||(z>-.84&&z<-.68)))return 'c'; // poignées
+        if(y>=.94){if(y<.94+V&&ax>b-V*1.01)return 'o';return 'u';}              // LE LISERÉ D'OR, puis l'ivoire
+        return 'p';
+      }});
+    return {hl:[.66,.89,2.92],tl:[.86,.84,-2.94],wx:.84,wzF:ZF,wzR:-ZR,
+      pix:{R:R,w:.28,pal:{k:{g:'m',c:0x121215},c:{g:'c',c:0xeef0f3},K:{g:'g',c:0x0b0c10},o:{g:'o',c:0xffc24a}},
+        f:(x,y,z,hx)=>{const r=Math.hypot(y,z),out=Math.abs(x)>hx-V;
+          if(r>R)return 0;if(r>R*.78)return 'k';
+          if(!out)return 'K';
+          if(r<R*.18)return r<R*.09?'o':'K';                                     // le moyeu (le blason reste droit… en rêve)
+          const a=((Math.atan2(y,z)/(2*Math.PI)*12)%1+1)%1;                      // douze rayons fins, polis
+          return (Math.abs(a-.5)<.28||r>R*.70)?'c':0;}}};
+  },
+  // 5. ROSSO 40 — Ferrari F40. Rouge course, capot moteur en Lexan à persiennes, NACA sur le capot,
+  //    et l'aileron plateau qui NAÎT des ailes arrière au lieu d'être posé dessus.
+  rosso(K){
+    const {W,V}=K,hw=W/2,U=VXU;
+    const R=.34,ZF=1.30,ZR=-1.16;
+    const PRO=[[2.18,.26],[2.18,.44],[1.95,.56],[1.00,.76],[.74,.80],[.10,1.09],[-.52,1.12],[-.70,1.06],[-1.95,.96],[-2.20,.96],[-2.20,.26]];
+    const well=(z,y)=>Math.hypot(z-ZF,y-R)<R+.07||Math.hypot(z-ZR,y-R)<R+.08;
+    K.vox({hx:hw+.02,y1:1.24,z0:-2.36,z1:2.22,pal:{
+        p:{g:'p',c:0xe8121c},r:{g:'p',c:0xb00d15},k:{g:'m',c:0x131417},K:{g:'g',c:0x0b0c10},
+        c:{g:'c',c:0xe8ebef},g:{g:'g',c:0x17222e},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e}},
+      f:(x,y,z)=>{
+        const ax=Math.abs(x);
+        if(z<-1.88&&z>-2.22){                                                   // L'AILERON PLATEAU
+          if(y>1.12&&y<1.20&&ax<hw)return 'p';
+          if(ax>hw-.12&&ax<hw&&y>.90&&y<1.20)return 'p';                         // flasques = les ailes qui montent
+        }
+        if(z<-2.18&&z>-2.34&&y>.34&&y<.46&&(ax<V*.6||(ax>.38&&ax<.50)))return 'c'; // trois sorties (et l'ancre)
+        if(ax>.70&&ax<.92&&y>.90&&y<1.00&&z>.46&&z<.58)return 'p';              // rétros
+        if(!U.poly(PRO,z,y))return 0;
+        const b=z>1.60?hw-(z-1.60)*.36:hw;if(ax>b)return 0;
+        if(ax>.50&&well(z,y))return 0;
+        if(y>.82&&z<.90&&z>-.72){                                               // bulle étroite
+          const cw=.74-(y-.82)*.34;if(ax>cw)return 0;
+          if(y>1.05||z<-.36)return 'p';                                          // pavillon + arc-boutant
+          return 'g';}
+        const top=!U.poly(PRO,z,y+V);
+        if(top&&z<-.72&&z>-1.86&&ax<.60)return (Math.floor(z/V)&1)?'K':'g';    // LE LEXAN À PERSIENNES
+        if(top&&z>1.18&&z<1.56&&ax>.16&&ax<.34)return 'k';                      // NACA de capot
+        if(top&&z>1.70&&z<1.94&&ax>.50&&ax<.82)return 'r';                      // trappes de phares
+        if(ax>b-V*1.01){
+          if(y>.60&&y<.82&&z<-.36&&z>-.78)return 'k';                           // prise d'air arrière
+          if(y>.70&&y<.78&&z<.30&&z>-.10)return 'k';                            // NACA de portière
+          if(y<.26+V*1.2)return 'k';                                             // bas de caisse
+        }
+        if(z>2.08){if(y<.40&&ax<.82)return 'k';if(y>.44&&y<.52&&ax>.50&&ax<.84)return 'W';}
+        if(z<-2.14&&y>.38){                                                     // poupe : grille + quatre feux
+          if(y>.66&&y<.80&&((ax>.48&&ax<.62)||(ax>.70&&ax<.84)))return 'L';
+          if(y<.90)return 'k';}
+        return 'p';
+      }});
+    return {hl:[.67,.48,2.22],tl:[.66,.73,-2.24],wx:.80,wzF:ZF,wzR:-ZR,
+      pix:{R:R,w:.26,pal:{k:{g:'m',c:0x131316},c:{g:'c',c:0xc3c8d0},K:{g:'g',c:0x0b0c10}},
+        f:(x,y,z,hx)=>{const r=Math.hypot(y,z),out=Math.abs(x)>hx-V;
+          if(r>R)return 0;if(r>R*.72)return 'k';
+          if(!out)return 'K';
+          if(r<R*.18||r>R*.62)return 'c';
+          const a=((Math.atan2(y,z)/(2*Math.PI)*5)%1+1)%1;                       // étoile à cinq branches
+          return Math.abs(a-.5)<.16?'c':0;}}};
+  },
+  // 6. POSTER 84 — Lamborghini Countach, celle du mur de ta chambre. Un coin, des passages de roue
+  //    TRAPÉZOÏDAUX (elle n'a pas un seul cercle, pourquoi en aurait-elle ici), les « oreilles »
+  //    derrière les vitres, la NACA en biais dans la portière, l'aileron en V et les jantes à trous.
+  poster(K){
+    const {W,V}=K,hw=W/2,U=VXU,m9=a=>Math.round(a/V);
+    const R=.33,ZF=1.14,ZR=-1.32;
+    const PRO=[[2.07,.30],[2.07,.44],[1.10,.64],[.62,.74],[-.18,1.07],[-.74,1.07],[-1.00,1.00],[-1.98,.90],[-2.07,.84],[-2.07,.30]];
+    const well=(z,y)=>{for(const c of [ZF,ZR])if(y<2*R+.06&&Math.abs(z-c)<R+.08+(2*R-y)*.32)return true;return false;};
+    K.vox({hx:hw+.02,y1:1.26,z0:-2.22,z1:2.10,pal:{
+        p:{g:'p',c:0xffc414},r:{g:'p',c:0xf29a00},k:{g:'m',c:0x131417},c:{g:'c',c:0xe8ebef},
+        g:{g:'g',c:0x151d28},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}},
+      f:(x,y,z)=>{
+        const ax=Math.abs(x);
+        if(z<-1.70&&z>-2.04){                                                   // l'aileron en V, sur deux mâts
+          const yv=1.12+ax*.07;
+          if(y>yv&&y<yv+.075&&ax<hw)return 'k';
+          if(ax>.26&&ax<.36&&y>.88&&y<=yv&&z<-1.80&&z>-1.94)return 'k';
+        }
+        if(z<-2.04&&z>-2.20&&y>.34&&y<.44&&((ax>.33&&ax<.42)||(ax>.46&&ax<.55)))return 'c'; // quatre sorties
+        if(ax>.70&&ax<.88&&y>.84&&y<.92&&z>.46&&z<.58)return 'p';               // rétros de portière
+        if(z<-.60&&z>-1.30&&ax>.60&&ax<.94){                                    // LES OREILLES
+          const t=1.03-(-.60-z)*.08;
+          if(y<t&&y>.80)return (z>-.70&&y>.86)?'k':'p';}
+        if(!U.poly(PRO,z,y))return 0;
+        const b=z>1.55?hw-(z-1.55)*.42:hw;if(ax>b)return 0;
+        if(ax>.52&&well(z,y))return 0;
+        if(y>.78&&z>-.74&&z<.66){                                               // habitacle : trapèze de verre
+          const cw=.76-(y-.78)*.40;if(ax>cw)return 0;
+          if(y>1.02||z<-.40)return 'p';
+          return 'g';}
+        const top=!U.poly(PRO,z,y+V);
+        if(top&&z>1.22&&z<1.52&&ax>.42&&ax<.80)return 'r';                      // capots de phares escamotables
+        if(top&&z<-1.10&&z>-1.86&&ax<.56)return (m9(ax)&1)?'k':'p';             // persiennes du capot moteur
+        if(ax>b-V*1.01){
+          if(y>.56&&y<.76&&z<-.20&&z>-.92+(y-.56)*2.2)return 'k';               // LA NACA, en biais
+          if(y<.26+V*1.5)return 'k';
+        }
+        if(z>2.00){if(y<.35)return 'k';if(y>.36&&y<.44){if(ax>.54&&ax<.90)return 'W';if(ax>.40)return 'O';}}
+        if(z<-2.00&&y>.36){                                                     // poupe noire, feux en bandeau
+          if(y>.60&&y<.74&&ax>.46)return ax<.60?'O':'L';
+          return 'k';}
+        return 'p';
+      }});
+    return {hl:[.72,.40,2.10],tl:[.76,.67,-2.10],wx:.80,wzF:ZF,wzR:-ZR,
+      pix:{R:R,w:.26,pal:{k:{g:'m',c:0x131316},c:{g:'c',c:0xd2d6dc},K:{g:'g',c:0x0b0c10}},
+        f:(x,y,z,hx)=>{const r=Math.hypot(y,z),out=Math.abs(x)>hx-V;
+          if(r>R)return 0;if(r>R*.72)return 'k';
+          if(!out)return 'K';
+          for(let h=0;h<5;h++){const a=h/5*Math.PI*2;                            // LA JANTE « CADRAN DE TÉLÉPHONE »
+            if(Math.hypot(y-Math.sin(a)*R*.40,z-Math.cos(a)*R*.40)<R*.15)return 0;}
+          return 'c';}}};
   }
 };
 function buildCar(spec){
+  // ⚠ LES BRIQUES SE LIBÈRENT : chaque caisse voxel a SA géométrie (plusieurs milliers de faces) et
+  // ses matières. Sans ce passage, chaque aller-retour au garage laisserait une caisse en VRAM.
+  carGroup.traverse(o=>{if(o.userData&&o.userData.vox){if(o.geometry)o.geometry.dispose();
+    const mm=Array.isArray(o.material)?o.material:[o.material];for(const m of mm)if(m&&m.userData&&m.userData.vox)m.dispose();}});
   while(carGroup.children.length)carGroup.remove(carGroup.children[0]);
   wheels.length=0;
   JETS.shells.length=0;JETS.cores.length=0;JETS.glows.length=0; // les plumes de l'ancienne caisse partent avec elle
@@ -4644,7 +4658,11 @@ function buildCar(spec){
   const cyl=(rt,rb,hh,mat,x,y,z,sg)=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,hh,sg||12),mat);m.position.set(x||0,y||0,z||0);return add(m);};
   const sph=(sx,sy,sz,mat,x,y,z)=>{const m=new THREE.Mesh(SPH9,mat);m.scale.set(sx,sy,sz);m.position.set(x||0,y||0,z||0);return add(m);};
   const con=(r,hh,mat,x,y,z,sg)=>{const m=new THREE.Mesh(new THREE.ConeGeometry(r,hh,sg||12),mat);m.position.set(x||0,y||0,z||0);return add(m);};
-  const K={W:W9,H:H9,L:L9,y0:y0,spec:spec,wreck:wreck,add:add,box:box,prof:prof,cyl:cyl,sph:sph,con:con,
+  // LE MAÇON : `K.vox` pose une caisse de briques (voir voxGeo) — une géométrie par matière, et les
+  // matières sont PARTAGÉES par toute la caisse (roues comprises) : 7 draw calls au plus.
+  const vxM={},vxMat=g=>vxM[g]||(vxM[g]=voxMat(g));
+  const vox=o=>{const gs=voxGeo(o);for(const g in gs){const m=new THREE.Mesh(gs[g],vxMat(g));m.userData.vox=1;add(m);}};
+  const K={W:W9,H:H9,L:L9,y0:y0,V:VOX_CAR,spec:spec,wreck:wreck,add:add,box:box,prof:prof,cyl:cyl,sph:sph,con:con,vox:vox,
            body:bodyM,acc:accM,glass:glassM,chrome:chromeM,dark:darkM,rust:rustM};
   // LE GABARIT EST DÉCLARÉ PAR LA CAISSE, jamais deviné. Le repli sur 'gt' n'est pas une règle de
   // secours confortable : c'est un filet pour qu'une fiche mal saisie se voie tout de suite à l'écran
@@ -4660,6 +4678,9 @@ function buildCar(spec){
     glowX:W9/2+.02,glowY:y0+H9*.42,glowL:L9*.82,glowF:1, // où court le néon (position, longueur, barre avant)
     sp:1,skirt:1,split:1,doors:0,slats:0,wings:'panel'
   },(SHAPES[shape]||(console.warn('CASH CAR : gabarit inconnu « '+shape+' » sur '+spec.name+' — repli sur gt'),SHAPES.gt))(K)||{});
+  // UNE CAISSE EN BRIQUES NE PREND AUCUN ACCESSOIRE LISSE : ni feux-boîtes, ni pots-cylindres, ni
+  // lame, ni aileron générique — tout ce qui se voit est dans sa propre fonction `f`.
+  if(A.pix)Object.assign(A,{lamps:0,pipes:0,sp:0,split:0,doors:0,slats:0});
   const hlX=A.hl[0],hlY=A.hl[1],hlZ=A.hl[2],tlX=A.tl[0],tlY=A.tl[1],tlZ=A.tl[2];
   // ---- MINI-AILES / PLANEURS : repliées dans le flanc au sol, déployées en vol (la boucle les anime
   // via carWingL/carWingR). Le REQUIN remplace les panneaux par ses QUATRE BRAS D'HÉLICES sur les
@@ -4715,7 +4736,18 @@ function buildCar(spec){
   }
   // ---- ROUES : pneu + jante chromée à rayons. Le RAYON suit le gabarit (`wr`) — une kei-car sur
   // des roues de muscle car, et toute la silhouette ment sur sa taille.
-  {
+  if(A.pix){
+    // ROUES EN BRIQUES : un disque maçonné avec la même brique que la caisse. La géométrie est
+    // calculée UNE fois et partagée par les quatre ; la boucle les fait tourner par `rotation.x`,
+    // l'axe de l'essieu — le disque est donc construit directement dans le plan YZ.
+    const P9=A.pix,gs=voxGeo({cen:1,hx:P9.w/2,hy:P9.R,hz:P9.R,f:P9.f,pal:P9.pal});
+    for(const sxz of [[-1,1],[1,1],[-1,-1],[1,-1]]){
+      const w=new THREE.Group();
+      for(const g in gs){const m=new THREE.Mesh(gs[g],vxMat(g));m.userData.vox=1;w.add(m);}
+      w.position.set(sxz[0]*A.wx,P9.R+A.wy,sxz[1]>0?(A.wzF!=null?A.wzF:A.wz):-(A.wzR!=null?A.wzR:A.wz));
+      carGroup.add(w);wheels.push(w);
+    }
+  }else{
     const R9=.40*A.wr,wG=new THREE.CylinderGeometry(R9,R9,.32*A.wr,14),rimG=new THREE.CylinderGeometry(R9*.6,R9*.6,.34*A.wr,10),
           spokeG=new THREE.BoxGeometry(R9*1.05,R9*.9,.05),hubG=new THREE.CylinderGeometry(.075,.075,.37*A.wr,8);
     let wi=0;
@@ -4737,9 +4769,10 @@ function buildCar(spec){
   // soit le gabarit : les traînées-rubans et `nitroLight` s'y accrochent en dur (voir hsF/hsU/hsR).
   const hlM=new THREE.MeshBasicMaterial({color:0xfff6c8}),tlM=new THREE.MeshBasicMaterial({color:0xff2a2a});
   for(const sd of [-1,1]){
-    box(.30,.13,.06,(wreck&&sd>0)?darkM:hlM,sd*hlX,hlY,hlZ);
-    box(.34,.10,.05,tlM,sd*tlX,tlY,tlZ);
-    cyl(.09,.11,.34,wreck?rustM:chromeM,sd*W9*.22,y0+.08,-L9/2-.14,10).rotation.x=Math.PI/2;
+    // les caisses en briques dessinent leurs feux et leurs pots elles-mêmes (`lamps:0`, `pipes:0`) :
+    // une boîte lisse et un cylindre au milieu des voxels casseraient la trame
+    if(A.lamps!==0){box(.30,.13,.06,(wreck&&sd>0)?darkM:hlM,sd*hlX,hlY,hlZ);box(.34,.10,.05,tlM,sd*tlX,tlY,tlZ);}
+    if(A.pipes!==0)cyl(.09,.11,.34,wreck?rustM:chromeM,sd*W9*.22,y0+.08,-L9/2-.14,10).rotation.x=Math.PI/2;
     const js9=new THREE.Mesh(jetGeo,jetShellM),jc9=new THREE.Mesh(jetGeo,jetCoreM);
     js9.position.set(sd*W9*.22,y0+.08,-L9/2-.28);jc9.position.copy(js9.position);
     js9.scale.set(.1,.1,.02);jc9.scale.set(.05,.05,.02);
@@ -5341,33 +5374,21 @@ const ENG_CAP={billets:12,aimant:15,comete:27};
    ⚠ La caisse est COSMÉTIQUE : rien ici ne touche à la vitesse ni à la valeur des pièces. */
 /* ---- COMMENT ON OBTIENT UNE CAISSE (refonte 2026-08-17) --------------------------------------
    Trois voies, et une seule par caisse :
-     `p`      = un PRIX, payé au compte en banque (huit caisses sur quinze).
+     `p`      = un PRIX, payé au compte en banque (trois caisses sur cinq).
      `k:'aura'` = un RANG d'aura. Ces deux-là ne s'achètent PAS : c'est la récompense du style,
                   et c'est ce qui empêche la banque de tout ouvrir à elle seule.
-     `k:'surv'` = le trophée. La COMÈTE se gagne en gagnant, point.
+     `k:'surv'` = le trophée. ROSSO 40 se gagne en gagnant, point.
    ⚠ l'échelle des prix est géométrique (×5 environ) parce que l'économie du jeu l'est : les paliers
    moteur vont de 5 à 2 854 et la valeur d'une pièce suit. Une échelle linéaire rendrait les
    premières caisses interminables et les dernières gratuites. */
 const CAR_UNLOCK=[
   null,                 // LA HONTE — le point de départ, jamais verrouillée
-  {p:5e3},              // CAISSE À SAVON
-  {p:25e3},             // PAPA MOBILE
-  {p:120e3},            // LE CONTREMAÎTRE
-  {p:600e3},            // GROS BLOC
-  {p:3e6},              // DIVA BLANCHE
-  {p:15e6},             // SCALPEL VERT
-  {p:80e6},             // VEUVE NOIRE
-  {p:500e6},            // EL PATRON
-  {k:'aura',  v:6},     // FORMULE OR — rang MYTHE : l'argent n'y peut rien
-  {k:'aura',  v:4},     // LE MANS 24 — rang LÉGENDE LOCALE
-  {k:'surv',  v:1},     // COMÈTE — la couronne : gagner une partie en Survivant
-  // ---- LES TROIS FANTASTIQUES : OFFERTES. `carStat('prem')` vaut 0 et le seuil est 0, donc elles
-  // sont ouvertes d'entrée. Le jour où elles deviennent payantes, il n'y a qu'un 0 à passer à 1
-  // ici et un `ex.prem` à poser à l'achat — aucun autre code à toucher.
-  {k:'prem',  v:0},     // ACIDE
-  {k:'prem',  v:0},     // CHAT POP-TART
-  {k:'prem',  v:0}      // REQUIN
-];
+  {p:25e3},             // ELDORADO
+  {p:1e6},              // LE CAÏD
+  {p:120e6},            // SA MAJESTÉ — l'argent achète la Rolls, c'est même à ça qu'il sert
+  {k:'surv',  v:1},     // ROSSO 40 — la Ferrari se GAGNE : remporter une partie en Survivant
+  {k:'aura',  v:6}      // POSTER 84 — le poster se mérite au style : rang MYTHE, l'argent n'y peut rien
+]
 /* ============================================================================
    L'AURA ET LA BANQUE (2026-08-17) — la nouvelle règle
    ----------------------------------------------------------------------------
@@ -6751,22 +6772,23 @@ function signatureBoom(lvl){
       rx:(Math.random()-.5)*11,ry:(Math.random()-.5)*11});
     scene.add(m);
   };
-  //             idx : 0 1 2 3 4  5  6  7  8  9 10 11 12 13
-  const bonusBills=[0,0,0,0,0,12,12,16,16,10,22,18,30,44][lvl]||0; // billets garantis par modèle
+  // ⚠ REMAPPÉ SUR LA GAMME DES SIX (2026-09-24) : ce tableau datait de l'ère des 24, ses index ne
+  // désignaient plus rien. Chaque caisse perd ce qui la caractérise — l'argent, surtout.
+  //             idx : 0 HONTE · 1 ELDORADO · 2 CAÏD · 3 MAJESTÉ · 4 ROSSO · 5 POSTER
+  const bonusBills=[0,12,16,26,20,40][lvl]||0; // billets garantis par modèle
   for(let k=0;k<bonusBills;k++)spawnBill(boomPos,
     new THREE.Vector3((Math.random()-.5)*20,7+Math.random()*15,(Math.random()-.5)*20),1.8+Math.random()*1.6);
-  if(lvl===2)toss(mkFruitS(),9);                              // berline familiale : le fruit des courses
-  if(lvl===3){toss(mkCaneS(),9);toss(mkPipeS(),8);}           // hot hatch : canne et pipe
-  if(lvl===4)toss(mkPhoneS(),10);                             // coupé sport : le téléphone
-  if(lvl===7||lvl===10||lvl===13){                            // lingots : Supercar, Formule Dorée, COMÈTE
-    const n=lvl===13?5:(lvl===10?4:3);
+  if(lvl===1){toss(mkCaneS(),9);toss(mkPipeS(),8);}           // ELDORADO : la canne et la pipe du parrain
+  if(lvl===2)toss(mkPhoneS(),10);                             // LE CAÏD : le téléphone
+  if(lvl===1||lvl===3||lvl===4||lvl===5){                     // lingots : l'Eldorado (la cité d'or), la Rolls, la Ferrari, le poster
+    const n=lvl===5?5:(lvl===3?4:3);
     for(let k=0;k<n;k++)toss(mkIngotS(),11);
   }
-  if(lvl===9||lvl===13){                                      // diamants : LAMBO, COMÈTE
-    const n=lvl===13?6:4;
+  if(lvl===3||lvl===5){                                       // diamants : SA MAJESTÉ, POSTER 84
+    const n=lvl===5?6:4;
     for(let k=0;k<n;k++)toss(mkDiamS(),13);
   }
-  if(lvl===11){ // PROTO NÉON : explosion bizarroïde rose/cyan
+  if(lvl===-1){ // (l'explosion néon du PROTO — sans caisse depuis 2026-09-24, gardée pour un futur modèle) // PROTO NÉON : explosion bizarroïde rose/cyan
     for(let k=0;k<90;k++){
       const a=Math.random()*Math.PI*2,b=Math.acos(2*Math.random()-1),sp2=6+Math.random()*24;
       spawnP(neonPool,boomPos.x,boomPos.y,boomPos.z,
@@ -6774,8 +6796,7 @@ function signatureBoom(lvl){
     }
     sparkBurst(sparkBlue,boomPos,40,26);
   }
-  if(lvl===12)toss(mkAstroS(),8); // FUSÉE DE ROUTE : l'astronaute s'éjecte
-  if(lvl===13){ // COMÈTE : le final total — cœurs, eau, champignon
+  if(lvl===5){ // POSTER 84, la couronne : le final total — cœurs, eau, champignon
     for(let k=0;k<6;k++){
       const h=new THREE.Sprite(new THREE.SpriteMaterial({map:heartTex,transparent:true,depthWrite:false}));
       h.scale.set(1.3,1.3,1);h.position.copy(boomPos);
@@ -6927,21 +6948,20 @@ function explode(){
   boomRing2.position.copy(boomPos);scene.add(boomRing2);
   boomRing3=new THREE.Mesh(new THREE.TorusGeometry(1,.12,8,44),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.7}));
   boomRing3.position.copy(boomPos);scene.add(boomRing3);
-  if(level===11){boomRing.material.color.setHex(0xff3ec8);boomRing2.material.color.setHex(0x00eaff);} // ondes néon
-  if(level>=12){ // FUSÉE & COMÈTE : déflagration renforcée + filaments d'air façon bombe
-    const nR=level===13?3:1;
+  if(level>=4){ // ROSSO 40 & POSTER 84 : déflagration renforcée + filaments d'air façon bombe
+    const nR=level===5?3:1;
     for(let k=0;k<nR;k++){
       const r=new THREE.Mesh(new THREE.TorusGeometry(1,.07,6,44),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.55}));
       r.position.copy(boomPos);scene.add(r);
       extraRings.push({m:r,sp:95+k*45,delay:k*.12});
     }
-    for(let k=0;k<(level===13?160:80);k++){
+    for(let k=0;k<(level===5?160:80);k++){
       const a=Math.random()*Math.PI*2,b=Math.acos(2*Math.random()-1),sp2=6+Math.random()*26;
       spawnP(k%2?boomPool:boomYel,boomPos.x,boomPos.y,boomPos.z,
         Math.sin(b)*Math.cos(a)*sp2,Math.cos(b)*sp2*.9+4,Math.sin(b)*Math.sin(a)*sp2,.4+Math.random()*.7);
     }
-    noiseBurst(1.2,level===13?.5:.35,240);subBoom(level===13?.42:.3);
-    shake=Math.max(shake,level===13?3.6:3);
+    noiseBurst(1.2,level===5?.5:.35,240);subBoom(level===5?.42:.3);
+    shake=Math.max(shake,level===5?3.6:3);
   }
   boomCore=new THREE.Mesh(new THREE.SphereGeometry(1,14,10), // cœur de lumière qui gonfle
     new THREE.MeshBasicMaterial({color:0xfff2d0,transparent:true,opacity:.9,blending:THREE.AdditiveBlending,depthWrite:false}));
@@ -7223,7 +7243,11 @@ function musicPickNext(excludeIdx){
   return i;
 }
 const MUSIC={menu:''}; // ex : 'assets/audio/music/menu.mp3'
-let musicMode='none',musicBaseVol=.85,musicBoostEnv=0;
+// musicBaseVol .85→1 (2026-09-24, « la musique pas assez forte comparé au moteur ») : on relève le
+// NIVEAU ACCORDÉ et pas la valeur par défaut du curseur — celle-ci est sauvegardée chez le joueur
+// (`SAVE.d.vol.mus`), la changer n'aurait rien fait pour qui a déjà joué. Le moteur, lui, a reculé
+// de 28 % le même jour (voir `ev` dans <<<SON-MOTEUR>>>) : l'écart se creuse des deux côtés.
+let musicMode='none',musicBaseVol=1,musicBoostEnv=0;
 /* ---- LE MIXAGE : TROIS VOLUMES, ET LA MUSIQUE QUI S'ÉCARTE QUAND LA VOIX PARLE ---------------
    Plainte du user : « le son est trop fort par rapport à la voix, la musique ». Deux causes, et la
    seconde est la vraie.
@@ -8133,25 +8157,38 @@ function engWave9(AC9,e){
 function engSndParams(e,st){
   const nA=st.nA||0, ch=st.charge||0, ov=st.ovr||0, rpm=st.rpm||0, dr=st.drift||0;
   const meca=e.gr>1?1:0;
-  const fF=(e.i+rpm*e.r)*(1+.12*nA)*(1+(st.wob||0));
+  /* ⚠ LE RONRON (2026-09-24) — verdict du user en jouant : « un bruit de moustique, très monotone ;
+     je veux qu'il vibre, qu'il ronronne selon comment j'appuie, et au boost ». Trois causes :
+     (1) TROP HAUT — la fondamentale montait à ~560 Hz dans les paliers moyens, filtre ouvert à
+         6,2 kHz, souffle à 6 kHz, sifflet de turbo : tout le spectre partait dans l'aigu. Un moteur
+         qu'on SENT vit sous 200 Hz. `ENG_PITCH` descend toute la famille d'un bloc (≈ une sixte),
+         sans retoucher les 30 fiches — leurs rapports entre elles restent intacts.
+     (2) MONOTONE — la pulsation (`lfo`, qui module le GAIN, donc un vrai battement) ne vivait
+         qu'au ralenti (`1-rpm*3.2` → coupée dès 30 % de régime) : en course il ne restait qu'une
+         note tenue. Elle bat désormais TOUT LE TEMPS, plus profond sous charge et au boost.
+     (3) LE BOOST MONTAIT LA NOTE (+12 %) — donc plus aigu, plus moustique. Il GONFLE maintenant
+         le bas (sub + battement) au lieu de monter : on sent la poussée dans le ventre. */
+  const ENG_PITCH=.62;
+  const fF=(e.i+rpm*e.r)*ENG_PITCH*(1+.04*nA)*(1+(st.wob||0));
   /* ⚠ PLANCHER OBLIGATOIRE. `post` vaut `1.05/Math.pow(drv,.55)` : dès que `drv` passe à zéro ou
      dans le négatif (fort frein moteur, `ov` élevé et charge nulle), `Math.pow` d'un négatif rend
      NaN — et un NaN écrit dans un AudioParam ne se répare pas, il ÉTEINT le nœud pour toute la
      session. Repéré en test au moment du game over : « setTargetAtTime: non-finite value ».
      Le plancher coûte un `Math.max` et supprime la classe entière de pannes. */
   const drv=Math.max(.08,.42+ch*2.45+ov*-.16);
-  const lpB=Math.max(240,Math.min(6200,e.fq+fF*e.fr));
-  const ev=(.019+.026*rpm+.009*ch)*(1-.24*nA)*e.vol*(st.dk==null?1:st.dk);
+  const lpB=Math.max(240,Math.min(2800,e.fq+fF*e.fr)); // plafond 6200→2800 : le moustique vivait au-dessus
+  // ×.72 : le moteur recule d'un cran pour que la BANDE-SON passe devant (plainte du même jour)
+  const ev=(.019+.026*rpm+.009*ch)*(1-.10*nA)*e.vol*(st.dk==null?1:st.dk)*.72;
   const vsp=st.vsp||0;
   return {
-    fF:fF, detune:7+ch*19, subF:Math.max(24,fF*.5),
-    nzF:Math.min(6200,Math.max(300,fF*6*(.72+ch*.62))),
-    nzG:(.06+.26*ch+.08*rpm)*(e.nz||1)*(1-.5*nA),
-    whineOn:!!e.whine, whineF:e.whine?Math.min(13500,fF*e.whine):2000,
-    whineG:e.whine?(.10+.16*ch)*Math.pow(Math.min(1,rpm),.7)*(1-.45*nA)*(1-ov*.7):0,
+    fF:fF, detune:7+ch*19, subF:Math.max(22,fF*.5),
+    nzF:Math.min(3200,Math.max(260,fF*6*(.72+ch*.62))),
+    nzG:(.06+.26*ch+.08*rpm)*(e.nz||1)*(1-.5*nA)*.7,
+    whineOn:!!e.whine, whineF:e.whine?Math.min(9000,fF*e.whine):2000,
+    whineG:e.whine?(.10+.16*ch)*Math.pow(Math.min(1,rpm),.7)*(1-.45*nA)*(1-ov*.7)*.4:0,
     drv:drv, post:1.05/Math.pow(drv,.55), eq:-8.0+ch*7.0,
     mix:.42+.20*ch+.10*(st.thr||0)+.05*nA,
-    subG:e.sub*(.34+.30*ch),
+    subG:e.sub*(.34+.30*ch+.22*(st.thr||0)+.45*nA), // la touche ET le boost gonflent le VENTRE du son
     tickF:Math.max(6,fF), tickG:meca*(.012+.055*ch+.018*rpm)*(1-.5*nA),
     pinkG:(.020+.030*rpm+.020*ch)*(1-.4*nA),
     transF:240+vsp*2300*(1+dr*.004), diffF:120+vsp*760,
@@ -8159,8 +8196,13 @@ function engSndParams(e,st){
     diffG:meca*(.006+.014*ch+.012*vsp)*(1-.55*nA),
     ovrF:200+rpm*900, ovrG:meca*ov*(.030+.070*rpm)*(1-.6*nA),
     lp:lpB*(.62+ch*.55)*(1-ov*.45)*(1+(st.boost?.06:0))*(1+dr*.015)*(1-.25*nA)*(1-.45*(st.cloudIn||0)),
-    ev:ev, lfoF:Math.min(40,Math.max(4,fF*.35)),
-    lfoG:ev*e.lope*(e.lk?1:Math.max(0,1-rpm*3.2))
+    /* LE BATTEMENT. `lfoG` s'ajoute au gain de base `ev` : tant qu'il reste SOUS `ev`, le volume
+       ondule entre ~0 et 2·ev sans jamais s'inverser (un gain négatif ferait claquer la phase).
+       Profondeur = le caractère de la fiche (`lope`, l'épave tousse plus qu'un V12) + la touche
+       + le boost. Cadence liée au régime mais bornée 7-24 Hz : sous 7 on entend des coups
+       séparés, au-dessus de 24 ça redevient une note — le ronron vit entre les deux. */
+    ev:ev, lfoF:Math.min(24,Math.max(7,fF*.22)),
+    lfoG:ev*Math.min(.85,.22+e.lope*.9+.22*ch+.18*(st.thr||0)+.28*nA)
   };
 }
 /* LE MODÈLE DE CHARGE, lui aussi pur : on lui donne l'état précédent, il rend le suivant.
@@ -9029,7 +9071,7 @@ const SAVE={
        `aura` : le total à vie de style. Elle ne s'achète rien — elle donne un RANG, et le rang ouvre
        les caisses que l'argent ne peut pas acheter.
        `owned` : les index des caisses ACHETÉES. Séparé des exploits : un achat n'est pas un exploit. */
-    bank:0, aura:0, owned:[], auraMax:0, // `auraMax` : la meilleure aura d'UNE partie — le chiffre à battre, affiché en jeu
+    bank:0, aura:0, owned:[], auraMax:0, gamme:2, // `gamme` : version de la GAMME de caisses (voir la migration dans san) // `auraMax` : la meilleure aura d'UNE partie — le chiffre à battre, affiché en jeu
     ai:{air:.5,boost:.35,caution:.5,skill:.86,aggr:.55,airDur:1.1,runs:0}};}, // profil d'apprentissage des IA
   san(d){ // désinfection : quoi qu'on charge (storage rongé, code importé), la forme est GARANTIE
     const c=this.def();
@@ -9085,6 +9127,17 @@ const SAVE={
       c.ai={air:g('air',.5,0,1),boost:g('boost',.35,0,1),caution:g('caution',.5,0,1),
         skill:g('skill',.86,.5,1.1),aggr:g('aggr',.55,0,1),airDur:g('airDur',1.1,.4,4),
         runs:Math.max(0,Math.round(+a.runs)||0)};}
+    /* ⚠ LA GAMME A CHANGÉ (2026-09-24 : 15 caisses → LA HONTE + 5). Les index d'avant désignent
+       d'AUTRES voitures : garder `owned`/`floor`/`equipped` tels quels offrirait l'Eldorado à qui
+       avait acheté la caisse à savon. On remet les caisses à zéro ET on REMBOURSE à la banque tout
+       ce qui avait été payé, au prix d'alors — une mise à jour ne confisque pas. (Les caisses gagnées
+       sous les règles d'avant l'argent n'avaient rien coûté : il n'y a rien à rendre.) */
+    if(d.gamme!==2){
+      const OLD=[0,5e3,25e3,120e3,600e3,3e6,15e6,80e6,500e6];let rb=0;
+      if(Array.isArray(d.owned))for(const x of new Set(d.owned.map(v=>Math.round(+v))))rb+=OLD[x]||0;
+      c.bank=Math.min(1e30,c.bank+rb);c.owned=[];c.ex.floor=0;c.equipped=0;c.bestCar=0;
+    }
+    c.gamme=2;
     return c;
   },
   load(){
