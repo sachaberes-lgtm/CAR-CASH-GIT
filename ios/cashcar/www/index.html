@@ -35,7 +35,8 @@
   #scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.14) 0 2px,transparent 2px 4px);opacity:.22}
   #speedFx{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 42%,rgba(45,20,55,.55) 100%);opacity:0}
   /* ACCESSIBILITÉ : iOS « Réduire les animations » → grain CRT + vignette vitesse coupés */
-  html[data-reduced-motion="1"] #scan,html[data-reduced-motion="1"] #speedFx{display:none}
+  html[data-reduced-motion="1"] #scan{display:none} /* deux règles, pas une liste : ios/cashcar/verify-reduced-motion.js cherche celle-ci telle quelle */
+  html[data-reduced-motion="1"] #speedFx{display:none}
   /* immersion nuage : voile blanc laiteux quand on traverse un banc */
   #cloudFx{position:absolute;inset:0;opacity:0;pointer-events:none;
     background:radial-gradient(ellipse at 50% 55%,rgba(250,240,248,.62) 0%,rgba(232,222,240,.42) 55%,rgba(214,206,230,.14) 100%)}
@@ -825,6 +826,9 @@
     opacity:0;transition:opacity 1s}
   #spNote.on{opacity:.7;animation:spBreath 2.4s ease-in-out infinite}
   @keyframes spBreath{50%{opacity:.4}}
+  /* ⚠ 2026-09-24 : en une ligne, l'invite mesurait 506 px sur un écran de 375 — coupée des deux côtés.
+     Sous 560 px elle a le droit de passer sur deux lignes. */
+  @media (max-width:560px){#spNote{white-space:normal;width:86vw;line-height:2.1;letter-spacing:2px}}
   @media (prefers-reduced-motion:reduce){#spNote.on{animation:none}}
   /* ---- CASH CAR : c'est LUI qu'on voit en arrivant, et c'est LUI qui explose. Il est DANS LE FLUX
      (plus en absolu) : l'etage prend sa hauteur, donc la plaque JOUER et la note se calent dessous
@@ -1084,6 +1088,33 @@
     width:auto;transform:none;bottom:auto;top:18px}
   body.touch #styleBar{height:6px;margin-bottom:4px}
   body.touch #airPie{top:13%;right:5%;width:78px;height:78px}
+  /* ------- LES NIVEAUX (2026-09-24) : la bannière « NIVEAU n — LIEU ». Au-dessus de la route, dans le
+     ciel ; un FONDU d'opacité et rien d'autre (aucun mouvement : REDUCED_MOTION n'a rien à couper).
+     `max-width` + `white-space:normal` : sur un téléphone de 375 px, « AU-DESSUS DE LA VILLE » passe
+     sur deux lignes au lieu de sortir de l'écran. ------- */
+  #lvlBan{position:fixed;left:50%;top:22%;transform:translateX(-50%);z-index:7;pointer-events:none;
+    display:flex;flex-direction:column;align-items:center;gap:9px;width:max-content;max-width:88vw;
+    font-family:var(--pix);text-align:center;opacity:0;transition:opacity .45s}
+  #lvlBan.on{opacity:1}
+  #lvlBan b{font-size:clamp(20px,6.4vw,36px);letter-spacing:.16em;color:#ffd75e;
+    text-shadow:0 3px 0 #7a4400,0 0 24px rgba(255,200,90,.45)}
+  #lvlBan span{font-size:clamp(9px,2.7vw,14px);letter-spacing:.2em;line-height:1.7;color:#9fe8ff;white-space:normal;
+    text-shadow:0 2px 0 rgba(0,0,0,.6),0 0 14px rgba(120,220,255,.45)}
+  /* ------- LE TÉLÉPHONE COUCHÉ : voile + consigne quand la partie est gelée en paysage (body.couche,
+     posée par le tick 8 Hz — seulement sur un écran de téléphone). `pointer-events:none` : le ⚙ et
+     son panneau restent joignables à travers. ------- */
+  #rotNote{display:none}
+  body.touch.play.couche #rotNote{display:flex;position:fixed;inset:0;z-index:60;flex-direction:column;align-items:center;
+    justify-content:center;gap:12px;background:rgba(6,4,16,.88);font-family:var(--pix);text-align:center;pointer-events:none}
+  #rotNote i{font-style:normal;font-size:44px;line-height:1;color:#ffd75e}
+  #rotNote b{font-size:13px;letter-spacing:3px;color:#ffd75e}
+  #rotNote span{font-size:8px;letter-spacing:2px;color:#c8bfe6}
+  /* ------- CORRECTIFS PORTRAIT (2026-09-24, mesurés à 375 px) :
+     · la grille TOP 10 du garage recouvrait le mot PLAY — le bouton de départ — et le classement a
+       déjà quitté la version téléphone (« il ne servait à rien sur téléphone ») : il la quitte ici aussi ;
+     · le gros JOUER faisait 100 % + ses 2×18 px de rembourrage : il touchait les deux bords. ------- */
+  body.touch #lbBoxG{display:none}
+  .pbtn.wide{box-sizing:border-box}
   /* ------- PORTRAIT : L'ORIENTATION NORMALE DU JEU (le paysage n'est plus qu'un repli) ------- */
   @media (orientation:portrait){
     body.touch #tSteer{width:52%}
@@ -1264,6 +1295,10 @@
   <canvas id="minimap" width="176" height="176"></canvas>
   <div id="survHud"></div>
   <div id="lastAlert"></div>
+  <!-- LES NIVEAUX (2026-09-24) : « NIVEAU n — LIEU » au départ et à chaque portail (voir lvlAnnonce) -->
+  <div id="lvlBan" aria-live="polite"><b id="lvlNum"></b><span id="lvlNom"></span></div>
+  <!-- LE TÉLÉPHONE COUCHÉ : la partie se gèle en paysage sur un téléphone — ceci dit POURQUOI -->
+  <div id="rotNote" aria-live="polite"><i aria-hidden="true">↻</i><b data-fr="TOURNE TON TELEPHONE">TOURNE TON TELEPHONE</b><span data-fr="CASH CAR SE JOUE A LA VERTICALE">CASH CAR SE JOUE A LA VERTICALE</span></div>
 </div>
 <div id="overlay" role="button" tabindex="0" aria-label="Menu principal CASH CAR">
   <div id="mEmbers" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
@@ -1450,6 +1485,7 @@ const SUN_DIR=new THREE.Vector3(.38,.10,-.90).normalize(); // soleil TRÈS BAS (
 const skyU={uTime:{value:0},uSunDir:{value:SUN_DIR},
   uSkyMul:{value:new THREE.Vector3(1,1,1)},uSkyLift:{value:new THREE.Vector3(0,0,0)},
   uSunTint:{value:new THREE.Vector3(1,.40,.28)},uSunHalo:{value:1},uCity:{value:1},uStars:{value:1},uMoon:{value:1},
+  uSpace:{value:0}, // NIVEAU ORBITE (2026-09-24) : 0 = le ciel de toujours AU PIXEL PRÈS, 1 = le noir étoilé (piloté par lvlStep)
   uPulse:{value:0}, // MUSIQUE : le ciel respire en rythme (piloté par l'analyseur audio, 0 = neutre = rendu d'origine)
   /* ---- LE FOND DU NIVEAU (2026-08-08) : le décor JOUE la musique, façon Geometry Dash / Super Hexagon.
      ⚠ `uLvl` est l'INTERRUPTEUR GÉNÉRAL : à 0 le ciel rend EXACTEMENT ce qu'il rendait avant, au pixel
@@ -1473,6 +1509,7 @@ const skyDome=(function(){
     fragmentShader:[
       'varying vec3 vDir;uniform vec3 uSunDir;uniform float uTime;',
       'uniform vec3 uSkyMul,uSkyLift,uSunTint;uniform float uSunHalo,uCity,uStars,uMoon,uPulse;', // grade biome (identité par défaut) + uPulse musique
+      'uniform float uSpace;', // NIVEAU ORBITE : 0 = aucun effet
       'uniform float uLvl,uSpin,uBeatK,uFlip,uBar,uHi,uWave,uHueAmp;uniform vec3 uAcc,uAcc2;uniform vec4 uRingR,uRingA;', // LE FOND DU NIVEAU
       'float hash21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}',
       /* ROTATION DE TEINTE AUTOUR DE L AXE DES GRIS (Rodrigues). ⚠ c est LA fonction qui permet les
@@ -1500,6 +1537,7 @@ const skyDome=(function(){
       '  col=mix(blw,col,smoothstep(-.10,.012,y));',
       '  col=mix(dp2,col,smoothstep(-.85,-.12,y));',
       '  col=col*uSkyMul+uSkyLift*smoothstep(.35,-.06,y);', // BIOME : teinte du gradient + lift laiteux concentré à l horizon
+      '  col=mix(col,vec3(.006,.008,.024)+vec3(.03,.08,.20)*pow(1.-abs(y),14.),uSpace);', // ORBITE : le noir, et un fil d atmosphere au ras de l horizon
       '  col*=1.+uPulse*.13;', // MUSIQUE : tout le ciel respire au beat (souffle global doux)
       '  float sd=max(dot(vDir,uSunDir),0.);',      // couchant : halo rosé large, couronne corail, coeur incandescent (tamisé)
       '  col+=uSunTint*pow(sd,4.)*.45*uSunHalo;',
@@ -1510,7 +1548,7 @@ const skyDome=(function(){
       '  float cty=(.5+.5*sin(az*4.+1.3))*.6+(.5+.5*sin(az*9.+4.2))*.4;cty*=cty;',
       '  float cband=smoothstep(.13,.008,abs(y+.03));',
       '  vec3 neon=mix(vec3(1.,.30,.62),vec3(.36,.78,1.),.5+.5*sin(az*2.+2.0));',
-      '  col+=neon*cty*cband*(1.-smoothstep(.15,.75,sd))*.42*uCity*(1.+uPulse*.9);', // la ville s éteint sous l orage, hurle en NÉON TOTAL — et clignote au beat
+      '  col+=neon*cty*cband*(1.-smoothstep(.15,.75,sd))*.42*uCity*(1.-uSpace)*(1.+uPulse*.9);', // la ville s éteint sous l orage, hurle en NÉON TOTAL — et clignote au beat
       /* ======================= LE FOND DU NIVEAU — QUATRE COUCHES ==========================
          LE PARI : un fond de rythme (Geometry Dash, Super Hexagon) dans un jeu où l on VISE une
          réception. Donc tout se passe HAUT et sur les CÔTÉS, jamais dans la bande d horizon où l on
@@ -1529,7 +1567,7 @@ const skyDome=(function(){
          — ou l on regarde droit devant — on ne voyait presque rien. Le masque ne coupe plus, il
          DOSE : le bas du ciel joue a 62 %, le haut a 100 %. La route reste lisible parce qu elle
          est un objet 3D DEVANT le dome : elle se decoupe sur le fond au lieu d etre noyee. */
-      '    float mk=uLvl*(.62+.38*smoothstep(-.45,.12,y));',
+      '    float mk=uLvl*(.62+.38*smoothstep(-.45,.12,y))*(1.-uSpace*.7);', // ORBITE : le fond de rythme se tasse, le noir reste noir
       '    mk*=1.-smoothstep(.10,.62,sd)*.42;',                    // le soleil garde son coeur ; il n est plus sanctuarise
       '    vec3 A=mix(uAcc,uAcc2,uFlip),Bc=mix(uAcc2,uAcc,uFlip);',// LA BASCULE : sur les phrases, les deux teintes s echangent
       /* ⚠ LES QUATRE COUCHES S ACCUMULENT DANS `fx`, PAS DANS `col`. Mesure a l origine de ce choix :
@@ -1584,7 +1622,7 @@ const skyDome=(function(){
       '  vec2 stp=vec2(fract(h*17.13),fract(h*31.71))*.7+.15;',
       '  float st=(1.-smoothstep(0.,.055,length(sfr-stp)))*step(.76,h);',
       '  st*=.55+.45*sin(uTime*(1.2+h*2.6)+h*44.);',
-      '  col+=vec3(.80,.88,1.)*st*smoothstep(.10,.42,y)*(1.-smoothstep(.25,.8,sd))*.9*uStars*(1.+uPulse*1.3);', // elles descendent plus bas : le haut du cadre est habité — MINUIT les multiplie, l aube les éteint ; elles palpitent au beat
+      '  col+=vec3(.80,.88,1.)*st*mix(smoothstep(.10,.42,y),1.,uSpace)*(1.-smoothstep(.25,.8,sd))*.9*uStars*(1.+uSpace*.5)*(1.+uPulse*1.3);', // elles descendent plus bas : le haut du cadre est habité — MINUIT les multiplie, l aube les éteint ; elles palpitent au beat
       // LUNE pâle à l opposé du couchant — le témoin du presque-nuit
       '  vec3 mdir=normalize(vec3(-.52,.40,-.72));',
       '  float md=dot(vDir,mdir);',
@@ -1809,8 +1847,17 @@ const RAYS=(function(){ // 3-4 faisceaux diffus en éventail derrière les nuage
 })();
 const SUN_PERP=new THREE.Vector3().crossVectors(SUN_DIR,new THREE.Vector3(0,1,0)).normalize();
 // Détection mobile / matériel faible AVANT le renderer : elle pilote antialias, DPR, ombres et post-traitement.
-const IS_TOUCH=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||('ontouchstart'in window)||navigator.maxTouchPoints>0;
-const IS_MOBILE=IS_TOUCH&&((window.matchMedia&&matchMedia('(hover:none)').matches)||Math.min(innerWidth,innerHeight)<820);
+/* ⚠ `?tel=1` (ou `?mobile=1`) — LA VERSION TÉLÉPHONE SUR L'ÉCRAN D'ORDI (2026-09-24). « Une version
+   mobile et tactile, jouable sur mon écran d'ordi avec le même affichage que sur un téléphone, mais
+   sans simuler un écran de téléphone » : le jeu garde TOUTE la fenêtre, et prend le chemin téléphone
+   complet — coque de menu, écran nu, volant à gauche, NITRO à droite, gaz auto, rendu mobile.
+   Ce qui change par rapport à un vrai téléphone, et seulement ça : pas de gel « téléphone couché »
+   (un écran d'ordi est en paysage, c'est normal), pas de plein écran forcé au premier clic, et une
+   résolution d'image à la mesure d'un moniteur (voir `applyQ`). Toutes les commandes tactiles ont un
+   repli souris ; le clavier reste branché ; un écran tactile d'ordi marche au doigt. */
+const FORCE_TEL=/[?&](tel|mobile)=1/.test(location.search);
+const IS_TOUCH=FORCE_TEL||(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||('ontouchstart'in window)||navigator.maxTouchPoints>0;
+const IS_MOBILE=FORCE_TEL||(IS_TOUCH&&((window.matchMedia&&matchMedia('(hover:none)').matches)||Math.min(innerWidth,innerHeight)<820));
 const IS_LOW_END=IS_MOBILE||(navigator.hardwareConcurrency>0&&navigator.hardwareConcurrency<=4);
 const REDUCED_MOTION=(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)||false; // ACCESSIBILITÉ : iOS « Réduire les animations » → coupe bloom + grain + effets de vitesse
 if(REDUCED_MOTION)document.documentElement.setAttribute('data-reduced-motion','1');
@@ -2199,6 +2246,7 @@ function mkBlobs(o,rng){
     if(m+b[3]>mx){const s=(mx-b[3])/Math.max(m,1e-3);if(s<1){b[0]*=s;b[1]*=s;b[2]*=s;}}return b;}).slice(0,20);
 }
 function mkCloud(center,r,o,rr){ // un nuage = ses boules fusionnées en UN mesh opaque, point.
+  if(!lvlNuageOk(o))return; // LES NIVEAUX : chaque monde garde ses familles de nuages (voir NIVEAUX)
   const ry=r*(o.giant?.55+rr()*.18:o.veil?.16:o.sea?.15:.36+rr()*.16);
   if(o.baseY!==undefined)center.y=o.baseY+ry*0.64; // plafond de condensation commun
   const g=new THREE.Group();g.position.copy(center);
@@ -2340,6 +2388,23 @@ function buildClouds(rr){
     const a=sunAz+3.1416+(cr()-.5)*0.9,d=1300+cr()*700;
     cldV1.set(pts[i].x+Math.cos(a)*d,roadY-80+cr()*240,pts[i].z+Math.sin(a)*d);
     mkCloud(cldV1,850+cr()*350,{giant:true,titan:true,noFog:true},cr);
+  }
+  /* LE NIVEAU NUAGES (2026-09-24) : une couche DE PLUS. La mer se referme sous la route — un second
+     plancher, plus proche, qu'on survole au ras — et des coussins de ouate encadrent le ruban à
+     mi-hauteur. Tout en espace MONDE (même règle que le ciel organisé : jamais B[i]/Nn[i]) et tout
+     tiré sur `cr` : ça ne décale que les nuages, jamais la piste. Posé EN DERNIER : les familles
+     historiques gardent leurs positions au tirage près. */
+  if(LVL.cur&&LVL.cur.id==='nuages'){
+    for(let k=0;k<7;k++){
+      const i=strat(k,7),a=stratAz(k,7),d=cr()*900;
+      cldV1.set(pts[i].x+Math.cos(a)*d,pts[i].y-(130+cr()*110),pts[i].z+Math.sin(a)*d);
+      mkCloud(cldV1,170+cr()*140,{sea:true,noFog:true},cr);
+    }
+    for(let k=0;k<4;k++){
+      const i=strat(k,4),a=pickAz(),d=180+cr()*260;
+      cldV1.set(pts[i].x+Math.cos(a)*d,pts[i].y-30+cr()*90,pts[i].z+Math.sin(a)*d);
+      mkCloud(cldV1,80+cr()*70,{deco:true},cr);
+    }
   }
 }
 function updateClouds(dt,t){
@@ -2999,6 +3064,7 @@ function buildTrack(seed){
     sp9.scale.set(sc9,sc9*(.3+rnd()*.2),1);
     const off9=(650+rnd()*1200)*(rnd()<.5?-1:1);
     sp9.position.copy(pts[i9]).addScaledVector(B[i9],off9).addScaledVector(Nn[i9],-350+rnd()*650);
+    if(LVL.cur&&LVL.cur.id==='espace')sp9.visible=false; // ORBITE : pas de nuages d'horizon — mais le tirage `rnd` est CONSOMMÉ quand même (la piste en aval ne bouge pas)
     scene.add(sp9);trackMeshes.push(sp9);
   }
   // PORTAIL D'ARRIVÉE : la cible
@@ -3066,6 +3132,7 @@ const CITY={root:null};
 function buildVoxCity(seed,accC){
   CITY.root=null;
   if(PARK.on)return; // le parc a sa prairie : deux sols l'un dans l'autre, ça ne se voit pas mais ça se paie
+  if(LVL.cur&&LVL.cur.id!=='ville')return; // NIVEAUX : la ville n'existe qu'au niveau VILLE (sous les nuages ou en orbite, on ne la verrait pas)
   const vr=mulberry32(seed^0x5EED10C1); // flux DÉRIVÉ (voir ⚠ ci-dessus)
   // ⚠ LA VILLE EST BÂTIE À L'ORIGINE LOCALE (gy=0) DANS UN GROUPE. C'est ce qui permet à `cityTick`
   // de ne déplacer qu'UN objet par frame au lieu de 4 700 matrices d'instance.
@@ -3073,7 +3140,7 @@ function buildVoxCity(seed,accC){
   trackMeshes.push(root); // le groupe part de la scène au rebuild…
   const gy=0;
   const snap=v=>Math.max(1,Math.round(v/VOX_CITY))*VOX_CITY; // tout atterrit sur la trame, jamais entre deux
-  const corps=[],cour=[];
+  const corps=[],cour=[],fen=[]; // fen : les ÉTAGES ALLUMÉS (NIVEAU VILLE, 2026-09-24)
   for(let gx=-CITY_R;gx<=CITY_R;gx+=CITY_STEP)for(let gz=-CITY_R;gz<=CITY_R;gz+=CITY_STEP){
     if(gx*gx+gz*gz>CITY_R*CITY_R)continue;
     if(vr()<.17)continue;                                   // des vides : une ville n'est pas un damier plein
@@ -3089,6 +3156,11 @@ function buildVoxCity(seed,accC){
     for(let k=0;k<et;k++){
       const hk=snap(h/et);
       corps.push(cx,y+hk/2,cz,w,hk,p);
+      /* LES ÉTAGES ALLUMÉS : vue d'avion, une ville la nuit ne se lit pas à ses toits mais à ses
+         FENÊTRES. Un bandeau émissif un rien plus large que le volume ceinture un étage sur deux ou
+         trois ; à 1 km on ne résout pas la fenêtre, on lit la LIGNE — exactement ce qu'on veut. */
+      const nf=hk>VOX_CITY*6?1+((vr()*3)|0):(vr()<.5?1:0);
+      for(let f=0;f<nf;f++)fen.push(cx,y+hk*(.18+vr()*.66),cz,w*1.03,VOX_CITY*.34,p*1.03);
       y+=hk;w=snap(w*.72);p=snap(p*.72);
       if(w<VOX_CITY||p<VOX_CITY)break;
     }
@@ -3126,6 +3198,12 @@ function buildVoxCity(seed,accC){
   }
   if(imC.instanceColor)imC.instanceColor.needsUpdate=true;
   if(cour.length)pose(cour,new THREE.MeshBasicMaterial({color:accC.clone()}));
+  if(fen.length){ // UN troisième draw call pour toute la ville : sodium, blanc froid, et de temps en temps l'accent de la zone
+    const imF=pose(fen,new THREE.MeshBasicMaterial({color:0xffffff}));
+    const tf=[new THREE.Color(0xffc46b),new THREE.Color(0xffe2a8),new THREE.Color(0x9fdcff),accC];
+    for(let i=0;i<fen.length/6;i++){const r9=vr();imF.setColorAt(i,col.copy(tf[r9<.5?0:r9<.78?1:r9<.94?2:3]).multiplyScalar(.55+vr()*.45));}
+    if(imF.instanceColor)imF.instanceColor.needsUpdate=true;
+  }
   // LE PLANCHER : sans lui on voit le vide entre les tours, et la ville flotte au lieu de reposer.
   const sol=new THREE.Mesh(new THREE.PlaneGeometry(CITY_R*2.6,CITY_R*2.6),
     new THREE.MeshLambertMaterial({color:0x15161f,emissive:0x05060b}));
@@ -3382,7 +3460,7 @@ const I18N={
  'clique sur CASH CAR — le son s\'allume avec toi':'click on CASH CAR — sound comes alive with you',
  'cours après le cash · ne tombe jamais':'chase the cash · never fall',
  'GAME OVER':'GAME OVER','VALIDER':'CONFIRM','★ NOUVEAU RECORD — TON NOM':'★ NEW RECORD — YOUR NAME',
- 'Prêt à repartir ?':'Ready to go again?','Jouer':'Play','Garage':'Garage','Réglages':'Settings','Freestyle · off':'Freestyle · off','Survivant · off':'Survivor · off',
+ 'Prêt à repartir ?':'Ready to go again?','NIVEAU':'LEVEL','AU-DESSUS DE LA VILLE':'ABOVE THE CITY','MER DE NUAGES':'SEA OF CLOUDS','EN ORBITE':'IN ORBIT','TOURNE TON TELEPHONE':'TURN YOUR PHONE','CASH CAR SE JOUE A LA VERTICALE':'CASH CAR IS PLAYED UPRIGHT','Jouer':'Play','Garage':'Garage','Réglages':'Settings','Freestyle · off':'Freestyle · off','Survivant · off':'Survivor · off',
  'Réglages':'Settings','Langue':'Language','Freestyle':'Freestyle','Survivant':'Survivor','on':'on','off':'off',
  'Audio':'Audio','Effets sonores':'Sound effects','Voix de l\'annonceur':'Announcer voice','Devise':'Currency',
  'Commandes':'Controls','Sauvegarde':'Save','📋 Copier ma sauvegarde':'📋 Copy my save',
@@ -3521,7 +3599,7 @@ const I18N={
  'On s\'entraîne sur la vraie piste : la caisse se replace au lieu de mourir. Idéal pour les sauts — mais aucun score n\'est enregistré.':'Practice on the real track: the car respawns instead of dying. Great for jumps — but no score is saved.'
 };
 const I18N_ZH={
- "GARAGE":"车库","ÉQUIPER":"装备","✓ ÉQUIPÉE":"✓ 已装备","🔒 VERROUILLÉE":"🔒 未解锁","glisse pour tourner · molette pour zoomer":"拖动旋转 · 滚轮缩放","clique sur CASH CAR — le son s'allume avec toi":"点击 CASH CAR — 声音与你同步点亮","cours après le cash · ne tombe jamais":"追钱不停 · 绝不摔落","GAME OVER":"游戏结束","VALIDER":"确认","★ NOUVEAU RECORD — TON NOM":"★ 新纪录 — 输入你的名字","Prêt à repartir ?":"准备好再来一局？","Jouer":"开始","Garage":"车库","Réglages":"设置","Freestyle · off":"花式模式 · 关","Survivant · off":"生存模式 · 关","Réglages":"设置","Langue":"语言","Freestyle":"花式模式","Survivant":"生存模式","on":"开","off":"关","Audio":"音频","Effets sonores":"音效","Voix de l'annonceur":"解说声音","Devise":"货币","Commandes":"操作","Sauvegarde":"存档","📋 Copier ma sauvegarde":"📋 复制我的存档","conduire · piloter en vol":"驾驶 · 飞行中操控","nitro · double-tap = DÉCOLLAGE":"氮气 · 双击 = 起飞","drift":"漂移","replacer la caisse":"重置座驾位置","pause":"暂停","rejouer":"重新开始","Espace":"空格键","Entrée":"回车键","Pad gauche":"左侧摇杆","Pad + frein":"摇杆 + 刹车","En vol":"飞行中","volant · tirer vers le bas = frein":"方向 · 下拉 = 刹车","le pad devient un joystick (haut/bas)":"摇杆变成操纵杆（上/下）","pouce droit · double-tap = DÉCOLLAGE":"右拇指 · 双击 = 起飞","NITRO INFINIE — 6 s À FOND !":"无限氮气 — 6秒全力冲刺！","NITRO ∞":"氮气 ∞","🪂 AIRTIME INFINI — 10 s DE VOL !":"🪂 无限滞空 — 10秒飞行！","AIR ∞":"滞空 ∞","⚡ VITESSE +60% — 6 s !":"⚡ 速度 +60% — 6秒！","VITESSE +60%":"速度 +60%","Volumes":"音量","Musique":"音乐","Effets et moteur":"音效与引擎","Voix":"语音","Sur iPhone, le volume de la voix est verrouillé par le système.":"在iPhone上，语音音量由系统锁定。","NITRO (ESPACE)":"氮气（空格键）","km/h":"km/h","SON":"音效","VOIX":"语音","RESET":"重置","MUS":"音乐","🏆 TOP 10":"🏆 排行榜前十","Aucun score — sois le premier !":"暂无记录 — 抢占第一！","AUCUN RECORD — À TOI DE JOUER":"暂无纪录 — 该你上场了","RECORD":"纪录","MEILLEURE CAISSE":"最佳座驾","record : ":"纪录：","Prochaine voiture à":"下一辆车需要","🛝 Parc freestyle":"🛝 花式公园","🏁 Survivant":"🏁 生存模式","ON":"开","OFF":"关","Le garage se visite depuis le menu":"车库要从菜单进入","Ça se visite depuis le menu":"这个要从菜单进入","MODE SURVIVANT AU PROCHAIN DÉPART":"生存模式将在下局启动","SURVIVANT DÉSARMÉ":"生存模式已关闭","PAUSE":"暂停","GO !":"出发！","MOTEUR MAX":"满级引擎","PIÈCES":"金币","pièces de ":"价值 ","FIGURES":"花式","CHAÎNE MAX":"最长连击","BUMPS":"弹跳","ZONES":"区域","GAPS":"缺口","VMAX":"最高时速","🔑 DÉBLOQUÉ : ":"🔑 已解锁：","PALIER":"等级","CAISSE":"座驾","NIVEAU":"等级","COMPTE":"账户","VIREMENT":"转账","AURA":"灵气","NOUVEAU RANG !":"新段位！","IL TE MANQUE":"还差","EST À TOI":"归你了","débités":"已扣除","JOUER AVEC CELLE-CI":"就开这辆车","ACHETER — ":"购买 — ","IL MANQUE ":"还差 ","ANONYME":"无名之辈","REMARQUÉ":"小有名气","ON PARLE DE TOI":"大家都在聊你","RÉPUTÉ":"声名在外","LÉGENDE LOCALE":"本地传奇","STAR DU BITUME":"柏油路巨星","MYTHE":"神话","DIVINITÉ DU CIEL":"天空之神","↻ ON REPART":"↻ 重新出发","✦ NOUVEAU SECTEUR":"✦ 新区域","LA NUIT TOMBE…":"夜幕降临…","🚀 CATAPULTE !":"🚀 弹射起飞！","🚀 DÉCOLLAGE — TOUT ×2 ! ★":"🚀 起飞 — 一切 ×2！★","★ DÉCOLLAGE PRÊT — double-tape NITRO ! ★":"★ 起飞就绪 — 双击氮气！★","🏆 CHAMPION SURVIVANT — JAUGE OFFERTE !":"🏆 生存冠军 — 免费能量槽！","🪦 ÉLIMINÉ — DERNIER DE LA MINUTE !":"🪦 出局 — 本分钟垫底！","PILE AU CENTRE 🎯":"正中靶心 🎯","À RECULONS — MÊME PAS REGARDÉ !":"倒着来的 — 看都没看！","FACE CACHÉE ×2":"隐藏面 ×2","🚀 GAP FRANCHI !":"🚀 缺口飞跃成功！","🚀 DOUBLE GAP — MONSTRUEUX !":"🚀 双重缺口 — 简直变态！","CHAÎNE PERDUE":"连击中断","REPORT +":"结转 +","⚠ ROULE OU CRÈVE — ":"⚠ 不跑就死 — ","🐷 TIRELIRE ÉVENTRÉE +":"🐷 存钱罐爆了 +","💸 TU COMPTES EN ":"💸 你现在的单位是","🐷 TIRELIRE ÉVENTRÉE — ":"🐷 存钱罐爆了 — "," EN POCHE":" 到手","🛡 L'ASSURANCE RÉPOND — ":"🛡 保险生效 — ","POUSSÉE ×":"推力 ×","ELLE EST À TOI":"她是你的了","CLÉS EN MAIN":"钥匙在手","LIVRÉE, RODÉE, VOLÉE":"交付、磨合、偷来的","TU CHANGES DE MONDE":"你换了个世界","SIGNÉ, EMBARQUÉ":"签了字，上车了","ELLE T'ATTENDAIT":"她一直在等你","NOUVEAU JOUET":"新玩具到手","ENCARTÉE AU GARAGE":"已停进车库","GO ! NE MEURS PAS":"出发！别死了","PIED AU PLANCHER — QUESTIONS APRÈS":"油门踩到底 — 问题晚点再说","LA PRUDENCE RESTE AU GARAGE":"谨慎这东西留在车库里","ROULE COMME SI L'ESSENCE ÉTAIT GRATUITE":"开得像油不要钱一样","LE FREIN, C'EST LA PÉDALE DES AUTRES":"刹车？那是别人的踏板","VAS-Y. LE CIEL REGARDE.":"冲吧，天空在看着你。","NOUVELLE ZONE !":"新区域！","ZONE AVALÉE — SUIVANTE !":"区域吞下 — 下一个！","ENCORE UNE ZONE AU COMPTEUR !":"计数器又多了一个区域！","LA ROUTE EST À TOI !":"这条路是你的！","ZONE SUIVANTE — ON RALENTIT PAS !":"下一区域 — 绝不减速！","💸 IL PLEUT DES BILLETS — PARAPLUIE INUTILE":"💸 钞票如雨 — 雨伞没用","💸 LA BANQUE A APPELÉ : ELLE ABANDONNE":"💸 银行打来电话：它投降了","💸 TON COMPTE A LE VERTIGE":"💸 你的账户开始眩晕","💸 L'ARGENT TOMBE PLUS VITE QUE TOI":"💸 钱掉得比你还快","LA ROUTE GAGNE. CETTE FOIS.":"这次，路赢了。","LE BITUME SE SOUVIENDRA DE TOI":"柏油路会记住你","MÊME LES LÉGENDES TOUCHENT LE SOL":"传奇也会落地","CRASH TEST RÉUSSI. ENFIN… TEST.":"碰撞测试成功。呃…算是测试吧。","LA GRAVITÉ : 1 — TOI : 0":"重力：1 — 你：0","T'ES MORT. LES THUNES, ELLES, RESTENT.":"你死了。钱倒是留下了。","REVIENS. LA VITESSE S'ENNUIE DÉJÀ.":"回来吧，速度已经无聊了。","🏆 RECORD — LES AUTRES JOUENT À UN AUTRE JEU":"🏆 破纪录了 — 别人都在玩另一个游戏","🏆 LE LEADERBOARD A DEMANDÉ TON AUTOGRAPHE":"🏆 排行榜找你要签名了","🏆 RECORD ÉCRASÉ — COMME TES SUSPENSIONS":"🏆 纪录被碾碎 — 跟你的悬挂一样","🏆 HISTORIQUE. LA ROUTE S'EN REMET À PEINE.":"🏆 载入史册。这条路差点缓不过来。","MOTEUR ROUILLÉ":"生锈引擎","BICYLINDRE":"双缸","3 CYLINDRES":"三缸","4 EN LIGNE":"直列四缸","4 SOUPAPES":"四气门","4 EN LIGNE TURBO":"涡轮直列四缸","5 CYLINDRES":"五缸","V6 BITURBO":"双涡轮V6","BOXER À PLAT":"水平对置","V8 ATMO":"自然吸气V8","V8 COMPRESSÉ":"机械增压V8","QUADRITURBO":"四涡轮","ROTATIF TRIPLE":"三转子","TURBINE À GAZ":"燃气涡轮","TURBINE À PLASMA":"等离子涡轮","STATORÉACTEUR":"冲压喷气发动机","PULSORÉACTEUR":"脉冲喷气发动机","RÉACTEUR NUCLÉAIRE":"核反应堆","CŒUR À FUSION":"聚变核心","MOTEUR À DISTORSION":"曲速引擎","COMÈTE":"彗星","TROU NOIR":"黑洞","Il tousse, il fume, il prie. Mais il tourne.":"它咳嗽，冒烟，祈祷。但它还在转。","Deux cylindres. Un qui pousse, un qui regarde.":"两个气缸，一个卖力推，一个袖手看。","Deux qui toussent, un qui prie.":"两个咳嗽的，外加一个祈祷的。","Le premier moteur qui ne s'excuse pas.":"第一台不会道歉的引擎。","Il respire enfin par le nez.":"它终于学会了用鼻子呼吸。","Le premier vrai souffle. Ça siffle.":"第一口真正的呼吸，还带哨音。","Un chiffre impair, un bruit inoubliable.":"一个奇数缸，一种忘不掉的声音。","La forme fait le son. Le son fait le reste.":"形状决定声音，声音决定一切。","Deux turbos, zéro patience.":"两个涡轮，零耐心。","Le centre de gravité au ras du bitume.":"重心几乎贴着地面。","Le grondement qui fait trembler la dalle.":"那声轰鸣，震得路面发抖。","Un compresseur, et la dalle demande grâce.":"加一个机械增压，路面求饶。","Dix cylindres, zéro argument.":"十个气缸，没什么好争的。","Douze cylindres qui hurlent à l'unisson.":"十二个气缸齐声怒吼。","Deux V6 mariés de force. Ça marche.":"两台V6被硬凑成一对，但真管用。","Seize. Parce que quinze, c'était ridicule.":"十六缸。十五缸？太荒唐了。","Seize cylindres en H. Interdit en course. Logique.":"H型十六缸，赛场禁用，合情合理。","Quatre escargots, une seule idée.":"四只蜗牛，一个念头。","Pas de pistons. Que du hurlement.":"没有活塞，只有咆哮。","L'hélicoptère a appelé. Il veut son moteur.":"直升机打来电话，要回它的引擎。","Plus de pistons. Un souffle continu, bleu.":"不再有活塞，只剩一道持续的蓝色气流。","Il n'avale plus l'air. Il l'agresse.":"它不再吸入空气，它在攻击空气。","Un battement par milliseconde. C'est le tien qui suit.":"每毫秒跳动一次。跟不上的，是你的心跳。","Tu roules avec un cœur de centrale sous le capot.":"引擎盖下装着一座发电站的心脏。","Une petite étoile, sanglée sous le capot.":"一颗小小的恒星，被绑在引擎盖下。","Un gramme. Un seul. Ne freine pas.":"一克。仅仅一克。别踩刹车。","Ce n'est plus toi qui avances. C'est la route qui recule.":"不是你在前进，是这条路在后退。","La caisse est EN FEU. Comme au premier jour.":"座驾着火了。跟第一天一样。","Tu ne brûles plus le carburant. Tu brûles le ciel.":"你烧的不再是燃料，是整片天空。","Plus rien ne s'échappe. Même pas toi.":"什么都逃不掉了。连你也不例外。","LA HONTE":"耻辱","CAISSE À SAVON":"肥皂盒车","PAPA MOBILE":"老爸座驾","LE FRELON":"大黄蜂","DIVA BLANCHE":"白色天后","GROS BLOC":"大块头","SCALPEL VERT":"绿色手术刀","BALLE D'ARGENT":"银色子弹","VEUVE NOIRE":"黑寡妇","EL PATRON 🏁":"老大 🏁","FORMULE OR 🏎️":"黄金方程式 🏎️","NÉON OUTLAW":"霓虹亡命徒","COMBUSTION 🚀":"燃爆 🚀","COMÈTE 👑":"彗星 👑","INTERDITE":"禁品","ONDE DE CHOC":"冲击波","GOUDRON FANTÔME":"幽灵沥青","TÊTE CHERCHEUSE":"追踪导弹","PLASMA ROYAL":"皇家等离子","ANTIMATIÈRE":"反物质","ÉCLIPSE VII":"日蚀七号","SINGULARITÉ":"奇点","DIEU-VITESSE 👑":"速度之神 👑","Trois cylindres : deux qui toussent, un qui prie. Elle démarre par pitié. Fais des thunes et oublie-la vite.":"三个气缸：两个咳嗽，一个祈祷。它是靠可怜才发动的。赶紧赚钱，然后忘了它。","Le moteur d'une tondeuse, le charisme d'un caddie. Mais ça roule — et vu d'où tu viens, c'est déjà un miracle.":"割草机的引擎，购物车的魅力。但它能跑——鉴于你的出身，这已经是奇迹了。","Sièges chauffants, porte-gobelets, zéro gloire. Conçue pour conduire prudemment. Toi ? Prudent ? On y croit très fort.":"座椅加热，杯架齐全，毫无荣耀。专为谨慎驾驶设计。你？谨慎？我们非常、非常相信。","Petite, teigneuse, elle pétarade comme un 14 juillet. Le premier vrai sourire du compteur.":"小巧凶悍，噼里啪啦像国庆烟花。仪表盘上第一次真正的微笑。","Elle refuse de rouler à moins de 200. Toi aussi, maintenant. Vous allez très bien vous entendre.":"它拒绝以低于200的速度行驶。现在你也一样。你们会处得很好。","Un V8 qui boit de l'essence et crache du respect. L'écologie te fait coucou dans le rétro. Tu n'as pas de rétro.":"一台V8，喝汽油，吐尊重。环保主义在后视镜里跟你招手。可惜你没有后视镜。","Chirurgicale. Elle découpe les virages pendant que les autres les négocient. Toi, tu ne négocies plus rien.":"精准如手术刀。别人在弯道里谈判，它直接切开弯道。而你，什么都不用谈了。","Une balle avec des sièges. Le pare-brise sert surtout à voir le futur arriver beaucoup trop vite.":"一颗装了座椅的子弹。挡风玻璃的作用，主要是看着未来来得太快。","Ceux qui l'ont doublée en parlent encore. Ah non, pardon : personne ne l'a jamais doublée.":"超过它的人至今还在津津乐道。啊不，抱歉：从来没人超过它。","Le taureau doré. 449 au compteur, l'assurance résiliée d'office. C'est ici que les vrais chiffres commencent.":"金色公牛。时速表449，保险自动作废。真正的数字，从这里开始。","Un aileron, un baquet, et tes économies peintes en doré. Le circuit appelle ça de la triche. Nous, du talent.":"一片尾翼，一张桶形座椅，还有你被喷成金色的存款。赛道称之为作弊。我们叫它天赋。","Prototype volé d'un labo qui nie son existence. Le néon rose ? Pour qu'on sache QUI vient de te mettre 3 secondes.":"从一个否认自身存在的实验室偷来的原型车。粉色霓虹灯？是为了让大家知道是谁把你甩开了三秒。","Homologuée nulle part, immatriculée par erreur. Le rétroviseur est en option : rien ne revient jamais de derrière.":"哪里都没有通过认证，注册纯属失误。后视镜是选配——反正没什么东西能从后面追上来。","657 km/h. Longtemps la reine incontestée du ciel. Aujourd'hui : l'échauffement. Bienvenue dans le vrai jeu.":"时速657公里。曾长期统治天空，无可争议。而今天，这只是热身。欢迎来到真正的游戏。","Le dossier d'homologation a explosé en vol. Littéralement. Première caisse officiellement bannie dans 194 pays.":"认证文件在飞行中爆炸了。字面意义上的爆炸。史上第一辆被194个国家正式封禁的座驾。","Elle klaxonne en BANG supersonique. Les pigeons ont porté plainte. Le mur du son a demandé une protection rapprochée.":"它按喇叭的方式是超音速爆音。鸽子已经报了警。音障申请了贴身保护。","Neuf turbines, zéro compromis. L'ingénieur qui l'a conçue s'est enfui en courant. Pas assez vite.":"九台涡轮，零妥协。设计它的工程师拔腿就跑。可惜跑得不够快。","Si rapide que les radars flashent une image vide. Les amendes sont envoyées à ton ombre. Elle non plus ne suit pas.":"快到测速摄像头只拍到一片空白。罚单寄给了你的影子。它也跟不上。","Techniquement, un missile avec des clignotants. Jamais utilisés, évidemment. L'horizon a officiellement peur.":"严格来说，这是一枚装了转向灯的导弹。当然，从没用过。地平线已经正式感到害怕。","Le moteur tourne au plasma pur et au mépris. Les vitres sont teintées pour protéger les témoins.":"引擎靠纯等离子和轻蔑运转。车窗贴膜是为了保护目击者。","Deux grammes d'antimatière et un mépris total des lois de la physique. Newton s'est retourné. Trop lentement.":"两克反物质，加上对物理定律的彻底蔑视。牛顿在棺材里翻了个身。可惜翻得太慢。","Quand elle passe devant le soleil : trois secondes de nuit. Les astronomes l'ont classée phénomène céleste.":"当它从太阳前掠过：黑夜降临三秒。天文学家已将其列为天文现象。","La lumière a demandé un délai. Le temps s'excuse au passage. Tu ne conduis plus : tu plies la carte.":"光都申请了延期。时间经过时连声道歉。你已经不是在开车了：你在折叠地图。","Plus de route. Plus de son. Plus de rivaux. Juste toi, et l'univers qui essaie de suivre. Il n'y arrive pas.":"没有路了。没有声音了。没有对手了。只剩你，和一个拼命想跟上的宇宙。它跟不上。"
+ "GARAGE":"车库","NIVEAU":"关卡","AU-DESSUS DE LA VILLE":"城市上空","MER DE NUAGES":"云海","EN ORBITE":"轨道上","TOURNE TON TELEPHONE":"请竖起手机","CASH CAR SE JOUE A LA VERTICALE":"CASH CAR 需竖屏游玩","ÉQUIPER":"装备","✓ ÉQUIPÉE":"✓ 已装备","🔒 VERROUILLÉE":"🔒 未解锁","glisse pour tourner · molette pour zoomer":"拖动旋转 · 滚轮缩放","clique sur CASH CAR — le son s'allume avec toi":"点击 CASH CAR — 声音与你同步点亮","cours après le cash · ne tombe jamais":"追钱不停 · 绝不摔落","GAME OVER":"游戏结束","VALIDER":"确认","★ NOUVEAU RECORD — TON NOM":"★ 新纪录 — 输入你的名字","Prêt à repartir ?":"准备好再来一局？","Jouer":"开始","Garage":"车库","Réglages":"设置","Freestyle · off":"花式模式 · 关","Survivant · off":"生存模式 · 关","Réglages":"设置","Langue":"语言","Freestyle":"花式模式","Survivant":"生存模式","on":"开","off":"关","Audio":"音频","Effets sonores":"音效","Voix de l'annonceur":"解说声音","Devise":"货币","Commandes":"操作","Sauvegarde":"存档","📋 Copier ma sauvegarde":"📋 复制我的存档","conduire · piloter en vol":"驾驶 · 飞行中操控","nitro · double-tap = DÉCOLLAGE":"氮气 · 双击 = 起飞","drift":"漂移","replacer la caisse":"重置座驾位置","pause":"暂停","rejouer":"重新开始","Espace":"空格键","Entrée":"回车键","Pad gauche":"左侧摇杆","Pad + frein":"摇杆 + 刹车","En vol":"飞行中","volant · tirer vers le bas = frein":"方向 · 下拉 = 刹车","le pad devient un joystick (haut/bas)":"摇杆变成操纵杆（上/下）","pouce droit · double-tap = DÉCOLLAGE":"右拇指 · 双击 = 起飞","NITRO INFINIE — 6 s À FOND !":"无限氮气 — 6秒全力冲刺！","NITRO ∞":"氮气 ∞","🪂 AIRTIME INFINI — 10 s DE VOL !":"🪂 无限滞空 — 10秒飞行！","AIR ∞":"滞空 ∞","⚡ VITESSE +60% — 6 s !":"⚡ 速度 +60% — 6秒！","VITESSE +60%":"速度 +60%","Volumes":"音量","Musique":"音乐","Effets et moteur":"音效与引擎","Voix":"语音","Sur iPhone, le volume de la voix est verrouillé par le système.":"在iPhone上，语音音量由系统锁定。","NITRO (ESPACE)":"氮气（空格键）","km/h":"km/h","SON":"音效","VOIX":"语音","RESET":"重置","MUS":"音乐","🏆 TOP 10":"🏆 排行榜前十","Aucun score — sois le premier !":"暂无记录 — 抢占第一！","AUCUN RECORD — À TOI DE JOUER":"暂无纪录 — 该你上场了","RECORD":"纪录","MEILLEURE CAISSE":"最佳座驾","record : ":"纪录：","Prochaine voiture à":"下一辆车需要","🛝 Parc freestyle":"🛝 花式公园","🏁 Survivant":"🏁 生存模式","ON":"开","OFF":"关","Le garage se visite depuis le menu":"车库要从菜单进入","Ça se visite depuis le menu":"这个要从菜单进入","MODE SURVIVANT AU PROCHAIN DÉPART":"生存模式将在下局启动","SURVIVANT DÉSARMÉ":"生存模式已关闭","PAUSE":"暂停","GO !":"出发！","MOTEUR MAX":"满级引擎","PIÈCES":"金币","pièces de ":"价值 ","FIGURES":"花式","CHAÎNE MAX":"最长连击","BUMPS":"弹跳","ZONES":"区域","GAPS":"缺口","VMAX":"最高时速","🔑 DÉBLOQUÉ : ":"🔑 已解锁：","PALIER":"等级","CAISSE":"座驾","NIVEAU":"等级","COMPTE":"账户","VIREMENT":"转账","AURA":"灵气","NOUVEAU RANG !":"新段位！","IL TE MANQUE":"还差","EST À TOI":"归你了","débités":"已扣除","JOUER AVEC CELLE-CI":"就开这辆车","ACHETER — ":"购买 — ","IL MANQUE ":"还差 ","ANONYME":"无名之辈","REMARQUÉ":"小有名气","ON PARLE DE TOI":"大家都在聊你","RÉPUTÉ":"声名在外","LÉGENDE LOCALE":"本地传奇","STAR DU BITUME":"柏油路巨星","MYTHE":"神话","DIVINITÉ DU CIEL":"天空之神","↻ ON REPART":"↻ 重新出发","✦ NOUVEAU SECTEUR":"✦ 新区域","LA NUIT TOMBE…":"夜幕降临…","🚀 CATAPULTE !":"🚀 弹射起飞！","🚀 DÉCOLLAGE — TOUT ×2 ! ★":"🚀 起飞 — 一切 ×2！★","★ DÉCOLLAGE PRÊT — double-tape NITRO ! ★":"★ 起飞就绪 — 双击氮气！★","🏆 CHAMPION SURVIVANT — JAUGE OFFERTE !":"🏆 生存冠军 — 免费能量槽！","🪦 ÉLIMINÉ — DERNIER DE LA MINUTE !":"🪦 出局 — 本分钟垫底！","PILE AU CENTRE 🎯":"正中靶心 🎯","À RECULONS — MÊME PAS REGARDÉ !":"倒着来的 — 看都没看！","FACE CACHÉE ×2":"隐藏面 ×2","🚀 GAP FRANCHI !":"🚀 缺口飞跃成功！","🚀 DOUBLE GAP — MONSTRUEUX !":"🚀 双重缺口 — 简直变态！","CHAÎNE PERDUE":"连击中断","REPORT +":"结转 +","⚠ ROULE OU CRÈVE — ":"⚠ 不跑就死 — ","🐷 TIRELIRE ÉVENTRÉE +":"🐷 存钱罐爆了 +","💸 TU COMPTES EN ":"💸 你现在的单位是","🐷 TIRELIRE ÉVENTRÉE — ":"🐷 存钱罐爆了 — "," EN POCHE":" 到手","🛡 L'ASSURANCE RÉPOND — ":"🛡 保险生效 — ","POUSSÉE ×":"推力 ×","ELLE EST À TOI":"她是你的了","CLÉS EN MAIN":"钥匙在手","LIVRÉE, RODÉE, VOLÉE":"交付、磨合、偷来的","TU CHANGES DE MONDE":"你换了个世界","SIGNÉ, EMBARQUÉ":"签了字，上车了","ELLE T'ATTENDAIT":"她一直在等你","NOUVEAU JOUET":"新玩具到手","ENCARTÉE AU GARAGE":"已停进车库","GO ! NE MEURS PAS":"出发！别死了","PIED AU PLANCHER — QUESTIONS APRÈS":"油门踩到底 — 问题晚点再说","LA PRUDENCE RESTE AU GARAGE":"谨慎这东西留在车库里","ROULE COMME SI L'ESSENCE ÉTAIT GRATUITE":"开得像油不要钱一样","LE FREIN, C'EST LA PÉDALE DES AUTRES":"刹车？那是别人的踏板","VAS-Y. LE CIEL REGARDE.":"冲吧，天空在看着你。","NOUVELLE ZONE !":"新区域！","ZONE AVALÉE — SUIVANTE !":"区域吞下 — 下一个！","ENCORE UNE ZONE AU COMPTEUR !":"计数器又多了一个区域！","LA ROUTE EST À TOI !":"这条路是你的！","ZONE SUIVANTE — ON RALENTIT PAS !":"下一区域 — 绝不减速！","💸 IL PLEUT DES BILLETS — PARAPLUIE INUTILE":"💸 钞票如雨 — 雨伞没用","💸 LA BANQUE A APPELÉ : ELLE ABANDONNE":"💸 银行打来电话：它投降了","💸 TON COMPTE A LE VERTIGE":"💸 你的账户开始眩晕","💸 L'ARGENT TOMBE PLUS VITE QUE TOI":"💸 钱掉得比你还快","LA ROUTE GAGNE. CETTE FOIS.":"这次，路赢了。","LE BITUME SE SOUVIENDRA DE TOI":"柏油路会记住你","MÊME LES LÉGENDES TOUCHENT LE SOL":"传奇也会落地","CRASH TEST RÉUSSI. ENFIN… TEST.":"碰撞测试成功。呃…算是测试吧。","LA GRAVITÉ : 1 — TOI : 0":"重力：1 — 你：0","T'ES MORT. LES THUNES, ELLES, RESTENT.":"你死了。钱倒是留下了。","REVIENS. LA VITESSE S'ENNUIE DÉJÀ.":"回来吧，速度已经无聊了。","🏆 RECORD — LES AUTRES JOUENT À UN AUTRE JEU":"🏆 破纪录了 — 别人都在玩另一个游戏","🏆 LE LEADERBOARD A DEMANDÉ TON AUTOGRAPHE":"🏆 排行榜找你要签名了","🏆 RECORD ÉCRASÉ — COMME TES SUSPENSIONS":"🏆 纪录被碾碎 — 跟你的悬挂一样","🏆 HISTORIQUE. LA ROUTE S'EN REMET À PEINE.":"🏆 载入史册。这条路差点缓不过来。","MOTEUR ROUILLÉ":"生锈引擎","BICYLINDRE":"双缸","3 CYLINDRES":"三缸","4 EN LIGNE":"直列四缸","4 SOUPAPES":"四气门","4 EN LIGNE TURBO":"涡轮直列四缸","5 CYLINDRES":"五缸","V6 BITURBO":"双涡轮V6","BOXER À PLAT":"水平对置","V8 ATMO":"自然吸气V8","V8 COMPRESSÉ":"机械增压V8","QUADRITURBO":"四涡轮","ROTATIF TRIPLE":"三转子","TURBINE À GAZ":"燃气涡轮","TURBINE À PLASMA":"等离子涡轮","STATORÉACTEUR":"冲压喷气发动机","PULSORÉACTEUR":"脉冲喷气发动机","RÉACTEUR NUCLÉAIRE":"核反应堆","CŒUR À FUSION":"聚变核心","MOTEUR À DISTORSION":"曲速引擎","COMÈTE":"彗星","TROU NOIR":"黑洞","Il tousse, il fume, il prie. Mais il tourne.":"它咳嗽，冒烟，祈祷。但它还在转。","Deux cylindres. Un qui pousse, un qui regarde.":"两个气缸，一个卖力推，一个袖手看。","Deux qui toussent, un qui prie.":"两个咳嗽的，外加一个祈祷的。","Le premier moteur qui ne s'excuse pas.":"第一台不会道歉的引擎。","Il respire enfin par le nez.":"它终于学会了用鼻子呼吸。","Le premier vrai souffle. Ça siffle.":"第一口真正的呼吸，还带哨音。","Un chiffre impair, un bruit inoubliable.":"一个奇数缸，一种忘不掉的声音。","La forme fait le son. Le son fait le reste.":"形状决定声音，声音决定一切。","Deux turbos, zéro patience.":"两个涡轮，零耐心。","Le centre de gravité au ras du bitume.":"重心几乎贴着地面。","Le grondement qui fait trembler la dalle.":"那声轰鸣，震得路面发抖。","Un compresseur, et la dalle demande grâce.":"加一个机械增压，路面求饶。","Dix cylindres, zéro argument.":"十个气缸，没什么好争的。","Douze cylindres qui hurlent à l'unisson.":"十二个气缸齐声怒吼。","Deux V6 mariés de force. Ça marche.":"两台V6被硬凑成一对，但真管用。","Seize. Parce que quinze, c'était ridicule.":"十六缸。十五缸？太荒唐了。","Seize cylindres en H. Interdit en course. Logique.":"H型十六缸，赛场禁用，合情合理。","Quatre escargots, une seule idée.":"四只蜗牛，一个念头。","Pas de pistons. Que du hurlement.":"没有活塞，只有咆哮。","L'hélicoptère a appelé. Il veut son moteur.":"直升机打来电话，要回它的引擎。","Plus de pistons. Un souffle continu, bleu.":"不再有活塞，只剩一道持续的蓝色气流。","Il n'avale plus l'air. Il l'agresse.":"它不再吸入空气，它在攻击空气。","Un battement par milliseconde. C'est le tien qui suit.":"每毫秒跳动一次。跟不上的，是你的心跳。","Tu roules avec un cœur de centrale sous le capot.":"引擎盖下装着一座发电站的心脏。","Une petite étoile, sanglée sous le capot.":"一颗小小的恒星，被绑在引擎盖下。","Un gramme. Un seul. Ne freine pas.":"一克。仅仅一克。别踩刹车。","Ce n'est plus toi qui avances. C'est la route qui recule.":"不是你在前进，是这条路在后退。","La caisse est EN FEU. Comme au premier jour.":"座驾着火了。跟第一天一样。","Tu ne brûles plus le carburant. Tu brûles le ciel.":"你烧的不再是燃料，是整片天空。","Plus rien ne s'échappe. Même pas toi.":"什么都逃不掉了。连你也不例外。","LA HONTE":"耻辱","CAISSE À SAVON":"肥皂盒车","PAPA MOBILE":"老爸座驾","LE FRELON":"大黄蜂","DIVA BLANCHE":"白色天后","GROS BLOC":"大块头","SCALPEL VERT":"绿色手术刀","BALLE D'ARGENT":"银色子弹","VEUVE NOIRE":"黑寡妇","EL PATRON 🏁":"老大 🏁","FORMULE OR 🏎️":"黄金方程式 🏎️","NÉON OUTLAW":"霓虹亡命徒","COMBUSTION 🚀":"燃爆 🚀","COMÈTE 👑":"彗星 👑","INTERDITE":"禁品","ONDE DE CHOC":"冲击波","GOUDRON FANTÔME":"幽灵沥青","TÊTE CHERCHEUSE":"追踪导弹","PLASMA ROYAL":"皇家等离子","ANTIMATIÈRE":"反物质","ÉCLIPSE VII":"日蚀七号","SINGULARITÉ":"奇点","DIEU-VITESSE 👑":"速度之神 👑","Trois cylindres : deux qui toussent, un qui prie. Elle démarre par pitié. Fais des thunes et oublie-la vite.":"三个气缸：两个咳嗽，一个祈祷。它是靠可怜才发动的。赶紧赚钱，然后忘了它。","Le moteur d'une tondeuse, le charisme d'un caddie. Mais ça roule — et vu d'où tu viens, c'est déjà un miracle.":"割草机的引擎，购物车的魅力。但它能跑——鉴于你的出身，这已经是奇迹了。","Sièges chauffants, porte-gobelets, zéro gloire. Conçue pour conduire prudemment. Toi ? Prudent ? On y croit très fort.":"座椅加热，杯架齐全，毫无荣耀。专为谨慎驾驶设计。你？谨慎？我们非常、非常相信。","Petite, teigneuse, elle pétarade comme un 14 juillet. Le premier vrai sourire du compteur.":"小巧凶悍，噼里啪啦像国庆烟花。仪表盘上第一次真正的微笑。","Elle refuse de rouler à moins de 200. Toi aussi, maintenant. Vous allez très bien vous entendre.":"它拒绝以低于200的速度行驶。现在你也一样。你们会处得很好。","Un V8 qui boit de l'essence et crache du respect. L'écologie te fait coucou dans le rétro. Tu n'as pas de rétro.":"一台V8，喝汽油，吐尊重。环保主义在后视镜里跟你招手。可惜你没有后视镜。","Chirurgicale. Elle découpe les virages pendant que les autres les négocient. Toi, tu ne négocies plus rien.":"精准如手术刀。别人在弯道里谈判，它直接切开弯道。而你，什么都不用谈了。","Une balle avec des sièges. Le pare-brise sert surtout à voir le futur arriver beaucoup trop vite.":"一颗装了座椅的子弹。挡风玻璃的作用，主要是看着未来来得太快。","Ceux qui l'ont doublée en parlent encore. Ah non, pardon : personne ne l'a jamais doublée.":"超过它的人至今还在津津乐道。啊不，抱歉：从来没人超过它。","Le taureau doré. 449 au compteur, l'assurance résiliée d'office. C'est ici que les vrais chiffres commencent.":"金色公牛。时速表449，保险自动作废。真正的数字，从这里开始。","Un aileron, un baquet, et tes économies peintes en doré. Le circuit appelle ça de la triche. Nous, du talent.":"一片尾翼，一张桶形座椅，还有你被喷成金色的存款。赛道称之为作弊。我们叫它天赋。","Prototype volé d'un labo qui nie son existence. Le néon rose ? Pour qu'on sache QUI vient de te mettre 3 secondes.":"从一个否认自身存在的实验室偷来的原型车。粉色霓虹灯？是为了让大家知道是谁把你甩开了三秒。","Homologuée nulle part, immatriculée par erreur. Le rétroviseur est en option : rien ne revient jamais de derrière.":"哪里都没有通过认证，注册纯属失误。后视镜是选配——反正没什么东西能从后面追上来。","657 km/h. Longtemps la reine incontestée du ciel. Aujourd'hui : l'échauffement. Bienvenue dans le vrai jeu.":"时速657公里。曾长期统治天空，无可争议。而今天，这只是热身。欢迎来到真正的游戏。","Le dossier d'homologation a explosé en vol. Littéralement. Première caisse officiellement bannie dans 194 pays.":"认证文件在飞行中爆炸了。字面意义上的爆炸。史上第一辆被194个国家正式封禁的座驾。","Elle klaxonne en BANG supersonique. Les pigeons ont porté plainte. Le mur du son a demandé une protection rapprochée.":"它按喇叭的方式是超音速爆音。鸽子已经报了警。音障申请了贴身保护。","Neuf turbines, zéro compromis. L'ingénieur qui l'a conçue s'est enfui en courant. Pas assez vite.":"九台涡轮，零妥协。设计它的工程师拔腿就跑。可惜跑得不够快。","Si rapide que les radars flashent une image vide. Les amendes sont envoyées à ton ombre. Elle non plus ne suit pas.":"快到测速摄像头只拍到一片空白。罚单寄给了你的影子。它也跟不上。","Techniquement, un missile avec des clignotants. Jamais utilisés, évidemment. L'horizon a officiellement peur.":"严格来说，这是一枚装了转向灯的导弹。当然，从没用过。地平线已经正式感到害怕。","Le moteur tourne au plasma pur et au mépris. Les vitres sont teintées pour protéger les témoins.":"引擎靠纯等离子和轻蔑运转。车窗贴膜是为了保护目击者。","Deux grammes d'antimatière et un mépris total des lois de la physique. Newton s'est retourné. Trop lentement.":"两克反物质，加上对物理定律的彻底蔑视。牛顿在棺材里翻了个身。可惜翻得太慢。","Quand elle passe devant le soleil : trois secondes de nuit. Les astronomes l'ont classée phénomène céleste.":"当它从太阳前掠过：黑夜降临三秒。天文学家已将其列为天文现象。","La lumière a demandé un délai. Le temps s'excuse au passage. Tu ne conduis plus : tu plies la carte.":"光都申请了延期。时间经过时连声道歉。你已经不是在开车了：你在折叠地图。","Plus de route. Plus de son. Plus de rivaux. Juste toi, et l'univers qui essaie de suivre. Il n'y arrive pas.":"没有路了。没有声音了。没有对手了。只剩你，和一个拼命想跟上的宇宙。它跟不上。"
 };
 
 // ⚠ nommée TR et non T : `T` est DÉJÀ le tableau des tangentes de la piste (T[bi].y) — la
@@ -3728,6 +3806,19 @@ const BIOMES={
     volSun:[2.10,1.30,.70],volSky:[.30,.28,.51],volGnd:[.07,.06,.13],volAmb:.44,
     expo:.74,sat:1.54,
     env:[[0,'#241e3a'],[.3,'#3a3252'],[.48,'#6a5a6e'],[.58,'#c8923e'],[.66,'#2e2a42'],[1,'#141020']],eS1:[255,190,90,.42],eS2:[120,220,220,.30]},
+  // ---- ORBITE (2026-09-24) : le biome du NIVEAU « EN ORBITE » — il ne se tire JAMAIS au hasard ----
+  // Le noir de l'espace, mais pas un trou : le ciel descend presque à zéro (`uSpace` finit le travail
+  // dans le shader), les étoiles passent au maximum du jeu et SOUS l'horizon, et c'est la PLANÈTE —
+  // agrandie et posée sous la route par `lvlPlanete` — qui tient la lumière. Soleil blanc et dur (pas
+  // d'atmosphère pour le rougir), remplissage bleu-Terre, brume quasi noire et très lointaine : au-delà
+  // de la route il n'y a rien à fondre, seulement de la distance.
+  espace:{ nm:'ORBITE', skyMul:[.16,.16,.30],skyLift:[0,0,.02],sunTint:[1,.90,.80],sunHalo:.42,city:0,stars:2.4,moon:.55,
+    fog:[.020,.024,.060],fogN:900,fogF:4200,
+    hemiS:[.36,.44,.70],hemiG:[.05,.06,.12],hemiI:.44, sunC:[1,.96,.90],sunI:1.40,
+    fillC:[.26,.46,.96],fillI:.34, kickC:[.52,.40,1.0],kickI:.22,
+    volSun:[1.25,1.20,1.65],volSky:[.12,.14,.32],volGnd:[.03,.03,.08],volAmb:.40,
+    expo:.74,sat:1.30,
+    env:[[0,'#04050e'],[.3,'#0a0d24'],[.48,'#1a2250'],[.58,'#2c3f86'],[.66,'#0c1026'],[1,'#020208']],eS1:[200,222,255,.46],eS2:[120,150,255,.30]},
 };
 // Le tirage du jour, dans l'ordre des heures (+ l'ORAGE en joker météo) — la NUIT ne se tire pas,
 // elle se MÉRITE (3 portails). 9 ambiances en rotation : deux parties ne se ressemblent plus.
@@ -3769,6 +3860,93 @@ function bioStep(dt){
   bioApply(BIO.cur);
 }
 window.dbgBio=function(n,d){bioGo(n,d||2);}; // console : dbgBio('nuit') → tester une heure du ciel sans farmer les portails (d = durée du lerp en s)
+/* ============================================================================
+   LES NIVEAUX (2026-09-24) — « certains dans l'espace avec la planète, d'autres dans les nuages,
+   d'autres au-dessus de la ville » (demande du user).
+   ----------------------------------------------------------------------------
+   Un NIVEAU = une ZONE, du départ au portail. Aucune piste ni aucune physique nouvelle : chaque
+   niveau recompose le DÉCOR qui existait déjà en morceaux — la ville voxel, les nuages, la planète —
+   et tire son ciel dans une liste de biomes qui lui ressemblent.
+     VILLE  : la ville voxel sous la route et DÉGAGÉE (ni mer de nuages, ni plafond, ni colosse qui la
+              cacheraient), des étages allumés, des ciels de soir et de nuit : l'heure des néons.
+     NUAGES : la mer de nuages au complet, plus une couche ; ciels de jour ; pas de ville (elle serait
+              sous la ouate — et ce sont deux draw calls de moins sur téléphone).
+     ORBITE : le biome `espace`, `uSpace` qui éteint le dégradé et sème les étoiles jusque sous
+              l'horizon, la planète agrandie et posée SOUS la route. Seuls restent les coussins de vol :
+              ils rechargent l'airtime — c'est du GAMEPLAY, pas du décor.
+   L'ordre tourne : VILLE → NUAGES → ORBITE → VILLE… Le portail est la porte entre deux mondes.
+   ⚠ ça REMPLACE la « nuit au 3e portail » : la nuit vit désormais dans la ville. Le parc freestyle
+   (PARK.on) garde l'ancien tirage — il a sa prairie, et ses secteurs ne comptent pas comme zones.
+   ⚠ `LVL.cur` est posé AVANT `buildTrack` (voir `newTrack`) : `buildClouds` et `buildVoxCity` le
+   lisent pendant la construction. Un nuage sauté ne décale que le RNG LOCAL des nuages, jamais `rnd`.
+   ========================================================================== */
+const NIVEAUX=[
+  {id:'ville', nm:'AU-DESSUS DE LA VILLE',bio:['soir','nuit','couchant','aube','orage'],planete:.5, espace:0},
+  {id:'nuages',nm:'MER DE NUAGES',        bio:['matin','lever','golden','aprem','midi'],planete:.8, espace:0},
+  {id:'espace',nm:'EN ORBITE',            bio:['espace'],                               planete:1.35,espace:1},
+];
+const LVL={cur:null,n:0,k:1,dur:4,
+  espace:0,espaceDe:0,espaceA:0,       // uSpace : 0 = le ciel de toujours, 1 = le noir étoilé de l'orbite
+  planete:1,planeteDe:1,planeteA:1,    // échelle de la planète (1 = sa taille historique)
+  dir:PLANET_DIR.clone(),tmp:new THREE.Vector3(),tmp2:new THREE.Vector3(),haut:new THREE.Vector3(0,1,0)};
+function lvlChoisir(){ // appelé par newTrack AVANT buildTrack
+  if(PARK.on){LVL.cur=null;return null;}
+  const z=runStats.zones|0;
+  LVL.cur=NIVEAUX[z%NIVEAUX.length];LVL.n=z+1;
+  return LVL.cur;
+}
+function lvlBiome(){ // le ciel du niveau : tiré dans SA liste, jamais deux fois le même de suite
+  const p=LVL.cur.bio;if(p.length===1)return p[0];
+  let b;do{b=p[(Math.random()*p.length)|0];}while(b===BIO.name);
+  return b;
+}
+function lvlGo(dur){ // les deux leviers HORS biome (uSpace, taille de planète) suivent le même fondu que le ciel
+  const c=LVL.cur;
+  LVL.espaceDe=LVL.espace;LVL.planeteDe=LVL.planete;
+  LVL.espaceA=c?c.espace:0;LVL.planeteA=c?c.planete:1;
+  LVL.k=0;LVL.dur=dur||4;
+  if(LVL.dur<=.05)lvlStep(1);
+}
+function lvlStep(dt){
+  if(LVL.k>=1)return;
+  LVL.k=Math.min(1,LVL.k+dt/LVL.dur);
+  const e=LVL.k*LVL.k*(3-2*LVL.k); // même smoothstep que bioStep : les deux basculent d'un seul mouvement
+  LVL.espace=LVL.espaceDe+(LVL.espaceA-LVL.espaceDe)*e;
+  LVL.planete=LVL.planeteDe+(LVL.planeteA-LVL.planeteDe)*e;
+  skyU.uSpace.value=LVL.espace;
+}
+/* LA PLANÈTE DU NIVEAU. Hors orbite elle garde sa place de toujours (`PLANET_DIR`, fixe dans le monde).
+   En orbite une direction fixe ne suffit plus : la piste tourne, et la Terre passerait la moitié du
+   niveau dans le dos de la caméra. Elle se cale donc sur le CAP de la caméra — un peu sur la gauche,
+   35° sous l'horizon — avec un gros RETARD : on la voit glisser, elle ne colle jamais à l'écran.
+   Échelle 1,35 : le bord haut affleure l'horizon, le reste est SOUS la route (à 1,5 elle mangeait
+   tout le cadre dès qu'on plongeait). Le halo le plus large (×1,135) reste à ~1 000 unités de la
+   caméra et loin du plan lointain (9 800). */
+function lvlPlanete(dt){
+  const sc=LVL.planete;
+  planetGroup.scale.setScalar(sc);
+  const t=LVL.tmp;camera.getWorldDirection(t);t.y=0;
+  if(t.lengthSq()<1e-6)t.copy(LVL.dir);
+  t.normalize().applyAxisAngle(LVL.haut,.5);t.y=-.70;t.normalize();
+  LVL.dir.lerp(t,Math.min(1,dt*.35)).normalize();
+  const d=LVL.tmp2.copy(PLANET_DIR).lerp(LVL.dir,LVL.espace).normalize();
+  planetGroup.position.copy(camera.position).addScaledVector(d,PLANET_D);
+}
+function lvlNuageOk(o){ // quelles familles de nuages chaque monde garde (lu par mkCloud)
+  const c=LVL.cur;if(!c)return true;
+  if(c.id==='espace')return !(o.onRoad||o.giant||o.sea||o.deco||o.veil); // l'orbite : les seuls coussins de vol
+  if(c.id==='ville')return !(o.sea||o.titan||o.baseY!==undefined);       // la ville doit se VOIR d'en haut
+  return true;
+}
+let lvlBanT=0;
+function lvlAnnonce(){ // la bannière « NIVEAU n — LIEU » (fondu d'opacité seul : rien ne bouge, REDUCED_MOTION compris)
+  const b=document.getElementById('lvlBan');if(!b||!LVL.cur)return;
+  document.getElementById('lvlNum').textContent=TR('NIVEAU')+' '+LVL.n;
+  document.getElementById('lvlNom').textContent=TR(LVL.cur.nm);
+  b.classList.add('on');clearTimeout(lvlBanT);lvlBanT=setTimeout(function(){b.classList.remove('on');},2800);
+}
+window.dbgNiveau=function(){return LVL.cur?{niveau:LVL.n,lieu:LVL.cur.id,ciel:BIO.name,uSpace:+LVL.espace.toFixed(2),
+  planete:+LVL.planete.toFixed(2),ville:!!CITY.root,nuages:CLOUDS.length}:'parc freestyle (pas de niveaux)';};
 paintEnv(BIOMES.golden.env,BIOMES.golden.eS1,BIOMES.golden.eS2); // premier reflet = golden hour (la vitrine du menu)
 const carGroup=new THREE.Group();scene.add(carGroup);
 const carLight=new THREE.PointLight(0xffe6f4,.8,85);scene.add(carLight);
@@ -9273,6 +9451,7 @@ function fireLaunchBoost(){
   if(lg9){lg9.classList.remove('on');void lg9.offsetWidth;lg9.classList.add('on');}
   clearTimeout(fireLaunchBoost._t);fireLaunchBoost._t=setTimeout(function(){
     if(ll9)ll9.classList.remove('on');if(lg9)lg9.classList.remove('on');
+    lvlAnnonce(); // LE LOGO PASSE LE RELAIS : « NIVEAU 1 — … » arrive quand CASH CAR s'efface (au même endroit, jamais par-dessus)
   },1900);
 }
 let pwrNitroT=0,pwrAirT=0,pwrSpdT=0; // POUVOIRS : nitro infinie · airtime infini · speed up +60%
@@ -10039,22 +10218,29 @@ function tryLand(dt){
 }
 function newTrack(){
   const sd=(Math.random()*1e9)|0;
+  const niv=lvlChoisir(); // LE NIVEAU D'ABORD : buildClouds et buildVoxCity le lisent pendant la construction
   buildTrack(sd);
-  // LE CYCLE DU CIEL : au départ et à chaque portail on tire une heure du jour au hasard
-  // (jamais deux fois la même de suite) — au 3e portail de la MÊME partie, la VRAIE NUIT
-  // tombe pour de bon (runStats.zones est ++ AVANT newTrack au portail, remis à 0 par resetGame).
+  // LE CIEL : chaque NIVEAU tire le sien dans sa propre liste (voir NIVEAUX). Hors niveaux (parc
+  // freestyle), l'ancien CYCLE DU CIEL : une heure du jour au hasard, jamais deux fois la même de
+  // suite, et la VRAIE NUIT au 3e portail (runStats.zones est ++ AVANT newTrack, remis à 0 par resetGame).
   let nb9;
-  if(runStats.zones>=3)nb9='nuit';
+  if(niv)nb9=lvlBiome();
+  else if(runStats.zones>=3)nb9='nuit';
   else do{nb9=BIO_DAY[(Math.random()*BIO_DAY.length)|0];}while(nb9===BIO.name);
-  const nightFalls=started&&nb9==='nuit'&&BIO.name!=='nuit'; // capturé AVANT bioGo (qui écrase BIO.name)
+  const nightFalls=!niv&&started&&nb9==='nuit'&&BIO.name!=='nuit'; // capturé AVANT bioGo (qui écrase BIO.name)
   bioGo(nb9,started?4:.01); // lerp 4 s au portail (et au replay), instantané au boot
-  if(nightFalls)showMsg('LA NUIT TOMBE…','#9ac8ff'); // le déblocage s'annonce
+  lvlGo(started?4:.01);     // …et le monde (étoiles de l'orbite, taille de la planète) bascule avec lui
+  if(niv&&started&&!gameOver&&runStats.zones>0)lvlAnnonce(); // « NIVEAU 2 — MER DE NUAGES » (le niveau 1, lui, s'annonce après le logo du départ : voir fireLaunchBoost)
+  else if(nightFalls)showMsg('LA NUIT TOMBE…','#9ac8ff'); // le déblocage s'annonce
   computeMinimap();
   spawnPickups(mulberry32(sd^0x9e3779b9));
   s=0;lat=0;psi=0;side=1;driveDir=1;prevTvalid=false;safeS=0;
   if(vA<20)vA=20;
   mode='drive';
 }
+// console : dbgSaut() → franchit le portail tout de suite (niveau suivant), comme le vrai portail le fait
+window.dbgSaut=function(){ if(!started||gameOver||PARK.on)return 'pas de course en cours';
+  runStats.zones++;SURV.pBase+=s;newTrack();return window.dbgNiveau(); };
 function die(){
   if(PARK.on){parkRespawn();return;} // FREESTYLE : la mort n'existe pas ici, on respawn
   if(gameOver)return;
@@ -11801,6 +11987,7 @@ function loop(now){
     else loop._dprUp=0;
   }
   bioStep(dt); // BIOMES : le voyage d'ambiance avance même au menu/en pause de jeu (c'est le ciel qui vit, pas la sim)
+  lvlStep(dt); // NIVEAUX : le noir de l'orbite et la taille de la planète suivent le même fondu
   if(parkGrassMat)parkGrassMat.uniforms.uTime.value=now*.001; // l'herbe longue du parc ondule au vent (now : dispo avant `const t`)
   cityTick(dt,camera.position.y); // LA VILLE : son altitude court après la caméra (hors gate de sim — le décor vit au menu, comme le ciel)
   if(slowT>0){slowT-=dt;dt*=.45;} // slow-mo d'atterrissage
@@ -12236,7 +12423,12 @@ function loop(now){
         // au lieu de 0,42. Le langage ne change pas (lean rapide, swing qui traîne encore plus
         // derrière), l'échelle non plus (`dbgCam9()` reste valable) — seul le TEMPS DE RÉPONSE
         // s'étire, ce qui est exactement ce qui lit comme « flotter » plutôt que « pivoter ».
-        camLean+=(turnRate*.14-camLean)*Math.min(1,dt*2.2);
+        /* ⚠ LE ROULIS REVIENT À CELUI DE SACHA (2026-09-24, user : « je n'aime pas l'inclinaison de
+           caméra quand on tourne de la version de Léo »). Le lean v1 penchait l'horizon jusqu'à ~8°
+           (`turnRate*.14`) avec 0,45 s de retard ; retour au 0,035 rad (~2°) qui suit le volant, sans
+           traîne. Le SWING (glissement latéral) et le KICK (poussée au boost) restent : ils ne penchent
+           pas l'horizon. `camLean` garde son nom pour `dbgCam9()`. */
+        camLean=steer*.035;
         camSwing+=(turnRate*.45-camSwing)*Math.min(1,dt*1.3);
         const kickTarget=(nitroOn?(nitroBlue?1.3:.95):0)+Math.min(1,boost)*.55;
         camKick+=(kickTarget-camKick)*Math.min(1,dt*(kickTarget>camKick?7.5:2.4)); // monte VITE sur la poussée, retombe en douceur — c'est l'asymétrie qui fait « kick » plutôt que « respiration »
@@ -12961,7 +13153,7 @@ function loop(now){
     // qu'elle avait disparu : « remets un peu de zoom ou de flou… puis encore plus au boost » décrit
     // EXACTEMENT ce que fait déjà `drawSpeedLines` (filés radiaux, cyan et deux fois plus denses sous
     // `nitroOn`) — il ne manquait qu'un appelant.
-    drawSpeedLines(speedKmh,nitroOn);
+    if(!REDUCED_MOTION)drawSpeedLines(speedKmh,nitroOn); // reduced-motion : speed lines coupées (la garde avait sauté au rétablissement du 2026-09-05)
     if(speedKmh>runStats.vmax)runStats.vmax=speedKmh;
     // ⚠ EN VOL, LA VITESSE NE SE « TIENT » PAS : on subit une parabole, il n'y a aucun mérite à
     // afficher 900 km/h en tombant. L'aura de vitesse ne compte donc qu'au sol, manette en main.
@@ -13041,7 +13233,7 @@ function loop(now){
     loop._sfx=(loop._sfx||0)+(sfxT-(loop._sfx||0))*Math.min(1,dt*(sfxT>(loop._sfx||0)?7:3)); // montée franche, retombée douce
     acesPass.uniforms.uSpeed.value=loop._sfx;
   }
-  planetGroup.position.copy(camera.position).addScaledVector(PLANET_DIR,PLANET_D); // la planète tient sa place dans le ciel
+  lvlPlanete(dt); // la planète tient sa place dans le ciel — et en ORBITE elle passe sous la route (voir NIVEAUX)
   planetGroup.userData.globe.rotation.y=t*.014;                                 // …et tourne lentement sur son axe
   sunSprite.position.copy(camera.position).addScaledVector(SUN_DIR,3600);
   horizonGlow.position.copy(camera.position).addScaledVector(SUN_DIR,3650);
@@ -13475,8 +13667,9 @@ function wakeAsk(){ try{ if(navigator.wakeLock&&!wakeLock)navigator.wakeLock.req
 function goImmersive(){
   if(!IS_MOBILE)return;
   // Sous Capacitor (app native) : la WebView est déjà plein écran et requestFullscreen n'est pas
-  // supporté — on le garde pour le web uniquement.
-  if(!window.Capacitor){ try{ const el=document.documentElement;
+  // supporté — on le garde pour le web uniquement. Et pas sur l'ordi en `?tel=1` : cliquer JOUER
+  // ne doit pas avaler l'écran entier sans qu'on l'ait demandé.
+  if(!window.Capacitor&&!FORCE_TEL){ try{ const el=document.documentElement;
     if(el.requestFullscreen&&!document.fullscreenElement)el.requestFullscreen({navigationUI:'hide'}).catch(function(){});
     else if(el.webkitRequestFullscreen&&!document.webkitFullscreenElement)el.webkitRequestFullscreen();
   }catch(e){} }
@@ -13524,46 +13717,60 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   function stSet(h,v){ TCTL.st=h; TCTL.sv=v;
     if(knb)knb.style.transform='translate('+(-h*LOCK*.62)+'px,'+(-v*LOCKV*.5)+'px)'; }
   if(sz){
+    /* ⚠ TROIS GESTES NOMMÉS, DEUX ENTRÉES (2026-09-24) : le doigt ET la souris passent par les mêmes
+       `stDown/stMove/stUp`. Sans le repli souris, le volant était le seul contrôle du téléphone
+       injoignable sur l'écran d'ordi (`?tel=1`) — on n'y conduisait qu'aux flèches du clavier, pas
+       « au pouce ». La souris prend l'identifiant 'souris'. */
+    const stDown=function(id,x,y){
+      const r=sz.getBoundingClientRect();
+      TCTL.id=id; TCTL.ox=x; TCTL.oy=y; TCTL.act=true;
+      stk.style.left=(x-r.left)+'px'; stk.style.top=(y-r.top)+'px';
+      stSet(0,0); sz.classList.add('act'); sz.classList.add('used'); // la consigne « GLISSE POUR TOURNER » a fait son travail
+      start();
+    };
+    const stMove=function(x,y){
+      const rawX=x-TCTL.ox,rawY=y-TCTL.oy;
+      if(rawX>LOCK)TCTL.ox=x-LOCK;    // STICK FLOTTANT sur les DEUX axes : la base suit le doigt
+      if(rawX<-LOCK)TCTL.ox=x+LOCK;   // au-delà de la butée, donc revenir au centre rend la main
+      if(rawY>LOCKV)TCTL.oy=y-LOCKV;  // IMMÉDIATEMENT (jamais collé au plein braquage)
+      if(rawY<-LOCKV)TCTL.oy=y+LOCKV;
+      const nx=Math.max(-LOCK,Math.min(LOCK,x-TCTL.ox))/LOCK,
+            ny=Math.max(-LOCKV,Math.min(LOCKV,y-TCTL.oy))/LOCKV,
+            ax=Math.abs(nx)<.06?0:nx, ay=Math.abs(ny)<.14?0:ny; // zones mortes : le pouce tremble, pas la caisse (large en vertical : tourner ne doit pas cabrer)
+      stSet(-(ax<0?-1:ax>0?1:0)*Math.pow(Math.abs(ax),1.35),   // pouce à GAUCHE = braquage à gauche (steer>0)
+            -(ay<0?-1:ay>0?1:0)*Math.pow(Math.abs(ay),1.25));  // pouce vers le HAUT = sv>0 = PIQUÉ (manche d'avion)
+    };
+    const stUp=function(){ TCTL.act=false;TCTL.id=null;stSet(0,0);sz.classList.remove('act'); };
     sz.addEventListener('touchstart',function(e){
       if(TCTL.pad)return;
       if(e.cancelable)e.preventDefault();
-      const t=e.changedTouches[0],r=sz.getBoundingClientRect();
-      TCTL.id=t.identifier; TCTL.ox=t.clientX; TCTL.oy=t.clientY; TCTL.act=true;
-      stk.style.left=(t.clientX-r.left)+'px'; stk.style.top=(t.clientY-r.top)+'px';
-      stSet(0,0); sz.classList.add('act'); sz.classList.add('used'); // la consigne « GLISSE POUR TOURNER » a fait son travail
-      start();
+      const t=e.changedTouches[0]; stDown(t.identifier,t.clientX,t.clientY);
     },{passive:false});
     sz.addEventListener('touchmove',function(e){
       if(e.cancelable)e.preventDefault();
       if(!TCTL.act)return;
       for(let i=0;i<e.changedTouches.length;i++){ const t=e.changedTouches[i];
-        if(t.identifier!==TCTL.id)continue;
-        const rawX=t.clientX-TCTL.ox,rawY=t.clientY-TCTL.oy;
-        if(rawX>LOCK)TCTL.ox=t.clientX-LOCK;    // STICK FLOTTANT sur les DEUX axes : la base suit le doigt
-        if(rawX<-LOCK)TCTL.ox=t.clientX+LOCK;   // au-delà de la butée, donc revenir au centre rend la main
-        if(rawY>LOCKV)TCTL.oy=t.clientY-LOCKV;  // IMMÉDIATEMENT (jamais collé au plein braquage)
-        if(rawY<-LOCKV)TCTL.oy=t.clientY+LOCKV;
-        const nx=Math.max(-LOCK,Math.min(LOCK,t.clientX-TCTL.ox))/LOCK,
-              ny=Math.max(-LOCKV,Math.min(LOCKV,t.clientY-TCTL.oy))/LOCKV,
-              ax=Math.abs(nx)<.06?0:nx, ay=Math.abs(ny)<.14?0:ny; // zones mortes : le pouce tremble, pas la caisse (large en vertical : tourner ne doit pas cabrer)
-        stSet(-(ax<0?-1:ax>0?1:0)*Math.pow(Math.abs(ax),1.35),   // pouce à GAUCHE = braquage à gauche (steer>0)
-              -(ay<0?-1:ay>0?1:0)*Math.pow(Math.abs(ay),1.25));  // pouce vers le HAUT = sv>0 = PIQUÉ (manche d'avion)
-      }
+        if(t.identifier===TCTL.id)stMove(t.clientX,t.clientY); }
     },{passive:false});
     const stEnd=function(e){
       if(!TCTL.act)return;
-      for(let i=0;i<e.changedTouches.length;i++)if(e.changedTouches[i].identifier===TCTL.id){
-        TCTL.act=false;TCTL.id=null;stSet(0,0);sz.classList.remove('act'); }
+      for(let i=0;i<e.changedTouches.length;i++)if(e.changedTouches[i].identifier===TCTL.id)stUp();
     };
     sz.addEventListener('touchend',stEnd,{passive:false});
     sz.addEventListener('touchcancel',stEnd,{passive:false});
+    // repli SOURIS : on attrape sur le volant, on suit et on lâche PARTOUT (le curseur sort vite de la zone)
+    sz.addEventListener('mousedown',function(e){ if(TCTL.pad||e.button!==0)return; e.preventDefault(); stDown('souris',e.clientX,e.clientY); });
+    addEventListener('mousemove',function(e){ if(TCTL.act&&TCTL.id==='souris')stMove(e.clientX,e.clientY); });
+    addEventListener('mouseup',function(){ if(TCTL.act&&TCTL.id==='souris')stUp(); });
   }
   // ---- LE BOUTON DE RÉGLAGES : UN SEUL. Il ouvre le panneau — et OUVRIR MET EN PAUSE
   //      (on ne fouille pas dans les options à 1400 km/h). Fermer reprend la partie.
   const gear=$t('tGear'),pan=$t('tPanel');
   // QUALITÉ D'IMAGE : on ne touche QUE le canvas 3D. Le HUD est du DOM, il reste net au pixel quoi
   // qu'il arrive — on enlève donc les pixels là où ils coûtent, jamais sur une jauge.
-  function applyQ(fast){ DPR_CAP=Math.min(devicePixelRatio,fast?.66:1.15);
+  // ⚠ `?tel=1` sur ordi : les deux crans passent à 1,0 / 1,5 (1,5 = la résolution du desktop). À 0,66, un
+  // moniteur de 27" rendrait une bouillie — le réglage garde son sens (rapide / net), pas ses chiffres.
+  function applyQ(fast){ DPR_CAP=Math.min(devicePixelRatio,fast?(FORCE_TEL?1:.66):(FORCE_TEL?1.5:1.15));
     curDPR=Math.min(DPR_CAP,devicePixelRatio); applyDPR(); }
   // ⚠ LES INTERRUPTEURS PASSENT PAR LES BOUTONS DU DESKTOP (`.click()`) au lieu de refaire leur
   // logique : son, voix, musique, Survivant et Parc ont des EFFETS DE BORD (suspend du contexte
@@ -13622,7 +13829,17 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(play!==TCTL.play){ TCTL.play=play; document.body.classList.toggle('play',play);
       if(gear)gear.textContent=play?'⏸':'⚙'; // en jeu c'est un bouton PAUSE, au menu un bouton réglages
       if(!play){ for(const k in keys)keys[k]=false; TCTL.act=false; TCTL.id=null; TCTL.st=0; TCTL.sv=0; if(sz)sz.classList.remove('act'); } }
-    if(play&&!paused&&innerWidth>innerHeight)togglePause(); // téléphone COUCHÉ en pleine course : on gèle (l'écran ROTATION couvre tout)
+    /* TÉLÉPHONE COUCHÉ en pleine course : on gèle. ⚠ (2026-09-24) trois corrections :
+       (1) seulement sur un écran de TÉLÉPHONE (hauteur < 600 px en paysage) — un iPad couché, lui,
+           a la place de jouer, et gelait pourtant en boucle, sans un mot (`IS_MOBILE` y est vrai) ;
+       (2) l'écran « ROTATION » dont parlait ce commentaire n'existait plus : `body.couche` affiche
+           désormais `#rotNote`, sinon le joueur voit un jeu figé sans savoir pourquoi ;
+       (3) si c'est la rotation qui a mis en pause, le retour en PORTRAIT relance la partie. */
+    const couche=!FORCE_TEL&&innerWidth>innerHeight&&innerHeight<600; // l'écran d'ordi en `?tel=1` est en paysage par nature : jamais gelé
+    if(couche!==TCTL.couche){ TCTL.couche=couche; document.body.classList.toggle('couche',couche); }
+    if(play&&!paused&&couche){ togglePause(); TCTL.gelCouche=true; }
+    else if(play&&paused&&!couche&&TCTL.gelCouche){ TCTL.gelCouche=false; togglePause(); }
+    if(!play)TCTL.gelCouche=false;
     const ovOpen=(overlay.style.display!=='none'); // le menu vient d'apparaître (mort, retour du garage, premier lancement) ?
     if(ovOpen!==TCTL.ov){ TCTL.ov=ovOpen; if(ovOpen)mGo(mRoot()); }
   },140);
@@ -13711,7 +13928,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       // c'est donc lui qu'on montre en fin de run, pas un palier de voiture qui ne veut plus rien dire.
       const nw=$t('mNew'),E=ENGINE_TIERS[Math.min(ENGINE_TIERS.length-1,Math.max(0,engTier|0))];
       if(E&&engTier>0){nw.style.display='';nw.textContent='MOTEUR ATTEINT - '+E.n;}else nw.style.display='none';
-      $t('mStatsBox').innerHTML=mStatBox(runStats.tricks,'FIGURES')+mStatBox(Math.round(runStats.vmax),'KM/H MAX')+mStatBox(runStats.zones,'ZONES');
+      $t('mStatsBox').innerHTML=mStatBox(runStats.tricks,'FIGURES')+mStatBox(Math.round(runStats.vmax),'KM/H MAX')+mStatBox(runStats.zones+1,'NIVEAU');
     }else if(mCur==='modes'){
       const set9=function(id,sid,on){const c=$t(id),s=$t(sid);
         if(c){c.classList.toggle('on',on);c.classList.toggle('off',!on);} if(s)s.textContent=on?'ON':'OFF';};

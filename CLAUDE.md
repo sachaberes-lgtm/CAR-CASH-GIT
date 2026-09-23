@@ -1,5 +1,20 @@
 # CASH CAR — guide projet pour Claude Code
 
+## ⚠ FUSION SACHA × LÉO + NIVEAUX — 2026-09-24 (branche `fusion-2026-09`)
+- `index.html` = fusion à trois points : appstore-backlog (Sacha) × `main:version-leolei-2026` (Léo),
+  base `fusion-atelier-mobile`. Hors ligne : `vendor/` + police locale (aucun CDN, aucune Google Font).
+- **NIVEAUX** (`NIVEAUX`, `LVL`, `lvlChoisir/lvlBiome/lvlGo/lvlStep/lvlPlanete/lvlNuageOk/lvlAnnonce`) :
+  une zone = un niveau, en boucle VILLE → NUAGES → ORBITE. Chaque niveau recompose le décor existant :
+  ville voxel (+ étages allumés) seulement en VILLE, familles de nuages filtrées dans `mkCloud`, couche de
+  nuages en plus en NUAGES, biome `espace` + uniforme `uSpace` du ciel + planète ×1,35 sous la route en
+  ORBITE. Remplace la « nuit au 3e portail » (le parc freestyle garde l'ancien tirage). Bannière
+  `#lvlBan` (niveau 1 : après le logo du départ). Hooks : `dbgNiveau()`, `dbgSaut()` (portail immédiat).
+- **VERSION TÉLÉPHONE SUR L'ÉCRAN D'ORDI** : `index.html?tel=1` (ou `?mobile=1`, `FORCE_TEL`) — toute la
+  fenêtre, chemin téléphone complet ; volant à la souris, clavier branché ; ni gel en paysage, ni plein
+  écran forcé ; image 1,0 / 1,5. Sur un vrai téléphone, le gel « couché » ne vaut plus que sous 600 px
+  de haut (iPad libre) et affiche `#rotNote`.
+- **Caméra** : roulis de virage revenu à celui de Sacha (`camLean=steer*.035`) ; swing/kick de Léo gardés.
+
 ## ⚠ FUSION DU 2026-08-30 — LIRE AVANT DE SE FIER À CE DOCUMENT
 Le projet avait DEUX `index.html` divergents : celui du dépôt (couche MOBILE : coque d'écrans,
 volant analogique, écran nu, bac à sable, réglage d'image) et une copie de travail beaucoup plus
