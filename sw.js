@@ -20,8 +20,12 @@
    menu — plus un `no-store` explicite sur le fetch de navigation (voir plus bas).
    v13 (2026-09-23) : la VILLE VOXEL sous les nuages, et un 3e morceau dans la radio.
    v14 (2026-09-23) : radio reduite a UN seul morceau (reglage temporaire, demande du user).
-   v15 (2026-09-24) : moteur qui ronronne (plus de moustique), musique devant, gamme en briques. */
-const CACHE = 'cashcar-v15';
+   v15 (2026-09-24) : FUSION Sacha × Léo (branche fusion-2026-09) — vendor/ + police locale, vrai
+        mix NÉON CASH CAR v3 (l'ancien fichier de ce nom contenait Chrome Ledger), sons fx/.
+   v16 (2026-09-24) : la fusion Sacha × Léo + le travail de la nuit (moteur qui ronronne, musique devant,
+        gamme en briques). ⚠ Sacha et Léo avaient TOUS DEUX numéroté v15 : sans ce saut, les navigateurs
+        déjà passés sur la v15 de Sacha n'auraient jamais vu la fusion. */
+const CACHE = 'cashcar-v16';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
@@ -58,7 +62,7 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Statique (three.js CDN, mp3, icône…) : cache d'abord, sinon réseau + mise en cache au passage.
+  // Statique (vendor/three.js, mp3, icône…) : cache d'abord, sinon réseau + mise en cache au passage.
   e.respondWith(
     caches.match(req).then(hit => hit || fetch(req).then(r => {
       try { const cp = r.clone(); caches.open(CACHE).then(c => c.put(req, cp)); } catch (_) {}
