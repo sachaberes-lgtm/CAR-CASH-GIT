@@ -4,16 +4,24 @@
 - `index.html` = fusion à trois points : appstore-backlog (Sacha) × `main:version-leolei-2026` (Léo),
   base `fusion-atelier-mobile`. Hors ligne : `vendor/` + police locale (aucun CDN, aucune Google Font).
 - **NIVEAUX** (`NIVEAUX`, `LVL`, `lvlChoisir/lvlBiome/lvlGo/lvlStep/lvlPlanete/lvlNuageOk/lvlAnnonce`) :
-  une zone = un niveau, en boucle VILLE → NUAGES → ORBITE. Chaque niveau recompose le décor existant :
-  ville voxel (+ étages allumés) seulement en VILLE, familles de nuages filtrées dans `mkCloud`, couche de
-  nuages en plus en NUAGES, biome `espace` + uniforme `uSpace` du ciel + planète ×1,35 sous la route en
-  ORBITE. Remplace la « nuit au 3e portail » (le parc freestyle garde l'ancien tirage). Bannière
-  `#lvlBan` (niveau 1 : après le logo du départ). Hooks : `dbgNiveau()`, `dbgSaut()` (portail immédiat).
+  une zone = un niveau, en boucle **1 NUAGES** (jour : matin/midi/aprem, ciel SANS motif musical) →
+  **2 VILLE** (biome `pluie`, ciel musical allumé, pluie `PLUIE`) → **3 ORBITE** (biome `espace` + `uSpace` :
+  NOIR COMPLET, soleil éteint, planète ×1,35 sous la route). `cielMusical` coupe `uLvl` ET `uPulse` dans
+  `musicTick`. Nuages filtrés dans `mkCloud` (+ une couche en NUAGES). Remplace la « nuit au 3e portail ».
+  Bannière `#lvlBan` (niveau 1 : après le logo du départ). Hooks : `dbgNiveau()`, `dbgSaut()`.
+- **ROUTE** : `ROAD_HALF` est un `let` posé par `lvlChoisir` : ×1,7 / 1,55 / 1,4 / 1,25 puis plancher ×1,1 de
+  `ROAD_HALF0=14` (parc ×1,4). Dos d'âne, tapis et lèvre du tremplin : géométries sur `ROAD_HALF0`, mesh ×scale.x.
+- **VILLE = village caché de la pluie, cyberpunk** (`buildVoxCity`, `cityRues`) : tours grises minces
+  plafonnées à `CITY_MIN−50` (ne percent jamais la route), tuyaux + antennes DANS l'InstancedMesh des tours,
+  étages/enseignes/feux DANS celui des néons, rues néon en texture partagée — toujours 3 draw calls.
+  `CITY_BELOW` 660. Pluie : `LineSegments` 1 100 traits (600 mobile), animée en vertex shader, créée à l'init.
 - **VERSION TÉLÉPHONE SUR L'ÉCRAN D'ORDI** : `index.html?tel=1` (ou `?mobile=1`, `FORCE_TEL`) — toute la
   fenêtre, chemin téléphone complet ; volant à la souris, clavier branché ; ni gel en paysage, ni plein
   écran forcé ; image 1,0 / 1,5. Sur un vrai téléphone, le gel « couché » ne vaut plus que sous 600 px
   de haut (iPad libre) et affiche `#rotNote`.
-- **Caméra** : roulis de virage revenu à celui de Sacha (`camLean=steer*.035`) ; swing/kick de Léo gardés.
+- **Caméra / conduite** : la caméra de conduite de SACHA en bloc (recul 4,6, suivi dt*5, roulis .035, FOV
+  jusqu'à +38/+22) — les équations de conduite étaient identiques, c'est l'habillage qui faisait le « fun ».
+  Swing/kick de Léo retirés ; boost de départ automatique (`startBoostT`) désarmé, le logo reste.
 
 ## ⚠ FUSION DU 2026-08-30 — LIRE AVANT DE SE FIER À CE DOCUMENT
 Le projet avait DEUX `index.html` divergents : celui du dépôt (couche MOBILE : coque d'écrans,

@@ -1537,7 +1537,7 @@ const skyDome=(function(){
       '  col=mix(blw,col,smoothstep(-.10,.012,y));',
       '  col=mix(dp2,col,smoothstep(-.85,-.12,y));',
       '  col=col*uSkyMul+uSkyLift*smoothstep(.35,-.06,y);', // BIOME : teinte du gradient + lift laiteux concentré à l horizon
-      '  col=mix(col,vec3(.006,.008,.024)+vec3(.03,.08,.20)*pow(1.-abs(y),14.),uSpace);', // ORBITE : le noir, et un fil d atmosphere au ras de l horizon
+      '  col=mix(col,vec3(0.),uSpace);', // ORBITE : le NOIR COMPLET (demande du user) — la Terre et la route portent seules la lumiere
       '  col*=1.+uPulse*.13;', // MUSIQUE : tout le ciel respire au beat (souffle global doux)
       '  float sd=max(dot(vDir,uSunDir),0.);',      // couchant : halo rosé large, couronne corail, coeur incandescent (tamisé)
       '  col+=uSunTint*pow(sd,4.)*.45*uSunHalo;',
@@ -1567,7 +1567,7 @@ const skyDome=(function(){
          — ou l on regarde droit devant — on ne voyait presque rien. Le masque ne coupe plus, il
          DOSE : le bas du ciel joue a 62 %, le haut a 100 %. La route reste lisible parce qu elle
          est un objet 3D DEVANT le dome : elle se decoupe sur le fond au lieu d etre noyee. */
-      '    float mk=uLvl*(.62+.38*smoothstep(-.45,.12,y))*(1.-uSpace*.7);', // ORBITE : le fond de rythme se tasse, le noir reste noir
+      '    float mk=uLvl*(.62+.38*smoothstep(-.45,.12,y))*(1.-uSpace);', // ORBITE : aucun motif, le noir reste noir
       '    mk*=1.-smoothstep(.10,.62,sd)*.42;',                    // le soleil garde son coeur ; il n est plus sanctuarise
       '    vec3 A=mix(uAcc,uAcc2,uFlip),Bc=mix(uAcc2,uAcc,uFlip);',// LA BASCULE : sur les phrases, les deux teintes s echangent
       /* ⚠ LES QUATRE COUCHES S ACCUMULENT DANS `fx`, PAS DANS `col`. Mesure a l origine de ce choix :
@@ -1996,7 +1996,13 @@ function updateContactShadow(){ // appelée juste avant le rendu
 
 // ---------- GÉNÉRATEUR (45°, patterns pensés pour l'airtime) ----------
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
-const ROAD_HALF=14, THICK=2.6;
+/* ⚠ LA ROUTE S'ÉLARGIT, ET ELLE RÉTRÉCIT À CHAQUE NIVEAU (2026-09-24, user : « élargis la route ; pour les
+   débutants elle réduit à chaque niveau »). `ROAD_HALF` n'est plus une constante : `lvlChoisir` la pose
+   AVANT chaque `buildTrack` (voir `LARGEUR`). Tout ce qui la lit le fait à l'exécution (collisions, bords,
+   pickups, bots, viseur) — sauf trois géométries PARTAGÉES bâties une fois (dos d'âne, tapis et lèvre
+   du tremplin) : elles sont taillées sur `ROAD_HALF0` et chaque mesh se met à l'échelle en X. */
+const ROAD_HALF0=14, THICK=2.6;
+let ROAD_HALF=ROAD_HALF0*1.7;
 let pts=[],T=[],Nn=[],B=[],L=0,NP=0,trackMinY=-1e9; // trackMinY : plancher du monde (référence du plongeon fatal)
 /* NÉON RÉACTIF (2026-08-07) : on garde une poignée sur les matériaux des rails et de leur nappe
    pour les faire COGNER au beat. ⚠ ce sont des MATÉRIAUX, pas des meshes : la piste est rebâtie à
@@ -2948,13 +2954,13 @@ function buildTrack(seed){
       frameAt(Math.max(0,sL-34),F);
       const strp=new THREE.Mesh(rampStripGeo,new THREE.MeshBasicMaterial({map:rampTex,transparent:true,opacity:.62,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
       strp.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(F.b.clone().multiplyScalar(-fy),F.t.clone(),F.n.clone().multiplyScalar(fy)));
-      strp.position.copy(F.p).addScaledVector(F.n,fy>0?.07:-THICK-.07);
+      strp.position.copy(F.p).addScaledVector(F.n,fy>0?.07:-THICK-.07);strp.scale.x=ROAD_HALF/ROAD_HALF0;
       strp.renderOrder=1;scene.add(strp);trackMeshes.push(strp);
       // 2) LA LÈVRE : muret chaud et franc — on la voit venir, on la sent claquer
       frameAt(sL,F);
       const lip=new THREE.Mesh(rampLipGeo,rampLipMat);
       lip.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(F.b.clone(),F.n.clone().multiplyScalar(fy),F.t.clone().multiplyScalar(fy)));
-      lip.position.copy(F.p).addScaledVector(F.n,fy>0?.30:-THICK-.30);
+      lip.position.copy(F.p).addScaledVector(F.n,fy>0?.30:-THICK-.30);lip.scale.x=ROAD_HALF/ROAD_HALF0;
       scene.add(lip);trackMeshes.push(lip);
       // 3) ANNEAU DE VISÉE sur la route d'en face : LA PROMESSE, lisible avant même d'atteindre la lèvre
       frameAt(Math.min(L-10,h.s1+45),F); // posé sur la route d'EN FACE, juste après le bord opposé
@@ -2993,11 +2999,11 @@ function buildTrack(seed){
     frameAt(sp,F);
     const m=new THREE.Mesh(bumpGeo,bumpMat);
     m.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(F.b.clone(),F.n.clone(),F.t.clone()));
-    m.position.copy(F.p).addScaledVector(F.n,.17);
+    m.position.copy(F.p).addScaledVector(F.n,.17);m.scale.x=ROAD_HALF/ROAD_HALF0;
     scene.add(m);trackMeshes.push(m);
     const m2=new THREE.Mesh(bumpGeo,bumpMat); // le jumeau du dessous
     m2.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(F.b.clone(),F.n.clone().negate(),F.t.clone().negate()));
-    m2.position.copy(F.p).addScaledVector(F.n,-THICK-.17);
+    m2.position.copy(F.p).addScaledVector(F.n,-THICK-.17);m2.scale.x=ROAD_HALF/ROAD_HALF0;
     scene.add(m2);trackMeshes.push(m2);
   }
   // (Paris retiré — la ville a cédé sa place au ciel)
@@ -3127,7 +3133,7 @@ function buildTrack(seed){
 const VOX_M=.05;            // LA BRIQUE. Le module de base du jeu, et il n'y en a qu'un.
 const VOX_CITY=VOX_M*128;   // 6,4 m — la maille de la ville : un multiple ENTIER de la brique.
 const CITY_R=3000, CITY_STEP=130, CITY_H=420;
-const CITY_BELOW=900, CITY_LAG=.55, CITY_MIN=520, CITY_MAX=1700; // suivi d'altitude : voir cityTick
+const CITY_BELOW=660, CITY_LAG=.55, CITY_MIN=520, CITY_MAX=1700; // suivi d'altitude : voir cityTick — 900→660 (2026-09-24) : au niveau VILLE on la SURVOLE, on ne la devine pas (tours plafonnées à CITY_MIN−50 : elles ne percent jamais la route)
 const CITY={root:null};
 function buildVoxCity(seed,accC){
   CITY.root=null;
@@ -3140,34 +3146,65 @@ function buildVoxCity(seed,accC){
   trackMeshes.push(root); // le groupe part de la scène au rebuild…
   const gy=0;
   const snap=v=>Math.max(1,Math.round(v/VOX_CITY))*VOX_CITY; // tout atterrit sur la trame, jamais entre deux
-  const corps=[],cour=[],fen=[]; // fen : les ÉTAGES ALLUMÉS (NIVEAU VILLE, 2026-09-24)
-  for(let gx=-CITY_R;gx<=CITY_R;gx+=CITY_STEP)for(let gz=-CITY_R;gz<=CITY_R;gz+=CITY_STEP){
+  /* ---- LE VILLAGE CACHÉ DE LA PLUIE, VERSION CYBERPUNK (2026-09-24, user : « rends la ville plus jolie
+     en mode village caché de la pluie cyberpunk, sans que ce soit trop difficile pour un mobile ») ----
+     Ce qui fait la silhouette de ce genre de ville, vu d'avion sous la pluie : des tours GRISES,
+     HAUTES et MINCES, couturées de TUYAUX, hérissées d'ANTENNES à feu rouge — et toute la couleur
+     portée par les NÉONS (enseignes verticales, étages allumés) et les RUES qui brillent au fond.
+     ⚠ LE BUDGET NE BOUGE PAS D'UN DRAW CALL : tuyaux et antennes entrent dans l'InstancedMesh des
+     tours (Lambert, teinte par instance), enseignes et feux dans celui des étages (Basic, émissif).
+     Trois appels de rendu pour toute la ville, comme avant — plus de volumes, pas plus d'appels.
+     ⚠ LA HAUTEUR EST PLAFONNÉE sous `CITY_MIN` : `cityTick` garde le plancher à ≥ 520 sous la caméra,
+     une tour de 470 ne perce donc JAMAIS la route (les anciennes montaient à 750 — elles le pouvaient).
+     Téléphone : maille un peu plus lâche (−25 % de tours) et étages plus rares. */
+  const STEP=IS_MOBILE?150:CITY_STEP,HCAP=CITY_MIN-50;
+  const corps=[],genre=[],cour=[],fen=[],fenC=[]; // genre : 0 tour · 1 tuyau · 2 antenne — fenC : l'indice de teinte de chaque néon
+  const NEON=[new THREE.Color(0x9ff0ff),new THREE.Color(0xe8f4ff),new THREE.Color(0xff3ea5),new THREE.Color(0xffb85a), // étages : cyan, blanc froid, magenta, ambre
+              new THREE.Color(0xff2e8e),new THREE.Color(0x2ee6ff),new THREE.Color(0xffe23e),new THREE.Color(0x5cff9a), // enseignes : les quatre néons francs…
+              new THREE.Color(0xff3030),accC];                                                                       // …le feu d'antenne, et l'accent de la zone
+  for(let gx=-CITY_R;gx<=CITY_R;gx+=STEP)for(let gz=-CITY_R;gz<=CITY_R;gz+=STEP){
     if(gx*gx+gz*gz>CITY_R*CITY_R)continue;
     if(vr()<.17)continue;                                   // des vides : une ville n'est pas un damier plein
-    const cx=gx+(vr()-.5)*CITY_STEP*.45,cz=gz+(vr()-.5)*CITY_STEP*.45;
+    const cx=gx+(vr()-.5)*STEP*.45,cz=gz+(vr()-.5)*STEP*.45;
     const d=Math.hypot(cx,cz)/CITY_R;
-    // LE CENTRE-VILLE : les tours s'écrasent en s'éloignant. Une skyline plate n'a pas de silhouette,
-    // et c'est la silhouette — pas le détail — qui porte tout à cette distance.
-    const hMax=CITY_H*(1-d*.58)*(.28+vr()*vr()*1.5);
-    let h=snap(Math.max(VOX_CITY*4,hMax));
-    let w=snap(VOX_CITY*(4+vr()*9)),p=snap(VOX_CITY*(4+vr()*9));
+    // LE CENTRE-VILLE : les tours s'écrasent en s'éloignant — et elles sont plus MINCES qu'avant (3-7 mailles)
+    const hMax=Math.min(HCAP,CITY_H*1.15*(1-d*.55)*(.30+vr()*vr()*1.6));
+    let h=snap(Math.max(VOX_CITY*5,hMax));
+    let w=snap(VOX_CITY*(3+vr()*5)),p=snap(VOX_CITY*(3+vr()*5));
+    const w0=w,p0=p,h0=h;
     let y=gy;
     const et=h>VOX_CITY*9?(vr()<.55?3:2):(vr()<.4?2:1);     // RETRAITS : les hautes tours s'étagent
     for(let k=0;k<et;k++){
       const hk=snap(h/et);
-      corps.push(cx,y+hk/2,cz,w,hk,p);
-      /* LES ÉTAGES ALLUMÉS : vue d'avion, une ville la nuit ne se lit pas à ses toits mais à ses
-         FENÊTRES. Un bandeau émissif un rien plus large que le volume ceinture un étage sur deux ou
-         trois ; à 1 km on ne résout pas la fenêtre, on lit la LIGNE — exactement ce qu'on veut. */
-      const nf=hk>VOX_CITY*6?1+((vr()*3)|0):(vr()<.5?1:0);
-      for(let f=0;f<nf;f++)fen.push(cx,y+hk*(.18+vr()*.66),cz,w*1.03,VOX_CITY*.34,p*1.03);
-      y+=hk;w=snap(w*.72);p=snap(p*.72);
+      corps.push(cx,y+hk/2,cz,w,hk,p);genre.push(0);
+      // LES ÉTAGES ALLUMÉS : à 1 km on ne résout pas la fenêtre, on lit la LIGNE
+      const nf=hk>VOX_CITY*6?(IS_MOBILE?1:1+((vr()*2)|0)):(vr()<.4?1:0);
+      for(let f=0;f<nf;f++){fen.push(cx,y+hk*(.18+vr()*.66),cz,w*1.03,VOX_CITY*.30,p*1.03);const r9=vr();fenC.push(r9<.45?0:r9<.72?1:r9<.9?2:3);}
+      y+=hk;w=snap(w*.74);p=snap(p*.74);
       if(w<VOX_CITY||p<VOX_CITY)break;
     }
-    // LA COURONNE : un bandeau émissif au sommet, dans l'accent de la ZONE. C'est le seul endroit
-    // où la ville parle — et elle parle la même couleur que les rails et le ciel, parce que la
-    // règle n'est écrite qu'une fois (`accC`, celui des bandes de piste).
-    if(vr()<.42)cour.push(cx,y+VOX_CITY*.22,cz,w*1.06,VOX_CITY*.42,p*1.06);
+    // LES TUYAUX : deux tours sur trois, un à trois conduits qui DESCENDENT le long d'une façade du socle
+    if(h0>VOX_CITY*8&&vr()<.66){
+      const nt=1+((vr()*(IS_MOBILE?2:3))|0),tk=VOX_CITY*(.5+vr()*.4);
+      for(let t9=0;t9<nt;t9++){
+        const face=(vr()*4)|0,ht=h0*(.45+vr()*.5),glis=(vr()-.5)*.7;
+        const ox=face<2?(face?1:-1)*(w0/2+tk/2):glis*w0,oz=face<2?glis*p0:(face===2?1:-1)*(p0/2+tk/2);
+        corps.push(cx+ox,gy+ht/2,cz+oz,tk,ht,tk);genre.push(1);
+      }
+    }
+    // L'ANTENNE : les hautes tours se hérissent — un mât fin et son FEU ROUGE (dans la couche des néons)
+    if(h0>VOX_CITY*22&&vr()<.55){
+      const ha=VOX_CITY*(4+vr()*8);
+      corps.push(cx,y+ha/2,cz,VOX_CITY*.35,ha,VOX_CITY*.35);genre.push(2);
+      fen.push(cx,y+ha,cz,VOX_CITY*.7,VOX_CITY*.7,VOX_CITY*.7);fenC.push(8);
+    }else if(vr()<.3)cour.push(cx,y+VOX_CITY*.22,cz,w*1.06,VOX_CITY*.42,p*1.06); // sinon, parfois, la couronne à l'accent de la zone
+    // L'ENSEIGNE VERTICALE : une tour sur trois porte son néon, collé à une façade, à mi-hauteur
+    if(h0>VOX_CITY*10&&vr()<.34){
+      const hs=Math.min(h0*.45,VOX_CITY*(4+vr()*6)),ys=gy+h0*(.35+vr()*.35),fx=vr()<.5;
+      const sg=vr()<.5?-1:1;
+      fen.push(cx+(fx?sg*(w0/2+VOX_CITY*.2):0),ys,cz+(fx?0:sg*(p0/2+VOX_CITY*.2)),fx?VOX_CITY*.3:VOX_CITY*1.2,hs,fx?VOX_CITY*1.2:VOX_CITY*.3);
+      fenC.push(4+((vr()*4)|0));
+    }
   }
   const CUBE=new THREE.BoxGeometry(1,1,1);
   const pose=(arr,mat,liste)=>{
@@ -3186,29 +3223,45 @@ function buildVoxCity(seed,accC){
     root.add(im);trackMeshes.push(im);liste&&liste.push(im);
     return im;
   };
-  const matC=new THREE.MeshLambertMaterial({color:0x2a2b3a,emissive:0x0a0b12}); // sombre : c'est une MASSE, la lumière vient des biomes
+  const matC=new THREE.MeshLambertMaterial({color:0xffffff,emissive:0x07080d}); // blanc × teinte par instance : béton gris-bleu, métal des tuyaux
   const imC=pose(corps,matC);
-  // NUANCER CHAQUE TOUR. Sans ça, 2 500 boîtes de la même teinte lisent comme un peigne, pas comme
-  // une ville. `setColorAt` teinte par instance sans casser l'unique draw call.
   const col=new THREE.Color();
-  for(let i=0;i<corps.length/6;i++){
-    const t=.72+vr()*.55;
-    col.setRGB(.165*t,.169*t,.229*t*(.92+vr()*.2));
+  for(let i=0;i<genre.length;i++){
+    const t=.78+vr()*.5,g=genre[i];
+    if(g===0)col.setRGB(.19*t,.20*t,.25*t);        // le BÉTON du village : gris-bleu, mouillé
+    else if(g===1)col.setRGB(.30*t,.31*t,.34*t);   // le MÉTAL des tuyaux : un cran plus clair, il accroche le néon
+    else col.setRGB(.12,.12,.14);                  // le mât d'antenne : une ligne sombre
     imC.setColorAt(i,col);
   }
   if(imC.instanceColor)imC.instanceColor.needsUpdate=true;
   if(cour.length)pose(cour,new THREE.MeshBasicMaterial({color:accC.clone()}));
-  if(fen.length){ // UN troisième draw call pour toute la ville : sodium, blanc froid, et de temps en temps l'accent de la zone
+  if(fen.length){ // étages, enseignes et feux d'antenne : UN draw call, teinte par instance
     const imF=pose(fen,new THREE.MeshBasicMaterial({color:0xffffff}));
-    const tf=[new THREE.Color(0xffc46b),new THREE.Color(0xffe2a8),new THREE.Color(0x9fdcff),accC];
-    for(let i=0;i<fen.length/6;i++){const r9=vr();imF.setColorAt(i,col.copy(tf[r9<.5?0:r9<.78?1:r9<.94?2:3]).multiplyScalar(.55+vr()*.45));}
+    for(let i=0;i<fenC.length;i++){const k=fenC[i];imF.setColorAt(i,col.copy(NEON[k]).multiplyScalar(k<4?.5+vr()*.45:1));}
     if(imF.instanceColor)imF.instanceColor.needsUpdate=true;
   }
-  // LE PLANCHER : sans lui on voit le vide entre les tours, et la ville flotte au lieu de reposer.
+  // LE PLANCHER : des RUES NÉON vues d'avion — une texture peinte UNE fois pour toutes les villes (jamais disposée)
   const sol=new THREE.Mesh(new THREE.PlaneGeometry(CITY_R*2.6,CITY_R*2.6),
-    new THREE.MeshLambertMaterial({color:0x15161f,emissive:0x05060b}));
+    new THREE.MeshLambertMaterial({color:0x0c0d14,emissive:0xffffff,emissiveMap:cityRues()}));
   sol.rotation.x=-Math.PI/2;sol.position.set(0,gy,0);
   root.add(sol);trackMeshes.push(sol);
+}
+/* `cityRues()` — la trame des rues : fond presque noir, avenues cyan et magenta, ruelles ambre, carrefours
+   qui brillent. Tuilée sur tout le plancher, elle se lit entre les tours comme une ville qui vit la nuit.
+   ⚠ PARTAGÉE ET GARDÉE : `trackMeshes` dispose le matériau à chaque portail, jamais sa texture — une
+   texture neuve par zone serait une fuite ; une seule pour toute la partie ne coûte rien. */
+function cityRues(){
+  if(CITY.rues)return CITY.rues;
+  const N=256,cv=document.createElement('canvas');cv.width=cv.height=N;const x=cv.getContext('2d');
+  x.fillStyle='#000';x.fillRect(0,0,N,N);
+  const trait=(c,w,a,v,pos)=>{x.globalAlpha=a;x.fillStyle=c;if(v)x.fillRect(pos-w/2,0,w,N);else x.fillRect(0,pos-w/2,N,w);};
+  trait('#2ee6ff',3,.55,true,64);trait('#ff2e8e',3,.50,false,160); // les deux avenues
+  for(const q of [20,112,208,236])trait('#ffb85a',1,.28,true,q);    // les ruelles
+  for(const q of [34,96,212])trait('#ffb85a',1,.24,false,q);
+  x.globalAlpha=.9;x.fillStyle='#e8f4ff';for(const [u,v] of [[64,160],[64,34],[208,160]]){x.fillRect(u-3,v-3,6,6);} // les carrefours
+  x.globalAlpha=1;
+  const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(30,30);
+  CITY.rues=t;return t;
 }
 /* LE SUIVI D'ALTITUDE — pourquoi il existe : voir le ⚠⚠ de `buildVoxCity`. La ville ne bouge JAMAIS
    en X/Z (la parallaxe horizontale doit rester vraie) ; seule son altitude court après la caméra,
@@ -3316,7 +3369,7 @@ function updatePadTex(t){ // double chevrons lumineux arrondis qui défilent (te
   padTex.needsUpdate=true;
 }
 // dos d'âne (asphalte + triangles blancs, façon Paris)
-const bumpGeo=new THREE.BoxGeometry(ROAD_HALF*2-1,.34,1.7);
+const bumpGeo=new THREE.BoxGeometry(ROAD_HALF0*2-1,.34,1.7); // taillée sur la largeur DE RÉFÉRENCE : chaque mesh s'étire en X (voir ROAD_HALF)
 const bumpMat=(function(){
   const cv=document.createElement('canvas');cv.width=128;cv.height=32;
   const c=cv.getContext('2d');
@@ -3344,8 +3397,8 @@ const rampTex=(function(){
   c.globalAlpha=1;c.shadowBlur=0;
   return new THREE.CanvasTexture(cv);
 })();
-const rampStripGeo=new THREE.PlaneGeometry(ROAD_HALF*2-2,64); // tapis de chevrons sur la course d'élan
-const rampLipGeo=new THREE.BoxGeometry(ROAD_HALF*2-2,.55,5);  // LA LÈVRE : franche, on la sent claquer
+const rampStripGeo=new THREE.PlaneGeometry(ROAD_HALF0*2-2,64); // tapis de chevrons sur la course d'élan
+const rampLipGeo=new THREE.BoxGeometry(ROAD_HALF0*2-2,.55,5);  // LA LÈVRE : franche, on la sent claquer
 const rampLipMat=new THREE.MeshLambertMaterial({color:0xffb028,emissive:0x6a3400}); // braise chaude : jamais confondue avec un dos d'âne
 const landRingGeo=new THREE.RingGeometry(8.5,11.5,32);        // anneau de visée sur la route d'arrivée
 let sOffset=0;
@@ -3812,13 +3865,26 @@ const BIOMES={
   // agrandie et posée sous la route par `lvlPlanete` — qui tient la lumière. Soleil blanc et dur (pas
   // d'atmosphère pour le rougir), remplissage bleu-Terre, brume quasi noire et très lointaine : au-delà
   // de la route il n'y a rien à fondre, seulement de la distance.
-  espace:{ nm:'ORBITE', skyMul:[.16,.16,.30],skyLift:[0,0,.02],sunTint:[1,.90,.80],sunHalo:.42,city:0,stars:2.4,moon:.55,
-    fog:[.020,.024,.060],fogN:900,fogF:4200,
+  // ⚠ (2026-09-24) « dans le NOIR COMPLET » : zéro étoile, zéro lune, zéro halo solaire — il ne reste que la
+  // Terre, la route et la caisse. Le soleil garde sa LUMIÈRE (sunI) : c'est lui qui éclaire la Terre et la caisse.
+  espace:{ nm:'ORBITE', skyMul:[0,0,0],skyLift:[0,0,0],sunTint:[1,.90,.80],sunHalo:0,city:0,stars:0,moon:0,
+    fog:[0,0,0],fogN:900,fogF:4200,
     hemiS:[.36,.44,.70],hemiG:[.05,.06,.12],hemiI:.44, sunC:[1,.96,.90],sunI:1.40,
     fillC:[.26,.46,.96],fillI:.34, kickC:[.52,.40,1.0],kickI:.22,
     volSun:[1.25,1.20,1.65],volSky:[.12,.14,.32],volGnd:[.03,.03,.08],volAmb:.40,
     expo:.74,sat:1.30,
     env:[[0,'#04050e'],[.3,'#0a0d24'],[.48,'#1a2250'],[.58,'#2c3f86'],[.66,'#0c1026'],[1,'#020208']],eS1:[200,222,255,.46],eS2:[120,150,255,.30]},
+  // ---- PLUIE NÉON (2026-09-24) : le ciel du niveau VILLE — « le village caché de la pluie », version cyberpunk ----
+  // Un plafond ARDOISE bas et mouillé (pas de soleil : sunHalo au plancher, pas de lune, pas d'étoiles), une
+  // brume gris-bleu qui avale le lointain, et toute la couleur qui vient d'EN BAS : la guirlande néon de
+  // l'horizon au maximum (city 1.5), un remplissage CYAN et un contre-jour MAGENTA — les deux néons de la pluie.
+  pluie:{ nm:'PLUIE NÉON', skyMul:[.42,.50,.64],skyLift:[.03,.04,.06],sunTint:[.70,.50,.80],sunHalo:.06,city:1.5,stars:0,moon:0,
+    fog:[.12,.14,.19],fogN:320,fogF:2600,
+    hemiS:[.42,.48,.64],hemiG:[.06,.07,.10],hemiI:.44, sunC:[.62,.70,.95],sunI:.72,
+    fillC:[.25,.80,.95],fillI:.34, kickC:[1,.25,.70],kickI:.30,
+    volSun:[.95,1.0,1.25],volSky:[.20,.24,.34],volGnd:[.05,.06,.09],volAmb:.44,
+    expo:.72,sat:1.38,
+    env:[[0,'#10141e'],[.3,'#1c2434'],[.48,'#3a4a5e'],[.58,'#6a3a6a'],[.66,'#1a2030'],[1,'#080a12']],eS1:[255,90,200,.45],eS2:[80,230,255,.35]},
 };
 // Le tirage du jour, dans l'ordre des heures (+ l'ORAGE en joker météo) — la NUIT ne se tire pas,
 // elle se MÉRITE (3 portails). 9 ambiances en rotation : deux parties ne se ressemblent plus.
@@ -3843,9 +3909,10 @@ function bioApply(c){ // pousse l'ambiance mélangée dans TOUS les organes (uni
   CLOUD_MAT.color.setRGB(Math.min(1,.55+c.volSun[0]*.16),Math.min(1,.55+c.volSun[1]*.16),Math.min(1,.55+c.volSun[2]*.16));
   POST_EXPO=c.expo;if(acesPass)acesPass.uniforms.uSat.value=c.sat;
   // le SOLEIL « 1.61 », sa nappe d'horizon et ses rayons sont des SPRITES hors shader : ils suivent le halo du biome
-  sunSprite.material.opacity=Math.min(1,.15+c.sunHalo*.85);
-  horizonGlow.material.opacity=.8*c.sunHalo;
-  for(const r9 of RAYS)r9.material.opacity=RAY_OPACITY*c.sunHalo;
+  const nuit9=1-LVL.espace; // ORBITE, NOIR COMPLET : même le disque « 1.61 » s'éteint (lvlStep tourne AVANT bioStep : la valeur est fraîche)
+  sunSprite.material.opacity=Math.min(1,.15+c.sunHalo*.85)*nuit9;
+  horizonGlow.material.opacity=.8*c.sunHalo*nuit9;
+  for(const r9 of RAYS)r9.material.opacity=RAY_OPACITY*c.sunHalo*nuit9;
 }
 function bioGo(name,dur){ // lance le voyage vers un biome (reflets carrosserie repeints tout de suite : discret)
   if(!BIOMES[name])name='golden';
@@ -3880,18 +3947,28 @@ window.dbgBio=function(n,d){bioGo(n,d||2);}; // console : dbgBio('nuit') → tes
    ⚠ `LVL.cur` est posé AVANT `buildTrack` (voir `newTrack`) : `buildClouds` et `buildVoxCity` le
    lisent pendant la construction. Un nuage sauté ne décale que le RNG LOCAL des nuages, jamais `rnd`.
    ========================================================================== */
+/* ⚠ L'ORDRE ET LES CIELS (2026-09-24, user) : « d'abord le premier niveau dans les nuages en journée
+   SANS motif musical dans le ciel, deuxième au-dessus de la ville AVEC les clignotements dans le ciel,
+   troisième dans l'espace au-dessus de la Terre et dans le NOIR COMPLET ». `cielMusical` pilote le fond
+   de rythme du dôme (roue, ondes, piliers, onde de couleur) ET son souffle (`uPulse`) — voir musicTick.
+   `pluie` : le rideau de pluie de la ville (voir PLUIE). */
 const NIVEAUX=[
-  {id:'ville', nm:'AU-DESSUS DE LA VILLE',bio:['soir','nuit','couchant','aube','orage'],planete:.5, espace:0},
-  {id:'nuages',nm:'MER DE NUAGES',        bio:['matin','lever','golden','aprem','midi'],planete:.8, espace:0},
-  {id:'espace',nm:'EN ORBITE',            bio:['espace'],                               planete:1.35,espace:1},
+  {id:'nuages',nm:'MER DE NUAGES',        bio:['matin','midi','aprem'],planete:.8, espace:0,pluie:0,cielMusical:false},
+  {id:'ville', nm:'AU-DESSUS DE LA VILLE',bio:['pluie'],               planete:0,  espace:0,pluie:1,cielMusical:true},
+  {id:'espace',nm:'EN ORBITE',            bio:['espace'],              planete:1.35,espace:1,pluie:0,cielMusical:false},
 ];
 const LVL={cur:null,n:0,k:1,dur:4,
   espace:0,espaceDe:0,espaceA:0,       // uSpace : 0 = le ciel de toujours, 1 = le noir étoilé de l'orbite
   planete:1,planeteDe:1,planeteA:1,    // échelle de la planète (1 = sa taille historique)
+  pluie:0,pluieDe:0,pluieA:0,          // opacité du rideau de pluie (niveau VILLE)
   dir:PLANET_DIR.clone(),tmp:new THREE.Vector3(),tmp2:new THREE.Vector3(),haut:new THREE.Vector3(0,1,0)};
+// LA LARGEUR PAR NIVEAU (× ROAD_HALF0 = 14) : très large pour apprendre, puis la route se resserre à chaque
+// portail jusqu'à un plancher qui reste plus large que l'ancienne route. Une nouvelle partie repart au niveau 1.
+const LARGEUR=[1.7,1.55,1.4,1.25,1.1];
 function lvlChoisir(){ // appelé par newTrack AVANT buildTrack
-  if(PARK.on){LVL.cur=null;return null;}
   const z=runStats.zones|0;
+  ROAD_HALF=ROAD_HALF0*(PARK.on?1.4:LARGEUR[Math.min(LARGEUR.length-1,z)]);
+  if(PARK.on){LVL.cur=null;return null;}
   LVL.cur=NIVEAUX[z%NIVEAUX.length];LVL.n=z+1;
   return LVL.cur;
 }
@@ -3902,8 +3979,8 @@ function lvlBiome(){ // le ciel du niveau : tiré dans SA liste, jamais deux foi
 }
 function lvlGo(dur){ // les deux leviers HORS biome (uSpace, taille de planète) suivent le même fondu que le ciel
   const c=LVL.cur;
-  LVL.espaceDe=LVL.espace;LVL.planeteDe=LVL.planete;
-  LVL.espaceA=c?c.espace:0;LVL.planeteA=c?c.planete:1;
+  LVL.espaceDe=LVL.espace;LVL.planeteDe=LVL.planete;LVL.pluieDe=LVL.pluie;
+  LVL.espaceA=c?c.espace:0;LVL.planeteA=c?c.planete:1;LVL.pluieA=c?c.pluie:0;
   LVL.k=0;LVL.dur=dur||4;
   if(LVL.dur<=.05)lvlStep(1);
 }
@@ -3913,6 +3990,7 @@ function lvlStep(dt){
   const e=LVL.k*LVL.k*(3-2*LVL.k); // même smoothstep que bioStep : les deux basculent d'un seul mouvement
   LVL.espace=LVL.espaceDe+(LVL.espaceA-LVL.espaceDe)*e;
   LVL.planete=LVL.planeteDe+(LVL.planeteA-LVL.planeteDe)*e;
+  LVL.pluie=LVL.pluieDe+(LVL.pluieA-LVL.pluieDe)*e;
   skyU.uSpace.value=LVL.espace;
 }
 /* LA PLANÈTE DU NIVEAU. Hors orbite elle garde sa place de toujours (`PLANET_DIR`, fixe dans le monde).
@@ -3924,7 +4002,8 @@ function lvlStep(dt){
    caméra et loin du plan lointain (9 800). */
 function lvlPlanete(dt){
   const sc=LVL.planete;
-  planetGroup.scale.setScalar(sc);
+  planetGroup.visible=sc>.02; // la VILLE sous la pluie n'a pas de planète : ciel bouché
+  planetGroup.scale.setScalar(Math.max(.02,sc));
   const t=LVL.tmp;camera.getWorldDirection(t);t.y=0;
   if(t.lengthSq()<1e-6)t.copy(LVL.dir);
   t.normalize().applyAxisAngle(LVL.haut,.5);t.y=-.70;t.normalize();
@@ -3945,7 +4024,43 @@ function lvlAnnonce(){ // la bannière « NIVEAU n — LIEU » (fondu d'opacité
   document.getElementById('lvlNom').textContent=TR(LVL.cur.nm);
   b.classList.add('on');clearTimeout(lvlBanT);lvlBanT=setTimeout(function(){b.classList.remove('on');},2800);
 }
-window.dbgNiveau=function(){return LVL.cur?{niveau:LVL.n,lieu:LVL.cur.id,ciel:BIO.name,uSpace:+LVL.espace.toFixed(2),
+/* ---- LA PLUIE DU VILLAGE (2026-09-24) — un rideau de traits qui tombe AUTOUR de la caméra ----------------
+   ⚠ ZÉRO CPU PAR FRAME : 1 100 traits (600 sur téléphone) dont la chute ET le repliement vivent dans le
+   vertex shader. Chaque goutte est une graine fixe dans une boîte de 170 × 130 × 170 ; le shader la fait
+   descendre avec le temps puis la replie (`mod`) dans la boîte centrée sur la caméra — la caméra peut foncer
+   à 1 400 km/h, il pleut toujours autour d'elle. Un seul draw call, deux sommets par goutte.
+   ⚠ CRÉÉE ET COMPILÉE À L'INIT (même règle que les lumières du changement de moteur) : un matériau neuf au
+   premier portail de la ville, c'est un hoquet de compilation au pire moment. Elle reste donc DANS la scène,
+   invisible hors niveau VILLE ; `uOp` suit le fondu du niveau (`LVL.pluie`). */
+const PLUIE=(function(){
+  const N=IS_MOBILE?600:1100,pos=new Float32Array(N*6),bout=new Float32Array(N*2); // dosée pour que la route reste LISIBLE à travers
+  for(let i=0;i<N;i++){const a=Math.random(),b=Math.random(),c=Math.random();
+    pos.set([a,b,c,a,b,c],i*6);bout[i*2]=0;bout[i*2+1]=1;}
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.BufferAttribute(pos,3)); // la GRAINE de la goutte (three exige un attribut `position`)
+  g.setAttribute('aBout',new THREE.BufferAttribute(bout,1));   // 0 = la tête, 1 = la queue du trait
+  const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,fog:false,
+    uniforms:{uTime:{value:0},uOp:{value:0},uCam:{value:new THREE.Vector3()}},
+    vertexShader:['attribute float aBout;uniform float uTime;uniform vec3 uCam;uniform float uOp;varying float vA;',
+      'void main(){',
+      '  vec3 B=vec3(170.,130.,170.);',
+      '  vec3 p=position*B;',
+      '  p.y-=uTime*(95.+position.x*45.);',            // la chute, un peu différente pour chaque goutte
+      '  vec3 o=uCam-B*.5;',
+      '  p=o+mod(p-o,B);',                             // repliée dans la boîte qui suit la caméra
+      '  p+=vec3(.12,-1.,.05)*aBout*(5.+position.z*5.);', // la traînée, inclinée par le vent
+      '  vA=(1.-aBout*.85)*uOp;',
+      '  gl_Position=projectionMatrix*viewMatrix*vec4(p,1.);}'].join('\n'),
+    fragmentShader:'varying float vA;void main(){gl_FragColor=vec4(.74,.86,1.,vA*.36);}'});
+  const l=new THREE.LineSegments(g,m);l.frustumCulled=false;l.renderOrder=9;
+  scene.add(l);return l;
+})();
+function pluieTick(t){ // appelée par la boucle : suit la caméra, suit le fondu — et ne dessine RIEN hors de la ville
+  const u=PLUIE.material.uniforms;u.uOp.value=LVL.pluie;u.uTime.value=t;u.uCam.value.copy(camera.position);
+  PLUIE.visible=LVL.pluie>.01||!PLUIE.userData.vu; // dessinée UNE fois au boot (compilation), ensuite seulement quand il pleut
+  PLUIE.userData.vu=true;
+}
+window.dbgNiveau=function(){return LVL.cur?{niveau:LVL.n,lieu:LVL.cur.id,ciel:BIO.name,largeurRoute:+(ROAD_HALF*2).toFixed(1),uSpace:+LVL.espace.toFixed(2),
   planete:+LVL.planete.toFixed(2),ville:!!CITY.root,nuages:CLOUDS.length}:'parc freestyle (pas de niveaux)';};
 paintEnv(BIOMES.golden.env,BIOMES.golden.eS1,BIOMES.golden.eS2); // premier reflet = golden hour (la vitrine du menu)
 const carGroup=new THREE.Group();scene.add(carGroup);
@@ -7697,7 +7812,8 @@ function musicTick(dt,mvt){
   if(NIVEAU_FX>0)NIVEAU_FX=Math.max(0,NIVEAU_FX-dt);
   const surge=NIVEAU_FX>0?Math.min(1,NIVEAU_FX/2.6):0;
   const lvlK=(1+Math.min(1.3,(typeof engTier!=='undefined'?engTier:0)*.028))*(1+surge*1.5);
-  skyU.uPulse.value=Math.min(1.7,(MUSIC_PULSE*.5+MUSIC_BEAT*.6)*lvlK*(1+musicBoostEnv*.5)); // LE CIEL RESPIRE + COGNE au boost (plafonné)
+  const cielMus=!LVL.cur||LVL.cur.cielMusical; // NIVEAUX : le ciel ne joue la musique qu'au niveau VILLE (nuages : ciel calme, orbite : noir complet)
+  skyU.uPulse.value=cielMus?Math.min(1.7,(MUSIC_PULSE*.5+MUSIC_BEAT*.6)*lvlK*(1+musicBoostEnv*.5)):0; // LE CIEL RESPIRE + COGNE au boost (plafonné)
   if(bloomPass){if(musicTick._bloom==null)musicTick._bloom=bloomPass.strength;
     bloomPass.strength=musicTick._bloom*(1+MUSIC_BEAT*.6*lvlK+musicBoostEnv*.3);} // et le bloom cogne au beat + au boost
   /* LE FOND DU NIVEAU : roue, ondes, lueur, piliers — tout ce qui joue la musique dans le ciel.
@@ -7705,7 +7821,7 @@ function musicTick(dt,mvt){
      exécutable dans l'atelier. L'accent vient des rails, donc le ciel et la piste sont toujours de
      la même couleur — sans avoir à répéter la règle à deux endroits. */
   lvlTick(dt,{onset:musicTick._onset||0,pulse:MUSIC_PULSE,beat:MUSIC_BEAT,hi:MUSIC_HI,boost:musicBoostEnv,surge:surge,
-    on:(musicOn&&musicMode==='run'&&running&&!gameOver),
+    on:(musicOn&&musicMode==='run'&&running&&!gameOver&&cielMus),
     acc:(NEON_RAILS.length&&NEON_RAILS[0].userData.base)||null});
   /* LES ASTRES PRENNENT LA MUSIQUE. `lvlTick` a calculé l'éclat, on le POSE ici sur les objets —
      le bloc <<<FOND>>> ne connaît ni le soleil ni la planète, c'est la règle qui garde l'atelier
@@ -9442,7 +9558,10 @@ let startBoostT=0;
 // (rejeu direct) ET depuis la fin du LÂCHER du garage (`GAR.go`, prembattre le tout premier départ)
 // pour que le geste soit identique dans les deux cas, sans dupliquer le minuteur du logo.
 function fireLaunchBoost(){
-  startBoostT=3;paintMoney();
+  // ⚠ (2026-09-24) la nitro OFFERTE n'est plus armée : elle tenait la touche à la place du joueur pendant
+  // 3 s, et le départ de la version de Sacha — la caisse qui s'arrache toute seule au gaz auto — est celui
+  // que le user trouve le plus fun. Le logo et son halo restent : c'est le geste, pas la poussée.
+  startBoostT=0;paintMoney();
   // LE LOGO + SON HALO (agrandis 2026-09-05, « plus impressionnant ») : les DEUX partagent la MÊME
   // classe `.on` et le MÊME minuteur — un flash sans le mot, ou le mot sans le flash, ferait deux
   // demi-effets au lieu d'un seul coup net.
@@ -11986,8 +12105,8 @@ function loop(now){
       if(curDPR<ceil9-.001&&loop._dprUp>=4){loop._dprUp=0;loop._dprRoseT=now;curDPR=Math.min(ceil9,curDPR+.08);applyDPR();}}
     else loop._dprUp=0;
   }
+  lvlStep(dt); // NIVEAUX : le noir de l'orbite, la planète et la pluie suivent le même fondu — AVANT bioStep, qui lit LVL.espace
   bioStep(dt); // BIOMES : le voyage d'ambiance avance même au menu/en pause de jeu (c'est le ciel qui vit, pas la sim)
-  lvlStep(dt); // NIVEAUX : le noir de l'orbite et la taille de la planète suivent le même fondu
   if(parkGrassMat)parkGrassMat.uniforms.uTime.value=now*.001; // l'herbe longue du parc ondule au vent (now : dispo avant `const t`)
   cityTick(dt,camera.position.y); // LA VILLE : son altitude court après la caméra (hors gate de sim — le décor vit au menu, comme le ciel)
   if(slowT>0){slowT-=dt;dt*=.45;} // slow-mo d'atterrissage
@@ -12409,59 +12528,28 @@ function loop(now){
         // caméra (lean/swing) ajoutée depuis, l'image est devenue trop serrée. Le recul de base
         // remonte à 5,3 — entre l'ancien 4,6 et le 4,1 récent — la HAUTEUR suit (même rapport ×.46),
         // donc l'angle de vue ne change pas, seule la distance augmente.
-        const camBack=(5.3+speedKmh*.0034+camBoost*2.4)*(1-POR*.30),camH=(camBack*.46+speedKmh*.0013+camBoost*.32)*(1+POR*.72);
-        // ---- DYNAMIQUE DE CAMÉRA v1 : lean + swing + kick (voir la déclaration de camLean/camSwing/camKick) ----
-        // `turnRate` : le braquage réel, pondéré par la vitesse — immobile ou au ralenti, aucun lean
-        // (une caméra qui gîte à l'arrêt a l'air cassée, pas dynamique).
-        const turnRate=steer*Math.min(1,speedKmh/140);
-        // ⚠ RALENTI (2026-09-05, plainte du user : « encore un peu trop brusque, faudrait plus avoir
-        // l'impression de flotter et suivre la voiture que de tourner en fonction des flèches ») :
-        // le lean/swing collaient de trop près à `steer`, qui lui-même répond au clavier en ~0,055 s
-        // (`steer+=(target-steer)*dt*18`, ailleurs dans le fichier) — la caméra rejouait donc le
-        // RYTHME DES TOUCHES, pas le mouvement de la caisse. Les deux constantes de temps DOUBLENT
-        // (4,5→2,2 et 2,4→1,3) : le lean met ~0,45 s à s'installer au lieu de 0,22, le swing ~0,77 s
-        // au lieu de 0,42. Le langage ne change pas (lean rapide, swing qui traîne encore plus
-        // derrière), l'échelle non plus (`dbgCam9()` reste valable) — seul le TEMPS DE RÉPONSE
-        // s'étire, ce qui est exactement ce qui lit comme « flotter » plutôt que « pivoter ».
-        /* ⚠ LE ROULIS REVIENT À CELUI DE SACHA (2026-09-24, user : « je n'aime pas l'inclinaison de
-           caméra quand on tourne de la version de Léo »). Le lean v1 penchait l'horizon jusqu'à ~8°
-           (`turnRate*.14`) avec 0,45 s de retard ; retour au 0,035 rad (~2°) qui suit le volant, sans
-           traîne. Le SWING (glissement latéral) et le KICK (poussée au boost) restent : ils ne penchent
-           pas l'horizon. `camLean` garde son nom pour `dbgCam9()`. */
-        camLean=steer*.035;
-        camSwing+=(turnRate*.45-camSwing)*Math.min(1,dt*1.3);
-        const kickTarget=(nitroOn?(nitroBlue?1.3:.95):0)+Math.min(1,boost)*.55;
-        camKick+=(kickTarget-camKick)*Math.min(1,dt*(kickTarget>camKick?7.5:2.4)); // monte VITE sur la poussée, retombe en douceur — c'est l'asymétrie qui fait « kick » plutôt que « respiration »
-        tmp2.copy(carGroup.position).addScaledVector(fwdW,-camBack).addScaledVector(F.n,camH).addScaledVector(tmp,camSwing);
-        // ⚠ REVENU EN ARRIÈRE (2026-09-05) : le 5→3 d'une passe plus tôt traînait TROP — au moment
-        // précis d'un crash, la caméra explosion vise `boomPos` (fixe) mais si elle était encore
-        // loin derrière la caisse au moment de l'impact, l'explosion rendait minuscule/lointaine.
-        // Résultat rapporté par le user : « aucune explosion visible, la voiture TP et le menu
-        // s'affiche » — pas un bug d'état (la séquence boom → endGame() est intacte et inchangée),
-        // un problème de LISIBILITÉ causé par le lag de caméra. dt*3→dt*4.2 : on garde un peu de
-        // traîne dans les virages (toujours plus lent que le dt*5 d'origine) sans perdre le crash
-        // de vue au moment où il compte le plus.
-        camera.position.lerp(tmp2,Math.min(1,dt*4.2));
+        /* ⚠ LA CAMÉRA DE CONDUITE DE SACHA, RÉTABLIE EN BLOC (2026-09-24, user : « la physique de conduite
+           est beaucoup plus fun dans la version de Sacha, reprends-la »). Mesuré avant de toucher : les
+           ÉQUATIONS de conduite (accélération, adhérence, braquage, `steer`) sont identiques dans les deux
+           versions — ce qui change la sensation, c'est tout ce qui l'ENTOURE. Retour donc, à l'identique :
+           recul 4,6 (et non 5,3) qui s'allonge avec la vitesse, hauteur ×.393, suivi `dt*5`, roulis 0,035,
+           visée fixe — et surtout le CHAMP qui s'ouvre franchement (jusqu'à +38°, +22 en réserve bleue) :
+           c'est lui qui dit « ça pousse ». Le glissement latéral (`camSwing`) et le coup de tête au boost
+           (`camKick`) de la version de Léo sont retirés ; les variables restent à 0 pour `dbgCam9()`. */
+        const camBack=(4.6+speedKmh*.006+camBoost*3.8)*(1-POR*.30),camH=(camBack*.393+speedKmh*.0018+camBoost*.35)*(1+POR*.72);
+        camLean=steer*.035;camSwing=0;camKick=0;
+        tmp2.copy(carGroup.position).addScaledVector(fwdW,-camBack).addScaledVector(F.n,camH);
+        camera.position.lerp(tmp2,Math.min(1,dt*5));
         camUp.lerp(F.n,Math.min(1,dt*4)).normalize();
-        qTmp2.setFromAxisAngle(fwdW,-camLean); // inclinaison caméra dans les virages (lissée, voir camLean)
+        qTmp2.setFromAxisAngle(fwdW,-camLean); // inclinaison caméra très légère dans les virages
         camUp.applyQuaternion(qTmp2);
         camera.up.copy(camUp);
         // PORTRAIT : on vise plus BAS (F.n 1,05 → 0,50) — la caméra pique du nez, donc la caisse
         // REMONTE dans le cadre au lieu de sortir par le bas. Reculer/monter/viser bas se règlent
         // ENSEMBLE : sans cette ligne, camBack et camH seuls laissaient une caisse minuscule en bas.
-        // `camKick` lève ADDITIONNELLEMENT la visée : l'écran « part en l'air » sur une poussée nitro/
-        // boost, sans changer le FOV (déjà piloté ailleurs) ni la hauteur de la caméra elle-même —
-        // seul l'HORIZON monte dans le cadre. `camSwing` décale aussi la visée (même sens que la
-        // position, amorti différemment) : la caméra ne fait pas que glisser, elle regarde encore
-        // légèrement VERS l'intérieur du virage pendant qu'elle glisse vers l'extérieur.
-        tmp2.copy(carGroup.position).addScaledVector(fwdW,8.5+POR*1.2).addScaledVector(F.n,1.05-POR*.55+camKick*.9).addScaledVector(tmp,camSwing*.4-turnRate*.35);
+        tmp2.copy(carGroup.position).addScaledVector(fwdW,8.5+POR*1.2).addScaledVector(F.n,1.05-POR*.55);
         camera.lookAt(tmp2);
-        // ⚠ LE DEZOOM ETAIT LA, ET IL ETAIT ENORME : l'ouverture allait jusqu'a +38°, plus 8 au boost,
-        // plus 22 en reserve bleue — soit ~127° de champ en pointe, un fisheye ou la caisse n'est plus
-        // qu'un jeton. On GARDE l'effet (c'est lui qui dit « ca pousse ») mais on le divise par deux et
-        // demi : l'ouverture reste LISIBLE au lieu d'etaler l'image. Le reste de la sensation de vitesse
-        // ne bouge pas d'un poil — speed lines, vibration, sifflement, trainee, tremblement du compteur.
-        const fovT=(70+Math.min(17,(speedKmh/Math.max(1,vmaxShow()))*9+speedKmh*.013)+(boost>0?4:0)+(nitroOn?(nitroBlue?11:7):0))*FOV_K; // le tunnel s'ouvre : part RELATIVE + part absolue + GROS coup de FOV au boost (sensation de rush)
+        const fovT=(72+Math.min(38,(speedKmh/Math.max(1,vmaxShow()))*17+speedKmh*.030)+(boost>0?8:0)+(nitroOn?(nitroBlue?22:15):0))*FOV_K; // le tunnel s'ouvre : part RELATIVE + part absolue + GROS coup de FOV au boost (Sacha)
         camera.fov+=(fovT-camera.fov)*Math.min(1,dt*6);
         camera.updateProjectionMatrix();
         if(shake>0){
@@ -13234,6 +13322,7 @@ function loop(now){
     acesPass.uniforms.uSpeed.value=loop._sfx;
   }
   lvlPlanete(dt); // la planète tient sa place dans le ciel — et en ORBITE elle passe sous la route (voir NIVEAUX)
+  pluieTick(t);   // la pluie de la VILLE tombe autour de la caméra (invisible ailleurs)
   planetGroup.userData.globe.rotation.y=t*.014;                                 // …et tourne lentement sur son axe
   sunSprite.position.copy(camera.position).addScaledVector(SUN_DIR,3600);
   horizonGlow.position.copy(camera.position).addScaledVector(SUN_DIR,3650);

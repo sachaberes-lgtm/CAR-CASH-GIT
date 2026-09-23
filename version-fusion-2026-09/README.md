@@ -12,10 +12,12 @@ garage, radio). Historique détaillé sur la branche `fusion-2026-09`.
 - Sur iPhone (même Wi-Fi) : `python3 -m http.server 8000 --bind 0.0.0.0`, puis l'adresse IP du Mac
 
 ## Ce qu'il y a de neuf
-- **Niveaux** en boucle : AU-DESSUS DE LA VILLE → MER DE NUAGES → EN ORBITE (la planète sous la route).
+- **Niveaux** en boucle : 1 MER DE NUAGES (journée, ciel calme) → 2 AU-DESSUS DE LA VILLE (le village
+  caché de la pluie, cyberpunk, ciel qui joue la musique) → 3 EN ORBITE (au-dessus de la Terre, noir complet).
   Console : `dbgSaut()` passe au niveau suivant, `dbgNiveau()` dit où l'on est.
+- **Route** très large au niveau 1, qui se resserre à chaque niveau (pour les débutants).
+- **Conduite** : la caméra et les sensations de la version de Sacha.
 - Mobile : garage, menu et splash corrigés en portrait ; téléphone couché = pause expliquée.
-- Caméra : l'inclinaison dans les virages est revenue à celle de Sacha.
 - « Réduire les animations » respecté (logo, jus de fruit, filés de vitesse).
 - 100 % hors ligne : `vendor/` (three.js r128) et la police locale, aucun CDN.
 
