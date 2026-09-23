@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>CASH CAR — Dauphins oniriques (aperçu)</title>
+<style>
+  html,body{margin:0;height:100%;background:#04060f;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#cfe9ff}
+  #c{position:fixed;inset:0;display:block}
+  /* vignette onirique par dessus le rendu */
+  #vig{position:fixed;inset:0;pointer-events:none;
+       background:radial-gradient(120% 90% at 50% 42%,transparent 46%,rgba(4,8,26,.35) 78%,rgba(2,4,14,.72) 100%);
+       mix-blend-mode:multiply}
+  #ui{position:fixed;left:18px;bottom:16px;pointer-events:none;font-size:12px;line-height:1.5;
+      text-shadow:0 1px 8px rgba(0,20,40,.9);opacity:.85}
+  #ui b{color:#7fe8ff;letter-spacing:.5px}
+  #ui .k{display:inline-block;min-width:12px;padding:1px 6px;margin:0 2px;border-radius:5px;
+      background:rgba(127,232,255,.14);border:1px solid rgba(127,232,255,.25);color:#cff6ff;font-size:11px}
+  #title{position:fixed;left:0;right:0;top:22px;text-align:center;pointer-events:none;
+      font-weight:800;letter-spacing:3px;font-size:15px;color:#bfefff;
+      text-shadow:0 0 22px rgba(80,200,255,.55),0 2px 10px rgba(0,0,0,.6);opacity:.9}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="vig"></div>
+<div id="title">🐬  L E   D A U P H I N  🐬</div>
+<div id="ui">
+  <b>Aperçu séparé du jeu</b> — prêt à porter dans la figure DAUPHIN.<br>
+  <span class="k">Espace</span> nouveau saut &nbsp;·&nbsp; <span class="k">1-5</span> nombre &nbsp;·&nbsp; <span class="k">G</span> lueur &nbsp;·&nbsp; glisser = tourner la caméra
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ============================================================================
+   CASH CAR — DAUPHINS ONIRIQUES  (aperçu autonome, Three.js r128)
+   Tout est procédural : aucun asset externe. Bleu / cyan / blanc, rêveur.
+   Conçu pour être extrait tel quel et branché sur la figure LE DAUPHIN.
+   ========================================================================== */
+const CV = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({canvas:CV, antialias:true, alpha:false});
+renderer.setPixelRatio(Math.min(devicePixelRatio||1, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.setClearColor(0x0a1330, 1);
+renderer.outputEncoding = THREE.sRGBEncoding;
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x142a5c, 0.016);
+
+const camera = new THREE.PerspectiveCamera(52, innerWidth/innerHeight, 0.1, 200);
+camera.position.set(0, 1.4, 13);
+
+/* ---- lumière : ciel cyan, sol indigo, contre-jour blanc ------------------ */
+const hemi = new THREE.HemisphereLight(0xbff0ff, 0x14205a, 1.25);
+scene.add(hemi);
+scene.add(new THREE.AmbientLight(0x3a5aa0, 0.45));
+const key = new THREE.DirectionalLight(0xf2fdff, 1.35);
+key.position.set(-4, 8, 6); scene.add(key);
+const rim = new THREE.DirectionalLight(0x6fe0ff, 1.1);
+rim.position.set(5, 2, -7); scene.add(rim);
+const under = new THREE.PointLight(0x3f8cff, 0.8, 46);
+under.position.set(0, -6, 4); scene.add(under);
+
+/* ============================ TEXTURES PROC =============================== */
+function radialTex(inner, outer, hard){           // disque doux additif
+  const s=128, cv=document.createElement('canvas'); cv.width=cv.height=s;
+  const x=cv.getContext('2d'); const g=x.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2);
+  g.addColorStop(0,inner); g.addColorStop(hard||0.5,outer); g.addColorStop(1,'rgba(0,0,0,0)');
+  x.fillStyle=g; x.fillRect(0,0,s,s);
+  const t=new THREE.CanvasTexture(cv); t.needsUpdate=true; return t;
+}
+const TEX_SOFT  = radialTex('rgba(255,255,255,.95)','rgba(150,230,255,.35)',0.42);
+const TEX_SPARK = radialTex('rgba(255,255,255,1)','rgba(120,220,255,.5)',0.28);
+const TEX_MIST  = radialTex('rgba(150,225,255,.5)','rgba(80,160,255,.14)',0.55);
+
+/* ============================ FOND DÉGRADÉ =============================== */
+(function backdrop(){
+  const geo=new THREE.SphereGeometry(90,32,24);
+  const col=[]; const pos=geo.attributes.position;
+  const cTop=new THREE.Color(0x1c56a0), cMid=new THREE.Color(0x16307a), cBot=new THREE.Color(0x090f28);
+  const cGlow=new THREE.Color(0x4a9bff);
+  for(let i=0;i<pos.count;i++){
+    const y=pos.getY(i)/90;                 // -1..1
+    const t=(y+1)/2;
+    let c=new THREE.Color().copy(cBot).lerp(cMid,Math.min(1,t*1.6));
+    c.lerp(cTop,Math.max(0,(t-0.55))*2.2);
+    // halo lumineux vers le bas-centre (la "surface")
+    c.lerp(cGlow, Math.max(0,(0.30-Math.abs(t-0.42)))*1.1);
+    col.push(c.r,c.g,c.b);
+  }
+  geo.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
+  const m=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.BackSide,fog:false});
+  scene.add(new THREE.Mesh(geo,m));
+})();
+
+/* ---- rayons de lumière (god rays) doux qui ondulent ---------------------- */
+const rays=[];
+(function godRays(){
+  const rt=(function(){                     // dégradé vertical, brillant en haut
+    const w=32,h=256,cv=document.createElement('canvas');cv.width=w;cv.height=h;
+    const x=cv.getContext('2d');const g=x.createLinearGradient(0,0,0,h);
+    g.addColorStop(0,'rgba(180,235,255,.55)');g.addColorStop(.5,'rgba(120,200,255,.16)');
+    g.addColorStop(1,'rgba(60,140,255,0)');
+    x.fillStyle=g;x.fillRect(0,0,w,h);
+    // léger flou latéral
+    const g2=x.createLinearGradient(0,0,w,0);
+    g2.addColorStop(0,'rgba(0,0,0,0)');g2.addColorStop(.5,'rgba(255,255,255,.0)');g2.addColorStop(1,'rgba(0,0,0,0)');
+    return new THREE.CanvasTexture(cv);
+  })();
+  for(let i=0;i<7;i++){
+    const w=1.6+Math.random()*2.4, h=34;
+    const g=new THREE.PlaneGeometry(w,h);
+    const m=new THREE.MeshBasicMaterial({map:rt,transparent:true,opacity:0.10+Math.random()*0.08,
+        blending:THREE.AdditiveBlending,depthWrite:false,fog:false,side:THREE.DoubleSide});
+    const p=new THREE.Mesh(g,m);
+    p.position.set(-16+Math.random()*32, 9, -8-Math.random()*14);
+    p.rotation.z=(Math.random()-0.5)*0.5;
+    p.userData={ph:Math.random()*6.28, sw:0.2+Math.random()*0.3};
+    scene.add(p); rays.push(p);
+  }
+})();
+
+/* ---- bokeh flottant (poussière d'étoiles onirique) ----------------------- */
+(function bokeh(){
+  const N=180, pos=new Float32Array(N*3), sz=new Float32Array(N);
+  const drift=[];
+  for(let i=0;i<N;i++){
+    pos[i*3]=(Math.random()-0.5)*46; pos[i*3+1]=(Math.random()-0.5)*30;
+    pos[i*3+2]=-6-Math.random()*30; sz[i]=0.15+Math.random()*0.7;
+    drift.push({x:(Math.random()-.5)*0.15,y:0.05+Math.random()*0.12,ph:Math.random()*6.28});
+  }
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  g.setAttribute('size',new THREE.BufferAttribute(sz,1));
+  const m=new THREE.PointsMaterial({map:TEX_SOFT,size:1,transparent:true,opacity:0.5,
+     color:0x9fe0ff,blending:THREE.AdditiveBlending,depthWrite:false,sizeAttenuation:true,fog:false});
+  const pts=new THREE.Points(g,m); scene.add(pts);
+  window.__bokeh={pts,drift,pos};
+})();
+
+/* ---- bande de "surface" brumeuse que les dauphins franchissent ----------- */
+(function surface(){
+  const g=new THREE.PlaneGeometry(70,10);
+  const m=new THREE.MeshBasicMaterial({map:TEX_MIST,transparent:true,opacity:0.32,
+     color:0x69b8ff,blending:THREE.AdditiveBlending,depthWrite:false,fog:false});
+  const p=new THREE.Mesh(g,m); p.rotation.x=-Math.PI/2.15; p.position.set(0,-0.2,-2);
+  scene.add(p);
+  // reflets scintillants sur la surface
+  const N=90,pos=new Float32Array(N*3);
+  for(let i=0;i<N;i++){pos[i*3]=(Math.random()-0.5)*44;pos[i*3+1]=-0.05+Math.random()*0.25;pos[i*3+2]=1-Math.random()*10;}
+  const gg=new THREE.BufferGeometry(); gg.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  const mm=new THREE.PointsMaterial({map:TEX_SPARK,size:0.5,transparent:true,opacity:0.6,color:0xbff0ff,
+     blending:THREE.AdditiveBlending,depthWrite:false,fog:false});
+  const glint=new THREE.Points(gg,mm); scene.add(glint);
+  window.__glint=glint;
+})();
+
+/* ========================================================================
+   LE DAUPHIN — géométrie procédurale
+   Corps = anneaux le long d'une épine (nez +x → queue -x), rayon profilé,
+   dégradé de sommets cyan(dos) → blanc(ventre). Ailerons extrudés.
+   Nageoire caudale sur un pivot qui bat (propulsion).
+   ====================================================================== */
+const L = 3.2;                                   // longueur du corps
+const RPROF = [                                   // (u, rayon)  u:0 nez → 1 pédoncule
+  [0.00,0.015],[0.05,0.045],[0.10,0.085],[0.145,0.20],[0.21,0.32],
+  [0.33,0.40],[0.48,0.365],[0.63,0.275],[0.78,0.175],[0.90,0.10],[1.00,0.05]
+];
+function radAt(u){
+  for(let i=0;i<RPROF.length-1;i++){
+    if(u<=RPROF[i+1][0]){
+      const a=RPROF[i],b=RPROF[i+1]; let t=(u-a[0])/(b[0]-a[0]);
+      t=0.5-0.5*Math.cos(t*Math.PI);              // interpolation douce
+      return a[1]+(b[1]-a[1])*t;
+    }
+  }
+  return RPROF[RPROF.length-1][1];
+}
+
+function buildBody(){
+  const RINGS=70, SEG=26;
+  const positions=[], colors=[], index=[];
+  const cTop=new THREE.Color(0x39b6e6);           // dos cyan
+  const cSide=new THREE.Color(0x7fd8f5);
+  const cBelly=new THREE.Color(0xf2ffff);         // ventre blanc nacré
+  for(let i=0;i<RINGS;i++){
+    const u=i/(RINGS-1);
+    const x=L*0.5 - u*L;                           // nez en +x
+    const r=radAt(u);
+    const arch=0.34*Math.sin(Math.PI*Math.min(1,u*1.02));   // dos légèrement bombé
+    const droop=(u<0.16)? (0.16-u)*1.4 : 0;         // bec incliné vers le bas
+    const spineY = arch - droop;
+    for(let j=0;j<=SEG;j++){
+      const ang=j/SEG*Math.PI*2;
+      let py=Math.cos(ang)*r*1.10;                  // un peu plus haut que large
+      const pz=Math.sin(ang)*r;
+      if(py<0) py*=0.86;                            // ventre légèrement aplati
+      positions.push(x, spineY+py, pz);
+      const tt=(Math.cos(ang)+1)/2;                 // 1 = dos, 0 = ventre
+      let c=new THREE.Color().copy(cBelly).lerp(cSide,Math.min(1,tt*1.5));
+      c.lerp(cTop, Math.max(0,tt-0.55)*2.2);
+      colors.push(c.r,c.g,c.b);
+    }
+  }
+  const rw=SEG+1;
+  for(let i=0;i<RINGS-1;i++)for(let j=0;j<SEG;j++){
+    const a=i*rw+j, b=a+1, c=a+rw, d=c+1;
+    index.push(a,c,b, b,c,d);
+  }
+  // capuchon de nez + de queue vers un point
+  const noseI=positions.length/3; positions.push(L*0.5+0.02,0.34*Math.sin(0)-0.16*1.4+0,0);
+  colors.push(cBelly.r,cBelly.g,cBelly.b);
+  for(let j=0;j<SEG;j++) index.push(noseI, j+1, j);
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+  g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));
+  g.setIndex(index); g.computeVertexNormals();
+  return g;
+}
+
+// aileron plat extrudé à partir d'un contour 2D
+function buildFin(shapePts, depth){
+  const s=new THREE.Shape();
+  s.moveTo(shapePts[0][0],shapePts[0][1]);
+  for(let i=1;i<shapePts.length;i++) s.lineTo(shapePts[i][0],shapePts[i][1]);
+  const g=new THREE.ExtrudeGeometry(s,{depth:depth,bevelEnabled:true,bevelThickness:depth*0.6,
+     bevelSize:depth*0.5,bevelSegments:2,steps:1});
+  g.center(); g.computeVertexNormals(); return g;
+}
+
+const BODY_GEO = buildBody();
+const bodyMat = new THREE.MeshPhongMaterial({vertexColors:true, shininess:75,
+   specular:0x9fe8ff, emissive:0x08324a, emissiveIntensity:0.55});
+const glowMat = new THREE.MeshBasicMaterial({color:0x8fecff, transparent:true, opacity:0.16,
+   side:THREE.BackSide, blending:THREE.AdditiveBlending, depthWrite:false, fog:false});
+
+// contours des ailerons (silhouette falciforme)
+const DORSAL = buildFin([[0,0],[0.34,0.08],[0.30,0.34],[0.12,0.60],[-0.06,0.66],[-0.18,0.40],[-0.16,0.10]],0.05);
+const PECT   = buildFin([[0,0],[0.10,0.05],[0.44,0.02],[0.62,-0.10],[0.40,-0.16],[0.10,-0.10]],0.035);
+const FLUKE  = buildFin([[0,0],[0.10,0.06],[0.46,0.10],[0.66,0.02],[0.50,-0.06],[0.14,-0.06]],0.04);
+
+const finMat = new THREE.MeshPhongMaterial({color:0x63c9ec, shininess:60, specular:0x9fe8ff,
+   emissive:0x0a3a52, emissiveIntensity:0.5});
+
+function makeDolphin(){
+  const grp=new THREE.Group();
+
+  const body=new THREE.Mesh(BODY_GEO, bodyMat); grp.add(body);
+  const glow=new THREE.Mesh(BODY_GEO, glowMat); glow.scale.setScalar(1.09); grp.add(glow);
+
+  // aileron dorsal
+  const dorsal=new THREE.Mesh(DORSAL, finMat);
+  dorsal.position.set(0.05, 0.34+0.40, 0); dorsal.rotation.z=-0.15; dorsal.scale.setScalar(1.15);
+  grp.add(dorsal);
+
+  // nageoires pectorales (miroir)
+  for(const s of [1,-1]){
+    const pec=new THREE.Mesh(PECT, finMat);
+    pec.position.set(0.62, 0.02, s*0.30);
+    pec.rotation.set(s*0.5, 0, -0.35);
+    pec.scale.setScalar(1.0);
+    grp.add(pec);
+  }
+
+  // pivot de queue (bat verticalement) + nageoire caudale à deux lobes
+  const tailPivot=new THREE.Group();
+  tailPivot.position.set(-L*0.5, 0.02, 0);
+  for(const s of [1,-1]){
+    const fl=new THREE.Mesh(FLUKE, finMat);
+    fl.position.set(-0.18,0,s*0.26); fl.rotation.set(Math.PI/2, s*0.35, 0);
+    tailPivot.add(fl);
+  }
+  const tglow=new THREE.Mesh(FLUKE, glowMat); tglow.position.set(-0.2,0,0);
+  tailPivot.add(tglow);
+  grp.add(tailPivot);
+  grp.userData.tail=tailPivot;
+
+  return grp;
+}
+
+/* ---- éclaboussure : anneau de gouttelettes au franchissement de surface -- */
+const SPLASH_N=120;
+const splashPos=new Float32Array(SPLASH_N*3), splashVel=[], splashLife=new Float32Array(SPLASH_N);
+for(let i=0;i<SPLASH_N;i++){splashVel.push(new THREE.Vector3());splashLife[i]=0;splashPos[i*3+1]=-999;}
+const splashGeo=new THREE.BufferGeometry();
+splashGeo.setAttribute('position',new THREE.BufferAttribute(splashPos,3));
+const splashMat=new THREE.PointsMaterial({map:TEX_SOFT,size:0.55,transparent:true,opacity:0.9,
+   color:0xdff6ff,blending:THREE.AdditiveBlending,depthWrite:false,fog:false});
+scene.add(new THREE.Points(splashGeo,splashMat));
+let splashHead=0;
+function splashBurst(x,y,z,power){
+  for(let k=0;k<26;k++){
+    const i=splashHead; splashHead=(splashHead+1)%SPLASH_N;
+    splashPos[i*3]=x; splashPos[i*3+1]=y; splashPos[i*3+2]=z;
+    const a=Math.random()*6.28, sp=(0.6+Math.random()*1.6)*power;
+    splashVel[i].set(Math.cos(a)*sp*0.6,(0.8+Math.random()*1.4)*power,Math.sin(a)*sp*0.6);
+    splashLife[i]=0.7+Math.random()*0.5;
+  }
+}
+
+/* ---- traînée d'étincelles derrière chaque dauphin ------------------------ */
+const TRAIL_N=90;
+const trailPos=new Float32Array(TRAIL_N*3), trailLife=new Float32Array(TRAIL_N);
+for(let i=0;i<TRAIL_N;i++) trailPos[i*3+1]=-999;
+const trailGeo=new THREE.BufferGeometry();
+trailGeo.setAttribute('position',new THREE.BufferAttribute(trailPos,3));
+const trailMat=new THREE.PointsMaterial({map:TEX_SPARK,size:0.4,transparent:true,opacity:0.8,
+   color:0x9fe8ff,blending:THREE.AdditiveBlending,depthWrite:false,fog:false});
+scene.add(new THREE.Points(trailGeo,trailMat));
+let trailHead=0;
+function trailPuff(x,y,z){
+  const i=trailHead; trailHead=(trailHead+1)%TRAIL_N;
+  trailPos[i*3]=x+(Math.random()-.5)*0.15; trailPos[i*3+1]=y+(Math.random()-.5)*0.15;
+  trailPos[i*3+2]=z+(Math.random()-.5)*0.15; trailLife[i]=0.5;
+}
+
+/* ============================ TROUPEAU ==================================== */
+const pod=[];
+function spawnDolphin(cfg){
+  const d=makeDolphin();
+  d.userData=Object.assign({
+    x0:-13, span:26, speed:0.34, amp:3.4, base:-1.4, z:0, scale:1,
+    phase:Math.random()*6.28, tailPh:Math.random()*6.28, wasUp:false, roll:0
+  }, cfg, {tail:d.userData.tail});
+  d.scale.setScalar(d.userData.scale);
+  scene.add(d); pod.push(d); return d;
+}
+function setPod(n){
+  while(pod.length){ const d=pod.pop(); scene.remove(d); }
+  // phases calées pour qu'au moins un dauphin soit en plein bond dès l'ouverture
+  const layouts=[
+    {speed:0.30, amp:3.6, base:-1.6, z:0.0,  scale:1.15, phase:0.379},
+    {speed:0.24, amp:2.9, base:-1.2, z:-3.5, scale:0.85, phase:3.9},
+    {speed:0.38, amp:4.1, base:-1.9, z:1.8,  scale:0.95, phase:0.299},
+    {speed:0.21, amp:2.4, base:-1.0, z:-6.5, scale:0.62, phase:2.6},
+    {speed:0.33, amp:3.2, base:-1.5, z:5.0,  scale:0.72, phase:5.0}
+  ];
+  for(let i=0;i<n;i++) spawnDolphin(layouts[i%layouts.length]);
+}
+setPod(3);
+
+/* ============================ ANIMATION =================================== */
+let showGlow=true, t=0, last=performance.now();
+let dragX=0, dragY=0;                 // orientation caméra (déclaré AVANT tick : pas de zone morte)
+const _v=new THREE.Vector3();
+
+// dimensionnement auto-corrigé (blinde le cas innerWidth=0 au chargement)
+let _lw=0,_lh=0;
+function fit(){
+  const w=innerWidth||CV.clientWidth||800, h=innerHeight||CV.clientHeight||450;
+  if(w===_lw&&h===_lh) return;
+  _lw=w; _lh=h; camera.aspect=w/h; camera.updateProjectionMatrix(); renderer.setSize(w,h);
+}
+
+function tick(){
+  fit();
+  const now=performance.now(); let dt=(now-last)/1000; last=now; if(dt>0.05)dt=0.05; t+=dt;
+
+  // dauphins : arc parabolique + battement de queue + orientation vitesse
+  for(const d of pod){
+    const u=d.userData;
+    u.phase += dt*u.speed*2.0;
+    const s=Math.sin(u.phase);
+    const x=u.x0 + ((u.phase*u.speed*4.4)%1)*u.span;    // avance + boucle en x
+    const prog=((u.phase*u.speed*4.4)%1);
+    const arc=Math.sin(prog*Math.PI);                    // 0→1→0 : un bond
+    const y=u.base + arc*u.amp;
+    d.position.set(x, y, u.z);
+
+    // tangage : nez suit la vitesse verticale du bond
+    const dy=Math.cos(prog*Math.PI)*u.amp*Math.PI;       // dérivée ~ vy
+    const vx=u.span; const pitch=Math.atan2(dy, vx*0.8);
+    d.rotation.set(0,0,pitch);
+    // léger roulis gracieux
+    u.roll += dt*1.3; d.rotation.x=Math.sin(u.roll)*0.12;
+
+    // battement caudal
+    u.tailPh += dt*(6.0+u.speed*6.0);
+    u.tail.rotation.z = Math.sin(u.tailPh)*0.45;
+
+    // au-dessus de la surface : traînée + étincelles ; en dessous : on plonge
+    const above = y > u.base+0.15;
+    d.visible = y > u.base-2.2;
+
+    if(above && Math.random()<0.6){
+      d.getWorldPosition(_v); trailPuff(_v.x-Math.cos(pitch)*L*0.5*u.scale, _v.y, _v.z);
+    }
+    // franchissement de surface → éclaboussure
+    if(u.wasUp && !above){ splashBurst(x, u.base+0.05, u.z, 0.9*u.scale); }
+    if(!u.wasUp && above){ splashBurst(x, u.base+0.05, u.z, 1.2*u.scale); }
+    u.wasUp=above;
+  }
+
+  // éclaboussures
+  for(let i=0;i<SPLASH_N;i++){
+    if(splashLife[i]<=0) continue;
+    splashLife[i]-=dt;
+    splashVel[i].y-=6.0*dt;
+    splashPos[i*3]+=splashVel[i].x*dt; splashPos[i*3+1]+=splashVel[i].y*dt; splashPos[i*3+2]+=splashVel[i].z*dt;
+    if(splashLife[i]<=0) splashPos[i*3+1]=-999;
+  }
+  splashGeo.attributes.position.needsUpdate=true;
+
+  // traînées
+  for(let i=0;i<TRAIL_N;i++){ if(trailLife[i]>0){ trailLife[i]-=dt; if(trailLife[i]<=0) trailPos[i*3+1]=-999; } }
+  trailGeo.attributes.position.needsUpdate=true;
+  trailMat.opacity=0.8;
+
+  // bokeh à la dérive
+  const b=window.__bokeh;
+  if(b){ for(let i=0;i<b.drift.length;i++){ const dr=b.drift[i];
+      b.pos[i*3]+=Math.sin(t*0.5+dr.ph)*dr.x*dt; b.pos[i*3+1]+=dr.y*dt;
+      if(b.pos[i*3+1]>16) b.pos[i*3+1]=-16; }
+    b.pts.geometry.attributes.position.needsUpdate=true;
+    b.pts.material.opacity=0.4+Math.sin(t*0.8)*0.1; }
+
+  // scintillement de surface
+  if(window.__glint) window.__glint.material.opacity=0.4+Math.sin(t*3.0)*0.25;
+
+  // rayons qui ondulent
+  for(const r of rays){ r.rotation.z=Math.sin(t*r.userData.sw+r.userData.ph)*0.18-0.1; }
+
+  // lueur on/off
+  glowMat.opacity = showGlow ? 0.16 : 0.0;
+
+  // caméra : lente respiration + drag souris
+  const cx=Math.sin(t*0.12)*1.4 + dragX*6;
+  const cy=1.4+Math.sin(t*0.17)*0.5 + dragY*3;
+  camera.position.set(cx, cy, 13);
+  camera.lookAt(0, 0.2, 0);
+
+  renderer.render(scene,camera);
+  requestAnimationFrame(tick);
+}
+tick();
+
+/* ============================ INTERACTION ================================= */
+let dragging=false, px=0, py=0;
+addEventListener('pointerdown',e=>{dragging=true;px=e.clientX;py=e.clientY;});
+addEventListener('pointerup',()=>dragging=false);
+addEventListener('pointermove',e=>{ if(!dragging)return;
+  dragX+=(e.clientX-px)/innerWidth*1.4; dragY-=(e.clientY-py)/innerHeight*1.0;
+  dragX=Math.max(-1,Math.min(1,dragX)); dragY=Math.max(-0.6,Math.min(0.6,dragY));
+  px=e.clientX;py=e.clientY; });
+addEventListener('keydown',e=>{
+  if(e.code==='Space'){ for(const d of pod){ d.userData.phase=Math.random()*0.3; } e.preventDefault(); }
+  else if(e.key==='g'||e.key==='G') showGlow=!showGlow;
+  else if(e.key>='1'&&e.key<='5') setPod(parseInt(e.key));
+});
+addEventListener('resize',fit);
+fit();
+</script>
+</body>
+</html>

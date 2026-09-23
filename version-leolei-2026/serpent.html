@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>CASH CAR — Serpent néon (aperçu SNAKE LOOP)</title>
+<style>
+  html,body{margin:0;height:100%;background:#06040f;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#e9d6ff}
+  #c{position:fixed;inset:0;display:block}
+  #vig{position:fixed;inset:0;pointer-events:none;
+       background:radial-gradient(120% 90% at 50% 44%,transparent 44%,rgba(14,4,30,.4) 78%,rgba(6,2,16,.75) 100%);
+       mix-blend-mode:multiply}
+  #ui{position:fixed;left:18px;bottom:16px;pointer-events:none;font-size:12px;line-height:1.5;
+      text-shadow:0 1px 8px rgba(20,0,40,.9);opacity:.85}
+  #ui b{color:#5fead0;letter-spacing:.5px}
+  #ui .k{display:inline-block;min-width:12px;padding:1px 6px;margin:0 2px;border-radius:5px;
+      background:rgba(190,120,255,.15);border:1px solid rgba(190,120,255,.28);color:#f0dcff;font-size:11px}
+  #title{position:fixed;left:0;right:0;top:22px;text-align:center;pointer-events:none;
+      font-weight:800;letter-spacing:3px;font-size:15px;color:#e6ccff;
+      text-shadow:0 0 22px rgba(180,90,255,.6),0 0 10px rgba(80,255,210,.4),0 2px 10px rgba(0,0,0,.6);opacity:.92}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="vig"></div>
+<div id="title">🐍  S N A K E   L O O P  🐍</div>
+<div id="ui">
+  <b>Aperçu séparé du jeu</b> — prêt à porter dans la figure SNAKE LOOP.<br>
+  <span class="k">Espace</span> coup de fouet &nbsp;·&nbsp; <span class="k">+ / −</span> vitesse &nbsp;·&nbsp; <span class="k">G</span> lueur &nbsp;·&nbsp; glisser = tourner la caméra
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ============================================================================
+   CASH CAR — SERPENT NÉON  (aperçu autonome, Three.js r128)
+   Tout procédural. Reptation par CHAÎNE SUIVEUSE à espacement constant :
+   la tête trace un chemin qui se love, le corps ondule tout seul derrière.
+   Dégradé néon cyan→violet→magenta, ventre doré, halo lumineux. Onirique.
+   Conçu pour être branché sur la figure SNAKE LOOP.
+   ========================================================================== */
+const CV = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({canvas:CV, antialias:true, alpha:false});
+renderer.setPixelRatio(Math.min(devicePixelRatio||1, 2));
+renderer.setSize(innerWidth||800, innerHeight||450);
+renderer.setClearColor(0x0b0720, 1);
+renderer.outputEncoding = THREE.sRGBEncoding;
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x22114a, 0.014);
+
+const camera = new THREE.PerspectiveCamera(52, (innerWidth||800)/(innerHeight||450), 0.1, 200);
+camera.position.set(0, 1.6, 18);
+
+/* ---- lumière : ciel violet, contre-jour émeraude, kick magenta ----------- */
+scene.add(new THREE.HemisphereLight(0xc9a6ff, 0x1a1046, 1.15));
+scene.add(new THREE.AmbientLight(0x5a4a90, 0.45));
+const key = new THREE.DirectionalLight(0xf0e8ff, 1.2);  key.position.set(-4,8,6); scene.add(key);
+const rim = new THREE.DirectionalLight(0x4fffd0, 1.0);   rim.position.set(6,2,-7); scene.add(rim);
+const kick= new THREE.PointLight(0xff4fd0, 0.9, 46);     kick.position.set(0,-5,5); scene.add(kick);
+
+/* ============================ TEXTURES PROC =============================== */
+function radialTex(inner, outer, hard){
+  const s=128, cv=document.createElement('canvas'); cv.width=cv.height=s;
+  const x=cv.getContext('2d'); const g=x.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2);
+  g.addColorStop(0,inner); g.addColorStop(hard||0.5,outer); g.addColorStop(1,'rgba(0,0,0,0)');
+  x.fillStyle=g; x.fillRect(0,0,s,s);
+  const t=new THREE.CanvasTexture(cv); t.needsUpdate=true; return t;
+}
+const TEX_SOFT  = radialTex('rgba(255,255,255,.95)','rgba(200,150,255,.35)',0.42);
+const TEX_SPARK = radialTex('rgba(255,255,255,1)','rgba(140,255,220,.5)',0.28);
+
+/* ============================ FOND DÉGRADÉ =============================== */
+(function backdrop(){
+  const geo=new THREE.SphereGeometry(92,32,24), col=[], pos=geo.attributes.position;
+  const cTop=new THREE.Color(0x3a1e78), cMid=new THREE.Color(0x201050), cBot=new THREE.Color(0x0a0620);
+  const cGlow=new THREE.Color(0x7a3aff);
+  for(let i=0;i<pos.count;i++){
+    const y=pos.getY(i)/92, t=(y+1)/2;
+    let c=new THREE.Color().copy(cBot).lerp(cMid,Math.min(1,t*1.6));
+    c.lerp(cTop,Math.max(0,(t-0.55))*2.2);
+    c.lerp(cGlow, Math.max(0,(0.30-Math.abs(t-0.40)))*1.0);
+    col.push(c.r,c.g,c.b);
+  }
+  geo.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
+  scene.add(new THREE.Mesh(geo,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.BackSide,fog:false})));
+})();
+
+/* ---- rayons de lumière onduleux ------------------------------------------ */
+const rays=[];
+(function godRays(){
+  const w=32,h=256,cv=document.createElement('canvas');cv.width=w;cv.height=h;
+  const x=cv.getContext('2d');const g=x.createLinearGradient(0,0,0,h);
+  g.addColorStop(0,'rgba(210,170,255,.5)');g.addColorStop(.5,'rgba(150,120,255,.15)');g.addColorStop(1,'rgba(90,60,255,0)');
+  x.fillStyle=g;x.fillRect(0,0,w,h);const rt=new THREE.CanvasTexture(cv);
+  for(let i=0;i<7;i++){
+    const p=new THREE.Mesh(new THREE.PlaneGeometry(1.6+Math.random()*2.6,34),
+      new THREE.MeshBasicMaterial({map:rt,transparent:true,opacity:0.09+Math.random()*0.07,
+        blending:THREE.AdditiveBlending,depthWrite:false,fog:false,side:THREE.DoubleSide}));
+    p.position.set(-18+Math.random()*36,9,-9-Math.random()*14);
+    p.rotation.z=(Math.random()-0.5)*0.5; p.userData={ph:Math.random()*6.28,sw:0.2+Math.random()*0.3};
+    scene.add(p); rays.push(p);
+  }
+})();
+
+/* ---- bokeh flottant ------------------------------------------------------ */
+(function bokeh(){
+  const N=170,pos=new Float32Array(N*3),drift=[];
+  for(let i=0;i<N;i++){pos[i*3]=(Math.random()-.5)*48;pos[i*3+1]=(Math.random()-.5)*32;pos[i*3+2]=-6-Math.random()*30;
+    drift.push({x:(Math.random()-.5)*0.15,y:0.05+Math.random()*0.12,ph:Math.random()*6.28});}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  const pts=new THREE.Points(g,new THREE.PointsMaterial({map:TEX_SOFT,size:0.9,transparent:true,opacity:0.45,
+    color:0xc79fff,blending:THREE.AdditiveBlending,depthWrite:false,sizeAttenuation:true,fog:false}));
+  scene.add(pts); window.__bokeh={pts,drift,pos};
+})();
+
+/* ========================================================================
+   LE SERPENT
+   ====================================================================== */
+const NSEG=92, RSEG=14, SEG_LEN=0.17;
+const RPROF=[ [0.00,0.02],[0.018,0.30],[0.05,0.44],[0.10,0.30],[0.34,0.30],
+              [0.62,0.20],[0.82,0.11],[0.94,0.06],[1.00,0.02] ];
+function radAt(s){
+  for(let i=0;i<RPROF.length-1;i++){ if(s<=RPROF[i+1][0]){ const a=RPROF[i],b=RPROF[i+1];
+    let t=(s-a[0])/(b[0]-a[0]); t=0.5-0.5*Math.cos(t*Math.PI); return a[1]+(b[1]-a[1])*t; } }
+  return RPROF[RPROF.length-1][1];
+}
+
+// chemin de la tête : lové en huit, plonge et remonte (évoque la SNAKE LOOP)
+function headPath(u){
+  return new THREE.Vector3(
+    Math.sin(u)*4.9        + Math.sin(u*3.3+0.4)*0.55,
+    Math.sin(u*2.0+0.6)*2.5+ Math.sin(u*5.1)*0.4,
+    Math.cos(u*1.0+1.2)*3.2+ Math.sin(u*2.7)*0.45
+  );
+}
+
+// géométrie tube à mise à jour en place
+const VCOUNT=(NSEG+1)*(RSEG+1);                   // +2 pointes (museau, queue)
+const positions=new Float32Array((VCOUNT+2)*3);
+const normals=new Float32Array((VCOUNT+2)*3);
+const colors =new Float32Array((VCOUNT+2)*3);
+const index=[];
+for(let i=0;i<NSEG;i++)for(let j=0;j<RSEG;j++){
+  const a=i*(RSEG+1)+j, b=a+1, c=a+(RSEG+1), d=c+1;
+  index.push(a,c,b, b,c,d);
+}
+const noseTip=VCOUNT, tailTip=VCOUNT+1;
+for(let j=0;j<RSEG;j++) index.push(noseTip, j, j+1);                       // capuchon museau
+const lastRow=NSEG*(RSEG+1);
+for(let j=0;j<RSEG;j++) index.push(tailTip, lastRow+j+1, lastRow+j);       // capuchon queue
+
+// couleurs : dégradé néon le long du corps + ventre doré (statique)
+(function paintSnake(){
+  const cGold=new THREE.Color(0xffcf7a);
+  for(let i=0;i<=NSEG;i++){
+    const s=i/NSEG;
+    const hue=0.50 + s*0.34;                       // cyan .50 → violet/magenta .84
+    const neon=new THREE.Color().setHSL(hue,0.95,0.56);
+    const bright=new THREE.Color().setHSL(hue,0.85,0.72);
+    for(let j=0;j<=RSEG;j++){
+      const ang=j/RSEG*Math.PI*2, tt=(Math.cos(ang)+1)/2;   // 1=dos, 0=ventre
+      let c=cGold.clone().lerp(neon, Math.min(1,tt*1.5));
+      c.lerp(bright, Math.max(0,tt-0.6)*2.0);               // crête du dos éclairée
+      const o=(i*(RSEG+1)+j)*3; colors[o]=c.r;colors[o+1]=c.g;colors[o+2]=c.b;
+    }
+  }
+  const cn=new THREE.Color().setHSL(0.50,0.95,0.6);
+  colors[noseTip*3]=cn.r;colors[noseTip*3+1]=cn.g;colors[noseTip*3+2]=cn.b;
+  const ct=new THREE.Color().setHSL(0.84,0.95,0.5);
+  colors[tailTip*3]=ct.r;colors[tailTip*3+1]=ct.g;colors[tailTip*3+2]=ct.b;
+})();
+
+const snakeGeo=new THREE.BufferGeometry();
+snakeGeo.setAttribute('position',new THREE.BufferAttribute(positions,3));
+snakeGeo.setAttribute('normal',  new THREE.BufferAttribute(normals,3));
+snakeGeo.setAttribute('color',   new THREE.BufferAttribute(colors,3));
+snakeGeo.setIndex(index);
+
+const snakeMat=new THREE.MeshPhongMaterial({vertexColors:true, shininess:95, specular:0xffffff,
+   emissive:0x1a0836, emissiveIntensity:1.0});
+const glowMat =new THREE.MeshBasicMaterial({vertexColors:true, transparent:true, opacity:0.30,
+   side:THREE.BackSide, blending:THREE.AdditiveBlending, depthWrite:false, fog:false});
+
+const serpent=new THREE.Group();
+const body=new THREE.Mesh(snakeGeo, snakeMat); serpent.add(body);
+const glow=new THREE.Mesh(snakeGeo, glowMat);  glow.scale.setScalar(1.14); serpent.add(glow);
+
+// yeux
+const eyeGeo=new THREE.SphereGeometry(0.075,12,10);
+const eyeMat=new THREE.MeshBasicMaterial({color:0xfff2a8});
+const pupMat=new THREE.MeshBasicMaterial({color:0x1a0010});
+const eyeL=new THREE.Mesh(eyeGeo,eyeMat), eyeR=new THREE.Mesh(eyeGeo,eyeMat);
+const pupL=new THREE.Mesh(new THREE.SphereGeometry(0.038,8,8),pupMat);
+const pupR=new THREE.Mesh(new THREE.SphereGeometry(0.038,8,8),pupMat);
+serpent.add(eyeL,eyeR,pupL,pupR);
+
+// langue fourchue (le long de +z local, étirée par scale.z pour claquer)
+const tongue=new THREE.Group();
+const tMat=new THREE.MeshBasicMaterial({color:0xff2b6b});
+function tSeg(len,off){ const m=new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.028,len,6),tMat);
+  m.rotation.x=Math.PI/2; m.position.set(off,0,len/2); return m; }
+const tStem=tSeg(0.28,0);
+const tForkL=new THREE.Mesh(new THREE.CylinderGeometry(0.010,0.020,0.20,6),tMat);
+const tForkR=new THREE.Mesh(new THREE.CylinderGeometry(0.010,0.020,0.20,6),tMat);
+tForkL.rotation.x=Math.PI/2; tForkL.rotation.y=0.5; tForkL.position.set(0.045,0,0.36);
+tForkR.rotation.x=Math.PI/2; tForkR.rotation.y=-0.5;tForkR.position.set(-0.045,0,0.36);
+tongue.add(tStem,tForkL,tForkR);
+serpent.add(tongue);
+
+scene.add(serpent);
+
+// nœuds de la chaîne suiveuse (init tendue vers -x derrière la tête)
+const nodes=[]; { const h=headPath(0);
+  for(let i=0;i<=NSEG;i++) nodes.push(h.clone().add(new THREE.Vector3(-i*SEG_LEN,0,0))); }
+
+// buffers de travail (aucune allocation dans la boucle)
+const tang=[], norm=[]; for(let i=0;i<=NSEG;i++){tang.push(new THREE.Vector3());norm.push(new THREE.Vector3());}
+const _q=new THREE.Quaternion(), _t=new THREE.Vector3(), _up=new THREE.Vector3(0,1,0),
+      _n=new THREE.Vector3(), _b=new THREE.Vector3(), _tmp=new THREE.Vector3();
+
+function updateSnake(dt, u){
+  // 1) tête sur le chemin, puis contrainte de suivi à distance constante
+  nodes[0].copy(headPath(u));
+  for(let i=1;i<=NSEG;i++){
+    _tmp.copy(nodes[i]).sub(nodes[i-1]);
+    const d=_tmp.length()||1e-4; _tmp.multiplyScalar(SEG_LEN/d);
+    nodes[i].copy(nodes[i-1]).add(_tmp);
+  }
+  // 2) tangentes
+  for(let i=0;i<=NSEG;i++){
+    if(i===0) _t.copy(nodes[0]).sub(nodes[1]);
+    else if(i===NSEG) _t.copy(nodes[NSEG-1]).sub(nodes[NSEG]);
+    else _t.copy(nodes[i-1]).sub(nodes[i+1]);
+    if(_t.lengthSq()<1e-8)_t.set(1,0,0);
+    tang[i].copy(_t).normalize();
+  }
+  // 3) repère minimisant la torsion (rotation-minimizing frame)
+  _n.copy(_up).sub(_t.copy(tang[0]).multiplyScalar(_up.dot(tang[0])));
+  if(_n.lengthSq()<1e-6) _n.set(1,0,0);
+  norm[0].copy(_n).normalize();
+  for(let i=1;i<=NSEG;i++){
+    _q.setFromUnitVectors(tang[i-1],tang[i]);
+    norm[i].copy(norm[i-1]).applyQuaternion(_q);
+    norm[i].sub(_t.copy(tang[i]).multiplyScalar(norm[i].dot(tang[i]))).normalize();
+  }
+  // 4) anneaux → positions + normales radiales
+  for(let i=0;i<=NSEG;i++){
+    const s=i/NSEG, r=radAt(s);
+    _n.copy(norm[i]); _b.copy(tang[i]).cross(_n).normalize();
+    const P=nodes[i];
+    for(let j=0;j<=RSEG;j++){
+      const ang=j/RSEG*Math.PI*2, ca=Math.cos(ang), sa=Math.sin(ang);
+      let ny=ca, nz=sa; if(ny<0)ny*=0.85;                 // ventre à peine aplati
+      const nx=_n.x*ca+_b.x*sa, nyv=_n.y*ca+_b.y*sa, nzv=_n.z*ca+_b.z*sa;
+      const o=(i*(RSEG+1)+j)*3;
+      positions[o]  =P.x+nx*r;   positions[o+1]=P.y+nyv*r; positions[o+2]=P.z+nzv*r;
+      normals[o]=nx; normals[o+1]=nyv; normals[o+2]=nzv;
+    }
+  }
+  // 5) pointes museau / queue
+  _tmp.copy(nodes[0]).addScaledVector(tang[0],0.10);
+  positions[noseTip*3]=_tmp.x;positions[noseTip*3+1]=_tmp.y;positions[noseTip*3+2]=_tmp.z;
+  normals[noseTip*3]=tang[0].x;normals[noseTip*3+1]=tang[0].y;normals[noseTip*3+2]=tang[0].z;
+  _tmp.copy(nodes[NSEG]).addScaledVector(tang[NSEG],-0.06);
+  positions[tailTip*3]=_tmp.x;positions[tailTip*3+1]=_tmp.y;positions[tailTip*3+2]=_tmp.z;
+  normals[tailTip*3]=-tang[NSEG].x;normals[tailTip*3+1]=-tang[NSEG].y;normals[tailTip*3+2]=-tang[NSEG].z;
+
+  snakeGeo.attributes.position.needsUpdate=true;
+  snakeGeo.attributes.normal.needsUpdate=true;
+
+  // 6) yeux + langue (repère de la tête)
+  const hi=3; _n.copy(norm[hi]); _b.copy(tang[hi]).cross(_n).normalize();
+  const HP=nodes[hi], rr=radAt(hi/NSEG)*0.82;
+  eyeL.position.copy(HP).addScaledVector(_n,rr*0.55).addScaledVector(_b, rr*0.9);
+  eyeR.position.copy(HP).addScaledVector(_n,rr*0.55).addScaledVector(_b,-rr*0.9);
+  pupL.position.copy(eyeL.position).addScaledVector(tang[hi],-0.06);
+  pupR.position.copy(eyeR.position).addScaledVector(tang[hi],-0.06);
+  // langue depuis le museau, alignée +z→tangente, claque périodiquement
+  tongue.position.copy(nodes[0]).addScaledVector(tang[0],0.12);
+  tongue.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),tang[0]);
+  const flick=Math.max(0,Math.sin(u*3.1))**6 + Math.max(0,Math.sin(u*3.1+2.1))**8;
+  tongue.scale.set(1,1,0.15+flick*1.0);
+  tongue.visible=flick>0.02;
+}
+
+/* ---- étincelles le long du corps quand il file ---------------------------- */
+const SP_N=80, spPos=new Float32Array(SP_N*3), spLife=new Float32Array(SP_N);
+for(let i=0;i<SP_N;i++) spPos[i*3+1]=-999;
+const spGeo=new THREE.BufferGeometry(); spGeo.setAttribute('position',new THREE.BufferAttribute(spPos,3));
+scene.add(new THREE.Points(spGeo,new THREE.PointsMaterial({map:TEX_SPARK,size:0.42,transparent:true,
+   opacity:0.85,color:0xbfffe6,blending:THREE.AdditiveBlending,depthWrite:false,fog:false})));
+let spHead=0;
+function spark(p){ const i=spHead;spHead=(spHead+1)%SP_N;
+  spPos[i*3]=p.x+(Math.random()-.5)*0.3;spPos[i*3+1]=p.y+(Math.random()-.5)*0.3;spPos[i*3+2]=p.z+(Math.random()-.5)*0.3;
+  spLife[i]=0.5+Math.random()*0.4; }
+
+/* ============================ ANIMATION =================================== */
+let showGlow=true, t=0, u=0, uSpeed=1.35, last=performance.now();
+let dragX=0, dragY=0;
+let _lw=0,_lh=0;
+function fit(){ const w=innerWidth||CV.clientWidth||800, h=innerHeight||CV.clientHeight||450;
+  if(w===_lw&&h===_lh)return; _lw=w;_lh=h; camera.aspect=w/h; camera.updateProjectionMatrix(); renderer.setSize(w,h); }
+
+function tick(){
+  fit();
+  const now=performance.now(); let dt=(now-last)/1000; last=now; if(dt>0.05)dt=0.05; t+=dt;
+  u += dt*uSpeed;
+
+  updateSnake(dt,u);
+
+  // étincelles depuis un point du corps
+  if(Math.random()<0.5) spark(nodes[(Math.random()*NSEG)|0]);
+  for(let i=0;i<SP_N;i++){ if(spLife[i]>0){ spLife[i]-=dt; spPos[i*3+1]+=dt*0.4; if(spLife[i]<=0)spPos[i*3+1]=-999; } }
+  spGeo.attributes.position.needsUpdate=true;
+
+  // respiration lumineuse néon
+  snakeMat.emissiveIntensity=0.85+Math.sin(t*2.0)*0.15;
+  glowMat.opacity=showGlow?(0.26+Math.sin(t*1.3)*0.06):0.0;
+
+  // bokeh
+  const bk=window.__bokeh;
+  if(bk){ for(let i=0;i<bk.drift.length;i++){ const d=bk.drift[i];
+    bk.pos[i*3]+=Math.sin(t*0.5+d.ph)*d.x*dt; bk.pos[i*3+1]+=d.y*dt; if(bk.pos[i*3+1]>16)bk.pos[i*3+1]=-16; }
+    bk.pts.geometry.attributes.position.needsUpdate=true; bk.pts.material.opacity=0.35+Math.sin(t*0.8)*0.1; }
+
+  for(const r of rays) r.rotation.z=Math.sin(t*r.userData.sw+r.userData.ph)*0.18-0.1;
+
+  // rotation lente du serpent pour révéler ses boucles
+  serpent.rotation.y=Math.sin(t*0.15)*0.5;
+
+  const cx=Math.sin(t*0.11)*1.6+dragX*7, cy=1.6+Math.sin(t*0.16)*0.6+dragY*3.5;
+  camera.position.set(cx,cy,18); camera.lookAt(0,0.2,0);
+
+  renderer.render(scene,camera);
+  requestAnimationFrame(tick);
+}
+tick();
+
+/* ============================ INTERACTION ================================= */
+let dragging=false, px=0, py=0;
+addEventListener('pointerdown',e=>{dragging=true;px=e.clientX;py=e.clientY;});
+addEventListener('pointerup',()=>dragging=false);
+addEventListener('pointermove',e=>{ if(!dragging)return;
+  dragX+=(e.clientX-px)/innerWidth*1.5; dragY-=(e.clientY-py)/innerHeight*1.0;
+  dragX=Math.max(-1,Math.min(1,dragX)); dragY=Math.max(-0.6,Math.min(0.6,dragY)); px=e.clientX;py=e.clientY; });
+addEventListener('keydown',e=>{
+  if(e.code==='Space'){ uSpeed=4.0; setTimeout(()=>uSpeed=1.35,420); e.preventDefault(); }
+  else if(e.key==='g'||e.key==='G') showGlow=!showGlow;
+  else if(e.key==='+'||e.key==='=') uSpeed=Math.min(3.5,uSpeed+0.3);
+  else if(e.key==='-'||e.key==='_') uSpeed=Math.max(0.3,uSpeed-0.3);
+});
+addEventListener('resize',fit); fit();
+</script>
+</body>
+</html>

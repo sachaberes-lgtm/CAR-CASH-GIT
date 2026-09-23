@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>CASH CAR — L'ÉTAL DES VOITURES</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  :root{--pix:"Press Start 2P",monospace;--cy:#7dffec;--or:#ffd75e;--ro:#ff3ec8}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0a0713;color:#e8e8f0;font-family:var(--pix);overflow:hidden;
+    background-image:radial-gradient(120% 80% at 50% 0%,#241a44 0%,#0a0713 62%)}
+  #wrap{display:flex;height:100vh;width:100vw}
+
+  /* ---- colonne de gauche : la gamme ---- */
+  #side{width:300px;flex:0 0 300px;border-right:1px solid rgba(125,255,236,.18);
+    display:flex;flex-direction:column;background:rgba(6,10,22,.55)}
+  #sideTop{padding:16px 14px 10px;border-bottom:1px solid rgba(125,255,236,.14)}
+  #sideTop h1{font-size:11px;color:var(--or);line-height:1.7;text-shadow:0 0 12px rgba(255,215,94,.5)}
+  #sideTop p{font-size:7px;color:#8f84c8;line-height:1.9;margin-top:8px}
+  #list{flex:1;overflow-y:auto;padding:8px 0}
+  .row{display:flex;align-items:center;gap:9px;padding:9px 12px;cursor:pointer;border-left:3px solid transparent}
+  .row:hover{background:rgba(125,255,236,.07)}
+  .row.on{background:rgba(125,255,236,.13);border-left-color:var(--cy)}
+  .num{font-size:8px;color:#5a5580;min-width:20px;text-align:right}
+  .swatch{width:11px;height:11px;border-radius:2px;flex:0 0 11px;box-shadow:0 0 8px currentColor}
+  .nm{font-size:7.5px;line-height:1.6;flex:1;color:#dfe8fc}
+  .row.on .nm{color:var(--cy)}
+  .pu{font-size:6.5px;color:#8f84c8;letter-spacing:.5px}
+  /* la pastille de GABARIT : une couleur par silhouette — les paquets se voient dans la colonne */
+  .pu.g-epave{color:#8a7a68}.pu.g-kei{color:#9aa4b8}.pu.g-break{color:#7fb0ff}.pu.g-pickup{color:#ffa04a}
+  .pu.g-muscle{color:#ffb35e}.pu.g-berline{color:#dfe8fc}.pu.g-gt{color:#7dffec}.pu.g-wedge{color:#ff6a8a}
+  .pu.g-hyper{color:#ffd75e}.pu.g-formula{color:#ffe98a}.pu.g-lemans{color:#ff8f5e}.pu.g-proto{color:#b48cff}
+  .pu.g-tuner{color:#8dff2a}.pu.g-poptart{color:#ff8fd4}.pu.g-requin{color:#74d8ff}
+
+  /* ---- scène ---- */
+  #main{flex:1;position:relative;min-width:0}
+  canvas{display:block}
+  #hud{position:absolute;left:0;right:0;bottom:0;padding:16px 20px 18px;pointer-events:none;
+    background:linear-gradient(180deg,rgba(10,7,19,0),rgba(10,7,19,.88) 55%)}
+  #cName{font-size:17px;color:var(--or);text-shadow:0 0 16px rgba(255,215,94,.55);line-height:1.6}
+  #cDesc{font-size:8px;color:#c9c2ea;line-height:2;margin-top:9px;max-width:700px}
+  #cStats{display:flex;gap:20px;flex-wrap:wrap;margin-top:13px}
+  .st{font-size:7px;color:#6f6a95;line-height:1.9}
+  .st b{display:block;font-size:11px;color:var(--cy);margin-top:5px;text-shadow:0 0 10px rgba(125,255,236,.45)}
+  .st b.warn{color:var(--ro);text-shadow:0 0 10px rgba(255,62,200,.5)}
+  #topBar{position:absolute;top:0;left:0;right:0;padding:14px 20px;display:flex;gap:9px;align-items:center;
+    justify-content:flex-end;pointer-events:none;flex-wrap:wrap}
+  button{pointer-events:auto;cursor:pointer;font-family:var(--pix);font-size:8px;line-height:1;
+    padding:10px 13px;color:#dfe8fc;background:rgba(18,14,38,.9);
+    border:1px solid rgba(125,255,236,.35);border-radius:8px}
+  button:hover{border-color:var(--cy);color:var(--cy);box-shadow:0 0 14px rgba(125,255,236,.25)}
+  button.on{background:rgba(125,255,236,.16);border-color:var(--cy);color:var(--cy)}
+  #hint{position:absolute;top:14px;left:20px;font-size:7px;color:#5a5580;line-height:1.9;pointer-events:none}
+  #err{position:absolute;inset:0;display:none;place-content:center;text-align:center;padding:40px;
+    font-size:9px;line-height:2.2;color:#ff8a8a}
+  #err code{color:var(--or);font-size:8px}
+
+  /* ---- LA PLANCHE CONTACT : toute la gamme d'un coup ---- */
+  #grid{position:absolute;inset:0;display:none;grid-template-columns:repeat(6,1fr);
+    background:#0a0713;overflow-y:auto;align-content:start}
+  #grid.on{display:grid}
+  .cell{position:relative;aspect-ratio:4/3;border:1px solid rgba(125,255,236,.09);cursor:pointer;overflow:hidden}
+  .cell:hover{border-color:var(--cy);background:rgba(125,255,236,.05)}
+  .cell canvas{width:100%;height:100%;display:block}
+  .cLbl{position:absolute;left:0;right:0;bottom:0;padding:5px 6px 6px;font-size:5.5px;line-height:1.7;
+    color:#c9c2ea;background:linear-gradient(180deg,rgba(10,7,19,0),rgba(10,7,19,.9));text-align:center}
+  .cLbl i{display:block;color:#5a5580;font-style:normal;margin-bottom:2px}
+  /* MODE SILHOUETTE : noir sur papier — la seule vue qui répond à « elles se ressemblent trop » */
+  #grid.sil{grid-template-columns:repeat(4,1fr);background:#14111e}
+  #grid.sil .cell{aspect-ratio:320/88;border-color:rgba(255,255,255,.08)}
+  /* la légende monte EN HAUT À GAUCHE : au bas du cadre elle se posait pile sur les roues */
+  #grid.sil .cLbl{top:0;bottom:auto;text-align:left;padding:6px 8px;color:#3a3428;background:none}
+  #grid.sil .cLbl i{color:#8a8070;display:inline;margin-right:7px}
+
+  /* ---- LES DOUBLONS : le classement des paires qui se ressemblent ---- */
+  #dbl{position:absolute;inset:0;display:none;background:#0a0713;overflow-y:auto;padding:56px 22px 26px}
+  #dbl.on{display:block}
+  #dblHead{font-size:9px;color:var(--or);line-height:2.1;margin-bottom:6px}
+  #dblSub{font-size:7px;color:#8f84c8;line-height:2.1;max-width:900px;margin-bottom:16px}
+  #dblFam{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+  .fam{font-size:7px;line-height:1.8;padding:7px 10px;border:1px solid rgba(125,255,236,.22);border-radius:7px;color:#c9c2ea}
+  .fam b{color:var(--cy);font-size:10px;margin-left:6px}
+  .pair{display:flex;align-items:center;gap:12px;padding:6px 8px;border-bottom:1px solid rgba(125,255,236,.07);cursor:pointer}
+  .pair:hover{background:rgba(125,255,236,.06)}
+  .sc{font-size:11px;min-width:56px;color:var(--cy)}
+  .sc.hot{color:var(--ro)}
+  .pair canvas{width:200px;height:55px;background:#efe9dd;border-radius:3px;flex:none}
+  .pnm{font-size:7px;color:#c9c2ea;line-height:1.9}
+  .pnm i{font-style:normal;color:#5a5580;display:block;margin-top:3px}
+  @media (max-width:900px){#side{width:210px;flex-basis:210px}#grid{grid-template-columns:repeat(3,1fr)}
+    #grid.sil{grid-template-columns:repeat(2,1fr)}.pair canvas{width:120px;height:33px}}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="side">
+    <div id="sideTop">
+      <h1>L'ÉTAL<br>DES VOITURES</h1>
+      <p id="cnt">chargement…</p>
+    </div>
+    <div id="list"></div>
+  </div>
+  <div id="main">
+    <div id="hint">glisser : tourner<br>molette : zoomer<br>← → : caisse suivante<br>espace : rotation</div>
+    <div id="topBar">
+      <button id="bSpin" class="on">↻ ROTATION</button>
+      <button id="bLite">☀ LUMIÈRES</button>
+      <button id="bAir">✈ EN VOL</button>
+      <button id="bGrid">▦ LA PLANCHE</button>
+      <button id="bSil">◧ SILHOUETTES</button>
+      <button id="bDbl">⚖ DOUBLONS</button>
+    </div>
+    <div id="hud">
+      <div id="cName">—</div>
+      <div id="cDesc"></div>
+      <div id="cStats"></div>
+    </div>
+    <div id="grid"></div>
+    <div id="dbl"></div>
+    <div id="err"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ============================================================================
+   L'ÉTAL DES VOITURES — plateforme locale de revue de TOUTE la gamme (15 caisses).
+
+   ⚠ CE FICHIER NE RECOPIE PAS LES VOITURES. Il va LIRE `index.html` au chargement et en
+   exécute le bloc balisé `<<<VOITURES>>>` (matériaux, gabarits, `carProfile`, `buildCar`)
+   plus les tables `CARS` et `CAR_UNLOCK`. Même principe que `moteurs.html` : une copie aurait
+   dérivé dès la première retouche et on jugerait ici des caisses que le joueur ne conduit plus.
+   Conséquence : il faut servir le dossier en HTTP (`python3 -m http.server 8000`) — en `file://`
+   le navigateur refuse le fetch, et la page le dit clairement.
+
+   CE QUE L'ÉTAL APPORTE EN PLUS DU GARAGE DU JEU :
+   1. une lumière de studio NEUTRE (on juge une forme, on ne met pas en scène) ;
+   2. la PLANCHE CONTACT — toute la gamme côte à côte ;
+   3. le mode SILHOUETTE — profil noir sur papier, à ÉCHELLE COMMUNE : c'est la vue qui a
+      débloqué le chantier des moteurs, et la seule qui répond honnêtement à « certaines se
+      ressemblent trop » ;
+   4. LES DOUBLONS — le même profil, mesuré : recouvrement (intersection/union) de chaque paire
+      de silhouettes, classé. On arrête de discuter à l'œil, on lit un chiffre.
+
+   ⚠ Les FLAQUES DE LUMIÈRE au sol (phares, feux, néon sous caisse) et les halos sprites sont
+   MASQUÉS par défaut : ce sont des nappes additives énormes qui débordent très loin devant et
+   derrière la caisse — elles noieraient la silhouette et fausseraient tout cadrage automatique.
+   Le bouton LUMIÈRES les rallume pour vérifier la caisse telle qu'elle est vue en course.
+   ========================================================================== */
+const $=id=>document.getElementById(id);
+const fail=(t,d)=>{$('err').style.display='grid';$('err').innerHTML=t+(d?'<br><br><code>'+d+'</code>':'');};
+
+// ---- le décor de studio : un cube env neutre, juste pour que le chrome ait quelque chose à refléter.
+// (Dans le jeu, `envTex` est le CIEL du biome en cours — ici on veut une sonde stable, sinon deux
+//  caisses comparées à deux instants n'auraient déjà plus les mêmes reflets.)
+function makeEnv(){
+  const faces=[];
+  for(let i=0;i<6;i++){
+    const cv=document.createElement('canvas');cv.width=cv.height=64;const c=cv.getContext('2d');
+    const g=c.createLinearGradient(0,0,0,64);
+    if(i===2){g.addColorStop(0,'#cfe4ff');g.addColorStop(1,'#8ea8d8');}      // le plafond éclaire
+    else if(i===3){g.addColorStop(0,'#1a1830');g.addColorStop(1,'#0d0b18');} // le sol mange
+    else{g.addColorStop(0,'#7d8fc0');g.addColorStop(.55,'#3a3860');g.addColorStop(1,'#16142a');}
+    c.fillStyle=g;c.fillRect(0,0,64,64);
+    faces.push(cv);
+  }
+  const t=new THREE.CubeTexture(faces);t.needsUpdate=true;return t;
+}
+const envTex=makeEnv();
+
+let CARS=null,CAR_UNLOCK=null,mod=null,modOff=null;
+
+// ---- extraction depuis le jeu -------------------------------------------------------
+// Le bloc balisé ne dépend QUE de THREE, envTex, CARS et carGroup (vérifié : c'est écrit en tête
+// des balises dans index.html). On lui passe ces quatre-là et rien d'autre : si un jour le bloc
+// se met à toucher un global du jeu, l'erreur tombera ici, franche, au lieu de dériver en silence.
+function moduleVoitures(src,carGroup){
+  const bloc=(re,quoi)=>{const m=src.match(re);if(!m)throw new Error('bloc introuvable dans index.html : '+quoi);return m[0];};
+  const sCars =bloc(/const CARS=\[[\s\S]*?\n\];/,'CARS');
+  const sUnl  =bloc(/const CAR_UNLOCK=\[[\s\S]*?\n\];/,'CAR_UNLOCK');
+  const sVoit =bloc(/\/\* <<<VOITURES>>>[\s\S]*?<<<FIN VOITURES>>> \*\//,'bloc <<<VOITURES>>>');
+  const f=new Function('THREE','envTex','carGroup',
+    sCars+'\n'+sUnl+'\n'+sVoit
+    +'\nreturn {CARS,CAR_UNLOCK,buildCar,carProfile,RIM_U,JETS,CARPOOL,wheels,carProps,carFins,ailes:()=>[carWingL,carWingR]};');
+  return f(THREE,envTex,carGroup);
+}
+
+// ---- la scène principale ------------------------------------------------------------
+const main=$('main');
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+main.appendChild(renderer.domElement);
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(34,1,.1,200);
+// LUMIÈRE DE STUDIO — la même recette que l'atelier des moteurs, pour que les deux pages se
+// comparent : trois quarts chaud (la clé), remplissage froid à l'opposé, contre-jour braise.
+const KEY=new THREE.Vector3(3.5,5,4.5).normalize(); // sert aussi de « soleil » au liseré RIM
+// ⚠ INTENSITÉS BAISSÉES (2026-08-05). Le studio hérité de l'atelier des moteurs (hemi 1.05 + clé
+// 1.55) convenait à des blocs d'alu et de fonte sombres ; sur des CARROSSERIES pastel il cramait
+// tout : le glaçage rose de la pop-tart et la peau du requin ressortaient BLANCS, et on aurait juré
+// à une texture manquante alors qu'elle était bien là (vérifié : 256×256 montée sur la bonne face).
+// Un atelier de revue n'a pas le droit de mentir sur une couleur — d'où ce dosage plus bas.
+const LUM=[[0xd8ecff,0x1a1830,.62],[0xfff2e0,1.02,3.5,5,4.5],[0x7fd8ff,.50,-4,1.5,-3],[0xff7a3c,.38,-2,-2.5,-4.5]];
+function studio(sc){
+  sc.add(new THREE.HemisphereLight(LUM[0][0],LUM[0][1],LUM[0][2]));
+  for(let i=1;i<LUM.length;i++){const L=LUM[i],d=new THREE.DirectionalLight(L[0],L[1]);
+    d.position.set(L[2],L[3],L[4]);sc.add(d);}
+}
+studio(scene);
+// SOL : une nappe sombre qui donne une assise (sans elle la caisse flotte et on ne lit plus la garde au sol)
+{const cv=document.createElement('canvas');cv.width=cv.height=256;const c=cv.getContext('2d');
+ const g=c.createRadialGradient(128,128,0,128,128,128);
+ g.addColorStop(0,'rgba(90,120,160,.30)');g.addColorStop(.45,'rgba(40,60,100,.16)');g.addColorStop(1,'rgba(10,8,20,0)');
+ c.fillStyle=g;c.fillRect(0,0,256,256);
+ const sol=new THREE.Mesh(new THREE.PlaneGeometry(26,26),
+   new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthWrite:false}));
+ sol.rotation.x=-Math.PI/2;sol.position.y=-.004;sol.renderOrder=-5;scene.add(sol);}
+const carGroup=new THREE.Group();scene.add(carGroup);
+
+let cur=0,spin=true,lite=false,ang=.72,pitch=.20,dist=9,zoom=1,frameR=3.5,frameH=.7,propSpin=0,ailesD=0;
+// LE CADRAGE EST RECALCULÉ, PAS FIGÉ. La distance dépend du format de la fenêtre : la figer au
+// moment du build donnait une caisse hors champ dès qu'on redimensionnait — et, quand le panneau
+// démarre à 0×0 (onglet encore masqué), un `aspect` NaN gelait la caméra en NaN pour de bon :
+// écran vide définitif, sans la moindre erreur en console. Le garde-fou est ici.
+function recadrer(){
+  const a=(camera.aspect>0&&isFinite(camera.aspect))?camera.aspect:1.4;
+  const halfV=Math.tan(camera.fov*Math.PI/360),halfH=halfV*a;
+  dist=Math.max(frameR/halfH,frameH/halfV)*1.42*zoom;
+}
+
+// LE CALQUE « LUMIÈRES » : les nappes additives au sol (userData.noShadow) et les halos sprites.
+// On les éteint pour juger la TÔLE ; le bouton les rallume pour retrouver la caisse de course.
+function appliquerLumieres(grp,on){
+  grp.traverse(o=>{if(o.isSprite||(o.userData&&o.userData.noShadow))o.visible=on;});
+}
+// LES MINI-AILES AU REPOS. `buildCar` les pose à plat ; c'est la boucle du jeu qui les rétracte
+// dans le flanc au sol (scale.x .05) et les déploie en vol. Sans ce rappel, TOUTES les caisses de
+// l'étal portent deux planches horizontales qui n'existent pas quand on roule — et la silhouette
+// de côté, elle, s'en trouve faussée. Mettre `d=1` ici pour revoir l'état EN VOL.
+function poserAiles(m,d){
+  d=d||0;
+  const [a,b]=m.ailes();
+  if(a){const sc=.05+.95*d;a.scale.x=b.scale.x=sc;a.rotation.z=.16*d;b.rotation.z=-.16*d;}
+  // les AILERONS DÉPLOYABLES suivent le même taux : au sol ils sont couchés, en vol ils se dressent
+  for(const f of m.carFins)f.scale.y=.07+.93*d;
+}
+// La boîte de la CAISSE : les flaques mesurent jusqu'à 4,6 longueurs de voiture — les inclure
+// donnerait un cadrage calé sur le faisceau des phares, pas sur la carrosserie.
+function boiteCaisse(grp){
+  const bb=new THREE.Box3(),tmp=new THREE.Box3();let vide=true;
+  grp.updateMatrixWorld(true);
+  grp.traverse(o=>{
+    if(!o.isMesh||o.isSprite)return;
+    if(o.userData&&o.userData.noShadow)return;
+    tmp.setFromObject(o);
+    if(vide){bb.copy(tmp);vide=false;}else bb.union(tmp);
+  });
+  if(vide)bb.set(new THREE.Vector3(-1,0,-2),new THREE.Vector3(1,1,2));
+  return bb;
+}
+
+function poser(i){
+  cur=((i%CARS.length)+CARS.length)%CARS.length;
+  mod.buildCar(CARS[cur]);
+  poserAiles(mod,ailesD);appliquerLumieres(carGroup,lite);
+  const c=CARS[cur],bb=boiteCaisse(carGroup);
+  // CADRAGE : la caisse tourne autour de Y, donc ce qui doit tenir dans le champ est son rayon
+  // dans le plan XZ (pas le coin de sa boîte), et sa hauteur.
+  const rx=Math.max(Math.abs(bb.min.x),Math.abs(bb.max.x)),rz=Math.max(Math.abs(bb.min.z),Math.abs(bb.max.z));
+  frameR=Math.max(.001,Math.hypot(rx,rz));frameH=Math.max(.001,(bb.max.y-bb.min.y)/2);
+  recadrer();
+  const shape=carGroup.userData.shape||'?';
+  let nm=0;carGroup.traverse(o=>{if(o.isMesh)nm++;});
+  $('cName').textContent=(cur+1)+'.  '+c.name;
+  $('cDesc').textContent=c.desc||'';
+  const fam=FAM[shape]||0;
+  const proche=voisin[cur];
+  $('cStats').innerHTML=
+     st('GABARIT',shape.toUpperCase(),fam>=4)
+    +st('PARTAGÉ AVEC',fam>1?(fam-1)+' autre'+(fam>2?'s':''):'personne',fam>=4)
+    +st('L × l × h',c.l.toFixed(1)+' × '+c.w.toFixed(2)+' × '+c.h.toFixed(2))
+    +st('HORS-TOUT',(bb.max.z-bb.min.z).toFixed(2)+' × '+(bb.max.y-bb.min.y).toFixed(2))
+    +st('MESHES',nm)
+    +st('EXTRAS',[c.spoiler?'aileron':'',c.glow?'néon':'',c.rocket?'boosters':''].filter(Boolean).join(' · ')||'—')
+    +st('DÉBLOCAGE',texteUnlock(cur))
+    +(proche?st('SOSIE',proche.nom+'  '+(proche.sc*100).toFixed(0)+' %',proche.sc>=.90):'');
+  for(const el of document.querySelectorAll('.row'))el.classList.toggle('on',+el.dataset.i===cur);
+  const on=document.querySelector('.row.on');if(on)on.scrollIntoView({block:'nearest'});
+}
+const st=(l,v,warn)=>'<div class="st">'+l+'<b'+(warn?' class="warn"':'')+'>'+v+'</b></div>';
+
+// la condition de déblocage, en une ligne — lue dans CAR_UNLOCK, pas réécrite
+const UNL={cash:'RECORD',eng:'MOTEUR PALIER',tricks:'FIGURES',gaps:'GAPS',bumps:'BUMPS',
+           zones:'ZONES',chain:'CHAÎNE ×',kmh:'KM/H',surv:'SURVIVANT',prem:'PREMIUM'};
+function texteUnlock(i){
+  const u=CAR_UNLOCK[i];if(!u)return 'de départ';
+  if(u.k==='prem')return 'OFFERTE';
+  const v=u.v>=1e6?(u.v/1e6)+' M':u.v>=1e3?(u.v/1e3)+' k':u.v;
+  return (UNL[u.k]||u.k)+' '+v;
+}
+
+function resize(){
+  const w=main.clientWidth,h=main.clientHeight;
+  if(w<2||h<2)return;                    // panneau pas encore posé : surtout ne pas écrire un aspect NaN
+  renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();
+  recadrer();
+}
+addEventListener('resize',resize);
+// le panneau peut changer de taille sans qu'il y ait d'événement `resize` de fenêtre (volet
+// d'aperçu, colonne repliée…) : on observe la boîte elle-même.
+if(window.ResizeObserver)new ResizeObserver(resize).observe(main);
+
+let last=performance.now();
+function boucle(now){
+  requestAnimationFrame(boucle);
+  const dt=Math.min(.05,(now-last)/1000);last=now;
+  if(spin)ang+=dt*.5;
+  // LES HÉLICES tournent aussi ici : un atelier qui montre un rotor figé ne dit pas la vérité sur
+  // la caisse. `d` = taux de déploiement des bras (0 au sol, 1 en vol) — voir poserAiles.
+  if(mod&&mod.carProps.length){propSpin+=dt*(3.5+ailesD*36);
+    for(const p9 of mod.carProps)p9.m.rotation.y=p9.b+propSpin;}
+  const cp=Math.cos(pitch)*dist,hh=Math.sin(pitch)*dist;
+  const cy=.55;
+  camera.position.set(Math.sin(ang)*cp,cy+hh,Math.cos(ang)*cp);
+  camera.lookAt(0,cy,0);
+  camera.updateMatrixWorld();
+  // le liseré RIM du jeu a besoin de la direction du soleil EN REPÈRE CAMÉRA (comme dans loop())
+  if(mod)mod.RIM_U.uSunV.value.copy(KEY).transformDirection(camera.matrixWorldInverse);
+  renderer.render(scene,camera);
+}
+
+// ---- pilotage souris / clavier ------------------------------------------------------
+let drag=false,px=0,py=0;
+renderer.domElement.addEventListener('pointerdown',e=>{drag=true;px=e.clientX;py=e.clientY;spin=false;$('bSpin').classList.remove('on');});
+addEventListener('pointerup',()=>drag=false);
+addEventListener('pointermove',e=>{if(!drag)return;
+  ang-=(e.clientX-px)*.011;pitch=Math.max(-.25,Math.min(1.3,pitch+(e.clientY-py)*.008));
+  px=e.clientX;py=e.clientY;});
+// la molette agit sur un FACTEUR, pas sur la distance : le cadrage automatique reste maître de
+// l'échelle (une caisse suivante plus longue recule d'elle-même) et le zoom choisi est conservé.
+renderer.domElement.addEventListener('wheel',e=>{e.preventDefault();
+  zoom=Math.max(.35,Math.min(3.2,zoom*(1+e.deltaY*.0012)));recadrer();},{passive:false});
+addEventListener('keydown',e=>{
+  if(!CARS)return;
+  if(e.code==='ArrowRight')poser(cur+1);
+  else if(e.code==='ArrowLeft')poser(cur-1);
+  else if(e.code==='Space'){e.preventDefault();spin=!spin;$('bSpin').classList.toggle('on',spin);}
+});
+$('bSpin').addEventListener('click',()=>{spin=!spin;$('bSpin').classList.toggle('on',spin);});
+$('bLite').addEventListener('click',()=>{lite=!lite;$('bLite').classList.toggle('on',lite);appliquerLumieres(carGroup,lite);});
+// EN VOL : `buildCar` pose les ailes à plat, c'est la boucle du JEU qui les rétracte au sol.
+// L'étal doit pouvoir montrer les deux états — sinon les bras d'hélices du requin n'existent nulle part.
+$('bAir').addEventListener('click',()=>{ailesD=ailesD?0:1;$('bAir').classList.toggle('on',!!ailesD);poserAiles(mod,ailesD);});
+
+/* ============================================================================
+   LE BANC HORS ÉCRAN — un seul renderer réutilisé.
+   24 renderers jetables, ce serait 24 contextes WebGL (le navigateur en refuse ~16) : on rend
+   ici, puis on RECOPIE l'image dans le canvas 2D de chaque case. Le module hors écran a son
+   PROPRE carGroup pour ne jamais démonter la caisse affichée dans la scène principale.
+   ========================================================================== */
+// planche contact en 4/3 (une voiture est longue et basse : un cadre carré ne sert qu'à mettre
+// du vide au-dessus du toit) · silhouette en bande large
+const GWW=440,GWH=330,SW=320,SH=88,AZ=.78; // AZ : le trois-quarts AVANT, l'angle de fiche technique
+let offR=null,offScene=null,off34=null,offSil=null,offGroup=null,offSol=null;
+const NOIR=new THREE.MeshBasicMaterial({color:0x121017});
+function bancInit(){
+  if(offR)return;
+  offR=new THREE.WebGLRenderer({antialias:true,alpha:true});
+  offR.setPixelRatio(1);
+  offScene=new THREE.Scene();
+  studio(offScene); // ⚠ MÊME lumière que la scène principale : deux dosages = deux jugements
+  off34=new THREE.PerspectiveCamera(32,1,.1,200);
+  // SILHOUETTE : caméra ORTHOGRAPHIQUE et cadre FIXE, identique pour les 24. C'est tout l'intérêt —
+  // en perspective ou avec un cadrage automatique, une petite caisse serait grossie jusqu'à la
+  // taille d'un monstre et on comparerait des proportions au lieu de comparer des voitures.
+  // CADRE MESURÉ, pas deviné, et COMMUN à toute la gamme : il contient la plus longue et la plus
+  // haute avec une marge fine — donc une caisse courte SE VOIT courte, ce qui est exactement
+  // l'information qu'on vient chercher. Un cadrage par caisse aurait tout ramené à la même taille
+  // et effacé la moitié des différences.
+  const HW=3.78,HH=HW*SH/SW,CY=.92;
+  // ⚠ les bornes d'une caméra ORTHO sont en repère CAMÉRA, pas en repère monde. Écrire
+  // `top=CY+HH` décalait la fenêtre de CY une SECONDE fois (la caméra est déjà à cette hauteur) :
+  // le cadre montait au-dessus des toits et coupait les roues. C'est la position qui centre.
+  offSil=new THREE.OrthographicCamera(-HW,HW,HH,-HH,.1,60);
+  offSil.position.set(12,CY,0);offSil.lookAt(0,CY,0);
+  offGroup=new THREE.Group();offScene.add(offGroup);
+  modOff=moduleVoitures(SRC,offGroup);
+}
+// rend la caisse i dans le canvas 2D `cv`. mode : '34' (planche contact) ou 'sil' (profil noir)
+function rendreCase(cv,i,mode){
+  bancInit();
+  const sil=mode==='sil';
+  offR.setSize(sil?SW:GWW,sil?SH:GWH);
+  modOff.buildCar(CARS[i]);
+  poserAiles(modOff,0);
+  appliquerLumieres(offGroup,false); // jamais de flaques sur le banc : elles débordent de 4 longueurs
+  offGroup.rotation.y=0;             // ⚠ tourner LA CAISSE *et* placer la caméra en biais annulait
+                                     // les deux : on obtenait une vue de face, la pire pour lire une silhouette
+  offScene.overrideMaterial=sil?NOIR:null;
+  offR.setClearColor(0x000000,0);
+  let cam;
+  if(sil){cam=offSil;}
+  else{
+    const bb=boiteCaisse(offGroup);
+    const rx=Math.max(Math.abs(bb.min.x),Math.abs(bb.max.x)),rz=Math.max(Math.abs(bb.min.z),Math.abs(bb.max.z));
+    const rxz=Math.max(.001,Math.hypot(rx,rz)),cy=(bb.min.y+bb.max.y)/2,ry=Math.max(.001,(bb.max.y-bb.min.y)/2);
+    const hV=Math.tan(off34.fov*Math.PI/360),hH=hV*(GWW/GWH);
+    const d=Math.max(rxz/hH,ry/hV)*1.16; // serré : la case sert à COMPARER, pas à aérer
+    off34.aspect=GWW/GWH;off34.updateProjectionMatrix();
+    off34.position.set(Math.sin(AZ)*d*.95,cy+d*.26,Math.cos(AZ)*d*.95);off34.lookAt(0,cy*.92,0);
+    cam=off34;
+  }
+  offR.render(offScene,cam);
+  const c2=cv.getContext('2d');
+  c2.clearRect(0,0,cv.width,cv.height);
+  if(sil){c2.fillStyle='#efe9dd';c2.fillRect(0,0,cv.width,cv.height);}
+  c2.drawImage(offR.domElement,0,0,cv.width,cv.height);
+  offScene.overrideMaterial=null;
+}
+
+// ---- LA PLANCHE CONTACT / LES SILHOUETTES --------------------------------------------
+let gridMode=null; // '34' | 'sil' | null
+function ouvrirGrille(mode){
+  const g=$('grid');
+  if(gridMode===mode){g.classList.remove('on');gridMode=null;majBoutons();return;}
+  fermerDoublons();
+  g.innerHTML='';g.classList.toggle('sil',mode==='sil');
+  for(let i=0;i<CARS.length;i++){
+    const cell=document.createElement('div');cell.className='cell';
+    const cv=document.createElement('canvas');
+    cv.width=mode==='sil'?SW:GWW;cv.height=mode==='sil'?SH:GWH;
+    cell.appendChild(cv);
+    const lbl=document.createElement('div');lbl.className='cLbl';
+    lbl.innerHTML='<i>'+(i+1)+' / '+CARS.length+'</i>'+CARS[i].name;
+    cell.appendChild(lbl);
+    cell.addEventListener('click',()=>{g.classList.remove('on');gridMode=null;majBoutons();poser(i);});
+    g.appendChild(cell);
+    rendreCase(cv,i,mode);
+  }
+  g.classList.add('on');gridMode=mode;majBoutons();
+}
+function majBoutons(){
+  $('bGrid').classList.toggle('on',gridMode==='34');
+  $('bSil').classList.toggle('on',gridMode==='sil');
+  $('bDbl').classList.toggle('on',$('dbl').classList.contains('on'));
+}
+$('bGrid').addEventListener('click',()=>ouvrirGrille('34'));
+$('bSil').addEventListener('click',()=>ouvrirGrille('sil'));
+
+/* ============================================================================
+   LES DOUBLONS — « certaines se ressemblent trop », mesuré.
+
+   Recette : on rend les 24 profils dans le MÊME cadre orthographique (même échelle réelle, donc
+   une caisse plus longue est vraiment plus longue à l'image), on en garde le masque binaire, et
+   on calcule pour chaque paire le RECOUVREMENT = intersection / union des deux masques.
+   1,00 = deux silhouettes superposables ; on ne compare pas des couleurs ni des accessoires,
+   uniquement ce qu'on reconnaît de loin sur la route : la forme.
+   ⚠ Le score ne dit pas « c'est raté » — deux berlines de la même famille SE DOIVENT de se
+   ressembler un peu. Il dit où regarder en premier, et il rend la progression du chantier lisible.
+   ========================================================================== */
+let voisin=[]; // par caisse : {nom,sc} de sa plus proche — affiché dans la fiche
+function masques(){
+  bancInit();
+  const cv=document.createElement('canvas');cv.width=SW;cv.height=SH;
+  const ctx=cv.getContext('2d',{willReadFrequently:true});
+  const out=[];
+  for(let i=0;i<CARS.length;i++){
+    modOff.buildCar(CARS[i]);
+    poserAiles(modOff,0);
+    appliquerLumieres(offGroup,false);
+    offGroup.rotation.y=0;
+    offScene.overrideMaterial=NOIR;
+    offR.setSize(SW,SH);offR.setClearColor(0x000000,0);
+    offR.render(offScene,offSil);
+    offScene.overrideMaterial=null;
+    ctx.clearRect(0,0,SW,SH);ctx.drawImage(offR.domElement,0,0);
+    const d=ctx.getImageData(0,0,SW,SH).data,m=new Uint8Array(SW*SH);
+    let n=0;
+    for(let p=0;p<m.length;p++){if(d[p*4+3]>40){m[p]=1;n++;}}
+    out.push({m:m,n:n});
+  }
+  return out;
+}
+function iou(a,b){
+  let inter=0,uni=0;
+  for(let p=0;p<a.m.length;p++){const x=a.m[p],y=b.m[p];if(x|y){uni++;if(x&y)inter++;}}
+  return uni?inter/uni:0;
+}
+let doublonsFaits=false;
+function fermerDoublons(){$('dbl').classList.remove('on');majBoutons();}
+$('bDbl').addEventListener('click',()=>{
+  const d=$('dbl');
+  if(d.classList.contains('on')){d.classList.remove('on');majBoutons();return;}
+  $('grid').classList.remove('on');gridMode=null;
+  if(!doublonsFaits){doublonsFaits=true;construireDoublons();}
+  d.classList.add('on');majBoutons();
+});
+function construireDoublons(){
+  const M=masques(),P=[];
+  for(let i=0;i<CARS.length;i++)for(let j=i+1;j<CARS.length;j++)P.push({i:i,j:j,sc:iou(M[i],M[j])});
+  P.sort((a,b)=>b.sc-a.sc);
+  // le plus proche voisin de chaque caisse (sert dans la fiche du showroom)
+  voisin=CARS.map(()=>null);
+  for(const p of P){
+    if(!voisin[p.i])voisin[p.i]={nom:CARS[p.j].name,sc:p.sc};
+    if(!voisin[p.j])voisin[p.j]={nom:CARS[p.i].name,sc:p.sc};
+  }
+  const chauds=P.filter(p=>p.sc>=.90).length,tiedes=P.filter(p=>p.sc>=.80).length;
+  const d=$('dbl');d.innerHTML='';
+  const h=document.createElement('div');h.id='dblHead';
+  h.textContent='RECOUVREMENT DES SILHOUETTES — '+P.length+' paires · '+chauds+' au-dessus de 90 % · '+tiedes+' au-dessus de 80 %';
+  d.appendChild(h);
+  const sub=document.createElement('div');sub.id='dblSub';
+  sub.textContent="profil de côté, même échelle réelle pour les 24, flaques et halos éteints. 100 % = superposables. "
+    +"Deux caisses d'une même famille se ressemblent forcément un peu : ce classement dit par où commencer, pas ce qui est raté.";
+  d.appendChild(sub);
+  // LES FAMILLES DE GABARIT : le vrai coupable se lit ici avant même les paires
+  const fam=document.createElement('div');fam.id='dblFam';
+  const ordre=['boxy','gt','muscle','formula','proto','rocket'];
+  for(const g of ordre){if(!FAM[g])continue;
+    const e=document.createElement('div');e.className='fam';
+    e.innerHTML=g.toUpperCase()+'<b>'+FAM[g]+'</b>';fam.appendChild(e);}
+  d.appendChild(fam);
+  for(const p of P.slice(0,24)){
+    const row=document.createElement('div');row.className='pair';
+    const sc=document.createElement('div');sc.className='sc'+(p.sc>=.90?' hot':'');
+    sc.textContent=(p.sc*100).toFixed(1)+'%';row.appendChild(sc);
+    for(const k of [p.i,p.j]){
+      const cv=document.createElement('canvas');cv.width=SW;cv.height=SH;
+      rendreCase(cv,k,'sil');row.appendChild(cv);
+    }
+    const nm=document.createElement('div');nm.className='pnm';
+    nm.innerHTML=CARS[p.i].name+'  ×  '+CARS[p.j].name
+      +'<i>'+(p.i+1)+' & '+(p.j+1)+' · gabarits '+GAB[p.i]+' / '+GAB[p.j]+'</i>';
+    row.appendChild(nm);
+    row.addEventListener('click',()=>{fermerDoublons();poser(p.i);});
+    d.appendChild(row);
+  }
+  if(cur>=0)poser(cur); // la fiche affiche maintenant le sosie
+}
+
+// ---- démarrage ----------------------------------------------------------------------
+// ⚠ LE PARAMÈTRE D'URL N'EST PAS DÉCORATIF. Le jeu enregistre un service worker (PWA) sur
+// l'origine : il intercepte `fetch('index.html')` et répond depuis SON cache — on récupérait
+// 16 Ko de vieille page au lieu des ~600 Ko du jeu, d'où un « bloc introuvable » très trompeur.
+let SRC='',GAB=[],FAM={};
+fetch('index.html?etal='+Date.now(),{cache:'no-store'})
+  .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.text();})
+  .then(src=>{
+    SRC=src;
+    mod=moduleVoitures(src,carGroup);
+    CARS=mod.CARS;CAR_UNLOCK=mod.CAR_UNLOCK;
+    voisin=CARS.map(()=>null);
+    // LE GABARIT DE CHAQUE CAISSE : on le lit là où il est DÉCIDÉ (buildCar le pose dans
+    // carGroup.userData) plutôt que de recopier la règle des seuils — une copie aurait menti
+    // dès qu'une caisse recevrait un `spec.shape` à elle.
+    for(let i=0;i<CARS.length;i++){mod.buildCar(CARS[i]);GAB[i]=carGroup.userData.shape;FAM[GAB[i]]=(FAM[GAB[i]]||0)+1;}
+    $('cnt').textContent=CARS.length+' caisses · lues en direct dans index.html';
+    const L=$('list');
+    CARS.forEach((c,i)=>{
+      const d=document.createElement('div');d.className='row';d.dataset.i=i;
+      d.innerHTML='<span class="num">'+(i+1)+'</span>'
+        +'<span class="swatch" style="background:#'+c.color.toString(16).padStart(6,'0')
+        +';color:#'+(c.glow||c.accent).toString(16).padStart(6,'0')+'"></span>'
+        +'<span class="nm">'+c.name+'</span>'
+        +'<span class="pu g-'+GAB[i]+'">'+GAB[i]+'</span>';
+      d.addEventListener('click',()=>{if(gridMode){$('grid').classList.remove('on');gridMode=null;majBoutons();}
+        fermerDoublons();poser(i);});
+      L.appendChild(d);
+    });
+    resize();poser(0);requestAnimationFrame(boucle);
+  })
+  .catch(e=>{
+    const off=String(e.message||e).indexOf('Failed to fetch')>=0;
+    fail(off?"L'étal lit les voitures DIRECTEMENT dans index.html, ce qui exige un vrai serveur.<br>Ouvre un terminal dans le dossier du jeu et lance :"
+            :"Impossible de lire les voitures dans index.html.",
+         off?'python3 -m http.server 8000<br>puis http://localhost:8000/voitures.html'
+            :String(e.message||e));
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MOTEUR ROUILLÉ — 3 propositions</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  :root{--pix:"Press Start 2P",monospace;--cy:#7dffec;--or:#ffd75e}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#08060f;color:#e8e8f0;font-family:var(--pix);overflow:hidden;
+    background-image:radial-gradient(120% 80% at 50% 0%,#1d1638 0%,#08060f 64%)}
+  canvas#c{display:block;position:fixed;inset:0}
+  #top{position:fixed;top:0;left:0;right:0;padding:14px 20px;display:flex;gap:10px;align-items:center;z-index:5}
+  #top h1{font-size:10px;color:var(--or);line-height:1.7;text-shadow:0 0 12px rgba(255,215,94,.5);flex:1}
+  button{cursor:pointer;font-family:var(--pix);font-size:8px;line-height:1;padding:10px 12px;
+    color:#dfe8fc;background:rgba(18,14,38,.92);border:1px solid rgba(125,255,236,.32);border-radius:8px}
+  button:hover{border-color:var(--cy);color:var(--cy)}
+  button.on{background:rgba(125,255,236,.16);border-color:var(--cy);color:var(--cy)}
+  #cards{position:fixed;left:0;right:0;bottom:0;display:flex;gap:14px;padding:16px 20px 20px;z-index:5;
+    background:linear-gradient(180deg,rgba(8,6,15,0),rgba(8,6,15,.9) 45%)}
+  .card{flex:1;padding:12px 14px 13px;border:1px solid rgba(125,255,236,.2);border-radius:10px;
+    background:rgba(10,14,28,.72);cursor:pointer}
+  .card:hover{border-color:var(--cy)}
+  .card.on{border-color:var(--or);background:rgba(255,215,94,.08)}
+  .card h2{font-size:9px;color:var(--or);line-height:1.7}
+  .card .sub{font-size:6.5px;color:var(--cy);margin-top:6px;line-height:1.8}
+  .card p{font-size:6.5px;color:#b9b2da;line-height:2;margin-top:8px}
+  #hint{position:fixed;left:20px;top:52px;font-size:6.5px;color:#5a5580;line-height:1.9;z-index:5}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="top">
+  <h1>MOTEUR ROUILLÉ — 3 PROPOSITIONS</h1>
+  <button id="bRal">RALENTI</button>
+  <button id="bRou" class="on">ROULE</button>
+  <button id="bBoo">🔥 BOOST</button>
+  <button id="bTex" class="on">TEXTURES</button>
+  <button id="bSpin" class="on">↻</button>
+  <button id="bAll" class="on">LES 3</button>
+</div>
+<div id="hint">glisser : tourner · molette : zoomer<br>clic sur une carte : isoler<br>1 2 3 : passer de l'un à l'autre</div>
+<div id="cards"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ============================================================================
+   TROIS MOTEURS ROUILLÉS — planche de choix.
+   Le brief : « du génératif, pas que du géométrique ». Les 30 moteurs du jeu sont
+   aujourd'hui des boîtes en couleur unie, sans UNE SEULE texture : c'est ça qui les rend
+   plats, bien plus que leur nombre de faces. Ici tout ce qui se voit (rouille, piqûres,
+   coulures, usure, suie, vert-de-gris) est PEINT PAR LE CODE au chargement, à partir d'un
+   bruit de valeur ensemencé — aucune image, aucun asset, et la même graine redonne
+   toujours le même moteur.
+   Les trois versions ne se distinguent pas par « plus ou moins de cubes » mais par un
+   LANGAGE DE DESIGN différent. C'est le choix entre ces langages qui fixera les 29 autres.
+   ========================================================================== */
+
+// ---------------------------------------------------------------------------
+// 1. LE MOTEUR DU GÉNÉRATIF : bruit de valeur ensemencé + fbm
+// ---------------------------------------------------------------------------
+// mulberry32 : même générateur que la piste du jeu — ensemencé, donc reproductible.
+function rng32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+// bruit de VALEUR sur une grille + interpolation douce : la brique de base de tout le reste.
+function valueNoise(seed){
+  const G=256,r=rng32(seed),tab=new Float32Array(G*G);
+  for(let i=0;i<G*G;i++)tab[i]=r();
+  const sm=t=>t*t*(3-2*t); // lissage cubique : sans lui on voit la grille
+  return function(x,y){
+    const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi;
+    const a=tab[((yi&255)*G)+(xi&255)],b=tab[((yi&255)*G)+((xi+1)&255)];
+    const c=tab[(((yi+1)&255)*G)+(xi&255)],d=tab[(((yi+1)&255)*G)+((xi+1)&255)];
+    const u=sm(xf),v=sm(yf);
+    return (a*(1-u)+b*u)*(1-v)+(c*(1-u)+d*u)*v;
+  };
+}
+// fbm : on empile des octaves de plus en plus fines — c'est ce qui donne le grain « matière »
+// plutôt qu'un dégradé. `rough` (persistance) décide si la surface est douce ou grêlée.
+function fbm(n,x,y,oct,rough){
+  let s=0,amp=1,f=1,norm=0;
+  for(let i=0;i<oct;i++){s+=n(x*f,y*f)*amp;norm+=amp;amp*=rough;f*=2;}
+  return s/norm;
+}
+const lerp=(a,b,t)=>a+(b-a)*t;
+const clamp01=v=>v<0?0:v>1?1:v;
+const mixHex=(c1,c2,t)=>[lerp(c1[0],c2[0],t),lerp(c1[1],c2[1],t),lerp(c1[2],c2[2],t)];
+
+// ---------------------------------------------------------------------------
+// 2. LA PEINTURE DE LA MATIÈRE
+// ---------------------------------------------------------------------------
+// Une passe unique produit TROIS cartes cohérentes entre elles : la couleur, le relief
+// (piqûres et cloques) et le spéculaire (le métal nu brille, la rouille est mate).
+// Les trois viennent du MÊME champ de bruit — c'est ce qui fait qu'une cloque de rouille
+// est au bon endroit sur les trois, et donc que la surface se lit comme une seule matière.
+function fonderie(opt){
+  const S=opt.size||256, seed=opt.seed||1;
+  const nRouille=valueNoise(seed), nGrain=valueNoise(seed+977), nCoulure=valueNoise(seed+4231);
+  const cv=document.createElement('canvas'),bv=document.createElement('canvas'),sv=document.createElement('canvas');
+  cv.width=cv.height=bv.width=bv.height=sv.width=sv.height=S;
+  const ci=cv.getContext('2d').createImageData(S,S),
+        bi=bv.getContext('2d').createImageData(S,S),
+        si=sv.getContext('2d').createImageData(S,S);
+  const FER=opt.fer||[86,84,88], ROUILLE=opt.rouille||[142,74,32],
+        ROUILLE_CLAIRE=opt.rouilleClaire||[196,116,52], NU=opt.nu||[168,170,178];
+  const densite=opt.densite==null?.52:opt.densite,  // combien de la surface est mangée
+        echelle=opt.echelle||5.5,                   // taille des plaques
+        // GRAIN — ⚠ RÉGLAGE ISSU DU RETOUR « un peu grossier ». Le premier jet montait à .55 avec
+        // 3 octaves de bruit fin : de près ça ne lisait plus la fonte mais du GRAVIER. Le coupable
+        // n'était pas la couleur (validée) mais l'amplitude du grain ET le relief qui l'accompagne.
+        // On garde exactement la même palette, on baisse l'amplitude et on retire l'octave la plus
+        // fine : la matière reste piquée, elle cesse d'être caillouteuse.
+        grain=opt.grain==null?.30:opt.grain,
+        octGrain=opt.octGrain||2;                   // 3 → 2 : c'est l'octave fine qui faisait le gravier
+  for(let y=0;y<S;y++)for(let x=0;x<S;x++){
+    const u=x/S*echelle, v=y/S*echelle;
+    // le champ de rouille : de grandes plaques (fbm doux) rongées par du détail fin
+    let r=fbm(nRouille,u,v,5,.55);
+    // COULURES : la rouille pleure vers le bas. On étire le bruit en Y et on ne garde que
+    // ce qui part d'une plaque déjà installée — sinon on obtient des rayures décoratives.
+    const coul=fbm(nCoulure,u*3.5,v*.35,3,.5);
+    r=Math.max(r, (r>densite*.9?1:0)*coul*.92);
+    const t=clamp01((r-densite)*3.2);            // 0 = métal nu, 1 = rouille pleine
+    const g=fbm(nGrain,u*7,v*7,octGrain,.52);     // grain de fonte, partout (fréquence et octaves adoucies)
+    // COULEUR : fonte grise → rouille sombre → efflorescence orange sur les bords de plaque
+    let col=mixHex(FER,ROUILLE,clamp01(t*1.6));
+    col=mixHex(col,ROUILLE_CLAIRE,clamp01((t-.55)*2.2)*.85);
+    // là où la rouille n'a pas pris, le métal a été FROTTÉ : quelques éclats plus clairs
+    if(t<.12)col=mixHex(col,NU,clamp01((.12-t)*7)*.5*clamp01(g*1.4));
+    const gg=(g-.5)*grain*46;                     // le grain module tout, sinon c'est du plastique
+    // ⚠ le grain ne doit PAS mordre là où la rouille est pleine : une plaque de rouille est
+    // poudreuse et MATE, pas grenue. Le laisser partout était la moitié de l'effet gravier.
+    const gcol=gg*(1-clamp01(t)*.55);
+    const i=(y*S+x)*4;
+    ci.data[i]=clamp01((col[0]+gcol)/255)*255;ci.data[i+1]=clamp01((col[1]+gcol)/255)*255;
+    ci.data[i+2]=clamp01((col[2]+gcol)/255)*255;ci.data[i+3]=255;
+    // RELIEF : la rouille CLOQUE (elle prend du volume), la fonte est juste grenue,
+    // et les piqûres profondes sont des trous ponctuels — mais RARES : en semer partout
+    // (l'exposant 3 d'origine sur une octave fine) donnait la surface d'une pierre ponce.
+    const piq=Math.pow(fbm(nGrain,u*13,v*13,2,.5),5);
+    const h=clamp01(.5+t*.26+(g-.5)*.13-piq*.30);
+    bi.data[i]=bi.data[i+1]=bi.data[i+2]=h*255;bi.data[i+3]=255;
+    // SPÉCULAIRE : le métal nu accroche la lumière, la rouille l'avale. C'est CE contraste
+    // qui fait « vieux métal » — une couleur seule donnerait une carrosserie repeinte.
+    const sp=clamp01((1-t)*(.55+g*.5)-piq*.3);
+    si.data[i]=si.data[i+1]=si.data[i+2]=sp*255;si.data[i+3]=255;
+  }
+  cv.getContext('2d').putImageData(ci,0,0);
+  bv.getContext('2d').putImageData(bi,0,0);
+  sv.getContext('2d').putImageData(si,0,0);
+  const mk=c=>{const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;return t;};
+  return {map:mk(cv),bump:mk(bv),spec:mk(sv)};
+}
+// une suie / un dépôt gras, pour les pièces chaudes (collecteur, pot)
+function suie(seed,base,chaud){
+  const S=192,n=valueNoise(seed),n2=valueNoise(seed+31);
+  const cv=document.createElement('canvas');cv.width=cv.height=S;
+  const im=cv.getContext('2d').createImageData(S,S);
+  for(let y=0;y<S;y++)for(let x=0;x<S;x++){
+    const u=x/S*4,v=y/S*4;
+    const t=fbm(n,u,v,4,.55), h=fbm(n2,u*7,v*7,2,.5);
+    // ⚠ LE TUYAU ROSE, corrigé. Le métal chauffé prend bien des irisations, mais elles sont
+    // ÉTROITES et tardives : en les faisant monter dès t=.42 sur toute la pièce, le violet
+    // recouvrait le métal et le tuyau virait au rose bonbon. L'irisation ne mord donc plus que
+    // sur la frange cuite (à partir de .58, et à 55 % au maximum), le reste reste du fer sombre.
+    let col=mixHex(base,chaud,clamp01((t-.58)*2.6)*.55);
+    col=mixHex(col,[24,22,26],clamp01((t-.60)*2.4)*.9); // et la suie noire prend vite le dessus
+    const g=(h-.5)*34;
+    const i=(y*S+x)*4;
+    im.data[i]=clamp01((col[0]+g)/255)*255;im.data[i+1]=clamp01((col[1]+g)/255)*255;
+    im.data[i+2]=clamp01((col[2]+g)/255)*255;im.data[i+3]=255;
+  }
+  cv.getContext('2d').putImageData(im,0,0);
+  const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;return t;
+}
+
+// ---------------------------------------------------------------------------
+// 3. LES MATÉRIAUX (r128 : MeshPhong — map + bumpMap + specularMap, pas de PBR)
+// ---------------------------------------------------------------------------
+const F={
+  fonte:  fonderie({seed:7,  densite:.50,echelle:5.5,grain:.55}),
+  fonteB: fonderie({seed:23, densite:.66,echelle:4.2,grain:.75, rouille:[126,60,26],rouilleClaire:[214,124,48]}),
+  fonteC: fonderie({seed:91, densite:.42,echelle:7.0,grain:.45}),
+  cuivre: fonderie({seed:55, densite:.58,echelle:6.0,grain:.42,
+                    fer:[142,96,52],rouille:[62,118,102],rouilleClaire:[122,186,158],nu:[196,140,80]}) // vert-de-gris
+};
+function matFonte(f,couleur,brillance){
+  // bumpScale .055 → .026 : le relief AMPLIFIAIT le grain. Adoucir la carte sans baisser son
+  // amplitude n'aurait rien donné — les deux allaient de pair dans l'effet « gravier ».
+  return new THREE.MeshPhongMaterial({map:f.map,bumpMap:f.bump,bumpScale:.026,
+    specularMap:f.spec,specular:0xb9c2cc,shininess:brillance==null?26:brillance,
+    color:couleur==null?0xffffff:couleur});
+}
+// `chaud:true` MARQUE la pièce comme chauffante : l'animation s'en sert pour la faire rougir
+// au boost sans qu'aucune version n'ait à déclarer une liste de meshes.
+const matSuie=(s,sh)=>{const m=new THREE.MeshPhongMaterial({map:s,specular:0x8a7f74,shininess:sh||18,
+  emissive:0x000000});m.userData.chaud=true;return m;};
+const matSombre=new THREE.MeshPhongMaterial({color:0x1e1c22,specular:0x555055,shininess:34});
+const matCaout =new THREE.MeshPhongMaterial({color:0x141317,specular:0x2a2a2e,shininess:8});
+const matBoulon=new THREE.MeshPhongMaterial({color:0x8d8577,specular:0xe8e2d4,shininess:120});
+const matCuivre=matFonte(F.cuivre,0xffffff,44);
+
+// petites fabriques partagées
+const gBox=(w,h,d)=>new THREE.BoxGeometry(w,h,d);
+const gCyl=(r,h,s)=>new THREE.CylinderGeometry(r,r,h,s||14);
+function put(g,geo,mat,x,y,z,rx,ry,rz){const m=new THREE.Mesh(geo,mat);
+  m.position.set(x||0,y||0,z||0);if(rx)m.rotation.x=rx;if(ry)m.rotation.y=ry;if(rz)m.rotation.z=rz;
+  g.add(m);return m;}
+// BOULONS SEMÉS PAR LE CODE : on ne les place pas à la main, on les distribue le long d'un
+// rectangle — c'est ce qui permettra d'en mettre 6 sur un 3 cylindres et 16 sur un V16 sans
+// redessiner quoi que ce soit.
+function boulons(g,n,w,d,y,r,seed){
+  const rd=rng32(seed||3);
+  for(let i=0;i<n;i++){
+    const t=i/n*Math.PI*2, jx=(rd()-.5)*.02, jz=(rd()-.5)*.02;
+    put(g,gCyl(r,.035,6),matBoulon,Math.cos(t)*w/2+jx,y,Math.sin(t)*d/2+jz);
+  }
+}
+// UN TUYAU QUI SERPENTE : suite de segments orientés le long d'une courbe. Génératif :
+// on décrit un CHEMIN, pas des cubes — un collecteur d'échappement à 2, 6 ou 12 sorties
+// se fabrique avec la même fonction.
+function tuyau(g,pts,r,mat,seg){
+  const courbe=new THREE.CatmullRomCurve3(pts);
+  const geo=new THREE.TubeGeometry(courbe,seg||24,r,10,false);
+  g.add(new THREE.Mesh(geo,mat));
+}
+
+// ---------------------------------------------------------------------------
+// VERSION A — « LE BLOC HONNÊTE » : la vraie anatomie d'un petit moteur, sale.
+// Parti pris : on RECONNAÎT un moteur. Carter, bloc, cache-culasse, collecteur, alternateur,
+// courroie, bougies. La rouille raconte l'abandon ; la forme, elle, reste crédible.
+// ---------------------------------------------------------------------------
+function versionA(){
+  const g=new THREE.Group();
+  const fonte=matFonte(F.fonte,0xffffff,26);
+  put(g,gBox(1.30,.74,1.00),fonte,0,.06,0);                         // le bloc
+  const carter=put(g,gBox(1.16,.34,.86),matFonte(F.fonte,0xb9b4ae,18),0,-.44,0); // carter d'huile
+  carter.scale.set(1,1,1);
+  put(g,gBox(1.34,.20,1.04),matFonte(F.fonte,0xd8d2c8,40),0,.53,0);  // cache-culasse
+  boulons(g,10,1.30,1.00,.635,.035,11);
+  for(let i=0;i<2;i++){                                              // 2 cylindres (cyl:2 du palier)
+    put(g,gCyl(.15,.30),matFonte(F.fonte,0xcfd4da,70),-.30+i*.60,.74,0);
+    put(g,gCyl(.045,.16),matBoulon,-.30+i*.60,.94,0);                // la bougie
+  }
+  // COLLECTEUR : deux descentes qui se rejoignent — un vrai chemin, pas des boîtes
+  const chaud=matSuie(suie(3,[74,66,62],[86,60,96])); // fer sombre, irisation contenue
+  for(let i=0;i<2;i++){
+    const x=-.30+i*.60;
+    tuyau(g,[new THREE.Vector3(x,.42,.52),new THREE.Vector3(x,.16,.74),
+             new THREE.Vector3(x*.4,-.06,.80),new THREE.Vector3(0,-.16,.86)],.075,chaud,18);
+  }
+  tuyau(g,[new THREE.Vector3(0,-.16,.86),new THREE.Vector3(.36,-.22,.90),
+           new THREE.Vector3(.78,-.26,.74)],.10,chaud,14);
+  // ALTERNATEUR + POULIE + COURROIE (le torus lit tout de suite comme une courroie)
+  put(g,gCyl(.19,.26),matFonte(F.fonte,0xa8adb6,60),-.80,.30,-.22,0,0,Math.PI/2);
+  put(g,gCyl(.26,.09),matSombre,-.74,-.20,-.22,0,0,Math.PI/2);
+  const cour=new THREE.Mesh(new THREE.TorusGeometry(.30,.032,7,26),matCaout);
+  cour.position.set(-.78,.05,-.22);cour.rotation.y=Math.PI/2;cour.scale.set(1,1.55,1);g.add(cour);
+  // durite qui pendouille + fil de bougie : les deux détails qui disent « ça tient par miracle »
+  tuyau(g,[new THREE.Vector3(.62,.44,-.30),new THREE.Vector3(.80,.20,-.42),
+           new THREE.Vector3(.72,-.14,-.30)],.045,matCaout,14);
+  tuyau(g,[new THREE.Vector3(-.30,.98,0),new THREE.Vector3(-.10,1.02,-.22),
+           new THREE.Vector3(.30,.96,-.10),new THREE.Vector3(.30,.98,0)],.022,matCaout,20);
+  put(g,gCyl(.30,.10),matFonte(F.fonte,0x9aa0a8,50),.72,.30,0,0,0,Math.PI/2); // volant moteur
+  // ANCRES D'ANIMATION : la sortie d'échappement (d'où sort la flamme) et sa direction.
+  // Chaque version les déclare — le code d'animation, lui, est le même pour toutes.
+  g.userData.echap=new THREE.Vector3(.80,-.26,.72);
+  g.userData.dir=new THREE.Vector3(.62,-.10,.36).normalize();
+  return g;
+}
+
+// ---------------------------------------------------------------------------
+// VERSION B — « L'ÉPAVE EXPRESSIVE » : lisible à 100 px, exagérée, cartoon assumée.
+// Parti pris : la silhouette d'abord. Proportions poussées, pot tordu qui monte, réparations
+// visibles (collier, sangle, ressort), un trou qui fume. C'est la voix du jeu — « il tousse,
+// il fume, il prie » — traduite en volumes plutôt qu'en réalisme.
+// ---------------------------------------------------------------------------
+function versionB(){
+  const g=new THREE.Group();
+  const fonte=matFonte(F.fonteB,0xffffff,20);
+  const bloc=put(g,gBox(1.22,.86,1.02),fonte,0,.02,0);
+  bloc.scale.set(1,1,1);
+  put(g,gBox(1.40,.28,1.16),matFonte(F.fonteB,0xe2d8c8,34),0,.58,-.02); // cache-culasse SURDIMENSIONNÉ
+  boulons(g,8,1.36,1.12,.73,.055,5);
+  // un seul gros cylindre penché : l'asymétrie fait la lecture
+  put(g,gCyl(.24,.42),matFonte(F.fonteB,0xd2d8e0,60),-.22,.86,0,0,0,.13);
+  put(g,gCyl(.07,.22),matBoulon,-.26,1.12,0,0,0,.13);
+  // LE POT TORDU qui part vers le ciel — la signature de la silhouette
+  const chaud=matSuie(suie(9,[80,70,62],[88,60,98]),12); // idem : plus de tuyau rose
+  tuyau(g,[new THREE.Vector3(.30,.30,.50),new THREE.Vector3(.66,.20,.66),
+           new THREE.Vector3(.92,.46,.52),new THREE.Vector3(.86,.92,.30),
+           new THREE.Vector3(1.02,1.24,.16)],.115,chaud,26);
+  const sortie=put(g,gCyl(.20,.16,16),chaud,1.06,1.34,.12);sortie.rotation.z=-.22;
+  // LE TROU QUI FUME (l'ancrage de la fumée en jeu : ici on voit juste la plaie)
+  put(g,gCyl(.13,.06,12),new THREE.MeshPhongMaterial({color:0x0d0b10,shininess:4}),.34,.47,-.36);
+  // RÉPARATIONS : sangle, collier, ressort — le « bricolage » demandé, en volumes
+  const sangle=put(g,gBox(1.28,.14,1.08),new THREE.MeshPhongMaterial({color:0x8a5a2c,specular:0x3a2a18,shininess:12}),0,.16,0);
+  sangle.scale.set(1.02,1,1.02);
+  put(g,gCyl(.05,.20,8),matBoulon,.66,.16,.56,Math.PI/2);
+  const res=new THREE.Mesh(new THREE.TorusGeometry(.10,.022,6,14),matBoulon);
+  for(let i=0;i<5;i++){const t=res.clone();t.position.set(-.74,-.12+i*.075,.34);t.rotation.x=Math.PI/2;g.add(t);}
+  put(g,gCyl(.34,.12),matFonte(F.fonteB,0x9aa0a8,50),.66,.14,-.02,0,0,Math.PI/2); // volant, gros
+  put(g,gBox(1.06,.26,.90),matFonte(F.fonteB,0xa89e92,16),0,-.52,0);              // carter cabossé
+  g.userData.echap=new THREE.Vector3(1.10,1.42,.10);
+  g.userData.dir=new THREE.Vector3(.22,1,-.10).normalize();
+  return g;
+}
+
+// ---------------------------------------------------------------------------
+// VERSION C — « LA RELIQUE » : densité mécanique, matériaux MIXTES.
+// Parti pris : le détail fait la valeur. Ailettes de refroidissement semées par boucle,
+// couronne de boulons, carburateur, ventilateur, tubulure de cuivre au vert-de-gris.
+// C'est la piste la plus « chère à l'œil » — et celle qui coûte le plus de triangles.
+// ---------------------------------------------------------------------------
+function versionC(){
+  const g=new THREE.Group();
+  const fonte=matFonte(F.fonteC,0xffffff,30);
+  put(g,gBox(1.16,.62,.94),fonte,0,.04,0);
+  // AILETTES : générées en boucle. C'est LA texture de silhouette d'un vieux moteur refroidi
+  // par air, et ça ne coûte qu'une boucle — pas un modèle par palier.
+  for(let i=0;i<9;i++){
+    const t=i/8, w=1.20-Math.abs(t-.5)*.16;
+    put(g,gBox(w,.032,1.02),matFonte(F.fonteC,0xc6c0b4,44),0,.36+i*.062,0);
+  }
+  put(g,gBox(1.10,.12,.88),matFonte(F.fonteC,0xd8d2c4,52),0,.94,0);
+  boulons(g,14,1.10,.88,1.01,.030,17);
+  // CARBURATEUR + son entonnoir
+  put(g,gBox(.34,.30,.34),matFonte(F.fonteC,0xb0a68f,60),-.44,1.14,0);
+  const ent=new THREE.Mesh(new THREE.CylinderGeometry(.22,.13,.20,16,1,true),matFonte(F.fonteC,0xc8bda2,70));
+  ent.position.set(-.44,1.36,0);ent.material.side=THREE.DoubleSide;g.add(ent);
+  // VENTILATEUR : pales semées, elles aussi
+  const moy=put(g,gCyl(.10,.14),matSombre,.72,.22,0,0,0,Math.PI/2);
+  for(let i=0;i<6;i++){
+    const a=i/6*Math.PI*2;
+    const p=put(g,gBox(.05,.30,.13),matFonte(F.fonteC,0x9fa6ae,40),.78,.22+Math.cos(a)*.22,Math.sin(a)*.22);
+    p.rotation.x=a;p.rotation.z=.22;
+  }
+  // TUBULURE DE CUIVRE au vert-de-gris : le deuxième matériau, celui qui fait « relique »
+  tuyau(g,[new THREE.Vector3(-.30,.30,.50),new THREE.Vector3(.10,.16,.66),
+           new THREE.Vector3(.50,.34,.58),new THREE.Vector3(.66,.62,.34)],.055,matCuivre,26);
+  tuyau(g,[new THREE.Vector3(-.58,.68,.30),new THREE.Vector3(-.66,.42,.46),
+           new THREE.Vector3(-.50,.18,.52)],.042,matCuivre,18);
+  put(g,gCyl(.05,.26,10),matCuivre,-.62,.86,.30,0,0,.4);
+  put(g,gCyl(.28,.10),matFonte(F.fonteC,0x9aa0a8,50),.66,-.14,0,0,0,Math.PI/2);
+  put(g,gBox(1.04,.24,.84),matFonte(F.fonteC,0xa8a296,20),0,-.36,0);
+  g.userData.echap=new THREE.Vector3(.70,.66,.30);
+  g.userData.dir=new THREE.Vector3(.5,.55,.3).normalize();
+  return g;
+}
+
+// ---------------------------------------------------------------------------
+// 4. LA VIE DU MOTEUR : il TREMBLE quand ça roule, il S'ENFLAMME quand ça boost.
+// ---------------------------------------------------------------------------
+// Trois régimes, une seule mécanique. Le tremblement n'est PAS un bruit aléatoire : un moteur
+// bat à une fréquence, et c'est ce battement régulier — plus une petite dérive irrégulière —
+// qui le fait lire comme une machine plutôt que comme un objet secoué. Sur un bicylindre la
+// fréquence est basse et l'amplitude haute : ça tape. C'est exactement ce qu'on veut entendre
+// avec les yeux sur le palier 1.
+const REGIMES={
+  ralenti:{n:'RALENTI', hz:11, amp:.0090, roul:.0060, feu:0,   chaleur:.10},
+  roule:  {n:'ROULE',   hz:26, amp:.0130, roul:.0090, feu:.22, chaleur:.34},
+  boost:  {n:'BOOST',   hz:41, amp:.0225, roul:.0150, feu:1,   chaleur:1  }
+};
+// LA FLAMME : cône additif + cœur clair + halo, la même recette que la nitro du jeu — trois
+// pièces plutôt qu'une seule, parce qu'une flamme d'une seule couleur lit comme du plastique.
+function flammeTex(){
+  const S=64,cv=document.createElement('canvas');cv.width=cv.height=S;
+  const c=cv.getContext('2d'),g=c.createRadialGradient(S/2,S/2,1,S/2,S/2,S/2);
+  g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.35,'rgba(255,210,120,.75)');
+  g.addColorStop(1,'rgba(255,110,30,0)');
+  c.fillStyle=g;c.fillRect(0,0,S,S);
+  return new THREE.CanvasTexture(cv);
+}
+const TEX_FLAMME=flammeTex();
+function faireFeu(hote){
+  const grp=new THREE.Group();
+  const p=hote.userData.echap||new THREE.Vector3(.8,0,.6);
+  const d=hote.userData.dir||new THREE.Vector3(1,0,0);
+  grp.position.copy(p);
+  // le cône est orienté une fois pour toutes vers la sortie : +Y du cône → direction d'échappement
+  grp.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.clone().normalize());
+  // ⚠ ORIENTATION : un cône de Three a sa POINTE en +Y. La retourner (rotation.x=PI) mettait la
+  // base large DEHORS — d'où un cornet en papier au lieu d'une flamme. Une flamme d'échappement
+  // est large À LA SORTIE et s'affine en s'éloignant : on garde donc l'orientation naturelle,
+  // base collée au pot (y=0), pointe vers l'extérieur.
+  // ⚠ et on DÉPLACE LA GÉOMÉTRIE pour que sa base soit à l'origine : sans ça, l'animation
+  // (scale.y qui fait palpiter la flamme) l'étirerait depuis son CENTRE et la ferait reculer
+  // dans le pot à chaque battement. Base à l'origine = elle pousse toujours vers l'extérieur.
+  const gCoque=new THREE.ConeGeometry(.115,.66,14,1,true);gCoque.translate(0,.33,0);
+  const gCoeur=new THREE.ConeGeometry(.055,.36,12,1,true);gCoeur.translate(0,.18,0);
+  const coque=new THREE.Mesh(gCoque,
+    new THREE.MeshBasicMaterial({color:0xff6a18,transparent:true,opacity:.40,
+      blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
+  const coeur=new THREE.Mesh(gCoeur,
+    new THREE.MeshBasicMaterial({color:0xffe6b0,transparent:true,opacity:.85,
+      blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
+  const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:TEX_FLAMME,color:0xff8a30,
+    transparent:true,opacity:.8,blending:THREE.AdditiveBlending,depthWrite:false}));
+  halo.scale.set(.5,.5,.5);
+  grp.add(coque,coeur,halo);
+  grp.userData={coque,coeur,halo};
+  hote.add(grp);
+  return grp;
+}
+// ---------------------------------------------------------------------------
+// LE VISUALISEUR
+// ---------------------------------------------------------------------------
+const VERSIONS=[
+  {n:'A — LE BLOC HONNÊTE',s:'anatomie crédible · rouille sale',
+   p:"On reconnaît un vrai moteur : carter, cache-culasse boulonné, collecteur qui descend, alternateur et sa courroie, bougies et leur fil. La saleté raconte l'abandon, la forme reste juste.",f:versionA},
+  {n:'B — L\'ÉPAVE EXPRESSIVE',s:'silhouette d\'abord · cartoon assumée',
+   p:"Lisible à 100 px dans la vignette. Proportions poussées, pot tordu qui part au ciel, sangle et collier de fortune, un trou qui fume. C'est la voix du jeu — « il tousse, il fume, il prie » — mise en volumes.",f:versionB},
+  {n:'C — LA RELIQUE',s:'densité mécanique · deux matières',
+   p:"Le détail fait la valeur : ailettes de refroidissement semées en boucle, couronne de boulons, carburateur, ventilateur, tubulure de cuivre au vert-de-gris. La plus riche à l'œil, la plus lourde en triangles.",f:versionC}
+];
+
+const cv=document.getElementById('c');
+const renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(32,1,.1,200);
+scene.add(new THREE.HemisphereLight(0xcfe0ff,0x1a1728,.95));
+{const k=new THREE.DirectionalLight(0xfff0dc,1.45);k.position.set(3.5,5,4.5);scene.add(k);
+ const r=new THREE.DirectionalLight(0x8ecbff,.75);r.position.set(-4,1.2,-3);scene.add(r);
+ const b=new THREE.DirectionalLight(0xff8a44,.55);b.position.set(-1.6,-2.6,-4.2);scene.add(b);}
+
+const pivots=[],modeles=[],feux=[],chauds=[];
+VERSIONS.forEach((V,i)=>{
+  const p=new THREE.Group();p.position.x=(i-1)*3.15;scene.add(p);
+  const m=V.f();p.add(m);pivots.push(p);modeles.push(m);
+  feux.push(faireFeu(m));
+  // les pièces qui ROUGISSENT au boost : tout ce qui porte la texture de suie (collecteur, pot).
+  // On les repère par leur matériau plutôt que de les lister à la main — ça marchera pareil sur
+  // les 29 autres moteurs sans rien déclarer.
+  const ch=[];m.traverse(o=>{if(o.isMesh&&o.material&&o.material.userData.chaud)ch.push(o.material);});
+  chauds.push(ch);
+});
+let spin=true,ang=.55,pitch=.20,dist=8.2,focus=-1,tex=true,regime='roule',tHorloge=0;
+
+const cards=document.getElementById('cards');
+VERSIONS.forEach((V,i)=>{
+  const d=document.createElement('div');d.className='card';d.dataset.i=i;
+  d.innerHTML='<h2>'+V.n+'</h2><div class="sub">'+V.s+'</div><p>'+V.p+'</p>';
+  d.addEventListener('click',()=>viser(focus===i?-1:i));
+  cards.appendChild(d);
+});
+function viser(i){
+  focus=i;
+  document.getElementById('bAll').classList.toggle('on',i<0);
+  for(const c of document.querySelectorAll('.card'))c.classList.toggle('on',+c.dataset.i===i);
+  dist=i<0?8.2:3.4;
+}
+document.getElementById('bAll').addEventListener('click',()=>viser(-1));
+document.getElementById('bSpin').addEventListener('click',e=>{spin=!spin;e.target.classList.toggle('on',spin);});
+// TEXTURES ON/OFF : le comparatif le plus parlant. Éteintes, les trois redeviennent des
+// boîtes grises — c'est exactement l'état des 30 moteurs du jeu aujourd'hui.
+document.getElementById('bTex').addEventListener('click',e=>{
+  tex=!tex;e.target.classList.toggle('on',tex);
+  for(const m of modeles)m.traverse(o=>{
+    if(!o.isMesh||!o.material)return;
+    const mt=o.material;
+    if(mt.userData.saved===undefined)mt.userData.saved={map:mt.map,bumpMap:mt.bumpMap,specularMap:mt.specularMap};
+    mt.map=tex?mt.userData.saved.map:null;
+    mt.bumpMap=tex?mt.userData.saved.bumpMap:null;
+    mt.specularMap=tex?mt.userData.saved.specularMap:null;
+    mt.needsUpdate=true;
+  });
+});
+
+let drag=false,px=0,py=0;
+cv.addEventListener('pointerdown',e=>{drag=true;px=e.clientX;py=e.clientY;});
+addEventListener('pointerup',()=>drag=false);
+addEventListener('pointermove',e=>{if(!drag)return;
+  ang-=(e.clientX-px)*.010;pitch=Math.max(-1.2,Math.min(1.2,pitch+(e.clientY-py)*.008));
+  px=e.clientX;py=e.clientY;spin=false;document.getElementById('bSpin').classList.remove('on');});
+cv.addEventListener('wheel',e=>{e.preventDefault();dist=Math.max(2,Math.min(24,dist*(1+e.deltaY*.0012)));},{passive:false});
+addEventListener('keydown',e=>{
+  if(e.key==='1')viser(0);else if(e.key==='2')viser(1);else if(e.key==='3')viser(2);
+  else if(e.key==='0')viser(-1);
+});
+
+const cible=new THREE.Vector3();
+function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();}
+addEventListener('resize',resize);resize();
+
+// ---- les trois régimes ----
+function mettreRegime(r){
+  regime=r;
+  document.getElementById('bRal').classList.toggle('on',r==='ralenti');
+  document.getElementById('bRou').classList.toggle('on',r==='roule');
+  document.getElementById('bBoo').classList.toggle('on',r==='boost');
+}
+document.getElementById('bRal').addEventListener('click',()=>mettreRegime('ralenti'));
+document.getElementById('bRou').addEventListener('click',()=>mettreRegime('roule'));
+document.getElementById('bBoo').addEventListener('click',()=>mettreRegime('boost'));
+
+let feuK=0,chaleurK=0; // valeurs LISSÉES : un boost qui s'allume d'un coup lit comme un bug
+let last=performance.now();
+(function boucle(now){
+  requestAnimationFrame(boucle);
+  const dt=Math.min(.05,(now-last)/1000);last=now;
+  tHorloge+=dt;
+  if(spin)ang+=dt*.5;
+  for(const p of pivots)p.rotation.y=ang;
+
+  // ---- LE MOTEUR VIT ----
+  const R=REGIMES[regime];
+  feuK+=(R.feu-feuK)*Math.min(1,dt*7);
+  chaleurK+=(R.chaleur-chaleurK)*Math.min(1,dt*4); // la chaleur monte et redescend LENTEMENT : c'est de la fonte
+  const w=tHorloge*R.hz*6.2832;
+  // le BATTEMENT : une composante régulière (le cycle du moteur) + une dérive irrégulière
+  // (les ratés). Sans la seconde, ça lit comme un vibreur de téléphone.
+  const bat=Math.sin(w), rate=Math.sin(w*.37+1.3)*.45+Math.sin(w*2.13)*.22;
+  for(let i=0;i<modeles.length;i++){
+    const m=modeles[i];
+    m.position.y=(bat*.55+rate*.45)*R.amp*3.2;
+    m.position.x=rate*R.amp*1.5;
+    m.rotation.z=(bat*.6+rate*.4)*R.roul;
+    m.rotation.x=rate*R.roul*.5;
+    // la flamme : longueur et opacité qui palpitent, jamais figées
+    const f=feux[i],pal=.82+Math.sin(tHorloge*47)*.12+Math.sin(tHorloge*23.7)*.06;
+    f.visible=feuK>.02;
+    if(f.visible){
+      const k=feuK*pal;
+      f.userData.coque.scale.set(1,k*1.25,1);
+      f.userData.coque.material.opacity=.55*feuK;
+      f.userData.coeur.scale.set(1,k*1.15,1);
+      f.userData.coeur.material.opacity=.9*feuK;
+      f.userData.halo.scale.setScalar(.34+k*.5);
+      f.userData.halo.material.opacity=.75*feuK;
+    }
+    // les pièces chaudes ROUGISSENT — c'est ça qui vend le boost, plus que la flamme elle-même
+    for(const mat of chauds[i])mat.emissive.setRGB(chaleurK*.62,chaleurK*.13,chaleurK*.02);
+  }
+  const cx=focus<0?0:(focus-1)*3.15;
+  cible.lerp(new THREE.Vector3(cx,.25,0),Math.min(1,dt*5));
+  camera.position.set(cible.x+Math.sin(.5)*Math.cos(pitch)*dist,
+                      cible.y+Math.sin(pitch)*dist+.35,
+                      cible.z+Math.cos(.5)*Math.cos(pitch)*dist);
+  camera.lookAt(cible);
+  renderer.render(scene,camera);
+})(performance.now());
+</script>
+</body>
+</html>
