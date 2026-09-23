@@ -43,20 +43,29 @@ assert len(h2) < len(h), "liens manifest/icon introuvables"
 h = h2
 
 # --- 1bis) le service worker : il irait chercher un sw.js qui n'existe plus a cote ---
-m = re.search(r"if\('serviceWorker'in navigator&&location\.protocol!=='file:'\)\{[^\n]*\}\n", h)
+# (la fusion du 2026-09 a réécrit la condition — `!window.Capacitor`, http/https — : on accepte toute
+#  ligne qui commence par le test du service worker, au lieu de figer sa forme exacte)
+m = re.search(r"if\('serviceWorker'in navigator[^\n]*\n", h)
 assert m, "bloc serviceWorker introuvable"
 h = h[: m.start()] + "/* SW retire : le jeu tient dans ce seul fichier, il n'a rien a mettre en cache. */\n" + h[m.end() :]
 
 # --- 1ter) la police Press Start 2P : le lien Google Fonts devient un @font-face en dur ---
+# ⚠ DEPUIS LA FUSION 2026-09 la police est LOCALE (`@font-face … url('./assets/fonts/pressstart2p.woff2')`) :
+#   on l'embarque telle quelle en data: URI. L'ancien chemin (lien Google Fonts) reste gere en dessous.
+FONT_LOC = os.path.join(SRC, "assets", "fonts", "pressstart2p.woff2")
+m_loc = re.search(r"url\('\./assets/fonts/pressstart2p\.woff2'\)", h)
+if m_loc and os.path.exists(FONT_LOC):
+    h = h[: m_loc.start()] + "url(data:font/woff2;base64," + b64(FONT_LOC) + ")" + h[m_loc.end() :]
 m = re.search(r'<link href="https://fonts\.googleapis\.com[^"]*" rel="stylesheet">\n', h)
-assert m, "lien Google Fonts introuvable"
-face = "<style>/* Press Start 2P (OFL) embarquee : plus aucun appel a Google Fonts. */\n"
-for f, rng in [("ps2p-latin.woff2", "U+0000-00FF,U+0131,U+0152-0153,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212"),
-               ("ps2p-latinext.woff2", "U+0100-02BA,U+1E00-1E9F,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113")]:
-    face += ("@font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:block;"
-             "src:url(data:font/woff2;base64," + b64(os.path.join(LIB, f)) + ")format('woff2');unicode-range:" + rng + "}\n")
-face += "</style>\n"
-h = h[: m.start()] + face + h[m.end() :]
+assert m or m_loc, "police introuvable (ni locale, ni lien Google Fonts)"
+if m:
+    face = "<style>/* Press Start 2P (OFL) embarquee : plus aucun appel a Google Fonts. */\n"
+    for f, rng in [("ps2p-latin.woff2", "U+0000-00FF,U+0131,U+0152-0153,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212"),
+                   ("ps2p-latinext.woff2", "U+0100-02BA,U+1E00-1E9F,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113")]:
+        face += ("@font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:block;"
+                 "src:url(data:font/woff2;base64," + b64(os.path.join(LIB, f)) + ")format('woff2');unicode-range:" + rng + "}\n")
+    face += "</style>\n"
+    h = h[: m.start()] + face + h[m.end() :]
 
 # --- 1quater) localStorage inaccessible (page hebergee en bac a sable, navigation privee) ---
 # `typeof localStorage` LEVE une exception quand l'acces est refuse, et ca tuait le script avant
@@ -81,10 +90,15 @@ LIBS = [
     ("postprocessing/UnrealBloomPass.js", "UnrealBloomPass.js"),
 ]
 for needle, fname in LIBS:
-    pat = re.compile(r'<script[^>]*src="[^"]*' + re.escape(needle) + r'"[^>]*></script>')
+    # ⚠ FUSION 2026-09 : les libs sont servies en LOCAL depuis vendor/ (plus de CDN). On accepte les deux
+    #   formes de balise, et on lit le fichier de vendor/ quand il existe — c'est la version que le jeu
+    #   charge vraiment ; le cache du CDN n'est plus qu'un repli.
+    sub = needle.split("three.js/r128/")[-1]                 # "three.min.js" ou "shaders/…" ou "postprocessing/…"
+    pat = re.compile(r'<script[^>]*src="[^"]*(?:' + re.escape(needle) + r'|vendor/' + re.escape(sub) + r')"[^>]*></script>')
     m = pat.search(h)
     assert m, "balise introuvable : " + needle
-    code = open(os.path.join(LIB, fname), encoding="utf-8").read()
+    loc = os.path.join(SRC, "vendor", sub)
+    code = open(loc if os.path.exists(loc) else os.path.join(LIB, fname), encoding="utf-8").read()
     # </script> dans une chaine JS couperait la balise en deux
     code = code.replace("</script", "<\\/script")
     h = h[: m.start()] + "<script>/*" + fname + "*/\n" + code + "\n</script>" + h[m.end() :]
