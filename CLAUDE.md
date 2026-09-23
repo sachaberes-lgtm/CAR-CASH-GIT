@@ -19,6 +19,20 @@
   fenêtre, chemin téléphone complet ; volant à la souris, clavier branché ; ni gel en paysage, ni plein
   écran forcé ; image 1,0 / 1,5. Sur un vrai téléphone, le gel « couché » ne vaut plus que sous 600 px
   de haut (iPad libre) et affiche `#rotNote`.
+- **CHARTE PIXEL UNIFIÉE** (bloc CSS « LA CHARTE PIXEL UNIFIÉE » en FIN de `<style>`, il gagne sur l'historique) :
+  une police (Press Start 2P) partout ; PLAQUE d'arcade `.pbtn` pour ce qui se touche (`.pbCarre` : croix,
+  flèches, retour), CADRE (même coupe `--coupe7`, même `--biseau`) pour ce qui se lit ; titres d'écran en or
+  dégradé extrudé comme le logo ; ÉTAT dans une pastille `.etat` (or = actif/valeur, gris = coupé).
+  **ICÔNES PIXEL** : `PXI_G` (grilles 9×9) → SVG en masque CSS, `pxi('nom')` en JS, `<i class="pxi pxi-nom">`
+  en HTML, `var(--pxi-nom)` dans un `::before` ; taille ENTIÈRE via `--pxs` (1/2/3). **Aucun emoji ni glyphe
+  système dans l'UI** (la police n'a ni ✕ ◀ ▶ ⚙ ⏸ ★ ✓). `TR()` retire l'accent des CAPITALES (`majPix`) ;
+  les clés i18n « symbole + texte » ont un alias sans symbole ; `applyLangDOM` préserve les icônes.
+  ⚠ bug corrigé : `filter` sur `.lg.gold` enterrait la face or sous l'extrusion brune (logo terne).
+- **Icône app / écran de lancement** : l'emoji 💰 d'Apple (image protégée, risque de rejet) remplacé par le
+  mot-symbole pixel CASH CAR (AppIcon toutes tailles sans alpha, Splash 2732, `assets/icons/` pour le web).
+- **Résolution adaptative** : la remontée exige < 17,8 ms (et non 14,5 — impossible à 60 Hz, DPR coincé à
+  0,42) ; paliers définitifs seulement sur lenteur SOUTENUE, hors reconstruction de zone / retour d'onglet.
+  Image RAPIDE / NETTE = 1,0 / 1,5 (téléphone, `?tel=1` et ⚙ desktop). Plancher 0,5.
 - **Caméra / conduite** : la caméra de conduite de SACHA en bloc (recul 4,6, suivi dt*5, roulis .035, FOV
   jusqu'à +38/+22) — les équations de conduite étaient identiques, c'est l'habillage qui faisait le « fun ».
   Swing/kick de Léo retirés ; boost de départ automatique (`startBoostT`) désarmé, le logo reste.

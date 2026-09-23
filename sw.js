@@ -21,8 +21,9 @@
    v13 (2026-09-23) : la VILLE VOXEL sous les nuages, et un 3e morceau dans la radio.
    v14 (2026-09-23) : radio reduite a UN seul morceau (reglage temporaire, demande du user).
    v15 (2026-09-24) : FUSION Sacha × Léo (branche fusion-2026-09) — vendor/ + police locale, vrai
-        mix NÉON CASH CAR v3 (l'ancien fichier de ce nom contenait Chrome Ledger), sons fx/. */
-const CACHE = 'cashcar-v15';
+        mix NÉON CASH CAR v3 (l'ancien fichier de ce nom contenait Chrome Ledger), sons fx/.
+   v16 (2026-09-24) : icônes pixel (assets/icons/), charte pixel unifiée, niveaux Nuages → Ville → Orbite. */
+const CACHE = 'cashcar-v16';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
