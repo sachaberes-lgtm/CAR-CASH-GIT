@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CASH CAR — ATELIER VOXEL : cube pur vs cube + coin</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:#0b0d14;color:#e6eaf2;
+    font:13px/1.5 ui-monospace,'SF Mono',Menlo,monospace;overflow:hidden}
+  #bar{position:fixed;top:0;left:0;right:0;height:96px;z-index:5;
+    background:linear-gradient(#0b0d14ee,#0b0d14cc 70%,transparent);
+    padding:12px 20px;display:flex;gap:26px;align-items:center;flex-wrap:wrap}
+  h1{margin:0;font-size:15px;letter-spacing:.14em;color:#ffcf3d;font-weight:700}
+  h1 small{display:block;font-size:10px;letter-spacing:.06em;color:#7d879c;font-weight:400;margin-top:3px}
+  .grp{display:flex;gap:9px;align-items:center}
+  label{font-size:10px;letter-spacing:.09em;color:#7d879c;text-transform:uppercase}
+  input[type=range]{width:190px;accent-color:#5ff0ff}
+  .val{color:#5ff0ff;min-width:86px;font-variant-numeric:tabular-nums}
+  select,button{background:#171b27;color:#e6eaf2;border:1px solid #2a3143;
+    border-radius:6px;padding:6px 11px;font:inherit;font-size:12px;cursor:pointer}
+  button:hover,select:hover{border-color:#5ff0ff}
+  button.on{background:#5ff0ff;color:#0b0d14;border-color:#5ff0ff;font-weight:700}
+  #main{position:fixed;inset:0}
+  canvas{display:block}
+  /* LES DEUX ÉTIQUETTES : posées en pourcentage, elles suivent les deux moitiés de l'écran */
+  .tag{position:fixed;top:104px;width:50%;text-align:center;z-index:4;pointer-events:none}
+  .tag b{display:block;font-size:14px;letter-spacing:.12em}
+  .tag span{display:block;font-size:10px;letter-spacing:.07em;color:#7d879c;margin-top:4px}
+  .tag em{display:block;font-size:11px;font-style:normal;margin-top:7px;color:#e6eaf2;
+    font-variant-numeric:tabular-nums}
+  #tagA{left:0}   #tagA b{color:#ff8a5c}
+  #tagB{right:0}  #tagB b{color:#7cff9a}
+  #err{position:fixed;inset:0;display:none;place-items:center;padding:40px;z-index:20;
+    background:#0b0d14;text-align:center}
+  #err div{max-width:640px}
+  #err h2{color:#ff5c7a;font-size:16px;letter-spacing:.1em}
+  #err code{display:block;background:#171b27;border:1px solid #2a3143;border-radius:8px;
+    padding:14px;margin-top:16px;color:#5ff0ff;text-align:left;white-space:pre-wrap}
+  #note{position:fixed;bottom:0;left:0;right:0;padding:11px 20px;z-index:5;font-size:11px;
+    color:#7d879c;background:linear-gradient(transparent,#0b0d14cc 40%,#0b0d14ee);text-align:center}
+  #note b{color:#ffcf3d}
+</style>
+</head>
+<body>
+
+<div id="bar">
+  <h1>ATELIER VOXEL<small>index.html n'est pas modifié — cette page le LIT</small></h1>
+  <div class="grp">
+    <label>caisse</label>
+    <select id="car"></select>
+  </div>
+  <div class="grp">
+    <label>brique</label>
+    <input type="range" id="brick" min="20" max="200" step="5" value="125">
+    <span class="val" id="brickV">12,5 cm</span>
+  </div>
+  <div class="grp">
+    <button id="spin" class="on">rotation</button>
+    <button id="orig">voir l'actuelle</button>
+  </div>
+</div>
+
+<div class="tag" id="tagA"><b>CE QUE TU AS DEMANDÉ</b><span>cube pur, un seul solide</span><em id="statA">—</em></div>
+<div class="tag" id="tagB"><b>CE QUE JE PROPOSE</b><span>cube + coin diagonal</span><em id="statB">—</em></div>
+
+<div id="main"></div>
+<div id="note">Le reste de la caisse (écopes, phares, roues, jantes) est <b>identique des deux côtés</b> —
+seule la carrosserie profilée change. C'est la seule variable.</div>
+
+<div id="err"><div>
+  <h2 id="errT"></h2><div id="errM"></div><code id="errC"></code>
+</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ================================================================================================
+   ATELIER VOXEL — « les capots plongeants deviennent-ils des escaliers ? »
+   ------------------------------------------------------------------------------------------------
+   La question posée le 2026-09-11 : garder UN SEUL type de voxel comme brique de base veut-il dire
+   un seul CUBE (donc des escaliers dans toutes les pentes), ou un seul MODULE (le cube définit la
+   grille, et on s'autorise le même cube coupé sur sa diagonale) ?
+
+   ⚠ CETTE PAGE NE RECOPIE RIEN. Comme `voitures.html` et `moteurs.html`, elle va lire `index.html`
+   au chargement et exécute le bloc balisé <<<VOITURES>>> tel quel. La SEULE chose qu'elle change,
+   c'est `carProfile` — la fonction qui extrude les silhouettes — remplacée par un voxeliseur dans
+   la chaîne de caractères AVANT d'être évaluée. Le jeu sur disque n'est pas touché d'un octet.
+
+   ⚠ CE QUE LE VOXELISEUR MONTRE HONNÊTEMENT. Le coin diagonal ne sait faire qu'un 45°. Il règle
+   donc les arêtes franches (l'avant du coin, la poupe) mais il ne peut RIEN pour une pente douce
+   à 13° — là, les deux versions terrassent pareil. C'est exactement ce qu'il faut voir avant de
+   choisir, et c'est pour ça que le curseur de brique est le vrai bouton de cette page : à 12 cm
+   une terrasse se voit, à 4 cm elle devient un bord dentelé. La question n'est peut-être pas
+   « quelle pièce » mais « quelle taille ».
+   ================================================================================================ */
+const $=i=>document.getElementById(i);
+function fail(t,m,c){$('errT').textContent=t;$('errM').innerHTML=m;$('errC').textContent=c||'';
+  $('err').style.display='grid';}
+
+/* ---- LE VOXELISEUR ----------------------------------------------------------------------------
+   Entrée : le MÊME `pts` que `carProfile` du jeu — une silhouette de profil en [z,y] (z = longueur,
+   nez en +Z ; y = hauteur) — et la largeur `w`. Sortie : une BufferGeometry dans le MÊME repère que
+   celle qu'il remplace, pour que les gabarits n'y voient que du feu.
+
+   La grille est ANCRÉE SUR ZÉRO (`Math.floor(v/B)`), jamais sur la boîte englobante : deux caisses
+   de longueurs différentes partagent ainsi la même trame, ce qui est toute l'idée d'un module.
+
+   ⚠ On ne remplit qu'une COQUILLE. Une face n'est émise que si sa voisine est vide — l'intérieur
+   d'une caisse ne se voit jamais et coûterait 90 % des triangles pour rien.
+   ------------------------------------------------------------------------------------------------ */
+function voxeliser(pts,w,B,mode){
+  // --- point dans polygone (lancer de rayon), sur la silhouette de profil
+  const dedans=(z,y)=>{let c=false;
+    for(let i=0,j=pts.length-1;i<pts.length;j=i++){
+      const zi=pts[i][0],yi=pts[i][1],zj=pts[j][0],yj=pts[j][1];
+      if((yi>y)!==(yj>y)&&z<(zj-zi)*(y-yi)/(yj-yi)+zi)c=!c;}
+    return c;};
+  let z0=1e9,z1=-1e9,y0=1e9,y1=-1e9;
+  for(const p of pts){z0=Math.min(z0,p[0]);z1=Math.max(z1,p[0]);y0=Math.min(y0,p[1]);y1=Math.max(y1,p[1]);}
+  const iz0=Math.floor(z0/B),iz1=Math.ceil(z1/B),iy0=Math.floor(y0/B),iy1=Math.ceil(y1/B);
+  const NZ=iz1-iz0,NY=iy1-iy0;
+  const NX=Math.max(1,Math.round(w/B)),BX=w/NX;          // la largeur se découpe en tranches ~B
+
+  /* LA GRILLE 2D. Le profil est extrudé : l'occupation est la MÊME pour toutes les tranches en X,
+     donc on ne la calcule qu'une fois. 0 = vide · 1 = cube · 2..5 = coin (le chiffre dit quel
+     sommet a été RETIRÉ : 2=nez-bas 3=nez-haut 4=poupe-haut 5=poupe-bas). */
+  const occ=new Uint8Array(NY*NZ);
+  const AT=(iy,iz)=>(iy<0||iy>=NY||iz<0||iz>=NZ)?0:occ[iy*NZ+iz];
+  let nCube=0,nCoin=0;
+  for(let iy=0;iy<NY;iy++)for(let iz=0;iz<NZ;iz++){
+    const za=(iz0+iz)*B,zb=za+B,ya=(iy0+iy)*B,yb=ya+B;
+    if(mode==='strict'){
+      // CUBE PUR : la cellule existe si son CENTRE est dans la silhouette. Rien d'autre n'est
+      // possible — c'est la définition même de la contrainte stricte.
+      if(dedans((za+zb)/2,(ya+yb)/2)){occ[iy*NZ+iz]=1;nCube++;}
+    }else{
+      // CUBE + COIN : on regarde les QUATRE sommets de la cellule.
+      //   4 dedans → cube plein · 3 dedans → COIN (on retire le sommet resté dehors)
+      //   2 ou moins → on retombe sur la règle du centre, faute de pièce adaptée.
+      // ⚠ C'est là que la limite se voit : une pente DOUCE produit surtout des cellules à 2 sommets,
+      // pour lesquelles le coin diagonal (45°) n'est d'aucun secours. La page le montre exprès.
+      const s=[dedans(zb,ya),dedans(zb,yb),dedans(za,yb),dedans(za,ya)]; // nez-bas,nez-haut,poupe-haut,poupe-bas
+      const n=s[0]+s[1]+s[2]+s[3];
+      if(n===4){occ[iy*NZ+iz]=1;nCube++;}
+      else if(n===3){occ[iy*NZ+iz]=2+s.indexOf(false);nCoin++;}
+      else if(dedans((za+zb)/2,(ya+yb)/2)){occ[iy*NZ+iz]=1;nCube++;}
+    }
+  }
+
+  // --- émission : positions + normales, non indexé (facettes franches, comme un voxel doit l'être)
+  const P=[],N=[];
+  /* ⚠ GARDE-FOU D'ORIENTATION. Raisonner à la main sur l'ordre des sommets de quatre rotations de
+     coin, c'est se tromper une fois sur deux — et une normale retournée ne plante pas, elle rend
+     juste la facette NOIRE, ce qui se lit comme un défaut d'éclairage et pas comme un bug de
+     géométrie (j'y ai cru). On passe donc le CENTRE de la cellule : si la normale calculée pointe
+     vers l'intérieur, on retourne le triangle. Aucune facette ne peut plus sortir à l'envers. */
+  let CC=[0,0,0];
+  const tri=(ax,ay,az,bx,by,bz,cx,cy,cz)=>{
+    let ux=bx-ax,uy=by-ay,uz=bz-az,vx=cx-ax,vy=cy-ay,vz=cz-az;
+    let nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;
+    const l=Math.hypot(nx,ny,nz)||1;nx/=l;ny/=l;nz/=l;
+    const gx=(ax+bx+cx)/3-CC[0],gy=(ay+by+cy)/3-CC[1],gz=(az+bz+cz)/3-CC[2];
+    if(nx*gx+ny*gy+nz*gz<0){ // normale tournée vers le dedans : on inverse sommets ET normale
+      nx=-nx;ny=-ny;nz=-nz;
+      P.push(ax,ay,az,cx,cy,cz,bx,by,bz);
+    }else P.push(ax,ay,az,bx,by,bz,cx,cy,cz);
+    N.push(nx,ny,nz,nx,ny,nz,nx,ny,nz);};
+  const quad=(a,b,c,d)=>{tri(a[0],a[1],a[2],b[0],b[1],b[2],c[0],c[1],c[2]);
+                         tri(a[0],a[1],a[2],c[0],c[1],c[2],d[0],d[1],d[2]);};
+
+  for(let ix=0;ix<NX;ix++){
+    const xa=-w/2+ix*BX,xb=xa+BX;
+    for(let iy=0;iy<NY;iy++)for(let iz=0;iz<NZ;iz++){
+      const t=AT(iy,iz);if(!t)continue;
+      const za=(iz0+iz)*B,zb=za+B,ya=(iy0+iy)*B,yb=ya+B;
+      // les huit sommets de la cellule
+      const A=[xa,ya,za],Bv=[xb,ya,za],C=[xb,ya,zb],D=[xa,ya,zb];   // plancher
+      const E=[xa,yb,za],F=[xb,yb,za],G=[xb,yb,zb],H=[xa,yb,zb];   // plafond
+      CC=[(xa+xb)/2,(ya+yb)/2,(za+zb)/2];
+      if(t===1){
+        // CUBE — une face n'est émise que si sa voisine est vide (coquille)
+        if(AT(iy,iz+1)!==1)quad(D,C,G,H);              // vers le nez (+Z)
+        if(AT(iy,iz-1)!==1)quad(Bv,A,E,F);             // vers la poupe (-Z)
+        if(AT(iy+1,iz)!==1)quad(E,H,G,F);              // dessus
+        if(AT(iy-1,iz)!==1)quad(A,Bv,C,D);             // dessous
+        if(ix===NX-1)quad(Bv,F,G,C);                   // flanc droit
+        if(ix===0)quad(A,D,H,E);                       // flanc gauche
+      }else{
+        /* LE COIN : le même cube, coupé par un plan qui passe par deux arêtes opposées. Le sommet
+           retiré est celui que le profil laissait dehors — la coupe suit donc la pente au lieu de
+           l'escalader. Huit triangles : deux flancs + trois faces. */
+        const r=t-2; // 0 nez-bas · 1 nez-haut · 2 poupe-haut · 3 poupe-bas
+        // les 4 coins du carré de profil, dans l'ordre (nez-bas, nez-haut, poupe-haut, poupe-bas)
+        const g=[[zb,ya],[zb,yb],[za,yb],[za,ya]];
+        const k=[g[(r+1)%4],g[(r+2)%4],g[(r+3)%4]];    // les trois qui restent
+        const L=k.map(p=>[xa,p[1],p[0]]),R=k.map(p=>[xb,p[1],p[0]]);
+        // ⚠ le centre d'un coin n'est PAS celui de la cellule : c'est le barycentre des trois
+        // sommets restants. Avec le centre de cellule, la face en hypoténuse tombait pile sur
+        // l'ambiguïté et pouvait ressortir retournée.
+        CC=[(xa+xb)/2,(k[0][1]+k[1][1]+k[2][1])/3,(k[0][0]+k[1][0]+k[2][0])/3];
+        tri(L[0][0],L[0][1],L[0][2],L[2][0],L[2][1],L[2][2],L[1][0],L[1][1],L[1][2]); // flanc gauche
+        tri(R[0][0],R[0][1],R[0][2],R[1][0],R[1][1],R[1][2],R[2][0],R[2][1],R[2][2]); // flanc droit
+        quad(L[0],L[1],R[1],R[0]);quad(L[1],L[2],R[2],R[1]);quad(L[2],L[0],R[0],R[2]);
+      }
+    }
+  }
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.Float32BufferAttribute(P,3));
+  geo.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));
+  // ⚠ `occ` est une grille 2D (le profil est extrudé) : le compte RÉEL de briques posées est
+  // multiplié par le nombre de tranches en X. Afficher le compte 2D mentirait d'un facteur 16.
+  geo.userData.stats={cubes:nCube*NX,coins:nCoin*NX,tris:P.length/9};
+  return geo;
+}
+
+/* ---- CHARGEMENT DU BLOC <<<VOITURES>>>, avec `carProfile` DÉTOURNÉ ------------------------------
+   On lit la source du jeu, on isole `function carProfile(pts,w){…}` et on la remplace par un appel
+   au voxeliseur. Tout le reste — les 15 gabarits, les matériaux, les roues, les phares — s'exécute
+   inchangé : ce qu'on voit à l'écran est donc la VRAIE caisse du jeu, avec une seule pièce échangée.
+   ⚠ `?v=` casse le service worker du jeu, qui répondrait sinon depuis SON cache (piège documenté
+   dans voitures.html : on récupérait 16 Ko de vieille page au lieu des ~1 Mo du jeu). */
+let VOX={B:.125,mode:'strict'},DERN=null;
+function charger(src,carGroup){
+  const bloc=(re,quoi)=>{const m=src.match(re);if(!m)throw new Error('bloc introuvable : '+quoi);return m[0];};
+  const sCars=bloc(/const CARS=\[[\s\S]*?\n\];/,'CARS');
+  let sVoit=bloc(/\/\* <<<VOITURES>>>[\s\S]*?<<<FIN VOITURES>>> \*\//,'bloc <<<VOITURES>>>');
+  const reProfile=/function carProfile\(pts,w\)\{[\s\S]*?\n\}/;
+  if(!reProfile.test(sVoit))throw new Error("`carProfile` introuvable dans le bloc <<<VOITURES>>> — "
+    +"sa signature a changé dans index.html, l'atelier doit être resynchronisé.");
+  sVoit=sVoit.replace(reProfile,
+    'function carProfile(pts,w){ if(__VOX.mode===\'orig\')return __ORIG(pts,w);'
+    +'return __VOXELISER(pts,w,__VOX.B,__VOX.mode); }');
+  const f=new Function('THREE','envTex','carGroup','__VOXELISER','__VOX','__ORIG',
+    sCars+'\n'+sVoit+'\nreturn {CARS,buildCar,ailes:()=>[carWingL,carWingR]};');
+  return f(THREE,envTex,carGroup,voxeliser,VOX,origProfile);
+}
+// LA VERSION D'ORIGINE, recopiée telle quelle : elle sert de témoin au bouton « voir l'actuelle ».
+function origProfile(pts,w){
+  const s=new THREE.Shape();s.moveTo(pts[0][0],pts[0][1]);
+  for(let i=1;i<pts.length;i++)s.lineTo(pts[i][0],pts[i][1]);
+  const bev=Math.min(.09,w*.055);
+  const g=new THREE.ExtrudeGeometry(s,{depth:w-2*bev,bevelEnabled:true,bevelThickness:bev,
+    bevelSize:bev,bevelSegments:2,steps:1});
+  g.rotateY(-Math.PI/2);g.translate(w/2-bev,0,0);return g;
+}
+
+/* ---- LA SCÈNE : deux caisses côte à côte, une seule caméra ------------------------------------
+   Un seul point de vue pour les deux : c'est la seule façon de comparer deux silhouettes sans que
+   la perspective mente sur l'une des deux. */
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setClearColor(0x0b0d14);
+$('main').appendChild(renderer.domElement);
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(30,1,.1,300);
+// Studio NEUTRE, volontairement pauvre en spéculaire : on juge une FORME, pas un vernis.
+scene.add(new THREE.HemisphereLight(0x9fb4d8,0x1a1d28,.62));
+const key=new THREE.DirectionalLight(0xfff0dc,1.05);key.position.set(3.5,5,4.5);scene.add(key);
+const fill=new THREE.DirectionalLight(0x6f90d8,.34);fill.position.set(-4,1.5,-3);scene.add(fill);
+// l'envMap que le bloc <<<VOITURES>>> réclame : 6 canvas, comme dans le jeu
+const envCvs=[];for(let i=0;i<6;i++){const c=document.createElement('canvas');c.width=c.height=64;
+  const x=c.getContext('2d');const g=x.createLinearGradient(0,0,0,64);
+  g.addColorStop(0,'#2b3350');g.addColorStop(.55,'#6a5a72');g.addColorStop(1,'#20222e');
+  x.fillStyle=g;x.fillRect(0,0,64,64);envCvs.push(c);}
+const envTex=new THREE.CubeTexture(envCvs);envTex.needsUpdate=true;
+
+const grpA=new THREE.Group(),grpB=new THREE.Group();scene.add(grpA,grpB);
+let modA=null,modB=null,CARS=null,iCar=7,spin=true,ang=.9;
+
+function rebuild(){
+  if(!modA)return;
+  for(const [mod,grp,mode,tag] of [[modA,grpA,'strict','statA'],[modB,grpB,VOX.modeB||'coin','statB']]){
+    VOX.B=VOX.Bv;VOX.mode=(VOX.forceOrig?'orig':mode);
+    while(grp.children.length)grp.remove(grp.children[0]);
+    mod.buildCar(CARS[iCar]);
+    // buildCar remplit SON carGroup : on récupère ses enfants dans notre groupe d'affichage
+    while(mod.grp.children.length)grp.add(mod.grp.children[0]);
+    /* ⚠ DEUX RÉGLAGES SANS LESQUELS LA COMPARAISON MENT — la leçon est déjà écrite dans
+       `voitures.html` : (1) `buildCar` pose les MINI-AILES à plat, c'est la boucle du JEU qui les
+       rétracte au sol ; laissées déployées, ce sont deux plaques géantes qui mangent la silhouette
+       qu'on est précisément venu juger. (2) les faisceaux de phares et les flaques au sol sont des
+       sprites additifs qui noient la forme — le faisceau mesure plusieurs longueurs de caisse. */
+    grp.traverse(o=>{
+      if(o.isSprite){o.visible=false;return;}
+      if(o.isMesh&&o.material&&o.material.blending===THREE.AdditiveBlending)o.visible=false;
+    });
+    // ⚠ on rétracte les ailes par leur VRAIE référence (`carWingL/R`), jamais par un filtre de
+    // forme : un premier jet écrasait « tout enfant qui est un Group », ce qui aplatissait AUSSI
+    // les roues — la caisse sortait en galette et j'ai failli en conclure que le voxeliseur buguait.
+    for(const piv of mod.ailes())if(piv)piv.scale.x=.05;
+    // stats : on n'additionne que les carrosseries voxelisées (celles qui portent userData.stats)
+    let cu=0,co=0,tr=0;
+    grp.traverse(o=>{if(o.isMesh&&o.geometry.userData&&o.geometry.userData.stats){
+      const s=o.geometry.userData.stats;cu+=s.cubes;co+=s.coins;tr+=s.tris;}});
+    $(tag).textContent=VOX.forceOrig?'silhouette extrudée d\'origine'
+      :(cu+co).toLocaleString('fr')+' briques  ·  '+co.toLocaleString('fr')+' coins  ·  '
+       +Math.round(tr).toLocaleString('fr')+' tri';
+  }
+}
+
+function resize(){renderer.setSize(innerWidth,innerHeight);}
+addEventListener('resize',resize);
+
+/* ⚠ DEUX DEMI-ÉCRANS, UNE SEULE CAMÉRA, LES DEUX CAISSES À L'ORIGINE.
+   Premier jet : les deux caisses écartées de part et d'autre, une seule prise de vue. Erreur —
+   la caméra étant au centre, elle voyait le flanc GAUCHE de l'une et le flanc DROIT de l'autre,
+   avec des spéculaires opposés. On comparait deux perspectives, pas deux silhouettes. Ici chaque
+   moitié d'écran reçoit la MÊME caméra sur une caisse posée au MÊME endroit : la seule différence
+   qui subsiste à l'image est celle qu'on veut mesurer. */
+function boucle(){
+  requestAnimationFrame(boucle);
+  if(spin)ang+=.0042;
+  grpA.rotation.y=grpB.rotation.y=ang;
+  const c=CARS?CARS[iCar]:{l:5,h:.7},W=innerWidth,H=innerHeight,hw=W/2;
+  camera.aspect=hw/H;camera.updateProjectionMatrix();
+  camera.position.set(c.l*.30,c.l*.30+1.15,c.l*1.92+2.2);camera.lookAt(0,c.h*.42,0);
+  // `autoClear` reste vrai : avec le scissor posé, chaque render n'efface QUE sa moitié.
+  renderer.setScissorTest(true);
+  for(const [x,g] of [[0,grpA],[hw,grpB]]){
+    grpA.visible=(g===grpA);grpB.visible=(g===grpB);
+    renderer.setViewport(x,0,hw,H);renderer.setScissor(x,0,hw,H);
+    renderer.render(scene,camera);
+  }
+}
+
+/* ---- démarrage --------------------------------------------------------------------------------- */
+fetch('index.html?vox='+Date.now(),{cache:'no-store'})
+  .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.text();})
+  .then(src=>{
+    // DEUX modules indépendants : chacun a son propre carGroup et sa propre fermeture, sinon les
+    // deux caisses se battraient pour le même `carGroup` global du bloc <<<VOITURES>>>.
+    VOX.Bv=.125;VOX.modeB='coin';
+    const gA=new THREE.Group(),gB=new THREE.Group();
+    modA=charger(src,gA);modA.grp=gA;
+    modB=charger(src,gB);modB.grp=gB;
+    CARS=modA.CARS;
+    const sel=$('car');
+    CARS.forEach((c,i)=>{const o=document.createElement('option');
+      o.value=i;o.textContent=(i+1)+'. '+c.name;sel.appendChild(o);});
+    sel.value=iCar;
+    sel.addEventListener('change',()=>{iCar=+sel.value;rebuild();});
+    $('brick').addEventListener('input',e=>{
+      VOX.Bv=+e.target.value/1000;
+      $('brickV').textContent=(+e.target.value/10).toLocaleString('fr',{minimumFractionDigits:1})+' cm';
+      rebuild();});
+    $('spin').addEventListener('click',e=>{spin=!spin;e.target.classList.toggle('on',spin);});
+    $('orig').addEventListener('click',e=>{VOX.forceOrig=!VOX.forceOrig;
+      e.target.classList.toggle('on',VOX.forceOrig);rebuild();});
+    resize();rebuild();requestAnimationFrame(boucle);
+  })
+  .catch(e=>{
+    const off=String(e.message||e).indexOf('Failed to fetch')>=0;
+    fail(off?'Il faut un vrai serveur':'Lecture impossible',
+      off?"Cet atelier lit les voitures DIRECTEMENT dans index.html, ce qui exige un serveur HTTP.<br>Dans le dossier du jeu :"
+         :"Impossible de lire les voitures dans index.html.",
+      off?'python3 -m http.server 8765\npuis http://localhost:8765/atelier-voxel.html':String(e.message||e));
+  });
+</script>
+</body>
+</html>

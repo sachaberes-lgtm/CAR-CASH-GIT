@@ -60,7 +60,7 @@
 
   <div class="grp"><b>LA MUSIQUE</b>
     <div class="rang">
-      <button id="bJouer">▶ CHROME LEDGER</button>
+      <button id="bJouer">▶ NÉON CASH CAR</button>
       <button id="bMetro">MÉTRONOME</button>
     </div>
     <label><span>tempo simulé</span><input type="range" id="sBpm" min="60" max="180" value="128"><span class="v" id="vBpm">128</span></label>
@@ -99,7 +99,7 @@ function bloc(src,nom){
   return '/*'+src.slice(a,b)+'*/';
 }
 let skyU,skyDome,FOND,CIEL,renderer,camera,scene3,anaG,audioEl,AC,ana,anaData;
-let jouer=false,metro=false,tPrec=0,pulse=0,beatL=0,hiL=0,bassPrec=0,onsetSim=0,tSim=0;
+let jouer=false,metro=false,tPrec=0,pulse=0,beatL=0,hiL=0,bassPrec=0,onsetSim=0,tSim=0,PISTE='';
 let accent=new THREE.Color(0xf24aa0);
 const BLEU_TERRE=new THREE.Color(0x6fc0ff); // même valeur que `PLANET_BLEU` côté jeu
 
@@ -112,6 +112,11 @@ const BLEU_TERRE=new THREE.Color(0x6fc0ff); // même valeur que `PLANET_BLEU` c�
     +'\nreturn {skyU,skyDome,sunSprite,planetGroup,SUN_DIR,PLANET_DIR,PLANET_D};')(THREE,stub);
   skyU=ciel.skyU;skyDome=ciel.skyDome;CIEL=ciel;
   FOND=new Function('THREE','skyU',bloc(src,'FOND')+'\nreturn {lvlTick,lvlKick,lvlBlast,BCLK,LVLFX};')(THREE,skyU);
+  // LE MORCEAU DU NIVEAU, pris à la source (MUSIC.run) — l'atelier joue toujours ce que le jeu joue
+  const mr=src.match(/run:\s*\[\s*'([^']+)'/);
+  if(mr){PISTE=mr[1];
+    const nom=PISTE.split('/').pop().replace(/^lvl\d+-/,'').replace(/\.mp3$/,'').replace(/-/g,' ');
+    document.getElementById('bJouer').textContent='▶ '+nom.toUpperCase();}
   demarrer();
  }catch(e){etat.textContent='❌ '+e.message+'\n(servir en HTTP : python3 -m http.server 8000)';etat.style.whiteSpace='pre';}
 })();
@@ -154,7 +159,9 @@ addEventListener('wheel',e=>{if(e.target.closest('#panneau'))return;camera.fov=M
 function audioBrancher(){
   if(AC)return;
   AC=new (window.AudioContext||window.webkitAudioContext)();
-  audioEl=new Audio('assets/audio/music/lvl1-chrome-ledger.mp3');
+  // ⚠ le chemin est LU dans index.html (MUSIC.run), jamais recopié : sinon changer le morceau du
+  // niveau casse l'atelier en silence — exactement ce que les blocs balisés servent à éviter.
+  audioEl=new Audio(PISTE||'assets/audio/music/lvl1-neon-cash-car.mp3');
   audioEl.crossOrigin='anonymous';audioEl.loop=true;
   const s=AC.createMediaElementSource(audioEl);
   anaG=AC.createGain();anaG.gain.value=.85;
