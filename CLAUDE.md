@@ -19,6 +19,13 @@
   fenêtre, chemin téléphone complet ; volant à la souris, clavier branché ; ni gel en paysage, ni plein
   écran forcé ; image 1,0 / 1,5. Sur un vrai téléphone, le gel « couché » ne vaut plus que sous 600 px
   de haut (iPad libre) et affiche `#rotNote`.
+- **CHARTE v2 — LE BOUTON D'ARCADE PIXEL** (dernier bloc CSS, il gagne sur tout) : contour 3 px par QUATRE ombres
+  décalées (coins crantés, SANS clip-path — le clip-path rognait l'épaisseur), face deux tons, lèvre claire,
+  tranche sombre, ombre au sol ; à l'appui −6 px. Variables par couleur (`--fc/--fc2/--hi/--lo/--ol/--tx/--txs`) :
+  or (principal), bleu arcade (défaut), vert, rouge, orange (NITRO), `.off` gris. Panneaux (ce qui se lit) : même
+  contour. Réglages et pause = PANNEAUX-LISTES (`.mPanel/.mLigne`, `.tpPanel/.tp.ligne`) avec interrupteur pixel
+  `b.bascule` (ON à droite vert, `.off`/`.ko` à gauche gris) et valeur `b.valeur` (or + chevron) — `tpLbl` choisit.
+  ⚠ ne JAMAIS remettre `position` dans le tronc commun : #tGear/#tNitro/.tbtn sont en position fixe.
 - **UX MOBILE (audit 17 points, 2026-09-24)** : le téléphone ATTERRIT SUR LE MENU (JOUER · CARRIÈRE · GARAGE/MODES/
   RÉGLAGES) ; boutons de la coque et du panneau ⚙ au `click` (au relâcher : défilement possible, annulation par
   glissé) + `uiClic()` (note + vibration) ; `modale()`/`toast()` remplacent prompt/confirm ; REJOUER = `resetGame()`

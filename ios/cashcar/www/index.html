@@ -1353,6 +1353,123 @@
   #garage #gCard{cursor:pointer}
   #garage #gDesc{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   #garage #gCard.ouvert #gDesc{display:block;overflow:visible}
+
+  /* ======================= LA CHARTE v2 — LE BOUTON D'ARCADE PIXEL (2026-09-24) =======================
+     Verdict du user sur la v1 : « les boutons sont toujours aussi moches et mal faits ». Diagnostic de designer :
+       · la v1 était PLATE — son « épaisseur » était un drop-shadow que le clip-path des coins ROGNAIT : rien ne
+         semblait enfonçable ;
+       · bleu nuit sur bleu nuit + un liseré de 2 px : terne, un formulaire d'admin, pas une borne d'arcade ;
+       · réglages et pause empilaient dix grosses barres identiques au lieu de LISTES.
+     LA CONSTRUCTION (celle des boutons 8-bit) : un CONTOUR sombre de 3 px dessiné par quatre ombres décalées —
+     les coins restent vides, donc CRANTÉS, sans clip-path — une FACE en deux tons (bande de brillance), une
+     lèvre claire en haut, une TRANCHE sombre en bas, et une OMBRE AU SOL. À l'appui le bouton descend de 6 px
+     et l'ombre disparaît : il s'ENFONCE. Couleurs FRANCHES : or (action principale), bleu arcade, vert,
+     rouge, orange (nitro). Ce qui se LIT (panneaux) suit la même construction, sans ombre d'appui. */
+  :root{--px:3px}
+  .pbtn,#tPanel .tp:not(.ligne),#tGear,#tNitro,.saveBtn,body.touch #nameSave,#playBtn,.tbtn{
+    --fc:#2a44c8;--fc2:#3654dc;--hi:#7d97ff;--lo:#16247a;--ol:#070b2b;--tx:#fff;--txs:#0b1450;
+    border:0!important;border-radius:0!important;clip-path:none!important;filter:none!important;
+    -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+    background:linear-gradient(180deg,var(--fc2) 0 50%,var(--fc) 50% 100%)!important;color:var(--tx)!important;
+    text-shadow:0 2px 0 var(--txs)!important;
+    box-shadow:inset 0 var(--px) 0 0 var(--hi),inset 0 calc(var(--px)*-2) 0 0 var(--lo),
+      0 calc(var(--px)*-1) 0 0 var(--ol),0 var(--px) 0 0 var(--ol),calc(var(--px)*-1) 0 0 0 var(--ol),var(--px) 0 0 0 var(--ol),
+      0 calc(var(--px)*3) 0 0 rgba(0,0,0,.45)!important;
+    transition:transform .05s,box-shadow .05s!important}
+  .pbtn,.saveBtn,#playBtn,#tPanel .tp{position:relative} /* ⚠ PAS #tGear/#tNitro/.tbtn : ils sont en position FIXE (commandes de course) */
+  .pbtn::after,#tPanel .tp::after,.saveBtn::after,#playBtn::after,#garage #gEquip::after,#garage #gBuy::after{display:none!important}
+  .pbtn:active,#tPanel .tp:not(.ligne):active,#tGear:active,#tNitro:active,#tNitro.on,.saveBtn:active,body.touch #nameSave:active,#playBtn:active,.tbtn:active,.tbtn.on{
+    transform:translateY(calc(var(--px)*2))!important;
+    box-shadow:inset 0 var(--px) 0 0 var(--lo),
+      0 calc(var(--px)*-1) 0 0 var(--ol),0 var(--px) 0 0 var(--ol),calc(var(--px)*-1) 0 0 0 var(--ol),var(--px) 0 0 0 var(--ol),
+      0 var(--px) 0 0 rgba(0,0,0,.45)!important}
+  .pbtn:focus-visible,#tGear:focus-visible,.saveBtn:focus-visible{outline:3px solid #fff;outline-offset:6px}
+  /* les couleurs de la charte */
+  .pb-gold,#tPanel .tp.go,#playBtn,#garage #gBuy{--fc:#ffb81f;--fc2:#ffcb3f;--hi:#fff3ad;--lo:#c26a00;--ol:#2b1300;--tx:#3b1c00;--txs:rgba(255,243,190,.8)}
+  .pb-green,#garage #gEquip,body.touch #nameSave{--fc:#24a246;--fc2:#2dbb53;--hi:#a2f7b6;--lo:#0f6427;--ol:#04200d;--tx:#fff;--txs:#07361a}
+  .pb-red,#tPanel .tp.rouge{--fc:#d22a44;--fc2:#e8384f;--hi:#ffa3b1;--lo:#851127;--ol:#26040c;--tx:#fff;--txs:#4a0716}
+  #tNitro{--fc:#ff7415;--fc2:#ff8d2e;--hi:#ffd58f;--lo:#ad4200;--ol:#2a0e00;--tx:#2a0e00;--txs:rgba(255,226,170,.75)}
+  .pbtn.off,#garage #gEquip:disabled{--fc:#343a50;--fc2:#3b425a;--hi:#555d7a;--lo:#1f2334;--ol:#07080f;--tx:#9aa2b8;--txs:#11141f}
+  #garage #gEquip:disabled{opacity:1!important}
+  /* les tailles : une échelle, pas des cas particuliers */
+  .pbtn{font-size:12px;letter-spacing:2px;padding:14px 18px;min-height:54px;box-sizing:border-box;gap:10px;--pxs:2}
+  .pbtn.big{font-size:20px;letter-spacing:6px;padding:0 18px;min-height:76px}
+  .pbtn.ico{min-height:94px;font-size:9px;letter-spacing:1px;gap:11px;--pxs:3;padding:14px 6px}
+  .pbtn.pbCarre{min-height:0;padding:0;width:50px;height:50px}
+  #garage .gNav,#stall .gNav{width:56px!important;height:56px!important}
+  #garage #gClose,#stall #stClose,#settings #setClose{width:50px!important;height:50px!important}
+  /* ---- LE MENU : un rythme vertical, pas un empilement ---- */
+  #mHome .mTitle{margin-bottom:10px}
+  #mHome .mKick{margin:8px 0 26px}
+  #mHome .mChip{margin-bottom:28px}
+  #mHome [data-m=play],#mDead [data-m=replay]{margin-bottom:24px}
+  .mCarr{margin:0 0 24px!important;min-height:62px!important;font-size:13px!important;letter-spacing:4px!important}
+  .mRow{gap:15px!important;margin-top:0!important}
+  /* ---- LES PANNEAUX : ce qui se LIT ---- */
+  .mPanel,.mMode,.mChip,.mStats,.tpPanel,#garage #gCard,#stall #gCard,.modIn,#lbBoxG,#lbBox,#setCard,#toast{
+    clip-path:none!important;border-radius:0!important;border:0!important;
+    background:linear-gradient(180deg,#1c2552,#131a3d)!important;
+    box-shadow:inset 0 var(--px) 0 0 #313f86,inset 0 calc(var(--px)*-1) 0 0 #0b1030,
+      0 calc(var(--px)*-1) 0 0 #04061a,0 var(--px) 0 0 #04061a,calc(var(--px)*-1) 0 0 0 #04061a,var(--px) 0 0 0 #04061a,
+      0 calc(var(--px)*3) 0 0 rgba(0,0,0,.35)!important}
+  .mMode.on{box-shadow:inset 0 var(--px) 0 0 #313f86,inset 0 calc(var(--px)*-1) 0 0 #0b1030,
+      0 calc(var(--px)*-1) 0 0 #1f7a3a,0 var(--px) 0 0 #1f7a3a,calc(var(--px)*-1) 0 0 0 #1f7a3a,var(--px) 0 0 0 #1f7a3a,0 calc(var(--px)*3) 0 0 rgba(0,0,0,.35)!important}
+  .mPanel,.tpPanel{width:100%;box-sizing:border-box;padding:0;margin-bottom:6px}
+  .mSec{font-size:9px!important;letter-spacing:4px!important;color:#aab4ff!important;margin:22px 0 12px!important;padding-left:2px}
+  .mStats{gap:0!important;margin:20px 0 10px!important}
+  .mStats .mStat{background:none!important;box-shadow:none!important;clip-path:none!important;padding:14px 4px!important}
+  .mStats .mStat+.mStat{box-shadow:inset var(--px) 0 0 0 #0b1030!important}
+  .mStat b{font-size:16px!important;margin-bottom:8px!important}
+  /* ---- LES LIGNES DE LISTE (réglages, pause) : icône · libellé · contrôle à droite ---- */
+  .mLigne,#tPanel .tp.ligne{display:flex;align-items:center;gap:14px;min-height:56px;padding:0 16px;box-sizing:border-box;width:100%;
+    font-family:var(--pix);font-size:10px;letter-spacing:1px;color:#eef2ff;text-align:left;cursor:pointer;
+    background:none!important;box-shadow:inset 0 calc(var(--px)*-1) 0 0 #0b1030!important;clip-path:none!important;filter:none!important;
+    text-shadow:0 2px 0 #070b2b;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;--pxs:2}
+  .mPanel>:last-child,.tpPanel>:last-child,.mLigne.avecVol{box-shadow:none!important}
+  .mLigne:active,#tPanel .tp.ligne:active{background:rgba(255,255,255,.07)!important;transform:none!important}
+  .mLigne .pxi,#tPanel .tp.ligne .pxi{color:var(--or);margin:0}
+  .mLigne .tpL,#tPanel .tp.ligne .tpL{flex:1}
+  .mLigne.lien::after{content:'';flex:none;width:9px;height:9px;margin-left:auto;background:#7d97ff;
+    -webkit-mask:var(--pxi-droite) center/100% 100% no-repeat;mask:var(--pxi-droite) center/100% 100% no-repeat}
+  .mPanel .volRow{background:none!important;box-shadow:inset 0 calc(var(--px)*-1) 0 0 #0b1030!important;clip-path:none!important;padding:0 16px 16px 52px!important;margin:0!important}
+  .mPanel .volRow:last-child{box-shadow:none!important}
+  .mPanel .volHd{margin:0 0 2px}.mPanel .volHd span{color:#7f8ac4}
+  .mWipe{margin-top:26px}
+  /* l'INTERRUPTEUR pixel : vert à droite = ON, gris à gauche = OFF (le texte reste pour les lecteurs d'écran) */
+  b.bascule,.mMode .mmS{position:relative;flex:none;width:56px;height:28px;margin-left:auto;padding:0!important;font-size:0!important;line-height:0;min-width:0!important;
+    color:transparent!important;background:#0f6427!important;
+    box-shadow:0 calc(var(--px)*-1) 0 #04200d,0 var(--px) 0 #04200d,calc(var(--px)*-1) 0 0 #04200d,var(--px) 0 0 #04200d!important}
+  b.bascule::after,.mMode .mmS::after{content:'';position:absolute;top:0;right:0;width:28px;height:28px;background:#a2f7b6;
+    box-shadow:inset 0 -6px 0 #2dbb53,inset 0 3px 0 #ecfff0}
+  .off b.bascule,b.bascule.ko,.mMode.off .mmS{background:#1a1e2c!important;
+    box-shadow:0 calc(var(--px)*-1) 0 #07080f,0 var(--px) 0 #07080f,calc(var(--px)*-1) 0 0 #07080f,var(--px) 0 0 #07080f!important}
+  .off b.bascule::after,b.bascule.ko::after,.mMode.off .mmS::after{right:auto;left:0;background:#8d95ad;box-shadow:inset 0 -6px 0 #555d7a,inset 0 3px 0 #c3c9da}
+  .mMode .mmS::before{display:none!important}
+  /* une VALEUR qu'on fait défiler au tap : étiquette or + chevron */
+  b.valeur{margin-left:auto;display:inline-flex;align-items:center;gap:9px;font-family:var(--pix);font-size:9px!important;letter-spacing:1px;
+    color:var(--or)!important;background:none!important;box-shadow:none!important;padding:0!important;opacity:1!important}
+  b.valeur::after{content:'';width:9px;height:9px;background:#7d97ff;-webkit-mask:var(--pxi-droite) center/100% 100% no-repeat;mask:var(--pxi-droite) center/100% 100% no-repeat}
+  /* ---- LA PAUSE ---- */
+  #tpIn{gap:0!important;max-width:340px;margin:0 auto}
+  #tPanel .tp:not(.ligne){width:100%!important;box-sizing:border-box;margin-bottom:16px;min-height:54px;justify-content:center!important;gap:12px}
+  #tPanel .tp.go{min-height:66px;font-size:14px;letter-spacing:4px;margin:6px 0 10px}
+  .tpPanel{width:100%}
+  .tpH{font-size:9px!important;letter-spacing:4px!important;color:#aab4ff!important;margin:18px 0 12px!important;align-self:flex-start;padding-left:2px}
+  #tPanel .tpH:first-child{align-self:center;font-size:12px!important;color:var(--or)!important;margin-top:4px!important}
+  /* ---- les commandes en course ---- */
+  #tGear{width:50px!important;height:50px!important;font-size:0}
+  #tNitro{gap:10px;font-size:13px!important;letter-spacing:3px!important}
+  /* ---- les modes et la carrière : cartes-panneaux, contenu aéré ---- */
+  .mMode{padding:16px 16px!important;margin-bottom:18px!important}
+  .carrGrille{gap:16px!important}
+  .carrNiv{min-height:84px!important}
+  /* la saisie du record : un champ ENFONCÉ dans un panneau (même contour), et de l'air avant la rangée d'icônes */
+  body.touch #nameEntry{margin:4px 0 26px!important;gap:14px!important}
+  body.touch #nameInput{clip-path:none!important;border:0!important;border-radius:0!important;min-height:54px;
+    font-family:var(--pix);font-size:16px;letter-spacing:6px;text-align:center;color:var(--or);background:#090c1e!important;
+    box-shadow:inset 0 var(--px) 0 0 #04061a,inset 0 0 0 var(--px) #0b1030,0 calc(var(--px)*-1) 0 0 #313f86,0 var(--px) 0 0 #313f86,calc(var(--px)*-1) 0 0 0 #313f86,var(--px) 0 0 0 #313f86!important}
+  .mMode .mmT .pxi{margin-right:12px!important}
+  .carrJauge{height:9px!important;margin-top:14px!important;background:#0b1030!important;box-shadow:none!important}
 </style>
 </head>
 <body>
@@ -1436,7 +1553,7 @@
            clic puisse faire ONDULER chaque pixel (voir `playWordWave`). Lance TOUJOURS via
            `garageLaunch()`, comme « PLAY WITH THIS ONE » : même mécanique, deux poignées. -->
       <div id="gPlayMain" role="button" tabindex="0" aria-label="Jouer"></div>
-      <div id="gCarr" class="pbtn pb-cyan" role="button" tabindex="0"><i class="pxi pxi-trophee" aria-hidden="true"></i>CARRIERE</div>
+      <div id="gCarr" class="pbtn pb-cyan" role="button" tabindex="0"><i class="pxi pxi-trophee" aria-hidden="true"></i><span data-fr="CARRIERE">CARRIERE</span></div>
     </div>
     <!-- LA GRILLE DE COMPÉTITION (2026-09-05) : posée à DROITE de l'écran, hors du bandeau du haut —
          `position:absolute` scopée par `#garage` (voir CSS), donc indépendante de la colonne
@@ -1589,27 +1706,27 @@
       <div class="mHead"><div class="pbtn pb-cyan mBack" data-m="back" role="button" aria-label="Retour"><i class="pxi pxi-gauche" aria-hidden="true"></i></div><h3>REGLAGES</h3><div class="mSpacer"></div></div>
       <div class="mSet">
         <div class="mSec">AUDIO</div>
-        <div class="mGrp">
-        <div class="pbtn pb-cyan" data-m="snd"><i class="pxi pxi-son" aria-hidden="true"></i><span class="tpL">SON</span><b id="mvSnd">ON</b></div>
-        <div class="volRow" id="mVolRowSfx"><div class="volHd"><span>VOLUME</span><b id="mVolSfxV">100%</b></div><input type="range" class="volS" id="mVolSfx" min="0" max="100" step="5" value="100"></div>
-        </div>
-        <div class="mGrp">
-        <div class="pbtn pb-cyan" data-m="mus"><i class="pxi pxi-musique" aria-hidden="true"></i><span class="tpL">MUSIQUE</span><b id="mvMus">ON</b></div>
-        <div class="volRow" id="mVolRowMus"><div class="volHd"><span>VOLUME</span><b id="mVolMusV">62%</b></div><input type="range" class="volS" id="mVolMus" min="0" max="100" step="5" value="62"></div>
-        </div>
-        <div class="mGrp">
-        <div class="pbtn pb-cyan" data-m="vox"><i class="pxi pxi-voix" aria-hidden="true"></i><span class="tpL">VOIX</span><b id="mvVox">ON</b></div>
-        <div class="volRow" id="mVolRowVox"><div class="volHd"><span>VOLUME</span><b id="mVolVoxV">100%</b></div><input type="range" class="volS" id="mVolVox" min="0" max="100" step="5" value="100"></div>
+        <div class="mPanel">
+          <div class="mLigne avecVol" data-m="snd"><i class="pxi pxi-son" aria-hidden="true"></i><span class="tpL">SON</span><b id="mvSnd" class="bascule">ON</b></div>
+          <div class="volRow" id="mVolRowSfx"><div class="volHd"><span>VOLUME</span><b id="mVolSfxV">100%</b></div><input type="range" class="volS" id="mVolSfx" min="0" max="100" step="5" value="100"></div>
+          <div class="mLigne avecVol" data-m="mus"><i class="pxi pxi-musique" aria-hidden="true"></i><span class="tpL">MUSIQUE</span><b id="mvMus" class="bascule">ON</b></div>
+          <div class="volRow" id="mVolRowMus"><div class="volHd"><span>VOLUME</span><b id="mVolMusV">62%</b></div><input type="range" class="volS" id="mVolMus" min="0" max="100" step="5" value="62"></div>
+          <div class="mLigne avecVol" data-m="vox"><i class="pxi pxi-voix" aria-hidden="true"></i><span class="tpL">VOIX</span><b id="mvVox" class="bascule">ON</b></div>
+          <div class="volRow" id="mVolRowVox"><div class="volHd"><span>VOLUME</span><b id="mVolVoxV">100%</b></div><input type="range" class="volS" id="mVolVox" min="0" max="100" step="5" value="100"></div>
         </div>
         <div class="mSec">JEU</div>
-        <div class="pbtn pb-cyan" data-m="ctl"><i class="pxi pxi-volant" aria-hidden="true"></i><span class="tpL">COMMANDES</span><b id="mvCtl">VOLANT</b></div>
-        <div class="pbtn pb-cyan" data-m="q"><i class="pxi pxi-eclair" aria-hidden="true"></i><span class="tpL">IMAGE</span><b id="mvQ">RAPIDE</b></div>
-        <div class="pbtn pb-cyan" data-m="lang"><i class="pxi pxi-bulle" aria-hidden="true"></i><span class="tpL">LANGUE</span><b id="mvLang">FR</b></div>
-        <div class="pbtn pb-cyan" data-m="cur"><i class="pxi pxi-piece" aria-hidden="true"></i><span class="tpL">DEVISE</span><b>$</b></div>
+        <div class="mPanel">
+          <div class="mLigne" data-m="ctl"><i class="pxi pxi-volant" aria-hidden="true"></i><span class="tpL">COMMANDES</span><b id="mvCtl" class="valeur">VOLANT</b></div>
+          <div class="mLigne" data-m="q"><i class="pxi pxi-eclair" aria-hidden="true"></i><span class="tpL">IMAGE</span><b id="mvQ" class="valeur">RAPIDE</b></div>
+          <div class="mLigne" data-m="lang"><i class="pxi pxi-bulle" aria-hidden="true"></i><span class="tpL">LANGUE</span><b id="mvLang" class="valeur">FR</b></div>
+          <div class="mLigne" data-m="cur"><i class="pxi pxi-piece" aria-hidden="true"></i><span class="tpL">DEVISE</span><b class="valeur">$</b></div>
+        </div>
         <div class="mSec">SAUVEGARDE</div>
-        <div class="pbtn pb-cyan" data-m="exp"><i class="pxi pxi-copier" aria-hidden="true"></i><span class="tpL">COPIER MA SAUVEGARDE</span></div>
-        <div class="pbtn pb-cyan" data-m="imp"><i class="pxi pxi-importer" aria-hidden="true"></i><span class="tpL">RESTAURER UN CODE</span></div>
-        <div class="pbtn pb-red" data-m="wipe"><i class="pxi pxi-corbeille" aria-hidden="true"></i><span class="tpL">EFFACER MA PROGRESSION</span></div>
+        <div class="mPanel">
+          <div class="mLigne lien" data-m="exp"><i class="pxi pxi-copier" aria-hidden="true"></i><span class="tpL">COPIER MA SAUVEGARDE</span></div>
+          <div class="mLigne lien" data-m="imp"><i class="pxi pxi-importer" aria-hidden="true"></i><span class="tpL">RESTAURER UN CODE</span></div>
+        </div>
+        <div class="pbtn pb-red wide mWipe" data-m="wipe"><i class="pxi pxi-corbeille" aria-hidden="true"></i><span class="tpL">EFFACER MA PROGRESSION</span></div>
       </div>
     </div>
   </div>
@@ -1665,16 +1782,18 @@
     <div class="tpH">PAUSE</div>
     <div class="tp go" data-a="close"><i class="pxi pxi-lecture" aria-hidden="true"></i> REPRENDRE</div>
     <div class="tpH">REGLAGES</div>
-    <div class="tp" data-a="snd"><i class="pxi pxi-son" aria-hidden="true"></i> SON</div>
-    <div class="tp" data-a="vox"><i class="pxi pxi-voix" aria-hidden="true"></i> VOIX</div>
-    <div class="tp" data-a="mus"><i class="pxi pxi-musique" aria-hidden="true"></i> MUSIQUE</div>
-    <div class="tp" data-a="ctl"><i class="pxi pxi-volant" aria-hidden="true"></i> VOLANT</div>
-    <div class="tp" data-a="q"><i class="pxi pxi-eclair" aria-hidden="true"></i> IMAGE</div>
-    <div class="tp" data-a="surv"><i class="pxi pxi-drapeau" aria-hidden="true"></i> SURVIVANT</div>
+    <div class="tpPanel">
+    <div class="tp ligne" data-a="snd"><i class="pxi pxi-son" aria-hidden="true"></i> SON</div>
+    <div class="tp ligne" data-a="vox"><i class="pxi pxi-voix" aria-hidden="true"></i> VOIX</div>
+    <div class="tp ligne" data-a="mus"><i class="pxi pxi-musique" aria-hidden="true"></i> MUSIQUE</div>
+    <div class="tp ligne" data-a="ctl"><i class="pxi pxi-volant" aria-hidden="true"></i> VOLANT</div>
+    <div class="tp ligne" data-a="q"><i class="pxi pxi-eclair" aria-hidden="true"></i> IMAGE</div>
+    <div class="tp ligne" data-a="surv"><i class="pxi pxi-drapeau" aria-hidden="true"></i> SURVIVANT</div>
+    </div>
     <div class="tpH" data-g="run">LA PARTIE</div>
     <div class="tp" data-a="resp" data-g="run"><i class="pxi pxi-voiture" aria-hidden="true"></i> REPLACER LA CAISSE</div>
     <div class="tp" data-a="reset" data-g="run"><i class="pxi pxi-rejouer" aria-hidden="true"></i> RECOMMENCER</div>
-    <div class="tp" data-a="quit" data-g="run"><i class="pxi pxi-quitter" aria-hidden="true"></i> QUITTER</div>
+    <div class="tp rouge" data-a="quit" data-g="run"><i class="pxi pxi-quitter" aria-hidden="true"></i> QUITTER</div>
   </div></div>
 </div>
 <script src="vendor/three.min.js"></script>
@@ -1726,7 +1845,8 @@ function modale(o){return new Promise(function(res){
 let toastT=0;
 function toast(h){const t=document.getElementById('toast');if(!t)return;t.innerHTML=h;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('on');},1900);}
 // une ligne de panneau : icône · libellé · pastille d'état (l'ÉTAT se lit dans la pastille, la plaque ne se grise plus)
-function tpLbl(ic,txt,etat,on){return pxi(ic)+'<span class="tpL">'+TR(txt)+'</span>'+(etat!=null?'<b class="etat'+(on?' on':'')+'">'+TR(etat)+'</b>':'');}
+function tpLbl(ic,txt,etat,on){const tg=(etat==='ON'||etat==='OFF'); // ON/OFF → un INTERRUPTEUR pixel ; une valeur → une étiquette or à chevron
+  return pxi(ic)+'<span class="tpL">'+TR(txt)+'</span>'+(etat==null?'':tg?'<b class="bascule'+(on?'':' ko')+'">'+etat+'</b>':'<b class="valeur">'+TR(etat)+'</b>');}
 addEventListener('error',function(e){try{document.title='ERR:'+e.message+' @'+e.lineno;}catch(_){}}); // capteur d'init (les erreurs top-level échappent à la console headless)
 if(typeof THREE==='undefined'){ // CDN indisponible : un message clair plutôt qu'un écran noir muet
   document.body.insertAdjacentHTML('beforeend','<div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#12081f;color:#ffd75e;font:14px monospace;text-align:center;padding:20px;z-index:99">CASH CAR n&#39;a pas pu charger son moteur 3D.<br>V&eacute;rifie ta connexion internet puis recharge la page.</div>');
