@@ -1273,6 +1273,18 @@
   .lg.gold,.lg.grad{filter:none}
   .mTitle{filter:drop-shadow(0 0 .3em rgba(255,200,80,.45)) drop-shadow(0 16px 22px rgba(0,0,0,.5))}
   #overlay h1:not(:hover),#spTitle:not(.boom),#launchLogo,#gPlayMain{filter:drop-shadow(0 0 .3em rgba(255,200,80,.42))}
+  /* ---- LA CARRIÈRE : bouton dans le garage, écran biomes → niveaux (même charte que les écrans du téléphone) ---- */
+  #gCarr{align-self:center;font-size:10px;padding:12px 18px;--pxs:2;pointer-events:auto}
+  #garage.quiet #gCarr,#garage.launching #gCarr{display:none}
+  #carr{position:fixed;inset:0;z-index:80;display:none;overflow-y:auto;background:rgba(6,4,16,.95);
+    padding:calc(env(safe-area-inset-top,0px) + 18px) 16px calc(env(safe-area-inset-bottom,0px) + 24px)}
+  #carr.on{display:block}
+  .carrIn{max-width:460px;margin:0 auto}
+  .carrBiome{cursor:pointer}.carrBiome .mmT{font-size:12px}
+  .carrGrille{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .carrNiv{flex-direction:column;gap:7px;padding:14px 8px;font-size:7px;letter-spacing:1px;min-height:74px;--pxs:2}
+  .carrNiv b{font-size:16px;letter-spacing:2px}
+  .carrNiv.off{cursor:default}
   /* ---- les consignes : lisibles (contraste relevé), jamais criardes ---- */
   #tSteerHint{opacity:.72;color:#c8f4ff;white-space:nowrap;line-height:1.8} /* sur deux lignes, « TOURNER » venait chevaucher « GLISSE POUR » */
   #tNitro{flex-direction:column;gap:9px;--pxs:3}#tNitro .pxi{margin:0;filter:drop-shadow(0 2px 0 rgba(255,255,255,.35))}
@@ -1359,6 +1371,7 @@
            clic puisse faire ONDULER chaque pixel (voir `playWordWave`). Lance TOUJOURS via
            `garageLaunch()`, comme « PLAY WITH THIS ONE » : même mécanique, deux poignées. -->
       <div id="gPlayMain" role="button" tabindex="0" aria-label="Jouer"></div>
+      <div id="gCarr" class="pbtn pb-gold" role="button" tabindex="0"><i class="pxi pxi-trophee" aria-hidden="true"></i>CARRIERE</div>
     </div>
     <!-- LA GRILLE DE COMPÉTITION (2026-09-05) : posée à DROITE de l'écran, hors du bandeau du haut —
          `position:absolute` scopée par `#garage` (voir CSS), donc indépendante de la colonne
@@ -1436,6 +1449,7 @@
   <!-- LE TÉLÉPHONE COUCHÉ : la partie se gèle en paysage sur un téléphone — ceci dit POURQUOI -->
   <div id="rotNote" aria-live="polite"><i class="pxi pxi-rotation" aria-hidden="true"></i><b data-fr="TOURNE TON TELEPHONE">TOURNE TON TELEPHONE</b><span data-fr="CASH CAR SE JOUE A LA VERTICALE">CASH CAR SE JOUE A LA VERTICALE</span></div>
 </div>
+<div id="carr" role="dialog" aria-label="Carrière"></div>
 <div id="overlay" role="button" tabindex="0" aria-label="Menu principal CASH CAR">
   <div id="mEmbers" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
   <h1><span class="lg gold" data-t="CASH">CASH</span><span class="lg grad" data-t="CAR">CAR</span></h1>
@@ -4144,8 +4158,14 @@ const LARGEUR=[1.7,1.55,1.4,1.25,1.1];
 function lvlChoisir(){ // appelé par newTrack AVANT buildTrack
   const z=runStats.zones|0;
   ROAD_HALF=ROAD_HALF0*(PARK.on?1.4:LARGEUR[Math.min(LARGEUR.length-1,z)]);
-  if(PARK.on){LVL.cur=null;return null;}
-  LVL.cur=NIVEAUX[z%NIVEAUX.length];LVL.n=z+1;
+  if(PARK.on){LVL.cur=null;lvlAstre(null);return null;}
+  if(CARR.actif){ // CARRIÈRE : le niveau de départ + les portails franchis ; chaque portail TERMINE le précédent
+    const bi=CARR.actif.b,i=Math.min(9,CARR.actif.i+z);
+    if(z>0)carrMarque(bi,Math.min(9,CARR.actif.i+z-1));
+    LVL.cur=carNiveau(bi,i);LVL.n=i+1;ROAD_HALF=ROAD_HALF0*CARR_LARG[i];lvlAstre(LVL.cur.astre);
+    return LVL.cur;
+  }
+  LVL.cur=NIVEAUX[z%NIVEAUX.length];LVL.n=z+1;lvlAstre(null);
   return LVL.cur;
 }
 function lvlBiome(){ // le ciel du niveau : tiré dans SA liste, jamais deux fois le même de suite
@@ -4236,6 +4256,82 @@ function pluieTick(t){ // appelée par la boucle : suit la caméra, suit le fond
   PLUIE.visible=LVL.pluie>.01||!PLUIE.userData.vu; // dessinée UNE fois au boot (compilation), ensuite seulement quand il pleut
   PLUIE.userData.vu=true;
 }
+/* ============================================================================
+   LA CARRIÈRE (2026-09-24) — 30 niveaux, 3 biomes de 10 (ARCHITECTURE : le détail de chaque niveau viendra).
+   ----------------------------------------------------------------------------
+   « 10 dans les nuages à 10 moments différents de l'aurore au coucher du soleil, 10 dans la ville du
+   coucher du soleil à midi, 10 dans l'espace près des planètes du système solaire » (user).
+   Un niveau de carrière = un NIVEAU au sens de `NIVEAUX` (même forme : id de lieu, ciel, planète, pluie…),
+   fabriqué à la volée par `carNiveau`. Tout le reste du moteur (ville, nuages, uSpace, pluie, largeur de
+   route, bannière) le traite exactement comme un niveau de la partie sans fin — zéro chemin parallèle.
+   · L'HEURE : `h:'aube'` (biome existant) ou `h:['aube','lever',.5]` (mélange de deux biomes, bâti UNE fois
+     par `bioMix` et rangé dans BIOMES — un nouveau biome dessiné à la main remplacera le mélange plus tard).
+   · LA PLANÈTE (espace) : `astre:{teinte,atmo,echelle}` — pour l'instant une TEINTE de la planète actuelle ;
+     les vraies textures (anneaux de Saturne, bandes de Jupiter…) sont à faire niveau par niveau.
+   · LA PROGRESSION : `SAVE.d.carr[biome]` = nombre de niveaux terminés ; le niveau i est jouable si i ≤ ce
+     nombre. Franchir le portail termine le niveau et enchaîne sur le suivant du même biome.
+   · Largeur de route : `CARR_LARG[i]`, large au niveau 1, resserrée au niveau 10.
+   ========================================================================== */
+const CARRIERE=[
+  {id:'nuages',nm:'NUAGES',ic:'eclair',desc:'10 heures du jour, de l aurore au coucher du soleil.',niveaux:[
+    {nm:'AURORE',h:'aube'},{nm:'PREMIERES LUEURS',h:['aube','lever',.5]},{nm:'LEVER DU SOLEIL',h:'lever'},
+    {nm:'MATIN FRAIS',h:['lever','matin',.5]},{nm:'MATIN',h:'matin'},{nm:'MIDI',h:'midi'},{nm:'APRES-MIDI',h:'aprem'},
+    {nm:'FIN D APRES-MIDI',h:['aprem','golden',.5]},{nm:'HEURE DOREE',h:'golden'},{nm:'COUCHER DE SOLEIL',h:'couchant'}]},
+  {id:'ville',nm:'VILLE',ic:'voiture',desc:'Du coucher du soleil a midi, au-dessus du village de la pluie.',niveaux:[
+    {nm:'COUCHER DE SOLEIL',h:'couchant'},{nm:'SOIREE',h:'soir'},{nm:'PLUIE NEON',h:'pluie',pluie:1},{nm:'MINUIT',h:'nuit'},
+    {nm:'ORAGE',h:'orage',pluie:1},{nm:'AVANT L AUBE',h:['nuit','aube',.5]},{nm:'AUBE',h:'aube'},{nm:'LEVER',h:'lever'},
+    {nm:'MATIN',h:'matin'},{nm:'MIDI',h:'midi'}]},
+  {id:'espace',nm:'ESPACE',ic:'etoile',desc:'Au plus pres des planetes du systeme solaire.',niveaux:[
+    {nm:'MERCURE',astre:{teinte:0x8a8580,atmo:0xd8c9b0,echelle:1.05}},{nm:'VENUS',astre:{teinte:0xc9a15a,atmo:0xffd98a,echelle:1.25}},
+    {nm:'TERRE',astre:{teinte:0x55708c,atmo:0x8fd4ff,echelle:1.35}},{nm:'LUNE',astre:{teinte:0x9a9a9a,atmo:0xdfe6ee,echelle:1.1}},
+    {nm:'MARS',astre:{teinte:0xb5532e,atmo:0xffa27a,echelle:1.2}},{nm:'JUPITER',astre:{teinte:0xc49a6c,atmo:0xffd3a0,echelle:1.5}},
+    {nm:'SATURNE',astre:{teinte:0xd8c08a,atmo:0xfff0c0,echelle:1.45}},{nm:'URANUS',astre:{teinte:0x7fd6d8,atmo:0xb8ffff,echelle:1.35}},
+    {nm:'NEPTUNE',astre:{teinte:0x3a5fd0,atmo:0x7fa8ff,echelle:1.35}},{nm:'PLUTON',astre:{teinte:0xb8a48c,atmo:0xe8dccb,echelle:1.0}}]},
+];
+const CARR_LARG=[1.7,1.62,1.55,1.48,1.41,1.34,1.27,1.2,1.15,1.1];
+const CARR={actif:null}; // {b: index de biome, i: niveau de départ} — null = partie sans fin
+function bioMix(a,b,t){ // un biome INTERMÉDIAIRE, bâti une fois et rangé dans BIOMES
+  const k=a+'>'+b+'@'+t;
+  if(!BIOMES[k]){const o=JSON.parse(JSON.stringify(BIOMES[a]));bioLerp(BIOMES[a],BIOMES[b],t,o);BIOMES[k]=o;}
+  return k;
+}
+function carNiveau(bi,i){ // le niveau de carrière, sous la forme d'un NIVEAU
+  const B=CARRIERE[bi],N=B.niveaux[i],h=Array.isArray(N.h)?bioMix(N.h[0],N.h[1],N.h[2]):(N.h||'espace');
+  return {id:B.id,nm:B.nm+' '+(i+1)+' — '+N.nm,bio:[h],planete:B.id==='espace'?((N.astre&&N.astre.echelle)||1.35):(B.id==='nuages'?.8:0),
+    espace:B.id==='espace'?1:0,pluie:N.pluie||0,cielMusical:B.id==='ville',astre:N.astre||null,carr:{b:bi,i:i}};
+}
+const PLANETE_DEF={teinte:0x55708c,atmo:0x8fd4ff};
+function lvlAstre(a){ // la planète du niveau d'espace : teinte du globe + couleur du limbe
+  const g=planetGroup.userData;a=a||PLANETE_DEF;
+  g.globe.material.color.setHex(a.teinte);g.atmo.material.color.setHex(a.atmo);
+}
+function carrFait(bi){return Math.max(0,Math.min(10,((SAVE.d.carr||{})[CARRIERE[bi].id])|0));}
+function carrMarque(bi,i){ // le niveau i vient d'être TERMINÉ
+  if(!SAVE.d.carr)SAVE.d.carr={};
+  const id=CARRIERE[bi].id;SAVE.d.carr[id]=Math.max(carrFait(bi),i+1);SAVE.flush();
+}
+// ---- L'ÉCRAN CARRIÈRE : les 3 biomes, puis les 10 niveaux du biome choisi ----
+function carrVue(bi){
+  const el=document.getElementById('carr');if(!el)return;
+  let h='<div class="carrIn"><div class="mHead"><div class="pbtn pb-cyan mBack pbCarre" data-c="'+(bi==null?'fermer':'biomes')+'" role="button" aria-label="Retour">'+pxi('gauche')+'</div><h3>'+(bi==null?'CARRIERE':CARRIERE[bi].nm)+'</h3><div class="mSpacer"></div></div>';
+  if(bi==null){
+    CARRIERE.forEach(function(B,k){const f=carrFait(k);
+      h+='<div class="mMode carrBiome" data-c="biome" data-b="'+k+'" role="button"><div class="mmT"><span>'+pxi(B.ic)+' '+B.nm+'</span><span class="mmS">'+f+' / 10</span></div><div class="mmD">'+B.desc+'</div></div>';});
+  }else{
+    const f=carrFait(bi);h+='<div class="carrGrille">';
+    CARRIERE[bi].niveaux.forEach(function(N,i){const ok=i<=f;
+      h+='<div class="pbtn '+(ok?(i<f?'pb-green':'pb-gold'):'pb-cyan off')+' carrNiv" data-c="'+(ok?'niveau':'')+'" data-b="'+bi+'" data-i="'+i+'" role="button" aria-label="Niveau '+(i+1)+(ok?'':' verrouillé')+'"><b>'+(ok?String(i+1).padStart(2,'0'):pxi('verrou'))+'</b><span>'+N.nm+'</span></div>';});
+    h+='</div>';
+  }
+  el.innerHTML=h+'</div>';el.classList.add('on');
+}
+function carrLancer(bi,i){
+  CARR.actif={b:bi,i:i};
+  document.getElementById('carr').classList.remove('on');
+  runStats.zones=0;rebuildMenuScene(); // la piste de départ EST celle du niveau choisi
+  garageLaunch();
+}
+window.dbgCarriere=function(){return {actif:CARR.actif,progression:SAVE.d.carr||{}};};
 window.dbgNiveau=function(){return LVL.cur?{niveau:LVL.n,lieu:LVL.cur.id,ciel:BIO.name,largeurRoute:+(ROAD_HALF*2).toFixed(1),uSpace:+LVL.espace.toFixed(2),
   planete:+LVL.planete.toFixed(2),ville:!!CITY.root,nuages:CLOUDS.length}:'parc freestyle (pas de niveaux)';};
 paintEnv(BIOMES.golden.env,BIOMES.golden.eS1,BIOMES.golden.eS2); // premier reflet = golden hour (la vitrine du menu)
@@ -9486,7 +9582,7 @@ const SAVE={
   V:2,K:'cashcarSave',d:null,dirty:false,
   def(){return{v:this.V,best:0,leaders:[],bestCar:0,equipped:0,sfx:true,vox:true,mus:true,fruits:[],
     vol:{mus:.62,sfx:1,vox:1}, // les trois curseurs de volume (1 = le mixage d'origine)
-    tctl:'stick',q:'fast',sand:false, // MOBILE : schéma de commandes · résolution d'image · bac à sable
+    tctl:'stick',q:'fast',sand:false,carr:{}, // MOBILE : schéma de commandes · résolution d'image · bac à sable
     // EXPLOITS — les compteurs À VIE qui débloquent les caisses. Ils PERSISTENT : le moteur est la
     // progression DANS une partie (il repart à zéro), la voiture est la progression ENTRE les parties.
     // `eng` = plus haut palier moteur jamais atteint · `gaps`/`tricks`/`bumps` = cumuls · `zones`,
@@ -9527,7 +9623,7 @@ const SAVE={
        valeur >1 sur `.volume` lève, elle, une exception qui tuerait la lecture. */
     if(d.vol&&typeof d.vol==='object'){const q=(k,dv)=>{const x=+d.vol[k];return isFinite(x)?Math.min(1,Math.max(0,x)):dv;};
       c.vol={mus:q('mus',.62),sfx:q('sfx',1),vox:q('vox',1)};}
-    c.tctl=(d.tctl==='pad')?'pad':'stick';c.q=(d.q==='net')?'net':'fast';c.sand=(d.sand===true); // réglages MOBILE
+    c.tctl=(d.tctl==='pad')?'pad':'stick';c.q=(d.q==='net')?'net':'fast';c.sand=(d.sand===true);c.carr={};if(d.carr&&typeof d.carr==='object')for(const k of ['nuages','ville','espace'])c.carr[k]=Math.max(0,Math.min(10,d.carr[k]|0)); // réglages MOBILE
     if(Array.isArray(d.fruits))c.fruits=d.fruits.slice(0,32).filter(e=>e&&typeof e.n==='string').map(e=>({ // réglages de l'ÉTAL (bornés : un import bidon ne casse rien)
       n:e.n.slice(0,24),
       b:THREE.MathUtils.clamp(isFinite(+e.b)?+e.b:.5,0,2),
@@ -12189,13 +12285,23 @@ function playWordWave(clickX){
   });
 }
 $('gPlayMain').addEventListener('click',function(e){
-  e.stopPropagation();playWordWave(e.clientX);
+  e.stopPropagation();CARR.actif=null; // le PLAY du garage = la partie sans fin (la carrière a son bouton)playWordWave(e.clientX);
   setTimeout(garageLaunch,260); // la vague a le temps de partir avant que le garage ne s'éteigne
 });
 $('gPlayMain').addEventListener('keydown',function(e){
   if(e.code==='Enter'||e.code==='Space'){e.preventDefault();e.stopPropagation();playWordWave();setTimeout(garageLaunch,260);}
 });
 $('gPrev').addEventListener('click',e=>{e.stopPropagation();garageGo(-1);});
+$('gCarr').addEventListener('click',e=>{e.stopPropagation();carrVue(null);});
+$('carr').addEventListener('click',function(e){ // un seul écouteur pour tout l'écran carrière
+  e.stopPropagation();
+  const el=e.target&&e.target.closest?e.target.closest('[data-c]'):null;if(!el)return;
+  const c=el.getAttribute('data-c'),b=+el.getAttribute('data-b'),i=+el.getAttribute('data-i');
+  if(c==='fermer')$('carr').classList.remove('on');
+  else if(c==='biomes')carrVue(null);
+  else if(c==='biome')carrVue(b);
+  else if(c==='niveau')carrLancer(b,i);
+});
 $('gNext').addEventListener('click',e=>{e.stopPropagation();garageGo(1);});
 // ⚠ LE SWIPE REMPLACE-T-IL L'ORBITE ? NON — IL SE POSE DESSUS (2026-09-05, demande du user : glisser
 // la caisse elle-même fait défiler vers la voiture suivante/précédente). L'orbite existante tournait
@@ -14229,7 +14335,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   }catch(e){} }
   function mTap(a,el){
     hap(11);
-    if(a==='play'||a==='replay'){ goImmersive(); playViaGarage(); }
+    if(a==='play'||a==='replay'){ if(a==='play')CARR.actif=null; goImmersive(); playViaGarage(); }
     else if(a==='back')mGo(mRoot());
     else if(a==='modes'||a==='set')mGo(a);
     else if(a==='garage')openGarage(); // LE VRAI ATELIER : la caisse tourne au milieu, on glisse pour l'admirer
