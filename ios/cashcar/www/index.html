@@ -2708,6 +2708,36 @@ function updatePigeons(dt,t){
     if(b9.life<=0){scene.remove(b9.g);PIGEONS.splice(i9,1);}
   }
 }
+/* ---- LA PISTE D'APPRENTISSAGE (2026-09-24, niveau 1 de la carrière) : dessinée à la MAIN, pas tirée ----
+   « une route beaucoup plus simple où le joueur apprend à jouer et à utiliser sa nitro : des virages simples et
+   grisants, un looping, des tout-droits qui laissent booster ». Chaque ligne droite est une INVITATION à la
+   nitro ; les virages ont de grands rayons (on les prend à fond) ; le looping arrive après une longue ligne
+   droite, pour qu'on l'aborde avec de la vitesse. Mêmes briques que genCtrl (droite, arc, loop). */
+function genTuto(){
+  const ctrl=[];GAPMARK.length=0;
+  let P=new THREE.Vector3(0,0,0),phi=0;
+  const dir=()=>new THREE.Vector3(Math.sin(phi),0,Math.cos(phi));
+  const push=()=>ctrl.push(P.clone());
+  const straight=(l,dy=0,n=2)=>{for(let k=0;k<n;k++){P.addScaledVector(dir(),l/n);P.y+=dy/n;push();}};
+  const arc=(aDeg,R,n,dy=0)=>{const a=aDeg*Math.PI/180,st=a/n,ch=2*R*Math.sin(Math.abs(st)/2);
+    for(let k=0;k<n;k++){phi+=st/2;P.addScaledVector(dir(),ch);P.y+=dy/n;phi+=st/2;push();}};
+  const loop=(R,shift)=>{const base=P.clone(),d=dir(),sx=Math.cos(phi),sz=-Math.sin(phi);
+    for(let k=1;k<=8;k++){const th=k*Math.PI/4;
+      P.set(base.x+d.x*R*Math.sin(th)+sx*shift*th/(2*Math.PI),base.y+R*(1-Math.cos(th)),base.z+d.z*R*Math.sin(th)+sz*shift*th/(2*Math.PI));push();}};
+  push();
+  straight(300,0,3);            // le départ : on sent le gaz auto
+  arc(70,190,6);                // 1er virage : large, on le prend à fond
+  straight(360,-24,3);          // 1re ligne droite en légère descente : « appuie sur NITRO »
+  arc(-90,210,7);               // le grand virage grisant
+  straight(420,0,4);            // on reprend de la vitesse…
+  straight(60,-45);loop(42,36);straight(60,-42); // …LE LOOPING
+  straight(380,0,3);            // la ligne droite de récompense : nitro à fond
+  arc(55,170,5);arc(-55,170,5); // les esses, douces
+  straight(300,20,3);
+  arc(120,230,9);               // le dernier grand virage
+  straight(420,0,4);            // la ligne droite finale vers le portail
+  return ctrl;
+}
 function genCtrl(rnd,startPos,startPhi){
   const ctrl=[];
   GAPMARK.length=0; // les lèvres de tremplin de la zone précédente ne survivent pas à la nouvelle piste
@@ -2940,7 +2970,7 @@ function buildTrack(seed){
   for(const m of trackMeshes){scene.remove(m);if(m.geometry)m.geometry.dispose();if(m.material&&m.material.dispose)m.material.dispose();}
   trackMeshes.length=0;NEON_RAILS.length=0;NEON_GLOW.length=0;PADS=[];BUMPS=[];CONES=[];FLYCONES=[];OILS=[];RAMPS=[];
   const rnd=mulberry32(seed);
-  const ctrl=PARK.on?genPark(rnd):genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course
+  const ctrl=PARK.on?genPark(rnd):(LVL.cur&&LVL.cur.piste==='tuto')?genTuto():genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course
   const curve=new THREE.CatmullRomCurve3(ctrl,false,'catmullrom',0.5);
   L=curve.getLength();
   const N=Math.min(PARK.on?11000:9000,Math.max(3000,Math.round(L))); // parc : plus long → plus de points pour garder les loops lisses
@@ -3242,7 +3272,7 @@ function buildTrack(seed){
     sp9.scale.set(sc9,sc9*(.3+rnd()*.2),1);
     const off9=(650+rnd()*1200)*(rnd()<.5?-1:1);
     sp9.position.copy(pts[i9]).addScaledVector(B[i9],off9).addScaledVector(Nn[i9],-350+rnd()*650);
-    if(LVL.cur&&LVL.cur.id==='espace')sp9.visible=false; // ORBITE : pas de nuages d'horizon — mais le tirage `rnd` est CONSOMMÉ quand même (la piste en aval ne bouge pas)
+    if(LVL.cur&&(LVL.cur.id==='espace'||LVL.cur.sansNuages))sp9.visible=false; // ORBITE : pas de nuages d'horizon — mais le tirage `rnd` est CONSOMMÉ quand même (la piste en aval ne bouge pas)
     scene.add(sp9);trackMeshes.push(sp9);
   }
   // PORTAIL D'ARRIVÉE : la cible
@@ -4064,6 +4094,16 @@ const BIOMES={
     volSun:[1.25,1.20,1.65],volSky:[.12,.14,.32],volGnd:[.03,.03,.08],volAmb:.40,
     expo:.74,sat:1.30,
     env:[[0,'#04050e'],[.3,'#0a0d24'],[.48,'#1a2250'],[.58,'#2c3f86'],[.66,'#0c1026'],[1,'#020208']],eS1:[200,222,255,.46],eS2:[120,150,255,.30]},
+  // ---- AURORE (2026-09-24) : le NIVEAU 1 de la carrière — « le soleil vient de se lever, la journée promet ».
+  // Déjà du JOUR, pas l'heure bleue : un ciel clair qui jaunit vers l'horizon, une lumière chaude et RASANTE (ombres
+  // longues : sunI haut, hemi clair), un remplissage bleu tendre de l'autre côté, un air LIMPIDE (brume lointaine).
+  aurore:{ nm:'AURORE', skyMul:[1.58,1.68,1.86],skyLift:[.34,.24,.08],sunTint:[1,.80,.46],sunHalo:1.15,city:0,stars:0,moon:0,
+    fog:[.88,.78,.64],fogN:650,fogF:3800,
+    hemiS:[.94,.88,.80],hemiG:[.34,.30,.30],hemiI:.92, sunC:[1,.84,.58],sunI:1.62,
+    fillC:[.52,.66,.96],fillI:.28, kickC:[1,.72,.46],kickI:.12,
+    volSun:[2.2,1.8,1.3],volSky:[.62,.66,.86],volGnd:[.30,.28,.30],volAmb:.80,
+    expo:1.08,sat:1.12,
+    env:[[0,'#6f9ee0'],[.3,'#a9c6ee'],[.48,'#ffd9a0'],[.58,'#ffe6b0'],[.66,'#b8a8a8'],[1,'#5a5a78']],eS1:[255,226,170,.55],eS2:[170,205,255,.32]},
   // ---- PLUIE NÉON (2026-09-24) : le ciel du niveau VILLE — « le village caché de la pluie », version cyberpunk ----
   // Un plafond ARDOISE bas et mouillé (pas de soleil : sunHalo au plancher, pas de lune, pas d'étoiles), une
   // brume gris-bleu qui avale le lointain, et toute la couleur qui vient d'EN BAS : la guirlande néon de
@@ -4209,6 +4249,7 @@ function lvlPlanete(dt){
 }
 function lvlNuageOk(o){ // quelles familles de nuages chaque monde garde (lu par mkCloud)
   const c=LVL.cur;if(!c)return true;
+  if(c.sansNuages)return false; // un niveau au ciel NU (l'aurore d'apprentissage) : pas un seul nuage
   if(c.id==='espace')return !(o.onRoad||o.giant||o.sea||o.deco||o.veil); // l'orbite : les seuls coussins de vol
   if(c.id==='ville')return !(o.sea||o.titan||o.baseY!==undefined);       // la ville doit se VOIR d'en haut
   return true;
@@ -4274,7 +4315,7 @@ function pluieTick(t){ // appelée par la boucle : suit la caméra, suit le fond
    ========================================================================== */
 const CARRIERE=[
   {id:'nuages',nm:'NUAGES',ic:'eclair',desc:'10 heures du jour, de l aurore au coucher du soleil.',niveaux:[
-    {nm:'AURORE',h:'aube'},{nm:'PREMIERES LUEURS',h:['aube','lever',.5]},{nm:'LEVER DU SOLEIL',h:'lever'},
+    {nm:'AURORE',h:'aurore',sansNuages:1,planete:0,piste:'tuto'},{nm:'PREMIERES LUEURS',h:['aube','lever',.5]},{nm:'LEVER DU SOLEIL',h:'lever'},
     {nm:'MATIN FRAIS',h:['lever','matin',.5]},{nm:'MATIN',h:'matin'},{nm:'MIDI',h:'midi'},{nm:'APRES-MIDI',h:'aprem'},
     {nm:'FIN D APRES-MIDI',h:['aprem','golden',.5]},{nm:'HEURE DOREE',h:'golden'},{nm:'COUCHER DE SOLEIL',h:'couchant'}]},
   {id:'ville',nm:'VILLE',ic:'voiture',desc:'Du coucher du soleil a midi, au-dessus du village de la pluie.',niveaux:[
@@ -4297,7 +4338,8 @@ function bioMix(a,b,t){ // un biome INTERMÉDIAIRE, bâti une fois et rangé dan
 }
 function carNiveau(bi,i){ // le niveau de carrière, sous la forme d'un NIVEAU
   const B=CARRIERE[bi],N=B.niveaux[i],h=Array.isArray(N.h)?bioMix(N.h[0],N.h[1],N.h[2]):(N.h||'espace');
-  return {id:B.id,nm:B.nm+' '+(i+1)+' — '+N.nm,bio:[h],planete:B.id==='espace'?((N.astre&&N.astre.echelle)||1.35):(B.id==='nuages'?.8:0),
+  return {id:B.id,nm:B.nm+' '+(i+1)+' — '+N.nm,bio:[h],piste:N.piste||null,sansNuages:!!N.sansNuages,
+    planete:N.planete!=null?N.planete:(B.id==='espace'?((N.astre&&N.astre.echelle)||1.35):(B.id==='nuages'?.8:0)),
     espace:B.id==='espace'?1:0,pluie:N.pluie||0,cielMusical:B.id==='ville',astre:N.astre||null,carr:{b:bi,i:i}};
 }
 const PLANETE_DEF={teinte:0x55708c,atmo:0x8fd4ff};
@@ -11941,6 +11983,7 @@ function openGarage(quiet){
   garageShow(level||0);
 }
 function closeGarage(){
+  bioApply(BIO.cur); // ⚠ (2026-09-24) le garage/l'étal écrasent le ciel chaque frame (nuit étoilée) : on rend la main au BIOME en sortant, sinon la 1re course gardait leur ciel
   garageOn=false;gEl.classList.remove('on');gEl.classList.remove('quiet');gEl.classList.remove('launching');document.body.classList.remove('inGarage');
   garageFloor.visible=false;
   // ⚠ FERMER PENDANT UNE BASCULE : la caisse est alors écrasée à .001 et le scanner allumé. Sans ce
@@ -12185,6 +12228,7 @@ function openStall(mode){
   stallAng=0;stallShow(stallI);
 }
 function closeStall(){
+  bioApply(BIO.cur); // ⚠ (2026-09-24) le garage/l'étal écrasent le ciel chaque frame (nuit étoilée) : on rend la main au BIOME en sortant, sinon la 1re course gardait leur ciel
   stallOn=false;stEl.classList.remove('on');document.body.classList.remove('inStall');
   if(stallMesh){scene.remove(stallMesh);stallMesh=null;}
   stallKey.visible=false;stallKey.intensity=0;stallRim.visible=false;stallRim.intensity=0; // on éteint l'étal en partant
@@ -12831,7 +12875,8 @@ function loop(now){
            visée fixe — et surtout le CHAMP qui s'ouvre franchement (jusqu'à +38°, +22 en réserve bleue) :
            c'est lui qui dit « ça pousse ». Le glissement latéral (`camSwing`) et le coup de tête au boost
            (`camKick`) de la version de Léo sont retirés ; les variables restent à 0 pour `dbgCam9()`. */
-        const camBack=(4.6+speedKmh*.006+camBoost*3.8)*(1-POR*.30),camH=(camBack*.393+speedKmh*.0018+camBoost*.35)*(1+POR*.72);
+        const camBack=(3.9+speedKmh*.006+camBoost*3.8)*(1-POR*.30), // 4,6→3,9 (2026-09-24, « plus proche pour l'impression de vitesse ») ; la hauteur suit (×.393) : même angle, plus près
+       camH=(camBack*.393+speedKmh*.0018+camBoost*.35)*(1+POR*.72);
         camLean=steer*.035;camSwing=0;camKick=0;
         tmp2.copy(carGroup.position).addScaledVector(fwdW,-camBack).addScaledVector(F.n,camH);
         camera.position.lerp(tmp2,Math.min(1,dt*5));
