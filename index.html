@@ -7525,6 +7525,14 @@ const MUSIC_TRACKS=[
   // ,{titre:'NÉON CASH CAR',  f:'assets/audio/music/lvl1-neon-cash-car-v3.mp3'}  // 3 min 02
   // ,{titre:'CASH CAR VITESSE',f:'assets/audio/music/lvl2-cash-car-vitesse.mp3'} // 2 min 37
 ];
+/* ---- LA MUSIQUE D'OUVERTURE (2026-09-24) — demande du user : « Noite de Velocidade » pour les
+   10 PREMIÈRES ZONES de chaque partie, tous décors confondus ; ensuite la radio (`MUSIC_TRACKS`)
+   reprend la main. Elle BOUCLE pendant ces 10 zones (2 min 29 ne couvrent pas dix portails).
+   ⚠ le décompte est `runStats.zones`, remis à 0 par `resetGame` : chaque nouvelle partie rouvre sur
+   elle. ⚠ `zones:0` désactive le mécanisme sans rien toucher d'autre. Fichier renommé en ASCII sans
+   espace (« Noite de Velocidade.mp3 ») : une URL mal encodée ne plante pas, elle se tait. */
+const MUSIC_OUVERTURE={titre:'NOITE DE VELOCIDADE',f:'assets/audio/music/noite-de-velocidade.mp3',zones:10}; // 2 min 29
+let musicOuv=false; // vrai tant que la musique d'ouverture tient l'antenne
 let musicCur=-1; // l'index EN COURS dans MUSIC_TRACKS (-1 = rien encore choisi)
 function musicPickNext(excludeIdx){
   if(MUSIC_TRACKS.length<=1)return 0;
@@ -7595,6 +7603,7 @@ function musicStartRun(){ // au début d'une partie (start / resetGame)
   if(!SND.music||!MUSIC_TRACKS.length)return;
   if(!AC){try{initAudio();}catch(e){return;}} if(!musicGain)musicGraph();
   musicCur=musicPickNext(-1); // nouvelle partie = une piste tirée au hasard dans le pool
+  musicOuv=!!(MUSIC_OUVERTURE&&MUSIC_OUVERTURE.zones>0); // …mais l'OUVERTURE passe d'abord
   musicMode='run';NIVEAU_FX=0;musicPlayCurrent();
   /* LE LEVER DE PISTE : le décor repart de zéro et remonte avec le morceau (≈2 s), avec une onde
      d'ouverture. On remet AUSSI le métronome à plat : garder la confiance et la phase du run
@@ -7608,10 +7617,11 @@ function musicMenu(){ // thème de menu (game over / accueil), en boucle
   musicMode='menu';musicPlayCurrent();
 }
 function musicPlayCurrent(){
-  const url=musicMode==='menu'?MUSIC.menu:(MUSIC_TRACKS[musicCur]||{}).f;
+  const ouv=musicMode==='run'&&musicOuv;
+  const url=musicMode==='menu'?MUSIC.menu:ouv?MUSIC_OUVERTURE.f:(MUSIC_TRACKS[musicCur]||{}).f;
   if(!url)return;
-  const el=playMusic(url,{loop:musicMode==='menu',volume:musVol()}); // menu boucle ; en course, la radio enchaîne au hasard
-  if(el&&musicMode==='run')el.addEventListener('ended',musicNext,{once:true});
+  const el=playMusic(url,{loop:musicMode==='menu'||ouv,volume:musVol()}); // menu et OUVERTURE bouclent ; ensuite la radio enchaîne au hasard
+  if(el&&musicMode==='run'&&!ouv)el.addEventListener('ended',musicNext,{once:true});
 }
 /* ---- L'ENCHAÎNEMENT RADIO (2026-09-03) ---------------------------------------------------------
    Un morceau se termine → on en tire un AUTRE au hasard (jamais le même deux fois de suite) et on
@@ -8032,6 +8042,7 @@ window.dbgJus=function(n,col,gel){
 window.dbgRadio=function(suivant){
   if(suivant)try{musicNext();}catch(e){return {erreur:String(e.message)};}
   const t=MUSIC_TRACKS[musicCur];
+  if(musicOuv&&musicMode==='run')return {piste:MUSIC_OUVERTURE.titre+' (ouverture)',zonesFaites:runStats.zones,sur:MUSIC_OUVERTURE.zones,poolSize:MUSIC_TRACKS.length,mode:musicMode};
   return {piste:t?t.titre:null,morceau:t?t.f.split('/').pop():null,
     poolSize:MUSIC_TRACKS.length,mode:musicMode};
 };
@@ -12294,6 +12305,7 @@ function loop(now){
           portalSnd();boostSnd();shake=.5;
           const zb=denom()*24*(fever>0?2:1);money+=zb;levelCash+=zb;checkUpgrade(); // portail : 40→24 (régulation 2026-07-30)
           runStats.zones++;
+          if(musicOuv&&musicMode==='run'&&runStats.zones>=MUSIC_OUVERTURE.zones){musicOuv=false;try{musicNext();}catch(e){}} // 10 zones : l'OUVERTURE rend l'antenne à la radio
           nitroR=2; // le portail regonfle la nitro : chaque zone repart pied au plancher
           trickMsg(pickL(ZONE_LINES)+' +'+fmtC(zb),true);
           flyCash(carGroup.position,8);

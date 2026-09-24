@@ -24,8 +24,9 @@
         mix NÉON CASH CAR v3 (l'ancien fichier de ce nom contenait Chrome Ledger), sons fx/.
    v16 (2026-09-24) : la fusion Sacha × Léo + le travail de la nuit (moteur qui ronronne, musique devant,
         gamme en briques). ⚠ Sacha et Léo avaient TOUS DEUX numéroté v15 : sans ce saut, les navigateurs
-        déjà passés sur la v15 de Sacha n'auraient jamais vu la fusion. */
-const CACHE = 'cashcar-v16';
+        déjà passés sur la v15 de Sacha n'auraient jamais vu la fusion.
+   v17 (2026-09-24) : NOITE DE VELOCIDADE en ouverture (10 premieres zones), voitures low-poly. */
+const CACHE = 'cashcar-v17';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

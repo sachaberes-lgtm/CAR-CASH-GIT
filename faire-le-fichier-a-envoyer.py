@@ -134,6 +134,10 @@ refs = []
 # depuis que la musique s'enchaine au hasard sur tout le pool plutot que par niveau. S'y fier via
 # une ancienne cle (`NIVEAUX`, supprimee) n'embarquerait rien — silence total dans le fichier autonome.
 refs += re.findall(r"f:'(assets/audio/music/[^']+\.mp3)'", _tab("MUSIC_TRACKS"))
+# la MUSIQUE D'OUVERTURE (2026-09-24) vit hors du pool : sans cette ligne elle ne serait pas embarquee,
+# et le fichier a double-cliquer ouvrirait chaque partie sur un silence — sans la moindre erreur.
+_mo = re.search(r"const MUSIC_OUVERTURE=\{[^}]*f:'(assets/audio/music/[^']+\.mp3)'", h)
+if _mo: refs.append(_mo.group(1))
 refs += [_dir("ANN_DIR")   + f for f in re.findall(r"f:'([^']+)'", _tab("ANN_LIB"))]    # les 9 voix
 refs += [_dir("DEATH_DIR") + f for f in re.findall(r"f:'([^']+)'", _tab("DEATH_LIB"))]  # les sons de mort
 # les samples d'evenement : le WOW (un objet seul) et les 9 sons d'argent (un tableau)
