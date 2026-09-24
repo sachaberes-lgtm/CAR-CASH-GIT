@@ -17,6 +17,8 @@ garage, radio). Historique détaillé sur la branche `fusion-2026-09`.
   Console : `dbgSaut()` passe au niveau suivant, `dbgNiveau()` dit où l'on est.
 - **Route** très large au niveau 1, qui se resserre à chaque niveau (pour les débutants).
 - **Conduite** : la caméra et les sensations de la version de Sacha.
+- **Direction artistique** : tous les boutons, croix, flèches et textes en pixel, alignés sur le titre CASH CAR
+  (icônes pixel maison, plus aucun emoji) ; nouvelle icône d'app ; image nette (résolution adaptative réparée).
 - Mobile : garage, menu et splash corrigés en portrait ; téléphone couché = pause expliquée.
 - « Réduire les animations » respecté (logo, jus de fruit, filés de vitesse).
 - 100 % hors ligne : `vendor/` (three.js r128) et la police locale, aucun CDN.
