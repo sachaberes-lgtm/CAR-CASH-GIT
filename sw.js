@@ -30,8 +30,9 @@
    v18 (2026-09-24) : 2e fusion (charte pixel + carriere 30 niveaux de Sacha). ⚠ Sacha et Léo ont ENCORE
         numerote chacun de leur cote (v16/v17) : on saute au-dessus des deux, sinon pas de mise a jour.
    v19 (2026-09-24) : la musique suit le MONDE (nuages : Noite de Velocidade, ville : Nocturnal Groove).
-   v20 (2026-09-24) : ordre des mondes VILLE → NUAGES → ESPACE (partie sans fin + carriere). */
-const CACHE = 'cashcar-v20';
+   v20 (2026-09-24) : ordre des mondes VILLE → NUAGES → ESPACE (partie sans fin + carriere).
+   v21 (2026-09-24) : 3e fusion Sacha (charte v2, boutons d'arcade pixel, niveau tuto AURORE). */
+const CACHE = 'cashcar-v21';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
