@@ -19,6 +19,12 @@
   fenêtre, chemin téléphone complet ; volant à la souris, clavier branché ; ni gel en paysage, ni plein
   écran forcé ; image 1,0 / 1,5. Sur un vrai téléphone, le gel « couché » ne vaut plus que sous 600 px
   de haut (iPad libre) et affiche `#rotNote`.
+- **CARRIÈRE (architecture, détail à faire niveau par niveau)** : `CARRIERE` = 3 biomes × 10 niveaux (NUAGES
+  aurore→coucher, VILLE coucher→midi, ESPACE Mercure→Pluton). `carNiveau(b,i)` fabrique un NIVEAU standard
+  (heure = biome ou `bioMix(a,b,t)`, planète = `astre` teinte/limbe/échelle via `lvlAstre`), `CARR.actif`
+  branche `lvlChoisir`, `CARR_LARG` resserre la route, `SAVE.d.carr[biome]` = niveaux terminés. Bouton
+  `#gCarr` (garage) → écran `#carr` (biomes → grille). Les JOUER « sans fin » remettent `CARR.actif=null`.
+  Hook : `dbgCarriere()`.
 - **CHARTE PIXEL UNIFIÉE** (bloc CSS « LA CHARTE PIXEL UNIFIÉE » en FIN de `<style>`, il gagne sur l'historique) :
   une police (Press Start 2P) partout ; PLAQUE d'arcade `.pbtn` pour ce qui se touche (`.pbCarre` : croix,
   flèches, retour), CADRE (même coupe `--coupe7`, même `--biseau`) pour ce qui se lit ; titres d'écran en or
