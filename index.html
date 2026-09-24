@@ -4131,9 +4131,11 @@ window.dbgBio=function(n,d){bioGo(n,d||2);}; // console : dbgBio('nuit') → tes
    troisième dans l'espace au-dessus de la Terre et dans le NOIR COMPLET ». `cielMusical` pilote le fond
    de rythme du dôme (roue, ondes, piliers, onde de couleur) ET son souffle (`uPulse`) — voir musicTick.
    `pluie` : le rideau de pluie de la ville (voir PLUIE). */
+/* ⚠ ORDRE (2026-09-24, user) : « d'abord la VILLE, ensuite les NUAGES, ensuite l'ESPACE ». Rien ne
+   dépend de la position dans ce tableau (tout passe par `id`) : réordonner est sans risque. */
 const NIVEAUX=[
-  {id:'nuages',nm:'MER DE NUAGES',        bio:['matin','midi','aprem'],planete:.8, espace:0,pluie:0,cielMusical:false},
   {id:'ville', nm:'AU-DESSUS DE LA VILLE',bio:['pluie'],               planete:0,  espace:0,pluie:1,cielMusical:true},
+  {id:'nuages',nm:'MER DE NUAGES',        bio:['matin','midi','aprem'],planete:.8, espace:0,pluie:0,cielMusical:false},
   {id:'espace',nm:'EN ORBITE',            bio:['espace'],              planete:1.35,espace:1,pluie:0,cielMusical:false},
 ];
 const LVL={cur:null,n:0,k:1,dur:4,
@@ -4261,15 +4263,16 @@ function pluieTick(t){ // appelée par la boucle : suit la caméra, suit le fond
      nombre. Franchir le portail termine le niveau et enchaîne sur le suivant du même biome.
    · Largeur de route : `CARR_LARG[i]`, large au niveau 1, resserrée au niveau 10.
    ========================================================================== */
+// ORDRE DES MONDES (2026-09-24, user) : VILLE → NUAGES → ESPACE. Sauvegardes rangées par `id` (SAVE.d.carr[id]) : sans risque.
 const CARRIERE=[
-  {id:'nuages',nm:'NUAGES',ic:'eclair',desc:'10 heures du jour, de l aurore au coucher du soleil.',niveaux:[
-    {nm:'AURORE',h:'aube'},{nm:'PREMIERES LUEURS',h:['aube','lever',.5]},{nm:'LEVER DU SOLEIL',h:'lever'},
-    {nm:'MATIN FRAIS',h:['lever','matin',.5]},{nm:'MATIN',h:'matin'},{nm:'MIDI',h:'midi'},{nm:'APRES-MIDI',h:'aprem'},
-    {nm:'FIN D APRES-MIDI',h:['aprem','golden',.5]},{nm:'HEURE DOREE',h:'golden'},{nm:'COUCHER DE SOLEIL',h:'couchant'}]},
   {id:'ville',nm:'VILLE',ic:'voiture',desc:'Du coucher du soleil a midi, au-dessus du village de la pluie.',niveaux:[
     {nm:'COUCHER DE SOLEIL',h:'couchant'},{nm:'SOIREE',h:'soir'},{nm:'PLUIE NEON',h:'pluie',pluie:1},{nm:'MINUIT',h:'nuit'},
     {nm:'ORAGE',h:'orage',pluie:1},{nm:'AVANT L AUBE',h:['nuit','aube',.5]},{nm:'AUBE',h:'aube'},{nm:'LEVER',h:'lever'},
     {nm:'MATIN',h:'matin'},{nm:'MIDI',h:'midi'}]},
+  {id:'nuages',nm:'NUAGES',ic:'eclair',desc:'10 heures du jour, de l aurore au coucher du soleil.',niveaux:[
+    {nm:'AURORE',h:'aube'},{nm:'PREMIERES LUEURS',h:['aube','lever',.5]},{nm:'LEVER DU SOLEIL',h:'lever'},
+    {nm:'MATIN FRAIS',h:['lever','matin',.5]},{nm:'MATIN',h:'matin'},{nm:'MIDI',h:'midi'},{nm:'APRES-MIDI',h:'aprem'},
+    {nm:'FIN D APRES-MIDI',h:['aprem','golden',.5]},{nm:'HEURE DOREE',h:'golden'},{nm:'COUCHER DE SOLEIL',h:'couchant'}]},
   {id:'espace',nm:'ESPACE',ic:'etoile',desc:'Au plus pres des planetes du systeme solaire.',niveaux:[
     {nm:'MERCURE',astre:{teinte:0x8a8580,atmo:0xd8c9b0,echelle:1.05}},{nm:'VENUS',astre:{teinte:0xc9a15a,atmo:0xffd98a,echelle:1.25}},
     {nm:'TERRE',astre:{teinte:0x55708c,atmo:0x8fd4ff,echelle:1.35}},{nm:'LUNE',astre:{teinte:0x9a9a9a,atmo:0xdfe6ee,echelle:1.1}},
