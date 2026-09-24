@@ -1288,6 +1288,188 @@
   /* ---- les consignes : lisibles (contraste relevé), jamais criardes ---- */
   #tSteerHint{opacity:.72;color:#c8f4ff;white-space:nowrap;line-height:1.8} /* sur deux lignes, « TOURNER » venait chevaucher « GLISSE POUR » */
   #tNitro{flex-direction:column;gap:9px;--pxs:3}#tNitro .pxi{margin:0;filter:drop-shadow(0 2px 0 rgba(255,255,255,.35))}
+
+  /* ======================= LA PASSE UX (2026-09-24) — audit mobile, 17 points =======================
+     Tailles : 44 pt partout (Apple). Textes : 8 px minimum. Parcours : menu d'abord, REJOUER direct.
+     Transitions : 180 ms, JAMAIS sous « Réduire les animations ». */
+  @keyframes ecranIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  @keyframes voileIn{from{opacity:0}to{opacity:1}}
+  .mscr.on,#carr.on .carrIn,#tPanel.open #tpIn,#modale.on .modIn{animation:ecranIn .18s cubic-bezier(.2,.8,.2,1)}
+  #carr.on,#tPanel.open,#modale.on{animation:voileIn .16s ease-out}
+  @media (prefers-reduced-motion:reduce){.mscr.on,#carr.on .carrIn,#tPanel.open #tpIn,#modale.on .modIn,#carr.on,#tPanel.open,#modale.on{animation:none}}
+  html[data-reduced-motion="1"] .mscr.on,html[data-reduced-motion="1"] #carr.on .carrIn,html[data-reduced-motion="1"] #tPanel.open #tpIn{animation:none}
+  /* cibles tactiles ≥ 44 pt */
+  #gCarr{min-height:48px;padding:0 20px}
+  #garage #gEquip,#garage #gBuy{min-height:46px;padding:0 20px}
+  .mHead .mBack{width:48px;height:48px;padding:0}.mHead .mSpacer{width:48px}
+  body.touch #nameSave{min-height:48px}
+  .volS{height:36px;box-shadow:none;background:linear-gradient(90deg,#ffd75e var(--v,60%),rgba(255,255,255,.15) var(--v,60%)) center/100% 10px no-repeat}
+  .volS::-webkit-slider-thumb{width:22px;height:30px}
+  #gBottom .gNav{opacity:.75}
+  /* textes ≥ 8 px */
+  #garage #gHint,.mStat span,.mMode .mmD{font-size:8px}
+  /* le menu : JOUER, puis la CARRIÈRE, puis la rangée d'icônes */
+  .mChip b{margin-left:.7em}
+  body.touch #overlay{background:rgba(6,4,16,.80)} /* le monde se devine derrière le menu : c'est lui qui donne l'âme de l'écran */
+  .mCarr{margin-top:12px;font-size:12px;letter-spacing:3px;padding:16px 18px;--pxs:2}
+  /* les réglages : trois sections, chaque interrupteur SOUDÉ à son curseur */
+  .mSec{width:100%;font-family:var(--pix);font-size:8px;letter-spacing:4px;color:#b3a8e6;margin:18px 0 10px;text-align:left}
+  .mSet>.mSec:first-child{margin-top:4px}
+  .mGrp{width:100%;margin-bottom:12px}
+  .mGrp>.pbtn{margin-bottom:2px!important}
+  .mGrp .volRow{margin:0}
+  .mGrp .volHd span{color:var(--texteF)}
+  /* les modes : un VRAI interrupteur (témoin lumineux) plutôt qu'une carte à deviner */
+  .mMode .mmS{position:relative;padding-left:28px;min-width:64px;text-align:right}
+  .mMode .mmS::before{content:'';position:absolute;left:7px;top:50%;width:13px;height:13px;margin-top:-6.5px;background:#4a5566;box-shadow:inset -2px -2px 0 rgba(0,0,0,.35)}
+  .mMode.on .mmS::before{background:#62e062;box-shadow:0 0 8px rgba(98,224,98,.8),inset -2px -2px 0 rgba(0,0,0,.25)}
+  .mMode{cursor:pointer}
+  /* la carrière : jauge de progression par biome, verrous qui secouent */
+  .carrBiome .mmP{font-family:var(--pix);font-size:9px;color:var(--or)}
+  .carrJauge{height:8px;margin-top:12px;background:rgba(0,0,0,.35);box-shadow:inset 0 0 0 2px rgba(0,234,255,.25)}
+  .carrJauge i{display:block;height:100%;background:linear-gradient(90deg,#ffc400,#ffe9a0)}
+  @keyframes secoue{0%,100%{transform:none}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
+  .carrNiv.secoue{animation:secoue .32s}
+  @media (prefers-reduced-motion:reduce){.carrNiv.secoue{animation:none}}
+  /* la FENÊTRE du jeu (remplace prompt/confirm) et le TOAST */
+  #modale{position:fixed;inset:0;z-index:95;display:none;align-items:center;justify-content:center;padding:24px 18px;background:rgba(6,4,16,.82)}
+  #modale.on{display:flex}
+  .modIn{width:min(380px,100%);padding:22px 18px 18px;background:var(--cadre);clip-path:var(--coupe7);box-shadow:var(--biseau);text-align:center}
+  #modT{margin:0 0 12px;font-family:var(--pix);font-weight:400;font-size:13px;letter-spacing:3px;background:var(--ttrOr);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 0 #5c3600)}
+  #modX{font-family:var(--pix);font-size:8px;line-height:2;color:var(--texte);margin-bottom:14px}
+  #modC{width:100%;box-sizing:border-box;margin-bottom:14px;padding:12px;border:0;border-radius:0;resize:none;font:9px/1.8 var(--pix);color:#fff;background:#0a0d1c;box-shadow:inset 0 0 0 2px var(--cyanL);outline:none;word-break:break-all}
+  .modB{display:flex;flex-direction:column;gap:10px}.modB .pbtn{min-height:48px;font-size:11px;--pxs:2}
+  #toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 28px);z-index:96;transform:translate(-50%,20px);opacity:0;pointer-events:none;
+    padding:12px 16px;max-width:88vw;font-family:var(--pix);font-size:8px;letter-spacing:1px;line-height:1.8;color:#fff;text-align:center;
+    background:var(--cadre);clip-path:var(--coupe7);box-shadow:var(--biseau);transition:opacity .2s,transform .2s;--pxs:1}
+  #toast.on{opacity:1;transform:translate(-50%,0)}
+  /* le VOLANT se montre au premier départ : un anneau-fantôme là où naît le stick, jusqu'au premier braquage */
+  @keyframes volantInvite{0%,100%{opacity:.35;transform:scale(1)}50%{opacity:.8;transform:scale(1.08)}}
+  body.touch.play #tSteer:not(.used)::after{content:'';position:absolute;left:calc(50% - 46px);bottom:calc(env(safe-area-inset-bottom,0px) + 96px);
+    width:92px;height:92px;border-radius:50%;border:3px dashed rgba(159,232,255,.55);pointer-events:none;animation:volantInvite 1.6s ease-in-out infinite}
+  body.tpad #tSteer::after{display:none}
+  @media (prefers-reduced-motion:reduce){body.touch.play #tSteer:not(.used)::after{animation:none;opacity:.6}}
+  /* la fiche du garage : deux lignes, un tap la déplie */
+  #garage #gCard{cursor:pointer}
+  #garage #gDesc{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  #garage #gCard.ouvert #gDesc{display:block;overflow:visible}
+
+  /* ======================= LA CHARTE v2 — LE BOUTON D'ARCADE PIXEL (2026-09-24) =======================
+     Verdict du user sur la v1 : « les boutons sont toujours aussi moches et mal faits ». Diagnostic de designer :
+       · la v1 était PLATE — son « épaisseur » était un drop-shadow que le clip-path des coins ROGNAIT : rien ne
+         semblait enfonçable ;
+       · bleu nuit sur bleu nuit + un liseré de 2 px : terne, un formulaire d'admin, pas une borne d'arcade ;
+       · réglages et pause empilaient dix grosses barres identiques au lieu de LISTES.
+     LA CONSTRUCTION (celle des boutons 8-bit) : un CONTOUR sombre de 3 px dessiné par quatre ombres décalées —
+     les coins restent vides, donc CRANTÉS, sans clip-path — une FACE en deux tons (bande de brillance), une
+     lèvre claire en haut, une TRANCHE sombre en bas, et une OMBRE AU SOL. À l'appui le bouton descend de 6 px
+     et l'ombre disparaît : il s'ENFONCE. Couleurs FRANCHES : or (action principale), bleu arcade, vert,
+     rouge, orange (nitro). Ce qui se LIT (panneaux) suit la même construction, sans ombre d'appui. */
+  :root{--px:3px}
+  .pbtn,#tPanel .tp:not(.ligne),#tGear,#tNitro,.saveBtn,body.touch #nameSave,#playBtn,.tbtn{
+    --fc:#2a44c8;--fc2:#3654dc;--hi:#7d97ff;--lo:#16247a;--ol:#070b2b;--tx:#fff;--txs:#0b1450;
+    border:0!important;border-radius:0!important;clip-path:none!important;filter:none!important;
+    -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+    background:linear-gradient(180deg,var(--fc2) 0 50%,var(--fc) 50% 100%)!important;color:var(--tx)!important;
+    text-shadow:0 2px 0 var(--txs)!important;
+    box-shadow:inset 0 var(--px) 0 0 var(--hi),inset 0 calc(var(--px)*-2) 0 0 var(--lo),
+      0 calc(var(--px)*-1) 0 0 var(--ol),0 var(--px) 0 0 var(--ol),calc(var(--px)*-1) 0 0 0 var(--ol),var(--px) 0 0 0 var(--ol),
+      0 calc(var(--px)*3) 0 0 rgba(0,0,0,.45)!important;
+    transition:transform .05s,box-shadow .05s!important}
+  .pbtn,.saveBtn,#playBtn,#tPanel .tp{position:relative} /* ⚠ PAS #tGear/#tNitro/.tbtn : ils sont en position FIXE (commandes de course) */
+  .pbtn::after,#tPanel .tp::after,.saveBtn::after,#playBtn::after,#garage #gEquip::after,#garage #gBuy::after{display:none!important}
+  .pbtn:active,#tPanel .tp:not(.ligne):active,#tGear:active,#tNitro:active,#tNitro.on,.saveBtn:active,body.touch #nameSave:active,#playBtn:active,.tbtn:active,.tbtn.on{
+    transform:translateY(calc(var(--px)*2))!important;
+    box-shadow:inset 0 var(--px) 0 0 var(--lo),
+      0 calc(var(--px)*-1) 0 0 var(--ol),0 var(--px) 0 0 var(--ol),calc(var(--px)*-1) 0 0 0 var(--ol),var(--px) 0 0 0 var(--ol),
+      0 var(--px) 0 0 rgba(0,0,0,.45)!important}
+  .pbtn:focus-visible,#tGear:focus-visible,.saveBtn:focus-visible{outline:3px solid #fff;outline-offset:6px}
+  /* les couleurs de la charte */
+  .pb-gold,#tPanel .tp.go,#playBtn,#garage #gBuy{--fc:#ffb81f;--fc2:#ffcb3f;--hi:#fff3ad;--lo:#c26a00;--ol:#2b1300;--tx:#3b1c00;--txs:rgba(255,243,190,.8)}
+  .pb-green,#garage #gEquip,body.touch #nameSave{--fc:#24a246;--fc2:#2dbb53;--hi:#a2f7b6;--lo:#0f6427;--ol:#04200d;--tx:#fff;--txs:#07361a}
+  .pb-red,#tPanel .tp.rouge{--fc:#d22a44;--fc2:#e8384f;--hi:#ffa3b1;--lo:#851127;--ol:#26040c;--tx:#fff;--txs:#4a0716}
+  #tNitro{--fc:#ff7415;--fc2:#ff8d2e;--hi:#ffd58f;--lo:#ad4200;--ol:#2a0e00;--tx:#2a0e00;--txs:rgba(255,226,170,.75)}
+  .pbtn.off,#garage #gEquip:disabled{--fc:#343a50;--fc2:#3b425a;--hi:#555d7a;--lo:#1f2334;--ol:#07080f;--tx:#9aa2b8;--txs:#11141f}
+  #garage #gEquip:disabled{opacity:1!important}
+  /* les tailles : une échelle, pas des cas particuliers */
+  .pbtn{font-size:12px;letter-spacing:2px;padding:14px 18px;min-height:54px;box-sizing:border-box;gap:10px;--pxs:2}
+  .pbtn.big{font-size:20px;letter-spacing:6px;padding:0 18px;min-height:76px}
+  .pbtn.ico{min-height:94px;font-size:9px;letter-spacing:1px;gap:11px;--pxs:3;padding:14px 6px}
+  .pbtn.pbCarre{min-height:0;padding:0;width:50px;height:50px}
+  #garage .gNav,#stall .gNav{width:56px!important;height:56px!important}
+  #garage #gClose,#stall #stClose,#settings #setClose{width:50px!important;height:50px!important}
+  /* ---- LE MENU : un rythme vertical, pas un empilement ---- */
+  #mHome .mTitle{margin-bottom:10px}
+  #mHome .mKick{margin:8px 0 26px}
+  #mHome .mChip{margin-bottom:28px}
+  #mHome [data-m=play],#mDead [data-m=replay]{margin-bottom:24px}
+  .mCarr{margin:0 0 24px!important;min-height:62px!important;font-size:13px!important;letter-spacing:4px!important}
+  .mRow{gap:15px!important;margin-top:0!important}
+  /* ---- LES PANNEAUX : ce qui se LIT ---- */
+  .mPanel,.mMode,.mChip,.mStats,.tpPanel,#garage #gCard,#stall #gCard,.modIn,#lbBoxG,#lbBox,#setCard,#toast{
+    clip-path:none!important;border-radius:0!important;border:0!important;
+    background:linear-gradient(180deg,#1c2552,#131a3d)!important;
+    box-shadow:inset 0 var(--px) 0 0 #313f86,inset 0 calc(var(--px)*-1) 0 0 #0b1030,
+      0 calc(var(--px)*-1) 0 0 #04061a,0 var(--px) 0 0 #04061a,calc(var(--px)*-1) 0 0 0 #04061a,var(--px) 0 0 0 #04061a,
+      0 calc(var(--px)*3) 0 0 rgba(0,0,0,.35)!important}
+  .mMode.on{box-shadow:inset 0 var(--px) 0 0 #313f86,inset 0 calc(var(--px)*-1) 0 0 #0b1030,
+      0 calc(var(--px)*-1) 0 0 #1f7a3a,0 var(--px) 0 0 #1f7a3a,calc(var(--px)*-1) 0 0 0 #1f7a3a,var(--px) 0 0 0 #1f7a3a,0 calc(var(--px)*3) 0 0 rgba(0,0,0,.35)!important}
+  .mPanel,.tpPanel{width:100%;box-sizing:border-box;padding:0;margin-bottom:6px}
+  .mSec{font-size:9px!important;letter-spacing:4px!important;color:#aab4ff!important;margin:22px 0 12px!important;padding-left:2px}
+  .mStats{gap:0!important;margin:20px 0 10px!important}
+  .mStats .mStat{background:none!important;box-shadow:none!important;clip-path:none!important;padding:14px 4px!important}
+  .mStats .mStat+.mStat{box-shadow:inset var(--px) 0 0 0 #0b1030!important}
+  .mStat b{font-size:16px!important;margin-bottom:8px!important}
+  /* ---- LES LIGNES DE LISTE (réglages, pause) : icône · libellé · contrôle à droite ---- */
+  .mLigne,#tPanel .tp.ligne{display:flex;align-items:center;gap:14px;min-height:56px;padding:0 16px;box-sizing:border-box;width:100%;
+    font-family:var(--pix);font-size:10px;letter-spacing:1px;color:#eef2ff;text-align:left;cursor:pointer;
+    background:none!important;box-shadow:inset 0 calc(var(--px)*-1) 0 0 #0b1030!important;clip-path:none!important;filter:none!important;
+    text-shadow:0 2px 0 #070b2b;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;--pxs:2}
+  .mPanel>:last-child,.tpPanel>:last-child,.mLigne.avecVol{box-shadow:none!important}
+  .mLigne:active,#tPanel .tp.ligne:active{background:rgba(255,255,255,.07)!important;transform:none!important}
+  .mLigne .pxi,#tPanel .tp.ligne .pxi{color:var(--or);margin:0}
+  .mLigne .tpL,#tPanel .tp.ligne .tpL{flex:1}
+  .mLigne.lien::after{content:'';flex:none;width:9px;height:9px;margin-left:auto;background:#7d97ff;
+    -webkit-mask:var(--pxi-droite) center/100% 100% no-repeat;mask:var(--pxi-droite) center/100% 100% no-repeat}
+  .mPanel .volRow{background:none!important;box-shadow:inset 0 calc(var(--px)*-1) 0 0 #0b1030!important;clip-path:none!important;padding:0 16px 16px 52px!important;margin:0!important}
+  .mPanel .volRow:last-child{box-shadow:none!important}
+  .mPanel .volHd{margin:0 0 2px}.mPanel .volHd span{color:#7f8ac4}
+  .mWipe{margin-top:26px}
+  /* l'INTERRUPTEUR pixel : vert à droite = ON, gris à gauche = OFF (le texte reste pour les lecteurs d'écran) */
+  b.bascule,.mMode .mmS{position:relative;flex:none;width:56px;height:28px;margin-left:auto;padding:0!important;font-size:0!important;line-height:0;min-width:0!important;
+    color:transparent!important;background:#0f6427!important;
+    box-shadow:0 calc(var(--px)*-1) 0 #04200d,0 var(--px) 0 #04200d,calc(var(--px)*-1) 0 0 #04200d,var(--px) 0 0 #04200d!important}
+  b.bascule::after,.mMode .mmS::after{content:'';position:absolute;top:0;right:0;width:28px;height:28px;background:#a2f7b6;
+    box-shadow:inset 0 -6px 0 #2dbb53,inset 0 3px 0 #ecfff0}
+  .off b.bascule,b.bascule.ko,.mMode.off .mmS{background:#1a1e2c!important;
+    box-shadow:0 calc(var(--px)*-1) 0 #07080f,0 var(--px) 0 #07080f,calc(var(--px)*-1) 0 0 #07080f,var(--px) 0 0 #07080f!important}
+  .off b.bascule::after,b.bascule.ko::after,.mMode.off .mmS::after{right:auto;left:0;background:#8d95ad;box-shadow:inset 0 -6px 0 #555d7a,inset 0 3px 0 #c3c9da}
+  .mMode .mmS::before{display:none!important}
+  /* une VALEUR qu'on fait défiler au tap : étiquette or + chevron */
+  b.valeur{margin-left:auto;display:inline-flex;align-items:center;gap:9px;font-family:var(--pix);font-size:9px!important;letter-spacing:1px;
+    color:var(--or)!important;background:none!important;box-shadow:none!important;padding:0!important;opacity:1!important}
+  b.valeur::after{content:'';width:9px;height:9px;background:#7d97ff;-webkit-mask:var(--pxi-droite) center/100% 100% no-repeat;mask:var(--pxi-droite) center/100% 100% no-repeat}
+  /* ---- LA PAUSE ---- */
+  #tpIn{gap:0!important;max-width:340px;margin:0 auto}
+  #tPanel .tp:not(.ligne){width:100%!important;box-sizing:border-box;margin-bottom:16px;min-height:54px;justify-content:center!important;gap:12px}
+  #tPanel .tp.go{min-height:66px;font-size:14px;letter-spacing:4px;margin:6px 0 10px}
+  .tpPanel{width:100%}
+  .tpH{font-size:9px!important;letter-spacing:4px!important;color:#aab4ff!important;margin:18px 0 12px!important;align-self:flex-start;padding-left:2px}
+  #tPanel .tpH:first-child{align-self:center;font-size:12px!important;color:var(--or)!important;margin-top:4px!important}
+  /* ---- les commandes en course ---- */
+  #tGear{width:50px!important;height:50px!important;font-size:0}
+  #tNitro{gap:10px;font-size:13px!important;letter-spacing:3px!important}
+  /* ---- les modes et la carrière : cartes-panneaux, contenu aéré ---- */
+  .mMode{padding:16px 16px!important;margin-bottom:18px!important}
+  .carrGrille{gap:16px!important}
+  .carrNiv{min-height:84px!important}
+  /* la saisie du record : un champ ENFONCÉ dans un panneau (même contour), et de l'air avant la rangée d'icônes */
+  body.touch #nameEntry{margin:4px 0 26px!important;gap:14px!important}
+  body.touch #nameInput{clip-path:none!important;border:0!important;border-radius:0!important;min-height:54px;
+    font-family:var(--pix);font-size:16px;letter-spacing:6px;text-align:center;color:var(--or);background:#090c1e!important;
+    box-shadow:inset 0 var(--px) 0 0 #04061a,inset 0 0 0 var(--px) #0b1030,0 calc(var(--px)*-1) 0 0 #313f86,0 var(--px) 0 0 #313f86,calc(var(--px)*-1) 0 0 0 #313f86,var(--px) 0 0 0 #313f86!important}
+  .mMode .mmT .pxi{margin-right:12px!important}
+  .carrJauge{height:9px!important;margin-top:14px!important;background:#0b1030!important;box-shadow:none!important}
 </style>
 </head>
 <body>
@@ -1371,7 +1553,7 @@
            clic puisse faire ONDULER chaque pixel (voir `playWordWave`). Lance TOUJOURS via
            `garageLaunch()`, comme « PLAY WITH THIS ONE » : même mécanique, deux poignées. -->
       <div id="gPlayMain" role="button" tabindex="0" aria-label="Jouer"></div>
-      <div id="gCarr" class="pbtn pb-gold" role="button" tabindex="0"><i class="pxi pxi-trophee" aria-hidden="true"></i>CARRIERE</div>
+      <div id="gCarr" class="pbtn pb-cyan" role="button" tabindex="0"><i class="pxi pxi-trophee" aria-hidden="true"></i><span data-fr="CARRIERE">CARRIERE</span></div>
     </div>
     <!-- LA GRILLE DE COMPÉTITION (2026-09-05) : posée à DROITE de l'écran, hors du bandeau du haut —
          `position:absolute` scopée par `#garage` (voir CSS), donc indépendante de la colonne
@@ -1450,6 +1632,8 @@
   <div id="rotNote" aria-live="polite"><i class="pxi pxi-rotation" aria-hidden="true"></i><b data-fr="TOURNE TON TELEPHONE">TOURNE TON TELEPHONE</b><span data-fr="CASH CAR SE JOUE A LA VERTICALE">CASH CAR SE JOUE A LA VERTICALE</span></div>
 </div>
 <div id="carr" role="dialog" aria-label="Carrière"></div>
+<div id="modale" role="dialog" aria-modal="true"><div class="modIn"><h3 id="modT"></h3><div id="modX"></div><textarea id="modC" rows="3" spellcheck="false" autocomplete="off"></textarea><div class="modB"></div></div></div>
+<div id="toast" role="status" aria-live="polite"></div>
 <div id="overlay" role="button" tabindex="0" aria-label="Menu principal CASH CAR">
   <div id="mEmbers" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
   <h1><span class="lg gold" data-t="CASH">CASH</span><span class="lg grad" data-t="CAR">CAR</span></h1>
@@ -1483,6 +1667,7 @@
       <div class="mKick">UNE SEULE VIE · TOUT LE CIEL</div>
       <div class="mChip">MEILLEUR : <b id="mBest">$0</b><br><span id="mCar" style="color:#9fe8ff"></span></div>
       <div class="pbtn pb-gold big wide" data-m="play">JOUER</div>
+      <div class="pbtn pb-cyan wide mCarr" data-m="carr"><i class="pxi pxi-trophee" aria-hidden="true"></i>CARRIERE</div>
       <div class="mRow">
         <div class="pbtn pb-cyan ico" data-m="garage"><i class="pxi pxi-voiture" aria-hidden="true"></i>GARAGE</div>
         <div class="pbtn pb-cyan ico" data-m="modes"><i class="pxi pxi-drapeau" aria-hidden="true"></i>MODES</div>
@@ -1520,19 +1705,28 @@
     <div class="mscr" id="mSet">
       <div class="mHead"><div class="pbtn pb-cyan mBack" data-m="back" role="button" aria-label="Retour"><i class="pxi pxi-gauche" aria-hidden="true"></i></div><h3>REGLAGES</h3><div class="mSpacer"></div></div>
       <div class="mSet">
-        <div class="pbtn pb-cyan" data-m="snd"><i class="pxi pxi-son" aria-hidden="true"></i><span class="tpL">SON</span><b id="mvSnd">ON</b></div>
-        <div class="pbtn pb-cyan" data-m="mus"><i class="pxi pxi-musique" aria-hidden="true"></i><span class="tpL">MUSIQUE</span><b id="mvMus">ON</b></div>
-        <div class="pbtn pb-cyan" data-m="vox"><i class="pxi pxi-voix" aria-hidden="true"></i><span class="tpL">VOIX</span><b id="mvVox">ON</b></div>
-        <div class="volRow" id="mVolRowMus"><div class="volHd"><span>MUSIQUE</span><b id="mVolMusV">62%</b></div><input type="range" class="volS" id="mVolMus" min="0" max="100" step="5" value="62"></div>
-        <div class="volRow" id="mVolRowSfx"><div class="volHd"><span>EFFETS</span><b id="mVolSfxV">100%</b></div><input type="range" class="volS" id="mVolSfx" min="0" max="100" step="5" value="100"></div>
-        <div class="volRow" id="mVolRowVox"><div class="volHd"><span>VOIX</span><b id="mVolVoxV">100%</b></div><input type="range" class="volS" id="mVolVox" min="0" max="100" step="5" value="100"></div>
-        <div class="pbtn pb-cyan" data-m="ctl"><i class="pxi pxi-volant" aria-hidden="true"></i><span class="tpL">COMMANDES</span><b id="mvCtl">VOLANT</b></div>
-        <div class="pbtn pb-cyan" data-m="q"><i class="pxi pxi-eclair" aria-hidden="true"></i><span class="tpL">IMAGE</span><b id="mvQ">RAPIDE</b></div>
-        <div class="pbtn pb-cyan" data-m="lang"><i class="pxi pxi-bulle" aria-hidden="true"></i><span class="tpL">LANGUE</span><b id="mvLang">FR</b></div>
-        <div class="pbtn pb-cyan" data-m="cur"><i class="pxi pxi-piece" aria-hidden="true"></i><span class="tpL">DEVISE</span><b>$</b></div>
-        <div class="pbtn pb-cyan" data-m="exp"><i class="pxi pxi-copier" aria-hidden="true"></i><span class="tpL">COPIER MA SAUVEGARDE</span></div>
-        <div class="pbtn pb-cyan" data-m="imp"><i class="pxi pxi-importer" aria-hidden="true"></i><span class="tpL">RESTAURER UN CODE</span></div>
-        <div class="pbtn pb-red" data-m="wipe"><i class="pxi pxi-corbeille" aria-hidden="true"></i><span class="tpL">EFFACER MA PROGRESSION</span></div>
+        <div class="mSec">AUDIO</div>
+        <div class="mPanel">
+          <div class="mLigne avecVol" data-m="snd"><i class="pxi pxi-son" aria-hidden="true"></i><span class="tpL">SON</span><b id="mvSnd" class="bascule">ON</b></div>
+          <div class="volRow" id="mVolRowSfx"><div class="volHd"><span>VOLUME</span><b id="mVolSfxV">100%</b></div><input type="range" class="volS" id="mVolSfx" min="0" max="100" step="5" value="100"></div>
+          <div class="mLigne avecVol" data-m="mus"><i class="pxi pxi-musique" aria-hidden="true"></i><span class="tpL">MUSIQUE</span><b id="mvMus" class="bascule">ON</b></div>
+          <div class="volRow" id="mVolRowMus"><div class="volHd"><span>VOLUME</span><b id="mVolMusV">62%</b></div><input type="range" class="volS" id="mVolMus" min="0" max="100" step="5" value="62"></div>
+          <div class="mLigne avecVol" data-m="vox"><i class="pxi pxi-voix" aria-hidden="true"></i><span class="tpL">VOIX</span><b id="mvVox" class="bascule">ON</b></div>
+          <div class="volRow" id="mVolRowVox"><div class="volHd"><span>VOLUME</span><b id="mVolVoxV">100%</b></div><input type="range" class="volS" id="mVolVox" min="0" max="100" step="5" value="100"></div>
+        </div>
+        <div class="mSec">JEU</div>
+        <div class="mPanel">
+          <div class="mLigne" data-m="ctl"><i class="pxi pxi-volant" aria-hidden="true"></i><span class="tpL">COMMANDES</span><b id="mvCtl" class="valeur">VOLANT</b></div>
+          <div class="mLigne" data-m="q"><i class="pxi pxi-eclair" aria-hidden="true"></i><span class="tpL">IMAGE</span><b id="mvQ" class="valeur">RAPIDE</b></div>
+          <div class="mLigne" data-m="lang"><i class="pxi pxi-bulle" aria-hidden="true"></i><span class="tpL">LANGUE</span><b id="mvLang" class="valeur">FR</b></div>
+          <div class="mLigne" data-m="cur"><i class="pxi pxi-piece" aria-hidden="true"></i><span class="tpL">DEVISE</span><b class="valeur">$</b></div>
+        </div>
+        <div class="mSec">SAUVEGARDE</div>
+        <div class="mPanel">
+          <div class="mLigne lien" data-m="exp"><i class="pxi pxi-copier" aria-hidden="true"></i><span class="tpL">COPIER MA SAUVEGARDE</span></div>
+          <div class="mLigne lien" data-m="imp"><i class="pxi pxi-importer" aria-hidden="true"></i><span class="tpL">RESTAURER UN CODE</span></div>
+        </div>
+        <div class="pbtn pb-red wide mWipe" data-m="wipe"><i class="pxi pxi-corbeille" aria-hidden="true"></i><span class="tpL">EFFACER MA PROGRESSION</span></div>
       </div>
     </div>
   </div>
@@ -1577,7 +1771,7 @@
   </div>
 </div>
 <div id="touchCtl">
-  <div id="tSteer" role="button" tabindex="0" aria-label="Volant — glisse pour tourner"><div id="tStick"><div id="tKnob"></div></div><div id="tSteerHint">GLISSE POUR TOURNER</div></div>
+  <div id="tSteer" role="button" tabindex="0" aria-label="Volant — glisse pour tourner"><div id="tStick"><div id="tKnob"></div></div><div id="tSteerHint" data-fr="GLISSE POUR TOURNER">GLISSE POUR TOURNER</div></div>
   <div id="tLeft" class="tbtn" role="button" tabindex="0" aria-label="Gauche"><i class="pxi pxi-gauche" aria-hidden="true"></i></div>
   <div id="tRight" class="tbtn" role="button" tabindex="0" aria-label="Droite"><i class="pxi pxi-droite" aria-hidden="true"></i></div>
   <div id="tNitro" class="tbtn" role="button" tabindex="0" aria-label="Nitro"><i class="pxi pxi-eclair" aria-hidden="true"></i><span>NITRO</span></div>
@@ -1588,16 +1782,18 @@
     <div class="tpH">PAUSE</div>
     <div class="tp go" data-a="close"><i class="pxi pxi-lecture" aria-hidden="true"></i> REPRENDRE</div>
     <div class="tpH">REGLAGES</div>
-    <div class="tp" data-a="snd"><i class="pxi pxi-son" aria-hidden="true"></i> SON</div>
-    <div class="tp" data-a="vox"><i class="pxi pxi-voix" aria-hidden="true"></i> VOIX</div>
-    <div class="tp" data-a="mus"><i class="pxi pxi-musique" aria-hidden="true"></i> MUSIQUE</div>
-    <div class="tp" data-a="ctl"><i class="pxi pxi-volant" aria-hidden="true"></i> VOLANT</div>
-    <div class="tp" data-a="q"><i class="pxi pxi-eclair" aria-hidden="true"></i> IMAGE</div>
-    <div class="tp" data-a="surv"><i class="pxi pxi-drapeau" aria-hidden="true"></i> SURVIVANT</div>
+    <div class="tpPanel">
+    <div class="tp ligne" data-a="snd"><i class="pxi pxi-son" aria-hidden="true"></i> SON</div>
+    <div class="tp ligne" data-a="vox"><i class="pxi pxi-voix" aria-hidden="true"></i> VOIX</div>
+    <div class="tp ligne" data-a="mus"><i class="pxi pxi-musique" aria-hidden="true"></i> MUSIQUE</div>
+    <div class="tp ligne" data-a="ctl"><i class="pxi pxi-volant" aria-hidden="true"></i> VOLANT</div>
+    <div class="tp ligne" data-a="q"><i class="pxi pxi-eclair" aria-hidden="true"></i> IMAGE</div>
+    <div class="tp ligne" data-a="surv"><i class="pxi pxi-drapeau" aria-hidden="true"></i> SURVIVANT</div>
+    </div>
     <div class="tpH" data-g="run">LA PARTIE</div>
     <div class="tp" data-a="resp" data-g="run"><i class="pxi pxi-voiture" aria-hidden="true"></i> REPLACER LA CAISSE</div>
     <div class="tp" data-a="reset" data-g="run"><i class="pxi pxi-rejouer" aria-hidden="true"></i> RECOMMENCER</div>
-    <div class="tp" data-a="quit" data-g="run"><i class="pxi pxi-quitter" aria-hidden="true"></i> QUITTER</div>
+    <div class="tp rouge" data-a="quit" data-g="run"><i class="pxi pxi-quitter" aria-hidden="true"></i> QUITTER</div>
   </div></div>
 </div>
 <script src="vendor/three.min.js"></script>
@@ -1633,8 +1829,24 @@ const PXI_G={croix:'##.....##|###...###|.###.###.|..#####..|...###...|..#####..|
   const st=document.createElement('style');st.id='pxiCss';st.textContent=':root{'+vars+'}'+css;document.head.appendChild(st);
 })();
 function pxi(n){return '<i class="pxi pxi-'+n+'" aria-hidden="true"></i>';}
+/* LA FENÊTRE DU JEU (2026-09-24) : remplace prompt()/confirm() — les boîtes GRISES du navigateur cassaient l'immersion
+   pile sur les gestes les plus graves (sauvegarde, effacement). Même charte que le reste : cadre, titre or, plaques. */
+function modale(o){return new Promise(function(res){
+  const m=document.getElementById('modale'),c=document.getElementById('modC'),b=m.querySelector('.modB');
+  document.getElementById('modT').textContent=TR(o.titre);document.getElementById('modX').textContent=o.texte?TR(o.texte):'';
+  c.style.display=o.champ!=null?'':'none';c.value=o.champ||'';c.readOnly=!!o.lecture;
+  b.innerHTML='';
+  for(const k of o.boutons){const e=document.createElement('div');e.className='pbtn '+(k.cls||'pb-cyan');e.setAttribute('role','button');
+    e.innerHTML=(k.ic?pxi(k.ic):'')+'<span>'+TR(k.l)+'</span>';
+    e.addEventListener('click',function(ev){ev.stopPropagation();uiClic();m.classList.remove('on');res({v:k.v,texte:c.value});});b.appendChild(e);}
+  m.classList.add('on');
+  if(o.champ!=null)setTimeout(function(){try{c.focus();if(o.lecture)c.select();}catch(e){}},60);
+});}
+let toastT=0;
+function toast(h){const t=document.getElementById('toast');if(!t)return;t.innerHTML=h;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('on');},1900);}
 // une ligne de panneau : icône · libellé · pastille d'état (l'ÉTAT se lit dans la pastille, la plaque ne se grise plus)
-function tpLbl(ic,txt,etat,on){return pxi(ic)+'<span class="tpL">'+txt+'</span>'+(etat!=null?'<b class="etat'+(on?' on':'')+'">'+etat+'</b>':'');}
+function tpLbl(ic,txt,etat,on){const tg=(etat==='ON'||etat==='OFF'); // ON/OFF → un INTERRUPTEUR pixel ; une valeur → une étiquette or à chevron
+  return pxi(ic)+'<span class="tpL">'+TR(txt)+'</span>'+(etat==null?'':tg?'<b class="bascule'+(on?'':' ko')+'">'+etat+'</b>':'<b class="valeur">'+TR(etat)+'</b>');}
 addEventListener('error',function(e){try{document.title='ERR:'+e.message+' @'+e.lineno;}catch(_){}}); // capteur d'init (les erreurs top-level échappent à la console headless)
 if(typeof THREE==='undefined'){ // CDN indisponible : un message clair plutôt qu'un écran noir muet
   document.body.insertAdjacentHTML('beforeend','<div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#12081f;color:#ffd75e;font:14px monospace;text-align:center;padding:20px;z-index:99">CASH CAR n&#39;a pas pu charger son moteur 3D.<br>V&eacute;rifie ta connexion internet puis recharge la page.</div>');
@@ -2708,6 +2920,36 @@ function updatePigeons(dt,t){
     if(b9.life<=0){scene.remove(b9.g);PIGEONS.splice(i9,1);}
   }
 }
+/* ---- LA PISTE D'APPRENTISSAGE (2026-09-24, niveau 1 de la carrière) : dessinée à la MAIN, pas tirée ----
+   « une route beaucoup plus simple où le joueur apprend à jouer et à utiliser sa nitro : des virages simples et
+   grisants, un looping, des tout-droits qui laissent booster ». Chaque ligne droite est une INVITATION à la
+   nitro ; les virages ont de grands rayons (on les prend à fond) ; le looping arrive après une longue ligne
+   droite, pour qu'on l'aborde avec de la vitesse. Mêmes briques que genCtrl (droite, arc, loop). */
+function genTuto(){
+  const ctrl=[];GAPMARK.length=0;
+  let P=new THREE.Vector3(0,0,0),phi=0;
+  const dir=()=>new THREE.Vector3(Math.sin(phi),0,Math.cos(phi));
+  const push=()=>ctrl.push(P.clone());
+  const straight=(l,dy=0,n=2)=>{for(let k=0;k<n;k++){P.addScaledVector(dir(),l/n);P.y+=dy/n;push();}};
+  const arc=(aDeg,R,n,dy=0)=>{const a=aDeg*Math.PI/180,st=a/n,ch=2*R*Math.sin(Math.abs(st)/2);
+    for(let k=0;k<n;k++){phi+=st/2;P.addScaledVector(dir(),ch);P.y+=dy/n;phi+=st/2;push();}};
+  const loop=(R,shift)=>{const base=P.clone(),d=dir(),sx=Math.cos(phi),sz=-Math.sin(phi);
+    for(let k=1;k<=8;k++){const th=k*Math.PI/4;
+      P.set(base.x+d.x*R*Math.sin(th)+sx*shift*th/(2*Math.PI),base.y+R*(1-Math.cos(th)),base.z+d.z*R*Math.sin(th)+sz*shift*th/(2*Math.PI));push();}};
+  push();
+  straight(300,0,3);            // le départ : on sent le gaz auto
+  arc(70,190,6);                // 1er virage : large, on le prend à fond
+  straight(360,-24,3);          // 1re ligne droite en légère descente : « appuie sur NITRO »
+  arc(-90,210,7);               // le grand virage grisant
+  straight(420,0,4);            // on reprend de la vitesse…
+  straight(60,-45);loop(42,36);straight(60,-42); // …LE LOOPING
+  straight(380,0,3);            // la ligne droite de récompense : nitro à fond
+  arc(55,170,5);arc(-55,170,5); // les esses, douces
+  straight(300,20,3);
+  arc(120,230,9);               // le dernier grand virage
+  straight(420,0,4);            // la ligne droite finale vers le portail
+  return ctrl;
+}
 function genCtrl(rnd,startPos,startPhi){
   const ctrl=[];
   GAPMARK.length=0; // les lèvres de tremplin de la zone précédente ne survivent pas à la nouvelle piste
@@ -2940,7 +3182,7 @@ function buildTrack(seed){
   for(const m of trackMeshes){scene.remove(m);if(m.geometry)m.geometry.dispose();if(m.material&&m.material.dispose)m.material.dispose();}
   trackMeshes.length=0;NEON_RAILS.length=0;NEON_GLOW.length=0;PADS=[];BUMPS=[];CONES=[];FLYCONES=[];OILS=[];RAMPS=[];
   const rnd=mulberry32(seed);
-  const ctrl=PARK.on?genPark(rnd):genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course
+  const ctrl=PARK.on?genPark(rnd):(LVL.cur&&LVL.cur.piste==='tuto')?genTuto():genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course
   const curve=new THREE.CatmullRomCurve3(ctrl,false,'catmullrom',0.5);
   L=curve.getLength();
   const N=Math.min(PARK.on?11000:9000,Math.max(3000,Math.round(L))); // parc : plus long → plus de points pour garder les loops lisses
@@ -3242,7 +3484,7 @@ function buildTrack(seed){
     sp9.scale.set(sc9,sc9*(.3+rnd()*.2),1);
     const off9=(650+rnd()*1200)*(rnd()<.5?-1:1);
     sp9.position.copy(pts[i9]).addScaledVector(B[i9],off9).addScaledVector(Nn[i9],-350+rnd()*650);
-    if(LVL.cur&&LVL.cur.id==='espace')sp9.visible=false; // ORBITE : pas de nuages d'horizon — mais le tirage `rnd` est CONSOMMÉ quand même (la piste en aval ne bouge pas)
+    if(LVL.cur&&(LVL.cur.id==='espace'||LVL.cur.sansNuages))sp9.visible=false; // ORBITE : pas de nuages d'horizon — mais le tirage `rnd` est CONSOMMÉ quand même (la piste en aval ne bouge pas)
     scene.add(sp9);trackMeshes.push(sp9);
   }
   // PORTAIL D'ARRIVÉE : la cible
@@ -3832,6 +4074,7 @@ const I18N_ZH={
 /* LES CLÉS SANS LEUR SYMBOLE (2026-09-24) : les symboles de tête (✓ 🔒 ★ 📋…) sont devenus des ICÔNES PIXEL
    posées à côté du texte. Chaque clé « symbole + espace + texte » reçoit donc un ALIAS « texte » seul, qui
    traduit pareil — sans ça, retirer l'emoji d'un libellé lui aurait fait perdre sa traduction. */
+for(const [k,v] of Object.entries({"JOUER": "PLAY", "CARRIERE": "CAREER", "MODES": "MODES", "REGLAGES": "SETTINGS", "REJOUER": "PLAY AGAIN", "MEILLEUR :": "BEST:", "MEILLEUR": "BEST", "CAISSE": "CAR", "UNE SEULE VIE · TOUT LE CIEL": "ONE LIFE · THE WHOLE SKY", "AUDIO": "AUDIO", "JEU": "GAME", "SAUVEGARDE": "SAVE", "SON": "SOUND", "MUSIQUE": "MUSIC", "VOIX": "VOICE", "VOLUME": "VOLUME", "COMMANDES": "CONTROLS", "IMAGE": "GRAPHICS", "LANGUE": "LANGUAGE", "DEVISE": "CURRENCY", "COPIER MA SAUVEGARDE": "COPY MY SAVE", "RESTAURER UN CODE": "RESTORE A CODE", "EFFACER MA PROGRESSION": "ERASE MY PROGRESS", "SURVIVANT": "SURVIVOR", "PARC FREESTYLE": "FREESTYLE PARK", "BAC A SABLE": "SANDBOX", "REPRENDRE": "RESUME", "FERMER": "CLOSE", "REPLACER LA CAISSE": "RESET THE CAR", "RECOMMENCER": "RESTART", "QUITTER": "QUIT", "PAUSE": "PAUSE", "LA PARTIE": "THIS RUN", "VOLANT": "WHEEL", "FLECHES": "ARROWS", "RAPIDE": "FAST", "NETTE": "SHARP", "FIGURES": "TRICKS", "ENTRAINEMENT TERMINE": "TRAINING OVER", "NOUVEAU RECORD !": "NEW RECORD!", "MOTEUR ATTEINT": "ENGINE REACHED", "GLISSE POUR TOURNER": "SWIPE TO STEER", "glisse pour tourner · pince pour zoomer": "drag to turn · pinch to zoom", "touche CASH CAR — le son s'allume avec toi": "tap CASH CAR — sound comes alive with you", "MA SAUVEGARDE": "MY SAVE", "Garde ce code : il restaure toute ta progression.": "Keep this code: it restores all your progress.", "COPIER": "COPY", "COPIE !": "COPIED!", "RESTAURER": "RESTORE", "Colle ton code de sauvegarde.": "Paste your save code.", "ANNULER": "CANCEL", "RESTAURE — RECHARGE…": "RESTORED — RELOADING…", "CODE INVALIDE": "INVALID CODE", "TOUT EFFACER ?": "ERASE EVERYTHING?", "Records, caisses debloquees, carriere et reglages repartent de zero.": "Records, unlocked cars, career and settings start over.", "EFFACER": "ERASE", "TERMINE LE NIVEAU": "FINISH LEVEL", "NUAGES": "CLOUDS", "VILLE": "CITY", "ESPACE": "SPACE", "10 heures du jour, de l aurore au coucher du soleil.": "10 hours of the day, from dawn to sunset.", "Du coucher du soleil a midi, au-dessus du village de la pluie.": "From sunset to noon, above the hidden rain village.", "Au plus pres des planetes du systeme solaire.": "Up close to the planets of the solar system.", "AURORE": "DAWN", "PREMIERES LUEURS": "FIRST LIGHT", "LEVER DU SOLEIL": "SUNRISE", "MATIN FRAIS": "CRISP MORNING", "MATIN": "MORNING", "MIDI": "NOON", "APRES-MIDI": "AFTERNOON", "FIN D APRES-MIDI": "LATE AFTERNOON", "HEURE DOREE": "GOLDEN HOUR", "COUCHER DE SOLEIL": "SUNSET", "SOIREE": "EVENING", "PLUIE NEON": "NEON RAIN", "MINUIT": "MIDNIGHT", "ORAGE": "STORM", "AVANT L AUBE": "BEFORE DAWN", "AUBE": "DAYBREAK", "LEVER": "SUNRISE", "MERCURE": "MERCURY", "VENUS": "VENUS", "TERRE": "EARTH", "LUNE": "MOON", "MARS": "MARS", "JUPITER": "JUPITER", "SATURNE": "SATURN", "URANUS": "URANUS", "NEPTUNE": "NEPTUNE", "PLUTON": "PLUTO", "Elle démarre par pitié. Fais des thunes et oublie-la vite.": "It starts out of pity. Make cash and forget it fast.", "Ça roule. Vu d'où tu viens, c'est déjà un miracle.": "It runs. Given where you're from, that's already a miracle.", "Conçue pour rouler prudemment. Toi, prudent ? On y croit fort.": "Built to drive carefully. You, careful? Sure.", "Elle ne double pas. Elle DÉPLACE.": "It doesn't overtake. It RELOCATES.", "L'écologie te fait coucou dans le rétro. T'as pas de rétro.": "Ecology waves at you in the mirror. You don't have mirrors.", "Refuse de rouler sous 200. Toi aussi, maintenant.": "Refuses to go under 200. So do you, now.", "Elle découpe les virages. Les autres les négocient.": "It carves corners. Others negotiate them.", "Ceux qui l'ont doublée en parlent encore. Ah non : personne.": "Those who passed it still talk about it. Oh wait: nobody.", "Le taureau doré. Assurance résiliée d'office.": "The golden bull. Insurance cancelled on sight.", "Le circuit appelle ça tricher. Nous, du talent.": "The track calls it cheating. We call it talent.", "Prototype d'endurance. Faite pour rouler la nuit entière.": "Endurance prototype. Built to run all night.", "La reine du ciel, et elle le sait.": "Queen of the sky, and she knows it.", "Passée au bain d'acide. Ça se voit.": "Dipped in acid. It shows.", "Personne n'a demandé pourquoi. Tout le monde a demandé comment.": "Nobody asked why. Everybody asked how.", "Au sol, il roule. En l'air, il chasse.": "On the ground, it drives. In the air, it hunts."}))if(!(k in I18N))I18N[k]=v; // la coque mobile, la carrière, les fenêtres, les fiches des caisses (2026-09-24)
 for(const D of [I18N,I18N_ZH])for(const k of Object.keys(D)){
   const m=/^[\u2190-\u2BFF\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF]+\s+(.+)$/.exec(k);
   if(m&&!(m[1] in D))D[m[1]]=String(D[k]).replace(/^[\u2190-\u2BFF\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF]+\s+/,'');
@@ -4064,6 +4307,16 @@ const BIOMES={
     volSun:[1.25,1.20,1.65],volSky:[.12,.14,.32],volGnd:[.03,.03,.08],volAmb:.40,
     expo:.74,sat:1.30,
     env:[[0,'#04050e'],[.3,'#0a0d24'],[.48,'#1a2250'],[.58,'#2c3f86'],[.66,'#0c1026'],[1,'#020208']],eS1:[200,222,255,.46],eS2:[120,150,255,.30]},
+  // ---- AURORE (2026-09-24) : le NIVEAU 1 de la carrière — « le soleil vient de se lever, la journée promet ».
+  // Déjà du JOUR, pas l'heure bleue : un ciel clair qui jaunit vers l'horizon, une lumière chaude et RASANTE (ombres
+  // longues : sunI haut, hemi clair), un remplissage bleu tendre de l'autre côté, un air LIMPIDE (brume lointaine).
+  aurore:{ nm:'AURORE', skyMul:[1.58,1.68,1.86],skyLift:[.34,.24,.08],sunTint:[1,.80,.46],sunHalo:1.15,city:0,stars:0,moon:0,
+    fog:[.88,.78,.64],fogN:650,fogF:3800,
+    hemiS:[.94,.88,.80],hemiG:[.34,.30,.30],hemiI:.92, sunC:[1,.84,.58],sunI:1.62,
+    fillC:[.52,.66,.96],fillI:.28, kickC:[1,.72,.46],kickI:.12,
+    volSun:[2.2,1.8,1.3],volSky:[.62,.66,.86],volGnd:[.30,.28,.30],volAmb:.80,
+    expo:1.08,sat:1.12,
+    env:[[0,'#6f9ee0'],[.3,'#a9c6ee'],[.48,'#ffd9a0'],[.58,'#ffe6b0'],[.66,'#b8a8a8'],[1,'#5a5a78']],eS1:[255,226,170,.55],eS2:[170,205,255,.32]},
   // ---- PLUIE NÉON (2026-09-24) : le ciel du niveau VILLE — « le village caché de la pluie », version cyberpunk ----
   // Un plafond ARDOISE bas et mouillé (pas de soleil : sunHalo au plancher, pas de lune, pas d'étoiles), une
   // brume gris-bleu qui avale le lointain, et toute la couleur qui vient d'EN BAS : la guirlande néon de
@@ -4209,6 +4462,7 @@ function lvlPlanete(dt){
 }
 function lvlNuageOk(o){ // quelles familles de nuages chaque monde garde (lu par mkCloud)
   const c=LVL.cur;if(!c)return true;
+  if(c.sansNuages)return false; // un niveau au ciel NU (l'aurore d'apprentissage) : pas un seul nuage
   if(c.id==='espace')return !(o.onRoad||o.giant||o.sea||o.deco||o.veil); // l'orbite : les seuls coussins de vol
   if(c.id==='ville')return !(o.sea||o.titan||o.baseY!==undefined);       // la ville doit se VOIR d'en haut
   return true;
@@ -4274,7 +4528,7 @@ function pluieTick(t){ // appelée par la boucle : suit la caméra, suit le fond
    ========================================================================== */
 const CARRIERE=[
   {id:'nuages',nm:'NUAGES',ic:'eclair',desc:'10 heures du jour, de l aurore au coucher du soleil.',niveaux:[
-    {nm:'AURORE',h:'aube'},{nm:'PREMIERES LUEURS',h:['aube','lever',.5]},{nm:'LEVER DU SOLEIL',h:'lever'},
+    {nm:'AURORE',h:'aurore',sansNuages:1,planete:0,piste:'tuto'},{nm:'PREMIERES LUEURS',h:['aube','lever',.5]},{nm:'LEVER DU SOLEIL',h:'lever'},
     {nm:'MATIN FRAIS',h:['lever','matin',.5]},{nm:'MATIN',h:'matin'},{nm:'MIDI',h:'midi'},{nm:'APRES-MIDI',h:'aprem'},
     {nm:'FIN D APRES-MIDI',h:['aprem','golden',.5]},{nm:'HEURE DOREE',h:'golden'},{nm:'COUCHER DE SOLEIL',h:'couchant'}]},
   {id:'ville',nm:'VILLE',ic:'voiture',desc:'Du coucher du soleil a midi, au-dessus du village de la pluie.',niveaux:[
@@ -4297,7 +4551,8 @@ function bioMix(a,b,t){ // un biome INTERMÉDIAIRE, bâti une fois et rangé dan
 }
 function carNiveau(bi,i){ // le niveau de carrière, sous la forme d'un NIVEAU
   const B=CARRIERE[bi],N=B.niveaux[i],h=Array.isArray(N.h)?bioMix(N.h[0],N.h[1],N.h[2]):(N.h||'espace');
-  return {id:B.id,nm:B.nm+' '+(i+1)+' — '+N.nm,bio:[h],planete:B.id==='espace'?((N.astre&&N.astre.echelle)||1.35):(B.id==='nuages'?.8:0),
+  return {id:B.id,nm:B.nm+' '+(i+1)+' — '+N.nm,bio:[h],piste:N.piste||null,sansNuages:!!N.sansNuages,
+    planete:N.planete!=null?N.planete:(B.id==='espace'?((N.astre&&N.astre.echelle)||1.35):(B.id==='nuages'?.8:0)),
     espace:B.id==='espace'?1:0,pluie:N.pluie||0,cielMusical:B.id==='ville',astre:N.astre||null,carr:{b:bi,i:i}};
 }
 const PLANETE_DEF={teinte:0x55708c,atmo:0x8fd4ff};
@@ -4313,14 +4568,14 @@ function carrMarque(bi,i){ // le niveau i vient d'être TERMINÉ
 // ---- L'ÉCRAN CARRIÈRE : les 3 biomes, puis les 10 niveaux du biome choisi ----
 function carrVue(bi){
   const el=document.getElementById('carr');if(!el)return;
-  let h='<div class="carrIn"><div class="mHead"><div class="pbtn pb-cyan mBack pbCarre" data-c="'+(bi==null?'fermer':'biomes')+'" role="button" aria-label="Retour">'+pxi('gauche')+'</div><h3>'+(bi==null?'CARRIERE':CARRIERE[bi].nm)+'</h3><div class="mSpacer"></div></div>';
+  let h='<div class="carrIn"><div class="mHead"><div class="pbtn pb-cyan mBack pbCarre" data-c="'+(bi==null?'fermer':'biomes')+'" role="button" aria-label="Retour">'+pxi('gauche')+'</div><h3>'+TR(bi==null?'CARRIERE':CARRIERE[bi].nm)+'</h3><div class="mSpacer"></div></div>';
   if(bi==null){
     CARRIERE.forEach(function(B,k){const f=carrFait(k);
-      h+='<div class="mMode carrBiome" data-c="biome" data-b="'+k+'" role="button"><div class="mmT"><span>'+pxi(B.ic)+' '+B.nm+'</span><span class="mmS">'+f+' / 10</span></div><div class="mmD">'+B.desc+'</div></div>';});
+      h+='<div class="mMode carrBiome" data-c="biome" data-b="'+k+'" role="button"><div class="mmT"><span>'+pxi(B.ic)+' '+TR(B.nm)+'</span><span class="mmP">'+f+' / 10</span></div><div class="mmD">'+TR(B.desc)+'</div><div class="carrJauge"><i style="width:'+(f*10)+'%"></i></div></div>';});
   }else{
     const f=carrFait(bi);h+='<div class="carrGrille">';
     CARRIERE[bi].niveaux.forEach(function(N,i){const ok=i<=f;
-      h+='<div class="pbtn '+(ok?(i<f?'pb-green':'pb-gold'):'pb-cyan off')+' carrNiv" data-c="'+(ok?'niveau':'')+'" data-b="'+bi+'" data-i="'+i+'" role="button" aria-label="Niveau '+(i+1)+(ok?'':' verrouillé')+'"><b>'+(ok?String(i+1).padStart(2,'0'):pxi('verrou'))+'</b><span>'+N.nm+'</span></div>';});
+      h+='<div class="pbtn '+(ok?(i<f?'pb-green':'pb-gold'):'pb-cyan off')+' carrNiv" data-c="'+(ok?'niveau':'verrou')+'" data-b="'+bi+'" data-i="'+i+'" role="button" aria-label="Niveau '+(i+1)+(ok?'':' verrouillé')+'"><b>'+(ok?String(i+1).padStart(2,'0'):pxi('verrou'))+'</b><span>'+TR(N.nm)+'</span></div>';});
     h+='</div>';
   }
   el.innerHTML=h+'</div>';el.classList.add('on');
@@ -4329,6 +4584,7 @@ function carrLancer(bi,i){
   CARR.actif={b:bi,i:i};
   document.getElementById('carr').classList.remove('on');
   runStats.zones=0;rebuildMenuScene(); // la piste de départ EST celle du niveau choisi
+  if(!garageOn)openGarage(true); // lancé depuis le MENU : on passe par l'atelier en sourdine, comme JOUER
   garageLaunch();
 }
 window.dbgCarriere=function(){return {actif:CARR.actif,progression:SAVE.d.carr||{}};};
@@ -9767,6 +10023,8 @@ const TCTL={on:false,pad:false,act:false,st:0,sv:0,id:null,ox:0,oy:0,play:null,d
 let SANDBOX=false; // BAC À SABLE : la caisse se replace au lieu de mourir — on s'entraîne, rien n'est enregistré
 // HAPTIQUE : suit l'interrupteur SON (couper le son coupe aussi les vibrations — c'est le même geste)
 function hap(p){ if(!TCTL.on||!SND.sfx)return; try{if(navigator.vibrate)navigator.vibrate(p);}catch(e){} }
+// LE CLIC D'INTERFACE (2026-09-24) : une note brève et haute + une micro-vibration — chaque bouton RÉPOND, comme une borne d'arcade
+function uiClic(){ try{ if(SND.sfx)chimeNote(1480,0,.045,.05); }catch(e){} hap(8); }
 window.dbgTouch=function(){return{on:TCTL.on,pad:TCTL.pad,act:TCTL.act,st:+TCTL.st.toFixed(3),sv:+TCTL.sv.toFixed(3),play:TCTL.play,steer:+steer.toFixed(3)};}; // console : l'état du volant tactile (un téléphone ne s'inspecte pas)
 // LE GAZ, exposé : la vignette a besoin de savoir qu'on POUSSE, pas seulement qu'on va vite.
 // (posé une fois par frame dans la physique, à côté de son `up` — une seule vérité, pas deux
@@ -11941,6 +12199,7 @@ function openGarage(quiet){
   garageShow(level||0);
 }
 function closeGarage(){
+  bioApply(BIO.cur); // ⚠ (2026-09-24) le garage/l'étal écrasent le ciel chaque frame (nuit étoilée) : on rend la main au BIOME en sortant, sinon la 1re course gardait leur ciel
   garageOn=false;gEl.classList.remove('on');gEl.classList.remove('quiet');gEl.classList.remove('launching');document.body.classList.remove('inGarage');
   garageFloor.visible=false;
   // ⚠ FERMER PENDANT UNE BASCULE : la caisse est alors écrasée à .001 et le scanner allumé. Sans ce
@@ -12185,6 +12444,7 @@ function openStall(mode){
   stallAng=0;stallShow(stallI);
 }
 function closeStall(){
+  bioApply(BIO.cur); // ⚠ (2026-09-24) le garage/l'étal écrasent le ciel chaque frame (nuit étoilée) : on rend la main au BIOME en sortant, sinon la 1re course gardait leur ciel
   stallOn=false;stEl.classList.remove('on');document.body.classList.remove('inStall');
   if(stallMesh){scene.remove(stallMesh);stallMesh=null;}
   stallKey.visible=false;stallKey.intensity=0;stallRim.visible=false;stallRim.intensity=0; // on éteint l'étal en partant
@@ -12292,7 +12552,9 @@ $('gPlayMain').addEventListener('keydown',function(e){
   if(e.code==='Enter'||e.code==='Space'){e.preventDefault();e.stopPropagation();playWordWave();setTimeout(garageLaunch,260);}
 });
 $('gPrev').addEventListener('click',e=>{e.stopPropagation();garageGo(-1);});
-$('gCarr').addEventListener('click',e=>{e.stopPropagation();carrVue(null);});
+$('gCarr').addEventListener('click',e=>{e.stopPropagation();uiClic();carrVue(null);});
+// LA FICHE SE REPLIE (2026-09-24) : deux lignes de description suffisent, elle cachait le tiers bas de la caisse. Un tap la déplie.
+$('gCard').addEventListener('click',e=>{if(e.target.closest('button,.pbtn'))return;e.stopPropagation();$('gCard').classList.toggle('ouvert');});
 $('carr').addEventListener('click',function(e){ // un seul écouteur pour tout l'écran carrière
   e.stopPropagation();
   const el=e.target&&e.target.closest?e.target.closest('[data-c]'):null;if(!el)return;
@@ -12301,6 +12563,10 @@ $('carr').addEventListener('click',function(e){ // un seul écouteur pour tout l
   else if(c==='biomes')carrVue(null);
   else if(c==='biome')carrVue(b);
   else if(c==='niveau')carrLancer(b,i);
+  else if(c==='verrou'){ // un niveau fermé RÉPOND : il secoue et dit ce qu'il attend
+    el.classList.remove('secoue');void el.offsetWidth;el.classList.add('secoue');
+    toast(pxi('verrou')+' '+TR('TERMINE LE NIVEAU')+' '+i);return; }
+  uiClic();
 });
 $('gNext').addEventListener('click',e=>{e.stopPropagation();garageGo(1);});
 // ⚠ LE SWIPE REMPLACE-T-IL L'ORBITE ? NON — IL SE POSE DESSUS (2026-09-05, demande du user : glisser
@@ -12831,7 +13097,8 @@ function loop(now){
            visée fixe — et surtout le CHAMP qui s'ouvre franchement (jusqu'à +38°, +22 en réserve bleue) :
            c'est lui qui dit « ça pousse ». Le glissement latéral (`camSwing`) et le coup de tête au boost
            (`camKick`) de la version de Léo sont retirés ; les variables restent à 0 pour `dbgCam9()`. */
-        const camBack=(4.6+speedKmh*.006+camBoost*3.8)*(1-POR*.30),camH=(camBack*.393+speedKmh*.0018+camBoost*.35)*(1+POR*.72);
+        const camBack=(3.9+speedKmh*.006+camBoost*3.8)*(1-POR*.30), // 4,6→3,9 (2026-09-24, « plus proche pour l'impression de vitesse ») ; la hauteur suit (×.393) : même angle, plus près
+       camH=(camBack*.393+speedKmh*.0018+camBoost*.35)*(1+POR*.72);
         camLean=steer*.035;camSwing=0;camKick=0;
         tmp2.copy(carGroup.position).addScaledVector(fwdW,-camBack).addScaledVector(F.n,camH);
         camera.position.lerp(tmp2,Math.min(1,dt*5));
@@ -14021,7 +14288,9 @@ renderLeaders(-1);
     // garde que `playMusic`/`musicStartRun`, zéro risque de double contexte avec le garde ajouté
     // dans `start()`.
     if(!AC){try{if(typeof initAudio==='function')initAudio();}catch(e){}}
-    try{if(typeof openGarage==='function')openGarage();}catch(e){}
+    // (2026-09-24, audit UX) sur TÉLÉPHONE on atterrit sur le MENU (JOUER · CARRIÈRE · GARAGE…) : le garage était le 1er écran
+    // avec trois actions concurrentes (PLAY, CARRIÈRE, ✕) et une croix qui menait… au menu. Il redevient le lieu du CHOIX de la caisse.
+    try{if(typeof openGarage==='function'&&!IS_MOBILE)openGarage();}catch(e){}
     setTimeout(function(){sp9.style.opacity=0;},420);
     setTimeout(function(){sp9.remove();},1150);
   }
@@ -14191,7 +14460,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(e.cancelable)e.preventDefault(); e.stopPropagation();
     const el=e.target&&e.target.closest?e.target.closest('.tp'):null;
     if(!el){panOpen(false);return;} // hors des boutons : on referme
-    const a=el.getAttribute('data-a'); hap(11);
+    const a=el.getAttribute('data-a'); uiClic();
     if(a==='close')panOpen(false);
     else if(a==='snd'){clic(sndBtnEl);panSync();}
     else if(a==='vox'){clic(voxBtnEl);panSync();}
@@ -14206,8 +14475,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='reset'){ panOpen(false); if(started)resetGame(); }
     else if(a==='quit'){ panOpen(false); if(started&&!gameOver){ const sb=SANDBOX;SANDBOX=false;endGame();SANDBOX=sb; } } // même en entraînement, QUITTER ramène au menu
   }
-  if(gear){ gear.addEventListener('touchstart',gearOpenHandler,{passive:false}); gear.addEventListener('click',gearOpenHandler); }
-  if(pan){ pan.addEventListener('touchstart',panTapHandler,{passive:false}); pan.addEventListener('click',panTapHandler); }
+  if(gear)gear.addEventListener('click',gearOpenHandler); // au relâcher (voir mHit) : le panneau défile, un glissé n'active rien
+  if(pan)pan.addEventListener('click',panTapHandler);
   // ---- SYNCHRO PARESSEUSE (8 Hz) : apparition des commandes, écran de mort, gel en paysage.
   //      Un petit tick plutôt qu'un branchement dans loop() — et zéro écriture DOM si rien n'a changé.
   setInterval(function(){
@@ -14282,7 +14551,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   const mob=$t('mob'),mScr={home:$t('mHome'),dead:$t('mDead'),modes:$t('mModes'),set:$t('mSet')};
   let mCur='home';
   try{ const ne=$t('nameEntry'),dd=$t('mDead'); // la saisie de record vient s'asseoir DANS l'écran de mort
-    if(ne&&dd)dd.insertBefore(ne,dd.querySelector('[data-m="replay"]')); }catch(e){}
+    if(ne&&dd){const rp=dd.querySelector('[data-m="replay"]');dd.insertBefore(ne,rp?rp.nextSibling:null);} /* REJOUER en tête : le record se signe ensuite, sans repousser l'action principale sous le clavier */ }catch(e){}
   function mRoot(){return (started&&gameOver)?'dead':'home';}
   function mGo(id){ mCur=id;
     for(const k in mScr)if(mScr[k])mScr[k].classList.toggle('on',k===id);
@@ -14304,18 +14573,18 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   function mFill(){ try{
     const b1=$t('mBest'),b2=$t('mBest2'),mc=$t('mCar');
     if(b1)b1.textContent=fmtC(best); if(b2)b2.textContent=fmtC(best);
-    if(mc)mc.textContent='CAISSE : '+TR(CARS[Math.min(CARS.length-1,Math.max(0,level|0))].name);
+    if(mc)mc.textContent=TR('CAISSE')+' : '+TR(CARS[Math.min(CARS.length-1,Math.max(0,level|0))].name);
     if(mCur==='dead'){
       const m9=Math.round(money),rec=(m9>=best&&m9>0);
       mCount($t('mCash'),m9); // le magot MONTE au lieu de s'afficher : 750 ms qui font le sel de la fin de run
       const ot=$t('mOverT');
-      ot.textContent=SANDBOX?'ENTRAINEMENT TERMINE':(rec?'NOUVEAU RECORD !':'GAME OVER');
+      ot.textContent=TR(SANDBOX?'ENTRAINEMENT TERMINE':(rec?'NOUVEAU RECORD !':'GAME OVER'));
       ot.style.color=rec?'#ffd75e':'#ff5e7a';
       // Ce qui se gagne DANS une partie, c'est le MOTEUR (la caisse, elle, se choisit au garage) :
       // c'est donc lui qu'on montre en fin de run, pas un palier de voiture qui ne veut plus rien dire.
       const nw=$t('mNew'),E=ENGINE_TIERS[Math.min(ENGINE_TIERS.length-1,Math.max(0,engTier|0))];
-      if(E&&engTier>0){nw.style.display='';nw.textContent='MOTEUR ATTEINT - '+E.n;}else nw.style.display='none';
-      $t('mStatsBox').innerHTML=mStatBox(runStats.tricks,'FIGURES')+mStatBox(Math.round(runStats.vmax),'KM/H MAX')+mStatBox(runStats.zones+1,'NIVEAU');
+      if(E&&engTier>0){nw.style.display='';nw.textContent=TR('MOTEUR ATTEINT')+' - '+TR(E.n);}else nw.style.display='none';
+      $t('mStatsBox').innerHTML=mStatBox(runStats.tricks,TR('FIGURES'))+mStatBox(Math.round(runStats.vmax),'KM/H MAX')+mStatBox(runStats.zones+1,TR('NIVEAU'));
     }else if(mCur==='modes'){
       const set9=function(id,sid,on){const c=$t(id),s=$t(sid);
         if(c){c.classList.toggle('on',on);c.classList.toggle('off',!on);} if(s)s.textContent=on?'ON':'OFF';};
@@ -14327,17 +14596,19 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       sv('mvSnd',SND.sfx?'ON':'OFF',SND.sfx);
       sv('mvMus',SND.music?'ON':'OFF',SND.music);
       sv('mvVox',SND.voice?'ON':'OFF',SND.voice);
-      sv('mvCtl',TCTL.pad?'FLECHES':'VOLANT',true);
-      sv('mvQ',SAVE.d.q==='net'?'NETTE':'RAPIDE',true);
+      sv('mvCtl',TR(TCTL.pad?'FLECHES':'VOLANT'),true);
+      sv('mvQ',TR(SAVE.d.q==='net'?'NETTE':'RAPIDE'),true);
       sv('mvLang',LANG.toUpperCase(),true);
       volUI();
     }
   }catch(e){} }
   function mTap(a,el){
-    hap(11);
-    if(a==='play'||a==='replay'){ if(a==='play')CARR.actif=null; goImmersive(); playViaGarage(); }
+    uiClic();
+    if(a==='replay'&&started&&gameOver){ goImmersive(); resetGame(); } // REJOUER : tout de suite, sans repasser par l'atelier
+    else if(a==='play'||a==='replay'){ if(a==='play')CARR.actif=null; goImmersive(); playViaGarage(); }
     else if(a==='back')mGo(mRoot());
     else if(a==='modes'||a==='set')mGo(a);
+    else if(a==='carr')carrVue(null); // la CARRIÈRE depuis le menu : deuxième destination après JOUER
     else if(a==='garage')openGarage(); // LE VRAI ATELIER : la caisse tourne au milieu, on glisse pour l'admirer
     else if(a==='surv'){ clic(survBtnEl); mFill(); }
     else if(a==='park'){ clic(parkBtnEl); mFill(); }
@@ -14350,15 +14621,20 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       keys.ArrowLeft=keys.ArrowRight=false; document.body.classList.toggle('tpad',TCTL.pad);
       SAVE.d.tctl=TCTL.pad?'pad':'stick'; SAVE.flush(); mFill(); }
     else if(a==='q'){ SAVE.d.q=(SAVE.d.q==='net')?'fast':'net'; SAVE.flush(); applyQ(SAVE.d.q!=='net'); mFill(); }
-    else if(a==='exp'){ const c9=SAVE.export(),o9=el.innerHTML;
-      const done=function(t){el.innerHTML=t;setTimeout(function(){el.innerHTML=o9;},1600);};
-      if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(c9).then(function(){done(pxi('coche')+' COPIE !');},function(){prompt('Copie ce code :',c9);});
-      else prompt('Copie ce code :',c9); }
-    else if(a==='imp'){ const c9=prompt('Colle ton code de sauvegarde :'),o9=el.innerHTML;
-      if(c9!=null){ if(SAVE.import(c9)){el.innerHTML=pxi('coche')+' RESTAURE — RECHARGE…';setTimeout(function(){location.reload();},900);}
-        else {el.innerHTML=pxi('croix')+' CODE INVALIDE';setTimeout(function(){el.innerHTML=o9;},1600);} } }
-    else if(a==='wipe'){ if(confirm('EFFACER toute ta progression ?\nRecords, caisses débloquées et réglages repartent de zéro.')){
-      SAVE.d=SAVE.san(null); SAVE.flush(); location.reload(); } }
+    else if(a==='exp'){ const c9=SAVE.export();
+      modale({titre:'MA SAUVEGARDE',texte:'Garde ce code : il restaure toute ta progression.',champ:c9,lecture:true,
+        boutons:[{l:'COPIER',ic:'copier',cls:'pb-gold',v:1},{l:'FERMER',v:0}]}).then(function(r){
+        if(r.v&&navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(c9).then(function(){toast(pxi('coche')+' '+TR('COPIE !'));},function(){}); }); }
+    else if(a==='imp'){
+      modale({titre:'RESTAURER',texte:'Colle ton code de sauvegarde.',champ:'',
+        boutons:[{l:'RESTAURER',ic:'importer',cls:'pb-gold',v:1},{l:'ANNULER',v:0}]}).then(function(r){
+        if(!r.v)return;
+        if(SAVE.import(r.texte.trim())){toast(pxi('coche')+' '+TR('RESTAURE — RECHARGE…'));setTimeout(function(){location.reload();},900);}
+        else toast(pxi('croix')+' '+TR('CODE INVALIDE')); }); }
+    else if(a==='wipe'){
+      modale({titre:'TOUT EFFACER ?',texte:'Records, caisses debloquees, carriere et reglages repartent de zero.',
+        boutons:[{l:'EFFACER',ic:'corbeille',cls:'pb-red',v:1},{l:'ANNULER',v:0}]}).then(function(r){
+        if(r.v){SAVE.d=SAVE.san(null);SAVE.flush();location.reload();} }); }
   }
   if(mob){
     const mHit=function(e){
@@ -14367,9 +14643,11 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(e.cancelable)e.preventDefault(); e.stopPropagation();
       mTap(el.getAttribute('data-m'),el);
     };
-    mob.addEventListener('touchstart',mHit,{passive:false});
-    mob.addEventListener('mousedown',mHit);                 // repli souris (?touch=1 sur ordinateur)
-    mob.addEventListener('click',function(e){e.stopPropagation();}); // sécurité : le menu ne relance jamais la partie par mégarde
+    /* ⚠ AU RELÂCHER, PLUS AU CONTACT (2026-09-24, audit UX) : `touchstart` déclenchait l'action dès que le doigt
+       se posait — impossible de faire DÉFILER les réglages en glissant sur une ligne (chaque ligne est un bouton),
+       impossible d'annuler en glissant hors du bouton. `click` est le geste natif : il part au relâcher, et le
+       navigateur l'annule tout seul si le doigt a glissé (défilement). Même chose pour la souris. */
+    mob.addEventListener('click',mHit);
   }
   // L'ancien overlay lançait la partie AU MOINDRE CLIC, n'importe où. Avec de vrais écrans, c'est un
   // piège : on bloque tout clic parasite en phase de CAPTURE.
@@ -14379,8 +14657,17 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   // le mode s'affichait ON dans l'écran MODES et restait OFF dans le jeu.
   document.addEventListener('click',function(e){
     const t=e.target;
-    if(t&&t.closest&&t.closest('#overlay')&&!t.closest('#nameEntry,#saveRow,#garageRow'))e.stopPropagation();
+    if(t&&t.closest&&t.closest('#overlay')&&!t.closest('#nameEntry,#saveRow,#garageRow,#mob'))e.stopPropagation(); // #mob : ses boutons agissent au clic (voir mHit)
   },true);
+  /* LA COQUE PARLE LA LANGUE DU JOUEUR (2026-09-24) : tous ses libellés étaient écrits en dur en français. Chaque
+     texte « nu » de #mob et #tPanel est enveloppé une fois dans un <span data-fr> — applyLangDOM les traduit
+     ensuite comme le reste (sans toucher aux valeurs écrites par le jeu : montants, pastilles, titre). */
+  (function(){for(const z of [mob,pan]){if(!z)continue;
+    const w=document.createTreeWalker(z,NodeFilter.SHOW_TEXT),L9=[];let n9;
+    while((n9=w.nextNode()))if(n9.nodeValue.trim()&&!n9.parentNode.closest('[data-fr],b,.mmS,.etat,.lg,#mBest,#mBest2,#mCar,#mCash,#mOverT,#mNew,#mStatsBox,textarea,input'))L9.push(n9);
+    for(const t9 of L9){const sp=document.createElement('span'),x=t9.nodeValue.trim();sp.setAttribute('data-fr',x);sp.textContent=x;t9.parentNode.replaceChild(sp,t9);}}
+    const sn=$t('spNote');if(sn){sn.textContent='touche CASH CAR — le son s\'allume avec toi';sn.dataset.fr=sn.textContent;} // sur un téléphone on TOUCHE, on ne clique pas
+    try{applyLangDOM();}catch(e){}})();
   mGo('home');
 }
 // ============================================================================
