@@ -7797,14 +7797,32 @@ const MUSIC_TRACKS=[
   // ,{titre:'NÉON CASH CAR',  f:'assets/audio/music/lvl1-neon-cash-car-v3.mp3'}  // 3 min 02
   // ,{titre:'CASH CAR VITESSE',f:'assets/audio/music/lvl2-cash-car-vitesse.mp3'} // 2 min 37
 ];
-/* ---- LA MUSIQUE D'OUVERTURE (2026-09-24) — demande du user : « Noite de Velocidade » pour les
-   10 PREMIÈRES ZONES de chaque partie, tous décors confondus ; ensuite la radio (`MUSIC_TRACKS`)
-   reprend la main. Elle BOUCLE pendant ces 10 zones (2 min 29 ne couvrent pas dix portails).
-   ⚠ le décompte est `runStats.zones`, remis à 0 par `resetGame` : chaque nouvelle partie rouvre sur
-   elle. ⚠ `zones:0` désactive le mécanisme sans rien toucher d'autre. Fichier renommé en ASCII sans
-   espace (« Noite de Velocidade.mp3 ») : une URL mal encodée ne plante pas, elle se tait. */
-const MUSIC_OUVERTURE={titre:'NOITE DE VELOCIDADE',f:'assets/audio/music/noite-de-velocidade.mp3',zones:10}; // 2 min 29
-let musicOuv=false; // vrai tant que la musique d'ouverture tient l'antenne
+/* ---- LA MUSIQUE PAR MONDE (2026-09-24) — demandes du user, dans l'ordre : « Noite de Velocidade pour
+   les dix premiers niveaux », puis « Nocturnal Groove sur le niveau au-dessus de la ville ».
+   ⚠ HISTORIQUE : la 1re version comptait « les 10 premières ZONES » de la partie (`runStats.zones`).
+   Entre-temps Sacha a posé la CARRIÈRE (30 niveaux = 3 mondes de 10 : nuages 1-10, ville 11-20,
+   espace 21-30) : « les dix premiers niveaux », c'est le MONDE NUAGES. La musique suit donc le LIEU
+   (`LVL.cur.id`), en carrière comme en partie sans fin (où les lieux tournent nuages → ville → orbite).
+   Un lieu absent de la table (l'orbite, le parc) rend l'antenne à la RADIO (`MUSIC_TRACKS`).
+   Un morceau de lieu BOUCLE tant qu'on reste dans ce lieu ; on ne le relance PAS à chaque portail
+   si le lieu ne change pas (sinon chaque niveau recommencerait l'intro).
+   Fichiers renommés en ASCII sans espace : une URL mal encodée ne plante pas, elle se tait. */
+const MUSIC_LIEU={
+  nuages:{titre:'NOITE DE VELOCIDADE',f:'assets/audio/music/noite-de-velocidade.mp3'}, // 2 min 29
+  ville: {titre:'NOCTURNAL GROOVE',   f:'assets/audio/music/nocturnal-groove.mp3'}     // 2 min 59
+};
+let musicLieu=null; // le morceau de LIEU qui tient l'antenne (null = la radio)
+function musicLieuVoulu(){return (LVL.cur&&MUSIC_LIEU[LVL.cur.id])||null;}
+/* appelé à chaque changement de niveau (fin de `newTrack`) : change de morceau SEULEMENT si le lieu
+   en réclame un autre que celui qui joue. */
+function musicSuitLieu(){
+  if(musicMode!=='run')return;
+  const v=musicLieuVoulu();
+  if(v===musicLieu)return;
+  musicLieu=v;
+  if(v){NIVEAU_FX=2.6;musicPlayCurrent();try{lvlBlast();}catch(e){}}
+  else{try{musicNext();}catch(e){}}
+}
 let musicCur=-1; // l'index EN COURS dans MUSIC_TRACKS (-1 = rien encore choisi)
 function musicPickNext(excludeIdx){
   if(MUSIC_TRACKS.length<=1)return 0;
@@ -7875,7 +7893,7 @@ function musicStartRun(){ // au début d'une partie (start / resetGame)
   if(!SND.music||!MUSIC_TRACKS.length)return;
   if(!AC){try{initAudio();}catch(e){return;}} if(!musicGain)musicGraph();
   musicCur=musicPickNext(-1); // nouvelle partie = une piste tirée au hasard dans le pool
-  musicOuv=!!(MUSIC_OUVERTURE&&MUSIC_OUVERTURE.zones>0); // …mais l'OUVERTURE passe d'abord
+  musicLieu=musicLieuVoulu(); // …mais le MONDE a peut-être sa propre musique (voir MUSIC_LIEU)
   musicMode='run';NIVEAU_FX=0;musicPlayCurrent();
   /* LE LEVER DE PISTE : le décor repart de zéro et remonte avec le morceau (≈2 s), avec une onde
      d'ouverture. On remet AUSSI le métronome à plat : garder la confiance et la phase du run
@@ -7889,8 +7907,8 @@ function musicMenu(){ // thème de menu (game over / accueil), en boucle
   musicMode='menu';musicPlayCurrent();
 }
 function musicPlayCurrent(){
-  const ouv=musicMode==='run'&&musicOuv;
-  const url=musicMode==='menu'?MUSIC.menu:ouv?MUSIC_OUVERTURE.f:(MUSIC_TRACKS[musicCur]||{}).f;
+  const ouv=musicMode==='run'&&!!musicLieu;
+  const url=musicMode==='menu'?MUSIC.menu:ouv?musicLieu.f:(MUSIC_TRACKS[musicCur]||{}).f;
   if(!url)return;
   const el=playMusic(url,{loop:musicMode==='menu'||ouv,volume:musVol()}); // menu et OUVERTURE bouclent ; ensuite la radio enchaîne au hasard
   if(el&&musicMode==='run'&&!ouv)el.addEventListener('ended',musicNext,{once:true});
@@ -8314,7 +8332,7 @@ window.dbgJus=function(n,col,gel){
 window.dbgRadio=function(suivant){
   if(suivant)try{musicNext();}catch(e){return {erreur:String(e.message)};}
   const t=MUSIC_TRACKS[musicCur];
-  if(musicOuv&&musicMode==='run')return {piste:MUSIC_OUVERTURE.titre+' (ouverture)',zonesFaites:runStats.zones,sur:MUSIC_OUVERTURE.zones,poolSize:MUSIC_TRACKS.length,mode:musicMode};
+  if(musicLieu&&musicMode==='run')return {piste:musicLieu.titre,lieu:LVL.cur&&LVL.cur.id,poolSize:MUSIC_TRACKS.length,mode:musicMode};
   return {piste:t?t.titre:null,morceau:t?t.f.split('/').pop():null,
     poolSize:MUSIC_TRACKS.length,mode:musicMode};
 };
@@ -10683,6 +10701,7 @@ function newTrack(){
   if(niv&&started&&!gameOver&&runStats.zones>0)lvlAnnonce(); // « NIVEAU 2 — MER DE NUAGES » (le niveau 1, lui, s'annonce après le logo du départ : voir fireLaunchBoost)
   else if(nightFalls)showMsg('LA NUIT TOMBE…','#9ac8ff'); // le déblocage s'annonce
   computeMinimap();
+  try{musicSuitLieu();}catch(e){} // LA MUSIQUE PAR MONDE : change si le lieu en réclame une autre
   spawnPickups(mulberry32(sd^0x9e3779b9));
   s=0;lat=0;psi=0;side=1;driveDir=1;prevTvalid=false;safeS=0;
   if(vA<20)vA=20;
@@ -12600,7 +12619,6 @@ function loop(now){
           portalSnd();boostSnd();shake=.5;
           const zb=denom()*24*(fever>0?2:1);money+=zb;levelCash+=zb;checkUpgrade(); // portail : 40→24 (régulation 2026-07-30)
           runStats.zones++;
-          if(musicOuv&&musicMode==='run'&&runStats.zones>=MUSIC_OUVERTURE.zones){musicOuv=false;try{musicNext();}catch(e){}} // 10 zones : l'OUVERTURE rend l'antenne à la radio
           nitroR=2; // le portail regonfle la nitro : chaque zone repart pied au plancher
           trickMsg(pickL(ZONE_LINES)+' +'+fmtC(zb),true);
           flyCash(carGroup.position,8);
