@@ -2775,9 +2775,18 @@ const SUN_PERP=new THREE.Vector3().crossVectors(SUN_DIR,new THREE.Vector3(0,1,0)
    (un écran d'ordi est en paysage, c'est normal), pas de plein écran forcé au premier clic, et une
    résolution d'image à la mesure d'un moniteur (voir `applyQ`). Toutes les commandes tactiles ont un
    repli souris ; le clavier reste branché ; un écran tactile d'ordi marche au doigt. */
-const FORCE_TEL=/[?&](tel|mobile)=1/.test(location.search);
-const IS_TOUCH=FORCE_TEL||(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||('ontouchstart'in window)||navigator.maxTouchPoints>0;
-const IS_MOBILE=FORCE_TEL||(IS_TOUCH&&((window.matchMedia&&matchMedia('(hover:none)').matches)||Math.min(innerWidth,innerHeight)<820));
+/* ⚠ LES DEUX ÉDITIONS (2026-09-25, user : « sépare-les en deux dossiers : VERSION PRINCIPALE = la version mobile
+   fusionnée, AUTRE VERSION = la version PC »). C'est UN SEUL jeu : les deux dossiers portent le MÊME index.html, et
+   cette ligne est la SEULE qui diffère. 'mobile' → sur l'ordi aussi on joue la version TÉLÉPHONE (coque d'écrans,
+   volant à la souris, gaz auto) ; 'pc' → l'ordi garde le menu desktop. Un vrai téléphone reçoit la version téléphone
+   dans les deux cas. On ne modifie JAMAIS « AUTRE VERSION » à la main : `node synchro-versions.js` (racine du dépôt)
+   la régénère depuis la principale. Forçages ponctuels : `?tel=1` / `?pc=1`. */
+const EDITION='pc';
+const TACTILE_NATIF=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||('ontouchstart'in window)||navigator.maxTouchPoints>0;
+const TEL_NATIF=TACTILE_NATIF&&((window.matchMedia&&matchMedia('(hover:none)').matches)||Math.min(innerWidth,innerHeight)<820);
+const FORCE_TEL=/[?&](tel|mobile)=1/.test(location.search)||(EDITION==='mobile'&&!TEL_NATIF&&!/[?&](pc|desktop)=1/.test(location.search)); // l'ORDI qui joue la version téléphone
+const IS_TOUCH=FORCE_TEL||TACTILE_NATIF;
+const IS_MOBILE=FORCE_TEL||TEL_NATIF;
 const IS_LOW_END=IS_MOBILE||(navigator.hardwareConcurrency>0&&navigator.hardwareConcurrency<=4);
 const REDUCED_MOTION=(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)||false; // ACCESSIBILITÉ : iOS « Réduire les animations » → coupe bloom + grain + effets de vitesse
 if(REDUCED_MOTION)document.documentElement.setAttribute('data-reduced-motion','1');

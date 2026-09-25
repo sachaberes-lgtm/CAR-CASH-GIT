@@ -1,5 +1,14 @@
 # CASH CAR — guide projet pour Claude Code
 
+## ⚠ DEUX ÉDITIONS, UN SEUL JEU (2026-09-25) — LIRE EN PREMIER
+- Le dossier `version-fusion-2026-09` s'appelle désormais **`VERSION PRINCIPALE`** (la version mobile fusionnée) ;
+  **`AUTRE VERSION`** = la version PC. Les deux `index.html` sont IDENTIQUES sauf `const EDITION='mobile'|'pc'`
+  (près de `FORCE_TEL`). `'mobile'` : l'ordi joue la version téléphone (`FORCE_TEL` vrai hors vrai téléphone).
+  `'pc'` : l'ordi garde le menu desktop. Un vrai téléphone a la version téléphone dans les deux éditions.
+- **On ne modifie QUE `VERSION PRINCIPALE`**, puis `node synchro-versions.js` à la racine du dépôt régénère
+  `AUTRE VERSION` (recopie tout sauf son README, bascule la ligne, vérifie). Commiter les deux ensemble.
+- Forçages de test : `?tel=1` (téléphone) / `?pc=1` (menu desktop), quelle que soit l'édition.
+
 ## ⚠ FUSION SACHA × LÉO + NIVEAUX — 2026-09-24 (branche `fusion-2026-09`)
 - `index.html` = fusion à trois points : appstore-backlog (Sacha) × `main:version-leolei-2026` (Léo),
   base `fusion-atelier-mobile`. Hors ligne : `vendor/` + police locale (aucun CDN, aucune Google Font).
