@@ -4622,15 +4622,37 @@ function villeHorizon(){
   const base=H*.62;                                                        // la « rue » de la couronne : en dessous, la brume pleine
   let g=x.createLinearGradient(0,base-200,0,H);g.addColorStop(0,'rgba(51,31,72,0)');g.addColorStop(.45,'rgba(90,40,120,.55)');g.addColorStop(.62,HORIZON_VILLE_FOND);g.addColorStop(1,HORIZON_VILLE_FOND);
   const rnd=(a,b)=>a+Math.random()*(b-a);
-  const couche=(col,hMin,hMax,fen,ant)=>{let px=0;while(px<W){const w=rnd(18,64),h=rnd(hMin,hMax);
+  /* (2026-09-26, user : « la skyline ne ressemble pas à la vraie ville — inspiration VILLAGE DE LA PLUIE, Naruto ») — c'était une
+     skyline de Manhattan (blocs larges, fenêtres en damier). Le village caché de la pluie, c'est l'inverse : des tours d'acier
+     GRISES, TRÈS HAUTES et MINCES, serrées, couturées de TUYAUX verticaux, cerclées d'anneaux, coiffées de réservoirs bombés,
+     reliées par des PASSERELLES, hérissées d'antennes à feu rouge — et la grande tour du chef, à la tête cornue. Même famille
+     que les tours 3D du niveau (grises, tuyaux, antennes, néons rares), vue de très loin sous la pluie. */
+  const tour=(px,w,h,col,tuy,lum)=>{
     x.fillStyle=col;x.fillRect(px,base-h,w,h+2);
-    if(Math.random()<.3){x.fillRect(px+w*.3,base-h-rnd(10,34),w*.4,rnd(10,34));}          // gradins
-    if(ant&&Math.random()<.35){const ax=px+w*.5;x.fillRect(ax-1,base-h-rnd(18,44),2,44);x.fillStyle='#ff3a5a';x.fillRect(ax-2,base-h-46,4,3);}
-    if(fen){const cs=['#2ee6ff','#ff4fb0','#ffc05a','#b58cff'];
-      for(let fy=base-h+6;fy<base-4;fy+=7)for(let fx=px+3;fx<px+w-3;fx+=5)if(Math.random()<.16){x.fillStyle=cs[(Math.random()*cs.length)|0];x.globalAlpha=.55+Math.random()*.45;x.fillRect(fx,fy,2,3);x.globalAlpha=1;}}
-    px+=w+rnd(0,6);}};
-  couche('#2a1d58',80,230,false,false);                                    // l'arrière-plan : de grandes tours pâles
-  couche('#150d33',30,150,true,true);                                      // le premier plan : plus sombre, allumé
+    const rg=Math.random();if(rg<.28){x.beginPath();x.ellipse(px+w/2,base-h,w*.62,w*.42,0,Math.PI,0);x.fill();}      // réservoir bombé
+    else if(rg<.5){x.fillRect(px+w*.2,base-h-w*.6,w*.6,w*.6);x.fillRect(px-2,base-h-w*.62,w+4,3);}                   // chapeau à rebord
+    x.globalAlpha=.35;x.fillStyle='#0a0b16';for(let fy=base-h+rnd(10,30);fy<base-10;fy+=rnd(26,60))x.fillRect(px-1,fy,w+2,3);x.globalAlpha=1; // les ANNEAUX
+    if(tuy){x.fillStyle=lum;x.globalAlpha=.55;const nt=1+((Math.random()*3)|0);                                      // les TUYAUX qui descendent
+      for(let t=0;t<nt;t++){const tx=px+rnd(1,w-3),ty=base-h*rnd(.35,.95);x.fillRect(tx,ty,2,base-ty);}x.globalAlpha=1;}
+  };
+  const couche=(col,lum,wMin,wMax,hMin,hMax,gap,fen,ant)=>{let px=0;const tours=[];while(px<W){const w=rnd(wMin,wMax),h=rnd(hMin,hMax);
+    tour(px,w,h,col,true,lum);tours.push([px,w,h]);
+    if(ant&&Math.random()<.4){const ax=px+w*.5,ah=rnd(20,50);x.fillStyle=col;x.fillRect(ax-1,base-h-ah,2,ah);x.fillStyle='#ff3a3a';x.fillRect(ax-2,base-h-ah-2,4,4);}
+    if(fen){const cs=['#2ee6ff','#ff4fb0','#ffc05a','#9ff0ff'];
+      for(let fy=base-h+8;fy<base-6;fy+=9)if(Math.random()<.35){const fx=px+rnd(2,Math.max(3,w-5));x.fillStyle=cs[(Math.random()*cs.length)|0];x.globalAlpha=.5+Math.random()*.5;x.fillRect(fx,fy,3,2);x.globalAlpha=1;}}
+    px+=w+rnd(0,gap);}
+    x.strokeStyle=col;x.lineWidth=3;for(let i=0;i<tours.length-1;i++)if(Math.random()<.4){const a=tours[i],b=tours[i+1],hy=base-Math.min(a[2],b[2])*rnd(.3,.8);x.beginPath();x.moveTo(a[0]+a[1],hy);x.lineTo(b[0],hy+rnd(-4,4));x.stroke();} // les PASSERELLES
+  };
+  couche('#3a3f5c','#8d96b8',12,30,170,340,4,false,false);                 // l'arrière-plan : une forêt de tours d'acier pâles, serrées
+  // LA TOUR DU CHEF : large, plus haute que tout, la tête ronde aux deux cornes et la bouche d'où pendent les tuyaux
+  for(const cx of [W*.18,W*.62]){const tw=70,th=380,tx=cx-tw/2;x.fillStyle='#262a44';x.fillRect(tx,base-th,tw,th+2);
+    x.beginPath();x.ellipse(cx,base-th,tw*.78,tw*.55,0,Math.PI,0);x.fill();
+    x.beginPath();x.moveTo(cx-tw*.55,base-th-tw*.3);x.lineTo(cx-tw*.95,base-th-tw*1.1);x.lineTo(cx-tw*.3,base-th-tw*.5);x.fill();   // corne gauche
+    x.beginPath();x.moveTo(cx+tw*.55,base-th-tw*.3);x.lineTo(cx+tw*.95,base-th-tw*1.1);x.lineTo(cx+tw*.3,base-th-tw*.5);x.fill();   // corne droite
+    x.fillStyle='#0d0e1c';x.fillRect(cx-tw*.3,base-th+tw*.05,tw*.6,tw*.16);                                                  // la bouche
+    x.fillStyle='#ffd75e';x.globalAlpha=.85;x.fillRect(cx-tw*.28,base-th-tw*.22,6,4);x.fillRect(cx+tw*.28-6,base-th-tw*.22,6,4);x.globalAlpha=1; // les yeux allumés
+    x.fillStyle='#4a5070';x.globalAlpha=.7;for(let t=0;t<5;t++){const px=cx-tw*.25+t*tw*.12;x.fillRect(px,base-th+tw*.2,3,th-tw*.2);}x.globalAlpha=1;} // les tuyaux-langues
+  couche('#171a2e','#5a6282',16,40,90,250,8,true,true);                    // le premier plan : plus sombre, allumé, antennes à feu rouge
   x.fillStyle=g;x.fillRect(0,base-200,W,H-base+200);                       // la brume monte du sol et mange le pied des tours
   x.globalAlpha=.55;x.fillStyle='#ff4fb0';x.fillRect(0,base-2,W,2);x.fillStyle='#2ee6ff';x.fillRect(0,base+3,W,1);x.globalAlpha=1; // la ligne néon de l'horizon
   const tex=new THREE.CanvasTexture(cv);tex.wrapS=THREE.RepeatWrapping;tex.repeat.set(3,1);
@@ -10058,6 +10080,48 @@ function shatterCloud(pos,power){
   }
 }
 // P'TIT BOOM D'ATTERRISSAGE : mini-explosion quand on pose une figure MONSTER+ (tier 1..3), calibrée sur le tier
+/* ===== LE CRATÈRE DU MÉTÉORE (2026-09-26, user : « la figure MÉTÉORE doit faire une animation de cratère à l'impact ») =====
+   À la pose d'un vol où la figure MÉTÉORE est tombée : une ONDE DE CHOC qui balaie la route, un CRATÈRE calciné au bord
+   incandescent qui REFROIDIT (orange → rouge sombre) puis s'efface en ~7 s, une gerbe de braises et de poussière, un gros
+   tremblement et « IMPACT MÉTÉORE ». Maillages créés UNE fois (3 cratères en rotation) : zéro allocation à l'impact. */
+const CRAT={l:[],i:0,tex:null,halo:null,onde:null,q:new THREE.Quaternion(),z:new THREE.Vector3(0,0,1),nv:new THREE.Vector3(),pv:new THREE.Vector3()};
+function cratTex(){if(CRAT.tex)return CRAT.tex;const N=256,cv=document.createElement('canvas');cv.width=cv.height=N;const x=cv.getContext('2d');
+  const g=x.createRadialGradient(N/2,N/2,0,N/2,N/2,N/2);g.addColorStop(0,'rgba(8,4,4,.97)');g.addColorStop(.55,'rgba(26,12,8,.93)');
+  g.addColorStop(.78,'rgba(60,24,12,.85)');g.addColorStop(.9,'rgba(20,10,8,.55)');g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(0,0,N,N);
+  x.strokeStyle='rgba(0,0,0,.8)';x.lineWidth=2;for(let i=0;i<14;i++){const a=Math.random()*6.283,r0=N*.12,r1=N*(.34+Math.random()*.14);let px=N/2+Math.cos(a)*r0,py=N/2+Math.sin(a)*r0;
+    x.beginPath();x.moveTo(px,py);for(let k=1;k<=5;k++){const rr=r0+(r1-r0)*k/5,aa=a+(Math.random()-.5)*.35;x.lineTo(N/2+Math.cos(aa)*rr,N/2+Math.sin(aa)*rr);}x.stroke();} // les FISSURES
+  CRAT.tex=new THREE.CanvasTexture(cv);return CRAT.tex;}
+function cratHaloTex(){if(CRAT.halo)return CRAT.halo;const N=256,cv=document.createElement('canvas');cv.width=cv.height=N;const x=cv.getContext('2d');
+  const g=x.createRadialGradient(N/2,N/2,N*.26,N/2,N/2,N/2);g.addColorStop(0,'rgba(255,255,255,0)');g.addColorStop(.45,'rgba(255,255,255,.95)');g.addColorStop(.7,'rgba(255,255,255,.35)');g.addColorStop(1,'rgba(255,255,255,0)');
+  x.fillStyle=g;x.fillRect(0,0,N,N);CRAT.halo=new THREE.CanvasTexture(cv);return CRAT.halo;}
+function cratere(pos,nrm){
+  if(!CRAT.l.length){const geo=new THREE.CircleGeometry(1,40);
+    for(let k=0;k<3;k++){const trou=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:cratTex(),transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
+      const braise=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:cratHaloTex(),color:0xff7a24,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}));
+      trou.visible=braise.visible=false;trou.renderOrder=2;braise.renderOrder=3;scene.add(trou);scene.add(braise);CRAT.l.push({trou,braise,t:99});}
+    CRAT.onde=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:cratHaloTex(),color:0xffe0a0,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));
+    CRAT.onde.visible=false;CRAT.onde.renderOrder=4;scene.add(CRAT.onde);CRAT.ondeT=9;}
+  const c=CRAT.l[CRAT.i];CRAT.i=(CRAT.i+1)%CRAT.l.length;
+  CRAT.q.setFromUnitVectors(CRAT.z,nrm);
+  for(const m of [c.trou,c.braise]){m.position.copy(pos).addScaledVector(nrm,.09);m.quaternion.copy(CRAT.q);m.visible=true;}
+  c.trou.rotateZ(Math.random()*6.283);c.trou.scale.setScalar(7.5);c.braise.scale.setScalar(8.5);c.t=0;
+  CRAT.onde.position.copy(pos).addScaledVector(nrm,.25);CRAT.onde.quaternion.copy(CRAT.q);CRAT.onde.visible=true;CRAT.ondeT=0;
+  // l'IMPACT : braises, poussière, secousse, flash, son, et le nom en grand
+  sparkBurst(sparkGold,pos,48,22);sparkBurst(sparkPink,pos,20,16);
+  for(let k=0;k<26;k++){const a=Math.random()*6.283,v=8+Math.random()*16;spawnP(dust,pos.x,pos.y+.5,pos.z,Math.cos(a)*v,4+Math.random()*9,Math.sin(a)*v,.8+Math.random()*.7);}
+  shake=Math.max(shake,1.1);hitT=Math.max(hitT,.12);hap([30,40,60,40,30]);
+  try{subBoom(.45);thud(22);noiseBurst(.35,.2,220);}catch(e){}
+  flashEcran('rgba(255,110,20,.65)');slam('IMPACT METEORE','','#ffb000','#ff3924',40,3);
+}
+function cratTick(dt){
+  if(!CRAT.l.length)return;
+  for(const c of CRAT.l){if(c.t>=99)continue;c.t+=dt;const t=c.t;
+    const chaud=Math.max(0,1-t/3.2);c.braise.material.opacity=chaud*(.8+.2*Math.sin(t*14));c.braise.material.color.setRGB(1,.25+.25*chaud,.08*chaud); // il REFROIDIT
+    c.trou.material.opacity=t<5?1:Math.max(0,1-(t-5)/2);
+    if(t>7){c.t=99;c.trou.visible=c.braise.visible=false;}}
+  if(CRAT.ondeT<.6){CRAT.ondeT+=dt;const u=CRAT.ondeT/.6;CRAT.onde.scale.setScalar(2+u*22);CRAT.onde.material.opacity=(1-u)*(1-u);if(u>=1)CRAT.onde.visible=false;}
+}
+function cratCache(){for(const c of CRAT.l){c.t=99;c.trou.visible=c.braise.visible=false;}if(CRAT.onde)CRAT.onde.visible=false;} // nouvelle zone : les cratères restent sur l'ancienne route
 function landBoom(pos,tier){
   shake=Math.max(shake,.22+tier*.13);
   sparkBurst(sparkGold,pos,16+tier*12,11+tier*4);
@@ -12918,7 +12982,9 @@ function chaineAura(nom,base,fam,brut){ // brut : pas de décote de redite (les 
   return p;
 }
 /* HUD v3 : LA GRANDE ANNONCE qui claque au centre haut (BOOST, pouvoirs, paliers du ×) — une seule à la fois, la dernière gagne */
-function slam(txt,sous,c1,c2,taille){
+function slam(txt,sous,c1,c2,taille,prio){
+  prio=prio|0;const n9=performance.now();if(prio<(slam._p|0)&&n9<(slam._t||0))return; // une annonce plus forte garde l'écran 0,9 s (l'IMPACT n'est pas écrasé par le × qu'il fait monter)
+  slam._p=prio;slam._t=n9+900;
   let e=avE('slam9');if(!e){e=document.createElement('div');e.id='slam9';e.setAttribute('aria-hidden','true');document.body.appendChild(e);avEl.slam9=e;}
   e.innerHTML='<b'+(taille?' style="font-size:'+taille+'px"':'')+'>'+sansAcc(TR(txt)).replace(/[<>&]/g,'')+'</b>'+(sous?'<small>'+sansAcc(TR(sous)).replace(/[<>&]/g,'')+'</small>':'');
   e.style.setProperty('--s1',c1||'#ffd75e');e.style.setProperty('--s2',c2||'#ff5ec8');
@@ -12937,7 +13003,7 @@ function engBigSuit(){ // (HUD v3) la carte du moteur se pose SUR la voiture et 
   b.style.left=x.toFixed(0)+'px';b.style.top=y.toFixed(0)+'px';
 }
 function chaineTick(dt){
-  engBigSuit();
+  engBigSuit();cratTick(dt);
   // le COMPTEUR : il grimpe vers la vraie valeur (on voit l'aura TOMBER dedans), une écriture DOM seulement quand le chiffre change
   CHA.v+=(auraRun-CHA.v)*Math.min(1,dt*7);if(Math.abs(auraRun-CHA.v)<1)CHA.v=auraRun;
   const a9=Math.round(CHA.v);if(a9!==CHA.vAff){CHA.vAff=a9;const e9=avE('avVal');if(e9)e9.textContent=fmtAura(a9);}
@@ -13510,6 +13576,7 @@ function tryLand(dt){
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1; // PARC : on repart dans le sens d'atterrissage (les deux directions roulent) ; COURSE : toujours vers l'avant
   // ATTERRISSAGE : l'impact ralentit la caisse — d'autant plus que le saut etait gros
   nitroPct(.2); // (2026-09-26, user) TOUTE pose rend 20 % de nitro — parfaite, lourde, à l'arrachée
+  if(trkMeteor)try{cratere(CRAT.pv.copy(fallPos),CRAT.nv.copy(Nn[bestI]).multiplyScalar(sideL));}catch(e){} // (2026-09-26) le MÉTÉORE creuse son CRATÈRE à l'impact
   const impact=Math.abs(vN);
   const bigness=Math.max(0,fallT-.8);
   const landLoss=Math.min(.52,bigness*.15+impact*.008); // un peu plus doux qu'avant
@@ -13626,6 +13693,7 @@ function newTrack(){
   computeMinimap();
   try{musicSuitLieu();}catch(e){} // LA MUSIQUE PAR MONDE : change si le lieu en réclame une autre
   spawnPickups(mulberry32(sd^0x9e3779b9));
+  cratCache();
   s=0;lat=0;psi=0;side=1;driveDir=1;prevTvalid=false;safeS=0;
   if(vA<20)vA=20;
   mode='drive';
@@ -15918,7 +15986,7 @@ function loop(now){
             else if(p.pow==='a'){pwrAirT=d.t;airFlash=.6;}
             else pwrSpdT=d.t;
             showMsg(d.msg,d.tint);trickMsg(d.ico+' '+TR(d.hud),2);boostSnd();shake=Math.max(shake,.35);
-            slam(d.gros,d.sous,d.tint,d.c2,40);flashEcran(d.fx);hap([14,40,24]); // (HUD v3) le pouvoir s'ANNONCE en gros, de sa couleur
+            slam(d.gros,d.sous,d.tint,d.c2,40,2);flashEcran(d.fx);hap([14,40,24]); // (HUD v3) le pouvoir s'ANNONCE en gros, de sa couleur
             sparkBurst(p.pow==='n'?sparkBlue:sparkGold,carGroup.position,14,9);
             addStyle(10);
           }
