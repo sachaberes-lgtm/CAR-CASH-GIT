@@ -22,8 +22,11 @@
    v14 (2026-09-23) : radio reduite a UN seul morceau (reglage temporaire, demande du user).
    v15 (2026-09-24) : FUSION Sacha × Léo (branche fusion-2026-09) — vendor/ + police locale, vrai
         mix NÉON CASH CAR v3 (l'ancien fichier de ce nom contenait Chrome Ledger), sons fx/.
-   v16 (2026-09-24) : icônes pixel (assets/icons/), charte pixel unifiée, niveaux Nuages → Ville → Orbite. */
-const CACHE = 'cashcar-v16';
+   v16 (2026-09-24) : icônes pixel (assets/icons/), charte pixel unifiée, niveaux Nuages → Ville → Orbite.
+   v19 (2026-09-24) : fusion du push de Léo (v17/v18 chez lui) — musique par monde (noite-de-velocidade,
+        nocturnal-groove), moteur, voitures low-poly ; charte v2 et passe UX côté Sacha. */
+//  v20 (2026-09-25) : boutique, défis, auto-école, charte v3, lecteur de musique unique, ville en 1er niveau, caisses premium.
+const CACHE = 'cashcar-v20';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
