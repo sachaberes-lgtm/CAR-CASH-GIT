@@ -3744,7 +3744,7 @@ function genCtrl(rnd,startPos,startPhi){
   const W=AR.w.map(v=>v*(0.35+rnd()*1.7));
   const wsum=W.reduce((a,b)=>a+b,0);
   const pick=()=>{let x=rnd()*wsum;for(let k=0;k<13;k++){x-=W[k];if(x<0)return k;}return 5;};
-  const LEN=7200*(1+Math.min(1.5,(LV-1)*.55)); // zones plus longues à haute vitesse (sinon 13 s et portail)
+  const LEN=14400*(1+Math.min(1.5,(LV-1)*.55)); // (2026-09-25, user : « double la longueur de chaque niveau ») 7200 → 14400 — et plus longues encore à haute vitesse
   // ---- LE GAP CATAPULTE : le grand geste du générateur — RARE, et il y a un VRAI TROU ----
   // Tout est COLINÉAIRE : la route d'en face est droit devant, on lit la promesse d'un coup d'œil
   // (condition non négociable pour que ça marche à 1200 km/h). La recette, dans l'ordre :
@@ -5315,7 +5315,7 @@ const LVL={cur:null,n:0,k:1,dur:4,
   dir:PLANET_DIR.clone(),tmp:new THREE.Vector3(),tmp2:new THREE.Vector3(),haut:new THREE.Vector3(0,1,0)};
 // LA LARGEUR PAR NIVEAU (× ROAD_HALF0 = 14) : très large pour apprendre (47,6 m), puis la route se resserre à chaque
 // portail jusqu'au plancher ×1,1 (30,8 m). Une nouvelle partie repart au niveau 1.
-const LARGEUR=[1.7,1.55,1.4,1.25,1.1];
+const LARGEUR=[1.7]; // (2026-09-25, user : « enlève le rétrécissement de la route, ça sert à rien, la vitesse fait tout le travail ») : 47,6 m partout — était [1.7,1.55,1.4,1.25,1.1]
 function lvlChoisir(){ // appelé par newTrack AVANT buildTrack
   const z=runStats.zones|0;
   ROAD_HALF=ROAD_HALF0*(PARK.on?1.4:LARGEUR[Math.min(LARGEUR.length-1,z)]);
@@ -5456,7 +5456,7 @@ const CARRIERE=[
     {nm:'SATURNE',astre:{teinte:0xd8c08a,atmo:0xfff0c0,echelle:1.45}},{nm:'URANUS',astre:{teinte:0x7fd6d8,atmo:0xb8ffff,echelle:1.35}},
     {nm:'NEPTUNE',astre:{teinte:0x3a5fd0,atmo:0x7fa8ff,echelle:1.35}},{nm:'PLUTON',astre:{teinte:0xb8a48c,atmo:0xe8dccb,echelle:1.0}}]},
 ];
-const CARR_LARG=[1.7,1.62,1.55,1.48,1.41,1.34,1.27,1.2,1.15,1.1];
+const CARR_LARG=[1.7,1.7,1.7,1.7,1.7,1.7,1.7,1.7,1.7,1.7]; // (2026-09-25) la carrière ne rétrécit plus non plus : c'est la vitesse qui monte
 const CARR={actif:null}; // {b: index de biome, i: niveau de départ} — null = partie sans fin
 function bioMix(a,b,t){ // un biome INTERMÉDIAIRE, bâti une fois et rangé dans BIOMES
   const k=a+'>'+b+'@'+t;
@@ -13289,12 +13289,17 @@ function tryLand(dt){
   // l'atterrissage, et hors de la fenêtre du BUMP si elle s'éloignait — donc elle traversait le bitume.
   // `prevL` existait déjà (calculé pour le bump) : il suffisait de s'en servir. On accepte si la caisse
   // était SUR la dalle à un bout OU l'autre du segment, et on ramène `lat` dans la largeur.
-  if(!sideL||(Math.abs(latOff)>=ROAD_HALF&&Math.abs(prevL)>=ROAD_HALF))return false;
+  // (2026-09-25, user : « PAS DU TOUT d'assistance ») : on acceptait la pose si UN bout du segment touchait la dalle, puis on
+  // RAMENAIT la caisse dans la largeur — un aimant de plus. Désormais : le point EXACT où la trajectoire traverse le plan de la
+  // dalle (interpolé entre l'image d'avant et celle-ci) ; s'il est au-dessus du vide, on tombe. Aucun recentrage.
+  if(!sideL)return false;
+  const hS9=sideL>0?0:-THICK,dh9=prevH-hOff,f9=Math.abs(dh9)>1e-4?THREE.MathUtils.clamp((prevH-hS9)/dh9,0,1):1,latX9=prevL+(latOff-prevL)*f9;
+  if(Math.abs(latX9)>=ROAD_HALF)return false;
   s=THREE.MathUtils.clamp(bestI/(NP-1)*L+THREE.MathUtils.clamp(dTmp.dot(T[bestI]),-2,2),0,L-1);
-  side=sideL;lat=THREE.MathUtils.clamp(latOff,-ROAD_HALF+.6,ROAD_HALF-.6)*sideL;
+  side=sideL;lat=THREE.MathUtils.clamp(latX9,-ROAD_HALF+.02,ROAD_HALF-.02)*sideL;
   // RÉCEPTION EN GLISSE : la caisse se pose de travers et rattrape — petit drift au lieu d'un psi=0 sec
   {const vTan=fallVel.dot(T[bestI]),vLat=fallVel.dot(B[bestI])*sideL;
-   psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+6)*.6,-.4,.4);yawR=0;slipB=0;driftYaw=0; // (conduite v6) les roues MORDENT à la pose : le travers du vol est en partie absorbé (plus de réalignement ensuite : à toi de jouer)
+   psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=0;slipB=0;driftYaw=0; // (2026-09-25) le cap de la pose = la direction EXACTE du vol — plus de redressement (×0,6) : c'était une aide
    driftT=Math.max(driftT,Math.min(1,.45+Math.abs(psi)));} // …et la fumée/le crissement suivent tout seuls
   vA=fallVel.dot(T[bestI]);vL=fallVel.dot(B[bestI])*.4*sideL;
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1; // PARC : on repart dans le sens d'atterrissage (les deux directions roulent) ; COURSE : toujours vers l'avant
@@ -15879,7 +15884,14 @@ function loop(now){
         // centre de l'image (mesuré : 0 % d'écart à l'écran à 15 m du centre) — on voyait le décor coulisser, pas la caisse bouger.
         if(!loop._camD)loop._camD=new THREE.Vector3();
         loop._camD.copy(F.t).multiplyScalar(driveDir).lerp(fwdW,.55).normalize();
-        tmp2.copy(carGroup.position).addScaledVector(loop._camD,-camBack).addScaledVector(F.n,camH);
+        // (2026-09-25, user : « toujours aimantée au centre ») : la caméra suivait la position latérale AU CENTIMÈTRE — la caisse restait
+        // plantée au milieu de l'image et c'est la route qui coulissait dessous. Elle suit désormais avec un RETARD (~0,35 s) : quand on
+        // change de ligne, on VOIT la caisse partir vers le bord de l'écran, puis la caméra la rejoint. Pas de rappel vers l'axe : la cible
+        // est TA position (×1), seul le rythme change.
+        {const n9=performance.now();if(loop._camLat==null||n9-(loop._camLatT||0)>150)loop._camLat=lat;loop._camLatT=n9;
+         loop._camLat+=(lat-loop._camLat)*(1-Math.exp(-dt/.35));}
+        const cLag9=(loop._camLat-lat)*(side<0?-1:1); // de combien la caméra est en retard sur la caisse (repère de la route)
+        tmp2.copy(carGroup.position).addScaledVector(loop._camD,-camBack).addScaledVector(F.n,camH).addScaledVector(F.b,cLag9);
         {const n9=performance.now(); // l'écart repart de la caméra RÉELLE à chaque reprise de conduite (après un vol, le garage, un respawn)
          if(!loop._camOff)loop._camOff=new THREE.Vector3();
          if(n9-(loop._camDriveT||0)>150)loop._camOff.subVectors(camera.position,carGroup.position);
@@ -15894,7 +15906,7 @@ function loop(now){
         // PORTRAIT : on vise plus BAS (F.n 1,05 → 0,50) — la caméra pique du nez, donc la caisse
         // REMONTE dans le cadre au lieu de sortir par le bas. Reculer/monter/viser bas se règlent
         // ENSEMBLE : sans cette ligne, camBack et camH seuls laissaient une caisse minuscule en bas.
-        tmp2.copy(carGroup.position).addScaledVector(fwdW,8.5+POR*1.2).addScaledVector(F.n,1.05-POR*.55);
+        tmp2.copy(carGroup.position).addScaledVector(fwdW,8.5+POR*1.2).addScaledVector(F.n,1.05-POR*.55).addScaledVector(F.b,cLag9*.8); // la visée prend le même retard : la caisse sort du centre de l'image
         /* (route v2) LE REGARD SUIT LA ROUTE : la visée se tire à 35 % vers un point de la piste 35 m DEVANT (à la même
            distance du bord que la caisse). Dans une courbe, l'œil part vers la sortie du virage au lieu de fixer l'axe de
            la caisse — on voit où l'on va. */
@@ -15965,10 +15977,8 @@ function loop(now){
       const yawIn=steer*(1.15+Math.min(.6,fallVel.length()*.004))*dtF;
       fallVel.applyAxisAngle(AXIS_Y,yawIn);
       yawAcc+=yawIn;
-      if(nitroOn){ // RÉACTEUR : poussée depuis l'arrière façon Rocket League (modérée)
-        tmp.copy(fallVel);
-        if(tmp.lengthSq()>1)tmp.normalize();else tmp.set(0,0,1);
-        fallVel.addScaledVector(tmp,(nitroBlue?70:52)*dtF); // RÉACTEUR façon Rocket League (2026-07-20, était 49/34) : en l'air la nitro POUSSE vraiment — on sculpte sa trajectoire, on ne la subit plus
+      if(nitroOn){ // RÉACTEUR : il fait planer et donne l'assiette (piqué/cabré) — il n'accélère plus (vol v7 : inertie)
+        fallVel.y+=FALL_G*(nitroBlue?.75:.6)*dtF; // (vol v7) le RÉACTEUR fait PLANER : il reprend 60 % de la gravité (75 % en réserve bleue) — il n'accélère plus la caisse (inertie : la vitesse vient de l'éjection)
         // ↑/AVANT : PIQUÉ · ↓/FREIN : CABRÉ. On fait TOURNER la vitesse en tangage (pitch) au lieu
         // d'ajouter à .y : ajouter ±12 à un vecteur de 145 puis reclamper ne pliait la trajectoire que
         // de ~4°/s (« le nitro haut/bas ne marche plus » — surtout au plafond de vitesse du parc). La
@@ -16045,12 +16055,14 @@ function loop(now){
           }
         }
       }
-      /* (vol v6) LE VOL VA À LA VITESSE DE LA ROUTE. En l'air il n'y avait AUCUNE traînée : la nitro (52-70, contre 30-48 au sol)
-         poussait sans limite et le temps était compressé (×1,35) — on volait nettement plus vite qu'on ne roulait. Désormais,
-         au-delà de sa vitesse horizontale de décollage, la caisse subit EXACTEMENT la traînée du bitume : la nitro y plafonne au
-         même niveau qu'au sol. Sans nitro, rien ne change (la parabole et le viseur d'atterrissage restent justes). */
+      /* (vol v7, 2026-09-25, user : « l'airtime doit être basé sur un principe d'INERTIE, dépendre de la vitesse de la voiture au
+         moment de l'éjection, et PAS de sa vitesse max ») : en l'air, la caisse garde la vitesse qu'elle avait en quittant la route —
+         seule la GRAVITÉ agit (elle accélère en chute, freine en montée). Le volant et le piqué/cabré TOURNENT la vitesse sans
+         l'augmenter, et la nitro ne pousse plus en avant (elle fait PLANER : voir plus haut). Garde-fou : l'avance HORIZONTALE ne
+         dépasse jamais celle de l'éjection (un cabré qui convertirait la chute en élan ne crée pas de vitesse). Aucune lecture de
+         maxSp : la portée d'un saut ne dépend que de la vitesse d'éjection. */
       {const hx9=Math.hypot(fallVel.x,fallVel.z);if(fallVH0<0)fallVH0=hx9;
-       if(hx9>fallVH0&&hx9>1){const dv=Math.min(hx9-fallVH0,(hx9*hx9*(acc9/(maxSp*maxSp*5.8))+hx9*.03)*dtF),f9=(hx9-dv)/hx9;fallVel.x*=f9;fallVel.z*=f9;}}
+       if(hx9>fallVH0&&hx9>1){const f9=fallVH0/hx9;fallVel.x*=f9;fallVel.z*=f9;}}
       if(PARK.on&&fallVel.lengthSq()>PARK_VCAP*PARK_VCAP)fallVel.setLength(PARK_VCAP); // PARC : la nitro infinie ne t'emballe pas non plus EN L'AIR — vol rapide mais pilotable
       fallPos.addScaledVector(fallVel,dtF*SPD);
       carGroup.position.copy(fallPos);
