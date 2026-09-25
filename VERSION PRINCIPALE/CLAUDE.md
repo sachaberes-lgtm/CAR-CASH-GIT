@@ -8,6 +8,18 @@
 - **On ne modifie QUE `VERSION PRINCIPALE`**, puis `node synchro-versions.js` à la racine du dépôt régénère
   `AUTRE VERSION` (recopie tout sauf son README, bascule la ligne, vérifie). Commiter les deux ensemble.
 - Forçages de test : `?tel=1` (téléphone) / `?pc=1` (menu desktop), quelle que soit l'édition.
+- ⚠ **AUTRE VERSION EST GELÉE depuis le 2026-09-25** (user : « travaille que dans la version mobile ») : elle est
+  restée à l'état du commit de séparation. On ne relance `synchro-versions.js` que si Sacha le redemande.
+- **LE MOUVEMENT (2026-09-25, « transitions niveau App Store »)** — dernier bloc du `<style>` : UNE courbe `--ease`
+  (cubic-bezier(.32,.72,0,1), celle des feuilles iOS, sans rebond) et DEUX durées `--t-fast` 140 ms / `--t-slow` 420 ms.
+  Fin des `steps()` sur les écrans. `mGo(id,sens,sansSortie)` : profondeur `PROF` → `avant` (arrive de droite) /
+  `retour` (de gauche) / `racine` (fondu-zoom) ; l'écran qui part garde `.sort` 220 ms en absolu ; les enfants se
+  posent en cascade via `--i`. Un `MutationObserver` sur `#overlay` pose l'écran racine AVANT la prochaine image (plus
+  de flash de l'ancien écran à la mort). `ecranWipe(fn,apres)` = FONDU AU NOIR (monte 200 ms, bascule dessous, 2 images,
+  se lève) — `apres` part au lever (le LÂCHER du garage), l'événement `cc:revele` fait rejouer l'entrée de l'écran
+  découvert. JOUER et REJOUER passent par ce fondu. Feuilles (`#tPanel`, `#modale`, `#carr`) : `feuilleOuvre/feuilleFerme`
+  (classe `.sortant` 170 ms). Clavier : Échap referme fenêtre → pause → carrière, met en pause en course, revient d'un
+  sous-écran ; Entrée = le bouton or de l'écran. « Réduire les animations » : fondus seuls.
 
 ## ⚠ FUSION SACHA × LÉO + NIVEAUX — 2026-09-24 (branche `fusion-2026-09`)
 - `index.html` = fusion à trois points : appstore-backlog (Sacha) × `main:version-leolei-2026` (Léo),

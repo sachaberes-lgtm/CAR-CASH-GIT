@@ -1974,6 +1974,84 @@
   #flowGlow[data-lv="4"]{animation:flowArc 2.4s linear infinite}
   @keyframes flowArc{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(360deg)}}
   @media (prefers-reduced-motion:reduce){#flowHud[data-lv="4"],#flowGlow[data-lv="4"]{animation:none}}
+  /* ======================= LE MOUVEMENT — NIVEAU APP STORE (2026-09-25) =======================
+     User : « améliore l'ergonomie, que les transitions entre les écrans soient niveau App Store ». Le passage précédent
+     animait tout en `steps()` (« on anime en PIXELS, pas en fondus mous ») : à 6 images par geste, l'œil lit des SACCADES,
+     et c'est ce qui trahissait le prototype. Les jeux et les apps qu'Apple met en avant bougent autrement : fluide, avec
+     une intention (on AVANCE → l'écran arrive de droite ; on REVIENT → il revient de gauche), et avec une seule loi de
+     mouvement pour tout. D'où, et c'est la charte : UNE courbe (`--ease`, la courbe des feuilles iOS : départ franc,
+     arrivée qui se pose sans rebond) et DEUX durées (`--t-fast` pour l'appui et ce qui s'en va, `--t-slow` pour ce qui
+     arrive). La police et les icônes restent en pixels : c'est l'IDENTITÉ ; seul le mouvement quitte les saccades.
+     Ce bloc est le DERNIER du <style> : il gagne sur les passes précédentes sans les effacer. */
+  :root{--ease:cubic-bezier(.32,.72,0,1);--t-fast:140ms;--t-slow:420ms}
+  @keyframes mEntre{from{opacity:0;transform:translate3d(38px,0,0)}to{opacity:1;transform:none}}
+  @keyframes mEntreRetour{from{opacity:0;transform:translate3d(-38px,0,0)}to{opacity:1;transform:none}}
+  @keyframes mEntreRacine{from{opacity:0;transform:scale(.965)}to{opacity:1;transform:none}}
+  @keyframes mSort{to{opacity:0;transform:translate3d(-26px,0,0)}}
+  @keyframes mSortRetour{to{opacity:0;transform:translate3d(26px,0,0)}}
+  @keyframes mSortRacine{to{opacity:0;transform:scale(1.02)}}
+  @keyframes mFils{from{opacity:0;transform:translate3d(0,14px,0)}to{opacity:1;transform:none}}
+  @keyframes mTitre{from{opacity:0;transform:translate3d(0,-8px,0) scale(1.28)}to{opacity:1;transform:none}}
+  @keyframes mRelache{from{transform:translate3d(0,5px,0) scale(.97)}to{transform:none}}
+  @keyframes mVoile{from{opacity:0}to{opacity:1}}
+  @keyframes mVoileOut{from{opacity:1}to{opacity:0}}
+  @keyframes mFeuille{from{opacity:0;transform:translate3d(0,28px,0) scale(.97)}to{opacity:1;transform:none}}
+  @keyframes mFeuilleOut{from{opacity:1;transform:none}to{opacity:0;transform:translate3d(0,16px,0) scale(.98)}}
+  @keyframes mFondu{from{opacity:0}to{opacity:1}}
+  /* ---- LA COQUE : l'écran qui arrive glisse selon le SENS, celui qui part s'efface par-dessous sans pousser la page ---- */
+  body.touch #overlay>#mob{position:relative}
+  body.touch #overlay{transition:padding var(--t-slow) var(--ease)} /* l'accueil et les sous-écrans n'ont pas la même marge : la coque GLISSE au lieu de sauter */
+  .mscr.on{animation:mEntreRacine var(--t-slow) var(--ease) both!important}
+  .mscr.on.avant{animation-name:mEntre!important}
+  .mscr.on.retour{animation-name:mEntreRetour!important}
+  .mscr.sort{display:flex!important;position:absolute;left:0;top:0;width:100%;pointer-events:none;z-index:0;
+    animation:mSortRacine var(--t-fast) var(--ease) forwards!important}
+  .mscr.sort.avant{animation-name:mSort!important}
+  .mscr.sort.retour{animation-name:mSortRetour!important}
+  .mscr.sort>*{animation:none!important}
+  /* les blocs de l'écran se posent l'un après l'autre (--i est écrit par mGo : l'ordre du DOM, plafonné à 9) */
+  .mscr.on>*{animation:mFils var(--t-slow) var(--ease) backwards!important;animation-delay:calc(var(--i,0)*26ms + 40ms)!important}
+  .mscr.on>.mPlay,#mDead.on>[data-m=replay]{animation:mFils var(--t-slow) var(--ease) backwards,reflet 3.6s var(--ease) 1.2s infinite!important;
+    animation-delay:calc(var(--i,0)*26ms + 40ms),1.2s!important}
+  #mDead.on>.mOver{animation:mTitre .6s var(--ease) backwards!important;animation-delay:60ms!important}
+  /* ---- LE FOND DU MENU : un seul dégradé, et un voile sombre qui se lève ou se pose en fondu quand l'écran change ----
+     (avant : chaque écran avait SON fond, et on passait de l'un à l'autre d'un coup — le monde s'éteignait sans transition) */
+  body.touch #overlay:not([data-ecran="shop"]){background:linear-gradient(180deg,rgba(6,4,16,.88) 0%,rgba(6,4,16,.46) 30%,rgba(6,4,16,.22) 46%,rgba(6,4,16,.55) 62%,rgba(6,4,16,.94) 84%)!important}
+  body.touch #overlay::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:rgba(6,4,16,.74);
+    opacity:1;transition:opacity var(--t-slow) var(--ease)}
+  body.touch #overlay[data-ecran="home"]::before,body.touch #overlay[data-ecran="shop"]::before{opacity:0}
+  body.touch #overlay{animation:mVoile var(--t-slow) var(--ease) both} /* il apparaît (mort, retour d'atelier) : il se POSE, il ne claque pas */
+  /* ---- LES FEUILLES (pause, fenêtres, carrière) : elles montent du bas et redescendent en partant ---- */
+  #tPanel.open,#modale.on,#carr.on{animation:mVoile var(--t-slow) var(--ease) both}
+  #tPanel.open #tpIn,#modale.on .modIn,#carr.on .carrIn{animation:mFeuille var(--t-slow) var(--ease) both}
+  #tPanel.sortant,#modale.sortant,#carr.sortant{animation:mVoileOut var(--t-fast) var(--ease) forwards!important;pointer-events:none}
+  #tPanel.sortant #tpIn,#modale.sortant .modIn,#carr.sortant .carrIn{animation:mFeuilleOut var(--t-fast) var(--ease) forwards!important}
+  /* ---- LE BOUTON : il s'enfonce sous le doigt, et remonte en douceur au relâcher (plus de rebond en 5 images) ---- */
+  .pbtn,#tPanel .tp:not(.ligne),#tGear,.saveBtn,#playBtn,#garage #gBuy,#garage #gEquip{
+    transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease),filter var(--t-fast) var(--ease)!important}
+  .pbtn:active,#tPanel .tp:not(.ligne):active,#tGear:active,.saveBtn:active,#playBtn:active,#garage #gBuy:active,#garage #gEquip:active{transition-duration:50ms!important}
+  .pbtn.pop,.gTab.pop,.mBank.pop,.mLigne.pop{animation:mRelache var(--t-slow) var(--ease)!important}
+  .mLigne,#tPanel .tp.ligne{transition:background-color var(--t-fast) var(--ease)!important}
+  #toast{transition:opacity var(--t-slow) var(--ease),transform var(--t-slow) var(--ease)!important}
+  /* ---- À LA SOURIS (la version téléphone jouée sur l'ordi) : ce qui se clique le DIT au survol ---- */
+  @media (hover:hover) and (pointer:fine){
+    [data-m],[data-a],[data-c],.pbtn,.gTab{cursor:pointer}
+    .pbtn:hover:not(:active),#tPanel .tp:not(.ligne):hover:not(:active){filter:brightness(1.08)}
+    .mLigne:hover,#tPanel .tp.ligne:hover,.mMode:hover{background-color:rgba(255,255,255,.05)!important}
+  }
+  /* ---- LE FONDU AU NOIR (ecranWipe) : quand le DÉCOR change — atelier, boutique, nouvelle course ---- */
+  #wipe{position:fixed;inset:0;z-index:300;pointer-events:none;visibility:hidden;opacity:0;
+    background:radial-gradient(120% 90% at 50% 42%,#1b1242 0%,#08061c 58%,#030211 100%)}
+  #wipe>*{display:none!important}
+  #wipe.in{visibility:visible;pointer-events:auto;opacity:1;transition:opacity 200ms var(--ease)}
+  #wipe.out{visibility:visible;pointer-events:none;opacity:0;transition:opacity var(--t-slow) var(--ease)}
+  /* ---- « RÉDUIRE LES ANIMATIONS » (iOS) : plus aucun déplacement, uniquement des fondus courts — la règle d'Apple ---- */
+  @media (prefers-reduced-motion:reduce){
+    .mscr.on,.mscr.on.avant,.mscr.on.retour{animation:mFondu var(--t-fast) linear both!important}
+    .mscr.on>*,.mscr.on>.mPlay,#mDead.on>[data-m=replay],#mDead.on>.mOver,.pbtn.pop,.gTab.pop,.mBank.pop,.mLigne.pop{animation:none!important}
+    #tPanel.open #tpIn,#modale.on .modIn,#carr.on .carrIn{animation:mFondu var(--t-fast) linear both!important}
+    body.touch #overlay{transition:none}
+  }
 </style>
 </head>
 <body>
@@ -2361,6 +2439,13 @@ const PXI_G={pinceau:'......###|.....####|....####.|...####..|..####...|.#.##...
 function pxi(n){return '<i class="pxi pxi-'+n+'" aria-hidden="true"></i>';}
 /* LA FENÊTRE DU JEU (2026-09-24) : remplace prompt()/confirm() — les boîtes GRISES du navigateur cassaient l'immersion
    pile sur les gestes les plus graves (sauvegarde, effacement). Même charte que le reste : cadre, titre or, plaques. */
+/* LES FEUILLES SE REFERMENT (2026-09-25, transitions App Store) : un panneau ne CLAQUE plus — il redescend et
+   s'efface en --t-fast. Il garde sa classe d'ouverture pendant l'animation (sinon `display:none` la couperait net),
+   puis la perd. Rouvrir pendant la sortie l'annule simplement. */
+function feuilleOuvre(el,cls){ if(!el)return; clearTimeout(el._fermeT); el.classList.remove('sortant'); el.classList.add(cls); }
+function feuilleFerme(el,cls){ if(!el||!el.classList.contains(cls))return; clearTimeout(el._fermeT);
+  if(document.documentElement.getAttribute('data-reduced-motion')==='1'){el.classList.remove(cls,'sortant');return;}
+  el.classList.add('sortant'); el._fermeT=setTimeout(function(){el.classList.remove(cls,'sortant');},170); }
 function modale(o){return new Promise(function(res){
   const m=document.getElementById('modale'),c=document.getElementById('modC'),b=m.querySelector('.modB');
   document.getElementById('modT').textContent=TR(o.titre);document.getElementById('modX').textContent=o.texte?TR(o.texte):'';
@@ -2368,8 +2453,8 @@ function modale(o){return new Promise(function(res){
   b.innerHTML='';
   for(const k of o.boutons){const e=document.createElement('div');e.className='pbtn '+(k.cls||'pb-cyan');e.setAttribute('role','button');
     e.innerHTML=(k.ic?pxi(k.ic):'')+'<span>'+TR(k.l)+'</span>';
-    e.addEventListener('click',function(ev){ev.stopPropagation();uiClic();m.classList.remove('on');res({v:k.v,texte:c.value});});b.appendChild(e);}
-  m.classList.add('on');
+    e.addEventListener('click',function(ev){ev.stopPropagation();uiClic();feuilleFerme(m,'on');res({v:k.v,texte:c.value});});b.appendChild(e);}
+  feuilleOuvre(m,'on');
   if(o.champ!=null)setTimeout(function(){try{c.focus();if(o.lecture)c.select();}catch(e){}},60);
 });}
 let toastT=0;
@@ -5245,11 +5330,11 @@ function carrVue(bi){
       h+='<div class="pbtn '+(ok?(i<f?'pb-green':'pb-gold'):'pb-cyan off')+' carrNiv" data-c="'+(ok?'niveau':'verrou')+'" data-b="'+bi+'" data-i="'+i+'" role="button" aria-label="Niveau '+(i+1)+(ok?'':' verrouillé')+'"><b>'+(ok?String(i+1).padStart(2,'0'):pxi('verrou'))+'</b><span>'+TR(N.nm)+'</span></div>';});
     h+='</div>';
   }
-  el.innerHTML=h+'</div>';el.classList.add('on');
+  el.innerHTML=h+'</div>';feuilleOuvre(el,'on');
 }
 function carrLancer(bi,i){
   CARR.actif={b:bi,i:i};
-  document.getElementById('carr').classList.remove('on');
+  feuilleFerme(document.getElementById('carr'),'on');
   runStats.zones=0;rebuildMenuScene(); // la piste de départ EST celle du niveau choisi
   if(!garageOn)openGarage(true); // lancé depuis le MENU : on passe par l'atelier en sourdine, comme JOUER
   garageLaunch();
@@ -7513,18 +7598,29 @@ function airPieDraw(fr,sec,flash){
   c.fillStyle='#0b0730';c.fillText((s10/10).toFixed(1),C,C+3);c.fillStyle='#fff';c.fillText((s10/10).toFixed(1),C,C);
   c.font='10px "Press Start 2P",monospace';c.fillStyle=col;c.fillText('AIR',C,C+30);
 }
-/* LE RIDEAU (2026-09-25, user : « applique-toi dans les transitions entre chaque écran ») : cinq barres tombent en
-   cascade, la pièce tourne au centre, on change d'écran SOUS le rideau, puis les barres filent vers le bas.
-   ~0,55 s en tout, en `steps()` : ça se lit comme un effet pixel, pas comme un fondu de présentation. */
-function ecranWipe(fn){
-  if(REDUCED_MOTION){fn();return;}
+/* LE FONDU AU NOIR (2026-09-25, user : « les transitions entre les écrans, niveau App Store ») — remplace le rideau à
+   cinq barres en `steps()`. C'est le geste des jeux premium quand le DÉCOR change (atelier, boutique, nouvelle course) :
+   le voile MONTE en 200 ms, on bascule DESSOUS — même la première construction de l'atelier, qui fige le fil
+   d'exécution, s'y cache —, on laisse la scène 3D dessiner DEUX images (sinon on redécouvrirait l'ancien décor le temps
+   d'une frame), puis le voile se RETIRE sur la courbe unique (`--ease`, `--t-slow`). `apres` (facultatif) part à l'instant
+   où l'on redécouvre : c'est là que le LÂCHER du garage doit démarrer, sous les yeux du joueur. Pendant un fondu, un
+   second est IGNORÉ : le voile intercepte déjà le doigt, et au clavier un double Entrée n'ouvrira pas l'atelier deux fois. */
+function ecranWipe(fn,apres){
   let w=document.getElementById('wipe');
-  if(!w){w=document.createElement('div');w.id='wipe';w.setAttribute('aria-hidden','true');
-    w.innerHTML='<i></i><i></i><i></i><i></i><i></i><b></b>';document.body.appendChild(w);}
-  if(ecranWipe._on)return fn();ecranWipe._on=true;
+  if(!w){w=document.createElement('div');w.id='wipe';w.setAttribute('aria-hidden','true');document.body.appendChild(w);}
+  if(ecranWipe._on)return;ecranWipe._on=true;const id=ecranWipe._id=(ecranWipe._id|0)+1;
   w.className='in';try{noiseBurst(.18,.05,1800);}catch(e){}
-  setTimeout(function(){try{fn();}catch(e){console.error(e);}
-    w.className='out';setTimeout(function(){w.className='';ecranWipe._on=false;},330);},300);
+  setTimeout(function(){
+    try{fn();}catch(e){console.error(e);}
+    let leve=false;
+    const lever=function(){ if(leve)return;leve=true;
+      w.className='out';ecranWipe._on=false; // la main revient DÈS que l'écran se redécouvre (le voile qui s'efface ne bloque plus rien)
+      if(apres){try{apres();}catch(e){console.error(e);}}
+      try{document.dispatchEvent(new Event('cc:revele'));}catch(e){} // la coque rejoue l'entrée de l'écran qu'on découvre
+      setTimeout(function(){if(ecranWipe._id===id)w.className='';},REDUCED_MOTION?160:460); }; // un fondu relancé entre-temps garde son voile
+    requestAnimationFrame(function(){requestAnimationFrame(lever);});
+    setTimeout(lever,160); // filet : onglet caché = aucune image, le voile ne doit jamais rester collé
+  },REDUCED_MOTION?120:210);
 }
 function uiPop(el){ // le rebond d'un bouton relâché (re-déclenchable : on retire, on force un reflow, on remet)
   if(!el||!el.classList||REDUCED_MOTION)return;el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');
@@ -11911,7 +12007,7 @@ window.dbgTouch=function(){return{on:TCTL.on,pad:TCTL.pad,act:TCTL.act,st:+TCTL.
 // (posé une fois par frame dans la physique, à côté de son `up` — une seule vérité, pas deux
 // façons de relire les touches qui divergeraient le jour où on remappe le clavier)
 let gasOn=false;
-addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight'].includes(e.code))e.preventDefault();if(e.code==='KeyP')togglePause();if(e.code==='Enter'&&started&&gameOver&&pendingScore==null){playViaGarage();}
+addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight'].includes(e.code))e.preventDefault();if(e.code==='KeyP')togglePause();if(e.code==='Enter'&&started&&gameOver&&pendingScore==null&&!garageOn&&overlay.style.display!=='none'){const rp9=document.querySelector('body.touch #mDead.on [data-m="replay"]');if(rp9)rp9.click();else playViaGarage();}
   if(e.code==='Space'&&!e.repeat&&started&&!gameOver){ // double-tap NITRO (<280 ms) = BRAQUAGE (e.repeat : une touche MAINTENUE ne compte pas)
     const n9=performance.now();
     // (le double-tap « DÉCOLLAGE » est retiré — voir styleFromBoost)
@@ -14024,7 +14120,10 @@ function garageLaunch(){
 // du user) — le garage reste la scène du départ, seule sa vitrine de shopping n'a rien à y faire.
 function playViaGarage(){
   if(pendingScore!=null||(started&&!gameOver))return; // course en cours, ou nom en cours de saisie : rien à faire
-  openGarage(true);garageLaunch();
+  // (2026-09-25, transitions App Store) le menu ne disparaît plus d'un coup sur l'atelier : fondu au noir, l'atelier
+  // s'allume DESSOUS, et le LÂCHER démarre quand le voile se lève — la caméra quitte l'orbite sous les yeux du joueur.
+  if(garageOn){garageLaunch();return;}
+  ecranWipe(function(){openGarage(true);},function(){garageLaunch();});
 }
 function garageGo(d){
   if(SHOP.tab!=='voiture'){ // BOUTIQUE : on feuillette les articles, la caisse reste la tienne
@@ -14603,7 +14702,7 @@ $('carr').addEventListener('click',function(e){ // un seul écouteur pour tout l
   e.stopPropagation();
   const el=e.target&&e.target.closest?e.target.closest('[data-c]'):null;if(!el)return;
   const c=el.getAttribute('data-c'),b=+el.getAttribute('data-b'),i=+el.getAttribute('data-i');
-  if(c==='fermer')$('carr').classList.remove('on');
+  if(c==='fermer')feuilleFerme($('carr'),'on');
   else if(c==='biomes')carrVue(null);
   else if(c==='biome')carrVue(b);
   else if(c==='niveau')carrLancer(b,i);
@@ -14637,7 +14736,7 @@ addEventListener('pointermove',e=>{if(!garageDrag)return;garageAng-=(e.clientX-g
 // ⚠ ORBITE BORNÉE À 7,8 m : au-delà on sortait par les murs et on traversait la servante et les
 // piles de pneus. Le décor est rangé POUR ce rayon (rien de posé à moins de 8,3 m du centre).
 addEventListener('wheel',e=>{if(!garageOn)return;garageDist=THREE.MathUtils.clamp(garageDist+e.deltaY*.008,4.6,8.6);},{passive:true}); // plafond 7,8→8,6 (2026-09-05) : le zoom arrière par défaut est monté, la molette doit pouvoir suivre
-addEventListener('keydown',e=>{if(!garageOn)return;if(e.code==='Escape')closeGarage();else if(e.code==='ArrowLeft')garageGo(-1);else if(e.code==='ArrowRight')garageGo(1);}); // même chemin que les flèches à l'écran (boutique comprise, premium exclues)
+addEventListener('keydown',e=>{if(!garageOn)return;if(e.code==='Escape'){const cr9=$('carr');if(cr9&&cr9.classList.contains('on'))feuilleFerme(cr9,'on');else if(!GAR.go)ecranWipe(closeGarage);}else if(e.code==='ArrowLeft')garageGo(-1);else if(e.code==='ArrowRight')garageGo(1);}); // même chemin que les flèches à l'écran (boutique comprise, premium exclues)
 
 // ---------- BOUCLE ----------
 const fwdW=new THREE.Vector3(),tmp=new THREE.Vector3(),tmp2=new THREE.Vector3(),tmp3=new THREE.Vector3(),mat4=new THREE.Matrix4();
@@ -16395,7 +16494,9 @@ renderLeaders(-1);
     // (2026-09-24, audit UX) sur TÉLÉPHONE on atterrit sur le MENU (JOUER · CARRIÈRE · GARAGE…) : le garage était le 1er écran
     // avec trois actions concurrentes (PLAY, CARRIÈRE, ✕) et une croix qui menait… au menu. Il redevient le lieu du CHOIX de la caisse.
     try{if(typeof openGarage==='function'&&!IS_MOBILE)openGarage();}catch(e){}
-    setTimeout(function(){sp9.style.opacity=0;},420);
+    setTimeout(function(){ // (2026-09-25) le voile s'OUVRE sur le menu — léger zoom-avant sur la courbe unique — et le menu joue son entrée dessous
+      sp9.style.transition='opacity .6s cubic-bezier(.32,.72,0,1),transform .6s cubic-bezier(.32,.72,0,1)';sp9.style.transform='scale(1.06)';sp9.style.opacity=0;
+      try{document.dispatchEvent(new Event('cc:revele'));}catch(e){} },420);
     setTimeout(function(){sp9.remove();},1150);
   }
   sp9.addEventListener('click',function(){ // 1er clic = lancer, 2e = passer
@@ -16552,7 +16653,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       else if(a==='surv')e.innerHTML=tpLbl('drapeau','SURVIVANT',SURV.armed?'ON':'OFF',SURV.armed); }
     const hd=pan.querySelector('.tpH'); if(hd)hd.textContent=run?'PAUSE':'CASH CAR'; }
   function panOpen(o){ if(!pan)return;
-    pan.classList.toggle('open',o);
+    if(o)feuilleOuvre(pan,'open');else feuilleFerme(pan,'open'); // la pause MONTE du bas et y redescend
     if(o){ panSync(); if(started&&!gameOver&&!paused)togglePause(); }
     else if(started&&!gameOver&&paused)togglePause(); }
   // ⚠ `click` EN PLUS DE `touchstart` (2026-09-05) — `#tGear`/`#tPanel` s'affichent maintenant sur
@@ -16603,7 +16704,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(play&&paused&&!couche&&TCTL.gelCouche){ TCTL.gelCouche=false; togglePause(); }
     if(!play)TCTL.gelCouche=false;
     const ovOpen=(overlay.style.display!=='none'); // le menu vient d'apparaître (mort, retour du garage, premier lancement) ?
-    if(ovOpen!==TCTL.ov){ TCTL.ov=ovOpen; if(ovOpen)mGo(mRoot()); }
+    if(ovOpen!==TCTL.ov){ TCTL.ov=ovOpen; if(ovOpen)mGo(mRoot(),'racine',true); } // filet : l'observateur plus bas l'a normalement déjà fait
   },140);
   // ---- GESTES PARASITES DU NAVIGATEUR : zoom pincé, double-tap, menu long-appui, tirer-pour-rafraîchir ----
   addEventListener('gesturestart',function(e){e.preventDefault();},{passive:false});
@@ -16659,8 +16760,20 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   try{ const ne=$t('nameEntry'),dd=$t('mDead'); // la saisie de record vient s'asseoir DANS l'écran de mort
     if(ne&&dd){const rp=dd.querySelector('[data-m="replay"]');dd.insertBefore(ne,rp?rp.nextSibling:null);} /* REJOUER en tête : le record se signe ensuite, sans repousser l'action principale sous le clavier */ }catch(e){}
   function mRoot(){return (started&&gameOver)?'dead':'home';}
-  function mGo(id){ mCur=id;
-    for(const k in mScr)if(mScr[k])mScr[k].classList.toggle('on',k===id);
+  /* LE ROUTEUR, AVEC UN SENS (2026-09-25, transitions App Store). Chaque écran a une PROFONDEUR : aller plus loin
+     POUSSE (l'écran arrive de droite, l'ancien file à gauche), revenir RAMÈNE (l'inverse), changer de racine
+     (accueil ↔ mort) fond l'un dans l'autre. L'écran qui part garde `.sort` le temps de s'effacer, posé EN DESSOUS
+     en absolu : il ne pousse pas la page. `sansSortie` : l'overlay vient d'apparaître, il n'y a rien à faire partir. */
+  const PROF={home:0,dead:0,modes:1,set:1,shop:1},SENS=['on','sort','avant','retour','racine'];
+  function mGo(id,sens,sansSortie){
+    const prev=mCur,de=mScr[prev],vers=mScr[id];mCur=id;
+    if(!sens)sens=(prev===id)?'racine':((PROF[id]|0)>(PROF[prev]|0)?'avant':(PROF[id]|0)<(PROF[prev]|0)?'retour':'racine');
+    for(const k in mScr){const e=mScr[k];if(!e)continue;clearTimeout(e._sortT);e.classList.remove.apply(e.classList,SENS);}
+    if(de&&de!==vers&&!sansSortie&&!REDUCED_MOTION){de.classList.add('sort',sens);
+      de._sortT=setTimeout(function(){de.classList.remove('sort',sens);},220);}
+    if(vers){ void vers.offsetWidth; // reflow : le MÊME écran rejoue son entrée (retour d'atelier, écran de mort)
+      for(let i=0;i<vers.children.length;i++)vers.children[i].style.setProperty('--i',Math.min(i,9));
+      vers.classList.add('on',sens); }
     if(overlay){overlay.scrollTop=0;overlay.setAttribute('data-ecran',id);} // le fond suit l'écran : l'accueil laisse voir le monde
     mFill(); }
   function mStatBox(v,l){return '<div class="mStat"><b>'+v+'</b><span>'+l+'</span></div>';}
@@ -16728,7 +16841,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   }catch(e){} }
   function mTap(a,el){
     uiClic();uiPop(el);if(a==='play'||a==='replay')pixBurst(el,16); // chaque bouton REBONDIT ; JOUER lâche une gerbe
-    if(a==='replay'&&started&&gameOver){ goImmersive(); resetGame(); } // REJOUER : tout de suite, sans repasser par l'atelier
+    if(a==='replay'&&started&&gameOver){ goImmersive(); ecranWipe(function(){ if(started&&gameOver)resetGame(); }); } // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS)
     else if(a==='play'||a==='replay'){ if(a==='play')CARR.actif=null;
       tutoArme(); // 1re partie = AUTO-ÉCOLE
       goImmersive(); playViaGarage(); }
@@ -16800,6 +16913,23 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     for(const t9 of L9){const sp=document.createElement('span'),x=t9.nodeValue.trim();sp.setAttribute('data-fr',x);sp.textContent=x;t9.parentNode.replaceChild(sp,t9);}}
     const sn=$t('spNote');if(sn){sn.textContent='touche CASH CAR — le son s\'allume avec toi';sn.dataset.fr=sn.textContent;} // sur un téléphone on TOUCHE, on ne clique pas
     try{applyLangDOM();}catch(e){}})();
+  // L'OVERLAY APPARAÎT (mort, retour d'atelier) → l'écran racine est posé TOUT DE SUITE, avant la prochaine image — plus
+  // au tick de 140 ms (l'ancien écran s'affichait un instant avant de céder la place à celui de la mort).
+  try{ new MutationObserver(function(){ const o=overlay.style.display!=='none';
+    if(o!==TCTL.ov){TCTL.ov=o;if(o)mGo(mRoot(),'racine',true);} }).observe(overlay,{attributes:true,attributeFilter:['style']}); }catch(e){}
+  // un fondu au noir se lève, ou le voile d'ouverture s'efface : l'écran découvert JOUE son entrée à cet instant-là
+  document.addEventListener('cc:revele',function(){ if(overlay.style.display!=='none'&&!garageOn)mGo(mCur,'racine',true); });
+  // ÉCHAP (la version téléphone jouée au clavier) : il referme ce qui est ouvert, dans l'ordre où l'œil le lit — la
+  // fenêtre, la pause, la carrière ; en course il MET EN PAUSE ; dans un sous-écran il REVIENT, comme le bouton retour.
+  addEventListener('keydown',function(e){ if(e.code!=='Escape'||e.repeat)return;
+    const md=$t('modale'),cr=$t('carr');
+    if(md&&md.classList.contains('on')&&!md.classList.contains('sortant')){const bs=md.querySelectorAll('.modB .pbtn');if(bs.length)bs[bs.length-1].click();return;} // le DERNIER bouton d'une fenêtre est toujours l'annulation
+    if(pan&&pan.classList.contains('open')&&!pan.classList.contains('sortant')){uiClic();panOpen(false);return;}
+    if(cr&&cr.classList.contains('on')&&!cr.classList.contains('sortant')){uiClic();feuilleFerme(cr,'on');return;}
+    if(garageOn||(typeof stallOn!=='undefined'&&stallOn))return; // l'atelier et l'étal ont déjà leur Échap
+    if(started&&!gameOver){panOpen(true);hap(10);return;}
+    if(overlay.style.display!=='none'&&PROF[mCur])mTap('back',null);
+  });
   mGo('home');
 }
 // ============================================================================
@@ -16829,7 +16959,7 @@ if(!(IS_MOBILE||/[?&]touch=1/.test(location.search))){
       else if(a==='surv')e.innerHTML=tpLbl('drapeau','SURVIVANT',SURV.armed?'ON':'OFF',SURV.armed); }
     const hd=dPan.querySelector('.tpH'); if(hd)hd.textContent=run?'PAUSE':'CASH CAR'; }
   function dPanOpen(o){ if(!dPan)return;
-    dPan.classList.toggle('open',o);
+    if(o)feuilleOuvre(dPan,'open');else feuilleFerme(dPan,'open');
     if(o){ dPanSync(); if(started&&!gameOver&&!paused)togglePause(); }
     else if(started&&!gameOver&&paused)togglePause(); }
   if(dGear)dGear.addEventListener('click',function(e){ e.stopPropagation(); dPanOpen(true); });
