@@ -1872,33 +1872,38 @@
   #gDesc .gDf em{font-style:normal;margin-left:auto;padding-left:8px;white-space:nowrap;color:#9fe8ff}
   #gDesc .gDf.ok i{box-shadow:inset 0 0 0 2px #5ee37a}
   /* -- LE NOUVEAU MOTEUR, EN GRAND -- */
-  #engBig{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 96px);z-index:68;width:min(340px,calc(100vw - 32px));pointer-events:none;
-    transform:translate(-50%,0) scale(.3);opacity:0;visibility:hidden}
+  #engBig{position:fixed;left:50%;top:50%;z-index:68;width:min(460px,calc(100vw - 16px));pointer-events:none;
+    transform:translate(-50%,-50%) scale(.3);opacity:0;visibility:hidden} /* (2026-09-25) AU MILIEU de l'écran, sans fenêtre : le moteur flotte */
   #engBig.on{visibility:visible;animation:ebVie 2.3s cubic-bezier(.3,1.5,.5,1) forwards}
-  @keyframes ebVie{0%{transform:translate(-50%,0) scale(.3) rotate(-6deg);opacity:0}14%{transform:translate(-50%,0) scale(1.08) rotate(1deg);opacity:1}
-    22%{transform:translate(-50%,0) scale(1) rotate(0)}82%{transform:translate(-50%,0) scale(1);opacity:1}100%{transform:translate(-50%,-40px) scale(.7);opacity:0}}
+  @keyframes ebVie{0%{transform:translate(-50%,-50%) scale(.3) rotate(-6deg);opacity:0}14%{transform:translate(-50%,-50%) scale(1.08) rotate(1deg);opacity:1}
+    22%{transform:translate(-50%,-50%) scale(1) rotate(0)}82%{transform:translate(-50%,-50%) scale(1);opacity:1}100%{transform:translate(-50%,-62%) scale(.8);opacity:0}}
+  #engBig .ebHalo{position:absolute;left:50%;top:55%;width:115%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;
+    background:radial-gradient(circle,color-mix(in srgb,var(--ec) 42%,transparent) 0,color-mix(in srgb,var(--ec) 14%,transparent) 38%,transparent 64%)}
+  @keyframes ebFlotte{from{transform:translateY(-9px) rotate(-1.6deg)}to{transform:translateY(9px) rotate(1.6deg)}}
+  #engBig .ebNum{font-size:84px;line-height:1;color:#fff8dc;letter-spacing:2px;margin:2px 0 -18px;position:relative;z-index:1;
+    text-shadow:0 0 16px rgba(255,215,94,1),0 0 38px rgba(255,160,20,.75),0 4px 0 #7a4e00,0 6px 14px rgba(0,0,0,.6)} /* LE NUMÉRO, comme le badge de Léo : c'est lui qu'on lit en un dixième de seconde */
+  #engBig .ebNum i{display:block;font-style:normal;font-size:10px;letter-spacing:3px;color:#ffd75e;margin-bottom:10px;text-shadow:0 0 10px rgba(255,215,94,.8),0 2px 0 #000}
   #engBig .ebRayons{position:absolute;left:50%;top:50%;width:520px;height:520px;margin:-260px 0 0 -260px;border-radius:50%;opacity:.55;
     background:repeating-conic-gradient(from 0deg,var(--ec) 0 8deg,transparent 8deg 24deg);
     -webkit-mask:radial-gradient(circle,#000 0,#000 18%,transparent 62%);mask:radial-gradient(circle,#000 0,#000 18%,transparent 62%);animation:ebTourne 6s linear infinite}
   @keyframes ebTourne{to{transform:rotate(360deg)}}
-  #engBig .eb3d{display:block;width:min(240px,62vw);height:auto;aspect-ratio:320/214;margin:-4px 0 -6px;image-rendering:auto;
-    filter:contrast(1.22) saturate(1.4) drop-shadow(0 8px 14px rgba(0,0,0,.55))} /* (2026-09-25) le MODÈLE 3D du moteur, au cœur de la carte — relevé : la recopie sort pâle */
-  #engBig .ebCarte{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 16px 16px;border-radius:24px;
-    font-family:var(--pix);text-align:center;color:#fff;
-    background:linear-gradient(180deg,rgba(40,34,104,.96),rgba(18,14,52,.97));border:3px solid var(--ec);
-    box-shadow:0 0 0 3px #0b0730,0 14px 34px rgba(0,0,0,.55),0 0 40px color-mix(in srgb,var(--ec) 55%,transparent)}
-  #engBig small{font-size:7px;letter-spacing:3px;color:var(--ec)}
-  #engBig b{font-size:19px;line-height:1.35;letter-spacing:1px;background:linear-gradient(180deg,#fffbe8,#ffd75e 45%,#ff9d2e);
+  #engBig .eb3d{display:block;width:min(600px,128vw);flex:none;height:auto;aspect-ratio:480/321;margin:-6% 0 -12%;image-rendering:auto; /* plus large que l'écran : le fond est transparent, seul le moteur se voit — EN GROS */
+    animation:ebFlotte 1.5s ease-in-out infinite alternate;
+    filter:contrast(1.22) saturate(1.4) drop-shadow(0 22px 16px rgba(0,0,0,.5)) drop-shadow(0 0 18px var(--ec))} /* il FLOTTE : il monte, redescend, se balance — l'ombre portée le décolle du décor */ /* (2026-09-25) le MODÈLE 3D du moteur, au cœur de la carte — relevé : la recopie sort pâle */
+  #engBig .ebCarte{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:0;
+    font-family:var(--pix);text-align:center;color:#fff} /* plus de fond ni de cadre : le moteur flotte dans le décor */
+  #engBig small{font-size:9px;letter-spacing:3px;color:var(--ec);text-shadow:0 2px 0 #000,0 0 10px rgba(0,0,0,.9)}
+  #engBig b{font-size:22px;line-height:1.35;letter-spacing:1px;background:linear-gradient(180deg,#fffbe8,#ffd75e 45%,#ff9d2e);
     -webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 #4d2300)}
   #engBig .ebDesc{font-size:7px;line-height:1.8;color:#d9d4ff;max-width:280px}
   #engBig .ebCyl{display:flex;gap:5px;flex-wrap:wrap;justify-content:center}
   #engBig .ebCyl i{width:12px;height:18px;border-radius:4px;background:#2a2268;box-shadow:inset 0 0 0 2px rgba(255,255,255,.12)}
   #engBig.on .ebCyl i{animation:ebCyl .18s steps(2) forwards}
   @keyframes ebCyl{to{background:var(--ec);box-shadow:0 0 10px var(--ec),inset 0 -4px 0 rgba(0,0,0,.25)}}
-  #engBig.rec .ebCarte{border-color:#ffd75e;box-shadow:0 0 0 3px #0b0730,0 14px 34px rgba(0,0,0,.55),0 0 56px rgba(255,215,94,.7)}
+  #engBig.rec .ebNum{color:#fff;text-shadow:0 0 18px #fff,0 0 46px rgba(255,215,94,1),0 4px 0 #7a4e00}
   #engBig.rec small{color:#ffd75e}
   #engBig em{font-style:normal;font-size:8px;letter-spacing:2px;color:#fff;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.08)}
-  @media (prefers-reduced-motion:reduce){#engBig.on{animation:none;opacity:1;transform:translate(-50%,0)}#engBig .ebRayons{animation:none}}
+  @media (prefers-reduced-motion:reduce){#engBig.on{animation:none;opacity:1;transform:translate(-50%,-50%)}#engBig .eb3d{animation:none}}
   /* -- l'écran de fin v3 : AURA et MOTEUR en héros, l'argent en petite ligne -- */
   .mHero{display:flex;gap:12px;width:100%;margin:14px 0 10px}
   .hCard{position:relative;flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 8px 12px;border-radius:20px;
@@ -2315,7 +2320,7 @@
   <div id="runStats"></div>
   <!-- LE MOTEUR ATTEINT : on montre la pièce qu'on a réussi à monter, pas seulement son nom.
        Le rendu 3D vient du MÊME moteur que la vignette de course (voir engVigRender). -->
-  <div id="endEng"><canvas id="endEngCv" width="320" height="214"></canvas><div id="endEngCap">MOTEUR ROUILLÉ<span id="endEngTier">PALIER 1 / 30</span></div></div>
+  <div id="endEng"><canvas id="endEngCv" width="480" height="321"></canvas><div id="endEngCap">MOTEUR ROUILLÉ<span id="endEngTier">PALIER 1 / 30</span></div></div>
   <div id="nameEntry"><span><i class="pxi pxi-etoile" aria-hidden="true"></i> NOUVEAU RECORD — TON NOM</span><input id="nameInput" maxlength="8" autocomplete="off" spellcheck="false"><button id="nameSave">VALIDER</button></div>
   <div id="lbBox"></div>
   <button id="playBtn" aria-label="Jouer">Jouer</button>
@@ -7156,7 +7161,7 @@ engVigScene.add(new THREE.HemisphereLight(0xd8ecff,0x241c3e,1.15));
 {const k=new THREE.DirectionalLight(0xffffff,1.55);k.position.set(3.5,5,4.5);engVigScene.add(k);
  const r=new THREE.DirectionalLight(0x7fd8ff,.9);r.position.set(-4,1.5,-3);engVigScene.add(r);
  const b=new THREE.DirectionalLight(0xff7a3c,.55);b.position.set(-2,-3,-4);engVigScene.add(b);} // contre-jour braise : la silhouette se détache du fond sombre
-const engRT=new THREE.WebGLRenderTarget(320,214,{minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,depthBuffer:true});
+const engRT=new THREE.WebGLRenderTarget(480,321,{minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,depthBuffer:true});
 // le quad de recollage — caméra ortho en coordonnées NDC (-1..1), donc positionner = convertir un rect DOM
 const engVigQuadScene=new THREE.Scene();
 const engVigQuadCam=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
@@ -8386,8 +8391,12 @@ function engBig(E,tier){
   b.style.setProperty('--ec',hx);b.classList.toggle('rec',rec);
   // (2026-09-25, user : « retrouve les modèles 3D des moteurs, qu'on ait l'animation EN GROS ») — le moteur 3D de la vignette PC
   // (engVigRender) est recopié dans ce <canvas>, AU-DESSUS du fond de la carte : il tourne, s'emballe au montage, se pose, chauffe.
-  b.innerHTML='<div class="ebRayons"></div><div class="ebCarte"><small>'+TR(rec?'NOUVEAU RECORD !':'NOUVEAU MOTEUR')+'</small><canvas class="eb3d" width="320" height="214"></canvas><b>'+TR(E.n)+'</b>'
-    +'<span class="ebDesc">'+TR(E.d||'')+'</span><div class="ebCyl">'+cyl+'</div><em>'+TR('PALIER')+' '+(tier+1)+' / '+ENGINE_TIERS.length+'</em></div>';
+  // (2026-09-25, user : « le moteur en gros au milieu de l'écran, qui flotte en l'air sans fenêtre grise, avec le nombre comme
+  // dans la version de Léo ») : plus de carte — un halo à la couleur du moteur, LE NUMÉRO du palier en géant (le badge de Léo),
+  // le moteur 3D qui flotte au centre de l'écran, son nom dessous. Le rendu est sur fond TRANSPARENT (engRT clearAlpha 0).
+  b.innerHTML='<div class="ebHalo"></div><div class="ebCarte"><small>'+TR(rec?'NOUVEAU RECORD !':'NOUVEAU MOTEUR')+'</small>'
+    +'<div class="ebNum"><i>'+TR('PALIER')+'</i>'+(tier+1)+'</div>'
+    +'<canvas class="eb3d" width="480" height="321"></canvas><b>'+TR(E.n)+'</b><div class="ebCyl">'+cyl+'</div></div>';
   engBig.ctx=b.querySelector('.eb3d').getContext('2d');engBig.on=true;engBig.t0=performance.now();engVigSpin=0;
   b.classList.remove('on');void b.offsetWidth;b.classList.add('on');
   hap(rec?[18,50,30,60,40]:[18,50,30]);pixBurst(b.querySelector('.ebCarte'),rec?28:18);
