@@ -11928,7 +11928,7 @@ const SPD=0.48; // +20 % (2026-09-25, user : « augmente la vitesse global du je
 const FVISEE={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()}; // le point de la route que la caméra regarde (route v2)
 const ASSIST_VIRAGE=.78; // part du virage de la route que la caisse suit TOUTE SEULE (voir la conduite v2)
 const TURN_HS=.0035; // pénalité de braquage à haute vitesse (avant .008 — plus petit = virages plus faciles)
-const AIR_ASSIST=1.0; // aide au recentrage en vol (0 = off), monte avec la vitesse
+const AIR_ASSIST=.2; // aide au recentrage en vol (0 = off), monte avec la vitesse — ÷5 (2026-09-25, user : « un effet qui t'attire vers le centre de la route, trop puissant, baisse-le au point qu'il ne soit plus remarquable ») : à 1,0 un ressort de 0,7·écart m/s² ramenait la caisse sur l'axe en plein vol ; il reste un filet qu'on ne sent plus
 const CAM_SHAKE_V=.45; // intensité du tremblement caméra lié à la vitesse (position + roulis) — .78→.45 : un frémissement, plus un séisme (user : « c'est trop »)
 // OVERDRIVE : il suivait le NIVEAU DE CAISSE (+8 %/niveau à partir du 6e). Depuis que la caisse est
 // équipée au choix, ça revenait à vendre de la vitesse au garage. Il suit désormais le PALIER MOTEUR,
