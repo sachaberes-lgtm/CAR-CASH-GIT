@@ -29,6 +29,25 @@
     **`raseSnd(dt)`** (`RSN`) : la bande rugueuse du RASE-BORD + un tic haptique ; **`froleSnd`**, **`flowSnd(lv)`**
     (accord majeur qui monte par palier). Passages de rapport : pétarade À CHAQUE rapport + tic + `fovPunch` 1,8.
   · Hook : `dbgConduite()` (état des chaînes), `dbgConduite('son')` (joue tout, renvoie les erreurs), `dbgConduite('frole')`.
+- **LE SOIR DU 25/09 — verdicts de Sacha et ce qui a changé (tous mesurés/rendus avant commit)** :
+  · **VOLANT « CAP VISÉ »** (`CAP_K/CAP_V0/CAP_V1/CAP_DRIFT/CAP_YAW/CAP_RET`, `capVise`) : le pouce DONNE LA DIRECTION ; lâcher = filer
+    droit sur sa ligne. Remplace le ressort `psi*=exp(-2,6…)` (« on est toujours aimanté au centre »). Banc : scratchpad `volant/sim.js`.
+    Courbe du pouce 1,15. Drift : braquage à fond TENU 0,12 s (ou pouce tiré vers le bas), paliers .45/.9/1,4 s, recharge `driftCd`.
+  · **BITUME v2** (`roadMat`, `ROAD_U`, `asphTex`, `routeTick`) : grain d'asphalte cuit une fois, spéculaire froid et serré, brillance
+    d'horizon, clarté par niveau (`NIVEAUX[].route/sheen`). La « tache rose » = reflet de `carLight` (désormais blanc neutre, portée 12,
+    décroissance 2) + lobe du `kick`. Étincelles et gerbes près de la caisse héritent de sa vitesse (`EXV`).
+  · **NIVEAUX** : NUAGES → VILLE → ORBITE ; jamais de Terre dans les nuages ; route de la VILLE plus claire.
+  · **DAUPHIN v3** (`dolTick`, `DAUPH`, `#dolHud`) : 2 s de vol continu au-dessus de la route, puis dauphins + étiquette DAUPHIN et aura
+    en direct, encaissée à la pose. Hook `dbgDauphin(...)`.
+  · **MOTEUR 3D EN GRAND** : la carte `#engBig` porte le modèle 3D (canvas `.eb3d`, recopie de `engRT`) ; sur téléphone plus aucun rendu
+    moteur hors de la carte. Hook `dbgMoteur()`.
+  · **CONDUITE v5** : effets de vitesse étalonnés sur `vCroisiere()` (=1,55×vmaxShow ; vmaxShow reste la référence d'économie) ; pads =
+    CIBLES (`PADL`, voies ±0,45×ROAD_HALF) ; MOMENTUM v2 (manœuvrer gèle, style nourrit, la pose juge) ; PORTES DE FRÔLÉ pour tous
+    (« PORTE ! », un frôlé payé par image) ; filés en sprites (zéro dégradé par image).
+  · **SON v5** : `sfxOk()` (rien n'est fabriqué muet/en pause) ; tampons de bruit cuits (`NZ_CACHE/BR_CACHE`) ; `subBoom` ne s'empile
+    plus ; turbo lu sur le MOTEUR ; nitro audible sur téléphone (`TEL_NATIF` : passe-haut de la flamme, `nB/gE` dans engSndParams) ;
+    moteur qui s'emballe en vol, gomme qui mord (`pneuMord`), tôle du POSÉ LOURD, « tchak » du PARFAIT ; une seule tonalité (`TON`,
+    `noteP`, `FLOW_ACC` — mi pentatonique) ; le FLOW prévient avant de retomber ; plot percuté (`coneSnd`).
 
 ## ⚠ FUSION SACHA × LÉO + NIVEAUX — 2026-09-24 (branche `fusion-2026-09`)
 - `index.html` = fusion à trois points : appstore-backlog (Sacha) × `main:version-leolei-2026` (Léo),

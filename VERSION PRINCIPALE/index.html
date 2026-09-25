@@ -3057,7 +3057,7 @@ let pts=[],T=[],Nn=[],B=[],L=0,NP=0,trackMinY=-1e9; // trackMinY : plancher du m
    chaque zone, donc ces listes se vident avec `trackMeshes` — sinon on garderait des références
    sur des matériaux disposés et le pouls s'appliquerait dans le vide. */
 const NEON_RAILS=[],NEON_GLOW=[];
-const trackMeshes=[];let PADS=[];let BUMPS=[];let CONES=[];let FLYCONES=[];let portalMesh=null;
+const trackMeshes=[];let PADS=[],PADL=[];let BUMPS=[];let CONES=[];let FLYCONES=[];let portalMesh=null;
 const GAP_ON=false; // ⚠ LES TREMPLINS SONT COUPÉS (demande du user) — un seul interrupteur, voir gapRun
 // TREMPLINS HÉROS (motif « gap catapulte », voir genCtrl/gapRun) : {s:lèvre, s0/s1:couloir gardé NU, v:variante}
 let RAMPS=[];
@@ -3923,7 +3923,7 @@ function routeTick(){ // le bitume suit le NIVEAU (fondu du portail : LVL.route 
 }
 function buildTrack(seed){
   for(const m of trackMeshes){scene.remove(m);if(m.geometry)m.geometry.dispose();if(m.material&&m.material.dispose)m.material.dispose();}
-  trackMeshes.length=0;NEON_RAILS.length=0;NEON_GLOW.length=0;PADS=[];BUMPS=[];CONES=[];FLYCONES=[];OILS=[];RAMPS=[];
+  trackMeshes.length=0;NEON_RAILS.length=0;NEON_GLOW.length=0;PADS=[];PADL=[];BUMPS=[];CONES=[];FLYCONES=[];OILS=[];RAMPS=[];
   const rnd=mulberry32(seed);
   const ctrl=PARK.on?genPark(rnd):(LVL.cur&&LVL.cur.piste==='tuto')?genTuto():genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course
   const curve=new THREE.CatmullRomCurve3(ctrl,false,'catmullrom',0.5);
@@ -4108,7 +4108,7 @@ function buildTrack(seed){
     RAMPS.push({s:sL,v:h.v,s0:Math.max(0,sL-340),s1:Math.min(L,h.s1+300)});
     // BOOST OPTIONNEL : un seul pad turbo sur la ligne droite, à ~95 m de la lèvre. On le prend ou on
     // l'ignore — c'est LE choix risque/récompense, pas un péage obligatoire.
-    if(sL-95>40)PADS.push(sL-95);
+    if(sL-95>40){PADS.push(sL-95);PADL.push(0);} // (le pad de la course d'élan reste dans l'axe)
     for(const fy of [1,-1]){ // MIROIR STRICT : le tremplin existe à l'identique sur les deux faces
       // 1) TAPIS DE CHEVRONS : la course d'élan s'allume, l'œil suit la flèche jusqu'à la lèvre
       frameAt(Math.max(0,sL-34),F);
@@ -4136,13 +4136,16 @@ function buildTrack(seed){
   for(let sp=180+rnd()*150;sp<L-100;sp+=280+rnd()*280){
     const padCol=new THREE.Color([0x2e7bff,0xffffff,0xff3030][Math.floor(rnd()*3)]); // bleu / blanc / rouge (tiré AVANT le filtre : le flux rnd reste identique quoi qu'il arrive)
     if(inGap(sp))continue; // la course d'élan garde son SEUL boost, celui qu'on a posé volontairement
-    PADS.push(sp);
+    // (2026-09-25) LE PAD EST UNE CIBLE : il vit sur une VOIE (gauche / axe / droite), déduite de sp — zéro rnd() consommé, la
+    // génération en aval ne bouge pas. Avant, il se déclenchait sur toute la largeur : un turbo reçu sans rien faire.
+    const pl=[0,-1,1][Math.floor(sp*.0071)%3]*ROAD_HALF*.45;
+    PADS.push(sp);PADL.push(pl);
     for(const fy of [1,-1]){
       frameAt(sp,F);
       const m=new THREE.Mesh(padGeo,new THREE.MeshBasicMaterial({map:padTex,color:padCol}));
       const nn=F.n.clone().multiplyScalar(fy);
       m.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(F.b.clone().multiplyScalar(-fy),F.t.clone(),nn));
-      m.position.copy(F.p).addScaledVector(F.n,fy>0?.1:-THICK-.1);
+      m.position.copy(F.p).addScaledVector(F.b,pl).addScaledVector(F.n,fy>0?.1:-THICK-.1); // même repère que les pièces (F.b brut sur les deux faces)
       scene.add(m);trackMeshes.push(m);
     }
   }
@@ -4211,14 +4214,16 @@ function buildTrack(seed){
     if(slal)for(const fc of [1,-1])for(let k=0;k<3;k++)placeCone(sp+k*15,(k%2?-1:1)*w9,fc);      // slalom en quinconce au milieu
     else for(const fc of [1,-1])for(let k=0;k<4;k++)placeCone(sp+k*7.5,sd9*(ROAD_HALF-1.3),fc); // ligne de chantier le long d'un bord
   }
-  // ---- FIN DE PARTIE (niveau 6+) : 2e vague de plots ----
-  // Flux aléatoire SÉPARÉ (graine dérivée) : la densité dépend du niveau sans rebrasser la génération.
-  if(level>=5){
-    const wrnd=mulberry32((seed^0xCA55E77E)>>>0);
-    for(let sp=385+wrnd()*220;sp<L-170;sp+=400+wrnd()*600){ // 2e vague de plots, miroir deux faces (intervalle doublé)
-      const w9=3+wrnd()*5;
-      if(inGap(sp))continue; // (tirage consommé au-dessus) — même la 2e vague épargne le couloir du tremplin
-      for(const f9 of [1,-1])for(let k=0;k<3;k++)placeCone(sp+k*13,(k%2?-1:1)*w9,f9);
+  // ---- 2e vague : LES PORTES DE FRÔLÉ (2026-09-25) — pour tout le monde (la caisse est cosmétique : elle ne règle plus la densité ;
+  // avant, cette vague n'existait qu'à partir de la 6e carrosserie). Un groupe de plots toutes les ~15 s, c'était trop peu pour
+  // FRÔLER : une porte de 6 m, passée pile au milieu, fait DEUX frôlés d'un coup. Flux SÉPARÉ (graine dérivée) : aucun tirage `rnd`
+  // consommé, la piste en aval ne bouge pas. Elle se resserre avec les portails, jamais avec la carrosserie. Ni parc, ni auto-école.
+  if(!PARK.on&&!(LVL.cur&&LVL.cur.piste==='tuto')){
+    const wrnd=mulberry32((seed^0xCA55E77E)>>>0),z9=Math.min(3,runStats.zones|0);
+    for(let sp=385+wrnd()*220;sp<L-170;sp+=(560-z9*40)+wrnd()*500){
+      const g9=(wrnd()*2-1)*(ROAD_HALF-6),nP=wrnd()<.5?2:3; // tirages AVANT le filtre, comme partout
+      if(inGap(sp))continue; // même la 2e vague épargne le couloir du tremplin
+      for(const f9 of [1,-1])for(let k=0;k<nP;k++){placeCone(sp+k*13,g9-3,f9);placeCone(sp+k*13,g9+3,f9);}
     }
   }
   // NUAGES : on roule DANS le ciel — grappes volumétriques traversables + couche lointaine diaphane
@@ -4714,7 +4719,7 @@ const fmt=v=>CUR()+' '+Math.round(v).toLocaleString(LOC());
    ========================================================================== */
 const I18N={
  // ---- la conduite (les textes qui jaillissent au-dessus de la caisse) ----
- 'FRÔLÉ !':'CLOSE CALL!','RASE-BORD':'EDGE RIDER','FRÉNÉSIE !':'FRENZY!','FRÉNÉSIE':'FRENZY',
+ 'FRÔLÉ !':'CLOSE CALL!','PORTE !':'GATE!','RASE-BORD':'EDGE RIDER','FRÉNÉSIE !':'FRENZY!','FRÉNÉSIE':'FRENZY',
  // ---- interface ----
  'GARAGE':'GARAGE','ÉQUIPER':'EQUIP','✓ ÉQUIPÉE':'✓ EQUIPPED','🔒 VERROUILLÉE':'🔒 LOCKED',
  'glisse pour tourner · molette pour zoomer':'drag to turn · scroll to zoom',
@@ -7726,17 +7731,19 @@ function countUp(el,to,fmt){ // un chiffre qui MONTE (départ franc, arrivée do
    roses (1,7 s). Au relâcher, le niveau atteint part en MINI-TURBO : une poussée, un coup de boost, et de la nitro rendue.
    Le geste que tous les jeux de caisse arcade ont rendu jouissif, posé sur la physique existante (la caisse pivote plus,
    perd un soupçon de vitesse en glisse — et la récupère au centuple à la sortie). */
-let driftC=0,driftLv=0,driftSpk=0,driftEnCours=false,fovPunch=0,carRoll9=0,raseT=0,raseAnn=false;const DRIFT_V=new THREE.Vector3(),EXV=new THREE.Vector3(); // EXV : la vitesse monde de la caisse, héritée par les étincelles d'échappement
+let driftC=0,driftLv=0,driftSpk=0,driftEnCours=false,driftArm=0,driftCd=0,fovPunch=0,carRoll9=0,raseT=0,raseAnn=false;const DRIFT_V=new THREE.Vector3(),EXV=new THREE.Vector3(); // EXV : la vitesse monde de la caisse, héritée par les étincelles d'échappement
 function driftTick(dt,on){
-  if(on){
+  driftCd=Math.max(0,driftCd-dt); // (2026-09-25) recharge après un mini-turbo : le zigzag de drifts ne se « farme » plus
+  if(on&&driftCd<=0){
     driftC+=dt;vA*=Math.max(0,1-.10*dt);
-    const lv=driftC>1.7?3:driftC>1.0?2:driftC>.5?1:0;
-    if(lv>driftLv){driftLv=lv;try{chimeNote([0,880,1175,1568][lv],0,.08,.16);}catch(e){}hap(lv===3?[14,30,14]:10);}
+    const lv=driftC>1.4?3:driftC>.9?2:driftC>.45?1:0; // (2026-09-25) .5/1/1,7 → .45/.9/1,4 : le SUPER et l'ULTRA tiennent enfin sur la route
+    if(lv>driftLv){driftLv=lv;try{chimeNote([0,noteP(3,1),noteP(5,1),noteP(7,1)][lv],0,.08,.16);}catch(e){}hap(lv===3?[14,30,14]:10);}
     driftSpk-=dt;
     if(driftLv>0&&driftSpk<=0){driftSpk=.045;const pool=driftLv===3?sparkPink:driftLv===2?sparkGold:sparkBlue,sp9=CARS[level];
       for(const sd of [-1,1]){DRIFT_V.set(sd*sp9.w*.42,.15,-sp9.l*.38);carGroup.localToWorld(DRIFT_V);sparkBurst(pool,DRIFT_V,2,5);}}
-  }else if(driftC>0){
+  }else if(!on&&driftC>0){
     if(driftLv>0){ // LE MINI-TURBO
+      driftCd=.6+.3*driftLv;if(driftLv>=2)momT=4.3; // recharge ; et le SUPER/ULTRA rend la réserve de momentum que la glisse a vidée
       boost=Math.max(boost,.35+.3*driftLv);vA+=6*driftLv;nitroGain(.16*driftLv);shake=Math.max(shake,.14*driftLv);flowAdd(9*driftLv);
       fovPunch=Math.max(fovPunch,6+6*driftLv);                                   // le champ S'OUVRE d'un coup : on est PROPULSÉ
       if(driftLv===3){slowT=Math.max(slowT,.14);try{flashEl.style.background='#ff5ec8';flashEl.style.opacity=.35;setTimeout(function(){flashEl.style.opacity=0;flashEl.style.background='#ff2020';},90);}catch(e){}}
@@ -7761,7 +7768,7 @@ function n9Saut(o){const n=performance.now(),s9=n-(o._viseT||0)>200;o._viseT=n;r
    seule montée : chaque geste de style remplit la jauge ; la jauge monte par PALIERS — ×2, ×3, ×4, puis ×5 FRÉNÉSIE ;
    chaque palier multiplie les gains, pousse la caisse un peu plus vite, ouvre le champ et colore les bords de l'écran.
    Arrête d'avoir du style : elle retombe. Crash : elle tombe à zéro. On ne VISE plus un score, on CHERCHE un état. */
-const FLOW={v:0,lv:0,idle:0,aff:-1};
+const FLOW={v:0,lv:0,idle:0,aff:-1,tk:0};
 const FLOW_COL=['#ffffff','#5ee6ff','#ffd75e','#ff5ec8','#b58cff'];
 function flowMult(){return 1+FLOW.lv*.5;}                    // ×1 · ×1,5 · ×2 · ×2,5 · ×3 sur l'argent
 function flowAdd(q){
@@ -7773,19 +7780,24 @@ function flowAdd(q){
     hap(lv===4?[20,40,20,40,40]:[12,30,16]);try{flowSnd(lv);}catch(e){}
     fovPunch=Math.max(fovPunch,4+lv*2);}
 }
-function flowReset(){FLOW.v=0;FLOW.lv=0;FLOW.idle=0;}
+function flowReset(){FLOW.v=0;FLOW.lv=0;FLOW.idle=0;FLOW.tk=0;}
+function flowDropSnd(lv){ // (2026-09-25) le palier PERDU : son accord redescend, deux notes douces — on informe, on ne punit pas
+  if(!(lv>0))return;const I=FLOW_ACC[lv];
+  chimeNote(noteP(I[2],1),0,.05,.12);chimeNote(noteP(I[0],1),.09,.045,.22);
+}
 /* LE FRÔLÉ (2026-09-25, user : « rends la conduite plus fun et plus addictive »). Passer AU RAS d'un plot, à bonne
    vitesse, sans le toucher. Le jeu punissait le plot touché (perte de vitesse) mais ne disait RIEN au pilote qui l'avait
    évité de 20 cm — or c'est ce geste-là qui fait les grands jeux de caisse arcade (le « near miss » de Burnout) : le
    risque paie TOUT DE SUITE, en nitro, en FLOW et en aura. Un slalom pris au cordeau ENCHAÎNE les frôlés : la chaîne
    tient 1,4 s entre deux plots, et le souffle comme le « ting » montent d'un cran à chaque maillon. */
 const FROLE={n:0,t:0,s0:null};
-function frole(c9,dl){
-  c9.frole=true;const pres=Math.max(0,Math.min(1,1-(dl-1.6)/2)); // 1 = rasé de près, 0 = large (3,6 m)
-  FROLE.n++;FROLE.t=1.4;
-  nitroGain(.08+.08*pres);flowAdd(4+4*pres);
+function frole(c9,dl,k){
+  k=k||1;c9.frole=true;const pres=Math.max(0,Math.min(1,1-(dl-1.6)/2)); // 1 = rasé de près, 0 = large (3,6 m) · k : plots frôlés dans la même image (une PORTE)
+  FROLE.n+=k;FROLE.t=1.4;
+  nitroGain((.08+.08*pres)*(k>1?1.5:1));flowAdd((4+4*pres)*(k>1?1.5:1)); // ×1,5 (et non ×2) : la porte paie plus sans gonfler le FLOW
+  momT=Math.min(4.3,momT+.6); // (momentum v2) le style NOURRIT la réserve de vitesse
   try{addAura(10+8*Math.min(6,FROLE.n));}catch(e){} // sans titre : l'aura monte en silence, le pop ci-dessous parle déjà
-  popTexte(FROLE.n>=2?'SLALOM ×'+FROLE.n:'FRÔLÉ !',FROLE.n>=3?'#ffd75e':'#7dffec');
+  popTexte(k>1?'PORTE !':FROLE.n>=2?'SLALOM ×'+FROLE.n:'FRÔLÉ !',k>1||FROLE.n>=3?'#ffd75e':'#7dffec');
   try{froleSnd(pres,FROLE.n);}catch(e){}
   hap(FROLE.n>=3?[8,20,8]:8);fovPunch=Math.max(fovPunch,1.5+2*pres);
   try{sparkBurst(sparkBlue,c9.mesh.position,3+Math.round(3*pres),5);}catch(e){}
@@ -7794,7 +7806,15 @@ function flowTick(dt){
   if(!started||gameOver)return;
   FLOW.idle+=dt;
   if(FLOW.idle>1.8)FLOW.v=Math.max(0,FLOW.v-dt*(7+FLOW.lv*2));   // plus on est haut, plus il faut NOURRIR
-  const lv=Math.min(4,Math.floor(FLOW.v/25));if(lv<FLOW.lv)FLOW.lv=lv;
+  const lv=Math.min(4,Math.floor(FLOW.v/25));
+  // (2026-09-25) LE FLOW PRÉVIENT AVANT DE LÂCHER : un tic qui ACCÉLÈRE quand il reste moins d'1,1 s avant de perdre le palier (au sol
+  // seulement : en vol on ne peut rien nourrir). Nourrir (pièce, drift, frôlé…) remet idle à 0 : le tic se tait tout seul.
+  if(FLOW.lv>0&&mode==='drive'){
+    const rest=Math.max(0,1.8-FLOW.idle)+Math.max(0,FLOW.v-FLOW.lv*25)/(7+FLOW.lv*2);
+    FLOW.tk-=dt;
+    if(rest<1.1&&FLOW.tk<=0){FLOW.tk=.1+.3*rest;try{chimeNote(noteP(FLOW_ACC[FLOW.lv][0],2),0,.025,.05);}catch(e){}hap(4);}
+  }
+  if(lv<FLOW.lv){try{flowDropSnd(FLOW.lv);}catch(e){}hap([6,30,6]);FLOW.lv=lv;FLOW.tk=0;}
   // l'affichage : pilule sous la jauge de nitro + bords de l'écran teintés (écrits seulement quand ça change)
   const k=Math.round(FLOW.v)+'|'+FLOW.lv;if(FLOW.aff===k)return;FLOW.aff=k;
   let h=document.getElementById('flowHud');
@@ -11026,10 +11046,11 @@ function engSndParams(e,st){
      NaN — et un NaN écrit dans un AudioParam ne se répare pas, il ÉTEINT le nœud pour toute la
      session. Repéré en test au moment du game over : « setTargetAtTime: non-finite value ».
      Le plancher coûte un `Math.max` et supprime la classe entière de pannes. */
-  const drv=Math.max(.08,.42+ch*2.45+ov*-.16);
+  const nB=st.nB||0,gE=st.gE==null?.72:st.gE; // (2026-09-25) nB : part du nitro qui GONFLE le moteur (téléphone) · gE : recul face à la bande-son (1 sur iOS, où la musique est verrouillée à 100 %)
+  const drv=Math.max(.08,.42+ch*2.45+ov*-.16+.55*nB*nA);
   const lpB=Math.max(240,Math.min(2800,e.fq+fF*e.fr)); // plafond 6200→2800 : le moustique vivait au-dessus
   // ×.72 : le moteur recule d'un cran pour que la BANDE-SON passe devant (plainte du même jour)
-  const ev=(.019+.026*rpm+.009*ch)*(1-.10*nA)*e.vol*(st.dk==null?1:st.dk)*.72;
+  const ev=(.019+.026*rpm+.009*ch)*(1-.10*nA+.38*nB*nA)*e.vol*(st.dk==null?1:st.dk)*gE;
   const vsp=st.vsp||0;
   return {
     fF:fF, detune:7+ch*19, subF:Math.max(22,fF*.5),
@@ -11040,13 +11061,13 @@ function engSndParams(e,st){
     drv:drv, post:1.05/Math.pow(drv,.55), eq:-8.0+ch*7.0,
     mix:.42+.20*ch+.10*(st.thr||0)+.05*nA,
     subG:e.sub*(.34+.30*ch+.22*(st.thr||0)+.45*nA), // la touche ET le boost gonflent le VENTRE du son
-    tickF:Math.max(6,fF), tickG:meca*(.012+.055*ch+.018*rpm)*(1-.5*nA),
+    tickF:Math.max(6,fF), tickG:meca*(.012+.055*ch+.018*rpm)*(1-.5*nA*(1-nB)),
     pinkG:(.020+.030*rpm+.020*ch)*(1-.4*nA),
     transF:240+vsp*2300*(1+dr*.004), diffF:120+vsp*760,
     transG:meca*(.008+.026*ch+.010*vsp)*(1-.55*nA),
     diffG:meca*(.006+.014*ch+.012*vsp)*(1-.55*nA),
     ovrF:200+rpm*900, ovrG:meca*ov*(.030+.070*rpm)*(1-.6*nA),
-    lp:lpB*(.62+ch*.55)*(1-ov*.45)*(1+(st.boost?.06:0))*(1+dr*.015)*(1-.25*nA)*(1-.45*(st.cloudIn||0)),
+    lp:lpB*(.62+ch*.55)*(1-ov*.45)*(1+(st.boost?.06:0))*(1+dr*.015)*(1-.25*nA*(1-nB))*(1-.45*(st.cloudIn||0)),
     /* LE BATTEMENT. `lfoG` s'ajoute au gain de base `ev` : tant qu'il reste SOUS `ev`, le volume
        ondule entre ~0 et 2·ev sans jamais s'inverser (un gain négatif ferait claquer la phase).
        Profondeur = le caractère de la fiche (`lope`, l'épave tousse plus qu'un V12) + la touche
@@ -11374,9 +11395,12 @@ function initAudio(){
   // + flutter lent 5 Hz — le « fwooosh » rond, chaud, moelleux. C'est LUI la nitro, surtout en vol.
   const jr=AC.createBufferSource();jr.buffer=brownBuf(2.7);jr.loop=true;
   jrF=AC.createBiquadFilter();jrF.type='lowpass';jrF.frequency.value=300;jrF.Q.value=.4;
-  const jrF2=AC.createBiquadFilter();jrF2.type='lowpass';jrF2.frequency.value=620;
+  const jrF2=AC.createBiquadFilter();jrF2.type='lowpass';jrF2.frequency.value=TEL_NATIF?1000:620;
   jrG=AC.createGain();jrG.gain.value=0;
-  jr.connect(jrF);jrF.connect(jrF2);jrF2.connect(jrG);jrG.connect(MASTER);jr.start();
+  jr.connect(jrF);jrF.connect(jrF2);
+  if(TEL_NATIF){const jrHp=AC.createBiquadFilter();jrHp.type='highpass';jrHp.frequency.value=120;jrF2.connect(jrHp);jrHp.connect(jrG);} // (2026-09-25) le haut-parleur d'un téléphone ne rend rien sous ~150 Hz : ce grave ne faisait que POMPER le compresseur — et appuyer sur NITRO rendait la caisse plus SOURDE
+  else jrF2.connect(jrG);
+  jrG.connect(MASTER);jr.start();
   const jrLfo=AC.createOscillator();jrLfo.type='sine';jrLfo.frequency.value=5.3;
   jrDep=AC.createGain();jrDep.gain.value=0;
   jrLfo.connect(jrDep);jrDep.connect(jrG.gain);jrLfo.start();
@@ -11450,7 +11474,7 @@ function engSwapSnd(){ // la scène complète du remplacement
 function engFan9(t0){
   if(!sfxOk())return;
   try{
-    const NOTES=[523.25,659.25,783.99,1046.50];   // do - mi - sol - do : le plus lisible qui soit
+    const NOTES=[noteP(0,1),noteP(2,1),noteP(3,1),noteP(5,1)];   // mi - sol# - si - mi : le plus lisible qui soit, dans la tonalité des pièces
     for(let k=0;k<NOTES.length;k++){
       const t=t0+k*.082, der=(k===NOTES.length-1), dur=der?1.05:.42;
       for(let h=0;h<2;h++){                       // h=0 la fondamentale, h=1 la partielle de cloche
@@ -11476,6 +11500,13 @@ function engFan9(t0){
 }
 function subBoom(vol){ // basse sourde d'impact
   if(!sfxOk())return;
+  /* ⚠ LES COUPS SOURDS NE S'EMPILENT PAS (2026-09-25). Une pose de MONSTRE ×3 lançait QUATRE sinus 90→34 Hz à la même milliseconde
+     (thud de pose, landBoom, son thud, rewardSfx) : même onde, même départ → les amplitudes s'ADDITIONNAIENT (.82 de crête) et le
+     compresseur du bus écrasait de ~9 dB la première note du carillon — pour un grave qu'un haut-parleur de téléphone ne joue même
+     pas. Dans une fenêtre de 60 ms on ne joue que l'EXCÉDENT sur le plus gros coup déjà parti. */
+  {const t9=AC.currentTime;
+   if(t9-subBoom._t<.06){if(vol<subBoom._v+.02)return;vol-=subBoom._v;subBoom._v+=vol;}
+   else{subBoom._t=t9;subBoom._v=vol;}}
   try{
     const o=AC.createOscillator(),g=AC.createGain();
     o.type='sine';o.frequency.setValueAtTime(90,AC.currentTime);
@@ -11505,6 +11536,13 @@ function heartBeat(){ // la mallette est lourde : le cœur du pilote cogne — t
    ni avec celle d'avant ni avec la musique. Le combo (fenêtre de 3 s) EST la portée : lâche la ligne et la mélodie
    repart d'en bas. C'est ce qui donne envie de ne plus la lâcher (le même ressort que les anneaux d'un hérisson bleu). */
 const GAMME_P=[0,2,4,7,9,12,14,16,19,21,24];
+/* (2026-09-25) UNE SEULE LANGUE pour toute la famille des récompenses : les pièces étaient en mi pentatonique, mais le FLOW jouait en
+   do/ré/mi/sol majeur, le frôlé une gamme par tons, la chaîne du chromatique, l'échelle des tons depuis la5, le drift la/ré/sol…
+   Or ces sons se SUPERPOSENT sans arrêt (ligne de pièces + slalom + palier de FLOW) : pièce n°3 (sol#5) contre l'accord de do du FLOW
+   = une seconde mineure qui bat à 47 Hz. Tout passe maintenant par noteP : mi pentatonique majeure, dans les registres d'avant. */
+const TON=330; // mi4 : la tonique EXACTE des pièces (660) et de rewardSfx (660/990/1320)
+function noteP(i,oct){return TON*Math.pow(2,GAMME_P[Math.max(0,Math.min(GAMME_P.length-1,i|0))]/12+(oct||0));}
+const FLOW_ACC=[null,[0,2,3],[1,3,5],[2,4,6],[3,5,7]]; // mi majeur · fa#-si-mi · sol#-do#-fa# · si-mi-si : la basse monte d'un degré par palier
 function blip(){
   if(!sfxOk())return;
   try{
@@ -11568,7 +11606,7 @@ function driftChargeSnd(){
       o1.start();o2.start();lfo.start();DRS={o1:o1,o2:o2,lp:lp,g:g,lfo:lfo};}catch(e){DRS=false;return;} }
   const T=AC.currentTime;
   if(on){
-    const lv=driftLv,base=[110,165,220,330][lv],d0=[0,.5,1,1.7][lv],dd=[.5,.5,.7,1][lv],fr=lv>=3?1:Math.min(1,Math.max(0,(driftC-d0)/dd));
+    const lv=driftLv,base=[110,165,220,330][lv],d0=[0,.45,.9,1.4][lv],dd=[.45,.45,.5,1][lv],fr=lv>=3?1:Math.min(1,Math.max(0,(driftC-d0)/dd));
     const f=base*(1+.25*fr);
     DRS.o1.frequency.setTargetAtTime(f,T,.03);DRS.o2.frequency.setTargetAtTime(f*1.5,T,.03);
     DRS.lp.frequency.setTargetAtTime(600+lv*650+fr*300,T,.05);
@@ -11606,7 +11644,7 @@ function froleSnd(pres,n){
     f.frequency.setValueAtTime(2600*up,t0);f.frequency.exponentialRampToValueAtTime(520*up,t0+d);
     const g=AC.createGain();g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(.12+.1*pres,t0+.06);g.gain.exponentialRampToValueAtTime(.001,t0+d);
     src.connect(f);f.connect(g);g.connect(MASTER);src.start(t0);src.stop(t0+d+.05);
-    chimeNote(1046.5*Math.pow(2,Math.min(7,n-1)*2/12),.02,.045+.025*pres,.18);
+    chimeNote(noteP(Math.min(9,n+3),1),.02,.045+.025*pres,.18);
   }catch(e){}
 }
 /* LES PALIERS DE FLOW SONNENT COMME DES ACCORDS QUI MONTENT : l'accord majeur égrené, un cran plus haut à chaque palier
@@ -11622,10 +11660,10 @@ window.dbgConduite=function(q){
 };
 function flowSnd(lv){
   if(!AC||!(lv>0))return;
-  const R=[0,523.25,587.33,659.25,783.99][lv];
-  chimeNote(R,0,.08,.22);chimeNote(R*1.26,.06,.07,.24);chimeNote(R*1.5,.12,.07,.3);
+  const I=FLOW_ACC[lv]; // (même tonalité que les pièces : mi · fa# · sol# · si)
+  chimeNote(noteP(I[0],1),0,.08,.22);chimeNote(noteP(I[1],1),.06,.07,.24);chimeNote(noteP(I[2],1),.12,.07,.3);
   if(lv>=2)sparkle(.1,.07);
-  if(lv>=3){subBoom(.12);chimeNote(R*2,.18,.06,.4);}
+  if(lv>=3){subBoom(.12);chimeNote(noteP(I[0]+5,1),.18,.06,.4);}
   if(lv===4){boostSnd(1.7);duckT=Math.max(duckT,.5);}
 }
 function fanfare(){ // nouvelle voiture : arpège victorieux (et le mix s'incline)
@@ -11634,7 +11672,7 @@ function fanfare(){ // nouvelle voiture : arpège victorieux (et le mix s'inclin
   try{
     [0,4,7,12].forEach(function(n,i){
       const o=AC.createOscillator(),g=AC.createGain();
-      o.type='square';o.frequency.value=440*Math.pow(2,n/12);
+      o.type='square';o.frequency.value=TON*Math.pow(2,n/12); // mi4 majeur (la tonalité commune)
       const t0=AC.currentTime+i*.09;
       g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(.07,t0+.02);
       g.gain.exponentialRampToValueAtTime(.001,t0+.32);
@@ -11690,7 +11728,7 @@ function rewardSfx(key,tier){ // signature courte assortie à chaque récompense
     sparkle(.3,.12);return;
   }
   if(key==='megaMeteor'){ // le gong : quinte grave qui fleurit
-    duckT=Math.max(duckT,.6);chimeNote(220,0,.2,.9);chimeNote(330,.05,.16,.9);chimeNote(880,.12,.12,.6);sparkle(.1,.14);subBoom(.2);return;
+    duckT=Math.max(duckT,.6);chimeNote(246.94,0,.2,.9);chimeNote(369.99,.05,.16,.9);chimeNote(987.77,.12,.12,.6);sparkle(.1,.14);subBoom(.2);return; // si3 · fa#4 · si5 : même quinte, audible sur téléphone, dans la tonalité
   }
   // MONSTRE 1/2/3 : arpège consonant qui GRANDIT avec le tier (fondamentale → quinte → octave)
   chimeNote(660,0,.07+tier*.02,.22);
@@ -11698,10 +11736,24 @@ function rewardSfx(key,tier){ // signature courte assortie à chaque récompense
   if(tier>=3){chimeNote(1320,.12,.09,.3);subBoom(.12);}
   sparkle(tier>=2?.08:.03,.05+tier*.02);
 }
+function pneuMord(k){ // (2026-09-25) LA GOMME ACCROCHE à la pose : une piaillée brève, plus forte si ça tape
+  if(!sfxOk())return;
+  try{const t0=AC.currentTime,src=AC.createBufferSource();src.buffer=noiseBuf(.14);
+    const f=AC.createBiquadFilter();f.type='bandpass';f.Q.value=7;f.frequency.setValueAtTime(1500,t0);f.frequency.exponentialRampToValueAtTime(950,t0+.1);
+    const g=AC.createGain();g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(.05+.07*k,t0+.008);g.gain.exponentialRampToValueAtTime(.001,t0+.12);
+    src.connect(f);f.connect(g);g.connect(MASTER);src.start(t0);src.stop(t0+.14);}catch(e){}
+}
+function coneSnd(){ // (2026-09-25) LE PLOT PERCUTÉ : un « thwock » de plastique creux — la note qui s'enfonce + le claquement
+  if(!sfxOk())return;
+  try{const t0=AC.currentTime,k=.92+.16*Math.random(),o=AC.createOscillator(),g=AC.createGain();o.type='sine';
+    o.frequency.setValueAtTime(420*k,t0);o.frequency.exponentialRampToValueAtTime(160*k,t0+.07);
+    g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(.10,t0+.004);g.gain.exponentialRampToValueAtTime(.001,t0+.09);
+    o.connect(g);g.connect(MASTER);o.start(t0);o.stop(t0+.1);noiseBurst(.04,.06,3500);}catch(e){}
+}
 function bumpSfx(n){ // rebond sur la tranche : carillon qui GRIMPE à chaque bump enchaîné
-  const st=Math.pow(1.335,Math.min(4,n-1));
-  chimeNote(392*st,0,.11,.3);
-  chimeNote(587*st,.07,.09,.32);
+  const b9=[1,3,4,5,6][Math.min(4,n-1)]; // une quinte juste qui grimpe, dans la tonalité commune
+  chimeNote(noteP(b9),0,.11,.3);
+  chimeNote(noteP(b9+3),.07,.09,.32);
   sparkle(.04,.07);
 }
 // ---------- TURBO v2 : décortiqué du sample WRX (analyse réelle du wav fourni) ----------
@@ -11712,10 +11764,10 @@ function bumpSfx(n){ // rebond sur la tranche : carillon qui GRIMPE à chaque bu
 function nitroSpool(){ // enclenchement : spool de turbo qui grimpe + goulée d'air
   if(!sfxOk())return;
   try{
-    const lv=level,t0=AC.currentTime;
+    const lv=Math.min(15,Math.max(0,engTier|0)*.5),t0=AC.currentTime; // (2026-09-25) le palier MOTEUR, jamais la caisse (ACIDE montait à 6 kHz : le moustique)
     const o=AC.createOscillator(),g=AC.createGain(),f=AC.createBiquadFilter();
     o.type='sawtooth';
-    const f0=650+lv*90,f1=2100+lv*260;
+    const f0=650+lv*90,f1=Math.min(3400,2100+lv*180);
     o.frequency.setValueAtTime(f0,t0);
     o.frequency.exponentialRampToValueAtTime(f1,t0+Math.max(.25,.5-lv*.015)); // les grosses caisses spoolent plus vite
     f.type='bandpass';f.Q.value=7;
@@ -11727,12 +11779,12 @@ function nitroSpool(){ // enclenchement : spool de turbo qui grimpe + goulée d'
     o.connect(f);f.connect(g);g.connect(MASTER);
     o.start(t0);o.stop(t0+.65);
   }catch(e){}
-  noiseBurst(.25,.05,900+level*150); // l'admission avale l'air
+  noiseBurst(.25,.05,900+Math.min(15,Math.max(0,engTier|0)*.5)*150); // l'admission avale l'air
 }
 function blowOff(){ // relâche : PSSHT + flutter « stu-tu-tu » calé sur le sample (≈28 Hz de référence)
   if(!sfxOk())return;
   try{
-    const lv=level,t0=AC.currentTime;
+    const t9=Math.max(0,engTier|0),e9=ENG_SND[t9]||ENG_SND[0],lv=Math.min(15,t9*.5),jet=e9.gr===1,t0=AC.currentTime; // (2026-09-25) le MOTEUR : une turbine n'a pas de soupape
     duckT=Math.max(duckT,.35); // le pssht mérite sa place
     // 1) le PSShhh : souffle large, attaque 30 ms, qui descend comme sur le wav
     const s=AC.createBufferSource();s.buffer=noiseBuf(1);
@@ -11742,7 +11794,7 @@ function blowOff(){ // relâche : PSSHT + flutter « stu-tu-tu » calé sur le s
     const g=AC.createGain();
     g.gain.setValueAtTime(.001,t0);g.gain.linearRampToValueAtTime(.16,t0+.03);
     // 2) le FLUTTER : hachures d'amplitude — l'épave bafouille lent (≈18 Hz), les monstres claquent vite (≈45 Hz)
-    const fr=16+lv*2.2,p=1/fr,n=Math.min(10,4+(lv>>1));
+    const fr=16+lv*2.2,p=1/fr,n=jet?0:Math.min(10,4+(lv>>1));
     for(let i=0;i<n;i++){
       const ta=t0+.06+i*p;
       g.gain.setValueAtTime(.15*Math.pow(.82,i),ta);
@@ -11757,7 +11809,7 @@ function blowOff(){ // relâche : PSSHT + flutter « stu-tu-tu » calé sur le s
     o2.frequency.exponentialRampToValueAtTime(94,t0+.4);
     g2.gain.setValueAtTime(.08,t0);g2.gain.exponentialRampToValueAtTime(.0008,t0+.45);
     o2.connect(g2);g2.connect(MASTER);o2.start(t0);o2.stop(t0+.5);
-    if(CARS[lv].rocket){ // fusées : pas de flutter mais une coupure d'afterburner — boom + sifflet qui tombe
+    if(jet){ // turbines et au-delà : pas de flutter mais une coupure d'afterburner — boom + sifflet qui tombe
       subBoom(.22);
       const o=AC.createOscillator(),g3=AC.createGain();
       o.type='sine';o.frequency.setValueAtTime(1900,t0);
@@ -12294,6 +12346,10 @@ function lateMul(){return 1+Math.min(.5,Math.max(0,engTier-8)*.035);}
 // carrosserie, jusqu'à 1900) alors que la caisse plafonne en vrai à CARS[0]×moteur donnait un ratio
 // minuscule — plus aucun frisson, plus de speed lines, quelle que soit l'allure.
 function vmaxShow(){return CARS[0].maxKmh*SPD*lateMul()*(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).push;}
+// LA CROISIÈRE RÉELLE (2026-09-25, audit mesuré) : gaz auto, la traînée équilibre la poussée à ≈1,55× vmaxShow. Les effets de VITESSE
+// (tremblement, filés, champ) se jugent sur ELLE : calés sur vmaxShow, ils saturaient 3-4 s après le départ et restaient plats toute la
+// partie — le momentum, un pad, le FLOW, le mini-turbo ne changeaient plus RIEN à l'écran. (vmaxShow reste la référence de l'économie.)
+function vCroisiere(){return vmaxShow()*1.55;}
 let mode='drive',s=0,lat=0,psi=0,vA=0,vL=0,side=1,driveDir=1; // driveDir : sens de conduite le long du ruban (+1/-1). TOUJOURS 1 en course ; dans le PARC il suit le sens d'atterrissage → les routes se roulent dans les DEUX sens (pas de sens imposé)
 const START_CASH=1.61; // la mise de depart, clin d'oeil au studio 1.61
 let steer=0,money=START_CASH,levelCash=0,boost=0,fallT=0,fallTR=0,padCd=0,shake=0,combo=0,comboT=0,graceT=0,safeS=0,yawAcc=0,edgeT=0,squashT=0,momT=0,styleM=0,fever=0,streak=0,slowT=0,steerHold=0,aheadV=0,sideCd=0,slipT=0,oilCd=0,hitT=0,insUsed=false,feverArmed=false,lastSpaceT=0,rollover=0,idleT=0,driftT=0,driftYaw=0;
@@ -12363,28 +12419,28 @@ const juiceCv=$('juiceCv'),juiceCx=juiceCv?juiceCv.getContext('2d'):null;
 slCv.width=innerWidth;slCv.height=innerHeight;if(juiceCv){juiceCv.width=innerWidth;juiceCv.height=innerHeight;}
 function drawSpeedLines(kmh,nitro){ // speed lines façon anime : traits radiaux fuyant le centre
   const W=slCv.width,H=slCv.height;
-  const vmxL=vmaxShow();
-  let k=Math.max(0,(kmh-vmxL*.55)/(vmxL*.7))+(nitro?.85:0); // BOOST = gros paquet de filés (nitro .42→.85 : on VOIT l'effet quand on boost)
+  const vcL=vCroisiere();
+  let k=Math.max(0,(kmh-vcL*.6)/vcL)+(nitro?.6:0); // (2026-09-25) « un peu » en croisière (12 traits), beaucoup plus au momentum, au boost, en nitro
   if(k<=.03){if(drawSpeedLines._had){slCtx.clearRect(0,0,W,H);drawSpeedLines._had=false;}return;} // rien à tracer : on n'efface le plein écran qu'UNE fois (plus de clearRect/frame à basse vitesse)
   slCtx.clearRect(0,0,W,H);drawSpeedLines._had=true;
   k=Math.min(1.35,k);
   const cx=W/2,cy=H*.46,n=Math.floor(k*30);
-  const b=nitro?[170,235,255]:[255,248,236];            // NITRO : filés cyan électrique
-  slCtx.globalCompositeOperation='lighter';slCtx.lineCap='round';
+  // (2026-09-25) DEUX SPRITES CUITS UNE FOIS (blanc chaud / cyan nitro) au lieu de 40 dégradés + 120 chaînes fabriqués PAR IMAGE :
+  // le ramasse-miettes du téléphone faisait des micro-saccades — exactement ce qui tue une sensation de vitesse.
+  const spr=drawSpeedLines.spr||(drawSpeedLines.spr=(function(){const mk=function(r,g,b){const c=document.createElement('canvas');c.width=64;c.height=4;
+    const x=c.getContext('2d'),gr=x.createLinearGradient(0,0,64,0);gr.addColorStop(0,'rgba('+r+','+g+','+b+',0)');gr.addColorStop(.4,'rgba('+r+','+g+','+b+',1)');
+    gr.addColorStop(1,'rgba('+r+','+g+','+b+',0)');x.fillStyle=gr;x.fillRect(0,0,64,4);return c;};return {w:mk(255,248,236),c:mk(170,235,255)};})());
+  const im9=nitro?spr.c:spr.w;                            // NITRO : filés cyan électrique
+  slCtx.globalCompositeOperation='lighter';
   for(let i=0;i<n;i++){
     const a=Math.random()*Math.PI*2,ca=Math.cos(a),sa=Math.sin(a)*.82,
           r0=Math.min(W,H)*(.30+Math.random()*.52),      // ils NAISSENT loin du centre → le milieu reste net
           len=(90+Math.random()*300)*k,
-          x0=cx+ca*r0,y0=cy+sa*r0,x1=cx+ca*(r0+len),y1=cy+sa*(r0+len),
-          al=((.05+Math.random()*.13)*Math.min(1,k)).toFixed(3);
-    const g=slCtx.createLinearGradient(x0,y0,x1,y1);     // filé qui s'estompe aux DEUX bouts : élégant, pas un bâton
-    g.addColorStop(0,'rgba('+b[0]+','+b[1]+','+b[2]+',0)');
-    g.addColorStop(.4,'rgba('+b[0]+','+b[1]+','+b[2]+','+al+')');
-    g.addColorStop(1,'rgba('+b[0]+','+b[1]+','+b[2]+',0)');
-    slCtx.strokeStyle=g;slCtx.lineWidth=.8+Math.random()*2.0*k;
-    slCtx.beginPath();slCtx.moveTo(x0,y0);slCtx.lineTo(x1,y1);slCtx.stroke();
+          x0=cx+ca*r0,y0=cy+sa*r0,d9=Math.hypot(ca,sa),w9=.8+Math.random()*2.0*k;
+    slCtx.globalAlpha=(.05+Math.random()*.13)*Math.min(1,k); // filé qui s'estompe aux DEUX bouts (le sprite) : élégant, pas un bâton
+    slCtx.setTransform(ca/d9,sa/d9,-sa/d9,ca/d9,x0,y0);slCtx.drawImage(im9,0,-w9*.5,len*d9,w9);
   }
-  slCtx.lineCap='butt';slCtx.globalCompositeOperation='source-over';
+  slCtx.setTransform(1,0,0,1,0,0);slCtx.globalAlpha=1;slCtx.globalCompositeOperation='source-over';
 }
 let pendingScore=null;
 let leaders=SAVE.d.leaders; // même tableau que la sauvegarde : les mutations coulent dedans
@@ -12543,7 +12599,7 @@ function addAura(n,titre,brut){ // brut : n est DÉJÀ multiplié par la vitesse
   if(titre){ // un gain NOMMÉ : il claque à l'écran, avec sa raison
     auraFlash=1;auraLastTxt=titre+' +'+n;
     trickMsg('✦ '+titre+'  +'+n,n>=250?3:2);
-    try{chimeNote(660*Math.pow(2,Math.min(6,figCombo)/12),0,.13,.20);}catch(e){}
+    try{chimeNote(noteP(Math.min(6,figCombo),1),0,.13,.20);}catch(e){}
   }
 }
 /* LE COMBO DE FIGURES — la source principale, et celle qui demande le plus de tenue.
@@ -12832,7 +12888,7 @@ function flyCash(worldPos,n){ // les billets VOLENT de la caisse vers le compteu
   }
 }
 function trickPop(k){ // carillon qui MONTE d'un demi-ton par maillon — l'oreille réclame la suite
-  chimeNote(520*Math.pow(2,Math.min(16,k)/12),0,.09,.16);
+  chimeNote(noteP(Math.min(7,k-1),1),0,.09,.16); // (même tonalité que les pièces)
 }
 function chainHudShow(){
   chainHud.textContent='CHAÎNE ×'+Math.min(6,chainMult).toFixed(1)+' · +'+Math.round(chainVal);
@@ -12851,7 +12907,7 @@ function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent dé
     chainMult+=n===1?.5:.15;
     while(ladderI<LADDER.length&&Math.min(6,chainMult)>=LADDER[ladderI][0]){ // palier franchi : on le crie
       trickMsg('×'+LADDER[ladderI][0]+' — '+LADDER[ladderI][1],LADDER[ladderI][0]>=4.5?3:2);
-      chimeNote(880*Math.pow(2,(ladderI+1)*2/12),0,.12,.22); // l'échelle monte à l'oreille aussi
+      chimeNote(noteP(ladderI+3,1),0,.12,.22); // l'échelle monte à l'oreille aussi (mi pentatonique)
       ladderI++;
     }
   }
@@ -12932,6 +12988,7 @@ function dolHudTick(dt){ // gate de course, quel que soit le mode
 }
 function respawn(){
   dolKill(); // (dauphin v3) replacer, repartir, recommencer : l'étiquette s'éteint, rien n'est versé
+  momT=0; // (momentum v2) repartir = réserve vide
   if(introD){introD=false;if(pigGroup){scene.remove(pigGroup);pigGroup=null;}} // R pendant le largage : on annule proprement
   s=THREE.MathUtils.clamp(safeS-8,0,Math.max(0,L-80));
   lat=0;psi=0;vA=26;vL=0;side=1;driveDir=1;graceT=1.6;prevTvalid=false;yawAcc=0;hopY=0;hopV=0;mode='drive';
@@ -12975,7 +13032,8 @@ function checkUpgrade(){
 }
 function startFall(impU,impF){
   FROLE.s0=null;FROLE.n=0;FROLE.t=0; // (2026-09-25) un plot SURVOLÉ n'est pas un frôlé : le balayage repart de l'atterrissage
-  mode='fall';fallT=0;fallTR=0;yawAcc=0;momT=0;airRoll=0;
+  mode='fall';fallT=0;fallTR=0;yawAcc=0;airRoll=0; // (momentum v2) le saut ne remet plus la réserve à zéro : c'est la POSE qui juge
+  driftC=0;driftLv=0;driftEnCours=false;driftArm=0; // une glisse ne survit pas au décollage (pas de mini-turbo en l'air)
   // TEMPO DE VOL ∝ VITESSE (2026-07-20, dosage DOUX sur base V1) : =1 jusqu'à 450 km/h affichés
   // (basse/moyenne vitesse : rigoureusement l'existant), puis +1 tous les 1800 km/h, CAP 1.35 —
   // loin du 2.3 de l'ancienne ère (qui compensait SPD=.25) : l'endgame TRAVERSE sa phase aérienne
@@ -13013,6 +13071,7 @@ function startFall(impU,impF){
     if(k<8)spawnP(flameCore,fallPos.x,fallPos.y,fallPos.z,
       (Math.random()-.5)*9,-2-Math.random()*3,(Math.random()-.5)*9,.25);
   }
+  if(AC&&engRpm>.42){const e9=ENG_SND[Math.max(0,engLvl)];if(e9&&e9.crk)crackle(e9.crk*.8);} // (2026-09-25) le moteur se décharge en quittant le sol
   whoosh();
 }
 const dTmp=new THREE.Vector3();
@@ -13099,7 +13158,8 @@ function tryLand(dt){
   if(landLoss>.28&&fallT>1.6)slowT=Math.max(slowT,.25);
   prevTvalid=false;mode='drive';
   sparkBurst(sparkGold,carGroup.position,10,9);
-  thud(Math.abs(vN));shake=Math.min(1.4,.35+Math.abs(vN)*.05+landLoss*.6);
+  thud(Math.abs(vN)*(impact<4.5&&landLoss<.2?.75:1));shake=Math.min(1.4,.35+Math.abs(vN)*.05+landLoss*.6); // (2026-09-25) la pose PARFAITE ne cogne plus plus fort que la lourde
+  engRpm*=.6;charge9=1;if(impact>2)pneuMord(Math.min(1,impact/10)); // la gomme MORD : le moteur reprend en charge, et ça piaille
   /* ---- LA RÉCEPTION À L'ARRACHÉE (2026-08-18) -------------------------------------------------
      Se poser À UN CHEVEU du couperet des 6 secondes. C'est le geste le plus tendu du jeu : rester en
      l'air paye en chaîne, mais dépasser tue — donc le style consiste à frôler la limite.
@@ -13130,6 +13190,8 @@ function tryLand(dt){
       else{g=1;gTxt='';}
     }
     rollover=g>=1.5?chainVal*.1:0; // ROLLOVER : un PARFAIT reporte 10 % — la fortune voyage au vol suivant
+    if(g>=1.5)momT=Math.max(momT,3);else if(g<1)momT*=.5; // (momentum v2) PARFAIT relance la vitesse, POSÉ LOURD en coûte la moitié
+    if(g<1){try{clank9(0,190,.12);clank9(.05,135,.09);}catch(e){}} // (2026-09-25) POSÉ LOURD : la TÔLE, sans carillon
     const snaked=fallUnder&&sideL===fallStartSide; // SNAKE LOOP v2 : passé SOUS la route, reposé face de départ
     if(snaked){chainVal+=14;chainMult+=.5;serpShow=2.6;} // la figure paye sa part + LE SERPENT néon se love autour de la caisse
     // GAP FRANCHI : le vol vient d'une CATAPULTE et il a vraiment traversé — le grand geste de la zone se paye
@@ -13169,6 +13231,7 @@ function tryLand(dt){
       // le portefeuille. 2 pièces pour une figure honnête, jusqu'à ~18 pour un enchaînement monstrueux.
       addCoins(Math.max(2,Math.min(18,Math.round(2+q/6))));
       rewardSfx(vKey,vTier); // signature sonore courte assortie à la récompense
+      if(g>=1.5){try{chimeNote(1980,.08,.055,.2);chimeNote(2640,.11,.04,.26);sparkle(.08,.06);if(g>=2)chimeNote(1320,.15,.06,.4);}catch(e){}} // (2026-09-25) le « tchak » du PARFAIT : harmoniques 3 et 4 du 660, au-dessus de l'arpège
       landBoom(carGroup.position,vTier); // P'TIT BOOM D'ATTERRISSAGE : toute figure MONSTER+ éclate à la pose (calibré sur le tier)
       boost=Math.max(boost,1.2);
       addStyle(14+chain*4);
@@ -13924,8 +13987,8 @@ function survTick(dt){
         if(Math.abs(b.lat-o9.lat)<o9.r+.6){b.slipT=.75;b.oilCd=1.2;break;}
       }
       b.padCd=Math.max(0,b.padCd-dt);
-      if(b.padCd<=0)for(const p9 of PADS){ // pads turbo : même coup de pied
-        if(Math.abs(rel-p9)<6&&Math.abs(b.lat)<ROAD_HALF){b.v+=14;b.padB=Math.max(b.padB,1.2);b.padCd=1.5;break;}
+      if(b.padCd<=0)for(let i9=0;i9<PADS.length;i9++){ // pads turbo : même coup de pied, même règle de VISÉE que le joueur
+        if(Math.abs(rel-PADS[i9])<6&&Math.abs(b.lat-PADL[i9])<4.1){b.v+=18;b.padB=Math.max(b.padB,1.5);b.padCd=1.5;break;}
       }
     }
   }
@@ -15220,8 +15283,11 @@ function loop(now){
       }
       prevTv.copy(F.t);prevTvalid=true;
       // MOMENTUM : tenir la ligne droite fait monter la puissance en exponentiel
-      if(up&&Math.abs(steer)<.2&&Math.abs(psi)<.25)momT+=dt;
-      else momT=Math.max(0,momT-dt*3);
+      // MOMENTUM v2 (2026-09-25) : tenir sa ligne REMPLIT la réserve, manœuvrer la GÈLE (frôlé, slalom, pièce visée ne coûtent plus rien —
+      // avant, un slalom de frôlés coûtait jusqu'à 38 % de vitesse) ; seuls la glisse, le gros coup de volant et le pied levé la VIDENT.
+      // Plafond 4,3 s = saturation de momF : plus de braquage « en banque ».
+      if(up&&!driftEnCours&&Math.abs(psi)<.6){if(Math.abs(steer)<.2&&Math.abs(psi)<.25)momT=Math.min(4.3,momT+dt);}
+      else momT=Math.max(0,momT-dt*2);
       const momF=1+Math.min(1.8,momT*momT*.1);
       let a=0;
       if(up)a=acc9*(vA<maxSp*(1+FLOW.lv*.05)?1:.55)*(boost>0?1.5:1)*momF*(1+FLOW.lv*.06); // ça pousse TOUJOURS sur la route — et le FLOW pousse plus loin
@@ -15240,7 +15306,11 @@ function loop(now){
       // LE DRIFT : braquage FORT à bonne vitesse, ou pouce tiré vers le bas (le geste du frein) en braquant
       const tireBas=TCTL.act&&TCTL.sv<-.45,vitOk=Math.abs(vA)>maxSp*.42;
       // (conduite v3) HYSTÉRÉSIS : on ENTRE en drift à 0,85 de braquage (ou pouce tiré), on n'en SORT que sous 0,45 — il ne clignote plus
-      if(!introD&&!PARK.on&&vitOk&&(Math.abs(steer)>.85||((tireBas||dn)&&Math.abs(steer)>.6)))driftEnCours=true;
+      // (2026-09-25) le braquage À FOND doit être TENU 0,12 s pour décrocher : un grand glissé de changement de ligne ne part plus
+      // en drift (ni au vide). Le geste du frein (pouce tiré vers le bas, ↓) décroche tout de suite.
+      const veut9=!introD&&!PARK.on&&vitOk&&(Math.abs(steer)>.85||((tireBas||dn)&&Math.abs(steer)>.6));
+      driftArm=veut9?driftArm+dt:0;
+      if(veut9&&(driftArm>.12||tireBas||dn))driftEnCours=true;
       else if(!vitOk||Math.abs(steer)<.45)driftEnCours=false;
       const drifte=driftEnCours;
       // réponse IMMÉDIATE (était une rampe de 0,3 s qui rendait le premier coup de volant mou) · en drift la caisse pivote plus
@@ -15316,10 +15386,11 @@ function loop(now){
       }
       // pads turbo
       padCd=Math.max(0,padCd-dt);
-      if(mode==='drive'&&padCd<=0)for(const p of PADS){
-        if(Math.abs(s-p)<6&&Math.abs(lat)<ROAD_HALF){
-          vA+=14;boost=Math.max(boost,1.2);padCd=1.5;
-          boostSnd();shake=Math.max(shake,.3);
+      if(mode==='drive'&&padCd<=0)for(let i9=0;i9<PADS.length;i9++){
+        if(Math.abs(s-PADS[i9])<6&&Math.abs(side*lat-PADL[i9])<4.1){ // 2,75 de pad + ~1,35 de caisse : il faut MORDRE dessus
+          vA+=18;boost=Math.max(boost,1.5);padCd=1.5; // viser paie plus qu'avant (14 → 18)
+          boostSnd();shake=Math.max(shake,.3);hap(10);
+          popTexte('TURBO','#5ee6ff');nitroGain(.12);flowAdd(6);momT=Math.min(4.3,momT+.8);
           break;
         }
       }
@@ -15369,13 +15440,14 @@ function loop(now){
       // piste, replacement, portail) = on repart de zéro.
       const sFr0=(FROLE.s0==null||s<FROLE.s0||s-FROLE.s0>60)?s:FROLE.s0;FROLE.s0=s;
       FROLE.t=Math.max(0,FROLE.t-dt);if(FROLE.t<=0)FROLE.n=0;
+      let fr9=null,fd9=9,fk9=0; // (2026-09-25) UN frôlé payé par image : une porte passée au milieu = deux plots frôlés, un seul « PORTE ! »
       if(mode==='drive')for(const c9 of CONES){
         if(c9.hit||c9.face!==side)continue; // chaque plot vit sur SA face
         // ⚠ les plots sont posés dans le repère du DESSUS (F.b jamais retournée) : sous la dalle, la caisse y est à side·lat —
         // la même règle que les pièces. Avant, on percutait (et on frôlait) le plot SYMÉTRIQUE, invisible.
         const dl9=lat-side*c9.lat;
         // LE FRÔLÉ se juge quand le plot SORT de la fenêtre de choc (2,6 derrière) : on ne paie pas un plot qu'on peut encore percuter
-        if(!c9.frole&&c9.dm!=null&&c9.s>sFr0-2.6&&c9.s<=s-2.6){c9.frole=true;if(graceT<=0&&speedKmh>vmaxShow()*.45&&c9.dm>=1.6&&c9.dm<3.6)frole(c9,c9.dm);}
+        if(!c9.frole&&c9.dm!=null&&c9.s>sFr0-2.6&&c9.s<=s-2.6){c9.frole=true;if(graceT<=0&&speedKmh>vmaxShow()*.45&&c9.dm>=1.6&&c9.dm<3.6){fk9++;if(c9.dm<fd9){fd9=c9.dm;fr9=c9;}}}
         if(Math.abs(s-c9.s)>2.6)continue;
         c9.dm=Math.min(c9.dm==null?9:c9.dm,Math.abs(dl9)); // l'écart le plus serré vu pendant le passage
         if(Math.abs(dl9)<1.6){
@@ -15385,11 +15457,12 @@ function loop(now){
             .addScaledVector(F.n,(5+Math.random()*5)*side); // il valse en s'ÉLOIGNANT de sa dalle
           FLYCONES.push({m:c9.mesh,v:kv,rx:(Math.random()-.5)*16,rz:(Math.random()-.5)*16,life:1.6});
           vA*=.985;shake=Math.max(shake,.14);
-          noiseBurst(.09,.08,520);
+          try{coneSnd();}catch(e){}hap(10);
           sparkBurst(sparkGold,c9.mesh.position,5,6);
           addStyle(2);
         }
       }
+      if(fr9)frole(fr9,fd9,fk9);
       // FLAQUES D'HUILE : passer dessus fait GLISSER (contrôle coupé un instant, la caisse chasse)
       oilCd=Math.max(0,oilCd-dt);
       if(mode==='drive'&&oilCd<=0)for(const o9 of OILS){
@@ -15655,7 +15728,8 @@ function loop(now){
          tmp2.copy(loop._vise);}
         camera.lookAt(tmp2);
         fovPunch=Math.max(0,fovPunch-dt*18);
-        const fovT=fovPor(fovPunch+FLOW.lv*2.2+72+Math.min(38,(speedKmh/Math.max(1,vmaxShow()))*17+speedKmh*.030)+(boost>0?8:0)+(nitroOn?(nitroBlue?22:15):0)); // (portrait : élargi par la tangente, voir fovPor) // le tunnel s'ouvre : part RELATIVE + part absolue + GROS coup de FOV au boost (Sacha)
+        const r9=speedKmh/Math.max(1,vCroisiere()), // (2026-09-25) le champ s'ouvre sur la CROISIÈRE réelle : il continue de réagir au momentum, au pad, au FLOW au lieu d'être collé au plafond
+              fovT=Math.min(160,fovPor(fovPunch+FLOW.lv*2.2+72+Math.min(38,r9*28+Math.max(0,r9-1)*10)+(boost>0?8:0)+(nitroOn?(nitroBlue?22:15):0))); // (portrait : élargi par la tangente, voir fovPor) // le tunnel s'ouvre : part RELATIVE + part absolue + GROS coup de FOV au boost (Sacha)
         camera.fov+=(fovT-camera.fov)*Math.min(1,dt*6);
         camera.updateProjectionMatrix();
         if(shake>0){
@@ -15667,7 +15741,7 @@ function loop(now){
         // à fond doit trembler autant qu'une COMÈTE à fond), puis le PLANÉ SUPERSONIQUE calme tout :
         // passé ~350 km/h affichés, l'air ne lutte plus, la caisse fend — les vibrations fondent à 30 %.
         const vmx9=vmaxShow(),
-              spdN=THREE.MathUtils.clamp((speedKmh-vmx9*.60)/(vmx9*.55),0,1),
+              spdN=THREE.MathUtils.clamp((speedKmh-vmx9*1.55*.35)/(vmx9*1.55*.9),0,1), // (2026-09-25) sur la CROISIÈRE (1,55×vmaxShow) : ≈.10 en croisière, et de la marge pour le momentum, le FLOW, la nitro
               calm9=1-.7*THREE.MathUtils.smoothstep(speedKmh,700,1800), // fenêtre DOUBLÉE (SPD .25→.5 : les km/h affichés ont doublé) — le plané supersonique calme au même état-caisse qu'avant, pas dès le mid-game
               spdSh=spdN*spdN*CAM_SHAKE_V*.42*calm9*(nitroOn?1.3:1); // FRISSON, pas séisme : à vmax de croisière ≈ .10 d'amplitude (la sensation vient du FOV + speed lines, le tremblement signale juste la LIMITE)
         if(spdSh>0&&!window.dbgNoShake){
@@ -16186,7 +16260,7 @@ function loop(now){
         // ligne PAR PALIER : l'index, c'est `engTier`, sans conversion.
         let resync9=false;{if(engLvl!==engTier){engSetTier(engTier);resync9=true;}}
         const eng=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0];
-        const thr=up?1:0,sN=Math.min(1.06,spd3/Math.max(1,vmaxShow())); // régime = part de la vitesse RÉELLEMENT atteignable (la fiche de la carrosserie n'a plus rien à voir avec ce que la caisse fait)
+        const thr=(up&&!(AUTO_GAS&&(dn||driftEnCours)))?1:0,sN=Math.min(1.06,spd3/Math.max(1,vCroisiere())); // (2026-09-25) gaz auto : le DRIFT lève le pied du SON (frein moteur, pop-corn) — la physique garde `up` · régime sur la CROISIÈRE réelle : la boîte ne passe plus tous ses rapports en 3 s pour rester au rupteur toute la partie // régime = part de la vitesse RÉELLEMENT atteignable (la fiche de la carrosserie n'a plus rien à voir avec ce que la caisse fait)
         // BOÎTE VIRTUELLE : rapports courts en bas, longs en haut. Montée → CHUNK → chute →
         // remontée : la respiration qui rend l'accélération grisante (une rampe nue est monotone)
         let tgt;
@@ -16226,9 +16300,9 @@ function loop(now){
         /* LE POP-CORN D'ÉCHAPPEMENT. Il existait déjà mais ne se déclenchait qu'à l'INSTANT du
            lâcher. Un vrai échappement continue de péter pendant toute la décélération, de plus
            en plus espacé — c'est la traîne qui fait le plaisir, pas le premier pop. */
-        if(engWasUp&&!up&&engRpm>.42&&eng.crk>0&&Math.random()<eng.crk)crackle(eng.crk);
-        else if(ovr9>.25&&eng.crk>0&&Math.random()<dt*7*eng.crk*ovr9*ovr9)crackle(eng.crk*.55);
-        engWasUp=up;
+        if(engWasUp&&!thr&&engRpm>.42&&eng.crk>0&&Math.random()<eng.crk)crackle(eng.crk);
+        else if(ovr9>.25&&eng.crk>0&&Math.random()<dt*(AUTO_GAS?3.5:7)*eng.crk*ovr9*ovr9)crackle(eng.crk*.55); // gaz auto : la traîne dure tout le drift, égrenée deux fois moins pour laisser le « brrrr » de charge
+        engWasUp=!!thr;
         const wob=eng.wob?Math.sin(t*12.7)*Math.sin(t*3.1)*eng.wob*Math.max(0,1-engRpm*3.5):0; // l'épave respire au ralenti
         /* ---- TOUS LES RÉGLAGES EN UN APPEL ----
            Les formules sont dans <<<SON-MOTEUR>>>, la boucle ne fait plus que les APPLIQUER.
@@ -16236,7 +16310,7 @@ function loop(now){
            recopier une ligne. Une palette de 30 timbres qu'on ne peut pas écouter côte à côte
            n'est pas une palette, c'est un tableau de nombres. */
         const P9=engSndParams(eng,{rpm:engRpm,charge:charge9,ovr:ovr9,drift:drift9,nA:nA,thr:thr,
-          vsp:Math.min(1.15,spd3/Math.max(1,vmaxShow())),wob:wob,boost:boost>0,cloudIn:cloudInS,dk:dk});
+          vsp:Math.min(1.15,spd3/Math.max(1,vmaxShow())),wob:wob,boost:boost>0,cloudIn:cloudInS,dk:dk,nB:TEL_NATIF?1:0,gE:VOL_LOCKED?1:.72});
         const T=AC.currentTime;
         osc.frequency.setTargetAtTime(P9.fF,T,.035);
         osc2.frequency.setTargetAtTime(P9.fF,T,.04);
@@ -16267,10 +16341,17 @@ function loop(now){
       }else if(gainN){
         // en vol : un souffle de moteur résiduel ; MORT ('boom') : coupé NET — et on retombe au
         // ralenti pour que la reprise ne reparte pas d'un régime fantôme aigu
-        gainN.gain.setTargetAtTime(mode==='fall'?.004:0,AC.currentTime,mode==='boom'?.05:.1);
+        if(mode==='fall'&&!nitroOn){ // (2026-09-25) ROUES LIBRES : le moteur s'emballe doucement en vol (il était figé et muet), rupteur par le LFO déjà branché
+          const e0=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0],T0=AC.currentTime;
+          engRpm+=(.9-engRpm)*Math.min(1,dt*2.2);
+          const f0=(e0.i+engRpm*e0.r)*.62;
+          osc.frequency.setTargetAtTime(f0,T0,.05);osc2.frequency.setTargetAtTime(f0,T0,.06);
+          engSub.frequency.setTargetAtTime(Math.max(22,f0*.5),T0,.06);
+          gainN.gain.setTargetAtTime(.013*e0.vol*dk,T0,.08);
+          engLfo.frequency.setTargetAtTime(9,T0,.05);engLfoG.gain.setTargetAtTime(.009*e0.vol*dk,T0,.08);
+        }else{gainN.gain.setTargetAtTime(mode==='fall'?.004:0,AC.currentTime,mode==='boom'?.05:.1);engLfoG.gain.setTargetAtTime(0,AC.currentTime,.1);}
         if(mode==='boom'){engRpm=0;const e0=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0]; // idem : le ralenti de la mort suit le MOTEUR
           osc.frequency.setTargetAtTime(e0.i,AC.currentTime,.3);osc2.frequency.setTargetAtTime(e0.i,AC.currentTime,.3);}
-        engLfoG.gain.setTargetAtTime(0,AC.currentTime,.1);
         engWhineG.gain.setTargetAtTime(0,AC.currentTime,.1);
         // en vol il n'y a plus ni charge, ni boîte, ni frein moteur : les roues ne touchent rien
         for(const n9 of [transG,diffG,ovrG,engTickG,pinkG])if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.12);
