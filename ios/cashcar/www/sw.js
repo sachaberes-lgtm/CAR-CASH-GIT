@@ -25,7 +25,8 @@
    v16 (2026-09-24) : icônes pixel (assets/icons/), charte pixel unifiée, niveaux Nuages → Ville → Orbite.
    v19 (2026-09-24) : fusion du push de Léo (v17/v18 chez lui) — musique par monde (noite-de-velocidade,
         nocturnal-groove), moteur, voitures low-poly ; charte v2 et passe UX côté Sacha. */
-const CACHE = 'cashcar-v19';
+//  v20 (2026-09-25) : boutique, défis, auto-école, charte v3, lecteur de musique unique, ville en 1er niveau, caisses premium.
+const CACHE = 'cashcar-v20';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
