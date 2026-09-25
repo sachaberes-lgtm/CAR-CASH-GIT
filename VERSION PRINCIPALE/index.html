@@ -3006,7 +3006,7 @@ function updateContactShadow(){ // appelée juste avant le rendu
     contactShadow.position.copy(shTmpP);
     shMat4.makeBasis(Fsh.b,Fsh.t,Fsh.n); // le plan (XY, normale +Z) épouse la route
     contactShadow.quaternion.setFromRotationMatrix(shMat4);
-    contactShadow.scale.set(5.4,6.6,1);contactShadow.material.opacity=side<0?0.85:0.30;contactShadow.visible=true; // face -1 : le blob reste seul (l'ombre réelle part dans le vide) ; dessus .30 : la shadow map ancre déjà, un blob plus noir creusait un ANNEAU dans le néon/les flaques
+    contactShadow.scale.set(3.8,5.4,1);contactShadow.material.opacity=side<0?0.85:0.24; // (2026-09-25) 5,4×6,6 → 3,8×5,4 et .30 → .24 : une assise, plus un disquecontactShadow.visible=true; // face -1 : le blob reste seul (l'ombre réelle part dans le vide) ; dessus .30 : la shadow map ancre déjà, un blob plus noir creusait un ANNEAU dans le néon/les flaques
   }else if(mode==='fall'){
     const hgt=fallPos.y-lastNearY; // hauteur au-dessus de la route la plus proche → télégraphe d'atterrissage
     if(hgt>0.4&&hgt<46&&lastNearH2<560){ // ...mais RIEN à survoler au-dessus d'un trou : pas d'ombre suspendue dans le vide
@@ -3856,6 +3856,48 @@ function genPark(rnd){
   straight(150,-30,2);                 // SORTIE propre (le bouclage se fait par newTrack → nouveau secteur)
   return ctrl;
 }
+/* ================= LE BITUME v2 (2026-09-25) =================
+   User : « retravaille complètement les shaders, j'aime pas cette tache rose sur la route ». MESURÉ en rendu, source par
+   source (inventaire : scratchpad/lumieres.md) : la grosse tache rose à cœur blanc derrière la caisse était le reflet de
+   `carLight` (la lumière d'appoint de la carrosserie) sur un bitume au spéculaire SAUMON 0x8a524a et au lobe ÉNORME
+   (shininess 40 : ±10° de demi-vecteur) ; la grande nappe magenta, le même lobe sous la directionnelle `kick` du biome ;
+   le bloom, le WB magenta et le split-tone rosé finissaient le travail. Le bitume change donc de nature :
+     · un vrai GRAIN d'asphalte (texture cuite une fois, granulats clairs) qui module le diffus ET le spéculaire : les reflets
+       deviennent un scintillement de matière, plus jamais une flaque ;
+     · un spéculaire FROID et SOMBRE, plus serré (0x2c2a3a, shininess 80) : chaque lumière garde sa couleur, en petit ;
+     · une BRILLANCE D'HORIZON (fresnel) à la couleur du brouillard : la route luit vers le lointain, elle se lit ;
+     · une CLARTÉ PAR NIVEAU (`uLift`) : la VILLE a un bitume plus clair, qui se détache de la ville sombre (user).
+   Les uniformes vivent dans ROAD_U, PARTAGÉS par toutes les pistes : routeTick() les écrit une fois par image. */
+const ROAD_U={uLift:{value:new THREE.Color(0,0,0)},uSheen:{value:.1},uSheenCol:{value:new THREE.Color(.4,.3,.5)}};
+let ASPH_TEX=null;
+function asphTex(){ if(ASPH_TEX)return ASPH_TEX;
+  const N=256,cv=document.createElement('canvas');cv.width=cv.height=N;const c=cv.getContext('2d'),im=c.createImageData(N,N),d=im.data;
+  let sd=1337;const r=function(){sd=(sd*16807)%2147483647;return sd/2147483647;};
+  for(let i=0;i<N*N;i++){let v=208+(r()-.5)*44;          // le grain fin, autour de 0,8
+    if(r()<.035)v+=30+r()*30;                                // les granulats clairs : ce sont eux qui scintillent
+    if(r()<.02)v-=45;                                        // les petits trous sombres
+    v=Math.max(140,Math.min(255,v));d[i*4]=d[i*4+1]=d[i*4+2]=v;d[i*4+3]=255;}
+  c.putImageData(im,0,0);
+  const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;
+  t.anisotropy=Math.min(IS_MOBILE?4:8,renderer.capabilities.getMaxAnisotropy()); // la route se regarde RASANTE : sans anisotropie le grain devient une bouillie
+  return (ASPH_TEX=t);
+}
+function roadMat(){
+  const m=new THREE.MeshPhongMaterial({color:0x322e40,side:THREE.DoubleSide,vertexColors:true,map:asphTex(),specularMap:asphTex(),
+    shininess:80,specular:0x2c2a3a,envMap:envTex,reflectivity:.05});
+  m.onBeforeCompile=function(sh){
+    sh.uniforms.uLift=ROAD_U.uLift;sh.uniforms.uSheen=ROAD_U.uSheen;sh.uniforms.uSheenCol=ROAD_U.uSheenCol;
+    sh.fragmentShader='uniform vec3 uLift;uniform float uSheen;uniform vec3 uSheenCol;\n'+sh.fragmentShader.replace('#include <envmap_fragment>',
+      '#include <envmap_fragment>\n{float fr9=pow(1.0-clamp(abs(dot(normal,normalize(vViewPosition))),0.0,1.0),4.0);outgoingLight+=uLift+uSheenCol*(uSheen*fr9);}');
+  };
+  m.customProgramCacheKey=function(){return 'bitumeV2';}; // UNE compilation pour toutes les pistes
+  return m;
+}
+function routeTick(){ // le bitume suit le NIVEAU (fondu du portail : LVL.route / LVL.sheen, voir lvlStep)
+  const r=LVL.route;ROAD_U.uLift.value.setRGB(.010+.15*r,.009+.13*r,.016+.16*r); // ⚠ l'étalonnage de la pluie écrase le rouge et le vert : la clarté doit être NEUTRE et franche pour se lire (mesuré : (0,0,17) → (2,0,47) avec une clarté bleutée de .05)
+  ROAD_U.uSheen.value=LVL.sheen;
+  ROAD_U.uSheenCol.value.copy(scene.fog.color).multiplyScalar(1.5);
+}
 function buildTrack(seed){
   for(const m of trackMeshes){scene.remove(m);if(m.geometry)m.geometry.dispose();if(m.material&&m.material.dispose)m.material.dispose();}
   trackMeshes.length=0;NEON_RAILS.length=0;NEON_GLOW.length=0;PADS=[];BUMPS=[];CONES=[];FLYCONES=[];OILS=[];RAMPS=[];
@@ -3926,13 +3968,15 @@ function buildTrack(seed){
   for(let c9=0;c9<COLS;c9++)laneShade.push(.80+nz(c9*97.31)*.16-Math.abs(c9-(COLS-1)/2)/(COLS-1)*.06);
   const shadeAt=(i,c9)=>laneShade[c9]+nz(c9*131.7+(i>>5)*7.77)*.05+nz(c9*53.1+(i>>1)*3.3)*.05+nz(i*7.71+c9*13.7)*.03-.08; // grain DIVISÉ par 2 (même luminosité moyenne) : le premier plan se calme, l œil reste sur la route et le ciel
   for(const fy of [0,-THICK]){
-    const arr=[],cols=[],idx=[];
+    const arr=[],cols=[],idx=[],uvs=[];let acc9=0; // (bitume v2) UV en MÈTRES/4 : le grain garde la même taille quelle que soit la largeur de route
     const dim=1; // les DEUX faces à pleine lumière : même texture dessus et dessous
     for(let i=0;i<NP;i++){
       const p=pts[i],b=B[i],nn=Nn[i];
+      if(i>0)acc9+=p.distanceTo(pts[i-1]);
       for(let c9=0;c9<COLS;c9++){
         const o=-ROAD_HALF+2*ROAD_HALF*c9/(COLS-1);
         arr.push(p.x+b.x*o+nn.x*fy,p.y+b.y*o+nn.y*fy,p.z+b.z*o+nn.z*fy);
+        uvs.push((o+ROAD_HALF)*.25,acc9*.25);
         const sh=shadeAt(i,c9)*dim;
         cols.push(sh,sh,sh+.04);
       }
@@ -3947,13 +3991,14 @@ function buildTrack(seed){
     const g=new THREE.BufferGeometry();
     g.setAttribute('position',new THREE.Float32BufferAttribute(arr,3));
     g.setAttribute('color',new THREE.Float32BufferAttribute(cols,3));
+    g.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));
     g.setIndex(idx);g.computeVertexNormals();
     // BITUME NUIT VIOLET : sombre pour que les LUMIÈRES y vivent (nitro, boost, phares) — spéculaire ROSÉ, le soleil rasant peint une traînée magenta-braise
     // SPÉCULAIRE BRAISE CUIVRÉE (2026-07-20) : l'ancien mauve 0x9a5568 (bleu > vert) teintait TOUS les
     // reflets vers le MAGENTA — feux arrière roses, soleil pincé en point plastique. La braise 0x8a524a
     // garde le chaud mais laisse chaque lumière imposer SA teinte ; shininess 58→40 : lobe plus large,
     // reflet qui NAPPE le bitume au lieu de piquer — la route reste sensuelle, plus crédible.
-    const m=new THREE.Mesh(g,new THREE.MeshPhongMaterial({color:0x2b2937,side:THREE.DoubleSide,vertexColors:true,shininess:40,specular:0x8a524a,envMap:envTex,reflectivity:.05}));
+    const m=new THREE.Mesh(g,roadMat()); // (2026-09-25) LE BITUME v2 — voir roadMat : l'ancien spéculaire saumon au lobe énorme dessinait les taches roses
     m.receiveShadow=true; // le bitume reçoit les OMBRES LONGUES
     scene.add(m);trackMeshes.push(m);
   }
@@ -5147,17 +5192,19 @@ window.dbgBio=function(n,d){bioGo(n,d||2);}; // console : dbgBio('nuit') → tes
    troisième dans l'espace au-dessus de la Terre et dans le NOIR COMPLET ». `cielMusical` pilote le fond
    de rythme du dôme (roue, ondes, piliers, onde de couleur) ET son souffle (`uPulse`) — voir musicTick.
    `pluie` : le rideau de pluie de la ville (voir PLUIE). */
-/* ⚠ ORDRE (2026-09-24, user) : « d'abord la VILLE, ensuite les NUAGES, ensuite l'ESPACE ». Rien ne
-   dépend de la position dans ce tableau (tout passe par `id`) : réordonner est sans risque. */
-const NIVEAUX=[ // ⚠ ORDRE (2026-09-25, user) : la VILLE ouvre la partie, puis les NUAGES, puis l'ORBITE
-  {id:'ville', nm:'AU-DESSUS DE LA VILLE',bio:['pluie'],               planete:0,  espace:0,pluie:1,cielMusical:true},
-  {id:'nuages',nm:'MER DE NUAGES',        bio:['matin','midi','aprem'],planete:.8, espace:0,pluie:0,cielMusical:false},
-  {id:'espace',nm:'EN ORBITE',            bio:['espace'],              planete:1.35,espace:1,pluie:0,cielMusical:false},
+/* ⚠ ORDRE : le 2026-09-24 « d'abord la VILLE », puis le 2026-09-25 au soir « remets les NUAGES en premier, avant la ville ».
+   Rien ne dépend de la position dans ce tableau (tout passe par `id`) : réordonner est sans risque (musicPremier lit NIVEAUX[0]). */
+const NIVEAUX=[ // ⚠ ORDRE (2026-09-25 au soir, user) : « remets le niveau dans les nuages en PREMIER, avant la ville » — NUAGES, puis VILLE, puis ORBITE
+  // planete 0 aux NUAGES (user : « ne mets pas la Terre dans le niveau dans les nuages ») · route/sheen : clarté et brillance du bitume (routeTick)
+  {id:'nuages',nm:'MER DE NUAGES',        bio:['matin','midi','aprem'],planete:0,   espace:0,pluie:0,cielMusical:false,route:0,  sheen:.10},
+  {id:'ville', nm:'AU-DESSUS DE LA VILLE',bio:['pluie'],               planete:0,   espace:0,pluie:1,cielMusical:true, route:1,  sheen:.22}, // route plus CLAIRE : elle se détache de la ville sombre (user) ; sheen : bitume mouillé par la pluie
+  {id:'espace',nm:'EN ORBITE',            bio:['espace'],              planete:1.35,espace:1,pluie:0,cielMusical:false,route:.2, sheen:.06},
 ];
 const LVL={cur:null,n:0,k:1,dur:4,
   espace:0,espaceDe:0,espaceA:0,       // uSpace : 0 = le ciel de toujours, 1 = le noir étoilé de l'orbite
   planete:1,planeteDe:1,planeteA:1,    // échelle de la planète (1 = sa taille historique)
   pluie:0,pluieDe:0,pluieA:0,          // opacité du rideau de pluie (niveau VILLE)
+  route:0,routeDe:0,routeA:0,sheen:.1,sheenDe:.1,sheenA:.1, // bitume v2 : clarté et brillance d'horizon du niveau (routeTick)
   dir:PLANET_DIR.clone(),tmp:new THREE.Vector3(),tmp2:new THREE.Vector3(),haut:new THREE.Vector3(0,1,0)};
 // LA LARGEUR PAR NIVEAU (× ROAD_HALF0 = 14) : très large pour apprendre, puis la route se resserre à chaque
 // portail jusqu'à un plancher qui reste plus large que l'ancienne route. Une nouvelle partie repart au niveau 1.
@@ -5185,8 +5232,8 @@ function lvlBiome(){ // le ciel du niveau : tiré dans SA liste, jamais deux foi
 }
 function lvlGo(dur){ // les deux leviers HORS biome (uSpace, taille de planète) suivent le même fondu que le ciel
   const c=LVL.cur;
-  LVL.espaceDe=LVL.espace;LVL.planeteDe=LVL.planete;LVL.pluieDe=LVL.pluie;
-  LVL.espaceA=c?c.espace:0;LVL.planeteA=c?c.planete:1;LVL.pluieA=c?c.pluie:0;
+  LVL.espaceDe=LVL.espace;LVL.planeteDe=LVL.planete;LVL.pluieDe=LVL.pluie;LVL.routeDe=LVL.route;LVL.sheenDe=LVL.sheen;
+  LVL.espaceA=c?c.espace:0;LVL.planeteA=c?c.planete:0;LVL.pluieA=c?c.pluie:0;LVL.routeA=c&&c.route!=null?c.route:0;LVL.sheenA=c&&c.sheen!=null?c.sheen:.1; // (planète : 0 par défaut — plus de Terre là où le niveau ne la demande pas)
   LVL.k=0;LVL.dur=dur||4;
   if(LVL.dur<=.05)lvlStep(1);
 }
@@ -5197,6 +5244,7 @@ function lvlStep(dt){
   LVL.espace=LVL.espaceDe+(LVL.espaceA-LVL.espaceDe)*e;
   LVL.planete=LVL.planeteDe+(LVL.planeteA-LVL.planeteDe)*e;
   LVL.pluie=LVL.pluieDe+(LVL.pluieA-LVL.pluieDe)*e;
+  LVL.route=LVL.routeDe+(LVL.routeA-LVL.routeDe)*e;LVL.sheen=LVL.sheenDe+(LVL.sheenA-LVL.sheenDe)*e;
   skyU.uSpace.value=LVL.espace;
 }
 /* LA PLANÈTE DU NIVEAU. Hors orbite elle garde sa place de toujours (`PLANET_DIR`, fixe dans le monde).
@@ -5311,7 +5359,8 @@ function bioMix(a,b,t){ // un biome INTERMÉDIAIRE, bâti une fois et rangé dan
 function carNiveau(bi,i){ // le niveau de carrière, sous la forme d'un NIVEAU
   const B=CARRIERE[bi],N=B.niveaux[i],h=Array.isArray(N.h)?bioMix(N.h[0],N.h[1],N.h[2]):(N.h||'espace');
   return {id:B.id,nm:B.nm+' '+(i+1)+' — '+N.nm,bio:[h],piste:N.piste||null,sansNuages:!!N.sansNuages,
-    planete:N.planete!=null?N.planete:(B.id==='espace'?((N.astre&&N.astre.echelle)||1.35):(B.id==='nuages'?.8:0)),
+    planete:N.planete!=null&&B.id!=='nuages'?N.planete:(B.id==='espace'?((N.astre&&N.astre.echelle)||1.35):0), // jamais de Terre dans les NUAGES (user, 2026-09-25)
+    route:B.id==='ville'?1:B.id==='espace'?.2:0,sheen:B.id==='ville'?.22:B.id==='espace'?.06:.10,
     espace:B.id==='espace'?1:0,pluie:N.pluie||0,cielMusical:B.id==='ville',astre:N.astre||null,carr:{b:bi,i:i}};
 }
 const PLANETE_DEF={teinte:0x55708c,atmo:0x8fd4ff};
@@ -5351,7 +5400,7 @@ window.dbgNiveau=function(){return LVL.cur?{niveau:LVL.n,lieu:LVL.cur.id,ciel:BI
   planete:+LVL.planete.toFixed(2),ville:!!CITY.root,nuages:CLOUDS.length}:'parc freestyle (pas de niveaux)';};
 paintEnv(BIOMES.golden.env,BIOMES.golden.eS1,BIOMES.golden.eS2); // premier reflet = golden hour (la vitrine du menu)
 const carGroup=new THREE.Group();scene.add(carGroup);
-const carLight=new THREE.PointLight(0xffe6f4,.8,85);scene.add(carLight);
+const carLight=new THREE.PointLight(0xfff2ea,1,12,2);scene.add(carLight); // (2026-09-25) blanc NEUTRE (le rosé 0xffe6f4 rosissait tout), portée courte en décroissance quadratique : elle éclaire la CARROSSERIE, plus la route (c'était la tache rose)
 // PHARES RÉELS (la nuit tombe) : UN spot chaud qui balaie le bitume devant la caisse — ajouté à l init, jamais togglé (zéro recompilation)
 const headSpot=new THREE.SpotLight(0xffd9a0,1.2,72,.5,.6,1.2);
 headSpot.position.set(0,4,0);scene.add(headSpot);scene.add(headSpot.target);
@@ -6950,7 +6999,7 @@ function buildCar(spec){
   }
   if(!wreck){ // NÉON SOUS CAISSE : la flaque magenta qui glisse avec la caisse — Vice City jusque sous le châssis (tamisée pour la nuit sombre)
     const ug=new THREE.Mesh(new THREE.PlaneGeometry(spec.w*2.4,spec.l*1.7),
-      new THREE.MeshBasicMaterial({map:poolTex,color:0xff2e9e,transparent:true,opacity:.30,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
+      new THREE.MeshBasicMaterial({map:poolTex,color:0xff2e9e,transparent:true,opacity:.10,blending:THREE.AdditiveBlending,depthWrite:false,fog:false})); // (2026-09-25) .30 → .10 : une lueur sous la caisse, plus une jupe ROSE sur la route
     ug.rotation.x=-Math.PI/2;ug.position.set(0,.07,0);ug.userData.noShadow=true;carGroup.add(ug);
   }
   // FLAQUES DE LUMIÈRE AU SOL — la caisse ÉCLAIRE la route (même recette que le néon : plan additif qui épouse le bitume).
@@ -7642,7 +7691,7 @@ function countUp(el,to,fmt){ // un chiffre qui MONTE (départ franc, arrivée do
    roses (1,7 s). Au relâcher, le niveau atteint part en MINI-TURBO : une poussée, un coup de boost, et de la nitro rendue.
    Le geste que tous les jeux de caisse arcade ont rendu jouissif, posé sur la physique existante (la caisse pivote plus,
    perd un soupçon de vitesse en glisse — et la récupère au centuple à la sortie). */
-let driftC=0,driftLv=0,driftSpk=0,driftEnCours=false,fovPunch=0,carRoll9=0,raseT=0,raseAnn=false;const DRIFT_V=new THREE.Vector3();
+let driftC=0,driftLv=0,driftSpk=0,driftEnCours=false,fovPunch=0,carRoll9=0,raseT=0,raseAnn=false;const DRIFT_V=new THREE.Vector3(),EXV=new THREE.Vector3(); // EXV : la vitesse monde de la caisse, héritée par les étincelles d'échappement
 function driftTick(dt,on){
   if(on){
     driftC+=dt;vA*=Math.max(0,1-.10*dt);
@@ -9250,7 +9299,7 @@ const flames=makePool(150,1.8,0xff9030,.8); // braises (les GROSSES nappes, c'es
 flames.mesh.material.blending=THREE.AdditiveBlending;flames.mesh.material.map=sparkTex; // texture étincelle : fini les ballons
 const flameCore=makePool(90,1.0,0xffe9a0,.9); // cœur chaud des braises (deux tons)
 flameCore.mesh.material.blending=THREE.AdditiveBlending;flameCore.mesh.material.map=sparkTex;
-const embers=makePool(120,.55,0xffb24a,1); // braises fines qui s'échappent du feu et montent
+const embers=makePool(120,.32,0xffb24a,1); // braises fines qui s'échappent du feu et montent — (2026-09-25) .55 → .32 : près de la caméra une braise de .55 m faisait un rond de 200 px
 embers.mesh.material.blending=THREE.AdditiveBlending;embers.mesh.material.map=sparkTex;
 const exSmoke=makePool(90,1.25,0x9aa2ac,.11); // voile de fumée qui suit le feu (discret : plus de blobs blancs devant l'objectif)
 // ---------- EXPLOSION ----------
@@ -9719,8 +9768,13 @@ function landBoom(pos,tier){
   subBoom(.10+tier*.07);noiseBurst(.15,.08+tier*.035,300+tier*40);thud(6+tier*4);
 }
 function sparkBurst(pool,pos,n,sp){
+  // (2026-09-25) une gerbe née CONTRE la caisse en course (pièce, drift, frôlé, rase-bord…) hérite de sa vitesse (EXV, posée par la
+  // boucle) : lancée sur place pendant que la caisse file à 40 m/s, elle passait devant la caméra en gros ronds flous. Les gerbes
+  // posées ailleurs (explosion, portail, décor) restent où elles naissent.
+  let ix=0,iy=0,iz=0;
+  if(mode==='drive'&&pos.distanceToSquared(carGroup.position)<64){ix=EXV.x;iy=EXV.y;iz=EXV.z;}
   for(let k=0;k<n;k++)spawnP(pool,pos.x,pos.y,pos.z,
-    (Math.random()-.5)*sp,Math.random()*sp*.7,(Math.random()-.5)*sp,.28+Math.random()*.22);
+    ix+(Math.random()-.5)*sp,iy+Math.random()*sp*.7,iz+(Math.random()-.5)*sp,.28+Math.random()*.22);
 }
 /* ============================================================================
    CRÉATURES DE FIGURE — 2 DAUPHINS (LE DAUPHIN) + 1 SERPENT (SNAKE LOOP)
@@ -14961,7 +15015,7 @@ function loop(now){
       if(curDPR<ceil9-.001&&loop._dprUp>=4){loop._dprUp=0;loop._dprRoseT=now;curDPR=Math.min(ceil9,curDPR+.08);applyDPR();}}
     else loop._dprUp=0;
   }
-  lvlStep(dt); // NIVEAUX : le noir de l'orbite, la planète et la pluie suivent le même fondu — AVANT bioStep, qui lit LVL.espace
+  lvlStep(dt);routeTick(); // NIVEAUX : le noir de l'orbite, la planète et la pluie suivent le même fondu — AVANT bioStep, qui lit LVL.espace
   bioStep(dt); // BIOMES : le voyage d'ambiance avance même au menu/en pause de jeu (c'est le ciel qui vit, pas la sim)
   if(parkGrassMat)parkGrassMat.uniforms.uTime.value=now*.001; // l'herbe longue du parc ondule au vent (now : dispo avant `const t`)
   cityTick(dt,camera.position.y); // LA VILLE : son altitude court après la caméra (hors gate de sim — le décor vit au menu, comme le ciel)
@@ -15340,7 +15394,7 @@ function loop(now){
         }else carGroup.scale.set(1,1,1);
         for(const w of wheels)w.rotation.x+=vF*dt*2.5;
         // ombre
-        shadow.material.opacity=.10; // en drive la shadow map fait le travail — le disque noir creusait un DONUT dans le néon/les flaques
+        shadow.material.opacity=0; // (2026-09-25) .10 → 0 : ce disque à bord NET se lisait comme une tache sombre autour de la caisse — l'ombre portée (shadow map) et le blob de contact doux suffisent // en drive la shadow map fait le travail — le disque noir creusait un DONUT dans le néon/les flaques
         shadow.position.copy(carGroup.position).addScaledVector(F.n,.06-hopY); // l'ombre reste collée à la route (drop/dos d'âne)
         mat4.makeBasis(tmp3.copy(F.t),tmp2.copy(F.b),F.n);
         shadow.quaternion.setFromRotationMatrix(mat4);
@@ -15377,21 +15431,25 @@ function loop(now){
         flames.mesh.material.color.set(nitroOn?(nitroBlue?0x3a5bff:0xff8020):0xff9030);
         flameCore.mesh.material.color.set(nitroOn?(nitroBlue?0xbfd6ff:0xffd9a0):0xffe2a8);
         const fl=(up||nitroOn)?(nitroOn?5:2)+Math.min(3,Math.floor(level/5)):(Math.abs(vF)>8?1:0);
+        // (2026-09-25) Les étincelles HÉRITENT de la vitesse de la caisse (EXV) : lâchées à −22 m/s en MONDE alors que la caisse file
+        // à 50+, elles fonçaient vers la caméra à ~70 m/s relatifs et gonflaient en gros ronds orange devant l'objectif. Le gaz
+        // quitte le pot à −22 m/s PAR RAPPORT À LA CAISSE : c'est la physique, et elles meurent avant d'atteindre la caméra.
+        EXV.copy(fwdW).multiplyScalar(Math.max(0,vA)*SPD);
         for(let k=0;k<fl;k++){
           const sd3=k%2?-1:1;
           tmp2.copy(carGroup.position).addScaledVector(fwdW,-spec.l/2-.22).addScaledVector(tmp,sd3*spec.w*.22).addScaledVector(F.n,.43);
           const vsp=nitroOn?.6:.9; // flux SERRÉ le long de l'axe : un jet, pas un nuage
           spawnP(flames,tmp2.x+(Math.random()-.5)*.10,tmp2.y+(Math.random()-.5)*.10,tmp2.z+(Math.random()-.5)*.10,
-            -fwdW.x*(22+level*.6+(nitroOn?14:0))+(Math.random()-.5)*vsp,F.n.y*.5+(Math.random()-.5)*vsp,-fwdW.z*(22+level*.6+(nitroOn?14:0))+(Math.random()-.5)*vsp,
+            EXV.x-fwdW.x*(13+level*.3+(nitroOn?8:0))+(Math.random()-.5)*vsp,EXV.y+F.n.y*.5+(Math.random()-.5)*vsp,EXV.z-fwdW.z*(13+level*.3+(nitroOn?8:0))+(Math.random()-.5)*vsp, // ≤ 2,5 m derrière le pot : la caméra est 3 m plus loin
             .05+(nitroOn?.04:0)+Math.random()*.05);
           if((nitroOn||level>=5)&&Math.random()<.06)spawnP(exSmoke,tmp2.x,tmp2.y+.2,tmp2.z,
             -fwdW.x*3+(Math.random()-.5)*1.5,.8+Math.random(),-fwdW.z*3+(Math.random()-.5)*1.5,
             .4+Math.random()*.35);
           if(Math.random()<.3)spawnP(embers,tmp2.x,tmp2.y,tmp2.z,
-            -fwdW.x*(5+Math.random()*8)+(Math.random()-.5)*3,1+Math.random()*3,-fwdW.z*(5+Math.random()*8)+(Math.random()-.5)*3,
-            .3+Math.random()*.35);
+            EXV.x-fwdW.x*(2+Math.random()*4)+(Math.random()-.5)*3,EXV.y+1+Math.random()*3,EXV.z-fwdW.z*(2+Math.random()*4)+(Math.random()-.5)*3,
+            .15+Math.random()*.15);
           if(k<2)spawnP(flameCore,tmp2.x+(Math.random()-.5)*.06,tmp2.y+(Math.random()-.5)*.06,tmp2.z+(Math.random()-.5)*.06,
-            -fwdW.x*(28+level*.6+(nitroOn?14:0))+(Math.random()-.5)*.5,F.n.y*.3+(Math.random()-.5)*.5,-fwdW.z*(28+level*.6+(nitroOn?14:0))+(Math.random()-.5)*.5,
+            EXV.x-fwdW.x*(16+level*.3+(nitroOn?8:0))+(Math.random()-.5)*.5,EXV.y+F.n.y*.3+(Math.random()-.5)*.5,EXV.z-fwdW.z*(16+level*.3+(nitroOn?8:0))+(Math.random()-.5)*.5,
             .04+Math.random()*.04+(nitroOn?.03:0));
         }
         // backfire : pop de flammes quand on relâche les gaz à haut régime
@@ -15871,17 +15929,17 @@ function loop(now){
       if(k9.life<.6)k9.m.material.opacity=Math.max(0,k9.life/.6);
       if(k9.life<=0){scene.remove(k9.m);k9.m.material.dispose();skulls.splice(i9,1);}
     }
-    carLight.position.copy(carGroup.position);carLight.position.y+=3;
+    carLight.position.copy(carGroup.position);carLight.position.y+=3;carLight.distance=12;carLight.decay=2; // ⚠ le menu la passe à 60 : on la reprend à chaque image de course
     if(SURV.last&&!gameOver){carLight.color.setHex(Math.sin(t*18)>0?0xff3030:0x7a1010);carLight.intensity=1.6+Math.sin(t*18)*.9;} // DERNIER : la caisse clignote rouge
     else if(fever>0){carLight.color.setHex(0xffd75e);carLight.intensity=.9+Math.sin(t*12)*.45;}
-    else{carLight.color.setHex(0xffe6f4);carLight.intensity=.8;}
+    else{carLight.color.setHex(0xfff2ea);carLight.intensity=1;}
     // PHARES : le spot suit le nez de la caisse et pose sa flaque chaude 30 m devant (éteint quand la caisse explose)
     carGroup.getWorldDirection(hsF);
     headSpot.position.copy(carGroup.position).addScaledVector(hsF,1.6);headSpot.position.y+=1.5;
     headSpot.target.position.copy(carGroup.position).addScaledVector(hsF,30);headSpot.target.position.y-=1.2;
     headSpot.intensity=(mode==='boom')?0:1.85; // phares qui MORDENT le bitume (la flaque CARPOOL.head assure la lecture, le spot fait répondre le spéculaire)
     if(CARPOOL.head){const on9=(mode!=='boom');CARPOOL.head.visible=CARPOOL.tail.visible=CARPOOL.jet.visible=on9;
-      if(on9&&CARPOOL.jet){CARPOOL.jet.material.opacity=Math.min(.22,JETS.k*.24);CARPOOL.jet.material.color.copy(jetShellM.color);} // le halo de traînée suit la flamme (couleur d'état déjà calculée)
+      if(on9&&CARPOOL.jet){CARPOOL.jet.material.opacity=Math.min(.12,JETS.k*.14);CARPOOL.jet.material.color.copy(jetShellM.color);} // le halo de traînée suit la flamme (couleur d'état déjà calculée)
       if(on9)CARPOOL.tail.material.opacity=.16+(keys.ArrowDown?.12:0);} // freinage : les feux stop chauffent la flaque
     // REFLET NITRO/BOOST : le pool de lumière colle à l'échappement (repère caisse : marche aussi sous la dalle)
     hsU.set(0,1,0).applyQuaternion(carGroup.quaternion);
