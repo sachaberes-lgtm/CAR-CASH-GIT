@@ -507,6 +507,7 @@
     to{box-shadow:inset 0 0 120px rgba(255,62,200,.52),inset 0 0 28px rgba(255,215,94,.16)}}
   #flash{position:absolute;inset:0;background:#ff2020;opacity:0;transition:opacity .5s}
   #nitroLbl{font-size:9px;color:#9ae6ff;text-align:center;margin-bottom:6px;text-shadow:0 0 8px rgba(0,234,255,.6)}
+  #runStats .pxi,#pwrChip .pxi,#bestChip .pxi{--pxs:1;margin-right:2px}#caseHud .pxi,#msg .pxi{--pxs:2}
   #pwrChip{font-size:9px;text-align:center;margin-bottom:6px;letter-spacing:1px;display:none;text-shadow:0 0 10px rgba(255,255,255,.35)}
   #pwrChip span{margin:0 6px}
   #nitroBar{height:18px;background:#0c0d18;border:2px solid #00eaff;overflow:hidden;display:flex;box-shadow:inset 0 0 10px rgba(0,0,0,.8),0 0 12px rgba(0,234,255,.3)}
@@ -2359,6 +2360,20 @@ const PXI_G={pinceau:'......###|.....####|....####.|...####..|..####...|.#.##...
   const st=document.createElement('style');st.id='pxiCss';st.textContent=':root{'+vars+'}'+css;document.head.appendChild(st);
 })();
 function pxi(n){return '<i class="pxi pxi-'+n+'" aria-hidden="true"></i>';}
+/* LES DERNIERS EMOJI DU HUD (2026-09-25) : messages en jeu, mallette, pouvoirs, bilan de fin écrivaient encore
+   💰 🔥 ★ 🔑… en texte brut — la police pixel ne les a pas, le système les dessinait en émoji Apple au milieu
+   du pixel. `pxTxt` échappe le texte puis troque chaque symbole connu contre son ICÔNE PIXEL ; les émoji
+   restants (décor pur, sans équivalent) tombent. À écrire en innerHTML. */
+const PX_SYM={'💰':'piece','💸':'piece','🪙':'piece','⚡':'eclair','🔥':'eclair','🚀':'eclair','★':'etoile','✦':'etoile','⭐':'etoile',
+  '🔑':'verrou','🔒':'verrou','🏁':'drapeau','✓':'coche','✔':'coche','🏆':'trophee','🎁':'cadeau','🎯':'cible','🪂':'aile',
+  '◀':'gauche','▶':'droite','⚙':'reglages','⏸':'pause','↻':'rejouer','⟲':'rejouer'};
+const PX_SYM_RE=new RegExp('('+Object.keys(PX_SYM).join('|')+')\\uFE0F?','g');
+let PX_EMO_RE=null;try{PX_EMO_RE=new RegExp('\\p{Extended_Pictographic}\\uFE0F?\\s?','gu');}catch(_){}
+function pxTxt(s){
+  let h=String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]).replace(PX_SYM_RE,m=>pxi(PX_SYM[m.replace('️','')]));
+  if(PX_EMO_RE)h=h.replace(PX_EMO_RE,'');
+  return h;
+}
 /* LA FENÊTRE DU JEU (2026-09-24) : remplace prompt()/confirm() — les boîtes GRISES du navigateur cassaient l'immersion
    pile sur les gestes les plus graves (sauvegarde, effacement). Même charte que le reste : cadre, titre or, plaques. */
 function modale(o){return new Promise(function(res){
@@ -4706,6 +4721,7 @@ Object.assign(I18N,{"BOUTIQUE": "SHOP", "CONTRAT": "CONTRACT", "REMPLI !": "COMP
 Object.assign(I18N,{"AUTO-ÉCOLE": "DRIVING SCHOOL", "PASSER": "SKIP", "TOURNE": "STEER", "DÉCOLLE": "TAKE OFF", "VOLE AU NITRO": "FLY ON NITRO", "POSE-TOI": "LAND IT", "Glisse ton pouce à gauche… puis à droite.": "Slide your thumb left… then right.", "Maintiens NITRO : ça pousse fort.": "Hold NITRO: it pushes hard.", "Fonce hors de la route, par le bord. N'aie pas peur.": "Drive off the road, over the edge. Don't be scared.", "En l'air, MAINTIENS NITRO. Ton pouce guide le vol.": "In the air, HOLD NITRO. Your thumb steers the flight.", "Vise l'anneau vert et pose tes quatre roues.": "Aim for the green ring and land on all four wheels.", "PERMIS OBTENU !": "LICENCE EARNED!", "ENCORE ! ET CETTE FOIS, NITRO EN L'AIR": "AGAIN! AND THIS TIME, NITRO IN THE AIR", "RATÉ ! ON RECOMMENCE": "MISSED! TRY AGAIN", "L'AUTO-ÉCOLE T'ATTEND AU PROCHAIN JOUER": "DRIVING SCHOOL AWAITS ON YOUR NEXT PLAY", "REVOIR L'AUTO-ECOLE": "REPLAY DRIVING SCHOOL"});
 Object.assign(I18N_ZH,{"AUTO-ÉCOLE": "驾校", "PASSER": "跳过", "TOURNE": "转向", "NITRO": "氮气", "DÉCOLLE": "起飞", "VOLE AU NITRO": "氮气飞行", "POSE-TOI": "着陆", "Glisse ton pouce à gauche… puis à droite.": "拇指向左滑……再向右滑。", "Maintiens NITRO : ça pousse fort.": "按住氮气：推力很猛。", "Fonce hors de la route, par le bord. N'aie pas peur.": "从路边冲出去，别怕。", "En l'air, MAINTIENS NITRO. Ton pouce guide le vol.": "在空中按住氮气，用拇指引导飞行。", "Vise l'anneau vert et pose tes quatre roues.": "瞄准绿色圆环，四轮着地。", "PERMIS OBTENU !": "驾照到手！", "RATÉ ! ON RECOMMENCE": "失败！再来", "REVOIR L'AUTO-ECOLE": "重温驾校"});
 Object.assign(I18N_ZH,{"BOUTIQUE": "商店", "CONTRAT": "合同", "REMPLI !": "完成！", "OBJECTIF": "目标", "TU PEUX TE L'OFFRIR": "你买得起了", "ACHETER": "购买", "ARTICLES À TA PORTÉE": "件商品可购买", "ARTICLE À TA PORTÉE": "件商品可购买", "EST À TOI — VA LA VOIR": "归你了 — 去看看", "EST À TOI — ESSAIE-LA": "归你了 — 试试看", "VERSÉS SUR TON COMPTE": "已存入账户", "VOITURES": "车辆", "PEINTURE": "涂装", "AILES": "翅膀", "TRAÎNÉES": "尾迹", "TRAÎNÉE": "尾迹", "ÉQUIPÉE": "已装备", "D'ORIGINE": "原厂", "MENTHE GLACÉE": "冰薄荷", "BLEU MINUIT": "午夜蓝", "NOIR MAT": "哑光黑", "COUCHER DE SOLEIL": "日落", "CHROME MIROIR": "镜面铬", "OR MASSIF": "纯金", "PANNEAUX": "滑翔板", "HÉLICES": "螺旋桨", "PLUMES D'ANGE": "天使之羽", "CHAUVE-SOURIS": "蝙蝠", "NITRO": "氮气", "MENTHE": "薄荷", "ROSE NÉON": "霓虹粉", "POUDRE D'OR": "金粉", "ARC-EN-CIEL": "彩虹", "LA BULLE": "泡泡", "LE COMBI": "露营车", "LA DOLORÈS": "多洛蕾丝"});
+Object.assign(I18N,{'CHAÎNE':'CHAIN','LE DAUPHIN':'THE DOLPHIN','RAFALE ×':'BURST ×','ENCHAÎNEMENT DE ':'COMBO OF '," D'AURA":' AURA',' MAINTENANT !':'!','MILLIERS':'THOUSANDS','MILLIARDS':'BILLIONS','BILLIONS':'TRILLIONS','BILLIARDS':'QUADRILLIONS'});Object.assign(I18N_ZH,{'CHAÎNE':'连招','LE DAUPHIN':'海豚'}); // HUD de chaîne (2026-09-25)
 Object.assign(I18N,{"OFFRE DE LANCEMENT": "LAUNCH OFFER", "LA CAISSE DU MOIS": "CAR OF THE MONTH", "Une voiture exclusive, sa peinture et sa traînée. Introuvable ailleurs.": "An exclusive car, its paint and its trail. Found nowhere else.", "BIENTÔT": "SOON", "VOITURES PREMIUM": "PREMIUM CARS", "LÉGENDAIRE": "LEGENDARY", "ÉPIQUE": "EPIC", "RARE": "RARE", "RESTAURER MES ACHATS": "RESTORE PURCHASES", "BIENTÔT DISPONIBLE — À LA SORTIE SUR L'APP STORE": "COMING SOON — AT THE APP STORE LAUNCH", "AUCUN ACHAT À RESTAURER": "NO PURCHASES TO RESTORE", "CONTRAT RÉUSSI": "CONTRACT DONE", "DÉBLOQUÉ": "UNLOCKED"});
 Object.assign(I18N_ZH,{"OFFRE DE LANCEMENT": "首发优惠", "LA CAISSE DU MOIS": "本月座驾", "BIENTÔT": "即将推出", "VOITURES PREMIUM": "高级车辆", "LÉGENDAIRE": "传说", "ÉPIQUE": "史诗", "RARE": "稀有", "RESTAURER MES ACHATS": "恢复购买", "CONTRAT RÉUSSI": "合同完成", "DÉBLOQUÉ": "已解锁"});
 Object.assign(I18N,{"DÉFI RÉUSSI": "CHALLENGE DONE", "DÉFIS RÉUSSIS !": "CHALLENGES DONE!", "À GAGNER": "TO WIN", "Ne s'achète pas : elle se gagne en relevant des défis.": "Not for sale: won by beating challenges."});
@@ -4799,7 +4815,7 @@ const UNITS=[[1e30,'Qn','QUINTILLIONS 🛸'],[1e27,'Qd','QUADRILLIARDS'],[1e24,'
 let unitSeen=0; // jamais reset : la 1re traversée d'un ordre de grandeur se fête UNE fois par session
 function fmtC(v){
   v=Math.round(v);
-  for(const u of UNITS)if(v>=u[0]){const q=v/u[0];return CUR()+' '+(q>=100?Math.round(q):q.toFixed(1).replace('.',',').replace(',0',''))+' '+u[1];}
+  for(const u of UNITS)if(v>=u[0]){const q=v/u[0];return CUR()+' '+(q>=100?Math.round(q):q.toFixed(1).replace('.0','').replace('.',LANG==='fr'?',':'.'))+' '+u[1];} // virgule décimale en français seulement (« 35.7 k » en anglais)
   return CUR()+' '+v.toLocaleString(LOC());
 }
 // LE COMPTEUR AU MENU : la seule repeinte vivait DANS la boucle, sous le gate de simulation — au menu
@@ -12059,9 +12075,9 @@ function renderLeaders(hl){
    ⚠ `SAVE.d.bestCar` reste écrit et lu ailleurs (il sert d'indicateur interne et de plancher à la
    clause de grand-père) : on retire l'AFFICHAGE, pas la donnée. */
 function setBestChip(){
-  bestChip.textContent=(best>0?(TR('RECORD')+'  '+fmt(best)):TR('AUCUN RECORD — À TOI DE JOUER'))+
+  bestChip.innerHTML=pxTxt((best>0?(TR('RECORD')+'  '+fmt(best)):TR('AUCUN RECORD — À TOI DE JOUER'))+
     (bank()>0?('  ·  '+TR('COMPTE')+' '+fmtC(bank())):'')+
-    ((SAVE.d.aura||0)>0?('  ·  ✦ '+auraRankName()):'');
+    ((SAVE.d.aura||0)>0?('  ·  ✦ '+auraRankName()):'')); // ✦ → étoile pixel (la police le dessinait en virgule)
 }
 function commitName(){
   if(pendingScore==null)return;
@@ -12132,7 +12148,7 @@ function drawMinimap(){
 let msgT=0;
 // TR() est appliqué ICI plutôt qu'aux ~40 points d'appel : une seule porte d'entrée pour tout ce qui
 // s'affiche au centre de l'écran, et les phrases de saveur (tirées par pickL) passent par là aussi.
-function showMsg(t,c){elMsg.textContent=TR(t);elMsg.style.color=c||'#ffd75e';elMsg.style.opacity=1;msgT=2.2;}
+function showMsg(t,c){elMsg.innerHTML=pxTxt(TR(t));elMsg.style.color=c||'#ffd75e';elMsg.style.opacity=1;msgT=2.2;}
 // LA JAUGE ROSE NE VIENT PLUS DES FIGURES (2026-07-30) : trop dur à remplir, et illisible (« pourquoi
 // ça monte ? »). Elle mesure désormais UNE seule chose, limpide : le TEMPS DE BOOST TENU SANS LÂCHER
 // (voir `styleFromBoost`). Les figures, elles, multiplient déjà le SCORE via chainVal/chainMult.
@@ -12347,7 +12363,7 @@ function fruitCroque(pos,col,power){
   shake=Math.max(shake,Math.min(.55,.18+r*.07));
   if(fruitRaf>=3){                                    // 3 fruits d'affilée : ce n'est plus un hasard
     addAura(50+r*40,'RAFALE ×'+fruitRaf);
-    trickMsg('🧃 RAFALE ×'+fruitRaf,r>=5?3:2);
+    trickMsg(TR('RAFALE ×')+fruitRaf,r>=5?3:2);
   }
 }
 function fruitRafTick(dt){
@@ -12359,7 +12375,7 @@ function auraComboTick(dt){ // la fenêtre se referme : on solde et on annonce s
   if(figComboT<=0)return;
   figComboT-=dt;
   if(figComboT>0)return;
-  if(figCombo>=5)trickMsg('✦ ENCHAÎNEMENT DE '+figCombo+' — '+figComboAura+' D\'AURA',3);
+  if(figCombo>=5)trickMsg('✦ '+TR('ENCHAÎNEMENT DE ')+figCombo+' — '+figComboAura+TR(' D\'AURA'),3);
   figCombo=0;figComboAura=0;
 }
 function styleFromBoost(dt){
@@ -12420,7 +12436,7 @@ function trickMsg(txt,tier){ // tier: 1 MONSTRE · 2 DOUBLE · 3 TRIPLE (ou true
   else while(trickBox.childElementCount>=2)trickBox.firstChild.remove();
   const el=document.createElement('div');
   el.className='trick'+(tier===3?' m3':tier===2?' m2':tier===1?' m1':(tier?' big':''));
-  el.textContent=TR(txt); // même porte d'entrée unique que showMsg pour la traduction
+  el.innerHTML=pxTxt(TR(txt)); // même porte d'entrée unique que showMsg pour la traduction (et les icônes pixel)
   trickBox.appendChild(el);
   setTimeout(()=>{el.remove();},tier===3?1500:tier===2?1200:950);
 }
@@ -12479,7 +12495,7 @@ function trickPop(k){ // carillon qui MONTE d'un demi-ton par maillon — l'orei
   chimeNote(520*Math.pow(2,Math.min(16,k)/12),0,.09,.16);
 }
 function chainHudShow(){
-  chainHud.textContent='CHAÎNE ×'+Math.min(6,chainMult).toFixed(1)+' · +'+Math.round(chainVal);
+  chainHud.textContent=TR('CHAÎNE')+' ×'+Math.min(6,chainMult).toFixed(1)+' · +'+Math.round(chainVal);
   chainHud.style.opacity=1;
   chainHud.classList.remove('pulse');void chainHud.offsetWidth;chainHud.classList.add('pulse');
 }
@@ -12576,7 +12592,7 @@ function startFall(impU,impF){
   lastNearY=fallPos.y; // référence du plongeon fatal tant que tryLand n'a pas mieux
   // chaîne neuve : le vol commence, tout est à prouver
   chain=0;chainVal=rollover;chainMult=1;chainSeen={};spinHalf=0;
-  if(rollover>0){trickMsg('REPORT +'+Math.round(rollover),false);rollover=0;} // le PARFAIT d'avant paye d'avance
+  if(rollover>0){trickMsg(TR('REPORT +')+Math.round(rollover),false);rollover=0;} // le PARFAIT d'avant paye d'avance
   trkMeteor=false;curNear=false;
   dolphT=0;dolphGain=0;trkDolph=false;caseHot=false;heartT=0;ladderI=0;caseHud.style.opacity=0;caseHud.className='';
   chainHud.style.opacity=0;chainHud.classList.remove('pulse');
@@ -12890,12 +12906,12 @@ function endGame(){
      ça RAPPORTE (le virement, l'aura). Le joueur doit lire la cause avant l'effet — c'est ce qui
      donne envie de relancer, plus qu'un solde brut. */
   const vire=commitExploits._vire||0, auraG=commitExploits._aura||0;
-  runStatsEl.textContent=TR('FIGURES')+' '+runStats.tricks+' · '+TR('CHAÎNE MAX')+' '+(runStats.chainMax||0)+' · '+TR('BUMPS')+' '+runStats.bumps
+  runStatsEl.innerHTML=pxTxt(TR('FIGURES')+' '+runStats.tricks+' · '+TR('CHAÎNE MAX')+' '+(runStats.chainMax||0)+' · '+TR('BUMPS')+' '+runStats.bumps
     +' · '+TR('ZONES')+' '+runStats.zones+' · '+TR('GAPS')+' '+runStats.gaps+' · '+TR('VMAX')+' '+Math.round(runStats.vmax)+' KM/H'
     +'\n'+TR('VIREMENT')+' +'+fmtC(vire)+'  →  '+TR('COMPTE')+' '+fmtC(bank())
     +'   ✦ '+TR('AURA')+' +'+auraG+'  →  '+auraRankName()
     +(commitExploits._rangMonte?'   ★ '+TR('NOUVEAU RANG !'):'')
-    +(gagnees.length?'\n'+TR('🔑 DÉBLOQUÉ : ')+gagnees.map(i=>TR(CARS[i].name)).join(' · '):'');
+    +(gagnees.length?'\n'+TR('🔑 DÉBLOQUÉ : ')+gagnees.map(i=>TR(CARS[i].name)).join(' · '):'')).replace(/\n/g,'<br>');
   finalScore.style.display='block';
   finalScore.textContent=fmt(money)+(isTop?'  🏆 RECORD':'');
   goTxt.textContent=TR('Prêt à repartir ?');
@@ -14765,7 +14781,7 @@ function loop(now){
       if(!introD&&!PARK.on&&graceT<=0&&idleKmh<22){
         idleT+=dt;
         if(idleT>1.6){
-          showMsg('⚠ ROULE OU CRÈVE — '+Math.max(0,6-idleT).toFixed(1)+'s','#ff4d4d'); // compte à rebours vivant
+          showMsg(TR('⚠ ROULE OU CRÈVE — ')+Math.max(0,6-idleT).toFixed(1)+'s','#ff4d4d'); // compte à rebours vivant
           loop._tickT=(loop._tickT||0)-dt; // TIC d'amorce qui S'ACCÉLÈRE vers le boom
           if(loop._tickT<=0){loop._tickT=Math.max(.10,(6-idleT)*.22);chimeNote(660+ (6-idleT<1?900:0),0,.05,.22);subBoom(.05);}
         }
@@ -15369,7 +15385,7 @@ function loop(now){
             dolShow=.7; // LES 2 DAUPHINS bondissent de chaque côté et se croisent tant qu'on frôle la dalle
             if(!trkDolph&&dolphT>.25){trkDolph=true;addTrick('dauphin','🐬 LE DAUPHIN !',3,2);}
             if(dolphT>.15){ // le nom s'affiche VITE et RESTE tant que les points comptent — on voit POURQUOI ça monte
-              chainHud.textContent='🐬 LE DAUPHIN +'+Math.round(dolphGain)+' · CHAÎNE ×'+Math.min(6,chainMult).toFixed(1);
+              chainHud.textContent=TR('LE DAUPHIN')+' +'+Math.round(dolphGain)+' · '+TR('CHAÎNE')+' ×'+Math.min(6,chainMult).toFixed(1);
               chainHud.style.opacity=1;
             }
             if(prox>.45&&Math.random()<dt*22) // écume dorée sous la caisse quand on frôle vraiment
@@ -15382,7 +15398,7 @@ function loop(now){
       // (chainVal>0 et plus fallT : l'airtime seul ne vaut rien, une mallette vide n'a rien à montrer)
       if(chain>0||chainVal>0){
         const est=chainEst();
-        caseHud.textContent='💰 '+fmtC(est);
+        const est9=fmtC(est);if(caseHud._v!==est9){caseHud._v=est9;caseHud.innerHTML=pxi('piece')+' '+est9;} // innerHTML seulement quand le montant change
         caseHud.style.fontSize=Math.min(30,17+est/denom()*.055)+'px'; // le magot GONFLE à l'écran
         caseHud.style.opacity=1;
         const hot=est>denom()*20; // au-delà, c'est de la nitroglycérine : tremblement + cœur
@@ -15921,7 +15937,7 @@ function loop(now){
     paintCarHud();
     if(loop._money!==money){loop._money=money;elMoney.innerHTML=fmtGta(money); // un parse HTML seulement quand le compte bouge
       for(const u of UNITS)if(money>=u[0]){ // on vient de changer d'ordre de grandeur ? ça se FÊTE (une fois par session)
-        if(u[0]>unitSeen){unitSeen=u[0];showMsg('💸 TU COMPTES EN '+u[2]+' MAINTENANT !','#7dff9a');}
+        if(u[0]>unitSeen){unitSeen=u[0];showMsg(TR('💸 TU COMPTES EN ')+TR(u[2])+TR(' MAINTENANT !'),'#7dff9a');}
         break;}
     }
     if(!gameOver&&money>=nextRainAt){nextRainAt*=2.6;startMoneyRain();showMsg(pickL(RAIN_LINES),'#7dff9a');}
@@ -15941,9 +15957,9 @@ function loop(now){
      if(elNB&&(loop._nbr!==r9||loop._nbx!==x9)){loop._nbr=r9;loop._nbx=x9;elNB.style.setProperty('--nr',r9);elNB.style.setProperty('--nx',x9);}}
     // chip des POUVOIRS actifs : compte à rebours coloré au-dessus de la jauge nitro
     let pch='';
-    if(pwrNitroT>0)pch+='<span style="color:#4db8ff">🔥 NITRO ∞ '+pwrNitroT.toFixed(1)+'</span>';
-    if(pwrAirT>0)pch+='<span style="color:#7dffec">🪂 AIR ∞ '+pwrAirT.toFixed(1)+'</span>';
-    if(pwrSpdT>0)pch+='<span style="color:#ff3ec8">⚡ '+TR('VITESSE +60%')+' '+pwrSpdT.toFixed(1)+'</span>';
+    if(pwrNitroT>0)pch+='<span style="color:#4db8ff">'+pxi('eclair')+' NITRO ∞ '+pwrNitroT.toFixed(1)+'</span>';
+    if(pwrAirT>0)pch+='<span style="color:#7dffec">'+pxi('aile')+' AIR ∞ '+pwrAirT.toFixed(1)+'</span>';
+    if(pwrSpdT>0)pch+='<span style="color:#ff3ec8">'+pxi('eclair')+' '+TR('VITESSE +60%')+' '+pwrSpdT.toFixed(1)+'</span>';
     if(pch!==loop._pch){loop._pch=pch;pwrChip.innerHTML=pch;pwrChip.style.display=pch?'block':'none';}
     // JAUGE DE PROGRESSION — elle suivait le cash vers la prochaine VOITURE ; les voitures ne se
     // gagnent plus à l'argent de la partie. Elle suit désormais les PIÈCES vers le prochain MOTEUR,
