@@ -7777,7 +7777,12 @@ function carStat(k){
 }
 function carPrice(i){const u=CAR_UNLOCK[i];return (u&&u.p)||0;} // 0 = pas à vendre
 function carOwned(i){return !!(SAVE.d.owned&&SAVE.d.owned.indexOf(i)>=0);}
-function carUnlocked(i){
+/* (2026-09-26, user : « pour la version test donne-moi accès à toutes les voitures mais en laissant les conditions d'obtention »)
+   TEST_CAISSES : toutes les caisses s'ÉQUIPENT, mais la fiche du garage continue d'écrire la VRAIE condition (voir garageShow).
+   ⚠ à remettre à false pour la version publique : c'est l'unique interrupteur. */
+const TEST_CAISSES=true;
+function carUnlocked(i){return TEST_CAISSES||carUnlockedVrai(i);}
+function carUnlockedVrai(i){
   if(i<=((SAVE.d.ex&&SAVE.d.ex.floor)|0))return true; // acquise sous les anciennes règles : elle le reste
   const u=CAR_UNLOCK[i];
   if(!u)return true;
@@ -7962,6 +7967,7 @@ function flowTick(dt){
   h.querySelector('s').style.width=((FLOW.v%25)/25*100+(FLOW.lv>=4?100:0)).toFixed(0)+'%';
   if(g){g.style.setProperty('--fc',FLOW_COL[FLOW.lv]);g.dataset.lv=FLOW.lv;g.style.opacity=FLOW.lv?(.25+FLOW.lv*.15).toFixed(2):'0';}
 }
+function nitroPct(p){nitroGain(p*((ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2));} // (2026-09-26) une PART de la jauge (0,2 = 20 %), quel que soit le moteur
 function nitroGain(q){
   if(!(q>0))return;const mx=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2;
   const av=nitroR;nitroR=Math.min(mx,nitroR+q);
@@ -13416,6 +13422,7 @@ function tryLand(dt){
   vA=fallVel.dot(T[bestI]);vL=fallVel.dot(B[bestI])*.4*sideL;
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1; // PARC : on repart dans le sens d'atterrissage (les deux directions roulent) ; COURSE : toujours vers l'avant
   // ATTERRISSAGE : l'impact ralentit la caisse — d'autant plus que le saut etait gros
+  nitroPct(.2); // (2026-09-26, user) TOUTE pose rend 20 % de nitro — parfaite, lourde, à l'arrachée
   const impact=Math.abs(vN);
   const bigness=Math.max(0,fallT-.8);
   const landLoss=Math.min(.52,bigness*.15+impact*.008); // un peu plus doux qu'avant
@@ -14820,7 +14827,7 @@ function garageImpact(){
 }
 /* LE GARAGE NE MONTRE QUE CE QUI SE JOUE ICI (2026-09-25) : les caisses PREMIUM vivent dans la BOUTIQUE (vrai argent) ;
    elles n'entrent au garage qu'une fois achetées. `garageListe()` = les index visibles, dans l'ordre de la gamme. */
-function garageListe(){const L=[];for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(!(u&&u.k==='premium')||carOwned(i))L.push(i);}return L;}
+function garageListe(){const L=[];for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(TEST_CAISSES||!(u&&u.k==='premium')||carOwned(i))L.push(i);}return L;} // (test) les premium aussi
 function garageVoisin(i,d){const L=garageListe();let k=L.indexOf(i);if(k<0)k=0;return L[((k+d)%L.length+L.length)%L.length];}
 function garageShow(i){
   i=((i%CARS.length)+CARS.length)%CARS.length;if(garageListe().indexOf(i)<0)i=garageVoisin(i,0);
@@ -14833,9 +14840,10 @@ function garageShow(i){
   // La caisse VERROUILLÉE annonce SA condition (et où tu en es) : c'est la carte du jeu, pas une
   // porte close. Une caisse débloquée garde sa punchline d'origine — le champ `desc` des 24 fiches
   // ressert enfin, il n'était plus affiché nulle part depuis le retrait de la carte de déblocage.
-  const ouverte=carUnlocked(garageI);
+  const ouverte=carUnlocked(garageI),testOuv=TEST_CAISSES&&!carUnlockedVrai(garageI); // testOuv : ouverte pour le TEST seulement
   const u9=CAR_UNLOCK[garageI],dfi=!ouverte&&u9&&u9.k==='carnet';
-  if(ouverte)gDescEl.textContent=TR(c.desc||'');else if(dfi)gDescEl.innerHTML=defisHtml(u9.v);else gDescEl.innerHTML=pxi('verrou')+' '+String(carUnlockText(garageI)).replace(/</g,'&lt;');
+  if(testOuv)gDescEl.innerHTML='TEST — '+(u9&&u9.k==='carnet'?defisHtml(u9.v):pxi('verrou')+' '+(u9&&u9.k==='premium'?TR('BOUTIQUE')+' — '+u9.eur:String(carUnlockText(garageI)).replace(/</g,'&lt;'))); // la VRAIE condition reste écrite
+  else if(ouverte)gDescEl.textContent=TR(c.desc||'');else if(dfi)gDescEl.innerHTML=defisHtml(u9.v);else gDescEl.innerHTML=pxi('verrou')+' '+String(carUnlockText(garageI)).replace(/</g,'&lt;');
   $('gCard').classList.toggle('defis',!!dfi);
   // ÉQUIPER : verrouillé tant que la caisse n'est pas débloquée ; marqué quand c'est déjà la tienne
   // ⚠ on teste carUnlocked(i), PAS `garageI>bestCar` : les caisses ne se gagnent plus dans l'ordre
@@ -14851,7 +14859,7 @@ function garageShow(i){
      à défi n'en ont pas du tout : afficher un bouton d'achat grisé sur LE MANS 24 laisserait croire
      qu'elle finira par s'acheter, alors que non — c'est tout l'intérêt de la voie aura. */
   const bb=$('gBuy'),row=$('gBuyRow'),prix=carPrice(garageI);
-  $('gCard').classList.toggle('verrou',!ouverte&&!dfi&&!prix); // défi d'aura : la condition DOIT se lire (elle était écrite… puis masquée)
+  $('gCard').classList.toggle('verrou',(!ouverte&&!dfi&&!prix)||testOuv); // (test) la condition se lit même sur une caisse ouverte pour l'essai // défi d'aura : la condition DOIT se lire (elle était écrite… puis masquée)
   if(row)row.style.display=(prix&&!ouverte)?'':'none';
   if(bb&&prix&&!ouverte){
     const peut=bank()>=prix;
@@ -15827,7 +15835,7 @@ function loop(now){
           }
           else if(p.nitro){ // chaque fruit rend SA dose de nitro (réglable dans l'ÉTAL)
             const fd=FRUIT_DEFS[p.fruit]||FRUIT_DEFS[0],pw=Math.min(1,fd.boost/2);
-            nitroX=Math.min(2,nitroX+fd.boost);RUNX.fruits++;hap(fd.boost>=1.5?[20,40,30]:11);
+            nitroPct(.2);RUNX.fruits++;hap(fd.boost>=1.5?[20,40,30]:11); // (2026-09-26, user) chaque fruit rend 20 % de nitro — était la dose de l'étal, en réserve bleue
             fruitCroque(carGroup.position,fd.jus||0xffd75e,pw); // ON CROQUE : jus, crunch, et la rafale qui monte
             // (le fruit ne touche PAS au moteur : il ne sert qu'au boost — ce sont les pièces qui l'améliorent)
             if(fd.boost>=1.5){ // LE GRAAL : la pastèque, ça se fête
