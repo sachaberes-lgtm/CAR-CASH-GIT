@@ -33,7 +33,8 @@
     color:#ff3ec8;transition:none}
   #vig{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 44%,transparent 50%,rgba(38,12,54,.52) 100%)}
   /* étalonnage cinéma du rendu 3D : couleurs plus riches, contraste doux */
-  body>canvas{filter:saturate(1.12) contrast(1.05) brightness(.97)} /* l'ACES (passe post) fait le gros de l'étalonnage ; ce filtre ajoute un pop + un assombrissement final */
+  body>canvas{filter:saturate(1.12) contrast(1.05) brightness(.97)}
+  body.post>canvas{filter:none} /* téléphone : l'étalonnage vit dans l'ACES (GRADE_ACES) — plus de filtre de compositeur sur les calques plein écran */ /* l'ACES (passe post) fait le gros de l'étalonnage ; ce filtre ajoute un pop + un assombrissement final */
   #scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.14) 0 2px,transparent 2px 4px);opacity:.22}
   #speedFx{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 42%,rgba(45,20,55,.55) 100%);opacity:0}
   /* ACCESSIBILITÉ : iOS « Réduire les animations » → grain CRT + vignette vitesse coupés */
@@ -892,7 +893,7 @@
   #tKnob{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;
     background:radial-gradient(circle at 38% 32%,rgba(210,250,255,.9),rgba(0,190,230,.55) 58%,rgba(0,110,150,.28));
     border:2px solid rgba(170,244,255,.8);box-shadow:0 0 18px rgba(0,234,255,.55)}
-  #tSteerHint{position:absolute;left:24px;bottom:20px;font-family:var(--pix);font-size:8px;letter-spacing:2px;
+  #tSteerHint{position:absolute;left:calc(env(safe-area-inset-left,0px) + 24px);bottom:calc(env(safe-area-inset-bottom,0px) + 20px);font-family:var(--pix);font-size:8px;letter-spacing:2px;
     color:#7fd8ff;opacity:.40;pointer-events:none;text-shadow:0 0 10px rgba(0,234,255,.5);transition:opacity .3s}
   #tSteer.act #tSteerHint,#tSteer.used #tSteerHint,body.tpad #tSteerHint{opacity:0} /* dit UNE fois : au premier braquage la consigne s'efface pour de bon */
   /* --- flèches : mode PAD, pour qui préfère le tout-ou-rien --- */
@@ -1087,7 +1088,7 @@
      masque rien et se lit d'un coup d'œil. C'est le dernier élément de HUD. */
   body.touch:not(.play) #nitroWrap,body.touch:not(.play) #airPie{display:none} /* hors partie, l'écran n'appartient qu'au menu */
   body.touch #nitroWrap{left:calc(env(safe-area-inset-left,0px) + 14px);right:calc(env(safe-area-inset-right,0px) + 64px);
-    width:auto;transform:none;bottom:auto;top:18px}
+    width:auto;transform:none;bottom:auto;top:calc(env(safe-area-inset-top,0px) + 18px)} /* sous l'encoche / la Dynamic Island, comme le ⏸ */
   body.touch #styleBar{height:6px;margin-bottom:4px}
   body.touch #airPie{top:13%;right:5%;width:76px;height:76px}
   /* ------- LES NIVEAUX (2026-09-24) : la bannière « NIVEAU n — LIEU ». Au-dessus de la route, dans le
@@ -1389,8 +1390,8 @@
   .pb-green,#garage #gEquip,body.touch #nameSave{--fc:#24a246;--fc2:#2dbb53;--hi:#a2f7b6;--lo:#0f6427;--ol:#04200d;--tx:#fff;--txs:#07361a}
   .pb-red,#tPanel .tp.rouge{--fc:#d22a44;--fc2:#e8384f;--hi:#ffa3b1;--lo:#851127;--ol:#26040c;--tx:#fff;--txs:#4a0716}
   #tNitro{--fc:#ff7415;--fc2:#ff8d2e;--hi:#ffd58f;--lo:#ad4200;--ol:#2a0e00;--tx:#2a0e00;--txs:rgba(255,226,170,.75)}
-  .pbtn.off,#garage #gEquip:disabled{--fc:#343a50;--fc2:#3b425a;--hi:#555d7a;--lo:#1f2334;--ol:#07080f;--tx:#9aa2b8;--txs:#11141f}
-  #garage #gEquip:disabled{opacity:1!important}
+  .pbtn.off,#garage #gEquip[aria-disabled="true"]{--fc:#343a50;--fc2:#3b425a;--hi:#555d7a;--lo:#1f2334;--ol:#07080f;--tx:#9aa2b8;--txs:#11141f}
+  #garage #gEquip[aria-disabled="true"]{opacity:1!important}
   /* les tailles : une échelle, pas des cas particuliers */
   .pbtn{font-size:12px;letter-spacing:2px;padding:14px 18px;min-height:54px;box-sizing:border-box;gap:10px;--pxs:2}
   .pbtn.big{font-size:20px;letter-spacing:6px;padding:0 18px;min-height:76px}
@@ -1598,10 +1599,12 @@
     transform:translate(-50%,-30px);opacity:0;pointer-events:none;font-family:var(--pix);color:#fff;padding:12px 14px 12px;
     background:linear-gradient(180deg,#1c2552,#131a3d);
     box-shadow:inset 0 3px 0 #313f86,inset 0 -3px 0 #0b1030,0 -3px 0 #04061a,0 3px 0 #04061a,-3px 0 0 #04061a,3px 0 0 #04061a,0 9px 0 rgba(0,0,0,.35);
-    transition:transform .25s steps(5),opacity .2s steps(4)}
+    transition:transform var(--t-slow) var(--ease),opacity var(--t-fast) var(--ease)}
   #coach.on{transform:translate(-50%,0);opacity:1;pointer-events:auto}
-  #coach .coTop{display:flex;justify-content:space-between;align-items:center;font-size:6px;letter-spacing:2px;color:#aab4ff;margin-bottom:10px}
-  #coach .coSkip{font:inherit;font-size:6px;letter-spacing:1px;color:#8f97c8;background:none;border:0;padding:8px 0 8px 12px;cursor:pointer}
+  #coach .coTop{display:flex;justify-content:space-between;align-items:center;font-size:8px;letter-spacing:1px;color:#aab4ff;margin-bottom:10px}
+  #coach .coSkip{font:inherit;font-size:8px;letter-spacing:1px;color:#c9c2ff;background:none;border:0;cursor:pointer;min-width:44px;min-height:44px;
+    display:inline-flex;align-items:center;justify-content:flex-end;padding:0 14px;margin:-12px -14px -12px 0} /* PASSER : 44 px de cible, dans le padding de la carte (elle ne grandit pas) */
+  #coach.rate .coN{color:#ff6b7d} /* un raté se dit DANS la carte, là où l'œil regarde — plus sous les pouces */
   #coach .coRow{display:flex;align-items:center;gap:12px}
   #coach .coIco{flex:none;--pxs:4;color:var(--or)}
   #coach .coTx b{display:block;font-size:14px;letter-spacing:2px;color:var(--or);text-shadow:0 2px 0 #7a4400;margin-bottom:8px}
@@ -1609,8 +1612,8 @@
   #coach .coPips{display:flex;gap:6px;margin-top:12px}
   #coach .coPips i{flex:1;height:6px;background:#2a3263;box-shadow:0 0 0 1px #04061a}
   #coach .coPips i.ok{background:#2dbb53}#coach .coPips i.on{background:var(--or)}
-  @keyframes coEntre{0%{transform:translate(-50%,-30px) scale(.9)}60%{transform:translate(-50%,4px) scale(1.03)}100%{transform:translate(-50%,0) scale(1)}}
-  #coach.on.entre{animation:coEntre .38s steps(6)}
+  @keyframes coEntre{from{opacity:0;transform:translate(-50%,-12px)}to{opacity:1;transform:translate(-50%,0)}}
+  #coach.on.entre{animation:coEntre var(--t-slow) var(--ease)} /* la courbe unique, sans rebond : la démo du geste garde ses pixels, pas la carte */
   #coach.bravo{box-shadow:inset 0 3px 0 #a2f7b6,inset 0 -3px 0 #0f6427,0 -3px 0 #04200d,0 3px 0 #04200d,-3px 0 0 #04200d,3px 0 0 #04200d,0 9px 0 rgba(0,0,0,.35);
     background:linear-gradient(180deg,#2dbb53 0 50%,#24a246 50%)}
   #coach.bravo .coTx b,#coach.bravo .coIco{color:#fff;text-shadow:0 2px 0 #0f6427}
@@ -1632,7 +1635,7 @@
   @media (prefers-reduced-motion:reduce){#coach,#coach.on.entre,#coach .coGeste::before,body.coNitro #tNitro::after{animation:none!important;transition:none}}
   /* LA GERBE DE PIXELS (réussites, achats) */
   @keyframes pxBurst{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),calc(var(--dy) + 60px)) scale(.4);opacity:0}}
-  body:has(#tPanel.open) #coach,body:has(#tPanel.open) #misBan{display:none} /* la pause passe DEVANT tout : la carte de l'auto-école attend derrière */
+  body:has(#tPanel.open) #coach,body:has(#tPanel.open) #misBan,body:has(#tPanel.open) #engBig{display:none} /* la pause passe DEVANT tout : la carte de l'auto-école attend derrière */
   body.coOn #lvlBan,body.coOn #tSteerHint{opacity:0!important;visibility:hidden} /* la carte de l'auto-école parle seule : ni bannière de niveau dessous, ni aide en double */
   .pxBurst{position:fixed;z-index:120;width:6px;height:6px;margin:-3px 0 0 -3px;pointer-events:none;animation:pxBurst .7s steps(10) forwards;box-shadow:0 0 0 1px rgba(0,0,0,.35)}
   /* ======================= L'ACCUEIL v3 ET LE « JUS » D'INTERFACE (2026-09-25) =======================
@@ -1717,7 +1720,7 @@
   .pb-green,#garage #gEquip,body.touch #nameSave{--fc:#1faa47;--fc2:#5ee37a;--lo:#107a30;--ol:#063d18;--tx:#fff;--txs:#063d18}
   .pb-red,#tPanel .tp.rouge{--fc:#e33049;--fc2:#ff6b7d;--lo:#a81a30;--ol:#43061a;--tx:#fff;--txs:#43061a}
   #tNitro{--fc:#ff6a0e;--fc2:#ffa545;--lo:#bf4a00;--ol:#431600;--tx:#fff;--txs:#431600}
-  .pbtn.off,#garage #gEquip:disabled,#garage #gBuy.pauvre{--fc:#3f4563;--fc2:#5b6284;--lo:#2b3048;--ol:#10121c;--tx:#b9c0d8;--txs:#10121c}
+  .pbtn.off,#garage #gEquip[aria-disabled="true"],#garage #gBuy.pauvre{--fc:#3f4563;--fc2:#5b6284;--lo:#2b3048;--ol:#10121c;--tx:#b9c0d8;--txs:#10121c}
   #garage #gBuy.pauvre{opacity:1!important;text-shadow:0 2px 0 #10121c!important}
   .pbtn.pbCarre,#tGear{--rb:14px}
   .pbtn.big{--rb:20px}
@@ -1819,7 +1822,6 @@
   /* ======================= LA BOUTIQUE — LA VITRINE EN VRAI ARGENT (2026-09-25) =======================
      Pas un garage bis : une VITRINE. L'offre à la une en grand (halo, ruban, prix barré), puis la grille des caisses premium
      en cartes de RARETÉ — or légendaire, rose-violet épique, cyan rare — chacune avec sa silhouette-mystère et son prix. */
-  body.touch #overlay[data-ecran="shop"]{background:radial-gradient(120% 60% at 50% 0%,rgba(120,60,200,.55),rgba(8,5,24,.96) 60%)!important}
   #mShop{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 18px)}
   #mShop .mHead h3{background:linear-gradient(180deg,#fff8d0,#ffd75e 45%,#ff9d2e);-webkit-background-clip:text;background-clip:text;color:transparent;
     filter:drop-shadow(0 3px 0 #4d2300)}
@@ -1999,6 +2001,17 @@
   #dolHud.fige .dAura{color:var(--dolNom);transform:scale(1.12)} /* le total se FIGE : il blanchit d'un cran — encaissé */
   body:not(.play) #dolHud{display:none}
   @media (prefers-reduced-motion:reduce){#dolHud.on{animation:none}#dolHud.fige .dAura{transform:none}}
+  /* ---- LE PLANCHER DE LECTURE (2026-09-25 — rappel de la passe UX du 24/09 : « textes : 8 px minimum ») ----
+     Les blocs du 25/09 (contrats, objectif, boutique, fin v3) étaient redescendus à 6-7 px. Press Start 2P est dessinée sur une
+     grille de 8 : en dessous, ses pixels tombent ENTRE deux pixels d'écran et bavent. Une variable, pour que la règle ne se perde plus. */
+  :root{--fs-min:8px}
+  #gTabs .gTab,.hCard small,.hCard span,.hCard em,.mCashL span,#misBan .mbTx small,.shRare,.shRuban,.shRestaurer,.shUneTx span,
+  .mObj .obHd,.mObj .obFt,.mObj .obShop,#engBig small,#engBig .ebDesc,#gDesc .gDfT,.mMis .mmR,.mMis .mmTx em{font-size:var(--fs-min)!important}
+  #gTabs .gTab{letter-spacing:0!important;padding:6px 0!important}   /* 8 lettres = 64 px : tient à 375 et à 360 */
+  .hCard em{letter-spacing:0!important;white-space:nowrap}           /* « NOUVEAU RANG ! » : sinon le « ! » passe à la ligne à 375 */
+  /* CIBLES ≥ 44 px — en bloc, pas en flex : un flex mangerait l'espace entre l'icône pixel et le texte */
+  .shRestaurer{min-height:44px;box-sizing:border-box;padding:18px 16px}                    /* le lien exigé par l'App Store */
+  .mObj .obShop{min-height:44px;box-sizing:border-box;padding:17px 0;margin:4px 0 -12px}   /* la bande descend jusqu'au bord bas de la carte */
   /* ======================= LE MOUVEMENT — NIVEAU APP STORE (2026-09-25) =======================
      User : « améliore l'ergonomie, que les transitions entre les écrans soient niveau App Store ». Le passage précédent
      animait tout en `steps()` (« on anime en PIXELS, pas en fondus mous ») : à 6 images par geste, l'œil lit des SACCADES,
@@ -2041,7 +2054,7 @@
   #mDead.on>.mOver{animation:mTitre .6s var(--ease) backwards!important;animation-delay:60ms!important}
   /* ---- LE FOND DU MENU : un seul dégradé, et un voile sombre qui se lève ou se pose en fondu quand l'écran change ----
      (avant : chaque écran avait SON fond, et on passait de l'un à l'autre d'un coup — le monde s'éteignait sans transition) */
-  body.touch #overlay:not([data-ecran="shop"]){background:linear-gradient(180deg,rgba(6,4,16,.88) 0%,rgba(6,4,16,.46) 30%,rgba(6,4,16,.22) 46%,rgba(6,4,16,.55) 62%,rgba(6,4,16,.94) 84%)!important}
+  body.touch #overlay{background:linear-gradient(180deg,rgba(6,4,16,.88) 0%,rgba(6,4,16,.46) 30%,rgba(6,4,16,.22) 46%,rgba(6,4,16,.55) 62%,rgba(6,4,16,.94) 84%)!important}
   body.touch #overlay::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:rgba(6,4,16,.74);
     opacity:1;transition:opacity var(--t-slow) var(--ease)}
   body.touch #overlay[data-ecran="home"]::before,body.touch #overlay[data-ecran="shop"]::before{opacity:0}
@@ -2088,8 +2101,29 @@
   #tpIn{min-height:100%;box-sizing:border-box}
   #tPanel .tpH:first-child{margin-bottom:auto!important}
   #tPanel .tp.go{position:sticky;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:2;margin:18px 0 10px}
+  /* ---- LES COMMANDES DE COURSE (2026-09-25) : elles se POSENT au départ et s'effacent à la mort, en même temps que l'écran —
+     avant, elles passaient de rien à tout (display) entre 0 et 140 ms après le lâcher, au hasard du tick. Le fondu est sur
+     #tGear, PAS sur #tSet (son parent non positionné : une opacité y changerait l'empilement, la pause passerait sous la NITRO). */
+  body.touch #touchCtl,body.touch #nitroWrap{display:block!important;opacity:0;visibility:hidden;
+    transition:opacity var(--t-fast) var(--ease),transform var(--t-fast) var(--ease),visibility 0s linear var(--t-fast)}
+  body.touch.play #touchCtl,body.touch.play #nitroWrap{opacity:1;visibility:visible;
+    transition:opacity var(--t-slow) var(--ease),transform var(--t-slow) var(--ease),visibility 0s}
+  body.touch:not(.play) #nitroWrap{transform:translate3d(0,-10px,0)}
+  body.touch #tSet{display:block!important} /* #tPanel, lui, reste display:none tant qu'il n'est pas .open */
+  body.touch #tGear{transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease),filter var(--t-fast) var(--ease),opacity var(--t-slow) var(--ease),visibility 0s!important}
+  body.touch #tGear:active{transition-duration:50ms!important}
+  body.touch:not(.play) #tGear{opacity:0;visibility:hidden;pointer-events:none;
+    transition:opacity var(--t-fast) var(--ease),visibility 0s linear var(--t-fast)!important} /* pointer-events coupe TOUT DE SUITE : jamais un ⏸ sur l'écran de mort */
+  /* la boutique : son fond violet est un VOILE en plus qui se fond (un dégradé ne s'interpole pas : il claquait d'une image à l'autre) */
+  body.touch #overlay::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(120% 60% at 50% 0%,rgba(120,60,200,.55),rgba(8,5,24,.96) 60%);
+    opacity:0;transition:opacity var(--t-slow) var(--ease)}
+  body.touch #overlay[data-ecran="shop"]::after{opacity:1}
+  /* LE GARAGE : une caisse à condition DIT comment on l'obtient, et un bouton fermé répond quand on le touche */
+  #garage #gCard.verrou #gDesc{display:block!important;color:var(--or)}
+  #garage .secoue{animation:secoue var(--t-slow) var(--ease)}
   /* ---- « RÉDUIRE LES ANIMATIONS » (iOS) : plus aucun déplacement, uniquement des fondus courts — la règle d'Apple ---- */
   @media (prefers-reduced-motion:reduce){
+    body.touch:not(.play) #nitroWrap{transform:none}#garage .secoue{animation:none}
     .mscr.on,.mscr.on.avant,.mscr.on.retour{animation:mFondu var(--t-fast) linear both!important}
     .mscr.on>*,.mscr.on>.mPlay,#mDead.on>[data-m=replay],#mDead.on>.mOver,.pbtn.pop,.gTab.pop,.mBank.pop,.mLigne.pop{animation:none!important}
     #tPanel.open #tpIn,#modale.on .modIn,#carr.on .carrIn{animation:mFondu var(--t-fast) linear both!important}
@@ -2977,11 +3011,13 @@ const POST_WB=new THREE.Vector3(1.02,0.985,1.03);       // voile MAGENTA subtil 
 const POST_SHADOW=new THREE.Vector3(0.004,-0.008,0.062); // OMBRES → bleu-violet nuit (place au néon)
 const POST_HI=new THREE.Vector3(0.052,0.008,-0.014);      // LUMIÈRES → or rosé (le couchant qui s'accroche aux tôles)
 // Grade cinéma en PASSE FINALE : tonemap préservant la chroma + contraste + saturation + split-tone. Scène en amont inchangée.
+const GRADE_ACES=IS_MOBILE; // (2026-09-25) l'étalonnage final (ex-filtre CSS du canvas) passe DANS l'ACES : plus de passe de compositeur plein écran, à la résolution de l'écran, sur téléphone
+const ACES_N=IS_MOBILE?6:8;   // flou radial du boost : 18 lectures de texture au téléphone au lieu de 24 (le grain animé fond les copies)
 const ACESShader={
   uniforms:{tDiffuse:{value:null},uExposure:{value:POST_EXPO},uSat:{value:POST_SAT},uContrast:{value:POST_CONTRAST},
-            uVivid:{value:POST_VIVID},uWB:{value:POST_WB},uSh:{value:POST_SHADOW},uHi:{value:POST_HI},uSpeed:{value:0}},
+            uVivid:{value:POST_VIVID},uWB:{value:POST_WB},uSh:{value:POST_SHADOW},uHi:{value:POST_HI},uSpeed:{value:0},uJit:{value:0}},
   vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
-  fragmentShader:['uniform sampler2D tDiffuse;uniform float uExposure,uSat,uContrast,uVivid,uSpeed;uniform vec3 uWB,uSh,uHi;varying vec2 vUv;',
+  fragmentShader:['uniform sampler2D tDiffuse;uniform float uExposure,uSat,uContrast,uVivid,uSpeed,uJit;uniform vec3 uWB,uSh,uHi;varying vec2 vUv;',
     'vec3 aces(vec3 x){const float a=2.51,b=.03,c=2.43,d=.59,e=.14;return clamp((x*(a*x+b))/(x*(c*x+d)+e),0.,1.);}',
     'const vec3 LUM=vec3(.2126,.7152,.0722);',
     'void main(){',
@@ -2989,11 +3025,12 @@ const ACESShader={
     '  vec2 buv=0.5+dir*(1.0+uSpeed*0.60*r*r);',              // WARP AU BOOST : le monde S INCURVE FORT autour de la caisse (centre stable → jouable)
     '  if(uSpeed>0.004){',                                    // + flou radial + aberration chromatique (fuite vers les bords)
     '    float amt=uSpeed*(0.04+r*r*1.7); vec3 acc=vec3(0.0);', // r² : centre NET, filé TRÈS FRANC vers les bords
-    '    for(int i=0;i<8;i++){ float t=float(i)/7.0; vec2 off=dir*amt*t*0.62; float ca=amt*0.05;',
+    '    float jt=fract(52.9829189*fract(dot(gl_FragCoord.xy,vec2(.06711056,.00583715)))+uJit);', // grain ANIMÉ : moins de prises sans dessiner de copies (statique = saleté collée)
+    '    for(int i=0;i<'+ACES_N+';i++){ float t='+(ACES_N<8?'(float(i)+jt)/'+ACES_N+'.0':'float(i)/7.0')+'; vec2 off=dir*amt*t*0.62; float ca=amt*0.05;',
     '      acc.r+=texture2D(tDiffuse,buv-off-dir*ca).r;',      // on traîne vers le centre + on écarte les canaux RVB
     '      acc.g+=texture2D(tDiffuse,buv-off).g;',
     '      acc.b+=texture2D(tDiffuse,buv-off+dir*ca).b; }',
-    '    x=acc/8.0;',
+    '    x=acc/'+ACES_N+'.0;',
     '  } else { x=texture2D(tDiffuse,vUv).rgb; }',
     '  x=x*uWB*uExposure;',
     'float L=dot(x,LUM);',
@@ -3005,6 +3042,7 @@ const ACESShader={
     'c+=uSh*(1.-smoothstep(0.,0.5,l2));',               // split-tone : ombres TEAL
     'c+=uHi*smoothstep(0.5,1.0,l2);',                   // split-tone : lumières OR
     'c*=1.0-uSpeed*smoothstep(0.30,0.85,r)*0.55;',      // TUNNEL DE VITESSE : les bords plongent dans le noir, l'œil file au centre
+    GRADE_ACES?'c=clamp(c,0.,1.);c=clamp(mix(vec3(dot(c,LUM)),c,1.12),0.,1.);c=clamp((c-.5)*1.05+.5,0.,1.)*.97;':'', // = saturate(1.12) contrast(1.05) brightness(.97) du CSS, même ordre
     'gl_FragColor=vec4(clamp(c,0.,1.),1.0);}'].join('\n')
 };
 const CAN_POST=typeof THREE.EffectComposer==='function'&&typeof THREE.RenderPass==='function'&&typeof THREE.UnrealBloomPass==='function'&&typeof THREE.ShaderPass==='function';
@@ -3028,6 +3066,7 @@ if(CAN_POST){ try{
   composer.addPass(bloomPass);
   acesPass=new THREE.ShaderPass(ACESShader);acesPass.renderToScreen=true;composer.addPass(acesPass);
   POST_ON=true;
+  if(GRADE_ACES)document.body.classList.add('post'); // le shader étalonne → le CSS se retire (si le post échoue, la classe n'est jamais posée : le filtre reste le repli)
 }catch(e){composer=null;POST_ON=false;} }
 
 // OMBRE DE CONTACT : un blob dégradé posé au sol sous la caisse — ancre la voiture au monde (coût ~1 draw, mobile-friendly).
@@ -4905,6 +4944,7 @@ Object.assign(I18N,{"BOUTIQUE": "SHOP", "CONTRAT": "CONTRACT", "REMPLI !": "COMP
 Object.assign(I18N,{"DAUPHIN":"DOLPHIN"});Object.assign(I18N_ZH,{"DAUPHIN":"海豚"}); // (dauphin v3) l'étiquette
 Object.assign(I18N,{"AUTO-ÉCOLE": "DRIVING SCHOOL", "PASSER": "SKIP", "TOURNE": "STEER", "DÉCOLLE": "TAKE OFF", "VOLE AU NITRO": "FLY ON NITRO", "POSE-TOI": "LAND IT", "Glisse ton pouce à gauche… puis à droite.": "Slide your thumb left… then right.", "Maintiens NITRO : ça pousse fort.": "Hold NITRO: it pushes hard.", "Fonce hors de la route, par le bord. N'aie pas peur.": "Drive off the road, over the edge. Don't be scared.", "En l'air, MAINTIENS NITRO. Ton pouce guide le vol.": "In the air, HOLD NITRO. Your thumb steers the flight.", "Vise l'anneau vert et pose tes quatre roues.": "Aim for the green ring and land on all four wheels.", "PERMIS OBTENU !": "LICENCE EARNED!", "ENCORE ! ET CETTE FOIS, NITRO EN L'AIR": "AGAIN! AND THIS TIME, NITRO IN THE AIR", "RATÉ ! ON RECOMMENCE": "MISSED! TRY AGAIN", "L'AUTO-ÉCOLE T'ATTEND AU PROCHAIN JOUER": "DRIVING SCHOOL AWAITS ON YOUR NEXT PLAY", "REVOIR L'AUTO-ECOLE": "REPLAY DRIVING SCHOOL"});
 Object.assign(I18N_ZH,{"AUTO-ÉCOLE": "驾校", "PASSER": "跳过", "TOURNE": "转向", "NITRO": "氮气", "DÉCOLLE": "起飞", "VOLE AU NITRO": "氮气飞行", "POSE-TOI": "着陆", "Glisse ton pouce à gauche… puis à droite.": "拇指向左滑……再向右滑。", "Maintiens NITRO : ça pousse fort.": "按住氮气：推力很猛。", "Fonce hors de la route, par le bord. N'aie pas peur.": "从路边冲出去，别怕。", "En l'air, MAINTIENS NITRO. Ton pouce guide le vol.": "在空中按住氮气，用拇指引导飞行。", "Vise l'anneau vert et pose tes quatre roues.": "瞄准绿色圆环，四轮着地。", "PERMIS OBTENU !": "驾照到手！", "RATÉ ! ON RECOMMENCE": "失败！再来", "REVOIR L'AUTO-ECOLE": "重温驾校"});
+Object.assign(I18N,{"ENCORE ! NITRO EN L'AIR": "AGAIN! NITRO IN THE AIR"});Object.assign(I18N_ZH,{"ENCORE ! NITRO EN L'AIR": "再来！空中开氮气"});
 Object.assign(I18N_ZH,{"BOUTIQUE": "商店", "CONTRAT": "合同", "REMPLI !": "完成！", "OBJECTIF": "目标", "TU PEUX TE L'OFFRIR": "你买得起了", "ACHETER": "购买", "ARTICLES À TA PORTÉE": "件商品可购买", "ARTICLE À TA PORTÉE": "件商品可购买", "EST À TOI — VA LA VOIR": "归你了 — 去看看", "EST À TOI — ESSAIE-LA": "归你了 — 试试看", "VERSÉS SUR TON COMPTE": "已存入账户", "VOITURES": "车辆", "PEINTURE": "涂装", "AILES": "翅膀", "TRAÎNÉES": "尾迹", "TRAÎNÉE": "尾迹", "ÉQUIPÉE": "已装备", "D'ORIGINE": "原厂", "MENTHE GLACÉE": "冰薄荷", "BLEU MINUIT": "午夜蓝", "NOIR MAT": "哑光黑", "COUCHER DE SOLEIL": "日落", "CHROME MIROIR": "镜面铬", "OR MASSIF": "纯金", "PANNEAUX": "滑翔板", "HÉLICES": "螺旋桨", "PLUMES D'ANGE": "天使之羽", "CHAUVE-SOURIS": "蝙蝠", "NITRO": "氮气", "MENTHE": "薄荷", "ROSE NÉON": "霓虹粉", "POUDRE D'OR": "金粉", "ARC-EN-CIEL": "彩虹", "LA BULLE": "泡泡", "LE COMBI": "露营车", "LA DOLORÈS": "多洛蕾丝"});
 Object.assign(I18N,{"OFFRE DE LANCEMENT": "LAUNCH OFFER", "LA CAISSE DU MOIS": "CAR OF THE MONTH", "Une voiture exclusive, sa peinture et sa traînée. Introuvable ailleurs.": "An exclusive car, its paint and its trail. Found nowhere else.", "BIENTÔT": "SOON", "VOITURES PREMIUM": "PREMIUM CARS", "LÉGENDAIRE": "LEGENDARY", "ÉPIQUE": "EPIC", "RARE": "RARE", "RESTAURER MES ACHATS": "RESTORE PURCHASES", "BIENTÔT DISPONIBLE — À LA SORTIE SUR L'APP STORE": "COMING SOON — AT THE APP STORE LAUNCH", "AUCUN ACHAT À RESTAURER": "NO PURCHASES TO RESTORE", "CONTRAT RÉUSSI": "CONTRACT DONE", "DÉBLOQUÉ": "UNLOCKED"});
 Object.assign(I18N_ZH,{"OFFRE DE LANCEMENT": "首发优惠", "LA CAISSE DU MOIS": "本月座驾", "BIENTÔT": "即将推出", "VOITURES PREMIUM": "高级车辆", "LÉGENDAIRE": "传说", "ÉPIQUE": "史诗", "RARE": "稀有", "RESTAURER MES ACHATS": "恢复购买", "CONTRAT RÉUSSI": "合同完成", "DÉBLOQUÉ": "已解锁"});
@@ -7704,14 +7744,18 @@ const RUNX={coins:0,fruits:0,perfect:0,t:0,nitro:0}; // ce que `runStats` ne com
    à la couleur de l'urgence, et les secondes au centre. Dessiné en ×2 pour un trait net sur écran Retina, et SEULEMENT quand
    l'image change (arc au 1/200, dixième de seconde). */
 function airPieDraw(fr,sec,flash){
-  const q=Math.round(fr*200),s10=Math.round(sec*10),col=pwrAirT>0?'#7dffec':fr>.4?'#5ee37a':(fr>.2?'#ffc93a':'#ff5a6e'),key=q+'|'+s10+'|'+col+'|'+flash;
+  const q=Math.round(fr*120),s10=Math.round(sec*10),col=pwrAirT>0?'#7dffec':fr>.4?'#5ee37a':(fr>.2?'#ffc93a':'#ff5a6e'),key=q+'|'+s10+'|'+col+'|'+flash;
   if(airPieDraw._k===key)return;airPieDraw._k=key;
   const c=pieCtx,S=152,C=S/2;c.clearRect(0,0,S,S);
-  c.beginPath();c.arc(C,C,66,0,6.2832);c.fillStyle='#0b0730';c.fill();                              // le liseré sombre
-  const g=c.createRadialGradient(C,C*.7,4,C,C,62);g.addColorStop(0,'#4a3bb5');g.addColorStop(.6,'#241a78');g.addColorStop(1,'#140d4a');
-  c.beginPath();c.arc(C,C,61,0,6.2832);c.fillStyle=g;c.fill();                                      // le verre
+  // le liseré, le verre et la piste ne dépendent de rien : CUITS UNE FOIS (plus de dégradé radial ~20 fois par seconde en vol)
+  c.drawImage(airPieDraw.fond||(airPieDraw.fond=(function(){const cv=document.createElement('canvas');cv.width=cv.height=S;const x=cv.getContext('2d');
+    x.beginPath();x.arc(C,C,66,0,6.2832);x.fillStyle='#0b0730';x.fill();                              // le liseré sombre
+    const g=x.createRadialGradient(C,C*.7,4,C,C,62);g.addColorStop(0,'#4a3bb5');g.addColorStop(.6,'#241a78');g.addColorStop(1,'#140d4a');
+    x.beginPath();x.arc(C,C,61,0,6.2832);x.fillStyle=g;x.fill();                                      // le verre
+    x.lineCap='round';x.lineWidth=11;
+    x.beginPath();x.arc(C,C,50,-Math.PI/2,Math.PI*1.5);x.strokeStyle='rgba(255,255,255,.13)';x.stroke(); // la piste
+    return cv;})()),0,0);
   c.lineCap='round';c.lineWidth=11;
-  c.beginPath();c.arc(C,C,50,-Math.PI/2,Math.PI*1.5);c.strokeStyle='rgba(255,255,255,.13)';c.stroke(); // la piste
   if(fr>.004){c.save();c.shadowColor=col;c.shadowBlur=14;
     c.beginPath();c.arc(C,C,50,-Math.PI/2,-Math.PI/2+fr*6.2832);c.strokeStyle=col;c.stroke();c.restore();} // l'arc qui reste
   if(flash){c.lineWidth=4;c.beginPath();c.arc(C,C,64,0,6.2832);c.strokeStyle='rgba(125,255,236,.9)';c.stroke();} // on REGAGNE du temps
@@ -7972,13 +8016,26 @@ function misFin(){
 // LA BANNIÈRE DE SUCCÈS (v2, 2026-09-25 — « pas jolie, fais beaucoup mieux et moderne ») : une carte de verre sombre,
 // la pastille-icône qui s'allume à gauche, deux lignes (ce qu'on a fait, en clair, jamais tronqué) et la prime en pilule
 // d'or. Elle entre en rebondissant sous le HUD, un reflet la traverse, elle s'efface sur place.
-function misBanniere(titre,texte,prime,ico){
+/* LE CRÉNEAU DU HAUT D'ÉCRAN (2026-09-25) : moteur, défi et permis visaient la même bande sous l'encoche, sans se parler —
+   une réception qui franchit un palier ET valide un défi posait la bannière PAR-DESSUS la carte moteur, au meilleur moment.
+   Une carte à la fois, les autres en FILE. Piloté par événements uniquement : rien dans la boucle. */
+const HAUT={fin:0,q:[],t:0};
+function hautPasse(f,ms,k){ // f affiche la carte, ms = le temps où elle occupe l'écran, k = sa famille
+  const n=performance.now();
+  if(n<HAUT.fin||TUTO.on){HAUT.q.push([f,ms,k]);hautArme();return;} // l'auto-école garde le haut pour elle : tutoFin relâche la file
+  HAUT.fin=n+ms;f();hautArme();
+}
+function hautArme(){clearTimeout(HAUT.t);if(!HAUT.q.length||TUTO.on)return;
+  HAUT.t=setTimeout(function(){const it=HAUT.q.shift();if(it){HAUT.fin=0;hautPasse(it[0],it[1],it[2]);}},Math.max(0,HAUT.fin-performance.now())+150);}
+function hautVide(){HAUT.q.length=0;HAUT.fin=0;clearTimeout(HAUT.t);}
+function misBanniere(titre,texte,prime,ico){hautPasse(function(){misBanMontre(titre,texte,prime,ico);},3000,'mis');}
+function misBanMontre(titre,texte,prime,ico){
   let b=document.getElementById('misBan');
   if(!b){b=document.createElement('div');b.id='misBan';b.setAttribute('role','status');document.body.appendChild(b);}
   b.innerHTML='<i class="mbIco">'+pxi(ico||'coche')+'</i><div class="mbTx"><small>'+TR(titre)+'</small><span>'+texte+'</span></div>'
     +(prime?'<b class="mbPrime">'+prime+'</b>':'');
   b.classList.remove('on');void b.offsetWidth;b.classList.add('on');
-  clearTimeout(misBanniere._t);misBanniere._t=setTimeout(function(){b.classList.remove('on');},2800);
+  clearTimeout(misBanMontre._t);misBanMontre._t=setTimeout(function(){b.classList.remove('on');},2800);
 }
 // LE PANNEAU DES CONTRATS (menu + écran de mort) : trois lignes, cochées ou avec leur avancement
 function misPanel(el,fraiches){
@@ -8153,9 +8210,10 @@ function tutoCarte(){
     c.querySelector('.coSkip').addEventListener('click',function(e){e.stopPropagation();uiClic();tutoFin(true);});}
   return c;
 }
-function tutoAffiche(){
+function tutoAffiche(msg){ // msg (facultatif) : le raté s'écrit dans l'en-tête de la carte, en rouge, jusqu'à la réussite suivante
+  msg=typeof msg==='string'?msg:'';
   const c=tutoCarte(),E=TUTO_ETAPES[TUTO.i];
-  c.querySelector('.coN').textContent=TR('AUTO-ÉCOLE')+' · '+(TUTO.i+1)+'/'+TUTO_ETAPES.length;
+  c.querySelector('.coN').textContent=msg?TR(msg):TR('AUTO-ÉCOLE')+' · '+(TUTO.i+1)+'/'+TUTO_ETAPES.length;c.classList.toggle('rate',!!msg);
   c.querySelector('.coSkip').textContent=TR('PASSER');
   c.querySelector('.coIco').className='coIco pxi pxi-'+E.ico;
   c.querySelector('.coTx b').textContent=TR(E.t);
@@ -8175,7 +8233,8 @@ function tutoDebut(){
   TUTO.attente=true; // (2026-09-25) la 1re consigne attend la FIN du logo de départ (fireLaunchBoost) — elle tombait pendant la sortie du garage, impossible à exécuter
 }
 function tutoBravo(){ // la réussite d'une étape : coche, son, vibration, gerbe — puis la suivante
-  const c=tutoCarte();c.classList.add('bravo');
+  const c=tutoCarte();if(c.classList.contains('rate')){c.classList.remove('rate');c.querySelector('.coN').textContent=TR('AUTO-ÉCOLE')+' · '+(TUTO.i+1)+'/'+TUTO_ETAPES.length;}
+  c.classList.add('bravo');
   try{chimeNote(1046,0,.10,.16);chimeNote(1568,.09,.14,.16);}catch(e){}hap([10,40,20]);
   pixBurst(c,14);
   TUTO.i++;TUTO.t=0;
@@ -8190,6 +8249,7 @@ function tutoFin(passe){
     misBanniere('AUTO-ÉCOLE','PERMIS OBTENU !','+'+fmtC(500),'trophee');
     try{fanfare();}catch(e){}hap([20,60,20,60,60]);}
   SAVE.flush();
+  hautArme(); // les cartes retenues pendant la leçon passent maintenant, l'une après l'autre (le permis d'abord)
 }
 function tutoTick(dt){
   if(!TUTO.on||!started||gameOver||paused)return;
@@ -8201,7 +8261,7 @@ function tutoTick(dt){
     case 2: if(mode==='fall'){pwrAirT=Math.max(pwrAirT,9);tutoBravo();}break;        // en vol : l'airtime devient infini le temps d'apprendre
     case 3: if(mode==='fall'&&nitroOn)TUTO.air+=dt;
             if(TUTO.air>.9){TUTO.vole=true;tutoBravo();}
-            else if(mode==='drive'&&TUTO.t>1){TUTO.i=2;TUTO.air=0;toast(TR('ENCORE ! ET CETTE FOIS, NITRO EN L\'AIR'));tutoAffiche();}
+            else if(mode==='drive'&&TUTO.t>1){TUTO.i=2;TUTO.air=0;tutoAffiche('ENCORE ! NITRO EN L\'AIR');}
             break;
     case 4: if(mode==='drive')tutoBravo();else if(mode==='fall')pwrAirT=Math.max(pwrAirT,2);break;
   }
@@ -8315,8 +8375,13 @@ function engBig(E,tier){
   clearTimeout(engBig._f);if(rec)engBig._f=setTimeout(function(){if(!gameOver)try{fanfare();}catch(e){}},1200); // APRÈS le démarreur du montage, jamais par-dessus
   clearTimeout(engBig._t);engBig._t=setTimeout(function(){b.classList.remove('on');engBig.on=false;},2300);
 }
+function engBigFile(E,tier){ // deux paliers en file : on ne garde que le dernier (la carte dit où l'on EST, pas où l'on est passé)
+  for(let i=HAUT.q.length-1;i>=0;i--)if(HAUT.q[i][2]==='eng')HAUT.q.splice(i,1);
+  hautPasse(function(){engBig(E,tier);},2300,'eng');}
 function engPop9(E,tier){
-  if(TCTL.on){engBig(E,tier);return;} // TÉLÉPHONE : la grande carte (le badge de coin reste pour l'ordinateur)
+  if(TCTL.on){ // TÉLÉPHONE : la grande carte — sauf pendant l'auto-école, où le nom jaillit au-dessus de la caisse (la consigne garde le haut)
+    if(TUTO.on){popTexte(E.n,'#'+(E.col||0xffd75e).toString(16).padStart(6,'0'));return;}
+    engBigFile(E,tier);return;} // TÉLÉPHONE : la grande carte (le badge de coin reste pour l'ordinateur)
   if(!epEl)return;
   epNumEl.innerHTML='<i>'+TR('PALIER')+'</i>'+(tier+1);
   epNomEl.textContent=TR(E.n);
@@ -12455,6 +12520,7 @@ function drawSpeedLines(kmh,nitro){ // speed lines façon anime : traits radiaux
   const W=slCv.width,H=slCv.height;
   const vcL=vCroisiere();
   let k=Math.max(0,(kmh-vcL*.6)/vcL)+(nitro?.6:0); // (2026-09-25) « un peu » en croisière (12 traits), beaucoup plus au momentum, au boost, en nitro
+  slCtx.setTransform(1,0,0,1,0,0);
   if(k<=.03){if(drawSpeedLines._had){slCtx.clearRect(0,0,W,H);drawSpeedLines._had=false;}return;} // rien à tracer : on n'efface le plein écran qu'UNE fois (plus de clearRect/frame à basse vitesse)
   slCtx.clearRect(0,0,W,H);drawSpeedLines._had=true;
   k=Math.min(1.35,k);
@@ -13350,6 +13416,7 @@ function resetGame(){
   fireLaunchBoost();
   showMsg(pickL(GO_LINES),'#7dff9b');
   musicStartRun(); // nouvelle partie → la playlist repart du début
+  try{document.dispatchEvent(new Event('cc:jeu'));}catch(e){} // la course part ou s'arrête : les commandes le savent À L'INSTANT, pas au prochain tick
 }
 // Fin de run : les exploits de la partie rejoignent les compteurs À VIE. Cumuls pour ce qui se
 // collectionne (figures, gaps, bumps), records pour ce qui se bat (zones, chaîne, vitesse).
@@ -13386,7 +13453,7 @@ function commitExploits(){
 }
 function endGame(){
   if(SANDBOX&&started&&!gameOver){ sandRevive(); return; } // ENTRAÎNEMENT : la mort n'est qu'un replacement — aucun score n'est enregistré
-  if(TUTO.on&&started&&!gameOver){ sandRevive(); if(TUTO.i>=3){TUTO.i=2;TUTO.air=0;tutoAffiche();} toast(TR('RATÉ ! ON RECOMMENCE')); return; } // AUTO-ÉCOLE : on ne meurt pas en apprenant
+  if(TUTO.on&&started&&!gameOver){ sandRevive(); if(TUTO.i>=3){TUTO.i=2;TUTO.air=0;} tutoAffiche('RATÉ ! ON RECOMMENCE'); return; } // AUTO-ÉCOLE : on ne meurt pas en apprenant
   gameOver=true;airPie.style.display='none';chainHud.style.opacity=0;caseHud.style.opacity=0;
   musicStop(true);setTimeout(function(){if(gameOver)musicMenu();},1400); // TAPE-STOP de fin, puis la musique du menu revient, étouffée
   dolKill();serpShow=0; // les créatures ne survivent pas à l'explosion
@@ -13442,6 +13509,8 @@ function endGame(){
   }
   renderLeaders(q?leaders.findIndex(function(e){return e.s===sc;}):-1);
   overlay.style.display='flex';
+  hautVide(); // l'écran de mort récapitule moteur et défis : la file du haut n'a plus rien à dire
+  try{document.dispatchEvent(new Event('cc:jeu'));}catch(e){} // la course part ou s'arrête : les commandes le savent À L'INSTANT, pas au prochain tick
 }
 function start(){
   if(started||document.getElementById('splash'))return;started=true;
@@ -13472,6 +13541,7 @@ function start(){
   paintMoney(); // la mise de départ et la bonne devise, tout de suite
   survStart(); // le mode armé au menu s'active pour cette première run
   musicStartRun(); // la bande-son démarre avec la partie
+  try{document.dispatchEvent(new Event('cc:jeu'));}catch(e){} // la course part ou s'arrête : les commandes le savent À L'INSTANT, pas au prochain tick
 }
 /* ============================================================================
    LE MENU — LE LOGO QU'ON CASSE (2026-08-18)
@@ -14527,7 +14597,7 @@ function buildGarageRoom(){
    il n'y a rien à retourner — mais si un jour la porte déménage, c'est ici que ça se règle. */
 function garageLaunch(){
   if(GAR.go||GAR.sw||!garageOn)return;
-  try{ if(carUnlocked(garageI)){const be=$('gEquip'); if(be&&!be.disabled)be.click();} }catch(e){}
+  try{ if(carUnlocked(garageI)){const be=$('gEquip'); if(be&&be.getAttribute('aria-disabled')!=='true')be.click();} }catch(e){}
   if(!GAR._v)GAR._v=new THREE.Vector3();
   if(!GAR._c)GAR._c=new THREE.Vector3();
   GAR.go={t:0,p0:camera.position.clone(),voile:false,quiet:gEl.classList.contains('quiet')};
@@ -14550,6 +14620,7 @@ function playViaGarage(){
   ecranWipe(function(){openGarage(true);},function(){garageLaunch();});
 }
 function garageGo(d){
+  hap(8); // ◀ ▶, glissé, clavier : le doigt sent qu'on change de caisse
   if(SHOP.tab!=='voiture'){ // BOUTIQUE : on feuillette les articles, la caisse reste la tienne
     shopShow(SHOP.tab,SHOP.i[SHOP.tab]+d);try{chimeNote(d>0?880:660,0,.16,.14);}catch(e){}return;}
   if(!garageOn||!GAR.root||GAR.sw){garageShow(garageVoisin(garageI,d));return;}
@@ -14604,20 +14675,21 @@ function garageShow(i){
   // (chacune a sa condition), donc un simple « au-dessus du meilleur » laisserait passer les trous.
   const bt=$('gEquip'),eq=SAVE.d.equipped|0;
   if(bt){
-    if(!ouverte){bt.innerHTML=pxi('verrou')+' '+TR('VERROUILLÉE');bt.disabled=true;bt.style.opacity=.5;}
-    else if(garageI===eq){bt.innerHTML=pxi('coche')+' '+TR('ÉQUIPÉE');bt.disabled=true;bt.style.opacity=.7;}
-    else{bt.textContent=TR('ÉQUIPER');bt.disabled=false;bt.style.opacity=1;}
+    bt.disabled=false; // aria-disabled plutôt que disabled : le bouton fermé RÉPOND (secousse + vibration + la condition)
+    if(!ouverte){bt.innerHTML=pxi('verrou')+' '+TR('VERROUILLÉE');bt.setAttribute('aria-disabled','true');bt.style.opacity=.5;}
+    else if(garageI===eq){bt.innerHTML=pxi('coche')+' '+TR('ÉQUIPÉE');bt.setAttribute('aria-disabled','true');bt.style.opacity=.7;}
+    else{bt.textContent=TR('ÉQUIPER');bt.setAttribute('aria-disabled','false');bt.style.opacity=1;}
   }
   /* LE BOUTON ACHETER n'existe QUE pour les caisses à vendre et pas encore possédées. Les caisses
      à défi n'en ont pas du tout : afficher un bouton d'achat grisé sur LE MANS 24 laisserait croire
      qu'elle finira par s'acheter, alors que non — c'est tout l'intérêt de la voie aura. */
   const bb=$('gBuy'),row=$('gBuyRow'),prix=carPrice(garageI);
+  $('gCard').classList.toggle('verrou',!ouverte&&!dfi&&!prix); // défi d'aura : la condition DOIT se lire (elle était écrite… puis masquée)
   if(row)row.style.display=(prix&&!ouverte)?'':'none';
   if(bb&&prix&&!ouverte){
     const peut=bank()>=prix;
     bb.textContent=TR(peut?'ACHETER — ':'IL MANQUE ')+fmtC(peut?prix:prix-bank());
-    bb.classList.toggle('pauvre',!peut);
-    bb.disabled=!peut;
+    bb.classList.toggle('pauvre',!peut); // ⚠ plus de `disabled` : un bouton désactivé n'émet AUCUN clic — pas de son, pas de vibration, rien
   }
   // ⚠ UN SEUL BOUTON D'ACTION (2026-09-25) : une caisse à vendre affichait « IL MANQUE 25 k » ET « VERROUILLÉE »
   // l'un sous l'autre — deux fois la même nouvelle. À vendre : ACHETER seul ; à défi : le verrou seul.
@@ -14669,7 +14741,7 @@ function shopShow(cat,i){
   gLvlEl.textContent=TR(SHOP_LBL[cat])+' '+(i+1)+' / '+L.length;gSpdEl.textContent='';
   if(a||!d.mis)gDescEl.textContent=TR(d.d);
   else gDescEl.innerHTML=defisHtml(d.mis);
-  $('gCard').classList.toggle('defis',!a&&!!d.mis);
+  $('gCard').classList.toggle('defis',!a&&!!d.mis);$('gCard').classList.remove('verrou');
   const sw=$('gSw');
   if(sw){ // LE NUANCIER : la teinte (ou le dégradé) de la peinture, le ruban de la traînée
     let bg='';
@@ -14681,12 +14753,13 @@ function shopShow(cat,i){
   const bt=$('gEquip'),bb=$('gBuy'),row=$('gBuyRow');
   if(row)row.style.display=(!a&&d.p)?'':'none';
   if(bb&&!a&&d.p){const peut=bank()>=d.p;
-    bb.textContent=TR(peut?'ACHETER — ':'IL MANQUE ')+fmtC(peut?d.p:d.p-bank());bb.classList.toggle('pauvre',!peut);bb.disabled=!peut;}
+    bb.textContent=TR(peut?'ACHETER — ':'IL MANQUE ')+fmtC(peut?d.p:d.p-bank());bb.classList.toggle('pauvre',!peut);}
   if(bt){
     bt.style.display=(!a&&d.p)?'none':'';
-    if(!a){bt.innerHTML=pxi('verrou')+' '+TR('À GAGNER');bt.disabled=true;}
-    else if(eq){bt.innerHTML=pxi('coche')+' '+TR('ÉQUIPÉE');bt.disabled=true;}
-    else{bt.textContent=TR('ÉQUIPER');bt.disabled=false;}
+    bt.disabled=false;
+    if(!a){bt.innerHTML=pxi('verrou')+' '+TR('À GAGNER');bt.setAttribute('aria-disabled','true');}
+    else if(eq){bt.innerHTML=pxi('coche')+' '+TR('ÉQUIPÉE');bt.setAttribute('aria-disabled','true');}
+    else{bt.textContent=TR('ÉQUIPER');bt.setAttribute('aria-disabled','false');}
     bt.style.opacity='';
   }
   gDots(L.map(function(x,j){return {on:j===i,a:shopOwned(cat,x.id),eq:shopEqD(cat)===x};}));
@@ -15044,9 +15117,17 @@ $('stFreq').addEventListener('change',saveFruits);
 addEventListener('keydown',e=>{if(!stallOn)return;
   if(e.code==='Escape')closeStall();else if(e.code==='ArrowLeft')stallShow(stallI-1);else if(e.code==='ArrowRight')stallShow(stallI+1);});
 $('garageBtn').addEventListener('click',e=>{e.stopPropagation();openGarage();});
-$('gClose').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarget);ecranWipe(closeGarage);});
+$('gClose').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarget);hap(8);ecranWipe(closeGarage);});
+function gSecoue(b){b.classList.remove('secoue');void b.offsetWidth;b.classList.add('secoue');hap([8,40,8]);} // le NON du garage : ça bouge, ça vibre, et un toast dit pourquoi
 $('gEquip').addEventListener('click',e=>{e.stopPropagation();
-  uiPop(e.currentTarget);
+  const b=e.currentTarget;
+  if(b.getAttribute('aria-disabled')==='true'){
+    const vt=SHOP.tab==='voiture',ferme=vt?!carUnlocked(garageI):!shopOwned(SHOP.tab,COSM[SHOP.tab][SHOP.i[SHOP.tab]].id);
+    if(!ferme){hap(8);return;}                               // ÉQUIPÉE : un simple accusé (sinon on rejouait la fanfare et réécrivait la sauvegarde)
+    gSecoue(b);uiClic();
+    if(vt)toast(pxi('verrou')+' '+String(carUnlockText(garageI)).replace(/</g,'&lt;')); // boutique : les défis sont déjà listés sur la fiche
+    return;}
+  uiPop(b);
   if(SHOP.tab!=='voiture'){const c9=SHOP.tab,i9=SHOP.i[c9];if(shopEquip(c9,i9)){shopShow(c9,i9);uiClic();try{fanfare();}catch(err){}}return;}
   if(!carUnlocked(garageI))return;                          // pas encore débloquée (condition propre à CETTE caisse)
   SAVE.d.equipped=garageI;SAVE.flush();
@@ -15059,16 +15140,16 @@ $('gEquip').addEventListener('click',e=>{e.stopPropagation();
    s'allume juste à côté — le joueur décide. */
 $('gBuy').addEventListener('click',e=>{e.stopPropagation();
   if(SHOP.tab!=='voiture'){const c9=SHOP.tab,i9=SHOP.i[c9],r9=shopBuy(c9,i9);
-    if(!r9.ok){if(r9.raison==='fonds-insuffisants')toast(pxi('croix')+' '+TR('IL TE MANQUE')+' '+fmtC(r9.manque));return;}
+    if(!r9.ok){if(r9.raison==='fonds-insuffisants'){gSecoue(e.currentTarget);uiClic();toast(pxi('croix')+' '+TR('IL TE MANQUE')+' '+fmtC(r9.manque));}return;}
     shopShow(c9,i9);toast(pxi('coche')+' '+TR(COSM[c9][i9].n)+' — '+fmtC(r9.paye));hap([10,30,20,30,40]);pixBurst($('gCard'),26);
     try{fanfare();}catch(err){}return;}
   const r=carBuy(garageI);
   if(!r.ok){
-    if(r.raison==='fonds-insuffisants')showMsg(TR('IL TE MANQUE')+' '+fmtC(r.manque),'#ff5e5e');
+    if(r.raison==='fonds-insuffisants'){gSecoue(e.currentTarget);uiClic();toast(pxi('croix')+' '+TR('IL TE MANQUE')+' '+fmtC(r.manque));} // #msg est masqué au garage : c'est un toast qui parle
     return;
   }
   garageShow(garageI);pixBurst($('gCard'),26);hap([10,30,20,30,40]); // le bouton disparaît, le compte se met à jour — et ça se FÊTE
-  showMsg('🔑 '+TR(CARS[garageI].name)+' '+TR('EST À TOI')+' — '+fmtC(r.paye)+' '+TR('débités'),'#7dff9a');
+  toast(pxi('coche')+' '+TR(CARS[garageI].name)+' '+TR('EST À TOI')+' — '+fmtC(r.paye)); // (#msg invisible au garage : l'achat ne se disait pas)
   try{fanfare();}catch(err){}
 });
 // `buildPlayWord()` — LE JOUER SANS BULLE (2026-09-05 bis) : `#gPlayMain` n'a plus de textContent
@@ -16548,9 +16629,9 @@ function loop(now){
   skyDome.position.copy(camera.position);
   skyU.uTime.value=t;
   if(acesPass){ // EFFETS DE VITESSE (aberration + flou radial + tunnel) — SUR LE BOOST, pas sur le simple fait d'avancer
-    const sfxT=(running&&!gameOver)?Math.min(1,(nitroOn?0.72:0)+Math.min(1,boost)*0.6):0; // rouler normalement = image nette ; booster = ça FUSE
+    const sfxT=(running&&!gameOver&&!REDUCED_MOTION)?Math.min(1,(nitroOn?0.72:0)+Math.min(1,boost)*0.6):0; // rouler normalement = image nette ; booster = ça FUSE
     loop._sfx=(loop._sfx||0)+(sfxT-(loop._sfx||0))*Math.min(1,dt*(sfxT>(loop._sfx||0)?7:3)); // montée franche, retombée douce
-    acesPass.uniforms.uSpeed.value=loop._sfx;
+    acesPass.uniforms.uSpeed.value=loop._sfx;acesPass.uniforms.uJit.value=(acesPass.uniforms.uJit.value+.618034)%1;
   }
   lvlPlanete(dt); // la planète tient sa place dans le ciel — et en ORBITE elle passe sous la route (voir NIVEAUX)
   pluieTick(t);   // la pluie de la VILLE tombe autour de la caméra (invisible ailleurs)
@@ -17160,12 +17241,16 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   if(pan)pan.addEventListener('click',panTapHandler);
   // ---- SYNCHRO PARESSEUSE (8 Hz) : apparition des commandes, écran de mort, gel en paysage.
   //      Un petit tick plutôt qu'un branchement dans loop() — et zéro écriture DOM si rien n'a changé.
-  setInterval(function(){
+  function syncJeu(){
     const play=(started&&!gameOver),dead=(started&&gameOver);
     if(dead!==TCTL.dead){ TCTL.dead=dead; document.body.classList.toggle('dead',dead); } // l'écran de mort a sa propre hiérarchie
     if(play!==TCTL.play){ TCTL.play=play; document.body.classList.toggle('play',play);
       if(gear)gear.innerHTML=pxi(play?'pause':'reglages'); // en jeu c'est un bouton PAUSE, au menu un bouton réglages
       if(!play){ for(const k in keys)keys[k]=false; TCTL.act=false; TCTL.id=null; TCTL.st=0; TCTL.sv=0; if(sz)sz.classList.remove('act'); } }
+  }
+  document.addEventListener('cc:jeu',syncJeu); // (2026-09-25) les commandes apparaissaient 0 à 140 ms APRÈS le départ, au hasard du tick
+  setInterval(function(){
+    syncJeu(); const play=(started&&!gameOver);
     /* TÉLÉPHONE COUCHÉ en pleine course : on gèle. ⚠ (2026-09-24) trois corrections :
        (1) seulement sur un écran de TÉLÉPHONE (hauteur < 600 px en paysage) — un iPad couché, lui,
            a la place de jouer, et gelait pourtant en boucle, sans un mot (`IS_MOBILE` y est vrai) ;
@@ -17461,7 +17546,7 @@ if(!(IS_MOBILE||/[?&]touch=1/.test(location.search))){
     else if(a==='surv'){ dClic(survBtnEl); dPanSync(); }
     else if(a==='resp'){ dPanOpen(false); if(started&&!gameOver&&mode==='drive')respawn(); }
     else if(a==='reset'){ dPanOpen(false); if(started)resetGame(); }
-    else if(a==='quit'){ dPanOpen(false); if(started&&!gameOver){ const sb=SANDBOX;SANDBOX=false;endGame();SANDBOX=sb; } }
+    else if(a==='quit'){ dPanOpen(false); if(started&&!gameOver){ if(TUTO.on)tutoFin(true); const sb=SANDBOX;SANDBOX=false;endGame();SANDBOX=sb; } } // QUITTER pendant l'auto-école : on sort vraiment (sinon « RATÉ ! » et la caisse replacée)
   });
   // ⚠ NOM DÉDIÉ (`applyQ9`, pas `applyQ`) : `applyQ` est déclarée `const` À L'INTÉRIEUR du bloc
   // mobile — hors de portée ici (portée de bloc). Se rebrancher sur le MÊME état (`DPR_CAP`/
@@ -17469,11 +17554,13 @@ if(!(IS_MOBILE||/[?&]touch=1/.test(location.search))){
   function applyQ9(fast){ DPR_CAP=Math.min(devicePixelRatio,fast?1:1.5); curDPR=Math.min(DPR_CAP,devicePixelRatio); applyDPR(); } // mêmes crans que le téléphone (2026-09-24) : RAPIDE ne descend plus sous la résolution d'origine du desktop
   // ⚙/⏸ + le déclencheur `body.play` : le MÊME tick que le mobile (140 ms, zéro écriture DOM si
   // rien n'a changé) — mais SANS le gel « téléphone couché » ni `mGo()`, qui n'ont aucun sens ici.
-  setInterval(function(){
+  function dSyncJeu(){
     const play=(started&&!gameOver);
     if(play!==TCTL.play){ TCTL.play=play; document.body.classList.toggle('play',play);
       if(dGear)dGear.innerHTML=pxi(play?'pause':'reglages'); }
-  },140);
+  }
+  document.addEventListener('cc:jeu',dSyncJeu);
+  setInterval(dSyncJeu,140);
 }
 /* ⚠ PAS DE SERVICE WORKER EN `file://` : il ne PEUT PAS s'y enregistrer, et la tentative laisse une
    erreur rouge en console (« unknown error when fetching the script ») chez quiconque ouvre le jeu

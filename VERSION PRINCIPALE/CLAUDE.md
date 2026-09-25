@@ -48,6 +48,15 @@
     plus ; turbo lu sur le MOTEUR ; nitro audible sur téléphone (`TEL_NATIF` : passe-haut de la flamme, `nB/gE` dans engSndParams) ;
     moteur qui s'emballe en vol, gomme qui mord (`pneuMord`), tôle du POSÉ LOURD, « tchak » du PARFAIT ; une seule tonalité (`TON`,
     `noteP`, `FLOW_ACC` — mi pentatonique) ; le FLOW prévient avant de retomber ; plot percuté (`coneSnd`).
+  · **ERGONOMIE 6b** : l'événement **`cc:jeu`** (fin de `start()`, `resetGame()`, et d'`endGame()` APRÈS les retours bac à sable /
+    auto-école) synchronise `body.play`/`body.dead` à l'instant — le tick de 140 ms n'est plus qu'un filet ; commandes, jauge et ⏸
+    entrent/sortent en fondu (le fondu est sur `#tGear`, jamais sur `#tSet`). **`HAUT`** (`hautPasse/hautArme/hautVide`) : UNE carte
+    à la fois sous l'encoche (moteur `engBigFile`, défi `misBanniere`→`misBanMontre`, permis) ; l'auto-école retient la file. Le coach
+    porte ses ratés (`tutoAffiche(msg)`, classe `.rate`), plus de toast sous les pouces. Garage : `.verrou` montre la condition d'aura,
+    boutons en `aria-disabled` (jamais `disabled` : un bouton désactivé n'émet aucun clic) + `gSecoue`. Plancher `--fs-min` 8 px.
+    **`GRADE_ACES`** (téléphone) : l'étalonnage `saturate/contrast/brightness` vit dans l'ACES, `body.post>canvas{filter:none}` ;
+    `ACES_N` 6 prises + grain animé `uJit` ; « Réduire les animations » coupe aussi le flou de vitesse.
+  · **TESTS MUETS** : le pane caché joue le son chez Sacha — tout onglet de test (agents compris) démarre sfx/mus/vox à false.
 
 ## ⚠ FUSION SACHA × LÉO + NIVEAUX — 2026-09-24 (branche `fusion-2026-09`)
 - `index.html` = fusion à trois points : appstore-backlog (Sacha) × `main:version-leolei-2026` (Léo),
