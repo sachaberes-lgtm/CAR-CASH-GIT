@@ -1892,6 +1892,8 @@
   #engBig .ebCyl i{width:12px;height:18px;border-radius:4px;background:#2a2268;box-shadow:inset 0 0 0 2px rgba(255,255,255,.12)}
   #engBig.on .ebCyl i{animation:ebCyl .18s steps(2) forwards}
   @keyframes ebCyl{to{background:var(--ec);box-shadow:0 0 10px var(--ec),inset 0 -4px 0 rgba(0,0,0,.25)}}
+  #engBig.rec .ebCarte{border-color:#ffd75e;box-shadow:0 0 0 3px #0b0730,0 14px 34px rgba(0,0,0,.55),0 0 56px rgba(255,215,94,.7)}
+  #engBig.rec small{color:#ffd75e}
   #engBig em{font-style:normal;font-size:8px;letter-spacing:2px;color:#fff;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.08)}
   @media (prefers-reduced-motion:reduce){#engBig.on{animation:none;opacity:1;transform:translate(-50%,0)}#engBig .ebRayons{animation:none}}
   /* -- l'écran de fin v3 : AURA et MOTEUR en héros, l'argent en petite ligne -- */
@@ -1946,7 +1948,7 @@
   #popTxt.on{animation:popTxt .9s cubic-bezier(.3,1.7,.5,1) forwards}
   @keyframes popTxt{0%{opacity:0;transform:translate(-50%,10px) scale(.4)}18%{opacity:1;transform:translate(-50%,0) scale(1.15)}30%{transform:translate(-50%,0) scale(1)}
     75%{opacity:1;transform:translate(-50%,-14px) scale(1)}100%{opacity:0;transform:translate(-50%,-30px) scale(.9)}}
-  @media (prefers-reduced-motion:reduce){#popTxt.on{animation:none;opacity:1;transform:translate(-50%,0)}}
+  @media (prefers-reduced-motion:reduce){#popTxt.on{animation:popTxtRM .9s linear forwards;transform:translate(-50%,0)}@keyframes popTxtRM{0%{opacity:0}15%{opacity:1}75%{opacity:1}100%{opacity:0}}} /* (2026-09-25) le texte restait PLANTÉ à l'écran pour toujours */
   /* -- la fiche du garage, ALLÉGÉE (user : « trop de texte ») : le nom, le nuancier, le bouton — et le compteur en haut -- */
   #garage #gLvl,#garage #gSpd,#garage #gDots,#garage #gBank,#garage #gHint{display:none!important}
   #garage #gCard:not(.defis) #gDesc{display:none!important}
@@ -2068,12 +2070,31 @@
   #wipe>*{display:none!important}
   #wipe.in{visibility:visible;pointer-events:auto;opacity:1;transition:opacity 200ms var(--ease)}
   #wipe.out{visibility:visible;pointer-events:none;opacity:0;transition:opacity var(--t-slow) var(--ease)}
+  /* ---- L'ÉCRAN DE MORT (2026-09-25) : UNE seule plaque or (REJOUER) — l'objectif « à portée » devient un panneau à liseré or ;
+     les cartes AURA / MOTEUR se posent comme le reste (plus de cascade en 6 saccades) ; la barre se remplit une fois posée ---- */
+  .mObj.pret,.mObj.rec{border:2px solid var(--or)!important;background:linear-gradient(180deg,rgba(40,34,104,.92),rgba(22,18,62,.94))!important;
+    box-shadow:inset 0 2px 0 rgba(255,255,255,.10),0 10px 24px rgba(0,0,0,.40),0 0 18px rgba(255,200,80,.25)!important}
+  .mObj.pret .obHd,.mObj.rec .obHd,.mObj.pret .obFt,.mObj.rec .obFt,.mObj.pret .obFt span:first-child{color:var(--or)}
+  .mObj.pret .obBig,.mObj.rec .obBig{color:#fff;text-shadow:0 2px 0 #0b0730}
+  .mObj .obBar i{transition:width 900ms var(--ease) var(--t-slow)}
+  .hCard{animation:mFils var(--t-slow) var(--ease) backwards .12s}
+  .hMot{animation-delay:.2s}
+  .hCard em{animation:none}
+  .hCard .hNx{font-size:8px;line-height:1.7;letter-spacing:1px;color:#8f97c8;--pxs:1}
+  .hCard .hNx.hPres{color:var(--or)}
+  .hCard .hBar{width:84%;height:4px;background:#090c1e;overflow:hidden;border-radius:2px}
+  .hCard .hBar u{display:block;height:100%;width:0;background:#ff7ad5;transition:width var(--t-slow) var(--ease)}
+  /* ---- LA PAUSE (2026-09-25) : le titre reste en haut, tout le reste descend ; REPRENDRE épinglé sous le pouce (le panneau ne défile pas au doigt) ---- */
+  #tpIn{min-height:100%;box-sizing:border-box}
+  #tPanel .tpH:first-child{margin-bottom:auto!important}
+  #tPanel .tp.go{position:sticky;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:2;margin:18px 0 10px}
   /* ---- « RÉDUIRE LES ANIMATIONS » (iOS) : plus aucun déplacement, uniquement des fondus courts — la règle d'Apple ---- */
   @media (prefers-reduced-motion:reduce){
     .mscr.on,.mscr.on.avant,.mscr.on.retour{animation:mFondu var(--t-fast) linear both!important}
     .mscr.on>*,.mscr.on>.mPlay,#mDead.on>[data-m=replay],#mDead.on>.mOver,.pbtn.pop,.gTab.pop,.mBank.pop,.mLigne.pop{animation:none!important}
     #tPanel.open #tpIn,#modale.on .modIn,#carr.on .carrIn{animation:mFondu var(--t-fast) linear both!important}
     body.touch #overlay{transition:none}
+    .hCard,.hCard em{animation:none!important}.hCard .hBar u,.mObj .obBar i{transition:none!important}
   }
 </style>
 </head>
@@ -2414,7 +2435,10 @@
   <div id="tGear" role="button" tabindex="0" aria-label="Réglages"><i class="pxi pxi-reglages" aria-hidden="true"></i></div>
   <div id="tPanel"><div id="tpIn">
     <div class="tpH">PAUSE</div>
-    <div class="tp go" data-a="close"><i class="pxi pxi-lecture" aria-hidden="true"></i> REPRENDRE</div>
+    <!-- (2026-09-25) ORDRE : ce qu'on LIT en haut, REPRENDRE en bas sous le pouce (épinglé), le rouge isolé de l'or par les réglages -->
+    <div class="tpH" data-g="run">LA PARTIE</div>
+    <div class="tp" data-a="reset" data-g="run"><i class="pxi pxi-rejouer" aria-hidden="true"></i> RECOMMENCER</div>
+    <div class="tp rouge" data-a="quit" data-g="run"><i class="pxi pxi-quitter" aria-hidden="true"></i> QUITTER</div>
     <div class="tpH">REGLAGES</div>
     <div class="tpPanel">
     <div class="tp ligne" data-a="snd"><i class="pxi pxi-son" aria-hidden="true"></i> SON</div>
@@ -2422,9 +2446,7 @@
     <div class="tp ligne" data-a="mus"><i class="pxi pxi-musique" aria-hidden="true"></i> MUSIQUE</div>
     <div class="tp ligne" data-a="q"><i class="pxi pxi-eclair" aria-hidden="true"></i> IMAGE</div>
     </div>
-    <div class="tpH" data-g="run">LA PARTIE</div>
-    <div class="tp" data-a="reset" data-g="run"><i class="pxi pxi-rejouer" aria-hidden="true"></i> RECOMMENCER</div>
-    <div class="tp rouge" data-a="quit" data-g="run"><i class="pxi pxi-quitter" aria-hidden="true"></i> QUITTER</div>
+    <div class="tp go" data-a="close"><i class="pxi pxi-lecture" aria-hidden="true"></i> REPRENDRE</div>
   </div></div>
 </div>
 <script src="vendor/three.min.js"></script>
@@ -4719,7 +4741,10 @@ const fmt=v=>CUR()+' '+Math.round(v).toLocaleString(LOC());
    ========================================================================== */
 const I18N={
  // ---- la conduite (les textes qui jaillissent au-dessus de la caisse) ----
- 'FRÔLÉ !':'CLOSE CALL!','PORTE !':'GATE!','RASE-BORD':'EDGE RIDER','FRÉNÉSIE !':'FRENZY!','FRÉNÉSIE':'FRENZY',
+ 'FRÔLÉ !':'CLOSE CALL!','PORTE !':'GATE!','PARFAIT !':'PERFECT!','DIVIN !!':'DIVINE!!','GAP !':'GAP!','DOUBLE GAP !':'DOUBLE GAP!',
+ 'AU CHEVEU !!':'CLOSE ONE!!','ARRACHÉE !':'JUST IN TIME!','NOUVEAU RECORD !':'NEW RECORD!','PLUS QUE':'ONLY','ENCORE':'NEED',
+ 'QUITTER LA PARTIE ?':'QUIT THE RUN?','RECOMMENCER ?':'RESTART?','Tes gains sont verses au compte.':'Your winnings go to your account.',
+ 'Les gains de cette partie ne seront PAS verses.':'This run\'s winnings will NOT be paid.','CONTINUER':'CONTINUE','RASE-BORD':'EDGE RIDER','FRÉNÉSIE !':'FRENZY!','FRÉNÉSIE':'FRENZY',
  // ---- interface ----
  'GARAGE':'GARAGE','ÉQUIPER':'EQUIP','✓ ÉQUIPÉE':'✓ EQUIPPED','🔒 VERROUILLÉE':'🔒 LOCKED',
  'glisse pour tourner · molette pour zoomer':'drag to turn · scroll to zoom',
@@ -7748,14 +7773,18 @@ function driftTick(dt,on){
       fovPunch=Math.max(fovPunch,6+6*driftLv);                                   // le champ S'OUVRE d'un coup : on est PROPULSÉ
       if(driftLv===3){slowT=Math.max(slowT,.14);try{flashEl.style.background='#ff5ec8';flashEl.style.opacity=.35;setTimeout(function(){flashEl.style.opacity=0;flashEl.style.background='#ff2020';},90);}catch(e){}}
       try{boostSnd(1+.35*driftLv);if(driftLv>=2)crackle(.45+.2*driftLv);}catch(e){}hap([12,30,20]);
-      popTexte(['','MINI-TURBO','SUPER TURBO','ULTRA TURBO'][driftLv],['','#5ee6ff','#ffd75e','#ff5ec8'][driftLv]);
+      popTexte(['','MINI-TURBO','SUPER TURBO','ULTRA TURBO'][driftLv],['','#5ee6ff','#ffd75e','#ff5ec8'][driftLv],1);
       try{addAura(40*driftLv,'DRIFT');}catch(e){}
     }
     driftC=0;driftLv=0;
   }
 }
 // LE TEXTE QUI JAILLIT au-dessus de la caisse (l'écran est nu sur téléphone : c'est la seule annonce de conduite)
-function popTexte(txt,col){
+function popTexte(txt,col,prio){
+  // (2026-09-25) une PRIORITÉ : un temps fort (PARFAIT, AU CHEVEU…) ne se fait pas voler la vedette par un palier dans les 650 ms
+  prio=prio|0;const n9=performance.now();
+  if(prio<(popTexte._p|0)&&n9<(popTexte._t||0))return;
+  popTexte._p=prio;popTexte._t=n9+650;
   let e=document.getElementById('popTxt');
   if(!e){e=document.createElement('div');e.id='popTxt';e.setAttribute('aria-hidden','true');document.body.appendChild(e);}
   e.textContent=TR(txt);e.style.setProperty('--pc',col||'#ffd75e');
@@ -8274,14 +8303,16 @@ function engBig(E,tier){
   if(!b){b=document.createElement('div');b.id='engBig';b.setAttribute('aria-live','polite');document.body.appendChild(b);}
   const hx='#'+(E.col||0xffd75e).toString(16).padStart(6,'0'),n=Math.max(1,Math.min(16,E.cyl||4));
   let cyl='';for(let i=0;i<n;i++)cyl+='<i style="animation-delay:'+(.25+i*.05).toFixed(2)+'s"></i>';
-  b.style.setProperty('--ec',hx);
+  const rec=tier>(RUNX.engAvant|0); // (2026-09-25) palier jamais atteint AVANT cette partie : le seul moment vraiment neuf
+  b.style.setProperty('--ec',hx);b.classList.toggle('rec',rec);
   // (2026-09-25, user : « retrouve les modèles 3D des moteurs, qu'on ait l'animation EN GROS ») — le moteur 3D de la vignette PC
   // (engVigRender) est recopié dans ce <canvas>, AU-DESSUS du fond de la carte : il tourne, s'emballe au montage, se pose, chauffe.
-  b.innerHTML='<div class="ebRayons"></div><div class="ebCarte"><small>'+TR('NOUVEAU MOTEUR')+'</small><canvas class="eb3d" width="320" height="214"></canvas><b>'+TR(E.n)+'</b>'
+  b.innerHTML='<div class="ebRayons"></div><div class="ebCarte"><small>'+TR(rec?'NOUVEAU RECORD !':'NOUVEAU MOTEUR')+'</small><canvas class="eb3d" width="320" height="214"></canvas><b>'+TR(E.n)+'</b>'
     +'<span class="ebDesc">'+TR(E.d||'')+'</span><div class="ebCyl">'+cyl+'</div><em>'+TR('PALIER')+' '+(tier+1)+' / '+ENGINE_TIERS.length+'</em></div>';
   engBig.ctx=b.querySelector('.eb3d').getContext('2d');engBig.on=true;engBig.t0=performance.now();engVigSpin=0;
   b.classList.remove('on');void b.offsetWidth;b.classList.add('on');
-  hap([18,50,30]);pixBurst(b.querySelector('.ebCarte'),18);
+  hap(rec?[18,50,30,60,40]:[18,50,30]);pixBurst(b.querySelector('.ebCarte'),rec?28:18);
+  clearTimeout(engBig._f);if(rec)engBig._f=setTimeout(function(){if(!gameOver)try{fanfare();}catch(e){}},1200); // APRÈS le démarreur du montage, jamais par-dessus
   clearTimeout(engBig._t);engBig._t=setTimeout(function(){b.classList.remove('on');engBig.on=false;},2300);
 }
 function engPop9(E,tier){
@@ -9752,6 +9783,9 @@ function explode(){
   shake=2.6;slowT=.7;
   boomSnd();
 }
+// (2026-09-25) PASSER L'EXPLOSION : une fois le souffle retombé (flash, anneaux, cœur éteints ≈ 0,8 s de simulation), un tap saute au
+// bilan. On ne court-circuite PAS endGame : boomT=1.8 laisse la frame suivante éteindre la lumière, les anneaux et les débris.
+function boomSkip(){ if(mode!=='boom'||gameOver||paused||boomT<=.8)return false; boomT=1.8; return true; }
 function clearBoom(){
   for(const d of debris)scene.remove(d.m);
   debris.length=0;
@@ -12084,7 +12118,7 @@ const SAVE={
        `aura` : le total à vie de style. Elle ne s'achète rien — elle donne un RANG, et le rang ouvre
        les caisses que l'argent ne peut pas acheter.
        `owned` : les index des caisses ACHETÉES. Séparé des exploits : un achat n'est pas un exploit. */
-    mis:{n:0,ok:[0,0,0]}, shop:{own:[],eq:{peinture:'usine',aile:'panneaux',trainee:'nitro'}}, pseudo:'', tuto:0, // CONTRATS · BOUTIQUE · nom du Top 10 · 1re partie guidée faite
+    mis:{n:0,ok:[0,0,0]}, shop:{own:[],eq:{peinture:'usine',aile:'panneaux',trainee:'nitro'}}, pseudo:'', tuto:0, shopVu:0, // CONTRATS · BOUTIQUE · nom du Top 10 · 1re partie guidée faite
     bank:0, aura:0, owned:[], auraMax:0, gamme:3, // `gamme` : version de la GAMME de caisses (voir la migration dans san) // `auraMax` : la meilleure aura d'UNE partie — le chiffre à battre, affiché en jeu
     ai:{air:.5,boost:.35,caution:.5,skill:.86,aggr:.55,airDur:1.1,runs:0}};}, // profil d'apprentissage des IA
   san(d){ // désinfection : quoi qu'on charge (storage rongé, code importé), la forme est GARANTIE
@@ -12142,7 +12176,7 @@ const SAVE={
       if(Array.isArray(d.shop.own))c.shop.own=[...new Set(d.shop.own.filter(k=>typeof k==='string'&&/^(peinture|aile|trainee):[a-z]{2,12}$/.test(k)))];
       if(d.shop.eq&&typeof d.shop.eq==='object')for(const k of ['peinture','aile','trainee'])if(typeof d.shop.eq[k]==='string'&&/^[a-z]{2,12}$/.test(d.shop.eq[k]))c.shop.eq[k]=d.shop.eq[k];}
     if(typeof d.pseudo==='string')c.pseudo=d.pseudo.slice(0,8);
-    c.tuto=(d.tuto||c.ex.runs>0)?1:0; // qui a déjà joué ne refait pas la partie guidée
+    c.tuto=(d.tuto||c.ex.runs>0)?1:0;c.shopVu=d.shopVu?1:0; // (2026-09-25) la pastille NEW de la boutique ne s'allume que tant qu'on n'y est jamais entré // qui a déjà joué ne refait pas la partie guidée
     c.aura=Math.max(0,Math.min(1e12,Math.round(+d.aura)||0));
     c.auraMax=Math.max(0,Math.min(1e12,Math.round(+d.auraMax)||0));
     if(Array.isArray(d.owned))c.owned=[...new Set(d.owned
@@ -12296,7 +12330,7 @@ window.dbgTouch=function(){return{on:TCTL.on,pad:TCTL.pad,act:TCTL.act,st:+TCTL.
 // (posé une fois par frame dans la physique, à côté de son `up` — une seule vérité, pas deux
 // façons de relire les touches qui divergeraient le jour où on remappe le clavier)
 let gasOn=false;
-addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight'].includes(e.code))e.preventDefault();if(e.code==='KeyP')togglePause();if(e.code==='Enter'&&started&&gameOver&&pendingScore==null&&!garageOn&&overlay.style.display!=='none'&&!(e.target&&e.target.closest&&e.target.closest('input,textarea'))&&!document.querySelector('#modale.on,#carr.on,#tPanel.open')){const rp9=document.querySelector('body.touch #mDead.on [data-m="replay"]');if(rp9)rp9.click();else if(!document.body.classList.contains('touch'))playViaGarage();} // (2026-09-25) jamais depuis un champ ou une fenêtre ouverte ; en coque tactile, seul le bouton or de l'écran de mort
+addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight'].includes(e.code))e.preventDefault();if(TCTL.on&&!e.repeat&&(e.code==='Space'||e.code==='Enter')&&boomSkip())return;if(e.code==='KeyP')togglePause();if(e.code==='Enter'&&!e.repeat&&started&&gameOver&&pendingScore==null&&!garageOn&&overlay.style.display!=='none'&&!(e.target&&e.target.closest&&e.target.closest('input,textarea'))&&!document.querySelector('#modale.on,#carr.on,#tPanel.open')){const rp9=document.querySelector('body.touch #mDead.on [data-m="replay"]');if(rp9)rp9.click();else if(!document.body.classList.contains('touch'))playViaGarage();} // (2026-09-25) jamais depuis un champ ou une fenêtre ouverte ; en coque tactile, seul le bouton or de l'écran de mort
   if(e.code==='Space'&&!e.repeat&&started&&!gameOver){ // double-tap NITRO (<280 ms) = BRAQUAGE (e.repeat : une touche MAINTENUE ne compte pas)
     const n9=performance.now();
     // (le double-tap « DÉCOLLAGE » est retiré — voir styleFromBoost)
@@ -12625,7 +12659,7 @@ function auraFigure(n){
   const gain=Math.round((18+rang*14)*redite);
   if(gain<=0)return;
   figComboAura+=gain;
-  if(figCombo>=3)addAura(gain,'COMBO ×'+figCombo);   // en dessous de 3, ce n'est pas encore un combo
+  if(figCombo>=3){addAura(gain,'COMBO ×'+figCombo);if(TCTL.on)popTexte('COMBO ×'+figCombo,'#b58cff',1);}   // en dessous de 3, ce n'est pas encore un combo
   else addAura(gain);
   fxWow(figCombo);                                   // le « WOW » : gate à 5 maillons + 12 s de réfractaire
 }
@@ -13172,6 +13206,7 @@ function tryLand(dt){
     if(reste>0&&reste<=.30){
       const extreme=reste<=.10;
       addAura(extreme?600:280,extreme?'AU CHEVEU !!':'À L\'ARRACHÉE');
+      if(TCTL.on)popTexte(extreme?'AU CHEVEU !!':'ARRACHÉE !','#ff5ec8',3); // (2026-09-25) le geste le plus tendu du jeu se LIT aussi sur téléphone
       trickMsg(extreme?'⏱ AU CHEVEU — '+reste.toFixed(2)+' s !!':'⏱ À L\'ARRACHÉE — '+reste.toFixed(2)+' s',3);
       if(extreme){hitT=.10;shake=Math.max(shake,.5);try{fxWow(9);}catch(e){}} // le WOW est mérité : on a joué avec la mort
       sparkBurst(sparkGold,carGroup.position,extreme?30:16,14);
@@ -13231,6 +13266,7 @@ function tryLand(dt){
       // le portefeuille. 2 pièces pour une figure honnête, jusqu'à ~18 pour un enchaînement monstrueux.
       addCoins(Math.max(2,Math.min(18,Math.round(2+q/6))));
       rewardSfx(vKey,vTier); // signature sonore courte assortie à la récompense
+      if(TCTL.on&&(g>=1.5||gapOk))popTexte(gapOk?(gapArmed===3?'DOUBLE GAP !':'GAP !'):g>=2?'DIVIN !!':'PARFAIT !',g>=2||gapOk?'#ff5ec8':'#ffd75e',2); // (2026-09-25) la pose ×1,5 : LE geste à répéter — il faut qu'on le voie
       if(g>=1.5){try{chimeNote(1980,.08,.055,.2);chimeNote(2640,.11,.04,.26);sparkle(.08,.06);if(g>=2)chimeNote(1320,.15,.06,.4);}catch(e){}} // (2026-09-25) le « tchak » du PARFAIT : harmoniques 3 et 4 du 660, au-dessus de l'arpège
       landBoom(carGroup.position,vTier); // P'TIT BOOM D'ATTERRISSAGE : toute figure MONSTER+ éclate à la pose (calibré sur le tier)
       boost=Math.max(boost,1.2);
@@ -16941,6 +16977,7 @@ renderLeaders(-1);
 // PAUSE commune : clavier P, bouton tactile ⏸ et pause auto passent tous par ici (gère aussi le son)
 function togglePause(){ if(!started||gameOver)return;
   paused=!paused; showMsg(paused?'PAUSE':'GO !');
+  if(!paused)slowT=Math.max(slowT,.8); // (2026-09-25) reprise au RALENTI : le temps de reposer les pouces
   try{ if(AC){ if(paused)AC.suspend(); else if(SND.sfx)AC.resume(); } }catch(e){}
   musicPause(paused); // la musique ne passe plus par l'AudioContext : elle se met en pause elle-même
 }
@@ -17000,7 +17037,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   }
   bindHold($t('tLeft'),'ArrowLeft',start);
   bindHold($t('tRight'),'ArrowRight',start);
-  bindHold($t('tNitro'),'Space',function(){ start(); // NITRO + double-tap = BRAQUAGE (même règle que la barre ESPACE)
+  bindHold($t('tNitro'),'Space',function(){ if(boomSkip())return; start(); // NITRO + double-tap = BRAQUAGE (même règle que la barre ESPACE)
     if(started&&!gameOver){ const n9=performance.now();
       lastSpaceT=n9; } }); // (double-tap « DÉCOLLAGE » retiré)
   // ---- LE VOLANT ANALOGIQUE : toute la moitié gauche. Le stick NAÎT sous le pouce (jamais de
@@ -17015,6 +17052,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
        injoignable sur l'écran d'ordi (`?tel=1`) — on n'y conduisait qu'aux flèches du clavier, pas
        « au pouce ». La souris prend l'identifiant 'souris'. */
     const stDown=function(id,x,y){
+      if(boomSkip())return; // (2026-09-25) un tap passe l'explosion
       const r=sz.getBoundingClientRect();
       TCTL.id=id; TCTL.ox=x; TCTL.oy=y; TCTL.act=true;
       stk.style.left=(x-r.left)+'px'; stk.style.top=(y-r.top)+'px';
@@ -17098,7 +17136,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   function panTapHandler(e){
     if(e.cancelable)e.preventDefault(); e.stopPropagation();
     const el=e.target&&e.target.closest?e.target.closest('.tp'):null;
-    if(!el){panOpen(false);return;} // hors des boutons : on referme
+    if(!el)return; // (2026-09-25) le fond ne relance plus rien : un doigt posé par mégarde renvoyait la caisse en plein virage — seule REPRENDRE (ou Échap) rend la main
     const a=el.getAttribute('data-a');
     if(a==='close')panOpen(false);
     else if(a==='snd'){clic(sndBtnEl);panSync();}
@@ -17111,8 +17149,11 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='q'){ SAVE.d.q=(SAVE.d.q==='net')?'fast':'net'; SAVE.flush(); applyQ(SAVE.d.q!=='net'); panSync(); }
     else if(a==='surv'){ clic(survBtnEl); panSync(); }
     else if(a==='resp'){ panOpen(false); if(started&&!gameOver&&mode==='drive')respawn(); }
-    else if(a==='reset'){ panOpen(false); if(started)resetGame(); }
-    else if(a==='quit'){ panOpen(false); if(started&&!gameOver){ const sb=SANDBOX;SANDBOX=false;endGame();SANDBOX=sb; } } // même en entraînement, QUITTER ramène au menu
+    else if(a==='reset'||a==='quit'){ const q9=a==='quit'; // (2026-09-25) CONFIRMÉS : QUITTER tombait sous le pouce et terminait la partie d'un seul tap
+      modale({titre:q9?'QUITTER LA PARTIE ?':'RECOMMENCER ?',texte:q9?'Tes gains sont verses au compte.':'Les gains de cette partie ne seront PAS verses.',
+        boutons:[{l:q9?'QUITTER':'RECOMMENCER',ic:q9?'quitter':'rejouer',cls:'pb-red',v:1},{l:'CONTINUER',ic:'lecture',v:0}]}) // CONTINUER en DERNIER : Échap clique le dernier bouton
+      .then(function(r){ if(!r.v||!started||gameOver)return; panOpen(false);
+        if(q9){if(TUTO.on)tutoFin(true);const sb=SANDBOX;SANDBOX=false;endGame();SANDBOX=sb;} else resetGame(); }); }
     uiClic(); // ⚠ EN DERNIER : un bouton qui SORT de la pause (reprendre, recommencer, quitter) garde son clic ; en pause il reste le visuel et la vibration
   }
   if(gear)gear.addEventListener('click',gearOpenHandler); // au relâcher (voir mHit) : le panneau défile, un glissé n'active rien
@@ -17238,13 +17279,24 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       { // LES DEUX CARTES : l'AURA gagnée (et le rang), le MOTEUR atteint (et s'il bat ton record)
         const au=commitExploits._aura||0,rg=commitExploits._rangMonte,eN=engTier>(RUNX.engAvant|0),hx='#'+(E.col||0xffd75e).toString(16).padStart(6,'0');
         const h=$t('mHero');
-        if(h){h.innerHTML='<div class="hCard hAura"><small>'+TR('AURA')+'</small><b id="mAuraV">+0</b><span>'+pxi('etoile')+' '+auraRankName()+'</span>'+(rg?'<em>'+TR('NOUVEAU RANG !')+'</em>':'')+'</div>'
-          +'<div class="hCard hMot" style="--ec:'+hx+'"><small>'+TR('MOTEUR')+'</small><b>'+TR(E.n)+'</b><span>'+TR('PALIER')+' '+(engTier+1)+' / '+ENGINE_TIERS.length+'</span>'+(eN?'<em>'+TR('RECORD !')+'</em>':'')+'</div>';
-          countUp($t('mAuraV'),au,function(v){return '+'+Math.round(v).toLocaleString('fr-FR');});}
+        /* (2026-09-25) LE « PRESQUE » : mourir à 3 pièces du V6, c'est LA raison de relancer — et c'était invisible. La carte MOTEUR dit la
+           distance au palier suivant quand il AURAIT été un record (sinon le record à battre) ; la carte AURA dit ce qui manque au rang suivant,
+           et sa barre se remplit de la partie. ⚠ SAVE.d.aura contient DÉJÀ la partie (commitExploits) : ne pas rajouter auraRun. */
+        const ea=RUNX.engAvant|0,nx=ENGINE_TIERS[engTier+1],mq=nx?nx.coins-coinsGot:0,
+              pr=!!nx&&mq>0&&engTier+1>ea&&mq<=Math.max(3,Math.ceil((nx.coins-E.coins)*.3)),
+              ci=!eN&&ea>engTier?ENGINE_TIERS[ea]:null,an=auraNext(),a1=SAVE.d.aura||0,bas=AURA_RANKS[auraRank()].v;
+        if(h){h.innerHTML='<div class="hCard hAura"><small>'+TR('AURA')+'</small><b id="mAuraV">+0</b><span>'+pxi('etoile')+' '+auraRankName()+'</span>'+(rg?'<em>'+TR('NOUVEAU RANG !')+'</em>':'')
+            +(an?'<div class="hNx">'+TR('ENCORE')+' '+Math.round(an.reste).toLocaleString('fr-FR')+' '+pxi('droite')+' '+TR(an.n)+'</div><div class="hBar"><u id="mAuraB"></u></div>':'')+'</div>'
+          +'<div class="hCard hMot" style="--ec:'+hx+'"><small>'+TR('MOTEUR')+'</small><b>'+TR(E.n)+'</b><span>'+TR('PALIER')+' '+(engTier+1)+' / '+ENGINE_TIERS.length+'</span>'+(eN?'<em>'+TR('RECORD !')+'</em>':'')
+            +(pr?'<div class="hNx hPres">'+TR('PLUS QUE')+' '+mq+' '+TR('PIÈCES')+' '+pxi('droite')+' '+TR(nx.n)+'</div>':ci?'<div class="hNx">'+TR('RECORD')+' : '+TR(ci.n)+'</div>':'')+'</div>';
+          countUp($t('mAuraV'),au,function(v){return '+'+Math.round(v).toLocaleString('fr-FR');});
+          if(an){const u=$t('mAuraB'),D=Math.max(1,an.seuil-bas),w1=Math.min(100,(a1-bas)/D*100),w0=rg?0:Math.max(0,(a1-au-bas)/D*100);
+            if(u){u.style.width=w0.toFixed(1)+'%';requestAnimationFrame(function(){requestAnimationFrame(function(){u.style.width=w1.toFixed(1)+'%';});});}}}
       }
       $t('mStatsBox').innerHTML=mStatBox(runStats.tricks,TR('FIGURES'))+mStatBox(Math.round(runStats.vmax),'KM/H MAX')+mStatBox(runStats.zones+1,TR('NIVEAU'));
       objRender($t('mObj'));misPanel($t('mMisDead'),MIS_NEW);
     }else if(mCur==='shop'){
+      if(!SAVE.d.shopVu){SAVE.d.shopVu=1;SAVE.flush();}
       shopRender();
     }else if(mCur==='home'){
       if(!(started&&!gameOver)&&!SANDBOX){const r9=misFin(); // un carnet rempli mais pas refermé (partie quittée, app tuée) : on le referme ici, et ça se FÊTE
@@ -17254,7 +17306,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       let nG=shopAPortee();for(let i=0;i<CARS.length;i++){const p9=carPrice(i);if(p9&&!carUnlocked(i)&&p9<=bank())nG++;}
       const bg=$t('bdGar'),bs=$t('bdShop');
       if(bg){bg.textContent=nG||'';bg.classList.toggle('on',nG>0);} // tout ce qui s'achète en argent du jeu est au GARAGE
-      if(bs){bs.textContent='NEW';bs.classList.toggle('on',true);}
+      if(bs){bs.textContent='NEW';bs.classList.toggle('on',!SAVE.d.shopVu);} // allumée en permanence, elle apprenait à l'œil à ignorer les pastilles
     }else if(mCur==='modes'){
       const set9=function(id,sid,on){const c=$t(id),s=$t(sid);
         if(c){c.classList.toggle('on',on);c.classList.toggle('off',!on);} if(s)s.textContent=on?'ON':'OFF';};
