@@ -4013,7 +4013,7 @@ function asphTex(){ if(ASPH_TEX)return ASPH_TEX;
 }
 function roadMat(){
   const m=new THREE.MeshPhongMaterial({color:0x322e40,side:THREE.DoubleSide,vertexColors:true,map:asphTex(),specularMap:asphTex(),
-    shininess:80,specular:0x2c2a3a,envMap:envTex,reflectivity:.05});
+    shininess:30,specular:0x16141e,envMap:envTex,reflectivity:.03}); // (2026-09-26, user : « un peu trop brillante, gère mal le reflet du soleil ») : 80/0x2c2a3a faisait une traînée de soleil DURE et granuleuse — un bitume renvoie une nappe large et sourde
   m.onBeforeCompile=function(sh){
     sh.uniforms.uLift=ROAD_U.uLift;sh.uniforms.uSheen=ROAD_U.uSheen;sh.uniforms.uSheenCol=ROAD_U.uSheenCol;
     sh.fragmentShader='uniform vec3 uLift;uniform float uSheen;uniform vec3 uSheenCol;\n'+sh.fragmentShader.replace('#include <envmap_fragment>',
@@ -4025,7 +4025,7 @@ function roadMat(){
 function routeTick(){ // le bitume suit le NIVEAU (fondu du portail : LVL.route / LVL.sheen, voir lvlStep)
   const r=LVL.route;ROAD_U.uLift.value.setRGB(.010+.15*r,.009+.13*r,.016+.16*r); // ⚠ l'étalonnage de la pluie écrase le rouge et le vert : la clarté doit être NEUTRE et franche pour se lire (mesuré : (0,0,17) → (2,0,47) avec une clarté bleutée de .05)
   ROAD_U.uSheen.value=LVL.sheen;
-  ROAD_U.uSheenCol.value.copy(scene.fog.color).multiplyScalar(1.5);
+  ROAD_U.uSheenCol.value.copy(scene.fog.color).multiplyScalar(.9); // (2026-09-26) ×1,5 → ×0,9 : la brillance rasante blanchissait tout le lointain
 }
 function buildTrack(seed){
   for(const m of trackMeshes){scene.remove(m);if(m.geometry)m.geometry.dispose();if(m.material&&m.material.dispose)m.material.dispose();}
@@ -4369,6 +4369,10 @@ function buildTrack(seed){
   plight.position.copy(portalMesh.position);
   scene.add(plight);trackMeshes.push(plight);
   buildParkGround(); // FREESTYLE : la prairie sous la boule (no-op en course)
+  // (2026-09-26) l'altitude mini de la route sur ~1,5 km DEVANT chaque point (file monotone, O(n)) : la ville s'y cale (cityTick)
+  VILLE_MIN=null;
+  if(LVL.cur&&LVL.cur.id==='ville'&&!PARK.on&&NP>1){const W9=Math.max(2,Math.round(1500/(L/(NP-1)))),m9=new Float32Array(NP),dq=new Int32Array(NP);let h9=0,t9=0;
+    for(let i=NP-1;i>=0;i--){while(t9>h9&&pts[dq[t9-1]].y>=pts[i].y)t9--;dq[t9++]=i;while(dq[h9]>i+W9)h9++;m9[i]=pts[dq[h9]].y;}VILLE_MIN=m9;}
   buildVoxCity(seed,accC); // LA VILLE SOUS LES NUAGES : le fond de scène, en briques (no-op au parc)
 }
 /* ---------- LA VILLE SOUS LES NUAGES — LE FOND DE SCÈNE EN VOXELS (2026-09-11) ----------------
@@ -4443,11 +4447,17 @@ function buildVoxCity(seed,accC){
   const NEON=[new THREE.Color(0x9ff0ff),new THREE.Color(0xe8f4ff),new THREE.Color(0xff3ea5),new THREE.Color(0xffb85a), // étages : cyan, blanc froid, magenta, ambre
               new THREE.Color(0xff2e8e),new THREE.Color(0x2ee6ff),new THREE.Color(0xffe23e),new THREE.Color(0x5cff9a), // enseignes : les quatre néons francs…
               new THREE.Color(0xff3030),accC];                                                                       // …le feu d'antenne, et l'accent de la zone
-  for(let gx=-CITY_R;gx<=CITY_R;gx+=STEP)for(let gz=-CITY_R;gz<=CITY_R;gz+=STEP){
-    if(gx*gx+gz*gz>CITY_R*CITY_R)continue;
+  /* (2026-09-26, user : « la route dans la ville doit rester bien au-dessus de la ville et ne pas sortir de la map ») : la ville était un
+     DISQUE de 3 km autour du départ — la piste (14 km et plus) en sortait et roulait au-dessus du vide. Elle est désormais bâtie dans
+     un COULOIR de 1,1 km de part et d'autre de TOUTE la piste (cellules de la maille marquées depuis les points de la courbe). */
+  const cel9=new Map(),RV9=1100,rr9=Math.ceil(RV9/STEP),pas9=Math.max(1,Math.round(90/Math.max(.1,L/Math.max(1,NP))));
+  for(let i=0;i<NP;i+=pas9){const cx0=Math.round(pts[i].x/STEP),cz0=Math.round(pts[i].z/STEP);
+    for(let dx=-rr9;dx<=rr9;dx++)for(let dz=-rr9;dz<=rr9;dz++){if(dx*dx+dz*dz>rr9*rr9)continue;const k9=(cx0+dx)+','+(cz0+dz),d9=Math.hypot(dx,dz)*STEP;
+      const o9=cel9.get(k9);if(o9===undefined||d9<o9)cel9.set(k9,d9);}}
+  for(const [k9,dist9] of cel9){const i9=k9.indexOf(','),gx=+k9.slice(0,i9)*STEP,gz=+k9.slice(i9+1)*STEP;
     if(vr()<.17)continue;                                   // des vides : une ville n'est pas un damier plein
     const cx=gx+(vr()-.5)*STEP*.45,cz=gz+(vr()-.5)*STEP*.45;
-    const d=Math.hypot(cx,cz)/CITY_R;
+    const d=Math.min(1,dist9/RV9); // les tours s'écrasent en s'éloignant de la ROUTE (plus du départ)
     // LE CENTRE-VILLE : les tours s'écrasent en s'éloignant — et elles sont plus MINCES qu'avant (3-7 mailles)
     const hMax=Math.min(HCAP,CITY_H*1.15*(1-d*.55)*(.30+vr()*vr()*1.6));
     let h=snap(Math.max(VOX_CITY*5,hMax));
@@ -4580,15 +4590,18 @@ function villeHorizon(){
   m.userData.hh=HH;m.renderOrder=-5;m.frustumCulled=false;scene.add(m);
   CITY.horizon=m;return m;
 }
+let VILLE_MIN=null; // (2026-09-26) altitude mini de la piste sur la fenêtre DEVANT chaque point (voir buildTrack) — la ville s'y cale
 function cityTick(dt,camY){
   const r=CITY.root;
   if(!r){if(CITY.horizon)CITY.horizon.visible=false;return;}
   {const hz=villeHorizon();hz.visible=true;                                // la couronne suit la caméra en X/Z, et le SOL de la ville en hauteur
    hz.position.set(camera.position.x,r.position.y+hz.userData.hh*.5-hz.userData.hh*.38,camera.position.z);}
-  r.position.y+=((camY-CITY_BELOW)-r.position.y)*Math.min(1,dt*CITY_LAG);
-  const off=camY-r.position.y;
-  if(off<CITY_MIN)r.position.y=camY-CITY_MIN;
-  else if(off>CITY_MAX)r.position.y=camY-CITY_MAX;
+  // (2026-09-26) la référence n'est plus la caméra seule : c'est le point le PLUS BAS de la route devant — sinon une descente
+  // lointaine plongeait visuellement DANS les toits. Contrainte dure : jamais une tour au-dessus de la route qui arrive.
+  let yRef=camY;if(VILLE_MIN&&NP>1){const i9=Math.max(0,Math.min(NP-1,Math.round(s/L*(NP-1))));yRef=Math.min(camY,VILLE_MIN[i9]);}
+  r.position.y+=((yRef-CITY_BELOW)-r.position.y)*Math.min(1,dt*CITY_LAG);
+  if(camY-r.position.y>CITY_MAX)r.position.y=camY-CITY_MAX;
+  if(yRef-r.position.y<CITY_MIN)r.position.y=yRef-CITY_MIN; // (en dernier : cette règle-là gagne toujours)
 }
 window.dbgCity=function(){return CITY.root?{tours:CITY.root.children.length,y:+CITY.root.position.y.toFixed(0),
   sousLaCamera:+(camera.position.y-CITY.root.position.y).toFixed(0),brouillardFar:FOG_F}:'absente (parc freestyle ?)';};
@@ -5345,9 +5358,9 @@ window.dbgBio=function(n,d){bioGo(n,d||2);}; // console : dbgBio('nuit') → tes
    Rien ne dépend de la position dans ce tableau (tout passe par `id`) : réordonner est sans risque (musicPremier lit NIVEAUX[0]). */
 const NIVEAUX=[ // ⚠ ORDRE (2026-09-25 au soir, user) : « remets le niveau dans les nuages en PREMIER, avant la ville » — NUAGES, puis VILLE, puis ORBITE
   // planete 0 aux NUAGES (user : « ne mets pas la Terre dans le niveau dans les nuages ») · route/sheen : clarté et brillance du bitume (routeTick)
-  {id:'nuages',nm:'MER DE NUAGES',        bio:['matin','midi','aprem'],planete:0,   espace:0,pluie:0,cielMusical:false,route:0,  sheen:.10},
-  {id:'ville', nm:'AU-DESSUS DE LA VILLE',bio:['pluie'],               planete:0,   espace:0,pluie:1,cielMusical:true, route:1,  sheen:.22}, // route plus CLAIRE : elle se détache de la ville sombre (user) ; sheen : bitume mouillé par la pluie
-  {id:'espace',nm:'EN ORBITE',            bio:['espace'],              planete:1.35,espace:1,pluie:0,cielMusical:false,route:.2, sheen:.06},
+  {id:'nuages',nm:'MER DE NUAGES',        bio:['matin','midi','aprem'],planete:0,   espace:0,pluie:0,cielMusical:false,route:0,  sheen:.06},
+  {id:'ville', nm:'AU-DESSUS DE LA VILLE',bio:['pluie'],               planete:0,   espace:0,pluie:1,cielMusical:true, route:.7, sheen:.12}, // route plus CLAIRE : elle se détache de la ville sombre (user) ; sheen : bitume mouillé par la pluie
+  {id:'espace',nm:'EN ORBITE',            bio:['espace'],              planete:1.35,espace:1,pluie:0,cielMusical:false,route:.2, sheen:.04},
 ];
 const LVL={cur:null,n:0,k:1,dur:4,
   espace:0,espaceDe:0,espaceA:0,       // uSpace : 0 = le ciel de toujours, 1 = le noir étoilé de l'orbite
@@ -5417,7 +5430,7 @@ function lvlPlanete(dt){
 function lvlNuageOk(o){ // quelles familles de nuages chaque monde garde (lu par mkCloud)
   const c=LVL.cur;if(!c)return true;
   if(c.sansNuages)return false; // un niveau au ciel NU (l'aurore d'apprentissage) : pas un seul nuage
-  if(c.id==='espace')return !(o.onRoad||o.giant||o.sea||o.deco||o.veil); // l'orbite : les seuls coussins de vol
+  if(c.id==='espace')return false; // (2026-09-26, user : « pas de nuage dans l'espace ») — même plus les coussins de vol
   if(c.id==='ville')return false;                                        // la VILLE n'a AUCUN nuage (user, 2026-09-25) : on la voit de haut en bas, jusqu'à l'horizon
   return true;
 }
