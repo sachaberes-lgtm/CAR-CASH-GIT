@@ -7618,7 +7618,7 @@ function misVal(k){ // la valeur COURANTE d'un critère, dans la partie en cours
    magot), 4-5) l'endurance et le style. Les seuils sont calés sur le pilote automatique (`dbgAuto`). */
 const CARNETS=[
   {r:{car:6},m:[{k:'coins',v:25,p:300},{k:'fruits',v:4,p:300},{k:'cash',v:1000,p:400}]},
-  {r:{car:7},m:[{k:'tricks',v:2,p:600},{k:'perfect',v:1,p:600},{k:'kmh',v:560,p:600}]}, // 560 = 700 × 0,8 (vitesse globale −20 %)
+  {r:{car:7},m:[{k:'tricks',v:2,p:600},{k:'perfect',v:1,p:600},{k:'kmh',v:672,p:600}]}, // 672 = 700 × 0,96 (SPD .5 → .4 → .48 : −20 % puis +20 %)
   {r:{car:8},m:[{k:'zones',v:1,p:1500},{k:'gaps',v:1,p:1500},{k:'cash',v:20000,p:2000}]},
   {r:{cat:'peinture',id:'or'},m:[{k:'survie',v:150,p:4000},{k:'tricks',v:8,p:4000},{k:'cash',v:100000,p:5000}]},
   {r:{cat:'trainee',id:'arcenciel'},m:[{k:'zones',v:2,p:8000},{k:'chain',v:4,p:8000},{k:'perfect',v:3,p:8000}]}
@@ -11924,7 +11924,7 @@ const GRAV=9.8*.55,FALL_G=33,AXIS_Y=new THREE.Vector3(0,1,0),AIR_MAX=6;
 let AIR_RATE=1; // base V1 (temps réel) — startFall le RE-pilote depuis 2026-07-20 : =1 sous 450 km/h affichés, puis rampe douce jusqu'au cap 1.35 (l'ancienne ère 2.3 COMPENSAIT SPD=.25 ; ici c'est un dosage de tempo, pas une compensation).
 const PARK={on:false}; // MODE FREESTYLE : le parc de figures (pas une course). Armé au menu, persiste entre les runs. Neutralise police/mort/portail.
 const PARK_VCAP=145; // PARC : plafond de vitesse (m/s ≈ 260 km/h affichés) — la nitro infinie ne DOIT PAS envoyer à 1000 km/h ingérables ; on garde une vitesse RAPIDE mais CONTRÔLABLE (sol ET air)
-const SPD=0.4; // −20 % (2026-09-25, user : « ralentis de 20 % la vitesse globale de la voiture ») —  // vitesse globale du jeu — RESTAURÉ à la valeur V1 (2026-07-19) : le ÷2 « trop rapide dès le début » tuait le fun nerveux/arcade de la V1 ; le user tranche pour la V1. SPD scale TOUT : avance joueur/bots, chute, viseur ET compteur (donc les km/h affichés DOUBLENT — seuils de sensation ABSOLUS ajustés en conséquence, les systèmes RELATIFS via vmaxShow s'ajustent seuls)
+const SPD=0.48; // +20 % (2026-09-25, user : « augmente la vitesse global du jeu et des voitures de 20 % ») — 0.4 × 1,2 ; il venait de −20 % (0.5 → 0.4) le matin même —  // vitesse globale du jeu — RESTAURÉ à la valeur V1 (2026-07-19) : le ÷2 « trop rapide dès le début » tuait le fun nerveux/arcade de la V1 ; le user tranche pour la V1. SPD scale TOUT : avance joueur/bots, chute, viseur ET compteur (donc les km/h affichés DOUBLENT — seuils de sensation ABSOLUS ajustés en conséquence, les systèmes RELATIFS via vmaxShow s'ajustent seuls)
 const FVISEE={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()}; // le point de la route que la caméra regarde (route v2)
 const ASSIST_VIRAGE=.78; // part du virage de la route que la caisse suit TOUTE SEULE (voir la conduite v2)
 const TURN_HS=.0035; // pénalité de braquage à haute vitesse (avant .008 — plus petit = virages plus faciles)
