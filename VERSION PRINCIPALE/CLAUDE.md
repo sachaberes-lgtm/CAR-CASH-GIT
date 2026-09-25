@@ -20,6 +20,15 @@
   découvert. JOUER et REJOUER passent par ce fondu. Feuilles (`#tPanel`, `#modale`, `#carr`) : `feuilleOuvre/feuilleFerme`
   (classe `.sortant` 170 ms). Clavier : Échap referme fenêtre → pause → carrière, met en pause en course, revient d'un
   sous-écran ; Entrée = le bouton or de l'écran. « Réduire les animations » : fondus seuls.
+- **LA CONDUITE JOUISSIVE (2026-09-25, « plus fun, plus addictive, un sound design jouissif »)** :
+  · **LE FRÔLÉ** (`FROLE`, `frole()`) : un plot qui passe DERRIÈRE la caisse entre deux images (balayage `FROLE.s0`→`s`)
+    à 1,6-3,6 m de `lat`, au-dessus de 45 % de `vmaxShow()` = nitro + FLOW + aura ; chaîne de 1,4 s → « SLALOM ×n ».
+  · **LA GAMME DES PIÈCES** (`blip`, `GAMME_P`) : le combo joue une pentatonique majeure qui monte (plus de chromatique).
+  · **`boostSnd(k)`** = FWOOSH (souffle balayé + sous-grave + note qui décolle) ; `k` dose (pads 1 → ULTRA TURBO ~2).
+  · **`driftChargeSnd()`** (chaîne `DRS`, créée une fois) : le « brrrr » de charge qui monte par niveau de drift ;
+    **`raseSnd(dt)`** (`RSN`) : la bande rugueuse du RASE-BORD + un tic haptique ; **`froleSnd`**, **`flowSnd(lv)`**
+    (accord majeur qui monte par palier). Passages de rapport : pétarade À CHAQUE rapport + tic + `fovPunch` 1,8.
+  · Hook : `dbgConduite()` (état des chaînes), `dbgConduite('son')` (joue tout, renvoie les erreurs), `dbgConduite('frole')`.
 
 ## ⚠ FUSION SACHA × LÉO + NIVEAUX — 2026-09-24 (branche `fusion-2026-09`)
 - `index.html` = fusion à trois points : appstore-backlog (Sacha) × `main:version-leolei-2026` (Léo),
