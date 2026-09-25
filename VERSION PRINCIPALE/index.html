@@ -930,7 +930,7 @@
      lui on explose en vol sans prévenir. */
   body.touch #money,body.touch #speedo,body.touch #styleBar,
   body.touch #msg,body.touch #trickBox,body.touch #chainHud,body.touch #caseHud,
-  body.touch #survHud,body.touch #lastAlert,body.touch #pwrChip,body.touch #engVig,
+  body.touch #survHud,body.touch #lastAlert,body.touch #engVig,
   body.touch #nitroLbl,body.touch #record,body.touch .bill,body.touch #scan,body.touch #beatFx,
   body.touch #auraHud{display:none!important} /* ⚠ l'AURA suit la règle de l'écran nu : elle est née APRÈS ce bloc (17/08), elle n'y était donc pas — sans cette ligne la jauge or restait plantée seule au milieu d'un écran qu'on a vidé exprès */
   /* ⚠ LA MINI-CARTE ET LES 4 BOUTONS ÉPARPILLÉS — RETIRÉS PARTOUT, PAS SEULEMENT SUR TOUCH
@@ -2084,8 +2084,112 @@
   #pwrChip span{display:inline-block;margin:0 4px;padding:6px 10px;background:#0b0730;box-shadow:inset 0 0 0 2px currentColor,0 0 14px currentColor;
     clip-path:polygon(5px 0,calc(100% - 5px) 0,100% 5px,100% calc(100% - 5px),calc(100% - 5px) 100%,5px 100%,0 calc(100% - 5px),0 5px);animation:avBat .5s ease-in-out infinite alternate}
   /* le texte qui jaillit au-dessus de la caisse : plus gros, mieux cerné */
-  #popTxt{font-size:22px!important;-webkit-text-stroke:0!important;text-shadow:0 3px 0 #0b0730,2px 0 0 #0b0730,-2px 0 0 #0b0730,0 -2px 0 #0b0730,0 0 18px var(--pc)!important;color:var(--pc)!important;top:40%!important}
+  #popTxt{font-size:22px;-webkit-text-stroke:0!important;text-shadow:0 3px 0 #0b0730,2px 0 0 #0b0730,-2px 0 0 #0b0730,0 -2px 0 #0b0730,0 0 18px var(--pc)!important;color:var(--pc)!important;top:47%}
   @media (prefers-reduced-motion:reduce){#slam9.on{animation-duration:1.2s}#avX,#avX.up,#avX.feu,#pwrChip span,#pwrFx{animation:none}}
+  /* ===== HUD v4 — LE TABLEAU DE BORD, PENSÉ COMME UN TOUT (2026-09-26, user : « la fenêtre FLOW en haut est toujours petite ;
+     gère tous les affichages à l'écran en les pensant les uns avec les autres, comme un tout qui rend accro le joueur ») =====
+     LA CARTE DE L'ÉCRAN (portrait) — chaque chose a SA place, plus rien ne se marche dessus :
+       · EN HAUT, CE QU'ON LIT (le tableau de bord) : R1 nitro + ⏸ · R2 la BANDE DU FLOW, pleine largeur · R3 l'AURA en héros et,
+         juste dessous, le RECORD à battre · R4 (à gauche) la CHAÎNE en cours ; à droite, la colonne du chrono de vol et des pouvoirs.
+       · AU CENTRE, LE COULOIR DES ANNONCES (--laneA : sous le tableau de bord, au-dessus de l'horizon) — UNE voix à la fois :
+         la grande annonce (slam) gagne toujours ; le niveau, le dauphin et les contrats s'effacent le temps qu'elle passe.
+       · SUR LA CAISSE, LE GESTE : le texte qui jaillit suit la voiture (au sol comme en vol) ; la carte du moteur s'y pose aussi,
+         et le geste se tait pendant qu'elle est là.
+       · EN BAS, CE QU'ON TOUCHE (volant, NITRO) — rien d'autre.
+     LE SENS DES COULEURS, partout le même : FLOW = la couleur de son palier · $ = vert billet (le FLOW multiplie le CASH, pas l'aura) ·
+     AURA = violet · × de chaîne = son échelle cyan → or → rose → rouge · RECORD = or · danger = rouge.
+     LES CROCHETS (ce qui fait relancer une partie) : une jauge VIDE qui demande à être remplie, le segment qui BAT quand le palier
+     suivant est à portée, la bande qui FUIT puis LÂCHE (en rythme avec le tic sonore), le record de la meilleure partie à battre EN
+     DIRECT, et la chaîne qui s'envole DANS le compteur quand elle s'encaisse. */
+  :root{--hudG:calc(env(safe-area-inset-left,0px) + 14px);--hudD:calc(env(safe-area-inset-right,0px) + 14px);--hudH:env(safe-area-inset-top,0px);
+    --laneA:max(40%,calc(env(safe-area-inset-top,0px) + 338px));--cashV:#7dff9a;--recOr:#ffd75e;--danger:#ff5e7a;
+    --oct:polygon(7px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 7px),calc(100% - 7px) 100%,7px 100%,0 calc(100% - 7px),0 7px)}
+  /* R2 — LA BANDE DU FLOW : pleine largeur, toujours là */
+  body #flowHud{left:var(--hudG);right:var(--hudD);top:calc(var(--hudH) + 72px);height:44px;box-sizing:border-box;z-index:6;
+    display:flex;align-items:center;gap:10px;padding:0 13px 0 14px;border-radius:0;opacity:1;transform:none;
+    background:linear-gradient(180deg,#1f185c,#0e0a38);clip-path:var(--oct);
+    box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--fc) 75%,#0b0730),inset 0 -5px 0 rgba(0,0,0,.35),inset 0 3px 0 rgba(255,255,255,.07);
+    transition:box-shadow var(--t-fast) var(--ease)}
+  body #flowHud.on{transform:none}
+  body #flowHud .fL{flex:none;font-size:15px;letter-spacing:1px;color:var(--fc);white-space:nowrap;
+    text-shadow:0 2px 0 #0b0730,0 0 12px color-mix(in srgb,var(--fc) 55%,transparent)}
+  body #flowHud .fSeg{flex:1;min-width:0;display:flex;gap:4px;height:16px}
+  body #flowHud .fSeg i{flex:1;display:block;width:auto;height:auto;border-radius:0;position:relative;overflow:hidden;
+    background:rgba(255,255,255,.09);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+  body #flowHud .fSeg s{position:absolute;inset:0;width:auto;height:auto;background:var(--sc);transform-origin:left center;
+    transform:scaleX(var(--f,0));box-shadow:inset 0 3px 0 rgba(255,255,255,.38),inset 0 -3px 0 rgba(0,0,0,.25);transition:transform .12s linear}
+  body #flowHud .fM{flex:none;font-style:normal;font-size:13px;color:var(--cashV);white-space:nowrap;
+    text-shadow:0 2px 0 #06301a,0 0 10px rgba(125,255,154,.45)}
+  body #flowHud[data-lv="0"] .fM{opacity:.4}
+  body #flowHud[data-lv="4"]{animation:none}
+  body #flowHud[data-lv="4"] .fSeg{animation:fArc 1.2s linear infinite}   /* FRÉNÉSIE : l'arc-en-ciel */
+  @keyframes fArc{to{filter:hue-rotate(360deg)}}
+  body #flowHud.presque .fSeg i.cur s{animation:fPresque .3s ease-in-out infinite alternate}   /* le palier suivant est À PORTÉE */
+  @keyframes fPresque{to{filter:brightness(1.8)}}
+  body #flowHud.fuit{box-shadow:inset 0 0 0 2px var(--danger),inset 0 -5px 0 rgba(0,0,0,.35)}   /* plus de style depuis 1,8 s : ça FUIT */
+  body #flowHud.fuit .fSeg i.cur s{background:repeating-linear-gradient(-45deg,var(--sc) 0 5px,color-mix(in srgb,var(--sc) 40%,#000) 5px 10px)}
+  body #flowHud.lache{animation:fLache .22s steps(2) infinite}   /* moins d'1,1 s avant de perdre le palier : ça LÂCHE (au rythme du tic) */
+  @keyframes fLache{50%{box-shadow:inset 0 0 0 3px #fff,inset 0 -5px 0 rgba(0,0,0,.35)}}
+  body #flowHud.monte{animation:fMonte var(--t-slow) var(--ease)}   /* un palier de plus : la bande CLAQUE */
+  @keyframes fMonte{0%{transform:scale(1.08);filter:brightness(2.2)}100%{transform:none;filter:none}}
+  /* R3 — L'AURA EN HÉROS, et le RECORD à battre juste dessous */
+  body #auraV2{left:var(--hudG);top:calc(var(--hudH) + 128px);max-width:58vw}
+  /* LE CONTOUR D'ARCADE : le ciel passe du rose pâle au blanc des nuages — un chiffre sans contour s'y DISSOUT (captures du 26/09 :
+     « 1 112 » lilas sur nuage lilas). Quatre ombres dures autour de la lettre, une cinquième dessous pour l'épaisseur. */
+  body #avVal,body #avX{filter:drop-shadow(2px 0 0 #1c0430) drop-shadow(-2px 0 0 #1c0430) drop-shadow(0 2px 0 #1c0430) drop-shadow(0 -2px 0 #1c0430)
+    drop-shadow(0 4px 0 #1c0430)}
+  body #avVal{font-size:32px}
+  body #auraV2 .avTot em,body #avPts,body #avList,#avRec,#avPlus{text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,0 4px 0 #1c0430}
+  body #avCh .avBar{box-shadow:0 0 0 2px #1c0430}
+  body #avList{white-space:nowrap}
+  body #auraV2 .avTot{align-items:center}
+  #avPlus{font-style:normal;font-size:15px;color:#ff9ee6;white-space:nowrap;opacity:0;
+    text-shadow:0 2px 0 #3a0f4a,0 0 10px rgba(255,90,220,.7)}
+  #avPlus.on{animation:avPlus 1.4s var(--ease) forwards}   /* ce que la chaîne vient de verser, à côté du compteur qui grimpe */
+  @keyframes avPlus{0%{opacity:0;transform:translate3d(-18px,16px,0) scale(1.6)}14%{opacity:1;transform:none}72%{opacity:1;transform:none}
+    100%{opacity:0;transform:translate3d(0,-10px,0)}}
+  #avRec{display:flex;align-items:center;gap:8px;margin-top:9px;font-size:8px;letter-spacing:1px;color:#aab4ff;white-space:nowrap;text-shadow:0 2px 0 #000}
+  #avRec i{display:block;flex:none;width:92px;height:5px;background:rgba(0,0,0,.55);box-shadow:inset 0 0 0 1px rgba(255,215,94,.3)}
+  #avRec s{display:block;height:100%;background:var(--recOr);transform-origin:left center;transform:scaleX(var(--r,0));transition:transform .25s linear}
+  #avRec.vide{display:none}
+  #avRec.presque{color:var(--recOr)}
+  #avRec.presque i{animation:recPresque .45s ease-in-out infinite alternate}
+  @keyframes recPresque{to{box-shadow:inset 0 0 0 1px var(--recOr),0 0 10px var(--recOr)}}
+  #avRec.battu{color:var(--recOr);animation:recBattu .5s steps(2) 5}
+  #avRec.battu s{background:linear-gradient(90deg,#ffd75e,#fff6cf,#ffd75e);background-size:200% 100%;animation:recFile 1s linear infinite}
+  @keyframes recBattu{50%{color:#fff}}
+  @keyframes recFile{to{background-position:-200% 0}}
+  /* R4 — LA CHAÎNE : elle s'ENVOLE dans le compteur quand elle s'encaisse, elle se BRISE quand on la perd */
+  body #avCh{margin-top:14px}
+  body #avCh .avBar{width:160px}
+  body #avCh .avBar.urg i{background:var(--danger);animation:avUrg .18s steps(2) infinite}
+  @keyframes avUrg{50%{opacity:.35}}
+  body #avList{font-size:10px;line-height:1.9}
+  body #avCh.vole{animation:avVole .42s var(--ease) forwards}
+  @keyframes avVole{0%{opacity:1;transform:none}100%{opacity:0;transform:translate3d(8px,-72px,0) scale(.5)}}
+  body #avCh.perdu{animation:avPerdu .6s steps(6) forwards}
+  @keyframes avPerdu{0%{opacity:1;transform:none}30%{transform:translateX(-6px);filter:grayscale(1)}60%{transform:translateX(6px);filter:grayscale(1)}
+    100%{opacity:0;transform:translate3d(0,24px,0);filter:grayscale(1)}}
+  /* LA COLONNE DE DROITE : le chrono de vol, et les POUVOIRS actifs dessous (ils étaient masqués sur téléphone : on ne savait pas
+     combien de secondes de NITRO ∞ il restait) */
+  body.touch #airPie{top:calc(var(--hudH) + 128px)!important;right:var(--hudD)!important;width:78px!important;height:78px!important}
+  body.touch #pwrChip{position:fixed;right:var(--hudD);top:calc(var(--hudH) + 128px);z-index:6;margin:0!important;max-width:38vw;
+    flex-direction:column;align-items:flex-end;gap:8px;font-family:var(--pix);pointer-events:none}
+  body.touch #pwrChip[style*="block"]{display:flex!important}
+  body.touch #pwrChip.sousPie{top:calc(var(--hudH) + 216px)}
+  body.touch #pwrChip span{margin:0;font-size:10px;padding:7px 9px;white-space:nowrap}
+  body:not(.play) #pwrChip{display:none!important}
+  /* LE COULOIR DES ANNONCES */
+  body #slam9{top:var(--laneA)}
+  body.touch #lvlBan{top:var(--laneA);transform:translate(-50%,-50%)}
+  body.touch #dolHud{top:calc(var(--laneA) - 40px)}
+  body.touch #misBan{top:calc(var(--laneA) - 36px)}
+  body.slamOn #lvlBan,body.slamOn #dolHud,body.slamOn #misBan,body.slamOn #launchLogo{visibility:hidden}
+  #avGain{display:none!important}   /* l'encaissement vit DANS le tableau de bord (et dans le couloir s'il est gros) */
+  body.ebOn #popTxt{visibility:hidden}   /* la carte du moteur est posée sur la caisse : le geste attend */
+  body.coOn #flowHud,body.coOn #auraV2{visibility:hidden}   /* l'auto-école garde le haut de l'écran pour elle */
+  @media (prefers-reduced-motion:reduce){body #flowHud.monte,body #flowHud.lache,body #flowHud.presque .fSeg i.cur s,body #flowHud[data-lv="4"] .fSeg,
+    #avRec.battu,#avRec.presque i,body #avCh.vole,body #avCh.perdu{animation:none}#avPlus.on{animation-duration:1ms;opacity:1}}
   /* ---- LE PLANCHER DE LECTURE (2026-09-25 — rappel de la passe UX du 24/09 : « textes : 8 px minimum ») ----
      Les blocs du 25/09 (contrats, objectif, boutique, fin v3) étaient redescendus à 6-7 px. Press Start 2P est dessinée sur une
      grille de 8 : en dessous, ses pixels tombent ENTRE deux pixels d'écran et bavent. Une variable, pour que la règle ne se perde plus. */
@@ -2352,7 +2456,7 @@
   </div>
   <div id="carInfo" class="panel"><div id="carName">LA HONTE</div><div id="carLevel">MOTEUR ROUILLÉ</div></div>
   <div id="money"><span id="moneyTxt">$00000000</span></div>
-  <div id="auraV2" aria-hidden="true"><div class="avTot"><span id="avVal">0</span><em>AURA</em></div>
+  <div id="auraV2" aria-hidden="true"><div class="avTot"><span id="avVal">0</span><em>AURA</em><i id="avPlus"></i></div><div id="avRec" class="vide"><span id="avRecT"></span><i><s id="avRecF"></s></i></div>
     <div id="avCh"><div class="avChTop"><b id="avPts">0</b><span id="avX">×1</span></div><div class="avBar"><i id="avBarF"></i></div><ul id="avList"></ul></div></div>
   <div id="avGain" aria-hidden="true"></div>
   <div id="auraHud">
@@ -3206,6 +3310,20 @@ let pts=[],T=[],Nn=[],B=[],L=0,NP=0,trackMinY=-1e9; // trackMinY : plancher du m
    chaque zone, donc ces listes se vident avec `trackMeshes` — sinon on garderait des références
    sur des matériaux disposés et le pouls s'appliquerait dans le vide. */
 const NEON_RAILS=[],NEON_GLOW=[];
+/* L'OVULE (portail d'arrivée) : géométrie et matériau PARTAGÉS, créés une fois — trackMeshes dispose géométrie ET matériau des
+   meshes au rebuild, d'où les gardes `userData.garde` posées plus bas : ils survivent aux portails. */
+const PORTAL={c:new THREE.Vector3(),R:55,noy:null,halo:null,geo:null,mat:null};
+function portalGeo(){if(!PORTAL.geo){PORTAL.geo=new THREE.SphereGeometry(PORTAL.R,48,32);PORTAL.geo.dispose=function(){};}return PORTAL.geo;}
+function portalMat(){if(PORTAL.mat)return PORTAL.mat;
+  PORTAL.mat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide,fog:false,
+    uniforms:{uT:{value:0}},
+    vertexShader:'varying vec3 vN,vV,vP;void main(){vP=position;vN=normalize(normalMatrix*normal);vec4 mv=modelViewMatrix*vec4(position,1.);vV=normalize(-mv.xyz);gl_Position=projectionMatrix*mv;}',
+    fragmentShader:'uniform float uT;varying vec3 vN,vV,vP;void main(){'+
+      'float f=pow(1.-abs(dot(vN,vV)),2.2);'+                                          // FRESNEL : la membrane brille sur ses bords
+      'float o=.5+.5*sin(vP.x*.09+uT*1.3)*sin(vP.y*.11-uT*1.1)*sin(vP.z*.08+uT*.8);'+ // la membrane ONDULE
+      'vec3 c=mix(vec3(1.,.31,.85),vec3(.35,.95,1.),o);'+
+      'float a=clamp(f*1.35+.05+.08*o,0.,1.);gl_FragColor=vec4(c*(f*1.7+.12),a);}'});
+  PORTAL.mat.dispose=function(){};return PORTAL.mat;}
 const trackMeshes=[];let PADS=[],PADL=[];let BUMPS=[];let CONES=[];let FLYCONES=[];let portalMesh=null;
 const GAP_ON=false; // ⚠ LES TREMPLINS SONT COUPÉS (demande du user) — un seul interrupteur, voir gapRun
 // TREMPLINS HÉROS (motif « gap catapulte », voir genCtrl/gapRun) : {s:lèvre, s0/s1:couloir gardé NU, v:variante}
@@ -3448,10 +3566,20 @@ function mkBlobs(o,rng){
   return B.map(b=>{const m=Math.hypot(b[0],b[1],b[2]),mx=0.99;
     if(m+b[3]>mx){const s=(mx-b[3])/Math.max(m,1e-3);if(s<1){b[0]*=s;b[1]*=s;b[2]*=s;}}return b;}).slice(0,20);
 }
+/* (2026-09-26, user : « moins de nuages en contact avec la route ») LA GARDE DU RUBAN : ce nuage (ellipsoïde r × ry) mord-il sur la
+   route, n'importe où ? On balaie la ligne centrale tous les ~18 m, avec la demi-largeur de la route et une marge. Seuls les BANCS
+   (onRoad : la percée à l'aveugle, voulue) y échappent — tout le reste qui toucherait le ruban n'est simplement pas posé. */
+function nuageTouche(c,r,ry){
+  if(!(NP>1)||!pts.length)return false;
+  const st=Math.max(1,Math.round(18/Math.max(.5,L/(NP-1)))),rh=r+ROAD_HALF+18,rv=ry+22,ih=1/(rh*rh),iv=1/(rv*rv);
+  for(let i=0;i<NP;i+=st){const p=pts[i],dx=p.x-c.x,dz=p.z-c.z,dy=p.y-c.y;if((dx*dx+dz*dz)*ih+dy*dy*iv<1)return true;}
+  return false;
+}
 function mkCloud(center,r,o,rr){ // un nuage = ses boules fusionnées en UN mesh opaque, point.
   if(!lvlNuageOk(o))return; // LES NIVEAUX : chaque monde garde ses familles de nuages (voir NIVEAUX)
   const ry=r*(o.giant?.55+rr()*.18:o.veil?.16:o.sea?.15:.36+rr()*.16);
   if(o.baseY!==undefined)center.y=o.baseY+ry*0.64; // plafond de condensation commun
+  if(!o.onRoad&&nuageTouche(center,r,ry))return; // (2026-09-26) jamais un nuage de décor posé SUR le ruban
   const g=new THREE.Group();g.position.copy(center);
   const blobs=mkBlobs(o,rr); // les 5-10 boules de CE nuage (RNG isolé : ne rebrasse pas la génération)
   const mesh=new THREE.Mesh(mergeSpheres(blobs,r,ry,r),CLOUD_MAT);
@@ -3475,10 +3603,10 @@ function buildClouds(rr){
   const stratAz=(k,K)=>((k+.15+cr()*.7)/K)*6.2832; // idem pour les azimuts : le ciel est peuplé TOUT AUTOUR
   // bancs SUR la route — espacés : on en traverse PARFOIS, jamais en continu. Un MUR intégral (la caisse
   // disparaît dans le blanc) reste l'exception spectaculaire, pas la règle.
-  for(let sp=1050+cr()*800;sp<L-300;sp+=1050+cr()*900){ // plus RARES : traverser un banc redevient un événement
-    if(cr()<.34)continue; // ~1 banc sur 3 sauté
+  for(let sp=1600+cr()*900;sp<L-300;sp+=1900+cr()*1400){ // (2026-09-26, user : « moins de nuages en contact avec la route ») : ~2× plus rares
+    if(cr()<.4)continue; // 2 bancs sur 5 sautés
     frameAt(sp,F);
-    const mega=cr()<.16;
+    const mega=cr()<.1;
     mkCloud(cldV1.copy(F.p).addScaledVector(F.n,mega?6+cr()*4:2.5+cr()*2),
       mega?40+cr()*30:18+cr()*14,{onRoad:true,dense:true},cr);
   }
@@ -3490,17 +3618,18 @@ function buildClouds(rr){
       const i=Math.min(NP-1,i0+m9*(40+Math.floor(cr()*50)));
       // rayon 16-36 → 34-62 : à 16 d'envergure c'était du CONFETTI à côté de tours de 400.
       // Un coussin d'airtime doit se lire de loin pour qu'on aille le chercher.
+      const r9=34+cr()*28; // (2026-09-26) décollé de la dalle d'au moins 30 m au-dessus de son ventre (il ne touche plus la route)
       mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],(cr()*2-1)*70)
-        .addScaledVector(Nn[i],above?18+cr()*52:-(30+cr()*70)),34+cr()*28,{},cr);
+        .addScaledVector(Nn[i],above?r9*.55+30+cr()*44:-(r9*.55+THICK+32+cr()*60)),r9,{},cr);
     }
   }
   // TOURS GÉANTES façon simulateur de vol : des montagnes de ouate — une sur quatre est
   // PLANTÉE sur la piste (rayon PLAFONNÉ : le white-out dure 2 s, pas 10)
   for(let k=0;k<5;k++){ // 8→5 : moins de tours (le ciel était trop chargé)
     const i=strat(k,5);
-    const cross=cr()<.22;
+    cr();const cross=false; // (2026-09-26) plus de tour plantée sur la piste
     const r9=cross?Math.min(120+cr()*140,190):200+cr()*220; // les tours libres DOUBLENT de taille
-    const off=cross?(cr()*2-1)*40:(r9*.68+80+cr()*420)*(k%2?1:-1); // ALTERNÉES gauche/droite : la route est encadrée, plus jamais 4 tours du même bord
+    const off=cross?(cr()*2-1)*40:(r9+ROAD_HALF+60+cr()*420)*(k%2?1:-1); // ALTERNÉES gauche/droite — écartées de TOUT leur rayon (×0,68 : elles mordaient la route)
     mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],off)
       .addScaledVector(Nn[i],cross?-r9*.25+cr()*30:-140+cr()*330),r9,{giant:true,onRoad:cross,noFog:!cross},cr);
   }
@@ -3512,9 +3641,9 @@ function buildClouds(rr){
   }
   // ouate à mi-distance : les nuages rêveurs qu'on longe — moins nombreux, nettement plus GROS
   for(let k=0;k<3;k++){ // 5→3
-    const i=strat(k,3);
-    mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],(125+cr()*260)*(k%2?-1:1))
-      .addScaledVector(Nn[i],-60+cr()*180),95+cr()*85,{deco:true},cr);
+    const i=strat(k,3),r9=95+cr()*85;
+    mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],(r9+ROAD_HALF+50+cr()*260)*(k%2?-1:1))
+      .addScaledVector(Nn[i],-60+cr()*180),r9,{deco:true},cr);
   }
   // voiles d'altitude : nappes roses étirées très haut — le plafond féerique
   for(let k=0;k<4;k++){ // 7→4
@@ -3604,10 +3733,18 @@ function buildClouds(rr){
       mkCloud(cldV1,170+cr()*140,{sea:true,noFog:true},cr);
     }
     for(let k=0;k<4;k++){
-      const i=strat(k,4),a=pickAz(),d=180+cr()*260;
+      const i=strat(k,4),a=pickAz(),r9=80+cr()*70,d=r9+ROAD_HALF+60+cr()*260;
       cldV1.set(pts[i].x+Math.cos(a)*d,pts[i].y-30+cr()*90,pts[i].z+Math.sin(a)*d);
-      mkCloud(cldV1,80+cr()*70,{deco:true},cr);
+      mkCloud(cldV1,r9,{deco:true},cr);
     }
+  }
+  /* 7) L'ARCHIPEL (2026-09-26, user : « plus de nuages éparpillés dans la map, ailleurs qu'autour de la route ») : seize cumulus
+     semés LOIN du ruban — tout autour (azimuts brassés), à 0,4-2,8 km, à toutes les hauteurs. Le ciel se peuple sans rien poser
+     sur la route (nuageTouche veille). Tiré sur `cr`, en dernier : la piste ne bouge pas d'un mètre. */
+  for(let k=0;k<16;k++){
+    const i=strat(k,16),a=stratAz((k*7)%16,16),d=420+cr()*2400,r9=70+cr()*150;
+    cldV1.set(pts[i].x+Math.cos(a)*d,pts[i].y-140+cr()*560,pts[i].z+Math.sin(a)*d);
+    mkCloud(cldV1,r9,{deco:true,noFog:d>1400},cr);
   }
 }
 function updateClouds(dt,t){
@@ -4404,19 +4541,21 @@ function buildTrack(seed){
     if(LVL.cur&&(LVL.cur.id==='espace'||LVL.cur.sansNuages))sp9.visible=false; // ORBITE : pas de nuages d'horizon — mais le tirage `rnd` est CONSOMMÉ quand même (la piste en aval ne bouge pas)
     scene.add(sp9);trackMeshes.push(sp9);
   }
-  // PORTAIL D'ARRIVÉE : la cible
+  /* PORTAIL D'ARRIVÉE — L'OVULE (2026-09-26, user : « plus gros et rond comme un ovule ; on peut le franchir en venant de n'importe
+     quelle direction »). Plus un anneau de 24 m posé sur la route : une SPHÈRE de 55 m (plus large que la route qui la traverse)
+     — une membrane translucide qui ondule (rose → cyan, brillante sur les bords, fresnel), un NOYAU éclatant qui bat au centre,
+     un halo tout autour. On le franchit en y ENTRANT, d'où qu'on vienne : par la route, par le côté, en tombant du ciel
+     (voir franchirPortail : distance au centre, au sol comme en vol). */
   frameAt(L-25,F);
-  portalMesh=new THREE.Mesh(new THREE.TorusGeometry(24,2.2,12,48),
-    new THREE.MeshBasicMaterial({color:0xff4fd8}));
-  portalMesh.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(F.b.clone(),F.n.clone(),F.t.clone()));
-  portalMesh.position.copy(F.p).addScaledVector(F.n,4);
+  PORTAL.c.copy(F.p).addScaledVector(F.n,PORTAL.R*.38); // le centre un peu au-dessus de la route : elle entre dans le bas de l'ovule
+  portalMesh=new THREE.Mesh(portalGeo(),portalMat());portalMesh.position.copy(PORTAL.c);portalMesh.renderOrder=6;portalMesh.frustumCulled=false;
   scene.add(portalMesh);trackMeshes.push(portalMesh);
-  const pdisc=new THREE.Mesh(new THREE.CircleGeometry(22,32),
-    new THREE.MeshBasicMaterial({color:0xff4fd8,transparent:true,opacity:.15,side:THREE.DoubleSide,depthWrite:false}));
-  pdisc.quaternion.copy(portalMesh.quaternion);pdisc.position.copy(portalMesh.position);
-  scene.add(pdisc);trackMeshes.push(pdisc);
-  const plight=new THREE.PointLight(0xff4fd8,1.3,240);
-  plight.position.copy(portalMesh.position);
+  PORTAL.noy=new THREE.Sprite(new THREE.SpriteMaterial({map:lampTex,color:0xffd0f4,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));
+  PORTAL.noy.position.copy(PORTAL.c);PORTAL.noy.scale.setScalar(PORTAL.R*.7);PORTAL.noy.renderOrder=7;scene.add(PORTAL.noy);trackMeshes.push(PORTAL.noy);
+  PORTAL.halo=new THREE.Sprite(new THREE.SpriteMaterial({map:lampTex,color:0xff4fd8,transparent:true,opacity:.3,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));
+  PORTAL.halo.position.copy(PORTAL.c);PORTAL.halo.scale.setScalar(PORTAL.R*2.2);PORTAL.halo.renderOrder=5;scene.add(PORTAL.halo);trackMeshes.push(PORTAL.halo);
+  const plight=new THREE.PointLight(0xff4fd8,1.6,320);
+  plight.position.copy(PORTAL.c);
   scene.add(plight);trackMeshes.push(plight);
   buildParkGround(); // FREESTYLE : la prairie sous la boule (no-op en course)
   // (2026-09-26) l'altitude mini de la route sur ~1,5 km DEVANT chaque point (file monotone, O(n)) : la ville s'y cale (cityTick)
@@ -4971,7 +5110,7 @@ const I18N={
  '⚠ ATTENTION !<br>VOUS ÊTES DERNIER<br>EXPLOSION DANS : 00:':'⚠ WARNING!<br>YOU ARE LAST<br>EXPLOSION IN : 00:',
  'PILE AU CENTRE 🎯':'DEAD CENTRE 🎯','À RECULONS — MÊME PAS REGARDÉ !':'BACKWARDS — DIDN\'T EVEN LOOK!',
  'FACE CACHÉE ×2':'HIDDEN FACE ×2','🚀 GAP FRANCHI !':'🚀 GAP CLEARED!','🚀 DOUBLE GAP — MONSTRUEUX !':'🚀 DOUBLE GAP — MONSTROUS!',
- 'CHAÎNE PERDUE':'CHAIN LOST','REPORT +':'CARRY-OVER +','⚠ ROULE OU CRÈVE — ':'⚠ DRIVE OR DIE — ',
+ 'CHAÎNE PERDUE':'CHAIN LOST','RECORD BATTU !':'RECORD BROKEN!','VITESSE':'SPEED','REPORT +':'CARRY-OVER +','⚠ ROULE OU CRÈVE — ':'⚠ DRIVE OR DIE — ',
  '🐷 TIRELIRE ÉVENTRÉE +':'🐷 PIGGY BANK CRACKED +','💸 TU COMPTES EN ':'💸 YOU NOW COUNT IN ',
  '🐷 TIRELIRE ÉVENTRÉE — ':'🐷 PIGGY BANK CRACKED — ',' EN POCHE':' IN POCKET',
  '🛡 L\'ASSURANCE RÉPOND — ':'🛡 THE INSURANCE PAYS OUT — ','POUSSÉE ×':'THRUST ×',
@@ -7981,10 +8120,11 @@ function popTexte(txt,col,prio){
   // (2026-09-25) une PRIORITÉ : un temps fort (PARFAIT, AU CHEVEU…) ne se fait pas voler la vedette par un palier dans les 650 ms
   prio=prio|0;const n9=performance.now();
   if(prio<(popTexte._p|0)&&n9<(popTexte._t||0))return;
-  popTexte._p=prio;popTexte._t=n9+650;
+  popTexte._p=prio;popTexte._t=n9+650;popTexte._s=n9;
   let e=document.getElementById('popTxt');
   if(!e){e=document.createElement('div');e.id='popTxt';e.setAttribute('aria-hidden','true');document.body.appendChild(e);}
   e.textContent=TR(txt);e.style.setProperty('--pc',col||'#ffd75e');
+  e.style.fontSize=Math.min(22,Math.floor((innerWidth-24)/Math.max(1,e.textContent.length))-1)+'px'; // (HUD v4) jamais plus large que l'écran
   e.classList.remove('on');void e.offsetWidth;e.classList.add('on');
 }
 function n9Saut(o){const n=performance.now(),s9=n-(o._viseT||0)>200;o._viseT=n;return s9;} // la visée repart de zéro après une absence (vol, garage, respawn)
@@ -8002,11 +8142,14 @@ function flowAdd(q){
   FLOW.v=Math.min(100,FLOW.v+q);FLOW.idle=0;
   const lv=Math.min(4,Math.floor(FLOW.v/25));
   if(lv>FLOW.lv){FLOW.lv=lv;
-    popTexte(lv===4?'FRÉNÉSIE !':'FLOW ×'+(lv+1),FLOW_COL[lv]);
+    // (HUD v4) le palier se lit SUR la caisse avec ce qu'il vaut en cash ; la FRÉNÉSIE, elle, prend le couloir des annonces
+    if(lv===4){slam('FRÉNÉSIE !','CASH ×'+fmtMul(flowMult()),FLOW_COL[4],'#ff5ec8',44,2);flashEcran('rgba(181,140,255,.55)');}
+    else popTexte(FLOW_NOM[lv]+' · $×'+fmtMul(flowMult()),FLOW_COL[lv],1);
+    flowPunch();
     hap(lv===4?[20,40,20,40,40]:[12,30,16]);try{flowSnd(lv);}catch(e){}
     fovPunch=Math.max(fovPunch,4+lv*2);}
 }
-function flowReset(){FLOW.v=0;FLOW.lv=0;FLOW.idle=0;FLOW.tk=0;}
+function flowReset(){FLOW.v=0;FLOW.lv=0;FLOW.idle=0;FLOW.tk=0;FLOW.aff=-1;}
 function flowDropSnd(lv){ // (2026-09-25) le palier PERDU : son accord redescend, deux notes douces — on informe, on ne punit pas
   if(!(lv>0))return;const I=FLOW_ACC[lv];
   chimeNote(noteP(I[2],1),0,.05,.12);chimeNote(noteP(I[0],1),.09,.045,.22);
@@ -8035,22 +8178,40 @@ function flowTick(dt){
   const lv=Math.min(4,Math.floor(FLOW.v/25));
   // (2026-09-25) LE FLOW PRÉVIENT AVANT DE LÂCHER : un tic qui ACCÉLÈRE quand il reste moins d'1,1 s avant de perdre le palier (au sol
   // seulement : en vol on ne peut rien nourrir). Nourrir (pièce, drift, frôlé…) remet idle à 0 : le tic se tait tout seul.
+  let rest=9;
   if(FLOW.lv>0&&mode==='drive'){
-    const rest=Math.max(0,1.8-FLOW.idle)+Math.max(0,FLOW.v-FLOW.lv*25)/(7+FLOW.lv*2);
+    rest=Math.max(0,1.8-FLOW.idle)+Math.max(0,FLOW.v-FLOW.lv*25)/(7+FLOW.lv*2);
     FLOW.tk-=dt;
     if(rest<1.1&&FLOW.tk<=0){FLOW.tk=.1+.3*rest;try{chimeNote(noteP(FLOW_ACC[FLOW.lv][0],2),0,.025,.05);}catch(e){}hap(4);}
   }
   if(lv<FLOW.lv){try{flowDropSnd(FLOW.lv);}catch(e){}hap([6,30,6]);FLOW.lv=lv;FLOW.tk=0;}
-  // l'affichage : pilule sous la jauge de nitro + bords de l'écran teintés (écrits seulement quand ça change)
-  const k=Math.round(FLOW.v)+'|'+FLOW.lv;if(FLOW.aff===k)return;FLOW.aff=k;
-  let h=document.getElementById('flowHud');
-  if(!h){h=document.createElement('div');h.id='flowHud';h.innerHTML='<b></b><i><s></s></i>';document.body.appendChild(h);
-    const g=document.createElement('div');g.id='flowGlow';document.body.appendChild(g);}
-  const g=document.getElementById('flowGlow');
-  h.classList.toggle('on',FLOW.v>4);h.style.setProperty('--fc',FLOW_COL[FLOW.lv]);h.dataset.lv=FLOW.lv;
-  h.querySelector('b').textContent=FLOW.lv>=4?TR('FRÉNÉSIE'):'FLOW ×'+(FLOW.lv+1);
-  h.querySelector('s').style.width=((FLOW.v%25)/25*100+(FLOW.lv>=4?100:0)).toFixed(0)+'%';
-  if(g){g.style.setProperty('--fc',FLOW_COL[FLOW.lv]);g.dataset.lv=FLOW.lv;g.style.opacity=FLOW.lv?(.25+FLOW.lv*.15).toFixed(2):'0';}
+  flowHudMaj(rest);
+}
+/* (HUD v4) LA BANDE DU FLOW — la pilule de 9 px qu'on ne lisait pas est devenue une bande PLEINE LARGEUR sous la jauge de nitro.
+   Quatre segments aux couleurs des paliers (cyan · or · rose · violet — les remplir tous, c'est la FRÉNÉSIE), le NOM du palier à
+   gauche, et à droite ce qu'il VAUT : le multiplicateur de CASH, en vert billet — l'ancien « FLOW ×2 » annonçait ×2 quand l'argent
+   montait de ×1,5, et se confondait avec le × de la chaîne d'aura. Elle est là dès le départ, VIDE : une jauge vide demande à être
+   remplie. Elle bat quand le palier suivant est à portée, se hachure de rouge quand elle FUIT, clignote quand elle LÂCHE — au même
+   rythme que le tic sonore. Écrite seulement quand quelque chose change. */
+const FLOW_NOM=['FLOW','FLOW I','FLOW II','FLOW III','FRÉNÉSIE'];
+function fmtMul(m){const t=String(Math.round(m*10)/10);return LANG==='fr'?t.replace('.',','):t;}
+function flowPunch(){const h=FLOW.el;if(!h)return;h.classList.remove('monte');void h.offsetWidth;h.classList.add('monte');}
+function flowHudMaj(rest){
+  const fuit=FLOW.v>0&&mode==='drive'&&FLOW.idle>1.8,lache=fuit&&FLOW.lv>0&&rest<1.1,pres=FLOW.lv<4&&FLOW.v%25>20;
+  const k=Math.round(FLOW.v*2)+'|'+FLOW.lv+'|'+(fuit?1:0)+(lache?1:0)+(pres?1:0);if(FLOW.aff===k)return;FLOW.aff=k;
+  let h=FLOW.el;
+  if(!h){h=FLOW.el=document.createElement('div');h.id='flowHud';h.className='on';h.setAttribute('aria-hidden','true');
+    h.innerHTML='<b class="fL"></b><span class="fSeg"><i><s></s></i><i><s></s></i><i><s></s></i><i><s></s></i></span><em class="fM"></em>';
+    FLOW.seg=Array.prototype.slice.call(h.querySelectorAll('.fSeg i'));
+    FLOW.seg.forEach(function(i9,j){i9.style.setProperty('--sc',FLOW_COL[j+1]);});
+    document.body.appendChild(h);
+    const g=document.createElement('div');g.id='flowGlow';g.setAttribute('aria-hidden','true');document.body.appendChild(g);FLOW.glow=g;FLOW.lvAff=-1;}
+  for(let j=0;j<4;j++){const i9=FLOW.seg[j];i9.firstChild.style.setProperty('--f',Math.max(0,Math.min(1,(FLOW.v-25*j)/25)).toFixed(3));
+    i9.classList.toggle('cur',j===FLOW.lv);}
+  h.classList.toggle('fuit',fuit);h.classList.toggle('lache',lache);h.classList.toggle('presque',pres);
+  if(FLOW.lvAff!==FLOW.lv){FLOW.lvAff=FLOW.lv;h.style.setProperty('--fc',FLOW_COL[FLOW.lv]);h.dataset.lv=FLOW.lv;
+    h.querySelector('.fL').textContent=sansAcc(TR(FLOW_NOM[FLOW.lv]));h.querySelector('.fM').textContent='$×'+fmtMul(flowMult());
+    const g=FLOW.glow;g.style.setProperty('--fc',FLOW_COL[FLOW.lv]);g.dataset.lv=FLOW.lv;g.style.opacity=FLOW.lv?(.25+FLOW.lv*.15).toFixed(2):'0';}
 }
 function nitroPct(p){nitroGain(p*((ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2));} // (2026-09-26) une PART de la jauge (0,2 = 20 %), quel que soit le moteur
 function nitroGain(q){
@@ -8530,11 +8691,11 @@ function engBig(E,tier){
   b.innerHTML='<div class="ebHalo"></div><div class="ebCarte"><small>'+TR(rec?'NOUVEAU RECORD !':'NOUVEAU MOTEUR')+'</small>'
     +'<div class="ebNum"><i>'+TR('PALIER')+'</i>'+(tier+1)+'</div>'
     +'<canvas class="eb3d" width="480" height="321"></canvas><b>'+TR(E.n)+'</b><div class="ebCyl">'+cyl+'</div></div>';
-  engBig.ctx=b.querySelector('.eb3d').getContext('2d');engBig.on=true;engBig.t0=performance.now();engVigSpin=0;
+  engBig.ctx=b.querySelector('.eb3d').getContext('2d');engBig.on=true;engBig.t0=performance.now();engVigSpin=0;document.body.classList.add('ebOn');
   b.classList.remove('on');void b.offsetWidth;b.classList.add('on');
   hap(rec?[18,50,30,60,40]:[18,50,30]);pixBurst(b.querySelector('.ebCarte'),rec?28:18);
   clearTimeout(engBig._f);if(rec)engBig._f=setTimeout(function(){if(!gameOver)try{fanfare();}catch(e){}},1200); // APRÈS le démarreur du montage, jamais par-dessus
-  clearTimeout(engBig._t);engBig._t=setTimeout(function(){b.classList.remove('on');engBig.on=false;},2300);
+  clearTimeout(engBig._t);engBig._t=setTimeout(function(){b.classList.remove('on');engBig.on=false;document.body.classList.remove('ebOn');},2300);
 }
 function engBigFile(E,tier){ // deux paliers en file : on ne garde que le dernier (la carte dit où l'on EST, pas où l'on est passé)
   for(let i=HAUT.q.length-1;i>=0;i--)if(HAUT.q[i][2]==='eng')HAUT.q.splice(i,1);
@@ -12683,6 +12844,11 @@ let steer=0,money=START_CASH,levelCash=0,boost=0,fallT=0,fallTR=0,padCd=0,shake=
    Les variables `airBank` / `airRollT` / `AIR_BANK_*` ont donc été RETIRÉES : les laisser en place
    aurait fait croire à un réglage disponible alors que plus rien ne les lit. */
 let airRoll=0; // vrille visuelle en vol
+/* VOL LIBRE (2026-09-26) — le REPÈRE DU VOL : FLY_U = le « haut » de la caisse en l'air, FLY_R = sa droite. Plus aucune référence au
+   ciel : au décollage FLY_U part de la normale de la route (dessus comme dessous), puis il est TRANSPORTÉ avec la trajectoire
+   (on lui retire sa part le long de la vitesse, image après image). Le volant tourne autour de FLY_U, le manche autour de FLY_R,
+   la caméra prend FLY_U pour « haut » — la caisse va là où on la guide, et l'écran la suit sans jamais se remettre à l'endroit. */
+const FLY_U=new THREE.Vector3(0,1,0),FLY_R=new THREE.Vector3(1,0,0);
 // TREMPLIN HÉROS : gapArmed = variante du tremplin qui a lancé CE vol (0 = vol ordinaire, 1/2/3 = v+1),
 // lu au verdict d'atterrissage pour le GAP FRANCHI ; rampCd empêche de re-catapulter en reposant dessus.
 let gapArmed=0,rampCd=0;
@@ -12735,6 +12901,7 @@ const elSpeed=$('speedVal'),elName=$('carName'),elLvl=$('carLevel'),elMoney=$('m
       auraSubEl=$('auraSub'),auraComboEl=$('auraCombo'),auraGlowEl=$('auraGlow');
 const elLb=$('lbBox'),nameEntry=$('nameEntry'),nameInput=$('nameInput'),nameSave=$('nameSave');
 const speedFx=$('speedFx'),cloudFxEl=$('cloudFx'),runStatsEl=$('runStats'),pwrChip=$('pwrChip');
+if(IS_MOBILE&&pwrChip)document.body.appendChild(pwrChip); // (HUD v4) la colonne de droite du tableau de bord (hors de la jauge de nitro)
 const slCv=$('slCv'),slCtx=slCv.getContext('2d');
 // ⚠ DÉCLARÉ ICI, avec slCv : le dimensionnement juste en dessous s'en sert, et un `const`
 // déclaré plus bas dans le fichier est en ZONE MORTE TEMPORELLE — on y accède, ça jette.
@@ -12963,7 +13130,7 @@ function auraFigure(n){
      AIR : 180° de vrille +45 par demi-tour · BIG AIR +50 · AIR MONSTRE +110 · MÉTÉORE +100 · DAUPHIN +80 (+ ce qu'il monte en direct) · BUMP +30
      POSE : PARFAITE +70 · DIVINE +120 · GAP +120 · ARRACHÉE +120 · AU CHEVEU +220
      ROUTE : VIRAGE SERRÉ +45 · FRÔLÉ/SLALOM +20 · RASE-BORD +40 · MINI/SUPER/ULTRA TURBO +50/100/180 · RÉCOLTE +30 · PURE SPEED +120 */
-const CHA={pts:0,x:0,fam:{},n:0,t:0,liste:[],v:0,vAff:-1},CHA_FEN=3.5,CHA_XMAX=10;
+const CHA={pts:0,x:0,fam:{},n:0,t:0,liste:[],v:0,vAff:-1,rec:0,recB:false,recP:-1,urg:false},CHA_FEN=3.5,CHA_XMAX=10;
 let trkBigA=false,trkMonstre=false,virT=0,virPaye=false;
 const avEl={};
 function avE(id){return avEl[id]||(avEl[id]=document.getElementById(id));}
@@ -12986,9 +13153,12 @@ function slam(txt,sous,c1,c2,taille,prio){
   prio=prio|0;const n9=performance.now();if(prio<(slam._p|0)&&n9<(slam._t||0))return; // une annonce plus forte garde l'écran 0,9 s (l'IMPACT n'est pas écrasé par le × qu'il fait monter)
   slam._p=prio;slam._t=n9+900;
   let e=avE('slam9');if(!e){e=document.createElement('div');e.id='slam9';e.setAttribute('aria-hidden','true');document.body.appendChild(e);avEl.slam9=e;}
-  e.innerHTML='<b'+(taille?' style="font-size:'+taille+'px"':'')+'>'+sansAcc(TR(txt)).replace(/[<>&]/g,'')+'</b>'+(sous?'<small>'+sansAcc(TR(sous)).replace(/[<>&]/g,'')+'</small>':'');
+  const t9=sansAcc(TR(txt)).replace(/[<>&]/g,''),tl9=Math.min(taille||36,Math.floor((innerWidth-28)/Math.max(1,t9.length))-2); // (HUD v4) police pixel = 1 em par lettre : l'annonce TIENT dans l'écran
+  e.innerHTML='<b style="font-size:'+tl9+'px">'+t9+'</b>'+(sous?'<small>'+sansAcc(TR(sous)).replace(/[<>&]/g,'')+'</small>':'');
   e.style.setProperty('--s1',c1||'#ffd75e');e.style.setProperty('--s2',c2||'#ff5ec8');
   e.classList.remove('on');void e.offsetWidth;e.classList.add('on');
+  // (HUD v4) UNE voix au centre : tant que l'annonce passe, le niveau, le dauphin et les contrats du même couloir s'effacent
+  document.body.classList.add('slamOn');clearTimeout(slam._h);slam._h=setTimeout(function(){document.body.classList.remove('slamOn');},1400);
 }
 function flashEcran(col){ // un coup de couleur sur les bords : le boost, le pouvoir, le gros encaissement
   let e=avE('flash9');if(!e){e=document.createElement('div');e.id='flash9';e.setAttribute('aria-hidden','true');document.body.appendChild(e);avEl.flash9=e;}
@@ -13002,21 +13172,55 @@ function engBigSuit(){ // (HUD v3) la carte du moteur se pose SUR la voiture et 
   const x=THREE.MathUtils.clamp((ENG_V9.x*.5+.5)*innerWidth,110,innerWidth-110),y=THREE.MathUtils.clamp((-ENG_V9.y*.5+.5)*innerHeight,260,innerHeight-40);
   b.style.left=x.toFixed(0)+'px';b.style.top=y.toFixed(0)+'px';
 }
+const POP_V9=new THREE.Vector3();
+function popSuit(){ // (HUD v4) le geste JAILLIT DE LA CAISSE : tant que le texte vit, il suit la voiture à l'écran — au sol comme en vol
+  if(!(performance.now()<(popTexte._s||0)+950))return;const e=avE('popTxt');if(!e)return;
+  if(!popSuit.la||popSuit.h!==innerHeight){popSuit.h=innerHeight;let p=avE('laneProbe'); // où tombe le couloir des annonces (--laneA, safe area comprise)
+    if(!p){p=document.createElement('div');p.id='laneProbe';p.style.cssText='position:fixed;left:0;top:var(--laneA);width:0;height:0;visibility:hidden;pointer-events:none';document.body.appendChild(p);avEl.laneProbe=p;}
+    popSuit.la=p.getBoundingClientRect().top||innerHeight*.4;}
+  // AU-DESSUS de la caisse s'il y a la place sous le couloir des annonces (au sol, toujours) ; sinon DESSOUS (en vol, la caméra
+  // centre la caisse : au-dessus, le geste se posait sur l'annonce)
+  POP_V9.copy(carGroup.position).addScaledVector(camera.up,2.6).project(camera);const yH=(-POP_V9.y*.5+.5)*innerHeight;   // le TOIT de la caisse à l'écran
+  POP_V9.copy(carGroup.position).addScaledVector(camera.up,-1.4).project(camera);const yB=(-POP_V9.y*.5+.5)*innerHeight;  // son bas de caisse
+  const mini=popSuit.la+(document.body.classList.contains('slamOn')?64:34);
+  const y=yH-56>=mini?Math.min(yH-56,innerHeight*.64):THREE.MathUtils.clamp(yB+24,mini,innerHeight*.74);
+  e.style.top=y.toFixed(0)+'px';
+}
+/* (HUD v4) LE RECORD À BATTRE — la meilleure partie (SAVE.d.auraMax) s'affiche sous le compteur, avec sa jauge : on la voit se
+   remplir, elle BAT à 85 %, et le jour où on la dépasse EN COURSE, le jeu le crie (une fois par partie). C'est le « encore une ». */
+function recInit(){CHA.rec=SAVE.d.auraMax||0;CHA.recB=false;CHA.recP=-1;
+  const r=avE('avRec');if(!r)return;r.className=CHA.rec>0?'':'vide';
+  avE('avRecT').textContent=TR('RECORD')+' '+fmtAura(CHA.rec);avE('avRecF').style.setProperty('--r','0');}
+function recMaj(a){
+  if(!(CHA.rec>0)||CHA.recB)return;const p=Math.min(1,a/CHA.rec),p2=Math.round(p*100);if(p2===CHA.recP)return;CHA.recP=p2;
+  avE('avRecF').style.setProperty('--r',p.toFixed(2));avE('avRec').classList.toggle('presque',p>=.85);
+}
+function recBattu(){
+  CHA.recB=true;const r=avE('avRec');
+  if(r){r.classList.remove('presque');r.classList.add('battu');avE('avRecT').textContent=TR('NOUVEAU RECORD !');avE('avRecF').style.setProperty('--r','1');}
+  slam('RECORD BATTU !','AURA '+fmtAura(auraRun),'#ffd75e','#ff7ad5',38,3);flashEcran('rgba(255,215,94,.5)');hap([20,50,20,50,40]);
+  try{chimeNote(noteP(4,1),0,.12,.2);chimeNote(noteP(6,1),.1,.12,.2);chimeNote(noteP(8,1),.2,.14,.4);}catch(e){}
+}
+function avPlusPop(t){const e=avE('avPlus');if(!e)return;e.textContent=t;e.classList.remove('on');void e.offsetWidth;e.classList.add('on');}
 function chaineTick(dt){
-  engBigSuit();cratTick(dt);
+  engBigSuit();cratTick(dt);popSuit();
   // le COMPTEUR : il grimpe vers la vraie valeur (on voit l'aura TOMBER dedans), une écriture DOM seulement quand le chiffre change
   CHA.v+=(auraRun-CHA.v)*Math.min(1,dt*7);if(Math.abs(auraRun-CHA.v)<1)CHA.v=auraRun;
-  const a9=Math.round(CHA.v);if(a9!==CHA.vAff){CHA.vAff=a9;const e9=avE('avVal');if(e9)e9.textContent=fmtAura(a9);}
+  const a9=Math.round(CHA.v);if(a9!==CHA.vAff){CHA.vAff=a9;const e9=avE('avVal');if(e9)e9.textContent=fmtAura(a9);recMaj(a9);}
+  if(!CHA.recB&&CHA.rec>0&&auraRun>CHA.rec&&running&&!gameOver)recBattu();
   if(!CHA.n)return;
   if(mode!=='fall'&&mode!=='boom')CHA.t-=dt; // en l'air, l'horloge est GELÉE
   if(CHA.t<=0){chaineEncaisse();return;}
   const b9=avE('avBarF');if(b9)b9.style.transform='scaleX('+(mode==='fall'?1:Math.max(0,CHA.t/CHA_FEN)).toFixed(3)+')';
+  const u9=mode!=='fall'&&CHA.t<1.1;if(u9!==CHA.urg){CHA.urg=u9;if(b9&&b9.parentNode)b9.parentNode.classList.toggle('urg',u9);} // la dernière seconde : la barre rougit et clignote
 }
 function chaineEncaisse(){
   const g=Math.round(CHA.pts*Math.max(1,CHA.x));
   if(g>0&&running&&!gameOver){
     auraRun+=g;auraPop=Math.min(1,auraPop+g/90);
-    avGainPop((CHA.x>1?CHA.pts+' ×'+CHA.x:TR('CHAÎNE')),'+'+fmtAura(g),false);
+    // (HUD v4) la chaîne S'ENVOLE dans le compteur, ce qu'elle verse s'affiche à côté ; une grosse chaîne prend aussi le couloir
+    avPlusPop('+'+fmtAura(g));{const c9=avE('avCh');if(c9){c9.classList.remove('vole','perdu');void c9.offsetWidth;c9.classList.add('vole');}}
+    if(g>=600||CHA.x>=5)slam('+'+fmtAura(g),(CHA.x>1?fmtAura(CHA.pts)+' ×'+CHA.x+' · ':'')+'AURA','#ff7ad5','#b14bff',40,1);
     const t9=document.querySelector('#auraV2 .avTot');if(t9){t9.classList.remove('pulse');void t9.offsetWidth;t9.classList.add('pulse');}
     if(g>=500)flashEcran('rgba(177,75,255,.5)');
     hap(CHA.x>=4?[12,30,24]:12);try{chimeNote(noteP(Math.min(9,CHA.x+2),1),0,.18,.22);if(CHA.x>=4)sparkle(.1,.08);}catch(e){}
@@ -13025,11 +13229,12 @@ function chaineEncaisse(){
 }
 function chainePerdue(){ // exploser la chaîne ouverte : tout part avec la caisse
   if(!CHA.n)return;const g=Math.round(CHA.pts*Math.max(1,CHA.x));
-  avGainPop(TR('CHAÎNE PERDUE'),'−'+fmtAura(g),true);chaReset();
+  slam('CHAÎNE PERDUE','-'+fmtAura(g)+' AURA','#ff5e7a','#b0102a',30,2); // (HUD v4) elle se BRISE sous les yeux, et le couloir dit combien
+  {const c9=avE('avCh');if(c9){c9.classList.remove('vole','perdu');void c9.offsetWidth;c9.classList.add('perdu');}}chaReset();
 }
-function chaReset(){CHA.pts=0;CHA.x=0;CHA.fam={};CHA.n=0;CHA.t=0;CHA.liste.length=0;chaHud(true,false);}
+function chaReset(){CHA.pts=0;CHA.x=0;CHA.fam={};CHA.n=0;CHA.t=0;CHA.liste.length=0;if(CHA.urg){CHA.urg=false;const b9=avE('avBarF');if(b9&&b9.parentNode)b9.parentNode.classList.remove('urg');}chaHud(true,false);}
 function chaHud(fort,monte){
-  const ch=avE('avCh');if(!ch)return;ch.classList.toggle('on',CHA.n>0);
+  const ch=avE('avCh');if(!ch)return;if(CHA.n>0)ch.classList.remove('vole','perdu');ch.classList.toggle('on',CHA.n>0);
   if(!fort||!CHA.n)return;
   avE('avPts').textContent=fmtAura(CHA.pts);
   const x9=avE('avX'),xv=Math.max(1,CHA.x);x9.textContent='×'+xv;x9.style.setProperty('--xc',X_COUL[Math.min(10,xv)]);x9.classList.toggle('feu',xv>=5);
@@ -13038,6 +13243,21 @@ function chaHud(fort,monte){
     if(pal){slam('×'+xv,pal,X_COUL[xv],'#b14bff',48);flashEcran(xv>=8?'rgba(255,57,36,.55)':'rgba(255,94,200,.45)');hap(xv>=8?[14,40,24,40,30]:[12,30,20]);}}
   avE('avList').innerHTML=CHA.liste.map(function(l){return '<li>'+String(l).replace(/[<>&]/g,'')+'</li>';}).join('');
 }
+/* `dbgHud(k,n)` — (HUD v4) forcer un état du tableau de bord pour le juger sur capture : 'flow' n · 'idle' s · 'chaine' n ·
+   'encaisse' · 'perdue' · 'record' v · 'pwr' · 'slam' txt. Sans argument : l'état lu. */
+window.dbgHud=function(k,n){
+  if(k==='flow'){flowAdd(n==null?30:n);return {v:FLOW.v,lv:FLOW.lv};}
+  if(k==='idle'){FLOW.idle=n==null?2.5:n;return FLOW.idle;}
+  if(k==='chaine'){const N=['VIRAGE SERRÉ','FRÔLÉ','RASE-BORD','SUPER TURBO','BIG AIR','PARFAIT'];
+    for(let i=0;i<(n||3);i++)chaineAura(N[i%6],[45,20,40,100,50,70][i%6],N[i%6]);return {pts:CHA.pts,x:CHA.x};}
+  if(k==='encaisse'){chaineEncaisse();return Math.round(auraRun);}
+  if(k==='perdue'){chainePerdue();return 'ok';}
+  if(k==='record'){CHA.rec=n||500;CHA.recB=false;CHA.recP=-1;const r=avE('avRec');if(r)r.className='';
+    avE('avRecT').textContent=TR('RECORD')+' '+fmtAura(CHA.rec);return CHA.rec;}
+  if(k==='pwr'){pwrNitroT=6;pwrSpdT=4.5;return 'ok';}
+  if(k==='slam'){slam(n||'BOOST','','#ffd75e','#ff7a24',44,0);return 'ok';}
+  return {flow:{v:FLOW.v,lv:FLOW.lv,idle:FLOW.idle},cha:{pts:CHA.pts,x:CHA.x,n:CHA.n,t:CHA.t},rec:CHA.rec,recB:CHA.recB,aura:Math.round(auraRun)};
+};
 function avGainPop(petit,grand,perdu){
   const g=avE('avGain');if(!g)return;
   g.innerHTML='<small>'+sansAcc(petit).replace(/[<>&]/g,'')+'</small>'+grand;g.classList.toggle('perdu',!!perdu);
@@ -13449,6 +13669,21 @@ function checkUpgrade(){
   }
   SAVE.flush();
 }
+/* LE PASSAGE DU PORTAIL (2026-09-26) — une seule fonction, deux entrées : au SOL (bout de piste ou entrée dans l'ovule) et en VOL
+   (l'ovule se traverse d'où qu'on vienne, y compris en tombant du ciel). Le test ne vivait que dans la branche « au sol » de la
+   boucle : en l'air, on traversait l'ovule sans rien déclencher. */
+function portailPasse(){
+  if(mode==='fall'){airPie.style.display='none';try{dolFin();}catch(e){}vA=Math.max(vA,Math.hypot(fallVel.x,fallVel.z));} // traversé en VOL : le vol s'arrête proprement, l'élan est gardé (inertie)
+  flashEcran('rgba(255,79,216,.6)'); // l'annonce, c'est « NIVEAU n — LIEU » (lvlAnnonce, couloir des annonces) : une seule voix au centre
+  portalSnd();boostSnd();shake=.5;
+  const zb=denom()*24*(fever>0?2:1);money+=zb;levelCash+=zb;checkUpgrade(); // portail : 40→24 (régulation 2026-07-30)
+  runStats.zones++;
+  nitroR=2; // le portail regonfle la nitro : chaque zone repart pied au plancher
+  trickMsg(pickL(ZONE_LINES)+' +'+fmtC(zb),true);
+  flyCash(carGroup.position,8);
+  SURV.pBase+=s; // la course traverse le portail : les écarts restent vrais (téléportation invisible)
+  newTrack();
+}
 function startFall(impU,impF){
   FROLE.s0=null;FROLE.n=0;FROLE.t=0; // (2026-09-25) un plot SURVOLÉ n'est pas un frôlé : le balayage repart de l'atterrissage
   mode='fall';fallT=0;fallTR=0;yawAcc=0;airRoll=0;trkBigA=false;trkMonstre=false; // (momentum v2) le saut ne remet plus la réserve à zéro : c'est la POSE qui juge
@@ -13478,6 +13713,8 @@ function startFall(impU,impF){
   if(fallVel.y>70)fallVel.y=70;
   hopY=0;hopV=0; // un dos d'âne en cours ne doit pas laisser de décalage fantôme
   lastNearY=fallPos.y; // référence du plongeon fatal tant que tryLand n'a pas mieux
+  {tmp.copy(fallVel).normalize();FLY_U.copy(F.n).addScaledVector(tmp,-F.n.dot(tmp)); // (vol libre) le haut du vol part de celui de la route
+   if(FLY_U.lengthSq()<1e-4)FLY_U.copy(F.b).cross(tmp);FLY_U.normalize();FLY_R.crossVectors(FLY_U,tmp).normalize();}
   // chaîne neuve : le vol commence, tout est à prouver
   chain=0;chainVal=rollover;chainMult=1;chainSeen={};spinHalf=0;
   if(rollover>0){trickMsg('REPORT +'+Math.round(rollover),false);rollover=0;} // le PARFAIT d'avant paye d'avance
@@ -13576,7 +13813,10 @@ function tryLand(dt){
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1; // PARC : on repart dans le sens d'atterrissage (les deux directions roulent) ; COURSE : toujours vers l'avant
   // ATTERRISSAGE : l'impact ralentit la caisse — d'autant plus que le saut etait gros
   nitroPct(.2); // (2026-09-26, user) TOUTE pose rend 20 % de nitro — parfaite, lourde, à l'arrachée
-  if(trkMeteor)try{cratere(CRAT.pv.copy(fallPos),CRAT.nv.copy(Nn[bestI]).multiplyScalar(sideL));}catch(e){} // (2026-09-26) le MÉTÉORE creuse son CRATÈRE à l'impact
+  /* (2026-09-26, user : « l'impact MÉTÉORE, c'est quand on entre en collision avec la route EN NITRO avec un angle supérieur à 45° »)
+     Plus la figure MÉTÉORE (nitro tenue en l'air) : le CRATÈRE naît d'un PIQUÉ — nitro allumée au contact, et la trajectoire plonge
+     dans la dalle à plus de 45° (vitesse normale > vitesse dans le plan : vN² > v² − vN²). Une pose rasante en nitro ne creuse rien. */
+  {const v29=fallVel.lengthSq();if(nitroOn&&v29>36&&2*vN*vN>v29)try{cratere(CRAT.pv.copy(fallPos),CRAT.nv.copy(Nn[bestI]).multiplyScalar(sideL));}catch(e){}}
   const impact=Math.abs(vN);
   const bigness=Math.max(0,fallT-.8);
   const landLoss=Math.min(.52,bigness*.15+impact*.008); // un peu plus doux qu'avant
@@ -13698,6 +13938,10 @@ function newTrack(){
   if(vA<20)vA=20;
   mode='drive';
 }
+// console : dbgPortail(d) → la caisse à d mètres AVANT l'ovule (sur la route) ; dbgPortail('ciel') → lâchée à la verticale AU-DESSUS de lui
+window.dbgPortail=function(d){if(!started||gameOver||PARK.on)return 'pas de course';
+  if(d==='ciel'){s=Math.max(0,L-400);startFall(10,1);fallPos.copy(PORTAL.c);fallPos.y+=PORTAL.R*1.7;fallVel.set(0,-35,0);return {mode,c:PORTAL.c.toArray().map(Math.round),R:PORTAL.R};}
+  s=Math.max(0,L-(d||300));lat=0;psi=0;prevTvalid=false;mode='drive';return {L:Math.round(L),s:Math.round(s),R:PORTAL.R};};
 // console : dbgSaut() → franchit le portail tout de suite (niveau suivant), comme le vrai portail le fait
 window.dbgSaut=function(){ if(!started||gameOver||PARK.on)return 'pas de course en cours';
   runStats.zones++;SURV.pBase+=s;newTrack();return window.dbgNiveau(); };
@@ -13724,7 +13968,7 @@ function resetGame(){
   driftC=0;driftLv=0;driftEnCours=false;raseT=0;raseAnn=false;yawR=0;slipB=0;glisse9=0;driftYaw=0;FROLE.n=0;FROLE.t=0;FROLE.s0=null; // (2026-09-25) une glisse ne survit pas à la partie (sinon MINI-TURBO fantôme au départ)
   nextRainAt=4e3;moneyRainT=0;sideCd=0;slipT=0;oilCd=0;
   nitroAirT=0;fallUnder=false;pureT=0;pureArmed=true;gapArmed=0;rampCd=0;annStop();deathStop();fxStop(); // la mort précédente se tait : on repart, elle n'a plus rien à dire
-  auraRun=0;auraPop=0;auraFlash=0;figCombo=0;figComboT=0;figComboAura=0;chaReset();CHA.v=0;CHA.vAff=-1;pureNext=0;pureLvl=0; // l'aura de la partie repart de zéro — la banque et le total à vie, eux, restent
+  auraRun=0;auraPop=0;auraFlash=0;figCombo=0;figComboT=0;figComboAura=0;chaReset();CHA.v=0;CHA.vAff=-1;recInit();pureNext=0;pureLvl=0; // l'aura de la partie repart de zéro — la banque et le total à vie, eux, restent
   bounceN=0;airFlash=0;flightId=0;
   chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;dolphT=0;trkDolph=false;
@@ -15830,17 +16074,8 @@ function loop(now){
         portalSnd();shake=.35;nitroR=2;
         showMsg('✦ NOUVEAU SECTEUR','#7dffec');
         newTrack();
-      }else if(mode==='drive'&&!PARK.on&&s>L-32){
-        {
-          portalSnd();boostSnd();shake=.5;
-          const zb=denom()*24*(fever>0?2:1);money+=zb;levelCash+=zb;checkUpgrade(); // portail : 40→24 (régulation 2026-07-30)
-          runStats.zones++;
-          nitroR=2; // le portail regonfle la nitro : chaque zone repart pied au plancher
-          trickMsg(pickL(ZONE_LINES)+' +'+fmtC(zb),true);
-          flyCash(carGroup.position,8);
-          SURV.pBase+=s; // la course traverse le portail : les écarts restent vrais (téléportation invisible)
-          newTrack();
-        }
+      }else if(!PARK.on&&portalMesh&&mode==='drive'&&(s>L-32||carGroup.position.distanceToSquared(PORTAL.c)<PORTAL.R*PORTAL.R*.9)){ // (2026-09-26) on ENTRE dans l'ovule — par la route ou par le côté (en vol : voir la branche 'fall')
+        portailPasse();
       }
       // pads turbo
       padCd=Math.max(0,padCd-dt);
@@ -16241,31 +16476,15 @@ function loop(now){
       fallT+=dtF;fallTR+=dt; // fallT = temps-sim (figures/paiements) ; fallTR = temps RÉEL (jauge des 6 s — sinon le chrono file à ×1,6)
       if(nitroOn)nitroAirT+=dtF; // temps de réacteur dans CE vol (METEOR / MEGA METEOR)
       fallVel.y-=FALL_G*dtF;
-      // ⚠ ANTI-BLOCAGE DU LACET (2026-08-03) — MÊME PIÈGE QUE LE TANGAGE, jamais traité de ce côté.
-      // Le lacet fait TOURNER le vecteur vitesse autour de Y. Si la trajectoire est quasi VERTICALE
-      // (gros décollage, plongeon de crête), sa composante horizontale est ~nulle : la faire tourner
-      // ne change plus rien de perceptible, le volant est MORT en plein vol. D'où le « sens bloqué »
-      // qui n'arrive que PARFOIS — précisément quand on part ou tombe droit.
-      // On rétablit donc un minimum d'horizontale (repli sur le nez de la caisse), mais UNIQUEMENT
-      // quand le joueur braque vraiment : c'est une correction d'INTENTION, pas une force parasite.
-      // ⚠ la vitesse TOTALE est conservée (on reprend en vertical ce qu'on donne en horizontal),
-      // sinon on offrirait de la portée gratuite sur chaque saut vertical.
-      if(Math.abs(steer)>.15){
-        const spdY=fallVel.length(),hxz0=Math.hypot(fallVel.x,fallVel.z);
-        if(spdY>1&&hxz0<spdY*.12){
-          tmp3.set(0,0,1).applyQuaternion(carGroup.quaternion);
-          let hx=tmp3.x,hz=tmp3.z,hl=Math.hypot(hx,hz);
-          if(hl<1e-3){hx=1;hz=0;hl=1;}
-          const need=spdY*.12,vy2=Math.sqrt(Math.max(0,spdY*spdY-need*need));
-          fallVel.set(hx/hl*need,(fallVel.y<0?-1:1)*vy2,hz/hl*need);
-        }
-      }
+      // (vol libre, 2026-09-26) l'ANTI-BLOCAGE DU LACET a sauté : il rendait « un minimum d'horizontale » parce que le volant tournait
+      // autour de l'axe VERTICAL du monde (mort en trajectoire verticale). Le volant tourne désormais autour du HAUT DE LA CAISSE
+      // (FLY_U) : il mord à toutes les assiettes, piqué à pic compris, et il ne redresse plus rien.
       // chute pilotée : un peu de lacet, c'est tout — la voiture est LOURDE
       // (le lacet gagne un peu d'autorité à grande vitesse → vol simplifié)
       // chute pilotée : un peu de lacet, c'est tout — la voiture est LOURDE
       // (le lacet gagne un peu d'autorité à grande vitesse → vol simplifié)
       const yawIn=steer*(1.15+Math.min(.6,fallVel.length()*.004))*dtF;
-      fallVel.applyAxisAngle(AXIS_Y,yawIn);
+      fallVel.applyAxisAngle(FLY_U,yawIn); // (vol libre) autour du haut de la CAISSE — à gauche à l'écran, c'est à gauche, même sur le dos
       yawAcc+=yawIn;
       if(nitroOn){ // RÉACTEUR : il fait planer et donne l'assiette (piqué/cabré) — il n'accélère plus (vol v7 : inertie)
         fallVel.y+=FALL_G*(nitroBlue?.75:.6)*dtF; // (vol v7) le RÉACTEUR fait PLANER : il reprend 60 % de la gravité (75 % en réserve bleue) — il n'accélère plus la caisse (inertie : la vitesse vient de l'éjection)
@@ -16278,26 +16497,10 @@ function loop(now){
         // cabré) — même levier, dosé. Zone morte large : tourner ne doit jamais cabrer par accident.
         const pitT=TCTL.act?TCTL.sv:0;
         const wPitch=pitT!==0?(Math.abs(pitT)<.12?0:-pitT):((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0); // -1 = piqué, +1 = cabré
-        if(wPitch!==0){
-          const spd=fallVel.length();
-          if(spd>1){
-            // ⚠ ANTI-BLOCAGE : trajectoire quasi VERTICALE → hxz≈0, atan2 sature à ±90° (hors du clamp ±65°)
-            // et la remise à l'échelle divise par ~0 : les commandes semblaient MORTES. On garde toujours
-            // un cap horizontal exploitable (repli sur le nez de la caisse si la vitesse est verticale).
-            let hxz=Math.hypot(fallVel.x,fallVel.z);
-            if(hxz<spd*.12){ // presque à la verticale : on rétablit un minimum d'horizontale
-              tmp3.set(0,0,1).applyQuaternion(carGroup.quaternion);
-              let hx=tmp3.x,hz=tmp3.z,hl=Math.hypot(hx,hz);
-              if(hl<1e-3){hx=1;hz=0;hl=1;}
-              const need=spd*.12;
-              fallVel.x=hx/hl*need;fallVel.z=hz/hl*need;hxz=need;
-            }
-            let pit=Math.atan2(fallVel.y,hxz);
-            pit=THREE.MathUtils.clamp(pit+1.7*wPitch*dtF,-1.13,1.13); // 1.7 rad/s ≈ 97°/s, plafond ±65°
-            const nH=Math.cos(pit)*spd,hs=nH/hxz;
-            fallVel.set(fallVel.x*hs,Math.sin(pit)*spd,fallVel.z*hs); // même vitesse, nouvelle assiette
-          }
-        }
+        // (vol libre, 2026-09-26) plus de plafond à ±65° ni de repli « à l'horizontale » : le manche fait tourner la trajectoire ET le
+        // haut de la caisse autour de SA droite (FLY_R) — piqué, cabré, looping : aucune assiette n'est interdite, rien ne se bloque
+        // (des vecteurs qui tournent autour d'un axe local : pas d'angle d'Euler, donc pas de gimbal-lock).
+        if(wPitch!==0){const a9=-wPitch*1.7*dtF;fallVel.applyAxisAngle(FLY_R,a9);FLY_U.applyAxisAngle(FLY_R,a9);}
         // jet visible au point de poussée arrière : panache conique, jamais deux fois pareil
         flames.mesh.material.color.set(nitroBlue?0x3a5bff:0xff8020);
         flameCore.mesh.material.color.set(nitroBlue?0xbfd6ff:0xffd9a0);
@@ -16327,23 +16530,7 @@ function loop(now){
           -tmp3.x*20+(Math.random()-.5)*6,-tmp3.y*20+(Math.random()-.5)*6,-tmp3.z*20+(Math.random()-.5)*6,.3);
       } else { // VOL SANS BOOST : léger pilotage haut/bas — assez pour infléchir la trajectoire, bien moins qu'au réacteur
         const wPitch=((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0); // ↑ piqué · ↓ cabré
-        if(wPitch!==0){
-          const spd=fallVel.length();
-          if(spd>1){
-            let hxz=Math.hypot(fallVel.x,fallVel.z);
-            if(hxz<spd*.12){ // même anti-blocage qu'au boost : jamais de trajectoire 100 % verticale
-              tmp3.set(0,0,1).applyQuaternion(carGroup.quaternion);
-              let hx=tmp3.x,hz=tmp3.z,hl=Math.hypot(hx,hz);
-              if(hl<1e-3){hx=1;hz=0;hl=1;}
-              const need=spd*.12;
-              fallVel.x=hx/hl*need;fallVel.z=hz/hl*need;hxz=need;
-            }
-            let pit=Math.atan2(fallVel.y,hxz);
-            pit=THREE.MathUtils.clamp(pit+0.62*wPitch*dtF,-1.13,1.13); // 0.62 rad/s ≈ 35°/s (vs 1.7 au boost) : on infléchit, on ne pilote pas
-            const nH=Math.cos(pit)*spd,hs=nH/hxz;
-            fallVel.set(fallVel.x*hs,Math.sin(pit)*spd,fallVel.z*hs);
-          }
-        }
+        if(wPitch!==0){const a9=-wPitch*.62*dtF;fallVel.applyAxisAngle(FLY_R,a9);FLY_U.applyAxisAngle(FLY_R,a9);} // (vol libre) même manche, sans plafond — 0,62 rad/s : on infléchit, on ne pilote pas
       }
       /* (vol v7, 2026-09-25, user : « l'airtime doit être basé sur un principe d'INERTIE, dépendre de la vitesse de la voiture au
          moment de l'éjection, et PAS de sa vitesse max ») : en l'air, la caisse garde la vitesse qu'elle avait en quittant la route —
@@ -16351,7 +16538,7 @@ function loop(now){
          l'augmenter, et la nitro ne pousse plus en avant (elle fait PLANER : voir plus haut). Garde-fou : l'avance HORIZONTALE ne
          dépasse jamais celle de l'éjection (un cabré qui convertirait la chute en élan ne crée pas de vitesse). Aucune lecture de
          maxSp : la portée d'un saut ne dépend que de la vitesse d'éjection. */
-      {const hx9=Math.hypot(fallVel.x,fallVel.z);if(fallVH0<0)fallVH0=hx9;
+      {const hx9=Math.hypot(fallVel.x,fallVel.z);if(fallVH0<0)fallVH0=Math.max(hx9,fallVel.length()); // (vol libre) plafond = la vitesse d'ÉJECTION entière : sortir d'un piqué à l'horizontale reste possible (le manche n'a plus de butée), jamais plus vite qu'au décollage
        if(hx9>fallVH0&&hx9>1){const f9=fallVH0/hx9;fallVel.x*=f9;fallVel.z*=f9;}}
       if(PARK.on&&fallVel.lengthSq()>PARK_VCAP*PARK_VCAP)fallVel.setLength(PARK_VCAP); // PARC : la nitro infinie ne t'emballe pas non plus EN L'AIR — vol rapide mais pilotable
       fallPos.addScaledVector(fallVel,dtF*SPD);
@@ -16418,13 +16605,13 @@ function loop(now){
       // orientation stable : le nez suit la trajectoire, PAS de vrille surprise
       carGroup.scale.set(1,1,1);
       tmp.copy(fallVel).normalize();
-      tmp2.set(0,1,0);
-      tmp3.crossVectors(tmp2,tmp);
-      // ⚠ vitesse quasi VERTICALE (piqué à pic) : (0,1,0)×vitesse → ~0, le repère dégénère et la caisse
-      // reste COINCÉE en vrille. Right de secours dans ce cas → orientation stable, plus de blocage.
-      if(tmp3.lengthSq()<.0009)tmp3.set(1,0,0);
-      tmp3.normalize();
-      tmp2.crossVectors(tmp,tmp3);
+      // (vol libre) le HAUT est transporté avec la trajectoire (on lui retire sa part le long de la vitesse) : aucun (0,1,0) du monde,
+      // donc plus de repère qui dégénère en piqué à pic ni de caisse qui se remet d'elle-même à l'endroit
+      FLY_U.addScaledVector(tmp,-FLY_U.dot(tmp));
+      if(FLY_U.lengthSq()<1e-4)FLY_U.crossVectors(tmp,FLY_R); // (garde : trajectoire retournée d'un coup — on repart de la droite)
+      FLY_U.normalize();
+      FLY_R.crossVectors(FLY_U,tmp).normalize();
+      tmp3.copy(FLY_R);tmp2.copy(FLY_U);
       mat4.makeBasis(tmp3,tmp2,tmp);
       qTmp.setFromRotationMatrix(mat4);
       /* ⚠ LA VRILLE EST VOULUE — NE PAS LA « CORRIGER » (tranché par le user, 2026-08-05).
@@ -16441,9 +16628,9 @@ function loop(now){
       shadow.position.y=-99999;
       // CAMÉRA DYNAMIQUE EN VOL : plus le saut est GROS, plus on zoome et on suit serré → la caisse reste héroïque (fini le point minuscule)
       const bigAir=THREE.MathUtils.clamp((fallT-0.5)/2.2,0,1); // 0 au décollage → 1 sur un gros air
-      tmp2.copy(fallPos).addScaledVector(tmp,-(9.0-bigAir*2.6)*(1-POR*.16));tmp2.y+=(3.5+bigAir*2.4)*(1+POR*.12); // on se rapproche et on monte (angle plus épique)
+      tmp2.copy(fallPos).addScaledVector(tmp,-(9.0-bigAir*2.6)*(1-POR*.16)).addScaledVector(FLY_U,(3.5+bigAir*2.4)*(1+POR*.12)); // on se rapproche et on monte (angle plus épique) — « monter » = vers le HAUT DE LA CAISSE (vol libre), plus vers le ciel
       camera.position.lerp(tmp2,Math.min(1,dt*(3+bigAir*4.5))); // suivi PLUS VIF en gros air : la caméra ne décroche plus
-      camUp.lerp(tmp3.set(0,1,0),Math.min(1,dt*2)).normalize();
+      camUp.lerp(FLY_U,Math.min(1,dt*3)).normalize(); // (vol libre) le haut de l'écran = le haut de la caisse : la caméra ne se remet plus « à l'endroit »
       camera.up.copy(camUp);
       camera.lookAt(fallPos);
       const fovAir=fovPor(76-bigAir*22); // ZOOM cinématique : le champ se resserre avec l'ampleur du saut (76° petit air → 54° gros air)
@@ -16491,7 +16678,8 @@ function loop(now){
       const fr=pwrAirT>0?Math.min(1,pwrAirT/10):Math.max(0,1-fallTR/AIR_MAX); // jauge en temps RÉEL : 6 s affichées = 6 s vécues
       if(airFlash>0)airFlash=Math.max(0,airFlash-dt);
       airPieDraw(fr,pwrAirT>0?pwrAirT:Math.max(0,AIR_MAX-fallTR),airFlash>0);
-      if(tryLand(dtF)){airPie.style.display='none';dolFin();} // posé : le total du DAUPHIN se fige et s'encaisse
+      if(!PARK.on&&portalMesh&&fallPos.distanceToSquared(PORTAL.c)<PORTAL.R*PORTAL.R*.9)portailPasse(); // (2026-09-26) l'ovule traversé EN VOL — du ciel, de côté, d'en dessous
+      else if(tryLand(dtF)){airPie.style.display='none';dolFin();} // posé : le total du DAUPHIN se fige et s'encaisse
       else if((fallTR>AIR_MAX&&pwrAirT<=0)||fallPos.y<trackMinY-120){airPie.style.display='none';if(PARK.on)parkRespawn();else explode();} // FREESTYLE : trop long en l'air ou chute dans le vide = on repart, jamais de mort // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
     }else if(mode==='boom'){ // ---- EXPLOSION ----
       boomT+=dt;
@@ -16900,7 +17088,8 @@ function loop(now){
       }
     }
     // portail qui pulse + pads RGB qui défilent
-    if(portalMesh)portalMesh.scale.setScalar(1+.06*Math.sin(t*5));
+    if(portalMesh){portalMesh.scale.setScalar(1+.035*Math.sin(t*2.2));portalMesh.rotation.y=t*.12;if(PORTAL.mat)PORTAL.mat.uniforms.uT.value=t; // l'ovule respire et tourne lentement
+      if(PORTAL.noy)PORTAL.noy.scale.setScalar(PORTAL.R*(.62+.12*Math.sin(t*4.4)));if(PORTAL.halo)PORTAL.halo.material.opacity=.22+.08*Math.sin(t*2.2);} // le NOYAU bat
     // pads turbo : on n'anime la texture (dessin canvas + upload GPU) que si un pad est réellement en vue
     {let pv9=false;for(const p9 of PADS)if(p9>s-80&&p9<s+520){pv9=true;break;}if(pv9)updatePadTex(t);}
     // HUD
@@ -16972,10 +17161,11 @@ function loop(now){
      if(elNB&&(loop._nbr!==r9||loop._nbx!==x9)){loop._nbr=r9;loop._nbx=x9;elNB.style.setProperty('--nr',r9);elNB.style.setProperty('--nx',x9);}}
     // chip des POUVOIRS actifs : compte à rebours coloré au-dessus de la jauge nitro
     let pch='';
-    if(pwrNitroT>0)pch+='<span style="color:#4db8ff">🔥 NITRO ∞ '+pwrNitroT.toFixed(1)+'</span>';
-    if(pwrAirT>0)pch+='<span style="color:#7dffec">🪂 AIR ∞ '+pwrAirT.toFixed(1)+'</span>';
-    if(pwrSpdT>0)pch+='<span style="color:#ff3ec8">⚡ '+TR('VITESSE +60%')+' '+pwrSpdT.toFixed(1)+'</span>';
+    if(pwrNitroT>0)pch+='<span style="color:#4db8ff">🔥 NITRO MAX '+pwrNitroT.toFixed(1)+'</span>';
+    if(pwrAirT>0)pch+='<span style="color:#7dffec">🪂 AIR MAX '+pwrAirT.toFixed(1)+'</span>';
+    if(pwrSpdT>0)pch+='<span style="color:#ff3ec8">⚡ '+TR('VITESSE')+' '+pwrSpdT.toFixed(1)+'</span>';
     if(pch!==loop._pch){loop._pch=pch;pwrChip.innerHTML=pch;pwrChip.style.display=pch?'block':'none';}
+    {const sp9=airPie.style.display==='block';if(sp9!==loop._psp){loop._psp=sp9;pwrChip.classList.toggle('sousPie',sp9);}}
     {const k9=pwrNitroT>0?'n':pwrSpdT>0?'v':pwrAirT>0?'a':''; // (HUD v3) les BORDS de l'écran battent à la couleur du pouvoir actif
      if(k9!==loop._pfx){loop._pfx=k9;let e9=avE('pwrFx');if(!e9){e9=document.createElement('div');e9.id='pwrFx';e9.setAttribute('aria-hidden','true');document.body.appendChild(e9);avEl.pwrFx=e9;}
        if(k9){e9.style.setProperty('--pf',PWR_DEFS[k9].fx);e9.style.setProperty('--pf2',PWR_DEFS[k9].fx2);}e9.classList.toggle('on',!!k9);}}

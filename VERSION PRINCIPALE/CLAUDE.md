@@ -100,6 +100,24 @@
     (`userData.sol`) dans `carBody`, qui roule autour de l'axe des moyeux (`pivY`). Roulis vers l'EXTÉRIEUR ∝ charge latérale
     (`yawR·v`), jusqu'à ~15° (+4° en drift), en RESSORT (ω 14, ζ .55 : `carRoll9`/`rollV`), tangage `pitch9`. ⚠ ne jamais remettre
     `carRoll9`/`rollV` à zéro DANS buildCar : elle tourne avant leur déclaration (zone morte). L'explosion arrache les pièces de `carBody`.
+  · **HUD v4 — LE TABLEAU DE BORD** (26/09, « gère tous les affichages comme un tout qui rend accro ») : carte de l'écran en tête du
+    bloc CSS « HUD v4 ». EN HAUT on LIT : nitro + ⏸ · **bande du FLOW** pleine largeur (`flowHudMaj` : 4 segments aux couleurs des
+    paliers, nom `FLOW_NOM`, vrai multiplicateur de CASH `$×1,5` en vert — l'ancien « FLOW ×2 » mentait et se confondait avec le × de
+    chaîne ; états `.presque`/`.fuit`/`.lache`/`.monte`) · **AURA** + **RECORD à battre** (`recInit/recMaj/recBattu`, `SAVE.d.auraMax`,
+    crié une fois par partie) · CHAÎNE à gauche (s'ENVOLE dans le compteur à l'encaissement `.vole`, se brise `.perdu`, barre rouge la
+    dernière seconde) · colonne de droite : chrono de vol + POUVOIRS (`#pwrChip` sorti de l'écran nu, sous le chrono en vol). AU CENTRE,
+    le **couloir des annonces** `--laneA` : UNE voix (`slam` pose `body.slamOn` → niveau/dauphin/contrats/logo s'effacent) ; taille
+    auto pour tenir dans l'écran. SUR LA CAISSE le geste (`popSuit` : au-dessus du toit, ou dessous en vol). Contour d'arcade 4 ombres
+    sur tous les chiffres (le ciel pastel les dissolvait). Hook `dbgHud(k,n)`. Captures fiables : harnais Puppeteer + Chrome système
+    (scratchpad `pp/shoot.js`, GPU réel, figer les animations CSS avant la capture).
+  · **VOL LIBRE** (26/09, « pas de haut/bas en mode aérien, la voiture va là où on la guide ») : repère transporté `FLY_U`/`FLY_R`
+    (le haut part de la normale de la route puis suit la trajectoire, aucun (0,1,0)) ; volant autour de `FLY_U`, manche autour de
+    `FLY_R` SANS plafond (looping possible), caméra `up = FLY_U`. Plafond d'inertie = vitesse d'éjection ENTIÈRE (`fallVH0`).
+  · **MÉTÉORE** = cratère UNIQUEMENT si nitro allumée au contact ET plongée > 45° (`2·vN² > v²`), plus la figure en l'air.
+  · **PORTAIL OVULE** (`PORTAL`, sphère 55 m fresnel + noyau) : `portailPasse()` appelé au sol (bout de piste / entrée dans l'ovule)
+    ET en vol (branche 'fall', avant `tryLand`) — `dbgPortail(d|'ciel')`.
+  · **NUAGES** : `nuageTouche()` refuse tout nuage de décor qui mordrait le ruban (sauf bancs `onRoad`, 2× plus rares) ; tours
+    jamais plantées sur la piste ; coussins décollés de 30 m ; famille ARCHIPEL (16 cumulus à 0,4-2,8 km).
   · Bancs : scratchpad `v6/conduite/diag/` (diagnostic, sim6.js), `v6/conduite/moi/sim-v6.js` (le modèle retenu + pilote 150 ms),
     `v6/piste/base/` (banc.js étendu, variantes.js, resume.js). `dbgState()` expose psi/yawR/slipB/glisse/drift/roulisDeg/vH.
 
