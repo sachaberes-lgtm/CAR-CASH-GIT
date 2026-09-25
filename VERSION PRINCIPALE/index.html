@@ -2007,6 +2007,35 @@
   #dolHud.fige .dAura{color:var(--dolNom);transform:scale(1.12)} /* le total se FIGE : il blanchit d'un cran — encaissé */
   body:not(.play) #dolHud{display:none}
   @media (prefers-reduced-motion:reduce){#dolHud.on{animation:none}#dolHud.fige .dAura{transform:none}}
+  /* ---- L'AURA v2 — LA CHAÎNE (2026-09-26) : le compteur TOUJOURS visible, et la chaîne en cours dessous — points, multiplicateur,
+     temps restant, et les trois derniers gestes AVEC leurs points. À GAUCHE, sous la pastille FLOW : à droite vit le chrono de vol. ---- */
+  #auraV2{position:fixed;left:calc(env(safe-area-inset-left,0px) + 14px);top:calc(env(safe-area-inset-top,0px) + 84px);z-index:6;
+    pointer-events:none;font-family:var(--pix);text-align:left;display:none}
+  body.play #auraV2{display:block}
+  #auraHud{display:none!important} /* l'ancienne jauge d'aura (PC) : un seul compteur, celui-ci */
+  #auraV2 .avTot{display:flex;justify-content:flex-start;align-items:baseline;gap:6px;color:#ffd75e;font-size:16px;
+    text-shadow:0 2px 0 #000,0 0 10px rgba(255,215,94,.55);transform-origin:left center}
+  #auraV2 .avTot em{font-style:normal;font-size:8px;color:#ffe9a8;letter-spacing:2px}
+  #auraV2 .avTot.pulse{animation:avPulse var(--t-slow) var(--ease)}
+  @keyframes avPulse{0%{transform:scale(1.3)}100%{transform:scale(1)}}
+  #avCh{margin-top:10px;opacity:0;transform:translateX(-10px);transition:opacity var(--t-fast) var(--ease),transform var(--t-fast) var(--ease)}
+  #avCh.on{opacity:1;transform:none}
+  #avCh .avChTop{display:flex;justify-content:flex-start;align-items:baseline;gap:8px}
+  #avPts{font-size:13px;color:#fff;text-shadow:0 2px 0 #000}
+  #avX{font-size:22px;color:#ff5ec8;text-shadow:0 2px 0 #000,0 0 12px rgba(255,94,200,.75)}
+  #avX.up{animation:avPulse var(--t-slow) var(--ease)}
+  #avCh .avBar{width:132px;height:4px;margin:6px 0;background:rgba(0,0,0,.5)}
+  #avCh .avBar i{display:block;height:100%;background:#ff5ec8;transform-origin:left center}
+  #avList{list-style:none;margin:0;padding:0;font-size:8px;line-height:2;color:#dfeeff;text-shadow:0 2px 0 #000,0 0 6px #000}
+  #avList li:first-child{color:#ffd75e}
+  #avGain{position:fixed;left:50%;top:36%;z-index:7;pointer-events:none;font-family:var(--pix);font-size:26px;white-space:nowrap;
+    color:#ffd75e;text-shadow:0 3px 0 #000,0 0 18px rgba(255,215,94,.85);opacity:0;transform:translate(-50%,-50%)}
+  #avGain small{display:block;font-size:9px;letter-spacing:2px;margin-bottom:8px;color:#fff}
+  #avGain.on{animation:avGain 1.2s var(--ease) forwards}
+  #avGain.perdu{color:#ff5e7a;text-shadow:0 3px 0 #000,0 0 16px rgba(255,94,122,.8)}
+  @keyframes avGain{0%{opacity:0;transform:translate(-50%,-30%) scale(.6)}14%{opacity:1;transform:translate(-50%,-50%) scale(1.12)}
+    72%{opacity:1;transform:translate(-50%,-58%) scale(1)}100%{opacity:0;transform:translate(-50%,-90%) scale(.92)}}
+  @media (prefers-reduced-motion:reduce){#avGain.on{animation-duration:1ms;opacity:1}#auraV2 .avTot.pulse,#avX.up{animation:none}}
   /* ---- LE PLANCHER DE LECTURE (2026-09-25 — rappel de la passe UX du 24/09 : « textes : 8 px minimum ») ----
      Les blocs du 25/09 (contrats, objectif, boutique, fin v3) étaient redescendus à 6-7 px. Press Start 2P est dessinée sur une
      grille de 8 : en dessous, ses pixels tombent ENTRE deux pixels d'écran et bavent. Une variable, pour que la règle ne se perde plus. */
@@ -2273,6 +2302,9 @@
   </div>
   <div id="carInfo" class="panel"><div id="carName">LA HONTE</div><div id="carLevel">MOTEUR ROUILLÉ</div></div>
   <div id="money"><span id="moneyTxt">$00000000</span></div>
+  <div id="auraV2" aria-hidden="true"><div class="avTot"><span id="avVal">0</span><em>AURA</em></div>
+    <div id="avCh"><div class="avChTop"><b id="avPts">0</b><span id="avX">×1</span></div><div class="avBar"><i id="avBarF"></i></div><ul id="avList"></ul></div></div>
+  <div id="avGain" aria-hidden="true"></div>
   <div id="auraHud">
     <div id="auraGlow"></div>
     <div id="auraTop"><span id="auraVal">0</span><span id="auraLbl">AURA</span></div>
@@ -7839,7 +7871,7 @@ function driftTick(dt,on){
       if(driftLv===3){slowT=Math.max(slowT,.14);try{flashEl.style.background='#ff5ec8';flashEl.style.opacity=.35;setTimeout(function(){flashEl.style.opacity=0;flashEl.style.background='#ff2020';},90);}catch(e){}}
       try{boostSnd(1+.35*driftLv);if(driftLv>=2)crackle(.45+.2*driftLv);}catch(e){}hap([12,30,20]);
       popTexte(['','MINI-TURBO','SUPER TURBO','ULTRA TURBO'][driftLv],['','#5ee6ff','#ffd75e','#ff5ec8'][driftLv],1);
-      try{addAura(40*driftLv,'DRIFT');}catch(e){}
+      try{chaineAura(['','MINI-TURBO','SUPER TURBO','ULTRA TURBO'][driftLv],[0,50,100,180][driftLv],'drift');}catch(e){}
     }
     driftC=0;driftLv=0;
   }
@@ -7890,7 +7922,7 @@ function frole(c9,dl,k){
   FROLE.n+=k;FROLE.t=1.4;
   nitroGain((.08+.08*pres)*(k>1?1.5:1));flowAdd((4+4*pres)*(k>1?1.5:1)); // ×1,5 (et non ×2) : la porte paie plus sans gonfler le FLOW
   momT=Math.min(4.3,momT+.6); // (momentum v2) le style NOURRIT la réserve de vitesse
-  try{addAura(10+8*Math.min(6,FROLE.n));}catch(e){} // sans titre : l'aura monte en silence, le pop ci-dessous parle déjà
+  try{chaineAura(FROLE.n>=2?'SLALOM ×'+FROLE.n:'FRÔLÉ',20,'frole');}catch(e){} // sans titre : l'aura monte en silence, le pop ci-dessous parle déjà
   popTexte(k>1?'PORTE !':FROLE.n>=2?'SLALOM ×'+FROLE.n:'FRÔLÉ !',k>1||FROLE.n>=3?'#ffd75e':'#7dffec');
   try{froleSnd(pres,FROLE.n);}catch(e){}
   hap(FROLE.n>=3?[8,20,8]:8);fovPunch=Math.max(fovPunch,1.5+2*pres);
@@ -9714,6 +9746,7 @@ const BOOM_VARS=[
 ];
 let BOOMV=BOOM_VARS[0];
 function explode(){
+  chainePerdue(); // (aura v2) la chaîne ouverte part avec la caisse
   if(gameOver||mode==='boom')return;
   dolKill(); // l'aura du DAUPHIN part avec la caisse — comme la mallette
   flowReset();try{flowTick(0);}catch(e){} // le crash VIDE le flow
@@ -12777,6 +12810,70 @@ function auraFigure(n){
   else addAura(gain);
   fxWow(figCombo);                                   // le « WOW » : gate à 5 maillons + 12 s de réfractaire
 }
+/* ===== L'AURA v2 — LA CHAÎNE (2026-09-26, user : « on ne voit pas le compteur d'aura ni clairement quelle figure rapporte combien
+   de points ; invente tout un système avec des multiplicateurs quand tu enchaînes ») =====
+   UNE chaîne, au sol comme en l'air. Chaque geste de style y entre avec SES points, écrits à l'écran (« 360° +45 ») ; chaque
+   geste DIFFÉRENT ajoute ×1 au multiplicateur (plafond ×10) ; refaire le même rapporte 30 % de moins à chaque fois et ne fait
+   pas monter le ×. La chaîne reste ouverte tant qu'on enchaîne : 3,5 s AU SOL pour placer le geste suivant, horloge GELÉE en
+   l'air (le vol EST l'enchaînement). Quand le temps tombe, elle s'ENCAISSE d'un coup : points × multiplicateur, dans le compteur
+   (en haut à droite, toujours visible). Exploser la chaîne ouverte = tout perdre. Barème (base, avant ×) :
+     AIR : 180° de vrille +45 par demi-tour · BIG AIR +50 · AIR MONSTRE +110 · MÉTÉORE +100 · DAUPHIN +80 (+ ce qu'il monte en direct) · BUMP +30
+     POSE : PARFAITE +70 · DIVINE +120 · GAP +120 · ARRACHÉE +120 · AU CHEVEU +220
+     ROUTE : VIRAGE SERRÉ +45 · FRÔLÉ/SLALOM +20 · RASE-BORD +40 · MINI/SUPER/ULTRA TURBO +50/100/180 · RÉCOLTE +30 · PURE SPEED +120 */
+const CHA={pts:0,x:0,fam:{},n:0,t:0,liste:[],v:0,vAff:-1},CHA_FEN=3.5,CHA_XMAX=10;
+let trkBigA=false,trkMonstre=false,virT=0,virPaye=false;
+const avEl={};
+function avE(id){return avEl[id]||(avEl[id]=document.getElementById(id));}
+function fmtAura(n){return Math.round(n).toLocaleString('fr-FR');}
+function sansAcc(t){return String(t).normalize('NFD').replace(/[̀-ͯ]/g,'');} // la police pixel n'a pas de capitales accentuées (« MÉTÉORE » s'afficherait « MéTéORE »)
+function chaineAura(nom,base,fam,brut){ // brut : pas de décote de redite (les échelles qui grimpent déjà : vrilles, bumps)
+  if(!(base>0)||!running||gameOver||(typeof PARK!=='undefined'&&PARK.on))return 0;
+  fam=fam||nom;const k=CHA.fam[fam]|0;CHA.fam[fam]=k+1;
+  const p=Math.max(1,Math.round(base*(brut?1:Math.pow(.7,k))));
+  const x0=CHA.x;if(k===0)CHA.x=Math.min(CHA_XMAX,CHA.x+1);
+  CHA.pts+=p;CHA.n++;CHA.t=CHA_FEN;
+  const lb9=sansAcc(TR(nom));CHA.liste.unshift(lb9+' +'+p);if(CHA.liste.length>3)CHA.liste.length=3;
+  chaHud(true,CHA.x>x0);
+  if(TCTL.on)popTexte(lb9+' +'+p,CHA.x>x0?'#ff9ee6':'#ffd75e',0); // au-dessus de la caisse : le geste ET ce qu'il rapporte
+  try{chimeNote(noteP(Math.min(7,CHA.x),1),0,.10,.16);}catch(e){}
+  return p;
+}
+function chaineTick(dt){
+  // le COMPTEUR : il grimpe vers la vraie valeur (on voit l'aura TOMBER dedans), une écriture DOM seulement quand le chiffre change
+  CHA.v+=(auraRun-CHA.v)*Math.min(1,dt*7);if(Math.abs(auraRun-CHA.v)<1)CHA.v=auraRun;
+  const a9=Math.round(CHA.v);if(a9!==CHA.vAff){CHA.vAff=a9;const e9=avE('avVal');if(e9)e9.textContent=fmtAura(a9);}
+  if(!CHA.n)return;
+  if(mode!=='fall'&&mode!=='boom')CHA.t-=dt; // en l'air, l'horloge est GELÉE
+  if(CHA.t<=0){chaineEncaisse();return;}
+  const b9=avE('avBarF');if(b9)b9.style.transform='scaleX('+(mode==='fall'?1:Math.max(0,CHA.t/CHA_FEN)).toFixed(3)+')';
+}
+function chaineEncaisse(){
+  const g=Math.round(CHA.pts*Math.max(1,CHA.x));
+  if(g>0&&running&&!gameOver){
+    auraRun+=g;auraPop=Math.min(1,auraPop+g/90);
+    avGainPop((CHA.x>1?CHA.pts+' ×'+CHA.x:TR('CHAÎNE')),'+'+fmtAura(g),false);
+    const t9=document.querySelector('#auraV2 .avTot');if(t9){t9.classList.remove('pulse');void t9.offsetWidth;t9.classList.add('pulse');}
+    hap(CHA.x>=4?[12,30,24]:12);try{chimeNote(noteP(Math.min(9,CHA.x+2),1),0,.18,.22);if(CHA.x>=4)sparkle(.1,.08);}catch(e){}
+  }
+  chaReset();
+}
+function chainePerdue(){ // exploser la chaîne ouverte : tout part avec la caisse
+  if(!CHA.n)return;const g=Math.round(CHA.pts*Math.max(1,CHA.x));
+  avGainPop(TR('CHAÎNE PERDUE'),'−'+fmtAura(g),true);chaReset();
+}
+function chaReset(){CHA.pts=0;CHA.x=0;CHA.fam={};CHA.n=0;CHA.t=0;CHA.liste.length=0;chaHud(true,false);}
+function chaHud(fort,monte){
+  const ch=avE('avCh');if(!ch)return;ch.classList.toggle('on',CHA.n>0);
+  if(!fort||!CHA.n)return;
+  avE('avPts').textContent=fmtAura(CHA.pts);
+  const x9=avE('avX');x9.textContent='×'+Math.max(1,CHA.x);if(monte){x9.classList.remove('up');void x9.offsetWidth;x9.classList.add('up');}
+  avE('avList').innerHTML=CHA.liste.map(function(l){return '<li>'+String(l).replace(/[<>&]/g,'')+'</li>';}).join('');
+}
+function avGainPop(petit,grand,perdu){
+  const g=avE('avGain');if(!g)return;
+  g.innerHTML='<small>'+sansAcc(petit).replace(/[<>&]/g,'')+'</small>'+grand;g.classList.toggle('perdu',!!perdu);
+  g.classList.remove('on');void g.offsetWidth;g.classList.add('on');
+}
 /* ---- LA RÉCOLTE DE FRUITS EN RAFALE (2026-08-18) ---------------------------------------------
    Croquer un fruit isolé, c'est un « ploc ». En croquer cinq en rafale, ça doit être un CARNAGE :
    le jus gicle de plus en plus, le crunch monte dans les aigus, et l'aura tombe.
@@ -12906,7 +13003,7 @@ function fruitCroque(pos,col,power){
   crunchSfx(r);
   shake=Math.max(shake,Math.min(.55,.18+r*.07));
   if(fruitRaf>=3){                                    // 3 fruits d'affilée : ce n'est plus un hasard
-    addAura(50+r*40,'RAFALE ×'+fruitRaf);
+    chaineAura('RAFALE ×'+fruitRaf,40+r*30,'rafale',true);
     trickMsg('🧃 RAFALE ×'+fruitRaf,r>=5?3:2);
   }
 }
@@ -13049,7 +13146,12 @@ function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent dé
   /* L'AURA PASSE PAR LE COMBO, PAS PAR LA VALEUR DE LA FIGURE. Même les figures GRATUITES (le bump)
      comptent : elles ne valent pas un dollar mais elles PROLONGENT l'enchaînement, et c'est
      l'enchaînement qu'on récompense. */
-  auraFigure(n); // n = redite de CETTE figure dans le vol : l'aura decote comme l'argent
+  // (aura v2) chaque figure entre dans la CHAÎNE avec ses points (voir chaineAura) — plus de combo à rang invisible
+  if(id==='vrille')chaineAura(spinHalf*180+'°',45,'vrille',true);
+  else if(id==='meteo')chaineAura('MÉTÉORE',100,'meteo');
+  else if(id==='dauphin')chaineAura('DAUPHIN',80,'dauphin');
+  else if(id==='bump')chaineAura(bounceN>1?'BUMP ×'+bounceN:'BUMP',30,'bump',true);
+  else chaineAura(String(txt).split(' — ')[0],40,id);
   if(!free){ // une figure gratuite ne touche NI la mallette (chainVal) NI le multiplicateur NI l'échelle
     chainVal+=raw?val:val*Math.pow(.6,n-1);
     chainMult+=n===1?.5:.15;
@@ -13107,7 +13209,7 @@ function dolStart(){
 function dolFin(){ // on QUITTE la route ou on se pose : le total se fige, s'encaisse, puis s'efface
   if(!dolOn)return;dolOn=false;dolHudVal();
   const n=Math.round(dolAura);
-  if(n>0)addAura(n,'DAUPHIN',true); // brut : la vitesse est DÉJÀ dans le compteur (addAura refuse seule en parc)
+  if(n>0)chaineAura('DAUPHIN EN VOL',n,'dauphinLive',true); // brut : la vitesse est DÉJÀ dans le compteur (addAura refuse seule en parc)
   if(DAUPH.el)DAUPH.el.classList.add('fige');
   dolHudT=DOL_FIGE;
 }
@@ -13180,7 +13282,7 @@ function checkUpgrade(){
 }
 function startFall(impU,impF){
   FROLE.s0=null;FROLE.n=0;FROLE.t=0; // (2026-09-25) un plot SURVOLÉ n'est pas un frôlé : le balayage repart de l'atterrissage
-  mode='fall';fallT=0;fallTR=0;yawAcc=0;airRoll=0; // (momentum v2) le saut ne remet plus la réserve à zéro : c'est la POSE qui juge
+  mode='fall';fallT=0;fallTR=0;yawAcc=0;airRoll=0;trkBigA=false;trkMonstre=false; // (momentum v2) le saut ne remet plus la réserve à zéro : c'est la POSE qui juge
   driftC=0;driftLv=0;driftEnCours=false;driftArm=0;yawR=0;slipB=0;glisse9=0;driftYaw=0;carRoll9=0;rollV=0;pitch9=0;carBody.rotation.set(0,0,0);carBody.position.set(0,0,0); // une glisse ne survit pas au décollage (pas de mini-turbo en l'air)
   // TEMPO DE VOL ∝ VITESSE (2026-07-20, dosage DOUX sur base V1) : =1 jusqu'à 450 km/h affichés
   // (basse/moyenne vitesse : rigoureusement l'existant), puis +1 tous les 1800 km/h, CAP 1.35 —
@@ -13325,7 +13427,7 @@ function tryLand(dt){
     const reste=AIR_MAX-fallTR;
     if(reste>0&&reste<=.30){
       const extreme=reste<=.10;
-      addAura(extreme?600:280,extreme?'AU CHEVEU !!':'À L\'ARRACHÉE');
+      chaineAura(extreme?'AU CHEVEU':'ARRACHÉE',extreme?220:120,'cheveu');
       if(TCTL.on)popTexte(extreme?'AU CHEVEU !!':'ARRACHÉE !','#ff5ec8',3); // (2026-09-25) le geste le plus tendu du jeu se LIT aussi sur téléphone
       trickMsg(extreme?'⏱ AU CHEVEU — '+reste.toFixed(2)+' s !!':'⏱ À L\'ARRACHÉE — '+reste.toFixed(2)+' s',3);
       if(extreme){hitT=.10;shake=Math.max(shake,.5);try{fxWow(9);}catch(e){}} // le WOW est mérité : on a joué avec la mort
@@ -13386,7 +13488,8 @@ function tryLand(dt){
       // le portefeuille. 2 pièces pour une figure honnête, jusqu'à ~18 pour un enchaînement monstrueux.
       addCoins(Math.max(2,Math.min(18,Math.round(2+q/6))));
       rewardSfx(vKey,vTier); // signature sonore courte assortie à la récompense
-      if(TCTL.on&&(g>=1.5||gapOk))popTexte(gapOk?(gapArmed===3?'DOUBLE GAP !':'GAP !'):g>=2?'DIVIN !!':'PARFAIT !',g>=2||gapOk?'#ff5ec8':'#ffd75e',2); // (2026-09-25) la pose ×1,5 : LE geste à répéter — il faut qu'on le voie
+      if(TCTL.on&&(g>=1.5||gapOk))popTexte(gapOk?(gapArmed===3?'DOUBLE GAP !':'GAP !'):g>=2?'DIVIN !!':'PARFAIT !',g>=2||gapOk?'#ff5ec8':'#ffd75e',2);
+      if(gapOk)chaineAura(gapArmed===3?'DOUBLE GAP':'GAP',gapArmed===3?200:120,'gap');else if(g>=1.5)chaineAura(g>=2?'POSE DIVINE':'POSE PARFAITE',g>=2?120:70,'pose'); // (aura v2) la pose PROLONGE la chaîne // (2026-09-25) la pose ×1,5 : LE geste à répéter — il faut qu'on le voie
       if(g>=1.5){try{chimeNote(1980,.08,.055,.2);chimeNote(2640,.11,.04,.26);sparkle(.08,.06);if(g>=2)chimeNote(1320,.15,.06,.4);}catch(e){}} // (2026-09-25) le « tchak » du PARFAIT : harmoniques 3 et 4 du 660, au-dessus de l'arpège
       landBoom(carGroup.position,vTier); // P'TIT BOOM D'ATTERRISSAGE : toute figure MONSTER+ éclate à la pose (calibré sur le tier)
       boost=Math.max(boost,1.2);
@@ -13449,7 +13552,7 @@ function resetGame(){
   driftC=0;driftLv=0;driftEnCours=false;raseT=0;raseAnn=false;yawR=0;slipB=0;glisse9=0;driftYaw=0;FROLE.n=0;FROLE.t=0;FROLE.s0=null; // (2026-09-25) une glisse ne survit pas à la partie (sinon MINI-TURBO fantôme au départ)
   nextRainAt=4e3;moneyRainT=0;sideCd=0;slipT=0;oilCd=0;
   nitroAirT=0;fallUnder=false;pureT=0;pureArmed=true;gapArmed=0;rampCd=0;annStop();deathStop();fxStop(); // la mort précédente se tait : on repart, elle n'a plus rien à dire
-  auraRun=0;auraPop=0;auraFlash=0;figCombo=0;figComboT=0;figComboAura=0;pureNext=0;pureLvl=0; // l'aura de la partie repart de zéro — la banque et le total à vie, eux, restent
+  auraRun=0;auraPop=0;auraFlash=0;figCombo=0;figComboT=0;figComboAura=0;chaReset();CHA.v=0;CHA.vAff=-1;pureNext=0;pureLvl=0; // l'aura de la partie repart de zéro — la banque et le total à vie, eux, restent
   bounceN=0;airFlash=0;flightId=0;
   chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;dolphT=0;trkDolph=false;
@@ -15495,11 +15598,14 @@ function loop(now){
        const b0=slipB,bT=drifte?Math.sign(steer)*.42*Math.min(1,Math.abs(steer)):0;
        slipB+=(bT-slipB)*(1-Math.exp(-dt*(drifte?4:6)));
        psi+=yawR*dt+(slipB-b0); // le nez = la trajectoire + la glisse
-       glisse9=THREE.MathUtils.clamp(Math.abs(slipB)*2.6+driftT*.5+Math.max(0,Math.abs(yawR*vA)*SPD-45)/90,0,1)*Math.min(1,Math.abs(vA)/35);}
+       glisse9=THREE.MathUtils.clamp(Math.abs(slipB)*2.6+driftT*.5+Math.max(0,Math.abs(yawR*vA)*SPD-45)/90,0,1)*Math.min(1,Math.abs(vA)/35);
+       // (aura v2) LE VIRAGE SERRÉ : tenir une grosse charge latérale 0,9 s sur la route — prendre un virage À FOND, ça se paie
+       {const aL9=Math.abs(yawR*vA)*SPD;if(aL9>32)virT+=dt;else if(aL9<12){virT=0;virPaye=false;}
+        if(virT>.9&&!virPaye){virPaye=true;chaineAura('VIRAGE SERRÉ',45,'virage');}}}
       driftTick(dt,drifte);
       // (conduite v3) RASE-BORD : frôler le vide à pleine vitesse RECHARGE le nitro — le risque paie
       if(!introD&&!PARK.on&&Math.abs(lat)>ROAD_HALF*.8&&Math.abs(vA)>maxSp*.5){raseT+=dt;nitroGain(.22*dt);flowAdd(11*dt); // bande du RASE-BORD : les 20 % extérieurs de la demi-route (3 à 4,8 m sur la route large)
-        if(raseT>.6&&!raseAnn){raseAnn=true;popTexte('RASE-BORD','#7dffec');hap(12);try{addAura(30,'RASE-BORD');}catch(e){}}
+        if(raseT>.6&&!raseAnn){raseAnn=true;popTexte('RASE-BORD','#7dffec');hap(12);try{chaineAura('RASE-BORD',40,'rase');}catch(e){}}
         if(Math.random()<dt*14){DRIFT_V.set(Math.sign(lat)*CARS[level].w*.5,.1,-.3);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkBlue,DRIFT_V,1,4);}}
       else{raseT=0;raseAnn=false;}
       // ---- DRIFT : FREIN + BRAQUAGE à bonne vitesse = le train arrière décroche ----
@@ -15524,14 +15630,14 @@ function loop(now){
       if(nitroOn&&speedKmh>400){
         pureT+=dt;
         if(pureT>3&&pureArmed){pureArmed=false;const tx=annSpeak('pureSpeed',2);if(tx)trickMsg(tx,2);noiseBurst(.5,.12,1200);
-          addAura(300,'PURE SPEED');pureNext=pureT+2;}
+          chaineAura('PURE SPEED',120,'pure');pureNext=pureT+2;}
         /* TENIR PLUS LONGTEMPS PAYE PLUS, MAIS PAR PALIERS. Un gain continu redeviendrait le robinet
            qu'on vient de supprimer ; là, chaque 2 secondes tenues déclenche une NOUVELLE salve, plus
            grosse que la précédente. On entend l'escalade, on ne la subit pas. */
         // ⚠ PALIER PLAFONNÉ À 5 (audit 2026-08-18) : `150+pureLvl*100` sans borne, c'est une rente —
         // tenir 60 s donnait 30 salves dont la derniere a 3 150. L'escalade se sent jusqu'a ×6, apres
         // quoi c'est la DUREE qui paye, pas le multiplicateur.
-        if(!pureArmed&&pureT>pureNext){pureNext=pureT+2;pureLvl=Math.min(5,pureLvl+1);addAura(150+pureLvl*100,'PURE SPEED ×'+(pureLvl+1));}
+        if(!pureArmed&&pureT>pureNext){pureNext=pureT+2;pureLvl=Math.min(5,pureLvl+1);chaineAura('PURE SPEED ×'+(pureLvl+1),60+pureLvl*40,'pure',true);}
       }else{pureT=0;pureArmed=true;pureNext=0;pureLvl=0;}
       // point de respawn sûr
       if(side>0&&F.n.y>.5&&Math.abs(lat)<ROAD_HALF-2&&Math.abs(psi)<.5)safeS=s;
@@ -15720,7 +15826,7 @@ function loop(now){
             /* LA RÉCOLTE EN SÉRIE. Une pièce isolée ne donne RIEN en aura — sinon on récompense
                encore le simple fait d'avancer. C'est tous les 5 ramassages SANS laisser retomber le
                combo (fenêtre de 3 s) que la salve tombe, et elle grossit à chaque palier. */
-            if(combo%5===0)addAura(60+Math.min(4,combo/5)*45,'RÉCOLTE ×'+combo);
+            if(combo%5===0)chaineAura('RÉCOLTE ×'+combo,30,'recolte',true);
             // ÉCONOMIE RÉGULÉE (2026-07-30) : on montait de caisse BEAUCOUP trop vite. La pièce vaut
             // ~2,3× moins et le combo se mérite (un palier toutes les 5 pièces, plafond ×4 au lieu de ×5)
             // → rendement max 8,8×denom contre 25×denom avant. La CHAÎNE DE FIGURES reste la vraie fortune.
@@ -16073,6 +16179,8 @@ function loop(now){
         if(halfs>spinHalf&&fallT>.45){spinHalf=halfs;
           addTrick('vrille',halfs===1?'180°':halfs===2?'VRILLE 360 — LAVE-LINGE !':halfs===3?'540° !!':(halfs*180)+'° — ESSOREUSE COSMIQUE !!',3.5*halfs,halfs>=4?3:(halfs>=2?2:false),true);}
         if(!trkMeteor&&nitroOn&&nitroAirT>1.2){trkMeteor=true;addTrick('meteo','MÉTÉORE',8,2);}
+        if(!trkBigA&&fallTR>1.8){trkBigA=true;chaineAura('BIG AIR',50,'bigair');}          // (aura v2) le temps passé EN L'AIR se paie
+        if(!trkMonstre&&fallTR>3.4){trkMonstre=true;chaineAura('AIR MONSTRE',110,'monstre');}
         // ---- LE DAUPHIN v3 : chrono du vol AU-DESSUS DE LA ROUTE (dolTick) — hauteur depuis la face de DÉCOLLAGE (miroir des faces) ----
         {const hF=fallStartSide>0?curHOff:-curHOff-THICK;
          dolTick(dt,DAUPH.force!==null?DAUPH.force:(curNear&&Math.abs(curLatOff)<ROAD_HALF&&Math.abs(curTOff)<DOL_TMAX&&hF>0&&hF<DOL_HMAX),hF);}
@@ -16629,7 +16737,7 @@ function loop(now){
     auraComboTick(dt); // la fenêtre du combo de figures se referme toute seule
     dolHudTick(dt); // l'étiquette DAUPHIN : filet de sortie de vol + total figé qui s'efface
     fruitRafTick(dt);  // …et celle de la rafale de fruits
-    if(!paused){misTick(dt);tutoTick(dt);flowTick(dt);} // …les CONTRATS se cochent en direct, l'AUTO-ÉCOLE suit tes gestes
+    if(!paused){misTick(dt);tutoTick(dt);flowTick(dt);chaineTick(dt);} // …les CONTRATS se cochent en direct, l'AUTO-ÉCOLE suit tes gestes
     /* LA CHARGE D'AURA. Trois choses à l'écran, et chacune répond à une question :
        le CHIFFRE (« combien j'ai »), la JAUGE (« où je vais » — le rang suivant), le MAX (« quoi
        battre »). Sans la troisième, il n'y a aucune raison de vouloir monter. */
