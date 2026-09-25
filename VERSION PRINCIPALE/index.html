@@ -1878,6 +1878,8 @@
     background:repeating-conic-gradient(from 0deg,var(--ec) 0 8deg,transparent 8deg 24deg);
     -webkit-mask:radial-gradient(circle,#000 0,#000 18%,transparent 62%);mask:radial-gradient(circle,#000 0,#000 18%,transparent 62%);animation:ebTourne 6s linear infinite}
   @keyframes ebTourne{to{transform:rotate(360deg)}}
+  #engBig .eb3d{display:block;width:min(240px,62vw);height:auto;aspect-ratio:320/214;margin:-4px 0 -6px;image-rendering:auto;
+    filter:contrast(1.22) saturate(1.4) drop-shadow(0 8px 14px rgba(0,0,0,.55))} /* (2026-09-25) le MODÈLE 3D du moteur, au cœur de la carte — relevé : la recopie sort pâle */
   #engBig .ebCarte{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 16px 16px;border-radius:24px;
     font-family:var(--pix);text-align:center;color:#fff;
     background:linear-gradient(180deg,rgba(40,34,104,.96),rgba(18,14,52,.97));border:3px solid var(--ec);
@@ -7176,13 +7178,23 @@ function engVigRender(dt){
      à la mort il passe sur l'écran de fin, en grand, pour montrer JUSQU'OÙ on est monté. Le quad se
      cale sur le rect DOM de la cible, donc il suffit de changer d'élément — pas une ligne de rendu
      à dupliquer, et le palier affiché reste celui qu'on avait au moment de mourir. */
-  const fin=gameOver&&overlay.style.display!=='none';
-  const cible=fin?engEndEl:engVigEl;
-  const autre=fin?engVigEl:engEndEl;
-  const on=started&&!garageOn&&!stallOn&&(fin||(!gameOver&&!paused&&running));
-  if(autre&&autre.style.display!=='none')autre.style.display='none';
-  if(!on){if(cible&&cible.style.display!=='none')cible.style.display='none';return;}
-  if(cible.style.display!=='block')cible.style.display='block';
+  const fin=gameOver&&overlay.style.display!=='none',tel=TCTL.on;
+  let cible;
+  if(tel){ /* TÉLÉPHONE (2026-09-25) : l'écran nu masque la vignette de coin et l'écran de fin desktop — le moteur 3D vit
+              désormais dans la grande carte « NOUVEAU MOTEUR » (engBig), et SEULEMENT pendant qu'elle est là. Le reste du
+              temps : aucun rendu, et surtout plus la relecture GPU→CPU de l'écran de fin masqué (20 par seconde pour rien). */
+    if(engVigEl&&engVigEl.style.display!=='none')engVigEl.style.display='none';
+    if(engEndEl&&engEndEl.style.display!=='none')engEndEl.style.display='none';
+    if(!(engBig.on&&engBig.ctx)){if(engSwapT>0)engSwapT=Math.max(0,engSwapT-dt);return;}
+    cible=null;
+  }else{
+    cible=fin?engEndEl:engVigEl;
+    const autre=fin?engVigEl:engEndEl;
+    const on=started&&!garageOn&&!stallOn&&(fin||(!gameOver&&!paused&&running));
+    if(autre&&autre.style.display!=='none')autre.style.display='none';
+    if(!on){if(cible&&cible.style.display!=='none')cible.style.display='none';return;}
+    if(cible.style.display!=='block')cible.style.display='block';
+  }
   if(engVigTierShown!==engVigTier())engVigBuild();
   if(!engVigMesh)return;
   /* ---- L'ANIMATION DU CHANGEMENT DE PALIER, côté vignette ----
@@ -7261,21 +7273,21 @@ function engVigRender(dt){
      ⚠ readRenderTargetPixels est une lecture GPU→CPU, coûteuse : on la limite à ~20 images/s, ce
      qui suffit largement pour une rotation lente, et on est de toute façon à l'arrêt. Les lignes
      arrivent de bas en haut, d'où le retournement. */
-  if(fin){
-    const now9=performance.now();
-    if(now9-engEndT>50){
+  if(fin||tel){ // (tel : la carte du téléphone, même recopie — 30 images/s, le temps de la carte seulement)
+    const now9=performance.now(),ctx9=tel?engBig.ctx:engEndCtx;
+    if(now9-engEndT>(tel?33:50)&&ctx9){
       engEndT=now9;
       const w=engRT.width,h=engRT.height;
-      if(!engEndBuf){engEndBuf=new Uint8Array(w*h*4);engEndImg=engEndCtx.createImageData(w,h);}
+      if(!engEndBuf){engEndBuf=new Uint8Array(w*h*4);engEndImg=ctx9.createImageData(w,h);}
       renderer.readRenderTargetPixels(engRT,0,0,w,h,engEndBuf);
       const d=engEndImg.data;
       for(let y=0;y<h;y++){
         const src=(h-1-y)*w*4, dst=y*w*4;
         for(let x=0;x<w*4;x++)d[dst+x]=engEndBuf[src+x];
       }
-      engEndCtx.putImageData(engEndImg,0,0);
+      ctx9.putImageData(engEndImg,0,0);
     }
-    return; // pas de quad : l'overlay le masquerait
+    return; // pas de quad : l'overlay (ou le fond de la carte) le masquerait
   }
   // (2b) EN COURSE : recollage WebGL, à la place que le CSS a décidée
   const r=cible.getBoundingClientRect();
@@ -7324,7 +7336,8 @@ window.dbgGap=function(go){
 const DBG_AUTO={on:false,lat:0};
 window.dbgMusique=function(){const e=musicEl;return {mode:musicMode,lieu:musicLieu&&musicLieu.titre,cur:musicCur,ctx:AC?AC.state:null,
   el:e?{src:(e.currentSrc||e.src).split('/').pop(),paused:e.paused,t:+e.currentTime.toFixed(2),ready:e.readyState,err:e.error&&e.error.code,vol:+musicVolCour.toFixed(2),voulue:musicVoulue,attente:musicEnAttente,analyse:!!musicAna,muted:e.muted}:null,son:SND.music};};
-window.dbgEngBig=function(i){i=i==null?5:i;engBig(ENGINE_TIERS[i],i);return ENGINE_TIERS[i].n;}; // console : la grande carte « NOUVEAU MOTEUR »
+window.dbgEngBig=function(i){i=i==null?5:i;engBig(ENGINE_TIERS[i],i);return ENGINE_TIERS[i].n;};
+window.dbgMoteur=function(){const E=ENGINE_TIERS[engTier+1];if(!E)return 'palier max';addCoins(Math.max(1,E.coins-coinsGot));return engTier+' · '+ENGINE_TIERS[engTier].n;}; // console : monter d'UN palier en course (la vraie scène : son, carte 3D, boîte) // console : la grande carte « NOUVEAU MOTEUR »
 window.dbgAuto=function(on,l){DBG_AUTO.on=!!on;DBG_AUTO.lat=+l||0;return DBG_AUTO.on;};
 // `dbgEco()` : le relevé d'argent d'une partie en cours (pour caler l'économie) · `dbgEco('rejouer')` relance.
 window.dbgEco=function(a){if(a==='rejouer'&&gameOver){playViaGarage();}
@@ -8242,11 +8255,14 @@ function engBig(E,tier){
   const hx='#'+(E.col||0xffd75e).toString(16).padStart(6,'0'),n=Math.max(1,Math.min(16,E.cyl||4));
   let cyl='';for(let i=0;i<n;i++)cyl+='<i style="animation-delay:'+(.25+i*.05).toFixed(2)+'s"></i>';
   b.style.setProperty('--ec',hx);
-  b.innerHTML='<div class="ebRayons"></div><div class="ebCarte"><small>'+TR('NOUVEAU MOTEUR')+'</small><b>'+TR(E.n)+'</b>'
+  // (2026-09-25, user : « retrouve les modèles 3D des moteurs, qu'on ait l'animation EN GROS ») — le moteur 3D de la vignette PC
+  // (engVigRender) est recopié dans ce <canvas>, AU-DESSUS du fond de la carte : il tourne, s'emballe au montage, se pose, chauffe.
+  b.innerHTML='<div class="ebRayons"></div><div class="ebCarte"><small>'+TR('NOUVEAU MOTEUR')+'</small><canvas class="eb3d" width="320" height="214"></canvas><b>'+TR(E.n)+'</b>'
     +'<span class="ebDesc">'+TR(E.d||'')+'</span><div class="ebCyl">'+cyl+'</div><em>'+TR('PALIER')+' '+(tier+1)+' / '+ENGINE_TIERS.length+'</em></div>';
+  engBig.ctx=b.querySelector('.eb3d').getContext('2d');engBig.on=true;engBig.t0=performance.now();engVigSpin=0;
   b.classList.remove('on');void b.offsetWidth;b.classList.add('on');
   hap([18,50,30]);pixBurst(b.querySelector('.ebCarte'),18);
-  clearTimeout(engBig._t);engBig._t=setTimeout(function(){b.classList.remove('on');},2300);
+  clearTimeout(engBig._t);engBig._t=setTimeout(function(){b.classList.remove('on');engBig.on=false;},2300);
 }
 function engPop9(E,tier){
   if(TCTL.on){engBig(E,tier);return;} // TÉLÉPHONE : la grande carte (le badge de coin reste pour l'ordinateur)
