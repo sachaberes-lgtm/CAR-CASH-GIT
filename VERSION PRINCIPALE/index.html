@@ -3111,7 +3111,7 @@ function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a
    AVANT chaque `buildTrack` (voir `LARGEUR`). Tout ce qui la lit le fait à l'exécution (collisions, bords,
    pickups, bots, viseur) — sauf trois géométries PARTAGÉES bâties une fois (dos d'âne, tapis et lèvre
    du tremplin) : elles sont taillées sur `ROAD_HALF0` et chaque mesh se met à l'échelle en X. */
-const ROAD_HALF0=7, THICK=2.6; // (2026-09-25, user : « réduis de moitié la largeur de la route ») 14 → 7 : LARGEUR, CARR_LARG, parc ×1,4 et auto-école ×1,7 sont des MULTIPLES de ce gabarit — une ligne divise toute la route par deux, et les trois géométries partagées (dos d'âne, tapis, lèvre) se taillent dessus : leur étirement `ROAD_HALF/ROAD_HALF0` reste celui d'avant (1,1 → 1,7), donc leur marge au bord aussi (0,5 et 1 × l'étirement, en mètres)
+const ROAD_HALF0=14, THICK=2.6; // (2026-09-25 soir) la route avait été divisée par 2 (14 → 7, « réduis de moitié la largeur ») puis REDOUBLÉE à la demande (« double la largeur des routes ») : retour à 14. LARGEUR, CARR_LARG, parc ×1,4 et auto-école ×1,7 sont des MULTIPLES de ce gabarit — une ligne change toute la route
 let ROAD_HALF=ROAD_HALF0*1.7;
 let pts=[],T=[],Nn=[],B=[],L=0,NP=0,trackMinY=-1e9; // trackMinY : plancher du monde (référence du plongeon fatal)
 /* NÉON RÉACTIF (2026-08-07) : on garde une poignée sur les matériaux des rails et de leur nappe
@@ -4668,7 +4668,7 @@ const rampTex=(function(){
 const rampStripGeo=new THREE.PlaneGeometry(ROAD_HALF0*2-2,64); // tapis de chevrons sur la course d'élan
 const rampLipGeo=new THREE.BoxGeometry(ROAD_HALF0*2-2,.55,5);  // LA LÈVRE : franche, on la sent claquer
 const rampLipMat=new THREE.MeshLambertMaterial({color:0xffb028,emissive:0x6a3400}); // braise chaude : jamais confondue avec un dos d'âne
-const landRingGeo=new THREE.RingGeometry(4.25,5.75,32);       // anneau de visée sur la route d'arrivée — (route ÷2) moitié aussi : 11,5 m de rayon débordait d'une demi-route de 7,7
+const landRingGeo=new THREE.RingGeometry(8.5,11.5,32);       // anneau de visée sur la route d'arrivée (taillé sur ROAD_HALF0=14)
 let sOffset=0;
 
 // ---------- VOITURES & ÉCONOMIE ----------
@@ -5308,8 +5308,8 @@ const LVL={cur:null,n:0,k:1,dur:4,
   pluie:0,pluieDe:0,pluieA:0,          // opacité du rideau de pluie (niveau VILLE)
   route:0,routeDe:0,routeA:0,sheen:.1,sheenDe:.1,sheenA:.1, // bitume v2 : clarté et brillance d'horizon du niveau (routeTick)
   dir:PLANET_DIR.clone(),tmp:new THREE.Vector3(),tmp2:new THREE.Vector3(),haut:new THREE.Vector3(0,1,0)};
-// LA LARGEUR PAR NIVEAU (× ROAD_HALF0 = 7) : large pour apprendre (23,8 m), puis la route se resserre à chaque
-// portail jusqu'au plancher ×1,1 (15,4 m) — la MOITIÉ de la route d'avant le 2026-09-25. Une nouvelle partie repart au niveau 1.
+// LA LARGEUR PAR NIVEAU (× ROAD_HALF0 = 14) : très large pour apprendre (47,6 m), puis la route se resserre à chaque
+// portail jusqu'au plancher ×1,1 (30,8 m). Une nouvelle partie repart au niveau 1.
 const LARGEUR=[1.7,1.55,1.4,1.25,1.1];
 function lvlChoisir(){ // appelé par newTrack AVANT buildTrack
   const z=runStats.zones|0;
@@ -15473,7 +15473,7 @@ function loop(now){
        glisse9=THREE.MathUtils.clamp(Math.abs(slipB)*2.6+driftT*.5+Math.max(0,Math.abs(yawR*vA)*SPD-45)/90,0,1)*Math.min(1,Math.abs(vA)/35);}
       driftTick(dt,drifte);
       // (conduite v3) RASE-BORD : frôler le vide à pleine vitesse RECHARGE le nitro — le risque paie
-      if(!introD&&!PARK.on&&Math.abs(lat)>ROAD_HALF-2.4&&Math.abs(vA)>maxSp*.5){raseT+=dt;nitroGain(.22*dt);flowAdd(11*dt); // (route ÷2) bande ABSOLUE de 2,4 m : le vide se mesure à la roue, pas en % de route — à ×0,8 elle tombait à 1,5 m au plancher
+      if(!introD&&!PARK.on&&Math.abs(lat)>ROAD_HALF*.8&&Math.abs(vA)>maxSp*.5){raseT+=dt;nitroGain(.22*dt);flowAdd(11*dt); // bande du RASE-BORD : les 20 % extérieurs de la demi-route (3 à 4,8 m sur la route large)
         if(raseT>.6&&!raseAnn){raseAnn=true;popTexte('RASE-BORD','#7dffec');hap(12);try{addAura(30,'RASE-BORD');}catch(e){}}
         if(Math.random()<dt*14){DRIFT_V.set(Math.sign(lat)*CARS[level].w*.5,.1,-.3);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkBlue,DRIFT_V,1,4);}}
       else{raseT=0;raseAnn=false;}
@@ -15666,7 +15666,7 @@ function loop(now){
           if(p.air)continue;                        // les grappes du CIEL ne s'attrapent qu'en vol
           // CAPACITÉ MOTEUR (V12 atmosphérique) : L'AIMANT À PIÈCES — elles viennent à toi de bien plus
           // loin, et plus vite. Sans lui, on garde l'attraction d'origine, discrète.
-          if(ds9<15+mag*2&&Math.abs(p.lat-side*lat)<3.5+level*.2+mag) // (route ÷2) la portée LATÉRALE se divise avec la route : à 7 m (+0,4/caisse) elle couvrait toute une demi-route de 7,7 — le zigzag « il FAUT slalomer » ne demandait plus rien
+          if(ds9<15+mag*2&&Math.abs(p.lat-side*lat)<7+level*.4+mag*2) // portée LATÉRALE de l'aimant à pièces (route large)
             p.mesh.position.lerp(carGroup.position,Math.min(1,dt*(4.5+level*.3+mag*1.5)));
         }
         if(p.mesh.position.distanceTo(carGroup.position)<2.7+level*.2+mag*.5){

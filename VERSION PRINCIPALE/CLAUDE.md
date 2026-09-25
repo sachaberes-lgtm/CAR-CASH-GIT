@@ -57,7 +57,7 @@
     **`GRADE_ACES`** (téléphone) : l'étalonnage `saturate/contrast/brightness` vit dans l'ACES, `body.post>canvas{filter:none}` ;
     `ACES_N` 6 prises + grain animé `uJit` ; « Réduire les animations » coupe aussi le flou de vitesse.
   · **TESTS MUETS** : le pane caché joue le son chez Sacha — tout onglet de test (agents compris) démarre sfx/mus/vox à false.
-- **CONDUITE v6 / PISTE v6 / ROUTE ÷2 (soir du 25/09 — « quand je ne touche à rien je reste quand même sur la route », « la voiture
+- **CONDUITE v6 / PISTE v6 / LARGEUR (soir du 25/09 — « quand je ne touche à rien je reste quand même sur la route », « la voiture
   glisse », « pistes trop droites », « réduis de moitié la largeur de la route »)** — ⚠ RÈGLE N°1 : pouce lâché, la caisse garde
   son cap MONDE et SORT dans les virages. Aucune aide qui prend la courbe (`ASSIST_VIRAGE=0`, `AIR_ASSIST=0`), aucun réalignement.
   · **Le pouce fait TOURNER** : `lacetMax(v)=v/(VOL_R0+VOL_RK·v)` (40 / .3 : rayon mini 61 m à 250 km/h, 100 m à 720), inertie
@@ -67,8 +67,9 @@
     boost) est RETIRÉ (`tdWant=0`) ; roulis de caisse vers l'EXTÉRIEUR (charge `yawR·v`).
   · **Caméra** : la penche ne s'accumule plus (`camera.up` = copie penchée de `camUp`) ; placée derrière un axe mi-route mi-caisse
     (`loop._camD`) pour qu'on VOIE la caisse bouger ; visée lissée relativement à la caisse (elle traînait de v/9).
-  · **Route ÷2** : `ROAD_HALF0=7` (tout est multiple de ce gabarit) + voies des pads, slalom de plots, anneau de visée, ombre de vol,
-    RASE-BORD (bande absolue 2,4 m), portée latérale de l'aimant à pièces. Spec : scratchpad v6/largeur/SPEC.md.
+  · **Route** : divisée par 2 (`ROAD_HALF0` 14 → 7) puis REDOUBLÉE le soir même (« double la largeur des routes ») → `ROAD_HALF0=14`,
+    47,6 m en zone 0. Restent les garde-fous adaptatifs (voies des pads, slalom de plots, ombre de vol bornés par ROAD_HALF) ; anneau
+    de visée, RASE-BORD (×0,8) et aimant à pièces sont revenus aux valeurs de la route large. Spec ÷2 : scratchpad v6/largeur/SPEC.md.
   · **Piste v6** (`genCtrl`) : la CAISSE ne dessine plus la piste (`level` masqué à 0) ; l'échelle suit la VITESSE du palier moteur
     +2 (`lvPiste()`, 1 → 4,4) pour que les virages restent faisables sans aide ; respirations = petits virages de liaison ; ligne de
     momentum cintrée ; arcs densifiés (≤ 12°/point). Banc : 31 → 51 % de piste en virage, plus longue droite 978 → 336 m.
