@@ -26,12 +26,16 @@
    v19 (2026-09-24) : fusion du push de Léo (v17/v18 chez lui) — musique par monde (noite-de-velocidade,
         nocturnal-groove), moteur, voitures low-poly ; charte v2 et passe UX côté Sacha. */
 //  v20 (2026-09-25) : boutique, défis, auto-école, charte v3, lecteur de musique unique, ville en 1er niveau, caisses premium.
-const CACHE = 'cashcar-v20';
+//  v21 (2026-09-25) : icon.svg = le mot-symbole pixel (plus l'émoji 💰), HUD en icônes pixel, VoiceOver traduit.
+//  v22 (2026-09-25) : l'installation contourne le cache HTTP (v21 avait ré-empoché l'ancienne icône).
+const CACHE = 'cashcar-v22';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
   self.skipWaiting();
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).catch(() => {}));
+  // ⚠ `cache:'reload'` (2026-09-25) : sans lui, addAll passe par le cache HTTP du navigateur et peut
+  // ré-empocher l'ANCIEN fichier juste après un changement de numéro (vu sur icon.svg : v21 servait l'émoji v20).
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE.map(u => new Request(u, { cache: 'reload' })))).catch(() => {}));
 });
 
 self.addEventListener('activate', e => {
@@ -65,7 +69,9 @@ self.addEventListener('fetch', e => {
 
   // Statique (vendor/three.js, mp3, icône…) : cache d'abord, sinon réseau + mise en cache au passage.
   e.respondWith(
-    caches.match(req).then(hit => hit || fetch(req).then(r => {
+    // `no-cache` : au premier passage après une purge, on REVALIDE auprès du serveur (304 si rien n'a bougé)
+    // au lieu de recopier ce que le cache HTTP avait gardé de l'ancienne version.
+    caches.match(req).then(hit => hit || fetch(req, { cache: 'no-cache' }).then(r => {
       try { const cp = r.clone(); caches.open(CACHE).then(c => c.put(req, cp)); } catch (_) {}
       return r;
     }).catch(() => hit))
