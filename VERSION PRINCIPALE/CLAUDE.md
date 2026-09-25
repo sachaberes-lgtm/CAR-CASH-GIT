@@ -73,8 +73,16 @@
   · **Piste v6** (`genCtrl`) : la CAISSE ne dessine plus la piste (`level` masqué à 0) ; l'échelle suit la VITESSE du palier moteur
     +2 (`lvPiste()`, 1 → 4,4) pour que les virages restent faisables sans aide ; respirations = petits virages de liaison ; ligne de
     momentum cintrée ; arcs densifiés (≤ 12°/point). Banc : 31 → 51 % de piste en virage, plus longue droite 978 → 336 m.
+  · **Vol à la vitesse de la route** (« la vitesse en airtime est trop importante ») : `AIR_RATE=1` (plus de temps compressé) ; au-delà
+    de sa vitesse horizontale de décollage (`fallVH0`, relevée à la 1re image de vol), la caisse subit en l'air la MÊME traînée que sur
+    le bitume → la nitro y plafonne comme au sol (mesuré : +14 % en 3 s puis plateau) ; sans nitro rien ne change (parabole et viseur
+    justes). `speedKmh` en vol = vitesse d'AVANCE (horizontale).
+  · **La carrosserie PENCHE** (« la voiture doit vraiment pencher sur le côté ») : `buildCar` range tout sauf roues et flaques au sol
+    (`userData.sol`) dans `carBody`, qui roule autour de l'axe des moyeux (`pivY`). Roulis vers l'EXTÉRIEUR ∝ charge latérale
+    (`yawR·v`), jusqu'à ~15° (+4° en drift), en RESSORT (ω 14, ζ .55 : `carRoll9`/`rollV`), tangage `pitch9`. ⚠ ne jamais remettre
+    `carRoll9`/`rollV` à zéro DANS buildCar : elle tourne avant leur déclaration (zone morte). L'explosion arrache les pièces de `carBody`.
   · Bancs : scratchpad `v6/conduite/diag/` (diagnostic, sim6.js), `v6/conduite/moi/sim-v6.js` (le modèle retenu + pilote 150 ms),
-    `v6/piste/base/` (banc.js étendu, variantes.js, resume.js). `dbgState()` expose psi/yawR/slipB/glisse/drift.
+    `v6/piste/base/` (banc.js étendu, variantes.js, resume.js). `dbgState()` expose psi/yawR/slipB/glisse/drift/roulisDeg/vH.
 
 ## ⚠ FUSION SACHA × LÉO + NIVEAUX — 2026-09-24 (branche `fusion-2026-09`)
 - `index.html` = fusion à trois points : appstore-backlog (Sacha) × `main:version-leolei-2026` (Léo),
