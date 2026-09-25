@@ -1872,22 +1872,22 @@
   #gDesc .gDf em{font-style:normal;margin-left:auto;padding-left:8px;white-space:nowrap;color:#9fe8ff}
   #gDesc .gDf.ok i{box-shadow:inset 0 0 0 2px #5ee37a}
   /* -- LE NOUVEAU MOTEUR, EN GRAND -- */
-  #engBig{position:fixed;left:50%;top:50%;z-index:68;width:min(460px,calc(100vw - 16px));pointer-events:none;
-    transform:translate(-50%,-50%) scale(.3);opacity:0;visibility:hidden} /* (2026-09-25) AU MILIEU de l'écran, sans fenêtre : le moteur flotte */
+  #engBig{position:fixed;left:50%;top:55%;z-index:68;width:min(340px,calc(100vw - 16px));pointer-events:none;
+    transform:translate(-50%,-100%) scale(.3);opacity:0;visibility:hidden;transform-origin:50% 100%} /* (2026-09-26) sur la VOITURE : ancré par le bas au-dessus du toit (engBigSuit le promène avec elle) */
   #engBig.on{visibility:visible;animation:ebVie 2.3s cubic-bezier(.3,1.5,.5,1) forwards}
-  @keyframes ebVie{0%{transform:translate(-50%,-50%) scale(.3) rotate(-6deg);opacity:0}14%{transform:translate(-50%,-50%) scale(1.08) rotate(1deg);opacity:1}
-    22%{transform:translate(-50%,-50%) scale(1) rotate(0)}82%{transform:translate(-50%,-50%) scale(1);opacity:1}100%{transform:translate(-50%,-62%) scale(.8);opacity:0}}
+  @keyframes ebVie{0%{transform:translate(-50%,-100%) scale(.2) rotate(-6deg);opacity:0}14%{transform:translate(-50%,-100%) scale(1.08) rotate(1deg);opacity:1}
+    22%{transform:translate(-50%,-100%) scale(1) rotate(0)}82%{transform:translate(-50%,-100%) scale(1);opacity:1}100%{transform:translate(-50%,-125%) scale(.7);opacity:0}}
   #engBig .ebHalo{position:absolute;left:50%;top:55%;width:115%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;
     background:radial-gradient(circle,color-mix(in srgb,var(--ec) 42%,transparent) 0,color-mix(in srgb,var(--ec) 14%,transparent) 38%,transparent 64%)}
   @keyframes ebFlotte{from{transform:translateY(-9px) rotate(-1.6deg)}to{transform:translateY(9px) rotate(1.6deg)}}
-  #engBig .ebNum{font-size:84px;line-height:1;color:#fff8dc;letter-spacing:2px;margin:2px 0 -18px;position:relative;z-index:1;
+  #engBig .ebNum{font-size:58px;line-height:1;color:#fff8dc;letter-spacing:2px;margin:2px 0 -18px;position:relative;z-index:1;
     text-shadow:0 0 16px rgba(255,215,94,1),0 0 38px rgba(255,160,20,.75),0 4px 0 #7a4e00,0 6px 14px rgba(0,0,0,.6)} /* LE NUMÉRO, comme le badge de Léo : c'est lui qu'on lit en un dixième de seconde */
   #engBig .ebNum i{display:block;font-style:normal;font-size:10px;letter-spacing:3px;color:#ffd75e;margin-bottom:10px;text-shadow:0 0 10px rgba(255,215,94,.8),0 2px 0 #000}
   #engBig .ebRayons{position:absolute;left:50%;top:50%;width:520px;height:520px;margin:-260px 0 0 -260px;border-radius:50%;opacity:.55;
     background:repeating-conic-gradient(from 0deg,var(--ec) 0 8deg,transparent 8deg 24deg);
     -webkit-mask:radial-gradient(circle,#000 0,#000 18%,transparent 62%);mask:radial-gradient(circle,#000 0,#000 18%,transparent 62%);animation:ebTourne 6s linear infinite}
   @keyframes ebTourne{to{transform:rotate(360deg)}}
-  #engBig .eb3d{display:block;width:min(600px,128vw);flex:none;height:auto;aspect-ratio:480/321;margin:-6% 0 -12%;image-rendering:auto; /* plus large que l'écran : le fond est transparent, seul le moteur se voit — EN GROS */
+  #engBig .eb3d{display:block;width:min(380px,92vw);flex:none;height:auto;aspect-ratio:480/321;margin:-6% 0 -10%;image-rendering:auto; /* (2026-09-26) posé SUR la voiture : assez grand pour se lire, sans manger la route */
     animation:ebFlotte 1.5s ease-in-out infinite alternate;
     filter:contrast(1.22) saturate(1.4) drop-shadow(0 22px 16px rgba(0,0,0,.5)) drop-shadow(0 0 18px var(--ec))} /* il FLOTTE : il monte, redescend, se balance — l'ombre portée le décolle du décor */ /* (2026-09-25) le MODÈLE 3D du moteur, au cœur de la carte — relevé : la recopie sort pâle */
   #engBig .ebCarte{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:0;
@@ -1903,7 +1903,7 @@
   #engBig.rec .ebNum{color:#fff;text-shadow:0 0 18px #fff,0 0 46px rgba(255,215,94,1),0 4px 0 #7a4e00}
   #engBig.rec small{color:#ffd75e}
   #engBig em{font-style:normal;font-size:8px;letter-spacing:2px;color:#fff;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.08)}
-  @media (prefers-reduced-motion:reduce){#engBig.on{animation:none;opacity:1;transform:translate(-50%,-50%)}#engBig .eb3d{animation:none}}
+  @media (prefers-reduced-motion:reduce){#engBig.on{animation:none;opacity:1;transform:translate(-50%,-100%)}#engBig .eb3d{animation:none}}
   /* -- l'écran de fin v3 : AURA et MOTEUR en héros, l'argent en petite ligne -- */
   .mHero{display:flex;gap:12px;width:100%;margin:14px 0 10px}
   .hCard{position:relative;flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 8px 12px;border-radius:20px;
@@ -2036,6 +2036,56 @@
   @keyframes avGain{0%{opacity:0;transform:translate(-50%,-30%) scale(.6)}14%{opacity:1;transform:translate(-50%,-50%) scale(1.12)}
     72%{opacity:1;transform:translate(-50%,-58%) scale(1)}100%{opacity:0;transform:translate(-50%,-90%) scale(.92)}}
   @media (prefers-reduced-motion:reduce){#avGain.on{animation-duration:1ms;opacity:1}#auraV2 .avTot.pulse,#avX.up{animation:none}}
+  /* ===== HUD v3 — L'ÉCRAN QUI CLAQUE (2026-09-26, user : « beaucoup plus d'effort pour tous les affichages, plus beaux, plus travaillés,
+     plus jouissifs, plus assumés ») : l'aura dans le VIOLET de l'écran de fin (.hAura b), un multiplicateur qui BAT et EXPLOSE à chaque
+     palier, des annonces qui CLAQUENT au centre (BOOST, pouvoirs, ×5…), les bords de l'écran à la couleur du pouvoir actif. ===== */
+  #avVal{font-size:28px;letter-spacing:1px;background:linear-gradient(180deg,#ffe6ff,#ff7ad5 55%,#b14bff);-webkit-background-clip:text;
+    background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 #3a0f4a) drop-shadow(0 0 10px rgba(255,90,220,.55))}
+  #auraV2 .avTot{gap:8px;text-shadow:none}
+  #auraV2 .avTot em{font-size:10px;letter-spacing:3px;color:#ff9ee6;text-shadow:0 2px 0 #3a0f4a,0 0 8px rgba(255,90,220,.6)}
+  #auraV2 .avTot.pulse{animation:avGros .55s cubic-bezier(.2,1.6,.4,1)}
+  @keyframes avGros{0%{transform:scale(1.6)}100%{transform:scale(1)}}
+  #avPts{font-size:15px;color:#fff}
+  #avX{display:inline-block;font-size:30px;transform-origin:center;background:linear-gradient(180deg,#fff 5%,var(--xc,#ff5ec8) 60%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;
+    filter:drop-shadow(0 3px 0 #2a0636) drop-shadow(0 0 12px var(--xc,#ff5ec8));animation:avBat .5s ease-in-out infinite alternate}
+  @keyframes avBat{from{transform:scale(1)}to{transform:scale(1.14)}}
+  #avX.up{animation:avMonte .65s cubic-bezier(.2,1.8,.4,1),avBat .5s ease-in-out .65s infinite alternate}
+  @keyframes avMonte{0%{transform:scale(2.8) rotate(-16deg)}45%{transform:scale(.82) rotate(7deg)}100%{transform:scale(1) rotate(0)}}
+  #avX.feu{animation:avBat .42s ease-in-out infinite alternate,avArc 1.1s linear infinite} /* ×5 et plus : il passe à l'arc-en-ciel */
+  #avX.feu.up{animation:avMonte .65s cubic-bezier(.2,1.8,.4,1),avBat .42s ease-in-out .65s infinite alternate,avArc 1.1s linear infinite}
+  @keyframes avArc{to{filter:drop-shadow(0 3px 0 #2a0636) drop-shadow(0 0 16px var(--xc,#ff5ec8)) hue-rotate(360deg)}}
+  #avCh .avBar{height:6px;width:150px;box-shadow:0 0 10px rgba(255,94,200,.6)}
+  #avList{font-size:9px}
+  #avGain{font-size:36px;background:linear-gradient(180deg,#fff,#ff7ad5 55%,#b14bff);-webkit-background-clip:text;background-clip:text;
+    color:transparent;text-shadow:none;filter:drop-shadow(0 4px 0 #2a0636) drop-shadow(0 0 18px rgba(255,90,220,.85))}
+  #avGain small{font-size:11px;color:#fff;-webkit-text-fill-color:#fff;filter:none}
+  #avGain.perdu{background:linear-gradient(180deg,#fff,#ff5e7a 60%,#b0102a);-webkit-background-clip:text;background-clip:text}
+  /* LA GRANDE ANNONCE : elle CLAQUE au centre haut (BOOST, pouvoirs, paliers du ×) */
+  #slam9{position:fixed;left:50%;top:30%;z-index:41;pointer-events:none;font-family:var(--pix);text-align:center;white-space:nowrap;
+    opacity:0;transform:translate(-50%,-50%)}
+  #slam9 b{display:block;font-size:36px;letter-spacing:2px;background:linear-gradient(180deg,#fff 0%,var(--s1) 42%,var(--s2) 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 0 #120420) drop-shadow(0 0 16px var(--s1))}
+  #slam9 small{display:block;margin-top:10px;font-size:11px;letter-spacing:3px;color:#fff;text-shadow:0 2px 0 #000,0 0 10px var(--s1)}
+  #slam9.on{animation:slamIn 1.45s var(--ease) forwards}
+  @keyframes slamIn{0%{opacity:0;transform:translate(-50%,-50%) scale(3.2) rotate(-9deg)}11%{opacity:1;transform:translate(-50%,-50%) scale(.88) rotate(2deg)}
+    20%{transform:translate(-50%,-50%) scale(1.07) rotate(0)}28%{transform:translate(-50%,-50%) scale(1)}78%{opacity:1;transform:translate(-50%,-53%) scale(1)}
+    100%{opacity:0;transform:translate(-50%,-72%) scale(.9)}}
+  /* LES BORDS DE L'ÉCRAN à la couleur du pouvoir actif (ils battent) + le FLASH d'un coup de boost */
+  #pwrFx{position:fixed;inset:0;z-index:3;pointer-events:none;display:none;
+    box-shadow:inset 0 0 50px 8px var(--pf),inset 0 0 150px 28px var(--pf2);animation:pwrPuls .6s ease-in-out infinite alternate}
+  #pwrFx.on{display:block}
+  @keyframes pwrPuls{from{opacity:.5}to{opacity:1}}
+  #flash9{position:fixed;inset:0;z-index:3;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 62%,transparent 28%,var(--ff) 100%)}
+  #flash9.on{animation:flash9 .5s ease-out}
+  @keyframes flash9{0%{opacity:1}100%{opacity:0}}
+  /* LES POUVOIRS ACTIFS : de vraies pastilles lumineuses, plus un chiffre en 9 px */
+  #pwrChip{font-size:12px!important;margin-bottom:10px!important;text-shadow:none!important}
+  #pwrChip span{display:inline-block;margin:0 4px;padding:6px 10px;background:#0b0730;box-shadow:inset 0 0 0 2px currentColor,0 0 14px currentColor;
+    clip-path:polygon(5px 0,calc(100% - 5px) 0,100% 5px,100% calc(100% - 5px),calc(100% - 5px) 100%,5px 100%,0 calc(100% - 5px),0 5px);animation:avBat .5s ease-in-out infinite alternate}
+  /* le texte qui jaillit au-dessus de la caisse : plus gros, mieux cerné */
+  #popTxt{font-size:22px!important;-webkit-text-stroke:0!important;text-shadow:0 3px 0 #0b0730,2px 0 0 #0b0730,-2px 0 0 #0b0730,0 -2px 0 #0b0730,0 0 18px var(--pc)!important;color:var(--pc)!important;top:40%!important}
+  @media (prefers-reduced-motion:reduce){#slam9.on{animation-duration:1.2s}#avX,#avX.up,#avX.feu,#pwrChip span,#pwrFx{animation:none}}
   /* ---- LE PLANCHER DE LECTURE (2026-09-25 — rappel de la passe UX du 24/09 : « textes : 8 px minimum ») ----
      Les blocs du 25/09 (contrats, objectif, boutique, fin v3) étaient redescendus à 6-7 px. Press Start 2P est dessinée sur une
      grille de 8 : en dessous, ses pixels tombent ENTRE deux pixels d'écran et bavent. Une variable, pour que la règle ne se perde plus. */
@@ -9287,9 +9337,9 @@ function mkNitro(rnd){ return mkFruit(fruitPick(rnd)); }
 const pwrGeo=new THREE.SphereGeometry(1.5,18,14),pwrCoreGeo=new THREE.SphereGeometry(.6,12,10),
       pwrRingGeo=new THREE.TorusGeometry(2,.13,8,28);
 const PWR_DEFS={ // n = nitro infinie · a = airtime infini · v = speed up
-  n:{col:0x1e7bff,core:0xaee4ff,ico:'',msg:'NITRO INFINIE — 6 s À FOND !',hud:'NITRO ∞',tint:'#4db8ff',t:6},
-  a:{col:0x7dffec,core:0xeafffb,ico:'🪂',msg:'🪂 AIRTIME INFINI — 10 s DE VOL !',hud:'AIR ∞',tint:'#7dffec',t:10},
-  v:{col:0xff2e8a,core:0xffd0e8,ico:'⚡',msg:'⚡ VITESSE +60% — 6 s !',hud:'VITESSE +60%',tint:'#ff3ec8',t:6}};
+  n:{col:0x1e7bff,core:0xaee4ff,ico:'',msg:'NITRO INFINIE — 6 s À FOND !',hud:'NITRO ∞',tint:'#4db8ff',t:6,gros:'NITRO ILLIMITEE',sous:'6 S A FOND',c2:'#1e3bff',fx:'rgba(77,184,255,.85)',fx2:'rgba(30,90,255,.35)'},
+  a:{col:0x7dffec,core:0xeafffb,ico:'🪂',msg:'🪂 AIRTIME INFINI — 10 s DE VOL !',hud:'AIR ∞',tint:'#7dffec',t:10,gros:'AIRTIME INFINI',sous:'10 S DE VOL',c2:'#1fb8a8',fx:'rgba(125,255,236,.8)',fx2:'rgba(30,200,180,.3)'},
+  v:{col:0xff2e8a,core:0xffd0e8,ico:'⚡',msg:'⚡ VITESSE +60% — 6 s !',hud:'VITESSE +60%',tint:'#ff3ec8',t:6,gros:'VITESSE +60%',sous:'6 S',c2:'#ff2e8a',fx:'rgba(255,62,200,.85)',fx2:'rgba(255,46,138,.35)'}};
 for(const k in PWR_DEFS){const d=PWR_DEFS[k];
   d.glassM=new THREE.MeshPhongMaterial({color:d.col,emissive:d.col,emissiveIntensity:.45,shininess:260,specular:0xffffff,envMap:envTex,reflectivity:.55,transparent:true,opacity:.42,depthWrite:false});
   d.coreM=new THREE.MeshBasicMaterial({color:d.core});
@@ -12867,7 +12917,27 @@ function chaineAura(nom,base,fam,brut){ // brut : pas de décote de redite (les 
   try{chimeNote(noteP(Math.min(7,CHA.x),1),0,.10,.16);}catch(e){}
   return p;
 }
+/* HUD v3 : LA GRANDE ANNONCE qui claque au centre haut (BOOST, pouvoirs, paliers du ×) — une seule à la fois, la dernière gagne */
+function slam(txt,sous,c1,c2,taille){
+  let e=avE('slam9');if(!e){e=document.createElement('div');e.id='slam9';e.setAttribute('aria-hidden','true');document.body.appendChild(e);avEl.slam9=e;}
+  e.innerHTML='<b'+(taille?' style="font-size:'+taille+'px"':'')+'>'+sansAcc(TR(txt)).replace(/[<>&]/g,'')+'</b>'+(sous?'<small>'+sansAcc(TR(sous)).replace(/[<>&]/g,'')+'</small>':'');
+  e.style.setProperty('--s1',c1||'#ffd75e');e.style.setProperty('--s2',c2||'#ff5ec8');
+  e.classList.remove('on');void e.offsetWidth;e.classList.add('on');
+}
+function flashEcran(col){ // un coup de couleur sur les bords : le boost, le pouvoir, le gros encaissement
+  let e=avE('flash9');if(!e){e=document.createElement('div');e.id='flash9';e.setAttribute('aria-hidden','true');document.body.appendChild(e);avEl.flash9=e;}
+  e.style.setProperty('--ff',col);e.classList.remove('on');void e.offsetWidth;e.classList.add('on');
+}
+const X_COUL=['#5ee6ff','#5ee6ff','#5ee6ff','#62e062','#ffd75e','#ff5ec8','#ff5ec8','#ff5ec8','#ff3924','#ff3924','#ff3924'];
+const ENG_V9=new THREE.Vector3();
+function engBigSuit(){ // (HUD v3) la carte du moteur se pose SUR la voiture et la suit (au lieu du centre de l'écran)
+  if(!engBig.on)return;const b=avE('engBig');if(!b)return;
+  ENG_V9.copy(carGroup.position);ENG_V9.y+=1.6;ENG_V9.project(camera);
+  const x=THREE.MathUtils.clamp((ENG_V9.x*.5+.5)*innerWidth,110,innerWidth-110),y=THREE.MathUtils.clamp((-ENG_V9.y*.5+.5)*innerHeight,260,innerHeight-40);
+  b.style.left=x.toFixed(0)+'px';b.style.top=y.toFixed(0)+'px';
+}
 function chaineTick(dt){
+  engBigSuit();
   // le COMPTEUR : il grimpe vers la vraie valeur (on voit l'aura TOMBER dedans), une écriture DOM seulement quand le chiffre change
   CHA.v+=(auraRun-CHA.v)*Math.min(1,dt*7);if(Math.abs(auraRun-CHA.v)<1)CHA.v=auraRun;
   const a9=Math.round(CHA.v);if(a9!==CHA.vAff){CHA.vAff=a9;const e9=avE('avVal');if(e9)e9.textContent=fmtAura(a9);}
@@ -12882,6 +12952,7 @@ function chaineEncaisse(){
     auraRun+=g;auraPop=Math.min(1,auraPop+g/90);
     avGainPop((CHA.x>1?CHA.pts+' ×'+CHA.x:TR('CHAÎNE')),'+'+fmtAura(g),false);
     const t9=document.querySelector('#auraV2 .avTot');if(t9){t9.classList.remove('pulse');void t9.offsetWidth;t9.classList.add('pulse');}
+    if(g>=500)flashEcran('rgba(177,75,255,.5)');
     hap(CHA.x>=4?[12,30,24]:12);try{chimeNote(noteP(Math.min(9,CHA.x+2),1),0,.18,.22);if(CHA.x>=4)sparkle(.1,.08);}catch(e){}
   }
   chaReset();
@@ -12895,7 +12966,10 @@ function chaHud(fort,monte){
   const ch=avE('avCh');if(!ch)return;ch.classList.toggle('on',CHA.n>0);
   if(!fort||!CHA.n)return;
   avE('avPts').textContent=fmtAura(CHA.pts);
-  const x9=avE('avX');x9.textContent='×'+Math.max(1,CHA.x);if(monte){x9.classList.remove('up');void x9.offsetWidth;x9.classList.add('up');}
+  const x9=avE('avX'),xv=Math.max(1,CHA.x);x9.textContent='×'+xv;x9.style.setProperty('--xc',X_COUL[Math.min(10,xv)]);x9.classList.toggle('feu',xv>=5);
+  if(monte){x9.classList.remove('up');void x9.offsetWidth;x9.classList.add('up');
+    const pal={3:'CHAUD !',5:'EN FEU !!',8:'DEMENT !!!',10:'MAX !!!'}[xv];
+    if(pal){slam('×'+xv,pal,X_COUL[xv],'#b14bff',48);flashEcran(xv>=8?'rgba(255,57,36,.55)':'rgba(255,94,200,.45)');hap(xv>=8?[14,40,24,40,30]:[12,30,20]);}}
   avE('avList').innerHTML=CHA.liste.map(function(l){return '<li>'+String(l).replace(/[<>&]/g,'')+'</li>';}).join('');
 }
 function avGainPop(petit,grand,perdu){
@@ -15706,7 +15780,8 @@ function loop(now){
         if(Math.abs(s-PADS[i9])<6&&Math.abs(side*lat-PADL[i9])<4.1){ // 2,75 de pad + ~1,35 de caisse : il faut MORDRE dessus
           vA+=18;boost=Math.max(boost,1.5);padCd=1.5; // viser paie plus qu'avant (14 → 18)
           boostSnd();shake=Math.max(shake,.3);hap(10);
-          popTexte('TURBO','#5ee6ff');nitroGain(.12);flowAdd(6);momT=Math.min(4.3,momT+.8);
+          slam('BOOST','','#ffb000','#ff3924',46);flashEcran('rgba(255,150,0,.5)');fovPunch=Math.max(fovPunch,10); // (HUD v3) « quand tu roules sur un boost, BOOST en gros »
+          nitroGain(.12);flowAdd(6);momT=Math.min(4.3,momT+.8);
           break;
         }
       }
@@ -15843,6 +15918,7 @@ function loop(now){
             else if(p.pow==='a'){pwrAirT=d.t;airFlash=.6;}
             else pwrSpdT=d.t;
             showMsg(d.msg,d.tint);trickMsg(d.ico+' '+TR(d.hud),2);boostSnd();shake=Math.max(shake,.35);
+            slam(d.gros,d.sous,d.tint,d.c2,40);flashEcran(d.fx);hap([14,40,24]); // (HUD v3) le pouvoir s'ANNONCE en gros, de sa couleur
             sparkBurst(p.pow==='n'?sparkBlue:sparkGold,carGroup.position,14,9);
             addStyle(10);
           }
@@ -16832,6 +16908,9 @@ function loop(now){
     if(pwrAirT>0)pch+='<span style="color:#7dffec">🪂 AIR ∞ '+pwrAirT.toFixed(1)+'</span>';
     if(pwrSpdT>0)pch+='<span style="color:#ff3ec8">⚡ '+TR('VITESSE +60%')+' '+pwrSpdT.toFixed(1)+'</span>';
     if(pch!==loop._pch){loop._pch=pch;pwrChip.innerHTML=pch;pwrChip.style.display=pch?'block':'none';}
+    {const k9=pwrNitroT>0?'n':pwrSpdT>0?'v':pwrAirT>0?'a':''; // (HUD v3) les BORDS de l'écran battent à la couleur du pouvoir actif
+     if(k9!==loop._pfx){loop._pfx=k9;let e9=avE('pwrFx');if(!e9){e9=document.createElement('div');e9.id='pwrFx';e9.setAttribute('aria-hidden','true');document.body.appendChild(e9);avEl.pwrFx=e9;}
+       if(k9){e9.style.setProperty('--pf',PWR_DEFS[k9].fx);e9.style.setProperty('--pf2',PWR_DEFS[k9].fx2);}e9.classList.toggle('on',!!k9);}}
     // JAUGE DE PROGRESSION — elle suivait le cash vers la prochaine VOITURE ; les voitures ne se
     // gagnent plus à l'argent de la partie. Elle suit désormais les PIÈCES vers le prochain MOTEUR,
     // la seule progression qui court pendant une partie. (elCp, le texte, est géré plus haut.)
