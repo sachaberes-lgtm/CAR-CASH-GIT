@@ -7816,6 +7816,9 @@ function carPhoto(i){
   if(url)PHOTO.cache[i]=url;return url;
 }
 // LA VITRINE : l'offre à la une (la premium marquée `une`) et la grille des autres, par rareté
+// LE PRIX AFFICHÉ SUIT LA LANGUE (2026-09-25) : « 4,99 € » en français, « €4.99 » en anglais. Provisoire :
+// StoreKit fournira le prix LOCALISÉ de chaque pays, cette mise en forme ne sert qu'à la vitrine d'attente.
+function prixEur(s){if(LANG==='fr')return s;const n=String(s).replace(/[^\d,]/g,'').replace(',','.');return '€'+n;}
 function shopRender(){
   const une=document.getElementById('shUne'),gr=document.getElementById('shGrille');if(!une||!gr)return;
   const RAR={leg:'LÉGENDAIRE',epi:'ÉPIQUE',rar:'RARE'};let hU='',hG='';
@@ -7824,10 +7827,10 @@ function shopRender(){
     if(u.une&&!hU){
       hU='<div class="shRuban">'+TR('OFFRE DE LANCEMENT')+'</div><div class="shUneIn"><div class="shPhoto big">'+img+'</div>'
         +'<div class="shUneTx"><b>'+TR(CARS[i].name)+'</b><span>'+TR(CARS[i].desc)+'</span></div></div>'
-        +'<div class="shUneBas"><s>9,99 €</s><em>'+u.eur+'</em><span class="shBtn">'+TR(a?'À TOI':'BIENTÔT')+'</span></div>';
+        +'<div class="shUneBas"><s>'+prixEur('9,99 €')+'</s><em>'+prixEur(u.eur)+'</em><span class="shBtn">'+TR(a?'À TOI':'BIENTÔT')+'</span></div>';
       une.setAttribute('data-car',i);continue;}
     hG+='<div class="shCase '+(u.rar||'rar')+'" data-m="shopSoon" data-car="'+i+'" role="button"><span class="shRare">'+TR(RAR[u.rar||'rar'])+'</span>'
-      +'<div class="shPhoto">'+img+'</div><b class="shNom">'+TR(CARS[i].name)+'</b><span class="shPrix">'+(a?TR('À TOI'):u.eur)+'</span></div>';
+      +'<div class="shPhoto">'+img+'</div><b class="shNom">'+TR(CARS[i].name)+'</b><span class="shPrix">'+(a?TR('À TOI'):prixEur(u.eur))+'</span></div>';
   }
   une.innerHTML=hU;gr.innerHTML=hG;
 }
