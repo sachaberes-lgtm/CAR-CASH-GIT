@@ -1,5 +1,33 @@
 # CASH CAR — guide projet pour Claude Code
 
+## ⚠ BOUCLE DE JEU, ÉCONOMIE, CONDUITE v3 — 2026-09-25 (branche `jeu-boucle-argent`)
+- **Git** : on travaille à la racine de `game/` sur `jeu-boucle-argent`. « La version fusionnée sur le git » =
+  le DOSSIER `version-fusion-2026-09/` de `main` (copie à plat : index.html, sw.js, assets/, vendor/, README).
+  Pas de merge (structures différentes) : on recopie les fichiers dans un worktree de `origin/main`, on met à
+  jour « Ce qu'il y a de neuf » du README du dossier, commit « version-fusion-2026-09 : … », push. Léo pousse
+  sur `version-leolei-2026` : vérifier `git log origin/version-leolei-2026` avant chaque mise à jour.
+- **Économie v3** (bloc « ÉCONOMIE v3 », ~l. 7424) : prix calés sur une mesure (ELDORADO 6 k, CAÏD 40 k,
+  SA MAJESTÉ 250 k, ROSSO 40 1,5 M). **Défis** : `CARNETS` (3 missions par carnet) pour gagner LA BULLE,
+  LE COMBI, LA DOLORÈS. **Personnalisation** (garage, onglets peinture/ailes/traînées) : `COSM`, `shopBuy/
+  shopEquip/shopRender`, `SAVE.d.shop`. **Caisses premium** (boutique en vrai argent, 7 fiches reprises
+  d'`appstore-backlog`) : StoreKit PAS encore branché, la vitrine seule existe.
+- **Conduite v3** (visuel + ressenti, ~l. 7556) : `driftC/driftLv` (mini-turbo 3 niveaux), `raseT` RASE-BORD
+  (frôler le vide recharge le nitro), `FLOW` (jauge commune ×2 → ×5 FRÉNÉSIE, multiplie argent et vitesse,
+  `FLOW_COL`). Route v2 : plus de droites, spirales raccourcies, vitesse globale −20 %.
+- **Ordre des niveaux** : 1 VILLE (sans nuages, couronne de gratte-ciel) → 2 NUAGES → 3 ORBITE (`NIVEAUX`,
+  demande du user et push de Léo) — la section du 24/09 ci-dessous décrit l'ancien ordre.
+- **Auto-école** : `TUTO`/`TUTO_ETAPES` (5 étapes, sans mort, piste `genTuto()`), revoir depuis les réglages.
+- **Rideau entre écrans** : `ecranWipe(fn)` (cinq barres en `steps()`, ~0,55 s).
+- **HUD sans émoji** : `pxTxt(s)` (après `pxi`) échappe le texte et troque les symboles connus (`PX_SYM` :
+  💰 ★ ✦ 🔑 ⚡ ✓ ◀…) contre les icônes pixel, retire les autres émoji → à écrire en `innerHTML`. Branché sur
+  `showMsg`, `trickMsg`, `#bestChip`, `#runStats`. Pour un texte dynamique, traduire le PRÉFIXE à part
+  (`TR('⚠ ROULE OU CRÈVE — ')+n`) : `TR` est une recherche EXACTE, le nombre collé la faisait rater.
+- **Accessibilité** : `applyLangDOM` pose `<html lang>` et traduit les `aria-label` (original gardé en
+  `data-aria-fr`) — tout nouvel aria-label français doit avoir sa clé EN.
+- **Service worker** : l'installation passe `cache:'reload'` et le statique `no-cache` — sinon un changement
+  de numéro de cache ré-empochait l'ancien fichier depuis le cache HTTP. Toujours incrémenter `CACHE`
+  quand un asset change. `icon.svg` = le mot-symbole pixel (plus l'émoji 💰), hors du manifest.
+
 ## ⚠ FUSION SACHA × LÉO + NIVEAUX — 2026-09-24 (branche `fusion-2026-09`)
 - `index.html` = fusion à trois points : appstore-backlog (Sacha) × `main:version-leolei-2026` (Léo),
   base `fusion-atelier-mobile`. Hors ligne : `vendor/` + police locale (aucun CDN, aucune Google Font).
