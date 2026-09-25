@@ -1974,6 +1974,27 @@
   #flowGlow[data-lv="4"]{animation:flowArc 2.4s linear infinite}
   @keyframes flowArc{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(360deg)}}
   @media (prefers-reduced-motion:reduce){#flowHud[data-lv="4"],#flowGlow[data-lv="4"]{animation:none}}
+  /* -- LE DAUPHIN (2026-09-25) : l'étiquette qui dit POURQUOI l'aura monte. En vol la caméra CENTRE la caisse : on s'affiche
+     au-dessus d'elle, SOUS la pilule du FLOW et le camembert, jamais dessus. Lecture seule (aucun geste). -- */
+  :root{--dol:#5ee6ff;--dolNom:#ffffff;--dolOmbre:#0b0730;--auraRose:#ff7ad5;--auraOmbre:#3a0f4a}
+  #dolHud{position:fixed;left:50%;top:max(27vh,calc(env(safe-area-inset-top,0px) + 186px));z-index:7;pointer-events:none;
+    display:flex;flex-direction:column;align-items:center;gap:8px;white-space:nowrap;text-align:center;font-family:var(--pix);
+    max-width:calc(100vw - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px) - 32px);contain:layout style;
+    opacity:0;visibility:hidden;transform:translate3d(-50%,0,0);
+    transition:opacity var(--t-fast) var(--ease),visibility 0s linear var(--t-fast)}
+  #dolHud.on{opacity:1;visibility:visible;animation:dolEntre var(--t-slow) var(--ease) both;transition:opacity var(--t-slow) var(--ease),visibility 0s}
+  @keyframes dolEntre{from{transform:translate3d(-50%,14px,0) scale(.82)}to{transform:translate3d(-50%,0,0)}}
+  #dolHud .dNom{font-size:clamp(20px,6.4vw,30px);letter-spacing:.14em;color:var(--dolNom);-webkit-text-stroke:1px var(--dol);
+    text-shadow:0 3px 0 var(--dolOmbre),0 0 18px var(--dol)}
+  #dolHud .dAura{display:flex;align-items:center;gap:6px;font-size:clamp(12px,3.8vw,16px);letter-spacing:.06em;color:var(--auraRose);
+    text-shadow:0 2px 0 var(--auraOmbre),0 0 12px var(--auraRose);transition:color var(--t-fast) var(--ease),transform var(--t-fast) var(--ease)}
+  #dolHud .dAura em{font-style:normal}
+  #dolHud .dAura small{font-size:8px;letter-spacing:.2em}
+  #dolHud .dAura .pxi{--pxs:2;margin-top:0}
+  #dolHud.sansAura .dAura{display:none}
+  #dolHud.fige .dAura{color:var(--dolNom);transform:scale(1.12)} /* le total se FIGE : il blanchit d'un cran — encaissé */
+  body:not(.play) #dolHud{display:none}
+  @media (prefers-reduced-motion:reduce){#dolHud.on{animation:none}#dolHud.fige .dAura{transform:none}}
   /* ======================= LE MOUVEMENT — NIVEAU APP STORE (2026-09-25) =======================
      User : « améliore l'ergonomie, que les transitions entre les écrans soient niveau App Store ». Le passage précédent
      animait tout en `steps()` (« on anime en PIXELS, pas en fondus mous ») : à 6 images par geste, l'œil lit des SACCADES,
@@ -4849,6 +4870,7 @@ const I18N_ZH={
 
 // ---- L'ÉCONOMIE v3 (2026-09-25) : boutique, contrats, objectif ----
 Object.assign(I18N,{"BOUTIQUE": "SHOP", "CONTRAT": "CONTRACT", "REMPLI !": "COMPLETE!", "OBJECTIF": "GOAL", "TU PEUX TE L'OFFRIR": "YOU CAN AFFORD IT", "ACHETER": "BUY", "ARTICLES À TA PORTÉE": "ITEMS YOU CAN AFFORD", "ARTICLE À TA PORTÉE": "ITEM YOU CAN AFFORD", "EST À TOI — VA LA VOIR": "IS YOURS — GO SEE IT", "EST À TOI — ESSAIE-LA": "IS YOURS — TRY IT ON", "VERSÉS SUR TON COMPTE": "PAID INTO YOUR ACCOUNT", "VOITURES": "CARS", "PEINTURE": "PAINT", "AILES": "WINGS", "TRAÎNÉES": "TRAILS", "TRAÎNÉE": "TRAIL", "ÉQUIPÉE": "EQUIPPED", "D'ORIGINE": "FACTORY", "MENTHE GLACÉE": "ICE MINT", "BLEU MINUIT": "MIDNIGHT BLUE", "NOIR MAT": "MATTE BLACK", "COUCHER DE SOLEIL": "SUNSET", "CHROME MIROIR": "MIRROR CHROME", "OR MASSIF": "SOLID GOLD", "PANNEAUX": "PANELS", "HÉLICES": "PROPELLERS", "PLUMES D'ANGE": "ANGEL FEATHERS", "CHAUVE-SOURIS": "BAT", "NITRO": "NITRO", "MENTHE": "MINT", "ROSE NÉON": "NEON PINK", "POUDRE D'OR": "GOLD DUST", "ARC-EN-CIEL": "RAINBOW", "LA BULLE": "THE BUBBLE", "LE COMBI": "THE CAMPER", "LA DOLORÈS": "LA DOLORES", "La teinte du constructeur. Elle a fait ses preuves.": "The factory colour. It has proved itself.", "Fraîche comme un billet qui sort du distributeur.": "Fresh as a bill straight out of the ATM.", "Le bleu des néons de la ville, à trois heures du matin.": "The blue of the city neons, at 3 a.m.", "Pas un reflet. Même la police hésite.": "Not a single reflection. Even the cops hesitate.", "Du miel en bas, du violet en haut : le ciel de 19 h, en laque.": "Honey at the bottom, violet on top: the 7 p.m. sky, in lacquer.", "Tu te vois dedans. Les autres aussi.": "You can see yourself in it. So can everyone else.", "Ne s'achète pas : se mérite au contrat n° 4.": "Not for sale: earned with contract #4.", "Deux planches de planeur qui sortent des flancs. Sobre.": "Two glider boards sliding out of the sides. Understated.", "Quatre rotors. Ça ne vole pas mieux, mais ça brasse de l'air.": "Four rotors. It does not fly any better, but it moves a lot of air.", "Blanches, en éventail. Le ciel te prend pour un des siens.": "White, fanned out. The sky takes you for one of its own.", "Membranes noires et doigts d'os. Pour les vols de nuit.": "Black membranes and bony fingers. For night flights.", "Orange brûlé. Le classique des tuyères.": "Burnt orange. The exhaust classic.", "Un sillage vert d'eau qui sent le propre.": "A sea-green wake that smells clean.", "Le rose des enseignes. On te suit à la trace.": "Neon-sign pink. Everyone can follow you.", "Tu ne laisses pas de la fumée derrière toi. Tu laisses de l'or.": "You do not leave smoke behind. You leave gold.", "Ne s'achète pas : se mérite au contrat n° 5.": "Not for sale: earned with contract #5.", "Ronde comme un sou neuf. Tout le monde lui sourit, même la police.": "Round as a shiny penny. Everyone smiles at it, even the cops.", "Planche sur le toit, la paix dans le cœur, et 45 chevaux qui font de leur mieux.": "Board on the roof, peace in the heart, and 45 horses doing their best.", "Inox brossé, portes papillon. À 88 à l'heure elle remonte le temps, paraît-il. Toi, tu vas plus vite.": "Brushed steel, gullwing doors. At 88 it travels back in time, apparently. You go faster.", "IL TE MANQUE": "YOU ARE SHORT", "COMPTE": "ACCOUNT"});
+Object.assign(I18N,{"DAUPHIN":"DOLPHIN"});Object.assign(I18N_ZH,{"DAUPHIN":"海豚"}); // (dauphin v3) l'étiquette
 Object.assign(I18N,{"AUTO-ÉCOLE": "DRIVING SCHOOL", "PASSER": "SKIP", "TOURNE": "STEER", "DÉCOLLE": "TAKE OFF", "VOLE AU NITRO": "FLY ON NITRO", "POSE-TOI": "LAND IT", "Glisse ton pouce à gauche… puis à droite.": "Slide your thumb left… then right.", "Maintiens NITRO : ça pousse fort.": "Hold NITRO: it pushes hard.", "Fonce hors de la route, par le bord. N'aie pas peur.": "Drive off the road, over the edge. Don't be scared.", "En l'air, MAINTIENS NITRO. Ton pouce guide le vol.": "In the air, HOLD NITRO. Your thumb steers the flight.", "Vise l'anneau vert et pose tes quatre roues.": "Aim for the green ring and land on all four wheels.", "PERMIS OBTENU !": "LICENCE EARNED!", "ENCORE ! ET CETTE FOIS, NITRO EN L'AIR": "AGAIN! AND THIS TIME, NITRO IN THE AIR", "RATÉ ! ON RECOMMENCE": "MISSED! TRY AGAIN", "L'AUTO-ÉCOLE T'ATTEND AU PROCHAIN JOUER": "DRIVING SCHOOL AWAITS ON YOUR NEXT PLAY", "REVOIR L'AUTO-ECOLE": "REPLAY DRIVING SCHOOL"});
 Object.assign(I18N_ZH,{"AUTO-ÉCOLE": "驾校", "PASSER": "跳过", "TOURNE": "转向", "NITRO": "氮气", "DÉCOLLE": "起飞", "VOLE AU NITRO": "氮气飞行", "POSE-TOI": "着陆", "Glisse ton pouce à gauche… puis à droite.": "拇指向左滑……再向右滑。", "Maintiens NITRO : ça pousse fort.": "按住氮气：推力很猛。", "Fonce hors de la route, par le bord. N'aie pas peur.": "从路边冲出去，别怕。", "En l'air, MAINTIENS NITRO. Ton pouce guide le vol.": "在空中按住氮气，用拇指引导飞行。", "Vise l'anneau vert et pose tes quatre roues.": "瞄准绿色圆环，四轮着地。", "PERMIS OBTENU !": "驾照到手！", "RATÉ ! ON RECOMMENCE": "失败！再来", "REVOIR L'AUTO-ECOLE": "重温驾校"});
 Object.assign(I18N_ZH,{"BOUTIQUE": "商店", "CONTRAT": "合同", "REMPLI !": "完成！", "OBJECTIF": "目标", "TU PEUX TE L'OFFRIR": "你买得起了", "ACHETER": "购买", "ARTICLES À TA PORTÉE": "件商品可购买", "ARTICLE À TA PORTÉE": "件商品可购买", "EST À TOI — VA LA VOIR": "归你了 — 去看看", "EST À TOI — ESSAIE-LA": "归你了 — 试试看", "VERSÉS SUR TON COMPTE": "已存入账户", "VOITURES": "车辆", "PEINTURE": "涂装", "AILES": "翅膀", "TRAÎNÉES": "尾迹", "TRAÎNÉE": "尾迹", "ÉQUIPÉE": "已装备", "D'ORIGINE": "原厂", "MENTHE GLACÉE": "冰薄荷", "BLEU MINUIT": "午夜蓝", "NOIR MAT": "哑光黑", "COUCHER DE SOLEIL": "日落", "CHROME MIROIR": "镜面铬", "OR MASSIF": "纯金", "PANNEAUX": "滑翔板", "HÉLICES": "螺旋桨", "PLUMES D'ANGE": "天使之羽", "CHAUVE-SOURIS": "蝙蝠", "NITRO": "氮气", "MENTHE": "薄荷", "ROSE NÉON": "霓虹粉", "POUDRE D'OR": "金粉", "ARC-EN-CIEL": "彩虹", "LA BULLE": "泡泡", "LE COMBI": "露营车", "LA DOLORÈS": "多洛蕾丝"});
@@ -7272,7 +7294,7 @@ window.dbgState=function(){return {started:started,running:running,paused:paused
   /* flux des PIÈCES : sans ces trois-là, régler leur arrivée se fait à l'aveugle */
   engTier:engTier,coinsGot:coinsGot,prochainPalier:(ENGINE_TIERS[engTier+1]||{}).coins||null,
   steer:+steer.toFixed(3),airRoll:+airRoll.toFixed(3),
-vA:+vA.toFixed(2),s:+s.toFixed(1),lat:+lat.toFixed(2),side:side,driveDir:driveDir,gapArmed:gapArmed,fallT:+fallT.toFixed(2),level:level,introD:introD,hopY:+hopY.toFixed(2),hOff:+curHOff.toFixed(2),latOff:+curLatOff.toFixed(2),dolphT:+dolphT.toFixed(2),dolphGain:+dolphGain.toFixed(2),chainVal:+chainVal.toFixed(2),fvy:+fallVel.y.toFixed(2),fspd:+fallVel.length().toFixed(1)};}; // état interne (lecture seule) — hOff/dolph* : calibrage du DAUPHIN
+vA:+vA.toFixed(2),s:+s.toFixed(1),lat:+lat.toFixed(2),side:side,driveDir:driveDir,gapArmed:gapArmed,fallT:+fallT.toFixed(2),level:level,introD:introD,hopY:+hopY.toFixed(2),hOff:+curHOff.toFixed(2),latOff:+curLatOff.toFixed(2),dolphT:+dolphT.toFixed(2),dolphGain:+dolphGain.toFixed(2),tOff:+curTOff.toFixed(2),dolRoadT:+dolRoadT.toFixed(2),dolOn:dolOn,dolFait:trkDolph,dolAura:Math.round(dolAura),dolShow:+dolShow.toFixed(2),dolHud:!!(DAUPH.el&&DAUPH.el.classList.contains('on')),dolFige:!!(DAUPH.el&&DAUPH.el.classList.contains('fige')),auraRun:Math.round(auraRun),chainVal:+chainVal.toFixed(2),fvy:+fallVel.y.toFixed(2),fspd:+fallVel.length().toFixed(1)};}; // état interne (lecture seule) — hOff/dolph* : calibrage du DAUPHIN
 // `dbgCam9()` — état de la dynamique de caméra v1 (lean/swing/kick, voir leur déclaration) : pour
 // régler au clavier sans deviner ce qui bouge derrière l'écran.
 window.dbgCam9=function(){return {camLean:+camLean.toFixed(3),camSwing:+camSwing.toFixed(3),camKick:+camKick.toFixed(3),steer:+steer.toFixed(3)};};
@@ -9533,6 +9555,7 @@ const BOOM_VARS=[
 let BOOMV=BOOM_VARS[0];
 function explode(){
   if(gameOver||mode==='boom')return;
+  dolKill(); // l'aura du DAUPHIN part avec la caisse — comme la mallette
   flowReset();try{flowTick(0);}catch(e){} // le crash VIDE le flow
   hap([55,45,160]); // le téléphone encaisse le crash avec toi
   BOOMV=BOOM_VARS[0]; // signature FIXE « FEU » (réf. illustrations) — la variété vient des volutes, plus d'une roulette de couleurs
@@ -9807,18 +9830,20 @@ const dolphinRig=new THREE.Group();scene.add(dolphinRig);
 const dolphins=[0,1].map(()=>{const g=new THREE.Group();
   g.add(new THREE.Mesh(DOL_GEO,dolBodyMat));const gl=new THREE.Mesh(DOL_GEO,dolGlowMat);gl.scale.setScalar(1.1);g.add(gl);
   g.scale.setScalar(1.7);g.visible=false;dolphinRig.add(g);return g;});
-let dolShow=0,dolAng=0; // dolShow : secondes d'affichage restantes ; dolAng : horloge de la chorégraphie
+let dolShow=0,dolAng=0,dolIn=9; // dolIn : secondes depuis le déclenchement (leur ENTRÉE) // dolShow : secondes d'affichage restantes ; dolAng : horloge de la chorégraphie
 function updateDolphins(dt){
   if(dolShow<=0){if(dolphins[0].visible){dolphins[0].visible=dolphins[1].visible=false;}return;}
   dolShow-=dt;
   dolphinRig.position.copy(carGroup.position);dolphinRig.quaternion.copy(carGroup.quaternion);
   dolAng+=dt*.62; // un poil plus lents (était .85) — plus gracieux
-  const W=9,H=6,baseY=2.0,fade=Math.min(1,dolShow*2.5);
-  for(let k=0;k<2;k++){const d=dolphins[k];d.visible=true;d.scale.setScalar(1.7*(0.5+0.5*fade));
+  dolIn+=dt;
+  const W=9,H=6,baseY=2.0,fade=Math.min(1,dolShow*2.5),
+        ent=REDUCED_MOTION?1:Math.min(1,dolIn/.35); // ils JAILLISSENT de sous la caisse en 0,35 s (Réduire les animations : ils sont là)
+  for(let k=0;k<2;k++){const d=dolphins[k];d.visible=true;d.scale.setScalar(1.7*(0.5+0.5*fade)*(.4+.6*ent));
     const p=((k?1-((dolAng)%1):(dolAng)%1))+1e-6, pp=p%1;         // les deux se croisent au centre (p=0.5)
     const lat=-W+2*W*pp, hgt=H*Math.sin(Math.PI*pp), fwd=(k?1:-1)*1.6; // décalage avant opposé → ils se frôlent
     const vx=2*W, vy=H*Math.PI*Math.cos(Math.PI*pp);
-    d.position.set(lat,baseY+hgt,fwd);
+    d.position.set(lat,baseY+hgt-(1-ent)*3,fwd);
     d.rotation.set(Math.sin(dolAng*6+k)*0.14, 0, Math.atan2(vy,vx));  // tangage vitesse + roulis gracieux
     if(Math.random()<dt*26){d.getWorldPosition(crV1);sparkBurst(k?sparkBlue:sparkGold,crV1,2,4);} // étincelles
   }
@@ -10554,7 +10579,17 @@ window.dbgLogo=function(n){
   return {tirages:n,distribution:JETONS.map(j=>({jeton:j.n,voulu:j.p+' %',
     obtenu:+(100*(c[j.n]||0)/n).toFixed(2)+' %',unClicSur:Math.round(n/Math.max(1,c[j.n]||0))}))};
 };
-window.dbgDolphins=function(sec){dolShow=sec||4;}; // forcer les 2 dauphins
+window.dbgDolphins=function(sec){dolShow=sec||4;dolIn=0;};
+// `dbgDauphin(impU,v,vl,lat0)` : un VRAI décollage (startFall) depuis la position courante — impU 60 ≈ 3,6 s de vol ; v = vitesse le long
+// de la piste ; vl = dérive latérale ; lat0 = départ dans la largeur. `dbgDauphin('force',true|false|null)` impose le verdict « au-dessus »
+// (null = radar réel) · `dbgDauphin('boom')` explose en vol.
+window.dbgDauphin=function(a,b,c,d){
+  if(a==='force'){DAUPH.force=(b==null?null:!!b);return DAUPH.force;}
+  if(a==='boom'){explode();return window.dbgState();}
+  if(!started||gameOver)return 'pas de course en cours';
+  if(mode!=='drive')return 'déjà en vol : '+mode;
+  lat=d||0;vA=b||15;vL=c||0;startFall(a||60,1);return window.dbgState();
+}; // forcer les 2 dauphins
 window.dbgSerpent=function(sec){serpShow=sec||3;};  // forcer le serpent
 /* `dbgBeat(v)` — force un coup de grosse caisse (0..1) pour VOIR la réaction sans dépendre de
    l'audio. Indispensable : en test automatisé il n'y a pas de sortie son, l'analyseur ne rend que
@@ -12482,11 +12517,11 @@ function auraMultVitesse(){
   if(part<=.5)return 1;                       // moitié de sa vmax : régime normal, aucun bonus
   return 1+Math.min(1,(part-.5)/.5)*.85;      // jusqu'à ×1,85 à fond — sensible, jamais dominant
 }
-function addAura(n,titre){
+function addAura(n,titre,brut){ // brut : n est DÉJÀ multiplié par la vitesse (le DAUPHIN)
   // ⚠ RIEN EN FREESTYLE : le parc n'a pas de mort. Une monnaie de panache ne se gagne pas la ou
   // l'on ne risque rien — sinon le mode d'entrainement devient la meilleure facon de monter en rang.
   if(!(n>0)||!running||gameOver||(typeof PARK!=='undefined'&&PARK.on))return;
-  n=Math.round(n*auraMultVitesse());
+  n=brut?Math.round(n):Math.round(n*auraMultVitesse());
   auraRun+=n;
   auraPop=Math.min(1,auraPop+n/90);
   if(titre){ // un gain NOMMÉ : il claque à l'écran, avec sa raison
@@ -12733,7 +12768,7 @@ function trickMsg(txt,tier){ // tier: 1 MONSTRE · 2 DOUBLE · 3 TRIPLE (ou true
 // chaîne. Rien n'est payé en vol : tout se cashe à l'atterrissage (grade × face × série) —
 // et tout S'ENVOLE si on explose. La redite paye de moins en moins : varie le menu !
 let chain=0,chainVal=0,chainMult=1,chainSeen={},spinHalf=0,
-    curNear=false,curHOff=0,curLatOff=0,lastNearY=0,lastNearH2=0,lastNearS=0, // lastNearH2 : distance HORIZONTALE² au bitume (au-dessus d'un trou elle explose → l'ombre de contact se cache) · lastNearS : où l'on en est SUR la piste pendant un vol (recentre le LOD de proximité)
+    curNear=false,curHOff=0,curLatOff=0,curTOff=0,lastNearY=0,lastNearH2=0,lastNearS=0, // lastNearH2 : distance HORIZONTALE² au bitume (au-dessus d'un trou elle explose → l'ombre de contact se cache) · lastNearS : où l'on en est SUR la piste pendant un vol (recentre le LOD de proximité)
     trkMeteor=false,
     dolphT=0,dolphGain=0,trkDolph=false, // LE DAUPHIN : nager au ras de la dalle
     caseHot=false,heartT=0,ladderI=0;        // la MALLETTE tremble + cœur qui cogne · échelle des paliers
@@ -12811,7 +12846,76 @@ function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent dé
   trickPop(chain);
   chainHudShow();
 }
+/* ===== LE DAUPHIN v3 (2026-09-25) — 2 s AU-DESSUS DE LA ROUTE, PAS UNE DE MOINS =====
+   User : « l'animation des dauphins doit se déclencher quand on vole au-dessus de la route pendant 2 s minimum, et
+   SEULEMENT à ce moment ; que ce soit clairement marqué DAUPHIN avec le compteur d'aura qui monte en live ».
+   Avant : `dolShow=.7` dès la 1re image dans la bande 2,2-12 m — les dauphins clignotaient à chaque frôlement, et rien ne
+   disait pourquoi (sur téléphone l'écran nu masquait chaîne et aura). Maintenant : un CHRONO (secondes VÉCUES, comme le
+   camembert) compte le vol CONTINU au-dessus de la route ; à 2 s, UNE fois par vol (`trkDolph`), les dauphins + la figure +
+   l'étiquette ; tant qu'on reste au-dessus l'aura MONTE à l'écran, et l'affiché EST le versé ; on quitte la route ou on se
+   pose → le total se FIGE, s'encaisse, s'efface. Exploser en vol : elle part avec la caisse, comme la mallette. */
+const DOL_T=2,DOL_HMAX=40,DOL_TMAX=4,DOL_GRACE=.12,DOL_FIGE=.6,
+      DOL_AURA0=40,DOL_AURA_S=25,DOL_AURA_RAS=45,DOL_AURA_MAX=400;
+let dolRoadT=0,dolOffT=0,dolOn=false,dolAura=0,dolMul=1,dolHudT=0;
+const DAUPH={el:null,nom:null,lbl:null,tv:null,v:-1,force:null}; // l'étiquette, bâtie UNE fois · force : hook de test (null = radar réel)
+function dolTick(dt,sur,hF){ // chaque image de VOL, avant tryLand (radar = image d'avant)
+  if(sur){
+    dolOffT=0;
+    if(!trkDolph){dolRoadT+=dt;if(dolRoadT>=DOL_T)dolStart();}
+    if(dolOn){
+      const ras=Math.max(0,Math.min(1,1-(hF-2.2)/9.8)); // l'esprit du dauphin : nager AU RAS paye plus
+      dolAura=Math.min(DOL_AURA_MAX*dolMul,dolAura+(DOL_AURA_S+DOL_AURA_RAS*ras*ras)*dolMul*dt);
+      dolShow=Math.max(dolShow,.7); // ils nagent tant qu'on reste au-dessus ; à la sortie, le fondu de 0,4 s d'updateDolphins
+      dolHudVal();
+    }
+  }else{
+    dolOffT+=dt;
+    if(dolOffT>DOL_GRACE){
+      if(dolOn)dolFin();
+      else if(!trkDolph)dolRoadT=0; // la continuité est rompue : le chrono repart de zéro
+    }
+  }
+}
+function dolStart(){
+  trkDolph=true;dolOn=true;
+  dolMul=auraMultVitesse(); // vA ne bouge pas en vol : la vitesse du décollage multiplie, figée ICI (affiché = versé)
+  dolAura=DOL_AURA0*dolMul; // la prime : les 2 s tenues valent déjà quelque chose
+  dolShow=Math.max(dolShow,.7);dolIn=0; // LES 2 DAUPHINS jaillissent — une seule fois par vol
+  addTrick('dauphin','🐬 LE DAUPHIN !',3,2); // la figure entre dans la CHAÎNE (argent, ×, combo, carillon) — même paye qu'avant, à 2 s
+  dolHudShow();hap([10,24,10]);
+}
+function dolFin(){ // on QUITTE la route ou on se pose : le total se fige, s'encaisse, puis s'efface
+  if(!dolOn)return;dolOn=false;dolHudVal();
+  const n=Math.round(dolAura);
+  if(n>0)addAura(n,'DAUPHIN',true); // brut : la vitesse est DÉJÀ dans le compteur (addAura refuse seule en parc)
+  if(DAUPH.el)DAUPH.el.classList.add('fige');
+  dolHudT=DOL_FIGE;
+}
+function dolKill(){ // fin SANS encaissement : explosion, replacement, nouvelle partie, fin de partie
+  dolOn=false;dolAura=0;dolRoadT=0;dolOffT=0;dolShow=0;dolHudOff();
+}
+function dolHudInit(){ // une fois, au 1er dauphin — ensuite des classes et UN nœud texte
+  const e=document.createElement('div');e.id='dolHud';e.setAttribute('aria-hidden','true');
+  e.innerHTML='<b class="dNom"></b><span class="dAura">'+pxi('etoile')+'<em>+</em><small></small></span>';
+  document.body.appendChild(e);
+  DAUPH.el=e;DAUPH.nom=e.querySelector('.dNom');DAUPH.lbl=e.querySelector('small');
+  DAUPH.tv=document.createTextNode('0');e.querySelector('em').appendChild(DAUPH.tv);
+}
+function dolHudShow(){
+  if(!DAUPH.el)dolHudInit();
+  DAUPH.nom.textContent=TR('DAUPHIN');DAUPH.lbl.textContent=TR('AURA');
+  DAUPH.el.classList.toggle('sansAura',PARK.on); // parc freestyle : pas d'aura → le nom seul
+  DAUPH.el.classList.remove('fige','on');DAUPH.v=-1;dolHudVal();
+  void DAUPH.el.offsetWidth;DAUPH.el.classList.add('on');dolHudT=0;
+}
+function dolHudVal(){const v=Math.round(dolAura);if(v!==DAUPH.v&&DAUPH.tv){DAUPH.v=v;DAUPH.tv.data=v;}} // n'écrit QUE si l'entier change
+function dolHudOff(){dolHudT=0;if(DAUPH.el)DAUPH.el.classList.remove('on','fige');}
+function dolHudTick(dt){ // gate de course, quel que soit le mode
+  if(dolOn&&mode!=='fall')dolFin(); // filet : sorti du vol sans atterrissage (portail/newTrack) → on encaisse
+  if(dolHudT>0){dolHudT-=dt;if(dolHudT<=0)dolHudOff();}
+}
 function respawn(){
+  dolKill(); // (dauphin v3) replacer, repartir, recommencer : l'étiquette s'éteint, rien n'est versé
   if(introD){introD=false;if(pigGroup){scene.remove(pigGroup);pigGroup=null;}} // R pendant le largage : on annule proprement
   s=THREE.MathUtils.clamp(safeS-8,0,Math.max(0,L-80));
   lat=0;psi=0;vA=26;vL=0;side=1;driveDir=1;graceT=1.6;prevTvalid=false;yawAcc=0;hopY=0;hopV=0;mode='drive';
@@ -12884,7 +12988,7 @@ function startFall(impU,impF){
   chain=0;chainVal=rollover;chainMult=1;chainSeen={};spinHalf=0;
   if(rollover>0){trickMsg('REPORT +'+Math.round(rollover),false);rollover=0;} // le PARFAIT d'avant paye d'avance
   trkMeteor=false;curNear=false;
-  dolphT=0;dolphGain=0;trkDolph=false;caseHot=false;heartT=0;ladderI=0;caseHud.style.opacity=0;caseHud.className='';
+  if(dolOn)dolFin();dolphT=0;dolphGain=0;trkDolph=false;dolRoadT=0;dolOffT=0;dolAura=0;caseHot=false;heartT=0;ladderI=0;caseHud.style.opacity=0;caseHud.className='';
   chainHud.style.opacity=0;chainHud.classList.remove('pulse');
   // le boost se disperse en petites particules
   for(let k=0;k<14;k++){
@@ -12908,10 +13012,12 @@ function tryLand(dt){
   lastNearY=pts[bestI].y; // altitude de la route la plus proche (référence du plongeon fatal)
   {const hx=fallPos.x-pts[bestI].x,hz=fallPos.z-pts[bestI].z;lastNearH2=hx*hx+hz*hz;} // à plat : sert à savoir si on survole du BITUME ou du VIDE
   lastNearS=bestI/(NP-1)*L; // position le long de la piste PENDANT le vol (le LOD de proximité s'y recentre)
-  if(bd>1600)return false;
   dTmp.subVectors(fallPos,pts[bestI]);
   const hOff=dTmp.dot(Nn[bestI]),latOff=dTmp.dot(B[bestI]);
-  curNear=true;curHOff=hOff;curLatOff=latOff; // radar de dalle : nourrit LE DAUPHIN dans la boucle
+  // radar de dalle AVANT le filtre des 40 m (dauphin v3) : le DAUPHIN compte le vol au-dessus de la route jusqu'à DOL_HMAX, à
+  // toute largeur. curTOff = décalage LE LONG de la piste : au-dessus d'un TROU le point le plus proche est le bord, ça le trahit.
+  curNear=true;curHOff=hOff;curLatOff=latOff;curTOff=dTmp.dot(T[bestI]);
+  if(bd>1600)return false;
   // SNAKE LOOP v2 : passer SOUS la route pendant le vol — côté OPPOSÉ à la face de départ, dans la
   // largeur de la dalle — puis reposer la caisse sur la face de DÉPART (validé à l'atterrissage).
   if(!fallUnder&&Math.abs(latOff)<ROAD_HALF&&(fallStartSide>0?hOff<-THICK-1:hOff>1))fallUnder=true;
@@ -13112,7 +13218,7 @@ function resetGame(){
   bounceN=0;airFlash=0;flightId=0;
   chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;dolphT=0;trkDolph=false;
-  dolShow=0;serpShow=0; // créatures de figure au repos
+  dolKill();serpShow=0; // créatures de figure au repos
   runStats={tricks:0,bumps:0,zones:0,vmax:0,chainMax:0,gaps:0,surv:0};runxReset();
   cloudInS=0;cloudFxEl.style.opacity=0;
   scene.fog.near=FOG_N;scene.fog.far=FOG_F;scene.fog.color.copy(FOG_BASE);
@@ -13168,7 +13274,7 @@ function endGame(){
   if(TUTO.on&&started&&!gameOver){ sandRevive(); if(TUTO.i>=3){TUTO.i=2;TUTO.air=0;tutoAffiche();} toast(TR('RATÉ ! ON RECOMMENCE')); return; } // AUTO-ÉCOLE : on ne meurt pas en apprenant
   gameOver=true;airPie.style.display='none';chainHud.style.opacity=0;caseHud.style.opacity=0;
   musicStop(true);setTimeout(function(){if(gameOver)musicMenu();},1400); // TAPE-STOP de fin, puis la musique du menu revient, étouffée
-  dolShow=0;serpShow=0; // les créatures ne survivent pas à l'explosion
+  dolKill();serpShow=0; // les créatures ne survivent pas à l'explosion
   lastAlertEl.style.display='none';for(const l9 of gyroLights)l9.intensity=0; // la poursuite s'éteint avec la caisse
   botJetLight.intensity=0;for(const tr9 of botTrails){tr9.init=false;tr9.m.visible=false;}
   if(sirG)sirG.gain.setTargetAtTime(0,AC.currentTime,.3);
@@ -15678,6 +15784,9 @@ function loop(now){
         if(halfs>spinHalf&&fallT>.45){spinHalf=halfs;
           addTrick('vrille',halfs===1?'180°':halfs===2?'VRILLE 360 — LAVE-LINGE !':halfs===3?'540° !!':(halfs*180)+'° — ESSOREUSE COSMIQUE !!',3.5*halfs,halfs>=4?3:(halfs>=2?2:false),true);}
         if(!trkMeteor&&nitroOn&&nitroAirT>1.2){trkMeteor=true;addTrick('meteo','MÉTÉORE',8,2);}
+        // ---- LE DAUPHIN v3 : chrono du vol AU-DESSUS DE LA ROUTE (dolTick) — hauteur depuis la face de DÉCOLLAGE (miroir des faces) ----
+        {const hF=fallStartSide>0?curHOff:-curHOff-THICK;
+         dolTick(dt,DAUPH.force!==null?DAUPH.force:(curNear&&Math.abs(curLatOff)<ROAD_HALF&&Math.abs(curTOff)<DOL_TMAX&&hF>0&&hF<DOL_HMAX),hF);}
         if(curNear){ // radar de dalle (rempli par tryLand à la frame précédente)
           if(Math.abs(curLatOff)<ROAD_HALF&&curHOff>2.2&&curHOff<12){
             // ---- LE DAUPHIN : nager au ras de la dalle. Plus on frôle, plus ça paye ----
@@ -15696,14 +15805,9 @@ function loop(now){
             // à 12 m, ce qui la rend enfin TENABLE. Gain ×4,4 pour peser face aux autres figures.
             const prox=1-(curHOff-2.2)/9.8; // 1 = à ras (2,2 m, une frame du contact), 0 = à 12 m
             const dInc=14*prox*prox*dtF;    // le magot grimpe au CARRÉ de la proximité
-            dolphT+=dtF;chainVal+=dInc;dolphGain+=dInc;addStyle(6*prox*dtF);
-            dolShow=.7; // LES 2 DAUPHINS bondissent de chaque côté et se croisent tant qu'on frôle la dalle
-            if(!trkDolph&&dolphT>.25){trkDolph=true;addTrick('dauphin','🐬 LE DAUPHIN !',3,2);}
-            if(dolphT>.15){ // le nom s'affiche VITE et RESTE tant que les points comptent — on voit POURQUOI ça monte
-              chainHud.textContent='🐬 LE DAUPHIN +'+Math.round(dolphGain)+' · CHAÎNE ×'+Math.min(6,chainMult).toFixed(1);
-              chainHud.style.opacity=1;
-            }
-            if(prox>.45&&Math.random()<dt*22) // écume dorée sous la caisse quand on frôle vraiment
+            dolphT+=dtF;chainVal+=dInc;dolphGain+=dInc;addStyle(6*prox*dtF); // RASE-DALLE : l'argent de chaîne au ras, gardé tel quel (muet)
+            // ⚠ plus de dolShow, d'addTrick ni de texte « LE DAUPHIN » ici (dauphin v3) : tout vit dans dolStart, À 2 s de vol au-dessus de la route.
+            if(dolOn&&prox>.45&&Math.random()<dt*22) // l'écume dorée n'accompagne QUE les dauphins
               spawnP(sparkGold,fallPos.x,fallPos.y-1.1,fallPos.z,(Math.random()-.5)*6,-2-Math.random()*4,(Math.random()-.5)*6,.3);
           }
           curNear=false;
@@ -15806,7 +15910,7 @@ function loop(now){
       const fr=pwrAirT>0?Math.min(1,pwrAirT/10):Math.max(0,1-fallTR/AIR_MAX); // jauge en temps RÉEL : 6 s affichées = 6 s vécues
       if(airFlash>0)airFlash=Math.max(0,airFlash-dt);
       airPieDraw(fr,pwrAirT>0?pwrAirT:Math.max(0,AIR_MAX-fallTR),airFlash>0);
-      if(tryLand(dtF)){airPie.style.display='none';}
+      if(tryLand(dtF)){airPie.style.display='none';dolFin();} // posé : le total du DAUPHIN se fige et s'encaisse
       else if((fallTR>AIR_MAX&&pwrAirT<=0)||fallPos.y<trackMinY-120){airPie.style.display='none';if(PARK.on)parkRespawn();else explode();} // FREESTYLE : trop long en l'air ou chute dans le vide = on repart, jamais de mort // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
     }else if(mode==='boom'){ // ---- EXPLOSION ----
       boomT+=dt;
@@ -16227,6 +16331,7 @@ function loop(now){
     // ⚠ EN VOL, LA VITESSE NE SE « TIENT » PAS : on subit une parabole, il n'y a aucun mérite à
     // afficher 900 km/h en tombant. L'aura de vitesse ne compte donc qu'au sol, manette en main.
     auraComboTick(dt); // la fenêtre du combo de figures se referme toute seule
+    dolHudTick(dt); // l'étiquette DAUPHIN : filet de sortie de vol + total figé qui s'efface
     fruitRafTick(dt);  // …et celle de la rafale de fruits
     if(!paused){misTick(dt);tutoTick(dt);flowTick(dt);} // …les CONTRATS se cochent en direct, l'AUTO-ÉCOLE suit tes gestes
     /* LA CHARGE D'AURA. Trois choses à l'écran, et chacune répond à une question :
