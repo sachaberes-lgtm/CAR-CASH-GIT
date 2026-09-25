@@ -5662,6 +5662,10 @@ function rimify(m){
   };
 }
 const wheels=[];
+/* (2026-09-25, user : « la voiture doit vraiment pencher sur le côté lors des virages ») LA CARROSSERIE : tout ce qui n'est ni roue ni
+   flaque au sol vit dans `carBody`, qui ROULE autour de l'axe des roues (buildCar l'y range). Les roues restent au sol, la caisse
+   s'écrase dans le virage. Avant, le roulis faisait pencher tout le groupe, roues comprises, de 7° au plus. */
+const carBody=new THREE.Group();carBody.name='carrosserie';
 // halo doux pour phares/feux (défini AVANT buildCar)
 // ⚠ était en 32×32 avec une chute LINÉAIRE : de près, un phare n'était qu'une bouillie pixelisée et
 // fade. En 128 px avec un CŒUR BLANC net qui s'éteint vite, l'ampoule a enfin un point chaud —
@@ -6896,6 +6900,7 @@ function buildCar(spec){
   carGroup.traverse(o=>{if(o.userData&&o.userData.lp){if(o.geometry)o.geometry.dispose();
     const mm=Array.isArray(o.material)?o.material:[o.material];for(const m of mm)if(m&&m.userData&&m.userData.lp)m.dispose();}});
   while(carGroup.children.length)carGroup.remove(carGroup.children[0]);
+  while(carBody.children.length)carBody.remove(carBody.children[0]);
   wheels.length=0;
   JETS.shells.length=0;JETS.cores.length=0;JETS.glows.length=0; // les plumes de l'ancienne caisse partent avec elle
   // ⚠ LES AILERONS SE VIDENT ICI, PAS PLUS BAS. Le bloc des mini-ailes tourne APRÈS le gabarit :
@@ -7102,20 +7107,23 @@ function buildCar(spec){
   if(!wreck){ // NÉON SOUS CAISSE : la flaque magenta qui glisse avec la caisse — Vice City jusque sous le châssis (tamisée pour la nuit sombre)
     const ug=new THREE.Mesh(new THREE.PlaneGeometry(spec.w*2.4,spec.l*1.7),
       new THREE.MeshBasicMaterial({map:poolTex,color:0xff2e9e,transparent:true,opacity:.10,blending:THREE.AdditiveBlending,depthWrite:false,fog:false})); // (2026-09-25) .30 → .10 : une lueur sous la caisse, plus une jupe ROSE sur la route
-    ug.rotation.x=-Math.PI/2;ug.position.set(0,.07,0);ug.userData.noShadow=true;carGroup.add(ug);
+    ug.rotation.x=-Math.PI/2;ug.position.set(0,.07,0);ug.userData.noShadow=true;ug.userData.sol=1;carGroup.add(ug);
   }
   // FLAQUES DE LUMIÈRE AU SOL — la caisse ÉCLAIRE la route (même recette que le néon : plan additif qui épouse le bitume).
   // Le SpotLight/PointLight font répondre le spéculaire ; ces flaques garantissent la LECTURE, même sur bitume mat ou au loin.
   function mkPoolPlane(wid,len,zc,col,op,tex){
     const m9=new THREE.Mesh(new THREE.PlaneGeometry(wid,len),
       new THREE.MeshBasicMaterial({map:tex||poolTex,color:col,transparent:true,opacity:op,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
-    m9.rotation.x=-Math.PI/2;m9.position.set(0,.062,zc);m9.userData.noShadow=true;m9.renderOrder=2;
+    m9.rotation.x=-Math.PI/2;m9.position.set(0,.062,zc);m9.userData.noShadow=true;m9.userData.sol=1;m9.renderOrder=2;
     carGroup.add(m9);return m9;
   }
   // PHARES : les deux FAISCEAUX peints partent du pare-chocs et fondent vers l'avant (beamTex : le bord haut = la caisse)
   CARPOOL.head=mkPoolPlane(spec.w*2.9,spec.l*3.3,spec.l/2+spec.l*1.62,0xffd9a6,wreck?.24:.55,beamTex);
   CARPOOL.tail=mkPoolPlane(spec.w*1.6,spec.l*.8,-spec.l/2-spec.l*.34,0xf51a0c,.16); // (2026-09-25) plus petite, plus discrète : « la grosse tache violette est mal gérée »          // les feux saignent leur rouge DERRIÈRE — rouge PROFOND (le bleu résiduel de 0xff2418 rosissait la flaque sur le bitume violet)
   CARPOOL.jet=mkPoolPlane(spec.w*1.8,spec.l*2.6,-spec.l/2-spec.l*1.3,0xff7a24,0);  // (2026-09-25) 5×19 m → 3,4×11 m : le halo de nitro ne peint plus la moitié de l'écran              // le halo de la nitro/traînée (opacité pilotée par JETS.k dans la boucle)
+  // LA CARROSSERIE PENCHE (voir carBody) : on y range tout, sauf les roues et ce qui épouse le bitume (néon, flaques)
+  for(const ch of carGroup.children.slice())if(wheels.indexOf(ch)<0&&!(ch.userData&&ch.userData.sol))carBody.add(ch);
+  carGroup.add(carBody);carBody.rotation.set(0,0,0);carBody.position.set(0,0,0);carBody.userData.pivY=wheels.length?wheels[0].position.y:.45; // pivot = hauteur des moyeux (⚠ pas de carRoll9=0 ici : buildCar tourne AVANT leur déclaration — zone morte)
   carGroup.traverse(o9=>{if(o9.isMesh&&!o9.userData.noShadow)o9.castShadow=true;}); // toute la caisse porte son ombre LONGUE — sauf la nappe néon (un carré d'ombre, non merci)
 }
 /* <<<FIN VOITURES>>> */
@@ -7380,7 +7388,7 @@ function engVigRender(dt){
 buildCar(CARS[0]);
 window.dbgCar=function(i){buildCar(CARS[Math.max(0,Math.min(CARS.length-1,i|0))]);}; // console : dbgCar(16) → prévisualiser un gabarit sans farmer les milliards (visuel pur, ne touche pas au niveau)
 window.dbgScene=function(){return {car:carGroup,scene:scene,contact:contactShadow,shadow:shadow};}; // dissection console (visuel pur)
-window.dbgState=function(){return {started:started,running:running,paused:paused,gameOver:gameOver,mode:mode,psi:+psi.toFixed(4),yawR:+yawR.toFixed(4),slipB:+slipB.toFixed(4),glisse:+glisse9.toFixed(3),drift:driftEnCours,driftLv:driftLv,graceT:+graceT.toFixed(2),
+window.dbgState=function(){return {started:started,running:running,paused:paused,gameOver:gameOver,mode:mode,psi:+psi.toFixed(4),yawR:+yawR.toFixed(4),slipB:+slipB.toFixed(4),glisse:+glisse9.toFixed(3),drift:driftEnCours,roulisDeg:+(carRoll9*57.3).toFixed(1),vH:+(mode==='fall'?Math.hypot(fallVel.x,fallVel.z):Math.abs(vA)).toFixed(1),driftLv:driftLv,graceT:+graceT.toFixed(2),
   /* flux des PIÈCES : sans ces trois-là, régler leur arrivée se fait à l'aveugle */
   engTier:engTier,coinsGot:coinsGot,prochainPalier:(ENGINE_TIERS[engTier+1]||{}).coins||null,
   steer:+steer.toFixed(3),airRoll:+airRoll.toFixed(3),
@@ -7808,7 +7816,7 @@ function countUp(el,to,fmt){ // un chiffre qui MONTE (départ franc, arrivée do
    roses (1,7 s). Au relâcher, le niveau atteint part en MINI-TURBO : une poussée, un coup de boost, et de la nitro rendue.
    Le geste que tous les jeux de caisse arcade ont rendu jouissif, posé sur la physique existante (la caisse pivote plus,
    perd un soupçon de vitesse en glisse — et la récupère au centuple à la sortie). */
-let driftC=0,driftLv=0,driftSpk=0,driftEnCours=false,driftArm=0,driftCd=0,fovPunch=0,carRoll9=0,raseT=0,raseAnn=false;const DRIFT_V=new THREE.Vector3(),EXV=new THREE.Vector3(); // EXV : la vitesse monde de la caisse, héritée par les étincelles d'échappement
+let driftC=0,driftLv=0,driftSpk=0,driftEnCours=false,driftArm=0,driftCd=0,fovPunch=0,carRoll9=0,rollV=0,pitch9=0,raseT=0,raseAnn=false;const DRIFT_V=new THREE.Vector3(),EXV=new THREE.Vector3(); // EXV : la vitesse monde de la caisse, héritée par les étincelles d'échappement
 function driftTick(dt,on){
   driftCd=Math.max(0,driftCd-dt); // (2026-09-25) recharge après un mini-turbo : le zigzag de drifts ne se « farme » plus
   if(on&&driftCd<=0){
@@ -9727,7 +9735,8 @@ function explode(){
   const spec=CARS[level];
   // VRAIS morceaux du modèle arrachés (roues, capot, toit, spoiler…)
   let np9=0;
-  for(const ch of carGroup.children){
+  for(const ch of carGroup.children.concat(carBody.children)){ // (la carrosserie est un sous-groupe : on arrache SES pièces, pas le bloc entier)
+    if(ch===carBody)continue;
     if(np9>=9)break;
     if(!(ch.isMesh||ch.isGroup))continue;
     if(ch.geometry&&ch.geometry.type==='PlaneGeometry')continue; // pas l'underglow
@@ -12425,6 +12434,7 @@ addEventListener('blur',()=>{for(const k in keys)keys[k]=false;}); // alt-tab : 
 const GRAV=9.8*.55,FALL_G=33,AXIS_Y=new THREE.Vector3(0,1,0),AIR_MAX=6;
 // AIR_RATE : le vol se joue PLUS VITE en temps réel — la parabole dans l'espace est identique
 // (viseur d'atterrissage + seuils de figures inchangés), mais on passe moins de temps à flotter.
+let fallVH0=-1; // (vol v6) vitesse HORIZONTALE au décollage : au-delà, la traînée de la route s'applique en vol
 let AIR_RATE=1; // base V1 (temps réel) — startFall le RE-pilote depuis 2026-07-20 : =1 sous 450 km/h affichés, puis rampe douce jusqu'au cap 1.35 (l'ancienne ère 2.3 COMPENSAIT SPD=.25 ; ici c'est un dosage de tempo, pas une compensation).
 const PARK={on:false}; // MODE FREESTYLE : le parc de figures (pas une course). Armé au menu, persiste entre les runs. Neutralise police/mort/portail.
 const PARK_VCAP=145; // PARC : plafond de vitesse (m/s ≈ 260 km/h affichés) — la nitro infinie ne DOIT PAS envoyer à 1000 km/h ingérables ; on garde une vitesse RAPIDE mais CONTRÔLABLE (sol ET air)
@@ -13120,7 +13130,7 @@ function respawn(){
   momT=0; // (momentum v2) repartir = réserve vide
   if(introD){introD=false;if(pigGroup){scene.remove(pigGroup);pigGroup=null;}} // R pendant le largage : on annule proprement
   s=THREE.MathUtils.clamp(safeS-8,0,Math.max(0,L-80));
-  lat=0;psi=0;vA=26;vL=0;side=1;driveDir=1;graceT=1.6;prevTvalid=false;yawAcc=0;hopY=0;hopV=0;mode='drive';yawR=0;slipB=0;glisse9=0;driftYaw=0;driftEnCours=false;driftC=0;driftLv=0;driftT=0;
+  lat=0;psi=0;vA=26;vL=0;side=1;driveDir=1;graceT=1.6;prevTvalid=false;yawAcc=0;hopY=0;hopV=0;mode='drive';yawR=0;slipB=0;glisse9=0;driftYaw=0;driftEnCours=false;driftC=0;driftLv=0;driftT=0;carRoll9=0;rollV=0;pitch9=0;
 }
 // FREESTYLE : on ne MEURT jamais dans le parc — on repart sur la piste. La chaîne en cours est perdue
 // (on n'a pas su reposer), mais aucune explosion, aucun game over : c'est un bac à sable de figures.
@@ -13162,13 +13172,14 @@ function checkUpgrade(){
 function startFall(impU,impF){
   FROLE.s0=null;FROLE.n=0;FROLE.t=0; // (2026-09-25) un plot SURVOLÉ n'est pas un frôlé : le balayage repart de l'atterrissage
   mode='fall';fallT=0;fallTR=0;yawAcc=0;airRoll=0; // (momentum v2) le saut ne remet plus la réserve à zéro : c'est la POSE qui juge
-  driftC=0;driftLv=0;driftEnCours=false;driftArm=0;yawR=0;slipB=0;glisse9=0;driftYaw=0; // une glisse ne survit pas au décollage (pas de mini-turbo en l'air)
+  driftC=0;driftLv=0;driftEnCours=false;driftArm=0;yawR=0;slipB=0;glisse9=0;driftYaw=0;carRoll9=0;rollV=0;pitch9=0;carBody.rotation.set(0,0,0);carBody.position.set(0,0,0); // une glisse ne survit pas au décollage (pas de mini-turbo en l'air)
   // TEMPO DE VOL ∝ VITESSE (2026-07-20, dosage DOUX sur base V1) : =1 jusqu'à 450 km/h affichés
   // (basse/moyenne vitesse : rigoureusement l'existant), puis +1 tous les 1800 km/h, CAP 1.35 —
   // loin du 2.3 de l'ancienne ère (qui compensait SPD=.25) : l'endgame TRAVERSE sa phase aérienne
   // au lieu de flotter, sans virer missile. Parabole DANS L'ESPACE, viseur, seuils de figures et
   // paiements (fallT temps-sim) INCHANGÉS — seul le temps réel du vol se compresse un peu.
-  AIR_RATE=THREE.MathUtils.clamp(1+Math.max(0,Math.abs(vA)*3.6*SPD-450)/1800,1,1.35);
+  AIR_RATE=1; // (vol v6, 2026-09-25, user : « la vitesse en airtime est trop importante proportionnellement à celle sur route ») : le vol se joue en TEMPS RÉEL, comme la route — il était compressé jusqu'à ×1,35 au-delà de 450 km/h
+  fallVH0=-1; // la vitesse horizontale de décollage se relève à la 1re image de vol (la catapulte retouche fallVel APRÈS cet appel)
   nitroAirT=0;fallUnder=false;fallStartSide=side; // SNAKE LOOP : côté de départ figé, passage dessous à prouver
   gapArmed=0; // vol ordinaire par défaut — la catapulte réarme JUSTE APRÈS cet appel
   bounceN=0;flightId++; // nouveau vol : compteur de bumps et budget d'airtime des nuages remis à zéro
@@ -13838,7 +13849,7 @@ function mkPolice(liv){
   function pool9(wid,len,zc,col,op,tex){
     const m9=new THREE.Mesh(new THREE.PlaneGeometry(wid,len),
       new THREE.MeshBasicMaterial({map:tex||poolTex,color:col,transparent:true,opacity:op,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
-    m9.rotation.x=-Math.PI/2;m9.position.set(0,.062,zc);m9.userData.noShadow=true;m9.renderOrder=2;
+    m9.rotation.x=-Math.PI/2;m9.position.set(0,.062,zc);m9.userData.noShadow=true;m9.userData.sol=1;m9.renderOrder=2;
     g.add(m9);return m9;
   }
   pool9(6.0,14.5,9.4,0xcfe0ff,.5,beamTex);pool9(4.2,4.4,-4.3,0xff2418,.22); // faisceaux blanc-bleu police + rouge AR
@@ -15730,8 +15741,15 @@ function loop(now){
             carGroup.quaternion.premultiply(qTmp); // rotation MONDE autour de la verticale de la route
           }
           // (conduite v3) LE ROULIS : la caisse s'écrase sur l'extérieur du virage — elle a du POIDS
-          carRoll9+=(THREE.MathUtils.clamp(yawR*Math.abs(vA)*SPD*.0022,-.12,.12)-carRoll9)*Math.min(1,dt*7); // (conduite v6) elle s'appuie sur l'EXTÉRIEUR, à proportion de la charge (−steer penchait vers l'intérieur)
-          if(Math.abs(carRoll9)>.002){qTmp.setFromAxisAngle(fwdW,carRoll9);carGroup.quaternion.premultiply(qTmp);}
+          // LE ROULIS (v2) : la CARROSSERIE s'écrase sur l'EXTÉRIEUR du virage, à proportion de la charge latérale (lacet × vitesse) —
+          // 6° pour un petit virage, 13-15° en plein braquage, +4° en drift. Un RESSORT (ω 14, amortissement .55) : elle plonge, dépasse
+          // à peine et se pose ; un gauche-droite la fait basculer d'un flanc sur l'autre. Les roues, elles, restent au sol.
+          {const aLat=yawR*Math.abs(vA)*SPD,d9=Math.min(dt,1/30),
+                rollT=Math.sign(aLat)*.26*(1-Math.exp(-Math.abs(aLat)/35))+(driftEnCours?Math.sign(slipB)*.07:0);
+           rollV+=((rollT-carRoll9)*196-rollV*15.4)*d9;carRoll9=THREE.MathUtils.clamp(carRoll9+rollV*d9,-.42,.42);
+           pitch9+=(((dn||driftEnCours)?.035:0)-((nitroOn||boost>0)?.03:0)-pitch9)*Math.min(1,dt*6); // plonge au frein/drift, s'accroupit à la poussée
+           const pv=carBody.userData.pivY||.45;
+           carBody.rotation.set(pitch9,0,carRoll9);carBody.position.set(pv*Math.sin(carRoll9),pv-pv*Math.cos(carRoll9),0);}
         }
         if(squashT>0){ // écrasement à l'atterrissage
           const sq=squashT/.28;squashT=Math.max(0,squashT-dt);
@@ -16018,10 +16036,16 @@ function loop(now){
           }
         }
       }
+      /* (vol v6) LE VOL VA À LA VITESSE DE LA ROUTE. En l'air il n'y avait AUCUNE traînée : la nitro (52-70, contre 30-48 au sol)
+         poussait sans limite et le temps était compressé (×1,35) — on volait nettement plus vite qu'on ne roulait. Désormais,
+         au-delà de sa vitesse horizontale de décollage, la caisse subit EXACTEMENT la traînée du bitume : la nitro y plafonne au
+         même niveau qu'au sol. Sans nitro, rien ne change (la parabole et le viseur d'atterrissage restent justes). */
+      {const hx9=Math.hypot(fallVel.x,fallVel.z);if(fallVH0<0)fallVH0=hx9;
+       if(hx9>fallVH0&&hx9>1){const dv=Math.min(hx9-fallVH0,(hx9*hx9*(acc9/(maxSp*maxSp*5.8))+hx9*.03)*dtF),f9=(hx9-dv)/hx9;fallVel.x*=f9;fallVel.z*=f9;}}
       if(PARK.on&&fallVel.lengthSq()>PARK_VCAP*PARK_VCAP)fallVel.setLength(PARK_VCAP); // PARC : la nitro infinie ne t'emballe pas non plus EN L'AIR — vol rapide mais pilotable
       fallPos.addScaledVector(fallVel,dtF*SPD);
       carGroup.position.copy(fallPos);
-      speedKmh=fallVel.length()*3.6*SPD;
+      speedKmh=Math.hypot(fallVel.x,fallVel.z)*3.6*SPD; // (vol v6) la vitesse d'AVANCE, comme sur la route — la chute verticale ne gonfle plus les filés ni le compteur
       // ---- FIGURES EN VOL : chaque exploit se nomme à la seconde où il naît ----
       {
         const halfs=Math.floor(Math.abs(yawAcc)/Math.PI); // vrilles : un cri par demi-tour de lacet
