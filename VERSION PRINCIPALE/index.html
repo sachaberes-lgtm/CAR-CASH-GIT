@@ -3094,7 +3094,7 @@ function updateContactShadow(){ // appelée juste avant le rendu
     contactShadow.scale.set(3.8,5.4,1);contactShadow.material.opacity=side<0?0.85:0.24; // (2026-09-25) 5,4×6,6 → 3,8×5,4 et .30 → .24 : une assise, plus un disquecontactShadow.visible=true; // face -1 : le blob reste seul (l'ombre réelle part dans le vide) ; dessus .30 : la shadow map ancre déjà, un blob plus noir creusait un ANNEAU dans le néon/les flaques
   }else if(mode==='fall'){
     const hgt=fallPos.y-lastNearY; // hauteur au-dessus de la route la plus proche → télégraphe d'atterrissage
-    if(hgt>0.4&&hgt<46&&lastNearH2<560){ // ...mais RIEN à survoler au-dessus d'un trou : pas d'ombre suspendue dans le vide
+    if(hgt>0.4&&hgt<46&&lastNearH2<(ROAD_HALF+1.5)*(ROAD_HALF+1.5)){ // ...mais RIEN à survoler au-dessus d'un trou : pas d'ombre suspendue dans le vide — (route ÷2) 560 = 23,7² était la demi-route ×1,7 d'AVANT : sur la route ÷2 l'ombre « tu es au-dessus du bitume » s'allumait jusqu'à 16 m dans le vide ; désormais la dalle + une demi-caisse
       contactShadow.position.set(fallPos.x,lastNearY+0.06,fallPos.z);
       contactShadow.quaternion.setFromRotationMatrix(shMat4.makeRotationX(-Math.PI/2)); // à plat
       const k=1+hgt*0.05;contactShadow.scale.set(5.4*k,6.6*k,1);
@@ -3111,7 +3111,7 @@ function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a
    AVANT chaque `buildTrack` (voir `LARGEUR`). Tout ce qui la lit le fait à l'exécution (collisions, bords,
    pickups, bots, viseur) — sauf trois géométries PARTAGÉES bâties une fois (dos d'âne, tapis et lèvre
    du tremplin) : elles sont taillées sur `ROAD_HALF0` et chaque mesh se met à l'échelle en X. */
-const ROAD_HALF0=14, THICK=2.6;
+const ROAD_HALF0=7, THICK=2.6; // (2026-09-25, user : « réduis de moitié la largeur de la route ») 14 → 7 : LARGEUR, CARR_LARG, parc ×1,4 et auto-école ×1,7 sont des MULTIPLES de ce gabarit — une ligne divise toute la route par deux, et les trois géométries partagées (dos d'âne, tapis, lèvre) se taillent dessus : leur étirement `ROAD_HALF/ROAD_HALF0` reste celui d'avant (1,1 → 1,7), donc leur marge au bord aussi (0,5 et 1 × l'étirement, en mètres)
 let ROAD_HALF=ROAD_HALF0*1.7;
 let pts=[],T=[],Nn=[],B=[],L=0,NP=0,trackMinY=-1e9; // trackMinY : plancher du monde (référence du plongeon fatal)
 /* NÉON RÉACTIF (2026-08-07) : on garde une poignée sur les matériaux des rails et de leur nappe
@@ -3686,6 +3686,12 @@ function genTuto(){
   return ctrl;
 }
 function genCtrl(rnd,startPos,startPhi){
+  /* (piste v6, 2026-09-25, user : « les pistes sont trop droites, il n'y a pas assez de virages »). MESURÉ au banc (218 pistes) :
+     31 % de la longueur tournait plus serré que R 300 m avec la 1re caisse… et 7 % avec la dernière — c'était la CAISSE qui
+     élargissait tout (LV). Or la vitesse vient désormais du MOTEUR : la caisse ne dessine plus la piste (`level` masqué ici),
+     c'est la vitesse de croisière du palier moteur qui règle l'échelle (`lvPiste`). Et les respirations ne sont plus des
+     droites : de petits virages de liaison. Résultat banc : ~51 % de la piste en virage, plus longue droite 978 → 336 m. */
+  const level=0;
   const ctrl=[];
   GAPMARK.length=0; // les lèvres de tremplin de la zone précédente ne survivent pas à la nouvelle piste
   let P=startPos.clone(),phi=startPhi,approx=0,lastLoop=-500;
@@ -3693,7 +3699,8 @@ function genCtrl(rnd,startPos,startPhi){
   const push=()=>ctrl.push(P.clone());
   push();
   const straight=(l,dy=0,n=1)=>{for(let k=0;k<n;k++){P.addScaledVector(dir(),l/n);P.y+=dy/n;push();}approx+=Math.hypot(l,dy);};
-  const arc=(aDeg,R,n,dy=0)=>{const a=aDeg*Math.PI/180,st=a/n,ch=2*R*Math.sin(Math.abs(st)/2);
+  // (piste v6) ≤ 12° par point : le Catmull-Rom tient enfin le cercle déclaré (il l'aplatissait)
+  const arc=(aDeg,R,n,dy=0)=>{n=Math.max(n,Math.ceil(Math.abs(aDeg)/12));const a=aDeg*Math.PI/180,st=a/n,ch=2*R*Math.sin(Math.abs(st)/2);
     for(let k=0;k<n;k++){phi+=st/2;P.addScaledVector(dir(),ch);P.y+=dy/n;phi+=st/2;push();}
     approx+=Math.abs(a)*R;};
   const LOOPI=new Set(); // les points des loopings : l'adoucissement des crêtes n'y touche pas (le haut d'un loop EST une crête, voulue)
@@ -3707,7 +3714,7 @@ function genCtrl(rnd,startPos,startPhi){
     approx+=2*Math.PI*R;};
   // ---- ADN DE PISTE : chaque zone tire une PERSONNALITÉ — fini le shuffle statistiquement identique ----
   // LV : la vitesse de la caisse élargit TOUS les rayons (praticable même à 1500 km/h) et allonge les respirations.
-  const LV=1+Math.min(2.6,level*.13);
+  const LV=typeof lvPiste==='function'?lvPiste():1; // l'échelle suit la VITESSE du moteur (voir lvPiste) — 1 au banc
   // poids des 13 motifs [loop,hélice,épingle,esses,vague,virage,plongeon,droite,chicane,spirale,GAP,TIRE-BOUCHON,ENTRELACS]
   const AR=[
     /* ⚠ ROUTE v2 (2026-09-25, user : « il y a trop de moments où la route est courbée et où on roule sans savoir où on
@@ -3732,7 +3739,7 @@ function genCtrl(rnd,startPos,startPhi){
   const W=AR.w.map(v=>v*(0.35+rnd()*1.7));
   const wsum=W.reduce((a,b)=>a+b,0);
   const pick=()=>{let x=rnd()*wsum;for(let k=0;k<13;k++){x-=W[k];if(x<0)return k;}return 5;};
-  const LEN=7200*(1+Math.min(1.1,level*.07)); // zones plus longues à haute vitesse (sinon 13 s et portail)
+  const LEN=7200*(1+Math.min(1.5,(LV-1)*.55)); // zones plus longues à haute vitesse (sinon 13 s et portail)
   // ---- LE GAP CATAPULTE : le grand geste du générateur — RARE, et il y a un VRAI TROU ----
   // Tout est COLINÉAIRE : la route d'en face est droit devant, on lit la promesse d'un coup d'œil
   // (condition non négociable pour que ça marche à 1200 km/h). La recette, dans l'ordre :
@@ -3778,7 +3785,7 @@ function genCtrl(rnd,startPos,startPhi){
     straight(150+rnd()*60,-12,2); // DÉGAGEMENT : on respire, on relance
     lastGap=approx;
   };
-  straight(170+level*14,-105,2); // DÉPART : grande ligne droite, rallongée avec la vitesse
+  straight(110*LV,-70*LV,2); // DÉPART : ligne droite, rallongée avec la vitesse (était 170 m + la caisse)
   while(approx<LEN){
     const mo=pick();
     if(mo===0&&approx-lastLoop>220){ // looping (superposition verticale)
@@ -3810,8 +3817,8 @@ function genCtrl(rnd,startPos,startPhi){
       const sg=sgn(),a3=25+rnd()*50,R3=(90+rnd()*80)*RS;
       arc(sg*a3,R3,2,-(a3*Math.PI/180*R3*.8));
     }else if(mo===7){ // ligne droite à 45° (zone de momentum)
-      const l=(100+rnd()*130)*(1+level*.04);
-      straight(l,-l*(.75+rnd()*.3),2);
+      const l=(100+rnd()*130)*LV;
+      {const a7=12+rnd()*16;arc(sgn()*a7,l/(a7*Math.PI/180),3,-l*(.75+rnd()*.3));} // (piste v6) la ligne de momentum se CINTRE : une longue courbe, plus une règle
     }else if(mo===8){ // chicane rapide : gauche-droite-gauche à pleine vitesse
       const n8=3+Math.floor(rnd()*3),a8=16+rnd()*14,R8=(70+rnd()*90)*RS;let sg8=sgn();
       for(let q=0;q<n8;q++){arc(sg8*a8,R8,2,-(a8*Math.PI/180*R8*.5));sg8=-sg8;}
@@ -3845,7 +3852,7 @@ function genCtrl(rnd,startPos,startPhi){
     }
     // RESPIRATION entre motifs : plus RARE et plus COURTE (.6→.42). C'était l'autre raison du
     // « tout se ressemble » : le liant entre deux motifs était TOUJOURS le même bout de droite.
-    straight(70+rnd()*60+level*7,-(16+rnd()*14),2); // (route v2) TOUJOURS une vraie droite entre deux motifs : on voit ce qui arrive
+    straight(0,0,0);{const l9=(35+rnd()*35)*LV,a9=8+rnd()*14;arc(sgn()*a9,l9/(a9*Math.PI/180),2,-(8+rnd()*8)*LV);} // (piste v6) la RESPIRATION est un petit virage de liaison (35-70 m, 8-22°), plus une droite de 70-190 m
   }
   // SIGNATURE DE FIN : chaque archétype clôt SA zone par SON geste — la zone se retient
   if(AR.nm==='VOLTIGE'){straight(50,-46);loop(34*LOOPS,34);straight(40,-40);loop(28*LOOPS,26);}
@@ -3853,7 +3860,7 @@ function genCtrl(rnd,startPos,startPhi){
   else if(AR.nm==='FLOW'){arc(sgn()*110,220*Math.min(2,LV),6,-160);}
   else if(AR.nm==='TECH'){let sgF=sgn();for(let q=0;q<3;q++){arc(sgF*24,90*RS,2,-26);sgF=-sgF;}}
   else{const sg=sgn();arc(sg*420,80*RS,12,-(420*Math.PI/180*80*RS*.5));}
-  straight(150+level*12,-90,2); // ARRIVÉE : ligne droite claire vers le portail
+  straight(110*LV,-66*LV,2); // ARRIVÉE : ligne droite claire vers le portail
   adoucirCretes(ctrl,LOOPI);    // plus de crête AVEUGLE (voir la fonction)
   return ctrl;
 }
@@ -4200,7 +4207,7 @@ function buildTrack(seed){
     if(inGap(sp))continue; // la course d'élan garde son SEUL boost, celui qu'on a posé volontairement
     // (2026-09-25) LE PAD EST UNE CIBLE : il vit sur une VOIE (gauche / axe / droite), déduite de sp — zéro rnd() consommé, la
     // génération en aval ne bouge pas. Avant, il se déclenchait sur toute la largeur : un turbo reçu sans rien faire.
-    const pl=[0,-1,1][Math.floor(sp*.0071)%3]*ROAD_HALF*.45;
+    const pl=[0,-1,1][Math.floor(sp*.0071)%3]*Math.min(ROAD_HALF-2.95,Math.max(4.6,ROAD_HALF*.45)); // (route ÷2) la fenêtre de prise fait 4,1 (pad 2,75 + caisse) : à 0,45×ROAD_HALF la voie de côté tombait à 3,5 m au plancher, et rouler AU CENTRE raflait tous les pads — voie ≥ 4,6 m, et ≤ bord − 2,95 : le pad reste entier sur la dalle
     PADS.push(sp);PADL.push(pl);
     for(const fy of [1,-1]){
       frameAt(sp,F);
@@ -4271,7 +4278,7 @@ function buildTrack(seed){
   // chaque GROUPE de plots existe sur LES DEUX faces (même chantier) — intervalle doublé : densité par face inchangée
   for(let sp=300+rnd()*220;sp<L-170;sp+=340+rnd()*520){
     const slal=rnd()<.55;                                     // le tirage tombe D'ABORD : le flux rnd ne dépend jamais du filtre gap
-    const w9=slal?3.5+rnd()*4.5:0,sd9=slal?0:(rnd()<.5?-1:1); // exactement 2 tirages par tour, comme avant
+    const w9=slal?Math.min(3.5+rnd()*4.5,ROAD_HALF-1.3):0,sd9=slal?0:(rnd()<.5?-1:1); // exactement 2 tirages par tour, comme avant — (route ÷2) écart plafonné à la ligne de bord (ROAD_HALF−1,3, celle des plots de chantier) : au plancher (7,7) un plot à 8 m flottait dans le vide
     if(inGap(sp))continue;                                    // couloir du tremplin : nu
     if(slal)for(const fc of [1,-1])for(let k=0;k<3;k++)placeCone(sp+k*15,(k%2?-1:1)*w9,fc);      // slalom en quinconce au milieu
     else for(const fc of [1,-1])for(let k=0;k<4;k++)placeCone(sp+k*7.5,sd9*(ROAD_HALF-1.3),fc); // ligne de chantier le long d'un bord
@@ -4661,7 +4668,7 @@ const rampTex=(function(){
 const rampStripGeo=new THREE.PlaneGeometry(ROAD_HALF0*2-2,64); // tapis de chevrons sur la course d'élan
 const rampLipGeo=new THREE.BoxGeometry(ROAD_HALF0*2-2,.55,5);  // LA LÈVRE : franche, on la sent claquer
 const rampLipMat=new THREE.MeshLambertMaterial({color:0xffb028,emissive:0x6a3400}); // braise chaude : jamais confondue avec un dos d'âne
-const landRingGeo=new THREE.RingGeometry(8.5,11.5,32);        // anneau de visée sur la route d'arrivée
+const landRingGeo=new THREE.RingGeometry(4.25,5.75,32);       // anneau de visée sur la route d'arrivée — (route ÷2) moitié aussi : 11,5 m de rayon débordait d'une demi-route de 7,7
 let sOffset=0;
 
 // ---------- VOITURES & ÉCONOMIE ----------
@@ -5301,8 +5308,8 @@ const LVL={cur:null,n:0,k:1,dur:4,
   pluie:0,pluieDe:0,pluieA:0,          // opacité du rideau de pluie (niveau VILLE)
   route:0,routeDe:0,routeA:0,sheen:.1,sheenDe:.1,sheenA:.1, // bitume v2 : clarté et brillance d'horizon du niveau (routeTick)
   dir:PLANET_DIR.clone(),tmp:new THREE.Vector3(),tmp2:new THREE.Vector3(),haut:new THREE.Vector3(0,1,0)};
-// LA LARGEUR PAR NIVEAU (× ROAD_HALF0 = 14) : très large pour apprendre, puis la route se resserre à chaque
-// portail jusqu'à un plancher qui reste plus large que l'ancienne route. Une nouvelle partie repart au niveau 1.
+// LA LARGEUR PAR NIVEAU (× ROAD_HALF0 = 7) : large pour apprendre (23,8 m), puis la route se resserre à chaque
+// portail jusqu'au plancher ×1,1 (15,4 m) — la MOITIÉ de la route d'avant le 2026-09-25. Une nouvelle partie repart au niveau 1.
 const LARGEUR=[1.7,1.55,1.4,1.25,1.1];
 function lvlChoisir(){ // appelé par newTrack AVANT buildTrack
   const z=runStats.zones|0;
@@ -7373,7 +7380,7 @@ function engVigRender(dt){
 buildCar(CARS[0]);
 window.dbgCar=function(i){buildCar(CARS[Math.max(0,Math.min(CARS.length-1,i|0))]);}; // console : dbgCar(16) → prévisualiser un gabarit sans farmer les milliards (visuel pur, ne touche pas au niveau)
 window.dbgScene=function(){return {car:carGroup,scene:scene,contact:contactShadow,shadow:shadow};}; // dissection console (visuel pur)
-window.dbgState=function(){return {started:started,running:running,paused:paused,gameOver:gameOver,mode:mode,
+window.dbgState=function(){return {started:started,running:running,paused:paused,gameOver:gameOver,mode:mode,psi:+psi.toFixed(4),yawR:+yawR.toFixed(4),slipB:+slipB.toFixed(4),glisse:+glisse9.toFixed(3),drift:driftEnCours,driftLv:driftLv,graceT:+graceT.toFixed(2),
   /* flux des PIÈCES : sans ces trois-là, régler leur arrivée se fait à l'aveugle */
   engTier:engTier,coinsGot:coinsGot,prochainPalier:(ENGINE_TIERS[engTier+1]||{}).coins||null,
   steer:+steer.toFixed(3),airRoll:+airRoll.toFixed(3),
@@ -12423,7 +12430,7 @@ const PARK={on:false}; // MODE FREESTYLE : le parc de figures (pas une course). 
 const PARK_VCAP=145; // PARC : plafond de vitesse (m/s ≈ 260 km/h affichés) — la nitro infinie ne DOIT PAS envoyer à 1000 km/h ingérables ; on garde une vitesse RAPIDE mais CONTRÔLABLE (sol ET air)
 const SPD=0.48; // +20 % (2026-09-25, user : « augmente la vitesse global du jeu et des voitures de 20 % ») — 0.4 × 1,2 ; il venait de −20 % (0.5 → 0.4) le matin même —  // vitesse globale du jeu — RESTAURÉ à la valeur V1 (2026-07-19) : le ÷2 « trop rapide dès le début » tuait le fun nerveux/arcade de la V1 ; le user tranche pour la V1. SPD scale TOUT : avance joueur/bots, chute, viseur ET compteur (donc les km/h affichés DOUBLENT — seuils de sensation ABSOLUS ajustés en conséquence, les systèmes RELATIFS via vmaxShow s'ajustent seuls)
 const FVISEE={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()}; // le point de la route que la caméra regarde (route v2)
-const ASSIST_VIRAGE=.78; // part du virage de la route que la caisse suit TOUTE SEULE (voir la conduite v2)
+const ASSIST_VIRAGE=0; // (conduite v6) ZÉRO : la caisse ne suit plus la route toute seule — c'était l'« aimant » (elle prenait 78 % de chaque virage, 99,5 % avec le cap visé)
 const TURN_HS=.0035; // pénalité de braquage à haute vitesse (avant .008 — plus petit = virages plus faciles)
 /* (conduite v4, 2026-09-25) LE CAP VISÉ — user : « le système de conduite sur route est plutôt nul, on est toujours vachement
    aimanté au centre de la route ». MESURÉ (banc scratchpad/volant/sim.js) : il n'y avait AUCUN aimant de position, mais un
@@ -12437,13 +12444,31 @@ const CAP_K=12;              // vitesse à laquelle la caisse PREND le cap visé
 const CAP_V0=20,CAP_V1=.08;  // vitesse LATÉRALE plein pouce (m/s monde) = 20 + 8 % de l'avance : 23 m/s à 145 km/h, 33 m/s à 590
 const CAP_DRIFT=1.4;         // en drift le cap visé s'ouvre de 40 % : la caisse pivote plus fort (et charge son mini-turbo)
 const CAP_YAW=1.6,CAP_RET=2; // plafond de lacet (× le gain historique, TURN_HS compris) ; ×2 quand le cap REVIENT : lâcher = filer droit tout de suite
-function capVise(v){const vw=Math.max(6,Math.abs(v)*SPD);return Math.asin(Math.min(.9,(CAP_V0+CAP_V1*vw)/vw));} // cap plein pouce (rad, relatif à la route)
-const AIR_ASSIST=.2; // aide au recentrage en vol (0 = off), monte avec la vitesse — ÷5 (2026-09-25, user : « un effet qui t'attire vers le centre de la route, trop puissant, baisse-le au point qu'il ne soit plus remarquable ») : à 1,0 un ressort de 0,7·écart m/s² ramenait la caisse sur l'axe en plein vol ; il reste un filet qu'on ne sent plus
+function capVise(v){const vw=Math.max(6,Math.abs(v)*SPD);return Math.asin(Math.min(.9,(CAP_V0+CAP_V1*vw)/vw));} // cap plein pouce (rad, relatif à la route) — ne sert plus qu'au pilote de mesure dbgAuto
+/* (conduite v6, 2026-09-25 soir) LE POUCE FAIT TOURNER LA CAISSE. User : « il y a un centrage automatique : quand je ne touche à
+   rien, je reste quand même sur la route ». MESURÉ (banc v6/conduite/diag) : pouce lâché, la caisse prenait 99,5 % de chaque virage
+   (78 % par ASSIST_VIRAGE, 21,5 % par le cap visé qui se réalignait sur la ROUTE) — elle ne tombait dans aucun virage testé. Le cap
+   visé était relatif à la route : lâcher = se remettre dans l'axe = l'aimant. DÉSORMAIS le pouce commande une VITESSE DE LACET
+   (comme un volant) : pouce lâché, la caisse garde son cap dans le MONDE et file tout droit — dans un virage, elle sort si on ne
+   tourne pas. `lacetMax(v)` = lacet plein pouce = v / rayon mini, le rayon mini grandit avec la vitesse (61 m à 250 km/h, 100 m à
+   720) ; VOL_TAU = l'inertie de la caisse (elle met 0,1 s à prendre son lacet : elle PÈSE). Banc (pilote réaction 150 ms, route ÷2,
+   virages mis à l'échelle par `lvPiste`) : 0 sortie/km jusqu'au palier 10 sans nitro, pouce moyen 20-26 %, et pouce lâché dans un
+   R 150 → dehors en 1,2 s. La glisse n'existe plus qu'en DRIFT VOLONTAIRE (pouce tiré vers le bas / ↓) : le nez tourne plus que la
+   trajectoire (`slipB`, jusqu'à ~20°) — une vraie glisse, qui se voit ET se conduit. */
+const VOL_R0=40,VOL_RK=.3,VOL_TAU=.1;
+function lacetMax(v){const vw=Math.max(8,Math.abs(v)*SPD);return vw/(VOL_R0+VOL_RK*vw);} // rad/s au plein pouce
+let yawR=0,slipB=0,glisse9=0,routeLacet=0; // lacet courant · angle de glisse (drift) · glisse ressentie (fumée, crissement)
+const AIR_ASSIST=0; // (conduite v6) règle n°1 : aucun recentrage, en vol non plus — était .2 ; // aide au recentrage en vol (0 = off), monte avec la vitesse — ÷5 (2026-09-25, user : « un effet qui t'attire vers le centre de la route, trop puissant, baisse-le au point qu'il ne soit plus remarquable ») : à 1,0 un ressort de 0,7·écart m/s² ramenait la caisse sur l'axe en plein vol ; il reste un filet qu'on ne sent plus
 const CAM_SHAKE_V=.45; // intensité du tremblement caméra lié à la vitesse (position + roulis) — .78→.45 : un frémissement, plus un séisme (user : « c'est trop »)
 // OVERDRIVE : il suivait le NIVEAU DE CAISSE (+8 %/niveau à partir du 6e). Depuis que la caisse est
 // équipée au choix, ça revenait à vendre de la vitesse au garage. Il suit désormais le PALIER MOTEUR,
 // calé pour que le sommet donne exactement le même +50 % qu'avant (palier 22 sur 30 et au-delà).
 function lateMul(){return 1+Math.min(.5,Math.max(0,engTier-8)*.035);}
+/* (piste v6) L'ÉCHELLE DES VIRAGES suit la VITESSE : croisière (momentum compris ≈ 2,75 × maxSp) du palier moteur +2 (on monte
+   pendant la zone). 70 m/s (253 km/h) → 1 ; 132 m/s → 1,6 ; 290 m/s → 3,2 ; plafond 4,4. Sans aide au virage (conduite v6), un
+   rayon fixe devenait infaisable à 1000 km/h sur une route de 24 m : les virages grandissent, leur NOMBRE par minute reste. */
+function lvPiste(){const t=Math.min(ENGINE_TIERS.length-1,(engTier|0)+2),late=1+Math.min(.5,Math.max(0,t-8)*.035),
+  vw=2.75*CARS[0].maxKmh/3.6*late*ENGINE_TIERS[t].push*SPD;return 1+THREE.MathUtils.clamp((vw-70)/140*1.4,0,3.4);}
 // vitesse max AFFICHÉE — la sensation de vitesse (tremblement, filés, FOV) se juge RELATIVE à elle.
 // ⚠ elle doit décrire la vitesse RÉELLEMENT atteignable : lire CARS[level].maxKmh (la fiche de la
 // carrosserie, jusqu'à 1900) alors que la caisse plafonne en vrai à CARS[0]×moteur donnait un ratio
@@ -13095,7 +13120,7 @@ function respawn(){
   momT=0; // (momentum v2) repartir = réserve vide
   if(introD){introD=false;if(pigGroup){scene.remove(pigGroup);pigGroup=null;}} // R pendant le largage : on annule proprement
   s=THREE.MathUtils.clamp(safeS-8,0,Math.max(0,L-80));
-  lat=0;psi=0;vA=26;vL=0;side=1;driveDir=1;graceT=1.6;prevTvalid=false;yawAcc=0;hopY=0;hopV=0;mode='drive';
+  lat=0;psi=0;vA=26;vL=0;side=1;driveDir=1;graceT=1.6;prevTvalid=false;yawAcc=0;hopY=0;hopV=0;mode='drive';yawR=0;slipB=0;glisse9=0;driftYaw=0;driftEnCours=false;driftC=0;driftLv=0;driftT=0;
 }
 // FREESTYLE : on ne MEURT jamais dans le parc — on repart sur la piste. La chaîne en cours est perdue
 // (on n'a pas su reposer), mais aucune explosion, aucun game over : c'est un bac à sable de figures.
@@ -13137,7 +13162,7 @@ function checkUpgrade(){
 function startFall(impU,impF){
   FROLE.s0=null;FROLE.n=0;FROLE.t=0; // (2026-09-25) un plot SURVOLÉ n'est pas un frôlé : le balayage repart de l'atterrissage
   mode='fall';fallT=0;fallTR=0;yawAcc=0;airRoll=0; // (momentum v2) le saut ne remet plus la réserve à zéro : c'est la POSE qui juge
-  driftC=0;driftLv=0;driftEnCours=false;driftArm=0; // une glisse ne survit pas au décollage (pas de mini-turbo en l'air)
+  driftC=0;driftLv=0;driftEnCours=false;driftArm=0;yawR=0;slipB=0;glisse9=0;driftYaw=0; // une glisse ne survit pas au décollage (pas de mini-turbo en l'air)
   // TEMPO DE VOL ∝ VITESSE (2026-07-20, dosage DOUX sur base V1) : =1 jusqu'à 450 km/h affichés
   // (basse/moyenne vitesse : rigoureusement l'existant), puis +1 tous les 1800 km/h, CAP 1.35 —
   // loin du 2.3 de l'ancienne ère (qui compensait SPD=.25) : l'endgame TRAVERSE sa phase aérienne
@@ -13249,7 +13274,7 @@ function tryLand(dt){
   side=sideL;lat=THREE.MathUtils.clamp(latOff,-ROAD_HALF+.6,ROAD_HALF-.6)*sideL;
   // RÉCEPTION EN GLISSE : la caisse se pose de travers et rattrape — petit drift au lieu d'un psi=0 sec
   {const vTan=fallVel.dot(T[bestI]),vLat=fallVel.dot(B[bestI])*sideL;
-   psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+6)*.85,-.62,.62);
+   psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+6)*.6,-.4,.4);yawR=0;slipB=0;driftYaw=0; // (conduite v6) les roues MORDENT à la pose : le travers du vol est en partie absorbé (plus de réalignement ensuite : à toi de jouer)
    driftT=Math.max(driftT,Math.min(1,.45+Math.abs(psi)));} // …et la fumée/le crissement suivent tout seuls
   vA=fallVel.dot(T[bestI]);vL=fallVel.dot(B[bestI])*.4*sideL;
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1; // PARC : on repart dans le sens d'atterrissage (les deux directions roulent) ; COURSE : toujours vers l'avant
@@ -13396,7 +13421,7 @@ function resetGame(){
   nitroR=2;nitroX=0;boost=0;combo=0;edgeT=0;momT=0;styleM=0;fever=0;streak=0;slowT=0;gameOver=false;paused=false;insUsed=false;feverArmed=false;rollover=0;idleT=0;driftT=0;driftYaw=0;
   coinsGot=0;engTier=0;engSwapT=0; // le moteur se remonte à chaque run (c'est la progression DE LA PARTIE)
   pwrNitroT=0;pwrAirT=0;pwrSpdT=0;
-  driftC=0;driftLv=0;driftEnCours=false;raseT=0;raseAnn=false;FROLE.n=0;FROLE.t=0;FROLE.s0=null; // (2026-09-25) une glisse ne survit pas à la partie (sinon MINI-TURBO fantôme au départ)
+  driftC=0;driftLv=0;driftEnCours=false;raseT=0;raseAnn=false;yawR=0;slipB=0;glisse9=0;driftYaw=0;FROLE.n=0;FROLE.t=0;FROLE.s0=null; // (2026-09-25) une glisse ne survit pas à la partie (sinon MINI-TURBO fantôme au départ)
   nextRainAt=4e3;moneyRainT=0;sideCd=0;slipT=0;oilCd=0;
   nitroAirT=0;fallUnder=false;pureT=0;pureArmed=true;gapArmed=0;rampCd=0;annStop();deathStop();fxStop(); // la mort précédente se tait : on repart, elle n'a plus rien à dire
   auraRun=0;auraPop=0;auraFlash=0;figCombo=0;figComboT=0;figComboAura=0;pureNext=0;pureLvl=0; // l'aura de la partie repart de zéro — la banque et le total à vie, eux, restent
@@ -15370,7 +15395,7 @@ function loop(now){
     if(keys.KeyR&&mode==='drive'){respawn();keys.KeyR=false;}
     // PILOTE AUTO DE MESURE (`dbgAuto`) : le volant du bot de poursuite (mêmes équations) posé sur TA caisse —
     // sert à mesurer l'économie sur des dizaines de parties sans jouer à la main. Jamais armé en jeu.
-    const target=DBG_AUTO.on?THREE.MathUtils.clamp(THREE.MathUtils.clamp((DBG_AUTO.lat-lat)/(Math.max(6,Math.abs(vA)*SPD)*.9),-.62,.62)/capVise(vA),-1,1) // (conduite v4) le pilote de mesure VISE un cap
+    const target=DBG_AUTO.on?THREE.MathUtils.clamp((routeLacet+(THREE.MathUtils.clamp((DBG_AUTO.lat-lat)/(Math.max(6,Math.abs(vA)*SPD)*.9),-.4,.4)-psi)*3)/lacetMax(vA),-1,1) // (conduite v6) le pilote de mesure corrige son CAP vers la ligne visée // (conduite v4) le pilote de mesure VISE un cap
       :TCTL.act?TCTL.st:(lf?1:0)-(rt?1:0); // VOLANT TACTILE : le pouce prend la main sur le tout-ou-rien (même lissage derrière)
     steer+=(target-steer)*Math.min(1,dt*18);
     graceT=Math.max(0,graceT-dt);
@@ -15397,17 +15422,17 @@ function loop(now){
         /* ⚠ LA CONDUITE v2 (2026-09-25, user : « retravaille la conduite, il faut que ce soit plus fun et cool »).
            AVANT : tout le virage de la route était reporté sur le cap de la caisse (`psi -= dyaw`) — dans CHAQUE courbe il
            fallait contre-braquer en continu, sinon on filait au bord et on tombait ; conduire, c'était corriger la route.
-           MAINTENANT : la caisse SUIT la route à 78 % (`ASSIST_VIRAGE`) ; le joueur ne gère plus que ses TRAJECTOIRES
-           (changer de ligne, viser une pièce, se lancer au bord pour voler). Il reste 22 % du virage à accompagner :
-           la route se sent encore dans les mains, elle ne se subit plus. */
-        psi=THREE.MathUtils.clamp(psi-dyaw*(1-ASSIST_VIRAGE),-1.4,1.4);
+           La v2 faisait suivre 78 % du virage à la caisse (`ASSIST_VIRAGE`) — (conduite v6) REVENU À ZÉRO : c'était l'aimant
+           (« quand je ne touche à rien je reste quand même sur la route »). La route tourne SOUS la caisse ; c'est le pouce qui
+           prend le virage — et `lacetMax` + des virages à l'échelle de la vitesse (`lvPiste`) le rendent faisable. */
+        psi=THREE.MathUtils.clamp(psi-dyaw*(1-ASSIST_VIRAGE),-1.4,1.4);routeLacet=dt>0?dyaw/dt:0; // (le pilote de mesure s'en sert pour anticiper)
       }
       prevTv.copy(F.t);prevTvalid=true;
       // MOMENTUM : tenir la ligne droite fait monter la puissance en exponentiel
       // MOMENTUM v2 (2026-09-25) : tenir sa ligne REMPLIT la réserve, manœuvrer la GÈLE (frôlé, slalom, pièce visée ne coûtent plus rien —
       // avant, un slalom de frôlés coûtait jusqu'à 38 % de vitesse) ; seuls la glisse, le gros coup de volant et le pied levé la VIDENT.
       // Plafond 4,3 s = saturation de momF : plus de braquage « en banque ».
-      if(up&&!driftEnCours&&Math.abs(psi)<.6){if(Math.abs(steer)<.2&&Math.abs(psi)<.25)momT=Math.min(4.3,momT+dt);}
+      if(up&&!driftEnCours&&Math.abs(psi)<.6){if(Math.abs(psi)<.25)momT=Math.min(4.3,momT+dt);} // (conduite v6) tenir sa ligne DANS un virage compte aussi (on y braque forcément : le pouce ne gèle plus la réserve)
       else momT=Math.max(0,momT-dt*2);
       const momF=1+Math.min(1.8,momT*momT*.1);
       let a=0;
@@ -15429,22 +15454,26 @@ function loop(now){
       // (conduite v3) HYSTÉRÉSIS : on ENTRE en drift à 0,85 de braquage (ou pouce tiré), on n'en SORT que sous 0,45 — il ne clignote plus
       // (2026-09-25) le braquage À FOND doit être TENU 0,12 s pour décrocher : un grand glissé de changement de ligne ne part plus
       // en drift (ni au vide). Le geste du frein (pouce tiré vers le bas, ↓) décroche tout de suite.
-      const veut9=!introD&&!PARK.on&&vitOk&&(Math.abs(steer)>.85||((tireBas||dn)&&Math.abs(steer)>.6));
+      // (conduite v6) UNIQUEMENT le geste : pouce tiré vers le bas (↓ au clavier) EN braquant. Braquer fort ne décroche plus tout
+      // seul (mesuré : 16 drifts involontaires par minute, 0 mini-turbo). On en sort en relâchant le geste.
+      const veut9=!introD&&!PARK.on&&vitOk&&(tireBas||dn)&&Math.abs(steer)>.35;
       driftArm=veut9?driftArm+dt:0;
-      if(veut9&&(driftArm>.12||tireBas||dn))driftEnCours=true;
-      else if(!vitOk||Math.abs(steer)<.45)driftEnCours=false;
+      if(veut9)driftEnCours=true;
+      else if(!vitOk||!(tireBas||dn)||Math.abs(steer)<.2)driftEnCours=false;
       const drifte=driftEnCours;
-      // réponse IMMÉDIATE (était une rampe de 0,3 s qui rendait le premier coup de volant mou) · en drift la caisse pivote plus
-      // (conduite v4) LE CAP VISÉ (voir CAP_K) : la caisse REJOINT le cap que demande le pouce, plafonnée en lacet. Plus de ressort
-      // qui ramenait le nez dans l'axe : pouce lâché = cap nul = on file droit sur SA ligne. Réception en glisse (driftT) : on
-      // rattrape son travers en douceur, comme avant ; flaque : la direction ne mord presque plus.
-      {const glisse=driftT>0,
-            psiT=steer*capVise(vA)*(drifte?CAP_DRIFT:1)*THREE.MathUtils.clamp(vA/8,-1,1),
-            yawM=spec.turn*.75*CAP_YAW*(.82+.18*(steerHold/.3))/(1+Math.abs(vA)*TURN_HS)*(dn||drifte?1.28:1)*(Math.abs(psiT)<Math.abs(psi)&&!glisse?CAP_RET:1);
-       psi+=THREE.MathUtils.clamp((psiT-psi)*(1-Math.exp(-CAP_K*(glisse?.25:1)*dt)),-yawM*dt,yawM*dt)*(slipT>0?.18:1);}
+      // (conduite v6) LE POUCE FAIT TOURNER (voir lacetMax) : il commande un LACET, la caisse le prend en VOL_TAU ; lâché, le lacet
+      // retombe à 0 et le cap reste figé dans le monde. En DRIFT : la TRAJECTOIRE tourne 15 % plus serré, et le NEZ pivote en plus
+      // (slipB, jusqu'à 24°) — ⚠ la glisse s'AJOUTE au nez, elle ne se retire pas de la trajectoire : sinon, le temps qu'elle
+      // s'installe, la caisse partait tout droit (mesuré : décrochée à 1,4 rad/s, elle ne tournait plus du tout pendant 0,2 s).
+      {const rT=steer*lacetMax(vA)*(drifte?1.15:1)*THREE.MathUtils.clamp(vA/8,-1,1)*(slipT>0?.18:1); // flaque : la direction ne mord presque plus
+       yawR+=(rT-yawR)*(1-Math.exp(-dt/VOL_TAU));
+       const b0=slipB,bT=drifte?Math.sign(steer)*.42*Math.min(1,Math.abs(steer)):0;
+       slipB+=(bT-slipB)*(1-Math.exp(-dt*(drifte?4:6)));
+       psi+=yawR*dt+(slipB-b0); // le nez = la trajectoire + la glisse
+       glisse9=THREE.MathUtils.clamp(Math.abs(slipB)*2.6+driftT*.5+Math.max(0,Math.abs(yawR*vA)*SPD-45)/90,0,1)*Math.min(1,Math.abs(vA)/35);}
       driftTick(dt,drifte);
       // (conduite v3) RASE-BORD : frôler le vide à pleine vitesse RECHARGE le nitro — le risque paie
-      if(!introD&&!PARK.on&&Math.abs(lat)>ROAD_HALF*.8&&Math.abs(vA)>maxSp*.5){raseT+=dt;nitroGain(.22*dt);flowAdd(11*dt);
+      if(!introD&&!PARK.on&&Math.abs(lat)>ROAD_HALF-2.4&&Math.abs(vA)>maxSp*.5){raseT+=dt;nitroGain(.22*dt);flowAdd(11*dt); // (route ÷2) bande ABSOLUE de 2,4 m : le vide se mesure à la roue, pas en % de route — à ×0,8 elle tombait à 1,5 m au plancher
         if(raseT>.6&&!raseAnn){raseAnn=true;popTexte('RASE-BORD','#7dffec');hap(12);try{addAura(30,'RASE-BORD');}catch(e){}}
         if(Math.random()<dt*14){DRIFT_V.set(Math.sign(lat)*CARS[level].w*.5,.1,-.3);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkBlue,DRIFT_V,1,4);}}
       else{raseT=0;raseAnn=false;}
@@ -15458,11 +15487,11 @@ function loop(now){
       // (la RÉCEPTION EN GLISSE à l'atterrissage, elle, reste — c'est un effet ponctuel bien visible)
       driftT=Math.max(0,driftT-dt*2.2); // retombe après un atterrissage en travers
       psi=THREE.MathUtils.clamp(psi,-1.4,1.4);
-      vL=vA*Math.sin(psi);
+      vL=vA*Math.sin(psi-slipB); // la TRAJECTOIRE : le cap moins la glisse (0 hors drift)
       const spdMult=pwrSpdT>0?1.6:1; // SPEED UP : le sol défile +60% plus vite, sans casser la physique
       lat+=vL*driveDir*dt*SPD*spdMult;
       const sPrev9=s; // ⚠ mémorisé AVANT l'avance : les tremplins se testent sur le SEGMENT parcouru, pas sur un point
-      s+=vA*Math.cos(psi)*driveDir*dt*SPD*spdMult; // avance le long du ruban dans le SENS de conduite (parc : avant OU arrière)
+      s+=vA*Math.cos(psi-slipB)*driveDir*dt*SPD*spdMult; // avance le long du ruban dans le SENS de conduite (parc : avant OU arrière)
       const vF=vA;
       boost=Math.max(0,boost-dt);
       speedKmh=Math.abs(vF)*3.6*SPD*spdMult;
@@ -15637,7 +15666,7 @@ function loop(now){
           if(p.air)continue;                        // les grappes du CIEL ne s'attrapent qu'en vol
           // CAPACITÉ MOTEUR (V12 atmosphérique) : L'AIMANT À PIÈCES — elles viennent à toi de bien plus
           // loin, et plus vite. Sans lui, on garde l'attraction d'origine, discrète.
-          if(ds9<15+mag*2&&Math.abs(p.lat-side*lat)<7+level*.4+mag*2)
+          if(ds9<15+mag*2&&Math.abs(p.lat-side*lat)<3.5+level*.2+mag) // (route ÷2) la portée LATÉRALE se divise avec la route : à 7 m (+0,4/caisse) elle couvrait toute une demi-route de 7,7 — le zigzag « il FAUT slalomer » ne demandait plus rien
             p.mesh.position.lerp(carGroup.position,Math.min(1,dt*(4.5+level*.3+mag*1.5)));
         }
         if(p.mesh.position.distanceTo(carGroup.position)<2.7+level*.2+mag*.5){
@@ -15694,14 +15723,14 @@ function loop(now){
         // mobile compris — mais on VOIT enfin la caisse glisser en crabe, contre-braquée.
         {
           const tdKmh=Math.abs(vA)*3.6*SPD;
-          const tdWant=((nitroOn&&Math.abs(target)>.25&&tdKmh>120)||driftC>0)?target*(.42+Math.min(.28,tdKmh/2600))*(driftC>0?1.25:1):0; // + le DRIFT mini-turbo : la caisse se met en crabe, plus fort
+          const tdWant=0; // (conduite v6) RETIRÉ : le « Tokyo drift » faisait pivoter l'image jusqu'à 38° sans changer la trajectoire — c'était « la voiture glisse ». La vraie glisse vit dans slipB (drift volontaire)
           driftYaw+=(tdWant-driftYaw)*Math.min(1,dt*(Math.abs(tdWant)>Math.abs(driftYaw)?5:3.2)); // départ franc, rattrapage plus doux
           if(Math.abs(driftYaw)>.003){
             qTmp.setFromAxisAngle(F.n,driftYaw);
             carGroup.quaternion.premultiply(qTmp); // rotation MONDE autour de la verticale de la route
           }
           // (conduite v3) LE ROULIS : la caisse s'écrase sur l'extérieur du virage — elle a du POIDS
-          carRoll9+=((-steer*.09*Math.min(1,tdKmh/200))-carRoll9)*Math.min(1,dt*7);
+          carRoll9+=(THREE.MathUtils.clamp(yawR*Math.abs(vA)*SPD*.0022,-.12,.12)-carRoll9)*Math.min(1,dt*7); // (conduite v6) elle s'appuie sur l'EXTÉRIEUR, à proportion de la charge (−steer penchait vers l'intérieur)
           if(Math.abs(carRoll9)>.002){qTmp.setFromAxisAngle(fwdW,carRoll9);carGroup.quaternion.premultiply(qTmp);}
         }
         if(squashT>0){ // écrasement à l'atterrissage
@@ -15717,7 +15746,7 @@ function loop(now){
         shadow.scale.setScalar(1);
         // fumée de gomme : SEULEMENT quand ça glisse (même zone morte que le crissement) —
         // la poussière permanente derrière les roues, c'était du bruit visuel, pas de la vitesse
-        const drf9=Math.max(0,Math.min(1,(Math.abs(psi)+Math.abs(driftYaw)*1.6-.32)*1.5))*Math.min(1,Math.abs(vA)/35); // le TOKYO DRIFT fume aussi (driftYaw compte dans la glisse)
+        const drf9=glisse9; // (conduite v6) la fumée suit la VRAIE glisse (drift, grosse charge, réception) — plus l'angle à la route, qui n'est plus une glisse
         if(drf9>0&&Math.abs(vF)>14){
           const nD9=1+(drf9>.5?1:0);
           for(let k=0;k<nD9;k++){
@@ -15819,7 +15848,11 @@ function loop(now){
         const camBack=(3.6+CARS[level].l*.42+speedKmh*.0018+camBoost*1.6)*(1-POR*.28), // le recul suit la LONGUEUR de la caisse : la Combi et la Bulle cadrées pareil
        camH=(camBack*.40+speedKmh*.0012+camBoost*.25)*(1+POR*.70);
         camLean=steer*.065;camSwing=0;camKick=0; // (conduite v3) la caméra penche avec toi (était .035)
-        tmp2.copy(carGroup.position).addScaledVector(fwdW,-camBack).addScaledVector(F.n,camH);
+        // (conduite v6) la caméra se place derrière un axe MI-ROUTE MI-CAISSE : avant, elle suivait le cap de la caisse et la clouait au
+        // centre de l'image (mesuré : 0 % d'écart à l'écran à 15 m du centre) — on voyait le décor coulisser, pas la caisse bouger.
+        if(!loop._camD)loop._camD=new THREE.Vector3();
+        loop._camD.copy(F.t).multiplyScalar(driveDir).lerp(fwdW,.55).normalize();
+        tmp2.copy(carGroup.position).addScaledVector(loop._camD,-camBack).addScaledVector(F.n,camH);
         {const n9=performance.now(); // l'écart repart de la caméra RÉELLE à chaque reprise de conduite (après un vol, le garage, un respawn)
          if(!loop._camOff)loop._camOff=new THREE.Vector3();
          if(n9-(loop._camDriveT||0)>150)loop._camOff.subVectors(camera.position,carGroup.position);
@@ -15830,8 +15863,7 @@ function loop(now){
          camera.position.copy(carGroup.position).add(off);}
         camUp.lerp(F.n,Math.min(1,dt*4)).normalize();
         qTmp2.setFromAxisAngle(fwdW,-camLean); // inclinaison caméra très légère dans les virages
-        camUp.applyQuaternion(qTmp2);
-        camera.up.copy(camUp);
+        camera.up.copy(camUp).applyQuaternion(qTmp2); // ⚠ (conduite v6) BUG : la penche était ré-appliquée à camUp À CHAQUE IMAGE — elle s'additionnait (×15 à 60 i/s, ×30 à 120 Hz) : l'horizon penchait de 22 à 68° à chaque coup de pouce
         // PORTRAIT : on vise plus BAS (F.n 1,05 → 0,50) — la caméra pique du nez, donc la caisse
         // REMONTE dans le cadre au lieu de sortir par le bas. Reculer/monter/viser bas se règlent
         // ENSEMBLE : sans cette ligne, camBack et camH seuls laissaient une caisse minuscule en bas.
@@ -15845,8 +15877,9 @@ function loop(now){
          // de visée route s'estompe en continu avec l'écart, et la visée elle-même est LISSÉE dans le temps
          const dd=Math.sqrt(tmp3.distanceToSquared(tmp2)),kV=.35*THREE.MathUtils.clamp(1-(dd-40)/60,0,1);
          tmp2.lerp(tmp3,kV);
+         tmp2.sub(carGroup.position); // (conduite v6) lissée RELATIVEMENT à la caisse : lissée en position monde, elle traînait de v/9 — à 700 km/h on regardait le capot
          if(!loop._vise||n9Saut(loop))loop._vise=tmp2.clone();else loop._vise.lerp(tmp2,Math.min(1,dt*9));
-         tmp2.copy(loop._vise);}
+         tmp2.copy(loop._vise).add(carGroup.position);}
         camera.lookAt(tmp2);
         fovPunch=Math.max(0,fovPunch-dt*18);
         const r9=speedKmh/Math.max(1,vCroisiere()), // (2026-09-25) le champ s'ouvre sur la CROISIÈRE réelle : il continue de réagir au momentum, au pad, au FLOW au lieu d'être collé au plafond
@@ -16491,7 +16524,7 @@ function loop(now){
       if(cloudInS>.45&&!loop._cldWas)noiseBurst(.45,.08,520); // percée dans la ouate : fwoosh de coton
       loop._cldWas=cloudInS>.45;
       if(skidG){ // crissement v2 : ZONE MORTE (il signale LA LIMITE, pas la conduite normale), pitch qui monte avec la glisse
-        const drift=(mode==='drive')?Math.max(0,Math.min(1,(Math.abs(psi)+Math.abs(driftYaw)*1.6-.32)*1.5))*Math.min(1,Math.abs(vA)/35):0; // …et il CRISSE (même mesure que la fumée)
+        const drift=(mode==='drive')?glisse9:0; // …et il CRISSE (même mesure que la fumée)
         skidG.gain.setTargetAtTime(drift>0?Math.min(.17,Math.pow(drift,1.3)*.15*(.4+Math.min(1,spd3/380)))*dk:0,AC.currentTime,.05);
         if(drift>0){
           const sq=900+drift*430+spd3*.35;
