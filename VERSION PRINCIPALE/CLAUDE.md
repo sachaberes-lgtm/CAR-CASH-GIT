@@ -73,10 +73,29 @@
   · **Piste v6** (`genCtrl`) : la CAISSE ne dessine plus la piste (`level` masqué à 0) ; l'échelle suit la VITESSE du palier moteur
     +2 (`lvPiste()`, 1 → 4,4) pour que les virages restent faisables sans aide ; respirations = petits virages de liaison ; ligne de
     momentum cintrée ; arcs densifiés (≤ 12°/point). Banc : 31 → 51 % de piste en virage, plus longue droite 978 → 336 m.
-  · **Vol à la vitesse de la route** (« la vitesse en airtime est trop importante ») : `AIR_RATE=1` (plus de temps compressé) ; au-delà
-    de sa vitesse horizontale de décollage (`fallVH0`, relevée à la 1re image de vol), la caisse subit en l'air la MÊME traînée que sur
-    le bitume → la nitro y plafonne comme au sol (mesuré : +14 % en 3 s puis plateau) ; sans nitro rien ne change (parabole et viseur
-    justes). `speedKmh` en vol = vitesse d'AVANCE (horizontale).
+  · **Vol = INERTIE** (26/09, « basé sur un principe d'inertie, dépend de la vitesse à l'éjection, PAS de la vitesse max ») : `AIR_RATE=1`,
+    l'avance horizontale reste celle de l'éjection (`fallVH0`, plafond dur — un cabré ne crée pas d'élan), seule la gravité agit ; AUCUNE
+    lecture de maxSp en vol ; la nitro en l'air fait PLANER (compense 60-75 % de `FALL_G`) et garde l'assiette, elle n'accélère plus.
+    `speedKmh` en vol = vitesse d'AVANCE (horizontale).
+  · **Zéro aide, partout** (26/09) : atterrissage au point EXACT de traversée de la dalle (`latX9`, plus de « ramené sur la route »), cap
+    de pose = direction du vol ; caméra au retard latéral (`loop._camLat`, τ .22 s, plafonné à 30 % du recul) pour VOIR la caisse bouger.
+    Seule exception : le haut des loopings (dalle > 60°, `rails9`) où la caisse suit le ruban — le vrillage y fabrique un faux virage.
+  · **Route** : largeur CONSTANTE (`LARGEUR=[1.7]`, `CARR_LARG` tout à 1.7) — « la vitesse fait tout le travail » ; niveaux ×2 (`LEN` 14 400).
+  · **Piste v7** (26/09, « la génération n'est pas adaptée à la conduite ») — mesuré par un pilote 150 ms sur les vraies pistes
+    (scratchpad `v6/piste/conduite/test.js`, `attrib.js`) : le repère de dalle ne revenait JAMAIS vers la verticale → dalle penchée
+    > 45° sur la moitié de la piste, chaque bosse devenait un virage, les loopings pris penchés étaient impossibles (0,41 sortie/km,
+    7,8 % infaisable). Désormais `buildTrack` REDRESSE la dalle (`RAPPEL9` .05 rad/m, coupé si |T.y| > .7 ou dalle à l'envers) ; courbe
+    `centripetal` (plus de coudes entre points inégaux) ; décalage des loopings progressif `(θ−sinθ)/2π` ; liaisons 60-110 m sur 4 points.
+    Résultat : 0,019 sortie/km, 1,2 % infaisable (le haut des loopings, couvert par `rails9`), 43 % de piste en virage (31 % à l'origine).
+  · **Power-slide** (26/09, « la voiture part vraiment sur le côté pendant les virages ») : `driftYaw` = arrière qui chasse ∝ charge latérale
+    (jusqu'à ~18°), UNIQUEMENT en virage — la trajectoire reste celle du pilote ; fumée/crissement via `glisse9`.
+  · **AURA v2 — LA CHAÎNE** (26/09, « on ne voit pas le compteur d'aura ni combien rapporte chaque figure ; des multiplicateurs quand on
+    enchaîne ») : `CHA`, `chaineAura(nom,base,fam,brut)`, `chaineTick`, `chaineEncaisse`, `chainePerdue`, HUD `#auraV2` (à gauche sous la
+    pastille FLOW, toujours visible) + `#avGain`. Chaque geste entre avec SES points (affichés), chaque geste DIFFÉRENT +×1 (max ×10),
+    redite ×0,7 ; ouverte 3,5 s au sol, gelée en l'air ; encaissée = points × multiplicateur ; perdue à l'explosion. Barème en tête du
+    module. Libellés SANS accent (`sansAcc`) : la police pixel n'a pas de capitales accentuées.
+  · **Moteur flottant** (26/09) : `#engBig` sans carte, au MILIEU de l'écran, moteur 3D (engRT 480×321, fond transparent) qui flotte
+    (`ebFlotte`), gros NUMÉRO du palier (`.ebNum`, comme le badge de Léo).
   · **La carrosserie PENCHE** (« la voiture doit vraiment pencher sur le côté ») : `buildCar` range tout sauf roues et flaques au sol
     (`userData.sol`) dans `carBody`, qui roule autour de l'axe des moyeux (`pivY`). Roulis vers l'EXTÉRIEUR ∝ charge latérale
     (`yawR·v`), jusqu'à ~15° (+4° en drift), en RESSORT (ω 14, ζ .55 : `carRoll9`/`rollV`), tangage `pitch9`. ⚠ ne jamais remettre

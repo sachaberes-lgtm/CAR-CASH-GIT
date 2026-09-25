@@ -3707,7 +3707,7 @@ function genTuto(){
     for(let k=0;k<n;k++){phi+=st/2;P.addScaledVector(dir(),ch);P.y+=dy/n;phi+=st/2;push();}};
   const loop=(R,shift)=>{const base=P.clone(),d=dir(),sx=Math.cos(phi),sz=-Math.sin(phi);
     for(let k=1;k<=8;k++){const th=k*Math.PI/4;
-      P.set(base.x+d.x*R*Math.sin(th)+sx*shift*th/(2*Math.PI),base.y+R*(1-Math.cos(th)),base.z+d.z*R*Math.sin(th)+sz*shift*th/(2*Math.PI));push();}};
+      P.set(base.x+d.x*R*Math.sin(th)+sx*shift*(th-Math.sin(th))/(2*Math.PI),base.y+R*(1-Math.cos(th)),base.z+d.z*R*Math.sin(th)+sz*shift*(th-Math.sin(th))/(2*Math.PI));push();}};
   push();
   straight(300,0,3);            // le départ : on sent le gaz auto
   arc(70,190,6);                // 1er virage : large, on le prend à fond
@@ -3744,9 +3744,9 @@ function genCtrl(rnd,startPos,startPhi){
   const loop=(R,shift)=>{const base=P.clone(),d=dir(),sx=Math.cos(phi),sz=-Math.sin(phi);
     for(let q=ctrl.length-2;q<ctrl.length+10;q++)LOOPI.add(q);
     for(let k=1;k<=8;k++){const th=k*Math.PI/4;
-      P.set(base.x+d.x*R*Math.sin(th)+sx*shift*th/(2*Math.PI),
+      P.set(base.x+d.x*R*Math.sin(th)+sx*shift*(th-Math.sin(th))/(2*Math.PI),
             base.y+R*(1-Math.cos(th)),
-            base.z+d.z*R*Math.sin(th)+sz*shift*th/(2*Math.PI));
+            base.z+d.z*R*Math.sin(th)+sz*shift*(th-Math.sin(th))/(2*Math.PI));
       push();}
     approx+=2*Math.PI*R;};
   // ---- ADN DE PISTE : chaque zone tire une PERSONNALITÉ — fini le shuffle statistiquement identique ----
@@ -3889,7 +3889,7 @@ function genCtrl(rnd,startPos,startPhi){
     }
     // RESPIRATION entre motifs : plus RARE et plus COURTE (.6→.42). C'était l'autre raison du
     // « tout se ressemble » : le liant entre deux motifs était TOUJOURS le même bout de droite.
-    straight(0,0,0);{const l9=(35+rnd()*35)*LV,a9=8+rnd()*14;arc(sgn()*a9,l9/(a9*Math.PI/180),2,-(8+rnd()*8)*LV);} // (piste v6) la RESPIRATION est un petit virage de liaison (35-70 m, 8-22°), plus une droite de 70-190 m
+    straight(0,0,0);{const l9=(60+rnd()*50)*LV,a9=8+rnd()*14;arc(sgn()*a9,l9/(a9*Math.PI/180),4,-(8+rnd()*8)*LV);} // (piste v6/v7) la RESPIRATION est un virage de liaison (60-110 m, 8-22°, 4 points : 35 m sur 2 points faisait un coude)
   }
   // SIGNATURE DE FIN : chaque archétype clôt SA zone par SON geste — la zone se retient
   if(AR.nm==='VOLTIGE'){straight(50,-46);loop(34*LOOPS,34);straight(40,-40);loop(28*LOOPS,26);}
@@ -4032,7 +4032,7 @@ function buildTrack(seed){
   trackMeshes.length=0;NEON_RAILS.length=0;NEON_GLOW.length=0;PADS=[];PADL=[];BUMPS=[];CONES=[];FLYCONES=[];OILS=[];RAMPS=[];
   const rnd=mulberry32(seed);
   const ctrl=PARK.on?genPark(rnd):(LVL.cur&&LVL.cur.piste==='tuto')?genTuto():genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course
-  const curve=new THREE.CatmullRomCurve3(ctrl,false,'catmullrom',0.5);
+  const curve=new THREE.CatmullRomCurve3(ctrl,false,'centripetal'); // (piste v7) centripète : l'uniforme faisait des COUDES entre points inégalement espacés (liaison courte après une grande figure)
   L=curve.getLength();
   const N=Math.min(PARK.on?11000:9000,Math.max(3000,Math.round(L))); // parc : plus long → plus de points pour garder les loops lisses
   pts=curve.getSpacedPoints(N);NP=pts.length;
@@ -4044,7 +4044,13 @@ function buildTrack(seed){
   }
   let n=new THREE.Vector3(0,1,0);
   n.addScaledVector(T[0],-n.dot(T[0])).normalize();
-  const q=new THREE.Quaternion();
+  /* (piste v7, 2026-09-26, user : « la génération de la route n'est toujours pas adaptée à la conduite ») — MESURÉ (pilote 150 ms sur les
+     vraies pistes, banc v6/piste/conduite) : le repère était transporté SANS JAMAIS revenir vers la verticale. Après une hélice ou un
+     looping la dalle restait penchée (> 45° sur la moitié de la piste) : chaque montée/descente devenait un VIRAGE à braquer, et un
+     looping pris sur une dalle déjà penchée un virage impossible — 0,41 sortie/km pour un bon pilote, 7,8 % de piste infaisable même
+     pouce à fond. Désormais la dalle se REDRESSE doucement (≤ 0,05 rad/m) partout où la route n'est ni raide (|T.y| < 0,7) ni à
+     l'envers (le haut d'un looping n'est JAMAIS retourné) : 0,019 sortie/km, 1,2 % infaisable (le reste : le haut des loopings). */
+  const q=new THREE.Quaternion(),upT9=new THREE.Vector3(),cT9=new THREE.Vector3(),RAPPEL9=.05;
   for(let i=0;i<NP;i++){
     Nn.push(n.clone());
     B.push(new THREE.Vector3().crossVectors(n,T[i]));
@@ -4052,6 +4058,10 @@ function buildTrack(seed){
       q.setFromUnitVectors(T[i],T[i+1]);
       n.applyQuaternion(q);
       n.addScaledVector(T[i+1],-n.dot(T[i+1])).normalize();
+      {const t9=T[i+1],ty9=Math.abs(t9.y);
+       if(ty9<.7&&n.y>0){upT9.set(-t9.x*t9.y,1-t9.y*t9.y,-t9.z*t9.y);if(upT9.lengthSq()>1e-8){upT9.normalize();
+         const th9=Math.atan2(cT9.crossVectors(n,upT9).dot(t9),n.dot(upT9)),ds9=pts[i+1].distanceTo(pts[i]),mx9=RAPPEL9*ds9*(1-ty9/.7);
+         n.applyAxisAngle(t9,THREE.MathUtils.clamp(th9,-mx9,mx9));n.addScaledVector(t9,-n.dot(t9)).normalize();}}}
     }
   }
   // ---- LE VIDE : on DÉCOUPE les portions de dalle qui n'existent pas ----
@@ -15553,7 +15563,11 @@ function loop(now){
            La v2 faisait suivre 78 % du virage à la caisse (`ASSIST_VIRAGE`) — (conduite v6) REVENU À ZÉRO : c'était l'aimant
            (« quand je ne touche à rien je reste quand même sur la route »). La route tourne SOUS la caisse ; c'est le pouce qui
            prend le virage — et `lacetMax` + des virages à l'échelle de la vitesse (`lvPiste`) le rendent faisable. */
-        psi=THREE.MathUtils.clamp(psi-dyaw*(1-ASSIST_VIRAGE),-1.4,1.4);routeLacet=dt>0?dyaw/dt:0; // (le pilote de mesure s'en sert pour anticiper)
+        // (piste v7) LE HAUT DES LOOPINGS : quand la dalle dépasse 60° d'inclinaison (mur, plafond), la caisse SUIT le ruban comme sur des
+        // rails — le vrillage du ruban y fabrique un « virage » qui n'en est pas un (mesuré : 8 % des loopings infaisables pouce à fond,
+        // 1 % hors de ces parties). Sur la route (dalle < 60°), l'aide reste à ZÉRO.
+        const nyR9=side<0?-F.n.y:F.n.y,rails9=THREE.MathUtils.clamp((.5-nyR9)/.3,0,1);
+        psi=THREE.MathUtils.clamp(psi-dyaw*(1-Math.max(ASSIST_VIRAGE,rails9)),-1.4,1.4);routeLacet=dt>0?dyaw/dt:0; // (le pilote de mesure s'en sert pour anticiper)
       }
       prevTv.copy(F.t);prevTvalid=true;
       // MOMENTUM : tenir la ligne droite fait monter la puissance en exponentiel
