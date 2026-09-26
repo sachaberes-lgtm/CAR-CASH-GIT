@@ -3634,8 +3634,8 @@ function mkCone(){
 // flaques d'huile (rares, droites & plates uniquement) : disque sombre glacé + reflet irisé
 let OILS=[];
 const oilGeo=new THREE.CircleGeometry(1,22);
-const oilMat=new THREE.MeshPhongMaterial({color:0x121419,shininess:320,specular:0xc79cff,envMap:null,transparent:true,opacity:.92}); // la flaque boit le néon violet
-const oilRimMat=new THREE.MeshBasicMaterial({color:0x4a3a72,transparent:true,opacity:.4,depthWrite:false});
+const oilMat=new THREE.MeshPhongMaterial({color:0x121419,shininess:320,specular:0xc79cff,envMap:null,transparent:true,opacity:.92,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}); // la flaque boit le néon violet
+const oilRimMat=new THREE.MeshBasicMaterial({color:0x4a3a72,transparent:true,opacity:.4,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}); // (2026-09-26) flaque et liseré à 4-5 cm du bitume : décalés en profondeur, sinon ils se mordaient au loin
 // nuages : sprites CUMULUS À L'AÉROGRAPHE — chaque texture est un amas de LOBES GAUSSIENS ronds
 // (assise large et plate, gros cœur, bourgeons au sommet). La densité est une SOMME de gaussiennes
 // jamais seuillée : zéro trou, zéro bord découpé — le cœur est laiteux opaque, la lisière fond en
@@ -4470,7 +4470,7 @@ function genPark(rnd){
      · une BRILLANCE D'HORIZON (fresnel) à la couleur du brouillard : la route luit vers le lointain, elle se lit ;
      · une CLARTÉ PAR NIVEAU (`uLift`) : la VILLE a un bitume plus clair, qui se détache de la ville sombre (user).
    Les uniformes vivent dans ROAD_U, PARTAGÉS par toutes les pistes : routeTick() les écrit une fois par image. */
-const ROAD_U={uLift:{value:new THREE.Color(0,0,0)},uSheen:{value:.1},uSheenCol:{value:new THREE.Color(.4,.3,.5)}};
+const ROAD_U={uLift:{value:new THREE.Color(0,0,0)},uSheen:{value:.1},uSheenCol:{value:new THREE.Color(.4,.3,.5)},uWet:{value:0},uAcc:{value:new THREE.Color(0xf24aa0)}}; // uWet/uAcc : le bitume MOUILLÉ de la ville (voir BITUME_MOUILLE)
 let ASPH_TEX=null;
 function asphTex(){ if(ASPH_TEX)return ASPH_TEX;
   const N=256,cv=document.createElement('canvas');cv.width=cv.height=N;const c=cv.getContext('2d'),im=c.createImageData(N,N),d=im.data;
@@ -4495,15 +4495,107 @@ function roadMat(){
     shininess:30,specular:0x16141e,envMap:envTex,reflectivity:.03}); // (2026-09-26, user : « un peu trop brillante, gère mal le reflet du soleil ») : 80/0x2c2a3a faisait une traînée de soleil DURE et granuleuse — un bitume renvoie une nappe large et sourde
   m.onBeforeCompile=function(sh){
     sh.uniforms.uLift=ROAD_U.uLift;sh.uniforms.uSheen=ROAD_U.uSheen;sh.uniforms.uSheenCol=ROAD_U.uSheenCol;
-    sh.fragmentShader='uniform vec3 uLift;uniform float uSheen;uniform vec3 uSheenCol;\n'+sh.fragmentShader.replace('#include <lights_fragment_begin>',LFB_SANS_PL).replace('#include <envmap_fragment>',
-      '#include <envmap_fragment>\n{float fr9=pow(1.0-clamp(abs(dot(normal,normalize(vViewPosition))),0.0,1.0),4.0);outgoingLight+=uLift+uSheenCol*(uSheen*fr9);}');
+    sh.uniforms.uWet=ROAD_U.uWet;sh.uniforms.uAcc9=ROAD_U.uAcc;sh.uniforms.uT9=CITY.uT;
+    sh.fragmentShader='uniform vec3 uLift;uniform float uSheen;uniform vec3 uSheenCol;uniform float uWet;uniform vec3 uAcc9;uniform float uT9;\n'+
+      sh.fragmentShader.replace('void main() {',BITUME_MOUILLE+'void main() {').replace('#include <lights_fragment_begin>',LFB_SANS_PL).replace('#include <envmap_fragment>',
+      '#include <envmap_fragment>\n{float fr9=pow(1.0-clamp(abs(dot(normal,normalize(vViewPosition))),0.0,1.0),4.0);float lk9=1.;\n'+
+      '#if defined(USE_ENVMAP)&&defined(ENVMAP_TYPE_CUBE)\nif(uWet>.001){vec4 w9=bitumeMouille(outgoingLight,reflectVec,normal,normalize(vViewPosition));outgoingLight=w9.rgb;lk9=w9.a;}\n#endif\n'+
+      'outgoingLight+=uLift*lk9+uSheenCol*(uSheen*fr9);}');
   };
-  m.customProgramCacheKey=function(){return 'bitumeV3';}; // UNE compilation pour toutes les pistes
+  m.customProgramCacheKey=function(){return 'bitumeV4';}; // UNE compilation pour toutes les pistes
   return m;
 }
+/* LE BITUME MOUILLÉ DE LA VILLE (2026-09-26) — sous la pluie, la route n'était qu'un aplat violet : c'est pourtant LA surface qui fait
+   une ville cyberpunk. Tout vit dans le shader du bitume, SANS aucune lumière (la route n'écoute plus les PointLights : LFB_SANS_PL),
+   et ne coûte rien ailleurs (`uWet` = LVL.pluie, branche uniforme coupée hors de la pluie) :
+     · une PELLICULE D'EAU : un reflet de Fresnel (celui de l'eau, F0 = 0,02) renvoie le ciel et la brume de la ville
+       (le cube d'environnement du biome, ses bandes néon magenta/cyan) — la route prend la couleur de la nuit au lieu d'un aplat ;
+     · des FLAQUES : un bruit étiré dans le sens de la route (repère de la dalle, `vUv` en m/4) où l'eau fait miroir et le bitume noircit ;
+     · les REFLETS ÉTIRÉS DES ENSEIGNES : des colonnes de lumière (ambre des fenêtres, cyan, magenta, l'accent de la zone) tirées de
+       l'AZIMUT du reflet — ancrées dans le monde comme de vrais reflets de lumières lointaines, elles restent en place pendant que le
+       bitume défile dessous, et c'est l'eau (flaques + pellicule qui frissonne) qui les découpe et les fait vivre ;
+     · les IMPACTS DE PLUIE : des cercles de 10 cm qui s'ouvrent et s'éteignent (une cellule de 67 cm), visibles de près seulement.
+   Des traînées et des cercles d'eau fins : aucune tache ronde de lumière (verdict), aucune passe de plus. ⚠ La route de la ville DESCEND
+   (spirale de ~9 km) : ses reflets rasants plongent SOUS l'horizon — on ne coupe donc que le zénith et le fond, pas le bas du ciel. */
+const BITUME_MOUILLE=['#if defined(USE_ENVMAP)&&defined(ENVMAP_TYPE_CUBE)',
+  'float bmH(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}',
+  'float bmN(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(bmH(i),bmH(i+vec2(1.,0.)),f.x),mix(bmH(i+vec2(0.,1.)),bmH(i+vec2(1.,1.)),f.x),f.y);}',
+  'vec3 bmCol(float h){return h>.93?vec3(1.,.28,.66):h>.82?vec3(.40,.86,1.):h>.74?uAcc9:vec3(1.,.62,.30);}', // ambre des fenêtres surtout, puis cyan, accent, magenta
+  'vec4 bitumeMouille(vec3 col,vec3 R,vec3 nV,vec3 vV){',
+  '  float cv=clamp(abs(dot(nV,vV)),0.,1.),F=.02+.98*pow(1.-cv,5.);',                                   // Fresnel de l eau
+  '  float dz=length(vViewPosition);',
+  '  vec2 u=vUv*vec2(1.,.25);',                                                                           // (m/4 en travers, m/16 en long) : bruits étirés dans le sens de la route
+  '  float P=smoothstep(.58,.72,.6*bmN(u*vec2(1.1,1.8)+3.1)+.4*bmN(u*vec2(3.1,4.4)-7.3));',             // les FLAQUES
+  '  float film=.55+.45*bmN(vUv*vec2(3.,.6)+vec2(0.,uT9*.35));',                                          // la pellicule qui frissonne (défile avec le bitume)
+  // les impacts : un cercle par cellule de 67 cm, qui s ouvre et s éteint — de près seulement
+  '  vec2 q=vUv*6.,ci=floor(q),cf=fract(q)-.5;float hr=bmH(ci+17.),ph=fract(uT9*1.6+hr*7.3);',
+  '  float ring=smoothstep(.04,0.,abs(length(cf-(vec2(hr,fract(hr*37.3))-.5)*.4)-ph*.16))*(1.-ph)*(1.-ph)*step(.45,hr)*(1.-smoothstep(3.,12.,dz));',
+  // les reflets étirés : colonnes de lumière selon l azimut du reflet (fines + larges), éteintes vers le zénith
+  '  float az=atan(R.z,R.x);',
+  '  float x1=az*28.+uAcc9.r*9.,i1=floor(x1),f1=fract(x1)-.5,h1=bmH(vec2(i1,5.7));',
+  '  vec3 st=bmCol(h1)*step(.55,h1)*exp(-f1*f1*12.)*(.6+.4*sin(uT9*(.6+h1*2.)+h1*50.));',
+  '  float x2=az*9.+1.7,i2=floor(x2),f2=fract(x2)-.5,h2=bmH(vec2(i2,-2.3));',
+  '  st+=bmCol(h2)*step(.45,h2)*exp(-f2*f2*6.)*.55;',
+  '  st*=smoothstep(.8,.15,abs(R.y))*smoothstep(3.,22.,dz);',                                            // ni le zénith ni le fond de l abîme (la route de la ville DESCEND : ses reflets rasants plongent sous l horizon, et les tours y sont aussi) ; pas sous le nez
+  '  vec4 ec=textureCube(envMap,vec3(flipEnvMap*R.x,R.yz),1.5);ec=envMapTexelToLinear(ec);',              // le ciel de la ville, un peu flou
+  '  float wet=uWet*(.45+.55*P);',
+  '  col*=1.-uWet*.2*P;',                                                                                  // la flaque fonce (⚠ pas le reste : l étalonnage de la pluie ÉCRASE les sombres — 10 % de moins et le bitume proche devenait noir)
+  '  vec3 refl=(ec.rgb*.7+uSheenCol*.55+st*(.9+1.7*P)*film)*F*wet;',
+  '  refl+=(uSheenCol+st*.5+vec3(.04,.05,.07))*ring*uWet*.3;',
+  '  return vec4(col+refl,1.-uWet*.22*P);}',                                                               // la flaque garde moins de clarté de niveau : c est un miroir, pas une craie
+'#endif',''].join('\n');
+/* (2026-09-26) LES TRAITS DE LA ROUTE TIENNENT JUSQU'À L'HORIZON. Rails néon (60 cm), nappes de lueur et ligne centrale (un trait GL
+   d'UN pixel, épaisseur fausse de près) tombaient sous le pixel passé ~400 m : ils s'émiettaient en POINTILLÉS qui grouillaient au moindre
+   mouvement, et le bord de la route se perdait dans la nuit. Le vertex shader ÉLARGIT désormais chaque trait juste assez pour couvrir
+   `minPx` pixels à l'écran (jamais moins que sa vraie largeur) et baisse son éclat d'autant : un trait continu qui file jusqu'au bout de
+   la route, sans surbrillance. La géométrie porte `aLat` (le vecteur qui va du milieu du trait vers CE bord) ; `TRAIT_U.uPx` (taille d'un
+   pixel à 1 m de l'œil) est écrit par routeTick. Coût : une poignée d'opérations par SOMMET, zéro par pixel.
+   `pal` : 0 = opaque (on assombrit), 1 = additif (on divise l'énergie), 2 = alpha (on éclaircit l'alpha). */
+const TRAIT_U={uPx:{value:.002}};
+function traitMat(m,minPx,pal){
+  m.onBeforeCompile=function(sh){sh.uniforms.uPx9=TRAIT_U.uPx;
+    sh.vertexShader='attribute vec3 aLat;uniform float uPx9;varying float vK9;\n'+sh.vertexShader.replace('#include <begin_vertex>',
+      '#include <begin_vertex>\n{float hw9=max(length(aLat),1e-4),d9=max(0.,-(modelViewMatrix*vec4(position,1.)).z);'+
+      'float k9=max(1.,'+minPx.toFixed(2)+'*.5*uPx9*d9/hw9);transformed+=aLat*(k9-1.);vK9=1./k9;}');
+    sh.fragmentShader='varying float vK9;\n'+sh.fragmentShader.replace('#include <fog_fragment>',
+      (pal===0?'gl_FragColor.rgb*=.35+.65*sqrt(vK9);':pal===1?'gl_FragColor.rgb*=vK9;':'gl_FragColor.a*=.25+.75*vK9;')+'\n#include <fog_fragment>');
+  };
+  m.customProgramCacheKey=function(){return 'trait'+pal+'_'+minPx;};
+  m.polygonOffset=true; // … et plus de Z-FIGHTING : 4 à 9 cm au-dessus du bitume, c'était sous la précision du tampon de profondeur dès 300 m
+  return m;
+}
+let LIGNE_TEX=null;
+function ligneMat(){ // la peinture de la ligne centrale : tirets dans une texture mipmappée (voir buildTrack) — texture unique, matériau par piste
+  if(!LIGNE_TEX){const cv=document.createElement('canvas');cv.width=4;cv.height=64;const c=cv.getContext('2d');
+    c.fillStyle='#fff';c.fillRect(0,1,4,27);c.globalAlpha=.5;c.fillRect(0,0,4,1);c.fillRect(0,28,4,1); // 7/16 de tiret, bouts adoucis d'un texel
+    LIGNE_TEX=new THREE.CanvasTexture(cv);LIGNE_TEX.wrapT=THREE.RepeatWrapping;
+    LIGNE_TEX.anisotropy=Math.min(IS_MOBILE?4:8,renderer.capabilities.getMaxAnisotropy());} // vue RASANTE : sans anisotropie, la carte réduite gommerait les tirets dès 30 m
+  return traitMat(new THREE.MeshBasicMaterial({map:LIGNE_TEX,color:0xffc978,transparent:true,opacity:.55,depthWrite:false,side:THREE.DoubleSide,polygonOffsetFactor:-1,polygonOffsetUnits:-1}),1.2,2);
+}
+/* LES TRANCHES S'ALLUMENT (2026-09-26) — la dalle fait 2,6 m d'épaisseur, et ses flancs n'étaient qu'un bandeau violet-noir : vu d'avion
+   (vol libre, plongeons, les étages de la spirale de la VILLE), le ruban se perdait dans la nuit des tours. Chaque flanc porte désormais
+   un LISERÉ à l'accent de la zone à mi-hauteur, ponctué de CATADIOPTRES tous les 6 m (des tirets, pas des ronds) : on lit la route
+   comme une structure, de loin et d'en dessous. Anticrénelé, et fondu en lueur moyenne quand il passe sous le pixel. Aucun sommet de
+   plus (la géométrie reçoit seulement ses UV) ; la teinte est `ROAD_U.uAcc`, posée par buildTrack. */
+function trancheMat(){
+  const m=new THREE.MeshLambertMaterial({color:0x14101f,side:THREE.DoubleSide});m.extensions={derivatives:true};
+  m.onBeforeCompile=function(sh){sh.uniforms.uAcc9=ROAD_U.uAcc;
+    sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec2 vTr9;').replace('#include <begin_vertex>','#include <begin_vertex>\nvTr9=uv;');
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform vec3 uAcc9;varying vec2 vTr9;').replace('#include <fog_fragment>',
+      '{float fy=max(fwidth(vTr9.y),1e-4),fx=max(fwidth(vTr9.x),1e-4);'+
+      'float bd=1.-smoothstep(.025,.025+fx*1.5,abs(vTr9.x-.5));'+                                       // le liseré (13 cm sur 2,6 m)
+      'float ce=(1.-smoothstep(.13,.13+fy/6.*1.5,abs(fract(vTr9.y/6.)-.5)))*step(abs(vTr9.x-.5),.09);'+ // les catadioptres : 1,5 m tous les 6 m
+      'float lo=smoothstep(.5,1.6,fy);'+                                                                // un pixel couvre plus d un demi-mètre de route : la lueur moyenne
+      'gl_FragColor.rgb+=uAcc9*(mix(bd*.55+ce*.9,.09,lo))*(1.-smoothstep(.08,.3,fx));}\n#include <fog_fragment>');};
+  m.customProgramCacheKey=function(){return 'trancheV2';};
+  return m;
+}
+const _px9=new THREE.Vector2();
 function routeTick(){ // le bitume suit le NIVEAU (fondu du portail : LVL.route / LVL.sheen, voir lvlStep)
+  renderer.getDrawingBufferSize(_px9);TRAIT_U.uPx.value=2*Math.tan(camera.fov*Math.PI/360)/Math.max(1,_px9.y); // la taille d'un pixel à 1 m (suit le FOV de vol et la résolution adaptative)
   const r=LVL.route;ROAD_U.uLift.value.setRGB(.010+.15*r,.009+.13*r,.016+.16*r); // ⚠ l'étalonnage de la pluie écrase le rouge et le vert : la clarté doit être NEUTRE et franche pour se lire (mesuré : (0,0,17) → (2,0,47) avec une clarté bleutée de .05)
-  ROAD_U.uSheen.value=LVL.sheen;
+  ROAD_U.uSheen.value=LVL.sheen;ROAD_U.uWet.value=LVL.pluie; // (2026-09-26) le bitume se mouille avec la pluie du niveau, au même fondu
+  coneBandMat.emissiveIntensity=.25+.6*LVL.pluie; // (2026-09-26) la nuit de pluie, les bandes des plots RÉTRORÉFLÉCHISSENT : on les lit de loin (un uniforme, zéro recompilation)
   ROAD_U.uSheenCol.value.copy(scene.fog.color).multiplyScalar(.9); // (2026-09-26) ×1,5 → ×0,9 : la brillance rasante blanchissait tout le lointain
 }
 function buildTrack(seed){
@@ -4561,10 +4653,10 @@ function buildTrack(seed){
   }
   const holeSeg=i=>{for(const h of HOLES)if(i>=h.i0&&i<h.i1)return true;return false;}; // le segment i→i+1 est-il dans le vide ?
   // ROUTE ÉPAISSE : grain LONGITUDINAL — stries dans le sens de la route (effet vitesse)
-  const sideL_=[],sideR_=[];
+  const sideL_=[],sideR_=[],sideU_=[];let accT9=0; // sideU_ : (haut 0 / bas 1, mètres le long de la piste) — le liseré des tranches (voir trancheMat)
   const nz=i=>{const x=Math.sin(i*12.9898)*43758.5453;return x-Math.floor(x);};
   for(let i=0;i<NP;i++){
-    const p=pts[i],b=B[i],nn=Nn[i];
+    const p=pts[i],b=B[i],nn=Nn[i];if(i>0)accT9+=p.distanceTo(pts[i-1]);sideU_.push(0,accT9,1,accT9);
     const tl=[p.x-b.x*ROAD_HALF,p.y-b.y*ROAD_HALF,p.z-b.z*ROAD_HALF];
     const tr=[p.x+b.x*ROAD_HALF,p.y+b.y*ROAD_HALF,p.z+b.z*ROAD_HALF];
     const bl=[tl[0]-nn.x*THICK,tl[1]-nn.y*THICK,tl[2]-nn.z*THICK];
@@ -4576,6 +4668,7 @@ function buildTrack(seed){
     for(let i=0;i<NP-1;i++){if(holeSeg(i))continue;const a2=2*i,b2=2*i+1,c2=2*i+2,d2=2*i+3;idx.push(a2,c2,b2,b2,c2,d2);} // le vide n'a pas de tranche
     const g=new THREE.BufferGeometry();
     g.setAttribute('position',new THREE.Float32BufferAttribute(arr,3));
+    if(arr.length/3===sideU_.length/2)g.setAttribute('uv',new THREE.Float32BufferAttribute(sideU_,2));
     g.setIndex(idx);g.computeVertexNormals();
     const m=new THREE.Mesh(g,mat);m.receiveShadow=true;
     scene.add(m);trackMeshes.push(m);return m;
@@ -4620,24 +4713,27 @@ function buildTrack(seed){
     m.receiveShadow=true; // le bitume reçoit les OMBRES LONGUES
     scene.add(m);trackMeshes.push(m);
   }
-  const flank=new THREE.MeshLambertMaterial({color:0x14101f,side:THREE.DoubleSide}); // tranches violet-noir : elles boivent le fill néon
+  const flank=trancheMat(); // tranches violet-noir : elles boivent le fill néon — (2026-09-26) + leur liseré d'accent et leurs catadioptres
   strip(sideL_,flank);strip(sideR_,flank);
   // ACCENT DE ZONE : chaque piste choisit SON néon — la nuit change de couleur à chaque portail
   const ACCENTS=[0xf24aa0,0x3ee6f0,0xffb445,0x50f0a8,0xa06bff,0xff6a55]; // rose · cyan · ambre · menthe · violet électrique · corail
   const accC=new THREE.Color(ACCENTS[Math.floor(rnd()*ACCENTS.length)]);
+  ROAD_U.uAcc.value.copy(accC); // (2026-09-26) le bitume mouillé reflète aussi l'accent de la zone
   // BANDES NÉON (dessus + dessous) : les rails de Vice City — couleur d'accent de la zone
   for(const fy of [0,-THICK]) for(const sd of [-1,1]){
-    const ep=[],ei=[];
+    const ep=[],ei=[],el=[]; // el : `aLat`, du milieu du rail vers chaque bord (voir traitMat)
     for(let i=0;i<NP;i++){
       const p=pts[i],b=B[i],nn=Nn[i],o=sd*(ROAD_HALF+.05),h=fy+(fy===0?.06:-.06);
       ep.push(p.x+b.x*(o-sd*.6)+nn.x*h,p.y+b.y*(o-sd*.6)+nn.y*h,p.z+b.z*(o-sd*.6)+nn.z*h,
               p.x+b.x*o+nn.x*h,p.y+b.y*o+nn.y*h,p.z+b.z*o+nn.z*h);
+      el.push(-b.x*sd*.3,-b.y*sd*.3,-b.z*sd*.3,b.x*sd*.3,b.y*sd*.3,b.z*sd*.3);
     }
     for(let i=0;i<NP-1;i++){if(holeSeg(i))continue;const a2=2*i,b2=2*i+1,c2=2*i+2,d2=2*i+3;ei.push(a2,c2,b2,b2,c2,d2);} // les rails néon s'arrêtent au bord du vide
     const g2=new THREE.BufferGeometry();
     g2.setAttribute('position',new THREE.Float32BufferAttribute(ep,3));
+    g2.setAttribute('aLat',new THREE.Float32BufferAttribute(el,3));
     g2.setIndex(ei);
-    const e=new THREE.Mesh(g2,new THREE.MeshBasicMaterial({color:accC,side:THREE.DoubleSide}));
+    const e=new THREE.Mesh(g2,traitMat(new THREE.MeshBasicMaterial({color:accC,side:THREE.DoubleSide,polygonOffsetFactor:-2,polygonOffsetUnits:-2}),1.5,0));
     e.material.userData.base=accC.clone(); // la teinte d'accent de la zone, à retrouver après chaque pulsation
     NEON_RAILS.push(e.material);
     scene.add(e);trackMeshes.push(e);
@@ -4645,14 +4741,16 @@ function buildTrack(seed){
   // NAPPE DE LUEUR sous chaque bande : additif qui saigne vers l intérieur du bitume — sans fog, le néon perce
   // la brume et les rails roses filent jusqu au bout de la nuit (1 mesh par face : gauche+droite fusionnées)
   for(const fy of [0,-THICK]){
-    const gp=[],gc=[],gi=[];let vb=0;
+    const gp=[],gc=[],gi=[],gl=[];let vb=0;
+    const mo9=LVL.cur&&LVL.cur.pluie?1:0,lg9=1.15+2.2*mo9,ka9=.48+.14*mo9; // (2026-09-26) sous la PLUIE le bitume mouillé renvoie le rail : la nappe s'élargit (1,15 → 3,35 m) et chauffe un peu
     for(const sd of [-1,1]){
       for(let i=0;i<NP;i++){
         const p=pts[i],b=B[i],nn=Nn[i],h=fy+(fy===0?.045:-.045);
-        const oI=sd*(ROAD_HALF-1.05),oO=sd*(ROAD_HALF+.10);
+        const oI=sd*(ROAD_HALF+.10-lg9),oO=sd*(ROAD_HALF+.10);
         gp.push(p.x+b.x*oI+nn.x*h,p.y+b.y*oI+nn.y*h,p.z+b.z*oI+nn.z*h,
                 p.x+b.x*oO+nn.x*h,p.y+b.y*oO+nn.y*h,p.z+b.z*oO+nn.z*h);
-        gc.push(0,0,0,accC.r*.48,accC.g*.48,accC.b*.48); // noir additif = invisible → dégradé d'accent qui meurt sur l asphalte
+        gl.push(-b.x*sd*lg9*.5,-b.y*sd*lg9*.5,-b.z*sd*lg9*.5,b.x*sd*lg9*.5,b.y*sd*lg9*.5,b.z*sd*lg9*.5);
+        gc.push(0,0,0,accC.r*ka9,accC.g*ka9,accC.b*ka9); // noir additif = invisible → dégradé d'accent qui meurt sur l asphalte
       }
       for(let i=0;i<NP-1;i++){if(holeSeg(i))continue;const a2=vb+2*i,b2=a2+1,c2=a2+2,d2=a2+3;gi.push(a2,c2,b2,b2,c2,d2);} // ...et leur nappe aussi
       vb+=NP*2;
@@ -4660,26 +4758,33 @@ function buildTrack(seed){
     const g3=new THREE.BufferGeometry();
     g3.setAttribute('position',new THREE.Float32BufferAttribute(gp,3));
     g3.setAttribute('color',new THREE.Float32BufferAttribute(gc,3));
+    g3.setAttribute('aLat',new THREE.Float32BufferAttribute(gl,3));
     g3.setIndex(gi);
-    const nm=new THREE.Mesh(g3,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide,transparent:true,opacity:.78,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
+    const nm=new THREE.Mesh(g3,traitMat(new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide,transparent:true,opacity:.78,blending:THREE.AdditiveBlending,depthWrite:false,fog:false,polygonOffsetFactor:-1,polygonOffsetUnits:-1}),2,1));
     nm.material.userData.base=.78; // opacité de repos — la pulsation part de là et y revient
     NEON_GLOW.push(nm.material);
     nm.renderOrder=1;scene.add(nm);trackMeshes.push(nm);
   }
   // ligne centrale pointillée — sodium doré, comme les vraies voies rapides la nuit (les DEUX faces : zéro dessus-dessous)
+  /* (2026-09-26) UNE VRAIE PEINTURE AU SOL. C'était un trait GL d'UN pixel : aussi fin sous la caisse qu'à 2 km, crénelé, et au loin des
+     tirets plus courts qu'un pixel qui clignotaient. Désormais un ruban de 24 cm (une vraie ligne de voie) dont les tirets viennent
+     d'une texture MIPMAPPÉE : de près des tirets nets en perspective, au loin la carte réduite en fait d'elle-même un filet continu et
+     plus doux — plus de clignotement. Même rythme qu'avant (7 points de tiret sur 16), mêmes trous, zéro rnd(). */
   (function(){
-    const lp=[];
-    for(const fy of [.09,-THICK-.09])for(let i=0;i<NP-8;i+=16){
-      if(holeSeg(i)||holeSeg(i+7))continue; // la ligne centrale ne flotte pas au-dessus du vide
-      for(const j of [i,i+7]){
-        const p2=pts[j],nn=Nn[j];
-        lp.push(p2.x+nn.x*fy,p2.y+nn.y*fy,p2.z+nn.z*fy);
-      }
-    }
+    const lp=[],ll=[],lu=[],li=[],sp9=L/Math.max(1,NP-1),per=16*sp9;
+    for(const fy of [.05,-THICK-.05]){const v0=lp.length/3;let acc=0;
+      for(let i=0;i<NP;i+=2){if(i>0)acc+=pts[i].distanceTo(pts[i-2]);
+        const p2=pts[i],nn=Nn[i],b=B[i];
+        for(const sg of [-1,1]){lp.push(p2.x+nn.x*fy+b.x*sg*.12,p2.y+nn.y*fy+b.y*sg*.12,p2.z+nn.z*fy+b.z*sg*.12);ll.push(b.x*sg*.12,b.y*sg*.12,b.z*sg*.12);lu.push(sg<0?0:1,acc/per);}}
+      for(let i=0;i+2<NP;i+=2){if(holeSeg(i)||holeSeg(i+1))continue; // la ligne centrale ne flotte pas au-dessus du vide
+        const a2=v0+i,c2=a2+2;li.push(a2,c2,a2+1,a2+1,c2,c2+1);}}
     const g=new THREE.BufferGeometry();
     g.setAttribute('position',new THREE.Float32BufferAttribute(lp,3));
-    const l=new THREE.LineSegments(g,new THREE.LineBasicMaterial({color:0xffc978,transparent:true,opacity:.8}));
-    scene.add(l);trackMeshes.push(l);
+    g.setAttribute('aLat',new THREE.Float32BufferAttribute(ll,3));
+    g.setAttribute('uv',new THREE.Float32BufferAttribute(lu,2));
+    g.setIndex(li);
+    const l=new THREE.Mesh(g,ligneMat());
+    l.renderOrder=1;scene.add(l);trackMeshes.push(l);
   })();
   // BORDS DU VIDE : on ferme la coupe. La dalle montre sa TRANCHE en rouge d'alerte — à pleine vitesse,
   // c'est cette barre qui hurle « ça s'arrête LÀ », et on la voit bien avant d'y être.
@@ -4737,7 +4842,7 @@ function buildTrack(seed){
     PADS.push(sp);PADL.push(pl);
     for(const fy of [1,-1]){
       frameAt(sp,F);
-      const m=new THREE.Mesh(padGeo,new THREE.MeshBasicMaterial({map:padTex,color:padCol}));
+      const m=new THREE.Mesh(padGeo,new THREE.MeshBasicMaterial({map:padTex,color:padCol,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3})); // (2026-09-26) décalage de profondeur : 10 cm au-dessus du bitume, le pad lointain clignotait à travers
       const nn=F.n.clone().multiplyScalar(fy);
       m.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(F.b.clone().multiplyScalar(-fy),F.t.clone(),nn));
       m.position.copy(F.p).addScaledVector(F.b,pl).addScaledVector(F.n,fy>0?.1:-THICK-.1); // même repère que les pièces (F.b brut sur les deux faces)
@@ -4919,42 +5024,91 @@ const CITY={root:null,uT:{value:0},n:{}};
 function villeMatTours(){ // béton du village + fenêtres + pied noyé dans la brume (PARTAGÉ : jamais disposé — voir pose())
   if(CITY.matT)return CITY.matT;
   const m=new THREE.MeshLambertMaterial({color:0xffffff,emissive:0x07080d});
-  const DECL='varying vec3 vLoc9;varying vec3 vNrm9;varying float vB9;varying float vSeed9;varying vec3 vSc9;';
-  m.onBeforeCompile=function(sh){
+  m.extensions={derivatives:true}; // fwidth (WebGL1) : les fenêtres se filtrent à la taille du pixel
+  const DECL='varying vec3 vLoc9;varying vec3 vNrm9;varying float vB9;varying float vSeed9;varying vec3 vSc9;varying vec3 vW9;';
+  m.onBeforeCompile=function(sh){sh.uniforms.uT9=CITY.uT;sh.uniforms.uWet9=ROAD_U.uWet;
     sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\n'+DECL)
       .replace('#include <begin_vertex>','#include <begin_vertex>\n#ifdef USE_INSTANCING\n'+
         'vec3 sc9=vec3(length(instanceMatrix[0].xyz),length(instanceMatrix[1].xyz),length(instanceMatrix[2].xyz));'+
-        'vSeed9=fract(instanceMatrix[3].x*.0131+instanceMatrix[3].z*.0173);\n#else\nvec3 sc9=vec3(1.);vSeed9=0.;\n#endif\n'+
+        'vSeed9=fract(instanceMatrix[3].x*.0131+instanceMatrix[3].z*.0173);vW9=(modelMatrix*instanceMatrix*vec4(position,1.)).xyz;\n#else\nvec3 sc9=vec3(1.);vSeed9=0.;vW9=(modelMatrix*vec4(position,1.)).xyz;\n#endif\n'+
         'vLoc9=position*sc9;vNrm9=normal;vB9=(position.y+.5)*sc9.y;vSc9=sc9;');
-    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\n'+DECL)
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9,uWet9;'+DECL)
       .replace('#include <fog_fragment>',
-        // LES FENÊTRES : faces verticales des volumes assez larges (pas les tuyaux ni les mâts), maille 3,2 m × 4 m
+        /* LES FENÊTRES v2 (2026-09-26) — chaque tour a sa PERSONNALITÉ, tirée de sa graine : travée 2,6-4,4 m, étage 3,5-4,4 m, taux
+           d'allumage 22-62 %, habitation (ambre chaud) ou bureaux (blanc-cyan froid, fenêtres en BANDEAU allumées par plateaux entiers).
+           Quelques fenêtres changent d'état toutes les 15-40 s, une poignée d'écrans bleutés papillotent : la ville est HABITÉE.
+           Les bords sont ANTICRÉNELÉS à l'empreinte du pixel (fwidth) et, quand la travée tombe sous ~2 px, le motif se fond dans sa
+           lueur MOYENNE, calculée d'après la même personnalité : plus de fenêtres qui scintillent ni de moiré en roulant, et aucun
+           saut entre le proche et le lointain (l'ancien fondu 240-900 m ignorait la taille réelle à l'écran). */
         '{vec3 an=abs(vNrm9);float fv=step(an.y,.5)*step(9.,min(vSc9.x,vSc9.z));'+
-        'vec2 uv=(an.x>an.z?vLoc9.zy:vLoc9.xy)/vec2(3.2,4.);vec2 id=floor(uv),f=fract(uv);'+
-        'float w=step(.2,f.x)*step(f.x,.8)*step(.24,f.y)*step(f.y,.76);'+
-        'float h=fract(sin(dot(id+vec2(vSeed9*97.,vSeed9*61.),vec2(12.9898,78.233)))*43758.5453);'+
-        'vec3 wc=mix(vec3(1.,.64,.30),vec3(.42,.88,1.),step(.9,h));wc=mix(wc,vec3(1.,.28,.66),step(.975,h));'+
-        'float dz=gl_FragCoord.z/gl_FragCoord.w,pres=1.-smoothstep(240.,900.,dz);'+   // au loin : la lueur MOYENNE (pas de moiré)
-        'gl_FragColor.rgb+=wc*mix(.075,w*step(.64,h),pres)*fv*1.3;}\n'+
+        'float s1=fract(vSeed9*7.13),s2=fract(vSeed9*13.71),s3=fract(vSeed9*29.37),bur=step(.7,s3);'+
+        'vec2 cel=vec2(2.6+s1*1.8,3.5+s2*.9),uv=(an.x>an.z?vLoc9.zy:vLoc9.xy)/cel,fw=max(fwidth(uv),vec2(1e-4)),id=floor(uv),f=fract(uv);'+
+        'vec2 hw=vec2(mix(.3,.46,bur),.26),dd=(hw-abs(f-.5))/fw;float w=clamp(dd.x+.5,0.,1.)*clamp(dd.y+.5,0.,1.);'+
+        'vec2 idH=bur>.5?vec2(floor(id.x/5.),id.y):id;'+                                   // les bureaux s'allument par PLATEAUX
+        'float h=fract(sin(dot(idH+vec2(vSeed9*97.,vSeed9*61.),vec2(12.9898,78.233)))*43758.5453);'+
+        'float tx=.22+.4*s2,on=step(1.-tx,h);'+
+        'float hv=fract(sin(dot(id+vec2(floor(uT9/(15.+25.*h)+h*7.),vSeed9*13.),vec2(39.34,11.13)))*24634.63);on=abs(on-step(.94,hv));'+ // la VIE : ~6 % des fenêtres basculent de temps en temps
+        'vec3 wa=bur>.5?vec3(.62,.88,1.):vec3(1.,.64,.30);'+
+        'vec3 wc=mix(wa,bur>.5?vec3(1.,.86,.62):vec3(.42,.88,1.),step(.9,h));wc=mix(wc,vec3(1.,.28,.66),step(.975,h))*(.8+.4*fract(h*13.1));'+
+        'float tv=step(.955,hv)*step(hv,.975)*(.55+.45*sin(uT9*7.3+h*40.)*sin(uT9*2.9+h*9.));wc=mix(wc,vec3(.45,.6,1.)*1.2*tv,step(.001,tv));'+ // les ÉCRANS
+        'float far=smoothstep(.3,.75,max(fw.x,fw.y)),avg=tx*4.*hw.x*hw.y;'+
+        'gl_FragColor.rgb+=mix(wc*w*on,wa*avg*1.05,far)*fv*1.3;'+
+        // LES TOITS (2026-09-26) : vus d'avion (vol libre, plongeons), c'étaient des dalles noires. Chaque toit porte désormais un LISERÉ
+        // néon sur son parapet (ambre, cyan des bureaux, parfois magenta) : d'en haut, la ville dessine ses blocs et ses retraits en
+        // lignes de lumière. Anticrénelé, et éteint quand le liseré tombe sous le pixel (pas de fourmillement au loin).
+        'float tt=step(.5,vNrm9.y)*step(9.,min(vSc9.x,vSc9.z)),de=min(vSc9.x*.5-abs(vLoc9.x),vSc9.z*.5-abs(vLoc9.z)),fe=max(fwidth(de),1e-4);'+
+        'vec3 rc=bur>.5?vec3(.3,.85,1.):s2>.72?vec3(1.,.3,.7):vec3(1.,.58,.24);'+
+        'gl_FragColor.rgb+=rc*tt*(1.-smoothstep(.55,.55+fe*1.5,de))*(1.-smoothstep(.5,1.4,fe))*.55;}\n'+
         '#include <fog_fragment>\n'+
         // LE PIED DANS LA BRUME : fondu vers la couleur du brouillard sur 280 m, et la lueur des rues qui monte
         '#ifdef USE_FOG\n{float mb=smoothstep(10.,280.,vB9);vec3 mc=fogColor+vec3(.16,.04,.2)*(1.-smoothstep(0.,160.,vB9));'+
-        'gl_FragColor.rgb=mix(mc,gl_FragColor.rgb,mb);}\n#endif');
+        'gl_FragColor.rgb=mix(mc,gl_FragColor.rgb,mb);'+
+        /* L'AIR DE LA PLUIE (2026-09-26) : le brouillard du biome ne commence qu'à 320 m — les trois rangs du canyon (55-330 m) avaient
+           TOUS le même contraste, un seul plan plat. Sous la pluie, l'air s'épaissit dès 40 m : chaque rang un peu plus noyé que le
+           précédent, la profondeur se lit. Et ce qui monte AU-DESSUS de l'œil se noie vers le PLAFOND (plus sombre que la brume de
+           l'horizon) : les grandes tours lointaines ne font plus des aplats lilas plus clairs que le ciel derrière elles. */
+        'vec3 e9=vW9-cameraPosition;float d9=length(e9),el9=e9.y/max(d9,1.);'+
+        'vec3 fc9=fogColor*mix(1.,.62,smoothstep(.04,.5,el9)*uWet9);'+
+        'gl_FragColor.rgb=mix(gl_FragColor.rgb,fc9,uWet9*.36*(1.-exp(-max(0.,d9-40.)/320.)));'+
+        'float ff9=smoothstep(fogNear,fogFar,d9);gl_FragColor.rgb+=(fc9-fogColor)*ff9*mb;}\n#endif');
   };
+  m.customProgramCacheKey=function(){return 'toursV2';};
   CITY.matT=m;return m;
 }
 function villeMatNeon(){ // enseignes, couronnes, feux d'antenne — ils RESPIRENT, quelques-uns clignotent, une poignée grésille
   if(CITY.matN)return CITY.matN;
   const m=new THREE.MeshBasicMaterial({color:0xffffff});
+  m.extensions={derivatives:true};
   m.onBeforeCompile=function(sh){sh.uniforms.uT9=CITY.uT;
-    sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying float vS9;')
+    sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying float vS9;varying vec3 vL9,vN9,vC9;')
       .replace('#include <begin_vertex>','#include <begin_vertex>\n#ifdef USE_INSTANCING\n'+
-        'vS9=fract(instanceMatrix[3].x*.113+instanceMatrix[3].z*.071+instanceMatrix[3].y*.037);\n#else\nvS9=0.;\n#endif');
-    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9;varying float vS9;')
+        'vS9=fract(instanceMatrix[3].x*.113+instanceMatrix[3].z*.071+instanceMatrix[3].y*.037);vC9=vec3(length(instanceMatrix[0].xyz),length(instanceMatrix[1].xyz),length(instanceMatrix[2].xyz));\n#else\nvS9=0.;vC9=vec3(1.);\n#endif\n'+
+        'vL9=position*vC9;vN9=normal;');
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9;varying float vS9;varying vec3 vL9,vN9,vC9;'+
+        'float nH9(vec3 p){return fract(sin(dot(p,vec3(12.9898,78.233,37.719)))*43758.5453);}')
       .replace('#include <fog_fragment>','{float fl=.8+.2*sin(uT9*(2.+vS9*7.)+vS9*40.);'+
         'if(vS9>.88)fl*=step(.3,fract(uT9*(.5+vS9)+vS9*7.));'+
         'if(vS9<.05)fl*=.2+.8*step(.1,fract(sin(floor(uT9*15.)+vS9*91.)*437.5));'+
-        'gl_FragColor.rgb*=fl;}\n#include <fog_fragment>');};
+        /* LES ENSEIGNES PARLENT (2026-09-26) — c'étaient des pavés de couleur unie. Désormais, sans une donnée de plus (tout se déduit de
+           la forme de l'instance) : l'ENSEIGNE VERTICALE (plaque haute et mince) porte une colonne de CARACTÈRES en pixels (glyphes
+           tirés au hasard, 4 × 5 pixels, l'alphabet d'une ville qu'on ne lit pas), un cadre et un fond sombre ; une sur trois fait
+           DÉFILER son texte pixel par pixel. La COURONNE des toits devient une guirlande d'ampoules qui court. Les détails se fondent
+           dans leur lueur moyenne quand ils tombent sous le pixel (fwidth) : zéro scintillement au loin. */
+        'vec3 an=abs(vN9),sc=vC9,fL=fwidth(vL9);float k9=1.;'+ // ⚠ les dérivées HORS des branches (elles y seraient indéfinies)
+        'if(sc.y>12.&&min(sc.x,sc.z)<3.){bool fx=sc.x<sc.z;float fn=fx?an.x:an.z;'+
+        '  if(fn>.5){vec2 p=fx?vL9.zy:vL9.xy;float W=fx?sc.z:sc.x,ps=W*.15;'+
+        '    vec2 e=vec2(W,sc.y)*.5-abs(p),fe=fx?fL.zy:fL.xy;float cad=1.-smoothstep(ps*.6,ps*.6+fe.y*1.5,min(e.x,e.y));'+
+        '    float sy=p.y+(vS9>.66?floor(uT9*(4.+vS9*6.))*ps:0.);vec2 g=vec2(p.x/ps+2.,sy/ps);'+
+        '    vec2 gi=floor(g),gf=vec2(gi.x,mod(gi.y,6.));float ch=floor(gi.y/6.);'+
+        '    float px=step(0.,gf.x)*step(gf.x,3.5)*step(gf.y,4.5)*step(.46,nH9(vec3(gf,ch+vS9*113.)))*step(ps*1.2,min(e.x,e.y));'+
+        '    float fg=max(fe.x,fe.y)/ps,lo=smoothstep(.45,1.1,fg);px=mix(px,.36,lo);'+
+        '    k9=.13+1.25*px+.95*cad*(1.-lo*.5);}}'+
+        'else if(sc.y<3.5&&max(sc.x,sc.z)>8.){float fv=step(an.y,.5);'+
+        '  float q=(an.x>an.z?vL9.z:vL9.x)+(an.x>an.z?vL9.x:vL9.z)*.3,d=fract(q/2.2-uT9*(1.+vS9*2.));'+
+        '  float b=smoothstep(.3,.08,abs(d-.5)),lo=smoothstep(.3,.8,(an.x>an.z?fL.z:fL.x)/2.2);'+
+        '  k9=mix(.45,mix(.3+1.1*b,.72,lo),fv);}'+
+        'gl_FragColor.rgb*=fl*k9;}\n#include <fog_fragment>');};
+  m.customProgramCacheKey=function(){return 'neonsV2';};
   CITY.matN=m;return m;
 }
 /* LES PANNEAUX HOLOGRAPHIQUES (2026-09-26) — le cyberpunk, c'est la PUB : seize réclames en pixels (la police du jeu) peintes UNE
@@ -4993,7 +5147,7 @@ function villeMatPub(){
   m.dispose=function(){};CITY.matP=m;return m;
 }
 function buildVoxCity(seed,accC){
-  CITY.root=null;CITY.n={};CITY.col=null;
+  CITY.root=null;CITY.n={};CITY.col=null;CITY.ens=[];
   if(PARK.on)return; // le parc a sa prairie
   if(LVL.cur&&LVL.cur.id!=='ville')return; // NIVEAUX : la ville n'existe qu'au niveau VILLE
   if(!(NP>1))return;
@@ -5059,6 +5213,7 @@ function buildVoxCity(seed,accC){
     if(vr()<(canyon?.5:.18)){
       const hs=Math.min(H*.3,30+vr()*60),ys=Math.max(b+hs/2+20,Math.min(t-hs/2-6,yN+(vr()-.3)*80)),fx=vr()<.5,sg=vr()<.5?-1:1;
       neon.push(cx+(fx?sg*(w/2+1.2):0),ys,cz+(fx?0:sg*(p/2+1.2)),fx?1.8:7.5,hs,fx?7.5:1.8);neonC.push((vr()*5)|0);
+      if(canyon&&CITY.ens.length<24)CITY.ens.push([cx+(fx?sg*(w/2+1.2):0),ys,cz+(fx?0:sg*(p/2+1.2)),fx?sg:0,fx?0:sg,hs]); // (dev) quelques enseignes à photographier (dbgEnseigne)
     }
   };
   /* LE CANYON, BÂTI LE LONG DU RUBAN — et non par cases au sol : la piste de la ville descend en SPIRALE sur 7 à 9 km, plusieurs
@@ -5154,7 +5309,18 @@ window.dbgCiel=function(cap,site,h,roulis,nu){ // nu = true : les tours de la vi
   if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
   if(CITY.root)CITY.root.visible=true;
 };
+// `dbgEnseigne(k)` (dev, 2026-09-26) : MODE PHOTO d'une enseigne verticale du canyon (la k-ième), vue de face à 40 m — juger les glyphes.
+window.dbgEnseigne=function(k){const e=CITY.ens&&CITY.ens[(k|0)%Math.max(1,CITY.ens.length)];if(!e)return 'aucune enseigne';
+  if(started&&!gameOver&&!paused)togglePause();
+  camera.position.set(e[0]+e[3]*40,e[1]+6,e[2]+e[4]*40);camera.lookAt(e[0],e[1],e[2]);camera.updateMatrixWorld();
+  skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);if(acesPass)acesPass.uniforms.uSpeed.value=0;
+  if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return {n:CITY.ens.length,h:Math.round(e[5])};};
 window.dbgCity=function(){return CITY.root?Object.assign({},CITY.n,{sousLaCamera:null,brouillardFar:FOG_F}):'absente (autre niveau ou parc)';};
+// `dbgVille()` (dev, 2026-09-26) : le coût de l'image qu'on regarde (appels de rendu, triangles, programmes) + le CAP de la caméra (pour
+// cadrer `dbgCiel` dans l'axe de la route) — la ville se juge au budget autant qu'à l'œil.
+window.dbgVille=function(){const r=renderer.info,d=camera.getWorldDirection(new THREE.Vector3());
+  r.autoReset=false;r.reset();renderer.render(scene,camera);r.autoReset=true; // UNE passe de scène mesurée seule (le composer remettrait les compteurs à zéro à chaque passe)
+  return {appels:r.render.calls,triangles:r.render.triangles,programmes:r.programs?r.programs.length:null,cap:+Math.atan2(-d.x,-d.z).toFixed(3),site:+Math.asin(d.y).toFixed(3),pluie:+LVL.pluie.toFixed(2),route:+LVL.route.toFixed(2)};};
 // ---------- PARC : LE SOL — une prairie d'HERBE LONGUE animée par le vent ----------
 // Un grand tapis vert texturé (qui prend l'éclairage des biomes) SOUS la sphère, planté de dizaines de
 // milliers de brins instanciés qu'un shader ploie au vent. Tout part dans trackMeshes → disposé au rebuild.
@@ -6119,24 +6285,37 @@ const PLUIE=(function(){
   const g=new THREE.BufferGeometry();
   g.setAttribute('position',new THREE.BufferAttribute(pos,3)); // la GRAINE de la goutte (three exige un attribut `position`)
   g.setAttribute('aBout',new THREE.BufferAttribute(bout,1));   // 0 = la tête, 1 = la queue du trait
+  /* LA PLUIE v2 (2026-09-26) — (1) la traînée suit la vitesse RELATIVE de la goutte (sa chute MOINS la course de la caméra, `uVel`) :
+     à l'arrêt elle tombe droit, à fond elle file vers l'objectif comme de vraies gouttes filées par l'obturateur — la vitesse se VOIT
+     dans la pluie ; la queue est là où la goutte ÉTAIT (l'ancienne pendait sous la tête). (2) Plus de gouttes qui APPARAISSENT au bord
+     de la boîte repliée ni de traits géants qui balafrent l'écran à 1 m de l'objectif : fondu près de l'œil et aux parois. (3) Chaque
+     goutte a son éclat, et une sur sept ACCROCHE un néon (magenta, cyan). Toujours un appel de rendu, zéro CPU par goutte. */
   const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,fog:false,
-    uniforms:{uTime:{value:0},uOp:{value:0},uCam:{value:new THREE.Vector3()}},
-    vertexShader:['attribute float aBout;uniform float uTime;uniform vec3 uCam;uniform float uOp;varying float vA;',
+    uniforms:{uTime:{value:0},uOp:{value:0},uCam:{value:new THREE.Vector3()},uVel:{value:new THREE.Vector3()}},
+    vertexShader:['attribute float aBout;uniform float uTime;uniform vec3 uCam,uVel;uniform float uOp;varying float vA;varying vec3 vC;',
       'void main(){',
       '  vec3 B=vec3(170.,130.,170.);',
-      '  vec3 p=position*B;',
-      '  p.y-=uTime*(95.+position.x*45.);',            // la chute, un peu différente pour chaque goutte
+      '  vec3 p=position*B;float vy=95.+position.x*45.;',
+      '  p.y-=uTime*vy;',                                // la chute, un peu différente pour chaque goutte
       '  vec3 o=uCam-B*.5;',
       '  p=o+mod(p-o,B);',                             // repliée dans la boîte qui suit la caméra
-      '  p+=vec3(.12,-1.,.05)*aBout*(5.+position.z*5.);', // la traînée, inclinée par le vent
-      '  vA=(1.-aBout*.85)*uOp;',
+      '  vec3 tr=(vec3(1.4,-vy,.6)-uVel)*.055;float L=length(tr);tr*=min(1.,16./max(L,.001));', // la traînée : vitesse RELATIVE × obturateur (plafonnée à 16 m)
+      '  vec3 d=p-uCam;float fo=smoothstep(2.5,8.,length(d))*(1.-smoothstep(58.,84.,max(abs(d.x),abs(d.z))))*(1.-smoothstep(44.,64.,abs(d.y)));', // ni près de l oeil ni au bord de la boîte
+      '  p-=tr*aBout;',                                  // la QUEUE : là où la goutte était
+      '  float h=fract(position.y*113.7+position.z*57.3);',
+      '  vC=h>.93?vec3(1.,.42,.82):h>.86?vec3(.45,.95,1.):vec3(.74,.86,1.);',             // une goutte sur sept accroche un néon
+      '  vA=(1.-aBout*.8)*uOp*fo*(.55+.9*fract(h*7.31))*clamp(7./max(L,.001),.45,1.);', // chaque goutte son éclat ; une longue traînée étale sa lumière
       '  gl_Position=projectionMatrix*viewMatrix*vec4(p,1.);}'].join('\n'),
-    fragmentShader:'varying float vA;void main(){gl_FragColor=vec4(.74,.86,1.,vA*.36);}'});
+    fragmentShader:'varying float vA;varying vec3 vC;void main(){gl_FragColor=vec4(vC,vA*.36);}'});
   const l=new THREE.LineSegments(g,m);l.frustumCulled=false;l.renderOrder=9;
   scene.add(l);return l;
 })();
 function pluieTick(t){ // appelée par la boucle : suit la caméra, suit le fondu — et ne dessine RIEN hors de la ville
-  const u=PLUIE.material.uniforms;u.uOp.value=LVL.pluie;u.uTime.value=t;u.uCam.value.copy(camera.position);
+  const u=PLUIE.material.uniforms,U=PLUIE.userData;u.uOp.value=LVL.pluie;u.uTime.value=t;
+  if(!U.pv){U.pv=new THREE.Vector3().copy(camera.position);U.v9=new THREE.Vector3();U.t=t;}
+  const dt9=t-U.t;if(dt9>1e-4&&dt9<.25){U.v9.subVectors(camera.position,U.pv).divideScalar(dt9);if(U.v9.lengthSq()>4.9e5)U.v9.set(0,0,0); // la vitesse de la caméra (un téléport ne compte pas)
+    u.uVel.value.lerp(U.v9,Math.min(1,dt9*10));}
+  U.pv.copy(camera.position);U.t=t;u.uCam.value.copy(camera.position);
   PLUIE.visible=LVL.pluie>.01||!PLUIE.userData.vu; // dessinée UNE fois au boot (compilation), ensuite seulement quand il pleut
   PLUIE.userData.vu=true;
 }
