@@ -1573,7 +1573,12 @@
   #gSw i{display:block;height:100%}
   #gSw.trainee{height:10px}
   #garage.shopMode #gTitle{color:var(--or)}
-  #garage #gPlayMain,#garage.shopMode #gHint{display:none}   /* ni la boutique ni le garage ne sont une ligne de départ : on JOUE depuis l'accueil (un seul JOUER dans tout le jeu) */
+  /* ⚠ RETOURNEMENT (2026-09-26, Léo) : « le menu est un peu chelou — refais un garage d'où on peut commencer la
+     partie, enlève le bouton JOUER du menu ». La règle d'hier (« on JOUE depuis l'accueil ») s'inverse : le
+     PLAY du GARAGE revient, le JOUER de l'accueil se masque. Rien n'est supprimé — deux règles CSS à retourner
+     pour revenir en arrière. La BOUTIQUE réutilise #garage (`.shopMode`) : là, toujours pas de ligne de départ. */
+  #garage.shopMode #gPlayMain,#garage.shopMode #gHint{display:none}
+  #mHome .mPlay,#playBtn{display:none!important}
   #garage #gBuy,#garage #gEquip{white-space:nowrap;max-width:100%;box-sizing:border-box}
   #garage #gBuy.pauvre{font-size:8px;letter-spacing:0}
   /* ---- LA JAUGE DE NITRO v2 (2026-09-25) : « trop fine et pas belle » — 13 px de ruban à rayures. Désormais une
@@ -19799,7 +19804,8 @@ $('gPlayMain').addEventListener('click',function(e){
   setTimeout(garageLaunch,260); // la vague a le temps de partir avant que le garage ne s'éteigne
 });
 $('gPlayMain').addEventListener('keydown',function(e){
-  if(e.code==='Enter'||e.code==='Space'){e.preventDefault();e.stopPropagation();playWordWave();setTimeout(garageLaunch,260);}
+  // ⚠ même chemin que le clic (partie sans fin + auto-école à la 1re partie) : le clavier lançait sans l'un ni l'autre
+  if(e.code==='Enter'||e.code==='Space'){e.preventDefault();e.stopPropagation();CARR.actif=null;playWordWave();tutoArme();setTimeout(garageLaunch,260);}
 });
 $('gPrev').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarget);garageGo(-1);});
 $('gTabs').addEventListener('click',e=>{e.stopPropagation();const b=e.target.closest('.gTab');if(!b)return;uiClic();uiPop(b);shopTab(b.getAttribute('data-tab'));});
