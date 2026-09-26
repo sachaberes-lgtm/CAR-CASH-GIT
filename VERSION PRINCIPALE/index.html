@@ -2421,6 +2421,22 @@
      c'est le PADDING qui porte les 44 px tapables (le rembourrage appartient à l'élément, il reçoit le doigt). */
   .volS{box-sizing:content-box!important;padding:16px 0!important;background-clip:content-box!important;box-shadow:none!important}
   .mLigne.off+.volRow{opacity:.35;pointer-events:none}
+  /* L'AUTO-ÉCOLE SE LIT EN CONDUISANT — la consigne était en 8 px de pixel ; la carte finit bien au-dessus de l'horizon, la place existe */
+  #coach .coTx span{font-size:11px;line-height:1.7}
+  #coach .coTop,#coach .coSkip{font-size:10px}
+  #spNote{font-size:10px}#spNote.on{opacity:1;animation:spBreath2 2.4s ease-in-out infinite}
+  @keyframes spBreath2{50%{opacity:.72}}
+  /* LA ZONE NITRO — une surface invisible sous le disque : tout le coin bas-droit (hors de la moitié du volant) répond au pouce */
+  #tNitroZone{display:none}
+  body.touch.play #tNitroZone{display:block;position:fixed;right:0;bottom:0;width:46vw;height:calc(env(safe-area-inset-bottom,0px) + 190px);
+    pointer-events:auto;touch-action:none;-webkit-tap-highlight-color:transparent} /* sans z-index : le disque, posé après, reste dessus */
+  body.touch.tpad #tNitroZone{display:none}
+  /* POURQUOI ON EST MORT — sous GAME OVER, dans la même langue pixel, sans voler la vedette au titre */
+  #coach .coTop{align-items:flex-start;line-height:1.6} /* un raté sur deux lignes ne se chevauche plus */
+  #slam9.compte.on{animation:slamCompte .3s var(--ease) forwards}
+  @keyframes slamCompte{0%{opacity:0;transform:translate(-50%,-50%) scale(1.6)}35%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:1;transform:translate(-50%,-50%) scale(.94)}}
+  .mCause{font-family:var(--pix);font-size:9px;line-height:1.7;letter-spacing:2px;color:#ffc2cc;text-align:center;margin:6px 12px 4px;
+    text-shadow:0 2px 0 #1c0430}
 </style>
 </head>
 <body>
@@ -2646,7 +2662,7 @@
       <div class="pbtn pb-gold big wide mPlay" data-m="play">JOUER</div>
     </div>
     <div class="mscr" id="mDead">
-      <div class="mOver" id="mOverT">GAME OVER</div>
+      <div class="mOver" id="mOverT">GAME OVER</div><div class="mCause" id="mCause"></div>
       <!-- L'ÉCRAN DE FIN v3 (2026-09-25, user : « l'argent n'est pas important quand tu es mort — c'est tes points d'AURA
            et le MOTEUR que tu as débloqué ») : deux grandes cartes, l'argent passe en petite ligne. -->
       <div class="mHero" id="mHero"></div>
@@ -2760,6 +2776,7 @@
   <div id="tSteer" role="button" tabindex="0" aria-label="Volant — glisse pour tourner"><div id="tStick"><div id="tKnob"></div></div><div id="tSteerHint" data-fr="GLISSE POUR TOURNER">GLISSE POUR TOURNER</div></div>
   <div id="tLeft" class="tbtn" role="button" tabindex="0" aria-label="Gauche"><i class="pxi pxi-gauche" aria-hidden="true"></i></div>
   <div id="tRight" class="tbtn" role="button" tabindex="0" aria-label="Droite"><i class="pxi pxi-droite" aria-hidden="true"></i></div>
+  <div id="tNitroZone" aria-hidden="true"></div><!-- (2026-09-26) la surface tactile de la NITRO, plus grande que son disque -->
   <div id="tNitro" class="tbtn" role="button" tabindex="0" aria-label="Nitro"><i class="pxi pxi-eclair" aria-hidden="true"></i><span>NITRO</span></div>
 </div>
 <div id="tSet">
@@ -5582,8 +5599,8 @@ const I18N_ZH={
 // ---- L'ÉCONOMIE v3 (2026-09-25) : boutique, contrats, objectif ----
 Object.assign(I18N,{"BOUTIQUE": "SHOP", "CONTRAT": "CONTRACT", "REMPLI !": "COMPLETE!", "OBJECTIF": "GOAL", "TU PEUX TE L'OFFRIR": "YOU CAN AFFORD IT", "ACHETER": "BUY", "ARTICLES À TA PORTÉE": "ITEMS YOU CAN AFFORD", "ARTICLE À TA PORTÉE": "ITEM YOU CAN AFFORD", "EST À TOI — VA LA VOIR": "IS YOURS — GO SEE IT", "EST À TOI — ESSAIE-LA": "IS YOURS — TRY IT ON", "VERSÉS SUR TON COMPTE": "PAID INTO YOUR ACCOUNT", "VOITURES": "CARS", "PEINTURE": "PAINT", "AILES": "WINGS", "TRAÎNÉES": "TRAILS", "TRAÎNÉE": "TRAIL", "ÉQUIPÉE": "EQUIPPED", "D'ORIGINE": "FACTORY", "MENTHE GLACÉE": "ICE MINT", "BLEU MINUIT": "MIDNIGHT BLUE", "NOIR MAT": "MATTE BLACK", "COUCHER DE SOLEIL": "SUNSET", "CHROME MIROIR": "MIRROR CHROME", "OR MASSIF": "SOLID GOLD", "PANNEAUX": "PANELS", "HÉLICES": "PROPELLERS", "PLUMES D'ANGE": "ANGEL FEATHERS", "CHAUVE-SOURIS": "BAT", "NITRO": "NITRO", "MENTHE": "MINT", "ROSE NÉON": "NEON PINK", "POUDRE D'OR": "GOLD DUST", "ARC-EN-CIEL": "RAINBOW", "LA BULLE": "THE BUBBLE", "LE COMBI": "THE CAMPER", "LA DOLORÈS": "LA DOLORES", "La teinte du constructeur. Elle a fait ses preuves.": "The factory colour. It has proved itself.", "Fraîche comme un billet qui sort du distributeur.": "Fresh as a bill straight out of the ATM.", "Le bleu des néons de la ville, à trois heures du matin.": "The blue of the city neons, at 3 a.m.", "Pas un reflet. Même la police hésite.": "Not a single reflection. Even the cops hesitate.", "Du miel en bas, du violet en haut : le ciel de 19 h, en laque.": "Honey at the bottom, violet on top: the 7 p.m. sky, in lacquer.", "Tu te vois dedans. Les autres aussi.": "You can see yourself in it. So can everyone else.", "Ne s'achète pas : se mérite au contrat n° 4.": "Not for sale: earned with contract #4.", "Deux planches de planeur qui sortent des flancs. Sobre.": "Two glider boards sliding out of the sides. Understated.", "Quatre rotors. Ça ne vole pas mieux, mais ça brasse de l'air.": "Four rotors. It does not fly any better, but it moves a lot of air.", "Blanches, en éventail. Le ciel te prend pour un des siens.": "White, fanned out. The sky takes you for one of its own.", "Membranes noires et doigts d'os. Pour les vols de nuit.": "Black membranes and bony fingers. For night flights.", "Orange brûlé. Le classique des tuyères.": "Burnt orange. The exhaust classic.", "Un sillage vert d'eau qui sent le propre.": "A sea-green wake that smells clean.", "Le rose des enseignes. On te suit à la trace.": "Neon-sign pink. Everyone can follow you.", "Tu ne laisses pas de la fumée derrière toi. Tu laisses de l'or.": "You do not leave smoke behind. You leave gold.", "Ne s'achète pas : se mérite au contrat n° 5.": "Not for sale: earned with contract #5.", "Ronde comme un sou neuf. Tout le monde lui sourit, même la police.": "Round as a shiny penny. Everyone smiles at it, even the cops.", "Planche sur le toit, la paix dans le cœur, et 45 chevaux qui font de leur mieux.": "Board on the roof, peace in the heart, and 45 horses doing their best.", "Inox brossé, portes papillon. À 88 à l'heure elle remonte le temps, paraît-il. Toi, tu vas plus vite.": "Brushed steel, gullwing doors. At 88 it travels back in time, apparently. You go faster.", "IL TE MANQUE": "YOU ARE SHORT", "COMPTE": "ACCOUNT"});
 Object.assign(I18N,{"DAUPHIN":"DOLPHIN"});Object.assign(I18N_ZH,{"DAUPHIN":"海豚"}); // (dauphin v3) l'étiquette
-Object.assign(I18N,{"AUTO-ÉCOLE": "DRIVING SCHOOL", "PASSER": "SKIP", "TOURNE": "STEER", "DÉCOLLE": "TAKE OFF", "VOLE AU NITRO": "FLY ON NITRO", "POSE-TOI": "LAND IT", "Glisse ton pouce à gauche… puis à droite.": "Slide your thumb left… then right.", "Maintiens NITRO : ça pousse fort.": "Hold NITRO: it pushes hard.", "Fonce hors de la route, par le bord. N'aie pas peur.": "Drive off the road, over the edge. Don't be scared.", "En l'air, MAINTIENS NITRO. Ton pouce guide le vol.": "In the air, HOLD NITRO. Your thumb steers the flight.", "Vise l'anneau (en or = parfait) et pose tes quatre roues.": "Aim for the ring (gold = perfect) and land on all four wheels.", "PERMIS OBTENU !": "LICENCE EARNED!", "ENCORE ! ET CETTE FOIS, NITRO EN L'AIR": "AGAIN! AND THIS TIME, NITRO IN THE AIR", "RATÉ ! ON RECOMMENCE": "MISSED! TRY AGAIN", "L'AUTO-ÉCOLE T'ATTEND AU PROCHAIN JOUER": "DRIVING SCHOOL AWAITS ON YOUR NEXT PLAY", "REVOIR L'AUTO-ECOLE": "REPLAY DRIVING SCHOOL"});
-Object.assign(I18N_ZH,{"AUTO-ÉCOLE": "驾校", "PASSER": "跳过", "TOURNE": "转向", "NITRO": "氮气", "DÉCOLLE": "起飞", "VOLE AU NITRO": "氮气飞行", "POSE-TOI": "着陆", "Glisse ton pouce à gauche… puis à droite.": "拇指向左滑……再向右滑。", "Maintiens NITRO : ça pousse fort.": "按住氮气：推力很猛。", "Fonce hors de la route, par le bord. N'aie pas peur.": "从路边冲出去，别怕。", "En l'air, MAINTIENS NITRO. Ton pouce guide le vol.": "在空中按住氮气，用拇指引导飞行。", "Vise l'anneau (en or = parfait) et pose tes quatre roues.": "瞄准圆环（金色＝完美），四轮着地。", "PERMIS OBTENU !": "驾照到手！", "RATÉ ! ON RECOMMENCE": "失败！再来", "REVOIR L'AUTO-ECOLE": "重温驾校"});
+Object.assign(I18N,{"SORTI ! TON POUCE RAMENE LA CAISSE": "OFF THE ROAD! YOUR THUMB BRINGS IT BACK", "6 S EN L'AIR : POSE-TOI AVANT": "6 S IN THE AIR: LAND SOONER", "TOMBE DANS LE VIDE": "FELL INTO THE VOID", "ENCASTRE DANS UNE TOUR": "CRASHED INTO A TOWER", "6 S A L'ARRET : ROULE OU CREVE": "6 S STANDING STILL: DRIVE OR DIE", "DERNIER DE LA MEUTE": "LAST OF THE PACK", "CHAINE MAX": "BEST CHAIN", "ASTUCE": "TIP", "Tire le pouce vers le BAS en tournant : DRIFT !": "Pull your thumb DOWN while steering: DRIFT!", "En l'air : pouce en HAUT = plonge, en BAS = cabre.": "In the air: thumb UP = dive, DOWN = pull up.", "AUTO-ÉCOLE": "DRIVING SCHOOL", "PASSER": "SKIP", "TOURNE": "STEER", "DÉCOLLE": "TAKE OFF", "VOLE AU NITRO": "FLY ON NITRO", "POSE-TOI": "LAND IT", "Glisse ton pouce à gauche… puis à droite.": "Slide your thumb left… then right.", "Maintiens NITRO : ça pousse fort.": "Hold NITRO: it pushes hard.", "Fonce hors de la route, par le bord. N'aie pas peur.": "Drive off the road, over the edge. Don't be scared.", "En l'air, MAINTIENS NITRO. Ton pouce guide le vol.": "In the air, HOLD NITRO. Your thumb steers the flight.", "Vise l'anneau (en or = parfait) et pose tes quatre roues.": "Aim for the ring (gold = perfect) and land on all four wheels.", "PERMIS OBTENU !": "LICENCE EARNED!", "ENCORE ! ET CETTE FOIS, NITRO EN L'AIR": "AGAIN! AND THIS TIME, NITRO IN THE AIR", "RATÉ ! ON RECOMMENCE": "MISSED! TRY AGAIN", "L'AUTO-ÉCOLE T'ATTEND AU PROCHAIN JOUER": "DRIVING SCHOOL AWAITS ON YOUR NEXT PLAY", "REVOIR L'AUTO-ECOLE": "REPLAY DRIVING SCHOOL"});
+Object.assign(I18N_ZH,{"SORTI ! TON POUCE RAMENE LA CAISSE": "冲出赛道！用拇指把车拉回来", "6 S EN L'AIR : POSE-TOI AVANT": "空中 6 秒：早点着陆", "TOMBE DANS LE VIDE": "坠入虚空", "ENCASTRE DANS UNE TOUR": "撞上高楼", "6 S A L'ARRET : ROULE OU CREVE": "停车 6 秒：开起来，不然就爆", "DERNIER DE LA MEUTE": "垫底出局", "CHAINE MAX": "最长连击", "ASTUCE": "提示", "Tire le pouce vers le BAS en tournant : DRIFT !": "转向时拇指向下拉：漂移！", "En l'air : pouce en HAUT = plonge, en BAS = cabre.": "空中：拇指向上 = 俯冲，向下 = 拉起。", "AUTO-ÉCOLE": "驾校", "PASSER": "跳过", "TOURNE": "转向", "NITRO": "氮气", "DÉCOLLE": "起飞", "VOLE AU NITRO": "氮气飞行", "POSE-TOI": "着陆", "Glisse ton pouce à gauche… puis à droite.": "拇指向左滑……再向右滑。", "Maintiens NITRO : ça pousse fort.": "按住氮气：推力很猛。", "Fonce hors de la route, par le bord. N'aie pas peur.": "从路边冲出去，别怕。", "En l'air, MAINTIENS NITRO. Ton pouce guide le vol.": "在空中按住氮气，用拇指引导飞行。", "Vise l'anneau (en or = parfait) et pose tes quatre roues.": "瞄准圆环（金色＝完美），四轮着地。", "PERMIS OBTENU !": "驾照到手！", "RATÉ ! ON RECOMMENCE": "失败！再来", "REVOIR L'AUTO-ECOLE": "重温驾校"});
 Object.assign(I18N,{"ENCORE ! NITRO EN L'AIR": "AGAIN! NITRO IN THE AIR"});Object.assign(I18N_ZH,{"ENCORE ! NITRO EN L'AIR": "再来！空中开氮气"});
 Object.assign(I18N_ZH,{"BOUTIQUE": "商店", "CONTRAT": "合同", "REMPLI !": "完成！", "OBJECTIF": "目标", "TU PEUX TE L'OFFRIR": "你买得起了", "ACHETER": "购买", "ARTICLES À TA PORTÉE": "件商品可购买", "ARTICLE À TA PORTÉE": "件商品可购买", "EST À TOI — VA LA VOIR": "归你了 — 去看看", "EST À TOI — ESSAIE-LA": "归你了 — 试试看", "VERSÉS SUR TON COMPTE": "已存入账户", "VOITURES": "车辆", "PEINTURE": "涂装", "AILES": "翅膀", "TRAÎNÉES": "尾迹", "TRAÎNÉE": "尾迹", "ÉQUIPÉE": "已装备", "D'ORIGINE": "原厂", "MENTHE GLACÉE": "冰薄荷", "BLEU MINUIT": "午夜蓝", "NOIR MAT": "哑光黑", "COUCHER DE SOLEIL": "日落", "CHROME MIROIR": "镜面铬", "OR MASSIF": "纯金", "PANNEAUX": "滑翔板", "HÉLICES": "螺旋桨", "PLUMES D'ANGE": "天使之羽", "CHAUVE-SOURIS": "蝙蝠", "NITRO": "氮气", "MENTHE": "薄荷", "ROSE NÉON": "霓虹粉", "POUDRE D'OR": "金粉", "ARC-EN-CIEL": "彩虹", "LA BULLE": "泡泡", "LE COMBI": "露营车", "LA DOLORÈS": "多洛蕾丝"});
 Object.assign(I18N,{"OFFRE DE LANCEMENT": "LAUNCH OFFER", "LA CAISSE DU MOIS": "CAR OF THE MONTH", "Une voiture exclusive, sa peinture et sa traînée. Introuvable ailleurs.": "An exclusive car, its paint and its trail. Found nowhere else.", "BIENTÔT": "SOON", "VOITURES PREMIUM": "PREMIUM CARS", "LÉGENDAIRE": "LEGENDARY", "ÉPIQUE": "EPIC", "RARE": "RARE", "RESTAURER MES ACHATS": "RESTORE PURCHASES", "BIENTÔT DISPONIBLE — À LA SORTIE SUR L'APP STORE": "COMING SOON — AT THE APP STORE LAUNCH", "AUCUN ACHAT À RESTAURER": "NO PURCHASES TO RESTORE", "CONTRAT RÉUSSI": "CONTRACT DONE", "DÉBLOQUÉ": "UNLOCKED"});
@@ -12244,9 +12261,13 @@ function tutoTick(dt){
   if(!TUTO.on||!started||gameOver||paused)return;
   const c=document.getElementById('coach');if(!c||!c.classList.contains('on')||c.classList.contains('bravo'))return;
   TUTO.t+=dt;
+  /* (2026-09-26, audit UX : 3 essais sur 3, la caisse sortait de la route juste après TOURNE, et l'étape NITRO ne se validait
+     pas en l'air → 6 s de vol, explosion, « RATÉ »). Aux deux premières étapes, une sortie de route (plus d'une demi-seconde
+     en l'air : une bosse ne compte pas) remet la caisse sur la piste tout de suite, en DISANT pourquoi. Zéro aide en vraie course. */
+  if(TUTO.i<2&&mode==='fall'){TUTO.chute=(TUTO.chute||0)+dt;if(TUTO.chute>.5){TUTO.chute=0;sandRevive();tutoAffiche('SORTI ! TON POUCE RAMENE LA CAISSE');return;}}else TUTO.chute=0;
   switch(TUTO.i){
-    case 0: if(steer<-.45)TUTO.l=1;if(steer>.45)TUTO.r=1;if(TUTO.l&&TUTO.r)tutoBravo();break;
-    case 1: if(nitroOn&&mode==='drive')TUTO.hold+=dt;if(TUTO.hold>1.1)tutoBravo();break;
+    case 0: if(steer<-.25)TUTO.l=1;if(steer>.25)TUTO.r=1;if(TUTO.l&&TUTO.r)tutoBravo();break; // .45 exigeait la moitié du braquage : on sortait de la route en le cherchant
+    case 1: if(nitroOn)TUTO.hold+=dt;if(TUTO.hold>1.1)tutoBravo();break; // la nitro tenue compte aussi en l'air (une crête ne remet plus le compteur à zéro)
     case 2: if(mode==='fall'){pwrAirT=Math.max(pwrAirT,9);tutoBravo();}break;        // en vol : l'airtime devient infini le temps d'apprendre
     case 3: if(mode==='fall'&&nitroOn)TUTO.air+=dt;
             if(TUTO.air>.9){TUTO.vole=true;tutoBravo();}
@@ -12388,6 +12409,7 @@ let engTier=0,coinsGot=0; // ÉCARTS ÉLARGIS (2026-08-02) : ×1 → ×4,2, chaq
 function engineFor(nc){let t=0;for(let i=0;i<ENGINE_TIERS.length;i++)if(nc>=ENGINE_TIERS[i].coins)t=i;return t;}
 // LA MONNAIE DU MOTEUR : ramasser une pièce en donne 1 — et RÉUSSIR UNE FIGURE en donne une poignée.
 // Tout passe par ici, donc le passage de palier s'annonce toujours de la même façon.
+let poseSndT=0; // (2026-09-26) l'heure de la dernière pose sonore — la scène du moteur ne s'y superpose plus
 function addCoins(n){
   if(n<=0)return;
   coinsGot+=n;
@@ -12401,7 +12423,8 @@ function addCoins(n){
     // la vignette — c'est-à-dire sur l'objet qui vient de changer. Les deux ensemble faisaient
     // deux récompenses concurrentes pour un seul événement, et l'œil ne savait plus où aller.
     trickMsg('⚙ '+TR(E.n)+' — '+TR('POUSSÉE ×')+E.push.toFixed(2),3);
-    try{engSwapSnd();}catch(e){}          // la scène sonore : on dévisse, ça se pose, ça démarre, ça sonne
+    if(performance.now()-poseSndT<80)setTimeout(function(){try{engSwapSnd();}catch(e){}},450); // (2026-09-26, audit son) sur une pose, une dizaine de sons
+    else try{engSwapSnd();}catch(e){}     // partaient dans la même 50 ms : la visseuse attend que le « tchak » ait parlé — la scène sonore : on dévisse, ça se pose, ça démarre, ça sonne
     engSwapT=T_SWAP;                      // ⚠ arme la SCÈNE (onde + spirale + flash + vignette qui s'emballe)
     engPop9(E,nt);                        // et le badge qui claque sur la vignette
     shake=Math.max(shake,.5);duckT=Math.max(duckT,.45);
@@ -13680,9 +13703,11 @@ const BOOM_VARS=[
   {n:'GLACE',  r1:0xd8f4ff,r2:0x7ab8e8,li:0x9fd8ff,fl:'#e8f8ff',sk:0xcfeaff,rings:6,pitch:2.0}
 ];
 let BOOMV=BOOM_VARS[0];
-function explode(){
+let mortCause=''; // (2026-09-26, audit UX) POURQUOI on est mort — dit sous GAME OVER : une mort comprise donne envie de rejouer
+function explode(cause){
   chainePerdue(); // (aura v2) la chaîne ouverte part avec la caisse
   if(gameOver||mode==='boom')return;
+  mortCause=cause||'';
   dolKill(); // l'aura du DAUPHIN part avec la caisse — comme la mallette
   flowReset();try{flowTick(0);}catch(e){} // le crash VIDE le flow
   hap([55,45,160]); // le téléphone encaisse le crash avec toi
@@ -13706,8 +13731,9 @@ function explode(){
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;
   mode='boom';boomT=0;boomPos.copy(carGroup.position);
   spawnBoomArt(boomPos,1); // LA BOULE DE FEU DESSINÉE : volutes en chou-fleur + dards
-  deathSound(); // …et LE SON DE MORT, tiré au sort — il tombe sur l'image de l'explosion, pas après
-  if(engTier<23){const tx=annSpeak('earlyDead',6);if(tx)trickMsg(tx,3);} // mort avant le haut de l'échelle — indexé sur le MOTEUR (le niveau de caisse n'est plus une progression mais un choix de garage)
+  const tx9=engTier<23?annSpeak('earlyDead',6):null; // (2026-09-26, audit son) la VOIX d'abord : si elle parle, le tirage du son de mort écarte le « ewww »
+  deathSound(!!ANN.playing); // …et LE SON DE MORT, tiré au sort — il tombe sur l'image de l'explosion, pas après
+  if(tx9)trickMsg(tx9,3); // mort avant le haut de l'échelle — indexé sur le MOTEUR (le niveau de caisse n'est plus une progression mais un choix de garage)
   carGroup.visible=false;shadow.position.y=-99999;landMark.visible=false;
   const spec=CARS[level];
   // VRAIS morceaux du modèle arrachés (roues, capot, toit, spoiler…)
@@ -13962,7 +13988,8 @@ function landBoom(pos,tier){
   if(tier>=2)sparkBurst(sparkBlue,pos,10+tier*4,10);
   flashEl.style.background='#ffe0b0';flashEl.style.opacity=Math.min(.55,.18+tier*.14).toFixed(2);
   setTimeout(function(){flashEl.style.opacity=0;flashEl.style.background='#ff2020';},130); // on rend le flash au rouge (mort)
-  subBoom(.10+tier*.07);noiseBurst(.15,.08+tier*.035,300+tier*40);thud(6+tier*4);
+  subBoom(.10+tier*.07);noiseBurst(.15,.08+tier*.035,300+tier*40); // (2026-09-26, audit son) plus de `thud(6+tier*4)` : calé sur le GAIN et non sur le
+  // grade, il rejouait un choc grave à chaque pose qui paye — la PARFAITE cognait plus fort que la LOURDE et le compresseur écrasait son « tchak »
 }
 function sparkBurst(pool,pos,n,sp){
   // (2026-09-25) une gerbe née CONTRE la caisse en course (pièce, drift, frôlé, rase-bord…) hérite de sa vitesse (EXV, posée par la
@@ -14417,9 +14444,10 @@ function musicStop(tape){ // fin de partie : « tape-stop » (la bande ralentit 
   const el=musicEl;
   if(!el||el.paused||!tape){stopMusic();return;}
   let r=1,v=musicVolCour;
+  try{el.preservesPitch=false;el.webkitPreservesPitch=false;}catch(e){} // (2026-09-26) sans ça, le navigateur GARDE la hauteur : pas de chute de bande
   const iv=setInterval(function(){r-=.08;v*=.84;
     try{el.playbackRate=Math.max(.12,r);el.volume=Math.max(0,Math.min(1,v));}catch(e){}
-    if(r<=.12){clearInterval(iv);try{el.pause();el.playbackRate=1;}catch(e){}musicOn=false;}},55);
+    if(r<=.12){clearInterval(iv);try{el.pause();el.playbackRate=1;el.preservesPitch=true;el.webkitPreservesPitch=true;}catch(e){}musicOn=false;}},55);
 }
 // la pause du jeu met la musique en pause (et la reprend) — elle ne passe plus par l'AudioContext suspendu
 function musicPause(p){try{if(!musicEl)return;if(p){if(!musicEl.paused)musicEl.pause();}else if(musicVoulue)musicJoue();}catch(e){}}
@@ -15281,7 +15309,7 @@ function engSndParams(e,st){
     transG:meca*(.008+.026*ch+.010*vsp)*(1-.55*nA),
     diffG:meca*(.006+.014*ch+.012*vsp)*(1-.55*nA),
     ovrF:200+rpm*900, ovrG:meca*ov*(.030+.070*rpm)*(1-.6*nA),
-    lp:lpB*(.62+ch*.55)*(1-ov*.45)*(1+(st.boost?.06:0))*(1+dr*.015)*(1-.25*nA*(1-nB))*(1-.45*(st.cloudIn||0)),
+    lp:Math.max(st.lpMin||0,lpB*(.62+ch*.55)*(1-ov*.45)*(1+(st.boost?.06:0))*(1+dr*.015)*(1-.25*nA*(1-nB))*(1-.45*(st.cloudIn||0))), // lpMin : plancher du téléphone (les harmoniques passent, l'oreille reconstruit la fondamentale)
     /* LE BATTEMENT. `lfoG` s'ajoute au gain de base `ev` : tant qu'il reste SOUS `ev`, le volume
        ondule entre ~0 et 2·ev sans jamais s'inverser (un gain négatif ferait claquer la phase).
        Profondeur = le caractère de la fiche (`lope`, l'épave tousse plus qu'un V12) + la touche
@@ -15723,9 +15751,9 @@ function subBoom(vol){ // basse sourde d'impact
    else{subBoom._t=t9;subBoom._v=vol;}}
   try{
     const o=AC.createOscillator(),g=AC.createGain();
-    o.type='sine';o.frequency.setValueAtTime(90,AC.currentTime);
-    o.frequency.exponentialRampToValueAtTime(34,AC.currentTime+.26);
-    g.gain.setValueAtTime(vol,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+.3);
+    o.type='sine';o.frequency.setValueAtTime(TEL_NATIF?190:90,AC.currentTime); // (2026-09-26) sur téléphone, 90→34 Hz ne sortait pas du haut-parleur
+    o.frequency.exponentialRampToValueAtTime(TEL_NATIF?80:34,AC.currentTime+.26);
+    g.gain.setValueAtTime(TEL_NATIF?vol*.6:vol,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+.3);
     o.connect(g);g.connect(MASTER);o.start();o.stop(AC.currentTime+.32);
   }catch(e){}
 }
@@ -15737,7 +15765,7 @@ function heartBeat(){ // la mallette est lourde : le cœur du pilote cogne — t
     const t0=AC.currentTime;
     for(const [d9,v9] of [[0,.15],[.14,.10]]){
       const o=AC.createOscillator(),g=AC.createGain();
-      o.type='sine';o.frequency.setValueAtTime(58,t0+d9);o.frequency.exponentialRampToValueAtTime(38,t0+d9+.1);
+      o.type='sine';o.frequency.setValueAtTime(TEL_NATIF?128:58,t0+d9);o.frequency.exponentialRampToValueAtTime(TEL_NATIF?84:38,t0+d9+.1); // téléphone : le cœur doit s'entendre
       g.gain.setValueAtTime(.0001,t0+d9);g.gain.linearRampToValueAtTime(v9,t0+d9+.015);
       g.gain.exponentialRampToValueAtTime(.001,t0+d9+.16);
       o.connect(g);g.connect(MASTER);o.start(t0+d9);o.stop(t0+d9+.2);
@@ -15786,18 +15814,23 @@ function nBlip(){
    Trois couches qui se complètent : le SOUFFLE qui monte (bruit balayé vers l'aigu : on fend l'air), le COUP DE
    POITRINE (sous-grave : on est poussé dans le siège), et une note qui DÉCOLLE de deux octaves (l'élan). `k` dose la
    force : 1 = pad turbo / pouvoir / catapulte, jusqu'à ~2 = ULTRA TURBO et FRÉNÉSIE. */
+/* LES POUVOIRS ONT LEUR SIGNATURE (2026-09-26, audit son) : ils se ramassaient avec le souffle d'un pad et s'éteignaient en silence.
+   Deux notes à eux par-dessus le souffle (dans la tonalité), et une tierce qui descend quand le minuteur s'épuise. */
+const PWR_NOTE={n:[2,5],a:[4,7],v:[3,6]};
+function pwrPrisSnd(k){const N=PWR_NOTE[k]||PWR_NOTE.n;try{chimeNote(noteP(N[0],1),.05,.1,.22);chimeNote(noteP(N[1],1),.13,.1,.32);}catch(e){}}
+function pwrFinSnd(){try{chimeNote(noteP(5,1),0,.07,.18);chimeNote(noteP(2,1),.1,.07,.28);}catch(e){}}
 function boostSnd(k){
   if(!sfxOk())return;k=k||1;
   try{
-    const t0=AC.currentTime;
+    const t0=AC.currentTime,vr=.94+Math.random()*.12; // ±6 % : pads, pouvoirs, portail et mini-turbo ne sonnent plus comme un seul sample en boucle
     const src=AC.createBufferSource();src.buffer=noiseBuf(.5);
     const f=AC.createBiquadFilter();f.type='bandpass';f.Q.value=1.1;
-    f.frequency.setValueAtTime(380,t0);f.frequency.exponentialRampToValueAtTime(3200,t0+.32);
+    f.frequency.setValueAtTime(380*vr,t0);f.frequency.exponentialRampToValueAtTime(3200*vr,t0+.32);
     const g=AC.createGain();g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(Math.min(.32,.15*k),t0+.05);g.gain.exponentialRampToValueAtTime(.001,t0+.46);
     src.connect(f);f.connect(g);g.connect(MASTER);src.start(t0);src.stop(t0+.5);
     subBoom(Math.min(.3,.11*k));
     const o=AC.createOscillator(),go=AC.createGain();o.type='triangle';
-    o.frequency.setValueAtTime(196,t0);o.frequency.exponentialRampToValueAtTime(784,t0+.28);
+    o.frequency.setValueAtTime(196*vr,t0);o.frequency.exponentialRampToValueAtTime(784*vr,t0+.28);
     go.gain.setValueAtTime(.0001,t0);go.gain.exponentialRampToValueAtTime(Math.min(.09,.045*k),t0+.03);go.gain.exponentialRampToValueAtTime(.001,t0+.34);
     o.connect(go);go.connect(MASTER);o.start(t0);o.stop(t0+.36);
     duckT=Math.max(duckT,Math.min(.5,.2*k)); // le mix s'écarte une fraction de seconde : la poussée passe DEVANT
@@ -15820,7 +15853,7 @@ function driftChargeSnd(){
       o1.start();o2.start();lfo.start();DRS={o1:o1,o2:o2,lp:lp,g:g,lfo:lfo};}catch(e){DRS=false;return;} }
   const T=AC.currentTime;
   if(on){
-    const lv=driftLv,base=[110,165,220,330][lv],d0=[0,.45,.9,1.4][lv],dd=[.45,.45,.5,1][lv],fr=lv>=3?1:Math.min(1,Math.max(0,(driftC-d0)/dd));
+    const lv=driftLv,base=[123.47,164.81,246.94,329.63][lv],d0=[0,.45,.9,1.4][lv],dd=[.45,.45,.5,1][lv],fr=lv>=3?1:Math.min(1,Math.max(0,(driftC-d0)/dd));
     const f=base*(1+.25*fr);
     DRS.o1.frequency.setTargetAtTime(f,T,.03);DRS.o2.frequency.setTargetAtTime(f*1.5,T,.03);
     DRS.lp.frequency.setTargetAtTime(600+lv*650+fr*300,T,.05);
@@ -16122,7 +16155,7 @@ const DEATH_DIR='assets/audio/death/';
 const DEATH_LIB=[
   {f:'minecraft.m4a', v:.80, max:2.6},  // boum pixelisé (synthèse — placeholder)
   {f:'explosion.m4a', v:.70, max:4.5},  // déflagration (synthèse — placeholder)
-  {f:'eww.m4a',       v:.95, max:2.3},  // « ewwwww » (voix TTS — placeholder)
+  {f:'eww.m4a',       v:.95, max:2.3, voix:1},  // « ewwwww » (voix TTS — placeholder) · `voix` : écarté quand l'annonceur parle
   {f:'gong.m4a',      v:.85, max:3.6}   // gong (synthèse — placeholder)
 ];
 let deathLast=-1,deathEls=[];
@@ -16197,11 +16230,12 @@ function fxTick(dt){ // les réfractaires s'égrènent — hors gate de sim, sin
   if(fxWowCd>0)fxWowCd=Math.max(0,fxWowCd-dt);
   if(fxArgCd>0)fxArgCd=Math.max(0,fxArgCd-dt);
 }
-function deathSound(){
+function deathSound(sansVoix){ // sansVoix : l'annonceur parle déjà — pas de seconde voix (le « ewww ») par-dessus
   if(!SND.sfx)return;
   const n=DEATH_LIB.length;
   let i=Math.floor(Math.random()*n);
   if(n>1&&i===deathLast)i=(i+1+Math.floor(Math.random()*(n-1)))%n; // le tirage évite le dernier joué
+  if(sansVoix&&DEATH_LIB[i].voix){i=(i+1)%n;if(i===deathLast)i=(i+1)%n;}
   deathLast=i;
   const d=DEATH_LIB[i];
   if(d.dead)return;                       // fichier absent : on ne réessaie pas, et surtout on ne plante pas
@@ -16304,7 +16338,7 @@ const SAVE={
        `aura` : le total à vie de style. Elle ne s'achète rien — elle donne un RANG, et le rang ouvre
        les caisses que l'argent ne peut pas acheter.
        `owned` : les index des caisses ACHETÉES. Séparé des exploits : un achat n'est pas un exploit. */
-    mis:{n:0,ok:[0,0,0]}, shop:{own:[],eq:{peinture:'usine',aile:'panneaux',trainee:'nitro'}}, pseudo:'', tuto:0, shopVu:0, // CONTRATS · BOUTIQUE · nom du Top 10 · 1re partie guidée faite
+    mis:{n:0,ok:[0,0,0]}, shop:{own:[],eq:{peinture:'usine',aile:'panneaux',trainee:'nitro'}}, pseudo:'', tuto:0, shopVu:0, ast:0, // CONTRATS · BOUTIQUE · nom du Top 10 · 1re partie guidée faite
     bank:0, aura:0, owned:[], auraMax:0, gamme:3, // `gamme` : version de la GAMME de caisses (voir la migration dans san) // `auraMax` : la meilleure aura d'UNE partie — le chiffre à battre, affiché en jeu
     ai:{air:.5,boost:.35,caution:.5,skill:.86,aggr:.55,airDur:1.1,runs:0}};}, // profil d'apprentissage des IA
   san(d){ // désinfection : quoi qu'on charge (storage rongé, code importé), la forme est GARANTIE
@@ -16362,7 +16396,7 @@ const SAVE={
       if(Array.isArray(d.shop.own))c.shop.own=[...new Set(d.shop.own.filter(k=>typeof k==='string'&&/^(peinture|aile|trainee):[a-z]{2,12}$/.test(k)))];
       if(d.shop.eq&&typeof d.shop.eq==='object')for(const k of ['peinture','aile','trainee'])if(typeof d.shop.eq[k]==='string'&&/^[a-z]{2,12}$/.test(d.shop.eq[k]))c.shop.eq[k]=d.shop.eq[k];}
     if(typeof d.pseudo==='string')c.pseudo=d.pseudo.slice(0,8);
-    c.tuto=(d.tuto||c.ex.runs>0)?1:0;c.shopVu=d.shopVu?1:0; // (2026-09-25) la pastille NEW de la boutique ne s'allume que tant qu'on n'y est jamais entré // qui a déjà joué ne refait pas la partie guidée
+    c.tuto=(d.tuto||c.ex.runs>0)?1:0;c.shopVu=d.shopVu?1:0;c.ast=Math.max(0,Math.min(255,Math.round(+d.ast)||0)); // `ast` : les ASTUCES déjà montrées (bits : 1 drift, 2 assiette en vol) // (2026-09-25) la pastille NEW de la boutique ne s'allume que tant qu'on n'y est jamais entré // qui a déjà joué ne refait pas la partie guidée
     c.aura=Math.max(0,Math.min(1e12,Math.round(+d.aura)||0));
     c.auraMax=Math.max(0,Math.min(1e12,Math.round(+d.auraMax)||0));
     if(Array.isArray(d.owned))c.owned=[...new Set(d.owned
@@ -16891,16 +16925,17 @@ const avEl={};
 function avE(id){return avEl[id]||(avEl[id]=document.getElementById(id));}
 function fmtAura(n){return Math.round(n).toLocaleString('fr-FR');}
 function sansAcc(t){return String(t).normalize('NFD').replace(/[̀-ͯ]/g,'');} // la police pixel n'a pas de capitales accentuées (« MÉTÉORE » s'afficherait « MéTéORE »)
-function chaineAura(nom,base,fam,brut){ // brut : pas de décote de redite (les échelles qui grimpent déjà : vrilles, bumps)
+function chaineAura(nom,base,fam,brut,muet){ // brut : pas de décote de redite (les échelles qui grimpent déjà : vrilles, bumps) · muet : l'appelant sonne déjà (figure en vol, pose)
   if(!(base>0)||!running||gameOver||(typeof PARK!=='undefined'&&PARK.on))return 0;
   fam=fam||nom;const k=CHA.fam[fam]|0;CHA.fam[fam]=k+1;
   const p=Math.max(1,Math.round(base*(brut?1:Math.pow(.7,k))));
   const x0=CHA.x;if(k===0)CHA.x=Math.min(CHA_XMAX,CHA.x+1);
+  if(CHA.x>(runStats.xMax|0))runStats.xMax=CHA.x; // le meilleur × de la partie : l'écran de fin le montre
   CHA.pts+=p;CHA.n++;CHA.t=CHA_FEN;
   const lb9=sansAcc(TR(nom));CHA.liste.unshift(lb9+' +'+p);if(CHA.liste.length>3)CHA.liste.length=3;
   chaHud(true,CHA.x>x0);
   if(TCTL.on)popTexte(lb9+' +'+p,CHA.x>x0?'#ff9ee6':'#ffd75e',0); // au-dessus de la caisse : le geste ET ce qu'il rapporte
-  try{chimeNote(noteP(Math.min(7,CHA.x),1),0,.10,.16);}catch(e){}
+  if(!muet)try{chimeNote(noteP(Math.min(7,CHA.x),1),0,.10,.16);}catch(e){}
   return p;
 }
 /* HUD v3 : LA GRANDE ANNONCE qui claque au centre haut (BOOST, pouvoirs, paliers du ×) — une seule à la fois, la dernière gagne */
@@ -16980,7 +17015,10 @@ function chaineEncaisse(){
     const t9=document.querySelector('#auraV2 .avTot');if(t9){t9.classList.remove('pulse');void t9.offsetWidth;t9.classList.add('pulse');}
     if(g>=300)try{pixBurst(avE('avVal'),Math.min(14,4+Math.round(g/250)));}catch(e){} // (2026-09-26) la chaîne tombe DANS le compteur : il éclabousse
     if(g>=500)flashEcran('rgba(177,75,255,.5)');
-    hap(CHA.x>=4?[12,30,24]:12);try{chimeNote(noteP(Math.min(9,CHA.x+2),1),0,.18,.22);if(CHA.x>=4)sparkle(.1,.08);}catch(e){}
+    hap(CHA.x>=4?[12,30,24]:12);try{chimeNote(noteP(Math.min(9,CHA.x+2),1),0,.18,.22);if(CHA.x>=4)sparkle(.1,.08);
+      // (2026-09-26, audit son) une chaîne ×10 à 3 000 sonnait comme un +45 : l'accord s'étoffe avec la somme
+      if(g>=600)chimeNote(noteP(Math.min(10,CHA.x+4),1),.07,.14,.26);
+      if(g>=2000){chimeNote(noteP(Math.min(10,CHA.x+6),1),.14,.14,.34);sparkle(.14,.1);}}catch(e){}
   }
   chaReset();
 }
@@ -17293,11 +17331,12 @@ function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent dé
      comptent : elles ne valent pas un dollar mais elles PROLONGENT l'enchaînement, et c'est
      l'enchaînement qu'on récompense. */
   // (aura v2) chaque figure entre dans la CHAÎNE avec ses points (voir chaineAura) — plus de combo à rang invisible
-  if(id==='vrille')chaineAura(spinHalf*180+'°',45,'vrille',true);
-  else if(id==='meteo')chaineAura('MÉTÉORE',100,'meteo');
-  else if(id==='dauphin')chaineAura('DAUPHIN',80,'dauphin');
-  else if(id==='bump')chaineAura(bounceN>1?'BUMP ×'+bounceN:'BUMP',30,'bump',true);
-  else chaineAura(String(txt).split(' — ')[0],40,id);
+  // (2026-09-26, audit son) `muet` : `trickPop` plus bas sonne déjà le maillon — deux carillons sur deux notes brouillaient la gamme qui monte
+  if(id==='vrille')chaineAura(spinHalf*180+'°',45,'vrille',true,true);
+  else if(id==='meteo')chaineAura('MÉTÉORE',100,'meteo',false,true);
+  else if(id==='dauphin')chaineAura('DAUPHIN',80,'dauphin',false,true);
+  else if(id==='bump')chaineAura(bounceN>1?'BUMP ×'+bounceN:'BUMP',30,'bump',true,true);
+  else chaineAura(String(txt).split(' — ')[0],40,id,false,true);
   if(!free){ // une figure gratuite ne touche NI la mallette (chainVal) NI le multiplicateur NI l'échelle
     chainVal+=raw?val:val*Math.pow(.6,n-1);
     chainMult+=n===1?.5:.15;
@@ -17658,10 +17697,11 @@ function tryLand(dt){
       flyCash(carGroup.position,Math.min(10,3+Math.floor(Math.log10(q+1)*2.5))); // la paye VOYAGE jusqu'au compteur
       // LES FIGURES RAPPORTENT DES PIÈCES : une belle chaîne fait progresser le MOTEUR, pas seulement
       // le portefeuille. 2 pièces pour une figure honnête, jusqu'à ~18 pour un enchaînement monstrueux.
+      poseSndT=performance.now(); // la pose va sonner : un palier moteur franchi par ces pièces attendra son tour (voir addCoins)
       addCoins(Math.max(2,Math.min(18,Math.round(2+q/6))));
       rewardSfx(vKey,vTier); // signature sonore courte assortie à la récompense
       if(TCTL.on&&(g>=1.5||gapOk))popTexte(gapOk?(gapArmed===3?'DOUBLE GAP !':'GAP !'):g>=2?'DIVIN !!':'PARFAIT !',g>=2||gapOk?'#ff5ec8':'#ffd75e',2);
-      if(gapOk)chaineAura(gapArmed===3?'DOUBLE GAP':'GAP',gapArmed===3?200:120,'gap');else if(g>=1.5)chaineAura(g>=2?'POSE DIVINE':'POSE PARFAITE',g>=2?120:70,'pose'); // (aura v2) la pose PROLONGE la chaîne // (2026-09-25) la pose ×1,5 : LE geste à répéter — il faut qu'on le voie
+      if(gapOk)chaineAura(gapArmed===3?'DOUBLE GAP':'GAP',gapArmed===3?200:120,'gap',false,true);else if(g>=1.5)chaineAura(g>=2?'POSE DIVINE':'POSE PARFAITE',g>=2?120:70,'pose',false,true); // (aura v2) la pose PROLONGE la chaîne // (2026-09-25) la pose ×1,5 : LE geste à répéter — il faut qu'on le voie
       if(g>=1.5){try{chimeNote(1980,.08,.055,.2);chimeNote(2640,.11,.04,.26);sparkle(.08,.06);if(g>=2)chimeNote(1320,.15,.06,.4);}catch(e){}} // (2026-09-25) le « tchak » du PARFAIT : harmoniques 3 et 4 du 660, au-dessus de l'arpège
       landBoom(carGroup.position,vTier); // P'TIT BOOM D'ATTERRISSAGE : toute figure MONSTER+ éclate à la pose (calibré sur le tier)
       boost=Math.max(boost,1.2);
@@ -18567,7 +18607,7 @@ function survTick(dt){
       flashEl.style.opacity=.85;setTimeout(function(){flashEl.style.opacity=0;},300);
       sparkBurst(sparkGold,carGroup.position,60,26);sparkBurst(sparkBlue,carGroup.position,40,20);
       shake=2.2;duckT=Math.max(duckT,.8);
-      survRender();explode();
+      survRender();explode('police');
     }else{
       const low=racers[racers.length-1];
       if(low&&low.totD<pTot){botBoom(low); // la meute s'ÉNERVE : pas plus vite que toi, mais plus téméraire
@@ -19792,10 +19832,12 @@ function loop(now){
     gasOn=up;
     const lf=keys.KeyA||keys.KeyQ||keys.ArrowLeft,rt=keys.KeyD||keys.ArrowRight;
     // POUVOIRS : les minuteurs s'égrènent, l'airtime infini rend une jauge neuve en expirant
+    {const pn9=pwrNitroT>0,ps9=pwrSpdT>0;
     pwrNitroT=Math.max(0,pwrNitroT-dt);
     pwrSpdT=Math.max(0,pwrSpdT-dt);
+    if((pn9&&pwrNitroT<=0)||(ps9&&pwrSpdT<=0))pwrFinSnd();} // (2026-09-26) la fin d'un pouvoir se dit aussi à l'oreille
     if(startBoostT>0)startBoostT=Math.max(0,startBoostT-dt); // LE BOOST DE DÉPART : décroît tout seul, même hors mode 'drive' ne l'arrête pas plus tôt que prévu
-    if(pwrAirT>0){pwrAirT-=dt;if(pwrAirT<=0){pwrAirT=0;if(mode==='fall'){fallT=0;fallTR=0;airFlash=.6;}}}
+    if(pwrAirT>0){pwrAirT-=dt;if(pwrAirT<=0){pwrAirT=0;pwrFinSnd();if(mode==='fall'){fallT=0;fallTR=0;airFlash=.6;}}}
     // nitro : 2s regen (10s de recharge) + 2s réserve (bidons bleus)
     // CAPACITÉ MOTEUR : la réserve de nitro s'élargit avec le palier (2,0 → 3,6 au réacteur)
     const NRMAX=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2;
@@ -19803,6 +19845,8 @@ function loop(now){
     if(pwrNitroT>0||PARK.on||startBoostT>0)nitroR=2; // NITRO INFINIE : jauge pleine, rien ne se consomme (pouvoir, parc freestyle, OU le boost de départ)
     const wantN=keys.ShiftLeft||keys.ShiftRight||keys.Space||startBoostT>0; // le boost de départ tient la touche à la place du joueur — « pas dur à gérer »
     nitroOn=wantN&&(nitroOn?(nitroR+nitroX)>.005:(nitroR+nitroX)>.3); // hystérésis anti-clignotement
+    if(wantN&&!loop._nvW&&!nitroOn&&mode!=='boom'){try{noiseBurst(.04,.06,2500);}catch(e){}hap(6);} // (2026-09-26, audit son) NITRO À VIDE : un « tchk » sec — l'appui répond toujours
+    loop._nvW=wantN;
     if(nitroOn&&pwrNitroT<=0&&!PARK.on&&startBoostT<=0){
       let take=dt;
       if(nitroR>=take)nitroR-=take;
@@ -19834,7 +19878,7 @@ function loop(now){
           loop._tickT=(loop._tickT||0)-dt; // TIC d'amorce qui S'ACCÉLÈRE vers le boom
           if(loop._tickT<=0){loop._tickT=Math.max(.10,(6-idleT)*.22);chimeNote(660+ (6-idleT<1?900:0),0,.05,.22);subBoom(.05);}
         }
-        if(idleT>=6){idleT=0;explode();}
+        if(idleT>=6){idleT=0;explode('arret');}
       }else{idleT=Math.max(0,idleT-dt*2.5);loop._tickT=0;}
       frameAt(s,F);
       if(side<0){F.n.multiplyScalar(-1);F.b.multiplyScalar(-1);}
@@ -19888,6 +19932,10 @@ function loop(now){
       if(veut9)driftEnCours=true;
       else if(!vitOk||!(tireBas||dn)||Math.abs(steer)<.2)driftEnCours=false;
       const drifte=driftEnCours;
+      if(TCTL.on&&!TUTO.on&&!(SAVE.d.ast&1)){ // (2026-09-26, audit UX) le geste du drift n'était enseigné nulle part
+        if(drifte){SAVE.d.ast|=1;SAVE.mark();}
+        else if(vitOk&&Math.abs(steer)>.8){loop._astD=(loop._astD||0)+dt;if(loop._astD>1.2){loop._astD=0;SAVE.d.ast|=1;SAVE.mark();misBanniere('ASTUCE',TR('Tire le pouce vers le BAS en tournant : DRIFT !'),'','volant');}}
+        else loop._astD=0;}
       // (conduite v6) LE POUCE FAIT TOURNER (voir lacetMax) : il commande un LACET, la caisse le prend en VOL_TAU ; lâché, le lacet
       // retombe à 0 et le cap reste figé dans le monde. En DRIFT : la TRAJECTOIRE tourne 15 % plus serré, et le NEZ pivote en plus
       // (slipB, jusqu'à 24°) — ⚠ la glisse s'AJOUTE au nez, elle ne se retire pas de la trajectoire : sinon, le temps qu'elle
@@ -20098,7 +20146,7 @@ function loop(now){
             if(p.pow==='n')pwrNitroT=d.t;
             else if(p.pow==='a'){pwrAirT=d.t;airFlash=.6;}
             else pwrSpdT=d.t;
-            showMsg(d.msg,d.tint);trickMsg(d.ico+' '+TR(d.hud),2);boostSnd();shake=Math.max(shake,.35);
+            showMsg(d.msg,d.tint);trickMsg(d.ico+' '+TR(d.hud),2);boostSnd();pwrPrisSnd(p.pow);shake=Math.max(shake,.35);
             slam(d.gros,d.sous,d.tint,d.c2,40,2);flashEcran(d.fx);hap([14,40,24]); // (HUD v3) le pouvoir s'ANNONCE en gros, de sa couleur
             sparkBurst(p.pow==='n'?sparkBlue:sparkGold,carGroup.position,14,9);
             addStyle(10);
@@ -20575,11 +20623,15 @@ function loop(now){
       const fr=pwrAirT>0?Math.min(1,pwrAirT/10):Math.max(0,1-fallTR/AIR_MAX); // jauge en temps RÉEL : 6 s affichées = 6 s vécues
       if(airFlash>0)airFlash=Math.max(0,airFlash-dt);
       airPieDraw(fr,pwrAirT>0?pwrAirT:Math.max(0,AIR_MAX-fallTR),airFlash>0);
-      {const dg=pwrAirT<=0&&AIR_MAX-fallTR<1.5;if(dg!==loop._pdg){loop._pdg=dg;airPie.classList.toggle('danger',dg);}} // (2026-09-26) il TREMBLE sous 1,5 s
+      {const dg=pwrAirT<=0&&AIR_MAX-fallTR<1.5;if(dg!==loop._pdg){loop._pdg=dg;airPie.classList.toggle('danger',dg);} // (2026-09-26) il TREMBLE sous 1,5 s
+       // …et il TIQUE : les yeux sont sur la caisse, pas sur le chrono — un tic dans la tonalité qui accélère, plus une micro-vibration
+       if(dg){loop._atk=(loop._atk||0)-dt;if(loop._atk<=0){const r9=Math.max(0,AIR_MAX-fallTR);loop._atk=.09+.25*r9/1.5;try{chimeNote(noteP(r9<.5?4:2,1),0,.06,.06);}catch(e){}hap(5);}}else loop._atk=0;}
+      if(TCTL.on&&!TUTO.on&&nitroOn&&!(SAVE.d.ast&2)){loop._astV=(loop._astV||0)+dt;if(loop._astV>1){SAVE.d.ast|=2;SAVE.mark(); // ASTUCE (une fois à vie) : l'assiette au pouce
+        misBanniere('ASTUCE',TR("En l'air : pouce en HAUT = plonge, en BAS = cabre."),'','eclair');}}
       if(!PARK.on&&portalMesh&&fallPos.distanceToSquared(PORTAL.c)<PORTAL.R*PORTAL.R*.9)portailPasse(); // (2026-09-26) l'ovule traversé EN VOL — du ciel, de côté, d'en dessous
-      else if(CITY.col&&villeHeurt(fallPos)){airPie.style.display='none';try{dolFin();}catch(e){}shake=Math.max(shake,1.2);if(PARK.on)parkRespawn();else explode();} // (2026-09-26) DANS UNE TOUR : on meurt
+      else if(CITY.col&&villeHeurt(fallPos)){airPie.style.display='none';try{dolFin();}catch(e){}shake=Math.max(shake,1.2);if(PARK.on)parkRespawn();else explode('tour');} // (2026-09-26) DANS UNE TOUR : on meurt
       else if(tryLand(dtF)){airPie.style.display='none';dolFin();} // posé : le total du DAUPHIN se fige et s'encaisse
-      else if((fallTR>AIR_MAX&&pwrAirT<=0)||fallPos.y<trackMinY-120){airPie.style.display='none';if(PARK.on)parkRespawn();else explode();} // FREESTYLE : trop long en l'air ou chute dans le vide = on repart, jamais de mort // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
+      else if((fallTR>AIR_MAX&&pwrAirT<=0)||fallPos.y<trackMinY-120){airPie.style.display='none';if(PARK.on)parkRespawn();else explode(fallPos.y<trackMinY-120?'vide':'air');} // FREESTYLE : trop long en l'air ou chute dans le vide = on repart, jamais de mort // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
     }else if(mode==='boom'){ // ---- EXPLOSION ----
       boomT+=dt;
       for(const d of debris){
@@ -20888,7 +20940,7 @@ function loop(now){
            recopier une ligne. Une palette de 30 timbres qu'on ne peut pas écouter côte à côte
            n'est pas une palette, c'est un tableau de nombres. */
         const P9=engSndParams(eng,{rpm:engRpm,charge:charge9,ovr:ovr9,drift:drift9,nA:nA,thr:thr,
-          vsp:Math.min(1.15,spd3/Math.max(1,vmaxShow())),wob:wob,boost:boost>0,cloudIn:cloudInS,dk:dk,nB:TEL_NATIF?1:0,gE:VOL_LOCKED?1:.72});
+          vsp:Math.min(1.15,spd3/Math.max(1,vmaxShow())),wob:wob,boost:boost>0,cloudIn:cloudInS,dk:dk,nB:TEL_NATIF?1:0,gE:VOL_LOCKED?1:.72,lpMin:TEL_NATIF?700:0});
         const T=AC.currentTime;
         osc.frequency.setTargetAtTime(P9.fF,T,.035);
         osc2.frequency.setTargetAtTime(P9.fF,T,.04);
@@ -20972,7 +21024,7 @@ function loop(now){
         // PLUS AUCUNE couche de bruit blanc continue : souffle médium coupé, grave blanc réduit
         // à un fond — tout le caractère vient du rumble brown + des pops bruns
         jetG.gain.setTargetAtTime(nOn9&&air9?.01*dk:0,AC.currentTime,.06);
-        jetLowG.gain.setTargetAtTime((nOn9?(air9?.08:.05):0)*(.7+.6*Math.random())*dk,AC.currentTime,.07);
+        jetLowG.gain.setTargetAtTime(TEL_NATIF?0:(nOn9?(air9?.08:.05):0)*(.7+.6*Math.random())*dk,AC.currentTime,.07); // téléphone : un grave à 150 Hz inaudible qui ne faisait que pousser le compresseur
         jetOscG.gain.setTargetAtTime(nOn9&&!air9?.003:0,AC.currentTime,.09); // pointe de turbine au sol
         jcFb.gain.setTargetAtTime(.12,AC.currentTime,.1);jcDep.gain.setTargetAtTime(.0002,AC.currentTime,.12); // peigne+flanger au repos (ils chuintaient)
         if(nOn9){
@@ -20980,7 +21032,7 @@ function loop(now){
           jetOsc.frequency.setTargetAtTime(900+spd3*3.5+(nitroBlue?400:0),AC.currentTime,.08);
           // pétillement en pops BRUNS, discrets et distincts : ça crépite, ça ne souffle pas.
           // (moins denses qu'avant : 25/s de pops ronds > 50/s de pops blancs qui fusionnent en tapis)
-          if(Math.random()<dt*(air9?9:25))flamePop(.02+Math.random()*.05,air9?.05+Math.random()*.06:.1+Math.random()*.14,(air9?300:380)+Math.random()*260);
+          if(Math.random()<dt*(air9?9:(TEL_NATIF?10:25)))flamePop(.02+Math.random()*.05,air9?.05+Math.random()*.06:.1+Math.random()*.14,(air9?300:380)+Math.random()*260+(TEL_NATIF?500:0)); // téléphone : moins de pops (≈80 nœuds/s alloués), plus hauts (audibles)
           if(!air9&&Math.random()<dt*2.4){flamePop(.05+Math.random()*.04,.3,520);subBoom(.05);} // le POK : plop + mini coup de poitrine
         }
         if(nOn9&&air9&&!loop._jetWas){ // ALLUMAGE : FWOOM rond — souffle grave + coup de poitrine (le sifflet strident a dégagé)
@@ -21302,7 +21354,7 @@ renderLeaders(-1);
     T9(function(){beat(1.35);},1650);
     T9(function(){beat(1.8);},2150);
     T9(fission,2650);
-    T9(hide,6400);
+    T9(hide,(SAVE&&SAVE.d&&SAVE.d.tuto)?4600:6400); // (2026-09-26) 6,4 s à CHAQUE lancement : complète la 1re fois, écourtée ensuite
     try{introSound();}catch(e){} // le son ne doit JAMAIS bloquer les visuels
   }
   // PAS de lancement auto : on attend le geste (seul moyen d'avoir le son — règle navigateur).
@@ -21590,10 +21642,10 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   // sans ça, changer de langue faisait revenir « molette » sur un écran qui n'en a pas.
   const gh=$t('gHint'); if(gh){gh.textContent='glisse pour tourner · pince pour zoomer';gh.dataset.fr=gh.textContent;}
   // ---- BOUTONS : ils pilotent le MÊME objet `keys` que le clavier → aucune nouvelle physique ----
-  function bindHold(el,code,onDown){ if(!el)return;
+  function bindHold(el,code,onDown,vis){ if(!el)return; vis=vis||el; // `vis` : l'élément qui s'ENFONCE (la zone NITRO élargie enfonce le disque)
     const dn=function(e){ if(e.cancelable)e.preventDefault(); e.stopPropagation(); // un appui sur un bouton n'arme JAMAIS le volant
-      if(!keys[code]){keys[code]=true;el.classList.add('on');hap(9);if(onDown)onDown();} };
-    const up=function(e){ if(e&&e.cancelable)e.preventDefault(); keys[code]=false; el.classList.remove('on'); };
+      if(!keys[code]){keys[code]=true;vis.classList.add('on');hap(9);if(onDown)onDown();} };
+    const up=function(e){ if(e&&e.cancelable)e.preventDefault(); keys[code]=false; vis.classList.remove('on'); };
     el.addEventListener('touchstart',dn,{passive:false});
     el.addEventListener('touchend',up,{passive:false});
     el.addEventListener('touchcancel',up,{passive:false});
@@ -21601,9 +21653,11 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   }
   bindHold($t('tLeft'),'ArrowLeft',start);
   bindHold($t('tRight'),'ArrowRight',start);
-  bindHold($t('tNitro'),'Space',function(){ if(boomSkip())return; start(); // NITRO + double-tap = BRAQUAGE (même règle que la barre ESPACE)
+  const nitroDown=function(){ if(boomSkip())return; start(); // NITRO + double-tap = BRAQUAGE (même règle que la barre ESPACE)
     if(started&&!gameOver){ const n9=performance.now();
-      lastSpaceT=n9; } }); // (double-tap « DÉCOLLAGE » retiré)
+      lastSpaceT=n9; } }; // (double-tap « DÉCOLLAGE » retiré)
+  bindHold($t('tNitro'),'Space',nitroDown);
+  bindHold($t('tNitroZone'),'Space',nitroDown,$t('tNitro')); // (2026-09-26, audit UX) le pouce qui dérive hors du disque touche encore la NITRO
   // ---- LE VOLANT ANALOGIQUE : toute la moitié gauche. Le stick NAÎT sous le pouce (jamais de
   //      position imposée), FLOTTE au-delà du plein braquage (revenir au centre rend la main
   //      IMMÉDIATEMENT) et se recentre au lâcher. Axe X = braquage · axe Y = assiette en vol.
@@ -21686,10 +21740,23 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       else if(a==='q'){const f=SAVE.d.q!=='net';e.innerHTML=tpLbl('eclair','IMAGE',f?'RAPIDE':'NETTE',true);}
       else if(a==='surv')e.innerHTML=tpLbl('drapeau','SURVIVANT',SURV.armed?'ON':'OFF',SURV.armed); }
     const hd=pan.querySelector('.tpH'); if(hd)hd.textContent=run?'PAUSE':'CASH CAR'; }
-  function panOpen(o){ if(!pan)return;
+  function panOpen(o,compte){ if(!pan)return;
     if(o)feuilleOuvre(pan,'open');else feuilleFerme(pan,'open'); // la pause MONTE du bas et y redescend
     if(o){ panSync(); if(started&&!gameOver&&!paused)togglePause(); }
-    else if(started&&!gameOver&&paused)togglePause(); }
+    else if(started&&!gameOver&&paused){ if(compte)repriseCompte(); else togglePause(); } }
+  /* LA REPRISE EN 3-2-1 (2026-09-26, audit UX) : REPRENDRE est en BAS de l'écran — le pouce le quittait que la caisse repartait déjà
+     à pleine vitesse (le ralenti de reprise est coupé par la règle « aucun ralenti »). Trois temps de 0,3 s, jeu GELÉ : ce n'est
+     pas un ralenti, c'est un compte. Rouvrir la pause (ou quitter) pendant le compte l'annule. */
+  function repriseCompte(){
+    if(repriseCompte.t)return;
+    let n=3;try{if(AC&&SND.sfx&&AC.state!=='running')AC.resume();}catch(e){} // le contexte se réveille : les trois bips s'entendent
+    const pas=function(){
+      const s9=avE('slam9');
+      if(!started||gameOver||!paused||(pan.classList.contains('open')&&!pan.classList.contains('sortant'))){repriseCompte.t=0;if(s9)s9.classList.remove('compte','on');return;} // la feuille qui DESCEND encore n'annule rien
+      if(n===0){repriseCompte.t=0;if(s9)s9.classList.remove('compte','on');togglePause();return;} // retirer `on` AUSSI : sinon l'animation normale repart et le « 1 » revient en grand
+      slam(String(n),'','#ffd75e','#ff7ad5',64,9);{const s8=avE('slam9');if(s8)s8.classList.add('compte');} // un chiffre = 0,3 s : l'entrée doit être lisible tout de suitetry{chimeNote(noteP(n===1?4:2,1),0,.08,.1);}catch(e){}hap(6);
+      n--;repriseCompte.t=setTimeout(pas,300);};
+    pas(); }
   // ⚠ `click` EN PLUS DE `touchstart` (2026-09-05) — `#tGear`/`#tPanel` s'affichent maintenant sur
   // DESKTOP aussi (voir CSS `body.play #tSet`), or une souris ne déclenche JAMAIS `touchstart` :
   // sans ce doublon d'écouteurs, le seul bouton de réglages visible en jeu serait injoignable au
@@ -21702,7 +21769,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     const el=e.target&&e.target.closest?e.target.closest('.tp'):null;
     if(!el)return; // (2026-09-25) le fond ne relance plus rien : un doigt posé par mégarde renvoyait la caisse en plein virage — seule REPRENDRE (ou Échap) rend la main
     const a=el.getAttribute('data-a');
-    if(a==='close')panOpen(false);
+    if(a==='close')panOpen(false,true);
     else if(a==='snd'){clic(sndBtnEl);panSync();}
     else if(a==='vox'){clic(voxBtnEl);panSync();}
     else if(a==='mus'){clic(musBtnEl);panSync();}
@@ -21743,7 +21810,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     const couche=!FORCE_TEL&&innerWidth>innerHeight&&innerHeight<600; // l'écran d'ordi en `?tel=1` est en paysage par nature : jamais gelé
     if(couche!==TCTL.couche){ TCTL.couche=couche; document.body.classList.toggle('couche',couche); }
     if(play&&!paused&&couche){ togglePause(); TCTL.gelCouche=true; }
-    else if(play&&paused&&!couche&&TCTL.gelCouche){ TCTL.gelCouche=false; togglePause(); }
+    else if(play&&paused&&!couche&&TCTL.gelCouche){ TCTL.gelCouche=false; repriseCompte(); } // retour en portrait : même 3-2-1
     if(!play)TCTL.gelCouche=false;
     const ovOpen=(overlay.style.display!=='none'); // le menu vient d'apparaître (mort, retour du garage, premier lancement) ?
     if(ovOpen!==TCTL.ov){ TCTL.ov=ovOpen; if(ovOpen)mGo(mRoot(),'racine',true); } // filet : l'observateur plus bas l'a normalement déjà fait
@@ -21835,6 +21902,14 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(k>=1){clearInterval(mCntT);mCntT=0;}
     },28);
   }
+  /* L'ÉCRAN DE MORT A UNE VOIX (2026-09-26, audit son) : l'écran le plus vu était muet. 300 ms après son apparition (la traîne du son
+     de mort passe d'abord), huit notes de la gamme des pièces montent avec les compteurs, puis l'arrivée sonne — en fanfare si record.
+     Une seule fois par mort (clé = l'instant de la mort) : mFill est rappelé à chaque retour sur l'écran. */
+  function mCompteSon(rec){
+    if(!TCTL.mortT||mCompteSon._k===TCTL.mortT)return;mCompteSon._k=TCTL.mortT;
+    for(let i=0;i<8;i++)setTimeout(function(){if(mCur==='dead')try{chimeNote(noteP(i,1),0,.035,.06);}catch(e){}},320+i*85);
+    setTimeout(function(){if(mCur!=='dead')return;try{if(rec)rewardSfx('m3',3);else{chimeNote(noteP(4,1),0,.08,.3);chimeNote(noteP(7,1),.06,.07,.36);}}catch(e){}},1040);
+  }
   function mFill(){ try{
     const b1=$t('mBest'),b2=$t('mBest2'),mc=$t('mCar');
     if(b1)b1.textContent=fmtC(best); if(b2)b2.textContent=fmtC(best);
@@ -21843,8 +21918,14 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       const m9=Math.round(money),rec=!SANDBOX&&money>(RUNX.best0||0)&&money>START_CASH+.5; // (2026-09-25) montants BRUTS : l'arrondi manquait un record sur deux, et 1,61 $ n'est pas un record
       mCount($t('mCash'),Math.round(commitExploits._vire||0)); // VERSÉS AU COMPTE = ce qui a VRAIMENT été viré (la mise de départ n'en fait pas partie) // le magot MONTE au lieu de s'afficher : 750 ms qui font le sel de la fin de run
       const ot=$t('mOverT');
-      ot.textContent=TR(SANDBOX?'ENTRAINEMENT TERMINE':(rec?'NOUVEAU RECORD !':'GAME OVER'));
-      ot.style.color=rec?'#ffd75e':'#ff5e7a';
+      // (2026-09-26, audit UX) LES RECORDS NE SE CONTREDISENT PLUS : le jeu criait « RECORD BATTU » sur l'AURA en course, et
+      // l'écran de fin ne jugeait que l'argent. Le titre s'allume pour l'argent, l'AURA ou le MOTEUR — les héros de cet écran.
+      const recA=!SANDBOX&&!!CHA.recB,recM=!SANDBOX&&engTier>(RUNX.engAvant|0),recT=rec||recA||recM;
+      ot.textContent=TR(SANDBOX?'ENTRAINEMENT TERMINE':(recT?'NOUVEAU RECORD !':'GAME OVER'));
+      ot.style.color=recT?'#ffd75e':'#ff5e7a';
+      {const CAUSES={air:"6 S EN L'AIR : POSE-TOI AVANT",vide:'TOMBE DANS LE VIDE',tour:'ENCASTRE DANS UNE TOUR',arret:"6 S A L'ARRET : ROULE OU CREVE",police:'DERNIER DE LA MEUTE'};
+       const mc9=$t('mCause'),k9=SANDBOX?'':(CAUSES[mortCause]||'');if(mc9){mc9.textContent=k9?TR(k9):'';mc9.style.display=k9?'':'none';}}
+      mCompteSon(recT);
       // Ce qui se gagne DANS une partie, c'est le MOTEUR (la caisse, elle, se choisit au garage) :
       // c'est donc lui qu'on montre en fin de run, pas un palier de voiture qui ne veut plus rien dire.
       const nw=$t('mNew'),E=ENGINE_TIERS[Math.min(ENGINE_TIERS.length-1,Math.max(0,engTier|0))];nw.style.display='none';
@@ -21857,7 +21938,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
         const ea=RUNX.engAvant|0,nx=ENGINE_TIERS[engTier+1],mq=nx?nx.coins-coinsGot:0,
               pr=!!nx&&mq>0&&engTier+1>ea&&mq<=Math.max(3,Math.ceil((nx.coins-E.coins)*.3)),
               ci=!eN&&ea>engTier?ENGINE_TIERS[ea]:null,an=auraNext(),a1=SAVE.d.aura||0,bas=AURA_RANKS[auraRank()].v;
-        if(h){h.innerHTML='<div class="hCard hAura"><small>'+TR('AURA')+'</small><b id="mAuraV">+0</b><span>'+pxi('etoile')+' '+auraRankName()+'</span>'+(rg?'<em>'+TR('NOUVEAU RANG !')+'</em>':'')
+        if(h){h.innerHTML='<div class="hCard hAura"><small>'+TR('AURA')+'</small><b id="mAuraV">+0</b><span>'+pxi('etoile')+' '+auraRankName()+'</span>'+(rg?'<em>'+TR('NOUVEAU RANG !')+'</em>':(recA?'<em>'+TR('RECORD !')+'</em>':''))
             +(an?'<div class="hNx">'+TR('ENCORE')+' '+Math.round(an.reste).toLocaleString('fr-FR')+' '+pxi('droite')+' '+TR(an.n)+'</div><div class="hBar"><u id="mAuraB"></u></div>':'')+'</div>'
           +'<div class="hCard hMot hMot3" style="--ec:'+hx+'"><small>'+TR('MOTEUR')+'</small><canvas class="hMotCv" width="480" height="321"></canvas>'
             +'<div class="hMotN"><i>'+TR('PALIER')+'</i>'+(engTier+1)+'</div>'+(eN?'<em>'+TR('RECORD !')+'</em>':'')
@@ -21867,7 +21948,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
           if(an){const u=$t('mAuraB'),D=Math.max(1,an.seuil-bas),w1=Math.min(100,(a1-bas)/D*100),w0=rg?0:Math.max(0,(a1-au-bas)/D*100);
             if(u){u.style.width=w0.toFixed(1)+'%';requestAnimationFrame(function(){requestAnimationFrame(function(){u.style.width=w1.toFixed(1)+'%';});});}}}
       }
-      $t('mStatsBox').innerHTML=mStatBox(runStats.tricks,TR('FIGURES'))+mStatBox(Math.round(runStats.vmax),'KM/H MAX')+mStatBox(runStats.zones+1,TR('NIVEAU'));
+      $t('mStatsBox').innerHTML=mStatBox('×'+Math.max(1,runStats.xMax|0),TR('CHAINE MAX'))+ /* (2026-09-26) « 0 FIGURES » à côté de « +820 AURA » : le compteur ne voyait que l'ancienne chaîne en $ */mStatBox(Math.round(runStats.vmax),'KM/H MAX')+mStatBox(runStats.zones+1,TR('NIVEAU'));
       objRender($t('mObj'));
     }else if(mCur==='shop'){
       if(!SAVE.d.shopVu){SAVE.d.shopVu=1;SAVE.flush();}
@@ -21985,7 +22066,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   addEventListener('keydown',function(e){ if(e.code!=='Escape'||e.repeat)return;
     const md=$t('modale'),cr=$t('carr');
     if(md&&md.classList.contains('on')&&!md.classList.contains('sortant')){const bs=md.querySelectorAll('.modB .pbtn');if(bs.length)bs[bs.length-1].click();return;} // le DERNIER bouton d'une fenêtre est toujours l'annulation
-    if(pan&&pan.classList.contains('open')&&!pan.classList.contains('sortant')){panOpen(false);uiClic();return;}
+    if(pan&&pan.classList.contains('open')&&!pan.classList.contains('sortant')){panOpen(false,true);uiClic();return;}
     if(cr&&cr.classList.contains('on')&&!cr.classList.contains('sortant')){uiClic();feuilleFerme(cr,'on');return;}
     if(garageOn||(typeof stallOn!=='undefined'&&stallOn))return; // l'atelier et l'étal ont déjà leur Échap
     if(started&&!gameOver){panOpen(true);hap(10);return;}
