@@ -17287,6 +17287,7 @@ function portailPasse(){
   newTrack();
 }
 function startFall(impU,impF){
+  traceTick(false); // (2026-09-26) le ruban de gomme se coupe au décollage
   FROLE.s0=null;FROLE.n=0;FROLE.t=0; // (2026-09-25) un plot SURVOLÉ n'est pas un frôlé : le balayage repart de l'atterrissage
   mode='fall';fallT=0;fallTR=0;yawAcc=0;airRoll=0;trkBigA=false;trkMonstre=false; // (momentum v2) le saut ne remet plus la réserve à zéro : c'est la POSE qui juge
   driftC=0;driftLv=0;driftEnCours=false;driftArm=0;yawR=0;slipB=0;glisse9=0;driftYaw=0;carRoll9=0;rollV=0;pitch9=0;carBody.rotation.set(0,0,0);carBody.position.set(0,0,0); // une glisse ne survit pas au décollage (pas de mini-turbo en l'air)
@@ -17515,7 +17516,43 @@ function tryLand(dt){
   gapArmed=0; // la catapulte est encaissée : le prochain vol repart vierge
   return true;
 }
+/* LES TRACES DE PNEUS (2026-09-26, user : « lors des virages de la voiture, il faut laisser des traces noires sur la route »).
+   Deux rubans de gomme, un par roue ARRIÈRE, posés au ras du bitume dès que la caisse tourne fort ou glisse (même mesure que la
+   fumée et le crissement : `glisse9`, plus la charge latérale d'un virage serré). UN seul mesh pour tout : un anneau de 900 quads
+   (≈ 8 s de glisse continue) où les plus anciens sont réécrits par les nouveaux ; une image n'en ajoute que deux (une par roue),
+   et seule cette tranche remonte vers la carte graphique. Le ruban se coupe quand la gomme lâche (plus de trait qui relie deux
+   virages), et tout s'efface au portail (les traces restent sur l'ancienne route). */
+const TRACE={N:900,i:0,pos:null,geo:null,mesh:null,p:[null,null],V:[new THREE.Vector3(),new THREE.Vector3(),new THREE.Vector3(),new THREE.Vector3()]};
+function traceInit(){
+  const N=TRACE.N,pos=new Float32Array(N*12),idx=new Uint32Array(N*6);
+  for(let q=0;q<N;q++){const b=q*4,o=q*6;idx[o]=b;idx[o+1]=b+2;idx[o+2]=b+1;idx[o+3]=b+1;idx[o+4]=b+2;idx[o+5]=b+3;}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setIndex(new THREE.BufferAttribute(idx,1));
+  const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:0x050507,transparent:true,opacity:.72,depthWrite:false,side:THREE.DoubleSide,
+    polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4}));
+  m.frustumCulled=false;m.renderOrder=1;scene.add(m);TRACE.pos=pos;TRACE.geo=g;TRACE.mesh=m;
+}
+function traceVide(){if(!TRACE.pos)return;TRACE.pos.fill(0);const a=TRACE.geo.attributes.position;a.updateRange.offset=0;a.updateRange.count=-1;a.needsUpdate=true;TRACE.p[0]=TRACE.p[1]=null;}
+function traceTick(actif){
+  if(!actif||wheels.length<4){TRACE.p[0]=TRACE.p[1]=null;return;}
+  if(!TRACE.pos)traceInit();
+  const hw=.21,a=TRACE.geo.attributes.position;let i0=-1,i1=-1;
+  for(let k=0;k<2;k++){const w=wheels[2+k];if(!w)continue; // les deux roues ARRIÈRE
+    const L9=TRACE.V[0].set(w.position.x-hw,.03,w.position.z),R9=TRACE.V[1].set(w.position.x+hw,.03,w.position.z);
+    carGroup.localToWorld(L9);carGroup.localToWorld(R9);
+    const pr=TRACE.p[k];
+    if(!pr){TRACE.p[k]=[L9.clone(),R9.clone()];continue;}
+    if(pr[0].distanceToSquared(L9)<.25)continue;                       // un quad tous les 50 cm au moins
+    if(pr[0].distanceToSquared(L9)>36){pr[0].copy(L9);pr[1].copy(R9);continue;} // un saut (repli, portail) : on ne relie pas
+    const q=TRACE.i,o=q*12,P=TRACE.pos;TRACE.i=(q+1)%TRACE.N;if(i0<0)i0=q;i1=q;
+    P[o]=pr[0].x;P[o+1]=pr[0].y;P[o+2]=pr[0].z;P[o+3]=pr[1].x;P[o+4]=pr[1].y;P[o+5]=pr[1].z;
+    P[o+6]=L9.x;P[o+7]=L9.y;P[o+8]=L9.z;P[o+9]=R9.x;P[o+10]=R9.y;P[o+11]=R9.z;
+    pr[0].copy(L9);pr[1].copy(R9);}
+  if(i0>=0){ // seule la tranche écrite remonte (deux quads voisins ; au bouclage de l'anneau, tout)
+    if(i1>=i0){a.updateRange.offset=i0*12;a.updateRange.count=(i1-i0+1)*12;}else{a.updateRange.offset=0;a.updateRange.count=-1;}
+    a.needsUpdate=true;}
+}
 function newTrack(){
+  traceVide(); // (2026-09-26) les traces de pneus restent sur l'ancienne route
   loop._rebuildT=performance.now(); // la construction d'une zone fait un pic : la qualité auto ne doit pas le prendre pour de la faiblesse
   const sd=(Math.random()*1e9)|0;
   const niv=lvlChoisir(); // LE NIVEAU D'ABORD : buildClouds et buildVoxCity le lisent pendant la construction
@@ -19958,6 +19995,7 @@ function loop(now){
         // fumée de gomme : SEULEMENT quand ça glisse (même zone morte que le crissement) —
         // la poussière permanente derrière les roues, c'était du bruit visuel, pas de la vitesse
         const drf9=glisse9; // (conduite v6) la fumée suit la VRAIE glisse (drift, grosse charge, réception) — plus l'angle à la route, qui n'est plus une glisse
+        traceTick(Math.abs(vF)>10&&(glisse9>.08||Math.abs(yawR*vA)*SPD>9)); // (2026-09-26) LES TRACES DE PNEUS : dès que ça tourne fort ou que ça glisse
         if(drf9>0&&Math.abs(vF)>14){
           const nD9=1+(drf9>.5?1:0);
           for(let k=0;k<nD9;k++){
