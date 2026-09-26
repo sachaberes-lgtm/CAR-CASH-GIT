@@ -2877,7 +2877,10 @@ const skyU={uTime:{value:0},uSunDir:{value:SUN_DIR},
   uRingA:{value:new THREE.Vector4(0,0,0,0)},// …et leur amplitude
   uHi:{value:0},       // LES AIGUS : charleston, cymbales, souffle — ce qui scintille et grésille
   uWave:{value:0},     // phase de L'ONDE DE COULEUR qui roule sur tout le ciel (en tours)
-  uHueAmp:{value:0}};  // …et son amplitude, en tours de teinte (0,5 = à l'opposé du spectre)
+  uHueAmp:{value:0},  // …et son amplitude, en tours de teinte (0,5 = à l'opposé du spectre)
+  // LE CIEL DE LA VILLE (2026-09-26) — voir villeCiel dans le shader : présence du niveau VILLE, de la pluie (le plafond), couleur de la
+  // brume (le lointain y converge) et position de la caméra (le plafond et les rues d'en bas défilent : parallaxe VRAIE)
+  uVille:{value:0},uPluie:{value:0},uFogCol:{value:new THREE.Color(0x331f48)},uCam:{value:new THREE.Vector3()}};
 const skyDome=(function(){
   const mat=new THREE.ShaderMaterial({uniforms:skyU,side:THREE.BackSide,depthWrite:false,
     vertexShader:'varying vec3 vDir;void main(){vDir=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
@@ -2893,6 +2896,101 @@ const skyDome=(function(){
          change juste de couleur — un remplacement aurait donne un aplat, pas une onde. */
       'vec3 hueRot(vec3 c,float a){vec3 k=vec3(.57735);float cs=cos(a),sn=sin(a);',
       '  return c*cs+cross(k,c)*sn+k*dot(k,c)*(1.-cs);}',
+      /* ======================== LE CIEL DE LA VILLE (2026-09-26) ========================
+         User : « dans le niveau de la ville cette partie est mal gérée — pas les immeubles : la skyline, le sol et le plafond,
+         ça casse l'immersion ». MESURÉ sur captures : (1) la SKYLINE était un cylindre peint de 5 200 m, net (sans brouillard)
+         DERRIÈRE des tours 3D noyées de brume — le lointain plus contrasté que le proche, l'œil lit un décor de théâtre ; et
+         en vol libre la caméra vrille, on voyait le BORD du cylindre (un arc dur dans le ciel, un autre sous la route).
+         (2) le SOL : sous l'horizon, rien que le bas du dôme (prune) d'une autre couleur que la brume des pieds de tours,
+         plus l'aplat du cylindre — deux violets qui se découpent. (3) le PLAFOND : le fond musical géométrique (roue,
+         ondes, piliers d'égaliseur) — des secteurs, des anneaux et des losanges qui, sous l'horizon, dessinaient même des
+         polygones beiges sur l'abîme.
+         LE PRINCIPE : tout est calculé ICI, dans le dôme, par DIRECTION DU MONDE — aucune géométrie, donc aucun bord, quelle
+         que soit la vrille de la caméra. Et tout CONVERGE vers la couleur de la brume (`uFogCol`, recopiée chaque image) sur
+         l'horizon : ce que le brouillard fait aux tours 3D, le ciel le fait au lointain — la ville S'Y FOND.
+           · LE PLAFOND (pluie) : une couche de nuages bas, 520 m au-dessus de l'œil, éclairée PAR EN DESSOUS par la ville
+             (ventres lilas, trouées sombres) ; elle défile avec le vent ET avec la caméra (parallaxe réelle). La musique
+             y passe en ondes de néon et en ÉCLAIRS sur les grosses frappes — les « clignotements dans le ciel » (user,
+             2026-09-24) restent, mais DANS le monde, plus en surimpression.
+           · LA SKYLINE : trois rangées de tours à l'infini + les deux tours du chef (tête ronde, cornes, yeux jaunes) du
+             village de la pluie, d'autant plus fondues dans la brume qu'elles sont loin ; fenêtres et feux d'antenne
+             percent la brume et respirent avec la musique.
+           · LE SOL : l'abîme. 1 600 m sous l'œil, les rues de la ville basse — lampadaires sodium, fenêtres, files de
+             phares qui roulent — vues À TRAVERS la brume (elles s'y éteignent au loin, fondues en lueur moyenne : pas de moiré).
+         ⚠ PRÉCISION : le hachage est sans sinus (Hoskins) — sin() sur de grands arguments dérive en mediump. */
+      'uniform float uVille,uPluie;uniform vec3 uFogCol,uCam;',
+      'float vh(vec2 p){vec3 q=fract(vec3(p.xyx)*.1031);q+=dot(q,q.yzx+33.33);return fract((q.x+q.y)*q.z);}',
+      'float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);',
+      '  return mix(mix(vh(i),vh(i+vec2(1.,0.)),f.x),mix(vh(i+vec2(0.,1.)),vh(i+vec2(1.,1.)),f.x),f.y);}',
+      'float vfbm(vec2 p){float s=0.,a=.5;for(int i=0;i<4;i++){s+=a*vn(p);p=p*2.03+vec2(17.1,9.3);a*=.5;}return s;}',
+      // une RANGÉE de tours à l infini : N par tour d horizon, toits entre h0 et h1 (en sinus d élévation), fenêtres de wz
+      // renvoie (fenêtre allumée, feu d antenne, silhouette, teinte de la fenêtre)
+      'vec4 vTours(float az,float y,float N,float s,float h0,float h1,float wz){',
+      '  float cw=6.2831853/N,u=az/cw+s*13.7,id=mod(floor(u),N),dx=(fract(u)-.5)*cw,ax=abs(dx),aa=.0009;',
+      '  float r=vh(vec2(id,s)),r2=vh(vec2(id+.5,s+3.1)),r3=vh(vec2(id+.25,s+7.7));',
+      '  float hw=cw*(.18+.22*r2),top=h0+(h1-h0)*pow(r,1.7)+step(.93,r3)*(h1-h0)*.6;', // des tours MINCES et HAUTES : le village de la pluie
+      '  float body=smoothstep(hw+aa,hw-aa,ax)*smoothstep(top+aa,top-aa,y),cap=0.,ant=0.,feu=0.;',
+      '  if(r3<.28){vec2 e=vec2(dx/(hw*1.3),(y-top)/(hw*.75));cap=smoothstep(1.1,.9,dot(e,e))*step(top,y);}', // réservoir bombé
+      '  else if(r3<.5)cap=smoothstep(hw*.55+aa,hw*.55-aa,ax)*step(top,y)*smoothstep(top+hw+aa,top+hw-aa,y);', // chapeau
+      '  if(r2>.62){float ah=hw*(2.5+4.*r);ant=smoothstep(.0012,.0004,ax)*step(top,y)*step(y,top+ah);',        // antenne et son feu rouge
+      '    feu=smoothstep(.004,0.,length(vec2(dx,y-top-ah)))*step(.35,fract(uTime*.45+r*7.));}',
+      '  vec2 wc=vec2(dx/(wz*.75),y/wz),wi=floor(wc),wf=abs(fract(wc)-.5);',
+      '  float win=step(.8,vh(wi+vec2(id*7.3,s*3.)))*smoothstep(.36,.2,max(wf.x,wf.y))*body*step(ax,hw-wz*.4);',
+      '  return vec4(win,feu,max(body,max(cap,ant)),vh(wi+id));}',
+      'float vTri(vec2 p,vec2 a,vec2 b,vec2 c){',
+      '  float e0=(b.x-a.x)*(p.y-a.y)-(b.y-a.y)*(p.x-a.x),e1=(c.x-b.x)*(p.y-b.y)-(c.y-b.y)*(p.x-b.x),e2=(a.x-c.x)*(p.y-c.y)-(a.y-c.y)*(p.x-c.x);',
+      '  return ((e0>=0.&&e1>=0.&&e2>=0.)||(e0<=0.&&e1<=0.&&e2<=0.))?1.:0.;}',
+      // LA TOUR DU CHEF (azimut a0, échelle s) : le fût, la tête ronde, deux cornes, deux yeux, la bouche — renvoie (silhouette, yeux, bouche)
+      'vec3 vChef(float az,float y,float a0,float s){',
+      '  float dx=mod(az-a0+3.1415927,6.2831853)-3.1415927,ax=abs(dx),tw=.024*s,top=.15*s,aa=.0009;',
+      '  float m=smoothstep(tw+aa,tw-aa,ax)*step(y,top);',
+      '  vec2 e=vec2(dx/(tw*1.55),(y-top)/(tw*1.05));m=max(m,smoothstep(1.08,.92,dot(e,e))*step(top-.002,y));',
+      '  m=max(m,vTri(vec2(ax,y-top),vec2(tw*1.05,tw*.5),vec2(tw*1.95,tw*2.5),vec2(tw*.45,tw*.95)));',
+      '  float oeil=step(abs(ax-tw*.52),tw*.17)*step(abs(y-top-tw*.4),tw*.1);',
+      '  float bouche=step(ax,tw*.55)*step(abs(y-top+tw*.12),tw*.13);',
+      '  return vec3(m,oeil,bouche);}',
+      'vec3 villeCiel(vec3 d,float az,vec3 ciel){',
+      '  float y=d.y;vec3 F=uFogCol,A=mix(uAcc,uAcc2,uFlip),haut=ciel,bas=F;',
+      '  float nuit=clamp(1.5-dot(F,vec3(.3,.59,.11))*4.,0.,1.);', // les lumières de la ville ne gagnent que de nuit (carrière : la ville à midi)
+      '  float lv=uLvl*(.35+uPulse*.5+uBeatK*.6);',                // ce que la MUSIQUE allume
+      '  if(y>-.03){',                                             // ---- LE PLAFOND ----
+      '    float t=520./max(y,.01);vec2 p=d.xz*t+uCam.xz+vec2(uTime*7.,uTime*3.),q=p/650.;',
+      '    float n=vfbm(q+.6*vec2(vn(q*.45+3.7),vn(q*.45-5.1))),dn=smoothstep(.34,.74,n);',
+      '    vec3 cc=mix(F*.62+vec3(0.,.004,.02),F*1.3+vec3(.06,.02,.06)*nuit,dn);', // trouées plus sombres, ventres éclairés par la ville
+      '    float wv=.5+.5*sin(dot(p,vec2(.0019,.0011))-uWave*6.2831853);',
+      '    cc+=A*dn*wv*wv*.22*lv*nuit;',                                              // les néons de la ville ondulent sous les nuages
+      '    cc+=vec3(.5,.45,.75)*smoothstep(.6,.95,vn(q*.3+floor(uTime*2.)*1.7))*uBeatK*uBeatK*uBeatK*uLvl*dn*.55;', // l ÉCLAIR : seulement sur les GROSSES frappes (au cube), sinon un orage à chaque coup de grosse caisse
+      '    haut=mix(ciel,mix(F,cc,exp(-t/4200.)),uPluie);}',                          // au loin, le plafond se fond dans la brume
+      '  if(y<.03){',                                              // ---- LE SOL : l abîme de la ville basse ----
+      '    float t=1600./max(-y,.01),px=t*.0016/max(-y,.06);',      // px : ce que couvre un pixel au sol (m) — l anticrénelage suit la distance
+      '    vec2 p=d.xz*t+uCam.xz;',
+      '    float qu=smoothstep(.3,.8,vn(p/1500.))*(.5+.5*vn(p/450.+4.2)),qu2=vn(p/2600.+9.1);', // les QUARTIERS : un centre qui brille, des zones éteintes
+      // LES ARTÈRES : les lignes de niveau de deux bruits — des routes qui SERPENTENT, se croisent, bouclent. Une grille régulière se lisait
+      // comme un sol de synthwave (essai du 26/09) ; vue d en haut à travers la pluie, une ville est un réseau irrégulier de traînées.
+      '    float n1=vn(p/950.),n2=vn(p/1350.+5.3),n3=vn(p/420.+11.7),wn=.022+px*.0011;',
+      '    float route=max(smoothstep(wn,0.,abs(n1-.5)),smoothstep(wn,0.,abs(n2-.5)))*min(1.,.03/wn);',
+      '    float rue=smoothstep(wn*.7,0.,abs(n3-.5))*qu*min(1.,.02/wn);',                 // les rues du quartier : seulement là où ça vit
+      '    vec2 ci=floor(p/24.),cf=fract(p/24.)-.5;float hl=vh(ci);',
+      '    float pt=step(1.-.32*qu,hl)*smoothstep(.3+px/48.,0.,length(cf))*min(1.,8./px);', // toits et fenêtres, flous dans la brume
+      '    pt*=.75+.25*sin(uTime*(1.+hl*3.)+hl*40.);',                                     // quelques-uns scintillent
+      '    vec3 pc=mix(vec3(1.,.66,.36),vec3(.4,.85,1.),step(.985,hl));pc=mix(pc,vec3(1.,.35,.7),step(.995,hl));',
+      '    vec3 G=mix(vec3(1.,.42,.18),vec3(.9,.25,.6),qu2)*qu*.24;',                    // la lueur des quartiers qui monte dans la brume
+      '    vec3 L=(vec3(1.,.55,.22)*(route*.5+rue*.3)+pc*pt)*(.25+.75*qu)+G;',
+      '    L=mix(L,G+vec3(.05,.03,.015)*(.25+.75*qu),smoothstep(3000.,7000.,t));',        // au loin : la lueur MOYENNE, pas de moiré
+      '    bas=F*(1.+.28*smoothstep(-.05,-.6,y)*nuit)+L*exp(-t/2300.)*(1.+.6*lv)*nuit;}', // la brume s éclaire par en dessous
+      '  vec3 c=mix(bas,haut,smoothstep(-.03,.03,y));',
+      // ---- LA SKYLINE : du plus loin au plus proche, chaque rangée un peu moins noyée dans la brume ----
+      '  float fo=smoothstep(-.1,.015,y),lum=(1.+.7*lv)*(.35+.65*nuit);', // fo : le PIED des tours se noie — sous l horizon il ne reste que la brume et l abîme
+      '  vec3 f0=vec3(1.,.64,.3),f1=vec3(.42,.88,1.),dk=F*.35+vec3(.004,.006,.02),sil;vec4 T;',
+      '  T=vTours(az,y,190.,1.,-.035,.03,.0024);',
+      '  sil=mix(F,dk,.16*fo)+mix(f0,f1,step(.8,T.w))*T.x*.22*fo*lum;c=mix(c,sil,T.z*fo);c+=vec3(1.,.18,.14)*T.y*.3*lum;',
+      '  T=vTours(az,y,120.,2.,-.015,.065,.0032);',
+      '  sil=mix(F,dk,.25*fo)+mix(f0,f1,step(.8,T.w))*T.x*.32*fo*lum;c=mix(c,sil,T.z*fo);c+=vec3(1.,.18,.14)*T.y*.45*lum;',
+      '  vec3 H=vChef(az,y,1.05,1.)+vChef(az,y,-2.25,.82);',
+      '  sil=mix(F,dk,.36*fo)*(1.-.35*H.z)+vec3(1.,.84,.37)*H.y*(.55+.2*sin(uTime*.7))*lum;c=mix(c,sil,min(1.,H.x+H.y)*fo);',
+      '  T=vTours(az,y,72.,3.,.0,.1,.0042);',
+      '  sil=mix(F,dk,.34*fo)+mix(f0,f1,step(.8,T.w))*T.x*.42*fo*lum;c=mix(c,sil,T.z*fo);c+=vec3(1.,.18,.14)*T.y*.6*lum;',
+      '  return c;}',
       'void main(){',
       '  float y=vDir.y;',
       // VICE CITY NUIT (assombri) : indigo profond au zénith → violet → grande brume ROSE sombre → corail → ambre au ras du soleil
@@ -2935,7 +3033,7 @@ const skyDome=(function(){
            4. LES PILIERS — un égaliseur qui monte de l horizon, un barreau par secteur du ciel.
          ⚠ les couches 1, 3 et 4 vivent en PERMANENCE et ne font que gonfler sur la frappe ; seule
          la 2 naît du beat. Un fond qui n existe QUE sur les coups clignote, il ne « joue » pas. */
-      '  if(uLvl>.001){',
+      '  if(uLvl>.001&&uVille<.999){',
       '    float dz=acos(clamp(y,-1.,1.));',                       // angle depuis le ZÉNITH : 0 en haut, 1.57 à l horizon
       /* ⚠ TOUT LE CHAMP VISUEL (2026-08-08). La 1re version protégeait la bande d horizon d un
          `smoothstep(-.02,.15,y)` : le decor n existait qu au-DESSUS de la route, donc en conduite
@@ -3016,7 +3114,7 @@ const skyDome=(function(){
          ciel reste ce ciel-la, il a juste change de couleur.
          DEUX FRONTS qui se croisent (sens opposes, vitesses et frequences differentes) : leur
          interference ne se repete pas, donc l onde n a jamais deux fois la meme forme. */
-      '  if(uLvl>.001){',
+      '  if(uLvl>.001&&uVille<.999){',
       '    float dzw=acos(clamp(y,-1.,1.));',
       '    float w1=sin(dzw*3.4-uWave*6.2831853+az*.60);',        // le front principal roule du zenith vers l horizon
       '    float w2=sin(dzw*1.7-uWave*3.9000000-az*.35+2.1);',    // le second, plus lent et en sens inverse
@@ -3031,6 +3129,7 @@ const skyDome=(function(){
       '    vec3 ex=max(col-vec3(.78),vec3(0.));',
       '    col=min(col,vec3(.78))+ex/(1.+ex*4.55);',
       '  }',
+      '  if(uVille>.001)col=mix(col,villeCiel(vDir,az,col),uVille);', // LE CIEL DE LA VILLE : plafond, skyline, abîme (voir villeCiel)
       '  col+=vec3((fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453)-.5)/160.);', // dither
       '  gl_FragColor=vec4(col,1.);',
       '}'].join('\n')});
@@ -3910,7 +4009,8 @@ function updateClouds(dt,t){
   cloudNearS+=(prox-cloudNearS)*Math.min(1,dt*2.5);
   // CONTRE-JOUR : face au soleil (au carré : ±30° seulement), la brume se dore, l'horizon avance, l'expo respire
   camera.getWorldDirection(cjV);
-  const cj9=Math.max(0,cjV.dot(SUN_DIR)),cj2=cj9*cj9,fogN9=FOG_N*(1-cj2*.18);
+  const cj9=Math.max(0,cjV.dot(SUN_DIR))*(1-LVL.pluie),cj2=cj9*cj9, // (ville sous la pluie : pas de soleil, pas de contre-jour)
+        fogN9=FOG_N*(1-cj2*.18);
   scene.fog.near=fogN9-(fogN9-120)*cloudInS;   // on garde de la profondeur DANS le nuage (26→120 : la route reste lisible)
   scene.fog.far=FOG_F-(FOG_F-820)*cloudInS;     // (340→820)
   fogTmp.copy(FOG_BASE).lerp(FOG_CJ,cj2*.5).lerp(FOG_CLOUD,cloudInS);
@@ -4937,63 +5037,16 @@ function buildVoxCity(seed,accC){
   CITY.n={pubs:pubs.length/6,tours:nT,volumes:corps.length/6,neons:neon.length/6,routeY:[Math.round(yMin),Math.round(yMax)],ms:Math.round(performance.now()-t00),L:Math.round(L),cellsC:CITY.nC,cellsF:CITY.nF};
 }
 for(const f of [villeMatTours,villeMatNeon])f().dispose=function(){}; // partagés sur toute la partie : le rebuild ne les jette pas
-/* L'HORIZON DE LA VILLE (2026-09-25, user : « la ligne d'horizon est moche »). La ville s'arrêtait NET à 3 000 unités,
-   suivie d'une bande vide puis du ciel : on voyait le BORD du décor, et le brouillard bleu-noir tranchait sur l'horizon
-   clair. La recette des jeux de ville nocturne : (1) le brouillard prend la teinte de la brume d'horizon, la ville S'Y
-   FOND ; (2) une COURONNE de gratte-ciel lointains (deux couches de silhouettes, fenêtres néon, feux d'antenne) ferme
-   l'horizon — elle suit la caméra (elle est « à l'infini »), et son pied est exactement la couleur du brouillard.
-   Une seule texture, un seul draw call, créée à la première visite de la ville. */
-const HORIZON_VILLE_FOND='#331f48';
-function villeHorizon(){
-  if(CITY.horizon)return CITY.horizon;
-  const W=2048,H=512,cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');
-  const base=H*.62;                                                        // la « rue » de la couronne : en dessous, la brume pleine
-  let g=x.createLinearGradient(0,base-260,0,H);g.addColorStop(0,'rgba(51,31,72,0)');g.addColorStop(.5,'rgba(51,31,72,.85)');g.addColorStop(.62,HORIZON_VILLE_FOND); // (2026-09-26) la brume, À LA COULEUR DU BROUILLARD : plus de bande violette claireg.addColorStop(1,HORIZON_VILLE_FOND);
-  const rnd=(a,b)=>a+Math.random()*(b-a);
-  /* (2026-09-26, user : « la skyline ne ressemble pas à la vraie ville — inspiration VILLAGE DE LA PLUIE, Naruto ») — c'était une
-     skyline de Manhattan (blocs larges, fenêtres en damier). Le village caché de la pluie, c'est l'inverse : des tours d'acier
-     GRISES, TRÈS HAUTES et MINCES, serrées, couturées de TUYAUX verticaux, cerclées d'anneaux, coiffées de réservoirs bombés,
-     reliées par des PASSERELLES, hérissées d'antennes à feu rouge — et la grande tour du chef, à la tête cornue. Même famille
-     que les tours 3D du niveau (grises, tuyaux, antennes, néons rares), vue de très loin sous la pluie. */
-  const tour=(px,w,h,col,tuy,lum)=>{
-    x.fillStyle=col;x.fillRect(px,base-h,w,h+2);
-    const rg=Math.random();if(rg<.28){x.beginPath();x.ellipse(px+w/2,base-h,w*.62,w*.42,0,Math.PI,0);x.fill();}      // réservoir bombé
-    else if(rg<.5){x.fillRect(px+w*.2,base-h-w*.6,w*.6,w*.6);x.fillRect(px-2,base-h-w*.62,w+4,3);}                   // chapeau à rebord
-    x.globalAlpha=.35;x.fillStyle='#0a0b16';for(let fy=base-h+rnd(10,30);fy<base-10;fy+=rnd(26,60))x.fillRect(px-1,fy,w+2,3);x.globalAlpha=1; // les ANNEAUX
-    if(tuy){x.fillStyle=lum;x.globalAlpha=.55;const nt=1+((Math.random()*3)|0);                                      // les TUYAUX qui descendent
-      for(let t=0;t<nt;t++){const tx=px+rnd(1,w-3),ty=base-h*rnd(.35,.95);x.fillRect(tx,ty,2,base-ty);}x.globalAlpha=1;}
-  };
-  const couche=(col,lum,wMin,wMax,hMin,hMax,gap,fen,ant)=>{let px=0;const tours=[];while(px<W){const w=rnd(wMin,wMax),h=rnd(hMin,hMax);
-    tour(px,w,h,col,true,lum);tours.push([px,w,h]);
-    if(ant&&Math.random()<.4){const ax=px+w*.5,ah=rnd(20,50);x.fillStyle=col;x.fillRect(ax-1,base-h-ah,2,ah);x.fillStyle='#ff3a3a';x.fillRect(ax-2,base-h-ah-2,4,4);}
-    if(fen){const cs=['#2ee6ff','#ff4fb0','#ffc05a','#9ff0ff'];
-      for(let fy=base-h+8;fy<base-6;fy+=9)if(Math.random()<.35){const fx=px+rnd(2,Math.max(3,w-5));x.fillStyle=cs[(Math.random()*cs.length)|0];x.globalAlpha=.5+Math.random()*.5;x.fillRect(fx,fy,3,2);x.globalAlpha=1;}}
-    px+=w+rnd(0,gap);}
-    x.strokeStyle=col;x.lineWidth=3;for(let i=0;i<tours.length-1;i++)if(Math.random()<.4){const a=tours[i],b=tours[i+1],hy=base-Math.min(a[2],b[2])*rnd(.3,.8);x.beginPath();x.moveTo(a[0]+a[1],hy);x.lineTo(b[0],hy+rnd(-4,4));x.stroke();} // les PASSERELLES
-  };
-  couche('#2d2646','#4f5478',12,30,170,340,4,false,false);                 // l'arrière-plan : une forêt de tours d'acier dans la brume (2026-09-26 : assombrie, elle sortait pâle et plate)
-  // LA TOUR DU CHEF : large, plus haute que tout, la tête ronde aux deux cornes et la bouche d'où pendent les tuyaux
-  for(const cx of [W*.18,W*.62]){const tw=70,th=380,tx=cx-tw/2;x.fillStyle='#262a44';x.fillRect(tx,base-th,tw,th+2);
-    x.beginPath();x.ellipse(cx,base-th,tw*.78,tw*.55,0,Math.PI,0);x.fill();
-    x.beginPath();x.moveTo(cx-tw*.55,base-th-tw*.3);x.lineTo(cx-tw*.95,base-th-tw*1.1);x.lineTo(cx-tw*.3,base-th-tw*.5);x.fill();   // corne gauche
-    x.beginPath();x.moveTo(cx+tw*.55,base-th-tw*.3);x.lineTo(cx+tw*.95,base-th-tw*1.1);x.lineTo(cx+tw*.3,base-th-tw*.5);x.fill();   // corne droite
-    x.fillStyle='#0d0e1c';x.fillRect(cx-tw*.3,base-th+tw*.05,tw*.6,tw*.16);                                                  // la bouche
-    x.fillStyle='#ffd75e';x.globalAlpha=.85;x.fillRect(cx-tw*.28,base-th-tw*.22,6,4);x.fillRect(cx+tw*.28-6,base-th-tw*.22,6,4);x.globalAlpha=1; // les yeux allumés
-    x.fillStyle='#4a5070';x.globalAlpha=.7;for(let t=0;t<5;t++){const px=cx-tw*.25+t*tw*.12;x.fillRect(px,base-th+tw*.2,3,th-tw*.2);}x.globalAlpha=1;} // les tuyaux-langues
-  couche('#1b1631','#474d6c',16,40,90,250,8,true,true);                    // le premier plan : plus sombre, allumé, antennes à feu rouge
-  x.fillStyle=g;x.fillRect(0,base-260,W,H-base+260);                       // la brume monte du sol et mange le pied des tours
-  // (2026-09-26, user : « le haut et le bas avec la skyline, c'est mal géré ») : la ligne néon rose/cyan est RETIRÉE — elle traçait un sol
-  // plat à mi-hauteur des tours 3D (la piste de la ville descend de 8 km : il n'y a pas UN sol, il y a la brume)
-  const tex=new THREE.CanvasTexture(cv);tex.wrapS=THREE.RepeatWrapping;tex.repeat.set(3,1);
-  const R=5200,HH=2400;
-  const m=new THREE.Mesh(new THREE.CylinderGeometry(R,R,HH,72,1,true),
-    new THREE.MeshBasicMaterial({map:tex,transparent:true,side:THREE.BackSide,fog:false,depthWrite:false}));
-  m.userData.hh=HH;m.renderOrder=-5;m.frustumCulled=false;scene.add(m);
-  CITY.horizon=m;return m;
-}
+/* L'HORIZON DE LA VILLE : le cylindre peint (2026-09-25) est RETIRÉ le 2026-09-26 — net derrière des tours noyées de brume, il se
+   lisait comme un décor de théâtre, et en vol libre on en voyait les BORDS. La skyline vit désormais dans le dôme du ciel
+   (`villeCiel`), calculée par direction du monde : aucune couture, fondue dans la brume comme le reste du lointain. */
 function villeChauffe(){ // une instance de chaque, compilée hors écran puis retirée — les vraies réutilisent le programme
   const g=new THREE.Group(),geo=new THREE.BoxGeometry(1,1,1),c=new THREE.Color(1,1,1);
-  for(const m of [villeMatTours(),villeMatNeon(),villeMatPub()]){const im=new THREE.InstancedMesh(geo,m,1);im.setMatrixAt(0,new THREE.Matrix4());im.setColorAt(0,c);g.add(im);}
+  /* ⚠ LA CHAUFFE DOIT RESSEMBLER AU VRAI (2026-09-26, bug mesuré) : three r128 garde le PREMIER programme compilé pour un matériau, et
+     ne le recompile pas quand un objet a ou n'a pas de couleur par instance. Chauffés AVEC `setColorAt`, les panneaux (qui n'en ont
+     pas) héritaient d'un programme qui réclame `instanceColor` → `attributes.get(null)` → le rendu jetait à CHAQUE image dès que la
+     ville arrivait après la chauffe (auto-école, puis ville : l'écran gelait). Tours et néons ont une couleur par instance, les pubs non. */
+  for(const m of [villeMatTours(),villeMatNeon(),villeMatPub()]){const im=new THREE.InstancedMesh(geo,m,1);im.setMatrixAt(0,new THREE.Matrix4());if(m!==CITY.matP)im.setColorAt(0,c);g.add(im);}
   scene.add(g);try{renderer.compile(scene,camera);}catch(e){}scene.remove(g);geo.dispose();
 }
 function villeHeurt(p){ // la caisse est-elle DANS une tour de la ville ? (marge : la demi-caisse)
@@ -5004,12 +5057,21 @@ function villeHeurt(p){ // la caisse est-elle DANS une tour de la ville ? (marge
 function cityTick(dt,camY){
   CITY.uT.value+=dt; // l'horloge des néons et de la circulation
   if(!CITY.chaud&&CITY.uT.value>2.5){CITY.chaud=true;villeChauffe();} // au menu, 2,5 s après le chargement
-  const r=CITY.root;
-  if(!r){if(CITY.horizon)CITY.horizon.visible=false;return;}
-  // la couronne peinte suit la caméra (elle est « à l'infini ») ; sa rue se pose dans la brume, 420 m sous l'œil
-  const hz=villeHorizon();hz.visible=true;hz.position.set(camera.position.x,camY-900+hz.userData.hh*.12,camera.position.z); // (2026-09-26) sa rue 900 m sous l'œil : seuls les SOMMETS dépassent, au fond
 }
 window.dbgHeurt=function(){const p=carGroup.position,C=CITY.col;if(!C)return 'pas de grille';const a=C.g.get(Math.floor(p.x/C.CG)+','+Math.floor(p.z/C.CG));let best=1e9;if(a)for(const o of a){const c=C.c;const dx=Math.max(0,Math.abs(p.x-c[o])-c[o+3]/2),dz=Math.max(0,Math.abs(p.z-c[o+2])-c[o+5]/2),dy=Math.max(0,Math.abs(p.y-c[o+1])-c[o+4]/2);best=Math.min(best,Math.hypot(dx,dy,dz));}return {cell:a?a.length:0,plusProche:+best.toFixed(1),pos:[+p.x.toFixed(0),+p.y.toFixed(0),+p.z.toFixed(0)],heurt:villeHeurt(p)};}; // (dev) collision des tours
+// `dbgCiel(cap,site,h,roulis)` (dev) : MODE PHOTO DU CIEL — met en pause, pose la caméra h m au-dessus de la caisse, l'oriente (cap et
+// site en radians, site > 0 = vers le haut, roulis = la vrille du vol libre) et rend UNE image : pour juger plafond, skyline et abîme sans
+// dépendre de la caméra de poursuite.
+window.dbgCiel=function(cap,site,h,roulis,nu){ // nu = true : les tours de la ville masquées le temps de la photo (juger le ciel SEUL)
+  if(started&&!gameOver&&!paused)togglePause();
+  camera.position.copy(carGroup.position);camera.position.y+=(h==null?30:h);
+  camera.rotation.set(site||0,cap||0,roulis||0,'YXZ');camera.updateMatrixWorld();
+  skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);
+  if(acesPass)acesPass.uniforms.uSpeed.value=0; // une photo NETTE : pas de flou radial du boost figé par la pause
+  if(nu&&CITY.root)CITY.root.visible=false;
+  if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
+  if(CITY.root)CITY.root.visible=true;
+};
 window.dbgCity=function(){return CITY.root?Object.assign({},CITY.n,{sousLaCamera:null,brouillardFar:FOG_F}):'absente (autre niveau ou parc)';};
 // ---------- PARC : LE SOL — une prairie d'HERBE LONGUE animée par le vent ----------
 // Un grand tapis vert texturé (qui prend l'éclairage des biomes) SOUS la sphère, planté de dizaines de
@@ -5821,7 +5883,7 @@ function bioApply(c){ // pousse l'ambiance mélangée dans TOUS les organes (uni
   CLOUD_MAT.color.setRGB(Math.min(1,.55+c.volSun[0]*.16),Math.min(1,.55+c.volSun[1]*.16),Math.min(1,.55+c.volSun[2]*.16));
   POST_EXPO=c.expo;if(acesPass)acesPass.uniforms.uSat.value=c.sat;
   // le SOLEIL « 1.61 », sa nappe d'horizon et ses rayons sont des SPRITES hors shader : ils suivent le halo du biome
-  const nuit9=1-LVL.espace; // ORBITE, NOIR COMPLET : même le disque « 1.61 » s'éteint (lvlStep tourne AVANT bioStep : la valeur est fraîche)
+  const nuit9=(1-LVL.espace)*(1-LVL.pluie); // ORBITE, NOIR COMPLET — et sous le plafond de PLUIE de la ville, pas de soleil non plus : même le disque « 1.61 » s'éteint (lvlStep tourne AVANT bioStep : la valeur est fraîche)
   sunSprite.material.opacity=Math.min(1,.15+c.sunHalo*.85)*nuit9;
   horizonGlow.material.opacity=.8*c.sunHalo*nuit9;
   for(const r9 of RAYS)r9.material.opacity=RAY_OPACITY*c.sunHalo*nuit9;
@@ -5876,6 +5938,7 @@ const LVL={cur:null,n:0,k:1,dur:4,
   espace:0,espaceDe:0,espaceA:0,       // uSpace : 0 = le ciel de toujours, 1 = le noir étoilé de l'orbite
   planete:1,planeteDe:1,planeteA:1,    // échelle de la planète (1 = sa taille historique)
   pluie:0,pluieDe:0,pluieA:0,          // opacité du rideau de pluie (niveau VILLE)
+  ville:0,villeDe:0,villeA:0,          // présence de la VILLE dans le ciel (skyline, abîme) — le plafond, lui, suit la pluie
   route:0,routeDe:0,routeA:0,sheen:.1,sheenDe:.1,sheenA:.1, // bitume v2 : clarté et brillance d'horizon du niveau (routeTick)
   dir:PLANET_DIR.clone(),tmp:new THREE.Vector3(),tmp2:new THREE.Vector3(),haut:new THREE.Vector3(0,1,0)};
 // LA LARGEUR PAR NIVEAU (× ROAD_HALF0 = 14) : très large pour apprendre (47,6 m), puis la route se resserre à chaque
@@ -5904,7 +5967,7 @@ function lvlBiome(){ // le ciel du niveau : tiré dans SA liste, jamais deux foi
 }
 function lvlGo(dur){ // les deux leviers HORS biome (uSpace, taille de planète) suivent le même fondu que le ciel
   const c=LVL.cur;
-  LVL.espaceDe=LVL.espace;LVL.planeteDe=LVL.planete;LVL.pluieDe=LVL.pluie;LVL.routeDe=LVL.route;LVL.sheenDe=LVL.sheen;
+  LVL.espaceDe=LVL.espace;LVL.planeteDe=LVL.planete;LVL.pluieDe=LVL.pluie;LVL.villeDe=LVL.ville;LVL.villeA=c&&c.id==='ville'?1:0;LVL.routeDe=LVL.route;LVL.sheenDe=LVL.sheen;
   LVL.espaceA=c?c.espace:0;LVL.planeteA=c?c.planete:0;LVL.pluieA=c?c.pluie:0;LVL.routeA=c&&c.route!=null?c.route:0;LVL.sheenA=c&&c.sheen!=null?c.sheen:.1; // (planète : 0 par défaut — plus de Terre là où le niveau ne la demande pas)
   LVL.k=0;LVL.dur=dur||4;
   if(LVL.dur<=.05)lvlStep(1);
@@ -5915,7 +5978,7 @@ function lvlStep(dt){
   const e=LVL.k*LVL.k*(3-2*LVL.k); // même smoothstep que bioStep : les deux basculent d'un seul mouvement
   LVL.espace=LVL.espaceDe+(LVL.espaceA-LVL.espaceDe)*e;
   LVL.planete=LVL.planeteDe+(LVL.planeteA-LVL.planeteDe)*e;
-  LVL.pluie=LVL.pluieDe+(LVL.pluieA-LVL.pluieDe)*e;
+  LVL.pluie=LVL.pluieDe+(LVL.pluieA-LVL.pluieDe)*e;LVL.ville=LVL.villeDe+(LVL.villeA-LVL.villeDe)*e;
   LVL.route=LVL.routeDe+(LVL.routeA-LVL.routeDe)*e;LVL.sheen=LVL.sheenDe+(LVL.sheenA-LVL.sheenDe)*e;
   skyU.uSpace.value=LVL.espace;
 }
@@ -21042,6 +21105,9 @@ function loop(now){
   else if(stallOn)stallRender(dt); // ÉTAL : même showroom, mais c'est un fruit qui tourne
   skyDome.position.copy(camera.position);
   skyU.uTime.value=t;
+  skyU.uVille.value=LVL.ville;skyU.uPluie.value=LVL.pluie;skyU.uFogCol.value.copy(scene.fog.color);skyU.uCam.value.copy(camera.position); // LE CIEL DE LA VILLE
+  // (2026-09-26) éteints = plus dessinés : le sprite additif du soleil couvre 2 000 unités, même à opacité nulle il se paie (garage et étal gardent la main)
+  if(!garageOn&&!stallOn){sunSprite.visible=sunSprite.material.opacity>.02;horizonGlow.visible=horizonGlow.material.opacity>.02;for(const r9 of RAYS)r9.visible=r9.material.opacity>.002;}
   if(acesPass){ // EFFETS DE VITESSE (aberration + flou radial + tunnel) — SUR LE BOOST, pas sur le simple fait d'avancer
     const sfxT=(running&&!gameOver&&!REDUCED_MOTION)?Math.min(1,(nitroOn?0.72:0)+Math.min(1,boost)*0.6):0; // rouler normalement = image nette ; booster = ça FUSE
     loop._sfx=(loop._sfx||0)+(sfxT-(loop._sfx||0))*Math.min(1,dt*(sfxT>(loop._sfx||0)?7:3)); // montée franche, retombée douce

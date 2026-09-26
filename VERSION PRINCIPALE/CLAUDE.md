@@ -136,6 +136,17 @@
     noyés dans la brume (shader). 3 draw calls : `villeMatTours` (fenêtres dans le shader, fondues en lueur au loin), `villeMatNeon`
     (respire/clignote/grésille, `CITY.uT`), `villeMatTrafic` (voitures volantes déplacées par le vertex shader). Programmes compilés au
     menu (`villeChauffe`). Plus de suivi d'altitude ni de plancher. `dbgCity()` = comptes + ms de construction (~30 ms).
+  · **CIEL DE LA VILLE** (26/09, « la skyline, le sol et le plafond sont mal gérés, ça casse l'immersion ») : la couronne peinte
+    (cylindre de 5,2 km, net derrière des tours noyées de brume, BORDS visibles en vol libre) est RETIRÉE ; le fond musical géométrique
+    (roue, ondes, piliers — des polygones jusque sous l'horizon) s'efface dans la ville (`uVille<.999`). Tout vit dans le dôme,
+    `villeCiel(d,az,ciel)`, par DIRECTION DU MONDE (aucune couture, caméra vrillée comprise), et CONVERGE vers `uFogCol` (la brume,
+    recopiée chaque image) sur l'horizon : PLAFOND de nuages bas (520 m au-dessus de l'œil, éclairé par en dessous, parallaxe avec
+    `uCam`, seulement sous la PLUIE `uPluie`), ondes de néon + éclairs sur les grosses frappes (les « clignotements » du 24/09) ;
+    SKYLINE à l'infini (3 rangées `vTours` + 2 tours du chef `vChef`, pied fondu `fo`) ; ABÎME à 1 600 m sous l'œil (artères = lignes de
+    niveau de bruits, quartiers, lumières floutées ; anticrénelage par l'empreinte du pixel `px`). Levier `LVL.ville` (fondu comme la
+    pluie, carrière comprise) ; sous la pluie ni contre-jour ni soleil « 1.61 » (éteints = `visible=false`). Hook `dbgCiel(cap,site,h,
+    roulis,nu)` : photo du ciel, `nu` masque les tours. ⚠ `villeChauffe` : les pubs chauffées SANS `setColorAt` (three r128 garde le
+    1er programme : chauffées avec, elles faisaient jeter le rendu à chaque image quand la ville venait après l'auto-école).
   · **PISTE v3** (26/09, « enlève les structures bizarres, quelques loopings de temps en temps ; ça va trop tout droit ») : hélice,
     spirale, tire-bouchon, entrelacs à ZÉRO ; looping SEUL espacé de 1,6 km ; pentes bornées (~30°) ; `courbe()` = une « droite »
     qui tourne ; GRAND BALAYAGE (motif 9) ; `lisserRaccords` (pente continue entre motifs) + creux adoucis. Banc : 62 % de piste en
