@@ -19941,7 +19941,11 @@ function loop(now){
           }
           else if(p.nitro){ // chaque fruit rend SA dose de nitro (réglable dans l'ÉTAL)
             const fd=FRUIT_DEFS[p.fruit]||FRUIT_DEFS[0],pw=Math.min(1,fd.boost/2);
-            nitroPct(.2);RUNX.fruits++;hap(fd.boost>=1.5?[20,40,30]:11); // (2026-09-26, user) chaque fruit rend 20 % de nitro — était la dose de l'étal, en réserve bleue
+            // (2026-09-26, user : « les fruits donnent du nitro BLEU ») : chaque fruit remplit la RÉSERVE BLEUE (la nitro la plus forte : poussée
+            // 48 contre 30) de 20 % de la jauge — le bleu se voit sur la barre et sur l'anneau du bouton
+            {const mx9=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,av9=nitroX;nitroX=Math.min(2,nitroX+.2*mx9);
+             if(nitroX>av9+.01){const b=document.getElementById('nitroBar');if(b){b.classList.remove('gain');void b.offsetWidth;b.classList.add('gain');}}}
+            RUNX.fruits++;hap(fd.boost>=1.5?[20,40,30]:11);
             fruitCroque(carGroup.position,fd.jus||0xffd75e,pw); // ON CROQUE : jus, crunch, et la rafale qui monte
             // (le fruit ne touche PAS au moteur : il ne sert qu'au boost — ce sont les pièces qui l'améliorent)
             if(fd.boost>=1.5){ // LE GRAAL : la pastèque, ça se fête
