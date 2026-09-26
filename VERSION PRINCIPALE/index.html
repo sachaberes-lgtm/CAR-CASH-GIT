@@ -5112,11 +5112,7 @@ function buildTrack(seed){
     PADS.push(sp);PADL.push(pl);
     for(const fy of [1,-1]){
       frameAt(sp,F);
-<<<<<<< HEAD
-      const m=new THREE.Mesh(padGeo,new THREE.MeshBasicMaterial({map:PAD_FR[padK]||padTex,color:padCol}));PAD_MATS.push(m.material); // (perf) la plaque suit les images pré-dessinées
-=======
-      const m=new THREE.Mesh(padGeo,new THREE.MeshBasicMaterial({map:padTex,color:padCol,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3})); // (2026-09-26) décalage de profondeur : 10 cm au-dessus du bitume, le pad lointain clignotait à travers
->>>>>>> gfx-ville
+      const m=new THREE.Mesh(padGeo,new THREE.MeshBasicMaterial({map:PAD_FR[padK]||padTex,color:padCol,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}));PAD_MATS.push(m.material); // (perf) la plaque suit les images pré-dessinées · (2026-09-26) décalage de profondeur : le pad lointain ne clignote plus à travers le bitume
       const nn=F.n.clone().multiplyScalar(fy);
       m.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(F.b.clone().multiplyScalar(-fy),F.t.clone(),nn));
       m.position.copy(F.p).addScaledVector(F.b,pl).addScaledVector(F.n,fy>0?.1:-THICK-.1); // même repère que les pièces (F.b brut sur les deux faces)
