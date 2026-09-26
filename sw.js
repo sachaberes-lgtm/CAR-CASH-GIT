@@ -26,7 +26,8 @@
    v19 (2026-09-24) : fusion du push de Léo (v17/v18 chez lui) — musique par monde (noite-de-velocidade,
         nocturnal-groove), moteur, voitures low-poly ; charte v2 et passe UX côté Sacha. */
 //  v20 (2026-09-25) : boutique, défis, auto-école, charte v3, lecteur de musique unique, ville en 1er niveau, caisses premium.
-const CACHE = 'cashcar-v20';
+//  v21 (2026-09-26, Léo) : manifeste en orientation « any » (le jeu se joue couché comme debout), boîte-boutique, cadre téléphone.
+const CACHE = 'cashcar-v21';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
