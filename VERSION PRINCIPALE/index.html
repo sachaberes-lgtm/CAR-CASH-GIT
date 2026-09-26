@@ -3425,12 +3425,17 @@ const POST_SHADOW=new THREE.Vector3(0.004,-0.008,0.062); // OMBRES → bleu-viol
 const POST_HI=new THREE.Vector3(0.052,0.008,-0.014);      // LUMIÈRES → or rosé (le couchant qui s'accroche aux tôles)
 // Grade cinéma en PASSE FINALE : tonemap préservant la chroma + contraste + saturation + split-tone. Scène en amont inchangée.
 const GRADE_ACES=IS_MOBILE; // (2026-09-25) l'étalonnage final (ex-filtre CSS du canvas) passe DANS l'ACES : plus de passe de compositeur plein écran, à la résolution de l'écran, sur téléphone
+const FXAA_ON=IS_MOBILE||IS_LOW_END||devicePixelRatio>=1.5; // (2026-09-26, audit rendu) là où il n'y a PAS de MSAA (téléphone : aucun anticrénelage, chaque marche = 3 px physiques)
 const ACES_N=IS_MOBILE?6:8;   // flou radial du boost : 18 lectures de texture au téléphone au lieu de 24 (le grain animé fond les copies)
 const ACESShader={
   uniforms:{tDiffuse:{value:null},uExposure:{value:POST_EXPO},uSat:{value:POST_SAT},uContrast:{value:POST_CONTRAST},
-            uVivid:{value:POST_VIVID},uWB:{value:POST_WB},uSh:{value:POST_SHADOW},uHi:{value:POST_HI},uSpeed:{value:0},uJit:{value:0}},
+            uVivid:{value:POST_VIVID},uWB:{value:POST_WB},uSh:{value:POST_SHADOW},uHi:{value:POST_HI},uSpeed:{value:0},uJit:{value:0},uRes:{value:new THREE.Vector2(1/1024,1/1024)}},
   vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
-  fragmentShader:['uniform sampler2D tDiffuse;uniform float uExposure,uSat,uContrast,uVivid,uSpeed,uJit;uniform vec3 uWB,uSh,uHi;varying vec2 vUv;',
+  fragmentShader:['uniform sampler2D tDiffuse;uniform float uExposure,uSat,uContrast,uVivid,uSpeed,uJit;uniform vec3 uWB,uSh,uHi;uniform vec2 uRes;varying vec2 vUv;',
+    // (2026-09-26, audit rendu) LES HAUTES LUMIÈRES ROULENT au lieu de s'écraser : en NUAGES, 98 % du haut de l'image avait un canal au
+    // plafond (un aplat bleu électrique, des nuages brûlés). Le coude garde la TEINTE (on divise les trois canaux ensemble) : tout ce
+    // qui tenait déjà sous .86 ne bouge pas d'un iota — seuls les pixels qui saturaient retrouvent leur dégradé.
+    'vec3 roule(vec3 c){float m=max(c.r,max(c.g,c.b));if(m>0.86){float k=0.86+0.14*(1.0-exp(-(m-0.86)/0.14));c*=k/m;}return c;}',
     'vec3 aces(vec3 x){const float a=2.51,b=.03,c=2.43,d=.59,e=.14;return clamp((x*(a*x+b))/(x*(c*x+d)+e),0.,1.);}',
     'const vec3 LUM=vec3(.2126,.7152,.0722);',
     'void main(){',
@@ -3444,19 +3449,32 @@ const ACESShader={
     '    x=acc/'+ACES_N+'.0;',
     '    { vec2 mid=buv-dir*amt*0.31, ca=dir*amt*0.05;',        // l'aberration chromatique : deux prises suffisent pour écarter le rouge et le bleu
     '      x.r=mix(x.r,texture2D(tDiffuse,mid-ca).r,0.5); x.b=mix(x.b,texture2D(tDiffuse,mid+ca).b,0.5); }',
-    '  } else { x=texture2D(tDiffuse,vUv).rgb; }',
+    '  } else {',
+    FXAA_ON?[ // ANTICRÉNELAGE LÉGER (FXAA simplifié) — seulement image nette (le flou de boost lisse déjà) ; hors bord, 5 lectures et on sort
+    '    vec3 cM=texture2D(tDiffuse,vUv).rgb;',
+    '    vec3 cNW=texture2D(tDiffuse,vUv+vec2(-1.,-1.)*uRes).rgb,cNE=texture2D(tDiffuse,vUv+vec2(1.,-1.)*uRes).rgb,cSW=texture2D(tDiffuse,vUv+vec2(-1.,1.)*uRes).rgb,cSE=texture2D(tDiffuse,vUv+vec2(1.,1.)*uRes).rgb;',
+    '    float lM=dot(cM,LUM),lNW=dot(cNW,LUM),lNE=dot(cNE,LUM),lSW=dot(cSW,LUM),lSE=dot(cSE,LUM);',
+    '    float lMin=min(lM,min(min(lNW,lNE),min(lSW,lSE))),lMax=max(lM,max(max(lNW,lNE),max(lSW,lSE)));',
+    '    if(lMax-lMin<max(0.0312,lMax*0.125)){ x=cM; } else {',
+    '      vec2 d=vec2(-((lNW+lNE)-(lSW+lSE)),((lNW+lSW)-(lNE+lSE)));',
+    '      float dr=max((lNW+lNE+lSW+lSE)*0.03125,0.0078125); float rc=1.0/(min(abs(d.x),abs(d.y))+dr);',
+    '      d=clamp(d*rc,vec2(-8.0),vec2(8.0))*uRes;',
+    '      vec3 a=0.5*(texture2D(tDiffuse,vUv+d*(1.0/3.0-0.5)).rgb+texture2D(tDiffuse,vUv+d*(2.0/3.0-0.5)).rgb);',
+    '      vec3 b=a*0.5+0.25*(texture2D(tDiffuse,vUv-d*0.5).rgb+texture2D(tDiffuse,vUv+d*0.5).rgb);',
+    '      float lB=dot(b,LUM); x=(lB<lMin||lB>lMax)?a:b; }'].join('\n'):'    x=texture2D(tDiffuse,vUv).rgb;',
+    '  }',
     '  x=x*uWB*uExposure;',
     'float L=dot(x,LUM);',
     'vec3 perCh=aces(x);',                              // ACES par canal : sûr mais désature les hautes lumières
     'vec3 lumB=x*(aces(vec3(L)).x/max(L,1e-4));',       // ACES sur la LUMINANCE seule → la chroma est conservée (néon)
-    'vec3 c=clamp(mix(perCh,lumB,uVivid),0.,1.);',      // dosage entre les deux
-    'c=clamp((c-0.5)*uContrast+0.5,0.,1.);',            // CONTRASTE : noirs profonds
+    'vec3 c=max(mix(perCh,lumB,uVivid),0.);',           // dosage entre les deux (plus d'écrêtage ici : voir `roule`)
+    'c=max((c-0.5)*uContrast+0.5,0.);',                 // CONTRASTE : noirs profonds
     'float l2=dot(c,LUM);c=mix(vec3(l2),c,uSat);',      // SATURATION
     'c+=uSh*(1.-smoothstep(0.,0.5,l2));',               // split-tone : ombres TEAL
     'c+=uHi*smoothstep(0.5,1.0,l2);',                   // split-tone : lumières OR
     'c*=1.0-uSpeed*smoothstep(0.30,0.85,r)*0.55;',      // TUNNEL DE VITESSE : les bords plongent dans le noir, l'œil file au centre
-    GRADE_ACES?'c=clamp(c,0.,1.);c=clamp(mix(vec3(dot(c,LUM)),c,1.12),0.,1.);c=clamp((c-.5)*1.05+.5,0.,1.)*.97;':'', // = saturate(1.12) contrast(1.05) brightness(.97) du CSS, même ordre
-    'gl_FragColor=vec4(clamp(c,0.,1.),1.0);}'].join('\n')
+    GRADE_ACES?'c=max(c,0.);c=max(mix(vec3(dot(c,LUM)),c,1.12),0.);c=max((c-.5)*1.05+.5,0.)*.97;':'', // = saturate(1.12) contrast(1.05) brightness(.97) du CSS, même ordre
+    'gl_FragColor=vec4(clamp(roule(c),0.,1.),1.0);}'].join('\n')
 };
 const CAN_POST=typeof THREE.EffectComposer==='function'&&typeof THREE.RenderPass==='function'&&typeof THREE.UnrealBloomPass==='function'&&typeof THREE.ShaderPass==='function';
 if(CAN_POST){ try{
@@ -5736,14 +5754,22 @@ function paintCarHud(){
 }
 const envCvs=[]; // les 6 canvases du cube env — gardés pour être REPEINTS par les biomes
 function paintEnv(stops,s1,s2){ // stops=[[pos,'#hex'],…] + 2 strips néon [r,g,b,alpha]
-  for(const cv of envCvs){
+  /* (2026-09-26, audit rendu) LES SIX FACES ÉTAIENT IDENTIQUES — le même dégradé vertical partout, y compris sur le plafond et le sol
+     du cube : un toit reflétait un horizon, et toutes les facettes d'une caisse low-poly renvoyaient la même chose. Désormais :
+     les 4 côtés gardent le dégradé et les néons, le HAUT (+Y) est le zénith, le BAS (−Y) un sol sombre, et la face tournée vers le
+     soleil porte un point chaud. Même coût (6 canvas 64², repeints au changement de biome seulement). */
+  const zen=stops[0][1],sol=stops[stops.length-1][1],sunF=Math.abs(SUN_DIR.x)>Math.abs(SUN_DIR.z)?(SUN_DIR.x>0?0:1):(SUN_DIR.z>0?4:5);
+  envCvs.forEach(function(cv,f){
     const c=cv.getContext('2d');
+    if(f===2){c.fillStyle=zen;c.fillRect(0,0,64,64);return;}                                          // +Y : le zénith
+    if(f===3){c.fillStyle=sol;c.fillRect(0,0,64,64);c.fillStyle='rgba(0,0,0,.45)';c.fillRect(0,0,64,64);return;} // −Y : le sol, assombri
     const gr=c.createLinearGradient(0,0,0,64);
     for(const st of stops)gr.addColorStop(st[0],st[1]);
     c.fillStyle=gr;c.fillRect(0,0,64,64);
     c.fillStyle='rgba('+s1[0]+','+s1[1]+','+s1[2]+','+s1[3]+')';c.fillRect(0,20,64,3);
     c.fillStyle='rgba('+s2[0]+','+s2[1]+','+s2[2]+','+s2[3]+')';c.fillRect(0,30,64,2);
-  }
+    if(f===sunF){const h=c.createRadialGradient(32,27,0,32,27,18);h.addColorStop(0,'rgba(255,238,205,.75)');h.addColorStop(1,'rgba(255,238,205,0)');c.fillStyle=h;c.fillRect(0,0,64,64);} // le soleil rasant
+  });
   envTex.needsUpdate=true;
 }
 const envTex=(function(){ // le ciel réfléchi par les carrosseries — repeint à chaque changement de biome
@@ -6191,6 +6217,11 @@ const hsF=new THREE.Vector3(),hsU=new THREE.Vector3(),hsR=new THREE.Vector3(); /
 // ---- TRAÎNÉE DE NITRO : deux RUBANS de lumière accrochés aux tuyères — le « swoosh » qui reste dans l'air.
 // Buffers fixes (zéro allocation en boucle), largeur orientée face caméra, fondu au carré de l'âge.
 const TRAIL_N=26;
+const TRAIL_TEX=(function(){ // le profil du ruban en travers : bords éteints, cœur franc
+  const cv=document.createElement('canvas');cv.width=64;cv.height=2;const c=cv.getContext('2d');
+  const g=c.createLinearGradient(0,0,64,0);g.addColorStop(0,'#000');g.addColorStop(.28,'#3a3a3a');g.addColorStop(.5,'#fff');g.addColorStop(.72,'#3a3a3a');g.addColorStop(1,'#000');
+  c.fillStyle=g;c.fillRect(0,0,64,2);return new THREE.CanvasTexture(cv);
+})();
 function mkTrail(){
   const g=new THREE.BufferGeometry();
   const pos=new Float32Array(TRAIL_N*2*3),col=new Float32Array(TRAIL_N*2*3);
@@ -6198,7 +6229,11 @@ function mkTrail(){
   g.setAttribute('color',new THREE.BufferAttribute(col,3));
   const idx=[];for(let i=0;i<TRAIL_N-1;i++){const a=i*2;idx.push(a,a+1,a+2,a+1,a+3,a+2);}
   g.setIndex(idx);
-  const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false}));
+  // (2026-09-26, audit rendu) deux sommets en travers, une couleur uniforme, en additif : vu dans l'axe, c'était un TAPIS jaune plat.
+  // Une texture en travers (noire aux bords, blanche au cœur) sculpte le ruban sans un sommet de plus.
+  const uv=new Float32Array(TRAIL_N*2*2);for(let i=0;i<TRAIL_N;i++){uv[i*4]=0;uv[i*4+1]=i/(TRAIL_N-1);uv[i*4+2]=1;uv[i*4+3]=i/(TRAIL_N-1);}
+  g.setAttribute('uv',new THREE.BufferAttribute(uv,2));
+  const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:TRAIL_TEX,vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false}));
   m.frustumCulled=false;m.visible=false;m.renderOrder=2;scene.add(m);
   const hist=[];for(let i=0;i<TRAIL_N;i++)hist.push(new THREE.Vector3());
   return {m,pos,col,hist,init:false};
@@ -6287,10 +6322,10 @@ function trailStep(tr,px,py,pz,cr,cg,cb,k,wMul){
     rbS.crossVectors(rbD,rbV);
     const l2=rbS.lengthSq();
     if(l2>1e-9)rbS.multiplyScalar(1/Math.sqrt(l2));else rbS.set(0,0,0);
-    const age=i/(TRAIL_N-1),w=(.05+.20*(1-age))*(wMul||1);
+    const age=i/(TRAIL_N-1),w=(.05+.20*(1-age))*.65*(wMul||1); // ×.65 : plus fin, il file au lieu de recouvrir
     let f=(1-age)*(1-age)*k;
     const dC=rbV.length(); // la caméra de poursuite roule DANS le sillage : on efface le ruban à son approche (sinon voile blanc plein écran)
-    f*=Math.min(1,Math.max(0,(dC-3.2)/4.2));
+    f*=Math.min(1,Math.max(0,(dC-6)/8)); // (2026-09-26) fondu de 6 à 14 m (était 3,2 → 7,4) : vu dans l'axe, le ruban proche faisait le tapis
     P[i*6]=p.x+rbS.x*w;P[i*6+1]=p.y+rbS.y*w;P[i*6+2]=p.z+rbS.z*w;
     P[i*6+3]=p.x-rbS.x*w;P[i*6+4]=p.y-rbS.y*w;P[i*6+5]=p.z-rbS.z*w;
     C[i*6]=cr*f;C[i*6+1]=cg*f;C[i*6+2]=cb*f;
@@ -6311,7 +6346,7 @@ function trailStep(tr,px,py,pz,cr,cg,cb,k,wMul){
    -------------------------------------------------------------------------------------------- */
 // ---- RIM GOLDEN HOUR : liseré doré sur les arêtes exposées au soleil (fresnel masqué côté lumière).
 // Uniforms PARTAGÉS entre toutes les caisses — une seule source de vérité, teinte pilotée par l'état dans loop().
-const RIM_U={uRimC:{value:new THREE.Color(0xffd9a0)},uRimStr:{value:.55},uRimPow:{value:3.0},uSunV:{value:new THREE.Vector3()}};
+const RIM_U={uRimC:{value:new THREE.Color(0xffd9a0)},uRimStr:{value:.40},uRimPow:{value:3.0},uSunV:{value:new THREE.Vector3()}};
 function rimify(m){
   m.onBeforeCompile=function(sh){
     sh.uniforms.uRimC=RIM_U.uRimC;sh.uniforms.uRimStr=RIM_U.uRimStr;sh.uniforms.uRimPow=RIM_U.uRimPow;sh.uniforms.uSunV=RIM_U.uSunV;
@@ -10489,10 +10524,13 @@ function buildCar(spec){
   carFins.length=0;
   const lvl=CARS.indexOf(spec),wreck=lvl===0;
   // brillance qui explose avec le niveau — l'épave est mate et rouillée
-  const shin=wreck?16:50+lvl*34;                       // la brillance GRIMPE fort par niveau
-  const refl=wreck?.04:Math.min(.98,.10+lvl*.085);     // ...et le reflet du ciel aussi
+  // (2026-09-26, audit rendu) PLAFONNÉS : `lvl` est l'INDEX de la caisse (0-65), plus une progression — la formule donnait un reflet à .98
+  // et une brillance > 2 000 à presque toute la gamme : en MixOperation la peinture disparaissait sous un ciel uniforme, et les reflets
+  // sous-pixel scintillaient. Au-delà de .45 / 300, la tôle ne gagne plus rien.
+  const shin=wreck?16:Math.min(300,50+lvl*34);         // la brillance GRIMPE par niveau… jusqu'à un plafond
+  const refl=wreck?.04:Math.min(.45,.10+lvl*.085);     // ...et le reflet du ciel aussi — la COULEUR de la caisse reste lisible
   const specC=wreck?0x777777:(lvl>=10?0xffffff:(lvl>=6?0xeaf2fa:0xc4ccd4));
-  const bodyM=new THREE.MeshPhongMaterial({color:spec.color,emissive:spec.color,emissiveIntensity:.08+lvl*.02,shininess:shin,specular:specC,envMap:envTex,reflectivity:refl,combine:THREE.MixOperation});
+  const bodyM=new THREE.MeshPhongMaterial({color:spec.color,emissive:spec.color,emissiveIntensity:Math.min(.2,.08+lvl*.02),shininess:shin,specular:specC,envMap:envTex,reflectivity:refl,combine:THREE.MixOperation});
   const accM=new THREE.MeshPhongMaterial({color:spec.accent,emissive:spec.accent,emissiveIntensity:.08,shininess:Math.max(12,shin*.8),specular:0xdddddd,envMap:envTex,reflectivity:refl*.8,combine:THREE.MixOperation});
   const glassM=new THREE.MeshPhongMaterial({color:0x0d1620,shininess:300,specular:0xffffff,envMap:envTex,reflectivity:wreck?.2:.75,combine:THREE.MixOperation});
   const chromeM=new THREE.MeshPhongMaterial({color:0xe8ecf0,shininess:280,specular:0xffffff,envMap:envTex,reflectivity:.85,combine:THREE.MixOperation});
@@ -19488,13 +19526,17 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
     }
     return;                                                // ⚠ on ne rejoue pas l'orbite derrière
   }
-  const fovG=52*FOV_K;
-  if(Math.abs(camera.fov-fovG)>.01){camera.fov=fovG;camera.updateProjectionMatrix();}
+  let fovG=52*FOV_K;
   // (2026-09-26) l'onglet VOITURES porte la barre des familles et la bande de vignettes : la caisse doit monter dans le cadre
   // (visée plus basse, un peu de recul) — sinon elle tourne DERRIÈRE les vignettes. Transition douce entre les onglets.
   garageRender._v=(garageRender._v||0)+(((SHOP.tab==='voiture'&&gEl&&!gEl.classList.contains('quiet'))?1:0)-(garageRender._v||0))*.12;
   const vG=garageRender._v*POR;
-  const dG=garageDist*(1+POR*.34)*(1+vG*.12);
+  const dG0=garageDist*(1+POR*.34)*(1+vG*.12);
+  // (2026-09-26, audit rendu) le recul pouvait atteindre ~12 m alors que rien de haut n'est garanti libre au-delà de 8,3 m : la caméra
+  // traversait le décor. On plafonne le rayon HORIZONTAL à 8 m et on rend le cadrage par l'objectif (même taille de caisse à l'écran).
+  const dG=Math.min(dG0,8/Math.max(.2,Math.cos(garagePitch)));
+  if(dG<dG0)fovG=Math.min(88,2*Math.atan(Math.tan(fovG*Math.PI/360)*dG0/dG)*180/Math.PI);
+  if(Math.abs(camera.fov-fovG)>.01){camera.fov=fovG;camera.updateProjectionMatrix();}
   const cp=Math.cos(garagePitch)*dG,h=Math.sin(garagePitch)*dG;
   camera.up.set(0,1,0);
   // GARDE-FOU : la caméra reste DANS l'atelier. On tourne à 360° dedans — jamais à travers un mur,
@@ -21189,6 +21231,7 @@ function loop(now){
     const sfxT=(running&&!gameOver&&!REDUCED_MOTION&&FLOU_OK)?Math.min(1,(nitroOn?0.72:0)+Math.min(1,boost)*0.6):0; // rouler normalement = image nette ; booster = ça FUSE
     loop._sfx=(loop._sfx||0)+(sfxT-(loop._sfx||0))*Math.min(1,dt*(sfxT>(loop._sfx||0)?7:3)); // montée franche, retombée douce
     acesPass.uniforms.uSpeed.value=loop._sfx;acesPass.uniforms.uJit.value=(acesPass.uniforms.uJit.value+.618034)%1;
+    renderer.getDrawingBufferSize(acesPass.uniforms.uRes.value);acesPass.uniforms.uRes.value.set(1/Math.max(1,acesPass.uniforms.uRes.value.x),1/Math.max(1,acesPass.uniforms.uRes.value.y)); // la taille d'un texel pour le FXAA (suit la résolution adaptative)
   }
   lvlPlanete(dt); // la planète tient sa place dans le ciel — et en ORBITE elle passe sous la route (voir NIVEAUX)
   pluieTick(t);   // la pluie de la VILLE tombe autour de la caméra (invisible ailleurs)
