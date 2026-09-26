@@ -2896,7 +2896,7 @@ const SUN_DIR=new THREE.Vector3(.38,.10,-.90).normalize(); // soleil TRÈS BAS (
 // GRADE DE CIEL (biomes) : uniforms à IDENTITÉ NEUTRE — réglages par défaut = rendu Vice City actuel au pixel près.
 // La palette reste bakée dans le shader ; le biome la teinte (×mul, +lift horizon) et dose soleil/ville/étoiles/lune.
 const skyU={uTime:{value:0},uSunDir:{value:SUN_DIR},
-  uSkyMul:{value:new THREE.Vector3(1,1,1)},uSkyLift:{value:new THREE.Vector3(0,0,0)},
+  uSkyMul:{value:new THREE.Vector3(1,1,1)},uSkyLift:{value:new THREE.Vector3(0,0,0)},uZenAdd:{value:new THREE.Vector3(0,0,0)},
   uSunTint:{value:new THREE.Vector3(1,.40,.28)},uSunHalo:{value:1},uCity:{value:1},uStars:{value:1},uMoon:{value:1},
   uSpace:{value:0}, // NIVEAU ORBITE (2026-09-24) : 0 = le ciel de toujours AU PIXEL PRÈS, 1 = le noir étoilé (piloté par lvlStep)
   uPulse:{value:0}, // MUSIQUE : le ciel respire en rythme (piloté par l'analyseur audio, 0 = neutre = rendu d'origine)
@@ -2927,7 +2927,7 @@ const skyDome=(function(){
     vertexShader:'varying vec3 vDir;void main(){vDir=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);gl_Position.z=gl_Position.w;}',
     fragmentShader:[
       'varying vec3 vDir;uniform vec3 uSunDir;uniform float uTime;',
-      'uniform vec3 uSkyMul,uSkyLift,uSunTint;uniform float uSunHalo,uCity,uStars,uMoon,uPulse;', // grade biome (identité par défaut) + uPulse musique
+      'uniform vec3 uSkyMul,uSkyLift,uSunTint,uZenAdd;uniform float uSunHalo,uCity,uStars,uMoon,uPulse;', // grade biome (identité par défaut) + uPulse musique
       'uniform float uSpace;', // NIVEAU ORBITE : 0 = aucun effet
       'uniform float uLvl,uSpin,uBeatK,uFlip,uBar,uHi,uWave,uHueAmp;uniform vec3 uAcc,uAcc2;uniform vec4 uRingR,uRingA;', // LE FOND DU NIVEAU
       'float hash21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}',
@@ -3093,7 +3093,11 @@ const skyDome=(function(){
       '  col=mix(col,zen,smoothstep(.44,.78,y));',   // le bleu nuit domine le tiers haut
       '  col=mix(blw,col,smoothstep(-.10,.012,y));',
       '  col=mix(dp2,col,smoothstep(-.85,-.12,y));',
-      '  col=col*uSkyMul+uSkyLift*smoothstep(.35,-.06,y);', // BIOME : teinte du gradient + lift laiteux concentré à l horizon
+      '  col=col*uSkyMul+uSkyLift*smoothstep(.35,-.06,y);',
+      // (2026-09-27, fusion vague 2) LE JOUR COBALT : la palette de base est celle de la NUIT (indigo), et aucun multiplicateur raisonnable
+      // n'en tire un cobalt lumineux — le zénith de midi sortait #00099f, un bleu de nuit dès que la caméra regardait en l'air. Les biomes
+      // de jour AJOUTENT donc leur propre bleu dans le haut du ciel (nul partout ailleurs : la nuit, la ville et l'orbite ne bougent pas).
+      '  col+=uZenAdd*smoothstep(.20,.80,y);', // BIOME : teinte du gradient + lift laiteux concentré à l horizon
       '  col=mix(col,vec3(0.),uSpace);', // ORBITE : le NOIR COMPLET (demande du user) — la Terre et la route portent seules la lumiere
       '  col*=1.+uPulse*.13;', // MUSIQUE : tout le ciel respire au beat (souffle global doux)
       '  float sd=max(dot(vDir,uSunDir),0.);',      // couchant : halo rosé large, couronne corail, coeur incandescent (tamisé)
@@ -6624,6 +6628,10 @@ const BIOMES={
     env:[[0,'#06070b'],[.47,'#2b313d'],[1,'#0a0b0f']],eS1:[255,226,184,.5],eS2:[130,220,255,.4],
     wb:[1,.99,.975],sh:[.012,.002,.04],hi:[.04,.022,0],con:1.20,bloomS:.36,bloomT:.90,vigK:.46,vigC:[.11,.016,.19],rimK:0,rimS:.40},
 };
+// LE BLEU AJOUTÉ AU ZÉNITH (voir le dôme) : TOUS les biomes portent le champ — bioLerp mélange clé par clé, un biome sans la clé
+// ferait un NaN en plein fondu. Nul partout, sauf les trois jours du niveau NUAGES.
+for(const k in BIOMES)if(!BIOMES[k].zenAdd)BIOMES[k].zenAdd=[0,0,0];
+BIOMES.matin.zenAdd=[.07,.15,.40];BIOMES.midi.zenAdd=[.07,.16,.44];BIOMES.aprem.zenAdd=[.05,.10,.30];
 /* L'ÉTALONNAGE PAR NIVEAU (2026-09-26, vague 2 « L'ENCRE ET L'OR ») — UN MONDE, TROIS HEURES, LA MÊME ENCRE.
    Jusqu'ici la balance des blancs, la teinte des ombres et des hautes lumières, le contraste, le bloom et la vignette étaient des
    CONSTANTES : le plein jour héritait du voile magenta et des ombres violettes de la nuit, et d'une vignette violette à 52 %. Chaque
@@ -6654,7 +6662,7 @@ function bioLerp(a,b,e,out){ // mixe deux biomes champ à champ (tableaux = comp
   }
 }
 function bioApply(c){ // pousse l'ambiance mélangée dans TOUS les organes (uniforms/couleurs only)
-  skyU.uSkyMul.value.fromArray(c.skyMul);skyU.uSkyLift.value.fromArray(c.skyLift);skyU.uSunTint.value.fromArray(c.sunTint);
+  skyU.uSkyMul.value.fromArray(c.skyMul);skyU.uSkyLift.value.fromArray(c.skyLift);skyU.uSunTint.value.fromArray(c.sunTint);if(c.zenAdd)skyU.uZenAdd.value.fromArray(c.zenAdd);
   skyU.uSunHalo.value=c.sunHalo;skyU.uCity.value=c.city;skyU.uStars.value=c.stars;skyU.uMoon.value=c.moon;
   FOG_BASE.setRGB(c.fog[0],c.fog[1],c.fog[2]);FOG_N=c.fogN;FOG_F=c.fogF;
   hemi.color.setRGB(c.hemiS[0],c.hemiS[1],c.hemiS[2]);hemi.groundColor.setRGB(c.hemiG[0],c.hemiG[1],c.hemiG[2]);hemi.intensity=c.hemiI;
