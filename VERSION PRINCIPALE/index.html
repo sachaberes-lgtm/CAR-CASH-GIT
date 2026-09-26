@@ -2791,7 +2791,8 @@ const skyU={uTime:{value:0},uSunDir:{value:SUN_DIR},
   uMer:{value:0}}; // (2026-09-26) LA MER DE NUAGES PEINTE sous l'horizon — niveau NUAGES seulement (voir merNuages ; fondue par lvlStep comme la ville)
 const skyDome=(function(){
   const mat=new THREE.ShaderMaterial({uniforms:skyU,side:THREE.BackSide,depthWrite:false,
-    vertexShader:'varying vec3 vDir;void main(){vDir=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+    // (2026-09-26, vague 2 — audit GPU) gl_Position.z = w : le dôme se pose sur le PLAN LOINTAIN (profondeur 1,0) — voir renderOrder plus bas
+    vertexShader:'varying vec3 vDir;void main(){vDir=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);gl_Position.z=gl_Position.w;}',
     fragmentShader:[
       'varying vec3 vDir;uniform vec3 uSunDir;uniform float uTime;',
       'uniform vec3 uSkyMul,uSkyLift,uSunTint;uniform float uSunHalo,uCity,uStars,uMoon,uPulse;', // grade biome (identité par défaut) + uPulse musique
@@ -2861,7 +2862,7 @@ const skyDome=(function(){
       '  float y=d.y;vec3 F=uFogCol,A=mix(uAcc,uAcc2,uFlip),haut=ciel,bas=F;',
       '  float nuit=clamp(1.5-dot(F,vec3(.3,.59,.11))*4.,0.,1.);', // les lumières de la ville ne gagnent que de nuit (carrière : la ville à midi)
       '  float lv=uLvl*(.35+uPulse*.5+uBeatK*.6);',                // ce que la MUSIQUE allume
-      '  if(y>-.03){',                                             // ---- LE PLAFOND ----
+      '  if(y>-.03&&uPluie>.001){',                                // ---- LE PLAFOND ---- (vague 2 : calculé SEULEMENT sous la pluie — sans elle, haut = ciel au pixel près)
       '    float t=520./max(y,.01);vec2 p=d.xz*t+uCam.xz+vec2(uTime*7.,uTime*3.),q=p/650.;',
       '    float n=vfbm(q+.6*vec2(vn(q*.45+3.7),vn(q*.45-5.1))),dn=smoothstep(.34,.74,n);',
       '    vec3 cc=mix(F*.62+vec3(0.,.004,.02),F*1.3+vec3(.06,.02,.06)*nuit,dn);', // trouées plus sombres, ventres éclairés par la ville
@@ -2869,7 +2870,7 @@ const skyDome=(function(){
       '    cc+=A*dn*wv*wv*.22*lv*nuit;',                                              // les néons de la ville ondulent sous les nuages
       '    cc+=vec3(.5,.45,.75)*smoothstep(.6,.95,vn(q*.3+floor(uTime*2.)*1.7))*uBeatK*uBeatK*uBeatK*uLvl*dn*.55;', // l ÉCLAIR : seulement sur les GROSSES frappes (au cube), sinon un orage à chaque coup de grosse caisse
       '    haut=mix(ciel,mix(F,cc,exp(-t/4200.)),uPluie);}',                          // au loin, le plafond se fond dans la brume
-      '  if(y<.03){',                                              // ---- LE SOL : l abîme de la ville basse ----
+      '  if(y<.03&&nuit>0.){',                                     // ---- LE SOL : l abîme de la ville basse ---- (vague 2 : ses lumières SEULEMENT de nuit — de jour, bas = brume au pixel près)
       '    float t=1600./max(-y,.01),px=t*.0016/max(-y,.06);',      // px : ce que couvre un pixel au sol (m) — l anticrénelage suit la distance
       '    vec2 p=d.xz*t+uCam.xz;',
       '    float qu=smoothstep(.3,.8,vn(p/1500.))*(.5+.5*vn(p/450.+4.2)),qu2=vn(p/2600.+9.1);', // les QUARTIERS : un centre qui brille, des zones éteintes
@@ -2894,6 +2895,7 @@ const skyDome=(function(){
          seraient des toits lointains à l altitude de la ville (`uVilleY`, posé par la boucle d après CITY.n.routeY, ~3,5 km) :
          vue d en haut, elle passe SOUS l horizon, derrière la forêt 3D, noyée de brume ; ses fenêtres sont un cran plus sourdes. */
       '  y=d.y-uVilleY;',                                            // (le plafond et l abîme sont faits : y ne sert plus qu à la skyline)
+      '  if(y>-.1&&y<.42){',                                         // (vague 2) la SKYLINE seulement dans sa bande : sous −0,1 le pied est noyé (fo = 0), au-dessus de 0,42 plus une antenne — image identique
       '  float fo=smoothstep(-.1,.015,y),lum=(1.+.7*lv)*(.35+.65*nuit)*.75;', // fo : le PIED des tours se noie — sous l horizon il ne reste que la brume et l abîme
       '  vec3 f0=vec3(1.,.64,.3),f1=vec3(.42,.88,1.),dk=F*.35+vec3(.004,.006,.02),sil;vec4 T;',
       '  T=vTours(az,y,190.,1.,-.035,.03,.0024);',
@@ -2903,7 +2905,7 @@ const skyDome=(function(){
       '  vec3 H=vChef(az,y,1.05,1.)+vChef(az,y,-2.25,.82);',
       '  sil=mix(F,dk,.36*fo)*(1.-.35*H.z)+vec3(1.,.84,.37)*H.y*(.55+.2*sin(uTime*.7))*lum;c=mix(c,sil,min(1.,H.x+H.y)*fo);',
       '  T=vTours(az,y,72.,3.,.0,.1,.0042);',
-      '  sil=mix(F,dk,.34*fo)+mix(f0,f1,step(.8,T.w))*T.x*.42*fo*lum;c=mix(c,sil,T.z*fo);c+=vec3(1.,.18,.14)*T.y*.6*lum*fo;',
+      '  sil=mix(F,dk,.34*fo)+mix(f0,f1,step(.8,T.w))*T.x*.42*fo*lum;c=mix(c,sil,T.z*fo);c+=vec3(1.,.18,.14)*T.y*.6*lum*fo;}',
       '  return c;}',
       /* ===================== LA MER DE NUAGES PEINTE (2026-09-26) — niveau NUAGES =====================
          MESURÉ sur captures (midi, aprem, matin) : sous l'horizon il n'y avait que le bas du dégradé multiplié par le biome — un
@@ -2931,9 +2933,12 @@ const skyDome=(function(){
       // ⚠ PAS DE LAIT (essai du 26/09 : une mer blanche à 60 % et fondue dans une brume pâle = tout le bas de l écran laiteux, les
       // nuages 3D s y perdaient). Les TROUÉES gardent le bleu roi qu avait le bas du ciel (blw × biome) : les moutons blancs
       // se DÉTACHENT dessus, et la brume pâle ne revient que sur les 3 derniers degrés, là où les objets lointains s y noient.
-      '  vec3 creux=vec3(.27,.15,.30)*uSkyMul*1.25;',                   // les trouées : le bleu roi du bas du ciel d origine
-      '  vec3 ombre=mix(creux,F,.45);',                                 // le flanc à l ombre des moutons
-      '  vec3 haut=mix(vec3(1.,.99,.97),uSunTint,.28)*(.86+.24*lit);', // les sommets : crème au soleil du biome
+      // (2026-09-26, vague 2 — « la mer reste laiteuse ») LES TROUÉES = le ZÉNITH du biome (zen × uSkyMul) un cran plus sombre et plus violet :
+      // l ENCRE de la bible (#2a2f8f affiché sous le jour cobalt #2446e8, étalonné au banc). Indexées sur le zénith, elles suivent le biome
+      // quel qu il soit ; l ancien prune ×1,25 virait au ROSE dès que le ciel s éclaircissait. Le flanc à l ombre ne prend plus que 25 % de brume.
+      '  vec3 creux=vec3(.060,.064,.139)*uSkyMul;',                     // les trouées : l encre du ciel
+      '  vec3 ombre=mix(creux,F,.25);',                                 // le flanc à l ombre des moutons
+      '  vec3 haut=mix(vec3(1.,1.06,.98),uSunTint,.22)*(.98+.34*lit);', // les sommets : LA MÊME CRÈME que les nuages 3D (vague 2 : ils restaient gris-rose à côté de la ouate du premier plan)
       '  vec3 m=mix(creux,mix(ombre,haut,lit*.75+.25),cov);',
       '  m+=uSunTint*pow(sd,5.)*cov*.28*uSunHalo;',                     // à contre-jour, les moutons s ourlent d or
       '  m=mix(mix(F,creux,.4),m,exp(-t/9000.));',                       // la perspective aérienne : le lointain bleuit
@@ -3085,8 +3090,14 @@ const skyDome=(function(){
       '  col+=vec3((fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453)-.5)/160.);', // dither
       '  gl_FragColor=vec4(col,1.);',
       '}'].join('\n')});
+  /* LE CIEL SE PEINT EN DERNIER (2026-09-26, vague 2 — audit GPU). Il était dessiné en PREMIER (renderOrder −9, sans écrire la
+     profondeur) : chaque pixel de l'écran payait le shader le plus lourd du jeu (mer de nuages, ville, étoiles, fond musical)… puis
+     la route, la caisse, les nuages le recouvraient. Posé sur le plan lointain (z = w dans le vertex) et dessiné APRÈS tous les
+     opaques, il est rejeté par le test de profondeur partout où quelque chose le cache : on ne peint plus que le ciel qu'on VOIT.
+     Les transparents (soleil « 1.61 », nappe, rayons, halo de la planète, nuages en fondu) passent toujours après lui ; la Terre
+     (opaque) se peint juste derrière (renderOrder 21, même plan lointain). Image identique. */
   const m=new THREE.Mesh(new THREE.SphereGeometry(4300,48,28),mat);
-  m.frustumCulled=false;m.renderOrder=-9;scene.add(m);return m;
+  m.frustumCulled=false;m.renderOrder=20;scene.add(m);return m;
 })();
 let FOG_N=420,FOG_F=2600; // near/far pilotés par les BIOMES (le lerp cloudInS les relit chaque frame)
 const FOG_BASE=new THREE.Color(0x5e3254),FOG_CLOUD=new THREE.Color(0xd8bcd0),fogTmp=new THREE.Color(); // FOG_BASE : l'objet reste const, les biomes mutent son RGB
@@ -3098,6 +3109,7 @@ const sunSprite=(function(){
   const cv=document.createElement('canvas');cv.width=cv.height=512;
   const c=cv.getContext('2d');
   const tex=new THREE.CanvasTexture(cv);
+  const cvO=document.createElement('canvas');cvO.width=cvO.height=512;const texO=new THREE.CanvasTexture(cvO); // (vague 2) les chiffres d'or
   function draw(){
     c.clearRect(0,0,512,512);
     // UNE VRAIE SOURCE DE LUMIÈRE (2026-08-03) : le disque était volontairement « contenu » et
@@ -3111,20 +3123,27 @@ const sunSprite=(function(){
     g.addColorStop(.46,'rgba(255,132,104,.24)');
     g.addColorStop(1,'rgba(255,124,110,0)');      // retombée corail jusqu'à zéro AVANT le bord du disque
     c.fillStyle=g;c.beginPath();c.arc(256,256,252,0,7);c.fill();
-    // LE « 1.61 » DOIT RESTER LISIBLE. En additif, tout ce qu'on dessine AJOUTE de la lumière : un
-    // contour sombre ne peut donc plus assombrir quoi que ce soit, et des chiffres blancs sur un
-    // noyau blanc disparaissent. On CREUSE donc d'abord leur silhouette dans le disque
-    // (`destination-out` retire de l'alpha) : ça ménage un sillon plus sombre autour des glyphes,
-    // et les chiffres se détachent DANS la lumière au lieu d'y fondre.
+    /* LE « 1.61 » EN OR (2026-09-26, vague 2 — « l'encre et l'or »). En additif, les chiffres blancs sur un ciel de jour clair ne
+       pouvaient qu'AJOUTER un peu de lumière : un fantôme pâle, illisible (mesuré par le directeur artistique). Le disque reste ici,
+       ADDITIF, avec son sillon creusé (le halo ne lave pas les glyphes) ; les CHIFFRES passent sur un second sprite, en fusion
+       NORMALE, peints comme une plaque du HUD : OR #ffd75e, reflet #fff3b0 en tête, tranche #b8860b, liseré d'ENCRE #1c0430. La
+       lumière, c'est l'argent : l'astre du niveau est une pièce d'or. */
     c.font='84px "Press Start 2P",monospace';c.textAlign='center';c.textBaseline='middle';
     c.lineJoin='round';
     c.globalCompositeOperation='destination-out';
-    c.lineWidth=26;c.strokeStyle='rgba(0,0,0,.60)';c.strokeText('1.61',256,260); // le sillon
+    c.lineWidth=30;c.strokeStyle='rgba(0,0,0,.70)';c.strokeText('1.61',256,260); // le sillon
     c.globalCompositeOperation='source-over';
-    c.shadowColor='#ffd88a';c.shadowBlur=30;
-    c.strokeStyle='rgba(224,116,24,.95)';c.lineWidth=10;c.strokeText('1.61',256,260); // l'auréole ambre
-    c.shadowBlur=0;c.fillStyle='#fffef8';c.fillText('1.61',256,260);                  // les chiffres, plein pot
     tex.needsUpdate=true;
+    // les CHIFFRES D'OR (même cadrage 512 : le sprite enfant se superpose au pixel près)
+    const d=cvO.getContext('2d');d.clearRect(0,0,512,512);
+    d.font=c.font;d.textAlign='center';d.textBaseline='middle';d.lineJoin='miter';
+    d.lineWidth=16;d.strokeStyle='#1c0430';d.strokeText('1.61',256,266);d.strokeText('1.61',256,260); // le liseré d'encre, tranche comprise
+    d.fillStyle='#b8860b';d.fillText('1.61',256,266);                                             // la TRANCHE : l'épaisseur de la pièce
+    const cvL=document.createElement('canvas');cvL.width=cvL.height=512;const l=cvL.getContext('2d');   // la face : or plein, reflet clair en tête
+    l.font=c.font;l.textAlign='center';l.textBaseline='middle';l.fillStyle='#ffd75e';l.fillText('1.61',256,260);
+    l.globalCompositeOperation='source-atop';l.fillStyle='#fff3b0';l.fillRect(0,0,512,248);
+    d.drawImage(cvL,0,0);
+    texO.needsUpdate=true;
   }
   draw();
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(draw).catch(function(){});
@@ -3144,7 +3163,12 @@ const sunSprite=(function(){
      clignoter le soleil à chaque portail. Le battement passe donc par `material.color`, que
      personne d'autre n'écrit. */
   sp.userData.base=2050;
-  sp.scale.set(2050,2050,1);return sp;
+  sp.scale.set(2050,2050,1);
+  // (vague 2) LES CHIFFRES D'OR : un enfant du disque — même place, même échelle (la musique le fait battre avec lui), caché avec lui
+  // (garage, étal, orbite, pluie). Fusion NORMALE : l'or se PEINT sur le ciel, il ne s'y dilue plus. Dessiné après la nappe et les rayons.
+  const chif=new THREE.Sprite(new THREE.SpriteMaterial({map:texO,transparent:true,depthWrite:false,fog:false}));
+  chif.renderOrder=-5;sp.add(chif);sp.userData.chif=chif;
+  return sp;
 })();
 // LUEUR D'HORIZON + RAYONS CRÉPUSCULAIRES (purement visuels — constantes réglables)
 const GLOW_DROP=260,RAY_LIFT=520,RAY_OFF=[-520,-180,150,480],RAY_ANGLES=[-.42,-.15,.12,.38],RAY_OPACITY=.12;
@@ -3235,7 +3259,8 @@ const planetGroup=(function(){
   globe.material.onBeforeCompile=function(sh){
     sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vWN9,vWP9,vL9;')
       .replace('#include <project_vertex>','#include <project_vertex>\nvWN9=normalize(mat3(modelMatrix)*normal);vWP9=(modelMatrix*vec4(transformed,1.)).xyz;'+
-        'vec3 tc9=normalize(cameraPosition-modelMatrix[3].xyz),sd9=normalize(cross(tc9,vec3(0.,1.,0.))+vec3(1e-4));vL9=normalize(tc9*.5+vec3(0.,.75,0.)+sd9*.45);');
+        'vec3 tc9=normalize(cameraPosition-modelMatrix[3].xyz),sd9=normalize(cross(tc9,vec3(0.,1.,0.))+vec3(1e-4));vL9=normalize(tc9*.5+vec3(0.,.75,0.)+sd9*.45);'+
+        'gl_Position.z=gl_Position.w;'); // (2026-09-26, vague 2) sur le plan lointain, comme le dôme : tout ce qui est devant la cache, test de profondeur compris
     sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 vWN9,vWP9,vL9;')
       .replace('#include <envmap_fragment>',[
         '{ vec3 N=normalize(vWN9),V=normalize(cameraPosition-vWP9),uSol=normalize(vL9);float ndl=dot(N,uSol);',
@@ -3248,7 +3273,7 @@ const planetGroup=(function(){
         '  outgoingLight=c; }',
         '#include <envmap_fragment>'].join('\n'));
   };
-  globe.material.customProgramCacheKey=function(){return 'globeJourNuit';};
+  globe.material.customProgramCacheKey=function(){return 'globeJourNuit2';};
   globe.rotation.z=.28; // axe incliné, comme la vraie
   g.add(globe);
   // ATMOSPHÈRE : un liseré bleu qui déborde du disque (BackSide = on ne voit que le pourtour)
@@ -3256,6 +3281,20 @@ const planetGroup=(function(){
   const atmo=new THREE.Mesh(new THREE.SphereGeometry(PLANET_R*1.045,40,28),
     new THREE.MeshBasicMaterial({color:0x8fd4ff,transparent:true,opacity:.20,side:THREE.BackSide,
       blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
+  /* L'ATMOSPHÈRE EN DÉGRADÉ (2026-09-26, vague 2). La coquille ajoutait une opacité CONSTANTE : autour du disque un anneau bleu marine
+     plat (mesuré #072e61, cerné net des deux côtés) — un liseré de dessin animé, pas de l'air — et un voile uniforme sur tout le globe.
+     Elle dose désormais sa lumière à l'angle de vue : pleine au ras du disque (là où le regard traverse le plus d'air), nulle au bord
+     extérieur de la coquille et au centre du globe. Même couleur, même opacité pilotée par la musique (LVLFX) et par le niveau (lvlAstre) :
+     seul le PROFIL change. Le halo qui bat au rythme (la coquille suivante) n'est pas touché. */
+  atmo.material.onBeforeCompile=function(sh){
+    sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vN9a,vV9a;')
+      .replace('#include <project_vertex>','#include <project_vertex>\nvN9a=normalMatrix*normal;vV9a=-mvPosition.xyz;');
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 vN9a,vV9a;')
+      .replace('vec4 diffuseColor = vec4( diffuse, opacity );',
+        'float nd9=abs(dot(normalize(vN9a),normalize(vV9a)));'+ // 0 au bord extérieur de la coquille, ≈ .29 au ras du disque (R / 1,045 R), → 1 au centre
+        'vec4 diffuseColor=vec4(diffuse,opacity*2.2*smoothstep(0.,.29,nd9)*(1.-smoothstep(.29,.66,nd9)));');
+  };
+  atmo.material.customProgramCacheKey=function(){return 'atmoDegrade';};
   g.add(atmo);
   /* LE LIMBE QUI RESPIRE (2026-08-08) — « fais briller certains éléments comme la planète ».
      ⚠ ON NE TOUCHE PAS AU GLOBE. La doc juste au-dessus le dit : le grade final BRÛLE tout ce qui
@@ -3272,6 +3311,11 @@ const planetGroup=(function(){
   // pas du tout — différence de pixels 0). Comme tout astre, elle se dessine en PREMIER, sans test
   // de profondeur : le ciel derrière, tout le reste (nuages, route) la recouvre naturellement ensuite.
   g.traverse(o=>{if(o.material){o.material.depthWrite=false;o.material.depthTest=false;o.renderOrder=-8;}});
+  /* (2026-09-26, vague 2 — audit GPU) LE GLOBE SE PEINT APRÈS LE CIEL. Le dôme passe désormais APRÈS les opaques (voir skyDome) : le globe,
+     s'il restait premier et sans test de profondeur, serait recouvert par le ciel. Il se pose donc lui aussi sur le plan lointain (z = w)
+     et se dessine juste après le dôme (21 > 20), AVEC le test de profondeur : la route, les caisses, la ville le cachent sans qu'on ait
+     à peindre ses pixels pour rien. Même image. */
+  globe.material.depthTest=true;globe.renderOrder=21;
   /* ⚠ LE HALO TRAVERSAIT LA ROUTE (2026-09-25, user : « on voit le rayonnement de la Terre à travers la route »).
      Le globe est OPAQUE : il passe dans la liste opaque, en premier, et la route le recouvre — parfait. Mais l'atmosphère
      et le limbe sont TRANSPARENTS : three.js dessine TOUS les transparents APRÈS tous les opaques, renderOrder ou pas.
@@ -3644,7 +3688,11 @@ function portalMat(){if(PORTAL.mat)return PORTAL.mat;
       'vec3 q=vP*(1./55.);float an=atan(q.z,q.x);'+
       'float sp=sin(an*3.+q.y*7.-uT*2.6+sin(q.y*3.+uT*.9)*1.4),sp2=sin(an*5.-q.y*11.+uT*1.8);'+ // deux spirales qui s enroulent et COULENT
       'float bd=smoothstep(.55,1.,sp)*.55+smoothstep(.72,1.,sp2)*.35;'+
-      'vec3 iri=.55+.45*cos(6.2831853*(f*1.3+o*.35+uT*.05+vec3(0.,.33,.67)));'+         // IRISATION de couche mince
+      /* (2026-09-26, vague 2) L'IRISATION BORNÉE : l'arc-en-ciel complet (vert, jaune citron, bleu roi) se confondait avec les franges
+         d'aberration du boost — un défaut, pas une magie. La teinte ne tourne plus que sur TROIS encres de la bible : NÉON magenta #ff3ec8
+         → cyan #5ee6ff → OR #ffd75e → magenta. Même phase (angle de vue, ondulation, temps), zéro branche. */
+      'float h9=fract(f*1.3+o*.35+uT*.05)*3.;vec3 qA=vec3(1.,.24,.78),qB=vec3(.37,.90,1.),qC=vec3(1.,.84,.37);'+
+      'vec3 iri=mix(mix(mix(qA,qB,clamp(h9,0.,1.)),qC,clamp(h9-1.,0.,1.)),qA,clamp(h9-2.,0.,1.));'+           // IRISATION de couche mince, en trois encres
       'vec3 c=mix(mix(vec3(1.,.31,.85),vec3(.35,.95,1.),o),iri,.42);'+
       'float a=clamp(f*1.35+.05+.08*o+bd*(.18+.5*f),0.,1.);'+
       'gl_FragColor=vec4(c*(f*1.7+.12+bd*.55)+vec3(1.,.95,1.)*pow(f,6.)*.7,a);}'});
@@ -3842,31 +3890,58 @@ function applyPerfTier(med,low){
    LE MODELÉ : une couleur par sommet cuite une fois (ventre ombré bleuté → sommet blanc, creux entre deux bourgeons assombris)
    et, dans le shader, la LISIÈRE D'ARGENT — face au soleil, le bord de la ouate s'embrase (diffusion avant) — plus un bord
    à peine plus léger. Coût : zéro par image côté CPU, quelques instructions par pixel côté GPU (et deux fois moins de pixels). */
+/* LE MODELÉ DES NUAGES v3 — « L'ENCRE ET L'OR » (2026-09-26, vague 2). MESURÉ : 0,01 à 0,03 d'écart entre le dessus et le ventre — des
+   découpes lavande PLATES, et le ciel qui transparaissait à 82 %. Trois causes : (1) un Phong saturé (hémisphère + soleil + émissif .62 :
+   dessus ET flancs cognaient au plafond, l'ACES tassait tout en lavande), (2) une lumière calculée sur la normale de CHAQUE boule (chaque
+   bourgeon rond comme une bille, chaque jointure un trait clair), (3) la transparence.
+   LE MODÈLE : plus de boucle de lumières du tout (moins cher que le Phong d'avant) — une lumière ENVELOPPÉE sur la normale de la MASSE
+   (`aEnv`, voir mergeSpheres) : smoothstep(-.35,.75,N·L) mêle le VENTRE d'encre bleutée (#7b7fd6, éclairé par le seul ciel du biome) et
+   la CRÈME (#fff4e6 × la couleur du soleil du biome). Les intensités du biome (soleil, hémisphère) sont LUES en direct : les biomes
+   pilotent toujours les nuages, sans une ligne de plus dans bioApply. La lisière d'argent se calcule sur la même normale : elle ne
+   s'allume plus qu'au vrai bord de la masse, à contre-jour.
+   OPAQUE : `CLOUD_MAT` n'est plus transparent (la ouate est pleine, et un opaque est REJETÉ tôt par le GPU — sur iPhone, les pixels
+   de nuage cachés ne se paient plus). La transparence ne sert plus qu'au FONDU d'arrivée (`nuageFondu`, voir updateClouds, qui bascule
+   `transparent` le temps du fondu : ni l'un ni l'autre ne recompile, `transparent` n'est pas dans la clé de programme de r128).
+   Réglages (espace linéaire, avant l'ACES) : CLOUD_U. */
+const CLOUD_U={uNuVentre:{value:new THREE.Vector3(.52,.57,.68)},uNuCreme:{value:new THREE.Vector3(1.0,1.08,.98)},uNuDet:{value:.25},uNuBord:{value:.30}, // ÉTALONNÉS à l'écran (banc de mesure, jour cobalt) : ventre affiché ≈ #7b7fd6, dessus ≈ #f6e8dc — la crème est un peu verdie ici pour que l'ACES (hautes lumières rosées) la rende crème et non rose ; uNuDet : la part des BOURGEONS (normale de chaque boule) dans la lumière
+  uSunI:{get value(){return sun.intensity;}},uHemiI:{get value(){return hemi.intensity;}},uHemiC:{value:hemi.color}};
 function nuageShader(sh){
   sh.uniforms.uSunV=RIM_U.uSunV;sh.uniforms.uSunC={value:sun.color}; // la direction du soleil en espace vue (posée chaque image pour les caisses) et SA couleur de biome
-  sh.fragmentShader=sh.fragmentShader.replace('#include <lights_fragment_begin>',LFB_SANS_PL) // (2026-09-26) les nuages ne paient plus les lumières ponctuelles (voir LFB_SANS_PL)
-    .replace('#include <common>','#include <common>\nuniform vec3 uSunV,uSunC;')
+  for(const k in CLOUD_U)sh.uniforms[k]=CLOUD_U[k];
+  sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nattribute vec3 aEnv;varying vec3 vEnv;')
+    .replace('#include <defaultnormal_vertex>','#include <defaultnormal_vertex>\nvEnv=normalMatrix*aEnv;');
+  sh.fragmentShader=sh.fragmentShader
+    .replace('#include <common>','#include <common>\nuniform vec3 uSunV,uSunC,uNuVentre,uNuCreme,uHemiC;uniform float uSunI,uHemiI,uNuDet,uNuBord;varying vec3 vEnv;')
+    .replace('#include <lights_fragment_begin>',[
+      '{ vec3 nE9=normalize(vEnv);',
+      '  float w9=smoothstep(-.35,.75,mix(dot(nE9,uSunV),dot(normal,uSunV),uNuDet));', // LA LUMIÈRE ENVELOPPÉE : le soleil fait le tour de la MASSE (et un quart des bourgeons : le chou-fleur)
+      '  vec3 sh9=uNuVentre*dot(uHemiC,vec3(.3,.59,.11))*(.45+.55*uHemiI);', // le ventre : l ENCRE, à la luminosité du ciel du biome — jamais sa teinte : à l heure dorée un ciel chaud faisait des ombres BRUNES (bible : une ombre est d encre, jamais grise) ; amorti : un hémisphère baissé ne noircit pas la ouate
+      '  vec3 li9=uNuCreme*uSunC*uSunI;',                                    // le dessus : la crème × le soleil du biome
+      '  reflectedLight.directDiffuse=vColor*mix(sh9,diffuse*li9,w9); }'].join('\n')) // (la teinte de biome de la matière, posée par bioApply, ne colore plus que le côté soleil)
+    .replace('#include <lights_fragment_maps>','').replace('#include <lights_fragment_end>','') // (plus de boucle de lumières : ni ponctuelles, ni directionnelles, ni hémisphère — tout est ci-dessus)
     .replace('#include <envmap_fragment>',[
       '#ifdef NUAGE_DEDANS',                                              // DEDANS : ni liseré ni bord — la paroi se fond dans la brume du nuage (white-out uni)
       '#ifdef USE_FOG',
       '  outgoingLight=mix(outgoingLight,fogColor,.55);',
       '#endif',
       '#else',
-      '{ vec3 V9=normalize(vViewPosition);float fr9=1.-abs(dot(normal,V9));',
+      '{ vec3 V9=normalize(vViewPosition);float fr9=1.-abs(dot(normalize(vEnv),V9));', // (vague 2) sur la normale de la MASSE : plus un trait à chaque jointure
       '  float cs9=max(dot(-V9,uSunV),0.);',                              // 1 = on regarde droit vers le soleil
-      '  outgoingLight+=uSunC*pow(fr9,2.6)*(.07+.75*cs9*cs9*cs9);',     // LA LISIÈRE D ARGENT : le bord s embrase à contre-jour
-      '  diffuseColor.a*=1.-pow(fr9,7.)*.45; }',                         // le tout dernier liseré de la silhouette s allège
+      '  outgoingLight+=uSunC*pow(fr9,2.6)*(.05+.75*cs9*cs9*cs9);',     // LA LISIÈRE D ARGENT : le bord s embrase à contre-jour
+      '#ifdef USE_FOG',
+      '  outgoingLight=mix(outgoingLight,fogColor,pow(fr9,5.)*uNuBord);',  // (vague 2) LE BORD VAPOREUX : opaque, la ouate prend l air du ciel sur sa toute dernière lisière
+      '#endif',
+      '  diffuseColor.a*=1.-pow(fr9,7.)*.45; }',                         // le tout dernier liseré s allège (ne joue que pendant le fondu d arrivée)
       '#endif',
       '#include <envmap_fragment>'].join('\n'));
 }
-// plus VAPOREUX (.9→.82) et un éclat un peu plus net sur les bourgeons
-const CLOUD_MAT=new THREE.MeshPhongMaterial({color:0xeae6f2,side:THREE.FrontSide,transparent:true,opacity:.82,depthWrite:true,vertexColors:true,
-  shininess:14,specular:0x8f89a4,emissive:0x201d2c,emissiveIntensity:.62,flatShading:false});
+const CLOUD_MAT=new THREE.MeshPhongMaterial({color:0xeae6f2,side:THREE.FrontSide,transparent:false,opacity:1,depthWrite:true,vertexColors:true,
+  shininess:14,specular:0x8f89a4,emissive:0x201d2c,emissiveIntensity:.15,flatShading:false}); // (vague 2) OPAQUE et plein — émissif .62 → .15 : il tassait le modelé
 CLOUD_MAT.onBeforeCompile=nuageShader;
-CLOUD_MAT.customProgramCacheKey=function(){return 'nuageV2';};
-const CLOUD_MAT_IN=CLOUD_MAT.clone();CLOUD_MAT_IN.side=THREE.DoubleSide;CLOUD_MAT_IN.opacity=.93;CLOUD_MAT_IN.defines={NUAGE_DEDANS:''}; // DEDANS : la même ouate, paroi comprise (white-out) — une seule épaisseur de paroi (les boules enfouies ont sauté) : plus dense, et fondue dans la brume du nuage, sinon on y lisait les facettes
+CLOUD_MAT.customProgramCacheKey=function(){return 'nuageV3';};
+const CLOUD_MAT_IN=CLOUD_MAT.clone();CLOUD_MAT_IN.side=THREE.DoubleSide;CLOUD_MAT_IN.transparent=true;CLOUD_MAT_IN.opacity=.93;CLOUD_MAT_IN.defines={NUAGE_DEDANS:''}; // DEDANS : la même ouate, paroi comprise (white-out) — une seule épaisseur de paroi (les boules enfouies ont sauté) : plus dense, et fondue dans la brume du nuage, sinon on y lisait les facettes
 CLOUD_MAT_IN.color=CLOUD_MAT.color;CLOUD_MAT_IN.emissive=CLOUD_MAT.emissive;CLOUD_MAT_IN.specular=CLOUD_MAT.specular; // MÊMES objets couleur : bioApply teinte les deux d'un coup
-CLOUD_MAT_IN.onBeforeCompile=nuageShader;CLOUD_MAT_IN.customProgramCacheKey=function(){return 'nuageV2dedans';};
+CLOUD_MAT_IN.onBeforeCompile=nuageShader;CLOUD_MAT_IN.customProgramCacheKey=function(){return 'nuageV3dedans';};
 let nuageChaud=false,nuageFondu=1; // nuageFondu : 0→1, la ouate d'une nouvelle zone APPARAÎT au lieu de surgir (voir buildClouds)
 function nuageChauffe(){ // (2026-09-26) les deux programmes de nuage compilés AU MENU — jamais au premier nuage traversé en pleine course
   nuageChaud=true;
@@ -3878,19 +3953,26 @@ function nuageChauffe(){ // (2026-09-26) les deux programmes de nuage compilés 
 // triangulaires ». On monte la définition sur desktop (mobile reste au gabarit léger).
 const CLOUD_SPH=new THREE.SphereGeometry(1,(IS_MOBILE||IS_LOW_END)?16:20,(IS_MOBILE||IS_LOW_END)?11:14); // gabarit recopié/fusionné (24×16 mangeait 25 fps : 20×14 lisse assez)
 // Fusionne N sphères (x,y,z,rayon en coords locales) en UNE géométrie : un nuage = un draw call.
-function mergeSpheres(blobs,rx,ry,rz){
+function mergeSpheres(blobs,rx,ry,rz,ryB){ // ryB (2026-09-26, vague 2) : la demi-hauteur qui MODÈLE les boules (≥ ry) — voir mkCloud
   const src=CLOUD_SPH, sp=src.attributes.position.array, sn=src.attributes.normal.array, si=src.index.array;
   const nv=sp.length/3, nb=blobs.length;
-  const pos=new Float32Array(nv*3*nb), nor=new Float32Array(nv*3*nb), col=new Float32Array(nv*3*nb);
+  const pos=new Float32Array(nv*3*nb), nor=new Float32Array(nv*3*nb), col=new Float32Array(nv*3*nb), env=new Float32Array(nv*3*nb);
   const idx=(nv*nb<65535)?new Uint16Array(si.length*nb):new Uint32Array(si.length*nb),noy=new Uint8Array(nv*nb);let ni=0;
   // les boules en coordonnées locales : centre + demi-axes (pour savoir si un sommet est ENFOUI dans une voisine, ou s'il la frôle)
-  const E=blobs.map(function(B){const fy=(B[4]===undefined?1:B[4]);return [B[0]*rx,B[1]*ry,B[2]*rz,B[3]*rx,B[3]*ry*fy,B[3]*rz];});
-  const VR=.72,VG=.76,VB=.93; // (2026-09-26) le VENTRE : un bleu-lavande, l'ombre du ciel sous la ouate (jamais un gris sale)
+  const yB=Math.max(ry,ryB||0);
+  const E=blobs.map(function(B){const fy=(B[4]===undefined?1:B[4]),ax=B[3]*rx,ay=B[3]*yB*fy,az=B[3]*rz;return [B[0]*rx,B[1]*ry,B[2]*rz,ax,ay,az,1/ax,1/ay,1/az,(ax+ay+az)/3];}); // (+ les inverses des demi-axes et leur moyenne : des multiplications au lieu de divisions et de racines dans la boucle des sommets)
+  const VR=.52,VG=.54,VB=.80; // (2026-09-26, vague 2 — « l'encre et l'or ») le VENTRE : l'ENCRE bleutée #7b7fd6 (l'ancien lavande .72/.76/.93 ne laissait que 0,01-0,03 d'écart entre le dessus et le dessous)
+  /* LA NORMALE D'ENVELOPPE (2026-09-26, vague 2). La lumière et la lisière se calculaient sur la normale de CHAQUE boule : chaque jointure
+     entre deux boules se lisait comme un trait clair — des PILES DE CRÊPES. Chaque sommet reçoit donc une seconde normale, `aEnv`, celle
+     de la MASSE : la normale de sa boule mêlée à celles des voisines qu'il frôle (champ de métaballes : poids (1 − d²/4)⁴, une jointure
+     prend la bissectrice — le pli s'efface) puis tirée vers la normale de l'ellipsoïde du nuage entier (le grand modelé : un dessus,
+     un ventre, deux flancs). Cuite une fois, ici : zéro coût par image. */
+  const iax=1/(rx*rx),iay=1/(ry*ry),iaz=1/(rz*rz),GE=.38;
   for(let b=0;b<nb;b++){
     // 5e composante = APLATISSEMENT VERTICAL de CETTE boule : c'est elle qui donne les bases plates
     // de cumulus et l'ENCLUME étalée du cumulonimbus (sans elle, tout est sphérique = bonbons).
     const B=blobs[b], fy=(B[4]===undefined?1:B[4]);
-    const ox=B[0]*rx, oy=B[1]*ry, oz=B[2]*rz, sx=B[3]*rx, sy=B[3]*ry*fy, sz=B[3]*rz;
+    const ox=B[0]*rx, oy=B[1]*ry, oz=B[2]*rz, sx=B[3]*rx, sy=B[3]*yB*fy, sz=B[3]*rz;
     const vo=b*nv*3, vb=b*nv, Eb=E[b], rb=Math.max(Eb[3],Eb[4],Eb[5]);
     const voi=[];for(let c=0;c<nb;c++){if(c===b)continue;const Ec=E[c],dx=Ec[0]-Eb[0],dy=Ec[1]-Eb[1],dz=Ec[2]-Eb[2],rc=Math.max(Ec[3],Ec[4],Ec[5]);
       if(dx*dx+dy*dy+dz*dz<(rb+rc*1.4)*(rb+rc*1.4))voi.push(Ec);} // seules les voisines qui peuvent toucher cette boule
@@ -3901,9 +3983,14 @@ function mergeSpheres(blobs,rx,ry,rz){
       let nx=sn[i*3]/sx, ny=sn[i*3+1]/sy, nz=sn[i*3+2]/sz;
       const l=Math.hypot(nx,ny,nz)||1; nor[vo+i*3]=nx/l; nor[vo+i*3+1]=ny/l; nor[vo+i*3+2]=nz/l;
       // (2026-09-26) ENFOUI dans une voisine → noté (le triangle entier sautera) ; À LA FRONTIÈRE d'une voisine → le creux s'assombrit
-      let ao=0;
-      for(let k=0;k<voi.length;k++){const e=voi[k],dx=(px-e[0])/e[3],dy=(py-e[1])/e[4],dz=(pz-e[2])/e[5],d2=dx*dx+dy*dy+dz*dz;
-        if(d2<.9409){noy[vb+i]=1;break;} if(d2<1.96)ao+=(1.4-Math.sqrt(d2))/.43;} // (.97² et 1,4² : la racine seulement quand elle sert)
+      // (le poids d'une boule = (1 − d²/4)⁴ : la cloche d'une gaussienne sans exp ; racines carrées plutôt que Math.hypot, dix fois plus lent — la bâtisse du ciel se paie au portail)
+      let ao=0,ex=nor[vo+i*3]*.3164,ey=nor[vo+i*3+1]*.3164,ez=nor[vo+i*3+2]*.3164; // la normale de SA boule (d² = 1 : il est sur sa surface → poids .75⁴)
+      for(let k=0;k<voi.length;k++){const e=voi[k],dx=(px-e[0])*e[6],dy=(py-e[1])*e[7],dz=(pz-e[2])*e[8],d2=dx*dx+dy*dy+dz*dz;
+        if(d2<.9409){noy[vb+i]=1;break;} if(d2<1.96)ao+=(1.4-Math.sqrt(d2))/.43; // (.97² et 1,4² : la racine seulement quand elle sert — un sommet ENFOUI sort tout de suite : son triangle saute)
+        if(d2<4){const q=1-d2*.25,w=q*q*q*q*e[9];ex+=dx*e[6]*w;ey+=dy*e[7]*w;ez+=dz*e[8]*w;}} // la voisine tire la normale vers SA bissectrice (son gradient (p−c)/a², ramené à l'unité par la moyenne des demi-axes : zéro racine)
+      {const el=(1-GE)/Math.sqrt(ex*ex+ey*ey+ez*ez+1e-20),qx=px*iax,qy=py*iay,qz=pz*iaz,ql=GE/Math.sqrt(qx*qx+qy*qy+qz*qz+1e-20); // + la normale de l'ellipsoïde du nuage
+        ex=ex*el+qx*ql;ey=ey*el+qy*ql;ez=ez*el+qz*ql;const e2=1/Math.sqrt(ex*ex+ey*ey+ez*ez+1e-20);
+        env[vo+i*3]=ex*e2;env[vo+i*3+1]=ey*e2;env[vo+i*3+2]=ez*e2;}
       const h=Math.max(0,Math.min(1,(py/ry+.85)/1.2)),hh=h*h*(3-2*h),o=1-.26*Math.min(1,ao); // hh : 0 au ventre, 1 passé la mi-hauteur
       col[vo+i*3]=(VR+(1-VR)*hh)*o; col[vo+i*3+1]=(VG+(1-VG)*hh)*o; col[vo+i*3+2]=(VB+(1-VB)*hh)*o;
     }
@@ -3915,6 +4002,7 @@ function mergeSpheres(blobs,rx,ry,rz){
   g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
   g.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));
   g.setAttribute('color',new THREE.Float32BufferAttribute(col,3)); // (2026-09-26) le modelé cuit (ventre, creux)
+  g.setAttribute('aEnv',new THREE.Float32BufferAttribute(env,3));  // (2026-09-26, vague 2) la normale de la MASSE (voir plus haut)
   g.setIndex(new THREE.BufferAttribute(idx.slice(0,ni),1));
   g.computeBoundingSphere();
   return g;
@@ -3948,9 +4036,9 @@ function mkBlobs(o,rng){
       if(rng()<0.5)grow(cur,R()*2,0.25,R()*2,0.50);               // bourgeon latéral : le chou-fleur
     }
     const ya=Math.min(0.78,cur[1]+cur[3]*0.45);                   // L'ENCLUME : la tour bute et s'étale
-    const an=push(lean*1.1,ya,0,0.50,0.30);
+    const an=push(lean*1.1,ya,0,0.50,0.45); // (2026-09-26, vague 2) enclume .30/.28 → .45 : écrasées à 30 %, ses galettes s'empilaient en CRÊPES
     for(let k=0;k<4;k++){const a=k*1.5708+rng();
-      push(an[0]+Math.cos(a)*0.36,ya-0.03,an[2]+Math.sin(a)*0.36,0.33,0.28);}
+      push(an[0]+Math.cos(a)*0.36,ya-0.03,an[2]+Math.sin(a)*0.36,0.33,0.45);}
   }else if(o.sea){
     // ---- STRATUS : une NAPPE CONTINUE, pas des galettes éparpillées ----
     let cur=push(0,-0.35,0,0.46,0.42);
@@ -3995,7 +4083,10 @@ function mkCloud(center,r,o,rr){ // un nuage = ses boules fusionnées en UN mesh
   if(!o.onRoad&&nuageTouche(center,r,ry))return; // (2026-09-26) jamais un nuage de décor posé SUR le ruban
   const g=new THREE.Group();g.position.copy(center);
   const blobs=mkBlobs(o,rr); // les 5-10 boules de CE nuage (RNG isolé : ne rebrasse pas la génération)
-  const mesh=new THREE.Mesh(mergeSpheres(blobs,r,ry,r),CLOUD_MAT);
+  /* (2026-09-26, vague 2) APLATISSEMENT MINIMAL .55 hors mer et voile : un cumulus a une boîte 2-3 fois plus large que haute, et ses boules
+     en héritaient — des galettes (effectif .28-.41 à la base). Les boules se modèlent désormais sur au moins .55 × r de demi-hauteur : du
+     chou-fleur, plus des crêpes (positions inchangées : la boîte, le « dedans » et le RNG ne bougent pas). */
+  const mesh=new THREE.Mesh(mergeSpheres(blobs,r,ry,r,(o.sea||o.veil)?0:r*.55),CLOUD_MAT);
   // Opaque : il s'occlut par le z-buffer comme n'importe quel décor. Aucun tri, aucun mélange,
   // donc AUCUN ordre de dessin ne peut le faire clignoter. Le frustum culling de three.js
   // redevient sûr (la géométrie est réelle et sa sphère englobante est exacte).
@@ -4008,6 +4099,7 @@ function mkCloud(center,r,o,rr){ // un nuage = ses boules fusionnées en UN mesh
 function buildClouds(rr){
   disposeClouds();
   nuageFondu=started?0:1; // (2026-09-26) en course (portail), les nuages de la nouvelle zone montent en fondu avec le ciel — au menu, tout de suite
+  CLOUD_MAT.opacity=nuageFondu;CLOUD_MAT.transparent=!nuageFondu;CLOUD_MAT_IN.opacity=.93*nuageFondu; // (vague 2) posé ICI : ni une image pleine avant le fondu, ni un fondu interrompu (mort au portail) qui resterait à mi-course
   // RNG local : retoucher les nuages ne rebrasse plus la génération en aval (piège rnd séquentiel)
   const cr=mulberry32((rr()*1e9)|0);
   // RÉPARTITION HARMONIEUSE (2026-07-30) : les positions étaient tirées AU HASARD sur toute la piste
@@ -4168,7 +4260,7 @@ function updateClouds(dt,t){
   // Le frustum culling de three.js s'occupe du reste : la géométrie est réelle, sa sphère
   // englobante est exacte, donc aucun pop possible.
   const cp=carGroup.position;
-  if(nuageFondu<1){nuageFondu=Math.min(1,nuageFondu+dt/2.4);const e9=nuageFondu*nuageFondu*(3-2*nuageFondu);CLOUD_MAT.opacity=.82*e9;CLOUD_MAT_IN.opacity=.93*e9;} // (2026-09-26) la ouate d'une nouvelle zone monte en fondu (2,4 s, le temps que le ciel bascule)
+  if(nuageFondu<1){nuageFondu=Math.min(1,nuageFondu+dt/2.4);const e9=nuageFondu*nuageFondu*(3-2*nuageFondu);CLOUD_MAT.opacity=e9;CLOUD_MAT_IN.opacity=.93*e9;CLOUD_MAT.transparent=nuageFondu<1;} // (2026-09-26) la ouate d'une nouvelle zone monte en fondu (2,4 s, le temps que le ciel bascule) — (vague 2) transparente le temps du fondu SEULEMENT, puis opaque
   for(const c of CLOUDS){
     cldV1.subVectors(cp,c.g.position);
     const dh2=cldV1.x*cldV1.x+cldV1.z*cldV1.z,dv=cldV1.y;
@@ -4239,12 +4331,12 @@ window.dbgNuage=function(i,k){const c=CLOUDS[i|0];if(!c)return {nuages:CLOUDS.le
   if(started&&!gameOver&&!paused)togglePause();
   camera.position.copy(c.g.position).addScaledVector(SUN_DIR,-(k==null?2.2:k)*c.r);camera.lookAt(c.g.position);camera.updateMatrixWorld();
   const ex=camera.position.x-c.g.position.x,ey=camera.position.y-c.g.position.y,ez=camera.position.z-c.g.position.z,dc=(ex*ex+ez*ez)/(c.r*c.r)+(ey*ey)/(c.ry*c.ry);
-  c.mesh.material=dc<1.1?CLOUD_MAT_IN:CLOUD_MAT;skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);
+  c.mesh.material=dc<1.1?CLOUD_MAT_IN:CLOUD_MAT;skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);if(acesPass)acesPass.uniforms.uSpeed.value=0; // (vague 2) une photo NETTE, comme dbgCiel : pas de flou de boost figé
   RIM_U.uSunV.value.copy(SUN_DIR).transformDirection(camera.matrixWorldInverse);
   if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
   return {nuages:CLOUDS.length,r:Math.round(c.r),ry:Math.round(c.ry),dedans:c.mesh.material===CLOUD_MAT_IN,trav:!!c.mesh.userData.trav};};
 // (dev, 2026-09-26) `dbgProgs()` : les programmes GPU compilés (nombre + ceux du ciel) — une hausse en pleine course = une recompilation (un hoquet)
-window.dbgProgs=function(cles){const P=renderer.info.programs||[];if(cles)return P.filter(function(p){return /nuageV2|globeJourNuit/.test(p.cacheKey);}).map(function(p){return p.cacheKey;});return {n:P.length,ciel:P.filter(function(p){return /nuageV2|globeJourNuit|an\*5\.-q\.y\*11/.test(p.cacheKey);}).map(function(p){return /nuageV2dedans/.test(p.cacheKey)?'nuage-dedans':/nuageV2/.test(p.cacheKey)?'nuage':/globe/.test(p.cacheKey)?'globe':'portail';})};};
+window.dbgProgs=function(cles){const P=renderer.info.programs||[];if(cles)return P.filter(function(p){return /nuageV\d|globeJourNuit/.test(p.cacheKey);}).map(function(p){return p.cacheKey;});return {n:P.length,ciel:P.filter(function(p){return /nuageV\d|globeJourNuit|an\*5\.-q\.y\*11/.test(p.cacheKey);}).map(function(p){return /nuageV\ddedans/.test(p.cacheKey)?'nuage-dedans':/nuageV\d/.test(p.cacheKey)?'nuage':/globe/.test(p.cacheKey)?'globe':'portail';})};};
 // ---------- PIGEONS RAMIERS : rares traversées d'oiseaux — un peu de vie dans le ciel ----------
 const PIGEONS=[];let pigeonT=12+Math.random()*14;
 const pgBodyM=new THREE.MeshLambertMaterial({color:0x97a2b6});
@@ -22286,6 +22378,7 @@ function loop(now){
   pluieTick(t);   // la pluie de la VILLE tombe autour de la caméra (invisible ailleurs)
   planetGroup.userData.globe.rotation.y=t*.014;                                 // …et tourne lentement sur son axe
   sunSprite.position.copy(camera.position).addScaledVector(SUN_DIR,3600);
+  sunSprite.userData.chif.material.opacity=Math.min(1,sunSprite.material.opacity*1.6); // (vague 2) les chiffres d'or suivent le halo du biome, mais NETS : pleins dès .62
   horizonGlow.position.copy(camera.position).addScaledVector(SUN_DIR,3650);
   horizonGlow.position.y-=GLOW_DROP;
   for(let r9=0;r9<RAYS.length;r9++){
