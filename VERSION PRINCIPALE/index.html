@@ -3516,6 +3516,12 @@ function fovPor(d){return FOV_TK===1?d:Math.min(150,Math.atan(Math.tan(Math.min(
 fovFit(); // RÉSOLUTION ADAPTATIVE — cap desktop 1.5 : sur Retina, 1.75→1.5 = −26 % de pixels, invisible sous bloom+grain (écran 1× : min() ne change rien)
 renderer.setPixelRatio(curDPR);
 let composer=null,bloomPass=null,acesPass=null,POST_ON=false,SHADOW_ON=true; // POST-PROCESSING (assigné juste après)
+/* (perf, lot 4) LA TAILLE DE L'ÉCRAN, LUE UNE FOIS PAR REDIMENSIONNEMENT. MESURÉ (profil, téléphone émulé) : sur Chrome mobile, lire
+   `innerWidth`/`innerHeight` FORCE une mise en page complète (la page à « viewport » se remet en page pour répondre) — et comme le HUD
+   venait d'écrire ses styles, chaque image en payait une : 7,7 % du processeur pendant la carte MOTEUR. Ce qui suit la caisse à l'écran
+   lit désormais `VP`, tenu à jour ici (écouteur posé AVANT tous les autres : ils le trouvent déjà à jour). */
+const VP={w:innerWidth,h:innerHeight};
+addEventListener('resize',()=>{VP.w=innerWidth;VP.h=innerHeight;});
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();fovFit();renderer.setSize(innerWidth,innerHeight);if(composer)composer.setSize(innerWidth,innerHeight);slCv.width=innerWidth;slCv.height=innerHeight;if(juiceCv){juiceCv.width=innerWidth;juiceCv.height=innerHeight;}});
 const hemi=new THREE.HemisphereLight(0xba86b6,0x18162e,0.40);scene.add(hemi); // ambiance VICE CITY NUIT (assombrie) : ciel rose-mauve baissé, sol indigo — la pénombre gagne, les lumières de la caisse vivent (nommée : les BIOMES la pilotent)
 const sun=new THREE.DirectionalLight(0xff6a3c,1.45);sun.position.copy(SUN_DIR).multiplyScalar(3800);scene.add(sun); // BRAISE ROUGE-CORAIL : la lumière rasante peint le bitume en rouge sombre — golden hour devenue red hour
@@ -4868,8 +4874,21 @@ function routeTick(){ // le bitume suit le NIVEAU (fondu du portail : LVL.route 
   coneBandMat.emissiveIntensity=.25+.6*LVL.pluie; // (2026-09-26) la nuit de pluie, les bandes des plots RÉTRORÉFLÉCHISSENT : on les lit de loin (un uniforme, zéro recompilation)
   ROAD_U.uSheenCol.value.copy(scene.fog.color).multiplyScalar(.9); // (2026-09-26) ×1,5 → ×0,9 : la brillance rasante blanchissait tout le lointain
 }
+/* LES MATIÈRES D'UNE PISTE MEURENT APRÈS LA SUIVANTE (2026-09-26, passe perf, lot 4). MESURÉ à chaque portail et à chaque « rejouer » :
+   6 shaders RECOMPILÉS (bitume, bandes, nappes…) — 40 à 160 ms d'image figée, pire sur iPhone. Libérer une matière relâche son programme ;
+   s'il n'a plus d'autre utilisateur, three le DÉTRUIT, et la piste neuve (mêmes réglages, donc même programme) doit le recompiler. Les
+   matières sortantes attendent donc 3 images rendues (`matSursisTick`, après le rendu de la boucle) : la piste neuve a déjà pris les mêmes
+   programmes, la libération ne détruit plus rien. Une matière que la piste neuve a REPRISE n'est jamais libérée. */
+const MAT_SURSIS=new Set();let matSursisN=0;
+function matSursisTick(){
+  if(!MAT_SURSIS.size||--matSursisN>0)return;
+  const vif=new Set();for(const m of trackMeshes)if(m.material)vif.add(m.material);
+  for(const m of MAT_SURSIS)if(!vif.has(m))m.dispose();
+  MAT_SURSIS.clear();
+}
 function buildTrack(seed){
-  for(const m of trackMeshes){scene.remove(m);if(m.geometry)m.geometry.dispose();if(m.material&&m.material.dispose)m.material.dispose();}
+  for(const m of trackMeshes){scene.remove(m);if(m.geometry)m.geometry.dispose();if(m.material&&m.material.dispose)MAT_SURSIS.add(m.material);} // (perf) matières en sursis : voir MAT_SURSIS
+  matSursisN=3;
   trackMeshes.length=0;NEON_RAILS.length=0;NEON_GLOW.length=0;PADS=[];PADL=[];PAD_MATS.length=0;BUMPS=[];CONES=[];FLYCONES=[];OILS=[];RAMPS=[];
   const rnd=mulberry32(seed);
   const ctrl=PARK.on?genPark(rnd):(LVL.cur&&LVL.cur.piste==='tuto')?genTuto():genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course
@@ -11456,6 +11475,31 @@ const engVigEl=document.getElementById('engVig'),engVigCapEl=document.getElement
 const engEndEl=document.getElementById('endEng'),engEndCapEl=document.getElementById('endEngCap'),engEndTierEl=document.getElementById('endEngTier');
 const engEndCv=document.getElementById('endEngCv'),engEndCtx=engEndCv?engEndCv.getContext('2d'):null;
 let engEndT=0,engEndBuf=null,engEndImg=null; // rapatriement GPU→CPU pour l'écran de fin (voir engVigRender)
+/* (perf, lot 4) LA RELECTURE ASYNCHRONE. `readPixels` direct fait ATTENDRE le processeur jusqu'à ce que le GPU ait fini tout ce qu'on
+   lui a demandé (mesuré : 3,7 % du processeur pendant la carte MOTEUR, bridé ×4 — sur iPhone, une vidange complète du GPU 30 fois par
+   seconde). En WebGL2 on lit dans un tampon GPU (PBO) marqué d'une barrière (`fenceSync`) : l'image arrive à la recopie SUIVANTE, 33 ms
+   plus tard — invisible sur une pièce qui tourne — et personne n'attend. Repli : la lecture directe (WebGL1, ou refus du pilote). */
+const ENG_PBO={b:null,f:null,ctx:null,ko:false};
+function engPose(ctx,w,h){ // l'image lue → le <canvas> de la carte (les lignes arrivent de bas en haut : retournement, une ligne d'un bloc)
+  const d=engEndImg.data,l9=w*4;for(let y=0;y<h;y++)d.set(engEndBuf.subarray((h-1-y)*l9,(h-y)*l9),y*l9);ctx.putImageData(engEndImg,0,0);}
+function engLit(w,h,ctx){
+  if(ENG_PBO.ko||!renderer.capabilities.isWebGL2)return false;
+  const gl=renderer.getContext();
+  try{
+    if(!ENG_PBO.b){ENG_PBO.b=gl.createBuffer();gl.bindBuffer(gl.PIXEL_PACK_BUFFER,ENG_PBO.b);gl.bufferData(gl.PIXEL_PACK_BUFFER,w*h*4,gl.STREAM_READ);gl.bindBuffer(gl.PIXEL_PACK_BUFFER,null);}
+    if(ENG_PBO.f){ // la lecture d'avant est-elle arrivée ? on la pose
+      const st=gl.clientWaitSync(ENG_PBO.f,0,0);
+      if(st===gl.TIMEOUT_EXPIRED)return true; // pas encore : l'image d'avant reste à l'écran
+      gl.deleteSync(ENG_PBO.f);ENG_PBO.f=null;
+      if(st!==gl.WAIT_FAILED){gl.bindBuffer(gl.PIXEL_PACK_BUFFER,ENG_PBO.b);gl.getBufferSubData(gl.PIXEL_PACK_BUFFER,0,engEndBuf);gl.bindBuffer(gl.PIXEL_PACK_BUFFER,null);engPose(ENG_PBO.ctx,w,h);}
+    }
+    renderer.setRenderTarget(engRT); // la nouvelle lecture part vers le tampon GPU…
+    gl.bindBuffer(gl.PIXEL_PACK_BUFFER,ENG_PBO.b);gl.readPixels(0,0,w,h,gl.RGBA,gl.UNSIGNED_BYTE,0);gl.bindBuffer(gl.PIXEL_PACK_BUFFER,null);
+    renderer.setRenderTarget(null);
+    ENG_PBO.f=gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE,0);ENG_PBO.ctx=ctx; // …et on la ramassera au prochain passage
+    return true;
+  }catch(e){ENG_PBO.ko=true;try{gl.bindBuffer(gl.PIXEL_PACK_BUFFER,null);renderer.setRenderTarget(null);}catch(e2){}return false;}
+}
 const ENG_MORT={cv:null,ctx:null}; // (2026-09-26) le <canvas> du moteur 3D de l'écran de mort (téléphone) — posé par la carte MOTEUR
 const engVigScene=new THREE.Scene();
 const engVigCam=new THREE.PerspectiveCamera(34,1.5,.1,80);
@@ -11512,6 +11556,36 @@ const engVigFeuMat=new THREE.MeshBasicMaterial({map:engVigFeuTex,color:0xffa855,
 function engVigTier(){return engVigForce!=null?engVigForce:engTier;}
 let engVigVieux=null;
 function jeteEngin(m){m.traverse(o=>{if(o.isMesh){if(o.geometry&&!(o.geometry.userData&&o.geometry.userData.partage))o.geometry.dispose();if(o.material)o.material.dispose();}});}
+/* LES SHADERS DES MOTEURS SE PRÉPARENT AU MENU (2026-09-26, passe perf, lot 4). MESURÉ : la 1re montée de moteur d'une session
+   figeait l'image 180 ms EN PLEINE COURSE (5 shaders compilés pour la scène du moteur — ses 4 lumières font des programmes à part), la
+   2e encore 70 ms. Au menu et à l'écran de mort, on construit donc chaque palier HORS écran, une pièce par image, on compile, et on garde
+   EN VIE la première matière de chaque programme (`ENG_GARDE`) : tant qu'elle vit, three ne détruit pas le programme, et le vrai moteur
+   le retrouve tout prêt. Tout le reste de la pièce est libéré aussitôt. Coût : quelques programmes gardés (quelques Ko). */
+const ENG_GARDE=new Map();let engChaudI=-1;
+function engChauffe(){
+  if(engChaudI<0){engChaudI=0;chauffeDivers();return;} // d'abord ce qui peut naître à N'IMPORTE quel moment de la course (pigeons, trace, ville)
+  if(engChaudI>ENGINE_TIERS.length)return;
+  try{
+    const g=engChaudI<ENGINE_TIERS.length?mkEngine(engChaudI):new THREE.Mesh(engVigFeuGeo,engVigFeuMat); // dernier tour : la flamme
+    engChaudI++;
+    engVigScene.add(g);renderer.compile(engVigScene,engVigCam);engVigScene.remove(g);
+    const vus=new Set(); // ⚠ une matière sert souvent à PLUSIEURS pièces du moteur : on ne la juge qu'une fois (sinon la matière gardée était libérée à la pièce suivante)
+    g.traverse(function(o){if(!o.isMesh)return;
+      if(o.geometry&&o.geometry!==engVigFeuGeo&&!(o.geometry.userData&&o.geometry.userData.partage))o.geometry.dispose();
+      const m=o.material;if(!m||Array.isArray(m)||vus.has(m))return;vus.add(m);
+      const p=renderer.properties.get(m).currentProgram,k=p&&p.cacheKey;
+      if(k&&!ENG_GARDE.has(k)){ENG_GARDE.set(k,m);return;} // la 1re matière de ce programme reste en vie
+      if(m!==engVigFeuMat)m.dispose();});
+  }catch(e){engChaudI=ENGINE_TIERS.length+1;}
+}
+/* (perf, lot 4) CE QUI NAÎT EN COURSE POUR LA 1re FOIS se compile au menu aussi — MESURÉ : le 1er vol de PIGEONS (2 shaders, à une
+   heure aléatoire en pleine course) et la 1re TRACE de gomme (1 shader, au 1er dérapage). Un pigeon est posé le temps d'une compilation
+   (géométries et matières partagées : rien à libérer), la trace est créée d'avance (900 quads à zéro, invisibles). Et la chauffe de la
+   VILLE, qui attendait 2,5 s de menu : un joueur pressé la ratait, et la 1re ville compilait en pleine course (3 shaders, ~200 ms). */
+function chauffeDivers(){
+  try{if(!CITY.chaud){CITY.chaud=true;villeChauffe();}}catch(e){}
+  try{if(!TRACE.pos)traceInit();const p=mkPigeon();scene.add(p);renderer.compile(scene,camera);scene.remove(p);}catch(e){}
+}
 function engVigBuild(){
   if(engVigMesh){ // ⚠ mkEngine fabrique des matériaux NEUFS à chaque appel : sans ça, une fuite par palier
     engVigScene.remove(engVigMesh);
@@ -11665,6 +11739,8 @@ function engVigRender(dt){
       engVigFeu.material.opacity=.72*k9;
     }
   }
+  // (perf) téléphone et écran de fin : l'image n'est RECOPIÉE qu'à 30 (20) i/s — la rendre entre deux recopies ne servait à rien
+  if((fin||tel)&&performance.now()-engEndT<=(tel?33:50))return;
   // (1) le moteur dans SON framebuffer — fond transparent pour que le cadre CSS reste visible dessous
   const ca=renderer.getClearAlpha();
   renderer.setClearAlpha(0);
@@ -11687,20 +11763,14 @@ function engVigRender(dt){
       engEndT=now9;
       const w=engRT.width,h=engRT.height;
       if(!engEndBuf){engEndBuf=new Uint8Array(w*h*4);engEndImg=ctx9.createImageData(w,h);}
-      renderer.readRenderTargetPixels(engRT,0,0,w,h,engEndBuf);
-      const d=engEndImg.data;
-      for(let y=0;y<h;y++){
-        const src=(h-1-y)*w*4, dst=y*w*4;
-        for(let x=0;x<w*4;x++)d[dst+x]=engEndBuf[src+x];
-      }
-      ctx9.putImageData(engEndImg,0,0);
+      if(!engLit(w,h,ctx9)){renderer.readRenderTargetPixels(engRT,0,0,w,h,engEndBuf);engPose(ctx9,w,h);} // WebGL1 : la lecture directe, comme avant
     }
     return; // pas de quad : l'overlay (ou le fond de la carte) le masquerait
   }
   // (2b) EN COURSE : recollage WebGL, à la place que le CSS a décidée
   const r=cible.getBoundingClientRect();
   if(r.width<8||r.height<8)return;
-  const W=innerWidth||1,H=innerHeight||1;
+  const W=VP.w||1,H=VP.h||1; // (perf) VP : voir sa définition
   engVigQuad.position.set((r.left+r.width/2)/W*2-1,-((r.top+r.height/2)/H*2-1),0);
   engVigQuad.scale.set(r.width/W*2,r.height/H*2,1);
   const ac=renderer.autoClear;renderer.autoClear=false;
@@ -15539,7 +15609,7 @@ function musicTick(dt,mvt){
   if(musicMode==='run')musicVolCible=musVol()*(.62+.38*musicBoostEnv)*mDuck;   // à l'arrêt un peu plus bas, lancé à plein
   else if(musicMode==='menu')musicVolCible=musVol()*.5*mDuck;                   // le menu : en fond
   if(musicMode!=='none'){musicVolCour+=(musicVolCible-musicVolCour)*Math.min(1,dt*6);
-    if(musicEl&&!musicEl.paused){try{musicEl.volume=Math.max(0,Math.min(1,musicVolCour));}catch(e){}}}
+    if(musicEl&&!musicEl.paused&&!VOL_LOCKED){try{const v9=Math.max(0,Math.min(1,musicVolCour));if(Math.abs(musicEl.volume-v9)>.002)musicEl.volume=v9;}catch(e){}}}
   // BOOST : le morceau S'AMPLIFIE — bass boost + chorus qui épaissit (distinct du filtre-mouvement)
   const boostAmt=(running&&!gameOver)?Math.min(1,(nitroOn?0.85:0)+Math.min(1,boost)*0.5):0;
   musChorusEnv+=(boostAmt-musChorusEnv)*Math.min(1,dt*6);
@@ -17927,22 +17997,23 @@ const ENG_V9=new THREE.Vector3();
 function engBigSuit(){ // (HUD v3) la carte du moteur se pose SUR la voiture et la suit (au lieu du centre de l'écran)
   if(!engBig.on)return;const b=avE('engBig');if(!b)return;
   ENG_V9.copy(carGroup.position);ENG_V9.y+=1.6;ENG_V9.project(camera);
-  const x=THREE.MathUtils.clamp((ENG_V9.x*.5+.5)*innerWidth,110,innerWidth-110),y=THREE.MathUtils.clamp((-ENG_V9.y*.5+.5)*innerHeight,260,innerHeight-40);
-  b.style.left=x.toFixed(0)+'px';b.style.top=y.toFixed(0)+'px';
+  const x=THREE.MathUtils.clamp((ENG_V9.x*.5+.5)*VP.w,110,VP.w-110),y=THREE.MathUtils.clamp((-ENG_V9.y*.5+.5)*VP.h,260,VP.h-40);
+  const l9=x.toFixed(0)+'px',t9=y.toFixed(0)+'px'; // (perf) on n'écrit que ce qui a bougé d'un pixel
+  if(b.style.left!==l9)b.style.left=l9;if(b.style.top!==t9)b.style.top=t9;
 }
 const POP_V9=new THREE.Vector3();
 function popSuit(){ // (HUD v4) le geste JAILLIT DE LA CAISSE : tant que le texte vit, il suit la voiture à l'écran — au sol comme en vol
   if(!(performance.now()<(popTexte._s||0)+950))return;const e=avE('popTxt');if(!e)return;
-  if(!popSuit.la||popSuit.h!==innerHeight){popSuit.h=innerHeight;let p=avE('laneProbe'); // où tombe le couloir des annonces (--laneA, safe area comprise)
+  if(!popSuit.la||popSuit.h!==VP.h){popSuit.h=VP.h;let p=avE('laneProbe'); // où tombe le couloir des annonces (--laneA, safe area comprise)
     if(!p){p=document.createElement('div');p.id='laneProbe';p.style.cssText='position:fixed;left:0;top:var(--laneA);width:0;height:0;visibility:hidden;pointer-events:none';document.body.appendChild(p);avEl.laneProbe=p;}
-    popSuit.la=p.getBoundingClientRect().top||innerHeight*.4;}
+    popSuit.la=p.getBoundingClientRect().top||VP.h*.4;}
   // AU-DESSUS de la caisse s'il y a la place sous le couloir des annonces (au sol, toujours) ; sinon DESSOUS (en vol, la caméra
   // centre la caisse : au-dessus, le geste se posait sur l'annonce)
-  POP_V9.copy(carGroup.position).addScaledVector(camera.up,2.6).project(camera);const yH=(-POP_V9.y*.5+.5)*innerHeight;   // le TOIT de la caisse à l'écran
-  POP_V9.copy(carGroup.position).addScaledVector(camera.up,-1.4).project(camera);const yB=(-POP_V9.y*.5+.5)*innerHeight;  // son bas de caisse
+  POP_V9.copy(carGroup.position).addScaledVector(camera.up,2.6).project(camera);const yH=(-POP_V9.y*.5+.5)*VP.h;   // le TOIT de la caisse à l'écran
+  POP_V9.copy(carGroup.position).addScaledVector(camera.up,-1.4).project(camera);const yB=(-POP_V9.y*.5+.5)*VP.h;  // son bas de caisse
   const mini=popSuit.la+(document.body.classList.contains('slamOn')?64:34);
-  const y=yH-56>=mini?Math.min(yH-56,innerHeight*.64):THREE.MathUtils.clamp(yB+24,mini,innerHeight*.74);
-  e.style.top=y.toFixed(0)+'px';
+  const y=yH-56>=mini?Math.min(yH-56,VP.h*.64):THREE.MathUtils.clamp(yB+24,mini,VP.h*.74);
+  const t9=y.toFixed(0)+'px';if(e.style.top!==t9)e.style.top=t9; // (perf) on n'écrit que ce qui a bougé d'un pixel
 }
 /* (HUD v4) LE RECORD À BATTRE — la meilleure partie (SAVE.d.auraMax) s'affiche sous le compteur, avec sa jauge : on la voit se
    remplir, elle BAT à 85 %, et le jour où on la dépasse EN COURSE, le jeu le crie (une fois par partie). C'est le « encore une ». */
@@ -21520,9 +21591,10 @@ function loop(now){
       // (chainVal>0 et plus fallT : l'airtime seul ne vaut rien, une mallette vide n'a rien à montrer)
       if(chain>0||chainVal>0){
         const est=chainEst();
-        caseHud.textContent='💰 '+fmtC(est);
-        caseHud.style.fontSize=Math.min(30,17+est/denom()*.055)+'px'; // le magot GONFLE à l'écran
-        caseHud.style.opacity=1;
+        {const tx9='💰 '+fmtC(est),fs9=(Math.round(Math.min(30,17+est/denom()*.055)*2)/2)+'px'; // le magot GONFLE à l'écran
+         if(caseHud._t!==tx9){caseHud._t=tx9;caseHud.textContent=tx9;} // (perf) réécrit seulement quand le montant change
+         if(caseHud.style.fontSize!==fs9)caseHud.style.fontSize=fs9;
+         if(caseHud.style.opacity!=='1')caseHud.style.opacity=1;}
         const hot=est>denom()*20; // au-delà, c'est de la nitroglycérine : tremblement + cœur
         if(hot!==caseHot){caseHot=hot;caseHud.className=hot?'hot':'';}
         if(hot){heartT-=dt;if(heartT<=0){heartT=.86;heartBeat();}}
@@ -21581,7 +21653,7 @@ function loop(now){
         camera.position.z+=(Math.random()-.5)*fsh;
         camera.rotateZ((Math.random()-.5)*fsh*.05); // le vent secoue aussi l'horizon
       }
-      elTurn.style.opacity=0;
+      if(elTurn.style.opacity!=='0')elTurn.style.opacity=0; // (perf) une fois suffit
       // viseur : où vais-je atterrir ?
       landMark.visible=false;
       tmp2.copy(fallPos);tmp3.copy(fallVel);
@@ -21647,7 +21719,7 @@ function loop(now){
         camera.position.z+=(Math.random()-.5)*shake;
         shake=Math.max(0,shake-1.5*dt);
       }
-      elTurn.style.opacity=0;
+      if(elTurn.style.opacity!=='0')elTurn.style.opacity=0;
       if(boomT>1.8&&!gameOver)endGame();
     }
     // traînée nitro façon Asphalt 8 — (2026-09-26, passe graphique) ÉTEINTE : ce ruban PLAT de 1,9 m posé derrière la caisse, sans
@@ -22047,7 +22119,9 @@ function loop(now){
     /* LA CHARGE D'AURA. Trois choses à l'écran, et chacune répond à une question :
        le CHIFFRE (« combien j'ai »), la JAUGE (« où je vais » — le rang suivant), le MAX (« quoi
        battre »). Sans la troisième, il n'y a aucune raison de vouloir monter. */
-    if(auraHudEl){
+    if(loop._auraVu===undefined&&auraHudEl)loop._auraVu=getComputedStyle(auraHudEl).display!=='none'; // (perf) l'ancienne jauge est masquée pour de bon (#auraHud display:none!important) : on ne lui écrit plus rien
+    if(!loop._auraVu){if(auraPop>0)auraPop=Math.max(0,auraPop-dt*2.4);if(auraFlash>0)auraFlash=Math.max(0,auraFlash-dt*1.5);}
+    else if(auraHudEl){
       auraValEl.textContent=Math.round(auraRun);
       const tot=(SAVE.d.aura||0)+auraRun, r=auraRank(tot);
       const bas=AURA_RANKS[r].v, haut=r<AURA_RANKS.length-1?AURA_RANKS[r+1].v:bas+1;
@@ -22064,12 +22138,14 @@ function loop(now){
         auraComboEl.style.opacity=Math.min(1,figComboT/1.2).toFixed(2);
       }else if(auraComboEl.style.opacity!=='0')auraComboEl.style.opacity='0';
     }
-    elSpeed.textContent=Math.round(speedKmh);
+    // (perf, lot 4) chaque écriture DOM se paie d'un recalcul de style — et `textContent=` remplace le nœud texte même à valeur égale :
+    // on n'écrit que ce qui a CHANGÉ (sur téléphone ces éléments sont masqués : on leur écrivait quatre fois par image pour rien)
+    {const k9=Math.round(speedKmh);if(loop._spK!==k9){loop._spK=k9;elSpeed.textContent=k9;}}
     // le compteur VIT : il gonfle et vire au rouge quand ça devient déraisonnable
     const spdP=Math.min(.24,Math.max(0,(speedKmh-760)/1300)+(nitroOn?.05:0)); // seuils ×2 (SPD .25→.5 : km/h affichés doublés) — le compteur gonfle/rougit au même RÉGIME RESSENTI qu'avant
-    elSpeed.style.transform='scale('+(1+spdP).toFixed(3)+')';
-    elSpeed.style.color=speedKmh>920?'#ff5040':'';
-    if(!REDUCED_MOTION)speedFx.style.opacity=Math.max(0,Math.min(.95,(speedKmh-280)/560)); // reduced-motion : vignette vitesse coupée
+    {const tr9='scale('+(1+spdP).toFixed(3)+')',co9=speedKmh>920?'#ff5040':'';
+     if(loop._spT!==tr9){loop._spT=tr9;elSpeed.style.transform=tr9;}if(loop._spC!==co9){loop._spC=co9;elSpeed.style.color=co9;}}
+    if(!REDUCED_MOTION){const o9=Math.max(0,Math.min(.95,(speedKmh-280)/560)).toFixed(2);if(loop._sfO!==o9){loop._sfO=o9;speedFx.style.opacity=o9;}} // reduced-motion : vignette vitesse coupée
     // panneaux HUD MASQUÉS (#carInfo/#cpInfo/#record en display:none) : on ne reconstruit leur texte (fmtC/fmt alloue) QUE quand la valeur change
     paintCarHud();
     if(loop._money!==money){loop._money=money;elMoney.innerHTML=fmtGta(money); // un parse HTML seulement quand le compte bouge
@@ -22115,17 +22191,20 @@ function loop(now){
     // la seule progression qui court pendant une partie. (elCp, le texte, est géré plus haut.)
     {const iT=Math.min(engTier,ENGINE_TIERS.length-1),
        prevT=ENGINE_TIERS[iT].coins,nextT=(ENGINE_TIERS[iT+1]||ENGINE_TIERS[iT]).coins;
-     elFill.style.width=(iT>=ENGINE_TIERS.length-1?100:100*Math.min(1,(coinsGot-prevT)/Math.max(1,nextT-prevT)))+'%';}
+     const w9=(iT>=ENGINE_TIERS.length-1?100:Math.round(1000*Math.min(1,(coinsGot-prevT)/Math.max(1,nextT-prevT)))/10)+'%';
+     if(loop._fiW!==w9){loop._fiW=w9;elFill.style.width=w9;}} // (perf) écrite seulement quand elle bouge d'un pour-mille
     if(fever>0)fever-=dt;
     else if(feverArmed){styleM=Math.max(0,styleM-2*dt);if(styleM<=0)feverArmed=false;} // armé : la jauge FUIT — sers-toi ou perds-le
     else styleM=Math.max(0,styleM-13*dt); // LÂCHER le boost fait retomber la jauge vite : c'est « sans lâcher » qui paye
     survTick(dt); // SURVIVANT : la meute roule, saute, et le couperet de la minute tombe
     AIP.tick(dt); // …et pendant ce temps, les IA T'OBSERVENT (même hors mode Survivant)
-    if(fever>0){elStyleF.className='fever';elStyleF.style.width=(Math.min(1,fever/10)*100)+'%';
-      feverGlow.style.display='block';if(feverGlow.className)feverGlow.className='';}
-    else{elStyleF.className=feverArmed?'armed':'';elStyleF.style.width=styleM+'%';
+    { // (perf, lot 4) la jauge de style : écrite seulement quand elle change (classe au changement d'état, largeur au pour-mille)
+     const cl9=fever>0?'fever':feverArmed?'armed':'',w9=(Math.round((fever>0?Math.min(1,fever/10)*100:styleM)*10)/10)+'%';
+     if(elStyleF.className!==cl9)elStyleF.className=cl9;if(loop._stW!==w9){loop._stW=w9;elStyleF.style.width=w9;}}
+    if(fever>0){if(feverGlow.style.display!=='block')feverGlow.style.display='block';if(feverGlow.className)feverGlow.className='';}
+    else{
       // ARMÉ : le halo s'allume DÈS que la jauge est pleine — c'est lui qui réclame le double-tap
-      feverGlow.style.display=feverArmed?'block':'none';
+      {const d9=feverArmed?'block':'none';if(feverGlow.style.display!==d9)feverGlow.style.display=d9;}
       if(feverGlow.className!==(feverArmed?'armed':''))feverGlow.className=feverArmed?'armed':'';}
     if(comboT>0){comboT-=dt;if(comboT<=0)combo=0;}
     if(msgT>0){msgT-=dt;if(msgT<=0)elMsg.style.opacity=0;}
@@ -22249,6 +22328,8 @@ function loop(now){
   try{musicTick(dt,musMvt);updateDolphins(dt);updateSerpent(dt);updateBoomArt(dt);}catch(e){if(!loop._crWarn){console.warn('créatures/musique',e);loop._crWarn=1;}}
   if(POST_ON&&composer)composer.render(); // ACES + bloom
   else renderer.render(scene,camera);      // repli si le post n'a pas pu se charger
+  matSursisTick(); // (perf) les matières de la piste d'avant partent une fois la neuve rendue
+  if(!started||gameOver)engChauffe(); // (perf) au menu et à l'écran de mort : les shaders des moteurs se préparent, un palier par image
   // VIGNETTE MOTEUR — RÉACTIVÉE (2026-08-02) : elle passe désormais par un RenderTarget dédié puis un
   // quad ortho recollé par-dessus. Elle ne touche plus au viewport de la passe finale — c'était ça,
   // la déformation de l'image. ⚠ APRÈS le composer, jamais avant : il écrase le framebuffer.
@@ -22579,10 +22660,17 @@ function togglePause(){ if(!started||gameOver)return;
   musicPause(paused); // la musique ne passe plus par l'AudioContext : elle se met en pause elle-même
 }
 // applique la résolution adaptative (reconfigure le renderer et le canvas des speed-lines)
-function applyDPR(){ try{ renderer.setPixelRatio(curDPR); renderer.setSize(innerWidth,innerHeight); if(PT_U)PT_U.uPxMax.value=26*curDPR; // le plafond des particules suit la résolution
-  if(composer){composer.setPixelRatio(curDPR);composer.setSize(innerWidth,innerHeight);}
-  slCv.width=innerWidth; slCv.height=innerHeight;
-  if(juiceCv){juiceCv.width=innerWidth;juiceCv.height=innerHeight;} }catch(e){} }
+/* (2026-09-26, passe perf, lot 4) chaque changement de résolution réallouait TOUT DEUX FOIS : `setPixelRatio` redimensionne déjà (le
+   canvas 3D, puis les 11 cibles du bloom), et on redimensionnait derrière à la même taille. Désormais le second passage n'a lieu que si
+   la FENÊTRE a changé. Et les deux canvas 2D ne sont retaillés que si leur taille change : retailler un canvas l'EFFACE (les taches de
+   jus disparaissaient à chaque cran de résolution adaptative). */
+const DPR_V9=new THREE.Vector2();
+function applyDPR(){ try{ const W=innerWidth,H=innerHeight;
+  renderer.getSize(DPR_V9);const neuve=DPR_V9.x!==W||DPR_V9.y!==H;
+  renderer.setPixelRatio(curDPR);if(neuve)renderer.setSize(W,H);if(PT_U)PT_U.uPxMax.value=26*curDPR; // le plafond des particules suit la résolution
+  if(composer){composer.setPixelRatio(curDPR);if(neuve)composer.setSize(W,H);}
+  if(slCv.width!==W||slCv.height!==H){slCv.width=W;slCv.height=H;}
+  if(juiceCv&&(juiceCv.width!==W||juiceCv.height!==H)){juiceCv.width=W;juiceCv.height=H;} }catch(e){} }
 // PAUSE AUTO : l'appli passe en arrière-plan (onglet caché, app minimisée) → on gèle + on coupe le son
 addEventListener('visibilitychange',function(){ if(document.hidden&&started&&!gameOver&&!paused)togglePause();
   // (2026-09-26) au menu, au garage ou sur l'écran de mort, une vingtaine de sources en boucle tournaient encore en arrière-plan
