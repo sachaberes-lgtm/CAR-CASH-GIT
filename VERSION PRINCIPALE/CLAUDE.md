@@ -220,8 +220,14 @@ PÉRIMÉES pour ces écrans : leurs règles CSS ont été SUPPRIMÉES (purge pos
   et les onglets ne bougent JAMAIS d'un onglet à l'autre (`#gRar` en `visibility:hidden` en habillage, la pastille dit la catégorie).
   JS : `gEtat(bt,etat,ic,txt)` (ÉQUIPER = lingot, ÉQUIPÉE = touche ENFONCÉE verte, VERROUILLÉE/À GAGNER = enfoncée grise, via
   `data-etat`), `gPrixHtml` (verbe + prix `.gPrix`), `gNomEntre` (le nom glisse s'il change), `gTampon` (« À TOI ! » frappé +
-  éclair `#gEclat` de la couleur de la famille), `gStripHabits(cat,i)` (la bande des PEINTURES/AILES/TRAÎNÉES : nuancier — chrome,
+  éclair `#gEclat` de la couleur de la famille — l'achat ne se REDIT plus en toast), `gStripHabits(cat,i)` (la bande des PEINTURES/AILES/TRAÎNÉES : nuancier — chrome,
   or, mat ont leur matière —, aile, ruban ; prix / cadenas / coche ; clic = on ESSAIE). La famille active vient se centrer.
+  En habillage, la rangée des familles porte les FILTRES `TOUT · À MOI · À ACHETER` (`SHOP.filtre`, `.gR.gF[data-f]`, remis à TOUT
+  à chaque catégorie). ⚠ La bande des voitures se reconstruit aussi quand le nombre de caisses POSSÉDÉES change (`st._o`) — sans
+  ça, une caisse achetée gardait son cadenas. Prix en euros : `eurTxt()` (« 4,99 € » / « €4.99 » selon la langue — à remplacer
+  par le prix localisé de StoreKit). Carrière : sortie en bas (`.mDock` généré par `carrVue`), tuiles toutes numérotées.
+  Volet : `body.voletSort` (480 ms) coupe la cascade de l'écran découvert — c'est le volet qui fait l'entrée ; `#wipe::after`
+  porte la marque CASH CAR.
 - **NITRO** : cadran (rond = une JAUGE, pas une plaque) à face carbone, jauge néon SEGMENTÉE (`--nr` orange / `--nx` cyan, posées par
   la boucle), s'embrase à l'appui ; `.plein` = halo sur `::before` dont seule l'OPACITÉ bouge. ⚠ Jamais d'animation de `filter` ici.
 - **PIÈGES** : ⚠ un `filter:drop-shadow` sur une icône `.pxi` ne se voit PAS (le masque passe après le filtre et le rogne) — la
@@ -230,7 +236,7 @@ PÉRIMÉES pour ces écrans : leurs règles CSS ont été SUPPRIMÉES (purge pos
   ⚠ `#spNote` est en absolu centré : son `transform` garde `translateX(-50%)`. Les libellés neufs sont traduits (bloc i18n
   « charte v4 », après la ligne FRÉNÉSIE).
 - **Bancs** (scratchpad de la session) : `pp/tour.js <prefixe> [port] [w] [h]` (13 écrans), `pp/extras.js`, `pp/extras2.js` (états
-  rares : volet, tampon, carrière, anglais, record, défis), `pp/qa.js` (**57 vérifications** : routage, achat, équipement, onglets,
+  rares : volet, tampon, carrière, anglais, record, défis), `pp/qa.js` (**62 vérifications** : routage, achat, équipement, onglets, filtres,
   langue, modes, pause, mort, rejouer, zéro backdrop-filter, cibles ≥ 44 px), `pp/nitro.js`, `css/purge.js` (la purge postcss),
   `pp/planche.js` (planches-contact). Serveur : `srv.js` sur le worktree.
 
