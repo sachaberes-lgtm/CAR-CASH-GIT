@@ -2511,10 +2511,18 @@
       '<div style="color:#9fe8ff;white-space:pre-wrap">'+esc(diag())+'</div>';
     (document.body||document.documentElement).appendChild(b);
   };
+  /* (2026-09-26, passe débogage) CES ÉCOUTEURS GARDENT LE DÉMARRAGE, PAS LA PARTIE. Ils restaient armés toute la session : la moindre
+     erreur tardive (hors du try/catch de la boucle) ou une promesse rejetée — `AC.resume()` au retour d'arrière-plan sur iPhone, un
+     `Preferences.set` — posait l'écran plein « N'A PAS PU DÉMARRER » PAR-DESSUS une partie en cours, sans bouton pour en sortir.
+     Une fois le jeu démarré (`__gameReady`), l'erreur est notée (`__loopErr`, console) et la partie continue. */
   addEventListener('error',function(e){
-    if(e.message)window.__crash(e.message,'ligne '+e.lineno+(e.filename?' · '+e.filename:''));
+    if(!e.message)return;
+    if(window.__gameReady){window.__loopErr=e.message+' @'+e.lineno;try{console.error(e.error||e.message);}catch(_){}return;}
+    window.__crash(e.message,'ligne '+e.lineno+(e.filename?' · '+e.filename:''));
   });
-  addEventListener('unhandledrejection',function(e){window.__crash('promesse rejetée : '+(e.reason&&e.reason.message||e.reason));});
+  addEventListener('unhandledrejection',function(e){
+    if(window.__gameReady){try{console.warn('promesse rejetée',e.reason);e.preventDefault();}catch(_){}return;}
+    window.__crash('promesse rejetée : '+(e.reason&&e.reason.message||e.reason));});
   // LE CHIEN DE GARDE : 8 s sans que la boucle ait tourné une seule fois = ce n'est plus un chargement long.
   setTimeout(function(){
     if(!window.__gameReady)window.__crash('Le jeu s\'est chargé mais n\'a jamais démarré.');
@@ -3636,6 +3644,30 @@ function mkCone(){
   base.castShadow=c.castShadow=b.castShadow=true; // les plots étirent leur ombre en travers de la route
   g.add(base,c,b,b2);return g;
 }
+/* LES PLOTS EN INSTANCES (2026-09-26, passe perf) — MESURÉ en course : ~180 pièces de plots visibles au niveau 4, chaque plot = 4 draw
+   calls + 3 dans la passe d'ombre. Sur iPhone, c'est le nombre d'appels qui étrangle Safari, pas les sommets. Désormais : les plots
+   IMMOBILES sont tous dessinés par 4 `InstancedMesh` (socle, corps, deux bandes — 4 appels pour toute la piste, ombres comprises) ; chaque
+   plot garde un FANTÔME léger (un Object3D hors scène) qui porte sa position pour les collisions, les frôlés et les étincelles. Percuté,
+   le plot SORT de l'instance (échelle nulle) et un VRAI plot `mkCone` prend sa place pour valser (`coneVole`). Image identique. */
+const CONE_PARTS=[[coneBaseGeo,0,.05,Math.PI/4,true],[coneGeo,0,.78,0,true],[coneBandGeo,1,.62,0,true],[coneBand2Geo,1,1.02,0,false]];
+let CONE_IM=null;const CONE_M=new THREE.Matrix4(),CONE_L=new THREE.Matrix4(),CONE_0=new THREE.Matrix4().makeScale(0,0,0);
+function conesInstancier(){ // après buildTrack : un jeu d'instances à la capacité de la piste (réutilisé tant qu'il suffit)
+  const n=CONES.length;
+  if(!CONE_IM||CONE_IM[0].instanceMatrix.count<n){
+    if(CONE_IM)for(const im of CONE_IM){scene.remove(im);im.dispose();}
+    const cap=Math.max(96,Math.ceil(n*1.4));
+    CONE_IM=CONE_PARTS.map(p=>{const im=new THREE.InstancedMesh(p[0],p[1]?coneBandMat:coneMat,cap);
+      im.castShadow=p[4];im.frustumCulled=false;im.matrixAutoUpdate=false;scene.add(im);return im;}); // ⚠ frustumCulled=false : la sphère englobante d'un InstancedMesh r128 ne couvre pas ses instances
+  }
+  for(let k=0;k<4;k++){const im=CONE_IM[k],p=CONE_PARTS[k];CONE_L.makeRotationY(p[3]).setPosition(0,p[2],0);
+    for(let i=0;i<n;i++){const c=CONES[i];c.i=i;CONE_M.multiplyMatrices(c.mesh.matrix,CONE_L);im.setMatrixAt(i,c.hit?CONE_0:CONE_M);}
+    im.count=n;im.instanceMatrix.needsUpdate=true;}
+}
+function coneVole(c9){ // le plot percuté quitte l'instance : un VRAI plot, posé au même endroit, part valser (FLYCONES)
+  const g=mkCone();g.position.copy(c9.mesh.position);g.quaternion.copy(c9.mesh.quaternion);scene.add(g);trackMeshes.push(g);
+  if(CONE_IM&&c9.i!=null)for(const im of CONE_IM){im.setMatrixAt(c9.i,CONE_0);im.instanceMatrix.needsUpdate=true;}
+  c9.mesh=g;return g;
+}
 // flaques d'huile (rares, droites & plates uniquement) : disque sombre glacé + reflet irisé
 let OILS=[];
 const oilGeo=new THREE.CircleGeometry(1,22);
@@ -4110,25 +4142,28 @@ const pgBodyM=new THREE.MeshLambertMaterial({color:0x97a2b6});
 const pgBreastM=new THREE.MeshLambertMaterial({color:0xc9a9b4});
 const pgWingM=new THREE.MeshLambertMaterial({color:0x76839b,side:THREE.DoubleSide});
 const pgBarM=new THREE.MeshBasicMaterial({color:0xf4f6fa,side:THREE.DoubleSide});
+// (2026-09-26, passe fuites) les géométries des pigeons sont PARTAGÉES : chaque oiseau en créait 10 neuves, jamais libérées
+const PG_G={body:new THREE.SphereGeometry(.5,9,7),breast:new THREE.SphereGeometry(.24,8,6),head:new THREE.SphereGeometry(.16,8,6),nk:new THREE.SphereGeometry(.06,6,5),
+  tail:new THREE.BoxGeometry(.26,.04,.5),wing:new THREE.PlaneGeometry(1.0,.42),bar:new THREE.PlaneGeometry(.9,.11)};
 function mkPigeon(){
   const g=new THREE.Group();
-  const body=new THREE.Mesh(new THREE.SphereGeometry(.5,9,7),pgBodyM);
+  const body=new THREE.Mesh(PG_G.body,pgBodyM);
   body.scale.set(.52,.46,1.15);g.add(body);
-  const breast=new THREE.Mesh(new THREE.SphereGeometry(.24,8,6),pgBreastM); // poitrail rosé
+  const breast=new THREE.Mesh(PG_G.breast,pgBreastM); // poitrail rosé
   breast.position.set(0,-.06,.3);g.add(breast);
-  const head=new THREE.Mesh(new THREE.SphereGeometry(.16,8,6),pgBodyM);
+  const head=new THREE.Mesh(PG_G.head,pgBodyM);
   head.position.set(0,.18,.56);g.add(head);
   for(const sd of [-1,1]){ // tache blanche du cou — la signature du ramier
-    const nk=new THREE.Mesh(new THREE.SphereGeometry(.06,6,5),pgBarM);
+    const nk=new THREE.Mesh(PG_G.nk,pgBarM);
     nk.position.set(sd*.12,.14,.44);g.add(nk);
   }
-  const tail=new THREE.Mesh(new THREE.BoxGeometry(.26,.04,.5),pgWingM);
+  const tail=new THREE.Mesh(PG_G.tail,pgWingM);
   tail.position.set(0,.02,-.66);g.add(tail);
   for(const sd of [-1,1]){ // ailes battantes avec barre alaire blanche
     const wg=new THREE.Group();wg.position.set(sd*.16,.1,.06);
-    const wing=new THREE.Mesh(new THREE.PlaneGeometry(1.0,.42),pgWingM);
+    const wing=new THREE.Mesh(PG_G.wing,pgWingM);
     wing.rotation.x=-Math.PI/2;wing.position.x=sd*.5;wg.add(wing);
-    const bar=new THREE.Mesh(new THREE.PlaneGeometry(.9,.11),pgBarM);
+    const bar=new THREE.Mesh(PG_G.bar,pgBarM);
     bar.rotation.x=-Math.PI/2;bar.position.set(sd*.5,.01,.02);wg.add(bar);
     g.add(wg);
     if(sd<0)g.userData.wl=wg;else g.userData.wr=wg;
@@ -4513,7 +4548,7 @@ function routeTick(){ // le bitume suit le NIVEAU (fondu du portail : LVL.route 
 }
 function buildTrack(seed){
   for(const m of trackMeshes){scene.remove(m);if(m.geometry)m.geometry.dispose();if(m.material&&m.material.dispose)m.material.dispose();}
-  trackMeshes.length=0;NEON_RAILS.length=0;NEON_GLOW.length=0;PADS=[];PADL=[];BUMPS=[];CONES=[];FLYCONES=[];OILS=[];RAMPS=[];
+  trackMeshes.length=0;NEON_RAILS.length=0;NEON_GLOW.length=0;PADS=[];PADL=[];PAD_MATS.length=0;BUMPS=[];CONES=[];FLYCONES=[];OILS=[];RAMPS=[];
   const rnd=mulberry32(seed);
   const ctrl=PARK.on?genPark(rnd):(LVL.cur&&LVL.cur.piste==='tuto')?genTuto():genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course
   const curve=new THREE.CatmullRomCurve3(ctrl,false,'centripetal'); // (piste v7) centripète : l'uniforme faisait des COUDES entre points inégalement espacés (liaison courte après une grande figure)
@@ -4742,7 +4777,7 @@ function buildTrack(seed){
     PADS.push(sp);PADL.push(pl);
     for(const fy of [1,-1]){
       frameAt(sp,F);
-      const m=new THREE.Mesh(padGeo,new THREE.MeshBasicMaterial({map:padTex,color:padCol}));
+      const m=new THREE.Mesh(padGeo,new THREE.MeshBasicMaterial({map:PAD_FR[padK]||padTex,color:padCol}));PAD_MATS.push(m.material); // (perf) la plaque suit les images pré-dessinées
       const nn=F.n.clone().multiplyScalar(fy);
       m.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(F.b.clone().multiplyScalar(-fy),F.t.clone(),nn));
       m.position.copy(F.p).addScaledVector(F.b,pl).addScaledVector(F.n,fy>0?.1:-THICK-.1); // même repère que les pièces (F.b brut sur les deux faces)
@@ -4800,11 +4835,10 @@ function buildTrack(seed){
     fc=fc||1;
     if(cs>L-140)return;
     frameAt(cs,F);
-    const m=mkCone();
+    const m=new THREE.Object3D(); // (perf) le FANTÔME du plot : sa pose, hors scène — il est dessiné par CONE_IM (voir conesInstancier)
     m.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(F.b.clone(),F.n.clone().multiplyScalar(fc),F.t.clone().multiplyScalar(fc)));
     m.position.copy(F.p).addScaledVector(F.b,cl).addScaledVector(F.n,fc>0?.12:-THICK-.12);
-    m.updateMatrix();m.matrixAutoUpdate=false;for(const ch of m.children){ch.updateMatrix();ch.matrixAutoUpdate=false;} // (perf) immobile : gelé (dégelé quand il valse, voir FLYCONES)
-    scene.add(m);trackMeshes.push(m);
+    m.updateMatrix();m.matrixAutoUpdate=false;
     CONES.push({s:cs,lat:cl,mesh:m,hit:false,face:fc});
   }
   // chaque GROUPE de plots existe sur LES DEUX faces (même chantier) — intervalle doublé : densité par face inchangée
@@ -5235,11 +5269,14 @@ const padGeo=new THREE.PlaneGeometry(5.5,9);
 const padCv=document.createElement('canvas');padCv.width=64;padCv.height=128;
 const padCtx=padCv.getContext('2d');
 const padTex=new THREE.CanvasTexture(padCv);padTex.magFilter=THREE.NearestFilter;
-function updatePadTex(t){ // double chevrons lumineux arrondis qui défilent (teintés par pad)
-  const c=padCtx;
+/* (2026-09-26, passe perf) LES PLAQUES TURBO ne se redessinent plus à chaque image. Mesuré : il y a TOUJOURS un pad dans la fenêtre
+   (espacés de 280-560 m, fenêtre de 600 m) → à chaque image, 8 tracés Canvas2D avec `shadowBlur` (flou logiciel, cher sur iOS) puis un
+   renvoi de la texture au GPU. Le cycle des chevrons fait 42 px : on en PRÉ-DESSINE les 42 positions une fois (42 petites textures,
+   ~1,8 Mo) et les plaques passent de l'une à l'autre (`map` changée : aucune recompilation). Au pixel près, le défilement est le même. */
+const PAD_FR=[],PAD_MATS=[];let padK=-1;
+function padDessine(c,scroll){
   c.fillStyle='#070912';c.fillRect(0,0,64,128);
   c.strokeStyle='rgba(255,255,255,.25)';c.lineWidth=3;c.strokeRect(2,2,60,124); // liseré
-  const scroll=(t*95)%42;
   c.lineCap='round';c.lineJoin='round';
   c.strokeStyle='#ffffff';c.shadowColor='#ffffff';
   for(let n9=0;n9<4;n9++){
@@ -5250,8 +5287,14 @@ function updatePadTex(t){ // double chevrons lumineux arrondis qui défilent (te
     c.beginPath();c.moveTo(12,oy+30);c.lineTo(32,oy+16);c.lineTo(52,oy+30);c.stroke(); // écho
   }
   c.globalAlpha=1;c.shadowBlur=0;
-  padTex.needsUpdate=true;
 }
+function updatePadTex(t){ // double chevrons lumineux arrondis qui défilent (teintés par pad)
+  if(!PAD_FR.length)for(let k=0;k<42;k++){const cv=document.createElement('canvas');cv.width=64;cv.height=128;padDessine(cv.getContext('2d'),k);
+    const tx=new THREE.CanvasTexture(cv);tx.magFilter=THREE.NearestFilter;PAD_FR.push(tx);}
+  const k=Math.floor((t*95)%42);if(k===padK)return;padK=k;
+  for(const m of PAD_MATS)m.map=PAD_FR[k];
+}
+padDessine(padCtx,0);padTex.needsUpdate=true;updatePadTex(0); // les 42 images se dessinent au CHARGEMENT (~40 petits tracés), pas au premier pad croisé en course
 // dos d'âne (asphalte + triangles blancs, façon Paris)
 const bumpGeo=new THREE.BoxGeometry(ROAD_HALF0*2-1,.34,1.7); // taillée sur la largeur DE RÉFÉRENCE : chaque mesh s'étire en X (voir ROAD_HALF)
 const bumpMat=(function(){
@@ -10568,11 +10611,19 @@ Object.assign(SHAPES,{
 }
 });
 /* ===== LA GAMME DES 50 — FIN ===== */
+const CAR_VIEUX=[]; // les matières de la caisse d'avant : libérées à la construction suivante
 function buildCar(spec){
   // ⚠ LES PIÈCES LOW-POLY SE LIBÈRENT : chaque caisse a SA géométrie (plusieurs milliers de facettes)
   // et ses matières. Sans ce passage, chaque aller-retour au garage laisserait une caisse en VRAM.
-  carGroup.traverse(o=>{if(o.userData&&o.userData.lp){if(o.geometry)o.geometry.dispose();
-    const mm=Array.isArray(o.material)?o.material:[o.material];for(const m of mm)if(m&&m.userData&&m.userData.lp)m.dispose();}});
+  // (2026-09-26, passe fuites) MESURÉ : seules les pièces du kit étaient libérées — une caisse hors kit laissait ~45 géométries sur le GPU,
+  // une caisse du kit 4 géométries et 13 matières, et la caisse se reconstruit 3 fois par partie (+ chaque caisse feuilletée, chaque
+  // photo de la boutique) : les tampons GPU grossissaient d'une partie à l'autre. Tout part, SAUF le partagé (boule des gabarits,
+  // tuyères) et la géométrie commune des sprites ; les MATIÈRES attendent une construction de plus avant d'être libérées : leurs
+  // programmes restent chauds, pas de recompilation à chaque caisse.
+  for(const m of CAR_VIEUX)m.dispose();CAR_VIEUX.length=0;
+  carGroup.traverse(o=>{if(o.geometry&&!o.isSprite&&o.geometry!==SPH9&&o.geometry!==jetGeo)o.geometry.dispose();
+    const mm=Array.isArray(o.material)?o.material:[o.material];
+    for(const m of mm)if(m&&m!==jetShellM&&m!==jetCoreM&&m!==jetGlowM&&CAR_VIEUX.indexOf(m)<0)CAR_VIEUX.push(m);});
   while(carGroup.children.length)carGroup.remove(carGroup.children[0]);
   while(carBody.children.length)carBody.remove(carBody.children[0]);
   wheels.length=0;
@@ -10892,7 +10943,7 @@ let engVigT=0,engVigHeat=0,engVigBaseY=0,engVigMats=[],engVigFeu=null,engVigFeuB
 // ⚠ la géométrie reste alignée sur +Y (base à l'origine) et c'est le MESH qu'on tourne : ainsi
 // `scale.y` étire toujours la flamme dans sa longueur. Tourner la géométrie aurait déplacé l'axe
 // et l'animation aurait gonflé la flamme en largeur au lieu de l'allonger.
-const engVigFeuGeo=(function(){const g=new THREE.ConeGeometry(.19,.72,14,1,true);
+const engVigFeuGeo=(function(){const g=new THREE.ConeGeometry(.19,.72,14,1,true); // (partagée : voir jeteEngin)
   g.translate(0,.36,0);return g;})();
 // ⚠ `depthTest` RESTE ACTIF. Le couper faisait dessiner la flamme PAR-DESSUS le bloc : un cône
 // jaune collé sur la face avant, effet autocollant. La bonne réponse n'était pas de tricher sur
@@ -10917,11 +10968,16 @@ const engVigFeuTex=(function(){
 const engVigFeuMat=new THREE.MeshBasicMaterial({map:engVigFeuTex,color:0xffa855,transparent:true,opacity:0,
   blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
 function engVigTier(){return engVigForce!=null?engVigForce:engTier;}
+let engVigVieux=null;
+function jeteEngin(m){m.traverse(o=>{if(o.isMesh){if(o.geometry&&!(o.geometry.userData&&o.geometry.userData.partage))o.geometry.dispose();if(o.material)o.material.dispose();}});}
 function engVigBuild(){
   if(engVigMesh){ // ⚠ mkEngine fabrique des matériaux NEUFS à chaque appel : sans ça, une fuite par palier
     engVigScene.remove(engVigMesh);
-    engVigMesh.traverse(o=>{if(o.isMesh){if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose();}});
-    engVigMesh=null;
+    if(engVigFeu&&engVigFeu.parent===engVigMesh)engVigMesh.remove(engVigFeu); // la FLAMME est partagée : elle passe au moteur suivant
+    // (2026-09-26, passe perf) MESURÉ : libérées avant que le nouveau moteur soit rendu, ses matières faisaient détruire puis RECOMPILER
+    // leurs programmes à chaque palier (~5 shaders, l'à-coup de la montée de moteur). Libéré après le 1er rendu du suivant (engVigRender).
+    if(engVigVieux)jeteEngin(engVigVieux);
+    engVigVieux=engVigMesh;engVigMesh=null;
   }
   const t=engVigTier();
   engVigMesh=mkEngine(t);
@@ -11073,6 +11129,7 @@ function engVigRender(dt){
   renderer.setRenderTarget(engRT);
   renderer.clear();
   renderer.render(engVigScene,engVigCam);
+  if(engVigVieux){jeteEngin(engVigVieux);engVigVieux=null;} // (perf) le nouveau moteur est rendu : ses programmes sont pris, l'ancien peut partir
   renderer.setRenderTarget(null); // ⚠ restaure le framebuffer ET son viewport : c'est tout l'intérêt
   renderer.setClearAlpha(ca);
   /* (2a) ÉCRAN DE FIN : là, le recollage en WebGL NE MARCHE PAS. L'overlay de game over est un
@@ -11268,6 +11325,7 @@ const nitroCoreMat=new THREE.MeshBasicMaterial({color:0xaee4ff});
 // Géométries et matériaux PARTAGÉS (créés une fois) — un fruit ne coûte que 2-3 meshes.
 const fgSph=new THREE.SphereGeometry(1,16,12),fgCone=new THREE.ConeGeometry(1,1,14),fgCyl=new THREE.CylinderGeometry(1,1,1,8),
       fgDisc=new THREE.CircleGeometry(1,28); // la CHAIR d'un fruit coupé (pastèque)
+for(const g9 of [fgSph,fgCone,fgCyl,fgDisc])g9.userData.partage=true; // (2026-09-26) partagées par les moteurs : jeteEngin ne les libère pas
 // (les matières vernies des anciens fruits — `FM`, `glossyM`, l'écorce peinte — sont parties avec eux : voir le kit low-poly plus bas)
 // L'ÉTAL : chaque cageot a son NOM, sa recette 3D, son BOOST (nitro rendue) et sa FRÉQUENCE (poids
 // de tirage). boost/freq sont réglables en jeu depuis la plateforme ÉTAL et persistés dans la sauvegarde.
@@ -11987,7 +12045,7 @@ function misVal(k){ // la valeur COURANTE d'un critère, dans la partie en cours
 const CARNETS=[
   {r:{car:6},m:[{k:'coins',v:25,p:300},{k:'fruits',v:4,p:300},{k:'cash',v:1000,p:400}]},
   {r:{car:7},m:[{k:'tricks',v:2,p:600},{k:'perfect',v:1,p:600},{k:'kmh',v:672,p:600}]}, // 672 = 700 × 0,96 (SPD .5 → .4 → .48 : −20 % puis +20 %)
-  {r:{car:8},m:[{k:'zones',v:1,p:1500},{k:'gaps',v:1,p:1500},{k:'cash',v:20000,p:2000}]},
+  {r:{car:8},m:[{k:'zones',v:1,p:1500},{k:GAP_ON?'gaps':'chain',v:GAP_ON?1:3,p:1500},{k:'cash',v:20000,p:2000}]}, // (2026-09-26) sans catapultes (GAP_ON), un gap est IMPOSSIBLE : le contrat bloquait toute la suite
   {r:{cat:'peinture',id:'or'},m:[{k:'survie',v:150,p:4000},{k:'tricks',v:8,p:4000},{k:'cash',v:100000,p:5000}]},
   {r:{cat:'trainee',id:'arcenciel'},m:[{k:'zones',v:2,p:8000},{k:'chain',v:4,p:8000},{k:'perfect',v:3,p:8000}]},
 /* ===== LES CARNETS DES 50 — DÉBUT ===== */
@@ -12002,7 +12060,7 @@ function carnet(n){ // au-delà des carnets écrits : une suite SANS FIN, tirée
   const l=n-CARNETS.length+1,pr=Math.round(5000*Math.pow(1.5,l)/100)*100,POOL=[
     {k:'coins',v:60+20*l},{k:'fruits',v:10+3*l},{k:'cash',v:Math.round(2e5*Math.pow(2.2,l))},{k:'tricks',v:8+3*l},
     {k:'perfect',v:3+l},{k:'kmh',v:Math.min(1200,680+48*l)},{k:'zones',v:Math.min(6,2+(l>>1))},{k:'gaps',v:1+l},
-    {k:'survie',v:150+30*l},{k:'chain',v:4+l},{k:'nitro',v:20+5*l}];
+    {k:'survie',v:150+30*l},{k:'chain',v:4+l},{k:'nitro',v:20+5*l}].filter(function(x){return GAP_ON||x.k!=='gaps';}); // jamais de mission impossible
   const m=[];let h=(Math.imul(n,2654435761)>>>0)||1;
   while(m.length<3){h=(Math.imul(h,1103515245)+12345)>>>0;const c=POOL[(h>>>8)%POOL.length];
     if(!m.some(x=>x.k===c.k))m.push({k:c.k,v:c.v,p:pr});}
@@ -12533,6 +12591,7 @@ function engBig(E,tier){
   // (2026-09-25, user : « le moteur en gros au milieu de l'écran, qui flotte en l'air sans fenêtre grise, avec le nombre comme
   // dans la version de Léo ») : plus de carte — un halo à la couleur du moteur, LE NUMÉRO du palier en géant (le badge de Léo),
   // le moteur 3D qui flotte au centre de l'écran, son nom dessous. Le rendu est sur fond TRANSPARENT (engRT clearAlpha 0).
+  {const o9=b.querySelector('canvas');if(o9){o9.width=o9.height=0;}} // (2026-09-26) l'ancien canvas rendu tout de suite (iOS plafonne la mémoire des canvas)
   b.innerHTML='<div class="ebHalo"></div><div class="ebCarte"><small>'+TR(rec?'NOUVEAU RECORD !':'NOUVEAU MOTEUR')+'</small>'
     +'<div class="ebNum"><i>'+TR('PALIER')+'</i>'+(tier+1)+'</div>'
     +'<canvas class="eb3d" width="480" height="321"></canvas><b>'+TR(E.n)+'</b><div class="ebCyl">'+cyl+'</div></div>';
@@ -13887,7 +13946,7 @@ function explode(cause){
   BOOMV=BOOM_VARS[0]; // signature FIXE « FEU » (réf. illustrations) — la variété vient des volutes, plus d'une roulette de couleurs
   // la chaîne part en fumée avec la caisse — le sel du bank-or-bust
   // (garde mode==='fall' : une explosion au sol après avoir encaissé ne perd rien)
-  if(chain>0&&mode==='fall'){
+  if((chain>0||chainVal>0)&&mode==='fall'){ // (2026-09-26) un report ou un rase-dalle en jeu, c'est aussi une mallette à perdre
     const lost=chainEst();
     if(!insUsed){ // L'ASSURANCE : le filet des débutants — 30 % de la mallette sauvés, UNE fois par run.
       insUsed=true; // Elle enseigne la règle en la cassant : « pose-toi AVANT d'exploser ».
@@ -14049,8 +14108,11 @@ function explode(cause){
 // (2026-09-25) PASSER L'EXPLOSION : une fois le souffle retombé (flash, anneaux, cœur éteints ≈ 0,8 s de simulation), un tap saute au
 // bilan. On ne court-circuite PAS endGame : boomT=1.8 laisse la frame suivante éteindre la lumière, les anneaux et les débris.
 function boomSkip(){ if(mode!=='boom'||gameOver||paused||boomT<=.8)return false; boomT=1.8; return true; }
+const jeteObj=o=>o.traverse(n=>{if(n.geometry&&!n.isSprite)n.geometry.dispose();const mm=Array.isArray(n.material)?n.material:[n.material];for(const m of mm)if(m&&m.dispose)m.dispose();});
 function clearBoom(){
-  for(const d of debris)scene.remove(d.m);
+  // (2026-09-26, passe fuites) chaque mort laissait ~16 géométries sur le GPU (éclats, anneaux, cœur, objets de signature) : on les
+  // LIBÈRE — sauf les débris `part` (clones de la caisse : ils partagent SA géométrie)
+  for(const d of debris){scene.remove(d.m);if(!d.part)jeteObj(d.m);}
   debris.length=0;
   for(const k9 of skulls){scene.remove(k9.m);k9.m.material.dispose();}
   skulls.length=0;
@@ -14058,13 +14120,12 @@ function clearBoom(){
   chips.length=0;
   for(const b of bills)scene.remove(b.m);
   bills.length=0;
-  if(boomRing){scene.remove(boomRing);boomRing=null;}
-  if(boomRing2){scene.remove(boomRing2);boomRing2=null;}
-  if(boomRing3){scene.remove(boomRing3);boomRing3=null;}
-  for(const r9 of extraRings){scene.remove(r9.m);r9.m.material.dispose();}
+  for(const r9 of [boomRing,boomRing2,boomRing3])if(r9){scene.remove(r9);jeteObj(r9);}
+  boomRing=boomRing2=boomRing3=null;
+  for(const r9 of extraRings){scene.remove(r9.m);jeteObj(r9.m);}
   extraRings.length=0;
   clearBoomArt(); // volutes + dards de la boule de feu
-  if(boomCore){scene.remove(boomCore);boomCore=null;}
+  if(boomCore){scene.remove(boomCore);jeteObj(boomCore);boomCore=null;}
   if(boomLight){boomLight.intensity=0;boomLight.distance=30;boomLight.color.setHex(0xffd06a);boomLight=null;} // rendue à la pose, JAMAIS retirée de la scène
   boomT=-1;carGroup.visible=true;flashEl.style.background='#ff2020';
 }
@@ -16605,7 +16666,7 @@ const SAVE={
       if(Array.isArray(d.owned))for(const x of new Set(d.owned.map(v=>Math.round(+v))))rb+=OLD[x]||0;
       c.bank=Math.min(1e30,c.bank+rb);c.owned=[];c.ex.floor=0;c.equipped=0;c.bestCar=0;
     }
-    c.gamme=2;
+    c.gamme=3; // (2026-09-26) la valeur par défaut : 2 faisait repasser la migration à chaque chargement
     return c;
   },
   load(){
@@ -17614,6 +17675,7 @@ function dolHudTick(dt){ // gate de course, quel que soit le mode
   if(dolHudT>0){dolHudT-=dt;if(dolHudT<=0)dolHudOff();}
 }
 function respawn(){
+  trailL.init=trailR.init=false;rainbow.init=false; // (2026-09-26) pas de ruban tendu jusqu'au point de replacement
   dolKill(); // (dauphin v3) replacer, repartir, recommencer : l'étiquette s'éteint, rien n'est versé
   momT=0; // (momentum v2) repartir = réserve vide
   if(introD){introD=false;if(pigGroup){scene.remove(pigGroup);pigGroup=null;}} // R pendant le largage : on annule proprement
@@ -17661,7 +17723,10 @@ function checkUpgrade(){
    (l'ovule se traverse d'où qu'on vienne, y compris en tombant du ciel). Le test ne vivait que dans la branche « au sol » de la
    boucle : en l'air, on traversait l'ovule sans rien déclencher. */
 function portailPasse(){
-  if(mode==='fall'){airPie.style.display='none';try{dolFin();}catch(e){}vA=Math.max(vA,Math.hypot(fallVel.x,fallVel.z));} // traversé en VOL : le vol s'arrête proprement, l'élan est gardé (inertie)
+  if(mode==='fall'){airPie.style.display='none';try{dolFin();}catch(e){}vA=Math.max(vA,Math.hypot(fallVel.x,fallVel.z)); // traversé en VOL : le vol s'arrête proprement, l'élan est gardé (inertie)
+    // (2026-09-26) …et la CHAÎNE est ENCAISSÉE comme à une pose : avant, l'argent de la mallette disparaissait sans un mot et le HUD restait affiché
+    if(chain>0||chainVal>0){const g9=Math.round(flowMult()*chainEst());if(g9>0){money+=g9;levelCash+=g9;runStats.tricks++;checkUpgrade();trickMsg('CHAÎNE ENCAISSÉE +'+fmtC(g9),2);}}
+    chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;}
   flashEcran('rgba(255,79,216,.6)'); // l'annonce, c'est « NIVEAU n — LIEU » (lvlAnnonce, couloir des annonces) : une seule voix au centre
   portalSnd();boostSnd();shake=.5;
   const zb=denom()*24*(fever>0?2:1);money+=zb;levelCash+=zb;checkUpgrade(); // portail : 40→24 (régulation 2026-07-30)
@@ -17674,6 +17739,8 @@ function portailPasse(){
 }
 function startFall(impU,impF){
   traceTick(false); // (2026-09-26) le ruban de gomme se coupe au décollage
+  loop._nAir=nitroOn; // (2026-09-26) l'impulsion est celle de l'ALLUMAGE en vol : tenue depuis le sol, elle ne compte pas — mais elle ne dépend plus du vol d'avant
+  lastNearS=s;        // (2026-09-26) le couloir de proximité (LOD, aimant) part d'ICI, pas de la fin du vol précédent (les pièces clignotaient une image)
   FROLE.s0=null;FROLE.n=0;FROLE.t=0; // (2026-09-25) un plot SURVOLÉ n'est pas un frôlé : le balayage repart de l'atterrissage
   mode='fall';fallT=0;fallTR=0;yawAcc=0;airRoll=0;trkBigA=false;trkMonstre=false; // (momentum v2) le saut ne remet plus la réserve à zéro : c'est la POSE qui juge
   driftC=0;driftLv=0;driftEnCours=false;driftArm=0;yawR=0;slipB=0;glisse9=0;driftYaw=0;carRoll9=0;rollV=0;pitch9=0;carBody.rotation.set(0,0,0);carBody.position.set(0,0,0); // une glisse ne survit pas au décollage (pas de mini-turbo en l'air)
@@ -17835,7 +17902,7 @@ function tryLand(dt){
     }
   }
   // ---- LE VERDICT : la CHAÎNE se cashe — grade de réception × face × série ----
-  if(fallT>.7||chain>0){
+  if(fallT>.7||chain>0||chainVal>0){ // (2026-09-26) chainVal>0 : le REPORT annoncé au décollage se paie même sur une courte sortie
     // le grade juge tout le vol : pose soyeuse = jackpot, pose écrasée = décote
     let g=1,gTxt='';
     if(impact<4.5&&landLoss<.2){g=1.5;gTxt='PARFAIT ! ';hitT=.08;hap(15);}
@@ -17962,10 +18029,12 @@ function traceTick(actif){
 }
 function newTrack(){
   traceVide(); // (2026-09-26) les traces de pneus restent sur l'ancienne route
+  trailL.init=trailR.init=false;rainbow.init=false; // (2026-09-26) sinon le ruban de nitro se tendait de l'ancien ovule à la nouvelle piste
   loop._rebuildT=performance.now(); // la construction d'une zone fait un pic : la qualité auto ne doit pas le prendre pour de la faiblesse
   const sd=(Math.random()*1e9)|0;
   const niv=lvlChoisir(); // LE NIVEAU D'ABORD : buildClouds et buildVoxCity le lisent pendant la construction
   buildTrack(sd);
+  conesInstancier(); // (perf) les plots de la nouvelle piste, en instances
   // LE CIEL : chaque NIVEAU tire le sien dans sa propre liste (voir NIVEAUX). Hors niveaux (parc
   // freestyle), l'ancien CYCLE DU CIEL : une heure du jour au hasard, jamais deux fois la même de
   // suite, et la VRAIE NUIT au 3e portail (runStats.zones est ++ AVANT newTrack, remis à 0 par resetGame).
@@ -18003,6 +18072,8 @@ function die(){
 }
 function resetGame(){
   clearBoom();
+  mortCause='';loop._nAir=false; // (2026-09-26) rien ne passe d'une partie à l'autre
+  if(TUTO.on)tutoDebut();        // (2026-09-26) RECOMMENCER à l'auto-école repart de la 1re consigne
   money=START_CASH; // on repart avec la mise de départ, jamais à sec
   // LA CAISSE ÉQUIPÉE S'APPLIQUE (2026-08-03) — les règles de déblocage étant tranchées, le bouton
   // ÉQUIPER du garage sert enfin. « On repart en bas de l'échelle » reste vrai : ce qui redémarre à
@@ -18075,6 +18146,8 @@ function commitExploits(){
 function endGame(){
   if(SANDBOX&&started&&!gameOver){ sandRevive(); return; } // ENTRAÎNEMENT : la mort n'est qu'un replacement — aucun score n'est enregistré
   if(TUTO.on&&started&&!gameOver){ sandRevive(); if(TUTO.i>=3){TUTO.i=2;TUTO.air=0;} tutoAffiche('RATÉ ! ON RECOMMENCE'); return; } // AUTO-ÉCOLE : on ne meurt pas en apprenant
+  if(mode!=='boom')mortCause=''; // (2026-09-26) QUITTER n'est pas une mort : pas la cause de la partie d'avant
+  try{if(CHA.n&&mode==='drive')chaineEncaisse();}catch(e){} // (2026-09-26) la chaîne d'aura ouverte est encaissée, pas oubliée
   gameOver=true;airPie.style.display='none';chainHud.style.opacity=0;caseHud.style.opacity=0;
   musicStop(true);setTimeout(function(){if(gameOver)musicMenu();},1400); // TAPE-STOP de fin, puis la musique du menu revient, étouffée
   dolKill();serpShow=0; // les créatures ne survivent pas à l'explosion
@@ -18477,7 +18550,8 @@ function sirenInit(){
 const FB={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
 const svM4=new THREE.Matrix4(),svT1=new THREE.Vector3(); // temp partagé de la meute (jamais d'alloc chaude)
 function survStart(){
-  for(const b of SURV.bots)if(b.mesh)scene.remove(b.mesh.g); // grand ménage de l'escadron précédent
+  for(const b of SURV.bots)if(b.mesh){scene.remove(b.mesh.g); // grand ménage de l'escadron précédent
+    b.mesh.g.traverse(o=>{if(o.userData&&o.userData.sol){if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose();}});} // (2026-09-26) ses flaques, propres à chaque voiture
   SURV.on=SURV.armed&&!PARK.on;SURV.t=0;SURV.over=false;SURV.bots=[];SURV._r=0;SURV.pBase=0;SURV.ph=0;SURV.last=false; // FREESTYLE : jamais de police dans le parc
   SURV.jumpZones=[];SURV.pMode=mode;SURV._launchD=0;SURV._launchT=0; // mémoire de tes décollages sur CETTE piste
   survHudEl.style.display=SURV.on?'block':'none';
@@ -18706,7 +18780,7 @@ function survTick(dt){
           const kv=new THREE.Vector3().copy(T[bi]).multiplyScalar(Math.max(8,b.v*.55))
             .addScaledVector(B[bi],(b.lat-c9.lat>0?-1:1)*(2+Math.random()*4))
             .addScaledVector(Nn[bi],5+Math.random()*5);
-          c9.mesh.matrixAutoUpdate=true; // (perf) il valse : il redevient mobile
+          coneVole(c9); // (perf) il quitte l'instance : un vrai plot part valser
           FLYCONES.push({m:c9.mesh,v:kv,rx:(Math.random()-.5)*16,rz:(Math.random()-.5)*16,life:1.6});
           b.v*=.985;
           if(b.mesh.g.visible)sparkBurst(sparkGold,c9.mesh.position,5,6);
@@ -19358,7 +19432,7 @@ function garageFamilles(r){
 const PHQ={q:[],on:false};
 function photoFile(i,cb){if(PHOTO.cache[i]){cb(PHOTO.cache[i]);return;}PHQ.q.push([i,cb]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
 function photoTour(){
-  if(!PHQ.q.length){PHQ.on=false;return;}
+  if(!PHQ.q.length||!garageOn){PHQ.on=false;return;} // (2026-09-26) garage fermé : la file attend le prochain passage (openGarage la relance)
   if(GAR.sw||GAR.go){requestAnimationFrame(photoTour);return;}
   const it=PHQ.q.shift();let u=PHOTO.cache[it[0]];if(!u)try{u=carPhoto(it[0]);}catch(e){u=null;}
   if(u)it[1](u);requestAnimationFrame(photoTour);
@@ -19438,6 +19512,7 @@ function shopShow(cat,i){
 // menu s'est mis à traverser tout l'étal). Le garage RESTE la scène du départ (porte qui s'ouvre,
 // boost, logo) ; c'est seulement le PAPIER PEINT du shop qui n'a rien à faire sur un lancement rapide.
 function openGarage(quiet){
+  try{if(PHQ.q.length&&!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}catch(e){} // (2026-09-26) les photos en attente reprennent
   if(started&&!gameOver){showMsg('Le garage se visite depuis le menu');return;} // ⚠ gameOver = on EST au menu : refuser ici bloquait le bouton apres la 1re partie
   garageOn=true;gEl.classList.add('on');gEl.classList.toggle('quiet',!!quiet);overlay.style.display='none';document.body.classList.add('inGarage');
   if(pigGroup)pigGroup.visible=false;
@@ -20269,7 +20344,7 @@ function loop(now){
           const kv=new THREE.Vector3().copy(F.t).multiplyScalar(Math.max(8,Math.abs(vA)*.55))
             .addScaledVector(F.b,(dl9>0?-1:1)*(2+Math.random()*4))
             .addScaledVector(F.n,(5+Math.random()*5)*side); // il valse en s'ÉLOIGNANT de sa dalle
-          c9.mesh.matrixAutoUpdate=true; // (perf) il valse : il redevient mobile
+          coneVole(c9); // (perf) il quitte l'instance : un vrai plot part valser
           FLYCONES.push({m:c9.mesh,v:kv,rx:(Math.random()-.5)*16,rz:(Math.random()-.5)*16,life:1.6});
           vA*=.985;shake=Math.max(shake,.14);
           try{coneSnd();}catch(e){}hap(10);
@@ -20929,11 +21004,7 @@ function loop(now){
         if(pk.nitro||pk.pow){if(pk.sc0==null)pk.sc0=pk.mesh.scale.x;pk.mesh.scale.setScalar(pk.sc0*(1+(pk.pow?.10:.08)*Math.sin(t*6+pk.s)));} // (2026-09-26) le battement RESPECTE l'échelle (il ramenait les fruits de ×1,9 à ×1)
         pk.mesh.updateMatrix(); // (perf) les objets sont GELÉS : on recalcule à la main ceux qui tournent (et ceux que l'aimant a tirés plus haut)
       }
-      for(const c9 of CONES){ // les plots ne s'animent pas, mais ils coûtent un draw call chacun
-        if(c9.hit)continue;   // un plot qui valse appartient à FLYCONES : on ne touche pas à sa visibilité
-        const vis=Math.abs(c9.s-cS)<lodR;
-        if(c9.mesh.visible!==vis)c9.mesh.visible=vis;
-      }
+      // (perf) les plots immobiles sont des INSTANCES (voir conesInstancier) : ni visibilité à tenir, ni draw call par plot
     }
     for(let i9=FLYCONES.length-1;i9>=0;i9--){
       const c9=FLYCONES[i9];
