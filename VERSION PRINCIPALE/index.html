@@ -2188,6 +2188,34 @@
   #avGain{display:none!important}   /* l'encaissement vit DANS le tableau de bord (et dans le couloir s'il est gros) */
   body.ebOn #popTxt{visibility:hidden}   /* la carte du moteur est posée sur la caisse : le geste attend */
   body.coOn #flowHud,body.coOn #auraV2{visibility:hidden}   /* l'auto-école garde le haut de l'écran pour elle */
+  /* ===== LES PETITES ANIMATIONS (2026-09-26, user : « barre de nitro avec des flammes animées quand nitro infini, et plein
+     d'autres petites animations comme ça partout ») — chacune dit quelque chose, aucune ne bouge pour rien =====
+     · la JAUGE EN FEU (#nitroFeu, le feu de DOOM en pixels) : brasier en NITRO MAX, frange de flammes au boost ;
+     · la jauge chauffée à blanc pendant NITRO MAX (.inf) ;
+     · les POUVOIRS : leur temps restant fond sous le nom, ils clignotent la dernière seconde et demie ;
+     · la BANDE DU FLOW : un reflet la balaie tant qu'on tient un palier ;
+     · le NIVEAU : ses lettres tombent une à une ;
+     · le CHRONO DE VOL tremble sous 1,5 s ;
+     · les grandes annonces heureuses (FRÉNÉSIE, RECORD, ×8, MÉTÉORE, grosse chaîne) éclatent en confettis pixel. */
+  #nitroFeu{position:absolute;left:0;width:100%;bottom:calc(100% - 10px);height:46px;pointer-events:none;image-rendering:pixelated;
+    image-rendering:crisp-edges;z-index:2;opacity:0;transition:opacity var(--t-fast) var(--ease)}
+  #nitroFeu.on{opacity:1}
+  body.touch #nitroBar.inf{box-shadow:inset 0 0 0 3px #fff3c4,0 4px 0 #170f55,0 0 26px rgba(255,170,40,.95),0 0 44px rgba(255,90,20,.55)!important}
+  body.touch #nitroBar.inf #nitroR,body.touch #nitroBar.inf #nitroX{background-image:repeating-linear-gradient(-45deg,rgba(255,255,255,.45) 0 6px,transparent 6px 14px),
+    linear-gradient(180deg,#fffbe6 0 3px,#ffd75e 3px 50%,#ffab1a 50% calc(100% - 3px),#c45a00 calc(100% - 3px))!important;background-size:20px 20px,100% 100%!important;
+    animation:nbFile .18s linear infinite!important}
+  body.touch #pwrChip span{position:relative;overflow:hidden}
+  body.touch #pwrChip span i{position:absolute;left:5px;right:5px;bottom:3px;height:3px;background:currentColor;transform-origin:left center;transform:scaleX(var(--p,1));opacity:.85}
+  body.touch #pwrChip span.fin{animation:chipFin .24s steps(2) infinite}
+  @keyframes chipFin{50%{opacity:.25}}
+  body #flowHud:not([data-lv="0"])::after{content:'';position:absolute;top:0;bottom:0;left:-45%;width:38%;pointer-events:none;
+    background:linear-gradient(100deg,transparent,rgba(255,255,255,.2),transparent);animation:fSheen 2.6s var(--ease) infinite}
+  @keyframes fSheen{0%,45%{left:-45%}100%{left:125%}}
+  #lvlBan.on #lvlNum i{display:inline-block;font-style:normal;animation:lvlLettre .5s var(--ease) both}
+  @keyframes lvlLettre{from{opacity:0;transform:translate3d(0,-26px,0) scale(1.7)}to{opacity:1;transform:none}}
+  body.touch #airPie.danger{animation:pieDanger .12s steps(2) infinite}
+  @keyframes pieDanger{50%{transform:translate(2px,-1px) rotate(4deg)}}
+  @media (prefers-reduced-motion:reduce){#nitroFeu{display:none}body.touch #pwrChip span.fin,body #flowHud::after,#lvlBan.on #lvlNum i,body.touch #airPie.danger{animation:none}}
   @media (prefers-reduced-motion:reduce){body #flowHud.monte,body #flowHud.lache,body #flowHud.presque .fSeg i.cur s,body #flowHud[data-lv="4"] .fSeg,
     #avRec.battu,#avRec.presque i,body #avCh.vole,body #avCh.perdu{animation:none}#avPlus.on{animation-duration:1ms;opacity:1}}
   /* ---- LE PLANCHER DE LECTURE (2026-09-25 — rappel de la passe UX du 24/09 : « textes : 8 px minimum ») ----
@@ -3927,6 +3955,8 @@ function genCtrl(rnd,startPos,startPhi){
   const arc=(aDeg,R,n,dy=0)=>{n=Math.max(n,Math.ceil(Math.abs(aDeg)/12));const a=aDeg*Math.PI/180,st=a/n,ch=2*R*Math.sin(Math.abs(st)/2);
     for(let k=0;k<n;k++){phi+=st/2;P.addScaledVector(dir(),ch);P.y+=dy/n;phi+=st/2;push();}
     approx+=Math.abs(a)*R;};
+  // (route v3c) une « droite » qui n'en est pas une : un arc léger de a° sur l mètres — la piste ne va plus jamais tout droit
+  const courbe=(l,dy,aDeg,n)=>{const a=Math.max(4,Math.abs(aDeg)),s9=aDeg<0?-1:1;arc(s9*a,l/(a*Math.PI/180),n||2,dy);};
   const LOOPI=new Set(); // les points des loopings : l'adoucissement des crêtes n'y touche pas (le haut d'un loop EST une crête, voulue)
   const loop=(R,shift)=>{const base=P.clone(),d=dir(),sx=Math.cos(phi),sz=-Math.sin(phi);
     for(let q=ctrl.length-2;q<ctrl.length+10;q++)LOOPI.add(q);
@@ -3945,11 +3975,16 @@ function genCtrl(rnd,startPos,startPhi){
        va »). Les motifs qui ENROULENT la route sur elle-même (hélice, spirale 1,5-2,5 tours, tire-bouchon, entrelacs)
        pesaient jusqu'à 40 % d'une zone : on passait de longues secondes à tourner sans rien voir venir. Ils deviennent
        RARES (l'entrelacs disparaît) au profit des DROITES, des grands virages et des esses — des courbes qu'on LIT. */
-    {nm:'FLOW',   w:[5,2,2,24,8,22,8,20,6,3,3,1,0],    rs:1.35,vt:.8},  // autoroute céleste : sweepers qui chantent — et LE gap
-    {nm:'TECH',   w:[3,1,12,18,6,12,6,18,16,2,0,1,0],  rs:.92, vt:.9},  // slalom : épingles, chicanes (zéro gap : on est en ville)
-    {nm:'ALPIN',  w:[3,1,3,10,18,10,18,20,4,2,3,1,0],  rs:1.1, vt:1.4}, // crêtes et plongeons (adoucis : voir `adoucirCretes`)
-    {nm:'VOLTIGE',w:[18,3,3,10,10,9,10,14,5,3,2,3,0],  rs:1.15,vt:1.1}, // le ciel est un cirque : les LOOPS (qu'on voit venir)
-    {nm:'GRAND8', w:[8,2,6,14,10,14,10,18,8,3,1,1,0],  rs:1,   vt:1}    // mixte équilibré
+    /* ⚠ ROUTE v3 (2026-09-26, user : « enlève toutes les structures trop bizarres, ne laisse que quelques loopings de temps en
+       temps ») : hélice, spirale, tire-bouchon et entrelacs sont à ZÉRO partout (leur code est parti avec) ; le looping est un
+       looping SEUL, espacé d'au moins 1,6 km (plus de doublé) ; les pentes de plongeon et de momentum sont bornées (≤ ~30°). */
+    /* ROUTE v3b (même jour, « ça va trop tout droit : rajoute des GRANDS VIRAGES, tout un parcours fun ») : la droite de momentum
+       tombe de ~20 à 6 ; les grands virages, les esses et le GRAND BALAYAGE (motif 9, 100-150° à fond) portent la piste. */
+    {nm:'FLOW',   w:[3,0,3,26,6,30,4,6,6,16,3,0,0],    rs:1.15,vt:.8},  // autoroute céleste : sweepers qui chantent — et LE gap
+    {nm:'TECH',   w:[2,0,14,22,4,20,3,6,16,8,0,0,0],   rs:.92, vt:.9},  // slalom : épingles, chicanes (zéro gap : on est en ville)
+    {nm:'ALPIN',  w:[2,0,4,14,12,22,10,8,4,12,3,0,0],  rs:1.1, vt:1.4}, // crêtes et plongeons (adoucis : voir `adoucirCretes`)
+    {nm:'VOLTIGE',w:[7,0,4,16,8,22,6,6,5,14,2,0,0],    rs:1.15,vt:1.1}, // le ciel est un cirque : un LOOP de temps en temps
+    {nm:'GRAND8', w:[4,0,7,18,8,24,6,6,8,14,1,0,0],    rs:1,   vt:1}    // mixte équilibré
   ][Math.floor(rnd()*5)];
   zoneArch=AR.nm; // exporté pour les BIOMES
   const RS=AR.rs*LV*1.25,VT=AR.vt,LOOPS=1+(LV-1)*.35; // ×1,25 (route v2) : des rayons plus larges — les courbes se prennent, elles ne se subissent pas // les loops grossissent doucement (un loop de 120 m reste un loop)
@@ -3984,7 +4019,7 @@ function genCtrl(rnd,startPos,startPhi){
     // HOLES. Ne retirer que la rampe aurait laissé le vide sans catapulte pour le franchir —
     // c'est-à-dire une mort certaine. On rend une DROITE de momentum, celle-là même que le motif
     // servait déjà quand il n'avait plus la place : le rythme de la zone ne trébuche pas.
-    if(!GAP_ON){const l9=(140+rnd()*150)*(1+level*.04);straight(l9,-l9*(.7+rnd()*.3),2);return;}
+    if(!GAP_ON){const l9=(140+rnd()*150)*(1+level*.04);straight(l9,-l9*(.32+rnd()*.16),2);return;} // (route v3) pente ≤ ~26°, plus un toboggan à 45°
     const K=Math.min(1,level/14); // 0 = début de partie (marge GÉNÉREUSE) → 1 = endgame (exigeant)
     gapN++;
     straight(320+rnd()*90+level*9,-(12+rnd()*8),3); // LA LIGNE DROITE : longue, presque plate, rigoureusement nue — la tension monte
@@ -4012,12 +4047,14 @@ function genCtrl(rnd,startPos,startPhi){
   straight(110*LV,-70*LV,2); // DÉPART : ligne droite, rallongée avec la vitesse (était 170 m + la caisse)
   while(approx<LEN){
     const mo=pick();
-    if(mo===0&&approx-lastLoop>220){ // looping (superposition verticale)
-      straight(40+rnd()*60,-45);loop((30+rnd()*34)*LOOPS,30+rnd()*22);straight(35+rnd()*50,-42);lastLoop=approx;
-      if(rnd()<.35){straight(50+rnd()*40,-48);loop((26+rnd()*22)*LOOPS,28+rnd()*14);}
-    }else if(mo===1){ // hélice : la route s'empile sur elle-même
-      const sg=sgn(),Rh=(60+rnd()*95)*RS,ah=Math.min(120+rnd()*90,58000/Rh); // (route v2) plus qu'un grand virage qui descend : 120-210° au lieu de 260-600°
-      arc(sg*ah,Rh,8+Math.floor(rnd()*5),-(ah*Math.PI/180*Rh*(.5+rnd()*.35)));
+    if(mo===0&&approx-lastLoop>1600){ // UN looping, de temps en temps (route v3 : 1,6 km mini entre deux, plus de doublé)
+      straight(60+rnd()*50,-30);loop((30+rnd()*34)*LOOPS,30+rnd()*22);straight(60+rnd()*50,-30);lastLoop=approx;
+    }else if(mo===9){ // (route v3b) LE GRAND BALAYAGE : un virage long et LARGE, 100-150°, qui descend doucement — on le prend à fond, on le SENT
+      const sg=sgn(),R9=(110+rnd()*90)*RS,a9=Math.min(100+rnd()*60,52000/R9);
+      arc(sg*a9,R9,Math.max(5,Math.round(a9/14)),-(a9*Math.PI/180*R9*(.12+rnd()*.12)));
+    }else if(mo===0||mo===1||mo===11||mo===12){ // (route v3) looping trop proche du précédent — et les motifs retirés, par sûreté : un GRAND VIRAGE
+      const sg=sgn(),R2=(80+rnd()*120)*RS,a2=Math.min(45+rnd()*65,46000/R2);
+      arc(sg*a2,R2,3,-(a2*Math.PI/180*R2*(.35+rnd()*.3)));
     }else if(mo===2){ // épingle OUVERTE — s'évase avec le niveau (praticable à toute vitesse)
       const sg=sgn();
       straight(25+rnd()*40,-25);
@@ -4030,61 +4067,41 @@ function genCtrl(rnd,startPos,startPhi){
         arc(a,R,2,-dl);arc(-a,R,2,-dl);
       }
     }else if(mo===4){ // vague verticale : bosse + creux (crête à sauter !)
-      straight(40+rnd()*40,-(10+rnd()*20)*VT);
-      straight(50+rnd()*40,(20+rnd()*25)*VT);  // remontée surprise
-      straight(60+rnd()*50,-(90+rnd()*70)*VT); // et ça replonge
-    }else if(mo===5){ // grand virage large
-      const sg=sgn(),R2=(95+rnd()*150)*RS,a2=Math.min(30+rnd()*70,46000/R2);
+      const sg4=sgn(); // (route v3c) la vague se prend EN COURBE : trois tronçons qui tournent du même côté
+      courbe(40+rnd()*40,-(10+rnd()*20)*VT,sg4*(10+rnd()*12));
+      courbe(50+rnd()*40,(20+rnd()*25)*VT,sg4*(10+rnd()*12));  // remontée surprise
+      courbe(70+rnd()*50,-(45+rnd()*40)*VT,sg4*(12+rnd()*14)); // et ça replonge (route v3 : sans le mur de 60°)
+    }else if(mo===5){ // grand virage large — (route v3c) plus serré d'un cran et jamais sous 45° : un VRAI virage
+      const sg=sgn(),R2=(80+rnd()*120)*RS,a2=Math.min(45+rnd()*65,46000/R2);
       arc(sg*a2,R2,3,-(a2*Math.PI/180*R2*(.6+rnd()*.5)));
-    }else if(mo===6){ // plongeon, parfois presque vertical
-      straight(60+rnd()*80,-(90+rnd()*130)*VT,2);
+    }else if(mo===6){ // plongeon — (route v3) franc mais jamais vertical : pente bornée à ~30°
+      {const l6=60+rnd()*80;courbe(l6,-l6*Math.min(.58,(.28+rnd()*.2)*VT),sgn()*(10+rnd()*10));}
       const sg=sgn(),a3=25+rnd()*50,R3=(90+rnd()*80)*RS;
       arc(sg*a3,R3,2,-(a3*Math.PI/180*R3*.8));
-    }else if(mo===7){ // ligne droite à 45° (zone de momentum)
-      const l=(100+rnd()*130)*LV;
-      {const a7=12+rnd()*16;arc(sgn()*a7,l/(a7*Math.PI/180),3,-l*(.75+rnd()*.3));} // (piste v6) la ligne de momentum se CINTRE : une longue courbe, plus une règle
+    }else if(mo===7){ // ligne de momentum (zone de vitesse, pente douce)
+      const l=(90+rnd()*100)*LV;
+      {const a7=20+rnd()*20;arc(sgn()*a7,l/(a7*Math.PI/180),3,-l*(.32+rnd()*.16));} // (piste v6) la ligne de momentum se CINTRE — (route v3) pente ≤ ~26° au lieu du toboggan à 45°
     }else if(mo===8){ // chicane rapide : gauche-droite-gauche à pleine vitesse
       const n8=3+Math.floor(rnd()*3),a8=16+rnd()*14,R8=(70+rnd()*90)*RS;let sg8=sgn();
       for(let q=0;q<n8;q++){arc(sg8*a8,R8,2,-(a8*Math.PI/180*R8*.5));sg8=-sg8;}
-    }else if(mo===9){ // SPIRALE GÉANTE : le manège — DÉBRIDÉE
-      // ⚠ l'ancien `Math.min(…,52000/RSp)` gagnait quasiment TOUJOURS : la « spirale géante » ne
-      // faisait en réalité que 218-371°, soit à peine un virage — d'où « je ne vois jamais de
-      // spirale ». On assume désormais 1,5 à 2,5 TOURS pleins.
-      const sg=sgn(),RSp=(120+rnd()*80)*RS*.8,aS=150+rnd()*90; // (route v2) la « spirale » devient un GRAND virage de 150-240° : on voit où il mène
-      arc(sg*aS,RSp,Math.round(aS/26),-(aS*Math.PI/180*RSp*(.30+rnd()*.16)));
     }else if(mo===10){ // LE GAP CATAPULTE — l'ÉVÉNEMENT de la zone : au plus 1 (2 dans l'endgame), jamais coup sur coup
       const vG=(level>=8&&rnd()<.22)?2:(rnd()<.42?1:0);
       if(approx<LEN-1000&&approx-lastGap>2600&&gapN<(level>=8?2:1))gapRun(vG);
-      else{const l=(100+rnd()*130)*(1+level*.04);straight(l,-l*(.75+rnd()*.3),2);} // déjà servi (ou pas la place) : droite de momentum, le rythme ne trébuche pas
-    }else if(mo===11){
-      // ---- LE TIRE-BOUCHON : on VISSE dans le ciel ----
-      // Rayon SERRÉ + 1,5 à 2,6 tours pleins, avec assez de chute par tour pour que l'étage d'en
-      // dessous PASSE SOUS LA CAISSE : c'est ça, une piste emmêlée — on voit défiler sous soi la
-      // route qu'on vient de quitter. Le nombre de tours DIMINUE quand le niveau élargit les rayons
-      // (sinon un tire-bouchon d'endgame mangerait la moitié de la zone).
-      const sg=sgn(),Rv=(44+rnd()*24)*RS,tours=1,aV=tours*360; // (route v2) UN tour, pas 1,5 à 2,6
-      straight(28+rnd()*30,-18);                              // on se cale avant de visser
-      arc(sg*aV,Rv,Math.round(aV/22),-((52+rnd()*28)*tours)); // la chute par tour = l'écart entre étages
-      straight(38+rnd()*38,-24);                              // et on ressort à plat
-    }else{
-      // ---- L'ENTRELACS : la route se NOUE ----
-      // Une hélice dans un sens, puis l'autre AUSSITÔT, sans respiration entre les deux : le ruban
-      // se croise avec lui-même et on ne sait plus où est le haut. Le nœud du générateur.
-      const sg=sgn(),Re=(52+rnd()*34)*RS,a1=300+rnd()*240,a2=280+rnd()*240;
-      arc(sg*a1,Re,Math.round(a1/24),-(a1*Math.PI/180*Re*(.34+rnd()*.14)));
-      arc(-sg*a2,Re*(.82+rnd()*.30),Math.round(a2/24),-(a2*Math.PI/180*Re*(.30+rnd()*.14)));
+      else{const l=(100+rnd()*130)*(1+level*.04);courbe(l,-l*(.32+rnd()*.16),sgn()*(24+rnd()*20),3);} // déjà servi (ou pas la place) : courbe de momentum, le rythme ne trébuche pas
     }
+    // (route v3, 2026-09-26) le TIRE-BOUCHON et l'ENTRELACS sont partis, comme l'hélice et la spirale : « des structures trop bizarres »
     // RESPIRATION entre motifs : plus RARE et plus COURTE (.6→.42). C'était l'autre raison du
     // « tout se ressemble » : le liant entre deux motifs était TOUJOURS le même bout de droite.
-    straight(0,0,0);{const l9=(60+rnd()*50)*LV,a9=8+rnd()*14;arc(sgn()*a9,l9/(a9*Math.PI/180),4,-(8+rnd()*8)*LV);} // (piste v6/v7) la RESPIRATION est un virage de liaison (60-110 m, 8-22°, 4 points : 35 m sur 2 points faisait un coude)
+    straight(0,0,0);{const l9=(50+rnd()*40)*LV,a9=16+rnd()*20;arc(sgn()*a9,l9/(a9*Math.PI/180),4,-(8+rnd()*8)*LV);} // (route v3c) 16-36° : la liaison TOURNE // (piste v6/v7) la RESPIRATION est un virage de liaison (60-110 m, 8-22°, 4 points : 35 m sur 2 points faisait un coude)
   }
   // SIGNATURE DE FIN : chaque archétype clôt SA zone par SON geste — la zone se retient
-  if(AR.nm==='VOLTIGE'){straight(50,-46);loop(34*LOOPS,34);straight(40,-40);loop(28*LOOPS,26);}
-  else if(AR.nm==='ALPIN'){straight(70,-160);straight(80,26);gapRun(1);} // ALPIN se clôt SUR LE VIDE : arrivée surélevée, dernier engagement avant le portail
+  if(AR.nm==='VOLTIGE'){if(approx-lastLoop>900){straight(60,-30);loop(34*LOOPS,34);straight(60,-30);}else straight(120,-30,2);} // (route v3) UN looping, plus le doublé
+  else if(AR.nm==='ALPIN'){straight(90,-50);straight(80,26);gapRun(1);} // ALPIN se clôt SUR LE VIDE : arrivée surélevée, dernier engagement avant le portail
   else if(AR.nm==='FLOW'){arc(sgn()*110,220*Math.min(2,LV),6,-160);}
   else if(AR.nm==='TECH'){let sgF=sgn();for(let q=0;q<3;q++){arc(sgF*24,90*RS,2,-26);sgF=-sgF;}}
-  else{const sg=sgn();arc(sg*420,80*RS,12,-(420*Math.PI/180*80*RS*.5));}
+  else{const sg=sgn();arc(sg*100,170*RS,5,-(100*Math.PI/180*170*RS*.3));} // (route v3) un grand virage de fin, plus la spirale de 420°
   straight(110*LV,-66*LV,2); // ARRIVÉE : ligne droite claire vers le portail
+  lisserRaccords(ctrl,LOOPI);   // (route v3b) plus de cassure de pente d'un motif à l'autre
   adoucirCretes(ctrl,LOOPI);    // plus de crête AVEUGLE (voir la fonction)
   return ctrl;
 }
@@ -4099,6 +4116,17 @@ function genCtrl(rnd,startPos,startPhi){
    dy = excès / (1/h1 + 1/h2) ramène la cassure pile au seuil. Quelques passes (un sommet en dégage un autre).
    ⚠ AUCUN tirage `rnd` : la suite seedée de la piste est intacte (portails, pouvoirs, pièces ne bougent pas).
    ⚠ Les loopings sont exclus (`skip`), et un segment quasi vertical (plongeon, loop) n'a pas de pente lisible. */
+/* LES RACCORDS ENTRE MOTIFS (route v3b, 2026-09-26, user : « il y a des problèmes de génération de route entre différents modules »).
+   Chaque motif pose SA pente (un plongeon à −30 %, puis un grand virage à −12 %, puis une bosse à +40 %…) : au point de jonction la
+   pente CASSE d'un coup — une marche dans le ruban, la caisse tape ou décolle sans raison. Trois passes d'un filtre [¼ ½ ¼] sur
+   l'altitude seule (le tracé en plan ne bouge pas), pondéré par la longueur des segments ; les loopings et leurs voisins sont exclus. */
+function lisserRaccords(P,skip){
+  for(let pass=0;pass<3;pass++){const y=P.map(function(p){return p.y;});
+    for(let i=1;i<P.length-1;i++){if(skip&&(skip.has(i)||skip.has(i-1)||skip.has(i+1)))continue;
+      const a=P[i-1],b=P[i],c=P[i+1],h1=Math.max(1,Math.hypot(b.x-a.x,b.z-a.z)),h2=Math.max(1,Math.hypot(c.x-b.x,c.z-b.z));
+      const yl=y[i-1]+(y[i+1]-y[i-1])*h1/(h1+h2); // l'altitude qu'aurait une pente CONTINUE à cet endroit
+      P[i].y=y[i]*.5+yl*.5;}}
+}
 function adoucirCretes(P,skip){
   for(let pass=0;pass<6;pass++){let bouge=false;
     for(let i=1;i<P.length-1;i++){if(skip&&skip.has(i))continue;
@@ -4106,6 +4134,7 @@ function adoucirCretes(P,skip){
       if(h1<4||h2<4)continue;
       const g1=(b.y-a.y)/h1,g2=(c.y-b.y)/h2,seuil=g1>-.05?.30:.45; // crête franche : 0,30 · lèvre d'une descente qui s'accentue : 0,45
       if(g1-g2>seuil){b.y-=(g1-g2-seuil)/(1/h1+1/h2);bouge=true;}
+      else if(g2-g1>.40){b.y+=(g2-g1-.40)/(1/h1+1/h2);bouge=true;} // (route v3b) le CREUX aussi : un fond de cuvette trop sec, la caisse y tapait
     }
     if(!bouge)break;}
 }
@@ -4558,10 +4587,6 @@ function buildTrack(seed){
   plight.position.copy(PORTAL.c);
   scene.add(plight);trackMeshes.push(plight);
   buildParkGround(); // FREESTYLE : la prairie sous la boule (no-op en course)
-  // (2026-09-26) l'altitude mini de la route sur ~1,5 km DEVANT chaque point (file monotone, O(n)) : la ville s'y cale (cityTick)
-  VILLE_MIN=null;
-  if(LVL.cur&&LVL.cur.id==='ville'&&!PARK.on&&NP>1){const W9=Math.max(2,Math.round(1500/(L/(NP-1)))),m9=new Float32Array(NP),dq=new Int32Array(NP);let h9=0,t9=0;
-    for(let i=NP-1;i>=0;i--){while(t9>h9&&pts[dq[t9-1]].y>=pts[i].y)t9--;dq[t9++]=i;while(dq[h9]>i+W9)h9++;m9[i]=pts[dq[h9]].y;}VILLE_MIN=m9;}
   buildVoxCity(seed,accC); // LA VILLE SOUS LES NUAGES : le fond de scène, en briques (no-op au parc)
 }
 /* ---------- LA VILLE SOUS LES NUAGES — LE FOND DE SCÈNE EN VOXELS (2026-09-11) ----------------
@@ -4604,150 +4629,217 @@ function buildTrack(seed){
    suit avec retard se laisse rattraper dans les plongeons et reprend sa distance ensuite.
    ⚠ le couperet du plongeon fatal (`trackMinY-120`) n'est jamais atteint au-dessus des toits :
    la ville se regarde, elle ne se percute jamais. ------------------------------------------------ */
+/* ================= LA VILLE v3 — LE CANYON DU VILLAGE DE LA PLUIE (2026-09-26) =================
+   User : « je préférais quand la route était plus proche des immeubles ; le niveau dans la ville est celui qui a le plus de
+   potentiel mais c'est mal maîtrisé — retravaille tous les éléments de la ville pour un truc vraiment premium, compatible iPhone ».
+   MESURÉ AVANT : la v2 était un PLANCHER qui suivait la caméra 520 à 1 200 m plus bas (captures du 26/09 : on n'en voyait RIEN
+   — seule la couronne peinte de l'horizon et la pluie). La v3 renverse le principe : la ville est bâtie AUTOUR DU RUBAN, en
+   coordonnées monde, chaque tour calée sur la route qui passe près d'elle :
+     · LE CANYON, à 55-330 m de l'axe : des murs de tours qui MONTENT au-dessus de la route (−50 à +360 m) — on roule dans une
+       rue de gratte-ciel, pas au-dessus d'un tapis ;
+     · SOUS LE RUBAN : des blocs bas, toits 60 m sous la dalle au moins ;
+     · AU LARGE (330-1 100 m) : la forêt de tours du village, jusqu'à la couronne peinte de l'horizon.
+   LA RÈGLE D'OR (`tourLibre`) : aucune tour ne coupe la route, où que le ruban repasse — au-dessus d'elle (la tour se raccourcit)
+   ou en dessous (son pied se relève). Balayage d'une grille de hachage des points de piste : coût de construction, zéro par image.
+   LES PIEDS NE SE POSENT SUR RIEN : ils se NOIENT dans la brume (fondu vers la couleur du brouillard sur 280 m, avec la lueur
+   néon qui monte des rues) — le village de la pluie émerge de la brume, quelle que soit l'altitude de la route (4 km d'amplitude).
+   LE RENDU PREMIUM À COÛT FIXE (iPhone) — TROIS appels de rendu pour toute la ville :
+     · les TOURS (Lambert, teinte par instance) avec leurs FENÊTRES dans le shader (maille 3,2 × 4 m, allumées au hasard, ambre,
+       cyan, rose) : des milliers d'étages allumés pour zéro géométrie, fondus en lueur moyenne au loin (pas de moiré) ;
+     · les NÉONS (enseignes, couronnes, feux d'antenne) qui respirent, dont quelques-uns clignotent et une poignée grésille ;
+     · la CIRCULATION : des voitures volantes en files (phares blancs d'en face, feux rouges devant) qui filent le long du ruban —
+       le vertex shader les déplace, une instance = un véhicule, zéro CPU par image.
+   ⚠ LE TIRAGE EST UN FLUX DÉRIVÉ (`seed^0x5EED10C1`), JAMAIS `rnd` : la piste en aval ne bouge pas d'un mètre. */
 const VOX_M=.05;            // LA BRIQUE. Le module de base du jeu, et il n'y en a qu'un.
 const VOX_CITY=VOX_M*128;   // 6,4 m — la maille de la ville : un multiple ENTIER de la brique.
-const CITY_R=3000, CITY_STEP=130, CITY_H=420;
-const CITY_BELOW=660, CITY_LAG=.55, CITY_MIN=520, CITY_MAX=1700; // suivi d'altitude : voir cityTick — 900→660 (2026-09-24) : au niveau VILLE on la SURVOLE, on ne la devine pas (tours plafonnées à CITY_MIN−50 : elles ne percent jamais la route)
-const CITY={root:null};
-function buildVoxCity(seed,accC){
-  CITY.root=null;
-  if(PARK.on)return; // le parc a sa prairie : deux sols l'un dans l'autre, ça ne se voit pas mais ça se paie
-  if(LVL.cur&&LVL.cur.id!=='ville')return; // NIVEAUX : la ville n'existe qu'au niveau VILLE (sous les nuages ou en orbite, on ne la verrait pas)
-  const vr=mulberry32(seed^0x5EED10C1); // flux DÉRIVÉ (voir ⚠ ci-dessus)
-  // ⚠ LA VILLE EST BÂTIE À L'ORIGINE LOCALE (gy=0) DANS UN GROUPE. C'est ce qui permet à `cityTick`
-  // de ne déplacer qu'UN objet par frame au lieu de 4 700 matrices d'instance.
-  const root=new THREE.Group();scene.add(root);CITY.root=root;
-  trackMeshes.push(root); // le groupe part de la scène au rebuild…
-  const gy=0;
-  const snap=v=>Math.max(1,Math.round(v/VOX_CITY))*VOX_CITY; // tout atterrit sur la trame, jamais entre deux
-  /* ---- LE VILLAGE CACHÉ DE LA PLUIE, VERSION CYBERPUNK (2026-09-24, user : « rends la ville plus jolie
-     en mode village caché de la pluie cyberpunk, sans que ce soit trop difficile pour un mobile ») ----
-     Ce qui fait la silhouette de ce genre de ville, vu d'avion sous la pluie : des tours GRISES,
-     HAUTES et MINCES, couturées de TUYAUX, hérissées d'ANTENNES à feu rouge — et toute la couleur
-     portée par les NÉONS (enseignes verticales, étages allumés) et les RUES qui brillent au fond.
-     ⚠ LE BUDGET NE BOUGE PAS D'UN DRAW CALL : tuyaux et antennes entrent dans l'InstancedMesh des
-     tours (Lambert, teinte par instance), enseignes et feux dans celui des étages (Basic, émissif).
-     Trois appels de rendu pour toute la ville, comme avant — plus de volumes, pas plus d'appels.
-     ⚠ LA HAUTEUR EST PLAFONNÉE sous `CITY_MIN` : `cityTick` garde le plancher à ≥ 520 sous la caméra,
-     une tour de 470 ne perce donc JAMAIS la route (les anciennes montaient à 750 — elles le pouvaient).
-     Téléphone : maille un peu plus lâche (−25 % de tours) et étages plus rares. */
-  const STEP=IS_MOBILE?150:CITY_STEP,HCAP=CITY_MIN-50;
-  const corps=[],genre=[],cour=[],fen=[],fenC=[]; // genre : 0 tour · 1 tuyau · 2 antenne — fenC : l'indice de teinte de chaque néon
-  const NEON=[new THREE.Color(0x9ff0ff),new THREE.Color(0xe8f4ff),new THREE.Color(0xff3ea5),new THREE.Color(0xffb85a), // étages : cyan, blanc froid, magenta, ambre
-              new THREE.Color(0xff2e8e),new THREE.Color(0x2ee6ff),new THREE.Color(0xffe23e),new THREE.Color(0x5cff9a), // enseignes : les quatre néons francs…
-              new THREE.Color(0xff3030),accC];                                                                       // …le feu d'antenne, et l'accent de la zone
-  /* (2026-09-26, user : « la route dans la ville doit rester bien au-dessus de la ville et ne pas sortir de la map ») : la ville était un
-     DISQUE de 3 km autour du départ — la piste (14 km et plus) en sortait et roulait au-dessus du vide. Elle est désormais bâtie dans
-     un COULOIR de 1,1 km de part et d'autre de TOUTE la piste (cellules de la maille marquées depuis les points de la courbe). */
-  const cel9=new Map(),RV9=1100,rr9=Math.ceil(RV9/STEP),pas9=Math.max(1,Math.round(90/Math.max(.1,L/Math.max(1,NP))));
-  for(let i=0;i<NP;i+=pas9){const cx0=Math.round(pts[i].x/STEP),cz0=Math.round(pts[i].z/STEP);
-    for(let dx=-rr9;dx<=rr9;dx++)for(let dz=-rr9;dz<=rr9;dz++){if(dx*dx+dz*dz>rr9*rr9)continue;const k9=(cx0+dx)+','+(cz0+dz),d9=Math.hypot(dx,dz)*STEP;
-      const o9=cel9.get(k9);if(o9===undefined||d9<o9)cel9.set(k9,d9);}}
-  for(const [k9,dist9] of cel9){const i9=k9.indexOf(','),gx=+k9.slice(0,i9)*STEP,gz=+k9.slice(i9+1)*STEP;
-    if(vr()<.17)continue;                                   // des vides : une ville n'est pas un damier plein
-    const cx=gx+(vr()-.5)*STEP*.45,cz=gz+(vr()-.5)*STEP*.45;
-    const d=Math.min(1,dist9/RV9); // les tours s'écrasent en s'éloignant de la ROUTE (plus du départ)
-    // LE CENTRE-VILLE : les tours s'écrasent en s'éloignant — et elles sont plus MINCES qu'avant (3-7 mailles)
-    const hMax=Math.min(HCAP,CITY_H*1.15*(1-d*.55)*(.30+vr()*vr()*1.6));
-    let h=snap(Math.max(VOX_CITY*5,hMax));
-    let w=snap(VOX_CITY*(3+vr()*5)),p=snap(VOX_CITY*(3+vr()*5));
-    const w0=w,p0=p,h0=h;
-    let y=gy;
-    const et=h>VOX_CITY*9?(vr()<.55?3:2):(vr()<.4?2:1);     // RETRAITS : les hautes tours s'étagent
-    for(let k=0;k<et;k++){
-      const hk=snap(h/et);
-      corps.push(cx,y+hk/2,cz,w,hk,p);genre.push(0);
-      // LES ÉTAGES ALLUMÉS : à 1 km on ne résout pas la fenêtre, on lit la LIGNE
-      const nf=hk>VOX_CITY*6?(IS_MOBILE?1:1+((vr()*2)|0)):(vr()<.4?1:0);
-      for(let f=0;f<nf;f++){fen.push(cx,y+hk*(.18+vr()*.66),cz,w*1.03,VOX_CITY*.30,p*1.03);const r9=vr();fenC.push(r9<.45?0:r9<.72?1:r9<.9?2:3);}
-      y+=hk;w=snap(w*.74);p=snap(p*.74);
-      if(w<VOX_CITY||p<VOX_CITY)break;
-    }
-    // LES TUYAUX : deux tours sur trois, un à trois conduits qui DESCENDENT le long d'une façade du socle
-    if(h0>VOX_CITY*8&&vr()<.66){
-      const nt=1+((vr()*(IS_MOBILE?2:3))|0),tk=VOX_CITY*(.5+vr()*.4);
-      for(let t9=0;t9<nt;t9++){
-        const face=(vr()*4)|0,ht=h0*(.45+vr()*.5),glis=(vr()-.5)*.7;
-        const ox=face<2?(face?1:-1)*(w0/2+tk/2):glis*w0,oz=face<2?glis*p0:(face===2?1:-1)*(p0/2+tk/2);
-        corps.push(cx+ox,gy+ht/2,cz+oz,tk,ht,tk);genre.push(1);
-      }
-    }
-    // L'ANTENNE : les hautes tours se hérissent — un mât fin et son FEU ROUGE (dans la couche des néons)
-    if(h0>VOX_CITY*22&&vr()<.55){
-      const ha=VOX_CITY*(4+vr()*8);
-      corps.push(cx,y+ha/2,cz,VOX_CITY*.35,ha,VOX_CITY*.35);genre.push(2);
-      fen.push(cx,y+ha,cz,VOX_CITY*.7,VOX_CITY*.7,VOX_CITY*.7);fenC.push(8);
-    }else if(vr()<.3)cour.push(cx,y+VOX_CITY*.22,cz,w*1.06,VOX_CITY*.42,p*1.06); // sinon, parfois, la couronne à l'accent de la zone
-    // L'ENSEIGNE VERTICALE : une tour sur trois porte son néon, collé à une façade, à mi-hauteur
-    if(h0>VOX_CITY*10&&vr()<.34){
-      const hs=Math.min(h0*.45,VOX_CITY*(4+vr()*6)),ys=gy+h0*(.35+vr()*.35),fx=vr()<.5;
-      const sg=vr()<.5?-1:1;
-      fen.push(cx+(fx?sg*(w0/2+VOX_CITY*.2):0),ys,cz+(fx?0:sg*(p0/2+VOX_CITY*.2)),fx?VOX_CITY*.3:VOX_CITY*1.2,hs,fx?VOX_CITY*1.2:VOX_CITY*.3);
-      fenC.push(4+((vr()*4)|0));
-    }
-  }
-  const CUBE=new THREE.BoxGeometry(1,1,1);
-  const pose=(arr,mat,liste)=>{
-    const n=arr.length/6,im=new THREE.InstancedMesh(CUBE,mat,n),M=new THREE.Matrix4();
-    for(let i=0;i<n;i++){
-      const o=i*6;
-      M.makeScale(arr[o+3],arr[o+4],arr[o+5]);
-      M.setPosition(arr[o],arr[o+1],arr[o+2]);
-      im.setMatrixAt(i,M);
-    }
-    im.instanceMatrix.needsUpdate=true;im.frustumCulled=false; // une seule boîte englobante pour 3 km de ville : le culling la ferait clignoter en bloc
-    // ⚠ DANS LE GROUPE POUR LE RENDU, DANS `trackMeshes` POUR LA LIBÉRATION. La boucle de rebuild
-    // fait `scene.remove(m)` puis dispose géométrie et matériau : sur un enfant de groupe le remove
-    // est un no-op inoffensif, mais le dispose, lui, DOIT avoir lieu — sans ces deux lignes on
-    // fuirait une ville entière de VRAM à chaque portail.
-    root.add(im);trackMeshes.push(im);liste&&liste.push(im);
-    return im;
+const CITY={root:null,uT:{value:0},n:{}};
+function villeMatTours(){ // béton du village + fenêtres + pied noyé dans la brume (PARTAGÉ : jamais disposé — voir pose())
+  if(CITY.matT)return CITY.matT;
+  const m=new THREE.MeshLambertMaterial({color:0xffffff,emissive:0x07080d});
+  const DECL='varying vec3 vLoc9;varying vec3 vNrm9;varying float vB9;varying float vSeed9;varying vec3 vSc9;';
+  m.onBeforeCompile=function(sh){
+    sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\n'+DECL)
+      .replace('#include <begin_vertex>','#include <begin_vertex>\n#ifdef USE_INSTANCING\n'+
+        'vec3 sc9=vec3(length(instanceMatrix[0].xyz),length(instanceMatrix[1].xyz),length(instanceMatrix[2].xyz));'+
+        'vSeed9=fract(instanceMatrix[3].x*.0131+instanceMatrix[3].z*.0173);\n#else\nvec3 sc9=vec3(1.);vSeed9=0.;\n#endif\n'+
+        'vLoc9=position*sc9;vNrm9=normal;vB9=(position.y+.5)*sc9.y;vSc9=sc9;');
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\n'+DECL)
+      .replace('#include <fog_fragment>',
+        // LES FENÊTRES : faces verticales des volumes assez larges (pas les tuyaux ni les mâts), maille 3,2 m × 4 m
+        '{vec3 an=abs(vNrm9);float fv=step(an.y,.5)*step(9.,min(vSc9.x,vSc9.z));'+
+        'vec2 uv=(an.x>an.z?vLoc9.zy:vLoc9.xy)/vec2(3.2,4.);vec2 id=floor(uv),f=fract(uv);'+
+        'float w=step(.2,f.x)*step(f.x,.8)*step(.24,f.y)*step(f.y,.76);'+
+        'float h=fract(sin(dot(id+vec2(vSeed9*97.,vSeed9*61.),vec2(12.9898,78.233)))*43758.5453);'+
+        'vec3 wc=mix(vec3(1.,.64,.30),vec3(.42,.88,1.),step(.9,h));wc=mix(wc,vec3(1.,.28,.66),step(.975,h));'+
+        'float dz=gl_FragCoord.z/gl_FragCoord.w,pres=1.-smoothstep(240.,900.,dz);'+   // au loin : la lueur MOYENNE (pas de moiré)
+        'gl_FragColor.rgb+=wc*mix(.075,w*step(.64,h),pres)*fv*1.3;}\n'+
+        '#include <fog_fragment>\n'+
+        // LE PIED DANS LA BRUME : fondu vers la couleur du brouillard sur 280 m, et la lueur des rues qui monte
+        '#ifdef USE_FOG\n{float mb=smoothstep(10.,280.,vB9);vec3 mc=fogColor+vec3(.16,.04,.2)*(1.-smoothstep(0.,160.,vB9));'+
+        'gl_FragColor.rgb=mix(mc,gl_FragColor.rgb,mb);}\n#endif');
   };
-  const matC=new THREE.MeshLambertMaterial({color:0xffffff,emissive:0x07080d}); // blanc × teinte par instance : béton gris-bleu, métal des tuyaux
-  const imC=pose(corps,matC);
+  CITY.matT=m;return m;
+}
+function villeMatNeon(){ // enseignes, couronnes, feux d'antenne — ils RESPIRENT, quelques-uns clignotent, une poignée grésille
+  if(CITY.matN)return CITY.matN;
+  const m=new THREE.MeshBasicMaterial({color:0xffffff});
+  m.onBeforeCompile=function(sh){sh.uniforms.uT9=CITY.uT;
+    sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying float vS9;')
+      .replace('#include <begin_vertex>','#include <begin_vertex>\n#ifdef USE_INSTANCING\n'+
+        'vS9=fract(instanceMatrix[3].x*.113+instanceMatrix[3].z*.071+instanceMatrix[3].y*.037);\n#else\nvS9=0.;\n#endif');
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9;varying float vS9;')
+      .replace('#include <fog_fragment>','{float fl=.8+.2*sin(uT9*(2.+vS9*7.)+vS9*40.);'+
+        'if(vS9>.88)fl*=step(.3,fract(uT9*(.5+vS9)+vS9*7.));'+
+        'if(vS9<.05)fl*=.2+.8*step(.1,fract(sin(floor(uT9*15.)+vS9*91.)*437.5));'+
+        'gl_FragColor.rgb*=fl;}\n#include <fog_fragment>');};
+  CITY.matN=m;return m;
+}
+function villeMatTrafic(){ // la circulation : le vertex shader fait avancer chaque véhicule le long de sa file (170 m), fondu aux bouts
+  if(CITY.matV)return CITY.matV;
+  const m=new THREE.MeshBasicMaterial({color:0xffffff});
+  m.onBeforeCompile=function(sh){sh.uniforms.uT9=CITY.uT;
+    sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nuniform float uT9;varying float vA9;')
+      .replace('#include <begin_vertex>','#include <begin_vertex>\n#ifdef USE_INSTANCING\n'+
+        'float sd9=fract(instanceMatrix[3].x*.0917+instanceMatrix[3].z*.0533+instanceMatrix[3].y*.021);'+
+        'float ph9=fract(uT9*(.22+.26*sd9)+sd9*13.);transformed.z+=(ph9-.5)*21.;vA9=sin(ph9*3.1416);\n#else\nvA9=1.;\n#endif');
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying float vA9;')
+      .replace('#include <fog_fragment>','gl_FragColor.rgb*=vA9;\n#include <fog_fragment>');};
+  CITY.matV=m;return m;
+}
+function buildVoxCity(seed,accC){
+  CITY.root=null;CITY.n={};
+  if(PARK.on)return; // le parc a sa prairie
+  if(LVL.cur&&LVL.cur.id!=='ville')return; // NIVEAUX : la ville n'existe qu'au niveau VILLE
+  if(!(NP>1))return;
+  const t00=performance.now();
+  const vr=mulberry32(seed^0x5EED10C1); // flux DÉRIVÉ (voir ⚠ ci-dessus)
+  const root=new THREE.Group();scene.add(root);CITY.root=root;trackMeshes.push(root);
+  const snap=v=>Math.max(1,Math.round(v/VOX_CITY))*VOX_CITY; // tout atterrit sur la trame, jamais entre deux
+  // LA GRILLE DE HACHAGE DE LA PISTE : un point tous les ~12 m, rangé par cases de 120 m (horizontales)
+  const HB=120,grille=new Map(),pasP=Math.max(1,Math.round(12/(L/(NP-1))));
+  let yMin=1e9,yMax=-1e9;
+  for(let i=0;i<NP;i+=pasP){const p=pts[i],k=Math.floor(p.x/HB)+','+Math.floor(p.z/HB);let a=grille.get(k);if(!a)grille.set(k,a=[]);a.push(i);
+    if(p.y<yMin)yMin=p.y;if(p.y>yMax)yMax=p.y;}
+  const proches=(x,z,R,cb)=>{const r=Math.ceil(R/HB),bx=Math.floor(x/HB),bz=Math.floor(z/HB);
+    for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const a=grille.get((bx+dx)+','+(bz+dz));if(a)for(let j=0;j<a.length;j++)cb(a[j]);}};
+  // LA RÈGLE D'OR : [pied, toit] rognés pour que la route ne traverse JAMAIS la tour (null s'il ne reste rien)
+  const tourLibre=(cx,cz,hd,b,t)=>{const clr=hd+ROAD_HALF+16,c2=clr*clr;
+    for(let pass=0;pass<4;pass++){let ok=true;
+      proches(cx,cz,clr,function(i){const p=pts[i],dx=p.x-cx,dz=p.z-cz;if(dx*dx+dz*dz>c2)return;
+        if(p.y>t+40||p.y<b-30)return;ok=false;
+        if(p.y>(b+t)*.5)t=Math.min(t,p.y-40);else b=Math.max(b,p.y+34);});
+      if(ok)break;if(t-b<40)return null;}
+    return t-b>=40?[b,t]:null;};
+  // LES CELLULES : maille SERRÉE près du ruban (le canyon), lâche au large ; chaque cellule retient le point de piste le plus proche
+  const R_CAN=330,R_VIL=1100,SN=IS_MOBILE?66:54,SF=IS_MOBILE?190:160;
+  const cellules=(S,R,garde)=>{const m=new Map(),rr=Math.ceil(R/S),pas=Math.max(1,Math.round(S*.6/(L/(NP-1))));
+    for(let i=0;i<NP;i+=pas){const cx0=Math.round(pts[i].x/S),cz0=Math.round(pts[i].z/S);
+      for(let dx=-rr;dx<=rr;dx++)for(let dz=-rr;dz<=rr;dz++){const gx=(cx0+dx)*S,gz=(cz0+dz)*S,d=Math.hypot(gx-pts[i].x,gz-pts[i].z);if(d>R)continue;
+        const k=(cx0+dx)+','+(cz0+dz),o=m.get(k);if(!o||d<o[0])m.set(k,[d,i,gx,gz]);}}
+    const out=[];for(const v of m.values())if(garde(v[0]))out.push(v);return out;};
+  const corps=[],genre=[],neon=[],neonC=[];
+  const NEON=[new THREE.Color(0xff2e8e),new THREE.Color(0x2ee6ff),new THREE.Color(0xffe23e),new THREE.Color(0x5cff9a),
+              new THREE.Color(0xb86bff),new THREE.Color(0xff3030),accC];
+  let nT=0;
+  // UNE TOUR : (cx,cz) son centre, d sa distance à l'axe, yN l'altitude du tronçon qu'elle BORDE, yLo le plus bas de ce tronçon
+  const batir=(cx,cz,d,yN,yLo,canyon,w,p)=>{
+    const hd=Math.hypot(w,p)*.5+5;
+    let t;
+    if(canyon){const k=1-Math.min(1,(d-54)/(R_CAN-54));           // LE CANYON : les murs montent AU-DESSUS de la route
+      t=yN-50+290*Math.pow(vr(),.75)*(.55+.45*k);if(k>.5&&vr()<.22)t+=160;}
+    else t=yN-230+vr()*vr()*470;                                   // AU LARGE : la forêt du village
+    let b=Math.min(yLo,yN)-330-vr()*120;if(t-b>1000)b=t-1000;
+    const bt=tourLibre(cx,cz,hd,b,t);if(!bt)return;b=bt[0];t=bt[1];
+    const H=t-b;nT++;
+    // LES RETRAITS : volumes EMBOÎTÉS qui partent tous du pied (la brume se lit pareil sur tous), plus étroits et plus hauts
+    const et=H>260?(vr()<.55?3:2):(vr()<.4?2:1);
+    let wk=w,pk=p;
+    for(let k=0;k<et;k++){
+      const fr=k===et-1?1:(.5+.36*(k+1)/et+(vr()-.5)*.08);
+      corps.push(cx,b+H*fr/2,cz,wk,H*fr,pk);genre.push(0);
+      wk=snap(wk*.72);pk=snap(pk*.72);if(wk<VOX_CITY*2||pk<VOX_CITY*2)break;
+    }
+    // LES TUYAUX : ils DESCENDENT le long d'une façade jusque dans la brume
+    if(H>220&&vr()<(canyon?.7:.5)){
+      const nt=1+((vr()*(IS_MOBILE?2:3))|0),tk=snap(3+vr()*2.5);
+      for(let t9=0;t9<nt;t9++){const face=(vr()*4)|0,ht=H*(.5+vr()*.45),gl=(vr()-.5)*.7;
+        const ox=face<2?(face?1:-1)*(w/2+tk/2):gl*w,oz=face<2?gl*p:(face===2?1:-1)*(p/2+tk/2);
+        corps.push(cx+ox,b+ht/2,cz+oz,tk,ht,tk);genre.push(1);}
+    }
+    // L'ANTENNE et son FEU ROUGE — sinon, parfois, la COURONNE à l'accent de la zone
+    if(H>320&&vr()<.5){const ha=24+vr()*56;corps.push(cx,b+(H+ha)/2,cz,2.4,H+ha,2.4);genre.push(2);neon.push(cx,t+ha,cz,4.5,4.5,4.5);neonC.push(5);}
+    else if(vr()<.32){neon.push(cx,t-1.4,cz,wk/.72*1.05,2.8,pk/.72*1.05);neonC.push(6);}
+    // L'ENSEIGNE VERTICALE : le long du canyon, une tour sur deux porte son néon, à hauteur de ROUTE (on la voit passer)
+    if(vr()<(canyon?.5:.18)){
+      const hs=Math.min(H*.3,30+vr()*60),ys=Math.max(b+hs/2+20,Math.min(t-hs/2-6,yN+(vr()-.3)*80)),fx=vr()<.5,sg=vr()<.5?-1:1;
+      neon.push(cx+(fx?sg*(w/2+1.2):0),ys,cz+(fx?0:sg*(p/2+1.2)),fx?1.8:7.5,hs,fx?7.5:1.8);neonC.push((vr()*5)|0);
+    }
+  };
+  /* LE CANYON, BÂTI LE LONG DU RUBAN — et non par cases au sol : la piste de la ville descend en SPIRALE sur 7 à 9 km, plusieurs
+     étages de route se superposent à la verticale d'un même point ; une grille horizontale ne voyait que l'étage le plus proche,
+     les autres roulaient dans le vide (capture v3-b du 26/09). Chaque tour se pose par rapport au TRONÇON qu'elle borde : trois
+     rangs de chaque côté (le mur, la deuxième ligne, le fond de rue). Les autres étages de route, `tourLibre` s'en charge.
+     LE BUDGET (iPhone) : une piste de 30 km ferait 20 000 volumes — au-delà du plafond, on éclaircit au hasard, sans trou régulier. */
+  const pasC=Math.max(1,Math.round(SN/(L/(NP-1)))),ROWS=[[28,40,.9],[100,60,.7],[190,130,.5]],BUD=IS_MOBILE?1300:2300;
+  const kC=Math.min(1,BUD/Math.max(1,(NP/pasC)*2*2.1));
+  for(let i=0;i<NP;i+=pasC){const T9=T[i],hl=Math.hypot(T9.x,T9.z);if(hl<.5)continue; // haut des loopings : pas de mur
+    const px=-T9.z/hl,pz=T9.x/hl,tx=T9.x/hl,tz=T9.z/hl;
+    let yLo=pts[i].y;for(let j=Math.max(0,i-pasC*5);j<=Math.min(NP-1,i+pasC*5);j+=pasC)if(pts[j].y<yLo)yLo=pts[j].y; // le pied se noie sous le point le plus bas du tronçon
+    for(const sg of [-1,1])for(const rw of ROWS){if(vr()>rw[2]*kC)continue;
+      const w=snap(16+vr()*26),p=snap(16+vr()*26),hd=Math.hypot(w,p)*.5,lat=ROAD_HALF+rw[0]+hd+vr()*rw[1],al=(vr()-.5)*SN*.6;
+      batir(pts[i].x+px*sg*lat+tx*al,pts[i].z+pz*sg*lat+tz*al,lat,pts[i].y,yLo,true,w,p);}
+  }
+  // AU LARGE : la forêt du village, par cases au sol (le fond de scène), calée sur le point de piste le plus proche
+  const cF=cellules(SF,R_VIL,d=>d>R_CAN),kF=Math.min(1,BUD*.4/Math.max(1,cF.length));
+  for(const v of cF){if(vr()>kF*.8)continue;const cx=v[2]+(vr()-.5)*SF*.4,cz=v[3]+(vr()-.5)*SF*.4;
+    let d2=1e12,yN=pts[v[1]].y,yLo=yN;
+    proches(cx,cz,360,function(i){const p=pts[i],dx=p.x-cx,dz=p.z-cz,e=dx*dx+dz*dz;if(e<d2){d2=e;yN=p.y;}if(e<129600&&p.y<yLo)yLo=p.y;});
+    batir(cx,cz,d2<1e12?Math.sqrt(d2):v[0],yN,yLo,false,snap(20+vr()*30),snap(20+vr()*30));}
+  CITY.nC=Math.round(NP/pasC);CITY.nF=cF.length;
+  // LA CIRCULATION : des files de 170 m dans l'entre-deux (le bord de la route → le pied du canyon), un peu sous la dalle
+  const trafic=[];
+  const pasT=Math.max(1,Math.round((IS_MOBILE?70:52)/(L/(NP-1))));
+  for(let i=pasT;i<NP-pasT;i+=pasT){
+    if(vr()<.15)continue;const T9=T[i],N9=Nn[i];
+    if(N9.y<.55)continue;                                          // pas dans les loopings ni sur les dalles couchées
+    const sg=vr()<.5?-1:1,lat=sg*(ROAD_HALF+9+vr()*14),dy=-(6+vr()*26);
+    const lx=pts[i].x+B[i].x*lat,lz=pts[i].z+B[i].z*lat,ly=pts[i].y+B[i].y*lat+dy;
+    let libre=true; // la route ne doit repasser ni sur la file ni dessous à moins de 14 m (la file suit la PENTE du ruban)
+    for(let q=-2;q<=2&&libre;q++){const qx=lx+T9.x*q*42,qz=lz+T9.z*q*42,qy=ly+T9.y*q*42;
+      proches(qx,qz,ROAD_HALF+8,function(j){const p=pts[j],dx=p.x-qx,dz=p.z-qz;if(dx*dx+dz*dz<(ROAD_HALF+6)*(ROAD_HALF+6)&&Math.abs(p.y-qy)<12&&Math.abs(j-i)>pasT*3)libre=false;});}
+    if(!libre)continue;
+    const dir=vr()<.5?1:-1,n=3+((vr()*3)|0);
+    for(let c=0;c<n;c++)trafic.push(lx+(vr()-.5)*3,ly+(vr()-.5)*4,lz+(vr()-.5)*3,i,dir);
+  }
+  // ---- LA POSE : trois InstancedMesh ----
+  const CUBE=new THREE.BoxGeometry(1,1,1),M=new THREE.Matrix4(),Q=new THREE.Quaternion(),P=new THREE.Vector3(),SC=new THREE.Vector3(),AY=new THREE.Vector3(0,1,0);
+  const pose=(n,mat,f)=>{
+    const im=new THREE.InstancedMesh(CUBE,mat,n);
+    for(let i=0;i<n;i++){f(i,M);im.setMatrixAt(i,M);}
+    im.instanceMatrix.needsUpdate=true;im.frustumCulled=false; // une boîte englobante pour toute la ville : le culling la ferait clignoter en bloc
+    // ⚠ la GÉOMÉTRIE part au rebuild (trackMeshes), les MATÉRIAUX sont partagés et gardés (dispose neutralisé)
+    root.add(im);trackMeshes.push(im);return im;
+  };
   const col=new THREE.Color();
-  for(let i=0;i<genre.length;i++){
-    const t=.78+vr()*.5,g=genre[i];
-    if(g===0)col.setRGB(.19*t,.20*t,.25*t);        // le BÉTON du village : gris-bleu, mouillé
-    else if(g===1)col.setRGB(.30*t,.31*t,.34*t);   // le MÉTAL des tuyaux : un cran plus clair, il accroche le néon
-    else col.setRGB(.12,.12,.14);                  // le mât d'antenne : une ligne sombre
-    imC.setColorAt(i,col);
-  }
-  if(imC.instanceColor)imC.instanceColor.needsUpdate=true;
-  if(cour.length)pose(cour,new THREE.MeshBasicMaterial({color:accC.clone()}));
-  if(fen.length){ // étages, enseignes et feux d'antenne : UN draw call, teinte par instance
-    const imF=pose(fen,new THREE.MeshBasicMaterial({color:0xffffff}));
-    for(let i=0;i<fenC.length;i++){const k=fenC[i];imF.setColorAt(i,col.copy(NEON[k]).multiplyScalar(k<4?.5+vr()*.45:1));}
-    if(imF.instanceColor)imF.instanceColor.needsUpdate=true;
-  }
-  // LE PLANCHER : des RUES NÉON vues d'avion — une texture peinte UNE fois pour toutes les villes (jamais disposée)
-  const sol=new THREE.Mesh(new THREE.PlaneGeometry(CITY_R*2.6,CITY_R*2.6),
-    new THREE.MeshLambertMaterial({color:0x0c0d14,emissive:0xffffff,emissiveMap:cityRues()}));
-  sol.rotation.x=-Math.PI/2;sol.position.set(0,gy,0);
-  root.add(sol);trackMeshes.push(sol);
+  if(corps.length){const imC=pose(corps.length/6,villeMatTours(),function(i,M){const o=i*6;M.makeScale(corps[o+3],corps[o+4],corps[o+5]);M.setPosition(corps[o],corps[o+1],corps[o+2]);});
+    for(let i=0;i<genre.length;i++){const t9=.8+vr()*.45,g=genre[i];
+      if(g===0)col.setRGB(.20*t9,.21*t9,.26*t9);                   // le BÉTON du village : gris-bleu, mouillé
+      else if(g===1)col.setRGB(.32*t9,.33*t9,.37*t9);              // le MÉTAL des tuyaux : il accroche le néon
+      else col.setRGB(.10,.10,.12);                                // le mât : une ligne sombre
+      imC.setColorAt(i,col);}
+    if(imC.instanceColor)imC.instanceColor.needsUpdate=true;}
+  if(neon.length){const imN=pose(neon.length/6,villeMatNeon(),function(i,M){const o=i*6;M.makeScale(neon[o+3],neon[o+4],neon[o+5]);M.setPosition(neon[o],neon[o+1],neon[o+2]);});
+    for(let i=0;i<neonC.length;i++)imN.setColorAt(i,col.copy(NEON[neonC[i]]));
+    if(imN.instanceColor)imN.instanceColor.needsUpdate=true;}
+  if(trafic.length){const nV=trafic.length/5,MB=new THREE.Matrix4(),TV=new THREE.Vector3(),RV=new THREE.Vector3(),UV=new THREE.Vector3(),imV=pose(nV,villeMatTrafic(),function(i,M){const o=i*5,j=trafic[o+3];
+      TV.copy(T[j]).multiplyScalar(trafic[o+4]);UV.copy(Nn[j]);RV.crossVectors(UV,TV).normalize();UV.crossVectors(TV,RV); // le repère de la file : le long du ruban, pente comprise
+      Q.setFromRotationMatrix(MB.makeBasis(RV,UV,TV));P.set(trafic[o],trafic[o+1],trafic[o+2]);SC.set(2.2,1.1,8);M.compose(P,Q,SC);});
+    for(let i=0;i<nV;i++){const av=trafic[i*5+4]>0,r9=vr();                // on les voit de DOS (feux rouges) ou de FACE (phares)
+      imV.setColorAt(i,av?col.setRGB(1.6,.16,.22):r9<.8?col.setRGB(1.7,1.6,1.35):col.setRGB(.5,1.4,1.8));}
+    if(imV.instanceColor)imV.instanceColor.needsUpdate=true;}
+  CITY.n={tours:nT,volumes:corps.length/6,neons:neon.length/6,trafic:trafic.length/5,routeY:[Math.round(yMin),Math.round(yMax)],ms:Math.round(performance.now()-t00),L:Math.round(L),cellsC:CITY.nC,cellsF:CITY.nF};
 }
-/* `cityRues()` — la trame des rues : fond presque noir, avenues cyan et magenta, ruelles ambre, carrefours
-   qui brillent. Tuilée sur tout le plancher, elle se lit entre les tours comme une ville qui vit la nuit.
-   ⚠ PARTAGÉE ET GARDÉE : `trackMeshes` dispose le matériau à chaque portail, jamais sa texture — une
-   texture neuve par zone serait une fuite ; une seule pour toute la partie ne coûte rien. */
-function cityRues(){
-  if(CITY.rues)return CITY.rues;
-  const N=256,cv=document.createElement('canvas');cv.width=cv.height=N;const x=cv.getContext('2d');
-  x.fillStyle='#000';x.fillRect(0,0,N,N);
-  const trait=(c,w,a,v,pos)=>{x.globalAlpha=a;x.fillStyle=c;if(v)x.fillRect(pos-w/2,0,w,N);else x.fillRect(0,pos-w/2,N,w);};
-  trait('#2ee6ff',3,.55,true,64);trait('#ff2e8e',3,.50,false,160); // les deux avenues
-  for(const q of [20,112,208,236])trait('#ffb85a',1,.28,true,q);    // les ruelles
-  for(const q of [34,96,212])trait('#ffb85a',1,.24,false,q);
-  x.globalAlpha=.9;x.fillStyle='#e8f4ff';for(const [u,v] of [[64,160],[64,34],[208,160]]){x.fillRect(u-3,v-3,6,6);} // les carrefours
-  x.globalAlpha=1;
-  const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(30,30);
-  CITY.rues=t;return t;
-}
-/* LE SUIVI D'ALTITUDE — pourquoi il existe : voir le ⚠⚠ de `buildVoxCity`. La ville ne bouge JAMAIS
-   en X/Z (la parallaxe horizontale doit rester vraie) ; seule son altitude court après la caméra,
-   avec du retard. Les deux butées ne sont pas décoratives : sans elles, une piste qui plonge de
-   3 000 unités d'un coup laisserait la ville au-dessus de la caisse (on volerait SOUS les
-   fondations) ou très au-delà du brouillard, c'est-à-dire nulle part. */
+for(const f of [villeMatTours,villeMatNeon,villeMatTrafic])f().dispose=function(){}; // partagés sur toute la partie : le rebuild ne les jette pas
 /* L'HORIZON DE LA VILLE (2026-09-25, user : « la ligne d'horizon est moche »). La ville s'arrêtait NET à 3 000 unités,
    suivie d'une bande vide puis du ciel : on voyait le BORD du décor, et le brouillard bleu-noir tranchait sur l'horizon
    clair. La recette des jeux de ville nocturne : (1) le brouillard prend la teinte de la brume d'horizon, la ville S'Y
@@ -4801,21 +4893,20 @@ function villeHorizon(){
   m.userData.hh=HH;m.renderOrder=-5;m.frustumCulled=false;scene.add(m);
   CITY.horizon=m;return m;
 }
-let VILLE_MIN=null; // (2026-09-26) altitude mini de la piste sur la fenêtre DEVANT chaque point (voir buildTrack) — la ville s'y cale
+function villeChauffe(){ // une instance de chaque, compilée hors écran puis retirée — les vraies réutilisent le programme
+  const g=new THREE.Group(),geo=new THREE.BoxGeometry(1,1,1),c=new THREE.Color(1,1,1);
+  for(const m of [villeMatTours(),villeMatNeon(),villeMatTrafic()]){const im=new THREE.InstancedMesh(geo,m,1);im.setMatrixAt(0,new THREE.Matrix4());im.setColorAt(0,c);g.add(im);}
+  scene.add(g);try{renderer.compile(scene,camera);}catch(e){}scene.remove(g);geo.dispose();
+}
 function cityTick(dt,camY){
+  CITY.uT.value+=dt; // l'horloge des néons et de la circulation
+  if(!CITY.chaud&&CITY.uT.value>2.5){CITY.chaud=true;villeChauffe();} // au menu, 2,5 s après le chargement
   const r=CITY.root;
   if(!r){if(CITY.horizon)CITY.horizon.visible=false;return;}
-  {const hz=villeHorizon();hz.visible=true;                                // la couronne suit la caméra en X/Z, et le SOL de la ville en hauteur
-   hz.position.set(camera.position.x,r.position.y+hz.userData.hh*.5-hz.userData.hh*.38,camera.position.z);}
-  // (2026-09-26) la référence n'est plus la caméra seule : c'est le point le PLUS BAS de la route devant — sinon une descente
-  // lointaine plongeait visuellement DANS les toits. Contrainte dure : jamais une tour au-dessus de la route qui arrive.
-  let yRef=camY;if(VILLE_MIN&&NP>1){const i9=Math.max(0,Math.min(NP-1,Math.round(s/L*(NP-1))));yRef=Math.min(camY,VILLE_MIN[i9]);}
-  r.position.y+=((yRef-CITY_BELOW)-r.position.y)*Math.min(1,dt*CITY_LAG);
-  if(camY-r.position.y>CITY_MAX)r.position.y=camY-CITY_MAX;
-  if(yRef-r.position.y<CITY_MIN)r.position.y=yRef-CITY_MIN; // (en dernier : cette règle-là gagne toujours)
+  // la couronne peinte suit la caméra (elle est « à l'infini ») ; sa rue se pose dans la brume, 420 m sous l'œil
+  const hz=villeHorizon();hz.visible=true;hz.position.set(camera.position.x,camY-420+hz.userData.hh*.12,camera.position.z);
 }
-window.dbgCity=function(){return CITY.root?{tours:CITY.root.children.length,y:+CITY.root.position.y.toFixed(0),
-  sousLaCamera:+(camera.position.y-CITY.root.position.y).toFixed(0),brouillardFar:FOG_F}:'absente (parc freestyle ?)';};
+window.dbgCity=function(){return CITY.root?Object.assign({},CITY.n,{sousLaCamera:null,brouillardFar:FOG_F}):'absente (autre niveau ou parc)';};
 // ---------- PARC : LE SOL — une prairie d'HERBE LONGUE animée par le vent ----------
 // Un grand tapis vert texturé (qui prend l'éclairage des biomes) SOUS la sphère, planté de dizaines de
 // milliers de brins instanciés qu'un shader ploie au vent. Tout part dans trackMeshes → disposé au rebuild.
@@ -5648,7 +5739,7 @@ function lvlNuageOk(o){ // quelles familles de nuages chaque monde garde (lu par
 let lvlBanT=0;
 function lvlAnnonce(){ // la bannière « NIVEAU n — LIEU » (fondu d'opacité seul : rien ne bouge, REDUCED_MOTION compris)
   const b=document.getElementById('lvlBan');if(!b||!LVL.cur)return;
-  document.getElementById('lvlNum').textContent=TR('NIVEAU')+' '+LVL.n;
+  document.getElementById('lvlNum').innerHTML=Array.from(TR('NIVEAU')+' '+LVL.n).map(function(c,i){return '<i style="animation-delay:'+(i*45)+'ms">'+(c===' '?'&nbsp;':c)+'</i>';}).join(''); // (2026-09-26) les lettres TOMBENT une à une
   document.getElementById('lvlNom').textContent=TR(LVL.cur.nm);
   b.classList.add('on');clearTimeout(lvlBanT);lvlBanT=setTimeout(function(){b.classList.remove('on');},2800);
 }
@@ -8143,7 +8234,7 @@ function flowAdd(q){
   const lv=Math.min(4,Math.floor(FLOW.v/25));
   if(lv>FLOW.lv){FLOW.lv=lv;
     // (HUD v4) le palier se lit SUR la caisse avec ce qu'il vaut en cash ; la FRÉNÉSIE, elle, prend le couloir des annonces
-    if(lv===4){slam('FRÉNÉSIE !','CASH ×'+fmtMul(flowMult()),FLOW_COL[4],'#ff5ec8',44,2);flashEcran('rgba(181,140,255,.55)');}
+    if(lv===4){slam('FRÉNÉSIE !','CASH ×'+fmtMul(flowMult()),FLOW_COL[4],'#ff5ec8',44,2,22);flashEcran('rgba(181,140,255,.55)');}
     else popTexte(FLOW_NOM[lv]+' · $×'+fmtMul(flowMult()),FLOW_COL[lv],1);
     flowPunch();
     hap(lv===4?[20,40,20,40,40]:[12,30,16]);try{flowSnd(lv);}catch(e){}
@@ -8195,7 +8286,7 @@ function flowTick(dt){
    rythme que le tic sonore. Écrite seulement quand quelque chose change. */
 const FLOW_NOM=['FLOW','FLOW I','FLOW II','FLOW III','FRÉNÉSIE'];
 function fmtMul(m){const t=String(Math.round(m*10)/10);return LANG==='fr'?t.replace('.',','):t;}
-function flowPunch(){const h=FLOW.el;if(!h)return;h.classList.remove('monte');void h.offsetWidth;h.classList.add('monte');}
+function flowPunch(){const h=FLOW.el;if(!h)return;h.classList.remove('monte');void h.offsetWidth;h.classList.add('monte');if(FLOW.lv>=2)try{pixBurst(h.querySelector('.fSeg'),6+FLOW.lv*3);}catch(e){}}
 function flowHudMaj(rest){
   const fuit=FLOW.v>0&&mode==='drive'&&FLOW.idle>1.8,lache=fuit&&FLOW.lv>0&&rest<1.1,pres=FLOW.lv<4&&FLOW.v%25>20;
   const k=Math.round(FLOW.v*2)+'|'+FLOW.lv+'|'+(fuit?1:0)+(lache?1:0)+(pres?1:0);if(FLOW.aff===k)return;FLOW.aff=k;
@@ -8212,6 +8303,38 @@ function flowHudMaj(rest){
   if(FLOW.lvAff!==FLOW.lv){FLOW.lvAff=FLOW.lv;h.style.setProperty('--fc',FLOW_COL[FLOW.lv]);h.dataset.lv=FLOW.lv;
     h.querySelector('.fL').textContent=sansAcc(TR(FLOW_NOM[FLOW.lv]));h.querySelector('.fM').textContent='$×'+fmtMul(flowMult());
     const g=FLOW.glow;g.style.setProperty('--fc',FLOW_COL[FLOW.lv]);g.dataset.lv=FLOW.lv;g.style.opacity=FLOW.lv?(.25+FLOW.lv*.15).toFixed(2):'0';}
+}
+/* LA JAUGE EN FEU (2026-09-26, user : « barre de nitro avec des flammes animées quand nitro infini ») — le feu de DOOM, en pixels :
+   une grille 96 × 18 dont la rangée du bas BRÛLE ; chaque case monte d'un cran en perdant un peu de chaleur, avec un décalage au
+   hasard (le vent), et la palette va de la braise au blanc. Posée SUR la jauge — le pied des flammes lèche la barre — et agrandie
+   en pixels francs : la même DA que la police. NITRO MAX = le brasier plein ; boost ordinaire = une frange ; rien = ça s'éteint
+   tout seul (le feu décroît, on ne le coupe pas). 1 728 cases à 30 images/s, rien quand il est éteint. */
+const FEU={cv:null,cx:null,img:null,f:null,W:96,H:18,src:0,acc:0,vif:false};
+const FEU_PAL=[[0,0,0,0],[40,6,4,120],[70,10,6,170],[110,18,8,210],[150,28,8,235],[190,40,6,250],[220,60,6,255],[240,84,10,255],
+  [250,110,14,255],[255,136,20,255],[255,160,30,255],[255,182,44,255],[255,200,64,255],[255,216,90,255],[255,228,120,255],
+  [255,238,156,255],[255,246,196,255],[255,252,228,255],[255,255,255,255]];
+function nitroFeu(dt){
+  const cible=(pwrNitroT>0&&running&&!gameOver)?1:(nitroOn&&running&&!gameOver?.45:0);
+  FEU.src+=(cible-FEU.src)*Math.min(1,dt*7);
+  if(!FEU.vif&&FEU.src<.03)return;
+  if(!FEU.cv){const nb=document.getElementById('nitroBar');if(!nb)return;
+    const c=document.createElement('canvas');c.id='nitroFeu';c.width=FEU.W;c.height=FEU.H;c.setAttribute('aria-hidden','true');nb.appendChild(c);
+    FEU.cv=c;FEU.cx=c.getContext('2d');FEU.img=FEU.cx.createImageData(FEU.W,FEU.H);FEU.f=new Uint8Array(FEU.W*FEU.H);}
+  FEU.acc+=dt;if(FEU.acc<1/30)return;FEU.acc=0;
+  const W=FEU.W,H=FEU.H,f=FEU.f,Pm=FEU_PAL.length-1,base=(H-1)*W;
+  // le FOYER : des points chauds qui glissent le long de la jauge (somme de sinus) — c'est eux qui font les LANGUES de feu ; un foyer
+  // uniforme ne donne qu'une bande de bruit (première capture)
+  const t9=(FEU.t=(FEU.t||0)+1/30);
+  for(let x=0;x<W;x++){const n=.5+.25*Math.sin(x*.19+t9*5.1)+.25*Math.sin(x*.47-t9*7.3);
+    f[base+x]=FEU.src>.03?Math.round(Pm*Math.min(1,FEU.src*(.35+.65*n)*(.85+Math.random()*.15))):Math.max(0,f[base+x]-3);}
+  let vif=false;
+  for(let x=0;x<W;x++)for(let y=1;y<H;y++){const s=y*W+x,v=f[s];
+    if(!v){f[s-W]=0;continue;}vif=true;
+    const r=(Math.random()*3)|0,d=Math.max(0,s-W-r+1);f[d]=Math.max(0,v-(r&1)-(Math.random()<.45?1:0));}
+  const px=FEU.img.data;
+  for(let i=0;i<W*H;i++){const c=FEU_PAL[f[i]],o=i*4;px[o]=c[0];px[o+1]=c[1];px[o+2]=c[2];px[o+3]=c[3];}
+  FEU.cx.putImageData(FEU.img,0,0);
+  if(vif!==FEU.vif){FEU.vif=vif;FEU.cv.classList.toggle('on',vif);}
 }
 function nitroPct(p){nitroGain(p*((ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2));} // (2026-09-26) une PART de la jauge (0,2 = 20 %), quel que soit le moteur
 function nitroGain(q){
@@ -10272,7 +10395,7 @@ function cratere(pos,nrm){
   for(let k=0;k<26;k++){const a=Math.random()*6.283,v=8+Math.random()*16;spawnP(dust,pos.x,pos.y+.5,pos.z,Math.cos(a)*v,4+Math.random()*9,Math.sin(a)*v,.8+Math.random()*.7);}
   shake=Math.max(shake,1.1);hitT=Math.max(hitT,.12);hap([30,40,60,40,30]);
   try{subBoom(.45);thud(22);noiseBurst(.35,.2,220);}catch(e){}
-  flashEcran('rgba(255,110,20,.65)');slam('IMPACT METEORE','','#ffb000','#ff3924',40,3);
+  flashEcran('rgba(255,110,20,.65)');slam('IMPACT METEORE','','#ffb000','#ff3924',40,3,16);
 }
 function cratTick(dt){
   if(!CRAT.l.length)return;
@@ -13149,7 +13272,7 @@ function chaineAura(nom,base,fam,brut){ // brut : pas de décote de redite (les 
   return p;
 }
 /* HUD v3 : LA GRANDE ANNONCE qui claque au centre haut (BOOST, pouvoirs, paliers du ×) — une seule à la fois, la dernière gagne */
-function slam(txt,sous,c1,c2,taille,prio){
+function slam(txt,sous,c1,c2,taille,prio,fete){
   prio=prio|0;const n9=performance.now();if(prio<(slam._p|0)&&n9<(slam._t||0))return; // une annonce plus forte garde l'écran 0,9 s (l'IMPACT n'est pas écrasé par le × qu'il fait monter)
   slam._p=prio;slam._t=n9+900;
   let e=avE('slam9');if(!e){e=document.createElement('div');e.id='slam9';e.setAttribute('aria-hidden','true');document.body.appendChild(e);avEl.slam9=e;}
@@ -13159,6 +13282,7 @@ function slam(txt,sous,c1,c2,taille,prio){
   e.classList.remove('on');void e.offsetWidth;e.classList.add('on');
   // (HUD v4) UNE voix au centre : tant que l'annonce passe, le niveau, le dauphin et les contrats du même couloir s'effacent
   document.body.classList.add('slamOn');clearTimeout(slam._h);slam._h=setTimeout(function(){document.body.classList.remove('slamOn');},1400);
+  if(fete)setTimeout(function(){try{pixBurst(e.querySelector('b'),fete);}catch(x){}},140); // (2026-09-26) les annonces HEUREUSES éclatent en confettis pixel
 }
 function flashEcran(col){ // un coup de couleur sur les bords : le boost, le pouvoir, le gros encaissement
   let e=avE('flash9');if(!e){e=document.createElement('div');e.id='flash9';e.setAttribute('aria-hidden','true');document.body.appendChild(e);avEl.flash9=e;}
@@ -13198,7 +13322,7 @@ function recMaj(a){
 function recBattu(){
   CHA.recB=true;const r=avE('avRec');
   if(r){r.classList.remove('presque');r.classList.add('battu');avE('avRecT').textContent=TR('NOUVEAU RECORD !');avE('avRecF').style.setProperty('--r','1');}
-  slam('RECORD BATTU !','AURA '+fmtAura(auraRun),'#ffd75e','#ff7ad5',38,3);flashEcran('rgba(255,215,94,.5)');hap([20,50,20,50,40]);
+  slam('RECORD BATTU !','AURA '+fmtAura(auraRun),'#ffd75e','#ff7ad5',38,3,30);flashEcran('rgba(255,215,94,.5)');hap([20,50,20,50,40]);
   try{chimeNote(noteP(4,1),0,.12,.2);chimeNote(noteP(6,1),.1,.12,.2);chimeNote(noteP(8,1),.2,.14,.4);}catch(e){}
 }
 function avPlusPop(t){const e=avE('avPlus');if(!e)return;e.textContent=t;e.classList.remove('on');void e.offsetWidth;e.classList.add('on');}
@@ -13220,8 +13344,9 @@ function chaineEncaisse(){
     auraRun+=g;auraPop=Math.min(1,auraPop+g/90);
     // (HUD v4) la chaîne S'ENVOLE dans le compteur, ce qu'elle verse s'affiche à côté ; une grosse chaîne prend aussi le couloir
     avPlusPop('+'+fmtAura(g));{const c9=avE('avCh');if(c9){c9.classList.remove('vole','perdu');void c9.offsetWidth;c9.classList.add('vole');}}
-    if(g>=600||CHA.x>=5)slam('+'+fmtAura(g),(CHA.x>1?fmtAura(CHA.pts)+' ×'+CHA.x+' · ':'')+'AURA','#ff7ad5','#b14bff',40,1);
+    if(g>=600||CHA.x>=5)slam('+'+fmtAura(g),(CHA.x>1?fmtAura(CHA.pts)+' ×'+CHA.x+' · ':'')+'AURA','#ff7ad5','#b14bff',40,1,g>=2000?18:0);
     const t9=document.querySelector('#auraV2 .avTot');if(t9){t9.classList.remove('pulse');void t9.offsetWidth;t9.classList.add('pulse');}
+    if(g>=300)try{pixBurst(avE('avVal'),Math.min(14,4+Math.round(g/250)));}catch(e){} // (2026-09-26) la chaîne tombe DANS le compteur : il éclabousse
     if(g>=500)flashEcran('rgba(177,75,255,.5)');
     hap(CHA.x>=4?[12,30,24]:12);try{chimeNote(noteP(Math.min(9,CHA.x+2),1),0,.18,.22);if(CHA.x>=4)sparkle(.1,.08);}catch(e){}
   }
@@ -13240,7 +13365,7 @@ function chaHud(fort,monte){
   const x9=avE('avX'),xv=Math.max(1,CHA.x);x9.textContent='×'+xv;x9.style.setProperty('--xc',X_COUL[Math.min(10,xv)]);x9.classList.toggle('feu',xv>=5);
   if(monte){x9.classList.remove('up');void x9.offsetWidth;x9.classList.add('up');
     const pal={3:'CHAUD !',5:'EN FEU !!',8:'DEMENT !!!',10:'MAX !!!'}[xv];
-    if(pal){slam('×'+xv,pal,X_COUL[xv],'#b14bff',48);flashEcran(xv>=8?'rgba(255,57,36,.55)':'rgba(255,94,200,.45)');hap(xv>=8?[14,40,24,40,30]:[12,30,20]);}}
+    if(pal){slam('×'+xv,pal,X_COUL[xv],'#b14bff',48,0,xv>=8?20:xv>=5?12:0);flashEcran(xv>=8?'rgba(255,57,36,.55)':'rgba(255,94,200,.45)');hap(xv>=8?[14,40,24,40,30]:[12,30,20]);}}
   avE('avList').innerHTML=CHA.liste.map(function(l){return '<li>'+String(l).replace(/[<>&]/g,'')+'</li>';}).join('');
 }
 /* `dbgHud(k,n)` — (HUD v4) forcer un état du tableau de bord pour le juger sur capture : 'flow' n · 'idle' s · 'chaine' n ·
@@ -15895,8 +16020,9 @@ function loop(now){
   bioStep(dt); // BIOMES : le voyage d'ambiance avance même au menu/en pause de jeu (c'est le ciel qui vit, pas la sim)
   if(parkGrassMat)parkGrassMat.uniforms.uTime.value=now*.001; // l'herbe longue du parc ondule au vent (now : dispo avant `const t`)
   cityTick(dt,camera.position.y); // LA VILLE : son altitude court après la caméra (hors gate de sim — le décor vit au menu, comme le ciel)
-  if(slowT>0){slowT-=dt;dt*=.45;} // slow-mo d'atterrissage
-  if(hitT>0){hitT-=dt;dt*=.04;}   // HIT-STOP : 80 ms de gel sur l'encaissement PARFAIT — le monde retient son souffle
+  // (2026-09-26, user : « enlève tous les modes ralentis du jeu ») : plus de slow-mo (atterrissage, gros air, bullet-time, reprise de
+  // pause, ultra-turbo, explosion) ni de HIT-STOP. Les déclencheurs posent encore slowT/hitT : on les vide ici, le temps ne ralentit JAMAIS.
+  slowT=0;hitT=0;
   const t=now/1000;
   let speedKmh=0;
   try{ if(running&&!paused&&!gameOver){
@@ -16487,7 +16613,11 @@ function loop(now){
       fallVel.applyAxisAngle(FLY_U,yawIn); // (vol libre) autour du haut de la CAISSE — à gauche à l'écran, c'est à gauche, même sur le dos
       yawAcc+=yawIn;
       if(nitroOn){ // RÉACTEUR : il fait planer et donne l'assiette (piqué/cabré) — il n'accélère plus (vol v7 : inertie)
-        fallVel.y+=FALL_G*(nitroBlue?.75:.6)*dtF; // (vol v7) le RÉACTEUR fait PLANER : il reprend 60 % de la gravité (75 % en réserve bleue) — il n'accélère plus la caisse (inertie : la vitesse vient de l'éjection)
+        fallVel.y+=FALL_G*(nitroBlue?.75:.6)*dtF; // (vol v7) le RÉACTEUR fait PLANER : il reprend 60 % de la gravité (75 % en réserve bleue)
+        { // (2026-09-26, user : « le nitro en l'air ne sert pas qu'à guider, il faut que ça ACCÉLÈRE vraiment ») : la MÊME poussée qu'au sol
+          // (30 · 48 en réserve bleue × le palier moteur), dans l'axe du vol — et l'élan gagné au réacteur est GARDÉ (le plafond d'inertie suit)
+          const sp9=fallVel.length();if(sp9>1){const a9=(nitroBlue?48:30)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*dtF;
+            fallVel.multiplyScalar((sp9+a9)/sp9);fallVH0=Math.max(fallVH0,Math.hypot(fallVel.x,fallVel.z));}}
         // ↑/AVANT : PIQUÉ · ↓/FREIN : CABRÉ. On fait TOURNER la vitesse en tangage (pitch) au lieu
         // d'ajouter à .y : ajouter ±12 à un vecteur de 145 puis reclamper ne pliait la trajectoire que
         // de ~4°/s (« le nitro haut/bas ne marche plus » — surtout au plafond de vitesse du parc). La
@@ -16678,6 +16808,7 @@ function loop(now){
       const fr=pwrAirT>0?Math.min(1,pwrAirT/10):Math.max(0,1-fallTR/AIR_MAX); // jauge en temps RÉEL : 6 s affichées = 6 s vécues
       if(airFlash>0)airFlash=Math.max(0,airFlash-dt);
       airPieDraw(fr,pwrAirT>0?pwrAirT:Math.max(0,AIR_MAX-fallTR),airFlash>0);
+      {const dg=pwrAirT<=0&&AIR_MAX-fallTR<1.5;if(dg!==loop._pdg){loop._pdg=dg;airPie.classList.toggle('danger',dg);}} // (2026-09-26) il TREMBLE sous 1,5 s
       if(!PARK.on&&portalMesh&&fallPos.distanceToSquared(PORTAL.c)<PORTAL.R*PORTAL.R*.9)portailPasse(); // (2026-09-26) l'ovule traversé EN VOL — du ciel, de côté, d'en dessous
       else if(tryLand(dtF)){airPie.style.display='none';dolFin();} // posé : le total du DAUPHIN se fige et s'encaisse
       else if((fallTR>AIR_MAX&&pwrAirT<=0)||fallPos.y<trackMinY-120){airPie.style.display='none';if(PARK.on)parkRespawn();else explode();} // FREESTYLE : trop long en l'air ou chute dans le vide = on repart, jamais de mort // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
@@ -17153,6 +17284,8 @@ function loop(now){
      if(loop._nw2!==w2){loop._nw2=w2;elNX.style.width=w2+'%';}
      const pl=(nitroR+nitroX)>=((ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2)-.01;
      if(loop._npl!==pl){loop._npl=pl;elNR.parentNode.classList.toggle('plein',pl);if(elNB)elNB.classList.toggle('plein',pl);}
+     try{nitroFeu(dt);}catch(e){} // (2026-09-26) LA JAUGE EN FEU
+     {const inf=pwrNitroT>0;if(loop._ninf!==inf){loop._ninf=inf;elNR.parentNode.classList.toggle('inf',inf);}}
      // LA JAUGE VIT : elle file quand on boost (rayures qui défilent, halo), vire au bleu en réserve, clignote rouge à sec
      {const st=(nitroOn?(nitroBlue?'bleu':'boost'):'')+((nitroR+nitroX)<.35?' bas':'');
       if(loop._nst!==st){loop._nst=st;const nb=elNR.parentNode;nb.classList.toggle('boost',nitroOn&&!nitroBlue);nb.classList.toggle('bleu',nitroOn&&nitroBlue);nb.classList.toggle('bas',(nitroR+nitroX)<.35);}}
@@ -17161,9 +17294,10 @@ function loop(now){
      if(elNB&&(loop._nbr!==r9||loop._nbx!==x9)){loop._nbr=r9;loop._nbx=x9;elNB.style.setProperty('--nr',r9);elNB.style.setProperty('--nx',x9);}}
     // chip des POUVOIRS actifs : compte à rebours coloré au-dessus de la jauge nitro
     let pch='';
-    if(pwrNitroT>0)pch+='<span style="color:#4db8ff">🔥 NITRO MAX '+pwrNitroT.toFixed(1)+'</span>';
-    if(pwrAirT>0)pch+='<span style="color:#7dffec">🪂 AIR MAX '+pwrAirT.toFixed(1)+'</span>';
-    if(pwrSpdT>0)pch+='<span style="color:#ff3ec8">⚡ '+TR('VITESSE')+' '+pwrSpdT.toFixed(1)+'</span>';
+    const pc9=(t,k)=>' class="'+(t<1.5?'fin':'')+'" style="color:'+PWR_DEFS[k].tint+';--p:'+Math.min(1,t/PWR_DEFS[k].t).toFixed(2)+'"'; // (2026-09-26) le temps FOND sous le nom, la fin CLIGNOTE
+    if(pwrNitroT>0)pch+='<span'+pc9(pwrNitroT,'n')+'>🔥 NITRO MAX '+pwrNitroT.toFixed(1)+'<i></i></span>';
+    if(pwrAirT>0)pch+='<span'+pc9(pwrAirT,'a')+'>🪂 AIR MAX '+pwrAirT.toFixed(1)+'<i></i></span>';
+    if(pwrSpdT>0)pch+='<span'+pc9(pwrSpdT,'v')+'>⚡ '+TR('VITESSE')+' '+pwrSpdT.toFixed(1)+'<i></i></span>';
     if(pch!==loop._pch){loop._pch=pch;pwrChip.innerHTML=pch;pwrChip.style.display=pch?'block':'none';}
     {const sp9=airPie.style.display==='block';if(sp9!==loop._psp){loop._psp=sp9;pwrChip.classList.toggle('sousPie',sp9);}}
     {const k9=pwrNitroT>0?'n':pwrSpdT>0?'v':pwrAirT>0?'a':''; // (HUD v3) les BORDS de l'écran battent à la couleur du pouvoir actif
