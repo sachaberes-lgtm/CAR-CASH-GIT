@@ -20220,7 +20220,7 @@ function gNomEntre(t){ // le NOM entre en glissant (seulement s'il CHANGE : rafr
   if(gNameEl.textContent===t)return;gNameEl.textContent=t;if(REDUCED_MOTION)return;
   gNameEl.classList.remove('entre');void gNameEl.offsetWidth;gNameEl.classList.add('entre');}
 function eurTxt(s){if(!s||LANG==='fr')return s;const v=parseFloat(String(s).replace(',','.'));return isFinite(v)?'€'+v.toFixed(2):s;}
-function gTampon(t){const c=$('gCard');if(!c||REDUCED_MOTION)return;c.dataset.tampon=t;c.classList.remove('tampon');void c.offsetWidth;c.classList.add('tampon');
+function gTampon(t){const c=$('gCard');if(!c)return;if(REDUCED_MOTION){toast(pxi('coche')+' '+t);return;} /* « réduire les animations » : l'achat se DIT quand même */ c.dataset.tampon=t;c.classList.remove('tampon');void c.offsetWidth;c.classList.add('tampon');
   {const e=$('gEclat');if(e){e.style.setProperty('--rc',getComputedStyle(c).getPropertyValue('--rc')||'#ffd75e');e.classList.remove('on');void e.offsetWidth;e.classList.add('on');}} // et un éclair de SA couleur derrière la caisse
   clearTimeout(gTampon._t);gTampon._t=setTimeout(function(){c.classList.remove('tampon');},2000);} // l'achat se FÊTE : le tampon d'or « À TOI ! »
 function gPrixHtml(peut,prix){return '<span>'+TR(peut?'ACHETER':'IL MANQUE')+'</span><b class="gPrix">'+fmtC(peut?prix:prix-bank())+'</b>';}
