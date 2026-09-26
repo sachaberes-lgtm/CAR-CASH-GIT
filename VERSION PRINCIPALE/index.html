@@ -3439,11 +3439,11 @@ const ACESShader={
     '  if(uSpeed>0.004){',                                    // + flou radial + aberration chromatique (fuite vers les bords)
     '    float amt=uSpeed*(0.04+r*r*1.7); vec3 acc=vec3(0.0);', // r² : centre NET, filé TRÈS FRANC vers les bords
     '    float jt=fract(52.9829189*fract(dot(gl_FragCoord.xy,vec2(.06711056,.00583715)))+uJit);', // grain ANIMÉ : moins de prises sans dessiner de copies (statique = saleté collée)
-    '    for(int i=0;i<'+ACES_N+';i++){ float t='+(ACES_N<8?'(float(i)+jt)/'+ACES_N+'.0':'float(i)/7.0')+'; vec2 off=dir*amt*t*0.62; float ca=amt*0.05;',
-    '      acc.r+=texture2D(tDiffuse,buv-off-dir*ca).r;',      // on traîne vers le centre + on écarte les canaux RVB
-    '      acc.g+=texture2D(tDiffuse,buv-off).g;',
-    '      acc.b+=texture2D(tDiffuse,buv-off+dir*ca).b; }',
+    '    for(int i=0;i<'+ACES_N+';i++){ float t='+(ACES_N<8?'(float(i)+jt)/'+ACES_N+'.0':'float(i)/7.0')+'; vec2 off=dir*amt*t*0.62;',
+    '      acc+=texture2D(tDiffuse,buv-off).rgb; }',            // (2026-09-26) UNE lecture par prise (il y en avait trois : 18 lectures par pixel au téléphone)
     '    x=acc/'+ACES_N+'.0;',
+    '    { vec2 mid=buv-dir*amt*0.31, ca=dir*amt*0.05;',        // l'aberration chromatique : deux prises suffisent pour écarter le rouge et le bleu
+    '      x.r=mix(x.r,texture2D(tDiffuse,mid-ca).r,0.5); x.b=mix(x.b,texture2D(tDiffuse,mid+ca).b,0.5); }',
     '  } else { x=texture2D(tDiffuse,vUv).rgb; }',
     '  x=x*uWB*uExposure;',
     'float L=dot(x,LUM);',
@@ -3475,6 +3475,9 @@ if(CAN_POST){ try{
   const bSc=IS_MOBILE?.42:IS_LOW_END?.52:.55; // bloom demi-résolution un cran plus bas sur desktop : le flou EST le produit, personne ne voit la différence
   const bRes=new THREE.Vector2(Math.max(320,Math.round(w*bSc)),Math.max(240,Math.round(h*bSc)));
   bloomPass=new THREE.UnrealBloomPass(bRes,IS_MOBILE?0.44:0.54,IS_MOBILE?0.44:.5,0.92);
+  // (2026-09-26, audit rendu) `addPass` rappelle setSize(largeur×DPR) : la résolution `bSc` était IGNORÉE (mesuré : ½ au lieu de .42).
+  // UnrealBloomPass prend la moitié de ce qu'on lui donne — on lui donne donc 2×bSc.
+  {const s0=bloomPass.setSize.bind(bloomPass);bloomPass.setSize=function(W,H){s0(Math.max(2,Math.round(W*bSc*2)),Math.max(2,Math.round(H*bSc*2)));};}
   if(REDUCED_MOTION)bloomPass.enabled=false; // reduced-motion : bloom coupé
   composer.addPass(bloomPass);
   acesPass=new THREE.ShaderPass(ACESShader);acesPass.renderToScreen=true;composer.addPass(acesPass);
@@ -3663,6 +3666,7 @@ function disposeClouds(){
   for(const c of CLOUDS){scene.remove(c.g);if(c.mesh&&c.mesh.geometry)c.mesh.geometry.dispose();}
   CLOUDS=[];cloudIn=0;
 }
+let FLOU_OK=true; // (2026-09-26) le flou radial du boost — le palier BAS le coupe
 let QUAL_LOW=false,QUAL_MED=IS_MOBILE||IS_LOW_END; // garde-fous perf : réduisent le raymarch (voir loop + applyPerfTier)
 function applyPerfTier(med,low){
   if(low&&!QUAL_LOW){
@@ -3670,8 +3674,8 @@ function applyPerfTier(med,low){
     // (les nuages ne coûtent plus rien à alléger : mesh opaques, un draw call chacun)
     if(bloomPass)bloomPass.enabled=false;
     if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}
-    sun.shadow.mapSize.set(1024,1024);
-    renderer.shadowMap.type=THREE.BasicShadowMap;
+    sun.shadow.mapSize.set(512,512); // (2026-09-26) 512 SANS recompilation — l'ancien passage en BasicShadowMap n'était jamais appliqué aux matériaux déjà compilés
+    FLOU_OK=false;                   // le flou radial du boost saute (le FOV et les filés gardent la sensation)
   }else if(med&&!QUAL_MED){
     QUAL_MED=true;
     if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;} // ombres 1024 dès le palier MED (recrée la map, zéro recompilation)
@@ -3699,7 +3703,9 @@ function applyPerfTier(med,low){
 // lumière sur les bourgeons au lieu de piquer — c'est ce qui donne l'ourlet lumineux des vraies photos.
 // + un soupçon d'emissive pour que la ouate ne meure jamais en gris dans les biomes sombres.
 const CLOUD_MAT=new THREE.MeshPhongMaterial({color:0xeae6f2,side:THREE.DoubleSide,transparent:true,opacity:.82,depthWrite:true,
-  shininess:14,specular:0x8f89a4,emissive:0x201d2c,emissiveIntensity:.62,flatShading:false}); // plus VAPOREUX (.9→.82) et un éclat un peu plus net sur les bourgeons
+  shininess:14,specular:0x8f89a4,emissive:0x201d2c,emissiveIntensity:.62,flatShading:false});
+CLOUD_MAT.onBeforeCompile=function(sh){sh.fragmentShader=sh.fragmentShader.replace('#include <lights_fragment_begin>',LFB_SANS_PL);}; // (2026-09-26) les nuages ne paient plus les lumières ponctuelles (voir LFB_SANS_PL)
+CLOUD_MAT.customProgramCacheKey=function(){return 'nuageSansPL';}; // plus VAPOREUX (.9→.82) et un éclat un peu plus net sur les bourgeons
 // FINESSE : à 16×11 les grosses boules (r 200-700) montraient leurs FACETTES — d'où les « formes
 // triangulaires ». On monte la définition sur desktop (mobile reste au gabarit léger).
 const CLOUD_SPH=new THREE.SphereGeometry(1,(IS_MOBILE||IS_LOW_END)?16:20,(IS_MOBILE||IS_LOW_END)?11:14); // gabarit recopié/fusionné (24×16 mangeait 25 fps : 20×14 lisse assez)
@@ -4425,15 +4431,21 @@ function asphTex(){ if(ASPH_TEX)return ASPH_TEX;
   t.anisotropy=Math.min(IS_MOBILE?4:8,renderer.capabilities.getMaxAnisotropy()); // la route se regarde RASANTE : sans anisotropie le grain devient une bouillie
   return (ASPH_TEX=t);
 }
+/* (2026-09-26, audit rendu) LES LUMIÈRES PONCTUELLES NE TOUCHENT QUE LA CAISSE. r128 fait tourner la boucle de CHAQUE PointLight dans
+   CHAQUE pixel Phong — même à intensité 0 — et le bitume couvre la moitié de l'écran : ~20 % du GPU mesuré, pour dessiner… les taches
+   rondes du verdict (carLight, nitroLight, portail). Le bloc des lumières ponctuelles est retiré du chunk pour la route et les nuages ;
+   les phares (SpotLight), le soleil et l'hémisphère restent. ⚠ r128 remplace NUM_POINT_LIGHTS par sa valeur dans le texte du shader :
+   on ne peut pas le redéfinir, on retire donc la boucle elle-même. */
+const LFB_SANS_PL=THREE.ShaderChunk.lights_fragment_begin.replace(/#if \( NUM_POINT_LIGHTS > 0 \) && defined\( RE_Direct \)[\s\S]*?#pragma unroll_loop_end\s*#endif/,'');
 function roadMat(){
   const m=new THREE.MeshPhongMaterial({color:0x322e40,side:THREE.DoubleSide,vertexColors:true,map:asphTex(),specularMap:asphTex(),
     shininess:30,specular:0x16141e,envMap:envTex,reflectivity:.03}); // (2026-09-26, user : « un peu trop brillante, gère mal le reflet du soleil ») : 80/0x2c2a3a faisait une traînée de soleil DURE et granuleuse — un bitume renvoie une nappe large et sourde
   m.onBeforeCompile=function(sh){
     sh.uniforms.uLift=ROAD_U.uLift;sh.uniforms.uSheen=ROAD_U.uSheen;sh.uniforms.uSheenCol=ROAD_U.uSheenCol;
-    sh.fragmentShader='uniform vec3 uLift;uniform float uSheen;uniform vec3 uSheenCol;\n'+sh.fragmentShader.replace('#include <envmap_fragment>',
+    sh.fragmentShader='uniform vec3 uLift;uniform float uSheen;uniform vec3 uSheenCol;\n'+sh.fragmentShader.replace('#include <lights_fragment_begin>',LFB_SANS_PL).replace('#include <envmap_fragment>',
       '#include <envmap_fragment>\n{float fr9=pow(1.0-clamp(abs(dot(normal,normalize(vViewPosition))),0.0,1.0),4.0);outgoingLight+=uLift+uSheenCol*(uSheen*fr9);}');
   };
-  m.customProgramCacheKey=function(){return 'bitumeV2';}; // UNE compilation pour toutes les pistes
+  m.customProgramCacheKey=function(){return 'bitumeV3';}; // UNE compilation pour toutes les pistes
   return m;
 }
 function routeTick(){ // le bitume suit le NIVEAU (fondu du portail : LVL.route / LVL.sheen, voir lvlStep)
@@ -10672,7 +10684,7 @@ function buildCar(spec){
     const tg=new THREE.Sprite(new THREE.SpriteMaterial({map:lampTex,color:0xff2818,transparent:true,opacity:.85,depthWrite:false}));
     tg.scale.set(.62,.62,1);tg.position.set(sd*tlX,tlY,tlZ-.06);carGroup.add(tg);
   }
-  if(!wreck){ // NÉON SOUS CAISSE : la flaque magenta qui glisse avec la caisse — Vice City jusque sous le châssis (tamisée pour la nuit sombre)
+  if(false){ // (2026-09-26, audit rendu) NÉON SOUS CAISSE RETIRÉ : c'était l'une des taches roses sous la caisse (verdict du 25/09 : « plus de tache ronde »)
     const ug=new THREE.Mesh(new THREE.PlaneGeometry(spec.w*2.4,spec.l*1.7),
       new THREE.MeshBasicMaterial({map:poolTex,color:0xff2e9e,transparent:true,opacity:.10,blending:THREE.AdditiveBlending,depthWrite:false,fog:false})); // (2026-09-25) .30 → .10 : une lueur sous la caisse, plus une jupe ROSE sur la route
     ug.rotation.x=-Math.PI/2;ug.position.set(0,.07,0);ug.userData.noShadow=true;ug.userData.sol=1;carGroup.add(ug);
@@ -10687,8 +10699,9 @@ function buildCar(spec){
   }
   // PHARES : les deux FAISCEAUX peints partent du pare-chocs et fondent vers l'avant (beamTex : le bord haut = la caisse)
   CARPOOL.head=mkPoolPlane(spec.w*2.9,spec.l*3.3,spec.l/2+spec.l*1.62,0xffd9a6,wreck?.24:.55,beamTex);
-  CARPOOL.tail=mkPoolPlane(spec.w*1.6,spec.l*.8,-spec.l/2-spec.l*.34,0xf51a0c,.16); // (2026-09-25) plus petite, plus discrète : « la grosse tache violette est mal gérée »          // les feux saignent leur rouge DERRIÈRE — rouge PROFOND (le bleu résiduel de 0xff2418 rosissait la flaque sur le bitume violet)
-  CARPOOL.jet=mkPoolPlane(spec.w*1.8,spec.l*2.6,-spec.l/2-spec.l*1.3,0xff7a24,0);  // (2026-09-25) 5×19 m → 3,4×11 m : le halo de nitro ne peint plus la moitié de l'écran              // le halo de la nitro/traînée (opacité pilotée par JETS.k dans la boucle)
+  CARPOOL.tail=null; // (2026-09-26, audit rendu) la flaque rouge des feux et le halo nitro plaqués au sol faisaient les taches rondes rouges/orangées derrière la caisse — retirés ; seuls les FAISCEAUX des phares restent
+  if(false)CARPOOL.tail=mkPoolPlane(spec.w*1.6,spec.l*.8,-spec.l/2-spec.l*.34,0xf51a0c,.16); // (2026-09-25) plus petite, plus discrète : « la grosse tache violette est mal gérée »          // les feux saignent leur rouge DERRIÈRE — rouge PROFOND (le bleu résiduel de 0xff2418 rosissait la flaque sur le bitume violet)
+  CARPOOL.jet=null;if(false)CARPOOL.jet=mkPoolPlane(spec.w*1.8,spec.l*2.6,-spec.l/2-spec.l*1.3,0xff7a24,0);  // (2026-09-25) 5×19 m → 3,4×11 m : le halo de nitro ne peint plus la moitié de l'écran              // le halo de la nitro/traînée (opacité pilotée par JETS.k dans la boucle)
   // LA CARROSSERIE PENCHE (voir carBody) : on y range tout, sauf les roues et ce qui épouse le bitume (néon, flaques)
   for(const ch of carGroup.children.slice())if(wheels.indexOf(ch)<0&&!(ch.userData&&ch.userData.sol))carBody.add(ch);
   carGroup.add(carBody);carBody.rotation.set(0,0,0);carBody.position.set(0,0,0);carBody.userData.pivY=wheels.length?wheels[0].position.y:.45; // pivot = hauteur des moyeux (⚠ pas de carRoll9=0 ici : buildCar tourne AVANT leur déclaration — zone morte)
@@ -13436,15 +13449,25 @@ const sparkTex=(function(){
   c.fillStyle=g;c.beginPath();c.arc(32,32,30,0,7);c.fill();
   return new THREE.CanvasTexture(cv);
 })();
-function makePool(n,size,color,opacity){
+/* LES PARTICULES « PROCHES » (2026-09-26, audit rendu) : une braise de 1,8 m à 5 m de la caméra faisait un ROND de 150 px derrière
+   la caisse — les taches orange du verdict. `proche` : taille plafonnée à l'écran (26 px CSS, suivie par la résolution adaptative)
+   et fondu sous 3,5-8 m de la caméra. Les pools de l'EXPLOSION n'y sont pas soumis : eux doivent remplir l'écran. */
+var PT_U={uPxMax:{value:26*curDPR}};
+function ptProche(sh){
+  sh.uniforms.uPxMax=PT_U.uPxMax;
+  sh.vertexShader='uniform float uPxMax;varying float vProche;\n'+sh.vertexShader.replace('#include <logdepthbuf_vertex>','gl_PointSize=min(gl_PointSize,uPxMax);vProche=smoothstep(3.5,8.0,-mvPosition.z);\n#include <logdepthbuf_vertex>');
+  sh.fragmentShader='varying float vProche;\n'+sh.fragmentShader.replace('#include <tonemapping_fragment>','gl_FragColor.a*=vProche;\n#include <tonemapping_fragment>');
+}
+function makePool(n,size,color,opacity,proche){
   const pos=new Float32Array(n*3);
   const g=new THREE.BufferGeometry();
   g.setAttribute('position',new THREE.BufferAttribute(pos,3));
   const m=new THREE.Points(g,new THREE.PointsMaterial({size:size,color:color,transparent:true,opacity:opacity,depthWrite:false,map:puffTex,alphaTest:.02}));
+  if(proche){m.material.onBeforeCompile=ptProche;m.material.customProgramCacheKey=function(){return 'ptProche';};}
   m.frustumCulled=false;scene.add(m);
   return {mesh:m,pos:pos,vel:new Float32Array(n*3),life:new Float32Array(n),n:n,head:0};
 }
-const dust=makePool(160,.55,0x6a6284,.22); // gomme mauve-nuit, discrète (les gros flocons beiges permanents, c'est fini) — (2026-09-26) 1,1 → .55 : collée à la roue, elle faisait un grand DISQUE mauve à l'écran
+const dust=makePool(160,.4,0x6a6284,.18,true); // gomme mauve-nuit, discrète (les gros flocons beiges permanents, c'est fini) — (2026-09-26) 1,1 → .55 : collée à la roue, elle faisait un grand DISQUE mauve à l'écran
 const wisps=makePool(150,4.2,0xfff3e8,.4); // brume de nuage qui file le long de la caisse
 const streaks=(function(){
   const n=50,pos=new Float32Array(n*6);
@@ -13467,13 +13490,13 @@ function updateStreaks(dt){
   }
   streaks.mesh.geometry.attributes.position.needsUpdate=true;
 }
-const flames=makePool(150,1.8,0xff9030,.8); // braises (les GROSSES nappes, c'est fini : le plume mesh fait le spectacle)
+const flames=makePool(150,1.8,0xff9030,.8,true); // braises (les GROSSES nappes, c'est fini : le plume mesh fait le spectacle)
 flames.mesh.material.blending=THREE.AdditiveBlending;flames.mesh.material.map=sparkTex; // texture étincelle : fini les ballons
-const flameCore=makePool(90,1.0,0xffe9a0,.9); // cœur chaud des braises (deux tons)
+const flameCore=makePool(90,1.0,0xffe9a0,.9,true); // cœur chaud des braises (deux tons)
 flameCore.mesh.material.blending=THREE.AdditiveBlending;flameCore.mesh.material.map=sparkTex;
-const embers=makePool(120,.32,0xffb24a,1); // braises fines qui s'échappent du feu et montent — (2026-09-25) .55 → .32 : près de la caméra une braise de .55 m faisait un rond de 200 px
+const embers=makePool(120,.24,0xffb24a,.8,true); // braises fines qui s'échappent du feu et montent — (2026-09-25) .55 → .32 : près de la caméra une braise de .55 m faisait un rond de 200 px
 embers.mesh.material.blending=THREE.AdditiveBlending;embers.mesh.material.map=sparkTex;
-const exSmoke=makePool(90,1.25,0x9aa2ac,.11); // voile de fumée qui suit le feu (discret : plus de blobs blancs devant l'objectif)
+const exSmoke=makePool(90,1.25,0x9aa2ac,.11,true); // voile de fumée qui suit le feu (discret : plus de blobs blancs devant l'objectif)
 // ---------- EXPLOSION ----------
 const boomPool=makePool(240,3.0,0xff8a30,1);boomPool.mesh.material.blending=THREE.AdditiveBlending;
 const smokePool=makePool(120,3.6,0x2a2a2e,.45);
@@ -13856,7 +13879,9 @@ function explode(cause){
   boomCore=new THREE.Mesh(new THREE.SphereGeometry(1,14,10), // cœur de lumière qui gonfle
     new THREE.MeshBasicMaterial({color:0xfff2d0,transparent:true,opacity:.9,blending:THREE.AdditiveBlending,depthWrite:false}));
   boomCore.position.copy(boomPos);scene.add(boomCore);
-  boomLight=new THREE.PointLight(BOOMV.li,7,460);boomLight.position.copy(boomPos);scene.add(boomLight);
+  // (2026-09-26, audit rendu) on RECYCLE la lumière dorée de la pose (toujours en scène, à 0) : le nombre de lumières ne change plus,
+  // aucun programme ne se recompile — c'était un gel de 1,5 s (PC) pile sur l'explosion
+  boomLight=swapLight;boomLight.color.set(BOOMV.li);boomLight.distance=460;boomLight.intensity=7;boomLight.position.copy(boomPos);
   flashEl.style.background=BOOMV.fl;flashEl.style.opacity=.95;setTimeout(function(){flashEl.style.opacity=0;},320);
   // ANNEAUX SUPPLÉMENTAIRES : chaque signature a son nombre d'ondes, à des angles et vitesses variés
   for(let e9=0;e9<BOOMV.rings;e9++)setTimeout(function(){
@@ -13890,17 +13915,17 @@ function clearBoom(){
   extraRings.length=0;
   clearBoomArt(); // volutes + dards de la boule de feu
   if(boomCore){scene.remove(boomCore);boomCore=null;}
-  if(boomLight){scene.remove(boomLight);boomLight=null;}
+  if(boomLight){boomLight.intensity=0;boomLight.distance=30;boomLight.color.setHex(0xffd06a);boomLight=null;} // rendue à la pose, JAMAIS retirée de la scène
   boomT=-1;carGroup.visible=true;flashEl.style.background='#ff2020';
 }
 // étincelles de collecte / d'impact
-const sparkGold=makePool(140,.9,0xffd75e,1);sparkGold.mesh.material.blending=THREE.AdditiveBlending;
-const sparkBlue=makePool(70,.9,0x5ee6ff,1);sparkBlue.mesh.material.blending=THREE.AdditiveBlending;
-const sparkPink=makePool(70,.9,0xff5ec8,1);sparkPink.mesh.material.blending=THREE.AdditiveBlending; // le 3e niveau du drift mini-turbo
+const sparkGold=makePool(140,.9,0xffd75e,1,true);sparkGold.mesh.material.blending=THREE.AdditiveBlending;
+const sparkBlue=makePool(70,.9,0x5ee6ff,1,true);sparkBlue.mesh.material.blending=THREE.AdditiveBlending;
+const sparkPink=makePool(70,.9,0xff5ec8,1,true);sparkPink.mesh.material.blending=THREE.AdditiveBlending; // le 3e niveau du drift mini-turbo
 // L'EAU DU REQUIN : des GOUTTES, pas des braises. Ce qui distingue de l'eau du feu, ce n'est pas la
 // couleur — c'est le comportement : ça part en gerbe, ça RETOMBE (gravité positive dans updatePool)
 // et ça meurt vite. Une flamme monte, une gerbe tombe ; l'œil fait la différence tout seul.
-const spray=makePool(150,.62,0xc8f4ff,.92);spray.mesh.material.blending=THREE.AdditiveBlending;
+const spray=makePool(150,.62,0xc8f4ff,.92,true);spray.mesh.material.blending=THREE.AdditiveBlending;
 const foam=makePool(80,1.45,0xf2fdff,.34);  // l'écume : plus grosse, plus molle, elle traîne derrière
 // MORCEAUX DE NUAGE : quand on défonce un banc, il éclate en mille bouts de ouate au point de contact
 const cloudBits=makePool(150,2.8,0xf3eff9,.9);
@@ -15108,8 +15133,9 @@ function spawnP(pool,x,y,z,vx,vy,vz,life){
   pool.life[i]=life;
 }
 function updatePool(pool,dt,grav){
+  let vivant=false;
   for(let i=0;i<pool.n;i++){
-    if(pool.life[i]>0){
+    if(pool.life[i]>0){vivant=true;
       pool.life[i]-=dt;
       pool.pos[i*3]+=pool.vel[i*3]*dt;
       pool.pos[i*3+1]+=(pool.vel[i*3+1]+grav)*dt;
@@ -15117,7 +15143,8 @@ function updatePool(pool,dt,grav){
       if(pool.life[i]<=0)pool.pos[i*3+1]=-99999;
     }
   }
-  pool.mesh.geometry.attributes.position.needsUpdate=true;
+  if(vivant||pool._vivant)pool.mesh.geometry.attributes.position.needsUpdate=true; // (2026-09-26) un pool vide n'est plus renvoyé au GPU à chaque image (une dernière fois pour ranger les morts)
+  pool._vivant=vivant;
 }
 // ---------- PLUIE DE DEVISES : à 10 000 $ (puis à chaque x10), les monnaies du monde défilent ----------
 const CURR=[['$','#ffd75e'],['€','#7dc8ff'],['¥','#ff8a8a'],['£','#c9a7ff'],['₹','#8affc1'],
@@ -20762,13 +20789,11 @@ function loop(now){
     headSpot.position.copy(carGroup.position).addScaledVector(hsF,1.6);headSpot.position.y+=1.5;
     headSpot.target.position.copy(carGroup.position).addScaledVector(hsF,30);headSpot.target.position.y-=1.2;
     headSpot.intensity=(mode==='boom')?0:1.85; // phares qui MORDENT le bitume (la flaque CARPOOL.head assure la lecture, le spot fait répondre le spéculaire)
-    if(CARPOOL.head){const on9=(mode!=='boom');CARPOOL.head.visible=CARPOOL.tail.visible=CARPOOL.jet.visible=on9;
-      if(on9&&CARPOOL.jet){CARPOOL.jet.material.opacity=Math.min(.12,JETS.k*.14);CARPOOL.jet.material.color.copy(jetShellM.color);} // le halo de traînée suit la flamme (couleur d'état déjà calculée)
-      if(on9)CARPOOL.tail.material.opacity=.16+(keys.ArrowDown?.12:0);} // freinage : les feux stop chauffent la flaque
+    if(CARPOOL.head)CARPOOL.head.visible=(mode!=='boom'); // (2026-09-26) la flaque rouge et le halo nitro au sol n'existent plus : seuls les faisceaux restent
     // REFLET NITRO/BOOST : le pool de lumière colle à l'échappement (repère caisse : marche aussi sous la dalle)
     hsU.set(0,1,0).applyQuaternion(carGroup.quaternion);
     nitroLight.position.copy(carGroup.position).addScaledVector(hsF,-2.2).addScaledVector(hsU,.5);
-    const nTgt=(mode==='boom')?0:(nitroOn?(nitroBlue?1.5:1.25):(boost>0?.8:.3)); // (2026-09-25) ÷1,5 à ÷2 : additionnée aux flaques et au bloom, elle faisait la « tache violette » // .68 au repos (était .8) : les FEUX ARRIÈRE posent leur reflet rouge en permanence — braise posée, plus le point chaud qui perçait
+    const nTgt=(mode==='boom')?0:(nitroOn?(nitroBlue?1.5:1.25):(boost>0?.8:0)); // (2026-09-26, audit rendu) AU REPOS : 0 — le reflet rouge permanent était la « tache rouge » derrière la caisse // (2026-09-25) ÷1,5 à ÷2 : additionnée aux flaques et au bloom, elle faisait la « tache violette » // .68 au repos (était .8) : les FEUX ARRIÈRE posent leur reflet rouge en permanence — braise posée, plus le point chaud qui perçait
     nitroLight.intensity+=(nTgt*(.82+.18*Math.sin(t*43))-nitroLight.intensity)*Math.min(1,dt*14); // flamme qui tremble, fondu doux
     {const FL9=CARS[level].fx,fxL=(FL9&&FL9.light!=null&&!nitroBlue)?FL9.light:null; // la signature n'éclaire QUE sous poussée
      if(nitroOn)nitroLight.color.setHex(nitroBlue?0x5b7dff:(fxL!=null?fxL:0xff7a24)); // orange nitro / bleu réserve (mêmes teintes que les particules)
@@ -20869,7 +20894,7 @@ function loop(now){
     if(carFins.length)for(const f9 of carFins)f9.scale.y=.07+.93*wingT;
     // le reflet de la traînée GLISSE sur la route derrière la caisse (même couleur que le ruban)
     trailLight.position.copy(carGroup.position).addScaledVector(hsF,-9).addScaledVector(hsU,1.1);
-    trailLight.intensity+=(trailK*1.5-trailLight.intensity)*Math.min(1,dt*10); // ×1.7→1.5 : le RUBAN garde la vedette, son reflet accompagne sans s'additionner brutalement au reste
+    trailLight.intensity=0; // (2026-09-26, audit rendu) son reflet rond sur le bitume derrière la caisse est retiré — la lumière reste en scène à 0 (retirer une lumière recompile tout) // ×1.7→1.5 : le RUBAN garde la vedette, son reflet accompagne sans s'additionner brutalement au reste
     trailLight.color.setRGB(Math.min(1,tcr),Math.min(1,tcg),Math.min(1,tcb));
     // sons continus
     if(AC){
@@ -21161,7 +21186,7 @@ function loop(now){
   // (2026-09-26) éteints = plus dessinés : le sprite additif du soleil couvre 2 000 unités, même à opacité nulle il se paie (garage et étal gardent la main)
   if(!garageOn&&!stallOn){sunSprite.visible=sunSprite.material.opacity>.02;horizonGlow.visible=horizonGlow.material.opacity>.02;for(const r9 of RAYS)r9.visible=r9.material.opacity>.002;}
   if(acesPass){ // EFFETS DE VITESSE (aberration + flou radial + tunnel) — SUR LE BOOST, pas sur le simple fait d'avancer
-    const sfxT=(running&&!gameOver&&!REDUCED_MOTION)?Math.min(1,(nitroOn?0.72:0)+Math.min(1,boost)*0.6):0; // rouler normalement = image nette ; booster = ça FUSE
+    const sfxT=(running&&!gameOver&&!REDUCED_MOTION&&FLOU_OK)?Math.min(1,(nitroOn?0.72:0)+Math.min(1,boost)*0.6):0; // rouler normalement = image nette ; booster = ça FUSE
     loop._sfx=(loop._sfx||0)+(sfxT-(loop._sfx||0))*Math.min(1,dt*(sfxT>(loop._sfx||0)?7:3)); // montée franche, retombée douce
     acesPass.uniforms.uSpeed.value=loop._sfx;acesPass.uniforms.uJit.value=(acesPass.uniforms.uJit.value+.618034)%1;
   }
@@ -21596,7 +21621,7 @@ function togglePause(){ if(!started||gameOver)return;
   musicPause(paused); // la musique ne passe plus par l'AudioContext : elle se met en pause elle-même
 }
 // applique la résolution adaptative (reconfigure le renderer et le canvas des speed-lines)
-function applyDPR(){ try{ renderer.setPixelRatio(curDPR); renderer.setSize(innerWidth,innerHeight);
+function applyDPR(){ try{ renderer.setPixelRatio(curDPR); renderer.setSize(innerWidth,innerHeight); if(PT_U)PT_U.uPxMax.value=26*curDPR; // le plafond des particules suit la résolution
   if(composer){composer.setPixelRatio(curDPR);composer.setSize(innerWidth,innerHeight);}
   slCv.width=innerWidth; slCv.height=innerHeight;
   if(juiceCv){juiceCv.width=innerWidth;juiceCv.height=innerHeight;} }catch(e){} }
