@@ -1794,7 +1794,7 @@
     0 0 0 2px var(--k0),0 6px 0 0 #0a0716,0 6px 0 2px var(--k0),var(--ombreSol);
   text-shadow:0 2px 0 var(--txO);
   transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease),filter var(--t-fast) var(--ease),opacity var(--t-fast) var(--ease)}
-.pbtn .pxi{color:var(--nc);filter:drop-shadow(0 0 6px var(--nc))}
+.pbtn .pxi{color:var(--nc)}
 .pbtn:active{transform:skewX(var(--sk)) translateY(6px);
   box-shadow:inset 5px 0 0 var(--nc),inset 26px 0 26px -14px var(--nc),inset 0 1px 0 rgba(255,255,255,.22),
     0 0 0 2px var(--k0),0 0 0 0 #0a0716,0 0 0 2px var(--k0),0 5px 8px rgba(0,0,0,.5)}
@@ -1812,7 +1812,7 @@
   outline:2px solid rgba(160,82,0,.28);outline-offset:-8px;
   text-shadow:0 2px 0 rgba(255,244,196,.85);
   animation:k4Lingot 4.2s var(--ease) 1.2s infinite}
-.pb-gold .pxi{color:var(--auT);filter:none}
+.pb-gold .pxi{color:var(--auT)}
 .pb-gold:active{transform:skewX(var(--sk)) translateY(7px);
   box-shadow:inset 0 2px 0 rgba(255,255,255,.9),inset 0 -4px 0 rgba(190,95,0,.55),
     0 0 0 2px var(--auO),0 0 0 0 var(--auE),0 0 0 2px var(--auO),0 5px 8px rgba(40,10,0,.5),0 0 36px rgba(255,190,40,.6)}
@@ -2050,7 +2050,7 @@ body.touch #overlay[data-ecran="dead"]::before{opacity:.88}
 .mMode:active{filter:brightness(1.2)}
 .mmT{display:flex;align-items:center;justify-content:space-between;gap:12px;font-family:var(--pix);font-size:var(--f3);letter-spacing:1px;color:var(--tx)}
 .mmT>span:first-child{display:flex;align-items:center;gap:12px;transform:skewX(var(--sk))}
-.mmT .pxi{--pxs:3;color:var(--mc);filter:drop-shadow(0 0 6px var(--mc))}
+.mmT .pxi{--pxs:3;color:var(--mc)}
 .mMode.off .mmT .pxi{color:var(--tx2);filter:none}
 .mmS,.mmP{flex:none;display:flex;align-items:center;justify-content:center;min-width:54px;height:28px;padding:0 10px;box-sizing:border-box;font-size:var(--f0);letter-spacing:1px;
   transform:skewX(var(--sk));color:var(--neoV);background:#062414;box-shadow:0 0 0 2px #1d7a44,0 0 12px rgba(94,227,122,.3)}
@@ -2154,12 +2154,45 @@ body #tGear{width:50px!important;height:50px!important;border:0!important;border
   background:var(--carbone),var(--k3)!important;transform:skewX(var(--sk))!important;
   box-shadow:inset 5px 0 0 var(--neoC),inset 18px 0 20px -14px var(--neoC),inset 0 1px 0 rgba(255,255,255,.22),0 0 0 2px var(--k0),0 6px 0 0 #0a0716,0 6px 0 2px var(--k0),0 10px 14px rgba(0,0,0,.5)!important}
 body #tGear::before,body #tGear::after{display:none!important}
-body #tGear .pxi{--pxs:2;color:var(--neoC);filter:drop-shadow(0 0 6px var(--neoC))}
+body #tGear .pxi{--pxs:2;color:var(--neoC);filter:none!important}
 body #tGear:active{transform:skewX(var(--sk)) translateY(6px)!important;
   box-shadow:inset 5px 0 0 var(--neoC),inset 0 1px 0 rgba(255,255,255,.22),0 0 0 2px var(--k0),0 4px 8px rgba(0,0,0,.5)!important}
 /* sous la pause, le HUD de course se tait (il se lisait à travers le voile) */
 body:has(#tPanel.open) :is(#flowHud,#auraV2,#pwrChip,#pwrFx,#airPie,#nitroWrap,#lvlBan,#slam9){visibility:hidden}
 body:has(#tPanel.open) #coach,body:has(#tPanel.open) #misBan,body:has(#tPanel.open) #engBig{display:none}
+
+/* ============================================ LE BOUTON NITRO (course) ===============================================
+   Le seul gros bouton du jeu resté en bonbon bleu. Il garde sa FORME de cadran (rond : c'est une JAUGE, pas une plaque —
+   le compteur de boost de Rocket League) et sa lecture (--nr orange = la nitro, --nx bleu/cyan = la réserve, posées par la
+   boucle), mais il prend la matière de la charte : face en CARBONE, jauge en néon SEGMENTÉE comme un compteur de course,
+   éclair orange néon. À l'appui (.on) la face S'EMBRASE ; pleine (.plein), la jauge respire. Aucun câblage touché
+   (bindHold, #tNitroZone invisible, anneau de l'auto-école `body.coNitro`). */
+body.touch #tNitro{border:9px solid transparent!important;color:var(--tx)!important;text-shadow:0 2px 0 var(--k0)!important;
+  background:radial-gradient(circle at 50% 26%,rgba(255,255,255,.16),transparent 58%) padding-box,
+    repeating-linear-gradient(45deg,rgba(255,255,255,.04) 0 3px,transparent 3px 6px) padding-box,
+    repeating-linear-gradient(-45deg,rgba(0,0,0,.26) 0 3px,transparent 3px 9px) padding-box,
+    radial-gradient(circle at 50% 42%,#2b2254 0%,#161030 72%) padding-box,
+    repeating-conic-gradient(from 220deg,transparent 0 16deg,rgba(7,5,15,.92) 16deg 20deg) border-box,
+    conic-gradient(from 220deg,#ffd23a 0deg,#ff6a0e calc(var(--nr)*280deg),#3f6bff calc(var(--nr)*280deg),var(--neoC) calc(min(1,var(--nr) + var(--nx))*280deg),rgba(255,255,255,.09) calc(min(1,var(--nr) + var(--nx))*280deg),rgba(255,255,255,.09) 280deg,transparent 280deg) border-box!important;
+  box-shadow:inset 0 0 0 2px rgba(7,5,15,.9),inset 0 3px 0 2px rgba(255,255,255,.10),0 0 0 2px var(--k0),0 6px 0 2px var(--k0),0 0 20px rgba(255,106,14,.22),0 12px 22px rgba(0,0,0,.5)!important}
+/* le HALO de la jauge pleine : un calque à part dont seule l'OPACITÉ bouge (composité, gratuit) — pas un filtre animé */
+body.touch #tNitro::before{content:'';position:absolute;inset:-12px;border-radius:50%;pointer-events:none;background:none;
+  box-shadow:0 0 22px 6px rgba(255,140,40,.6);opacity:0;transition:opacity var(--t-fast) var(--ease)}
+body.touch #tNitro .pxi{--pxs:4;color:#ff8a24;filter:none!important}
+body.touch #tNitro span{font-family:var(--pix);font-size:var(--f0)!important;letter-spacing:2px!important;color:var(--tx2)}
+body.touch #tNitro:active,body.touch #tNitro.on{transform:translateY(5px)!important;color:#fff!important;
+  background:radial-gradient(circle at 50% 30%,rgba(255,255,255,.55),transparent 52%) padding-box,
+    radial-gradient(circle at 50% 46%,#ffb35c 0%,#ff6a0e 52%,#a33200 100%) padding-box,
+    repeating-conic-gradient(from 220deg,transparent 0 16deg,rgba(7,5,15,.92) 16deg 20deg) border-box,
+    conic-gradient(from 220deg,#fff3b0 0deg,#ffd23a calc(var(--nr)*280deg),#8fb0ff calc(var(--nr)*280deg),#b8f6ff calc(min(1,var(--nr) + var(--nx))*280deg),rgba(255,255,255,.09) calc(min(1,var(--nr) + var(--nx))*280deg),rgba(255,255,255,.09) 280deg,transparent 280deg) border-box!important;
+  box-shadow:inset 0 0 0 2px rgba(7,5,15,.9),0 0 0 2px var(--k0),0 1px 0 2px var(--k0),0 0 38px rgba(255,120,30,.8)!important}
+body.touch #tNitro:active .pxi,body.touch #tNitro.on .pxi{color:#fff}
+body.touch #tNitro:active span,body.touch #tNitro.on span{color:#fff}
+body.touch #tNitro.plein:not(.on){animation:none!important}
+body.touch #tNitro.plein:not(.on)::before{animation:k4NitroPret 1.1s var(--ease) infinite}
+@keyframes k4NitroPret{0%,100%{opacity:.15}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){body.touch #tNitro.plein:not(.on)::before{animation:none;opacity:.6}}
+body.touch #tNitroZone{background:none!important;border:0!important;box-shadow:none!important}
 
 /* ============================================ LA FENÊTRE ET LE TOAST =============================================== */
 #modale{position:fixed;inset:0;z-index:95;display:none;align-items:flex-end;justify-content:center;box-sizing:border-box;
@@ -2184,6 +2217,10 @@ body:has(#tPanel.open) #coach,body:has(#tPanel.open) #misBan,body:has(#tPanel.op
   transform:translate(-50%,-14px) skewX(var(--sk));transition:opacity var(--t-fast) var(--ease),transform var(--t-slow) var(--ease)}
 #toast.on{opacity:1;transform:translate(-50%,0) skewX(var(--sk))}
 #toast .pxi{--pxs:2;color:var(--au1)}
+#toast .pxi-coche{color:var(--neoV)}
+#toast:has(.pxi-coche){box-shadow:inset 5px 0 0 var(--neoV),0 0 0 2px var(--k0),0 6px 0 2px var(--k0),var(--ombreSol)}
+#toast .pxi-croix{color:var(--neoR)}
+#toast:has(.pxi-croix){box-shadow:inset 5px 0 0 var(--neoR),0 0 0 2px var(--k0),0 6px 0 2px var(--k0),var(--ombreSol)}
 /* au garage, le haut est à la FICHE : le toast se pose au-dessus des onglets, sur l'atelier */
 body.inGarage #toast{top:auto;bottom:calc(var(--sB) + 356px)}
 @media (max-height:720px){body.inGarage #toast{bottom:calc(var(--sB) + 316px)}}
@@ -2237,7 +2274,7 @@ body.inGarage #hud>:not(#garage):not(#gFade){display:none!important}
 #gEclat.on{animation:k4Eclat .9s var(--ease) forwards}
 @keyframes k4Eclat{0%{opacity:0}18%{opacity:.75}100%{opacity:0}}
 /* LE TAMPON : un achat se FÊTE — « À TOI ! » frappé en or sur la fiche (la seule surimpression du garage) */
-#gCard::after{content:attr(data-tampon);position:absolute;right:4px;top:36px;padding:10px 14px 9px;font-family:var(--pix);font-size:var(--f4);letter-spacing:2px;color:var(--au1);
+#gCard::after{content:attr(data-tampon);position:absolute;right:10px;top:calc(100% + 22px);padding:10px 14px 9px;font-family:var(--pix);font-size:var(--f4);letter-spacing:2px;color:var(--au1);
   background:rgba(7,5,15,.72);box-shadow:inset 0 0 0 3px var(--au2),0 0 0 2px var(--k0),0 0 24px var(--auG);text-shadow:0 2px 0 var(--auO),0 0 12px var(--auG);
   opacity:0;transform:rotate(-9deg) scale(.4);pointer-events:none}
 #gCard.tampon::after{animation:k4Tampon 1.9s var(--ease) forwards}
@@ -2257,7 +2294,10 @@ body.inGarage #hud>:not(#garage):not(#gFade){display:none!important}
 #gCard.verrou #gDesc,#gCard.defis #gDesc{display:block}
 #gCard.verrou #gDesc{font-family:var(--pix);font-size:var(--f1);line-height:1.8;letter-spacing:1px;color:var(--tx2)}
 #gCard.verrou #gDesc .pxi{--pxs:1}
-#gCard.defis #gDesc{display:flex;flex-direction:column;gap:7px;font-family:var(--pix);font-size:var(--f0);line-height:1.6;letter-spacing:1px}
+#gCard.defis #gDesc{display:block;font-family:var(--pix);font-size:var(--f0);line-height:1.7;letter-spacing:1px;color:var(--tx2)}
+#gCard.defis #gDesc>.pxi{--pxs:1;vertical-align:-1px;color:var(--tx3)}
+.gDfT,.gDf{margin-top:7px}
+.gDfT{display:block}
 .gDfT{color:var(--au1);margin-bottom:2px}
 .gDf{display:flex;align-items:flex-start;gap:9px;color:var(--tx)}
 .gDf>i{flex:none;display:flex;align-items:center;justify-content:center;width:14px;height:14px;margin-top:-2px;background:var(--k0);box-shadow:0 0 0 2px var(--kl2)}
@@ -2342,11 +2382,14 @@ body.inGarage #hud>:not(#garage):not(#gFade){display:none!important}
 #gBuy.pauvre{--nc:var(--neoR);color:var(--tx2);animation:none;outline:0;background:var(--carbone),var(--k2);
   box-shadow:inset 5px 0 0 var(--neoR),inset 0 1px 0 rgba(255,255,255,.12),0 0 0 2px var(--k0),0 6px 0 0 #0a0716,0 6px 0 2px var(--k0),var(--ombreSol);text-shadow:0 2px 0 var(--txO)}
 #gBuy.pauvre .gPrix{color:var(--neoR)}
-#gEquip[data-etat="eq"]{--nc:var(--neoV);color:var(--neoV);animation:none;outline:0;background:var(--carbone),var(--k2);
-  box-shadow:inset 5px 0 0 var(--neoV),inset 18px 0 20px -14px var(--neoV),inset 0 1px 0 rgba(255,255,255,.14),0 0 0 2px var(--k0),0 6px 0 0 #0a0716,0 6px 0 2px var(--k0),var(--ombreSol);text-shadow:0 2px 0 var(--txO)}
-#gEquip[data-etat="eq"] .pxi{color:var(--neoV);filter:drop-shadow(0 0 6px var(--neoV))}
-#gEquip[data-etat="verrou"]{--nc:#4a4270;color:var(--tx3);animation:none;outline:0;background:var(--carbone),var(--k2);
-  box-shadow:inset 5px 0 0 #4a4270,inset 0 1px 0 rgba(255,255,255,.12),0 0 0 2px var(--k0),0 6px 0 0 #0a0716,0 6px 0 2px var(--k0),var(--ombreSol);text-shadow:0 2px 0 var(--txO)}
+/* ÉQUIPÉE : la touche est ENFONCÉE et y reste — comme un interrupteur verrouillé en bas. Ce n'est plus une action, c'est un état. */
+#gEquip[data-etat="eq"],#gEquip[data-etat="verrou"]{transform:skewX(var(--sk)) translateY(6px)}
+#gEquip[data-etat="eq"]:active,#gEquip[data-etat="verrou"]:active{transform:skewX(var(--sk)) translateY(6px)}
+#gEquip[data-etat="eq"]{--nc:var(--neoV);color:var(--neoV);animation:none;outline:0;background:var(--carbone),#10231a;
+  box-shadow:inset 5px 0 0 var(--neoV),inset 18px 0 20px -14px var(--neoV),inset 0 2px 6px rgba(0,0,0,.55),0 0 0 2px var(--k0),0 0 14px rgba(94,227,122,.18);text-shadow:0 2px 0 var(--txO)}
+#gEquip[data-etat="eq"] .pxi{color:var(--neoV)}
+#gEquip[data-etat="verrou"]{--nc:#4a4270;color:var(--tx3);animation:none;outline:0;background:var(--carbone),var(--k1);
+  box-shadow:inset 5px 0 0 #4a4270,inset 0 2px 6px rgba(0,0,0,.55),0 0 0 2px var(--k0);text-shadow:0 2px 0 var(--txO)}
 #gEquip[data-etat="verrou"] .pxi{color:var(--tx3);filter:none}
 /* la séquence de départ, et le lancement rapide depuis JOUER : QUE la caisse et la porte */
 #garage.quiet #gTop,#garage.quiet #gBottom,#garage.quiet .gNav,#garage.launching #gTop,#garage.launching #gBottom,#garage.launching .gNav{display:none!important}
@@ -23423,7 +23466,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   // clavier-souris. Fonctions NOMMÉES (pas des closures anonymes dupliquées) pour qu'un seul corps
   // serve les deux entrées — sinon la logique finit par diverger au premier changement, comme le
   // commentaire plus haut le dit déjà pour les interrupteurs eux-mêmes.
-  function gearOpenHandler(e){ if(e.cancelable)e.preventDefault(); e.stopPropagation(); panOpen(true); hap(10); }
+  function gearOpenHandler(e){ if(e.cancelable)e.preventDefault(); e.stopPropagation(); uiClic(); panOpen(true); hap(10); } // (charte, règle 8) le ⏸ sonne AVANT que la pause ne coupe le son
   function panTapHandler(e){
     if(e.cancelable)e.preventDefault(); e.stopPropagation();
     const el=e.target&&e.target.closest?e.target.closest('.tp'):null;
