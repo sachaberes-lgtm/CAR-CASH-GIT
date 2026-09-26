@@ -114,6 +114,27 @@
     (le haut part de la normale de la route puis suit la trajectoire, aucun (0,1,0)) ; volant autour de `FLY_U`, manche autour de
     `FLY_R` SANS plafond (looping possible), caméra `up = FLY_U`. Plafond d'inertie = vitesse d'éjection ENTIÈRE (`fallVH0`).
   · **MÉTÉORE** = cratère UNIQUEMENT si nitro allumée au contact ET plongée > 45° (`2·vN² > v²`), plus la figure en l'air.
+  · **VILLE v3 — LE CANYON** (26/09, « la route plus proche des immeubles, un truc premium compatible iPhone ») : `buildVoxCity` bâtit
+    en coordonnées MONDE autour du ruban — 3 rangs de tours de chaque côté, posés LE LONG de chaque tronçon (la piste de la ville
+    descend en spirale sur 7-9 km : plusieurs étages de route à la verticale d'un point) + une forêt au large par cases. RÈGLE D'OR
+    `tourLibre` (grille de hachage des points de piste) : aucune tour ne coupe la route, elle se raccourcit ou relève son pied. Pieds
+    noyés dans la brume (shader). 3 draw calls : `villeMatTours` (fenêtres dans le shader, fondues en lueur au loin), `villeMatNeon`
+    (respire/clignote/grésille, `CITY.uT`), `villeMatTrafic` (voitures volantes déplacées par le vertex shader). Programmes compilés au
+    menu (`villeChauffe`). Plus de suivi d'altitude ni de plancher. `dbgCity()` = comptes + ms de construction (~30 ms).
+  · **PISTE v3** (26/09, « enlève les structures bizarres, quelques loopings de temps en temps ; ça va trop tout droit ») : hélice,
+    spirale, tire-bouchon, entrelacs à ZÉRO ; looping SEUL espacé de 1,6 km ; pentes bornées (~30°) ; `courbe()` = une « droite »
+    qui tourne ; GRAND BALAYAGE (motif 9) ; `lisserRaccords` (pente continue entre motifs) + creux adoucis. Banc : 62 % de piste en
+    virage R<400 m (39,5 % avant), plus longue droite 1,6 km → 0,9 km, sorties 0,01/km. Scripts : scratchpad `v6/piste/conduite/virages.js`.
+  · **PLUS AUCUN RALENTI** : `slowT`/`hitT` vidés dans la boucle (les déclencheurs restent, inoffensifs). **NITRO EN L'AIR** = la même
+    poussée qu'au sol dans l'axe du vol, l'élan gagné relève `fallVH0`.
+  · **PETITES ANIMATIONS** : feu de DOOM sur la jauge (`nitroFeu`, 96×18 cases, brasier en NITRO MAX, frange au boost), jauge chauffée
+    à blanc (`.inf`), pouvoirs qui fondent et clignotent, reflet sur la bande du FLOW, lettres du niveau qui tombent, chrono de vol qui
+    tremble < 1,5 s, confettis (`slam(…, fete)`) sur les annonces heureuses.
+  · **LES CINQ FAMILLES** (26/09) : `RARETES`, `carRar(i)` (fiche `rar`, sinon déduite de `CAR_UNLOCK`), `rarListe`, `carOrdre`. Garage
+    onglet VOITURES : barre des familles `#gRar` + bande de vignettes `#gStrip` (photos `carPhoto` via la file `photoFile`, une par
+    image) + pastille `#gRarPill`. LÉGENDAIRE = boutique seulement (bouton « EN BOUTIQUE » → `#mShop`). Les 50 nouvelles caisses sont
+    modelées dans l'atelier du scratchpad (`gamme/`, banc `essai.js` + hook `dbgEssaiCaisse`) et versées par `gamme/integrer.js`
+    (blocs balisés « LA GAMME DES 50 » / FICHES / CONDITIONS / CARNETS — regénérer, ne pas éditer à la main). Index 0-15 inchangés.
   · **PORTAIL OVULE** (`PORTAL`, sphère 55 m fresnel + noyau) : `portailPasse()` appelé au sol (bout de piste / entrée dans l'ovule)
     ET en vol (branche 'fall', avant `tryLand`) — `dbgPortail(d|'ciel')`.
   · **NUAGES** : `nuageTouche()` refuse tout nuage de décor qui mordrait le ruban (sauf bancs `onRoad`, 2× plus rares) ; tours

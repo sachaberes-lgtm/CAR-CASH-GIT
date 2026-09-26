@@ -4745,6 +4745,41 @@ function villeMatTrafic(){ // la circulation : le vertex shader fait avancer cha
       .replace('#include <fog_fragment>','gl_FragColor.rgb*=vA9;\n#include <fog_fragment>');};
   CITY.matV=m;return m;
 }
+/* LES PANNEAUX HOLOGRAPHIQUES (2026-09-26) — le cyberpunk, c'est la PUB : seize réclames en pixels (la police du jeu) peintes UNE
+   fois dans un atlas 512², posées face à la route sur les murs du canyon. Additives, elles flottent dans la pluie ; elles défilent
+   en lignes de balayage et, de temps en temps, un GLITCH les décale. Un appel de rendu pour toutes ; chaque panneau pioche sa case
+   dans l'atlas d'après sa position (aucune donnée par instance). */
+function villePubAtlas(){
+  if(CITY.pub)return CITY.pub;
+  const N=512,C=128,cv=document.createElement('canvas');cv.width=cv.height=N;const x=cv.getContext('2d');
+  const PUB=[['CASH CAR','#ffd75e','#ff2e8e','LA CAISSE QUI PAIE'],['1.61','#fff3be','#b86bff','GAME STUDIO'],['NITRO','#ff8d2e','#ff2e2e','PLEIN GAZ'],['$$$','#7dff9a','#0f7a3a','BANQUE OUVERTE'],
+    ['AURA','#ff9ee6','#7a2fd0','BRILLE FORT'],['FLOW','#5ee6ff','#1d63c8','NE LACHE RIEN'],['GO !','#ffffff','#ff5e7a','VITE VITE'],['24/7','#ffe23e','#ff7a14','NUIT BLANCHE'],
+    ['RAMEN','#ffb85a','#d8261e','CHAUD'],['NEON','#2ee6ff','#ff3ea5','PLUIE ET LUMIERE'],['TURBO','#ffffff','#ff2e8e','PLUS VITE'],['CASINO','#ffd75e','#1a7a4a','TOUT OU RIEN'],
+    ['DRIVE','#9fe8ff','#3a2fd0','OU CREVE'],['LUCKY','#7dffec','#ff3ea5','7 7 7'],['SUSHI','#ffffff','#ff5e7a','24 H'],['VITESSE','#ffe23e','#b0102a','ILLEGALE']];
+  x.imageSmoothingEnabled=false;
+  PUB.forEach(function(p,k){const ox=(k%4)*C,oy=((k/4)|0)*C;
+    const g=x.createLinearGradient(0,oy,0,oy+C);g.addColorStop(0,p[2]);g.addColorStop(1,'#08061a');x.fillStyle=g;x.fillRect(ox+4,oy+4,C-8,C-8);
+    x.strokeStyle=p[1];x.lineWidth=4;x.strokeRect(ox+8,oy+8,C-16,C-16);
+    x.fillStyle=p[1];x.textAlign='center';x.textBaseline='middle';
+    const fz=Math.min(26,Math.floor((C-28)/Math.max(3,p[0].length)));x.font=fz+'px "Press Start 2P",monospace';x.fillText(p[0],ox+C/2,oy+C*.44);
+    x.font='8px "Press Start 2P",monospace';x.fillStyle='#ffffff';x.fillText(p[3],ox+C/2,oy+C*.74);
+    for(let i=0;i<5;i++){x.fillStyle=p[1];x.globalAlpha=.55;x.fillRect(ox+14+i*20,oy+C-22,12,4);}x.globalAlpha=1;});
+  const t=new THREE.CanvasTexture(cv);t.magFilter=THREE.NearestFilter;t.minFilter=THREE.LinearMipmapLinearFilter;
+  CITY.pub=t;return t;
+}
+function villeMatPub(){
+  if(CITY.matP)return CITY.matP;
+  const m=new THREE.MeshBasicMaterial({map:villePubAtlas(),transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide});
+  m.onBeforeCompile=function(sh){sh.uniforms.uT9=CITY.uT;
+    sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nuniform float uT9;varying float vS9;')
+      .replace('#include <uv_vertex>','#include <uv_vertex>\n#ifdef USE_INSTANCING\n'+
+        'vS9=fract(instanceMatrix[3].x*.0713+instanceMatrix[3].z*.0419+instanceMatrix[3].y*.017);float c9=floor(vS9*16.);'+
+        'float gl9=step(.93,fract(uT9*(.3+vS9*.4)+vS9*9.))*(fract(sin(floor(uT9*12.)+vS9*50.)*43.7)-.5)*.35;'+ // le GLITCH : la case glisse un instant
+        'vUv=(vec2(clamp(vUv.x+gl9,0.,1.),vUv.y)*.96+.02+vec2(mod(c9,4.),3.-floor(c9/4.)))/4.;\n#else\nvS9=0.;\n#endif');
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9;varying float vS9;')
+      .replace('#include <fog_fragment>','gl_FragColor.rgb*=(.78+.22*step(.5,fract(gl_FragCoord.y*.25-uT9*6.)))*(.85+.15*sin(uT9*(3.+vS9*4.)));\n#include <fog_fragment>');};
+  m.dispose=function(){};CITY.matP=m;return m;
+}
 function buildVoxCity(seed,accC){
   CITY.root=null;CITY.n={};
   if(PARK.on)return; // le parc a sa prairie
@@ -4776,7 +4811,7 @@ function buildVoxCity(seed,accC){
       for(let dx=-rr;dx<=rr;dx++)for(let dz=-rr;dz<=rr;dz++){const gx=(cx0+dx)*S,gz=(cz0+dz)*S,d=Math.hypot(gx-pts[i].x,gz-pts[i].z);if(d>R)continue;
         const k=(cx0+dx)+','+(cz0+dz),o=m.get(k);if(!o||d<o[0])m.set(k,[d,i,gx,gz]);}}
     const out=[];for(const v of m.values())if(garde(v[0]))out.push(v);return out;};
-  const corps=[],genre=[],neon=[],neonC=[];
+  const corps=[],genre=[],neon=[],neonC=[],pubs=[];
   const NEON=[new THREE.Color(0xff2e8e),new THREE.Color(0x2ee6ff),new THREE.Color(0xffe23e),new THREE.Color(0x5cff9a),
               new THREE.Color(0xb86bff),new THREE.Color(0xff3030),accC];
   let nT=0;
@@ -4826,7 +4861,10 @@ function buildVoxCity(seed,accC){
     let yLo=pts[i].y;for(let j=Math.max(0,i-pasC*5);j<=Math.min(NP-1,i+pasC*5);j+=pasC)if(pts[j].y<yLo)yLo=pts[j].y; // le pied se noie sous le point le plus bas du tronçon
     for(const sg of [-1,1])for(const rw of ROWS){if(vr()>rw[2]*kC)continue;
       const w=snap(16+vr()*26),p=snap(16+vr()*26),hd=Math.hypot(w,p)*.5,lat=ROAD_HALF+rw[0]+hd+vr()*rw[1],al=(vr()-.5)*SN*.6;
-      batir(pts[i].x+px*sg*lat+tx*al,pts[i].z+pz*sg*lat+tz*al,lat,pts[i].y,yLo,true,w,p);}
+      const nt0=nT;batir(pts[i].x+px*sg*lat+tx*al,pts[i].z+pz*sg*lat+tz*al,lat,pts[i].y,yLo,true,w,p);
+      // LE PANNEAU : un mur sur quatre du 1er rang porte une réclame, tournée VERS la route, un peu au-dessus d'elle
+      if(rw===ROWS[0]&&nT>nt0&&vr()<(IS_MOBILE?.22:.3)){const pw=24+vr()*16,ph=pw*(.75+vr()*.25),d9=lat-hd*.72-1.5;
+        pubs.push(pts[i].x+px*sg*d9+tx*al,pts[i].y+16+vr()*40,pts[i].z+pz*sg*d9+tz*al,Math.atan2(-px*sg,-pz*sg),pw,ph);}}
   }
   // AU LARGE : la forêt du village, par cases au sol (le fond de scène), calée sur le point de piste le plus proche
   const cF=cellules(SF,R_VIL,d=>d>R_CAN),kF=Math.min(1,BUD*.4/Math.max(1,cF.length));
@@ -4876,7 +4914,11 @@ function buildVoxCity(seed,accC){
     for(let i=0;i<nV;i++){const av=trafic[i*5+4]>0,r9=vr();                // on les voit de DOS (feux rouges) ou de FACE (phares)
       imV.setColorAt(i,av?col.setRGB(1.6,.16,.22):r9<.8?col.setRGB(1.7,1.6,1.35):col.setRGB(.5,1.4,1.8));}
     if(imV.instanceColor)imV.instanceColor.needsUpdate=true;}
-  CITY.n={tours:nT,volumes:corps.length/6,neons:neon.length/6,trafic:trafic.length/5,routeY:[Math.round(yMin),Math.round(yMax)],ms:Math.round(performance.now()-t00),L:Math.round(L),cellsC:CITY.nC,cellsF:CITY.nF};
+  if(pubs.length){const Qp=new THREE.Quaternion(),Pp=new THREE.Vector3(),Sp=new THREE.Vector3(),Ay=new THREE.Vector3(0,1,0),PL=new THREE.PlaneGeometry(1,1),n9=pubs.length/6;
+    const imP=new THREE.InstancedMesh(PL,villeMatPub(),n9);
+    for(let i=0;i<n9;i++){const o=i*6;Qp.setFromAxisAngle(Ay,pubs[o+3]);Pp.set(pubs[o],pubs[o+1],pubs[o+2]);Sp.set(pubs[o+4],pubs[o+5],1);M.compose(Pp,Qp,Sp);imP.setMatrixAt(i,M);}
+    imP.instanceMatrix.needsUpdate=true;imP.frustumCulled=false;imP.renderOrder=3;root.add(imP);trackMeshes.push(imP);}
+  CITY.n={pubs:pubs.length/6,tours:nT,volumes:corps.length/6,neons:neon.length/6,trafic:trafic.length/5,routeY:[Math.round(yMin),Math.round(yMax)],ms:Math.round(performance.now()-t00),L:Math.round(L),cellsC:CITY.nC,cellsF:CITY.nF};
 }
 for(const f of [villeMatTours,villeMatNeon,villeMatTrafic])f().dispose=function(){}; // partagés sur toute la partie : le rebuild ne les jette pas
 /* L'HORIZON DE LA VILLE (2026-09-25, user : « la ligne d'horizon est moche »). La ville s'arrêtait NET à 3 000 unités,
@@ -4934,7 +4976,7 @@ function villeHorizon(){
 }
 function villeChauffe(){ // une instance de chaque, compilée hors écran puis retirée — les vraies réutilisent le programme
   const g=new THREE.Group(),geo=new THREE.BoxGeometry(1,1,1),c=new THREE.Color(1,1,1);
-  for(const m of [villeMatTours(),villeMatNeon(),villeMatTrafic()]){const im=new THREE.InstancedMesh(geo,m,1);im.setMatrixAt(0,new THREE.Matrix4());im.setColorAt(0,c);g.add(im);}
+  for(const m of [villeMatTours(),villeMatNeon(),villeMatTrafic(),villeMatPub()]){const im=new THREE.InstancedMesh(geo,m,1);im.setMatrixAt(0,new THREE.Matrix4());im.setColorAt(0,c);g.add(im);}
   scene.add(g);try{renderer.compile(scene,camera);}catch(e){}scene.remove(g);geo.dispose();
 }
 function cityTick(dt,camY){
