@@ -22,17 +22,11 @@
    v14 (2026-09-23) : radio reduite a UN seul morceau (reglage temporaire, demande du user).
    v15 (2026-09-24) : FUSION Sacha × Léo (branche fusion-2026-09) — vendor/ + police locale, vrai
         mix NÉON CASH CAR v3 (l'ancien fichier de ce nom contenait Chrome Ledger), sons fx/.
-   v16 (2026-09-24, Léo)  : la fusion Sacha × Léo + le travail de la nuit (moteur qui ronronne, musique devant,
-        gamme en briques). ⚠ Sacha et Léo avaient TOUS DEUX numéroté v15 : sans ce saut, les navigateurs
-        déjà passés sur la v15 de Sacha n'auraient jamais vu la fusion.
-   v17 (2026-09-24) : NOITE DE VELOCIDADE en ouverture (10 premieres zones), voitures low-poly.
-   v16 (2026-09-24, Sacha): icônes pixel (assets/icons/), charte pixel unifiée, niveaux Nuages → Ville → Orbite.
-   v18 (2026-09-24) : 2e fusion (charte pixel + carriere 30 niveaux de Sacha). ⚠ Sacha et Léo ont ENCORE
-        numerote chacun de leur cote (v16/v17) : on saute au-dessus des deux, sinon pas de mise a jour.
-   v19 (2026-09-24) : la musique suit le MONDE (nuages : Noite de Velocidade, ville : Nocturnal Groove).
-   v20 (2026-09-24) : ordre des mondes VILLE → NUAGES → ESPACE (partie sans fin + carriere).
-   v21 (2026-09-24) : 3e fusion Sacha (charte v2, boutons d'arcade pixel, niveau tuto AURORE). */
-const CACHE = 'cashcar-v21';
+   v16 (2026-09-24) : icônes pixel (assets/icons/), charte pixel unifiée, niveaux Nuages → Ville → Orbite.
+   v19 (2026-09-24) : fusion du push de Léo (v17/v18 chez lui) — musique par monde (noite-de-velocidade,
+        nocturnal-groove), moteur, voitures low-poly ; charte v2 et passe UX côté Sacha. */
+//  v20 (2026-09-25) : boutique, défis, auto-école, charte v3, lecteur de musique unique, ville en 1er niveau, caisses premium.
+const CACHE = 'cashcar-v20';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
