@@ -14482,7 +14482,7 @@ const VOLU_TEX=(function(){
       for(const l of L){const q=1-Math.hypot(px-l.x,py-l.y)/l.r;if(q>best){best=q;bl=l;}}
       if(best<=0)continue;const k=by*G+bx;M[k]=1;
       const nx=(px-bl.x)/bl.r,ny=(py-bl.y)/bl.r,nz=Math.sqrt(Math.max(0,1-nx*nx-ny*ny)),lam=nx*Lx+ny*Ly+nz*Lz; // chaque lobe est une SPHÈRE
-      T[k]=lam>.6?.95:lam>.3?.62:lam>0?.32:.16;
+      T[k]=lam>.56?.95:lam>.26?.62:lam>-.04?.32:.16;
       const dc=Math.hypot(px-L[0].x,py-L[0].y)/(L[0].r*1.05);C[k]=dc<.45?1:dc<.8?.5:0;
     }
     for(let by=0;by<G;by++)for(let bx=0;bx<G;bx++) // le LISERÉ D'ENCRE : le bord bas-droit (côté ombre) — un bloc, deux texels
@@ -14514,9 +14514,9 @@ const PAN_FS=['uniform sampler2D uTex;uniform float uMode;uniform vec3 uInk;',
   '  vec4 t=texture2D(uTex,vUv);float a=t.a*vC.a;if(a<.004)discard;',
   '  vec3 c;',
   '  if(uMode<.5){',                                                        // VOLUTE : r = le ton, g = le cœur
-  '    vec3 l=vC.rgb,om=mix(l*.45,uInk,.55);',                              // l'ombre tombe dans l'ENCRE du monde
-  '    c=mix(om,l,smoothstep(.14,.5,t.r));',
-  '    c=mix(c,l*1.45+vec3(.12,.09,.05),smoothstep(.62,.9,t.r));',           // le clair CUIT en haut à gauche
+  '    vec3 l=vC.rgb,om=mix(l*.35,uInk,.6);',                               // l'ombre tombe dans l'ENCRE du monde
+  '    c=mix(om,l,smoothstep(.2,.55,t.r));',                                  // ombre profonde · ombre · base : trois marches franches
+  '    c=mix(c,l*1.55+vec3(.18,.14,.07),smoothstep(.7,.92,t.r));',           // le clair CUIT en haut à gauche
   '    c=mix(uInk,c,smoothstep(.03,.1,t.r));',                               // le liseré d'encre
   '    c=mix(c,vec3(1.35,1.18,.92),vH*t.g);',                                // le cœur qui brûle encore (> 1 : le bloom le prend)
   '  }else c=vC.rgb*t.rgb;',                                                  // DARD, DEVISE : la texture teintée
@@ -14541,7 +14541,7 @@ function panPousse(o){
   const v=n>0||!o.chaud;if(o.mesh.visible!==v)o.mesh.visible=v;
 }
 const VOLU_N=26,VOLU=[],VOLU_ORD=[],DARD_N=16,DARD=[];
-for(let i=0;i<VOLU_N;i++){VOLU.push({on:false,t:0,life:1,x:0,y:0,z:0,vy:0,dx:0,dz:0,r0:1,r1:2,f:0,d2:0});VOLU_ORD.push(null);}
+for(let i=0;i<VOLU_N;i++){VOLU.push({on:false,t:0,life:1,x:0,y:0,z:0,vy:0,dx:0,dz:0,r0:1,r1:2,f:0,d2:0,cu:0});VOLU_ORD.push(null);}
 for(let i=0;i<DARD_N;i++)DARD.push({on:false,t:0,life:1,len:1,wid:1,rot:0,dx:0,dy:0,dz:0});
 const PAN_VOL=mkPanneaux(VOLU_N,VOLU_TEX,2,2,false,0,3),PAN_DARD=mkPanneaux(DARD_N,boomSpikeTex,1,1,true,1,4);
 const BOOM_HOT=new THREE.Color(0xfff4d0),BOOM_OR=new THREE.Color(0xffc640),BOOM_MID=new THREE.Color(0xff7a24),BOOM_COLD=new THREE.Color(0xb3160c); // blanc brûlant → or → FEU → rouge
@@ -14584,13 +14584,14 @@ function spawnBoomArt(pos,power){
   // VOLUTES : trois au cœur, une couronne autour, chacune avec son retard (l'explosion se DÉPLOIE)
   const n=Math.min(VOLU_N,Math.round(18*power));
   for(let i=0;i<n;i++){
-    const p=VOLU[i],core=i<3,a=Math.random()*6.2832,el=(Math.random()-.3)*1.3,rr=core?Math.random()*.5:(.8+Math.random()*1.3)*power;
+    const p=VOLU[i],core=i<3,a=Math.random()*6.2832,el=(Math.random()-.3)*1.3,rr=core?Math.random()*.5:(.9+Math.random()*1.5)*power;
     let ox=Math.cos(a)*Math.cos(el)*rr,oz=Math.sin(a)*Math.cos(el)*rr;const k9=ox*bvA.x+oz*bvA.z;
     if(k9<0){ox-=2*k9*bvA.x;oz-=2*k9*bvA.z;} // la couronne s'ouvre sur les côtés et vers le fond, jamais vers l'objectif
     p.x=cx+ox;p.y=cy+Math.sin(el)*rr*.6+(core?0:.7);p.z=cz+oz;
     p.t=-(core?0:Math.random()*.14);p.life=1.05+Math.random()*.7;
-    p.r0=(core?1.6:1+Math.random()*.5)*power;p.r1=(core?3.2:2+Math.random()*.8)*power; // petite quand la caméra est encore collée, pleine quand elle a reculé
+    p.r0=(core?2:1.3+Math.random()*.6)*power;p.r1=(core?3.8:2.4+Math.random()*1)*power; // ~4-5 m de boule vue à ~11 m : ≈ 10 % de l'écran
     p.vy=1.1+Math.random()*2.3;p.dx=(Math.random()-.5)*2;p.dz=(Math.random()-.5)*2;p.f=i&3;p.on=true;
+    p.cu=core?-.04:(Math.random()-.5)*.18; // chaque lobe a SA chaleur : certains brûlent encore quand d'autres fument déjà
   }
   // DARDS : des traits qui jaillissent droit et s'éteignent vite — la VIOLENCE du dessin, sans couvrir l'image
   const ns=Math.min(DARD_N,Math.round(12*power));
@@ -14615,15 +14616,18 @@ function updateBoomArt(dt){
     let j=n++;while(j>0&&VOLU_ORD[j-1].d2<p.d2){VOLU_ORD[j]=VOLU_ORD[j-1];j--;}VOLU_ORD[j]=p;
   }
   {const P=PAN_VOL.P,S=PAN_VOL.S,C=PAN_VOL.C,F=PAN_VOL.F;
-   for(let k=0;k<n;k++){const p=VOLU_ORD[k],u=p.t/p.life;
-     const e=1-Math.pow(1-Math.min(1,u*2.2),3),r=p.r0+(p.r1-p.r0)*e; // gonflement vif qui s'assagit
-     bpTmpC.copy(BOOM_HOT).lerp(BOOM_OR,Math.min(1,u*12)).lerp(BOOM_MID,Math.min(1,Math.max(0,(u-.08)*7)))   // ça REFROIDIT…
-       .lerp(BOOM_COLD,Math.min(1,Math.max(0,(u-.28)*2.6))).lerp(BOOM_SMOKE,Math.min(1,Math.max(0,(u-.45)*2.8))); // …et retombe en CHARBON
+   // la poursuite RECULE pendant l'explosion (6 → 20 m en 0,4 s) : les lobes grossissent avec elle (×1,6 au plus) — la boule garde
+   // sa lecture à l'écran au lieu de fondre en confetti, sans jamais couvrir plus qu'au départ
+   const kD=n?Math.min(1.6,Math.max(1,Math.sqrt(VOLU_ORD[n>>1].d2)/9)):1;
+   for(let k=0;k<n;k++){const p=VOLU_ORD[k],u=p.t/p.life,uc=Math.max(0,u+p.cu);
+     const e=1-Math.pow(1-Math.min(1,u*4),3),r=(p.r0+(p.r1-p.r0)*e)*kD; // gonflement VIF (pleine taille à ~0,35 s) qui s'assagit
+     bpTmpC.copy(BOOM_HOT).lerp(BOOM_OR,Math.min(1,uc*12)).lerp(BOOM_MID,Math.min(1,Math.max(0,(uc-.08)*7)))   // ça REFROIDIT…
+       .lerp(BOOM_COLD,Math.min(1,Math.max(0,(uc-.28)*2.6))).lerp(BOOM_SMOKE,Math.min(1,Math.max(0,(uc-.45)*2.8))); // …et retombe en CHARBON
      const a=(u<.05?u/.05:1)*(1-sm(u,.62,1))*sm(Math.sqrt(p.d2),2.5,6); // garde-objectif : 2,5 → 6 m (à 3,5-8 m la boule, née à ~6,5 m de la poursuite, restait à 20 %)
      P[k*3]=p.x;P[k*3+1]=p.y;P[k*3+2]=p.z;
      S[k*4]=r;S[k*4+1]=r;S[k*4+2]=0;S[k*4+3]=0;
      C[k*4]=bpTmpC.r;C[k*4+1]=bpTmpC.g;C[k*4+2]=bpTmpC.b;C[k*4+3]=a;
-     F[k*2]=p.f;F[k*2+1]=Math.max(0,1-u/.3);}   // le cœur brûle le premier tiers de la vie
+     F[k*2]=p.f;F[k*2+1]=Math.max(0,1-uc/.3);}   // le cœur brûle le premier tiers de la vie
    PAN_VOL.cnt=n;panPousse(PAN_VOL);}
   // DARDS (additifs : pas de tri)
   {const P=PAN_DARD.P,S=PAN_DARD.S,C=PAN_DARD.C,F=PAN_DARD.F,near=sm(boomPos.distanceTo(cp),2,5);let m=0;
@@ -14656,7 +14660,7 @@ function clearBoomArt(){ // (vague 2) rien n'est libéré : tout est RANGÉ (les
 }
 const debris=[];
 let boomT=-1,boomLight=null;
-const boomPos=new THREE.Vector3();
+const boomPos=new THREE.Vector3(),bmCam=new THREE.Vector3(),bmCamD=new THREE.Vector3();
 // ---------- SIGNATURES D'EXPLOSION : chaque caisse meurt à sa façon ----------
 const heartTex=(function(){ // cœur rose (COMÈTE)
   const cv=document.createElement('canvas');cv.width=cv.height=64;
@@ -14732,7 +14736,7 @@ function mkAstroS(){ // le passager clandestin de la fusée
 /* (vague 2) LES ÉCLATS NE FONCENT PLUS SUR L'OBJECTIF : la poursuite est à ~5,5 m du foyer — un débris lancé vers elle la frôlait en
    ~0,2 s et devenait une PLAQUE ORANGE plein écran (le « carton » des captures). La composante qui file vers la caméra est renvoyée
    vers l'avant (miroir sur l'axe du regard, à plat) ; la gerbe reste aussi large, elle s'ouvre DEVANT nous. */
-const dbC=new THREE.Vector3();
+const dbC=new THREE.Vector3(),dbS=new THREE.Vector3(),dbBox=new THREE.Box3();
 function debrisLoin(v){
   dbC.subVectors(boomPos,camera.position);dbC.y=0;const l=dbC.length();if(l<1e-3)return v;dbC.multiplyScalar(1/l);
   const k=v.x*dbC.x+v.z*dbC.z;if(k<0){v.x-=2*k*dbC.x;v.z-=2*k*dbC.z;}
@@ -14820,7 +14824,7 @@ function explode(cause){
   }
   chainHud.style.opacity=0;
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;
-  mode='boom';boomT=0;boomPos.copy(carGroup.position);
+  mode='boom';boomT=0;boomPos.copy(carGroup.position);bmCam.copy(camera.position); // (vague 2) le point d'où l'on regarde la mort
   spawnBoomArt(boomPos,1); // LA BOULE DE FEU DESSINÉE : volutes en chou-fleur + dards
   boomOndePart(boomPos); // (2026-09-26) + l'onde qui court sur le bitume
   const tx9=engTier<23?annSpeak('earlyDead',6):null; // (2026-09-26, audit son) la VOIX d'abord : si elle parle, le tirage du son de mort écarte le « ewww »
@@ -14844,8 +14848,11 @@ function explode(cause){
     dTmp.sub(boomPos);
     if(dTmp.lengthSq()<.01)dTmp.set(Math.random()-.5,.3,Math.random()-.5);
     dTmp.normalize();
-    debris.push({m:d,v:debrisLoin(new THREE.Vector3(dTmp.x*(9+Math.random()*12),6+Math.random()*12+dTmp.y*9,dTmp.z*(9+Math.random()*12))),
-      rx:(Math.random()-.5)*12,ry:(Math.random()-.5)*12,part:true});
+    // (vague 2) les VRAIES pièces (capot, toit : 1-2 m) partaient à 20 m/s vers le haut et repassaient au-dessus de l'objectif en
+    // grandes PLAQUES plates : plus lentes, elles retombent dans la boule ; masquées d'autant plus tôt qu'elles sont grandes
+    const rad9=dbBox.setFromObject(d).getSize(dbS).length()*.5;
+    debris.push({m:d,v:debrisLoin(new THREE.Vector3(dTmp.x*(6+Math.random()*8),4+Math.random()*7+dTmp.y*6,dTmp.z*(6+Math.random()*8))),
+      rx:(Math.random()-.5)*12,ry:(Math.random()-.5)*12,part:true,hid:(3.4+rad9)*(3.4+rad9)});
     scene.add(d);
   }
   // + éclats incandescents génériques
@@ -14857,35 +14864,35 @@ function explode(cause){
       rx:(Math.random()-.5)*14,ry:(Math.random()-.5)*14,own:1}); // own : géométrie et matière à lui — libérées au ménage
     scene.add(d);
   }
-  // boule de feu dispersée, moins centrée : foyers décalés, 3 tons — (vague 2) des TRAITS, trois fois moins : à 800 traits la gerbe
+  // boule de feu dispersée, moins centrée : foyers décalés, 3 tons — (vague 2) des TRAITS, quatre fois moins : à 950 traits la gerbe
   // faisait un HÉRISSON qui mangeait la boule ; ce sont les volutes qui portent le volume
-  for(let k=0;k<70;k++){
+  for(let k=0;k<44;k++){
     const a=Math.random()*Math.PI*2,b=Math.acos(2*Math.random()-1),sp2=4+Math.random()*20;
     spawnP(boomPool,boomPos.x+(Math.random()-.5)*5,boomPos.y+(Math.random()-.5)*4,boomPos.z+(Math.random()-.5)*5,
       Math.sin(b)*Math.cos(a)*sp2,Math.cos(b)*sp2*.8+3,Math.sin(b)*Math.sin(a)*sp2,.4+Math.random()*.7);
   }
-  for(let k=0;k<50;k++){
+  for(let k=0;k<32;k++){
     const a=Math.random()*Math.PI*2,b=Math.acos(2*Math.random()-1),sp2=3+Math.random()*17;
     spawnP(boomRed,boomPos.x+(Math.random()-.5)*6,boomPos.y+(Math.random()-.5)*5,boomPos.z+(Math.random()-.5)*6,
       Math.sin(b)*Math.cos(a)*sp2,Math.cos(b)*sp2*.8+2,Math.sin(b)*Math.sin(a)*sp2,.5+Math.random()*.8);
   }
-  for(let k=0;k<60;k++){
+  for(let k=0;k<40;k++){
     const a=Math.random()*Math.PI*2,b=Math.acos(2*Math.random()-1),sp2=5+Math.random()*22;
     spawnP(boomYel,boomPos.x+(Math.random()-.5)*7,boomPos.y+(Math.random()-.5)*5,boomPos.z+(Math.random()-.5)*7,
       Math.sin(b)*Math.cos(a)*sp2,Math.cos(b)*sp2*.8+4,Math.sin(b)*Math.sin(a)*sp2,.3+Math.random()*.55);
   }
   // sauce sanglante : pixels rouge sombre minuscules (sur TOUTES les explosions)
-  for(let k=0;k<60;k++){
+  for(let k=0;k<40;k++){
     const a=Math.random()*Math.PI*2,b=Math.acos(2*Math.random()-1),sp2=6+Math.random()*22;
     spawnP(boomTom,boomPos.x+(Math.random()-.5)*3,boomPos.y+(Math.random()-.5)*2,boomPos.z+(Math.random()-.5)*3,
       Math.sin(b)*Math.cos(a)*sp2,Math.cos(b)*sp2+4,Math.sin(b)*Math.sin(a)*sp2,.5+Math.random()*1.2);
   }
   // BRAISES CHAUDES (toutes les explosions) : rouges qui brillent + orange et jaunes plus fines
-  for(let k=0;k<70;k++)spawnP(boomEmbR,boomPos.x+(Math.random()-.5)*4,boomPos.y+(Math.random()-.5)*3,boomPos.z+(Math.random()-.5)*4,
+  for(let k=0;k<40;k++)spawnP(boomEmbR,boomPos.x+(Math.random()-.5)*4,boomPos.y+(Math.random()-.5)*3,boomPos.z+(Math.random()-.5)*4,
     (Math.random()-.5)*9,2+Math.random()*7,(Math.random()-.5)*9,1+Math.random()*1.2);
-  for(let k=0;k<55;k++)spawnP(boomEmbO,boomPos.x+(Math.random()-.5)*4,boomPos.y+(Math.random()-.5)*3,boomPos.z+(Math.random()-.5)*4,
+  for(let k=0;k<32;k++)spawnP(boomEmbO,boomPos.x+(Math.random()-.5)*4,boomPos.y+(Math.random()-.5)*3,boomPos.z+(Math.random()-.5)*4,
     (Math.random()-.5)*11,3+Math.random()*8,(Math.random()-.5)*11,.8+Math.random()*1);
-  for(let k=0;k<45;k++)spawnP(boomEmbY,boomPos.x+(Math.random()-.5)*5,boomPos.y+(Math.random()-.5)*3,boomPos.z+(Math.random()-.5)*5,
+  for(let k=0;k<26;k++)spawnP(boomEmbY,boomPos.x+(Math.random()-.5)*5,boomPos.y+(Math.random()-.5)*3,boomPos.z+(Math.random()-.5)*5,
     (Math.random()-.5)*13,3+Math.random()*9,(Math.random()-.5)*13,.6+Math.random()*.9);
   // SIGNATURE du modèle : chaque caisse meurt à sa façon
   signatureBoom(level);
@@ -14910,7 +14917,7 @@ function explode(cause){
     setTimeout(function(){
       if(mode!=='boom')return;
       const ox=boomPos.x+(Math.random()-.5)*10,oy=boomPos.y+(Math.random()-.5)*6,oz=boomPos.z+(Math.random()-.5)*10;
-      for(let k=0;k<60;k++){
+      for(let k=0;k<32;k++){ // (vague 2) 60 → 32 : des répliques, pas une deuxième gerbe
         const a=Math.random()*Math.PI*2,b2=Math.acos(2*Math.random()-1),sp2=4+Math.random()*16;
         spawnP(k%2?boomRed:boomYel,ox,oy,oz,
           Math.sin(b2)*Math.cos(a)*sp2,Math.cos(b2)*sp2*.8+3,Math.sin(b2)*Math.sin(a)*sp2,.4+Math.random()*.6);
@@ -14926,7 +14933,7 @@ function explode(cause){
   }
   // (vague 2) les ONDES DE CHOC face caméra, le CŒUR et les volutes vivent dans `spawnBoomArt` (créés UNE fois, voir L'EXPLOSION v3) :
   // plus de tores opaques neufs à chaque mort. DÉFLAGRATION pour TOUTES les caisses (elle était câblée sur l'index) : des traits FEU et or.
-  for(let k=0;k<40;k++){
+  for(let k=0;k<24;k++){
     const a=Math.random()*Math.PI*2,b=Math.acos(2*Math.random()-1),sp2=6+Math.random()*26;
     spawnP(k%2?boomPool:boomYel,boomPos.x,boomPos.y,boomPos.z,
       Math.sin(b)*Math.cos(a)*sp2,Math.cos(b)*sp2*.9+4,Math.sin(b)*Math.sin(a)*sp2,.4+Math.random()*.7);
@@ -15064,8 +15071,11 @@ function landBoom(pos,tier){
   shake=Math.max(shake,.22+tier*.13);
   sparkBurst(sparkGold,pos,16+tier*12,11+tier*4);
   if(tier>=2)sparkBurst(sparkBlue,pos,10+tier*4,10);
-  flashEl.style.background='#ffe0b0';flashEl.style.opacity=Math.min(.55,.18+tier*.14).toFixed(2);
-  setTimeout(function(){flashEl.style.opacity=0;flashEl.style.background='#ff2020';},130); // on rend le flash au rouge (mort)
+  // (vague 2) le flash de la pose : un ÉCLAIR franc (60 ms, bords nets) et plus un voile beige — la transition CSS de 0,5 s le faisait
+  // monter PUIS redescendre, ~0,6 s d'écran délavé à chaque grosse pose
+  flashEl.style.transition='opacity .05s';flashEl.style.background='#fff0c8';flashEl.style.opacity=Math.min(.4,.14+tier*.09).toFixed(2);
+  setTimeout(function(){flashEl.style.opacity=0;},60);
+  setTimeout(function(){flashEl.style.transition='';if(mode!=='boom')flashEl.style.background='#ff2020';},180); // on rend le flash au rouge (mort) et sa transition à la feuille de style
   subBoom(.10+tier*.07);noiseBurst(.15,.08+tier*.035,300+tier*40); // (2026-09-26, audit son) plus de `thud(6+tier*4)` : calé sur le GAIN et non sur le
   // grade, il rejouait un choc grave à chaque pose qui paye — la PARFAITE cognait plus fort que la LOURDE et le compresseur écrasait son « tchak »
 }
@@ -21880,16 +21890,21 @@ function loop(now){
         d.v.y-=22*dt;
         d.m.position.addScaledVector(d.v,dt);
         if(boomT<1.2&&Math.random()<.55)spawnP(boomEmbO,d.m.position.x,d.m.position.y,d.m.position.z,d.v.x*.12,d.v.y*.12,d.v.z*.12,.3+Math.random()*.3); // (2026-09-26) chaque éclat TRAÎNE ses braises
-        d.m.rotation.x+=d.rx*dt;d.m.rotation.y+=d.ry*dt;d.m.visible=d.m.position.distanceToSquared(camera.position)>11.5; // (vague 2) à moins de 3,4 m de l'objectif, un éclat n'est plus qu'un aplat : masqué
+        d.m.rotation.x+=d.rx*dt;d.m.rotation.y+=d.ry*dt;d.m.visible=d.m.position.distanceToSquared(camera.position)>(d.hid||11.5); // (vague 2) à moins de 3,4 m (+ sa taille) de l'objectif, un éclat n'est plus qu'un aplat : masqué
         if(!d.part&&d.m.material)d.m.material.emissiveIntensity=Math.max(0,.6-boomT*.45);
       }
       // (vague 2) anneaux et cœur : animés par updateBoomArt (créés une fois)
       if(boomLight)boomLight.intensity=Math.max(0,4.5-boomT*3);
+      /* (vague 2) LE CADRAGE DE L'EXPLOSION : la secousse s'AJOUTAIT à la position d'une image sur l'autre — une marche au hasard de
+         5 à 10 m en 1,8 s : la caméra partait n'importe où, passait parfois AU-DESSUS du foyer et le monde se retournait. Désormais
+         elle recule d'un trait (3,5 m, 0,5 s, et un peu de hauteur : la boule se lit de l'extérieur) et TREMBLE autour de ce point. */
+      {const pl9=Math.min(1,boomT/.5),e9=pl9*(2-pl9);bmCamD.subVectors(bmCam,boomPos);const l9=bmCamD.length()||1;
+       camera.position.copy(bmCam).addScaledVector(bmCamD,e9*3.5/l9);camera.position.y+=e9*1.2;}
       camera.lookAt(boomPos);
       if(shake>0){
-        camera.position.x+=(Math.random()-.5)*shake;
-        camera.position.y+=(Math.random()-.5)*shake;
-        camera.position.z+=(Math.random()-.5)*shake;
+        camera.position.x+=(Math.random()-.5)*shake*.35;
+        camera.position.y+=(Math.random()-.5)*shake*.35;
+        camera.position.z+=(Math.random()-.5)*shake*.35;
         shake=Math.max(0,shake-1.5*dt);
       }
       if(elTurn.style.opacity!=='0')elTurn.style.opacity=0;
