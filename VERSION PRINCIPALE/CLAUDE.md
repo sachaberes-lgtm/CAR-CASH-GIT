@@ -37,8 +37,13 @@
     d'horizon, clarté par niveau (`NIVEAUX[].route/sheen`). La « tache rose » = reflet de `carLight` (désormais blanc neutre, portée 12,
     décroissance 2) + lobe du `kick`. Étincelles et gerbes près de la caisse héritent de sa vitesse (`EXV`).
   · **NIVEAUX** : NUAGES → VILLE → ORBITE ; jamais de Terre dans les nuages ; route de la VILLE plus claire.
-  · **DAUPHIN v3** (`dolTick`, `DAUPH`, `#dolHud`) : 2 s de vol continu au-dessus de la route, puis dauphins + étiquette DAUPHIN et aura
-    en direct, encaissée à la pose. Hook `dbgDauphin(...)`.
+  · **DAUPHIN v3** (`dolTick`, `DAUPH`, `#dolHud`) : **1 s** (`DOL_T`, 2 s jusqu'au 26/09) de vol continu au-dessus de la route, puis
+    dauphins + étiquette DAUPHIN et aura en direct, encaissée à la pose ; le banc reste au moins `DOL_VU`=2,6 s à l'écran. Hook `dbgDauphin(...)`.
+    L'ANIMATION est celle de Léo (`version-leolei-2026/dauphins.html`, portée le 26/09 — l'ancienne n'en gardait que le tube du corps) :
+    BANC de 3 (`DOL_BANC`), nageoires dorsale/pectorales/caudale qui BAT, bonds en arc, gerbe d'eau à la sortie et à la plongée
+    (`dolSplash`), sillage d'étincelles (`dolTrail`) — les deux pools vivent dans le repère du banc (`dolPod`), sinon la caisse les
+    sème. Taille et largeur RECALCULÉES sur la vraie caméra (`dolKS` ≈ ⅓ de la plus petite dimension, `dolW` = 80 % de la
+    demi-largeur) : lisible en portrait comme en paysage. `dbgCreatures()` donne `kS`/`W`.
   · **MOTEUR 3D EN GRAND** : la carte `#engBig` porte le modèle 3D (canvas `.eb3d`, recopie de `engRT`) ; sur téléphone plus aucun rendu
     moteur hors de la carte. Hook `dbgMoteur()`.
   · **CONDUITE v5** : effets de vitesse étalonnés sur `vCroisiere()` (=1,55×vmaxShow ; vmaxShow reste la référence d'économie) ; pads =

@@ -13895,58 +13895,128 @@ function sparkBurst(pool,pos,n,sp){
     ix+(Math.random()-.5)*sp,iy+Math.random()*sp*.7,iz+(Math.random()-.5)*sp,.28+Math.random()*.22);
 }
 /* ============================================================================
-   CRÉATURES DE FIGURE — 2 DAUPHINS (LE DAUPHIN) + 1 SERPENT (SNAKE LOOP)
+   CRÉATURES DE FIGURE — UN BANC DE 3 DAUPHINS (LE DAUPHIN) + 1 SERPENT (SNAKE LOOP)
    Procédurales, oniriques. Montées UNE fois, cachées, animées seulement pendant
    leur figure (aucune allocation par figure → rien à disposer au rebuild).
    Chaque créature vit dans un « rig » calé sur la caisse (repère route : x=latéral,
    y=haut, z=avant), donc elle suit la piste sans recalcul de matrices lourd.
    ========================================================================== */
 const crV1=new THREE.Vector3(),crV2=new THREE.Vector3();
-// ---- DAUPHIN : corps profilé (anneaux), dégradé cyan(dos)→blanc(ventre) ----
-function mkDolphinGeo(){
-  const L=3.0,RINGS=32,SEG=16,
-    RP=[[0,.015],[.05,.05],[.1,.085],[.145,.2],[.21,.32],[.33,.4],[.48,.365],[.63,.275],[.78,.175],[.9,.1],[1,.05]];
-  const rad=u=>{for(let i=0;i<RP.length-1;i++){if(u<=RP[i+1][0]){const a=RP[i],b=RP[i+1];
-    let t=(u-a[0])/(b[0]-a[0]);t=.5-.5*Math.cos(t*Math.PI);return a[1]+(b[1]-a[1])*t;}}return .05;};
-  const P=[],C=[],idx=[],cT=new THREE.Color(0x39b6e6),cS=new THREE.Color(0x7fd8f5),cB=new THREE.Color(0xf2ffff);
-  for(let i=0;i<RINGS;i++){const u=i/(RINGS-1),x=L*.5-u*L,r=rad(u),
-      arch=.34*Math.sin(Math.PI*Math.min(1,u*1.02)),droop=u<.16?(.16-u)*1.4:0,sy=arch-droop;
-    for(let j=0;j<=SEG;j++){const a=j/SEG*Math.PI*2;let py=Math.cos(a)*r*1.1;const pz=Math.sin(a)*r;if(py<0)py*=.86;
-      P.push(x,sy+py,pz);const tt=(Math.cos(a)+1)/2;let c=cB.clone().lerp(cS,Math.min(1,tt*1.5));
+/* ---- LE DAUPHIN DE LÉO (2026-09-26, user : « l'animation du dauphin n'est pas la vraie qui était dans la version de Léo, et on ne la
+   voit pas assez ») ----
+   Le jeu n'avait gardé que le CORPS de la recette : un tube sans nageoires, deux bêtes qui se croisaient en ciseaux. La vraie animation
+   vit dans `version-leolei-2026/dauphins.html` : un BANC de 3 dauphins à nageoires (dorsale, deux pectorales, caudale à deux lobes sur
+   un pivot qui BAT), qui bondissent en arc l'un après l'autre, JAILLISSENT et REPLONGENT dans une gerbe d'eau, et laissent un sillage
+   d'étincelles. On la porte ici telle quelle — mêmes profils, mêmes contours d'ailerons, mêmes tempos, mêmes couleurs — dans le repère
+   du VOL (sans la vrille de la caisse), DEVANT elle, face caméra.
+   LISIBILITÉ : la mise à l'échelle se RECALCULE sur la vraie caméra (distance, champ, orientation du téléphone) — le banc traverse
+   l'écran (`W`, 80 % de la demi-largeur : on VOIT les gerbes) et chaque dauphin mesure ~un tiers de la plus PETITE dimension (`kS`) : sur téléphone en
+   portrait, on ne voit plus trois têtes d'épingle.
+   Les gerbes et le sillage vivent DANS le repère du banc (`dolPod`) : ils suivent la caisse lancée à 400 km/h au lieu de rester
+   plantés dans le ciel derrière elle. */
+const DOL_L=3.2, // longueur du corps (unités de Léo) — le nez en +x
+  DOL_RP=[[0,.015],[.05,.045],[.1,.085],[.145,.2],[.21,.32],[.33,.4],[.48,.365],[.63,.275],[.78,.175],[.9,.1],[1,.05]]; // (u, rayon) du nez au pédoncule
+function dolRad(u){for(let i=0;i<DOL_RP.length-1;i++){if(u<=DOL_RP[i+1][0]){const a=DOL_RP[i],b=DOL_RP[i+1];
+  let t=(u-a[0])/(b[0]-a[0]);t=.5-.5*Math.cos(t*Math.PI);return a[1]+(b[1]-a[1])*t;}}return .05;}
+function mkDolphinGeo(){ // corps : anneaux le long d'une épine, dos cyan → ventre nacré peint DANS les sommets (48×20 au lieu des 70×26 de l'aperçu : téléphone)
+  const L=DOL_L,RINGS=48,SEG=20,P=[],C=[],idx=[],cT=new THREE.Color(0x39b6e6),cS=new THREE.Color(0x7fd8f5),cB=new THREE.Color(0xf2ffff);
+  for(let i=0;i<RINGS;i++){const u=i/(RINGS-1),x=L*.5-u*L,r=dolRad(u),
+      arch=.34*Math.sin(Math.PI*Math.min(1,u*1.02)),droop=u<.16?(.16-u)*1.4:0,sy=arch-droop; // dos bombé, rostre incliné vers le bas
+    for(let j=0;j<=SEG;j++){const a=j/SEG*Math.PI*2;let py=Math.cos(a)*r*1.1;const pz=Math.sin(a)*r;if(py<0)py*=.86; // ventre un peu aplati
+      P.push(x,sy+py,pz);const tt=(Math.cos(a)+1)/2,c=cB.clone().lerp(cS,Math.min(1,tt*1.5));
       c.lerp(cT,Math.max(0,tt-.55)*2.2);C.push(c.r,c.g,c.b);}}
   const rw=SEG+1;for(let i=0;i<RINGS-1;i++)for(let j=0;j<SEG;j++){const a=i*rw+j,b=a+1,c=a+rw,d=c+1;idx.push(a,c,b,b,c,d);}
+  const nI=P.length/3;P.push(L*.5+.02,-.224,0);C.push(cB.r,cB.g,cB.b);for(let j=0;j<SEG;j++)idx.push(nI,j+1,j); // le bout du rostre, fermé
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));
   g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));g.setIndex(idx);g.computeVertexNormals();return g;
 }
-const DOL_GEO=mkDolphinGeo();
-const dolBodyMat=new THREE.MeshPhongMaterial({vertexColors:true,shininess:80,specular:0x9fe8ff,emissive:0x1a6a8e,emissiveIntensity:.9}); // (2026-09-26) plus lumineux : on les voit de nuit
-const dolGlowMat=new THREE.MeshBasicMaterial({color:0x8fecff,transparent:true,opacity:.38,side:THREE.BackSide,blending:THREE.AdditiveBlending,depthWrite:false});
-const dolphinRig=new THREE.Group();scene.add(dolphinRig);
-const dolphins=[0,1].map(()=>{const g=new THREE.Group();
-  g.add(new THREE.Mesh(DOL_GEO,dolBodyMat));const gl=new THREE.Mesh(DOL_GEO,dolGlowMat);gl.scale.setScalar(1.1);g.add(gl);
-  g.scale.setScalar(1.7);g.visible=false;dolphinRig.add(g);return g;});
-let dolShow=0,dolAng=0,dolIn=9; // dolIn : secondes depuis le déclenchement (leur ENTRÉE) // dolShow : secondes d'affichage restantes ; dolAng : horloge de la chorégraphie
+function dolAileron(pts,depth){ // une nageoire = une LAME falciforme extrudée (jamais un cône)
+  const s=new THREE.Shape();s.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)s.lineTo(pts[i][0],pts[i][1]);
+  const g=new THREE.ExtrudeGeometry(s,{depth:depth,bevelEnabled:true,bevelThickness:depth*.6,bevelSize:depth*.5,bevelSegments:2,steps:1});
+  g.center();g.computeVertexNormals();return g;
+}
+const DOL_GEO=mkDolphinGeo(),
+  DOL_DORSAL=dolAileron([[0,0],[.34,.08],[.3,.34],[.12,.6],[-.06,.66],[-.18,.4],[-.16,.1]],.05),
+  DOL_PECT=dolAileron([[0,0],[.1,.05],[.44,.02],[.62,-.1],[.4,-.16],[.1,-.1]],.035),
+  DOL_FLUKE=dolAileron([[0,0],[.1,.06],[.46,.1],[.66,.02],[.5,-.06],[.14,-.06]],.04);
+// les teintes de Léo ; l'émissif est relevé (son aperçu avait un fond bleu clair, ici c'est la NUIT — sinon des silhouettes noires)
+const dolBodyMat=new THREE.MeshPhongMaterial({vertexColors:true,shininess:75,specular:0x9fe8ff,emissive:0x1a6a8e,emissiveIntensity:.9});
+const dolFinMat=new THREE.MeshPhongMaterial({color:0x63c9ec,shininess:60,specular:0x9fe8ff,emissive:0x1a5a78,emissiveIntensity:.8});
+const dolGlowMat=new THREE.MeshBasicMaterial({color:0x8fecff,transparent:true,opacity:.3,side:THREE.BackSide,blending:THREE.AdditiveBlending,depthWrite:false,fog:false});
+function mkDauphin(){ // le `makeDolphin` de Léo, pièce pour pièce
+  const g=new THREE.Group();
+  g.add(new THREE.Mesh(DOL_GEO,dolBodyMat));
+  const gl=new THREE.Mesh(DOL_GEO,dolGlowMat);gl.scale.setScalar(1.09);g.add(gl); // la lueur onirique
+  const dor=new THREE.Mesh(DOL_DORSAL,dolFinMat);dor.position.set(.05,.74,0);dor.rotation.z=-.15;dor.scale.setScalar(1.15);g.add(dor);
+  for(const s of [1,-1]){const p=new THREE.Mesh(DOL_PECT,dolFinMat);p.position.set(.62,.02,s*.3);p.rotation.set(s*.5,0,-.35);g.add(p);}
+  const tail=new THREE.Group();tail.position.set(-DOL_L*.5,.02,0); // pivot de queue : il BAT (la propulsion)
+  for(const s of [1,-1]){const f=new THREE.Mesh(DOL_FLUKE,dolFinMat);f.position.set(-.18,0,s*.26);f.rotation.set(Math.PI/2,s*.35,0);tail.add(f);}
+  const tg=new THREE.Mesh(DOL_FLUKE,dolGlowMat);tg.position.set(-.2,0,0);tail.add(tg);
+  g.add(tail);g.userData.tail=tail;g.visible=false;return g;
+}
+// LE BANC : les 3 premiers gabarits du `setPod(3)` de Léo — vitesse (tempo du bond), amplitude, niveau de la « surface », profondeur
+// (vers la caméra = positif, comme dans l'aperçu), taille. `p0` : où en est chacun au déclenchement (négatif = encore sous l'eau).
+const DOL_BANC=[
+  {speed:.30,amp:3.6,base:-1.6,z:0,   scale:1.15,p0:0},
+  {speed:.24,amp:2.9,base:-1.2,z:-3.5,scale:.85, p0:-.15},
+  {speed:.38,amp:4.1,base:-1.9,z:1.8, scale:.95, p0:-.35}];
+const dolphinRig=new THREE.Group();dolphinRig.visible=false;scene.add(dolphinRig);
+const dolPod=new THREE.Group();dolphinRig.add(dolPod); // la « scène de Léo », posée devant la caisse
+const dolphins=DOL_BANC.map(b=>{const d=mkDauphin();d.userData.b=b;d.userData.p=b.p0;d.userData.tailPh=Math.random()*6.28;d.userData.roll=Math.random()*6.28;d.userData.up=false;dolPod.add(d);return d;});
+// le sillage d'étincelles et les gerbes d'eau — pools de particules rattachés au BANC (repère local)
+const dolTrail=makePool(120,.4,0x9fe8ff,.8),dolSplash=makePool(160,.55,0xdff6ff,.9);
+for(const p of [dolTrail,dolSplash]){p.mesh.material.blending=THREE.AdditiveBlending;dolPod.add(p.mesh);
+  for(let i=0;i<p.n;i++)p.pos[i*3+1]=-99999;} // ⚠ en repère LOCAL, une particule jamais née (0,0,0) se dessinerait au milieu du banc : on les range loin
+function dolPoolStep(p,dt,g){ // comme updatePool, mais avec une VRAIE gravité (la gerbe monte, s'arrête, retombe — l'eau de l'aperçu)
+  for(let i=0;i<p.n;i++){if(p.life[i]>0){p.life[i]-=dt;p.vel[i*3+1]-=g*dt;
+    p.pos[i*3]+=p.vel[i*3]*dt;p.pos[i*3+1]+=p.vel[i*3+1]*dt;p.pos[i*3+2]+=p.vel[i*3+2]*dt;if(p.life[i]<=0)p.pos[i*3+1]=-99999;}}
+  p.mesh.geometry.attributes.position.needsUpdate=true;
+}
+function dolGerbe(x,y,z,power,k){ // l'éclaboussure de Léo : un anneau de gouttelettes au passage de la surface
+  for(let n=0;n<26;n++){const a=Math.random()*6.28,sp=(.6+Math.random()*1.6)*power*k;
+    spawnP(dolSplash,x,y,z,Math.cos(a)*sp*.6,(.8+Math.random()*1.4)*power*k,Math.sin(a)*sp*.6,.7+Math.random()*.5);}
+}
+const crV3=new THREE.Vector3();
+let dolShow=0,dolIn=9,dolPart=0,dolDir=-1,dolKS=1,dolW=13; // dolShow : secondes d'affichage restantes · dolIn : secondes depuis le déclenchement · dolPart : vie restante des gerbes · dolDir : sens de traversée · dolKS/dolW : taille et demi-largeur du banc (m)
 function updateDolphins(dt){
-  if(dolShow<=0){if(dolphins[0].visible){dolphins[0].visible=dolphins[1].visible=false;}return;}
-  dolShow-=dt;
-  /* (2026-09-26, user : « rends plus facile à voir l'animation dauphin ») : le ballet suivait la caisse ET SA VRILLE — il tournoyait
-     avec elle et sortait du cadre. Désormais il s'accroche au REPÈRE DU VOL (sans la vrille), devant la caisse, dans le champ de
-     la caméra ; les dauphins sont plus gros, plus lumineux, et jaillissent dans une gerbe. */
+  if(dolShow<=0&&dolPart<=0){if(dolphinRig.visible)dolphinRig.visible=false;return;} // rien à montrer : zéro draw call
+  dolphinRig.visible=true;dolPart=Math.max(0,dolPart-dt);
+  // le REPÈRE DU VOL (sans la vrille) : x = latéral, y = haut de la caisse, z = trajectoire — celui de la caméra de vol
   dolphinRig.position.copy(carGroup.position);
-  if(mode==='fall'){crV1.copy(fallVel).normalize();crV2.crossVectors(FLY_U,crV1).normalize();mat4.makeBasis(crV2,FLY_U,crV1);dolphinRig.quaternion.setFromRotationMatrix(mat4);}
+  if(mode==='fall'){crV1.copy(fallVel).normalize();crV2.crossVectors(FLY_U,crV1).normalize();crV3.crossVectors(crV1,crV2);
+    mat4.makeBasis(crV2,crV3,crV1);dolphinRig.quaternion.setFromRotationMatrix(mat4);}
   else dolphinRig.quaternion.copy(carGroup.quaternion);
-  dolAng+=dt*.62; // un poil plus lents (était .85) — plus gracieux
-  dolIn+=dt;
-  const W=7,H=4.6,baseY=1.6,fade=Math.min(1,dolShow*2.5),
-        ent=REDUCED_MOTION?1:Math.min(1,dolIn/.35); // ils JAILLISSENT de sous la caisse en 0,35 s (Réduire les animations : ils sont là)
-  if(dolIn<dt*1.5)for(let k=0;k<2;k++){crV1.set(k?7:-7,1,4).applyQuaternion(dolphinRig.quaternion).add(dolphinRig.position);sparkBurst(sparkBlue,crV1,14,9);} // l'ENTRÉE : une gerbe
-  for(let k=0;k<2;k++){const d=dolphins[k];d.visible=true;d.scale.setScalar(2.5*(0.5+0.5*fade)*(.4+.6*ent));
-    const p=((k?1-((dolAng)%1):(dolAng)%1))+1e-6, pp=p%1;         // les deux se croisent au centre (p=0.5)
-    const lat=-W+2*W*pp, hgt=H*Math.sin(Math.PI*pp), fwd=3.5+(k?1:-1)*1.6; // décalage avant opposé → ils se frôlent — et DEVANT la caisse (dans le champ)
-    const vx=2*W, vy=H*Math.PI*Math.cos(Math.PI*pp);
-    d.position.set(lat,baseY+hgt-(1-ent)*3,fwd);
-    d.rotation.set(Math.sin(dolAng*6+k)*0.14, 0, Math.atan2(vy,vx));  // tangage vitesse + roulis gracieux
-    if(Math.random()<dt*26){d.getWorldPosition(crV1);sparkBurst(k?sparkBlue:sparkGold,crV1,2,4);} // étincelles
+  dolPoolStep(dolTrail,dt,0);dolPoolStep(dolSplash,dt,6*dolKS);
+  if(dolShow<=0){if(dolphins[0].visible)for(const d of dolphins)d.visible=false;return;}
+  // LISIBILITÉ : mesurée sur la VRAIE caméra — distance du banc, champ vertical, format de l'écran
+  const neuf=dolIn===0;
+  dolPod.position.set(0,-.35*dolKS,4+4*dolKS); // devant la caisse (le plus proche passe ~6 m devant le nez), un poil sous sa ligne
+  dolPod.getWorldPosition(crV1);camera.getWorldDirection(crV2);
+  const dist=Math.max(6,crV2.dot(crV1.sub(camera.position))),hv=dist*Math.tan(camera.fov*Math.PI/360),hw=hv*camera.aspect,
+        kT=THREE.MathUtils.clamp(.17*Math.min(hv,hw),.8,3),wT=Math.max(7,.8*hw); // un dauphin ≈ ⅓ de la plus petite dimension ; les gerbes tombent DANS l'écran
+  if(neuf){dolKS=kT;dolW=wT;dolDir=-dolDir;
+    for(const d of dolphins){d.userData.p=d.userData.b.p0;d.userData.up=false;}
+    dolTrail.mesh.material.size=.4*kT;dolSplash.mesh.material.size=.55*kT;}
+  else{const a=Math.min(1,dt*1.5);dolKS+=(kT-dolKS)*a;dolW+=(wT-dolW)*a;} // la caméra de vol zoome sur les gros airs : le banc suit en douceur
+  dolShow-=dt;dolIn+=dt;
+  const fade=Math.min(1,dolShow*2.5),k=dolKS,W=dolW,dir=dolDir;
+  for(const d of dolphins){const u=d.userData,b=u.b;
+    u.p+=dt*b.speed*b.speed*8.8; // le tempo de l'aperçu (phase×vitesse×4,4 avec phase+=dt×vitesse×2)
+    if(u.p>1.06)u.p=-(.12+Math.random()*.3); // replongé : un temps sous l'eau, et il revient
+    const p=u.p,vis=p>-.04&&p<1.04;d.visible=vis;
+    const arc=Math.sin(p*Math.PI),amp=b.amp*k,base=b.base*k,x=dir*W*(2*p-1),y=base+arc*amp,z=-b.z*k;
+    const above=y>base+.15*k&&p>0&&p<1;
+    if(above!==u.up){dolGerbe(x,base+.05*k,z,(above?1.2:.9)*b.scale,k);dolPart=1.3;u.up=above;} // on JAILLIT / on REPLONGE → gerbe
+    if(!vis)continue;
+    const emerge=THREE.MathUtils.smoothstep(p,-.04,.07)*(1-THREE.MathUtils.smoothstep(p,.93,1.04)); // on sort de la gerbe, on y rentre
+    d.scale.setScalar(k*b.scale*(.5+.5*fade)*emerge);
+    d.position.set(x,y,z);
+    const pitch=Math.atan2(Math.cos(p*Math.PI)*amp*Math.PI,2*W*.8); // le nez suit la vitesse du bond
+    u.roll+=dt*1.3;
+    d.rotation.set(Math.sin(u.roll)*.12,dir>0?0:Math.PI,pitch); // léger roulis gracieux ; demi-tour de cap quand le banc part dans l'autre sens
+    u.tailPh+=dt*(6+b.speed*6);u.tail.rotation.z=Math.sin(u.tailPh)*.45; // battement caudal
+    if(above&&Math.random()<dt*55){const q=DOL_L*.5*k*b.scale; // le sillage part de la QUEUE
+      spawnP(dolTrail,x-dir*Math.cos(pitch)*q+(Math.random()-.5)*.15*k,y-Math.sin(pitch)*q+(Math.random()-.5)*.15*k,z+(Math.random()-.5)*.15*k,0,0,0,.5);dolPart=Math.max(dolPart,.5);}
   }
 }
 // ---- SERPENT : tube néon (cyan→magenta, ventre doré) à reptation en place ----
@@ -14690,7 +14760,7 @@ window.dbgDauphin=function(a,b,c,d){
   if(!started||gameOver)return 'pas de course en cours';
   if(mode!=='drive')return 'déjà en vol : '+mode;
   lat=d||0;vA=b||15;vL=c||0;startFall(a||60,1);return window.dbgState();
-}; // forcer les 2 dauphins
+}; // forcer le banc de dauphins
 window.dbgSerpent=function(sec){serpShow=sec||3;};  // forcer le serpent
 /* `dbgBeat(v)` — force un coup de grosse caisse (0..1) pour VOIR la réaction sans dépendre de
    l'audio. Indispensable : en test automatisé il n'y a pas de sortie son, l'analyseur ne rend que
@@ -14845,7 +14915,7 @@ window.dbgJet=function(){const c=CARS[level];return {
   reflet:'#'+nitroLight.color.getHexString()};};
 window.dbgFx=function(){return {uSpeed:acesPass?+acesPass.uniforms.uSpeed.value.toFixed(3):null,post:(typeof POST_ON!=='undefined')?POST_ON:'?',sunVis:(typeof sunSprite!=='undefined')?sunSprite.visible:'?',sunOp:(typeof sunSprite!=='undefined')?+sunSprite.material.opacity.toFixed(2):'?',splash:!!document.getElementById('splash')};};
 window.dbgCreatures=function(){return {
-  dolShow:+dolShow.toFixed(2),dolVis:dolphins[0].visible,
+  dolShow:+dolShow.toFixed(2),dolVis:dolphins[0].visible,kS:+dolKS.toFixed(2),W:+dolW.toFixed(1),dol2:dolphins[2].position.toArray().map(n=>+n.toFixed(2)),
   dol0:dolphins[0].position.toArray().map(n=>+n.toFixed(2)),
   dol1:dolphins[1].position.toArray().map(n=>+n.toFixed(2)),
   serpShow:+serpShow.toFixed(2),serpVis:serpent.visible,serpScale:+serpent.scale.x.toFixed(2),
@@ -17159,15 +17229,18 @@ function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent dé
   trickPop(chain);
   chainHudShow();
 }
-/* ===== LE DAUPHIN v3 (2026-09-25) — 2 s AU-DESSUS DE LA ROUTE, PAS UNE DE MOINS =====
+/* ===== LE DAUPHIN v3 (2026-09-25) — 1 s AU-DESSUS DE LA ROUTE (2 s jusqu'au 26/09) =====
    User : « l'animation des dauphins doit se déclencher quand on vole au-dessus de la route pendant 2 s minimum, et
    SEULEMENT à ce moment ; que ce soit clairement marqué DAUPHIN avec le compteur d'aura qui monte en live ».
    Avant : `dolShow=.7` dès la 1re image dans la bande 2,2-12 m — les dauphins clignotaient à chaque frôlement, et rien ne
    disait pourquoi (sur téléphone l'écran nu masquait chaîne et aura). Maintenant : un CHRONO (secondes VÉCUES, comme le
-   camembert) compte le vol CONTINU au-dessus de la route ; à 2 s, UNE fois par vol (`trkDolph`), les dauphins + la figure +
+   camembert) compte le vol CONTINU au-dessus de la route ; à DOL_T, UNE fois par vol (`trkDolph`), les dauphins + la figure +
    l'étiquette ; tant qu'on reste au-dessus l'aura MONTE à l'écran, et l'affiché EST le versé ; on quitte la route ou on se
-   pose → le total se FIGE, s'encaisse, s'efface. Exploser en vol : elle part avec la caisse, comme la mallette. */
-const DOL_T=2,DOL_HMAX=40,DOL_TMAX=4,DOL_GRACE=.12,DOL_FIGE=.6,
+   pose → le total se FIGE, s'encaisse, s'efface. Exploser en vol : elle part avec la caisse, comme la mallette.
+   (2026-09-26, user : « on la voit pas assez […] il faut rester moins longtemps proche de la route ») : DOL_T 2 → 1 s, et le banc
+   reste au moins DOL_VU secondes à l'écran une fois lâché — même si on quitte la route aussitôt, chaque dauphin a le temps
+   de faire son bond en entier. */
+const DOL_T=1,DOL_VU=2.6,DOL_HMAX=40,DOL_TMAX=4,DOL_GRACE=.12,DOL_FIGE=.6,
       DOL_AURA0=40,DOL_AURA_S=25,DOL_AURA_RAS=45,DOL_AURA_MAX=400;
 let dolRoadT=0,dolOffT=0,dolOn=false,dolAura=0,dolMul=1,dolHudT=0;
 const DAUPH={el:null,nom:null,lbl:null,tv:null,v:-1,force:null}; // l'étiquette, bâtie UNE fois · force : hook de test (null = radar réel)
@@ -17192,9 +17265,9 @@ function dolTick(dt,sur,hF){ // chaque image de VOL, avant tryLand (radar = imag
 function dolStart(){
   trkDolph=true;dolOn=true;
   dolMul=auraMultVitesse(); // vA ne bouge pas en vol : la vitesse du décollage multiplie, figée ICI (affiché = versé)
-  dolAura=DOL_AURA0*dolMul; // la prime : les 2 s tenues valent déjà quelque chose
-  dolShow=Math.max(dolShow,.7);dolIn=0; // LES 2 DAUPHINS jaillissent — une seule fois par vol
-  addTrick('dauphin','🐬 LE DAUPHIN !',3,2); // la figure entre dans la CHAÎNE (argent, ×, combo, carillon) — même paye qu'avant, à 2 s
+  dolAura=DOL_AURA0*dolMul; // la prime : la seconde tenue vaut déjà quelque chose
+  dolShow=Math.max(dolShow,DOL_VU);dolIn=0; // LE BANC jaillit — une seule fois par vol, et on a le temps de le VOIR
+  addTrick('dauphin','🐬 LE DAUPHIN !',3,2); // la figure entre dans la CHAÎNE (argent, ×, combo, carillon) — même paye qu'avant, à 1 s
   dolHudShow();hap([10,24,10]);
 }
 function dolFin(){ // on QUITTE la route ou on se pose : le total se fige, s'encaisse, puis s'efface
@@ -20307,7 +20380,7 @@ function loop(now){
             const prox=1-(curHOff-2.2)/9.8; // 1 = à ras (2,2 m, une frame du contact), 0 = à 12 m
             const dInc=14*prox*prox*dtF;    // le magot grimpe au CARRÉ de la proximité
             dolphT+=dtF;chainVal+=dInc;dolphGain+=dInc;addStyle(6*prox*dtF); // RASE-DALLE : l'argent de chaîne au ras, gardé tel quel (muet)
-            // ⚠ plus de dolShow, d'addTrick ni de texte « LE DAUPHIN » ici (dauphin v3) : tout vit dans dolStart, À 2 s de vol au-dessus de la route.
+            // ⚠ plus de dolShow, d'addTrick ni de texte « LE DAUPHIN » ici (dauphin v3) : tout vit dans dolStart, À 1 s de vol au-dessus de la route.
             if(dolOn&&prox>.45&&Math.random()<dt*22) // l'écume dorée n'accompagne QUE les dauphins
               spawnP(sparkGold,fallPos.x,fallPos.y-1.1,fallPos.z,(Math.random()-.5)*6,-2-Math.random()*4,(Math.random()-.5)*6,.3);
           }
