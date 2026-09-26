@@ -135,6 +135,11 @@
     image) + pastille `#gRarPill`. LÉGENDAIRE = boutique seulement (bouton « EN BOUTIQUE » → `#mShop`). Les 50 nouvelles caisses sont
     modelées dans l'atelier du scratchpad (`gamme/`, banc `essai.js` + hook `dbgEssaiCaisse`) et versées par `gamme/integrer.js`
     (blocs balisés « LA GAMME DES 50 » / FICHES / CONDITIONS / CARNETS — regénérer, ne pas éditer à la main). Index 0-15 inchangés.
+    Gamme : 15 communes (1 500 → 15 000 $) · 16 rares (20 k → 200 k) · 14 épiques (300 k → 2,5 M) · 13 légendaires (boutique, €) ·
+    8 défis (carnets 6-9 : PUCE, GROUPE B, HOT ROD, MASTODONTE ; + BULLE/COMBI/DOLORÈS/POSTER). Caméra de course : les caisses
+    HAUTES (h > 1,5 m) reculent/montent la caméra (`hC9`). Garage : visée abaissée à l'onglet VOITURES (la caisse passe au-dessus
+    des vignettes). `dbgEquipe(i)` pour tester une caisse en course. ⚠ `exSmoke` n'est plus émise : la caméra de poursuite
+    TRAVERSAIT la fumée laissée derrière → un DÔME gris-blanc derrière la caisse.
   · **PORTAIL OVULE** (`PORTAL`, sphère 55 m fresnel + noyau) : `portailPasse()` appelé au sol (bout de piste / entrée dans l'ovule)
     ET en vol (branche 'fall', avant `tryLand`) — `dbgPortail(d|'ciel')`.
   · **NUAGES** : `nuageTouche()` refuse tout nuage de décor qui mordrait le ruban (sauf bancs `onRoad`, 2× plus rares) ; tours
