@@ -6513,7 +6513,7 @@ const LP_MAT={p:{sh:44,sp:0x4a4a4a,rf:.24,gl:.13}, // LAQUE
               s:{sh:22, sp:0x333333,rf:0,  gl:.10}, // CUIR, TOILE, SATINÉ
               m:{sh:10, sp:0x1c1c1c,rf:0,  gl:0},   // MAT : pneus, grilles, plastiques
               g:{sh:160,sp:0xffffff,rf:.55,gl:.04}, // VERRE et laqué noir
-              f:{sh:70, sp:0xffffff,rf:.20,gl:.34}};// FRUITS : vernis + plancher lumineux haut (lisibles de nuit)
+              f:{sh:34, sp:0x5c5c5c,rf:.12,gl:.32}};// FRUITS : vernis + plancher lumineux haut (lisibles de nuit) — (2026-09-26) reflet adouci : les grosses taches BLANCHES mangeaient les fruits redessinés
 function lpMat(g){
   if(g==='l'){const m=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide});m.userData.lp=1;return m;}
   const P=LP_MAT[g]||LP_MAT.m;
@@ -11030,42 +11030,225 @@ const fgSph=new THREE.SphereGeometry(1,16,12),fgCone=new THREE.ConeGeometry(1,1,
 const FRUIT_PAL={P:{g:'f',c:0xff9ec2},p:{g:'f',c:0xfff0dc},B:{g:'f',c:0xffd63a},b:{g:'f',c:0x6b5320},
   R:{g:'f',c:0xc80f2a},r:{g:'f',c:0xf7e3c8},A:{g:'f',c:0xff2a58},O:{g:'f',c:0xff8b12},M:{g:'f',c:0x4b3bc0},
   m:{g:'f',c:0xa9a0ec},V:{g:'f',c:0x1f8a34},v:{g:'f',c:0x4cc25a},C:{g:'f',c:0xff2d4a},w:{g:'f',c:0xf1f8dc},
-  n:{g:'f',c:0x1a1410},F:{g:'f',c:0x43b84e},T:{g:'f',c:0x7a5230}};
+  n:{g:'f',c:0x1a1410},F:{g:'f',c:0x43b84e},T:{g:'f',c:0x7a5230},
+  /* fruits v2 */ pe1:{g:'f',c:0x6c0412},pe2:{g:'f',c:0x94101a},pe3:{g:'f',c:0xb04400},pe4:{g:'f',c:0xb07a06},peT:{g:'f',c:0x3a1e08},peL:{g:'f',c:0x127a22},pel:{g:'f',c:0x07461a},ba1:{g:'f',c:0xb88400},ba2:{g:'f',c:0xa86400},ba3:{g:'f',c:0x2e6a08},ba6:{g:'f',c:0x7a8a04},ba4:{g:'f',c:0x1a0c04},ba5:{g:'f',c:0x4a2404},ba7:{g:'f',c:0x1e2a04},gr1:{g:'f',c:0x780800},gr2:{g:'f',c:0x460400},gr3:{g:'f',c:0x8e3000},gr4:{g:'f',c:0x300004},gr5:{g:'f',c:0xb00800},gr8:{g:'f',c:0xd02010},gr6:{g:'f',c:0x7a4010},gr7:{g:'f',c:0x140200},or1:{g:'f',c:0xb03400},or2:{g:'f',c:0xc84800},or3:{g:'f',c:0x8a2000},or4:{g:'f',c:0x1e5a0a},or5:{g:'f',c:0x2e3008},or6:{g:'f',c:0x0e6a1e},or7:{g:'f',c:0x06401a},my1:{g:'f',c:0x0a0a50},my2:{g:'f',c:0x2a3890},my3:{g:'f',c:0x040210},my4:{g:'f',c:0x120a36},myT:{g:'f',c:0x2a2a08},myL:{g:'f',c:0x127a22},myl:{g:'f',c:0x07461a},pa1:{g:'f',c:0x08380e},pa2:{g:'f',c:0x1a5a0c},pa3:{g:'f',c:0x9a0a00},pa4:{g:'f',c:0xb81400},pa6:{g:'f',c:0x4a7a22},pa7:{g:'f',c:0x120806},paT:{g:'f',c:0x2a2008}};
 const SPH=(w,h)=>new THREE.SphereGeometry(1,w||8,h||6);
 const FRUIT_DEFS=[
-  // PÊCHE PLATE : galette bombée, joue crème, sillon, petite feuille
-  {n:'PÊCHE PLATE',boost:.6,freq:10,jus:0xff9ec2,lp:K=>{
-    K.put('P',SPH(9,6),0,0,0,0,0,0,.88,.66,.88);
-    K.put('p',SPH(7,5),-.28,.08,.24,0,0,0,.56,.46,.56);
-    K.put('P',SPH(6,4),0,.12,0,0,0,0,.08,.44,.62);
-    K.put('T',new THREE.CylinderGeometry(.04,.05,.18,5),0,.66,0);
-    K.put('F',SPH(6,3),.26,.72,.04,0,0,-.42,.32,.05,.17);}},
-  // BANANE : un croissant de segments facettés, pointes brunes
-  {n:'BANANE',boost:.5,freq:12,jus:0xffd63a,lp:K=>{
-    const N=9;
-    for(let i=0;i<N;i++){const u=i/(N-1),a=(u-.5)*2.8,t=Math.abs(u-.5)*2,r=.19*(1-Math.pow(t,2.4)*.85);
-      K.put((i===0||i===N-1)?'b':'B',SPH(6,4),Math.sin(a)*1.02,Math.cos(a)*.40-.36,0,0,0,-a,r*2.2,r*1.1,r*.95);}}},
-  // GRENADE : écorce grenat facettée, coupée — huit grosses arilles qui accrochent la lumière, couronne en étoile
-  {n:'GRENADE',boost:1.0,freq:4,jus:0xd10f2b,lp:K=>{
-    K.put('R',SPH(9,7),0,0,0,0,0,0,.80,.80,.80);
-    K.put('r',new THREE.CylinderGeometry(.46,.46,.05,9),0,0,.62,Math.PI/2);
-    for(let i=0;i<9;i++){const a=i/8*6.2832,d=i===8?0:.25;K.put('A',SPH(5,4),Math.cos(a)*d,Math.sin(a)*d,.67,0,0,0,.11,.11,.08);}
-    for(let i=0;i<5;i++){const a=i/5*6.2832;K.put('R',new THREE.ConeGeometry(1,1,4),Math.cos(a)*.16,.86,Math.sin(a)*.16,0,0,0,.08,.22,.08);}}},
-  {n:'ORANGE',boost:.5,freq:11,jus:0xff8b12,lp:K=>{
-    K.put('O',SPH(10,7),0,0,0,0,0,0,.80,.78,.80);
-    K.put('F',SPH(6,3),.16,.74,0,0,0,-.4,.26,.05,.15);
-    K.put('T',new THREE.CylinderGeometry(.04,.05,.12,5),0,.80,0);}},
-  // MYRTILLE : bille bleu profond, voile clair et couronne étoilée
-  {n:'MYRTILLE',boost:.35,freq:26,jus:0x6a4bd8,lp:K=>{
-    K.put('M',SPH(8,6),0,0,0,0,0,0,.60,.54,.60);
-    K.put('m',SPH(7,3),0,.38,0,0,0,0,.40,.10,.40);
-    for(let i=0;i<5;i++){const a=i/5*6.2832;K.put('m',new THREE.BoxGeometry(1,1,1),Math.cos(a)*.15,.51,Math.sin(a)*.15,0,-a,0,.12,.05,.05);}}},
-  // LA PASTÈQUE — LE GRAAL : écorce en côtes alternées, coupée net — chair rouge, liseré blanc, pépins noirs
-  {n:'PASTÈQUE',boost:2.0,freq:1,jus:0xe8253f,lp:K=>{
-    for(let i=0;i<10;i++)K.put(i%2?'V':'v',new THREE.SphereGeometry(1,2,7,i/10*6.2832,6.2832/10),0,0,0,0,0,0,.95,.95,.95);
-    K.put('w',new THREE.CylinderGeometry(.93,.93,.03,12),0,0,.95,Math.PI/2);
-    K.put('C',new THREE.CylinderGeometry(.84,.84,.04,12),0,0,.97,Math.PI/2);
-    for(let i=0;i<9;i++){const a=i/9*6.2832+.3,d=.32+(i%3)*.16;K.put('n',new THREE.BoxGeometry(1,1,1),Math.cos(a)*d,Math.sin(a)*d,1.0,0,0,a,.05,.09,.03);}}}
+  /* (2026-09-26, user : « les fruits plus gros, plus beaux, mieux travaillés dans leur design ») : les six fruits REDESSINÉS à l'atelier
+     (scratchpad gamme/lots/fruits.js, banc fruits.js) — facettes colorées une à une, feuilles à nervure, arilles, pépins, quartier retiré.
+     Noms, boost, fréquences et jus INCHANGÉS. */
+  {n:'PÊCHE PLATE',boost:0.6,freq:10,jus:0xff9ec2,lp:function(K){
+  const T=THREE,V3=T.Vector3;
+  // hachage stable d'un point → [0,1) : mouchetures, taches, pores — même point, même valeur (aucune fissure aux coutures)
+  const hs=(x,y,z)=>{const s=Math.sin(x*127.1+y*311.7+z*74.7)*43758.5453;return s-Math.floor(s);};
+  // D : déforme une géométrie sommet par sommet (fonction de la POSITION seule)
+  const D=(g,fn)=>{const p=g.attributes.position,v=new V3();for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i);fn(v);p.setXYZ(i,v.x,v.y,v.z);}return g;};
+  // P : verse une géométrie en choisissant la couleur PAR FACETTE — fn(centre x,y,z, normale nx,ny,nz) → clé de palette
+  const P=(g,fn)=>{const gg=g.index?g.toNonIndexed():g,p=gg.attributes.position.array;
+    for(let i=0;i<p.length;i+=9){const a=[p[i],p[i+1],p[i+2]],b=[p[i+3],p[i+4],p[i+5]],c=[p[i+6],p[i+7],p[i+8]];
+      const ux=b[0]-a[0],uy=b[1]-a[1],uz=b[2]-a[2],vx=c[0]-a[0],vy=c[1]-a[1],vz=c[2]-a[2];
+      const nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx,l=Math.hypot(nx,ny,nz)||1;
+      K.tri(fn((a[0]+b[0]+c[0])/3,(a[1]+b[1]+c[1])/3,(a[2]+b[2]+c[2])/3,nx/l,ny/l,nz/l),a,b,c);}
+    gg.dispose();if(gg!==g)g.dispose();};
+  // LF : une FEUILLE à nervure — deux demi-limbes de deux verts, pliés en V le long de la nervure, pointe qui retombe.
+  // Posée le long de +x puis roulée (rx), relevée (rz), orientée (ry).
+  const LF=(kA,kB,L,W,fold,droop,x,y,z,rx,ry,rz,N)=>{N=N||5;
+    const M=new T.Matrix4().compose(new V3(x,y,z),new T.Quaternion().setFromEuler(new T.Euler(rx||0,ry||0,rz||0,'YZX')),new V3(1,1,1));
+    const pt=(u,s)=>{const w=W*Math.pow(Math.sin(Math.PI*u),.7)*(1-.35*u),v=new V3(u*L,-droop*u*u+fold*Math.abs(s)*w,s*w).applyMatrix4(M);return [v.x,v.y,v.z];};
+    for(let i=0;i<N;i++){const u0=i/N,u1=(i+1)/N,m0=pt(u0,0),m1=pt(u1,0);
+      for(const s of [-1,1]){const e0=pt(u0,s),e1=pt(u1,s),k=s<0?kA:kB;K.tri(k,m0,e0,e1);K.tri(k,m0,e1,m1);}}};
+
+  const g=D(new T.SphereGeometry(1,20,12),v=>{
+    const r=Math.hypot(v.x,v.z),a=Math.atan2(v.z,v.x),da=Math.atan2(Math.sin(a-1.5708),Math.cos(a-1.5708));
+    const y=Math.sign(v.y)*Math.pow(Math.abs(v.y),.8)*.56-(v.y>0?.24:.14)*Math.exp(-r*r/.12),gr=1-.17*Math.exp(-da*da/.05)*(v.y>-.2?1:.4);
+    v.set(v.x*.96*gr,y,v.z*.96*gr);});
+  const B=new V3(-.6,.3,.75).normalize();
+  P(g,(x,y,z,nx,ny,nz)=>{const a=Math.atan2(z,x),da=Math.abs(Math.atan2(Math.sin(a-1.5708),Math.cos(a-1.5708)));
+    if(da<.17&&y>-.1&&Math.hypot(x,z)>.3)return 'pe1';                       // le sillon, en trait cramoisi
+    const s=.35*(nx*B.x+ny*B.y+nz*B.z)+.6*ny+(hs(x,y,z)-.5)*.6;
+    return s>.45?'pe1':s>.18?'pe2':s>-.08?'pe3':'pe4';});
+  K.put('peT',new T.CylinderGeometry(.035,.055,.2,5),0,.38,0,0,0,.25);
+  LF('peL','pel',.74,.12,.3,.16,.03,.46,0,.5,.5,.4,6);
+  LF('peL','pel',.52,.1,.3,.1,0,.46,0,-.5,2.7,.5,5);
+ }},
+  {n:'BANANE',boost:0.5,freq:12,jus:0xffd63a,lp:function(K){
+  const T=THREE,V3=T.Vector3;
+  // hachage stable d'un point → [0,1) : mouchetures, taches, pores — même point, même valeur (aucune fissure aux coutures)
+  const hs=(x,y,z)=>{const s=Math.sin(x*127.1+y*311.7+z*74.7)*43758.5453;return s-Math.floor(s);};
+  // D : déforme une géométrie sommet par sommet (fonction de la POSITION seule)
+  const D=(g,fn)=>{const p=g.attributes.position,v=new V3();for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i);fn(v);p.setXYZ(i,v.x,v.y,v.z);}return g;};
+  // P : verse une géométrie en choisissant la couleur PAR FACETTE — fn(centre x,y,z, normale nx,ny,nz) → clé de palette
+  const P=(g,fn)=>{const gg=g.index?g.toNonIndexed():g,p=gg.attributes.position.array;
+    for(let i=0;i<p.length;i+=9){const a=[p[i],p[i+1],p[i+2]],b=[p[i+3],p[i+4],p[i+5]],c=[p[i+6],p[i+7],p[i+8]];
+      const ux=b[0]-a[0],uy=b[1]-a[1],uz=b[2]-a[2],vx=c[0]-a[0],vy=c[1]-a[1],vz=c[2]-a[2];
+      const nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx,l=Math.hypot(nx,ny,nz)||1;
+      K.tri(fn((a[0]+b[0]+c[0])/3,(a[1]+b[1]+c[1])/3,(a[2]+b[2]+c[2])/3,nx/l,ny/l,nz/l),a,b,c);}
+    gg.dispose();if(gg!==g)g.dispose();};
+  // LF : une FEUILLE à nervure — deux demi-limbes de deux verts, pliés en V le long de la nervure, pointe qui retombe.
+  // Posée le long de +x puis roulée (rx), relevée (rz), orientée (ry).
+  const LF=(kA,kB,L,W,fold,droop,x,y,z,rx,ry,rz,N)=>{N=N||5;
+    const M=new T.Matrix4().compose(new V3(x,y,z),new T.Quaternion().setFromEuler(new T.Euler(rx||0,ry||0,rz||0,'YZX')),new V3(1,1,1));
+    const pt=(u,s)=>{const w=W*Math.pow(Math.sin(Math.PI*u),.7)*(1-.35*u),v=new V3(u*L,-droop*u*u+fold*Math.abs(s)*w,s*w).applyMatrix4(M);return [v.x,v.y,v.z];};
+    for(let i=0;i<N;i++){const u0=i/N,u1=(i+1)/N,m0=pt(u0,0),m1=pt(u1,0);
+      for(const s of [-1,1]){const e0=pt(u0,s),e1=pt(u1,s),k=s<0?kA:kB;K.tri(k,m0,e0,e1);K.tri(k,m0,e1,m1);}}};
+
+  const A=1.6,RC=1.0,E0=RC*Math.sin(A/2),F0=RC*(1-Math.cos(A/2));
+  const rr=u=>LPU.lin([[0,.05],[.08,.065],[.18,.14],[.32,.17],[.66,.17],[.82,.14],[.93,.085],[1,.04]],u);
+  const US=[0,.08,.18,.26,.34,.42,.5,.58,.66,.74,.82,.9,.96,1];
+  const doigt=(fan,dy,sc)=>{
+    const M=new T.Matrix4().compose(new V3(-.74,.12+dy,0),new T.Quaternion().setFromEuler(new T.Euler(0,fan,0)),new V3(sc,sc,sc));
+    const sec=US.map(u=>{const a=-A/2+u*A,cx=RC*Math.sin(a)+E0,cy=RC*(1-Math.cos(a))-F0,nX=-Math.sin(a),nY=Math.cos(a),r=rr(u),pts=[];
+      for(let k=0;k<5;k++){const q=k/5*6.2832+1.5708,c=Math.cos(q)*r,s=Math.sin(q)*r*.92;pts.push(new V3(cx+nX*c,cy+nY*c,s).applyMatrix4(M).toArray());}
+      const tg=new V3(Math.cos(a),Math.sin(a),0).transformDirection(M);
+      return {u,pts,c:new V3(cx,cy,0).applyMatrix4(M).toArray(),tg:tg.toArray()};});
+    for(let i=0;i<sec.length-1;i++){const S0=sec[i],S1=sec[i+1],um=(S0.u+S1.u)/2;
+      for(let k=0;k<5;k++){const k2=(k+1)%5,a=S0.pts[k],b=S0.pts[k2],c=S1.pts[k2],d=S1.pts[k];
+        const mx=(a[0]+b[0]+c[0]+d[0])/4,my=(a[1]+b[1]+c[1]+d[1])/4,mz=(a[2]+b[2]+c[2]+d[2])/4;
+        const oy=(my-(S0.c[1]+S1.c[1])/2)/(rr(um)||1);
+        const key=um<.12?'ba3':um<.2?'ba6':um>.96?'ba5':oy>.2?'ba1':'ba2',sp=um>.25&&um<.9;
+        K.tri(sp&&hs(a[0]+c[0],b[1],mz)>.955?'ba5':key,a,b,c);K.tri(sp&&hs(mx,d[1]+a[1],c[2])>.955?'ba5':key,a,c,d);}}
+    const L=sec[sec.length-1],tp=[L.c[0]+L.tg[0]*.07*sc,L.c[1]+L.tg[1]*.07*sc,L.c[2]+L.tg[2]*.07*sc];
+    for(let k=0;k<5;k++)K.tri('ba4',L.pts[k],L.pts[(k+1)%5],tp);
+  };
+  doigt(-.4,0,.95);doigt(.4,0,.95);doigt(0,.07,1.04);
+  P(new T.CylinderGeometry(.075,.11,.26,7).rotateZ(1.1).translate(-.84,.2,0),(x,y,z,nx,ny,nz)=>(nx<-.6&&ny>.3)?'ba4':'ba7');
+ }},
+  {n:'GRENADE',boost:1,freq:4,jus:0xd10f2b,lp:function(K){
+  const T=THREE,V3=T.Vector3;
+  // hachage stable d'un point → [0,1) : mouchetures, taches, pores — même point, même valeur (aucune fissure aux coutures)
+  const hs=(x,y,z)=>{const s=Math.sin(x*127.1+y*311.7+z*74.7)*43758.5453;return s-Math.floor(s);};
+  // D : déforme une géométrie sommet par sommet (fonction de la POSITION seule)
+  const D=(g,fn)=>{const p=g.attributes.position,v=new V3();for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i);fn(v);p.setXYZ(i,v.x,v.y,v.z);}return g;};
+  // P : verse une géométrie en choisissant la couleur PAR FACETTE — fn(centre x,y,z, normale nx,ny,nz) → clé de palette
+  const P=(g,fn)=>{const gg=g.index?g.toNonIndexed():g,p=gg.attributes.position.array;
+    for(let i=0;i<p.length;i+=9){const a=[p[i],p[i+1],p[i+2]],b=[p[i+3],p[i+4],p[i+5]],c=[p[i+6],p[i+7],p[i+8]];
+      const ux=b[0]-a[0],uy=b[1]-a[1],uz=b[2]-a[2],vx=c[0]-a[0],vy=c[1]-a[1],vz=c[2]-a[2];
+      const nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx,l=Math.hypot(nx,ny,nz)||1;
+      K.tri(fn((a[0]+b[0]+c[0])/3,(a[1]+b[1]+c[1])/3,(a[2]+b[2]+c[2])/3,nx/l,ny/l,nz/l),a,b,c);}
+    gg.dispose();if(gg!==g)g.dispose();};
+  // LF : une FEUILLE à nervure — deux demi-limbes de deux verts, pliés en V le long de la nervure, pointe qui retombe.
+  // Posée le long de +x puis roulée (rx), relevée (rz), orientée (ry).
+  const LF=(kA,kB,L,W,fold,droop,x,y,z,rx,ry,rz,N)=>{N=N||5;
+    const M=new T.Matrix4().compose(new V3(x,y,z),new T.Quaternion().setFromEuler(new T.Euler(rx||0,ry||0,rz||0,'YZX')),new V3(1,1,1));
+    const pt=(u,s)=>{const w=W*Math.pow(Math.sin(Math.PI*u),.7)*(1-.35*u),v=new V3(u*L,-droop*u*u+fold*Math.abs(s)*w,s*w).applyMatrix4(M);return [v.x,v.y,v.z];};
+    for(let i=0;i<N;i++){const u0=i/N,u1=(i+1)/N,m0=pt(u0,0),m1=pt(u1,0);
+      for(const s of [-1,1]){const e0=pt(u0,s),e1=pt(u1,s),k=s<0?kA:kB;K.tri(k,m0,e0,e1);K.tri(k,m0,e1,m1);}}};
+
+  const ZC=.40;
+  const g=D(new T.SphereGeometry(1,18,11),v=>{
+    const a=Math.atan2(v.z,v.x),k=1+.05*Math.cos(6*a);
+    let x=v.x*.84*k,z=v.z*.84*k,y=v.y*.80;
+    if(v.y>.7){const t=(v.y-.7)/.3;x*=1-.35*t;z*=1-.35*t;y+=.05*t;}
+    if(z>ZC)z=ZC;
+    v.set(x,y,z);});
+  P(g,(x,y,z,nx,ny,nz)=>{
+    if(Math.abs(nz)>.97&&z>ZC-.01)return Math.hypot(x,y)>.62?'gr6':'gr4';
+    const h=hs(x,y,z);
+    if(ny<-.45)return h>.7?'gr1':'gr2';
+    if(ny>.1&&h>.84)return 'gr3';
+    return h<.14?'gr2':'gr1';});
+  for(let i=0;i<19;i++){const rg=i<1?0:i<7?.2:.4,a=(i<1?0:i<7?(i-1)/6:(i-7)/12)*6.2832+(i<7?.3:0),x=Math.cos(a)*rg,y=Math.sin(a)*rg*.95;
+    K.put(i%3?'gr5':'gr8',new T.OctahedronGeometry(1,0),x,y,ZC+.04,.3+i,.5*i,.2+i*.7,.1,.12,.085);}
+  P(new T.CylinderGeometry(.14,.18,.2,7).translate(0,.88,0),(x,y,z,nx,ny,nz)=>ny>.9?'gr7':(hs(x,y,z)>.5?'gr1':'gr2'));
+  for(let i=0;i<6;i++){const a=i/6*6.2832;K.put(i%2?'gr1':'gr2',new T.ConeGeometry(1,1,4),Math.cos(a)*.15,1.02,Math.sin(a)*.15,0,-a,-.55,.07,.26,.05);}
+ }},
+  {n:'ORANGE',boost:0.5,freq:11,jus:0xff8b12,lp:function(K){
+  const T=THREE,V3=T.Vector3;
+  // hachage stable d'un point → [0,1) : mouchetures, taches, pores — même point, même valeur (aucune fissure aux coutures)
+  const hs=(x,y,z)=>{const s=Math.sin(x*127.1+y*311.7+z*74.7)*43758.5453;return s-Math.floor(s);};
+  // D : déforme une géométrie sommet par sommet (fonction de la POSITION seule)
+  const D=(g,fn)=>{const p=g.attributes.position,v=new V3();for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i);fn(v);p.setXYZ(i,v.x,v.y,v.z);}return g;};
+  // P : verse une géométrie en choisissant la couleur PAR FACETTE — fn(centre x,y,z, normale nx,ny,nz) → clé de palette
+  const P=(g,fn)=>{const gg=g.index?g.toNonIndexed():g,p=gg.attributes.position.array;
+    for(let i=0;i<p.length;i+=9){const a=[p[i],p[i+1],p[i+2]],b=[p[i+3],p[i+4],p[i+5]],c=[p[i+6],p[i+7],p[i+8]];
+      const ux=b[0]-a[0],uy=b[1]-a[1],uz=b[2]-a[2],vx=c[0]-a[0],vy=c[1]-a[1],vz=c[2]-a[2];
+      const nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx,l=Math.hypot(nx,ny,nz)||1;
+      K.tri(fn((a[0]+b[0]+c[0])/3,(a[1]+b[1]+c[1])/3,(a[2]+b[2]+c[2])/3,nx/l,ny/l,nz/l),a,b,c);}
+    gg.dispose();if(gg!==g)g.dispose();};
+  // LF : une FEUILLE à nervure — deux demi-limbes de deux verts, pliés en V le long de la nervure, pointe qui retombe.
+  // Posée le long de +x puis roulée (rx), relevée (rz), orientée (ry).
+  const LF=(kA,kB,L,W,fold,droop,x,y,z,rx,ry,rz,N)=>{N=N||5;
+    const M=new T.Matrix4().compose(new V3(x,y,z),new T.Quaternion().setFromEuler(new T.Euler(rx||0,ry||0,rz||0,'YZX')),new V3(1,1,1));
+    const pt=(u,s)=>{const w=W*Math.pow(Math.sin(Math.PI*u),.7)*(1-.35*u),v=new V3(u*L,-droop*u*u+fold*Math.abs(s)*w,s*w).applyMatrix4(M);return [v.x,v.y,v.z];};
+    for(let i=0;i<N;i++){const u0=i/N,u1=(i+1)/N,m0=pt(u0,0),m1=pt(u1,0);
+      for(const s of [-1,1]){const e0=pt(u0,s),e1=pt(u1,s),k=s<0?kA:kB;K.tri(k,m0,e0,e1);K.tri(k,m0,e1,m1);}}};
+
+  const g=D(new T.IcosahedronGeometry(1,3),v=>{const k=.80*(1+.035*(hs(v.x,v.y,v.z)-.5));v.set(v.x*k,v.y*k*.94,v.z*k);});
+  P(g,(x,y,z,nx,ny,nz)=>{const h=hs(x*3,y*3,z*3);
+    if(ny<-.55)return h>.6?'or1':'or3';
+    return h>.84?'or2':h<.12?'or3':'or1';});
+  for(let i=0;i<5;i++){const a=i/5*6.2832;K.put('or4',new T.ConeGeometry(1,1,3),Math.cos(a)*.09,.755,Math.sin(a)*.09,0,-a,-1.3,.06,.2,.025);}
+  K.put('or5',new T.CylinderGeometry(.035,.05,.16,5),0,.82,0,0,0,.2);
+  LF('or6','or7',.62,.24,.2,.12,.02,.86,0,.9,.35,.32,6);
+ }},
+  {n:'MYRTILLE',boost:0.35,freq:26,jus:0x6a4bd8,lp:function(K){
+  const T=THREE,V3=T.Vector3;
+  // hachage stable d'un point → [0,1) : mouchetures, taches, pores — même point, même valeur (aucune fissure aux coutures)
+  const hs=(x,y,z)=>{const s=Math.sin(x*127.1+y*311.7+z*74.7)*43758.5453;return s-Math.floor(s);};
+  // D : déforme une géométrie sommet par sommet (fonction de la POSITION seule)
+  const D=(g,fn)=>{const p=g.attributes.position,v=new V3();for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i);fn(v);p.setXYZ(i,v.x,v.y,v.z);}return g;};
+  // P : verse une géométrie en choisissant la couleur PAR FACETTE — fn(centre x,y,z, normale nx,ny,nz) → clé de palette
+  const P=(g,fn)=>{const gg=g.index?g.toNonIndexed():g,p=gg.attributes.position.array;
+    for(let i=0;i<p.length;i+=9){const a=[p[i],p[i+1],p[i+2]],b=[p[i+3],p[i+4],p[i+5]],c=[p[i+6],p[i+7],p[i+8]];
+      const ux=b[0]-a[0],uy=b[1]-a[1],uz=b[2]-a[2],vx=c[0]-a[0],vy=c[1]-a[1],vz=c[2]-a[2];
+      const nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx,l=Math.hypot(nx,ny,nz)||1;
+      K.tri(fn((a[0]+b[0]+c[0])/3,(a[1]+b[1]+c[1])/3,(a[2]+b[2]+c[2])/3,nx/l,ny/l,nz/l),a,b,c);}
+    gg.dispose();if(gg!==g)g.dispose();};
+  // LF : une FEUILLE à nervure — deux demi-limbes de deux verts, pliés en V le long de la nervure, pointe qui retombe.
+  // Posée le long de +x puis roulée (rx), relevée (rz), orientée (ry).
+  const LF=(kA,kB,L,W,fold,droop,x,y,z,rx,ry,rz,N)=>{N=N||5;
+    const M=new T.Matrix4().compose(new V3(x,y,z),new T.Quaternion().setFromEuler(new T.Euler(rx||0,ry||0,rz||0,'YZX')),new V3(1,1,1));
+    const pt=(u,s)=>{const w=W*Math.pow(Math.sin(Math.PI*u),.7)*(1-.35*u),v=new V3(u*L,-droop*u*u+fold*Math.abs(s)*w,s*w).applyMatrix4(M);return [v.x,v.y,v.z];};
+    for(let i=0;i<N;i++){const u0=i/N,u1=(i+1)/N,m0=pt(u0,0),m1=pt(u1,0);
+      for(const s of [-1,1]){const e0=pt(u0,s),e1=pt(u1,s),k=s<0?kA:kB;K.tri(k,m0,e0,e1);K.tri(k,m0,e1,m1);}}};
+
+  const g=D(new T.IcosahedronGeometry(1,3),v=>{const r=Math.hypot(v.x,v.z),k=.62*(1+.03*(hs(v.x,v.y,v.z)-.5)),y=v.y*.9-(v.y>0?.2:0)*Math.exp(-r*r/.06);v.set(v.x*k,y*k,v.z*k);});
+  P(g,(x,y,z,nx,ny,nz)=>{const r=Math.hypot(x,z);if(y>.3&&r<.14)return 'my3';const h=hs(x,y,z);
+    if(ny>.35&&h>.45)return 'my2';if(ny<-.5)return 'my1';return h>.8?'my2':'my1';});
+  for(let i=0;i<5;i++){const a=i/5*6.2832+.3;K.put('my4',new T.ConeGeometry(1,1,3),Math.cos(a)*.16,.5,Math.sin(a)*.16,0,-a,-.85,.14,.3,.05);}
+  K.put('myT',new T.CylinderGeometry(.025,.035,.26,4),.05,.6,0,0,0,-.35);
+  LF('myL','myl',.52,.18,.2,.08,.1,.72,0,.8,.4,.35,5);
+ }},
+  {n:'PASTÈQUE',boost:2,freq:1,jus:0xe8253f,lp:function(K){
+  const T=THREE,V3=T.Vector3;
+  // hachage stable d'un point → [0,1) : mouchetures, taches, pores — même point, même valeur (aucune fissure aux coutures)
+  const hs=(x,y,z)=>{const s=Math.sin(x*127.1+y*311.7+z*74.7)*43758.5453;return s-Math.floor(s);};
+  // D : déforme une géométrie sommet par sommet (fonction de la POSITION seule)
+  const D=(g,fn)=>{const p=g.attributes.position,v=new V3();for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i);fn(v);p.setXYZ(i,v.x,v.y,v.z);}return g;};
+  // P : verse une géométrie en choisissant la couleur PAR FACETTE — fn(centre x,y,z, normale nx,ny,nz) → clé de palette
+  const P=(g,fn)=>{const gg=g.index?g.toNonIndexed():g,p=gg.attributes.position.array;
+    for(let i=0;i<p.length;i+=9){const a=[p[i],p[i+1],p[i+2]],b=[p[i+3],p[i+4],p[i+5]],c=[p[i+6],p[i+7],p[i+8]];
+      const ux=b[0]-a[0],uy=b[1]-a[1],uz=b[2]-a[2],vx=c[0]-a[0],vy=c[1]-a[1],vz=c[2]-a[2];
+      const nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx,l=Math.hypot(nx,ny,nz)||1;
+      K.tri(fn((a[0]+b[0]+c[0])/3,(a[1]+b[1]+c[1])/3,(a[2]+b[2]+c[2])/3,nx/l,ny/l,nz/l),a,b,c);}
+    gg.dispose();if(gg!==g)g.dispose();};
+  // LF : une FEUILLE à nervure — deux demi-limbes de deux verts, pliés en V le long de la nervure, pointe qui retombe.
+  // Posée le long de +x puis roulée (rx), relevée (rz), orientée (ry).
+  const LF=(kA,kB,L,W,fold,droop,x,y,z,rx,ry,rz,N)=>{N=N||5;
+    const M=new T.Matrix4().compose(new V3(x,y,z),new T.Quaternion().setFromEuler(new T.Euler(rx||0,ry||0,rz||0,'YZX')),new V3(1,1,1));
+    const pt=(u,s)=>{const w=W*Math.pow(Math.sin(Math.PI*u),.7)*(1-.35*u),v=new V3(u*L,-droop*u*u+fold*Math.abs(s)*w,s*w).applyMatrix4(M);return [v.x,v.y,v.z];};
+    for(let i=0;i<N;i++){const u0=i/N,u1=(i+1)/N,m0=pt(u0,0),m1=pt(u1,0);
+      for(const s of [-1,1]){const e0=pt(u0,s),e1=pt(u1,s),k=s<0?kA:kB;K.tri(k,m0,e0,e1);K.tri(k,m0,e1,m1);}}};
+
+  const AX=1.0,BY=.80,CZ=.80,NT=12,NP=24,J0=6;           // quartier ôté : φ ∈ (0, π/2) — entre le haut (+y) et l'avant (+z)
+  const S=(t,f,r)=>[AX*Math.cos(t),BY*Math.sin(t)*Math.cos(f)*r,CZ*Math.sin(t)*Math.sin(f)*r];
+  for(let i=0;i<NT;i++){const t0=i/NT*Math.PI,t1=(i+1)/NT*Math.PI;
+    for(let j=J0;j<NP;j++){const f0=j/NP*6.2832,f1=(j+1)/NP*6.2832,a=S(t0,f0,1),b=S(t1,f0,1),c=S(t1,f1,1),d=S(t0,f1,1),m=j%3;
+      const kA=m===0?'pa1':m===1?'pa2':(i%2?'pa1':'pa2'),kB=m===0?'pa1':m===1?'pa2':(i%2?'pa2':'pa1');
+      K.tri(kA,a,b,c);K.tri(kB,a,c,d);}}
+  const RG=[[0,.45,'pa4'],[.45,.8,'pa3'],[.8,.9,'pa6'],[.9,1,'pa1']];
+  for(const f of [Math.PI/2,6.2832])for(let i=0;i<NT;i++){const t0=i/NT*Math.PI,t1=(i+1)/NT*Math.PI;
+    for(const q of RG){const a=S(t0,f,q[0]),b=S(t1,f,q[0]),c=S(t1,f,q[1]),d=S(t0,f,q[1]);K.tri(q[2],a,b,c);K.tri(q[2],a,c,d);}}
+  const PE=[[.9,.62],[1.25,.66],[1.6,.6],[1.95,.64],[2.3,.62],[1.1,.4],[1.75,.38],[2.1,.42]];
+  // un pépin : losange en pointe de diamant, couché sur la tranche (u = le long, v = vers l'écorce, n = hors de la tranche)
+  const pep=(c,u,v,n)=>{const q=(a,b,h)=>[c[0]+u[0]*a+v[0]*b+n[0]*h,c[1]+u[1]*a+v[1]*b+n[1]*h,c[2]+u[2]*a+v[2]*b+n[2]*h];
+    const A=q(-.036,0,.004),B=q(0,-.05,.004),C=q(.036,0,.004),E=q(0,.075,.004),H=q(0,0,.03);
+    K.tri('pa7',A,B,H);K.tri('pa7',B,C,H);K.tri('pa7',C,E,H);K.tri('pa7',E,A,H);};
+  for(const q of PE){const p=S(q[0],Math.PI/2,q[1]),w=S(q[0],0,q[1]),tw=.25*Math.sin(q[0]*7);
+    pep(p,[Math.cos(tw),0,Math.sin(tw)],[-Math.sin(tw),0,Math.cos(tw)],[0,1,0]);
+    pep(w,[Math.cos(tw),Math.sin(tw),0],[-Math.sin(tw),Math.cos(tw),0],[0,0,1]);}
+  P(new T.CylinderGeometry(.04,.07,.14,5).rotateZ(1.5708).translate(-1.04,0,0),(x,y,z,nx)=>nx<-.8?'pa7':'paT');
+ }},
 ];
 // UNE GÉOMÉTRIE PAR FRUIT, coulée à la première demande et partagée par tous ses exemplaires (jamais libérée)
 const FRUIT_GEO=[];let FRUIT_MAT=null;
