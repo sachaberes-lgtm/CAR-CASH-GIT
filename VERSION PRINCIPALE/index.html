@@ -2435,6 +2435,41 @@
   #coach .coTop{align-items:flex-start;line-height:1.6} /* un raté sur deux lignes ne se chevauche plus */
   #slam9.compte.on{animation:slamCompte .3s var(--ease) forwards}
   @keyframes slamCompte{0%{opacity:0;transform:translate(-50%,-50%) scale(1.6)}35%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:1;transform:translate(-50%,-50%) scale(.94)}}
+  /* ---- INTERFACE PREMIUM (lot 6) ---- */
+  /* 6.1 LES POUVOIRS : icône pixel à la couleur du pouvoir, taille entière (27 px) ; l'éclair de la jauge à 27 px (un multiple de 9 : net) */
+  body.touch #pwrChip .pw>.pxi{--pxs:3;color:var(--pc);filter:drop-shadow(0 2px 0 #000)}
+  body.touch #nitroBar::before{width:27px;height:27px;left:-35px}
+  /* 6.2 UNE FEUILLE = UN SEUL NIVEAU DE LECTURE : sous la pause et la carrière, le HUD et le solde ne transparaissent plus */
+  body:has(#tPanel.open) :is(#flowHud,#auraV2,#pwrChip,#pwrFx,#airPie,#nitroWrap,#lvlBan,#slam9){visibility:hidden}
+  body:has(#carr.on) #garage #gTopRow{visibility:hidden}
+  /* 6.3 L'OR EST L'ACTION : l'onglet actif du garage passe au violet, les prix de la boutique sont des étiquettes (la carte entière se touche) */
+  #gTabs .gTab.on{background:linear-gradient(180deg,#8d7dff,#5646f0)!important;border-color:#1c1454!important;box-shadow:inset 0 -4px 0 #3a2cb0,0 4px 0 #1c1454!important;color:#fff!important}
+  #gTabs .gTab.on .pxi{color:#fff}
+  .shPrix{padding:2px 0 0;border-radius:0;background:none;box-shadow:none;color:var(--or);font-size:11px;margin-top:auto;text-shadow:0 2px 0 #1c0430}
+  /* 6.4 LE GARAGE D'UNE SEULE MAIN : familles, vignettes et pastille prennent l'arrondi de la charte v3 (l'octogone reste la langue du HUD de course) ;
+     la famille choisie s'entoure au lieu de se remplir de gris clair (elle se lisait comme un bouton désactivé) */
+  #gRar .gR{clip-path:none;border-radius:10px}
+  #gRar .gR.on{background:color-mix(in srgb,var(--rc) 24%,#140e38);color:var(--rc);box-shadow:inset 0 0 0 3px var(--rc),inset 0 -4px 0 rgba(0,0,0,.35)}
+  #gRar .gR.on b{color:#fff}
+  #gStrip .gT{clip-path:none;border-radius:12px}
+  #gRarPill{clip-path:none;border-radius:999px}
+  /* 6.5 UNE SEULE RECETTE DE TITRE (l'or extrudé des écrans) — la pause, la fenêtre et la boutique s'y alignent ; GAME OVER garde son rouge, en plus grand */
+  #tPanel .tpH:first-child{font-size:14px!important;letter-spacing:4px;background:var(--ttrOr);-webkit-background-clip:text;background-clip:text;color:transparent!important;
+    filter:drop-shadow(0 2px 0 #5c3600) drop-shadow(0 2px 0 #2a1500);text-shadow:none}
+  #modT{font-size:14px;letter-spacing:4px}
+  #mShop .mHead h3{background:var(--ttrOr);-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 2px 0 #5c3600) drop-shadow(0 2px 0 #2a1500)}
+  .mOver{font-size:16px}
+  /* 6.6 LE CONTOUR D'ARCADE partout où le texte passe sur le monde (la ville mangeait le sous-titre du niveau) */
+  #lvlBan span,#tSteerHint{text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,0 4px 0 #1c0430}
+  /* 6.7 LA BOUTIQUE RANGÉE : un seul reflet (l'offre à la une), pas de ruban identique sur 13 cartes, prix alignés, texte de la une resserré */
+  .shCase.leg::after{display:none}
+  .shGrille .shCase.leg .shRare{display:none}
+  .shGrille .shCase{padding-top:16px}
+  .shNom{min-height:3em;display:flex;align-items:center;justify-content:center}
+  .shUneTx span{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  /* 6.8 LE MOUVEMENT : la jauge de nitro glisse (elle avançait par crans), les pastilles de l'accueil clignotent à l'arrivée puis se posent */
+  body.touch #nitroR,body.touch #nitroX{transition:width var(--t-fast) var(--ease)}
+  .pbtn .mBadge.on{animation-iteration-count:4}
   .mCause{font-family:var(--pix);font-size:9px;line-height:1.7;letter-spacing:2px;color:#ffc2cc;text-align:center;margin:6px 12px 4px;
     text-shadow:0 2px 0 #1c0430}
 </style>
@@ -2790,8 +2825,8 @@
     <div class="tpH">REGLAGES</div>
     <div class="tpPanel">
     <div class="tp ligne" data-a="snd"><i class="pxi pxi-son" aria-hidden="true"></i> SON</div>
-    <div class="tp ligne" data-a="vox"><i class="pxi pxi-voix" aria-hidden="true"></i> VOIX</div>
     <div class="tp ligne" data-a="mus"><i class="pxi pxi-musique" aria-hidden="true"></i> MUSIQUE</div>
+    <div class="tp ligne" data-a="vox"><i class="pxi pxi-voix" aria-hidden="true"></i> VOIX</div>
     <div class="tp ligne" data-a="q"><i class="pxi pxi-eclair" aria-hidden="true"></i> IMAGE</div>
     </div>
     <div class="tp go" data-a="close"><i class="pxi pxi-lecture" aria-hidden="true"></i> REPRENDRE</div>
@@ -2817,7 +2852,7 @@
    dessinée à la main, convertie UNE fois en SVG et posée en MASQUE CSS : elle prend la couleur de son
    bouton (`currentColor`), reste nette à toutes les tailles (`crispEdges`) et ne coûte aucun fichier.
    Usage : `<i class="pxi pxi-croix"></i>` dans le HTML, `pxi('croix')` dans le JS. */
-const PXI_G={pinceau:'......###|.....####|....####.|...####..|..####...|.#.##....|###......|###......|.#.......',aile:'.........|#........|##.......|###......|#####....|.#######.|..#######|....#####|.......##',trainee:'.........|##.......|.###.....|..####...|...######|..####...|.###.....|##.......|.........',pouce:'...##....|...##....|...##....|...####..|.#######.|.########|.#######.|..#####..|..#####..',cadeau:'.##...##.|#..#.#..#|.#######.|#########|#...#...#|####.####|.#..#..#.|.#..#..#.|.#######.',cible:'..#####..|.#.....#.|#..###..#|#.#...#.#|#.#.#.#.#|#.#...#.#|#..###..#|.#.....#.|..#####..',croix:'##.....##|###...###|.###.###.|..#####..|...###...|..#####..|.###.###.|###...###|##.....##',gauche:'....##...|...###...|..####...|.#####...|######...|.#####...|..####...|...###...|....##...',droite:'...##....|...###...|...####..|...#####.|...######|...#####.|...####..|...###...|...##....',haut:'.........|....#....|...###...|..#####..|.#######.|#########|...###...|...###...|...###...',bas:'...###...|...###...|...###...|#########|.#######.|..#####..|...###...|....#....|.........',lecture:'##.......|####.....|######...|########.|#########|########.|######...|####.....|##.......',pause:'.........|###...###|###...###|###...###|###...###|###...###|###...###|###...###|.........',reglages:'....#....|.#.###.#.|..#####..|.##...##.|###...###|.##...##.|..#####..|.#.###.#.|....#....',son:'....#....|...##..#.|####.#..#|####.#..#|####.#..#|####.#..#|...##..#.|....#....|.........',muet:'....#....|...##....|####..#.#|####...#.|####..#.#|####.....|...##....|....#....|.........',musique:'...######|...#....#|...#....#|...#....#|.###..###|####.####|####.####|.##...##.|.........',voix:'...###...|..#####..|..#####..|..#####..|#.#####.#|#..###..#|.##...##.|...###...|..#####..',volant:'..#####..|.#.....#.|#.......#|#..###..#|#########|#...#...#|#...#...#|.#..#..#.|..#####..',fleches:'.........|..#...#..|.##...##.|###...###|###...###|###...###|.##...##.|..#...#..|.........',eclair:'.....###.|....###..|...###...|..######.|.....##..|....##...|...##....|..##.....|.#.......',drapeau:'#.#.#.#.#|##.#.#.#.|#.#.#.#.#|##.#.#.#.|#.#.#.#.#|#........|#........|#........|#........',voiture:'.........|.........|..####...|.#..#.#..|########.|#########|#########|.##...##.|.##...##.',rampe:'.........|.........|........#|......###|.....####|...######|.########|#########|.........',brique:'#########|#...#...#|#########|..#...#..|#########|#...#...#|#########|..#...#..|#########',copier:'...###...|.##...##.|.#######.|.#.....#.|.#.###.#.|.#.....#.|.#.###.#.|.#.....#.|.#######.',importer:'....#....|....#....|..#.#.#..|...###...|....#....|#.......#|#.......#|#########|.........',corbeille:'...###...|#########|.#.....#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.....#.|..#####..',rejouer:'..#####..|.#.....##|#.....###|#........|#........|#.......#|#.......#|.#.....#.|..#####..',quitter:'#####....|#...#....|#...#.#..|#...#.##.|#..######|#...#.##.|#...#.#..|#...#....|#####....',verrou:'..#####..|.#.....#.|.#.....#.|#########|#########|####.####|####.####|#########|#########',coche:'.........|........#|.......##|#.....##.|##...##..|.##.##...|..###....|...#.....|.........',etoile:'....#....|....#....|...###...|#########|.#######.|..#####..|..##.##..|.##...##.|.#.....#.',trophee:'#########|#.#####.#|#.#####.#|.#######.|..#####..|...###...|....#....|..#####..|.#######.',rotation:'..#####..|.#.....##|#.....###|#........|#..###...|#..#.#..#|#..###..#|.#.....#.|..#####..',panier:'.........|#........|.#######.|.#.#.#.#.|.#######.|..#.#.#..|..#####..|..#...#..|.........',bulle:'.#######.|#.......#|#.#.#.#.#|#.......#|.###.###.|...#.#...|...##....|...#.....|.........',piece:'..#####..|.#.....#.|#..###..#|#.#.....#|#..###..#|#.....#.#|#..###..#|.#.....#.|..#####..'};
+const PXI_G={flamme:'....#....|...##....|...###...|..####.#.|..######.|.###.###.|.##...##.|.##...##.|..#####..',pinceau:'......###|.....####|....####.|...####..|..####...|.#.##....|###......|###......|.#.......',aile:'.........|#........|##.......|###......|#####....|.#######.|..#######|....#####|.......##',trainee:'.........|##.......|.###.....|..####...|...######|..####...|.###.....|##.......|.........',pouce:'...##....|...##....|...##....|...####..|.#######.|.########|.#######.|..#####..|..#####..',cadeau:'.##...##.|#..#.#..#|.#######.|#########|#...#...#|####.####|.#..#..#.|.#..#..#.|.#######.',cible:'..#####..|.#.....#.|#..###..#|#.#...#.#|#.#.#.#.#|#.#...#.#|#..###..#|.#.....#.|..#####..',croix:'##.....##|###...###|.###.###.|..#####..|...###...|..#####..|.###.###.|###...###|##.....##',gauche:'....##...|...###...|..####...|.#####...|######...|.#####...|..####...|...###...|....##...',droite:'...##....|...###...|...####..|...#####.|...######|...#####.|...####..|...###...|...##....',haut:'.........|....#....|...###...|..#####..|.#######.|#########|...###...|...###...|...###...',bas:'...###...|...###...|...###...|#########|.#######.|..#####..|...###...|....#....|.........',lecture:'##.......|####.....|######...|########.|#########|########.|######...|####.....|##.......',pause:'.........|###...###|###...###|###...###|###...###|###...###|###...###|###...###|.........',reglages:'....#....|.#.###.#.|..#####..|.##...##.|###...###|.##...##.|..#####..|.#.###.#.|....#....',son:'....#....|...##..#.|####.#..#|####.#..#|####.#..#|####.#..#|...##..#.|....#....|.........',muet:'....#....|...##....|####..#.#|####...#.|####..#.#|####.....|...##....|....#....|.........',musique:'...######|...#....#|...#....#|...#....#|.###..###|####.####|####.####|.##...##.|.........',voix:'...###...|..#####..|..#####..|..#####..|#.#####.#|#..###..#|.##...##.|...###...|..#####..',volant:'..#####..|.#.....#.|#.......#|#..###..#|#########|#...#...#|#...#...#|.#..#..#.|..#####..',fleches:'.........|..#...#..|.##...##.|###...###|###...###|###...###|.##...##.|..#...#..|.........',eclair:'.....###.|....###..|...###...|..######.|.....##..|....##...|...##....|..##.....|.#.......',drapeau:'#.#.#.#.#|##.#.#.#.|#.#.#.#.#|##.#.#.#.|#.#.#.#.#|#........|#........|#........|#........',voiture:'.........|.........|..####...|.#..#.#..|########.|#########|#########|.##...##.|.##...##.',rampe:'.........|.........|........#|......###|.....####|...######|.########|#########|.........',brique:'#########|#...#...#|#########|..#...#..|#########|#...#...#|#########|..#...#..|#########',copier:'...###...|.##...##.|.#######.|.#.....#.|.#.###.#.|.#.....#.|.#.###.#.|.#.....#.|.#######.',importer:'....#....|....#....|..#.#.#..|...###...|....#....|#.......#|#.......#|#########|.........',corbeille:'...###...|#########|.#.....#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.....#.|..#####..',rejouer:'..#####..|.#.....##|#.....###|#........|#........|#.......#|#.......#|.#.....#.|..#####..',quitter:'#####....|#...#....|#...#.#..|#...#.##.|#..######|#...#.##.|#...#.#..|#...#....|#####....',verrou:'..#####..|.#.....#.|.#.....#.|#########|#########|####.####|####.####|#########|#########',coche:'.........|........#|.......##|#.....##.|##...##..|.##.##...|..###....|...#.....|.........',etoile:'....#....|....#....|...###...|#########|.#######.|..#####..|..##.##..|.##...##.|.#.....#.',trophee:'#########|#.#####.#|#.#####.#|.#######.|..#####..|...###...|....#....|..#####..|.#######.',rotation:'..#####..|.#.....##|#.....###|#........|#..###...|#..#.#..#|#..###..#|.#.....#.|..#####..',panier:'.........|#........|.#######.|.#.#.#.#.|.#######.|..#.#.#..|..#####..|..#...#..|.........',bulle:'.#######.|#.......#|#.#.#.#.#|#.......#|.###.###.|...#.#...|...##....|...#.....|.........',piece:'..#####..|.#.....#.|#..###..#|#.#.....#|#..###..#|#.....#.#|#..###..#|.#.....#.|..#####..'};
 (function(){
   let css='',vars='';
   for(const k in PXI_G){
@@ -21186,10 +21221,10 @@ function loop(now){
     let pch='';
     // (2026-09-26, user : « le power-up affiché EN GROS avec un timer en temps réel ») : une plaque par pouvoir — bâtie quand la liste change,
     // puis mise à jour à CHAQUE image (le minuteur au dixième, la jauge en continu, le clignotement de la fin)
-    const pwL=[['n',pwrNitroT,'🔥','NITRO MAX'],['a',pwrAirT,'🪂','AIR MAX'],['v',pwrSpdT,'⚡',TR('VITESSE')+' ×2']].filter(function(x){return x[1]>0;});
+    const pwL=[['n',pwrNitroT,'flamme','NITRO MAX'],['a',pwrAirT,'aile','AIR MAX'],['v',pwrSpdT,'eclair',TR('VITESSE')+' ×2']].filter(function(x){return x[1]>0;}); // (2026-09-26) icônes pixel, plus d'emoji
     pch=pwL.map(function(x){return x[0];}).join('');
     if(pch!==loop._pch){loop._pch=pch;
-      pwrChip.innerHTML=pwL.map(function(x){return '<div class="pw" data-k="'+x[0]+'" style="--pc:'+PWR_DEFS[x[0]].tint+'"><i>'+x[2]+'</i><span><small>'+x[3]+'</small><b>0.0</b></span><u></u></div>';}).join('');
+      pwrChip.innerHTML=pwL.map(function(x){return '<div class="pw" data-k="'+x[0]+'" style="--pc:'+PWR_DEFS[x[0]].tint+'">'+pxi(x[2])+'<span><small>'+x[3]+'</small><b>0.0</b></span><u></u></div>';}).join('');
       pwrChip.style.display=pch?'block':'none';loop._pwEl=Array.prototype.slice.call(pwrChip.querySelectorAll('.pw'));}
     if(loop._pwEl)for(let j=0;j<pwL.length&&j<loop._pwEl.length;j++){const el=loop._pwEl[j],t9=pwL[j][1],tx=t9.toFixed(1);
       if(el._t!==tx){el._t=tx;el.querySelector('b').textContent=tx+'s';}
