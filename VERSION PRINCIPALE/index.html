@@ -5343,7 +5343,7 @@ const fmt=v=>CUR()+' '+Math.round(v).toLocaleString(LOC());
 const I18N={
  // ---- la conduite (les textes qui jaillissent au-dessus de la caisse) ----
  'FRÔLÉ !':'CLOSE CALL!','PORTE !':'GATE!','PARFAIT !':'PERFECT!','DIVIN !!':'DIVINE!!','GAP !':'GAP!','DOUBLE GAP !':'DOUBLE GAP!',
- 'AU CHEVEU !!':'CLOSE ONE!!','ARRACHÉE !':'JUST IN TIME!','NOUVEAU RECORD !':'NEW RECORD!','DOUBLE BACK FLIP':'DOUBLE BACKFLIP','TRIPLE BACK FLIP':'TRIPLE BACKFLIP','PLUS QUE':'ONLY','ENCORE':'NEED',
+ 'AU CHEVEU !!':'CLOSE ONE!!','ARRACHÉE !':'JUST IN TIME!','NOUVEAU RECORD !':'NEW RECORD!','PLUS QUE':'ONLY','ENCORE':'NEED',
  'QUITTER LA PARTIE ?':'QUIT THE RUN?','RECOMMENCER ?':'RESTART?','Tes gains sont verses au compte.':'Your winnings go to your account.',
  'Les gains de cette partie ne seront PAS verses.':'This run\'s winnings will NOT be paid.','CONTINUER':'CONTINUE','RASE-BORD':'EDGE RIDER','FRÉNÉSIE !':'FRENZY!','FRÉNÉSIE':'FRENZY',
  // ---- interface ----
@@ -16444,12 +16444,6 @@ let steer=0,money=START_CASH,levelCash=0,boost=0,fallT=0,fallTR=0,padCd=0,shake=
    Les variables `airBank` / `airRollT` / `AIR_BANK_*` ont donc été RETIRÉES : les laisser en place
    aurait fait croire à un réglage disponible alors que plus rien ne les lit. */
 let airRoll=0; // vrille visuelle en vol
-/* LE BACK FLIP (2026-09-26, user : « rajoute la figure back flip »). EN L'AIR, SANS NITRO : pouce vers le BAS (le manche qu'on tire à
-   soi) ou ↓ au clavier → la CAISSE bascule en arrière autour de son essieu (un tour en ~0,9 s). La trajectoire, elle, ne bouge pas :
-   c'est la carrosserie qui fait le salto, comme en vrai. Relâché, le salto se TERMINE (au-delà de 40 % d'un tour) ou revient à plat.
-   Chaque tour complet se crie : BACK FLIP · DOUBLE BACK FLIP · TRIPLE… — et paie comme une figure (chaîne d'aura + mallette).
-   (AVEC nitro, le pouce garde son rôle : l'assiette du vol.) */
-let flipAng=0,flipV=0,flipTours=0;
 /* VOL LIBRE (2026-09-26) — le REPÈRE DU VOL : FLY_U = le « haut » de la caisse en l'air, FLY_R = sa droite. Plus aucune référence au
    ciel : au décollage FLY_U part de la normale de la route (dessus comme dessous), puis il est TRANSPORTÉ avec la trajectoire
    (on lui retire sa part le long de la vitesse, image après image). Le volant tourne autour de FLY_U, le manche autour de FLY_R,
@@ -17145,7 +17139,6 @@ function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent dé
      l'enchaînement qu'on récompense. */
   // (aura v2) chaque figure entre dans la CHAÎNE avec ses points (voir chaineAura) — plus de combo à rang invisible
   if(id==='vrille')chaineAura(spinHalf*180+'°',45,'vrille',true);
-  else if(id==='bflip')chaineAura(String(txt),150*flipTours,'bflip',true); // (2026-09-26) le BACK FLIP : 150 par tour, sans décote
   else if(id==='meteo')chaineAura('MÉTÉORE',100,'meteo');
   else if(id==='dauphin')chaineAura('DAUPHIN',80,'dauphin');
   else if(id==='bump')chaineAura(bounceN>1?'BUMP ×'+bounceN:'BUMP',30,'bump',true);
@@ -17295,7 +17288,7 @@ function portailPasse(){
 }
 function startFall(impU,impF){
   FROLE.s0=null;FROLE.n=0;FROLE.t=0; // (2026-09-25) un plot SURVOLÉ n'est pas un frôlé : le balayage repart de l'atterrissage
-  mode='fall';fallT=0;fallTR=0;yawAcc=0;airRoll=0;trkBigA=false;trkMonstre=false;flipAng=0;flipV=0;flipTours=0; // (momentum v2) le saut ne remet plus la réserve à zéro : c'est la POSE qui juge
+  mode='fall';fallT=0;fallTR=0;yawAcc=0;airRoll=0;trkBigA=false;trkMonstre=false; // (momentum v2) le saut ne remet plus la réserve à zéro : c'est la POSE qui juge
   driftC=0;driftLv=0;driftEnCours=false;driftArm=0;yawR=0;slipB=0;glisse9=0;driftYaw=0;carRoll9=0;rollV=0;pitch9=0;carBody.rotation.set(0,0,0);carBody.position.set(0,0,0); // une glisse ne survit pas au décollage (pas de mini-turbo en l'air)
   // TEMPO DE VOL ∝ VITESSE (2026-07-20, dosage DOUX sur base V1) : =1 jusqu'à 450 km/h affichés
   // (basse/moyenne vitesse : rigoureusement l'existant), puis +1 tous les 1800 km/h, CAP 1.35 —
@@ -20205,7 +20198,7 @@ function loop(now){
           carGroup.position.x-tmp3.x*2.5,carGroup.position.y-tmp3.y*2.5,carGroup.position.z-tmp3.z*2.5,
           -tmp3.x*20+(Math.random()-.5)*6,-tmp3.y*20+(Math.random()-.5)*6,-tmp3.z*20+(Math.random()-.5)*6,.3);
       } else { // VOL SANS BOOST : léger pilotage haut/bas — assez pour infléchir la trajectoire, bien moins qu'au réacteur
-        const wPitch=((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0); // ↑ piqué — (2026-09-26) ↓ fait désormais le BACK FLIP (voir flipAng)
+        const wPitch=((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0); // ↑ piqué · ↓ cabré
         if(wPitch!==0){const a9=-wPitch*.62*dtF;fallVel.applyAxisAngle(FLY_R,a9);FLY_U.applyAxisAngle(FLY_R,a9);} // (vol libre) même manche, sans plafond — 0,62 rad/s : on infléchit, on ne pilote pas
       }
       /* (vol v7, 2026-09-25, user : « l'airtime doit être basé sur un principe d'INERTIE, dépendre de la vitesse de la voiture au
@@ -20278,16 +20271,6 @@ function loop(now){
           spawnStreak(tmp2.x,tmp2.y,tmp2.z,tmp.x*ln9,tmp.y*ln9,tmp.z*ln9);
         }
       }
-      // ---- LE BACK FLIP : la carrosserie tourne en arrière autour de son essieu (voir flipAng) ----
-      {const tire=!nitroOn&&((TCTL.act&&TCTL.sv<-.35)||(!TCTL.act&&dn)),T2=Math.PI*2;
-       if(tire)flipV+=(-7.2-flipV)*Math.min(1,dt*9);
-       else{const tr=-flipAng/T2,fr=tr-Math.floor(tr),cible=-(fr>.4?Math.ceil(tr):Math.floor(tr))*T2,e=cible-flipAng; // on FINIT le tour, ou on revient
-         flipV+=(Math.sign(e)*Math.min(7.2,Math.abs(e)*9)-flipV)*Math.min(1,dt*10);if(Math.abs(e)<.02&&Math.abs(flipV)<.6){flipAng=cible;flipV=0;}}
-       flipAng+=flipV*dt;
-       const nT=Math.floor(-flipAng/T2+.02);
-       if(nT>flipTours){flipTours=nT;
-         addTrick('bflip',nT===1?'BACK FLIP':nT===2?'DOUBLE BACK FLIP':nT===3?'TRIPLE BACK FLIP':nT+'× BACK FLIP',6*nT,nT>=2?3:2,true);
-         try{chimeNote(noteP(3+nT,1),0,.14,.22);}catch(e){}hap(nT>=2?[12,30,18]:12);fovPunch=Math.max(fovPunch,6+nT*2);}}
       // orientation stable : le nez suit la trajectoire, PAS de vrille surprise
       carGroup.scale.set(1,1,1);
       tmp.copy(fallVel).normalize();
@@ -20307,8 +20290,7 @@ function loop(now){
          ARCADE, pas un oubli — la lisibilité aéronautique n'est pas le sujet de ce jeu.
          ⚠ à ne pas confondre avec la FIGURE « vrille » qui paye : celle-là se compte en demi-tours
          de LACET (`yawAcc`) et n'a rien à voir avec cette rotation visuelle. */
-      airRoll+=(3.0+steer*2.2+Math.min(2,fallT*.5))*dtF*(1-Math.min(.85,Math.abs(flipV)/6)); // VRILLE : la caisse tourne sur elle-même (suit le vol accéléré) — elle se CALME pendant un back flip (qu'on le lise)
-      if(flipAng!==0){qTmp2.setFromAxisAngle(tmp3,flipAng);qTmp.premultiply(qTmp2);} // (2026-09-26) LE BACK FLIP : autour de l'essieu (la droite de la caisse)
+      airRoll+=(3.0+steer*2.2+Math.min(2,fallT*.5))*dtF; // VRILLE : la caisse tourne sur elle-même (suit le vol accéléré)
       qTmp2.setFromAxisAngle(tmp,airRoll);
       qTmp.premultiply(qTmp2);
       carGroup.quaternion.slerp(qTmp,Math.min(1,dt*8));
