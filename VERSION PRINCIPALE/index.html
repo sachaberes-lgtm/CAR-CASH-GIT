@@ -2148,8 +2148,8 @@
   #avPlus.on{animation:avPlus 1.4s var(--ease) forwards}   /* ce que la chaîne vient de verser, à côté du compteur qui grimpe */
   @keyframes avPlus{0%{opacity:0;transform:translate3d(-18px,16px,0) scale(1.6)}14%{opacity:1;transform:none}72%{opacity:1;transform:none}
     100%{opacity:0;transform:translate3d(0,-10px,0)}}
-  #avRec{display:flex;align-items:center;gap:8px;margin-top:9px;font-size:8px;letter-spacing:1px;color:#aab4ff;white-space:nowrap;text-shadow:0 2px 0 #000}
-  #avRec i{display:block;flex:none;width:92px;height:5px;background:rgba(0,0,0,.55);box-shadow:inset 0 0 0 1px rgba(255,215,94,.3)}
+  #avRec{display:flex;align-items:center;gap:8px;margin-top:9px;font-size:10px;letter-spacing:1px;color:var(--recOr);white-space:nowrap;text-shadow:0 2px 0 #000} /* (2026-09-26) l'objectif « encore une » : en OR et lisible, plus en lavande 8 px */
+  #avRec i{display:block;flex:none;width:110px;height:6px;background:rgba(0,0,0,.55);box-shadow:inset 0 0 0 1px rgba(255,215,94,.3)}
   #avRec s{display:block;height:100%;background:var(--recOr);transform-origin:left center;transform:scaleX(var(--r,0));transition:transform .25s linear}
   #avRec.vide{display:none}
   #avRec.presque{color:var(--recOr)}
@@ -2179,6 +2179,7 @@
   body.touch #pwrChip.sousPie{top:calc(var(--hudH) + 216px)}
   body.touch #pwrChip span{margin:0;font-size:10px;padding:7px 9px;white-space:nowrap}
   body:not(.play) #pwrChip{display:none!important}
+  body:not(.play) #pwrChip[style],body:not(.play) #pwrFx{display:none!important} /* (2026-09-26) même poids que la règle `[style*="block"]` au-dessus, posée APRÈS : elle gagne — les plaques figées restaient sur GAME OVER */
   /* LE COULOIR DES ANNONCES */
   body #slam9{top:var(--laneA)}
   body.touch #lvlBan{top:var(--laneA);transform:translate(-50%,-50%)}
@@ -2405,6 +2406,21 @@
     body.touch #overlay{transition:none}
     .hCard,.hCard em{animation:none!important}.hCard .hBar u,.mObj .obBar i{transition:none!important}
   }
+  /* ================= PASSE DE FINITION (2026-09-26) — audits son · interface · ergonomie · rendu =================
+     Dernier bloc : il gagne sur l'historique. Chaque règle dit quel défaut mesuré elle corrige. */
+  /* PETITS ÉCRANS (iPhone SE / mini, < 720 px de haut) — mesuré en 375 × 667 : l'écran de mort faisait 724 px (la rangée
+     GARAGE · BOUTIQUE · RÉGLAGES coupée) et les flèches du garage tombaient PILE sur les onglets VOITURES / TRAÎNÉES. */
+  body.touch #garage #gPrev,body.touch #garage #gNext{top:max(calc(env(safe-area-inset-top,0px) + 84px),min(36%,calc(100% - 530px)))}
+  @media (max-height:720px){
+    body.touch #overlay[data-ecran="dead"]{padding-top:calc(env(safe-area-inset-top,0px) + 14px)!important}
+    body.touch #mDead .mRow .pbtn.ico{min-height:64px!important}
+    body.touch #mDead .mStats{margin:8px 0!important}
+  }
+  /* CURSEURS DE VOLUME — la zone tactile était retombée à 12 px de haut (la charte v3 écrasait le correctif à 36 px), la bille de
+     28 px mangeait le « % », et un curseur restait doré et actif sous un interrupteur sur OFF. La piste reste dessinée à 12 px :
+     c'est le PADDING qui porte les 44 px tapables (le rembourrage appartient à l'élément, il reçoit le doigt). */
+  .volS{box-sizing:content-box!important;padding:16px 0!important;background-clip:content-box!important;box-shadow:none!important}
+  .mLigne.off+.volRow{opacity:.35;pointer-events:none}
 </style>
 </head>
 <body>
@@ -5344,8 +5360,8 @@ const I18N={
  // ---- la conduite (les textes qui jaillissent au-dessus de la caisse) ----
  'FRÔLÉ !':'CLOSE CALL!','PORTE !':'GATE!','PARFAIT !':'PERFECT!','DIVIN !!':'DIVINE!!','GAP !':'GAP!','DOUBLE GAP !':'DOUBLE GAP!',
  'AU CHEVEU !!':'CLOSE ONE!!','ARRACHÉE !':'JUST IN TIME!','NOUVEAU RECORD !':'NEW RECORD!','PLUS QUE':'ONLY','ENCORE':'NEED',
- 'QUITTER LA PARTIE ?':'QUIT THE RUN?','RECOMMENCER ?':'RESTART?','Tes gains sont verses au compte.':'Your winnings go to your account.',
- 'Les gains de cette partie ne seront PAS verses.':'This run\'s winnings will NOT be paid.','CONTINUER':'CONTINUE','RASE-BORD':'EDGE RIDER','FRÉNÉSIE !':'FRENZY!','FRÉNÉSIE':'FRENZY',
+ 'QUITTER LA PARTIE ?':'QUIT THE RUN?','RECOMMENCER ?':'RESTART?','Tes gains sont versés au compte.':'Your winnings go to your account.',
+ 'Les gains de cette partie ne seront PAS versés.':'This run\'s winnings will NOT be paid.','CONTINUER':'CONTINUE','RASE-BORD':'EDGE RIDER','FRÉNÉSIE !':'FRENZY!','FRÉNÉSIE':'FRENZY',
  // ---- interface ----
  'GARAGE':'GARAGE','ÉQUIPER':'EQUIP','✓ ÉQUIPÉE':'✓ EQUIPPED','🔒 VERROUILLÉE':'🔒 LOCKED',
  'glisse pour tourner · molette pour zoomer':'drag to turn · scroll to zoom',
@@ -5504,8 +5520,8 @@ const I18N_ZH={
 // ---- L'ÉCONOMIE v3 (2026-09-25) : boutique, contrats, objectif ----
 Object.assign(I18N,{"BOUTIQUE": "SHOP", "CONTRAT": "CONTRACT", "REMPLI !": "COMPLETE!", "OBJECTIF": "GOAL", "TU PEUX TE L'OFFRIR": "YOU CAN AFFORD IT", "ACHETER": "BUY", "ARTICLES À TA PORTÉE": "ITEMS YOU CAN AFFORD", "ARTICLE À TA PORTÉE": "ITEM YOU CAN AFFORD", "EST À TOI — VA LA VOIR": "IS YOURS — GO SEE IT", "EST À TOI — ESSAIE-LA": "IS YOURS — TRY IT ON", "VERSÉS SUR TON COMPTE": "PAID INTO YOUR ACCOUNT", "VOITURES": "CARS", "PEINTURE": "PAINT", "AILES": "WINGS", "TRAÎNÉES": "TRAILS", "TRAÎNÉE": "TRAIL", "ÉQUIPÉE": "EQUIPPED", "D'ORIGINE": "FACTORY", "MENTHE GLACÉE": "ICE MINT", "BLEU MINUIT": "MIDNIGHT BLUE", "NOIR MAT": "MATTE BLACK", "COUCHER DE SOLEIL": "SUNSET", "CHROME MIROIR": "MIRROR CHROME", "OR MASSIF": "SOLID GOLD", "PANNEAUX": "PANELS", "HÉLICES": "PROPELLERS", "PLUMES D'ANGE": "ANGEL FEATHERS", "CHAUVE-SOURIS": "BAT", "NITRO": "NITRO", "MENTHE": "MINT", "ROSE NÉON": "NEON PINK", "POUDRE D'OR": "GOLD DUST", "ARC-EN-CIEL": "RAINBOW", "LA BULLE": "THE BUBBLE", "LE COMBI": "THE CAMPER", "LA DOLORÈS": "LA DOLORES", "La teinte du constructeur. Elle a fait ses preuves.": "The factory colour. It has proved itself.", "Fraîche comme un billet qui sort du distributeur.": "Fresh as a bill straight out of the ATM.", "Le bleu des néons de la ville, à trois heures du matin.": "The blue of the city neons, at 3 a.m.", "Pas un reflet. Même la police hésite.": "Not a single reflection. Even the cops hesitate.", "Du miel en bas, du violet en haut : le ciel de 19 h, en laque.": "Honey at the bottom, violet on top: the 7 p.m. sky, in lacquer.", "Tu te vois dedans. Les autres aussi.": "You can see yourself in it. So can everyone else.", "Ne s'achète pas : se mérite au contrat n° 4.": "Not for sale: earned with contract #4.", "Deux planches de planeur qui sortent des flancs. Sobre.": "Two glider boards sliding out of the sides. Understated.", "Quatre rotors. Ça ne vole pas mieux, mais ça brasse de l'air.": "Four rotors. It does not fly any better, but it moves a lot of air.", "Blanches, en éventail. Le ciel te prend pour un des siens.": "White, fanned out. The sky takes you for one of its own.", "Membranes noires et doigts d'os. Pour les vols de nuit.": "Black membranes and bony fingers. For night flights.", "Orange brûlé. Le classique des tuyères.": "Burnt orange. The exhaust classic.", "Un sillage vert d'eau qui sent le propre.": "A sea-green wake that smells clean.", "Le rose des enseignes. On te suit à la trace.": "Neon-sign pink. Everyone can follow you.", "Tu ne laisses pas de la fumée derrière toi. Tu laisses de l'or.": "You do not leave smoke behind. You leave gold.", "Ne s'achète pas : se mérite au contrat n° 5.": "Not for sale: earned with contract #5.", "Ronde comme un sou neuf. Tout le monde lui sourit, même la police.": "Round as a shiny penny. Everyone smiles at it, even the cops.", "Planche sur le toit, la paix dans le cœur, et 45 chevaux qui font de leur mieux.": "Board on the roof, peace in the heart, and 45 horses doing their best.", "Inox brossé, portes papillon. À 88 à l'heure elle remonte le temps, paraît-il. Toi, tu vas plus vite.": "Brushed steel, gullwing doors. At 88 it travels back in time, apparently. You go faster.", "IL TE MANQUE": "YOU ARE SHORT", "COMPTE": "ACCOUNT"});
 Object.assign(I18N,{"DAUPHIN":"DOLPHIN"});Object.assign(I18N_ZH,{"DAUPHIN":"海豚"}); // (dauphin v3) l'étiquette
-Object.assign(I18N,{"AUTO-ÉCOLE": "DRIVING SCHOOL", "PASSER": "SKIP", "TOURNE": "STEER", "DÉCOLLE": "TAKE OFF", "VOLE AU NITRO": "FLY ON NITRO", "POSE-TOI": "LAND IT", "Glisse ton pouce à gauche… puis à droite.": "Slide your thumb left… then right.", "Maintiens NITRO : ça pousse fort.": "Hold NITRO: it pushes hard.", "Fonce hors de la route, par le bord. N'aie pas peur.": "Drive off the road, over the edge. Don't be scared.", "En l'air, MAINTIENS NITRO. Ton pouce guide le vol.": "In the air, HOLD NITRO. Your thumb steers the flight.", "Vise l'anneau vert et pose tes quatre roues.": "Aim for the green ring and land on all four wheels.", "PERMIS OBTENU !": "LICENCE EARNED!", "ENCORE ! ET CETTE FOIS, NITRO EN L'AIR": "AGAIN! AND THIS TIME, NITRO IN THE AIR", "RATÉ ! ON RECOMMENCE": "MISSED! TRY AGAIN", "L'AUTO-ÉCOLE T'ATTEND AU PROCHAIN JOUER": "DRIVING SCHOOL AWAITS ON YOUR NEXT PLAY", "REVOIR L'AUTO-ECOLE": "REPLAY DRIVING SCHOOL"});
-Object.assign(I18N_ZH,{"AUTO-ÉCOLE": "驾校", "PASSER": "跳过", "TOURNE": "转向", "NITRO": "氮气", "DÉCOLLE": "起飞", "VOLE AU NITRO": "氮气飞行", "POSE-TOI": "着陆", "Glisse ton pouce à gauche… puis à droite.": "拇指向左滑……再向右滑。", "Maintiens NITRO : ça pousse fort.": "按住氮气：推力很猛。", "Fonce hors de la route, par le bord. N'aie pas peur.": "从路边冲出去，别怕。", "En l'air, MAINTIENS NITRO. Ton pouce guide le vol.": "在空中按住氮气，用拇指引导飞行。", "Vise l'anneau vert et pose tes quatre roues.": "瞄准绿色圆环，四轮着地。", "PERMIS OBTENU !": "驾照到手！", "RATÉ ! ON RECOMMENCE": "失败！再来", "REVOIR L'AUTO-ECOLE": "重温驾校"});
+Object.assign(I18N,{"AUTO-ÉCOLE": "DRIVING SCHOOL", "PASSER": "SKIP", "TOURNE": "STEER", "DÉCOLLE": "TAKE OFF", "VOLE AU NITRO": "FLY ON NITRO", "POSE-TOI": "LAND IT", "Glisse ton pouce à gauche… puis à droite.": "Slide your thumb left… then right.", "Maintiens NITRO : ça pousse fort.": "Hold NITRO: it pushes hard.", "Fonce hors de la route, par le bord. N'aie pas peur.": "Drive off the road, over the edge. Don't be scared.", "En l'air, MAINTIENS NITRO. Ton pouce guide le vol.": "In the air, HOLD NITRO. Your thumb steers the flight.", "Vise l'anneau (en or = parfait) et pose tes quatre roues.": "Aim for the ring (gold = perfect) and land on all four wheels.", "PERMIS OBTENU !": "LICENCE EARNED!", "ENCORE ! ET CETTE FOIS, NITRO EN L'AIR": "AGAIN! AND THIS TIME, NITRO IN THE AIR", "RATÉ ! ON RECOMMENCE": "MISSED! TRY AGAIN", "L'AUTO-ÉCOLE T'ATTEND AU PROCHAIN JOUER": "DRIVING SCHOOL AWAITS ON YOUR NEXT PLAY", "REVOIR L'AUTO-ECOLE": "REPLAY DRIVING SCHOOL"});
+Object.assign(I18N_ZH,{"AUTO-ÉCOLE": "驾校", "PASSER": "跳过", "TOURNE": "转向", "NITRO": "氮气", "DÉCOLLE": "起飞", "VOLE AU NITRO": "氮气飞行", "POSE-TOI": "着陆", "Glisse ton pouce à gauche… puis à droite.": "拇指向左滑……再向右滑。", "Maintiens NITRO : ça pousse fort.": "按住氮气：推力很猛。", "Fonce hors de la route, par le bord. N'aie pas peur.": "从路边冲出去，别怕。", "En l'air, MAINTIENS NITRO. Ton pouce guide le vol.": "在空中按住氮气，用拇指引导飞行。", "Vise l'anneau (en or = parfait) et pose tes quatre roues.": "瞄准圆环（金色＝完美），四轮着地。", "PERMIS OBTENU !": "驾照到手！", "RATÉ ! ON RECOMMENCE": "失败！再来", "REVOIR L'AUTO-ECOLE": "重温驾校"});
 Object.assign(I18N,{"ENCORE ! NITRO EN L'AIR": "AGAIN! NITRO IN THE AIR"});Object.assign(I18N_ZH,{"ENCORE ! NITRO EN L'AIR": "再来！空中开氮气"});
 Object.assign(I18N_ZH,{"BOUTIQUE": "商店", "CONTRAT": "合同", "REMPLI !": "完成！", "OBJECTIF": "目标", "TU PEUX TE L'OFFRIR": "你买得起了", "ACHETER": "购买", "ARTICLES À TA PORTÉE": "件商品可购买", "ARTICLE À TA PORTÉE": "件商品可购买", "EST À TOI — VA LA VOIR": "归你了 — 去看看", "EST À TOI — ESSAIE-LA": "归你了 — 试试看", "VERSÉS SUR TON COMPTE": "已存入账户", "VOITURES": "车辆", "PEINTURE": "涂装", "AILES": "翅膀", "TRAÎNÉES": "尾迹", "TRAÎNÉE": "尾迹", "ÉQUIPÉE": "已装备", "D'ORIGINE": "原厂", "MENTHE GLACÉE": "冰薄荷", "BLEU MINUIT": "午夜蓝", "NOIR MAT": "哑光黑", "COUCHER DE SOLEIL": "日落", "CHROME MIROIR": "镜面铬", "OR MASSIF": "纯金", "PANNEAUX": "滑翔板", "HÉLICES": "螺旋桨", "PLUMES D'ANGE": "天使之羽", "CHAUVE-SOURIS": "蝙蝠", "NITRO": "氮气", "MENTHE": "薄荷", "ROSE NÉON": "霓虹粉", "POUDRE D'OR": "金粉", "ARC-EN-CIEL": "彩虹", "LA BULLE": "泡泡", "LE COMBI": "露营车", "LA DOLORÈS": "多洛蕾丝"});
 Object.assign(I18N,{"OFFRE DE LANCEMENT": "LAUNCH OFFER", "LA CAISSE DU MOIS": "CAR OF THE MONTH", "Une voiture exclusive, sa peinture et sa traînée. Introuvable ailleurs.": "An exclusive car, its paint and its trail. Found nowhere else.", "BIENTÔT": "SOON", "VOITURES PREMIUM": "PREMIUM CARS", "LÉGENDAIRE": "LEGENDARY", "ÉPIQUE": "EPIC", "RARE": "RARE", "RESTAURER MES ACHATS": "RESTORE PURCHASES", "BIENTÔT DISPONIBLE — À LA SORTIE SUR L'APP STORE": "COMING SOON — AT THE APP STORE LAUNCH", "AUCUN ACHAT À RESTAURER": "NO PURCHASES TO RESTORE", "CONTRAT RÉUSSI": "CONTRACT DONE", "DÉBLOQUÉ": "UNLOCKED"});
@@ -5527,7 +5543,7 @@ Object.assign(I18N,{"FRÉNÉSIE": "FRENZY", "FRÉNÉSIE !": "FRENZY!"});Object.a
 /* LES CLÉS SANS LEUR SYMBOLE (2026-09-24) : les symboles de tête (✓ 🔒 ★ 📋…) sont devenus des ICÔNES PIXEL
    posées à côté du texte. Chaque clé « symbole + espace + texte » reçoit donc un ALIAS « texte » seul, qui
    traduit pareil — sans ça, retirer l'emoji d'un libellé lui aurait fait perdre sa traduction. */
-for(const [k,v] of Object.entries({"JOUER": "PLAY", "CARRIERE": "CAREER", "MODES": "MODES", "REGLAGES": "SETTINGS", "REJOUER": "PLAY AGAIN", "MEILLEUR :": "BEST:", "MEILLEUR": "BEST", "CAISSE": "CAR", "UNE SEULE VIE · TOUT LE CIEL": "ONE LIFE · THE WHOLE SKY", "AUDIO": "AUDIO", "JEU": "GAME", "SAUVEGARDE": "SAVE", "SON": "SOUND", "MUSIQUE": "MUSIC", "VOIX": "VOICE", "VOLUME": "VOLUME", "COMMANDES": "CONTROLS", "IMAGE": "GRAPHICS", "LANGUE": "LANGUAGE", "DEVISE": "CURRENCY", "COPIER MA SAUVEGARDE": "COPY MY SAVE", "RESTAURER UN CODE": "RESTORE A CODE", "EFFACER MA PROGRESSION": "ERASE MY PROGRESS", "SURVIVANT": "SURVIVOR", "PARC FREESTYLE": "FREESTYLE PARK", "BAC A SABLE": "SANDBOX", "REPRENDRE": "RESUME", "FERMER": "CLOSE", "REPLACER LA CAISSE": "RESET THE CAR", "RECOMMENCER": "RESTART", "QUITTER": "QUIT", "PAUSE": "PAUSE", "LA PARTIE": "THIS RUN", "VOLANT": "WHEEL", "FLECHES": "ARROWS", "RAPIDE": "FAST", "NETTE": "SHARP", "FIGURES": "TRICKS", "ENTRAINEMENT TERMINE": "TRAINING OVER", "NOUVEAU RECORD !": "NEW RECORD!", "MOTEUR ATTEINT": "ENGINE REACHED", "GLISSE POUR TOURNER": "SWIPE TO STEER", "glisse pour tourner · pince pour zoomer": "drag to turn · pinch to zoom", "touche CASH CAR — le son s'allume avec toi": "tap CASH CAR — sound comes alive with you", "MA SAUVEGARDE": "MY SAVE", "Garde ce code : il restaure toute ta progression.": "Keep this code: it restores all your progress.", "COPIER": "COPY", "COPIE !": "COPIED!", "RESTAURER": "RESTORE", "Colle ton code de sauvegarde.": "Paste your save code.", "ANNULER": "CANCEL", "RESTAURE — RECHARGE…": "RESTORED — RELOADING…", "CODE INVALIDE": "INVALID CODE", "TOUT EFFACER ?": "ERASE EVERYTHING?", "Records, caisses debloquees, carriere et reglages repartent de zero.": "Records, unlocked cars, career and settings start over.", "EFFACER": "ERASE", "TERMINE LE NIVEAU": "FINISH LEVEL", "NUAGES": "CLOUDS", "VILLE": "CITY", "ESPACE": "SPACE", "10 heures du jour, de l aurore au coucher du soleil.": "10 hours of the day, from dawn to sunset.", "Du coucher du soleil a midi, au-dessus du village de la pluie.": "From sunset to noon, above the hidden rain village.", "Au plus pres des planetes du systeme solaire.": "Up close to the planets of the solar system.", "AURORE": "DAWN", "PREMIERES LUEURS": "FIRST LIGHT", "LEVER DU SOLEIL": "SUNRISE", "MATIN FRAIS": "CRISP MORNING", "MATIN": "MORNING", "MIDI": "NOON", "APRES-MIDI": "AFTERNOON", "FIN D APRES-MIDI": "LATE AFTERNOON", "HEURE DOREE": "GOLDEN HOUR", "COUCHER DE SOLEIL": "SUNSET", "SOIREE": "EVENING", "PLUIE NEON": "NEON RAIN", "MINUIT": "MIDNIGHT", "ORAGE": "STORM", "AVANT L AUBE": "BEFORE DAWN", "AUBE": "DAYBREAK", "LEVER": "SUNRISE", "MERCURE": "MERCURY", "VENUS": "VENUS", "TERRE": "EARTH", "LUNE": "MOON", "MARS": "MARS", "JUPITER": "JUPITER", "SATURNE": "SATURN", "URANUS": "URANUS", "NEPTUNE": "NEPTUNE", "PLUTON": "PLUTO", "Elle démarre par pitié. Fais des thunes et oublie-la vite.": "It starts out of pity. Make cash and forget it fast.", "Ça roule. Vu d'où tu viens, c'est déjà un miracle.": "It runs. Given where you're from, that's already a miracle.", "Conçue pour rouler prudemment. Toi, prudent ? On y croit fort.": "Built to drive carefully. You, careful? Sure.", "Elle ne double pas. Elle DÉPLACE.": "It doesn't overtake. It RELOCATES.", "L'écologie te fait coucou dans le rétro. T'as pas de rétro.": "Ecology waves at you in the mirror. You don't have mirrors.", "Refuse de rouler sous 200. Toi aussi, maintenant.": "Refuses to go under 200. So do you, now.", "Elle découpe les virages. Les autres les négocient.": "It carves corners. Others negotiate them.", "Ceux qui l'ont doublée en parlent encore. Ah non : personne.": "Those who passed it still talk about it. Oh wait: nobody.", "Le taureau doré. Assurance résiliée d'office.": "The golden bull. Insurance cancelled on sight.", "Le circuit appelle ça tricher. Nous, du talent.": "The track calls it cheating. We call it talent.", "Prototype d'endurance. Faite pour rouler la nuit entière.": "Endurance prototype. Built to run all night.", "La reine du ciel, et elle le sait.": "Queen of the sky, and she knows it.", "Passée au bain d'acide. Ça se voit.": "Dipped in acid. It shows.", "Personne n'a demandé pourquoi. Tout le monde a demandé comment.": "Nobody asked why. Everybody asked how.", "Au sol, il roule. En l'air, il chasse.": "On the ground, it drives. In the air, it hunts."}))if(!(k in I18N))I18N[k]=v; // la coque mobile, la carrière, les fenêtres, les fiches des caisses (2026-09-24)
+for(const [k,v] of Object.entries({"JOUER": "PLAY", "CARRIERE": "CAREER", "MODES": "MODES", "REGLAGES": "SETTINGS", "REJOUER": "PLAY AGAIN", "MEILLEUR :": "BEST:", "MEILLEUR": "BEST", "CAISSE": "CAR", "UNE SEULE VIE · TOUT LE CIEL": "ONE LIFE · THE WHOLE SKY", "AUDIO": "AUDIO", "JEU": "GAME", "SAUVEGARDE": "SAVE", "SON": "SOUND", "MUSIQUE": "MUSIC", "VOIX": "VOICE", "VOLUME": "VOLUME", "COMMANDES": "CONTROLS", "IMAGE": "GRAPHICS", "LANGUE": "LANGUAGE", "DEVISE": "CURRENCY", "COPIER MA SAUVEGARDE": "COPY MY SAVE", "RESTAURER UN CODE": "RESTORE A CODE", "EFFACER MA PROGRESSION": "ERASE MY PROGRESS", "SURVIVANT": "SURVIVOR", "PARC FREESTYLE": "FREESTYLE PARK", "BAC A SABLE": "SANDBOX", "REPRENDRE": "RESUME", "FERMER": "CLOSE", "REPLACER LA CAISSE": "RESET THE CAR", "RECOMMENCER": "RESTART", "QUITTER": "QUIT", "PAUSE": "PAUSE", "LA PARTIE": "THIS RUN", "VOLANT": "WHEEL", "FLECHES": "ARROWS", "RAPIDE": "FAST", "NETTE": "SHARP", "FIGURES": "TRICKS", "ENTRAINEMENT TERMINE": "TRAINING OVER", "NOUVEAU RECORD !": "NEW RECORD!", "MOTEUR ATTEINT": "ENGINE REACHED", "GLISSE POUR TOURNER": "SWIPE TO STEER", "glisse pour tourner · pince pour zoomer": "drag to turn · pinch to zoom", "touche CASH CAR — le son s'allume avec toi": "tap CASH CAR — sound comes alive with you", "MA SAUVEGARDE": "MY SAVE", "Garde ce code : il restaure toute ta progression.": "Keep this code: it restores all your progress.", "COPIER": "COPY", "COPIE !": "COPIED!", "RESTAURER": "RESTORE", "Colle ton code de sauvegarde.": "Paste your save code.", "ANNULER": "CANCEL", "RESTAURE — RECHARGE…": "RESTORED — RELOADING…", "CODE INVALIDE": "INVALID CODE", "TOUT EFFACER ?": "ERASE EVERYTHING?", "Records, caisses débloquées, carrière et réglages repartent de zéro.": "Records, unlocked cars, career and settings start over.", "EFFACER": "ERASE", "TERMINE LE NIVEAU": "FINISH LEVEL", "NUAGES": "CLOUDS", "VILLE": "CITY", "ESPACE": "SPACE", "10 heures du jour, de l'aurore au coucher du soleil.": "10 hours of the day, from dawn to sunset.", "Du coucher du soleil à midi, au-dessus du village de la pluie.": "From sunset to noon, above the hidden rain village.", "Au plus près des planètes du système solaire.": "Up close to the planets of the solar system.", "AURORE": "DAWN", "PREMIERES LUEURS": "FIRST LIGHT", "LEVER DU SOLEIL": "SUNRISE", "MATIN FRAIS": "CRISP MORNING", "MATIN": "MORNING", "MIDI": "NOON", "APRES-MIDI": "AFTERNOON", "FIN D'APRES-MIDI": "LATE AFTERNOON", "HEURE DOREE": "GOLDEN HOUR", "COUCHER DE SOLEIL": "SUNSET", "SOIREE": "EVENING", "PLUIE NEON": "NEON RAIN", "MINUIT": "MIDNIGHT", "ORAGE": "STORM", "AVANT L'AUBE": "BEFORE DAWN", "AUBE": "DAYBREAK", "LEVER": "SUNRISE", "MERCURE": "MERCURY", "VENUS": "VENUS", "TERRE": "EARTH", "LUNE": "MOON", "MARS": "MARS", "JUPITER": "JUPITER", "SATURNE": "SATURN", "URANUS": "URANUS", "NEPTUNE": "NEPTUNE", "PLUTON": "PLUTO", "Elle démarre par pitié. Fais des thunes et oublie-la vite.": "It starts out of pity. Make cash and forget it fast.", "Ça roule. Vu d'où tu viens, c'est déjà un miracle.": "It runs. Given where you're from, that's already a miracle.", "Conçue pour rouler prudemment. Toi, prudent ? On y croit fort.": "Built to drive carefully. You, careful? Sure.", "Elle ne double pas. Elle DÉPLACE.": "It doesn't overtake. It RELOCATES.", "L'écologie te fait coucou dans le rétro. T'as pas de rétro.": "Ecology waves at you in the mirror. You don't have mirrors.", "Refuse de rouler sous 200. Toi aussi, maintenant.": "Refuses to go under 200. So do you, now.", "Elle découpe les virages. Les autres les négocient.": "It carves corners. Others negotiate them.", "Ceux qui l'ont doublée en parlent encore. Ah non : personne.": "Those who passed it still talk about it. Oh wait: nobody.", "Le taureau doré. Assurance résiliée d'office.": "The golden bull. Insurance cancelled on sight.", "Le circuit appelle ça tricher. Nous, du talent.": "The track calls it cheating. We call it talent.", "Prototype d'endurance. Faite pour rouler la nuit entière.": "Endurance prototype. Built to run all night.", "La reine du ciel, et elle le sait.": "Queen of the sky, and she knows it.", "Passée au bain d'acide. Ça se voit.": "Dipped in acid. It shows.", "Personne n'a demandé pourquoi. Tout le monde a demandé comment.": "Nobody asked why. Everybody asked how.", "Au sol, il roule. En l'air, il chasse.": "On the ground, it drives. In the air, it hunts."}))if(!(k in I18N))I18N[k]=v; // la coque mobile, la carrière, les fenêtres, les fiches des caisses (2026-09-24)
 for(const D of [I18N,I18N_ZH])for(const k of Object.keys(D)){
   const m=/^[\u2190-\u2BFF\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF]+\s+(.+)$/.exec(k);
   if(m&&!(m[1] in D))D[m[1]]=String(D[k]).replace(/^[\u2190-\u2BFF\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF]+\s+/,'');
@@ -5990,15 +6006,15 @@ function pluieTick(t){ // appelée par la boucle : suit la caméra, suit le fond
 // ORDRE DES MONDES : NUAGES → VILLE → ESPACE (décision de Sacha : le niveau 1 est l'aurore d'apprentissage).
 // ⚠ Léo avait mis VILLE en tête (commit 8737662) : à trancher entre vous. Sauvegardes rangées par `id` (SAVE.d.carr[id]) : l'ordre est sans risque.
 const CARRIERE=[
-  {id:'nuages',nm:'NUAGES',ic:'eclair',desc:'10 heures du jour, de l aurore au coucher du soleil.',niveaux:[
+  {id:'nuages',nm:'NUAGES',ic:'eclair',desc:'10 heures du jour, de l\'aurore au coucher du soleil.',niveaux:[
     {nm:'AURORE',h:'aurore',sansNuages:1,planete:0,piste:'tuto'},{nm:'PREMIERES LUEURS',h:['aube','lever',.5]},{nm:'LEVER DU SOLEIL',h:'lever'},
     {nm:'MATIN FRAIS',h:['lever','matin',.5]},{nm:'MATIN',h:'matin'},{nm:'MIDI',h:'midi'},{nm:'APRES-MIDI',h:'aprem'},
-    {nm:'FIN D APRES-MIDI',h:['aprem','golden',.5]},{nm:'HEURE DOREE',h:'golden'},{nm:'COUCHER DE SOLEIL',h:'couchant'}]},
-  {id:'ville',nm:'VILLE',ic:'voiture',desc:'Du coucher du soleil a midi, au-dessus du village de la pluie.',niveaux:[
+    {nm:'FIN D\'APRES-MIDI',h:['aprem','golden',.5]},{nm:'HEURE DOREE',h:'golden'},{nm:'COUCHER DE SOLEIL',h:'couchant'}]},
+  {id:'ville',nm:'VILLE',ic:'voiture',desc:'Du coucher du soleil à midi, au-dessus du village de la pluie.',niveaux:[
     {nm:'COUCHER DE SOLEIL',h:'couchant'},{nm:'SOIREE',h:'soir'},{nm:'PLUIE NEON',h:'pluie',pluie:1},{nm:'MINUIT',h:'nuit'},
-    {nm:'ORAGE',h:'orage',pluie:1},{nm:'AVANT L AUBE',h:['nuit','aube',.5]},{nm:'AUBE',h:'aube'},{nm:'LEVER',h:'lever'},
+    {nm:'ORAGE',h:'orage',pluie:1},{nm:'AVANT L\'AUBE',h:['nuit','aube',.5]},{nm:'AUBE',h:'aube'},{nm:'LEVER',h:'lever'},
     {nm:'MATIN',h:'matin'},{nm:'MIDI',h:'midi'}]},
-  {id:'espace',nm:'ESPACE',ic:'etoile',desc:'Au plus pres des planetes du systeme solaire.',niveaux:[
+  {id:'espace',nm:'ESPACE',ic:'etoile',desc:'Au plus près des planètes du système solaire.',niveaux:[
     {nm:'MERCURE',astre:{teinte:0x8a8580,atmo:0xd8c9b0,echelle:1.05}},{nm:'VENUS',astre:{teinte:0xc9a15a,atmo:0xffd98a,echelle:1.25}},
     {nm:'TERRE',astre:{teinte:0x55708c,atmo:0x8fd4ff,echelle:1.35}},{nm:'LUNE',astre:{teinte:0x9a9a9a,atmo:0xdfe6ee,echelle:1.1}},
     {nm:'MARS',astre:{teinte:0xb5532e,atmo:0xffa27a,echelle:1.2}},{nm:'JUPITER',astre:{teinte:0xc49a6c,atmo:0xffd3a0,echelle:1.5}},
@@ -11793,12 +11809,12 @@ function misEtat(){return SAVE.d.mis||(SAVE.d.mis={n:0,ok:[0,0,0]});}
 function defisHtml(n){
   const s=misEtat(),Lg=LANG==='zh'?2:LANG==='en'?1:0;
   if(s.n+1<n){const prev=carnet(n-2);
-    return pxi('verrou')+' '+['SE GAGNE EN RELEVANT 3 DÉFIS — APRÈS ','WON BY BEATING 3 CHALLENGES — AFTER ','完成 3 项挑战即可获得 — 需先获得 '][Lg]+misRecompense(prev);}
-  const c=carnet(n-1);let h='<span class="gDfT">'+['SE GAGNE EN RELEVANT 3 DÉFIS (EN UNE PARTIE)','WON BY BEATING 3 CHALLENGES (IN ONE RUN)','完成 3 项挑战（单局内）'][Lg]+'</span>';
+    return pxi('verrou')+' '+['SE GAGNE EN RELEVANT 3 DEFIS — APRES ','WON BY BEATING 3 CHALLENGES — AFTER ','完成 3 项挑战即可获得 — 需先获得 '][Lg]+misRecompense(prev);}
+  const c=carnet(n-1);let h='<span class="gDfT">'+['SE GAGNE EN RELEVANT 3 DEFIS (EN UNE PARTIE)','WON BY BEATING 3 CHALLENGES (IN ONE RUN)','完成 3 项挑战（单局内）'][Lg]+'</span>';
   // (2026-09-25) juste après une partie, chaque défi ouvert dit où l'on s'est arrêté (« 21 / 25 ») : la meilleure raison de relancer.
   // ⚠ !MIS_REC : si le carnet vient de se refermer à cette mort, RUNX porte les scores d'une partie qui ne compte plus pour le suivant
   const apres=started&&gameOver&&!SANDBOX&&!PARK.on&&!MIS_REC&&n===s.n+1;
-  c.m.forEach(function(m,i){const ok=!!s.ok[i];h+='<span class="gDf'+(ok?' ok':'')+'"><i>'+(ok?pxi('coche'):'')+'</i>'+misTxt(m)+(apres&&!ok?'<em>'+misProg(m)+'</em>':'')+'</span>';});
+  c.m.forEach(function(m,i){const ok=!!s.ok[i];h+='<span class="gDf'+(ok?' ok':'')+'"><i>'+(ok?pxi('coche'):'')+'</i>'+majPix(misTxt(m))+(apres&&!ok?'<em>'+misProg(m)+'</em>':'')+'</span>';});
   return h;
 }
 function misRecompense(c){ // ce que le carnet débloque, en clair
@@ -12108,7 +12124,7 @@ const TUTO_ETAPES=[
   {ico:'eclair',t:'NITRO',         d:'Maintiens NITRO : ça pousse fort.',                   geste:'nitro'},
   {ico:'rampe', t:'DÉCOLLE',       d:'Fonce hors de la route, par le bord. N\'aie pas peur.',geste:'bord'},
   {ico:'eclair',t:'VOLE AU NITRO', d:'En l\'air, MAINTIENS NITRO. Ton pouce guide le vol.',  geste:'nitro'},
-  {ico:'cible', t:'POSE-TOI',      d:'Vise l\'anneau vert et pose tes quatre roues.',       geste:'pose'}
+  {ico:'cible', t:'POSE-TOI',      d:'Vise l\'anneau (en or = parfait) et pose tes quatre roues.',       geste:'pose'}
 ];
 function tutoCarte(){
   let c=document.getElementById('coach');
@@ -14279,7 +14295,7 @@ function musicAnalyse(){
   try{
     if(!AC||!musicEl||typeof musicEl.captureStream!=='function')return;
     const st=musicEl.captureStream();if(!st||!st.getAudioTracks().length)return;
-    if(musicAnaEl){try{musicAnaEl.disconnect();}catch(e){}}
+    if(musicAnaEl){try{musicAnaEl.disconnect();musicAnaEl.mediaStream.getTracks().forEach(function(k){k.stop();});}catch(e){}} // (2026-09-26) chaque `playing` recréait un flux : les anciens ne s'arrêtaient jamais
     musicAnaEl=AC.createMediaStreamSource(st);
     if(!musicAna){musicAna=AC.createAnalyser();musicAna.fftSize=256;musicAna.smoothingTimeConstant=.55;musicData=new Uint8Array(musicAna.frequencyBinCount);}
     musicAnaEl.connect(musicAna); // l'analyseur n'a pas de sortie : rien de ce qui passe ici ne s'entend
@@ -16087,7 +16103,9 @@ function fxPlay(d){ // un sample, plafonné et fondu — jamais de traîne qui m
   // moitié » — le moteur baisse, le tiroir-caisse continue de claquer à plein volume.
   a.volume=d.v*VOL.sfx;
   a.addEventListener('error',function(){d.dead=true;});
-  try{a.play().catch(function(){d.dead=true;});}catch(e){d.dead=true;return;}
+  // (2026-09-26) un REFUS de lecture (iOS hors geste, pause arrivée avant le départ) n'est PAS un fichier absent : seul
+  // `NotSupportedError` condamne le son. Avant, le premier refus le rayait pour toute la session.
+  try{a.play().catch(function(er){if(er&&er.name==='NotSupportedError')d.dead=true;});}catch(e){d.dead=true;return;}
   fxEls.push(a);if(fxEls.length>4)fxEls.shift();
   const t0=performance.now(),lim=d.max*1000,fade=420;
   const iv=setInterval(function(){
@@ -16128,7 +16146,7 @@ function deathSound(){
   let a;try{a=new Audio(DEATH_DIR+d.f);}catch(e){d.dead=true;return;}
   a.volume=d.v*VOL.sfx; // HTMLAudio : hors du bus MASTER, le curseur s'applique ici
   a.addEventListener('error',function(){d.dead=true;});
-  try{a.play().catch(function(){d.dead=true;});}catch(e){d.dead=true;return;}
+  try{a.play().catch(function(er){if(er&&er.name==='NotSupportedError')d.dead=true;});}catch(e){d.dead=true;return;} // (voir fxPlay : un refus n'est pas une absence)
   deathEls.push(a);
   // FONDU DE SORTIE : on éteint sur les 500 dernières ms plutôt que de couper au couteau
   const t0=performance.now(),fade=500,lim=d.max*1000;
@@ -16149,7 +16167,7 @@ function annPlayLayers(e,prio){
     a.playbackRate=rate;a.volume=vol;
     a.addEventListener('error',function(){e.dead=true;if(ANN.playing&&ANN.playing.els===els){ANN.playing=null;ANN.duck=false;}});
     if(delay>0)setTimeout(function(){if(ANN.playing&&ANN.playing.els===els){try{a.play().catch(function(){});}catch(err){}}},delay);
-    else{try{a.play().catch(function(){e.dead=true;if(ANN.playing&&ANN.playing.els===els){ANN.playing=null;ANN.duck=false;}});}catch(err){e.dead=true;}}
+    else{try{a.play().catch(function(er){if(er&&er.name==='NotSupportedError')e.dead=true;if(ANN.playing&&ANN.playing.els===els){ANN.playing=null;ANN.duck=false;}});}catch(err){e.dead=true;}}
     els.push(a);return a;
   };
   /* ⚠ LE CURSEUR MULTIPLIE LES QUATRE COUCHES D'UN SEUL COUP, jamais la principale toute seule :
@@ -16164,6 +16182,10 @@ function annPlayLayers(e,prio){
     mk(ANN_RATE,.06*V,ANN_ECHO2);           // ÉCHO D'OR n°2 : 2φ — l'arène répond
   }
   ANN.playing={els:els,prio:prio};ANN.duck=true;
+  // (2026-09-26) iOS peut METTRE EN PAUSE la voix (appel, retour d'appli) sans jamais émettre `ended` : le mix restait creusé et
+  // la file des voix bloquée jusqu'à la partie suivante. La pause libère aussi, et un filet de 7 s rattrape tout le reste.
+  const libere=function(){if(ANN.playing&&ANN.playing.els===els){ANN.playing=null;ANN.duck=false;}};
+  main.addEventListener('pause',libere);setTimeout(libere,7000);
   main.addEventListener('ended',function(){
     ANN.playing=null;ANN.duck=false;
     if(ANN.queue&&performance.now()-ANN.queue.at<1800){const q=ANN.queue;ANN.queue=null;annSpeak(q.key,q.prio,true);}
@@ -16425,7 +16447,7 @@ function hap(p){
   try{if(navigator.vibrate)navigator.vibrate(p);}catch(e){}
 }
 // LE CLIC D'INTERFACE (2026-09-24) : une note brève et haute + une micro-vibration — chaque bouton RÉPOND, comme une borne d'arcade
-function uiClic(){ try{ if(SND.sfx&&!paused)chimeNote(1480,0,.045,.05); }catch(e){} hap(8); } // en pause le moteur audio dort : la note s'empilerait et partirait en rafale à la reprise
+function uiClic(){ try{ if(SND.sfx&&!paused){ if(AC&&AC.state!=='running')AC.resume().then(function(){chimeNote(1480,0,.045,.05);}).catch(function(){}); else chimeNote(1480,0,.045,.05); } }catch(e){} hap(8); } // (2026-09-26) REPRENDRE : le contexte se réveille en asynchrone — la note attend qu'il tourne // en pause le moteur audio dort : la note s'empilerait et partirait en rafale à la reprise
 window.dbgTouch=function(){return{on:TCTL.on,pad:TCTL.pad,act:TCTL.act,st:+TCTL.st.toFixed(3),sv:+TCTL.sv.toFixed(3),play:TCTL.play,steer:+steer.toFixed(3)};}; // console : l'état du volant tactile (un téléphone ne s'inspecte pas)
 // LE GAZ, exposé : la vignette a besoin de savoir qu'on POUSSE, pas seulement qu'on va vite.
 // (posé une fois par frame dans la physique, à côté de son `up` — une seule vérité, pas deux
@@ -17776,6 +17798,9 @@ function endGame(){
   // frein moteur y sont branchés en parallèle). Les oublier laissait un sifflement de boîte
   // tourner en boucle sur l'écran de fin, sans rien à l'écran pour l'expliquer.
   for(const n9 of [transG,diffG,ovrG,engTickG,pinkG])if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.2);
+  for(const n9 of [whG,skidG,jrG,jrDep,jetG,jetLowG,jetOscG])if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.12); // (2026-09-26) sifflement d'air, crissement et flamme nitro : QUITTER en plein boost les laissait tourner au menu
+  nA=0;loop._jetWas=false;
+  pwrNitroT=pwrAirT=pwrSpdT=0;pwrChip.style.display='none';loop._pch='';loop._pfx='';{const f9=avE('pwrFx');if(f9)f9.classList.remove('on');} // les pouvoirs meurent avec la caisse
   if(DRS)DRS.g.gain.setTargetAtTime(0,AC.currentTime,.05);if(RSN)RSN.g.gain.setTargetAtTime(0,AC.currentTime,.05); // QUITTER depuis la pause : la charge du drift et la bande rugueuse ne ronflent plus sur l'écran de mort
   charge9=0;ovr9=0;
   AIP.commit(); // ta manière de jouer entre dans la mémoire des poursuivantes
@@ -17833,6 +17858,7 @@ function start(){
   // d'être posée. Les REJOUERS ne l'ont jamais vu : `resetGame()` appelle déjà `respawn()`. `start()`
   // est le seul chemin de la PREMIÈRE partie et ne passait par aucun des deux.
   respawn();
+  recInit(); // (2026-09-26) le RECORD À BATTRE dès la 1re partie de la session — seul `resetGame()` le posait, le crochet manquait au premier départ
   // ⚠ BUG AUDIO CORRIGÉ (2026-09-05) : `initAudio()` n'a AUCUN garde interne — elle CRÉE un
   // `AudioContext` à chaque appel, point. Comme le garage se visite maintenant AVANT `start()`
   // (le splash y atterrit directement), `AC` peut déjà exister au moment où `start()` tourne (voir
@@ -18927,7 +18953,7 @@ function playViaGarage(){
   ecranWipe(function(){openGarage(true);},function(){garageLaunch();});
 }
 function garageGo(d){
-  hap(8); // ◀ ▶, glissé, clavier : le doigt sent qu'on change de caisse
+  uiClic(); // ◀ ▶, glissé, clavier : le doigt sent qu'on change de caisse — et l'oreille aussi (2026-09-26, charte règle 8)
   if(SHOP.tab!=='voiture'){ // BOUTIQUE : on feuillette les articles, la caisse reste la tienne
     shopShow(SHOP.tab,SHOP.i[SHOP.tab]+d);try{chimeNote(d>0?880:660,0,.16,.14);}catch(e){}return;}
   if(!garageOn||!GAR.root||GAR.sw){garageShow(garageVoisin(garageI,d));return;}
@@ -19052,7 +19078,9 @@ function gBankPaint(){const gb=$('gBank');
    gauche. Quand il change, il DÉFILE jusqu'à la nouvelle valeur ; une dépense fait tomber « −$6,000 » en rouge dessous. */
 function gCompteur(){
   const el=$('gCompteur');if(!el)return;const b=el.querySelector('b'),v=Math.floor(bank()),v0=gCompteur._v;
-  const fmt=function(x){return '$'+Math.round(x).toLocaleString('en-US');};
+  // (2026-09-26) chiffres COMPLETS façon GTA, mais au format de la LANGUE : en français « $42,000 » se lisait 42 dollars.
+  // Les espaces insécables de fr-FR deviennent des espaces simples (la police pixel n'a pas U+202F).
+  const fmt=function(x){return '$'+Math.round(x).toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' ');};
   if(v0==null||REDUCED_MOTION){b.textContent=fmt(v);gCompteur._v=v;return;}
   if(v===v0)return;
   if(v<v0){const d=document.createElement('i');d.className='gcMoins';d.textContent='-'+fmt(v0-v);el.appendChild(d);setTimeout(function(){d.remove();},1400);}
@@ -19467,7 +19495,7 @@ $('stFreq').addEventListener('change',saveFruits);
 addEventListener('keydown',e=>{if(!stallOn)return;
   if(e.code==='Escape')closeStall();else if(e.code==='ArrowLeft')stallShow(stallI-1);else if(e.code==='ArrowRight')stallShow(stallI+1);});
 $('garageBtn').addEventListener('click',e=>{e.stopPropagation();openGarage();});
-$('gClose').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarget);hap(8);ecranWipe(closeGarage);});
+$('gClose').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarget);uiClic();ecranWipe(closeGarage);});
 function gSecoue(b){b.classList.remove('secoue');void b.offsetWidth;b.classList.add('secoue');hap([8,40,8]);} // le NON du garage : ça bouge, ça vibre, et un toast dit pourquoi
 $('gEquip').addEventListener('click',e=>{e.stopPropagation();
   const b=e.currentTarget;
@@ -19488,10 +19516,10 @@ $('gEquip').addEventListener('click',e=>{e.stopPropagation();
 /* L'ACHAT. ⚠ on n'ÉQUIPE pas dans la foulée : acheter et choisir sont deux gestes, et les enchaîner
    ferait qu'un achat changerait la caisse de départ sans qu'on l'ait demandé. Le bouton ÉQUIPER
    s'allume juste à côté — le joueur décide. */
-$('gRar').addEventListener('click',e=>{const b=e.target.closest('.gR');if(!b)return;e.stopPropagation();uiPop(b);hap(8);
+$('gRar').addEventListener('click',e=>{const b=e.target.closest('.gR');if(!b)return;e.stopPropagation();uiPop(b);uiClic();
   const L=rarListe(b.getAttribute('data-r'));if(!L.length)return;const eq=SAVE.d.equipped|0;
   garageSaute(L.indexOf(eq)>=0?eq:L[0]);});
-$('gStrip').addEventListener('click',e=>{const t=e.target.closest('.gT');if(!t)return;e.stopPropagation();uiPop(t);hap(8);garageSaute(+t.getAttribute('data-car'));});
+$('gStrip').addEventListener('click',e=>{const t=e.target.closest('.gT');if(!t)return;e.stopPropagation();uiPop(t);uiClic();garageSaute(+t.getAttribute('data-car'));});
 // aller DIRECTEMENT à une caisse (vignette, famille) — avec la bascule du plateau, comme les flèches
 function garageSaute(i){if(i===garageI||!(i>=0))return;
   if(!garageOn||!GAR.root||GAR.sw){garageShow(i);return;}
@@ -19953,7 +19981,7 @@ function loop(now){
           slipT=.75;oilCd=1.2;
           shake=Math.max(shake,.2);
           noiseBurst(.35,.12,1900); // long crissement
-          if(navigator.vibrate)navigator.vibrate(60);
+          hap(60); // (2026-09-26) par hap() : l'interrupteur et le Taptic d'iOS s'appliquent
           break;
         }
       }
@@ -20871,17 +20899,20 @@ function loop(now){
         // EN L'AIR le jet fend l'air (whoosh flangé + turbine, le grave s'évapore)
         const air9=mode==='fall';
         // LA FLAMME = le rumble brown, sol COMME air. Rond, chaud, PRÉSENT — aucun aigu à arracher.
-        const jb=nitroOn?(nitroBlue?.52:.4):0;
+        // (2026-09-26) la flamme ne vit QUE manette en main : pendant l'explosion (un tap NITRO pour la passer tient `keys.Space`)
+        // et après `endGame` dans la même image, elle réécrivait ses gains — le souffle restait figé sur l'écran de mort
+        const nOn9=nitroOn&&mode!=='boom'&&!gameOver;
+        const jb=nOn9?(nitroBlue?.52:.4):0;
         jrG.gain.setTargetAtTime(jb*(air9?1.1:1.05)*(.84+.32*Math.random())*dk,AC.currentTime,.08); // turbulence lente
         jrDep.gain.setTargetAtTime(jb*(air9?.22:.16)*dk,AC.currentTime,.1); // flutter 5 Hz : la flamme respire
-        jrF.frequency.setTargetAtTime(nitroOn?(air9?310+spd3*.3:430+spd3*.35)+(nitroBlue?80:0):240,AC.currentTime,.1); // un poil plus mordante au sol
+        jrF.frequency.setTargetAtTime(nOn9?(air9?310+spd3*.3:430+spd3*.35)+(nitroBlue?80:0):240,AC.currentTime,.1); // un poil plus mordante au sol
         // PLUS AUCUNE couche de bruit blanc continue : souffle médium coupé, grave blanc réduit
         // à un fond — tout le caractère vient du rumble brown + des pops bruns
-        jetG.gain.setTargetAtTime(nitroOn&&air9?.01*dk:0,AC.currentTime,.06);
-        jetLowG.gain.setTargetAtTime((nitroOn?(air9?.08:.05):0)*(.7+.6*Math.random())*dk,AC.currentTime,.07);
-        jetOscG.gain.setTargetAtTime(nitroOn&&!air9?.003:0,AC.currentTime,.09); // pointe de turbine au sol
+        jetG.gain.setTargetAtTime(nOn9&&air9?.01*dk:0,AC.currentTime,.06);
+        jetLowG.gain.setTargetAtTime((nOn9?(air9?.08:.05):0)*(.7+.6*Math.random())*dk,AC.currentTime,.07);
+        jetOscG.gain.setTargetAtTime(nOn9&&!air9?.003:0,AC.currentTime,.09); // pointe de turbine au sol
         jcFb.gain.setTargetAtTime(.12,AC.currentTime,.1);jcDep.gain.setTargetAtTime(.0002,AC.currentTime,.12); // peigne+flanger au repos (ils chuintaient)
-        if(nitroOn){
+        if(nOn9){
           jetF.frequency.setTargetAtTime(320+spd3*.6+(nitroBlue?180:0),AC.currentTime,.07);
           jetOsc.frequency.setTargetAtTime(900+spd3*3.5+(nitroBlue?400:0),AC.currentTime,.08);
           // pétillement en pops BRUNS, discrets et distincts : ça crépite, ça ne souffle pas.
@@ -20889,10 +20920,10 @@ function loop(now){
           if(Math.random()<dt*(air9?9:25))flamePop(.02+Math.random()*.05,air9?.05+Math.random()*.06:.1+Math.random()*.14,(air9?300:380)+Math.random()*260);
           if(!air9&&Math.random()<dt*2.4){flamePop(.05+Math.random()*.04,.3,520);subBoom(.05);} // le POK : plop + mini coup de poitrine
         }
-        if(nitroOn&&air9&&!loop._jetWas){ // ALLUMAGE : FWOOM rond — souffle grave + coup de poitrine (le sifflet strident a dégagé)
+        if(nOn9&&air9&&!loop._jetWas){ // ALLUMAGE : FWOOM rond — souffle grave + coup de poitrine (le sifflet strident a dégagé)
           noiseBurst(.35,.2,300);subBoom(.15);
         }
-        loop._jetWas=nitroOn&&air9;
+        loop._jetWas=nOn9&&air9;
       }
     }
     // portail qui pulse + pads RGB qui défilent
@@ -21443,6 +21474,7 @@ function togglePause(){ if(!started||gameOver)return;
   paused=!paused; showMsg(paused?'PAUSE':'GO !');
   if(!paused)slowT=Math.max(slowT,.8); // (2026-09-25) reprise au RALENTI : le temps de reposer les pouces
   try{ if(AC){ if(paused)AC.suspend(); else if(SND.sfx)AC.resume(); } }catch(e){}
+  if(paused){annStop();fxStop();} // (2026-09-26) les voix et les samples sont des HTMLAudio : suspendre le contexte ne les arrêtait pas
   musicPause(paused); // la musique ne passe plus par l'AudioContext : elle se met en pause elle-même
 }
 // applique la résolution adaptative (reconfigure le renderer et le canvas des speed-lines)
@@ -21452,6 +21484,8 @@ function applyDPR(){ try{ renderer.setPixelRatio(curDPR); renderer.setSize(inner
   if(juiceCv){juiceCv.width=innerWidth;juiceCv.height=innerHeight;} }catch(e){} }
 // PAUSE AUTO : l'appli passe en arrière-plan (onglet caché, app minimisée) → on gèle + on coupe le son
 addEventListener('visibilitychange',function(){ if(document.hidden&&started&&!gameOver&&!paused)togglePause();
+  // (2026-09-26) au menu, au garage ou sur l'écran de mort, une vingtaine de sources en boucle tournaient encore en arrière-plan
+  try{ if(AC){ if(document.hidden){if(AC.state==='running')AC.suspend();} else if(SND.sfx&&!paused&&AC.state!=='running')AC.resume(); } }catch(e){}
   if(!document.hidden){loop._pn=0;loop._rebuildT=performance.now();} }); // retour d'onglet : la frame « absente » n'est pas une lenteur
 // IMMERSION : plein écran + verrou PORTRAIT + veille désactivée. Les trois exigent un GESTE
 // utilisateur — on les redemande à chaque contact utile, et on ne râle jamais si elles sont refusées.
@@ -21614,7 +21648,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='surv'){ clic(survBtnEl); panSync(); }
     else if(a==='resp'){ panOpen(false); if(started&&!gameOver&&mode==='drive')respawn(); }
     else if(a==='reset'||a==='quit'){ const q9=a==='quit'; // (2026-09-25) CONFIRMÉS : QUITTER tombait sous le pouce et terminait la partie d'un seul tap
-      modale({titre:q9?'QUITTER LA PARTIE ?':'RECOMMENCER ?',texte:q9?'Tes gains sont verses au compte.':'Les gains de cette partie ne seront PAS verses.',
+      modale({titre:q9?'QUITTER LA PARTIE ?':'RECOMMENCER ?',texte:q9?'Tes gains sont versés au compte.':'Les gains de cette partie ne seront PAS versés.',
         boutons:[{l:q9?'QUITTER':'RECOMMENCER',ic:q9?'quitter':'rejouer',cls:'pb-red',v:1},{l:'CONTINUER',ic:'lecture',v:0}]}) // CONTINUER en DERNIER : Échap clique le dernier bouton
       .then(function(r){ if(!r.v||!started||gameOver)return; panOpen(false);
         if(q9){if(TUTO.on)tutoFin(true);const sb=SANDBOX;SANDBOX=false;endGame();SANDBOX=sb;} else resetGame(); }); }
@@ -21626,7 +21660,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   //      Un petit tick plutôt qu'un branchement dans loop() — et zéro écriture DOM si rien n'a changé.
   function syncJeu(){
     const play=(started&&!gameOver),dead=(started&&gameOver);
-    if(dead!==TCTL.dead){ TCTL.dead=dead; document.body.classList.toggle('dead',dead); } // l'écran de mort a sa propre hiérarchie
+    if(dead!==TCTL.dead){ TCTL.dead=dead; document.body.classList.toggle('dead',dead); if(dead)TCTL.mortT=performance.now(); } // l'écran de mort a sa propre hiérarchie
     if(play!==TCTL.play){ TCTL.play=play; document.body.classList.toggle('play',play);
       if(gear)gear.innerHTML=pxi(play?'pause':'reglages'); // en jeu c'est un bouton PAUSE, au menu un bouton réglages
       if(!play){ for(const k in keys)keys[k]=false; TCTL.act=false; TCTL.id=null; TCTL.st=0; TCTL.sv=0; if(sz)sz.classList.remove('act'); } }
@@ -21682,7 +21716,11 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   addEventListener('touchend',audioKick,{passive:true});
   addEventListener('touchstart',audioKick,{passive:true}); // au plus tôt : dès que le doigt se pose
   // ---- retour dans l'appli : l'écran se rendormirait, l'audio resterait suspendu ----
-  addEventListener('visibilitychange',function(){ if(document.hidden)return; wakeAsk(); audioKick(); });
+  addEventListener('visibilitychange',function(){
+    // (2026-09-26) l'appli passe en arrière-plan en pleine course : la pause générale a gelé le jeu, mais sans panneau — au retour,
+    // un jeu figé, volant mort, et « PAUSE » écrit dans un #msg masqué. On ouvre le vrai panneau : REPRENDRE attend sous le pouce.
+    if(document.hidden){ if(started&&!gameOver&&paused&&pan&&!pan.classList.contains('open')){feuilleOuvre(pan,'open');panSync();} return; }
+    wakeAsk(); audioKick(); });
   // ---- BASCULE D'ORIENTATION : iOS annonce des dimensions PÉRIMÉES — on recadre après le pivot ----
   const reflow=function(){ setTimeout(function(){
     camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); fovFit(); applyDPR(); },280); };
@@ -21831,7 +21869,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
         if(SAVE.import(r.texte.trim())){toast(pxi('coche')+' '+TR('RESTAURE — RECHARGE…'));setTimeout(function(){location.reload();},900);}
         else toast(pxi('croix')+' '+TR('CODE INVALIDE')); }); }
     else if(a==='wipe'){
-      modale({titre:'TOUT EFFACER ?',texte:'Records, caisses debloquees, carriere et reglages repartent de zero.',
+      modale({titre:'TOUT EFFACER ?',texte:'Records, caisses débloquées, carrière et réglages repartent de zéro.',
         boutons:[{l:'EFFACER',ic:'corbeille',cls:'pb-red',v:1},{l:'ANNULER',v:0}]}).then(function(r){
         if(r.v){SAVE.d=SAVE.san(null);SAVE.flush();location.reload();} }); }
   }
@@ -21840,6 +21878,9 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       const el=e.target&&e.target.closest?e.target.closest('[data-m]'):null;
       if(!el)return;
       if(e.cancelable)e.preventDefault(); e.stopPropagation();
+      // (2026-09-26, audit UX) LES POUCES ARRIVENT AVANT L'ÉCRAN : on martèle NITRO pour passer l'explosion, et le 3e tap tombait sur
+      // RÉGLAGES (sous la nitro) ; le pouce du volant, sur GARAGE. 0,6 s d'écran de mort « sourd » avale ces réflexes.
+      if(started&&gameOver&&TCTL.mortT&&performance.now()-TCTL.mortT<600)return;
       mTap(el.getAttribute('data-m'),el);
     };
     /* ⚠ AU RELÂCHER, PLUS AU CONTACT (2026-09-24, audit UX) : `touchstart` déclenchait l'action dès que le doigt
