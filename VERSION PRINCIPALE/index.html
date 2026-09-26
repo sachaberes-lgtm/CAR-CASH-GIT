@@ -2188,6 +2188,42 @@
   #avGain{display:none!important}   /* l'encaissement vit DANS le tableau de bord (et dans le couloir s'il est gros) */
   body.ebOn #popTxt{visibility:hidden}   /* la carte du moteur est posée sur la caisse : le geste attend */
   body.coOn #flowHud,body.coOn #auraV2{visibility:hidden}   /* l'auto-école garde le haut de l'écran pour elle */
+  /* ===== LA GAMME EN CINQ FAMILLES (2026-09-26, user : « classe-les en commun, rare, épique, légendaire et défi ; que les
+     catégories soient bien organisées et que ce soit le plus ergonomique possible de naviguer entre toutes ») =====
+     Au garage, onglet VOITURES : (1) la BARRE DES FAMILLES — cinq plaques à la couleur de leur rareté, avec « possédées / total » ;
+     (2) la BANDE DE VIGNETTES — les photos de studio de la famille, qu'on fait défiler au pouce et qu'on touche pour y aller
+     (plus besoin de cliquer 60 fois sur une flèche) ; (3) la fiche, coiffée de sa pastille de rareté. Les flèches restent :
+     elles parcourent la famille puis passent à la suivante. Les couleurs de rareté sont celles de TOUT le jeu vidéo : gris,
+     bleu, violet, or — et vert pour les défis (ça se GAGNE). */
+  #gRar,#gStrip{display:none}
+  #garage:not(.shopMode):not(.quiet):not(.launching) #gRar,#garage:not(.shopMode):not(.quiet):not(.launching) #gStrip{display:flex}
+  #gRar{order:0;flex:0 0 100%;gap:6px;margin:0 0 8px;pointer-events:auto}
+  #gRar .gR{flex:1;min-width:0;min-height:46px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:4px 0;
+    font-family:var(--pix);font-size:8px;letter-spacing:0;color:var(--rc);background:#140e38;border:0;cursor:pointer;clip-path:var(--oct);
+    box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--rc) 50%,transparent),inset 0 -4px 0 rgba(0,0,0,.35);
+    transition:transform var(--t-fast) var(--ease),background var(--t-fast) var(--ease)}
+  #gRar .gR b{font-size:8px;font-weight:normal;color:#dfeeff}
+  #gRar .gR.on{background:var(--rc);color:#170f35;box-shadow:inset 0 -4px 0 rgba(0,0,0,.28)}
+  #gRar .gR.on b{color:#170f35}
+  #gRar .gR:active{transform:translateY(3px)}
+  #gStrip{order:0;flex:0 0 100%;gap:8px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;padding:4px 2px 6px;margin:0 0 6px;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none;pointer-events:auto;overscroll-behavior-x:contain}
+  #gStrip::-webkit-scrollbar{display:none}
+  #gStrip .gT{flex:0 0 88px;height:70px;scroll-snap-align:center;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+    cursor:pointer;clip-path:var(--oct);background:radial-gradient(90% 70% at 50% 85%,color-mix(in srgb,var(--rc) 34%,transparent),#120c34 72%);
+    box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--rc) 38%,transparent);transition:transform var(--t-fast) var(--ease)}
+  #gStrip .gT img{position:absolute;left:-8px;top:-2px;width:104px;height:64px;object-fit:contain;pointer-events:none}
+  #gStrip .gT .gTv{position:absolute;inset:10px 20px 22px;background:color-mix(in srgb,var(--rc) 22%,transparent);animation:gTv 1s ease-in-out infinite alternate}
+  @keyframes gTv{to{opacity:.35}}
+  #gStrip .gT em{position:relative;font-style:normal;font-family:var(--pix);font-size:8px;color:#fff;padding:0 0 6px;text-shadow:0 2px 0 #000,0 0 4px #000}
+  #gStrip .gT.lock img{filter:brightness(.62) saturate(.5)}
+  #gStrip .gT.on{box-shadow:inset 0 0 0 3px var(--rc);transform:translateY(-3px)}
+  #gStrip .gT.eq::after{content:'';position:absolute;top:6px;right:8px;width:8px;height:8px;background:#ffd75e;box-shadow:0 0 6px #ffd75e}
+  #gStrip .gT:active{transform:translateY(2px)}
+  #gRarPill{display:none;font-family:var(--pix);font-size:8px;letter-spacing:2px;padding:5px 9px;margin:0 auto 8px;width:max-content;color:#170f35;background:var(--rc);
+    clip-path:polygon(4px 0,calc(100% - 4px) 0,100% 4px,100% calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,0 calc(100% - 4px),0 4px)}
+  #garage:not(.shopMode) #gRarPill{display:block}
+  @media (prefers-reduced-motion:reduce){#gStrip .gT .gTv{animation:none}}
   /* ===== LES PETITES ANIMATIONS (2026-09-26, user : « barre de nitro avec des flammes animées quand nitro infini, et plein
      d'autres petites animations comme ça partout ») — chacune dit quelque chose, aucune ne bouge pour rien =====
      · la JAUGE EN FEU (#nitroFeu, le feu de DOOM en pixels) : brasier en NITRO MAX, frange de flammes au boost ;
@@ -2445,8 +2481,11 @@
         <button class="gTab" data-tab="aile" role="tab"><i class="pxi pxi-aile" aria-hidden="true"></i><span data-fr="AILES">AILES</span></button>
         <button class="gTab" data-tab="trainee" role="tab"><i class="pxi pxi-trainee" aria-hidden="true"></i><span data-fr="TRAÎNÉES">TRAÎNÉES</span></button>
       </div>
+      <div id="gRar" role="tablist" aria-label="Familles"></div>
+      <div id="gStrip" aria-label="Caisses de la famille"></div>
       <button id="gPrev" class="gNav pbtn pb-cyan pbCarre" aria-label="Caisse précédente"><i class="pxi pxi-gauche" aria-hidden="true"></i></button>
       <div id="gCard">
+        <div id="gRarPill"></div>
         <div id="gName">LA HONTE</div>
         <div id="gMeta"><span id="gLvl">CAISSE 1 / 15</span><span id="gSpd"></span></div>
         <div id="gDots" aria-hidden="true"></div>
@@ -8035,9 +8074,9 @@ const CAR_UNLOCK=[
      automatique (`dbgAuto`, aucune figure, aucun nitro) encaisse ~2 600 $ en une minute avant de tomber ;
      un débutant fait 200 à 1 000 $. L'ancien 25 000 $ demandait donc ~30 parties pour la 1re caisse :
      un mur. Cible : la 1re caisse en 10-15 min de jeu (parties + primes de contrat), puis ×6-7 par marche. */
-  {p:6e3},              // ELDORADO
-  {p:40e3},             // LE CAÏD
-  {p:250e3},            // SA MAJESTÉ — l'argent achète la Rolls, c'est même à ça qu'il sert
+  {p:24e3},             // ELDORADO — (2026-09-26) RARE : les 14 COMMUNES (1 500 → 15 000 $) prennent le rôle de « première caisse »
+  {p:60e3},             // LE CAÏD — RARE
+  {p:180e3},            // SA MAJESTÉ — RARE, la plus chère des rares : l'argent achète la Rolls, c'est même à ça qu'il sert
   {p:1.5e6},            // ROSSO 40 — (2026-09-25 : le mode Survivant est retiré, un seul mode de jeu) la caisse de RÊVE, à 1,5 M
   {k:'aura',  v:6},     // POSTER 84 — le poster se mérite au style : rang MYTHE, l'argent n'y peut rien
   {k:'carnet',v:1},     // LA BULLE — contrat n° 1
@@ -8046,11 +8085,11 @@ const CAR_UNLOCK=[
   // LES PREMIUM : en BOUTIQUE, contre du vrai argent (StoreKit à brancher). `eur` = le prix affiché, `rar` = la rareté de la carte
   {k:'premium',eur:'4,99 €',rar:'leg',une:1}, // CHAT POP-TART — l'offre à la une
   {k:'premium',eur:'9,99 €',rar:'leg'},       // REQUIN
-  {k:'premium',eur:'4,99 €',rar:'epi'},       // COMÈTE
-  {k:'premium',eur:'4,99 €',rar:'epi'},       // FORMULE OR
-  {k:'premium',eur:'2,99 €',rar:'rar'},       // LE MANS 24
-  {k:'premium',eur:'2,99 €',rar:'rar'},       // EL PATRON
-  {k:'premium',eur:'1,99 €',rar:'rar'}        // ACIDE
+  {k:'premium',eur:'4,99 €',rar:'leg'},       // COMÈTE
+  {k:'premium',eur:'4,99 €',rar:'leg'},       // FORMULE OR
+  {k:'premium',eur:'2,99 €',rar:'leg'},       // LE MANS 24
+  {k:'premium',eur:'2,99 €',rar:'leg'},       // EL PATRON
+  {k:'premium',eur:'1,99 €',rar:'leg'}        // ACIDE
 ]
 /* ============================================================================
    L'AURA ET LA BANQUE (2026-08-17) — la nouvelle règle
@@ -8091,6 +8130,21 @@ function carStat(k){
   return (SAVE.d.ex&&SAVE.d.ex[k])||0;
 }
 function carPrice(i){const u=CAR_UNLOCK[i];return (u&&u.p)||0;} // 0 = pas à vendre
+/* LES CINQ FAMILLES (2026-09-26) — une caisse porte sa famille (`rar` dans sa fiche) ; les 16 d'origine la déduisent de leur
+   condition : boutique = LÉGENDAIRE, contrat/rang d'aura = DÉFI, prix ≥ 1 M = ÉPIQUE, ≥ 20 000 = RARE, sinon COMMUNE.
+   ⚠ LÉGENDAIRE = en BOUTIQUE seulement (vrai argent) : c'est la règle du joueur. */
+const RARETES=[
+  {id:'commun',    n:'COMMUNES',   n1:'COMMUNE',   c:'#b9c4d6'},
+  {id:'rare',      n:'RARES',      n1:'RARE',      c:'#4db8ff'},
+  {id:'epique',    n:'ÉPIQUES',    n1:'ÉPIQUE',    c:'#c77dff'},
+  {id:'legendaire',n:'LÉGENDES',   n1:'LÉGENDAIRE',c:'#ffd75e'},
+  {id:'defi',      n:'DÉFIS',      n1:'DÉFI',      c:'#5ee37a'}];
+function carRar(i){const c=CARS[i];if(c&&c.rar)return c.rar;const u=CAR_UNLOCK[i];
+  if(!u)return 'commun';if(u.k==='premium')return 'legendaire';if(u.k)return 'defi';return u.p>=1e6?'epique':u.p>=20e3?'rare':'commun';}
+function carOrdre(i){const u=CAR_UNLOCK[i];if(!u)return -1;if(u.p)return u.p;if(u.eur)return parseFloat(String(u.eur).replace(',','.'))||0;
+  if(u.k==='carnet')return u.v;if(u.k==='aura')return 100+u.v;return 1e9;} // dans une famille : du plus accessible au plus dur
+function rarListe(r){const L=[];for(let i=0;i<CARS.length;i++)if(carRar(i)===r)L.push(i);return L.sort(function(a,b){return carOrdre(a)-carOrdre(b);});}
+function rarInfo(r){return RARETES.find(function(x){return x.id===r;})||RARETES[0];}
 function carOwned(i){return !!(SAVE.d.owned&&SAVE.d.owned.indexOf(i)>=0);}
 /* (2026-09-26, user : « pour la version test donne-moi accès à toutes les voitures mais en laissant les conditions d'obtention »)
    TEST_CAISSES : toutes les caisses s'ÉQUIPENT, mais la fiche du garage continue d'écrire la VRAIE condition (voir garageShow).
@@ -8527,6 +8581,9 @@ function objRender(el){
    seule caisse qui existe — et on reconstruit la caisse équipée à la fin : jamais pendant une partie (la boutique est un
    écran de menu). Les photos sont gardées en mémoire pour la session (une caisse ne se photographie qu'une fois). */
 const PHOTO={cache:{},rt:null,scene:null,cam:null};
+// une photo de STUDIO : ailes de vol rentrées, ni halos, ni flaques de phares, ni plumes de réacteur — la carrosserie, les roues, point
+function photoPropre(){if(carWingL){carWingL.visible=false;carWingR.visible=false;}
+  carGroup.traverse(o=>{if(o.isSprite||(o.isMesh&&!(o.userData&&o.userData.lp)&&o.material&&(o.material.transparent||o.material.blending===THREE.AdditiveBlending)))o.visible=false;});}
 function carPhoto(i){
   if(PHOTO.cache[i])return PHOTO.cache[i];
   if(started&&!gameOver)return null;
@@ -8535,10 +8592,11 @@ function carPhoto(i){
     const hemi=new THREE.HemisphereLight(0xd8dcff,0x3a1f6a,1.25),key=new THREE.DirectionalLight(0xffffff,1.5),rim=new THREE.DirectionalLight(0xff6ad0,1.1),bas=new THREE.PointLight(0x8a5cff,1.2,14);
     key.position.set(5,7,6);rim.position.set(-6,3,-5);bas.position.set(0,-.5,2);PHOTO.scene.add(hemi,key,rim,bas);}
   const par=carGroup.parent,pos=carGroup.position.clone(),rot=carGroup.rotation.clone(),sc=carGroup.scale.clone(),vis=carGroup.visible;
+  PHOTO.avant=carGroup.userData.lvl; // la caisse montée avant la photo (voir la fin)
   let url=null;
   try{
     buildCar(CARS[i]);
-    PHOTO.scene.add(carGroup);carGroup.position.set(0,0,0);carGroup.rotation.set(0,.72,0);carGroup.scale.set(1,1,1);carGroup.visible=true;
+    PHOTO.scene.add(carGroup);carGroup.position.set(0,0,0);carGroup.rotation.set(0,.72,0);carGroup.scale.set(1,1,1);carGroup.visible=true;photoPropre();
     const L=Math.max(3.2,CARS[i].l||4.5);PHOTO.cam.position.set(L*.95,L*.46,L*1.12);PHOTO.cam.lookAt(0,.62,0);
     const cc=new THREE.Color();renderer.getClearColor(cc);const ca=renderer.getClearAlpha(),prt=renderer.getRenderTarget();
     renderer.setRenderTarget(PHOTO.rt);renderer.setClearColor(0x000000,0);renderer.clear();renderer.render(PHOTO.scene,PHOTO.cam);
@@ -8549,13 +8607,56 @@ function carPhoto(i){
     x.putImageData(im,0,0);url=cv.toDataURL('image/png');
   }catch(e){console.warn('photo',e);}
   if(par)par.add(carGroup);carGroup.position.copy(pos);carGroup.rotation.copy(rot);carGroup.scale.copy(sc);carGroup.visible=vis;
-  buildCar(CARS[equippedCar()]);                                       // on rend la caisse du joueur
+  {const av=PHOTO.avant;buildCar(CARS[(av!=null&&av>=0&&av<CARS.length)?av:equippedCar()]);} // on rend la caisse qu'on regardait (au garage : la feuilletée)
   if(url)PHOTO.cache[i]=url;return url;
 }
+/* L'ATELIER DES CAISSES (dev, 2026-09-26) — `dbgEssaiCaisse(src, fiche, vues)` : essaie un gabarit ÉCRIT EN TEXTE (une expression
+   `function(K){…}` au format de SHAPES — ou le nom d'un gabarit existant, pour comparer) sur une fiche, et rend des PHOTOS de studio
+   720 × 440 (dataURL) sous les angles demandés (rotation Y de la caisse, en radians), plus le nombre de facettes et le hors-tout.
+   C'est le banc des agents qui modèlent la gamme : on juge une caisse à l'œil, sans toucher au jeu. Refusé en pleine course. */
+window.dbgEssaiCaisse=function(src,fiche,vues){
+  if(started&&!gameOver)return {err:'en course : essai refusé'};
+  const nom='__essai',W=720,H=440;let f;
+  if(typeof src==='string'&&SHAPES[src])f=SHAPES[src];
+  else{try{f=(new Function('LPU','THREE','lpKit','return ('+src+');'))(LPU,THREE,lpKit);}catch(e){return {err:'SYNTAXE : '+e.message};}}
+  if(typeof f!=='function')return {err:'le source ne rend pas une fonction'};
+  SHAPES[nom]=f;
+  const sp=Object.assign({name:'ESSAI',color:0xffffff,accent:0x222222,maxKmh:300,accel:30,turn:2.6,h:1.3,w:1.9,l:4.5,spoiler:0,desc:''},fiche||{});sp.shape=nom;
+  CARS.push(sp);const i=CARS.length-1,out={photos:[]};
+  const par=carGroup.parent,pos=carGroup.position.clone(),rot=carGroup.rotation.clone(),sc=carGroup.scale.clone(),vis=carGroup.visible;
+  try{
+    carPhoto(0); // le studio (scène + lumières) existe après la 1re photo
+    if(!PHOTO.rt2){PHOTO.rt2=new THREE.WebGLRenderTarget(W,H);PHOTO.cam2=new THREE.PerspectiveCamera(30,W/H,.1,200);}
+    const w0=[];const oc=console.warn;console.warn=function(){w0.push([].join.call(arguments,' '));oc.apply(console,arguments);};
+    try{buildCar(sp);}catch(e){console.warn=oc;return {err:'CONSTRUCTION : '+e.message+' | '+String(e.stack||'').split('\n').slice(1,3).join(' ¶ ')};}
+    console.warn=oc;if(w0.length)out.avert=w0;
+    PHOTO.scene.add(carGroup);carGroup.position.set(0,0,0);carGroup.rotation.set(0,0,0);carGroup.scale.set(1,1,1);carGroup.visible=true;photoPropre();
+    let tri=0;const bb=new THREE.Box3(),dim=new THREE.Vector3();carGroup.updateMatrixWorld(true);
+    carGroup.traverse(o=>{let v=o,vu=true;while(v){if(!v.visible){vu=false;break;}v=v.parent;}
+      if(vu&&o.isMesh&&o.userData&&o.userData.lp&&o.geometry&&o.geometry.attributes.position){tri+=o.geometry.attributes.position.count/3;bb.expandByObject(o);}});
+    out.facettes=Math.round(tri);bb.getSize(dim);out.horsTout=[+dim.x.toFixed(2),+dim.y.toFixed(2),+dim.z.toFixed(2)]; // la carrosserie et les roues (visibles) seulement
+    const L=Math.max(3.2,sp.l||4.5);
+    for(const v of (vues||[.72])){
+      carGroup.rotation.set(0,v,0);PHOTO.cam2.position.set(L*1.05,L*.42,L*1.18);PHOTO.cam2.lookAt(0,.62,0);
+      const cc=new THREE.Color();renderer.getClearColor(cc);const ca=renderer.getClearAlpha(),prt=renderer.getRenderTarget();
+      renderer.setRenderTarget(PHOTO.rt2);renderer.setClearColor(0x2a2140,1);renderer.clear();renderer.render(PHOTO.scene,PHOTO.cam2);
+      const buf=new Uint8Array(W*H*4);renderer.readRenderTargetPixels(PHOTO.rt2,0,0,W,H,buf);
+      renderer.setRenderTarget(prt);renderer.setClearColor(cc,ca);
+      const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d'),im=x.createImageData(W,H);
+      for(let y=0;y<H;y++){const s0=(H-1-y)*W*4;for(let k=0;k<W*4;k++){let v2=buf[s0+k];if((k&3)!==3)v2=Math.min(255,Math.pow(v2/255,1/1.3)*255);im.data[y*W*4+k]=v2;}}
+      x.putImageData(im,0,0);out.photos.push(cv.toDataURL('image/png'));
+    }
+  }finally{
+    CARS.pop();delete SHAPES[nom];
+    if(par)par.add(carGroup);carGroup.position.copy(pos);carGroup.rotation.copy(rot);carGroup.scale.copy(sc);carGroup.visible=vis;
+    try{buildCar(CARS[equippedCar()]);}catch(e){}
+  }
+  return out;
+};
 // LA VITRINE : l'offre à la une (la premium marquée `une`) et la grille des autres, par rareté
 function shopRender(){
   const une=document.getElementById('shUne'),gr=document.getElementById('shGrille');if(!une||!gr)return;
-  const RAR={leg:'LÉGENDAIRE',epi:'ÉPIQUE',rar:'RARE'};let hU='',hG='';
+  const RAR={leg:'LÉGENDAIRE',epi:'ÉPIQUE',rar:'RARE'};let hU='',hG=''; // (2026-09-26) toutes LÉGENDAIRES : la boutique est leur seule porte
   for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(!u||u.k!=='premium')continue;
     const ph=carPhoto(i),img=ph?'<img src="'+ph+'" alt="">':'<i class="pxi pxi-voiture"></i>',a=carOwned(i);
     if(u.une&&!hU){
@@ -15351,7 +15452,9 @@ function garageImpact(){
 }
 /* LE GARAGE NE MONTRE QUE CE QUI SE JOUE ICI (2026-09-25) : les caisses PREMIUM vivent dans la BOUTIQUE (vrai argent) ;
    elles n'entrent au garage qu'une fois achetées. `garageListe()` = les index visibles, dans l'ordre de la gamme. */
-function garageListe(){const L=[];for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(TEST_CAISSES||!(u&&u.k==='premium')||carOwned(i))L.push(i);}return L;} // (test) les premium aussi
+// (2026-09-26) LES CINQ FAMILLES, dans l'ordre (communes → défis), chacune du plus accessible au plus dur. Les LÉGENDAIRES y sont
+// toutes : on les VOIT tourner sur le plateau (l'envie naît là) — leur bouton mène à la BOUTIQUE, seul endroit où elles s'achètent.
+function garageListe(){let L=[];for(const r of RARETES)L=L.concat(rarListe(r.id));return L;}
 function garageVoisin(i,d){const L=garageListe();let k=L.indexOf(i);if(k<0)k=0;return L[((k+d)%L.length+L.length)%L.length];}
 function garageShow(i){
   i=((i%CARS.length)+CARS.length)%CARS.length;if(garageListe().indexOf(i)<0)i=garageVoisin(i,0);
@@ -15395,7 +15498,43 @@ function garageShow(i){
   if(bt&&prix&&!ouverte)bt.style.display='none';else if(bt)bt.style.display='';
   gDots(garageListe().map(function(i9){return {on:i9===garageI,a:carUnlocked(i9),eq:i9===eq};}));
   const sw=$('gSw');if(sw){sw.style.display='none';sw.innerHTML='';}
+  // (2026-09-26) LA FAMILLE : la pastille de rareté sur la fiche, la barre des familles et la bande de vignettes suivent la caisse
+  {const ri=rarInfo(carRar(garageI)),pl=$('gRarPill');if(pl){pl.textContent=sansAcc(TR(ri.n1));pl.style.setProperty('--rc',ri.c);}
+   // LÉGENDAIRE pas encore à toi : UN bouton, qui mène à la BOUTIQUE (le seul endroit où elle s'achète)
+   if(bb){bb.dataset.bout='';if(u9&&u9.k==='premium'&&!carUnlockedVrai(garageI)&&!testOuv){if(row)row.style.display='';bb.innerHTML=pxi('panier')+' '+TR('EN BOUTIQUE')+' — '+u9.eur;
+     bb.classList.remove('pauvre');bb.dataset.bout='1';if(bt)bt.style.display='none';}}
+   garageFamilles(ri.id);}
   gBankPaint();
+}
+/* LA BARRE DES FAMILLES + LA BANDE DE VIGNETTES. La barre ne se réécrit que si la famille ou les comptes changent ; la bande
+   se reconstruit au changement de famille et ne fait sinon que déplacer la sélection (et se recentrer dessus). Les photos
+   viennent du studio (`carPhoto`), UNE par image au plus (`photoFile`) : ouvrir une famille de 16 ne gèle pas le garage. */
+function garageFamilles(r){
+  const bar=$('gRar'),st=$('gStrip');if(!bar||!st)return;
+  const eq=SAVE.d.equipped|0;
+  const cles=RARETES.map(function(x){const L=rarListe(x.id);let a=0;for(const i of L)if(carUnlockedVrai(i))a++;return x.id+a+'/'+L.length;}).join('|')+'#'+r;
+  if(bar._k!==cles){bar._k=cles;
+    bar.innerHTML=RARETES.map(function(x){const L=rarListe(x.id);let a=0;for(const i of L)if(carUnlockedVrai(i))a++;
+      return '<button class="gR'+(x.id===r?' on':'')+'" data-r="'+x.id+'" role="tab" aria-selected="'+(x.id===r)+'" style="--rc:'+x.c+'">'+sansAcc(TR(x.n))+'<b>'+a+'/'+L.length+'</b></button>';}).join('');}
+  const L=rarListe(r),ri=rarInfo(r);
+  if(st._r!==r||st._n!==L.length||st._eq!==eq){st._r=r;st._n=L.length;st._eq=eq;
+    st.innerHTML=L.map(function(i){const u=CAR_UNLOCK[i],ouv=carUnlockedVrai(i);
+      const et=ouv?(i===eq?'':'✓'):(u&&u.p?fmtC(u.p):u&&u.eur?u.eur:'');
+      return '<div class="gT'+(ouv?'':' lock')+(i===eq?' eq':'')+'" data-car="'+i+'" role="button" aria-label="'+String(CARS[i].name).replace(/"/g,'')+'" style="--rc:'+ri.c+'">'
+        +'<i class="gTv"></i><em>'+et+'</em></div>';}).join('');
+    st.querySelectorAll('.gT').forEach(function(el){const i=+el.getAttribute('data-car');
+      photoFile(i,function(url){const v=el.querySelector('.gTv');if(v)v.remove();if(!el.querySelector('img')){const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);}});});}
+  st.querySelectorAll('.gT').forEach(function(el){el.classList.toggle('on',+el.getAttribute('data-car')===garageI);});
+  const on=st.querySelector('.gT.on');if(on){const x=on.offsetLeft-(st.clientWidth-on.offsetWidth)/2;try{st.scrollTo({left:x,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){st.scrollLeft=x;}}
+}
+// LA FILE DU STUDIO PHOTO : une vignette par image, jamais pendant la bascule du plateau ni hors du garage
+const PHQ={q:[],on:false};
+function photoFile(i,cb){if(PHOTO.cache[i]){cb(PHOTO.cache[i]);return;}PHQ.q.push([i,cb]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
+function photoTour(){
+  if(!PHQ.q.length){PHQ.on=false;return;}
+  if(GAR.sw||GAR.go){requestAnimationFrame(photoTour);return;}
+  const it=PHQ.q.shift();let u=PHOTO.cache[it[0]];if(!u)try{u=carPhoto(it[0]);}catch(e){u=null;}
+  if(u)it[1](u);requestAnimationFrame(photoTour);
 }
 function gBankPaint(){const gb=$('gBank');
   if(gb)gb.innerHTML=TR('COMPTE')+' : '+fmtC(bank())+'<span class="aura">'+pxi('etoile')+' '+auraRankName()+'</span>';
@@ -15837,7 +15976,17 @@ $('gEquip').addEventListener('click',e=>{e.stopPropagation();
 /* L'ACHAT. ⚠ on n'ÉQUIPE pas dans la foulée : acheter et choisir sont deux gestes, et les enchaîner
    ferait qu'un achat changerait la caisse de départ sans qu'on l'ait demandé. Le bouton ÉQUIPER
    s'allume juste à côté — le joueur décide. */
+$('gRar').addEventListener('click',e=>{const b=e.target.closest('.gR');if(!b)return;e.stopPropagation();uiPop(b);hap(8);
+  const L=rarListe(b.getAttribute('data-r'));if(!L.length)return;const eq=SAVE.d.equipped|0;
+  garageSaute(L.indexOf(eq)>=0?eq:L[0]);});
+$('gStrip').addEventListener('click',e=>{const t=e.target.closest('.gT');if(!t)return;e.stopPropagation();uiPop(t);hap(8);garageSaute(+t.getAttribute('data-car'));});
+// aller DIRECTEMENT à une caisse (vignette, famille) — avec la bascule du plateau, comme les flèches
+function garageSaute(i){if(i===garageI||!(i>=0))return;
+  if(!garageOn||!GAR.root||GAR.sw){garageShow(i);return;}
+  GAR.sw={t:0,fait:false,to:i};try{chimeNote(880,0,.16,.14);noiseBurst(.35,.09,900);}catch(e){}}
 $('gBuy').addEventListener('click',e=>{e.stopPropagation();
+  if(SHOP.tab==='voiture'&&e.currentTarget.dataset.bout==='1'){uiClic();hap(8); // LÉGENDAIRE : direction la BOUTIQUE
+    ecranWipe(function(){closeGarage();const b=document.querySelector('#mob [data-m=shop]');if(b)setTimeout(function(){b.click();},30);});return;}
   if(SHOP.tab!=='voiture'){const c9=SHOP.tab,i9=SHOP.i[c9],r9=shopBuy(c9,i9);
     if(!r9.ok){if(r9.raison==='fonds-insuffisants'){gSecoue(e.currentTarget);uiClic();toast(pxi('croix')+' '+TR('IL TE MANQUE')+' '+fmtC(r9.manque));}return;}
     shopShow(c9,i9);toast(pxi('coche')+' '+TR(COSM[c9][i9].n)+' — '+fmtC(r9.paye));hap([10,30,20,30,40]);pixBurst($('gCard'),26);
