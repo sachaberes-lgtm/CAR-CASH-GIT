@@ -3558,9 +3558,10 @@ const FXAA_ON=IS_MOBILE||IS_LOW_END||devicePixelRatio>=1.5; // (2026-09-26, audi
 const ACES_N=IS_MOBILE?6:8;   // flou radial du boost : 18 lectures de texture au téléphone au lieu de 24 (le grain animé fond les copies)
 const ACESShader={
   uniforms:{tDiffuse:{value:null},uExposure:{value:POST_EXPO},uSat:{value:POST_SAT},uContrast:{value:POST_CONTRAST},
-            uVivid:{value:POST_VIVID},uWB:{value:POST_WB},uSh:{value:POST_SHADOW},uHi:{value:POST_HI},uSpeed:{value:0},uJit:{value:0},uRes:{value:new THREE.Vector2(1/1024,1/1024)}},
+            uVivid:{value:POST_VIVID},uWB:{value:POST_WB},uSh:{value:POST_SHADOW},uHi:{value:POST_HI},uSpeed:{value:0},uJit:{value:0},uRes:{value:new THREE.Vector2(1/1024,1/1024)},
+            uVigK:{value:.52},uVigC:{value:new THREE.Vector3(.149,.047,.212)}}, // (2026-09-26, vague 2) la VIGNETTE du niveau (ex-calque DOM #vig), posée par bioApply
   vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
-  fragmentShader:['uniform sampler2D tDiffuse;uniform float uExposure,uSat,uContrast,uVivid,uSpeed,uJit;uniform vec3 uWB,uSh,uHi;uniform vec2 uRes;varying vec2 vUv;',
+  fragmentShader:['uniform sampler2D tDiffuse;uniform float uExposure,uSat,uContrast,uVivid,uSpeed,uJit,uVigK;uniform vec3 uWB,uSh,uHi,uVigC;uniform vec2 uRes;varying vec2 vUv;',
     // (2026-09-26, audit rendu) LES HAUTES LUMIÈRES ROULENT au lieu de s'écraser : en NUAGES, 98 % du haut de l'image avait un canal au
     // plafond (un aplat bleu électrique, des nuages brûlés). Le coude garde la TEINTE (on divise les trois canaux ensemble) : tout ce
     // qui tenait déjà sous .86 ne bouge pas d'un iota — seuls les pixels qui saturaient retrouvent leur dégradé.
@@ -3576,7 +3577,10 @@ const ACESShader={
     '    for(int i=0;i<'+ACES_N+';i++){ float t='+(ACES_N<8?'(float(i)+jt)/'+ACES_N+'.0':'float(i)/7.0')+'; vec2 off=dir*amt*t*0.62;',
     '      acc+=texture2D(tDiffuse,buv-off).rgb; }',            // (2026-09-26) UNE lecture par prise (il y en avait trois : 18 lectures par pixel au téléphone)
     '    x=acc/'+ACES_N+'.0;',
-    '    { vec2 mid=buv-dir*amt*0.31, ca=dir*amt*0.05;',        // l'aberration chromatique : deux prises suffisent pour écarter le rouge et le bleu
+    // L'ABERRATION CHROMATIQUE (2026-09-26, vague 2) — MESURÉ : au boost, chaque bord de nuage et chaque fenêtre de la ville s'ourlait
+    // d'un ARC-EN-CIEL rose/jaune/cyan de 10-12 px (×.05 de l'amplitude du flou, dès le centre). Réduite au TIERS et seulement au-delà de
+    // 45 % du rayon (le bord de l'image fuit, le centre reste propre) — et COUPÉE au téléphone : deux lectures de texture en moins par pixel.
+    IS_MOBILE?'':'    { vec2 mid=buv-dir*amt*0.31, ca=dir*amt*0.015*smoothstep(.45,.9,r);'+
     '      x.r=mix(x.r,texture2D(tDiffuse,mid-ca).r,0.5); x.b=mix(x.b,texture2D(tDiffuse,mid+ca).b,0.5); }',
     '  } else {',
     FXAA_ON?[ // ANTICRÉNELAGE LÉGER (FXAA simplifié) — seulement image nette (le flou de boost lisse déjà) ; hors bord, 5 lectures et on sort
@@ -3603,7 +3607,11 @@ const ACESShader={
     'c+=uHi*smoothstep(0.5,1.0,l2);',                   // split-tone : lumières OR
     'c*=1.0-uSpeed*smoothstep(0.30,0.85,r)*0.55;',      // TUNNEL DE VITESSE : les bords plongent dans le noir, l'œil file au centre
     GRADE_ACES?'c=max(c,0.);c=max(mix(vec3(dot(c,LUM)),c,1.12),0.);c=max((c-.5)*1.05+.5,0.)*.97;':'', // = saturate(1.12) contrast(1.05) brightness(.97) du CSS, même ordre
-    'gl_FragColor=vec4(clamp(roule(c),0.,1.),1.0);}'].join('\n')
+    // LA VIGNETTE (2026-09-26, vague 2) — c'était un calque DOM plein écran (#vig) : violet, fixe à 52 %, même en plein jour cobalt. Elle
+    // vit ici, par niveau (uVigK/uVigC, posés par bioApply). Même dessin au pixel que l'ancien dégradé CSS (ellipse centrée à 44 % du
+    // haut, taille « coin le plus loin », transparente jusqu'à mi-chemin puis linéaire) : la VILLE garde exactement son cadre.
+    '{vec2 vq=vec2((vUv.x-.5)/.5,(vUv.y-.56)/.44);float vg=clamp(length(vq)*1.2354-1.,0.,1.);',
+    'gl_FragColor=vec4(mix(clamp(roule(c),0.,1.),uVigC,uVigK*vg),1.0);}}'].join('\n')
 };
 const CAN_POST=typeof THREE.EffectComposer==='function'&&typeof THREE.RenderPass==='function'&&typeof THREE.UnrealBloomPass==='function'&&typeof THREE.ShaderPass==='function';
 if(CAN_POST){ try{
@@ -3636,6 +3644,7 @@ if(CAN_POST){ try{
   composer.addPass(bloomPass);
   acesPass=new THREE.ShaderPass(ACESShader);acesPass.renderToScreen=true;composer.addPass(acesPass);
   POST_ON=true;
+  {const v9=document.getElementById('vig');if(v9)v9.style.display='none';} // (2026-09-26, vague 2) la vignette est dans l'ACES : un calque plein écran de moins (si le post échoue, #vig reste le repli)
   if(GRADE_ACES)document.body.classList.add('post'); // le shader étalonne → le CSS se retire (si le post échoue, la classe n'est jamais posée : le filtre reste le repli)
 }catch(e){composer=null;POST_ON=false;} }
 
@@ -6472,33 +6481,42 @@ const BIOMES={
     volSun:[2.30,1.25,.85],volSky:[.42,.45,.73],volGnd:[.16,.13,.23],volAmb:.61,
     expo:.90,sat:1.37,
     env:[[0,'#2e5a9e'],[.3,'#7a7ab0'],[.48,'#f09a72'],[.58,'#ffb870'],[.66,'#6a5a70'],[1,'#2a3050']],eS1:[255,190,140,.52],eS2:[130,190,255,.34]},
+  /* ---- LE JOUR COBALT (2026-09-26, vague 2 « L'ENCRE ET L'OR ») — MATIN · MIDI · APREM = LE NIVEAU 1, les NUAGES ----
+     MESURÉ avant : le niveau le plus DÉLAVÉ du jeu, et c'est le PREMIER qu'on voit (saturation .39-.49, luminosité .85-.98, 9 à 20 %
+     de pixels pastel dans le monde). Trois causes, toutes dans ces lignes : (1) l'exposition à 1,00-1,06 envoyait la ouate au plafond
+     avant même l'ACES ; (2) le remplissage du ciel (`hemiI` .78-.95) écrasait le soleil — tout était éclairé pareil, donc plat ; (3) une
+     brume LAITEUSE (#b3cff5) noyait tout ce qui passait 600 m. Désormais : exposition .92-.94, saturation 1,34-1,37, le ciel ne fait
+     plus que REMPLIR (`hemiI` .64-.68, teinté bleu ciel) et le soleil reprend la main, brume COBALT (#5c80eb de la bible), zénith bleu
+     roi et non plus violet électrique (`skyMul` bleu 1,88 → 1,62 et du VERT : aux valeurs de l'audit, .80/1,18/1,40, l'étalonnage plus
+     saturé écrasait le zénith en marine #000081 — mesuré rendu). Le lift d'horizon passe CHAUD, bleu NÉGATIF (il retire le bleu au ras
+     de l'horizon) : la bande basse passe d'orchidée #ce7bd4 à rose #e385af (bible : #ffb98a→#ff8fb1) au lieu d'un voile blanc-bleu.
+     Reflets de laque (`env`) repeints cobalt. Bancs : scratchpad gfx2-etal/ciel2.js (ciel rendu), nuage-mesure.js (dessus/ventre). */
   // ---- MATIN CLAIR : l'air lavé, la lumière propre ----
-  // Le biome le plus NET du jeu : cyan franc, soleil blanc-doré, zéro rose. Il sert de respiration
-  // au milieu de tout ce violet — c'est justement son contraste avec le reste qui le rend beau.
-  matin:{ nm:'MATIN CLAIR', skyMul:[1.00,1.26,1.76],skyLift:[.05,.10,.17],sunTint:[1,.92,.74],sunHalo:.70,city:0,stars:0,moon:.08,
-    fog:[.62,.75,.89],fogN:520,fogF:3200,
-    hemiS:[.81,.91,1.0],hemiG:[.30,.34,.43],hemiI:.88, sunC:[1,.95,.84],sunI:1.30,
+  // Le plus NET des trois : cobalt clair, soleil blanc-doré, une pointe de pêche à l'horizon.
+  matin:{ nm:'MATIN CLAIR', skyMul:[.94,1.42,1.62],skyLift:[.22,.12,-.06],sunTint:[1,.92,.74],sunHalo:.70,city:0,stars:0,moon:.08,
+    fog:[.36,.52,.92],fogN:520,fogF:3200,
+    hemiS:[.72,.82,1.0],hemiG:[.26,.24,.40],hemiI:.68, sunC:[1,.95,.84],sunI:1.40,
     fillC:[.48,.63,.89],fillI:.24, kickC:[1,.86,.68],kickI:.08,
     volSun:[2.00,1.85,1.55],volSky:[.58,.72,.96],volGnd:[.34,.38,.49],volAmb:.84,
-    expo:1.04,sat:1.20,
-    env:[[0,'#4a8ad8'],[.3,'#8ab4e8'],[.48,'#d8e4f2'],[.58,'#f2ecd8'],[.66,'#9aa8bc'],[1,'#5a6c8a']],eS1:[255,250,235,.44],eS2:[160,205,250,.32]},
+    expo:.94,sat:1.34,
+    env:[[0,'#2446e8'],[.3,'#4f7cff'],[.48,'#a9c2f7'],[.58,'#ffe2c4'],[.66,'#5a6cc0'],[1,'#232046']],eS1:[255,248,232,.44],eS2:[120,190,255,.32]},
   // ---- PLEIN MIDI : le soleil au zénith, la lumière qui cogne ----
-  // Le plus LUMINEUX : bleu cobalt profond au-dessus, soleil quasi blanc, ombres courtes et dures.
-  // Saturation volontairement plus basse — à cette heure c'est la LUMIÈRE qui claque, pas la teinte.
-  midi:{ nm:'PLEIN MIDI', skyMul:[.88,1.20,1.88],skyLift:[.03,.07,.15],sunTint:[1,.97,.90],sunHalo:.55,city:0,stars:0,moon:0,
-    fog:[.70,.81,.96],fogN:580,fogF:3500,
-    hemiS:[.85,.92,1.0],hemiG:[.38,.36,.39],hemiI:.95, sunC:[1,.99,.94],sunI:1.42,
+  // Le plus LUMINEUX : cobalt profond au-dessus, soleil quasi blanc, ombres courtes et dures, teintées d'encre.
+  midi:{ nm:'PLEIN MIDI', skyMul:[.84,1.40,1.62],skyLift:[.22,.12,-.06],sunTint:[1,.97,.90],sunHalo:.55,city:0,stars:0,moon:0,
+    fog:[.30,.50,.95],fogN:580,fogF:3500,
+    hemiS:[.70,.80,1.0],hemiG:[.24,.22,.38],hemiI:.66, sunC:[1,.97,.88],sunI:1.50,
     fillC:[.42,.57,.93],fillI:.18, kickC:[1,.92,.80],kickI:.06,
     volSun:[2.30,2.20,2.00],volSky:[.55,.70,1.00],volGnd:[.38,.40,.49],volAmb:.92,
-    expo:1.06,sat:1.16,
-    env:[[0,'#2a72d8'],[.3,'#6aa2e8'],[.48,'#cfe2f5'],[.58,'#ffffff'],[.66,'#a8b4c4'],[1,'#68788e']],eS1:[255,255,250,.48],eS2:[150,200,255,.30]},
-  aprem:{ nm:'FIN D\'APRÈS-MIDI', skyMul:[1.22,1.38,1.70],skyLift:[.06,.10,.18],sunTint:[1,.80,.55],sunHalo:.85,city:0,stars:0,moon:.15,
-    fog:[.66,.70,.82],fogN:460,fogF:3000,
-    hemiS:[.85,.88,.95],hemiG:[.32,.30,.38],hemiI:.78, sunC:[1,.88,.72],sunI:1.15,
+    expo:.94,sat:1.36,
+    env:[[0,'#2446e8'],[.3,'#4f7cff'],[.48,'#9fb8f5'],[.58,'#fff1de'],[.66,'#4f64c4'],[1,'#232046']],eS1:[255,252,244,.46],eS2:[120,190,255,.30]},
+  // ---- FIN D'APRÈS-MIDI : le cobalt qui chauffe, la mer qui rosit ----
+  aprem:{ nm:'FIN D\'APRÈS-MIDI', skyMul:[1.00,1.22,1.55],skyLift:[.24,.12,-.06],sunTint:[1,.80,.55],sunHalo:.85,city:0,stars:0,moon:.15,
+    fog:[.55,.45,.82],fogN:460,fogF:3000,
+    hemiS:[.74,.70,.98],hemiG:[.26,.20,.36],hemiI:.64, sunC:[1,.88,.72],sunI:1.30,
     fillC:[.55,.62,.80],fillI:.22, kickC:[1,.75,.60],kickI:.08,
     volSun:[1.75,1.55,1.30],volSky:[.60,.66,.88],volGnd:[.34,.34,.44],volAmb:.78,
-    expo:1.00,sat:1.18,
-    env:[[0,'#7fa8d8'],[.3,'#a8c0e0'],[.48,'#e8d4b8'],[.58,'#f2d8a8'],[.66,'#98a0b8'],[1,'#5a6a92']],eS1:[255,244,220,.42],eS2:[180,210,245,.3]},
+    expo:.92,sat:1.37,
+    env:[[0,'#3a4ee0'],[.3,'#6a7cf0'],[.48,'#d8a8c8'],[.58,'#ffc9a0'],[.66,'#6a5aa8'],[1,'#261c48']],eS1:[255,226,196,.46],eS2:[150,180,255,.3]},
   golden:{ nm:'GOLDEN HOUR', skyMul:[1.30,1.05,.92],skyLift:[.12,.05,.02],sunTint:[1,.62,.30],sunHalo:1.15,city:.15,stars:0,moon:.25,
     fog:[.80,.55,.38],fogN:400,fogF:2500,
     hemiS:[.95,.78,.62],hemiG:[.26,.20,.26],hemiI:.60, sunC:[1,.72,.36],sunI:1.55,
@@ -6576,7 +6594,39 @@ const BIOMES={
     volSun:[.95,1.0,1.25],volSky:[.20,.24,.34],volGnd:[.05,.06,.09],volAmb:.44,
     expo:.72,sat:1.38,
     env:[[0,'#10141e'],[.3,'#1c2434'],[.48,'#3a4a5e'],[.58,'#6a3a6a'],[.66,'#1a2030'],[1,'#080a12']],eS1:[255,90,200,.45],eS2:[80,230,255,.35]},
+  // ---- L'ATELIER (2026-09-26, vague 2) : l'ambiance du GARAGE — jamais tirée, posée par openGarage, rendue à la fermeture ----
+  // MESURÉ avant : saturation .42-.56, les caisses blanches BRÛLÉES — l'atelier héritait du ciel et du SOLEIL de la dernière course
+  // (plein midi : `hemiI` .95 + soleil 1,42 à travers les murs) EN PLUS de ses deux lampes et de ses cônes additifs. Un atelier, c'est
+  // deux lampes et beaucoup d'ombre : le ciel ne fait plus que déboucher (.32), le soleil n'est plus qu'un souvenir (.5), l'exposition
+  // descend (.82) et la couleur remonte (1,35). Le ciel, les étoiles et la laque restent ceux de garageRender / paintEnvAtelier.
+  atelier:{ nm:'ATELIER', skyMul:[.62,.92,1.34],skyLift:[0,0,0],sunTint:[1,.90,.80],sunHalo:.12,city:0,stars:1.7,moon:1.5,
+    fog:[.05,.05,.08],fogN:900,fogF:4200,
+    hemiS:[.62,.66,.80],hemiG:[.10,.08,.14],hemiI:.32, sunC:[1,.93,.84],sunI:.50,
+    fillC:[.30,.45,.80],fillI:.14, kickC:[.90,.35,.70],kickI:.08,
+    volSun:[1.2,1.1,1.0],volSky:[.2,.2,.3],volGnd:[.05,.05,.08],volAmb:.40,
+    expo:.82,sat:1.35,
+    env:[[0,'#06070b'],[.47,'#2b313d'],[1,'#0a0b0f']],eS1:[255,226,184,.5],eS2:[130,220,255,.4],
+    wb:[1,.99,.975],sh:[.012,.002,.04],hi:[.04,.022,0],con:1.20,bloomS:.36,bloomT:.90,vigK:.46,vigC:[.11,.016,.19],rimK:0,rimS:.40},
 };
+/* L'ÉTALONNAGE PAR NIVEAU (2026-09-26, vague 2 « L'ENCRE ET L'OR ») — UN MONDE, TROIS HEURES, LA MÊME ENCRE.
+   Jusqu'ici la balance des blancs, la teinte des ombres et des hautes lumières, le contraste, le bloom et la vignette étaient des
+   CONSTANTES : le plein jour héritait du voile magenta et des ombres violettes de la nuit, et d'une vignette violette à 52 %. Chaque
+   biome porte désormais son étalonnage, et `bioApply` (qui reste LE SEUL écrivain) le pousse dans l'ACES, le bloom et le liseré :
+   · wb/sh/hi/con : balance des blancs, ombres (teintées d'ENCRE, jamais grises), hautes lumières, contraste ;
+   · bloomS/bloomT : force (base desktop — le téléphone garde son rapport .44/.54, voir BLOOM_K) et seuil du bloom ;
+   · vigK/vigC : la vignette, désormais DANS l'ACES (voir ACESShader) — sa force et sa couleur ;
+   · rimK/rimS : d'où vient le liseré des caisses (0 = le soleil, 1 = le néon du `kick`, le contre-jour de la nuit) et sa force ;
+   · fogIn/fogCj : la couleur du white-out DANS un nuage, et celle de la brume à contre-jour.
+   Un biome sans étalonnage reçoit les valeurs d'avant (`BIO_ETAL0`) : la ville, l'heure bleue, le soir… ne bougent pas d'un bit.
+   ⚠ bioLerp parcourt les clés du biome d'ARRIVÉE : le remplissage ci-dessous garantit que TOUS les biomes les ont toutes. */
+const BIO_ETAL0={wb:[1.02,.985,1.03],sh:[.004,-.008,.062],hi:[.052,.008,-.014],con:1.23,bloomS:.54,bloomT:.92,vigK:.52,vigC:[.149,.047,.212],
+  rimK:0,rimS:.40,fogIn:[.847,.737,.816],fogCj:[.753,.416,.329]};
+const ETAL_JOUR={wb:[1,.995,.97],sh:[.010,.002,.05],hi:[.07,.045,-.015],con:1.18,bloomS:.28,bloomT:.95,vigK:.24,vigC:[.11,.016,.19],
+  rimK:0,rimS:.40,fogIn:[.87,.95,1],fogCj:[.96,.68,.54]}; // le JOUR cobalt : ombres encre-bleu, hautes lumières CRÈME (mesuré sur masque, dessus de nuage à midi : lilas #e8ddf1 → #f2e2e6, vers la crème #fff4e6 de la bible, ni rose ni vert), bloom retenu (la ouate est déjà blanche), vignette légère
+for(const k9 of ['matin','midi','aprem'])Object.assign(BIOMES[k9],JSON.parse(JSON.stringify(ETAL_JOUR)));
+Object.assign(BIOMES.pluie,{bloomS:.55,bloomT:.88,rimK:1,rimS:.55}); // VILLE : l'étalonnage d'avant (déjà au niveau) — le liseré vient du NÉON de contre-jour
+Object.assign(BIOMES.espace,{fog:[.016,.02,.055],wb:[.98,1,1.04],sh:[.008,.008,.03],hi:[.03,.03,.03],con:1.28,bloomS:.50,bloomT:.90,vigK:.42,vigC:[.05,.012,.09],rimK:1,rimS:.50}); // ORBITE : le vide NOIR et froid, un contraste dur ; la brume n'est plus le noir absolu mais le noir bleuté #04050e de la bible (le lointain de la route s'y fond, et la brillance d'horizon du bitume, qui en prend la couleur, n'est plus nulle)
+for(const k9 in BIOMES)for(const f9 in BIO_ETAL0)if(BIOMES[k9][f9]==null)BIOMES[k9][f9]=JSON.parse(JSON.stringify(BIO_ETAL0[f9]));
 // Le tirage du jour, dans l'ordre des heures (+ l'ORAGE en joker météo) — la NUIT ne se tire pas,
 // elle se MÉRITE (3 portails). 9 ambiances en rotation : deux parties ne se ressemblent plus.
 const BIO_DAY=['aube','lever','matin','midi','aprem','golden','couchant','soir','orage'];
@@ -6598,16 +6648,29 @@ function bioApply(c){ // pousse l'ambiance mélangée dans TOUS les organes (uni
   // NUAGES : mesh Lambert — ils prennent déjà l'éclairage du biome (hemi/soleil). On teinte en plus
   // leur matière avec la couleur solaire du biome pour qu'ils virent crème le soir et bleus la nuit.
   CLOUD_MAT.color.setRGB(Math.min(1,.55+c.volSun[0]*.16),Math.min(1,.55+c.volSun[1]*.16),Math.min(1,.55+c.volSun[2]*.16));
-  POST_EXPO=c.expo;if(acesPass)acesPass.uniforms.uSat.value=c.sat;
+  POST_EXPO=c.expo;
+  // (2026-09-26, vague 2) L'ÉTALONNAGE DU NIVEAU (voir BIO_ETAL0) : balance, ombres d'encre, hautes lumières, contraste, vignette
+  if(acesPass){const U=acesPass.uniforms;U.uSat.value=c.sat;U.uWB.value.fromArray(c.wb);U.uSh.value.fromArray(c.sh);U.uHi.value.fromArray(c.hi);
+    U.uContrast.value=c.con;U.uVigK.value=c.vigK;U.uVigC.value.fromArray(c.vigC);}
+  // le BLOOM du niveau : musicTick module la force au beat autour de `musicTick._bloom` — c'est donc la BASE qu'on écrit
+  if(bloomPass){musicTick._bloom=c.bloomS*BLOOM_K;bloomPass.threshold=c.bloomT;}
+  // LE LISERÉ : du côté de LA source du niveau — le soleil le jour, le néon du kick la nuit (sa couleur ×1,4 : un contre-jour, pas un reflet)
+  RIM_DIR.copy(SUN_DIR).lerp(KICK_DIR,c.rimK).normalize();
+  RIM_C0.setRGB(1,.851,.627).lerp(RIM_T9.setRGB(c.kickC[0]*1.4,c.kickC[1]*1.4,c.kickC[2]*1.4),c.rimK);
+  RIM_U.uRimStr.value=c.rimS;
+  FOG_CLOUD.setRGB(c.fogIn[0],c.fogIn[1],c.fogIn[2]);FOG_CJ.setRGB(c.fogCj[0],c.fogCj[1],c.fogCj[2]); // le white-out et le contre-jour prennent l'air du niveau
   // le SOLEIL « 1.61 », sa nappe d'horizon et ses rayons sont des SPRITES hors shader : ils suivent le halo du biome
   const nuit9=(1-LVL.espace)*(1-LVL.pluie); // ORBITE, NOIR COMPLET — et sous le plafond de PLUIE de la ville, pas de soleil non plus : même le disque « 1.61 » s'éteint (lvlStep tourne AVANT bioStep : la valeur est fraîche)
   sunSprite.material.opacity=Math.min(1,.15+c.sunHalo*.85)*nuit9;
   horizonGlow.material.opacity=.8*c.sunHalo*nuit9;
   for(const r9 of RAYS)r9.material.opacity=RAY_OPACITY*c.sunHalo*nuit9;
 }
+// le liseré des caisses : direction MONDE et teinte de repos, posées par bioApply, relues chaque image par la boucle (voir RIM_U)
+const RIM_DIR=SUN_DIR.clone(),RIM_C0=new THREE.Color(0xffd9a0),RIM_T9=new THREE.Color(),KICK_DIR=kick.position.clone().normalize();
+const BLOOM_K=IS_MOBILE?.44/.54:1; // le téléphone garde son rapport de bloom (.44 contre .54 sur PC) : les forces des biomes sont des bases PC
 function bioGo(name,dur){ // lance le voyage vers un biome (reflets carrosserie repeints tout de suite : discret)
   if(!BIOMES[name])name='golden';
-  BIO.from=JSON.parse(JSON.stringify(BIO.cur));BIO.to=BIOMES[name];BIO.k=0;BIO.dur=dur||4;BIO.name=name;
+  BIO.from=JSON.parse(JSON.stringify(BIO.cur));BIO.to=BIOMES[name];BIO.k=0;BIO.dur=dur||4;BIO.name=name;BIO.dip=0;
   paintEnv(BIO.to.env,BIO.to.eS1,BIO.to.eS2);
 }
 function bioStep(dt){
@@ -6615,8 +6678,14 @@ function bioStep(dt){
   BIO.k=Math.min(1,BIO.k+dt/BIO.dur);
   const e=BIO.k*BIO.k*(3-2*BIO.k); // smoothstep : le ciel bascule sans à-coup
   bioLerp(BIO.from,BIO.to,e,BIO.cur);
-  bioApply(BIO.cur);
+  bioApply(BIO.cur);BIO.pas=(BIO.pas|0)+1; // (le compteur de pas : la vitrine du menu sait qu'on a repeint derrière elle)
+  /* LE PASSAGE DU PORTAIL (2026-09-26, vague 2) — MESURÉ avant : 4 s de brume LAITEUSE (saturation .30) où la ville surgissait d'un
+     coup dans l'air du jour. Le fondu est désormais court (BIO_PORTAIL) et il passe PAR LE SOMBRE : brume et exposition plongent au
+     milieu du trajet (sin π·e, nul aux deux bouts) — la membrane de l'ovule, un clin d'œil de caméra. Aucun mélange ne se voit plus :
+     on quitte un monde, on cligne, on est dans l'autre. `BIO.dip` n'est posé que par newTrack en course (jamais au menu ni par dbgBio). */
+  if(BIO.dip>0){const d9=Math.sin(Math.PI*e)*BIO.dip;FOG_BASE.multiplyScalar(1-.6*d9);POST_EXPO*=1-.3*d9;}
 }
+const BIO_PORTAIL=1.2; // (2026-09-26, vague 2) la durée du changement de monde au portail (était 4 s)
 window.dbgBio=function(n,d){bioGo(n,d||2);}; // console : dbgBio('nuit') → tester une heure du ciel sans farmer les portails (d = durée du lerp en s)
 /* ============================================================================
    LES NIVEAUX (2026-09-24) — « certains dans l'espace avec la planète, d'autres dans les nuages,
@@ -6649,7 +6718,7 @@ const NIVEAUX=[ // ⚠ ORDRE (2026-09-25 au soir, user) : « remets le niveau da
   // planete 0 aux NUAGES (user : « ne mets pas la Terre dans le niveau dans les nuages ») · route/sheen : clarté et brillance du bitume (routeTick)
   {id:'nuages',nm:'MER DE NUAGES',        bio:['matin','midi','aprem'],planete:0,   espace:0,pluie:0,cielMusical:false,route:0,  sheen:.06},
   {id:'ville', nm:'AU-DESSUS DE LA VILLE',bio:['pluie'],               planete:0,   espace:0,pluie:1,cielMusical:true, route:.7, sheen:.12}, // route plus CLAIRE : elle se détache de la ville sombre (user) ; sheen : bitume mouillé par la pluie
-  {id:'espace',nm:'EN ORBITE',            bio:['espace'],              planete:1.35,espace:1,pluie:0,cielMusical:false,route:.2, sheen:.04},
+  {id:'espace',nm:'EN ORBITE',            bio:['espace'],              planete:1.35,espace:1,pluie:0,cielMusical:false,route:.9, sheen:.12}, // (2026-09-26, vague 2) route .2 → .9 : la route (#050212 sur du noir) DISPARAISSAIT — MESURÉ : sous le contraste dur de l'orbite (1,28) tout ce qui sort de l'ACES sous ~.11 tombe au noir, .4 ne suffisait pas (#000008) ; à .9 le ruban se lit, encre indigo #0f0737 sur le vide
 ];
 const LVL={cur:null,n:0,k:1,dur:4,
   espace:0,espaceDe:0,espaceA:0,       // uSpace : 0 = le ciel de toujours, 1 = le noir étoilé de l'orbite
@@ -12047,7 +12116,7 @@ window.dbgStep=function(n,ms){
 };
 window.CASHCAR_BUILD='2026-07-20 v5 (anti-flicker + anti-cache)'; // vérif version : taper CASHCAR_BUILD en console
 console.log('%c🏎 CASH CAR — build '+CASHCAR_BUILD,'color:#f24aa0;font-weight:bold'); // si ce texte n'apparaît pas au chargement → tu es sur une VIEILLE version en cache (Ctrl+Shift+R)
-window.dbgPerf=function(){return {ms:+(loop._ms||0).toFixed(1),fps:Math.round(1000/Math.max(1,loop._ms||16)),spikes:+(loop._spk||0).toFixed(1),dpr:+curDPR.toFixed(2),dprCeil:loop._dprCeilT?+loop._dprCeil.toFixed(2):null,cloudIn:+cloudInS.toFixed(2),nuages:CLOUDS.length,tier:QUAL_LOW?'LOW':QUAL_MED?'MED':'FULL'};};
+window.dbgPerf=function(){return {ms:+(loop._ms||0).toFixed(1),fps:Math.round(1000/Math.max(1,loop._ms||16)),spikes:+(loop._spk||0).toFixed(1),dpr:+curDPR.toFixed(2),dprCeil:loop._dprCeilT?+loop._dprCeil.toFixed(2):null,cloudIn:+cloudInS.toFixed(2),nuages:CLOUDS.length,tier:QUAL_LOW?'LOW':QUAL_MED?'MED':'FULL',r30:!!loop._r30,jit:+(loop._jit||0).toFixed(1)};};
 // dbgDiff : EXPÉRIENCE CONTRÔLÉE DU CLIGNOTEMENT — même instant, on ne bouge QUE la caméra (position
 // dpos m + lacet dyaw rad), on rend 2 images et on mesure la différence par cellules. Un flicker
 // caméra = grosse différence pour un tout petit mouvement. En comparant dbgDiff avant/après dbgFlicker,
@@ -12095,7 +12164,8 @@ window.dbgView=function(a,d,h){ // MODE PHOTO : force la pause, cadre la caisse 
   if(started&&!gameOver&&!paused)togglePause(); // sans pause, la chase-cam écrase le cadrage à la frame suivante
   const p=carGroup.position;
   camera.position.set(p.x+Math.sin(a)*(d||9),p.y+(h==null?2.4:h),p.z+Math.cos(a)*(d||9));
-  camera.lookAt(p.x,p.y+.7,p.z);
+  camera.lookAt(p.x,p.y+.7,p.z);camera.updateMatrixWorld();
+  RIM_U.uSunV.value.copy(RIM_DIR).transformDirection(camera.matrixWorldInverse); // (2026-09-26, vague 2) le liseré suit la caméra de la PHOTO (il gardait celle de la poursuite)
   if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
 };
 // ombre portée sous la voiture
@@ -19414,8 +19484,9 @@ function newTrack(){
   else if(runStats.zones>=3)nb9='nuit';
   else do{nb9=BIO_DAY[(Math.random()*BIO_DAY.length)|0];}while(nb9===BIO.name);
   const nightFalls=!niv&&started&&nb9==='nuit'&&BIO.name!=='nuit'; // capturé AVANT bioGo (qui écrase BIO.name)
-  bioGo(nb9,started?4:.01); // lerp 4 s au portail (et au replay), instantané au boot
-  lvlGo(started?4:.01);     // …et le monde (étoiles de l'orbite, taille de la planète) bascule avec lui
+  bioGo(nb9,started?BIO_PORTAIL:.01); // (2026-09-26, vague 2) 1,2 s au portail (et au replay) en passant par le sombre (voir bioStep) — c'était 4 s de brume laiteuse ; instantané au boot
+  if(started)BIO.dip=1;
+  lvlGo(started?BIO_PORTAIL:.01);     // …et le monde (étoiles de l'orbite, taille de la planète) bascule avec lui
   if(niv&&started&&!gameOver&&runStats.zones>0)lvlAnnonce(); // « NIVEAU 2 — MER DE NUAGES » (le niveau 1, lui, s'annonce après le logo du départ : voir fireLaunchBoost)
   else if(nightFalls)showMsg('LA NUIT TOMBE…','#9ac8ff'); // le déblocage s'annonce
   computeMinimap();
@@ -20926,6 +20997,11 @@ function openGarage(quiet){
   if(!GAR.root)buildGarageRoom();   // L'ATELIER se bâtit à la PREMIÈRE visite : zéro coût pour qui n'y entre jamais
   GAR.root.visible=true;
   paintEnvAtelier(); // (2026-09-26) la laque reflète l'ATELIER (tubes, clé chaude, contre-jour cyan), plus le ciel de la dernière course
+  // (2026-09-26, vague 2) …et l'atelier a SA lumière (biome `atelier`) au lieu du ciel et du soleil de la dernière course. Posée hors
+  // du voyage BIO (BIO.cur reste le ciel du niveau) : closeGarage le rend tel quel. Un voyage en cours se termine d'abord, sinon
+  // bioStep repeindrait le ciel du biome par-dessus l'atelier à chaque image.
+  if(BIO.k<1){BIO.k=1;bioLerp(BIO.from,BIO.to,1,BIO.cur);}
+  bioApply(BIOMES.atelier);MENUV.bio=false;
   garageAng=.42;garagePitch=.22;garageDist=7.8; // départ trois-quarts avant : on voit la caisse ET l'établi derrière ; ⚠ 6,9→7,8 (2026-09-05, « trop zoomé ») — la caisse ne mange plus tout le cadre
   garageShow(level||0);
 }
@@ -20980,23 +21056,64 @@ function trailApercu(dt,on){
    elle restait figée au-dessus de la route, visée nulle part — un disque lumineux sur du noir, pas de voiture. Désormais
    un PLAN DE CINÉMA : ta caisse posée sur la route, filmée en contre-plongée trois-quarts avant, la caméra qui tourne
    lentement autour, la ville et ses tours derrière. Jamais pendant une partie ni au garage. */
-const MENUV={t:0,cam:new THREE.Vector3(),vis:new THREE.Vector3()};
+/* LA VITRINE AU COUCHANT (2026-09-26, vague 2) — MESURÉ : l'écran n°1 du jeu (et la capture App Store n°1) montrait un dégradé bleu
+   et une route noire — le ciel du niveau tiré au hasard, pris de 1,9 m, l'horizon au milieu de l'image. Désormais la vitrine a SON
+   heure : le COUCHANT et la mer de nuages, posés hors du voyage BIO (BIO.cur reste le ciel du niveau, rendu dès qu'on quitte l'accueil :
+   voir menuVitrineFin, et openGarage/closeGarage). Le PLAN se cherche une fois par piste, sur toute sa longueur : une portion droite
+   et à plat (la piste part souvent en rampe : la caméra filmait le ciel à 20° de tangage), dégagée (ni pièce, ni plot, ni nuage contre
+   l'objectif), et le trois-quarts avant SERRÉ qui met le soleil à ~23° de la caisse — hors du champ (un portrait ne fait que ~24° de
+   large, et le « 1.61 » se battait avec le titre), mais son halo embrase le bord de l'image. La caisse est garée au BORD de la route
+   (56 m de bitume noir mangeaient toute la moitié basse) et filmée de l'intérieur vers le dehors : derrière elle, le liseré, le vide, la
+   mer de nuages et, souvent, un gros cumulus. Caméra à 4 m, visée au-dessus du toit : l'horizon au tiers haut, la caisse vers 60-65 %
+   de la hauteur, entre le titre et JOUER — une affiche. Le balancier reste (la vitrine vit) mais il est BORNÉ : la caisse ne sort plus
+   par le bord. Hook : `dbgVitrine(cible)` (l'écart visé au soleil, en radians). Banc : scratchpad gfx2-etal/menu.js. */
+const MENUV={t:0,cam:new THREE.Vector3(),vis:new THREE.Vector3(),p:new THREE.Vector3(),bio:false,pas:-1,L:-1,s:60,a0:.55,sg:1,lat:0,cible:.4};
+const MENU_BIO='couchant';
+function menuPlan(){ // le meilleur couple (position, angle) pour filmer la caisse devant le couchant — une fois par piste
+  MENUV.L=L;let best=9;const sx=SUN_DIR.x,sz=SUN_DIR.z,sn=Math.hypot(sx,sz);
+  for(let s9=100;s9<=L-160;s9+=s9<600?20:60){
+    frameAt(s9-60,F);const ax=F.t.x,az=F.t.z,ny0=F.n.y;frameAt(s9+60,F);const bx=F.t.x,bz=F.t.z,ny1=F.n.y;
+    frameAt(s9,F);const plat=Math.min(ny0,ny1,F.n.y),droit=ax*bx+az*bz;
+    if(plat<.96||droit<.8)continue;                                                      // ni rampe, ni épingle (la piste part souvent en rampe : la caméra filmait le ciel à 20° de tangage)
+    const ld9=Math.max(0,ROAD_HALF-7);let eG=0,eD=0;                                     // rien devant l'objectif : une pièce ou un plot posé contre la caisse la masquait
+    for(const o of pickups)if(o.face>0&&Math.abs(o.s-s9)<40){if(Math.abs(o.lat+ld9)<16)eG++;if(Math.abs(o.lat-ld9)<16)eD++;}
+    for(const o of CONES)if(o.face>0&&Math.abs(o.s-s9)<40){if(Math.abs(o.lat+ld9)<16)eG++;if(Math.abs(o.lat-ld9)<16)eD++;}
+    for(const c of CLOUDS){const q=c.g.position,ry=Math.max(1,c.ry||c.r);                 // ni un nuage contre l'objectif (une masse floue qui mange l'affiche)
+      for(const sd of [-1,1]){const px=F.p.x+F.b.x*ld9*sd-q.x,py=F.p.y+F.b.y*ld9*sd-q.y,pz=F.p.z+F.b.z*ld9*sd-q.z,rr=c.r+60,rv=ry+60;
+        if((px*px+pz*pz)/(rr*rr)+py*py/(rv*rv)<1){if(sd<0)eG++;else eD++;}}}
+    for(let a9=-.65;a9<=.66;a9+=.05){if(Math.abs(a9)<.38)continue;                      // un trois-quarts avant SERRÉ : la caisse tient dans la largeur d'un portrait (plus large, l'arrière sortait du cadre)
+      const lx=-(Math.cos(a9)*F.t.x+Math.sin(a9)*F.b.x),lz=-(Math.cos(a9)*F.t.z+Math.sin(a9)*F.b.z),ln=Math.hypot(lx,lz)||1;
+      const ang=Math.acos(Math.max(-1,Math.min(1,(lx*sx+lz*sz)/(ln*sn))));             // l'écart entre le regard et le soleil
+      const sc=Math.abs(ang-MENUV.cible)+(1-plat)*8+(1-droit)*.6+(s9-100)*.00001+((a9<0?eD:eG)>0?1:0); // le soleil là où on le veut, une portion plate et droite, dégagée, près du départ
+      if(sc<best){best=sc;MENUV.s=s9;MENUV.a0=a9;}}}
+  MENUV.sg=MENUV.a0<0?-1:1;
+  MENUV.lat=-MENUV.sg*Math.max(0,ROAD_HALF-7); // garée du côté où l'on regarde : la caméra reste sur le bitume, le regard file vers le dehors
+}
+window.dbgVitrine=function(c){if(c!=null){MENUV.cible=c;MENUV.L=-1;}camera.getWorldDirection(tmp2);const h=Math.hypot(tmp2.x,tmp2.z)||1,sh=Math.hypot(SUN_DIR.x,SUN_DIR.z);
+  return {s:MENUV.s,a0:+MENUV.a0.toFixed(2),lat:+MENUV.lat.toFixed(1),L:Math.round(L),bio:MENUV.bio,tangage:+(Math.asin(tmp2.y)*57.3).toFixed(1),
+    ecartSoleilDeg:+(Math.acos(Math.max(-1,Math.min(1,(tmp2.x*SUN_DIR.x+tmp2.z*SUN_DIR.z)/(h*sh))))*57.3).toFixed(1),sunVis:sunSprite.visible,sunOp:+sunSprite.material.opacity.toFixed(2)};}; // (dev) le plan de la vitrine
+function menuVitrineFin(){ // on quitte l'accueil : le ciel du niveau reprend la main
+  MENUV.bio=false;bioApply(BIO.cur);paintEnv(BIO.to.env,BIO.to.eS1,BIO.to.eS2);skyU.uMer.value=LVL.mer;
+}
 function menuVitrine(dt){
   MENUV.t+=dt;
-  const S9=Math.min(L-10,60);frameAt(S9,F);
-  carGroup.position.copy(F.p);
+  if(!MENUV.bio||MENUV.pas!==BIO.pas){if(!MENUV.bio)paintEnv(BIOMES[MENU_BIO].env,BIOMES[MENU_BIO].eS1,BIOMES[MENU_BIO].eS2);MENUV.bio=true;MENUV.pas=BIO.pas;bioApply(BIOMES[MENU_BIO]);} // (bioStep a pu repeindre le ciel du niveau cette image : on repasse derrière)
+  skyU.uMer.value=1; // la mer de nuages sous l'horizon, même si le niveau du dessous (auto-école) a le ciel nu
+  if(MENUV.L!==L)menuPlan();
+  const S9=Math.min(L-10,MENUV.s);frameAt(S9,F);
+  MENUV.p.copy(F.p).addScaledVector(F.b,MENUV.lat);carGroup.position.copy(MENUV.p);
   mat4.makeBasis(tmp.crossVectors(F.n,F.t).normalize(),F.n,F.t);carGroup.quaternion.setFromRotationMatrix(mat4);carGroup.visible=true;
-  const a=.55+Math.sin(MENUV.t*.11)*.75,d=(CARS[level]||CARS[0]).l*2.1+5.5;   // un balancier lent entre trois-quarts avant gauche et droit
-  MENUV.cam.copy(F.p).addScaledVector(F.t,Math.cos(a)*d).addScaledVector(F.b,Math.sin(a)*d).addScaledVector(F.n,1.9);
+  const a=MENUV.sg*Math.min(.7,Math.max(.33,Math.abs(MENUV.a0)+Math.sin(MENUV.t*.11)*.08)),d=(CARS[level]||CARS[0]).l*1.9+5.2; // un balancier lent et BORNÉ : la vitrine vit, la caisse ne sort jamais du cadre
+  MENUV.cam.copy(MENUV.p).addScaledVector(F.t,Math.cos(a)*d).addScaledVector(F.b,Math.sin(a)*d).addScaledVector(F.n,4.0);
   camera.position.lerp(MENUV.cam,Math.min(1,dt*2.5));
-  camera.up.copy(F.n);
-  MENUV.vis.copy(F.p).addScaledVector(F.n,.85).addScaledVector(F.t,-.4);
+  camera.up.set(0,1,0); // l'horizon de niveau : c'est une photo, pas une poursuite
+  MENUV.vis.copy(MENUV.p).addScaledVector(F.n,2.2).addScaledVector(F.t,.35); // visée au-dessus du toit et un peu vers le NEZ (le nez, plus près, déborde : il sortait par le bord) : la caisse vers 60-65 % de la hauteur (entre le titre et JOUER), l'horizon au tiers haut — une AFFICHE
   camera.lookAt(MENUV.vis);
   camera.fov+=(50-camera.fov)*Math.min(1,dt*3);camera.updateProjectionMatrix(); // un objectif serré : la caisse, pas le paysage
   if(landMark)landMark.visible=false;
   // L'ÉCLAIRAGE DE VITRINE : une lumière douce côté caméra (la carrosserie se lit), un contre-jour rose derrière (la silhouette se détache)
-  carLight.position.copy(MENUV.cam).addScaledVector(F.n,2.5);carLight.intensity=2.4;carLight.distance=60;
-  nitroLight.position.copy(F.p).addScaledVector(F.t,-4).addScaledVector(F.n,2.2);nitroLight.color.setHex(0xff4fb0);nitroLight.intensity=1.6;
+  carLight.position.copy(MENUV.cam).addScaledVector(F.n,2.5);carLight.intensity=3.4;carLight.distance=60; // (vague 2) 2,4 → 3,4 : au couchant la caisse est à contre-jour, la lampe de vitrine la sort de l'ombre
+  nitroLight.position.copy(MENUV.p).addScaledVector(F.t,-4).addScaledVector(F.n,2.2);nitroLight.color.setHex(0xff4fb0);nitroLight.intensity=1.6;
   headSpot.intensity=1.6;
 }
 function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 360° DANS l'atelier
@@ -21253,7 +21370,7 @@ function openStall(mode){
   stallAng=0;stallShow(stallI);
 }
 function closeStall(){
-  bioApply(BIO.cur); // ⚠ (2026-09-24) le garage/l'étal écrasent le ciel chaque frame (nuit étoilée) : on rend la main au BIOME en sortant, sinon la 1re course gardait leur ciel
+  bioApply(BIO.cur);MENUV.bio=false; // (vague 2 : la vitrine de l'accueil repose son couchant) ⚠ (2026-09-24) le garage/l'étal écrasent le ciel chaque frame (nuit étoilée) : on rend la main au BIOME en sortant, sinon la 1re course gardait leur ciel
   stallOn=false;stEl.classList.remove('on');document.body.classList.remove('inStall');
   if(stallMesh){scene.remove(stallMesh);stallMesh=null;}
   stallKey.visible=false;stallKey.intensity=0;stallRim.visible=false;stallRim.intensity=0; // on éteint l'étal en partant
@@ -21472,12 +21589,22 @@ function loop(now){
   loop._ms=(loop._ms||16)*.96+rawMs*.04;loop._pn=now;
   // DÉTECTEUR D'À-COUPS : l'EMA (constante ~25 frames) lisse les PICS ponctuels (titan de nuage plein écran) —
   // ce compteur fuyant attrape la saccade VÉCUE : ~10 frames >26 ms sur les 2-3 dernières secondes = on allège.
-  loop._spk=(loop._spk||0)*.985+(rawMs>26?1:0);
+  /* (2026-09-26, vague 2) L'IPHONE EN ÉCONOMIE D'ÉNERGIE bride l'affichage à 30 Hz : chaque image dure 33 ms PILE, GPU au repos. Lu
+     comme de la lenteur, ça coupait le bloom (palier BAS), descendait la résolution à 0,5 et comptait chaque image comme un à-coup.
+     Un rythme de 30 Hz STABLE (écart moyen à la moyenne < 2 ms) n'est pas un GPU qui peine : c'est une cadence imposée. On n'en tire
+     plus aucune conclusion (ni palier, ni résolution) et un à-coup s'y mesure contre 45 ms. Un GPU qui rame, lui, n'est jamais régulier.
+     Et la résolution peut y REMONTER : au chargement (images irrégulières) elle descendait au plancher, puis la remontée exigeait
+     < 17,8 ms — impossible à 30 Hz, donc 0,5 pour toute la session. Si la remontée surcharge vraiment, les images sautent, la
+     cadence n'est plus régulière et l'anti-yoyo (plafond mémorisé) reprend la main. Banc : scratchpad gfx2-etal/r30.js. */
+  loop._jit=(loop._jit==null?4:loop._jit)*.95+Math.abs(rawMs-(loop._ms||16))*.05;
+  {const cad9=(loop._ms||16)>29.5&&(loop._ms||16)<37.5;if(cad9&&loop._jit<2)loop._r30T=now+2500; // tenu 2,5 s : une image sautée (66 ms) ne fait pas basculer
+   loop._r30=cad9&&now<(loop._r30T||0);}
+  loop._spk=(loop._spk||0)*.985+(rawMs>(loop._r30?45:26)?1:0);
   /* ⚠ PALIERS DÉFINITIFS = LENTEUR SOUTENUE, JAMAIS UN PIC (2026-09-24). Le palier BAS coupe le bloom et passe les
      ombres en BasicShadowMap (bords crénelés) POUR TOUTE LA SESSION : il se déclenchait sur une seule bosse de
      l'EMA — la construction d'une zone, le retour d'un onglet masqué — et le jeu restait terne et pixelisé à
      60 fps. Il faut désormais 5 s (BAS) ou 3 s (MOYEN) de lenteur CONTINUE, hors chargement et hors onglet caché. */
-  const calme9=!document.hidden&&now-(loop._rebuildT||0)>2500; // ni reconstruction de zone, ni retour d'onglet
+  const calme9=!document.hidden&&now-(loop._rebuildT||0)>2500&&!loop._r30; // ni reconstruction de zone, ni retour d'onglet, ni cadence 30 Hz imposée
   loop._basT=(calme9&&loop._ms>22)?(loop._basT||0)+dt:0;
   loop._moyT=(calme9&&(loop._ms>18.5||loop._spk>9))?(loop._moyT||0)+dt:Math.max(0,(loop._moyT||0)-dt*.5);
   if(!RESPIN&&!QUAL_LOW&&now>12000&&loop._basT>5)applyPerfTier(true,true); // FPS au tapis, pour de vrai : palier BAS
@@ -21502,7 +21629,7 @@ function loop(now){
        descend pas pendant un chargement ou un retour d'onglet : ce ne sont pas des signes de faiblesse du GPU. */
     if(calme9&&ms9>24&&curDPR>DPR_MIN)dn9(DPR_MIN,.15);        // ça rame fort : gros cran de résolution en moins
     else if(calme9&&ms9>19&&curDPR>DPR_MIN+.25)dn9(DPR_MIN+.25,.08); // ça tire : petit cran (hystérésis avec la remontée)
-    else if(ms9<17.8){const ceil9=(loop._dprCeilT&&now-loop._dprCeilT<45000)?loop._dprCeil:DPR_CAP;
+    else if(ms9<17.8||loop._r30){const ceil9=(loop._dprCeilT&&now-loop._dprCeilT<45000)?loop._dprCeil:DPR_CAP;
       loop._dprUp=(loop._dprUp||0)+1;
       if(curDPR<ceil9-.001&&loop._dprUp>=4){loop._dprUp=0;loop._dprRoseT=now;curDPR=Math.min(ceil9,curDPR+.08);applyDPR();}}
     else loop._dprUp=0;
@@ -22841,7 +22968,7 @@ function loop(now){
   } }catch(err){window.__loopErr=err.message+' | '+(err.stack||'').split('\n').slice(0,3).join(' ¶ ');if(!loop._warned){console.error('loop error',err);loop._warned=true;}}
   // ciel : dôme, soleil « 1.61 », lueur d'horizon et rayons crépusculaires suivent la caméra
   if(garageOn)garageRender(dt);
-  else if(!started)menuVitrine(dt); // L'ACCUEIL : la caisse en vitrine sur la route de la ville // GARAGE : place la caisse + oriente la caméra AVANT que le ciel suive
+  else if(!started)menuVitrine(dt); else if(MENUV.bio)menuVitrineFin(); // L'ACCUEIL (au couchant — rendu au niveau dès qu'on le quitte) : la caisse en vitrine sur la route de la ville // GARAGE : place la caisse + oriente la caméra AVANT que le ciel suive
   else if(stallOn)stallRender(dt); // ÉTAL : même showroom, mais c'est un fruit qui tourne
   skyDome.position.copy(camera.position);
   skyU.uTime.value=t;
@@ -22876,11 +23003,11 @@ function loop(now){
   sun.target.position.copy(shadV);
   sun.position.copy(shadV).addScaledVector(SUN_DIR,160);
   sun.target.updateMatrixWorld();
-  // rim golden hour : direction du soleil en espace vue + teinte par état (or / cyan nitro / or riche braquage)
-  RIM_U.uSunV.value.copy(SUN_DIR).transformDirection(camera.matrixWorldInverse);
+  // rim golden hour : direction de LA source du niveau en espace vue (soleil le jour, néon du kick la nuit : RIM_DIR/RIM_C0, posés par bioApply) + teinte par état
+  RIM_U.uSunV.value.copy(RIM_DIR).transformDirection(camera.matrixWorldInverse);
   if(fever>0)RIM_U.uRimC.value.setHex(0xffc55e);
   else if(nitroOn)RIM_U.uRimC.value.setHex(0x9fe2ff);
-  else RIM_U.uRimC.value.setHex(0xffd9a0);
+  else RIM_U.uRimC.value.copy(RIM_C0);
   updateContactShadow();
   carVit(dt); // (2026-09-26) roues, flou de jante, halos des phares et des feux (frein)
   // MUSIQUE + CRÉATURES : hors du try/catch gameplay → protégés à part pour ne jamais casser le rendu
