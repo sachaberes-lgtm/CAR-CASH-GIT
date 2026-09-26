@@ -173,6 +173,43 @@
   · Bancs : scratchpad `v6/conduite/diag/` (diagnostic, sim6.js), `v6/conduite/moi/sim-v6.js` (le modèle retenu + pilote 150 ms),
     `v6/piste/base/` (banc.js étendu, variantes.js, resume.js). `dbgState()` expose psi/yawR/slipB/glisse/drift/roulisDeg/vH.
 
+## PASSE DE FINITION (2026-09-26) — quatre audits (son · interface · ergonomie · rendu iPhone), six lots
+Commits `2608066` (lot 1) · `c3493a5` (lots 2-3) · `04e8d28` (4) · `bd995f4` (5) · `3f5c08e` (6). Ce qui est devenu une RÈGLE :
+- **RENDU** · Les lumières ponctuelles n'éclairent QUE la caisse : `LFB_SANS_PL` (le chunk `lights_fragment_begin` sans sa boucle de
+  PointLights) est branché sur `roadMat` et `CLOUD_MAT` — ⚠ une PointLight ne peindra JAMAIS la route (c'étaient les taches rondes, et
+  ~20 % du GPU). ⚠ r128 remplace `NUM_POINT_LIGHTS` par sa valeur dans le texte : on ne peut pas le redéfinir, on retire la boucle.
+  · **Jamais de `new THREE.PointLight` en cours de partie** (le nombre de lumières change → tout recompile : 1,5 s à l'explosion).
+  `boomLight` RECYCLE `swapLight`. · Particules « proches » (`makePool(…,true)`, `ptProche`, `PT_U.uPxMax`=26 px×DPR) : taille plafonnée
+  et fondu sous 3,5-8 m de la caméra — les pools de l'explosion n'y sont pas soumis. · Plus de néon sous caisse, plus de `CARPOOL.tail/jet`,
+  `nitroLight` à 0 au repos, `trailLight` à 0. · `bloomPass.setSize` surchargé (l'`addPass` écrasait `bSc`). · ACES : `FXAA_ON` (anticrénelage
+  là où il n'y a pas de MSAA), `roule()` = coude des hautes lumières qui garde la teinte (plus de clamp intermédiaire), flou de boost en
+  8 lectures, `FLOU_OK` (coupé au palier BAS, qui passe l'ombre à 512 sans recompiler). · Caisses : `refl ≤ .45`, `shin ≤ 300`, lueur ≤ .2 —
+  ⚠ l'index de caisse n'est PAS une progression. `paintEnv` peint le cube face par face (zénith, sol, point chaud vers `SUN_DIR`).
+  Traînée nitro : `TRAIL_TEX` (cœur/bords), fondu 6-14 m. Caméra du garage bornée à 8 m horizontaux (cadrage rendu par le FOV).
+- **SON** · `nOn9` : la flamme nitro ne vit que manette en main ; `endGame` éteint aussi `whG/skidG/jrG/jrDep/jetG/jetLowG/jetOscG`.
+  · Un `play()` refusé ne condamne un sample que sur `NotSupportedError` ; la voix libère le ducking à sa `pause` + filet 7 s.
+  · `deathSound(sansVoix)` (pas de « ewww » sur l'annonceur) · `poseSndT` : la visseuse du palier moteur attend 450 ms après une pose
+  · `chaineAura(…,muet)` : un seul carillon par figure / pose · `pwrPrisSnd/pwrFinSnd` · `mCompteSon` (l'écran de mort sonne) ·
+  encaissement à 2-3 notes · tic d'airtime sous 1,5 s · « tchk » de nitro à vide · `boostSnd` ±6 % · bourdon du drift en si/mi
+  · VRAI iPhone (`TEL_NATIF`) : `lpMin` 700 Hz du moteur, `subBoom`/`heartBeat` remontés, `jetLowG` à 0, pops moins denses et plus hauts.
+  · Contexte audio suspendu en arrière-plan AUSSI au menu ; `togglePause` coupe voix et samples ; `uiClic` attend le réveil du contexte.
+- **ERGONOMIE** · `TCTL.mortT` : 0,6 s d'écran de mort sourd (les taps réflexes n'ouvrent plus RÉGLAGES/GARAGE) · retour d'appli en course
+  → le panneau PAUSE s'ouvre · `repriseCompte` : REPRENDRE / Échap / retour en portrait = 3-2-1 jeu gelé (`#slam9.compte`, retirer `on` à la
+  fin sinon le « 1 » revient) · `#tNitroZone` : tout le coin bas-droit est la NITRO (`bindHold(el,code,onDown,vis)`) · `explode(cause)` →
+  `mortCause` → `#mCause` sous GAME OVER · astuces uniques `SAVE.d.ast` (bit 1 drift, bit 2 assiette) · `runStats.xMax` = CHAÎNE MAX ×n
+  · le record de fin s'allume aussi pour l'AURA (`CHA.recB`) et le MOTEUR · `recInit()` dans `start()` · auto-école : TOURNE à .25,
+  NITRO comptée en vol, sortie de route (> .5 s en l'air, étapes 0-1) rattrapée avec « SORTI ! TON POUCE RAMENE LA CAISSE » · intro 4,6 s
+  pour qui a déjà joué.
+- **INTERFACE** · Le bloc CSS « PASSE DE FINITION » est le DERNIER du `<style>` : il gagne. Pouvoirs en `pxi` (`flamme` ajoutée à `PXI_G`) ;
+  sous `#tPanel.open`/`#carr.on` le HUD est `visibility:hidden` ; or = action (onglet de garage violet, prix = étiquettes) ; garage
+  arrondi (l'octogone reste au HUD) ; titres en `--ttrOr` ; petits écrans (< 720 px) compactés ; curseurs 44 px ; solde au format de la langue.
+- **Écarté volontairement** : caméra plus haute (réglée par Sacha), ⚙ de l'accueil en bas (accueil v3 voulu), aura recolorée, planète en
+  shader (son halo bat au rythme, voulu), gros chantiers perf (route en 3 colonnes, plots/pièces instanciés, nuages LOD, piste par tranches,
+  RT 8 bits) : gains réels, risque moyen à élevé — passe dédiée. MODES et CARRIÈRE restent volontairement sans bouton.
+- **Vérifier** : harnais Puppeteer + Chrome système (puppeteer de `Desktop/projet-161`), `--mute-audio`, sauvegarde sfx/mus/vox à false.
+  ⚠ `dbgSaut()` = passer au NIVEAU suivant (pas un saut) ; pour s'envoler : `dbgDauphin(hauteur,vA,vLat,lat)`. Un test ne mesure le son
+  qu'en comptant les `createOscillator` (patch avant chargement).
+
 ## ⚠ FUSION SACHA × LÉO + NIVEAUX — 2026-09-24 (branche `fusion-2026-09`)
 - `index.html` = fusion à trois points : appstore-backlog (Sacha) × `main:version-leolei-2026` (Léo),
   base `fusion-atelier-mobile`. Hors ligne : `vendor/` + police locale (aucun CDN, aucune Google Font).
