@@ -3633,11 +3633,19 @@ if(CAN_POST){ try{
 const contactTex=(function(){
   const cv=document.createElement('canvas');cv.width=cv.height=128;const c=cv.getContext('2d');
   const g=c.createRadialGradient(64,64,3,64,64,64);
-  g.addColorStop(0,'rgba(0,0,0,.6)');g.addColorStop(.55,'rgba(0,0,0,.32)');g.addColorStop(1,'rgba(0,0,0,0)');
+  // (2026-09-26, vague 2) BLANC en couleur, l'alpha porte l'ombre : c'est la matière qui la TEINTE (encre). Peint en noir, la teinte de la
+  // matière était multipliée par zéro — l'ombre sortait noir neutre, un trou gris sur le bitume violet.
+  g.addColorStop(0,'rgba(255,255,255,.6)');g.addColorStop(.55,'rgba(255,255,255,.32)');g.addColorStop(1,'rgba(255,255,255,0)');
   c.fillStyle=g;c.beginPath();c.arc(64,64,64,0,7);c.fill();return new THREE.CanvasTexture(cv);
 })();
+/* L'ENCRE (bible vague 2) : toute ombre du jeu est #1c0430, jamais un gris — celle qui colle la caisse au bitume la première.
+   ⚠ PAS EN MÉLANGE NORMAL : l'encre (28,4,48) est plus CLAIRE que le bitume d'ORBITE (~0,0,18) — posée par-dessus, elle y aurait
+   dessiné une tache violette sous la caisse (exactement ce que Sacha a banni). Elle MULTIPLIE donc le sol : dst × (1 − a·(1 − encre)).
+   Une ombre qui ne peut qu'assombrir, teintée : le vert s'éteint le plus, le bleu le moins → un noir violet. La matière porte (1 − encre)
+   et `premultipliedAlpha` fait ×a dans le shader ; l'opacité (fondu du télégraphe en vol) garde tout son sens. */
 const contactShadow=new THREE.Mesh(new THREE.PlaneGeometry(1,1),
-  new THREE.MeshBasicMaterial({map:contactTex,color:0x140a12,transparent:true,depthWrite:false,fog:false,opacity:1}));
+  new THREE.MeshBasicMaterial({map:contactTex,color:new THREE.Color(1-28/255,1-4/255,1-48/255),transparent:true,depthWrite:false,fog:false,opacity:1,
+    premultipliedAlpha:true,blending:THREE.CustomBlending,blendSrc:THREE.ZeroFactor,blendDst:THREE.OneMinusSrcColorFactor}));
 contactShadow.renderOrder=1;contactShadow.visible=false;scene.add(contactShadow);
 const Fsh={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
 const shTmpP=new THREE.Vector3(),shMat4=new THREE.Matrix4();
@@ -3662,7 +3670,7 @@ function emprPeint(){
     const t=Math.min(1,Math.max(0,(dd+.3)/.9));let a=.46*(1-t*t*(3-2*t));                     // le corps : plein dessous, fondu sur ~90 cm
     const zw=z>0?wzF:wzR,ex=(Math.abs(x)-wx)/(tw*.9),ez=(Math.abs(z)-zw)/.55;                // les quatre appuis
     a=1-(1-a)*(1-.5*Math.exp(-(ex*ex+ez*ez)*1.6));
-    const o=(j*64+i)*4;D[o]=D[o+1]=D[o+2]=0;D[o+3]=Math.round(a*255);
+    const o=(j*64+i)*4;D[o]=D[o+1]=D[o+2]=255;D[o+3]=Math.round(a*255); // (vague 2) blanc : l'encre vient de la matière (voir contactShadow)
   }
   c.putImageData(im,0,0);EMPR.tex.needsUpdate=true;
 }
@@ -3711,7 +3719,7 @@ function updateContactShadow(){ // appelée juste avant le rendu
    LES FEUX : un phare n'éblouit que celui qui le regarde EN FACE (vu de profil, un point ; vu de dos, rien) ; les feux arrière
    brillent vers la caméra de poursuite et S'EMBRASENT au frein — pouce tiré vers le bas (drift) ou ↓. La nuit (ville, orbite)
    les halos s'élargissent. Zéro allocation : tout passe par VIT9. */
-const VIT9={f:new THREE.Vector3(),v:new THREE.Vector3(),frein:0,tC:new THREE.Color(0xff2818),tF:new THREE.Color(0xff5a36)};
+const VIT9={f:new THREE.Vector3(),v:new THREE.Vector3(),frein:0,tC:new THREE.Color(0xff2818),tF:new THREE.Color(0xff5a36),clB:1,clW:-1}; // clB/clW : la lampe de carrosserie (valeur posée par la boucle / valeur dosée)
 function carVit(dt){
   const boom=mode==='boom';
   if(!running||garageOn||boom)ROUES.v=0;
@@ -3720,15 +3728,29 @@ function carVit(dt){
     const R0=wheels[0].userData.R||.45,pas=Math.max(-.3,Math.min(.3,ROUES.v/R0*dt));
     if(pas)for(const w of wheels)w.rotation.x+=pas;
   }
-  if(ROUES.flou){const k=Math.min(.62,Math.max(0,(Math.abs(ROUES.v)-5)/14)); // .62 au plus : les rayons qui tournent DESSOUS doivent transparaître, sinon on lit un enjoliveur, pas une roue lancée
-   ROUES.flou.material.opacity=k;ROUES.flou.visible=k>.02;}
+  const nuit=Math.max(LVL.pluie||0,LVL.espace||0);
+  /* LA LAMPE DE CARROSSERIE SE RETIRE AU SOLEIL (2026-09-26, vague 2). `carLight` (blanche, 3 m au-dessus du toit) est la clé de la caisse
+     la NUIT — sans elle, en ville, une caisse noire sort #0e010f. Mais de jour elle s'ajoutait au soleil : MESURÉ au pixel en poursuite
+     (banc des laques), c'est elle — plus que le vernis — qui délavait les laques (L'ÉTALON #4f8578 → #77ab98 à midi, L'AIGLE DE FEU noir
+     → gris #625567) et aplatissait les volumes (une deuxième source dure, par le dessus : plus d'ombre propre). La bible : UNE source dure
+     par niveau, le ciel remplit. Elle tombe donc à 38 % de jour, reste pleine la nuit. Le JOUR se lit à la lumière du ciel (`hemi`,
+     posée par les biomes : .78-.95 de jour, .6 en golden, .32-.46 la nuit, sous la pluie, en orbite) — la carrière a des nuits sans
+     pluie. La boucle la repose chaque image (couleur, clignotement du DERNIER, braquage) : on MÉMORISE sa valeur (`clB`) et on la dose,
+     sans jamais la faire dériver en pause. */
+  const j9=Math.min(1-nuit,THREE.MathUtils.smoothstep(hemi.intensity,.42,.62)); // 1 = plein jour, 0 = nuit (ville, orbite, nuits de carrière)
+  if(running&&!garageOn){if(carLight.intensity!==VIT9.clW)VIT9.clB=carLight.intensity;VIT9.clW=VIT9.clB*(1-.62*j9);carLight.intensity=VIT9.clW;}
+  if(ROUES.flou){let k=Math.min(.45,Math.max(0,(Math.abs(ROUES.v)-5)/14)); // (vague 2) .62 → .45 : les rayons qui tournent DESSOUS doivent transparaître, sinon on lit un enjoliveur, pas une roue lancée
+   if(mode==='fall')k*=.5;                                                   // en l'air la roue file sur son élan : un voile, plus un disque
+   const M9=ROUES.flou.material;M9.opacity=k;ROUES.flou.visible=k>.02;
+   // le disque est NON ÉCLAIRÉ : la nuit il brillait plus fort que la roue qu'il recouvre — il suit l'obscurité (sa teinte de base dans userData)
+   if(k>.02){if(!M9.userData.c0)M9.userData.c0=M9.color.clone();M9.color.copy(M9.userData.c0).multiplyScalar(.5+.5*j9);}}
   if(!HALO.h.length&&!HALO.t.length)return;
   if(!paused){const fr=(running&&!boom&&mode==='drive'&&(keys.ArrowDown||keys.KeyS||driftEnCours))?1:0;
     VIT9.frein+=(fr-VIT9.frein)*Math.min(1,dt*(fr>VIT9.frein?20:5));}
   carGroup.getWorldDirection(VIT9.f);
   VIT9.v.copy(camera.position).sub(carGroup.position);
   const d=VIT9.f.dot(VIT9.v)/Math.max(1e-3,VIT9.v.length());   // +1 : on regarde la calandre · −1 : on regarde les feux
-  const nuit=Math.max(LVL.pluie||0,LVL.espace||0),fr9=VIT9.frein;
+  const fr9=VIT9.frein;
   const av=THREE.MathUtils.smoothstep(d,-.2,.8),ar=THREE.MathUtils.smoothstep(-d,-.2,.8);
   HALO.hM.opacity=boom?0:.95*(.3+.7*av);
   for(const s9 of HALO.h){const k=s9.userData.k*(.55+.5*av)*(1+.3*nuit);s9.scale.set(k,k,1);}
@@ -6258,6 +6280,14 @@ function paintEnv(stops,s1,s2){ // stops=[[pos,'#hex'],…] + 2 strips néon [r,
      les 4 côtés gardent le dégradé et les néons, le HAUT (+Y) est le zénith, le BAS (−Y) un sol sombre, et la face tournée vers le
      soleil porte un point chaud. Même coût (6 canvas 64², repeints au changement de biome seulement). */
   const zen=stops[0][1],sol=stops[stops.length-1][1],sunF=Math.abs(SUN_DIR.x)>Math.abs(SUN_DIR.z)?(SUN_DIR.x>0?0:1):(SUN_DIR.z>0?4:5);
+  /* (2026-09-26, vague 2) L'ÉCLAT SUIT LA SOURCE DU NIVEAU. Il était peint BLANC et large (rayon 12/64 ≈ 17° de ciel) dans tous les
+     biomes : la nuit, en ville (pas de soleil — la source, c'est le néon), chaque lunette arrière portait une BOULE blanche qui passait au
+     bloom, une vitre qui émet. Désormais : le jour se mesure à la bande d'horizon du biome (la clé .58) ; de jour, l'éclat reste l'éclat
+     chaud du soleil, resserré (rayon 7 ≈ 10°) ; la nuit il prend la couleur du NÉON du biome (1re bande) et baisse de moitié. */
+  let jour=0;{const h9=(stops.find(function(s){return s[0]>=.58;})||stops[stops.length-1])[1],n9=parseInt(h9.slice(1),16);
+    const l9=(.3*(n9>>16&255)+.59*(n9>>8&255)+.11*(n9&255))/255;jour=Math.min(1,Math.max(0,(l9-.35)/.45));}
+  const ecl=function(a){const r=Math.round(s1[0]+(255-s1[0])*jour),g=Math.round(s1[1]+(246-s1[1])*jour),b=Math.round(s1[2]+(226-s1[2])*jour);
+    return 'rgba('+r+','+g+','+b+','+(a*(.5+.5*jour)).toFixed(3)+')';};
   envCvs.forEach(function(cv,f){
     const c=cv.getContext('2d');
     if(f===2){c.fillStyle=zen;c.fillRect(0,0,64,64);return;}                                          // +Y : le zénith
@@ -6267,7 +6297,7 @@ function paintEnv(stops,s1,s2){ // stops=[[pos,'#hex'],…] + 2 strips néon [r,
     c.fillStyle=gr;c.fillRect(0,0,64,64);
     c.fillStyle='rgba('+s1[0]+','+s1[1]+','+s1[2]+','+s1[3]+')';c.fillRect(0,20,64,3);
     c.fillStyle='rgba('+s2[0]+','+s2[1]+','+s2[2]+','+s2[3]+')';c.fillRect(0,30,64,2);
-    if(f===sunF){const h=c.createRadialGradient(32,27,0,32,27,12);h.addColorStop(0,'rgba(255,246,226,1)');h.addColorStop(.22,'rgba(255,236,200,.7)');h.addColorStop(1,'rgba(255,238,205,0)');c.fillStyle=h;c.fillRect(0,0,64,64);} // le soleil rasant — (2026-09-26) un cœur NET et court : avec le vernis, sur une vitre ou un toit, c'est un ÉCLAT de soleil, plus une tache blanche molle
+    if(f===sunF){const h=c.createRadialGradient(32,27,0,32,27,7);h.addColorStop(0,ecl(1));h.addColorStop(.3,ecl(.62));h.addColorStop(1,ecl(0));c.fillStyle=h;c.fillRect(0,0,64,64);} // le soleil rasant (vague 2 : resserré, teinté par la source du niveau — voir `ecl`) — (2026-09-26) un cœur NET et court : avec le vernis, sur une vitre ou un toit, c'est un ÉCLAT de soleil, plus une tache blanche molle
   });
   envTex.needsUpdate=true;
 }
@@ -6914,6 +6944,15 @@ const ENV_VERNIS=THREE.ShaderChunk.envmap_fragment.replace(
   'float vnF=pow(1.-saturate(dot(normal,normalize(vViewPosition))),uVern.z);\n'+
   '\t\toutgoingLight=mix(outgoingLight,envColor.xyz*mix(vec3(1.),diffuseColor.rgb,uVern.w),saturate(specularStrength*reflectivity*mix(uVern.x,uVern.y,vnF)));');
 if(ENV_VERNIS===THREE.ShaderChunk.envmap_fragment)console.warn('CASH CAR : vernis non greffé (chunk envmap inattendu) — reflets à l\'ancienne');
+/* LE LISERÉ CÔTÉ SOURCE (2026-09-26, vague 2 — la bible : « toute caisse a un liseré du côté de la source »). Le liseré d'origine
+   (Fresnel ^uRimPow, gardé sur le flanc qui fait face au soleil) disparaissait dans le cas qui compte le plus : le CONTRE-JOUR — soleil
+   bas devant, caméra de poursuite derrière (golden, couchant). La caisse n'y était plus qu'une masse sombre découpée sur un ciel en feu.
+   Le 2e terme ajoute ce que fait un vrai contre-jour : les ARÊTES de la silhouette (Fresnel ^5 — un trait, pas un halo) s'allument du
+   côté du soleil À L'ÉCRAN, d'autant plus que le soleil est face à la caméra (`-uSunV.z`). Mêmes uniformes (couleur et force pilotées
+   ailleurs, par état et par niveau), quelques opérations par pixel de caisse, zéro programme de plus. Partagé par rimify et lpMat. */
+const RIM_GLSL=cj=>'vec3 nR9=normalize(normal);float nv9=1.-saturate(dot(nR9,normalize(vViewPosition)));\n'+ // `cj` : le poids du contre-jour (les fruits de lpMat n'en veulent pas)
+  'float rimF=pow(nv9,uRimPow)*smoothstep(-.25,.55,dot(nR9,uSunV));\n'+
+  'rimF+='+cj+'*pow(nv9,5.)*1.6*smoothstep(.1,.8,-uSunV.z)*smoothstep(-.2,.6,dot(nR9.xy,uSunV.xy));\n';
 // `v` : le vernis (voir ENV_VERNIS) · `rimK` : part du liseré doré (0 = aucun — le verre et le chrome n'en veulent pas)
 function rimify(m,v,rimK){
   const uV={value:new THREE.Vector4().fromArray(v||[1,1,1,0])},uK={value:rimK==null?1:rimK};
@@ -6923,9 +6962,7 @@ function rimify(m,v,rimK){
     sh.fragmentShader=sh.fragmentShader
       .replace('#include <common>','#include <common>\nuniform vec3 uRimC;uniform vec3 uSunV;uniform float uRimStr;uniform float uRimPow;uniform vec4 uVern;uniform float uRimK;')
       .replace('#include <envmap_fragment>',ENV_VERNIS)
-      .replace('#include <dithering_fragment>',
-        'float rimF=pow(1.-saturate(dot(normalize(normal),normalize(vViewPosition))),uRimPow);\n'+
-        'rimF*=smoothstep(-.25,.55,dot(normalize(normal),uSunV));\n'+ // seulement le flanc au soleil : un liseré, pas un halo cartoon
+      .replace('#include <dithering_fragment>',RIM_GLSL('1.')+ // seulement le flanc au soleil : un liseré, pas un halo cartoon (+ le contre-jour : voir RIM_GLSL)
         'gl_FragColor.rgb+=uRimC*rimF*uRimStr*uRimK;\n#include <dithering_fragment>');
   };
 }
@@ -7279,31 +7316,38 @@ const LPU={
 /* (2026-09-26) `v` = LE VERNIS de chaque matière (voir ENV_VERNIS) : [de face, en rasant, dureté, métal]. La laque passe de
    24 % de ciel PARTOUT à ~7 % de face / ~60 % en rasant : la couleur revient, le reflet court sur les pans qui fuient.
    Le verre devient SOMBRE de face et miroir couché. Le chrome et l'or reflètent le ciel TEINTÉ de leur métal. */
-const LP_MAT={p:{sh:44,sp:0x4a4a4a,rf:.24,gl:.13,v:[.3,2.6,3,0]},   // LAQUE
+/* (2026-09-26, vague 2 « L'ENCRE ET L'OR ») LA LAQUE REDEVIENT UNE COULEUR. Mesuré au pixel en vue de POURSUITE (la caméra est à ~4,6 m
+   derrière et 3,6 m au-dessus : elle voit toit, malle et flancs en rasant) : à [.3,2.6] le vernis montait à 62 % de ciel lavande sur les
+   pans qui fuient, et le vert de L'ÉTALON sortait #77ab98 à midi (#467155 à l'atelier) — la couleur signature perdue 95 % du temps.
+   Désormais [.25,1.5,3,.2] : le reflet rasant plafonne à ~36 %, et il est TEINTÉ à 20 % par la laque (un bonbon, pas un miroir gris).
+   Le plancher lumineux `gl` .13 → .06 : il relevait les ombres d'un voile uniforme — c'est lui qui aplatissait les volumes. La nuit, la
+   caisse garde sa lampe de carrosserie (carLight) : elle reste lisible sans ce voile. */
+const LP_MAT={p:{sh:44,sp:0x4a4a4a,rf:.24,gl:.06,v:[.25,1.5,3,.2]},   // LAQUE
               c:{sh:140,sp:0xffffff,rf:.45,gl:.16,v:[1.25,2,2,1]},   // CHROME
               o:{sh:120,sp:0xffd488,rf:.30,gl:.12,v:[1.5,2.8,2,1]},  // OR
               s:{sh:22, sp:0x333333,rf:0,  gl:.10}, // CUIR, TOILE, SATINÉ
               m:{sh:10, sp:0x1c1c1c,rf:0,  gl:0},   // MAT : pneus, grilles, plastiques
-              g:{sh:160,sp:0xffffff,rf:.55,gl:.04,v:[.15,1.3,3,.35]}, // VERRE et laqué noir (vernis teinté : le reflet s'assombrit d'un tiers, la vitre reste une vitre)
+              // (2026-09-26, vague 2) spéculaire du verre 0xffffff/160 → 0x5c5c5c/260 : la lampe de carrosserie (3 m au-dessus) allumait sur
+              // la lunette arrière une BOULE blanche qui passait au bloom — une vitre qui ÉMET. Le reflet du ciel (et l'éclat du soleil, peint
+              // dans le cube) reste : c'est lui qui fait la vitre.
+              g:{sh:260,sp:0x5c5c5c,rf:.55,gl:.04,v:[.15,1.3,3,.35]}, // VERRE et laqué noir (vernis teinté : le reflet s'assombrit d'un tiers, la vitre reste une vitre)
               f:{sh:34, sp:0x5c5c5c,rf:.12,gl:.32}};// FRUITS : vernis + plancher lumineux haut (lisibles de nuit) — (2026-09-26) reflet adouci : les grosses taches BLANCHES mangeaient les fruits redessinés — (vernis : aucun, les fruits ne sont pas des caisses)
 function lpMat(g){
   if(g==='l'){const m=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide});m.userData.lp=1;return m;}
   const P=LP_MAT[g]||LP_MAT.m;
   const m=new THREE.MeshPhongMaterial({vertexColors:true,shininess:P.sh,specular:P.sp,side:THREE.DoubleSide});
   if(P.rf>0){m.envMap=envTex;m.reflectivity=P.rf;m.combine=THREE.MixOperation;}
-  const uG={value:P.gl},uV={value:new THREE.Vector4().fromArray(P.v||[1,1,1,0])};
+  const uG={value:P.gl},uV={value:new THREE.Vector4().fromArray(P.v||[1,1,1,0])},uC={value:g==='f'?0:1}; // uC : le contre-jour du liseré (voir RIM_GLSL) — pas sur les fruits
   m.onBeforeCompile=function(sh){
     sh.uniforms.uGlow=uG;sh.uniforms.uRimC=RIM_U.uRimC;sh.uniforms.uRimStr=RIM_U.uRimStr;sh.uniforms.uRimPow=RIM_U.uRimPow;sh.uniforms.uSunV=RIM_U.uSunV;
-    sh.uniforms.uVern=uV;
+    sh.uniforms.uVern=uV;sh.uniforms.uCj=uC;
     sh.fragmentShader=sh.fragmentShader
-      .replace('#include <common>','#include <common>\nuniform float uGlow;uniform vec3 uRimC;uniform vec3 uSunV;uniform float uRimStr;uniform float uRimPow;uniform vec4 uVern;')
+      .replace('#include <common>','#include <common>\nuniform float uGlow;uniform vec3 uRimC;uniform vec3 uSunV;uniform float uRimStr;uniform float uRimPow;uniform vec4 uVern;uniform float uCj;')
       .replace('#include <envmap_fragment>',ENV_VERNIS)
-      .replace('#include <dithering_fragment>',
-        'float rimF=pow(1.-saturate(dot(normalize(normal),normalize(vViewPosition))),uRimPow);\n'+
-        'rimF*=smoothstep(-.25,.55,dot(normalize(normal),uSunV));\n'+
+      .replace('#include <dithering_fragment>',RIM_GLSL('uCj')+ // le liseré, contre-jour compris (voir RIM_GLSL)
         'gl_FragColor.rgb+=uRimC*rimF*uRimStr*.6+vColor*uGlow;\n#include <dithering_fragment>');
   };
-  m.userData.lp=1;return m;
+  m.userData.lp=1;m.userData.g=g;return m; // `g` : la famille de matière (le banc des laques y reconnaît la tôle)
 }
 /* L'ATELIER. `pal` : clé → {g: matière, c: couleur, f: 0 pour couper le fondu vertical}.
    Toutes les pièces sont versées dans des tampons par matière, à facettes (non indexé) ; `done()`
@@ -7384,6 +7428,21 @@ function lpKit(pal){
       return out;}
   };
   return K;
+}
+/* L'OMBRE CUITE (2026-09-26, vague 2 « L'ENCRE ET L'OR ») — les caisses du kit se lisaient comme des BOÎTES uniformes : aucune occlusion,
+   le bas de caisse aussi clair que le toit, la caisse flottait sur le bitume. On cuit une fois, à la construction, une occlusion dans la
+   couleur des sommets : le bas s'enfonce dans l'ENCRE (#1c0430 — la couleur de toute ombre du jeu), les pans hauts gardent leur laque.
+   Ce n'est pas un gris : l'encre est une multiplication TEINTÉE (le vert s'éteint plus vite que le rouge et le bleu) — une orange
+   s'assombrit vers le brun-pourpre, un vert vers le canard, jamais vers la boue. Zéro coût en course (des sommets, déjà là), zéro
+   programme de plus. Ni les feux (ils émettent), ni les roues (elles tournent : une ombre cuite tournerait avec elles).
+   `H` = la hauteur de la caisse ; l'ombre vit dans ses 55 % du bas. */
+const LP_OMBRE=[.60,.50,.72]; // l'encre en MULTIPLICATION (r, g, b) au ras du sol — #1c0430 éclairci pour rester une teinte, pas un trou
+function lpOmbre(geo,H){
+  const p=geo.attributes.position.array,c=geo.attributes.color.array,h=Math.max(.45,H*.55);
+  for(let i=0;i<p.length;i+=3){
+    const u=Math.min(1,Math.max(0,p[i+1]/h)),t=u*u*(3-2*u);                          // 0 au sol → 1 à 55 % de la hauteur
+    c[i]*=LP_OMBRE[0]+(1-LP_OMBRE[0])*t;c[i+1]*=LP_OMBRE[1]+(1-LP_OMBRE[1])*t;c[i+2]*=LP_OMBRE[2]+(1-LP_OMBRE[2])*t;}
+  geo.attributes.color.needsUpdate=true;
 }
 /* LES ROUES, façon Rocket League : un pneu GROS et facetté (16 pans, épaules chanfreinées), une
    jante dessinée sur la face EXTÉRIEURE (+X) — les roues de gauche sont posées en miroir.
@@ -8014,7 +8073,7 @@ const SHAPES={
     const {W,H,L,y0,box:B,spec}=K;
     const vernis=new THREE.MeshPhongMaterial({color:spec.color,map:MATV.get('flake'),emissive:spec.color,
       emissiveIntensity:.26,shininess:220,specular:0xffffff,envMap:envTex,reflectivity:.72,combine:THREE.MixOperation});
-    rimify(vernis,[.2,1.1,3,0]); // (2026-09-26) le vernis : 72 % de ciel de face noyaient le vert acide — ~14 % de face, miroir en rasant
+    rimify(vernis,[.083,.5,3,.2]); // (2026-09-26) le vernis : 72 % de ciel de face noyaient le vert acide — (vague 2) même contrat que toute la gamme : ~6 % de face, ~36 % en rasant, teinté
     // trois volumes de hatch : capot court, pare-brise très incliné, toit, hayon coupé net
     K.prof([[-.50*L,0],[.50*L,0],[.50*L,.34*H],[.34*L,.42*H],[.16*L,.46*H],[.02*L,.90*H],[-.34*L,.94*H],[-.44*L,.62*H],[-.50*L,.56*H]],W*.94,vernis);
     K.prof([[.02*L,.52*H],[-.04*L,.88*H],[-.32*L,.90*H],[-.40*L,.60*H]],W*.78,K.glass);
@@ -8185,7 +8244,7 @@ const SHAPES={
        top:0x1f4a7a,side:0x5f9fd0,bel:0xf4feff});
     const peau=new THREE.MeshPhongMaterial({vertexColors:true,shininess:150,specular:0xffffff,
       envMap:envTex,reflectivity:.62,combine:THREE.MixOperation});
-    rimify(peau,[.25,1.3,3,0]); // (2026-09-26) le vernis : le contre-ombrage du requin ne se noie plus dans le ciel
+    rimify(peau,[.1,.58,3,.2]); // (2026-09-26) le vernis : le contre-ombrage du requin ne se noie plus dans le ciel — (vague 2) ~6 % de face, ~36 % en rasant, teinté (contrat de toute la gamme)
     {const bd=new THREE.Mesh(geo,peau);bd.scale.set(R,.53,1);bd.position.set(0,y0+H*.46,-L*.02);carGroup.add(bd);}
     // LA BULLE : elle couvre presque tout le dos, comme sur la planche — c'est elle qui fait lire
     // « habitacle transparent » et pas « pare-brise ». Et on VOIT dedans : sans sièges, une bulle
@@ -11177,7 +11236,10 @@ function buildCar(spec){
   const shin=wreck?16:Math.min(300,50+lvl*34);         // la brillance GRIMPE par niveau… jusqu'à un plafond
   const refl=wreck?.04:Math.min(.45,.10+lvl*.085);     // ...et le reflet du ciel aussi — la COULEUR de la caisse reste lisible
   const specC=wreck?0x777777:(lvl>=10?0xffffff:(lvl>=6?0xeaf2fa:0xc4ccd4));
-  const bodyM=new THREE.MeshPhongMaterial({color:spec.color,emissive:spec.color,emissiveIntensity:Math.min(.2,.08+lvl*.02),shininess:shin,specular:specC,envMap:envTex,reflectivity:refl,combine:THREE.MixOperation});
+  // (2026-09-26, vague 2) la LUEUR des classiques (pop-tart → acide) tombe de .2 à .07, comme le plancher `gl` du kit : 20 % de peinture
+  // rendue sans lumière, c'était une caisse qui ÉMET (la bible : la laque reflète, elle n'émet pas) et un voile qui effaçait ses ombres.
+  // L'épave garde sa valeur (« ne rien changer »).
+  const bodyM=new THREE.MeshPhongMaterial({color:spec.color,emissive:spec.color,emissiveIntensity:wreck?Math.min(.2,.08+lvl*.02):.07,shininess:shin,specular:specC,envMap:envTex,reflectivity:refl,combine:THREE.MixOperation});
   const accM=new THREE.MeshPhongMaterial({color:spec.accent,emissive:spec.accent,emissiveIntensity:.08,shininess:Math.max(12,shin*.8),specular:0xdddddd,envMap:envTex,reflectivity:refl*.8,combine:THREE.MixOperation});
   const glassM=new THREE.MeshPhongMaterial({color:0x0d1620,shininess:300,specular:0xffffff,envMap:envTex,reflectivity:wreck?.2:.75,combine:THREE.MixOperation});
   const chromeM=new THREE.MeshPhongMaterial({color:0xe8ecf0,shininess:280,specular:0xffffff,envMap:envTex,reflectivity:.85,combine:THREE.MixOperation});
@@ -11187,9 +11249,12 @@ function buildCar(spec){
   // le liseré (rim), c'est pour la tôle. (2026-09-26) + LE VERNIS des caisses « classiques » (pop-tart, requin, comète, formule, le
   // mans, patron, acide) : à .45 de reflet FIXE, la FORMULE OR sortait jaune pâle et ses vitres couleur de ciel. Le verre et le chrome
   // prennent le vernis SANS le liseré. L'épave garde l'ancien mélange au bit près (« ne rien changer »).
-  const VN9=wreck?null:[.25,1.45,3,0];
-  rimify(bodyM,VN9);rimify(accM,VN9);
-  if(!wreck){rimify(glassM,[.1,.95,3,.35],0);rimify(chromeM,[.7,1.1,2,1],0);}
+  // (2026-09-26, vague 2) le vernis se règle en PART DE CIEL, pas en multiple du reflet : à `refl` .45, [.25,1.45] donnait 65 % de ciel en
+  // rasant (plus que la laque du kit, qui vient de passer à ~36 %). Même contrat pour toutes les caisses : ~6 % de face, ~36 % en rasant,
+  // teinté à 20 % par la peinture.
+  const VN9=wreck?null:[.06/refl,.36/refl,3,.2];
+  rimify(bodyM,VN9);rimify(accM,VN9);bodyM.userData.g='p'; // (le banc des laques reconnaît la tôle des gabarits hors kit)
+  if(!wreck){rimify(glassM,[.1,.95,3,.35],0);rimify(chromeM,[.7,1.1,2,1],0);glassM.specular.setHex(0x5c5c5c);glassM.shininess=260;} // (vague 2) la vitre ne s'allume plus en boule sous la lampe de carrosserie (voir LP_MAT.g)
   const y0=.35,W9=spec.w,H9=spec.h,L9=spec.l;
   // ---- LA BOÎTE À OUTILS DES GABARITS : sans ces six raccourcis, 15 silhouettes feraient 1500 lignes.
   const add=m=>{carGroup.add(m);return m;};
@@ -11204,6 +11269,7 @@ function buildCar(spec){
   const kit=pal=>lpKit(peintPal(pal)); // la PEINTURE de la boutique passe par la palette (voir `peintPal`)
   const lpPrims=[];let lpZmin=1e9; // (pots) les pièces simples de la caisse et sa poupe réelle, relevées au passage
   const commit=kt=>{const gs=kt.done();for(const g in gs){gs[g].computeBoundingBox();lpZmin=Math.min(lpZmin,gs[g].boundingBox.min.z);
+    if(g!=='l')lpOmbre(gs[g],H9); // (2026-09-26, vague 2) l'ombre cuite (voir lpOmbre) — les feux émettent, ils n'en prennent pas
     const m=new THREE.Mesh(gs[g],lpMatC(g));m.userData.lp=1;add(m);}if(kt.prims)for(const p of kt.prims)lpPrims.push(p);};
   const K={W:W9,H:H9,L:L9,y0:y0,spec:spec,wreck:wreck,add:add,box:box,prof:prof,cyl:cyl,sph:sph,con:con,kit:kit,commit:commit,
            body:bodyM,acc:accM,glass:glassM,chrome:chromeM,dark:darkM,rust:rustM};
@@ -11350,7 +11416,11 @@ function buildCar(spec){
        for(let i=0;i<cu.length;i++)U.push(cu[i]);}
      cg.dispose();
      const g9=new THREE.BufferGeometry();g9.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g9.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));
-     const m9=new THREE.MeshBasicMaterial({map:flouRoueTex,color:col9,transparent:true,opacity:0,depthWrite:false,fog:false});m9.userData.lp=1;
+     // (2026-09-26, vague 2) LE FLOU PREND LA COULEUR DE LA JANTE : la texture est un gris clair commun à toutes — sur une jante noire ou
+     // dorée, la roue lancée devenait un ENJOLIVEUR BLANC. Une jante sombre donne un voile anthracite (gris × .35), une jante colorée sa teinte.
+     const jc9=new THREE.Color(col9),lj9=jc9.r*.3+jc9.g*.59+jc9.b*.11;
+     if(lj9<.22)jc9.setRGB(.35,.35,.37);
+     const m9=new THREE.MeshBasicMaterial({map:flouRoueTex,color:jc9,transparent:true,opacity:0,depthWrite:false,fog:false});m9.userData.lp=1;
      const fl9=new THREE.Mesh(g9,m9);fl9.userData.lp=1;fl9.userData.sol=1;fl9.userData.noShadow=true;fl9.visible=false;fl9.renderOrder=1;
      carGroup.add(fl9);ROUES.flou=fl9;}}
   // ---- PHARES, FEUX, POTS ET PLUMES DE RÉACTEUR ----
@@ -11783,7 +11853,7 @@ window.dbgEquipe=function(i){if(started&&!gameOver)return 'en course';i=Math.max
 window.dbgPots=function(){const a=v=>[+v.x.toFixed(3),+v.y.toFixed(3),+v.z.toFixed(3)];return {src:CAR_POT_SRC,un:CAR_POT_1,pots:CAR_POTS.map(a),L:a(CAR_POT_L),R:a(CAR_POT_R),C:a(CAR_POT_C)};}; // (dev) les pots relevés sur la caisse montée
 window.dbgSpec=function(i){const c=CARS[i|0];return c?{name:c.name,w:c.w,l:c.l,h:c.h,shape:c.shape}:null;};window.dbgNbCaisses=function(){return CARS.length;}; // (dev) les fiches, pour les bancs d'essai
 window.dbgCar=function(i){buildCar(CARS[Math.max(0,Math.min(CARS.length-1,i|0))]);}; // console : dbgCar(16) → prévisualiser un gabarit sans farmer les milliards (visuel pur, ne touche pas au niveau)
-window.dbgScene=function(){return {car:carGroup,scene:scene,contact:contactShadow,shadow:shadow};}; // dissection console (visuel pur)
+window.dbgScene=function(){return {car:carGroup,scene:scene,contact:contactShadow,shadow:shadow,cam:camera,rdr:renderer};}; // dissection console (visuel pur) — (2026-09-26) + caméra et renderer : le banc des laques mesure la caisse au pixel
 window.dbgState=function(){return {started:started,running:running,paused:paused,gameOver:gameOver,mode:mode,psi:+psi.toFixed(4),yawR:+yawR.toFixed(4),slipB:+slipB.toFixed(4),glisse:+glisse9.toFixed(3),drift:driftEnCours,roulisDeg:+(carRoll9*57.3).toFixed(1),glisseDeg:+(driftYaw*57.3).toFixed(1),vH:+(mode==='fall'?Math.hypot(fallVel.x,fallVel.z):Math.abs(vA)).toFixed(1),driftLv:driftLv,graceT:+graceT.toFixed(2),
   /* flux des PIÈCES : sans ces trois-là, régler leur arrivée se fait à l'aveugle */
   engTier:engTier,coinsGot:coinsGot,prochainPalier:(ENGINE_TIERS[engTier+1]||{}).coins||null,
@@ -11891,6 +11961,10 @@ landMark.visible=false;scene.add(landMark);
 const shadow=new THREE.Mesh(new THREE.CircleGeometry(2.4,20),
   new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.28,depthWrite:false}));
 scene.add(shadow);
+// (2026-09-26, vague 2) ÉTEINT POUR DE BON : à opacité 0 depuis le 25/09 (le disque à bord net faisait une tache autour de la caisse),
+// il restait DESSINÉ à chaque image — un appel de dessin transparent de 18 m² pour rien, sous la caisse. Vérifié : rien d'autre ne le lit
+// (le viseur de vol est `landMark`, le télégraphe d'atterrissage est `contactShadow`) ; la boucle continue de le placer, sans effet.
+shadow.visible=false;
 // ---------- PICKUPS : la PIÈCE PIXEL (2026-09-25) ----------
 /* ⚠ POURQUOI ELLE A CHANGÉ. L'ancienne pièce était un disque lisse à 24 pans, un « $ » en Arial et TROIS matières
    (tranche + deux faces) : trois appels de dessin par pièce, ×2 faces de route, sur des centaines de pièces — et une
@@ -19775,8 +19849,8 @@ function buildGarageRoom(){
     for(let i=0;i<8;i++)for(let j=0;j<8;j++){x.beginPath();x.arc(i*8+4,j*8+4,1.6,0,7);x.fill();}
   });
   pegTex.wrapS=pegTex.wrapT=THREE.RepeatWrapping;pegTex.repeat.set(11,4);
-  const blobTex=cvT(128,128,x=>{const gr=x.createRadialGradient(64,64,0,64,64,62);
-    gr.addColorStop(0,'rgba(0,0,0,.75)');gr.addColorStop(.5,'rgba(0,0,0,.34)');gr.addColorStop(1,'rgba(0,0,0,0)');
+  const blobTex=cvT(128,128,x=>{const gr=x.createRadialGradient(64,64,0,64,64,62); // (vague 2) blanc : la matière la teinte à l'ENCRE (plus bas)
+    gr.addColorStop(0,'rgba(255,255,255,.75)');gr.addColorStop(.5,'rgba(255,255,255,.34)');gr.addColorStop(1,'rgba(255,255,255,0)');
     x.fillStyle=gr;x.fillRect(0,0,128,128);});
   const oilTex=cvT(128,128,x=>{const gr=x.createRadialGradient(64,64,0,64,64,60);
     gr.addColorStop(0,'rgba(9,7,13,.85)');gr.addColorStop(.6,'rgba(22,16,28,.45)');gr.addColorStop(1,'rgba(24,18,30,0)');
@@ -19884,8 +19958,8 @@ function buildGarageRoom(){
     depthWrite:false,blending:THREE.AdditiveBlending,opacity:0}));
   scan.rotation.x=-Math.PI/2;scan.scale.set(7.4,7.4,1);scan.visible=false;scan.renderOrder=2; // il ÉPOUSE le plateau : plus large, il éclairait le sol de l'atelier et on perdait le disque
   pod.add(scan);GAR.scan=scan;
-  add9(PL,new THREE.MeshBasicMaterial({map:blobTex,transparent:true,fog:false,depthWrite:false}),
-       0,GAR.POD+.012,0,7.6,9.4,1).rotation.x=-Math.PI/2;               // l'ombre douce qui POSE la caisse
+  add9(PL,new THREE.MeshBasicMaterial({map:blobTex,color:0x1c0430,transparent:true,fog:false,depthWrite:false}),
+       0,GAR.POD+.012,0,7.6,9.4,1).rotation.x=-Math.PI/2;               // l'ombre douce qui POSE la caisse — (vague 2) à l'ENCRE, comme toute ombre du jeu
   for(const sx of [-1,1])bx(sx*5.2,.005,1,.14,.01,17,M.jaune);          // lignes de baie
   for(const p of [[-7.4,-4.6,3.1],[6.8,5.2,2.4]])                        // flaques d'huile jamais essuyées
     add9(PL,new THREE.MeshBasicMaterial({map:oilTex,transparent:true,fog:false,depthWrite:false}),
@@ -20018,12 +20092,15 @@ function buildGarageRoom(){
           p[0],.008,p[1],p[2],p[2]*.8,1).rotation.x=-Math.PI/2;}
 
   // ===== LE PLAFOND QUI ÉCLAIRE : six tubes, leur cône de poussière, et la baladeuse =====
-  const tubeM=BA(0xfff3d2),tubeF=BA(0xfff3d2);
+  // (2026-09-26, vague 2) les tubes à .62 de blanc (0xfff3d2 → 0x9e9682) et les cônes à .05 (.085) : plein blanc, les tubes passaient
+  // au-dessus du seuil du bloom et BRÛLAIENT le haut de l'écran en taches laiteuses, et les six cônes additifs voilaient toute la moitié
+  // haute d'un lait bleuté. Un tube allumé se lit à sa FORME (une barre nette sur un plafond noir), pas à son éblouissement.
+  const tubeM=BA(0x9e9682),tubeF=BA(0x9e9682);
   // ⚠ CÔNES DE LUMIÈRE EN FrontSide, jamais DoubleSide : en tournant, la caméra ENTRE dans un cône
   // — en double face on se retrouvait derrière un voile blanc plein écran (la face arrière plus la
   // face avant, additionnées). En face avant seule, le cône DISPARAÎT dès qu'on est dedans, et il
   // reste franc vu de l'extérieur. Le voile, c'était ça.
-  const haloM=new THREE.MeshBasicMaterial({color:0xffe7bb,transparent:true,opacity:.085,depthWrite:false,fog:false,
+  const haloM=new THREE.MeshBasicMaterial({color:0xffe7bb,transparent:true,opacity:.05,depthWrite:false,fog:false,
     blending:THREE.AdditiveBlending,side:THREE.FrontSide});
   const haloF=haloM.clone();
   for(const p of [[-3.4,-8.6],[3.4,-8.6],[-3.4,0],[3.4,0],[-3.4,8.6],[3.4,8.6]]){
@@ -20316,6 +20393,7 @@ function closeGarage(){
   paintEnv(BIO.to.env,BIO.to.eS1,BIO.to.eS2); // (2026-09-26) on rend à la laque le ciel du biome (l'atelier l'avait repeint en studio)
   bioApply(BIO.cur); // ⚠ (2026-09-24) le garage/l'étal écrasent le ciel chaque frame (nuit étoilée) : on rend la main au BIOME en sortant, sinon la 1re course gardait leur ciel
   garageOn=false;gEl.classList.remove('on');gEl.classList.remove('quiet');gEl.classList.remove('launching');document.body.classList.remove('inGarage');
+  garageDecale(0); // (vague 2) l'objectif se recentre : la caméra de l'atelier est celle de la course
   garageFloor.visible=false;
   // ⚠ FERMER PENDANT UNE BASCULE : la caisse est alors écrasée à .001 et le scanner allumé. Sans ce
   // rattrapage on partait en course dans une caisse plate — un bug qui ne se voit qu'en fermant PILE
@@ -20498,7 +20576,9 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
     GAR._c.set(0,ay+1.72,cz-6.4);
     GAR._v.copy(G.p0).lerp(GAR._c,e9);
     camera.up.set(0,1,0);camera.position.copy(GAR._v);
-    camera.lookAt(0,ay+.85,cz+3.2);
+    // (2026-09-26, vague 2) le REGARD aussi glisse de la visée de l'orbite à celle de la poursuite (il sautait d'un coup à la 1re image),
+    // et le décentrement de l'objectif (voir garageDecale) revient à zéro sur le même geste
+    {const v9=(garageRender._v||0)*POR,yv=ay+.75-POR*.40-v9*1.35;camera.lookAt(0,yv+(ay+.85-yv)*e9,(cz+3.2)*e9);garageDecale(v9*.13*(1-e9));}
     const fovL=(56+u*10)*FOV_K;                            // le champ s'ouvre : c'est ça, la vitesse
     if(Math.abs(camera.fov-fovL)>.01){camera.fov=fovL;camera.updateProjectionMatrix();}
     if(!G.voile&&u>.80){G.voile=true;const f=$('gFade');if(f)f.classList.add('on');}
@@ -20536,7 +20616,23 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
     THREE.MathUtils.clamp(ay+h+1.0,ay+1.0,ay+GAR.H-1.05),
     THREE.MathUtils.clamp(Math.cos(garageAng)*cp,-GAR.D/2+1.2,GAR.D/2-1.2));
   camera.lookAt(0,ay+.75-POR*.40-vG*1.35,0);
+  /* (2026-09-26, vague 2) LA CAISSE MONTE AU-DESSUS DES FLÈCHES — PAR UN DÉCENTREMENT, PAS EN PIQUANT. À l'onglet VOITURES la caisse
+     tombait PILE sur la ligne des flèches ◀ ▶ (y ≈ 330 px sur 844) : LE MUR DU SON (6 m) avait nez et poupe coupés par les boutons, et le
+     haut de l'écran n'était que plafond et tubes. Piquer la caméra (1er essai) la remontait bien, mais au BORD d'un grand angle de ~87°
+     (le recul est borné à 8 m) : étirée de 10-20 %, elle débordait de l'écran de profil. On décentre donc l'OBJECTIF (`setViewOffset`,
+     le « décentrement » des chambres photo) : même visée, même perspective, l'image glisse de 13 % vers le haut — la caisse s'installe
+     dans le vide entre le compteur et les flèches, le plafond sort par le haut. Portrait + onglet VOITURES seulement (`vG`) ; le lâcher le
+     ramène à zéro, closeGarage l'efface (la caméra est celle de la course). */
+  garageDecale(vG*.13);
 }
+function garageDecale(k){ // k = part de la hauteur d'image dont l'objectif se décale vers le bas (la scène monte) ; 0 = objectif centré
+  if(Math.abs(k-(GAR.dec||0))<1e-4)return;
+  GAR.dec=k<1e-4?0:k;
+  if(!GAR.dec){camera.clearViewOffset();return;}
+  camera.setViewOffset(VP.w,VP.h,0,GAR.dec*VP.h,VP.w,VP.h); // ⚠ r128 pose aspect = fullWidth/fullHeight : on donne la VRAIE taille de la vue
+}
+// (dev, 2026-09-26) cadrage d'atelier FIGÉ pour les bancs avant/après : angle, tangage, distance — le tour automatique s'arrête
+window.dbgGarage=function(a,p,d){if(a!=null)garageAng=a;if(p!=null)garagePitch=p;if(d!=null)garageDist=d;garageDrag=true;return {a:garageAng,p:garagePitch,d:garageDist};};
 // ---------- RÉGLAGES : audio + commandes + sauvegarde (les toggles pilotent les MÊMES états que les boutons du HUD) ----------
 const setEl=$('settings');
 function setRefresh(){
