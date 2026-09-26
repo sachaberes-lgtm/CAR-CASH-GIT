@@ -1856,7 +1856,7 @@
 /* les PASTILLES : un chiffre ou NEW, étiquette penchée au coin de la touche */
 .mBadge{position:absolute;top:-11px;right:-6px;display:none;min-width:26px;padding:6px 7px 5px;box-sizing:border-box;
   font-family:var(--pix);font-style:normal;font-size:var(--f0);line-height:1;text-align:center;color:#fff;letter-spacing:1px;
-  color:var(--auT);background:linear-gradient(180deg,var(--au1),var(--au3));box-shadow:0 0 0 2px var(--k0),0 3px 0 2px var(--k0);text-shadow:none}
+  color:var(--k0);background:var(--neoC);box-shadow:0 0 0 2px var(--k0),0 3px 0 2px var(--k0);text-shadow:none}
 .mBadge.on{display:block;animation:k4Badge 2.4s var(--ease) infinite}
 #bdShop{color:#fff;background:var(--neoM);text-shadow:0 1px 0 #5a0040}
 @keyframes k4Badge{0%,80%,100%{transform:translateY(0)}88%{transform:translateY(-3px)}}
@@ -1951,7 +1951,7 @@ body.touch #overlay[data-ecran="dead"]::before{opacity:.88}
 #mHome .mTitle::after{content:'';position:absolute;left:8%;right:8%;bottom:-20px;height:6px;
   background:linear-gradient(90deg,transparent,var(--neoM) 18%,var(--neoM) 40%,transparent 40.5%,transparent 43%,var(--neoC) 43.5%,var(--neoC) 64%,transparent 64.5%,transparent 67%,var(--au2) 67.5%,var(--au2) 82%,transparent);
   box-shadow:0 0 14px rgba(255,62,200,.5)}
-#mHome .mVide{flex:1;min-height:60px;background:radial-gradient(46% 9% at 50% 94%,rgba(255,62,200,.30),transparent 70%)}
+#mHome .mVide{flex:1;min-height:60px}
 #mHome .mIcons{margin:0 0 26px;padding:0 6px;box-sizing:border-box}
 #mHome .mIcons .pbtn{min-height:88px}
 #mHome [data-m="shop"]{--nc:var(--neoM)}
@@ -1995,7 +1995,7 @@ body.touch #overlay[data-ecran="dead"]::before{opacity:.88}
 #mDead .mNew{margin:10px 0 0;font-family:var(--pix);font-size:var(--f0);letter-spacing:2px;line-height:1.7;text-align:center;color:var(--au1)}
 .mStats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;margin:16px 0 0}
 .mStat{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:64px;padding:8px 4px;font-family:var(--pix);
-  background:var(--tresse),var(--k1);box-shadow:inset 0 2px 0 var(--kl2);clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
+  background:var(--tresse),var(--k2);box-shadow:inset 0 2px 0 var(--kl2),inset 0 -2px 0 rgba(0,0,0,.45);clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
 .mStat b{display:inline-block;font-weight:400;font-size:var(--f5);color:var(--tx);text-shadow:0 2px 0 var(--txO);transform:skewX(var(--sk))}
 .mStat span{font-size:var(--f0);letter-spacing:1px;color:var(--tx3)}
 /* L'OBJECTIF : un TICKET — la barre se remplit de la partie, « à portée » il devient or et se touche */
@@ -2030,14 +2030,15 @@ body.touch #overlay[data-ecran="dead"]::before{opacity:.88}
 #mDead [data-m="shop"]{--nc:var(--neoM)}
 #mDead [data-m="set"]{--nc:var(--tx2)}
 /* LA SAISIE DU RECORD : un nom de 8 lettres sur une plaque de carbone, curseur or */
-#nameEntry{display:none;flex-direction:column;align-items:stretch;gap:12px;width:100%;margin:22px 0 0}
+#nameEntry{display:none;flex-flow:row wrap;align-items:stretch;gap:12px 16px;width:100%;margin:18px 0 0}
+#nameEntry>span{flex:0 0 100%}
 #nameEntry>span{display:flex;align-items:center;justify-content:center;gap:8px;font-family:var(--pix);font-size:var(--f1);letter-spacing:2px;line-height:1.7;color:var(--neoM);text-align:center;text-shadow:0 0 12px rgba(255,62,200,.6)}
 #nameEntry .pxi{--pxs:1;color:var(--au1)}
-#nameInput{box-sizing:border-box;width:100%;height:54px;padding:0 16px;border:0;border-radius:0;outline:0;font-family:var(--pix);font-size:var(--f5);letter-spacing:6px;
+#nameInput{box-sizing:border-box;flex:1;min-width:0;width:auto;height:54px;padding:0 16px;border:0;border-radius:0;outline:0;font-family:var(--pix);font-size:var(--f5);letter-spacing:6px;
   text-align:center;text-transform:uppercase;color:var(--au1);caret-color:var(--au1);background:var(--tresse),var(--k0);
   box-shadow:inset 0 2px 0 rgba(0,0,0,.6),0 0 0 2px var(--kl2);transform:skewX(var(--sk))}
 #nameInput:focus{box-shadow:inset 0 2px 0 rgba(0,0,0,.6),0 0 0 2px var(--au2),0 0 18px var(--auG)}
-#nameSave{--nc:#062a12;align-self:stretch;min-height:52px;color:#062a12;font-size:var(--f2);
+#nameSave{--nc:#062a12;flex:none;width:118px;min-height:54px;color:#062a12;font-size:var(--f2);
   background:repeating-linear-gradient(0deg,rgba(255,255,255,.06) 0 1px,transparent 1px 3px),linear-gradient(180deg,#d6ffe0 0%,#6cf28f 30%,#22b852 100%);
   box-shadow:inset 0 2px 0 rgba(255,255,255,.8),inset 0 -4px 0 rgba(0,90,30,.4),0 0 0 2px #03170a,0 6px 0 0 #0d7a33,0 6px 0 2px #03170a,var(--ombreSol);
   text-shadow:0 2px 0 rgba(220,255,230,.7);position:relative;display:flex;align-items:center;justify-content:center;border:0;border-radius:0;cursor:pointer;font-family:var(--pix);transform:skewX(var(--sk))}
@@ -2055,7 +2056,7 @@ body.touch #overlay[data-ecran="dead"]::before{opacity:.88}
 .mmS,.mmP{flex:none;display:flex;align-items:center;justify-content:center;min-width:54px;height:28px;padding:0 10px;box-sizing:border-box;font-size:var(--f0);letter-spacing:1px;
   transform:skewX(var(--sk));color:var(--neoV);background:#062414;box-shadow:0 0 0 2px #1d7a44,0 0 12px rgba(94,227,122,.3)}
 .mMode.off .mmS{color:var(--tx3);background:var(--k0);box-shadow:0 0 0 2px #2c2450}
-.mmP{color:var(--au1);background:var(--k0);box-shadow:0 0 0 2px var(--kl2)}
+.mmP{color:var(--tx2);background:var(--k0);box-shadow:0 0 0 2px var(--kl2)}
 .mmD{font-family:var(--sans);font-size:14px;line-height:1.45;font-weight:500;color:var(--tx2)}
 
 /* ---------------------------------------------- RÉGLAGES ------------------------------------------------------------ */
@@ -2082,9 +2083,8 @@ body.touch #overlay[data-ecran="dead"]::before{opacity:.88}
   background:var(--neoM);box-shadow:0 0 0 2px var(--k0),0 0 16px rgba(255,62,200,.55);text-shadow:0 1px 0 #5a0040}
 .shPhoto{position:relative;display:flex;align-items:center;justify-content:center;aspect-ratio:36/20}
 .shPhoto::before{content:'';position:absolute;left:14%;right:14%;bottom:6%;height:18%;border-radius:50%;background:radial-gradient(closest-side,rgba(255,62,200,.55),transparent)}
-.shPhoto.big{overflow:hidden}
-.shPhoto.big::after{content:'';position:absolute;left:50%;top:55%;width:170%;aspect-ratio:1;translate:-50% -50%;z-index:-1;
-  background:repeating-conic-gradient(from 0deg,rgba(255,62,200,.16) 0 6deg,transparent 6deg 18deg);-webkit-mask:radial-gradient(closest-side,#000 30%,transparent);mask:radial-gradient(closest-side,#000 30%,transparent);
+.shPhoto.big::after{content:'';position:absolute;left:50%;top:55%;width:130%;aspect-ratio:1;translate:-50% -50%;z-index:-1;
+  background:repeating-conic-gradient(from 0deg,rgba(255,62,200,.16) 0 6deg,transparent 6deg 18deg);-webkit-mask:radial-gradient(closest-side,#000 25%,transparent 72%);mask:radial-gradient(closest-side,#000 25%,transparent 72%);
   animation:k4Rayons 40s linear infinite}
 .shPhoto.big{isolation:isolate}
 @keyframes k4Rayons{0%{rotate:0deg}100%{rotate:360deg}}
@@ -2179,7 +2179,7 @@ body.touch #tNitro{border:9px solid transparent!important;color:var(--tx)!import
 body.touch #tNitro::before{content:'';position:absolute;inset:-12px;border-radius:50%;pointer-events:none;background:none;
   box-shadow:0 0 22px 6px rgba(255,140,40,.6);opacity:0;transition:opacity var(--t-fast) var(--ease)}
 body.touch #tNitro .pxi{--pxs:4;color:#ff8a24;filter:none!important}
-body.touch #tNitro span{font-family:var(--pix);font-size:var(--f0)!important;letter-spacing:2px!important;color:var(--tx2)}
+body.touch #tNitro span{font-family:var(--pix);font-size:var(--f0)!important;letter-spacing:2px!important;color:var(--tx)}
 body.touch #tNitro:active,body.touch #tNitro.on{transform:translateY(5px)!important;color:#fff!important;
   background:radial-gradient(circle at 50% 30%,rgba(255,255,255,.55),transparent 52%) padding-box,
     radial-gradient(circle at 50% 46%,#ffb35c 0%,#ff6a0e 52%,#a33200 100%) padding-box,
@@ -2213,14 +2213,15 @@ body.touch #tNitroZone{background:none!important;border:0!important;box-shadow:n
 .modB .pbtn .pxi{--pxs:2}
 #toast{position:fixed;left:50%;top:calc(var(--sT) + 72px);z-index:96;display:flex;align-items:center;gap:10px;box-sizing:border-box;width:max-content;max-width:min(88vw,400px);padding:13px 18px 12px;
   font-family:var(--pix);font-size:var(--f1);line-height:1.7;letter-spacing:1px;color:var(--tx);text-align:left;pointer-events:none;opacity:0;
-  background:var(--carbone),var(--k3);box-shadow:inset 5px 0 0 var(--au2),0 0 0 2px var(--k0),0 6px 0 2px var(--k0),var(--ombreSol);
-  transform:translate(-50%,-14px) skewX(var(--sk));transition:opacity var(--t-fast) var(--ease),transform var(--t-slow) var(--ease)}
-#toast.on{opacity:1;transform:translate(-50%,0) skewX(var(--sk))}
+  background:var(--tresse),var(--k2);box-shadow:inset 5px 0 0 var(--au2),0 0 0 2px var(--k0),var(--ombreSol);
+  clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);
+  transform:translate(-50%,-14px);transition:opacity var(--t-fast) var(--ease),transform var(--t-slow) var(--ease)}
+#toast.on{opacity:1;transform:translate(-50%,0)}
 #toast .pxi{--pxs:2;color:var(--au1)}
 #toast .pxi-coche{color:var(--neoV)}
-#toast:has(.pxi-coche){box-shadow:inset 5px 0 0 var(--neoV),0 0 0 2px var(--k0),0 6px 0 2px var(--k0),var(--ombreSol)}
+#toast:has(.pxi-coche){box-shadow:inset 5px 0 0 var(--neoV),0 0 0 2px var(--k0),var(--ombreSol)}
 #toast .pxi-croix{color:var(--neoR)}
-#toast:has(.pxi-croix){box-shadow:inset 5px 0 0 var(--neoR),0 0 0 2px var(--k0),0 6px 0 2px var(--k0),var(--ombreSol)}
+#toast:has(.pxi-croix){box-shadow:inset 5px 0 0 var(--neoR),0 0 0 2px var(--k0),var(--ombreSol)}
 /* au garage, le haut est à la FICHE : le toast se pose au-dessus des onglets, sur l'atelier */
 body.inGarage #toast{top:auto;bottom:calc(var(--sB) + 356px)}
 @media (max-height:720px){body.inGarage #toast{bottom:calc(var(--sB) + 316px)}}
@@ -2229,7 +2230,7 @@ body.inGarage #toast{top:auto;bottom:calc(var(--sB) + 356px)}
 /* ============================================ LA CARRIÈRE =========================================================== */
 #carr{position:fixed;inset:0;z-index:80;display:none;overflow-y:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box;
   padding:calc(var(--sT) + 18px) calc(var(--sR) + var(--gut)) calc(var(--sB) + 24px) calc(var(--sL) + var(--gut));
-  background:radial-gradient(120% 55% at 50% 0%,rgba(150,40,160,.35),transparent 62%),var(--tresse),rgba(7,5,15,.96)}
+  background:radial-gradient(120% 55% at 50% 0%,rgba(150,40,160,.35),transparent 62%),var(--tresse),var(--k0)}
 #carr.on{display:block;animation:k4Voile var(--t-slow) var(--ease) both}
 #carr.sortant{animation:k4VoileOut var(--t-fast) var(--ease) forwards;pointer-events:none}
 .carrIn{max-width:460px;margin:0 auto}
@@ -2237,12 +2238,14 @@ body.inGarage #toast{top:auto;bottom:calc(var(--sB) + 356px)}
 #carr .mHead .mBack{flex:none}
 .carrBiome .mmT span:first-child{display:flex;align-items:center;gap:12px}
 .carrJauge{height:8px;background:var(--k0);transform:skewX(var(--sk));box-shadow:0 0 0 2px var(--kl)}
-.carrJauge i{display:block;height:100%;background:linear-gradient(90deg,var(--au3),var(--au1))}
+.carrJauge i{display:block;height:100%;min-width:6px;background:linear-gradient(90deg,#b34bff,var(--neoC))}
 .carrGrille{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
 .carrNiv{flex-direction:column;gap:8px;min-height:84px;padding:10px 10px 10px 16px;white-space:normal}
-.carrNiv b{font-weight:400;font-size:var(--f5)}
+.carrNiv b{display:flex;align-items:center;gap:8px;font-weight:400;font-size:var(--f5)}
+.carrNiv b small{font-size:var(--f0);color:var(--tx3)}
 .carrNiv span{font-size:var(--f0);line-height:1.5}
-body:has(#carr.on) #garage #gTop{visibility:hidden}
+body:has(#carr.on) #garage{visibility:hidden}
+#carr .mDock{margin:26px calc(-1 * var(--gut)) calc(-24px - var(--sB))}
 
 /* ============================================ LE GARAGE ============================================================= */
 #garage{position:fixed;inset:0;display:none;z-index:60;pointer-events:none;flex-direction:column;justify-content:space-between;font-family:var(--pix);color:var(--tx)}
@@ -2264,7 +2267,7 @@ body.inGarage #hud>:not(#garage):not(#gFade){display:none!important}
 #gCompteur b{display:inline-block;font-weight:400;font-size:var(--f4);letter-spacing:1px;color:var(--cash);text-shadow:0 2px 0 var(--cashO),0 0 10px rgba(125,255,155,.35);transform:skewX(var(--sk))}
 #gCompteur.bouge b{animation:k4Bouge var(--t-slow) var(--ease)}
 #gCompteur .gcMoins{position:absolute;left:14px;top:100%;margin-top:8px;font-style:normal;font-size:var(--f3);color:var(--neoR);white-space:nowrap;text-shadow:0 2px 0 #2a0008;animation:k4Moins 1.4s var(--ease) forwards}
-@keyframes k4Piece{0%,70%{transform:scaleX(1)}80%{transform:scaleX(.35)}90%,100%{transform:scaleX(1)}}
+@keyframes k4Piece{0%,70%{transform:scaleX(1)}80%{transform:scaleX(.55)}90%,100%{transform:scaleX(1)}}
 @keyframes k4Bouge{0%{filter:brightness(1.8)}100%{filter:brightness(1)}}
 @keyframes k4Moins{0%{opacity:0;transform:translateY(-6px)}15%{opacity:1;transform:translateY(0)}75%{opacity:1}100%{opacity:0;transform:translateY(16px)}}
 #gPlayMain,#gCarr,#lbBoxG{display:none!important}
@@ -2320,7 +2323,7 @@ body.inGarage #hud>:not(#garage):not(#gFade){display:none!important}
 .gTab.on:active{background:linear-gradient(180deg,#ff6fd6,#d81b95)}
 /* LES FAMILLES : des puces penchées, la couleur de la rareté en filet, un losange qui brille */
 #gRar{display:flex;gap:10px;overflow-x:auto;overflow-y:hidden;margin:0 -14px;padding:4px 20px 6px;
-  -webkit-mask:linear-gradient(90deg,transparent 0,#000 18px,#000 calc(100% - 28px),transparent);mask:linear-gradient(90deg,transparent 0,#000 18px,#000 calc(100% - 28px),transparent);scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+  -webkit-mask:linear-gradient(90deg,transparent 0,#000 24px,#000 calc(100% - 56px),transparent);mask:linear-gradient(90deg,transparent 0,#000 24px,#000 calc(100% - 56px),transparent);scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
 #gRar::-webkit-scrollbar{display:none}
 .gR{flex:none;display:inline-flex;align-items:center;gap:9px;height:36px;padding:0 14px 0 12px;border:0;border-radius:0;cursor:pointer;
   font-family:var(--pix);font-size:var(--f0);letter-spacing:1px;color:var(--rc);transform:skewX(var(--sk));
@@ -2330,7 +2333,7 @@ body.inGarage #hud>:not(#garage):not(#gFade){display:none!important}
 .gR.on{color:var(--k0);background:var(--rc);box-shadow:0 0 0 2px var(--k0),0 4px 0 2px var(--k0),0 0 16px color-mix(in srgb,var(--rc) 50%,transparent)}
 .gR.on::before{background:var(--k0);box-shadow:none}
 .gR.on b{color:var(--k0)}
-#garage.shopMode #gRar{visibility:hidden;pointer-events:none}
+/* en habillage, la rangée des familles porte les FILTRES (TOUT · À MOI · À ACHETER) : même touche, même place */
 /* LES VIGNETTES : des cartes de course penchées, la photo redressée dedans */
 #gStrip{display:flex;gap:14px;overflow-x:auto;overflow-y:hidden;margin:0 -14px;padding:8px 22px 12px;
   -webkit-mask:linear-gradient(90deg,transparent 0,#000 16px,#000 calc(100% - 24px),transparent);mask:linear-gradient(90deg,transparent 0,#000 16px,#000 calc(100% - 24px),transparent);scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
@@ -2359,8 +2362,13 @@ body.inGarage #hud>:not(#garage):not(#gFade){display:none!important}
 .gT .gRub{position:absolute;left:10px;right:10px;top:24px;height:10px;transform:skewX(-20deg);filter:drop-shadow(0 0 6px currentColor)}
 .gT .gIc{position:absolute;left:50%;top:10px;margin-left:-18px;--pxs:4;transform:skewX(var(--skI))}
 .gT b{position:absolute;left:6px;right:6px;bottom:5px;font-weight:400;font-size:var(--f0);letter-spacing:0;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}
-.gT.cos em{top:0;bottom:auto;left:auto;padding:3px 6px 2px;background:rgba(7,5,15,.82)}
-.gT.cos.eq::after{top:9px;bottom:auto}
+.gT.cos em{top:auto;bottom:0;left:0;right:0;justify-content:flex-end;padding:4px 10px 3px;background:rgba(7,5,15,.82)}
+.gT.cos .gSwc{top:10px;bottom:22px}
+.gT.c-trainee .gRub{top:22px}
+.gT.c-aile .gIc{top:6px;--pxs:3;margin-left:-14px}
+.gT.c-aile b{bottom:auto;top:36px;white-space:normal;line-height:1.35;font-size:var(--f0);text-align:center;left:4px;right:4px;overflow:hidden;max-height:2.7em}
+.gT.c-aile em{top:0;bottom:auto;left:auto;padding:3px 6px 2px}
+.gT.cos.eq::after{top:8px;bottom:auto}
 .gT.cos.lock::before{top:8px}
 .gT.cos.eq.lock::after{display:none}
 /* LES FLÈCHES : de part et d'autre de la caisse, fines et penchées */
@@ -2368,8 +2376,8 @@ body.inGarage #hud>:not(#garage):not(#gFade){display:none!important}
   --nc:var(--neoC);background:var(--carbone),rgba(28,22,54,.8)}
 #garage .gNav:active{opacity:1}
 #garage .gNav .pxi{--pxs:2}
-#gPrev{left:calc(var(--sL) + 6px)}
-#gNext{right:calc(var(--sR) + 6px);--nc:var(--neoC)}
+#gPrev{left:calc(var(--sL) + 8px)}
+#gNext{right:calc(var(--sR) + 8px);--nc:var(--neoC)}
 #gNext{box-shadow:inset -5px 0 0 var(--nc),inset -18px 0 20px -14px var(--nc),inset 0 1px 0 rgba(255,255,255,.22),0 0 0 2px var(--k0),0 6px 0 0 #0a0716,0 6px 0 2px var(--k0),var(--ombreSol)}
 .gNav.hint{animation:k4Pop var(--t-slow) var(--ease) 3}
 /* LA BARRE D'ACTION : la sortie à gauche, LA décision à droite (acheter / équiper — un seul lingot) */
@@ -2420,6 +2428,11 @@ body.inGarage #hud>:not(#garage):not(#gFade){display:none!important}
 #wipe::before{content:'';position:absolute;top:-10%;bottom:-10%;left:-30%;width:160%;transform:translateX(105%) skewX(var(--sk));
   background:linear-gradient(90deg,var(--au2) 0 10px,var(--neoM) 10px 18px,transparent 18px 26px,rgba(7,5,15,1) 26px),var(--tresse),#07050f;
   background-blend-mode:normal}
+#wipe::after{content:'CASH CAR';position:absolute;inset:0;display:grid;place-items:center;font-family:var(--pix);font-size:var(--f7);letter-spacing:4px;
+  color:var(--au1);text-shadow:0 4px 0 var(--auE),0 0 24px var(--auG);transform:skewX(var(--sk));opacity:0;pointer-events:none}
+#wipe.in::after{animation:k4Marque 200ms var(--ease) 90ms forwards}
+#wipe.out::after{opacity:1;animation:k4VoileOut 140ms var(--ease) forwards}
+@keyframes k4Marque{0%{opacity:0}100%{opacity:1}}
 #wipe.in{visibility:visible;pointer-events:auto}
 #wipe.in::before{animation:k4VoletIn 200ms var(--ease) forwards}
 #wipe.out{visibility:visible;pointer-events:none}
@@ -2441,6 +2454,7 @@ body.inGarage #hud>:not(#garage):not(#gFade){display:none!important}
 .mscr.on>.mPlay,#mDead.on>[data-m="replay"]{animation:k4Fils var(--t-slow) var(--ease) backwards,k4Lingot 4.2s var(--ease) 1.4s infinite;animation-delay:calc(var(--i,0)*28ms + 50ms),1.4s}
 #mDead.on>.mOver{animation:k4Enseigne .9s var(--ease) backwards;animation-delay:80ms}
 .mscr.on>.mDock{animation:none}
+body.voletSort .mscr.on,body.voletSort .mscr.on>*,body.voletSort #mDead.on>.mOver{animation:none!important}
 @keyframes k4Racine{0%{opacity:0;transform:scale(.985)}100%{opacity:1;transform:none}}
 @keyframes k4Avant{0%{opacity:0;transform:translateX(56px) skewX(-4deg)}100%{opacity:1;transform:none}}
 @keyframes k4Retour{0%{opacity:0;transform:translateX(-56px) skewX(4deg)}100%{opacity:1;transform:none}}
@@ -6277,6 +6291,8 @@ Object.assign(I18N_ZH,{"MINI-TURBO": "迷你涡轮", "SUPER TURBO": "超级涡�
 Object.assign(I18N,{"RASE-BORD": "EDGE RIDER"});Object.assign(I18N_ZH,{"RASE-BORD": "贴边疾驰"});
 Object.assign(I18N,{"FRÉNÉSIE": "FRENZY", "FRÉNÉSIE !": "FRENZY!"});Object.assign(I18N_ZH,{"FRÉNÉSIE": "狂热", "FRÉNÉSIE !": "狂热！"});
 // ---- la charte v4 (2026-09-26) : les libellés neufs de l'interface (et ceux qui retombaient en français) ----
+Object.assign(I18N,{"COMMUNES":"COMMONS","COMMUNE":"COMMON","RARES":"RARES","ÉPIQUES":"EPICS","ÉPIQUE":"EPIC","LÉGENDES":"LEGENDS","LÉGENDAIRE":"LEGENDARY","DÉFIS":"CHALLENGES","TOUT":"ALL","À MOI":"MINE","À ACHETER":"FOR SALE","TRAÎNÉE":"TRAIL","PEINTURE":"PAINT","AILES":"WINGS"});
+Object.assign(I18N_ZH,{"COMMUNES":"普通","COMMUNE":"普通","RARES":"稀有","RARE":"稀有","ÉPIQUES":"史诗","ÉPIQUE":"史诗","LÉGENDES":"传奇","LÉGENDAIRE":"传奇","DÉFIS":"挑战","TOUT":"全部","À MOI":"已拥有","À ACHETER":"可购买","TRAÎNÉE":"尾迹","PEINTURE":"涂装","AILES":"翅膀"});
 Object.assign(I18N,{"RETOUR":"BACK","EN BOUTIQUE":"IN THE SHOP","VERROUILLÉE":"LOCKED","ÉQUIPÉE":"EQUIPPED","IL MANQUE":"SHORT BY","LES LEGENDAIRES":"LEGENDARIES","DÉFI":"CHALLENGE"});
 Object.assign(I18N_ZH,{"RETOUR":"返回","EN BOUTIQUE":"商店有售","VERROUILLÉE":"未解锁","ÉQUIPÉE":"已装备","IL MANQUE":"还差","LES LEGENDAIRES":"传奇座驾","DÉFI":"挑战","ACHETER":"购买"});
 // ⚠ nommée TR et non T : `T` est DÉJÀ le tableau des tangentes de la piste (T[bi].y) — la
@@ -6914,16 +6930,17 @@ function carrMarque(bi,i){ // le niveau i vient d'être TERMINÉ
 // ---- L'ÉCRAN CARRIÈRE : les 3 biomes, puis les 10 niveaux du biome choisi ----
 function carrVue(bi){
   const el=document.getElementById('carr');if(!el)return;
-  let h='<div class="carrIn"><div class="mHead"><div class="pbtn pb-cyan mBack pbCarre" data-c="'+(bi==null?'fermer':'biomes')+'" role="button" aria-label="Retour">'+pxi('gauche')+'</div><h3>'+TR(bi==null?'CARRIERE':CARRIERE[bi].nm)+'</h3><div class="mSpacer"></div></div>';
+  let h='<div class="carrIn"><div class="mHead"><h3>'+TR(bi==null?'CARRIERE':CARRIERE[bi].nm)+'</h3></div>';
   if(bi==null){
     CARRIERE.forEach(function(B,k){const f=carrFait(k);
       h+='<div class="mMode carrBiome" data-c="biome" data-b="'+k+'" role="button"><div class="mmT"><span>'+pxi(B.ic)+' '+TR(B.nm)+'</span><span class="mmP">'+f+' / 10</span></div><div class="mmD">'+TR(B.desc)+'</div><div class="carrJauge"><i style="width:'+(f*10)+'%"></i></div></div>';});
   }else{
     const f=carrFait(bi);h+='<div class="carrGrille">';
     CARRIERE[bi].niveaux.forEach(function(N,i){const ok=i<=f;
-      h+='<div class="pbtn '+(ok?(i<f?'pb-green':'pb-gold'):'pb-cyan off')+' carrNiv" data-c="'+(ok?'niveau':'verrou')+'" data-b="'+bi+'" data-i="'+i+'" role="button" aria-label="Niveau '+(i+1)+(ok?'':' verrouillé')+'"><b>'+(ok?String(i+1).padStart(2,'0'):pxi('verrou'))+'</b><span>'+TR(N.nm)+'</span></div>';});
+      h+='<div class="pbtn '+(ok?(i<f?'pb-green':'pb-gold'):'pb-cyan off')+' carrNiv" data-c="'+(ok?'niveau':'verrou')+'" data-b="'+bi+'" data-i="'+i+'" role="button" aria-label="Niveau '+(i+1)+(ok?'':' verrouillé')+'"><b>'+(ok?String(i+1).padStart(2,'0'):pxi('verrou')+'<small>'+String(i+1).padStart(2,'0')+'</small>')+'</b><span>'+TR(N.nm)+'</span></div>';});
     h+='</div>';
   }
+  h+='<div class="mDock"><div class="pbtn mBack" data-c="'+(bi==null?'fermer':'biomes')+'" role="button" aria-label="Retour">'+pxi('gauche')+'<span>'+TR('RETOUR')+'</span></div></div>'; // (charte v4) la sortie en BAS, comme partout
   el.innerHTML=h+'</div>';feuilleOuvre(el,'on');
 }
 function carrLancer(bi,i){
@@ -12760,6 +12777,7 @@ function ecranWipe(fn,apres){
     let leve=false;
     const lever=function(){ if(leve)return;leve=true;
       w.className='out';ecranWipe._on=false; // la main revient DÈS que l'écran se redécouvre (le voile qui s'efface ne bloque plus rien)
+      document.body.classList.add('voletSort');clearTimeout(ecranWipe._vs);ecranWipe._vs=setTimeout(function(){document.body.classList.remove('voletSort');},480); // (charte v4) le contenu est DÉJÀ en place quand le volet le découvre
       if(apres){try{apres();}catch(e){console.error(e);}}
       try{document.dispatchEvent(new Event('cc:revele'));}catch(e){} // la coque rejoue l'entrée de l'écran qu'on découvre
       setTimeout(function(){if(ecranWipe._id===id)w.className='';},REDUCED_MOTION?160:460); }; // un fondu relancé entre-temps garde son voile
@@ -13320,10 +13338,10 @@ function shopRender(){
     if(u.une&&!hU){ // (charte v4) la VITRINE DE LÉGENDE : cadre d'or qui scintille autour (`.shUne`), le décor dedans (`.shUneCadre`)
       hU='<div class="shUneCadre"><div class="shRuban">'+TR('OFFRE DE LANCEMENT')+'</div><b class="shRemise">-50%</b><div class="shPhoto big">'+img+'</div>'
         +'<div class="shUneTx"><b>'+TR(CARS[i].name)+'</b><span>'+TR(CARS[i].desc)+'</span></div>'
-        +'<div class="shUneBas"><s>9,99 €</s><em>'+u.eur+'</em><span class="shBtn'+(a?' aToi':'')+'">'+pxi(a?'coche':'verrou')+TR(a?'À TOI':'BIENTÔT')+'</span></div></div>';
+        +'<div class="shUneBas"><s>'+eurTxt('9,99 €')+'</s><em>'+eurTxt(u.eur)+'</em><span class="shBtn'+(a?' aToi':'')+'">'+pxi(a?'coche':'verrou')+TR(a?'À TOI':'BIENTÔT')+'</span></div></div>';
       une.setAttribute('data-car',i);continue;}
     hG+='<div class="shCase '+(u.rar||'rar')+'" data-m="shopSoon" data-car="'+i+'" role="button"><span class="shRare">'+TR(RAR[u.rar||'rar'])+'</span>'
-      +'<div class="shPhoto">'+img+'</div><b class="shNom">'+TR(CARS[i].name)+'</b><span class="shPrix'+(a?' aToi':'')+'">'+(a?TR('À TOI'):u.eur)+'</span></div>';
+      +'<div class="shPhoto">'+img+'</div><b class="shNom">'+TR(CARS[i].name)+'</b><span class="shPrix'+(a?' aToi':'')+'">'+(a?TR('À TOI'):eurTxt(u.eur))+'</span></div>';
   }
   une.innerHTML=hU;gr.innerHTML=hG;
 }
@@ -20814,7 +20832,7 @@ function garageShow(i){
   // ressert enfin, il n'était plus affiché nulle part depuis le retrait de la carte de déblocage.
   const ouverte=carUnlocked(garageI),testOuv=TEST_CAISSES&&!carUnlockedVrai(garageI); // testOuv : ouverte pour le TEST seulement
   const u9=CAR_UNLOCK[garageI],dfi=!ouverte&&u9&&u9.k==='carnet';
-  if(testOuv)gDescEl.innerHTML='TEST — '+(u9&&u9.k==='carnet'?defisHtml(u9.v):pxi('verrou')+' '+(u9&&u9.k==='premium'?TR('BOUTIQUE')+' — '+u9.eur:String(carUnlockText(garageI)).replace(/</g,'&lt;'))); // la VRAIE condition reste écrite
+  if(testOuv)gDescEl.innerHTML='TEST — '+(u9&&u9.k==='carnet'?defisHtml(u9.v):pxi('verrou')+' '+(u9&&u9.k==='premium'?TR('BOUTIQUE')+' — '+eurTxt(u9.eur):String(carUnlockText(garageI)).replace(/</g,'&lt;'))); // la VRAIE condition reste écrite
   else if(ouverte)gDescEl.textContent=TR(c.desc||'');else if(dfi)gDescEl.innerHTML=defisHtml(u9.v);else gDescEl.innerHTML=pxi('verrou')+' '+String(carUnlockText(garageI)).replace(/</g,'&lt;');
   $('gCard').classList.toggle('defis',!!dfi);
   // ÉQUIPER : verrouillé tant que la caisse n'est pas débloquée ; marqué quand c'est déjà la tienne
@@ -20848,7 +20866,7 @@ function garageShow(i){
   {const ri=rarInfo(carRar(garageI)),pl=$('gRarPill');if(pl){pl.textContent=sansAcc(TR(ri.n1));pl.style.setProperty('--rc',ri.c);}
    $('gCard').style.setProperty('--rc',ri.c); // le nom s'auréole de la couleur de sa famille
    // LÉGENDAIRE pas encore à toi : UN bouton, qui mène à la BOUTIQUE (le seul endroit où elle s'achète)
-   if(bb){bb.dataset.bout='';if(u9&&u9.k==='premium'&&!carUnlockedVrai(garageI)&&!testOuv){if(row)row.style.display='';bb.innerHTML=pxi('panier')+'<span>'+TR('EN BOUTIQUE')+'</span><b class="gPrix">'+u9.eur+'</b>';
+   if(bb){bb.dataset.bout='';if(u9&&u9.k==='premium'&&!carUnlockedVrai(garageI)&&!testOuv){if(row)row.style.display='';bb.innerHTML=pxi('panier')+'<span>'+TR('EN BOUTIQUE')+'</span><b class="gPrix">'+eurTxt(u9.eur)+'</b>';
      bb.classList.remove('pauvre');bb.dataset.bout='1';if(bt)bt.style.display='none';}}
    garageFamilles(ri.id);}
   gBankPaint();
@@ -20864,10 +20882,10 @@ function garageFamilles(r){
     bar.innerHTML=RARETES.map(function(x){const L=rarListe(x.id);let a=0;for(const i of L)if(carUnlockedVrai(i))a++;
       return '<button class="gR'+(x.id===r?' on':'')+'" data-r="'+x.id+'" role="tab" aria-selected="'+(x.id===r)+'" style="--rc:'+x.c+'">'+sansAcc(TR(x.n))+'<b>'+a+'/'+L.length+'</b></button>';}).join('');}
   {const ro=bar.querySelector('.gR.on');if(ro&&bar._on!==r){bar._on=r;const x=ro.offsetLeft-(bar.clientWidth-ro.offsetWidth)/2;try{bar.scrollTo({left:x,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){bar.scrollLeft=x;}}} // la famille active vient se montrer
-  const L=rarListe(r),ri=rarInfo(r);
-  if(st._r!==r||st._n!==L.length||st._eq!==eq){st._r=r;st._n=L.length;st._eq=eq;
+  const L=rarListe(r),ri=rarInfo(r),own=L.filter(carUnlockedVrai).length; // (charte v4) posséder une caisse de plus REFAIT la bande (elle gardait son cadenas après l'achat)
+  if(st._r!==r||st._n!==L.length||st._eq!==eq||st._o!==own){st._r=r;st._n=L.length;st._eq=eq;st._o=own;
     st.innerHTML=L.map(function(i){const u=CAR_UNLOCK[i],ouv=carUnlockedVrai(i);
-      const et=ouv?(i===eq?'':pxi('coche')):(u&&u.p?fmtC(u.p):u&&u.eur?u.eur:''); // (la police pixel n'a pas de ✓ : l'icône pixel)
+      const et=ouv?(i===eq?'':pxi('coche')):(u&&u.p?fmtC(u.p):u&&u.eur?eurTxt(u.eur):''); // (la police pixel n'a pas de ✓ : l'icône pixel)
       return '<div class="gT'+(ouv?'':' lock')+(i===eq?' eq':'')+'" data-car="'+i+'" role="button" aria-label="'+String(CARS[i].name).replace(/"/g,'')+'" style="--rc:'+ri.c+'">'
         +'<i class="gTv"></i><em>'+et+'</em></div>';}).join('');
     st.querySelectorAll('.gT').forEach(function(el){const i=+el.getAttribute('data-car');
@@ -20917,7 +20935,8 @@ function shopTab(tab){
   const gt=$('gTitle');if(gt)gt.textContent=TR('GARAGE'); // la personnalisation fait partie du GARAGE (la BOUTIQUE, c'est le vrai argent)
   if(gEl)gEl.classList.toggle('shopMode',tab!=='voiture');
   if(tab==='trainee')garageAng=3.5; // TRAÎNÉES : la caméra passe derrière la caisse (trois-quarts arrière) — on regarde ce qui SORT des tuyères
-  if(tab==='voiture'){SHOP.prev=null;garageShow(garageI);return;}
+  if(tab==='voiture'){SHOP.prev=null;{const bar=$('gRar');if(bar)bar._k=null;}garageShow(garageI);return;}
+  SHOP.filtre='tout'; // chaque catégorie s'ouvre sur TOUT
   const eqI=COSM[tab].indexOf(shopEqD(tab));shopShow(tab,eqI<0?0:eqI);
 }
 function shopShow(cat,i){
@@ -20962,6 +20981,7 @@ function gEtat(bt,etat,ic,txt){bt.dataset.etat=etat;bt.setAttribute('aria-disabl
 function gNomEntre(t){ // le NOM entre en glissant (seulement s'il CHANGE : rafraîchir la fiche ne le fait pas rejouer)
   if(gNameEl.textContent===t)return;gNameEl.textContent=t;if(REDUCED_MOTION)return;
   gNameEl.classList.remove('entre');void gNameEl.offsetWidth;gNameEl.classList.add('entre');}
+function eurTxt(s){if(!s||LANG==='fr')return s;const v=parseFloat(String(s).replace(',','.'));return isFinite(v)?'€'+v.toFixed(2):s;}
 function gTampon(t){const c=$('gCard');if(!c||REDUCED_MOTION)return;c.dataset.tampon=t;c.classList.remove('tampon');void c.offsetWidth;c.classList.add('tampon');
   {const e=$('gEclat');if(e){e.style.setProperty('--rc',getComputedStyle(c).getPropertyValue('--rc')||'#ffd75e');e.classList.remove('on');void e.offsetWidth;e.classList.add('on');}} // et un éclair de SA couleur derrière la caisse
   clearTimeout(gTampon._t);gTampon._t=setTimeout(function(){c.classList.remove('tampon');},2000);} // l'achat se FÊTE : le tampon d'or « À TOI ! »
@@ -20970,7 +20990,13 @@ function gPrixHtml(peut,prix){return '<span>'+TR(peut?'ACHETER':'IL MANQUE')+'</
    même bande de vignettes que les caisses montre TOUTE la gamme d'un coup d'œil — le nuancier de la laque (chrome, or et
    mat ont leur matière), l'aile, le ruban de la traînée — avec le prix, le cadenas (à gagner) ou la coche (à toi). */
 function gStripHabits(cat,i){
-  const st=$('gStrip');if(!st)return;const L=COSM[cat],k='cos:'+cat+':'+L.map(function(x){return shopOwned(cat,x.id)?1:0;}).join('')+':'+shopEqD(cat).id;
+  const st=$('gStrip'),bar=$('gRar');if(!st)return;const L=COSM[cat],fi=SHOP.filtre||'tout';
+  const k='cos:'+cat+':'+fi+':'+L.map(function(x){return shopOwned(cat,x.id)?1:0;}).join('')+':'+shopEqD(cat).id;
+  const garde=function(d){const a=shopOwned(cat,d.id);return fi==='tout'||(fi==='moi'?a:(!a&&!!d.p));}; // À ACHETER = en vente et pas à toi (les défis se gagnent)
+  if(bar&&bar._k!==k){bar._k=k;bar._on=null; // la barre des familles devient celle des FILTRES (même touche, même place)
+    const nb=function(f){let n=0;for(const d of L){const a=shopOwned(cat,d.id);if(f==='tout'||(f==='moi'?a:(!a&&!!d.p)))n++;}return n;};
+    bar.innerHTML=[['tout','TOUT','var(--tx2)'],['moi','À MOI','var(--neoV)'],['achat','À ACHETER','var(--au1)']].map(function(f){
+      return '<button class="gR gF'+(f[0]===fi?' on':'')+'" data-f="'+f[0]+'" role="tab" aria-selected="'+(f[0]===fi)+'" style="--rc:'+f[2]+'">'+sansAcc(TR(f[1]))+'<b>'+nb(f[0])+'</b></button>';}).join('');}
   if(st._r!==k){st._r=k;st._n=-1;
     const hx=function(c){return '#'+(c>>>0).toString(16).padStart(6,'0');},rg=function(v){return 'rgb('+v.map(function(x){return Math.round(Math.min(1,x/1.45)*255);}).join(',')+')';};
     st.innerHTML=L.map(function(d,j){const a=shopOwned(cat,d.id),eqd=shopEqD(cat)===d;
@@ -20980,7 +21006,8 @@ function gStripHabits(cat,i){
       else if(cat==='trainee')fig='<i class="gRub" style="color:'+(d.rainbow?'#ff9b1a':d.rgb?rg(d.rgb):'#ff8a24')+';background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,transparent,'+(d.rgb?rg(d.rgb):'#ff6a14')+' 35%,#fff 100%)')+'"></i>';
       else fig='<i class="pxi pxi-aile gIc" style="color:'+(a?'#dff6ff':'#6c6390')+'"></i>';
       const et=a?(eqd?'':pxi('coche')):(d.p?fmtC(d.p):sansAcc(TR('DÉFI'))); // (à gagner : le cadenas est déjà au coin)
-      return '<div class="gT cos'+(a?'':' lock')+(eqd?' eq':'')+'" data-cos="'+j+'" role="button" aria-label="'+String(TR(d.n)).replace(/"/g,'')+'">'+fig+'<b>'+sansAcc(TR(d.n))+'</b><em>'+et+'</em></div>';}).join('');}
+      if(!garde(d))return '';
+      return '<div class="gT cos c-'+cat+(a?'':' lock')+(eqd?' eq':'')+'" data-cos="'+j+'" role="button" aria-label="'+String(TR(d.n)).replace(/"/g,'')+'">'+fig+(cat==='aile'?'<b>'+sansAcc(TR(d.n))+'</b>':'')+'<em>'+et+'</em></div>';}).join('');} // (le nom se lit en grand sur la fiche : la vignette montre la MATIÈRE — sauf l'aile, que seul son nom distingue)
   st.querySelectorAll('.gT').forEach(function(el){el.classList.toggle('on',+el.getAttribute('data-cos')===i);});
   const on=st.querySelector('.gT.on');if(on){const x=on.offsetLeft-(st.clientWidth-on.offsetWidth)/2;try{st.scrollTo({left:x,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){st.scrollLeft=x;}}
 }
@@ -21434,6 +21461,7 @@ $('gEquip').addEventListener('click',e=>{e.stopPropagation();
    ferait qu'un achat changerait la caisse de départ sans qu'on l'ait demandé. Le bouton ÉQUIPER
    s'allume juste à côté — le joueur décide. */
 $('gRar').addEventListener('click',e=>{const b=e.target.closest('.gR');if(!b)return;e.stopPropagation();uiPop(b);uiClic();
+  if(b.hasAttribute('data-f')){SHOP.filtre=b.getAttribute('data-f');if(SHOP.tab!=='voiture')gStripHabits(SHOP.tab,SHOP.i[SHOP.tab]);return;} // un FILTRE d'habillage
   const L=rarListe(b.getAttribute('data-r'));if(!L.length)return;const eq=SAVE.d.equipped|0;
   garageSaute(L.indexOf(eq)>=0?eq:L[0]);});
 $('gStrip').addEventListener('click',e=>{const t=e.target.closest('.gT');if(!t)return;e.stopPropagation();uiPop(t);uiClic();
@@ -21448,15 +21476,14 @@ $('gBuy').addEventListener('click',e=>{e.stopPropagation();
     ecranWipe(function(){closeGarage();const b=document.querySelector('#mob [data-m=shop]');if(b)setTimeout(function(){b.click();},30);});return;}
   if(SHOP.tab!=='voiture'){const c9=SHOP.tab,i9=SHOP.i[c9],r9=shopBuy(c9,i9);
     if(!r9.ok){if(r9.raison==='fonds-insuffisants'){gSecoue(e.currentTarget);uiClic();toast(pxi('croix')+' '+TR('IL TE MANQUE')+' '+fmtC(r9.manque));}return;}
-    shopShow(c9,i9);toast(pxi('coche')+' '+TR(COSM[c9][i9].n)+' — '+fmtC(r9.paye));hap([10,30,20,30,40]);pixBurst($('gCard'),26);gTampon(TR('À TOI')+' !');
+    shopShow(c9,i9);hap([10,30,20,30,40]);pixBurst($('gCard'),26);gTampon(TR('À TOI')+' !');
     try{fanfare();}catch(err){}return;}
   const r=carBuy(garageI);
   if(!r.ok){
     if(r.raison==='fonds-insuffisants'){gSecoue(e.currentTarget);uiClic();toast(pxi('croix')+' '+TR('IL TE MANQUE')+' '+fmtC(r.manque));} // #msg est masqué au garage : c'est un toast qui parle
     return;
   }
-  garageShow(garageI);pixBurst($('gCard'),26);hap([10,30,20,30,40]);gTampon(TR('À TOI')+' !'); // le bouton disparaît, le compte se met à jour — et ça se FÊTE
-  toast(pxi('coche')+' '+TR(CARS[garageI].name)+' '+TR('EST À TOI')+' — '+fmtC(r.paye)); // (#msg invisible au garage : l'achat ne se disait pas)
+  garageShow(garageI);pixBurst($('gCard'),26);hap([10,30,20,30,40]);gTampon(TR('À TOI')+' !'); // le bouton disparaît, le compte se met à jour — et ça se FÊTE (tampon + « −$ » du compteur : plus de toast qui le redit)
   try{fanfare();}catch(err){}
 });
 // `buildPlayWord()` — LE JOUER SANS BULLE (2026-09-05 bis) : `#gPlayMain` n'a plus de textContent
