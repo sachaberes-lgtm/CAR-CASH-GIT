@@ -138,6 +138,14 @@
     noyés dans la brume (shader). 3 draw calls : `villeMatTours` (fenêtres dans le shader, fondues en lueur au loin), `villeMatNeon`
     (respire/clignote/grésille, `CITY.uT`), `villeMatTrafic` (voitures volantes déplacées par le vertex shader). Programmes compilés au
     menu (`villeChauffe`). Plus de suivi d'altitude ni de plancher. `dbgCity()` = comptes + ms de construction (~30 ms).
+  · **LES POTS** (26/09, « pour chaque skin, les flammes des pots et la traînée de nitro au bon endroit ») : `buildCar` relève les
+    VRAIS pots de chaque caisse (`CAR_POTS`, repère caisse) dans les pièces du kit (`lpKit` note ses cylindres/tours/boîtes :
+    cylindres couchés dans l'axe, r ≤ 20 cm, ≤ 60 cm de haut, bout arrière dans les 70 cm de la poupe ; boîtes chromées plus larges
+    que hautes ou petits tubes — ni verre, ni feux, ni tôle, ni butoirs). Sinon la fiche les DÉCLARE (`pots:[…]` : Chevalier noir,
+    Mur du son, Mastodonte), la Comète prend ses propulseurs (`spec.rocket`), les autres gabarits gardent les pots canoniques. Tuyères
+    (4 max), flammes au sol/en vol, retour de flamme, gerbe, arc-en-ciel, `nitroLight` et rubans en partent via `potMonde` (suit le
+    roulis de `carBody`). Rubans = moyenne des pots les plus en arrière de chaque côté ; UN seul (`CAR_POT_1`) si d'un côté ou au
+    centre. Banc des 66 : `dbgPots()`, `dbgSpec(i)`, `dbgNbCaisses()` (scratchpad `pots/audit.js`, planche avant/après).
   · **CIEL DE LA VILLE** (26/09, « la skyline, le sol et le plafond sont mal gérés, ça casse l'immersion ») : la couronne peinte
     (cylindre de 5,2 km, net derrière des tours noyées de brume, BORDS visibles en vol libre) est RETIRÉE ; le fond musical géométrique
     (roue, ondes, piliers — des polygones jusque sous l'horizon) s'efface dans la ville (`uVille<.999`). Tout vit dans le dôme,
@@ -211,6 +219,32 @@ Commits `2608066` (lot 1) · `c3493a5` (lots 2-3) · `04e8d28` (4) · `bd995f4` 
 - **Vérifier** : harnais Puppeteer + Chrome système (puppeteer de `Desktop/projet-161`), `--mute-audio`, sauvegarde sfx/mus/vox à false.
   ⚠ `dbgSaut()` = passer au NIVEAU suivant (pas un saut) ; pour s'envoler : `dbgDauphin(hauteur,vA,vLat,lat)`. Un test ne mesure le son
   qu'en comptant les `createOscillator` (patch avant chargement).
+
+## PASSE DÉBOGAGE / PERF (2026-09-26) — lots 1 à 4, mesurée (téléphone émulé, processeur bridé ×4)
+Résultat : 60 i/s partout sur PC, ZÉRO compilation de shader en course (portails, montées de moteur, rejouer, 1re ville, 1er vol de
+pigeons). Pires images, bridé ×4 : moteur 169 → 65-92 ms, portail 322 → 66-111 ms, croisière 36 → 18-22 ms/image. Ce qui est devenu une RÈGLE :
+- **Scène gelée** : `scene.matrixAutoUpdate=false` (sinon three recalcule ~6 000 matrices par image). Les objets IMMOBILES (plots, pièces,
+  fruits, pouvoirs) sont posés puis `updateMatrix();matrixAutoUpdate=false` — un objet gelé qu'on anime doit appeler `updateMatrix()` lui-même
+  (le LOD des pièces le fait). **Plots en instances** : `CONE_IM` (4 `InstancedMesh`, `conesInstancier()` après `buildTrack`) ; `CONES[i].mesh`
+  est un FANTÔME hors scène ; un plot percuté passe par `coneVole(c9)` (un vrai `mkCone` prend sa place). Plaques turbo : 42 images pré-dessinées
+  (`PAD_FR`, `updatePadTex` change la `map`, jamais le canvas).
+- **Sons continus** : `stt(param,v,t,tc)` au lieu de `setTargetAtTime` dans la boucle (rien si le contexte dort, rien si la cible n'a pas bougé).
+- **Ne jamais détruire un programme qu'on va réutiliser** : three DÉTRUIT un shader quand sa dernière matière est libérée. Donc :
+  · piste : `MAT_SURSIS` — les matières de l'ancienne piste sont libérées 3 images APRÈS le 1er rendu de la neuve (`matSursisTick`) ;
+  · caisse : `CAR_VIEUX` (libérées à la construction suivante) ; moteur de la vignette : `engVigVieux` (après le 1er rendu du suivant) ;
+  · **préchauffe au menu** (`engChauffe`, une étape par image, `!started||gameOver`) : `chauffeDivers()` d'abord (ville, trace de gomme, un
+    pigeon), puis les 30 moteurs dans `engVigScene` — la 1re matière de chaque programme reste en vie dans `ENG_GARDE`. ⚠ Tout ce qui naît EN
+    COURSE pour la 1re fois avec une matière neuve doit rejoindre `chauffeDivers` (le vérifier avec un compteur de `linkProgram`).
+- **Vignette moteur** (carte « NOUVEAU MOTEUR », écran de mort) : rendue seulement quand elle est recopiée (30 i/s), relue en ASYNCHRONE en
+  WebGL2 (`engLit` : PBO + `fenceSync`, l'image arrive 33 ms plus tard ; repli `readRenderTargetPixels`), recopiée ligne par ligne (`engPose`).
+- **DOM** : on n'écrit un style ou un texte QUE s'il change (`textContent=` recrée le nœud même à valeur égale). ⚠ Ne JAMAIS lire
+  `innerWidth/innerHeight` dans la boucle : sur Chrome mobile ça force une mise en page complète → lire `VP.w/VP.h` (tenu à jour au `resize`).
+  `applyDPR` ne réalloue qu'une fois et ne retaille les canvas 2D que si leur taille change (retailler un canvas l'efface).
+- **Fuites fermées** : géométries de caisse/pigeons/explosion libérées ou partagées (`userData.partage`), `jeteObj` au `clearBoom`.
+- **Bancs** (scratchpad de la session) : `debug/perf.js` (ressources GPU, draw calls, profil), `debug/acoups.js <racine> [brideCPU]` (pire image
+  + shaders compilés par événement), `debug/boot.js` (erreurs de démarrage — À LANCER APRÈS CHAQUE LOT : `node --check` ne voit pas une
+  variable avalée par un commentaire).
+- **Écarté après mesure** : grille spatiale pour la recherche de dalle en vol (~20 000 distances par image = moins de 0,1 ms, pas rentable).
 
 ## ⚠ FUSION SACHA × LÉO + NIVEAUX — 2026-09-24 (branche `fusion-2026-09`)
 - `index.html` = fusion à trois points : appstore-backlog (Sacha) × `main:version-leolei-2026` (Léo),
