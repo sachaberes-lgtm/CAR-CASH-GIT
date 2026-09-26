@@ -13357,15 +13357,30 @@ function tutoTick(dt){
     case 4: if(mode==='drive')tutoBravo();else if(mode==='fall')pwrAirT=Math.max(pwrAirT,2);break;
   }
 }
-// LA GERBE DE PIXELS : une poignée de carrés d'or qui jaillissent d'un élément (réussite, achat, clic important)
+// LA GERBE DE PIXELS : une poignée de carrés qui jaillissent d'un élément (réussite, achat, clic important)
+/* (2026-09-26, vague 2 « L'ENCRE ET L'OR ») LES CONFETTIS PARLENT LA COULEUR DE L'ÉVÉNEMENT : une palette unique pastel (#fff3ad, vert
+   menthe, bleu layette) disait la même chose partout. La gerbe lit désormais d'où elle part : l'annonce qui éclate prend SES deux
+   couleurs (`--s1/--s2` de #slam9), l'AURA jaillit MAGENTA, la bande du FLOW prend la couleur de son palier (la FRÉNÉSIE : magenta), un
+   RECORD (carte moteur) est OR + blanc, l'auto-école est VERTE (validation) ; tout le reste (JOUER, achats) est l'OR de l'argent.
+   Carrés de 6 px posés sur une grille de 2 px, 12 au plus : une gerbe, pas une nuée. */
+const PIX_OR=['#ffd75e','#ffffff','#ffd75e','#b8860b'],PIX_MAG=['#ff3ec8','#ffffff','#ff7ad5','#ff3ec8'],PIX_VERT=['#62e062','#ffffff','#62e062','#ffd75e'];
+function pixCouleurs(el){
+  const sl=el.closest('#slam9');
+  if(sl){const a=sl.style.getPropertyValue('--s1').trim()||'#ffd75e',b=sl.style.getPropertyValue('--s2').trim()||'#ff3ec8';return [a,'#ffffff',b,a];}
+  if(el.closest('#auraV2')||el.closest('#auraHud'))return PIX_MAG;
+  if(FLOW.el&&FLOW.el.contains(el)){const c=FLOW.lv>=4?'#ff3ec8':FLOW_COL[FLOW.lv]||'#ffd75e';return [c,'#ffffff',c,'#ffd75e'];}
+  if(el.closest('#coach'))return PIX_VERT;
+  return PIX_OR; // l'argent (et le record : or + blanc)
+}
 function pixBurst(el,n){
   if(REDUCED_MOTION||!el)return;
-  const r=el.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,cols=['#ffd75e','#fff3ad','#ffb81f','#7dff9a','#9fe8ff'];
-  for(let i=0;i<(n||10);i++){
+  const r=el.getBoundingClientRect(),cx=Math.round((r.left+r.width/2)/2)*2,cy=Math.round((r.top+r.height/2)/2)*2,cols=pixCouleurs(el);
+  n=Math.min(12,n||10);
+  for(let i=0;i<n;i++){
     const p=document.createElement('i');p.className='pxBurst';
     const a=Math.random()*6.2832,d=40+Math.random()*70;
     p.style.left=cx+'px';p.style.top=cy+'px';p.style.background=cols[i%cols.length];
-    p.style.setProperty('--dx',(Math.cos(a)*d).toFixed(0)+'px');p.style.setProperty('--dy',(Math.sin(a)*d-30).toFixed(0)+'px');
+    p.style.setProperty('--dx',(Math.round(Math.cos(a)*d/2)*2)+'px');p.style.setProperty('--dy',(Math.round((Math.sin(a)*d-30)/2)*2)+'px');
     document.body.appendChild(p);setTimeout(function(){p.remove();},720);
   }
 }
@@ -14599,7 +14614,7 @@ function ptProche(sh){
   sh.fragmentShader='varying float vProche;\n'+sh.fragmentShader.replace('#include <tonemapping_fragment>','gl_FragColor.a*=vProche;\n#include <tonemapping_fragment>');
 }
 /* LES PARTICULES v2 (2026-09-26, passe graphique) — trois défauts « amateur » réglés dans UN shader, pour les réserves qui déclarent
-   une courbe `fx` (les autres — jus des fruits, dauphins — gardent l'ancien rendu au pixel près) :
+   une courbe `fx` (les autres — les dauphins — gardent l'ancien rendu au pixel près ; le jus des fruits y est passé en vague 2) :
    · elles NAISSENT et MEURENT en FONDU : `aF` = vie restante (1 → 0), `fx.a`=[entrée, sortie, taille à la naissance, taille à la mort]
      en fractions de vie — la fumée gonfle en s'effaçant, l'étincelle rétrécit ; plus de points qui s'allument et s'éteignent d'un coup ;
    · chacune a SA taille (`aR`, cuite une fois par emplacement) : fini la réserve entière qui palpite à l'unisson ;
@@ -14651,12 +14666,20 @@ function ptShader(o){
     sh.fragmentShader=fh+sh.fragmentShader.replace('#include <map_particle_fragment>',fb);
   };
 }
+/* LES RÉSERVES AU REPOS NE COÛTENT PLUS RIEN (2026-09-26, vague 2 — audit GPU) : un emplacement JAMAIS né restait en (0,0,0) — et (0,0,0),
+   c'est le DÉPART de chaque piste : la fumée de nuage, l'écume, les éclats de nuage et les réserves de l'explosion y étaient EMPILÉS (le
+   « dôme / anneau » vu au départ), et chaque réserve coûtait un appel de dessin même vide (~20 par image). Désormais : (1) tout emplacement
+   naît rangé sous le monde (y −99999), comme un mort ; (2) une réserve VIDE est `visible=false` — `spawnP` la rallume, `updatePool`
+   l'éteint quand plus rien ne vit. ⚠ CHAUFFE : elle reste visible jusqu'à sa PREMIÈRE image dessinée (`chaud`, posé par onAfterRender) —
+   c'est au menu que son programme se compile, jamais sur la première gerbe. `masque` : le masquage de `dbgPart('cache',…)` garde la main. */
 function makePool(n,size,color,opacity,proche,fx){
   const pos=new Float32Array(n*3),vel=new Float32Array(n*3);
+  for(let i=0;i<n;i++)pos[i*3+1]=-99999; // jamais née = rangée loin, comme une morte
   const g=new THREE.BufferGeometry();
   g.setAttribute('position',new THREE.BufferAttribute(pos,3));
   const m=new THREE.Points(g,new THREE.PointsMaterial({size:size,color:color,transparent:true,opacity:opacity,depthWrite:false,map:puffTex,alphaTest:.02}));
-  const P={mesh:m,pos:pos,vel:vel,life:new Float32Array(n),n:n,head:0};
+  const P={mesh:m,pos:pos,vel:vel,life:new Float32Array(n),n:n,head:0,chaud:false,masque:false};
+  m.onAfterRender=function(){P.chaud=true;delete m.onAfterRender;}; // dessinée une fois : programme compilé, elle peut dormir
   if(fx){ // PARTICULES v2 : fondu de vie, taille propre, trait étiré (voir plus haut)
     const fa=new Float32Array(n),ar=new Float32Array(n),va=fx.v==null?.45:fx.v;
     for(let i=0;i<n;i++){const h=Math.sin(i*12.9898+n*.731)*43758.5453;ar[i]=1-va*.5+va*(h-Math.floor(h));} // tirage FIXE (pas de Math.random : il décalerait l'aléatoire du jeu)
@@ -14672,8 +14695,8 @@ function makePool(n,size,color,opacity,proche,fx){
   m.frustumCulled=false;scene.add(m);
   return P;
 }
-const dust=makePool(160,.4,0x9d95b6,.26,true,{a:[.2,.7,.55,2.6],v:.6,pr:[2.4,5,36,0]}); // (particules v2) FUMÉE DE GLISSE : lavande claire et douce, elle NAÎT petite contre la roue, GONFLE et s'efface — plus de pastilles sombres à bord net. Garde-objectif resserré (2,4-5 m, 36 px au plus) : elle vit AUTOUR des roues arrière, à 4-5 m de la caméra (le 3,5-8 m l'effaçait entièrement), et ne peut toujours pas faire de dôme. // gomme mauve-nuit, discrète (les gros flocons beiges permanents, c'est fini) — (2026-09-26) 1,1 → .55 : collée à la roue, elle faisait un grand DISQUE mauve à l'écran
-const wisps=makePool(150,4.2,0xfff3e8,.4,false,{a:[.2,.6,.7,1.3]}); // brume de nuage qui file le long de la caisse — (2026-09-26) en v2 : ses 150 points morts ne s'empilent plus en boule de 4 m à l'origine du monde
+const dust=makePool(160,.4,0x9d95b6,.26,true,{a:[.2,.7,.55,2.6],v:.6,pr:[2.4,5,26,0]}); // (vague 2) plafond 36 → 26 px : la taille à l'écran est la MÊME pour tout (`PT_U.uPxMax`) // (particules v2) FUMÉE DE GLISSE : lavande claire et douce, elle NAÎT petite contre la roue, GONFLE et s'efface — plus de pastilles sombres à bord net. Garde-objectif resserré (2,4-5 m, 36 px au plus) : elle vit AUTOUR des roues arrière, à 4-5 m de la caméra (le 3,5-8 m l'effaçait entièrement), et ne peut toujours pas faire de dôme. // gomme mauve-nuit, discrète (les gros flocons beiges permanents, c'est fini) — (2026-09-26) 1,1 → .55 : collée à la roue, elle faisait un grand DISQUE mauve à l'écran
+// (vague 2) `wisps` (brume de nuage le long de la caisse) SUPPRIMÉE : 150 points de 4,2 m jamais émis nulle part, un appel de dessin pour rien.
 /* TRAITS D'AIR v2 (2026-09-26, passe graphique) : des segments gris à opacité fixe qui APPARAISSAIENT et DISPARAISSAIENT d'un coup
    (0,6 s, puis rien). Désormais chacun s'allume, vit et s'éteint (enveloppe sinus) et porte un DÉGRADÉ : l'extrémité qui vient vers
    la caméra est franche, l'autre s'efface — un filet d'air qui file, pas un bâton posé. Additif doux (couleurs par sommet), un seul
@@ -14686,10 +14709,12 @@ const streaks=(function(){
   g.setAttribute('color',new THREE.BufferAttribute(col,3));
   const m=new THREE.LineSegments(g,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));
   m.frustumCulled=false;scene.add(m);
-  return {mesh:m,pos:pos,col:col,life:new Float32Array(n),n:n,head:0,viv:false};
+  const o={mesh:m,pos:pos,col:col,life:new Float32Array(n),n:n,head:0,viv:false,chaud:false};
+  m.onAfterRender=function(){o.chaud=true;delete m.onAfterRender;}; // (vague 2) chauffé au menu, puis il dort tant qu'aucun trait ne vit
+  return o;
 })();
 function spawnStreak(x,y,z,dx,dy,dz){
-  const i=streaks.head;streaks.head=(i+1)%streaks.n;
+  const i=streaks.head;streaks.head=(i+1)%streaks.n;streaks.mesh.visible=true;
   streaks.pos[i*6]=x;streaks.pos[i*6+1]=y;streaks.pos[i*6+2]=z;
   streaks.pos[i*6+3]=x+dx;streaks.pos[i*6+4]=y+dy;streaks.pos[i*6+5]=z+dz;
   streaks.life[i]=.6;
@@ -14704,6 +14729,7 @@ function updateStreaks(dt){
     C[i*6+3]=.78*e*.08;C[i*6+4]=.86*e*.08;C[i*6+5]=e*.08; // l'avant s'efface
   }
   if(viv||streaks.viv){const at=streaks.mesh.geometry.attributes;at.position.needsUpdate=true;at.color.needsUpdate=true;}
+  else if(streaks.chaud&&streaks.mesh.visible)streaks.mesh.visible=false; // (vague 2) aucun trait : aucun appel de dessin
   streaks.viv=viv;
 }
 const flames=makePool(150,1.8,0xff9030,.8,true,{a:[0,.55,1,.35],etire:1,str:.03,v:.5}); // (particules v2) des TRAITS de feu, étirés dans leur vitesse // braises (les GROSSES nappes, c'est fini : le plume mesh fait le spectacle)
@@ -14712,38 +14738,39 @@ const flameCore=makePool(90,1.0,0xffe9a0,.9,true,{a:[0,.5,1,.4],etire:1,str:.026
 flameCore.mesh.material.blending=THREE.AdditiveBlending;flameCore.mesh.material.map=sparkTex;
 const embers=makePool(120,.24,0xffb24a,.8,true,{a:[.06,.5,1,.45],etire:1,str:.05,v:.6}); // braises fines qui s'échappent du feu et montent — (2026-09-25) .55 → .32 : près de la caméra une braise de .55 m faisait un rond de 200 px
 embers.mesh.material.blending=THREE.AdditiveBlending;embers.mesh.material.map=sparkTex;
-const exSmoke=makePool(90,1.25,0x9aa2ac,.11,true,{a:[.1,.6,.6,1.6]}); // voile de fumée qui suit le feu (discret : plus de blobs blancs devant l'objectif) — plus émise ; en v2 elle ne dessine rien au repos
+const exSmoke=null; // (vague 2) le voile de fumée d'échappement n'est plus émis depuis le 26/09 (le DÔME) : la réserve n'est plus créée — les deux `if(false)spawnP(exSmoke,…)` de la boucle restent lettre morte
 // ---------- EXPLOSION ----------
-const boomPool=makePool(240,3.0,0xff8a30,1,false,{a:[.04,.65,.55,1.3],v:.6,pr:[2,6,120,0]});boomPool.mesh.material.blending=THREE.AdditiveBlending; // (particules v2) la boule GONFLE puis s'éteint (elle ne disparaît plus d'un coup)
-const smokePool=makePool(120,3.6,0x2a2a2e,.45,false,{a:[.14,.75,.45,2.2],v:.5,pr:[1.5,6,170,0]});smokePool.drag=1.1; // la fumée noire FREINE et s'étale en montant
-const boomRed=makePool(130,2.0,0xff2a1a,1,false,{a:[.03,.6,1,.55],v:.5,pr:[2,6.5,80,0]});boomRed.mesh.material.blending=THREE.AdditiveBlending;
-const boomYel=makePool(130,1.3,0xffd94a,1,false,{a:[0,.5,1,.5],etire:1,str:.035,v:.5,pr:[1,4,26,70]});boomYel.mesh.material.blending=THREE.AdditiveBlending; // les éclats jaunes FILENT
-const boomTom=makePool(170,1.05,0xa31212,1,false,{a:[0,.4,1,.8],etire:1,str:.025,v:.6,pr:[1,4,30,60]}); // sang : giclée dense de pixels rouge sombre MINUSCULES
+/* (vague 2, « L'ENCRE ET L'OR ») LES RÉSERVES DE L'EXPLOSION suivent les trois formes de la bible : le CORPS de la boule, ce sont les
+   VOLUTES (panneaux ombrés, plus bas) ; ici il ne reste que des TRAITS (langues de feu, éclats, braises) et des BOUFFÉES de charbon.
+   Les deux réserves de gros disques mous (orange 120 px, rouge 80 px) faisaient le VOILE orange plein écran et les TACHES rouges rondes
+   qui traînaient sur la route à la fin : ce sont désormais des traits étirés dans leur vitesse. Taille plafonnée au plafond commun
+   (26 px × résolution) pour TOUT, explosion comprise, et fondu sous 2-6 m de l'objectif. */
+const boomPool=makePool(240,1.5,0xff7a24,1,false,{a:[0,.5,1,.45],etire:1,str:.03,v:.6,pr:[2,6,26,60]});boomPool.mesh.material.blending=THREE.AdditiveBlending; // LANGUES DE FEU : des traits orange FEU qui jaillissent du foyer
+const smokePool=makePool(120,2.6,0x2e2428,.5,false,{a:[.14,.75,.6,1.7],v:.5,pr:[3.5,8,26,0]});smokePool.drag=1.1; // BOUFFÉES de CHARBON #2e2428 : la fumée FREINE et s'étale en montant
+const boomRed=makePool(130,1.1,0xff3b2a,1,false,{a:[.03,.55,1,.5],etire:1,str:.03,v:.5,pr:[2,6,26,60]});boomRed.mesh.material.blending=THREE.AdditiveBlending; // éclats ROUGES (plus de ronds rouges posés sur la route)
+const boomYel=makePool(130,1.3,0xffd94a,1,false,{a:[0,.5,1,.5],etire:1,str:.035,v:.5,pr:[1,4,26,60]});boomYel.mesh.material.blending=THREE.AdditiveBlending; // les éclats jaunes FILENT
+const boomTom=makePool(170,1.05,0xa31212,1,false,{a:[0,.4,1,.8],etire:1,str:.025,v:.6,pr:[1,4,26,60]}); // sang : giclée dense de pixels rouge sombre MINUSCULES
 // braises d'explosion : pixels chauds qui scintillent — rouges, puis orange et jaunes plus fins
 const boomEmbR=makePool(70,.9,0xff3818,1,false,{a:[.05,.45,1,.5],etire:1,str:.045,v:.6,pr:[1,4,24,60]});boomEmbR.mesh.material.blending=THREE.AdditiveBlending;
 const boomEmbO=makePool(55,.6,0xff8a20,1,false,{a:[.05,.45,1,.5],etire:1,str:.05,v:.6,pr:[1,4,20,60]});boomEmbO.acc=13;boomEmbO.mesh.material.blending=THREE.AdditiveBlending; // (2026-09-26) elles RETOMBENT en arc
 const boomEmbY=makePool(45,.42,0xffd840,1,false,{a:[.05,.45,1,.5],etire:1,str:.05,v:.6,pr:[1,4,16,60]});boomEmbY.acc=16;boomEmbY.mesh.material.blending=THREE.AdditiveBlending;
-const neonPool=makePool(90,1.6,0xff3ec8,1,false,{a:[.05,.6,1,.6]});neonPool.mesh.material.blending=THREE.AdditiveBlending; // Proto Néon
-const extraRings=[]; // filaments d'air façon bombe (grosses caisses)
-// ---------- EXPLOSION CARTOON (réf. illustrations) : VOLUTES rondes à bord franc + ÉCLATS pointus ----------
-// Une boule de feu se lit par ses LOBES (choux-fleurs), pas par un nuage flou : bord net, cœur incandescent,
-// et le tout REFROIDIT en virant blanc→jaune→orange→rouge sombre. Palette FIXE (plus de tirage aléatoire).
-const boomPuffTex=(function(){
-  const s=128,cv=document.createElement('canvas');cv.width=cv.height=s;const x=cv.getContext('2d');
-  const cx=s/2,cy=s/2;
-  x.beginPath(); // contour en LOBES : 9 bosses → silhouette de chou-fleur, la signature du dessin d'explosion
-  for(let i=0;i<=64;i++){
-    const a=i/64*Math.PI*2,r=s*.42*(1+.16*Math.sin(a*9)+.07*Math.sin(a*5+1.3));
-    const px=cx+Math.cos(a)*r,py=cy+Math.sin(a)*r;
-    i?x.lineTo(px,py):x.moveTo(px,py);
-  }
-  x.closePath();
-  const g=x.createRadialGradient(cx-s*.10,cy-s*.10,0,cx,cy,s*.5);
-  g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.42,'rgba(255,246,214,1)');
-  g.addColorStop(.78,'rgba(255,255,255,.92)');g.addColorStop(1,'rgba(255,255,255,.55)');
-  x.fillStyle=g;x.fill();
-  return new THREE.CanvasTexture(cv);
-})();
+const neonPool=makePool(90,1.6,0xff3ec8,1,false,{a:[.05,.6,1,.6],pr:[2,6,26,0]});neonPool.mesh.material.blending=THREE.AdditiveBlending; // Proto Néon
+/* ---------- L'EXPLOSION v3 — « L'ENCRE ET L'OR » (2026-09-26, vague 2) ----------
+   Verdict du directeur artistique : « du CARTON DÉCOUPÉ ». Les volutes étaient des AUTOCOLLANTS — des chou-fleurs orange PLATS (sprites
+   non éclairés, dégradé radial blanc) posés dans une scène éclairée ; l'écran virait au BEIGE pendant 1-2 images (un cœur additif qui
+   gonflait à 4 m de rayon à 5,5 m de l'objectif, trois tores OPAQUES de 2 m d'épaisseur, un flash beige à 95 %) ; et chaque mort
+   fabriquait ~30 sprites et ~7 tores neufs (géométries + matières). Désormais :
+   · les VOLUTES sont des PANNEAUX INSTANCIÉS (`mkPanneaux` : UN appel de dessin pour toute la boule, créés au chargement, chauffés au
+     menu). Leur texture a du VOLUME : 4 silhouettes en chou-fleur dont chaque lobe est une petite sphère éclairée d'en haut à gauche,
+     posées sur une grille de 2 texels — la langue pixel du HUD —, un TON par bloc (clair cuit · base · ombre · ENCRE #1c0430 en liseré
+     bas-droit) et un cœur. Le shader teinte ces tons de la couleur de VIE (blanc brûlant → FEU #ff7a24 → rouge → CHARBON #2e2428) ;
+     l'ombre, elle, tombe dans l'encre du monde. Triées de loin en près (mélange normal) ;
+   · GARDE-OBJECTIF : opacité × smoothstep(2,5 → 6 m) de la caméra, le foyer des volutes RECULÉ de 2,4 m dans l'axe du regard (la
+     poursuite est à ~5,5 m de la caisse) et la couronne qui s'ouvre vers le fond, jamais vers l'objectif : la boule se lit DE
+     L'EXTÉRIEUR au lieu de peindre l'écran (mesuré : 3,5 → 8 m l'effaçait à 80 % les 100 premières ms) ;
+   · les DARDS : 2e appel de dessin (additif), plus courts, plus fins, plus brefs — des TRAITS ;
+   · les ONDES : trois anneaux-traits (la texture de l'onde au sol) créés UNE fois, qui filent en 0,32 s ; le cœur de lumière, ce sont
+     les premières volutes (blanches, puis or). Plus aucun `new` côté image à l'explosion. */
 const boomSpikeTex=(function(){ // ÉCLAT pointu : large à la base, fin à la pointe (les dards des références)
   const w=64,h=128,cv=document.createElement('canvas');cv.width=w;cv.height=h;const x=cv.getContext('2d');
   x.beginPath();x.moveTo(w*.5,0);x.lineTo(w*.86,h*.72);x.lineTo(w*.5,h);x.lineTo(w*.14,h*.72);x.closePath();
@@ -14752,18 +14779,100 @@ const boomSpikeTex=(function(){ // ÉCLAT pointu : large à la base, fin à la p
   x.fillStyle=g;x.fill();
   return new THREE.CanvasTexture(cv);
 })();
-const BOOM_HOT=new THREE.Color(0xfff4d0),BOOM_MID=new THREE.Color(0xff9420),BOOM_COLD=new THREE.Color(0x8e1408); // blanc → orange → rouge sombre
-const boomPuffs=[],boomSpikes=[],bpTmpC=new THREE.Color();
-// (2026-09-26, passe graphique) LA FUMÉE : en fin de vie, la volute vire au CHARBON (le feu retombe en fumée noire) — c'est ce contraste
-// feu/suie qui fait « dessin » ; avant, tout finissait en rouge sombre délavé.
+/* LA TEXTURE DES VOLUTES : 4 chou-fleurs de 64 texels dans un atlas 2×2, cuits une fois. R = le TON (0 encre · .16 ombre profonde · .32 ombre
+   · .62 base · .95 clair cuit), G = le cœur (qui brûle au premier tiers de la vie), A = la silhouette, en MARCHES de 2 texels. Filtrage
+   « au plus proche » en grossissement : le bord reste un escalier de pixels, comme les plaques du HUD. Tirage FIXE (Math.random décalerait
+   l'aléatoire du jeu, et les photos avant/après ne seraient plus comparables). */
+const VOLU_TEX=(function(){
+  const F=64,B=2,G=F/B,cv=document.createElement('canvas');cv.width=cv.height=F*2;
+  const x=cv.getContext('2d'),im=x.createImageData(F*2,F*2),d=im.data;
+  const Lx=-.56,Ly=.6,Lz=.57; // la lumière : en haut à gauche, un peu devant (repère des lobes : y vers le HAUT)
+  let h9=40503;const rh=function(){h9=(h9*16807)%2147483647;return (h9-1)/2147483646;};
+  const M=new Uint8Array(G*G),T=new Float32Array(G*G),C=new Float32Array(G*G);
+  const ok=function(bx,by){return bx>=0&&by>=0&&bx<G&&by<G&&M[by*G+bx]>0;};
+  for(let f=0;f<4;f++){
+    const L=[{x:G*.5,y:G*.44,r:G*.3}],nl=6+(f&1); // un gros lobe + une couronne de lobes, plus gros en haut (le chou-fleur MONTE)
+    for(let i=0;i<nl;i++){const a=(i/nl)*6.2832+rh()*.5+f*.7,rr=G*(.19+rh()*.06),up=Math.sin(a)>0;
+      L.push({x:G*.5+Math.cos(a)*rr,y:G*.44+Math.sin(a)*rr*.92,r:G*(.13+rh()*.06)*(up?1.18:.82)});}
+    M.fill(0);T.fill(0);C.fill(0);
+    for(let by=0;by<G;by++)for(let bx=0;bx<G;bx++){
+      const px=bx+.5,py=by+.5;let best=-1,bl=null;
+      for(const l of L){const q=1-Math.hypot(px-l.x,py-l.y)/l.r;if(q>best){best=q;bl=l;}}
+      if(best<=0)continue;const k=by*G+bx;M[k]=1;
+      const nx=(px-bl.x)/bl.r,ny=(py-bl.y)/bl.r,nz=Math.sqrt(Math.max(0,1-nx*nx-ny*ny)),lam=nx*Lx+ny*Ly+nz*Lz; // chaque lobe est une SPHÈRE
+      T[k]=lam>.56?.95:lam>.26?.62:lam>-.04?.32:.16;
+      const dc=Math.hypot(px-L[0].x,py-L[0].y)/(L[0].r*1.05);C[k]=dc<.45?1:dc<.8?.5:0;
+    }
+    for(let by=0;by<G;by++)for(let bx=0;bx<G;bx++) // le LISERÉ D'ENCRE : le bord bas-droit (côté ombre) — un bloc, deux texels
+      if(M[by*G+bx]&&(!ok(bx+1,by)||!ok(bx,by-1)||!ok(bx+1,by-1)))T[by*G+bx]=0;
+    const ox=(f&1)*F,oy=(f>>1)*F;
+    for(let by=0;by<G;by++)for(let bx=0;bx<G;bx++){const k=by*G+bx;if(!M[k])continue;
+      for(let yy=0;yy<B;yy++)for(let xx=0;xx<B;xx++){const o=((oy+F-1-(by*B+yy))*F*2+ox+bx*B+xx)*4; // le canvas a y vers le BAS
+        d[o]=Math.round(T[k]*255);d[o+1]=Math.round(C[k]*255);d[o+2]=0;d[o+3]=255;}}
+  }
+  x.putImageData(im,0,0);
+  const t=new THREE.CanvasTexture(cv);t.magFilter=THREE.NearestFilter;return t;
+})();
+/* LES PANNEAUX INSTANCIÉS : des quads face caméra (taille en mètres, rotation dans le plan de l'écran, ancrage au centre ou à la BASE,
+   case d'atlas) dessinés en UN appel. Un seul programme pour les volutes, les dards et la pluie de devises (le mode passe par un uniform),
+   chauffé au menu : le maillage reste visible jusqu'à sa première image dessinée (`chaud`), puis il dort tant que rien ne vit.
+   `panPousse(o)` en fin d'image : renvoie au GPU les `o.cnt` premières instances (tableaux fixes, zéro allocation). */
+const PAN_BASE=new THREE.PlaneGeometry(1,1);
+const PAN_VS=['attribute vec3 iP;attribute vec4 iS;attribute vec4 iC;attribute vec2 iF;uniform vec2 uAt;',
+  'varying vec2 vUv;varying vec4 vC;varying float vH;',
+  'void main(){',
+  '  vec4 mv=modelViewMatrix*vec4(iP,1.);',
+  '  vec2 q=(position.xy+vec2(0.,iS.w*.5))*iS.xy;',                        // iS.w=1 : ancré par la BASE (le dard pousse hors du foyer)
+  '  float c=cos(iS.z),s=sin(iS.z);mv.xy+=vec2(c*q.x-s*q.y,s*q.x+c*q.y);',  // face caméra, tourné dans le plan de l'écran
+  '  gl_Position=projectionMatrix*mv;',
+  '  vUv=(vec2(mod(iF.x,uAt.x),floor(iF.x/uAt.x))+uv)/uAt;vC=iC;vH=iF.y;}'].join('\n');
+const PAN_FS=['uniform sampler2D uTex;uniform float uMode;uniform vec3 uInk;',
+  'varying vec2 vUv;varying vec4 vC;varying float vH;',
+  'void main(){',
+  '  vec4 t=texture2D(uTex,vUv);float a=t.a*vC.a;if(a<.004)discard;',
+  '  vec3 c;',
+  '  if(uMode<.5){',                                                        // VOLUTE : r = le ton, g = le cœur
+  '    vec3 l=vC.rgb,om=mix(l*.35,uInk,.6);',                               // l'ombre tombe dans l'ENCRE du monde
+  '    c=mix(om,l,smoothstep(.2,.55,t.r));',                                  // ombre profonde · ombre · base : trois marches franches
+  '    c=mix(c,l*1.55+vec3(.18,.14,.07),smoothstep(.7,.92,t.r));',           // le clair CUIT en haut à gauche
+  '    c=mix(uInk,c,smoothstep(.03,.1,t.r));',                               // le liseré d'encre
+  '    c=mix(c,vec3(1.35,1.18,.92),vH*t.g);',                                // le cœur qui brûle encore (> 1 : le bloom le prend)
+  '  }else c=vC.rgb*t.rgb;',                                                  // DARD, DEVISE : la texture teintée
+  '  gl_FragColor=vec4(c,a);}'].join('\n');
+function mkPanneaux(n,tex,cols,rows,additif,mode,ordre){
+  const g=new THREE.InstancedBufferGeometry();
+  g.setIndex(PAN_BASE.index);g.setAttribute('position',PAN_BASE.attributes.position);g.setAttribute('uv',PAN_BASE.attributes.uv);
+  const o={n:n,cnt:0,chaud:false,P:new Float32Array(n*3),S:new Float32Array(n*4),C:new Float32Array(n*4),F:new Float32Array(n*2)};
+  o.at=[['iP',o.P,3],['iS',o.S,4],['iC',o.C,4],['iF',o.F,2]].map(function(q){
+    const a=new THREE.InstancedBufferAttribute(q[1],q[2]);a.setUsage(THREE.DynamicDrawUsage);g.setAttribute(q[0],a);return a;});
+  g.instanceCount=0;
+  const m=new THREE.ShaderMaterial({uniforms:{uTex:{value:tex},uAt:{value:new THREE.Vector2(cols,rows)},uMode:{value:mode},uInk:{value:new THREE.Color(0x1c0430)}},
+    vertexShader:PAN_VS,fragmentShader:PAN_FS,transparent:true,depthWrite:false,fog:false,blending:additif?THREE.AdditiveBlending:THREE.NormalBlending});
+  const me=new THREE.Mesh(g,m);me.frustumCulled=false;me.renderOrder=ordre||3;
+  me.onAfterRender=function(){o.chaud=true;delete me.onAfterRender;};
+  scene.add(me);o.mesh=me;o.g=g;
+  return o;
+}
+function panPousse(o){
+  const n=o.cnt;o.g.instanceCount=n;
+  if(n>0)for(let i=0;i<o.at.length;i++)o.at[i].needsUpdate=true;
+  const v=n>0||!o.chaud;if(o.mesh.visible!==v)o.mesh.visible=v;
+}
+const VOLU_N=26,VOLU=[],VOLU_ORD=[],DARD_N=16,DARD=[];
+for(let i=0;i<VOLU_N;i++){VOLU.push({on:false,t:0,life:1,x:0,y:0,z:0,vy:0,dx:0,dz:0,r0:1,r1:2,f:0,d2:0,cu:0});VOLU_ORD.push(null);}
+for(let i=0;i<DARD_N;i++)DARD.push({on:false,t:0,life:1,len:1,wid:1,rot:0,dx:0,dy:0,dz:0});
+const PAN_VOL=mkPanneaux(VOLU_N,VOLU_TEX,2,2,false,0,3),PAN_DARD=mkPanneaux(DARD_N,boomSpikeTex,1,1,true,1,4);
+const BOOM_HOT=new THREE.Color(0xfff4d0),BOOM_OR=new THREE.Color(0xffc640),BOOM_MID=new THREE.Color(0xff7a24),BOOM_COLD=new THREE.Color(0xb3160c); // blanc brûlant → or → FEU → rouge
+const bpTmpC=new THREE.Color(),bvA=new THREE.Vector3();
+// LA FUMÉE : en fin de vie, la volute vire au CHARBON (le feu retombe en fumée noire) — ce contraste feu/suie fait « dessin »
 const BOOM_SMOKE=new THREE.Color(0x2e2428);
 /* L'ONDE AU SOL (2026-09-26) : un anneau À PLAT sur la route (ou sous la caisse en vol) qui file jusqu'à ~40 m en 0,75 s. Les tores
    face caméra disent « choc » ; celui-ci donne l'ÉCHELLE — il court sur le bitume et passe sous l'objectif. Un disque texturé créé au
    chargement et CHAUFFÉ au menu (visible, opacité 0, rangé dès sa première image dessinée) : son programme ne compile jamais sur l'explosion. */
 const boomOndeTex=(function(){const N=256,cv=document.createElement('canvas');cv.width=cv.height=N;const x=cv.getContext('2d');
   const g=x.createRadialGradient(N/2,N/2,0,N/2,N/2,N/2);
-  g.addColorStop(0,'rgba(255,255,255,0)');g.addColorStop(.6,'rgba(255,255,255,0)');g.addColorStop(.84,'rgba(255,255,255,.4)');
-  g.addColorStop(.94,'rgba(255,255,255,1)');g.addColorStop(1,'rgba(255,255,255,0)');
+  g.addColorStop(0,'rgba(255,255,255,0)');g.addColorStop(.8,'rgba(255,255,255,0)');g.addColorStop(.9,'rgba(255,255,255,.3)'); // (vague 2) un TRAIT :
+  g.addColorStop(.96,'rgba(255,255,255,1)');g.addColorStop(1,'rgba(255,255,255,0)');                                          // la bande pleine de .6 à .94 faisait une NAPPE beige au sol
   x.fillStyle=g;x.fillRect(0,0,N,N);return new THREE.CanvasTexture(cv);})();
 const boomOnde=new THREE.Mesh(new THREE.CircleGeometry(1,56),new THREE.MeshBasicMaterial({map:boomOndeTex,color:0xffc27a,transparent:true,opacity:0,
   blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false}));
@@ -14775,74 +14884,101 @@ function boomOndePart(pos){ // posée à plat sous l'explosion, dans le repère 
   boomOnde.position.copy(pos).addScaledVector(bOndeU,.25);boomOnde.quaternion.setFromUnitVectors(bOndeZ,bOndeU);
   boomOnde.userData.t=0;boomOnde.visible=true;
 }
+/* LES ONDES FACE CAMÉRA (vague 2) : créées UNE fois, chauffées comme l'onde au sol. Trois TRAITS (le liseré de la texture de l'onde) :
+   blanc-or, FEU, rouge, décalées de 0,12 s — la cadence des anciens tores, sans leurs 2 m d'aplat opaque. Le CŒUR de lumière (sphère
+   additive) est parti : même bridée à 0,11 s, elle se lisait comme un DISQUE blanc plat — le cœur, ce sont désormais les premières volutes,
+   blanches puis or, et le flash. */
+const BOOM_ONDES=(function(){const geo=new THREE.CircleGeometry(1,48);
+  return [[0xfff3b0,30,0,.85],[0xff7a24,20,.12,.7],[0xff3b2a,13,.26,.55]].map(function(q){
+    const m=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:boomOndeTex,color:q[0],transparent:true,opacity:0,
+      blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false}));
+    m.frustumCulled=false;m.renderOrder=4;m.userData={t:-1,sp:q[1],dl:q[2],op:q[3]};scene.add(m);
+    m.onAfterRender=function(){this.userData.chaud=true;if(this.userData.t<0)this.visible=false;delete this.onAfterRender;};
+    return m;});})();
 function spawnBoomArt(pos,power){
-  // VOLUTES : une couronne de lobes + quelques-uns au cœur, chacun avec son retard (l'explosion se DÉPLOIE)
-  const n=Math.round(16*power);
+  // le FOYER DES VOLUTES, reculé dans l'axe du regard (à plat) : la caméra de poursuite est collée à la caisse
+  bvA.subVectors(pos,camera.position);bvA.y*=.3;const dl=bvA.length();if(dl>1e-3)bvA.multiplyScalar(1/dl);else bvA.set(0,0,1);
+  const cx=pos.x+bvA.x*2.4,cy=pos.y+bvA.y*2.4+.4,cz=pos.z+bvA.z*2.4;
+  // VOLUTES : trois au cœur, une couronne autour, chacune avec son retard (l'explosion se DÉPLOIE)
+  const n=Math.min(VOLU_N,Math.round(18*power));
   for(let i=0;i<n;i++){
-    const core=i<3;
-    // ⚠ ÉCHELLE : la caméra de poursuite est à ~4 u de la caisse — des volutes de 10 u l'engloutissent
-    // (plein écran blanc). On reste sous ~5 u pour que la boule se LISE de l'extérieur.
-    const a=Math.random()*Math.PI*2,el=(Math.random()-.35)*1.5,rr=core?0:(1.1+Math.random()*2.6)*power;
-    const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:boomPuffTex,color:0xffffff,transparent:true,
-      opacity:0,depthWrite:false,blending:THREE.NormalBlending,fog:false}));
-    sp.position.set(pos.x+Math.cos(a)*Math.cos(el)*rr,pos.y+Math.sin(el)*rr*.62+(core?0:1.2),pos.z+Math.sin(a)*Math.cos(el)*rr);
-    sp.renderOrder=3;scene.add(sp);
-    boomPuffs.push({sp,t:-(core?0:Math.random()*.16),life:1.15+Math.random()*.75,
-      r0:(core?1.7:1.0+Math.random()*1.1)*power,r1:(core?4.4:2.5+Math.random()*2.4)*power,
-      vy:1.1+Math.random()*2.4,drift:new THREE.Vector3((Math.random()-.5)*2.2,0,(Math.random()-.5)*2.2)});
+    const p=VOLU[i],core=i<3,a=Math.random()*6.2832,el=(Math.random()-.3)*1.3,rr=core?Math.random()*.5:(.9+Math.random()*1.5)*power;
+    let ox=Math.cos(a)*Math.cos(el)*rr,oz=Math.sin(a)*Math.cos(el)*rr;const k9=ox*bvA.x+oz*bvA.z;
+    if(k9<0){ox-=2*k9*bvA.x;oz-=2*k9*bvA.z;} // la couronne s'ouvre sur les côtés et vers le fond, jamais vers l'objectif
+    p.x=cx+ox;p.y=cy+Math.sin(el)*rr*.6+(core?0:.7);p.z=cz+oz;
+    p.t=-(core?0:Math.random()*.14);p.life=1.05+Math.random()*.7;
+    p.r0=(core?2:1.3+Math.random()*.6)*power;p.r1=(core?3.8:2.4+Math.random()*1)*power; // ~4-5 m de boule vue à ~11 m : ≈ 10 % de l'écran
+    p.vy=1.1+Math.random()*2.3;p.dx=(Math.random()-.5)*2;p.dz=(Math.random()-.5)*2;p.f=i&3;p.on=true;
+    p.cu=core?-.04:(Math.random()-.5)*.18; // chaque lobe a SA chaleur : certains brûlent encore quand d'autres fument déjà
   }
-  // ÉCLATS : des dards qui jaillissent droit et s'effacent vite — c'est eux qui donnent la VIOLENCE du dessin
-  const ns=Math.round(13*power);
+  // DARDS : des traits qui jaillissent droit et s'éteignent vite — la VIOLENCE du dessin, sans couvrir l'image
+  const ns=Math.min(DARD_N,Math.round(12*power));
   for(let i=0;i<ns;i++){
-    const a=i/ns*Math.PI*2+Math.random()*.4,el=(Math.random()-.3)*1.1;
-    const dir=new THREE.Vector3(Math.cos(a)*Math.cos(el),Math.sin(el)+.25,Math.sin(a)*Math.cos(el)).normalize();
-    const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:boomSpikeTex,color:0xffd08a,transparent:true,
-      opacity:.95,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));
-    sp.position.copy(pos);sp.center.set(.5,0); // pousse depuis la base : le dard S'ÉTIRE hors du foyer
-    sp.material.rotation=-a+Math.PI/2;
-    sp.renderOrder=4;scene.add(sp);
-    boomSpikes.push({sp,t:0,life:.42+Math.random()*.3,len:(4.5+Math.random()*6)*power,wid:(.7+Math.random()*.8)*power,dir});
+    const s=DARD[i],a=i/ns*6.2832+Math.random()*.4,el=(Math.random()-.3)*1.1;
+    s.dx=Math.cos(a)*Math.cos(el);s.dy=Math.sin(el)+.25;s.dz=Math.sin(a)*Math.cos(el);
+    const l9=Math.hypot(s.dx,s.dy,s.dz)||1;s.dx/=l9;s.dy/=l9;s.dz/=l9;
+    s.rot=-a+Math.PI/2;s.t=0;s.life=.26+Math.random()*.2;s.len=(2.6+Math.random()*3)*power;s.wid=(.34+Math.random()*.34)*power;s.on=true;
   }
+  for(const m of BOOM_ONDES){m.userData.t=0;m.position.copy(pos);}
 }
 function updateBoomArt(dt){
-  for(let i=boomPuffs.length-1;i>=0;i--){
-    const p=boomPuffs[i];p.t+=dt;
-    if(p.t<0)continue;
-    const u=p.t/p.life;
-    if(u>=1){scene.remove(p.sp);p.sp.material.dispose();boomPuffs.splice(i,1);continue;}
-    const e=1-Math.pow(1-Math.min(1,u*1.35),3);      // gonflement vif qui s'assagit
-    const r=p.r0+(p.r1-p.r0)*e;
-    p.sp.scale.set(r,r,1);
-    p.sp.position.y+=p.vy*dt;p.sp.position.x+=p.drift.x*dt;p.sp.position.z+=p.drift.z*dt;
-    bpTmpC.copy(BOOM_HOT).lerp(BOOM_MID,Math.min(1,u*2.1)).lerp(BOOM_COLD,Math.max(0,(u-.42)*1.7)) // ça REFROIDIT
-      .lerp(BOOM_SMOKE,Math.min(.9,Math.max(0,(u-.58)*2.4)));                                     // …et retombe en SUIE
-    p.sp.material.color.copy(bpTmpC);
-    // (2026-09-26) GARDE-OBJECTIF : une volute qui englobe la caméra (poursuite à ~5 m) peignait l'écran entier d'un aplat orange
-    // pendant une seconde — on l'efface quand l'objectif entre dans son lobe ; les autres restent nettes, la boule se LIT.
-    const dc9=p.sp.position.distanceTo(camera.position);
-    p.sp.material.opacity=(u<.12?u/.12:Math.max(0,1-(u-.12)/.88)*.96)*THREE.MathUtils.smoothstep(dc9,r*.3,r*.3+2.4);
+  if(paused)dt=0; // (vague 2) la pause fige la boule (elle continuait de gonfler derrière le panneau)
+  const cp=camera.position,sm=THREE.MathUtils.smoothstep;
+  // VOLUTES : vivantes, triées de loin en près (tri par insertion sur ≤ 26 : rien n'est alloué)
+  let n=0;
+  for(let i=0;i<VOLU_N;i++){const p=VOLU[i];if(!p.on)continue;
+    p.t+=dt;if(p.t<0)continue;
+    if(p.t>=p.life){p.on=false;continue;}
+    p.y+=p.vy*dt;p.x+=p.dx*dt;p.z+=p.dz*dt;
+    const ex=p.x-cp.x,ey=p.y-cp.y,ez=p.z-cp.z;p.d2=ex*ex+ey*ey+ez*ez;
+    let j=n++;while(j>0&&VOLU_ORD[j-1].d2<p.d2){VOLU_ORD[j]=VOLU_ORD[j-1];j--;}VOLU_ORD[j]=p;
   }
-  for(let i=boomSpikes.length-1;i>=0;i--){
-    const s=boomSpikes[i];s.t+=dt;
-    const u=s.t/s.life;
-    if(u>=1){scene.remove(s.sp);s.sp.material.dispose();boomSpikes.splice(i,1);continue;}
-    const e=1-Math.pow(1-u,2.2);
-    s.sp.scale.set(s.wid*(1-u*.45),s.len*e,1);
-    s.sp.position.copy(boomPos).addScaledVector(s.dir,s.len*e*.16);
-    s.sp.material.opacity=.95*Math.max(0,1-u*1.15);
-  }
+  {const P=PAN_VOL.P,S=PAN_VOL.S,C=PAN_VOL.C,F=PAN_VOL.F;
+   // la poursuite RECULE pendant l'explosion (6 → 20 m en 0,4 s) : les lobes grossissent avec elle (×1,6 au plus) — la boule garde
+   // sa lecture à l'écran au lieu de fondre en confetti, sans jamais couvrir plus qu'au départ
+   const kD=n?Math.min(1.6,Math.max(1,Math.sqrt(VOLU_ORD[n>>1].d2)/9)):1;
+   for(let k=0;k<n;k++){const p=VOLU_ORD[k],u=p.t/p.life,uc=Math.max(0,u+p.cu);
+     const e=1-Math.pow(1-Math.min(1,u*4),3),r=(p.r0+(p.r1-p.r0)*e)*kD; // gonflement VIF (pleine taille à ~0,35 s) qui s'assagit
+     bpTmpC.copy(BOOM_HOT).lerp(BOOM_OR,Math.min(1,uc*12)).lerp(BOOM_MID,Math.min(1,Math.max(0,(uc-.08)*7)))   // ça REFROIDIT…
+       .lerp(BOOM_COLD,Math.min(1,Math.max(0,(uc-.28)*2.6))).lerp(BOOM_SMOKE,Math.min(1,Math.max(0,(uc-.45)*2.8))); // …et retombe en CHARBON
+     const a=(u<.05?u/.05:1)*(1-sm(u,.62,1))*sm(Math.sqrt(p.d2),2.5,6); // garde-objectif : 2,5 → 6 m (à 3,5-8 m la boule, née à ~6,5 m de la poursuite, restait à 20 %)
+     P[k*3]=p.x;P[k*3+1]=p.y;P[k*3+2]=p.z;
+     S[k*4]=r;S[k*4+1]=r;S[k*4+2]=0;S[k*4+3]=0;
+     C[k*4]=bpTmpC.r;C[k*4+1]=bpTmpC.g;C[k*4+2]=bpTmpC.b;C[k*4+3]=a;
+     F[k*2]=p.f;F[k*2+1]=Math.max(0,1-uc/.3);}   // le cœur brûle le premier tiers de la vie
+   PAN_VOL.cnt=n;panPousse(PAN_VOL);}
+  // DARDS (additifs : pas de tri)
+  {const P=PAN_DARD.P,S=PAN_DARD.S,C=PAN_DARD.C,F=PAN_DARD.F,near=sm(boomPos.distanceTo(cp),2,5);let m=0;
+   for(let i=0;i<DARD_N;i++){const s=DARD[i];if(!s.on)continue;
+     s.t+=dt;const u=s.t/s.life;if(u>=1){s.on=false;continue;}
+     const len=s.len*(1-Math.pow(1-u,2.2));
+     P[m*3]=boomPos.x+s.dx*len*.16;P[m*3+1]=boomPos.y+s.dy*len*.16;P[m*3+2]=boomPos.z+s.dz*len*.16;
+     S[m*4]=s.wid*(1-u*.45);S[m*4+1]=len;S[m*4+2]=s.rot;S[m*4+3]=1;
+     C[m*4]=1;C[m*4+1]=.816;C[m*4+2]=.541;C[m*4+3]=.95*Math.max(0,1-u*1.15)*near;
+     F[m*2]=0;F[m*2+1]=0;m++;}
+   PAN_DARD.cnt=m;panPousse(PAN_DARD);}
+  // LES ONDES face caméra : des traits qui filent
+  for(let i=0;i<BOOM_ONDES.length;i++){const m=BOOM_ONDES[i],o=m.userData;if(o.t<0)continue;
+    o.t+=dt;const u=(o.t-o.dl)/.32;
+    if(u>=1){o.t=-1;m.visible=false;continue;}
+    if(u<0){if(m.visible)m.visible=false;continue;}
+    m.visible=true;m.lookAt(cp);m.scale.setScalar(1+o.sp*(1-(1-u)*(1-u)));m.material.opacity=o.op*(1-u)*(1-u);}
   const od=boomOnde.userData; // L'ONDE AU SOL
   if(od.t>=0){od.t+=dt;const u=od.t/.75;
     if(u>=1){od.t=-1;boomOnde.visible=false;}
-    else{boomOnde.scale.setScalar(1.5+(1-Math.pow(1-u,2.4))*40);boomOnde.material.opacity=Math.pow(1-u,1.4)*.85;}}
+    else{const R=1.5+(1-Math.pow(1-u,2.4))*40;boomOnde.scale.setScalar(R);
+      // (vague 2) quand l'anneau passe SOUS l'objectif, la perspective étale son liseré en NAPPE beige sur le bas de l'écran : il s'y efface
+      bvA.subVectors(cp,boomOnde.position);const h9=bvA.dot(bOndeU),dh=Math.sqrt(Math.max(0,bvA.lengthSq()-h9*h9));
+      boomOnde.material.opacity=Math.pow(1-u,1.4)*.85*sm(Math.abs(R-dh),.6,5);}}
 }
-function clearBoomArt(){
-  for(const p of boomPuffs){scene.remove(p.sp);p.sp.material.dispose();}boomPuffs.length=0;
-  for(const s of boomSpikes){scene.remove(s.sp);s.sp.material.dispose();}boomSpikes.length=0;
+function clearBoomArt(){ // (vague 2) rien n'est libéré : tout est RANGÉ (les panneaux, le cœur et les ondes servent à la mort suivante)
+  for(let i=0;i<VOLU_N;i++)VOLU[i].on=false;for(let i=0;i<DARD_N;i++)DARD[i].on=false;
+  PAN_VOL.cnt=0;panPousse(PAN_VOL);PAN_DARD.cnt=0;panPousse(PAN_DARD);
+  for(const m of BOOM_ONDES){m.userData.t=-1;if(m.userData.chaud)m.visible=false;}
 }
 const debris=[];
-let boomT=-1,boomRing=null,boomRing2=null,boomRing3=null,boomCore=null,boomLight=null;
-const boomPos=new THREE.Vector3();
+let boomT=-1,boomLight=null;
+const boomPos=new THREE.Vector3(),bmCam=new THREE.Vector3(),bmCamD=new THREE.Vector3();
 // ---------- SIGNATURES D'EXPLOSION : chaque caisse meurt à sa façon ----------
 const heartTex=(function(){ // cœur rose (COMÈTE)
   const cv=document.createElement('canvas');cv.width=cv.height=64;
@@ -14915,11 +15051,20 @@ function mkAstroS(){ // le passager clandestin de la fusée
   }
   return g;
 }
+/* (vague 2) LES ÉCLATS NE FONCENT PLUS SUR L'OBJECTIF : la poursuite est à ~5,5 m du foyer — un débris lancé vers elle la frôlait en
+   ~0,2 s et devenait une PLAQUE ORANGE plein écran (le « carton » des captures). La composante qui file vers la caméra est renvoyée
+   vers l'avant (miroir sur l'axe du regard, à plat) ; la gerbe reste aussi large, elle s'ouvre DEVANT nous. */
+const dbC=new THREE.Vector3(),dbS=new THREE.Vector3(),dbBox=new THREE.Box3();
+function debrisLoin(v){
+  dbC.subVectors(boomPos,camera.position);dbC.y=0;const l=dbC.length();if(l<1e-3)return v;dbC.multiplyScalar(1/l);
+  const k=v.x*dbC.x+v.z*dbC.z;if(k<0){v.x-=2*k*dbC.x;v.z-=2*k*dbC.z;}
+  return v;
+}
 function signatureBoom(lvl){
   const toss=(m,sp)=>{ // éjection « logique » : vers l'extérieur et vers le haut, en tournoyant
     const a=Math.random()*Math.PI*2;
     m.position.copy(boomPos);m.position.y+=.4;
-    debris.push({m:m,v:new THREE.Vector3(Math.cos(a)*(5+Math.random()*sp),8+Math.random()*10,Math.sin(a)*(5+Math.random()*sp)),
+    debris.push({m:m,v:debrisLoin(new THREE.Vector3(Math.cos(a)*(5+Math.random()*sp),8+Math.random()*10,Math.sin(a)*(5+Math.random()*sp))),
       rx:(Math.random()-.5)*11,ry:(Math.random()-.5)*11});
     scene.add(m);
   };
@@ -14998,7 +15143,7 @@ function explode(cause){
   }
   chainHud.style.opacity=0;
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;
-  mode='boom';boomT=0;boomPos.copy(carGroup.position);
+  mode='boom';boomT=0;boomPos.copy(carGroup.position);bmCam.copy(camera.position); // (vague 2) le point d'où l'on regarde la mort
   spawnBoomArt(boomPos,1); // LA BOULE DE FEU DESSINÉE : volutes en chou-fleur + dards
   boomOndePart(boomPos); // (2026-09-26) + l'onde qui court sur le bitume
   const tx9=engTier<23?annSpeak('earlyDead',6):null; // (2026-09-26, audit son) la VOIX d'abord : si elle parle, le tirage du son de mort écarte le « ewww »
@@ -15022,47 +15167,51 @@ function explode(cause){
     dTmp.sub(boomPos);
     if(dTmp.lengthSq()<.01)dTmp.set(Math.random()-.5,.3,Math.random()-.5);
     dTmp.normalize();
-    debris.push({m:d,v:new THREE.Vector3(dTmp.x*(9+Math.random()*12),6+Math.random()*12+dTmp.y*9,dTmp.z*(9+Math.random()*12)),
-      rx:(Math.random()-.5)*12,ry:(Math.random()-.5)*12,part:true});
+    // (vague 2) les VRAIES pièces (capot, toit : 1-2 m) partaient à 20 m/s vers le haut et repassaient au-dessus de l'objectif en
+    // grandes PLAQUES plates : plus lentes, elles retombent dans la boule ; masquées d'autant plus tôt qu'elles sont grandes
+    const rad9=dbBox.setFromObject(d).getSize(dbS).length()*.5;
+    debris.push({m:d,v:debrisLoin(new THREE.Vector3(dTmp.x*(6+Math.random()*8),4+Math.random()*7+dTmp.y*6,dTmp.z*(6+Math.random()*8))),
+      rx:(Math.random()-.5)*12,ry:(Math.random()-.5)*12,part:true,hid:(3.4+rad9)*(3.4+rad9)});
     scene.add(d);
   }
   // + éclats incandescents génériques
   for(let k=0;k<8;k++){
-    const d=new THREE.Mesh(new THREE.BoxGeometry(.15+Math.random()*.4,.08+Math.random()*.25,.15+Math.random()*.5),
+    const d=new THREE.Mesh(new THREE.BoxGeometry(.12+Math.random()*.24,.07+Math.random()*.16,.12+Math.random()*.3), // (vague 2) des ÉCLATS, plus des plaques : à 2 m de l'objectif une plaque de 50 cm couvrait un tiers de l'écran
       new THREE.MeshPhongMaterial({color:k%3===0?spec.accent:spec.color,emissive:0xff4400,emissiveIntensity:.6,shininess:90}));
     d.position.copy(boomPos);
-    debris.push({m:d,v:new THREE.Vector3((Math.random()-.5)*26,8+Math.random()*18,(Math.random()-.5)*26),
+    debris.push({m:d,v:debrisLoin(new THREE.Vector3((Math.random()-.5)*26,8+Math.random()*18,(Math.random()-.5)*26)),
       rx:(Math.random()-.5)*14,ry:(Math.random()-.5)*14,own:1}); // own : géométrie et matière à lui — libérées au ménage
     scene.add(d);
   }
-  // boule de feu dispersée, moins centrée : foyers décalés, 3 tons
-  for(let k=0;k<240;k++){
+  // boule de feu dispersée, moins centrée : foyers décalés, 3 tons — (vague 2) des TRAITS, quatre fois moins : à 950 traits la gerbe
+  // faisait un HÉRISSON qui mangeait la boule ; ce sont les volutes qui portent le volume
+  for(let k=0;k<44;k++){
     const a=Math.random()*Math.PI*2,b=Math.acos(2*Math.random()-1),sp2=4+Math.random()*20;
     spawnP(boomPool,boomPos.x+(Math.random()-.5)*5,boomPos.y+(Math.random()-.5)*4,boomPos.z+(Math.random()-.5)*5,
       Math.sin(b)*Math.cos(a)*sp2,Math.cos(b)*sp2*.8+3,Math.sin(b)*Math.sin(a)*sp2,.4+Math.random()*.7);
   }
-  for(let k=0;k<170;k++){
+  for(let k=0;k<32;k++){
     const a=Math.random()*Math.PI*2,b=Math.acos(2*Math.random()-1),sp2=3+Math.random()*17;
     spawnP(boomRed,boomPos.x+(Math.random()-.5)*6,boomPos.y+(Math.random()-.5)*5,boomPos.z+(Math.random()-.5)*6,
       Math.sin(b)*Math.cos(a)*sp2,Math.cos(b)*sp2*.8+2,Math.sin(b)*Math.sin(a)*sp2,.5+Math.random()*.8);
   }
-  for(let k=0;k<170;k++){
+  for(let k=0;k<40;k++){
     const a=Math.random()*Math.PI*2,b=Math.acos(2*Math.random()-1),sp2=5+Math.random()*22;
     spawnP(boomYel,boomPos.x+(Math.random()-.5)*7,boomPos.y+(Math.random()-.5)*5,boomPos.z+(Math.random()-.5)*7,
       Math.sin(b)*Math.cos(a)*sp2,Math.cos(b)*sp2*.8+4,Math.sin(b)*Math.sin(a)*sp2,.3+Math.random()*.55);
   }
   // sauce sanglante : pixels rouge sombre minuscules (sur TOUTES les explosions)
-  for(let k=0;k<160;k++){
+  for(let k=0;k<40;k++){
     const a=Math.random()*Math.PI*2,b=Math.acos(2*Math.random()-1),sp2=6+Math.random()*22;
     spawnP(boomTom,boomPos.x+(Math.random()-.5)*3,boomPos.y+(Math.random()-.5)*2,boomPos.z+(Math.random()-.5)*3,
       Math.sin(b)*Math.cos(a)*sp2,Math.cos(b)*sp2+4,Math.sin(b)*Math.sin(a)*sp2,.5+Math.random()*1.2);
   }
   // BRAISES CHAUDES (toutes les explosions) : rouges qui brillent + orange et jaunes plus fines
-  for(let k=0;k<70;k++)spawnP(boomEmbR,boomPos.x+(Math.random()-.5)*4,boomPos.y+(Math.random()-.5)*3,boomPos.z+(Math.random()-.5)*4,
+  for(let k=0;k<40;k++)spawnP(boomEmbR,boomPos.x+(Math.random()-.5)*4,boomPos.y+(Math.random()-.5)*3,boomPos.z+(Math.random()-.5)*4,
     (Math.random()-.5)*9,2+Math.random()*7,(Math.random()-.5)*9,1+Math.random()*1.2);
-  for(let k=0;k<55;k++)spawnP(boomEmbO,boomPos.x+(Math.random()-.5)*4,boomPos.y+(Math.random()-.5)*3,boomPos.z+(Math.random()-.5)*4,
+  for(let k=0;k<32;k++)spawnP(boomEmbO,boomPos.x+(Math.random()-.5)*4,boomPos.y+(Math.random()-.5)*3,boomPos.z+(Math.random()-.5)*4,
     (Math.random()-.5)*11,3+Math.random()*8,(Math.random()-.5)*11,.8+Math.random()*1);
-  for(let k=0;k<45;k++)spawnP(boomEmbY,boomPos.x+(Math.random()-.5)*5,boomPos.y+(Math.random()-.5)*3,boomPos.z+(Math.random()-.5)*5,
+  for(let k=0;k<26;k++)spawnP(boomEmbY,boomPos.x+(Math.random()-.5)*5,boomPos.y+(Math.random()-.5)*3,boomPos.z+(Math.random()-.5)*5,
     (Math.random()-.5)*13,3+Math.random()*9,(Math.random()-.5)*13,.6+Math.random()*.9);
   // SIGNATURE du modèle : chaque caisse meurt à sa façon
   signatureBoom(level);
@@ -15087,7 +15236,7 @@ function explode(cause){
     setTimeout(function(){
       if(mode!=='boom')return;
       const ox=boomPos.x+(Math.random()-.5)*10,oy=boomPos.y+(Math.random()-.5)*6,oz=boomPos.z+(Math.random()-.5)*10;
-      for(let k=0;k<60;k++){
+      for(let k=0;k<32;k++){ // (vague 2) 60 → 32 : des répliques, pas une deuxième gerbe
         const a=Math.random()*Math.PI*2,b2=Math.acos(2*Math.random()-1),sp2=4+Math.random()*16;
         spawnP(k%2?boomRed:boomYel,ox,oy,oz,
           Math.sin(b2)*Math.cos(a)*sp2,Math.cos(b2)*sp2*.8+3,Math.sin(b2)*Math.sin(a)*sp2,.4+Math.random()*.6);
@@ -15101,45 +15250,28 @@ function explode(cause){
     spawnP(smokePool,boomPos.x,boomPos.y,boomPos.z,
       Math.cos(a)*(1.5+Math.random()*5),2+Math.random()*6,Math.sin(a)*(1.5+Math.random()*5),.9+Math.random()*1.2);
   }
-  // double onde de choc
-  boomRing=new THREE.Mesh(new THREE.TorusGeometry(1,.32,8,44),new THREE.MeshBasicMaterial({color:BOOMV.r1,transparent:true,opacity:.95}));
-  boomRing.position.copy(boomPos);scene.add(boomRing);
-  boomRing2=new THREE.Mesh(new THREE.TorusGeometry(1,.2,8,44),new THREE.MeshBasicMaterial({color:BOOMV.r2,transparent:true,opacity:.8}));
-  boomRing2.position.copy(boomPos);scene.add(boomRing2);
-  boomRing3=new THREE.Mesh(new THREE.TorusGeometry(1,.12,8,44),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.7}));
-  boomRing3.position.copy(boomPos);scene.add(boomRing3);
-  { // DÉFLAGRATION RENFORCÉE + filament d'air façon bombe — (2026-09-26) pour TOUTES les caisses : elle était câblée sur l'index
-    // (`level>=4`, puis ×2 pour la n° 5), et les caisses du début mouraient en pétard mouillé. Le son et la secousse, eux, gardent
-    // leur condition juste en dessous (hors de la passe graphique).
-    {
-      const r=new THREE.Mesh(new THREE.TorusGeometry(1,.07,6,44),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.55}));
-      r.position.copy(boomPos);scene.add(r);
-      extraRings.push({m:r,sp:95,delay:0});
-    }
-    for(let k=0;k<80;k++){
-      const a=Math.random()*Math.PI*2,b=Math.acos(2*Math.random()-1),sp2=6+Math.random()*26;
-      spawnP(k%2?boomPool:boomYel,boomPos.x,boomPos.y,boomPos.z,
-        Math.sin(b)*Math.cos(a)*sp2,Math.cos(b)*sp2*.9+4,Math.sin(b)*Math.sin(a)*sp2,.4+Math.random()*.7);
-    }
+  // (vague 2) les ONDES DE CHOC face caméra, le CŒUR et les volutes vivent dans `spawnBoomArt` (créés UNE fois, voir L'EXPLOSION v3) :
+  // plus de tores opaques neufs à chaque mort. DÉFLAGRATION pour TOUTES les caisses (elle était câblée sur l'index) : des traits FEU et or.
+  for(let k=0;k<24;k++){
+    const a=Math.random()*Math.PI*2,b=Math.acos(2*Math.random()-1),sp2=6+Math.random()*26;
+    spawnP(k%2?boomPool:boomYel,boomPos.x,boomPos.y,boomPos.z,
+      Math.sin(b)*Math.cos(a)*sp2,Math.cos(b)*sp2*.9+4,Math.sin(b)*Math.sin(a)*sp2,.4+Math.random()*.7);
   }
   if(level>=4){
     noiseBurst(1.2,level===5?.5:.35,240);subBoom(level===5?.42:.3);
     shake=Math.max(shake,level===5?3.6:3);
   }
-  boomCore=new THREE.Mesh(new THREE.SphereGeometry(1,14,10), // cœur de lumière qui gonfle
-    new THREE.MeshBasicMaterial({color:0xfff2d0,transparent:true,opacity:.9,blending:THREE.AdditiveBlending,depthWrite:false}));
-  boomCore.position.copy(boomPos);scene.add(boomCore);
   // (2026-09-26, audit rendu) on RECYCLE la lumière dorée de la pose (toujours en scène, à 0) : le nombre de lumières ne change plus,
   // aucun programme ne se recompile — c'était un gel de 1,5 s (PC) pile sur l'explosion
   boomLight=swapLight;boomLight.color.set(BOOMV.li);boomLight.distance=460;boomLight.intensity=7;boomLight.position.copy(boomPos);
-  flashEl.style.background=BOOMV.fl;flashEl.style.opacity=.95;setTimeout(function(){flashEl.style.opacity=0;},320);
-  // ANNEAUX SUPPLÉMENTAIRES : chaque signature a son nombre d'ondes, à des angles et vitesses variés
+  /* (vague 2) LE FLASH : il était BEIGE à 95 % et, par la transition CSS de 0,5 s (montée PUIS descente), il voilait l'écran ~0,8 s —
+     le « écran entier beige ». Désormais un éclair blanc-or à 42 %, 70 ms, bords francs (transition courte le temps du coup, puis
+     rendue à la feuille de style). */
+  flashEl.style.transition='opacity .06s';flashEl.style.background='#fff0c8';flashEl.style.opacity=.42;
+  setTimeout(function(){flashEl.style.opacity=0;},70);setTimeout(function(){flashEl.style.transition='';},200);
+  // les répliques : chaque signature a son nombre de gerbes (les ondes, elles, sont dans spawnBoomArt)
   for(let e9=0;e9<BOOMV.rings;e9++)setTimeout(function(){
     if(mode!=='boom')return;
-    const rm=new THREE.Mesh(new THREE.TorusGeometry(1,.14+Math.random()*.14,8,40),
-      new THREE.MeshBasicMaterial({color:e9%2?BOOMV.r2:BOOMV.r1,transparent:true,opacity:.7,blending:THREE.AdditiveBlending,depthWrite:false}));
-    rm.position.copy(boomPos); // (l'animation les oriente face caméra)
-    scene.add(rm);extraRings.push({m:rm,sp:26+Math.random()*34,delay:0}); // {m,sp,delay} : la forme attendue par la boucle d'anim
     sparkBurst(Math.random()<.5?sparkGold:sparkBlue,boomPos,10,16);
     chimeNote(120*BOOMV.pitch*(1+e9*.2),0,.18,.12);
   },90+e9*130);
@@ -15159,14 +15291,8 @@ function clearBoom(){
   skulls.length=0;
   for(const d of chips){scene.remove(d.m);if(!d.sh){if(d.m.material.dispose)d.m.material.dispose();if(d.m.geometry)d.m.geometry.dispose();}}
   chips.length=0;
-  for(const b of bills)scene.remove(b.m);
-  bills.length=0;
-  for(const r9 of [boomRing,boomRing2,boomRing3])if(r9){scene.remove(r9);jeteObj(r9);}
-  boomRing=boomRing2=boomRing3=null;
-  for(const r9 of extraRings){scene.remove(r9.m);jeteObj(r9.m);}
-  extraRings.length=0;
-  clearBoomArt(); // volutes + dards de la boule de feu
-  if(boomCore){scene.remove(boomCore);jeteObj(boomCore);boomCore=null;}
+  billsClear(); // (vague 2) les billets instanciés
+  clearBoomArt(); // volutes, dards, cœur et ondes de la boule de feu — (vague 2) RANGÉS, pas libérés : ils servent à la mort suivante
   boomOnde.userData.t=-1;boomOnde.visible=false; // (particules) l'onde au sol s'éteint avec le reste
   if(boomLight){boomLight.intensity=0;boomLight.distance=30;boomLight.color.setHex(0xffd06a);boomLight=null;} // rendue à la pose, JAMAIS retirée de la scène
   boomT=-1;carGroup.visible=true;flashEl.style.background='#ff2020';
@@ -15174,17 +15300,17 @@ function clearBoom(){
 // étincelles de collecte / d'impact
 const sparkGold=makePool(140,.9,0xffd75e,1,true,{a:[0,.45,1,.5],etire:1,str:.04,v:.55});sparkGold.acc=16;sparkGold.mesh.material.blending=THREE.AdditiveBlending; // (particules v2) de VRAIES étincelles : un trait qui file et retombe en arc
 const sparkBlue=makePool(70,.9,0x5ee6ff,1,true,{a:[0,.45,1,.5],etire:1,str:.04,v:.55});sparkBlue.acc=12;sparkBlue.mesh.material.blending=THREE.AdditiveBlending;
-const sparkPink=makePool(70,.9,0xff5ec8,1,true,{a:[0,.45,1,.5],etire:1,str:.04,v:.55});sparkPink.acc=12;sparkPink.mesh.material.blending=THREE.AdditiveBlending; // le 3e niveau du drift mini-turbo
+const sparkPink=makePool(70,.9,0xff3ec8,1,true,{a:[0,.45,1,.5],etire:1,str:.04,v:.55});sparkPink.acc=12;sparkPink.mesh.material.blending=THREE.AdditiveBlending; // le 3e niveau du drift mini-turbo
 // L'EAU DU REQUIN : des GOUTTES, pas des braises. Ce qui distingue de l'eau du feu, ce n'est pas la
 // couleur — c'est le comportement : ça part en gerbe, ça RETOMBE (gravité positive dans updatePool)
 // et ça meurt vite. Une flamme monte, une gerbe tombe ; l'œil fait la différence tout seul.
-const spray=makePool(150,.62,0xc8f4ff,.92,true,{a:[0,.4,1,.6],etire:1,str:.03,v:.5});spray.mesh.material.blending=THREE.AdditiveBlending;
-const foam=makePool(80,1.45,0xf2fdff,.34,false,{a:[.1,.6,.6,1.5]});  // l'écume : plus grosse, plus molle, elle traîne derrière
+const spray=makePool(150,.62,0xdff6ff,.92,true,{a:[0,.4,1,.6],etire:1,str:.03,v:.5});spray.mesh.material.blending=THREE.AdditiveBlending; // (vague 2) l'eau et le nuage partagent UNE couleur d'état : #dff6ff
+const foam=makePool(80,1.45,0xdff6ff,.34,false,{a:[.1,.6,.6,1.5],pr:[2,6,26,0]});  // l'écume : plus grosse, plus molle, elle traîne derrière — (vague 2) elle n'avait AUCUN plafond : 120 px près de l'objectif
 // MORCEAUX DE NUAGE : quand on défonce un banc, il éclate en mille bouts de ouate au point de contact
-const cloudBits=makePool(150,2.8,0xf3eff9,.9,false,{a:[.06,.6,.75,1.35],pr:[2,6,110,0]}); // (2026-09-26) garde-objectif : le banc éclate AUTOUR de la caméra — plus de ronds blancs de 300 px collés à l'objectif
+const cloudBits=makePool(150,2.8,0xdff6ff,.9,false,{a:[.06,.6,.75,1.35],pr:[2,6,26,0]}); // (2026-09-26) garde-objectif : le banc éclate AUTOUR de la caméra — (vague 2) plafond 110 → 26 px : des FLOCONS, plus des ronds blancs de 110 px
 // ÉCLABOUSSURE DE FRUIT : gouttelettes à la COULEUR du fruit croqué. Un seul pool dont on repeint le
 // matériau à chaque bouchée — les gouttes vivent ~0,3 s, donc le changement de teinte ne se voit jamais.
-const juicePool=makePool(110,1.15,0xffffff,1);juicePool.mesh.material.blending=THREE.AdditiveBlending;
+const juicePool=makePool(110,.8,0xffffff,1,false,{a:[0,.45,1,.6],etire:1,str:.03,v:.5,pr:[2,5,26,50]});juicePool.mesh.material.blending=THREE.AdditiveBlending; // (vague 2) des GOUTTES qui filent (traits), plus des disques mous de 1,15 m — plafonnées comme tout le reste
 function juiceSplash(pos,col,power){
   juicePool.mesh.material.color.setHex(col);
   const n=Math.round(16+power*22);
@@ -15264,8 +15390,11 @@ function landBoom(pos,tier){
   shake=Math.max(shake,.22+tier*.13);
   sparkBurst(sparkGold,pos,16+tier*12,11+tier*4);
   if(tier>=2)sparkBurst(sparkBlue,pos,10+tier*4,10);
-  flashEl.style.background='#ffe0b0';flashEl.style.opacity=Math.min(.55,.18+tier*.14).toFixed(2);
-  setTimeout(function(){flashEl.style.opacity=0;flashEl.style.background='#ff2020';},130); // on rend le flash au rouge (mort)
+  // (vague 2) le flash de la pose : un ÉCLAIR franc (60 ms, bords nets) et plus un voile beige — la transition CSS de 0,5 s le faisait
+  // monter PUIS redescendre, ~0,6 s d'écran délavé à chaque grosse pose
+  flashEl.style.transition='opacity .05s';flashEl.style.background='#fff0c8';flashEl.style.opacity=Math.min(.4,.14+tier*.09).toFixed(2);
+  setTimeout(function(){flashEl.style.opacity=0;},60);
+  setTimeout(function(){flashEl.style.transition='';if(mode!=='boom')flashEl.style.background='#ff2020';},180); // on rend le flash au rouge (mort) et sa transition à la feuille de style
   subBoom(.10+tier*.07);noiseBurst(.15,.08+tier*.035,300+tier*40); // (2026-09-26, audit son) plus de `thud(6+tier*4)` : calé sur le GAIN et non sur le
   // grade, il rejouait un choc grave à chaque pose qui paye — la PARFAITE cognait plus fort que la LOURDE et le compresseur écrasait son « tchak »
 }
@@ -16231,7 +16360,7 @@ window.dbgPlanet=function(){const v=planetGroup.position.clone().project(camera)
   const W=renderer.domElement.width,H=renderer.domElement.height;
   return {ecran:[Math.round((v.x*.5+.5)*W),Math.round((1-(v.y*.5+.5))*H)],dansLeCadre:(Math.abs(v.x)<1&&Math.abs(v.y)<1&&v.z<1),
     tailleEcranPx:Math.round(2*PLANET_R/planetGroup.position.distanceTo(camera.position)/(2*Math.tan(camera.fov*Math.PI/360))*H),buffer:[W,H]};};
-window.dbgBoom=function(){explode();return {variante:BOOMV.n,rings:BOOMV.rings,extra:extraRings.length};}; // déclenche une mort et dit quelle signature est sortie
+window.dbgBoom=function(){explode();return {variante:BOOMV.n,rings:BOOMV.rings,volutes:VOLU.filter(p=>p.on).length,dards:DARD.filter(p=>p.on).length};}; // déclenche une mort et dit quelle signature est sortie
 window.dbgHudCar=function(){ // VIGNETTE MOTEUR : lit-elle vraiment des pixels dans le RenderTarget, et où atterrit le quad ?
   // On lit le RENDERTARGET (pas le coin de l'écran comme l'ancienne version) : c'est la seule preuve
   // que le moteur est bien dessiné, indépendamment de l'endroit où le quad va le recoller ensuite.
@@ -16333,18 +16462,23 @@ window.dbgCreatures=function(){return {
 const billNoteTex=(function(){
   const cv=document.createElement('canvas');cv.width=64;cv.height=32;
   const c=cv.getContext('2d');
-  c.fillStyle='#2f8f4e';c.fillRect(0,0,64,32);
-  c.strokeStyle='#bfe8c8';c.lineWidth=2;c.strokeRect(2,2,60,28);
-  c.fillStyle='#dff5e2';c.font='bold 15px Arial';c.textAlign='center';c.textBaseline='middle';
-  c.fillText('$',12,17);c.fillText('100',38,17);
+  // (vague 2 « L'ENCRE ET L'OR ») le billet porte le LISERÉ d'encre de tout ce qui rapporte, et ses chiffres sont en OR (plus de vert layette)
+  c.fillStyle='#1c0430';c.fillRect(0,0,64,32);c.fillStyle='#2f9a52';c.fillRect(2,2,60,28);
+  c.strokeStyle='#7fd89a';c.lineWidth=2;c.strokeRect(5,5,54,22);
+  c.fillStyle='#ffd75e';c.font='bold 15px Arial';c.textAlign='center';c.textBaseline='middle';
+  c.fillText('$',13,17);c.fillText('100',39,17);
   return new THREE.CanvasTexture(cv);
 })();
 const billGeo=new THREE.PlaneGeometry(.5,.25);
 const billNoteM=new THREE.MeshBasicMaterial({map:billNoteTex,side:THREE.DoubleSide});
-// (2026-09-26, passe graphique) CHAUFFE DU BILLET : la première pluie de billets tombe souvent sur la MORT (explosion) — et son programme
-// se compilait à cet instant précis (mesuré : un programme de plus pile sur l'explosion). Un billet minuscule est dessiné une fois,
-// invisible, puis rangé : le programme existe avant qu'on en ait besoin.
-{const bc9=new THREE.Mesh(billGeo,billNoteM);bc9.scale.setScalar(1e-4);bc9.frustumCulled=false;bc9.onAfterRender=function(){this.visible=false;this.onAfterRender=function(){};};scene.add(bc9);}
+/* LES BILLETS EN UN APPEL DE DESSIN (2026-09-26, vague 2) : chaque billet était un `Mesh` NEUF (un appel de dessin chacun) — à la mort,
+   8 à 60 billets + ceux de la signature, soit jusqu'à ~100 appels sur l'image la plus chargée du jeu. Désormais UN `InstancedMesh` de 150
+   places et 150 repères (`Object3D` hors scène) créés une fois ; `billsTick` pose leurs matrices. CHAUFFE : il reste visible (0 instance)
+   jusqu'à sa première image dessinée — son programme (instancié) existe avant la première mort. */
+const BILL_N=150,BILL_IM=new THREE.InstancedMesh(billGeo,billNoteM,BILL_N),BILL_O=[];
+for(let i=0;i<BILL_N;i++)BILL_O.push(new THREE.Object3D());
+BILL_IM.instanceMatrix.setUsage(THREE.DynamicDrawUsage);BILL_IM.count=0;BILL_IM.frustumCulled=false;scene.add(BILL_IM);
+BILL_IM.onAfterRender=function(){BILL_IM.userData.chaud=true;delete BILL_IM.onAfterRender;};
 // crâne pixelisé (éjecté à l'explosion)
 const skullTex=(function(){
   const cv=document.createElement('canvas');cv.width=16;cv.height=16;
@@ -16364,12 +16498,28 @@ const skulls=[];
 const bills=[];
 let billT=0;
 function spawnBill(pos,v,life){
-  if(bills.length>140)return;
-  const b=new THREE.Mesh(billGeo,billNoteM);
-  b.position.copy(pos);
+  if(bills.length>=BILL_N)return;
+  let b=null;for(const o of BILL_O)if(!o.userData.pris){b=o;break;}if(!b)return; // un repère libre (jamais de `new` ici)
+  b.userData.pris=true;b.position.copy(pos);b.rotation.set(0,0,0);b.scale.setScalar(1);
   bills.push({m:b,v:v,rx:(Math.random()-.5)*9,ry:(Math.random()-.5)*9,life:life,ph:Math.random()*6.2832}); // ph : la phase de son VOLETTEMENT
-  scene.add(b);
 }
+function billsTick(dt){
+  let n=0;
+  for(let i9=bills.length-1;i9>=0;i9--){
+    const b9=bills[i9];
+    b9.life-=dt;b9.v.y-=4.5*dt;b9.v.multiplyScalar(Math.max(0,1-.6*dt));
+    b9.m.position.addScaledVector(b9.v,dt);
+    // (2026-09-26, passe graphique) LE BILLET VOLETTE : un billet ne tombe pas comme une pierre, il se balance de gauche à droite
+    // (feuille morte) et se couche dans le vent ; en fin de vie il se REPLIE au lieu de disparaître d'un coup
+    {const sw9=Math.sin(b9.ph+b9.life*6.5);b9.m.position.x+=sw9*1.5*dt;b9.m.position.z+=Math.cos(b9.ph*1.7+b9.life*5.1)*1.1*dt;
+     b9.m.rotation.x+=b9.rx*dt*(.55+.45*sw9);b9.m.rotation.y+=b9.ry*dt;b9.m.scale.setScalar(Math.min(1,Math.max(.001,b9.life/.3)));}
+    if(b9.life<=0){b9.m.userData.pris=false;bills.splice(i9,1);continue;}
+    b9.m.updateMatrix();BILL_IM.setMatrixAt(n++,b9.m.matrix);
+  }
+  if(n||BILL_IM.count){BILL_IM.count=n;BILL_IM.instanceMatrix.needsUpdate=true;}
+  const v=n>0||!BILL_IM.userData.chaud;if(BILL_IM.visible!==v)BILL_IM.visible=v;
+}
+function billsClear(){for(const b of bills)b.m.userData.pris=false;bills.length=0;BILL_IM.count=0;if(BILL_IM.userData.chaud)BILL_IM.visible=false;}
 // petits bouts qui se détachent de la caisse
 const chips=[];
 let chipT=6;
@@ -16411,6 +16561,7 @@ function spawnP(pool,x,y,z,vx,vy,vz,life){
   pool.vel[i*3]=vx;pool.vel[i*3+1]=vy;pool.vel[i*3+2]=vz;
   pool.life[i]=life;
   if(pool.fa){pool.l0[i]=life>0?life:1;pool.fa[i]=1;} // (particules v2) la vie de naissance : la courbe de fondu s'y mesure
+  if(!pool.mesh.visible&&!pool.masque)pool.mesh.visible=true; // (vague 2) la réserve endormie se réveille
 }
 function updatePool(pool,dt,grav){
   let vivant=false;const fa=pool.fa,tr=pool.drag||0,ac=(pool.acc||0)*dt; // `acc` : une VRAIE gravité (m/s²) — l'étincelle monte puis retombe en arc // (particules v2) `drag` : la fumée FREINE dans l'air (elle ne file plus comme une balle)
@@ -16429,6 +16580,7 @@ function updatePool(pool,dt,grav){
   }
   if(vivant||pool._vivant){const at=pool.mesh.geometry.attributes;at.position.needsUpdate=true; // (2026-09-26) un pool vide n'est plus renvoyé au GPU à chaque image (une dernière fois pour ranger les morts)
     if(fa){at.aF.needsUpdate=true;if(at.aVel){at.aVel.needsUpdate=true;pool.fx.uG.value=grav;}}} // (la « gravité » d'updatePool est une vitesse constante : le trait la suit)
+  if(!vivant&&!pool._vivant&&pool.chaud&&pool.mesh.visible)pool.mesh.visible=false; // (vague 2) vide depuis une image (les morts sont rangés) : plus un appel de dessin
   pool._vivant=vivant;
 }
 /* `dbgPart()` (2026-09-26, passe graphique) : particules vivantes par réserve + vitesse de référence des traits.
@@ -16440,30 +16592,44 @@ window.dbgPart=function(a,k,v){
     if(k==='vieux')trailMesh.visible=on;
     else if(k==='rubans'){trailL.m.visible=trailR.m.visible=on;}
     else if(k==='plume'){for(const m of JETS.shells.concat(JETS.cores,JETS.glows))m.visible=on;}
-    else if(k==='reserves'){for(const n in R)R[n].mesh.visible=on;}
-    else if(R[k])R[k].mesh.visible=on;
+    else if(k==='reserves'){for(const n in R){R[n].masque=!on;R[n].mesh.visible=on;}}
+    else if(R[k]){R[k].masque=!on;R[k].mesh.visible=on;}
     return k+(on?' visible':' masqué');}
+  if(a==='veille'){let d=0,v=0;for(const n in R){if(R[n].mesh.visible)v++;else d++;}return {visibles:v,endormies:d};} // (vague 2) les réserves vides ne dessinent plus
+  if(a==='pluie'){startMoneyRain();return 'pluie de devises';} // (vague 2) bancs d'essai : l'averse et l'éclat de nuage à la demande
+  if(a==='nuage'){shatterCloud(carGroup.position,1);return 'nuage éclaté';}
+  if(a==='fruit'){crV2.copy(carGroup.position);crV2.y+=1.1;juiceSplash(crV2,k||0xff4060,1);return 'gerbe de jus';}
+  if(a==='boom')return {volutes:PAN_VOL.cnt,pluie:MONN.cnt,visV:PAN_VOL.mesh.visible,chaudV:PAN_VOL.chaud,dards:PAN_DARD.cnt, // (vague 2) l'état de la boule
+    alphas:Array.from(PAN_VOL.C.slice(0,PAN_VOL.cnt*4)).filter((x,i)=>i%4===3).map(x=>+x.toFixed(2)),
+    tailles:Array.from(PAN_VOL.S.slice(0,PAN_VOL.cnt*4)).filter((x,i)=>i%4===0).map(x=>+x.toFixed(1)),
+    dist:VOLU.filter(p=>p.on&&p.t>=0).map(p=>+Math.sqrt(p.d2).toFixed(1))};
   const o={uVc:PT_U.uVc.value.toArray().map(x=>+x.toFixed(1)),trailK:+trailK.toFixed(2),jetsK:+JETS.k.toFixed(2),
     camCaisse:+camera.position.distanceTo(carGroup.position).toFixed(2),camHaut:+camera.position.clone().sub(carGroup.position).dot(hsU).toFixed(2),
     programmes:renderer.info.programs?renderer.info.programs.length:-1};
   for(const n in R){let c=0;for(let i=0;i<R[n].n;i++)if(R[n].life[i]>0)c++;if(c)o[n]=c;}
   return o;
 };
-// ---------- PLUIE DE DEVISES : à 10 000 $ (puis à chaque x10), les monnaies du monde défilent ----------
-const CURR=[['$','#ffd75e'],['€','#7dc8ff'],['¥','#ff8a8a'],['£','#c9a7ff'],['₹','#8affc1'],
-  ['₩','#ffc46b'],['₽','#9fd0ff'],['฿','#ffe08a'],['₺','#ff9ad5'],['₪','#a8ffe0'],
-  ['₫','#ffd0a0'],['₴','#b8ff8a'],['₦','#8ae6ff'],['₱','#ffb0c8'],['¢','#e6e6e6']];
-const currTexs=CURR.map(([sym,col])=>{
-  const cv=document.createElement('canvas');cv.width=cv.height=96;
-  const c=cv.getContext('2d');
-  c.shadowColor=col;c.shadowBlur=18;
-  c.fillStyle=col;c.font='bold 64px Georgia';c.textAlign='center';c.textBaseline='middle';
-  c.fillText(sym,48,52);
-  c.shadowBlur=0;c.globalAlpha=.4;c.fillStyle='#ffffff';c.font='bold 58px Georgia';
-  c.fillText(sym,48,50);
+// ---------- PLUIE DE DEVISES : à 4 000 $ (puis ×2,6), les monnaies du monde défilent ----------
+/* (2026-09-26, vague 2 « L'ENCRE ET L'OR ») LA PLUIE EN UN APPEL DE DESSIN. Elle fabriquait 3 sprites NEUFS par image pendant 3 s — 540
+   `SpriteMaterial` créés puis jetés, et jusqu'à ~540 appels de dessin à la fin de l'averse : l'à-coup garanti sur iPhone, pile pendant la
+   fête — en 15 couleurs pastel. Désormais : UN atlas cuit une fois (15 glyphes en OR de l'argent — clair en haut, ombre en bas — cerclés
+   d'un LISERÉ d'encre #1c0430, comme tout ce qui rapporte), 600 panneaux instanciés (`mkPanneaux`), tableaux fixes, zéro allocation.
+   Le mouvement est celui d'avant (ça tournoie en tombant, fondu la dernière seconde). */
+const CURR=['$','€','¥','£','₹','₩','₽','฿','₺','₪','₫','₴','₦','₱','¢'];
+const MONN_TEX=(function(){
+  const S=64,cv=document.createElement('canvas');cv.width=cv.height=S*4;const c=cv.getContext('2d');
+  c.textAlign='center';c.textBaseline='middle';c.font='bold 44px Georgia';c.lineJoin='round';
+  for(let i=0;i<CURR.length;i++){const x=(i&3)*S+S/2,y=(i>>2)*S+S/2+2;
+    c.lineWidth=7;c.strokeStyle='#1c0430';c.strokeText(CURR[i],x,y);                 // le liseré d'encre
+    const g=c.createLinearGradient(0,y-20,0,y+20);g.addColorStop(0,'#fff3b0');g.addColorStop(.5,'#ffd75e');g.addColorStop(1,'#b8860b');
+    c.fillStyle=g;c.fillText(CURR[i],x,y);}                                          // l'or : clair #fff3b0 · or #ffd75e · ombre #b8860b
   return new THREE.CanvasTexture(cv);
-});
-const moneyRain=[];let moneyRainT=0,nextRainAt=4e3; // calé sur l'éco ×2,5 : ~une pluie par niveau (l'ancien 1e4/×10 suivait l'éco ×10)
+})();
+const MONN_N=600,MONN=mkPanneaux(MONN_N,MONN_TEX,4,4,false,1,2);
+const MR={x:new Float32Array(MONN_N),y:new Float32Array(MONN_N),z:new Float32Array(MONN_N),vx:new Float32Array(MONN_N),vy:new Float32Array(MONN_N),
+  vz:new Float32Array(MONN_N),ph:new Float32Array(MONN_N),rs:new Float32Array(MONN_N),rot:new Float32Array(MONN_N),life:new Float32Array(MONN_N),
+  sc:new Float32Array(MONN_N),f:new Uint8Array(MONN_N),head:0,viv:0};
+let moneyRainT=0,nextRainAt=4e3; // calé sur l'éco ×2,5 : ~une pluie par niveau (l'ancien 1e4/×10 suivait l'éco ×10)
 function startMoneyRain(){
   moneyRainT=3;
   try{fanfare();}catch(e){}
@@ -16473,30 +16639,34 @@ function updateMoneyRain(dt,t){
     moneyRainT-=dt;
     tmp3.set(0,0,1).applyQuaternion(carGroup.quaternion);
     for(let k=0;k<3;k++){ // le défilé : ça pleut devant et autour, on traverse le rideau
-      const tex=currTexs[Math.floor(Math.random()*currTexs.length)];
-      const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false}));
-      const sc=.9+Math.random()*1.7;sp.scale.set(sc,sc,1);
-      sp.position.copy(carGroup.position).addScaledVector(tmp3,12+Math.random()*60);
-      sp.position.x+=(Math.random()-.5)*44;
-      sp.position.y+=7+Math.random()*18;
-      sp.position.z+=(Math.random()-.5)*44;
-      moneyRain.push({m:sp,ph:Math.random()*6,rs:(Math.random()-.5)*4.5,
-        v:new THREE.Vector3((Math.random()-.5)*2,-(2.5+Math.random()*3.5),(Math.random()-.5)*2),
-        life:3.2+Math.random()*1.8});
-      scene.add(sp);
+      const i=MR.head;MR.head=(i+1)%MONN_N;
+      const g9=(Math.random()*CURR.length)|0,d9=12+Math.random()*60;
+      MR.f[i]=(3-(g9>>2))*4+(g9&3); // la case de l'atlas (la toile a y vers le BAS, les UV vers le HAUT)
+      MR.sc[i]=.9+Math.random()*1.7;
+      MR.x[i]=carGroup.position.x+tmp3.x*d9+(Math.random()-.5)*44;
+      MR.y[i]=carGroup.position.y+tmp3.y*d9+7+Math.random()*18;
+      MR.z[i]=carGroup.position.z+tmp3.z*d9+(Math.random()-.5)*44;
+      MR.ph[i]=Math.random()*6;MR.rs[i]=(Math.random()-.5)*4.5;MR.rot[i]=0;
+      MR.vx[i]=(Math.random()-.5)*2;MR.vy[i]=-(2.5+Math.random()*3.5);MR.vz[i]=(Math.random()-.5)*2;
+      MR.life[i]=3.2+Math.random()*1.8;
     }
   }
-  for(let i=moneyRain.length-1;i>=0;i--){
-    const b=moneyRain[i];
-    b.life-=dt;
-    b.m.position.x+=(b.v.x+Math.sin(t*3+b.ph)*1.7)*dt;   // ça tournoie
-    b.m.position.y+=b.v.y*dt;
-    b.m.position.z+=(b.v.z+Math.cos(t*2.6+b.ph)*1.7)*dt;
-    b.m.material.rotation+=b.rs*dt;
-    if(b.life<1)b.m.material.opacity=Math.max(0,b.life);
-    if(b.life<=0){scene.remove(b.m);b.m.material.dispose();moneyRain.splice(i,1);}
+  if(!MR.viv&&moneyRainT<=0){if(MONN.cnt||!MONN.chaud){MONN.cnt=0;panPousse(MONN);}return;} // rien ne tombe : rien n'est dessiné
+  const P=MONN.P,S=MONN.S,C=MONN.C,F=MONN.F;let n=0;
+  for(let i=0;i<MONN_N;i++){if(MR.life[i]<=0)continue;
+    MR.life[i]-=dt;if(MR.life[i]<=0)continue;
+    MR.x[i]+=(MR.vx[i]+Math.sin(t*3+MR.ph[i])*1.7)*dt;   // ça tournoie
+    MR.y[i]+=MR.vy[i]*dt;
+    MR.z[i]+=(MR.vz[i]+Math.cos(t*2.6+MR.ph[i])*1.7)*dt;
+    MR.rot[i]+=MR.rs[i]*dt;
+    P[n*3]=MR.x[i];P[n*3+1]=MR.y[i];P[n*3+2]=MR.z[i];
+    S[n*4]=S[n*4+1]=MR.sc[i];S[n*4+2]=MR.rot[i];S[n*4+3]=0;
+    C[n*4]=C[n*4+1]=C[n*4+2]=1;C[n*4+3]=Math.min(1,MR.life[i]);
+    F[n*2]=MR.f[i];F[n*2+1]=0;n++;
   }
+  MR.viv=n;MONN.cnt=n;panPousse(MONN);
 }
+function moneyRainClear(){MR.life.fill(0);MR.viv=0;moneyRainT=0;MONN.cnt=0;panPousse(MONN);} // nouvelle partie : l'averse s'arrête net
 // ---------- AUDIO ----------
 let AC=null,osc=null,osc2=null,filt=null,gainN=null,windG=null,windF=null,skidG=null,jetG=null,jetF=null,jetLowG=null,jetOsc=null,jetOscG=null,whF=null,whG=null;
 // LA CHARGE — l'état interne du moteur. ⚠ Ce n'est PAS la position de l'accélérateur : c'est ce
@@ -18495,39 +18665,69 @@ function crunchSfx(rang){
     duckT=Math.max(duckT,.12); // ON CREUSE LE MIX : c'est ça qui le sort de la bouillie
   }catch(e){}
 }
-/* ---- LE JUS SUR L'OBJECTIF (2026-08-18) -------------------------------------------------------
-   Généré autrement : plus de particules 3D, des TACHES peintes en 2D par-dessus l'image.
-   ⚠ une tache ronde ne lit pas comme du jus, elle lit comme un point. Ce qui fait « projection »,
-   c'est l'IRRÉGULARITÉ (un polygone au rayon bruité) plus les SATELLITES (des gouttelettes autour)
-   plus la COULURE (une traînée qui descend). Les trois ensemble, sinon ça reste un rond. */
-const JUS=[];
+/* ---- LE JUS SUR L'OBJECTIF (2026-08-18) : des TACHES peintes en 2D par-dessus l'image (plus de particules 3D). Ce qui fait « projection »,
+   c'est l'IRRÉGULARITÉ (le rayon bruité), les SATELLITES et la COULURE — les trois ensemble, sinon ça reste un rond. */
+/* LE JUS v2 — DES GOUTTES PIXEL (2026-09-26, vague 2, « L'ENCRE ET L'OR »). Verdict du directeur artistique : les taches (un polygone
+   plein, d'UNE couleur, bord dur, à 85 % sur l'écran — moutarde, gris, mauve selon le fruit) se lisaient comme un BUG D'INTERFACE, pas
+   comme du jus sur l'objectif. Désormais chaque tache est une GOUTTE dessinée dans la langue du HUD :
+   · la forme (le rayon bruité, les satellites, la coulure) est posée sur une GRILLE DE 4 px ;
+   · TROIS TONS sur le corps du fruit (SATURÉ — éclairci vers le blanc, il virait au papier beige) : un CŒUR clair, un liseré d'ENCRE
+     #1c0430 de 2 px (la même encre que les contours d'arcade), un REFLET blanc en haut à gauche (c'est lui qui dit « liquide sur une
+     vitre ») ; le corps est plus transparent que son liseré — une goutte, pas un autocollant ;
+   · opacité ≤ .55 : on voit la route à travers, toujours.
+   Chaque goutte est cuite UNE fois à sa naissance dans une petite toile RÉUTILISÉE (la file plafonne à 14 taches) — la coulure s'y
+   allonge au fil des images, à pleine opacité (pas de double couche à la jointure) — puis la toile est recopiée ×2 au pixel près, sans
+   lissage. Plus aucun tracé de chemin par image. */
+const JUS=[],JUS_PX=4,JUS_TOILE=[],JUS_BLANC=new THREE.Color(1,1,1),JUS_ENCRE='#1c0430',JUS_M=new Uint8Array(128*128);let JUS_IM=null; // masque et pixels de brouillon RÉUTILISÉS (128 cellules = la plus grande goutte)
+function jusToile(){ // une toile libre de la réserve (15 au plus : la file plafonne à 14 taches)
+  for(const t of JUS_TOILE)if(!t.pris){t.pris=true;return t;}
+  const cv=document.createElement('canvas');cv.width=cv.height=64;const t={cv:cv,x:cv.getContext('2d'),pris:true};JUS_TOILE.push(t);return t;
+}
 function juiceScreen(col,power,n){
   // ⚠ REDUCED_MOTION : pas de taches qui gonflent et coulent sur l'écran. La gerbe 3D, le croc et
   // l'aura restent — le fruit se lit toujours, sans giclée plein cadre.
   if(!juiceCx||REDUCED_MOTION)return;
-  const W=juiceCv.width,H=juiceCv.height;
-  const c='#'+new THREE.Color(col).getHexString();
+  const W=juiceCv.width,H=juiceCv.height,cc=new THREE.Color(col),hsl=cc.getHSL({h:0,s:0,l:0}); // le CORPS : le fruit, SATURÉ
+  cc.setHSL(hsl.h,Math.max(hsl.s,.78),Math.min(.6,Math.max(.46,hsl.l)));const k2=cc.clone().lerp(JUS_BLANC,.38); // …et son CŒUR clair
+  const cR=cc.r*255|0,cG=cc.g*255|0,cB=cc.b*255|0,kR=k2.r*255|0,kG=k2.g*255|0,kB=k2.b*255|0,corps='rgba('+cR+','+cG+','+cB+',.8)';
   for(let k=0;k<(n||1);k++){
     /* ⚠ LE COULOIR DE CONDUITE RESTE DÉGAGÉ, et ce n'est pas négociable : c'est au centre qu'on vise
-       une réception. La 1re version « biaisait » vers les bords ; mesuré à l'écran, elle bouchait
-       quand même le milieu dès qu'on empilait. Ici on TIRE JUSQU'À trouver une place hors de
-       l'ellipse centrale — pas de biais, une garantie. Même règle que le voile de beat. */
+       une réception. On TIRE JUSQU'À trouver une place hors de l'ellipse centrale — pas de biais, une garantie. */
     let x,y,essais=0;
     do{
       x=Math.random()*W;y=H*(.15+Math.random()*.85);   // jamais tout en haut : le HUD y vit
       const dx=(x-W*.5)/(W*.34), dy=(y-H*.45)/(H*.30);
       if(dx*dx+dy*dy>1)break;                          // hors de l'ellipse centrale : bon
     }while(++essais<12);
-    // ⚠ CALIBRÉ À LA MESURE, pas à l'estime : à W*.035 une tache couvrait 0,5 % de l'écran — donc
-    // invisible, exactement le reproche de départ. Doublé, l'aire quadruple : un fruit repeint ~2 %,
-    // une rafale ~15 %. Assez pour qu'on jure, pas assez pour masquer la route (elles fondent en 1,2 s).
-    const R=(W*.075+Math.random()*W*.085)*(.7+power*.8);
-    const pts=[],N=9+((Math.random()*5)|0);
-    for(let i=0;i<N;i++)pts.push(R*(.55+Math.random()*.75)); // rayon BRUITÉ : c'est ça, une éclaboussure
-    JUS.push({x:x,y:y,r:R,pts:pts,c:c,t:0,vie:1.1+Math.random()*.7,
-      sat:Array.from({length:3+((Math.random()*4)|0)},()=>({a:Math.random()*6.283,d:R*(1.2+Math.random()*1.5),r:R*(.08+Math.random()*.16)})),
-      coul:R*(.5+Math.random()*1.4)});
-    if(JUS.length>14)JUS.shift(); // plafond BAISSÉ (26 → 14) : à 20 taches, mesuré, 76 % de l'écran était repeint — on ne conduit plus
+    // (vague 2) des GOUTTES, plus des flaques : rayon 18-60 px (l'ancien montait à 100 px, satellites jusqu'à 2,7 R)
+    const R=Math.min(60,(W*.05+Math.random()*W*.05)*(.8+power*.45)),coul=R*(.5+Math.random()*1.2);
+    if(JUS.length>=14){const v=JUS.shift();v.toile.pris=false;} // plafond : à 20 taches, mesuré, 76 % de l'écran était repeint
+    const t=jusToile(),C=JUS_PX/2; // la toile est en CELLULES de 2 px : le liseré fait une cellule, la forme se pose par blocs de deux (4 px)
+    const ext=Math.min(124,Math.ceil(R*2.05/JUS_PX)*JUS_PX),Nw=ext,Nh=Nw+Math.ceil(coul*1.6/C)+4; // demi-étendue en px = largeur en cellules ; la coulure dessous
+    if(t.cv.width!==Nw||t.cv.height!==Nh){t.cv.width=Nw;t.cv.height=Nh;}else t.x.clearRect(0,0,Nw,Nh);
+    const N=9+((Math.random()*5)|0),pts=[];for(let i=0;i<N;i++)pts.push(R*(.62+Math.random()*.55)); // rayon BRUITÉ : c'est ça, une éclaboussure
+    const sat=[];for(let i=0,ns=3+((Math.random()*3)|0);i<ns;i++)sat.push({a:Math.random()*6.2832,d:R*(1.25+Math.random()*.7),r:R*(.12+Math.random()*.12)});
+    const dedans=function(px,py){ // px, py : décalage au centre, en pixels écran
+      const a=(Math.atan2(py,px)+6.2832)%6.2832,f=a/6.2832*N,i0=f|0,w=f-i0;
+      if(Math.hypot(px,py)<pts[i0%N]*(1-w)+pts[(i0+1)%N]*w)return true;
+      for(const s of sat){const dx=px-Math.cos(s.a)*s.d,dy=py-Math.sin(s.a)*s.d;if(dx*dx+dy*dy<s.r*s.r)return true;}
+      return false;};
+    const M=JUS_M;M.fill(0,0,Nw*Nw);
+    for(let cy=0;cy<Nw;cy+=2)for(let cx=0;cx<Nw;cx+=2) // la forme, par blocs de 4 px
+      if(dedans((cx+1)*C-ext,(cy+1)*C-ext)){M[cy*Nw+cx]=M[cy*Nw+cx+1]=1;if(cy+1<Nw){M[(cy+1)*Nw+cx]=M[(cy+1)*Nw+cx+1]=1;}}
+    if(!JUS_IM)JUS_IM=t.x.createImageData(128,128);const d=JUS_IM.data;d.fill(0,0,128*Nw*4); // (brouillon au pas de 128)
+    const hx=Math.round((ext-R*.4)/C)&~1,hy=Math.round((ext-R*.42)/C)&~1,ck=R*.5/C; // le REFLET : en haut à gauche du corps · le CŒUR : la moitié du rayon
+    let bas=Nw>>1;
+    for(let cy=0;cy<Nw;cy++)for(let cx=0;cx<Nw;cx++){const k9=cy*Nw+cx;if(!M[k9])continue;const o=(cy*128+cx)*4;
+      if(cx===(Nw>>1))bas=Math.max(bas,cy);
+      const bord=cx===0||cy===0||cx===Nw-1||cy===Nw-1||!M[k9-1]||!M[k9+1]||!M[k9-Nw]||!M[k9+Nw];
+      const refl=!bord&&((cx>=hx&&cx<hx+2&&cy>=hy&&cy<hy+2)||(cx===hx+3&&cy===hy-1));
+      const coeur=!bord&&Math.hypot(((cx>>1)<<1)+1-Nw/2+ck*.25,((cy>>1)<<1)+1-Nw/2+ck*.25)<ck; // (par blocs de 4 px, décalé vers la lumière)
+      if(bord){d[o]=28;d[o+1]=4;d[o+2]=48;d[o+3]=255;}else if(refl){d[o]=d[o+1]=d[o+2]=255;d[o+3]=255;}
+      else if(coeur){d[o]=kR;d[o+1]=kG;d[o+2]=kB;d[o+3]=196;}else{d[o]=cR;d[o+1]=cG;d[o+2]=cB;d[o+3]=204;}}
+    t.x.putImageData(JUS_IM,0,0,0,0,Nw,Nw);
+    JUS.push({x:Math.round(x/JUS_PX)*JUS_PX,y:Math.round(y/JUS_PX)*JUS_PX,r:R,ext:ext,toile:t,c:corps,bas:bas,Lc:0,
+      t:0,vie:1.1+Math.random()*.7,coul:coul});
   }
 }
 function juiceScreenTick(dt){
@@ -18535,32 +18735,21 @@ function juiceScreenTick(dt){
   const W=juiceCv.width,H=juiceCv.height;
   if(!JUS.length){if(juiceScreenTick._sale){juiceCx.clearRect(0,0,W,H);juiceScreenTick._sale=false;juiceCv.style.visibility='hidden';}return;}
   juiceCx.clearRect(0,0,W,H);if(!juiceScreenTick._sale){juiceScreenTick._sale=true;juiceCv.style.visibility='visible';}
+  juiceCx.imageSmoothingEnabled=false; // AU PIXEL PRÈS : la toile est recopiée ×2, sans lissage
   for(let i=JUS.length-1;i>=0;i--){
     const j=JUS[i];j.t+=dt;
-    if(j.t>=j.vie){JUS.splice(i,1);continue;}
-    const u=j.t/j.vie;
-    /* la tache GRANDIT d'un coup puis s'efface ; la coulure, elle, s'allonge (gravité).
-       ⚠ LE GONFLEMENT EST EN SECONDES ABSOLUES, pas en fraction de vie. En fraction, une tache qui
-       vit longtemps mettait proportionnellement plus longtemps à apparaître — une éclaboussure qui
-       met 4 s à se former n'est plus une éclaboussure. Une projection arrive TOUJOURS en 90 ms. */
-    const gonfle=Math.min(1,j.t/.09), a=Math.pow(1-u,1.5);
-    juiceCx.globalAlpha=a*.85;juiceCx.fillStyle=j.c;
-    juiceCx.beginPath();
-    for(let k=0;k<j.pts.length;k++){
-      const ang=k/j.pts.length*6.2832,rr=j.pts[k]*gonfle;
-      const px=j.x+Math.cos(ang)*rr,py=j.y+Math.sin(ang)*rr;
-      k?juiceCx.lineTo(px,py):juiceCx.moveTo(px,py);
-    }
-    juiceCx.closePath();juiceCx.fill();
-    for(const s of j.sat){ // les gouttelettes satellites
-      juiceCx.beginPath();
-      juiceCx.arc(j.x+Math.cos(s.a)*s.d*gonfle,j.y+Math.sin(s.a)*s.d*gonfle,Math.max(0,s.r*gonfle),0,6.2832); // ⚠ un rayon < 0 LÈVE (IndexSizeError)
-      juiceCx.fill();
-    }
-    juiceCx.globalAlpha=a*.55;   // LA COULURE : elle descend avec le temps
-    juiceCx.beginPath();
-    juiceCx.ellipse(j.x,j.y+j.coul*u*1.6,Math.max(0,j.r*.22*gonfle),Math.max(0,j.coul*u*1.1),0,0,6.2832);
-    juiceCx.fill();
+    if(j.t>=j.vie){j.toile.pris=false;JUS.splice(i,1);continue;}
+    const u=j.t/j.vie,tc=j.toile;
+    // LA COULURE : elle descend avec le temps (gravité) — dessinée DANS la toile, par pas de 4 px, liseré d'encre sur les côtés
+    const Lc=Math.min(tc.cv.height-j.bas-3,Math.floor(j.coul*u*1.6/JUS_PX)*2);
+    if(Lc>j.Lc){const cw=Math.max(2,Math.round(j.r*.3/JUS_PX)*2),x0=(j.ext>>1)-(cw>>1);
+      tc.x.fillStyle=JUS_ENCRE;tc.x.fillRect(x0-1,j.bas+1,cw+2,Lc+1);tc.x.clearRect(x0,j.bas,cw,Lc); // (dégagée d'abord : le corps garde SA transparence)
+      tc.x.fillStyle=j.c;tc.x.fillRect(x0,j.bas,cw,Lc);j.Lc=Lc;}
+    /* la goutte GRANDIT d'un coup puis s'efface. ⚠ LE GONFLEMENT EST EN SECONDES ABSOLUES, pas en fraction de vie : une projection
+       arrive TOUJOURS en 90 ms. (vague 2) Il se fait par PALIERS (½, ¾, plein) : jamais de pixels de travers. */
+    const g=j.t<.03?.5:j.t<.06?.75:1,e=j.ext*g;
+    juiceCx.globalAlpha=Math.pow(1-u,1.5)*.55; // opacité ≤ .55 : la route se voit à travers
+    juiceCx.drawImage(tc.cv,j.x-e,j.y-e,e*2,e*2*tc.cv.height/tc.cv.width);
   }
   juiceCx.globalAlpha=1;
 }
@@ -19234,8 +19423,7 @@ function resetGame(){
   runStats={tricks:0,bumps:0,zones:0,vmax:0,chainMax:0,gaps:0,surv:0};runxReset();
   cloudInS=0;cloudFxEl.style.opacity=0;
   scene.fog.near=FOG_N;scene.fog.far=FOG_F;scene.fog.color.copy(FOG_BASE);
-  for(let i9=moneyRain.length-1;i9>=0;i9--){scene.remove(moneyRain[i9].m);moneyRain[i9].m.material.dispose();}
-  moneyRain.length=0;
+  moneyRainClear(); // (vague 2) la pluie de devises instanciée
   overlay.style.display='none';
   newTrack();respawn();safeS=0;s=0;
   AIP.resetRun(); // les compteurs d'observation repartent avec la run
@@ -22112,20 +22300,21 @@ function loop(now){
         d.v.y-=22*dt;
         d.m.position.addScaledVector(d.v,dt);
         if(boomT<1.2&&Math.random()<.55)spawnP(boomEmbO,d.m.position.x,d.m.position.y,d.m.position.z,d.v.x*.12,d.v.y*.12,d.v.z*.12,.3+Math.random()*.3); // (2026-09-26) chaque éclat TRAÎNE ses braises
-        d.m.rotation.x+=d.rx*dt;d.m.rotation.y+=d.ry*dt;
+        d.m.rotation.x+=d.rx*dt;d.m.rotation.y+=d.ry*dt;d.m.visible=d.m.position.distanceToSquared(camera.position)>(d.hid||11.5); // (vague 2) à moins de 3,4 m (+ sa taille) de l'objectif, un éclat n'est plus qu'un aplat : masqué
         if(!d.part&&d.m.material)d.m.material.emissiveIntensity=Math.max(0,.6-boomT*.45);
       }
-      if(boomRing){boomRing.scale.setScalar(1+boomT*58);boomRing.material.opacity=Math.max(0,.95-boomT*1.3);boomRing.lookAt(camera.position);}
-      if(boomRing2){boomRing2.scale.setScalar(1+boomT*26);boomRing2.material.opacity=Math.max(0,.8-boomT*1.1);boomRing2.lookAt(camera.position);}
-      if(boomRing3){boomRing3.scale.setScalar(1+boomT*85);boomRing3.material.opacity=Math.max(0,.7-boomT*1.6);boomRing3.lookAt(camera.position);}
-      for(const r9 of extraRings){const bt2=Math.max(0,boomT-r9.delay);r9.m.scale.setScalar(1+bt2*r9.sp);r9.m.material.opacity=Math.max(0,.55-bt2*1.1);r9.m.lookAt(camera.position);}
-      if(boomCore){boomCore.scale.setScalar(2+boomT*60);boomCore.material.opacity=Math.max(0,.9-boomT*2.3);}
+      // (vague 2) anneaux et cœur : animés par updateBoomArt (créés une fois)
       if(boomLight)boomLight.intensity=Math.max(0,4.5-boomT*3);
+      /* (vague 2) LE CADRAGE DE L'EXPLOSION : la secousse s'AJOUTAIT à la position d'une image sur l'autre — une marche au hasard de
+         5 à 10 m en 1,8 s : la caméra partait n'importe où, passait parfois AU-DESSUS du foyer et le monde se retournait. Désormais
+         elle recule d'un trait (3,5 m, 0,5 s, et un peu de hauteur : la boule se lit de l'extérieur) et TREMBLE autour de ce point. */
+      {const pl9=Math.min(1,boomT/.5),e9=pl9*(2-pl9);bmCamD.subVectors(bmCam,boomPos);const l9=bmCamD.length()||1;
+       camera.position.copy(bmCam).addScaledVector(bmCamD,e9*3.5/l9);camera.position.y+=e9*1.2;}
       camera.lookAt(boomPos);
       if(shake>0){
-        camera.position.x+=(Math.random()-.5)*shake;
-        camera.position.y+=(Math.random()-.5)*shake;
-        camera.position.z+=(Math.random()-.5)*shake;
+        camera.position.x+=(Math.random()-.5)*shake*.35;
+        camera.position.y+=(Math.random()-.5)*shake*.35;
+        camera.position.z+=(Math.random()-.5)*shake*.35;
         shake=Math.max(0,shake-1.5*dt);
       }
       if(elTurn.style.opacity!=='0')elTurn.style.opacity=0;
@@ -22141,12 +22330,10 @@ function loop(now){
     // particules
     ptTick(dt); // (particules v2) la vitesse de la caisse : le repère des étincelles étirées
     updatePool(dust,dt,2);
-    updatePool(wisps,dt,1.2);
     updateStreaks(dt);
     updatePool(flames,dt,1);
     updatePool(flameCore,dt,1);
     updatePool(embers,dt,4.5);
-    updatePool(exSmoke,dt,2.2);
     updatePool(boomPool,dt,3);
     updatePool(boomRed,dt,2.5);
     updatePool(boomYel,dt,3.5);
@@ -22170,16 +22357,7 @@ function loop(now){
       d.m.rotation.x+=d.rx*dt;d.m.rotation.y+=d.ry*dt;
       if(d.life<=0){scene.remove(d.m);if(!d.sh){if(d.m.material.dispose)d.m.material.dispose();if(d.m.geometry)d.m.geometry.dispose();}chips.splice(i9,1);} // géométrie unique des débris : libérer le GPU aussi
     }
-    for(let i9=bills.length-1;i9>=0;i9--){
-      const b9=bills[i9];
-      b9.life-=dt;b9.v.y-=4.5*dt;b9.v.multiplyScalar(Math.max(0,1-.6*dt));
-      b9.m.position.addScaledVector(b9.v,dt);
-      // (2026-09-26, passe graphique) LE BILLET VOLETTE : un billet ne tombe pas comme une pierre, il se balance de gauche à droite
-      // (feuille morte) et se couche dans le vent ; en fin de vie il se REPLIE au lieu de disparaître d'un coup
-      {const sw9=Math.sin(b9.ph+b9.life*6.5);b9.m.position.x+=sw9*1.5*dt;b9.m.position.z+=Math.cos(b9.ph*1.7+b9.life*5.1)*1.1*dt;
-       b9.m.rotation.x+=b9.rx*dt*(.55+.45*sw9);b9.m.rotation.y+=b9.ry*dt;b9.m.scale.setScalar(Math.min(1,Math.max(.001,b9.life/.3)));}
-      if(b9.life<=0){scene.remove(b9.m);bills.splice(i9,1);}
-    }
+    billsTick(dt); // (vague 2) billets volants : un seul appel de dessin (InstancedMesh)
     // ---- LOD DE PROXIMITÉ : on ne s'occupe QUE du couloir utile ----
     // La scène porte ~1550 meshes (≈550 pièces + ≈590 plots). Avant, CHAQUE frame faisait tourner les
     // 600 pièces à l'autre bout de la piste : 600 quaternions + 600 matrices monde recalculées pour des
@@ -22253,7 +22431,7 @@ function loop(now){
       // ⚠ la RÉSERVE BLEUE garde la priorité absolue : c'est un SIGNAL de jeu (« tu tapes dans la
       // réserve »), et aucune identité de caisse n'a le droit d'effacer un signal.
       const FX9=CARS[level].fx,fxOn=(nitroOn||boost>0)&&!nitroBlue;
-      jetShellM.color.setHex(nitroBlue?0x4f76ff:(fxOn&&FX9&&FX9.jet!=null?FX9.jet:(nitroOn?0xff6a18:0xff8c30)));
+      jetShellM.color.setHex(nitroBlue?0x4f76ff:(fxOn&&FX9&&FX9.jet!=null?FX9.jet:(nitroOn?0xff6a18:(boost>0?0xffc640:0xff8c30)))); // (vague 2) le pad turbo souffle OR : la poussée qui vient de l'argent
       jetCoreM.color.setHex(nitroBlue?0xd6e4ff:(fxOn&&FX9&&FX9.core!=null?FX9.core:0xffe6b0));
       jetGlowM.color.copy(jetShellM.color);jetGlowM.opacity=Math.min(1,JETS.k*.95*fl9);
       for(const m9 of JETS.shells){m9.visible=jOn;m9.scale.set(jr,jr,jl);m9.rotation.z=t*7.3;} // (plume v2) l'enveloppe TOURNE sur son axe : les langues de flamme ondulent
@@ -22280,7 +22458,7 @@ function loop(now){
     const FXT=FX_EFF||spec9.fx; // la traînée de la boutique a le dernier mot
     if(nitroBlue){tcr=.45;tcg=.62;tcb=1.6;}                       // la réserve bleue reste un SIGNAL
     else if(FXT&&FXT.trail){tcr=FXT.trail[0];tcg=FXT.trail[1];tcb=FXT.trail[2];} // la signature de la caisse
-    else if(nitroOn){tcr=1.35;tcg=.40;tcb=.06;}else{tcr=1.2;tcg=.62;tcb=.10;} // couleurs FRANCHES : le ruban doit rester orange/bleu, jamais blanc
+    else if(nitroOn){tcr=1.35;tcg=.40;tcb=.06;}else{tcr=1.25;tcg=.9;tcb=.26;} // couleurs FRANCHES : le ruban doit rester orange/bleu, jamais blanc — (vague 2) le pad turbo : OR #ffd75e (il était orange, on ne le distinguait pas de la nitro)
     for(const s9 of [-1,1]){ // (2026-09-26) les rubans partent des POTS : moyenne de chaque côté — UN SEUL ruban si les pots sont d'un côté ou au centre
       const tr9=s9<0?trailL:trailR;potMonde(s9<0?CAR_POT_L:CAR_POT_R,tmp2);
       trailStep(tr9,tmp2.x,tmp2.y,tmp2.z,
