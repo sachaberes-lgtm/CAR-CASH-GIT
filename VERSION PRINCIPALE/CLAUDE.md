@@ -183,6 +183,57 @@
   · Bancs : scratchpad `v6/conduite/diag/` (diagnostic, sim6.js), `v6/conduite/moi/sim-v6.js` (le modèle retenu + pilote 150 ms),
     `v6/piste/base/` (banc.js étendu, variantes.js, resume.js). `dbgState()` expose psi/yawR/slipB/glisse/drift/roulisDeg/vH.
 
+## LA CHARTE v4 — CARBONE · OR · NÉON (2026-09-26) — TOUTE L'INTERFACE HORS COURSE
+Verdicts successifs de Sacha : v1 plate (« moche et mal fait ») · v2 borne d'arcade 1985 (« pas très moderne ») · v3 bonbon violet
+brillant (« trop générique, pas de direction artistique »). Demande : « top 1 de l'App Store », refonte intégrale. ⚠ Les sections plus
+bas qui décrivent la CHARTE v2, la CHARTE PIXEL UNIFIÉE, la charte v3 et les règles « INTERFACE » de la PASSE DE FINITION sont
+PÉRIMÉES pour ces écrans : leurs règles CSS ont été SUPPRIMÉES (purge postcss, 630 règles, 27 @keyframes mortes).
+- **OÙ** : UNE feuille, `<style id="charte4">`, posée DANS LE `<body>` juste avant `<div id="splash">` — après toute la feuille
+  historique (elle gagne à spécificité égale) et loin de la fin du premier `<style>` où s'ajoute le HUD de course (zéro conflit de
+  fusion). Écrans couverts : coque `#mob` (accueil, mort, modes, boutique, réglages), `#tPanel` (pause), `#garage` (DOM, pas la
+  scène 3D), `#modale`, `#toast`, `#carr`, `#wipe`, `#nameEntry`, l'invite `#spNote`, le ⏸ `#tGear` et le bouton NITRO `#tNitro`
+  (visuel seul, validé avec la session HUD). ⚠ Ne JAMAIS remettre de règle pour ces écrans dans le premier `<style>`.
+- **LES TROIS MATIÈRES** : CARBONE (`--carbone`, sergé à périodes inégales + reflet ; `--tresse` pour les panneaux) = tout ce qui
+  se touche, avec un filet de NÉON de livrée sur la tranche gauche (`--nc` : cyan = aller voir, magenta `.pb-mag` = boutique) ·
+  OR = le LINGOT `.pb-gold`, l'UNIQUE action primaire d'un écran (face dégradée, filet gravé `outline-offset:-8px`, texte frappé,
+  reflet `k4Lingot`) · NÉON = titres d'écran (`.mHead h3`, enseigne penchée + bande magenta), états allumés, raretés.
+- **LA GRAMMAIRE** : PENCHÉ (`--sk` −11°) = JE TOUCHE (touches, onglets, puces, interrupteurs) ; ce qu'on LIT est DROIT, coins
+  coupés (`.mPanel`, `.hCard`, `.mStat`, compteur, pastille de famille) — seul leur TEXTE garde la pente. Exception écrite : une
+  ligne de liste touchable (réglages, modes, ticket de mort) = droite + filet + chevron. L'OR = l'argent ou le lingot, rien d'autre
+  (réglages en lavande/cyan, ticket en cyan, prix de boutique = chiffres d'or sur plaquette noire). Rouge PLEIN = seulement dans la
+  confirmation ; EFFACER et QUITTER sont en carbone à filet rouge.
+- **LA TOUCHE** `.pbtn` : face + contour 2 px + TRANCHE 6-7 px dessous (box-shadow) + ombre au sol ; `:active` descend de la
+  hauteur de la tranche. Variantes `pb-gold` `pb-cyan` `pb-mag` `pb-red` `pb-green`, états `.off`, tailles `.big` `.wide`
+  `.pbCarre` `.ico`. ⚠ Le lingot : la tranche AVANT le contour dans la liste d'ombres (sinon un anneau sombre sépare face et tranche).
+- **JETONS** dans le `:root` de charte4 : encres `--k0…--kl2`, or `--au0…--auT`, néons `--neoM/C/V/R/A`, `--cash`, textes
+  `--tx/--tx2/--tx3`, corps `--f0` (8 px, plancher) → `--f8`, safe areas `--sT/--sB/--sL/--sR` (TOUT passe par elles — pour simuler
+  une encoche en test : `:root{--sT:59px!important;--sB:34px!important}`), `--gut`, `--coupe`. Une courbe `--ease`, deux durées.
+- **ÉCRANS** : sous-écrans = SORTIE EN BAS (`.mDock`, collé au bas, « ◀ RETOUR ») · mort = colonne centrée, ressort `.mEsp`
+  (REJOUER sous le pouce sans creuser le milieu), montant qui CLAQUE (`.clac` en fin de `mCount`), confettis si record
+  (`mCompteSon`) · boutique = vitrine MAGENTA (cadre `k4Or`, rayons `k4Rayons`, badge `.shRemise` −50 %, `BIENTÔT` en simple mention) ·
+  pause = RECOMMENCER + QUITTER sur une rangée (`.tpRow`), REPRENDRE lingot collé en bas, ⏸ et commandes masqués dessous ·
+  fenêtre = FEUILLE DU BAS, ANNULER en dernier (Échap clique le dernier bouton), le bouton `pb-red` s'ARME après 420 ms (`.arme`) ·
+  toast en HAUT (au garage : au-dessus des onglets), filet vert/rouge selon l'icône coche/croix · fondu `ecranWipe` = VOLET PENCHÉ
+  (liseré or + magenta) qui balaie de droite à gauche (contrat JS inchangé : couvert en 200 ms).
+- **GARAGE** : EN HAUT on lit (compteur vert, pastille de famille OU de catégorie, rang, NOM auréolé de `--rc`, condition si à
+  gagner) ; EN BAS on touche (onglets, familles `#gRar`, vignettes `#gStrip`, barre `#gAct` = `#gClose` ◀ + UN lingot). ⚠ La fiche
+  et les onglets ne bougent JAMAIS d'un onglet à l'autre (`#gRar` en `visibility:hidden` en habillage, la pastille dit la catégorie).
+  JS : `gEtat(bt,etat,ic,txt)` (ÉQUIPER = lingot, ÉQUIPÉE = touche ENFONCÉE verte, VERROUILLÉE/À GAGNER = enfoncée grise, via
+  `data-etat`), `gPrixHtml` (verbe + prix `.gPrix`), `gNomEntre` (le nom glisse s'il change), `gTampon` (« À TOI ! » frappé +
+  éclair `#gEclat` de la couleur de la famille), `gStripHabits(cat,i)` (la bande des PEINTURES/AILES/TRAÎNÉES : nuancier — chrome,
+  or, mat ont leur matière —, aile, ruban ; prix / cadenas / coche ; clic = on ESSAIE). La famille active vient se centrer.
+- **NITRO** : cadran (rond = une JAUGE, pas une plaque) à face carbone, jauge néon SEGMENTÉE (`--nr` orange / `--nx` cyan, posées par
+  la boucle), s'embrase à l'appui ; `.plein` = halo sur `::before` dont seule l'OPACITÉ bouge. ⚠ Jamais d'animation de `filter` ici.
+- **PIÈGES** : ⚠ un `filter:drop-shadow` sur une icône `.pxi` ne se voit PAS (le masque passe après le filtre et le rogne) — la
+  lueur doit venir d'ailleurs. ⚠ La feuille historique floute `#overlay` (menu desktop) : `body.touch #overlay` remet
+  `backdrop-filter:none`. ⚠ `#mob{display:none}` hors téléphone (sinon la coque s'affiche sous le menu desktop en `?pc=1`).
+  ⚠ `#spNote` est en absolu centré : son `transform` garde `translateX(-50%)`. Les libellés neufs sont traduits (bloc i18n
+  « charte v4 », après la ligne FRÉNÉSIE).
+- **Bancs** (scratchpad de la session) : `pp/tour.js <prefixe> [port] [w] [h]` (13 écrans), `pp/extras.js`, `pp/extras2.js` (états
+  rares : volet, tampon, carrière, anglais, record, défis), `pp/qa.js` (**57 vérifications** : routage, achat, équipement, onglets,
+  langue, modes, pause, mort, rejouer, zéro backdrop-filter, cibles ≥ 44 px), `pp/nitro.js`, `css/purge.js` (la purge postcss),
+  `pp/planche.js` (planches-contact). Serveur : `srv.js` sur le worktree.
+
 ## PASSE DE FINITION (2026-09-26) — quatre audits (son · interface · ergonomie · rendu iPhone), six lots
 Commits `2608066` (lot 1) · `c3493a5` (lots 2-3) · `04e8d28` (4) · `bd995f4` (5) · `3f5c08e` (6). Ce qui est devenu une RÈGLE :
 - **RENDU** · Les lumières ponctuelles n'éclairent QUE la caisse : `LFB_SANS_PL` (le chunk `lights_fragment_begin` sans sa boucle de
