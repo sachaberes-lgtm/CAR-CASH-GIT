@@ -138,6 +138,14 @@
     noyés dans la brume (shader). 3 draw calls : `villeMatTours` (fenêtres dans le shader, fondues en lueur au loin), `villeMatNeon`
     (respire/clignote/grésille, `CITY.uT`), `villeMatTrafic` (voitures volantes déplacées par le vertex shader). Programmes compilés au
     menu (`villeChauffe`). Plus de suivi d'altitude ni de plancher. `dbgCity()` = comptes + ms de construction (~30 ms).
+  · **LES POTS** (26/09, « pour chaque skin, les flammes des pots et la traînée de nitro au bon endroit ») : `buildCar` relève les
+    VRAIS pots de chaque caisse (`CAR_POTS`, repère caisse) dans les pièces du kit (`lpKit` note ses cylindres/tours/boîtes :
+    cylindres couchés dans l'axe, r ≤ 20 cm, ≤ 60 cm de haut, bout arrière dans les 70 cm de la poupe ; boîtes chromées plus larges
+    que hautes ou petits tubes — ni verre, ni feux, ni tôle, ni butoirs). Sinon la fiche les DÉCLARE (`pots:[…]` : Chevalier noir,
+    Mur du son, Mastodonte), la Comète prend ses propulseurs (`spec.rocket`), les autres gabarits gardent les pots canoniques. Tuyères
+    (4 max), flammes au sol/en vol, retour de flamme, gerbe, arc-en-ciel, `nitroLight` et rubans en partent via `potMonde` (suit le
+    roulis de `carBody`). Rubans = moyenne des pots les plus en arrière de chaque côté ; UN seul (`CAR_POT_1`) si d'un côté ou au
+    centre. Banc des 66 : `dbgPots()`, `dbgSpec(i)`, `dbgNbCaisses()` (scratchpad `pots/audit.js`, planche avant/après).
   · **CIEL DE LA VILLE** (26/09, « la skyline, le sol et le plafond sont mal gérés, ça casse l'immersion ») : la couronne peinte
     (cylindre de 5,2 km, net derrière des tours noyées de brume, BORDS visibles en vol libre) est RETIRÉE ; le fond musical géométrique
     (roue, ondes, piliers — des polygones jusque sous l'horizon) s'efface dans la ville (`uVille<.999`). Tout vit dans le dôme,
