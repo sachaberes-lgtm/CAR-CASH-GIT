@@ -2897,6 +2897,11 @@ if(typeof THREE==='undefined'){ // CDN indisponible : un message clair plutôt q
 }
 // ---------- SCENE ----------
 const scene=new THREE.Scene();
+/* (2026-09-26, passe perf) LA SCÈNE NE BOUGE JAMAIS : son repère est gelé. Mesuré au profil (ville, niveau 4) : `updateMatrixWorld`
+   = 27 % du CPU. Tant que la scène se recalculait elle-même à chaque image, three passait `force` à TOUS ses enfants : ~6 000 matrices
+   monde recomposées par image, plots et pièces immobiles compris. Gelée, elle laisse chaque objet ne se recalculer QUE s'il a bougé
+   (et les objets gelés — plots, pièces, fruits — ne se recalculent plus du tout tant qu'on ne les touche pas). */
+scene.matrixAutoUpdate=false;
 // CIEL « VICE CITY NUIT » : rose Miami / violet, mais ASSOMBRI — indigo profond au zénith,
 // grande brume rose sombre, ambre au ras du couchant, étoiles, lune. La nuit tombe pour de bon.
 scene.background=new THREE.Color(0x0d0820); // fond NUIT violet TRÈS sombre (le ciel dôme couvre, ceci teinte les trouées)
@@ -4798,6 +4803,7 @@ function buildTrack(seed){
     const m=mkCone();
     m.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(F.b.clone(),F.n.clone().multiplyScalar(fc),F.t.clone().multiplyScalar(fc)));
     m.position.copy(F.p).addScaledVector(F.b,cl).addScaledVector(F.n,fc>0?.12:-THICK-.12);
+    m.updateMatrix();m.matrixAutoUpdate=false;for(const ch of m.children){ch.updateMatrix();ch.matrixAutoUpdate=false;} // (perf) immobile : gelé (dégelé quand il valse, voir FLYCONES)
     scene.add(m);trackMeshes.push(m);
     CONES.push({s:cs,lat:cl,mesh:m,hit:false,face:fc});
   }
@@ -13409,6 +13415,7 @@ function spawnPickups(rnd){
       // SOUS la route, le fruit est RETOURNÉ (repère −b, −n, t) : sinon il pendait tête en bas, feuilles plantées dans la dalle
       if(isN&&face<0){mat4b.makeBasis(FLIP_B.copy(F.b).negate(),FLIP_N.copy(F.n).negate(),F.t);m.quaternion.setFromRotationMatrix(mat4b);mat4b.makeBasis(F.b,F.n,F.t);}
       else m.quaternion.setFromRotationMatrix(mat4b);
+      m.updateMatrix();m.matrixAutoUpdate=false; // (perf) gelé : seuls les objets du couloir visible se recalculent (voir le LOD)
       scene.add(m);
       pickups.push({s:sp,lat:cl,face:face,nitro:isN,fruit:fi,mesh:m,taken:false,ax:F.n.clone().multiplyScalar(face)});
     }
@@ -13481,6 +13488,7 @@ function spawnPickups(rnd){
       const m=mkPower(kind,face);
       m.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,face>0?2.1:-(THICK+2.1));
       m.quaternion.setFromRotationMatrix(mat4b);
+      m.updateMatrix();m.matrixAutoUpdate=false; // (perf) gelé, comme les pièces
       scene.add(m);
       pickups.push({s:ss,lat:lt,face:face,nitro:false,pow:kind,mesh:m,taken:false,ax:F.n.clone().multiplyScalar(face)});
     }
@@ -15586,6 +15594,18 @@ function crackle(amt){ // crépitements d'échappement au lâcher : pop-pop-pop 
 // (2026-09-25) LA GARDE DES SONS PONCTUELS : contexte absent, SON coupé, pause ou iOS « interrupted » → on ne fabrique RIEN.
 // Sans elle, chaque pièce, pop et carillon était créé sur une horloge figée, gardé en mémoire, puis joué d'un bloc au rallumage.
 function sfxOk(){return !!AC&&SND.sfx&&AC.state==='running';}
+/* `stt(param, valeur, t, tc)` — (2026-09-26, passe perf) les ~50 réglages audio que la boucle envoie à CHAQUE image (moteur, vent,
+   crissement, nitro…). Mesuré au profil : `setTargetAtTime` = 11 % du CPU. Deux règles :
+   · contexte SUSPENDU (son coupé, pause, onglet caché) → rien : son horloge est arrêtée, chaque réglage s'EMPILAIT dans la file du
+     paramètre sans jamais être consommé (une file qui grossit tant qu'on joue son coupé) ;
+   · cible quasi identique à la dernière envoyée (±0,2 %) → rien, mais on renvoie quand même 4 fois par seconde : si un autre son a
+     touché le même paramètre entre-temps, il ne reste jamais décalé plus d'un quart de seconde. */
+function stt(p,v,t,tc){
+  if(!AC||AC.state!=='running'||!p)return;
+  const o=p._s9,now=AC.currentTime;
+  if(o!==undefined&&p._c9===tc&&Math.abs(v-o)<=Math.abs(o)*.002+1e-5&&now-p._t9<.25)return;
+  p._s9=v;p._c9=tc;p._t9=now;p.setTargetAtTime(v,t,tc);
+}
 /* TAMPONS DE BRUIT CUITS UNE FOIS (2026-09-25) : chaque pop, pétarade, souffle ou fwoosh fabriquait son propre AudioBuffer
    (len × 48 000 Math.random, et ~25 par seconde en nitro). On garde désormais 3 variantes par durée (arrondie aux 10 ms
    supérieures) et on en pioche une au hasard : le timbre est le même, l'allocation disparaît. */
@@ -18686,6 +18706,7 @@ function survTick(dt){
           const kv=new THREE.Vector3().copy(T[bi]).multiplyScalar(Math.max(8,b.v*.55))
             .addScaledVector(B[bi],(b.lat-c9.lat>0?-1:1)*(2+Math.random()*4))
             .addScaledVector(Nn[bi],5+Math.random()*5);
+          c9.mesh.matrixAutoUpdate=true; // (perf) il valse : il redevient mobile
           FLYCONES.push({m:c9.mesh,v:kv,rx:(Math.random()-.5)*16,rz:(Math.random()-.5)*16,life:1.6});
           b.v*=.985;
           if(b.mesh.g.visible)sparkBurst(sparkGold,c9.mesh.position,5,6);
@@ -20248,6 +20269,7 @@ function loop(now){
           const kv=new THREE.Vector3().copy(F.t).multiplyScalar(Math.max(8,Math.abs(vA)*.55))
             .addScaledVector(F.b,(dl9>0?-1:1)*(2+Math.random()*4))
             .addScaledVector(F.n,(5+Math.random()*5)*side); // il valse en s'ÉLOIGNANT de sa dalle
+          c9.mesh.matrixAutoUpdate=true; // (perf) il valse : il redevient mobile
           FLYCONES.push({m:c9.mesh,v:kv,rx:(Math.random()-.5)*16,rz:(Math.random()-.5)*16,life:1.6});
           vA*=.985;shake=Math.max(shake,.14);
           try{coneSnd();}catch(e){}hap(10);
@@ -20905,6 +20927,7 @@ function loop(now){
         if(!vis)continue; // hors couloir : on ne l'anime même pas
         pk.mesh.rotateOnWorldAxis(pk.ax,dt*(pk.pow?1.4:2.5));
         if(pk.nitro||pk.pow){if(pk.sc0==null)pk.sc0=pk.mesh.scale.x;pk.mesh.scale.setScalar(pk.sc0*(1+(pk.pow?.10:.08)*Math.sin(t*6+pk.s)));} // (2026-09-26) le battement RESPECTE l'échelle (il ramenait les fruits de ×1,9 à ×1)
+        pk.mesh.updateMatrix(); // (perf) les objets sont GELÉS : on recalcule à la main ceux qui tournent (et ceux que l'aimant a tirés plus haut)
       }
       for(const c9 of CONES){ // les plots ne s'animent pas, mais ils coûtent un draw call chacun
         if(c9.hit)continue;   // un plot qui valse appartient à FLYCONES : on ne touche pas à sa visibilité
@@ -21111,32 +21134,32 @@ function loop(now){
         const P9=engSndParams(eng,{rpm:engRpm,charge:charge9,ovr:ovr9,drift:drift9,nA:nA,thr:thr,
           vsp:Math.min(1.15,spd3/Math.max(1,vmaxShow())),wob:wob,boost:boost>0,cloudIn:cloudInS,dk:dk,nB:TEL_NATIF?1:0,gE:VOL_LOCKED?1:.72,lpMin:TEL_NATIF?700:0});
         const T=AC.currentTime;
-        osc.frequency.setTargetAtTime(P9.fF,T,.035);
-        osc2.frequency.setTargetAtTime(P9.fF,T,.04);
-        osc2.detune.setTargetAtTime(P9.detune,T,.07);   // l'ÉPAISSEUR : deux voix qui s'écartent battent
-        engSub.frequency.setTargetAtTime(P9.subF,T,.05);
-        engNzF.frequency.setTargetAtTime(P9.nzF,T,.06);
-        engNzG.gain.setTargetAtTime(P9.nzG,T,.07);
-        if(P9.whineOn)engWhine.frequency.setTargetAtTime(P9.whineF,T,.04);
-        engWhineG.gain.setTargetAtTime(P9.whineG,T,.06);
-        engPre.gain.setTargetAtTime(P9.drv,T,.06);
-        engPost.gain.setTargetAtTime(P9.post,T,.06);
-        engEq.gain.setTargetAtTime(P9.eq,T,.09);
-        engMix.gain.setTargetAtTime(P9.mix,T,.05);
-        engSubG.gain.setTargetAtTime(P9.subG,T,.08);
-        engTickO.frequency.setTargetAtTime(P9.tickF,T,.03);
-        engTickG.gain.setTargetAtTime(P9.tickG,T,.07);
-        pinkG.gain.setTargetAtTime(P9.pinkG,T,.10);
-        transO.frequency.setTargetAtTime(P9.transF,T,.08);
-        diffO.frequency.setTargetAtTime(P9.diffF,T,.08);
-        transG.gain.setTargetAtTime(P9.transG,T,.10);
-        diffG.gain.setTargetAtTime(P9.diffG,T,.10);
-        ovrF.frequency.setTargetAtTime(P9.ovrF,T,.06);
-        ovrG.gain.setTargetAtTime(P9.ovrG,T,.05);
-        filt.frequency.setTargetAtTime(P9.lp,T,.06);
-        gainN.gain.setTargetAtTime(P9.ev,T,.08);
-        engLfo.frequency.setTargetAtTime(P9.lfoF,T,.1);
-        engLfoG.gain.setTargetAtTime(P9.lfoG,T,.1);
+        stt(osc.frequency,P9.fF,T,.035);
+        stt(osc2.frequency,P9.fF,T,.04);
+        stt(osc2.detune,P9.detune,T,.07);   // l'ÉPAISSEUR : deux voix qui s'écartent battent
+        stt(engSub.frequency,P9.subF,T,.05);
+        stt(engNzF.frequency,P9.nzF,T,.06);
+        stt(engNzG.gain,P9.nzG,T,.07);
+        if(P9.whineOn)stt(engWhine.frequency,P9.whineF,T,.04);
+        stt(engWhineG.gain,P9.whineG,T,.06);
+        stt(engPre.gain,P9.drv,T,.06);
+        stt(engPost.gain,P9.post,T,.06);
+        stt(engEq.gain,P9.eq,T,.09);
+        stt(engMix.gain,P9.mix,T,.05);
+        stt(engSubG.gain,P9.subG,T,.08);
+        stt(engTickO.frequency,P9.tickF,T,.03);
+        stt(engTickG.gain,P9.tickG,T,.07);
+        stt(pinkG.gain,P9.pinkG,T,.10);
+        stt(transO.frequency,P9.transF,T,.08);
+        stt(diffO.frequency,P9.diffF,T,.08);
+        stt(transG.gain,P9.transG,T,.10);
+        stt(diffG.gain,P9.diffG,T,.10);
+        stt(ovrF.frequency,P9.ovrF,T,.06);
+        stt(ovrG.gain,P9.ovrG,T,.05);
+        stt(filt.frequency,P9.lp,T,.06);
+        stt(gainN.gain,P9.ev,T,.08);
+        stt(engLfo.frequency,P9.lfoF,T,.1);
+        stt(engLfoG.gain,P9.lfoG,T,.1);
       }else if(gainN){
         // en vol : un souffle de moteur résiduel ; MORT ('boom') : coupé NET — et on retombe au
         // ralenti pour que la reprise ne reparte pas d'un régime fantôme aigu
@@ -21144,38 +21167,38 @@ function loop(now){
           const e0=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0],T0=AC.currentTime;
           engRpm+=(.9-engRpm)*Math.min(1,dt*2.2);
           const f0=(e0.i+engRpm*e0.r)*.62;
-          osc.frequency.setTargetAtTime(f0,T0,.05);osc2.frequency.setTargetAtTime(f0,T0,.06);
-          engSub.frequency.setTargetAtTime(Math.max(22,f0*.5),T0,.06);
-          gainN.gain.setTargetAtTime(.013*e0.vol*dk,T0,.08);
-          engLfo.frequency.setTargetAtTime(9,T0,.05);engLfoG.gain.setTargetAtTime(.009*e0.vol*dk,T0,.08);
-        }else{gainN.gain.setTargetAtTime(mode==='fall'?.004:0,AC.currentTime,mode==='boom'?.05:.1);engLfoG.gain.setTargetAtTime(0,AC.currentTime,.1);}
+          stt(osc.frequency,f0,T0,.05);stt(osc2.frequency,f0,T0,.06);
+          stt(engSub.frequency,Math.max(22,f0*.5),T0,.06);
+          stt(gainN.gain,.013*e0.vol*dk,T0,.08);
+          stt(engLfo.frequency,9,T0,.05);stt(engLfoG.gain,.009*e0.vol*dk,T0,.08);
+        }else{stt(gainN.gain,mode==='fall'?.004:0,AC.currentTime,mode==='boom'?.05:.1);stt(engLfoG.gain,0,AC.currentTime,.1);}
         if(mode==='boom'){engRpm=0;const e0=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0]; // idem : le ralenti de la mort suit le MOTEUR
-          osc.frequency.setTargetAtTime(e0.i,AC.currentTime,.3);osc2.frequency.setTargetAtTime(e0.i,AC.currentTime,.3);}
-        engWhineG.gain.setTargetAtTime(0,AC.currentTime,.1);
+          stt(osc.frequency,e0.i,AC.currentTime,.3);stt(osc2.frequency,e0.i,AC.currentTime,.3);}
+        stt(engWhineG.gain,0,AC.currentTime,.1);
         // en vol il n'y a plus ni charge, ni boîte, ni frein moteur : les roues ne touchent rien
-        for(const n9 of [transG,diffG,ovrG,engTickG,pinkG])if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.12);
+        for(const n9 of [transG,diffG,ovrG,engTickG,pinkG])if(n9)stt(n9.gain,0,AC.currentTime,.12);
         charge9+=(0-charge9)*Math.min(1,dt*4);ovr9+=(0-ovr9)*Math.min(1,dt*4);
       }
       if(windG){
         // MORT ('boom') : coupé NET — sinon spd3 (=speedKmh figé au crash) laisse le vent souffler à fond pour toujours
-        windG.gain.setTargetAtTime(mode==='boom'?0:Math.min(.05,spd3*.0001+(mode==='fall'?.018:0)+cloudInS*.02)*dk,AC.currentTime,mode==='boom'?.08:.15); // coef ÷2 (SPD .25→.5 : spd3 a doublé) — le vent garde sa montée progressive au lieu de saturer dès le mid-game
-        windF.frequency.setTargetAtTime(Math.min(16000,(280+spd3*1.25)*(1-.6*cloudInS)+(mode==='fall'?260:0)),AC.currentTime,.15); // ⚠ plafonné : au-delà de 24 kHz le navigateur crachait un avertissement PAR IMAGE // le nuage étouffe le vent, l'air libre l'aère (coef ÷2 : même pitch au même état-caisse)
+        stt(windG.gain,mode==='boom'?0:Math.min(.05,spd3*.0001+(mode==='fall'?.018:0)+cloudInS*.02)*dk,AC.currentTime,mode==='boom'?.08:.15); // coef ÷2 (SPD .25→.5 : spd3 a doublé) — le vent garde sa montée progressive au lieu de saturer dès le mid-game
+        stt(windF.frequency,Math.min(16000,(280+spd3*1.25)*(1-.6*cloudInS)+(mode==='fall'?260:0)),AC.currentTime,.15); // ⚠ plafonné : au-delà de 24 kHz le navigateur crachait un avertissement PAR IMAGE // le nuage étouffe le vent, l'air libre l'aère (coef ÷2 : même pitch au même état-caisse)
       }
       if(whG){ // sifflement d'air : la signature des vitesses folles (>330 km/h)
         // MORT : coupé NET (même piège que le vent : sinon le sifflement reste bloqué à fond après le crash)
-        whG.gain.setTargetAtTime(mode==='boom'?0:Math.min(.06,Math.max(0,(spd3-560)/4400))*(1-.7*cloudInS)*(1-.5*nA)*dk,AC.currentTime,mode==='boom'?.08:.12); // seuil+pente ×2 (SPD .25→.5 : spd3 a doublé) — le sifflement reste la signature des VITESSES FOLLES, pas un fond permanent
-        whF.frequency.setTargetAtTime(2000+spd3*1.2,AC.currentTime,.1); // coef ÷2 : même pitch au même état-caisse
+        stt(whG.gain,mode==='boom'?0:Math.min(.06,Math.max(0,(spd3-560)/4400))*(1-.7*cloudInS)*(1-.5*nA)*dk,AC.currentTime,mode==='boom'?.08:.12); // seuil+pente ×2 (SPD .25→.5 : spd3 a doublé) — le sifflement reste la signature des VITESSES FOLLES, pas un fond permanent
+        stt(whF.frequency,2000+spd3*1.2,AC.currentTime,.1); // coef ÷2 : même pitch au même état-caisse
       }
       if(cloudInS>.45&&!loop._cldWas)noiseBurst(.45,.08,520); // percée dans la ouate : fwoosh de coton
       loop._cldWas=cloudInS>.45;
       if(skidG){ // crissement v2 : ZONE MORTE (il signale LA LIMITE, pas la conduite normale), pitch qui monte avec la glisse
         const drift=(mode==='drive')?glisse9:0; // …et il CRISSE (même mesure que la fumée)
-        skidG.gain.setTargetAtTime(drift>0?Math.min(.17,Math.pow(drift,1.3)*.15*(.4+Math.min(1,spd3/380)))*dk:0,AC.currentTime,.05);
+        stt(skidG.gain,drift>0?Math.min(.17,Math.pow(drift,1.3)*.15*(.4+Math.min(1,spd3/380)))*dk:0,AC.currentTime,.05);
         if(drift>0){
           const sq=900+drift*430+spd3*.35;
-          skF1.frequency.setTargetAtTime(sq,AC.currentTime,.05);skF2.frequency.setTargetAtTime(sq*1.56,AC.currentTime,.05);
-          skD1.gain.setTargetAtTime(40+130*drift,AC.currentTime,.1);skD2.gain.setTargetAtTime(60+200*drift,AC.currentTime,.1); // le broutage stick-slip suit la glisse
-          skLfo.frequency.setTargetAtTime(9+drift*7,AC.currentTime,.1);
+          stt(skF1.frequency,sq,AC.currentTime,.05);stt(skF2.frequency,sq*1.56,AC.currentTime,.05);
+          stt(skD1.gain,40+130*drift,AC.currentTime,.1);stt(skD2.gain,60+200*drift,AC.currentTime,.1); // le broutage stick-slip suit la glisse
+          stt(skLfo.frequency,9+drift*7,AC.currentTime,.1);
         }
       }
       try{driftChargeSnd();raseSnd(dt,speedKmh);}catch(e){if(!loop._sndE){loop._sndE=1;console.warn('sons de conduite',e);}} // (2026-09-25) la charge du drift et le rase-bord s'entendent — une panne se DIT une fois en console
@@ -21187,18 +21210,18 @@ function loop(now){
         // et après `endGame` dans la même image, elle réécrivait ses gains — le souffle restait figé sur l'écran de mort
         const nOn9=nitroOn&&mode!=='boom'&&!gameOver;
         const jb=nOn9?(nitroBlue?.52:.4):0;
-        jrG.gain.setTargetAtTime(jb*(air9?1.1:1.05)*(.84+.32*Math.random())*dk,AC.currentTime,.08); // turbulence lente
-        jrDep.gain.setTargetAtTime(jb*(air9?.22:.16)*dk,AC.currentTime,.1); // flutter 5 Hz : la flamme respire
-        jrF.frequency.setTargetAtTime(nOn9?(air9?310+spd3*.3:430+spd3*.35)+(nitroBlue?80:0):240,AC.currentTime,.1); // un poil plus mordante au sol
+        stt(jrG.gain,jb*(air9?1.1:1.05)*(.84+.32*Math.random())*dk,AC.currentTime,.08); // turbulence lente
+        stt(jrDep.gain,jb*(air9?.22:.16)*dk,AC.currentTime,.1); // flutter 5 Hz : la flamme respire
+        stt(jrF.frequency,nOn9?(air9?310+spd3*.3:430+spd3*.35)+(nitroBlue?80:0):240,AC.currentTime,.1); // un poil plus mordante au sol
         // PLUS AUCUNE couche de bruit blanc continue : souffle médium coupé, grave blanc réduit
         // à un fond — tout le caractère vient du rumble brown + des pops bruns
-        jetG.gain.setTargetAtTime(nOn9&&air9?.01*dk:0,AC.currentTime,.06);
-        jetLowG.gain.setTargetAtTime(TEL_NATIF?0:(nOn9?(air9?.08:.05):0)*(.7+.6*Math.random())*dk,AC.currentTime,.07); // téléphone : un grave à 150 Hz inaudible qui ne faisait que pousser le compresseur
-        jetOscG.gain.setTargetAtTime(nOn9&&!air9?.003:0,AC.currentTime,.09); // pointe de turbine au sol
-        jcFb.gain.setTargetAtTime(.12,AC.currentTime,.1);jcDep.gain.setTargetAtTime(.0002,AC.currentTime,.12); // peigne+flanger au repos (ils chuintaient)
+        stt(jetG.gain,nOn9&&air9?.01*dk:0,AC.currentTime,.06);
+        stt(jetLowG.gain,TEL_NATIF?0:(nOn9?(air9?.08:.05):0)*(.7+.6*Math.random())*dk,AC.currentTime,.07); // téléphone : un grave à 150 Hz inaudible qui ne faisait que pousser le compresseur
+        stt(jetOscG.gain,nOn9&&!air9?.003:0,AC.currentTime,.09); // pointe de turbine au sol
+        stt(jcFb.gain,.12,AC.currentTime,.1);stt(jcDep.gain,.0002,AC.currentTime,.12); // peigne+flanger au repos (ils chuintaient)
         if(nOn9){
-          jetF.frequency.setTargetAtTime(320+spd3*.6+(nitroBlue?180:0),AC.currentTime,.07);
-          jetOsc.frequency.setTargetAtTime(900+spd3*3.5+(nitroBlue?400:0),AC.currentTime,.08);
+          stt(jetF.frequency,320+spd3*.6+(nitroBlue?180:0),AC.currentTime,.07);
+          stt(jetOsc.frequency,900+spd3*3.5+(nitroBlue?400:0),AC.currentTime,.08);
           // pétillement en pops BRUNS, discrets et distincts : ça crépite, ça ne souffle pas.
           // (moins denses qu'avant : 25/s de pops ronds > 50/s de pops blancs qui fusionnent en tapis)
           if(Math.random()<dt*(air9?9:(TEL_NATIF?10:25)))flamePop(.02+Math.random()*.05,air9?.05+Math.random()*.06:.1+Math.random()*.14,(air9?300:380)+Math.random()*260+(TEL_NATIF?500:0)); // téléphone : moins de pops (≈80 nœuds/s alloués), plus hauts (audibles)
