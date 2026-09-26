@@ -14296,7 +14296,7 @@ function ptProche(sh){
   sh.fragmentShader='varying float vProche;\n'+sh.fragmentShader.replace('#include <tonemapping_fragment>','gl_FragColor.a*=vProche;\n#include <tonemapping_fragment>');
 }
 /* LES PARTICULES v2 (2026-09-26, passe graphique) — trois défauts « amateur » réglés dans UN shader, pour les réserves qui déclarent
-   une courbe `fx` (les autres — jus des fruits, dauphins — gardent l'ancien rendu au pixel près) :
+   une courbe `fx` (les autres — les dauphins — gardent l'ancien rendu au pixel près ; le jus des fruits y est passé en vague 2) :
    · elles NAISSENT et MEURENT en FONDU : `aF` = vie restante (1 → 0), `fx.a`=[entrée, sortie, taille à la naissance, taille à la mort]
      en fractions de vie — la fumée gonfle en s'effaçant, l'étincelle rétrécit ; plus de points qui s'allument et s'éteignent d'un coup ;
    · chacune a SA taille (`aR`, cuite une fois par emplacement) : fini la réserve entière qui palpite à l'unisson ;
@@ -14991,7 +14991,7 @@ const foam=makePool(80,1.45,0xdff6ff,.34,false,{a:[.1,.6,.6,1.5],pr:[2,6,26,0]})
 const cloudBits=makePool(150,2.8,0xdff6ff,.9,false,{a:[.06,.6,.75,1.35],pr:[2,6,26,0]}); // (2026-09-26) garde-objectif : le banc éclate AUTOUR de la caméra — (vague 2) plafond 110 → 26 px : des FLOCONS, plus des ronds blancs de 110 px
 // ÉCLABOUSSURE DE FRUIT : gouttelettes à la COULEUR du fruit croqué. Un seul pool dont on repeint le
 // matériau à chaque bouchée — les gouttes vivent ~0,3 s, donc le changement de teinte ne se voit jamais.
-const juicePool=makePool(110,1.15,0xffffff,1);juicePool.mesh.material.blending=THREE.AdditiveBlending;
+const juicePool=makePool(110,.8,0xffffff,1,false,{a:[0,.45,1,.6],etire:1,str:.03,v:.5,pr:[2,5,26,50]});juicePool.mesh.material.blending=THREE.AdditiveBlending; // (vague 2) des GOUTTES qui filent (traits), plus des disques mous de 1,15 m — plafonnées comme tout le reste
 function juiceSplash(pos,col,power){
   juicePool.mesh.material.color.setHex(col);
   const n=Math.round(16+power*22);
@@ -16279,6 +16279,7 @@ window.dbgPart=function(a,k,v){
   if(a==='veille'){let d=0,v=0;for(const n in R){if(R[n].mesh.visible)v++;else d++;}return {visibles:v,endormies:d};} // (vague 2) les réserves vides ne dessinent plus
   if(a==='pluie'){startMoneyRain();return 'pluie de devises';} // (vague 2) bancs d'essai : l'averse et l'éclat de nuage à la demande
   if(a==='nuage'){shatterCloud(carGroup.position,1);return 'nuage éclaté';}
+  if(a==='fruit'){crV2.copy(carGroup.position);crV2.y+=1.1;juiceSplash(crV2,k||0xff4060,1);return 'gerbe de jus';}
   if(a==='boom')return {volutes:PAN_VOL.cnt,pluie:MONN.cnt,visV:PAN_VOL.mesh.visible,chaudV:PAN_VOL.chaud,dards:PAN_DARD.cnt, // (vague 2) l'état de la boule
     alphas:Array.from(PAN_VOL.C.slice(0,PAN_VOL.cnt*4)).filter((x,i)=>i%4===3).map(x=>+x.toFixed(2)),
     tailles:Array.from(PAN_VOL.S.slice(0,PAN_VOL.cnt*4)).filter((x,i)=>i%4===0).map(x=>+x.toFixed(1)),
@@ -18326,7 +18327,7 @@ function crunchSfx(rang){
    Chaque goutte est cuite UNE fois à sa naissance dans une petite toile RÉUTILISÉE (la file plafonne à 14 taches) — la coulure s'y
    allonge au fil des images, à pleine opacité (pas de double couche à la jointure) — puis la toile est recopiée ×2 au pixel près, sans
    lissage. Plus aucun tracé de chemin par image. */
-const JUS=[],JUS_PX=4,JUS_TOILE=[],JUS_BLANC=new THREE.Color(1,1,1),JUS_ENCRE='#1c0430';
+const JUS=[],JUS_PX=4,JUS_TOILE=[],JUS_BLANC=new THREE.Color(1,1,1),JUS_ENCRE='#1c0430',JUS_M=new Uint8Array(128*128);let JUS_IM=null; // masque et pixels de brouillon RÉUTILISÉS (128 cellules = la plus grande goutte)
 function jusToile(){ // une toile libre de la réserve (15 au plus : la file plafonne à 14 taches)
   for(const t of JUS_TOILE)if(!t.pris){t.pris=true;return t;}
   const cv=document.createElement('canvas');cv.width=cv.height=64;const t={cv:cv,x:cv.getContext('2d'),pris:true};JUS_TOILE.push(t);return t;
@@ -18351,7 +18352,7 @@ function juiceScreen(col,power,n){
     const R=Math.min(60,(W*.05+Math.random()*W*.05)*(.8+power*.45)),coul=R*(.5+Math.random()*1.2);
     if(JUS.length>=14){const v=JUS.shift();v.toile.pris=false;} // plafond : à 20 taches, mesuré, 76 % de l'écran était repeint
     const t=jusToile(),C=JUS_PX/2; // la toile est en CELLULES de 2 px : le liseré fait une cellule, la forme se pose par blocs de deux (4 px)
-    const ext=Math.ceil(R*2.05/JUS_PX)*JUS_PX,Nw=ext,Nh=Nw+Math.ceil(coul*1.6/C)+4; // demi-étendue en px = largeur en cellules ; la coulure dessous
+    const ext=Math.min(124,Math.ceil(R*2.05/JUS_PX)*JUS_PX),Nw=ext,Nh=Nw+Math.ceil(coul*1.6/C)+4; // demi-étendue en px = largeur en cellules ; la coulure dessous
     if(t.cv.width!==Nw||t.cv.height!==Nh){t.cv.width=Nw;t.cv.height=Nh;}else t.x.clearRect(0,0,Nw,Nh);
     const N=9+((Math.random()*5)|0),pts=[];for(let i=0;i<N;i++)pts.push(R*(.62+Math.random()*.55)); // rayon BRUITÉ : c'est ça, une éclaboussure
     const sat=[];for(let i=0,ns=3+((Math.random()*3)|0);i<ns;i++)sat.push({a:Math.random()*6.2832,d:R*(1.25+Math.random()*.7),r:R*(.12+Math.random()*.12)});
@@ -18360,20 +18361,20 @@ function juiceScreen(col,power,n){
       if(Math.hypot(px,py)<pts[i0%N]*(1-w)+pts[(i0+1)%N]*w)return true;
       for(const s of sat){const dx=px-Math.cos(s.a)*s.d,dy=py-Math.sin(s.a)*s.d;if(dx*dx+dy*dy<s.r*s.r)return true;}
       return false;};
-    const M=new Uint8Array(Nw*Nw);
+    const M=JUS_M;M.fill(0,0,Nw*Nw);
     for(let cy=0;cy<Nw;cy+=2)for(let cx=0;cx<Nw;cx+=2) // la forme, par blocs de 4 px
       if(dedans((cx+1)*C-ext,(cy+1)*C-ext)){M[cy*Nw+cx]=M[cy*Nw+cx+1]=1;if(cy+1<Nw){M[(cy+1)*Nw+cx]=M[(cy+1)*Nw+cx+1]=1;}}
-    const im=t.x.createImageData(Nw,Nw),d=im.data;
+    if(!JUS_IM)JUS_IM=t.x.createImageData(128,128);const d=JUS_IM.data;d.fill(0,0,128*Nw*4); // (brouillon au pas de 128)
     const hx=Math.round((ext-R*.4)/C)&~1,hy=Math.round((ext-R*.42)/C)&~1,ck=R*.5/C; // le REFLET : en haut à gauche du corps · le CŒUR : la moitié du rayon
     let bas=Nw>>1;
-    for(let cy=0;cy<Nw;cy++)for(let cx=0;cx<Nw;cx++){const k9=cy*Nw+cx;if(!M[k9])continue;const o=k9*4;
+    for(let cy=0;cy<Nw;cy++)for(let cx=0;cx<Nw;cx++){const k9=cy*Nw+cx;if(!M[k9])continue;const o=(cy*128+cx)*4;
       if(cx===(Nw>>1))bas=Math.max(bas,cy);
       const bord=cx===0||cy===0||cx===Nw-1||cy===Nw-1||!M[k9-1]||!M[k9+1]||!M[k9-Nw]||!M[k9+Nw];
       const refl=!bord&&((cx>=hx&&cx<hx+2&&cy>=hy&&cy<hy+2)||(cx===hx+3&&cy===hy-1));
       const coeur=!bord&&Math.hypot(((cx>>1)<<1)+1-Nw/2+ck*.25,((cy>>1)<<1)+1-Nw/2+ck*.25)<ck; // (par blocs de 4 px, décalé vers la lumière)
       if(bord){d[o]=28;d[o+1]=4;d[o+2]=48;d[o+3]=255;}else if(refl){d[o]=d[o+1]=d[o+2]=255;d[o+3]=255;}
       else if(coeur){d[o]=kR;d[o+1]=kG;d[o+2]=kB;d[o+3]=196;}else{d[o]=cR;d[o+1]=cG;d[o+2]=cB;d[o+3]=204;}}
-    t.x.putImageData(im,0,0);
+    t.x.putImageData(JUS_IM,0,0,0,0,Nw,Nw);
     JUS.push({x:Math.round(x/JUS_PX)*JUS_PX,y:Math.round(y/JUS_PX)*JUS_PX,r:R,ext:ext,toile:t,c:corps,bas:bas,Lc:0,
       t:0,vie:1.1+Math.random()*.7,coul:coul});
   }
