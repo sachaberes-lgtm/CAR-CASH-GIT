@@ -3646,7 +3646,10 @@ const coneGeo=new THREE.CylinderGeometry(.075,.44,1.40,12);   // (2026-09-26, «
 const coneBandGeo=new THREE.CylinderGeometry(.27,.34,.22,12);  // la bande basse…
 const coneBand2Geo=new THREE.CylinderGeometry(.16,.22,.16,12); // …et la haute
 const coneBaseGeo=new THREE.CylinderGeometry(.66,.72,.10,4);   // socle carré à pans coupés (4 pans tournés de 45°)
-const coneMat=new THREE.MeshPhongMaterial({color:0xff7a1a,emissive:0x8a2f00,emissiveIntensity:.3,shininess:70,specular:0xffe9d0});
+/* (2026-09-26, vague 2 « L'ENCRE ET L'OR ») LE PLOT PASSE AU ROUGE DANGER. Il était ORANGE 0xff7a1a — la couleur exacte de la flamme de
+   nitro (0xff7a24) et, à 300 km/h sous le grade saturé, celle des pièces : danger, poussée et récompense se lisaient pareil. Désormais
+   #ff3b5c (le rouge d'alerte de la bible) à bandes blanches : ce qui coûte est ROUGE, ce qui rapporte est OR. */
+const coneMat=new THREE.MeshPhongMaterial({color:0xff3b5c,emissive:0x7a0a22,emissiveIntensity:.34,shininess:70,specular:0xffe0e6});
 const coneBandMat=new THREE.MeshPhongMaterial({color:0xffffff,emissive:0x666666,emissiveIntensity:.25,shininess:90});
 function mkCone(){
   const g=new THREE.Group();
@@ -4595,7 +4598,7 @@ function genPark(rnd){
      · une CLARTÉ PAR NIVEAU (`uLift`) : la VILLE a un bitume plus clair, qui se détache de la ville sombre (user).
    Les uniformes vivent dans ROAD_U, PARTAGÉS par toutes les pistes : routeTick() les écrit une fois par image. */
 const ROAD_U={uLift:{value:new THREE.Color(0,0,0)},uSheen:{value:.1},uSheenCol:{value:new THREE.Color(.4,.3,.5)},uWet:{value:0},uAcc:{value:new THREE.Color(0xf24aa0)}}; // uWet/uAcc : le bitume MOUILLÉ de la ville (voir BITUME_MOUILLE)
-let ASPH_TEX=null;
+let ASPH_TEX=null;const ASPH_K=1.7; // (vague 2) finesse du grain lu par le bitume (voir roadMat)
 function asphTex(){ if(ASPH_TEX)return ASPH_TEX;
   const N=256,cv=document.createElement('canvas');cv.width=cv.height=N;const c=cv.getContext('2d'),im=c.createImageData(N,N),d=im.data;
   let sd=1337;const r=function(){sd=(sd*16807)%2147483647;return sd/2147483647;};
@@ -4615,18 +4618,25 @@ function asphTex(){ if(ASPH_TEX)return ASPH_TEX;
    on ne peut pas le redéfinir, on retire donc la boucle elle-même. */
 const LFB_SANS_PL=THREE.ShaderChunk.lights_fragment_begin.replace(/#if \( NUM_POINT_LIGHTS > 0 \) && defined\( RE_Direct \)[\s\S]*?#pragma unroll_loop_end\s*#endif/,'');
 function roadMat(){
-  const m=new THREE.MeshPhongMaterial({color:0x322e40,side:THREE.DoubleSide,vertexColors:true,map:asphTex(),specularMap:asphTex(),
+  /* (2026-09-26, vague 2) UNE LECTURE DE TEXTURE DE MOINS PAR PIXEL DE ROUTE. Le grain servait deux fois — en `map` ET en `specularMap`,
+     la même image lue deux fois dans chaque pixel du bitume (la moitié de l'écran). Le spéculaire prend désormais le rouge du texel
+     déjà lu (`specularStrength=texelColor.r`, la carte est en niveaux de gris et en espace linéaire : c'est la même valeur).
+     Et le grain est lu 1,7 fois plus FIN (`ASPH_K`) : à 1,6 cm le texel, de près il faisait des pâtés sous le nez de la caisse ; les
+     mipmaps et l'anisotropie tiennent le lointain. Les flaques et les impacts de pluie (vUv) gardent leur échelle. */
+  const m=new THREE.MeshPhongMaterial({color:0x322e40,side:THREE.DoubleSide,vertexColors:true,map:asphTex(),
     shininess:30,specular:0x16141e,envMap:envTex,reflectivity:.03}); // (2026-09-26, user : « un peu trop brillante, gère mal le reflet du soleil ») : 80/0x2c2a3a faisait une traînée de soleil DURE et granuleuse — un bitume renvoie une nappe large et sourde
   m.onBeforeCompile=function(sh){
     sh.uniforms.uLift=ROAD_U.uLift;sh.uniforms.uSheen=ROAD_U.uSheen;sh.uniforms.uSheenCol=ROAD_U.uSheenCol;
     sh.uniforms.uWet=ROAD_U.uWet;sh.uniforms.uAcc9=ROAD_U.uAcc;sh.uniforms.uT9=CITY.uT;
     sh.fragmentShader='uniform vec3 uLift;uniform float uSheen;uniform vec3 uSheenCol;uniform float uWet;uniform vec3 uAcc9;uniform float uT9;\n'+
-      sh.fragmentShader.replace('void main() {',BITUME_MOUILLE+'void main() {').replace('#include <lights_fragment_begin>',LFB_SANS_PL).replace('#include <envmap_fragment>',
+      sh.fragmentShader.replace('void main() {',BITUME_MOUILLE+'void main() {').replace('#include <lights_fragment_begin>',LFB_SANS_PL)
+      .replace('#include <map_fragment>','vec4 texelColor=texture2D(map,vUv*'+ASPH_K.toFixed(2)+');float spec9=texelColor.r;texelColor=mapTexelToLinear(texelColor);diffuseColor*=texelColor;')
+      .replace('#include <specularmap_fragment>','float specularStrength=spec9;').replace('#include <envmap_fragment>',
       '#include <envmap_fragment>\n{float fr9=pow(1.0-clamp(abs(dot(normal,normalize(vViewPosition))),0.0,1.0),4.0);float lk9=1.;\n'+
       '#if defined(USE_ENVMAP)&&defined(ENVMAP_TYPE_CUBE)\nif(uWet>.001){vec4 w9=bitumeMouille(outgoingLight,reflectVec,normal,normalize(vViewPosition));outgoingLight=w9.rgb;lk9=w9.a;}\n#endif\n'+
       'outgoingLight+=uLift*lk9+uSheenCol*(uSheen*fr9);}');
   };
-  m.customProgramCacheKey=function(){return 'bitumeV4';}; // UNE compilation pour toutes les pistes
+  m.customProgramCacheKey=function(){return 'bitumeV5';}; // UNE compilation pour toutes les pistes
   return m;
 }
 /* LE BITUME MOUILLÉ DE LA VILLE (2026-09-26) — sous la pluie, la route n'était qu'un aplat violet : c'est pourtant LA surface qui fait
@@ -4694,7 +4704,9 @@ function ligneMat(){ // la peinture de la ligne centrale : tirets dans une textu
     c.fillStyle='#fff';c.fillRect(0,1,4,27);c.globalAlpha=.5;c.fillRect(0,0,4,1);c.fillRect(0,28,4,1); // 7/16 de tiret, bouts adoucis d'un texel
     LIGNE_TEX=new THREE.CanvasTexture(cv);LIGNE_TEX.wrapT=THREE.RepeatWrapping;
     LIGNE_TEX.anisotropy=Math.min(IS_MOBILE?4:8,renderer.capabilities.getMaxAnisotropy());} // vue RASANTE : sans anisotropie, la carte réduite gommerait les tirets dès 30 m
-  return traitMat(new THREE.MeshBasicMaterial({map:LIGNE_TEX,color:0xffc978,transparent:true,opacity:.55,depthWrite:false,side:THREE.DoubleSide,polygonOffsetFactor:-1,polygonOffsetUnits:-1}),1.2,2);
+  // (2026-09-26, vague 2) la peinture passe du SODIUM doré (0xffc978) au BLANC lavande : sous le grade, les tirets se lisaient ORANGE,
+  // une rangée de fausses pièces au milieu de la route. L'or ne sert qu'à ce qui rapporte ; la peinture n'est que de la peinture.
+  return traitMat(new THREE.MeshBasicMaterial({map:LIGNE_TEX,color:0xe4ddff,transparent:true,opacity:.5,depthWrite:false,side:THREE.DoubleSide,polygonOffsetFactor:-1,polygonOffsetUnits:-1}),1.2,2);
 }
 /* LES TRANCHES S'ALLUMENT (2026-09-26) — la dalle fait 2,6 m d'épaisseur, et ses flancs n'étaient qu'un bandeau violet-noir : vu d'avion
    (vol libre, plongeons, les étages de la spirale de la VILLE), le ruban se perdait dans la nuit des tours. Chaque flanc porte désormais
@@ -4702,7 +4714,7 @@ function ligneMat(){ // la peinture de la ligne centrale : tirets dans une textu
    comme une structure, de loin et d'en dessous. Anticrénelé, et fondu en lueur moyenne quand il passe sous le pixel. Aucun sommet de
    plus (la géométrie reçoit seulement ses UV) ; la teinte est `ROAD_U.uAcc`, posée par buildTrack. */
 function trancheMat(){
-  const m=new THREE.MeshLambertMaterial({color:0x14101f,side:THREE.DoubleSide});m.extensions={derivatives:true};
+  const m=new THREE.MeshLambertMaterial({color:0x1c0430,side:THREE.DoubleSide});m.extensions={derivatives:true}; // (vague 2) le flanc à l'ENCRE de la bible #1c0430 (c'était un gris-violet neutre 0x14101f)
   m.onBeforeCompile=function(sh){sh.uniforms.uAcc9=ROAD_U.uAcc;
     sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec2 vTr9;').replace('#include <begin_vertex>','#include <begin_vertex>\nvTr9=uv;');
     sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform vec3 uAcc9;varying vec2 vTr9;').replace('#include <fog_fragment>',
@@ -4854,7 +4866,12 @@ function buildTrack(seed){
   strip(sideL_,flank);strip(sideR_,flank);
   // ACCENT DE ZONE : chaque piste choisit SON néon — la nuit change de couleur à chaque portail
   const ACCENTS=[0xf24aa0,0x3ee6f0,0xffb445,0x50f0a8,0xa06bff,0xff6a55]; // rose · cyan · ambre · menthe · violet électrique · corail
-  const accC=new THREE.Color(ACCENTS[Math.floor(rnd()*ACCENTS.length)]);
+  /* (2026-09-26, vague 2) LE LISERÉ SUIT LE MONDE, PLUS LE HASARD. Tiré parmi six néons, il pouvait sortir MENTHE ou CORAIL aux NUAGES
+     et cyan dans la ville magenta : la route ne parlait pas la langue de son niveau. Désormais NUAGES = le cyan de l'AIR #3ee6f0,
+     VILLE = le rose néon #f24aa0, ORBITE = le cyan froid #5ee6ff. ⚠ Le TIRAGE reste (il nourrit le parc, l'auto-école, la carrière
+     hors de ces trois mondes) : le flux rnd de la piste ne bouge pas d'un pas. */
+  const accR=ACCENTS[Math.floor(rnd()*ACCENTS.length)],idA9=LVL.cur&&!PARK.on?LVL.cur.id:'';
+  const accC=new THREE.Color(idA9==='nuages'?0x3ee6f0:idA9==='ville'?0xf24aa0:idA9==='espace'?0x5ee6ff:accR);
   ROAD_U.uAcc.value.copy(accC); // (2026-09-26) le bitume mouillé reflète aussi l'accent de la zone
   // BANDES NÉON (dessus + dessous) : les rails de Vice City — couleur d'accent de la zone
   for(const fy of [0,-THICK]) for(const sd of [-1,1]){
@@ -4933,7 +4950,7 @@ function buildTrack(seed){
       const gc=new THREE.BufferGeometry();
       gc.setAttribute('position',new THREE.Float32BufferAttribute(vv,3));
       gc.setIndex([0,2,1,1,2,3]);
-      const mc=new THREE.Mesh(gc,new THREE.MeshBasicMaterial({color:0xff3b2e,side:THREE.DoubleSide}));
+      const mc=new THREE.Mesh(gc,new THREE.MeshBasicMaterial({color:0xff3b5c,side:THREE.DoubleSide})); // (vague 2) le rouge DANGER de la bible
       scene.add(mc);trackMeshes.push(mc);
     }
   }
@@ -4971,7 +4988,7 @@ function buildTrack(seed){
   const inGap=sp=>{for(const r of RAMPS)if(sp>r.s0&&sp<r.s1)return true;return false;};
   // pads turbo (les deux faces)
   for(let sp=180+rnd()*150;sp<L-100;sp+=280+rnd()*280){
-    const padCol=new THREE.Color([0x2e7bff,0xffffff,0xff3030][Math.floor(rnd()*3)]); // bleu / blanc / rouge (tiré AVANT le filtre : le flux rnd reste identique quoi qu'il arrive)
+    rnd(); // (vague 2) l'ancienne couleur tirée au hasard (bleu / blanc / rouge) : la plaque est OR désormais, mais le TIRAGE reste — le flux rnd de la piste ne bouge pas d'un pas
     if(inGap(sp))continue; // la course d'élan garde son SEUL boost, celui qu'on a posé volontairement
     // (2026-09-25) LE PAD EST UNE CIBLE : il vit sur une VOIE (gauche / axe / droite), déduite de sp — zéro rnd() consommé, la
     // génération en aval ne bouge pas. Avant, il se déclenchait sur toute la largeur : un turbo reçu sans rien faire.
@@ -4979,7 +4996,7 @@ function buildTrack(seed){
     PADS.push(sp);PADL.push(pl);
     for(const fy of [1,-1]){
       frameAt(sp,F);
-      const m=new THREE.Mesh(padGeo,new THREE.MeshBasicMaterial({map:PAD_FR[padK]||padTex,color:padCol,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}));PAD_MATS.push(m.material); // (perf) la plaque suit les images pré-dessinées · (2026-09-26) décalage de profondeur : le pad lointain ne clignote plus à travers le bitume
+      const m=new THREE.Mesh(padGeo,PAD_MAT); // (vague 2) la plaque d'OR, matière partagée (voir padTex)
       const nn=F.n.clone().multiplyScalar(fy);
       m.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(F.b.clone().multiplyScalar(-fy),F.t.clone(),nn));
       m.position.copy(F.p).addScaledVector(F.b,pl).addScaledVector(F.n,fy>0?.1:-THICK-.1); // même repère que les pièces (F.b brut sur les deux faces)
@@ -5177,24 +5194,30 @@ function villeMatTours(){ // béton du village + fenêtres + pied noyé dans la 
            Les bords sont ANTICRÉNELÉS à l'empreinte du pixel (fwidth) et, quand la travée tombe sous ~2 px, le motif se fond dans sa
            lueur MOYENNE, calculée d'après la même personnalité : plus de fenêtres qui scintillent ni de moiré en roulant, et aucun
            saut entre le proche et le lointain (l'ancien fondu 240-900 m ignorait la taille réelle à l'écran). */
+        /* (2026-09-26, vague 2 « L'ENCRE ET L'OR ») FINI LA GUIRLANDE DE NOËL. Ambre, cyan et rose étaient semés au hasard fenêtre par
+           fenêtre, sur toutes les tours : de loin, un confetti uniforme, sans une tour qu'on reconnaisse. Désormais chaque tour a UNE
+           teinte DOMINANTE (80 % de ses fenêtres) — CHAUDE #ffb04a (on y vit) ou FROIDE #8fd8ff (on y travaille) — l'autre teinte
+           ne fait que ponctuer ; 35 à 45 % des fenêtres sont éteintes, et les étages s'allument en BANDES (de 1 à 3 étages : un
+           plateau sur quatre dort). Le rose n'est plus aux fenêtres : il est aux ENSEIGNES (néon magenta et cyan). */
         '{vec3 an=abs(vNrm9);float fv=step(an.y,.5)*step(9.,min(vSc9.x,vSc9.z));'+
-        'float s1=fract(vSeed9*7.13),s2=fract(vSeed9*13.71),s3=fract(vSeed9*29.37),bur=step(.7,s3);'+
+        'float s1=fract(vSeed9*7.13),s2=fract(vSeed9*13.71),s3=fract(vSeed9*29.37),bur=step(.7,s3),fro=step(.58,s3);'+ // fro : tour FROIDE (les bureaux en sont)
         'vec2 cel=vec2(2.6+s1*1.8,3.5+s2*.9),uv=(an.x>an.z?vLoc9.zy:vLoc9.xy)/cel,fw=max(fwidth(uv),vec2(1e-4)),id=floor(uv),f=fract(uv);'+
         'vec2 hw=vec2(mix(.3,.46,bur),.26),dd=(hw-abs(f-.5))/fw;float w=clamp(dd.x+.5,0.,1.)*clamp(dd.y+.5,0.,1.);'+
         'vec2 idH=bur>.5?vec2(floor(id.x/5.),id.y):id;'+                                   // les bureaux s'allument par PLATEAUX
         'float h=fract(sin(dot(idH+vec2(vSeed9*97.,vSeed9*61.),vec2(12.9898,78.233)))*43758.5453);'+
-        'float tx=.22+.4*s2,on=step(1.-tx,h);'+
+        'float hb=fract(sin(floor(id.y/(1.+floor(s1*3.)))*91.7+vSeed9*311.)*43758.5453),vit=step(.26,hb);'+ // les BANDES d'étages : 3 plateaux sur 4 vivent
+        'float tx=.55+.1*s2,on=step(1.-mix(.08,(tx-.02)/.74,vit),h);'+                     // 55-65 % allumées en moyenne (un plateau qui dort garde 8 % de veilleuses)
         'float hv=fract(sin(dot(id+vec2(floor(uT9/(15.+25.*h)+h*7.),vSeed9*13.),vec2(39.34,11.13)))*24634.63);on=abs(on-step(.94,hv));'+ // la VIE : ~6 % des fenêtres basculent de temps en temps
-        'vec3 wa=bur>.5?vec3(.62,.88,1.):vec3(1.,.64,.30);'+
-        'vec3 wc=mix(wa,bur>.5?vec3(1.,.86,.62):vec3(.42,.88,1.),step(.9,h));wc=mix(wc,vec3(1.,.28,.66),step(.975,h))*(.8+.4*fract(h*13.1));'+
+        'vec3 cW=vec3(1.,.69,.29),cC=vec3(.56,.85,1.),dom=mix(cW,cC,fro),aut=mix(cC,cW,fro);'+ // #ffb04a / #8fd8ff : la dominante et l'autre
+        'vec3 wc=mix(dom,aut,step(.8,fract(h*7.77)))*(.8+.4*fract(h*13.1));'+
         'float tv=step(.955,hv)*step(hv,.975)*(.55+.45*sin(uT9*7.3+h*40.)*sin(uT9*2.9+h*9.));wc=mix(wc,vec3(.45,.6,1.)*1.2*tv,step(.001,tv));'+ // les ÉCRANS
         'float far=smoothstep(.3,.75,max(fw.x,fw.y)),avg=tx*4.*hw.x*hw.y;'+
-        'gl_FragColor.rgb+=mix(wc*w*on,wa*avg*1.05,far)*fv*1.3;'+
+        'gl_FragColor.rgb+=mix(wc*w*on,mix(dom,aut,.2)*avg*1.05,far)*fv*1.3;'+
         // LES TOITS (2026-09-26) : vus d'avion (vol libre, plongeons), c'étaient des dalles noires. Chaque toit porte désormais un LISERÉ
         // néon sur son parapet (ambre, cyan des bureaux, parfois magenta) : d'en haut, la ville dessine ses blocs et ses retraits en
         // lignes de lumière. Anticrénelé, et éteint quand le liseré tombe sous le pixel (pas de fourmillement au loin).
         'float tt=step(.5,vNrm9.y)*step(9.,min(vSc9.x,vSc9.z)),de=min(vSc9.x*.5-abs(vLoc9.x),vSc9.z*.5-abs(vLoc9.z)),fe=max(fwidth(de),1e-4);'+
-        'vec3 rc=bur>.5?vec3(.3,.85,1.):s2>.72?vec3(1.,.3,.7):vec3(1.,.58,.24);'+
+        'vec3 rc=fro>.5?vec3(.24,.91,1.):s2>.72?vec3(1.,.24,.78):vec3(1.,.58,.24);'+ // (vague 2) le parapet suit la dominante de la tour (cyan #3ee8ff / ambre), parfois magenta #ff3ec8
         'gl_FragColor.rgb+=rc*tt*(1.-smoothstep(.55,.55+fe*1.5,de))*(1.-smoothstep(.5,1.4,fe))*.55;}\n'+
         '#include <fog_fragment>\n'+
         // LE PIED DANS LA BRUME : fondu vers la couleur du brouillard sur 280 m, et la lueur des rues qui monte
@@ -5209,7 +5232,7 @@ function villeMatTours(){ // béton du village + fenêtres + pied noyé dans la 
         'gl_FragColor.rgb=mix(gl_FragColor.rgb,fc9,uWet9*.36*(1.-exp(-max(0.,d9-40.)/320.)));'+
         'float ff9=smoothstep(fogNear,fogFar,d9);gl_FragColor.rgb+=(fc9-fogColor)*ff9*mb;}\n#endif');
   };
-  m.customProgramCacheKey=function(){return 'toursV2';};
+  m.customProgramCacheKey=function(){return 'toursV3';};
   CITY.matT=m;return m;
 }
 function villeMatNeon(){ // enseignes, couronnes, feux d'antenne — ils RESPIRENT, quelques-uns clignotent, une poignée grésille
@@ -5255,11 +5278,11 @@ function villeMatNeon(){ // enseignes, couronnes, feux d'antenne — ils RESPIRE
 function villePubAtlas(){
   if(CITY.pub)return CITY.pub;
   const N=512,C=128,cv=document.createElement('canvas');cv.width=cv.height=N;const x=cv.getContext('2d');
-  const PUB=[['CASH CAR','#ffd75e','#ff2e8e','LA CAISSE QUI PAIE'],['1.61','#fff3be','#b86bff','GAME STUDIO'],['NITRO','#ff8d2e','#ff2e2e','PLEIN GAZ'],['$$$','#7dff9a','#0f7a3a','BANQUE OUVERTE'],
+  const PUB=[['CASH CAR','#ffd75e','#ff2e8e','LA CAISSE QUI PAIE'],['1.61','#fff3be','#b86bff','GAME STUDIO'],['NITRO','#ff8d2e','#ff2e2e','PLEIN GAZ'],['$$$','#ffd75e','#7a1fb0','BANQUE OUVERTE'],
     ['AURA','#ff9ee6','#7a2fd0','BRILLE FORT'],['FLOW','#5ee6ff','#1d63c8','NE LACHE RIEN'],['GO !','#ffffff','#ff5e7a','VITE VITE'],['24/7','#ffe23e','#ff7a14','NUIT BLANCHE'],
-    ['RAMEN','#ffb85a','#d8261e','CHAUD'],['NEON','#2ee6ff','#ff3ea5','PLUIE ET LUMIERE'],['TURBO','#ffffff','#ff2e8e','PLUS VITE'],['CASINO','#ffd75e','#1a7a4a','TOUT OU RIEN'],
+    ['RAMEN','#ffb85a','#d8261e','CHAUD'],['NEON','#2ee6ff','#ff3ea5','PLUIE ET LUMIERE'],['TURBO','#ffffff','#ff2e8e','PLUS VITE'],['CASINO','#ffd75e','#b0106a','TOUT OU RIEN'],
     ['DRIVE','#9fe8ff','#3a2fd0','OU CREVE'],['LUCKY','#7dffec','#ff3ea5','7 7 7'],['SUSHI','#ffffff','#ff5e7a','24 H'],['VITESSE','#ffe23e','#b0102a','ILLEGALE']];
-  x.imageSmoothingEnabled=false;
+  x.imageSmoothingEnabled=false; // (2026-09-26, vague 2) plus de VERT dans la ville (il n'est nulle part dans la bible) : « $$$ » et « CASINO » passent à l'or sur violet et sur magenta
   PUB.forEach(function(p,k){const ox=(k%4)*C,oy=((k/4)|0)*C;
     const g=x.createLinearGradient(0,oy,0,oy+C);g.addColorStop(0,p[2]);g.addColorStop(1,'#08061a');x.fillStyle=g;x.fillRect(ox+4,oy+4,C-8,C-8);
     x.strokeStyle=p[1];x.lineWidth=4;x.strokeRect(ox+8,oy+8,C-16,C-16);
@@ -5315,8 +5338,10 @@ function buildVoxCity(seed,accC){
         const k=(cx0+dx)+','+(cz0+dz),o=m.get(k);if(!o||d<o[0])m.set(k,[d,i,gx,gz]);}}
     const out=[];for(const v of m.values())if(garde(v[0]))out.push(v);return out;};
   const corps=[],genre=[],neon=[],neonC=[],pubs=[];
-  const NEON=[new THREE.Color(0xff2e8e),new THREE.Color(0x2ee6ff),new THREE.Color(0xffe23e),new THREE.Color(0x5cff9a),
-              new THREE.Color(0xb86bff),new THREE.Color(0xff3030),accC];
+  // (2026-09-26, vague 2) les ENSEIGNES parlent MAGENTA et CYAN (#ff3ec8 / #3ee8ff et leurs deux voisins) : le jaune, le vert et le violet
+  // en faisaient une guirlande. Cinq teintes comme avant (le tirage `vr` ne bouge pas), le feu d'antenne au rouge DANGER, la couronne à l'accent.
+  const NEON=[new THREE.Color(0xff3ec8),new THREE.Color(0x3ee8ff),new THREE.Color(0xff4f9e),new THREE.Color(0x52c8ff),
+              new THREE.Color(0xff3ec8),new THREE.Color(0xff3b5c),accC];
   let nT=0;
   // UNE TOUR : (cx,cz) son centre, d sa distance à l'axe, yN l'altitude du tronçon qu'elle BORDE, yLo le plus bas de ce tronçon
   const batir=(cx,cz,d,yN,yLo,canyon,w,p)=>{
@@ -5529,35 +5554,51 @@ function frameAt(s,out){
 const F={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
 const FH={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
 const padGeo=new THREE.PlaneGeometry(5.5,9);
-const padCv=document.createElement('canvas');padCv.width=64;padCv.height=128;
-const padCtx=padCv.getContext('2d');
-const padTex=new THREE.CanvasTexture(padCv);padTex.magFilter=THREE.NearestFilter;
-/* (2026-09-26, passe perf) LES PLAQUES TURBO ne se redessinent plus à chaque image. Mesuré : il y a TOUJOURS un pad dans la fenêtre
-   (espacés de 280-560 m, fenêtre de 600 m) → à chaque image, 8 tracés Canvas2D avec `shadowBlur` (flou logiciel, cher sur iOS) puis un
-   renvoi de la texture au GPU. Le cycle des chevrons fait 42 px : on en PRÉ-DESSINE les 42 positions une fois (42 petites textures,
-   ~1,8 Mo) et les plaques passent de l'une à l'autre (`map` changée : aucune recompilation). Au pixel près, le défilement est le même. */
-const PAD_FR=[],PAD_MATS=[];let padK=-1;
-function padDessine(c,scroll){
-  c.fillStyle='#070912';c.fillRect(0,0,64,128);
-  c.strokeStyle='rgba(255,255,255,.25)';c.lineWidth=3;c.strokeRect(2,2,60,124); // liseré
-  c.lineCap='round';c.lineJoin='round';
-  c.strokeStyle='#ffffff';c.shadowColor='#ffffff';
-  for(let n9=0;n9<4;n9++){
-    const oy=((n9*42-scroll)%168+168)%168-20;
-    c.shadowBlur=12;c.globalAlpha=1;c.lineWidth=7;
-    c.beginPath();c.moveTo(12,oy+18);c.lineTo(32,oy+4);c.lineTo(52,oy+18);c.stroke();  // chevron principal
-    c.shadowBlur=6;c.globalAlpha=.45;c.lineWidth=4;
-    c.beginPath();c.moveTo(12,oy+30);c.lineTo(32,oy+16);c.lineTo(52,oy+30);c.stroke(); // écho
-  }
-  c.globalAlpha=1;c.shadowBlur=0;
+/* (2026-09-26, passe perf) LES PLAQUES TURBO ne se redessinent plus à chaque image (8 tracés Canvas2D avec `shadowBlur` par image,
+   renvoyés au GPU). (2026-09-26, vague 2 « L'ENCRE ET L'OR ») … et elles deviennent de L'OR. Elles tiraient leur couleur au hasard
+   (bleu / blanc / rouge, sans aucun sens) et leurs chevrons étaient des traits flous (`shadowBlur`) de 64×128 agrandis au plus proche :
+   des marches d'escalier baveuses, et 42 textures pré-dessinées (~1,8 Mo) pour faire défiler le motif. Désormais :
+     · UNE texture 128×256 dessinée SUR LA GRILLE (des blocs de 4 px, zéro flou) : plaque à l'encre #1c0430, deux rails d'or qui la
+       bordent (le LISERÉ de ce qui rapporte), chevrons d'or à arête claire et talon d'ombre, suivis de leur écho ;
+     · le motif tombe juste sur 256 px (4 périodes) : `RepeatWrapping` + défilement par `map.offset.y` — une seule image, un seul
+       envoi au GPU, jamais plus (−41 textures) ; mipmaps PEINTES + anisotropie : plus de chevrons qui grouillent au loin, et la
+       plaque lointaine luit d'or au lieu de tourner au brun ;
+     · UNE matière or PARTAGÉE par toutes les plaques (jamais libérée : son programme — MeshBasic + map, celui d'avant — reste chaud).
+   Le turbo, c'est de l'argent qui accélère : il porte la couleur de l'argent. */
+const PAD_FR=[],PAD_MATS=[]; // (vague 2) vestiges vides : plus d'images pré-dessinées ni de matière par plaque (voir PAD_MAT)
+const padTex=(function(){
+  const W=128,H=256;
+  const dessine=function(fond,grille){const cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d');
+    const R=(x,y,w,h,col)=>{c.fillStyle=col;for(const dy of [0,-H,H])c.fillRect(x,y+dy,w,h);}; // posé 3 fois : le motif se REPLIE sans couture
+    R(0,0,W,H,fond);                                                                          // la plaque
+    if(grille)for(let y=0;y<H;y+=8)R(16,y,96,4,grille);                                       // la grille de la plaque (un souffle, pas un motif)
+    const OR='#fff27a',OR_C='#fffbd0',OR_O='#d8a412'; // l'or CITRON en texture = l'or #ffd75e à l'écran, une fois passé l'ACES et le grade (même étalonnage que la pièce)
+    for(const x of [4,116]){R(x,0,8,H,OR);R(x===4?x:x+6,0,2,H,OR_O);R(x===4?x+6:x,0,2,H,OR_C);} // les RAILS d'or : ombre dehors, lumière dedans
+    for(let k=-1;k<=4;k++){const A=k*64+10;                                                   // 4 chevrons par tour de texture (période 64 px = 2,25 m)
+      for(let cx=0;cx<11;cx++){const y=A+cx*2;
+        for(const x of cx?[64+cx*4,60-cx*4]:[60,64]){ // (la colonne 0 : les deux blocs du sommet)
+          R(x,y,4,14,OR);R(x,y,4,2,OR_C);R(x,y+12,4,2,OR_O);                               // le chevron : arête claire devant, talon d'ombre derrière
+          R(x,y+20,4,6,OR_O);}}}                                                            // son ÉCHO, en or d'ombre
+    return cv;};
+  /* LES MIPMAPS SONT PEINTES À LA MAIN. Moyennée par la carte réduite, la plaque (un tiers d'or sur deux tiers d'encre) devenait au
+     loin — vue rasante — un PAVÉ BRUN à peine plus clair que le bitume : on ne voyait plus la cible. Les deux premiers niveaux sont la
+     plaque telle quelle ; à partir du 3e (la plaque fait moins de 32 pixels de large à l'écran) son fond passe à l'or sombre : de loin
+     elle LUIT d'or, de près on lit ses chevrons sur l'encre. Le fondu entre les niveaux (trilinéaire) fait la transition, sans saut. */
+  const pres=dessine('#1c0430','#22073a'),loin=dessine('#9a6a0e',null),niv=[pres];
+  for(let w=W>>1,h=H>>1,k=1;w>=1||h>=1;w>>=1,h>>=1,k++){const cv=document.createElement('canvas');cv.width=Math.max(1,w);cv.height=Math.max(1,h);
+    const c=cv.getContext('2d');c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.drawImage(k<2?niv[k-1]:(k===2?loin:niv[k-1]),0,0,cv.width,cv.height);niv.push(cv);
+    if(cv.width===1&&cv.height===1)break;}
+  const t=new THREE.CanvasTexture(pres);t.mipmaps=niv;t.generateMipmaps=false;t.wrapS=THREE.ClampToEdgeWrapping;t.wrapT=THREE.RepeatWrapping;
+  t.magFilter=THREE.NearestFilter;t.minFilter=THREE.LinearMipmapLinearFilter; // de près : les vrais pixels ; au loin : la plaque qui luit, stable
+  t.anisotropy=Math.min(IS_MOBILE?2:4,renderer.capabilities.getMaxAnisotropy()); // la plaque se voit à plat, rasante
+  return t;
+})();
+const PAD_MAT=new THREE.MeshBasicMaterial({map:padTex,color:new THREE.Color(1.45,1.45,1.45),polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}); // ×1,45 : la plaque ÉMET au-delà du blanc (le bloom la prend), elle reste d'or au loin au lieu d'un pavé brun // (2026-09-26) décalage de profondeur : le pad lointain ne clignote plus à travers le bitume
+PAD_MAT.dispose=function(){}; // partagée par toutes les pistes : la piste suivante la reprend, MAT_SURSIS ne la jette jamais
+function updatePadTex(t){ // les chevrons FILENT vers l'avant (6,7 m/s, le rythme d'avant) : on fait glisser la texture, on ne la redessine pas
+  padTex.offset.y=1-((t*.742)%1);
 }
-function updatePadTex(t){ // double chevrons lumineux arrondis qui défilent (teintés par pad)
-  if(!PAD_FR.length)for(let k=0;k<42;k++){const cv=document.createElement('canvas');cv.width=64;cv.height=128;padDessine(cv.getContext('2d'),k);
-    const tx=new THREE.CanvasTexture(cv);tx.magFilter=THREE.NearestFilter;PAD_FR.push(tx);}
-  const k=Math.floor((t*95)%42);if(k===padK)return;padK=k;
-  for(const m of PAD_MATS)m.map=PAD_FR[k];
-}
-padDessine(padCtx,0);padTex.needsUpdate=true;updatePadTex(0); // les 42 images se dessinent au CHARGEMENT (~40 petits tracés), pas au premier pad croisé en course
+updatePadTex(0);
 // dos d'âne (asphalte + triangles blancs, façon Paris)
 const bumpGeo=new THREE.BoxGeometry(ROAD_HALF0*2-1,.34,1.7); // taillée sur la largeur DE RÉFÉRENCE : chaque mesh s'étire en X (voir ROAD_HALF)
 const bumpMat=(function(){
@@ -6485,7 +6526,7 @@ const PLUIE=(function(){
       '  vec3 d=p-uCam;float fo=smoothstep(2.5,8.,length(d))*(1.-smoothstep(58.,84.,max(abs(d.x),abs(d.z))))*(1.-smoothstep(44.,64.,abs(d.y)));', // ni près de l oeil ni au bord de la boîte
       '  p-=tr*aBout;',                                  // la QUEUE : là où la goutte était
       '  float h=fract(position.y*113.7+position.z*57.3);',
-      '  vC=h>.93?vec3(1.,.42,.82):h>.86?vec3(.45,.95,1.):vec3(.74,.86,1.);',             // une goutte sur sept accroche un néon
+      '  vC=h>.93?vec3(1.,.42,.82):h>.86?vec3(.45,.95,1.):vec3(.80,.90,.96);',            // une goutte sur sept accroche un néon ; les autres ont l EAU de la bible (#dff6ff, à l éclat d avant)
       '  vA=(1.-aBout*.8)*uOp*fo*(.55+.9*fract(h*7.31))*clamp(7./max(L,.001),.45,1.);', // chaque goutte son éclat ; une longue traînée étale sa lumière
       '  gl_Position=projectionMatrix*viewMatrix*vec4(p,1.);}'].join('\n'),
     fragmentShader:'varying float vA;varying vec3 vC;void main(){gl_FragColor=vec4(vC,vA*.36);}'});
@@ -11749,7 +11790,14 @@ scene.add(shadow);
    des caisses), frappé d'un « $ » en VRAIS pixels (texture 16×16, filtrage au plus proche), UNE matière, UN appel. */
 const coinTex=(function(){
   const N=16,cv=document.createElement('canvas');cv.width=cv.height=N;const c=cv.getContext('2d');
-  const COL={k:'#6e3c00',d:'#d08a0c',g:'#ffc12e',l:'#fff1a6',h:'#ffe066',s:'#8a4a00'};
+  /* (2026-09-26, vague 2) L'OR DE LA BIBLE À L'ÉCRAN : #ffd75e. MESURÉ en course (pixels lus après l'ACES et le grade) : l'ancienne pièce
+     (#ffc12e, émissif blanc ×.42, et surtout éclairée par la scène) sortait #fe8004 au couchant — ORANGE pur, la teinte des plots
+     et de la flamme — et BRONZE sombre (#682800) dans la nuit de la ville. Deux causes : (1) elle vivait de la lumière de la scène,
+     orange au couchant, magenta en ville ; (2) le grade (saturation ×1,4 puis ×1,12, coude des hautes lumières) pousse tout jaune
+     vif vers l'orange : le vert tient à la luminance, le rouge s'envole et `roule` divise par lui. D'où une pièce qui ÉMET (voir
+     pickMat) et un champ peint en or CITRON #fff27a : c'est lui qui ressort OR à l'écran (mesuré : #fcb120 au couchant au lieu de
+     #fe8004, un or franc au lieu du bronze dans la ville) — et plus jamais de la teinte des plots. */
+  const COL={k:'#6e3c00',d:'#d8a412',g:'#fff27a',l:'#fffbe6',h:'#fffbd0',s:'#8a4a00'};
   const DOL=['..#..','.####','#.#..','#.#..','.###.','..#.#','..#.#','####.','..#..'];
   for(let y=0;y<N;y++)for(let x=0;x<N;x++){
     const dx=x-7.5,dy=y-7.5,r=Math.hypot(dx,dy);let k;
@@ -11759,8 +11807,12 @@ const coinTex=(function(){
     c.fillStyle=COL[k];c.fillRect(x,y,1,1);
   }
   for(let y=0;y<9;y++)for(let x=0;x<5;x++)if(DOL[y][x]==='#'){c.fillStyle=COL.s;c.fillRect(6+x,3+y,1,1);}
-  const t=new THREE.CanvasTexture(cv);t.magFilter=THREE.NearestFilter;t.minFilter=THREE.NearestFilter;t.generateMipmaps=false;
-  return t;
+  /* (2026-09-26, vague 2) LES PIÈCES NE SCINTILLENT PLUS AU LOIN. Filtrée au plus proche EN RÉDUCTION et sans mipmaps, la pièce de
+     16 pixels tirait un texel au hasard à chaque image dès 40 m : moiré, et une rangée de pièces clignotait comme des lampadaires.
+     Désormais des mipmaps (la pièce lointaine devient un disque d'or moyen, stable) ; en AGRANDISSEMENT on garde le plus proche : de
+     près, la pièce reste en vrais pixels. */
+  const t=new THREE.CanvasTexture(cv);t.magFilter=THREE.NearestFilter;t.minFilter=THREE.LinearMipmapLinearFilter;t.generateMipmaps=true;
+  return t; // (pas d'anisotropie : sous D3D/ANGLE elle force un filtrage LINÉAIRE à l'agrandissement — adieu les vrais pixels de près)
 })();
 /* (2026-09-26, user : « les items sur la route plus gros, plus beaux, mieux travaillés ») : la pièce grossit (Ø 2,6 m), passe à 12 pans
    et reçoit un JONC en relief — un tore fusionné à la galette, dont les UV lisent le pixel clair de la tranche : on voit une vraie
@@ -11777,7 +11829,10 @@ const pickGeo=(function(){
   const t=new THREE.TorusGeometry(1.18,.13,6,24);const tu=t.attributes.uv;for(let i=0;i<tu.count;i++)tu.setXY(i,.47,.91); // le JONC : le pixel clair
   return geoFusion([g,t]);
 })();
-const pickMat=new THREE.MeshPhongMaterial({map:coinTex,emissive:0xffffff,emissiveMap:coinTex,emissiveIntensity:.42,
+/* (2026-09-26, vague 2) LA LUMIÈRE, C'EST L'ARGENT : la pièce ÉMET son or (émissif blanc × sa propre texture ×1,05) et ne prend plus que la
+   moitié de la lumière de la scène (diffus ×.5) — elle garde son relief (facettes, jonc, reflet spéculaire) sans virer à l'orange au
+   couchant ni au bronze la nuit. ⚠ Émissif BLANC et pas « teinté or » : l'or multiplié par une texture d'or, c'est de l'orange. */
+const pickMat=new THREE.MeshPhongMaterial({map:coinTex,color:0x808080,emissive:0xffffff,emissiveMap:coinTex,emissiveIntensity:1.05,
   shininess:90,specular:0xfff0b0,flatShading:true});
 // NITRO : sphère bleu électrique translucide avec cœur lumineux
 const nitroGeo=new THREE.SphereGeometry(.8,18,14);
@@ -13894,29 +13949,47 @@ function fruitLeve(i){if(FRUIT_LEVE[i]==null){const g=fruitGeo(i);if(!g.bounding
 // POUVOIRS : grosses orbes rares — sphère de verre teinté + cœur brûlant + anneau qui tourne
 const pwrGeo=new THREE.IcosahedronGeometry(1.9,1),pwrCoreGeo=new THREE.OctahedronGeometry(.95,0), // (2026-09-26) le CRISTAL à facettes et son cœur-étoile
       pwrRingGeo=new THREE.TorusGeometry(2.6,.12,6,32);
+/* (2026-09-26, vague 2 « L'ENCRE ET L'OR ») UN POUVOIR = UNE COULEUR, du cristal à l'écran. La NITRO MAX était BLEUE en 3D (#1e7bff),
+   bleu clair sur sa plaque (#4db8ff)… et sa jauge brûle en OR : trois couleurs pour une seule chose. Et les cristaux n (bleu) et a
+   (#7dffec) se confondaient de loin. Désormais : n = OR-FEU #ffb040 (la jauge, la plaque et les bords d'écran suivent `tint`/`fx`),
+   a = CYAN #5ee6ff (l'air), v = MAGENTA #ff3ec8 (la vitesse). Et le cristal ÉMET : verre plus dense (.78), émissif .9, cœur ×1,3, et un
+   HALO additif en sprite (une matière par pouvoir, PARTAGÉE, la texture `lampTex` commune) — on le repère au bout de la route. */
 const PWR_DEFS={ // n = nitro infinie · a = airtime infini · v = speed up
-  n:{col:0x1e7bff,core:0xaee4ff,ico:'',msg:'NITRO INFINIE — 6 s À FOND !',hud:'NITRO ∞',tint:'#4db8ff',t:6,gros:'NITRO ILLIMITEE',sous:'6 S A FOND',c2:'#1e3bff',fx:'rgba(77,184,255,.85)',fx2:'rgba(30,90,255,.35)'},
-  a:{col:0x7dffec,core:0xeafffb,ico:'🪂',msg:'🪂 AIRTIME INFINI — 10 s DE VOL !',hud:'AIR ∞',tint:'#7dffec',t:10,gros:'AIRTIME INFINI',sous:'10 S DE VOL',c2:'#1fb8a8',fx:'rgba(125,255,236,.8)',fx2:'rgba(30,200,180,.3)'},
-  v:{col:0xff2e8a,core:0xffd0e8,ico:'⚡',msg:'⚡ VITESSE ×2 — 6 s !',hud:'VITESSE ×2',tint:'#ff3ec8',t:6,gros:'VITESSE ×2',sous:'6 S',c2:'#ff2e8a',fx:'rgba(255,62,200,.85)',fx2:'rgba(255,46,138,.35)'}};
+  n:{col:0xffb040,core:0xfff2c8,ico:'',msg:'NITRO INFINIE — 6 s À FOND !',hud:'NITRO ∞',tint:'#ffb040',t:6,gros:'NITRO ILLIMITEE',sous:'6 S A FOND',c2:'#ff7a24',fx:'rgba(255,176,64,.85)',fx2:'rgba(255,122,36,.35)'},
+  a:{col:0x5ee6ff,core:0xe8fcff,ico:'🪂',msg:'🪂 AIRTIME INFINI — 10 s DE VOL !',hud:'AIR ∞',tint:'#5ee6ff',t:10,gros:'AIRTIME INFINI',sous:'10 S DE VOL',c2:'#1fa2e0',fx:'rgba(94,230,255,.8)',fx2:'rgba(30,150,230,.3)'},
+  v:{col:0xff3ec8,core:0xffd6f2,ico:'⚡',msg:'⚡ VITESSE ×2 — 6 s !',hud:'VITESSE ×2',tint:'#ff3ec8',t:6,gros:'VITESSE ×2',sous:'6 S',c2:'#ff2e8a',fx:'rgba(255,62,200,.85)',fx2:'rgba(255,46,138,.35)'}};
 for(const k in PWR_DEFS){const d=PWR_DEFS[k];
-  d.glassM=new THREE.MeshPhongMaterial({color:d.col,emissive:d.col,emissiveIntensity:.5,shininess:260,specular:0xffffff,envMap:envTex,reflectivity:.6,transparent:true,opacity:.5,depthWrite:false,flatShading:true});
+  d.glassM=new THREE.MeshPhongMaterial({color:d.col,emissive:d.col,emissiveIntensity:.9,shininess:260,specular:0xffffff,envMap:envTex,reflectivity:.6,transparent:true,opacity:.78,depthWrite:false,flatShading:true});
   d.coreM=new THREE.MeshBasicMaterial({color:d.core});
   d.ringM=new THREE.MeshBasicMaterial({color:d.col,transparent:true,opacity:.85});
+  d.haloM=new THREE.SpriteMaterial({map:lampTex,color:d.col,transparent:true,opacity:.42,depthWrite:false,blending:THREE.AdditiveBlending}); // le HALO : partagé par tous les cristaux du même pouvoir
   // ÉTIQUETTE FLOTTANTE : pictogramme + nom au-dessus de l'orbe — on sait ce qu'on vise AVANT de le prendre
   const cv=document.createElement('canvas');cv.width=cv.height=128;
-  const c=cv.getContext('2d');c.textAlign='center';
-  if(d.ico)c.font='52px sans-serif',c.fillText(d.ico,64,54); // (la NITRO INFINIE n'a plus de pictogramme : la flamme au-dessus de l'orbe bleue a sauté)
-  // (2026-09-26) l'étiquette dans la POLICE DU JEU (pixel), cerclée de nuit — plus de monospace flou ; « ∞ » n'existe pas en pixel : MAX
-  const lb=String(d.hud).replace('∞','MAX').replace(' +60%','');c.font='13px "Press Start 2P",monospace';c.lineWidth=6;c.lineJoin='round';c.strokeStyle='rgba(8,10,22,.95)';
-  c.strokeText(lb,64,102);c.fillStyle=d.tint;c.fillText(lb,64,102);
   d.icoM=new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthWrite:false});
+  d.icoDessine=function(){const c=cv.getContext('2d');c.clearRect(0,0,128,128);c.textAlign='center';
+    /* (2026-09-26, vague 2) LE PICTOGRAMME EN PIXELS, LE MÊME QUE SUR LA PLAQUE DU HUD (`PXI_G` : flamme / aile / éclair). C'était un
+       EMOJI (🪂, ⚡) — dessiné par la police du système, en couleurs de dessin animé, différent sur chaque téléphone : la seule image
+       du jeu qui n'était pas en pixels. Grille 9×9 à 5 px la case, cernée d'ENCRE (4 décalages), à la couleur du pouvoir. */
+    const g=PXI_G[{n:'flamme',a:'aile',v:'eclair'}[k]];
+    if(g){const rows=g.split('|'),Z=5,X0=64-4.5*Z,Y0=12;
+      for(const o of [[-2,0],[2,0],[0,-2],[0,2],[0,0]]){c.fillStyle=o[0]||o[1]?'#1c0430':d.tint;
+        for(let y=0;y<9;y++)for(let x=0;x<9;x++)if(rows[y][x]==='#')c.fillRect(X0+x*Z+o[0],Y0+y*Z+o[1],Z,Z);}}
+    // (2026-09-26) l'étiquette dans la POLICE DU JEU (pixel), cerclée d'ENCRE — « ∞ » n'existe pas en pixel : MAX
+    const lb=String(d.hud).replace('∞','MAX').replace(' +60%','');c.font='13px "Press Start 2P",monospace';c.lineWidth=6;c.lineJoin='round';c.strokeStyle='#1c0430';
+    c.strokeText(lb,64,102);c.fillStyle=d.tint;c.fillText(lb,64,102);d.icoM.map.needsUpdate=true;};
+  d.icoDessine();
 }
+// (vague 2) la police pixel est une woff2 locale : si elle n'était pas encore chargée au premier dessin, l'étiquette serait restée en
+// monospace de secours pour toute la partie — on la redessine UNE fois quand la police est prête (un petit canvas, aucun shader).
+try{if(document.fonts&&document.fonts.load)document.fonts.load('13px "Press Start 2P"').then(function(){for(const k in PWR_DEFS)PWR_DEFS[k].icoDessine();}).catch(function(){});}catch(e){}
 function mkPower(kind,dir){
   const d=PWR_DEFS[kind],g=new THREE.Group();
-  g.add(new THREE.Mesh(pwrCoreGeo,d.coreM),new THREE.Mesh(pwrGeo,d.glassM));
+  const co=new THREE.Mesh(pwrCoreGeo,d.coreM);co.scale.setScalar(1.3); // (vague 2) le cœur ×1,3 : il perce le verre plus dense
+  g.add(co,new THREE.Mesh(pwrGeo,d.glassM));
   const ring=new THREE.Mesh(pwrRingGeo,d.ringM);ring.rotation.x=Math.PI/2;g.add(ring);
   const ring2=new THREE.Mesh(pwrRingGeo,d.ringM);ring2.rotation.set(Math.PI/2,.9,0);ring2.scale.setScalar(.84);g.add(ring2); // (2026-09-26) le 2e anneau, croisé : un gyroscope
   const ic=new THREE.Sprite(d.icoM);ic.scale.set(6,6,1);ic.position.y=(dir||1)*4.1;g.add(ic); // sous la route : étiquette côté joueur
+  const ha=new THREE.Sprite(d.haloM);ha.scale.set(6,6,1);ha.renderOrder=2;ha.updateMatrix();ha.matrixAutoUpdate=false;g.add(ha); // (vague 2) le HALO additif (sprite : 4 sommets, zéro lumière)
   return g;
 }
 const pickups=[];
@@ -21095,7 +21168,7 @@ function loop(now){
             else pwrSpdT=d.t;
             showMsg(d.msg,d.tint);trickMsg(d.ico+' '+TR(d.hud),2);boostSnd();pwrPrisSnd(p.pow);shake=Math.max(shake,.35);
             slam(d.gros,d.sous,d.tint,d.c2,40,2);flashEcran(d.fx);hap([14,40,24]); // (HUD v3) le pouvoir s'ANNONCE en gros, de sa couleur
-            sparkBurst(p.pow==='n'?sparkBlue:sparkGold,carGroup.position,14,9);
+            sparkBurst(p.pow==='a'?sparkBlue:p.pow==='v'?sparkPink:sparkGold,carGroup.position,14,9); // (vague 2) la gerbe à la couleur du cristal : n or-feu, a cyan, v magenta
             addStyle(10);
           }
           else if(p.nitro){ // chaque fruit rend SA dose de nitro (réglable dans l'ÉTAL)
