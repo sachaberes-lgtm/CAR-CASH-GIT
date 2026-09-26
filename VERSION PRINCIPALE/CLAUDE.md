@@ -114,6 +114,16 @@
     (le haut part de la normale de la route puis suit la trajectoire, aucun (0,1,0)) ; volant autour de `FLY_U`, manche autour de
     `FLY_R` SANS plafond (looping possible), caméra `up = FLY_U`. Plafond d'inertie = vitesse d'éjection ENTIÈRE (`fallVH0`).
   · **MÉTÉORE** = cratère UNIQUEMENT si nitro allumée au contact ET plongée > 45° (`2·vN² > v²`), plus la figure en l'air.
+  · **LOT 6 (26/09 soir)** : ÉCONOMIE v4 — `DENOMS` 3 → 16 $ (×1,06/palier ; c'était ×1,585 → 401 Md sur une grande partie contre
+    2,5 M pour la caisse la plus chère) : ~380 $/min en pilote auto, ~1 M sur une partie record. Ville : plus de circulation volante,
+    plus de looping (`sansLoop` dans genCtrl), couronne peinte assombrie et posée 900 m sous l'œil (plus de bande violette ni de ligne
+    néon), forêt 3D jusqu'à 2,1 km, tours DURES (`CITY.col` grille 60 m + `villeHeurt` dans la branche 'fall' → explose ; `dbgHeurt()`),
+    marges `tourLibre` élargies. Routes 56 m (`LARGEUR=[2]`). Pouvoir VITESSE ×2. Nitro en l'air : IMPULSION +32 m/s à l'allumage
+    (1 par appui, 0,5 s mini, 12 % de réserve) + la poussée. Flammes de jauge = NITRO MAX seulement. Pouvoirs en GRANDES plaques
+    (minuteur au dixième, jauge continue). Écran de mort : le moteur 3D (`ENG_MORT`, rendu par `engVigRender`) au lieu du nom.
+    Objets : pièce Ø 2,6 m à jonc (`geoFusion`), fruits ×2,7 (le battement écrasait l'échelle), pouvoirs en CRISTAL + 2 anneaux +
+    étiquette pixel, plots 1,4 m à 2 bandes. ⚠ `level` = index de caisse (0-65) : il ne doit plus rien agrandir (aimant, plumes).
+    Bancs : `dbgEssaiObjets()`, `dbgEssaiFruit(src,pal)` (scratchpad `gamme/objets.js`, `gamme/fruits.js`).
   · **VILLE v3 — LE CANYON** (26/09, « la route plus proche des immeubles, un truc premium compatible iPhone ») : `buildVoxCity` bâtit
     en coordonnées MONDE autour du ruban — 3 rangs de tours de chaque côté, posés LE LONG de chaque tronçon (la piste de la ville
     descend en spirale sur 7-9 km : plusieurs étages de route à la verticale d'un point) + une forêt au large par cases. RÈGLE D'OR

@@ -2251,6 +2251,28 @@
   @keyframes lvlLettre{from{opacity:0;transform:translate3d(0,-26px,0) scale(1.7)}to{opacity:1;transform:none}}
   body.touch #airPie.danger{animation:pieDanger .12s steps(2) infinite}
   @keyframes pieDanger{50%{transform:translate(2px,-1px) rotate(4deg)}}
+
+  /* ===== LES POUVOIRS EN GROS (2026-09-26, user : « le power-up doit être affiché en gros avec un timer en temps réel ») =====
+     Une grande plaque par pouvoir, dans la colonne de droite : le pictogramme, le nom, et un MINUTEUR à la seconde près qui
+     défile au dixième, sur une jauge qui se vide EN CONTINU (écrite à chaque image — pas en innerHTML). Elle bat à la couleur du
+     pouvoir, et clignote la dernière seconde et demie. Le moteur de l'écran de mort, lui, flotte en 3D (plus de fenêtre). */
+  body.touch #pwrChip{gap:10px}
+  body.touch #pwrChip .pw{position:relative;display:flex;align-items:center;gap:9px;min-width:150px;padding:9px 12px 13px 10px;box-sizing:border-box;
+    background:#0b0730;color:var(--pc);clip-path:var(--oct);box-shadow:inset 0 0 0 3px var(--pc),inset 0 0 18px color-mix(in srgb,var(--pc) 35%,transparent);
+    animation:pwBat .55s ease-in-out infinite alternate}
+  @keyframes pwBat{to{box-shadow:inset 0 0 0 3px var(--pc),inset 0 0 30px color-mix(in srgb,var(--pc) 60%,transparent)}}
+  body.touch #pwrChip .pw i{font-style:normal;font-size:22px;line-height:1}
+  body.touch #pwrChip .pw span{display:flex;flex-direction:column;gap:5px;font-family:var(--pix);padding:0;margin:0;background:none;box-shadow:none;clip-path:none;animation:none;white-space:nowrap}
+  body.touch #pwrChip .pw span small{font-size:8px;letter-spacing:1px;color:#fff}
+  body.touch #pwrChip .pw span b{font-size:20px;font-weight:normal;color:var(--pc);text-shadow:0 2px 0 #000}
+  body.touch #pwrChip .pw u{position:absolute;left:8px;right:8px;bottom:5px;height:4px;background:var(--pc);transform-origin:left center;transform:scaleX(var(--p,1))}
+  body.touch #pwrChip .pw.fin{animation:chipFin .24s steps(2) infinite}
+  .hMot3{background:none!important;border:0!important;box-shadow:none!important;padding:0 0 8px!important;gap:2px!important}
+  .hMot3 .hMotCv{width:128%;max-width:none;height:auto;aspect-ratio:480/321;margin:-10% -14% -4%;filter:drop-shadow(0 10px 8px rgba(0,0,0,.45)) drop-shadow(0 0 12px var(--ec));
+    animation:ebFlotte 1.6s ease-in-out infinite alternate}
+  .hMot3 .hMotN{font-family:var(--pix);font-size:30px;line-height:1;color:#fff8dc;text-shadow:0 0 14px rgba(255,215,94,.9),0 3px 0 #7a4e00}
+  .hMot3 .hMotN i{display:block;font-style:normal;font-size:8px;letter-spacing:3px;color:var(--ec);margin-bottom:6px;text-shadow:0 2px 0 #000}
+  @media (prefers-reduced-motion:reduce){body.touch #pwrChip .pw,.hMot3 .hMotCv{animation:none}}
   @media (prefers-reduced-motion:reduce){#nitroFeu{display:none}body.touch #pwrChip span.fin,body #flowHud::after,#lvlBan.on #lvlNum i,body.touch #airPie.danger{animation:none}}
   @media (prefers-reduced-motion:reduce){body #flowHud.monte,body #flowHud.lache,body #flowHud.presque .fSeg i.cur s,body #flowHud[data-lv="4"] .fSeg,
     #avRec.battu,#avRec.presque i,body #avCh.vole,body #avCh.perdu{animation:none}#avPlus.on{animation-duration:1ms;opacity:1}}
@@ -3370,7 +3392,7 @@ function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a
    pickups, bots, viseur) — sauf trois géométries PARTAGÉES bâties une fois (dos d'âne, tapis et lèvre
    du tremplin) : elles sont taillées sur `ROAD_HALF0` et chaque mesh se met à l'échelle en X. */
 const ROAD_HALF0=14, THICK=2.6; // (2026-09-25 soir) la route avait été divisée par 2 (14 → 7, « réduis de moitié la largeur ») puis REDOUBLÉE à la demande (« double la largeur des routes ») : retour à 14. LARGEUR, CARR_LARG, parc ×1,4 et auto-école ×1,7 sont des MULTIPLES de ce gabarit — une ligne change toute la route
-let ROAD_HALF=ROAD_HALF0*1.7;
+let ROAD_HALF=ROAD_HALF0*2.0;
 let pts=[],T=[],Nn=[],B=[],L=0,NP=0,trackMinY=-1e9; // trackMinY : plancher du monde (référence du plongeon fatal)
 /* NÉON RÉACTIF (2026-08-07) : on garde une poignée sur les matériaux des rails et de leur nappe
    pour les faire COGNER au beat. ⚠ ce sont des MATÉRIAUX, pas des meshes : la piste est rebâtie à
@@ -3406,18 +3428,20 @@ const holeAtS=sv=>{if(!HOLES.length)return null;for(const h of HOLES)if(sv>h.s0&
 // atterrissage pile sur le bord d'en face échouait et la caisse repartait dans le vide.
 const holeAtI=i=>{if(!HOLES.length)return false;for(const h of HOLES)if(i>h.i0&&i<h.i1)return true;return false;};
 // plots de chantier orange (percutables — ils valdinguent)
-const coneGeo=new THREE.CylinderGeometry(.055,.3,.95,10);
-const coneBandGeo=new THREE.CylinderGeometry(.185,.24,.2,10);
-const coneBaseGeo=new THREE.BoxGeometry(.72,.07,.72);
+const coneGeo=new THREE.CylinderGeometry(.075,.44,1.40,12);   // (2026-09-26, « items plus gros, mieux travaillés ») : .95 → 1,40 m de haut
+const coneBandGeo=new THREE.CylinderGeometry(.27,.34,.22,12);  // la bande basse…
+const coneBand2Geo=new THREE.CylinderGeometry(.16,.22,.16,12); // …et la haute
+const coneBaseGeo=new THREE.CylinderGeometry(.66,.72,.10,4);   // socle carré à pans coupés (4 pans tournés de 45°)
 const coneMat=new THREE.MeshPhongMaterial({color:0xff7a1a,emissive:0x8a2f00,emissiveIntensity:.3,shininess:70,specular:0xffe9d0});
 const coneBandMat=new THREE.MeshPhongMaterial({color:0xffffff,emissive:0x666666,emissiveIntensity:.25,shininess:90});
 function mkCone(){
   const g=new THREE.Group();
-  const base=new THREE.Mesh(coneBaseGeo,coneMat);base.position.y=.035;
-  const c=new THREE.Mesh(coneGeo,coneMat);c.position.y=.5;
-  const b=new THREE.Mesh(coneBandGeo,coneBandMat);b.position.y=.52;
+  const base=new THREE.Mesh(coneBaseGeo,coneMat);base.position.y=.05;base.rotation.y=Math.PI/4;
+  const c=new THREE.Mesh(coneGeo,coneMat);c.position.y=.78;
+  const b=new THREE.Mesh(coneBandGeo,coneBandMat);b.position.y=.62;
+  const b2=new THREE.Mesh(coneBand2Geo,coneBandMat);b2.position.y=1.02;
   base.castShadow=c.castShadow=b.castShadow=true; // les plots étirent leur ombre en travers de la route
-  g.add(base,c,b);return g;
+  g.add(base,c,b,b2);return g;
 }
 // flaques d'huile (rares, droites & plates uniquement) : disque sombre glacé + reflet irisé
 let OILS=[];
@@ -3996,6 +4020,8 @@ function genCtrl(rnd,startPos,startPhi){
     approx+=Math.abs(a)*R;};
   // (route v3c) une « droite » qui n'en est pas une : un arc léger de a° sur l mètres — la piste ne va plus jamais tout droit
   const courbe=(l,dy,aDeg,n)=>{const a=Math.max(4,Math.abs(aDeg)),s9=aDeg<0?-1:1;arc(s9*a,l/(a*Math.PI/180),n||2,dy);};
+  // (2026-09-26, user : « enlève les loopings » dans la VILLE) : le niveau ville n'en a plus aucun (motif ET signature de fin)
+  const sansLoop=typeof LVL!=='undefined'&&LVL.cur&&LVL.cur.id==='ville';
   const LOOPI=new Set(); // les points des loopings : l'adoucissement des crêtes n'y touche pas (le haut d'un loop EST une crête, voulue)
   const loop=(R,shift)=>{const base=P.clone(),d=dir(),sx=Math.cos(phi),sz=-Math.sin(phi);
     for(let q=ctrl.length-2;q<ctrl.length+10;q++)LOOPI.add(q);
@@ -4086,7 +4112,7 @@ function genCtrl(rnd,startPos,startPhi){
   straight(110*LV,-70*LV,2); // DÉPART : ligne droite, rallongée avec la vitesse (était 170 m + la caisse)
   while(approx<LEN){
     const mo=pick();
-    if(mo===0&&approx-lastLoop>1600){ // UN looping, de temps en temps (route v3 : 1,6 km mini entre deux, plus de doublé)
+    if(mo===0&&!sansLoop&&approx-lastLoop>1600){ // UN looping, de temps en temps (route v3 : 1,6 km mini entre deux, plus de doublé) — JAMAIS en ville
       straight(60+rnd()*50,-30);loop((30+rnd()*34)*LOOPS,30+rnd()*22);straight(60+rnd()*50,-30);lastLoop=approx;
     }else if(mo===9){ // (route v3b) LE GRAND BALAYAGE : un virage long et LARGE, 100-150°, qui descend doucement — on le prend à fond, on le SENT
       const sg=sgn(),R9=(110+rnd()*90)*RS,a9=Math.min(100+rnd()*60,52000/R9);
@@ -4134,7 +4160,7 @@ function genCtrl(rnd,startPos,startPhi){
     straight(0,0,0);{const l9=(50+rnd()*40)*LV,a9=16+rnd()*20;arc(sgn()*a9,l9/(a9*Math.PI/180),4,-(8+rnd()*8)*LV);} // (route v3c) 16-36° : la liaison TOURNE // (piste v6/v7) la RESPIRATION est un virage de liaison (60-110 m, 8-22°, 4 points : 35 m sur 2 points faisait un coude)
   }
   // SIGNATURE DE FIN : chaque archétype clôt SA zone par SON geste — la zone se retient
-  if(AR.nm==='VOLTIGE'){if(approx-lastLoop>900){straight(60,-30);loop(34*LOOPS,34);straight(60,-30);}else straight(120,-30,2);} // (route v3) UN looping, plus le doublé
+  if(AR.nm==='VOLTIGE'){if(!sansLoop&&approx-lastLoop>900){straight(60,-30);loop(34*LOOPS,34);straight(60,-30);}else straight(120,-30,2);} // (route v3) UN looping, plus le doublé
   else if(AR.nm==='ALPIN'){straight(90,-50);straight(80,26);gapRun(1);} // ALPIN se clôt SUR LE VIDE : arrivée surélevée, dernier engagement avant le portail
   else if(AR.nm==='FLOW'){arc(sgn()*110,220*Math.min(2,LV),6,-160);}
   else if(AR.nm==='TECH'){let sgF=sgn();for(let q=0;q<3;q++){arc(sgF*24,90*RS,2,-26);sgF=-sgF;}}
@@ -4733,18 +4759,6 @@ function villeMatNeon(){ // enseignes, couronnes, feux d'antenne — ils RESPIRE
         'gl_FragColor.rgb*=fl;}\n#include <fog_fragment>');};
   CITY.matN=m;return m;
 }
-function villeMatTrafic(){ // la circulation : le vertex shader fait avancer chaque véhicule le long de sa file (170 m), fondu aux bouts
-  if(CITY.matV)return CITY.matV;
-  const m=new THREE.MeshBasicMaterial({color:0xffffff});
-  m.onBeforeCompile=function(sh){sh.uniforms.uT9=CITY.uT;
-    sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nuniform float uT9;varying float vA9;')
-      .replace('#include <begin_vertex>','#include <begin_vertex>\n#ifdef USE_INSTANCING\n'+
-        'float sd9=fract(instanceMatrix[3].x*.0917+instanceMatrix[3].z*.0533+instanceMatrix[3].y*.021);'+
-        'float ph9=fract(uT9*(.22+.26*sd9)+sd9*13.);transformed.z+=(ph9-.5)*21.;vA9=sin(ph9*3.1416);\n#else\nvA9=1.;\n#endif');
-    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying float vA9;')
-      .replace('#include <fog_fragment>','gl_FragColor.rgb*=vA9;\n#include <fog_fragment>');};
-  CITY.matV=m;return m;
-}
 /* LES PANNEAUX HOLOGRAPHIQUES (2026-09-26) — le cyberpunk, c'est la PUB : seize réclames en pixels (la police du jeu) peintes UNE
    fois dans un atlas 512², posées face à la route sur les murs du canyon. Additives, elles flottent dans la pluie ; elles défilent
    en lignes de balayage et, de temps en temps, un GLITCH les décale. Un appel de rendu pour toutes ; chaque panneau pioche sa case
@@ -4781,7 +4795,7 @@ function villeMatPub(){
   m.dispose=function(){};CITY.matP=m;return m;
 }
 function buildVoxCity(seed,accC){
-  CITY.root=null;CITY.n={};
+  CITY.root=null;CITY.n={};CITY.col=null;
   if(PARK.on)return; // le parc a sa prairie
   if(LVL.cur&&LVL.cur.id!=='ville')return; // NIVEAUX : la ville n'existe qu'au niveau VILLE
   if(!(NP>1))return;
@@ -4797,15 +4811,15 @@ function buildVoxCity(seed,accC){
   const proches=(x,z,R,cb)=>{const r=Math.ceil(R/HB),bx=Math.floor(x/HB),bz=Math.floor(z/HB);
     for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const a=grille.get((bx+dx)+','+(bz+dz));if(a)for(let j=0;j<a.length;j++)cb(a[j]);}};
   // LA RÈGLE D'OR : [pied, toit] rognés pour que la route ne traverse JAMAIS la tour (null s'il ne reste rien)
-  const tourLibre=(cx,cz,hd,b,t)=>{const clr=hd+ROAD_HALF+16,c2=clr*clr;
+  const tourLibre=(cx,cz,hd,b,t)=>{const clr=hd+ROAD_HALF+24,c2=clr*clr; // (2026-09-26, user : « les immeubles ne doivent JAMAIS toucher la route ») marges élargies
     for(let pass=0;pass<4;pass++){let ok=true;
       proches(cx,cz,clr,function(i){const p=pts[i],dx=p.x-cx,dz=p.z-cz;if(dx*dx+dz*dz>c2)return;
-        if(p.y>t+40||p.y<b-30)return;ok=false;
-        if(p.y>(b+t)*.5)t=Math.min(t,p.y-40);else b=Math.max(b,p.y+34);});
+        if(p.y>t+60||p.y<b-40)return;ok=false;
+        if(p.y>(b+t)*.5)t=Math.min(t,p.y-60);else b=Math.max(b,p.y+44);});
       if(ok)break;if(t-b<40)return null;}
     return t-b>=40?[b,t]:null;};
   // LES CELLULES : maille SERRÉE près du ruban (le canyon), lâche au large ; chaque cellule retient le point de piste le plus proche
-  const R_CAN=330,R_VIL=1100,SN=IS_MOBILE?66:54,SF=IS_MOBILE?190:160;
+  const R_CAN=330,R_VIL=IS_MOBILE?1700:2100,SN=IS_MOBILE?66:54,SF=IS_MOBILE?230:200; // (2026-09-26) la forêt va jusqu'au brouillard
   const cellules=(S,R,garde)=>{const m=new Map(),rr=Math.ceil(R/S),pas=Math.max(1,Math.round(S*.6/(L/(NP-1))));
     for(let i=0;i<NP;i+=pas){const cx0=Math.round(pts[i].x/S),cz0=Math.round(pts[i].z/S);
       for(let dx=-rr;dx<=rr;dx++)for(let dz=-rr;dz<=rr;dz++){const gx=(cx0+dx)*S,gz=(cz0+dz)*S,d=Math.hypot(gx-pts[i].x,gz-pts[i].z);if(d>R)continue;
@@ -4867,27 +4881,19 @@ function buildVoxCity(seed,accC){
         pubs.push(pts[i].x+px*sg*d9+tx*al,pts[i].y+16+vr()*40,pts[i].z+pz*sg*d9+tz*al,Math.atan2(-px*sg,-pz*sg),pw,ph);}}
   }
   // AU LARGE : la forêt du village, par cases au sol (le fond de scène), calée sur le point de piste le plus proche
-  const cF=cellules(SF,R_VIL,d=>d>R_CAN),kF=Math.min(1,BUD*.4/Math.max(1,cF.length));
+  const cF=cellules(SF,R_VIL,d=>d>R_CAN),kF=Math.min(1,BUD*.55/Math.max(1,cF.length));
   for(const v of cF){if(vr()>kF*.8)continue;const cx=v[2]+(vr()-.5)*SF*.4,cz=v[3]+(vr()-.5)*SF*.4;
     let d2=1e12,yN=pts[v[1]].y,yLo=yN;
     proches(cx,cz,360,function(i){const p=pts[i],dx=p.x-cx,dz=p.z-cz,e=dx*dx+dz*dz;if(e<d2){d2=e;yN=p.y;}if(e<129600&&p.y<yLo)yLo=p.y;});
     batir(cx,cz,d2<1e12?Math.sqrt(d2):v[0],yN,yLo,false,snap(20+vr()*30),snap(20+vr()*30));}
   CITY.nC=Math.round(NP/pasC);CITY.nF=cF.length;
-  // LA CIRCULATION : des files de 170 m dans l'entre-deux (le bord de la route → le pied du canyon), un peu sous la dalle
-  const trafic=[];
-  const pasT=Math.max(1,Math.round((IS_MOBILE?70:52)/(L/(NP-1))));
-  for(let i=pasT;i<NP-pasT;i+=pasT){
-    if(vr()<.15)continue;const T9=T[i],N9=Nn[i];
-    if(N9.y<.55)continue;                                          // pas dans les loopings ni sur les dalles couchées
-    const sg=vr()<.5?-1:1,lat=sg*(ROAD_HALF+9+vr()*14),dy=-(6+vr()*26);
-    const lx=pts[i].x+B[i].x*lat,lz=pts[i].z+B[i].z*lat,ly=pts[i].y+B[i].y*lat+dy;
-    let libre=true; // la route ne doit repasser ni sur la file ni dessous à moins de 14 m (la file suit la PENTE du ruban)
-    for(let q=-2;q<=2&&libre;q++){const qx=lx+T9.x*q*42,qz=lz+T9.z*q*42,qy=ly+T9.y*q*42;
-      proches(qx,qz,ROAD_HALF+8,function(j){const p=pts[j],dx=p.x-qx,dz=p.z-qz;if(dx*dx+dz*dz<(ROAD_HALF+6)*(ROAD_HALF+6)&&Math.abs(p.y-qy)<12&&Math.abs(j-i)>pasT*3)libre=false;});}
-    if(!libre)continue;
-    const dir=vr()<.5?1:-1,n=3+((vr()*3)|0);
-    for(let c=0;c<n;c++)trafic.push(lx+(vr()-.5)*3,ly+(vr()-.5)*4,lz+(vr()-.5)*3,i,dir);
-  }
+  // (2026-09-26, user : « enlève les carrés qui bougent en l'air ») : la CIRCULATION VOLANTE est retirée
+  // LES TOURS SONT DURES (2026-09-26, user : « si le joueur entre en collision avec un immeuble, il meurt ») : chaque volume est rangé
+  // dans une grille de 60 m ; la boucle de vol demande `villeHeurt(position)` — quelques boîtes testées par image, rien de plus.
+  {const CG=60,g9=new Map();
+   for(let k=0;k<genre.length;k++){if(genre[k]===2)continue;const o=k*6,x0=corps[o]-corps[o+3]/2,x1=corps[o]+corps[o+3]/2,z0=corps[o+2]-corps[o+5]/2,z1=corps[o+2]+corps[o+5]/2;
+     for(let gx=Math.floor(x0/CG);gx<=Math.floor(x1/CG);gx++)for(let gz=Math.floor(z0/CG);gz<=Math.floor(z1/CG);gz++){const kk=gx+','+gz;let a=g9.get(kk);if(!a)g9.set(kk,a=[]);a.push(o);}}
+   CITY.col={g:g9,CG:CG,c:Float32Array.from(corps)};}
   // ---- LA POSE : trois InstancedMesh ----
   const CUBE=new THREE.BoxGeometry(1,1,1),M=new THREE.Matrix4(),Q=new THREE.Quaternion(),P=new THREE.Vector3(),SC=new THREE.Vector3(),AY=new THREE.Vector3(0,1,0);
   const pose=(n,mat,f)=>{
@@ -4908,19 +4914,13 @@ function buildVoxCity(seed,accC){
   if(neon.length){const imN=pose(neon.length/6,villeMatNeon(),function(i,M){const o=i*6;M.makeScale(neon[o+3],neon[o+4],neon[o+5]);M.setPosition(neon[o],neon[o+1],neon[o+2]);});
     for(let i=0;i<neonC.length;i++)imN.setColorAt(i,col.copy(NEON[neonC[i]]));
     if(imN.instanceColor)imN.instanceColor.needsUpdate=true;}
-  if(trafic.length){const nV=trafic.length/5,MB=new THREE.Matrix4(),TV=new THREE.Vector3(),RV=new THREE.Vector3(),UV=new THREE.Vector3(),imV=pose(nV,villeMatTrafic(),function(i,M){const o=i*5,j=trafic[o+3];
-      TV.copy(T[j]).multiplyScalar(trafic[o+4]);UV.copy(Nn[j]);RV.crossVectors(UV,TV).normalize();UV.crossVectors(TV,RV); // le repère de la file : le long du ruban, pente comprise
-      Q.setFromRotationMatrix(MB.makeBasis(RV,UV,TV));P.set(trafic[o],trafic[o+1],trafic[o+2]);SC.set(2.2,1.1,8);M.compose(P,Q,SC);});
-    for(let i=0;i<nV;i++){const av=trafic[i*5+4]>0,r9=vr();                // on les voit de DOS (feux rouges) ou de FACE (phares)
-      imV.setColorAt(i,av?col.setRGB(1.6,.16,.22):r9<.8?col.setRGB(1.7,1.6,1.35):col.setRGB(.5,1.4,1.8));}
-    if(imV.instanceColor)imV.instanceColor.needsUpdate=true;}
   if(pubs.length){const Qp=new THREE.Quaternion(),Pp=new THREE.Vector3(),Sp=new THREE.Vector3(),Ay=new THREE.Vector3(0,1,0),PL=new THREE.PlaneGeometry(1,1),n9=pubs.length/6;
     const imP=new THREE.InstancedMesh(PL,villeMatPub(),n9);
     for(let i=0;i<n9;i++){const o=i*6;Qp.setFromAxisAngle(Ay,pubs[o+3]);Pp.set(pubs[o],pubs[o+1],pubs[o+2]);Sp.set(pubs[o+4],pubs[o+5],1);M.compose(Pp,Qp,Sp);imP.setMatrixAt(i,M);}
     imP.instanceMatrix.needsUpdate=true;imP.frustumCulled=false;imP.renderOrder=3;root.add(imP);trackMeshes.push(imP);}
-  CITY.n={pubs:pubs.length/6,tours:nT,volumes:corps.length/6,neons:neon.length/6,trafic:trafic.length/5,routeY:[Math.round(yMin),Math.round(yMax)],ms:Math.round(performance.now()-t00),L:Math.round(L),cellsC:CITY.nC,cellsF:CITY.nF};
+  CITY.n={pubs:pubs.length/6,tours:nT,volumes:corps.length/6,neons:neon.length/6,routeY:[Math.round(yMin),Math.round(yMax)],ms:Math.round(performance.now()-t00),L:Math.round(L),cellsC:CITY.nC,cellsF:CITY.nF};
 }
-for(const f of [villeMatTours,villeMatNeon,villeMatTrafic])f().dispose=function(){}; // partagés sur toute la partie : le rebuild ne les jette pas
+for(const f of [villeMatTours,villeMatNeon])f().dispose=function(){}; // partagés sur toute la partie : le rebuild ne les jette pas
 /* L'HORIZON DE LA VILLE (2026-09-25, user : « la ligne d'horizon est moche »). La ville s'arrêtait NET à 3 000 unités,
    suivie d'une bande vide puis du ciel : on voyait le BORD du décor, et le brouillard bleu-noir tranchait sur l'horizon
    clair. La recette des jeux de ville nocturne : (1) le brouillard prend la teinte de la brume d'horizon, la ville S'Y
@@ -4932,7 +4932,7 @@ function villeHorizon(){
   if(CITY.horizon)return CITY.horizon;
   const W=2048,H=512,cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');
   const base=H*.62;                                                        // la « rue » de la couronne : en dessous, la brume pleine
-  let g=x.createLinearGradient(0,base-200,0,H);g.addColorStop(0,'rgba(51,31,72,0)');g.addColorStop(.45,'rgba(90,40,120,.55)');g.addColorStop(.62,HORIZON_VILLE_FOND);g.addColorStop(1,HORIZON_VILLE_FOND);
+  let g=x.createLinearGradient(0,base-260,0,H);g.addColorStop(0,'rgba(51,31,72,0)');g.addColorStop(.5,'rgba(51,31,72,.85)');g.addColorStop(.62,HORIZON_VILLE_FOND); // (2026-09-26) la brume, À LA COULEUR DU BROUILLARD : plus de bande violette claireg.addColorStop(1,HORIZON_VILLE_FOND);
   const rnd=(a,b)=>a+Math.random()*(b-a);
   /* (2026-09-26, user : « la skyline ne ressemble pas à la vraie ville — inspiration VILLAGE DE LA PLUIE, Naruto ») — c'était une
      skyline de Manhattan (blocs larges, fenêtres en damier). Le village caché de la pluie, c'est l'inverse : des tours d'acier
@@ -4955,7 +4955,7 @@ function villeHorizon(){
     px+=w+rnd(0,gap);}
     x.strokeStyle=col;x.lineWidth=3;for(let i=0;i<tours.length-1;i++)if(Math.random()<.4){const a=tours[i],b=tours[i+1],hy=base-Math.min(a[2],b[2])*rnd(.3,.8);x.beginPath();x.moveTo(a[0]+a[1],hy);x.lineTo(b[0],hy+rnd(-4,4));x.stroke();} // les PASSERELLES
   };
-  couche('#3a3f5c','#8d96b8',12,30,170,340,4,false,false);                 // l'arrière-plan : une forêt de tours d'acier pâles, serrées
+  couche('#2d2646','#4f5478',12,30,170,340,4,false,false);                 // l'arrière-plan : une forêt de tours d'acier dans la brume (2026-09-26 : assombrie, elle sortait pâle et plate)
   // LA TOUR DU CHEF : large, plus haute que tout, la tête ronde aux deux cornes et la bouche d'où pendent les tuyaux
   for(const cx of [W*.18,W*.62]){const tw=70,th=380,tx=cx-tw/2;x.fillStyle='#262a44';x.fillRect(tx,base-th,tw,th+2);
     x.beginPath();x.ellipse(cx,base-th,tw*.78,tw*.55,0,Math.PI,0);x.fill();
@@ -4964,9 +4964,10 @@ function villeHorizon(){
     x.fillStyle='#0d0e1c';x.fillRect(cx-tw*.3,base-th+tw*.05,tw*.6,tw*.16);                                                  // la bouche
     x.fillStyle='#ffd75e';x.globalAlpha=.85;x.fillRect(cx-tw*.28,base-th-tw*.22,6,4);x.fillRect(cx+tw*.28-6,base-th-tw*.22,6,4);x.globalAlpha=1; // les yeux allumés
     x.fillStyle='#4a5070';x.globalAlpha=.7;for(let t=0;t<5;t++){const px=cx-tw*.25+t*tw*.12;x.fillRect(px,base-th+tw*.2,3,th-tw*.2);}x.globalAlpha=1;} // les tuyaux-langues
-  couche('#171a2e','#5a6282',16,40,90,250,8,true,true);                    // le premier plan : plus sombre, allumé, antennes à feu rouge
-  x.fillStyle=g;x.fillRect(0,base-200,W,H-base+200);                       // la brume monte du sol et mange le pied des tours
-  x.globalAlpha=.55;x.fillStyle='#ff4fb0';x.fillRect(0,base-2,W,2);x.fillStyle='#2ee6ff';x.fillRect(0,base+3,W,1);x.globalAlpha=1; // la ligne néon de l'horizon
+  couche('#1b1631','#474d6c',16,40,90,250,8,true,true);                    // le premier plan : plus sombre, allumé, antennes à feu rouge
+  x.fillStyle=g;x.fillRect(0,base-260,W,H-base+260);                       // la brume monte du sol et mange le pied des tours
+  // (2026-09-26, user : « le haut et le bas avec la skyline, c'est mal géré ») : la ligne néon rose/cyan est RETIRÉE — elle traçait un sol
+  // plat à mi-hauteur des tours 3D (la piste de la ville descend de 8 km : il n'y a pas UN sol, il y a la brume)
   const tex=new THREE.CanvasTexture(cv);tex.wrapS=THREE.RepeatWrapping;tex.repeat.set(3,1);
   const R=5200,HH=2400;
   const m=new THREE.Mesh(new THREE.CylinderGeometry(R,R,HH,72,1,true),
@@ -4976,8 +4977,13 @@ function villeHorizon(){
 }
 function villeChauffe(){ // une instance de chaque, compilée hors écran puis retirée — les vraies réutilisent le programme
   const g=new THREE.Group(),geo=new THREE.BoxGeometry(1,1,1),c=new THREE.Color(1,1,1);
-  for(const m of [villeMatTours(),villeMatNeon(),villeMatTrafic(),villeMatPub()]){const im=new THREE.InstancedMesh(geo,m,1);im.setMatrixAt(0,new THREE.Matrix4());im.setColorAt(0,c);g.add(im);}
+  for(const m of [villeMatTours(),villeMatNeon(),villeMatPub()]){const im=new THREE.InstancedMesh(geo,m,1);im.setMatrixAt(0,new THREE.Matrix4());im.setColorAt(0,c);g.add(im);}
   scene.add(g);try{renderer.compile(scene,camera);}catch(e){}scene.remove(g);geo.dispose();
+}
+function villeHeurt(p){ // la caisse est-elle DANS une tour de la ville ? (marge : la demi-caisse)
+  const C=CITY.col;if(!C||!CITY.root)return false;const a=C.g.get(Math.floor(p.x/C.CG)+','+Math.floor(p.z/C.CG));if(!a)return false;const c=C.c;
+  for(let j=0;j<a.length;j++){const o=a[j];if(Math.abs(p.x-c[o])<c[o+3]/2+.9&&Math.abs(p.z-c[o+2])<c[o+5]/2+.9&&Math.abs(p.y-c[o+1])<c[o+4]/2+.5)return true;}
+  return false;
 }
 function cityTick(dt,camY){
   CITY.uT.value+=dt; // l'horloge des néons et de la circulation
@@ -4985,8 +4991,9 @@ function cityTick(dt,camY){
   const r=CITY.root;
   if(!r){if(CITY.horizon)CITY.horizon.visible=false;return;}
   // la couronne peinte suit la caméra (elle est « à l'infini ») ; sa rue se pose dans la brume, 420 m sous l'œil
-  const hz=villeHorizon();hz.visible=true;hz.position.set(camera.position.x,camY-420+hz.userData.hh*.12,camera.position.z);
+  const hz=villeHorizon();hz.visible=true;hz.position.set(camera.position.x,camY-900+hz.userData.hh*.12,camera.position.z); // (2026-09-26) sa rue 900 m sous l'œil : seuls les SOMMETS dépassent, au fond
 }
+window.dbgHeurt=function(){const p=carGroup.position,C=CITY.col;if(!C)return 'pas de grille';const a=C.g.get(Math.floor(p.x/C.CG)+','+Math.floor(p.z/C.CG));let best=1e9;if(a)for(const o of a){const c=C.c;const dx=Math.max(0,Math.abs(p.x-c[o])-c[o+3]/2),dz=Math.max(0,Math.abs(p.z-c[o+2])-c[o+5]/2),dy=Math.max(0,Math.abs(p.y-c[o+1])-c[o+4]/2);best=Math.min(best,Math.hypot(dx,dy,dz));}return {cell:a?a.length:0,plusProche:+best.toFixed(1),pos:[+p.x.toFixed(0),+p.y.toFixed(0),+p.z.toFixed(0)],heurt:villeHeurt(p)};}; // (dev) collision des tours
 window.dbgCity=function(){return CITY.root?Object.assign({},CITY.n,{sousLaCamera:null,brouillardFar:FOG_F}):'absente (autre niveau ou parc)';};
 // ---------- PARC : LE SOL — une prairie d'HERBE LONGUE animée par le vent ----------
 // Un grand tapis vert texturé (qui prend l'éclairage des biomes) SOUS la sphère, planté de dizaines de
@@ -5287,12 +5294,14 @@ const CARS=[
 // dernier palier (760 pièces → 40 000). Ce qui est en dessous est inchangé à effort comparable ;
 // ce qui est au-dessus prolonge la rampe. Série 1-1,6-2,5-4-6,2 par décade (ratio ×1,585,
 // 5 marches par décade) : des nombres qui se lisent, sur 6 décades.
-const DENOMS=[10,16,25,40,62,
-              100,155,245,390,620,
-              980,1550,2450,3900,6200,
-              9800,15500,24500,39000,62000,
-              98000,155000,245000,390000,620000,
-              980000,1.55e6,2.45e6,3.9e6,6.2e6]; // 30 paliers moteur
+/* ⚠ ÉCONOMIE v4 — ALIGNÉE SUR LE PRIX DES CAISSES (2026-09-26, user : « après un bon score j'ai gagné trop d'argent, équilibrage
+   à faire pour rester aligné sur la valeur des voitures »). Mesuré sur sa capture : une grande partie (palier moteur 30, niveau 6,
+   119 figures) versait 401 MILLIARDS — la pièce valait ×1,585 par palier (6,2 M au palier 30) alors que la caisse la plus chère
+   coûte 2,5 M. Désormais la pièce monte DOUCEMENT (×1,06 par palier : 3 → 16 $). Une partie de débutant rapporte ~1-2 k (une
+   COMMUNE en une à trois parties), une très grande partie ~1 M (une ÉPIQUE en deux ou trois) — les 16 k des rares se méritent. */
+const DENOMS=[3,3,3,4,4,4,4,5,5,5,
+              5,6,6,6,7,7,8,8,9,9,
+              10,11,11,12,12,13,14,15,16,16]; // 30 paliers moteur
 // ⚠ `THRESH` A ÉTÉ RETIRÉ (2026-08-03) — c'était l'échelle de 23 seuils d'argent qui faisait tomber
 // les caisses EN COURS de partie. Depuis que les voitures se débloquent sur des exploits persistants
 // (voir CAR_UNLOCK), plus une seule ligne ne la lisait : la laisser aurait fait croire qu'elle pilote
@@ -5855,7 +5864,7 @@ const LVL={cur:null,n:0,k:1,dur:4,
   dir:PLANET_DIR.clone(),tmp:new THREE.Vector3(),tmp2:new THREE.Vector3(),haut:new THREE.Vector3(0,1,0)};
 // LA LARGEUR PAR NIVEAU (× ROAD_HALF0 = 14) : très large pour apprendre (47,6 m), puis la route se resserre à chaque
 // portail jusqu'au plancher ×1,1 (30,8 m). Une nouvelle partie repart au niveau 1.
-const LARGEUR=[1.7]; // (2026-09-25, user : « enlève le rétrécissement de la route, ça sert à rien, la vitesse fait tout le travail ») : 47,6 m partout — était [1.7,1.55,1.4,1.25,1.1]
+const LARGEUR=[2.0]; // (2026-09-26, user : « fais les routes un peu plus larges ») 1,7 → 2,0 : 47,6 → 56 m // (2026-09-25, user : « enlève le rétrécissement de la route, ça sert à rien, la vitesse fait tout le travail ») : 47,6 m partout — était [1.7,1.55,1.4,1.25,1.1]
 function lvlChoisir(){ // appelé par newTrack AVANT buildTrack
   const z=runStats.zones|0;
   ROAD_HALF=ROAD_HALF0*(PARK.on?1.4:LARGEUR[Math.min(LARGEUR.length-1,z)]);
@@ -5868,7 +5877,7 @@ function lvlChoisir(){ // appelé par newTrack AVANT buildTrack
   }
   if(TUTO.on&&z===0){ // L'AUTO-ÉCOLE : la piste dessinée à la main, sous le ciel nu de l'aurore
     LVL.cur=Object.assign({},NIVEAUX.find(n9=>n9.id==='nuages'),{bio:['aurore'],sansNuages:1,piste:'tuto'}); // (l'auto-école garde le ciel NU de l'aurore : on y lit tout)
-    LVL.n=1;lvlAstre(null);ROAD_HALF=ROAD_HALF0*1.7;return LVL.cur;}
+    LVL.n=1;lvlAstre(null);ROAD_HALF=ROAD_HALF0*2.0;return LVL.cur;}
   LVL.cur=NIVEAUX[z%NIVEAUX.length];LVL.n=z+1;lvlAstre(null);
   return LVL.cur;
 }
@@ -5996,7 +6005,7 @@ const CARRIERE=[
     {nm:'SATURNE',astre:{teinte:0xd8c08a,atmo:0xfff0c0,echelle:1.45}},{nm:'URANUS',astre:{teinte:0x7fd6d8,atmo:0xb8ffff,echelle:1.35}},
     {nm:'NEPTUNE',astre:{teinte:0x3a5fd0,atmo:0x7fa8ff,echelle:1.35}},{nm:'PLUTON',astre:{teinte:0xb8a48c,atmo:0xe8dccb,echelle:1.0}}]},
 ];
-const CARR_LARG=[1.7,1.7,1.7,1.7,1.7,1.7,1.7,1.7,1.7,1.7]; // (2026-09-25) la carrière ne rétrécit plus non plus : c'est la vitesse qui monte
+const CARR_LARG=[2,2,2,2,2,2,2,2,2,2]; // (2026-09-26) plus larges, comme la course // (2026-09-25) la carrière ne rétrécit plus non plus : c'est la vitesse qui monte
 const CARR={actif:null}; // {b: index de biome, i: niveau de départ} — null = partie sans fin
 function bioMix(a,b,t){ // un biome INTERMÉDIAIRE, bâti une fois et rangé dans BIOMES
   const k=a+'>'+b+'@'+t;
@@ -10607,6 +10616,7 @@ const engVigEl=document.getElementById('engVig'),engVigCapEl=document.getElement
 const engEndEl=document.getElementById('endEng'),engEndCapEl=document.getElementById('endEngCap'),engEndTierEl=document.getElementById('endEngTier');
 const engEndCv=document.getElementById('endEngCv'),engEndCtx=engEndCv?engEndCv.getContext('2d'):null;
 let engEndT=0,engEndBuf=null,engEndImg=null; // rapatriement GPU→CPU pour l'écran de fin (voir engVigRender)
+const ENG_MORT={cv:null,ctx:null}; // (2026-09-26) le <canvas> du moteur 3D de l'écran de mort (téléphone) — posé par la carte MOTEUR
 const engVigScene=new THREE.Scene();
 const engVigCam=new THREE.PerspectiveCamera(34,1.5,.1,80);
 // ⚠ POSÉE ICI, PAS DANS LA BOUCLE : elle ne bouge jamais, et le cadrage automatique (engVigBuild) lit
@@ -10734,7 +10744,10 @@ function engVigRender(dt){
               temps : aucun rendu, et surtout plus la relecture GPU→CPU de l'écran de fin masqué (20 par seconde pour rien). */
     if(engVigEl&&engVigEl.style.display!=='none')engVigEl.style.display='none';
     if(engEndEl&&engEndEl.style.display!=='none')engEndEl.style.display='none';
-    if(!(engBig.on&&engBig.ctx)){if(engSwapT>0)engSwapT=Math.max(0,engSwapT-dt);return;}
+    // (2026-09-26, user : « dans l'écran de mort, au lieu d'avoir marqué ENGINE GAS TURBINE, il faut voir le 3D ») : le moteur tourne aussi
+    // dans la carte MOTEUR de l'écran de mort, tant qu'elle est à l'écran
+    const mort9=gameOver&&ENG_MORT.ctx&&ENG_MORT.cv&&ENG_MORT.cv.isConnected&&ENG_MORT.cv.offsetParent!==null;
+    if(!(engBig.on&&engBig.ctx)&&!mort9){if(engSwapT>0)engSwapT=Math.max(0,engSwapT-dt);return;}
     cible=null;
   }else{
     cible=fin?engEndEl:engVigEl;
@@ -10823,7 +10836,7 @@ function engVigRender(dt){
      qui suffit largement pour une rotation lente, et on est de toute façon à l'arrêt. Les lignes
      arrivent de bas en haut, d'où le retournement. */
   if(fin||tel){ // (tel : la carte du téléphone, même recopie — 30 images/s, le temps de la carte seulement)
-    const now9=performance.now(),ctx9=tel?engBig.ctx:engEndCtx;
+    const now9=performance.now(),ctx9=tel?((engBig.on&&engBig.ctx)?engBig.ctx:ENG_MORT.ctx):engEndCtx;
     if(now9-engEndT>(tel?33:50)&&ctx9){
       engEndT=now9;
       const w=engRT.width,h=engRT.height;
@@ -10979,10 +10992,20 @@ const coinTex=(function(){
   const t=new THREE.CanvasTexture(cv);t.magFilter=THREE.NearestFilter;t.minFilter=THREE.NearestFilter;t.generateMipmaps=false;
   return t;
 })();
+/* (2026-09-26, user : « les items sur la route plus gros, plus beaux, mieux travaillés ») : la pièce grossit (Ø 2,6 m), passe à 12 pans
+   et reçoit un JONC en relief — un tore fusionné à la galette, dont les UV lisent le pixel clair de la tranche : on voit une vraie
+   pièce frappée, avec sa bordure qui accroche la lumière, et c'est toujours UNE matière, UN appel de dessin. */
+function geoFusion(gs){ // fusionne des géométries (position/normale/uv) en une seule, non indexée
+  const P=[],N=[],U=[];
+  for(const g0 of gs){const g=g0.index?g0.toNonIndexed():g0;P.push(...g.attributes.position.array);N.push(...g.attributes.normal.array);U.push(...g.attributes.uv.array);}
+  const o=new THREE.BufferGeometry();o.setAttribute('position',new THREE.Float32BufferAttribute(P,3));o.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));
+  o.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));return o;
+}
 const pickGeo=(function(){
-  const g=new THREE.CylinderGeometry(.86,.86,.24,8);g.rotateX(Math.PI/2);
-  const uv=g.attributes.uv;for(let i=0;i<18;i++)uv.setXY(i,.47,.16); // la TRANCHE : tout le pourtour lit un pixel « ombre d'or »
-  return g;
+  const g=new THREE.CylinderGeometry(1.18,1.18,.30,12);g.rotateX(Math.PI/2);
+  const uv=g.attributes.uv;for(let i=0;i<26;i++)uv.setXY(i,.47,.16); // la TRANCHE : tout le pourtour lit un pixel « ombre d'or »
+  const t=new THREE.TorusGeometry(1.18,.13,6,24);const tu=t.attributes.uv;for(let i=0;i<tu.count;i++)tu.setXY(i,.47,.91); // le JONC : le pixel clair
+  return geoFusion([g,t]);
 })();
 const pickMat=new THREE.MeshPhongMaterial({map:coinTex,emissive:0xffffff,emissiveMap:coinTex,emissiveIntensity:.42,
   shininess:90,specular:0xfff0b0,flatShading:true});
@@ -11483,7 +11506,7 @@ const FEU_PAL=[[0,0,0,0],[40,6,4,120],[70,10,6,170],[110,18,8,210],[150,28,8,235
   [250,110,14,255],[255,136,20,255],[255,160,30,255],[255,182,44,255],[255,200,64,255],[255,216,90,255],[255,228,120,255],
   [255,238,156,255],[255,246,196,255],[255,252,228,255],[255,255,255,255]];
 function nitroFeu(dt){
-  const cible=(pwrNitroT>0&&running&&!gameOver)?1:(nitroOn&&running&&!gameOver?.45:0);
+  const cible=(pwrNitroT>0&&running&&!gameOver)?1:0; // (2026-09-26, user : « les flammes sur la barre, c'est QUE en nitro infini »)
   FEU.src+=(cible-FEU.src)*Math.min(1,dt*7);
   if(!FEU.vif&&FEU.src<.03)return;
   if(!FEU.cv){const nb=document.getElementById('nitroBar');if(!nb)return;
@@ -11735,6 +11758,47 @@ function carPhoto(i){
    `function(K){…}` au format de SHAPES — ou le nom d'un gabarit existant, pour comparer) sur une fiche, et rend des PHOTOS de studio
    720 × 440 (dataURL) sous les angles demandés (rotation Y de la caisse, en radians), plus le nombre de facettes et le hors-tout.
    C'est le banc des agents qui modèlent la gamme : on juge une caisse à l'œil, sans toucher au jeu. Refusé en pleine course. */
+/* `dbgEssaiObjets()` (dev, 2026-09-26) — la planche des OBJETS DE LA ROUTE sous le studio photo : pièce, fruits, pouvoirs, plot.
+   Une vignette 240 × 200 par objet, rendue à l'ÉCHELLE DU JEU (même taille relative), pour juger taille et facture d'un coup d'œil. */
+/* `dbgEssaiFruit(src, pal)` (dev, 2026-09-26) — essaie un FRUIT écrit en texte (`function(K){…}` au format de FRUIT_DEFS[i].lp, avec la
+   palette FRUIT_PAL complétée par `pal`) : 4 vues de studio 360 × 300, à l'échelle du jeu (×2,7), + facettes. Le banc de l'atelier. */
+window.dbgEssaiFruit=function(src,pal){
+  if(started&&!gameOver)return {err:'en course'};
+  let f;try{f=(new Function('THREE','SPH','LPU','return ('+src+');'))(THREE,SPH,LPU);}catch(e){return {err:'SYNTAXE : '+e.message};}
+  let geo;try{const K=lpKit(Object.assign({},FRUIT_PAL,pal||{}));f(K);geo=K.done().f;}catch(e){return {err:'CONSTRUCTION : '+e.message};}
+  if(!geo)return {err:'aucune facette en matière f'};
+  if(!FRUIT_MAT){FRUIT_MAT=lpMat('f');FRUIT_MAT.userData.lp=0;}
+  carPhoto(0);const W=360,H=300,rt=new THREE.WebGLRenderTarget(W,H),cam=new THREE.PerspectiveCamera(30,W/H,.1,200);
+  const m=new THREE.Mesh(geo,FRUIT_MAT);m.scale.setScalar(2.7);const vis=carGroup.visible;carGroup.visible=false;PHOTO.scene.add(m);
+  const out={photos:[],facettes:Math.round(geo.attributes.position.count/3)};
+  for(const a of [.5,2.1,3.7,5.3]){m.rotation.set(0,a,0);cam.position.set(6.5,3.2,8);cam.lookAt(0,.2,0);
+    const prt=renderer.getRenderTarget();renderer.setRenderTarget(rt);renderer.setClearColor(0x1e1838,1);renderer.clear();renderer.render(PHOTO.scene,cam);
+    const buf=new Uint8Array(W*H*4);renderer.readRenderTargetPixels(rt,0,0,W,H,buf);renderer.setRenderTarget(prt);
+    const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d'),im=x.createImageData(W,H);
+    for(let y=0;y<H;y++){const s0=(H-1-y)*W*4;for(let k=0;k<W*4;k++)im.data[y*W*4+k]=buf[s0+k];}
+    x.putImageData(im,0,0);out.photos.push(cv.toDataURL('image/png'));}
+  PHOTO.scene.remove(m);geo.dispose();carGroup.visible=vis;rt.dispose();renderer.setClearColor(0x000000,0);
+  return out;
+};
+window.dbgEssaiObjets=function(){
+  if(started&&!gameOver)return {err:'en course'};
+  carPhoto(0);const W=240,H=200,rt=new THREE.WebGLRenderTarget(W,H),cam=new THREE.PerspectiveCamera(30,W/H,.1,200);
+  const objs=[['PIÈCE',()=>new THREE.Mesh(pickGeo,pickMat)]];
+  for(let i=0;i<FRUIT_DEFS.length;i++)objs.push([FRUIT_DEFS[i].n,()=>mkFruit(i)]);
+  for(const k of ['n','a','v'])objs.push(['POUVOIR '+k,()=>mkPower(k,1)]);
+  objs.push(['PLOT',()=>mkCone()]);
+  const out=[];const vis=carGroup.visible;carGroup.visible=false;
+  for(const o of objs){const m=o[1]();PHOTO.scene.add(m);m.position.set(0,0,0);m.rotation.y=.6;
+    cam.position.set(4.2,2.4,5.2);cam.lookAt(0,.6,0);
+    const prt=renderer.getRenderTarget();renderer.setRenderTarget(rt);renderer.setClearColor(0x2a2140,1);renderer.clear();renderer.render(PHOTO.scene,cam);
+    const buf=new Uint8Array(W*H*4);renderer.readRenderTargetPixels(rt,0,0,W,H,buf);renderer.setRenderTarget(prt);
+    PHOTO.scene.remove(m);
+    const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d'),im=x.createImageData(W,H);
+    for(let y=0;y<H;y++){const s0=(H-1-y)*W*4;for(let k=0;k<W*4;k++){let v2=buf[s0+k];if((k&3)!==3)v2=Math.min(255,Math.pow(v2/255,1/1.3)*255);im.data[y*W*4+k]=v2;}}
+    x.putImageData(im,0,0);x.fillStyle='#fff';x.font='12px monospace';x.fillText(o[0],6,16);out.push(cv.toDataURL('image/png'));}
+  carGroup.visible=vis;rt.dispose();renderer.setClearColor(0x000000,0);
+  return {photos:out};
+};
 window.dbgEssaiCaisse=function(src,fiche,vues){
   if(started&&!gameOver)return {err:'en course : essai refusé'};
   const nom='__essai',W=720,H=440;let f;
@@ -12859,32 +12923,34 @@ function fruitPick(rnd){ // tirage PONDÉRÉ par la fréquence (un brocoli reste
   for(let i=0;i<FRUIT_DEFS.length;i++){r-=Math.max(0,FRUIT_DEFS[i].freq);if(r<=0)return i;}
   return FRUIT_DEFS.length-1;
 }
-function mkFruit(i){ const g=new THREE.Mesh(fruitGeo(i),FRUIT_MAT);g.scale.setScalar(1.9);g.userData.fruit=i;return g; } // 1,15 → 1,9 : on les repère de loin · UN mesh par fruit
+function mkFruit(i){ const g=new THREE.Mesh(fruitGeo(i),FRUIT_MAT);g.scale.setScalar(2.7);g.userData.fruit=i;return g; } // (2026-09-26) ×2,7 // 1,15 → 1,9 : on les repère de loin · UN mesh par fruit
 function mkNitro(rnd){ return mkFruit(fruitPick(rnd)); }
 // POUVOIRS : grosses orbes rares — sphère de verre teinté + cœur brûlant + anneau qui tourne
-const pwrGeo=new THREE.SphereGeometry(1.5,18,14),pwrCoreGeo=new THREE.SphereGeometry(.6,12,10),
-      pwrRingGeo=new THREE.TorusGeometry(2,.13,8,28);
+const pwrGeo=new THREE.IcosahedronGeometry(1.9,1),pwrCoreGeo=new THREE.OctahedronGeometry(.95,0), // (2026-09-26) le CRISTAL à facettes et son cœur-étoile
+      pwrRingGeo=new THREE.TorusGeometry(2.6,.12,6,32);
 const PWR_DEFS={ // n = nitro infinie · a = airtime infini · v = speed up
   n:{col:0x1e7bff,core:0xaee4ff,ico:'',msg:'NITRO INFINIE — 6 s À FOND !',hud:'NITRO ∞',tint:'#4db8ff',t:6,gros:'NITRO ILLIMITEE',sous:'6 S A FOND',c2:'#1e3bff',fx:'rgba(77,184,255,.85)',fx2:'rgba(30,90,255,.35)'},
   a:{col:0x7dffec,core:0xeafffb,ico:'🪂',msg:'🪂 AIRTIME INFINI — 10 s DE VOL !',hud:'AIR ∞',tint:'#7dffec',t:10,gros:'AIRTIME INFINI',sous:'10 S DE VOL',c2:'#1fb8a8',fx:'rgba(125,255,236,.8)',fx2:'rgba(30,200,180,.3)'},
-  v:{col:0xff2e8a,core:0xffd0e8,ico:'⚡',msg:'⚡ VITESSE +60% — 6 s !',hud:'VITESSE +60%',tint:'#ff3ec8',t:6,gros:'VITESSE +60%',sous:'6 S',c2:'#ff2e8a',fx:'rgba(255,62,200,.85)',fx2:'rgba(255,46,138,.35)'}};
+  v:{col:0xff2e8a,core:0xffd0e8,ico:'⚡',msg:'⚡ VITESSE ×2 — 6 s !',hud:'VITESSE ×2',tint:'#ff3ec8',t:6,gros:'VITESSE ×2',sous:'6 S',c2:'#ff2e8a',fx:'rgba(255,62,200,.85)',fx2:'rgba(255,46,138,.35)'}};
 for(const k in PWR_DEFS){const d=PWR_DEFS[k];
-  d.glassM=new THREE.MeshPhongMaterial({color:d.col,emissive:d.col,emissiveIntensity:.45,shininess:260,specular:0xffffff,envMap:envTex,reflectivity:.55,transparent:true,opacity:.42,depthWrite:false});
+  d.glassM=new THREE.MeshPhongMaterial({color:d.col,emissive:d.col,emissiveIntensity:.5,shininess:260,specular:0xffffff,envMap:envTex,reflectivity:.6,transparent:true,opacity:.5,depthWrite:false,flatShading:true});
   d.coreM=new THREE.MeshBasicMaterial({color:d.core});
   d.ringM=new THREE.MeshBasicMaterial({color:d.col,transparent:true,opacity:.85});
   // ÉTIQUETTE FLOTTANTE : pictogramme + nom au-dessus de l'orbe — on sait ce qu'on vise AVANT de le prendre
   const cv=document.createElement('canvas');cv.width=cv.height=128;
   const c=cv.getContext('2d');c.textAlign='center';
-  if(d.ico)c.font='58px sans-serif',c.fillText(d.ico,64,56); // (la NITRO INFINIE n'a plus de pictogramme : la flamme au-dessus de l'orbe bleue a sauté)
-  c.font='bold 17px monospace';c.lineWidth=5;c.lineJoin='round';c.strokeStyle='rgba(8,10,22,.92)';
-  c.strokeText(d.hud,64,100);c.fillStyle=d.tint;c.fillText(d.hud,64,100);
+  if(d.ico)c.font='52px sans-serif',c.fillText(d.ico,64,54); // (la NITRO INFINIE n'a plus de pictogramme : la flamme au-dessus de l'orbe bleue a sauté)
+  // (2026-09-26) l'étiquette dans la POLICE DU JEU (pixel), cerclée de nuit — plus de monospace flou ; « ∞ » n'existe pas en pixel : MAX
+  const lb=String(d.hud).replace('∞','MAX').replace(' +60%','');c.font='13px "Press Start 2P",monospace';c.lineWidth=6;c.lineJoin='round';c.strokeStyle='rgba(8,10,22,.95)';
+  c.strokeText(lb,64,102);c.fillStyle=d.tint;c.fillText(lb,64,102);
   d.icoM=new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthWrite:false});
 }
 function mkPower(kind,dir){
   const d=PWR_DEFS[kind],g=new THREE.Group();
   g.add(new THREE.Mesh(pwrCoreGeo,d.coreM),new THREE.Mesh(pwrGeo,d.glassM));
   const ring=new THREE.Mesh(pwrRingGeo,d.ringM);ring.rotation.x=Math.PI/2;g.add(ring);
-  const ic=new THREE.Sprite(d.icoM);ic.scale.set(5,5,1);ic.position.y=(dir||1)*3.2;g.add(ic); // sous la route : étiquette côté joueur
+  const ring2=new THREE.Mesh(pwrRingGeo,d.ringM);ring2.rotation.set(Math.PI/2,.9,0);ring2.scale.setScalar(.84);g.add(ring2); // (2026-09-26) le 2e anneau, croisé : un gyroscope
+  const ic=new THREE.Sprite(d.icoM);ic.scale.set(6,6,1);ic.position.y=(dir||1)*4.1;g.add(ic); // sous la route : étiquette côté joueur
   return g;
 }
 const pickups=[];
@@ -19440,7 +19506,7 @@ function loop(now){
       driftT=Math.max(0,driftT-dt*2.2); // retombe après un atterrissage en travers
       psi=THREE.MathUtils.clamp(psi,-1.4,1.4);
       vL=vA*Math.sin(psi-slipB); // la TRAJECTOIRE : le cap moins la glisse (0 hors drift)
-      const spdMult=pwrSpdT>0?1.6:1; // SPEED UP : le sol défile +60% plus vite, sans casser la physique
+      const spdMult=pwrSpdT>0?2:1; // SPEED UP : le sol défile DEUX FOIS plus vite (2026-09-26, user : « le power-up vitesse doit faire ×2 »), sans casser la physique
       lat+=vL*driveDir*dt*SPD*spdMult;
       const sPrev9=s; // ⚠ mémorisé AVANT l'avance : les tremplins se testent sur le SEGMENT parcouru, pas sur un point
       s+=vA*Math.cos(psi-slipB)*driveDir*dt*SPD*spdMult; // avance le long du ruban dans le SENS de conduite (parc : avant OU arrière)
@@ -19610,10 +19676,10 @@ function loop(now){
           if(p.air)continue;                        // les grappes du CIEL ne s'attrapent qu'en vol
           // CAPACITÉ MOTEUR (V12 atmosphérique) : L'AIMANT À PIÈCES — elles viennent à toi de bien plus
           // loin, et plus vite. Sans lui, on garde l'attraction d'origine, discrète.
-          if(ds9<15+mag*2&&Math.abs(p.lat-side*lat)<7+level*.4+mag*2) // portée LATÉRALE de l'aimant à pièces (route large)
-            p.mesh.position.lerp(carGroup.position,Math.min(1,dt*(4.5+level*.3+mag*1.5)));
+          if(ds9<15+mag*2&&Math.abs(p.lat-side*lat)<9+mag*2) // (2026-09-26) plus de `level` ici : c'est l'index de la caisse (66), l'aimant faisait 33 m sur les dernières // portée LATÉRALE de l'aimant à pièces (route large)
+            p.mesh.position.lerp(carGroup.position,Math.min(1,dt*(6+mag*1.5)));
         }
-        if(p.mesh.position.distanceTo(carGroup.position)<2.7+level*.2+mag*.5){
+        if(p.mesh.position.distanceTo(carGroup.position)<3.8+mag*.5){ // (2026-09-26) portée FIXE (les objets ont grossi)
           p.taken=true;scene.remove(p.mesh);
           if(p.pow){ // POUVOIR : le minuteur démarre, l'écran l'annonce en couleur
             const d=PWR_DEFS[p.pow];
@@ -19727,8 +19793,8 @@ function loop(now){
         // BRAISES d'échappement : fines, vie COURTE, jet serré — le plume mesh (JETS) et la traînée
         // font le spectacle, les particules ne sont plus que des étincelles qui giclent. Fini le mur
         // blanc : avant, des sprites géants restaient plantés dans le monde et la caméra les TRAVERSAIT.
-        flames.mesh.material.size=Math.min(.62,.27+level*.022)*(nitroOn?1.2:1)*(.8+Math.random()*.3); // PETIT : une étincelle, pas un ballon (le plume mesh fait le volume)
-        flameCore.mesh.material.size=Math.min(.34,.14+level*.012)*(nitroOn?1.25:1)*(.75+Math.random()*.35);
+        flames.mesh.material.size=Math.min(.62,.27+Math.min(level,15)*.022)*(nitroOn?1.2:1)*(.8+Math.random()*.3); // PETIT : une étincelle, pas un ballon (le plume mesh fait le volume)
+        flameCore.mesh.material.size=Math.min(.34,.14+Math.min(level,15)*.012)*(nitroOn?1.25:1)*(.75+Math.random()*.35);
         flames.mesh.material.color.set(nitroOn?(nitroBlue?0x3a5bff:0xff8020):0xff9030);
         flameCore.mesh.material.color.set(nitroOn?(nitroBlue?0xbfd6ff:0xffd9a0):0xffe2a8);
         const fl=(up||nitroOn)?(nitroOn?5:2)+Math.min(3,Math.floor(level/5)):(Math.abs(vF)>8?1:0);
@@ -19741,7 +19807,7 @@ function loop(now){
           tmp2.copy(carGroup.position).addScaledVector(fwdW,-spec.l/2-.22).addScaledVector(tmp,sd3*spec.w*.22).addScaledVector(F.n,.43);
           const vsp=nitroOn?.6:.9; // flux SERRÉ le long de l'axe : un jet, pas un nuage
           spawnP(flames,tmp2.x+(Math.random()-.5)*.10,tmp2.y+(Math.random()-.5)*.10,tmp2.z+(Math.random()-.5)*.10,
-            EXV.x-fwdW.x*(13+level*.3+(nitroOn?8:0))+(Math.random()-.5)*vsp,EXV.y+F.n.y*.5+(Math.random()-.5)*vsp,EXV.z-fwdW.z*(13+level*.3+(nitroOn?8:0))+(Math.random()-.5)*vsp, // ≤ 2,5 m derrière le pot : la caméra est 3 m plus loin
+            EXV.x-fwdW.x*(13+Math.min(level,15)*.3+(nitroOn?8:0))+(Math.random()-.5)*vsp,EXV.y+F.n.y*.5+(Math.random()-.5)*vsp,EXV.z-fwdW.z*(13+Math.min(level,15)*.3+(nitroOn?8:0))+(Math.random()-.5)*vsp, // ≤ 2,5 m derrière le pot : la caméra est 3 m plus loin
             .05+(nitroOn?.04:0)+Math.random()*.05);
           if(false)spawnP(exSmoke,tmp2.x,tmp2.y+.2,tmp2.z, // (2026-09-26) COUPÉ : laissée derrière, la fumée était TRAVERSÉE par la caméra de poursuite — chaque point grossissait jusqu'à un DÔME gris-blanc derrière la caisse (la « tache ronde » bannie)
             -fwdW.x*3+(Math.random()-.5)*1.5,.8+Math.random(),-fwdW.z*3+(Math.random()-.5)*1.5,
@@ -19750,7 +19816,7 @@ function loop(now){
             EXV.x-fwdW.x*(2+Math.random()*4)+(Math.random()-.5)*3,EXV.y+1+Math.random()*3,EXV.z-fwdW.z*(2+Math.random()*4)+(Math.random()-.5)*3,
             .15+Math.random()*.15);
           if(k<2)spawnP(flameCore,tmp2.x+(Math.random()-.5)*.06,tmp2.y+(Math.random()-.5)*.06,tmp2.z+(Math.random()-.5)*.06,
-            EXV.x-fwdW.x*(16+level*.3+(nitroOn?8:0))+(Math.random()-.5)*.5,EXV.y+F.n.y*.3+(Math.random()-.5)*.5,EXV.z-fwdW.z*(16+level*.3+(nitroOn?8:0))+(Math.random()-.5)*.5,
+            EXV.x-fwdW.x*(16+Math.min(level,15)*.3+(nitroOn?8:0))+(Math.random()-.5)*.5,EXV.y+F.n.y*.3+(Math.random()-.5)*.5,EXV.z-fwdW.z*(16+Math.min(level,15)*.3+(nitroOn?8:0))+(Math.random()-.5)*.5,
             .04+Math.random()*.04+(nitroOn?.03:0));
         }
         // backfire : pop de flammes quand on relâche les gaz à haut régime
@@ -19876,6 +19942,7 @@ function loop(now){
       const dtF=dt*AIR_RATE; // temps de vol accéléré : même arc dans l'espace, moins de temps réel à flotter
       fallT+=dtF;fallTR+=dt; // fallT = temps-sim (figures/paiements) ; fallTR = temps RÉEL (jauge des 6 s — sinon le chrono file à ×1,6)
       if(nitroOn)nitroAirT+=dtF; // temps de réacteur dans CE vol (METEOR / MEGA METEOR)
+      if(!nitroOn)loop._nAir=false; // (2026-09-26) l'impulsion se RÉARME au relâché
       fallVel.y-=FALL_G*dtF;
       // (vol libre, 2026-09-26) l'ANTI-BLOCAGE DU LACET a sauté : il rendait « un minimum d'horizontale » parce que le volant tournait
       // autour de l'axe VERTICAL du monde (mort en trajectoire verticale). Le volant tourne désormais autour du HAUT DE LA CAISSE
@@ -19889,6 +19956,14 @@ function loop(now){
       yawAcc+=yawIn;
       if(nitroOn){ // RÉACTEUR : il fait planer et donne l'assiette (piqué/cabré) — il n'accélère plus (vol v7 : inertie)
         fallVel.y+=FALL_G*(nitroBlue?.75:.6)*dtF; // (vol v7) le RÉACTEUR fait PLANER : il reprend 60 % de la gravité (75 % en réserve bleue)
+        /* (2026-09-26, user : « le boost nitro aérien doit VRAIMENT donner une impulsion, indépendamment de la vitesse de départ, qui s'y
+           additionne, comme un propulseur ») : à l'ALLUMAGE en vol, un coup de réacteur de +32 m/s (× le palier moteur) dans l'axe du
+           vol, quelle que soit la vitesse d'éjection. Un par allumage (0,5 s mini entre deux), et il coûte 12 % de réserve. */
+        if(!loop._nAir&&nitroOn&&(performance.now()-(loop._nAirT||0))>500){loop._nAirT=performance.now();loop._nAir=true;
+          const sp8=fallVel.length(),a8=32*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1);
+          if(sp8>1)fallVel.multiplyScalar((sp8+a8)/sp8);else fallVel.addScaledVector(FLY_U,a8);
+          fallVH0=Math.max(fallVH0,Math.hypot(fallVel.x,fallVel.z));if(pwrNitroT<=0)nitroR=Math.max(0,nitroR-.12*((ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2));
+          fovPunch=Math.max(fovPunch,12);shake=Math.max(shake,.35);hap([14,30,10]);try{boostSnd(1.4);}catch(e){}flashEcran('rgba(255,140,40,.4)');}
         { // (2026-09-26, user : « le nitro en l'air ne sert pas qu'à guider, il faut que ça ACCÉLÈRE vraiment ») : la MÊME poussée qu'au sol
           // (30 · 48 en réserve bleue × le palier moteur), dans l'axe du vol — et l'élan gagné au réacteur est GARDÉ (le plafond d'inertie suit)
           const sp9=fallVel.length();if(sp9>1){const a9=(nitroBlue?48:30)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*dtF;
@@ -20085,6 +20160,7 @@ function loop(now){
       airPieDraw(fr,pwrAirT>0?pwrAirT:Math.max(0,AIR_MAX-fallTR),airFlash>0);
       {const dg=pwrAirT<=0&&AIR_MAX-fallTR<1.5;if(dg!==loop._pdg){loop._pdg=dg;airPie.classList.toggle('danger',dg);}} // (2026-09-26) il TREMBLE sous 1,5 s
       if(!PARK.on&&portalMesh&&fallPos.distanceToSquared(PORTAL.c)<PORTAL.R*PORTAL.R*.9)portailPasse(); // (2026-09-26) l'ovule traversé EN VOL — du ciel, de côté, d'en dessous
+      else if(CITY.col&&villeHeurt(fallPos)){airPie.style.display='none';try{dolFin();}catch(e){}shake=Math.max(shake,1.2);if(PARK.on)parkRespawn();else explode();} // (2026-09-26) DANS UNE TOUR : on meurt
       else if(tryLand(dtF)){airPie.style.display='none';dolFin();} // posé : le total du DAUPHIN se fige et s'encaisse
       else if((fallTR>AIR_MAX&&pwrAirT<=0)||fallPos.y<trackMinY-120){airPie.style.display='none';if(PARK.on)parkRespawn();else explode();} // FREESTYLE : trop long en l'air ou chute dans le vide = on repart, jamais de mort // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
     }else if(mode==='boom'){ // ---- EXPLOSION ----
@@ -20182,7 +20258,7 @@ function loop(now){
         if(pk.mesh.visible!==vis)pk.mesh.visible=vis;
         if(!vis)continue; // hors couloir : on ne l'anime même pas
         pk.mesh.rotateOnWorldAxis(pk.ax,dt*(pk.pow?1.4:2.5));
-        if(pk.nitro||pk.pow)pk.mesh.scale.setScalar(1+(pk.pow?.18:.12)*Math.sin(t*6+pk.s));
+        if(pk.nitro||pk.pow){if(pk.sc0==null)pk.sc0=pk.mesh.scale.x;pk.mesh.scale.setScalar(pk.sc0*(1+(pk.pow?.10:.08)*Math.sin(t*6+pk.s)));} // (2026-09-26) le battement RESPECTE l'échelle (il ramenait les fruits de ×1,9 à ×1)
       }
       for(const c9 of CONES){ // les plots ne s'animent pas, mais ils coûtent un draw call chacun
         if(c9.hit)continue;   // un plot qui valse appartient à FLYCONES : on ne touche pas à sa visibilité
@@ -20234,7 +20310,7 @@ function loop(now){
     JETS.k+=(jTgt-JETS.k)*Math.min(1,dt*11);
     if(JETS.shells.length){
       const jOn=JETS.k>.05,fl9=.82+.18*Math.sin(t*57+Math.sin(t*33)*2.1);
-      const jl=Math.max(.03,(.5+level*.035)*JETS.k*2.1*fl9),jr=.09+.07*JETS.k;
+      const jl=Math.max(.03,(.5+Math.min(level,15)*.035)*JETS.k*2.1*fl9),jr=.09+.07*JETS.k;
       // LA SIGNATURE DE LA CAISSE EST UN EFFET DE **NITRO**, pas une peinture permanente (décision
       // du user, 2026-08-05). Au filage la plume reste l'orange commun à tout le monde ; c'est en
       // appuyant que la caisse montre ce qu'elle a dans le ventre — le vert acide, le rose de la
@@ -20569,11 +20645,16 @@ function loop(now){
      if(elNB&&(loop._nbr!==r9||loop._nbx!==x9)){loop._nbr=r9;loop._nbx=x9;elNB.style.setProperty('--nr',r9);elNB.style.setProperty('--nx',x9);}}
     // chip des POUVOIRS actifs : compte à rebours coloré au-dessus de la jauge nitro
     let pch='';
-    const pc9=(t,k)=>' class="'+(t<1.5?'fin':'')+'" style="color:'+PWR_DEFS[k].tint+';--p:'+Math.min(1,t/PWR_DEFS[k].t).toFixed(2)+'"'; // (2026-09-26) le temps FOND sous le nom, la fin CLIGNOTE
-    if(pwrNitroT>0)pch+='<span'+pc9(pwrNitroT,'n')+'>🔥 NITRO MAX '+pwrNitroT.toFixed(1)+'<i></i></span>';
-    if(pwrAirT>0)pch+='<span'+pc9(pwrAirT,'a')+'>🪂 AIR MAX '+pwrAirT.toFixed(1)+'<i></i></span>';
-    if(pwrSpdT>0)pch+='<span'+pc9(pwrSpdT,'v')+'>⚡ '+TR('VITESSE')+' '+pwrSpdT.toFixed(1)+'<i></i></span>';
-    if(pch!==loop._pch){loop._pch=pch;pwrChip.innerHTML=pch;pwrChip.style.display=pch?'block':'none';}
+    // (2026-09-26, user : « le power-up affiché EN GROS avec un timer en temps réel ») : une plaque par pouvoir — bâtie quand la liste change,
+    // puis mise à jour à CHAQUE image (le minuteur au dixième, la jauge en continu, le clignotement de la fin)
+    const pwL=[['n',pwrNitroT,'🔥','NITRO MAX'],['a',pwrAirT,'🪂','AIR MAX'],['v',pwrSpdT,'⚡',TR('VITESSE')+' ×2']].filter(function(x){return x[1]>0;});
+    pch=pwL.map(function(x){return x[0];}).join('');
+    if(pch!==loop._pch){loop._pch=pch;
+      pwrChip.innerHTML=pwL.map(function(x){return '<div class="pw" data-k="'+x[0]+'" style="--pc:'+PWR_DEFS[x[0]].tint+'"><i>'+x[2]+'</i><span><small>'+x[3]+'</small><b>0.0</b></span><u></u></div>';}).join('');
+      pwrChip.style.display=pch?'block':'none';loop._pwEl=Array.prototype.slice.call(pwrChip.querySelectorAll('.pw'));}
+    if(loop._pwEl)for(let j=0;j<pwL.length&&j<loop._pwEl.length;j++){const el=loop._pwEl[j],t9=pwL[j][1],tx=t9.toFixed(1);
+      if(el._t!==tx){el._t=tx;el.querySelector('b').textContent=tx+'s';}
+      el.style.setProperty('--p',Math.min(1,t9/PWR_DEFS[pwL[j][0]].t).toFixed(3));const f9=t9<1.5;if(el._f!==f9){el._f=f9;el.classList.toggle('fin',f9);}}
     {const sp9=airPie.style.display==='block';if(sp9!==loop._psp){loop._psp=sp9;pwrChip.classList.toggle('sousPie',sp9);}}
     {const k9=pwrNitroT>0?'n':pwrSpdT>0?'v':pwrAirT>0?'a':''; // (HUD v3) les BORDS de l'écran battent à la couleur du pouvoir actif
      if(k9!==loop._pfx){loop._pfx=k9;let e9=avE('pwrFx');if(!e9){e9=document.createElement('div');e9.id='pwrFx';e9.setAttribute('aria-hidden','true');document.body.appendChild(e9);avEl.pwrFx=e9;}
@@ -21348,8 +21429,10 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
               ci=!eN&&ea>engTier?ENGINE_TIERS[ea]:null,an=auraNext(),a1=SAVE.d.aura||0,bas=AURA_RANKS[auraRank()].v;
         if(h){h.innerHTML='<div class="hCard hAura"><small>'+TR('AURA')+'</small><b id="mAuraV">+0</b><span>'+pxi('etoile')+' '+auraRankName()+'</span>'+(rg?'<em>'+TR('NOUVEAU RANG !')+'</em>':'')
             +(an?'<div class="hNx">'+TR('ENCORE')+' '+Math.round(an.reste).toLocaleString('fr-FR')+' '+pxi('droite')+' '+TR(an.n)+'</div><div class="hBar"><u id="mAuraB"></u></div>':'')+'</div>'
-          +'<div class="hCard hMot" style="--ec:'+hx+'"><small>'+TR('MOTEUR')+'</small><b>'+TR(E.n)+'</b><span>'+TR('PALIER')+' '+(engTier+1)+' / '+ENGINE_TIERS.length+'</span>'+(eN?'<em>'+TR('RECORD !')+'</em>':'')
+          +'<div class="hCard hMot hMot3" style="--ec:'+hx+'"><small>'+TR('MOTEUR')+'</small><canvas class="hMotCv" width="480" height="321"></canvas>'
+            +'<div class="hMotN"><i>'+TR('PALIER')+'</i>'+(engTier+1)+'</div>'+(eN?'<em>'+TR('RECORD !')+'</em>':'')
             +(pr?'<div class="hNx hPres">'+TR('PLUS QUE')+' '+mq+' '+TR('PIÈCES')+' '+pxi('droite')+' '+TR(nx.n)+'</div>':ci?'<div class="hNx">'+TR('RECORD')+' : '+TR(ci.n)+'</div>':'')+'</div>';
+          {const cv9=h.querySelector('.hMotCv');ENG_MORT.cv=cv9;ENG_MORT.ctx=cv9?cv9.getContext('2d'):null;} // le moteur 3D y tourne (engVigRender)
           countUp($t('mAuraV'),au,function(v){return '+'+Math.round(v).toLocaleString('fr-FR');});
           if(an){const u=$t('mAuraB'),D=Math.max(1,an.seuil-bas),w1=Math.min(100,(a1-bas)/D*100),w0=rg?0:Math.max(0,(a1-au-bas)/D*100);
             if(u){u.style.width=w0.toFixed(1)+'%';requestAnimationFrame(function(){requestAnimationFrame(function(){u.style.width=w1.toFixed(1)+'%';});});}}}
