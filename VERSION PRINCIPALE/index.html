@@ -4866,7 +4866,7 @@ function ligneMat(){ // la peinture de la ligne centrale : tirets dans une textu
    comme une structure, de loin et d'en dessous. Anticrénelé, et fondu en lueur moyenne quand il passe sous le pixel. Aucun sommet de
    plus (la géométrie reçoit seulement ses UV) ; la teinte est `ROAD_U.uAcc`, posée par buildTrack. */
 function trancheMat(){
-  const m=new THREE.MeshLambertMaterial({color:0x14101f,side:THREE.DoubleSide});m.extensions={derivatives:true};
+  const m=new THREE.MeshLambertMaterial({color:0x1c0430,side:THREE.DoubleSide});m.extensions={derivatives:true}; // (vague 2) le flanc à l'ENCRE de la bible #1c0430 (c'était un gris-violet neutre 0x14101f)
   m.onBeforeCompile=function(sh){sh.uniforms.uAcc9=ROAD_U.uAcc;
     sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec2 vTr9;').replace('#include <begin_vertex>','#include <begin_vertex>\nvTr9=uv;');
     sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform vec3 uAcc9;varying vec2 vTr9;').replace('#include <fog_fragment>',
@@ -14114,13 +14114,23 @@ for(const k in PWR_DEFS){const d=PWR_DEFS[k];
   d.haloM=new THREE.SpriteMaterial({map:lampTex,color:d.col,transparent:true,opacity:.42,depthWrite:false,blending:THREE.AdditiveBlending}); // le HALO : partagé par tous les cristaux du même pouvoir
   // ÉTIQUETTE FLOTTANTE : pictogramme + nom au-dessus de l'orbe — on sait ce qu'on vise AVANT de le prendre
   const cv=document.createElement('canvas');cv.width=cv.height=128;
-  const c=cv.getContext('2d');c.textAlign='center';
-  if(d.ico)c.font='52px sans-serif',c.fillText(d.ico,64,54); // (la NITRO INFINIE n'a plus de pictogramme : la flamme au-dessus de l'orbe bleue a sauté)
-  // (2026-09-26) l'étiquette dans la POLICE DU JEU (pixel), cerclée de nuit — plus de monospace flou ; « ∞ » n'existe pas en pixel : MAX
-  const lb=String(d.hud).replace('∞','MAX').replace(' +60%','');c.font='13px "Press Start 2P",monospace';c.lineWidth=6;c.lineJoin='round';c.strokeStyle='#1c0430'; // (vague 2) cerclée de l'ENCRE du HUD
-  c.strokeText(lb,64,102);c.fillStyle=d.tint;c.fillText(lb,64,102);
   d.icoM=new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthWrite:false});
+  d.icoDessine=function(){const c=cv.getContext('2d');c.clearRect(0,0,128,128);c.textAlign='center';
+    /* (2026-09-26, vague 2) LE PICTOGRAMME EN PIXELS, LE MÊME QUE SUR LA PLAQUE DU HUD (`PXI_G` : flamme / aile / éclair). C'était un
+       EMOJI (🪂, ⚡) — dessiné par la police du système, en couleurs de dessin animé, différent sur chaque téléphone : la seule image
+       du jeu qui n'était pas en pixels. Grille 9×9 à 5 px la case, cernée d'ENCRE (4 décalages), à la couleur du pouvoir. */
+    const g=PXI_G[{n:'flamme',a:'aile',v:'eclair'}[k]];
+    if(g){const rows=g.split('|'),Z=5,X0=64-4.5*Z,Y0=12;
+      for(const o of [[-2,0],[2,0],[0,-2],[0,2],[0,0]]){c.fillStyle=o[0]||o[1]?'#1c0430':d.tint;
+        for(let y=0;y<9;y++)for(let x=0;x<9;x++)if(rows[y][x]==='#')c.fillRect(X0+x*Z+o[0],Y0+y*Z+o[1],Z,Z);}}
+    // (2026-09-26) l'étiquette dans la POLICE DU JEU (pixel), cerclée d'ENCRE — « ∞ » n'existe pas en pixel : MAX
+    const lb=String(d.hud).replace('∞','MAX').replace(' +60%','');c.font='13px "Press Start 2P",monospace';c.lineWidth=6;c.lineJoin='round';c.strokeStyle='#1c0430';
+    c.strokeText(lb,64,102);c.fillStyle=d.tint;c.fillText(lb,64,102);d.icoM.map.needsUpdate=true;};
+  d.icoDessine();
 }
+// (vague 2) la police pixel est une woff2 locale : si elle n'était pas encore chargée au premier dessin, l'étiquette serait restée en
+// monospace de secours pour toute la partie — on la redessine UNE fois quand la police est prête (un petit canvas, aucun shader).
+try{if(document.fonts&&document.fonts.load)document.fonts.load('13px "Press Start 2P"').then(function(){for(const k in PWR_DEFS)PWR_DEFS[k].icoDessine();}).catch(function(){});}catch(e){}
 function mkPower(kind,dir){
   const d=PWR_DEFS[kind],g=new THREE.Group();
   const co=new THREE.Mesh(pwrCoreGeo,d.coreM);co.scale.setScalar(1.3); // (vague 2) le cœur ×1,3 : il perce le verre plus dense
