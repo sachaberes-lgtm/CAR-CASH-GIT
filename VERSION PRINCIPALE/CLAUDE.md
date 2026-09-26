@@ -244,6 +244,8 @@ pigeons). Pires images, bridé ×4 : moteur 169 → 65-92 ms, portail 322 → 66
 - **Bancs** (scratchpad de la session) : `debug/perf.js` (ressources GPU, draw calls, profil), `debug/acoups.js <racine> [brideCPU]` (pire image
   + shaders compilés par événement), `debug/boot.js` (erreurs de démarrage — À LANCER APRÈS CHAQUE LOT : `node --check` ne voit pas une
   variable avalée par un commentaire).
+- **iPhone** : `f16ok` essaie un tampon demi-flottant 4×4 au démarrage — refusé par le pilote (écran NOIR sans erreur), le post-traitement
+  repasse en 8 bits (testé en forçant le refus : image normale). Contexte WebGL perdu → sauvegarde, rechargement à la restauration.
 - **Écarté après mesure** : grille spatiale pour la recherche de dalle en vol (~20 000 distances par image = moins de 0,1 ms, pas rentable).
 
 ## ⚠ FUSION SACHA × LÉO + NIVEAUX — 2026-09-24 (branche `fusion-2026-09`)

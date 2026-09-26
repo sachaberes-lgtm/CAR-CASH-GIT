@@ -3609,7 +3609,14 @@ if(CAN_POST){ try{
   // RT en HALF-FLOAT : un RT 8 bits + grade contrasté (SAT 1.40/VIVID) POSTERISE les grands dégradés
   // doux — sur les nuages volumétriques ça dessinait des ANNEAUX « agate » (lignes de niveau) que
   // AUCUN réglage du raymarch ne pouvait tuer. En 16 bits flottants, le banding est impossible.
-  const rtType=(renderer.capabilities&&renderer.capabilities.isWebGL2)?THREE.HalfFloatType:THREE.UnsignedByteType;
+  /* (2026-09-26, vérif iPhone) FILET : un tampon demi-flottant que le pilote ne sait pas REMPLIR (pas d'EXT_color_buffer_float) ne lève
+     aucune erreur — il donne un écran NOIR. On l'essaie donc une fois, en 4×4 : s'il n'est pas complet, repli 8 bits (un peu de banding
+     dans les grands dégradés, mais une image). Sans effet là où il marche (PC, Android, iPhone récents). */
+  const f16ok=(function(){if(!(renderer.capabilities&&renderer.capabilities.isWebGL2))return false;
+    try{const t=new THREE.WebGLRenderTarget(4,4,{format:THREE.RGBAFormat,type:THREE.HalfFloatType});renderer.setRenderTarget(t);
+      const gl=renderer.getContext(),ok=gl.checkFramebufferStatus(gl.FRAMEBUFFER)===gl.FRAMEBUFFER_COMPLETE;renderer.setRenderTarget(null);t.dispose();return ok;}
+    catch(e){try{renderer.setRenderTarget(null);}catch(e2){}return false;}})();
+  const rtType=f16ok?THREE.HalfFloatType:THREE.UnsignedByteType;
   if(!IS_MOBILE&&!IS_LOW_END&&devicePixelRatio<1.5&&typeof THREE.WebGLMultisampleRenderTarget==='function')rt=new THREE.WebGLMultisampleRenderTarget(w,h,{format:THREE.RGBAFormat,type:rtType}); // MSAA réservé aux écrans 1× (où le crénelage se voit) — sur Retina le resolve coûte cher pour rien
   else rt=new THREE.WebGLRenderTarget(w,h,{format:THREE.RGBAFormat,type:rtType,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});
   composer=new THREE.EffectComposer(renderer,rt);
