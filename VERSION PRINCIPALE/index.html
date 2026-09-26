@@ -13296,6 +13296,11 @@ function fruitPick(rnd){ // tirage PONDÉRÉ par la fréquence (un brocoli reste
 }
 function mkFruit(i){ const g=new THREE.Mesh(fruitGeo(i),FRUIT_MAT);g.scale.setScalar(2.7);g.userData.fruit=i;return g; } // (2026-09-26) ×2,7 // 1,15 → 1,9 : on les repère de loin · UN mesh par fruit
 function mkNitro(rnd){ return mkFruit(fruitPick(rnd)); }
+/* (2026-09-26, user : « parfois les fruits sont en collision avec la route ») — MESURÉ : posés à 1,3 m du bitume, mais grossis ×2,7
+   (et ×1,08 au battement), certains descendent à 2,3 m sous leur centre : un bon mètre DANS la dalle. `fruitLeve(i)` = la hauteur du
+   centre qui garde le plus bas du fruit ~45 cm au-dessus du bitume, battement compris (calculée une fois, sur la vraie géométrie). */
+const FRUIT_LEVE=[];
+function fruitLeve(i){if(FRUIT_LEVE[i]==null){const g=fruitGeo(i);if(!g.boundingBox)g.computeBoundingBox();FRUIT_LEVE[i]=Math.max(1.3,-g.boundingBox.min.y*2.7*1.1+.45);}return FRUIT_LEVE[i];}
 // POUVOIRS : grosses orbes rares — sphère de verre teinté + cœur brûlant + anneau qui tourne
 const pwrGeo=new THREE.IcosahedronGeometry(1.9,1),pwrCoreGeo=new THREE.OctahedronGeometry(.95,0), // (2026-09-26) le CRISTAL à facettes et son cœur-étoile
       pwrRingGeo=new THREE.TorusGeometry(2.6,.12,6,32);
@@ -13325,7 +13330,7 @@ function mkPower(kind,dir){
   return g;
 }
 const pickups=[];
-const mat4b=new THREE.Matrix4();
+const mat4b=new THREE.Matrix4(),FLIP_B=new THREE.Vector3(),FLIP_N=new THREE.Vector3(); // FLIP_* : le repère retourné des fruits d'en dessous
 function spawnPickups(rnd){
   for(const p of pickups)scene.remove(p.mesh);
   pickups.length=0;
@@ -13336,10 +13341,13 @@ function spawnPickups(rnd){
     frameAt(sp,F);mat4b.makeBasis(F.b,F.n,F.t);
     const cl=THREE.MathUtils.clamp(lt,-HALF,HALF);
     const fi=isN?fruitPick():-1; // MÊME fruit sur les deux faces (miroir strict) — tiré hors du rnd seedé
+    const lv=isN?fruitLeve(fi):1.3; // les fruits : posés AU-DESSUS du bitume d'après leur vraie taille (voir fruitLeve)
     for(const face of [1,-1]){
       const m=isN?mkFruit(fi):new THREE.Mesh(pickGeo,pickMat);
-      m.position.copy(F.p).addScaledVector(F.b,cl).addScaledVector(F.n,face>0?1.3:-(THICK+1.3));
-      m.quaternion.setFromRotationMatrix(mat4b);
+      m.position.copy(F.p).addScaledVector(F.b,cl).addScaledVector(F.n,face>0?lv:-(THICK+lv));
+      // SOUS la route, le fruit est RETOURNÉ (repère −b, −n, t) : sinon il pendait tête en bas, feuilles plantées dans la dalle
+      if(isN&&face<0){mat4b.makeBasis(FLIP_B.copy(F.b).negate(),FLIP_N.copy(F.n).negate(),F.t);m.quaternion.setFromRotationMatrix(mat4b);mat4b.makeBasis(F.b,F.n,F.t);}
+      else m.quaternion.setFromRotationMatrix(mat4b);
       scene.add(m);
       pickups.push({s:sp,lat:cl,face:face,nitro:isN,fruit:fi,mesh:m,taken:false,ax:F.n.clone().multiplyScalar(face)});
     }
@@ -20529,13 +20537,15 @@ function loop(now){
            additionne, comme un propulseur ») : à l'ALLUMAGE en vol, un coup de réacteur de +32 m/s (× le palier moteur) dans l'axe du
            vol, quelle que soit la vitesse d'éjection. Un par allumage (0,5 s mini entre deux), et il coûte 12 % de réserve. */
         if(!loop._nAir&&nitroOn&&(performance.now()-(loop._nAirT||0))>500){loop._nAirT=performance.now();loop._nAir=true;
-          const sp8=fallVel.length(),a8=32*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1);
+          const sp8=fallVel.length(),a8=46*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1); // (2026-09-26, user : « dans l'air le nitro doit accélérer plus ») 32 → 46 m/s
           if(sp8>1)fallVel.multiplyScalar((sp8+a8)/sp8);else fallVel.addScaledVector(FLY_U,a8);
           fallVH0=Math.max(fallVH0,Math.hypot(fallVel.x,fallVel.z));if(pwrNitroT<=0)nitroR=Math.max(0,nitroR-.12*((ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2));
           fovPunch=Math.max(fovPunch,12);shake=Math.max(shake,.35);hap([14,30,10]);try{boostSnd(1.4);}catch(e){}flashEcran('rgba(255,140,40,.4)');}
         { // (2026-09-26, user : « le nitro en l'air ne sert pas qu'à guider, il faut que ça ACCÉLÈRE vraiment ») : la MÊME poussée qu'au sol
           // (30 · 48 en réserve bleue × le palier moteur), dans l'axe du vol — et l'élan gagné au réacteur est GARDÉ (le plafond d'inertie suit)
-          const sp9=fallVel.length();if(sp9>1){const a9=(nitroBlue?48:30)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*dtF;
+          // (2026-09-26, user : « dans l'air le nitro doit accélérer plus ») : DEUX FOIS la poussée du sol (60 · 96 en réserve bleue) — rien ne
+          // freine en l'air, mais un vol dure 2 à 4 s : à la poussée du sol, on ne sentait presque rien avant de se reposer
+          const sp9=fallVel.length();if(sp9>1){const a9=(nitroBlue?96:60)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*dtF;
             fallVel.multiplyScalar((sp9+a9)/sp9);fallVH0=Math.max(fallVH0,Math.hypot(fallVel.x,fallVel.z));}}
         // ↑/AVANT : PIQUÉ · ↓/FREIN : CABRÉ. On fait TOURNER la vitesse en tangage (pitch) au lieu
         // d'ajouter à .y : ajouter ±12 à un vecteur de 145 puis reclamper ne pliait la trajectoire que
@@ -20682,7 +20692,10 @@ function loop(now){
       camUp.lerp(FLY_U,Math.min(1,dt*3)).normalize(); // (vol libre) le haut de l'écran = le haut de la caisse : la caméra ne se remet plus « à l'endroit »
       camera.up.copy(camUp);
       camera.lookAt(fallPos);
-      const fovAir=fovPor(76-bigAir*22); // ZOOM cinématique : le champ se resserre avec l'ampleur du saut (76° petit air → 54° gros air)
+      // (2026-09-26) la NITRO se VOIT en l'air : le champ s'ouvre sous la poussée (comme au sol) et le coup de réacteur de l'allumage
+      // (`fovPunch`) claque ici aussi — avant, il n'était lu qu'au sol et partait en retard, à l'atterrissage
+      fovPunch=Math.max(0,fovPunch-dt*18);
+      const fovAir=fovPor(76-bigAir*22+fovPunch+(nitroOn?(nitroBlue?18:13):0)); // ZOOM cinématique : le champ se resserre avec l'ampleur du saut (76° petit air → 54° gros air)
       camera.fov+=(fovAir-camera.fov)*Math.min(1,dt*4);
       camera.updateProjectionMatrix();
       const fshN=THREE.MathUtils.clamp((speedKmh-180)/360,0,1.2),fsh=fshN*fshN*CAM_SHAKE_V;

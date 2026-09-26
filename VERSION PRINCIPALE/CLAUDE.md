@@ -123,8 +123,10 @@
     2,5 M pour la caisse la plus chère) : ~380 $/min en pilote auto, ~1 M sur une partie record. Ville : plus de circulation volante,
     plus de looping (`sansLoop` dans genCtrl), couronne peinte assombrie et posée 900 m sous l'œil (plus de bande violette ni de ligne
     néon), forêt 3D jusqu'à 2,1 km, tours DURES (`CITY.col` grille 60 m + `villeHeurt` dans la branche 'fall' → explose ; `dbgHeurt()`),
-    marges `tourLibre` élargies. Routes 56 m (`LARGEUR=[2]`). Pouvoir VITESSE ×2. Nitro en l'air : IMPULSION +32 m/s à l'allumage
-    (1 par appui, 0,5 s mini, 12 % de réserve) + la poussée. Flammes de jauge = NITRO MAX seulement. Pouvoirs en GRANDES plaques
+    marges `tourLibre` élargies. Routes 56 m (`LARGEUR=[2]`). Pouvoir VITESSE ×2. Nitro en l'air : IMPULSION +46 m/s à l'allumage
+    (1 par appui, 0,5 s mini, 12 % de réserve) + une poussée DOUBLE de celle du sol (60 · 96 en bleue ; 26/09 « le nitro doit
+    accélérer plus ») + le champ qui s'ouvre (`fovAir`, `fovPunch` lu en vol). Fruits posés à `fruitLeve(i)` (≥ 45 cm sous le fruit,
+    battement compris) et RETOURNÉS sous la route. Flammes de jauge = NITRO MAX seulement. Pouvoirs en GRANDES plaques
     (minuteur au dixième, jauge continue). Écran de mort : le moteur 3D (`ENG_MORT`, rendu par `engVigRender`) au lieu du nom.
     Objets : pièce Ø 2,6 m à jonc (`geoFusion`), fruits ×2,7 (le battement écrasait l'échelle), pouvoirs en CRISTAL + 2 anneaux +
     étiquette pixel, plots 1,4 m à 2 bandes. ⚠ `level` = index de caisse (0-65) : il ne doit plus rien agrandir (aimant, plumes).
