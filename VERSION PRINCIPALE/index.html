@@ -2945,7 +2945,9 @@ const skyU={uTime:{value:0},uSunDir:{value:SUN_DIR},
   uHueAmp:{value:0},  // …et son amplitude, en tours de teinte (0,5 = à l'opposé du spectre)
   // LE CIEL DE LA VILLE (2026-09-26) — voir villeCiel dans le shader : présence du niveau VILLE, de la pluie (le plafond), couleur de la
   // brume (le lointain y converge) et position de la caméra (le plafond et les rues d'en bas défilent : parallaxe VRAIE)
-  uVille:{value:0},uPluie:{value:0},uFogCol:{value:new THREE.Color(0x331f48)},uCam:{value:new THREE.Vector3()}};
+  uVille:{value:0},uPluie:{value:0},uFogCol:{value:new THREE.Color(0x331f48)},uCam:{value:new THREE.Vector3()},
+  uVilleY:{value:0}, // (2026-09-26) la SKYLINE descend à l'altitude de la ville (en sinus d'élévation) : la route spirale AU-DESSUS des toits
+  uMer:{value:0}}; // (2026-09-26) LA MER DE NUAGES PEINTE sous l'horizon — niveau NUAGES seulement (voir merNuages ; fondue par lvlStep comme la ville)
 const skyDome=(function(){
   const mat=new THREE.ShaderMaterial({uniforms:skyU,side:THREE.BackSide,depthWrite:false,
     vertexShader:'varying vec3 vDir;void main(){vDir=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
@@ -2983,7 +2985,7 @@ const skyDome=(function(){
            · LE SOL : l'abîme. 1 600 m sous l'œil, les rues de la ville basse — lampadaires sodium, fenêtres, files de
              phares qui roulent — vues À TRAVERS la brume (elles s'y éteignent au loin, fondues en lueur moyenne : pas de moiré).
          ⚠ PRÉCISION : le hachage est sans sinus (Hoskins) — sin() sur de grands arguments dérive en mediump. */
-      'uniform float uVille,uPluie;uniform vec3 uFogCol,uCam;',
+      'uniform float uVille,uPluie,uVilleY;uniform vec3 uFogCol,uCam;',
       'float vh(vec2 p){vec3 q=fract(vec3(p.xyx)*.1031);q+=dot(q,q.yzx+33.33);return fract((q.x+q.y)*q.z);}',
       'float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);',
       '  return mix(mix(vh(i),vh(i+vec2(1.,0.)),f.x),mix(vh(i+vec2(0.,1.)),vh(i+vec2(1.,1.)),f.x),f.y);}',
@@ -3045,17 +3047,56 @@ const skyDome=(function(){
       '    bas=F*(1.+.28*smoothstep(-.05,-.6,y)*nuit)+L*exp(-t/2300.)*(1.+.6*lv)*nuit;}', // la brume s éclaire par en dessous
       '  vec3 c=mix(bas,haut,smoothstep(-.03,.03,y));',
       // ---- LA SKYLINE : du plus loin au plus proche, chaque rangée un peu moins noyée dans la brume ----
-      '  float fo=smoothstep(-.1,.015,y),lum=(1.+.7*lv)*(.35+.65*nuit);', // fo : le PIED des tours se noie — sous l horizon il ne reste que la brume et l abîme
+      /* ⚠ (2026-09-26, constat de la passe graphique) LA SKYLINE FLOTTAIT : posée sur l horizon (y≈0), alors que la route de la
+         ville descend en SPIRALE au-dessus des toits — la ville 3D est donc SOUS l horizon, et la rangée peinte se lisait comme
+         une bande en pointillés suspendue à mi-hauteur au-dessus des vraies tours. Elle se pose désormais à l ÉLÉVATION où
+         seraient des toits lointains à l altitude de la ville (`uVilleY`, posé par la boucle d après CITY.n.routeY, ~3,5 km) :
+         vue d en haut, elle passe SOUS l horizon, derrière la forêt 3D, noyée de brume ; ses fenêtres sont un cran plus sourdes. */
+      '  y=d.y-uVilleY;',                                            // (le plafond et l abîme sont faits : y ne sert plus qu à la skyline)
+      '  float fo=smoothstep(-.1,.015,y),lum=(1.+.7*lv)*(.35+.65*nuit)*.75;', // fo : le PIED des tours se noie — sous l horizon il ne reste que la brume et l abîme
       '  vec3 f0=vec3(1.,.64,.3),f1=vec3(.42,.88,1.),dk=F*.35+vec3(.004,.006,.02),sil;vec4 T;',
       '  T=vTours(az,y,190.,1.,-.035,.03,.0024);',
-      '  sil=mix(F,dk,.16*fo)+mix(f0,f1,step(.8,T.w))*T.x*.22*fo*lum;c=mix(c,sil,T.z*fo);c+=vec3(1.,.18,.14)*T.y*.3*lum;',
+      '  sil=mix(F,dk,.16*fo)+mix(f0,f1,step(.8,T.w))*T.x*.22*fo*lum;c=mix(c,sil,T.z*fo);c+=vec3(1.,.18,.14)*T.y*.3*lum*fo;',
       '  T=vTours(az,y,120.,2.,-.015,.065,.0032);',
-      '  sil=mix(F,dk,.25*fo)+mix(f0,f1,step(.8,T.w))*T.x*.32*fo*lum;c=mix(c,sil,T.z*fo);c+=vec3(1.,.18,.14)*T.y*.45*lum;',
+      '  sil=mix(F,dk,.25*fo)+mix(f0,f1,step(.8,T.w))*T.x*.32*fo*lum;c=mix(c,sil,T.z*fo);c+=vec3(1.,.18,.14)*T.y*.45*lum*fo;',
       '  vec3 H=vChef(az,y,1.05,1.)+vChef(az,y,-2.25,.82);',
       '  sil=mix(F,dk,.36*fo)*(1.-.35*H.z)+vec3(1.,.84,.37)*H.y*(.55+.2*sin(uTime*.7))*lum;c=mix(c,sil,min(1.,H.x+H.y)*fo);',
       '  T=vTours(az,y,72.,3.,.0,.1,.0042);',
-      '  sil=mix(F,dk,.34*fo)+mix(f0,f1,step(.8,T.w))*T.x*.42*fo*lum;c=mix(c,sil,T.z*fo);c+=vec3(1.,.18,.14)*T.y*.6*lum;',
+      '  sil=mix(F,dk,.34*fo)+mix(f0,f1,step(.8,T.w))*T.x*.42*fo*lum;c=mix(c,sil,T.z*fo);c+=vec3(1.,.18,.14)*T.y*.6*lum*fo;',
       '  return c;}',
+      /* ===================== LA MER DE NUAGES PEINTE (2026-09-26) — niveau NUAGES =====================
+         MESURÉ sur captures (midi, aprem, matin) : sous l'horizon il n'y avait que le bas du dégradé multiplié par le biome — un
+         APLAT bleu roi saturé, d'une autre couleur que la brume : la route lointaine et les nuages 3D noyés de brouillard s'y
+         DÉCOUPAIENT comme des gommettes, et le « niveau dans les nuages » n'avait pas de mer de nuages à perte de vue.
+         LE PRINCIPE (celui de l'abîme de la ville) : un PLAFOND DE NUAGES vu d'en haut, calculé par direction du monde — aucune
+         géométrie, aucun bord, parallaxe vraie avec la caméra (`uCam`) et le vent. Le pont est à 480 m sous le niveau zéro du monde
+         (sous les nuages 3D de la mer, qui s'y posent devant), et TOUT converge vers la couleur de la brume (`uFogCol`) au loin :
+         ce que le brouillard fait aux objets, la mer le fait à l'horizon — la route et les nuages lointains s'y FONDENT.
+         Modelé : des moutonnements (fbm déformé), leur flanc tourné vers le soleil éclairé (un 2e échantillon décalé vers le soleil
+         donne la pente), les creux dans le bleu du ciel. ⚠ ANTICRÉNELAGE : chaque octave s'éteint quand l'empreinte d'un pixel au sol
+         (`fp`) dépasse sa période — sinon moiré scintillant au ras de l'horizon. */
+      'uniform float uMer;',
+      'float mfbm(vec2 p,float fp){float s=0.,a=.5,f=1.;for(int i=0;i<4;i++){s+=a*mix(.5,vn(p),1.-smoothstep(.3,.8,fp*f));p=p*2.03+vec2(17.1,9.3);f*=2.03;a*=.5;}return s;}',
+      'vec3 merNuages(vec3 d,float y,float sd){',
+      '  vec3 F=uFogCol;float yy=min(y,-.0008);',
+      '  float t=max(140.,uCam.y+480.)/(-yy);',                       // la distance au pont de nuages le long du regard (m)
+      '  vec2 p=d.xz*t+uCam.xz+vec2(uTime*4.,uTime*1.6),q=p/900.;', // parallaxe vraie + dérive du vent
+      '  float fp=t*.0016/max(-yy,.02)/900.;',                         // empreinte d un pixel, en périodes de base
+      '  vec2 w=vec2(vn(q*.4+3.7),vn(q*.4-5.1));q+=.85*w;',
+      '  float n=mfbm(q,fp);',
+      '  vec2 sx=normalize(uSunDir.xz+vec2(1e-4));',
+      '  float lit=clamp(.5+(n-mfbm(q+sx*.045,fp))*7.,0.,1.);',          // le flanc tourné vers le soleil prend la lumière
+      '  float cov=smoothstep(.36,.66,n);',                             // le dessus des moutons
+      // ⚠ PAS DE LAIT (essai du 26/09 : une mer blanche à 60 % et fondue dans une brume pâle = tout le bas de l écran laiteux, les
+      // nuages 3D s y perdaient). Les TROUÉES gardent le bleu roi qu avait le bas du ciel (blw × biome) : les moutons blancs
+      // se DÉTACHENT dessus, et la brume pâle ne revient que sur les 3 derniers degrés, là où les objets lointains s y noient.
+      '  vec3 creux=vec3(.27,.15,.30)*uSkyMul*1.25;',                   // les trouées : le bleu roi du bas du ciel d origine
+      '  vec3 ombre=mix(creux,F,.45);',                                 // le flanc à l ombre des moutons
+      '  vec3 haut=mix(vec3(1.,.99,.97),uSunTint,.28)*(.86+.24*lit);', // les sommets : crème au soleil du biome
+      '  vec3 m=mix(creux,mix(ombre,haut,lit*.75+.25),cov);',
+      '  m+=uSunTint*pow(sd,5.)*cov*.28*uSunHalo;',                     // à contre-jour, les moutons s ourlent d or
+      '  m=mix(mix(F,creux,.4),m,exp(-t/9000.));',                       // la perspective aérienne : le lointain bleuit
+      '  return mix(m,F,smoothstep(-.055,-.004,y));}',                   // …et SEULE la ligne d horizon rejoint la brume
       'void main(){',
       '  float y=vDir.y;',
       // VICE CITY NUIT (assombri) : indigo profond au zénith → violet → grande brume ROSE sombre → corail → ambre au ras du soleil
@@ -3078,6 +3119,7 @@ const skyDome=(function(){
       '  col=mix(col,vec3(0.),uSpace);', // ORBITE : le NOIR COMPLET (demande du user) — la Terre et la route portent seules la lumiere
       '  col*=1.+uPulse*.13;', // MUSIQUE : tout le ciel respire au beat (souffle global doux)
       '  float sd=max(dot(vDir,uSunDir),0.);',      // couchant : halo rosé large, couronne corail, coeur incandescent (tamisé)
+      '  if(uMer>.001&&y<.02)col=mix(col,merNuages(vDir,y,sd),uMer*(1.-smoothstep(-.016,.012,y))*(1.-uSpace));', // NUAGES : la mer de nuages sous l horizon (voir merNuages)
       '  col+=uSunTint*pow(sd,4.)*.45*uSunHalo;',
       '  col+=vec3(1.,.60,.36)*pow(sd,32.)*.9*uSunHalo;',
       '  col+=vec3(1.,.90,.78)*pow(sd,480.)*1.25*uSunHalo;',
@@ -3158,9 +3200,13 @@ const skyDome=(function(){
       '  vec2 sid=floor(sg),sfr=fract(sg);',
       '  float h=hash21(sid);',
       '  vec2 stp=vec2(fract(h*17.13),fract(h*31.71))*.7+.15;',
-      '  float st=(1.-smoothstep(0.,.055,length(sfr-stp)))*step(.76,h);',
+      // (2026-09-26) des étoiles RONDES : la distance se mesure en ANGLE (une cellule fait 0,098 rad × cos(élévation) de large mais
+      // 0,045 de haut — mesurée en cellules, chaque étoile était un grain deux fois plus large que haut). Rayon selon l éclat, et
+      // une pointe de couleur (bleutées, blanches, quelques orangées) : un vrai ciel, pas un semis de pixels identiques.
+      '  float sr=length(vec2((sfr.x-stp.x)*.0982*sqrt(max(0.,1.-y*y)),(sfr.y-stp.y)*.04545));',
+      '  float st=(1.-smoothstep(0.,.0026+.0022*fract(h*7.7),sr))*step(.76,h);',
       '  st*=.55+.45*sin(uTime*(1.2+h*2.6)+h*44.);',
-      '  col+=vec3(.80,.88,1.)*st*mix(smoothstep(.10,.42,y),1.,uSpace)*(1.-smoothstep(.25,.8,sd))*.9*uStars*(1.+uSpace*.5)*(1.+uPulse*1.3);', // elles descendent plus bas : le haut du cadre est habité — MINUIT les multiplie, l aube les éteint ; elles palpitent au beat
+      '  col+=mix(vec3(.80,.88,1.),vec3(1.,.86,.70),step(.8,fract(h*3.31)))*st*mix(smoothstep(.10,.42,y),1.,uSpace)*(1.-smoothstep(.25,.8,sd))*.9*uStars*(1.+uSpace*.5)*(1.+uPulse*1.3);', // elles descendent plus bas : le haut du cadre est habité — MINUIT les multiplie, l aube les éteint ; elles palpitent au beat
       // LUNE pâle à l opposé du couchant — le témoin du presque-nuit
       '  vec3 mdir=normalize(vec3(-.52,.40,-.72));',
       '  float md=dot(vDir,mdir);',
@@ -3336,6 +3382,32 @@ const planetGroup=(function(){
   // la planète ressortait BLANCHE. On la rentre donc volontairement sombre — c'est le post qui la rallume.
   const globe=new THREE.Mesh(new THREE.SphereGeometry(PLANET_R,44,30),
     new THREE.MeshBasicMaterial({map:tex,fog:false,color:0x55708c})); // teinte multiplicative : garde le bleu-vert au lieu de saturer
+  /* LE JOUR ET LA NUIT SUR LA TERRE (2026-09-26). En MeshBasic, le globe était éclairé UNIFORMÉMENT — une bille peinte, sans
+     volume. Il prend un soleil — ⚠ PAS `SUN_DIR` : en orbite la planète suit le CAP de la caméra (lvlPlanete), et avec le vrai
+     soleil on la voyait par sa face de NUIT la moitié du niveau (mesuré : en roulant vers le couchant, un disque bleu-noir). La
+     lumière vient donc du dessus, un peu de côté et de derrière l'œil : la face visible est TOUJOURS le jour, le terminateur
+     court sur le bord bas (le plus souvent sous la route). En orbite le disque « 1.61 » est éteint : rien ne le contredit.
+     Une face de jour un peu plus vive, une face de NUIT bleu-nuit (jamais noire — la Terre reste lisible), un TERMINATEUR large et
+     ourlé d'une bande de couchant, le REFLET du soleil sur les océans (masqué hors des bleus : Mars ou Vénus n'ont pas de mer),
+     et un liseré d'atmosphère DANS le disque, plus fort côté jour. ⚠ le limbe additif et le halo qui BAT au rythme sont d'autres
+     coquilles : on n'y touche pas. Compilé au menu par les `renderer.compile` de chauffe (le globe est dans la scène, même caché). */
+  globe.material.onBeforeCompile=function(sh){
+    sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vWN9,vWP9,vL9;')
+      .replace('#include <project_vertex>','#include <project_vertex>\nvWN9=normalize(mat3(modelMatrix)*normal);vWP9=(modelMatrix*vec4(transformed,1.)).xyz;'+
+        'vec3 tc9=normalize(cameraPosition-modelMatrix[3].xyz),sd9=normalize(cross(tc9,vec3(0.,1.,0.))+vec3(1e-4));vL9=normalize(tc9*.5+vec3(0.,.75,0.)+sd9*.45);');
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 vWN9,vWP9,vL9;')
+      .replace('#include <envmap_fragment>',[
+        '{ vec3 N=normalize(vWN9),V=normalize(cameraPosition-vWP9),uSol=normalize(vL9);float ndl=dot(N,uSol);',
+        '  float jour=smoothstep(-.22,.30,ndl);vec3 c0=outgoingLight;',
+        '  vec3 c=mix(c0*vec3(.30,.36,.58)+vec3(.004,.008,.026),c0*1.12,jour);',            // nuit bleu-nuit ↔ jour
+        '  c+=vec3(1.,.42,.20)*.16*(1.-smoothstep(0.,.20,abs(ndl-.02)));',                  // le couchant qui court sur le terminateur
+        '  float mer=smoothstep(.02,.12,c0.b-max(c0.r,c0.g));vec3 H=normalize(uSol+V);',
+        '  c+=vec3(1.,.9,.74)*pow(max(dot(N,H),0.),70.)*mer*jour*.55;',                     // le soleil qui scintille sur l océan
+        '  c+=vec3(.30,.62,1.)*pow(1.-max(dot(N,V),0.),3.)*(.12+.40*jour);',                // l atmosphère vue par la tranche, DANS le disque
+        '  outgoingLight=c; }',
+        '#include <envmap_fragment>'].join('\n'));
+  };
+  globe.material.customProgramCacheKey=function(){return 'globeJourNuit';};
   globe.rotation.z=.28; // axe incliné, comme la vraie
   g.add(globe);
   // ATMOSPHÈRE : un liseré bleu qui déborde du disque (BackSide = on ne voit que le pourtour)
@@ -3608,11 +3680,20 @@ function portalMat(){if(PORTAL.mat)return PORTAL.mat;
   PORTAL.mat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide,fog:false,
     uniforms:{uT:{value:0}},
     vertexShader:'varying vec3 vN,vV,vP;void main(){vP=position;vN=normalize(normalMatrix*normal);vec4 mv=modelViewMatrix*vec4(position,1.);vV=normalize(-mv.xyz);gl_Position=projectionMatrix*mv;}',
+    /* L'OVULE PLUS « MAGIQUE » (2026-09-26) : la membrane gardait deux couleurs qui ondulent — une bulle de savon plate. Elle prend
+       (1) l'IRISATION d'une couche mince (la teinte tourne avec l'angle de vue : rose → violet → cyan → or sur les bords, comme une
+       vraie bulle), (2) deux SPIRALES de lumière qui s'enroulent vers le pôle et coulent (le portail ASPIRE), (3) un liseré blanc
+       tout au bord. Mêmes uniformes, même mélange additif, même coût de géométrie : quelques sinus de plus par pixel. */
     fragmentShader:'uniform float uT;varying vec3 vN,vV,vP;void main(){'+
       'float f=pow(1.-abs(dot(vN,vV)),2.2);'+                                          // FRESNEL : la membrane brille sur ses bords
       'float o=.5+.5*sin(vP.x*.09+uT*1.3)*sin(vP.y*.11-uT*1.1)*sin(vP.z*.08+uT*.8);'+ // la membrane ONDULE
-      'vec3 c=mix(vec3(1.,.31,.85),vec3(.35,.95,1.),o);'+
-      'float a=clamp(f*1.35+.05+.08*o,0.,1.);gl_FragColor=vec4(c*(f*1.7+.12),a);}'});
+      'vec3 q=vP*(1./55.);float an=atan(q.z,q.x);'+
+      'float sp=sin(an*3.+q.y*7.-uT*2.6+sin(q.y*3.+uT*.9)*1.4),sp2=sin(an*5.-q.y*11.+uT*1.8);'+ // deux spirales qui s enroulent et COULENT
+      'float bd=smoothstep(.55,1.,sp)*.55+smoothstep(.72,1.,sp2)*.35;'+
+      'vec3 iri=.55+.45*cos(6.2831853*(f*1.3+o*.35+uT*.05+vec3(0.,.33,.67)));'+         // IRISATION de couche mince
+      'vec3 c=mix(mix(vec3(1.,.31,.85),vec3(.35,.95,1.),o),iri,.42);'+
+      'float a=clamp(f*1.35+.05+.08*o+bd*(.18+.5*f),0.,1.);'+
+      'gl_FragColor=vec4(c*(f*1.7+.12+bd*.55)+vec3(1.,.95,1.)*pow(f,6.)*.7,a);}'});
   PORTAL.mat.dispose=function(){};return PORTAL.mat;}
 const trackMeshes=[];let PADS=[],PADL=[];let BUMPS=[];let CONES=[];let FLYCONES=[];let portalMesh=null;
 const GAP_ON=false; // ⚠ LES TREMPLINS SONT COUPÉS (demande du user) — un seul interrupteur, voir gapRun
@@ -3792,10 +3873,50 @@ function applyPerfTier(med,low){
 // BRILLANCE (2026-07-30) : Lambert → Phong. Un spéculaire LARGE et doux (shininess bas) fait NAPPER la
 // lumière sur les bourgeons au lieu de piquer — c'est ce qui donne l'ourlet lumineux des vraies photos.
 // + un soupçon d'emissive pour que la ouate ne meure jamais en gris dans les biomes sombres.
-const CLOUD_MAT=new THREE.MeshPhongMaterial({color:0xeae6f2,side:THREE.DoubleSide,transparent:true,opacity:.82,depthWrite:true,
+/* LE MODELÉ DES NUAGES v2 (2026-09-26) — MESURÉ sur captures : les nuages se lisaient en PILES D'ASSIETTES (des stries horizontales
+   dans chaque boule) et on voyait leur intérieur. Deux causes, aucune n'était un réglage :
+   (1) DoubleSide + transparent : les faces ARRIÈRE de chaque sphère se peignaient dans l'ordre des triangles, tantôt devant tantôt
+       derrière les faces avant de l'anneau voisin → des bandes. Hors du nuage, on n'a AUCUNE raison de voir l'envers de la ouate :
+       `CLOUD_MAT` est en FrontSide (moitié moins de pixels à mélanger : un titan plein écran ne se paie plus deux fois).
+       DEDANS (la caméra dans l'ellipsoïde, voir updateClouds), le nuage prend `CLOUD_MAT_IN` — la même matière en DoubleSide :
+       le white-out d'avant, paroi comprise. Les DEUX programmes sont chauffés au menu (`nuageChauffe`).
+   (2) les boules fusionnées gardaient leurs morceaux ENFOUIS dans les voisines : à 82 % d'opacité on les voyait par transparence.
+       `mergeSpheres` jette désormais tout triangle entièrement noyé dans une autre boule (moins de sommets, en prime).
+   LE MODELÉ : une couleur par sommet cuite une fois (ventre ombré bleuté → sommet blanc, creux entre deux bourgeons assombris)
+   et, dans le shader, la LISIÈRE D'ARGENT — face au soleil, le bord de la ouate s'embrase (diffusion avant) — plus un bord
+   à peine plus léger. Coût : zéro par image côté CPU, quelques instructions par pixel côté GPU (et deux fois moins de pixels). */
+function nuageShader(sh){
+  sh.uniforms.uSunV=RIM_U.uSunV;sh.uniforms.uSunC={value:sun.color}; // la direction du soleil en espace vue (posée chaque image pour les caisses) et SA couleur de biome
+  sh.fragmentShader=sh.fragmentShader.replace('#include <lights_fragment_begin>',LFB_SANS_PL) // (2026-09-26) les nuages ne paient plus les lumières ponctuelles (voir LFB_SANS_PL)
+    .replace('#include <common>','#include <common>\nuniform vec3 uSunV,uSunC;')
+    .replace('#include <envmap_fragment>',[
+      '#ifdef NUAGE_DEDANS',                                              // DEDANS : ni liseré ni bord — la paroi se fond dans la brume du nuage (white-out uni)
+      '#ifdef USE_FOG',
+      '  outgoingLight=mix(outgoingLight,fogColor,.55);',
+      '#endif',
+      '#else',
+      '{ vec3 V9=normalize(vViewPosition);float fr9=1.-abs(dot(normal,V9));',
+      '  float cs9=max(dot(-V9,uSunV),0.);',                              // 1 = on regarde droit vers le soleil
+      '  outgoingLight+=uSunC*pow(fr9,2.6)*(.07+.75*cs9*cs9*cs9);',     // LA LISIÈRE D ARGENT : le bord s embrase à contre-jour
+      '  diffuseColor.a*=1.-pow(fr9,7.)*.45; }',                         // le tout dernier liseré de la silhouette s allège
+      '#endif',
+      '#include <envmap_fragment>'].join('\n'));
+}
+// plus VAPOREUX (.9→.82) et un éclat un peu plus net sur les bourgeons
+const CLOUD_MAT=new THREE.MeshPhongMaterial({color:0xeae6f2,side:THREE.FrontSide,transparent:true,opacity:.82,depthWrite:true,vertexColors:true,
   shininess:14,specular:0x8f89a4,emissive:0x201d2c,emissiveIntensity:.62,flatShading:false});
-CLOUD_MAT.onBeforeCompile=function(sh){sh.fragmentShader=sh.fragmentShader.replace('#include <lights_fragment_begin>',LFB_SANS_PL);}; // (2026-09-26) les nuages ne paient plus les lumières ponctuelles (voir LFB_SANS_PL)
-CLOUD_MAT.customProgramCacheKey=function(){return 'nuageSansPL';}; // plus VAPOREUX (.9→.82) et un éclat un peu plus net sur les bourgeons
+CLOUD_MAT.onBeforeCompile=nuageShader;
+CLOUD_MAT.customProgramCacheKey=function(){return 'nuageV2';};
+const CLOUD_MAT_IN=CLOUD_MAT.clone();CLOUD_MAT_IN.side=THREE.DoubleSide;CLOUD_MAT_IN.opacity=.93;CLOUD_MAT_IN.defines={NUAGE_DEDANS:''}; // DEDANS : la même ouate, paroi comprise (white-out) — une seule épaisseur de paroi (les boules enfouies ont sauté) : plus dense, et fondue dans la brume du nuage, sinon on y lisait les facettes
+CLOUD_MAT_IN.color=CLOUD_MAT.color;CLOUD_MAT_IN.emissive=CLOUD_MAT.emissive;CLOUD_MAT_IN.specular=CLOUD_MAT.specular; // MÊMES objets couleur : bioApply teinte les deux d'un coup
+CLOUD_MAT_IN.onBeforeCompile=nuageShader;CLOUD_MAT_IN.customProgramCacheKey=function(){return 'nuageV2dedans';};
+let nuageChaud=false,nuageFondu=1; // nuageFondu : 0→1, la ouate d'une nouvelle zone APPARAÎT au lieu de surgir (voir buildClouds)
+function nuageChauffe(){ // (2026-09-26) les deux programmes de nuage compilés AU MENU — jamais au premier nuage traversé en pleine course
+  nuageChaud=true;
+  const g=mergeSpheres([[0,0,0,.6,1],[.4,.1,0,.45,1]],2,2,2),a=new THREE.Mesh(g,CLOUD_MAT),b=new THREE.Mesh(g,CLOUD_MAT_IN);
+  a.position.copy(camera.position);b.position.copy(camera.position);a.frustumCulled=b.frustumCulled=false;
+  scene.add(a);scene.add(b);try{renderer.compile(scene,camera);}catch(e){}scene.remove(a);scene.remove(b);g.dispose();
+}
 // FINESSE : à 16×11 les grosses boules (r 200-700) montraient leurs FACETTES — d'où les « formes
 // triangulaires ». On monte la définition sur desktop (mobile reste au gabarit léger).
 const CLOUD_SPH=new THREE.SphereGeometry(1,(IS_MOBILE||IS_LOW_END)?16:20,(IS_MOBILE||IS_LOW_END)?11:14); // gabarit recopié/fusionné (24×16 mangeait 25 fps : 20×14 lisse assez)
@@ -3803,25 +3924,41 @@ const CLOUD_SPH=new THREE.SphereGeometry(1,(IS_MOBILE||IS_LOW_END)?16:20,(IS_MOB
 function mergeSpheres(blobs,rx,ry,rz){
   const src=CLOUD_SPH, sp=src.attributes.position.array, sn=src.attributes.normal.array, si=src.index.array;
   const nv=sp.length/3, nb=blobs.length;
-  const pos=new Float32Array(nv*3*nb), nor=new Float32Array(nv*3*nb), idx=new Uint32Array(si.length*nb);
+  const pos=new Float32Array(nv*3*nb), nor=new Float32Array(nv*3*nb), col=new Float32Array(nv*3*nb);
+  const idx=(nv*nb<65535)?new Uint16Array(si.length*nb):new Uint32Array(si.length*nb),noy=new Uint8Array(nv*nb);let ni=0;
+  // les boules en coordonnées locales : centre + demi-axes (pour savoir si un sommet est ENFOUI dans une voisine, ou s'il la frôle)
+  const E=blobs.map(function(B){const fy=(B[4]===undefined?1:B[4]);return [B[0]*rx,B[1]*ry,B[2]*rz,B[3]*rx,B[3]*ry*fy,B[3]*rz];});
+  const VR=.72,VG=.76,VB=.93; // (2026-09-26) le VENTRE : un bleu-lavande, l'ombre du ciel sous la ouate (jamais un gris sale)
   for(let b=0;b<nb;b++){
     // 5e composante = APLATISSEMENT VERTICAL de CETTE boule : c'est elle qui donne les bases plates
     // de cumulus et l'ENCLUME étalée du cumulonimbus (sans elle, tout est sphérique = bonbons).
     const B=blobs[b], fy=(B[4]===undefined?1:B[4]);
     const ox=B[0]*rx, oy=B[1]*ry, oz=B[2]*rz, sx=B[3]*rx, sy=B[3]*ry*fy, sz=B[3]*rz;
-    const vo=b*nv*3, io=b*si.length, vb=b*nv;
+    const vo=b*nv*3, vb=b*nv, Eb=E[b], rb=Math.max(Eb[3],Eb[4],Eb[5]);
+    const voi=[];for(let c=0;c<nb;c++){if(c===b)continue;const Ec=E[c],dx=Ec[0]-Eb[0],dy=Ec[1]-Eb[1],dz=Ec[2]-Eb[2],rc=Math.max(Ec[3],Ec[4],Ec[5]);
+      if(dx*dx+dy*dy+dz*dz<(rb+rc*1.4)*(rb+rc*1.4))voi.push(Ec);} // seules les voisines qui peuvent toucher cette boule
     for(let i=0;i<nv;i++){
-      pos[vo+i*3  ]=sp[i*3  ]*sx+ox; pos[vo+i*3+1]=sp[i*3+1]*sy+oy; pos[vo+i*3+2]=sp[i*3+2]*sz+oz;
+      const px=sp[i*3]*sx+ox, py=sp[i*3+1]*sy+oy, pz=sp[i*3+2]*sz+oz;
+      pos[vo+i*3]=px; pos[vo+i*3+1]=py; pos[vo+i*3+2]=pz;
       // normale corrigée du non-uniforme (inverse des échelles), sinon l'éclairage ment sur les nuages aplatis
       let nx=sn[i*3]/sx, ny=sn[i*3+1]/sy, nz=sn[i*3+2]/sz;
       const l=Math.hypot(nx,ny,nz)||1; nor[vo+i*3]=nx/l; nor[vo+i*3+1]=ny/l; nor[vo+i*3+2]=nz/l;
+      // (2026-09-26) ENFOUI dans une voisine → noté (le triangle entier sautera) ; À LA FRONTIÈRE d'une voisine → le creux s'assombrit
+      let ao=0;
+      for(let k=0;k<voi.length;k++){const e=voi[k],dx=(px-e[0])/e[3],dy=(py-e[1])/e[4],dz=(pz-e[2])/e[5],d2=dx*dx+dy*dy+dz*dz;
+        if(d2<.9409){noy[vb+i]=1;break;} if(d2<1.96)ao+=(1.4-Math.sqrt(d2))/.43;} // (.97² et 1,4² : la racine seulement quand elle sert)
+      const h=Math.max(0,Math.min(1,(py/ry+.85)/1.2)),hh=h*h*(3-2*h),o=1-.26*Math.min(1,ao); // hh : 0 au ventre, 1 passé la mi-hauteur
+      col[vo+i*3]=(VR+(1-VR)*hh)*o; col[vo+i*3+1]=(VG+(1-VG)*hh)*o; col[vo+i*3+2]=(VB+(1-VB)*hh)*o;
     }
-    for(let i=0;i<si.length;i++)idx[io+i]=si[i]+vb;
+    for(let i=0;i<si.length;i+=3){const a=si[i]+vb,c1=si[i+1]+vb,c2=si[i+2]+vb;
+      if(noy[a]&&noy[c1]&&noy[c2])continue; // triangle entièrement ENFOUI dans une voisine : invisible, on ne le dessine plus
+      idx[ni++]=a;idx[ni++]=c1;idx[ni++]=c2;}
   }
   const g=new THREE.BufferGeometry();
   g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
   g.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));
-  g.setIndex(new THREE.BufferAttribute(idx,1));
+  g.setAttribute('color',new THREE.Float32BufferAttribute(col,3)); // (2026-09-26) le modelé cuit (ventre, creux)
+  g.setIndex(new THREE.BufferAttribute(idx.slice(0,ni),1));
   g.computeBoundingSphere();
   return g;
 }
@@ -3913,6 +4050,7 @@ function mkCloud(center,r,o,rr){ // un nuage = ses boules fusionnées en UN mesh
 // (le repli SPRITES a été supprimé avec le raymarch : il n'y a plus qu'UN seul chemin de nuage)
 function buildClouds(rr){
   disposeClouds();
+  nuageFondu=started?0:1; // (2026-09-26) en course (portail), les nuages de la nouvelle zone montent en fondu avec le ciel — au menu, tout de suite
   // RNG local : retoucher les nuages ne rebrasse plus la génération en aval (piège rnd séquentiel)
   const cr=mulberry32((rr()*1e9)|0);
   // RÉPARTITION HARMONIEUSE (2026-07-30) : les positions étaient tirées AU HASARD sur toute la piste
@@ -4073,6 +4211,7 @@ function updateClouds(dt,t){
   // Le frustum culling de three.js s'occupe du reste : la géométrie est réelle, sa sphère
   // englobante est exacte, donc aucun pop possible.
   const cp=carGroup.position;
+  if(nuageFondu<1){nuageFondu=Math.min(1,nuageFondu+dt/2.4);const e9=nuageFondu*nuageFondu*(3-2*nuageFondu);CLOUD_MAT.opacity=.82*e9;CLOUD_MAT_IN.opacity=.93*e9;} // (2026-09-26) la ouate d'une nouvelle zone monte en fondu (2,4 s, le temps que le ciel bascule)
   for(const c of CLOUDS){
     cldV1.subVectors(cp,c.g.position);
     const dh2=cldV1.x*cldV1.x+cldV1.z*cldV1.z,dv=cldV1.y;
@@ -4083,7 +4222,8 @@ function updateClouds(dt,t){
       c.g.scale.setScalar(bt<=0?1:Math.max(0.06,sc));
     }
     {const ex=camera.position.x-c.g.position.x,ey=camera.position.y-c.g.position.y,ez=camera.position.z-c.g.position.z,
-      dc=(ex*ex+ez*ez)/(c.r*c.r)+(ey*ey)/(c.ry*c.ry);if(dc<2.6){const q=Math.min(1,(2.6-dc)/1.6);if(q>prox)prox=q;}}
+      dc=(ex*ex+ez*ez)/(c.r*c.r)+(ey*ey)/(c.ry*c.ry);if(dc<2.6){const q=Math.min(1,(2.6-dc)/1.6);if(q>prox)prox=q;}
+      c.mesh.material=dc<1.1?CLOUD_MAT_IN:CLOUD_MAT;} // (2026-09-26) la caméra DANS l'ellipsoïde : la paroi intérieure se montre (white-out) ; dehors, l'endroit seul
     c.g.position.x=c.c.x+Math.sin(t*.07+c.ph)*4;   // le banc respire et dérive au vent
     c.g.position.z=c.c.z+Math.cos(t*.05+c.ph)*4;
     if(d2<1){ // ---- DEDANS ----
@@ -4136,6 +4276,18 @@ function updateClouds(dt,t){
   if(acesPass)acesPass.uniforms.uExposure.value=POST_EXPO*(1+cj2*.07)*(1-.24*GLARE);
 }
 let cloudNearS=0,GLARE=0;
+// (dev, 2026-09-26) `dbgNuage(i,k)` : MODE PHOTO d'un nuage — met en pause, pose la caméra à k × son rayon de son centre (k < 1 : DEDANS,
+// la paroi du white-out ; k > 1 : dehors, face au soleil derrière lui) et rend UNE image. Renvoie le nombre de nuages et le matériau pris.
+window.dbgNuage=function(i,k){const c=CLOUDS[i|0];if(!c)return {nuages:CLOUDS.length};
+  if(started&&!gameOver&&!paused)togglePause();
+  camera.position.copy(c.g.position).addScaledVector(SUN_DIR,-(k==null?2.2:k)*c.r);camera.lookAt(c.g.position);camera.updateMatrixWorld();
+  const ex=camera.position.x-c.g.position.x,ey=camera.position.y-c.g.position.y,ez=camera.position.z-c.g.position.z,dc=(ex*ex+ez*ez)/(c.r*c.r)+(ey*ey)/(c.ry*c.ry);
+  c.mesh.material=dc<1.1?CLOUD_MAT_IN:CLOUD_MAT;skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);
+  RIM_U.uSunV.value.copy(SUN_DIR).transformDirection(camera.matrixWorldInverse);
+  if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
+  return {nuages:CLOUDS.length,r:Math.round(c.r),ry:Math.round(c.ry),dedans:c.mesh.material===CLOUD_MAT_IN,trav:!!c.mesh.userData.trav};};
+// (dev, 2026-09-26) `dbgProgs()` : les programmes GPU compilés (nombre + ceux du ciel) — une hausse en pleine course = une recompilation (un hoquet)
+window.dbgProgs=function(cles){const P=renderer.info.programs||[];if(cles)return P.filter(function(p){return /nuageV2|globeJourNuit/.test(p.cacheKey);}).map(function(p){return p.cacheKey;});return {n:P.length,ciel:P.filter(function(p){return /nuageV2|globeJourNuit|an\*5\.-q\.y\*11/.test(p.cacheKey);}).map(function(p){return /nuageV2dedans/.test(p.cacheKey)?'nuage-dedans':/nuageV2/.test(p.cacheKey)?'nuage':/globe/.test(p.cacheKey)?'globe':'portail';})};};
 // ---------- PIGEONS RAMIERS : rares traversées d'oiseaux — un peu de vie dans le ciel ----------
 const PIGEONS=[];let pigeonT=12+Math.random()*14;
 const pgBodyM=new THREE.MeshLambertMaterial({color:0x97a2b6});
@@ -6248,6 +6400,7 @@ const LVL={cur:null,n:0,k:1,dur:4,
   planete:1,planeteDe:1,planeteA:1,    // échelle de la planète (1 = sa taille historique)
   pluie:0,pluieDe:0,pluieA:0,          // opacité du rideau de pluie (niveau VILLE)
   ville:0,villeDe:0,villeA:0,          // présence de la VILLE dans le ciel (skyline, abîme) — le plafond, lui, suit la pluie
+  mer:0,merDe:0,merA:0,                // (2026-09-26) la MER DE NUAGES peinte sous l'horizon (niveau NUAGES, pas l'auto-école au ciel nu)
   route:0,routeDe:0,routeA:0,sheen:.1,sheenDe:.1,sheenA:.1, // bitume v2 : clarté et brillance d'horizon du niveau (routeTick)
   dir:PLANET_DIR.clone(),tmp:new THREE.Vector3(),tmp2:new THREE.Vector3(),haut:new THREE.Vector3(0,1,0)};
 // LA LARGEUR PAR NIVEAU (× ROAD_HALF0 = 14) : très large pour apprendre (47,6 m), puis la route se resserre à chaque
@@ -6276,7 +6429,7 @@ function lvlBiome(){ // le ciel du niveau : tiré dans SA liste, jamais deux foi
 }
 function lvlGo(dur){ // les deux leviers HORS biome (uSpace, taille de planète) suivent le même fondu que le ciel
   const c=LVL.cur;
-  LVL.espaceDe=LVL.espace;LVL.planeteDe=LVL.planete;LVL.pluieDe=LVL.pluie;LVL.villeDe=LVL.ville;LVL.villeA=c&&c.id==='ville'?1:0;LVL.routeDe=LVL.route;LVL.sheenDe=LVL.sheen;
+  LVL.espaceDe=LVL.espace;LVL.planeteDe=LVL.planete;LVL.pluieDe=LVL.pluie;LVL.villeDe=LVL.ville;LVL.villeA=c&&c.id==='ville'?1:0;LVL.merDe=LVL.mer;LVL.merA=c&&c.id==='nuages'&&!c.sansNuages?1:0;LVL.routeDe=LVL.route;LVL.sheenDe=LVL.sheen;
   LVL.espaceA=c?c.espace:0;LVL.planeteA=c?c.planete:0;LVL.pluieA=c?c.pluie:0;LVL.routeA=c&&c.route!=null?c.route:0;LVL.sheenA=c&&c.sheen!=null?c.sheen:.1; // (planète : 0 par défaut — plus de Terre là où le niveau ne la demande pas)
   LVL.k=0;LVL.dur=dur||4;
   if(LVL.dur<=.05)lvlStep(1);
@@ -6289,6 +6442,7 @@ function lvlStep(dt){
   LVL.planete=LVL.planeteDe+(LVL.planeteA-LVL.planeteDe)*e;
   LVL.pluie=LVL.pluieDe+(LVL.pluieA-LVL.pluieDe)*e;LVL.ville=LVL.villeDe+(LVL.villeA-LVL.villeDe)*e;
   LVL.route=LVL.routeDe+(LVL.routeA-LVL.routeDe)*e;LVL.sheen=LVL.sheenDe+(LVL.sheenA-LVL.sheenDe)*e;
+  LVL.mer=LVL.merDe+(LVL.merA-LVL.merDe)*e;skyU.uMer.value=LVL.mer;
   skyU.uSpace.value=LVL.espace;
 }
 /* LA PLANÈTE DU NIVEAU. Hors orbite elle garde sa place de toujours (`PLANET_DIR`, fixe dans le monde).
@@ -21604,6 +21758,8 @@ function loop(now){
   skyDome.position.copy(camera.position);
   skyU.uTime.value=t;
   skyU.uVille.value=LVL.ville;skyU.uPluie.value=LVL.pluie;skyU.uFogCol.value.copy(scene.fog.color);skyU.uCam.value.copy(camera.position); // LE CIEL DE LA VILLE
+  if(!nuageChaud&&t>2.6)nuageChauffe(); // (2026-09-26) les deux programmes de nuage (endroit / dedans) compilés au menu
+  {const rY9=CITY.n&&CITY.n.routeY,vy9=rY9?Math.max(-.3,Math.min(.12,((rY9[0]+rY9[1])*.5-70-camera.position.y)/3500)):skyU.uVilleY.value;skyU.uVilleY.value+=(vy9-skyU.uVilleY.value)*Math.min(1,dt*2);} // (2026-09-26) la skyline peinte suit l'altitude des toits (voir villeCiel)
   // (2026-09-26) éteints = plus dessinés : le sprite additif du soleil couvre 2 000 unités, même à opacité nulle il se paie (garage et étal gardent la main)
   if(!garageOn&&!stallOn){sunSprite.visible=sunSprite.material.opacity>.02;horizonGlow.visible=horizonGlow.material.opacity>.02;for(const r9 of RAYS)r9.visible=r9.material.opacity>.002;}
   if(acesPass){ // EFFETS DE VITESSE (aberration + flou radial + tunnel) — SUR LE BOOST, pas sur le simple fait d'avancer
