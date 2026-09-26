@@ -10513,7 +10513,7 @@ function buildCar(spec){
     for(const sxz of [[-1,1],[1,1],[-1,-1],[1,-1]]){
       const w=new THREE.Group();
       for(const g in gs){const m=new THREE.Mesh(gs[g],lpMatC(g));m.userData.lp=1;w.add(m);}
-      if(sxz[0]<0)w.scale.x=-1;
+      if(sxz[0]<0)w.scale.x=-1;w.userData.large=W9.w; // (2026-09-26) la largeur du pneu : les traces la reprennent
       w.position.set(sxz[0]*A.wx,W9.R+A.wy,sxz[1]>0?(A.wzF!=null?A.wzF:A.wz):-(A.wzR!=null?A.wzR:A.wz));
       carGroup.add(w);wheels.push(w);
     }
@@ -10528,7 +10528,7 @@ function buildCar(spec){
       for(let sk9=0;sk9<5;sk9++){const spk=new THREE.Mesh(spokeG,wreck?(wi===2?rustM:darkM):chromeM);
         spk.rotation.y=sk9*Math.PI*2/5;w.add(spk);}
       w.add(new THREE.Mesh(hubG,wreck?rustM:chromeM));
-      w.rotation.z=Math.PI/2;
+      w.rotation.z=Math.PI/2;w.userData.large=.32*A.wr; // (2026-09-26) la largeur du pneu : les traces la reprennent
       if(wreck&&wi===2)w.rotation.y=.16;
       w.position.set(sxz[0]*A.wx,R9+A.wy,sxz[1]*A.wz);
       carGroup.add(w);wheels.push(w);wi++;
@@ -13342,7 +13342,7 @@ function makePool(n,size,color,opacity){
   m.frustumCulled=false;scene.add(m);
   return {mesh:m,pos:pos,vel:new Float32Array(n*3),life:new Float32Array(n),n:n,head:0};
 }
-const dust=makePool(160,1.1,0x6a6284,.28); // gomme mauve-nuit, discrète (les gros flocons beiges permanents, c'est fini)
+const dust=makePool(160,.55,0x6a6284,.22); // gomme mauve-nuit, discrète (les gros flocons beiges permanents, c'est fini) — (2026-09-26) 1,1 → .55 : collée à la roue, elle faisait un grand DISQUE mauve à l'écran
 const wisps=makePool(150,4.2,0xfff3e8,.4); // brume de nuage qui file le long de la caisse
 const streaks=(function(){
   const n=50,pos=new Float32Array(n*6);
@@ -17516,39 +17516,61 @@ function tryLand(dt){
   gapArmed=0; // la catapulte est encaissée : le prochain vol repart vierge
   return true;
 }
-/* LES TRACES DE PNEUS (2026-09-26, user : « lors des virages de la voiture, il faut laisser des traces noires sur la route »).
-   Deux rubans de gomme, un par roue ARRIÈRE, posés au ras du bitume dès que la caisse tourne fort ou glisse (même mesure que la
-   fumée et le crissement : `glisse9`, plus la charge latérale d'un virage serré). UN seul mesh pour tout : un anneau de 900 quads
-   (≈ 8 s de glisse continue) où les plus anciens sont réécrits par les nouveaux ; une image n'en ajoute que deux (une par roue),
-   et seule cette tranche remonte vers la carte graphique. Le ruban se coupe quand la gomme lâche (plus de trait qui relie deux
-   virages), et tout s'efface au portail (les traces restent sur l'ancienne route). */
-const TRACE={N:900,i:0,pos:null,geo:null,mesh:null,p:[null,null],V:[new THREE.Vector3(),new THREE.Vector3(),new THREE.Vector3(),new THREE.Vector3()]};
-function traceInit(){
-  const N=TRACE.N,pos=new Float32Array(N*12),idx=new Uint32Array(N*6);
-  for(let q=0;q<N;q++){const b=q*4,o=q*6;idx[o]=b;idx[o+1]=b+2;idx[o+2]=b+1;idx[o+3]=b+1;idx[o+4]=b+2;idx[o+5]=b+3;}
-  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setIndex(new THREE.BufferAttribute(idx,1));
-  const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:0x050507,transparent:true,opacity:.72,depthWrite:false,side:THREE.DoubleSide,
-    polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4}));
-  m.frustumCulled=false;m.renderOrder=1;scene.add(m);TRACE.pos=pos;TRACE.geo=g;TRACE.mesh=m;
+/* LES TRACES DE PNEUS v2 (2026-09-26, user : « lors des virages il faut laisser des traces noires » puis « moins foncées, avec un
+   MOTIF de pneu et une légère transparence pour le motif de la route ; il faut aussi qu'elles SORTENT DIRECTEMENT des roues de
+   chaque voiture »).
+   · UN ruban par roue ARRIÈRE, de la LARGEUR de SON pneu (lu dans les roues de la caisse montée), posé au ras du bitume dès que la
+     caisse tourne fort ou glisse (même mesure que la fumée et le crissement : `glisse9`, plus la charge latérale).
+   · LE BOUT VIVANT : le dernier quad de chaque ruban est RÉÉCRIT à chaque image, du dernier point posé jusqu'au contact actuel du
+     pneu — la trace part donc DE la roue, sans le trou d'un demi-mètre de la v1. Un nouveau point se fige tous les 50 cm.
+   · LE MOTIF : une bande de roulement en pavés décalés (texture 32 × 64 peinte une fois) sert d'alphaMap ; les UV courent le long
+     de la distance parcourue (un motif tous les 90 cm) → on lit la sculpture du pneu, et le bitume se voit à travers les rainures.
+     Gomme gris-noir à 55 % : une trace, pas un trait de marqueur.
+   · UN seul mesh : un anneau de 900 quads (les plus anciens réécrits), seule la tranche touchée remonte vers la carte graphique.
+     Le ruban se coupe quand la gomme lâche ou au décollage ; tout s'efface au portail (les traces restent sur l'ancienne route). */
+const TRACE={N:900,i:0,pos:null,uv:null,geo:null,mesh:null,r:[null,null],V:[new THREE.Vector3(),new THREE.Vector3()],lo:-1,hi:-1};
+function traceTex(){ // la bande de roulement : pavés décalés en chevrons, bords adoucis (blanc = gomme, noir = rainure transparente)
+  const W=32,H=64,cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');
+  x.fillStyle='#000';x.fillRect(0,0,W,H);x.fillStyle='#fff';
+  for(let y=0;y<H;y+=16){x.fillRect(2,y,12,10);x.fillRect(18,y+8,12,10);x.fillRect(18,y-8,12,10);} // deux colonnes de pavés, décalées d'une demi-maille
+  x.fillStyle='#bbb';x.fillRect(15,0,2,H);                                                        // la nervure centrale, plus claire
+  const g=x.createLinearGradient(0,0,W,0);g.addColorStop(0,'rgba(0,0,0,.7)');g.addColorStop(.12,'rgba(0,0,0,0)');g.addColorStop(.88,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.7)');
+  x.fillStyle=g;x.fillRect(0,0,W,H);                                                              // les flancs s'estompent
+  const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;return t;
 }
-function traceVide(){if(!TRACE.pos)return;TRACE.pos.fill(0);const a=TRACE.geo.attributes.position;a.updateRange.offset=0;a.updateRange.count=-1;a.needsUpdate=true;TRACE.p[0]=TRACE.p[1]=null;}
+function traceInit(){
+  const N=TRACE.N,pos=new Float32Array(N*12),uv=new Float32Array(N*8),idx=new Uint32Array(N*6);
+  for(let q=0;q<N;q++){const b=q*4,o=q*6;idx[o]=b;idx[o+1]=b+2;idx[o+2]=b+1;idx[o+3]=b+1;idx[o+4]=b+2;idx[o+5]=b+3;}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('uv',new THREE.BufferAttribute(uv,2));
+  g.setIndex(new THREE.BufferAttribute(idx,1));
+  const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:0x2c2a33,alphaMap:traceTex(),transparent:true,opacity:.55,depthWrite:false,side:THREE.DoubleSide,
+    polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4}));
+  m.frustumCulled=false;m.renderOrder=1;scene.add(m);TRACE.pos=pos;TRACE.uv=uv;TRACE.geo=g;TRACE.mesh=m;
+}
+function traceVide(){if(!TRACE.pos)return;TRACE.pos.fill(0);for(const n of ['position','uv']){const a=TRACE.geo.attributes[n];a.updateRange.offset=0;a.updateRange.count=-1;a.needsUpdate=true;}TRACE.r[0]=TRACE.r[1]=null;}
+function traceQuad(q,A0,A1,B0,B1,v0,v1){ // écrit le quad q : (A0,A1) = bord arrière du morceau, (B0,B1) = bord avant, v = distance/motif
+  const P=TRACE.pos,U=TRACE.uv,o=q*12,u=q*8;
+  P[o]=A0.x;P[o+1]=A0.y;P[o+2]=A0.z;P[o+3]=A1.x;P[o+4]=A1.y;P[o+5]=A1.z;P[o+6]=B0.x;P[o+7]=B0.y;P[o+8]=B0.z;P[o+9]=B1.x;P[o+10]=B1.y;P[o+11]=B1.z;
+  U[u]=0;U[u+1]=v0;U[u+2]=1;U[u+3]=v0;U[u+4]=0;U[u+5]=v1;U[u+6]=1;U[u+7]=v1;
+  if(TRACE.lo<0||q<TRACE.lo)TRACE.lo=q;if(q>TRACE.hi)TRACE.hi=q;
+}
 function traceTick(actif){
-  if(!actif||wheels.length<4){TRACE.p[0]=TRACE.p[1]=null;return;}
+  if(!actif||wheels.length<4){TRACE.r[0]=TRACE.r[1]=null;return;}
   if(!TRACE.pos)traceInit();
-  const hw=.21,a=TRACE.geo.attributes.position;let i0=-1,i1=-1;
+  TRACE.lo=-1;TRACE.hi=-1;
   for(let k=0;k<2;k++){const w=wheels[2+k];if(!w)continue; // les deux roues ARRIÈRE
-    const L9=TRACE.V[0].set(w.position.x-hw,.03,w.position.z),R9=TRACE.V[1].set(w.position.x+hw,.03,w.position.z);
+    const hw=THREE.MathUtils.clamp(((w.userData.large)||.30)*.5,.12,.34);          // la LARGEUR du pneu de CETTE caisse
+    const L9=TRACE.V[0].set(w.position.x-hw,.025,w.position.z),R9=TRACE.V[1].set(w.position.x+hw,.025,w.position.z);
     carGroup.localToWorld(L9);carGroup.localToWorld(R9);
-    const pr=TRACE.p[k];
-    if(!pr){TRACE.p[k]=[L9.clone(),R9.clone()];continue;}
-    if(pr[0].distanceToSquared(L9)<.25)continue;                       // un quad tous les 50 cm au moins
-    if(pr[0].distanceToSquared(L9)>36){pr[0].copy(L9);pr[1].copy(R9);continue;} // un saut (repli, portail) : on ne relie pas
-    const q=TRACE.i,o=q*12,P=TRACE.pos;TRACE.i=(q+1)%TRACE.N;if(i0<0)i0=q;i1=q;
-    P[o]=pr[0].x;P[o+1]=pr[0].y;P[o+2]=pr[0].z;P[o+3]=pr[1].x;P[o+4]=pr[1].y;P[o+5]=pr[1].z;
-    P[o+6]=L9.x;P[o+7]=L9.y;P[o+8]=L9.z;P[o+9]=R9.x;P[o+10]=R9.y;P[o+11]=R9.z;
-    pr[0].copy(L9);pr[1].copy(R9);}
-  if(i0>=0){ // seule la tranche écrite remonte (deux quads voisins ; au bouclage de l'anneau, tout)
-    if(i1>=i0){a.updateRange.offset=i0*12;a.updateRange.count=(i1-i0+1)*12;}else{a.updateRange.offset=0;a.updateRange.count=-1;}
+    let r=TRACE.r[k];
+    if(r&&r.a0.distanceToSquared(L9)>36)r=null;                                    // un saut (repli, portail) : on ne relie pas
+    if(!r){r=TRACE.r[k]={a0:L9.clone(),a1:R9.clone(),d:0,q:TRACE.i};TRACE.i=(TRACE.i+1)%TRACE.N;}
+    const dd=r.a0.distanceTo(L9),v0=r.d/.9,v1=(r.d+dd)/.9;
+    traceQuad(r.q,r.a0,r.a1,L9,R9,v0,v1);                                            // LE BOUT VIVANT : jusqu'au pneu, à chaque image
+    if(dd>=.5){r.a0.copy(L9);r.a1.copy(R9);r.d+=dd;r.q=TRACE.i;TRACE.i=(TRACE.i+1)%TRACE.N;} // on fige, et un nouveau bout part de là
+  }
+  if(TRACE.lo>=0)for(const n of ['position','uv']){const a=TRACE.geo.attributes[n],st=n==='uv'?8:12;
+    if(TRACE.hi-TRACE.lo<40){a.updateRange.offset=TRACE.lo*st;a.updateRange.count=(TRACE.hi-TRACE.lo+1)*st;}else{a.updateRange.offset=0;a.updateRange.count=-1;}
     a.needsUpdate=true;}
 }
 function newTrack(){
@@ -20001,9 +20023,9 @@ function loop(now){
           for(let k=0;k<nD9;k++){
             const sd2=k?1:-1;
             tmp2.copy(carGroup.position).addScaledVector(fwdW,-spec.l/2).addScaledVector(tmp,sd2*spec.w/2);
-            spawnP(dust,tmp2.x,tmp2.y,tmp2.z,
-              -fwdW.x*3+tmp.x*sd2*2.5*drf9+(Math.random()-.5)*1.5,F.n.y*1.2+Math.random()*.8,-fwdW.z*3+tmp.z*sd2*2.5*drf9+(Math.random()-.5)*1.5,
-              .3+Math.random()*.3);
+            spawnP(dust,tmp2.x,tmp2.y,tmp2.z, // (2026-09-26) la fumée HÉRITE de la vitesse de la caisse (EXV) : laissée sur place, la caméra la traversait → un grand disque mauve derrière la roue
+              EXV.x*.85-fwdW.x*3+tmp.x*sd2*2.5*drf9+(Math.random()-.5)*1.5,EXV.y*.85+F.n.y*1.2+Math.random()*.8,EXV.z*.85-fwdW.z*3+tmp.z*sd2*2.5*drf9+(Math.random()-.5)*1.5,
+              .2+Math.random()*.2);
           }
         }
         // traits d'AIR : discrets, de plus en plus nombreux à mesure que ça accélère
