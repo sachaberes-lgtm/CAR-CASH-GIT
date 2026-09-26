@@ -2472,6 +2472,81 @@
   .pbtn .mBadge.on{animation-iteration-count:4}
   .mCause{font-family:var(--pix);font-size:9px;line-height:1.7;letter-spacing:2px;color:#ffc2cc;text-align:center;margin:6px 12px 4px;
     text-shadow:0 2px 0 #1c0430}
+  /* ===== HUD DE COURSE — VAGUE 2 (2026-09-26, bible « L'ENCRE ET L'OR ») =====
+     Un seul monde peint à l'ENCRE #1c0430 : c'est le contour de chaque lettre du HUD de course, et seule la VALEUR émet (l'or).
+     · la CARTE MOTEUR (H1) : dans le couloir sous le tableau de bord, scène 3D 220 × 147 (le moteur y est RECOLLÉ par WebGL, voir
+       engQuadDraw), numéro en badge sur son épaule, nom dessous ; puis `.plonge` : les textes s'effacent, le moteur entre dans la caisse ;
+     · UNE voix à la fois (H2) : la file `hautPasse` les arbitre ; ces règles-ci ne sont que le filet (carte en place = couloir muet) ;
+     · UN seul traitement de texte (H9) : couleur PLEINE + contour d'encre + lèvre claire en biseau (`::after` sur `data-t`, la rangée
+       de pixels du haut de chaque lettre) — fini le dégradé découpé dans le texte ;
+     · la carte d'ASTUCE / de DÉFI (H8) : plaque pixel du HUD (octogone `--oct`, liseré intérieur), plus de pastille ronde façon iOS. */
+  body #engBig{left:50%;top:50%;width:auto;z-index:40;transform:translate(-50%,-50%) scale(var(--ebS,1));transform-origin:50% 50%;
+    opacity:1;visibility:hidden;animation:none}
+  body #engBig.on{visibility:visible;animation:none;transform:translate(-50%,-50%) scale(var(--ebS,1))}
+  body #engBig .ebCarte{position:relative;width:268px;display:flex;flex-direction:column;align-items:center;gap:0;padding:0;
+    font-family:var(--pix);text-align:center;color:#fff}
+  body #engBig.on .ebCarte{animation:eb2Vie .26s var(--ease) both}
+  body #engBig.plonge .ebCarte{animation:eb2Part .16s linear both}
+  @keyframes eb2Vie{from{opacity:0;transform:scale(1.35)}to{opacity:1;transform:none}}
+  @keyframes eb2Part{from{opacity:1;transform:none}to{opacity:0;transform:scale(.92)}}
+  body #engBig .ebTit{position:relative;z-index:2;letter-spacing:3px;color:var(--ec);
+    text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430}
+  body #engBig.rec .ebTit{color:#ffd75e}
+  body #engBig .ebScene{position:relative;flex:none;width:220px;height:147px;margin:-4px 0 -18px}
+  body #engBig .ebNum{position:absolute;left:-16px;top:10px;z-index:2;margin:0;font-size:40px;line-height:1;letter-spacing:0;text-align:left;color:#fff3b0;
+    text-shadow:3px 0 0 #1c0430,-3px 0 0 #1c0430,0 3px 0 #1c0430,0 -3px 0 #1c0430,3px 3px 0 #1c0430,-3px 3px 0 #1c0430,3px -3px 0 #1c0430,
+      -3px -3px 0 #1c0430,0 7px 0 #1c0430,0 0 20px color-mix(in srgb,var(--ec) 70%,transparent)}
+  body #engBig.rec .ebNum{color:#ffd75e}
+  body #engBig .ebNum i{display:block;font-style:normal;font-size:var(--fs-min);letter-spacing:2px;margin:0 0 7px 3px;color:var(--ec);
+    text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430}   /* 8 px : le contour seul (une épaisseur de 4 px dédoublait le mot) */
+  body #engBig .ebCarte>b{position:relative;z-index:2;display:block;font-size:17px;line-height:1.2;letter-spacing:1px;white-space:nowrap;
+    background:none;-webkit-background-clip:border-box;background-clip:border-box;color:#ffd75e;-webkit-text-fill-color:currentColor;filter:none;
+    text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,2px 2px 0 #1c0430,-2px 2px 0 #1c0430,2px -2px 0 #1c0430,
+      -2px -2px 0 #1c0430,0 5px 0 #1c0430}
+  body #engBig .ebCarte>b::after,body #slam9 b::after{content:attr(data-t);position:absolute;left:0;top:0;right:0;pointer-events:none;
+    color:#fff3b0;-webkit-text-fill-color:currentColor;text-shadow:none;clip-path:inset(0 0 calc(100% - .225em) 0)}
+  body #engBig .ebCyl{margin:8px 0 0 3px;gap:3px;max-width:50px;justify-content:flex-start}
+  body #engBig .ebCyl i{width:8px;height:10px;border-radius:0;background:#2a2268;box-shadow:inset 0 0 0 2px #1c0430}
+  body #engBig.ruban .ebTit,body #engBig.mini .ebTit,body #engBig.mini .ebNum i{visibility:hidden}
+  body #engBig .ebRuban{position:absolute;left:-18px;right:-18px;top:-14px;z-index:3;display:flex;align-items:baseline;justify-content:center;gap:10px;
+    padding:8px 12px 10px;clip-path:var(--oct);transform:rotate(-4deg);
+    background:linear-gradient(180deg,#fff3b0 0 3px,#ffd75e 3px 58%,#f0a818 58%);box-shadow:inset 0 0 0 3px #1c0430,inset 0 -6px 0 #b8860b;
+    animation:eb2Ruban .3s var(--ease) both}
+  body #engBig .ebRuban b{font-size:12px;letter-spacing:1px;line-height:1;background:none;-webkit-background-clip:border-box;background-clip:border-box;
+    color:#2a0e00;-webkit-text-fill-color:currentColor;filter:none;text-shadow:0 2px 0 rgba(255,243,176,.6)}
+  body #engBig .ebRuban small{color:#4a2200;letter-spacing:1px;text-shadow:none}
+  @keyframes eb2Ruban{from{opacity:0;transform:rotate(-4deg) scale(1.7)}to{opacity:1;transform:rotate(-4deg)}}
+  /* tant que la carte parle, le couloir se tait (filet de la file) ; pendant la plongée, le geste attend encore */
+  body.ebOn #lvlBan,body.ebOn #slam9,body.ebOn #misBan,body.ebOn #dolHud,body.ebOn #launchLogo,body.ebOn #avRec,body.ebPlonge #popTxt{visibility:hidden}
+  body:has(#misBan.on) #dolHud{visibility:hidden}   /* le compteur du DAUPHIN vit dans le même couloir : il laisse parler la carte de défi / d'astuce (3 s), puis revient */
+  @media (prefers-reduced-motion:reduce){body #engBig.on .ebCarte,body #engBig.plonge .ebCarte,body #engBig .ebRuban{animation:none}
+    body #engBig.plonge .ebCarte{opacity:0}}
+  /* LA GRANDE ANNONCE (H9) : couleur pleine, contour d'encre de 3 px, épaisseur dessous, lèvre claire */
+  body #slam9 b{position:relative;line-height:1.2;background:none;-webkit-background-clip:border-box;background-clip:border-box;
+    color:var(--s1);-webkit-text-fill-color:currentColor;filter:none;
+    text-shadow:3px 0 0 #1c0430,-3px 0 0 #1c0430,0 3px 0 #1c0430,0 -3px 0 #1c0430,3px 3px 0 #1c0430,-3px 3px 0 #1c0430,3px -3px 0 #1c0430,
+      -3px -3px 0 #1c0430,0 7px 0 #1c0430,0 0 22px color-mix(in srgb,var(--s1) 65%,transparent)}
+  body #slam9 b::after{color:color-mix(in srgb,var(--s1) 28%,#fff)}
+  body #slam9 small{color:#fff;text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,0 4px 0 #1c0430}
+  /* LE GESTE SUR LA CAISSE : la même encre que le tableau de bord */
+  body #popTxt{text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,2px 2px 0 #1c0430,-2px 2px 0 #1c0430,2px -2px 0 #1c0430,
+    -2px -2px 0 #1c0430,0 4px 0 #1c0430,0 0 16px var(--pc)!important}
+  /* LA BANNIÈRE DE NIVEAU : l'or en couleur pleine, cerné d'encre comme le reste */
+  body #lvlBan b{text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,2px 2px 0 #1c0430,-2px 2px 0 #1c0430,2px -2px 0 #1c0430,
+    -2px -2px 0 #1c0430,0 5px 0 #1c0430,0 0 20px rgba(255,200,90,.4)}
+  /* LA CARTE D'ASTUCE / DE DÉFI (H8) : plaque pixel du HUD — la même que la bande du FLOW (octogone, liseré intérieur, lèvre et ombre) */
+  body #misBan{--mbC:#62e062;border:0;border-radius:0;clip-path:var(--oct);background:linear-gradient(180deg,#1f185c,#0e0a38);
+    box-shadow:inset 0 0 0 3px var(--mbC),inset 0 0 0 5px #1c0430,inset 0 -6px 0 rgba(0,0,0,.35),inset 0 4px 0 rgba(255,255,255,.07);
+    transition:transform var(--t-fast) var(--ease),opacity var(--t-fast) var(--ease)}
+  body #misBan.astuce{--mbC:#5ee6ff}
+  body #misBan .mbIco{border-radius:0;color:#1c0430;background:var(--mbC);
+    clip-path:polygon(5px 0,calc(100% - 5px) 0,100% 5px,100% calc(100% - 5px),calc(100% - 5px) 100%,5px 100%,0 calc(100% - 5px),0 5px);
+    box-shadow:inset 0 -5px 0 rgba(0,0,0,.28),inset 0 3px 0 rgba(255,255,255,.45)}
+  body #misBan.on .mbIco{animation:mbIco var(--t-slow) var(--ease)}
+  body #misBan .mbTx small{color:var(--mbC);text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430}
+  body #misBan .mbTx span{text-shadow:0 2px 0 #1c0430}
+  body #misBan .mbPrime{border-radius:0;color:#2a0e00;clip-path:polygon(4px 0,calc(100% - 4px) 0,100% 4px,100% calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,0 calc(100% - 4px),0 4px);
+    background:linear-gradient(180deg,#fff3b0 0 2px,#ffd75e 2px 60%,#f0a818 60%);box-shadow:inset 0 0 0 2px #1c0430,inset 0 -4px 0 #b8860b}
 </style>
 </head>
 <body>
@@ -6595,7 +6670,9 @@ function lvlNuageOk(o){ // quelles familles de nuages chaque monde garde (lu par
   return true;
 }
 let lvlBanT=0;
-function lvlAnnonce(){ // la bannière « NIVEAU n — LIEU » (fondu d'opacité seul : rien ne bouge, REDUCED_MOTION compris)
+function lvlAnnonce(){ // (vague 2) le niveau prend son tour dans la file du couloir : il ne parle plus PAR-DESSUS un palier ou un record
+  if(!document.getElementById('lvlBan')||!LVL.cur)return;hautPasse(lvlMontre,2800,'lvl',1);}
+function lvlMontre(){ // la bannière « NIVEAU n — LIEU » (fondu d'opacité seul : rien ne bouge, REDUCED_MOTION compris)
   const b=document.getElementById('lvlBan');if(!b||!LVL.cur)return;
   document.getElementById('lvlNum').innerHTML=Array.from(TR('NIVEAU')+' '+LVL.n).map(function(c,i){return '<i style="animation-delay:'+(i*45)+'ms">'+(c===' '?'&nbsp;':c)+'</i>';}).join(''); // (2026-09-26) les lettres TOMBENT une à une
   document.getElementById('lvlNom').textContent=TR(LVL.cur.nm);
@@ -11509,9 +11586,12 @@ const engVigCam=new THREE.PerspectiveCamera(34,1.5,.1,80);
 // premier changement de palier. Le point visé est SOUS le moteur : il remonte dans le cadre, au-dessus
 // de la légende (sinon la bande de texte du bas lui mange le carter).
 engVigCam.position.set(0,1.05,4.05);engVigCam.lookAt(0,-.06,0);
-engVigScene.add(new THREE.HemisphereLight(0xd8ecff,0x241c3e,1.15));
-{const k=new THREE.DirectionalLight(0xffffff,1.55);k.position.set(3.5,5,4.5);engVigScene.add(k);
- const r=new THREE.DirectionalLight(0x7fd8ff,.9);r.position.set(-4,1.5,-3);engVigScene.add(r);
+/* (vague 2, H7) LA LUMIÈRE DU MOTEUR — à 1,15 d'ambiance + 1,55 de clé + ,9 de contre-jour, sans courbe de tons (la vignette ne passe
+   pas par l'ACES), l'alu brûlait en « mousse rose surexposée » (gt1-06/07/12/17). Une clé franche, une ambiance d'ENCRE : le métal
+   retrouve ses noirs, le chrome accroche un seul filet de lumière. (Cette scène n'a rien à voir avec celle du jeu.) */
+engVigScene.add(new THREE.HemisphereLight(0xd8ecff,0x241c3e,.55));
+{const k=new THREE.DirectionalLight(0xffffff,1.1);k.position.set(3.5,5,4.5);engVigScene.add(k);
+ const r=new THREE.DirectionalLight(0x7fd8ff,.6);r.position.set(-4,1.5,-3);engVigScene.add(r);
  const b=new THREE.DirectionalLight(0xff7a3c,.55);b.position.set(-2,-3,-4);engVigScene.add(b);} // contre-jour braise : la silhouette se détache du fond sombre
 const engRT=new THREE.WebGLRenderTarget(480,321,{minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,depthBuffer:true});
 // le quad de recollage — caméra ortho en coordonnées NDC (-1..1), donc positionner = convertir un rect DOM
@@ -11519,7 +11599,45 @@ const engVigQuadScene=new THREE.Scene();
 const engVigQuadCam=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
 const engVigQuadMat=new THREE.MeshBasicMaterial({map:engRT.texture,transparent:true,depthTest:false,depthWrite:false});
 const engVigQuad=new THREE.Mesh(new THREE.PlaneGeometry(1,1),engVigQuadMat);
-engVigQuad.frustumCulled=false;engVigQuadScene.add(engVigQuad);
+engVigQuad.frustumCulled=false;engVigQuad.renderOrder=1;engVigQuadScene.add(engVigQuad);
+/* (vague 2, H6) LA CARTE MOTEUR DU TÉLÉPHONE, RECOLLÉE DANS L'IMAGE — elle faisait, 30 fois par seconde en pleine course : rendu 480×321,
+   lecture GPU→CPU (asynchrone depuis la passe perf), copie JS de 616 Ko, `putImageData`, puis un <canvas> DOM filtré (contraste,
+   saturation, deux ombres floues recalculées à chaque image). Désormais le moteur est rendu dans SON tampon (384×256, à peine plus que
+   la taille où on le voit) et recollé par deux quads APRÈS le composer, à la place de `.ebScene` : un halo à la couleur du moteur (35 %), puis le
+   moteur. Zéro lecture, zéro copie, zéro calque filtré ; mêmes programmes que le quad existant (MeshBasic + texture : chauffés au menu
+   par `chauffeDivers`). Le tampon est PRÉMULTIPLIÉ (fond noir transparent, moteur opaque, flamme additive) : on le pose en ONE /
+   ONE_MINUS_SRC_ALPHA. L'écran de mort, lui, garde la relecture — son moteur vit dans un écran DOM posé par-dessus l'image. */
+const engRTc=new THREE.WebGLRenderTarget(384,256,{minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,depthBuffer:true});
+// ENG_QK : le quad DÉBORDE de sa scène (×1,6). Le cadrage du tampon garde 24 % d'air pour que la flamme dépasse (engVigBuild) : recollé
+// à la taille exacte de `.ebScene`, le moteur n'en occupait qu'un tiers. L'air débordant est transparent — il passe sous les textes.
+const ENG_Q={x:0,y:0,w:0,h:0,op:0},ENG_CC=new THREE.Color(),ENG_QK=1.6;
+const engCarteMat=new THREE.MeshBasicMaterial({map:engRTc.texture,transparent:true,depthTest:false,depthWrite:false,
+  blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor});
+const engCarteQuad=new THREE.Mesh(engVigQuad.geometry,engCarteMat);engCarteQuad.frustumCulled=false;engCarteQuad.renderOrder=1;engCarteQuad.visible=false;
+const engHaloMat=new THREE.MeshBasicMaterial({transparent:true,depthTest:false,depthWrite:false,
+  blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor,
+  map:(function(){const cv=document.createElement('canvas');cv.width=cv.height=64;const c=cv.getContext('2d'),g=c.createRadialGradient(32,32,0,32,32,32);
+    g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.35,'rgba(255,255,255,.45)');g.addColorStop(1,'rgba(255,255,255,0)');c.fillStyle=g;c.fillRect(0,0,64,64);
+    const t=new THREE.CanvasTexture(cv);t.premultiplyAlpha=true;return t;})()}); // prémultipliée à l'envoi : le halo se fond, il ne dessine pas de carré
+const engHalo=new THREE.Mesh(engVigQuad.geometry,engHaloMat);engHalo.frustumCulled=false;engHalo.renderOrder=0;engHalo.visible=false;
+engVigQuadScene.add(engHalo);engVigQuadScene.add(engCarteQuad);
+function engVigRendRT(rt){ // le moteur dans SON tampon — fond NOIR transparent (le recollage prémultiplié l'exige), état du renderer restauré
+  renderer.getClearColor(ENG_CC);const ca=renderer.getClearAlpha();
+  renderer.setClearColor(0x000000,0);renderer.setRenderTarget(rt);renderer.clear();renderer.render(engVigScene,engVigCam);
+  if(engVigVieux){jeteEngin(engVigVieux);engVigVieux=null;} // (perf) le nouveau moteur est rendu : ses programmes sont pris, l'ancien peut partir
+  renderer.setRenderTarget(null);renderer.setClearColor(ENG_CC,ca); // ⚠ restaure le framebuffer ET son viewport
+}
+function engQuadDraw(){ // chaque image (le framebuffer est redessiné à chaque image), à la place que engBigSuit a calculée
+  const Q=ENG_Q;if(!(Q.op>.01&&Q.w>4))return;
+  const W=VP.w||1,H=VP.h||1,cx=Q.x/W*2-1,cy=1-Q.y/H*2,hs=Q.w*.85;
+  engCarteQuad.position.set(cx,cy,0);engCarteQuad.scale.set(Q.w/W*2,Q.h/H*2,1);
+  engCarteMat.color.setScalar(Q.op);engCarteMat.opacity=Q.op;
+  engHalo.position.set(cx,cy,0);engHalo.scale.set(hs/W*2,hs/H*2,1);
+  engHaloMat.color.setHex(engBig.col||0xffd75e).multiplyScalar(.35*Q.op);engHaloMat.opacity=.35*Q.op;
+  engVigQuad.visible=false;engCarteQuad.visible=engHalo.visible=true;
+  const ac=renderer.autoClear;renderer.autoClear=false;renderer.render(engVigQuadScene,engVigQuadCam);renderer.autoClear=ac;
+  engVigQuad.visible=true;engCarteQuad.visible=engHalo.visible=false;
+}
 let engVigMesh=null,engVigTierShown=-1,engVigSpin=0,engVigForce=null; // engVigForce : palier imposé par la console (visuel pur)
 // LA VIE DU MOTEUR : horloge du battement, chaleur lissée, matériaux qui rougissent, flamme.
 let engVigT=0,engVigHeat=0,engVigBaseY=0,engVigMats=[],engVigFeu=null,engVigFeuBase=1;
@@ -11585,6 +11703,8 @@ function engChauffe(){
 function chauffeDivers(){
   try{if(!CITY.chaud){CITY.chaud=true;villeChauffe();}}catch(e){}
   try{if(!TRACE.pos)traceInit();const p=mkPigeon();scene.add(p);renderer.compile(scene,camera);scene.remove(p);}catch(e){}
+  try{engCarteQuad.visible=engHalo.visible=true;renderer.compile(engVigQuadScene,engVigQuadCam);engCarteQuad.visible=engHalo.visible=false; // (vague 2) le recollage de la carte MOTEUR (sinon son programme naît au 1er palier)
+    renderer.initTexture(engHaloMat.map);renderer.setRenderTarget(engRTc);renderer.setRenderTarget(null);}catch(e){} // …et son halo et son tampon montent au GPU dès le menu
 }
 function engVigBuild(){
   if(engVigMesh){ // ⚠ mkEngine fabrique des matériaux NEUFS à chaque appel : sans ça, une fuite par palier
@@ -11657,7 +11777,7 @@ function engVigRender(dt){
      cale sur le rect DOM de la cible, donc il suffit de changer d'élément — pas une ligne de rendu
      à dupliquer, et le palier affiché reste celui qu'on avait au moment de mourir. */
   const fin=gameOver&&overlay.style.display!=='none',tel=TCTL.on;
-  let cible;
+  let cible,carte9=false;
   if(tel){ /* TÉLÉPHONE (2026-09-25) : l'écran nu masque la vignette de coin et l'écran de fin desktop — le moteur 3D vit
               désormais dans la grande carte « NOUVEAU MOTEUR » (engBig), et SEULEMENT pendant qu'elle est là. Le reste du
               temps : aucun rendu, et surtout plus la relecture GPU→CPU de l'écran de fin masqué (20 par seconde pour rien). */
@@ -11666,7 +11786,8 @@ function engVigRender(dt){
     // (2026-09-26, user : « dans l'écran de mort, au lieu d'avoir marqué ENGINE GAS TURBINE, il faut voir le 3D ») : le moteur tourne aussi
     // dans la carte MOTEUR de l'écran de mort, tant qu'elle est à l'écran
     const mort9=gameOver&&ENG_MORT.ctx&&ENG_MORT.cv&&ENG_MORT.cv.isConnected&&ENG_MORT.cv.offsetParent!==null;
-    if(!(engBig.on&&engBig.ctx)&&!mort9){if(engSwapT>0)engSwapT=Math.max(0,engSwapT-dt);return;}
+    carte9=engBig.on&&!gameOver&&!paused; // (vague 2) la carte de course : recollée dans l'image (engQuadDraw), plus de relecture
+    if(!carte9&&!mort9){if(engSwapT>0)engSwapT=Math.max(0,engSwapT-dt);return;}
     cible=null;
   }else{
     cible=fin?engEndEl:engVigEl;
@@ -11739,17 +11860,13 @@ function engVigRender(dt){
       engVigFeu.material.opacity=.72*k9;
     }
   }
+  // (vague 2, H6) LA CARTE DE COURSE : le moteur est rendu à 30 i/s dans son petit tampon, et recollé À CHAQUE IMAGE (le framebuffer
+  // principal est repeint à chaque image : un quad sauté = un moteur qui clignote)
+  if(carte9){if(performance.now()-engEndT>33){engEndT=performance.now();engVigRendRT(engRTc);}engQuadDraw();return;}
   // (perf) téléphone et écran de fin : l'image n'est RECOPIÉE qu'à 30 (20) i/s — la rendre entre deux recopies ne servait à rien
   if((fin||tel)&&performance.now()-engEndT<=(tel?33:50))return;
   // (1) le moteur dans SON framebuffer — fond transparent pour que le cadre CSS reste visible dessous
-  const ca=renderer.getClearAlpha();
-  renderer.setClearAlpha(0);
-  renderer.setRenderTarget(engRT);
-  renderer.clear();
-  renderer.render(engVigScene,engVigCam);
-  if(engVigVieux){jeteEngin(engVigVieux);engVigVieux=null;} // (perf) le nouveau moteur est rendu : ses programmes sont pris, l'ancien peut partir
-  renderer.setRenderTarget(null); // ⚠ restaure le framebuffer ET son viewport : c'est tout l'intérêt
-  renderer.setClearAlpha(ca);
+  engVigRendRT(engRT);
   /* (2a) ÉCRAN DE FIN : là, le recollage en WebGL NE MARCHE PAS. L'overlay de game over est un
      élément DOM posé PAR-DESSUS le canvas, avec un flou d'arrière-plan : tout ce qu'on dessine
      dans le canvas passe derrière lui et ressort flouté. On rapatrie donc l'image du RenderTarget
@@ -11758,7 +11875,7 @@ function engVigRender(dt){
      qui suffit largement pour une rotation lente, et on est de toute façon à l'arrêt. Les lignes
      arrivent de bas en haut, d'où le retournement. */
   if(fin||tel){ // (tel : la carte du téléphone, même recopie — 30 images/s, le temps de la carte seulement)
-    const now9=performance.now(),ctx9=tel?((engBig.on&&engBig.ctx)?engBig.ctx:ENG_MORT.ctx):engEndCtx;
+    const now9=performance.now(),ctx9=tel?ENG_MORT.ctx:engEndCtx; // (vague 2) la carte de course n'a plus de <canvas> : seul l'écran de mort relit
     if(now9-engEndT>(tel?33:50)&&ctx9){
       engEndT=now9;
       const w=engRT.width,h=engRT.height;
@@ -12510,8 +12627,12 @@ function popTexte(txt,col,prio){
   let e=document.getElementById('popTxt');
   if(!e){e=document.createElement('div');e.id='popTxt';e.setAttribute('aria-hidden','true');document.body.appendChild(e);}
   e.textContent=TR(txt);e.style.setProperty('--pc',col||'#ffd75e');
-  e.style.fontSize=Math.min(22,Math.floor((innerWidth-24)/Math.max(1,e.textContent.length))-1)+'px'; // (HUD v4) jamais plus large que l'écran
+  // (vague 2, H5) la police pixel avance d'1 em par lettre PLUS l'interlettrage (2 px) : l'ancien calcul l'oubliait, et « DAUPHIN EN
+  // VOL +80 » débordait de 36 px. Plafond 84 % de la largeur (« AIR MONSTRE +110 » barrait l'écran d'un bord à l'autre).
+  const n9L=Math.max(1,e.textContent.length),fs9=Math.max(10,Math.min(22,Math.floor(VP.w*.84/n9L)-2));
+  e.style.fontSize=fs9+'px';popTexte._w=n9L*(fs9+2);
   e.classList.remove('on');void e.offsetWidth;e.classList.add('on');
+  try{popSuit();}catch(x){} // posé tout de suite sur la caisse (sinon une image au centre de l'écran)
 }
 function n9Saut(o){const n=performance.now(),s9=n-(o._viseT||0)>200;o._viseT=n;return s9;} // la visée repart de zéro après une absence (vol, garage, respawn)
 /* ================= LE FLOW — la signature de conduite de CASH CAR (2026-09-25) =================
@@ -12761,21 +12882,85 @@ function misFin(){
 /* LE CRÉNEAU DU HAUT D'ÉCRAN (2026-09-25) : moteur, défi et permis visaient la même bande sous l'encoche, sans se parler —
    une réception qui franchit un palier ET valide un défi posait la bannière PAR-DESSUS la carte moteur, au meilleur moment.
    Une carte à la fois, les autres en FILE. Piloté par événements uniquement : rien dans la boucle. */
-const HAUT={fin:0,q:[],t:0};
-function hautPasse(f,ms,k){ // f affiche la carte, ms = le temps où elle occupe l'écran, k = sa famille
-  const n=performance.now();
-  if(n<HAUT.fin||TUTO.on){HAUT.q.push([f,ms,k]);hautArme();return;} // l'auto-école garde le haut pour elle : tutoFin relâche la file
-  HAUT.fin=n+ms;f();hautArme();
+/* (vague 2, 2026-09-26) LA FILE UNIQUE DU COULOIR — H2 du directeur artistique : « cinq voix au même instant » (captures gt1-11/12/16 :
+   NOUVEAU RECORD ×2 + PALIER 3 + AURA + la liste + « 3 CYLINDRES » ; RECORD BATTU sur NIVEAU 2 ; le dernier geste pendant l'explosion).
+   Les grandes annonces (`slam`), la carte MOTEUR, la bannière de NIVEAU et les cartes de DÉFI/ASTUCE passent TOUTES par ici :
+   · une seule voix à la fois dans le couloir `--laneA` ;
+   · une PRIORITÉ : 3 = record / mort · 2 = moteur, défi réussi, pouvoir · 1 = niveau, astuce, encaissement · 0 = geste (BOOST, ×n) ;
+   · un TEMPS DE LECTURE garanti (`min`) : avant, seule une voix plus forte peut couper ; après, la suivante passe ;
+   · une PATIENCE (`ttl`) : un BOOST qui attendrait 2 s ne voudrait plus rien dire — il se tait ; un défi, un moteur attendent leur tour ;
+   · deux événements à moins d'une seconde FUSIONNENT : la carte MOTEUR prend le ruban « RECORD BATTU » au lieu de deux annonces ;
+   · l'explosion VIDE tout (`hautVide()` en tête d'`explode`). Toujours piloté par événements : rien dans la boucle. */
+const HAUT={fin:0,q:[],t:0,cur:null};
+const HAUT_MIN={slam:450,rec:1000,eng:900,lvl:1400,mis:2000};   // le temps de lecture garanti de chaque famille (ms)
+const HAUT_TTL=[450,900,1500,3000];                               // combien de temps une annonce accepte d'ATTENDRE, par priorité
+const HAUT_COUPE={ // faire taire la voix qui occupe le couloir (la suivante prend sa place)
+  slam:function(){const e=avE('slam9');if(e)e.classList.remove('on');document.body.classList.remove('slamOn');},
+  rec:function(){HAUT_COUPE.slam();},
+  eng:function(){engPlonge();},                                   // couper la carte moteur = le moteur PLONGE dans la caisse, tout de suite
+  lvl:function(){const b=document.getElementById('lvlBan');if(b)b.classList.remove('on');clearTimeout(lvlBanT);},
+  mis:function(){const b=document.getElementById('misBan');if(b)b.classList.remove('on');clearTimeout(misBanMontre._t);}
+};
+function hautPasse(f,ms,k,p,o){ // f affiche · ms = le temps où elle occupe le couloir · k = sa famille · p = sa priorité · o = {ru (ruban), min, ttl}
+  o=o||{};p=p==null?(k==='eng'?2:1):p;
+  const n=performance.now(),g=k==='eng'||k==='mis',
+    it={f:f,ms:ms,k:k,p:p,q:n,s:0,ru:o.ru||null,garde:g,min:o.min!=null?o.min:(HAUT_MIN[k]||450),
+        ttl:o.ttl!=null?o.ttl:(g?9e9:k==='lvl'?4500:HAUT_TTL[Math.max(0,Math.min(3,p))])};
+  if(hautFusion(it,n))return;
+  if(g&&TUTO.on){HAUT.q.push(it);return;} // l'auto-école garde le haut pour elle : tutoFin relâche la file
+  const c=HAUT.cur;
+  if(!c||n>=HAUT.fin||p>c.p||n>=c.s+c.min){hautMontre(it,n);return;}
+  HAUT.q.push(it);hautArme();
 }
-function hautArme(){clearTimeout(HAUT.t);if(!HAUT.q.length||TUTO.on)return;
-  HAUT.t=setTimeout(function(){const it=HAUT.q.shift();if(it){HAUT.fin=0;hautPasse(it[0],it[1],it[2]);}},Math.max(0,HAUT.fin-performance.now())+150);}
-function hautVide(){HAUT.q.length=0;HAUT.fin=0;clearTimeout(HAUT.t);}
-function misBanniere(titre,texte,prime,ico){hautPasse(function(){misBanMontre(titre,texte,prime,ico);},3000,'mis');}
+function hautMontre(it,n){
+  const c=HAUT.cur;if(c&&c!==it&&n<HAUT.fin)try{HAUT_COUPE[c.k]();}catch(e){}
+  HAUT.cur=it;it.s=n;HAUT.fin=n+it.ms;
+  try{it.f(it);}catch(e){}
+  hautArme();
+}
+function hautMeilleur(n){ // la plus forte d'abord, puis la plus ancienne ; celles dont la patience est épuisée se taisent
+  let b=null;
+  for(let i=HAUT.q.length-1;i>=0;i--){const it=HAUT.q[i];
+    if(it.garde&&TUTO.on)continue;
+    if(n-it.q>it.ttl){HAUT.q.splice(i,1);continue;}
+    if(!b||it.p>b.p||(it.p===b.p&&it.q<b.q))b=it;}
+  return b;
+}
+function hautArme(){clearTimeout(HAUT.t);
+  const n=performance.now(),b=hautMeilleur(n);if(!b)return;
+  const c=HAUT.cur;
+  let at=n;
+  if(c&&n<HAUT.fin&&b.p<=c.p){at=c.s+c.min;if(at>=HAUT.fin)at=HAUT.fin+120;} // la voix en place a droit à son temps de lecture
+  HAUT.t=setTimeout(function(){
+    const n2=performance.now(),b2=hautMeilleur(n2);if(!b2)return;
+    const c2=HAUT.cur;
+    if(!c2||n2>=HAUT.fin||b2.p>c2.p||n2>=c2.s+c2.min){HAUT.q.splice(HAUT.q.indexOf(b2),1);hautMontre(b2,n2);}else hautArme();
+  },Math.max(0,at-n));
+}
+function hautFusion(it,n){ // un RECORD et un MOTEUR à moins d'une seconde l'un de l'autre : une seule carte, le moteur portant le ruban
+  const c=HAUT.cur,vit=c&&n<HAUT.fin;
+  if(it.k==='rec'){
+    if(vit&&c.k==='eng'&&n-c.s<1000&&engBig.on&&!engBig.plonge){engRuban(it.ru);return true;}
+    for(const w of HAUT.q)if(w.k==='eng'&&n-w.q<1000){w.ru=it.ru;w.p=3;return true;}
+  }else if(it.k==='eng'){
+    for(let i=HAUT.q.length-1;i>=0;i--){const w=HAUT.q[i];if(w.k==='rec'&&n-w.q<1000){it.ru=w.ru;it.p=3;HAUT.q.splice(i,1);}}
+    if(vit&&c.k==='rec'&&n-c.s<1000){it.ru=c.ru;it.p=3;hautMontre(it,n);return true;} // la carte remplace l'annonce du record, ruban compris
+  }
+  return false;
+}
+function hautVide(){ // l'explosion, l'écran de mort : plus personne ne parle — la file se vide ET la voix en place se tait
+  HAUT.q.length=0;clearTimeout(HAUT.t);
+  const c=HAUT.cur;if(c&&performance.now()<HAUT.fin)try{HAUT_COUPE[c.k]();}catch(e){}
+  HAUT.cur=null;HAUT.fin=0;engBigCoupe();
+  const p=document.getElementById('popTxt');if(p)p.classList.remove('on');popTexte._s=0; // le dernier geste ne survit pas à la caisse (gt1-16)
+}
+function misBanniere(titre,texte,prime,ico){hautPasse(function(){misBanMontre(titre,texte,prime,ico);},3000,'mis',titre==='ASTUCE'?1:2);} // un défi payé vaut un moteur ; une astuce, un niveau
 function misBanMontre(titre,texte,prime,ico){
   let b=document.getElementById('misBan');
   if(!b){b=document.createElement('div');b.id='misBan';b.setAttribute('role','status');document.body.appendChild(b);}
   b.innerHTML='<i class="mbIco">'+pxi(ico||'coche')+'</i><div class="mbTx"><small>'+TR(titre)+'</small><span>'+texte+'</span></div>'
     +(prime?'<b class="mbPrime">'+prime+'</b>':'');
+  b.classList.toggle('astuce',titre==='ASTUCE'); // (vague 2) l'astuce parle en cyan (l'information), le défi en vert (la validation)
   b.classList.remove('on');void b.offsetWidth;b.classList.add('on');
   clearTimeout(misBanMontre._t);misBanMontre._t=setTimeout(function(){b.classList.remove('on');},2800);
 }
@@ -13192,31 +13377,74 @@ const epEl=document.getElementById('engPop'),epNumEl=document.getElementById('ep
    de l'écran — jamais sur la caisse — : des rayons qui tournent à la couleur du moteur, « NOUVEAU MOTEUR », le NOM en
    grand, sa phrase, la rangée de ses cylindres qui s'allument un par un, et le palier. Elle claque, tient 1,6 s, file.
    `pointer-events:none` : elle ne vole jamais un toucher de conduite. */
-function engBig(E,tier){
+/* (vague 2, 2026-09-26) LA CARTE MOTEUR v3 — H1 du directeur artistique : posée sur le toit (canvas 359×240 + numéro 58 px ≈ 340 px au
+   centre pendant 2,3 s), elle cachait la ROUTE devant la caisse ET tout le tableau de bord (gt1-06/07/12/13/14, da-01). Désormais :
+   · elle NAÎT dans le couloir des annonces, sous le tableau de bord (haut de carte = --laneA − 40 px : sous la chaîne de 2 lignes),
+     rétrécie seulement si l'écran est trop court pour laisser la caisse libre (`--ebS`, ≥ .62) ;
+   · le moteur 3D reste GRAND (scène 220 × 147 px), le NUMÉRO devient un badge posé sur son épaule (40 px), le nom dessous ;
+   · à 1 s — ou dès qu'une voix plus forte réclame le couloir — les textes s'effacent et le moteur PLONGE dans la caisse (0,44 s), rétrécit
+     et claque sur le toit : il est SUR la voiture, et la route devant elle n'est jamais cachée plus d'une seconde.
+   Le moteur 3D n'est plus recopié dans un <canvas> (lecture GPU→CPU) : il est recollé directement dans l'image WebGL à la place de
+   `.ebScene` (voir `engQuadDraw`) — les textes de la carte sont du DOM, donc au-dessus de lui. `pointer-events:none` partout. */
+const ENG_PLONGE=440,ENG_COULOIR=1000; // 1 s dans le couloir (la bible : jamais plus d'une seconde de route cachée), puis 0,44 s de plongée
+function engBig(E,tier,ru){
   let b=document.getElementById('engBig');
   if(!b){b=document.createElement('div');b.id='engBig';b.setAttribute('aria-live','polite');document.body.appendChild(b);}
+  clearTimeout(engBig._p);clearTimeout(engBig._t);clearTimeout(engBig._z);
   const hx='#'+(E.col||0xffd75e).toString(16).padStart(6,'0'),n=Math.max(1,Math.min(16,E.cyl||4));
   let cyl='';for(let i=0;i<n;i++)cyl+='<i style="animation-delay:'+(.25+i*.05).toFixed(2)+'s"></i>';
   const rec=tier>(RUNX.engAvant|0); // (2026-09-25) palier jamais atteint AVANT cette partie : le seul moment vraiment neuf
   b.style.setProperty('--ec',hx);b.classList.toggle('rec',rec);
-  // (2026-09-25, user : « retrouve les modèles 3D des moteurs, qu'on ait l'animation EN GROS ») — le moteur 3D de la vignette PC
-  // (engVigRender) est recopié dans ce <canvas>, AU-DESSUS du fond de la carte : il tourne, s'emballe au montage, se pose, chauffe.
-  // (2026-09-25, user : « le moteur en gros au milieu de l'écran, qui flotte en l'air sans fenêtre grise, avec le nombre comme
-  // dans la version de Léo ») : plus de carte — un halo à la couleur du moteur, LE NUMÉRO du palier en géant (le badge de Léo),
-  // le moteur 3D qui flotte au centre de l'écran, son nom dessous. Le rendu est sur fond TRANSPARENT (engRT clearAlpha 0).
-  {const o9=b.querySelector('canvas');if(o9){o9.width=o9.height=0;}} // (2026-09-26) l'ancien canvas rendu tout de suite (iOS plafonne la mémoire des canvas)
-  b.innerHTML='<div class="ebHalo"></div><div class="ebCarte"><small>'+TR(rec?'NOUVEAU RECORD !':'NOUVEAU MOTEUR')+'</small>'
-    +'<div class="ebNum"><i>'+TR('PALIER')+'</i>'+(tier+1)+'</div>'
-    +'<canvas class="eb3d" width="480" height="321"></canvas><b>'+TR(E.n)+'</b><div class="ebCyl">'+cyl+'</div></div>';
-  engBig.ctx=b.querySelector('.eb3d').getContext('2d');engBig.on=true;engBig.t0=performance.now();engVigSpin=0;document.body.classList.add('ebOn');
-  b.classList.remove('on');void b.offsetWidth;b.classList.add('on');
-  hap(rec?[18,50,30,60,40]:[18,50,30]);pixBurst(b.querySelector('.ebCarte'),rec?28:18);
+  {const o9=b.querySelector('canvas');if(o9){o9.width=o9.height=0;}} // (2026-09-26) un ancien canvas rendu tout de suite (iOS plafonne la mémoire des canvas)
+  // (H3) « NOUVEAU RECORD ! » disait trois choses (aura, meilleur palier, écran de mort) : le meilleur palier devient un SOMMET
+  const nm=TR(E.n);
+  b.innerHTML='<div class="ebCarte"><small class="ebTit">'+TR(rec?'NOUVEAU SOMMET':'NOUVEAU MOTEUR')+'</small>'
+    +'<div class="ebScene"><div class="ebNum"><i>'+TR('PALIER')+'</i>'+(tier+1)+'<div class="ebCyl">'+cyl+'</div></div></div>' // les cylindres sous le badge : la carte finit plus haut, la route respire
+    +'<b data-t="'+String(nm).replace(/[<>&"]/g,'')+'">'+nm+'</b></div>';
+  engBig.ctx=null;engBig.on=true;engBig.plonge=0;engBig.t0=performance.now();engBig.col=E.col||0xffd75e;engVigSpin=0;
+  document.body.classList.remove('ebPlonge');document.body.classList.add('ebOn');
+  b.classList.remove('on','plonge','ruban');void b.offsetWidth;
+  engBigPlace(b);b.classList.add('on');
+  if(ru)engRuban(ru);
+  hap(rec?[18,50,30,60,40]:[18,50,30]);pixBurst(b.querySelector('.ebScene'),rec?28:18);
   clearTimeout(engBig._f);if(rec)engBig._f=setTimeout(function(){if(!gameOver)try{fanfare();}catch(e){}},1200); // APRÈS le démarreur du montage, jamais par-dessus
-  clearTimeout(engBig._t);engBig._t=setTimeout(function(){b.classList.remove('on');engBig.on=false;document.body.classList.remove('ebOn');},2300);
+  engBig._p=setTimeout(engPlonge,ENG_COULOIR);
+}
+/* OÙ SE POSE LA CARTE — lu UNE fois à l'apparition (pas dans la boucle) : le haut de la carte 40 px au-dessus de --laneA (le bas du
+   tableau de bord quand la chaîne est ouverte), et une échelle qui laisse la route libre sur un écran court (la ligne à 58 % de la
+   hauteur, où roule le toit au sol). La scène 3D est retrouvée par ses offsets (sans transformation) : le quad WebGL s'y recalera. */
+function engBigPlace(b){
+  const ca=b.querySelector('.ebCarte'),sc=b.querySelector('.ebScene');if(!ca||!sc)return;
+  const hC=ca.offsetHeight||170,wC=ca.offsetWidth||260,top=laneY()-40;
+  // ⚠ PAS de réduction d'après le toit réel : en vol et en ORBITE la caméra monte la caisse vers le milieu de l'écran, la carte y
+  // rapetissait à 60 % (un moteur de 70 px) — alors que la route devant est AU-DESSUS de la caisse. Là, la carte se pose SUR la voiture
+  // (le vœu de Sacha) le temps d'une seconde, puis le moteur y plonge. Seul un écran COURT la réduit.
+  const s=Math.max(.62,Math.min(1,(VP.h*.58-16-top)/hC)),cy=top+hC*s/2;
+  b.style.setProperty('--ebS',s.toFixed(3));b.style.top=cy.toFixed(0)+'px';b.classList.toggle('mini',s<.8); // réduite : les libellés de 8 px passeraient sous 6 px — ils se taisent
+  const rx=sc.offsetLeft+sc.offsetWidth/2-wC/2,ry=sc.offsetTop+sc.offsetHeight/2-hC/2;
+  engBig.px=VP.w/2+rx*s;engBig.py=cy+ry*s;engBig.pw=sc.offsetWidth*s;engBig.ph=sc.offsetHeight*s;
+}
+function engPlonge(){ // LE MOTEUR ENTRE DANS LA CAISSE : les textes s'effacent, le moteur plonge vers le toit, rétrécit et CLAQUE
+  if(!engBig.on||engBig.plonge)return;
+  engBig.plonge=performance.now();clearTimeout(engBig._p);clearTimeout(engBig._t);clearTimeout(engBig._z);
+  const b=avE('engBig');if(b)b.classList.add('plonge');
+  document.body.classList.remove('ebOn');document.body.classList.add('ebPlonge'); // le couloir est LIBRE : la voix suivante parle pendant la plongée
+  engBig._z=setTimeout(function(){ // l'impact sur le toit : une gerbe de pixels au point de contact, un tic sous le pouce
+    try{pixBurst({getBoundingClientRect:function(){return {left:ENG_Q.x,top:ENG_Q.y,width:0,height:0};}},12);}catch(e){}hap(8);
+    engBig._t=setTimeout(engBigFin,150);},REDUCED_MOTION?0:ENG_PLONGE);
+}
+function engBigFin(){const b=avE('engBig');if(b)b.classList.remove('on','plonge');engBig.on=false;engBig.plonge=0;ENG_Q.op=0;
+  document.body.classList.remove('ebOn','ebPlonge');}
+function engBigCoupe(){clearTimeout(engBig._p);clearTimeout(engBig._t);clearTimeout(engBig._z);clearTimeout(engBig._f);if(engBig.on)engBigFin();}
+function engRuban(ru){ // (H2) le RECORD tombe pendant la carte moteur : pas un 2e couloir — un ruban d'or À LA PLACE du titre
+  const b=avE('engBig'),s=b&&b.querySelector('.ebCarte');if(!s||s.querySelector('.ebRuban'))return;
+  const r=document.createElement('div');r.className='ebRuban';
+  r.innerHTML='<b>'+sansAcc(TR('RECORD BATTU !'))+'</b><small>'+String(ru||'').replace(/[<>&]/g,'')+'</small>';
+  s.appendChild(r);b.classList.add('ruban');try{pixBurst(r,26);}catch(e){} // (en absolu : la carte ne change pas de taille, le moteur recollé reste calé)
 }
 function engBigFile(E,tier){ // deux paliers en file : on ne garde que le dernier (la carte dit où l'on EST, pas où l'on est passé)
-  for(let i=HAUT.q.length-1;i>=0;i--)if(HAUT.q[i][2]==='eng')HAUT.q.splice(i,1);
-  hautPasse(function(){engBig(E,tier);},2300,'eng');}
+  let ru=null;for(let i=HAUT.q.length-1;i>=0;i--)if(HAUT.q[i].k==='eng'){ru=ru||HAUT.q[i].ru;HAUT.q.splice(i,1);} // un ruban de record déjà promis la suit
+  hautPasse(function(it){engBig(E,tier,it.ru);},ENG_COULOIR+60,'eng',ru?3:2,{ru:ru});}
 function engPop9(E,tier){
   if(TCTL.on){ // TÉLÉPHONE : la grande carte — sauf pendant l'auto-école, où le nom jaillit au-dessus de la caisse (la consigne garde le haut)
     if(TUTO.on){popTexte(E.n,'#'+(E.col||0xffd75e).toString(16).padStart(6,'0'));return;}
@@ -13714,7 +13942,7 @@ function mkEngine(i){
      Le BICYLINDRE est donc en alu brut. ⚠ Mais brut ne veut pas dire NEUF : la finition monte
      avec l'échelle — fonderie mate et terne jusqu'au 4 EN LIGNE, puis alu clair et poli. */
   const ep=i===0;
-  const bloc=ep?M9.fonte(E.col):M9.alu(i<4?0xbcc3cc:0xd0d5de,i<4?100:150);
+  const bloc=ep?M9.fonte(E.col):M9.alu(i<4?0x8c96a6:0xa4adba,i<4?100:150); // (vague 2, H7) alu foncé d'un cran (0xbcc3cc / 0xd0d5de) : sous le ciel rose, il renvoyait de la MOUSSE rose
   const sombre=ep?M9.fonte(0x6a6259):M9.noir();
   const chrome=M9.inox();
   const chaud=ep?M9.fonte(0x8f7f6c):M9.chaud();                 // les collecteurs, bleuis par la chauffe
@@ -14655,6 +14883,7 @@ const BOOM_VARS=[
 let BOOMV=BOOM_VARS[0];
 let mortCause=''; // (2026-09-26, audit UX) POURQUOI on est mort — dit sous GAME OVER : une mort comprise donne envie de rejouer
 function explode(cause){
+  if(!(gameOver||mode==='boom'))hautVide(); // (vague 2) la caisse explose : plus AUCUNE voix (carte, niveau, geste) — seule « CHAÎNE PERDUE » peut parler
   chainePerdue(); // (aura v2) la chaîne ouverte part avec la caisse
   if(gameOver||mode==='boom')return;
   mortCause=cause||'';
@@ -17969,7 +18198,7 @@ function chaineAura(nom,base,fam,brut,muet){ // brut : pas de décote de redite 
   const x0=CHA.x;if(k===0)CHA.x=Math.min(CHA_XMAX,CHA.x+1);
   if(CHA.x>(runStats.xMax|0))runStats.xMax=CHA.x; // le meilleur × de la partie : l'écran de fin le montre
   CHA.pts+=p;CHA.n++;CHA.t=CHA_FEN;
-  const lb9=sansAcc(TR(nom));CHA.liste.unshift(lb9+' +'+p);if(CHA.liste.length>3)CHA.liste.length=3;
+  const lb9=sansAcc(TR(nom));CHA.liste.unshift(lb9+' +'+p);if(CHA.liste.length>2)CHA.liste.length=2; // (vague 2, H4) 2 lignes, la dernière en or : la mémoire de la chaîne, pas une 3e voix
   chaHud(true,CHA.x>x0);
   if(TCTL.on)popTexte(lb9+' +'+p,CHA.x>x0?'#ff9ee6':'#ffd75e',0); // au-dessus de la caisse : le geste ET ce qu'il rapporte
   if(!muet)try{chimeNote(noteP(Math.min(7,CHA.x),1),0,.10,.16);}catch(e){}
@@ -17977,11 +18206,17 @@ function chaineAura(nom,base,fam,brut,muet){ // brut : pas de décote de redite 
 }
 /* HUD v3 : LA GRANDE ANNONCE qui claque au centre haut (BOOST, pouvoirs, paliers du ×) — une seule à la fois, la dernière gagne */
 function slam(txt,sous,c1,c2,taille,prio,fete){
-  prio=prio|0;const n9=performance.now();if(prio<(slam._p|0)&&n9<(slam._t||0))return; // une annonce plus forte garde l'écran 0,9 s (l'IMPACT n'est pas écrasé par le × qu'il fait monter)
-  slam._p=prio;slam._t=n9+900;
+  // (vague 2) l'annonce prend son tour dans la FILE DU COULOIR (hautPasse) : priorité 0 geste · 1 encaissement · 2 pouvoir · 3 impact ;
+  // le compte à rebours de reprise (9) passe devant tout, sans attendre
+  prio=prio|0;
+  if(prio>=9){engBigCoupe();slamMontre(txt,sous,c1,c2,taille,fete);return;} // (la file garde ses cartes : elles passeront après la reprise ; la carte moteur, elle, a fini sa vie pendant la pause)
+  hautPasse(function(){slamMontre(txt,sous,c1,c2,taille,fete);},1450,'slam',Math.min(3,prio));
+}
+function slamMontre(txt,sous,c1,c2,taille,fete){
   let e=avE('slam9');if(!e){e=document.createElement('div');e.id='slam9';e.setAttribute('aria-hidden','true');document.body.appendChild(e);avEl.slam9=e;}
-  const t9=sansAcc(TR(txt)).replace(/[<>&]/g,''),tl9=Math.min(taille||36,Math.floor((innerWidth-28)/Math.max(1,t9.length))-2); // (HUD v4) police pixel = 1 em par lettre : l'annonce TIENT dans l'écran
-  e.innerHTML='<b style="font-size:'+tl9+'px">'+t9+'</b>'+(sous?'<small>'+sansAcc(TR(sous)).replace(/[<>&]/g,'')+'</small>':'');
+  const t9=sansAcc(TR(txt)).replace(/[<>&"]/g,''),tl9=Math.min(taille||36,Math.floor((VP.w-28)/Math.max(1,t9.length))-2); // (HUD v4) police pixel = 1 em par lettre : l'annonce TIENT dans l'écran
+  e.classList.remove('compte');
+  e.innerHTML='<b style="font-size:'+tl9+'px" data-t="'+t9+'">'+t9+'</b>'+(sous?'<small>'+sansAcc(TR(sous)).replace(/[<>&]/g,'')+'</small>':''); // data-t : la LÈVRE claire en biseau (H9, voir le CSS)
   e.style.setProperty('--s1',c1||'#ffd75e');e.style.setProperty('--s2',c2||'#ff5ec8');
   e.classList.remove('on');void e.offsetWidth;e.classList.add('on');
   // (HUD v4) UNE voix au centre : tant que l'annonce passe, le niveau, le dauphin et les contrats du même couloir s'effacent
@@ -17994,26 +18229,38 @@ function flashEcran(col){ // un coup de couleur sur les bords : le boost, le pou
 }
 const X_COUL=['#5ee6ff','#5ee6ff','#5ee6ff','#62e062','#ffd75e','#ff5ec8','#ff5ec8','#ff5ec8','#ff3924','#ff3924','#ff3924'];
 const ENG_V9=new THREE.Vector3();
-function engBigSuit(){ // (HUD v3) la carte du moteur se pose SUR la voiture et la suit (au lieu du centre de l'écran)
-  if(!engBig.on)return;const b=avE('engBig');if(!b)return;
-  ENG_V9.copy(carGroup.position);ENG_V9.y+=1.6;ENG_V9.project(camera);
-  const x=THREE.MathUtils.clamp((ENG_V9.x*.5+.5)*VP.w,110,VP.w-110),y=THREE.MathUtils.clamp((-ENG_V9.y*.5+.5)*VP.h,260,VP.h-40);
-  const l9=x.toFixed(0)+'px',t9=y.toFixed(0)+'px'; // (perf) on n'écrit que ce qui a bougé d'un pixel
-  if(b.style.left!==l9)b.style.left=l9;if(b.style.top!==t9)b.style.top=t9;
+function engBigSuit(){ // (vague 2) le moteur 3D de la carte : OÙ le recoller dans l'image, à quelle taille, avec quelle opacité (lu par engQuadDraw)
+  if(!engBig.on){ENG_Q.op=0;return;}
+  const n=performance.now(),t=n-engBig.t0,RM=REDUCED_MOTION;
+  let s=1,op=1,x=engBig.px,y=engBig.py;
+  if(t<220&&!RM){const u=t/220,e=1-(1-u)*(1-u)*(1-u);s=1.35-.35*e;op=Math.min(1,u*1.6);} // l'entrée : la même courbe que les textes (eb2Vie)
+  if(!RM)y+=Math.sin(t*.0041)*5; // il FLOTTE (±5 px, un souffle d'1,5 s) — les textes, eux, restent posés
+  if(engBig.plonge){ // LA PLONGÉE : vers le toit de la caisse, en accélérant, en rétrécissant — et il s'éteint en y entrant
+    const u=Math.min(1,(n-engBig.plonge)/ENG_PLONGE),e=u*u;
+    ENG_V9.copy(carGroup.position).addScaledVector(camera.up,1.2).project(camera);
+    x+=((ENG_V9.x*.5+.5)*VP.w-x)*e;y+=((-ENG_V9.y*.5+.5)*VP.h-y)*e;s*=1-.72*e;op*=RM?0:1-Math.max(0,(u-.8)/.2);
+  }
+  ENG_Q.x=x;ENG_Q.y=y;ENG_Q.w=engBig.pw*s*ENG_QK;ENG_Q.h=engBig.ph*s*ENG_QK;ENG_Q.op=op;
+}
+function laneY(){ // où tombe le couloir des annonces (--laneA, safe area comprise) — relu seulement quand la hauteur d'écran change
+  if(!laneY.v||laneY.h!==VP.h){laneY.h=VP.h;let p=avE('laneProbe');
+    if(!p){p=document.createElement('div');p.id='laneProbe';p.style.cssText='position:fixed;left:0;top:var(--laneA);width:0;height:0;visibility:hidden;pointer-events:none';document.body.appendChild(p);avEl.laneProbe=p;}
+    laneY.v=p.getBoundingClientRect().top||VP.h*.4;}
+  return laneY.v;
 }
 const POP_V9=new THREE.Vector3();
 function popSuit(){ // (HUD v4) le geste JAILLIT DE LA CAISSE : tant que le texte vit, il suit la voiture à l'écran — au sol comme en vol
   if(!(performance.now()<(popTexte._s||0)+950))return;const e=avE('popTxt');if(!e)return;
-  if(!popSuit.la||popSuit.h!==VP.h){popSuit.h=VP.h;let p=avE('laneProbe'); // où tombe le couloir des annonces (--laneA, safe area comprise)
-    if(!p){p=document.createElement('div');p.id='laneProbe';p.style.cssText='position:fixed;left:0;top:var(--laneA);width:0;height:0;visibility:hidden;pointer-events:none';document.body.appendChild(p);avEl.laneProbe=p;}
-    popSuit.la=p.getBoundingClientRect().top||VP.h*.4;}
+  const la=laneY();
   // AU-DESSUS de la caisse s'il y a la place sous le couloir des annonces (au sol, toujours) ; sinon DESSOUS (en vol, la caméra
   // centre la caisse : au-dessus, le geste se posait sur l'annonce)
-  POP_V9.copy(carGroup.position).addScaledVector(camera.up,2.6).project(camera);const yH=(-POP_V9.y*.5+.5)*VP.h;   // le TOIT de la caisse à l'écran
+  POP_V9.copy(carGroup.position).addScaledVector(camera.up,2.6).project(camera);const yH=(-POP_V9.y*.5+.5)*VP.h,xC=(POP_V9.x*.5+.5)*VP.w; // le TOIT de la caisse à l'écran
   POP_V9.copy(carGroup.position).addScaledVector(camera.up,-1.4).project(camera);const yB=(-POP_V9.y*.5+.5)*VP.h;  // son bas de caisse
-  const mini=popSuit.la+(document.body.classList.contains('slamOn')?64:34);
+  const mini=la+(HAUT.cur&&performance.now()<HAUT.fin?64:34); // (vague 2) une voix occupe le couloir (annonce, niveau, défi) : le geste se pose plus bas
   const y=yH-56>=mini?Math.min(yH-56,VP.h*.64):THREE.MathUtils.clamp(yB+24,mini,VP.h*.74);
   const t9=y.toFixed(0)+'px';if(e.style.top!==t9)e.style.top=t9; // (perf) on n'écrit que ce qui a bougé d'un pixel
+  // (vague 2, H5) il suit aussi la caisse en LARGEUR, mais borné : « AUPHIN EN VOL +8 » sortait de l'écran par la gauche
+  const hw=(popTexte._w||0)*.58+8,x=Math.max(hw,Math.min(VP.w-hw,xC)),l9=x.toFixed(0)+'px';if(e.style.left!==l9)e.style.left=l9; // .58 : le rebond d'entrée (×1,15) compris
 }
 /* (HUD v4) LE RECORD À BATTRE — la meilleure partie (SAVE.d.auraMax) s'affiche sous le compteur, avec sa jauge : on la voit se
    remplir, elle BAT à 85 %, et le jour où on la dépasse EN COURSE, le jeu le crie (une fois par partie). C'est le « encore une ». */
@@ -18026,16 +18273,24 @@ function recMaj(a){
 }
 function recBattu(){
   CHA.recB=true;const r=avE('avRec');
-  if(r){r.classList.remove('presque');r.classList.add('battu');avE('avRecT').textContent=TR('NOUVEAU RECORD !');avE('avRecF').style.setProperty('--r','1');}
-  slam('RECORD BATTU !','AURA '+fmtAura(auraRun),'#ffd75e','#ff7ad5',38,3,30);flashEcran('rgba(255,215,94,.5)');hap([20,50,20,50,40]);
+  // (vague 2, H3) « NOUVEAU RECORD ! » voulait dire trois choses (l'aura, le meilleur palier, l'écran de mort) : ici, seule l'ANNONCE
+  // crie « RECORD BATTU » ; la ligne du tableau de bord devient ce qu'on a DE PLUS que le record, et elle grimpe avec le compteur
+  if(r){r.classList.remove('presque');r.classList.add('battu');recSurplus(CHA.vAff|0);avE('avRecF').style.setProperty('--r','1');}
+  // l'annonce passe par la file (priorité 3) — à moins d'une seconde d'une carte MOTEUR, elle devient son ruban (hautFusion)
+  hautPasse(function(){slamMontre('RECORD BATTU !','AURA '+fmtAura(auraRun),'#ffd75e','#ff7ad5',38,30);},1450,'rec',3,{ru:'AURA '+fmtAura(auraRun)});
+  flashEcran('rgba(255,215,94,.5)');hap([20,50,20,50,40]);
   try{chimeNote(noteP(4,1),0,.12,.2);chimeNote(noteP(6,1),.1,.12,.2);chimeNote(noteP(8,1),.2,.14,.4);}catch(e){}
 }
+function recSurplus(a){const t=avE('avRecT');if(!t)return;const s='+'+fmtAura(Math.max(0,a-CHA.rec))+' '+TR('AU-DESSUS');if(t.textContent!==s)t.textContent=s;}
+// (vague 2) les libellés neufs du HUD de course (police pixel : capitales SANS accent)
+Object.assign(I18N,{'NOUVEAU SOMMET':'NEW PEAK','AU-DESSUS':'ABOVE','ASTUCE':'TIP'});
+Object.assign(I18N_ZH,{'NOUVEAU SOMMET':'新巅峰','AU-DESSUS':'超出','RECORD BATTU !':'打破纪录！','PALIER':'档位','ASTUCE':'提示','CHAÎNE PERDUE':'连击中断','NOUVEAU MOTEUR':'新引擎'});
 function avPlusPop(t){const e=avE('avPlus');if(!e)return;e.textContent=t;e.classList.remove('on');void e.offsetWidth;e.classList.add('on');}
 function chaineTick(dt){
   engBigSuit();cratTick(dt);popSuit();
   // le COMPTEUR : il grimpe vers la vraie valeur (on voit l'aura TOMBER dedans), une écriture DOM seulement quand le chiffre change
   CHA.v+=(auraRun-CHA.v)*Math.min(1,dt*7);if(Math.abs(auraRun-CHA.v)<1)CHA.v=auraRun;
-  const a9=Math.round(CHA.v);if(a9!==CHA.vAff){CHA.vAff=a9;const e9=avE('avVal');if(e9)e9.textContent=fmtAura(a9);recMaj(a9);}
+  const a9=Math.round(CHA.v);if(a9!==CHA.vAff){CHA.vAff=a9;const e9=avE('avVal');if(e9)e9.textContent=fmtAura(a9);recMaj(a9);if(CHA.recB)recSurplus(a9);}
   if(!CHA.recB&&CHA.rec>0&&auraRun>CHA.rec&&running&&!gameOver)recBattu();
   if(!CHA.n)return;
   if(mode!=='fall'&&mode!=='boom')CHA.t-=dt; // en l'air, l'horloge est GELÉE
@@ -18072,7 +18327,7 @@ function chaHud(fort,monte){
   avE('avPts').textContent=fmtAura(CHA.pts);
   const x9=avE('avX'),xv=Math.max(1,CHA.x);x9.textContent='×'+xv;x9.style.setProperty('--xc',X_COUL[Math.min(10,xv)]);x9.classList.toggle('feu',xv>=5);
   if(monte){x9.classList.remove('up');void x9.offsetWidth;x9.classList.add('up');
-    const pal={3:'CHAUD !',5:'EN FEU !!',8:'DEMENT !!!',10:'MAX !!!'}[xv];
+    const pal={5:'EN FEU !!',8:'DEMENT !!!',10:'MAX !!!'}[xv]; // (vague 2, H4) plus de « ×3 CHAUD ! » au centre : le × du tableau de bord bat déjà — le couloir ne parle qu'à partir de ×5
     if(pal){slam('×'+xv,pal,X_COUL[xv],'#b14bff',48,0,xv>=8?20:xv>=5?12:0);flashEcran(xv>=8?'rgba(255,57,36,.55)':'rgba(255,94,200,.45)');hap(xv>=8?[14,40,24,40,30]:[12,30,20]);}}
   avE('avList').innerHTML=CHA.liste.map(function(l){return '<li>'+String(l).replace(/[<>&]/g,'')+'</li>';}).join('');
 }
@@ -18089,6 +18344,12 @@ window.dbgHud=function(k,n){
     avE('avRecT').textContent=TR('RECORD')+' '+fmtAura(CHA.rec);return CHA.rec;}
   if(k==='pwr'){pwrNitroT=6;pwrSpdT=4.5;return 'ok';}
   if(k==='slam'){slam(n||'BOOST','','#ffd75e','#ff7a24',44,0);return 'ok';}
+  // (vague 2) le texte sur la caisse · une carte d'astuce · la bannière de niveau · l'état de la FILE du couloir
+  if(k==='pop'){popTexte(n||'DAUPHIN EN VOL +80','#ffd75e',0);return popTexte._w;}
+  if(k==='mis'){misBanniere('ASTUCE',TR("En l'air : pouce en HAUT = plonge, en BAS = cabre."),'','eclair');return 'ok';}
+  if(k==='lvl'){lvlAnnonce();return 'ok';}
+  if(k==='plonge'){engPlonge();return engBig.on;}
+  if(k==='file'){const c=HAUT.cur,t=performance.now();return {voix:c&&t<HAUT.fin?c.k+':'+c.p:null,attente:HAUT.q.map(function(q){return q.k+':'+q.p;}),moteur:engBig.on?(engBig.plonge?'plonge':'couloir'):null};}
   return {flow:{v:FLOW.v,lv:FLOW.lv,idle:FLOW.idle},cha:{pts:CHA.pts,x:CHA.x,n:CHA.n,t:CHA.t},rec:CHA.rec,recB:CHA.recB,aura:Math.round(auraRun)};
 };
 function avGainPop(petit,grand,perdu){
