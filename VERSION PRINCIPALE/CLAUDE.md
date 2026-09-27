@@ -18,32 +18,48 @@ niveau ajoute ou détourne UNE idée de jeu ». Tout est BRANCHÉ sur l'existant
 - **RÈGLES DES PISTES** : aucun tirage (piste identique à chaque essai), aucun trou, aucun plot/huile/banc de route tiré au hasard
   (`campNuageOk`, filtres dans buildTrack) ; les REPÈRES (`CAMPM` : bancs, portes, coupes) sont notés par INDEX de point de contrôle,
   relus après `lisserRaccords`/`adoucirCretes`, convertis en `s` par `campRepere` (appelé dans buildTrack AVANT les pads, qui s'écartent des portes).
+- **LES BANCS DESSINÉS** = la forme `mur` de mkBlobs (trois rangées de boules soudées, `ry` ≈ 0,6·r), relevés de 0,2·r et TOURNÉS en travers de
+  la route (`c.g.rotation.y`). MESURÉ en capture : le cumulus à base plate faisait 13 m de haut et, dans l'objectif grand-angle du portrait,
+  se lisait comme une dune rose à l'horizon. Niveau 3 : la droite du banc file vers le soleil À 22° PRÈS (pile en face = contre-jour, fondu
+  dans le ciel). Sortie du banc : « PERCE-NUAGE ! » (3), « HORS DE VUE » (écran du 5), « À L'INSTINCT ! » lancé au 8.
+- **LA CORDE QUI BRILLE** (marques `corde` → `CAMP.cordes` → `campPieces`) : une pièce tous les ~26 m sur l'INTÉRIEUR des grands virages
+  des niveaux 2, 5 et 10 — la bonne trajectoire se voit, et elle paie.
 - **LA CORDE** (`cordeK`, `KAPB` = courbure latérale signée par point, `campCourbure`) : le jeu avance sur la ligne centrale (`s`) quelle
   que soit la position latérale — couper l'intérieur ne rapportait RIEN. En campagne (`CORDE_ON`), `s` avance de ×1/(1−κ·lat) : la corde
   est vraiment plus courte (≈10 % dans un R 250 à 25 m de l'axe), et il faut tourner plus serré. Joueur, police et fantôme. Hors campagne : ×1.
 - **L'OVALE LENT** (la coupe, niveaux 6 et 10) : leg1 (droite S) → demi-tour R1 → retour → demi-tour R2 = R1 + d/2 → leg3, qui file À CÔTÉ
-  de leg1, 16 m plus bas, 16 m de vide entre les bords (d = 2·ROAD_HALF + 16). ⚠ En vol la gravité MONDE vaut FALL_G×SPD ≈ 16 m/s²
-  (la chute est intégrée ×SPD) : fenêtre de cap ≈ 6°-28° à 115 m/s, 9°-45° à 70 m/s ; à 22 m de chute elle se refermait. Sortir par le bon bord = `startFall` + `tryLand` sur leg3 :
+  de leg1, 12 m plus bas, 22 m de vide entre les bords (d = 2·ROAD_HALF + 22). ⚠ En vol la gravité MONDE vaut FALL_G×SPD ≈ 16 m/s²
+  (la chute est intégrée ×SPD) : fenêtre de cap ≈ 8°-30° à 115 m/s, 13°-56° à 70 m/s. ⚠ Plus bas que ~12 m, la TRANCHE de leg1 cache
+  leg3 à la caméra de poursuite (basse en portrait) — mesuré en capture à 16 m. Sortir par le bon bord = `startFall` + `tryLand` sur leg3 :
   ~2,9 km gagnés, zéro physique nouvelle. Un seul croisement par ovale (l'entrée passe AU-DESSUS du 2e demi-tour) : topologiquement
-  obligatoire. Des pièces longent le bord qui regarde leg3 et un jackpot brille sur leg3 (`campPieces`) — aucune flèche. Se poser > 300 m
+  obligatoire. Des pièces longent le bord qui regarde leg3 et un jackpot brille sur leg3 (`campPieces`) — aucune flèche. Et les GUÉS DE
+  OUATE (`campNuages`) : 6 coussins r 10,5 au milieu du vide entre leg1 et leg3, crête ~5 m au-dessus de leg1 — ils dépassent du bord (leg3, lui, se
+  devine à peine depuis la caméra basse) et, traversés en vol, portent et rendent de l'airtime (surf de nuage existant). Se poser > 300 m
   après son décollage = « RACCOURCI ! » (FLOW, nitro, aura) — détecté dans `campTick`.
-- **LA POURSUITE** (niveau 5, `SURV.chasse`) : le mode Survivant réglé (survStart/survTick) — 2 bots qui naissent 118/156 m DERRIÈRE,
-  jamais devant (clamp `pTot−9`), pas de nitro à < 48 m, 4,5 % de moins en pointe, ni classement ni couperet. `poursuiteTick` : tirs en
-  SALVES (1,25-1,75 s de feu / 0,9-1,7 s de pause), seulement derrière, à 9-105 m, au sol, ligne de vue dégagée (`campVue` : la dalle
+- **LA POURSUITE** (niveau 5, `SURV.chasse`) : le mode Survivant réglé (survStart/survTick) — 2 bots qui naissent 200/245 m DERRIÈRE (~20 s de sirènes avant le 1er tir),
+  jamais devant (clamp `pTot−9`), pas de nitro sous 86 m (juste hors de portée), 6 % de moins en pointe, ni classement ni couperet.
+  `poursuiteTick` : tirs en SALVES COMMUNES aux deux voitures (1-1,35 s de feu / 1,6-2,2 s de pause — elles ne se relaient pas),
+  seulement derrière, à 9-92 m, au sol, ligne de vue dégagée (`campVue` : la dalle
   protège, un nuage coupe — les bancs `ecran` du niveau 5 ne se DÉFONCENT pas). 7 s CUMULÉES sous le feu = `explode('feu')`. Aucun
   chiffre : la FUMÉE (`FUME`, Points à taille/alpha par particule, héritant 93 % de la vitesse de la caisse) — 2 s filet blanc, 4 s grise
   + moteur qui tousse, 6 s NOIRE + caisse qui broute. Traits néon magenta/cyan (`TIR`, rubans TRAIL_TEX), « piou » arcade. Halos d'écran
-  `#campFx` (opacité seule) : rouge/bleu en bas quand ils sont derrière, magenta sous le feu.
+  `#campFx` (opacité seule) : rouge/bleu en bas quand ils sont derrière, magenta sous le feu. MESURÉ (banc `camp5.js`, pilote auto) :
+  sans nitro et sur la ligne centrale, abattu vers 30 s avec la fumée qui monte par paliers ; un coup de nitro toutes les 7 s = semés.
+  Historique : nitro libre = 80 m repris en 8 s et salves relayées = mort en 11 s ; seuil nitro 140 m = jamais à portée, zéro tension.
 - **L'ORAGE** (niveau 9) : `orageTick` — un éclair toutes les 3,4-7,4 s (ruban brisé `ECL`, deux branches), `CAMP_FLASH` (exposition,
   lue dans updateClouds) et `CAMP_FOG` (le brouillard recule de 1 900 m) : l'éclair RÉVÈLE la route ; tonnerre retardé selon la distance ;
   le dernier tombe à côté du portail.
 - **LA CAISSE-NUAGE** (niveau 10) : fiche en FIN de CARS (après le bloc généré des 50), gabarit `SHAPES.nuage` (boules `NUAGE_BLOBS`
   fusionnées par `mergeSpheres`, matière `nuageMat` = celle des nuages, opaque), condition `{k:'carrN',v:10}`. Le FANTÔME (`GH`, créé à
   l'init, compilé au menu par `campChauffe`) : ligne gravée (`fantomeLigne` : corde lissée ±60 m + approche du bord de chaque coupe),
-  coupes en parabole (`fantomeSaute`, même gravité), vitesse = TES équations et TON moteur (jamais de nitro, le boost de départ compris)
-  — elle ne regarde jamais où tu es. Sillage : aspiration à < 46 m, « ACCROCHE ! » à < 15 m de sa poupe, 1 s tenue (la jauge retombe à
-  ×1,5) = `fantomePris` : ta caisse DEVIENT la caisse-nuage (équipée), le portail s'ouvre. Elle passe le portail avant toi = « ELLE T'A
+  coupes en parabole (`fantomeSaute`, gravité MONDE FALL_G×SPD), vitesse = TES équations et TON moteur ×`GH_K` 1,10 en pointe (jamais de
+  nitro ; le boost de départ vaut pour elle aussi), part 180 m devant, se PERD dans les bancs (−45 %/s dedans : la section de nuages est
+  une occasion), et l'aspiration marche dans les deux sens (dépassée de près, elle revient dans ton sillage) — elle ne regarde jamais où tu
+  es. Le pouvoir VITESSE ×2 est retiré du niveau 10 (+500 m d'un coup : on la dépassait loin sur le côté). Sillage : aspiration à < 46 m
+  derrière elle, « ACCROCHE ! » dans sa BULLE de 18 m, 1 s tenue (la jauge retombe à ×1,5) = `fantomePris` : ta caisse DEVIENT la caisse-nuage (équipée), le portail s'ouvre. Elle passe le portail avant toi = « ELLE T'A
   SEMÉ » (`fantomeSeme`, fin sans explosion). Le portail du niveau 10 = `campFinale` → écran de fin « NUAGES TERMINES ».
+- **VERSION TEST** : `TEST_CARRIERE=true` (près de `CARR`) ouvre les dix niveaux de chaque monde sans les avoir finis — ⚠ à remettre à
+  false pour la version publique, comme `TEST_CAISSES`.
 - **FINS DE PARTIE** : `mortCause` feu / seme / finNuages (CAUSES de mFill), gardée par `CAMP.garde` dans endGame ; REJOUER repart du
   niveau où l'on s'est arrêté (`CARR.actif.i` mis à jour dans endGame) ; la stat NIVEAU dit le vrai numéro.
 

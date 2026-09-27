@@ -4223,7 +4223,14 @@ function mkBlobs(o,rng){
     return push(p[0]+ax/L*d,p[1]+ay/L*d,p[2]+az/L*d,r);
   };
   const R=()=>rng()-0.5;
-  if(o.giant){
+  if(o.mur){
+    // ---- (2026-09-27) LE BANC DE LA CAMPAGNE : un MUR de ouate EN TRAVERS de la route (x = travers, z = le long de la route — campNuages
+    // tourne le groupe sur la piste). Le cumulus à base plate faisait 13 m de haut : dans l'objectif grand-angle du portrait, il se lisait
+    // comme une dune rose à l'horizon. Trois rangées soudées : une base large qui descend sous la dalle, un corps, une crête qui bourgeonne.
+    for(let i=0;i<5;i++)for(const z of [-.36,.36])push((i-2)*.36+R()*.06,-.34+R()*.06,z+R()*.08,.34+rng()*.05,.9);
+    for(let i=0;i<4;i++)push((i-1.5)*.38+R()*.08,.06+R()*.08,R()*.2,.38+rng()*.06);
+    for(let i=0;i<3;i++)push((i-1)*.36+R()*.1,.42+R()*.08,R()*.24,.3+rng()*.06);
+  }else if(o.giant){
     // ---- CUMULONIMBUS : socle lourd → colonne qui bourgeonne → ENCLUME étalée au sommet ----
     // La silhouette la plus spectaculaire du ciel réel, et la plus lisible de loin : on la
     // reconnaît à sa tête plate qui déborde. Elle PENCHE (cisaillement du vent), jamais droite.
@@ -4279,7 +4286,7 @@ function nuageTouche(c,r,ry){
 }
 function mkCloud(center,r,o,rr){ // un nuage = ses boules fusionnées en UN mesh opaque, point.
   if(!lvlNuageOk(o))return; // LES NIVEAUX : chaque monde garde ses familles de nuages (voir NIVEAUX)
-  const ry=r*(o.giant?.55+rr()*.18:o.veil?.16:o.sea?.15:.36+rr()*.16);
+  const ry=r*(o.mur?.56+rr()*.08:o.giant?.55+rr()*.18:o.veil?.16:o.sea?.15:.36+rr()*.16); // (2026-09-27) `mur` : le banc de campagne, haut comme un mur
   if(o.baseY!==undefined)center.y=o.baseY+ry*0.64; // plafond de condensation commun
   if(!o.onRoad&&nuageTouche(center,r,ry))return; // (2026-09-26) jamais un nuage de décor posé SUR le ruban
   const g=new THREE.Group();g.position.copy(center);
@@ -4729,13 +4736,16 @@ function reliefPiste(P,skip,i0){
    ⚠ Tout est à l'échelle `K` (lvPiste : la vitesse du moteur) comme genCtrl : un virage reste faisable à toute allure.
    L'OVALE LENT — comment on « coupe » un ruban suspendu sans rien changer à la physique :
      leg1 (droite S, à plat) → demi-tour R1 → retour (droite S) → demi-tour R2 = R1 + d/2 → leg3 (droite S, à plat).
-   Deux demi-tours du même côté ramènent le ruban dans son sens de départ, décalé de d = 2·ROAD_HALF + 16 m : leg3 file
-   À CÔTÉ de leg1 sur toute sa longueur, 16 m plus bas, avec 16 m de vide entre les deux bords. Rester sage : 2,7 km de
+   Deux demi-tours du même côté ramènent le ruban dans son sens de départ, décalé de d = 2·ROAD_HALF + 22 m : leg3 file
+   À CÔTÉ de leg1 sur toute sa longueur, 12 m plus bas, avec 22 m de vide entre les deux bords. (MESURÉ en capture : à 16 m sous leg1,
+   la tranche de leg1 cachait leg3 à la caméra de poursuite, basse en portrait ; à 12 m et 22 m d'écart, sa moitié lointaine et son néon
+   se lisent depuis le milieu de la route — et en rasant le bord, tout leg3 apparaît.) Rester sage : 2,7 km de
    demi-tours. Sortir par le bon bord de leg1 : une seconde de vol (la sortie de route existante, `startFall`), et
    `tryLand` pose la caisse sur leg3 (il prend le point de dalle le plus proche, où qu'il soit sur la piste). Fenêtre
-   large : de ~6° à ~28° de cap à 115 m/s (9° à 45° à 70 m/s), on retombe sur le bitume — et le volant marche en l'air. Aucune zone morte
+   large : de ~8° à ~30° de cap à 115 m/s (13° à 56° à 70 m/s ; la gravité MONDE vaut FALL_G×SPD ≈ 16 m/s²), on retombe sur le bitume —
+   et le volant marche en l'air. Aucune zone morte
    ajoutée (le vide borde le ruban partout ; ici, enfin, il y a quelque chose de l'autre côté). Un seul croisement par
-   ovale — l'entrée de leg1 passe AU-DESSUS du second demi-tour (~13 m de dégagement) : c'est la topologie qui l'impose,
+   ovale — l'entrée de leg1 passe AU-DESSUS du second demi-tour (~9 m de dégagement) : c'est la topologie qui l'impose,
    un ruban qui revient dans son sens juste à côté de lui-même doit se croiser une fois.
    ========================================================================== */
 const CAMPM=[]; // les repères de la piste de campagne (voir campRepere)
@@ -4753,19 +4763,20 @@ function genCampagne(n){
   const vague=(l,amp,aDeg,dy)=>{dy=dy==null?-Math.abs(amp)*.35:dy;const nn=Math.max(8,Math.ceil(Math.abs(aDeg||0)/8)),a=(aDeg||0)*Math.PI/180,st=a/nn,sl=l/nn,y0=P.y;
     for(let k=1;k<=nn;k++){phi+=st/2;P.addScaledVector(dir(),sl);phi+=st/2;P.y=y0+amp*Math.sin(Math.PI*k/nn)+dy*k/nn;push();}};
   const mark=(k,o)=>{o=o||{};o.k=k;o.i=ctrl.length-1;o.phi=phi;CAMPM.push(o);return o;};
-  const ovale=(sg)=>{const S=480*K,R1=235*K,d=2*ROAD_HALF+16,R2=R1+d/2,D=16,o={k:'coupe',sg:sg}; // D=16 : en vol la gravité MONDE vaut FALL_G×SPD ≈ 16 m/s² — à 22 m la fenêtre de cap se refermait à haute vitesse
+  const ovale=(sg)=>{const S=480*K,R1=235*K,d=2*ROAD_HALF+22,R2=R1+d/2,D=12,o={k:'coupe',sg:sg}; // D=12, vide 22 m : voir la note (fenêtre de cap ET visibilité de leg3 depuis la caméra)
     o.ia0=ctrl.length-1;droite(S,0,4);o.ia1=ctrl.length-1;
     arc(sg*180,R1,-D*.4);droite(S,-D*.2,4);arc(sg*180,R2,-D*.4);
     o.ib0=ctrl.length-1;droite(S,0,4);o.ib1=ctrl.length-1;CAMPM.push(o);};
+  const corde=f=>{const o={k:'corde',i0:ctrl.length-1};f();o.i1=ctrl.length-1;CAMPM.push(o);}; // un grand virage dont la CORDE brillera (campPieces)
   const liaison=(sg)=>{droite(220*K,-6);arc(sg*34,720*K,-8);arc(-sg*34,720*K,-8);droite(180*K,-4);};
   push();
   if(n===2){ // PREMIÈRES LUEURS — LE GRAND BALAYAGE : deux virages immenses qui DESCENDENT, lus en entier depuis la crête
     droite(620*K,-26,4);
     arc(20,1100*K,-10);
     droite(240*K,-8);
-    arc(160,330*K,-110*K);        // le 1er grand balayage : 160°, large, on le voit tout entier d'en haut — la nitro y est une tentation
+    corde(()=>arc(160,330*K,-110*K)); // le 1er grand balayage : 160°, large, on le voit tout entier d'en haut — la nitro y est une tentation
     droite(520*K,-20,3);
-    arc(-165,350*K,-110*K);       // le second, dans l'autre sens : un S géant, zéro surprise
+    corde(()=>arc(-165,350*K,-110*K)); // le second, dans l'autre sens : un S géant, zéro surprise
     droite(420*K,-14,3);
     arc(28,900*K,-12);
     droite(660*K,-28,4);
@@ -4775,7 +4786,7 @@ function genCampagne(n){
     droite(260*K,-6);
     const sol=mark('soleil');     // la droite du banc : toute la piste sera tournée pour qu'elle file PILE vers le soleil
     droite(440*K,-6,3);
-    mark('banc',{r:36,show:1});   // ⬅ LE banc : 36 m de ouate (0,7 s de blanc) — on devine la sortie à la lumière
+    mark('banc',{r:48,show:1});   // ⬅ LE banc : 48 m de ouate (~0,9 s de blanc), plus large que la route — on devine la sortie à la lumière
     droite(320*K,-4,2);           // la sortie : longue et claire
     arc(62,380*K,-26);
     droite(360*K,-10);
@@ -4783,8 +4794,9 @@ function genCampagne(n){
     droite(380*K,-12);
     arc(55,460*K,-20);
     droite(620*K,-24,4);
-    // on TOURNE toute la piste autour de l'origine : la droite du banc prend le cap du soleil (SUN_DIR est fixe dans le monde)
-    const da=Math.atan2(SUN_DIR.x,SUN_DIR.z)-sol.phi,ca=Math.cos(da),sa=Math.sin(da);
+    // on TOURNE toute la piste autour de l'origine : la droite du banc file vers le soleil (SUN_DIR est fixe dans le monde) — à 22° près :
+    // PILE en face, le banc était en contre-jour, plat et lavande, fondu dans le ciel ; décalé, il prend la lumière de côté (liseré d'argent)
+    const da=Math.atan2(SUN_DIR.x,SUN_DIR.z)+.38-sol.phi,ca=Math.cos(da),sa=Math.sin(da);
     for(const q of ctrl){const x=q.x,z=q.z;q.x=x*ca+z*sa;q.z=-x*sa+z*ca;}
   }else if(n===4){ // MATIN FRAIS — LES PORTES DE FRÔLÉ : trois séquences de trois portes (centrale et large, décalée, décalée de l'autre côté)
     // toujours sur une DROITE à plat : jamais après une crête, jamais dans un virage — et chaque séquence se resserre
@@ -4804,13 +4816,13 @@ function genCampagne(n){
     droite(600*K,-22,4);          // le départ : les gyrophares surgissent derrière
     arc(-28,800*K,-10);
     droite(220*K,-6);
-    arc(118,230*K,-40);droite(150*K,-6);
-    arc(-112,230*K,-40);droite(150*K,-6);
-    arc(122,240*K,-40);droite(220*K,-8);
+    corde(()=>arc(118,230*K,-40));droite(150*K,-6);
+    corde(()=>arc(-112,230*K,-40));droite(150*K,-6);
+    corde(()=>arc(122,240*K,-40));droite(220*K,-8);
     droite(360*K,-8,3);
-    mark('banc',{r:46,ecran:1});  // l'ÉCRAN : un banc opaque coupe la ligne de tir (et il ne se défonce pas)
+    mark('banc',{r:52,ecran:1});  // l'ÉCRAN : un banc opaque coupe la ligne de tir (et il ne se défonce pas)
     droite(260*K,-6,2);
-    mark('banc',{r:42,ecran:1});
+    mark('banc',{r:48,ecran:1});
     droite(440*K,-10,3);
     arc(-72,380*K,-24);droite(240*K,-6);
     arc(96,300*K,-30);droite(200*K,-6);
@@ -4844,12 +4856,12 @@ function genCampagne(n){
     // loin (≥ 300 m de droite avant), et on en ressort ~1,5 s avant le virage — le temps de lire la courbe et d'y entrer
     const droiteBanc=(l,r)=>{droite(l-200*K,-6);mark('banc',{r:r});droite(200*K,-4,2);};
     droite(460*K,-16,3);
-    droiteBanc(540*K,30);arc(88,320*K,-30);droite(160*K,-4);
-    droiteBanc(500*K,28);arc(-98,300*K,-30);
+    droiteBanc(540*K,38);arc(88,320*K,-30);droite(160*K,-4);
+    droiteBanc(500*K,36);arc(-98,300*K,-30);
     droite(420*K,-10,3);          // RESPIRATION : pas de banc, la lumière
     arc(60,430*K,-20);droite(120*K);
-    droiteBanc(520*K,32);arc(-86,320*K,-30);droite(180*K,-4);
-    droiteBanc(480*K,30);arc(94,320*K,-30);
+    droiteBanc(520*K,40);arc(-86,320*K,-30);droite(180*K,-4);
+    droiteBanc(480*K,38);arc(94,320*K,-30);
     droite(320*K,-8);
     arc(-48,520*K,-16);
     droite(640*K,-22,4);
@@ -4859,33 +4871,34 @@ function genCampagne(n){
     droite(360*K,-10);
     vague(460*K,28,38);
     arc(-92,360*K,-36);
-    droite(260*K,-6);mark('banc',{r:26});droite(260*K,-6);
+    droite(260*K,-6);mark('banc',{r:32});droite(260*K,-6);
     arc(108,340*K,-40);
     droite(300*K,-8);
     vague(480*K,-22,-34);
     arc(80,380*K,-30);
-    droite(280*K,-6);mark('banc',{r:26});droite(260*K,-6);
+    droite(280*K,-6);mark('banc',{r:32});droite(260*K,-6);
     arc(-62,430*K,-24);
     droite(720*K,-30,5);          // la dernière droite : le portail surgit au dernier éclair
   }else{ // 10 · COUCHER — ATTRAPER LA CAISSE-NUAGE : lignes intérieures, les deux coupes du niveau 6, une traversée de nuages
     droite(640*K,-22,4);          // elle est déjà là, devant
-    arc(-138,300*K,-44);          // un long virage : la corde intérieure gagne des mètres
+    corde(()=>arc(-138,300*K,-44)); // un long virage : la corde intérieure gagne des mètres
     droite(220*K,-6);
     ovale(1);                     // LA COUPE A
     droite(220*K,-6);
     arc(-40,700*K,-10);arc(40,700*K,-10);
-    droite(260*K,-6);mark('banc',{r:28});droite(220*K,-6);
+    droite(260*K,-6);mark('banc',{r:36});droite(220*K,-6);
     arc(82,330*K,-26);
-    droite(260*K,-6);mark('banc',{r:30});droite(240*K,-6);
+    droite(260*K,-6);mark('banc',{r:38});droite(240*K,-6);
     arc(-30,760*K,-8);droite(180*K);
     ovale(-1);                    // LA COUPE B
     droite(200*K,-6);
-    arc(168,330*K,-70);           // le grand balayage final, dans l'or
+    corde(()=>arc(168,330*K,-70));  // le grand balayage final, dans l'or
     droite(720*K,-26,5);          // le portail — fermé tant qu'elle n'est pas à toi
   }
   lisserRaccords(ctrl,null);adoucirCretes(ctrl,null);
   for(const m of CAMPM){ // les repères relus APRÈS le lissage (le Catmull-Rom passe exactement par les points de contrôle)
     if(m.i!=null)m.p=ctrl[Math.max(0,m.i)].clone();
+    if(m.i0!=null){m.p0=ctrl[m.i0].clone();m.p1=ctrl[m.i1].clone();}
     if(m.ia0!=null){m.a0=ctrl[m.ia0].clone();m.a1=ctrl[m.ia1].clone();m.b0=ctrl[m.ib0].clone();m.b1=ctrl[m.ib1].clone();}}
   return ctrl;
 }
@@ -7578,6 +7591,9 @@ const CARRIERE=[
 ];
 const CARR_LARG=[2,2,2,2,2,2,2,2,2,2]; // (2026-09-26) plus larges, comme la course // (2026-09-25) la carrière ne rétrécit plus non plus : c'est la vitesse qui monte
 const CARR={actif:null}; // {b: index de biome, i: niveau de départ} — null = partie sans fin
+// (2026-09-27) VERSION TEST : les dix niveaux de chaque monde se lancent sans avoir fini les précédents (Sacha teste la campagne tout de
+// suite). ⚠ à remettre à false pour la version publique, comme TEST_CAISSES : c'est l'unique interrupteur.
+const TEST_CARRIERE=true;
 function bioMix(a,b,t){ // un biome INTERMÉDIAIRE, bâti une fois et rangé dans BIOMES
   const k=a+'>'+b+'@'+t;
   if(!BIOMES[k]){const o=JSON.parse(JSON.stringify(BIOMES[a]));bioLerp(BIOMES[a],BIOMES[b],t,o);BIOMES[k]=o;}
@@ -7611,8 +7627,8 @@ function carrVue(bi){
       h+='<div class="mMode carrBiome" data-c="biome" data-b="'+k+'" role="button"><div class="mmT"><span>'+pxi(B.ic)+' '+TR(B.nm)+'</span><span class="mmP">'+f+' / 10</span></div><div class="mmD">'+TR(B.desc)+'</div><div class="carrJauge"><i style="width:'+(f*10)+'%"></i></div></div>';});
   }else{
     const f=carrFait(bi);h+='<div class="carrGrille">';
-    CARRIERE[bi].niveaux.forEach(function(N,i){const ok=i<=f;
-      h+='<div class="pbtn '+(ok?(i<f?'pb-green':'pb-gold'):'pb-cyan off')+' carrNiv" data-c="'+(ok?'niveau':'verrou')+'" data-b="'+bi+'" data-i="'+i+'" role="button" aria-label="Niveau '+(i+1)+(ok?'':' verrouillé')+'"><b>'+(ok?String(i+1).padStart(2,'0'):pxi('verrou')+'<small>'+String(i+1).padStart(2,'0')+'</small>')+'</b><span>'+TR(N.nm)+'</span></div>';});
+    CARRIERE[bi].niveaux.forEach(function(N,i){const ok=TEST_CARRIERE||i<=f; // (2026-09-27) version TEST : tous les niveaux se lancent (la couleur dit toujours la vraie progression)
+      h+='<div class="pbtn '+(i<f?'pb-green':i===f?'pb-gold':ok?'pb-cyan':'pb-cyan off')+' carrNiv" data-c="'+(ok?'niveau':'verrou')+'" data-b="'+bi+'" data-i="'+i+'" role="button" aria-label="Niveau '+(i+1)+(ok?'':' verrouillé')+'"><b>'+(ok?String(i+1).padStart(2,'0'):pxi('verrou')+'<small>'+String(i+1).padStart(2,'0')+'</small>')+'</b><span>'+TR(N.nm)+'</span></div>';});
     h+='</div>';
   }
   h+='<div class="mDock"><div class="pbtn mBack" data-c="'+(bi==null?'fermer':'biomes')+'" role="button" aria-label="Retour">'+pxi('gauche')+'<span>'+TR('RETOUR')+'</span></div></div>'; // (charte v4) la sortie en BAS, comme partout
@@ -21105,13 +21121,14 @@ function survStart(){
   for(const l of gyroLights)l.intensity=0;
   botJetLight.intensity=0;
   for(const tr9 of botTrails){tr9.init=false;tr9.m.visible=false;} // pas de rubans fantômes d'une meute à l'autre
+  if(sirG&&AC)sirG.gain.setTargetAtTime(0,AC.currentTime,.3); // (2026-09-27) la poursuite du niveau 5 s'éteint au portail : sa sirène aussi (survTick ne tourne plus pour la couper)
   if(!SURV.on)return;
   sirenInit();
-  if(SURV.chasse){ // DEUX voitures, qui naissent DERRIÈRE toi (hors de portée de tir) — même moteur, mêmes lois que la meute du Survivant
+  if(SURV.chasse){ // DEUX voitures, qui naissent 175 m DERRIÈRE toi (des sirènes avant le premier tir) — même moteur, mêmes lois que la meute du Survivant
     const PIL=[{n:'RICO',agro:.7,err:.12,rea:.16,line:.55},{n:'JADE',agro:.5,err:.05,rea:.19,line:.66}]; // des lignes MOYENNES : la corde reste ton arme
     for(let i=0;i<2;i++){const p=PIL[i];
       SURV.bots.push({name:p.n,agro:p.agro,err:p.err,rea:p.rea,line:p.line,marg:.9,alive:true,appJump:0,appBoost:.55,
-        totD:s-150-i*40,v:Math.max(24,vA*.9),lat:(i?1:-1)*6,latT:0,lane:(i?1:-1)*.3,
+        totD:s-175-i*45,v:Math.max(24,vA*.9),lat:(i?1:-1)*6,latT:0,lane:(i?1:-1)*.3,
         phi:0,steer:0,sHold:0,momT:0,pbi:-1,cornerV:1e9,think:Math.random()*.25,
         nitroR:1.2,nT:0,boostT:0,padB:0,padCd:0,slipT:0,oilCd:0,errT:0,errK:0,ph:Math.random(),
         air:false,airH:0,vy:0,spin:0,spinV:0,jumpCD:9,zoneMark:-1,trail:botTrails[i],trailK:0,mesh:mkPolice(i),
@@ -21170,7 +21187,6 @@ function botBoom(b){ // une unité saute : gerbe or+bleu, champignon, et le son 
   for(let k=0;k<18;k++)spawnP(smokePool,FB.p.x,FB.p.y+k*.22,FB.p.z,(Math.random()-.5)*2.5,5+Math.random()*4,(Math.random()-.5)*2.5,1.2+Math.random()*.7);
   if(Math.abs(rel-s)<220){subBoom(.3);thud(11);shake=Math.max(shake,.5);}
   trickMsg('💥 '+b.name+' EXPLOSE !',2);chimeNote(196,0,.3,.25);
-  if(SURV.chasse)popTexte('FLIC AU TAPIS !','#7dffec',1); // (2026-09-27) sur téléphone trickMsg est muet : la poursuite le dit sur la caisse
 }
 function survTick(dt){
   if(!SURV.on)return;
@@ -21260,10 +21276,13 @@ function survTick(dt){
     if(!b.air){
       let a9=0;
       if(brk)a9=b.v>2?-acc9*1.5:-acc9*.5;
-      else if(!lift)a9=acc9*(b.v<maxSp9?1:.55)*(b.padB>0?1.5:1)*momF;
+      // (2026-09-27) LA POURSUITE garde le contact sans tricher : loin (> 160 m) elle roule à TA pointe (jamais plus), à l'approche de la
+      // portée de tir elle retombe à −6 % — mesuré : à 150 m de départ elle abattait le pilote moyen en 29 s, à 200 m elle ne l'atteignait jamais
+      const mx9=SURV.chasse&&pTot-b.totD>160?maxSp9/.94:maxSp9;
+      if(!lift&&!brk)a9=acc9*(b.v<mx9?1:.55)*(b.padB>0?1.5:1)*momF;
       b.v+=a9*dt;
       b.v+=-GRAV*T[bi].y*Math.cos(b.phi)*dt;               // la pente pousse ou retient, comme toi
-      b.v-=b.v*Math.abs(b.v)*(acc9/(maxSp9*maxSp9*5.8))*dt; // même traînée, même terminal
+      b.v-=b.v*Math.abs(b.v)*(acc9/(mx9*mx9*5.8))*dt; // même traînée, même terminal
       b.v*=Math.max(0,1-.03*dt);
       if(!brk&&lift)b.v*=Math.max(0,1-.4*dt);              // pied levé = même frein moteur
     }
@@ -21481,7 +21500,7 @@ function survRender(){
 const CAMP_NIV={ // ce que chaque niveau garde du ciel (campNuageOk) — les bancs de la route, eux, ne sont JAMAIS tirés au hasard
   2:{coussin:0,deco:1},3:{coussin:1,deco:1},4:{coussin:1,deco:1},5:{coussin:1,deco:1},6:{coussin:0,deco:0},
   7:{coussin:0,deco:1},8:{coussin:0,deco:1},9:{coussin:0,deco:1},10:{coussin:1,deco:1}};
-const CAMP={n:0,dmg:0,cause:'',garde:false,finT:0,air0:false,s0:0,coupesN:0,bancs:[],portes:[],coupes:[],portFerme:false,pris:false,
+const CAMP={n:0,dmg:0,cause:'',garde:false,finT:0,air0:false,s0:0,coupesN:0,bancs:[],portes:[],coupes:[],cordes:[],portFerme:false,pris:false,
   pv:new THREE.Vector3(),pvOk:false,vel:new THREE.Vector3(),toux:0,tirSndT:0,hitT:0,semes:false,proche:1e9,feuT:0,palier:0,banc1:false};
 let CORDE_ON=false,CAMP_FLASH=0,CAMP_FOG=0,KAPB=new Float32Array(1);
 const CV1=new THREE.Vector3(),CV2=new THREE.Vector3(),CV3=new THREE.Vector3(),CV4=new THREE.Vector3(),CM4=new THREE.Matrix4(); // temporaires DU MODULE (jamais tmp/tmp2/tmp3)
@@ -21512,7 +21531,7 @@ function cordeK(sv,latB){ // facteur d'avance le long du ruban pour une caisse d
 }
 // ---- LES REPÈRES : coordonnées monde de genCampagne → abscisse `s` sur la courbe réelle ----
 function campRepere(){
-  CAMP.bancs.length=0;CAMP.portes.length=0;CAMP.coupes.length=0;
+  CAMP.bancs.length=0;CAMP.portes.length=0;CAMP.coupes.length=0;CAMP.cordes.length=0;
   const near=p=>{let bi=0,bd=1e18;for(let i=0;i<NP;i++){const dx=p.x-pts[i].x,dy=p.y-pts[i].y,dz=p.z-pts[i].z,dd=dx*dx+dy*dy+dz*dz;if(dd<bd){bd=dd;bi=i;}}return bi/(NP-1)*L;};
   for(const m of CAMPM){
     if(m.k==='coupe'){const c={sg:m.sg,sA0:near(m.a0),sA1:near(m.a1),sB0:near(m.b0),sB1:near(m.b1),side:1};
@@ -21521,6 +21540,7 @@ function campRepere(){
       c.gap=Math.abs(CV1.dot(GF.b));CAMP.coupes.push(c);}
     else if(m.k==='banc'&&m.p)CAMP.bancs.push({s:near(m.p),r:m.r||30,ecran:!!m.ecran,show:!!m.show});
     else if(m.k==='porte'&&m.p)CAMP.portes.push({s:near(m.p),c:m.c||0,w:m.w||8});
+    else if(m.k==='corde'&&m.p0)CAMP.cordes.push({s0:near(m.p0),s1:near(m.p1)});
   }
 }
 function campPadNon(sp){ // pas de pad turbo dans une porte de plots (le pad y serait un piège, pas un choix)
@@ -21550,9 +21570,17 @@ function campNuages(cr){
   for(const b of CAMP.bancs){
     frameAt(b.s,F);
     const nC=CLOUDS.length;
-    mkCloud(cldV1.copy(F.p).addScaledVector(F.n,3),b.r,{onRoad:true,dense:true,camp:true},cr);
-    if(CLOUDS.length>nC){const c=CLOUDS[CLOUDS.length-1];c.ecran=b.ecran;c.camp=true;c.show=b.show;}
+    mkCloud(cldV1.copy(F.p).addScaledVector(F.n,b.r*.2),b.r,{onRoad:true,dense:true,camp:true,mur:true},cr); // relevé de 0,2·r : la base du mur descend sous la dalle, la crête monte à ~25 m
+    if(CLOUDS.length>nC){const c=CLOUDS[CLOUDS.length-1];c.ecran=b.ecran;c.camp=true;c.show=b.show;
+      c.g.rotation.y=Math.atan2(F.t.x,F.t.z);} // le mur EN TRAVERS de la route (sa largeur sur la dalle, son épaisseur le long)
   }
+  // LES GUÉS DE OUATE (niveaux 6 et 10) : une rangée de petits coussins flotte DANS LE VIDE entre leg1 et leg3, au milieu de l'écart,
+  // la crête au ras de leg1. MESURÉ en capture : depuis la caméra de poursuite (basse, grand-angle en portrait), leg3 se devine à peine —
+  // les gués, eux, dépassent du bord : ils MONTRENT la coupe sans flèche ni texte. Et traversés en vol, ce sont des coussins (portance +
+  // airtime rendu, le surf de nuage existant) : la coupe se lit ET pardonne. r 10,5 < demi-écart (11 m) : ils ne mordent aucune des deux dalles.
+  for(const c of CAMP.coupes){const S=c.sA1-c.sA0,lg=ROAD_HALF+(c.gap-2*ROAD_HALF)/2;
+    for(let k=0;k<6;k++){frameAt(c.sA0+S*(.12+k*.14),F); // six pas japonais, la crête ~5 m au-dessus de leg1 : on les voit dépasser du bord
+      mkCloud(cldV1.copy(F.p).addScaledVector(F.b,c.side*lg).addScaledVector(F.n,-.5),10.5,{onRoad:true,camp:true},cr);}}
   if(n===9){ // LE GRAND CIEL : la mer se referme sous la route, des bancs frôlent le ruban, un titan barre l'horizon
     const hz=(i,d)=>{const t=T[i],l=Math.hypot(t.x,t.z)||1;return cldV1.set(pts[i].x+t.z/l*d,pts[i].y,pts[i].z-t.x/l*d);}; // décalage HORIZONTAL (jamais B[i])
     for(let k=0;k<9;k++){const i=Math.min(NP-1,Math.floor((k+.2+cr()*.6)/9*NP)),sd=k%2?1:-1;
@@ -21566,6 +21594,7 @@ function campNuages(cr){
 function campBancSorti(c){ // on vient de ressortir d'un banc dessiné
   if(c.show&&!CAMP.banc1){CAMP.banc1=true;slam('PERCE-NUAGE !','',  '#ffffff','#9fe8ff',38,2,14);flowAdd(14);try{chaineAura('PERCE-NUAGE',60,'nuage');}catch(e){}}
   else if(c.ecran&&SURV.chasse)popTexte('HORS DE VUE','#9fe8ff',0);
+  else if(CAMP.n===8&&Math.abs(vA)*3.6*SPD>vmaxShow()*.8){popTexte('A L INSTINCT !','#9fe8ff',1);flowAdd(10);try{chaineAura('A L INSTINCT',40,'instinct');}catch(e){}} // le ciel ment, tu as foncé quand même
 }
 // ---- LE PORTAIL DU NIVEAU 10 ----
 function portailVisible(v){for(const o of [portalMesh,PORTAL.noy,PORTAL.halo])if(o)o.visible=v;if(PORTAL.lum)PORTAL.lum.intensity=v?1.6:0;}
@@ -21574,6 +21603,13 @@ function campPortail(){CAMP.portFerme=campN()===10&&!PARK.on;if(portalMesh)porta
 // Pas de flèche, pas de texte : un filet de pièces longe le bord de leg1 qui regarde leg3 (le RASE-BORD, puis le vide), et un
 // jackpot brille sur leg3, là où l'on retombe. On voit la route d'en dessous ET ce qu'elle promet.
 function campPieces(place){
+  // la course à la CAISSE-NUAGE ne se gagne pas au hasard d'un orbe : le pouvoir VITESSE ×2 (6 s = +500 m d'un coup) est retiré du niveau 10
+  // (mesuré : ramassé en chemin, il faisait DÉPASSER la caisse loin sur le côté, sans jamais traverser son sillage)
+  if(campN()===10)for(const p of pickups)if(p.pow==='v'&&!p.taken){p.taken=true;scene.remove(p.mesh);}
+  // LA CORDE QUI BRILLE (niveaux 2, 5, 10) : une pièce tous les ~26 m sur l'INTÉRIEUR des grands virages — la bonne trajectoire se voit
+  // (et depuis cordeK, elle est vraiment plus courte). On saute l'entrée et la sortie : la ligne naît quand le virage mord.
+  for(const c of CAMP.cordes){const a=c.s0+(c.s1-c.s0)*.12,b=c.s1-(c.s1-c.s0)*.08;
+    for(let sp=a;sp<b;sp+=26){const k=KAPB[Math.max(0,Math.min(NP-1,Math.round(sp/L*(NP-1))))];if(Math.abs(k)<1/900)continue;place(sp,Math.sign(k)*(ROAD_HALF-5),false);}}
   for(const c of CAMP.coupes){
     const S=c.sA1-c.sA0;
     for(let k=0;k<9;k++)place(c.sA0+S*(.1+k*.04),c.side*(ROAD_HALF-2.4),false);
@@ -21754,11 +21790,11 @@ function eclFrappe(){
   // le tronc : 16 segments du ciel jusque sous la route, brisés ; deux branches
   const P=ECL.P,H=640,nT=16;ECL.seg.length=0;let q=0;
   P[0].set(CV1.x+(Math.random()-.5)*60,CV1.y+H,CV1.z+(Math.random()-.5)*60);
-  for(let k=1;k<=nT;k++){const u=k/nT;P[k].set(P[0].x+(CV1.x-P[0].x)*u+(Math.random()-.5)*46,P[0].y-H*u,P[0].z+(CV1.z-P[0].z)*u+(Math.random()-.5)*46);ECL.seg.push(k-1,k,5.5);}
+  for(let k=1;k<=nT;k++){const u=k/nT;P[k].set(P[0].x+(CV1.x-P[0].x)*u+(Math.random()-.5)*46,P[0].y-H*u,P[0].z+(CV1.z-P[0].z)*u+(Math.random()-.5)*46);ECL.seg.push(k-1,k,9);}
   q=nT+1;
   for(const [from,len] of [[5,6],[10,5]]){let prev=from;const ang=Math.random()*6.283;
     for(let k=1;k<=len&&q<P.length;k++){P[q].set(P[prev].x+Math.cos(ang)*28*k/len*3+(Math.random()-.5)*22,P[prev].y-34,P[prev].z+Math.sin(ang)*28*k/len*3+(Math.random()-.5)*22);
-      ECL.seg.push(prev,q,2.6);prev=q;q++;}}
+      ECL.seg.push(prev,q,4.2);prev=q;q++;}}
   ECL.vie=.34;ECL.k=1;
   const dd=CV2.subVectors(CV1,carGroup.position).length();
   ECL.tonT=.25+dd/1400;ECL.ton=Math.max(.25,1-dd/1400); // le tonnerre arrive après, et plus fort quand c'est près
@@ -21771,7 +21807,7 @@ function eclEcrit(){
       CV3.subVectors(b,a);CV4.subVectors(cam,a);CV4.crossVectors(CV3,CV4);const l=CV4.length();if(l>1e-6)CV4.multiplyScalar(w/l);
       P[o]=a.x-CV4.x;P[o+1]=a.y-CV4.y;P[o+2]=a.z-CV4.z;P[o+3]=a.x+CV4.x;P[o+4]=a.y+CV4.y;P[o+5]=a.z+CV4.z;
       P[o+6]=b.x-CV4.x;P[o+7]=b.y-CV4.y;P[o+8]=b.z-CV4.z;P[o+9]=b.x+CV4.x;P[o+10]=b.y+CV4.y;P[o+11]=b.z+CV4.z;
-      const f=fl*(w>4?1.5:1.05);for(let k=0;k<4;k++){C[o+k*3]=.92*f;C[o+k*3+1]=.86*f;C[o+k*3+2]=1.35*f;}}}
+      const f=fl*(w>6?1.5:1.05);for(let k=0;k<4;k++){C[o+k*3]=.92*f;C[o+k*3+1]=.86*f;C[o+k*3+2]=1.35*f;}}}
   for(let i=n;i<ECL.N;i++){const o=i*12;if(P[o+1]===-99999)continue;for(let k=0;k<4;k++){P[o+k*3+1]=-99999;C[o+k*3]=C[o+k*3+1]=C[o+k*3+2]=0;}}
   if(on||ECL.viv){const at=ECL.m.geometry.attributes;at.position.needsUpdate=true;at.color.needsUpdate=true;}
   ECL.viv=on;
@@ -21922,7 +21958,7 @@ function fantomeTick(dt){
   if(d<46&&derriere&&mode==='drive'&&!GH.air){ // L'ASPIRATION : dans son sillage, l'air te tire (et la ouate file autour de toi)
     const k=1-d/46;vA+=9*k*dt;
     if(Math.random()<dt*26*k){CV2.set((Math.random()-.5)*6,.8+Math.random()*2.2,2+Math.random()*6).applyQuaternion(carGroup.quaternion).add(carGroup.position);
-      spawnP(wisps,CV2.x,CV2.y,CV2.z,CAMP.vel.x*.7,CAMP.vel.y*.7+.5,CAMP.vel.z*.7,.45);}}
+      spawnP(cloudBits,CV2.x,CV2.y,CV2.z,CAMP.vel.x*.7,CAMP.vel.y*.7+.5,CAMP.vel.z*.7,.45);}}
   if(d<18){
     if(!GH.accr){GH.accr=true;popTexte('ACCROCHE !','#ffe7a8',2);hap(12);}
     GH.prise+=dt;GH.noteT-=dt;
@@ -22012,7 +22048,7 @@ for(const [k,v] of Object.entries({'LA ROUTE EST A TOI':'THE ROAD IS YOURS','TRA
   'ACCROCHE !':'LOCKED ON!','ELLE EST A TOI':'SHE IS YOURS','LA CAISSE-NUAGE':'THE CLOUD CAR',"ELLE T'A SEME":'SHE LOST YOU','NUAGES TERMINES':'CLOUDS COMPLETE',
   'LA CAISSE-NUAGE EST A TOI':'THE CLOUD CAR IS YOURS','CRIBLE PAR LA POLICE':'SHOT DOWN BY THE COPS',"LA CAISSE-NUAGE T'A SEME":'THE CLOUD CAR LOST YOU',
   'SEMES !':'LOST THEM!','SEMES':'LOST THEM','LA POLICE EST AU TAPIS':'THE COPS ARE DOWN','FLIC AU TAPIS !':'COP DOWN!','LE PORTAIL S OUVRE':'THE PORTAL OPENS',
-  'HORS DE VUE':'OUT OF SIGHT','PERCE-NUAGE !':'CLOUD PIERCER!','PERCE-NUAGE':'CLOUD PIERCER','LE MOTEUR TOUSSE':'ENGINE COUGHING','CA VA LACHER !':'SHE\'S GONNA BLOW!',
+  'HORS DE VUE':'OUT OF SIGHT','A L INSTINCT !':'ON INSTINCT!','A L INSTINCT':'ON INSTINCT','PERCE-NUAGE !':'CLOUD PIERCER!','PERCE-NUAGE':'CLOUD PIERCER','LE MOTEUR TOUSSE':'ENGINE COUGHING','CA VA LACHER !':'SHE\'S GONNA BLOW!',
   'Tu l\'as chassée tout un coucher de soleil. Elle est douce comme un nuage et elle file comme un orage.':'You chased her through a whole sunset. Soft as a cloud, fast as a storm.'}))if(!(k in I18N))I18N[k]=v;
 window.dbgPisteCamp=function(){ // (dev) la piste courante au banc : croisements (dégagement vertical), rayon mini, pente maxi, longueur
   const cell=48,H=new Map(),seg=L/(NP-1),key=(x,z)=>Math.floor(x/cell)+'_'+Math.floor(z/cell);
@@ -22024,17 +22060,21 @@ window.dbgPisteCamp=function(){ // (dev) la piste courante au banc : croisements
         cnt++;const dy=Math.abs(q.y-p.y);if(dy<dyMin){dyMin=dy;where=Math.round(i*seg);}}}}
   let kMax=0,tyMax=0;for(let i=5;i<NP-5;i++){kMax=Math.max(kMax,Math.abs(KAPB[i]));tyMax=Math.max(tyMax,Math.abs(T[i].y));}
   return {L:Math.round(L),croisements:cnt,degagementMin:dyMin<1e9?+dyMin.toFixed(1):null,a:where,rayonMin:kMax>0?Math.round(1/kMax):null,penteMaxDeg:+(Math.asin(tyMax)*57.3).toFixed(1),minY:Math.round(trackMinY)};};
-window.dbgCoupe=function(i,ang,v){ // (dev) poser la caisse sur leg1 de la coupe i, au bord qui regarde leg3, cap `ang` rad vers lui — le vol fait le reste
+window.dbgCoupe=function(i,ang,v,garderS){ // (dev) poser la caisse sur leg1 de la coupe i, au bord qui regarde leg3, cap `ang` rad vers lui — le vol fait le reste (garderS : sans téléporter le long de la piste)
   const c=CAMP.coupes[i|0];if(!c||!started||gameOver)return 'pas de coupe';
-  s=c.sA0+(c.sA1-c.sA0)*.4;side=1;lat=c.side*(ROAD_HALF-4);psi=c.side*(ang==null?.3:ang);yawR=0;slipB=0;vA=v||Math.max(Math.abs(vA),200);vL=0;mode='drive';prevTvalid=false;graceT=0;
+  if(!garderS)s=c.sA0+(c.sA1-c.sA0)*.4;side=1;lat=c.side*(ROAD_HALF-4);psi=c.side*(ang==null?.3:ang);yawR=0;slipB=0;vA=v||Math.max(Math.abs(vA),200);vL=0;mode='drive';prevTvalid=false;graceT=0;
   return {s:Math.round(s),lat:+lat.toFixed(1),cote:c.side,ecart:+c.gap.toFixed(1)};};
+window.dbgSeulsBancs=function(on){for(const c of CLOUDS)c.g.visible=on?!!c.camp:true;const c=CLOUDS.find(function(c){return c.camp;});if(!c)return null;frameAt(CAMP.bancs[0]?CAMP.bancs[0].s:0,GF);c.mesh.geometry.computeBoundingBox();const bb=c.mesh.geometry.boundingBox;return {bb:[bb.min.toArray().map(Math.round),bb.max.toArray().map(Math.round)],sc:c.g.scale.toArray(),mvis:c.mesh.visible,mat:c.mesh.material.type+' op'+c.mesh.material.opacity+' side'+c.mesh.material.side,layers:c.mesh.layers.mask,parent:!!c.g.parent,c:c.g.position.toArray().map(Math.round),route:GF.p.toArray().map(Math.round),n:GF.n.toArray().map(function(v){return +v.toFixed(2);}),r:c.r,ry:c.ry,car:carGroup.position.toArray().map(Math.round),cam:camera.position.toArray().map(Math.round)};}; // (dev) isoler les bancs dessinés
+window.dbgFwd=function(){const v=CV1.set(0,0,1).applyQuaternion(carGroup.quaternion);return [v.x,v.y,v.z];}; // (dev) le cap monde de la caisse (pour cadrer une photo)
+window.dbgEclair=function(){if(CAMP.n!==9)return 'pas d orage';eclFrappe();ECL.t=6;return {k:ECL.k};}; // (dev) un éclair tout de suite (niveau 9)
 window.dbgFumee=function(d){CAMP.dmg=+d||0;CAMP.palier=0;return CAMP.dmg;}; // (dev) forcer les dégâts de la poursuite (la fumée suit)
 window.dbgCampagne=function(n){ // (dev) lancer un niveau de la campagne NUAGES depuis la console : dbgCampagne(5)
   n=Math.max(1,Math.min(10,n|0));if(started&&!gameOver)return 'en course';carrLancer(0,n-1);return 'niveau '+n;};
 window.dbgCamp=function(){return {niveau:CAMP.n,corde:CORDE_ON,degats:+CAMP.dmg.toFixed(2),proche:Math.round(CAMP.proche),coupes:CAMP.coupes.map(function(c){return {sA0:Math.round(c.sA0),sA1:Math.round(c.sA1),sB0:Math.round(c.sB0),cote:c.side,ecart:+(c.gap||0).toFixed(1)};}),
-  bancs:CAMP.bancs.map(function(b){return Math.round(b.s);}),portes:CAMP.portes.length,portailFerme:CAMP.portFerme,raccourcis:CAMP.coupesN,
+  bancs:CAMP.bancs.map(function(b){return Math.round(b.s);}),nuagesCamp:CLOUDS.filter(function(c){return c.camp;}).map(function(c){return {r:Math.round(c.r),ry:Math.round(c.ry),sc:+c.g.scale.x.toFixed(2),vis:c.g.visible&&c.mesh.visible,d:Math.round(c.g.position.distanceTo(carGroup.position)),dc:Math.round(c.g.position.distanceTo(camera.position)),nv:c.mesh.geometry.index?c.mesh.geometry.index.count:0,op:+c.mesh.material.opacity.toFixed(2)};}),portes:CAMP.portes.length,portailFerme:CAMP.portFerme,raccourcis:CAMP.coupesN,
   fantome:GH.on?{s:Math.round(GH.s),lat:+GH.lat.toFixed(1),v:Math.round(GH.v*SPD*3.6),air:GH.air,prise:+GH.prise.toFixed(2),pris:GH.pris,fini:GH.fini,ecart:Math.round(GH.s-s)}:null,
   vol:mode==='fall'?{h:+curHOff.toFixed(1),lat:+curLatOff.toFixed(1),sNear:Math.round(lastNearS),t:+fallT.toFixed(2),vy:+fallVel.y.toFixed(1)}:null,
+  cause:mortCause,niv:LVL.n,
   police:SURV.chasse?SURV.bots.map(function(b){return {ecart:Math.round(SURV.pBase+s-b.totD),vise:!!b.vise,vivant:b.alive};}):null,L:Math.round(L)};};
 // reconstruit le décor du menu dans le mode courant (course/parc) — même séquence que l'init
 function rebuildMenuScene(){ newTrack();respawn();setupIntroPig();frameAt(0,F);camera.position.copy(F.p).addScaledVector(F.t,-9).addScaledVector(F.n,4); }
