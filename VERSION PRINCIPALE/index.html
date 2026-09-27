@@ -5431,6 +5431,7 @@ function buildTrack(seed){
   scene.add(plight);trackMeshes.push(plight);
   buildParkGround(); // FREESTYLE : la prairie sous la boule (no-op en course)
   buildVoxCity(seed,accC); // LA VILLE SOUS LES NUAGES : le fond de scène, en briques (no-op au parc)
+  try{orbiteBuild(seed);}catch(e){} // (vague 3) L'ORBITE : les astéroïdes autour de la piste (no-op hors orbite)
 }
 /* ---------- LA VILLE SOUS LES NUAGES — LE FOND DE SCÈNE EN VOXELS (2026-09-11) ----------------
    ⚠ POURQUOI ELLE EXISTE. Mesuré avant d'écrire une ligne : en dehors du ruban, de la caisse, des
@@ -6951,6 +6952,319 @@ function pluieTick(t){ // appelée par la boucle : suit la caméra, suit le fond
   PLUIE.userData.vu=true;
 }
 /* ============================================================================
+   LA LUNE ET LA CEINTURE D'ASTÉROÏDES (2026-09-27, vague 3) — Sacha : « rajoute la lune et des astéroïdes dans le niveau
+   dans l'espace ». L'ORBITE n'avait que la Terre, la route et le noir : un décor vide, rien pour dire la vitesse.
+   ----------------------------------------------------------------------------
+   · LA LUNE (`LUNE`) : un astre peint UNE fois (`lunePinceau` : 1024 × 512, albédo / relief / mers dans les canaux R/G/B — la
+     vraie face visible stylisée, mers bleu ardoise, cratères à bord clair, rais de Copernic et de Tycho), posé en CERCLE à
+     l'écran et calculé comme une SPHÈRE dans le fragment (normale, relief par le gradient de hauteur, terminateur, clair de
+     Terre, liseré). Elle est À L'INFINI comme la planète : sa position suit la caméra ; sa DIRECTION rejoint avec retard le
+     tiers haut-droit de l'image (la Terre en bas à gauche) et s'écarte de la Terre si le retard les rapproche : jamais l'une
+     sur l'autre, halo compris. Elle nous montre toujours la MÊME face
+     (verrouillage de marée, comme la vraie) — la couture de la texture reste de l'autre côté ; une libration lente fait glisser
+     les cratères sur le terminateur. Sur le plan lointain (z = w), en transparent : la route, les caisses et les rochers la
+     cachent ; son alpha suit le fondu du niveau (`LVL.espace`), donc elle s'efface proprement sur n'importe quel ciel.
+   · LE SOLEIL DE L'ORBITE : celui du GLOBE (voir globe.material.onBeforeCompile) — au-dessus, un peu de côté et derrière l'œil,
+     recalculé ici à l'identique (`ORB.sol`) pour les rochers, et appliqué à la direction de la lune pour elle : à l'écran, Terre,
+     lune et rochers sont éclairés du même côté.
+   · LES ASTÉROÏDES (`ROCS`) : trois rochers low-poly déformés (`rocGeo`, 320/80/20 faces), TROIS InstancedMesh qui partagent
+     UNE matière. Facettes par les dérivées (normale = dFdx × dFdy), rotation propre DANS le vertex shader (axe + vitesse par
+     instance, `aRot`) : zéro matrice réécrite par image. Ombre à l'ENCRE #1c0430, la Terre qui éclaire par-dessous (bleu), liseré
+     côté soleil, fondu dans la brume au loin. Trois familles, posées à chaque piste d'orbite (`orbiteBuild`, RNG DÉRIVÉ — `rnd`
+     n'est jamais touché) : les PASSANTS (gros, 14 à 38 m, au bord de la route, toujours à l'EXTÉRIEUR du virage qui vient :
+     ils défilent sans jamais masquer la route qui tourne), le CHAMP (le long de la piste jusqu'à 1,2 km, surtout AU-DESSUS de
+     la route : la parallaxe, et le noir au-dessus de l'horizon enfin habité) et la CEINTURE (deux anneaux inclinés de 1 à 3 km
+     de rayon autour de la piste : la nuée de petits). Aucun ne s'approche de la route à moins de (rayon + demi-route + marge),
+     TOUTES les portions de piste testées (grille de 150 m).
+   ⚠ iPhone : AUCUNE lumière (tout l'éclairage est dans les deux shaders), ShaderMaterial `lights:false`/`fog:false` ; tout est
+     CRÉÉ À L'INIT, dans la scène, invisible hors orbite — compilé au menu par `chauffeDivers`, la carte de la lune peinte au menu
+     par étapes puis montée au GPU : ZÉRO shader au portail (mesuré : 0 sur 5 portails). Tampons d'instances FIXES (réécrits par
+     orbiteBuild, jamais réalloués), `count` remis à 0 et `visible=false` hors orbite. Coût mesuré (téléphone) : 4 appels de rendu,
+     ~45 000 triangles, pose 7-9 ms au portail (PC) — en orbite seulement.
+   Hooks : `dbgOrbite()` (comptes, visibilité, place de la lune à l'écran), `dbgOrbite('vue')` (rochers dans l'image),
+   `dbgOrbite('cout')` (appels/triangles ajoutés), `dbgOrbite('photo')` (la lune au téléobjectif), `dbgOrbite('carte')`.
+   ========================================================================== */
+const ORB={actif:false,lune:false,peinte:false,sol:new THREE.Vector3(0,1,0),haut:new THREE.Vector3(0,1,0),
+  t1:new THREE.Vector3(),t2:new THREE.Vector3(),t3:new THREE.Vector3(),A:new THREE.Vector3(),M:new THREE.Matrix4(),Q:new THREE.Quaternion(),
+  P:new THREE.Vector3(),S:new THREE.Vector3(),E:new THREE.Euler(),dm:new THREE.Vector3(0,0,-1),cible:new THREE.Vector3(0,0,-1),dr:new THREE.Vector3(),du:new THREE.Vector3(),capOk:false,tp:0};
+const LUNE_D=3000,LUNE_R=520; // à 3 km, ~20° de diamètre (sa place dans le cadre : voir orbiteTick)
+const LUNE=(function(){
+  const cv=document.createElement('canvas');cv.width=1024;cv.height=512;
+  const tex=new THREE.CanvasTexture(cv); // mipmaps (défaut) : la couture est sur la face cachée, jamais à l'écran
+  /* ⚠ UN CERCLE À L'ÉCRAN, PAS UNE SPHÈRE EN PERSPECTIVE (mesuré : un ŒUF). La caméra de poursuite plonge de ~50° avec un champ de
+     ~130° : à 45° de l'axe, la projection plane étire tout objet de ×1,4 vers le bord — une vraie sphère y devient ovale. Le quad est
+     donc posé en ESPACE ÉCRAN autour du centre projeté, à la taille angulaire qu'elle aurait au centre de l'image : ronde partout.
+     Le repère d'ombrage (vSol, vTer) est celui de l'écran, calculé ici depuis viewMatrix (exact à l'image près), et `vRo` tourne la
+     carte pour qu'elle suive l'horizon du MONDE (la caméra vrille en vol : la lune ne vrille pas avec elle). */
+  const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,depthTest:true,fog:false,extensions:{derivatives:true},
+    uniforms:{uTex:{value:tex},uC:{value:new THREE.Vector3()},uA:{value:new THREE.Vector3(0,0,-1)},uAng:{value:Math.tan(Math.asin(LUNE_R/LUNE_D))},
+      uSol:{value:new THREE.Vector3(0,1,0)},uTerre:{value:new THREE.Vector3(0,-1,0)},uLib:{value:0},uOp:{value:0}},
+    vertexShader:['uniform vec3 uC,uA,uSol,uTerre;uniform float uAng;varying vec2 vQ,vRo;varying vec3 vSol,vTer;',
+      'void main(){vQ=position.xy*1.04;', // un poil plus grand que le disque : la frange d anticrénelage y tient
+      '  vec4 cc=projectionMatrix*viewMatrix*vec4(uC,1.);',
+      '  vec3 W=-uA,cr=vec3(viewMatrix[0][0],viewMatrix[1][0],viewMatrix[2][0]);',          // la droite de l ÉCRAN, dans le monde
+      '  vec3 U=normalize(cr-W*dot(cr,W)+vec3(1e-5)),V=cross(W,U);',
+      '  vSol=vec3(dot(uSol,U),dot(uSol,V),dot(uSol,W));vTer=vec3(dot(uTerre,U),dot(uTerre,V),dot(uTerre,W));',
+      '  vec3 Ut=normalize(cross(uA,vec3(0.,1.,0.))),Vt=cross(Ut,uA);vRo=vec2(dot(U,Ut),dot(U,Vt));', // le roulis écran → monde
+      '  gl_Position=cc+vec4(vQ.x*uAng*projectionMatrix[0][0],vQ.y*uAng*projectionMatrix[1][1],0.,0.)*cc.w;gl_Position.z=gl_Position.w;}'].join('\n'), // le plan lointain, comme le dôme et la Terre
+    fragmentShader:['uniform sampler2D uTex;uniform float uLib,uOp;varying vec2 vQ,vRo;varying vec3 vSol,vTer;',
+      'vec3 ro(vec3 v){return vec3(v.x*vRo.x-v.y*vRo.y,v.x*vRo.y+v.y*vRo.x,v.z);}',             // écran → carte (l horizon du monde)
+      'void main(){',
+      '  float r=length(vQ),al=clamp((1.-r)/max(fwidth(r),1e-4)+.5,0.,1.)*uOp;if(al<=0.)discard;',
+      '  vec2 q=vQ/max(r,1.);vec3 N=ro(vec3(q,sqrt(max(0.,1.-dot(q,q))))),S=ro(vSol),Te=ro(vTer);',  // la sphère : x à droite, y en haut, z vers l oeil
+      '  float la=asin(clamp(N.y,-1.,1.)),lo=atan(N.x,N.z)+uLib;vec2 uv=vec2(lo/6.2831853+.5,la/3.1415927+.5);',
+      '  vec3 tx=texture2D(uTex,uv).rgb;',                                                               // R albédo, G relief, B mers
+      '  float hE=texture2D(uTex,uv+vec2(.0015,0.)).g-texture2D(uTex,uv-vec2(.0015,0.)).g,hN=texture2D(uTex,uv+vec2(0.,.003)).g-texture2D(uTex,uv-vec2(0.,.003)).g;',
+      '  vec3 E=normalize(vec3(N.z,0.,-N.x)+vec3(1e-5,0.,0.)),No=cross(N,E);',
+      '  vec3 Nb=normalize(N-(E*hE/max(cos(la),.3)+No*hN)*1.8);',                                        // LE RELIEF : les cratères prennent la lumière rasante
+      '  float d0=dot(N,S),d=dot(Nb,S),lam=max(d,0.),ls=lam/(lam+max(N.z,.08));',
+      '  float dif=mix(lam,ls*1.7,.4)*smoothstep(-.06,.10,d0);',                                          // terminateur net mais pas tranché
+      '  vec3 alb=tx.r*mix(vec3(1.02,.95,.86),vec3(.70,.77,.95),tx.b);',                                 // hautes terres crème, mers ardoise bleutée
+      '  vec3 col=alb*vec3(1.,.96,.90)*dif*1.45;',
+      '  float nuit=1.-smoothstep(-.12,.16,d0);',
+      '  col+=alb*vec3(.30,.55,1.)*(.30+.70*max(dot(Nb,Te),0.))*.34*nuit;',                              // le CLAIR DE TERRE : la face de nuit se lit, bleutée, mers comprises
+      '  col+=vec3(.11,.016,.19)*.20*nuit;',                                                             // l ombre à l ENCRE
+      '  float rim=pow(1.-N.z,4.);',
+      '  col+=vec3(1.,.90,.70)*rim*.40*smoothstep(.0,.35,d0)+vec3(.35,.62,1.)*rim*.12*nuit;',             // le LISERÉ : doré côté jour, bleu Terre côté nuit
+      '  gl_FragColor=vec4(col,al);}'].join('\n')});
+  const me=new THREE.Mesh(new THREE.PlaneGeometry(2,2),m);
+  me.frustumCulled=false;me.matrixAutoUpdate=false;me.visible=false;me.renderOrder=-9; // transparent, avant le limbe et le halo de la Terre
+  me.userData.cv=cv;me.userData.tex=tex;scene.add(me);return me;
+})();
+/* LA CARTE DE LA LUNE — 1024 × 512, équirectangulaire, peinte UNE fois au menu. ⚠ MESURÉ d'une traite : 140 ms (PC) — une image
+   gelée au menu, bien pire sur iPhone. Le pinceau est donc un GÉNÉRATEUR : une étape par image au menu (`luneAvance`, appelé par la
+   boucle via orbiteTick), chacune de quelques ms ; les toiles de travail restent en mémoire CPU (`willReadFrequently` : les relire
+   n'est plus un aller-retour GPU). `lunePeint()` finit d'une traite si on en a besoin tout de suite (orbite atteinte avant la fin). */
+function lunePeint(){if(ORB.peinte)return;if(!ORB.pinceau)ORB.pinceau=lunePinceau();while(!ORB.pinceau.next().done){}}
+function luneAvance(){ // une étape du pinceau (au menu) ; la dernière monte la carte au GPU
+  if(ORB.peinte)return;if(!ORB.pinceau)ORB.pinceau=lunePinceau();
+  const t0=performance.now(),fin=ORB.pinceau.next().done;ORB.pireMs=Math.max(ORB.pireMs|0,Math.round(performance.now()-t0));
+  if(fin)renderer.initTexture(LUNE.userData.tex);
+}
+function* lunePinceau(){
+  const W=1024,H=512,R=mulberry32(0x1C0430),D=Math.PI/180;
+  const toile=f=>{const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d',{willReadFrequently:true});x.fillStyle=f;x.fillRect(0,0,W,H);return x;};
+  const xa=toile('#a8a8a8'),xh=toile('#808080'),xm=toile('#000'); // albédo · relief · masque des mers
+  yield;
+  // LES TAMPONS : un profil radial signé (f > 0 = blanc, f < 0 = noir, alpha = |f|), peint UNE fois en pixels puis posé à l'échelle
+  const tampon=f=>{const S=96,c=document.createElement('canvas');c.width=c.height=S;const x=c.getContext('2d'),im=x.createImageData(S,S),d=im.data;
+    for(let j=0;j<S;j++)for(let i=0;i<S;i++){const q=f(Math.hypot((i+.5)/S*2-1,(j+.5)/S*2-1)*1.6),o=(j*S+i)*4; // le tampon couvre 1,6 rayon de cratère
+      d[o]=d[o+1]=d[o+2]=q>0?255:0;d[o+3]=Math.min(255,Math.abs(q)*255);}
+    x.putImageData(im,0,0);return c;};
+  const g=(d,c,w)=>Math.exp(-((d-c)/w)*((d-c)/w));
+  const tBol=tampon(d=>(d<.9?-.62*(1-(d/.9)*(d/.9)):0)+.55*g(d,.97,.11)+.12*g(d,1.22,.25));                     // petit cratère : un bol, une lèvre
+  const tCplx=tampon(d=>(d<.86?-.48*(1-Math.pow(d/.86,6)):0)+.55*g(d,.96,.09)+.52*g(d,0,.14)+.10*g(d,1.2,.3));   // grand : fond plat, pic central
+  const tAlb=tampon(d=>(d<.84?-.14:0)+.46*g(d,.95,.10)+.12*g(d,1.18,.30));                                       // fond un peu sombre, BORD CLAIR, éjectas
+  const tBlanc=tampon(d=>Math.exp(-d*d*1.6)),tNoir=tampon(d=>-Math.exp(-d*d*1.6));                              // taches douces
+  yield;
+  const pose=(x,c,lon,lat,ar,a)=>{const X=(lon/360+.5)*W,Y=(.5-lat/180)*H,ry=ar/180*H*1.6,rx=ry/Math.max(.2,Math.cos(lat*D));
+    x.globalAlpha=a;for(const ox of [0,-W,W]){const X9=X+ox;if(X9+rx>0&&X9-rx<W)x.drawImage(c,X9-rx,Y-ry,rx*2,ry*2);}x.globalAlpha=1;};
+  // LE GRAIN DES HAUTES TERRES
+  for(let i=0;i<700;i++){const lo=R()*360-180,la=Math.asin(R()*2-1)/D,ar=1+R()*R()*9;pose(xa,R()<.5?tBlanc:tNoir,lo,la,ar,.05+R()*.08);}
+  yield;
+  /* LES MERS — la vraie face visible, stylisée (longitude + = à droite vu de chez nous) : Imbrium, Procellarum, Serenitatis,
+     Tranquillitatis, Crisium, Fecunditatis, Nectaris, Nubium, Humorum, Frigoris, Vaporum, Cognitum — [lon, lat, rayon].
+     Un CHAMP (somme de bosses douces sur la sphère) troublé par un bruit fractal 3D (sans couture), seuillé : des côtes
+     déchiquetées qui se rejoignent, pas des taches rondes. Calculé en 256 × 128 puis agrandi (lissé par le canvas). */
+  const MERS=[[-16,34,14],[-55,25,13],[-62,8,12],[-45,-5,9],[-50,40,9],[17,28,9],[30,8,10],[22,3,6],[59,17,7],[50,-5,8],[34,-15,5.5],
+    [-17,-20,9],[-5,-25,6],[-39,-24,5.5],[-20,56,5],[5,57,5],[-40,55,4.5],[25,55,4],[4,13,5],[-25,-8,7],[-28,8,7]].map(m9=>{const lo=m9[0]*D,la=m9[1]*D;
+      return [Math.cos(la)*Math.sin(lo),Math.sin(la),Math.cos(la)*Math.cos(lo),1/((m9[2]*D)*(m9[2]*D))];});
+  const hs=(x,y,z)=>{let h=Math.imul(x,374761393)+Math.imul(y,668265263)+Math.imul(z,1274126177)|0;h=Math.imul(h^(h>>>13),1274126177);return ((h^(h>>>16))>>>0)/4294967296;};
+  const vn=(x,y,z)=>{const xi=Math.floor(x),yi=Math.floor(y),zi=Math.floor(z),xf=x-xi,yf=y-yi,zf=z-zi,u=xf*xf*(3-2*xf),v=yf*yf*(3-2*yf),w=zf*zf*(3-2*zf),l=(a,b2,t)=>a+(b2-a)*t;
+    return l(l(l(hs(xi,yi,zi),hs(xi+1,yi,zi),u),l(hs(xi,yi+1,zi),hs(xi+1,yi+1,zi),u),v),l(l(hs(xi,yi,zi+1),hs(xi+1,yi,zi+1),u),l(hs(xi,yi+1,zi+1),hs(xi+1,yi+1,zi+1),u),v),w);};
+  const MW=256,MH=128,mf=new Float32Array(MW*MH),cm=document.createElement('canvas');cm.width=MW;cm.height=MH;const xcm=cm.getContext('2d'),imM=xcm.createImageData(MW,MH);
+  for(let j=0;j<MH;j++){if(j&&!(j%16))yield;for(let i=0;i<MW;i++){const lo=((i+.5)/MW-.5)*6.2832,la=(.5-(j+.5)/MH)*3.1416,x=Math.cos(la)*Math.sin(lo),y=Math.sin(la),z=Math.cos(la)*Math.cos(lo);
+    let f=0;for(const m9 of MERS){const dx=x-m9[0],dy=y-m9[1],dz=z-m9[2];f+=Math.exp(-(dx*dx+dy*dy+dz*dz)*m9[3]*.9);}
+    let n9=0,a9=.5,q=3.2;for(let o=0;o<4;o++){n9+=a9*vn(x*q+7.1,y*q+3.3,z*q+1.9);q*=2.07;a9*=.5;}
+    const t=Math.max(0,Math.min(1,(f+(n9-.47)*1.1-.40)/.16)),m=t*t*(3-2*t);mf[j*MW+i]=m;
+    const n2=vn(x*9+2.7,y*9+8.1,z*9+5.3)*.6+vn(x*19,y*19,z*19)*.4; // les mers ne sont pas des aplats : des coulées plus ou moins sombres
+    const o=(j*MW+i)*4;imM.data[o]=imM.data[o+1]=imM.data[o+2]=Math.round(m*(.62+.38*n2)*255);imM.data[o+3]=255;}}
+  xcm.putImageData(imM,0,0);xm.imageSmoothingEnabled=true;xm.drawImage(cm,0,0,W,H);
+  yield;
+  const mer=(lo,la)=>mf[Math.min(MH-1,Math.max(0,Math.floor((.5-la/180)*MH)))*MW+Math.min(MW-1,Math.max(0,Math.floor((lo/360+.5)*MW)))]>.5;
+  // LES CRATÈRES : loi de puissance (beaucoup de petits, peu de gros), rares dans les mers (elles sont plus jeunes)
+  for(let i=0;i<1900;i++){if(i&&!(i%200))yield;const lo=R()*230-115,la=Math.asin(R()*1.96-.98)/D,ar=Math.min(5,.5*Math.pow(1-R()*.995,-1/1.7));
+    if(mer(lo,la)&&R()<.8)continue;const jeune=R()<.3; // les JEUNES sont nets et clairs ; les vieux, émoussés, se devinent (sinon : un semis de bulles toutes pareilles)
+    pose(xh,ar>2.2?tCplx:tBol,lo,la,ar,jeune?.75+R()*.2:.18+R()*.25);pose(xa,tAlb,lo,la,ar,jeune?.55:.12);}
+  // LES CRATÈRES QU'ON NOMME — Copernic, Tycho, Kepler, Aristarque, Platon (fond sombre), Clavius, Ptolémée, Langrenus, Théophile
+  const NOMS=[[-20,10,2.6,1,9],[-11,-43,2.1,1,12],[-38,8,1.3,1,7],[-47,24,1,1,5],[-9,51,2,-1,0],[-14,-58,3.6,0,0],[-2,-9,3,0,0],[61,-9,2.5,0,0],[26,-11,1.8,0,0]];
+  for(const c9 of NOMS){yield;pose(xh,tCplx,c9[0],c9[1],c9[2],.95);pose(xa,c9[3]<0?tNoir:tAlb,c9[0],c9[1],c9[2]*(c9[3]<0?.8:1),c9[3]<0?.55:.85);
+    if(c9[3]>0){pose(xa,tBlanc,c9[0],c9[1],c9[2]*1.4,.35); // l'auréole d'éjectas
+      const X=(c9[0]/360+.5)*W,Y=(.5-c9[1]/180)*H,px=c9[2]/180*H;
+      for(let k=0;k<c9[4];k++){const a9=R()*6.283,Lr=px*(4+R()*7),gr=xa.createLinearGradient(0,0,Lr,0); // les RAIS : des traînées claires qui filent loin du cratère
+        gr.addColorStop(0,'rgba(255,255,255,.32)');gr.addColorStop(1,'rgba(255,255,255,0)');
+        xa.save();xa.translate(X,Y);xa.scale(1/Math.max(.3,Math.cos(c9[1]*D)),1);xa.rotate(a9);xa.fillStyle=gr;
+        xa.beginPath();xa.moveTo(px*.8,-px*.18);xa.lineTo(Lr,-px*.04);xa.lineTo(Lr,px*.04);xa.lineTo(px*.8,px*.18);xa.fill();xa.restore();}}}
+  yield;
+  const A9=xa.getImageData(0,0,W,H).data;yield;const H9=xh.getImageData(0,0,W,H).data;yield;const M9=xm.getImageData(0,0,W,H).data;yield;
+  const out=LUNE.userData.cv.getContext('2d'),im=out.createImageData(W,H),o=im.data;
+  for(let i=0;i<o.length;i+=4){if(i&&!(i%524288))yield;const m=M9[i]/255;o[i]=A9[i]*(1-.36*m);o[i+1]=H9[i]-m*9;o[i+2]=M9[i];o[i+3]=255;} // les mers : plus sombres, un peu plus basses (en 4 fois)
+  yield;
+  out.putImageData(im,0,0);LUNE.userData.tex.needsUpdate=true;ORB.peinte=true;
+}
+function rocGeo(detail,seed){ // un ROCHER low-poly : icosaèdre bosselé, cabossé, écrasé — le déplacement dépend de la POSITION (sommets dupliqués par face : zéro fissure)
+  const g=new THREE.IcosahedronGeometry(1,detail),p=g.attributes.position,n=p.count,cav=new Float32Array(n),r=mulberry32(seed),v=new THREE.Vector3();
+  const K=[];for(let i=0;i<6+detail*2;i++)K.push([new THREE.Vector3(r()*2-1,r()*2-1,r()*2-1).normalize(),.55+r()*.35,(r()<.7?-1:1)*(.10+r()*.20)]); // [direction, cos du rayon, profondeur]
+  const sq=[.78+r()*.3,.62+r()*.26,.9+r()*.3],ph=[r()*6,r()*6,r()*6];
+  for(let i=0;i<n;i++){v.fromBufferAttribute(p,i).normalize();let h=1;
+    for(const k of K){const c=v.dot(k[0]);if(c>k[1]){const t=(c-k[1])/(1-k[1]);h+=k[2]*t*t*(3-2*t);}}
+    h+=.07*Math.sin(v.x*3.1+ph[0])*Math.sin(v.y*2.7+ph[1])*Math.sin(v.z*3.3+ph[2])+.035*Math.sin(v.x*7.3+v.z*5.1+ph[1]);
+    cav[i]=Math.max(0,Math.min(1,(1.04-h)*3));
+    p.setXYZ(i,v.x*h*sq[0],v.y*h*sq[1],v.z*h*sq[2]);}
+  g.deleteAttribute('normal');g.deleteAttribute('uv');g.setAttribute('aCav',new THREE.BufferAttribute(cav,1));return g;
+}
+const ROC_MAX=IS_MOBILE?[18,200,1300]:[26,320,2000]; // passants · gros du champ · petits du champ + ceinture
+const ROC_U={uT:{value:0},uSol:{value:ORB.sol},uTerre:{value:new THREE.Vector3(0,-1,0)},uFog:{value:new THREE.Color(0,0,0)},uOp:{value:0}};
+const ROC_MAT=new THREE.ShaderMaterial({fog:false,extensions:{derivatives:true},uniforms:ROC_U,
+  vertexShader:['attribute vec4 aRot;attribute vec2 aVar;attribute float aCav;uniform float uT;varying vec3 vVP;varying float vTon,vCav;',
+    'vec3 rotA(vec3 v,vec3 k,float a){float c=cos(a),s=sin(a);return v*c+cross(k,v)*s+k*dot(k,v)*(1.-c);}',
+    'void main(){',
+    '  vec3 l=rotA(mat3(instanceMatrix)*position,aRot.xyz,aVar.y+uT*aRot.w);', // la ROTATION PROPRE : après l échelle (le rocher tourne sans se déformer)
+    '  vec4 mv=modelViewMatrix*vec4(l+instanceMatrix[3].xyz,1.);vVP=mv.xyz;vTon=aVar.x;vCav=aCav;gl_Position=projectionMatrix*mv;}'].join('\n'),
+  fragmentShader:['uniform vec3 uSol,uTerre,uFog;uniform float uOp;varying vec3 vVP;varying float vTon,vCav;',
+    'void main(){',
+    '  vec3 Nv=normalize(cross(dFdx(vVP),dFdy(vVP))),N=normalize((vec4(Nv,0.)*viewMatrix).xyz);', // la FACETTE (low-poly), ramenée dans le monde
+    '  vec3 alb=mix(vec3(.44,.40,.37),vec3(.36,.37,.42),smoothstep(.25,.55,vTon));',                 // gris chaud · gris froid…
+    '  alb=mix(alb,vec3(.50,.30,.20),smoothstep(.86,.97,vTon))*(1.-.5*vCav);',                         // …quelques rouilles (fer) ; les creux s assombrissent
+    '  float d=dot(N,uSol),dif=max(d,0.),w=clamp(d*.7+.3,0.,1.);',
+    '  vec3 col=alb*vec3(1.,.94,.84)*(dif*1.9+w*.30);',                                                  // le soleil dur, plus une lumière qui enveloppe les faces rasantes
+    '  col+=vec3(.11,.016,.19)*(1.-w)*.55;',                                                            // l ombre à l ENCRE, au coeur de l ombre
+    '  col+=alb*vec3(.22,.46,1.)*max(dot(N,uTerre),0.)*.42;',                                           // la Terre éclaire par-dessous
+    '  col+=vec3(1.,.9,.72)*pow(1.-max(dot(Nv,normalize(-vVP)),0.),3.)*.20*smoothstep(-.2,.5,d);',      // le liseré côté soleil
+    '  col=mix(col,uFog,smoothstep(1800.,7500.,length(vVP)));',                                         // le lointain se noie dans le noir bleuté
+    '  gl_FragColor=vec4(mix(uFog,col,uOp),1.);}'].join('\n')});
+const ROCS=[[2,0x0A57],[1,0x0B58],[0,0x0C59]].map(function(a,k){ // [finesse, graine] : les passants (320 faces), les gros du champ (80), les petits du champ + la ceinture (20)
+  const g=rocGeo(a[0],a[1]),N=ROC_MAX[k];
+  g.setAttribute('aRot',new THREE.InstancedBufferAttribute(new Float32Array(N*4),4));
+  g.setAttribute('aVar',new THREE.InstancedBufferAttribute(new Float32Array(N*2),2));
+  const im=new THREE.InstancedMesh(g,ROC_MAT,N);im.count=0;im.visible=false;im.frustumCulled=false; // un champ de plusieurs km : le culling par objet n'a pas de sens
+  scene.add(im);return im;});
+function orbiteBuild(seed){ // appelée par buildTrack : pose les rochers autour de la piste d'orbite (et les retire partout ailleurs)
+  const c=LVL.cur;ORB.actif=!!(c&&c.id==='espace'&&!PARK.on&&NP>1);if(ORB.actif){ORB.lune=!c.sansLune;ORB.capOk=false;} // en quittant l'orbite la lune reste allumée : elle s'efface avec le fondu du niveau (LVL.espace)
+  for(let i=0;i<ROCS.length;i++){ROCS[i].count=0;ROCS[i].visible=false;}
+  if(!ORB.actif)return;
+  if(!ORB.peinte)lunePeint();
+  const t00=performance.now();
+  const r=mulberry32(seed^0x0A57E401); // flux DÉRIVÉ : la piste en aval ne bouge pas
+  // LA GRILLE DE LA PISTE (un point tous les ~10 m, cases de 150 m) : un rocher n'approche AUCUNE portion de route
+  const HB=150,grille=new Map(),pas=Math.max(1,Math.round(10/(L/(NP-1))));
+  let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9,ys=0,ny=0;
+  const cle=(gx,gz)=>(gx+4096)*8192+gz+4096; // une clé NUMÉRIQUE par case (les chaînes coûtaient la moitié de la pose)
+  for(let i=0;i<NP;i+=pas){const p=pts[i],k=cle(Math.floor(p.x/HB),Math.floor(p.z/HB));let a=grille.get(k);if(!a)grille.set(k,a=[]);a.push(i);
+    if(p.x<x0)x0=p.x;if(p.x>x1)x1=p.x;if(p.z<z0)z0=p.z;if(p.z>z1)z1=p.z;ys+=p.y;ny++;}
+  const libre=(x,y,z,Rl)=>{const rr=Math.ceil(Rl/HB),bx=Math.floor(x/HB),bz=Math.floor(z/HB),R2=Rl*Rl;
+    for(let dx=-rr;dx<=rr;dx++)for(let dz=-rr;dz<=rr;dz++){const a=grille.get(cle(bx+dx,bz+dz));if(!a)continue;
+      for(let j=0;j<a.length;j++){const p=pts[a[j]],ex=p.x-x,ey=p.y-y,ez=p.z-z;if(ex*ex+ey*ey+ez*ez<R2)return false;}}
+    return true;};
+  const pose=(im,i,x,y,z,rad,spd)=>{const E=ORB.E.set(r()*6.283,r()*6.283,r()*6.283);ORB.Q.setFromEuler(E);
+    ORB.S.set(rad*(.85+r()*.3),rad*(.8+r()*.3),rad*(.9+r()*.3));ORB.P.set(x,y,z);ORB.M.compose(ORB.P,ORB.Q,ORB.S);im.setMatrixAt(i,ORB.M);
+    const ax=r()*2-1,ay=r()*2-1,az=r()*2-1,l=Math.hypot(ax,ay,az)||1;
+    im.geometry.attributes.aRot.setXYZW(i,ax/l,ay/l,az/l,spd*(r()<.5?-1:1));im.geometry.attributes.aVar.setXY(i,r(),r()*6.283);};
+  const dS=L/(NP-1);let n=0;
+  // 1. LES PASSANTS : gros, au bord de la route, du côté EXTÉRIEUR du virage qui vient (ils ne cachent jamais la route qui tourne)
+  {const im=ROCS[0],N=ROC_MAX[0],pasP=(L-900)/N;
+   for(let k=0;k<N;k++){const i=Math.min(NP-2,Math.round((420+pasP*(k+.15+r()*.7))/dS)),t9=T[i],hl=Math.hypot(t9.x,t9.z);
+     const t2=T[Math.min(NP-1,i+Math.round(170/dS))],tr=t9.z*t2.x-t9.x*t2.z,sg=Math.abs(tr)<.06?(r()<.5?-1:1):(tr<0?-1:1);
+     const rad=14+r()*24,lat=ROAD_HALF+rad*1.3+14+r()*38,dy=r()<.5?6+r()*30:-(rad*.4+r()*46); // une moitié dressée au bord (en silhouette sur le noir), l'autre en contrebas
+     if(hl<.5)continue; // haut de looping : pas de « côté »
+     const x=pts[i].x-t9.z/hl*sg*lat,y=pts[i].y+dy,z=pts[i].z+t9.x/hl*sg*lat;
+     if(!libre(x,y,z,rad*1.3+ROAD_HALF+14))continue;
+     pose(im,n++,x,y,z,rad,.05+r()*.15);}
+   im.count=n;}
+  /* 2. LE CHAMP : le long de la piste, jusqu'à 1,2 km — la parallaxe. MESURÉ (dbgOrbite('vue')) : semé à hauteur de route, il
+     tombait tout entier SOUS le centre de l'image (la caméra plonge) et le ciel au-dessus de la route restait vide. Six rochers sur
+     dix montent donc AU-DESSUS de la route (90 à 590 m), et ceux-là peuvent passer à la verticale du ruban (dégagement 3D ≥ 140 m) :
+     c'est eux qui peuplent le noir au-dessus de l'horizon. Les gros (> 12 m) vont dans le maillage à 80 faces, les petits dans
+     celui de la ceinture (20 faces) : les nuées coûtent 4 fois moins de sommets. */
+  let n2=0;
+  {const im=ROCS[1],N=ROC_MAX[1],N2=Math.round(ROC_MAX[2]*.38);n=0;
+   for(let tr=0;(n<N||n2<N2)&&tr<(N+N2)*4;tr++){const i=(r()*NP)|0,t9=T[i],hl=Math.hypot(t9.x,t9.z);if(hl<.3)continue;
+     const sg=r()<.5?-1:1,rad=3+Math.pow(r(),2.2)*46,haut=r()<.6,al=(r()-.5)*260;
+     const dy=haut?90+Math.pow(r(),1.2)*500:-(60+r()*400),lat=haut?Math.pow(r(),1.1)*900:ROAD_HALF+100+Math.pow(r(),1.3)*1000;
+     const gros=rad>12;if(gros?n>=N:n2>=N2)continue;
+     const x=pts[i].x+(-t9.z*sg*lat+t9.x*al)/hl,y=pts[i].y+dy,z=pts[i].z+(t9.x*sg*lat+t9.z*al)/hl;
+     if(!libre(x,y,z,rad*1.3+ROAD_HALF+110))continue;
+     if(gros)pose(im,n++,x,y,z,rad,.08+r()*.3);else pose(ROCS[2],n2++,x,y,z,rad,.2+r()*.6);}
+   im.count=n;}
+  /* 3. LA CEINTURE : deux anneaux autour de la piste — la nuée de petits. MESURÉ : un seul anneau presque à plat se couchait sur
+     l'horizon, derrière la route et la Terre (la caméra plonge de 10 à 50°) ; le second, incliné de 26 à 37°, monte en DIAGONALE
+     dans le noir au-dessus de la route : un fleuve de pierres en travers du ciel. Même InstancedMesh, même appel de rendu. */
+  {const im=ROCS[2],N=ROC_MAX[2],nB0=n2;n=n2; // la ceinture complète le maillage des petits
+   const cx=(x0+x1)/2,cz=(z0+z1)/2,cy=ys/Math.max(1,ny)+160,Rb0=Math.min(2600,Math.max(1000,Math.max(x1-x0,z1-z0)*.5+250));
+   const ta0=r()*6.283,ti0=.13+r()*.12,ta1=ta0+1.57+(r()-.5),ti1=.45+r()*.2;
+   const gs=()=>(r()+r()+r()-1.5)*1.15; // ≈ une gaussienne
+   let e1=null,nz=null,e2=null,Rb=Rb0;
+   for(let tr=0;n<N&&tr<N*3;tr++){if(n===nB0||n===nB0+Math.round((N-nB0)*.5)){const B9=n===nB0;Rb=B9?Rb0:Rb0*1.15; // l'anneau couché, puis l'anneau dressé
+       e1=ORB.t1.set(Math.cos(B9?ta0:ta1),0,Math.sin(B9?ta0:ta1));nz=ORB.t2.set(0,1,0).applyAxisAngle(e1,B9?ti0:ti1);e2=ORB.t3.crossVectors(nz,e1);}
+     const th=r()*6.283,rr=Rb+gs()*380,hh=gs()*120,rad=7+Math.pow(r(),2)*80,cs=Math.cos(th),sn=Math.sin(th);
+     const x=cx+e1.x*cs*rr+e2.x*sn*rr+nz.x*hh,y=cy+e1.y*cs*rr+e2.y*sn*rr+nz.y*hh,z=cz+e1.z*cs*rr+e2.z*sn*rr+nz.z*hh;
+     if(!libre(x,y,z,rad*1.3+ROAD_HALF+90))continue;
+     pose(im,n++,x,y,z,rad,.12+r()*.8);}
+   im.count=n;}
+  for(const im of ROCS){im.instanceMatrix.needsUpdate=true;im.geometry.attributes.aRot.needsUpdate=true;im.geometry.attributes.aVar.needsUpdate=true;}
+  ORB.ms=Math.round(performance.now()-t00);
+}
+function orbiteTick(t){ // chaque image : visibilité, soleil de l'orbite, place de la lune — zéro allocation
+  if(ORB.pinceau&&!ORB.peinte&&(!started||gameOver))luneAvance(); // au menu : une étape du pinceau de la lune par image
+  const ok=LVL.espace>.01&&!garageOn&&!stallOn&&!MENUV.bio,vr=ok&&ORB.actif; // les rochers partent avec leur piste ; la lune, elle, s'efface avec le fondu du niveau
+  for(let i=0;i<ROCS.length;i++)ROCS[i].visible=vr&&ROCS[i].count>0;
+  LUNE.visible=ok&&ORB.lune;
+  if(!LUNE.visible&&!vr)return;
+  // LE SOLEIL DE L'ORBITE : la formule du globe, à l'identique (au-dessus, un peu de côté, derrière l'œil)
+  const tc=ORB.t1.subVectors(camera.position,planetGroup.position).normalize(),sd=ORB.t2.crossVectors(tc,ORB.haut).normalize();
+  ORB.sol.copy(tc).multiplyScalar(.5).addScaledVector(ORB.haut,.75).addScaledVector(sd,.45).normalize();
+  ROC_U.uTerre.value.copy(tc).negate();ROC_U.uT.value=t%4096;ROC_U.uOp.value=Math.min(1,LVL.espace);ROC_U.uFog.value.copy(scene.fog.color);
+  const dt9=Math.min(.1,Math.max(0,t-ORB.tp));ORB.tp=t;
+  if(!LUNE.visible)return;
+  /* LA LUNE, SA PLACE DANS LE CADRE — MESURÉ : la caméra de poursuite plonge de 10° à 50° selon la pente, et son champ va de 74° à
+     135° avec la vitesse : une direction fixe la faisait tomber tantôt sous le HUD, tantôt sur le bout de la route, tantôt hors
+     cadre (et un simple cap retardé la sortait par le bord dans chaque longue courbe). Elle vise donc un point de l'IMAGE — le tiers
+     haut-droit : 30 % à droite, 40 % au-dessus du centre, dans le repère de la caméra redressé sur l'horizon du monde (le roulis des
+     vrilles ne l'emporte pas) — et le rejoint avec RETARD (2/s, plus vif que la Terre, 0,35/s) : un coup de volant, une vrille la
+     font glisser comme un astre, elle revient ensuite à sa place, sans jamais s'en écarter de plus de 9° (dans une longue courbe,
+     un retard plus lent la collait au centre de l'image). Si le retard de la Terre
+     les rapproche, la lune s'ÉCARTE le long du grand cercle : jamais l'une devant l'autre (la Terre, sur le plan lointain sans
+     profondeur, ne pourrait pas la cacher). */
+  const cf=ORB.t3;camera.getWorldDirection(cf);
+  const dr=ORB.dr.crossVectors(cf,ORB.haut);
+  if(dr.lengthSq()>1e-4){dr.normalize();const du=ORB.du.crossVectors(dr,cf),tv=Math.tan(camera.fov*Math.PI/360);
+    ORB.cible.copy(cf).addScaledVector(dr,.30*tv*camera.aspect).addScaledVector(du,.40*tv).normalize();} // (regard à la verticale : la cible d'avant reste)
+  if(!ORB.capOk){ORB.dm.copy(ORB.cible);ORB.capOk=true;}
+  else{ORB.dm.lerp(ORB.cible,Math.min(1,dt9*2)).normalize();const cc=ORB.dm.dot(ORB.cible);
+    if(cc<Math.cos(.16)){const pr=ORB.du.copy(ORB.dm).addScaledVector(ORB.cible,-cc).normalize();ORB.dm.copy(ORB.cible).multiplyScalar(Math.cos(.16)).addScaledVector(pr,Math.sin(.16));}}
+  const A=ORB.A.copy(ORB.dm);
+  const P=ORB.t2.copy(tc).negate(),c9=A.dot(P),mini=Math.asin(Math.min(.99,PLANET_R*LVL.planete*1.06/PLANET_D))+LUNE_R/LUNE_D+.05;
+  if(c9>Math.cos(mini)){const pr=ORB.t3.copy(A).addScaledVector(P,-c9);if(pr.lengthSq()<1e-6)pr.set(0,1,0);pr.normalize();A.copy(P).multiplyScalar(Math.cos(mini)).addScaledVector(pr,Math.sin(mini)).normalize();}
+  const u=LUNE.material.uniforms;u.uA.value.copy(A);u.uC.value.copy(camera.position).addScaledVector(A,LUNE_D);
+  /* SON SOLEIL : la formule du globe appliquée à SA direction (au-dessus, un peu à gauche, derrière l'œil) — MESURÉ : avec le soleil
+     de la Terre tel quel, la lune (placée ailleurs dans le ciel) passait en fin croissant dès que la Terre prenait du retard. Ainsi,
+     à l'écran, Terre et lune sont éclairées du même côté (haut-gauche), et la lune reste gibbeuse (64 à 76 % éclairée). */
+  const tm=ORB.t2.copy(A).negate(),sm=ORB.t3.crossVectors(tm,ORB.haut);if(sm.lengthSq()<1e-6)sm.set(1,0,0);sm.normalize();
+  u.uSol.value.copy(tm).multiplyScalar(.5).addScaledVector(ORB.haut,.75).addScaledVector(sm,.45).normalize();
+  u.uTerre.value.subVectors(planetGroup.position,u.uC.value).normalize(); // d'où vient le clair de Terre
+  u.uLib.value=Math.sin(t*.023)*.09+Math.sin(t*.0071+1.3)*.05; // la LIBRATION : la lune se balance, les cratères glissent sur le terminateur
+  u.uOp.value=Math.min(1,LVL.espace);
+}
+function orbiteChauffe(){ // au menu (chauffeDivers) : le pinceau de la lune lancé, les deux programmes compilés — rien ne naît au portail
+  luneAvance(); // la 1re étape du pinceau ; la boucle peint le reste, une étape par image (voir orbiteTick)
+  renderer.compile(scene,camera); // lune et rochers sont DANS la scène (invisibles) : compile() les prend (il parcourt tout, visible ou non)
+}
+window.dbgOrbite=function(k){if(k==='carte'){lunePeint();return LUNE.userData.cv.toDataURL('image/png');} // (dev) dbgOrbite('carte') : la carte de la lune (R albédo, G relief, B mers)
+  if(k==='cout'){const r=renderer.info,m=()=>{r.autoReset=false;r.reset();renderer.render(scene,camera);r.autoReset=true;return [r.render.calls,r.render.triangles];}; // (dev) dbgOrbite('cout') : ce que coûtent lune + rochers dans l'image vue
+    const a=m(),v=ROCS.map(im=>im.visible),lv=LUNE.visible;for(const im of ROCS)im.visible=false;LUNE.visible=false;const s=m();ROCS.forEach((im,i)=>im.visible=v[i]);LUNE.visible=lv;
+    return {appels:a[0]-s[0],triangles:a[1]-s[1],poseMs:ORB.ms,pireEtapePeintureMs:ORB.pireMs};}
+  if(k==='vue'){const v=new THREE.Vector3(),o={};ROCS.forEach(function(im,f){const a=im.instanceMatrix.array;let dans=0,haut=0,dm=0; // (dev) dbgOrbite('vue') : combien de rochers dans l'image, dont au-dessus du centre
+      let pp=1e9;for(let i=0;i<im.count;i++){v.set(a[i*16+12],a[i*16+13],a[i*16+14]);const d=v.distanceTo(camera.position);v.project(camera);if(v.z<1&&Math.abs(v.x)<1&&Math.abs(v.y)<1){dans++;dm+=d;if(v.y>0)haut++;if(d<pp)pp=d;}}
+      o[['passants','champ','ceinture'][f]]=[dans,haut,dans?Math.round(dm/dans):0,Math.round(pp)];});return o;}
+  if(k==='photo'){if(started&&!gameOver&&!paused)togglePause();const f0=camera.fov;camera.fov=24;camera.updateProjectionMatrix(); // (dev) dbgOrbite('photo') : la lune au téléobjectif (24°), UNE image rendue
+    orbiteTick(skyU.uTime.value);camera.lookAt(LUNE.material.uniforms.uC.value);camera.updateMatrixWorld();skyDome.position.copy(camera.position);
+    if(acesPass)acesPass.uniforms.uSpeed.value=0;if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);camera.fov=f0;camera.updateProjectionMatrix();return 'ok';}
+  const A=ORB.A;return {actif:ORB.actif,lune:LUNE.visible,passants:ROCS[0].count,champ:ROCS[1].count,ceinture:ROCS[2].count,
+  rochersVisibles:ROCS[0].visible,espace:+LVL.espace.toFixed(2),luneCap:+Math.atan2(-A.x,-A.z).toFixed(3),luneSite:+Math.asin(Math.max(-1,Math.min(1,A.y))).toFixed(3),
+  sol:ORB.sol.toArray().map(v=>+v.toFixed(2)),peinte:ORB.peinte,
+  luneEcran:(function(){const v=LUNE.material.uniforms.uC.value.clone().project(camera);return [Math.round((v.x*.5+.5)*VP.w),Math.round((.5-v.y*.5)*VP.h),v.z<1?'devant':'derriere'];})(),
+  camSite:+Math.asin(camera.getWorldDirection(new THREE.Vector3()).y).toFixed(3),fov:+camera.fov.toFixed(1)};};
+/* ============================================================================
    LA CARRIÈRE (2026-09-24) — 30 niveaux, 3 biomes de 10 (ARCHITECTURE : le détail de chaque niveau viendra).
    ----------------------------------------------------------------------------
    « 10 dans les nuages à 10 moments différents de l'aurore au coucher du soleil, 10 dans la ville du
@@ -6979,7 +7293,7 @@ const CARRIERE=[
     {nm:'MATIN',h:'matin'},{nm:'MIDI',h:'midi'}]},
   {id:'espace',nm:'ESPACE',ic:'etoile',desc:'Au plus près des planètes du système solaire.',niveaux:[
     {nm:'MERCURE',astre:{teinte:0x8a8580,atmo:0xd8c9b0,echelle:1.05}},{nm:'VENUS',astre:{teinte:0xc9a15a,atmo:0xffd98a,echelle:1.25}},
-    {nm:'TERRE',astre:{teinte:0x55708c,atmo:0x8fd4ff,echelle:1.35}},{nm:'LUNE',astre:{teinte:0x9a9a9a,atmo:0xdfe6ee,echelle:1.1}},
+    {nm:'TERRE',astre:{teinte:0x55708c,atmo:0x8fd4ff,echelle:1.35}},{nm:'LUNE',astre:{teinte:0x9a9a9a,atmo:0xdfe6ee,echelle:1.1},sansLune:1},
     {nm:'MARS',astre:{teinte:0xb5532e,atmo:0xffa27a,echelle:1.2}},{nm:'JUPITER',astre:{teinte:0xc49a6c,atmo:0xffd3a0,echelle:1.5}},
     {nm:'SATURNE',astre:{teinte:0xd8c08a,atmo:0xfff0c0,echelle:1.45}},{nm:'URANUS',astre:{teinte:0x7fd6d8,atmo:0xb8ffff,echelle:1.35}},
     {nm:'NEPTUNE',astre:{teinte:0x3a5fd0,atmo:0x7fa8ff,echelle:1.35}},{nm:'PLUTON',astre:{teinte:0xb8a48c,atmo:0xe8dccb,echelle:1.0}}]},
@@ -6996,7 +7310,7 @@ function carNiveau(bi,i){ // le niveau de carrière, sous la forme d'un NIVEAU
   return {id:B.id,nm:B.nm+' '+(i+1)+' — '+N.nm,bio:[h],piste:N.piste||null,sansNuages:!!N.sansNuages,
     planete:N.planete!=null&&B.id!=='nuages'?N.planete:(B.id==='espace'?((N.astre&&N.astre.echelle)||1.35):0), // jamais de Terre dans les NUAGES (user, 2026-09-25)
     route:B.id==='ville'?1:B.id==='espace'?.2:0,sheen:B.id==='ville'?.22:B.id==='espace'?.06:.10,
-    espace:B.id==='espace'?1:0,pluie:N.pluie||0,cielMusical:B.id==='ville',astre:N.astre||null,carr:{b:bi,i:i}};
+    espace:B.id==='espace'?1:0,pluie:N.pluie||0,cielMusical:B.id==='ville',astre:N.astre||null,sansLune:!!N.sansLune,carr:{b:bi,i:i}}; // (vague 3) le niveau LUNE : l'astre du niveau EST la lune, pas de seconde lune au ciel
 }
 const PLANETE_DEF={teinte:0x55708c,atmo:0x8fd4ff};
 function lvlAstre(a){ // la planète du niveau d'espace : teinte du globe + couleur du limbe
@@ -11965,6 +12279,7 @@ function engChauffe(){
    (géométries et matières partagées : rien à libérer), la trace est créée d'avance (900 quads à zéro, invisibles). Et la chauffe de la
    VILLE, qui attendait 2,5 s de menu : un joueur pressé la ratait, et la 1re ville compilait en pleine course (3 shaders, ~200 ms). */
 function chauffeDivers(){
+  try{orbiteChauffe();}catch(e){} // (vague 3) la lune peinte et montée au GPU, lune + rochers compilés : rien ne naît au portail de l'orbite
   try{if(!CITY.chaud){CITY.chaud=true;villeChauffe();}}catch(e){}
   try{if(!TRACE.pos)traceInit();const p=mkPigeon();scene.add(p);renderer.compile(scene,camera);scene.remove(p);}catch(e){}
   try{engCarteQuad.visible=engHalo.visible=true;renderer.compile(engVigQuadScene,engVigQuadCam);engCarteQuad.visible=engHalo.visible=false; // (vague 2) le recollage de la carte MOTEUR (sinon son programme naît au 1er palier)
@@ -23351,6 +23666,7 @@ function loop(now){
     renderer.getDrawingBufferSize(acesPass.uniforms.uRes.value);acesPass.uniforms.uRes.value.set(1/Math.max(1,acesPass.uniforms.uRes.value.x),1/Math.max(1,acesPass.uniforms.uRes.value.y)); // la taille d'un texel pour le FXAA (suit la résolution adaptative)
   }
   lvlPlanete(dt); // la planète tient sa place dans le ciel — et en ORBITE elle passe sous la route (voir NIVEAUX)
+  try{orbiteTick(t);}catch(e){} // (vague 3) …la lune et les astéroïdes de l'orbite (invisibles ailleurs)
   pluieTick(t);   // la pluie de la VILLE tombe autour de la caméra (invisible ailleurs)
   planetGroup.userData.globe.rotation.y=t*.014;                                 // …et tourne lentement sur son axe
   sunSprite.position.copy(camera.position).addScaledVector(SUN_DIR,3600);
