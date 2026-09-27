@@ -465,6 +465,11 @@ adaptative descendait EN PREMIER. Cinq lots (branches perf-ciel/-post/-cpu/-pist
   SYNCHRONISÉES (`readPixels` d'1 pixel en fin d'image = coût réel processeur+puce, sans la grille 16,7 ms) et éteint les postes un par un
   (DPR, post, bloom, ombre, ciel, nuages, piste, caisse, transparents, ville) ; mesure aussi l'affichage réel avec/sans HUD. Tableau à
   capturer. `&ech=0.25` réduit les échantillons (rendu logiciel). Hooks : `dbgDPR(d,sansPique)`, `dbgQual(k)`.
+  · **POST tour 2** (écart ≤ 1/255) : FXAA et passes verticales du bloom en `texelFetch`, autres lectures en `textureLod(…,0)` ; HALO
+  COMPOSÉ une fois par image (`bloomPass._cRT`) : l'ACES lit 1 texture au lieu de 5 ; `uWE` (WB×exposition) et `uKC` (contraste) posés par
+  image dans `acesPass.render` ; tunnel/lueur nitro sautés quand ils valent 0 ; mips 3-4 à nouveau séparables (`?bloom=plie2d` = flou 2D du
+  tour 1). Chaîne complète −33 % en rendu logiciel, −20/−25 % sur carte. ÉCARTÉ : LUT 3D (5-17 % des pixels à ≥ 7/255 : coudes du grade),
+  halo 8 bits, cible R11G11B10F (mantisse trop courte pour le ciel clair), mediump (invérifiable sur PC).
   · **Rendu logiciel = proxy du coût par pixel** : le même banc sous SwiftShader (`--use-angle=swiftshader`, ~11 min) classe les postes
   comme une puce saturée : ciel ~38 %, piste 20-50 %, post ~20 %, ville ~25 % en VILLE, ombres 3-12 %, résolution 1,25 = −23 %.
 - **Écarté après mesure** : moins de mips de bloom (halo changé), RT 8 bits (banding), LOD de piste en deçà du brouillard (grain),
