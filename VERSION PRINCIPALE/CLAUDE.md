@@ -511,6 +511,12 @@ adaptative descendait EN PREMIER. Cinq lots (branches perf-ciel/-post/-cpu/-pist
   image dans `acesPass.render` ; tunnel/lueur nitro sautés quand ils valent 0 ; mips 3-4 à nouveau séparables (`?bloom=plie2d` = flou 2D du
   tour 1). Chaîne complète −33 % en rendu logiciel, −20/−25 % sur carte. ÉCARTÉ : LUT 3D (5-17 % des pixels à ≥ 7/255 : coudes du grade),
   halo 8 bits, cible R11G11B10F (mantisse trop courte pour le ciel clair), mediump (invérifiable sur PC).
+  · **BITUME tour 2** : bitume en `FrontSide`, le bloc du DESSOUS de chaque tranche retourné à la construction (triangles inversés, normales
+  et couleurs niées — le shader relit `abs(vColor)` et reprend le signe du `normalBias` sur `color.r`) : la face cachée n'est plus dessinée
+  (−32 % sur la piste au sol en rendu logiciel). `LFB_ROUTE` (bitume) et `LFB_CAISSE` (tôles `rimify`/`lpMat`) SAUTENT les lumières nulles
+  à ce pixel — lampe de couleur nulle, hors de portée, phare hors cône, directionnelle dos à la face (le soleil et ses 16 lectures d'ombre
+  compris) : exact. `dbgBitume(false,false)` = l'ancien bitume. ⚠ Relevé : `stallKey`/`stallRim` (lampes de l'étal/atelier) passent
+  visible → 10 lumières ponctuelles au lieu de 8 : ~30 programmes recompilés en entrant au garage puis au départ (voir la chasse aux gels).
   · **Rendu logiciel = proxy du coût par pixel** : le même banc sous SwiftShader (`--use-angle=swiftshader`, ~11 min) classe les postes
   comme une puce saturée : ciel ~38 %, piste 20-50 %, post ~20 %, ville ~25 % en VILLE, ombres 3-12 %, résolution 1,25 = −23 %.
 - **Écarté après mesure** : moins de mips de bloom (halo changé), RT 8 bits (banding), LOD de piste en deçà du brouillard (grain),
