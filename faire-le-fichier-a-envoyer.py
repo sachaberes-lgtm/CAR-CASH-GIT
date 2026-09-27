@@ -133,11 +133,11 @@ refs = []
 # ⚠ ON LIT `MUSIC_TRACKS` (le pool de la radio, 2026-09-03), PAS `MUSIC.run` : `run` n'existe plus
 # depuis que la musique s'enchaine au hasard sur tout le pool plutot que par niveau. S'y fier via
 # une ancienne cle (`NIVEAUX`, supprimee) n'embarquerait rien — silence total dans le fichier autonome.
-refs += re.findall(r"f:'(assets/audio/music/[^']+\.mp3)'", _tab("MUSIC_TRACKS"))
+refs += re.findall(r"f:'(assets/audio/music/[^']+\.(?:mp3|m4a))'", _tab("MUSIC_TRACKS"))
 # les MUSIQUES DE LIEU (2026-09-24) vivent hors du pool : sans cette ligne elle ne serait pas embarquee,
 # et le fichier a double-cliquer ouvrirait chaque partie sur un silence — sans la moindre erreur.
 _ml = re.search(r"const MUSIC_LIEU=\{(.*?)\n\};", h, re.S)       # la musique PAR MONDE
-if _ml: refs += re.findall(r"f:'(assets/audio/music/[^']+\.mp3)'", _ml.group(1))
+if _ml: refs += re.findall(r"f:'(assets/audio/music/[^']+\.(?:mp3|m4a))'", _ml.group(1))  # (2026-09-27) .m4a aussi : la ville est en AAC
 refs += [_dir("ANN_DIR")   + f for f in re.findall(r"f:'([^']+)'", _tab("ANN_LIB"))]    # les 9 voix
 refs += [_dir("DEATH_DIR") + f for f in re.findall(r"f:'([^']+)'", _tab("DEATH_LIB"))]  # les sons de mort
 # les samples d'evenement : le WOW (un objet seul) et les 9 sons d'argent (un tableau)
@@ -149,7 +149,7 @@ assert not manquants, "le jeu reclame des fichiers absents du projet : " + ", ".
 assets = {}
 for rel in refs:
     raw = open(os.path.join(SRC, rel), "rb").read()
-    assets[rel] = "data:audio/mpeg;base64," + base64.b64encode(raw).decode()
+    assets[rel] = ("data:audio/mp4;base64," if rel.endswith(".m4a") else "data:audio/mpeg;base64,") + base64.b64encode(raw).decode()
 print("assets deduits du code :", *[" · " + r for r in refs], sep="\n")
 
 shim = (

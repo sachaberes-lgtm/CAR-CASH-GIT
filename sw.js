@@ -27,7 +27,8 @@
         nocturnal-groove), moteur, voitures low-poly ; charte v2 et passe UX côté Sacha. */
 //  v20 (2026-09-25) : boutique, défis, auto-école, charte v3, lecteur de musique unique, ville en 1er niveau, caisses premium.
 //  v21 (2026-09-26, Léo) : manifeste en orientation « any » (le jeu se joue couché comme debout), boîte-boutique, cadre téléphone.
-const CACHE = 'cashcar-v21';
+//  v22 (2026-09-27, Léo) : ADDICTIVE LOOP pour la ville, accueil GARAGE/RÉGLAGES, lapin blanc, choix du niveau au garage.
+const CACHE = 'cashcar-v22';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

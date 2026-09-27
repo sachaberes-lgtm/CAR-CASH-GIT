@@ -2597,11 +2597,57 @@
     #coach .coPips{margin-top:7px}
     #coach .coGeste{display:none}
   }
-  /* LE BOUTON « PERSPECTIVE » (ordi seulement) : petit, en bas à gauche, jamais pendant la course ni sur la fiche de la boutique */
-  #cadreBtn{position:fixed;left:14px;bottom:14px;z-index:70;display:flex;align-items:center;gap:7px;padding:9px 12px;font-size:8px;letter-spacing:1px;opacity:.82}
+  /* LE BOUTON « PERSPECTIVE » (ordi seulement) : petit, en haut à gauche sous le compteur (en bas il chevauchait le choix du niveau), jamais pendant la course ni sur la fiche de la boutique */
+  #cadreBtn{position:fixed;left:14px;top:calc(env(safe-area-inset-top,0px) + 62px);z-index:70;display:flex;align-items:center;gap:7px;padding:9px 12px;font-size:8px;letter-spacing:1px;opacity:.82}
   #cadreBtn .pxi{--pxs:2}
   #cadreBtn:hover{opacity:1}
-  body.play #cadreBtn,body:has(#garage.boutique) #cadreBtn,body:has(#tPanel.open) #cadreBtn{display:none}
+  body.play #cadreBtn,body:has(#garage.boutique) #cadreBtn,body:has(#garage.launching) #cadreBtn,body:has(#tPanel.open) #cadreBtn{display:none}
+  /* LE CHOIX DU NIVEAU (2026-09-27) : un cartouche en bas du garage — le monde, ses 10 niveaux, le record du niveau choisi */
+  #gNiv{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);transform:translateX(-50%);z-index:4;pointer-events:auto;
+    display:flex;flex-direction:column;align-items:center;gap:8px;padding:9px 12px 11px;font-family:var(--pix);color:#e8e6ff;
+    background:linear-gradient(180deg,rgba(28,20,70,.93),rgba(10,8,32,.93));
+    box-shadow:3px 0 0 #07051a,-3px 0 0 #07051a,0 3px 0 #07051a,0 -3px 0 #07051a,0 8px 0 rgba(0,0,0,.35);
+    transition:opacity var(--t-fast,140ms) ease,transform var(--t-slow,420ms) var(--ease,ease),visibility 0s}
+  #garage.boutique #gNiv,#garage.quiet #gNiv,#garage.launching #gNiv{opacity:0;visibility:hidden;transform:translate(-50%,24px);transition-delay:0s,0s,.2s}
+  #gNiv .gnMonde{display:flex;align-items:center;gap:10px}
+  #gNiv .gnFl{width:36px;height:36px;min-width:0;min-height:0;padding:0;--pxs:2}
+  #gNiv .gnNom{min-width:168px;text-align:center;font-size:11px;letter-spacing:1px;color:var(--or,#ffd75e);white-space:nowrap;--pxs:2}
+  #gNiv .gnNom i{font-style:normal;color:#9a93d6;font-size:8px;margin-left:4px}
+  #gNiv{min-width:340px;box-sizing:border-box}
+  #gNiv .gnPips{display:flex;gap:4px;min-height:32px;align-items:center}
+  #gNiv .gnFin{font-size:9px;letter-spacing:1px;color:#9fe6ff}
+  body.inGarage #toast{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 118px)} /* au garage, le toast ne couvre plus le choix du niveau */
+  #gNiv .gnPips[hidden]{display:none}
+  #gNiv .gnP{width:30px;height:32px;padding:0;border:0;cursor:pointer;font:inherit;font-size:9px;display:flex;align-items:center;justify-content:center;--pxs:1;
+    background:#2a3263;color:#d9d6ff;box-shadow:inset 0 -4px 0 rgba(0,0,0,.35),inset 0 2px 0 rgba(255,255,255,.12);transition:transform .12s}
+  #gNiv .gnP.ok{background:#2dbb53;color:#fff}
+  #gNiv .gnP.cur{background:#e8a51c;color:#2a1400}
+  #gNiv .gnP.off{background:#1a1e3c;color:#565d95;cursor:default}
+  #gNiv .gnP.sel{outline:3px solid #fff;outline-offset:1px;transform:translateY(-3px)}
+  #gNiv .gnP:active{transform:translateY(1px)}
+  #gNiv .gnP.secoue{animation:gnSecoue .32s steps(4)}
+  @keyframes gnSecoue{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+  #gNiv .gnInfo{font-size:8px;line-height:1.9;letter-spacing:.5px;text-align:center;color:#c9c4f0;max-width:340px}
+  #gNiv .gnInfo b{color:var(--or,#ffd75e);font-weight:400}
+  body.touch #gNiv .gnFl{width:44px;height:44px}
+  @media (orientation:landscape) and (max-height:560px){#gNiv{gap:5px;padding:7px 10px 8px;bottom:calc(env(safe-area-inset-bottom,0px) + 8px)}#gNiv .gnP{height:28px}}
+  /* ===== L'ACCUEIL v4 (2026-09-27, Léo) : le logo en haut, la caisse qui ROULE au milieu, deux boutons en bas — GARAGE (l'action,
+     en or) et RÉGLAGES (en retrait). Deux voiles dégradés font lire le logo et les boutons sur la scène sans l'assombrir au milieu. */
+  #menuNoir{position:fixed;inset:0;z-index:4;background:#05030c;opacity:0;pointer-events:none}
+  #mHome .mTop{visibility:hidden;margin:0 0 4px!important}
+  #mHome .mTitle{margin-top:clamp(6px,3vh,34px)!important;transform:scale(1.12);transform-origin:50% 0}
+  #mHome .mAcc{display:flex;flex-direction:column;align-items:center;gap:14px;width:min(340px,calc(100% - 32px));margin:0 auto 18px;position:relative;z-index:1}
+  #mHome .mAccGar{width:100%;min-height:78px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:16px;
+    font-size:22px;letter-spacing:6px;--pxs:3;position:relative}
+  #mHome .mAccGar .mBadge{position:absolute;top:-10px;right:-10px}
+  #mHome .mAccSet{width:66%;min-height:50px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:10px;
+    font-size:11px;letter-spacing:3px;--pxs:2;opacity:.94}
+  body.touch #overlay[data-ecran="home"]{background:linear-gradient(to bottom,rgba(8,4,22,.6) 0%,rgba(8,4,22,0) 30%,rgba(8,4,22,0) 58%,rgba(8,4,22,.8) 100%)!important} /* les voiles couvrent TOUT l'écran (sur #mHome ils s'arrêtaient à la colonne du menu : un rectangle autour du logo) */
+  @media (orientation:landscape) and (max-height:560px){
+    #mHome .mTitle{transform:none}
+    #mHome .mAcc{flex-direction:row;width:min(560px,calc(100% - 32px));gap:12px;margin-bottom:10px}
+    #mHome .mAccGar{flex:2;min-height:62px;font-size:18px}
+    #mHome .mAccSet{flex:1;width:auto;min-height:62px}}
 </style>
 </head>
 <body>
@@ -2698,6 +2744,12 @@
     <!-- LA GRILLE DE COMPÉTITION (2026-09-05) : posée à DROITE de l'écran, hors du bandeau du haut —
          `position:absolute` scopée par `#garage` (voir CSS), donc indépendante de la colonne
          titre/JOUER. -->
+    <!-- LE CHOIX DU NIVEAU (2026-09-27, Léo : « on le choisit dans le garage ») — rempli par gselRendu -->
+    <div id="gNiv" aria-label="Niveau">
+      <div class="gnMonde"><button type="button" class="gnFl pbtn pb-cyan pbCarre" data-d="-1" aria-label="Monde précédent"><i class="pxi pxi-gauche" aria-hidden="true"></i></button><span class="gnNom"></span><button type="button" class="gnFl pbtn pb-cyan pbCarre" data-d="1" aria-label="Monde suivant"><i class="pxi pxi-droite" aria-hidden="true"></i></button></div>
+      <div class="gnPips"></div>
+      <div class="gnInfo"></div>
+    </div>
     <div id="lbBoxG"></div>
     <div id="gBottom">
       <!-- LA BOUTIQUE (2026-09-25) : quatre onglets au-dessus de la fiche. On essaie sur la VRAIE caisse, au
@@ -2823,16 +2875,14 @@
     <!-- L'ACCUEIL v3 (2026-09-25) : la grammaire des jeux mobiles d'aujourd'hui — le compte et l'engrenage en haut,
          le monde qui se voit au milieu, les destinations en icônes à pastilles, et JOUER en bas, sous le pouce. -->
     <div class="mscr on" id="mHome">
-      <div class="mTop">
-        <span></span><!-- (le compte en pilule a été retiré à la demande du user : il n'apportait rien à l'accueil — le solde vit dans le garage, la boutique et l'écran de fin) -->
-        <div class="pbtn pb-cyan pbCarre mGear" data-m="set" role="button" aria-label="Réglages"><i class="pxi pxi-reglages" aria-hidden="true"></i></div>
-      </div>
+      <div class="mTop"><span></span><span></span></div><!-- (2026-09-27) le ⚙ est devenu le bouton RÉGLAGES, en bas -->
       <div class="mTitle"><span class="lg gold" data-t="CASH">CASH</span><span class="lg grad" data-t="CAR">CAR</span></div>
       <b id="mBest" hidden></b><span id="mCar" hidden></span><!-- (slogan, MEILLEUR et CAISSE retirés de l'accueil : user, 2026-09-25 — le logo parle seul) -->
       <div class="mVide" aria-hidden="true"></div>
-      <div class="mRow mIcons">
-        <div class="pbtn pb-cyan ico" data-m="garage"><i class="pxi pxi-voiture" aria-hidden="true"></i>GARAGE<em class="mBadge" id="bdGar"></em></div>
-        <div class="pbtn pb-cyan ico" data-m="shop"><i class="pxi pxi-panier" aria-hidden="true"></i>BOUTIQUE<em class="mBadge" id="bdShop"></em></div>
+      <!-- L'ACCUEIL v4 (2026-09-27, Léo : « dans l'écran du début, juste écrit GARAGE et SETTINGS — la boutique, c'est pour le garage ») -->
+      <div class="mAcc">
+        <div class="pbtn pb-gold big wide mAccGar" data-m="garage" role="button"><i class="pxi pxi-voiture" aria-hidden="true"></i><span data-fr="GARAGE">GARAGE</span><em class="mBadge" id="bdGar"></em></div>
+        <div class="pbtn pb-cyan wide mAccSet" data-m="set" role="button"><i class="pxi pxi-reglages" aria-hidden="true"></i><span data-fr="REGLAGES">REGLAGES</span></div>
       </div>
       <div class="pbtn pb-gold big wide mPlay" data-m="play">JOUER</div>
     </div>
@@ -3847,7 +3897,8 @@ function updateContactShadow(){ // appelée juste avant le rendu
 const VIT9={f:new THREE.Vector3(),v:new THREE.Vector3(),frein:0,tC:new THREE.Color(0xff2818),tF:new THREE.Color(0xff5a36)};
 function carVit(dt){
   const boom=mode==='boom';
-  if(!running||garageOn||boom)ROUES.v=0;
+  if(!running&&!started&&!garageOn)ROUES.v=MENUV.v; // (2026-09-27) L'ACCUEIL ROULE : les roues aussi
+  else if(!running||garageOn||boom)ROUES.v=0;
   else if(!paused&&mode!=='drive')ROUES.v*=Math.exp(-dt*.7);
   if(!paused&&wheels.length){
     const R0=wheels[0].userData.R||.45,pas=Math.max(-.3,Math.min(.3,ROUES.v/R0*dt));
@@ -15419,7 +15470,7 @@ const MUSIC_TRACKS=[
    Fichiers renommés en ASCII sans espace : une URL mal encodée ne plante pas, elle se tait. */
 const MUSIC_LIEU={
   nuages:{titre:'NOITE DE VELOCIDADE',f:'assets/audio/music/noite-de-velocidade.mp3'}, // 2 min 29
-  ville: {titre:'NOCTURNAL GROOVE',   f:'assets/audio/music/nocturnal-groove.mp3'}     // 2 min 59
+  ville: {titre:'ADDICTIVE LOOP',     f:'assets/audio/music/addictive-loop.m4a'}       // 2 min 58 — (2026-09-27, Léo) remplace NOCTURNAL GROOVE ; livré en Opus/MP4, ré-encodé en AAC (Safari/iPhone ne lisent pas l'Opus en MP4)
 };
 let musicLieu=null; // le morceau de LIEU qui tient l'antenne (null = la radio)
 function musicLieuVoulu(){return (LVL.cur&&MUSIC_LIEU[LVL.cur.id])||null;}
@@ -17505,7 +17556,8 @@ const SAVE={
   V:2,K:'cashcarSave',d:null,dirty:false,
   def(){return{v:this.V,best:0,leaders:[],bestCar:0,equipped:0,sfx:true,vox:true,mus:true,fruits:[],
     vol:{mus:.62,sfx:1,vox:1}, // les trois curseurs de volume (1 = le mixage d'origine)
-    tctl:'stick',q:'fast',sand:false,carr:{}, // MOBILE : schéma de commandes · résolution d'image · bac à sable
+    tctl:'stick',q:'fast',sand:false,carr:{},nivAura:{},sel:null, // nivAura : le RECORD D'AURA de chaque niveau de carrière ('nuages:3' → aura) · sel : le niveau choisi au garage ({b,i}, b=-1 = sans fin)
+    // MOBILE : schéma de commandes · résolution d'image · bac à sable
     // EXPLOITS — les compteurs À VIE qui débloquent les caisses. Ils PERSISTENT : le moteur est la
     // progression DANS une partie (il repart à zéro), la voiture est la progression ENTRE les parties.
     // `eng` = plus haut palier moteur jamais atteint · `gaps`/`tricks`/`bumps` = cumuls · `zones`,
@@ -17547,7 +17599,7 @@ const SAVE={
        valeur >1 sur `.volume` lève, elle, une exception qui tuerait la lecture. */
     if(d.vol&&typeof d.vol==='object'){const q=(k,dv)=>{const x=+d.vol[k];return isFinite(x)?Math.min(1,Math.max(0,x)):dv;};
       c.vol={mus:q('mus',.62),sfx:q('sfx',1),vox:q('vox',1)};}
-    c.tctl=(d.tctl==='pad')?'pad':'stick';c.q=(d.q==='net')?'net':'fast';c.sand=(d.sand===true);c.carr={};if(d.carr&&typeof d.carr==='object')for(const k of ['nuages','ville','espace'])c.carr[k]=Math.max(0,Math.min(10,d.carr[k]|0)); // réglages MOBILE
+    c.tctl=(d.tctl==='pad')?'pad':'stick';c.q=(d.q==='net')?'net':'fast';c.sand=(d.sand===true);c.carr={};if(d.carr&&typeof d.carr==='object')for(const k of ['nuages','ville','espace'])c.carr[k]=Math.max(0,Math.min(10,d.carr[k]|0));c.nivAura={};if(d.nivAura&&typeof d.nivAura==='object')for(const k in d.nivAura)if(/^(nuages|ville|espace):\d$/.test(k))c.nivAura[k]=Math.max(0,Math.min(1e12,Math.round(+d.nivAura[k])||0));c.sel=(d.sel&&typeof d.sel==='object'&&(d.sel.b|0)>=-1&&(d.sel.b|0)<=2)?{b:d.sel.b|0,i:Math.max(0,Math.min(9,d.sel.i|0))}:null; // réglages MOBILE
     if(Array.isArray(d.fruits))c.fruits=d.fruits.slice(0,32).filter(e=>e&&typeof e.n==='string').map(e=>({ // réglages de l'ÉTAL (bornés : un import bidon ne casse rien)
       n:e.n.slice(0,24),
       b:THREE.MathUtils.clamp(isFinite(+e.b)?+e.b:.5,0,2),
@@ -18693,7 +18745,9 @@ function portailPasse(){
   trickMsg(pickL(ZONE_LINES)+' +'+fmtC(zb),true);
   flyCash(carGroup.position,8);
   SURV.pBase+=s; // la course traverse le portail : les écarts restent vrais (téléportation invisible)
+  nivAuraSolde(true); // (2026-09-27) le niveau quitté : son aura devient peut-être son record
   newTrack();
+  nivAuraEntre();    // …et le suivant commence à compter
 }
 function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (physique du bord v2) — pas de pop, bascule vers le vide
   const roll0=carRoll9; // le roulis de la carrosserie AVANT la remise à zéro : la bascule part de là
@@ -19099,6 +19153,7 @@ function resetGame(){
   moneyRain.length=0;
   overlay.style.display='none';
   newTrack();respawn();safeS=0;s=0;
+  nivAuraEntre(); // (2026-09-27) le compteur d'aura du niveau part avec la partie
   AIP.resetRun(); // les compteurs d'observation repartent avec la run
   survStart(); // APRÈS la piste neuve et s=0 : la meute encadre le vrai départ
   // ⚠ PLUS DE LARGAGE (2026-09-05, demande du user) : la caisse ne tombe plus du ciel sur la
@@ -19148,6 +19203,7 @@ function endGame(){
   if(TUTO.on&&started&&!gameOver){ sandRevive(); if(TUTO.i>=3){TUTO.i=2;TUTO.air=0;} tutoAffiche('RATÉ ! ON RECOMMENCE'); return; } // AUTO-ÉCOLE : on ne meurt pas en apprenant
   if(mode!=='boom')mortCause=''; // (2026-09-26) QUITTER n'est pas une mort : pas la cause de la partie d'avant
   try{if(CHA.n&&mode==='drive')chaineEncaisse();}catch(e){} // (2026-09-26) la chaîne d'aura ouverte est encaissée, pas oubliée
+  nivAuraSolde(false);nivSelSuit(); // (2026-09-27) le record du niveau, puis le garage propose le niveau où l'on est tombé
   gameOver=true;airPie.style.display='none';chainHud.style.opacity=0;caseHud.style.opacity=0;
   musicStop(true);setTimeout(function(){if(gameOver)musicMenu();},1400); // TAPE-STOP de fin, puis la musique du menu revient, étouffée
   dolKill();serpShow=0; // les créatures ne survivent pas à l'explosion
@@ -19223,7 +19279,7 @@ function start(){
   // d'être posée. Les REJOUERS ne l'ont jamais vu : `resetGame()` appelle déjà `respawn()`. `start()`
   // est le seul chemin de la PREMIÈRE partie et ne passait par aucun des deux.
   respawn();
-  recInit(); // (2026-09-26) le RECORD À BATTRE dès la 1re partie de la session — seul `resetGame()` le posait, le crochet manquait au premier départ
+  recInit();nivAuraEntre(); // (2026-09-27) + le compteur d'aura du NIVEAU // (2026-09-26) le RECORD À BATTRE dès la 1re partie de la session — seul `resetGame()` le posait, le crochet manquait au premier départ
   // ⚠ BUG AUDIO CORRIGÉ (2026-09-05) : `initAudio()` n'a AUCUN garde interne — elle CRÉE un
   // `AudioContext` à chaque appel, point. Comme le garage se visite maintenant AVANT `start()`
   // (le splash y atterrit directement), `AC` peut déjà exister au moment où `start()` tourne (voir
@@ -19965,30 +20021,25 @@ const GAR={W:22,D:26,H:6.2,POD:.12,root:null,tubes:[],halos:[],flick:null,drop:n
    ⚠ PLACEMENT (inchangé) : sur le plateau, 2,4 m à droite de la caisse vue de derrière (x < 0), ~1 m de haut, dans le
    rayon mort de l'orbite. Elle RENTRE DANS LE SOL en boutique (la caisse y tourne). ⚠ Aucune lumière ajoutée : couleurs
    à peine émissives (à .3 le bloom délavait tout), lueurs en sprites. */
-function botVisage(mode){ // la VITRINE : un petit ÉCRAN bleu nuit, deux petits yeux BLANCS (2026-09-26, Léo : « bleue avec des petits yeux blancs »)
+function botVisage(mode){ // le VISAGE du lapin : deux yeux noirs brillants, un museau rose, une bouche « ω », des joues
   const F=GAR.botFace;if(!F||F.mode===mode)return;F.mode=mode;
-  const x=F.ctx,w=256,h=152;x.clearRect(0,0,w,h);
-  const rr=(X,Y,W,H,R)=>{x.beginPath();x.moveTo(X+R,Y);x.arcTo(X+W,Y,X+W,Y+H,R);x.arcTo(X+W,Y+H,X,Y+H,R);x.arcTo(X,Y+H,X,Y,R);x.arcTo(X,Y,X+W,Y,R);x.closePath();};
-  x.fillStyle='#eaf3ff';rr(0,0,w,h,26);x.fill();                                   // le cadre blanc
-  const gr=x.createLinearGradient(0,12,0,h-12);gr.addColorStop(0,'#1b3b80');gr.addColorStop(1,'#0b1a46');
-  x.fillStyle=gr;rr(13,12,w-26,h-24,16);x.fill();                                  // l'écran, bleu nuit
-  x.save();rr(13,12,w-26,h-24,16);x.clip();x.fillStyle='rgba(255,255,255,.1)';     // le reflet en biais
-  x.beginPath();x.moveTo(30,12);x.lineTo(62,12);x.lineTo(22,h);x.lineTo(-10,h);x.fill();
-  x.beginPath();x.moveTo(74,12);x.lineTo(84,12);x.lineTo(44,h);x.lineTo(34,h);x.fill();x.restore();
-  x.fillStyle='rgba(255,130,190,.38)';for(const cx of [74,182]){x.beginPath();x.ellipse(cx,98,15,7,0,0,7);x.fill();} // les joues
-  x.strokeStyle='#fff';x.fillStyle='#fff';x.lineCap='round';x.lineWidth=6;
-  const oeil=(cx)=>{ // PETITS : c'est leur petitesse qui fait « mignon » sur un grand écran
-    if(mode==='cligne'){x.beginPath();x.moveTo(cx-9,74);x.quadraticCurveTo(cx,80,cx+9,74);x.stroke();return;}
-    if(mode==='joie'){x.beginPath();x.moveTo(cx-10,78);x.quadraticCurveTo(cx,62,cx+10,78);x.stroke();return;}
-    const k=mode==='wow'?1.3:1;x.beginPath();x.ellipse(cx,72,7.5*k,10.5*k,0,0,7);x.fill();
-    if(mode==='wow'){x.fillStyle='#9fe6ff';for(const s of [[cx+16,56],[cx-15,88]]){ // deux étincelles
-      x.beginPath();x.moveTo(s[0],s[1]-6);x.lineTo(s[0]+2,s[1]-2);x.lineTo(s[0]+6,s[1]);x.lineTo(s[0]+2,s[1]+2);x.lineTo(s[0],s[1]+6);
-      x.lineTo(s[0]-2,s[1]+2);x.lineTo(s[0]-6,s[1]);x.lineTo(s[0]-2,s[1]-2);x.closePath();x.fill();}x.fillStyle='#fff';}
+  const x=F.ctx,w=256,h=160;x.clearRect(0,0,w,h);
+  x.fillStyle='rgba(255,130,180,.45)';for(const cx of [58,198]){x.beginPath();x.ellipse(cx,104,22,12,0,0,7);x.fill();} // les joues
+  x.strokeStyle='#12040f';x.fillStyle='#12040f';x.lineCap='round';x.lineWidth=8;
+  const oeil=(cx)=>{
+    if(mode==='cligne'){x.beginPath();x.moveTo(cx-17,76);x.quadraticCurveTo(cx,86,cx+17,76);x.stroke();return;}
+    if(mode==='joie'){x.beginPath();x.moveTo(cx-17,82);x.quadraticCurveTo(cx,58,cx+17,82);x.stroke();return;}
+    const R=mode==='wow'?26:22;
+    x.fillStyle='#12040f';x.beginPath();x.ellipse(cx,74,R*.82,R,0,0,7);x.fill();
+    x.fillStyle='#fff';x.beginPath();x.arc(cx-R*.3,74-R*.4,R*.32,0,7);x.fill();x.beginPath();x.arc(cx+R*.3,74+R*.32,R*.14,0,7);x.fill();
+    if(mode==='wow'){x.fillStyle='#ffd24a';x.beginPath();x.arc(cx+R*.36,74-R*.55,R*.13,0,7);x.fill();}
   };
-  oeil(102);oeil(154);
-  x.lineWidth=4;x.beginPath();                                                     // la bouche : un « ω » blanc (ou ouverte de joie)
-  if(mode==='joie'||mode==='wow'){x.moveTo(120,92);x.quadraticCurveTo(128,106,136,92);x.closePath();x.fill();}
-  else{x.moveTo(120,93);x.quadraticCurveTo(124,99,128,93);x.quadraticCurveTo(132,99,136,93);x.stroke();}
+  oeil(84);oeil(172);
+  x.fillStyle='#ff7fae';x.beginPath();x.moveTo(119,90);x.lineTo(137,90);x.lineTo(128,100);x.closePath();x.fill(); // le museau
+  x.lineWidth=4;x.strokeStyle='#12040f';x.beginPath();x.moveTo(128,100);x.lineTo(128,106);x.stroke();
+  x.beginPath();
+  if(mode==='joie'||mode==='wow'){x.fillStyle='#ff5a8a';x.moveTo(118,106);x.quadraticCurveTo(128,124,138,106);x.closePath();x.fill();x.stroke();}
+  else{x.moveTo(116,106);x.quadraticCurveTo(122,114,128,106);x.quadraticCurveTo(134,114,140,106);x.stroke();}
   F.tex.needsUpdate=true;
 }
 function boiteArrondie(w,h,d,r,bv){ // un pavé aux coins ronds et aux arêtes biseautées (ExtrudeGeometry, centré)
@@ -19998,74 +20049,43 @@ function boiteArrondie(w,h,d,r,bv){ // un pavé aux coins ronds et aux arêtes b
   const g=new THREE.ExtrudeGeometry(s,{depth:d-2*bv,bevelEnabled:true,bevelThickness:bv,bevelSize:bv,bevelSegments:3,curveSegments:5});
   g.translate(0,0,-(d-2*bv)/2);return g;
 }
-function buildShopBtn(g){
+function buildShopBtn(g){ // LE LAPIN BLANC qui tient le bouton rouge (2026-09-27, Léo : « à la place de la boutique bleue, un lapin blanc qui tient un bouton rouge »)
   const b=new THREE.Group();b.position.set(-2.4,GAR.POD,.1);b.rotation.y=Math.atan2(2.4,-8.1); // face à la caméra du départ
-  const L=(c,k,o)=>new THREE.MeshLambertMaterial(Object.assign({color:c,emissive:c,emissiveIntensity:k==null?.06:k,fog:false},o||{}));
+  const L=(c,k)=>new THREE.MeshLambertMaterial({color:c,emissive:c,emissiveIntensity:k==null?.04:k,fog:false});
   const BA=(o)=>new THREE.MeshBasicMaterial(Object.assign({fog:false},o));
-  const tex=(cv,px)=>{const t=new THREE.CanvasTexture(cv);if(px){t.magFilter=THREE.NearestFilter;t.minFilter=THREE.LinearFilter;}return t;};
-  const soc=new THREE.Mesh(new THREE.CylinderGeometry(.46,.5,.08,28),L(0x86a6d6,.03));soc.position.y=.04;b.add(soc); // le socle bleu glacier (plus pâle, le bloom le blanchissait)
-  const liser=new THREE.Mesh(new THREE.TorusGeometry(.48,.016,6,32),BA({color:0x8fe3ff}));liser.rotation.x=Math.PI/2;liser.position.y=.08;b.add(liser);
+  const S=new THREE.SphereGeometry(1,22,16);
+  const sph=(m,sx,sy,sz,x,y,z,par)=>{const o=new THREE.Mesh(S,m);o.scale.set(sx,sy,sz);o.position.set(x,y,z);par.add(o);return o;};
+  const soc=new THREE.Mesh(new THREE.CylinderGeometry(.46,.5,.08,28),L(0x5fc4a6));soc.position.y=.04;b.add(soc); // le coussin menthe
+  const liser=new THREE.Mesh(new THREE.TorusGeometry(.48,.016,6,32),BA({color:0xfff4d6}));liser.rotation.x=Math.PI/2;liser.position.y=.08;b.add(liser);
   const corps=new THREE.Group();corps.position.y=.08;b.add(corps);GAR.botCorps=corps;GAR.botBras=[]; // tout ce qui rebondit
-  const rose=L(0x5fa8f2),roseF=L(0x3470d2),creme=L(0xf2f7ff,.08); // (2026-09-26) BLEUE : bleu ciel, couvercle bleu roi, blanc
-  const pied=new THREE.SphereGeometry(.06,12,8);
-  for(const px of [-.25,.25])for(const pz of [-.16,.16]){const f=new THREE.Mesh(pied,creme);f.scale.y=.7;f.position.set(px,.035,pz);corps.add(f);} // quatre petons
-  const boite=new THREE.Mesh(boiteArrondie(.72,.5,.52,.1,.035),rose);boite.position.y=.31;corps.add(boite); // LA BOÎTE (0,06 → 0,56)
-  // LA VITRINE = le visage (canvas repeint par botVisage)
-  const cv=document.createElement('canvas');cv.width=256;cv.height=152;const ftx=tex(cv);
-  const vit=new THREE.Mesh(new THREE.PlaneGeometry(.56,.333),BA({map:ftx,transparent:true,color:0xe8e8e8}));
-  vit.position.set(0,.285,.263);corps.add(vit);
+  GAR.botCouv=null;GAR.botTresor=null;GAR.botTag=null;GAR.botEns=null;   // (les pièces de la boîte bleue : il n'y en a plus)
+  const blanc=L(0xcfd0de,0),rose=L(0xf596b8,.05);                      // blanc CASSÉ et sans lueur : l'atelier l'éclaire assez, un blanc pur brûlait au bloom (les yeux devenaient lilas)
+  sph(blanc,.1,.055,.14,-.13,.04,.14,corps);sph(blanc,.1,.055,.14,.13,.04,.14,corps);        // les pattes arrière, à plat devant
+  sph(blanc,.31,.3,.28,0,.3,0,corps);                                                         // le corps, assis
+  sph(blanc,.085,.085,.085,0,.2,-.27,corps);                                                  // la queue en pompon
+  const tete=new THREE.Group();tete.position.y=.7;corps.add(tete);GAR.botTete=tete;
+  sph(blanc,.29,.26,.26,0,0,0,tete);                                                          // la tête ronde
+  // le visage ÉPOUSE la tête : un morceau de la même sphère, à peine plus grand (canvas repeint par botVisage)
+  const cv=document.createElement('canvas');cv.width=256;cv.height=160;const ftx=new THREE.CanvasTexture(cv);
+  const face=new THREE.Mesh(new THREE.SphereGeometry(1,24,12,Math.PI/2-.72,1.44,Math.PI/2-.5,.95),BA({map:ftx,transparent:true,depthWrite:false}));
+  face.scale.set(.296,.266,.266);tete.add(face);
   GAR.botFace={ctx:cv.getContext('2d'),tex:ftx,mode:'',cligneT:2.5};botVisage('normal');
-  // L'AUVENT RAYÉ, festonné, penché vers l'avant
-  const ca=document.createElement('canvas');ca.width=128;ca.height=48;{const x=ca.getContext('2d');
-    for(let i=0;i<8;i++){x.fillStyle=i%2?'#f4f8ff':'#3f86ff';x.fillRect(i*16,0,16,36);x.beginPath();x.arc(i*16+8,36,8,0,Math.PI);x.fill();}
-    const om=x.createLinearGradient(0,0,0,44);om.addColorStop(0,'rgba(10,30,90,0)');om.addColorStop(1,'rgba(10,30,90,.22)');
-    x.globalCompositeOperation='source-atop';x.fillStyle=om;x.fillRect(0,0,128,48);}
-  const auvPiv=new THREE.Group();auvPiv.position.set(0,.555,.24);corps.add(auvPiv);
-  const auv=new THREE.Mesh(new THREE.PlaneGeometry(.8,.21),L(0xffffff,.1,{map:tex(ca),transparent:true,side:THREE.DoubleSide,alphaTest:.5}));
-  auv.rotation.x=-1.07;auv.position.set(0,-.05,.092);auvPiv.add(auv);
-  const trg=new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,.8,6),creme);trg.rotation.z=Math.PI/2;auvPiv.add(trg); // la tringle
-  // L'ÉTIQUETTE « $ » qui se balance au coin de l'auvent
-  const ce=document.createElement('canvas');ce.width=32;ce.height=40;{const x=ce.getContext('2d');
-    x.fillStyle='#fff0dc';x.beginPath();x.moveTo(8,0);x.lineTo(24,0);x.lineTo(32,8);x.lineTo(32,40);x.lineTo(0,40);x.lineTo(0,8);x.closePath();x.fill();
-    x.fillStyle='#3470d2';x.beginPath();x.arc(16,8,3,0,7);x.fill();
-    x.fillStyle='#2a1030';x.font='bold 22px monospace';x.textAlign='center';x.fillText('$',16,34);}
-  const tag=new THREE.Group();tag.position.set(.37,.49,.37);corps.add(tag);
-  const fil=new THREE.Mesh(new THREE.CylinderGeometry(.004,.004,.1,4),BA({color:0x2a1030}));fil.position.y=-.05;tag.add(fil);
-  const eti=new THREE.Mesh(new THREE.PlaneGeometry(.075,.094),BA({map:tex(ce),transparent:true,side:THREE.DoubleSide,color:0xe8e8e8}));
-  eti.position.y=-.14;tag.add(eti);GAR.botTag=tag;
-  // LE COUVERCLE : charnière à l'arrière, il porte l'enseigne et le bouton
-  const couv=new THREE.Group();couv.position.set(0,.555,-.27);corps.add(couv);GAR.botCouv=couv;GAR.couvA=0;GAR.couvV=0;GAR.couvT=3;
-  const cvm=new THREE.Mesh(boiteArrondie(.78,.07,.58,.06,.02),roseF);cvm.position.set(0,.035,.27);couv.add(cvm);
-  // l'ENSEIGNE « SHOP » à ampoules (lettres pixel dessinées à la main : la police n'est pas garantie dans un canvas)
-  const cs=document.createElement('canvas');cs.width=128;cs.height=44;{const x=cs.getContext('2d');
-    x.fillStyle='#6fd0ff';x.fillRect(0,0,128,44);x.fillStyle='#12245a';x.fillRect(3,3,122,38);
-    const LET={S:'.####|#....|#....|.###.|....#|....#|####.',H:'#...#|#...#|#...#|#####|#...#|#...#|#...#',
-               O:'.###.|#...#|#...#|#...#|#...#|#...#|.###.',P:'####.|#...#|#...#|####.|#....|#....|#....'};
-    x.fillStyle='#ffd24a';'SHOP'.split('').forEach((c,k)=>LET[c].split('|').forEach((row,j)=>{
-      for(let i=0;i<5;i++)if(row[i]==='#')x.fillRect(18+k*24+i*4,8+j*4,4,4);}));
-    x.fillStyle='#fff3b0';for(let i=8;i<128;i+=12){x.fillRect(i-1,1,3,3);x.fillRect(i-1,40,3,3);}}
-  const ens=new THREE.Group();ens.position.set(0,.07,.1);couv.add(ens);
-  const dos=new THREE.Mesh(new THREE.BoxGeometry(.46,.16,.025),L(0x12245a,.1));dos.position.y=.22;ens.add(dos);
-  const pan=new THREE.Mesh(new THREE.PlaneGeometry(.44,.151),BA({map:tex(cs,true)}));pan.position.set(0,.22,.0135);ens.add(pan);
-  for(const sd of [-1,1]){const pt=new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,.16,6),creme);pt.position.set(sd*.16,.07,0);ens.add(pt);}
-  GAR.botEns=pan;
-  // LE BOUTON ROUGE, devant l'enseigne
-  const btn=new THREE.Group();btn.position.set(0,.07,.38);couv.add(btn);
-  const bague=new THREE.Mesh(new THREE.CylinderGeometry(.15,.17,.06,20),creme);bague.position.y=.02;btn.add(bague);
-  const dome=new THREE.Mesh(new THREE.SphereGeometry(.13,20,10,0,Math.PI*2,0,Math.PI/2),L(0xff2a48,.55));
+  GAR.botOreilles=[];for(const sd of [-1,1]){                                                 // les GRANDES oreilles
+    const piv=new THREE.Group();piv.position.set(sd*.11,.19,-.02);piv.rotation.z=-sd*.16;tete.add(piv);
+    sph(blanc,.066,.25,.048,0,.22,0,piv);sph(rose,.034,.18,.02,0,.22,.032,piv);
+    GAR.botOreilles.push(piv);}
+  GAR.oreT=2.5;GAR.oreSd=0;
+  // LE BOUTON ROUGE, tenu à deux pattes devant le ventre, penché vers toi
+  const btn=new THREE.Group();btn.position.set(0,.36,.3);btn.rotation.x=.95;corps.add(btn);GAR.botBtn=btn;
+  const bague=new THREE.Mesh(new THREE.CylinderGeometry(.14,.16,.055,20),L(0xfff4d6,.1));bague.position.y=.02;btn.add(bague);
+  const dome=new THREE.Mesh(new THREE.SphereGeometry(.12,20,10,0,Math.PI*2,0,Math.PI/2),L(0xff2a48,.55));
   dome.scale.y=.8;dome.position.y=.035;btn.add(dome);GAR.btnDome=dome;
-  const reflet=new THREE.Mesh(new THREE.SphereGeometry(1,10,8),BA({color:0xffffff,transparent:true,opacity:.75}));
-  reflet.scale.set(.034,.017,.026);reflet.position.set(-.05,.11,.04);btn.add(reflet);
+  const reflet=new THREE.Mesh(S,BA({color:0xffffff,transparent:true,opacity:.75}));reflet.scale.set(.03,.015,.022);reflet.position.set(-.045,.1,.035);btn.add(reflet);
   const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:lampTex,color:0xff3a5c,transparent:true,opacity:.5,
     blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
   halo.position.y=.1;btn.add(halo);GAR.btnHalo=halo;GAR.btnLed=null;
-  // LE TRÉSOR : la lueur d'or qui s'échappe quand le couvercle se soulève
-  const tre=new THREE.Mesh(new THREE.PlaneGeometry(.62,.42),BA({color:0xffc94a,transparent:true,opacity:0,depthWrite:false}));
-  tre.rotation.x=-Math.PI/2;tre.position.y=.563;corps.add(tre);
-  const treH=new THREE.Sprite(new THREE.SpriteMaterial({map:lampTex,color:0xffc048,transparent:true,opacity:0,
-    blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
-  treH.position.y=.66;corps.add(treH);GAR.botTresor={p:tre,h:treH};
-  // L'ESSAIM : cœurs ET pièces, recyclés, posés dans l'ATELIER (pas dans la boîte) — ils flottent même quand elle rentre au sol
+  for(const sd of [-1,1])sph(blanc,.075,.07,.085,sd*.15,.36,.25,corps);                     // les deux pattes qui le tiennent
+  // l'ESSAIM : cœurs ET pièces, recyclés, posés dans l'ATELIER — ils flottent même quand le lapin rentre au sol
   const hc=document.createElement('canvas');hc.width=hc.height=64;{const x=hc.getContext('2d');x.fillStyle='#ff5c93';
     x.beginPath();x.moveTo(32,54);x.bezierCurveTo(4,34,8,8,32,20);x.bezierCurveTo(56,8,60,34,32,54);x.fill();
     x.fillStyle='rgba(255,255,255,.7)';x.beginPath();x.arc(22,22,5,0,7);x.fill();}
@@ -20073,7 +20093,7 @@ function buildShopBtn(g){
     x.fillStyle='#e0990f';x.beginPath();x.arc(32,32,27,0,7);x.fill();x.fillStyle='#ffd23f';x.beginPath();x.arc(32,31,23,0,7);x.fill();
     x.fillStyle='#b8740a';x.font='bold 30px monospace';x.textAlign='center';x.fillText('$',32,42);
     x.fillStyle='rgba(255,255,255,.75)';x.beginPath();x.arc(22,20,5,0,7);x.fill();}
-  GAR.essaimTx=[tex(hc),tex(pc)];GAR.coeurs=[];
+  GAR.essaimTx=[new THREE.CanvasTexture(hc),new THREE.CanvasTexture(pc)];GAR.coeurs=[];
   for(let i=0;i<14;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GAR.essaimTx[0],transparent:true,depthWrite:false,fog:false}));
     s.visible=false;g.add(s);GAR.coeurs.push({s:s,v:new THREE.Vector3(),t:0});}
   GAR.coeurT=3;
@@ -20083,7 +20103,7 @@ function botCoeurs(n,po){ // l'essaim jaillit de la boîte : `po` = part de PIÈ
   if(!GAR.coeurs||!GAR.btn)return;const b=GAR.btn;
   for(const c of GAR.coeurs){if(n<=0)break;if(c.t>0)continue;n--;
     c.t=1.1+Math.random()*.5;c.s.visible=true;c.s.material.map=GAR.essaimTx[Math.random()<(po||0)?1:0];
-    c.s.position.set(b.position.x+(Math.random()-.5)*.4,b.position.y+.75+Math.random()*.15,b.position.z+(Math.random()-.5)*.3);
+    c.s.position.set(b.position.x+(Math.random()-.5)*.4,b.position.y+1.15+Math.random()*.15,b.position.z+(Math.random()-.5)*.3);
     c.v.set((Math.random()-.5)*.9,1+Math.random()*.9,(Math.random()-.5)*.6);}
 }
 /* ---- LES AFFICHES DE RECORDS (2026-09-26, Léo : « dans le garage, sur les murs, une affiche record personnel et records
@@ -20138,11 +20158,20 @@ function affichesMaj(){
       x.save();x.translate(w/2,y9);x.scale(m,1);x.fillStyle='#000';x.fillText(s,2,2);x.fillStyle=col;x.fillText(s,0,0);x.restore();};
     const tt=P(perso?'RECORD|PERSO':'RECORDS|MONDIAUX').split('|');
     pix(tt[0],18,c1,98);pix(tt[1]||'',13,'#ffffff',122);
-    if(perso){
+    const sel=(typeof GSEL!=='undefined'&&GSEL.b>=0)?GSEL:null; // (2026-09-27) le niveau CHOISI au garage — null = sans fin
+    const selNom=sel?P(CARRIERE[sel.b].nm)+' '+(sel.i+1):P('SANS FIN');
+    if(perso&&sel){ // LE RECORD DU NIVEAU CHOISI
+      const f=carrFait(sel.b),r=nivRecord(sel.b,sel.i);
+      pix(selNom,12,'#ffffff',150);pix(P(CARRIERE[sel.b].niveaux[sel.i].nm),8,'#b9b2e6',168);
+      pix(P('AURA RECORD'),8,'#b9b2e6',198);pix(r?nb(r):'- - -',20,r?'#ffd75e':'#6f6a9c',226);
+      pix(P('STATUT'),8,'#b9b2e6',252);pix(P(sel.i<f?'TERMINE':sel.i===f?'A TERMINER':'VERROUILLE'),11,sel.i<f?'#7dff9a':'#ffd75e',270);
+      pix(P('MEILLEURE PARTIE'),8,'#b9b2e6',290);pix(fmtC(d.best||0),10,'#ffffff',304);
+    }else if(perso){ // SANS FIN : les records de toujours
       const L=[['MEILLEURE PARTIE',fmtC(d.best||0)],['AURA MAX',nb(d.auraMax)],['PALIER MOTEUR',nb(ex.eng)],['VITESSE MAX',nb(ex.kmh)+' KM/H']];
       L.forEach((r,i)=>{const y=156+i*40;pix(P(r[0]),8,'#b9b2e6',y);pix(r[1],14,i?'#ffffff':'#7dff9a',y+19);});
     }else{
-      [['1','#ffd75e'],['2','#d8dde8'],['3','#e0955a']].forEach((r,i)=>{const y=168+i*34;pix(r[0]+'.  ? ? ?  - - -',11,r[1],y);});
+      pix(selNom,9,'#b9b2e6',146);                                                   // le classement de CE niveau (à venir)
+      [['1','#ffd75e'],['2','#d8dde8'],['3','#e0955a']].forEach((r,i)=>{const y=180+i*30;pix(r[0]+'.  ? ? ?  - - -',11,r[1],y);});
       x.save();x.translate(w/2,284);x.rotate(-.1);x.strokeStyle='#ff5e7a';x.lineWidth=3;x.strokeRect(-98,-19,196,30);
       x.font="9px 'Press Start 2P',monospace";x.fillStyle='#ff5e7a';x.fillText(P('BIENTOT EN LIGNE'),0,1);x.restore();
     }
@@ -20804,6 +20833,7 @@ $('gListe').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarg
 window.dbgBoost=function(a,s){if(a==='arme')boostArme();if(s!=null)GBST.t=s;if(a==='lache')boostLache();
   return {charge:GBST.on,t:+GBST.t.toFixed(2),burst:+GBST.burst.toFixed(2),jets:+JETS.k.toFixed(2),rev:!!GBST.rev};};
 window.dbgAffiche=function(k){GAR.dbgAff=k||null;return GAR.affiches?GAR.affiches.map(a=>a.k):null;};
+window.dbgLapin=function(on){return window.dbgBoite(on);};
 window.dbgBoite=function(on){GAR.dbgCam=!!on;GAR.btnHover=on===2;return GAR.botFace?GAR.botFace.mode:null;};
 window.dbgBoutique=function(on){if(on===1)shopOuvre();else if(on===0)shopQuitte();
   return {boutique:GAR.btq,fondu:+GAR.bk.toFixed(2),yaw:+GAR.yaw.toFixed(2),gadget:GAR.btn?{visible:GAR.btn.visible,sortie:+GAR.btnK.toFixed(2)}:null,
@@ -20822,6 +20852,7 @@ function openGarage(quiet){
   GAR.root.visible=true;
   if(!GAR.btn)buildShopBtn(GAR.root);
   paintEnvAtelier(); // (2026-09-26, Sacha) la laque reflète l'ATELIER (tubes, clé chaude, contre-jour cyan), plus le ciel de la dernière course
+  gselInit();gselRendu(); // le sélecteur de niveau (la progression a pu bouger)
   if(!GAR.affiches)buildAffiches(GAR.root);else affichesMaj(); // les records du mur, à jour
   GAR.swK=0;GAR.swO=0;GAR.swP=0;GAR.affH=null;
   // (2026-09-26, Léo) « le garage est centré vers la SORTIE mais peut être pivoté par le joueur » : on entre DERRIÈRE la
@@ -20884,21 +20915,42 @@ function trailApercu(dt,on){
    elle restait figée au-dessus de la route, visée nulle part — un disque lumineux sur du noir, pas de voiture. Désormais
    un PLAN DE CINÉMA : ta caisse posée sur la route, filmée en contre-plongée trois-quarts avant, la caméra qui tourne
    lentement autour, la ville et ses tours derrière. Jamais pendant une partie ni au garage. */
-const MENUV={t:0,cam:new THREE.Vector3(),vis:new THREE.Vector3()};
+/* L'ACCUEIL v4 — LE PLAN FIXE QUI ROULE (2026-09-27, Léo : « travaille la scène qu'on voit : immobile, sauf que la voiture
+   roule »). La caméra ne balance plus : elle est VISSÉE à la caisse, en contre-plongée trois-quarts avant, pendant que la caisse
+   ROULE pour de vrai sur la piste du menu — roues qui tournent (`ROUES.v`), route qui défile, phares allumés. Le cadre ne bouge
+   pas, le monde passe. On ne roule que sur la portion SAGE du début de piste (dalle à plat, `menuTroncon`) ; au bout, un
+   fondu au noir (`#menuNoir`, SOUS les boutons) la ramène au départ. Jamais en partie ni au garage. */
+const MENUV={t:0,cam:new THREE.Vector3(),vis:new THREE.Vector3(),s:40,s0:40,s1:0,L:-1,v:21,fondu:0,snap:true,el:null};
+function menuTroncon(){ // le plus long tronçon À PLAT de toute la piste (≤ 1,6 km) : ni looping, ni dalle penchée, ni côte à l'accueil
+  let best0=40,best1=220,d0=-1;
+  for(let s=40;s<L-120;s+=10){frameAt(s,F);const plat=F.n.y>.95&&Math.abs(F.t.y)<.3; // les pistes DESCENDENT (~11° de moyenne) : on refuse le plongeon du départ et les dalles penchées, pas la pente douce
+    if(plat){if(d0<0)d0=s;if(s-d0>best1-best0){best0=d0;best1=s;}if(s-d0>=1600)break;}else d0=-1;}
+  MENUV.s0=best0+20;return Math.max(MENUV.s0+120,best1-20);
+}
+window.dbgAccueil=function(v){if(v==='scan'){const o=[];for(let s=0;s<Math.min(L,3000);s+=150){frameAt(s,F);o.push([s,+F.n.y.toFixed(2),+F.t.y.toFixed(2)]);}return o;}if(v!=null)MENUV.v=+v;return {s:+MENUV.s.toFixed(1),debut:+MENUV.s0.toFixed(0),bout:+MENUV.s1.toFixed(0),vitesse:MENUV.v,fondu:+MENUV.fondu.toFixed(2),L:Math.round(L)};};
+function menuNoir(o){
+  if(!MENUV.el){const e=document.createElement('div');e.id='menuNoir';e.setAttribute('aria-hidden','true');document.body.appendChild(e);MENUV.el=e;}
+  MENUV.el.style.opacity=o.toFixed(3);
+}
 function menuVitrine(dt){
   MENUV.t+=dt;
-  const S9=Math.min(L-10,60);frameAt(S9,F);
+  if(MENUV.L!==L){MENUV.L=L;MENUV.s1=menuTroncon();MENUV.s=MENUV.s0;MENUV.snap=true;} // piste neuve (rebuildMenuScene)
+  MENUV.s+=MENUV.v*Math.min(dt,.05);
+  if(MENUV.s>=MENUV.s1){MENUV.s=MENUV.s0;MENUV.snap=true;}
+  const reste=(MENUV.s1-MENUV.s)/MENUV.v,depuis=(MENUV.s-MENUV.s0)/MENUV.v;
+  MENUV.fondu=Math.max(0,1-Math.min(reste,depuis)/.5);menuNoir(MENUV.fondu);   // noir aux deux bouts du tronçon, .5 s de fondu
+  frameAt(MENUV.s,F);
   carGroup.position.copy(F.p);
   mat4.makeBasis(tmp.crossVectors(F.n,F.t).normalize(),F.n,F.t);carGroup.quaternion.setFromRotationMatrix(mat4);carGroup.visible=true;
-  const a=.55+Math.sin(MENUV.t*.11)*.75,d=(CARS[level]||CARS[0]).l*2.1+5.5;   // un balancier lent entre trois-quarts avant gauche et droit
-  MENUV.cam.copy(F.p).addScaledVector(F.t,Math.cos(a)*d).addScaledVector(F.b,Math.sin(a)*d).addScaledVector(F.n,1.9);
-  camera.position.lerp(MENUV.cam,Math.min(1,dt*2.5));
-  camera.up.copy(F.n);
-  MENUV.vis.copy(F.p).addScaledVector(F.n,.85).addScaledVector(F.t,-.4);
+  carGroup.position.addScaledVector(F.n,Math.sin(MENUV.t*9.3)*.012+Math.sin(MENUV.t*3.1)*.008); // la suspension qui vit un peu
+  const a=.66,d=((CARS[level]||CARS[0]).l*2.1+5.5)*(.8+POR*.42);  // paysage : plus près (l'écran est bas) ; portrait : un peu plus loin             // trois-quarts avant, FIXE
+  MENUV.cam.copy(F.p).addScaledVector(F.t,Math.cos(a)*d).addScaledVector(F.b,Math.sin(a)*d).addScaledVector(F.n,1.75);
+  camera.position.copy(MENUV.cam);MENUV.snap=false;                         // vissée : aucun retard, le cadre ne bouge pas
+  camera.up.set(0,1,0);
+  MENUV.vis.copy(F.p).addScaledVector(F.n,.8).addScaledVector(F.t,-.6);
   camera.lookAt(MENUV.vis);
-  camera.fov+=(50-camera.fov)*Math.min(1,dt*3);camera.updateProjectionMatrix(); // un objectif serré : la caisse, pas le paysage
+  camera.fov+=(50-camera.fov)*Math.min(1,dt*3);camera.updateProjectionMatrix();
   if(landMark)landMark.visible=false;
-  // L'ÉCLAIRAGE DE VITRINE : une lumière douce côté caméra (la carrosserie se lit), un contre-jour rose derrière (la silhouette se détache)
   carLight.position.copy(MENUV.cam).addScaledVector(F.n,2.5);carLight.intensity=2.4;carLight.distance=60;
   nitroLight.position.copy(F.p).addScaledVector(F.t,-4).addScaledVector(F.n,2.2);nitroLight.color.setHex(0xff4fb0);nitroLight.intensity=1.6;
   headSpot.intensity=1.6;
@@ -20954,26 +21006,24 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
     const pul=.5+.5*Math.sin(t9*3.6),hv=GAR.btnHover?1:0;
     if(GAR.btnDome){GAR.btnDome.position.y=.035-pr*.05;GAR.btnDome.material.emissiveIntensity=.55+pul*.55+hv*.5+pr*1.2;}
     if(GAR.btnHalo){GAR.btnHalo.material.opacity=(.18+pul*.24+hv*.3+pr*.6)*kk;const s9=.7+pul*.14+hv*.25+pr*.5;GAR.btnHalo.scale.set(s9,s9,1);}
-    // LA BOÎTE VIT : elle respire (rebond + écrasement), sautille au survol, s'écrase de joie à l'appui, cligne des
-    // yeux, se TOURNE vers la caméra (±35°), balance son étiquette… et son COUVERCLE-RESSORT jette un œil de temps en temps
+    // LE LAPIN VIT : il respire, fait de petits BONDS au survol, s'écrase de joie à l'appui, cligne des yeux, tourne la tête
+    // vers la caméra (±35°), et ses OREILLES parlent : une qui frétille de temps en temps, dressées au survol, rabattues de joie
     const C9=GAR.botCorps;
     if(C9){
-      const ex=hv?1:0,rb=Math.sin(t9*(2.3+ex*4));
-      C9.position.y=.08+Math.max(0,rb)*(.016+ex*.045)-pr*.03;
-      const sq=rb*.022*(1+ex)-pr*.14;C9.scale.set(1-sq*.6,1+sq,1-sq*.6);
+      const ex=hv?1:0,rb=Math.sin(t9*(2.3+ex*5.5));
+      C9.position.y=.08+Math.max(0,rb)*(.012+ex*.07)-pr*.03;
+      const sq=rb*.02*(1+ex)-pr*.14;C9.scale.set(1-sq*.6,1+sq,1-sq*.6);
       const b9=GAR.btn,cx9=camera.position.x-b9.position.x,cz9=camera.position.z-b9.position.z;
       let aw=Math.atan2(cx9,cz9)-b9.rotation.y;aw=THREE.MathUtils.clamp(Math.atan2(Math.sin(aw),Math.cos(aw)),-.6,.6);
-      C9.rotation.y+=(aw-C9.rotation.y)*Math.min(1,dt*3);
-      if(GAR.botCouv){ // ressort sous-amorti : il claque, il rebondit
-        GAR.couvT-=dt;let cible=0;
-        if(GAR.btnPress>0||GAR.btq)cible=1.05;else if(hv)cible=.42+Math.sin(t9*9)*.05;
-        else if(GAR.couvT<0){cible=.3;if(GAR.couvT<-.55)GAR.couvT=3.5+Math.random()*3.5;}
-        GAR.couvV+=((cible-GAR.couvA)*170-GAR.couvV*11)*Math.min(dt,.05);GAR.couvA=Math.max(-.02,GAR.couvA+GAR.couvV*Math.min(dt,.05));
-        GAR.botCouv.rotation.x=-GAR.couvA;
-        const o9=THREE.MathUtils.clamp(GAR.couvA/.45,0,1);
-        if(GAR.botTresor){GAR.botTresor.p.material.opacity=o9*.95;GAR.botTresor.h.material.opacity=o9*.7*kk;const s9=.5+o9*.9;GAR.botTresor.h.scale.set(s9,s9,1);}}
-      if(GAR.botTag)GAR.botTag.rotation.z=Math.sin(t9*2.2)*.22+Math.sin(t9*5.3)*.05*(1+ex*3)+pr*.5;
-      if(GAR.botEns)GAR.botEns.material.color.setScalar(.82+.18*(Math.sin(t9*7)>.2?1:.7));  // les ampoules qui chenillent (à peine)
+      C9.rotation.y+=(aw*.55-C9.rotation.y)*Math.min(1,dt*3);                         // le corps suit un peu…
+      if(GAR.botTete){GAR.botTete.rotation.y+=(aw*.45-GAR.botTete.rotation.y)*Math.min(1,dt*4); // …la tête fait le reste
+        GAR.botTete.rotation.z=Math.sin(t9*1.3)*.05;}
+      if(GAR.botOreilles){GAR.oreT-=dt;if(GAR.oreT<0){GAR.oreSd=Math.random()<.5?0:1;if(GAR.oreT<-.35)GAR.oreT=2+Math.random()*3;}
+        GAR.botOreilles.forEach(function(o,i){const sd=i?1:-1,fr=(GAR.oreT<0&&GAR.oreSd===i)?Math.sin(t9*38)*.28:0;
+          const joie=(GAR.btnPress>0||GAR.btq)?1:0;
+          const cz=-sd*(.16-ex*.12+joie*.35)+fr+Math.sin(t9*1.7+i)*.03,cx=-joie*.55+ex*.08;
+          o.rotation.z+=(cz-o.rotation.z)*Math.min(1,dt*10);o.rotation.x+=(cx-o.rotation.x)*Math.min(1,dt*8);});}
+      if(GAR.botBtn)GAR.botBtn.rotation.x=.95-pr*.25+Math.sin(t9*2.3)*.03;
       const F9=GAR.botFace;
       if(F9){F9.cligneT-=dt;
         if(GAR.btnPress>0||GAR.btq)botVisage('joie');
@@ -21172,7 +21222,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   if(GAR.dbgAff&&GAR.affiches){const a9=GAR.affiches.find(a=>a.k===GAR.dbgAff); // `dbgAffiche('perso'|'monde')` : face à l'affiche
     if(a9){const p9=a9.g.getWorldPosition(GAR._af||(GAR._af=new THREE.Vector3()));camera.position.set(p9.x,p9.y,p9.z-3.4);camera.lookAt(p9.x,p9.y,p9.z);}}
   else if(GAR.dbgCam&&GAR.btn){const b9=GAR.btn,a9=b9.rotation.y+(GAR.botCorps?GAR.botCorps.rotation.y:0); // `dbgBoite(1)` : le portrait de la boîte
-    camera.position.set(b9.position.x+Math.sin(a9)*2.1,ay+1.15,b9.position.z+Math.cos(a9)*2.1);camera.lookAt(b9.position.x,ay+.62,b9.position.z);}
+    camera.position.set(b9.position.x+Math.sin(a9)*2.6,ay+1.25,b9.position.z+Math.cos(a9)*2.6);camera.lookAt(b9.position.x,ay+.72,b9.position.z);}
 }
 // ---------- RÉGLAGES : audio + commandes + sauvegarde (les toggles pilotent les MÊMES états que les boutons du HUD) ----------
 const setEl=$('settings');
@@ -21376,15 +21426,97 @@ function playWordWave(clickX){
     l.classList.add('pxScale');
   });
 }
+/* ---- LES NIVEAUX SE CHOISISSENT AU GARAGE, ET CHACUN GARDE SON RECORD D'AURA (2026-09-27, Léo : « quand on termine un niveau
+   on le débloque ; il faut sauvegarder l'aura que le joueur gagne à chaque niveau […] affichée dans les records en fonction du
+   niveau sélectionné » — « on le choisit dans le garage, tout se fait dans le garage quasiment ») ----------------------------------
+   · LE CHOIX (`GSEL`, `#gNiv`, en bas du garage) : le MONDE (◀ ▶ : NUAGES · VILLE · ESPACE · SANS FIN) puis le NIVEAU (10 cases :
+     vert = terminé, or = le prochain à faire, gris = verrouillé). Flèches ← → / ↑ ↓ au clavier. PLAY part du niveau choisi
+     (`gselApplique` pose `CARR.actif`) ; SANS FIN = l'ancienne partie qui enchaîne les mondes. Tant que l'AUTO-ÉCOLE n'est pas
+     faite, PLAY part de NUAGES 1 (sa piste). Mémorisé dans `SAVE.d.sel` ; à la mort, le choix SUIT le niveau où l'on est tombé.
+   · LE RECORD (`NIVA`, `SAVE.d.nivAura['nuages:3']`) : l'aura gagnée ENTRE l'entrée dans un niveau (départ ou portail) et sa sortie
+     (portail ou fin de partie) — terminé ou pas, c'est le meilleur passage qui compte. Battu au portail = annonce RECORD DU NIVEAU.
+     Rien n'est compté en auto-école, en bac à sable, au parc ni en partie sans fin (elle garde `auraMax`).
+   · L'AFFICHE RECORD PERSO lit `GSEL` : le record du niveau choisi (ou les records de la partie sans fin). */
+Object.assign(I18N,{'SANS FIN':'ENDLESS','PARTIE SANS FIN':'ENDLESS RUN','AURA RECORD':'AURA RECORD','STATUT':'STATUS','TERMINE':'CLEARED',
+  'A TERMINER':'TO CLEAR','VERROUILLE':'LOCKED','RECORD DU NIVEAU':'LEVEL RECORD','TERMINE LE NIVEAU':'CLEAR LEVEL','POUR LE DEBLOQUER':'TO UNLOCK IT',
+  'NUAGES > VILLE > ESPACE':'CLOUDS > CITY > SPACE','PAS ENCORE DE RECORD':'NO RECORD YET'});
+Object.assign(I18N_ZH,{'SANS FIN':'无尽','PARTIE SANS FIN':'无尽模式','AURA RECORD':'光环纪录','STATUT':'状态','TERMINE':'已通关','A TERMINER':'待通关',
+  'VERROUILLE':'未解锁','RECORD DU NIVEAU':'关卡纪录','TERMINE LE NIVEAU':'先通关第','POUR LE DEBLOQUER':'关来解锁','NUAGES > VILLE > ESPACE':'云海 > 城市 > 太空',
+  'PAS ENCORE DE RECORD':'还没有纪录'});
+const NIVA={cle:null,a0:0};                       // le niveau EN COURS : sa clé et l'aura de la partie au moment d'y entrer
+const GSEL={b:0,i:0};                             // le niveau CHOISI au garage (b = -1 : sans fin)
+function nivCle(b,i){return CARRIERE[b].id+':'+i;}
+function nivRecord(b,i){return ((SAVE.d.nivAura||{})[nivCle(b,i)])|0;}
+function nivAuraEntre(){const c=LVL.cur&&LVL.cur.carr;NIVA.cle=(CARR.actif&&c&&!TUTO.on&&!SANDBOX&&!PARK.on)?nivCle(c.b,c.i):null;NIVA.a0=auraRun;}
+function nivAuraSolde(fini){
+  if(!NIVA.cle)return;
+  const g=Math.max(0,Math.round(auraRun-NIVA.a0)),R=SAVE.d.nivAura||(SAVE.d.nivAura={}),old=R[NIVA.cle]|0;
+  if(g>old){R[NIVA.cle]=g;SAVE.mark();
+    if(fini&&old>0)try{slam(sansAcc(TR('RECORD DU NIVEAU')),'+'+g.toLocaleString(LOC())+' AURA','#ffd75e','#ff9f1c',0,2,true);}catch(e){}}
+  NIVA.cle=null;
+}
+function nivSelSuit(){ // la partie finie : le garage propose le niveau où l'on est tombé (et REJOUER y repart)
+  const c=LVL.cur&&LVL.cur.carr;if(!CARR.actif||!c||TUTO.on)return;
+  CARR.actif={b:c.b,i:c.i};GSEL.b=c.b;GSEL.i=c.i;SAVE.d.sel={b:c.b,i:c.i};SAVE.mark();
+}
+function gselInit(){
+  const s=SAVE.d.sel;if(s){GSEL.b=s.b;GSEL.i=s.i;}else{GSEL.b=0;GSEL.i=Math.min(9,carrFait(0));}
+  if(GSEL.b>=0)GSEL.i=Math.min(GSEL.i,9,carrFait(GSEL.b)); // jamais un niveau verrouillé
+}
+function gselApplique(){ // au PLAY
+  const nv=(!SAVE.d.tuto&&!SANDBOX&&!PARK.on)?{b:0,i:0}:(GSEL.b<0?null:{b:GSEL.b,i:GSEL.i});
+  const k=nv?nv.b+':'+nv.i:'fin',k0=CARR.actif?CARR.actif.b+':'+CARR.actif.i:'fin';
+  CARR.actif=nv;
+  if(!started&&(k!==k0||runStats.zones)){runStats.zones=0;rebuildMenuScene();} // la 1re partie roule sur la piste du menu : elle doit être celle du niveau
+}
+function gselChoix(b,i,son){
+  GSEL.b=b;GSEL.i=b<0?0:Math.max(0,Math.min(9,i));SAVE.d.sel={b:GSEL.b,i:GSEL.i};SAVE.mark();
+  gselRendu();affichesMaj();if(son)try{uiClic();}catch(e){}
+}
+function gselMonde(d){const L=[0,1,2,-1],k=(L.indexOf(GSEL.b)+d+L.length)%L.length,b=L[k];gselChoix(b,b<0?0:Math.min(9,carrFait(b)),true);}
+function gselPas(d){
+  if(GSEL.b<0){gselMonde(d);return;}
+  const j=GSEL.i+d;if(j<0||j>9)return;
+  if(j>carrFait(GSEL.b)){gselVerrou(j);return;}
+  gselChoix(GSEL.b,j,true);
+}
+function gselVerrou(j){
+  const el=document.querySelector('#gNiv .gnP[data-i="'+j+'"]');
+  if(el){el.classList.remove('secoue');void el.offsetWidth;el.classList.add('secoue');}
+  try{uiClic();hap(8);}catch(e){}
+  toast(sansAcc(TR('TERMINE LE NIVEAU'))+' '+j+' '+sansAcc(TR('POUR LE DEBLOQUER')));
+}
+function gselRendu(){
+  const el=document.getElementById('gNiv');if(!el)return;
+  const nom=el.querySelector('.gnNom'),pips=el.querySelector('.gnPips'),info=el.querySelector('.gnInfo');
+  if(GSEL.b<0){
+    nom.innerHTML=pxi('drapeau')+' '+sansAcc(TR('SANS FIN'));pips.innerHTML='<div class="gnFin">'+sansAcc(TR('PARTIE SANS FIN'))+'</div>';pips.hidden=false; // même hauteur : les flèches ne bougent pas sous le doigt
+    info.innerHTML=sansAcc(TR('NUAGES > VILLE > ESPACE'))+'<br>'+sansAcc(TR('RECORD'))+' <b>'+(SAVE.d.auraMax||0).toLocaleString(LOC())+'</b> AURA';
+    return;}
+  const B=CARRIERE[GSEL.b],f=carrFait(GSEL.b);
+  nom.innerHTML=pxi(B.ic)+' '+sansAcc(TR(B.nm))+' <i>'+f+'/10</i>';
+  let h='';for(let j=0;j<10;j++){const cl=j<f?'ok':j===f?'cur':'off';
+    h+='<button type="button" class="gnP '+cl+(j===GSEL.i?' sel':'')+'" data-i="'+j+'" aria-label="Niveau '+(j+1)+(j>f?' verrouillé':'')+'">'+(j>f?pxi('verrou'):(j+1))+'</button>';}
+  pips.innerHTML=h;pips.hidden=false;
+  const r=nivRecord(GSEL.b,GSEL.i);
+  info.innerHTML=(GSEL.i+1)+' · '+sansAcc(TR(B.niveaux[GSEL.i].nm))+'<br>'+(r?sansAcc(TR('RECORD'))+' <b>'+r.toLocaleString(LOC())+'</b> AURA':sansAcc(TR('PAS ENCORE DE RECORD')));
+}
+{const el=document.getElementById('gNiv');
+ if(el){el.addEventListener('click',e=>{e.stopPropagation();
+   const fl=e.target.closest('.gnFl');if(fl){uiPop(fl);gselMonde(+fl.getAttribute('data-d'));return;}
+   const p=e.target.closest('.gnP');if(!p)return;const j=+p.getAttribute('data-i');
+   if(j>carrFait(GSEL.b)){gselVerrou(j);return;}uiPop(p);gselChoix(GSEL.b,j,true);});
+  gselInit();gselRendu();}}
+window.dbgNiveaux=function(){return {choix:{...GSEL},actif:CARR.actif,enCours:NIVA.cle,records:SAVE.d.nivAura||{},progression:SAVE.d.carr||{}};};
 $('gPlayMain').addEventListener('click',function(e){
-  e.stopPropagation();CARR.actif=null; // le PLAY du garage = la partie sans fin
+  e.stopPropagation();gselApplique(); // (2026-09-27) le PLAY du garage part du NIVEAU CHOISI (sans fin compris)
   playWordWave(e.clientX); // ⚠ (2026-09-25) cet appel était COLLÉ au commentaire ci-dessus : la vague ne partait jamais
   tutoArme();
   setTimeout(garageLaunch,260); // la vague a le temps de partir avant que le garage ne s'éteigne
 });
 $('gPlayMain').addEventListener('keydown',function(e){
   // ⚠ même chemin que le clic (partie sans fin + auto-école à la 1re partie) : le clavier lançait sans l'un ni l'autre
-  if(e.code==='Enter'||e.code==='Space'){e.preventDefault();e.stopPropagation();CARR.actif=null;playWordWave();tutoArme();setTimeout(garageLaunch,260);}
+  if(e.code==='Enter'||e.code==='Space'){e.preventDefault();e.stopPropagation();gselApplique();playWordWave();tutoArme();setTimeout(garageLaunch,260);}
 });
 $('gPrev').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarget);garageGo(-1);});
 $('gTabs').addEventListener('click',e=>{e.stopPropagation();const b=e.target.closest('.gTab');if(!b)return;uiClic();uiPop(b);shopTab(b.getAttribute('data-tab'));});
@@ -21422,7 +21554,7 @@ let shopDownBtn=false,shopPT=0,shopMT=0;
    RELANCE à la vitesse du geste — et plus aucun frein ensuite. Doigt immobile au lâcher = elle reste arrêtée. Le swipe qui
    changeait de caisse est retiré EN BOUTIQUE : un lancer vif serait pris pour « suivante » — les flèches et le catalogue
    font ce travail. PARTOUT : appuyer SUR la caisse charge le boost (voir GBST) ; dès qu'on glisse, la charge s'annule. */
-addEventListener('pointerdown',e=>{if(!garageOn)return;if(e.target.closest&&e.target.closest('#gTop,#gBottom'))return;
+addEventListener('pointerdown',e=>{if(!garageOn)return;if(e.target.closest&&e.target.closest('#gTop,#gBottom,#gNiv'))return;
   garageDrag=true;gpx=gpx0=e.clientX;gpy=gpy0=e.clientY;shopPT=shopMT=performance.now();
   if(!GAR.btq&&GAR.swK){garageAng+=GAR.swO||0;garagePitch=THREE.MathUtils.clamp(garagePitch+(GAR.swP||0),.02,.82);GAR.swO=GAR.swP=GAR.swK=0;} // le balancement est VERSÉ dans la vue : pas de saut sous le doigt
   shopDownBtn=shopBtnVise(e);
@@ -21455,7 +21587,7 @@ addEventListener('pointermove',e=>{
 // ⚠ ORBITE BORNÉE À 7,8 m : au-delà on sortait par les murs et on traversait la servante et les
 // piles de pneus. Le décor est rangé POUR ce rayon (rien de posé à moins de 8,3 m du centre).
 addEventListener('wheel',e=>{if(!garageOn)return;garageDist=THREE.MathUtils.clamp(garageDist+e.deltaY*.008,4.6,8.6);},{passive:true}); // plafond 7,8→8,6 (2026-09-05) : le zoom arrière par défaut est monté, la molette doit pouvoir suivre
-addEventListener('keydown',e=>{if(!garageOn)return;if(e.code==='Escape'){const cr9=$('carr');if(cr9&&cr9.classList.contains('on'))feuilleFerme(cr9,'on');else if(GAR.btq)shopQuitte();else if(!GAR.go)ecranWipe(closeGarage);}else if(e.code==='KeyB'){if(GAR.btq)shopQuitte();else shopOuvre();}else if(GAR.btq&&e.code==='ArrowLeft')garageGo(-1);else if(GAR.btq&&e.code==='ArrowRight')garageGo(1);}); // (2026-09-26) les flèches feuillettent en BOUTIQUE ; B = le bouton rouge // même chemin que les flèches à l'écran (boutique comprise, premium exclues)
+addEventListener('keydown',e=>{if(!garageOn)return;if(e.code==='Escape'){const cr9=$('carr');if(cr9&&cr9.classList.contains('on'))feuilleFerme(cr9,'on');else if(GAR.btq)shopQuitte();else if(!GAR.go)ecranWipe(closeGarage);}else if(e.code==='KeyB'){if(GAR.btq)shopQuitte();else shopOuvre();}else if(GAR.btq&&e.code==='ArrowLeft')garageGo(-1);else if(GAR.btq&&e.code==='ArrowRight')garageGo(1);else if(!GAR.btq&&!GAR.go&&(e.code==='ArrowLeft'||e.code==='ArrowRight'))gselPas(e.code==='ArrowLeft'?-1:1);else if(!GAR.btq&&!GAR.go&&(e.code==='ArrowUp'||e.code==='ArrowDown'))gselMonde(e.code==='ArrowUp'?-1:1);}); // (2026-09-27) hors boutique : ← → le niveau, ↑ ↓ le monde // (2026-09-26) les flèches feuillettent en BOUTIQUE ; B = le bouton rouge // même chemin que les flèches à l'écran (boutique comprise, premium exclues)
 
 // ---------- BOUCLE ----------
 const fwdW=new THREE.Vector3(),tmp=new THREE.Vector3(),tmp2=new THREE.Vector3(),tmp3=new THREE.Vector3(),mat4=new THREE.Matrix4();
@@ -22898,6 +23030,7 @@ function loop(now){
     if(msgT>0){msgT-=dt;if(msgT<=0)elMsg.style.opacity=0;}
   } }catch(err){window.__loopErr=err.message+' | '+(err.stack||'').split('\n').slice(0,3).join(' ¶ ');if(!loop._warned){console.error('loop error',err);loop._warned=true;}}
   // ciel : dôme, soleil « 1.61 », lueur d'horizon et rayons crépusculaires suivent la caméra
+  if(MENUV.fondu&&(garageOn||started)){MENUV.fondu=0;menuNoir(0);} // le fondu de l'accueil ne déborde jamais sur le garage ni la course
   if(garageOn)garageRender(dt);
   else if(!started)menuVitrine(dt); // L'ACCUEIL : la caisse en vitrine sur la route de la ville // GARAGE : place la caisse + oriente la caméra AVANT que le ciel suive
   else if(stallOn)stallRender(dt); // ÉTAL : même showroom, mais c'est un fruit qui tourne
@@ -23751,7 +23884,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   function mTap(a,el){
     uiClic();uiPop(el);if(a==='play'||a==='replay')pixBurst(el,16); // chaque bouton REBONDIT ; JOUER lâche une gerbe
     if(a==='replay'&&started&&gameOver){ goImmersive(); ecranWipe(function(){ if(started&&gameOver)resetGame(); }); } // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS)
-    else if(a==='play'||a==='replay'){ if(a==='play')CARR.actif=null;
+    else if(a==='play'||a==='replay'){ if(a==='play')gselApplique();
       tutoArme(); // 1re partie = AUTO-ÉCOLE
       goImmersive(); playViaGarage(); }
     else if(a==='tuto'){ SAVE.d.tuto=0;SAVE.flush();toast(pxi('coche')+' '+TR('L\'AUTO-ÉCOLE T\'ATTEND AU PROCHAIN JOUER')); }
