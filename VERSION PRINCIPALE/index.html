@@ -1669,6 +1669,102 @@
   body #misBan .mbTx span{text-shadow:0 2px 0 #1c0430}
   body #misBan .mbPrime{border-radius:0;color:#2a0e00;clip-path:polygon(4px 0,calc(100% - 4px) 0,100% 4px,100% calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,0 calc(100% - 4px),0 4px);
     background:linear-gradient(180deg,#fff3b0 0 2px,#ffd75e 2px 60%,#f0a818 60%);box-shadow:inset 0 0 0 2px #1c0430,inset 0 -4px 0 #b8860b}
+  /* ===== HUD DE COURSE — VAGUE 3 (2026-09-27) =====
+     (1) LA JAUGE DU FLOW, SŒUR DE LA NITRO — user : « la barre de flow doit ressembler à celle de nitro mais en dessous et plus fine ».
+         La plaque octogonale de 44 px pleine largeur devient une JAUGE de la même famille que la nitro : même cadre d'encre de 3 px,
+         même fond nuit, même lèvre dessous, même reflet qui la balaie, même curseur blanc au bout du remplissage, et son pictogramme
+         pixel en tête — la VAGUE (18 px = 2 px par pixel), rangée sous l'éclair. Mêmes bords gauche/droit que la nitro, 14 px de haut
+         (58 % de ses 24). Les quatre paliers restent lisibles : quatre cellules séparées d'une encoche, chacune à la couleur de SON
+         palier. Dessous, en 10 px cerné d'encre : le NOM du palier (sa couleur) à gauche, ce qu'il VAUT à droite ($×, vert billet).
+         Le tableau de bord remonte de 32 px (aura, chrono de vol, pouvoirs) : la route gagne ce que la bande a rendu. */
+  :root{--pxi-flot:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 9' shape-rendering='crispEdges'%3E%3Cpath d='M1 1h3v1h-3zM0 2h2v1h-2zM3 2h2v1h-2zM8 2h1v1h-1zM0 3h1v1h-1zM4 3h2v1h-2zM7 3h2v1h-2zM5 4h3v1h-3zM1 5h3v1h-3zM0 6h2v1h-2zM3 6h2v1h-2zM8 6h1v1h-1zM0 7h1v1h-1zM4 7h2v1h-2zM7 7h2v1h-2zM5 8h3v1h-3z'/%3E%3C/svg%3E")}
+  body #flowHud{left:var(--hudG);right:calc(env(safe-area-inset-right,0px) + 64px);top:calc(var(--hudH) + 52px);height:auto;padding:0 0 0 34px;
+    display:grid;grid-template-columns:1fr auto;grid-template-rows:14px auto;gap:7px 8px;align-items:center;
+    background:none;clip-path:none;box-shadow:none;transition:none}
+  body #flowHud::before{content:'';position:absolute;left:4px;top:-2px;width:18px;height:18px;background:var(--fc);
+    -webkit-mask:var(--pxi-flot) center/100% 100% no-repeat;mask:var(--pxi-flot) center/100% 100% no-repeat;filter:drop-shadow(0 2px 0 #1c0430)}
+  body #flowHud[data-lv="0"]::before{opacity:.55}
+  body #flowHud::after,body #flowHud:not([data-lv="0"])::after{content:none;display:none;animation:none}   /* l'ancien reflet de plaque : il vit dans la jauge */
+  body #flowHud .fSeg{grid-column:1/-1;grid-row:1;position:relative;height:14px;box-sizing:border-box;padding:3px;gap:2px;border-radius:7px;
+    background:#0d0a2a;box-shadow:inset 0 0 0 3px #170f55,0 3px 0 #170f55,0 6px 10px rgba(0,0,0,.35);transition:box-shadow .15s}
+  body #flowHud .fSeg i{border-radius:1px;background:rgba(255,255,255,.09);box-shadow:none}
+  body #flowHud .fSeg i:first-child{border-radius:4px 1px 1px 4px}
+  body #flowHud .fSeg i:last-child{border-radius:1px 4px 4px 1px}
+  body #flowHud .fSeg s{right:auto;width:calc(var(--f,0) * 100%);transform:none;box-shadow:none;transition:width .14s linear;
+    background:linear-gradient(180deg,color-mix(in srgb,var(--sc) 40%,#fff) 0 2px,var(--sc) 2px 50%,color-mix(in srgb,var(--sc) 80%,#000) 50% calc(100% - 2px),
+      color-mix(in srgb,var(--sc) 55%,#000) calc(100% - 2px))}
+  body #flowHud .fSeg i.cur s::after{content:'';position:absolute;right:0;top:0;bottom:0;width:3px;background:#fff6d8;box-shadow:0 0 6px var(--sc)}   /* le curseur, comme la nitro */
+  body #flowHud .fSeg::after{content:'';position:absolute;inset:3px;border-radius:4px;pointer-events:none;
+    background:linear-gradient(100deg,transparent 40%,rgba(255,255,255,.35) 50%,transparent 60%) no-repeat;background-size:300% 100%;
+    animation:nbReflet 3.6s ease-in-out infinite}   /* le reflet de la nitro : il passe tant qu'on TIENT un palier */
+  body #flowHud[data-lv="0"] .fSeg::after{display:none}
+  body #flowHud .fL,body #flowHud .fM{grid-row:2;font-size:10px;line-height:1;letter-spacing:1px;
+    text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,0 3px 0 #1c0430}
+  body #flowHud .fL{grid-column:1;justify-self:start;font-weight:normal}
+  body #flowHud .fM{grid-column:2;justify-self:end}
+  body #flowHud[data-lv="0"] .fL{opacity:.7}
+  /* ça FUIT : le cadre rougit, la cellule en cours se hachure · ça LÂCHE : le cadre clignote au rythme du tic (comme la nitro à sec) */
+  body #flowHud.fuit{box-shadow:none}
+  body #flowHud.fuit .fSeg{box-shadow:inset 0 0 0 3px var(--danger),0 3px 0 #170f55,0 6px 10px rgba(0,0,0,.35)}
+  body #flowHud.fuit .fSeg i.cur s{background:repeating-linear-gradient(-45deg,var(--sc) 0 4px,color-mix(in srgb,var(--sc) 40%,#000) 4px 8px)}
+  body #flowHud.lache{animation:none}
+  body #flowHud.lache .fSeg{animation:fLache3 .22s steps(2) infinite}
+  body #flowHud[data-lv="4"].lache .fSeg{animation:fArc 1.2s linear infinite,fLache3 .22s steps(2) infinite}
+  @keyframes fLache3{50%{box-shadow:inset 0 0 0 3px #fff,0 3px 0 #170f55,0 0 14px rgba(255,90,110,.8)}}
+  /* un palier de plus : les cellules CLAQUENT et la vague bondit (la plaque entière grossissait jusque sous le ⏸) */
+  body #flowHud.monte{animation:none}
+  body #flowHud.monte .fSeg i{animation:fMonte3 var(--t-slow) var(--ease)}
+  body #flowHud.monte::before{animation:fIco3 var(--t-slow) var(--ease)}
+  @keyframes fMonte3{0%{transform:scaleY(1.7);filter:brightness(2.2)}100%{transform:none;filter:none}}
+  @keyframes fIco3{0%{transform:scale(1.5) rotate(-8deg)}100%{transform:none}}
+  /* le tableau de bord remonte d'autant (sur téléphone : sur PC, le compteur d'argent occupe ce coin — l'aura reste dessous) */
+  body.touch #auraV2{top:calc(var(--hudH) + 96px)}
+  body.touch #airPie{top:calc(var(--hudH) + 96px)!important}
+  body.touch #pwrChip{top:calc(var(--hudH) + 96px)}
+  body.touch #pwrChip.sousPie{top:calc(var(--hudH) + 184px)}
+  /* l'édition PC (pas de .touch) : la nitro vit en bas au centre, 320 px — la jauge du FLOW s'y range DESSOUS, même largeur, cadre
+     carré néon comme elle (elle recouvrait jusqu'ici le compteur d'argent, en haut à gauche) */
+  body:not(.touch) #nitroWrap{bottom:calc(env(safe-area-inset-bottom,0px) + 56px)}
+  body:not(.touch) #flowHud{left:calc(50% - 160px);right:auto;width:320px;top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);padding:0;
+    grid-template-rows:12px auto;row-gap:6px}
+  body:not(.touch) #flowHud::before{display:none}
+  body:not(.touch) #flowHud .fSeg{height:12px;padding:2px;border-radius:0;box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--fc) 60%,#00eaff),0 0 10px rgba(0,234,255,.25)}
+  body:not(.touch) #flowHud .fSeg i,body:not(.touch) #flowHud .fSeg::after{border-radius:0}
+  @media (prefers-reduced-motion:reduce){body #flowHud .fSeg::after,body #flowHud.monte .fSeg i,body #flowHud.monte::before,body #flowHud.lache .fSeg{animation:none}}
+  /* (2) LE VERDICT DE POSE REVIENT SUR TÉLÉPHONE — user : « rajoute les textes monster et tout ». `#trickBox` est masqué par l'ÉCRAN
+     NU : MONSTRE, DOUBLE, TRIPLE, MÉTÉORE, SNAKE LOOP… ne se lisaient plus (l'annonceur les criait dans le vide). Ils reviennent dans
+     le COULOIR des annonces, par la file unique (`hautPasse`, famille « ver ») : le mot du rang en grand (couleur pleine, contour
+     d'encre, lèvre claire — le traitement des grandes annonces), le multiplicateur au-dessus (DOUBLE / TRIPLE / MEGA), ce que la
+     pose a RAPPORTÉ en or dessous, puis les bonus de pose en pastilles (FACE CACHÉE ×2, À RECULONS, PILE AU CENTRE, POSÉ LOURD).
+     Entrée qui CLAQUE : la courbe unique, un seul petit rebond (c'est une célébration) ; le montant tombe 120 ms après le mot. */
+  #verdHud{position:fixed;left:50%;top:calc(var(--laneA) - 60px);z-index:41;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:4px;
+    width:max-content;max-width:88vw;font-family:var(--pix);text-align:center;white-space:nowrap;opacity:0;visibility:hidden;
+    transform:translateX(-50%);transform-origin:50% 30%}
+  #verdHud.on{visibility:visible;animation:verdIn 1.4s var(--ease) forwards}
+  #verdHud[data-r="0"].on{animation-duration:1.1s}
+  @keyframes verdIn{0%{opacity:0;transform:translateX(-50%) scale(1.9)}12%{opacity:1;transform:translateX(-50%) scale(.94)}20%{transform:translateX(-50%) scale(1)}
+    82%{opacity:1;transform:translateX(-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-12px) scale(1)}}
+  #verdHud b{position:relative;display:block;font-weight:normal;line-height:1.2;letter-spacing:2px;color:var(--vc);
+    text-shadow:3px 0 0 #1c0430,-3px 0 0 #1c0430,0 3px 0 #1c0430,0 -3px 0 #1c0430,3px 3px 0 #1c0430,-3px 3px 0 #1c0430,3px -3px 0 #1c0430,
+      -3px -3px 0 #1c0430,0 7px 0 #1c0430,0 0 22px color-mix(in srgb,var(--vc) 65%,transparent)}
+  #verdHud b::after{content:attr(data-t);position:absolute;left:0;top:0;right:0;pointer-events:none;color:color-mix(in srgb,var(--vc) 28%,#fff);
+    text-shadow:none;clip-path:inset(0 0 calc(100% - .225em) 0)}   /* la lèvre claire : la rangée de pixels du haut de chaque lettre */
+  #verdHud b.vK{text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,2px 2px 0 #1c0430,-2px 2px 0 #1c0430,2px -2px 0 #1c0430,
+    -2px -2px 0 #1c0430,0 5px 0 #1c0430,0 0 16px color-mix(in srgb,var(--vc) 55%,transparent)}
+  #verdHud .vM{display:block;margin-top:4px;font-style:normal;line-height:1.2;letter-spacing:1px;color:#ffd75e;
+    text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,2px 2px 0 #1c0430,-2px 2px 0 #1c0430,2px -2px 0 #1c0430,
+      -2px -2px 0 #1c0430,0 5px 0 #1c0430,0 0 14px rgba(255,215,94,.55)}
+  #verdHud .vTags{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 8px;max-width:84vw;margin-top:6px}
+  #verdHud .vTags i{font-style:normal;font-size:9px;line-height:1;letter-spacing:1px;padding:6px 8px 5px;color:var(--tc);background:#1c0430;
+    box-shadow:inset 0 0 0 2px var(--tc);clip-path:polygon(4px 0,calc(100% - 4px) 0,100% 4px,100% calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,0 calc(100% - 4px),0 4px)}
+  #verdHud.on .vM{animation:verdMt .45s var(--ease) .12s both}
+  #verdHud.on .vTags{animation:verdMt .45s var(--ease) .24s both}
+  @keyframes verdMt{from{opacity:0;transform:translateY(10px) scale(1.35)}to{opacity:1;transform:none}}
+  body:not(.play) #verdHud{display:none}
+  body.ebOn #verdHud,body:has(#tPanel.open) #verdHud{visibility:hidden}   /* la carte moteur tient le couloir ; la pause fait taire le HUD */
+  body.verdOn #lvlBan,body.verdOn #dolHud,body.verdOn #misBan,body.verdOn #launchLogo{visibility:hidden}   /* UNE voix au centre */
+  @media (prefers-reduced-motion:reduce){#verdHud.on{animation:verdRM 1.3s linear forwards;transform:translateX(-50%)}#verdHud.on .vM,#verdHud.on .vTags{animation:none}
+    @keyframes verdRM{0%{opacity:0}10%{opacity:1}82%{opacity:1}100%{opacity:0}}}
 </style>
 </head>
 <body>
@@ -13517,6 +13613,7 @@ const PIX_OR=['#ffd75e','#ffffff','#ffd75e','#b8860b'],PIX_MAG=['#ff3ec8','#ffff
 function pixCouleurs(el){
   const sl=el.closest('#slam9');
   if(sl){const a=sl.style.getPropertyValue('--s1').trim()||'#ffd75e',b=sl.style.getPropertyValue('--s2').trim()||'#ff3ec8';return [a,'#ffffff',b,a];}
+  const vd=el.closest('#verdHud');if(vd){const c=vd.style.getPropertyValue('--vc').trim()||'#ffd75e';return [c,'#ffffff',c,'#ffd75e'];} // (vague 3) le verdict éclate à la couleur de son rang
   if(el.closest('#auraV2')||el.closest('#auraHud'))return PIX_MAG;
   if(FLOW.el&&FLOW.el.contains(el)){const c=FLOW.lv>=4?'#ff3ec8':FLOW_COL[FLOW.lv]||'#ffd75e';return [c,'#ffffff',c,'#ffd75e'];}
   if(el.closest('#coach'))return PIX_VERT;
@@ -18792,6 +18889,67 @@ function flashEcran(col){ // un coup de couleur sur les bords : le boost, le pou
   let e=avE('flash9');if(!e){e=document.createElement('div');e.id='flash9';e.setAttribute('aria-hidden','true');document.body.appendChild(e);avEl.flash9=e;}
   e.style.setProperty('--ff',col);e.classList.remove('on');void e.offsetWidth;e.classList.add('on');
 }
+/* ===== (vague 3, 2026-09-27) LE VERDICT DE POSE SUR TÉLÉPHONE — user : « rajoute les textes monster et tout » =====
+   `trickMsg` écrit dans #trickBox, que l'ÉCRAN NU masque : sur téléphone, MONSTRE / DOUBLE / TRIPLE MONSTRE, MÉTÉORE, SNAKE LOOP ne se
+   lisaient plus — l'annonceur les criait dans le vide. `trickMsg` reste LE point d'entrée (aucune ligne d'appel touchée) : sur
+   téléphone, il remet ses textes ici.
+   · UN LOT PAR IMAGE : la pose appelle trickMsg plusieurs fois dans la même image (PILE AU CENTRE, À RECULONS, FACE CACHÉE ×2, puis le
+     verdict) — on les ramasse et on les solde en fin de tâche (microtâche) : UNE carte, le verdict en titre, les bonus en pastilles ;
+   · UN GESTE = UN TEXTE : ce que le texte sur la caisse dit déjà (PARFAIT, DIVIN, GAP, AU CHEVEU, les figures en vol et leurs points
+     d'aura, PURE SPEED, la RAFALE) ne se répète pas ici ; le portail, le moteur, les pouvoirs ont leur propre voix. Montent au couloir :
+     le verdict de pose et ses bonus, la CATAPULTE, et la voiture de police qui saute ;
+   · UNE VOIX AU CENTRE : la carte passe par la file du couloir (`hautPasse`, famille « ver ») — le rang fixe la priorité ;
+   · le montant est LU dans le texte du verdict (jamais recalculé ici : l'économie reste seule maîtresse des chiffres) ;
+   · le texte TIENT dans 84 % de l'écran (police pixel : 1 em par lettre + l'interlettrage). */
+const VERD={buf:[],pend:false,el:null,h:0,t:0};
+const VERD_DEF=[ // [texte de l'annonceur, rang, mot du dessus, mot du rang, couleur] — du plus long au plus court (« MEGA METEOR » avant « METEOR »)
+  ['MEGA METEOR',5,'MEGA','METEORE','#ff7a24'],['TRIPLE MONSTRE',3,'TRIPLE','MONSTRE','#ffd75e'],['DOUBLE MONSTRE',2,'DOUBLE','MONSTRE','#ff3ec8'],
+  ['SNAKE LOOP',4,'SNAKE','LOOP','#b58cff'],['METEOR',4,'','METEORE','#ff7a24'],['MONSTRE',1,'','MONSTRE','#5ee6ff']];
+const VERD_TAG=[[/^FACE CACH/,'#ffd75e'],[/^À RECULONS/,'#5ee6ff'],[/^PILE AU CENTRE/,'#5ee6ff']];   // les bonus de pose (pastilles)
+const VERD_SEUL=[[/CATAPULTE/,'#5ee6ff',0],[/ EXPLOSE !$/,'#ff3b5c',1]];                         // les cartes simples [motif, couleur, priorité]
+const VERD_TAILLE=[22,30,34,38,40,44]; // le mot du rang (px) : carte simple · MONSTRE < DOUBLE < TRIPLE < MÉTÉORE, SNAKE LOOP < MEGA — plafonné par la largeur
+HAUT_MIN.ver=700; // le temps de lecture garanti d'un verdict (le mot, puis le montant)
+HAUT_COUPE.ver=function(){if(VERD.el)VERD.el.classList.remove('on');document.body.classList.remove('verdOn');clearTimeout(VERD.t);};
+Object.assign(I18N,{'MONSTRE':'MONSTER','METEORE':'METEOR','POSÉ LOURD':'HEAVY LANDING'});
+Object.assign(I18N_ZH,{'MONSTRE':'怪兽','DOUBLE':'双倍','TRIPLE':'三倍','METEORE':'流星','MEGA':'超级','SNAKE':'蛇形','LOOP':'回环','POSÉ LOURD':'重着陆'});
+function verdNet(t){ // traduit, sans emoji (la police pixel n'en a pas), sans la vanne après le tiret, sans capitale accentuée
+  return sansAcc(String(TR(t)).replace(/[\u2190-\u2BFF\uD83C-\uDBFF\uDC00-\uDFFF\uFE0F]/g,'').split(' — ')[0]).replace(/[<>&"]/g,'').trim();
+}
+function verdPousse(txt,tier){VERD.buf.push(String(txt));if(!VERD.pend){VERD.pend=true;Promise.resolve().then(verdSolde);}}
+function verdSolde(){
+  VERD.pend=false;const b=VERD.buf;VERD.buf=[];
+  if(!running||gameOver||mode==='boom')return;
+  let v=null,seul=null;const tags=[];
+  for(const t of b){
+    const i=t.lastIndexOf('  +'),tete=(i>=0?t.slice(0,i):t).trim(); // le verdict : [grade] + mot de l'annonceur + « ␣␣+ » + montant
+    const d=VERD_DEF.find(function(q){return tete===q[0]||tete.endsWith(' '+q[0]);});
+    if(d){v={d:d,mt:i>=0?t.slice(i+3).trim():'',lourd:/LOURD/.test(tete)};continue;}
+    const g=VERD_TAG.find(function(q){return q[0].test(t);});if(g){tags.push([verdNet(t),g[1]]);continue;}
+    const s=VERD_SEUL.find(function(q){return q[0].test(t);});if(s&&!seul)seul=[verdNet(t),s[1],s[2]];
+  }
+  if(v){if(v.lourd)tags.push([verdNet('POSÉ LOURD'),'#ff3b5c']);verdMontre(v.d[2],v.d[3],v.d[4],v.d[1],v.mt,tags,0);} // PARFAIT / DIVIN : c'est le texte sur la caisse qui le dit
+  else if(tags.length)verdMontre('',tags[0][0],tags[0][1],0,'',tags.slice(1),0);
+  else if(seul)verdMontre('',seul[0],seul[1],0,'',[],seul[2]);
+}
+function verdMontre(l1,l2,col,rang,mt,tags,pS){
+  hautPasse(function(){verdAffiche(l1,l2,col,rang,mt,tags);},rang?1400:1100,'ver',rang?(rang>=5?3:rang>=3?2:1):pS,rang?{ttl:1600}:null); // un verdict attend jusqu'à 1,6 s (une carte de défi en cours) : « +$ » se lit encore juste après la pose
+}
+function verdAffiche(l1,l2,col,rang,mt,tags){
+  let e=VERD.el;
+  if(!e){e=VERD.el=document.createElement('div');e.id='verdHud';e.setAttribute('aria-hidden','true');document.body.appendChild(e);}
+  const W=VP.w*.84,fit=function(t,max,ls){return Math.max(10,Math.min(max,Math.floor(W/Math.max(1,t.length))-ls));},
+    T1=l1?verdNet(l1):'',T2=verdNet(l2),base=Math.round((VERD_TAILLE[rang]||22)*Math.max(.8,Math.min(1,VP.h/800))); // écran court (SE) : un cran plus petit, la caisse reste libre
+  let h='';
+  if(T1)h+='<b class="vK" style="font-size:'+fit(T1,Math.round(base*.56),2)+'px" data-t="'+T1+'">'+T1+'</b>';
+  h+='<b class="vT" style="font-size:'+fit(T2,base,2)+'px" data-t="'+T2+'">'+T2+'</b>';
+  if(mt){const m='+'+String(mt).replace(/[<>&"]/g,'');h+='<em class="vM" style="font-size:'+fit(m,rang>=3?20:18,1)+'px">'+m+'</em>';}
+  if(tags.length)h+='<span class="vTags">'+tags.map(function(g){return '<i style="--tc:'+g[1]+'">'+g[0]+'</i>';}).join('')+'</span>';
+  e.innerHTML=h;e.style.setProperty('--vc',col);e.dataset.r=rang;
+  e.classList.remove('on');void e.offsetWidth;e.classList.add('on');
+  VERD.h=e.offsetHeight; // lu UNE fois par verdict : le geste sur la caisse se pose dessous (popSuit)
+  document.body.classList.add('verdOn');clearTimeout(VERD.t);VERD.t=setTimeout(function(){document.body.classList.remove('verdOn');},rang?1350:1050);
+  if(rang>=3)setTimeout(function(){try{pixBurst(e.querySelector('.vT'),rang>=5?12:rang>=4?10:8);}catch(x){}},120); // les gros rangs éclatent en confettis
+}
 const X_COUL=['#5ee6ff','#5ee6ff','#5ee6ff','#62e062','#ffd75e','#ff5ec8','#ff5ec8','#ff5ec8','#ff3924','#ff3924','#ff3924'];
 const ENG_V9=new THREE.Vector3();
 function engBigSuit(){ // (vague 2) le moteur 3D de la carte : OÙ le recoller dans l'image, à quelle taille, avec quelle opacité (lu par engQuadDraw)
@@ -18821,7 +18979,7 @@ function popSuit(){ // (HUD v4) le geste JAILLIT DE LA CAISSE : tant que le text
   // centre la caisse : au-dessus, le geste se posait sur l'annonce)
   POP_V9.copy(carGroup.position).addScaledVector(camera.up,2.6).project(camera);const yH=(-POP_V9.y*.5+.5)*VP.h,xC=(POP_V9.x*.5+.5)*VP.w; // le TOIT de la caisse à l'écran
   POP_V9.copy(carGroup.position).addScaledVector(camera.up,-1.4).project(camera);const yB=(-POP_V9.y*.5+.5)*VP.h;  // son bas de caisse
-  const mini=la+(HAUT.cur&&performance.now()<HAUT.fin?64:34); // (vague 2) une voix occupe le couloir (annonce, niveau, défi) : le geste se pose plus bas
+  const mini=la+(HAUT.cur&&performance.now()<HAUT.fin?(HAUT.cur.k==='ver'?Math.max(64,VERD.h-44):64):34); // (vague 2) une voix occupe le couloir (annonce, niveau, défi) : le geste se pose plus bas · (vague 3) sous le VERDICT, plus haut qu'une annonce
   const y=yH-56>=mini?Math.min(yH-56,VP.h*.64):THREE.MathUtils.clamp(yB+24,mini,VP.h*.74);
   const t9=y.toFixed(0)+'px';if(e.style.top!==t9)e.style.top=t9; // (perf) on n'écrit que ce qui a bougé d'un pixel
   // (vague 2, H5) il suit aussi la caisse en LARGEUR, mais borné : « AUPHIN EN VOL +8 » sortait de l'écran par la gauche
@@ -18914,6 +19072,11 @@ window.dbgHud=function(k,n){
   if(k==='mis'){misBanniere('ASTUCE',TR("En l'air : pouce en HAUT = plonge, en BAS = cabre."),'','eclair');return 'ok';}
   if(k==='lvl'){lvlAnnonce();return 'ok';}
   if(k==='plonge'){engPlonge();return engBig.on;}
+  if(k==='verdict'){ // (vague 3) un verdict de pose tel que tryLand l'écrit : 'm1' 'm2' 'm3' 'meteor' 'mega' 'snake' · 'tags' (+ bonus) · 'lourd' · 'catapulte'
+    if(n==='catapulte'){trickMsg('🚀 CATAPULTE !',2);return 'ok';}
+    const V={m1:'MONSTRE',m2:'DOUBLE MONSTRE',m3:'TRIPLE MONSTRE',meteor:'METEOR',mega:'MEGA METEOR',snake:'SNAKE LOOP',lourd:'MONSTRE'}[n]||'DOUBLE MONSTRE';
+    if(n==='tags'){trickMsg('PILE AU CENTRE 🎯',false);trickMsg('À RECULONS — MÊME PAS REGARDÉ !',2);trickMsg('FACE CACHÉE ×2',2);}
+    trickMsg((n==='lourd'?'POSÉ LOURD — AÏE… ':n==='m1'?'PARFAIT ! ':'')+V+'  +'+fmtC(denom()*({m1:12,m2:60,m3:180,meteor:90,mega:900,snake:240}[n]||60)),3);return 'ok';}
   if(k==='file'){const c=HAUT.cur,t=performance.now();return {voix:c&&t<HAUT.fin?c.k+':'+c.p:null,attente:HAUT.q.map(function(q){return q.k+':'+q.p;}),moteur:engBig.on?(engBig.plonge?'plonge':'couloir'):null};}
   return {flow:{v:FLOW.v,lv:FLOW.lv,idle:FLOW.idle},cha:{pts:CHA.pts,x:CHA.x,n:CHA.n,t:CHA.t},rec:CHA.rec,recB:CHA.recB,aura:Math.round(auraRun)};
 };
@@ -19139,6 +19302,7 @@ function heistFire(){
   showMsg('🚀 DÉCOLLAGE — TOUT ×2 ! ★','#ff3ec8');
 }
 function trickMsg(txt,tier){ // tier: 1 MONSTRE · 2 DOUBLE · 3 TRIPLE (ou true = mis en avant)
+  if(TCTL.on){verdPousse(txt,tier);return;} // (vague 3) sur téléphone #trickBox est masqué (écran nu) : le verdict monte au COULOIR des annonces (verdSolde)
   // UN temps fort à la fois : un gros verdict (tier≥2) balaie les petits pops en cours ; sinon on plafonne à 2
   if(tier===2||tier===3){while(trickBox.firstChild)trickBox.firstChild.remove();}
   else while(trickBox.childElementCount>=2)trickBox.firstChild.remove();
