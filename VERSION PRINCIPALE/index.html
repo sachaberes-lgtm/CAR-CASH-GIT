@@ -3735,14 +3735,31 @@ const POST_HI=new THREE.Vector3(0.052,0.008,-0.014);      // LUMIÈRES → or ro
 const GRADE_ACES=IS_MOBILE; // (2026-09-25) l'étalonnage final (ex-filtre CSS du canvas) passe DANS l'ACES : plus de passe de compositeur plein écran, à la résolution de l'écran, sur téléphone
 const FXAA_ON=IS_MOBILE||IS_LOW_END||devicePixelRatio>=1.5; // (2026-09-26, audit rendu) là où il n'y a PAS de MSAA (téléphone : aucun anticrénelage, chaque marche = 3 px physiques)
 const ACES_N=IS_MOBILE?6:8;   // flou radial du boost : 18 lectures de texture au téléphone au lieu de 24 (le grain animé fond les copies)
+/* LA PASSE FINALE ALLÉGÉE (2026-09-27, passe perf iPhone, tour 2 — « le post-traitement »). MESURÉ au micro-banc (la passe seule, rejouée
+   sur une image figée, 585×1266 comme l'iPhone en NETTE ; rendu logiciel SwiftShader ET vraie carte, chronomètre de la puce) : en rendu
+   logiciel, ce qui coûte ce sont les LECTURES de texture (FXAA ~45 %, halo ~20 %, calcul ~15 %) ; sur une vraie puce, le CALCUL de
+   l'étalonnage pèse ~35 % et les lectures FILTRÉES le reste. Quatre allègements, même image (écart ≤ 1/255, 0 sur la plupart des pixels) :
+   · FXAA : le centre et ses 4 voisins tombent PILE sur des texels (même taille que l'image) — lus par `texelFetch` (un texel, ni
+     filtrage ni dérivées ; bord de l'image : coordonnées bornées = ce que faisait le « clamp to edge »). Identique au bit près ;
+   · toutes les autres lectures (flou radial, bords du FXAA, halo) en `textureLod(…,0)` : ces cibles n'ont pas de mips et filtrent en
+     linéaire à toutes les échelles — même résultat au bit près, sans le calcul de dérivées qui précède chaque `texture()` (−20 % sur
+     vraie carte à lui seul) ;
+   · le HALO : les 5 mips étaient relus à CHAQUE pixel de l'écran — ils sont désormais sommés UNE fois dans une petite cible à la
+     taille du 1er mip (voir « LE HALO COMPOSÉ » sous le compositeur) : 1 lecture au lieu de 5 (PC : 2 au lieu de 10) ;
+   · l'étalonnage : exposition × balance et contraste pré-calculés par image (`uWE`, `uKC`), tunnel et lueur de nitro sautés quand
+     ils valent 0 (branche sur un uniforme : toute l'image prend le même chemin), la vignette ne tire sa racine qu'au-delà de l'ellipse
+     où elle commence, et le grade du téléphone replié en 2 opérations.
+   WebGL1 (très vieux appareils) : `texelFetch`/`textureLod` n'y existent pas — mêmes calculs en `texture2D`, comme avant. */
+const W2_POST=!!(renderer.capabilities&&renderer.capabilities.isWebGL2);
+const TXL=(s,u)=>W2_POST?'textureLod('+s+','+u+',0.0)':'texture2D('+s+','+u+')'; // une lecture filtrée, sans dérivées quand on peut
 const ACESShader={
   uniforms:{tDiffuse:{value:null},uExposure:{value:POST_EXPO},uSat:{value:POST_SAT},uContrast:{value:POST_CONTRAST},
             uVivid:{value:POST_VIVID},uWB:{value:POST_WB},uSh:{value:POST_SHADOW},uHi:{value:POST_HI},uSpeed:{value:0},uJit:{value:0},uRes:{value:new THREE.Vector2(1/1024,1/1024)},
-            uVigK:{value:.52},uVigC:{value:new THREE.Vector3(.149,.047,.212)}}, // (2026-09-26, vague 2) la VIGNETTE du niveau (ex-calque DOM #vig), posée par bioApply
+            uVigK:{value:.52},uVigC:{value:new THREE.Vector3(.149,.047,.212)}, // (2026-09-26, vague 2) la VIGNETTE du niveau (ex-calque DOM #vig), posée par bioApply
+            uWE:{value:new THREE.Vector3(1,1,1)},uKC:{value:new THREE.Vector2(1,0)}}, // (tour 2, post) uWB×uExposure et le contraste (pente, décalage) — posés par acesPass.render à chaque image
   vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
-  fragmentShader:['uniform sampler2D tDiffuse;uniform float uExposure,uSat,uContrast,uVivid,uSpeed,uJit,uVigK,uSharp;uniform vec3 uWB,uSh,uHi,uVigC;uniform vec2 uRes;varying vec2 vUv;',
-    'uniform sampler2D uB1,uB2,uB3,uB4,uB5;uniform vec4 uBw;uniform float uBw5,uBa;', // (2026-09-27, passe perf iPhone) le BLOOM FUSIONNÉ — voir « FUSION DU BLOOM » sous le compositeur
-    'vec3 bloomAt(vec2 u){return clamp(uBw.x*texture2D(uB1,u).rgb+uBw.y*texture2D(uB2,u).rgb+uBw.z*texture2D(uB3,u).rgb+uBw.w*texture2D(uB4,u).rgb+uBw5*texture2D(uB5,u).rgb,0.,1.)*uBa;}',
+  fragmentShader:['uniform sampler2D tDiffuse;uniform float uExposure,uSat,uContrast,uVivid,uSpeed,uJit,uVigK,uSharp;uniform vec3 uWB,uSh,uHi,uVigC,uWE;uniform vec2 uRes,uKC;varying vec2 vUv;',
+    'uniform sampler2D uBc;uniform float uBa;', // (2026-09-27, passe perf iPhone) le BLOOM FUSIONNÉ — le halo déjà composé (voir « LE HALO COMPOSÉ » sous le compositeur) ; uBa = 0 : pas de halo
     'uniform vec4 uNit;uniform float uNitF;', // (vague 3, NITRO) la couleur de la poussée sur les bords (rgb + part) et le coup d'allumage — posés par nfxTick
     // (2026-09-26, audit rendu) LES HAUTES LUMIÈRES ROULENT au lieu de s'écraser : en NUAGES, 98 % du haut de l'image avait un canal au
     // plafond (un aplat bleu électrique, des nuages brûlés). Le coude garde la TEINTE (on divise les trois canaux ensemble) : tout ce
@@ -3751,23 +3768,29 @@ const ACESShader={
     'vec3 aces(vec3 x){const float a=2.51,b=.03,c=2.43,d=.59,e=.14;return clamp((x*(a*x+b))/(x*(c*x+d)+e),0.,1.);}',
     'const vec3 LUM=vec3(.2126,.7152,.0722);',
     'void main(){',
-    '  vec2 dir=vUv-0.5; float r=length(dir); vec3 x; vec2 bu=vUv,bd=vec2(0.0);',
-    '  vec2 buv=0.5+dir*(1.0+uSpeed*0.60*r*r);',              // WARP AU BOOST : le monde S INCURVE FORT autour de la caisse (centre stable → jouable)
+    // (tour 2, post) `r` (une racine) ne sert qu'au flou, au tunnel et à la lueur : calculé seulement quand l'un d'eux joue (`fx`, même
+    // valeur pour toute l'image). Sans poussée, tunnel ×1 et lueur +0 exactement : les sauter ne change pas un bit.
+    '  vec2 dir=vUv-0.5; vec3 x; vec2 bu=vUv,bd=vec2(0.0);',
+    '  bool fx=uSpeed>0.0||uNit.a+uNitF>0.0; float r=0.0; if(fx)r=length(dir);',
     '  if(uSpeed>0.004){',                                    // + flou radial + aberration chromatique (fuite vers les bords)
+    '    vec2 buv=0.5+dir*(1.0+uSpeed*0.60*r*r);',            // WARP AU BOOST : le monde S INCURVE FORT autour de la caisse (centre stable → jouable)
     '    float amt=uSpeed*(0.04+r*r*1.7); vec3 acc=vec3(0.0);', // r² : centre NET, filé TRÈS FRANC vers les bords
     '    float jt=fract(52.9829189*fract(dot(gl_FragCoord.xy,vec2(.06711056,.00583715)))+uJit);', // grain ANIMÉ : moins de prises sans dessiner de copies (statique = saleté collée)
     '    for(int i=0;i<'+ACES_N+';i++){ float t='+(ACES_N<8?'(float(i)+jt)/'+ACES_N+'.0':'float(i)/7.0')+'; vec2 off=dir*amt*t*0.62;',
-    '      acc+=texture2D(tDiffuse,buv-off).rgb; }',            // (2026-09-26) UNE lecture par prise (il y en avait trois : 18 lectures par pixel au téléphone)
+    '      acc+='+TXL('tDiffuse','buv-off')+'.rgb; }',        // (2026-09-26) UNE lecture par prise (il y en avait trois : 18 lectures par pixel au téléphone)
     '    x=acc/'+ACES_N+'.0; bu=buv-dir*amt*0.31;'+(IS_MOBILE?'':' bd=dir*amt*0.155;'), // le halo se lit au milieu de la traînée (PC : aux deux quarts, il FILE comme l'image ; téléphone : une lecture — mesuré invisible, 5 lectures de moins au boost)
     // L'ABERRATION CHROMATIQUE (2026-09-26, vague 2) — MESURÉ : au boost, chaque bord de nuage et chaque fenêtre de la ville s'ourlait
     // d'un ARC-EN-CIEL rose/jaune/cyan de 10-12 px (×.05 de l'amplitude du flou, dès le centre). Réduite au TIERS et seulement au-delà de
     // 45 % du rayon (le bord de l'image fuit, le centre reste propre) — et COUPÉE au téléphone : deux lectures de texture en moins par pixel.
     IS_MOBILE?'':'    { vec2 mid=buv-dir*amt*0.31, ca=dir*amt*0.015*smoothstep(.45,.9,r);'+
-    '      x.r=mix(x.r,texture2D(tDiffuse,mid-ca).r,0.5); x.b=mix(x.b,texture2D(tDiffuse,mid+ca).b,0.5); }',
+    '      x.r=mix(x.r,'+TXL('tDiffuse','mid-ca')+'.r,0.5); x.b=mix(x.b,'+TXL('tDiffuse','mid+ca')+'.b,0.5); }',
     '  } else {',
     FXAA_ON?[ // ANTICRÉNELAGE LÉGER (FXAA simplifié) — seulement image nette (le flou de boost lisse déjà) ; hors bord, 5 lectures et on sort
-    '    vec3 cM=texture2D(tDiffuse,vUv).rgb;',
-    '    vec3 cNW=texture2D(tDiffuse,vUv+vec2(-1.,-1.)*uRes).rgb,cNE=texture2D(tDiffuse,vUv+vec2(1.,-1.)*uRes).rgb,cSW=texture2D(tDiffuse,vUv+vec2(-1.,1.)*uRes).rgb,cSE=texture2D(tDiffuse,vUv+vec2(1.,1.)*uRes).rgb;',
+    // (tour 2, post) le centre et ses 4 voisins sont des TEXELS entiers : `texelFetch`, coordonnées bornées au cadre (= clamp to edge)
+    W2_POST?'    ivec2 tm=textureSize(tDiffuse,0)-1,ip=min(ivec2(vUv*vec2(tm+1)),tm);'+
+      ' vec3 cM=texelFetch(tDiffuse,ip,0).rgb,cNW=texelFetch(tDiffuse,clamp(ip+ivec2(-1,-1),ivec2(0),tm),0).rgb,cNE=texelFetch(tDiffuse,clamp(ip+ivec2(1,-1),ivec2(0),tm),0).rgb,'+
+      'cSW=texelFetch(tDiffuse,clamp(ip+ivec2(-1,1),ivec2(0),tm),0).rgb,cSE=texelFetch(tDiffuse,clamp(ip+ivec2(1,1),ivec2(0),tm),0).rgb;':
+    '    vec3 cM=texture2D(tDiffuse,vUv).rgb,cNW=texture2D(tDiffuse,vUv+vec2(-1.,-1.)*uRes).rgb,cNE=texture2D(tDiffuse,vUv+vec2(1.,-1.)*uRes).rgb,cSW=texture2D(tDiffuse,vUv+vec2(-1.,1.)*uRes).rgb,cSE=texture2D(tDiffuse,vUv+vec2(1.,1.)*uRes).rgb;',
     '    float lM=dot(cM,LUM),lNW=dot(cNW,LUM),lNE=dot(cNE,LUM),lSW=dot(cSW,LUM),lSE=dot(cSE,LUM);',
     '    float lMin=min(lM,min(min(lNW,lNE),min(lSW,lSE))),lMax=max(lM,max(max(lNW,lNE),max(lSW,lSE)));',
     // (2026-09-27, tour 2) LE PIQUÉ QUI COMPENSE LA RÉSOLUTION : quand l'échelle QL descend sous le plafond, `uSharp` > 0 rend aux
@@ -3782,34 +3805,39 @@ const ACESShader={
     '      vec2 d=vec2(-((lNW+lNE)-(lSW+lSE)),((lNW+lSW)-(lNE+lSE)));',
     '      float dr=max((lNW+lNE+lSW+lSE)*0.03125,0.0078125); float rc=1.0/(min(abs(d.x),abs(d.y))+dr);',
     '      d=clamp(d*rc,vec2(-8.0),vec2(8.0))*uRes;',
-    '      vec3 a=0.5*(texture2D(tDiffuse,vUv+d*(1.0/3.0-0.5)).rgb+texture2D(tDiffuse,vUv+d*(2.0/3.0-0.5)).rgb);',
-    '      vec3 b=a*0.5+0.25*(texture2D(tDiffuse,vUv-d*0.5).rgb+texture2D(tDiffuse,vUv+d*0.5).rgb);',
-    '      float lB=dot(b,LUM); x=(lB<lMin||lB>lMax)?a:b; }'].join('\n'):'    x=texture2D(tDiffuse,vUv).rgb;',
+    '      vec3 a=0.5*('+TXL('tDiffuse','vUv+d*(1.0/3.0-0.5)')+'.rgb+'+TXL('tDiffuse','vUv+d*(2.0/3.0-0.5)')+'.rgb);',
+    '      vec3 b=a*0.5+0.25*('+TXL('tDiffuse','vUv-d*0.5')+'.rgb+'+TXL('tDiffuse','vUv+d*0.5')+'.rgb);',
+    '      float lB=dot(b,LUM); x=(lB<lMin||lB>lMax)?a:b; }'].join('\n'):'    x='+TXL('tDiffuse','vUv')+'.rgb;',
     '  }',
-    '  if(uBa>0.0)x+=(bd.x!=0.0||bd.y!=0.0)?0.5*(bloomAt(bu-bd)+bloomAt(bu+bd)):bloomAt(bu);',
-    '  x=x*uWB*uExposure;',
+    // le HALO, déjà composé (poids, écrêtage à 1 et ×alpha compris) : UNE lecture — deux au PC quand il file au boost
+    IS_MOBILE?'  if(uBa>0.0)x+='+TXL('uBc','bu')+'.rgb;':'  if(uBa>0.0)x+=(bd.x!=0.0||bd.y!=0.0)?0.5*('+TXL('uBc','bu-bd')+'.rgb+'+TXL('uBc','bu+bd')+'.rgb):'+TXL('uBc','bu')+'.rgb;',
+    '  x*=uWE;',                                          // = x·uWB·uExposure (produit posé par image)
     'float L=dot(x,LUM);',
     'vec3 perCh=aces(x);',                              // ACES par canal : sûr mais désature les hautes lumières
-    'vec3 lumB=x*(aces(vec3(L)).x/max(L,1e-4));',       // ACES sur la LUMINANCE seule → la chroma est conservée (néon)
+    'vec3 lumB=x*(clamp((L*(2.51*L+.03))/(L*(2.43*L+.59)+.14),0.,1.)/max(L,1e-4));', // ACES sur la LUMINANCE seule (en scalaire) → la chroma est conservée (néon)
     'vec3 c=max(mix(perCh,lumB,uVivid),0.);',           // dosage entre les deux (plus d'écrêtage ici : voir `roule`)
-    'c=max((c-0.5)*uContrast+0.5,0.);',                 // CONTRASTE : noirs profonds
+    'c=max(c*uKC.x+uKC.y,0.);',                         // CONTRASTE : noirs profonds — (c−.5)·k+.5 = c·k + (.5−.5k)
     'float l2=dot(c,LUM);c=mix(vec3(l2),c,uSat);',      // SATURATION
     'c+=uSh*(1.-smoothstep(0.,0.5,l2));',               // split-tone : ombres TEAL
     'c+=uHi*smoothstep(0.5,1.0,l2);',                   // split-tone : lumières OR
+    'if(fx){',
     'c*=1.0-uSpeed*smoothstep(0.30,0.85,r)*0.55;',      // TUNNEL DE VITESSE : les bords plongent dans le noir, l'œil file au centre
     // (vague 3, NITRO) LES BORDS S'ALLUMENT DE LA COULEUR DE LA POUSSÉE — une LUEUR ajoutée (pas un voile : un mélange vers l'orange
     // délavait le rose en brun, mesuré), plus forte sur le sombre que sur le clair (elle ne brûle jamais le ciel), + le COUP d'allumage.
     // Le centre (la caisse, la route devant) reste intact : tout se joue au-delà du quart de l'image. Zéro lecture de texture.
-    '{float ne=smoothstep(0.36,0.74,r);c+=uNit.rgb*(ne*(uNit.a*(1.0-0.6*min(1.0,dot(c,LUM)))+uNitF));}',
-    GRADE_ACES?'c=max(c,0.);c=max(mix(vec3(dot(c,LUM)),c,1.12),0.);c=max((c-.5)*1.05+.5,0.)*.97;':'', // = saturate(1.12) contrast(1.05) brightness(.97) du CSS, même ordre
+    '{float ne=smoothstep(0.36,0.74,r);c+=uNit.rgb*(ne*(uNit.a*(1.0-0.6*min(1.0,dot(c,LUM)))+uNitF));}}',
+    // = saturate(1.12) contrast(1.05) brightness(.97) du CSS, même ordre — mix(l,c,1.12) = 1.12c − .12l ; ((c−.5)·1.05+.5)·.97 = 1.0185c − .02425
+    GRADE_ACES?'c=max(c,0.);c=max(c*1.12-dot(c,LUM)*.12,0.);c=max(c*1.0185-.02425,0.);':'',
     // LA VIGNETTE (2026-09-26, vague 2) — c'était un calque DOM plein écran (#vig) : violet, fixe à 52 %, même en plein jour cobalt. Elle
     // vit ici, par niveau (uVigK/uVigC, posés par bioApply). Même dessin au pixel que l'ancien dégradé CSS (ellipse centrée à 44 % du
     // haut, taille « coin le plus loin », transparente jusqu'à mi-chemin puis linéaire) : la VILLE garde exactement son cadre.
-    '{vec2 vq=vec2((vUv.x-.5)/.5,(vUv.y-.56)/.44);float vg=clamp(length(vq)*1.2354-1.,0.,1.);',
-    'gl_FragColor=vec4(mix(clamp(roule(c),0.,1.),uVigC,uVigK*vg),1.0);}}'].join('\n')
+    // (tour 2, post) nulle DANS l'ellipse (|vq|·1,2354 ≤ 1, soit |vq|² ≤ 0,655218) : la racine et le mélange ne se font qu'au-delà.
+    'c=clamp(roule(c),0.,1.);',
+    '{vec2 vq=vec2((vUv.x-.5)/.5,(vUv.y-.56)/.44);float q=dot(vq,vq);',
+    'if(q>0.6552)c=mix(c,uVigC,uVigK*clamp(sqrt(q)*1.2354-1.,0.,1.));',
+    'gl_FragColor=vec4(c,1.0);}}'].join('\n')
 };
-for(let i=1;i<=5;i++)ACESShader.uniforms['uB'+i]={value:null}; // (posées sur acesPass APRÈS sa création : ShaderPass CLONE les uniforms, une texture clonée serait une autre texture)
-ACESShader.uniforms.uBw={value:new THREE.Vector4()};ACESShader.uniforms.uBw5={value:0};ACESShader.uniforms.uBa={value:0};
+ACESShader.uniforms.uBc={value:null};ACESShader.uniforms.uBa={value:0}; // (posé sur acesPass APRÈS sa création : ShaderPass CLONE les uniforms, une texture clonée serait une autre texture)
 ACESShader.uniforms.uSharp={value:0}; // (tour 2) le piqué qui compense la résolution — posé par applyDPR
 ACESShader.uniforms.uNit={value:new THREE.Vector4(1,.478,.141,0)};ACESShader.uniforms.uNitF={value:0}; // (vague 3, NITRO) la poussée sur les bords — voir nfxTick
 const CAN_POST=typeof THREE.EffectComposer==='function'&&typeof THREE.RenderPass==='function'&&typeof THREE.UnrealBloomPass==='function'&&typeof THREE.ShaderPass==='function';
@@ -3838,7 +3866,21 @@ if(CAN_POST){ try{
   bloomPass=new THREE.UnrealBloomPass(bRes,IS_MOBILE?0.44:0.54,IS_MOBILE?0.44:.5,0.92);
   // (2026-09-26, audit rendu) `addPass` rappelle setSize(largeur×DPR) : la résolution `bSc` était IGNORÉE (mesuré : ½ au lieu de .42).
   // UnrealBloomPass prend la moitié de ce qu'on lui donne — on lui donne donc 2×bSc.
-  {const s0=bloomPass.setSize.bind(bloomPass);bloomPass.setSize=function(W,H){this._W=W;this._H=H;s0(Math.max(2,Math.round(W*bSc*2*BLOOM_RES)),Math.max(2,Math.round(H*bSc*2*BLOOM_RES)));};} // (_W/_H retenus : l'échelle QL retaille le bloom seul)
+  /* LE HALO COMPOSÉ (2026-09-27, passe perf iPhone, tour 2 — « le post-traitement »). Le halo fusionné dans l'ACES relisait ses 5 mips
+     à CHAQUE pixel de l'écran (740 000 × 5 lectures sur iPhone en NETTE). Ils sont désormais sommés UNE fois par image dans une petite
+     cible à la taille du 1er mip (~250×530 sur iPhone : 18 % des pixels de l'écran) — mêmes poids, même écrêtage à 1, même ×alpha —
+     et l'ACES n'en lit plus qu'UNE texture. C'est le « composite » d'origine d'UnrealBloomPass, mais en demi-flottant (pas l'arrondi
+     8 bits d'avant) et sans la copie plein écran qui le suivait. MESURÉ (images figées, 3 niveaux, sol/vol/nitro) : ≤ 1/255, 0,005/255
+     en moyenne — le 1er mip est lu pile sur ses texels, les 4 autres, déjà très flous, passent par une interpolation de plus. */
+  bloomPass._cRT=new THREE.WebGLRenderTarget(2,2,{format:THREE.RGBAFormat,type:rtType,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,depthBuffer:false,stencilBuffer:false});
+  bloomPass._cRT.texture.generateMipmaps=false;
+  bloomPass._cMat=new THREE.ShaderMaterial({uniforms:{t1:{value:null},t2:{value:null},t3:{value:null},t4:{value:null},t5:{value:null},w:{value:new THREE.Vector4()},w5:{value:0},a:{value:0}},
+    depthTest:false,depthWrite:false,vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+    fragmentShader:'varying vec2 vUv;uniform sampler2D t1,t2,t3,t4,t5;uniform vec4 w;uniform float w5,a;void main(){gl_FragColor=vec4(clamp(w.x*'+TXL('t1','vUv')+'.rgb+w.y*'+TXL('t2','vUv')+'.rgb+w.z*'+
+      TXL('t3','vUv')+'.rgb+w.w*'+TXL('t4','vUv')+'.rgb+w5*'+TXL('t5','vUv')+'.rgb,0.,1.)*a,1.0);}'});
+  bloomPass._a=0; // l'alpha du halo de l'image (strength·Σpoids écrêté à 1) — relu par l'ACES
+  {const s0=bloomPass.setSize.bind(bloomPass);bloomPass.setSize=function(W,H){this._W=W;this._H=H;s0(Math.max(2,Math.round(W*bSc*2*BLOOM_RES)),Math.max(2,Math.round(H*bSc*2*BLOOM_RES)));
+    const v0=this.renderTargetsVertical[0];if(this._cRT&&(this._cRT.width!==v0.width||this._cRT.height!==v0.height))this._cRT.setSize(v0.width,v0.height);};} // (_W/_H retenus : l'échelle QL retaille le bloom seul) — le halo composé suit le 1er mip
   if(REDUCED_MOTION)bloomPass.enabled=false; // reduced-motion : bloom coupé
   composer.addPass(bloomPass);
   acesPass=new THREE.ShaderPass(ACESShader);acesPass.renderToScreen=true;composer.addPass(acesPass);
@@ -3867,6 +3909,12 @@ if(CAN_POST){ try{
         this.fsQuad.material=mh;mh.uniforms.colorTexture.value=inp.texture;mh.uniforms.direction.value=THREE.UnrealBloomPass.BlurDirectionX;rd.setRenderTarget(hz);rd.clear();this.fsQuad.render(rd);
         this.fsQuad.material=m;m.uniforms.colorTexture.value=hz.texture;m.uniforms.direction.value=THREE.UnrealBloomPass.BlurDirectionY;rd.setRenderTarget(vt);rd.clear();this.fsQuad.render(rd);
         inp=vt;}
+      if(this._cMat&&this.nMips===5){ // LE HALO COMPOSÉ (voir sa création) : poids `strength·mix(f,1.2−f,radius)` = lerpBloomFactor, facteurs 1/.8/.6/.4/.2
+        const cu=this._cMat.uniforms,s=this.strength,r=this.radius,w0=s*(1-.8*r),w1=s*(.8-.4*r),w2=s*.6,w3=s*(.4+.4*r),w4=s*(.2+.8*r);
+        for(let i=0;i<5;i++)cu['t'+(i+1)].value=this.renderTargetsVertical[i].texture;
+        cu.w.value.set(w0,w1,w2,w3);cu.w5.value=w4;cu.a.value=this._a=Math.min(1,Math.max(0,w0+w1+w2+w3+w4));
+        this.fsQuad.material=this._cMat;rd.setRenderTarget(this._cRT);rd.clear();this.fsQuad.render(rd);}
+      else this._a=0;
       if(mask)rd.state.buffers.stencil.setTest(true);
       rd.setClearColor(this._oldClearColor,this.oldClearAlpha);rd.autoClear=oa;};
     THREE.UnrealBloomPass.prototype.render.__fus=true;}
@@ -3890,14 +3938,13 @@ if(CAN_POST){ try{
          fragmentShader:'varying vec2 vUv;uniform sampler2D colorTexture;uniform vec2 texSize;'+gp+
            'void main(){vec2 inv=1.0/texSize;float fs=float(KR),ws=0.0;vec3 s=vec3(0.0);for(int j=1-KR;j<KR;j++){float wj=gp(float(j),fs);for(int i=1-KR;i<KR;i++){float w=wj*gp(float(i),fs);s+=texture2D(colorTexture,vUv+vec2(float(i),float(j))*inv).rgb*w;ws+=w;}}gl_FragColor=vec4(s/ws,1.0);}'});}
      return true;}catch(e){p.plie=false;return false;} }
-   const U9=acesPass.uniforms,BF9=[1,.8,.6,.4,.2],bp9=bloomPass;
-   for(let i=0;i<5;i++)U9['uB'+(i+1)].value=bp9.renderTargetsVertical[i].texture; // setSize garde les mêmes objets texture : posé une fois
+   const U9=acesPass.uniforms,bp9=bloomPass;
+   U9.uBc.value=bp9._cRT.texture; // setSize garde le même objet texture : posé une fois
    bp9.fuse=bp9.plie=!/[?&]bloom=ancien/.test(location.search); // `?bloom=ancien&perf=1` : les 13 passes d'origine, pour comparer SUR le téléphone
    acesPass.render=function(){ // (appelle le prototype À CHAQUE FOIS, pas une copie : les bancs qui l'enveloppent continuent de mesurer l'ACES)
-     if(bp9.enabled&&bp9.fuse){const s=bp9.strength,r=bp9.radius;
-       const w0=s*(BF9[0]+(1.2-2*BF9[0])*r),w1=s*(BF9[1]+(1.2-2*BF9[1])*r),w2=s*(BF9[2]+(1.2-2*BF9[2])*r),w3=s*(BF9[3]+(1.2-2*BF9[3])*r),w4=s*(BF9[4]+(1.2-2*BF9[4])*r);
-       U9.uBw.value.set(w0,w1,w2,w3);U9.uBw5.value=w4;U9.uBa.value=Math.min(1,Math.max(0,w0+w1+w2+w3+w4));}
-     else U9.uBa.value=0; // bloom éteint (réduire les animations, palier ultime) : ses mips ne sont plus à jour — on ne les lit plus
+     U9.uBa.value=(bp9.enabled&&bp9.fuse)?bp9._a:0; // bloom éteint (réduire les animations, palier ultime) : le halo composé n'est plus à jour — on ne le lit plus
+     U9.uWE.value.copy(U9.uWB.value).multiplyScalar(U9.uExposure.value); // (tour 2, post) exposition × balance, une fois par image au lieu d'une fois par pixel
+     U9.uKC.value.set(U9.uContrast.value,.5-.5*U9.uContrast.value);      // …et le contraste en pente + décalage
      return THREE.ShaderPass.prototype.render.apply(this,arguments);};}
   POST_ON=true;
   {const v9=document.getElementById('vig');if(v9)v9.style.display='none';} // (2026-09-26, vague 2) la vignette est dans l'ACES : un calque plein écran de moins (si le post échoue, #vig reste le repli)
