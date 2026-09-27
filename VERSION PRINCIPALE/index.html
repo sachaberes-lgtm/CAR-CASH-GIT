@@ -12902,6 +12902,17 @@ Object.assign(SHAPES,{
 });
 /* ===== LA GAMME DES 50 — FIN ===== */
 const CAR_VIEUX=[]; // les matières de la caisse d'avant : libérées à la construction suivante
+/* LA CAISSE NE DÉTRUIT PLUS SES PROGRAMMES (2026-09-28, chasse aux gels) — three DÉTRUIT un programme quand la dernière matière qui s'en
+   sert est libérée. Le sursis d'une construction (`CAR_VIEUX`) suffisait tant que la caisse était DESSINÉE entre deux constructions ; le
+   studio photo en enchaîne deux sans dessin (la caisse photographiée, puis la tienne) : MESURÉ, chaque photo tuait les programmes de ta
+   caisse (5 recompilés à l'image suivante) et les siens (4 recompilés à la photo suivante), et au JOUER la 1re image de course recompilait
+   ceux que le garage avait tués. Désormais la 1re matière vue de chaque programme n'est jamais libérée (`CAR_GARDE`, comme `ENG_GARDE`
+   pour les moteurs) : un programme de caisse compilé une fois l'est pour la session. Coût : une poignée de matières gardées. */
+const CAR_GARDE=new Map();
+function carGarde(m){ // vrai si `m` est la 1re matière vue d'un de ses programmes : elle reste en vie, et le programme avec elle
+  const pp=renderer.properties.get(m).programs;if(!pp)return false;
+  let g=false;for(const k of pp.keys())if(!CAR_GARDE.has(k)){CAR_GARDE.set(k,m);g=true;}
+  return g;}
 /* ===== LA CAISSE EN UN MINIMUM DE DESSINS (2026-09-27, passe perf iPhone) =====
    MESURÉ (banc iPhone, caisse de départ LA HONTE) : la caisse du joueur coûtait 80 appels de dessin dans la scène + 70 dans l'ombre,
    150 des ~236 de l'image — des dizaines de boîtes et de cylindres IMMOBILES dans leur groupe, et 4 roues de 8 pièces chacune. Safari
@@ -13016,7 +13027,7 @@ function buildCar(spec){
   // photo de la boutique) : les tampons GPU grossissaient d'une partie à l'autre. Tout part, SAUF le partagé (boule des gabarits,
   // tuyères) et la géométrie commune des sprites ; les MATIÈRES attendent une construction de plus avant d'être libérées : leurs
   // programmes restent chauds, pas de recompilation à chaque caisse.
-  for(const m of CAR_VIEUX)m.dispose();CAR_VIEUX.length=0;
+  for(const m of CAR_VIEUX)if(!carGarde(m))m.dispose();CAR_VIEUX.length=0; // (chasse aux gels) sauf la gardienne de chaque programme
   carGroup.traverse(o=>{if(o.geometry&&!o.isSprite&&o.geometry!==SPH9&&o.geometry!==jetGeo)o.geometry.dispose();
     const mm=Array.isArray(o.material)?o.material:[o.material];
     for(const m of mm)if(m&&m!==jetShellM&&m!==jetCoreM&&m!==jetGlowM&&CAR_VIEUX.indexOf(m)<0)CAR_VIEUX.push(m);});
@@ -13476,8 +13487,23 @@ function jeteEngin(m){m.traverse(o=>{if(o.isMesh){if(o.geometry&&!(o.geometry.us
    2e encore 70 ms. Au menu et à l'écran de mort, on construit donc chaque palier HORS écran, une pièce par image, on compile, et on garde
    EN VIE la première matière de chaque programme (`ENG_GARDE`) : tant qu'elle vit, three ne détruit pas le programme, et le vrai moteur
    le retrouve tout prêt. Tout le reste de la pièce est libéré aussitôt. Coût : quelques programmes gardés (quelques Ko). */
+/* L'ATELIER SE PRÉPARE D'ABORD (2026-09-28, chasse aux gels) — c'est lui que JOUER montre dans la seconde. MESURÉ avant : 36 programmes
+   compilés APRÈS le tap (l'atelier bâti et compilé à sa 1re image, sous un autre éclairage, plus le studio photo), ~1,1 s de gel sur PC.
+   Désormais, au menu, AVANT tout le reste et une étape par image : (1) l'atelier est BÂTI, caché — dès que la police pixel est prête (son
+   néon « CASH CAR » est peint avec ; en attendant, la chauffe continue ailleurs) ; (2) il est compilé SEUL, sous le MÊME éclairage que le
+   garage (voir atelierLampes), puis dessiné une fois hors écran (états de pipeline de la puce) — `chauffeRendu([GAR.root])`. Un joueur
+   plus rapide que la chauffe ne casse rien : openGarage bâtit ce qui manque et la 1re image compile ce qui reste, comme avant. */
+function atelierChauffe(){ // vrai si elle a travaillé à cette image (la chauffe s'arrête là pour cette image)
+  if(GAR.chaud||garageOn)return false;
+  if(!GAR.root){const f=document.fonts;atelierChauffe.n=(atelierChauffe.n|0)+1;
+    if(f&&f.check&&atelierChauffe.n<150&&!f.check('26px "Press Start 2P"')){if(atelierChauffe.n===1&&f.load)f.load('26px "Press Start 2P"').catch(function(){});return false;} // 2,5 s au plus
+    try{buildGarageRoom();}catch(e){console.warn('atelier',e);GAR.chaud=true;}
+    return true;}
+  GAR.chaud=true;chauffeRendu([GAR.root]);return true;
+}
 const ENG_GARDE=new Map();let engChaudI=-1;
 function engChauffe(){
+  if(atelierChauffe())return; // (chasse aux gels) L'ATELIER D'ABORD : c'est lui que JOUER montre dans la seconde
   if(engChaudI<0){engChaudI=0;chauffeDivers();return;} // d'abord ce qui peut naître à N'IMPORTE quel moment de la course (pigeons, trace, ville)
   if(engChaudI>ENGINE_TIERS.length){if(!CHAUFFE_R.fait){CHAUFFE_R.fait=true;chauffeRendu();}return;} // (tour 2) les moteurs prêts : toute la scène passe une fois par la puce
   try{
@@ -13506,13 +13532,20 @@ function engChauffe(){
    visible et sans tri de champ, les lumières intouchées (leur nombre changerait les programmes) : au menu une fois, et à chaque
    construction de niveau. Les géométries montent au GPU du même coup (elles montaient elles aussi au 1er dessin, en plein vol). */
 const CHAUFFE_R={t:0,rt:null,fait:false};
-function chauffeRendu(){ try{
+function chauffeRendu(que){ try{ // `que` (chasse aux gels) : ne dessiner QUE ces sous-arbres, sous l'éclairage de la scène (l'atelier, au menu)
   if(!CHAUFFE_R.rt){const t9=(composer&&composer.renderTarget1)?composer.renderTarget1.texture.type:THREE.UnsignedByteType;
     CHAUFFE_R.rt=new THREE.WebGLRenderTarget(8,8,{format:THREE.RGBAFormat,type:t9,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});}
+  // ⚠ `que` : la scène ne garde, le temps du dessin, que ses LUMIÈRES et ces sous-arbres — toutes les lumières sont des enfants DIRECTS de la
+  // scène (leur nombre est écrit dans les programmes : en perdre une ferait compiler pour rien). Pas de passe d'ombre : la carte d'ombre
+  // de l'image suivante reste celle de la vraie scène.
+  const kids=scene.children,sm=renderer.shadowMap,sa=sm.autoUpdate,sn=sm.needsUpdate;
+  if(que){scene.children=kids.filter(function(o){return o.isLight||que.indexOf(o)>=0;});sm.autoUpdate=false;sm.needsUpdate=false;}
+  try{
+  if(que)renderer.compile(scene,camera); // le sous-arbre compilé SEUL (compile() parcourt aussi le caché) — pas toute la scène
   // Un objet CACHÉ dont la matière n'a encore jamais été compilée reste caché : on prépare le dessin de ce qui existe, on ne compile
   // rien d'inutile (mesuré : 4 programmes au 1er portail pour des objets qui ne s'affichent jamais — 100-400 ms perdus sur iPhone).
   const vis=[],cul=[],off=[];
-  (function walk(o,h0){ if(o.isLight||o===GAR.root)return;const h=h0||!o.visible; // l'ATELIER a son propre éclairage (lampes de l'étal) : sous celui de la course ses matières se recompilaient (2 programmes au 1er portail, mesuré) — il ne s'affiche jamais en course
+  (function walk(o,h0){ if(o.isLight||(o===GAR.root&&!que))return;const h=h0||!o.visible; // l'ATELIER ne s'affiche jamais en course : il n'est dessiné qu'une fois, au menu (`que`) — (avant la chasse aux gels, son éclairage à lui recompilait 2 programmes au 1er portail)
     if(o.isMesh||o.isPoints||o.isSprite||o.isLine){const m=Array.isArray(o.material)?o.material[0]:o.material,pr=m&&renderer.properties.get(m).currentProgram;
       if(h&&!pr){if(o.visible){o.visible=false;off.push(o);}}
       else{if(!o.visible){o.visible=true;vis.push(o);}if(o.frustumCulled){o.frustumCulled=false;cul.push(o);}}}
@@ -13522,6 +13555,7 @@ function chauffeRendu(){ try{
   const cible=renderer.getRenderTarget();renderer.setRenderTarget(CHAUFFE_R.rt);renderer.render(scene,camera);renderer.setRenderTarget(cible);
   scene.onBeforeRender=ob9;
   for(const o of vis)o.visible=false;for(const o of off)o.visible=true;for(const o of cul)o.frustumCulled=true;
+  }finally{if(que){scene.children=kids;sm.autoUpdate=sa;sm.needsUpdate=sn;}}
 }catch(e){console.warn('chauffeRendu',e);} }
 function chauffeDivers(){
   try{orbiteChauffe();}catch(e){} // (vague 3) la lune peinte et montée au GPU, lune + rochers compilés : rien ne naît au portail de l'orbite
@@ -24417,7 +24451,7 @@ function garageFamilles(r){
 const PHQ={q:[],on:false};
 function photoFile(i,cb){if(PHOTO.cache[i]){cb(PHOTO.cache[i]);return;}PHQ.q.push([i,cb]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
 function photoTour(){
-  if(!PHQ.q.length||!garageOn){PHQ.on=false;return;} // (2026-09-26) garage fermé : la file attend le prochain passage (openGarage la relance)
+  if(!PHQ.q.length||!garageOn||gEl.classList.contains('quiet')){PHQ.on=false;return;} // (2026-09-26) garage fermé : la file attend le prochain passage (openGarage la relance) — (2026-09-28, chasse aux gels) et le garage du JOUER (`quiet`) n'affiche aucune vignette : MESURÉ, il y prenait 2 à 3 photos pendant le fondu (chacune reconstruit deux caisses, ~200 ms et 4 programmes) pour une bande que personne ne voit
   if(GAR.sw||GAR.go){requestAnimationFrame(photoTour);return;}
   const it=PHQ.q.shift();let u=PHOTO.cache[it[0]];if(!u)try{u=carPhoto(it[0]);}catch(e){u=null;}
   if(u)it[1](u);requestAnimationFrame(photoTour);
@@ -24567,7 +24601,7 @@ function closeGarage(){
   if(GAR.impactMeshes)for(const m9 of GAR.impactMeshes)m9.visible=false;
   if(GAR.scan)GAR.scan.visible=false;
   if(GAR.root)GAR.root.visible=false;                                     // l'atelier s'éteint derrière toi
-  stallKey.visible=false;stallKey.intensity=0;stallRim.visible=false;stallRim.intensity=0;
+  atelierLampes(false);stallKey.intensity=0;stallRim.intensity=0;
   sunSprite.visible=true;horizonGlow.visible=true;for(const r9 of RAYS)r9.visible=true; // le soleil revient sur la piste
   if(pigGroup)pigGroup.visible=true;
   buildCar(CARS[level||0]);                 // remet la caisse du menu
@@ -24681,9 +24715,9 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   // Les deux lampes SUIVENT la caméra (clé à 40° devant, contre-jour derrière) : la caisse est
   // toujours prise sous son meilleur angle et le reflet COURT sur la tôle pendant qu'on tourne.
   // C'est le vieux truc du photographe de studio, et ça vaut mille lumières fixes.
-  stallKey.visible=true;stallKey.color.setHex(0xffdca8);stallKey.intensity=1.25;stallKey.distance=30;
+  atelierLampes(true);stallKey.color.setHex(0xffdca8);stallKey.intensity=1.25;stallKey.distance=30; // (chasse aux gels) les lampes entrent, les gyrophares sortent : 8 lumières, les programmes de la course
   stallKey.position.set(Math.sin(garageAng+.72)*5.2,ay+4.1,Math.cos(garageAng+.72)*5.2);
-  stallRim.visible=true;stallRim.color.setHex(0x6fd0ff);stallRim.intensity=.5;stallRim.distance=26;
+  stallRim.color.setHex(0x6fd0ff);stallRim.intensity=.5;stallRim.distance=26;
   stallRim.position.set(Math.sin(garageAng+3.5)*6,ay+2.3,Math.cos(garageAng+3.5)*6);
   // LE TUBE AU MAUVAIS STARTER : un néon sur six grésille. C'est ce seul détail qui fait passer le
   // décor de « maquette bien rangée » à « garage » — un atelier neuf, ça n'existe pas.
@@ -24875,6 +24909,15 @@ const stEl=$('stall');
 // violet terne. Deux sources dédiées (clé chaude + contre-jour froid) le rendent APPÉTISSANT.
 const stallKey=new THREE.PointLight(0xfff0dc,0,60);stallKey.visible=false;scene.add(stallKey);
 const stallRim=new THREE.PointLight(0x9fd8ff,0,60);stallRim.visible=false;scene.add(stallRim);
+/* LES LAMPES DE L'ATELIER PRENNENT LA PLACE DES GYROPHARES (2026-09-28, chasse aux gels) — MESURÉ au JOUER : allumer stallKey/stallRim
+   faisait passer la scène de 8 à 10 lumières ponctuelles, et three RECOMPILE chaque matière éclairée pour ce nouveau compte (il est écrit
+   DANS le programme) : 17 programmes au 1er rendu de l'atelier — la caisse, l'atelier, et même le bitume et la ville, dessinés derrière
+   ses murs —, ~0,8 s de gel sur PC, trois à cinq fois plus sur iPhone, puis 1 à 2 de plus à la 1re image de course. Or les deux
+   gyrophares de la meute sont TOUJOURS à 0 hors d'une poursuite, et l'atelier comme l'étal sont des écrans de menu : les deux lampes
+   entrent quand les deux gyrophares sortent. Le compte reste 8, l'atelier dessine avec les programmes de la course, déjà prêts. Image
+   identique : une lumière à 0 n'ajoute rien (et au garage, à 1 500 m d'altitude, les gyrophares sont de toute façon hors de portée).
+   ⚠ Les lampes ne s'allument QUE par ici : un `stallKey.visible=true` en direct referait 10 lumières. */
+function atelierLampes(on){stallKey.visible=stallRim.visible=on;for(const l of gyroLights)l.visible=!on;}
 let stallMode='fruit'; // 'fruit' = l'étal · 'moteur' = l'atelier (même vitrine, autre contenu)
 function stallShow(i){
   const N=stallMode==='moteur'?ENGINE_TIERS.length:FRUIT_DEFS.length;
@@ -24920,7 +24963,7 @@ function closeStall(){
   bioApply(BIO.cur);MENUV.bio=false; // (vague 2 : la vitrine de l'accueil repose son couchant) ⚠ (2026-09-24) le garage/l'étal écrasent le ciel chaque frame (nuit étoilée) : on rend la main au BIOME en sortant, sinon la 1re course gardait leur ciel
   stallOn=false;stEl.classList.remove('on');document.body.classList.remove('inStall');
   if(stallMesh){scene.remove(stallMesh);stallMesh=null;}
-  stallKey.visible=false;stallKey.intensity=0;stallRim.visible=false;stallRim.intensity=0; // on éteint l'étal en partant
+  atelierLampes(false);stallKey.intensity=0;stallRim.intensity=0; // on éteint l'étal en partant
   garageFloor.visible=false;carGroup.visible=true;
   sunSprite.visible=true;horizonGlow.visible=true;for(const r9 of RAYS)r9.visible=true;
   if(pigGroup)pigGroup.visible=true;
@@ -24934,9 +24977,9 @@ function stallRender(dt){ // même showroom que le garage : fond cyan propre, ca
   if(stallMesh){stallMesh.position.set(0,ay,0);stallMesh.rotation.y+=dt*.55;}
   if(GAR.root)GAR.root.visible=false;                       // l'étal garde son fond nu : pas d'atelier derrière le fruit
   garageFloor.position.set(0,ay-1.6,0);garageFloor.visible=true;
-  stallKey.visible=true;stallKey.intensity=2.6;stallKey.color.setHex(0xfff0dc);stallKey.distance=60; // ⚠ le GARAGE leur change teinte et portée : on repose les valeurs d'étal
+  atelierLampes(true);stallKey.intensity=2.6;stallKey.color.setHex(0xfff0dc);stallKey.distance=60; // ⚠ le GARAGE leur change teinte et portée : on repose les valeurs d'étal
   stallKey.position.set(Math.sin(stallAng+.7)*5,ay+4,Math.cos(stallAng+.7)*5);
-  stallRim.visible=true;stallRim.intensity=1.5;stallRim.color.setHex(0x9fd8ff);stallRim.distance=60;
+  stallRim.intensity=1.5;stallRim.color.setHex(0x9fd8ff);stallRim.distance=60;
   stallRim.position.set(Math.sin(stallAng+3.6)*6,ay+1,Math.cos(stallAng+3.6)*6);
   skyU.uSkyMul.value.set(.62,.92,1.34);skyU.uStars.value=1.7;skyU.uMoon.value=1.5;skyU.uSunHalo.value=.12;
   sunSprite.visible=false;horizonGlow.visible=false;for(const r9 of RAYS)r9.visible=false;
