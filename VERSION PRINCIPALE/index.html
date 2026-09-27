@@ -3078,18 +3078,26 @@ const skyDome=(function(){
       '  float y=d.y;vec3 F=uFogCol,A=mix(uAcc,uAcc2,uFlip),haut=ciel,bas=F;',
       '  float nuit=clamp(1.5-dot(F,vec3(.3,.59,.11))*4.,0.,1.);', // les lumières de la ville ne gagnent que de nuit (carrière : la ville à midi)
       '  float lv=uLvl*(.35+uPulse*.5+uBeatK*.6);',                // ce que la MUSIQUE allume
-      '  if(y>-.03&&uPluie>.001){',                                // ---- LE PLAFOND ---- (vague 2 : calculé SEULEMENT sous la pluie — sans elle, haut = ciel au pixel près)
+      '  if(y>.0108&&uPluie>.001){',                               // ---- LE PLAFOND ---- (vague 2 : calculé SEULEMENT sous la pluie — sans elle, haut = ciel au pixel près)
       '    float t=520./max(y,.01);vec2 p=d.xz*t+uCam.xz+vec2(uTime*7.,uTime*3.),q=p/650.;',
       '    float n=vfbm(q+.6*vec2(vn(q*.45+3.7),vn(q*.45-5.1))),dn=smoothstep(.34,.74,n);',
       '    vec3 cc=mix(F*.62+vec3(0.,.004,.02),F*1.3+vec3(.06,.02,.06)*nuit,dn);', // trouées plus sombres, ventres éclairés par la ville
-      '    float wv=.5+.5*sin(dot(p,vec2(.0019,.0011))-uWave*6.2831853);',
-      '    cc+=A*dn*wv*wv*.22*lv*nuit;',                                              // les néons de la ville ondulent sous les nuages
-      '    cc+=vec3(.5,.45,.75)*smoothstep(.6,.95,vn(q*.3+floor(uTime*2.)*1.7))*uBeatK*uBeatK*uBeatK*uLvl*dn*.55;', // l ÉCLAIR : seulement sur les GROSSES frappes (au cube), sinon un orage à chaque coup de grosse caisse
+      '    if(lv*nuit>0.){float wv=.5+.5*sin(dot(p,vec2(.0019,.0011))-uWave*6.2831853);',
+      '    cc+=A*dn*wv*wv*.22*lv*nuit;}',                                             // les néons de la ville ondulent sous les nuages
+      '    if(uBeatK*uLvl>0.)cc+=vec3(.5,.45,.75)*smoothstep(.6,.95,vn(q*.3+floor(uTime*2.)*1.7))*uBeatK*uBeatK*uBeatK*uLvl*dn*.55;', // l ÉCLAIR : seulement sur les GROSSES frappes (au cube), sinon un orage à chaque coup de grosse caisse
       '    haut=mix(ciel,mix(F,cc,exp(-t/4200.)),uPluie);}',                          // au loin, le plafond se fond dans la brume
+      // (2026-09-27, passe perf iPhone) sous 0,6° (t > 48 km) le plafond pèse exp(-t/4200) < 1e-5 : c est la brume, sans ses 7 bruits
+      '  else if(y>-.03&&uPluie>.001)haut=mix(ciel,F,uPluie);',
       '  if(y<.03&&nuit>0.){',                                     // ---- LE SOL : l abîme de la ville basse ---- (vague 2 : ses lumières SEULEMENT de nuit — de jour, bas = brume au pixel près)
       '    float t=1600./max(-y,.01),px=t*.0016/max(-y,.06);',      // px : ce que couvre un pixel au sol (m) — l anticrénelage suit la distance
       '    vec2 p=d.xz*t+uCam.xz;',
       '    float qu=smoothstep(.3,.8,vn(p/1500.))*(.5+.5*vn(p/450.+4.2)),qu2=vn(p/2600.+9.1);', // les QUARTIERS : un centre qui brille, des zones éteintes
+      '    vec3 G=mix(vec3(1.,.42,.18),vec3(.9,.25,.6),qu2)*qu*.24;',                    // la lueur des quartiers qui monte dans la brume
+      /* (2026-09-27, passe perf iPhone) AU-DELÀ DE 7 KM (les 13 derniers degrés sous l'horizon, la moitié de l'abîme vu en vol), le
+         mélange du bas prenait DÉJÀ 100 % de la lueur moyenne : artères, rues, toits et leur scintillement étaient calculés pour être
+         multipliés par zéro. Ils ne sont plus calculés que là où ils comptent — même image. */
+      '    float fl=smoothstep(3000.,7000.,t);vec3 L=G+vec3(.05,.03,.015)*(.25+.75*qu);', // au loin : la lueur MOYENNE, pas de moiré
+      '    if(fl<1.){',
       // LES ARTÈRES : les lignes de niveau de deux bruits — des routes qui SERPENTENT, se croisent, bouclent. Une grille régulière se lisait
       // comme un sol de synthwave (essai du 26/09) ; vue d en haut à travers la pluie, une ville est un réseau irrégulier de traînées.
       '    float n1=vn(p/950.),n2=vn(p/1350.+5.3),n3=vn(p/420.+11.7),wn=.022+px*.0011;',
@@ -3099,9 +3107,7 @@ const skyDome=(function(){
       '    float pt=step(1.-.32*qu,hl)*smoothstep(.3+px/48.,0.,length(cf))*min(1.,8./px);', // toits et fenêtres, flous dans la brume
       '    pt*=.75+.25*sin(uTime*(1.+hl*3.)+hl*40.);',                                     // quelques-uns scintillent
       '    vec3 pc=mix(vec3(1.,.66,.36),vec3(.4,.85,1.),step(.985,hl));pc=mix(pc,vec3(1.,.35,.7),step(.995,hl));',
-      '    vec3 G=mix(vec3(1.,.42,.18),vec3(.9,.25,.6),qu2)*qu*.24;',                    // la lueur des quartiers qui monte dans la brume
-      '    vec3 L=(vec3(1.,.55,.22)*(route*.5+rue*.3)+pc*pt)*(.25+.75*qu)+G;',
-      '    L=mix(L,G+vec3(.05,.03,.015)*(.25+.75*qu),smoothstep(3000.,7000.,t));',        // au loin : la lueur MOYENNE, pas de moiré
+      '    L=mix((vec3(1.,.55,.22)*(route*.5+rue*.3)+pc*pt)*(.25+.75*qu)+G,L,fl);}',
       '    bas=F*(1.+.28*smoothstep(-.05,-.6,y)*nuit)+L*exp(-t/2300.)*(1.+.6*lv)*nuit;}', // la brume s éclaire par en dessous
       '  vec3 c=mix(bas,haut,smoothstep(-.03,.03,y));',
       // ---- LA SKYLINE : du plus loin au plus proche, chaque rangée un peu moins noyée dans la brume ----
@@ -3114,12 +3120,14 @@ const skyDome=(function(){
       '  if(y>-.1&&y<.42){',                                         // (vague 2) la SKYLINE seulement dans sa bande : sous −0,1 le pied est noyé (fo = 0), au-dessus de 0,42 plus une antenne — image identique
       '  float fo=smoothstep(-.1,.015,y),lum=(1.+.7*lv)*(.35+.65*nuit)*.75;', // fo : le PIED des tours se noie — sous l horizon il ne reste que la brume et l abîme
       '  vec3 f0=vec3(1.,.64,.3),f1=vec3(.42,.88,1.),dk=F*.35+vec3(.004,.006,.02),sil;vec4 T;',
-      '  T=vTours(az,y,190.,1.,-.035,.03,.0024);',
-      '  sil=mix(F,dk,.16*fo)+mix(f0,f1,step(.8,T.w))*T.x*.22*fo*lum;c=mix(c,sil,T.z*fo);c+=vec3(1.,.18,.14)*T.y*.3*lum*fo;',
-      '  T=vTours(az,y,120.,2.,-.015,.065,.0032);',
-      '  sil=mix(F,dk,.25*fo)+mix(f0,f1,step(.8,T.w))*T.x*.32*fo*lum;c=mix(c,sil,T.z*fo);c+=vec3(1.,.18,.14)*T.y*.45*lum*fo;',
-      '  vec3 H=vChef(az,y,1.05,1.)+vChef(az,y,-2.25,.82);',
-      '  sil=mix(F,dk,.36*fo)*(1.-.35*H.z)+vec3(1.,.84,.37)*H.y*(.55+.2*sin(uTime*.7))*lum;c=mix(c,sil,min(1.,H.x+H.y)*fo);',
+      /* (2026-09-27, passe perf iPhone) chaque rangée s arrête à SON plus haut point possible (toit le plus haut + antenne la plus longue
+         + son feu : .159 · .253 · chef .211) — au-dessus elle rendait silhouette 0 et feu 0, calculés pour rien. Même image. */
+      '  if(y<.16){T=vTours(az,y,190.,1.,-.035,.03,.0024);',
+      '  sil=mix(F,dk,.16*fo)+mix(f0,f1,step(.8,T.w))*T.x*.22*fo*lum;c=mix(c,sil,T.z*fo);c+=vec3(1.,.18,.14)*T.y*.3*lum*fo;}',
+      '  if(y<.254){T=vTours(az,y,120.,2.,-.015,.065,.0032);',
+      '  sil=mix(F,dk,.25*fo)+mix(f0,f1,step(.8,T.w))*T.x*.32*fo*lum;c=mix(c,sil,T.z*fo);c+=vec3(1.,.18,.14)*T.y*.45*lum*fo;}',
+      '  if(y<.212){vec3 H=vChef(az,y,1.05,1.)+vChef(az,y,-2.25,.82);',
+      '  sil=mix(F,dk,.36*fo)*(1.-.35*H.z)+vec3(1.,.84,.37)*H.y*(.55+.2*sin(uTime*.7))*lum;c=mix(c,sil,min(1.,H.x+H.y)*fo);}',
       '  T=vTours(az,y,72.,3.,.0,.1,.0042);',
       '  sil=mix(F,dk,.34*fo)+mix(f0,f1,step(.8,T.w))*T.x*.42*fo*lum;c=mix(c,sil,T.z*fo);c+=vec3(1.,.18,.14)*T.y*.6*lum*fo;}',
       '  return c;}',
@@ -3135,16 +3143,30 @@ const skyDome=(function(){
          donne la pente), les creux dans le bleu du ciel. ⚠ ANTICRÉNELAGE : chaque octave s'éteint quand l'empreinte d'un pixel au sol
          (`fp`) dépasse sa période — sinon moiré scintillant au ras de l'horizon. */
       'uniform float uMer;',
-      'float mfbm(vec2 p,float fp){float s=0.,a=.5,f=1.;for(int i=0;i<4;i++){s+=a*mix(.5,vn(p),1.-smoothstep(.3,.8,fp*f));p=p*2.03+vec2(17.1,9.3);f*=2.03;a*=.5;}return s;}',
+      /* (2026-09-27, passe perf iPhone) LES DEUX FBM DE LA MER EN UNE PASSE — `mfbm2` rend (n au point, n au point décalé vers le
+         soleil) : c'est le même calcul qu'avant, octave par octave, au bit près, avec deux économies SANS effet sur l'image :
+         (1) les deux points tombent le plus souvent dans la MÊME case du réseau (décalage de .045 case à la 1re octave, .38 à la 4e) —
+         les quatre hachages des coins sont alors partagés au lieu d'être refaits ; (2) une octave éteinte par l'anticrénelage (poids
+         nul au ras de l'horizon) n'échantillonne plus rien : `mix(.5,vn,0.)` valait déjà exactement .5. La mer était le 1er poste du
+         dôme en vol (on la voit sur toute la moitié basse de l'écran). */
+      'vec2 mfbm2(vec2 p,vec2 r,float fp){vec2 s=vec2(0.);float a=.5,f=1.;for(int i=0;i<4;i++){float k=1.-smoothstep(.3,.8,fp*f);',
+      '  if(k>0.){vec2 ip=floor(p),ir=floor(r),fa=fract(p),fb=fract(r);fa=fa*fa*(3.-2.*fa);fb=fb*fb*(3.-2.*fb);',
+      '    float h0=vh(ip),h1=vh(ip+vec2(1.,0.)),h2=vh(ip+vec2(0.,1.)),h3=vh(ip+vec2(1.,1.));',
+      '    float na=mix(mix(h0,h1,fa.x),mix(h2,h3,fa.x),fa.y);',
+      '    if(ir!=ip){h0=vh(ir);h1=vh(ir+vec2(1.,0.));h2=vh(ir+vec2(0.,1.));h3=vh(ir+vec2(1.,1.));}',
+      '    float nb=mix(mix(h0,h1,fb.x),mix(h2,h3,fb.x),fb.y);',
+      '    s+=a*vec2(mix(.5,na,k),mix(.5,nb,k));}',
+      '  else s+=vec2(a*.5);',
+      '  p=p*2.03+vec2(17.1,9.3);r=r*2.03+vec2(17.1,9.3);f*=2.03;a*=.5;}return s;}',
       'vec3 merNuages(vec3 d,float y,float sd){',
-      '  vec3 F=uFogCol;float yy=min(y,-.0008);',
+      '  vec3 F=uFogCol;if(y>=-.004)return F;float yy=min(y,-.0008);',   // (perf iPhone) sur la ligne d horizon la mer EST la brume (dernier mix à 1)
       '  float t=max(140.,uCam.y+480.)/(-yy);',                       // la distance au pont de nuages le long du regard (m)
       '  vec2 p=d.xz*t+uCam.xz+vec2(uTime*4.,uTime*1.6),q=p/900.;', // parallaxe vraie + dérive du vent
       '  float fp=t*.0016/max(-yy,.02)/900.;',                         // empreinte d un pixel, en périodes de base
       '  vec2 w=vec2(vn(q*.4+3.7),vn(q*.4-5.1));q+=.85*w;',
-      '  float n=mfbm(q,fp);',
       '  vec2 sx=normalize(uSunDir.xz+vec2(1e-4));',
-      '  float lit=clamp(.5+(n-mfbm(q+sx*.045,fp))*7.,0.,1.);',          // le flanc tourné vers le soleil prend la lumière
+      '  vec2 n2=mfbm2(q,q+sx*.045,fp);float n=n2.x;',
+      '  float lit=clamp(.5+(n-n2.y)*7.,0.,1.);',          // le flanc tourné vers le soleil prend la lumière
       '  float cov=smoothstep(.36,.66,n);',                             // le dessus des moutons
       // ⚠ PAS DE LAIT (essai du 26/09 : une mer blanche à 60 % et fondue dans une brume pâle = tout le bas de l écran laiteux, les
       // nuages 3D s y perdaient). Les TROUÉES gardent le bleu roi qu avait le bas du ciel (blw × biome) : les moutons blancs
@@ -3157,6 +3179,15 @@ const skyDome=(function(){
       '  m=mix(mix(F,creux,.4),m,exp(-t/9000.));',                       // la perspective aérienne : le lointain bleuit
       '  return mix(m,F,smoothstep(-.055,-.004,y));}',                   // …et SEULE la ligne d horizon rejoint la brume
       'void main(){',
+      /* (2026-09-27, passe perf iPhone) EN VILLE, LE CIEL DE TOUJOURS NE SE VOIT NULLE PART. Pluie pleine et ville pleine : le plafond
+         remplace tout ce qui est au-dessus de −.03, l'abîme tout ce qui est en dessous (`mix(ciel,…,1.)` et poids 0 dans la bande) — le
+         dégradé, le soleil, la lune, les étoiles, la guirlande et le voile étaient calculés sur chaque pixel du dôme pour être jetés.
+         On saute directement au ciel de la ville (même fonction, même tramage) : même image. Pendant le fondu d'entrée/sortie du
+         niveau (uVille ou uPluie < 1), le chemin complet reprend, inchangé. */
+      '  if(uVille>.9999&&uPluie>.9999){',
+      '    vec3 cv=villeCiel(vDir,atan(vDir.x,-vDir.z),vec3(0.));',
+      '    cv+=vec3((fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453)-.5)/160.);', // le même tramage que plus bas
+      '    gl_FragColor=vec4(cv,1.);return;}',
       '  float y=vDir.y;',
       // VICE CITY NUIT (assombri) : indigo profond au zénith → violet → grande brume ROSE sombre → corail → ambre au ras du soleil
       '  vec3 zen=vec3(.060,.080,.22);', // zénith : indigo PROFOND mais VIVANT — règle Alto : le ciel ne meurt jamais en noir
@@ -3179,15 +3210,25 @@ const skyDome=(function(){
       '  col*=1.+uPulse*.13;', // MUSIQUE : tout le ciel respire au beat (souffle global doux)
       '  float sd=max(dot(vDir,uSunDir),0.);',      // couchant : halo rosé large, couronne corail, coeur incandescent (tamisé)
       '  if(uMer>.001&&y<.02)col=mix(col,merNuages(vDir,y,sd),uMer*(1.-smoothstep(-.016,.012,y))*(1.-uSpace));', // NUAGES : la mer de nuages sous l horizon (voir merNuages)
-      '  col+=uSunTint*pow(sd,4.)*.45*uSunHalo;',
-      '  col+=vec3(1.,.60,.36)*pow(sd,32.)*.9*uSunHalo;',
-      '  col+=vec3(1.,.90,.78)*pow(sd,480.)*1.25*uSunHalo;',
+      /* (2026-09-27, passe perf iPhone) CHAQUE COUCHE NE SE CALCULE QUE LÀ OÙ ELLE PEINT. Mesuré au banc (dôme seul, mêmes uniformes,
+         différence de pixels) : le ciel coûtait 15× un aplat, par une douzaine de petites couches calculées sur TOUT le dôme alors que
+         chacune n'existe que sur une bande — la guirlande sur ±7° autour de l'horizon, les étoiles au-dessus de 6° (partout en orbite),
+         la lune dans sa calotte, le cœur du soleil dans la sienne, le voile au-dessus de 3°. Chaque `if` teste exactement la borne où
+         le terme d'origine vaut 0 (smoothstep saturé, step) : l'image est la même au pixel près. Pour la lune et les deux cœurs du
+         soleil (des `pow` qui ne s'annulent jamais tout à fait), la borne est prise là où l'apport tombe sous 1e-5 — 400× sous le
+         pas d'un niveau de couleur. `atan` (l'azimut) n'est calculé que si une couche qui le lit est allumée sur ce pixel. */
+      '  float sd2=sd*sd;col+=uSunTint*(sd2*sd2)*.45*uSunHalo;',
+      '  if(sd>.62){col+=vec3(1.,.60,.36)*pow(sd,32.)*.9*uSunHalo;',        // .62^32 = 2e-7
+      '    if(sd>.97)col+=vec3(1.,.90,.78)*pow(sd,480.)*1.25*uSunHalo;}',  // .97^480 = 4e-7
       // LA VILLE SOUS LA MER DE NUAGES : guirlande de lueurs néon rose ↔ cyan qui court sur l horizon, loin du soleil
-      '  float az=atan(vDir.x,-vDir.z);',
+      '  bool gOn=abs(y+.03)<.13&&sd<.75&&uCity*(1.-uSpace)>0.&&(uVille<.999||y>-.03);', // la bande de la guirlande (cband > 0, loin du soleil) ; en VILLE, sous -.03 l abime la remplace
+      '  bool sOn=uStars>0.&&(y>.10||uSpace>0.)&&sd<.8;',                    // la voûte des étoiles (hors orbite : au-dessus de .10)
+      '  float az=0.;if(gOn||sOn||uLvl>.001||uVille>.001)az=atan(vDir.x,-vDir.z);',
+      '  if(gOn){',
       '  float cty=(.5+.5*sin(az*4.+1.3))*.6+(.5+.5*sin(az*9.+4.2))*.4;cty*=cty;',
       '  float cband=smoothstep(.13,.008,abs(y+.03));',
       '  vec3 neon=mix(vec3(1.,.30,.62),vec3(.36,.78,1.),.5+.5*sin(az*2.+2.0));',
-      '  col+=neon*cty*cband*(1.-smoothstep(.15,.75,sd))*.42*uCity*(1.-uSpace)*(1.+uPulse*.9);', // la ville s éteint sous l orage, hurle en NÉON TOTAL — et clignote au beat
+      '  col+=neon*cty*cband*(1.-smoothstep(.15,.75,sd))*.42*uCity*(1.-uSpace)*(1.+uPulse*.9);}', // la ville s éteint sous l orage, hurle en NÉON TOTAL — et clignote au beat
       /* ======================= LE FOND DU NIVEAU — QUATRE COUCHES ==========================
          LE PARI : un fond de rythme (Geometry Dash, Super Hexagon) dans un jeu où l on VISE une
          réception. Donc tout se passe HAUT et sur les CÔTÉS, jamais dans la bande d horizon où l on
@@ -3255,9 +3296,11 @@ const skyDome=(function(){
       '    col+=fx/(1.+fx*.55);',
       '  }',
       // ÉTOILES : elles s allument avec la nuit, scintillent doucement, jamais dans le halo du soleil
+      '  if(sOn){',
       '  vec2 sg=vec2(az*10.1859,vDir.y*22.);', // 64 cellules par tour → zéro couture
       '  vec2 sid=floor(sg),sfr=fract(sg);',
       '  float h=hash21(sid);',
+      '  if(h>=.76){',                                                       // step(.76,h) : 3 cellules sur 4 n ont pas d étoile
       '  vec2 stp=vec2(fract(h*17.13),fract(h*31.71))*.7+.15;',
       // (2026-09-26) des étoiles RONDES : la distance se mesure en ANGLE (une cellule fait 0,098 rad × cos(élévation) de large mais
       // 0,045 de haut — mesurée en cellules, chaque étoile était un grain deux fois plus large que haut). Rayon selon l éclat, et
@@ -3265,15 +3308,16 @@ const skyDome=(function(){
       '  float sr=length(vec2((sfr.x-stp.x)*.0982*sqrt(max(0.,1.-y*y)),(sfr.y-stp.y)*.04545));',
       '  float st=(1.-smoothstep(0.,.0026+.0022*fract(h*7.7),sr))*step(.76,h);',
       '  st*=.55+.45*sin(uTime*(1.2+h*2.6)+h*44.);',
-      '  col+=mix(vec3(.80,.88,1.),vec3(1.,.86,.70),step(.8,fract(h*3.31)))*st*mix(smoothstep(.10,.42,y),1.,uSpace)*(1.-smoothstep(.25,.8,sd))*.9*uStars*(1.+uSpace*.5)*(1.+uPulse*1.3);', // elles descendent plus bas : le haut du cadre est habité — MINUIT les multiplie, l aube les éteint ; elles palpitent au beat
+      '  col+=mix(vec3(.80,.88,1.),vec3(1.,.86,.70),step(.8,fract(h*3.31)))*st*mix(smoothstep(.10,.42,y),1.,uSpace)*(1.-smoothstep(.25,.8,sd))*.9*uStars*(1.+uSpace*.5)*(1.+uPulse*1.3);}}', // elles descendent plus bas : le haut du cadre est habité — MINUIT les multiplie, l aube les éteint ; elles palpitent au beat
       // LUNE pâle à l opposé du couchant — le témoin du presque-nuit
       '  vec3 mdir=normalize(vec3(-.52,.40,-.72));',
       '  float md=dot(vDir,mdir);',
+      '  if(md>.88){',                                                    // sa calotte : hors d elle, .88^90 × .2 = 2e-6 (perf iPhone)
       '  col+=vec3(.93,.96,1.06)*smoothstep(.9976,.9988,md)*1.05*uMoon;', // VRAI disque (~3°) : l ancre céleste du cadre, règle Alto
       '  col+=vec3(.55,.62,.92)*pow(max(md,0.),420.)*.45*uMoon;',        // aura proche
-      '  col+=vec3(.28,.32,.55)*pow(max(md,0.),90.)*.20*uMoon;',         // halo large qui fond dans la nuit
-      '  float w=sin(vDir.x*8.+uTime*.05)*sin(vDir.z*7.-uTime*.04);', // voile tres subtil qui vit
-      '  col+=vec3(.016,.010,.016)*w*smoothstep(.05,.4,y);',
+      '  col+=vec3(.28,.32,.55)*pow(max(md,0.),90.)*.20*uMoon;}',        // halo large qui fond dans la nuit
+      '  if(y>.05){float w=sin(vDir.x*8.+uTime*.05)*sin(vDir.z*7.-uTime*.04);', // voile tres subtil qui vit (nul sous .05)
+      '  col+=vec3(.016,.010,.016)*w*smoothstep(.05,.4,y);}',
       /* ================== L ONDE DE COULEUR — le grand effet du niveau 1 ==================
          ⚠ ELLE EST PLACEE ICI, TOUT A LA FIN, ET C EST LE POINT. Mise dans le bloc des quatre
          couches, elle n aurait teinte que ce que le decor AJOUTE. A cet endroit elle emporte TOUT :
