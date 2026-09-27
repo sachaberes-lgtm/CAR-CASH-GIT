@@ -1,5 +1,52 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA CAMPAGNE NUAGES (2026-09-27) — dix heures du jour, dix idées de jeu
+Brief de Sacha (inspiration rédigée avec Grok) : « les 10 niveaux racontent une journée, de l'aurore au coucher du soleil ; chaque
+niveau ajoute ou détourne UNE idée de jeu ». Tout est BRANCHÉ sur l'existant, rien n'est réécrit.
+- **OÙ** : `CARRIERE[0].niveaux` porte `camp:n` (piste dessinée), `pr` (la PROMESSE, dite sous le nom par `lvlAnnonce`) et le ciel ;
+  `carNiveau` ajoute `piste:'camp'`, `camp`, `pr` et une **graine FIXE** (`newTrack` la prend : pièces, pads, nuages identiques à
+  chaque essai). Générateur `genCampagne(n)` (juste après `genTuto`) ; systèmes dans le bloc « LA CAMPAGNE NUAGES — LES SYSTÈMES »
+  (juste avant `rebuildMenuScene`). Entrée : bouton **CARRIERE** de l'accueil (`data-m="carr"` → `carrVue`). Hooks : `dbgCampagne(n)`
+  (lance le niveau n), `dbgCamp()` (état : dégâts, police, fantôme, coupes, bancs), `dbgPisteCamp()` (croisements, dégagement, rayon mini, pente).
+- **LES NIVEAUX** : 1 AURORE = `genTuto` intouché · 2 PREMIÈRES LUEURS = deux grands balayages de 160° qui DESCENDENT (lus d'en haut), zéro
+  banc, zéro plot · 3 LEVER = UN banc (r 36) sur une droite tournée PILE vers le soleil (`SUN_DIR`), « PERCE-NUAGE ! » à la sortie ·
+  4 MATIN FRAIS = 3 séquences de 3 PORTES (centrale large / décalée / décalée de l'autre côté, de plus en plus étroites), sur des droites
+  plates · 5 MATIN = la POURSUITE · 6 MIDI = 4 OVALES LENTS (la coupe), ciel propre (ni déco ni coussins) · 7 APRÈS-MIDI = vagues en sinus
+  + esses, zéro plot/banc · 8 FIN D'APRÈS-MIDI = un banc au BOUT de chaque droite (cache le virage SUIVANT, on en sort ~1,5 s avant) ·
+  9 HEURE DORÉE = biome `orageDore` (orage SANS guirlande de ville, brume 1 350 m), pluie .5, mer refermée + bancs proches + un titan,
+  éclairs · 10 COUCHER = la CAISSE-NUAGE (deux ovales, une traversée de nuages, un grand balayage final).
+- **RÈGLES DES PISTES** : aucun tirage (piste identique à chaque essai), aucun trou, aucun plot/huile/banc de route tiré au hasard
+  (`campNuageOk`, filtres dans buildTrack) ; les REPÈRES (`CAMPM` : bancs, portes, coupes) sont notés par INDEX de point de contrôle,
+  relus après `lisserRaccords`/`adoucirCretes`, convertis en `s` par `campRepere` (appelé dans buildTrack AVANT les pads, qui s'écartent des portes).
+- **LA CORDE** (`cordeK`, `KAPB` = courbure latérale signée par point, `campCourbure`) : le jeu avance sur la ligne centrale (`s`) quelle
+  que soit la position latérale — couper l'intérieur ne rapportait RIEN. En campagne (`CORDE_ON`), `s` avance de ×1/(1−κ·lat) : la corde
+  est vraiment plus courte (≈10 % dans un R 250 à 25 m de l'axe), et il faut tourner plus serré. Joueur, police et fantôme. Hors campagne : ×1.
+- **L'OVALE LENT** (la coupe, niveaux 6 et 10) : leg1 (droite S) → demi-tour R1 → retour → demi-tour R2 = R1 + d/2 → leg3, qui file À CÔTÉ
+  de leg1, 16 m plus bas, 16 m de vide entre les bords (d = 2·ROAD_HALF + 16). ⚠ En vol la gravité MONDE vaut FALL_G×SPD ≈ 16 m/s²
+  (la chute est intégrée ×SPD) : fenêtre de cap ≈ 6°-28° à 115 m/s, 9°-45° à 70 m/s ; à 22 m de chute elle se refermait. Sortir par le bon bord = `startFall` + `tryLand` sur leg3 :
+  ~2,9 km gagnés, zéro physique nouvelle. Un seul croisement par ovale (l'entrée passe AU-DESSUS du 2e demi-tour) : topologiquement
+  obligatoire. Des pièces longent le bord qui regarde leg3 et un jackpot brille sur leg3 (`campPieces`) — aucune flèche. Se poser > 300 m
+  après son décollage = « RACCOURCI ! » (FLOW, nitro, aura) — détecté dans `campTick`.
+- **LA POURSUITE** (niveau 5, `SURV.chasse`) : le mode Survivant réglé (survStart/survTick) — 2 bots qui naissent 118/156 m DERRIÈRE,
+  jamais devant (clamp `pTot−9`), pas de nitro à < 48 m, 4,5 % de moins en pointe, ni classement ni couperet. `poursuiteTick` : tirs en
+  SALVES (1,25-1,75 s de feu / 0,9-1,7 s de pause), seulement derrière, à 9-105 m, au sol, ligne de vue dégagée (`campVue` : la dalle
+  protège, un nuage coupe — les bancs `ecran` du niveau 5 ne se DÉFONCENT pas). 7 s CUMULÉES sous le feu = `explode('feu')`. Aucun
+  chiffre : la FUMÉE (`FUME`, Points à taille/alpha par particule, héritant 93 % de la vitesse de la caisse) — 2 s filet blanc, 4 s grise
+  + moteur qui tousse, 6 s NOIRE + caisse qui broute. Traits néon magenta/cyan (`TIR`, rubans TRAIL_TEX), « piou » arcade. Halos d'écran
+  `#campFx` (opacité seule) : rouge/bleu en bas quand ils sont derrière, magenta sous le feu.
+- **L'ORAGE** (niveau 9) : `orageTick` — un éclair toutes les 3,4-7,4 s (ruban brisé `ECL`, deux branches), `CAMP_FLASH` (exposition,
+  lue dans updateClouds) et `CAMP_FOG` (le brouillard recule de 1 900 m) : l'éclair RÉVÈLE la route ; tonnerre retardé selon la distance ;
+  le dernier tombe à côté du portail.
+- **LA CAISSE-NUAGE** (niveau 10) : fiche en FIN de CARS (après le bloc généré des 50), gabarit `SHAPES.nuage` (boules `NUAGE_BLOBS`
+  fusionnées par `mergeSpheres`, matière `nuageMat` = celle des nuages, opaque), condition `{k:'carrN',v:10}`. Le FANTÔME (`GH`, créé à
+  l'init, compilé au menu par `campChauffe`) : ligne gravée (`fantomeLigne` : corde lissée ±60 m + approche du bord de chaque coupe),
+  coupes en parabole (`fantomeSaute`, même gravité), vitesse = TES équations et TON moteur (jamais de nitro, le boost de départ compris)
+  — elle ne regarde jamais où tu es. Sillage : aspiration à < 46 m, « ACCROCHE ! » à < 15 m de sa poupe, 1 s tenue (la jauge retombe à
+  ×1,5) = `fantomePris` : ta caisse DEVIENT la caisse-nuage (équipée), le portail s'ouvre. Elle passe le portail avant toi = « ELLE T'A
+  SEMÉ » (`fantomeSeme`, fin sans explosion). Le portail du niveau 10 = `campFinale` → écran de fin « NUAGES TERMINES ».
+- **FINS DE PARTIE** : `mortCause` feu / seme / finNuages (CAUSES de mFill), gardée par `CAMP.garde` dans endGame ; REJOUER repart du
+  niveau où l'on s'est arrêté (`CARR.actif.i` mis à jour dans endGame) ; la stat NIVEAU dit le vrai numéro.
+
 ## ⚠ DEUX ÉDITIONS, UN SEUL JEU (2026-09-25) — LIRE EN PREMIER
 - Le dossier `version-fusion-2026-09` s'appelle désormais **`VERSION PRINCIPALE`** (la version mobile fusionnée) ;
   **`AUTRE VERSION`** = la version PC. Les deux `index.html` sont IDENTIQUES sauf `const EDITION='mobile'|'pc'`
