@@ -2670,6 +2670,9 @@ html[data-reduced-motion="1"] .mscr.on,html[data-reduced-motion="1"] #tPanel.ope
   #garage.boutique #gPlayMain,#garage.boutique #lbBoxG{display:none!important}
   /* la SORTIE ◀ de la charte v4 vit en bas à gauche (#gAct) : en portrait, le choix du niveau monte d'un cran pour la laisser au pouce */
   @media (orientation:portrait){#garage:not(.boutique) #gNiv{bottom:calc(env(safe-area-inset-bottom,0px) + 92px)}}
+  /* en paysage l'écran est BAS : le choix du niveau se range dans le coin bas-droit, la caisse garde le milieu */
+  @media (orientation:landscape) and (max-height:560px){#garage #gNiv{left:auto;right:calc(env(safe-area-inset-right,0px) + 14px);transform:none}
+    #garage.boutique #gNiv,#garage.quiet #gNiv,#garage.launching #gNiv{transform:translateY(24px)}}
   /* ===== LA BOUTIQUE MINIMALE (2026-09-26, Léo : « menu plus petit, plus grande vue sur la voiture, du genre Asphalt ou
      GTA, plus minimaliste, ne montre pas tout ») — DERNIER bloc du style : il gagne. =====
      La VOITURE est le sujet ; le menu se range sur les bords : onglets en ICÔNES sous le titre (seul l'actif dit son nom),
@@ -2766,7 +2769,24 @@ html[data-reduced-motion="1"] .mscr.on,html[data-reduced-motion="1"] #tPanel.ope
     #mHome .mTitle{transform:none}
     #mHome .mAcc{flex-direction:row;width:min(560px,calc(100% - 32px));gap:12px;margin-bottom:10px}
     #mHome .mAccGar{flex:2;min-height:62px;font-size:18px}
-    #mHome .mAccSet{flex:1;width:auto;min-height:62px}}</style>
+    #mHome .mAccSet{flex:1;width:auto;min-height:62px}}  /* ===== LES TOUCHES QUI BRILLENT (2026-09-27, Léo : « les boutons doivent être agréables à regarder, un petit bruit de clic, une
+     légère brillance ») — la charte v4 donne la MATIÈRE (carbone, lingot) ; ici la LUMIÈRE qui passe dessus. Un reflet en biais
+     (le même que celui du lingot, en plus discret) balaie la touche : au survol (souris), à l'appui (doigt), et, de temps en temps,
+     tout seul sur les touches de l'écran affiché — en cascade (`--i`), jamais toutes ensemble. Le lingot garde SON reflet (k4Lingot).
+     Aucune ombre, aucune taille ne change : c'est de la lumière posée par-dessus (::after, pointer-events:none). */
+  .pbtn:not(.pb-gold)::after,.gTab::after{content:'';position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(105deg,transparent 36%,rgba(255,255,255,.17) 47%,rgba(210,240,255,.05) 53%,transparent 62%) no-repeat;
+    background-size:260% 100%;background-position:170% 0}
+  .gTab{position:relative}
+  .mscr.on .pbtn:not(.pb-gold):not(.off)::after,#garage .pbtn:not(.pb-gold):not(.off)::after,#tPanel .pbtn:not(.pb-gold)::after{
+    animation:leoLueur 7s var(--ease,ease) calc(var(--i,0)*.35s + 2.4s) infinite}
+  @keyframes leoLueur{0%,82%{background-position:170% 0}100%{background-position:-70% 0}}
+  @media (hover:hover){.pbtn:not(.pb-gold):not(.off):hover::after,.gTab:hover::after{animation:leoReflet .6s var(--ease,ease) both}
+    .pbtn:not(.off):hover{filter:brightness(1.08)}}
+  .pbtn:not(.pb-gold):active::after,.gTab:active::after{animation:leoReflet .38s var(--ease,ease) both}
+  @keyframes leoReflet{from{background-position:170% 0}to{background-position:-70% 0}}
+  @media (prefers-reduced-motion:reduce){.pbtn::after,.gTab::after{animation:none!important}}
+</style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
   <div id="spStage">
@@ -3841,7 +3861,7 @@ const ACESShader={
             uVigK:{value:.52},uVigC:{value:new THREE.Vector3(.149,.047,.212)}}, // (2026-09-26, vague 2) la VIGNETTE du niveau (ex-calque DOM #vig), posée par bioApply
   vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
   fragmentShader:['uniform sampler2D tDiffuse;uniform float uExposure,uSat,uContrast,uVivid,uSpeed,uJit,uVigK;uniform vec3 uWB,uSh,uHi,uVigC;uniform vec2 uRes;varying vec2 vUv;',
-    'uniform vec4 uNit;uniform float uNitF;', // (vague 3, NITRO) la couleur de la poussée sur les bords (rgb + part) et le coup d'allumage — posés par nfxTick
+    'uniform vec4 uNit;uniform float uNitF;uniform vec3 uFoc;', // (vague 3, NITRO) la couleur de la poussée sur les bords (rgb + part) et le coup d'allumage — posés par nfxTick
     // (2026-09-26, audit rendu) LES HAUTES LUMIÈRES ROULENT au lieu de s'écraser : en NUAGES, 98 % du haut de l'image avait un canal au
     // plafond (un aplat bleu électrique, des nuages brûlés). Le coude garde la TEINTE (on divise les trois canaux ensemble) : tout ce
     // qui tenait déjà sous .86 ne bouge pas d'un iota — seuls les pixels qui saturaient retrouvent leur dégradé.
@@ -3890,6 +3910,12 @@ const ACESShader={
     // délavait le rose en brun, mesuré), plus forte sur le sombre que sur le clair (elle ne brûle jamais le ciel), + le COUP d'allumage.
     // Le centre (la caisse, la route devant) reste intact : tout se joue au-delà du quart de l'image. Zéro lecture de texture.
     '{float ne=smoothstep(0.36,0.74,r);c+=uNit.rgb*(ne*(uNit.a*(1.0-0.6*min(1.0,dot(c,LUM)))+uNitF));}',
+    // (2026-09-27, Léo : « plus beau grâce à la lumière — là c'est un peu trop éparpillé ») LA LUMIÈRE DIRIGÉE : une flaque de
+    // lumière douce POSÉE SUR LA CAISSE (uFoc.xy = sa place à l'écran, suivie et lissée), et un monde qui se calme en s'éloignant
+    // d'elle (un peu plus sombre, un peu moins saturé). L'œil ne se promène plus : il revient à la voiture. uFoc.z = le dosage
+    // (0 = coupé, rendu d'avant au pixel près) — `dbgLumiere(k)`. Ni le ciel ni le HUD ne changent de couleur : juste de poids.
+    '{vec2 fq=(vUv-uFoc.xy)*vec2(uRes.y/uRes.x,1.);float fd=length(fq),pool=1.-smoothstep(.04,.46,fd),loin=smoothstep(.28,.95,fd);',
+    ' c*=1.+uFoc.z*(.2*pool-.2*loin);c=max(mix(vec3(dot(c,LUM)),c,1.-uFoc.z*.3*loin),0.);}',
     GRADE_ACES?'c=max(c,0.);c=max(mix(vec3(dot(c,LUM)),c,1.12),0.);c=max((c-.5)*1.05+.5,0.)*.97;':'', // = saturate(1.12) contrast(1.05) brightness(.97) du CSS, même ordre
     // LA VIGNETTE (2026-09-26, vague 2) — c'était un calque DOM plein écran (#vig) : violet, fixe à 52 %, même en plein jour cobalt. Elle
     // vit ici, par niveau (uVigK/uVigC, posés par bioApply). Même dessin au pixel que l'ancien dégradé CSS (ellipse centrée à 44 % du
@@ -3897,7 +3923,7 @@ const ACESShader={
     '{vec2 vq=vec2((vUv.x-.5)/.5,(vUv.y-.56)/.44);float vg=clamp(length(vq)*1.2354-1.,0.,1.);',
     'gl_FragColor=vec4(mix(clamp(roule(c),0.,1.),uVigC,uVigK*vg),1.0);}}'].join('\n')
 };
-ACESShader.uniforms.uNit={value:new THREE.Vector4(1,.478,.141,0)};ACESShader.uniforms.uNitF={value:0}; // (vague 3, NITRO) la poussée sur les bords — voir nfxTick
+ACESShader.uniforms.uNit={value:new THREE.Vector4(1,.478,.141,0)};ACESShader.uniforms.uNitF={value:0};ACESShader.uniforms.uFoc={value:new THREE.Vector3(.5,.45,0)}; // (Léo) la lumière dirigée — voir lumiereFocus // (vague 3, NITRO) la poussée sur les bords — voir nfxTick
 const CAN_POST=typeof THREE.EffectComposer==='function'&&typeof THREE.RenderPass==='function'&&typeof THREE.UnrealBloomPass==='function'&&typeof THREE.ShaderPass==='function';
 if(CAN_POST){ try{
   const w=innerWidth,h=innerHeight;
@@ -19007,12 +19033,42 @@ function hap(p){
   try{if(navigator.vibrate)navigator.vibrate(p);}catch(e){}
 }
 // LE CLIC D'INTERFACE (2026-09-24) : une note brève et haute + une micro-vibration — chaque bouton RÉPOND, comme une borne d'arcade
-function uiClic(){ try{ if(SND.sfx&&!paused){ if(AC&&AC.state!=='running')AC.resume().then(function(){chimeNote(1480,0,.045,.05);}).catch(function(){}); else chimeNote(1480,0,.045,.05); } }catch(e){} hap(8); } // (2026-09-26) REPRENDRE : le contexte se réveille en asynchrone — la note attend qu'il tourne // en pause le moteur audio dort : la note s'empilerait et partirait en rafale à la reprise
+/* LE CLIC DE L'INTERFACE v2 (2026-09-27, Léo : « les boutons doivent avoir un petit bruit de clic ») — la touche qu'on ENFONCE,
+   pas une note : un « tic » (bruit filtré de 12 ms : le contact), un « toc » grave qui descend (le corps de la touche), et une
+   pointe de la cloche d'antan tout au fond. Posé sur le POINTERDOWN de tout ce qui se touche (une seule écoute déléguée, voir
+   plus bas) : le son part quand le doigt appuie, comme une vraie touche. `uiClic()` des gestionnaires (au relâcher) se tait
+   s'il suit un tic de moins de 450 ms — sinon (clavier, Entrée, Échap), c'est lui qui clique, avec le même son. */
+let uiTicT=0,uiTicBuf=null;
+function uiTic(){
+  try{ if(!SND.sfx||paused||!AC)return; if(AC.state!=='running'){AC.resume().then(uiTicSon).catch(function(){});} else uiTicSon(); }catch(e){}
+  hap(6);
+}
+function uiTicSon(){
+  try{const T=AC.currentTime;
+    if(!uiTicBuf){const n=Math.floor(AC.sampleRate*.012);uiTicBuf=AC.createBuffer(1,n,AC.sampleRate);const d=uiTicBuf.getChannelData(0);
+      for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,3);}
+    const s=AC.createBufferSource(),hp=AC.createBiquadFilter(),g=AC.createGain();s.buffer=uiTicBuf;hp.type='highpass';hp.frequency.value=2600;
+    g.gain.value=.13;s.connect(hp);hp.connect(g);g.connect(MASTER);s.start(T);                               // le tic
+    const o=AC.createOscillator(),g2=AC.createGain();o.type='sine';o.frequency.setValueAtTime(250,T);o.frequency.exponentialRampToValueAtTime(115,T+.05);
+    g2.gain.setValueAtTime(.0001,T);g2.gain.exponentialRampToValueAtTime(.11,T+.004);g2.gain.exponentialRampToValueAtTime(.0001,T+.075);
+    o.connect(g2);g2.connect(MASTER);o.start(T);o.stop(T+.09);                                                 // le toc
+    chimeNote(1760+Math.random()*80,.005,.016,.03);                                                            // l'éclat
+  }catch(e){}
+}
+function uiClic(){ if(performance.now()-uiTicT<450)return; uiTicT=performance.now(); uiTic(); } // le relâcher d'un bouton déjà « tiqué » se tait
+function uiClicV1(){ try{ if(SND.sfx&&!paused){ if(AC&&AC.state!=='running')AC.resume().then(function(){chimeNote(1480,0,.045,.05);}).catch(function(){}); else chimeNote(1480,0,.045,.05); } }catch(e){} hap(8); } // (2026-09-26) REPRENDRE : le contexte se réveille en asynchrone — la note attend qu'il tourne // en pause le moteur audio dort : la note s'empilerait et partirait en rafale à la reprise
 window.dbgTouch=function(){return{on:TCTL.on,pad:TCTL.pad,act:TCTL.act,st:+TCTL.st.toFixed(3),sv:+TCTL.sv.toFixed(3),play:TCTL.play,steer:+steer.toFixed(3)};}; // console : l'état du volant tactile (un téléphone ne s'inspecte pas)
 // LE GAZ, exposé : la vignette a besoin de savoir qu'on POUSSE, pas seulement qu'on va vite.
 // (posé une fois par frame dans la physique, à côté de son `up` — une seule vérité, pas deux
 // façons de relire les touches qui divergeraient le jour où on remappe le clavier)
 let gasOn=false;
+// LE TIC À L'APPUI — une seule écoute pour tout ce qui se touche (capture : avant qu'un gestionnaire ne stoppe la propagation).
+// Jamais sur les commandes de course (volant, NITRO) : là, le doigt conduit, il ne « clique » pas.
+addEventListener('pointerdown',e=>{
+  const el=e.target&&e.target.closest?e.target.closest('.pbtn,button,[role=button],.gTab,.gR,.gT,.gnP,.tp,.mLigne,.mMode,.carrNiv'):null;
+  if(!el||el.closest('#touchCtl,#tNitroZone,#tNitro,#tSteer,#tStick'))return;
+  uiTicT=performance.now();uiTic();
+},true);
 addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight'].includes(e.code))e.preventDefault();if(TCTL.on&&!e.repeat&&(e.code==='Space'||e.code==='Enter')&&boomSkip())return;if(e.code==='KeyP')togglePause();if(e.code==='Enter'&&!e.repeat&&started&&gameOver&&pendingScore==null&&!garageOn&&overlay.style.display!=='none'&&!(e.target&&e.target.closest&&e.target.closest('input,textarea'))&&!document.querySelector('#modale.on,#carr.on,#tPanel.open')){const rp9=document.querySelector('body.touch #mDead.on [data-m="replay"]');if(rp9)rp9.click();else if(!document.body.classList.contains('touch'))playViaGarage();} // (2026-09-25) jamais depuis un champ ou une fenêtre ouverte ; en coque tactile, seul le bouton or de l'écran de mort
   if(e.code==='Space'&&!e.repeat&&started&&!gameOver){ // double-tap NITRO (<280 ms) = BRAQUAGE (e.repeat : une touche MAINTENUE ne compte pas)
     const n9=performance.now();
@@ -23250,6 +23306,19 @@ let last=performance.now();
 let RESPIN=false;
 window.dbgPin=function(on){RESPIN=(on===undefined)?true:!!on;
   return {resolution_et_paliers_figes:RESPIN,dpr:+curDPR.toFixed(3),stepBase:null};};
+/* LA LUMIÈRE DIRIGÉE (2026-09-27, Léo) — où est la caisse à l'écran ? La flaque de l'ACES (uFoc) la suit, lissée ; elle s'allume
+   en course et à l'accueil, s'éteint au garage (l'atelier a ses lampes), à l'explosion, et quand la caisse sort du cadre. */
+const LUMF={k:1,x:.5,y:.45,z:0,v:new THREE.Vector3()};
+function lumiereFocus(dt){
+  if(!acesPass||!acesPass.uniforms.uFoc)return;
+  LUMF.v.copy(carGroup.position).project(camera);
+  const vis=LUMF.v.z<1&&Math.abs(LUMF.v.x)<1.25&&Math.abs(LUMF.v.y)<1.25?1:0;
+  const on=carGroup.visible&&!garageOn&&mode!=='boom'&&(running||!started)?1:0;
+  const k9=Math.min(1,dt*6);if(vis){LUMF.x+=(LUMF.v.x*.5+.5-LUMF.x)*k9;LUMF.y+=(LUMF.v.y*.5+.5-LUMF.y)*k9;}
+  LUMF.z+=(on*vis*LUMF.k-LUMF.z)*Math.min(1,dt*2.5);
+  acesPass.uniforms.uFoc.value.set(LUMF.x,LUMF.y+.03,LUMF.z);
+}
+window.dbgLumiere=function(k){if(k!=null)LUMF.k=+k;return {dosage:LUMF.k,actuel:+LUMF.z.toFixed(2),x:+LUMF.x.toFixed(2),y:+LUMF.y.toFixed(2)};};
 function loop(now){
   requestAnimationFrame(loop);
   // ⚠ dt JAMAIS NÉGATIF (2026-09-25) : l'horodatage de rAF est celui du DÉBUT de l'image, et `last` peut avoir été posé
@@ -24801,6 +24870,7 @@ function loop(now){
   juiceScreenTick(dt); // les taches de jus s'effacent, meme en pause
   fxTick(dt); // ⚠ hors du gate de sim : un refractaire fige en pause rejoue le son au retour
   try{musicTick(dt,musMvt);updateDolphins(dt);updateSerpent(dt);updateBoomArt(dt);}catch(e){if(!loop._crWarn){console.warn('créatures/musique',e);loop._crWarn=1;}}
+  lumiereFocus(dt); // (Léo) la flaque de lumière suit la caisse à l'écran
   if(POST_ON&&composer)composer.render(); // ACES + bloom
   else renderer.render(scene,camera);      // repli si le post n'a pas pu se charger
   matSursisTick(); // (perf) les matières de la piste d'avant partent une fois la neuve rendue
