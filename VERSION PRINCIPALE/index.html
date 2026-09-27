@@ -12100,6 +12100,25 @@ vA:+vA.toFixed(2),s:+s.toFixed(1),lat:+lat.toFixed(2),side:side,driveDir:driveDi
 // `dbgCam9()` — état de la dynamique de caméra v1 (lean/swing/kick, voir leur déclaration) : pour
 // régler au clavier sans deviner ce qui bouge derrière l'écran.
 window.dbgCam9=function(){return {camLean:+camLean.toFixed(3),camSwing:+camSwing.toFixed(3),camKick:+camKick.toFixed(3),steer:+steer.toFixed(3)};};
+/* (vague 3, caméra) `dbgCamRoute(o)` — LE BANC DE LA CAMÉRA DE CONDUITE. o={s,side,lat,v} POSE la caisse en conduite (face ±1) ;
+   'scan' relève la piste tous les 10 m (pente monde, cabrage de la route 45 m devant vu de chaque face) ; sans argument, MESURE ce que
+   voit le joueur : où tombe à l'écran la route à 30/45/60 m (y écran −1 bas → +1 haut, >1 = sortie par le haut : le « mur »), l'angle
+   entre l'axe de la caméra et la tangente là-bas, et la hauteur de l'horizon du monde à l'écran. Lecture seule hors pose. */
+window.dbgCamRoute=function(o){
+  const FP={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},v=new THREE.Vector3(),f=new THREE.Vector3(),r2=x=>+x.toFixed(2);
+  if(o&&o.regle){Object.assign(CAM_ROUTE,o.regle);return 'reglee';} // réglage à chaud : dbgCamRoute({regle:{ANTICIPE:0,ANTICIPE_DESSOUS:0}}) = la caméra d'avant
+  if(o==='scan'){const out=[];for(let s9=0;s9<L-60;s9+=10){frameAt(s9,FP);const n0=FP.n.clone(),ty=FP.t.y;frameAt(s9+45,FP);
+    const k=Math.asin(THREE.MathUtils.clamp(FP.t.dot(n0),-1,1))*57.3;out.push([s9,r2(ty),Math.round(k)]);}return {L:Math.round(L),pts:out};}
+  if(o&&typeof o==='object'){s=THREE.MathUtils.clamp(o.s||0,0,L-80);side=o.side<0?-1:1;lat=(o.lat||0)*side;psi=0;vL=0;mode='drive';driveDir=1;
+    if(o.v!=null)vA=o.v;prevTvalid=false;hopY=0;return 'posee';}
+  camera.getWorldDirection(f);const sd=side<0?-1:1,res={s:Math.round(s),side:sd,kmh:Math.round(Math.abs(vA)*3.6*SPD),mode:mode};
+  frameAt(s,FP);const n0=FP.n.clone().multiplyScalar(sd);res.penteMonde=r2(FP.t.y);
+  for(const d of [30,45,60]){frameAt(s+d,FP);v.copy(FP.p).addScaledVector(FP.b,lat*sd).addScaledVector(FP.n,sd<0?-THICK:0);
+    res['cabrage'+d]=Math.round(Math.asin(THREE.MathUtils.clamp(FP.t.dot(n0),-1,1))*57.3);
+    res['angleAxe'+d]=Math.round(Math.acos(THREE.MathUtils.clamp(FP.t.dot(f),-1,1))*57.3);
+    const pr=v.clone().project(camera);res['yEcran'+d]=pr.z<1?r2(pr.y):'derriere';}
+  v.set(f.x,0,f.z);if(v.lengthSq()>1e-6){v.normalize().multiplyScalar(5000).add(camera.position);const pr=v.project(camera);res.yHorizon=pr.z<1?r2(pr.y):'derriere';}
+  res.upY=r2(camera.up.y);res.fov=Math.round(camera.fov);res.pivot=Math.round(CAM_ROUTE.phi*57.3);return res;};
 // TREMPLINS de la zone courante : archétype, longueur de piste, et chaque lèvre (position + variante).
 // `dbgGap(true)` téléporte à 220 m avant la 1re lèvre — pour juger le gap sans refaire la course d'élan.
 window.dbgGap=function(go){
@@ -15118,6 +15137,95 @@ function clearBoomArt(){ // (vague 2) rien n'est libéré : tout est RANGÉ (les
 const debris=[];
 let boomT=-1,boomLight=null;
 const boomPos=new THREE.Vector3(),bmCam=new THREE.Vector3(),bmCamD=new THREE.Vector3();
+/* ================= LE PLAN DE LA MORT (vague 3, 2026-09-27) =================
+   Sacha : « l'explosion quand tu meurs doit être mieux cadrée ». Mesuré avant (390×844, `dbgBoomCam`) : c'était la POURSUITE figée —
+   7 à 14 m du foyer selon la vitesse, le grand-angle de la vitesse (129° en portrait : la boule tordue au ras du bitume, les débris
+   plein cadre devant), le haut de l'écran restait celui de la caisse (sous la dalle ou en vrille : on mourait dans un monde À L'ENVERS,
+   et sous la route la boule était CACHÉE par la dalle), et la secousse jetait la caméra de ±0,5 m à CHAQUE image. Désormais un vrai
+   PLAN, le même au sol, en vol, sous la route, dans la VILLE, en ORBITE, à 100 comme à 1500 km/h :
+     · la caméra part de la poursuite et RECULE d'un trait (0,55 s) jusqu'à ~14 m, puis continue en travelling arrière lent et en orbite
+       douce jusqu'à l'écran de mort — jamais d'arrêt sec, jamais de dérive, jamais dans la fumée ;
+     · elle garde l'azimut de la poursuite (le point de vue du joueur), un peu AU-DESSUS du plan de la route (elle ne traverse jamais le
+       bitume) ; en vol loin de toute dalle : un peu au-dessus de l'horizon ;
+     · le monde se remet À L'ENDROIT (haut de l'écran = le ciel). Mort retourné (dessous, vrille) : la bascule se fait d'un coup, sur
+       l'éclair de l'explosion — un raccord de montage plutôt qu'un tonneau ;
+     · un objectif de plan (70°, élargi portrait par fovPor ≈ 92°) au lieu du grand-angle de la vitesse ;
+     · la visée suit le centre VISUEL de la boule, qui MONTE : la boule reste au milieu de la zone libre de l'écran — sous le HUD du haut
+       et ses bandeaux, au-dessus du pouce et du bouton NITRO ;
+     · la secousse devient un TREMBLEMENT lisse (deux sinus qui s'éteignent) appliqué à la visée : l'image vibre, la caméra ne saute plus ;
+     · garde-fous : recul raccourci si une TOUR de la VILLE barre le chemin, caméra tenue hors de la dalle.
+   Aucun ralenti (verdict Sacha) : c'est la même seconde huit, cadrée. Zéro allocation par image (vecteurs et quaternions à demeure). */
+const BOOM_CAM={
+  DIST:14,       // m — le recul du plan : la boule (~9 m) tient près de la moitié de la largeur en portrait, gerbe et débris autour
+  DIST_FIN:17,   // m — le travelling arrière continue, lentement, jusque-là (fin de la mort, 1,8 s)
+  SITE:16,       // ° — hauteur du regard au-dessus du plan de la route (en vol : de l'horizon) — la boule se lit de l'extérieur, la route sert de sol
+  ORBITE:7,      // °/s — la lente rotation autour du foyer : le plan vit sans que le cadre bouge
+  FOV:70,        // ° — l'objectif du plan, AVANT l'élargissement portrait (fovPor)
+  ENTREE:.55,    // s — le recul « d'un trait » depuis la poursuite (sortie cubique : vif puis posé)
+  VISEE:2.6,     // m — la visée au-dessus du foyer : le cœur de la boule tombe un peu SOUS le milieu de l'écran (les bandeaux du haut restent libres)
+  VISEE_MONTE:1.2, // m/s — … et elle suit les volutes qui montent (panoramique vertical lent)
+  TREMBLE:.09,   // m de visée par unité de `shake`, à 18 m : ~1° de tremblement au plus fort
+  COUPE:-.17,    // si le haut de l'écran pointait à plus de ~100° du ciel : raccord sur l'éclair (cos de l'angle)
+  /* SOUS LA ROUTE, ON FILME PAR-DESSUS : les volutes montent vers le CIEL (Y monde, quelle que soit la face) — sous la dalle elles
+     s'y enfoncent aussitôt, et d'en dessous on ne voyait que des étincelles (mesuré, avant comme après). Vue de dessus, la boule PERCE la
+     route : elle se lit en entier. ⚠ Si un jour les volutes montent selon la normale de la face, repasser à false (plan d'en dessous). */
+  DESSOUS_PAR_DESSUS:true,
+  n:new THREE.Vector3(),az:new THREE.Vector3(),d0:new THREE.Vector3(),u0:new THREE.Vector3(),dir:new THREE.Vector3(),v:new THREE.Vector3(),
+  w:new THREE.Vector3(),ao:new THREE.Vector3(),rp:new THREE.Vector3(),rt:new THREE.Vector3(),rn:new THREE.Vector3(),Y:new THREE.Vector3(0,1,0),
+  q:new THREE.Quaternion(),qa:new THREE.Quaternion(),F:{p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},
+  m0:'drive',pret:false,r0:10,f0:90,dMax:22,sRef:0,cote:1,sens:1,coupe:false
+};
+function boomCamDir(t,out){ // la direction foyer → caméra à l'instant t : l'azimut qui orbite, relevé du SITE
+  const C=BOOM_CAM,a=C.sens*C.ORBITE*t*Math.PI/180,e=C.SITE*Math.PI/180;
+  C.w.crossVectors(C.n,C.az); // l'axe latéral du plan
+  out.copy(C.az).multiplyScalar(Math.cos(a)).addScaledVector(C.w,Math.sin(a)).multiplyScalar(Math.cos(e)).addScaledVector(C.n,Math.sin(e));
+  return out.normalize();
+}
+function boomCamInit(){ // au PREMIER pas de la mort (la poursuite de cette image est déjà posée)
+  const C=BOOM_CAM;C.pret=true;
+  C.r0=Math.max(2,camera.position.distanceTo(boomPos));
+  C.d0.subVectors(camera.position,boomPos).multiplyScalar(1/C.r0);
+  C.u0.copy(camera.up).normalize();C.f0=camera.fov;C.coupe=C.u0.y<C.COUPE;
+  // la route de référence : celle qu'on roulait, ou la plus proche en vol — et de quel côté de la dalle meurt-on ?
+  C.sRef=C.m0==='drive'?s:lastNearS;frameAt(C.sRef,C.F);C.rp.copy(C.F.p);C.rt.copy(C.F.t);C.rn.copy(C.F.n);
+  C.v.subVectors(boomPos,C.rp);const hB=C.v.dot(C.rn),sol=C.m0==='drive'||(Math.abs(hB)<12&&Math.abs(C.v.dot(C.F.b))<ROAD_HALF+6); // au sol, ou en vol au ras d'une dalle
+  let cote=C.m0==='drive'?(side<0?-1:1):(hB>-THICK*.5?1:-1);
+  C.ao.set(0,C.VISEE,0);
+  if(sol&&cote<0&&C.DESSOUS_PAR_DESSUS){cote=1;C.ao.addScaledVector(C.rn,THICK);} // la boule perce la dalle : on la vise là où elle sort
+  C.cote=cote; // le côté de la dalle où la caméra doit rester
+  if(sol)C.n.copy(C.rn).multiplyScalar(cote);else C.n.copy(C.Y); // le « sol » du plan : la face de la dalle ; en plein ciel, l'horizon
+  C.az.copy(C.d0).addScaledVector(C.n,-C.d0.dot(C.n)); // l'azimut de la poursuite, couché dans ce sol
+  if(C.az.lengthSq()<1e-3)C.az.copy(C.rt).negate().addScaledVector(C.n,C.rt.dot(C.n)); // (poursuite pile à l'aplomb : on se met derrière)
+  C.az.normalize();C.w.crossVectors(C.n,C.az);C.sens=C.d0.dot(C.w)<0?-1:1; // l'orbite prolonge le côté où la poursuite traînait déjà
+  // LA VILLE : si une tour est dans l'axe, le recul s'arrête avant (rayon au début et à la fin de l'orbite)
+  C.dMax=C.DIST_FIN;
+  if(CITY.col&&CITY.root)for(let k=0;k<2;k++){boomCamDir(k*1.8,C.dir);
+    for(let d=4;d<=C.DIST_FIN;d+=2){C.v.copy(boomPos).add(C.ao).addScaledVector(C.dir,d);if(villeHeurt(C.v)){C.dMax=Math.min(C.dMax,Math.max(6,d-3));break;}}}
+}
+function boomCamTick(dt){
+  const C=BOOM_CAM;if(!C.pret)boomCamInit();
+  const t=boomT,e=1-Math.pow(1-Math.min(1,t/C.ENTREE),3);
+  boomCamDir(t,C.dir);
+  C.q.setFromUnitVectors(C.d0,C.dir);C.qa.identity().slerp(C.q,e); // la direction glisse de la poursuite au plan (sur la sphère : jamais à travers le foyer)
+  const D=Math.min(C.dMax,C.DIST+(C.DIST_FIN-C.DIST)*Math.min(1,t/1.8)),r=C.r0+(D-C.r0)*e;
+  camera.position.copy(boomPos).addScaledVector(C.v.copy(C.d0).applyQuaternion(C.qa),r);
+  // HORS DE LA DALLE : la caméra reste de son côté, à 1,3 m au moins du bitume
+  {const sc=THREE.MathUtils.clamp(C.sRef+C.v.subVectors(camera.position,C.rp).dot(C.rt),0,L-.01);frameAt(sc,C.F);
+   C.v.subVectors(camera.position,C.F.p);const h=C.v.dot(C.F.n);
+   if(Math.abs(C.v.dot(C.F.b))<ROAD_HALF+1.5&&C.v.lengthSq()<3600){
+     if(C.cote>0&&h<1.3)camera.position.addScaledVector(C.F.n,1.3-h);
+     else if(C.cote<0&&h>-THICK-1.3)camera.position.addScaledVector(C.F.n,-(h+THICK+1.3));}}
+  // le ciel en haut de l'écran : raccord net si l'on mourait retourné, sinon la tête se redresse avec le recul
+  if(C.coupe||e>=1)camera.up.copy(C.Y);else camera.up.copy(C.u0).lerp(C.Y,e).normalize();
+  const fT=fovPor(C.FOV),f=C.f0+(fT-C.f0)*e;if(Math.abs(camera.fov-f)>.01){camera.fov=f;camera.updateProjectionMatrix();}
+  C.v.copy(boomPos).add(C.ao);C.v.y+=C.VISEE_MONTE*t;
+  if(shake>0){ // TREMBLEMENT lisse sur la visée (et plus sur la position) : il s'éteint en ~0,9 s
+    const a=shake*C.TREMBLE*r/18;C.w.subVectors(C.v,camera.position).cross(C.Y);
+    if(C.w.lengthSq()>1e-6)C.w.normalize();
+    C.v.addScaledVector(C.w,Math.sin(t*47)*a).addScaledVector(C.Y,Math.sin(t*37+1.3)*a*.8);
+    shake=Math.max(0,shake-3*dt);}
+  camera.lookAt(C.v);
+}
 // ---------- SIGNATURES D'EXPLOSION : chaque caisse meurt à sa façon ----------
 const heartTex=(function(){ // cœur rose (COMÈTE)
   const cv=document.createElement('canvas');cv.width=cv.height=64;
@@ -15282,6 +15390,7 @@ function explode(cause){
   }
   chainHud.style.opacity=0;
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;
+  BOOM_CAM.m0=mode;BOOM_CAM.pret=false; // (vague 3) le PLAN DE LA MORT se pose au premier pas (voir boomCamTick)
   mode='boom';boomT=0;boomPos.copy(carGroup.position);bmCam.copy(camera.position); // (vague 2) le point d'où l'on regarde la mort
   spawnBoomArt(boomPos,1); // LA BOULE DE FEU DESSINÉE : volutes en chou-fleur + dards
   boomOndePart(boomPos); // (2026-09-26) + l'onde qui court sur le bitume
@@ -16500,6 +16609,9 @@ window.dbgPlanet=function(){const v=planetGroup.position.clone().project(camera)
   return {ecran:[Math.round((v.x*.5+.5)*W),Math.round((1-(v.y*.5+.5))*H)],dansLeCadre:(Math.abs(v.x)<1&&Math.abs(v.y)<1&&v.z<1),
     tailleEcranPx:Math.round(2*PLANET_R/planetGroup.position.distanceTo(camera.position)/(2*Math.tan(camera.fov*Math.PI/360))*H),buffer:[W,H]};};
 window.dbgBoom=function(){explode();return {variante:BOOMV.n,rings:BOOMV.rings,volutes:VOLU.filter(p=>p.on).length,dards:DARD.filter(p=>p.on).length};}; // déclenche une mort et dit quelle signature est sortie
+// (vague 3, caméra) `dbgBoomCam()` : le PLAN de la mort mesuré — instant, distance caméra→foyer, où tombe le foyer à l'écran (y −1 bas → +1 haut)
+window.dbgBoomCam=function(){if(boomT<0)return {boomT:-1};const v=boomPos.clone().project(camera);
+  return {boomT:+boomT.toFixed(2),dMax:BOOM_CAM.dMax,coupe:BOOM_CAM.coupe,cote:BOOM_CAM.cote,dist:+camera.position.distanceTo(boomPos).toFixed(1),xEcran:+v.x.toFixed(2),yEcran:+v.y.toFixed(2),fov:Math.round(camera.fov),upY:+camera.up.y.toFixed(2)};};
 window.dbgHudCar=function(){ // VIGNETTE MOTEUR : lit-elle vraiment des pixels dans le RenderTarget, et où atterrit le quad ?
   // On lit le RENDERTARGET (pas le coin de l'écran comme l'ancienne version) : c'est la seule preuve
   // que le moteur est bien dessiné, indépendamment de l'endroit où le quad va le recoller ensuite.
@@ -18226,6 +18338,62 @@ const PARK={on:false}; // MODE FREESTYLE : le parc de figures (pas une course). 
 const PARK_VCAP=145; // PARC : plafond de vitesse (m/s ≈ 260 km/h affichés) — la nitro infinie ne DOIT PAS envoyer à 1000 km/h ingérables ; on garde une vitesse RAPIDE mais CONTRÔLABLE (sol ET air)
 const SPD=0.48; // +20 % (2026-09-25, user : « augmente la vitesse global du jeu et des voitures de 20 % ») — 0.4 × 1,2 ; il venait de −20 % (0.5 → 0.4) le matin même —  // vitesse globale du jeu — RESTAURÉ à la valeur V1 (2026-07-19) : le ÷2 « trop rapide dès le début » tuait le fun nerveux/arcade de la V1 ; le user tranche pour la V1. SPD scale TOUT : avance joueur/bots, chute, viseur ET compteur (donc les km/h affichés DOUBLENT — seuils de sensation ABSOLUS ajustés en conséquence, les systèmes RELATIFS via vmaxShow s'ajustent seuls)
 const FVISEE={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()}; // le point de la route que la caméra regarde (route v2)
+/* ================= LA CAMÉRA DE ROUTE S'ADAPTE (vague 3, 2026-09-27) =================
+   Sacha : « quand on est à l'envers de l'autre côté de la route, et que du coup on a l'impression que ça monte beaucoup, il faut que
+   la caméra fasse un truc pour s'adapter ». Mesuré (`dbgCamRoute`, portrait 390×844) : la piste PLONGE sans cesse (pente −0,2 à −0,74),
+   par paliers — chaque départ de plongée est un SOMMET. Vu du dessus, un sommet dérobe la route (on voit le ciel) ; vu du DESSOUS, le
+   même sommet devient un MUR : la route s'y cabre de +13 à +23° à 45-60 m, l'axe de la caméra fait 25 à 34° avec elle, la dalle sombre
+   monte en rampe jusqu'au tiers haut de l'écran — et l'horizon, qui dessus flotte AU-DESSUS de la route (+0,31 à l'écran), est dessous
+   caché DERRIÈRE elle (−0,16 à −0,36) : tout crie « ça grimpe », pendant que la caisse accélère en descente. (Le monde à l'envers, lui,
+   ne se corrige pas : remettre le ciel en haut inverserait la gauche et la droite à l'écran.) Deux gestes de CAMÉRA — conduite,
+   physique et aides intouchées :
+     · LE CABRAGE ANTICIPÉ — la caméra lit la route ~0,65 s devant et PIVOTE AUTOUR DE LA CAISSE d'une part de son cabrage : devant un
+       mur, elle lève le nez et descend un peu sous l'axe (la rampe redevient une route qui file) ; devant un sommet, elle monte et
+       pique (la route qui se dérobe reste à l'écran). Pivoter autour de la caisse la laisse PILE à sa place à l'écran ; le retard latéral,
+       la penche et le regard qui suit la route restent ceux d'avant. Plus franc DESSOUS, où chaque plongée commence par un mur.
+     · LE TONNEAU — passer dessus ↔ dessous (atterrir sous la dalle, repartir en bac à sable après une mort) interpolait le haut de la
+       caméra vers son OPPOSÉ : un vecteur mêlé à son contraire ne tourne pas, il RÉTRÉCIT — mesuré, le haut de l'écran restait collé à
+       l'ancienne face jusqu'à 0,5 s (la caisse pendue au plafond, la dalle en rampe au-dessus d'elle : LE « ça monte beaucoup »), puis
+       basculait d'un coup en passant par zéro, ~1,2 s pour se poser. Désormais la caméra ROULE autour de l'axe du regard en orbitant
+       autour de la caisse, d'un seul geste : posée en ~0,2 s.
+   Zéro allocation par image. */
+const CAM_ROUTE={
+  ANTICIPE:.5,           // part du cabrage à venir que la caméra prend d'avance, sur le DESSUS (0 = collée au bitume sous la caisse, 1 = déjà dans la pente)
+  ANTICIPE_DESSOUS:.9,   // … sur le DESSOUS, où chaque départ de plongée est un mur
+  VOIR_LOIN:.65,         // s — la route à venir est lue à la distance parcourue en ce temps…
+  LOIN_MIN:38,LOIN_MAX:90, // m — … bornée (à 1500 km/h, 0,65 s dépasserait la courbe)
+  HAUT_MAX:22,           // ° — nez levé au plus…
+  GARDE:12,              // ° — … en gardant la caméra au moins à ce site au-dessus du bitume derrière la caisse (paysage : moins de marge)
+  BAS_MAX:24,            // ° — nez piqué au plus (sommet, route qui se dérobe)
+  LISSE:.2,              // s — lissage du pivot : ni à-coup ni retard sensible
+  TONNEAU:7,             // 1/s — vitesse du tonneau dessus ↔ dessous (l'essentiel en ~0,3 s : un geste franc, la traversée de la dalle ne dure qu'un éclair)
+  phi:0,sg:1,vif:false,enCours:false,ax:new THREE.Vector3(),v:new THREE.Vector3(),w:new THREE.Vector3(),q:new THREE.Quaternion(),
+  FA:{p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()}
+};
+function camRouteTonneau(cible,axe,dt){ // LE TONNEAU : `cible` = l'écart caisse→caméra voulu, `axe` = l'axe du regard (unitaire)
+  const C=CAM_ROUTE;C.vif=false;if(!C.TONNEAU){C.enCours=false;return;} // (TONNEAU:0 = le comportement d'avant, pour comparer)
+  C.v.copy(camUp).addScaledVector(axe,-camUp.dot(axe));C.w.copy(F.n).addScaledVector(axe,-F.n.dot(axe));
+  if(C.v.lengthSq()<1e-4||C.w.lengthSq()<1e-4)return;
+  C.v.normalize();C.w.normalize();
+  let a=Math.atan2(C.ax.crossVectors(C.w,C.v).dot(axe),C.v.dot(C.w)); // de combien la caméra est ROULÉE par rapport à la face (autour du regard)
+  if(Math.abs(a)>3.05)a=3.05*C.sg;C.sg=a<0?-1:1; // pile à l'opposé : on garde le sens déjà engagé (sinon il hésiterait d'une image à l'autre)
+  const aA=Math.abs(a);
+  if(aA>1.05)C.enCours=true;else if(aA<.09)C.enCours=false; // un tonneau s'engage au-delà de 60° de roulis et va jusqu'au bout (< 5°)
+  if(!C.enCours&&aA<.5)return; // la conduite de tous les jours (< 29°) : rien ne change, l'interpolation d'avant s'en charge
+  let r=a;
+  if(C.enCours){C.vif=true;r=a*Math.exp(-dt*C.TONNEAU);C.q.setFromAxisAngle(axe,r-a);camUp.applyQuaternion(C.q);} // le haut ROULE (il ne passe plus par zéro)
+  C.q.setFromAxisAngle(axe,r*(C.enCours?1:THREE.MathUtils.smoothstep(aA,.5,1.05)));cible.applyQuaternion(C.q); // la place voulue roule avec lui : la caméra orbite autour de la caisse au lieu de couper la dalle
+}
+function camRouteCabrage(dt,camBack,camH){ // LE CABRAGE ANTICIPÉ : pose C.q, le pivot à appliquer autour de la caisse
+  const C=CAM_ROUTE,D=THREE.MathUtils.clamp(Math.abs(vA)*SPD*C.VOIR_LOIN,C.LOIN_MIN,C.LOIN_MAX);
+  frameAt(THREE.MathUtils.clamp(s+driveDir*D,0,L-.01),C.FA);
+  const th=Math.atan2(driveDir*C.FA.t.dot(F.n),C.FA.t.dot(F.t)), // le cabrage de la route là-bas, dans le plan (tangente, normale de TA face) d'ici — + = elle se lève
+        haut=Math.max(0,Math.min(C.HAUT_MAX,Math.atan2(camH,camBack)*57.3-C.GARDE))/57.3,
+        vise=THREE.MathUtils.clamp(th*(side<0?C.ANTICIPE_DESSOUS:C.ANTICIPE),-C.BAS_MAX/57.3,haut);
+  C.phi+=(vise-C.phi)*(1-Math.exp(-dt/C.LISSE));
+  C.ax.crossVectors(F.t,F.n).multiplyScalar(driveDir).normalize(); // tourner autour de cet axe fait monter l'avant vers la normale
+  C.q.setFromAxisAngle(C.ax,C.phi);
+}
 const ASSIST_VIRAGE=0; // (conduite v6) ZÉRO : la caisse ne suit plus la route toute seule — c'était l'« aimant » (elle prenait 78 % de chaque virage, 99,5 % avec le cap visé)
 const TURN_HS=.0035; // pénalité de braquage à haute vitesse (avant .008 — plus petit = virages plus faciles)
 /* (conduite v4, 2026-09-25) LE CAP VISÉ — user : « le système de conduite sur route est plutôt nul, on est toujours vachement
@@ -22211,11 +22379,12 @@ function loop(now){
         tmp2.copy(carGroup.position).addScaledVector(loop._camD,-camBack).addScaledVector(F.n,camH).addScaledVector(F.b,cLag9);
         {const n9=performance.now(); // l'écart repart de la caméra RÉELLE à chaque reprise de conduite (après un vol, le garage, un respawn)
          if(!loop._camOff)loop._camOff=new THREE.Vector3();
-         if(n9-(loop._camDriveT||0)>150)loop._camOff.subVectors(camera.position,carGroup.position);
+         if(n9-(loop._camDriveT||0)>150){loop._camOff.subVectors(camera.position,carGroup.position);CAM_ROUTE.phi=0;} // (vague 3) le pivot anticipé repart de zéro, lui aussi
          loop._camDriveT=n9;}
         {const off=loop._camOff,cibleOff=tmp2.sub(carGroup.position);        // l'écart VOULU (tmp2 redevient un écart)
+         camRouteTonneau(cibleOff,loop._camD,dt); // (vague 3) dessus ↔ dessous : la caméra ROULE et orbite (voir CAM_ROUTE)
          if(off.distanceToSquared(cibleOff)>2500)off.copy(cibleOff);           // téléport (respawn, portail) : on ne lisse pas un saut de 50 m
-         off.lerp(cibleOff,Math.min(1,dt*7));
+         off.lerp(cibleOff,Math.min(1,dt*(CAM_ROUTE.vif?16:7))); // (vague 3) pendant le tonneau, la caméra colle à son orbite (sinon elle coupe au travers de la dalle)
          camera.position.copy(carGroup.position).add(off);}
         camUp.lerp(F.n,Math.min(1,dt*4)).normalize();
         qTmp2.setFromAxisAngle(fwdW,-camLean); // inclinaison caméra très légère dans les virages
@@ -22236,6 +22405,10 @@ function loop(now){
          tmp2.sub(carGroup.position); // (conduite v6) lissée RELATIVEMENT à la caisse : lissée en position monde, elle traînait de v/9 — à 700 km/h on regardait le capot
          if(!loop._vise||n9Saut(loop))loop._vise=tmp2.clone();else loop._vise.lerp(tmp2,Math.min(1,dt*9));
          tmp2.copy(loop._vise).add(carGroup.position);}
+        /* (vague 3) LE CABRAGE ANTICIPÉ : tout le plan (place, visée, haut) pivote autour de la caisse d'une part du cabrage de la route
+           à venir — la caisse reste à sa place à l'écran, c'est la route devant qui redevient lisible (voir CAM_ROUTE) */
+        camRouteCabrage(dt,camBack,camH);
+        {const q9=CAM_ROUTE.q,c9=carGroup.position;camera.position.sub(c9).applyQuaternion(q9).add(c9);tmp2.sub(c9).applyQuaternion(q9).add(c9);camera.up.applyQuaternion(q9);}
         camera.lookAt(tmp2);
         fovPunch=Math.max(0,fovPunch-dt*18);
         const r9=speedKmh/Math.max(1,vCroisiere()), // (2026-09-25) le champ s'ouvre sur la CROISIÈRE réelle : il continue de réagir au momentum, au pad, au FLOW au lieu d'être collé au plafond
@@ -22511,17 +22684,10 @@ function loop(now){
       // (vague 2) anneaux et cœur : animés par updateBoomArt (créés une fois)
       if(boomLight)boomLight.intensity=Math.max(0,4.5-boomT*3);
       /* (vague 2) LE CADRAGE DE L'EXPLOSION : la secousse s'AJOUTAIT à la position d'une image sur l'autre — une marche au hasard de
-         5 à 10 m en 1,8 s : la caméra partait n'importe où, passait parfois AU-DESSUS du foyer et le monde se retournait. Désormais
-         elle recule d'un trait (3,5 m, 0,5 s, et un peu de hauteur : la boule se lit de l'extérieur) et TREMBLE autour de ce point. */
-      {const pl9=Math.min(1,boomT/.5),e9=pl9*(2-pl9);bmCamD.subVectors(bmCam,boomPos);const l9=bmCamD.length()||1;
-       camera.position.copy(bmCam).addScaledVector(bmCamD,e9*3.5/l9);camera.position.y+=e9*1.2;}
-      camera.lookAt(boomPos);
-      if(shake>0){
-        camera.position.x+=(Math.random()-.5)*shake*.35;
-        camera.position.y+=(Math.random()-.5)*shake*.35;
-        camera.position.z+=(Math.random()-.5)*shake*.35;
-        shake=Math.max(0,shake-1.5*dt);
-      }
+         5 à 10 m en 1,8 s : la caméra partait n'importe où, passait parfois AU-DESSUS du foyer et le monde se retournait.
+         (vague 3) … puis le recul de 3,5 m laissait la poursuite figée à 7-14 m, grand-angle, monde parfois à l'envers : c'est
+         désormais un PLAN de cinéma, voir BOOM_CAM / boomCamTick. */
+      boomCamTick(dt);
       if(elTurn.style.opacity!=='0')elTurn.style.opacity=0;
       if(boomT>1.8&&!gameOver)endGame();
     }
