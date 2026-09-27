@@ -337,6 +337,9 @@ or `#ffd75e` argent, feu `#ff7a24` nitro, réserve `#5b7dff`, néon `#ff3ec8`/`#
   +4 appels de dessin. Banc `dbgOrbite('vue'|'cout'|'photo'|'carte')`.
 - **VILLE** (`VILLE_PENTE={seuil:.30,garde:.35}`, `adoucirPentes`) : la pente de la ville est comprimée au-delà de ~16,7° (pente max
   ~47° → ~30°), altitude seulement, zéro `rnd()` ajouté : NUAGES et ORBITE identiques au bit. `garde:1` = l'ancienne ville.
+- **⚠ RELIEF COUPÉ PARTOUT** (même soir, user : « et en fait même pour la ville remets l'ancien terrain ») : `RELIEF_ON=false` — les trois
+  niveaux ont la pente et les virages d'AVANT (banc : 36/36 pistes identiques à daf9e60 ; la ville garde VILLE_PENTE). Le programme
+  ci-dessous dort derrière cet interrupteur (true = la VILLE seulement). Ne pas le rallumer sans que Sacha le redemande.
 - **RELIEF — VILLE SEULEMENT** (même jour, user : « garde ce terrain pour la ville mais remets les anciens pour les deux autres niveaux ») :
   `reliefPiste`, les poids `wv` et les rayons larges ne jouent que si `sansLoop` (la ville) ; NUAGES et ORBITE retrouvent leurs pistes
   d'avant AU TIRAGE PRÈS (banc : 36/36 pistes identiques). Ce qui suit décrit donc la VILLE.

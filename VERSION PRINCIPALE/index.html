@@ -4656,6 +4656,10 @@ function adoucirPentes(P,o){
    relief). ÉTAGES : une piste qui ne tombe plus se RECROISE — là où deux passages se superposent (< `prox` m en plan, > 600 m d'écart
    le long du ruban), le passage le plus récent est soulevé ou abaissé d'une BOSSE douce (cosinus, pente ajoutée ≤ ~11°) jusqu'à `sep` m
    d'écart. RNG propre (hachage du tracé) : zéro tirage `rnd` consommé. Régler : les parts et les pentes dans RELIEF. */
+/* ⚠ RELIEF COUPÉ PARTOUT (2026-09-27, même soir, user : « et en fait même pour la ville remets l'ancien terrain ») : les trois niveaux
+   retrouvent la pente et les virages d'AVANT (la ville garde sa descente adoucie, VILLE_PENTE). Le programme reste ici, derrière UN
+   interrupteur : RELIEF_ON=true le rallume pour la VILLE (poids `wv`, rayons larges, reliefPiste). */
+const RELIEF_ON=false;
 const RELIEF={desc:[.36,-.11,-.26,300,760],mont:[.33,.09,.20,260,620],plat:[.31,0,0,240,520],rampe:120,fin:250,sep:85,prox:100}; // parts du PROGRAMME (les marches des étages ajoutent ~4 pts de descente : mesuré 40/30/30 à l'arrivée)
 function reliefPiste(P,skip,i0){
   const n=P.length;if(n<i0+4)return;
@@ -4773,7 +4777,8 @@ function genCtrl(rnd,startPos,startPhi){
   // sortaient statistiquement jumelles (« on a l'impression que la génération est toujours pareille »).
   // On secoue les poids à CHAQUE zone : celle-ci sera obsédée par les esses, la suivante par les
   // tire-bouchons. Le CARACTÈRE de l'archétype tient (un 0 reste un 0), seule l'humeur change.
-  const W=(sansLoop?AR.wv:AR.w).map(v=>v*(0.35+rnd()*1.7)); // (vague 3) la VILLE a ses poids à grands virages (voir `wv`)
+  const RV=RELIEF_ON&&sansLoop; // (vague 3) le terrain RELIEF (grands virages + 40/30/30) — coupé, voir RELIEF_ON
+  const W=(RV?AR.wv:AR.w).map(v=>v*(0.35+rnd()*1.7)); // (vague 3) la VILLE a ses poids à grands virages (voir `wv`)
   const wsum=W.reduce((a,b)=>a+b,0);
   const pick=()=>{let x=rnd()*wsum;for(let k=0;k<13;k++){x-=W[k];if(x<0)return k;}return 5;};
   const LEN=14400*(1+Math.min(1.5,(LV-1)*.55)); // (2026-09-25, user : « double la longueur de chaque niveau ») 7200 → 14400 — et plus longues encore à haute vitesse
@@ -4829,7 +4834,7 @@ function genCtrl(rnd,startPos,startPhi){
     if(mo===0&&!sansLoop&&approx-lastLoop>1600){ // UN looping, de temps en temps (route v3 : 1,6 km mini entre deux, plus de doublé) — JAMAIS en ville
       straight(60+rnd()*50,-30);loop((30+rnd()*34)*LOOPS,30+rnd()*22);straight(60+rnd()*50,-30);lastLoop=approx;
     }else if(mo===9){ // (route v3b) LE GRAND BALAYAGE : un virage long et LARGE, 100-150°, qui descend doucement — on le prend à fond, on le SENT
-      const sg=sgn(),R9=(sansLoop?160+rnd()*160:110+rnd()*90)*RS,a9=Math.min(100+rnd()*60,(sansLoop?64000:52000)/R9); // (vague 3) plus LARGE en VILLE : R 160-320 (ailleurs 110-200)
+      const sg=sgn(),R9=(RV?160+rnd()*160:110+rnd()*90)*RS,a9=Math.min(100+rnd()*60,(RV?64000:52000)/R9); // (vague 3) plus LARGE en VILLE : R 160-320 (ailleurs 110-200)
       arc(sg*a9,R9,Math.max(5,Math.round(a9/14)),-(a9*Math.PI/180*R9*(.12+rnd()*.12)));
     }else if(mo===0||mo===1||mo===11||mo===12){ // (route v3) looping trop proche du précédent — et les motifs retirés, par sûreté : un GRAND VIRAGE
       const sg=sgn(),R2=(80+rnd()*120)*RS,a2=Math.min(45+rnd()*65,46000/R2);
@@ -4851,7 +4856,7 @@ function genCtrl(rnd,startPos,startPhi){
       courbe(50+rnd()*40,(20+rnd()*25)*VT,sg4*(10+rnd()*12));  // remontée surprise
       courbe(70+rnd()*50,-(45+rnd()*40)*VT,sg4*(12+rnd()*14)); // et ça replonge (route v3 : sans le mur de 60°)
     }else if(mo===5){ // grand virage large — (route v3c) plus serré d'un cran et jamais sous 45° : un VRAI virage
-      const sg=sgn(),R2=(sansLoop?130+rnd()*190:80+rnd()*120)*RS,a2=Math.min(45+rnd()*65,(sansLoop?56000:46000)/R2); // (vague 3, « plus de virages larges ») R 130-320 en VILLE (ailleurs 80-200)
+      const sg=sgn(),R2=(RV?130+rnd()*190:80+rnd()*120)*RS,a2=Math.min(45+rnd()*65,(RV?56000:46000)/R2); // (vague 3, « plus de virages larges ») R 130-320 en VILLE (ailleurs 80-200)
       arc(sg*a2,R2,3,-(a2*Math.PI/180*R2*(.6+rnd()*.5)));
     }else if(mo===6){ // plongeon — (route v3) franc mais jamais vertical : pente bornée à ~30°
       {const l6=60+rnd()*80;courbe(l6,-l6*Math.min(.58,(.28+rnd()*.2)*VT),sgn()*(10+rnd()*10));}
@@ -4880,7 +4885,7 @@ function genCtrl(rnd,startPos,startPhi){
   else if(AR.nm==='TECH'){let sgF=sgn();for(let q=0;q<3;q++){arc(sgF*24,90*RS,2,-26);sgF=-sgF;}}
   else{const sg=sgn();arc(sg*100,170*RS,5,-(100*Math.PI/180*170*RS*.3));} // (route v3) un grand virage de fin, plus la spirale de 420°
   straight(110*LV,-66*LV,2); // ARRIVÉE : ligne droite claire vers le portail
-  if(sansLoop)reliefPiste(ctrl,LOOPI,iDep); // (vague 3) en VILLE l'altitude ne vient plus des motifs : un PROGRAMME 40 % descente · 30 % montée · 30 % plat (NUAGES et ORBITE : la pente d'avant, voir `wv`)
+  if(RV)reliefPiste(ctrl,LOOPI,iDep); // (vague 3) en VILLE l'altitude ne vient plus des motifs : un PROGRAMME 40 % descente · 30 % montée · 30 % plat (NUAGES et ORBITE : la pente d'avant, voir `wv`)
   if(sansLoop)adoucirPentes(ctrl,VILLE_PENTE); // (vague 3) la VILLE descend moins raide — AVANT les lissages, qui arrondissent le résultat
   lisserRaccords(ctrl,LOOPI);   // (route v3b) plus de cassure de pente d'un motif à l'autre
   adoucirCretes(ctrl,LOOPI);    // plus de crête AVEUGLE (voir la fonction)
