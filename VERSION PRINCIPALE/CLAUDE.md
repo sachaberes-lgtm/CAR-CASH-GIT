@@ -337,6 +337,17 @@ or `#ffd75e` argent, feu `#ff7a24` nitro, réserve `#5b7dff`, néon `#ff3ec8`/`#
   +4 appels de dessin. Banc `dbgOrbite('vue'|'cout'|'photo'|'carte')`.
 - **VILLE** (`VILLE_PENTE={seuil:.30,garde:.35}`, `adoucirPentes`) : la pente de la ville est comprimée au-delà de ~16,7° (pente max
   ~47° → ~30°), altitude seulement, zéro `rnd()` ajouté : NUAGES et ORBITE identiques au bit. `garde:1` = l'ancienne ville.
+- **RELIEF** (`RELIEF`, `reliefPiste`, appelé à la fin de `genCtrl`) — « les parcours ne doivent pas toujours aller vers le bas… mets
+  plus de virages larges », puis « 40 % descente, 30 % montée, 30 % plat ». Avant : 95-99 % de la piste descendait (6 à 13 km de chute
+  par niveau). L'altitude ne vient PLUS des motifs (leurs `dy` ne servent qu'aux loopings) : un programme de tronçons DESCENTE −6/−15° ·
+  MONTÉE +5/+11° · PLAT 0°, tenu en longueur, rampes de 120 m ; une montée débouche toujours sur un plat (pas de crête aveugle) ; 250 m
+  plats avant le portail ; loopings transportés d'un bloc ; ÉTAGES : là où la route repasse sur elle-même, la suite passe DESSOUS à ≥ 85 m
+  (marche douce, toujours vers le bas — ne jamais « soulever » : ça oscillait et faisait des pentes à 50°). RNG = hachage du tracé.
+  Mesuré (banc `scratchpad/relief/mesure2.js`, 8 graines × 2 vitesses × 3 niveaux) : 28 % montée · 42 % descente · 30 % plat, chute
+  ~0,3-1,2 km par niveau, écart mini aux croisements (hors loopings) ≥ 63 m. Virages : grand virage R 130-320 et grand balayage R 160-320
+  (×RS), poids relevés partout — part de la piste en courbe LARGE (R 400-1500) ~22 % → 44 %, serrée (R < 150) ~13 % → 6 %. La caisse
+  roule ~15 % moins vite en moyenne (la pente ne pousse plus en permanence). Nuages : la garde `nuageTouche` écarte ceux qui mordraient
+  la route (85 nuages au lieu de 88).
 Vérifié : VERIF OK, grand tour 0 shader compilé en course, 60 i/s.
 
 ## ⚠ FUSION SACHA × LÉO + NIVEAUX — 2026-09-24 (branche `fusion-2026-09`)

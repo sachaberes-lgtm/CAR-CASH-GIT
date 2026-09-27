@@ -4645,6 +4645,70 @@ function adoucirPentes(P,o){
   for(let i=1;i<P.length;i++){const h=Math.hypot(P[i].x-P[i-1].x,P[i].z-P[i-1].z),dy=y0[i]-y0[i-1],g=h>.5?Math.abs(dy)/h:0;
     P[i].y=P[i-1].y+(g>o.seuil?Math.sign(dy)*(o.seuil+(g-o.seuil)*o.garde)*h:dy);}
 }
+/* LE RELIEF (2026-09-27, vague 3, user : « les parcours ne doivent pas toujours aller vers le bas, des fois ils doivent monter, des fois
+   descendre », puis « ça doit être 40 % descente, 30 % montée, 30 % plat »). MESURÉ avant (banc, 6 graines × 2 vitesses) : 95 à 99 % de
+   la longueur DESCENDAIT, 6 à 13 km de chute par niveau — chaque motif posait sa pente négative (un grand virage à −30/−48°), le ruban
+   était un toboggan sans fin. L'altitude ne vient donc plus des motifs : le tracé en plan reste le leur (virages, esses, longueurs), et
+   l'altitude suit un PROGRAMME de tronçons tiré pour tenir les parts EN LONGUEUR — DESCENTE −6 à −17° · MONTÉE +5 à +11° · PLAT (0°) —
+   raccordés par des rampes de pente (`rampe` m, la pente change en ligne, pas en marche). Deux règles de lecture : une MONTÉE débouche
+   toujours sur un PLAT (le sommet est un plateau : jamais de crête aveugle où la route plonge derrière la bosse) ; les 250 derniers mètres
+   sont plats (le portail se voit venir). Les loopings sont transportés TELS QUELS (leur cercle garde sa forme, seule sa base suit le
+   relief). ÉTAGES : une piste qui ne tombe plus se RECROISE — là où deux passages se superposent (< `prox` m en plan, > 600 m d'écart
+   le long du ruban), le passage le plus récent est soulevé ou abaissé d'une BOSSE douce (cosinus, pente ajoutée ≤ ~11°) jusqu'à `sep` m
+   d'écart. RNG propre (hachage du tracé) : zéro tirage `rnd` consommé. Régler : les parts et les pentes dans RELIEF. */
+const RELIEF={desc:[.36,-.11,-.26,300,760],mont:[.33,.09,.20,260,620],plat:[.31,0,0,240,520],rampe:120,fin:250,sep:85,prox:100}; // parts du PROGRAMME (les marches des étages ajoutent ~4 pts de descente : mesuré 40/30/30 à l'arrivée)
+function reliefPiste(P,skip,i0){
+  const n=P.length;if(n<i0+4)return;
+  const s=new Float64Array(n);for(let i=1;i<n;i++)s[i]=s[i-1]+Math.hypot(P[i].x-P[i-1].x,P[i].z-P[i-1].z);
+  const S0=s[i0],SL=s[n-1];if(SL-S0<600)return;
+  let h9=2166136261;for(let i=0;i<n;i+=5){h9=Math.imul(h9^((P[i].x*131)|0),16777619);h9=Math.imul(h9^((P[i].z*137)|0),16777619);}
+  const rr=mulberry32(h9>>>0);
+  // 1) LE PROGRAMME : des tronçons [début, pente], chacun du type le plus en retard sur sa part (jamais deux fois le même d'affilée)
+  const K=['desc','mont','plat'],seg=[],acc={desc:0,mont:0,plat:0};let tot=0,prev='plat',x=S0;
+  while(x<SL-RELIEF.fin){
+    let t='plat';
+    if(prev!=='mont'){let bd=-1e9;for(const k of K){if(k===prev)continue;const d=RELIEF[k][0]*(tot+500)-acc[k]+rr()*160;if(d>bd){bd=d;t=k;}}}
+    const R=RELIEF[t],l=R[3]+rr()*(R[4]-R[3]);
+    seg.push([x,R[1]+rr()*(R[2]-R[1])]);acc[t]+=l;tot+=l;x+=l;prev=t;
+  }
+  seg.push([SL-RELIEF.fin,0]);
+  // 2) la pente g(s) au pas de 5 m, rampes linéaires de `rampe` m aux jonctions, intégrée en altitude
+  const DS=5,nY=Math.ceil((SL-S0)/DS)+2,Y=new Float64Array(nY),hr=RELIEF.rampe/2;
+  const gAt=function(v){let k=0;while(k+1<seg.length&&seg[k+1][0]<=v)k++;let g=seg[k][1];
+    if(k+1<seg.length&&v>seg[k+1][0]-hr)g+=(seg[k+1][1]-g)*(v-(seg[k+1][0]-hr))/(2*hr);
+    else if(k>0&&v<seg[k][0]+hr)g=seg[k-1][1]+(g-seg[k-1][1])*(v-(seg[k][0]-hr))/(2*hr);
+    return g;};
+  Y[0]=P[i0].y;for(let q=1;q<nY;q++)Y[q]=Y[q-1]+DS*gAt(S0+(q-.5)*DS);
+  const yAt=function(v){const f=Math.max(0,Math.min(nY-1.001,(v-S0)/DS)),q=Math.floor(f);return Y[q]+(Y[q+1]-Y[q])*(f-q);};
+  // 3) poser l'altitude — les loopings (runs de `skip`) transportés d'un bloc
+  const y0=P.map(function(p){return p.y;});
+  for(let i=i0+1;i<n;){
+    if(skip&&skip.has(i)){let b=i;while(b+1<n&&skip.has(b+1))b++;const a=Math.max(i0,i-1),ds=Math.max(1e-6,s[b]-s[a]),ya=yAt(s[a]),yb=yAt(s[b]);
+      for(let q=i;q<=b;q++){const u=(s[q]-s[a])/ds;P[q].y=ya+(yb-ya)*u+(y0[q]-(y0[a]+(y0[b]-y0[a])*u));}
+      i=b+1;continue;}
+    P[i].y=yAt(s[i]);i++;
+  }
+  // 4) LES ÉTAGES : là où la route repasse au-dessus d'elle-même, le passage le plus RÉCENT passe DESSOUS, à `sep` m au moins.
+  //    Toujours dans le même sens (on n'abaisse que la suite) : une MARCHE douce (cosinus sur W m, finie au croisement) descend tout
+  //    le reste du ruban d'un bloc — la suite garde ses propres écarts, rien n'oscille d'une passe à l'autre. Les loopings et leurs
+  //    abords ne se comparent pas à eux-mêmes (un looping repasse forcément sur ses pas).
+  const C=RELIEF.prox,C2=C*C,SEP=RELIEF.sep;
+  const G=new Map();for(let i=i0;i<n;i++){const k9=Math.floor(P[i].x/C)+','+Math.floor(P[i].z/C);let a9=G.get(k9);if(!a9)G.set(k9,a9=[]);a9.push(i);}
+  for(let pass=0;pass<6;pass++){
+    let bouge=false;
+    for(let j=i0+1;j<n;j++){const pj=P[j],cx=Math.floor(pj.x/C),cz=Math.floor(pj.z/C);let d=0,iC=-1;
+      for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++){const a9=G.get((cx+dx)+','+(cz+dz));if(!a9)continue;
+        for(const i of a9){if(i>=j)continue;const ds9=s[j]-s[i];if(ds9<600||(skip&&(skip.has(i)||skip.has(j))&&ds9<1200))continue;
+          const pi=P[i],hx=pi.x-pj.x,hz=pi.z-pj.z;if(hx*hx+hz*hz>C2)continue;
+          const dy=pj.y-pi.y;if(dy>-SEP&&dy<SEP&&SEP+dy+3>d){d=SEP+dy+3;iC=i;}}}
+      if(iC<0)continue;
+      const W=Math.min(Math.max(280,d/.14),s[j]-s[iC]-220),a=s[j]-W;
+      for(let k=i0+1;k<n;k++){if(s[k]<=a)continue;const u=Math.min(1,(s[k]-a)/W);P[k].y-=d*.5*(1-Math.cos(Math.PI*u));}
+      bouge=true;
+    }
+    if(!bouge)break;
+  }
+}
 function genCtrl(rnd,startPos,startPhi){
   /* (piste v6, 2026-09-25, user : « les pistes sont trop droites, il n'y a pas assez de virages »). MESURÉ au banc (218 pistes) :
      31 % de la longueur tournait plus serré que R 300 m avec la 1re caisse… et 7 % avec la dernière — c'était la CAISSE qui
@@ -4690,11 +4754,13 @@ function genCtrl(rnd,startPos,startPhi){
        looping SEUL, espacé d'au moins 1,6 km (plus de doublé) ; les pentes de plongeon et de momentum sont bornées (≤ ~30°). */
     /* ROUTE v3b (même jour, « ça va trop tout droit : rajoute des GRANDS VIRAGES, tout un parcours fun ») : la droite de momentum
        tombe de ~20 à 6 ; les grands virages, les esses et le GRAND BALAYAGE (motif 9, 100-150° à fond) portent la piste. */
-    {nm:'FLOW',   w:[3,0,3,26,6,30,4,6,6,16,3,0,0],    rs:1.15,vt:.8},  // autoroute céleste : sweepers qui chantent — et LE gap
-    {nm:'TECH',   w:[2,0,14,22,4,20,3,6,16,8,0,0,0],   rs:.92, vt:.9},  // slalom : épingles, chicanes (zéro gap : on est en ville)
-    {nm:'ALPIN',  w:[2,0,4,14,12,22,10,8,4,12,3,0,0],  rs:1.1, vt:1.4}, // crêtes et plongeons (adoucis : voir `adoucirCretes`)
-    {nm:'VOLTIGE',w:[7,0,4,16,8,22,6,6,5,14,2,0,0],    rs:1.15,vt:1.1}, // le ciel est un cirque : un LOOP de temps en temps
-    {nm:'GRAND8', w:[4,0,7,18,8,24,6,6,8,14,1,0,0],    rs:1,   vt:1}    // mixte équilibré
+    /* (vague 3, 2026-09-27, user : « mets plus de virages larges ») : le GRAND VIRAGE (5) et le GRAND BALAYAGE (9) prennent la main dans
+       les cinq archétypes, au détriment des épingles (2), plongeons (6) et droites de momentum (7) — l'altitude, elle, vient de RELIEF. */
+    {nm:'FLOW',   w:[3,0,2,22,6,40,2,3,5,28,3,0,0],    rs:1.15,vt:.8},  // autoroute céleste : sweepers qui chantent — et LE gap
+    {nm:'TECH',   w:[2,0,9,20,4,28,2,3,13,16,0,0,0],   rs:.92, vt:.9},  // slalom : épingles, chicanes (zéro gap : on est en ville)
+    {nm:'ALPIN',  w:[2,0,3,12,10,32,5,4,4,22,3,0,0],   rs:1.1, vt:1.4}, // crêtes et plongeons (adoucis : voir `adoucirCretes`)
+    {nm:'VOLTIGE',w:[7,0,3,14,8,32,3,3,4,24,2,0,0],    rs:1.15,vt:1.1}, // le ciel est un cirque : un LOOP de temps en temps
+    {nm:'GRAND8', w:[4,0,5,16,8,34,3,3,6,24,1,0,0],    rs:1,   vt:1}    // mixte équilibré
   ][Math.floor(rnd()*5)];
   zoneArch=AR.nm; // exporté pour les BIOMES
   const RS=AR.rs*LV*1.25,VT=AR.vt,LOOPS=1+(LV-1)*.35; // ×1,25 (route v2) : des rayons plus larges — les courbes se prennent, elles ne se subissent pas // les loops grossissent doucement (un loop de 120 m reste un loop)
@@ -4755,12 +4821,13 @@ function genCtrl(rnd,startPos,startPhi){
     lastGap=approx;
   };
   straight(110*LV,-70*LV,2); // DÉPART : ligne droite, rallongée avec la vitesse (était 170 m + la caisse)
+  const iDep=ctrl.length-1; // (vague 3) le RELIEF part d'ici : le largage du départ garde sa chute
   while(approx<LEN){
     const mo=pick();
     if(mo===0&&!sansLoop&&approx-lastLoop>1600){ // UN looping, de temps en temps (route v3 : 1,6 km mini entre deux, plus de doublé) — JAMAIS en ville
       straight(60+rnd()*50,-30);loop((30+rnd()*34)*LOOPS,30+rnd()*22);straight(60+rnd()*50,-30);lastLoop=approx;
     }else if(mo===9){ // (route v3b) LE GRAND BALAYAGE : un virage long et LARGE, 100-150°, qui descend doucement — on le prend à fond, on le SENT
-      const sg=sgn(),R9=(110+rnd()*90)*RS,a9=Math.min(100+rnd()*60,52000/R9);
+      const sg=sgn(),R9=(160+rnd()*160)*RS,a9=Math.min(100+rnd()*60,64000/R9); // (vague 3) plus LARGE : R 160-320 (était 110-200)
       arc(sg*a9,R9,Math.max(5,Math.round(a9/14)),-(a9*Math.PI/180*R9*(.12+rnd()*.12)));
     }else if(mo===0||mo===1||mo===11||mo===12){ // (route v3) looping trop proche du précédent — et les motifs retirés, par sûreté : un GRAND VIRAGE
       const sg=sgn(),R2=(80+rnd()*120)*RS,a2=Math.min(45+rnd()*65,46000/R2);
@@ -4782,7 +4849,7 @@ function genCtrl(rnd,startPos,startPhi){
       courbe(50+rnd()*40,(20+rnd()*25)*VT,sg4*(10+rnd()*12));  // remontée surprise
       courbe(70+rnd()*50,-(45+rnd()*40)*VT,sg4*(12+rnd()*14)); // et ça replonge (route v3 : sans le mur de 60°)
     }else if(mo===5){ // grand virage large — (route v3c) plus serré d'un cran et jamais sous 45° : un VRAI virage
-      const sg=sgn(),R2=(80+rnd()*120)*RS,a2=Math.min(45+rnd()*65,46000/R2);
+      const sg=sgn(),R2=(130+rnd()*190)*RS,a2=Math.min(45+rnd()*65,56000/R2); // (vague 3, « plus de virages larges ») R 130-320 (était 80-200)
       arc(sg*a2,R2,3,-(a2*Math.PI/180*R2*(.6+rnd()*.5)));
     }else if(mo===6){ // plongeon — (route v3) franc mais jamais vertical : pente bornée à ~30°
       {const l6=60+rnd()*80;courbe(l6,-l6*Math.min(.58,(.28+rnd()*.2)*VT),sgn()*(10+rnd()*10));}
@@ -4811,6 +4878,7 @@ function genCtrl(rnd,startPos,startPhi){
   else if(AR.nm==='TECH'){let sgF=sgn();for(let q=0;q<3;q++){arc(sgF*24,90*RS,2,-26);sgF=-sgF;}}
   else{const sg=sgn();arc(sg*100,170*RS,5,-(100*Math.PI/180*170*RS*.3));} // (route v3) un grand virage de fin, plus la spirale de 420°
   straight(110*LV,-66*LV,2); // ARRIVÉE : ligne droite claire vers le portail
+  reliefPiste(ctrl,LOOPI,iDep); // (vague 3) l'altitude ne vient plus des motifs : un PROGRAMME 40 % descente · 30 % montée · 30 % plat
   if(sansLoop)adoucirPentes(ctrl,VILLE_PENTE); // (vague 3) la VILLE descend moins raide — AVANT les lissages, qui arrondissent le résultat
   lisserRaccords(ctrl,LOOPI);   // (route v3b) plus de cassure de pente d'un motif à l'autre
   adoucirCretes(ctrl,LOOPI);    // plus de crête AVEUGLE (voir la fonction)
