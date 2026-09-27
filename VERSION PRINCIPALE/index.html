@@ -3669,6 +3669,7 @@ const ACESShader={
             uVigK:{value:.52},uVigC:{value:new THREE.Vector3(.149,.047,.212)}}, // (2026-09-26, vague 2) la VIGNETTE du niveau (ex-calque DOM #vig), posée par bioApply
   vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
   fragmentShader:['uniform sampler2D tDiffuse;uniform float uExposure,uSat,uContrast,uVivid,uSpeed,uJit,uVigK;uniform vec3 uWB,uSh,uHi,uVigC;uniform vec2 uRes;varying vec2 vUv;',
+    'uniform vec4 uNit;uniform float uNitF;', // (vague 3, NITRO) la couleur de la poussée sur les bords (rgb + part) et le coup d'allumage — posés par nfxTick
     // (2026-09-26, audit rendu) LES HAUTES LUMIÈRES ROULENT au lieu de s'écraser : en NUAGES, 98 % du haut de l'image avait un canal au
     // plafond (un aplat bleu électrique, des nuages brûlés). Le coude garde la TEINTE (on divise les trois canaux ensemble) : tout ce
     // qui tenait déjà sous .86 ne bouge pas d'un iota — seuls les pixels qui saturaient retrouvent leur dégradé.
@@ -3713,6 +3714,10 @@ const ACESShader={
     'c+=uSh*(1.-smoothstep(0.,0.5,l2));',               // split-tone : ombres TEAL
     'c+=uHi*smoothstep(0.5,1.0,l2);',                   // split-tone : lumières OR
     'c*=1.0-uSpeed*smoothstep(0.30,0.85,r)*0.55;',      // TUNNEL DE VITESSE : les bords plongent dans le noir, l'œil file au centre
+    // (vague 3, NITRO) LES BORDS S'ALLUMENT DE LA COULEUR DE LA POUSSÉE — une LUEUR ajoutée (pas un voile : un mélange vers l'orange
+    // délavait le rose en brun, mesuré), plus forte sur le sombre que sur le clair (elle ne brûle jamais le ciel), + le COUP d'allumage.
+    // Le centre (la caisse, la route devant) reste intact : tout se joue au-delà du quart de l'image. Zéro lecture de texture.
+    '{float ne=smoothstep(0.36,0.74,r);c+=uNit.rgb*(ne*(uNit.a*(1.0-0.6*min(1.0,dot(c,LUM)))+uNitF));}',
     GRADE_ACES?'c=max(c,0.);c=max(mix(vec3(dot(c,LUM)),c,1.12),0.);c=max((c-.5)*1.05+.5,0.)*.97;':'', // = saturate(1.12) contrast(1.05) brightness(.97) du CSS, même ordre
     // LA VIGNETTE (2026-09-26, vague 2) — c'était un calque DOM plein écran (#vig) : violet, fixe à 52 %, même en plein jour cobalt. Elle
     // vit ici, par niveau (uVigK/uVigC, posés par bioApply). Même dessin au pixel que l'ancien dégradé CSS (ellipse centrée à 44 % du
@@ -3720,6 +3725,7 @@ const ACESShader={
     '{vec2 vq=vec2((vUv.x-.5)/.5,(vUv.y-.56)/.44);float vg=clamp(length(vq)*1.2354-1.,0.,1.);',
     'gl_FragColor=vec4(mix(clamp(roule(c),0.,1.),uVigC,uVigK*vg),1.0);}}'].join('\n')
 };
+ACESShader.uniforms.uNit={value:new THREE.Vector4(1,.478,.141,0)};ACESShader.uniforms.uNitF={value:0}; // (vague 3, NITRO) la poussée sur les bords — voir nfxTick
 const CAN_POST=typeof THREE.EffectComposer==='function'&&typeof THREE.RenderPass==='function'&&typeof THREE.UnrealBloomPass==='function'&&typeof THREE.ShaderPass==='function';
 if(CAN_POST){ try{
   const w=innerWidth,h=innerHeight;
@@ -17097,6 +17103,13 @@ window.dbgDrift=function(){return {driftYaw:+driftYaw.toFixed(3),degres:Math.rou
 // LA SIGNATURE D'ÉCHAPPEMENT, en lecture seule. Sans ce hook, vérifier qu'une caisse crache bien
 // SA couleur demandait de regarder l'écran — impossible en test automatisé, et à l'œil on confond
 // vite « le vert ne marche pas » avec « la caisse équipée n'est pas la bonne ».
+// (vague 3) `dbgNitro(r,x)` : pose la réserve (r = orange, x = bidons bleus — pour photographier la réserve bleue) · sans argument : l'état du COUP
+window.dbgNitro=function(r,x){if(r==='bords'){NFX.dbgB=x;return 'bords ×'+x;} // `dbgNitro('bords',0)` : éteint la teinte des bords (photo A/B)
+  if(r==='vent'){ventN.masque=!x;ventN.mesh.visible=!!x;return 'vent '+(x?'visible':'masqué');} // `dbgNitro('vent',0)` : masque les stries de vent
+  if(r!=null)nitroR=+r;if(x!=null)nitroX=+x;
+  return {nitroR:+nitroR.toFixed(2),nitroX:+nitroX.toFixed(2),on:nitroOn,bleu:nitroBlue,ign:+NFX.ign.toFixed(2),ignK:+NFX.ignK.toFixed(2),off:+NFX.off.toFixed(2),
+    len:+NFX.len.toFixed(2),bords:+NFX.edge.toFixed(2),onde:NFX.ring.visible,vent:(function(){let c=0;for(let i=0;i<ventN.n;i++)if(ventN.life[i]>0)c++;return c;})(),
+    fov:+camera.fov.toFixed(1),fovPunch:+fovPunch.toFixed(1),plume:JETS.shells.length?+JETS.shells[0].scale.z.toFixed(2):0};};
 window.dbgJet=function(){const c=CARS[level];return {
   caisse:c.name,fx:c.fx?{jet:'#'+(c.fx.jet||0).toString(16).padStart(6,'0'),rainbow:!!c.fx.rainbow}:null,
   plume:'#'+jetShellM.color.getHexString(),coeur:'#'+jetCoreM.color.getHexString(),k:+JETS.k.toFixed(2),
@@ -18878,6 +18891,116 @@ let bounceN=0,airFlash=0; // BUMPS : rebonds sur la tranche de la dalle pendant 
 let runStats={tricks:0,bumps:0,zones:0,vmax:0,chainMax:0,gaps:0,surv:0}; // bilan de la run (écran de fin) + les exploits versés aux compteurs À VIE qui débloquent les caisses
 let hopY=0,hopV=0; // petit saut de dos d'âne
 let nitroR=2,nitroX=0,nitroOn=false,nitroBlue=false,nitroHeldT=0;
+/* ---------- LA NITRO v3 — « LE COUP » (2026-09-27, vague 3) ----------
+   Sacha : « Les effets de nitro sont un peu faiblards, travaille-les correctement comme dans Asphalt. »
+   MESURÉ avant d'écrire : à l'allumage AU SOL il ne se passait RIEN d'un coup — le champ glissait en 0,2 s de lissage, la plume passait
+   de 1,1 à 2,3 m (vue à 45° par la caméra de poursuite : un cornet de 60 px), le seul son était le sifflet du turbo. Asphalt tient en
+   TROIS TEMPS, rejoués ici sans une lumière, un programme ni une passe de plus (tout vit dans des objets créés à l'init, des uniforms
+   de l'ACES et des réserves de particules qui partagent le programme `pt2E`) :
+   · L'ALLUMAGE (`nitroAllume`, le front montant) : une ONDE qui part des tuyères (`NFX.ring`, même programme que la plume), la caméra
+     TIRÉE en arrière puis le champ qui s'ouvre d'un coup, les bords de l'image qui prennent la couleur de la nitro (`uNit`/`uNitF`
+     dans l'ACES), une gerbe de filés, le nez qui se lève, et un WHOOMP (souffle brun qui s'ouvre + coup de poitrine + ruée d'air).
+     Rejoué en plus petit au passage en RÉSERVE BLEUE : c'est un deuxième étage, il doit se sentir.
+   · LA TENUE : plume longue aux diamants de choc, stries de vent 3D qui filent près de l'objectif (`ventN`), frisson continu, bords
+     teintés — et AUCUNE flaque ronde au sol (verdict du 25/09).
+   · L'EXTINCTION (`nitroEteint`) : dernière bouffée aux pots + pétarade, et le champ qui RETOMBE en douceur au lieu de claquer.
+   Couleurs de la bible « L'encre et l'or » : feu #ff7a24, réserve #5b7dff, pad turbo or #ffd75e.
+   ⚠ la POUSSÉE et la CONSOMMATION ne bougent pas d'un iota : ici on ne travaille que le RESSENTI. */
+const NFX={ign:0,ignK:1,air:false,off:0,t0:-9,sT:-9,len:0,edge:0,col:new THREE.Color(0xff7a24),cT:new THREE.Color(),blanc:new THREE.Color(0xffffff),ringT:9,ringK:1,
+  vAcc:0,s:0x2f6b1a3,v:new THREE.Vector3(),d:new THREE.Vector3(),cR:new THREE.Vector3(),cU:new THREE.Vector3(),ring:null};
+{ // L'ONDE D'ALLUMAGE : un anneau de choc peint (liseré franc + lueur intérieure), posé à la tuyère DANS le plan perpendiculaire à la
+  // caisse — il s'ouvre et recule en 0,4 s. ⚠ MÊMES paramètres de programme que la plume (`jetShellM` : carte, sans brouillard, double
+  // face) : three r128 réutilise son programme, il n'en compile AUCUN de plus (vérifié au grand tour).
+  const s=128,cv=document.createElement('canvas');cv.width=cv.height=s;const c=cv.getContext('2d');
+  const g=c.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2);
+  g.addColorStop(0,'rgba(255,255,255,0)');g.addColorStop(.5,'rgba(255,255,255,.05)');g.addColorStop(.78,'rgba(255,255,255,.32)');
+  g.addColorStop(.9,'rgba(255,255,255,1)');g.addColorStop(.95,'rgba(255,255,255,.35)');g.addColorStop(1,'rgba(255,255,255,0)');
+  c.fillStyle=g;c.fillRect(0,0,s,s);
+  NFX.ring=new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv),color:0xff7a24,transparent:true,
+    opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false}));
+  NFX.ring.visible=false;NFX.ring.frustumCulled=false;NFX.ring.renderOrder=3;scene.add(NFX.ring);
+}
+/* LES STRIES DE VENT : des points POSÉS dans le monde (vitesse nulle), devant l'objectif et décalés de l'axe du regard — la caisse les
+   traverse à pleine vitesse, le shader `pt2E` les étire dans leur vitesse RELATIVE : des filets d'air qui passent à 2-8 m de la caméra,
+   avec la parallaxe que les filés 2D n'ont pas. Même programme que les étincelles (aucun de plus), fondu près de l'objectif. */
+const ventN=makePool(64,1,0xfff0dc,1,true,{a:[.12,.4,1,1],etire:1,str:.05,v:.35,pr:[1.4,4.5,16,520]});
+ventN.mesh.material.blending=THREE.AdditiveBlending;ventN.mesh.material.map=sparkTex;
+// son PROPRE tirage (mulberry32) : ces effets purement visuels ne consomment pas le Math.random du jeu — les parcours de test
+// (grand tour, pilote auto) restent identiques à ce qu'ils étaient sans eux
+function nfxR(){let t=(NFX.s=(NFX.s+0x6D2B79F5)|0);t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;}
+function nfxVent(dt,dir,kmh){ // `dir` : le sens de la course (cap au sol, vitesse en vol) — sème autour de la caméra, devant elle
+  const v9=Math.max(20,kmh/3.6);NFX.vAcc+=dt*(nitroBlue?52:40)*(1+NFX.ign*NFX.ignK*1.5);
+  NFX.cR.setFromMatrixColumn(camera.matrixWorld,0);NFX.cU.setFromMatrixColumn(camera.matrixWorld,1);
+  while(NFX.vAcc>=1){NFX.vAcc-=1;
+    const d=Math.max(9,v9*.1)+nfxR()*Math.max(18,v9*.22),cx=(nfxR()<.5?-1:1)*(2.6+nfxR()*6.5),cy=-3.2+nfxR()*6.4; // sur les CÔTÉS de l'image (le centre reste à la caisse)
+    spawnP(ventN,camera.position.x+dir.x*d+NFX.cR.x*cx+NFX.cU.x*cy,camera.position.y+dir.y*d+NFX.cR.y*cx+NFX.cU.y*cy,
+      camera.position.z+dir.z*d+NFX.cR.z*cx+NFX.cU.z*cy,0,0,0,.3+nfxR()*.2);
+  }
+}
+function nitroWhoomp(k,bleu,air){ // LE « WHOOMP » d'allumage — 8 à 10 nœuds, tous arrêtés en moins d'une seconde (rien ne s'empile)
+  if(!sfxOk())return;
+  const n9=performance.now();if(n9-NFX.sT<150)return;NFX.sT=n9; // une rafale de taps ne fait pas une rafale de souffles
+  try{
+    const t0=AC.currentTime;
+    // 1) LE SOUFFLE QUI S'OUVRE : bruit BRUN (rond, jamais un chuintement), passe-bas qui s'ouvre d'un coup puis se referme
+    const s=AC.createBufferSource();s.buffer=brownBuf(1);
+    const f=AC.createBiquadFilter();f.type='lowpass';f.Q.value=1.4;
+    f.frequency.setValueAtTime(TEL_NATIF?420:170,t0);f.frequency.exponentialRampToValueAtTime(bleu?3600:2600,t0+.09);
+    f.frequency.exponentialRampToValueAtTime(TEL_NATIF?700:420,t0+.75);
+    const g=AC.createGain();g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(.42*k,t0+.025);g.gain.exponentialRampToValueAtTime(.001,t0+.85);
+    s.connect(f);f.connect(g);g.connect(MASTER);s.start(t0);s.stop(t0+.9);
+    // 2) LE COUP DE POITRINE (le « MP ») — subBoom : dédoublonné et calé pour le haut-parleur du téléphone
+    subBoom((air?.2:.26)*k);
+    // 3) LA RUÉE D'AIR : bande de bruit blanc qui MONTE — la vitesse qui arrive (c'est elle qu'un haut-parleur de téléphone rend)
+    const s2=AC.createBufferSource();s2.buffer=noiseBuf(.6);
+    const b=AC.createBiquadFilter();b.type='bandpass';b.Q.value=.9;b.frequency.setValueAtTime(900,t0);b.frequency.exponentialRampToValueAtTime(bleu?6200:4800,t0+.45);
+    const g2=AC.createGain();g2.gain.setValueAtTime(.0001,t0);g2.gain.exponentialRampToValueAtTime(.075*k,t0+.12);g2.gain.exponentialRampToValueAtTime(.001,t0+.55);
+    s2.connect(b);b.connect(g2);g2.connect(MASTER);s2.start(t0);s2.stop(t0+.6);
+    if(bleu){ // le 2e étage SONNE : un sifflet bref qui monte — la turbine passe la surmultipliée
+      const o=AC.createOscillator(),go=AC.createGain();o.type='triangle';
+      o.frequency.setValueAtTime(700,t0);o.frequency.exponentialRampToValueAtTime(1900,t0+.22);
+      go.gain.setValueAtTime(.0001,t0);go.gain.exponentialRampToValueAtTime(.04*k,t0+.03);go.gain.exponentialRampToValueAtTime(.001,t0+.3);
+      o.connect(go);go.connect(MASTER);o.start(t0);o.stop(t0+.32);}
+    duckT=Math.max(duckT,.35*k); // la poussée passe DEVANT le mix une fraction de seconde
+  }catch(e){}
+}
+function nitroAllume(bleu,etage){ // LE COUP — au front montant de `nitroOn` (sol ET vol) ; `etage` : le passage en réserve bleue, en plus petit
+  const n9=performance.now(),rep=n9-NFX.t0<650;NFX.t0=n9; // réservoir vide qu'on tient appuyé (hystérésis) : des rallumages rapprochés, un coup plus petit
+  const k=(etage?.6:1)*(rep?.45:1);
+  NFX.ign=1;NFX.ignK=k;NFX.off=0;NFX.ringT=0;NFX.ringK=k;NFX.air=mode==='fall';NFX_FIL.arme=true; // (la gerbe de filés : voir nfxFiles)
+  NFX.col.setHex(bleu?0x5b7dff:0xff7a24); // la teinte de l'onde et des bords est juste dès la première image
+  fovPunch=Math.max(fovPunch,(NFX.air?8:7)*k);     // le champ S'OUVRE d'un coup (lu au sol comme en vol) — un COUP au-dessus de l'ouverture de la nitro (+15°), pas un second zoom : à 14 la caisse fondait de moitié
+  hap(bleu?[8,16,8]:[14,26,10]);
+  nitroWhoomp(k,bleu,NFX.air);
+  if(!POST_ON)flashEcran(bleu?'rgba(91,125,255,.45)':'rgba(255,122,36,.45)'); // sans l'ACES (post coupé), le coup de couleur passe par le calque DOM
+}
+function nitroEteint(){ // LA DERNIÈRE BOUFFÉE : une langue de feu aux pots + la pétarade — puis le champ retombe en douceur (`NFX.off`)
+  NFX.off=1;
+  if(nitroHeldT<.25||mode==='boom')return; // un simple tap ne mérite pas la cérémonie
+  const VC=PT_U.uVc.value;
+  for(let i=0;i<8;i++){potMonde(CAR_POTS[i%CAR_POTS.length]||CAR_POT_C,NFX.v);
+    spawnP(flames,NFX.v.x,NFX.v.y,NFX.v.z,VC.x-hsF.x*(9+nfxR()*9)+(nfxR()-.5)*2.4,VC.y-hsF.y*9+nfxR()*1.4,VC.z-hsF.z*(9+nfxR()*9)+(nfxR()-.5)*2.4,.1+nfxR()*.08);
+    if(i<4)spawnP(embers,NFX.v.x,NFX.v.y,NFX.v.z,VC.x-hsF.x*(4+nfxR()*5)+(nfxR()-.5)*3,VC.y+1+nfxR()*2.5,VC.z-hsF.z*(4+nfxR()*5)+(nfxR()-.5)*3,.2+nfxR()*.15);}
+  try{crackle(.7);}catch(e){}
+}
+function nfxTick(dt){ // chaque image (après hsF/hsU) : l'onde, la teinte des bords, les enveloppes
+  const vit=running&&!gameOver&&mode!=='boom';
+  NFX.ign=Math.max(0,NFX.ign-dt/.55);NFX.off=Math.max(0,NFX.off-dt/1.2);
+  NFX.len+=((vit&&nitroOn?1:0)-NFX.len)*Math.min(1,dt*(nitroOn?9:5));
+  if(NFX.ringT<.45&&vit){NFX.ringT+=dt;const u=Math.min(1,NFX.ringT/.42),e=1-(1-u)*(1-u)*(1-u),R=NFX.ring;
+    R.visible=u<1;potMonde(CAR_POT_C,R.position).addScaledVector(hsF,-(.15+.8*e)); // l'onde RECULE en s'ouvrant : elle part vers l'arrière
+    R.quaternion.copy(carGroup.quaternion); // son plan : perpendiculaire à la caisse (au sol comme en vrille)
+    const sc=(.35+1.55*e)*(.65+.35*NFX.ringK);R.scale.set(sc,sc,1); // ≤ 1,9 m : un halo de choc AUTOUR de la poupe — plus grand, il passait devant l'objectif en croissant géant
+    R.material.opacity=(1-u)*(1-u)*1.7*NFX.ringK;R.material.color.copy(NFX.col);}
+  else if(NFX.ring.visible)NFX.ring.visible=false;
+  // LES BORDS DE L'IMAGE prennent la couleur de la poussée — orange feu, bleu réserve, or du pad turbo (plus discret)
+  const eT=vit?(nitroOn?(nitroBlue?.36:.3):(boost>0?.14:0)):0;
+  NFX.edge+=(eT-NFX.edge)*Math.min(1,dt*(eT>NFX.edge?8:2.6));
+  NFX.cT.setHex(nitroBlue?0x5b7dff:(nitroOn?0xff7a24:0xffd75e));NFX.col.lerp(NFX.cT,Math.min(1,dt*12));
+  if(acesPass){const U=acesPass.uniforms,b9=NFX.dbgB==null?1:NFX.dbgB;
+    U.uNit.value.set(NFX.col.r,NFX.col.g,NFX.col.b,NFX.edge*(REDUCED_MOTION?.5:1)*b9);
+    U.uNitF.value=vit?NFX.ign*NFX.ign*NFX.ignK*(REDUCED_MOTION?.25:.7)*b9:0;} // le COUP : un éclair de couleur sur tout le cadre, parti en ~0,3 s
+}
 // LE BOOST DE DÉPART (2026-09-05) : 3 s de nitro OFFERTE au lancement d'une partie (voir
 // `resetGame`) — ne consomme PAS `nitroR` (même garde que `pwrNitroT`, le pouvoir « nitro infinie »)
 // et décroît en douceur : si le joueur ne touche à rien, la poussée s'arrête à 0 et la traînée
@@ -18946,8 +19069,8 @@ function drawSpeedLines(kmh,nitro,dt){ // speed lines façon anime : traits radi
   const spr=drawSpeedLines.spr||(drawSpeedLines.spr=(function(){const mk=function(r,g,b){const c=document.createElement('canvas');c.width=128;c.height=8;
     const x=c.getContext('2d'),gr=x.createLinearGradient(0,0,128,0),q='rgba('+r+','+g+','+b+',';
     gr.addColorStop(0,q+'0)');gr.addColorStop(.55,q+'.55)');gr.addColorStop(.86,q+'1)');gr.addColorStop(1,q+'0)');
-    x.fillStyle=gr;x.fillRect(0,2,128,4);x.globalAlpha=.35;x.fillRect(0,1,128,6);return c;};return {w:mk(255,248,236),c:mk(170,235,255)};})());
-  const im9=nitro?spr.c:spr.w;                            // NITRO : filés cyan électrique
+    x.fillStyle=gr;x.fillRect(0,2,128,4);x.globalAlpha=.35;x.fillRect(0,1,128,6);return c;};return {w:mk(255,248,236),c:mk(255,208,160),b:mk(178,196,255)};})());
+  const im9=nitro?(nitroBlue?spr.b:spr.c):spr.w;          // NITRO : filés chauffés à la couleur de la poussée — (vague 3) feu / réserve bleue de la bible (ils étaient cyan néon)
   slCtx.globalCompositeOperation='lighter';
   let viv=0;
   for(let i=0;i<SLN;i++){
@@ -18964,6 +19087,24 @@ function drawSpeedLines(kmh,nitro,dt){ // speed lines façon anime : traits radi
   }
   SL.vivants=viv;
   slCtx.setTransform(1,0,0,1,0,0);slCtx.globalAlpha=1;slCtx.globalCompositeOperation='source-over';
+}
+/* (vague 3, NITRO) LA GERBE DE FILÉS DE L'ALLUMAGE : 18 traits qui JAILLISSENT près du centre et filent vers les bords en 0,3 s, dans
+   le calque des filés (dessinés après eux, seulement quand il est actif — la nitro l'allume toujours). Leurs PROPRES emplacements et
+   leur propre tirage (`nfxR`) : les filés de `drawSpeedLines` et le Math.random du jeu restent exactement ceux d'avant. */
+const NFX_FN=18,NFX_FIL={a:new Float32Array(NFX_FN),r:new Float32Array(NFX_FN),v:new Float32Array(NFX_FN),t:new Float32Array(NFX_FN).fill(9),
+  T:new Float32Array(NFX_FN).fill(1),l:new Float32Array(NFX_FN),w:new Float32Array(NFX_FN),arme:false};
+function nfxFiles(dt){
+  const S=NFX_FIL,spr=drawSpeedLines.spr;
+  if(S.arme){S.arme=false;const m9=Math.min(slCv.width,slCv.height),k=NFX.ignK;
+    for(let i=0;i<NFX_FN;i++){S.a[i]=nfxR()*6.2832;S.r[i]=m9*(.12+nfxR()*.22);S.v[i]=m9*(2.2+nfxR()*1.6)*(.7+.3*k);
+      S.t[i]=-nfxR()*.1;S.T[i]=.2+nfxR()*.16;S.l[i]=(180+nfxR()*260)*(.6+.4*k);S.w[i]=.8+nfxR()*1.1;}}
+  if(!spr||!drawSpeedLines._had){for(let i=0;i<NFX_FN;i++)S.t[i]+=dt;return;} // calque éteint : rien à dessiner, mais la gerbe s'use quand même
+  const cx=slCv.width/2,cy=slCv.height*.46,im9=nitroBlue?spr.b:spr.c;let on=false;
+  for(let i=0;i<NFX_FN;i++){if(S.t[i]>=S.T[i])continue;S.t[i]+=dt;const u=S.t[i]/S.T[i];if(u<=0||u>=1)continue;if(!on){on=true;slCtx.globalCompositeOperation='lighter';}
+    const ca=Math.cos(S.a[i]),sa=Math.sin(S.a[i])*.82,d9=Math.hypot(ca,sa),r=S.r[i]+S.v[i]*S.t[i];
+    slCtx.globalAlpha=.55*Math.sin(u*3.1416);
+    slCtx.setTransform(ca/d9,sa/d9,-sa/d9,ca/d9,cx+ca*r,cy+sa*r);slCtx.drawImage(im9,0,-S.w[i]*1.5,S.l[i]*d9,S.w[i]*3);}
+  if(on){slCtx.setTransform(1,0,0,1,0,0);slCtx.globalAlpha=1;slCtx.globalCompositeOperation='source-over';}
 }
 let pendingScore=null;
 let leaders=SAVE.d.leaders; // même tableau que la sauvegarde : les mutations coulent dedans
@@ -22365,8 +22506,12 @@ function loop(now){
     nitroBlue=nitroOn&&nitroR<=.01; // réserve bleue = plus puissante
     // TURBO v2 : spool à l'enclenchement (au sol), blow-off + flutter à la relâche (partout)
     if(nitroOn&&!loop._nOn&&mode==='drive')nitroSpool();
+    if(nitroOn&&!loop._nOn&&mode!=='boom')nitroAllume(nitroBlue,false);            // (vague 3) LE COUP d'allumage — au sol comme en vol
+    else if(nitroOn&&nitroBlue&&!loop._nBl&&mode!=='boom')nitroAllume(true,true); // …et le 2e étage : on bascule dans la réserve bleue
+    loop._nBl=nitroBlue;
     if(nitroOn){nitroHeldT+=dt;styleFromBoost(dt);} // TENIR le boost remplit la jauge rose — la seule source
     if(!nitroOn&&loop._nOn&&nitroHeldT>.35)blowOff();
+    if(!nitroOn&&loop._nOn)nitroEteint(); // (vague 3) la dernière bouffée (lit nitroHeldT : avant sa remise à zéro)
     if(!nitroOn)nitroHeldT=0;
     loop._nOn=nitroOn;
     if(keys.KeyR&&mode==='drive'){respawn();keys.KeyR=false;}
@@ -22726,7 +22871,7 @@ function loop(now){
           {const aLat=yawR*Math.abs(vA)*SPD,d9=Math.min(dt,1/30),
                 rollT=Math.sign(aLat)*.26*(1-Math.exp(-Math.abs(aLat)/35))+(driftEnCours?Math.sign(slipB)*.07:0);
            rollV+=((rollT-carRoll9)*196-rollV*15.4)*d9;carRoll9=THREE.MathUtils.clamp(carRoll9+rollV*d9,-.42,.42);
-           pitch9+=(((dn||driftEnCours)?.035:0)-((nitroOn||boost>0)?.03:0)-pitch9)*Math.min(1,dt*6); // plonge au frein/drift, s'accroupit à la poussée
+           pitch9+=(((dn||driftEnCours)?.035:0)-((nitroOn||boost>0)?.03:0)-NFX.ign*NFX.ignK*.1-pitch9)*Math.min(1,dt*6); // plonge au frein/drift, s'accroupit à la poussée — (vague 3) et SE CABRE à l'allumage de la nitro (≈3° le temps du coup)
            const pv=carBody.userData.pivY||.45;
            carBody.rotation.set(pitch9,0,carRoll9);carBody.position.set(pv*Math.sin(carRoll9),pv-pv*Math.cos(carRoll9),0);}
         }
@@ -22766,13 +22911,14 @@ function loop(now){
             spawnStreak(tmp2.x,tmp2.y,tmp2.z,fwdW.x*ln9,fwdW.y*ln9,fwdW.z*ln9);
           }
         }
+        if(nitroOn&&!REDUCED_MOTION)nfxVent(dt,fwdW,speedKmh); // (vague 3) NITRO : les stries de vent filent au ras de l'objectif
         // BRAISES d'échappement : fines, vie COURTE, jet serré — le plume mesh (JETS) et la traînée
         // font le spectacle, les particules ne sont plus que des étincelles qui giclent. Fini le mur
         // blanc : avant, des sprites géants restaient plantés dans le monde et la caméra les TRAVERSAIT.
         flames.mesh.material.size=Math.min(.62,.27+Math.min(engTier,15)*.022)*(nitroOn?1.2:1); // (2026-09-26) plus de tirage PAR IMAGE (toute la réserve palpitait d'un bloc) : chaque braise a sa taille (aR) ; et le feu grandit avec le MOTEUR, plus avec l'index de la caisse // PETIT : une étincelle, pas un ballon (le plume mesh fait le volume)
         flameCore.mesh.material.size=Math.min(.34,.14+Math.min(engTier,15)*.012)*(nitroOn?1.25:1);
-        flames.mesh.material.color.set(nitroOn?(nitroBlue?0x3a5bff:0xff8020):0xff9030);
-        flameCore.mesh.material.color.set(nitroOn?(nitroBlue?0xbfd6ff:0xffd9a0):0xffe2a8);
+        flames.mesh.material.color.set(nitroOn?(nitroBlue?0x5b7dff:0xff7a24):0xff9030); // (vague 3) la bible : feu #ff7a24, réserve #5b7dff
+        flameCore.mesh.material.color.set(nitroOn?(nitroBlue?0xd6e2ff:0xffe4bc):0xffe2a8); // le CŒUR blanchit (blanc chaud / blanc bleuté)
         const fl=(up||nitroOn)?(nitroOn?5:2)+Math.min(3,Math.floor(level/5)):(Math.abs(vF)>8?1:0);
         // (2026-09-25) Les étincelles HÉRITENT de la vitesse de la caisse (EXV) : lâchées à −22 m/s en MONDE alors que la caisse file
         // à 50+, elles fonçaient vers la caméra à ~70 m/s relatifs et gonflaient en gros ronds orange devant l'objectif. Le gaz
@@ -22894,7 +23040,7 @@ function loop(now){
         fovPunch=Math.max(0,fovPunch-dt*18);
         const r9=speedKmh/Math.max(1,vCroisiere()), // (2026-09-25) le champ s'ouvre sur la CROISIÈRE réelle : il continue de réagir au momentum, au pad, au FLOW au lieu d'être collé au plafond
               fovT=Math.min(160,fovPor(fovPunch+FLOW.lv*2.2+72+Math.min(38,r9*28+Math.max(0,r9-1)*10)+(boost>0?8:0)+(nitroOn?(nitroBlue?22:15):0))); // (portrait : élargi par la tangente, voir fovPor) // le tunnel s'ouvre : part RELATIVE + part absolue + GROS coup de FOV au boost (Sacha)
-        camera.fov+=(fovT-camera.fov)*Math.min(1,dt*6);
+        camera.fov+=(fovT-camera.fov)*Math.min(1,dt*(NFX.off>0&&fovT<camera.fov?2.4:6)); // (vague 3) à l'extinction de la nitro le champ RETOMBE en douceur (il s'ouvre toujours sec)
         camera.updateProjectionMatrix();
         if(shake>0){
           camera.position.addScaledVector(F.n,(Math.random()-.5)*shake);
@@ -22913,6 +23059,13 @@ function loop(now){
           camera.position.addScaledVector(tmp,(Math.random()-.5)*spdSh*1.2);
           camera.position.addScaledVector(fwdW,(Math.random()-.5)*spdSh*.5);
           camera.rotateZ((Math.random()-.5)*spdSh*.045+Math.sin(t*27)*spdSh*.014);
+        }
+        // (vague 3) NITRO — LA CAISSE ARRACHE : la caméra DÉCROCHE (0 → pic à ~0,2 s → 0, elle recule et monte un peu) pendant que le
+        // champ s'ouvre, puis revient ; tant qu'on tient, un frisson continu (deux sinus : un grondement, pas un grésillement)
+        if(!REDUCED_MOTION&&!window.dbgNoShake){
+          if(NFX.ign>0){const e9=NFX.ign*NFX.ign*(1-NFX.ign)*6.75*NFX.ignK,j9=Math.max(0,NFX.ign-.85)*.9*NFX.ignK; // + l'À-COUP des trois premières images (tirage PROPRE : `shake` puise dans le Math.random du jeu, et la physique aussi)
+            camera.position.addScaledVector(fwdW,-1.05*e9).addScaledVector(F.n,.25*e9+(nfxR()-.5)*j9).addScaledVector(tmp,(nfxR()-.5)*j9);}
+          if(nitroOn){const a9=nitroBlue?.05:.036;camera.position.addScaledVector(F.n,Math.sin(t*38.7)*a9).addScaledVector(tmp,Math.sin(t*29.3+1.7)*a9*.7);}
         }
         // indicateur de virage RETIRÉ du HUD épuré (#turnHint est display:none) : on n'évalue plus la courbe à l'avance (frameAt+trig) chaque frame pour rien
         airPie.style.display='none';
@@ -22942,7 +23095,7 @@ function loop(now){
           const sp8=fallVel.length(),a8=46*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1); // (2026-09-26, user : « dans l'air le nitro doit accélérer plus ») 32 → 46 m/s
           if(sp8>1)fallVel.multiplyScalar((sp8+a8)/sp8);else fallVel.addScaledVector(FLY_U,a8);
           fallVH0=Math.max(fallVH0,Math.hypot(fallVel.x,fallVel.z));if(pwrNitroT<=0)nitroR=Math.max(0,nitroR-.12*((ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2));
-          fovPunch=Math.max(fovPunch,12);shake=Math.max(shake,.35);hap([14,30,10]);try{boostSnd(1.4);}catch(e){}flashEcran('rgba(255,140,40,.4)');}
+          fovPunch=Math.max(fovPunch,12);shake=Math.max(shake,.35);} // (vague 3) le reste du coup — onde, bords, WHOOMP, vibreur — vient de `nitroAllume`, qui part à la même image (il le doublait)
         { // (2026-09-26, user : « le nitro en l'air ne sert pas qu'à guider, il faut que ça ACCÉLÈRE vraiment ») : la MÊME poussée qu'au sol
           // (30 · 48 en réserve bleue × le palier moteur), dans l'axe du vol — et l'élan gagné au réacteur est GARDÉ (le plafond d'inertie suit)
           // (2026-09-26, user : « dans l'air le nitro doit accélérer plus ») : DEUX FOIS la poussée du sol (60 · 96 en réserve bleue) — rien ne
@@ -22963,9 +23116,9 @@ function loop(now){
         // (des vecteurs qui tournent autour d'un axe local : pas d'angle d'Euler, donc pas de gimbal-lock).
         if(wPitch!==0){const a9=-wPitch*1.7*dtF;fallVel.applyAxisAngle(FLY_R,a9);FLY_U.applyAxisAngle(FLY_R,a9);}
         // jet visible au point de poussée arrière : panache conique, jamais deux fois pareil
-        flames.mesh.material.color.set(nitroBlue?0x3a5bff:0xff8020);
-        flameCore.mesh.material.color.set(nitroBlue?0xbfd6ff:0xffd9a0);
-        embers.mesh.material.color.set(nitroBlue?0x8ab8ff:0xffb24a);
+        flames.mesh.material.color.set(nitroBlue?0x5b7dff:0xff7a24);    // (vague 3) le RÉACTEUR aux couleurs de la bible : feu #ff7a24, réserve #5b7dff
+        flameCore.mesh.material.color.set(nitroBlue?0xd6e2ff:0xffe4bc); // cœur blanc chaud / blanc bleuté
+        embers.mesh.material.color.set(nitroBlue?0x8ea4ff:0xffa24a);
         tmp3.set(0,0,1).applyQuaternion(carGroup.quaternion);
         potAuHasard(tmp2); // (2026-09-26) en vol aussi, le feu sort des POTS (avant : 2,4 m derrière le centre, au milieu)
         if(Math.random()<.7)spawnP(embers,
@@ -22987,7 +23140,7 @@ function loop(now){
           carGroup.position.x-tmp3.x*3.4,carGroup.position.y-tmp3.y*3.4,carGroup.position.z-tmp3.z*3.4,
           -tmp3.x*5+(Math.random()-.5)*2,-tmp3.y*5+1,-tmp3.z*5+(Math.random()-.5)*2,
           .5+Math.random()*.6);
-        if(Math.random()<.5)spawnP(sparkBlue,
+        if(Math.random()<.5)spawnP(embers, // (vague 3) les braises du réacteur (elles étaient CYAN néon, même en nitro orange : deux signaux contradictoires)
           carGroup.position.x-tmp3.x*2.5,carGroup.position.y-tmp3.y*2.5,carGroup.position.z-tmp3.z*2.5,
           -tmp3.x*20+(Math.random()-.5)*6,-tmp3.y*20+(Math.random()-.5)*6,-tmp3.z*20+(Math.random()-.5)*6,.3);
       } else { // VOL SANS BOOST : léger pilotage haut/bas — assez pour infléchir la trajectoire, bien moins qu'au réacteur
@@ -23065,6 +23218,7 @@ function loop(now){
           spawnStreak(tmp2.x,tmp2.y,tmp2.z,tmp.x*ln9,tmp.y*ln9,tmp.z*ln9);
         }
       }
+      if(nitroOn&&!REDUCED_MOTION&&fallVel.lengthSq()>1){NFX.d.copy(fallVel).normalize();nfxVent(dt,NFX.d,fallVel.length()*3.6*SPD);} // (vague 3) les stries de vent en vol : dans l'axe de la VITESSE, pas du nez qui vrille
       // orientation stable : le nez suit la trajectoire, PAS de vrille surprise
       carGroup.scale.set(1,1,1);
       tmp.copy(fallVel).normalize();
@@ -23100,7 +23254,7 @@ function loop(now){
       // (`fovPunch`) claque ici aussi — avant, il n'était lu qu'au sol et partait en retard, à l'atterrissage
       fovPunch=Math.max(0,fovPunch-dt*18);
       const fovAir=fovPor(76-bigAir*22+fovPunch+(nitroOn?(nitroBlue?18:13):0)); // ZOOM cinématique : le champ se resserre avec l'ampleur du saut (76° petit air → 54° gros air)
-      camera.fov+=(fovAir-camera.fov)*Math.min(1,dt*4);
+      camera.fov+=(fovAir-camera.fov)*Math.min(1,dt*(NFX.off>0&&fovAir<camera.fov?2:4)); // (vague 3) la nitro coupée : le champ retombe en douceur
       camera.updateProjectionMatrix();
       const fshN=THREE.MathUtils.clamp((speedKmh-180)/360,0,1.2),fsh=fshN*fshN*CAM_SHAKE_V;
       if(fsh>0){
@@ -23109,6 +23263,7 @@ function loop(now){
         camera.position.z+=(Math.random()-.5)*fsh;
         camera.rotateZ((Math.random()-.5)*fsh*.05); // le vent secoue aussi l'horizon
       }
+      if(nitroOn&&!REDUCED_MOTION&&!window.dbgNoShake)camera.position.addScaledVector(camUp,Math.sin(t*38.7)*(nitroBlue?.05:.036)); // (vague 3) le réacteur GRONDE dans l'image
       if(elTurn.style.opacity!=='0')elTurn.style.opacity=0; // (perf) une fois suffit
       // viseur : où vais-je atterrir ?
       landMark.visible=false;
@@ -23186,6 +23341,7 @@ function loop(now){
     updatePool(flames,dt,1);
     updatePool(flameCore,dt,1);
     updatePool(embers,dt,4.5);
+    updatePool(ventN,dt,0); // (vague 3) les stries de vent de la nitro (posées fixes : la caisse les traverse)
     updatePool(boomPool,dt,3);
     updatePool(boomRed,dt,2.5);
     updatePool(boomYel,dt,3.5);
@@ -23264,18 +23420,20 @@ function loop(now){
     // REFLET NITRO/BOOST : le pool de lumière colle à l'échappement (repère caisse : marche aussi sous la dalle)
     hsU.set(0,1,0).applyQuaternion(carGroup.quaternion);
     potMonde(CAR_POT_C,nitroLight.position).addScaledVector(hsF,-.3).addScaledVector(hsU,.1); // (2026-09-26) au droit des POTS, plus au milieu de la poupe
-    const nTgt=(mode==='boom')?0:(nitroOn?(nitroBlue?1.5:1.25):(boost>0?.8:0)); // (2026-09-26, audit rendu) AU REPOS : 0 — le reflet rouge permanent était la « tache rouge » derrière la caisse // (2026-09-25) ÷1,5 à ÷2 : additionnée aux flaques et au bloom, elle faisait la « tache violette » // .68 au repos (était .8) : les FEUX ARRIÈRE posent leur reflet rouge en permanence — braise posée, plus le point chaud qui perçait
+    nfxTick(dt); // (vague 3) NITRO : l'onde d'allumage, les bords de l'image, les enveloppes du coup (voir NFX)
+    const nTgt=((mode==='boom')?0:(nitroOn?(nitroBlue?1.5:1.25):(boost>0?.8:0)))*(1+NFX.ign*NFX.ignK*.5); // (vague 3) l'allumage ÉCLAIRE la poupe un instant — un éclair, pas une flaque qui reste // (2026-09-26, audit rendu) AU REPOS : 0 — le reflet rouge permanent était la « tache rouge » derrière la caisse // (2026-09-25) ÷1,5 à ÷2 : additionnée aux flaques et au bloom, elle faisait la « tache violette » // .68 au repos (était .8) : les FEUX ARRIÈRE posent leur reflet rouge en permanence — braise posée, plus le point chaud qui perçait
     nitroLight.intensity+=(nTgt*(.82+.18*Math.sin(t*43))-nitroLight.intensity)*Math.min(1,dt*14); // flamme qui tremble, fondu doux
     {const FL9=CARS[level].fx,fxL=(FL9&&FL9.light!=null&&!nitroBlue)?FL9.light:null; // la signature n'éclaire QUE sous poussée
      if(nitroOn)nitroLight.color.setHex(nitroBlue?0x5b7dff:(fxL!=null?fxL:0xff7a24)); // orange nitro / bleu réserve (mêmes teintes que les particules)
-     else if(boost>0)nitroLight.color.setHex(fxL!=null?fxL:0xffb040); // pad turbo : coup d'or
+     else if(boost>0)nitroLight.color.setHex(fxL!=null?fxL:0xffd75e); // pad turbo : coup d'or (vague 3 : l'or de la bible)
      else nitroLight.color.setHex(0xf21808);} // repos : rouge feux arrière PROFOND (la signature ne vit qu'à la nitro)
     // PLUME DE RÉACTEUR : court au filage, long et affûté à la nitro — flicker haute fréquence, la flamme VIT
     const jTgt=(mode==='boom')?0:((nitroOn?(nitroBlue?1.35:1.05):((mode!=='drive'||loop._wasUp)&&Math.abs(speedKmh)>20?.34:0))+(boost>0?.4:0));
     JETS.k+=(jTgt-JETS.k)*Math.min(1,dt*11);
     if(JETS.shells.length){
       const jOn=JETS.k>.05,fl9=.82+.18*Math.sin(t*57+Math.sin(t*33)*2.1);
-      const jl=Math.max(.03,(.5+Math.min(engTier,15)*.035)*JETS.k*2.1*fl9),jr=.09+.07*JETS.k; // (2026-09-26) la plume grandit avec le MOTEUR, plus avec l'index de la caisse
+      const iK9=NFX.ign*NFX.ignK; // (vague 3) le COUP d'allumage : la plume jaillit (+1,6 m, plus large) puis se pose
+      const jl=Math.max(.03,(.5+Math.min(engTier,15)*.035)*JETS.k*2.1*fl9*(1+NFX.len*.85)+iK9*1.6*Math.min(1,JETS.k)),jr=.09+.07*JETS.k+NFX.len*.05+iK9*.09; // (2026-09-26) la plume grandit avec le MOTEUR, plus avec l'index de la caisse — (vague 3) et s'ALLONGE à la nitro (×1,85 : 2 à 4 m, Asphalt) : vue à 45° par la poursuite, 2 m ne faisaient qu'un cornet
       // LA SIGNATURE DE LA CAISSE EST UN EFFET DE **NITRO**, pas une peinture permanente (décision
       // du user, 2026-08-05). Au filage la plume reste l'orange commun à tout le monde ; c'est en
       // appuyant que la caisse montre ce qu'elle a dans le ventre — le vert acide, le rose de la
@@ -23283,12 +23441,12 @@ function loop(now){
       // ⚠ la RÉSERVE BLEUE garde la priorité absolue : c'est un SIGNAL de jeu (« tu tapes dans la
       // réserve »), et aucune identité de caisse n'a le droit d'effacer un signal.
       const FX9=CARS[level].fx,fxOn=(nitroOn||boost>0)&&!nitroBlue;
-      jetShellM.color.setHex(nitroBlue?0x4f76ff:(fxOn&&FX9&&FX9.jet!=null?FX9.jet:(nitroOn?0xff6a18:(boost>0?0xffc640:0xff8c30)))); // (vague 2) le pad turbo souffle OR : la poussée qui vient de l'argent
-      jetCoreM.color.setHex(nitroBlue?0xd6e4ff:(fxOn&&FX9&&FX9.core!=null?FX9.core:0xffe6b0));
-      jetGlowM.color.copy(jetShellM.color);jetGlowM.opacity=Math.min(1,JETS.k*.95*fl9);
+      jetShellM.color.setHex(nitroBlue?0x5b7dff:(fxOn&&FX9&&FX9.jet!=null?FX9.jet:(nitroOn?0xff7a24:(boost>0?0xffd75e:0xff8c30)))); // (vague 2) le pad turbo souffle OR : la poussée qui vient de l'argent — (vague 3) les teintes EXACTES de la bible : feu #ff7a24, réserve #5b7dff, or #ffd75e
+      jetCoreM.color.setHex(nitroBlue?0xe2ebff:(fxOn&&FX9&&FX9.core!=null?FX9.core:(nitroOn?0xfff2da:0xffe6b0))); // (vague 3) à la nitro le cœur brûle BLANC : les diamants de choc se lisent sur le corps orange
+      jetGlowM.color.copy(jetShellM.color).lerp(NFX.blanc,NFX.len*.45);jetGlowM.opacity=Math.min(1,JETS.k*.95*fl9+iK9*.5); // (vague 3) à la nitro la tuyère est chauffée à BLANC : le point le plus chaud de la flamme
       for(const m9 of JETS.shells){m9.visible=jOn;m9.scale.set(jr,jr,jl);m9.rotation.z=t*7.3;} // (plume v2) l'enveloppe TOURNE sur son axe : les langues de flamme ondulent
       for(const m9 of JETS.cores){m9.visible=jOn;m9.scale.set(jr*.48,jr*.48,jl*.72);}
-      const g9=.2+.55*JETS.k*fl9;
+      const g9=.2+.55*JETS.k*fl9+iK9*1.1+NFX.off*NFX.off*.35; // (vague 3) la tuyère FLASHE à l'allumage, hoquette à l'extinction
       for(const s9 of JETS.glows){s9.visible=jOn;s9.scale.set(g9,g9,1);}
     }
     // LE DÉPART EN ARC-EN-CIEL (2026-09-05) : les premières secondes de chaque run brillent d'une
@@ -23308,13 +23466,14 @@ function loop(now){
     const spec9=CARS[level],tz9=-(spec9.l/2+.32);
     let tcr,tcg,tcb;
     const FXT=FX_EFF||spec9.fx; // la traînée de la boutique a le dernier mot
-    if(nitroBlue){tcr=.45;tcg=.62;tcb=1.6;}                       // la réserve bleue reste un SIGNAL
+    if(nitroBlue){tcr=.52;tcg=.72;tcb=1.5;}                       // la réserve bleue reste un SIGNAL — (vague 3) calée sur #5b7dff
     else if(FXT&&FXT.trail){tcr=FXT.trail[0];tcg=FXT.trail[1];tcb=FXT.trail[2];} // la signature de la caisse
-    else if(nitroOn){tcr=1.35;tcg=.40;tcb=.06;}else{tcr=1.25;tcg=.9;tcb=.26;} // couleurs FRANCHES : le ruban doit rester orange/bleu, jamais blanc — (vague 2) le pad turbo : OR #ffd75e (il était orange, on ne le distinguait pas de la nitro)
+    else if(nitroOn){tcr=1.38;tcg=.62;tcb=.17;}else{tcr=1.25;tcg=.9;tcb=.26;} // couleurs FRANCHES : le ruban doit rester orange/bleu, jamais blanc — (vague 2) le pad turbo : OR #ffd75e (il était orange, on ne le distinguait pas de la nitro) — (vague 3) la nitro calée sur le feu #ff7a24 (elle tirait au rouge)
+    const tw9=nitroOn?1.3+NFX.ign*NFX.ignK*.7:1; // (vague 3) à la nitro le fil s'épaissit (et gicle à l'allumage) — toujours plafonné à ~1° d'angle par trailStep
     for(const s9 of [-1,1]){ // (2026-09-26) les rubans partent des POTS : moyenne de chaque côté — UN SEUL ruban si les pots sont d'un côté ou au centre
       const tr9=s9<0?trailL:trailR;potMonde(s9<0?CAR_POT_L:CAR_POT_R,tmp2);
       trailStep(tr9,tmp2.x,tmp2.y,tmp2.z,
-        tcr*.74,tcg*.74,tcb*.74,(CAR_POT_1&&s9<0)?0:trailK); // ×.74 (2026-09-25) : additif + bloom, le ruban de nitro faisait un faisceau AVEUGLANT sur la route
+        tcr*.74,tcg*.74,tcb*.74,(CAR_POT_1&&s9<0)?0:trailK,tw9); // ×.74 (2026-09-25) : additif + bloom, le ruban de nitro faisait un faisceau AVEUGLANT sur la route
     }
     // L'ARC-EN-CIEL EST LA TRAÎNÉE DE NITRO DE CETTE CAISSE — pas un décor permanent. Il suit donc
     // `trailK`, exactement comme les rubans des autres : il se déclenche à l'appui, s'éteint en
@@ -23525,7 +23684,7 @@ function loop(now){
           if(Math.random()<dt*(air9?9:(TEL_NATIF?10:25)))flamePop(.02+Math.random()*.05,air9?.05+Math.random()*.06:.1+Math.random()*.14,(air9?300:380)+Math.random()*260+(TEL_NATIF?500:0)); // téléphone : moins de pops (≈80 nœuds/s alloués), plus hauts (audibles)
           if(!air9&&Math.random()<dt*2.4){flamePop(.05+Math.random()*.04,.3,520);subBoom(.05);} // le POK : plop + mini coup de poitrine
         }
-        if(nOn9&&air9&&!loop._jetWas){ // ALLUMAGE : FWOOM rond — souffle grave + coup de poitrine (le sifflet strident a dégagé)
+        if(nOn9&&air9&&!loop._jetWas&&NFX.ign<.5){ // ALLUMAGE : FWOOM rond — souffle grave + coup de poitrine (le sifflet strident a dégagé) — (vague 3) seulement quand on DÉCOLLE nitro tenue : un allumage frais a déjà son WHOOMP (nitroAllume)
           noiseBurst(.35,.2,300);subBoom(.15);
         }
         loop._jetWas=nOn9&&air9;
@@ -23547,7 +23706,7 @@ function loop(now){
     // qu'elle avait disparu : « remets un peu de zoom ou de flou… puis encore plus au boost » décrit
     // EXACTEMENT ce que fait déjà `drawSpeedLines` (filés radiaux, cyan et deux fois plus denses sous
     // `nitroOn`) — il ne manquait qu'un appelant.
-    if(!REDUCED_MOTION)drawSpeedLines(speedKmh,nitroOn,dt); // reduced-motion : speed lines coupées (la garde avait sauté au rétablissement du 2026-09-05)
+    if(!REDUCED_MOTION){drawSpeedLines(speedKmh,nitroOn,dt);nfxFiles(dt);} // reduced-motion : speed lines coupées (la garde avait sauté au rétablissement du 2026-09-05) — (vague 3) + la gerbe de l'allumage
     if(speedKmh>runStats.vmax)runStats.vmax=speedKmh;
     // ⚠ EN VOL, LA VITESSE NE SE « TIENT » PAS : on subit une parabole, il n'y a aucun mérite à
     // afficher 900 km/h en tombant. L'aura de vitesse ne compte donc qu'au sol, manette en main.
@@ -23689,7 +23848,7 @@ function loop(now){
   // rim golden hour : direction de LA source du niveau en espace vue (soleil le jour, néon du kick la nuit : RIM_DIR/RIM_C0, posés par bioApply) + teinte par état
   RIM_U.uSunV.value.copy(RIM_DIR).transformDirection(camera.matrixWorldInverse);
   if(fever>0)RIM_U.uRimC.value.setHex(0xffc55e);
-  else if(nitroOn)RIM_U.uRimC.value.setHex(0x9fe2ff);
+  else if(nitroOn)RIM_U.uRimC.value.setHex(nitroBlue?0xa9b8ff:0xffb886); // (vague 3) la caisse prend le liseré de SA flamme (il était cyan : un néon, pas la nitro de la bible)
   else RIM_U.uRimC.value.copy(RIM_C0);
   updateContactShadow();
   carVit(dt); // (2026-09-26) roues, flou de jante, halos des phares et des feux (frein)
