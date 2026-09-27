@@ -1780,7 +1780,7 @@
     max-width:calc(100vw - 32px - var(--sL,0px) - var(--sR,0px));font-family:var(--pix);font-size:var(--f3,12px);letter-spacing:1px;
     text-align:center;white-space:nowrap;color:var(--tx,#fff7ee);background:var(--plaque);clip-path:var(--coupe7);box-shadow:var(--biseau);
     padding:9px 14px 8px;opacity:0;transition:opacity var(--t-fast) var(--ease)}
-  body.touch #campChip{top:calc(var(--sT,0px) + 54px)}
+  body.touch #campChip{top:calc(var(--sT,0px) + 88px)} /* sous la jauge de nitro ET la barre du FLOW (mesuré en capture : à 54 px, le FLOW mangeait la 1re ligne), entre AURA et le × de droite */
   #campChip.on{opacity:1}
   #campChip b{font-weight:400;color:var(--cc,var(--or))}
   #campChip small{display:block;margin-top:6px;font-size:var(--f0,8px);color:var(--cyan)}
@@ -5176,7 +5176,7 @@ function genCampagne(n){
       droite(520*K,-18,4);
       arc(40,800*K,-10);
       droite(160*K,-4);
-      chaine([0,0,0,0,0]);                 // la 1re : dans l'axe — on apprend que ça s'enchaîne
+      chaine([8,8,8,8,8]);                 // la 1re : tout droit (à côté de la ligne centrale, qu'elle aurait recouverte) — on apprend que ça s'enchaîne
       arc(-80,380*K,-26);
       droite(160*K,-4);
       chaine([-12,-6,0,6,12]);             // la diagonale : on traverse la route pad après pad
@@ -23166,16 +23166,17 @@ const VRAD=(function(){ // le panneau « RADAR » : bleu autoroute, lettres pixe
   des();try{if(document.fonts&&document.fonts.load)document.fonts.load('16px "Press Start 2P"').then(des).catch(function(){});}catch(e){}
   return {metal:vMat(new THREE.MeshPhongMaterial({color:0x303644,shininess:70,specular:0x667080})),
     boite:vMat(new THREE.MeshPhongMaterial({color:0x15171e,shininess:140,specular:0x8899aa})),
-    pan:vMat(new THREE.MeshBasicMaterial({map:t})),led:vMat(new THREE.MeshBasicMaterial({color:new THREE.Color(2.4,.22,.28)})),
+    pan:vMat(new THREE.MeshBasicMaterial({map:t})),bande:vMat(new THREE.MeshBasicMaterial({color:new THREE.Color(2.2,2.1,2.3)})),led:vMat(new THREE.MeshBasicMaterial({color:new THREE.Color(2.4,.22,.28)})),
     flash:new THREE.SpriteMaterial({map:lampTex,color:0xffffff,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending,fog:false})};
 })();
 function radarsVide(){for(const f of VC.radFx){scene.remove(f.spr);f.spr.material.dispose();}VC.radFx.length=0;} // les éclairs de flash (sprites : hors trackMeshes, leur géométrie est celle de TOUS les sprites)
 function radarsPose(){ // les portiques : deux piliers au ras des bords, une poutre à 16 m, la boîte noire au milieu, le panneau dessus
   radarsVide();
   for(const r of VZ.radars){
-    const H=17,X=ROAD_HALF+.9,add=(g,mt,x,y,z)=>{const m=new THREE.Mesh(g,mt);vPose(m,r.s,0,0,1);m.position.addScaledVector(VF.b,x).addScaledVector(VF.n,y).addScaledVector(VF.t,z);m.castShadow=true;scene.add(m);trackMeshes.push(m);return m;};
+    const H=24,X=ROAD_HALF+.9,add=(g,mt,x,y,z)=>{const m=new THREE.Mesh(g,mt);vPose(m,r.s,0,0,1);m.position.addScaledVector(VF.b,x).addScaledVector(VF.n,y).addScaledVector(VF.t,z);m.castShadow=true;scene.add(m);trackMeshes.push(m);return m;};
     for(const sd of [-1,1])add(new THREE.BoxGeometry(1.3,H+THICK+2,1.3),VRAD.metal,sd*X,(H-THICK-2)/2,0); // boulonné sur la TRANCHE de la dalle (il descend 2 m sous elle), jamais sur le bitume
-    add(new THREE.BoxGeometry(2*X+1.3,1.3,1.5),VRAD.metal,0,H,0);
+    add(new THREE.BoxGeometry(2*X+1.3,1,1.4),VRAD.metal,0,H,0); // à 24 m : la caméra de poursuite (haute en portrait) passe DESSOUS sans que la poutre lui barre l'écran
+    add(new THREE.BoxGeometry(2*X-1,.22,.24),VRAD.bande,0,H-.62,-.72).castShadow=false; // la RAMPE lumineuse sous la poutre : le portique se lit de loin, même en contre-jour
     add(new THREE.BoxGeometry(3.2,1.8,2.2),VRAD.boite,0,H-1.6,-.4);
     const led=add(new THREE.BoxGeometry(.5,.5,.12),VRAD.led,1.1,H-1.4,-1.55);led.castShadow=false;
     const pan=add(new THREE.PlaneGeometry(8,3),VRAD.pan,0,H+2.3,-.2);pan.rotateY(Math.PI);pan.castShadow=false; // tourné VERS la caisse qui arrive
@@ -23212,7 +23213,7 @@ function radarsTick(dt,sp){
 const VLIGNE_VS='attribute vec2 aK;varying vec2 vK;void main(){vK=aK;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}';
 const VLIGNE_FS='uniform float uOn,uBr,uT,uF;varying vec2 vK;void main(){float k=vK.x,e=1.-abs(vK.y*2.-1.);e=smoothstep(0.,.75,e);'+
   'float lit=step(k,uOn),nx=step(uOn,k)*step(k,uOn+1.),da=step(.45,fract(k*5.-uT*2.2));'+
-  'vec3 c=vec3(1.,.62,.16)*(lit*1.6+nx*(.3+.95*da)+(1.-lit)*(1.-nx)*.22)+vec3(1.,.3,.85)*uF;'+
+  'vec3 c=vec3(1.1,.72,.18)*lit*2.+vec3(.25,.95,1.25)*(nx*(.45+1.25*da)+(1.-lit)*(1.-nx)*.4)+vec3(1.,.3,.85)*uF;'+ // parcouru = OR, à venir = CYAN (l'orange se confondait avec la flamme de nitro)
   'c=mix(c,vec3(.13,.11,.22),uBr);gl_FragColor=vec4(c*e,1.);}';
 function vLigneMat(){return new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide,fog:false,
   polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4,uniforms:{uOn:{value:-1},uBr:{value:0},uT:CITY.uT,uF:{value:0}},vertexShader:VLIGNE_VS,fragmentShader:VLIGNE_FS});}
@@ -23235,7 +23236,7 @@ function chainesPose(){
       const pos=new Float32Array((N+1)*6),ak=new Float32Array((N+1)*4),idx=[];
       for(let j=0;j<=N;j++){const sv=sA+(sB-sA)*j/N,k=(sv-ch.s0)/dp-.5,k0=Math.max(0,Math.min(n-1,Math.floor(k))),k1=Math.min(n-1,k0+1),u=Math.max(0,Math.min(1,k-k0)),uu=u*u*(3-2*u);
         const la=ch.lats[k0]+(ch.lats[k1]-ch.lats[k0])*uu,off=fy>0?.07:-THICK-.07;frameAt(sv,F);
-        for(let q=0;q<2;q++){const w=la+(q?.7:-.7),o=j*6+q*3;pos[o]=F.p.x+F.b.x*w+F.n.x*off;pos[o+1]=F.p.y+F.b.y*w+F.n.y*off;pos[o+2]=F.p.z+F.b.z*w+F.n.z*off;}
+        for(let q=0;q<2;q++){const w=la+(q?1.1:-1.1),o=j*6+q*3;pos[o]=F.p.x+F.b.x*w+F.n.x*off;pos[o+1]=F.p.y+F.b.y*w+F.n.y*off;pos[o+2]=F.p.z+F.b.z*w+F.n.z*off;}
         ak[j*4]=k;ak[j*4+1]=0;ak[j*4+2]=k;ak[j*4+3]=1;
         if(j<N){const a=j*2;idx.push(a,a+1,a+2,a+2,a+1,a+3);}}
       const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('aK',new THREE.BufferAttribute(ak,2));g.setIndex(idx);
@@ -23333,7 +23334,7 @@ function foudreArme(cel){
   tl=THREE.MathUtils.clamp(tl,-(ROAD_HALF-5),ROAD_HALF-5);
   VFOU.on=true;VFOU.T=T;VFOU.tele=T;VFOU.s=ts;VFOU.lat=tl;
   frameAt(ts,VF);VFOU.p.copy(VF.p).addScaledVector(VF.b,tl).addScaledVector(VF.n,.14);
-  VFOU.q.setFromRotationMatrix(VM4.makeBasis(VF.b,VF.t,VF.n));
+  VFOU.q.setFromRotationMatrix(VM4.makeBasis(VF.t,VF.b,VF.n)); // (t, b, n) : DIRECT, la normale en Z (b = n×t : la base (b, t, n) est un MIROIR — mesuré en capture, le cercle se dressait en arche)
   for(const m of [VFOU.ring,VFOU.inner,VFOU.disc]){m.position.copy(VFOU.p);m.quaternion.copy(VFOU.q);m.visible=true;}
   VFOU.inner.scale.set(VFOU_R,VFOU_R,1);VFOU.disc.scale.set(VFOU_R,VFOU_R,1);
   foudreHum(T);
@@ -23370,16 +23371,18 @@ function foudreTick(dt,sp){
 // ============ 6 · LA PANNE ============
 // UN uniforme (CITY.uC) éteint les fenêtres, les liserés des toits, les enseignes et les réclames ; le néon de la route est baissé
 // APRÈS musicTick (qui le repeint à chaque image, voir villeApres) ; les phares portent plus loin. Les CATADIOPTRES (ambre à gauche,
-// blanc à droite, tous les 14 m) dessinent les deux bords à perte de vue : on lit le virage aux petites lumières, comme la nuit sur
+// blanc à droite, tous les 10 m, sur la ligne de bord) dessinent les deux bords à perte de vue : on lit le virage aux petites lumières, comme la nuit sur
 // une départementale. La skyline du ciel, elle, reste allumée — c'est ton quartier qui a sauté, pas la ville.
 const VCATA=vMat(new THREE.MeshBasicMaterial({color:0xffffff,fog:false}));
 function catasPose(){
   const P=[];
-  for(const p of VZ.pannes)for(let sv=Math.max(30,p.s0-240);sv<Math.min(L-20,p.s1+160);sv+=14)P.push(sv);
+  for(const p of VZ.pannes)for(let sv=Math.max(30,p.s0-240);sv<Math.min(L-20,p.s1+160);sv+=10)P.push(sv);
   const n=P.length;if(!n)return;
-  const im=new THREE.InstancedMesh(new THREE.BoxGeometry(.8,.16,.4),VCATA,n*4),o=new THREE.Object3D(),cA=new THREE.Color(2.4,1.15,.3),cB=new THREE.Color(1.8,2,2.3);
+  // MESURÉ en capture : des pavés de 16 cm tous les 14 m tombaient sous le pixel dès 60 m — on ne lisait rien. Des plots de 50 cm tous les
+  // 10 m, SUR la ligne de bord (là où courait le néon), plus lumineux que tout : le virage se dessine en pointillé de lumière.
+  const im=new THREE.InstancedMesh(new THREE.BoxGeometry(.7,.5,.5),VCATA,n*4),o=new THREE.Object3D(),cA=new THREE.Color(3.2,1.5,.35),cB=new THREE.Color(2.4,2.7,3.1);
   let q=0;
-  for(const sv of P)for(const fy of [1,-1])for(const sd of [-1,1]){vPose(o,sv,sd*(ROAD_HALF-.7),.1,fy);o.scale.set(1,1,1);o.updateMatrix();im.setMatrixAt(q,o.matrix);im.setColorAt(q,sd>0?cB:cA);q++;}
+  for(const sv of P)for(const fy of [1,-1])for(const sd of [-1,1]){vPose(o,sv,sd*(ROAD_HALF+.05),.25,fy);o.scale.set(1,1,1);o.updateMatrix();im.setMatrixAt(q,o.matrix);im.setColorAt(q,sd>0?cB:cA);q++;}
   im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;im.frustumCulled=false;scene.add(im);trackMeshes.push(im);
 }
 function panneSnd(bas){ // la coupure (un moteur électrique qui s'effondre) / le retour (il remonte, avec un claquement de disjoncteur)
@@ -23417,8 +23420,8 @@ function villeApres(){ // crochet : APRÈS musicTick (qui repeint le néon de la
   if(k<.999||VC.phare){VC.phare=k<.999;headSpot.distance=72+64*(1-k);if(mode!=='boom')headSpot.intensity=1.85*(1+.9*(1-k));} // 1,85 : la valeur que la boucle pose (phares de course)
 }
 // ============ 7 · LE FOURGON ============
-// Un fourgon blindé bleu nuit à bandes d'or : il roule avec TES équations et ton moteur ×1,04 (sans nitro, tu le perds ; avec, tu
-// le rattrapes). Colle-lui au train (3 à 50 m derrière) : ses portes s'OUVRENT et il sème des pièces sur la route — de vraies
+// Un fourgon blindé bleu nuit à bandes d'or : un LIÈVRE qui règle sa vitesse sur la tienne (voir fourgonTick : sans nitro tu décroches,
+// avec tu tiens). Colle-lui au train (3 à 50 m derrière) : ses portes s'OUVRENT et il sème des pièces sur la route — de vraies
 // pièces du jeu (le ramassage, le combo, l'aimant : tout marche), puisées dans une réserve de 40 maillages. Quatre-vingts pièces à
 // bord ; vidé = jackpot, et il s'enfuit, allégé. Le percuter par l'arrière = un paquet de dix d'un coup, et un coup de frein.
 const VFG=(function(){
@@ -23491,13 +23494,12 @@ function fourgonPose(dt){
 }
 function fourgonTick(dt,sp){
   if(!VFG.on)return;
-  const spc=CARS[0],late=lateMul(),eng=ENGINE_TIERS[engTier]||ENGINE_TIERS[0],mx=spc.maxKmh/3.6*late*eng.push*(VFG.fuite?1.3:1.04),acc=spc.accel*late*(1+(eng.push-1)*.6);
-  VFG.momT=Math.min(4.3,VFG.momT+dt);const momF=1+Math.min(1.8,VFG.momT*VFG.momT*.1),i=ghIdx(VFG.s);
-  VFG.v+=acc*(VFG.v<mx?1:.55)*momF*dt;
-  if(startBoostT>0)VFG.v+=30*eng.push*dt; // le boost de départ vaut pour lui aussi
-  VFG.v+=-GRAV*T[i].y*dt;
-  VFG.v-=VFG.v*Math.abs(VFG.v)*(acc/(mx*mx*5.8))*dt;VFG.v*=Math.max(0,1-.03*dt);
-  const gp=VFG.s-sp,moi=mode==='drive'&&side>0;
+  // SA VITESSE SE RÈGLE SUR LA TIENNE — un LIÈVRE de fête foraine, pas un pilote. MESURÉ au banc : avec tes équations ×1,04, le pilote
+  // auto le doublait à 24 s (le FLOW, les pads et l'élan poussent ta caisse au-delà de ton moteur nu) et il finissait 2,5 km derrière, 4 %
+  // vidé. Désormais : +4 % quand tu es dans son semis (sans nitro tu décroches, avec tu tiens), +15 % si tu l'as doublé (il te REPASSE),
+  // ta vitesse quand il est loin devant (la nitro le rattrape), ×1,35 une fois vidé (il s'enfuit).
+  const gp=VFG.s-sp,moi=mode==='drive'&&side>0,vP=vKmh()/(3.6*SPD),kT=VFG.fuite?1.35:gp<0?1.15:gp<60?1.04:gp<260?1:.95;
+  VFG.v+=(Math.max(26,vP*kT)-VFG.v)*Math.min(1,dt*.9);
   let lT=VFG.lane;if(moi&&gp<16&&gp>-34)lT=lat>0?-12:12; // on se côtoie : il passe de L'AUTRE côté (il ne te rentre jamais dedans)
   VFG.lat+=(lT-VFG.lat)*Math.min(1,dt*1.3);
   const ds=VFG.v*dt*SPD;VFG.s+=ds;
@@ -23507,7 +23509,7 @@ function fourgonTick(dt,sp){
   const seme=!VFG.fini&&VFG.cash>0&&gp>3&&gp<50&&(mode==='fall'||(moi&&Math.abs(lat-VFG.lat)<20));
   VFG.porte+=((seme?1:0)-VFG.porte)*Math.min(1,dt*(seme?4:2));
   if(seme){if(VFG.semeT<=0)popTexte('IL SEME SES BILLETS !','#ffd75e',1);VFG.semeT=1.5;
-    VFG.acc+=dt*7.5;while(VFG.acc>=1&&VFG.cash>0){VFG.acc-=1;fourgonPiece(VFG.s-4.4,VFG.lat+(Math.random()-.5)*6);}
+    VFG.acc+=dt*6;while(VFG.acc>=1&&VFG.cash>0){VFG.acc-=1;fourgonPiece(VFG.s-4.4,VFG.lat+(Math.random()-.5)*6);}
     if(Math.random()<dt*6)try{chimeNote(noteP(3+Math.floor(Math.random()*4),1),0,.04,.12);}catch(e){}}
   else{VFG.acc=0;VFG.semeT=Math.max(0,VFG.semeT-dt);}
   // LE CHOC : le percuter par l'arrière = un paquet d'un coup, et tu rebondis sur son pare-chocs
@@ -23527,7 +23529,7 @@ function fourgonTick(dt,sp){
   const pct=Math.round((1-VFG.cash/VFG.cash0)*100);
   if(VFG.fini)vChip(TR('FOURGON VIDE !'),pct+' %','#ffd75e');
   else if(VFG.semeT>0)vChip(TR('FOURGON')+' '+pct+' %',TR('RESTE DERRIERE LUI'),'#ffd75e');
-  else if(gp<0)vChip(TR('FOURGON')+' '+pct+' %',TR('IL TE DOUBLE'),'#9fe8ff');
+  else if(gp<0)vChip(TR('FOURGON')+' '+pct+' %',TR(gp>-60?'IL TE DOUBLE':'IL REVIENT'),'#9fe8ff');
   else vChip(TR('FOURGON')+' '+pct+' %',Math.round(gp/10)*10+' M '+TR('DEVANT'),'#9fe8ff');
 }
 // ============ 9 · L'HEURE DE POINTE ============
@@ -23536,7 +23538,9 @@ function fourgonTick(dt,sp){
 // 1,1 s de clignotant. UN InstancedMesh pour les caisses (teinte par instance), un pour les feux, un pour les clignotants : trois
 // appels de rendu pour tout le trafic, qui roule en miroir sous la dalle (on ne dessine que la face où tu roules).
 const VTR_F=[-24.5,-17.5,-10.5,-3.5,3.5,10.5,17.5,24.5];
-const VTR_T=[[1,1,1,2.15,.95],[1.15,1.35,1.3,2.8,1.1],[1.35,1.6,2.55,5.5,1.28]]; // voiture · fourgonnette · bus : échelle x,y,z, demi-longueur, demi-largeur
+// voiture · fourgonnette · bus : échelle x,y,z, demi-longueur, demi-largeur — tout ×1,3 : MESURÉ en capture, une voiture de 1,9 m sur une route
+// de 56 m, dans l'objectif grand-angle du portrait, faisait 7 px à 100 m (on ne voyait pas le bouchon dans lequel on roulait)
+const VTR_T=[[1.3,1.3,1.3,2.8,1.24],[1.5,1.75,1.7,3.64,1.43],[1.75,2.08,3.3,7.15,1.66]];
 const VTR_PAL=[0xe9e9ec,0x1b1d24,0xa2a9b3,0xc8141e,0x1f4fb0,0xf2c400,0xf2c400,0x2f7a4a,0x6b2fb0,0xff7a14];      // (le JAUNE deux fois : les taxis de l'heure de pointe)
 const VTR=(function(){
   const P=[],C=[],Lp=[],Lc=[];
@@ -23545,7 +23549,7 @@ const VTR=(function(){
   bx(P,C,1.64,.5,2.1,0,1.18,-.25,.14,.17,.22);       // la cabine vitrée
   bx(P,C,1.72,.06,1.2,0,.95,1.42,.82,.82,.84);       // le capot
   for(const sx of [-1,1])for(const sz of [1.35,-1.35])bx(P,C,.3,.62,.62,sx*.86,.33,sz,.06,.06,.07);
-  for(const sx of [-1,1]){bx(Lp,Lc,.42,.16,.06,sx*.62,.72,2.16,2.4,2.1,1.5);bx(Lp,Lc,.44,.16,.06,sx*.64,.8,-2.16,2.3,.16,.1);}
+  for(const sx of [-1,1]){bx(Lp,Lc,.46,.18,.06,sx*.62,.72,2.16,2.6,2.3,1.7);bx(Lp,Lc,.5,.2,.06,sx*.64,.8,-2.16,3.2,.22,.14);} // des feux qui SAIGNENT dans le bloom : on lit le trafic de loin
   const mk=(A,Cc)=>{const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(A,3));g.setAttribute('color',new THREE.Float32BufferAttribute(Cc,3));g.computeVertexNormals();return g;};
   const N=110,im=new THREE.InstancedMesh(mk(P,C),new THREE.MeshLambertMaterial({vertexColors:true}),N),
     imL=new THREE.InstancedMesh(mk(Lp,Lc),new THREE.MeshBasicMaterial({vertexColors:true}),N),
@@ -23581,7 +23585,7 @@ function klaxon(){ // deux notes carrées, courtes : la voiture devant toi n'app
 function traficChoc(c,dl){ // l'accrochage : la voiture part en toupie, toi tu perds l'élan (jamais la vie)
   frameAt(c.s,VF);
   c.fly=1.7;c.p=new THREE.Vector3().copy(VF.p).addScaledVector(VF.b,c.lat).addScaledVector(VF.n,side<0?-THICK:0);
-  c.q=new THREE.Quaternion().setFromRotationMatrix(VM4.makeBasis(VF.b,VF.n,VF.t));
+  c.q=new THREE.Quaternion().setFromRotationMatrix(side<0?VM4.makeBasis(VV1.copy(VF.b).negate(),VV2.copy(VF.n).negate(),VF.t):VM4.makeBasis(VF.b,VF.n,VF.t)); // sous la dalle, elle part la tête en bas, comme elle roulait
   const sg=(side*lat>=c.lat)?-1:1; // elle part du côté opposé au choc
   c.vel=new THREE.Vector3().copy(VF.t).multiplyScalar(Math.max(c.v,Math.abs(vA)*.55)*SPD).addScaledVector(VF.b,sg*(6+Math.random()*5)).addScaledVector(VF.n,side*(5+Math.random()*4));
   c.w=new THREE.Vector3((Math.random()-.5)*7,(Math.random()-.5)*9,(Math.random()-.5)*7);
@@ -23707,7 +23711,9 @@ function banquierPose(dt){
 }
 function banquierTick(dt,sp){
   if(!VBQ.on||VBQ.fini)return;
-  const spc=CARS[0],late=lateMul(),eng=ENGINE_TIERS[engTier]||ENGINE_TIERS[0],mx=spc.maxKmh/3.6*late*eng.push*VBQ_K,acc=spc.accel*late*(1+(eng.push-1)*.6);
+  // …et TON FLOW : MESURÉ au banc, sans lui le FLOW (+5 %/palier en pointe, +6 % d'accélération) te faisait rattraper le banquier même SANS
+  // nitro (70 m derrière à 88 s et ça se refermait), et gagner de 640 m avec — la course se jouait toute seule. À flow égal : sans nitro tu perds.
+  const fl9=FLOW.lv|0,spc=CARS[0],late=lateMul(),eng=ENGINE_TIERS[engTier]||ENGINE_TIERS[0],mx=spc.maxKmh/3.6*late*eng.push*VBQ_K*(1+fl9*.05),acc=spc.accel*late*(1+(eng.push-1)*.6)*(1+fl9*.06);
   VBQ.momT=Math.min(4.3,VBQ.momT+dt);const momF=1+Math.min(1.8,VBQ.momT*VBQ.momT*.1),i=ghIdx(VBQ.s);
   VBQ.v+=acc*(VBQ.v<mx?1:.55)*momF*dt;
   if(startBoostT>0)VBQ.v+=30*eng.push*dt;
@@ -23847,7 +23853,7 @@ for(const [k,v] of Object.entries({'FAIS-TOI FLASHER':'GET FLASHED','SUIS LA LIG
   'COUPURE !':'BLACKOUT!','COUPURE DE COURANT':'POWER CUT','SUIS LES CATADIOPTRES':'FOLLOW THE REFLECTORS','LE COURANT VACILLE':'THE POWER FLICKERS',
   'A L AVEUGLE':'BLIND RUN','COURANT RETABLI':'POWER RESTORED',
   'FOURGON':'CASH TRUCK','FOURGON VIDE !':'TRUCK EMPTIED!','FOURGON VIDE':'TRUCK EMPTIED','IL SEME SES BILLETS !':"IT'S DROPPING CASH!",'RESTE DERRIERE LUI':'STAY BEHIND IT',
-  'IL TE DOUBLE':"IT'S PASSING YOU",'DEVANT':'AHEAD',"LE FOURGON S'EST ENFUI":'THE TRUCK GOT AWAY','BRAQUAGE !':'HEIST!','BRAQUAGE':'HEIST','ACCROCHAGE':'SCRAPE','ACCROCHAGE !':'SCRAPE!',
+  'IL TE DOUBLE':"IT'S PASSING YOU",'IL REVIENT':"IT'S COMING BACK",'DEVANT':'AHEAD',"LE FOURGON S'EST ENFUI":'THE TRUCK GOT AWAY','BRAQUAGE !':'HEIST!','BRAQUAGE':'HEIST','ACCROCHAGE':'SCRAPE','ACCROCHAGE !':'SCRAPE!',
   'BOUCHON':'TRAFFIC JAM',
   '1ER':'1ST','2E':'2ND','LE BANQUIER A':'BANKER AHEAD BY','TU MENES DE':'YOU LEAD BY','TU MENES !':'YOU LEAD!','IL REPASSE DEVANT':"HE'S BACK IN FRONT",
   "COUP D'EPAULE":'SHOULDER BUMP','LE BANQUIER A GAGNE':'THE BANKER WON',"LE BANQUIER T'A BATTU":'THE BANKER BEAT YOU','LE LINGOT EST A TOI':'THE GOLD BAR IS YOURS',
@@ -23857,7 +23863,7 @@ window.dbgVille=function(){ // (dev) l'état de la campagne VILLE
   const sp=vPos();
   return {niveau:villeN(),s:Math.round(sp),L:Math.round(L),plaque:VC.chip,
     radars:VZ.radars.map(function(r){return Math.round(r.s)+(r.fait?'✓':'');}),radMax:Math.round(VC.radMax),
-    chaines:VZ.chaines.map(function(c){return {s0:Math.round(c.s0),n:c.n,de:c.lats.length,brise:!!c.brise,fini:!!c.fini};}),
+    chaines:VZ.chaines.map(function(c){return {s0:Math.round(c.s0),n:c.n,de:c.lats.length,brise:!!c.brise,fini:!!c.fini,pad:c.sP&&c.n<c.lats.length?[Math.round(c.sP[c.n]),c.lats[c.n]]:null};}),
     flaques:VZ.flaques.length,oils:OILS.length,cellules:VZ.cellules.map(function(c){return [Math.round(c.s0),Math.round(c.s1)];}),foudre:{arme:VFOU.on,t:+VFOU.t.toFixed(2),touches:VC.foudN|0,esquives:VC.esqN|0},
     pannes:VZ.pannes.map(function(c){return [Math.round(c.s0),Math.round(c.s1)];}),courant:+VC.cour.toFixed(2),aveugles:VC.aveugleN|0,
     fourgon:VFG.on||VFG.fini?{ecart:Math.round(VFG.s-sp),lat:+VFG.lat.toFixed(1),v:Math.round(VFG.v*SPD*3.6),reste:VFG.cash,porte:+VFG.porte.toFixed(2),vide:VFG.fini}:null,
@@ -23866,6 +23872,8 @@ window.dbgVille=function(){ // (dev) l'état de la campagne VILLE
     bouchons:VZ.bouchons.map(function(c){return [Math.round(c.s0),Math.round(c.s1)];}),coupes:CAMP.coupes.length};
 };
 window.dbgFoudre=function(){if(CAMP.n!==15||VFOU.on)return 'non';const c={s1:L};foudreArme(c);return {s:Math.round(VFOU.s),lat:+VFOU.lat.toFixed(1)};}; // (dev) une frappe armée tout de suite
+window.dbgTrafic=function(){const sp=vPos();const L9=VTR.cars.filter(function(c){return !c.mort&&Math.abs(c.s-sp)<320;}).sort(function(a,b){return Math.abs(a.s-sp)-Math.abs(b.s-sp);}).slice(0,14); // (dev) les voitures autour de la caisse
+  return {s:Math.round(sp),lat:+lat.toFixed(1),side:side,on:VTR.on,dessinees:VTR.im.count,visible:VTR.im.visible,proches:L9.map(function(c){return [Math.round(c.s-sp),+c.lat.toFixed(1),c.ty,Math.round(c.v*SPD*3.6),c.fly>0?'VOL':''];})};};
 window.dbgCourant=function(v){VC.cour=+v;CITY.uC.value=+v;return VC.cour;}; // (dev) le courant de la ville (0 = panne) — hors niveau 16, la boucle le laisse tel quel
 // reconstruit le décor du menu dans le mode courant (course/parc) — même séquence que l'init
 function rebuildMenuScene(){ newTrack();respawn();setupIntroPig();frameAt(0,F);camera.position.copy(F.p).addScaledVector(F.t,-9).addScaledVector(F.n,4); }
