@@ -4118,7 +4118,6 @@ function conesInstancier(){ // après buildTrack : un jeu d'instances à la capa
     CONE_SC[3*i]=e[12]+e[4]*.7;CONE_SC[3*i+1]=e[13]+e[5]*.7;CONE_SC[3*i+2]=e[14]+e[6]*.7;}
   CONE_N=n;CONE_VU.nSc=CONE_VU.nOm=-1; // listes à refaire au prochain rendu
 }
-<<<<<<< HEAD
 /* LES PLAQUES TURBO EN INSTANCES (2026-09-27, passe perf iPhone) — recensement des appels de dessin au sol : 82 pour les seules
    plaques d'or (~41 par face, toutes visibles d'un bout à l'autre du ruban qui s'enroule), soit un quart des appels de la scène, et
    chacun se paie en processeur (programme, uniforms, matrices) avant d'arriver au GPU. Elles sont IMMOBILES, partagent la même
@@ -4137,7 +4136,6 @@ function padsInstancier(){
   for(let i=0;i<n;i++){const m=L9[i];m.updateMatrix();PAD_IM.setMatrixAt(i,m.matrix);scene.remove(m);}
   PAD_IM.count=n;PAD_IM.instanceMatrix.needsUpdate=true;
 }
-=======
 function conesListe(fr,L9){ // les plots (non percutés) dont la sphère (1,05 m : socle 0,72 m en diagonale, 1,40 m de haut) touche ce champ
   let n=0;CONE_SPH.radius=1.05;
   for(let i=0;i<CONE_N;i++){if(CONES[i].hit)continue;CONE_SPH.center.set(CONE_SC[3*i],CONE_SC[3*i+1],CONE_SC[3*i+2]);if(fr.intersectsSphere(CONE_SPH))L9[n++]=i;}
@@ -4168,7 +4166,6 @@ function conesVus(cam){ // appelé par scene.onBeforeRender : caméra et soleil 
 }
 function conesZero(ims){for(const im of ims){const a=im.instanceMatrix;a.array.fill(0,0,16);a.array[15]=1;a.updateRange.offset=0;a.updateRange.count=16;a.needsUpdate=true;}}
 scene.onBeforeRender=function(r9,s9,cam){pisteLoin(cam);conesVus(cam);}; // (passe perf) avant le tri de three : tranches de piste lointaines, plots vus
->>>>>>> perf-piste
 function coneVole(c9){ // le plot percuté quitte l'instance : un VRAI plot, posé au même endroit, part valser (FLYCONES)
   const g=mkCone();g.position.copy(c9.mesh.position);g.quaternion.copy(c9.mesh.quaternion);scene.add(g);trackMeshes.push(g);
   c9.mesh=g;return g; // (passe perf) `hit` est déjà posé : conesVus le sort des listes au prochain rendu
