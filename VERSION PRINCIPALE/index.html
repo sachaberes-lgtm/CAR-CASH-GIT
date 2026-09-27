@@ -8526,6 +8526,22 @@ if(ENV_VERNIS===THREE.ShaderChunk.envmap_fragment)console.warn('CASH CAR : verni
 const RIM_GLSL=cj=>'vec3 nR9=normalize(normal);float nv9=1.-saturate(dot(nR9,normalize(vViewPosition)));\n'+ // `cj` : le poids du contre-jour (les fruits de lpMat n'en veulent pas)
   'float rimF=pow(nv9,uRimPow)*smoothstep(-.25,.55,dot(nR9,uSunV));\n'+
   'rimF+='+cj+'*pow(nv9,5.)*1.6*smoothstep(.1,.8,-uSunV.z)*smoothstep(-.2,.6,dot(nR9.xy,uSunV.xy));\n';
+/* LA CAISSE NE CALCULE PLUS LES LAMPES ÉTEINTES (2026-09-27, passe perf iPhone, tour 2). En course, le programme de la tôle compte DIX
+   lumières ponctuelles (lampe de carrosserie, reflets nitro/traînée, flash de pose, gyrophares, nitro du bot, lampes de l'étal…) et r128
+   les évalue TOUTES, dans chaque pixel de la caisse — atténuation, puissance, Blinn-Phong — même éteintes : presque toujours neuf sur dix.
+   MESURÉ (caisse seule, image figée, GPU 1170×2532) : 0,95 → 0,64 ms. Chaque lampe est désormais sautée quand sa couleur vaut zéro (un test
+   UNIFORME : toute la caisse prend la même branche) ou quand elle n'atteint pas ce pixel (portée) ; le phare hors de son cône et les
+   directionnelles dos à la face aussi. Exact : l'apport sauté valait 0. Dépend de THREE seul (le bloc VOITURES est relu par l'étal). */
+const LFB_CAISSE=(function(){
+  const L0=THREE.ShaderChunk.lights_fragment_begin,
+        po=/(pointLight = pointLights\[ i \];)(\s*getPointDirectLightIrradiance\( pointLight, geometry, directLight \);)([\s\S]*?RE_Direct\( directLight, geometry, material, reflectedLight \);)/,
+        sp=/(getSpotDirectLightIrradiance\( spotLight, geometry, directLight \);)([\s\S]*?RE_Direct\( directLight, geometry, material, reflectedLight \);)/,
+        di=/(getDirectionalDirectLightIrradiance\( directionalLight, geometry, directLight \);)([\s\S]*?RE_Direct\( directLight, geometry, material, reflectedLight \);)/;
+  if(!po.test(L0)||!sp.test(L0)||!di.test(L0)){console.warn('CASH CAR : lumières de la caisse non greffées (chunk inattendu)');return L0;}
+  return L0.replace(po,'$1\n\t\tif ( any( notEqual( pointLight.color, vec3( 0.0 ) ) ) ) {$2\n\t\tif ( directLight.visible ) {$3\n\t\t}\n\t\t}')
+    .replace(sp,'$1\n\t\tif ( directLight.visible && directLight.color.r + directLight.color.g + directLight.color.b > 0.0 ) {$2\n\t\t}')
+    .replace(di,'$1\n\t\tif ( dot( geometry.normal, directLight.direction ) > 0.0 && directLight.color.r + directLight.color.g + directLight.color.b > 0.0 ) {$2\n\t\t}');})();
+const LFB_CAISSE_OBC=function(sh){sh.fragmentShader=sh.fragmentShader.replace('#include <lights_fragment_begin>',LFB_CAISSE);}; // (tour 2) pour les tôles sans autre greffe (sombre, rouille)
 // `v` : le vernis (voir ENV_VERNIS) · `rimK` : part du liseré doré (0 = aucun — le verre et le chrome n'en veulent pas)
 function rimify(m,v,rimK){
   const uV={value:new THREE.Vector4().fromArray(v||[1,1,1,0])},uK={value:rimK==null?1:rimK};
@@ -8534,7 +8550,7 @@ function rimify(m,v,rimK){
     sh.uniforms.uVern=uV;sh.uniforms.uRimK=uK;
     sh.fragmentShader=sh.fragmentShader
       .replace('#include <common>','#include <common>\nuniform vec3 uRimC;uniform vec3 uSunV;uniform float uRimStr;uniform float uRimPow;uniform vec4 uVern;uniform float uRimK;')
-      .replace('#include <envmap_fragment>',ENV_VERNIS)
+      .replace('#include <envmap_fragment>',ENV_VERNIS).replace('#include <lights_fragment_begin>',LFB_CAISSE) // (tour 2) les lampes éteintes sautent (voir LFB_CAISSE)
       .replace('#include <dithering_fragment>',RIM_GLSL('1.')+ // seulement le flanc au soleil : un liseré, pas un halo cartoon (+ le contre-jour : voir RIM_GLSL)
         'gl_FragColor.rgb+=uRimC*rimF*uRimStr*uRimK;\n#include <dithering_fragment>');
   };
@@ -8916,7 +8932,7 @@ function lpMat(g){
     sh.uniforms.uVern=uV;sh.uniforms.uCj=uC;
     sh.fragmentShader=sh.fragmentShader
       .replace('#include <common>','#include <common>\nuniform float uGlow;uniform vec3 uRimC;uniform vec3 uSunV;uniform float uRimStr;uniform float uRimPow;uniform vec4 uVern;uniform float uCj;')
-      .replace('#include <envmap_fragment>',ENV_VERNIS)
+      .replace('#include <envmap_fragment>',ENV_VERNIS).replace('#include <lights_fragment_begin>',LFB_CAISSE) // (tour 2) les lampes éteintes sautent (voir LFB_CAISSE)
       .replace('#include <dithering_fragment>',RIM_GLSL('uCj')+ // le liseré, contre-jour compris (voir RIM_GLSL)
         'gl_FragColor.rgb+=uRimC*rimF*uRimStr*.6+vColor*uGlow;\n#include <dithering_fragment>');
   };
@@ -13207,6 +13223,8 @@ function buildCar(spec){
   for(const ch of carGroup.children.slice())if(wheels.indexOf(ch)<0&&!(ch.userData&&ch.userData.sol))carBody.add(ch);
   carGroup.add(carBody);carBody.rotation.set(0,0,0);carBody.position.set(0,0,0);carBody.userData.pivY=wheels.length?wheels[0].position.y:.45; // pivot = hauteur des moyeux (⚠ pas de carRoll9=0 ici : buildCar tourne AVANT leur déclaration — zone morte)
   carGroup.traverse(o9=>{if(o9.isMesh&&!o9.userData.noShadow)o9.castShadow=true;}); // toute la caisse porte son ombre LONGUE — sauf la nappe néon (un carré d'ombre, non merci)
+  carGroup.traverse(o9=>{const m9=o9.material; // (tour 2) les tôles Phong sans greffe (sombre, rouille, matières des gabarits) sautent aussi les lampes éteintes (voir LFB_CAISSE)
+    if(m9&&!Array.isArray(m9)&&m9.isMeshPhongMaterial&&m9.onBeforeCompile===THREE.Material.prototype.onBeforeCompile)m9.onBeforeCompile=LFB_CAISSE_OBC;});
   caisseSoude(); // (2026-09-27, passe perf iPhone) ce qui ne bouge jamais est soudé par matière — voir « LA CAISSE EN UN MINIMUM DE DESSINS »
 }
 /* <<<FIN VOITURES>>> */
