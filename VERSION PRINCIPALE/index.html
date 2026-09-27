@@ -4578,6 +4578,22 @@ function genTuto(){
   straight(420,0,4);            // la ligne droite finale vers le portail
   return ctrl;
 }
+/* LA DESCENTE DE LA VILLE (2026-09-27, vague 3, user : « dans le niveau de la ville la descente doit être un peu moins abrupte »).
+   MESURÉ au banc (genCtrl + Catmull-Rom du jeu, 6 graines × 2 vitesses, pente lissée sur 20 m) : la piste de la ville plongeait à
+   28-31° de médiane, 45° au P95, 47,8° au pire (grand virage et esses : jusqu'à 1,1 m de chute par mètre), et 32-46° dès les 400
+   premiers mètres. Aux NUAGES la même pente passe inaperçue ; entre les tours, chaque façade la MESURE : les immeubles basculent en
+   éventail, on pique dans le vide. On COMPRIME donc les pentes de la ville, segment par segment : sous `seuil` (tan ≈ 16,7°) rien ne
+   bouge — les liaisons, les vagues, les petites bosses gardent leur relief — au-delà, seule la part `garde` (35 %) de l'excès passe :
+   48° → 30°, la plongée d'entrée 32,5° → 22,7°. Le TRACÉ EN PLAN est intact (x, z, virages, longueurs de motifs), AUCUN tirage `rnd`
+   n'est ajouté ni retiré : seule l'altitude des points change, et la ville se rebâtit autour (`tourLibre`). NUAGES et ORBITE n'y
+   passent jamais. Banc après : max 30,2°, P95 28,5°, entrée ≤ 29° ; la ville tombe de ~5,5 km au lieu de ~8,5 (même tracé en plan, ruban
+   8 % plus court), les étages de la spirale gardent ≥ 143 m d'écart. Revenir à l'ancienne ville : `garde:1`. */
+const VILLE_PENTE={seuil:.30,garde:.35};
+function adoucirPentes(P,o){
+  const y0=P.map(function(p){return p.y;});
+  for(let i=1;i<P.length;i++){const h=Math.hypot(P[i].x-P[i-1].x,P[i].z-P[i-1].z),dy=y0[i]-y0[i-1],g=h>.5?Math.abs(dy)/h:0;
+    P[i].y=P[i-1].y+(g>o.seuil?Math.sign(dy)*(o.seuil+(g-o.seuil)*o.garde)*h:dy);}
+}
 function genCtrl(rnd,startPos,startPhi){
   /* (piste v6, 2026-09-25, user : « les pistes sont trop droites, il n'y a pas assez de virages »). MESURÉ au banc (218 pistes) :
      31 % de la longueur tournait plus serré que R 300 m avec la 1re caisse… et 7 % avec la dernière — c'était la CAISSE qui
@@ -4744,6 +4760,7 @@ function genCtrl(rnd,startPos,startPhi){
   else if(AR.nm==='TECH'){let sgF=sgn();for(let q=0;q<3;q++){arc(sgF*24,90*RS,2,-26);sgF=-sgF;}}
   else{const sg=sgn();arc(sg*100,170*RS,5,-(100*Math.PI/180*170*RS*.3));} // (route v3) un grand virage de fin, plus la spirale de 420°
   straight(110*LV,-66*LV,2); // ARRIVÉE : ligne droite claire vers le portail
+  if(sansLoop)adoucirPentes(ctrl,VILLE_PENTE); // (vague 3) la VILLE descend moins raide — AVANT les lissages, qui arrondissent le résultat
   lisserRaccords(ctrl,LOOPI);   // (route v3b) plus de cassure de pente d'un motif à l'autre
   adoucirCretes(ctrl,LOOPI);    // plus de crête AVEUGLE (voir la fonction)
   return ctrl;
