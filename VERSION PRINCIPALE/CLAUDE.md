@@ -432,10 +432,24 @@ or `#ffd75e` argent, feu `#ff7a24` nitro, réserve `#5b7dff`, néon `#ff3ec8`/`#
 - **HUD** : la barre de FLOW est de la famille de la jauge NITRO (même cadre, lèvre, reflet), juste dessous, 14 px, pictogramme
   « vague » ; les verdicts de pose (MONSTRE / DOUBLE / TRIPLE / MÉTÉORE / SNAKE LOOP + montant + pastilles de bonus) reviennent sur
   téléphone : `trickMsg` → `verdPousse` → une carte par image dans la file du couloir (famille `ver`). Banc `dbgHud('verdict',k)`.
-- **ORBITE** (bloc après `pluieTick`, `orbiteBuild/orbiteChauffe/orbiteTick`) : la LUNE (carte 1024×512 peinte en étapes au menu, sphère
-  calculée au pixel, composée au tiers haut-droit avec retard, jamais sur la Terre) et les ASTÉROÏDES (3 InstancedMesh, une matière,
-  rotation dans le shader ; passants au bord extérieur des virages, champ au-dessus, ceinture) ; `visible=false`/`count=0` hors ORBITE.
-  +4 appels de dessin. Banc `dbgOrbite('vue'|'cout'|'photo'|'carte')`.
+- **ORBITE** (bloc après `pluieTick`, `orbiteBuild/orbiteLumiere/orbiteTick/orbiteChauffe`) — refait le 2026-09-27 (user : « la lune suit
+  le joueur bizarrement, c'est un bug mais j'aime bien : mets-lui un visage inspiration troll face, CHOQUÉ, comme s'il le regardait ; à la
+  place des astéroïdes des satellites STARLINK et des débris ; puis une lumière SPATIALE ») :
+  · la LUNE garde son placement (tiers haut-droit, avec retard = elle « suit » le joueur — VOULU, ne pas corriger) ; `LUNE_R` 520 → 640 ;
+    son VISAGE est dessiné dans le fragment (zéro texture) : yeux écarquillés, pupilles qui VISENT LA CAISSE (`uOeil`, direction écran
+    lune → caisse, lissée + saccades), sourcils remontés, rides, plis du troll, bouche béante (dents, langue, mâchoire qui tremble) ; la face
+    TOURNE ~22° vers la caisse ; `uChoc` monte en vol / nitro / explosion ; clignement rare ; yeux qui luisent sur la face de nuit ;
+    hasard du regard = `orbAlea` (pas Math.random).
+  · `SATS` (remplace ROCS) : 3 InstancedMesh + 1 matière `SAT_MAT` (pièces par `aPart`, variantes par `aVg`) — [0] Starlink entiers (1 ou
+    2 ailes) : passants, champ, et TRAINS (files de 20-26 qui glissent, mouvement dans le vertex shader, éclat qui court le long de la file) ;
+    [1] gros débris (satellite mort, étage de fusée, pan de panneau, petit satellite d'or) ; [2] éclats (matière par instance) + 2 anneaux
+    de débris. `GLINT` : étoile à 4 branches sur chaque Starlink quand son panneau renvoie le soleil (tampons partagés avec [0]).
+  · LA LUMIÈRE SPATIALE (`orbiteLumiere`, pondérée par `LVL.espace`) : UN soleil blanc rasant à GAUCHE de l'image, juste hors champ
+    (`ORB.cle`, suit la caméra avec retard) — la fenêtre d'ombre suit `L_DIR/L_PERP/L_UP` (hors orbite = SUN_DIR au bit près, vérifié par
+    `dbgOrbite('lum')`) ; hémisphère sans ciel, dessous = bleu Terre ; `fill` depuis la Terre, `kick` = clair de lune ; liseré (RIM) bleu
+    depuis la Terre ; `FLARE` = voile + trait anamorphique du soleil hors cadre. Route d'orbite `route` .9 → .38 (le soleil l'éclaire).
+  6 appels de dessin (+2), ~230 k sommets/image sur téléphone. Zéro shader compilé au portail (mesuré). Bancs `dbgOrbite('vue'|'cout'|
+  'photo'|'portrait'|'sat'|'train'|'rendu'|'force'|'lum'|'carte')`.
 - **VILLE** (`VILLE_PENTE={seuil:.30,garde:.35}`, `adoucirPentes`) : la pente de la ville est comprimée au-delà de ~16,7° (pente max
   ~47° → ~30°), altitude seulement, zéro `rnd()` ajouté : NUAGES et ORBITE identiques au bit. `garde:1` = l'ancienne ville.
 - **⚠ RELIEF COUPÉ PARTOUT** (même soir, user : « et en fait même pour la ville remets l'ancien terrain ») : `RELIEF_ON=false` — les trois
