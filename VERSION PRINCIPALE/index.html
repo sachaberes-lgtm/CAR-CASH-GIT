@@ -23449,9 +23449,11 @@ function chainesTick(dt,sp){
   if(vu)vChip(TR('LIGNE')+' '+vu.n+' / '+vu.lats.length,TR(vu.fini?'PARFAITE !':vu.brise?'CASSEE':'ENCHAINE LES PADS'),vu.brise?'#8f84c8':'#ffd75e');else vChip('');
 }
 // ============ 3 · LES FLAQUES ============
-const VEAU={mat:vMat(new THREE.MeshPhongMaterial({color:0x0a1626,specular:0xa8ecff,shininess:420,envMap:envTex,reflectivity:.7,combine:THREE.MixOperation,transparent:true,opacity:.9,
+// (mesuré en capture) sur le bitume MOUILLÉ de la pluie, qui renvoie lui aussi les néons, une eau réfléchissante se confondait avec la route :
+// l'eau est NOIRE (un trou dans les reflets), le liseré cyan vif, et la flaque allongée dans le sens de la route (l'objectif rasant l'écrasait).
+const VEAU={mat:vMat(new THREE.MeshPhongMaterial({color:0x03060b,specular:0x9fe8ff,shininess:300,envMap:envTex,reflectivity:.28,combine:THREE.MixOperation,transparent:true,opacity:.96,
     polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2})),
-  rim:vMat(new THREE.MeshBasicMaterial({color:0x3ee8ff,transparent:true,opacity:.38,depthWrite:false,blending:THREE.AdditiveBlending,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}))};
+  rim:vMat(new THREE.MeshBasicMaterial({color:0x5ef0ff,transparent:true,opacity:.78,depthWrite:false,blending:THREE.AdditiveBlending,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}))};
 function flaquesPose(){ // chaque rangée couvre la route SAUF sa ligne sèche ; un damier = deux rangs en quinconce
   const R=3,P=[];
   for(const f of VZ.flaques){f.fait=false;
@@ -23463,20 +23465,20 @@ function flaquesPose(){ // chaque rangée couvre la route SAUF sa ligne sèche ;
   const o=new THREE.Object3D();let q=0;
   for(let i=0;i<n;i++)for(const fy of [1,-1]){const sv=P[i*2],lt=THREE.MathUtils.clamp(P[i*2+1],-(ROAD_HALF-4.2),ROAD_HALF-4.2);
     frameAt(sv,F);o.quaternion.setFromRotationMatrix(VM4.makeBasis(F.b,VV1.copy(F.t).negate().multiplyScalar(fy),VV2.copy(F.n).multiplyScalar(fy)));
-    o.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,fy>0?.05:-THICK-.05);o.scale.set(R*1.35,R*1.9,1);o.updateMatrix();imE.setMatrixAt(q,o.matrix);
-    o.position.addScaledVector(F.n,fy>0?-.01:.01);o.scale.set(R*1.5,R*2.1,1);o.updateMatrix();imR.setMatrixAt(q,o.matrix);q++;
+    o.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,fy>0?.05:-THICK-.05);o.scale.set(R*1.35,R*2.6,1);o.updateMatrix();imE.setMatrixAt(q,o.matrix);
+    o.position.addScaledVector(F.n,fy>0?-.01:.01);o.scale.set(R*1.58,R*2.95,1);o.updateMatrix();imR.setMatrixAt(q,o.matrix);q++;
     OILS.push({s:sv,lat:lt,r:R,face:fy});}
   for(const im of [imE,imR]){im.instanceMatrix.needsUpdate=true;im.frustumCulled=false;scene.add(im);trackMeshes.push(im);}
   imR.renderOrder=1;
 }
 function flaquesTick(dt,sp){
   if(slipT>.7&&VC.slip0<=0&&mode==='drive'){ // ça vient de partir en aquaplaning : la gerbe d'eau, et la rangée n'est plus « à sec »
-    VC.rowSlip=true;popTexte('AQUAPLANING !','#9fe8ff',1);
+    VC.rowSlip=true;VC.aquaN=(VC.aquaN|0)+1;popTexte('AQUAPLANING !','#9fe8ff',1);
     for(let k=0;k<14;k++)spawnP(cloudBits,carGroup.position.x+(Math.random()-.5)*3,carGroup.position.y+.3,carGroup.position.z+(Math.random()-.5)*3,CAMP.vel.x*.5+(Math.random()-.5)*8,3+Math.random()*4,CAMP.vel.z*.5+(Math.random()-.5)*8,.5);
     try{sparkBurst(sparkBlue,carGroup.position,12,9);}catch(e){}}
   VC.slip0=slipT;
   for(const f of VZ.flaques){if(f.fait||sp<f.s+(f.d?64:6))continue;f.fait=true;
-    if(!VC.rowSlip){popTexte('A SEC !','#7dffec',0);flowAdd(f.d?10:6);nitroGain(f.d?.1:.06);try{chaineAura('A SEC',f.d?30:18,'sec');}catch(e){}}
+    if(!VC.rowSlip){VC.secN=(VC.secN|0)+1;popTexte('A SEC !','#7dffec',0);flowAdd(f.d?10:6);nitroGain(f.d?.1:.06);try{chaineAura('A SEC',f.d?30:18,'sec');}catch(e){}}
     VC.rowSlip=false;}
 }
 // ============ 5 · LA FOUDRE ============
@@ -23603,13 +23605,13 @@ function villeApres(){ // crochet : APRÈS musicTick (qui repeint le néon de la
   if(k<.999||VC.phare){VC.phare=k<.999;headSpot.distance=72+64*(1-k);if(mode!=='boom')headSpot.intensity=1.85*(1+.9*(1-k));} // 1,85 : la valeur que la boucle pose (phares de course)
 }
 // ============ 7 · LE FOURGON ============
-// Un fourgon blindé bleu nuit à bandes d'or : un LIÈVRE qui règle sa vitesse sur la tienne (voir fourgonTick : sans nitro tu décroches,
+// Un fourgon blindé ARGENT à bandes d'or : un LIÈVRE qui règle sa vitesse sur la tienne (voir fourgonTick : sans nitro tu décroches,
 // avec tu tiens). Colle-lui au train (3 à 50 m derrière) : ses portes s'OUVRENT et il sème des pièces sur la route — de vraies
 // pièces du jeu (le ramassage, le combo, l'aimant : tout marche), puisées dans une réserve de 40 maillages. Quatre-vingts pièces à
 // bord ; vidé = jackpot, et il s'enfuit, allégé. Le percuter par l'arrière = un paquet de dix d'un coup, et un coup de frein.
 const VFG=(function(){
   const g=new THREE.Group(),
-    bleu=new THREE.MeshPhongMaterial({color:0x1d2740,shininess:90,specular:0x8899bb}),
+    bleu=new THREE.MeshPhongMaterial({color:0xcdd4df,shininess:120,specular:0xffffff}), // ARGENT (mesuré en capture : bleu nuit, il disparaissait sur le bitume de l'aube)
     or=new THREE.MeshPhongMaterial({color:0xffc33a,emissive:0x4a3000,shininess:120,specular:0xfff0c0}),
     noir=new THREE.MeshPhongMaterial({color:0x121318,shininess:40,specular:0x333333}),
     vit=new THREE.MeshPhongMaterial({color:0x0d1620,shininess:260,specular:0xffffff,envMap:envTex,reflectivity:.6,combine:THREE.MixOperation}),
@@ -23640,7 +23642,7 @@ const VFG=(function(){
   for(const sd of [-1,1]){const a=new THREE.Sprite(phM);a.scale.set(.9,.9,1);a.position.set(sd*.95,1.0,3.42);g.add(a);
     const r=new THREE.Sprite(feM);r.scale.set(.7,.7,1);r.position.set(sd*1.15,1.0,-3.4);g.add(r);}
   const gy=new THREE.Sprite(giM);gy.scale.set(1.6,1.6,1);gy.position.set(0,3.45,-.5);g.add(gy); // le gyrophare orange du toit
-  g.traverse(o=>{if(o.isMesh)o.castShadow=true;});g.visible=false;scene.add(g);
+  g.traverse(o=>{if(o.isMesh)o.castShadow=true;});g.scale.setScalar(1.25);g.visible=false;scene.add(g); // ×1,25 : comme le trafic, lisible dans l'objectif portrait
   const pool=[];for(let i=0;i<40;i++)pool.push({m:new THREE.Mesh(pickGeo,pickMat),pk:null,dans:false,ax:new THREE.Vector3()});
   return {g:g,portes:portes,roues:roues,gy:gy,pool:pool,on:false,s:0,lat:0,latP:0,lane:9,v:0,momT:0,yaw:0,cash:80,cash0:80,acc:0,porte:0,cd:0,fini:false,fuite:false,finT:0,semeT:0,pris:0};
 })();
@@ -23679,9 +23681,9 @@ function fourgonTick(dt,sp){
   if(!VFG.on)return;
   // SA VITESSE SE RÈGLE SUR LA TIENNE — un LIÈVRE de fête foraine, pas un pilote. MESURÉ au banc : avec tes équations ×1,04, le pilote
   // auto le doublait à 24 s (le FLOW, les pads et l'élan poussent ta caisse au-delà de ton moteur nu) et il finissait 2,5 km derrière, 4 %
-  // vidé. Désormais : +4 % quand tu es dans son semis (sans nitro tu décroches, avec tu tiens), +15 % si tu l'as doublé (il te REPASSE),
-  // ta vitesse quand il est loin devant (la nitro le rattrape), ×1,35 une fois vidé (il s'enfuit).
-  const gp=VFG.s-sp,moi=mode==='drive'&&side>0,vP=vKmh()/(3.6*SPD),kT=VFG.fuite?1.35:gp<0?1.15:gp<60?1.04:gp<260?1:.95;
+  // vidé. Désormais : +3 % quand tu es dans son semis (sans nitro tu décroches, avec tu tiens), +12 % si tu lui colles au pare-chocs,
+  // +12 à +72 % si tu l'as doublé (il te REPASSE, d'autant plus vite qu'il est loin), ta vitesse quand il est loin devant, ×1,35 vidé.
+  const gp=VFG.s-sp,moi=mode==='drive'&&side>0,vP=vKmh()/(3.6*SPD),kT=VFG.fuite?1.35:gp<0?1.12+Math.min(.6,-gp/300):gp<14?1.12:gp<50?1.03:gp<260?1:.95; // (2e mesure : à +15 % fixe, doublé de 500 m il mettait 36 s à revenir — il revient d'autant plus vite qu'il est loin ; collé à 14 m, il s'écarte un peu)
   VFG.v+=(Math.max(26,vP*kT)-VFG.v)*Math.min(1,dt*.9);
   let lT=VFG.lane;if(moi&&gp<16&&gp>-34)lT=lat>0?-12:12; // on se côtoie : il passe de L'AUTRE côté (il ne te rentre jamais dedans)
   VFG.lat+=(lT-VFG.lat)*Math.min(1,dt*1.3);
@@ -23692,16 +23694,16 @@ function fourgonTick(dt,sp){
   const seme=!VFG.fini&&VFG.cash>0&&gp>3&&gp<50&&(mode==='fall'||(moi&&Math.abs(lat-VFG.lat)<20));
   VFG.porte+=((seme?1:0)-VFG.porte)*Math.min(1,dt*(seme?4:2));
   if(seme){if(VFG.semeT<=0)popTexte('IL SEME SES BILLETS !','#ffd75e',1);VFG.semeT=1.5;
-    VFG.acc+=dt*6;while(VFG.acc>=1&&VFG.cash>0){VFG.acc-=1;fourgonPiece(VFG.s-4.4,VFG.lat+(Math.random()-.5)*6);}
+    VFG.acc+=dt*6;while(VFG.acc>=1&&VFG.cash>0){VFG.acc-=1;fourgonPiece(VFG.s-5.2,VFG.lat+(Math.random()-.5)*6);}
     if(Math.random()<dt*6)try{chimeNote(noteP(3+Math.floor(Math.random()*4),1),0,.04,.12);}catch(e){}}
   else{VFG.acc=0;VFG.semeT=Math.max(0,VFG.semeT-dt);}
   // LE CHOC : le percuter par l'arrière = un paquet d'un coup, et tu rebondis sur son pare-chocs
   VFG.cd=Math.max(0,VFG.cd-dt);
-  if(moi&&VFG.cd<=0&&Math.abs(gp)<5.4&&Math.abs(lat-VFG.lat)<2.5){VFG.cd=1.2;
-    if(gp>0){vA=Math.min(vA,VFG.v*.8);momT=0;for(let k=0;k<10&&VFG.cash>0;k++)fourgonPiece(VFG.s-4.4-Math.random()*6,VFG.lat+(Math.random()-.5)*9);
+  if(moi&&VFG.cd<=0&&Math.abs(gp)<6.2&&Math.abs(lat-VFG.lat)<2.8){VFG.cd=1.2;
+    if(gp>0){vA=Math.min(vA,VFG.v*.8);momT=0;for(let k=0;k<10&&VFG.cash>0;k++)fourgonPiece(VFG.s-5.2-Math.random()*6,VFG.lat+(Math.random()-.5)*9);
       popTexte('BRAQUAGE !','#ffd75e',2);try{chaineAura('BRAQUAGE',40,'braquage');}catch(e){}}
     else{vA*=.9;popTexte('ACCROCHAGE','#ff5e7a',1);}
-    lat=VFG.lat+(lat>=VFG.lat?1:-1)*2.6;shake=Math.max(shake,.45);hap([30,20,30]);try{thud(9);noiseBurst(.12,.12,900);}catch(e){}
+    lat=VFG.lat+(lat>=VFG.lat?1:-1)*2.9;shake=Math.max(shake,.45);hap([30,20,30]);try{thud(9);noiseBurst(.12,.12,900);}catch(e){}
     try{sparkBurst(sparkGold,carGroup.position,14,10);}catch(e){}}
   if(!VFG.fini&&VFG.cash<=0){VFG.fini=true;VFG.finT=1.4;VC.fourgonVide=true;
     slam('FOURGON VIDE !','','#ffd75e','#ff3ec8',42,2,24);vPaie(25,12);flowAdd(20);hap([20,40,20,40,80]);
@@ -23834,7 +23836,9 @@ function traficTick(dt,sp){
 // banquier. Le banquier roule avec TES équations et ton moteur, un cran au-dessus (VBQ_K) ; il prend la corde, jamais de nitro,
 // jamais d'étage sauté — ses deux faiblesses, tes deux armes. Le premier au portail gagne.
 const VBQ_K=1.07;
-const LINGOT_MAT=vMat(new THREE.MeshPhongMaterial({color:0xffc33a,emissive:0x3a2400,specular:0xfff2c0,shininess:95,flatShading:true,envMap:envTex,reflectivity:.35,combine:THREE.MixOperation}));
+// (mesuré sur la planche du banc d'essai) à 0xffc33a le lingot sortait JAUNE PÂLE, presque blanc : l'or est un MÉTAL — peu de diffus, un
+// spéculaire doré qui porte la couleur. Base cuivrée plus sombre, reflet or : il se lit « or » au soleil de midi comme dans la nuit.
+const LINGOT_MAT=vMat(new THREE.MeshPhongMaterial({color:0xc08a1c,emissive:0x221300,specular:0xffe39a,shininess:85,flatShading:true,envMap:envTex,reflectivity:.22,combine:THREE.MixOperation}));
 const LINGOT_PL=(function(){ // la plaque poinçonnée : or plus sombre, cadre, lettres pixel en creux
   const cv=document.createElement('canvas');cv.width=128;cv.height=256;const t=new THREE.CanvasTexture(cv);
   const des=function(){const x=cv.getContext('2d');x.fillStyle='#d99a1c';x.fillRect(0,0,128,256);x.strokeStyle='#8a5a06';x.lineWidth=6;x.strokeRect(8,8,112,240);
@@ -23867,7 +23871,7 @@ const VBQ=(function(){
         feM=new THREE.SpriteMaterial({map:lampTex,color:0xff3a22,transparent:true,opacity:.9,depthWrite:false});
   for(const sx of [-1,1]){const a=new THREE.Sprite(phM);a.scale.set(.8,.8,1);a.position.set(sx*.62,.66,2.2);g.add(a);
     const r=new THREE.Sprite(feM);r.scale.set(.62,.62,1);r.position.set(sx*.66,.7,-2.18);g.add(r);}
-  g.traverse(o=>{if(o.isMesh)o.castShadow=true;});g.visible=false;scene.add(g);
+  g.traverse(o=>{if(o.isMesh)o.castShadow=true;});g.scale.setScalar(1.25);g.visible=false;scene.add(g); // ×1,25 : à 20 m devant, en portrait, il faisait une pépite
   return {g:g,roues:roues,tr:mkTrail(),on:false,s:0,lat:0,latP:0,v:0,momT:0,yaw:0,fini:false,line:null,tmp:null,cd:0,mene:false};
 })();
 function banquierLigne(){ // SA ligne : la corde de chaque virage, lissée sur ±60 m (la même que la caisse-nuage, sans les coupes)
@@ -23891,7 +23895,7 @@ function banquierPose(dt){
   CM4.makeBasis(GF.b,GF.n,GF.t);g.quaternion.setFromRotationMatrix(CM4);g.rotateY(VBQ.yaw);
   const rv=VBQ.v*SPD*dt/.4;for(const w of VBQ.roues)w.rotation.x+=rv;
   g.visible=VBQ.on&&!VBQ.fini&&Math.abs(VBQ.s-vPos())<1100;
-  CV1.set(0,.8,-2.3).applyQuaternion(g.quaternion).add(g.position); // son ruban d'OR : on le suit à la trace
+  CV1.set(0,1,-2.9).applyQuaternion(g.quaternion).add(g.position); // son ruban d'OR : on le suit à la trace
   trailStep(VBQ.tr,CV1.x,CV1.y,CV1.z,1.35,1.02,.36,VBQ.fini?0:.8,3.2);
 }
 function banquierTick(dt,sp){
@@ -23914,7 +23918,7 @@ function banquierTick(dt,sp){
   VBQ.yaw+=(Math.atan2(VBQ.lat-VBQ.latP,Math.max(.01,ds))-VBQ.yaw)*Math.min(1,dt*8);VBQ.latP=VBQ.lat;
   // le coup d'épaule : on se touche, on s'écarte — personne ne meurt, personne ne triche
   VBQ.cd=Math.max(0,VBQ.cd-dt);
-  if(moi&&VBQ.cd<=0&&Math.abs(gp)<4.6&&Math.abs(lat-VBQ.lat)<2.3){VBQ.cd=.8;lat=VBQ.lat+(lat>=VBQ.lat?1:-1)*2.5;vA*=.96;shake=Math.max(shake,.3);hap(18);popTexte("COUP D'EPAULE",'#ffb000',1);try{thud(6);}catch(e){}}
+  if(moi&&VBQ.cd<=0&&Math.abs(gp)<5.4&&Math.abs(lat-VBQ.lat)<2.6){VBQ.cd=.8;lat=VBQ.lat+(lat>=VBQ.lat?1:-1)*2.8;vA*=.96;shake=Math.max(shake,.3);hap(18);popTexte("COUP D'EPAULE",'#ffb000',1);try{thud(6);}catch(e){}}
   const mene=gp<0;if(mene!==VBQ.mene){VBQ.mene=mene;if(mene){popTexte('TU MENES !','#ffd75e',1);try{chimeNote(noteP(5,1),0,.08,.2);}catch(e){}}else popTexte('IL REPASSE DEVANT','#ff5e7a',1);}
   if(VBQ.s>=L-45){ // IL PASSE LE PORTAIL LE PREMIER
     VBQ.fini=true;VBQ.g.visible=false;trailStep(VBQ.tr,0,0,0,0,0,0,0);
@@ -23972,7 +23976,7 @@ function villePieces(place){ // crochet : fin de campPieces
 }
 function villeDebut(){ // crochet : campDebut (chaque niveau qui commence)
   VC.chip='';vChip('');
-  Object.assign(VC,{sPrev:0,slip0:0,rowSlip:false,radN:0,radMax:0,radDitT:0,cour:1,panI:-1,panOk:true,panT:0,panFl:0,zap:0,gel:0,foudN:0,esqN:0,panN:0,aveugleN:0,fourgonVide:false});
+  Object.assign(VC,{sPrev:0,slip0:0,rowSlip:false,radN:0,radMax:0,radDitT:0,cour:1,panI:-1,panOk:true,panT:0,panFl:0,zap:0,gel:0,foudN:0,esqN:0,panN:0,aveugleN:0,fourgonVide:false,secN:0,aquaN:0});
   CITY.uC.value=1;
   if(CAMP.n!==11)radarsVide();
   foudreCache();VFOU.t=2.5;
@@ -24050,7 +24054,7 @@ window.dbgVille=function(){ // (dev) l'état de la campagne VILLE
   return {niveau:villeN(),s:Math.round(sp),L:Math.round(L),plaque:VC.chip,
     radars:VZ.radars.map(function(r){return Math.round(r.s)+(r.fait?'✓':'');}),radMax:Math.round(VC.radMax),
     chaines:VZ.chaines.map(function(c){return {s0:Math.round(c.s0),n:c.n,de:c.lats.length,brise:!!c.brise,fini:!!c.fini,pad:c.sP&&c.n<c.lats.length?[Math.round(c.sP[c.n]),c.lats[c.n]]:null};}),
-    flaques:VZ.flaques.length,oils:OILS.length,cellules:VZ.cellules.map(function(c){return [Math.round(c.s0),Math.round(c.s1)];}),foudre:{arme:VFOU.on,t:+VFOU.t.toFixed(2),touches:VC.foudN|0,esquives:VC.esqN|0},
+    flaques:VZ.flaques.map(function(f){return Math.round(f.s)+(f.fait?'✓':'');}),aSec:VC.secN|0,aquaplanings:VC.aquaN|0,oils:OILS.length,cellules:VZ.cellules.map(function(c){return [Math.round(c.s0),Math.round(c.s1)];}),foudre:{arme:VFOU.on,t:+VFOU.t.toFixed(2),touches:VC.foudN|0,esquives:VC.esqN|0},
     pannes:VZ.pannes.map(function(c){return [Math.round(c.s0),Math.round(c.s1)];}),courant:+VC.cour.toFixed(2),aveugles:VC.aveugleN|0,
     fourgon:VFG.on||VFG.fini?{ecart:Math.round(VFG.s-sp),lat:+VFG.lat.toFixed(1),v:Math.round(VFG.v*SPD*3.6),reste:VFG.cash,porte:+VFG.porte.toFixed(2),vide:VFG.fini}:null,
     trafic:VTR.on?{voitures:VTR.cars.length,vivantes:VTR.cars.filter(function(c){return !c.mort;}).length,dessinees:VTR.im.count,chocs:VTR.chocN,froles:VTR.froN}:null,

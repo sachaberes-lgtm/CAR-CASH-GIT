@@ -75,12 +75,14 @@ QUE pour les NUAGES (`c.camp&&c.id==='nuages'`) — la ville garde zéro nuage (
 - **LA PLAQUE** `#campChip` (`vChip(txt,sous,col,alerte)`) : ce qu'on LIT, en haut (sous la jauge de nitro au téléphone) — un cadre
   d'arcade opaque, deux lignes (l'objectif, son chiffre) ; ne se repeint que si le texte change. Radar à venir, file de pads, cellule
   d'orage, panne, fourgon, bouchon, banquier, rang de la meute.
-- **1 COUCHER — FAIS-TOI FLASHER** : trois portiques RADAR (`VZ.radars`, `radarsPose`) au bout de trois droites ; le flash paie
-  `denom × km/h/22` (×2 en EXCÈS DE VITESSE, ≥ 97 % de `vmaxShow()`), slam « 412 KM/H », déclic + bip ; la plaque annonce « RADAR · DANS 240 M ».
+- **1 COUCHER — FAIS-TOI FLASHER** : trois portiques RADAR (`VZ.radars`, `radarsPose`, poutre à 24 m — à 17 m elle barrait l'écran de la
+  caméra portrait — rampe lumineuse dessous) au bout de trois droites ; le flash paie `denom × km/h/22` (×2 en EXCÈS DE VITESSE, jugé sur
+  `vCroisiere()` ≥ 92 % : MESURÉ, sur `vmaxShow` le pilote auto SANS nitro était « en excès » à 317 km/h), slam « 412 KM/H », déclic + bip ;
+  la plaque annonce « RADAR · DANS 240 M ». Parcours complet mesuré : 94,5 s, trois flashs.
   Les éclairs de flash sont des sprites HORS `trackMeshes` (leur géométrie est celle de tous les sprites) : `radarsVide`.
 - **2 SOIRÉE — SUIS LA LIGNE DE NÉON** : cinq FILES de 5 à 7 pads d'or (`VZ.chaines`, `chainesPose`, `vPad`) reliées par un TRAIT de
-  lumière posé sur la route (ShaderMaterial additif : parcouru = brillant, tronçon suivant = tirets qui filent, suite en veilleuse,
-  cassé = éteint). `campPad` : `padCd` ramené à 0,45 s dans une file (le pad suivant est à ~110 m), « LIGNE ×k », file complète =
+  lumière posé sur la route (ShaderMaterial additif, 2,2 m de large : parcouru = OR, tronçon suivant = tirets CYAN qui filent, suite en
+  veilleuse cyan, cassé = éteint — en orange il se confondait avec la flamme de nitro ; la 1re file est à 8 m de l'axe, pas SUR la ligne centrale). `campPad` : `padCd` ramené à 0,45 s dans une file (le pad suivant est à ~110 m), « LIGNE ×k », file complète =
   LIGNE PARFAITE (slam, `denom×6×n`, demi-nitro). Pad raté = LIGNE CASSEE. `campPadNon` écarte les pads au hasard des files.
 - **3 PLUIE — LIS LES FLAQUES** : rangées d'eau en travers (`VZ.flaques`, `flaquesPose`, 2 InstancedMesh : eau réfléchissante + liseré
   cyan), UNE ligne sèche de 16 → 9 m qui change de côté, puis des DAMIERS (deux rangs en quinconce). L'eau = une entrée `OILS` : le
@@ -96,9 +98,12 @@ QUE pour les NUAGES (`c.camp&&c.id==='nuages'`) — la ville garde zéro nuage (
   fenêtres, liserés des toits, enseignes, réclames) vacille 170 m avant, tombe à 0 dedans, revient avec des ratés. Le néon de la route
   est baissé à 7 % dans `villeApres` (APRÈS musicTick, qui le repeint chaque image depuis `userData.base` — on ne touche QUE ce qui a une
   base, rien ne s'accumule) ; les phares portent 136 m. Les CATADIOPTRES (`catasPose`, ambre à gauche, blanc à droite, tous les 14 m,
-  `fog:false`) dessinent les bords ; un fil de pièces trace la corde dans le noir. Sortir sans quitter la route = « A L AVEUGLE ».
-- **7 AUBE — VIDE LE FOURGON** (`VFG`) : fourgon blindé bleu nuit à bandes d'or, créé à l'init. TES équations, ton moteur ×1,04 (sans nitro
-  il file, avec tu le rattrapes). Collé derrière lui (3-50 m, dessus de la dalle ou en vol) : les portes s'OUVRENT, 7,5 pièces/s tombent
+  plots de 50 cm tous les 10 m SUR la ligne de bord, `fog:false` — des pavés de 16 cm tous les 14 m tombaient sous le pixel dès 60 m) dessinent
+  les bords ; un fil de pièces trace la corde dans le noir. Sortir sans quitter la route = « A L AVEUGLE ».
+- **7 AUBE — VIDE LE FOURGON** (`VFG`) : fourgon blindé ARGENT à bandes d'or (×1,25 ; en bleu nuit il disparaissait sur le bitume de l'aube), créé à l'init. Un LIÈVRE qui règle sa vitesse sur la tienne
+  (MESURÉ : avec tes équations ×1,04, le FLOW, les pads et l'élan te le faisaient doubler à 24 s et il finissait 2,5 km derrière, 4 % vidé) :
+  +3 % dans son semis, +12 % collé à < 14 m, +12 à +72 % si tu l'as doublé (il revient d'autant plus vite qu'il est loin), ta vitesse loin
+  devant, ×1,35 vidé. Collé derrière lui (3-50 m, dessus de la dalle ou en vol) : les portes s'OUVRENT, 6 pièces/s tombent
   sur la route — de vraies entrées `pickups` (réserve de 40 maillages recyclés), ramassées par la boucle normale. 80 pièces ; vidé =
   « FOURGON VIDE ! » (`denom×25`), puis il s'enfuit (×1,3). Le percuter par l'arrière = dix pièces d'un coup (« BRAQUAGE ! ») et un coup
   de frein. Côte à côte, il déboîte toujours de l'autre côté.
@@ -106,16 +111,24 @@ QUE pour les NUAGES (`c.camp&&c.id==='nuages'`) — la ville garde zéro nuage (
   COLONNES de lumière (`colonnesPose`, deux plans croisés, un seul maillage) montent du vide entre les étages, tête 9 m au-dessus de la
   route ; deux pads d'or attendent sur l'étage du dessous.
 - **9 MATIN — FAUFILE-TOI** (`VTR`) : huit files de 7 m, 2-3 voitures par rangée (4-6 dans les deux BOUCHONS), jamais les huit : 100-160
-  km/h (60-90 en bouchon), plus vite à gauche. Voiture / fourgonnette / bus (échelles). Clignotant 1,1 s puis changement de file 1,3 s.
+  km/h (60-90 en bouchon), plus vite à gauche. Voiture / fourgonnette / bus (échelles), tout ×1,3 (MESURÉ en capture : à l'échelle vraie, une
+  voiture faisait 7 px à 100 m dans l'objectif portrait), feux arrière qui saignent dans le bloom. Clignotant 1,1 s puis changement de file 1,3 s.
   Trois InstancedMesh (caisses teintées, feux, clignotants), on ne dessine que la face où l'on roule. ACCROCHAGE = vitesse ×0,62, FLOW
   −15, la voiture part en toupie ; le FRÔLÉ (`frole`, le système des plots) paie ; foncer dans sa file = klaxon. Trafic à graine fixe.
 - **10 MIDI — BATS LE BANQUIER** (`VBQ`) : une course au portail contre LE LINGOT (gabarit `SHAPES.lingot` : tronc de pyramide d'or à
-  quatre pans, plaque poinçonnée 999,9, `LINGOT_MAT` partagée avec la caisse du garage). TES équations ×`VBQ_K`, la corde (`banquierLigne`),
+  quatre pans, plaque poinçonnée 999,9, `LINGOT_MAT` partagée avec la caisse du garage — or MÉTAL : base cuivrée sombre, spéculaire doré ;
+  en 0xffc33a il sortait jaune pâle). TES équations ET ton FLOW ×`VBQ_K` 1,07 (MESURÉ sans le FLOW : tu gagnais de 640 m au nitro sans sauter
+  d'étage, et tu le rattrapais même sans nitro ; à flow égal, sans nitro tu perds — 275 m à 40 s et ça s'ouvre), la corde (`banquierLigne`),
   jamais de nitro, jamais d'étage sauté, aspiration dans les deux sens, coup d'épaule sans dégât. Il passe le portail avant toi = « LE
   BANQUIER A GAGNÉ » (fin 1,6 s après, cause `banquier`). Toi d'abord = `villeFinale` : `carrMarque(ville,9)`, LE LINGOT débloqué
   (`{k:'carrV',v:10}`) et ÉQUIPÉ, écran « VILLE TERMINEE ». L'orbe VITESSE est retiré du niveau.
-- **HOOKS** : `dbgCampagne(n,1)` (niveau n de la VILLE), `dbgVille()` (tout l'état), `dbgFoudre()`, `dbgCourant(v)`. Bancs Puppeteer :
-  `scratchpad/pp/v1.js` (les dix niveaux), `vplay.js niveau [nitro] [coupe] [suit]` (parcours complet).
+- **HOOKS** : `dbgCampagne(n,1)` (niveau n de la VILLE), `dbgVille()` (tout l'état), `dbgFoudre()`, `dbgCourant(v)`, `dbgTrafic()`. Bancs
+  Puppeteer : `scratchpad/pp/v1.js` (les dix niveaux), `vplay.js niveau [nitro] [coupe] [suit]` (parcours complet ; `suit` colle au fourgon,
+  au banquier, ou vise le pad suivant de la file). ⚠ Les bancs partagent la carte graphique de Sacha : UN à la fois, viewport 200×430.
+- **PIÈGES MESURÉS** : `b = n×t` (frameAt) → la base (b, t, n) est un MIROIR : un objet posé à plat sur la route se construit en (t, b, n) —
+  le cercle de foudre se dressait en arche ; (b, n, t) est la base directe des caisses. Les pads de campagne (`vPad`) passent tout seuls
+  dans `PAD_IM` (padsInstancier ramasse padGeo+PAD_MAT). Cercle de foudre visible à opacité 0 et UNE voiture garée sous la dalle dès
+  `villeDebut` : `chauffeRendu` (120 ms après newTrack) les dessine, la puce crée leur état de pipeline avant la 1re frappe / le 1er bouchon.
 
 ## ⚠ DEUX ÉDITIONS, UN SEUL JEU (2026-09-25) — LIRE EN PREMIER
 - Le dossier `version-fusion-2026-09` s'appelle désormais **`VERSION PRINCIPALE`** (la version mobile fusionnée) ;
