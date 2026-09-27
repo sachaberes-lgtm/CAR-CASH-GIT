@@ -1773,6 +1773,21 @@
   #campFx .cfF{background:radial-gradient(150% 100% at 50% 50%,rgba(255,62,200,0) 58%,rgba(255,62,200,.6) 100%)}
   #campFx .cfG{background:radial-gradient(150% 100% at 50% 50%,rgba(255,214,130,0) 50%,rgba(255,214,130,.65) 100%)}
   body.dead #campFx,body:has(#tPanel.open) #campFx{visibility:hidden}
+  /* (2026-09-27) LA PLAQUE DE LA CAMPAGNE VILLE (#campChip) : ce qu'on LIT, en haut (sous la jauge de nitro au téléphone) — un CADRE
+     d'arcade opaque (charte : ni verre dépoli ni dégradé sur le texte, coins coupés, couleur pleine), deux lignes : l'objectif et son
+     chiffre (rang, distance, pourcentage). Elle ne se touche pas. Fondu d'opacité seul ; « alerte » = le liseré bat rouge (dernier, courant). */
+  #campChip{position:fixed;left:50%;top:calc(var(--sT,0px) + 16px);transform:translateX(-50%);z-index:6;pointer-events:none;
+    max-width:calc(100vw - 32px - var(--sL,0px) - var(--sR,0px));font-family:var(--pix);font-size:var(--f3,12px);letter-spacing:1px;
+    text-align:center;white-space:nowrap;color:var(--tx,#fff7ee);background:var(--plaque);clip-path:var(--coupe7);box-shadow:var(--biseau);
+    padding:9px 14px 8px;opacity:0;transition:opacity var(--t-fast) var(--ease)}
+  body.touch #campChip{top:calc(var(--sT,0px) + 54px)}
+  #campChip.on{opacity:1}
+  #campChip b{font-weight:400;color:var(--cc,var(--or))}
+  #campChip small{display:block;margin-top:6px;font-size:var(--f0,8px);color:var(--cyan)}
+  #campChip.alerte{animation:ccAlerte .6s steps(2) infinite}
+  @keyframes ccAlerte{50%{box-shadow:inset 0 0 0 2px var(--neoR),inset 3px 3px 0 rgba(255,255,255,.10),inset -3px -3px 0 rgba(0,0,0,.45)}}
+  @media (prefers-reduced-motion:reduce){#campChip.alerte{animation:none;box-shadow:inset 0 0 0 2px var(--neoR)}}
+  body.dead #campChip,body:has(#tPanel.open) #campChip,body.touch:not(.play) #campChip{visibility:hidden}
 </style>
 </head>
 <body>
@@ -5008,7 +5023,7 @@ const CAMPM=[]; // les repères de la piste de campagne (voir campRepere)
 function genCampagne(n){
   const ctrl=[];GAPMARK.length=0;CAMPM.length=0; // aucun trou, jamais
   let P=new THREE.Vector3(0,0,0),phi=0;
-  const K=(typeof lvPiste==='function'?lvPiste():1)*(n===6||n===10?1:1.2); // ×1,2 : des niveaux d'une bonne minute (le 6 est long exprès, le 10 a sa poursuite)
+  const K=(typeof lvPiste==='function'?lvPiste():1)*(n===6||n===10||n===18||n===20?1:1.2); // ×1,2 : des niveaux d'une bonne minute (le 6 est long exprès, le 10 a sa poursuite ; en VILLE, les étages et la course du banquier)
   const dir=()=>new THREE.Vector3(Math.sin(phi),0,Math.cos(phi));
   const push=()=>ctrl.push(P.clone());
   const droite=(l,dy,nn)=>{dy=dy||0;nn=nn||Math.max(2,Math.round(l/130));for(let k=0;k<nn;k++){P.addScaledVector(dir(),l/nn);P.y+=dy/nn;push();}};
@@ -5135,7 +5150,157 @@ function genCampagne(n){
     droite(280*K,-6);mark('banc',{r:32});droite(260*K,-6);
     arc(-62,430*K,-24);
     droite(720*K,-30,5);          // la dernière droite : le portail surgit au dernier éclair
-  }else{ // 10 · COUCHER — ATTRAPER LA CAISSE-NUAGE : lignes intérieures, les deux coupes du niveau 6, une traversée de nuages
+  }else if(n>10){ // ================= LA CAMPAGNE VILLE (11 à 20) : la route seule — les tours poussent autour (buildVoxCity) =================
+    // Pas de looping, pas de nuage (la règle de la ville) ; des pentes douces (la ville descend en canyon, jamais en toboggan). Les
+    // repères propres à la ville : RADAR (11), CHAÎNE de pads (12), rangée de FLAQUES (13), CELLULE d'orage (15), PANNE (16), BOUCHON (19).
+    const zone=(k,f)=>{const o={k:k,i0:ctrl.length-1};f();o.i1=ctrl.length-1;CAMPM.push(o);}; // un TRONÇON de piste marqué (début, fin)
+    if(n===11){ // COUCHER — FAIS-TOI FLASHER : trois radars au bout de trois droites ; le radar paie ta vitesse
+      droite(600*K,-20,4);
+      arc(-36,900*K,-10);
+      droite(260*K,-6);
+      corde(()=>arc(118,300*K,-40));
+      droite(560*K,-14,4);mark('radar');   // RADAR 1 : au bout d'une droite qu'on voit tout entière — le temps d'allumer la nitro
+      droite(180*K,-4);
+      arc(-96,340*K,-32);
+      droite(300*K,-8);
+      arc(70,420*K,-24);
+      droite(680*K,-16,5);mark('radar');   // RADAR 2 : la plus longue ligne du niveau
+      droite(180*K,-4);
+      corde(()=>arc(-140,320*K,-48));
+      droite(300*K,-8);
+      arc(52,520*K,-18);
+      droite(620*K,-18,4);mark('radar');   // RADAR 3 : la dernière, avant le portail
+      droite(420*K,-10,3);
+    }else if(n===12){ // SOIRÉE — LA LIGNE DE NÉON : des pads en file, reliés par un trait de lumière ; les enchaîner fait monter le ×
+      const PAS=95*K,chaine=(lats,dy)=>{const l=PAS*(lats.length+.6),o={k:'chaine',lats:lats,i0:ctrl.length-1};droite(l,dy==null?-8:dy,Math.max(2,Math.round(l/130)));o.i1=ctrl.length-1;CAMPM.push(o);};
+      droite(520*K,-18,4);
+      arc(40,800*K,-10);
+      droite(160*K,-4);
+      chaine([0,0,0,0,0]);                 // la 1re : dans l'axe — on apprend que ça s'enchaîne
+      arc(-80,380*K,-26);
+      droite(160*K,-4);
+      chaine([-12,-6,0,6,12]);             // la diagonale : on traverse la route pad après pad
+      arc(96,340*K,-30);
+      droite(200*K,-6);
+      chaine([0,12,0,-12,0,12]);           // le slalom
+      arc(-60,460*K,-20);arc(60,460*K,-20);
+      droite(160*K,-4);
+      chaine([-16,-8,0,8,16,8,0]);         // la vague
+      arc(-90,360*K,-30);
+      droite(180*K,-4);
+      chaine([12,0,-12,0,12,0,-12],-10);   // le slalom long, pour finir
+      droite(300*K,-8);
+      arc(44,620*K,-14);
+      droite(560*K,-18,4);
+    }else if(n===13){ // PLUIE NÉON — LIS LES FLAQUES : des rangées d'eau en travers, UNE ligne sèche ; l'aquaplaning coupe le volant
+      const rang=G=>{droite(240*K,-4,2);for(const g of G){mark('flaque',{c:g[0],w:g[1],d:g[2]||0});droite(170*K,-3,2);}droite(120*K,-3);};
+      droite(520*K,-18,4);
+      arc(52,400*K,-22);
+      rang([[0,16],[12,13],[-12,13]]);
+      arc(-84,360*K,-30);
+      droite(260*K,-8);
+      arc(76,360*K,-26);
+      rang([[-14,12],[6,11],[18,10],[0,0,1]]);   // d:1 = le DAMIER (deux rangs en quinconce : la ligne zigzague)
+      arc(-60,440*K,-22);arc(60,440*K,-22);
+      rang([[16,11],[-4,10],[-18,9],[0,0,1]]);
+      arc(-72,380*K,-26);
+      droite(600*K,-22,4);
+    }else if(n===14){ // MINUIT — LA MEUTE : le Survivant, sept voitures, deux couperets — de grands virages où la corde fait le classement
+      droite(600*K,-20,4);
+      arc(-40,760*K,-12);
+      droite(300*K,-8);
+      corde(()=>arc(120,280*K,-40));droite(260*K,-8);
+      corde(()=>arc(-116,290*K,-40));droite(420*K,-12,3);
+      arc(62,440*K,-22);droite(200*K,-6);
+      arc(-78,400*K,-26);
+      droite(560*K,-16,4);                 // la longue droite : la meute crache son bleu
+      corde(()=>arc(150,300*K,-52));
+      droite(300*K,-8);
+      arc(-44,700*K,-14);arc(44,700*K,-14);
+      droite(260*K,-8);
+      corde(()=>arc(-128,300*K,-44));droite(220*K,-6);
+      arc(90,360*K,-30);
+      droite(480*K,-14,3);
+      arc(-66,440*K,-22);
+      droite(300*K,-8);
+      corde(()=>arc(112,300*K,-40));
+      droite(680*K,-22,5);
+    }else if(n===15){ // ORAGE — ESQUIVE LA FOUDRE : trois cellules d'orage ; un cercle sur la route, la foudre tombe dedans
+      droite(560*K,-20,4);
+      arc(-52,520*K,-18);
+      zone('cellule',()=>{droite(620*K,-14,4);arc(70,460*K,-24);droite(420*K,-10,3);});
+      droite(200*K,-4);
+      arc(-96,360*K,-32);                  // l'accalmie
+      droite(260*K,-6);
+      zone('cellule',()=>{droite(520*K,-12,4);arc(-60,520*K,-20);arc(60,520*K,-20);droite(380*K,-10,3);});
+      arc(88,380*K,-30);
+      droite(220*K,-6);
+      zone('cellule',()=>{droite(700*K,-16,5);arc(-40,700*K,-12);droite(400*K,-10,3);});
+      droite(420*K,-10,3);
+    }else if(n===16){ // AVANT L'AUBE — LA PANNE : trois coupures de courant, des virages dedans ; on lit la route aux catadioptres
+      droite(560*K,-18,4);
+      arc(44,700*K,-14);
+      droite(300*K,-8);
+      zone('panne',()=>{droite(260*K,-6);arc(-80,420*K,-26);droite(220*K,-6);arc(62,460*K,-20);droite(200*K,-6);});
+      droite(360*K,-10,3);                 // la lumière revient
+      arc(-70,420*K,-24);
+      droite(260*K,-6);
+      zone('panne',()=>{droite(220*K,-6);corde(()=>arc(120,320*K,-40));droite(200*K,-6);arc(-94,360*K,-30);droite(220*K,-6);});
+      droite(320*K,-8);
+      arc(56,520*K,-18);
+      zone('panne',()=>{droite(240*K,-6);arc(-60,440*K,-20);arc(60,440*K,-20);droite(160*K,-4);arc(-104,340*K,-32);droite(260*K,-6);});
+      droite(560*K,-16,4);
+    }else if(n===17){ // AUBE — LE FOURGON : un fourgon blindé devant ; colle-lui au train, il sème ses billets
+      droite(640*K,-22,4);                 // il est là, devant
+      arc(-32,900*K,-10);
+      droite(420*K,-10,3);
+      corde(()=>arc(110,320*K,-38));
+      droite(480*K,-12,3);
+      arc(-70,440*K,-24);
+      droite(560*K,-14,4);
+      corde(()=>arc(-126,320*K,-42));
+      droite(360*K,-10,3);
+      arc(52,560*K,-18);arc(-52,560*K,-18);
+      droite(520*K,-14,4);
+      corde(()=>arc(140,330*K,-48));
+      droite(700*K,-22,5);
+    }else if(n===18){ // LEVER — LES ÉTAGES : trois ovales ; à côté de chacun, l'étage du dessous (la coupe du niveau 6 des NUAGES, en ville)
+      droite(460*K,-14,3);
+      arc(-36,820*K,-10);
+      droite(260*K,-6);
+      ovale(1);liaison(-1);ovale(-1);liaison(1);ovale(1);
+      droite(240*K,-6);
+      arc(34,820*K,-10);
+      droite(640*K,-22,4);
+    }else if(n===19){ // MATIN — L'HEURE DE POINTE : une voie rapide pleine de voitures ; deux bouchons plus serrés
+      droite(560*K,-18,4);
+      arc(30,1000*K,-10);
+      droite(620*K,-14,4);
+      arc(-64,520*K,-20);
+      zone('bouchon',()=>{droite(560*K,-10,4);arc(40,800*K,-10);droite(300*K,-6);});
+      arc(-88,440*K,-28);
+      droite(700*K,-16,5);
+      arc(56,620*K,-18);
+      zone('bouchon',()=>{droite(460*K,-10,3);arc(-36,900*K,-10);droite(420*K,-8,3);});
+      arc(74,480*K,-24);
+      droite(640*K,-18,4);
+    }else{ // 20 · MIDI — LE BANQUIER : une course au portail contre sa caisse d'or ; lui ne saute jamais d'un étage
+      droite(640*K,-22,4);                 // il part devant, dans SA caisse d'or
+      corde(()=>arc(-130,300*K,-44));
+      droite(240*K,-6);
+      ovale(1);                            // L'ÉTAGE A
+      droite(220*K,-6);
+      arc(-44,700*K,-12);arc(44,700*K,-12);
+      droite(300*K,-8);
+      corde(()=>arc(96,320*K,-34));
+      droite(260*K,-6);
+      arc(-30,760*K,-8);droite(180*K);
+      ovale(-1);                           // L'ÉTAGE B
+      droite(200*K,-6);
+      corde(()=>arc(160,330*K,-60));
+      droite(720*K,-26,5);                 // l'arrivée : le premier au portail gagne
+    }
+  }else if(n===10){ // 10 · COUCHER — ATTRAPER LA CAISSE-NUAGE : lignes intérieures, les deux coupes du niveau 6, une traversée de nuages
     droite(640*K,-22,4);          // elle est déjà là, devant
     corde(()=>arc(-138,300*K,-44)); // un long virage : la corde intérieure gagne des mètres
     droite(220*K,-6);
@@ -6087,19 +6252,19 @@ function buildTrack(seed){
    ⚠ LE TIRAGE EST UN FLUX DÉRIVÉ (`seed^0x5EED10C1`), JAMAIS `rnd` : la piste en aval ne bouge pas d'un mètre. */
 const VOX_M=.05;            // LA BRIQUE. Le module de base du jeu, et il n'y en a qu'un.
 const VOX_CITY=VOX_M*128;   // 6,4 m — la maille de la ville : un multiple ENTIER de la brique.
-const CITY={root:null,uT:{value:0},n:{}};
+const CITY={root:null,uT:{value:0},uC:{value:1},n:{}}; // uC : le COURANT de la ville (1 = allumée, 0 = la panne du niveau 16 de la campagne VILLE)
 function villeMatTours(){ // béton du village + fenêtres + pied noyé dans la brume (PARTAGÉ : jamais disposé — voir pose())
   if(CITY.matT)return CITY.matT;
   const m=new THREE.MeshLambertMaterial({color:0xffffff,emissive:0x07080d});
   m.extensions={derivatives:true}; // fwidth (WebGL1) : les fenêtres se filtrent à la taille du pixel
   const DECL='varying vec3 vLoc9;varying vec3 vNrm9;varying float vB9;varying float vSeed9;varying vec3 vSc9;varying vec3 vW9;';
-  m.onBeforeCompile=function(sh){sh.uniforms.uT9=CITY.uT;sh.uniforms.uWet9=ROAD_U.uWet;
+  m.onBeforeCompile=function(sh){sh.uniforms.uT9=CITY.uT;sh.uniforms.uWet9=ROAD_U.uWet;sh.uniforms.uCour9=CITY.uC;
     sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\n'+DECL)
       .replace('#include <begin_vertex>','#include <begin_vertex>\n#ifdef USE_INSTANCING\n'+
         'vec3 sc9=vec3(length(instanceMatrix[0].xyz),length(instanceMatrix[1].xyz),length(instanceMatrix[2].xyz));'+
         'vSeed9=fract(instanceMatrix[3].x*.0131+instanceMatrix[3].z*.0173);vW9=(modelMatrix*instanceMatrix*vec4(position,1.)).xyz;\n#else\nvec3 sc9=vec3(1.);vSeed9=0.;vW9=(modelMatrix*vec4(position,1.)).xyz;\n#endif\n'+
         'vLoc9=position*sc9;vNrm9=normal;vB9=(position.y+.5)*sc9.y;vSc9=sc9;');
-    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9,uWet9;'+DECL)
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9,uWet9,uCour9;'+DECL)
       .replace('#include <fog_fragment>',
         /* LES FENÊTRES v2 (2026-09-26) — chaque tour a sa PERSONNALITÉ, tirée de sa graine : travée 2,6-4,4 m, étage 3,5-4,4 m, taux
            d'allumage 22-62 %, habitation (ambre chaud) ou bureaux (blanc-cyan froid, fenêtres en BANDEAU allumées par plateaux entiers).
@@ -6125,13 +6290,13 @@ function villeMatTours(){ // béton du village + fenêtres + pied noyé dans la 
         'vec3 wc=mix(dom,aut,step(.8,fract(h*7.77)))*(.8+.4*fract(h*13.1));'+
         'float tv=step(.955,hv)*step(hv,.975)*(.55+.45*sin(uT9*7.3+h*40.)*sin(uT9*2.9+h*9.));wc=mix(wc,vec3(.45,.6,1.)*1.2*tv,step(.001,tv));'+ // les ÉCRANS
         'float far=smoothstep(.3,.75,max(fw.x,fw.y)),avg=tx*4.*hw.x*hw.y;'+
-        'gl_FragColor.rgb+=mix(wc*w*on,mix(dom,aut,.2)*avg*1.05,far)*fv*1.3;'+
+        'gl_FragColor.rgb+=mix(wc*w*on,mix(dom,aut,.2)*avg*1.05,far)*fv*1.3*uCour9;'+ // uCour9 : la PANNE éteint les fenêtres (campagne VILLE, niveau 16)
         // LES TOITS (2026-09-26) : vus d'avion (vol libre, plongeons), c'étaient des dalles noires. Chaque toit porte désormais un LISERÉ
         // néon sur son parapet (ambre, cyan des bureaux, parfois magenta) : d'en haut, la ville dessine ses blocs et ses retraits en
         // lignes de lumière. Anticrénelé, et éteint quand le liseré tombe sous le pixel (pas de fourmillement au loin).
         'float tt=step(.5,vNrm9.y)*step(9.,min(vSc9.x,vSc9.z)),de=min(vSc9.x*.5-abs(vLoc9.x),vSc9.z*.5-abs(vLoc9.z)),fe=max(fwidth(de),1e-4);'+
         'vec3 rc=fro>.5?vec3(.24,.91,1.):s2>.72?vec3(1.,.24,.78):vec3(1.,.58,.24);'+ // (vague 2) le parapet suit la dominante de la tour (cyan #3ee8ff / ambre), parfois magenta #ff3ec8
-        'gl_FragColor.rgb+=rc*tt*(1.-smoothstep(.55,.55+fe*1.5,de))*(1.-smoothstep(.5,1.4,fe))*.55;}\n'+
+        'gl_FragColor.rgb+=rc*tt*(1.-smoothstep(.55,.55+fe*1.5,de))*(1.-smoothstep(.5,1.4,fe))*.55*uCour9;}\n'+
         '#include <fog_fragment>\n'+
         // LE PIED DANS LA BRUME : fondu vers la couleur du brouillard sur 280 m, et la lueur des rues qui monte
         '#ifdef USE_FOG\n{float mb=smoothstep(10.,280.,vB9);vec3 mc=fogColor+vec3(.16,.04,.2)*(1.-smoothstep(0.,160.,vB9));'+
@@ -6152,12 +6317,12 @@ function villeMatNeon(){ // enseignes, couronnes, feux d'antenne — ils RESPIRE
   if(CITY.matN)return CITY.matN;
   const m=new THREE.MeshBasicMaterial({color:0xffffff});
   m.extensions={derivatives:true};
-  m.onBeforeCompile=function(sh){sh.uniforms.uT9=CITY.uT;
+  m.onBeforeCompile=function(sh){sh.uniforms.uT9=CITY.uT;sh.uniforms.uCour9=CITY.uC;
     sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying float vS9;varying vec3 vL9,vN9,vC9;')
       .replace('#include <begin_vertex>','#include <begin_vertex>\n#ifdef USE_INSTANCING\n'+
         'vS9=fract(instanceMatrix[3].x*.113+instanceMatrix[3].z*.071+instanceMatrix[3].y*.037);vC9=vec3(length(instanceMatrix[0].xyz),length(instanceMatrix[1].xyz),length(instanceMatrix[2].xyz));\n#else\nvS9=0.;vC9=vec3(1.);\n#endif\n'+
         'vL9=position*vC9;vN9=normal;');
-    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9;varying float vS9;varying vec3 vL9,vN9,vC9;'+
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9,uCour9;varying float vS9;varying vec3 vL9,vN9,vC9;'+
         'float nH9(vec3 p){return fract(sin(dot(p,vec3(12.9898,78.233,37.719)))*43758.5453);}')
       .replace('#include <fog_fragment>','{float fl=.8+.2*sin(uT9*(2.+vS9*7.)+vS9*40.);'+
         'if(vS9>.88)fl*=step(.3,fract(uT9*(.5+vS9)+vS9*7.));'+
@@ -6180,7 +6345,7 @@ function villeMatNeon(){ // enseignes, couronnes, feux d'antenne — ils RESPIRE
         '  float q=(an.x>an.z?vL9.z:vL9.x)+(an.x>an.z?vL9.x:vL9.z)*.3,d=fract(q/2.2-uT9*(1.+vS9*2.));'+
         '  float b=smoothstep(.3,.08,abs(d-.5)),lo=smoothstep(.3,.8,(an.x>an.z?fL.z:fL.x)/2.2);'+
         '  k9=mix(.45,mix(.3+1.1*b,.72,lo),fv);}'+
-        'gl_FragColor.rgb*=fl*k9;}\n#include <fog_fragment>');};
+        'gl_FragColor.rgb*=fl*k9*mix(.03,1.,uCour9);}\n#include <fog_fragment>');};
   m.customProgramCacheKey=function(){return 'neonsV2';};
   CITY.matN=m;return m;
 }
@@ -6209,14 +6374,14 @@ function villePubAtlas(){
 function villeMatPub(){
   if(CITY.matP)return CITY.matP;
   const m=new THREE.MeshBasicMaterial({map:villePubAtlas(),transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide});
-  m.onBeforeCompile=function(sh){sh.uniforms.uT9=CITY.uT;
+  m.onBeforeCompile=function(sh){sh.uniforms.uT9=CITY.uT;sh.uniforms.uCour9=CITY.uC;
     sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nuniform float uT9;varying float vS9;')
       .replace('#include <uv_vertex>','#include <uv_vertex>\n#ifdef USE_INSTANCING\n'+
         'vS9=fract(instanceMatrix[3].x*.0713+instanceMatrix[3].z*.0419+instanceMatrix[3].y*.017);float c9=floor(vS9*16.);'+
         'float gl9=step(.93,fract(uT9*(.3+vS9*.4)+vS9*9.))*(fract(sin(floor(uT9*12.)+vS9*50.)*43.7)-.5)*.35;'+ // le GLITCH : la case glisse un instant
         'vUv=(vec2(clamp(vUv.x+gl9,0.,1.),vUv.y)*.96+.02+vec2(mod(c9,4.),3.-floor(c9/4.)))/4.;\n#else\nvS9=0.;\n#endif');
-    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9;varying float vS9;')
-      .replace('#include <fog_fragment>','gl_FragColor.rgb*=(.78+.22*step(.5,fract(gl_FragCoord.y*.25-uT9*6.)))*(.85+.15*sin(uT9*(3.+vS9*4.)));\n#include <fog_fragment>');};
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9,uCour9;varying float vS9;')
+      .replace('#include <fog_fragment>','gl_FragColor.rgb*=(.78+.22*step(.5,fract(gl_FragCoord.y*.25-uT9*6.)))*(.85+.15*sin(uT9*(3.+vS9*4.)))*uCour9;\n#include <fog_fragment>');};
   m.dispose=function(){};CITY.matP=m;return m;
 }
 function buildVoxCity(seed,accC){
@@ -6715,6 +6880,11 @@ const CARS=[
  {name:'LA CAISSE-NUAGE',shape:'nuage',color:0xfff6ee,accent:0xffd9b8,maxKmh:360,accel:40,turn:2.9,h:1.3,w:2.1,l:4.1,spoiler:0,rar:'defi',
   fx:{jet:0xfff0f6,core:0xffffff,trail:[1.25,1.05,.9],light:0xffe6f2},
   desc:'Tu l\'as chassée tout un coucher de soleil. Elle est douce comme un nuage et elle file comme un orage.'},
+ // (2026-09-27) LE LINGOT — la récompense de la CAMPAGNE VILLE : un lingot d'or de 1 kg (poinçon 999,9) monté sur roues. Il ne s'achète
+ // pas : on le GAGNE en battant le banquier au portail du niveau 10 (voir banquierTick). Ajouté en dernier : aucun index ne bouge.
+ {name:'LE LINGOT',shape:'lingot',color:0xffc33a,accent:0x3a2400,maxKmh:380,accel:42,turn:2.9,h:1.5,w:2.1,l:4.3,spoiler:0,rar:'defi',
+  fx:{jet:0xffd75e,core:0xffffff,trail:[1.35,1.02,.36],light:0xffd27a},
+  desc:'Le banquier l\'avait mis au coffre. Tu l\'as gagné à la course : 999,9 millièmes de pure arrogance.'},
 ];
 // ---- VALEUR D'UNE PIÈCE — UNE ENTRÉE PAR PALIER MOTEUR (30) ---------------------------------
 // ⚠ Cette table est indexée par `engTier` depuis que les PIÈCES portent la progression, mais elle
@@ -7486,7 +7656,7 @@ function lvlPlanete(dt){
 function lvlNuageOk(o){ // quelles familles de nuages chaque monde garde (lu par mkCloud)
   const c=LVL.cur;if(!c)return true;
   if(c.sansNuages)return false; // un niveau au ciel NU (l'aurore d'apprentissage) : pas un seul nuage
-  if(c.camp)return campNuageOk(o); // (2026-09-27) la CAMPAGNE : chaque niveau choisit son ciel, et les bancs de la route sont posés à la main
+  if(c.camp&&c.id==='nuages')return campNuageOk(o); // (2026-09-27) la CAMPAGNE NUAGES : chaque niveau choisit son ciel, et les bancs de la route sont posés à la main (la campagne VILLE, elle, garde la règle de la ville : zéro nuage)
   if(c.id==='espace')return false; // (2026-09-26, user : « pas de nuage dans l'espace ») — même plus les coussins de vol
   if(c.id==='ville')return false;                                        // la VILLE n'a AUCUN nuage (user, 2026-09-25) : on la voit de haut en bas, jusqu'à l'horizon
   return true;
@@ -8217,10 +8387,14 @@ const CARRIERE=[
     {nm:'FIN D\'APRES-MIDI',h:['aprem','golden',.5],camp:8,pr:'LE CIEL MENT'},
     {nm:'HEURE DOREE',h:'orageDore',camp:9,pluie:.5,pr:'TRAVERSE L\'ORAGE'},
     {nm:'COUCHER DE SOLEIL',h:['golden','couchant',.45],camp:10,pr:'ATTRAPE LA CAISSE-NUAGE'}]},
+  // (2026-09-27) LA CAMPAGNE VILLE : même méthode que les NUAGES — une piste dessinée et UNE idée par niveau (camp 11 à 20, voir
+  // « LA CAMPAGNE VILLE »). La ville se bâtit TOUTE SEULE autour de n'importe quel ruban (buildVoxCity) : on ne dessine que la route.
   {id:'ville',nm:'VILLE',ic:'voiture',desc:'Du coucher du soleil à midi, au-dessus du village de la pluie.',niveaux:[
-    {nm:'COUCHER DE SOLEIL',h:'couchant'},{nm:'SOIREE',h:'soir'},{nm:'PLUIE NEON',h:'pluie',pluie:1},{nm:'MINUIT',h:'nuit'},
-    {nm:'ORAGE',h:'orage',pluie:1},{nm:'AVANT L\'AUBE',h:['nuit','aube',.5]},{nm:'AUBE',h:'aube'},{nm:'LEVER',h:'lever'},
-    {nm:'MATIN',h:'matin'},{nm:'MIDI',h:'midi'}]},
+    {nm:'COUCHER DE SOLEIL',h:'couchant',camp:11,pr:'FAIS-TOI FLASHER'},{nm:'SOIREE',h:'soir',camp:12,pr:'SUIS LA LIGNE DE NEON'},
+    {nm:'PLUIE NEON',h:'pluie',pluie:1,camp:13,pr:'LIS LES FLAQUES'},{nm:'MINUIT',h:'nuit',camp:14,pr:'NE FINIS PAS DERNIER'},
+    {nm:'ORAGE',h:'orage',pluie:1,camp:15,pr:'ESQUIVE LA FOUDRE'},{nm:'AVANT L\'AUBE',h:['nuit','aube',.5],camp:16,pr:'ROULE DANS LE NOIR'},
+    {nm:'AUBE',h:'aube',camp:17,pr:'VIDE LE FOURGON'},{nm:'LEVER',h:'lever',camp:18,pr:'SAUTE D\'UN ETAGE'},
+    {nm:'MATIN',h:'matin',camp:19,pr:'FAUFILE-TOI'},{nm:'MIDI',h:'midi',camp:20,pr:'BATS LE BANQUIER'}]},
   {id:'espace',nm:'ESPACE',ic:'etoile',desc:'Au plus près des planètes du système solaire.',niveaux:[
     {nm:'MERCURE',astre:{teinte:0x8a8580,atmo:0xd8c9b0,echelle:1.05}},{nm:'VENUS',astre:{teinte:0xc9a15a,atmo:0xffd98a,echelle:1.25}},
     {nm:'TERRE',astre:{teinte:0x55708c,atmo:0x8fd4ff,echelle:1.35}},{nm:'LUNE',astre:{teinte:0x9a9a9a,atmo:0xdfe6ee,echelle:1.1},sansLune:1},
@@ -14141,6 +14315,7 @@ const CAR_UNLOCK=[
   {k:'carnet',v:6}, // LA PUCE
 /* ===== LES CONDITIONS DES 50 — FIN ===== */
   {k:'carrN',v:10}, // (2026-09-27) LA CAISSE-NUAGE — les dix niveaux des NUAGES (elle se gagne en l'attrapant au niveau 10)
+  {k:'carrV',v:10}, // (2026-09-27) LE LINGOT — les dix niveaux de la VILLE (il se gagne en battant le banquier au niveau 10)
 ]
 /* ============================================================================
    L'AURA ET LA BANQUE (2026-08-17) — la nouvelle règle
@@ -14179,6 +14354,7 @@ function carStat(k){
   if(k==='aura')return auraRank();          // ⚠ un RANG, pas l'aura brute : les seuils restent lisibles
   if(k==='carnet')return (SAVE.d.mis&&SAVE.d.mis.n)|0; // carnets de contrats REMPLIS
   if(k==='carrN')return ((SAVE.d.carr||{}).nuages)|0; // (2026-09-27) niveaux de la carrière NUAGES terminés
+  if(k==='carrV')return ((SAVE.d.carr||{}).ville)|0;  // (2026-09-27) niveaux de la carrière VILLE terminés
   return (SAVE.d.ex&&SAVE.d.ex[k])||0;
 }
 function carPrice(i){const u=CAR_UNLOCK[i];return (u&&u.p)||0;} // 0 = pas à vendre
@@ -15066,6 +15242,7 @@ function carUnlockText(i){ // ce qu'il reste à faire, en une ligne — affiché
   const v=u.v,cur=carStat(u.k);
   if(u.k==='carnet')return ['SE GAGNE EN RELEVANT 3 DÉFIS','WON BY BEATING 3 CHALLENGES','完成 3 项挑战即可获得'][L];
   if(u.k==='carrN')return ['ATTRAPE-LA AU NIVEAU 10 DES NUAGES  ('+cur+' / 10)','CATCH HER IN CLOUDS LEVEL 10  ('+cur+' / 10)','在云端第 10 关抓住她  （'+cur+' / 10）'][L]; // (2026-09-27)
+  if(u.k==='carrV')return ['BATS LE BANQUIER AU NIVEAU 10 DE LA VILLE  ('+cur+' / 10)','BEAT THE BANKER IN CITY LEVEL 10  ('+cur+' / 10)','在城市第 10 关击败银行家  （'+cur+' / 10）'][L]; // (2026-09-27)
   switch(u.k){
     case 'aura':  return [ 'RANG D\'AURA « '+auraRankName(v)+' »   (le tien : « '+auraRankName()+' »)',
                            'AURA RANK « '+auraRankName(v)+' »   (yours: « '+auraRankName()+' »)',
@@ -21071,7 +21248,8 @@ function checkUpgrade(){
    (l'ovule se traverse d'où qu'on vienne, y compris en tombant du ciel). Le test ne vivait que dans la branche « au sol » de la
    boucle : en l'air, on traversait l'ovule sans rien déclencher. */
 function portailPasse(){
-  if(CAMP.n===10&&CAMP.pris&&!PARK.on){campFinale();return;} // (2026-09-27) le portail du COUCHER : la campagne des NUAGES est finie, on ne va nulle part ailleurs
+  if(CAMP.n===10&&CAMP.pris&&!PARK.on){campFinale();return;}
+  if(CAMP.n===20&&!PARK.on){if(!VBQ.fini)villeFinale();return;} // (2026-09-27) le portail de MIDI : le premier arrivé gagne — le banquier passé avant toi, il ne mène plus nulle part // (2026-09-27) le portail du COUCHER : la campagne des NUAGES est finie, on ne va nulle part ailleurs
   if(mode==='fall'){airPie.style.display='none';try{dolFin();}catch(e){}vA=Math.max(vA,Math.hypot(fallVel.x,fallVel.z)); // traversé en VOL : le vol s'arrête proprement, l'élan est gardé (inertie)
     // (2026-09-26) …et la CHAÎNE est ENCAISSÉE comme à une pose : avant, l'argent de la mallette disparaissait sans un mot et le HUD restait affiché
     if(chain>0||chainVal>0){const g9=Math.round(flowMult()*chainEst());if(g9>0){money+=g9;levelCash+=g9;runStats.tricks++;checkUpgrade();trickMsg('CHAÎNE ENCAISSÉE +'+fmtC(g9),2);}}
@@ -21950,9 +22128,9 @@ function survStart(){
   // (2026-09-27) LA POURSUITE DU NIVEAU 5 (SURV.chasse) : la CAMPAGNE réclame sa police à elle, et nulle autre — le Survivant armé au menu
   // ne s'invite dans aucun niveau de campagne.
   const ch9=campChasse();
-  SURV.on=(ch9||(SURV.armed&&!campN()))&&!PARK.on;SURV.chasse=ch9;SURV.t=0;SURV.over=false;SURV.bots=[];SURV._r=0;SURV.pBase=0;SURV.ph=0;SURV.last=false; // FREESTYLE : jamais de police dans le parc
+  SURV.on=(ch9||campMeute()||(SURV.armed&&!campN()))&&!PARK.on;SURV.chasse=ch9;SURV.camp=campMeute(); // (2026-09-27) la MEUTE du niveau 14 de la campagne VILLE : le Survivant tel quelSURV.t=0;SURV.over=false;SURV.bots=[];SURV._r=0;SURV.pBase=0;SURV.ph=0;SURV.last=false; // FREESTYLE : jamais de police dans le parc
   SURV.jumpZones=[];SURV.pMode=mode;SURV._launchD=0;SURV._launchT=0; // mémoire de tes décollages sur CETTE piste
-  survHudEl.style.display=SURV.on&&!SURV.chasse?'block':'none'; // la poursuite n'a pas de classement : la menace se lit aux gyrophares et à la fumée
+  survHudEl.style.display=SURV.on&&!SURV.chasse&&!SURV.camp?'block':'none'; // la poursuite n'a pas de classement : la menace se lit aux gyrophares et à la fumée
   lastAlertEl.style.display='none';
   for(const l of gyroLights)l.intensity=0;
   botJetLight.intensity=0;
@@ -22274,7 +22452,7 @@ function survTick(dt){
   if(SURV.chasse)return; // (2026-09-27) la POURSUITE n'a ni classement, ni minute, ni couperet : ses tirs vivent dans poursuiteTick
   // ---- DERNIER = CONDAMNÉ : la caisse clignote rouge, le HUD crie l'échéance ----
   SURV.last=alive.length>0&&pRank>alive.length;
-  if(SURV.last&&!gameOver){
+  if(SURV.last&&!gameOver&&!SURV.camp){ // (la campagne dit « DERNIER » sur SA plaque, lisible au téléphone)
     const left=Math.max(0,Math.ceil(60-SURV.t));
     lastAlertEl.innerHTML=TR('⚠ ATTENTION !<br>VOUS ÊTES DERNIER<br>EXPLOSION DANS : 00:')+String(left).padStart(2,'0');
     lastAlertEl.style.display='block';
@@ -22368,6 +22546,7 @@ function cordeK(sv,latB){ // facteur d'avance le long du ruban pour une caisse d
 // ---- LES REPÈRES : coordonnées monde de genCampagne → abscisse `s` sur la courbe réelle ----
 function campRepere(){
   CAMP.bancs.length=0;CAMP.portes.length=0;CAMP.coupes.length=0;CAMP.cordes.length=0;
+  for(const k in VZ)VZ[k].length=0; // (2026-09-27) les repères de la VILLE (radars, chaînes, flaques, cellules, pannes, bouchons)
   const near=p=>{let bi=0,bd=1e18;for(let i=0;i<NP;i++){const dx=p.x-pts[i].x,dy=p.y-pts[i].y,dz=p.z-pts[i].z,dd=dx*dx+dy*dy+dz*dz;if(dd<bd){bd=dd;bi=i;}}return bi/(NP-1)*L;};
   for(const m of CAMPM){
     if(m.k==='coupe'){const c={sg:m.sg,sA0:near(m.a0),sA1:near(m.a1),sB0:near(m.b0),sB1:near(m.b1),side:1};
@@ -22377,11 +22556,17 @@ function campRepere(){
     else if(m.k==='banc'&&m.p)CAMP.bancs.push({s:near(m.p),r:m.r||30,ecran:!!m.ecran,show:!!m.show});
     else if(m.k==='porte'&&m.p)CAMP.portes.push({s:near(m.p),c:m.c||0,w:m.w||8});
     else if(m.k==='corde'&&m.p0)CAMP.cordes.push({s0:near(m.p0),s1:near(m.p1)});
+    else if(m.k==='radar'&&m.p)VZ.radars.push({s:near(m.p),fait:false});
+    else if(m.k==='flaque'&&m.p)VZ.flaques.push({s:near(m.p),c:m.c||0,w:m.w||10,d:m.d|0});
+    else if(m.k==='chaine'&&m.p0)VZ.chaines.push({s0:near(m.p0),s1:near(m.p1),lats:m.lats});
+    else if(VZ[m.k+'s']&&m.p0)VZ[m.k+'s'].push({s0:near(m.p0),s1:near(m.p1)}); // cellule · panne · bouchon : un tronçon (début, fin)
   }
 }
 function campPadNon(sp){ // pas de pad turbo dans une porte de plots (le pad y serait un piège, pas un choix)
   if(!(LVL.cur&&LVL.cur.camp))return false;
   for(const p of CAMP.portes)if(Math.abs(sp-p.s)<80)return true;
+  for(const c of VZ.chaines)if(sp>c.s0-140&&sp<c.s1+100)return true; // (VILLE) la file de néon a ses pads à elle : pas d'intrus au milieu
+  for(const f of VZ.flaques)if(Math.abs(sp-f.s)<(f.d?150:90))return true; // (VILLE) pas de pad dans une rangée d'eau
   return false;
 }
 // ---- LES PORTES DE FRÔLÉ (niveau 4) : un mur de plots en travers, et UNE ouverture ----
@@ -22399,6 +22584,7 @@ function campPlots(placeCone){
     }
     for(let k=n0;k<CONES.length;k++)CONES[k].dur=1;
   }
+  villePlots(); // (2026-09-27) la VILLE : radars, file de pads, flaques, catadioptres, colonnes des étages
 }
 // ---- LES NUAGES DESSINÉS ----
 function campNuages(cr){
@@ -22451,6 +22637,7 @@ function campPieces(place){
     for(let k=0;k<9;k++)place(c.sA0+S*(.1+k*.04),c.side*(ROAD_HALF-2.4),false);
     for(let k=0;k<12;k++)place(c.sB0+S*(.52+k*.022),0,k===3||k===8);
   }
+  villePieces(place); // (2026-09-27) la VILLE : le fil de pièces dans le noir (16), l'orbe VITESSE retiré de la course du banquier (20)
 }
 // ============ LA FUMÉE DES DÉGÂTS (niveau 5) : blanche, grise, NOIRE ============
 // Un seul appel de rendu (Points), une matière à part (taille ET alpha par particule), compilée au démarrage. La fumée HÉRITE de la
@@ -22705,7 +22892,9 @@ function campChauffe(){ // compile la caisse-nuage et une voiture de police AU M
   if(campChauffe.fait)return;campChauffe.fait=true;
   const v=GH.g.visible;GH.g.visible=true;GH.g.position.copy(camera.position).add(CV1.set(0,0,-8).applyQuaternion(camera.quaternion));GH.g.updateMatrixWorld(true);
   let pc=null;try{pc=mkPolice(0);pc.g.visible=true;pc.g.position.copy(GH.g.position);pc.g.updateMatrixWorld(true);}catch(e){}
+  let vch=null;try{vch=villeChauffePrep();}catch(e){} // (2026-09-27) et tout ce que la VILLE dessinera
   try{renderer.compile(scene,camera);}catch(e){}
+  if(vch)try{villeChauffeFin(vch);}catch(e){}
   GH.g.visible=v;
   if(pc){scene.remove(pc.g);pc.g.traverse(o=>{if(o.userData&&o.userData.sol){if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose();}});}
 }
@@ -22850,10 +23039,11 @@ function campDebut(){ // un niveau commence (newTrack, et le 1er départ de la s
   CAMP.portFerme=CAMP.n===10&&!PARK.on;
   fumeVide();tirsVide();eclVide();ECL.t=3;ECL.dernier=false;
   fantomePrepare();
-  if(started&&!gameOver&&runStats.zones>0&&(CAMP.n===5||SURV.chasse))survStart(); // on ENTRE dans la poursuite (ou on en sort) en pleine partie
+  if(started&&!gameOver&&runStats.zones>0&&(CAMP.n===5||SURV.chasse||CAMP.n===14||SURV.camp))survStart(); // on ENTRE dans la poursuite ou la meute (ou on en sort) en pleine partie
   campFx(0,0,0,0);
+  villeDebut();
 }
-function campStop(){fumeVide();tirsVide();eclVide();campFx(0,0,0,0);if(GH.on){GH.g.visible=false;trailStep(GH.tr,0,0,0,0,0,0,0);}}
+function campStop(){fumeVide();tirsVide();eclVide();campFx(0,0,0,0);if(GH.on){GH.g.visible=false;trailStep(GH.tr,0,0,0,0,0,0,0);}villeStop();}
 function campRaccourci(d){ // se poser loin devant son décollage : la coupe est payée
   CAMP.coupesN++;
   popTexte('RACCOURCI !','#7dffec',2);hap([12,24,18]);
@@ -22872,6 +23062,7 @@ function campTick(dt){
   fumeTick(dt);tirsEcrit(dt);
   if(CAMP.n===9)orageTick(dt);
   if(CAMP.n===10)fantomeTick(dt);
+  if(CAMP.n>10)villeTick(dt); // (2026-09-27) la campagne VILLE
   if(CAMP.finT>0){CAMP.finT-=dt;if(CAMP.finT<=0)campEchec();}
   // les halos de l'écran
   let r=0,b=0;
@@ -22904,14 +23095,778 @@ window.dbgSeulsBancs=function(on){for(const c of CLOUDS)c.g.visible=on?!!c.camp:
 window.dbgFwd=function(){const v=CV1.set(0,0,1).applyQuaternion(carGroup.quaternion);return [v.x,v.y,v.z];}; // (dev) le cap monde de la caisse (pour cadrer une photo)
 window.dbgEclair=function(){if(CAMP.n!==9)return 'pas d orage';eclFrappe();ECL.t=6;return {k:ECL.k};}; // (dev) un éclair tout de suite (niveau 9)
 window.dbgFumee=function(d){CAMP.dmg=+d||0;CAMP.palier=0;return CAMP.dmg;}; // (dev) forcer les dégâts de la poursuite (la fumée suit)
-window.dbgCampagne=function(n){ // (dev) lancer un niveau de la campagne NUAGES depuis la console : dbgCampagne(5)
-  n=Math.max(1,Math.min(10,n|0));if(started&&!gameOver)return 'en course';carrLancer(0,n-1);return 'niveau '+n;};
+window.dbgCampagne=function(n,b){ // (dev) lancer un niveau de carrière depuis la console : dbgCampagne(5) (NUAGES), dbgCampagne(3,1) (VILLE)
+  n=Math.max(1,Math.min(10,n|0));b=Math.max(0,Math.min(CARRIERE.length-1,b|0));if(started&&!gameOver)return 'en course';carrLancer(b,n-1);return CARRIERE[b].id+' '+n;};
 window.dbgCamp=function(){return {niveau:CAMP.n,corde:CORDE_ON,degats:+CAMP.dmg.toFixed(2),proche:Math.round(CAMP.proche),coupes:CAMP.coupes.map(function(c){return {sA0:Math.round(c.sA0),sA1:Math.round(c.sA1),sB0:Math.round(c.sB0),cote:c.side,ecart:+(c.gap||0).toFixed(1)};}),
   bancs:CAMP.bancs.map(function(b){return Math.round(b.s);}),nuagesCamp:CLOUDS.filter(function(c){return c.camp;}).map(function(c){return {r:Math.round(c.r),ry:Math.round(c.ry),sc:+c.g.scale.x.toFixed(2),vis:c.g.visible&&c.mesh.visible,d:Math.round(c.g.position.distanceTo(carGroup.position)),dc:Math.round(c.g.position.distanceTo(camera.position)),nv:c.mesh.geometry.index?c.mesh.geometry.index.count:0,op:+c.mesh.material.opacity.toFixed(2)};}),portes:CAMP.portes.length,portailFerme:CAMP.portFerme,raccourcis:CAMP.coupesN,
   fantome:GH.on?{s:Math.round(GH.s),lat:+GH.lat.toFixed(1),v:Math.round(GH.v*SPD*3.6),air:GH.air,prise:+GH.prise.toFixed(2),pris:GH.pris,fini:GH.fini,ecart:Math.round(GH.s-s)}:null,
   vol:mode==='fall'?{h:+curHOff.toFixed(1),lat:+curLatOff.toFixed(1),sNear:Math.round(lastNearS),t:+fallT.toFixed(2),vy:+fallVel.y.toFixed(1)}:null,
   cause:mortCause,niv:LVL.n,
   police:SURV.chasse?SURV.bots.map(function(b){return {ecart:Math.round(SURV.pBase+s-b.totD),vise:!!b.vise,vivant:b.alive};}):null,L:Math.round(L)};};
+/* ============================================================================
+   LA CAMPAGNE VILLE — LES SYSTÈMES (2026-09-27)
+   ----------------------------------------------------------------------------
+   Même méthode que les NUAGES (brief de Sacha : « chaque niveau UNE idée de jeu ») : dix niveaux du coucher du soleil à midi,
+   chacun sur SA piste dessinée (genCampagne, codes 11 à 20) — la ville se bâtit toute seule autour (buildVoxCity). Rien n'est
+   réécrit, tout se branche : les crochets de la campagne des NUAGES (campRepere, campPlots, campPieces, campDebut, campTick,
+   campStop, campChauffe) et quatre lignes ailleurs (le pad pris, la boucle après la musique, le portail, le Survivant).
+   · 1 COUCHER — LES RADARS : trois portiques au bout de trois droites ; le flash PAIE la vitesse (et crie l'excès). La plaque
+     du haut annonce le radar (« DANS 240 M ») : on a le temps d'allumer la nitro.
+   · 2 SOIRÉE — LA LIGNE DE NÉON : des pads en file, reliés par un trait de lumière posé sur la route ; chaque pad enchaîné
+     monte le × ; la file complète = LIGNE PARFAITE. Un pad raté casse la ligne (le trait s'éteint).
+   · 3 PLUIE — LES FLAQUES : des rangées d'eau en travers de la route, UNE ligne sèche (puis des damiers) ; l'eau = aquaplaning
+     (le glissement des flaques d'huile, déjà dans la boucle) ; chaque rangée passée à sec paie.
+   · 4 MINUIT — LA MEUTE : le Survivant tel quel (sept voitures, le dernier de la minute explose) ; la PLAQUE dit ton rang et la
+     minute — le HUD du Survivant est masqué sous body.touch, et la campagne se joue d'abord au téléphone.
+   · 5 ORAGE — LA FOUDRE : dans les cellules d'orage, un CERCLE se pose sur la route là où tu vas être ; 1,3 s plus tard la foudre
+     tombe dedans. Touché : vitesse, nitro et FLOW coupés — jamais la vie. Sous la dalle, on est à l'abri.
+   · 6 AVANT L'AUBE — LA PANNE : trois coupures de courant ; tours, enseignes et néons de la route s'éteignent (UN uniforme,
+     CITY.uC, et le néon de la route baissé après la musique), les phares s'ouvrent, des CATADIOPTRES dessinent les deux bords.
+   · 7 AUBE — LE FOURGON : un fourgon blindé roule devant, un poil plus vite que toi ; colle-lui au train et ses portes s'ouvrent :
+     il sème des pièces sur la route. Vidé = jackpot. Le percuter = un paquet d'un coup, et un coup de frein.
+   · 8 LEVER — LES ÉTAGES : les ovales du niveau 6 des NUAGES, en ville ; des COLONNES de lumière montent du vide entre les deux
+     étages (les gués de ouate de la ville) et deux pads d'or attendent sur l'étage du dessous.
+   · 9 MATIN — L'HEURE DE POINTE : une voie rapide à huit files pleine de voitures (deux appels de rendu pour tout le trafic) ;
+     l'accrochage coûte cher, le FRÔLÉ (le système des plots) paie, les clignotants préviennent.
+   · 10 MIDI — LE BANQUIER : une course au portail contre LE LINGOT, sa caisse d'or (tes équations, un moteur un cran au-dessus,
+     jamais de nitro, jamais d'étage sauté). Le premier au portail gagne : toi, et le lingot est à toi.
+   ⚠ Tout est créé À L'INIT ou À LA CONSTRUCTION de la piste, jamais dans la boucle ; les matières se compilent au menu (villeChauffe2).
+   ========================================================================== */
+const VZ={radars:[],flaques:[],chaines:[],cellules:[],pannes:[],bouchons:[]}; // les repères dessinés (campRepere)
+const VC={chip:'',sPrev:0,padC:[],slip0:0,rowSlip:false,radN:0,radMax:0,radFx:[],flash:0,
+  cour:1,panI:-1,panOk:true,panFl:0,panT:0,zap:0,gel:0};
+const VV1=new THREE.Vector3(),VV2=new THREE.Vector3(),VV3=new THREE.Vector3(),VV4=new THREE.Vector3(),VM4=new THREE.Matrix4(),VQ=new THREE.Quaternion(); // temporaires DU MODULE
+const VF={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
+function villeN(){return CAMP.n>10?CAMP.n-10:0;}          // 1..10 dans la campagne VILLE, 0 ailleurs
+function campMeute(){return campN()===14&&!PARK.on;}
+function vPos(){return mode==='fall'?lastNearS:s;}         // où l'on en est le long du ruban, même en vol
+function vKmh(){return (mode==='fall'?Math.hypot(fallVel.x,fallVel.z):Math.abs(vA))*3.6*SPD;}
+function vPaie(k,n){const g=denom()*k*(fever>0?2:1)*flowMult();money+=g;levelCash+=g;try{checkUpgrade();}catch(e){}if(n)try{flyCash(carGroup.position,n);}catch(e){}return g;}
+function vPose(o,sv,lt,h,fy){ // poser un objet sur la route (repère b, n, t), face fy
+  frameAt(sv,VF);fy=fy||1;
+  o.position.copy(VF.p).addScaledVector(VF.b,lt).addScaledVector(VF.n,fy>0?h:-THICK-h);
+  if(fy>0)VM4.makeBasis(VF.b,VF.n,VF.t);else VM4.makeBasis(VV1.copy(VF.b).negate(),VV2.copy(VF.n).negate(),VF.t);
+  o.quaternion.setFromRotationMatrix(VM4);return o;
+}
+function vMat(m){m.dispose=function(){};return m;}          // une matière PARTAGÉE de la campagne : la reconstruction ne la jette jamais
+// ---- LA PLAQUE : ce qu'on LIT, en haut de l'écran (charte : le haut est pour lire, le bas pour toucher) ----
+let vChipEl=null;
+function vChip(txt,sous,col,alerte){
+  if(!vChipEl){vChipEl=document.createElement('div');vChipEl.id='campChip';vChipEl.setAttribute('aria-hidden','true');vChipEl.innerHTML='<b></b><small></small>';document.body.appendChild(vChipEl);}
+  const k=(txt||'')+'|'+(sous||'')+'|'+(col||'')+'|'+(alerte?1:0);if(k===VC.chip)return;VC.chip=k;
+  if(!txt){vChipEl.classList.remove('on','alerte');return;}
+  vChipEl.firstChild.textContent=txt;vChipEl.lastChild.textContent=sous||'';vChipEl.lastChild.style.display=sous?'':'none';
+  vChipEl.style.setProperty('--cc',col||'#ffd75e');vChipEl.classList.add('on');vChipEl.classList.toggle('alerte',!!alerte);
+}
+// ============ 1 · LES RADARS ============
+const VRAD=(function(){ // le panneau « RADAR » : bleu autoroute, lettres pixel (redessiné quand la police est prête)
+  const cv=document.createElement('canvas');cv.width=128;cv.height=48;const t=new THREE.CanvasTexture(cv);t.magFilter=THREE.NearestFilter;
+  const des=function(){const x=cv.getContext('2d');x.fillStyle='#0b3c9c';x.fillRect(0,0,128,48);x.strokeStyle='#f4f4f0';x.lineWidth=3;x.strokeRect(3,3,122,42);
+    x.fillStyle='#f4f4f0';x.textAlign='center';x.textBaseline='middle';x.font='16px "Press Start 2P",monospace';x.fillText('RADAR',64,25);t.needsUpdate=true;};
+  des();try{if(document.fonts&&document.fonts.load)document.fonts.load('16px "Press Start 2P"').then(des).catch(function(){});}catch(e){}
+  return {metal:vMat(new THREE.MeshPhongMaterial({color:0x303644,shininess:70,specular:0x667080})),
+    boite:vMat(new THREE.MeshPhongMaterial({color:0x15171e,shininess:140,specular:0x8899aa})),
+    pan:vMat(new THREE.MeshBasicMaterial({map:t})),led:vMat(new THREE.MeshBasicMaterial({color:new THREE.Color(2.4,.22,.28)})),
+    flash:new THREE.SpriteMaterial({map:lampTex,color:0xffffff,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending,fog:false})};
+})();
+function radarsVide(){for(const f of VC.radFx){scene.remove(f.spr);f.spr.material.dispose();}VC.radFx.length=0;} // les éclairs de flash (sprites : hors trackMeshes, leur géométrie est celle de TOUS les sprites)
+function radarsPose(){ // les portiques : deux piliers au ras des bords, une poutre à 16 m, la boîte noire au milieu, le panneau dessus
+  radarsVide();
+  for(const r of VZ.radars){
+    const H=17,X=ROAD_HALF+.9,add=(g,mt,x,y,z)=>{const m=new THREE.Mesh(g,mt);vPose(m,r.s,0,0,1);m.position.addScaledVector(VF.b,x).addScaledVector(VF.n,y).addScaledVector(VF.t,z);m.castShadow=true;scene.add(m);trackMeshes.push(m);return m;};
+    for(const sd of [-1,1])add(new THREE.BoxGeometry(1.3,H+THICK+2,1.3),VRAD.metal,sd*X,(H-THICK-2)/2,0); // boulonné sur la TRANCHE de la dalle (il descend 2 m sous elle), jamais sur le bitume
+    add(new THREE.BoxGeometry(2*X+1.3,1.3,1.5),VRAD.metal,0,H,0);
+    add(new THREE.BoxGeometry(3.2,1.8,2.2),VRAD.boite,0,H-1.6,-.4);
+    const led=add(new THREE.BoxGeometry(.5,.5,.12),VRAD.led,1.1,H-1.4,-1.55);led.castShadow=false;
+    const pan=add(new THREE.PlaneGeometry(8,3),VRAD.pan,0,H+2.3,-.2);pan.rotateY(Math.PI);pan.castShadow=false; // tourné VERS la caisse qui arrive
+    const fx=new THREE.Sprite(VRAD.flash.clone());fx.scale.set(1,1,1);vPose(fx,r.s,0,H-1.6,1);fx.position.addScaledVector(VF.t,-1.7);scene.add(fx);
+    VC.radFx.push({spr:fx,led:led,t:0});r.fx=VC.radFx.length-1;
+  }
+}
+function radarSnd(){try{noiseBurst(.035,.12,5200);chimeNote(1760,0,.06,.09);chimeNote(2349,.08,.05,.1);}catch(e){}}
+function radarFlash(r){
+  // jugé sur la CROISIÈRE réelle (vCroisiere ≈ 1,55 × vmaxShow) : MESURÉ au banc, le pilote auto SANS nitro passait le 1er radar à 317 km/h
+  // = 97 % de vmaxShow — tout le monde était « en excès ». L'excès se mérite désormais : nitro, élan, pad (≥ 92 % de la croisière).
+  const kmh=vKmh(),q=kmh/Math.max(1,vCroisiere()),ex=q>=.92;
+  VC.radN++;VC.radMax=Math.max(VC.radMax,kmh);VC.radDit=[Math.round(kmh),ex];VC.radDitT=2.4;
+  vPaie(Math.max(2,kmh/22)*(ex?2:1),ex?10:5);
+  flashEcran('rgba(255,255,255,.85)');radarSnd();hap(ex?[20,30,20]:12);
+  slam(Math.round(kmh)+' KM/H',ex?'EXCES DE VITESSE !':q>=.66?'FLASHE !':'FLASHE... A PEINE',ex?'#ffd75e':'#ffffff',ex?'#ff3924':'#9fe8ff',44,2,ex?24:0);
+  try{chaineAura('RADAR',Math.round(30+100*Math.min(1.1,q)),'radar',true);}catch(e){}
+  flowAdd(ex?20:8);
+  const f=VC.radFx[r.fx];if(f)f.t=.5;
+}
+function radarsTick(dt,sp){
+  for(const r of VZ.radars)if(!r.fait&&sp>=r.s&&VC.sPrev<r.s&&sp-r.s<400){r.fait=true;radarFlash(r);}
+  const ph=(CITY.uT.value*2)%1<.5;
+  for(const f of VC.radFx){f.led.visible=ph; // la diode du radar clignote : on le repère de loin
+    if(f.t>0){f.t-=dt;const k=Math.max(0,f.t/.5);f.spr.material.opacity=k;f.spr.scale.setScalar(4+30*(1-k)*k*4);}else if(f.spr.material.opacity!==0)f.spr.material.opacity=0;}
+  // la plaque : le prochain radar, ou la vitesse flashée
+  if(VC.radDitT>0){VC.radDitT-=dt;vChip(VC.radDit[0]+' KM/H',TR(VC.radDit[1]?'EXCES DE VITESSE !':'FLASHE !'),VC.radDit[1]?'#ffd75e':'#ffffff');return;}
+  let nx=null;for(const r of VZ.radars)if(!r.fait&&r.s>sp){nx=r;break;}
+  if(nx&&nx.s-sp<420)vChip(TR('RADAR'),TR('DANS')+' '+Math.max(0,Math.round((nx.s-sp)/10)*10)+' M','#9fe8ff');else vChip('');
+}
+// ============ 2 · LA LIGNE DE NÉON ============
+// Un trait de lumière sur la route relie les pads d'une file : les tronçons déjà parcourus brillent, celui qui mène au pad suivant
+// file en tirets vers lui, la suite attend en veilleuse. Une matière par file (même programme pour toutes : une compilation, au menu).
+const VLIGNE_VS='attribute vec2 aK;varying vec2 vK;void main(){vK=aK;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}';
+const VLIGNE_FS='uniform float uOn,uBr,uT,uF;varying vec2 vK;void main(){float k=vK.x,e=1.-abs(vK.y*2.-1.);e=smoothstep(0.,.75,e);'+
+  'float lit=step(k,uOn),nx=step(uOn,k)*step(k,uOn+1.),da=step(.45,fract(k*5.-uT*2.2));'+
+  'vec3 c=vec3(1.,.62,.16)*(lit*1.6+nx*(.3+.95*da)+(1.-lit)*(1.-nx)*.22)+vec3(1.,.3,.85)*uF;'+
+  'c=mix(c,vec3(.13,.11,.22),uBr);gl_FragColor=vec4(c*e,1.);}';
+function vLigneMat(){return new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide,fog:false,
+  polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4,uniforms:{uOn:{value:-1},uBr:{value:0},uT:CITY.uT,uF:{value:0}},vertexShader:VLIGNE_VS,fragmentShader:VLIGNE_FS});}
+function vPad(sp,pl){ // un pad d'OR, sur les deux faces (même recette que la boucle des pads de buildTrack)
+  PADS.push(sp);PADL.push(pl);
+  for(const fy of [1,-1]){frameAt(sp,F);const m=new THREE.Mesh(padGeo,PAD_MAT);
+    m.quaternion.setFromRotationMatrix(VM4.makeBasis(VV1.copy(F.b).multiplyScalar(-fy),F.t,VV2.copy(F.n).multiplyScalar(fy)));
+    m.position.copy(F.p).addScaledVector(F.b,pl).addScaledVector(F.n,fy>0?.1:-THICK-.1);scene.add(m);trackMeshes.push(m);}
+  return PADS.length-1;
+}
+function chainesPose(){
+  VC.padC.length=0;
+  for(const ch of VZ.chaines){
+    const n=ch.lats.length,dp=(ch.s1-ch.s0)/(n+.6);
+    ch.dp=dp;ch.sP=[];ch.n=0;ch.brise=false;ch.fini=false;ch.br=0;ch.fl=0;ch.mats=[];
+    for(let k=0;k<n;k++){const sp=ch.s0+dp*(k+.5);ch.sP.push(sp);VC.padC[vPad(sp,ch.lats[k])]={c:ch,k:k};}
+    // LE TRAIT : de 45 % d'un pas avant le 1er pad jusqu'au dernier, la ligne ondule d'un pad à l'autre (lissage en S)
+    const sA=ch.s0+dp*.05,sB=ch.sP[n-1],N=Math.max(8,Math.ceil((sB-sA)/4));
+    for(const fy of [1,-1]){
+      const pos=new Float32Array((N+1)*6),ak=new Float32Array((N+1)*4),idx=[];
+      for(let j=0;j<=N;j++){const sv=sA+(sB-sA)*j/N,k=(sv-ch.s0)/dp-.5,k0=Math.max(0,Math.min(n-1,Math.floor(k))),k1=Math.min(n-1,k0+1),u=Math.max(0,Math.min(1,k-k0)),uu=u*u*(3-2*u);
+        const la=ch.lats[k0]+(ch.lats[k1]-ch.lats[k0])*uu,off=fy>0?.07:-THICK-.07;frameAt(sv,F);
+        for(let q=0;q<2;q++){const w=la+(q?.7:-.7),o=j*6+q*3;pos[o]=F.p.x+F.b.x*w+F.n.x*off;pos[o+1]=F.p.y+F.b.y*w+F.n.y*off;pos[o+2]=F.p.z+F.b.z*w+F.n.z*off;}
+        ak[j*4]=k;ak[j*4+1]=0;ak[j*4+2]=k;ak[j*4+3]=1;
+        if(j<N){const a=j*2;idx.push(a,a+1,a+2,a+2,a+1,a+3);}}
+      const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('aK',new THREE.BufferAttribute(ak,2));g.setIndex(idx);
+      const mt=vLigneMat(),m=new THREE.Mesh(g,mt);m.frustumCulled=false;m.renderOrder=1;scene.add(m);trackMeshes.push(m);ch.mats.push(mt);}
+  }
+}
+function campPad(i){ // crochet : un pad vient d'être pris (boucle de conduite)
+  if(CAMP.n!==12)return;
+  const e=VC.padC[i];if(!e)return;
+  padCd=Math.min(padCd,.45); // la file se prend à pleine vitesse : le pad suivant est à ~110 m
+  const ch=e.c,k=e.k;if(ch.brise||ch.fini||k!==ch.n)return;
+  ch.n++;
+  if(k>0){popTexte(TR('LIGNE')+' ×'+(k+1),'#ffd75e',1);nitroGain(.04*k);flowAdd(3+2*k);}
+  try{chimeNote(noteP(Math.min(7,k+1),1),0,.09,.2);}catch(e9){}
+  if(ch.n>=ch.lats.length){ch.fini=true;ch.fl=1;const n=ch.lats.length;
+    slam('LIGNE PARFAITE','×'+n,'#ffd75e','#ff3ec8',40,2,18);vPaie(6*n,8);nitroPct(.5);flowAdd(15);hap([14,30,14,30,40]);
+    try{chaineAura('LIGNE DE NEON',40+12*n,'ligne');fanfare();}catch(e9){}}
+}
+function chainesTick(dt,sp){
+  let vu=null;
+  for(const ch of VZ.chaines){
+    if(!ch.brise&&!ch.fini&&sp>ch.sP[ch.n]+9){ch.brise=true;popTexte('LIGNE CASSEE','#8f84c8',0);try{chimeNote(noteP(1,0),0,.08,.3);}catch(e){}}
+    ch.br+=((ch.brise?1:0)-ch.br)*Math.min(1,dt*3);ch.fl=Math.max(0,ch.fl-dt*.8);
+    for(const mt of ch.mats){mt.uniforms.uOn.value=ch.n-1;mt.uniforms.uBr.value=ch.br;mt.uniforms.uF.value=ch.fl;}
+    if(!vu&&sp>ch.s0-170&&sp<ch.s1+70)vu=ch;
+  }
+  if(vu)vChip(TR('LIGNE')+' '+vu.n+' / '+vu.lats.length,TR(vu.fini?'PARFAITE !':vu.brise?'CASSEE':'ENCHAINE LES PADS'),vu.brise?'#8f84c8':'#ffd75e');else vChip('');
+}
+// ============ 3 · LES FLAQUES ============
+const VEAU={mat:vMat(new THREE.MeshPhongMaterial({color:0x0a1626,specular:0xa8ecff,shininess:420,envMap:envTex,reflectivity:.7,combine:THREE.MixOperation,transparent:true,opacity:.9,
+    polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2})),
+  rim:vMat(new THREE.MeshBasicMaterial({color:0x3ee8ff,transparent:true,opacity:.38,depthWrite:false,blending:THREE.AdditiveBlending,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}))};
+function flaquesPose(){ // chaque rangée couvre la route SAUF sa ligne sèche ; un damier = deux rangs en quinconce
+  const R=3,P=[];
+  for(const f of VZ.flaques){f.fait=false;
+    if(f.d){for(const x of [-21,-7,7,21])P.push(f.s,x);for(const x of [-14,0,14])P.push(f.s+58,x);continue;}
+    for(let x=f.c+f.w/2+R+.6;x<ROAD_HALF-1;x+=6.6)P.push(f.s,x);
+    for(let x=f.c-f.w/2-R-.6;x>-(ROAD_HALF-1);x-=6.6)P.push(f.s,x);}
+  const n=P.length/2;if(!n)return;
+  const gE=new THREE.CircleGeometry(1,22),gR=new THREE.CircleGeometry(1,22),imE=new THREE.InstancedMesh(gE,VEAU.mat,n*2),imR=new THREE.InstancedMesh(gR,VEAU.rim,n*2);
+  const o=new THREE.Object3D();let q=0;
+  for(let i=0;i<n;i++)for(const fy of [1,-1]){const sv=P[i*2],lt=THREE.MathUtils.clamp(P[i*2+1],-(ROAD_HALF-4.2),ROAD_HALF-4.2);
+    frameAt(sv,F);o.quaternion.setFromRotationMatrix(VM4.makeBasis(F.b,VV1.copy(F.t).negate().multiplyScalar(fy),VV2.copy(F.n).multiplyScalar(fy)));
+    o.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,fy>0?.05:-THICK-.05);o.scale.set(R*1.35,R*1.9,1);o.updateMatrix();imE.setMatrixAt(q,o.matrix);
+    o.position.addScaledVector(F.n,fy>0?-.01:.01);o.scale.set(R*1.5,R*2.1,1);o.updateMatrix();imR.setMatrixAt(q,o.matrix);q++;
+    OILS.push({s:sv,lat:lt,r:R,face:fy});}
+  for(const im of [imE,imR]){im.instanceMatrix.needsUpdate=true;im.frustumCulled=false;scene.add(im);trackMeshes.push(im);}
+  imR.renderOrder=1;
+}
+function flaquesTick(dt,sp){
+  if(slipT>.7&&VC.slip0<=0&&mode==='drive'){ // ça vient de partir en aquaplaning : la gerbe d'eau, et la rangée n'est plus « à sec »
+    VC.rowSlip=true;popTexte('AQUAPLANING !','#9fe8ff',1);
+    for(let k=0;k<14;k++)spawnP(cloudBits,carGroup.position.x+(Math.random()-.5)*3,carGroup.position.y+.3,carGroup.position.z+(Math.random()-.5)*3,CAMP.vel.x*.5+(Math.random()-.5)*8,3+Math.random()*4,CAMP.vel.z*.5+(Math.random()-.5)*8,.5);
+    try{sparkBurst(sparkBlue,carGroup.position,12,9);}catch(e){}}
+  VC.slip0=slipT;
+  for(const f of VZ.flaques){if(f.fait||sp<f.s+(f.d?64:6))continue;f.fait=true;
+    if(!VC.rowSlip){popTexte('A SEC !','#7dffec',0);flowAdd(f.d?10:6);nitroGain(f.d?.1:.06);try{chaineAura('A SEC',f.d?30:18,'sec');}catch(e){}}
+    VC.rowSlip=false;}
+}
+// ============ 5 · LA FOUDRE ============
+// Le cercle se pose là où tu SERAS dans ~1,3 s (deux frappes sur trois visent ta trajectoire, la troisième une autre file) ; il se
+// resserre sur le rayon mortel en battant de plus en plus vite, un bourdon monte — puis l'éclair tombe PILE dedans (le moteur
+// d'éclairs du niveau 9, visé). La route fait 56 m : un coup de volant franc suffit, à condition de lire le cercle.
+const VFOU_R=7.5;
+const VFOU=(function(){
+  const rM=vMat(new THREE.MeshBasicMaterial({color:0xe2d8ff,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending,fog:false,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-5,polygonOffsetUnits:-5}));
+  const iM=vMat(new THREE.MeshBasicMaterial({color:0xff5ec8,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending,fog:false,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-5,polygonOffsetUnits:-5}));
+  const dM=vMat(new THREE.MeshBasicMaterial({color:0x7f5cff,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending,fog:false,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4}));
+  const ring=new THREE.Mesh(new THREE.RingGeometry(.86,1,64),rM),inner=new THREE.Mesh(new THREE.RingGeometry(.93,1,64),iM),disc=new THREE.Mesh(new THREE.CircleGeometry(1,48),dM);
+  for(const m of [ring,inner,disc]){m.visible=false;m.frustumCulled=false;m.renderOrder=3;scene.add(m);}
+  return {ring:ring,inner:inner,disc:disc,on:false,t:3,tele:0,T:1.3,s:0,lat:0,p:new THREE.Vector3(),q:new THREE.Quaternion()};
+})();
+function foudreCache(){VFOU.on=false;for(const m of [VFOU.ring,VFOU.inner,VFOU.disc])m.visible=false;}
+function foudreHum(T){ // le bourdon qui MONTE pendant l'attente (une scie filtrée : électrique, jamais strident)
+  if(!sfxOk())return;
+  try{const t=AC.currentTime,o=AC.createOscillator(),f=AC.createBiquadFilter(),g=AC.createGain();
+    o.type='sawtooth';o.frequency.setValueAtTime(80,t);o.frequency.exponentialRampToValueAtTime(380,t+T);
+    f.type='bandpass';f.frequency.setValueAtTime(420,t);f.frequency.exponentialRampToValueAtTime(2200,t+T);f.Q.value=3.5;
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.04,t+T*.92);g.gain.exponentialRampToValueAtTime(.0001,t+T+.06);
+    o.connect(f);f.connect(g);g.connect(MASTER);o.start(t);o.stop(t+T+.1);}catch(e){}
+}
+function eclVers(p){ // un éclair qui tombe PILE sur p (le tronc finit exactement au point visé)
+  const P=ECL.P,H=640,nT=16;ECL.seg.length=0;
+  P[0].set(p.x+(Math.random()-.5)*50,p.y+H,p.z+(Math.random()-.5)*50);
+  for(let k=1;k<=nT;k++){const u=k/nT,j=k<nT?1:0;P[k].set(P[0].x+(p.x-P[0].x)*u+(Math.random()-.5)*40*j,P[0].y-H*u,P[0].z+(p.z-P[0].z)*u+(Math.random()-.5)*40*j);ECL.seg.push(k-1,k,9);}
+  let q=nT+1;
+  for(const br of [[6,5],[11,4]]){let prev=br[0];const ang=Math.random()*6.283;
+    for(let k=1;k<=br[1]&&q<P.length;k++){P[q].set(P[prev].x+Math.cos(ang)*22*k/br[1]*3+(Math.random()-.5)*18,P[prev].y-30,P[prev].z+Math.sin(ang)*22*k/br[1]*3+(Math.random()-.5)*18);ECL.seg.push(prev,q,4.2);prev=q;q++;}}
+  ECL.vie=.34;ECL.k=1.15;ECL.tonT=.03;ECL.ton=1;
+}
+function foudreArme(cel){
+  const T=1.25+Math.random()*.2,ts=s+Math.abs(vA)*SPD*T;
+  if(ts>cel.s1-20){VFOU.t=.5;return;}
+  let tl=Math.random()<.67?lat+(Math.random()-.5)*4:(Math.random()<.5?-1:1)*(8+Math.random()*(ROAD_HALF-14));
+  tl=THREE.MathUtils.clamp(tl,-(ROAD_HALF-5),ROAD_HALF-5);
+  VFOU.on=true;VFOU.T=T;VFOU.tele=T;VFOU.s=ts;VFOU.lat=tl;
+  frameAt(ts,VF);VFOU.p.copy(VF.p).addScaledVector(VF.b,tl).addScaledVector(VF.n,.14);
+  VFOU.q.setFromRotationMatrix(VM4.makeBasis(VF.b,VF.t,VF.n));
+  for(const m of [VFOU.ring,VFOU.inner,VFOU.disc]){m.position.copy(VFOU.p);m.quaternion.copy(VFOU.q);m.visible=true;}
+  VFOU.inner.scale.set(VFOU_R,VFOU_R,1);VFOU.disc.scale.set(VFOU_R,VFOU_R,1);
+  foudreHum(T);
+}
+function foudreFrappe(){
+  foudreCache();VFOU.t=2+Math.random()*1.2;
+  eclVers(VFOU.p);
+  try{sparkBurst(sparkBlue,VFOU.p,34,20);sparkBurst(sparkGold,VFOU.p,14,12);}catch(e){}
+  for(let k=0;k<10;k++)spawnP(smokePool,VFOU.p.x+(Math.random()-.5)*4,VFOU.p.y+.5,VFOU.p.z+(Math.random()-.5)*4,(Math.random()-.5)*2,3+Math.random()*3,(Math.random()-.5)*2,1+Math.random()*.6);
+  const d=carGroup.position.distanceTo(VFOU.p),dessous=mode==='drive'&&side<0;
+  if(mode==='boom')return;
+  if(!dessous&&d<VFOU_R+1.2){ // FOUDROYÉ : la vitesse, la nitro et le FLOW prennent la décharge — pas la vie
+    vA*=.55;momT=0;nitroR*=.4;nitroX*=.4;FLOW.v=Math.max(0,FLOW.v-25);FLOW.idle=2;VC.zap=.7;VC.foudN=(VC.foudN|0)+1;
+    flashEcran('rgba(215,200,255,.9)');shake=Math.max(shake,.7);hap([40,30,90]);
+    popTexte('FOUDROYE !','#b58cff',2);try{crackle(.8);}catch(e){}
+  }else if(dessous)popTexte('A L ABRI','#9fe8ff',0);
+  else if(d<VFOU_R+9){VC.esqN=(VC.esqN|0)+1;popTexte('ESQUIVE !','#7dffec',1);flowAdd(8);nitroGain(.08);try{chaineAura('ESQUIVE',28,'esquive');}catch(e){}}
+}
+function foudreTick(dt,sp){
+  ECL.t-=dt;if(ECL.t<=0){if(!VFOU.on)eclFrappe();ECL.t=4+Math.random()*4;} // l'orage de fond : des éclairs lointains, jamais pendant une frappe armée
+  let cel=null,ci=0;for(let i=0;i<VZ.cellules.length;i++){const c=VZ.cellules[i];if(sp>c.s0&&sp<c.s1-60){cel=c;ci=i;break;}}
+  if(!VFOU.on){VFOU.t=cel?VFOU.t-dt:Math.max(VFOU.t,1.4);if(cel&&VFOU.t<=0&&mode==='drive'&&side>0)foudreArme(cel);} // hors cellule, le compte reste armé à 1,4 s : on entre dans l'orage, on a le temps de le voir
+  else{VFOU.tele-=dt;const k=1-Math.max(0,VFOU.tele)/VFOU.T,pul=.55+.45*Math.sin(CITY.uT.value*(10+28*k));
+    const R=VFOU_R*(1+1.3*(1-k));VFOU.ring.scale.set(R,R,1);
+    VFOU.ring.material.opacity=(.4+.55*k)*pul;VFOU.inner.material.opacity=(.35+.6*k)*(1-pul*.4);VFOU.disc.material.opacity=.08+.3*k*k;
+    if(VFOU.tele<=0)foudreFrappe();}
+  if(ECL.vie>0)ECL.vie-=dt;
+  ECL.k=Math.max(0,ECL.k-dt*1.9);const e=ECL.k*ECL.k;
+  CAMP_FLASH=.8*e*(ECL.vie>0&&Math.sin(ECL.vie*70)<-.6?.55:1);CAMP_FOG=1900*e;
+  eclEcrit();
+  if(ECL.tonT>=0){ECL.tonT-=dt;if(ECL.tonT<0){try{subBoom(.14+.16*ECL.ton);noiseBurst(1.5,.07+.1*ECL.ton,150);noiseBurst(.35,.05*ECL.ton,900);}catch(e9){}if(ECL.ton>.7)shake=Math.max(shake,.25);}}
+  if(cel)vChip(TR('CELLULE D\'ORAGE')+' '+(ci+1)+'/'+VZ.cellules.length,TR('LIS LE CERCLE'),'#b58cff');else vChip('');
+}
+// ============ 6 · LA PANNE ============
+// UN uniforme (CITY.uC) éteint les fenêtres, les liserés des toits, les enseignes et les réclames ; le néon de la route est baissé
+// APRÈS musicTick (qui le repeint à chaque image, voir villeApres) ; les phares portent plus loin. Les CATADIOPTRES (ambre à gauche,
+// blanc à droite, tous les 14 m) dessinent les deux bords à perte de vue : on lit le virage aux petites lumières, comme la nuit sur
+// une départementale. La skyline du ciel, elle, reste allumée — c'est ton quartier qui a sauté, pas la ville.
+const VCATA=vMat(new THREE.MeshBasicMaterial({color:0xffffff,fog:false}));
+function catasPose(){
+  const P=[];
+  for(const p of VZ.pannes)for(let sv=Math.max(30,p.s0-240);sv<Math.min(L-20,p.s1+160);sv+=14)P.push(sv);
+  const n=P.length;if(!n)return;
+  const im=new THREE.InstancedMesh(new THREE.BoxGeometry(.8,.16,.4),VCATA,n*4),o=new THREE.Object3D(),cA=new THREE.Color(2.4,1.15,.3),cB=new THREE.Color(1.8,2,2.3);
+  let q=0;
+  for(const sv of P)for(const fy of [1,-1])for(const sd of [-1,1]){vPose(o,sv,sd*(ROAD_HALF-.7),.1,fy);o.scale.set(1,1,1);o.updateMatrix();im.setMatrixAt(q,o.matrix);im.setColorAt(q,sd>0?cB:cA);q++;}
+  im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;im.frustumCulled=false;scene.add(im);trackMeshes.push(im);
+}
+function panneSnd(bas){ // la coupure (un moteur électrique qui s'effondre) / le retour (il remonte, avec un claquement de disjoncteur)
+  if(!sfxOk())return;
+  try{const t=AC.currentTime,o=AC.createOscillator(),f=AC.createBiquadFilter(),g=AC.createGain(),d=bas?.7:.5;
+    o.type='sawtooth';o.frequency.setValueAtTime(bas?240:55,t);o.frequency.exponentialRampToValueAtTime(bas?38:210,t+d);
+    f.type='lowpass';f.frequency.value=900;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.07,t+.03);g.gain.exponentialRampToValueAtTime(.0001,t+d);
+    o.connect(f);f.connect(g);g.connect(MASTER);o.start(t);o.stop(t+d+.05);
+    noiseBurst(.05,.1,bas?700:2600);if(bas)subBoom(.12);}catch(e){}
+}
+function panneTick(dt,sp){
+  let dans=-1,vac=false;
+  for(let i=0;i<VZ.pannes.length;i++){const p=VZ.pannes[i];
+    if(sp>p.s0&&sp<p.s1){dans=i;break;}
+    if(sp>p.s0-170&&sp<=p.s0){vac=true;break;}}
+  if(dans>=0&&VC.panI!==dans){VC.panI=dans;VC.panOk=true;VC.panN=(VC.panN|0)+1;popTexte('COUPURE !','#8f84c8',1);panneSnd(true);hap([20,40,20]);}
+  else if(dans<0&&VC.panI>=0){VC.panI=-1;VC.panT=.55;VC.panFl=0;panneSnd(false);
+    if(VC.panOk){VC.aveugleN=(VC.aveugleN|0)+1;slam('A L AVEUGLE','COURANT RETABLI','#ffd75e','#8f84c8',40,2,14);vPaie(10,6);flowAdd(16);nitroPct(.35);try{chaineAura('A L AVEUGLE',80,'aveugle');}catch(e){}}
+    else popTexte('COURANT RETABLI','#9fe8ff',0);}
+  if(VC.panI>=0&&mode==='fall')VC.panOk=false; // une sortie de route dans le noir : pas de prime
+  if(vac){VC.panFl-=dt;if(VC.panFl<=0){VC.panFl=.05+Math.random()*.16;VC.cour=Math.random()<.55?1:.12;}} // le courant VACILLE : ça va sauter
+  else if(dans>=0)VC.cour=Math.max(0,VC.cour-dt*6);
+  else if(VC.panT>0){VC.panT-=dt;VC.panFl-=dt;if(VC.panFl<=0){VC.panFl=.06+Math.random()*.12;VC.cour=Math.random()<.6?.2:.85;}} // quelques ratés…
+  else VC.cour=Math.min(1,VC.cour+dt*2.5);                                                                                          // …puis tout se rallume
+  CITY.uC.value=VC.cour;
+  if(VC.panI>=0)vChip(TR('COUPURE DE COURANT'),TR('SUIS LES CATADIOPTRES'),'#8f84c8');
+  else if(vac)vChip(TR('LE COURANT VACILLE'),'','#ffb000',true);
+  else vChip('');
+}
+function villeApres(){ // crochet : APRÈS musicTick (qui repeint le néon de la route à chaque image depuis sa teinte de base)
+  const k=CAMP.n===16?VC.cour:1;
+  if(k<.999){const kr=.07+.93*k; // on ne baisse QUE ce que musicTick repeint (userData.base) : rien ne s'accumule d'une image à l'autre
+    for(let i=0;i<NEON_RAILS.length;i++){const m=NEON_RAILS[i];if(m.userData.base)m.color.multiplyScalar(kr);}
+    for(let i=0;i<NEON_GLOW.length;i++){const m=NEON_GLOW[i];if(m.userData.base!=null)m.opacity*=kr*kr;}}
+  if(k<.999||VC.phare){VC.phare=k<.999;headSpot.distance=72+64*(1-k);if(mode!=='boom')headSpot.intensity=1.85*(1+.9*(1-k));} // 1,85 : la valeur que la boucle pose (phares de course)
+}
+// ============ 7 · LE FOURGON ============
+// Un fourgon blindé bleu nuit à bandes d'or : il roule avec TES équations et ton moteur ×1,04 (sans nitro, tu le perds ; avec, tu
+// le rattrapes). Colle-lui au train (3 à 50 m derrière) : ses portes s'OUVRENT et il sème des pièces sur la route — de vraies
+// pièces du jeu (le ramassage, le combo, l'aimant : tout marche), puisées dans une réserve de 40 maillages. Quatre-vingts pièces à
+// bord ; vidé = jackpot, et il s'enfuit, allégé. Le percuter par l'arrière = un paquet de dix d'un coup, et un coup de frein.
+const VFG=(function(){
+  const g=new THREE.Group(),
+    bleu=new THREE.MeshPhongMaterial({color:0x1d2740,shininess:90,specular:0x8899bb}),
+    or=new THREE.MeshPhongMaterial({color:0xffc33a,emissive:0x4a3000,shininess:120,specular:0xfff0c0}),
+    noir=new THREE.MeshPhongMaterial({color:0x121318,shininess:40,specular:0x333333}),
+    vit=new THREE.MeshPhongMaterial({color:0x0d1620,shininess:260,specular:0xffffff,envMap:envTex,reflectivity:.6,combine:THREE.MixOperation}),
+    chr=new THREE.MeshPhongMaterial({color:0xd8dce2,shininess:200,specular:0xffffff});
+  const cv=document.createElement('canvas');cv.width=cv.height=64;
+  {const x=cv.getContext('2d');x.fillStyle='#1d2740';x.fillRect(0,0,64,64);x.fillStyle='#ffc33a';x.beginPath();x.arc(32,32,27,0,7);x.fill();
+   x.fillStyle='#1d2740';x.beginPath();x.arc(32,32,22,0,7);x.fill();x.fillStyle='#ffc33a';x.font='bold 34px monospace';x.textAlign='center';x.textBaseline='middle';x.fillText('$',32,34);}
+  const logoM=new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv)});
+  const B=(w,h,d,m,x,y,z,par)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);(par||g).add(o);return o;};
+  B(2.6,2.5,4.6,bleu,0,1.95,-.9);                                   // le coffre roulant
+  B(2.5,1.7,1.9,bleu,0,1.55,2.35);                                  // la cabine, plus basse
+  B(2.3,.8,.08,vit,0,2.02,3.31);                                    // le pare-brise
+  for(const sd of [-1,1]){B(.06,.7,1.3,vit,sd*1.26,1.98,2.4);B(.05,.3,4.42,or,sd*1.31,1.5,-.9);B(.05,.12,4.42,or,sd*1.31,2.9,-.9);
+    const lg=new THREE.Mesh(new THREE.PlaneGeometry(1.1,1.1),logoM);lg.position.set(sd*1.32,2.15,-.9);lg.rotation.y=sd*Math.PI/2;g.add(lg);}
+  B(2.62,.22,6.6,noir,0,.72,0);                                     // le châssis
+  B(2.7,.34,.25,chr,0,.76,3.34);B(2.7,.34,.25,chr,0,.76,-3.26);     // les pare-chocs
+  B(2.2,1.3,1.3,or,0,1.45,-2.35);                                   // L'OR, au fond du coffre (on le voit quand les portes s'ouvrent)
+  const portes=[],pG=new THREE.BoxGeometry(1.28,2.3,.1);
+  for(const sd of [-1,1]){const piv=new THREE.Group();piv.position.set(sd*1.3,1.95,-3.22);
+    const d=new THREE.Mesh(pG,bleu);d.position.set(-sd*.64,0,0);piv.add(d);
+    const lo=new THREE.Mesh(new THREE.PlaneGeometry(.8,.8),logoM);lo.position.set(-sd*.64,.25,-.06);lo.rotation.y=Math.PI;piv.add(lo);
+    g.add(piv);portes.push(piv);}
+  const roues=[],rG=new THREE.CylinderGeometry(.55,.55,.42,14);
+  for(const z of [2.25,-1.15,-2.35])for(const sd of [-1,1]){const w=new THREE.Mesh(rG,noir);w.rotation.z=Math.PI/2;w.position.set(sd*1.18,.55,z);g.add(w);roues.push(w);}
+  const phM=new THREE.SpriteMaterial({map:lampTex,color:0xfff1d6,transparent:true,opacity:.95,depthWrite:false}),
+        feM=new THREE.SpriteMaterial({map:lampTex,color:0xff2a1c,transparent:true,opacity:.9,depthWrite:false}),
+        giM=new THREE.SpriteMaterial({map:lampTex,color:0xffa21a,transparent:true,opacity:.95,depthWrite:false,blending:THREE.AdditiveBlending});
+  for(const sd of [-1,1]){const a=new THREE.Sprite(phM);a.scale.set(.9,.9,1);a.position.set(sd*.95,1.0,3.42);g.add(a);
+    const r=new THREE.Sprite(feM);r.scale.set(.7,.7,1);r.position.set(sd*1.15,1.0,-3.4);g.add(r);}
+  const gy=new THREE.Sprite(giM);gy.scale.set(1.6,1.6,1);gy.position.set(0,3.45,-.5);g.add(gy); // le gyrophare orange du toit
+  g.traverse(o=>{if(o.isMesh)o.castShadow=true;});g.visible=false;scene.add(g);
+  const pool=[];for(let i=0;i<40;i++)pool.push({m:new THREE.Mesh(pickGeo,pickMat),pk:null,dans:false,ax:new THREE.Vector3()});
+  return {g:g,portes:portes,roues:roues,gy:gy,pool:pool,on:false,s:0,lat:0,latP:0,lane:9,v:0,momT:0,yaw:0,cash:80,cash0:80,acc:0,porte:0,cd:0,fini:false,fuite:false,finT:0,semeT:0,pris:0};
+})();
+function fourgonPrepare(){
+  const on=CAMP.n===17&&!PARK.on;VFG.on=on;VFG.g.visible=on;
+  for(const c of VFG.pool){if(c.pk){c.pk.taken=true;}if(c.m.parent)scene.remove(c.m);c.pk=null;c.dans=false;}
+  if(!on)return;
+  VFG.s=Math.min(L-60,230);VFG.lane=9;VFG.lat=VFG.latP=9;VFG.v=Math.max(26,Math.abs(vA));VFG.momT=0;VFG.yaw=0;
+  VFG.cash=VFG.cash0=80;VFG.acc=0;VFG.porte=0;VFG.cd=0;VFG.fini=false;VFG.fuite=false;VFG.finT=0;VFG.semeT=0;VFG.pris=0;
+  fourgonPose(0);
+}
+function fourgonPiece(sv,lt){ // une pièce tombe du coffre : un maillage de la réserve, une entrée dans `pickups` (le ramassage du jeu fait le reste)
+  let c=null;
+  for(const q of VFG.pool)if(!q.pk||q.pk.taken){c=q;break;}
+  if(!c){let old=null;for(const q of VFG.pool)if(!old||q.pk.s<old.pk.s)old=q;c=old;c.pk.taken=true;} // la plus ancienne (loin derrière) cède sa place
+  if(c.m.parent)scene.remove(c.m);
+  const cl=THREE.MathUtils.clamp(lt,-(ROAD_HALF-1.8),ROAD_HALF-1.8);
+  frameAt(sv,F);c.m.quaternion.setFromRotationMatrix(VM4.makeBasis(F.b,F.n,F.t));c.m.position.copy(F.p).addScaledVector(F.b,cl).addScaledVector(F.n,1.3);
+  c.m.matrixAutoUpdate=false;c.m.updateMatrix();c.m.visible=true;scene.add(c.m);c.ax.copy(F.n);
+  if(!c.pk)c.pk={s:0,lat:0,face:1,nitro:false,fruit:-1,mesh:c.m,taken:false,ax:c.ax};
+  c.pk.s=sv;c.pk.lat=cl;c.pk.taken=false;
+  if(!c.dans){pickups.push(c.pk);c.dans=true;}
+  VFG.cash--;
+  try{sparkBurst(sparkGold,c.m.position,3,4);}catch(e){}
+}
+function fourgonPose(dt){
+  const g=VFG.g;frameAt(VFG.s,GF);
+  g.position.copy(GF.p).addScaledVector(GF.b,VFG.lat);
+  CM4.makeBasis(GF.b,GF.n,GF.t);g.quaternion.setFromRotationMatrix(CM4);g.rotateY(VFG.yaw);
+  const rv=VFG.v*SPD*dt/.55;for(const w of VFG.roues)w.rotation.x+=rv;
+  for(let i=0;i<2;i++)VFG.portes[i].rotation.y=(i?1:-1)*VFG.porte*1.85; // les battants s'ouvrent vers l'EXTÉRIEUR
+  VFG.gy.visible=(CITY.uT.value*3)%1<.55;
+  g.visible=VFG.on&&Math.abs(VFG.s-vPos())<1100;
+}
+function fourgonTick(dt,sp){
+  if(!VFG.on)return;
+  const spc=CARS[0],late=lateMul(),eng=ENGINE_TIERS[engTier]||ENGINE_TIERS[0],mx=spc.maxKmh/3.6*late*eng.push*(VFG.fuite?1.3:1.04),acc=spc.accel*late*(1+(eng.push-1)*.6);
+  VFG.momT=Math.min(4.3,VFG.momT+dt);const momF=1+Math.min(1.8,VFG.momT*VFG.momT*.1),i=ghIdx(VFG.s);
+  VFG.v+=acc*(VFG.v<mx?1:.55)*momF*dt;
+  if(startBoostT>0)VFG.v+=30*eng.push*dt; // le boost de départ vaut pour lui aussi
+  VFG.v+=-GRAV*T[i].y*dt;
+  VFG.v-=VFG.v*Math.abs(VFG.v)*(acc/(mx*mx*5.8))*dt;VFG.v*=Math.max(0,1-.03*dt);
+  const gp=VFG.s-sp,moi=mode==='drive'&&side>0;
+  let lT=VFG.lane;if(moi&&gp<16&&gp>-34)lT=lat>0?-12:12; // on se côtoie : il passe de L'AUTRE côté (il ne te rentre jamais dedans)
+  VFG.lat+=(lT-VFG.lat)*Math.min(1,dt*1.3);
+  const ds=VFG.v*dt*SPD;VFG.s+=ds;
+  VFG.yaw+=(Math.atan2(VFG.lat-VFG.latP,Math.max(.01,ds))-VFG.yaw)*Math.min(1,dt*8);VFG.latP=VFG.lat;
+  if(VFG.s>=L-45){VFG.on=false;VFG.g.visible=false;VFG.porte=0;if(!VFG.fini)popTexte("LE FOURGON S'EST ENFUI",'#8f84c8',0);vChip('');return;} // il passe le portail avant toi
+  // LE SEMIS : collé derrière lui (sur le dessus de la dalle, ou en vol), ses portes s'ouvrent et les pièces tombent
+  const seme=!VFG.fini&&VFG.cash>0&&gp>3&&gp<50&&(mode==='fall'||(moi&&Math.abs(lat-VFG.lat)<20));
+  VFG.porte+=((seme?1:0)-VFG.porte)*Math.min(1,dt*(seme?4:2));
+  if(seme){if(VFG.semeT<=0)popTexte('IL SEME SES BILLETS !','#ffd75e',1);VFG.semeT=1.5;
+    VFG.acc+=dt*7.5;while(VFG.acc>=1&&VFG.cash>0){VFG.acc-=1;fourgonPiece(VFG.s-4.4,VFG.lat+(Math.random()-.5)*6);}
+    if(Math.random()<dt*6)try{chimeNote(noteP(3+Math.floor(Math.random()*4),1),0,.04,.12);}catch(e){}}
+  else{VFG.acc=0;VFG.semeT=Math.max(0,VFG.semeT-dt);}
+  // LE CHOC : le percuter par l'arrière = un paquet d'un coup, et tu rebondis sur son pare-chocs
+  VFG.cd=Math.max(0,VFG.cd-dt);
+  if(moi&&VFG.cd<=0&&Math.abs(gp)<5.4&&Math.abs(lat-VFG.lat)<2.5){VFG.cd=1.2;
+    if(gp>0){vA=Math.min(vA,VFG.v*.8);momT=0;for(let k=0;k<10&&VFG.cash>0;k++)fourgonPiece(VFG.s-4.4-Math.random()*6,VFG.lat+(Math.random()-.5)*9);
+      popTexte('BRAQUAGE !','#ffd75e',2);try{chaineAura('BRAQUAGE',40,'braquage');}catch(e){}}
+    else{vA*=.9;popTexte('ACCROCHAGE','#ff5e7a',1);}
+    lat=VFG.lat+(lat>=VFG.lat?1:-1)*2.6;shake=Math.max(shake,.45);hap([30,20,30]);try{thud(9);noiseBurst(.12,.12,900);}catch(e){}
+    try{sparkBurst(sparkGold,carGroup.position,14,10);}catch(e){}}
+  if(!VFG.fini&&VFG.cash<=0){VFG.fini=true;VFG.finT=1.4;VC.fourgonVide=true;
+    slam('FOURGON VIDE !','','#ffd75e','#ff3ec8',42,2,24);vPaie(25,12);flowAdd(20);hap([20,40,20,40,80]);
+    try{chaineAura('FOURGON VIDE',160,'fourgon');fanfare();}catch(e){}}
+  if(VFG.finT>0){VFG.finT-=dt;if(VFG.finT<=0)VFG.fuite=true;} // vidé, allégé : il file
+  fourgonPose(dt);
+  // la plaque
+  const pct=Math.round((1-VFG.cash/VFG.cash0)*100);
+  if(VFG.fini)vChip(TR('FOURGON VIDE !'),pct+' %','#ffd75e');
+  else if(VFG.semeT>0)vChip(TR('FOURGON')+' '+pct+' %',TR('RESTE DERRIERE LUI'),'#ffd75e');
+  else if(gp<0)vChip(TR('FOURGON')+' '+pct+' %',TR('IL TE DOUBLE'),'#9fe8ff');
+  else vChip(TR('FOURGON')+' '+pct+' %',Math.round(gp/10)*10+' M '+TR('DEVANT'),'#9fe8ff');
+}
+// ============ 9 · L'HEURE DE POINTE ============
+// Huit files de 7 m ; les voitures roulent à 100-160 km/h (60-90 dans les BOUCHONS), plus vite à gauche qu'à droite. Tu vas deux à
+// trois fois plus vite qu'elles : on se FAUFILE. Une file libre au moins par rangée (jamais un mur). Elles changent de file après
+// 1,1 s de clignotant. UN InstancedMesh pour les caisses (teinte par instance), un pour les feux, un pour les clignotants : trois
+// appels de rendu pour tout le trafic, qui roule en miroir sous la dalle (on ne dessine que la face où tu roules).
+const VTR_F=[-24.5,-17.5,-10.5,-3.5,3.5,10.5,17.5,24.5];
+const VTR_T=[[1,1,1,2.15,.95],[1.15,1.35,1.3,2.8,1.1],[1.35,1.6,2.55,5.5,1.28]]; // voiture · fourgonnette · bus : échelle x,y,z, demi-longueur, demi-largeur
+const VTR_PAL=[0xe9e9ec,0x1b1d24,0xa2a9b3,0xc8141e,0x1f4fb0,0xf2c400,0xf2c400,0x2f7a4a,0x6b2fb0,0xff7a14];      // (le JAUNE deux fois : les taxis de l'heure de pointe)
+const VTR=(function(){
+  const P=[],C=[],Lp=[],Lc=[];
+  const bx=(A,Cc,w,h,d,x,y,z,r,g,b)=>{const q=new THREE.BoxGeometry(w,h,d).toNonIndexed();q.translate(x,y,z);const p=q.attributes.position.array;for(let i=0;i<p.length;i++)A.push(p[i]);for(let i=0;i<p.length/3;i++)Cc.push(r,g,b);q.dispose();};
+  bx(P,C,1.9,.62,4.3,0,.62,0,1,1,1);                 // la caisse (blanche : l'instance la teinte)
+  bx(P,C,1.64,.5,2.1,0,1.18,-.25,.14,.17,.22);       // la cabine vitrée
+  bx(P,C,1.72,.06,1.2,0,.95,1.42,.82,.82,.84);       // le capot
+  for(const sx of [-1,1])for(const sz of [1.35,-1.35])bx(P,C,.3,.62,.62,sx*.86,.33,sz,.06,.06,.07);
+  for(const sx of [-1,1]){bx(Lp,Lc,.42,.16,.06,sx*.62,.72,2.16,2.4,2.1,1.5);bx(Lp,Lc,.44,.16,.06,sx*.64,.8,-2.16,2.3,.16,.1);}
+  const mk=(A,Cc)=>{const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(A,3));g.setAttribute('color',new THREE.Float32BufferAttribute(Cc,3));g.computeVertexNormals();return g;};
+  const N=110,im=new THREE.InstancedMesh(mk(P,C),new THREE.MeshLambertMaterial({vertexColors:true}),N),
+    imL=new THREE.InstancedMesh(mk(Lp,Lc),new THREE.MeshBasicMaterial({vertexColors:true}),N),
+    cl=new THREE.InstancedMesh(new THREE.BoxGeometry(.24,.2,.1),new THREE.MeshBasicMaterial({color:new THREE.Color(2.6,1.25,.12)}),48);
+  const w=new THREE.Color(1,1,1);for(let i=0;i<N;i++)im.setColorAt(i,w); // la couleur par instance existe dès l'init (le programme la réclame)
+  for(const m of [im,imL,cl]){m.count=0;m.frustumCulled=false;m.visible=false;scene.add(m);}
+  im.castShadow=true;
+  return {im:im,imL:imL,cl:cl,N:N,cars:[],on:false,o:new THREE.Object3D(),o2:new THREE.Object3D(),col:new THREE.Color(),eu:new THREE.Euler(),klaxT:0,du:{mesh:{position:new THREE.Vector3()}},chocN:0,froN:0};
+})();
+function traficPrepare(){
+  const on=CAMP.n===19&&!PARK.on;VTR.on=on;VTR.cars.length=0;VTR.chocN=0;VTR.froN=0;
+  for(const m of [VTR.im,VTR.imL,VTR.cl]){m.visible=on;m.count=0;}
+  if(!on)return;
+  const rr=mulberry32(0x7AF1C0DE); // le même trafic à chaque essai : on apprend l'heure de pointe
+  for(let sv=340;sv<L-320;){
+    let bo=false;for(const b of VZ.bouchons)if(sv>b.s0&&sv<b.s1){bo=true;break;}
+    const nC=bo?4+Math.floor(rr()*3):2+Math.floor(rr()*2),pris=[];
+    for(let k=0;k<nC;k++){let f=Math.floor(rr()*8);for(let t=0;t<8&&pris.indexOf(f)>=0;t++)f=(f+3)%8;if(pris.indexOf(f)>=0)continue;pris.push(f);
+      const ty=rr()<.12?2:rr()<.22?1:0;
+      VTR.cars.push({s:sv+(rr()-.5)*14,lane:f,f0:f,f1:f,u:1,lat:VTR_F[f],v:(bo?34:62)+f*(bo?2:4)+rr()*6-(ty?6:0),ty:ty,col:VTR_PAL[Math.floor(rr()*VTR_PAL.length)],
+        ch:4+rr()*10,bl:0,dm:9,fr:false,klax:0,fly:0,mort:false,p:null,q:null,vel:null,w:null});}
+    sv+=bo?38:62+rr()*16;
+  }
+}
+function traficLibre(f,sv,moi){for(const c of VTR.cars)if(c!==moi&&!c.mort&&!c.fly&&(c.lane===f||c.f1===f)&&Math.abs(c.s-sv)<16)return false;return true;}
+function klaxon(){ // deux notes carrées, courtes : la voiture devant toi n'apprécie pas
+  if(!sfxOk()||VTR.klaxT>0)return;VTR.klaxT=.7;
+  try{const t=AC.currentTime,g=AC.createGain(),f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=1800;
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.035,t+.01);g.gain.setValueAtTime(.035,t+.22);g.gain.exponentialRampToValueAtTime(.0001,t+.3);
+    for(const fr of [392,494]){const o=AC.createOscillator();o.type='square';o.frequency.value=fr;o.connect(f);o.start(t);o.stop(t+.32);}
+    f.connect(g);g.connect(MASTER);}catch(e){}
+}
+function traficChoc(c,dl){ // l'accrochage : la voiture part en toupie, toi tu perds l'élan (jamais la vie)
+  frameAt(c.s,VF);
+  c.fly=1.7;c.p=new THREE.Vector3().copy(VF.p).addScaledVector(VF.b,c.lat).addScaledVector(VF.n,side<0?-THICK:0);
+  c.q=new THREE.Quaternion().setFromRotationMatrix(VM4.makeBasis(VF.b,VF.n,VF.t));
+  const sg=(side*lat>=c.lat)?-1:1; // elle part du côté opposé au choc
+  c.vel=new THREE.Vector3().copy(VF.t).multiplyScalar(Math.max(c.v,Math.abs(vA)*.55)*SPD).addScaledVector(VF.b,sg*(6+Math.random()*5)).addScaledVector(VF.n,side*(5+Math.random()*4));
+  c.w=new THREE.Vector3((Math.random()-.5)*7,(Math.random()-.5)*9,(Math.random()-.5)*7);
+  vA*=.62;momT=0;FLOW.v=Math.max(0,FLOW.v-15);FLOW.idle=2;shake=Math.max(shake,.5);hap([30,20,40]);VTR.chocN++;VC.gel=.3;
+  popTexte('ACCROCHAGE !','#ff5e7a',1);
+  try{thud(10);noiseBurst(.2,.12,3200);}catch(e){}
+  try{sparkBurst(sparkGold,carGroup.position,16,10);}catch(e){}
+}
+function traficTick(dt,sp){
+  if(!VTR.on)return;
+  VTR.klaxT=Math.max(0,VTR.klaxT-dt);
+  const moi=mode==='drive'&&VC.gel<=0,fc=mode==='fall'?1:side,o=VTR.o,o2=VTR.o2,ph=(CITY.uT.value*2.4)%1<.5;
+  let n=0,nb=0,proche=1e9,bou=null;
+  for(const c of VTR.cars){
+    if(c.mort)continue;
+    if(c.fly>0){ // LA TOUPIE : elle vole dans le monde, puis disparaît
+      c.fly-=dt;c.vel.y-=24*dt;c.p.addScaledVector(c.vel,dt);
+      VQ.setFromEuler(VTR.eu.set(c.w.x*dt,c.w.y*dt,c.w.z*dt));c.q.multiply(VQ);
+      if(c.fly<=0){c.mort=true;continue;}
+      if(n<VTR.N){const T9=VTR_T[c.ty];o.position.copy(c.p);o.quaternion.copy(c.q);o.scale.set(T9[0],T9[1],T9[2]);o.updateMatrix();
+        VTR.im.setMatrixAt(n,o.matrix);VTR.imL.setMatrixAt(n,o.matrix);VTR.im.setColorAt(n,VTR.col.setHex(c.col));n++;}
+      continue;}
+    c.s+=c.v*SPD*dt;
+    if(c.s>L-120){c.mort=true;continue;}
+    // LE CHANGEMENT DE FILE : 1,1 s de clignotant, puis 1,3 s pour passer
+    if(c.u<1){c.u=Math.min(1,c.u+dt/1.3);const u=c.u*c.u*(3-2*c.u);c.lat=VTR_F[c.f0]+(VTR_F[c.f1]-VTR_F[c.f0])*u;}
+    else if(c.bl>0){c.bl-=dt;if(c.bl<=0){c.f0=c.lane;c.lane=c.f1;c.u=0;}}
+    else{c.ch-=dt;if(c.ch<=0){c.ch=5+Math.random()*10;const nf=c.lane+(Math.random()<.5?-1:1);if(nf>=0&&nf<8&&traficLibre(nf,c.s,c)){c.f1=nf;c.bl=1.1;}}}
+    const ds=c.s-sp;if(ds<-90||ds>540)continue; // hors du couloir : ni test, ni dessin
+    const T9=VTR_T[c.ty];
+    if(moi){ // le choc et le FRÔLÉ (le trafic existe en miroir sous la dalle : même test sur les deux faces)
+      const dl=Math.abs(side*lat-c.lat),dS=s-c.s;
+      if(Math.abs(dS)<T9[3]+2.1&&dl<T9[4]+1.15){traficChoc(c,dl);continue;}
+      if(Math.abs(dS)<T9[3]+2.6)c.dm=Math.min(c.dm,dl-T9[4]-1.15);
+      if(!c.fr&&dS>T9[3]+2.6){c.fr=true;if(c.dm<1.5&&Math.abs(vA)-c.v>25){frameAt(c.s,VF);VTR.du.mesh.position.copy(VF.p).addScaledVector(VF.b,c.lat);VTR.froN++;frole(VTR.du,1.6+Math.max(0,c.dm)*1.3,1);}}
+      if(dS<0&&dS>-45&&dl<T9[4]+1.4&&Math.abs(vA)-c.v>30&&c.klax<=0){c.klax=3;klaxon();} // tu lui fonces dessus dans sa file : il klaxonne
+    }
+    c.klax=Math.max(0,c.klax-dt);
+    if(ds>0&&ds<proche)proche=ds;
+    if(n>=VTR.N)continue;
+    // LE DESSIN : sur sa file, cap tourné pendant le changement de file
+    frameAt(c.s,VF);
+    o.position.copy(VF.p).addScaledVector(VF.b,c.lat).addScaledVector(VF.n,fc>0?0:-THICK);
+    if(fc>0)VM4.makeBasis(VF.b,VF.n,VF.t);else VM4.makeBasis(VV1.copy(VF.b).negate(),VV2.copy(VF.n).negate(),VF.t);
+    o.quaternion.setFromRotationMatrix(VM4);
+    if(c.u<1){const lv=(VTR_F[c.f1]-VTR_F[c.f0])*6*c.u*(1-c.u)/1.3;o.rotateY(fc*Math.atan2(lv,Math.max(1,c.v*SPD)));}
+    o.scale.set(T9[0],T9[1],T9[2]);o.updateMatrix();
+    VTR.im.setMatrixAt(n,o.matrix);VTR.imL.setMatrixAt(n,o.matrix);VTR.im.setColorAt(n,VTR.col.setHex(c.col));n++;
+    if(c.bl>0&&ph&&nb<47){const sd=(VTR_F[c.f1]>c.lat?1:-1)*fc; // les clignotants : un devant, un derrière, du côté où elle va
+      for(const zz of [2.12,-2.12]){o2.position.set(sd*.9,.8,zz);o2.quaternion.identity();o2.scale.set(1,1,1);o2.updateMatrix();
+        VM4.multiplyMatrices(o.matrix,o2.matrix);VTR.cl.setMatrixAt(nb++,VM4);}}
+  }
+  VTR.im.count=VTR.imL.count=n;VTR.cl.count=nb;
+  VTR.im.instanceMatrix.needsUpdate=true;VTR.imL.instanceMatrix.needsUpdate=true;if(VTR.im.instanceColor)VTR.im.instanceColor.needsUpdate=true;if(nb)VTR.cl.instanceMatrix.needsUpdate=true;
+  for(const b of VZ.bouchons){if(sp>b.s0-260&&sp<b.s1){bou=b;break;}}
+  if(bou)vChip(TR('BOUCHON'),sp<bou.s0?TR('DANS')+' '+Math.max(0,Math.round((bou.s0-sp)/10)*10)+' M':TR('FAUFILE-TOI'),'#ffb000');else vChip('');
+}
+// ============ 10 · LE BANQUIER — ET LE LINGOT ============
+// LE LINGOT : un lingot d'or monté sur roues — un tronc de pyramide (CylinderGeometry à quatre pans, tourné de 45°), facettes
+// franches, une plaque POINÇONNÉE sur le dessus (999,9), une visière noire. UNE matière d'or pour la caisse du garage et celle du
+// banquier. Le banquier roule avec TES équations et ton moteur, un cran au-dessus (VBQ_K) ; il prend la corde, jamais de nitro,
+// jamais d'étage sauté — ses deux faiblesses, tes deux armes. Le premier au portail gagne.
+const VBQ_K=1.07;
+const LINGOT_MAT=vMat(new THREE.MeshPhongMaterial({color:0xffc33a,emissive:0x3a2400,specular:0xfff2c0,shininess:95,flatShading:true,envMap:envTex,reflectivity:.35,combine:THREE.MixOperation}));
+const LINGOT_PL=(function(){ // la plaque poinçonnée : or plus sombre, cadre, lettres pixel en creux
+  const cv=document.createElement('canvas');cv.width=128;cv.height=256;const t=new THREE.CanvasTexture(cv);
+  const des=function(){const x=cv.getContext('2d');x.fillStyle='#d99a1c';x.fillRect(0,0,128,256);x.strokeStyle='#8a5a06';x.lineWidth=6;x.strokeRect(8,8,112,240);
+    x.fillStyle='#8a5a06';x.textAlign='center';x.textBaseline='middle';x.font='14px "Press Start 2P",monospace';
+    x.fillText('CASH',64,60);x.fillText('CAR',64,84);x.font='18px "Press Start 2P",monospace';x.fillText('999',64,136);x.fillText(',9',64,162);x.font='10px "Press Start 2P",monospace';x.fillText('1 KG',64,206);t.needsUpdate=true;};
+  des();try{if(document.fonts&&document.fonts.load)document.fonts.load('14px "Press Start 2P"').then(des).catch(function(){});}catch(e){}
+  return vMat(new THREE.MeshPhongMaterial({map:t,specular:0xfff2c0,shininess:70,emissive:0x2a1a00}));
+})();
+function lingotGeo(){const g=new THREE.CylinderGeometry(.74,1,1,4,1);g.rotateY(Math.PI/4);g.scale(1.414,.95,2.97);g.translate(0,.475,0);return g;} // base 2 × 4,2 m, dessus 1,5 × 3,1 m, 95 cm de haut
+SHAPES.lingot=function(K){ // la caisse du garage — buildCar pose les roues, les feux et les pots aux ancrages rendus
+  const b=new THREE.Mesh(lingotGeo(),LINGOT_MAT);b.position.y=.5;K.add(b);
+  const p=new THREE.Mesh(new THREE.PlaneGeometry(1.1,2.4),LINGOT_PL);p.rotation.x=-Math.PI/2;p.position.set(0,1.452,-.2);K.add(p);
+  K.box(1.2,.16,.5,K.glass,0,1.53,.95);                                        // la visière
+  K.box(1.9,.2,3.9,K.dark,0,.42,0);                                            // le châssis
+  K.box(1.76,.12,.16,K.chrome,0,.5,2.12);K.box(1.72,.12,.16,K.chrome,0,.52,-2.1);
+  return {hl:[.62,.66,2.16],tl:[.66,.7,-2.14],wr:.95,wx:1.0,wz:1.36,split:0,skirt:0,sp:0,doors:0,slats:0,wings:'none',glowX:1.02,glowY:.5,glowL:3.2,glowF:0};
+};
+const VBQ=(function(){
+  const g=new THREE.Group(),dk=new THREE.MeshPhongMaterial({color:0x14161b,shininess:40,specular:0x333844}),
+    cr=new THREE.MeshPhongMaterial({color:0xf3efe4,shininess:180,specular:0xffffff}),vi=new THREE.MeshPhongMaterial({color:0x0d1620,shininess:260,specular:0xffffff,envMap:envTex,reflectivity:.6,combine:THREE.MixOperation}),
+    pn=new THREE.MeshPhongMaterial({color:0x17181d,shininess:8});
+  const b=new THREE.Mesh(lingotGeo(),LINGOT_MAT);b.position.y=.5;g.add(b);
+  const p=new THREE.Mesh(new THREE.PlaneGeometry(1.1,2.4),LINGOT_PL);p.rotation.x=-Math.PI/2;p.position.set(0,1.452,-.2);g.add(p);
+  const B=(w,h,d,m,x,y,z)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);g.add(o);return o;};
+  B(1.2,.16,.5,vi,0,1.53,.95);B(1.9,.2,3.9,dk,0,.42,0);B(1.76,.12,.16,cr,0,.5,2.12);B(1.72,.12,.16,cr,0,.52,-2.1);
+  const roues=[],pG=new THREE.CylinderGeometry(.4,.4,.32,16),jG=new THREE.CylinderGeometry(.25,.25,.34,10);
+  for(const sx of [-1,1])for(const sz of [1,-1]){const w=new THREE.Group(),a=new THREE.Mesh(pG,pn),j=new THREE.Mesh(jG,LINGOT_MAT);
+    a.rotation.z=j.rotation.z=Math.PI/2;w.add(a);w.add(j);w.position.set(sx*1.0,.4,sz*1.36);g.add(w);roues.push(w);}
+  const phM=new THREE.SpriteMaterial({map:lampTex,color:0xfff1d6,transparent:true,opacity:.95,depthWrite:false}),
+        feM=new THREE.SpriteMaterial({map:lampTex,color:0xff3a22,transparent:true,opacity:.9,depthWrite:false});
+  for(const sx of [-1,1]){const a=new THREE.Sprite(phM);a.scale.set(.8,.8,1);a.position.set(sx*.62,.66,2.2);g.add(a);
+    const r=new THREE.Sprite(feM);r.scale.set(.62,.62,1);r.position.set(sx*.66,.7,-2.18);g.add(r);}
+  g.traverse(o=>{if(o.isMesh)o.castShadow=true;});g.visible=false;scene.add(g);
+  return {g:g,roues:roues,tr:mkTrail(),on:false,s:0,lat:0,latP:0,v:0,momT:0,yaw:0,fini:false,line:null,tmp:null,cd:0,mene:false};
+})();
+function banquierLigne(){ // SA ligne : la corde de chaque virage, lissée sur ±60 m (la même que la caisse-nuage, sans les coupes)
+  if(!VBQ.line||VBQ.line.length!==NP){VBQ.line=new Float32Array(NP);VBQ.tmp=new Float32Array(NP);}
+  const A=VBQ.tmp,Bl=VBQ.line,Lh=ROAD_HALF-5,w=Math.max(4,Math.round(60/Math.max(.1,L/(NP-1))));
+  for(let i=0;i<NP;i++){const k=KAPB[i];A[i]=Math.sign(k)*Lh*Math.min(1,Math.abs(k)*260);}
+  for(let pass=0;pass<2;pass++){const src=pass?Bl:A,dst=pass?A:Bl;let acc=0,cnt=0;
+    for(let i=-w;i<NP;i++){const a=i+w,r=i-w-1;if(a<NP){acc+=src[a];cnt++;}if(r>=0){acc-=src[r];cnt--;}if(i>=0)dst[i]=acc/Math.max(1,cnt);}}
+  Bl.set(A);
+}
+function banquierPrepare(){
+  const on=CAMP.n===20&&!PARK.on;VBQ.on=on;VBQ.g.visible=on;VBQ.tr.init=false;VBQ.tr.m.visible=false;
+  if(!on)return;
+  banquierLigne();
+  VBQ.s=Math.min(L-60,60);VBQ.lat=VBQ.latP=VBQ.line[ghIdx(VBQ.s)];VBQ.v=Math.max(26,Math.abs(vA));VBQ.momT=0;VBQ.yaw=0;VBQ.fini=false;VBQ.cd=0;VBQ.mene=false;
+  banquierPose(0);
+}
+function banquierPose(dt){
+  const g=VBQ.g;frameAt(VBQ.s,GF);
+  g.position.copy(GF.p).addScaledVector(GF.b,VBQ.lat);
+  CM4.makeBasis(GF.b,GF.n,GF.t);g.quaternion.setFromRotationMatrix(CM4);g.rotateY(VBQ.yaw);
+  const rv=VBQ.v*SPD*dt/.4;for(const w of VBQ.roues)w.rotation.x+=rv;
+  g.visible=VBQ.on&&!VBQ.fini&&Math.abs(VBQ.s-vPos())<1100;
+  CV1.set(0,.8,-2.3).applyQuaternion(g.quaternion).add(g.position); // son ruban d'OR : on le suit à la trace
+  trailStep(VBQ.tr,CV1.x,CV1.y,CV1.z,1.35,1.02,.36,VBQ.fini?0:.8,3.2);
+}
+function banquierTick(dt,sp){
+  if(!VBQ.on||VBQ.fini)return;
+  const spc=CARS[0],late=lateMul(),eng=ENGINE_TIERS[engTier]||ENGINE_TIERS[0],mx=spc.maxKmh/3.6*late*eng.push*VBQ_K,acc=spc.accel*late*(1+(eng.push-1)*.6);
+  VBQ.momT=Math.min(4.3,VBQ.momT+dt);const momF=1+Math.min(1.8,VBQ.momT*VBQ.momT*.1),i=ghIdx(VBQ.s);
+  VBQ.v+=acc*(VBQ.v<mx?1:.55)*momF*dt;
+  if(startBoostT>0)VBQ.v+=30*eng.push*dt;
+  VBQ.v+=-GRAV*T[i].y*dt;
+  VBQ.v-=VBQ.v*Math.abs(VBQ.v)*(acc/(mx*mx*5.8))*dt;VBQ.v*=Math.max(0,1-.03*dt);
+  const gp=VBQ.s-sp,moi=mode==='drive'&&side>0;
+  if(gp<0&&gp>-46&&mode==='drive')VBQ.v+=9*(1+gp/46)*dt; // l'aspiration vaut pour lui aussi : doublé de près, il revient dans TON sillage
+  if(gp>0&&gp<46&&moi&&Math.abs(lat-VBQ.lat)<9)vA+=9*(1-gp/46)*dt; // …et pour toi dans le sien
+  let lT=VBQ.line[i];if(moi&&Math.abs(gp)<9)lT=lat>VBQ.lat?Math.min(lT,lat-4.5):Math.max(lT,lat+4.5); // côte à côte : il tient sa ligne sans te rentrer dedans
+  lT=THREE.MathUtils.clamp(lT,-(ROAD_HALF-2.5),ROAD_HALF-2.5);
+  VBQ.lat+=(lT-VBQ.lat)*Math.min(1,dt*1.8);
+  const ds=VBQ.v*dt*SPD*cordeK(VBQ.s,VBQ.lat);VBQ.s+=ds;
+  VBQ.yaw+=(Math.atan2(VBQ.lat-VBQ.latP,Math.max(.01,ds))-VBQ.yaw)*Math.min(1,dt*8);VBQ.latP=VBQ.lat;
+  // le coup d'épaule : on se touche, on s'écarte — personne ne meurt, personne ne triche
+  VBQ.cd=Math.max(0,VBQ.cd-dt);
+  if(moi&&VBQ.cd<=0&&Math.abs(gp)<4.6&&Math.abs(lat-VBQ.lat)<2.3){VBQ.cd=.8;lat=VBQ.lat+(lat>=VBQ.lat?1:-1)*2.5;vA*=.96;shake=Math.max(shake,.3);hap(18);popTexte("COUP D'EPAULE",'#ffb000',1);try{thud(6);}catch(e){}}
+  const mene=gp<0;if(mene!==VBQ.mene){VBQ.mene=mene;if(mene){popTexte('TU MENES !','#ffd75e',1);try{chimeNote(noteP(5,1),0,.08,.2);}catch(e){}}else popTexte('IL REPASSE DEVANT','#ff5e7a',1);}
+  if(VBQ.s>=L-45){ // IL PASSE LE PORTAIL LE PREMIER
+    VBQ.fini=true;VBQ.g.visible=false;trailStep(VBQ.tr,0,0,0,0,0,0,0);
+    flashEcran('rgba(255,200,90,.55)');try{portalSnd();}catch(e){}
+    slam('LE BANQUIER A GAGNE','','#ffd75e','#ff5e7a',38,3);
+    CAMP.finT=1.6;CAMP.cause='banquier';vChip(TR('2E'),TR('LE BANQUIER A GAGNE'),'#ff5e7a');return;}
+  banquierPose(dt);
+  const e=Math.round(Math.abs(gp)/5)*5;
+  if(gp>0)vChip(TR('2E'),TR('LE BANQUIER A')+' '+e+' M','#9fe8ff');else vChip(TR('1ER'),TR('TU MENES DE')+' '+e+' M','#ffd75e');
+}
+function villeFinale(){ // le portail de MIDI franchi AVANT le banquier : la VILLE est finie, et le lingot est à toi
+  VBQ.on=false;VBQ.g.visible=false;trailStep(VBQ.tr,0,0,0,0,0,0,0);
+  const zb=denom()*60;money+=zb;levelCash+=zb;try{checkUpgrade();}catch(e){}
+  try{portalSnd();boostSnd(2);fanfare();}catch(e){}flashEcran('rgba(255,215,140,.75)');hap([40,40,40,40,120]);
+  carrMarque(Math.max(0,CARRIERE.findIndex(function(B){return B.id==='ville';})),9);runStats.zones++; // les dix niveaux de la VILLE : le lingot se débloque (condition carrV)
+  const ci=CARS.findIndex(function(c){return c.shape==='lingot';});
+  if(ci>=0){SAVE.d.equipped=ci;level=ci;try{buildCar(CARS[ci]);}catch(e){}SAVE.flush();} // TA caisse devient le lingot (équipé : on le garde en sortant)
+  CAMP.garde=true;mortCause='finVille';
+  endGame();
+}
+// ============ 8 · LES ÉTAGES : les colonnes de lumière ============
+// Les gués de ouate des NUAGES n'existent pas en ville (zéro nuage) : à leur place, six COLONNES montent du fond du canyon entre les
+// deux étages, leur tête 9 m au-dessus de la route — on les voit dépasser du bord, elles MONTRENT la coupe sans flèche ni texte.
+// Deux plans croisés par colonne, dégradé additif ; toutes les colonnes d'une piste en UN maillage.
+const VCOL=(function(){const cv=document.createElement('canvas');cv.width=4;cv.height=128;const x=cv.getContext('2d'),gr=x.createLinearGradient(0,0,0,128);
+  gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.1,'rgba(255,255,255,.8)');gr.addColorStop(.45,'rgba(255,255,255,.3)');gr.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=gr;x.fillRect(0,0,4,128);
+  return vMat(new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv),vertexColors:true,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide,fog:false}));})();
+function colonnesPose(){
+  const pos=[],uv=[],col=[],idx=[];let v=0;
+  for(const c of CAMP.coupes){const S=c.sA1-c.sA0,lg=ROAD_HALF+(c.gap-2*ROAD_HALF)/2;
+    for(let k=0;k<6;k++){frameAt(c.sA0+S*(.12+k*.14),F);
+      const cx=F.p.x+F.b.x*c.side*lg,cy=F.p.y+F.b.y*c.side*lg,cz=F.p.z+F.b.z*c.side*lg,top=cy+9,bot=cy-85,w=1.5,cc=k%2?[1.1,.72,.18]:[.2,.85,1.15];
+      for(const ax of [[F.t.x,F.t.z],[F.b.x,F.b.z]]){const hl=Math.hypot(ax[0],ax[1])||1,ux=ax[0]/hl*w,uz=ax[1]/hl*w;
+        pos.push(cx-ux,top,cz-uz,cx+ux,top,cz+uz,cx-ux,bot,cz-uz,cx+ux,bot,cz+uz);uv.push(0,1,1,1,0,0,1,0);
+        for(let q=0;q<4;q++)col.push(cc[0],cc[1],cc[2]);idx.push(v,v+2,v+1,v+1,v+2,v+3);v+=4;}}}
+  if(!v)return;
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.setIndex(idx);
+  const m=new THREE.Mesh(g,VCOL);m.frustumCulled=false;m.renderOrder=2;scene.add(m);trackMeshes.push(m);
+}
+// ============ L'AIGUILLAGE DE LA VILLE ============
+function villePlots(){ // crochet : fin de campPlots (buildTrack, la piste est posée) — le décor et les pièges dessinés du niveau
+  radarsVide();
+  const n=(LVL.cur&&LVL.cur.camp)|0;if(n<=10)return;
+  if(n===11)radarsPose();
+  else if(n===12)chainesPose();
+  else if(n===13)flaquesPose();
+  else if(n===16)catasPose();
+  else if(n===18){colonnesPose();for(const c of CAMP.coupes){const S=c.sA1-c.sA0;vPad(c.sB0+S*.6,0);vPad(c.sB0+S*.76,0);}} // l'étage du dessous PAIE : deux pads d'or là où l'on retombe
+}
+function villePieces(place){ // crochet : fin de campPieces
+  const n=campN();
+  if(n===20)for(const p of pickups)if(p.pow==='v'&&!p.taken){p.taken=true;scene.remove(p.mesh);} // la course du banquier ne se gagne pas au hasard d'un orbe
+  if(n===16)for(const pa of VZ.pannes)for(let sp=pa.s0+50;sp<pa.s1-30;sp+=22){ // dans le noir, un fil de pièces (qui brillent) trace la corde
+    const k=KAPB[Math.max(0,Math.min(NP-1,Math.round(sp/L*(NP-1))))];place(sp,Math.sign(k)*(ROAD_HALF-7)*Math.min(1,Math.abs(k)*320),false);}
+}
+function villeDebut(){ // crochet : campDebut (chaque niveau qui commence)
+  VC.chip='';vChip('');
+  Object.assign(VC,{sPrev:0,slip0:0,rowSlip:false,radN:0,radMax:0,radDitT:0,cour:1,panI:-1,panOk:true,panT:0,panFl:0,zap:0,gel:0,foudN:0,esqN:0,panN:0,aveugleN:0,fourgonVide:false});
+  CITY.uC.value=1;
+  if(CAMP.n!==11)radarsVide();
+  foudreCache();VFOU.t=2.5;
+  fourgonPrepare();traficPrepare();banquierPrepare();
+}
+function villeStop(){ // crochet : campStop (fin de partie)
+  vChip('');foudreCache();CITY.uC.value=1;VC.cour=1;
+  if(VBQ.on){VBQ.g.visible=false;trailStep(VBQ.tr,0,0,0,0,0,0,0);}
+}
+function meuteTick(){ // la PLAQUE du Survivant (niveau 14) : ton rang, la minute — rouge et clignotante quand tu es dernier
+  if(!SURV.on||SURV.chasse){vChip('');return;}
+  const pT=SURV.pBase+(mode==='fall'?lastNearS:s);let rk=1,vv=0;for(const b of SURV.bots)if(b.alive){vv++;if(b.totD>pT)rk++;}
+  const clk='0:'+String(Math.max(0,Math.ceil(60-SURV.t))).padStart(2,'0');
+  if(SURV.over)vChip(TR(vv?'SURVIVANT':'CHAMPION !'),'','#ffd75e');
+  else if(vv&&rk>vv)vChip(TR('DERNIER !'),TR('EXPLOSION DANS')+' '+clk,'#ff5e7a',true);
+  else vChip(TR('RANG')+' '+rk+' / '+(vv+1),TR('COUPERET DANS')+' '+clk,rk===1?'#ffd75e':'#9fe8ff');
+}
+function villeTick(dt){ // crochet : campTick
+  const n=CAMP.n,sp=vPos();
+  VC.gel=Math.max(0,VC.gel-dt);
+  if(n===11)radarsTick(dt,sp);
+  else if(n===12)chainesTick(dt,sp);
+  else if(n===13)flaquesTick(dt,sp);
+  else if(n===14)meuteTick();
+  else if(n===15)foudreTick(dt,sp);
+  else if(n===16)panneTick(dt,sp);
+  else if(n===17)fourgonTick(dt,sp);
+  else if(n===19)traficTick(dt,sp);
+  else if(n===20)banquierTick(dt,sp);
+  if(VC.zap>0){VC.zap-=dt; // la décharge de la foudre : la caisse grésille (reposée par la boucle à chaque image : ça tremble, ça ne dérive pas)
+    if(mode==='drive'){carBody.rotation.z+=(Math.random()-.5)*.09;carBody.rotation.x+=(Math.random()-.5)*.05;}
+    if(Math.random()<dt*22)try{sparkBurst(sparkBlue,carGroup.position,2,5);}catch(e){}}
+  VC.sPrev=sp;
+}
+function villeChauffePrep(){ // campChauffe : tout ce que la ville dessinera, visible UNE image devant la caméra du menu (renderer.compile ne voit que le visible)
+  const g=new THREE.Group(),geo=new THREE.BoxGeometry(1,1,1),c1=new THREE.Color(1,1,1),M=new THREE.Matrix4();
+  const imE=new THREE.InstancedMesh(geo,VEAU.mat,1),imR=new THREE.InstancedMesh(geo,VEAU.rim,1),imC=new THREE.InstancedMesh(geo,VCATA,1);
+  for(const im of [imE,imR,imC])im.setMatrixAt(0,M);imC.setColorAt(0,c1);
+  const lm=vLigneMat();g.add(imE,imR,imC,new THREE.Mesh(geo,lm),new THREE.Mesh(geo,VCOL));
+  for(const m of [VRAD.metal,VRAD.boite,VRAD.pan,VRAD.led,LINGOT_PL])g.add(new THREE.Mesh(geo,m));
+  g.position.copy(camera.position).add(CV1.set(0,0,-9).applyQuaternion(camera.quaternion));scene.add(g);g.updateMatrixWorld(true);
+  const vis=[VFG.g.visible,VBQ.g.visible];
+  for(const x of [VFG.g,VBQ.g]){x.visible=true;x.position.copy(g.position);x.updateMatrixWorld(true);}
+  VTR.o.position.copy(g.position);VTR.o.quaternion.identity();VTR.o.scale.set(1,1,1);VTR.o.updateMatrix();
+  for(const m of [VTR.im,VTR.imL,VTR.cl]){m.visible=true;m.count=1;m.setMatrixAt(0,VTR.o.matrix);m.instanceMatrix.needsUpdate=true;}
+  for(const m of [VFOU.ring,VFOU.inner,VFOU.disc]){m.visible=true;m.position.copy(g.position);}
+  return {g:g,geo:geo,lm:lm,vis:vis};
+}
+function villeChauffeFin(k){
+  scene.remove(k.g);k.geo.dispose();k.lm.dispose();
+  VFG.g.visible=k.vis[0];VBQ.g.visible=k.vis[1];
+  for(const m of [VTR.im,VTR.imL,VTR.cl]){m.count=0;m.visible=VTR.on;}
+  foudreCache();
+}
+for(const [k,v] of Object.entries({'FAIS-TOI FLASHER':'GET FLASHED','SUIS LA LIGNE DE NEON':'FOLLOW THE NEON LINE','LIS LES FLAQUES':'READ THE PUDDLES',
+  'NE FINIS PAS DERNIER':"DON'T FINISH LAST",'ESQUIVE LA FOUDRE':'DODGE THE LIGHTNING','ROULE DANS LE NOIR':'DRIVE IN THE DARK','VIDE LE FOURGON':'EMPTY THE CASH TRUCK',
+  "SAUTE D'UN ETAGE":'DROP A LEVEL','FAUFILE-TOI':'WEAVE THROUGH','BATS LE BANQUIER':'BEAT THE BANKER',
+  'RADAR':'SPEED CAMERA','DANS':'IN','EXCES DE VITESSE !':'SPEEDING!','FLASHE !':'FLASHED!','FLASHE... A PEINE':'FLASHED... BARELY',
+  'LIGNE':'LINE','LIGNE PARFAITE':'PERFECT LINE','LIGNE CASSEE':'LINE BROKEN','LIGNE DE NEON':'NEON LINE','PARFAITE !':'PERFECT!','CASSEE':'BROKEN','ENCHAINE LES PADS':'CHAIN THE PADS',
+  'AQUAPLANING !':'AQUAPLANING!','A SEC !':'BONE DRY!','A SEC':'BONE DRY',
+  'RANG':'RANK','DERNIER !':'LAST!','EXPLOSION DANS':'BLAST IN','COUPERET DANS':'CUT IN','SURVIVANT':'SURVIVOR','CHAMPION !':'CHAMPION!',
+  'FOUDROYE !':'STRUCK!','A L ABRI':'SHELTERED','ESQUIVE !':'DODGED!','ESQUIVE':'DODGE',"CELLULE D'ORAGE":'STORM CELL','LIS LE CERCLE':'READ THE CIRCLE',
+  'COUPURE !':'BLACKOUT!','COUPURE DE COURANT':'POWER CUT','SUIS LES CATADIOPTRES':'FOLLOW THE REFLECTORS','LE COURANT VACILLE':'THE POWER FLICKERS',
+  'A L AVEUGLE':'BLIND RUN','COURANT RETABLI':'POWER RESTORED',
+  'FOURGON':'CASH TRUCK','FOURGON VIDE !':'TRUCK EMPTIED!','FOURGON VIDE':'TRUCK EMPTIED','IL SEME SES BILLETS !':"IT'S DROPPING CASH!",'RESTE DERRIERE LUI':'STAY BEHIND IT',
+  'IL TE DOUBLE':"IT'S PASSING YOU",'DEVANT':'AHEAD',"LE FOURGON S'EST ENFUI":'THE TRUCK GOT AWAY','BRAQUAGE !':'HEIST!','BRAQUAGE':'HEIST','ACCROCHAGE':'SCRAPE','ACCROCHAGE !':'SCRAPE!',
+  'BOUCHON':'TRAFFIC JAM',
+  '1ER':'1ST','2E':'2ND','LE BANQUIER A':'BANKER AHEAD BY','TU MENES DE':'YOU LEAD BY','TU MENES !':'YOU LEAD!','IL REPASSE DEVANT':"HE'S BACK IN FRONT",
+  "COUP D'EPAULE":'SHOULDER BUMP','LE BANQUIER A GAGNE':'THE BANKER WON',"LE BANQUIER T'A BATTU":'THE BANKER BEAT YOU','LE LINGOT EST A TOI':'THE GOLD BAR IS YOURS',
+  'VILLE TERMINEE':'CITY COMPLETE','LE LINGOT':'THE GOLD BAR',
+  'Le banquier l\'avait mis au coffre. Tu l\'as gagné à la course : 999,9 millièmes de pure arrogance.':'The banker kept it in the vault. You won it in a race: 999.9 parts per thousand of pure arrogance.'}))if(!(k in I18N))I18N[k]=v;
+window.dbgVille=function(){ // (dev) l'état de la campagne VILLE
+  const sp=vPos();
+  return {niveau:villeN(),s:Math.round(sp),L:Math.round(L),plaque:VC.chip,
+    radars:VZ.radars.map(function(r){return Math.round(r.s)+(r.fait?'✓':'');}),radMax:Math.round(VC.radMax),
+    chaines:VZ.chaines.map(function(c){return {s0:Math.round(c.s0),n:c.n,de:c.lats.length,brise:!!c.brise,fini:!!c.fini};}),
+    flaques:VZ.flaques.length,oils:OILS.length,cellules:VZ.cellules.map(function(c){return [Math.round(c.s0),Math.round(c.s1)];}),foudre:{arme:VFOU.on,t:+VFOU.t.toFixed(2),touches:VC.foudN|0,esquives:VC.esqN|0},
+    pannes:VZ.pannes.map(function(c){return [Math.round(c.s0),Math.round(c.s1)];}),courant:+VC.cour.toFixed(2),aveugles:VC.aveugleN|0,
+    fourgon:VFG.on||VFG.fini?{ecart:Math.round(VFG.s-sp),lat:+VFG.lat.toFixed(1),v:Math.round(VFG.v*SPD*3.6),reste:VFG.cash,porte:+VFG.porte.toFixed(2),vide:VFG.fini}:null,
+    trafic:VTR.on?{voitures:VTR.cars.length,vivantes:VTR.cars.filter(function(c){return !c.mort;}).length,dessinees:VTR.im.count,chocs:VTR.chocN,froles:VTR.froN}:null,
+    banquier:VBQ.on?{ecart:Math.round(VBQ.s-sp),v:Math.round(VBQ.v*SPD*3.6),lat:+VBQ.lat.toFixed(1),fini:VBQ.fini}:null,
+    bouchons:VZ.bouchons.map(function(c){return [Math.round(c.s0),Math.round(c.s1)];}),coupes:CAMP.coupes.length};
+};
+window.dbgFoudre=function(){if(CAMP.n!==15||VFOU.on)return 'non';const c={s1:L};foudreArme(c);return {s:Math.round(VFOU.s),lat:+VFOU.lat.toFixed(1)};}; // (dev) une frappe armée tout de suite
+window.dbgCourant=function(v){VC.cour=+v;CITY.uC.value=+v;return VC.cour;}; // (dev) le courant de la ville (0 = panne) — hors niveau 16, la boucle le laisse tel quel
 // reconstruit le décor du menu dans le mode courant (course/parc) — même séquence que l'init
 function rebuildMenuScene(){ newTrack();respawn();setupIntroPig();frameAt(0,F);camera.position.copy(F.p).addScaledVector(F.t,-9).addScaledVector(F.n,4); }
 survBtnEl.addEventListener('click',e=>{e.stopPropagation();
@@ -24436,6 +25391,7 @@ function loop(now){
           boostSnd();shake=Math.max(shake,.3);hap(10);
           slam('BOOST','','#ffb000','#ff3924',46);flashEcran('rgba(255,150,0,.5)');fovPunch=Math.max(fovPunch,10); // (HUD v3) « quand tu roules sur un boost, BOOST en gros »
           nitroGain(.12);flowAdd(6);momT=Math.min(4.3,momT+.8);
+          campPad(i9); // (2026-09-27) la LIGNE DE NÉON (campagne VILLE, niveau 12)
           break;
         }
       }
@@ -25706,7 +26662,7 @@ function loop(now){
   }else if(swapRing.visible){swapRing.visible=false;swapLight.intensity=0;}
   juiceScreenTick(dt); // les taches de jus s'effacent, meme en pause
   fxTick(dt); // ⚠ hors du gate de sim : un refractaire fige en pause rejoue le son au retour
-  try{musicTick(dt,musMvt);updateDolphins(dt);updateSerpent(dt);updateBoomArt(dt);}catch(e){if(!loop._crWarn){console.warn('créatures/musique',e);loop._crWarn=1;}}
+  try{musicTick(dt,musMvt);villeApres();updateDolphins(dt);updateSerpent(dt);updateBoomArt(dt);}catch(e){if(!loop._crWarn){console.warn('créatures/musique',e);loop._crWarn=1;}}
   if(POST_ON&&composer)composer.render(); // ACES + bloom
   else renderer.render(scene,camera);      // repli si le post n'a pas pu se charger
   matSursisTick(); // (perf) les matières de la piste d'avant partent une fois la neuve rendue
@@ -26373,9 +27329,9 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       ot.textContent=TR(SANDBOX?'ENTRAINEMENT TERMINE':(recT?'NOUVEAU RECORD !':'GAME OVER'));
       ot.style.color=recT?'#ffd75e':'#ff5e7a';
       {const CAUSES={air:"6 S EN L'AIR : POSE-TOI AVANT",vide:'TOMBE DANS LE VIDE',tour:'ENCASTRE DANS UNE TOUR',arret:"6 S A L'ARRET : ROULE OU CREVE",police:'DERNIER DE LA MEUTE',
-         feu:'CRIBLE PAR LA POLICE',seme:"LA CAISSE-NUAGE T'A SEME",finNuages:'LA CAISSE-NUAGE EST A TOI'}; // (2026-09-27) les fins de la CAMPAGNE
-       const mc9=$t('mCause'),k9=SANDBOX?'':(CAUSES[mortCause]||'');if(mc9){mc9.textContent=k9?TR(k9):'';mc9.style.display=k9?'':'none';mc9.style.color=mortCause==='finNuages'?'#ffe7a8':'';}}
-      if(mortCause==='finNuages'){ot.textContent=TR('NUAGES TERMINES');ot.style.color='#ffd75e';if(mCompteSon._fin!==TCTL.mortT){mCompteSon._fin=TCTL.mortT;setTimeout(function(){try{pixBurst(ot,40);}catch(e){}},700);}} // (2026-09-27) la campagne est FINIE : l'enseigne le dit en or
+         feu:'CRIBLE PAR LA POLICE',seme:"LA CAISSE-NUAGE T'A SEME",finNuages:'LA CAISSE-NUAGE EST A TOI',banquier:"LE BANQUIER T'A BATTU",finVille:'LE LINGOT EST A TOI'}; // (2026-09-27) les fins de la CAMPAGNE
+       const mc9=$t('mCause'),k9=SANDBOX?'':(CAUSES[mortCause]||'');if(mc9){mc9.textContent=k9?TR(k9):'';mc9.style.display=k9?'':'none';mc9.style.color=(mortCause==='finNuages'||mortCause==='finVille')?'#ffe7a8':'';}}
+      if(mortCause==='finNuages'||mortCause==='finVille'){ot.textContent=TR(mortCause==='finVille'?'VILLE TERMINEE':'NUAGES TERMINES');ot.style.color='#ffd75e';if(mCompteSon._fin!==TCTL.mortT){mCompteSon._fin=TCTL.mortT;setTimeout(function(){try{pixBurst(ot,40);}catch(e){}},700);}} // (2026-09-27) la campagne est FINIE : l'enseigne le dit en or
       mCompteSon(recT);
       // Ce qui se gagne DANS une partie, c'est le MOTEUR (la caisse, elle, se choisit au garage) :
       // c'est donc lui qu'on montre en fin de run, pas un palier de voiture qui ne veut plus rien dire.

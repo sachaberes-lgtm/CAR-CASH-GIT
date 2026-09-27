@@ -63,6 +63,60 @@ niveau ajoute ou détourne UNE idée de jeu ». Tout est BRANCHÉ sur l'existant
 - **FINS DE PARTIE** : `mortCause` feu / seme / finNuages (CAUSES de mFill), gardée par `CAMP.garde` dans endGame ; REJOUER repart du
   niveau où l'on s'est arrêté (`CARR.actif.i` mis à jour dans endGame) ; la stat NIVEAU dit le vrai numéro.
 
+## LA CAMPAGNE VILLE (2026-09-27) — du coucher du soleil à midi, dix idées de jeu
+Même méthode que les NUAGES, même exigence (« parfait du premier coup »). `CARRIERE[1].niveaux` porte `camp:11…20` + `pr` ; les pistes
+sont dessinées dans `genCampagne` (branche `n>10`, pas de looping, pentes douces) et **la ville se bâtit toute seule autour**
+(`buildVoxCity`, qui marche sur n'importe quel ruban). Systèmes : bloc « LA CAMPAGNE VILLE — LES SYSTÈMES » (juste après celui des
+NUAGES, avant `rebuildMenuScene`). Branchés sur les crochets de la campagne (`campRepere` → `VZ`, `campPlots` → `villePlots`,
+`campPieces` → `villePieces`, `campDebut` → `villeDebut`, `campTick` → `villeTick`, `campStop` → `villeStop`, `campChauffe` →
+`villeChauffePrep/Fin`) + QUATRE lignes ailleurs : `campPad(i9)` dans la prise de pad, `villeApres()` juste après `musicTick`, le portail
+du niveau 20 dans `portailPasse`, la meute dans `survStart`/`survTick` (`SURV.camp`). ⚠ `lvlNuageOk` : la campagne ne choisit son ciel
+QUE pour les NUAGES (`c.camp&&c.id==='nuages'`) — la ville garde zéro nuage (les gués des coupes n'y naissent pas).
+- **LA PLAQUE** `#campChip` (`vChip(txt,sous,col,alerte)`) : ce qu'on LIT, en haut (sous la jauge de nitro au téléphone) — un cadre
+  d'arcade opaque, deux lignes (l'objectif, son chiffre) ; ne se repeint que si le texte change. Radar à venir, file de pads, cellule
+  d'orage, panne, fourgon, bouchon, banquier, rang de la meute.
+- **1 COUCHER — FAIS-TOI FLASHER** : trois portiques RADAR (`VZ.radars`, `radarsPose`) au bout de trois droites ; le flash paie
+  `denom × km/h/22` (×2 en EXCÈS DE VITESSE, ≥ 97 % de `vmaxShow()`), slam « 412 KM/H », déclic + bip ; la plaque annonce « RADAR · DANS 240 M ».
+  Les éclairs de flash sont des sprites HORS `trackMeshes` (leur géométrie est celle de tous les sprites) : `radarsVide`.
+- **2 SOIRÉE — SUIS LA LIGNE DE NÉON** : cinq FILES de 5 à 7 pads d'or (`VZ.chaines`, `chainesPose`, `vPad`) reliées par un TRAIT de
+  lumière posé sur la route (ShaderMaterial additif : parcouru = brillant, tronçon suivant = tirets qui filent, suite en veilleuse,
+  cassé = éteint). `campPad` : `padCd` ramené à 0,45 s dans une file (le pad suivant est à ~110 m), « LIGNE ×k », file complète =
+  LIGNE PARFAITE (slam, `denom×6×n`, demi-nitro). Pad raté = LIGNE CASSEE. `campPadNon` écarte les pads au hasard des files.
+- **3 PLUIE — LIS LES FLAQUES** : rangées d'eau en travers (`VZ.flaques`, `flaquesPose`, 2 InstancedMesh : eau réfléchissante + liseré
+  cyan), UNE ligne sèche de 16 → 9 m qui change de côté, puis des DAMIERS (deux rangs en quinconce). L'eau = une entrée `OILS` : le
+  glissement des flaques d'huile de la boucle (aquaplaning, gerbe d'eau). Rangée passée sans glisser = « A SEC ! ».
+- **4 MINUIT — NE FINIS PAS DERNIER** : le Survivant tel quel (7 voitures, couperet à chaque minute) — `campMeute()` dans `survStart`,
+  HUD du Survivant et `#lastAlert` masqués en campagne (`SURV.camp`) : la PLAQUE dit « RANG 3 / 8 · COUPERET DANS 0:42 », rouge
+  clignotante « DERNIER ! » ; la caisse clignote rouge comme avant.
+- **5 ORAGE — ESQUIVE LA FOUDRE** : trois CELLULES (`VZ.cellules`) ; toutes les 2-3,2 s un CERCLE se pose là où tu seras dans ~1,3 s
+  (2 fois sur 3 sur ta ligne, sinon une autre file), se resserre sur le rayon mortel (`VFOU_R` 7,5 m) avec un bourdon qui monte, puis
+  `eclVers` fait tomber l'éclair PILE dedans (le moteur d'éclairs du niveau 9). Touché = « FOUDROYE ! » : vitesse ×0,55, nitro ×0,4,
+  FLOW −25, la caisse grésille — jamais la vie. Sous la dalle = « A L ABRI ». Frôlé = « ESQUIVE ! ». Les éclairs lointains continuent.
+- **6 AVANT L'AUBE — ROULE DANS LE NOIR** : trois PANNES (`VZ.pannes`). L'uniforme `CITY.uC` (dans les trois matières de la ville :
+  fenêtres, liserés des toits, enseignes, réclames) vacille 170 m avant, tombe à 0 dedans, revient avec des ratés. Le néon de la route
+  est baissé à 7 % dans `villeApres` (APRÈS musicTick, qui le repeint chaque image depuis `userData.base` — on ne touche QUE ce qui a une
+  base, rien ne s'accumule) ; les phares portent 136 m. Les CATADIOPTRES (`catasPose`, ambre à gauche, blanc à droite, tous les 14 m,
+  `fog:false`) dessinent les bords ; un fil de pièces trace la corde dans le noir. Sortir sans quitter la route = « A L AVEUGLE ».
+- **7 AUBE — VIDE LE FOURGON** (`VFG`) : fourgon blindé bleu nuit à bandes d'or, créé à l'init. TES équations, ton moteur ×1,04 (sans nitro
+  il file, avec tu le rattrapes). Collé derrière lui (3-50 m, dessus de la dalle ou en vol) : les portes s'OUVRENT, 7,5 pièces/s tombent
+  sur la route — de vraies entrées `pickups` (réserve de 40 maillages recyclés), ramassées par la boucle normale. 80 pièces ; vidé =
+  « FOURGON VIDE ! » (`denom×25`), puis il s'enfuit (×1,3). Le percuter par l'arrière = dix pièces d'un coup (« BRAQUAGE ! ») et un coup
+  de frein. Côte à côte, il déboîte toujours de l'autre côté.
+- **8 LEVER — SAUTE D'UN ÉTAGE** : trois ovales (la coupe des NUAGES 6), `RACCOURCI !` inchangé ; à la place des gués de ouate, six
+  COLONNES de lumière (`colonnesPose`, deux plans croisés, un seul maillage) montent du vide entre les étages, tête 9 m au-dessus de la
+  route ; deux pads d'or attendent sur l'étage du dessous.
+- **9 MATIN — FAUFILE-TOI** (`VTR`) : huit files de 7 m, 2-3 voitures par rangée (4-6 dans les deux BOUCHONS), jamais les huit : 100-160
+  km/h (60-90 en bouchon), plus vite à gauche. Voiture / fourgonnette / bus (échelles). Clignotant 1,1 s puis changement de file 1,3 s.
+  Trois InstancedMesh (caisses teintées, feux, clignotants), on ne dessine que la face où l'on roule. ACCROCHAGE = vitesse ×0,62, FLOW
+  −15, la voiture part en toupie ; le FRÔLÉ (`frole`, le système des plots) paie ; foncer dans sa file = klaxon. Trafic à graine fixe.
+- **10 MIDI — BATS LE BANQUIER** (`VBQ`) : une course au portail contre LE LINGOT (gabarit `SHAPES.lingot` : tronc de pyramide d'or à
+  quatre pans, plaque poinçonnée 999,9, `LINGOT_MAT` partagée avec la caisse du garage). TES équations ×`VBQ_K`, la corde (`banquierLigne`),
+  jamais de nitro, jamais d'étage sauté, aspiration dans les deux sens, coup d'épaule sans dégât. Il passe le portail avant toi = « LE
+  BANQUIER A GAGNÉ » (fin 1,6 s après, cause `banquier`). Toi d'abord = `villeFinale` : `carrMarque(ville,9)`, LE LINGOT débloqué
+  (`{k:'carrV',v:10}`) et ÉQUIPÉ, écran « VILLE TERMINEE ». L'orbe VITESSE est retiré du niveau.
+- **HOOKS** : `dbgCampagne(n,1)` (niveau n de la VILLE), `dbgVille()` (tout l'état), `dbgFoudre()`, `dbgCourant(v)`. Bancs Puppeteer :
+  `scratchpad/pp/v1.js` (les dix niveaux), `vplay.js niveau [nitro] [coupe] [suit]` (parcours complet).
+
 ## ⚠ DEUX ÉDITIONS, UN SEUL JEU (2026-09-25) — LIRE EN PREMIER
 - Le dossier `version-fusion-2026-09` s'appelle désormais **`VERSION PRINCIPALE`** (la version mobile fusionnée) ;
   **`AUTRE VERSION`** = la version PC. Les deux `index.html` sont IDENTIQUES sauf `const EDITION='mobile'|'pc'`
