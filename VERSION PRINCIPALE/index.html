@@ -13338,7 +13338,7 @@ function chauffeRendu(){ try{
   // Un objet CACHÉ dont la matière n'a encore jamais été compilée reste caché : on prépare le dessin de ce qui existe, on ne compile
   // rien d'inutile (mesuré : 4 programmes au 1er portail pour des objets qui ne s'affichent jamais — 100-400 ms perdus sur iPhone).
   const vis=[],cul=[],off=[];
-  (function walk(o,h0){ if(o.isLight)return;const h=h0||!o.visible;
+  (function walk(o,h0){ if(o.isLight||o===GAR.root)return;const h=h0||!o.visible; // l'ATELIER a son propre éclairage (lampes de l'étal) : sous celui de la course ses matières se recompilaient (2 programmes au 1er portail, mesuré) — il ne s'affiche jamais en course
     if(o.isMesh||o.isPoints||o.isSprite||o.isLine){const m=Array.isArray(o.material)?o.material[0]:o.material,pr=m&&renderer.properties.get(m).currentProgram;
       if(h&&!pr){if(o.visible){o.visible=false;off.push(o);}}
       else{if(!o.visible){o.visible=true;vis.push(o);}if(o.frustumCulled){o.frustumCulled=false;cul.push(o);}}}
