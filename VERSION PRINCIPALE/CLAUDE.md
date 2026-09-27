@@ -84,8 +84,10 @@ QUE pour les NUAGES (`c.camp&&c.id==='nuages'`) — la ville garde zéro nuage (
   lumière posé sur la route (ShaderMaterial additif, 2,2 m de large : parcouru = OR, tronçon suivant = tirets CYAN qui filent, suite en
   veilleuse cyan, cassé = éteint — en orange il se confondait avec la flamme de nitro ; la 1re file est à 8 m de l'axe, pas SUR la ligne centrale). `campPad` : `padCd` ramené à 0,45 s dans une file (le pad suivant est à ~110 m), « LIGNE ×k », file complète =
   LIGNE PARFAITE (slam, `denom×6×n`, demi-nitro). Pad raté = LIGNE CASSEE. `campPadNon` écarte les pads au hasard des files.
-- **3 PLUIE — LIS LES FLAQUES** : rangées d'eau en travers (`VZ.flaques`, `flaquesPose`, 2 InstancedMesh : eau réfléchissante + liseré
-  cyan), UNE ligne sèche de 16 → 9 m qui change de côté, puis des DAMIERS (deux rangs en quinconce). L'eau = une entrée `OILS` : le
+- **3 PLUIE — LIS LES FLAQUES** : rangées d'eau en travers (`VZ.flaques`, `flaquesPose`, 2 InstancedMesh : EAU DE NÉON — fond bleu nuit,
+  rides concentriques et bord cyan qui brillent, `VEAU.mat` + onBeforeCompile — et liseré cyan additif ; MESURÉ en capture : dans l'objectif
+  portrait la route à 20 m est déjà tassée sous l'horizon, une flaque sombre ou réfléchissante y était invisible ; la plaque annonce
+  « FLAQUES · DANS 180 M », jamais le côté sec), UNE ligne sèche de 16 → 9 m qui change de côté, puis des DAMIERS (deux rangs en quinconce). L'eau = une entrée `OILS` : le
   glissement des flaques d'huile de la boucle (aquaplaning, gerbe d'eau). Rangée passée sans glisser = « A SEC ! ».
 - **4 MINUIT — NE FINIS PAS DERNIER** : le Survivant tel quel (7 voitures, couperet à chaque minute) — `campMeute()` dans `survStart`,
   HUD du Survivant et `#lastAlert` masqués en campagne (`SURV.camp`) : la PLAQUE dit « RANG 3 / 8 · COUPERET DANS 0:42 », rouge
@@ -102,8 +104,8 @@ QUE pour les NUAGES (`c.camp&&c.id==='nuages'`) — la ville garde zéro nuage (
   les bords ; un fil de pièces trace la corde dans le noir. Sortir sans quitter la route = « A L AVEUGLE ».
 - **7 AUBE — VIDE LE FOURGON** (`VFG`) : fourgon blindé ARGENT à bandes d'or (×1,25 ; en bleu nuit il disparaissait sur le bitume de l'aube), créé à l'init. Un LIÈVRE qui règle sa vitesse sur la tienne
   (MESURÉ : avec tes équations ×1,04, le FLOW, les pads et l'élan te le faisaient doubler à 24 s et il finissait 2,5 km derrière, 4 % vidé) :
-  +3 % dans son semis, +12 % collé à < 14 m, +12 à +72 % si tu l'as doublé (il revient d'autant plus vite qu'il est loin), ta vitesse loin
-  devant, ×1,35 vidé. Collé derrière lui (3-50 m, dessus de la dalle ou en vol) : les portes s'OUVRENT, 6 pièces/s tombent
+  +3 % dans son semis (il se tient à 8-40 m : à 30 m il ne faisait que 25 px en portrait), +12 % collé à < 8 m, +12 à +72 % si tu l'as doublé (il revient d'autant plus vite qu'il est loin), ta vitesse loin
+  devant, ×1,35 vidé. Collé derrière lui (3-45 m, dessus de la dalle ou en vol ; une étiquette « FOURGON $ » flotte au-dessus) : les portes s'OUVRENT, 6 pièces/s tombent
   sur la route — de vraies entrées `pickups` (réserve de 40 maillages recyclés), ramassées par la boucle normale. 80 pièces ; vidé =
   « FOURGON VIDE ! » (`denom×25`), puis il s'enfuit (×1,3). Le percuter par l'arrière = dix pièces d'un coup (« BRAQUAGE ! ») et un coup
   de frein. Côte à côte, il déboîte toujours de l'autre côté.
@@ -119,7 +121,8 @@ QUE pour les NUAGES (`c.camp&&c.id==='nuages'`) — la ville garde zéro nuage (
   quatre pans, plaque poinçonnée 999,9, `LINGOT_MAT` partagée avec la caisse du garage — or MÉTAL : base cuivrée sombre, spéculaire doré ;
   en 0xffc33a il sortait jaune pâle). TES équations ET ton FLOW ×`VBQ_K` 1,07 (MESURÉ sans le FLOW : tu gagnais de 640 m au nitro sans sauter
   d'étage, et tu le rattrapais même sans nitro ; à flow égal, sans nitro tu perds — 275 m à 40 s et ça s'ouvre), la corde (`banquierLigne`),
-  jamais de nitro, jamais d'étage sauté, aspiration dans les deux sens, coup d'épaule sans dégât. Il passe le portail avant toi = « LE
+  jamais de nitro, jamais d'étage sauté, aspiration dans les deux sens, coup d'épaule sans dégât. ×1,25 et une étiquette « BANQUIER »
+  flotte au-dessus (`vEtiquette`, comme les pouvoirs : à 20 m il faisait une pépite). Il passe le portail avant toi = « LE
   BANQUIER A GAGNÉ » (fin 1,6 s après, cause `banquier`). Toi d'abord = `villeFinale` : `carrMarque(ville,9)`, LE LINGOT débloqué
   (`{k:'carrV',v:10}`) et ÉQUIPÉ, écran « VILLE TERMINEE ». L'orbe VITESSE est retiré du niveau.
 - **HOOKS** : `dbgCampagne(n,1)` (niveau n de la VILLE), `dbgVille()` (tout l'état), `dbgFoudre()`, `dbgCourant(v)`, `dbgTrafic()`. Bancs

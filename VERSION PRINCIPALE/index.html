@@ -23599,6 +23599,15 @@ function vPose(o,sv,lt,h,fy){ // poser un objet sur la route (repère b, n, t), 
   o.quaternion.setFromRotationMatrix(VM4);return o;
 }
 function vMat(m){m.dispose=function(){};return m;}          // une matière PARTAGÉE de la campagne : la reconstruction ne la jette jamais
+// L'ÉTIQUETTE FLOTTANTE (comme celles des pouvoirs) : MESURÉ en capture, dans l'objectif portrait un fourgon ou un lingot à 30 m ne fait
+// que quelques pixels, collé à l'horizon — le nom en lettres pixel, cerclé d'encre, flotte au-dessus : on sait où est la cible.
+function vEtiquette(txt,col){
+  const cv=document.createElement('canvas');cv.width=256;cv.height=64;const tx=new THREE.CanvasTexture(cv);
+  const des=function(){const x=cv.getContext('2d');x.clearRect(0,0,256,64);x.textAlign='center';x.textBaseline='middle';x.font='22px "Press Start 2P",monospace';
+    x.lineWidth=8;x.lineJoin='round';x.strokeStyle='#1c0430';const l9=TR(txt);x.strokeText(l9,128,34);x.fillStyle=col;x.fillText(l9,128,34);tx.needsUpdate=true;};
+  des();try{if(document.fonts&&document.fonts.load)document.fonts.load('22px "Press Start 2P"').then(des).catch(function(){});}catch(e){}
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:tx,transparent:true,depthWrite:false,fog:false}));s.scale.set(8,2,1);s.renderOrder=6;return s;
+}
 // ---- LA PLAQUE : ce qu'on LIT, en haut de l'écran (charte : le haut est pour lire, le bas pour toucher) ----
 let vChipEl=null;
 function vChip(txt,sous,col,alerte){
@@ -23716,11 +23725,18 @@ function chainesTick(dt,sp){
   if(vu)vChip(TR('LIGNE')+' '+vu.n+' / '+vu.lats.length,TR(vu.fini?'PARFAITE !':vu.brise?'CASSEE':'ENCHAINE LES PADS'),vu.brise?'#8f84c8':'#ffd75e');else vChip('');
 }
 // ============ 3 · LES FLAQUES ============
-// (mesuré en capture) sur le bitume MOUILLÉ de la pluie, qui renvoie lui aussi les néons, une eau réfléchissante se confondait avec la route :
-// l'eau est NOIRE (un trou dans les reflets), le liseré cyan vif, et la flaque allongée dans le sens de la route (l'objectif rasant l'écrasait).
-const VEAU={mat:vMat(new THREE.MeshPhongMaterial({color:0x03060b,specular:0x9fe8ff,shininess:300,envMap:envTex,reflectivity:.28,combine:THREE.MixOperation,transparent:true,opacity:.96,
-    polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2})),
-  rim:vMat(new THREE.MeshBasicMaterial({color:0x5ef0ff,transparent:true,opacity:.78,depthWrite:false,blending:THREE.AdditiveBlending,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}))};
+// (mesuré en capture, deux passes) dans l'objectif portrait, la route devant la caisse se TASSE en une fine bande sous l'horizon : une
+// flaque sombre (même noire) y devenait un trait invisible, et une eau réfléchissante se confondait avec le bitume mouillé. Les pads se
+// lisent parce qu'ils BRILLENT : l'eau est donc de l'EAU DE NÉON — fond bleu nuit, rides concentriques qui brillent et bord cyan
+// lumineux (la couleur de la pluie ; jamais une tache rose ou blanche). La ride suit la flaque (coordonnées locales du disque).
+const VEAU={mat:vMat(new THREE.MeshBasicMaterial({color:0x0b2238,transparent:true,opacity:.94,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2})),
+  rim:vMat(new THREE.MeshBasicMaterial({color:0x5ef0ff,transparent:true,opacity:.7,depthWrite:false,blending:THREE.AdditiveBlending,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}))};
+VEAU.mat.onBeforeCompile=function(sh){sh.uniforms.uT9=CITY.uT;
+  sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec2 vP9;').replace('#include <begin_vertex>','#include <begin_vertex>\nvP9=position.xy;');
+  sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9;varying vec2 vP9;')
+    .replace('#include <fog_fragment>','{float r=length(vP9),rip=pow(.5+.5*sin(r*15.-uT9*3.2),6.);'+
+      'gl_FragColor.rgb+=vec3(.22,.78,1.1)*(rip*.45*(1.-r)+smoothstep(.7,1.,r)*1.1);}\n#include <fog_fragment>');};
+VEAU.mat.customProgramCacheKey=function(){return 'eauNeonV1';};
 function flaquesPose(){ // chaque rangée couvre la route SAUF sa ligne sèche ; un damier = deux rangs en quinconce
   const R=3,P=[];
   for(const f of VZ.flaques){f.fait=false;
@@ -23732,8 +23748,8 @@ function flaquesPose(){ // chaque rangée couvre la route SAUF sa ligne sèche ;
   const o=new THREE.Object3D();let q=0;
   for(let i=0;i<n;i++)for(const fy of [1,-1]){const sv=P[i*2],lt=THREE.MathUtils.clamp(P[i*2+1],-(ROAD_HALF-4.2),ROAD_HALF-4.2);
     frameAt(sv,F);o.quaternion.setFromRotationMatrix(VM4.makeBasis(F.b,VV1.copy(F.t).negate().multiplyScalar(fy),VV2.copy(F.n).multiplyScalar(fy)));
-    o.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,fy>0?.05:-THICK-.05);o.scale.set(R*1.35,R*2.6,1);o.updateMatrix();imE.setMatrixAt(q,o.matrix);
-    o.position.addScaledVector(F.n,fy>0?-.01:.01);o.scale.set(R*1.58,R*2.95,1);o.updateMatrix();imR.setMatrixAt(q,o.matrix);q++;
+    o.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,fy>0?.05:-THICK-.05);o.scale.set(R*1.45,R*3.2,1);o.updateMatrix();imE.setMatrixAt(q,o.matrix);
+    o.position.addScaledVector(F.n,fy>0?-.01:.01);o.scale.set(R*1.7,R*3.6,1);o.updateMatrix();imR.setMatrixAt(q,o.matrix);q++;
     OILS.push({s:sv,lat:lt,r:R,face:fy});}
   for(const im of [imE,imR]){im.instanceMatrix.needsUpdate=true;im.frustumCulled=false;scene.add(im);trackMeshes.push(im);}
   imR.renderOrder=1;
@@ -23747,6 +23763,9 @@ function flaquesTick(dt,sp){
   for(const f of VZ.flaques){if(f.fait||sp<f.s+(f.d?64:6))continue;f.fait=true;
     if(!VC.rowSlip){VC.secN=(VC.secN|0)+1;popTexte('A SEC !','#7dffec',0);flowAdd(f.d?10:6);nitroGain(f.d?.1:.06);try{chaineAura('A SEC',f.d?30:18,'sec');}catch(e){}}
     VC.rowSlip=false;}
+  // la plaque annonce la prochaine rangée (jamais le côté sec : ça, ça se LIT)
+  let nx=null;for(const f of VZ.flaques)if(!f.fait&&f.s+(f.d?64:6)>sp){nx=f;break;}
+  if(nx&&nx.s-sp<260)vChip(TR('FLAQUES'),nx.s>sp?TR('DANS')+' '+Math.max(0,Math.round((nx.s-sp)/10)*10)+' M':TR('A SEC ?'),'#5ef0ff');else vChip('');
 }
 // ============ 5 · LA FOUDRE ============
 // Le cercle se pose là où tu SERAS dans ~1,3 s (deux frappes sur trois visent ta trajectoire, la troisième une autre file) ; il se
@@ -23909,9 +23928,10 @@ const VFG=(function(){
   for(const sd of [-1,1]){const a=new THREE.Sprite(phM);a.scale.set(.9,.9,1);a.position.set(sd*.95,1.0,3.42);g.add(a);
     const r=new THREE.Sprite(feM);r.scale.set(.7,.7,1);r.position.set(sd*1.15,1.0,-3.4);g.add(r);}
   const gy=new THREE.Sprite(giM);gy.scale.set(1.6,1.6,1);gy.position.set(0,3.45,-.5);g.add(gy); // le gyrophare orange du toit
+  const eti=vEtiquette('FOURGON $','#ffd75e');eti.position.set(0,5.4,0);g.add(eti);
   g.traverse(o=>{if(o.isMesh)o.castShadow=true;});g.scale.setScalar(1.25);g.visible=false;scene.add(g); // ×1,25 : comme le trafic, lisible dans l'objectif portrait
   const pool=[];for(let i=0;i<40;i++)pool.push({m:new THREE.Mesh(pickGeo,pickMat),pk:null,dans:false,ax:new THREE.Vector3()});
-  return {g:g,portes:portes,roues:roues,gy:gy,pool:pool,on:false,s:0,lat:0,latP:0,lane:9,v:0,momT:0,yaw:0,cash:80,cash0:80,acc:0,porte:0,cd:0,fini:false,fuite:false,finT:0,semeT:0,pris:0};
+  return {g:g,portes:portes,roues:roues,gy:gy,eti:eti,pool:pool,on:false,s:0,lat:0,latP:0,lane:9,v:0,momT:0,yaw:0,cash:80,cash0:80,acc:0,porte:0,cd:0,fini:false,fuite:false,finT:0,semeT:0,pris:0};
 })();
 function fourgonPrepare(){
   const on=CAMP.n===17&&!PARK.on;VFG.on=on;VFG.g.visible=on;
@@ -23942,6 +23962,7 @@ function fourgonPose(dt){
   const rv=VFG.v*SPD*dt/.55;for(const w of VFG.roues)w.rotation.x+=rv;
   for(let i=0;i<2;i++)VFG.portes[i].rotation.y=(i?1:-1)*VFG.porte*1.85; // les battants s'ouvrent vers l'EXTÉRIEUR
   VFG.gy.visible=(CITY.uT.value*3)%1<.55;
+  VFG.eti.position.y=5.4+.25*Math.sin(CITY.uT.value*2.2);VFG.eti.visible=!VFG.fini; // l'étiquette flotte (et s'éteint une fois le fourgon vidé)
   g.visible=VFG.on&&Math.abs(VFG.s-vPos())<1100;
 }
 function fourgonTick(dt,sp){
@@ -23950,7 +23971,7 @@ function fourgonTick(dt,sp){
   // auto le doublait à 24 s (le FLOW, les pads et l'élan poussent ta caisse au-delà de ton moteur nu) et il finissait 2,5 km derrière, 4 %
   // vidé. Désormais : +3 % quand tu es dans son semis (sans nitro tu décroches, avec tu tiens), +12 % si tu lui colles au pare-chocs,
   // +12 à +72 % si tu l'as doublé (il te REPASSE, d'autant plus vite qu'il est loin), ta vitesse quand il est loin devant, ×1,35 vidé.
-  const gp=VFG.s-sp,moi=mode==='drive'&&side>0,vP=vKmh()/(3.6*SPD),kT=VFG.fuite?1.35:gp<0?1.12+Math.min(.6,-gp/300):gp<14?1.12:gp<50?1.03:gp<260?1:.95; // (2e mesure : à +15 % fixe, doublé de 500 m il mettait 36 s à revenir — il revient d'autant plus vite qu'il est loin ; collé à 14 m, il s'écarte un peu)
+  const gp=VFG.s-sp,moi=mode==='drive'&&side>0,vP=vKmh()/(3.6*SPD),kT=VFG.fuite?1.35:gp<0?1.12+Math.min(.6,-gp/300):gp<8?1.12:gp<40?1.03:gp<260?1:.95; // (2e mesure : à +15 % fixe, doublé de 500 m il mettait 36 s à revenir — il revient d'autant plus vite qu'il est loin ; collé à 8 m, il s'écarte un peu ; 3e : il se tient à 8-40 m — à 30 m, en portrait, il faisait 25 px)
   VFG.v+=(Math.max(26,vP*kT)-VFG.v)*Math.min(1,dt*.9);
   let lT=VFG.lane;if(moi&&gp<16&&gp>-34)lT=lat>0?-12:12; // on se côtoie : il passe de L'AUTRE côté (il ne te rentre jamais dedans)
   VFG.lat+=(lT-VFG.lat)*Math.min(1,dt*1.3);
@@ -23958,7 +23979,7 @@ function fourgonTick(dt,sp){
   VFG.yaw+=(Math.atan2(VFG.lat-VFG.latP,Math.max(.01,ds))-VFG.yaw)*Math.min(1,dt*8);VFG.latP=VFG.lat;
   if(VFG.s>=L-45){VFG.on=false;VFG.g.visible=false;VFG.porte=0;if(!VFG.fini)popTexte("LE FOURGON S'EST ENFUI",'#8f84c8',0);vChip('');return;} // il passe le portail avant toi
   // LE SEMIS : collé derrière lui (sur le dessus de la dalle, ou en vol), ses portes s'ouvrent et les pièces tombent
-  const seme=!VFG.fini&&VFG.cash>0&&gp>3&&gp<50&&(mode==='fall'||(moi&&Math.abs(lat-VFG.lat)<20));
+  const seme=!VFG.fini&&VFG.cash>0&&gp>3&&gp<45&&(mode==='fall'||(moi&&Math.abs(lat-VFG.lat)<20));
   VFG.porte+=((seme?1:0)-VFG.porte)*Math.min(1,dt*(seme?4:2));
   if(seme){if(VFG.semeT<=0)popTexte('IL SEME SES BILLETS !','#ffd75e',1);VFG.semeT=1.5;
     VFG.acc+=dt*6;while(VFG.acc>=1&&VFG.cash>0){VFG.acc-=1;fourgonPiece(VFG.s-5.2,VFG.lat+(Math.random()-.5)*6);}
@@ -24138,8 +24159,9 @@ const VBQ=(function(){
         feM=new THREE.SpriteMaterial({map:lampTex,color:0xff3a22,transparent:true,opacity:.9,depthWrite:false});
   for(const sx of [-1,1]){const a=new THREE.Sprite(phM);a.scale.set(.8,.8,1);a.position.set(sx*.62,.66,2.2);g.add(a);
     const r=new THREE.Sprite(feM);r.scale.set(.62,.62,1);r.position.set(sx*.66,.7,-2.18);g.add(r);}
+  const eti=vEtiquette('BANQUIER','#ffd75e');eti.position.set(0,3.6,0);g.add(eti);
   g.traverse(o=>{if(o.isMesh)o.castShadow=true;});g.scale.setScalar(1.25);g.visible=false;scene.add(g); // ×1,25 : à 20 m devant, en portrait, il faisait une pépite
-  return {g:g,roues:roues,tr:mkTrail(),on:false,s:0,lat:0,latP:0,v:0,momT:0,yaw:0,fini:false,line:null,tmp:null,cd:0,mene:false};
+  return {g:g,eti:eti,roues:roues,tr:mkTrail(),on:false,s:0,lat:0,latP:0,v:0,momT:0,yaw:0,fini:false,line:null,tmp:null,cd:0,mene:false};
 })();
 function banquierLigne(){ // SA ligne : la corde de chaque virage, lissée sur ±60 m (la même que la caisse-nuage, sans les coupes)
   if(!VBQ.line||VBQ.line.length!==NP){VBQ.line=new Float32Array(NP);VBQ.tmp=new Float32Array(NP);}
@@ -24161,6 +24183,7 @@ function banquierPose(dt){
   g.position.copy(GF.p).addScaledVector(GF.b,VBQ.lat);
   CM4.makeBasis(GF.b,GF.n,GF.t);g.quaternion.setFromRotationMatrix(CM4);g.rotateY(VBQ.yaw);
   const rv=VBQ.v*SPD*dt/.4;for(const w of VBQ.roues)w.rotation.x+=rv;
+  VBQ.eti.position.y=3.6+.2*Math.sin(CITY.uT.value*2.4);
   g.visible=VBQ.on&&!VBQ.fini&&Math.abs(VBQ.s-vPos())<1100;
   CV1.set(0,1,-2.9).applyQuaternion(g.quaternion).add(g.position); // son ruban d'OR : on le suit à la trace
   trailStep(VBQ.tr,CV1.x,CV1.y,CV1.z,1.35,1.02,.36,VBQ.fini?0:.8,3.2);
@@ -24304,12 +24327,12 @@ for(const [k,v] of Object.entries({'FAIS-TOI FLASHER':'GET FLASHED','SUIS LA LIG
   "SAUTE D'UN ETAGE":'DROP A LEVEL','FAUFILE-TOI':'WEAVE THROUGH','BATS LE BANQUIER':'BEAT THE BANKER',
   'RADAR':'SPEED CAMERA','DANS':'IN','EXCES DE VITESSE !':'SPEEDING!','FLASHE !':'FLASHED!','FLASHE... A PEINE':'FLASHED... BARELY',
   'LIGNE':'LINE','LIGNE PARFAITE':'PERFECT LINE','LIGNE CASSEE':'LINE BROKEN','LIGNE DE NEON':'NEON LINE','PARFAITE !':'PERFECT!','CASSEE':'BROKEN','ENCHAINE LES PADS':'CHAIN THE PADS',
-  'AQUAPLANING !':'AQUAPLANING!','A SEC !':'BONE DRY!','A SEC':'BONE DRY',
+  'AQUAPLANING !':'AQUAPLANING!','A SEC !':'BONE DRY!','A SEC':'BONE DRY','FLAQUES':'PUDDLES','A SEC ?':'STAY DRY?',
   'RANG':'RANK','DERNIER !':'LAST!','EXPLOSION DANS':'BLAST IN','COUPERET DANS':'CUT IN','SURVIVANT':'SURVIVOR','CHAMPION !':'CHAMPION!',
   'FOUDROYE !':'STRUCK!','A L ABRI':'SHELTERED','ESQUIVE !':'DODGED!','ESQUIVE':'DODGE',"CELLULE D'ORAGE":'STORM CELL','LIS LE CERCLE':'READ THE CIRCLE',
   'COUPURE !':'BLACKOUT!','COUPURE DE COURANT':'POWER CUT','SUIS LES CATADIOPTRES':'FOLLOW THE REFLECTORS','LE COURANT VACILLE':'THE POWER FLICKERS',
   'A L AVEUGLE':'BLIND RUN','COURANT RETABLI':'POWER RESTORED',
-  'FOURGON':'CASH TRUCK','FOURGON VIDE !':'TRUCK EMPTIED!','FOURGON VIDE':'TRUCK EMPTIED','IL SEME SES BILLETS !':"IT'S DROPPING CASH!",'RESTE DERRIERE LUI':'STAY BEHIND IT',
+  'FOURGON':'CASH TRUCK','FOURGON $':'CASH TRUCK $','BANQUIER':'BANKER','FOURGON VIDE !':'TRUCK EMPTIED!','FOURGON VIDE':'TRUCK EMPTIED','IL SEME SES BILLETS !':"IT'S DROPPING CASH!",'RESTE DERRIERE LUI':'STAY BEHIND IT',
   'IL TE DOUBLE':"IT'S PASSING YOU",'IL REVIENT':"IT'S COMING BACK",'DEVANT':'AHEAD',"LE FOURGON S'EST ENFUI":'THE TRUCK GOT AWAY','BRAQUAGE !':'HEIST!','BRAQUAGE':'HEIST','ACCROCHAGE':'SCRAPE','ACCROCHAGE !':'SCRAPE!',
   'BOUCHON':'TRAFFIC JAM',
   '1ER':'1ST','2E':'2ND','LE BANQUIER A':'BANKER AHEAD BY','TU MENES DE':'YOU LEAD BY','TU MENES !':'YOU LEAD!','IL REPASSE DEVANT':"HE'S BACK IN FRONT",
@@ -24331,6 +24354,21 @@ window.dbgVille=function(){ // (dev) l'état de la campagne VILLE
 window.dbgFoudre=function(){if(CAMP.n!==15||VFOU.on)return 'non';const c={s1:L};foudreArme(c);return {s:Math.round(VFOU.s),lat:+VFOU.lat.toFixed(1)};}; // (dev) une frappe armée tout de suite
 window.dbgTrafic=function(){const sp=vPos();const L9=VTR.cars.filter(function(c){return !c.mort&&Math.abs(c.s-sp)<320;}).sort(function(a,b){return Math.abs(a.s-sp)-Math.abs(b.s-sp);}).slice(0,14); // (dev) les voitures autour de la caisse
   return {s:Math.round(sp),lat:+lat.toFixed(1),side:side,on:VTR.on,dessinees:VTR.im.count,visible:VTR.im.visible,proches:L9.map(function(c){return [Math.round(c.s-sp),+c.lat.toFixed(1),c.ty,Math.round(c.v*SPD*3.6),c.fly>0?'VOL':''];})};};
+window.dbgRendu=function(){ // (dev) le fourgon, le banquier et les flaques sont-ils VRAIMENT dans la scène, et où ?
+  const cp=carGroup.position,o={car:cp.toArray().map(Math.round)};
+  for(const [k,g] of [['fourgon',VFG.g],['banquier',VBQ.g]]){g.updateMatrixWorld(true);const w=new THREE.Vector3().setFromMatrixPosition(g.matrixWorld);
+    o[k]={vis:g.visible,parent:g.parent===scene,enfants:g.children.length,pos:g.position.toArray().map(Math.round),monde:w.toArray().map(Math.round),dist:Math.round(w.distanceTo(cp)),echelle:+g.scale.x.toFixed(2),
+      mat0:g.children[0]&&g.children[0].material?g.children[0].material.type+(renderer.properties.get(g.children[0].material).currentProgram?' compilé':' PAS compilé'):null,
+      ecran:(function(){const q=w.clone().project(camera);return [Math.round((q.x*.5+.5)*innerWidth),Math.round((.5-q.y*.5)*innerHeight),+q.z.toFixed(3)];})(),
+      enfant0:(function(){const c=g.children[0];if(!c)return null;const q=new THREE.Vector3().setFromMatrixPosition(c.matrixWorld);return q.toArray().map(Math.round);})()};}
+  const ims=trackMeshes.filter(function(m){return m.isInstancedMesh&&(m.material===VEAU.mat||m.material===VEAU.rim);});
+  o.flaques=ims.map(function(m){const M=new THREE.Matrix4();m.getMatrixAt(0,M);const p=new THREE.Vector3().setFromMatrixPosition(M);
+    // le bitume sous la flaque : un rayon tombé de 30 m au-dessus, sur tout ce qui n'est pas une flaque
+    const up=new THREE.Vector3(0,0,1).applyQuaternion(new THREE.Quaternion().setFromRotationMatrix(M)).normalize(),rc=new THREE.Raycaster(p.clone().addScaledVector(up,30),up.clone().negate(),0,60);
+    rc.camera=camera;const hs=rc.intersectObjects(trackMeshes.filter(function(q){return q.isMesh&&!q.isInstancedMesh&&q.visible;}),false).filter(function(h){return h.object.material!==VEAU.mat&&h.object.material!==VEAU.rim;});
+    return {n:m.count,vis:m.visible,parent:m.parent===scene,i0:p.toArray().map(function(x){return +x.toFixed(2);}),dist:Math.round(p.distanceTo(cp)),prog:!!renderer.properties.get(m.material).currentProgram,
+      bitume:hs.length?{h:+(30-hs[0].distance).toFixed(3),obj:(hs[0].object.name||hs[0].object.type)+' '+(hs[0].object.material&&hs[0].object.material.type)}:null};});
+  return o;};
 window.dbgCourant=function(v){VC.cour=+v;CITY.uC.value=+v;return VC.cour;}; // (dev) le courant de la ville (0 = panne) — hors niveau 16, la boucle le laisse tel quel
 // reconstruit le décor du menu dans le mode courant (course/parc) — même séquence que l'init
 function rebuildMenuScene(){ newTrack();respawn();setupIntroPig();frameAt(0,F);camera.position.copy(F.p).addScaledVector(F.t,-9).addScaledVector(F.n,4); }
