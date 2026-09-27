@@ -3740,7 +3740,7 @@ const ACESShader={
             uVivid:{value:POST_VIVID},uWB:{value:POST_WB},uSh:{value:POST_SHADOW},uHi:{value:POST_HI},uSpeed:{value:0},uJit:{value:0},uRes:{value:new THREE.Vector2(1/1024,1/1024)},
             uVigK:{value:.52},uVigC:{value:new THREE.Vector3(.149,.047,.212)}}, // (2026-09-26, vague 2) la VIGNETTE du niveau (ex-calque DOM #vig), posée par bioApply
   vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
-  fragmentShader:['uniform sampler2D tDiffuse;uniform float uExposure,uSat,uContrast,uVivid,uSpeed,uJit,uVigK;uniform vec3 uWB,uSh,uHi,uVigC;uniform vec2 uRes;varying vec2 vUv;',
+  fragmentShader:['uniform sampler2D tDiffuse;uniform float uExposure,uSat,uContrast,uVivid,uSpeed,uJit,uVigK,uSharp;uniform vec3 uWB,uSh,uHi,uVigC;uniform vec2 uRes;varying vec2 vUv;',
     'uniform sampler2D uB1,uB2,uB3,uB4,uB5;uniform vec4 uBw;uniform float uBw5,uBa;', // (2026-09-27, passe perf iPhone) le BLOOM FUSIONNÉ — voir « FUSION DU BLOOM » sous le compositeur
     'vec3 bloomAt(vec2 u){return clamp(uBw.x*texture2D(uB1,u).rgb+uBw.y*texture2D(uB2,u).rgb+uBw.z*texture2D(uB3,u).rgb+uBw.w*texture2D(uB4,u).rgb+uBw5*texture2D(uB5,u).rgb,0.,1.)*uBa;}',
     'uniform vec4 uNit;uniform float uNitF;', // (vague 3, NITRO) la couleur de la poussée sur les bords (rgb + part) et le coup d'allumage — posés par nfxTick
@@ -3770,7 +3770,15 @@ const ACESShader={
     '    vec3 cNW=texture2D(tDiffuse,vUv+vec2(-1.,-1.)*uRes).rgb,cNE=texture2D(tDiffuse,vUv+vec2(1.,-1.)*uRes).rgb,cSW=texture2D(tDiffuse,vUv+vec2(-1.,1.)*uRes).rgb,cSE=texture2D(tDiffuse,vUv+vec2(1.,1.)*uRes).rgb;',
     '    float lM=dot(cM,LUM),lNW=dot(cNW,LUM),lNE=dot(cNE,LUM),lSW=dot(cSW,LUM),lSE=dot(cSE,LUM);',
     '    float lMin=min(lM,min(min(lNW,lNE),min(lSW,lSE))),lMax=max(lM,max(max(lNW,lNE),max(lSW,lSE)));',
-    '    if(lMax-lMin<max(0.0312,lMax*0.125)){ x=cM; } else {',
+    // (2026-09-27, tour 2) LE PIQUÉ QUI COMPENSE LA RÉSOLUTION : quand l'échelle QL descend sous le plafond, `uSharp` > 0 rend aux
+    // détails fins (grain du bitume, liserés, tôles) le contraste que le rééchantillonnage leur a pris — accentuation adaptative façon
+    // CAS, dosée par le contraste LOCAL (elle ne s'emballe jamais sur les bords : ceux-là partent dans le FXAA juste en dessous) et
+    // bornée par le voisinage (aucun halo possible). Ses 4 lectures sont CELLES du FXAA : coût nul. À pleine résolution uSharp = 0 :
+    // l'image est identique au bit près.
+    '    if(lMax-lMin<max(0.0312,lMax*0.125)){ x=cM;',
+    '      if(uSharp>0.001){ vec3 av=(cNW+cNE+cSW+cSE)*0.25, mn=min(min(cNW,cNE),min(cSW,cSE)), mx=max(max(cNW,cNE),max(cSW,cSE));',
+    '        x=clamp(cM+(cM-av)*uSharp*2.0,min(mn,cM),max(mx,cM)); }',
+    '    } else {',
     '      vec2 d=vec2(-((lNW+lNE)-(lSW+lSE)),((lNW+lSW)-(lNE+lSE)));',
     '      float dr=max((lNW+lNE+lSW+lSE)*0.03125,0.0078125); float rc=1.0/(min(abs(d.x),abs(d.y))+dr);',
     '      d=clamp(d*rc,vec2(-8.0),vec2(8.0))*uRes;',
@@ -3802,6 +3810,7 @@ const ACESShader={
 };
 for(let i=1;i<=5;i++)ACESShader.uniforms['uB'+i]={value:null}; // (posées sur acesPass APRÈS sa création : ShaderPass CLONE les uniforms, une texture clonée serait une autre texture)
 ACESShader.uniforms.uBw={value:new THREE.Vector4()};ACESShader.uniforms.uBw5={value:0};ACESShader.uniforms.uBa={value:0};
+ACESShader.uniforms.uSharp={value:0}; // (tour 2) le piqué qui compense la résolution — posé par applyDPR
 ACESShader.uniforms.uNit={value:new THREE.Vector4(1,.478,.141,0)};ACESShader.uniforms.uNitF={value:0}; // (vague 3, NITRO) la poussée sur les bords — voir nfxTick
 const CAN_POST=typeof THREE.EffectComposer==='function'&&typeof THREE.RenderPass==='function'&&typeof THREE.UnrealBloomPass==='function'&&typeof THREE.ShaderPass==='function';
 if(CAN_POST){ try{
@@ -4326,6 +4335,7 @@ function qlPose(k){ const b=qlBornes();k=Math.max(0,Math.min(b.kMax,k|0));QL.k=k
   QUAL_MED=k>0;QUAL_LOW=!!bloomPass&&!bloomPass.enabled&&!REDUCED_MOTION;return k;}
 function qlReprise(){ // RAPIDE⇄NETTE : le choix du joueur rend la pleine résolution tout de suite (les crans invisibles restent, l'échelle redescendra si besoin)
   QL.mur=0;QL.murT=0;QL.roseT=0;QL.up=0;QL.efT=0;QL.effondre=false;QL.essai=null;QL.plafT=0;curDPR=-1;qlPose(Math.min(QL.k,QL.N_EFF));}
+window.dbgDPR=function(d,sansPique){RESPIN=true;curDPR=+d;applyDPR();if(sansPique&&acesPass&&acesPass.uniforms.uSharp)acesPass.uniforms.uSharp.value=0;return {dpr:curDPR,pique:acesPass&&acesPass.uniforms.uSharp?+acesPass.uniforms.uSharp.value.toFixed(3):null};}; // (tour 2) banc : une résolution, sans rien d'autre (fige l'échelle)
 window.dbgQual=function(k){ if(k!=null){qlPose(k);RESPIN=true;} const b=qlBornes(); // dbgQual(k) force le cran k ET fige (dbgPin(false) relâche)
   const al=[];for(let i=0;i<QL.N_EFF&&i<QL.k;i++)al.push(QL.nom[i]);
   return {k:QL.k,kNet:b.kNet,kMax:b.kMax,plancher:+b.pl.toFixed(2),dpr:+curDPR.toFixed(3),effondre:QL.effondre,mur:(QL.murT&&performance.now()-QL.murT<45000)?QL.mur:0,
@@ -13259,7 +13269,7 @@ function jeteEngin(m){m.traverse(o=>{if(o.isMesh){if(o.geometry&&!(o.geometry.us
 const ENG_GARDE=new Map();let engChaudI=-1;
 function engChauffe(){
   if(engChaudI<0){engChaudI=0;chauffeDivers();return;} // d'abord ce qui peut naître à N'IMPORTE quel moment de la course (pigeons, trace, ville)
-  if(engChaudI>ENGINE_TIERS.length)return;
+  if(engChaudI>ENGINE_TIERS.length){if(!CHAUFFE_R.fait){CHAUFFE_R.fait=true;chauffeRendu();}return;} // (tour 2) les moteurs prêts : toute la scène passe une fois par la puce
   try{
     const g=engChaudI<ENGINE_TIERS.length?mkEngine(engChaudI):new THREE.Mesh(engVigFeuGeo,engVigFeuMat); // dernier tour : la flamme
     engChaudI++;
@@ -13277,6 +13287,32 @@ function engChauffe(){
    heure aléatoire en pleine course) et la 1re TRACE de gomme (1 shader, au 1er dérapage). Un pigeon est posé le temps d'une compilation
    (géométries et matières partagées : rien à libérer), la trace est créée d'avance (900 quads à zéro, invisibles). Et la chauffe de la
    VILLE, qui attendait 2,5 s de menu : un joueur pressé la ratait, et la 1re ville compilait en pleine course (3 shaders, ~200 ms). */
+/* LA CHAUFFE DE LA PUCE (2026-09-27, tour 2 — « on repasse en mode pixel assez vite après avoir lancé »). `renderer.compile` ne fait
+   que LIER les programmes WebGL. Sur iPhone, Safari traduit en Metal, et Metal ne fabrique le vrai programme de la puce (l'« état de
+   pipeline ») qu'au PREMIER DESSIN, pour chaque combinaison programme × mélange × profondeur × format de cible : 10 à 50 ms de gel
+   chacun, invisibles à notre compteur `linkProgram`. Les premières secondes de course en empilaient des dizaines (chaque objet vu pour
+   la 1re fois : dauphins, tranches de piste lointaines, nuages, gerbes…), et les à-coups faisaient dévaler la résolution. Désormais on
+   DESSINE tout une fois, HORS écran (une cible 8×8 au MÊME format que la vraie — les états de pipeline en dépendent), tout rendu
+   visible et sans tri de champ, les lumières intouchées (leur nombre changerait les programmes) : au menu une fois, et à chaque
+   construction de niveau. Les géométries montent au GPU du même coup (elles montaient elles aussi au 1er dessin, en plein vol). */
+const CHAUFFE_R={t:0,rt:null,fait:false};
+function chauffeRendu(){ try{
+  if(!CHAUFFE_R.rt){const t9=(composer&&composer.renderTarget1)?composer.renderTarget1.texture.type:THREE.UnsignedByteType;
+    CHAUFFE_R.rt=new THREE.WebGLRenderTarget(8,8,{format:THREE.RGBAFormat,type:t9,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});}
+  // Un objet CACHÉ dont la matière n'a encore jamais été compilée reste caché : on prépare le dessin de ce qui existe, on ne compile
+  // rien d'inutile (mesuré : 4 programmes au 1er portail pour des objets qui ne s'affichent jamais — 100-400 ms perdus sur iPhone).
+  const vis=[],cul=[],off=[];
+  (function walk(o,h0){ if(o.isLight)return;const h=h0||!o.visible;
+    if(o.isMesh||o.isPoints||o.isSprite||o.isLine){const m=Array.isArray(o.material)?o.material[0]:o.material,pr=m&&renderer.properties.get(m).currentProgram;
+      if(h&&!pr){if(o.visible){o.visible=false;off.push(o);}}
+      else{if(!o.visible){o.visible=true;vis.push(o);}if(o.frustumCulled){o.frustumCulled=false;cul.push(o);}}}
+    else if(!o.visible){o.visible=true;vis.push(o);}
+    for(let i=0;i<o.children.length;i++)walk(o.children[i],h);})(scene,false);
+  const ob9=scene.onBeforeRender;scene.onBeforeRender=function(){}; // pisteLoin/conesVus remettraient leurs visibilités pendant le rendu
+  const cible=renderer.getRenderTarget();renderer.setRenderTarget(CHAUFFE_R.rt);renderer.render(scene,camera);renderer.setRenderTarget(cible);
+  scene.onBeforeRender=ob9;
+  for(const o of vis)o.visible=false;for(const o of off)o.visible=true;for(const o of cul)o.frustumCulled=true;
+}catch(e){console.warn('chauffeRendu',e);} }
 function chauffeDivers(){
   try{orbiteChauffe();}catch(e){} // (vague 3) la lune peinte et montée au GPU, lune + rochers compilés : rien ne naît au portail de l'orbite
   try{if(!CITY.chaud){CITY.chaud=true;villeChauffe();}}catch(e){}
@@ -21346,6 +21382,7 @@ function newTrack(){
   traceVide(); // (2026-09-26) les traces de pneus restent sur l'ancienne route
   trailL.init=trailR.init=false;rainbow.init=false; // (2026-09-26) sinon le ruban de nitro se tendait de l'ancien ovule à la nouvelle piste
   loop._rebuildT=performance.now();loop._rebuildD=3500; // la construction d'une zone fait un pic : la qualité auto ne doit pas le prendre pour de la faiblesse
+  CHAUFFE_R.t=performance.now()+120; // (tour 2) la nouvelle piste, sa ville, ses nuages : dessinés une fois hors écran dans la foulée (voir chauffeRendu)
   let sd=(Math.random()*1e9)|0;
   const niv=lvlChoisir(); // LE NIVEAU D'ABORD : buildClouds et buildVoxCity le lisent pendant la construction
   if(niv&&niv.graine)sd=niv.graine; // (2026-09-27) CAMPAGNE : la même piste, les mêmes pièces, les mêmes nuages à chaque essai
@@ -25637,6 +25674,7 @@ function loop(now){
   if(POST_ON&&composer)composer.render(); // ACES + bloom
   else renderer.render(scene,camera);      // repli si le post n'a pas pu se charger
   matSursisTick(); // (perf) les matières de la piste d'avant partent une fois la neuve rendue
+  if(CHAUFFE_R.t&&now>CHAUFFE_R.t){CHAUFFE_R.t=0;chauffeRendu();} // (tour 2) niveau neuf : la puce le voit une fois en entier, hors écran
   if(!started||gameOver)engChauffe(); // (perf) au menu et à l'écran de mort : les shaders des moteurs se préparent, un palier par image
   // VIGNETTE MOTEUR — RÉACTIVÉE (2026-08-02) : elle passe désormais par un RenderTarget dédié puis un
   // quad ortho recollé par-dessus. Elle ne touche plus au viewport de la passe finale — c'était ça,
@@ -25974,10 +26012,12 @@ function togglePause(){ if(!started||gameOver)return;
    la FENÊTRE a changé. Et les deux canvas 2D ne sont retaillés que si leur taille change : retailler un canvas l'EFFACE (les taches de
    jus disparaissaient à chaque cran de résolution adaptative). */
 const DPR_V9=new THREE.Vector2();
+const PIQUE_ON=!/[?&]pique=0/.test(location.search); // `?pique=0` : sans l'accentuation, pour comparer
 function applyDPR(){ try{ const W=innerWidth,H=innerHeight;
   renderer.getSize(DPR_V9);const neuve=DPR_V9.x!==W||DPR_V9.y!==H;
   renderer.setPixelRatio(curDPR);if(neuve)renderer.setSize(W,H);if(PT_U)PT_U.uPxMax.value=26*curDPR; // le plafond des particules suit la résolution
   if(composer){composer.setPixelRatio(curDPR);if(neuve)composer.setSize(W,H);}
+  if(acesPass&&acesPass.uniforms.uSharp)acesPass.uniforms.uSharp.value=PIQUE_ON?Math.max(0,Math.min(.45,(DPR_CAP-curDPR)/Math.max(.01,DPR_CAP)*1.5)):0; // (tour 2) sous le plafond, le piqué compense (1,25/1,5 → .25 · 1,0/1,5 → .45)
   if(slCv.width!==W||slCv.height!==H){slCv.width=W;slCv.height=H;}
   if(juiceCv&&(juiceCv.width!==W||juiceCv.height!==H)){juiceCv.width=W;juiceCv.height=H;} }catch(e){} }
 // PAUSE AUTO : l'appli passe en arrière-plan (onglet caché, app minimisée) → on gèle + on coupe le son
@@ -26542,7 +26582,8 @@ if(BANC_ON)(function(){
   window.__bancSync=function(){ // appelé en fin d'image par la boucle : la puce finit, on relève
     const t1=performance.now();renderer.setRenderTarget(null);gl9.readPixels(0,0,1,1,gl9.RGBA,gl9.UNSIGNED_BYTE,px4);BANC_CB(performance.now()-BANC_T0,t1-BANC_T0);};
   const med=a=>{const s=a.slice().sort((x,y)=>x-y);return s[s.length>>1];};
-  const mesure=(n,chauffe)=>new Promise(res=>{let k=0;const T=[],J=[];BANC_CB=(ts,tj)=>{if(k++<(chauffe||8))return;T.push(ts);J.push(tj);
+  const ECH=Math.max(.05,Math.min(1,+((location.search.match(/[?&]ech=([\d.]+)/)||[])[1])||1)); // `&ech=0.2` : échantillons réduits (banc logiciel du PC, où une image prend une seconde)
+  const mesure=(n,chauffe)=>new Promise(res=>{let k=0;const T=[],J=[];n=Math.max(3,Math.round(n*ECH));chauffe=Math.max(2,Math.round((chauffe||8)*ECH));BANC_CB=(ts,tj)=>{if(k++<chauffe)return;T.push(ts);J.push(tj);
     if(T.length>=n){BANC_CB=null;res({t:med(T),j:med(J)});}};});
   const reel=ms=>new Promise(res=>{let n=0;const t0=performance.now();BANC_CB=null;
     const f=()=>{n++;if(performance.now()-t0<ms)requestAnimationFrame(f);else res({ips:n/((performance.now()-t0)/1000),ms:loop._ms||0});};requestAnimationFrame(f);});
@@ -26580,7 +26621,9 @@ if(BANC_ON)(function(){
     BANC_FIGE=false;};
   const vivant=async ()=>{ if(gameOver){const b=document.querySelector('#mDead.on [data-m="replay"]');if(b)b.click();for(let i=0;i<60&&(!started||gameOver);i++)await Z(250);await Z(2500);}
     dbgAuto(true,0);};
-  const vol=async ()=>{await vivant();for(let i=0;i<20&&mode!=='drive';i++)await Z(200);try{dbgDauphin(70,60,0,0);}catch(e){}await Z(650);};
+  const image=()=>new Promise(r=>requestAnimationFrame(()=>r()));
+  const vol=async ()=>{await vivant();for(let i=0;i<20&&mode!=='drive';i++)await Z(200);try{dbgDauphin(70,60,0,0);}catch(e){}
+    const t0=performance.now();for(let i=0;i<90;i++){await image();const s9=dbgState();if(s9.mode!=='fall'||(Math.abs(s9.hOff)>18&&performance.now()-t0>650))break;}}; // en l'air pour de vrai (en images, pas en ms : le banc logiciel rame)
   const rendu=()=>{let gpu='?';try{const x=gl9.getExtension('WEBGL_debug_renderer_info');gpu=x?gl9.getParameter(x.UNMASKED_RENDERER_WEBGL):gl9.getParameter(gl9.RENDERER);}catch(e){}
     let t='BANC CASH CAR — '+gpu+' — écran '+VP.w+'×'+VP.h+' ×'+devicePixelRatio+' — rendu 1,5\n'+
       'ms = coût d\'une image synchronisée (processeur + puce).\nLignes « sans … » : écart au TÉMOIN (−3.0 = ce poste coûte 3 ms)\n\n';
