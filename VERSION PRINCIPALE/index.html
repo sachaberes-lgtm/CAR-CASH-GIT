@@ -3994,6 +3994,24 @@ function conesInstancier(){ // après buildTrack : un jeu d'instances à la capa
     for(let i=0;i<n;i++){const c=CONES[i];c.i=i;CONE_M.multiplyMatrices(c.mesh.matrix,CONE_L);im.setMatrixAt(i,c.hit?CONE_0:CONE_M);}
     im.count=n;im.instanceMatrix.needsUpdate=true;}
 }
+/* LES PLAQUES TURBO EN INSTANCES (2026-09-27, passe perf iPhone) — recensement des appels de dessin au sol : 82 pour les seules
+   plaques d'or (~41 par face, toutes visibles d'un bout à l'autre du ruban qui s'enroule), soit un quart des appels de la scène, et
+   chacun se paie en processeur (programme, uniforms, matrices) avant d'arriver au GPU. Elles sont IMMOBILES, partagent la même
+   géométrie et la même matière opaque (PAD_MAT, jamais libérée) : buildTrack les pose comme avant, puis on les recopie ici dans UN
+   InstancedMesh et on retire les originaux de la scène (ils restent dans trackMeshes : la libération au rebuild ne change pas).
+   Même matrice, même matière, même profondeur → même image, en UN appel. Le programme instancié se compile au menu (1re piste). */
+let PAD_IM=null;
+function padsInstancier(){
+  const L9=[];for(const m of trackMeshes)if(m.geometry===padGeo&&m.material===PAD_MAT&&m.parent===scene)L9.push(m);
+  const n=L9.length;
+  if(!PAD_IM||PAD_IM.instanceMatrix.count<n){
+    if(PAD_IM){scene.remove(PAD_IM);PAD_IM.dispose();}
+    PAD_IM=new THREE.InstancedMesh(padGeo,PAD_MAT,Math.max(128,Math.ceil(n*1.4)));
+    PAD_IM.frustumCulled=false;PAD_IM.matrixAutoUpdate=false;scene.add(PAD_IM); // ⚠ la sphère englobante r128 ne couvre pas les instances
+  }
+  for(let i=0;i<n;i++){const m=L9[i];m.updateMatrix();PAD_IM.setMatrixAt(i,m.matrix);scene.remove(m);}
+  PAD_IM.count=n;PAD_IM.instanceMatrix.needsUpdate=true;
+}
 function coneVole(c9){ // le plot percuté quitte l'instance : un VRAI plot, posé au même endroit, part valser (FLYCONES)
   const g=mkCone();g.position.copy(c9.mesh.position);g.quaternion.copy(c9.mesh.quaternion);scene.add(g);trackMeshes.push(g);
   if(CONE_IM&&c9.i!=null)for(const im of CONE_IM){im.setMatrixAt(c9.i,CONE_0);im.instanceMatrix.needsUpdate=true;}
@@ -20422,6 +20440,7 @@ function newTrack(){
   const niv=lvlChoisir(); // LE NIVEAU D'ABORD : buildClouds et buildVoxCity le lisent pendant la construction
   buildTrack(sd);
   conesInstancier(); // (perf) les plots de la nouvelle piste, en instances
+  padsInstancier(); // (2026-09-27, passe perf iPhone) …et les plaques turbo : 82 appels de dessin → 1
   // LE CIEL : chaque NIVEAU tire le sien dans sa propre liste (voir NIVEAUX). Hors niveaux (parc
   // freestyle), l'ancien CYCLE DU CIEL : une heure du jour au hasard, jamais deux fois la même de
   // suite, et la VRAIE NUIT au 3e portail (runStats.zones est ++ AVANT newTrack, remis à 0 par resetGame).
