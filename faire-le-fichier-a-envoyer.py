@@ -138,6 +138,7 @@ refs += re.findall(r"f:'(assets/audio/music/[^']+\.(?:mp3|m4a))'", _tab("MUSIC_T
 # et le fichier a double-cliquer ouvrirait chaque partie sur un silence — sans la moindre erreur.
 _ml = re.search(r"const MUSIC_LIEU=\{(.*?)\n\};", h, re.S)       # la musique PAR MONDE
 if _ml: refs += re.findall(r"f:'(assets/audio/music/[^']+\.(?:mp3|m4a))'", _ml.group(1))  # (2026-09-27) .m4a aussi : la ville est en AAC
+refs += re.findall(r"const MUSIC=\{menu:'(assets/audio/music/[^']+\.(?:mp3|m4a))'", h)  # (2026-09-27) la musique d'INTRO (accueil)
 refs += [_dir("ANN_DIR")   + f for f in re.findall(r"f:'([^']+)'", _tab("ANN_LIB"))]    # les 9 voix
 refs += [_dir("DEATH_DIR") + f for f in re.findall(r"f:'([^']+)'", _tab("DEATH_LIB"))]  # les sons de mort
 # les samples d'evenement : le WOW (un objet seul) et les 9 sons d'argent (un tableau)

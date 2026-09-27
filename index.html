@@ -16716,7 +16716,7 @@ function musicPickNext(excludeIdx){
   let i;do{i=Math.floor(Math.random()*MUSIC_TRACKS.length);}while(i===excludeIdx);
   return i;
 }
-const MUSIC={menu:''}; // ex : 'assets/audio/music/menu.mp3'
+const MUSIC={menu:'assets/audio/music/swag-cash-car.m4a'}; // (2026-09-27, Léo) LA MUSIQUE D'INTRO : « SWAG CASH CAR » — accueil, garage, écran de fin (livrée en Opus/MP4, ré-encodée en AAC) · vide = le morceau du 1er niveau
 // musicBaseVol .85→1 (2026-09-24, « la musique pas assez forte comparé au moteur ») : on relève le
 // NIVEAU ACCORDÉ et pas la valeur par défaut du curseur — celle-ci est sauvegardée chez le joueur
 // (`SAVE.d.vol.mus`), la changer n'aurait rien fait pour qui a déjà joué. Le moteur, lui, a reculé
@@ -16840,11 +16840,11 @@ function musicStartRun(){ // au début d'une partie (start / resetGame)
 function musicMenu(){
   if(!SND.music)return;
   musicMode='menu';
-  playMusic(musicPremier(),{loop:true,volume:musVol()*.5,garde:true});
+  playMusic(MUSIC.menu||musicPremier(),{loop:true,volume:musVol()*(MUSIC.menu?.8:.5),garde:true}); // l'intro a SON morceau, joué plus franchement que l'extrait d'un niveau
 }
 function musicPlayCurrent(){
   const ouv=musicMode==='run'&&!!musicLieu;
-  const url=musicMode==='menu'?musicPremier():ouv?musicLieu.f:(MUSIC_TRACKS[musicCur]||{}).f;
+  const url=musicMode==='menu'?(MUSIC.menu||musicPremier()):ouv?musicLieu.f:(MUSIC_TRACKS[musicCur]||{}).f;
   if(!url)return;
   playMusic(url,{loop:musicMode==='menu'||ouv,garde:true}); // menu et LIEU bouclent ; ensuite la radio enchaîne (`ended`)
 }

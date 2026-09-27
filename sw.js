@@ -29,7 +29,8 @@
 //  v21 (2026-09-26, Léo) : manifeste en orientation « any » (le jeu se joue couché comme debout), boîte-boutique, cadre téléphone.
 //  v22 (2026-09-27, Léo) : ADDICTIVE LOOP pour la ville, accueil GARAGE/RÉGLAGES, lapin blanc, choix du niveau au garage.
 //  v23 (2026-09-27) : fusion de la charte v4 de Sacha (sa v21) avec la couche de Léo.
-const CACHE = 'cashcar-v23';
+//  v24 (2026-09-27, Léo) : SWAG CASH CAR, la musique d'intro.
+const CACHE = 'cashcar-v24';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
