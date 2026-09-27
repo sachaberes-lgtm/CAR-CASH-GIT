@@ -3903,11 +3903,12 @@ if(CAN_POST){ try{
         this.fsQuad.material=this.materialHighPassFilter;rd.setRenderTarget(this.renderTargetBright);rd.clear();this.fsQuad.render(rd);}
       let inp=pl?rb:this.renderTargetBright;
       for(let i=0;i<this.nMips;i++){const m=this.separableBlurMaterials[i],hz=this.renderTargetsHorizontal[i],vt=this.renderTargetsVertical[i];
-        if(pl&&i>=3){const q=this._p2[i];q.uniforms.colorTexture.value=inp.texture;q.uniforms.texSize.value=m.uniforms.texSize.value; // mips 3-4 : le flou 2D en UNE passe
+        if(pl&&i>=3&&this.plie2d!==false){const q=this._p2[i];q.uniforms.colorTexture.value=inp.texture;q.uniforms.texSize.value=m.uniforms.texSize.value; // mips 3-4 : le flou 2D en UNE passe
           this.fsQuad.material=q;rd.setRenderTarget(vt);rd.clear();this.fsQuad.render(rd);inp=vt;continue;}
         const mh=(pl&&i===0)?this._p0:m;if(mh!==m){mh.uniforms.texSize.value=m.uniforms.texSize.value;mh.uniforms.thr.value=this.threshold;mh.uniforms.sw.value=this.highPassUniforms.smoothWidth.value;}
         this.fsQuad.material=mh;mh.uniforms.colorTexture.value=inp.texture;mh.uniforms.direction.value=THREE.UnrealBloomPass.BlurDirectionX;rd.setRenderTarget(hz);rd.clear();this.fsQuad.render(rd);
-        this.fsQuad.material=m;m.uniforms.colorTexture.value=hz.texture;m.uniforms.direction.value=THREE.UnrealBloomPass.BlurDirectionY;rd.setRenderTarget(vt);rd.clear();this.fsQuad.render(rd);
+        const mv=(pl&&this._pv)?this._pv[i]:m; // (tour 2, post) la passe VERTICALE lit pile ses texels : texelFetch (voir bloomPlieMat)
+        this.fsQuad.material=mv;mv.uniforms.colorTexture.value=hz.texture;m.uniforms.direction.value=THREE.UnrealBloomPass.BlurDirectionY;rd.setRenderTarget(vt);rd.clear();this.fsQuad.render(rd);
         inp=vt;}
       if(this._cMat&&this.nMips===5){ // LE HALO COMPOSÉ (voir sa création) : poids `strength·mix(f,1.2−f,radius)` = lerpBloomFactor, facteurs 1/.8/.6/.4/.2
         const cu=this._cMat.uniforms,s=this.strength,r=this.radius,w0=s*(1-.8*r),w1=s*(.8-.4*r),w2=s*.6,w3=s*(.4+.4*r),w4=s*(.2+.8*r);
@@ -3925,22 +3926,42 @@ if(CAN_POST){ try{
       · les deux plus petits mips (1/16 et 1/32 de la base : ~2 000 et ~500 pixels sur iPhone) font leur gaussienne en 2D en une passe
         au lieu de H puis V. Une gaussienne est séparable : Σᵢⱼ wᵢwⱼ·I = la passe V de la passe H, au même point, lue aux mêmes endroits —
         seul l'arrondi 8 bits intermédiaire disparaît. 17² et 21² lectures sur si peu de pixels : moins cher qu'un aller-retour de cible.
-      13 passes plein cadre à l'origine (seuil + 10 flous + composite + copie) → 8. Compilé au 1er rendu du bloom (au menu). */
+      13 passes plein cadre à l'origine (seuil + 10 flous + composite + copie) → 8. Compilé au 1er rendu du bloom (au menu).
+      ⚠ (2026-09-27, tour 2 — « le post-traitement ») LES MIPS 3-4 REDEVIENNENT SÉPARABLES (`plie2d=false`). MESURÉ (image figée, bloom
+      seul, A/B dans la même page) : le flou 2D était PLUS LENT que les deux passes qu'il remplaçait — 17² et 21² prises, chacune avec
+      son `exp` de gaussienne (≈ 800 000 prises et autant d'exponentielles par image), contre 2×17 et 2×21 prises à coefficients
+      pré-calculés. Chrono de la puce (carte PC, 585×1266) : 0,32 → 0,25 ms au sol, 0,31 → 0,23 en vol ; rendu logiciel : −5 à −10 %.
+      Le seuil, lui, reste plié dans le 1er flou (sa passe séparée était plus lente sur la puce, et s'écartait jusqu'à 7/255 en nitro).
+      Écart : ≤ 1-2/255 (0,03 en moyenne — l'arrondi 8 bits entre H et V d'origine revient). `?bloom=plie2d` rend le flou 2D (banc). */
    function bloomPlieMat(p){ if(p._p0)return true; try{
      const vs='varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
        gp='float gp(float x,float s){return 0.39894*exp(-0.5*x*x/(s*s))/s;}';
      p._p0=new THREE.ShaderMaterial({defines:{KR:3},uniforms:{colorTexture:{value:null},texSize:{value:new THREE.Vector2(1,1)},direction:{value:new THREE.Vector2(1,0)},thr:{value:.9},sw:{value:.01}},vertexShader:vs,
        fragmentShader:'varying vec2 vUv;uniform sampler2D colorTexture;uniform vec2 texSize,direction;uniform float thr,sw;'+gp+
-         'vec3 hp(vec2 u){vec4 t=texture2D(colorTexture,u);float v=dot(t.xyz,vec3(0.299,0.587,0.114));return clamp(t.rgb*smoothstep(thr,thr+sw,v),0.0,1.0);}'+
+         'vec3 hp(vec2 u){vec4 t='+(W2_POST?'textureLod(colorTexture,u,0.0)':'texture2D(colorTexture,u)')+';float v=dot(t.xyz,vec3(0.299,0.587,0.114));return clamp(t.rgb*smoothstep(thr,thr+sw,v),0.0,1.0);}'+
          'void main(){vec2 inv=1.0/texSize;float fs=float(KR),ws=gp(0.0,fs);vec3 s=hp(vUv)*ws;for(int i=1;i<KR;i++){float x=float(i),w=gp(x,fs);vec2 o=direction*inv*x;s+=(hp(vUv+o)+hp(vUv-o))*w;ws+=2.0*w;}gl_FragColor=vec4(s/ws,1.0);}'});
      p._p2=[];for(const i of [3,4]){const K=[3,5,7,9,11][i];
        p._p2[i]=new THREE.ShaderMaterial({defines:{KR:K},uniforms:{colorTexture:{value:null},texSize:{value:new THREE.Vector2(1,1)}},vertexShader:vs,
          fragmentShader:'varying vec2 vUv;uniform sampler2D colorTexture;uniform vec2 texSize;'+gp+
            'void main(){vec2 inv=1.0/texSize;float fs=float(KR),ws=0.0;vec3 s=vec3(0.0);for(int j=1-KR;j<KR;j++){float wj=gp(float(j),fs);for(int i=1-KR;i<KR;i++){float w=wj*gp(float(i),fs);s+=texture2D(colorTexture,vUv+vec2(float(i),float(j))*inv).rgb*w;ws+=w;}}gl_FragColor=vec4(s/ws,1.0);}'});}
+     /* (2026-09-27, tour 2 — « le post-traitement ») LES FLOUS SANS FILTRE NI DÉRIVÉES. La passe VERTICALE de chaque mip lit une cible
+        de SA taille, à des décalages entiers : chacune de ses prises tombe pile sur un texel → `texelFetch` (bord : coordonnée bornée
+        = clamp to edge), même gaussienne calculée dans le même ordre : identique au bit près. Les passes HORIZONTALES réduisent (elles
+        lisent le mip d'au-dessus, ou l'image) : elles gardent le filtre linéaire, mais en `textureLod(…,0)` — cibles sans mips, même
+        résultat, sans le calcul de dérivées. WebGL1 : rien ne change. */
+     if(W2_POST){
+       p._pv=[3,5,7,9,11].map(K=>new THREE.ShaderMaterial({defines:{KERNEL_RADIUS:K,SIGMA:K},uniforms:{colorTexture:{value:null}},vertexShader:vs,
+         fragmentShader:'varying vec2 vUv;uniform sampler2D colorTexture;float gaussianPdf(in float x,in float sigma){return 0.39894*exp(-0.5*x*x/(sigma*sigma))/sigma;}'+
+           'void main(){ivec2 tm=textureSize(colorTexture,0)-1,ip=min(ivec2(vUv*vec2(tm+1)),tm);float fSigma=float(SIGMA);float weightSum=gaussianPdf(0.0,fSigma);'+
+           'vec3 diffuseSum=texelFetch(colorTexture,ip,0).rgb*weightSum;for(int i=1;i<KERNEL_RADIUS;i++){float x=float(i);float w=gaussianPdf(x,fSigma);'+
+           'vec3 sample1=texelFetch(colorTexture,ivec2(ip.x,min(ip.y+i,tm.y)),0).rgb;vec3 sample2=texelFetch(colorTexture,ivec2(ip.x,max(ip.y-i,0)),0).rgb;'+
+           'diffuseSum+=(sample1+sample2)*w;weightSum+=2.0*w;}gl_FragColor=vec4(diffuseSum/weightSum,1.0);}'}));
+       for(const m of p.separableBlurMaterials)m.fragmentShader=m.fragmentShader.replace(/texture2D\( colorTexture, (vUv[^)]*)\)/g,'textureLod( colorTexture, $1, 0.0 )');}
      return true;}catch(e){p.plie=false;return false;} }
    const U9=acesPass.uniforms,bp9=bloomPass;
    U9.uBc.value=bp9._cRT.texture; // setSize garde le même objet texture : posé une fois
    bp9.fuse=bp9.plie=!/[?&]bloom=ancien/.test(location.search); // `?bloom=ancien&perf=1` : les 13 passes d'origine, pour comparer SUR le téléphone
+   bp9.plie2d=/[?&]bloom=plie2d/.test(location.search); // (tour 2, post) mips 3-4 séparables par défaut (voir PLIAGE) — `?bloom=plie2d` : le flou 2D du tour 1, pour comparer sur le téléphone
    acesPass.render=function(){ // (appelle le prototype À CHAQUE FOIS, pas une copie : les bancs qui l'enveloppent continuent de mesurer l'ACES)
      U9.uBa.value=(bp9.enabled&&bp9.fuse)?bp9._a:0; // bloom éteint (réduire les animations, palier ultime) : le halo composé n'est plus à jour — on ne le lit plus
      U9.uWE.value.copy(U9.uWB.value).multiplyScalar(U9.uExposure.value); // (tour 2, post) exposition × balance, une fois par image au lieu d'une fois par pixel
