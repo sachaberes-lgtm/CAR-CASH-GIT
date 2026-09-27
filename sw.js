@@ -30,7 +30,8 @@
 //  v22 (2026-09-27, Léo) : ADDICTIVE LOOP pour la ville, accueil GARAGE/RÉGLAGES, lapin blanc, choix du niveau au garage.
 //  v23 (2026-09-27) : fusion de la charte v4 de Sacha (sa v21) avec la couche de Léo.
 //  v24 (2026-09-27, Léo) : SWAG CASH CAR, la musique d'intro.
-const CACHE = 'cashcar-v24';
+//  v25 (2026-09-27, Léo) : la BONNE musique d'intro (swag-cash-car-2).
+const CACHE = 'cashcar-v25';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
