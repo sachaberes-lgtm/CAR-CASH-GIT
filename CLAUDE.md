@@ -183,6 +183,63 @@
   · Bancs : scratchpad `v6/conduite/diag/` (diagnostic, sim6.js), `v6/conduite/moi/sim-v6.js` (le modèle retenu + pilote 150 ms),
     `v6/piste/base/` (banc.js étendu, variantes.js, resume.js). `dbgState()` expose psi/yawR/slipB/glisse/drift/roulisDeg/vH.
 
+## LA CHARTE v4 — CARBONE · OR · NÉON (2026-09-26) — TOUTE L'INTERFACE HORS COURSE
+Verdicts successifs de Sacha : v1 plate (« moche et mal fait ») · v2 borne d'arcade 1985 (« pas très moderne ») · v3 bonbon violet
+brillant (« trop générique, pas de direction artistique »). Demande : « top 1 de l'App Store », refonte intégrale. ⚠ Les sections plus
+bas qui décrivent la CHARTE v2, la CHARTE PIXEL UNIFIÉE, la charte v3 et les règles « INTERFACE » de la PASSE DE FINITION sont
+PÉRIMÉES pour ces écrans : leurs règles CSS ont été SUPPRIMÉES (purge postcss, 630 règles, 27 @keyframes mortes).
+- **OÙ** : UNE feuille, `<style id="charte4">`, posée DANS LE `<body>` juste avant `<div id="splash">` — après toute la feuille
+  historique (elle gagne à spécificité égale) et loin de la fin du premier `<style>` où s'ajoute le HUD de course (zéro conflit de
+  fusion). Écrans couverts : coque `#mob` (accueil, mort, modes, boutique, réglages), `#tPanel` (pause), `#garage` (DOM, pas la
+  scène 3D), `#modale`, `#toast`, `#carr`, `#wipe`, `#nameEntry`, l'invite `#spNote`, le ⏸ `#tGear` et le bouton NITRO `#tNitro`
+  (visuel seul, validé avec la session HUD). ⚠ Ne JAMAIS remettre de règle pour ces écrans dans le premier `<style>`.
+- **LES TROIS MATIÈRES** : CARBONE (`--carbone`, sergé à périodes inégales + reflet ; `--tresse` pour les panneaux) = tout ce qui
+  se touche, avec un filet de NÉON de livrée sur la tranche gauche (`--nc` : cyan = aller voir, magenta `.pb-mag` = boutique) ·
+  OR = le LINGOT `.pb-gold`, l'UNIQUE action primaire d'un écran (face dégradée, filet gravé `outline-offset:-8px`, texte frappé,
+  reflet `k4Lingot`) · NÉON = titres d'écran (`.mHead h3`, enseigne penchée + bande magenta), états allumés, raretés.
+- **LA GRAMMAIRE** : PENCHÉ (`--sk` −11°) = JE TOUCHE (touches, onglets, puces, interrupteurs) ; ce qu'on LIT est DROIT, coins
+  coupés (`.mPanel`, `.hCard`, `.mStat`, compteur, pastille de famille) — seul leur TEXTE garde la pente. Exception écrite : une
+  ligne de liste touchable (réglages, modes, ticket de mort) = droite + filet + chevron. L'OR = l'argent ou le lingot, rien d'autre
+  (réglages en lavande/cyan, ticket en cyan, prix de boutique = chiffres d'or sur plaquette noire). Rouge PLEIN = seulement dans la
+  confirmation ; EFFACER et QUITTER sont en carbone à filet rouge.
+- **LA TOUCHE** `.pbtn` : face + contour 2 px + TRANCHE 6-7 px dessous (box-shadow) + ombre au sol ; `:active` descend de la
+  hauteur de la tranche. Variantes `pb-gold` `pb-cyan` `pb-mag` `pb-red` `pb-green`, états `.off`, tailles `.big` `.wide`
+  `.pbCarre` `.ico`. ⚠ Le lingot : la tranche AVANT le contour dans la liste d'ombres (sinon un anneau sombre sépare face et tranche).
+- **JETONS** dans le `:root` de charte4 : encres `--k0…--kl2`, or `--au0…--auT`, néons `--neoM/C/V/R/A`, `--cash`, textes
+  `--tx/--tx2/--tx3`, corps `--f0` (8 px, plancher) → `--f8`, safe areas `--sT/--sB/--sL/--sR` (TOUT passe par elles — pour simuler
+  une encoche en test : `:root{--sT:59px!important;--sB:34px!important}`), `--gut`, `--coupe`. Une courbe `--ease`, deux durées.
+- **ÉCRANS** : sous-écrans = SORTIE EN BAS (`.mDock`, collé au bas, « ◀ RETOUR ») · mort = colonne centrée, ressort `.mEsp`
+  (REJOUER sous le pouce sans creuser le milieu), montant qui CLAQUE (`.clac` en fin de `mCount`), confettis si record
+  (`mCompteSon`) · boutique = vitrine MAGENTA (cadre `k4Or`, rayons `k4Rayons`, badge `.shRemise` −50 %, `BIENTÔT` en simple mention) ·
+  pause = RECOMMENCER + QUITTER sur une rangée (`.tpRow`), REPRENDRE lingot collé en bas, ⏸ et commandes masqués dessous ·
+  fenêtre = FEUILLE DU BAS, ANNULER en dernier (Échap clique le dernier bouton), le bouton `pb-red` s'ARME après 420 ms (`.arme`) ·
+  toast en HAUT (au garage : au-dessus des onglets), filet vert/rouge selon l'icône coche/croix · fondu `ecranWipe` = VOLET PENCHÉ
+  (liseré or + magenta) qui balaie de droite à gauche (contrat JS inchangé : couvert en 200 ms).
+- **GARAGE** : EN HAUT on lit (compteur vert, pastille de famille OU de catégorie, rang, NOM auréolé de `--rc`, condition si à
+  gagner) ; EN BAS on touche (onglets, familles `#gRar`, vignettes `#gStrip`, barre `#gAct` = `#gClose` ◀ + UN lingot). ⚠ La fiche
+  et les onglets ne bougent JAMAIS d'un onglet à l'autre (`#gRar` en `visibility:hidden` en habillage, la pastille dit la catégorie).
+  JS : `gEtat(bt,etat,ic,txt)` (ÉQUIPER = lingot, ÉQUIPÉE = touche ENFONCÉE verte, VERROUILLÉE/À GAGNER = enfoncée grise, via
+  `data-etat`), `gPrixHtml` (verbe + prix `.gPrix`), `gNomEntre` (le nom glisse s'il change), `gTampon` (« À TOI ! » frappé +
+  éclair `#gEclat` de la couleur de la famille — l'achat ne se REDIT plus en toast), `gStripHabits(cat,i)` (la bande des PEINTURES/AILES/TRAÎNÉES : nuancier — chrome,
+  or, mat ont leur matière —, aile, ruban ; prix / cadenas / coche ; clic = on ESSAIE). La famille active vient se centrer.
+  En habillage, la rangée des familles porte les FILTRES `TOUT · À MOI · À ACHETER` (`SHOP.filtre`, `.gR.gF[data-f]`, remis à TOUT
+  à chaque catégorie). ⚠ La bande des voitures se reconstruit aussi quand le nombre de caisses POSSÉDÉES change (`st._o`) — sans
+  ça, une caisse achetée gardait son cadenas. Prix en euros : `eurTxt()` (« 4,99 € » / « €4.99 » selon la langue — à remplacer
+  par le prix localisé de StoreKit). Carrière : sortie en bas (`.mDock` généré par `carrVue`), tuiles toutes numérotées.
+  Volet : `body.voletSort` (480 ms) coupe la cascade de l'écran découvert — c'est le volet qui fait l'entrée ; `#wipe::after`
+  porte la marque CASH CAR.
+- **NITRO** : cadran (rond = une JAUGE, pas une plaque) à face carbone, jauge néon SEGMENTÉE (`--nr` orange / `--nx` cyan, posées par
+  la boucle), s'embrase à l'appui ; `.plein` = halo sur `::before` dont seule l'OPACITÉ bouge. ⚠ Jamais d'animation de `filter` ici.
+- **PIÈGES** : ⚠ un `filter:drop-shadow` sur une icône `.pxi` ne se voit PAS (le masque passe après le filtre et le rogne) — la
+  lueur doit venir d'ailleurs. ⚠ La feuille historique floute `#overlay` (menu desktop) : `body.touch #overlay` remet
+  `backdrop-filter:none`. ⚠ `#mob{display:none}` hors téléphone (sinon la coque s'affiche sous le menu desktop en `?pc=1`).
+  ⚠ `#spNote` est en absolu centré : son `transform` garde `translateX(-50%)`. Les libellés neufs sont traduits (bloc i18n
+  « charte v4 », après la ligne FRÉNÉSIE).
+- **Bancs** (scratchpad de la session) : `pp/tour.js <prefixe> [port] [w] [h]` (13 écrans), `pp/extras.js`, `pp/extras2.js` (états
+  rares : volet, tampon, carrière, anglais, record, défis), `pp/qa.js` (**62 vérifications** : routage, achat, équipement, onglets, filtres,
+  langue, modes, pause, mort, rejouer, zéro backdrop-filter, cibles ≥ 44 px), `pp/nitro.js`, `css/purge.js` (la purge postcss),
+  `pp/planche.js` (planches-contact). Serveur : `srv.js` sur le worktree.
+
 ## PASSE DE FINITION (2026-09-26) — quatre audits (son · interface · ergonomie · rendu iPhone), six lots
 Commits `2608066` (lot 1) · `c3493a5` (lots 2-3) · `04e8d28` (4) · `bd995f4` (5) · `3f5c08e` (6). Ce qui est devenu une RÈGLE :
 - **RENDU** · Les lumières ponctuelles n'éclairent QUE la caisse : `LFB_SANS_PL` (le chunk `lights_fragment_begin` sans sa boucle de
@@ -244,7 +301,60 @@ pigeons). Pires images, bridé ×4 : moteur 169 → 65-92 ms, portail 322 → 66
 - **Bancs** (scratchpad de la session) : `debug/perf.js` (ressources GPU, draw calls, profil), `debug/acoups.js <racine> [brideCPU]` (pire image
   + shaders compilés par événement), `debug/boot.js` (erreurs de démarrage — À LANCER APRÈS CHAQUE LOT : `node --check` ne voit pas une
   variable avalée par un commentaire).
+- **iPhone** : `f16ok` essaie un tampon demi-flottant 4×4 au démarrage — refusé par le pilote (écran NOIR sans erreur), le post-traitement
+  repasse en 8 bits (testé en forçant le refus : image normale). Contexte WebGL perdu → sauvegarde, rechargement à la restauration.
 - **Écarté après mesure** : grille spatiale pour la recherche de dalle en vol (~20 000 distances par image = moins de 0,1 ms, pas rentable).
+
+## VAGUES GRAPHIQUES 2 et 3 (2026-09-26 / 27) — « L'ENCRE ET L'OR », puis les retours de jeu de Sacha
+**Vague 2** (branche `fusion-gfx2`, six chantiers fusionnés) : ville/route/objets (plots rouge danger, pièces qui émettent l'or, plaques
+turbo en or, liseré par niveau), voitures (laque, ombre cuite à l'encre, liseré de contre-jour, atelier), ciel (soleil « 1.61 » en or,
+planète, ciel peint en DERNIER sur le plan lointain), HUD de course (FILE UNIQUE du couloir `hautPasse`, carte moteur v3 recollée dans
+l'image WebGL), particules (explosion en volutes instanciées, jus pixel, réserves endormies), étalonnage PAR BIOME (`wb/sh/hi/con/bloom/
+vig/rim`, `BIO_ETAL0` = les valeurs d'avant). La bible : encre `#1c0430` pour ombres et contours ; seul ce qui a de la VALEUR émet —
+or `#ffd75e` argent, feu `#ff7a24` nitro, réserve `#5b7dff`, néon `#ff3ec8`/`#5ee6ff`, danger `#ff3b5c`.
+**Vague 3** — les retours de Sacha après avoir joué la vague 2 :
+- **NUAGES** : le « jour cobalt » (ciel bleu roi, mer d'encre, nuages encre/crème, `ETAL_JOUR`, apport de zénith) est REJETÉ — « j'aime
+  pas le niveau dans les nuages, remets une version antérieure », puis « le ciel est bien maintenant, continue sur cette base ». Matin /
+  midi / aprem et le modelé des nuages sont revenus à l'état d'avant la vague 2. ⚠ Ne pas re-cobaltiser le jour.
+- **NITRO façon Asphalt** (bloc NFX, `nitroAllume`/`nitroEteint`) : à l'allumage onde de choc aux tuyères, recul caméra ~1 m + champ
+  +7° (+8° en vol), cabrage ~3°, bords d'écran à la couleur de la poussée (une ligne dans l'ACES), traits de vitesse, « WHOOMP » ; en
+  tenue flamme ×1,85 à cœur blanc, stries de vent 3D ; à l'extinction bouffée + pétarade, champ qui retombe en 1,2 s. Poussée et
+  consommation INCHANGÉES. Aléatoire propre `nfxR` (ne touche pas `Math.random` du jeu). Banc `dbgNitro(r,x)`.
+- **CAMÉRA** (`BOOM_CAM`, `CAM_ROUTE`) : la mort est un PLAN (recul en 0,55 s à ~14 m puis travelling lent et orbite 7°/s, objectif 70°,
+  ciel toujours en haut, boule au centre de la zone libre, garde-fous tour/dalle, zéro ralenti). Sous la route : TONNEAU de ~0,2 s au
+  passage dessus↔dessous (au lieu d'1,2 s de bascule) et CABRAGE ANTICIPÉ (la caméra lit la route 0,65 s devant et pivote d'une part de
+  la pente). `dbgCamRoute({regle:{...}})` règle à chaud (ANTICIPE:0, ANTICIPE_DESSOUS:0, TONNEAU:0 = la caméra d'avant) ; `dbgBoomCam()`.
+- **ÉCONOMIE** (bloc « ÉCONOMIE — VAGUE 3 », après `DENOMS`) : ~8× moins d'argent par partie, prix du garage inchangés. UN bouton
+  global `gain` (dans `denom()`), `prime` (contrats), `defi` (seuils ENCAISSE), `flow` = ×1 · 1,3 · 1,5 · 1,8 · 2 (lu par `flowMult()` —
+  jamais de multiplicateur en dur à l'écran), plafonds `recolte` ×2,5 et `serie` ×1,5. `qG` garde l'échelle des verdicts (MONSTRE…) et
+  des pièces moteur. Record d'argent et Top 10 convertis UNE fois (×0,125, marqueur `eco:3`) ; la BANQUE n'est pas touchée.
+- **HUD** : la barre de FLOW est de la famille de la jauge NITRO (même cadre, lèvre, reflet), juste dessous, 14 px, pictogramme
+  « vague » ; les verdicts de pose (MONSTRE / DOUBLE / TRIPLE / MÉTÉORE / SNAKE LOOP + montant + pastilles de bonus) reviennent sur
+  téléphone : `trickMsg` → `verdPousse` → une carte par image dans la file du couloir (famille `ver`). Banc `dbgHud('verdict',k)`.
+- **ORBITE** (bloc après `pluieTick`, `orbiteBuild/orbiteChauffe/orbiteTick`) : la LUNE (carte 1024×512 peinte en étapes au menu, sphère
+  calculée au pixel, composée au tiers haut-droit avec retard, jamais sur la Terre) et les ASTÉROÏDES (3 InstancedMesh, une matière,
+  rotation dans le shader ; passants au bord extérieur des virages, champ au-dessus, ceinture) ; `visible=false`/`count=0` hors ORBITE.
+  +4 appels de dessin. Banc `dbgOrbite('vue'|'cout'|'photo'|'carte')`.
+- **VILLE** (`VILLE_PENTE={seuil:.30,garde:.35}`, `adoucirPentes`) : la pente de la ville est comprimée au-delà de ~16,7° (pente max
+  ~47° → ~30°), altitude seulement, zéro `rnd()` ajouté : NUAGES et ORBITE identiques au bit. `garde:1` = l'ancienne ville.
+- **⚠ RELIEF COUPÉ PARTOUT** (même soir, user : « et en fait même pour la ville remets l'ancien terrain ») : `RELIEF_ON=false` — les trois
+  niveaux ont la pente et les virages d'AVANT (banc : 36/36 pistes identiques à daf9e60 ; la ville garde VILLE_PENTE). Le programme
+  ci-dessous dort derrière cet interrupteur (true = la VILLE seulement). Ne pas le rallumer sans que Sacha le redemande.
+- **RELIEF — VILLE SEULEMENT** (même jour, user : « garde ce terrain pour la ville mais remets les anciens pour les deux autres niveaux ») :
+  `reliefPiste`, les poids `wv` et les rayons larges ne jouent que si `sansLoop` (la ville) ; NUAGES et ORBITE retrouvent leurs pistes
+  d'avant AU TIRAGE PRÈS (banc : 36/36 pistes identiques). Ce qui suit décrit donc la VILLE.
+- **RELIEF** (`RELIEF`, `reliefPiste`, appelé à la fin de `genCtrl`) — « les parcours ne doivent pas toujours aller vers le bas… mets
+  plus de virages larges », puis « 40 % descente, 30 % montée, 30 % plat ». Avant : 95-99 % de la piste descendait (6 à 13 km de chute
+  par niveau). L'altitude ne vient PLUS des motifs (leurs `dy` ne servent qu'aux loopings) : un programme de tronçons DESCENTE −6/−15° ·
+  MONTÉE +5/+11° · PLAT 0°, tenu en longueur, rampes de 120 m ; une montée débouche toujours sur un plat (pas de crête aveugle) ; 250 m
+  plats avant le portail ; loopings transportés d'un bloc ; ÉTAGES : là où la route repasse sur elle-même, la suite passe DESSOUS à ≥ 85 m
+  (marche douce, toujours vers le bas — ne jamais « soulever » : ça oscillait et faisait des pentes à 50°). RNG = hachage du tracé.
+  Mesuré (banc `scratchpad/relief/mesure2.js`, 8 graines × 2 vitesses × 3 niveaux) : 28 % montée · 42 % descente · 30 % plat, chute
+  ~0,3-1,2 km par niveau, écart mini aux croisements (hors loopings) ≥ 63 m. Virages : grand virage R 130-320 et grand balayage R 160-320
+  (×RS), poids relevés partout — part de la piste en courbe LARGE (R 400-1500) ~22 % → 44 %, serrée (R < 150) ~13 % → 6 %. La caisse
+  roule ~15 % moins vite en moyenne (la pente ne pousse plus en permanence). Nuages : la garde `nuageTouche` écarte ceux qui mordraient
+  la route (85 nuages au lieu de 88).
+Vérifié : VERIF OK, grand tour 0 shader compilé en course, 60 i/s.
 
 ## ⚠ FUSION SACHA × LÉO + NIVEAUX — 2026-09-24 (branche `fusion-2026-09`)
 - `index.html` = fusion à trois points : appstore-backlog (Sacha) × `main:version-leolei-2026` (Léo),
@@ -263,8 +373,9 @@ pigeons). Pires images, bridé ×4 : moteur 169 → 65-92 ms, portail 322 → 66
   `CITY_BELOW` 660. Pluie : `LineSegments` 1 100 traits (600 mobile), animée en vertex shader, créée à l'init.
 - **VERSION TÉLÉPHONE SUR L'ÉCRAN D'ORDI** : `index.html?tel=1` (ou `?mobile=1`, `FORCE_TEL`) — toute la
   fenêtre, chemin téléphone complet ; volant à la souris, clavier branché ; ni gel en paysage, ni plein
-  écran forcé ; image 1,0 / 1,5. Sur un vrai téléphone, le gel « couché » ne vaut plus que sous 600 px
-  de haut (iPad libre) et affiche `#rotNote`.
+  écran forcé ; image 1,0 / 1,5. **PORTRAIT ET PAYSAGE (2026-09-27, user : « je veux un mode horizontal et vertical »)** : plus aucun gel
+  quand le téléphone se couche (`#rotNote` et `body.couche` supprimés, manifest en `"orientation": "any"`) ; la caméra suit
+  toute seule par `fovFit`/`POR`. ⚠ En paysage, l'écran d'accueil cache la caisse derrière GARAGE/SHOP.
 - **CHARTE v2 — LE BOUTON D'ARCADE PIXEL** (dernier bloc CSS, il gagne sur tout) : contour 3 px par QUATRE ombres
   décalées (coins crantés, SANS clip-path — le clip-path rognait l'épaisseur), face deux tons, lèvre claire,
   tranche sombre, ombre au sol ; à l'appui −6 px. Variables par couleur (`--fc/--fc2/--hi/--lo/--ol/--tx/--txs`) :
