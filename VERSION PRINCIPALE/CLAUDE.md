@@ -370,6 +370,44 @@ PÉRIMÉES pour ces écrans : leurs règles CSS ont été SUPPRIMÉES (purge pos
   langue, modes, pause, mort, rejouer, zéro backdrop-filter, cibles ≥ 44 px), `pp/nitro.js`, `css/purge.js` (la purge postcss),
   `pp/planche.js` (planches-contact). Serveur : `srv.js` sur le worktree.
 
+## LA CHARTE AU COMPLET (2026-09-28) — les menus ET le HUD de course, une seule main
+Sacha : « une interface parfaite et cohérente pour la version mobile verticale, du premier coup — tous les écrans, menus, affichage
+en jeu ». Audit MESURÉ d'abord (captures de tous les écrans 390×844 et 375×667 — hors course, HUD, campagne, auto-école —, relevé des
+styles calculés, critique DA indépendante) : les menus parlaient la charte v4, le HUD encore trois dialectes plus anciens. Tout vit
+dans UN bloc en fin de `<style id="charte4">` (« LA CHARTE AU COMPLET », sections 1 à 10) + quatre retouches JS.
+- **LA GRAMMAIRE, vraie partout** : PENCHÉ = je touche · DROIT à coins coupés = je lis · ROND = une jauge (cadran NITRO, chrono de vol).
+  Une PLAQUE qu'on lit = carbone tressé `--k2`, deux coins coupés, FILET de sa couleur à gauche ; étiquette en pixel, PHRASE en `--sans`.
+  Jetons : `--plaqueH`, `--coupeHP` (coins du HUD, `--coupeH` 10 px), `--filetH`, `--encre`. Rien d'arrondi, aucun dégradé dans un texte.
+- **LES COULEURS** : OR = le lingot (UNE action primaire) + le prix en vrai argent ; en course l'or est la VOIX des annonces (niveau,
+  slam, verdict, record à battre, consigne de l'auto-école), jamais un fond de plaque · `--cash` = l'argent du jeu · `--aura` = l'aura
+  et ses records · CYAN = aller voir / info · MAGENTA = boutique + halo des titres · VERT NÉON = allumé / gagné · ROUGE = danger, fin ·
+  une jauge prend la couleur de ce qu'elle mesure. Lavande (`--tx2`) = neutre (la tuile RÉGLAGES).
+- **CE QUI A CHANGÉ** : (1) UN logo — `#spTitle` et `#launchLogo` prennent la pente, la chasse, l'ombre et la livrée de l'accueil
+  (la pente est AJOUTÉE à leur transform d'animation) ; l'invite de l'écran titre en filet cyan. (2) MORT rangée comme l'accueil
+  (`order` : ressort, tuiles, PUIS REJOUER tout en bas) ; titre NOUVEAU RECORD en `--aura`, fin de campagne en `--neoV` (l'or reste au
+  lingot) ; pastilles des cartes à la couleur de LEUR carte ; en-têtes AURA/MOTEUR alignés ; `▶` réservé à ce qui se touche (« ENCORE
+  400 · REMARQUÉ ») ; « 1 PIÈCE » s'accorde ; tient sans défiler sur 375×667 (compactage `max-height:760px` / `690px`). (3) CARRIÈRE :
+  `.carrIn` en colonne pleine hauteur + `#carr{padding-bottom:0}` → RETOUR collé au bord (sticky ne colle que ce qui déborde) ;
+  chevron sur les cartes de monde ; jauge vide à 0 ; numéros de niveau alignés. (4) MODES : le même interrupteur que les réglages.
+  (5) Fenêtre destructrice filet ROUGE ; « restaurer mes achats » 44 px ; pause à 20 px du titre ; étiquettes de volume lavande ;
+  compteur du garage « $ 48 250 ». (6) Jauges nitro/FLOW à coins francs. (7) `#avVal`/`#avX` en couleur PLEINE (ils étaient en dégradé
+  découpé). (8) Pouvoirs, astuce/défi (`#misBan`), auto-école (`#coach`, c'était une carte de verre arrondie), objectif de campagne
+  (`#campChip`) = la plaque du HUD. (9) Colonne de droite FIXE : case du chrono de vol réservée (hudH+96), objectif de campagne à hudH+184,
+  pouvoirs à hudH+184 (+248 en campagne) — ils sautaient de 88 px à chaque décollage ; en campagne le couloir `--laneA` descend (384 px).
+  `airPieDraw` : le chrono de vol est le frère du cadran NITRO (face carbone nuit, anneau segmenté 16°/4°, « AIR » 8 px affichés).
+- **(10) L'EMBLÈME DE LA FRÉNÉSIE** (`#triade`, Sacha : « en mode frénésie, cette image en noir qui tourne sur elle-même, 2 tours à
+  gauche, 2 tours à droite, pas loin du multiplicateur de flow ») : « THE DARK TRIAD » redessiné en SVG (triangle + NARCISSISM /
+  PSYCHOPATHY / MACHIAVELLIANISM, `textLength` pour tenir quelle que soit la police), NOIR à liseré blanc fin, 68 px sous le `$×` du
+  FLOW, à gauche de la case du chrono de vol. CSS seul : visible quand `#flowHud[data-lv="4"]` (FRÉNÉSIE) ; `k5Triade` 4 s = −720° puis
+  retour (courbe unique). Le centre du viewBox = centre du triangle (il tourne sur place, rayon balayé ~28 px, mesuré sans contact
+  avec le chrono ni le record, dont la barre passe à 70 px pendant la frénésie).
+- **Écarté volontairement** (verdicts) : JOUER au garage, bouton d'action dans MODES/CARRIÈRE, ⚙ de l'accueil en bas, flèches du garage,
+  rangée LA PARTIE de la pause descendue près de REPRENDRE (QUITTER ne se colle pas au lingot), l'or du HUD (voix des annonces, record en
+  or demandé le 26/09 : « plus en lavande 8 px »).
+- **Bancs** (scratchpad de la session 923b15ae, `ui/`) : `tour.js` (34 écrans), `tour2.js` (états + AUDIT des styles calculés →
+  `audsum.js`), `tour3.js` (auto-école, moteur, record), `tour4.js` (logo du départ, astuce, défi, campagne VILLE 4 + rectangles),
+  `tour5.js` (FRÉNÉSIE, emblème), `planche.js`. Serveur `srv.js <racine> 8097`. Tous muets.
+
 ## PASSE DE FINITION (2026-09-26) — quatre audits (son · interface · ergonomie · rendu iPhone), six lots
 Commits `2608066` (lot 1) · `c3493a5` (lots 2-3) · `04e8d28` (4) · `bd995f4` (5) · `3f5c08e` (6). Ce qui est devenu une RÈGLE :
 - **RENDU** · Les lumières ponctuelles n'éclairent QUE la caisse : `LFB_SANS_PL` (le chunk `lights_fragment_begin` sans sa boucle de
