@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
-  "buildCommand": "rm -rf .vercel-static && cp -R demo/cash-car-demo .vercel-static",
+  "buildCommand": "rm -rf .vercel-static && cp -R demo/cash-car-demo .vercel-static && cp -R \"VERSION PRINCIPALE\" .vercel-static/jouer && rm -f .vercel-static/jouer/CLAUDE.md .vercel-static/jouer/README.md .vercel-static/jouer/JOUER.bat",
   "outputDirectory": ".vercel-static",
   "headers": [
     {
