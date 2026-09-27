@@ -2786,6 +2786,14 @@ html[data-reduced-motion="1"] .mscr.on,html[data-reduced-motion="1"] #tPanel.ope
   .pbtn:not(.pb-gold):active::after,.gTab:active::after{animation:leoReflet .38s var(--ease,ease) both}
   @keyframes leoReflet{from{background-position:170% 0}to{background-position:-70% 0}}
   @media (prefers-reduced-motion:reduce){.pbtn::after,.gTab::after{animation:none!important}}
+  /* LE GUIDE DU JEU : sept lignes serrées dans la feuille du bas — pictogramme néon, mot-clé en pixel, règle en une phrase */
+  #modX .guide{display:flex;flex-direction:column;gap:9px;text-align:left;margin:4px 0 2px;max-height:min(56vh,430px);overflow-y:auto;padding-right:4px}
+  #modX .gdL{display:flex;align-items:flex-start;gap:11px}
+  #modX .gdL>.pxi{flex:none;--pxs:2;color:var(--neoC,#5ff0ff);margin-top:1px}
+  #modX .gdL b{display:flex;align-items:center;gap:8px;font-family:var(--pix);font-size:9px;letter-spacing:1px;font-weight:400;color:var(--au1,#ffd75e);margin-bottom:4px}
+  #modX .gdL kbd{font-family:var(--pix);font-size:7px;letter-spacing:0;color:#cfd2ff;padding:3px 5px 2px;border:1px solid rgba(207,210,255,.35);border-radius:3px}
+  #modX .gdL span{display:block;font-size:12px;line-height:1.4;color:#e4e1ff}
+  .mGuide .pxi{color:var(--au1,#ffd75e)}
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
@@ -3007,6 +3015,8 @@ html[data-reduced-motion="1"] .mscr.on,html[data-reduced-motion="1"] #tPanel.ope
     <div class="mscr" id="mSet">
       <div class="mHead"><h3>REGLAGES</h3></div>
       <div class="mSet">
+        <!-- (2026-09-27, Léo : « la première touche des réglages doit donner un guide du gameplay, en petit ») -->
+        <div class="mPanel"><div class="mLigne lien mGuide" data-m="guide" role="button"><i class="pxi pxi-aide" aria-hidden="true"></i><span class="tpL">GUIDE DU JEU</span></div></div>
         <div class="mSec">AUDIO</div>
         <div class="mPanel">
           <div class="mLigne avecVol" data-m="snd"><i class="pxi pxi-son" aria-hidden="true"></i><span class="tpL">SON</span><b id="mvSnd" class="bascule">ON</b></div>
@@ -3119,6 +3129,7 @@ html[data-reduced-motion="1"] .mscr.on,html[data-reduced-motion="1"] #tPanel.ope
    bouton (`currentColor`), reste nette à toutes les tailles (`crispEdges`) et ne coûte aucun fichier.
    Usage : `<i class="pxi pxi-croix"></i>` dans le HTML, `pxi('croix')` dans le JS. */
 const PXI_G={flamme:'....#....|...##....|...###...|..####.#.|..######.|.###.###.|.##...##.|.##...##.|..#####..',pinceau:'......###|.....####|....####.|...####..|..####...|.#.##....|###......|###......|.#.......',aile:'.........|#........|##.......|###......|#####....|.#######.|..#######|....#####|.......##',trainee:'.........|##.......|.###.....|..####...|...######|..####...|.###.....|##.......|.........',pouce:'...##....|...##....|...##....|...####..|.#######.|.########|.#######.|..#####..|..#####..',cadeau:'.##...##.|#..#.#..#|.#######.|#########|#...#...#|####.####|.#..#..#.|.#..#..#.|.#######.',cible:'..#####..|.#.....#.|#..###..#|#.#...#.#|#.#.#.#.#|#.#...#.#|#..###..#|.#.....#.|..#####..',croix:'##.....##|###...###|.###.###.|..#####..|...###...|..#####..|.###.###.|###...###|##.....##',gauche:'....##...|...###...|..####...|.#####...|######...|.#####...|..####...|...###...|....##...',droite:'...##....|...###...|...####..|...#####.|...######|...#####.|...####..|...###...|...##....',haut:'.........|....#....|...###...|..#####..|.#######.|#########|...###...|...###...|...###...',bas:'...###...|...###...|...###...|#########|.#######.|..#####..|...###...|....#....|.........',lecture:'##.......|####.....|######...|########.|#########|########.|######...|####.....|##.......',pause:'.........|###...###|###...###|###...###|###...###|###...###|###...###|###...###|.........',reglages:'....#....|.#.###.#.|..#####..|.##...##.|###...###|.##...##.|..#####..|.#.###.#.|....#....',son:'....#....|...##..#.|####.#..#|####.#..#|####.#..#|####.#..#|...##..#.|....#....|.........',muet:'....#....|...##....|####..#.#|####...#.|####..#.#|####.....|...##....|....#....|.........',musique:'...######|...#....#|...#....#|...#....#|.###..###|####.####|####.####|.##...##.|.........',voix:'...###...|..#####..|..#####..|..#####..|#.#####.#|#..###..#|.##...##.|...###...|..#####..',volant:'..#####..|.#.....#.|#.......#|#..###..#|#########|#...#...#|#...#...#|.#..#..#.|..#####..',fleches:'.........|..#...#..|.##...##.|###...###|###...###|###...###|.##...##.|..#...#..|.........',eclair:'.....###.|....###..|...###...|..######.|.....##..|....##...|...##....|..##.....|.#.......',drapeau:'#.#.#.#.#|##.#.#.#.|#.#.#.#.#|##.#.#.#.|#.#.#.#.#|#........|#........|#........|#........',voiture:'.........|.........|..####...|.#..#.#..|########.|#########|#########|.##...##.|.##...##.',rampe:'.........|.........|........#|......###|.....####|...######|.########|#########|.........',brique:'#########|#...#...#|#########|..#...#..|#########|#...#...#|#########|..#...#..|#########',copier:'...###...|.##...##.|.#######.|.#.....#.|.#.###.#.|.#.....#.|.#.###.#.|.#.....#.|.#######.',importer:'....#....|....#....|..#.#.#..|...###...|....#....|#.......#|#.......#|#########|.........',corbeille:'...###...|#########|.#.....#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.....#.|..#####..',rejouer:'..#####..|.#.....##|#.....###|#........|#........|#.......#|#.......#|.#.....#.|..#####..',quitter:'#####....|#...#....|#...#.#..|#...#.##.|#..######|#...#.##.|#...#.#..|#...#....|#####....',verrou:'..#####..|.#.....#.|.#.....#.|#########|#########|####.####|####.####|#########|#########',coche:'.........|........#|.......##|#.....##.|##...##..|.##.##...|..###....|...#.....|.........',etoile:'....#....|....#....|...###...|#########|.#######.|..#####..|..##.##..|.##...##.|.#.....#.',trophee:'#########|#.#####.#|#.#####.#|.#######.|..#####..|...###...|....#....|..#####..|.#######.',rotation:'..#####..|.#.....##|#.....###|#........|#..###...|#..#.#..#|#..###..#|.#.....#.|..#####..',panier:'.........|#........|.#######.|.#.#.#.#.|.#######.|..#.#.#..|..#####..|..#...#..|.........',bulle:'.#######.|#.......#|#.#.#.#.#|#.......#|.###.###.|...#.#...|...##....|...#.....|.........',piece:'..#####..|.#.....#.|#..###..#|#.#.....#|#..###..#|#.....#.#|#..###..#|.#.....#.|..#####..'};
+PXI_G.aide='..#####..|.##...##.|.......##|......##.|....##...|...##....|.........|...##....|...##....'; // (2026-09-27) le « ? » du guide
 PXI_G.grille='.........|.##.##.##|.##.##.##|.........|.##.##.##|.##.##.##|.........|.##.##.##|.##.##.##'; // (2026-09-26) le CATALOGUE de la boutique
 (function(){
   let css='',vars='';
@@ -3141,6 +3152,25 @@ function feuilleOuvre(el,cls){ if(!el)return; clearTimeout(el._fermeT); el.class
 function feuilleFerme(el,cls){ if(!el||!el.classList.contains(cls))return; clearTimeout(el._fermeT);
   if(document.documentElement.getAttribute('data-reduced-motion')==='1'){el.classList.remove(cls,'sortant');return;}
   el.classList.add('sortant'); el._fermeT=setTimeout(function(){el.classList.remove(cls,'sortant');},170); }
+/* LE GUIDE DU JEU (2026-09-27, Léo : « la première touche des réglages doit permettre d'avoir un guide sur le gameplay, en petit »).
+   Sept lignes, une par geste, dans la feuille du bas de la charte v4 (`modale`) : le titre de la ligne en pixel, la règle en une
+   phrase, la touche du clavier entre crochets pour l'ordi. Tout passe par TR (FR / EN / 中文). */
+const GUIDE=[
+  ['volant','VOLANT','Pouce gauche : glisse à gauche ou à droite. Lâche, la caisse file tout droit.','← →'],
+  ['fleches','DRIFT','Tire le pouce vers le bas en tournant : la caisse glisse et charge le turbo.','↓'],
+  ['eclair','NITRO','Pouce droit : ça pousse. En l’air, la nitro fait planer.','ESPACE'],
+  ['rampe','VOL','Sans nitro, le pouce redresse la caisse. Pose-toi à plat : PARFAIT.',''],
+  ['etoile','AURA','Chaque figure rapporte ; des figures différentes font monter le ×. Pose-toi pour encaisser — si tu exploses, tout est perdu.',''],
+  ['drapeau','NIVEAUX','Passe le portail pour finir le niveau. Choisis-le au garage : chaque niveau garde ton record.',''],
+  ['panier','GARAGE','Le lapin ouvre la boutique. Garde le doigt sur ta voiture : elle charge un boost.','']];
+// (ses traductions sont posées plus bas, après la déclaration d'I18N : voir « LE GUIDE DU JEU — traductions »)
+function guideOuvre(){
+  modale({titre:'GUIDE DU JEU',texte:'',boutons:[{l:'COMPRIS !',v:1,cls:'pb-gold'}]});
+  const x=document.getElementById('modX');if(!x)return;
+  x.innerHTML='<div class="guide">'+GUIDE.map(function(g){
+    return '<div class="gdL"><i class="pxi pxi-'+g[0]+'" aria-hidden="true"></i><div><b>'+sansAcc(TR(g[1]))+(g[3]&&!IS_MOBILE||g[3]&&FORCE_TEL&&!TEL_NATIF?'<kbd>'+TR(g[3])+'</kbd>':'')+'</b><span>'+TR(g[2])+'</span></div></div>';}).join('')+'</div>';
+  x.scrollTop=0;
+}
 function modale(o){return new Promise(function(res){
   const m=document.getElementById('modale'),c=document.getElementById('modC'),b=m.querySelector('.modB');
   document.getElementById('modT').textContent=TR(o.titre);document.getElementById('modX').textContent=o.texte?TR(o.texte):'';
@@ -3910,12 +3940,12 @@ const ACESShader={
     // délavait le rose en brun, mesuré), plus forte sur le sombre que sur le clair (elle ne brûle jamais le ciel), + le COUP d'allumage.
     // Le centre (la caisse, la route devant) reste intact : tout se joue au-delà du quart de l'image. Zéro lecture de texture.
     '{float ne=smoothstep(0.36,0.74,r);c+=uNit.rgb*(ne*(uNit.a*(1.0-0.6*min(1.0,dot(c,LUM)))+uNitF));}',
-    // (2026-09-27, Léo : « plus beau grâce à la lumière — là c'est un peu trop éparpillé ») LA LUMIÈRE DIRIGÉE : une flaque de
-    // lumière douce POSÉE SUR LA CAISSE (uFoc.xy = sa place à l'écran, suivie et lissée), et un monde qui se calme en s'éloignant
-    // d'elle (un peu plus sombre, un peu moins saturé). L'œil ne se promène plus : il revient à la voiture. uFoc.z = le dosage
-    // (0 = coupé, rendu d'avant au pixel près) — `dbgLumiere(k)`. Ni le ciel ni le HUD ne changent de couleur : juste de poids.
-    '{vec2 fq=(vUv-uFoc.xy)*vec2(uRes.y/uRes.x,1.);float fd=length(fq),pool=1.-smoothstep(.04,.46,fd),loin=smoothstep(.28,.95,fd);',
-    ' c*=1.+uFoc.z*(.2*pool-.2*loin);c=max(mix(vec3(dot(c,LUM)),c,1.-uFoc.z*.3*loin),0.);}',
+    // LE POINT FOCAL (2026-09-27, Léo : « remets la lumière, mais plus intelligemment ») — v1 assombrissait les bords pour ramener
+    // l'œil : refusé. La v2 ne retire RIEN : une flaque de lumière douce POSÉE SUR LA CAISSE (uFoc.xy = sa place à l'écran, suivie
+    // et lissée) où l'image gagne en clarté ET en saturation — la règle des peintres : le sujet est la zone la plus claire, la plus
+    // contrastée, la plus colorée. uFoc.z = le dosage (0 = rendu d'avant au pixel près) — `dbgLumiere(k)`.
+    '{vec2 fq=(vUv-uFoc.xy)*vec2(uRes.y/uRes.x,1.);float pool=1.-smoothstep(.03,.42,length(fq));',
+    ' c*=1.+uFoc.z*.16*pool;c=max(mix(vec3(dot(c,LUM)),c,1.+uFoc.z*.16*pool),0.);}',
     GRADE_ACES?'c=max(c,0.);c=max(mix(vec3(dot(c,LUM)),c,1.12),0.);c=max((c-.5)*1.05+.5,0.)*.97;':'', // = saturate(1.12) contrast(1.05) brightness(.97) du CSS, même ordre
     // LA VIGNETTE (2026-09-26, vague 2) — c'était un calque DOM plein écran (#vig) : violet, fixe à 52 %, même en plein jour cobalt. Elle
     // vit ici, par niveau (uVigK/uVigC, posés par bioApply). Même dessin au pixel que l'ancien dégradé CSS (ellipse centrée à 44 % du
@@ -20796,7 +20826,7 @@ function endGame(){
   gameOver=true;airPie.style.display='none';chainHud.style.opacity=0;caseHud.style.opacity=0;
   musicStop(true);setTimeout(function(){if(gameOver)musicMenu();},1400); // TAPE-STOP de fin, puis la musique du menu revient, étouffée
   dolKill();serpShow=0; // les créatures ne survivent pas à l'explosion
-  lastAlertEl.style.display='none';for(const l9 of gyroLights)l9.intensity=0; // la poursuite s'éteint avec la caisse
+  lastAlertEl.style.display='none';trailLight.intensity=0;RIM.k=0;for(const l9 of gyroLights)l9.intensity=0; // la poursuite s'éteint avec la caisse
   botJetLight.intensity=0;for(const tr9 of botTrails){tr9.init=false;tr9.m.visible=false;}
   if(sirG)sirG.gain.setTargetAtTime(0,AC.currentTime,.3);
   if(SURV.on)survRender(); // classement final figé
@@ -21709,6 +21739,23 @@ Object.assign(I18N,{'RECORD|PERSO':'PERSONAL|BEST','RECORDS|MONDIAUX':'WORLD|REC
 Object.assign(I18N_ZH,{'RECORD|PERSO':'个人|纪录','RECORDS|MONDIAUX':'世界|纪录','MEILLEURE PARTIE':'最佳一局','AURA MAX':'最高光环',
   'PALIER MOTEUR':'引擎等级','VITESSE MAX':'最高速度','BIENTOT EN LIGNE':'即将上线','TES RECORDS : BIENTOT EN DETAIL':'你的纪录：详情即将推出',
   'CLASSEMENT MONDIAL : BIENTOT EN LIGNE':'世界排名：即将上线'});
+// LE GUIDE DU JEU — traductions (ici : I18N n'existe pas encore là où vit GUIDE)
+Object.assign(I18N,{'GUIDE DU JEU':'GAME GUIDE','COMPRIS !':'GOT IT!','VOLANT':'STEER','DRIFT':'DRIFT','NITRO':'NITRO','VOL':'AIR','AURA':'AURA','NIVEAUX':'LEVELS','GARAGE':'GARAGE',
+  'Pouce gauche : glisse à gauche ou à droite. Lâche, la caisse file tout droit.':'Left thumb: slide left or right. Let go and the car keeps its line.',
+  'Tire le pouce vers le bas en tournant : la caisse glisse et charge le turbo.':'Pull your thumb down while turning: the car slides and charges the turbo.',
+  'Pouce droit : ça pousse. En l’air, la nitro fait planer.':'Right thumb: boost. In the air, nitro makes you glide.',
+  'Sans nitro, le pouce redresse la caisse. Pose-toi à plat : PARFAIT.':'Without nitro, your thumb levels the car. Land flat: PERFECT.',
+  'Chaque figure rapporte ; des figures différentes font monter le ×. Pose-toi pour encaisser — si tu exploses, tout est perdu.':'Every trick scores; different tricks raise the ×. Land to cash in — explode and it is all lost.',
+  'Passe le portail pour finir le niveau. Choisis-le au garage : chaque niveau garde ton record.':'Go through the portal to clear the level. Pick it in the garage: each level keeps your record.',
+  'Le lapin ouvre la boutique. Garde le doigt sur ta voiture : elle charge un boost.':'The bunny opens the shop. Hold your finger on your car: it charges a boost.','ESPACE':'SPACE'});
+Object.assign(I18N_ZH,{'GUIDE DU JEU':'游戏指南','COMPRIS !':'明白了！','VOLANT':'转向','DRIFT':'漂移','NITRO':'氮气','VOL':'飞行','AURA':'光环','NIVEAUX':'关卡','GARAGE':'车库',
+  'Pouce gauche : glisse à gauche ou à droite. Lâche, la caisse file tout droit.':'左手拇指：左右滑动。松开，车子保持直线。',
+  'Tire le pouce vers le bas en tournant : la caisse glisse et charge le turbo.':'转弯时拇指向下拉：车子漂移并蓄满涡轮。',
+  'Pouce droit : ça pousse. En l’air, la nitro fait planer.':'右手拇指：加速。空中使用氮气可以滑翔。',
+  'Sans nitro, le pouce redresse la caisse. Pose-toi à plat : PARFAIT.':'没有氮气时，拇指能扶正车身。平稳落地：完美。',
+  'Chaque figure rapporte ; des figures différentes font monter le ×. Pose-toi pour encaisser — si tu exploses, tout est perdu.':'每个特技都得分；不同的特技提高倍数。落地才能入账——爆炸就全部失去。',
+  'Passe le portail pour finir le niveau. Choisis-le au garage : chaque niveau garde ton record.':'穿过传送门完成关卡。在车库选择关卡：每关都保留你的纪录。',
+  'Le lapin ouvre la boutique. Garde le doigt sur ta voiture : elle charge un boost.':'小兔子打开商店。按住你的车：它会蓄力加速。','ESPACE':'空格'});
 function buildAffiches(g){
   const hd=GAR.D/2;GAR.affiches=[];
   for(const a of [{k:'perso',x:7.9,cad:0xffc83d},{k:'monde',x:-7.9,cad:0x5fd8ff}]){  // x > 0 = à GAUCHE vu de la caisse
@@ -22564,11 +22611,12 @@ function trailApercu(dt,on){
      donc des portions LONGUES (≥ 360 m visés), et au bout un fondu au noir (`#menuNoir`, sous les boutons) la ramène au début.
    Hooks : `dbgVitrine(cible)` (Sacha : l'écart visé au soleil), `dbgAccueil(vitesse|'scan')` (Léo : où en est la caisse). */
 const MENUV={t:0,cam:new THREE.Vector3(),vis:new THREE.Vector3(),p:new THREE.Vector3(),bio:false,pas:-1,L:-1,s:60,a0:.55,sg:1,lat:0,cible:.4,
-  s0:60,s1:260,v:15,fondu:0,el:null,off:new THREE.Vector3(),voff:new THREE.Vector3(),cale:-1}; // v : 15 m/s, une allure de défilé (à 21 la portion défilait en 6 s)
+  s0:60,s1:260,v:44,fondu:0,el:null,off:new THREE.Vector3(),voff:new THREE.Vector3(),cale:-1,plans:[],idx:0}; // v : 44 m/s (~160 km/h) — « la voiture qui roule VITE » // v : 15 m/s, une allure de défilé (à 21 la portion défilait en 6 s)
 const MENU_BIO='couchant';
 function menuPlan(){ // le meilleur couple (portion, angle) pour filmer la caisse qui roule devant le couchant — une fois par piste
-  MENUV.L=L;let best=9;const sx=SUN_DIR.x,sz=SUN_DIR.z,sn=Math.hypot(sx,sz);
+  MENUV.L=L;let best=9;const sx=SUN_DIR.x,sz=SUN_DIR.z,sn=Math.hypot(sx,sz),cands=[]; // cands : le meilleur angle de CHAQUE portion (on en garde trois)
   for(let s9=100;s9<=L-160;s9+=s9<600?20:60){
+    let bS=9,bA=0;
     frameAt(s9,F);const dx=F.t.x,dz=F.t.z,dn=Math.hypot(dx,dz)||1;
     let lon=0;for(let q=s9+20;q<Math.min(L-80,s9+900);q+=20){frameAt(q,F);            // jusqu'où la portion reste plate et droite
       if(F.n.y<.95||(F.t.x*dx+F.t.z*dz)/(Math.hypot(F.t.x,F.t.z)*dn||1)<.6)break;lon=q-s9;} // ≤ 53° de virage : les pistes v3 tournent beaucoup (droite la plus longue ≈ 120 m) ; la caméra ne tourne pas, c'est la CAISSE qui prend la courbe devant nous
@@ -22584,8 +22632,14 @@ function menuPlan(){ // le meilleur couple (portion, angle) pour filmer la caiss
     for(let a9=-.65;a9<=.66;a9+=.05){if(Math.abs(a9)<.38)continue;                      // un trois-quarts avant SERRÉ : la caisse tient dans la largeur d'un portrait
       const lx=-(Math.cos(a9)*F.t.x+Math.sin(a9)*F.b.x),lz=-(Math.cos(a9)*F.t.z+Math.sin(a9)*F.b.z),ln=Math.hypot(lx,lz)||1;
       const ang=Math.acos(Math.max(-1,Math.min(1,(lx*sx+lz*sz)/(ln*sn))));             // l'écart entre le regard et le soleil
-      const sc=Math.abs(ang-MENUV.cible)+(1-plat)*8+(1-droit)*.6+(s9-100)*.00001+((a9<0?eD:eG)>0?1:0)+Math.max(0,(360-lon)/360)*3; // + (Léo) une portion LONGUE : la caisse y roule (poids 3 : à .9 le soleil gagnait toujours, 120 m = un fondu toutes les 6 s)
-      if(sc<best){best=sc;MENUV.s=s9;MENUV.a0=a9;MENUV.s1=s9+Math.max(120,lon);}}}
+      const sc=Math.abs(ang-MENUV.cible)+(1-plat)*8+(1-droit)*.6+(s9-100)*.00001+((a9<0?eD:eG)>0?1:0)+Math.max(0,(360-lon)/360)*3+(ang<.38?2:0); // (Léo) le soleil JAMAIS dans le cadre (< 22° : le « 1.61 » passait derrière la caisse) + une portion LONGUE : la caisse y roule (poids 3 : à .9 le soleil gagnait toujours, 120 m = un fondu toutes les 6 s)
+      if(sc<bS){bS=sc;bA=a9;}
+      if(sc<best){best=sc;MENUV.s=s9;MENUV.a0=a9;MENUV.s1=s9+Math.max(120,lon);}}
+    if(bS<9)cands.push({sc:bS,s:s9,a0:bA,s1:s9+Math.max(120,lon)});}
+  // (Léo) TROIS PLANS, pas un : la caisse file à 160 km/h, une portion passe en ~9 s — à chaque fondu on change de décor
+  cands.sort(function(a,b){return a.sc-b.sc;});MENUV.plans=[];
+  for(const c9 of cands){if(MENUV.plans.length>=3)break;if(MENUV.plans.every(function(p9){return Math.abs(p9.s-c9.s)>700;}))MENUV.plans.push(c9);}
+  MENUV.idx=0;if(MENUV.plans.length){const p9=MENUV.plans[0];MENUV.s=p9.s;MENUV.a0=p9.a0;MENUV.s1=p9.s1;}
   MENUV.sg=MENUV.a0<0?-1:1;MENUV.s0=MENUV.s;
   MENUV.lat=-MENUV.sg*Math.max(0,ROAD_HALF-7); // garée du côté où l'on regarde : la caméra reste sur le bitume, le regard file vers le dehors
 }
@@ -22596,6 +22650,7 @@ window.dbgAccueil=function(v){if(v==='scan'){const o=[];for(let s=0;s<Math.min(L
   if(v!=null)MENUV.v=+v;return {s:+MENUV.s.toFixed(1),debut:+MENUV.s0.toFixed(0),bout:+MENUV.s1.toFixed(0),vitesse:MENUV.v,fondu:+MENUV.fondu.toFixed(2),L:Math.round(L)};};
 function menuVitrineFin(){ // on quitte l'accueil : le ciel du niveau reprend la main
   MENUV.bio=false;bioApply(BIO.cur);paintEnv(BIO.to.env,BIO.to.eS1,BIO.to.eS2);skyU.uMer.value=LVL.mer;
+  nitroLight.distance=18; // (2026-09-27) la vitrine la raccourcit à 14 pour son contre-jour : la course retrouve sa portée
 }
 function menuNoir(o){
   if(!MENUV.el){const e=document.createElement('div');e.id='menuNoir';e.setAttribute('aria-hidden','true');document.body.appendChild(e);MENUV.el=e;}
@@ -22607,13 +22662,17 @@ function menuVitrine(dt){
   skyU.uMer.value=1; // la mer de nuages sous l'horizon, même si le niveau du dessous (auto-école) a le ciel nu
   if(MENUV.L!==L){menuPlan();MENUV.s=MENUV.s0;MENUV.cale=-1;}
   MENUV.s+=MENUV.v*Math.min(dt,.05);                                       // (Léo) la caisse ROULE…
-  if(MENUV.s>=MENUV.s1)MENUV.s=MENUV.s0;                                    // …et repart du début de la portion
+  if(MENUV.s>=MENUV.s1){                                                    // …et au bout, on COUPE sur le plan suivant
+    if(MENUV.plans.length>1){MENUV.idx=(MENUV.idx+1)%MENUV.plans.length;const p9=MENUV.plans[MENUV.idx];
+      MENUV.s0=p9.s;MENUV.s1=p9.s1;MENUV.a0=p9.a0;MENUV.sg=p9.a0<0?-1:1;MENUV.lat=-MENUV.sg*Math.max(0,ROAD_HALF-7);}
+    MENUV.s=MENUV.s0;}
   if(MENUV.cale!==MENUV.s0){MENUV.cale=MENUV.s0;                            // LE CADRE se cale UNE fois, au début de la portion (le plan de Sacha)…
-    frameAt(MENUV.s0,F);const a=MENUV.sg*Math.min(.7,Math.max(.33,Math.abs(MENUV.a0))),d=((CARS[level]||CARS[0]).l*1.9+5.2)*(.86+POR*.18);
-    MENUV.off.set(0,0,0).addScaledVector(F.t,Math.cos(a)*d).addScaledVector(F.b,Math.sin(a)*d).addScaledVector(F.n,4.0);
-    MENUV.voff.set(0,0,0).addScaledVector(F.n,2.2).addScaledVector(F.t,.35);}
+    // (2026-09-27, Léo : « point de vue plus centré sur la voiture ») : plus près, plus bas, visée AU CENTRE de la caisse
+    frameAt(MENUV.s0,F);const a=MENUV.sg*Math.min(.7,Math.max(.33,Math.abs(MENUV.a0))),d=((CARS[level]||CARS[0]).l*1.45+4.3)*(.9+POR*.22);
+    MENUV.off.set(0,0,0).addScaledVector(F.t,Math.cos(a)*d).addScaledVector(F.b,Math.sin(a)*d).addScaledVector(F.n,2.1);
+    MENUV.voff.set(0,0,0).addScaledVector(F.n,.75);}
   const reste=(MENUV.s1-MENUV.s)/MENUV.v,depuis=(MENUV.s-MENUV.s0)/MENUV.v;
-  MENUV.fondu=Math.max(0,1-Math.min(reste,depuis)/.5);menuNoir(MENUV.fondu);   // noir aux deux bouts, .5 s de fondu
+  MENUV.fondu=Math.max(0,1-Math.min(reste,depuis)/.22);menuNoir(MENUV.fondu);  // une COUPE franche (.22 s) : à cette vitesse un fondu lent se verrait toutes les 9 s
   frameAt(Math.min(L-10,MENUV.s),F);
   MENUV.p.copy(F.p).addScaledVector(F.b,MENUV.lat);carGroup.position.copy(MENUV.p);
   mat4.makeBasis(tmp.crossVectors(F.n,F.t).normalize(),F.n,F.t);carGroup.quaternion.setFromRotationMatrix(mat4);carGroup.visible=true;
@@ -22621,6 +22680,7 @@ function menuVitrine(dt){
   // …puis la caméra SUIT la caisse sans jamais TOURNER : même décalage, même visée, dans le repère du MONDE. Le ciel, le soleil et
   // l'horizon restent donc immobiles ; seule la caisse avance (et prend ses courbes sous nos yeux), la route défile dessous.
   MENUV.cam.copy(MENUV.p).add(MENUV.off);
+  MENUV.cam.y+=Math.sin(MENUV.t*23)*.012+Math.sin(MENUV.t*37)*.008;       // la route qui vibre sous la vitesse (à peine)
   camera.position.copy(MENUV.cam);
   camera.up.set(0,1,0); // l'horizon de niveau : c'est une photo, pas une poursuite
   MENUV.vis.copy(MENUV.p).add(MENUV.voff); // visée au-dessus du toit et un peu vers le NEZ : la caisse vers 60 % de la hauteur
@@ -22629,8 +22689,18 @@ function menuVitrine(dt){
   if(landMark)landMark.visible=false;
   // L'ÉCLAIRAGE DE VITRINE : une lumière douce côté caméra (la carrosserie se lit), un contre-jour rose derrière (la silhouette se détache)
   carLight.position.copy(MENUV.cam).addScaledVector(F.n,2.5);carLight.intensity=3.4;carLight.distance=60; // (Sacha, vague 2) 2,4 → 3,4 : au couchant la caisse est à contre-jour
-  nitroLight.position.copy(MENUV.p).addScaledVector(F.t,-4).addScaledVector(F.n,2.2);nitroLight.color.setHex(0xff4fb0);nitroLight.intensity=1.6;
+  // (2026-09-27) le contre-jour de la vitrine prend la COMPLÉMENTAIRE du ciel (cyan sur le couchant rose) — il était rose sur rose
+  nitroLight.position.copy(MENUV.p).addScaledVector(F.t,-4).addScaledVector(F.n,2.2);nitroLight.color.copy(rimCouleur(dt));nitroLight.distance=14;nitroLight.intensity=4.2*LUMF.k+.001;
+  trailLight.intensity=0;
   headSpot.intensity=1.6;
+  // LA CAISSE POUSSE : les plumes de nitro sortent des pots (sa couleur, `spec.fx`), la vitesse se VOIT
+  {const t9=MENUV.t,FX9=(CARS[level]||CARS[0]).fx;JETS.k+=(.62-JETS.k)*Math.min(1,dt*5);
+   if(JETS.shells.length){const fl=.82+.18*Math.sin(t9*57+Math.sin(t9*33)*2.1),jl=Math.max(.03,.8*JETS.k*2.1*fl),jr=.09+.07*JETS.k;
+     jetShellM.color.setHex(FX9&&FX9.jet!=null?FX9.jet:0xff7a24);jetCoreM.color.setHex(FX9&&FX9.core!=null?FX9.core:0xffe6b0);
+     jetGlowM.color.copy(jetShellM.color);jetGlowM.opacity=Math.min(1,JETS.k*.95*fl);
+     for(const m9 of JETS.shells){m9.visible=true;m9.scale.set(jr,jr,jl);}
+     for(const m9 of JETS.cores){m9.visible=true;m9.scale.set(jr*.48,jr*.48,jl*.72);}
+     const g9=.2+.55*JETS.k*fl;for(const s9 of JETS.glows){s9.visible=true;s9.scale.set(g9,g9,1);}}}
 }
 function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 360° DANS l'atelier
   trailApercu(dt,GAR.btq&&SHOP.tab==='trainee');
@@ -23309,6 +23379,32 @@ window.dbgPin=function(on){RESPIN=(on===undefined)?true:!!on;
 /* LA LUMIÈRE DIRIGÉE (2026-09-27, Léo) — où est la caisse à l'écran ? La flaque de l'ACES (uFoc) la suit, lissée ; elle s'allume
    en course et à l'accueil, s'éteint au garage (l'atelier a ses lampes), à l'explosion, et quand la caisse sort du cadre. */
 const LUMF={k:1,x:.5,y:.45,z:0,v:new THREE.Vector3()};
+/* LA LUMIÈRE DE CONTOUR COMPLÉMENTAIRE (2026-09-27, Léo : « remets la lumière mais plus intelligemment, aie recours à la science
+   des couleurs complémentaires, des effets, de l'art ») — trois règles, tirées de la peinture et du cinéma :
+   1. SÉPARER PAR LA COULEUR (Chevreul 1839 : le contraste simultané ; Itten : le contraste des complémentaires et le chaud-froid) :
+      le fond a UNE teinte dominante — le brouillard du niveau, qui est la couleur de son horizon. La caisse reçoit un contre-jour
+      de la teinte OPPOSÉE sur le cercle chromatique : liseré CYAN sur un couchant rose, AMBRE sur la ville bleue, OR dans le noir de
+      l'orbite (un fond sans couleur n'a pas de complémentaire : l'or est la couleur du jeu). C'est la technique des chefs op' — des
+      complémentaires sur des PLANS différents : la silhouette se décolle du fond sans qu'on assombrisse quoi que ce soit.
+   2. CLÉ CHAUDE / REMPLISSAGE FROID, ~3:1 (la lecture des volumes) : c'est déjà le soleil et le `fill` bleu des biomes de Sacha.
+   3. LE POINT FOCAL : la caisse est la zone la plus claire et la plus saturée (la flaque `uFoc` de l'ACES, ci-dessous).
+   Le contour, c'est `trailLight` : en scène, éteinte depuis l'audit (son reflet rond sur le bitume) — or la route et les nuages
+   n'écoutent plus les PointLights (LFB_SANS_PL) : elle n'éclaire plus QUE la caisse et ce qui l'entoure. Zéro lumière ajoutée, zéro
+   recompilation. Posée DEVANT la caisse, à l'opposé de la caméra et au-dessus : elle frappe les arêtes que l'objectif voit de biais. */
+const RIM={c:new THREE.Color(0x5ff0ff),h:new THREE.Color(),hsl:{h:0,s:0,l:0},v:new THREE.Vector3(),k:0};
+function rimCouleur(dt){ // la complémentaire du fond, lissée (les biomes voyagent en 4 s)
+  scene.fog.color.getHSL(RIM.hsl);
+  const gris=RIM.hsl.s<.1||RIM.hsl.l<.04;
+  RIM.h.setHSL(gris?.11:(RIM.hsl.h+.5)%1,gris?.85:Math.min(.95,Math.max(.62,RIM.hsl.s*1.3+.35)),.62);
+  RIM.c.lerp(RIM.h,Math.min(1,dt*1.5));return RIM.c;
+}
+function rimTick(dt,up){ // en course : le contre-jour suit la caisse, de l'autre côté de la caméra
+  RIM.v.copy(carGroup.position).sub(camera.position);RIM.v.y=0;
+  if(RIM.v.lengthSq()<1e-4)RIM.v.set(0,0,1);RIM.v.normalize();
+  trailLight.position.copy(carGroup.position).addScaledVector(RIM.v,4.2).addScaledVector(up,2.4);
+  trailLight.distance=11;trailLight.decay=2;trailLight.color.copy(rimCouleur(dt));
+  RIM.k+=((mode==='boom'?0:1)-RIM.k)*Math.min(1,dt*4);trailLight.intensity=1.7*RIM.k*LUMF.k; // 2,4 brûlait le toit au bloom
+}
 function lumiereFocus(dt){
   if(!acesPass||!acesPass.uniforms.uFoc)return;
   LUMF.v.copy(carGroup.position).project(camera);
@@ -24460,9 +24556,10 @@ function loop(now){
     // donc la caisse a UN seul geste — elle s'ouvre — au lieu de deux animations qui se cherchent.
     if(carFins.length)for(const f9 of carFins)f9.scale.y=.07+.93*wingT;
     // le reflet de la traînée GLISSE sur la route derrière la caisse (même couleur que le ruban)
-    trailLight.position.copy(carGroup.position).addScaledVector(hsF,-9).addScaledVector(hsU,1.1);
-    trailLight.intensity=0; // (2026-09-26, audit rendu) son reflet rond sur le bitume derrière la caisse est retiré — la lumière reste en scène à 0 (retirer une lumière recompile tout) // ×1.7→1.5 : le RUBAN garde la vedette, son reflet accompagne sans s'additionner brutalement au reste
-    trailLight.color.setRGB(Math.min(1,tcr),Math.min(1,tcg),Math.min(1,tcb));
+    // (2026-09-27) `trailLight` n'est plus le reflet de la traînée : c'est la LUMIÈRE DE CONTOUR complémentaire (voir RIM / rimTick)
+    rimTick(dt,hsU);
+    if(false)trailLight.intensity=0; // (2026-09-26, audit rendu) son reflet rond sur le bitume derrière la caisse est retiré — la lumière reste en scène à 0 (retirer une lumière recompile tout) // ×1.7→1.5 : le RUBAN garde la vedette, son reflet accompagne sans s'additionner brutalement au reste
+    if(false)trailLight.color.setRGB(Math.min(1,tcr),Math.min(1,tcg),Math.min(1,tcb)); // (l'ancienne couleur de traînée : la couleur est celle du contour)
     // sons continus
     if(AC){
       const spd3=speedKmh;
@@ -25604,6 +25701,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='play'||a==='replay'){ if(a==='play')gselApplique();
       tutoArme(); // 1re partie = AUTO-ÉCOLE
       goImmersive(); playViaGarage(); }
+    else if(a==='guide'){ guideOuvre(); }
     else if(a==='tuto'){ SAVE.d.tuto=0;SAVE.flush();toast(pxi('coche')+' '+TR('L\'AUTO-ÉCOLE T\'ATTEND AU PROCHAIN JOUER')); }
     else if(a==='back')mGo(mRoot());
     else if(a==='modes'||a==='set')mGo(a);
