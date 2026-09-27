@@ -1243,7 +1243,13 @@
   #popTxt.on{animation:popTxt .9s cubic-bezier(.3,1.7,.5,1) forwards}
   @keyframes popTxt{0%{opacity:0;transform:translate(-50%,10px) scale(.4)}18%{opacity:1;transform:translate(-50%,0) scale(1.15)}30%{transform:translate(-50%,0) scale(1)}
     75%{opacity:1;transform:translate(-50%,-14px) scale(1)}100%{opacity:0;transform:translate(-50%,-30px) scale(.9)}}
-  @media (prefers-reduced-motion:reduce){#popTxt.on{animation:popTxtRM .9s linear forwards;transform:translate(-50%,0)}@keyframes popTxtRM{0%{opacity:0}15%{opacity:1}75%{opacity:1}100%{opacity:0}}} /* (2026-09-25) le texte restait PLANTÉ à l'écran pour toujours */
+  /* (2026-09-27, passe perf iPhone) LE JUMEAU : popTexte alterne .on / .on2 — changer de NOM d'animation la relance sans forcer de mise en
+     page (l'ancien `void offsetWidth` à chaque figure). Mêmes images clés au pixel près. */
+  #popTxt.on2{animation:popTxt2 .9s cubic-bezier(.3,1.7,.5,1) forwards}
+  @keyframes popTxt2{0%{opacity:0;transform:translate(-50%,10px) scale(.4)}18%{opacity:1;transform:translate(-50%,0) scale(1.15)}30%{transform:translate(-50%,0) scale(1)}
+    75%{opacity:1;transform:translate(-50%,-14px) scale(1)}100%{opacity:0;transform:translate(-50%,-30px) scale(.9)}}
+  @media (prefers-reduced-motion:reduce){#popTxt.on{animation:popTxtRM .9s linear forwards;transform:translate(-50%,0)}@keyframes popTxtRM{0%{opacity:0}15%{opacity:1}75%{opacity:1}100%{opacity:0}}
+    #popTxt.on2{animation:popTxtRM2 .9s linear forwards;transform:translate(-50%,0)}@keyframes popTxtRM2{0%{opacity:0}15%{opacity:1}75%{opacity:1}100%{opacity:0}}} /* (2026-09-25) le texte restait PLANTÉ à l'écran pour toujours */
   /* -- la fiche du garage, ALLÉGÉE (user : « trop de texte ») : le nom, le nuancier, le bouton — et le compteur en haut -- */
   @keyframes gcMoins{0%{opacity:0;transform:translateY(-6px)}15%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0;transform:translateY(14px)}}
   /* -- LE FLOW : la pilule sous la jauge, et les bords de l'écran qui prennent sa couleur -- */
@@ -12651,6 +12657,7 @@ function engChauffe(){
 function chauffeDivers(){
   try{orbiteChauffe();}catch(e){} // (vague 3) la lune peinte et montée au GPU, lune + rochers compilés : rien ne naît au portail de l'orbite
   try{if(!CITY.chaud){CITY.chaud=true;villeChauffe();}}catch(e){}
+  try{cratInit();renderer.initTexture(CRAT.tex);renderer.initTexture(CRAT.halo);}catch(e){} // (2026-09-27) le cratère du MÉTÉORE : ses matières sont compilées juste en dessous, ses textures montées ici
   try{if(!TRACE.pos)traceInit();const p=mkPigeon();scene.add(p);renderer.compile(scene,camera);scene.remove(p);}catch(e){}
   try{engCarteQuad.visible=engHalo.visible=true;renderer.compile(engVigQuadScene,engVigQuadCam);engCarteQuad.visible=engHalo.visible=false; // (vague 2) le recollage de la carte MOTEUR (sinon son programme naît au 1er palier)
     renderer.initTexture(engHaloMat.map);renderer.setRenderTarget(engRTc);renderer.setRenderTarget(null);}catch(e){} // …et son halo et son tampon montent au GPU dès le menu
@@ -13631,7 +13638,9 @@ function popTexte(txt,col,prio){
   // VOL +80 » débordait de 36 px. Plafond 84 % de la largeur (« AIR MONSTRE +110 » barrait l'écran d'un bord à l'autre).
   const n9L=Math.max(1,e.textContent.length),fs9=Math.max(10,Math.min(22,Math.floor(VP.w*.84/n9L)-2));
   e.style.fontSize=fs9+'px';popTexte._w=n9L*(fs9+2);
-  e.classList.remove('on');void e.offsetWidth;e.classList.add('on');
+  // (2026-09-27, passe perf iPhone) relance SANS remise en page synchrone : on bascule entre deux animations jumelles (.on / .on2) — un
+  // nouveau nom d'animation repart de zéro. L'ancien `remove + void offsetWidth + add` forçait style ET mise en page à chaque figure.
+  const k9=popTexte._k=!popTexte._k;e.classList.remove(k9?'on':'on2');e.classList.add(k9?'on2':'on');
   try{popSuit();}catch(x){} // posé tout de suite sur la caisse (sinon une image au centre de l'écran)
 }
 function n9Saut(o){const n=performance.now(),s9=n-(o._viseT||0)>200;o._viseT=n;return s9;} // la visée repart de zéro après une absence (vol, garage, respawn)
@@ -13966,7 +13975,7 @@ function hautVide(){ // l'explosion, l'écran de mort : plus personne ne parle �
   HAUT.q.length=0;clearTimeout(HAUT.t);
   const c=HAUT.cur;if(c&&performance.now()<HAUT.fin)try{HAUT_COUPE[c.k]();}catch(e){}
   HAUT.cur=null;HAUT.fin=0;engBigCoupe();
-  const p=document.getElementById('popTxt');if(p)p.classList.remove('on');popTexte._s=0; // le dernier geste ne survit pas à la caisse (gt1-16)
+  const p=document.getElementById('popTxt');if(p)p.classList.remove('on','on2');popTexte._s=0; // le dernier geste ne survit pas à la caisse (gt1-16)
 }
 function misBanniere(titre,texte,prime,ico){hautPasse(function(){misBanMontre(titre,texte,prime,ico);},3000,'mis',titre==='ASTUCE'?1:2);} // un défi payé vaut un moteur ; une astuce, un niveau
 function misBanMontre(titre,texte,prime,ico){
@@ -16392,13 +16401,18 @@ function cratTex(){if(CRAT.tex)return CRAT.tex;const N=256,cv=document.createEle
 function cratHaloTex(){if(CRAT.halo)return CRAT.halo;const N=256,cv=document.createElement('canvas');cv.width=cv.height=N;const x=cv.getContext('2d');
   const g=x.createRadialGradient(N/2,N/2,N*.26,N/2,N/2,N/2);g.addColorStop(0,'rgba(255,255,255,0)');g.addColorStop(.45,'rgba(255,255,255,.95)');g.addColorStop(.7,'rgba(255,255,255,.35)');g.addColorStop(1,'rgba(255,255,255,0)');
   x.fillStyle=g;x.fillRect(0,0,N,N);CRAT.halo=new THREE.CanvasTexture(cv);return CRAT.halo;}
-function cratere(pos,nrm){
+/* (2026-09-27, passe perf iPhone) les cratères, l'onde et leurs deux textures naissent AU MENU (chauffeDivers) : créés au 1er MÉTÉORE,
+   leurs matières compilaient leurs programmes et montaient 2 textures 256² en pleine course, à l'image même de l'impact. */
+function cratInit(){
   if(!CRAT.l.length){const geo=new THREE.CircleGeometry(1,40);
     for(let k=0;k<3;k++){const trou=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:cratTex(),transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
       const braise=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:cratHaloTex(),color:0xff7a24,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}));
       trou.visible=braise.visible=false;trou.renderOrder=2;braise.renderOrder=3;scene.add(trou);scene.add(braise);CRAT.l.push({trou,braise,t:99});}
     CRAT.onde=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:cratHaloTex(),color:0xffe0a0,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));
     CRAT.onde.visible=false;CRAT.onde.renderOrder=4;scene.add(CRAT.onde);CRAT.ondeT=9;}
+}
+function cratere(pos,nrm){
+  cratInit(); // (déjà fait au menu : repli si la chauffe a été sautée)
   const c=CRAT.l[CRAT.i];CRAT.i=(CRAT.i+1)%CRAT.l.length;
   CRAT.q.setFromUnitVectors(CRAT.z,nrm);
   for(const m of [c.trou,c.braise]){m.position.copy(pos).addScaledVector(nrm,.09);m.quaternion.copy(CRAT.q);m.visible=true;}
