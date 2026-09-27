@@ -337,6 +337,9 @@ or `#ffd75e` argent, feu `#ff7a24` nitro, réserve `#5b7dff`, néon `#ff3ec8`/`#
   +4 appels de dessin. Banc `dbgOrbite('vue'|'cout'|'photo'|'carte')`.
 - **VILLE** (`VILLE_PENTE={seuil:.30,garde:.35}`, `adoucirPentes`) : la pente de la ville est comprimée au-delà de ~16,7° (pente max
   ~47° → ~30°), altitude seulement, zéro `rnd()` ajouté : NUAGES et ORBITE identiques au bit. `garde:1` = l'ancienne ville.
+- **RELIEF — VILLE SEULEMENT** (même jour, user : « garde ce terrain pour la ville mais remets les anciens pour les deux autres niveaux ») :
+  `reliefPiste`, les poids `wv` et les rayons larges ne jouent que si `sansLoop` (la ville) ; NUAGES et ORBITE retrouvent leurs pistes
+  d'avant AU TIRAGE PRÈS (banc : 36/36 pistes identiques). Ce qui suit décrit donc la VILLE.
 - **RELIEF** (`RELIEF`, `reliefPiste`, appelé à la fin de `genCtrl`) — « les parcours ne doivent pas toujours aller vers le bas… mets
   plus de virages larges », puis « 40 % descente, 30 % montée, 30 % plat ». Avant : 95-99 % de la piste descendait (6 à 13 km de chute
   par niveau). L'altitude ne vient PLUS des motifs (leurs `dy` ne servent qu'aux loopings) : un programme de tronçons DESCENTE −6/−15° ·

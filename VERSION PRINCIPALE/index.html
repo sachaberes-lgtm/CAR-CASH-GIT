@@ -4754,13 +4754,15 @@ function genCtrl(rnd,startPos,startPhi){
        looping SEUL, espacé d'au moins 1,6 km (plus de doublé) ; les pentes de plongeon et de momentum sont bornées (≤ ~30°). */
     /* ROUTE v3b (même jour, « ça va trop tout droit : rajoute des GRANDS VIRAGES, tout un parcours fun ») : la droite de momentum
        tombe de ~20 à 6 ; les grands virages, les esses et le GRAND BALAYAGE (motif 9, 100-150° à fond) portent la piste. */
-    /* (vague 3, 2026-09-27, user : « mets plus de virages larges ») : le GRAND VIRAGE (5) et le GRAND BALAYAGE (9) prennent la main dans
-       les cinq archétypes, au détriment des épingles (2), plongeons (6) et droites de momentum (7) — l'altitude, elle, vient de RELIEF. */
-    {nm:'FLOW',   w:[3,0,2,22,6,40,2,3,5,28,3,0,0],    rs:1.15,vt:.8},  // autoroute céleste : sweepers qui chantent — et LE gap
-    {nm:'TECH',   w:[2,0,9,20,4,28,2,3,13,16,0,0,0],   rs:.92, vt:.9},  // slalom : épingles, chicanes (zéro gap : on est en ville)
-    {nm:'ALPIN',  w:[2,0,3,12,10,32,5,4,4,22,3,0,0],   rs:1.1, vt:1.4}, // crêtes et plongeons (adoucis : voir `adoucirCretes`)
-    {nm:'VOLTIGE',w:[7,0,3,14,8,32,3,3,4,24,2,0,0],    rs:1.15,vt:1.1}, // le ciel est un cirque : un LOOP de temps en temps
-    {nm:'GRAND8', w:[4,0,5,16,8,34,3,3,6,24,1,0,0],    rs:1,   vt:1}    // mixte équilibré
+    /* (vague 3, 2026-09-27, user : « mets plus de virages larges ») : `wv` = les poids de la VILLE — le GRAND VIRAGE (5) et le GRAND
+       BALAYAGE (9) y prennent la main, au détriment des épingles (2), plongeons (6) et droites de momentum (7) ; l'altitude y vient de
+       RELIEF. Puis « garde ce terrain pour la ville mais remets les anciens pour les deux autres niveaux » : NUAGES et ORBITE gardent `w`,
+       les poids, les rayons et la pente d'AVANT — leurs pistes sortent identiques au tirage près. */
+    {nm:'FLOW',   w:[3,0,3,26,6,30,4,6,6,16,3,0,0],    wv:[3,0,2,22,6,40,2,3,5,28,3,0,0],  rs:1.15,vt:.8},  // autoroute céleste : sweepers qui chantent — et LE gap
+    {nm:'TECH',   w:[2,0,14,22,4,20,3,6,16,8,0,0,0],   wv:[2,0,9,20,4,28,2,3,13,16,0,0,0], rs:.92, vt:.9},  // slalom : épingles, chicanes (zéro gap : on est en ville)
+    {nm:'ALPIN',  w:[2,0,4,14,12,22,10,8,4,12,3,0,0],  wv:[2,0,3,12,10,32,5,4,4,22,3,0,0], rs:1.1, vt:1.4}, // crêtes et plongeons (adoucis : voir `adoucirCretes`)
+    {nm:'VOLTIGE',w:[7,0,4,16,8,22,6,6,5,14,2,0,0],    wv:[7,0,3,14,8,32,3,3,4,24,2,0,0],  rs:1.15,vt:1.1}, // le ciel est un cirque : un LOOP de temps en temps
+    {nm:'GRAND8', w:[4,0,7,18,8,24,6,6,8,14,1,0,0],    wv:[4,0,5,16,8,34,3,3,6,24,1,0,0],  rs:1,   vt:1}    // mixte équilibré
   ][Math.floor(rnd()*5)];
   zoneArch=AR.nm; // exporté pour les BIOMES
   const RS=AR.rs*LV*1.25,VT=AR.vt,LOOPS=1+(LV-1)*.35; // ×1,25 (route v2) : des rayons plus larges — les courbes se prennent, elles ne se subissent pas // les loops grossissent doucement (un loop de 120 m reste un loop)
@@ -4771,7 +4773,7 @@ function genCtrl(rnd,startPos,startPhi){
   // sortaient statistiquement jumelles (« on a l'impression que la génération est toujours pareille »).
   // On secoue les poids à CHAQUE zone : celle-ci sera obsédée par les esses, la suivante par les
   // tire-bouchons. Le CARACTÈRE de l'archétype tient (un 0 reste un 0), seule l'humeur change.
-  const W=AR.w.map(v=>v*(0.35+rnd()*1.7));
+  const W=(sansLoop?AR.wv:AR.w).map(v=>v*(0.35+rnd()*1.7)); // (vague 3) la VILLE a ses poids à grands virages (voir `wv`)
   const wsum=W.reduce((a,b)=>a+b,0);
   const pick=()=>{let x=rnd()*wsum;for(let k=0;k<13;k++){x-=W[k];if(x<0)return k;}return 5;};
   const LEN=14400*(1+Math.min(1.5,(LV-1)*.55)); // (2026-09-25, user : « double la longueur de chaque niveau ») 7200 → 14400 — et plus longues encore à haute vitesse
@@ -4827,7 +4829,7 @@ function genCtrl(rnd,startPos,startPhi){
     if(mo===0&&!sansLoop&&approx-lastLoop>1600){ // UN looping, de temps en temps (route v3 : 1,6 km mini entre deux, plus de doublé) — JAMAIS en ville
       straight(60+rnd()*50,-30);loop((30+rnd()*34)*LOOPS,30+rnd()*22);straight(60+rnd()*50,-30);lastLoop=approx;
     }else if(mo===9){ // (route v3b) LE GRAND BALAYAGE : un virage long et LARGE, 100-150°, qui descend doucement — on le prend à fond, on le SENT
-      const sg=sgn(),R9=(160+rnd()*160)*RS,a9=Math.min(100+rnd()*60,64000/R9); // (vague 3) plus LARGE : R 160-320 (était 110-200)
+      const sg=sgn(),R9=(sansLoop?160+rnd()*160:110+rnd()*90)*RS,a9=Math.min(100+rnd()*60,(sansLoop?64000:52000)/R9); // (vague 3) plus LARGE en VILLE : R 160-320 (ailleurs 110-200)
       arc(sg*a9,R9,Math.max(5,Math.round(a9/14)),-(a9*Math.PI/180*R9*(.12+rnd()*.12)));
     }else if(mo===0||mo===1||mo===11||mo===12){ // (route v3) looping trop proche du précédent — et les motifs retirés, par sûreté : un GRAND VIRAGE
       const sg=sgn(),R2=(80+rnd()*120)*RS,a2=Math.min(45+rnd()*65,46000/R2);
@@ -4849,7 +4851,7 @@ function genCtrl(rnd,startPos,startPhi){
       courbe(50+rnd()*40,(20+rnd()*25)*VT,sg4*(10+rnd()*12));  // remontée surprise
       courbe(70+rnd()*50,-(45+rnd()*40)*VT,sg4*(12+rnd()*14)); // et ça replonge (route v3 : sans le mur de 60°)
     }else if(mo===5){ // grand virage large — (route v3c) plus serré d'un cran et jamais sous 45° : un VRAI virage
-      const sg=sgn(),R2=(130+rnd()*190)*RS,a2=Math.min(45+rnd()*65,56000/R2); // (vague 3, « plus de virages larges ») R 130-320 (était 80-200)
+      const sg=sgn(),R2=(sansLoop?130+rnd()*190:80+rnd()*120)*RS,a2=Math.min(45+rnd()*65,(sansLoop?56000:46000)/R2); // (vague 3, « plus de virages larges ») R 130-320 en VILLE (ailleurs 80-200)
       arc(sg*a2,R2,3,-(a2*Math.PI/180*R2*(.6+rnd()*.5)));
     }else if(mo===6){ // plongeon — (route v3) franc mais jamais vertical : pente bornée à ~30°
       {const l6=60+rnd()*80;courbe(l6,-l6*Math.min(.58,(.28+rnd()*.2)*VT),sgn()*(10+rnd()*10));}
@@ -4878,7 +4880,7 @@ function genCtrl(rnd,startPos,startPhi){
   else if(AR.nm==='TECH'){let sgF=sgn();for(let q=0;q<3;q++){arc(sgF*24,90*RS,2,-26);sgF=-sgF;}}
   else{const sg=sgn();arc(sg*100,170*RS,5,-(100*Math.PI/180*170*RS*.3));} // (route v3) un grand virage de fin, plus la spirale de 420°
   straight(110*LV,-66*LV,2); // ARRIVÉE : ligne droite claire vers le portail
-  reliefPiste(ctrl,LOOPI,iDep); // (vague 3) l'altitude ne vient plus des motifs : un PROGRAMME 40 % descente · 30 % montée · 30 % plat
+  if(sansLoop)reliefPiste(ctrl,LOOPI,iDep); // (vague 3) en VILLE l'altitude ne vient plus des motifs : un PROGRAMME 40 % descente · 30 % montée · 30 % plat (NUAGES et ORBITE : la pente d'avant, voir `wv`)
   if(sansLoop)adoucirPentes(ctrl,VILLE_PENTE); // (vague 3) la VILLE descend moins raide — AVANT les lissages, qui arrondissent le résultat
   lisserRaccords(ctrl,LOOPI);   // (route v3b) plus de cassure de pente d'un motif à l'autre
   adoucirCretes(ctrl,LOOPI);    // plus de crête AVEUGLE (voir la fonction)
