@@ -16784,7 +16784,7 @@ function musicJoue(){ // lance (ou relance) la lecture — un refus n'est jamais
 function musicDeverrouille(){ // appelé à CHAQUE toucher/touche (en capture) : le 1er libère le lecteur, les suivants relancent si besoin
   const el=musicElGet();musicSession();
   if(!musicDeverrouille._ok){musicDeverrouille._ok=true;
-    if(!el.src)el.src=musicPremier();                       // le 1er morceau se charge dès le 1er toucher : aucun blanc au départ
+    if(!el.src)el.src=MUSIC.menu||musicPremier();           // le morceau de l'ACCUEIL se charge dès le 1er toucher : aucun blanc au départ — ⚠ (2026-09-27) c'était celui du 1er niveau : on l'entendait une seconde avant l'intro (« une autre chanson avant Swag »)
     if(!musicVoulue){el.muted=true;const p=el.play();       // lancé une fois, en silence, PENDANT le geste : l'élément est libre
       const fin=function(){if(!musicVoulue){try{el.pause();}catch(e){}}el.muted=false;};
       if(p&&p.then)p.then(fin,function(){el.muted=false;musicDeverrouille._ok=false;});else fin();
