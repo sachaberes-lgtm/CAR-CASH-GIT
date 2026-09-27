@@ -373,6 +373,24 @@ adaptative descendait EN PREMIER. Cinq lots (branches perf-ciel/-post/-cpu/-pist
   INVISIBLES (l'atelier caché, pièces hors couloir…) : pour lire `matrixWorld`/`localToWorld` d'un objet caché, l'ajouter à
   `SCENE_TOUJOURS` (la caisse y est) ; `airPieDraw` dessine hors écran puis UNE copie ; `updatePool` saute les réserves vides ; sur
   téléphone plus de `fmtC` pour la mallette/le compteur masqués ; nuages `matrixAutoUpdate=false`. En vol le CPU coûte ≈ le sol.
+- **TOUR 2** (même jour, verdict « ça marche pas, on repasse en mode pixel assez vite après avoir lancé ») :
+  · **QL v2** : la mesure n'est plus la moyenne glissante mais la PART D'IMAGES RATÉES sur les 60 dernières (`QLR` : p50/p75/p90 —
+  sur un écran 60 Hz une image qui déborde dure 33 ms, la moyenne mélangeait à-coups et lenteur) ; DEUX planchers par réglage, le net et
+  le BAS jamais franchi (NETTE 1,25 / **1,0** · RAPIDE 0,85 / 0,7 — l'ancien plancher 0,5 ÉTAIT « le mode pixel ») ; « la netteté ne se
+  sacrifie que si ça paie » (`QL.essai` : un cran de résolution qui ne fait pas baisser les centiles en 3,3 s est annulé et devient un
+  plafond 45 s) ; départ de partie = 5 s de grâce (`loop._rebuildD`), remontée plus vite (2 crans quand p90 < 16,9).
+  · **`chauffeRendu()`** : toute la scène dessinée UNE fois hors écran (cible 8×8 au format du composer) au menu (fin d'engChauffe) et
+  120 ms après chaque newTrack — Safari/Metal ne crée le vrai programme de la puce (état de pipeline) qu'au 1er dessin de chaque combinaison,
+  invisible au compteur linkProgram. Un objet caché dont la matière n'est pas compilée reste caché (rien d'inutile compilé). Coût mesuré :
+  +2 programmes au 1er portail (matières de la carte moteur), une fois par session.
+  · **Piqué** `uSharp` dans l'ACES (branche « peu de contraste » du FXAA, ses 4 lectures, borné par le voisinage) : 0 au plafond (image
+  identique au bit près), dosé par `applyDPR` quand la résolution descend. `?pique=0` pour comparer.
+  · **LE BANC DU TÉLÉPHONE `?banc=1`** : lance une partie seul, fige l'image au sol puis en vol (NUAGES, VILLE), chronomètre des images
+  SYNCHRONISÉES (`readPixels` d'1 pixel en fin d'image = coût réel processeur+puce, sans la grille 16,7 ms) et éteint les postes un par un
+  (DPR, post, bloom, ombre, ciel, nuages, piste, caisse, transparents, ville) ; mesure aussi l'affichage réel avec/sans HUD. Tableau à
+  capturer. `&ech=0.25` réduit les échantillons (rendu logiciel). Hooks : `dbgDPR(d,sansPique)`, `dbgQual(k)`.
+  · **Rendu logiciel = proxy du coût par pixel** : le même banc sous SwiftShader (`--use-angle=swiftshader`, ~11 min) classe les postes
+  comme une puce saturée : ciel ~38 %, piste 20-50 %, post ~20 %, ville ~25 % en VILLE, ombres 3-12 %, résolution 1,25 = −23 %.
 - **Écarté après mesure** : moins de mips de bloom (halo changé), RT 8 bits (banding), LOD de piste en deçà du brouillard (grain),
   décimation des rails au loin (silhouettes qui bougent), masquage de la face cachée du bitume (dalle qui vrille), regroupement des nuages.
 - **Bancs** (scratchpad de la session 1a323fdd) : `banc/vol.js` (GPU par passe, `--drawgpu` GPU par draw sur image figée, `--attrib`
