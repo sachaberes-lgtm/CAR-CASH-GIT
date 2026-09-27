@@ -13552,11 +13552,17 @@ function atelierChauffe(){ // vrai si elle a travaillé à cette image (la chauf
     return true;}
   GAR.chaud=true;chauffeRendu([GAR.root]);return true;
 }
+/* UNE ÉTAPE DE CHAUFFE EST UN CHARGEMENT, PAS UNE LENTEUR (2026-09-28, chasse aux gels). Sur iPhone chaque étape (un moteur compilé, une
+   fournée de programmes) dure 30 à 250 ms : une trentaine d'images d'affilée au menu, passé les 3,5 s de grâce du chargement, et la
+   qualité auto y lisait une puce à genoux — elle pouvait descendre d'un cran AU MENU, et la course partait moins nette. Chaque étape qui
+   travaille repousse donc la grâce, comme une construction de niveau (`loop._rebuildT`, lu par la qualité auto). */
+function chauffeGrace(){loop._rebuildT=performance.now();}
 const ENG_GARDE=new Map();let engChaudI=-1;
 function engChauffe(){
-  if(atelierChauffe())return; // (chasse aux gels) L'ATELIER D'ABORD : c'est lui que JOUER montre dans la seconde
-  if(engChaudI<0){engChaudI=0;chauffeDivers();return;} // d'abord ce qui peut naître à N'IMPORTE quel moment de la course (pigeons, trace, ville)
-  if(engChaudI>ENGINE_TIERS.length){if(!CHAUFFE_R.fait){CHAUFFE_R.fait=true;chauffeRendu();}return;} // (tour 2) les moteurs prêts : toute la scène passe une fois par la puce
+  if(atelierChauffe()){chauffeGrace();return;} // (chasse aux gels) L'ATELIER D'ABORD : c'est lui que JOUER montre dans la seconde
+  if(engChaudI<0){chauffeGrace();if(!chauffeDivers(CHAUFFE_R.div++))engChaudI=0;return;} // d'abord ce qui peut naître à N'IMPORTE quel moment de la course (pigeons, trace, ville) — (chasse aux gels) une étape par image
+  if(engChaudI>ENGINE_TIERS.length){if(!CHAUFFE_R.fait){CHAUFFE_R.fait=true;chauffeGrace();chauffeRendu();}return;} // (tour 2) les moteurs prêts : toute la scène passe une fois par la puce
+  chauffeGrace();
   try{
     const g=engChaudI<ENGINE_TIERS.length?mkEngine(engChaudI):new THREE.Mesh(engVigFeuGeo,engVigFeuMat); // dernier tour : la flamme
     engChaudI++;
@@ -13582,7 +13588,7 @@ function engChauffe(){
    DESSINE tout une fois, HORS écran (une cible 8×8 au MÊME format que la vraie — les états de pipeline en dépendent), tout rendu
    visible et sans tri de champ, les lumières intouchées (leur nombre changerait les programmes) : au menu une fois, et à chaque
    construction de niveau. Les géométries montent au GPU du même coup (elles montaient elles aussi au 1er dessin, en plein vol). */
-const CHAUFFE_R={t:0,rt:null,fait:false};
+const CHAUFFE_R={t:0,rt:null,fait:false,div:0};
 function chauffeRendu(que){ try{ // `que` (chasse aux gels) : ne dessiner QUE ces sous-arbres, sous l'éclairage de la scène (l'atelier, au menu)
   if(!CHAUFFE_R.rt){const t9=(composer&&composer.renderTarget1)?composer.renderTarget1.texture.type:THREE.UnsignedByteType;
     CHAUFFE_R.rt=new THREE.WebGLRenderTarget(8,8,{format:THREE.RGBAFormat,type:t9,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});}
@@ -13595,27 +13601,36 @@ function chauffeRendu(que){ try{ // `que` (chasse aux gels) : ne dessiner QUE ce
   if(que)renderer.compile(scene,camera); // le sous-arbre compilé SEUL (compile() parcourt aussi le caché) — pas toute la scène
   // Un objet CACHÉ dont la matière n'a encore jamais été compilée reste caché : on prépare le dessin de ce qui existe, on ne compile
   // rien d'inutile (mesuré : 4 programmes au 1er portail pour des objets qui ne s'affichent jamais — 100-400 ms perdus sur iPhone).
-  const vis=[],cul=[],off=[];
+  const vis=[],cul=[],off=[],vus=new Set();
+  /* (2026-09-28, chasse aux gels) UN DESSIN PAR COUPLE (matière, géométrie). L'état de pipeline de la puce ne dépend que du programme, de la
+     disposition des sommets, du mélange et de la cible ; la géométrie monte au GPU une fois : dessiner les 2 000-4 000 PIÈCES d'une piste
+     (une géométrie, une matière) ne préparait rien de plus que d'en dessiner UNE. MESURÉ : ~4 700 appels de dessin → ~450 à chaque chauffe. */
   (function walk(o,h0){ if(o.isLight||(o===GAR.root&&!que))return;const h=h0||!o.visible; // l'ATELIER ne s'affiche jamais en course : il n'est dessiné qu'une fois, au menu (`que`) — (avant la chasse aux gels, son éclairage à lui recompilait 2 programmes au 1er portail)
     if(o.isMesh||o.isPoints||o.isSprite||o.isLine){const m=Array.isArray(o.material)?o.material[0]:o.material,pr=m&&renderer.properties.get(m).currentProgram;
-      if(h&&!pr){if(o.visible){o.visible=false;off.push(o);}}
-      else{if(!o.visible){o.visible=true;vis.push(o);}if(o.frustumCulled){o.frustumCulled=false;cul.push(o);}}}
+      const cle=m&&o.geometry?(o.isInstancedMesh?'I':o.isSprite?'S':o.isPoints?'P':o.isLine?'L':'M')+m.id+':'+o.geometry.id:null;
+      if((h&&!pr)||(cle&&vus.has(cle))){if(o.visible){o.visible=false;off.push(o);}}
+      else{if(cle)vus.add(cle);if(!o.visible){o.visible=true;vis.push(o);}if(o.frustumCulled){o.frustumCulled=false;cul.push(o);}}}
     else if(!o.visible){o.visible=true;vis.push(o);}
     for(let i=0;i<o.children.length;i++)walk(o.children[i],h);})(scene,false);
   const ob9=scene.onBeforeRender;scene.onBeforeRender=function(){}; // pisteLoin/conesVus remettraient leurs visibilités pendant le rendu
-  const cible=renderer.getRenderTarget();renderer.setRenderTarget(CHAUFFE_R.rt);renderer.render(scene,camera);renderer.setRenderTarget(cible);
+  const cible=renderer.getRenderTarget(),t9=performance.now();renderer.setRenderTarget(CHAUFFE_R.rt);renderer.render(scene,camera);renderer.setRenderTarget(cible);
+  CHAUFFE_R.appels=renderer.info.render.calls;CHAUFFE_R.ms=+(performance.now()-t9).toFixed(1); // (dev) dbgChauffe()
   scene.onBeforeRender=ob9;
   for(const o of vis)o.visible=false;for(const o of off)o.visible=true;for(const o of cul)o.frustumCulled=true;
   }finally{if(que){scene.children=kids;sm.autoUpdate=sa;sm.needsUpdate=sn;}}
 }catch(e){console.warn('chauffeRendu',e);} }
-function chauffeDivers(){
-  try{orbiteChauffe();}catch(e){} // (vague 3) la lune peinte et montée au GPU, lune + rochers compilés : rien ne naît au portail de l'orbite
-  try{if(!CITY.chaud){CITY.chaud=true;villeChauffe();}}catch(e){}
-  try{cratInit();renderer.initTexture(CRAT.tex);renderer.initTexture(CRAT.halo);}catch(e){} // (2026-09-27) le cratère du MÉTÉORE : ses matières sont compilées juste en dessous, ses textures montées ici
-  try{campChauffe();}catch(e){} // (2026-09-27) la caisse-nuage et la police de la campagne compilées AU MENU — jamais au départ du niveau 5 ou 10
-  try{if(!TRACE.pos)traceInit();const p=mkPigeon();scene.add(p);renderer.compile(scene,camera);scene.remove(p);}catch(e){}
-  try{engCarteQuad.visible=engHalo.visible=true;renderer.compile(engVigQuadScene,engVigQuadCam);engCarteQuad.visible=engHalo.visible=false; // (vague 2) le recollage de la carte MOTEUR (sinon son programme naît au 1er palier)
-    renderer.initTexture(engHaloMat.map);renderer.setRenderTarget(engRTc);renderer.setRenderTarget(null);}catch(e){} // …et son halo et son tampon montent au GPU dès le menu
+window.dbgChauffe=function(){return {appels:CHAUFFE_R.appels,ms:CHAUFFE_R.ms,atelier:!!GAR.chaud,garde:CAR_GARDE.size};}; // (dev) la dernière chauffe de la puce : appels de dessin, ms de soumission
+function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image (elles tenaient toutes dans la même : ~1,8 s d'un bloc au chargement, MESURÉ) — rend vrai s'il en reste
+  const E=[
+  function(){orbiteChauffe();}, // (vague 3) la lune peinte et montée au GPU, lune + rochers compilés : rien ne naît au portail de l'orbite
+  function(){if(!CITY.chaud){CITY.chaud=true;villeChauffe();}},
+  function(){cratInit();renderer.initTexture(CRAT.tex);renderer.initTexture(CRAT.halo);}, // (2026-09-27) le cratère du MÉTÉORE : ses matières sont compilées juste en dessous, ses textures montées ici
+  function(){campChauffe();}, // (2026-09-27) la caisse-nuage et la police de la campagne compilées AU MENU — jamais au départ du niveau 5 ou 10
+  function(){if(!TRACE.pos)traceInit();const p=mkPigeon();scene.add(p);renderer.compile(scene,camera);scene.remove(p);},
+  function(){engCarteQuad.visible=engHalo.visible=true;renderer.compile(engVigQuadScene,engVigQuadCam);engCarteQuad.visible=engHalo.visible=false; // (vague 2) le recollage de la carte MOTEUR (sinon son programme naît au 1er palier)
+    renderer.initTexture(engHaloMat.map);renderer.setRenderTarget(engRTc);renderer.setRenderTarget(null);}]; // …et son halo et son tampon montent au GPU dès le menu
+  if(k<E.length)try{E[k]();}catch(e){}
+  return k+1<E.length;
 }
 function engVigBuild(){
   if(engVigMesh){ // ⚠ mkEngine fabrique des matériaux NEUFS à chaque appel : sans ça, une fuite par palier
