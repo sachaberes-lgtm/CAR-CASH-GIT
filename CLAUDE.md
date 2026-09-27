@@ -1,5 +1,68 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA CAMPAGNE NUAGES (2026-09-27) — dix heures du jour, dix idées de jeu
+Brief de Sacha (inspiration rédigée avec Grok) : « les 10 niveaux racontent une journée, de l'aurore au coucher du soleil ; chaque
+niveau ajoute ou détourne UNE idée de jeu ». Tout est BRANCHÉ sur l'existant, rien n'est réécrit.
+- **OÙ** : `CARRIERE[0].niveaux` porte `camp:n` (piste dessinée), `pr` (la PROMESSE, dite sous le nom par `lvlAnnonce`) et le ciel ;
+  `carNiveau` ajoute `piste:'camp'`, `camp`, `pr` et une **graine FIXE** (`newTrack` la prend : pièces, pads, nuages identiques à
+  chaque essai). Générateur `genCampagne(n)` (juste après `genTuto`) ; systèmes dans le bloc « LA CAMPAGNE NUAGES — LES SYSTÈMES »
+  (juste avant `rebuildMenuScene`). Entrée : bouton **CARRIERE** de l'accueil (`data-m="carr"` → `carrVue`). Hooks : `dbgCampagne(n)`
+  (lance le niveau n), `dbgCamp()` (état : dégâts, police, fantôme, coupes, bancs), `dbgPisteCamp()` (croisements, dégagement, rayon mini, pente).
+- **LES NIVEAUX** : 1 AURORE = `genTuto` intouché · 2 PREMIÈRES LUEURS = deux grands balayages de 160° qui DESCENDENT (lus d'en haut), zéro
+  banc, zéro plot · 3 LEVER = UN banc (r 36) sur une droite tournée PILE vers le soleil (`SUN_DIR`), « PERCE-NUAGE ! » à la sortie ·
+  4 MATIN FRAIS = 3 séquences de 3 PORTES (centrale large / décalée / décalée de l'autre côté, de plus en plus étroites), sur des droites
+  plates · 5 MATIN = la POURSUITE · 6 MIDI = 4 OVALES LENTS (la coupe), ciel propre (ni déco ni coussins) · 7 APRÈS-MIDI = vagues en sinus
+  + esses, zéro plot/banc · 8 FIN D'APRÈS-MIDI = un banc au BOUT de chaque droite (cache le virage SUIVANT, on en sort ~1,5 s avant) ·
+  9 HEURE DORÉE = biome `orageDore` (orage SANS guirlande de ville, brume 1 350 m), pluie .5, mer refermée + bancs proches + un titan,
+  éclairs · 10 COUCHER = la CAISSE-NUAGE (deux ovales, une traversée de nuages, un grand balayage final).
+- **RÈGLES DES PISTES** : aucun tirage (piste identique à chaque essai), aucun trou, aucun plot/huile/banc de route tiré au hasard
+  (`campNuageOk`, filtres dans buildTrack) ; les REPÈRES (`CAMPM` : bancs, portes, coupes) sont notés par INDEX de point de contrôle,
+  relus après `lisserRaccords`/`adoucirCretes`, convertis en `s` par `campRepere` (appelé dans buildTrack AVANT les pads, qui s'écartent des portes).
+- **LES BANCS DESSINÉS** = la forme `mur` de mkBlobs (trois rangées de boules soudées, `ry` ≈ 0,6·r), relevés de 0,2·r et TOURNÉS en travers de
+  la route (`c.g.rotation.y`). MESURÉ en capture : le cumulus à base plate faisait 13 m de haut et, dans l'objectif grand-angle du portrait,
+  se lisait comme une dune rose à l'horizon. Niveau 3 : la droite du banc file vers le soleil À 22° PRÈS (pile en face = contre-jour, fondu
+  dans le ciel). Sortie du banc : « PERCE-NUAGE ! » (3), « HORS DE VUE » (écran du 5), « À L'INSTINCT ! » lancé au 8.
+- **LA CORDE QUI BRILLE** (marques `corde` → `CAMP.cordes` → `campPieces`) : une pièce tous les ~26 m sur l'INTÉRIEUR des grands virages
+  des niveaux 2, 5 et 10 — la bonne trajectoire se voit, et elle paie.
+- **LA CORDE** (`cordeK`, `KAPB` = courbure latérale signée par point, `campCourbure`) : le jeu avance sur la ligne centrale (`s`) quelle
+  que soit la position latérale — couper l'intérieur ne rapportait RIEN. En campagne (`CORDE_ON`), `s` avance de ×1/(1−κ·lat) : la corde
+  est vraiment plus courte (≈10 % dans un R 250 à 25 m de l'axe), et il faut tourner plus serré. Joueur, police et fantôme. Hors campagne : ×1.
+- **L'OVALE LENT** (la coupe, niveaux 6 et 10) : leg1 (droite S) → demi-tour R1 → retour → demi-tour R2 = R1 + d/2 → leg3, qui file À CÔTÉ
+  de leg1, 12 m plus bas, 22 m de vide entre les bords (d = 2·ROAD_HALF + 22). ⚠ En vol la gravité MONDE vaut FALL_G×SPD ≈ 16 m/s²
+  (la chute est intégrée ×SPD) : fenêtre de cap ≈ 8°-30° à 115 m/s, 13°-56° à 70 m/s. ⚠ Plus bas que ~12 m, la TRANCHE de leg1 cache
+  leg3 à la caméra de poursuite (basse en portrait) — mesuré en capture à 16 m. Sortir par le bon bord = `startFall` + `tryLand` sur leg3 :
+  ~2,9 km gagnés, zéro physique nouvelle. Un seul croisement par ovale (l'entrée passe AU-DESSUS du 2e demi-tour) : topologiquement
+  obligatoire. Des pièces longent le bord qui regarde leg3 et un jackpot brille sur leg3 (`campPieces`) — aucune flèche. Et les GUÉS DE
+  OUATE (`campNuages`) : 6 coussins r 10,5 au milieu du vide entre leg1 et leg3, crête ~5 m au-dessus de leg1 — ils dépassent du bord (leg3, lui, se
+  devine à peine depuis la caméra basse) et, traversés en vol, portent et rendent de l'airtime (surf de nuage existant). Se poser > 300 m
+  après son décollage = « RACCOURCI ! » (FLOW, nitro, aura) — détecté dans `campTick`.
+- **LA POURSUITE** (niveau 5, `SURV.chasse`) : le mode Survivant réglé (survStart/survTick) — 2 bots qui naissent 200/245 m DERRIÈRE (~20 s de sirènes avant le 1er tir),
+  jamais devant (clamp `pTot−9`), pas de nitro sous 86 m (juste hors de portée), 6 % de moins en pointe, ni classement ni couperet.
+  `poursuiteTick` : tirs en SALVES COMMUNES aux deux voitures (1-1,35 s de feu / 1,6-2,2 s de pause — elles ne se relaient pas),
+  seulement derrière, à 9-92 m, au sol, ligne de vue dégagée (`campVue` : la dalle
+  protège, un nuage coupe — les bancs `ecran` du niveau 5 ne se DÉFONCENT pas). 7 s CUMULÉES sous le feu = `explode('feu')`. Aucun
+  chiffre : la FUMÉE (`FUME`, Points à taille/alpha par particule, héritant 93 % de la vitesse de la caisse) — 2 s filet blanc, 4 s grise
+  + moteur qui tousse, 6 s NOIRE + caisse qui broute. Traits néon magenta/cyan (`TIR`, rubans TRAIL_TEX), « piou » arcade. Halos d'écran
+  `#campFx` (opacité seule) : rouge/bleu en bas quand ils sont derrière, magenta sous le feu. MESURÉ (banc `camp5.js`, pilote auto) :
+  sans nitro et sur la ligne centrale, abattu vers 30 s avec la fumée qui monte par paliers ; un coup de nitro toutes les 7 s = semés.
+  Historique : nitro libre = 80 m repris en 8 s et salves relayées = mort en 11 s ; seuil nitro 140 m = jamais à portée, zéro tension.
+- **L'ORAGE** (niveau 9) : `orageTick` — un éclair toutes les 3,4-7,4 s (ruban brisé `ECL`, deux branches), `CAMP_FLASH` (exposition,
+  lue dans updateClouds) et `CAMP_FOG` (le brouillard recule de 1 900 m) : l'éclair RÉVÈLE la route ; tonnerre retardé selon la distance ;
+  le dernier tombe à côté du portail.
+- **LA CAISSE-NUAGE** (niveau 10) : fiche en FIN de CARS (après le bloc généré des 50), gabarit `SHAPES.nuage` (boules `NUAGE_BLOBS`
+  fusionnées par `mergeSpheres`, matière `nuageMat` = celle des nuages, opaque), condition `{k:'carrN',v:10}`. Le FANTÔME (`GH`, créé à
+  l'init, compilé au menu par `campChauffe`) : ligne gravée (`fantomeLigne` : corde lissée ±60 m + approche du bord de chaque coupe),
+  coupes en parabole (`fantomeSaute`, gravité MONDE FALL_G×SPD), vitesse = TES équations et TON moteur ×`GH_K` 1,10 en pointe (jamais de
+  nitro ; le boost de départ vaut pour elle aussi), part 180 m devant, se PERD dans les bancs (−45 %/s dedans : la section de nuages est
+  une occasion), et l'aspiration marche dans les deux sens (dépassée de près, elle revient dans ton sillage) — elle ne regarde jamais où tu
+  es. Le pouvoir VITESSE ×2 est retiré du niveau 10 (+500 m d'un coup : on la dépassait loin sur le côté). Sillage : aspiration à < 46 m
+  derrière elle, « ACCROCHE ! » dans sa BULLE de 18 m, 1 s tenue (la jauge retombe à ×1,5) = `fantomePris` : ta caisse DEVIENT la caisse-nuage (équipée), le portail s'ouvre. Elle passe le portail avant toi = « ELLE T'A
+  SEMÉ » (`fantomeSeme`, fin sans explosion). Le portail du niveau 10 = `campFinale` → écran de fin « NUAGES TERMINES ».
+- **VERSION TEST** : `TEST_CARRIERE=true` (près de `CARR`) ouvre les dix niveaux de chaque monde sans les avoir finis — ⚠ à remettre à
+  false pour la version publique, comme `TEST_CAISSES`.
+- **FINS DE PARTIE** : `mortCause` feu / seme / finNuages (CAUSES de mFill), gardée par `CAMP.garde` dans endGame ; REJOUER repart du
+  niveau où l'on s'est arrêté (`CARR.actif.i` mis à jour dans endGame) ; la stat NIVEAU dit le vrai numéro.
+
 ## ⚠ DEUX ÉDITIONS, UN SEUL JEU (2026-09-25) — LIRE EN PREMIER
 - Le dossier `version-fusion-2026-09` s'appelle désormais **`VERSION PRINCIPALE`** (la version mobile fusionnée) ;
   **`AUTRE VERSION`** = la version PC. Les deux `index.html` sont IDENTIQUES sauf `const EDITION='mobile'|'pc'`
@@ -277,6 +340,44 @@ Commits `2608066` (lot 1) · `c3493a5` (lots 2-3) · `04e8d28` (4) · `bd995f4` 
   ⚠ `dbgSaut()` = passer au NIVEAU suivant (pas un saut) ; pour s'envoler : `dbgDauphin(hauteur,vA,vLat,lat)`. Un test ne mesure le son
   qu'en comptant les `createOscillator` (patch avant chargement).
 
+## PASSE PERF iPHONE (2026-09-27) — « NETTE doit rester nette, surtout en vol » (iPhone 13 Pro, DPR 1,5)
+Mesuré au départ (banc Chrome, viewport iPhone, NETTE figée) : ~750 000 triangles/image dont ~600 000 pour la piste ENTIÈRE dessinée à
+chaque image ; en vol le CIEL devenait le 1er poste GPU (×5, il couvre la moitié de l'écran) ; CPU +60 % en l'air ; et la résolution
+adaptative descendait EN PREMIER. Cinq lots (branches perf-ciel/-post/-cpu/-piste/-caisse fusionnées). Ce qui est devenu une RÈGLE :
+- **CIEL** (`skyDome`) : chaque couche ne se calcule QUE là où elle peint (guirlande, étoiles par cellule, lune, cœurs du soleil, voile,
+  `atan` à la demande), coupures posées à la borne exacte où le terme vaut 0 (écart mesuré ≤ 1/255) ; mer de nuages en UNE passe
+  (`mfbm2`) ; VILLE pleine → saut direct à `villeCiel` (le ciel habituel était calculé pour être jeté), abîme/artères bornés en distance.
+  ⚠ La mer de nuages est maintenant les 2/3 du dôme aux NUAGES : l'alléger changerait son dessin (4→3 octaves) — décision de Sacha.
+- **ÉCHELLE DE QUALITÉ `QL`** (remplace `applyPerfTier`, `dbgQual()`) : UN curseur `QL.k`, chaque cran enlève d'abord ce qui se voit le
+  moins — ombre 1 image sur 2 en vol loin des dalles · carte d'ombre 768 · bloom ¾ · ombre 512 · flou radial coupé · PUIS la résolution,
+  jusqu'au PLANCHER NET (1,25 en NETTE, `DPR_MIN` en RAPIDE) ; sous le plancher puis bloom éteint seulement sur EFFONDREMENT (> 24 ms 6 s
+  d'affilée). RÉVERSIBLE : on remonte dans l'ordre inverse (la netteté revient la première). Anti-yoyo, 30 Hz imposé, chargements : inchangés.
+  Zéro recompilation (tailles de carte, drapeaux, uniforms). `applyQ` → `qlReprise()`.
+- **BLOOM 13 → 8 passes plein écran** : composite + copie additive sommés DANS l'ACES (`bloomPass.fuse`), seuil plié dans le 1er flou,
+  mips 3-4 en flou 2D d'une passe (`plie`). `?bloom=ancien` = l'ancien chemin pour comparer sur le téléphone.
+- **MONITEUR `?perf=1`** : une ligne en haut (ms, pire image, i/s, DPR/plafond, cran QL, allègements). Absent sans le drapeau (charte).
+  C'est ce qu'on demande à Sacha pour tout rapport de fluidité : captures `/jouer/?perf=1` au sol et en vol.
+- **PISTE EN TRANCHES** (`pisteTranches`, `PISTE_CH=600` points) : bitume, flancs, rails, nappes, ligne centrale bâtis ENTIERS (normales
+  calculées sur le tout) puis répartis en tranches à rangée frontière dupliquée, une sphère chacune → le frustum culling de three fait le
+  reste. UNE matière par famille (NEON_RAILS/NEON_GLOW n'en ont plus qu'une chacun). `pisteLoin` : une tranche entièrement au-delà de
+  `scene.fog.far` passe le bitume à 2 colonnes (même surface, déjà couleur du brouillard) et coupe la ligne. Géométrie hashée identique à
+  l'ancien code. `dbgPiste(on,loin)` = témoin sans tri. En vol : −58 à −81 % de triangles.
+- **PLOTS VUS** (`conesVus`, `CONE_PM`, `CONE_OMB`) : avant chaque rendu, seuls les plots dans le champ (4 instances sans ombre) et dans la
+  boîte d'ombre du soleil (3 instances qui ne font QUE l'ombre) partent au GPU ; tampon renvoyé seulement si la liste change ; chauffe
+  forcée 3 rendus (sinon le programme instancié compilait au 1er plot). ⚠ `scene.onBeforeRender` est pris (`pisteLoin`+`conesVus`) :
+  CHAÎNER, ne jamais réassigner.
+- **PLAQUES TURBO** : `padsInstancier()` (dans newTrack après conesInstancier) → UN `InstancedMesh` `PAD_IM` (82 draws → 1) ; toute
+  animation d'une plaque passe par l'instance.
+- **CPU** : `dalleIx`/`dalleProche` (casiers de 64 points dans une sphère) remplacent le balayage de toute la piste par `tryLand` et le
+  viseur (résultat identique prouvé sur 36 000 requêtes, 3-5× plus rapide) ; ⚠ `scene.updateMatrixWorld` SAUTE les enfants directs
+  INVISIBLES (l'atelier caché, pièces hors couloir…) : pour lire `matrixWorld`/`localToWorld` d'un objet caché, l'ajouter à
+  `SCENE_TOUJOURS` (la caisse y est) ; `airPieDraw` dessine hors écran puis UNE copie ; `updatePool` saute les réserves vides ; sur
+  téléphone plus de `fmtC` pour la mallette/le compteur masqués ; nuages `matrixAutoUpdate=false`. En vol le CPU coûte ≈ le sol.
+- **Écarté après mesure** : moins de mips de bloom (halo changé), RT 8 bits (banding), LOD de piste en deçà du brouillard (grain),
+  décimation des rails au loin (silhouettes qui bougent), masquage de la face cachée du bitume (dalle qui vrille), regroupement des nuages.
+- **Bancs** (scratchpad de la session 1a323fdd) : `banc/vol.js` (GPU par passe, `--drawgpu` GPU par draw sur image figée, `--attrib`
+  triangles par objet, `--prof`), `ciel/skybench.js`, `post/echelle.js` (GPU lent simulé), `cpu/cpu.js` (bridé ×4), `piste/equiv.js`.
+
 ## PASSE DÉBOGAGE / PERF (2026-09-26) — lots 1 à 4, mesurée (téléphone émulé, processeur bridé ×4)
 Résultat : 60 i/s partout sur PC, ZÉRO compilation de shader en course (portails, montées de moteur, rejouer, 1re ville, 1er vol de
 pigeons). Pires images, bridé ×4 : moteur 169 → 65-92 ms, portail 322 → 66-111 ms, croisière 36 → 18-22 ms/image. Ce qui est devenu une RÈGLE :
@@ -331,10 +432,25 @@ or `#ffd75e` argent, feu `#ff7a24` nitro, réserve `#5b7dff`, néon `#ff3ec8`/`#
 - **HUD** : la barre de FLOW est de la famille de la jauge NITRO (même cadre, lèvre, reflet), juste dessous, 14 px, pictogramme
   « vague » ; les verdicts de pose (MONSTRE / DOUBLE / TRIPLE / MÉTÉORE / SNAKE LOOP + montant + pastilles de bonus) reviennent sur
   téléphone : `trickMsg` → `verdPousse` → une carte par image dans la file du couloir (famille `ver`). Banc `dbgHud('verdict',k)`.
-- **ORBITE** (bloc après `pluieTick`, `orbiteBuild/orbiteChauffe/orbiteTick`) : la LUNE (carte 1024×512 peinte en étapes au menu, sphère
-  calculée au pixel, composée au tiers haut-droit avec retard, jamais sur la Terre) et les ASTÉROÏDES (3 InstancedMesh, une matière,
-  rotation dans le shader ; passants au bord extérieur des virages, champ au-dessus, ceinture) ; `visible=false`/`count=0` hors ORBITE.
-  +4 appels de dessin. Banc `dbgOrbite('vue'|'cout'|'photo'|'carte')`.
+- **ORBITE** (bloc après `pluieTick`, `orbiteBuild/orbiteLumiere/orbiteTick/orbiteChauffe`) — refait le 2026-09-27 (user : « la lune suit
+  le joueur bizarrement, c'est un bug mais j'aime bien : mets-lui un visage inspiration troll face, CHOQUÉ, comme s'il le regardait ; à la
+  place des astéroïdes des satellites STARLINK et des débris ; puis une lumière SPATIALE ») :
+  · la LUNE garde son placement (tiers haut-droit, avec retard = elle « suit » le joueur — VOULU, ne pas corriger) ; `LUNE_R` 520 → 640 ;
+    son VISAGE est dessiné dans le fragment (zéro texture) : yeux écarquillés, pupilles qui VISENT LA CAISSE (`uOeil`, direction écran
+    lune → caisse, lissée + saccades), sourcils remontés, rides, plis du troll, bouche béante (dents, langue, mâchoire qui tremble) ; la face
+    TOURNE ~22° vers la caisse ; `uChoc` monte en vol / nitro / explosion ; clignement rare ; yeux qui luisent sur la face de nuit ;
+    hasard du regard = `orbAlea` (pas Math.random).
+  · `SATS` (remplace ROCS) : 3 InstancedMesh + 1 matière `SAT_MAT` (pièces par `aPart`, variantes par `aVg`) — [0] Starlink entiers (1 ou
+    2 ailes) : passants, champ, et TRAINS (files de 20-26 qui glissent, mouvement dans le vertex shader, éclat qui court le long de la file) ;
+    [1] gros débris (satellite mort, étage de fusée, pan de panneau, petit satellite d'or) ; [2] éclats (matière par instance) + 2 anneaux
+    de débris. `GLINT` : étoile à 4 branches sur chaque Starlink quand son panneau renvoie le soleil (tampons partagés avec [0]).
+  · LA LUMIÈRE SPATIALE (`orbiteLumiere`, pondérée par `LVL.espace`) : UN soleil blanc rasant à GAUCHE de l'image, juste hors champ
+    (`ORB.cle`, suit la caméra avec retard) — la fenêtre d'ombre suit `L_DIR/L_PERP/L_UP` (hors orbite = SUN_DIR au bit près, vérifié par
+    `dbgOrbite('lum')`) ; hémisphère sans ciel, dessous = bleu Terre ; `fill` depuis la Terre, `kick` = clair de lune ; liseré (RIM) bleu
+    depuis la Terre ; `FLARE` = voile + trait anamorphique du soleil hors cadre. Route d'orbite `route` .9 → .38 (le soleil l'éclaire).
+  6 appels de dessin (+2), ~154 k sommets/image sur téléphone (les 4 variantes de gros débris EMPILÉES dans les mêmes
+  sommets, `satEmpile`/`SAT_MAT_E` : 828 → 300 par instance ; ⚠ 14 attributs échouaient déjà au lien sous ANGLE, ce chemin en a 12). Zéro shader compilé au portail (mesuré). Bancs `dbgOrbite('vue'|'cout'|
+  'photo'|'portrait'|'sat'|'train'|'rendu'|'force'|'lum'|'carte')`.
 - **VILLE** (`VILLE_PENTE={seuil:.30,garde:.35}`, `adoucirPentes`) : la pente de la ville est comprimée au-delà de ~16,7° (pente max
   ~47° → ~30°), altitude seulement, zéro `rnd()` ajouté : NUAGES et ORBITE identiques au bit. `garde:1` = l'ancienne ville.
 - **⚠ RELIEF COUPÉ PARTOUT** (même soir, user : « et en fait même pour la ville remets l'ancien terrain ») : `RELIEF_ON=false` — les trois
