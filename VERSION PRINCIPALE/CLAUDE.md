@@ -373,8 +373,9 @@ Vérifié : VERIF OK, grand tour 0 shader compilé en course, 60 i/s.
   `CITY_BELOW` 660. Pluie : `LineSegments` 1 100 traits (600 mobile), animée en vertex shader, créée à l'init.
 - **VERSION TÉLÉPHONE SUR L'ÉCRAN D'ORDI** : `index.html?tel=1` (ou `?mobile=1`, `FORCE_TEL`) — toute la
   fenêtre, chemin téléphone complet ; volant à la souris, clavier branché ; ni gel en paysage, ni plein
-  écran forcé ; image 1,0 / 1,5. Sur un vrai téléphone, le gel « couché » ne vaut plus que sous 600 px
-  de haut (iPad libre) et affiche `#rotNote`.
+  écran forcé ; image 1,0 / 1,5. **PORTRAIT ET PAYSAGE (2026-09-27, user : « je veux un mode horizontal et vertical »)** : plus aucun gel
+  quand le téléphone se couche (`#rotNote` et `body.couche` supprimés, manifest en `"orientation": "any"`) ; la caméra suit
+  toute seule par `fovFit`/`POR`. ⚠ En paysage, l'écran d'accueil cache la caisse derrière GARAGE/SHOP.
 - **CHARTE v2 — LE BOUTON D'ARCADE PIXEL** (dernier bloc CSS, il gagne sur tout) : contour 3 px par QUATRE ombres
   décalées (coins crantés, SANS clip-path — le clip-path rognait l'épaisseur), face deux tons, lèvre claire,
   tranche sombre, ombre au sol ; à l'appui −6 px. Variables par couleur (`--fc/--fc2/--hi/--lo/--ol/--tx/--txs`) :

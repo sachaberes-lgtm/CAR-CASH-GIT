@@ -859,15 +859,6 @@
     text-shadow:0 3px 0 #7a4400,0 0 24px rgba(255,200,90,.45)}
   #lvlBan span{font-size:clamp(9px,2.7vw,14px);letter-spacing:.2em;line-height:1.7;color:#9fe8ff;white-space:normal;
     text-shadow:0 2px 0 rgba(0,0,0,.6),0 0 14px rgba(120,220,255,.45)}
-  /* ------- LE TÉLÉPHONE COUCHÉ : voile + consigne quand la partie est gelée en paysage (body.couche,
-     posée par le tick 8 Hz — seulement sur un écran de téléphone). `pointer-events:none` : le ⚙ et
-     son panneau restent joignables à travers. ------- */
-  #rotNote{display:none}
-  body.touch.play.couche #rotNote{display:flex;position:fixed;inset:0;z-index:60;flex-direction:column;align-items:center;
-    justify-content:center;gap:12px;background:rgba(6,4,16,.88);font-family:var(--pix);text-align:center;pointer-events:none}
-  #rotNote i{font-style:normal;font-size:44px;line-height:1;color:#ffd75e}
-  #rotNote b{font-size:13px;letter-spacing:3px;color:#ffd75e}
-  #rotNote span{font-size:8px;letter-spacing:2px;color:#c8bfe6}
   /* ------- PORTRAIT : L'ORIENTATION NORMALE DU JEU (le paysage n'est plus qu'un repli) ------- */
   @media (orientation:portrait){
     body.touch #tSteer{width:52%}
@@ -939,7 +930,6 @@
   #tGear,#tSet #tGear{--pxs:2;font-size:0}
   .tbtn{--pxs:3}
   #epGear .pxi{--pxs:2}
-  #rotNote .pxi{--pxs:5;color:var(--or)}
   /* ---- LES RÉGLAGES DE L'ORDINATEUR : même cadre, même police que le téléphone ---- */
   #setCard{border-radius:0;background:var(--cadre);clip-path:var(--coupe7);box-shadow:var(--biseau);
     -webkit-backdrop-filter:none;backdrop-filter:none;font-family:var(--pix);font-size:9px;letter-spacing:1px}
@@ -2717,8 +2707,6 @@ html[data-reduced-motion="1"] .mscr.on,html[data-reduced-motion="1"] #tPanel.ope
   <div id="lastAlert"></div>
   <!-- LES NIVEAUX (2026-09-24) : « NIVEAU n — LIEU » au départ et à chaque portail (voir lvlAnnonce) -->
   <div id="lvlBan" aria-live="polite"><b id="lvlNum"></b><span id="lvlNom"></span></div>
-  <!-- LE TÉLÉPHONE COUCHÉ : la partie se gèle en paysage sur un téléphone — ceci dit POURQUOI -->
-  <div id="rotNote" aria-live="polite"><i class="pxi pxi-rotation" aria-hidden="true"></i><b data-fr="TOURNE TON TELEPHONE">TOURNE TON TELEPHONE</b><span data-fr="CASH CAR SE JOUE A LA VERTICALE">CASH CAR SE JOUE A LA VERTICALE</span></div>
 </div>
 <div id="carr" role="dialog" aria-label="Carrière"></div>
 <div id="modale" role="dialog" aria-modal="true"><div class="modIn"><h3 id="modT"></h3><div id="modX"></div><textarea id="modC" rows="3" spellcheck="false" autocomplete="off"></textarea><div class="modB"></div></div></div>
@@ -24551,17 +24539,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   document.addEventListener('cc:jeu',syncJeu); // (2026-09-25) les commandes apparaissaient 0 à 140 ms APRÈS le départ, au hasard du tick
   setInterval(function(){
     syncJeu(); const play=(started&&!gameOver);
-    /* TÉLÉPHONE COUCHÉ en pleine course : on gèle. ⚠ (2026-09-24) trois corrections :
-       (1) seulement sur un écran de TÉLÉPHONE (hauteur < 600 px en paysage) — un iPad couché, lui,
-           a la place de jouer, et gelait pourtant en boucle, sans un mot (`IS_MOBILE` y est vrai) ;
-       (2) l'écran « ROTATION » dont parlait ce commentaire n'existait plus : `body.couche` affiche
-           désormais `#rotNote`, sinon le joueur voit un jeu figé sans savoir pourquoi ;
-       (3) si c'est la rotation qui a mis en pause, le retour en PORTRAIT relance la partie. */
-    const couche=!FORCE_TEL&&innerWidth>innerHeight&&innerHeight<600; // l'écran d'ordi en `?tel=1` est en paysage par nature : jamais gelé
-    if(couche!==TCTL.couche){ TCTL.couche=couche; document.body.classList.toggle('couche',couche); }
-    if(play&&!paused&&couche){ togglePause(); TCTL.gelCouche=true; }
-    else if(play&&paused&&!couche&&TCTL.gelCouche){ TCTL.gelCouche=false; repriseCompte(); } // retour en portrait : même 3-2-1
-    if(!play)TCTL.gelCouche=false;
+    /* (2026-09-27, user : « je veux un mode horizontal et vertical ») : plus de gel quand le téléphone se couche — on joue dans
+       les DEUX sens. La caméra suit toute seule (`fovFit` → `POR` : 0 en paysage, 1 en portrait, recalculé à chaque rotation). */
     const ovOpen=(overlay.style.display!=='none'); // le menu vient d'apparaître (mort, retour du garage, premier lancement) ?
     if(ovOpen!==TCTL.ov){ TCTL.ov=ovOpen; if(ovOpen)mGo(mRoot(),'racine',true); } // filet : l'observateur plus bas l'a normalement déjà fait
   },140);
