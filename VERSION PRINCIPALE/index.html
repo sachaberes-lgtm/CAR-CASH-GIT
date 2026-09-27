@@ -6040,6 +6040,29 @@ const CARS=[
 const DENOMS=[3,3,3,4,4,4,4,5,5,5,
               5,6,6,6,7,7,8,8,9,9,
               10,11,11,12,12,13,14,15,16,16]; // 30 paliers moteur
+/* ================= ÉCONOMIE — VAGUE 3 (2026-09-27, Sacha : « on gagne de l'argent trop rapidement, réajuste l'équilibrage
+   global du système d'argent ») =================
+   MESURÉ (banc scratchpad v3-eco : 23 parties entières jouées par un pilote automatique à 4 niveaux de jeu, chaque dollar compté à
+   sa source, puis rejouées hors ligne sous d'autres formules) : le pilote SANS AUCUN geste gagnait ~1 300 $ la première minute
+   (une COMMUNE par minute de conduite passive) ; débutant (75 s) 3 450 $/partie · moyen (2,3 min) 11 300 · bon (7 min, ORBITE)
+   148 k · très bon (12 min, niveau 5) 442 k. Un bon joueur s'offrait TOUTES les communes en une partie, TOUTE la gamme en ~110.
+   91 à 99 % venaient des PIÈCES : RÉCOLTE ×4 (série de pièces) × FLOW ×3 = ×12 sur CHAQUE pièce, et sur une route dense la
+   récolte ne retombe jamais — la 10e minute d'une grande partie rapportait ~170× la 1re. Côté poses, FLOW × CHAÎNE × POSE × FACE
+   × SÉRIE montait à ×108, et la SÉRIE (×2) ne retombait jamais non plus.
+   CE BLOC EST TOUT LE RÉGLAGE : d'abord les trois FUITES (des multiplicateurs qui se composaient), puis UN bouton de niveau.
+   RÉSULTAT (re-mesuré, jeu modifié) : débutant ~560 $/partie · moyen ~1 750 · bon ~17 k · très bon ~55-73 k — la 1re caisse
+   après l'auto-école + 1 à 2 parties, la 5e en ~5 parties moyennes, les communes en ~5 bonnes parties, la caisse à 2,5 M en ~35-45
+   très bonnes. Le talent paie toujours autant : un très bon joueur gagne ~100-130× un débutant par partie (c'était ~130×). */
+const ECO3={
+  gain:.25,     // LE BOUTON : la valeur du dollar gagné EN COURSE — pièces, poses, portail, assurance passent tous par denom()
+  prime:.5,     // les PRIMES DE CONTRAT (versées en banque) : moitié — un salaire de défi, pas une deuxième paie
+  defi:{1000:200,20000:2500,100000:12000,500000:60000}, // les défis « ENCAISSE X » (ancien seuil → nouveau), calés sur les parties mesurées
+  flow:[1,1.3,1.5,1.8,2], // FUITE 1 — le FLOW paie ×1,3 · ×1,5 · ×1,8 · ×2 à la FRÉNÉSIE (c'était +0,5 par palier, jusqu'à ×3) ; des valeurs
+                //   qui s'écrivent juste avec une décimale : la bande du FLOW affiche flowMult() tel quel, elle ne doit pas arrondir
+  recolte:2.5,  // FUITE 2 — la RÉCOLTE monte de ×0,5 toutes les 5 pièces et plafonne à ×2,5 (c'était +1 par 5, jusqu'à ×4)
+  serie:.5      // FUITE 3 — la SÉRIE de poses : +5 % par pose, plafond +50 % (c'était +10 %, plafond ×2 dès la 10e pose)
+};
+function ecoSerie(){return streak>=2?1+Math.min(ECO3.serie,streak*.05):1;} // la SÉRIE : lue par la pose ET par la mallette (chainEst) — un seul endroit
 // ⚠ `THRESH` A ÉTÉ RETIRÉ (2026-08-03) — c'était l'échelle de 23 seuils d'argent qui faisait tomber
 // les caisses EN COURS de partie. Depuis que les voitures se débloquent sur des exploits persistants
 // (voir CAR_UNLOCK), plus une seule ligne ne la lisait : la laisser aurait fait croire qu'elle pilote
@@ -6050,7 +6073,7 @@ let level=0; // la caisse CONDUITE (choisie au garage). Fixe pendant toute une p
 // PUREMENT COSMÉTIQUE : l'indexer sur `level` faisait qu'équiper une belle caisse donnait d'emblée
 // des pièces à 40 000 — d'où la tirelire à 320 000 dès le premier écran. Le moteur, lui, part
 // toujours de zéro : l'économie repart donc au même point à chaque partie.
-function denom(){return DENOMS[Math.min(engTier,DENOMS.length-1)];} // clamp sur la table elle-même : la liste de paliers peut grandir sans qu'un 23 codé en dur la tronque
+function denom(){return DENOMS[Math.min(engTier,DENOMS.length-1)]*ECO3.gain;} // clamp sur la table elle-même : la liste de paliers peut grandir sans qu'un 23 codé en dur la tronque · ×ECO3.gain (vague 3) : tous les seuils relatifs (mallette « chaude », caisse enregistreuse, verdicts) suivent seuls
 // LANGUE & DEVISE (2026-09-03) : la devise est désormais UNIQUE — le dollar, quelle que soit la
 // langue d'affichage (avant : le français comptait en euros). `CUR()` ne dépend donc plus de `LANG` ;
 // seul `LOC()` (le séparateur des milliers/décimales) suit encore la langue.
@@ -12087,7 +12110,8 @@ window.dbgAuto=function(on,l){DBG_AUTO.on=!!on;DBG_AUTO.lat=+l||0;return DBG_AUT
 window.dbgEco=function(a){if(a==='rejouer'&&gameOver){playViaGarage();}
   return {money:Math.round(money),bank:Math.round(bank()),engTier:engTier,gameOver:gameOver,started:started,mode:mode,
     tricks:runStats.tricks,zones:runStats.zones,gaps:runStats.gaps,vmax:Math.round(runStats.vmax),s:Math.round(s),
-    nitroR:+nitroR.toFixed(2),nitroX:+nitroX.toFixed(2),nitroOn:nitroOn,tuto:TUTO.on?TUTO.i:null,mis:SAVE.d.mis};};
+    nitroR:+nitroR.toFixed(2),nitroX:+nitroX.toFixed(2),nitroOn:nitroOn,tuto:TUTO.on?TUTO.i:null,mis:SAVE.d.mis,
+    contrat:carnet(misEtat().n),eco:ECO3,best:Math.round(best)};}; // (vague 3) le carnet en cours tel que le joueur le lit (seuils et primes convertis) + les réglages ECO3
 window.dbgStep=function(n,ms){
   n=n||60;ms=ms||16;
   for(let k=0;k<n;k++){last=performance.now()-ms;loop(performance.now());}
@@ -12808,7 +12832,7 @@ function n9Saut(o){const n=performance.now(),s9=n-(o._viseT||0)>200;o._viseT=n;r
    Arrête d'avoir du style : elle retombe. Crash : elle tombe à zéro. On ne VISE plus un score, on CHERCHE un état. */
 const FLOW={v:0,lv:0,idle:0,aff:-1,tk:0};
 const FLOW_COL=['#ffffff','#5ee6ff','#ffd75e','#ff5ec8','#b58cff'];
-function flowMult(){return 1+FLOW.lv*.5;}                    // ×1 · ×1,5 · ×2 · ×2,5 · ×3 sur l'argent
+function flowMult(){return ECO3.flow[FLOW.lv]||1;}          // ×1 · ×1,3 · ×1,5 · ×1,8 · ×2 sur l'argent (vague 3 : c'était +0,5 par palier, jusqu'à ×3 — voir ECO3)
 function flowAdd(q){
   if(!(q>0)||!started||gameOver||PARK.on)return;
   FLOW.v=Math.min(100,FLOW.v+q);FLOW.idle=0;
@@ -12954,10 +12978,24 @@ const CARNETS=[
   {r:{car:62},m:[{k:'tricks',v:20,p:40000},{k:'perfect',v:10,p:40000},{k:'zones',v:4,p:50000}]},
 /* ===== LES CARNETS DES 50 — FIN ===== */
 ];
-function carnet(n){ // au-delà des carnets écrits : une suite SANS FIN, tirée d'un pool, qui monte à chaque carnet
+/* (vague 3, 2026-09-27) LES CONTRATS À LA NOUVELLE ÉCHELLE — convertis À LA LECTURE (les carnets 6-9 sont régénérés par
+   gamme/integrer.js : on n'y touche pas à la main). Primes × ECO3.prime ; seuils « ENCAISSE X » ramenés sur ce que rapporte
+   VRAIMENT une partie du niveau visé (mesuré : ce qui valait 1 000 / 20 000 / 100 000 / 500 000 vaut ECO3.defi). La suite sans
+   fin montait ×1,5 par carnet (primes) et ×2,2 (seuil d'argent) quand les autres défis montent d'un cran : primes exponentielles,
+   seuils vite impossibles — le carnet se bloquait pour toujours. Désormais tout monte en LIGNE DROITE, le seuil plafonne.
+   Mis en cache : `misTick` relit le carnet 4 fois par seconde. */
+function ecoRond(v){if(v<100)return Math.max(10,Math.round(v/10)*10);const p=Math.pow(10,Math.floor(Math.log10(v))-1);return Math.round(v/p)*p;} // 2 chiffres qui se lisent : 3 125 → 3 100
+function ecoCash(v){const t=ECO3.defi;for(const k in t)if(v<=+k)return t[k];return ecoRond(v*ECO3.gain*.1);}
+const CARNET_ECO={};
+function carnet(n){
+  if(CARNET_ECO[n])return CARNET_ECO[n];
+  const c=carnetBrut(n);
+  return (CARNET_ECO[n]={r:c.r.cash?{cash:c.r.cash}:c.r,m:c.m.map(function(x){return {k:x.k,v:x.k==='cash'&&n<CARNETS.length?ecoCash(x.v):x.v,p:n<CARNETS.length?ecoRond(x.p*ECO3.prime):x.p};})});
+}
+function carnetBrut(n){ // au-delà des carnets écrits : une suite SANS FIN, tirée d'un pool, qui monte à chaque carnet
   if(n<CARNETS.length)return CARNETS[n];
-  const l=n-CARNETS.length+1,pr=Math.round(5000*Math.pow(1.5,l)/100)*100,POOL=[
-    {k:'coins',v:60+20*l},{k:'fruits',v:10+3*l},{k:'cash',v:Math.round(2e5*Math.pow(2.2,l))},{k:'tricks',v:8+3*l},
+  const l=n-CARNETS.length+1,pr=ecoRond(5000*ECO3.prime*(1+.25*l)),POOL=[ // (vague 3) +25 % de la prime de base par carnet (c'était ×1,5)
+    {k:'coins',v:60+20*l},{k:'fruits',v:10+3*l},{k:'cash',v:ecoRond(ecoCash(100000)*Math.min(4,1+.3*l))},{k:'tricks',v:8+3*l}, // (vague 3) seuil d'argent : une BONNE partie +30 % par carnet, plafond ×4 (c'était ×2,2 par carnet : 440 k dès le 1er, impossible)
     {k:'perfect',v:3+l},{k:'kmh',v:Math.min(1200,680+48*l)},{k:'zones',v:Math.min(6,2+(l>>1))},{k:'gaps',v:1+l},
     {k:'survie',v:150+30*l},{k:'chain',v:4+l},{k:'nitro',v:20+5*l}].filter(function(x){return GAP_ON||x.k!=='gaps';}); // jamais de mission impossible
   const m=[];let h=(Math.imul(n,2654435761)>>>0)||1;
@@ -16512,7 +16550,7 @@ window.dbgEngine=function(i){ // console : dbgEngine(27) → la vignette montre 
         ry=Math.max(Math.abs(bb.min.y),Math.abs(bb.max.y)),rxz=Math.hypot(rx,rz);
   const halfV=engVigCam.position.z*Math.tan(engVigCam.fov*Math.PI/360),halfH=halfV*engVigCam.aspect;
   return {palier:(t+1)+' / '+ENGINE_TIERS.length,nom:E.n,poussee:E.push,reserve:E.res,cylindres:E.cyl,
-    pieces:E.coins,piece:fmtC(DENOMS[Math.min(t,DENOMS.length-1)]),meshes,
+    pieces:E.coins,piece:fmtC(DENOMS[Math.min(t,DENOMS.length-1)]*ECO3.gain),meshes,
     rayonXZ:+rxz.toFixed(2),demiHauteur:+ry.toFixed(2),champ:[+halfH.toFixed(2),+halfV.toFixed(2)],
     deborde:rxz>halfH||ry>halfV,
     reculNecessaire:+Math.max(rxz/(Math.tan(engVigCam.fov*Math.PI/360)*engVigCam.aspect),ry/Math.tan(engVigCam.fov*Math.PI/360)).toFixed(2),
@@ -16722,7 +16760,7 @@ const MONN_N=600,MONN=mkPanneaux(MONN_N,MONN_TEX,4,4,false,1,2);
 const MR={x:new Float32Array(MONN_N),y:new Float32Array(MONN_N),z:new Float32Array(MONN_N),vx:new Float32Array(MONN_N),vy:new Float32Array(MONN_N),
   vz:new Float32Array(MONN_N),ph:new Float32Array(MONN_N),rs:new Float32Array(MONN_N),rot:new Float32Array(MONN_N),life:new Float32Array(MONN_N),
   sc:new Float32Array(MONN_N),f:new Uint8Array(MONN_N),head:0,viv:0};
-let moneyRainT=0,nextRainAt=4e3; // calé sur l'éco ×2,5 : ~une pluie par niveau (l'ancien 1e4/×10 suivait l'éco ×10)
+let moneyRainT=0,nextRainAt=4e3*ECO3.gain; // calé sur l'éco ×2,5 : ~une pluie par niveau (l'ancien 1e4/×10 suivait l'éco ×10) · ×ECO3.gain (vague 3) : la pluie tombe au même moment de la partie
 function startMoneyRain(){
   moneyRainT=3;
   try{fanfare();}catch(e){}
@@ -17944,7 +17982,7 @@ const SAVE={
        les caisses que l'argent ne peut pas acheter.
        `owned` : les index des caisses ACHETÉES. Séparé des exploits : un achat n'est pas un exploit. */
     mis:{n:0,ok:[0,0,0]}, shop:{own:[],eq:{peinture:'usine',aile:'panneaux',trainee:'nitro'}}, pseudo:'', tuto:0, shopVu:0, ast:0, // CONTRATS · BOUTIQUE · nom du Top 10 · 1re partie guidée faite
-    bank:0, aura:0, owned:[], auraMax:0, gamme:3, // `gamme` : version de la GAMME de caisses (voir la migration dans san) // `auraMax` : la meilleure aura d'UNE partie — le chiffre à battre, affiché en jeu
+    bank:0, aura:0, owned:[], auraMax:0, gamme:3, eco:3, // `eco` : échelle de l'argent de course (vague 3, voir la migration des records en fin de san) // `gamme` : version de la GAMME de caisses (voir la migration dans san) // `auraMax` : la meilleure aura d'UNE partie — le chiffre à battre, affiché en jeu
     ai:{air:.5,boost:.35,caution:.5,skill:.86,aggr:.55,airDur:1.1,runs:0}};}, // profil d'apprentissage des IA
   san(d){ // désinfection : quoi qu'on charge (storage rongé, code importé), la forme est GARANTIE
     const c=this.def();
@@ -18022,6 +18060,12 @@ const SAVE={
       c.bank=Math.min(1e30,c.bank+rb);c.owned=[];c.ex.floor=0;c.equipped=0;c.bestCar=0;
     }
     c.gamme=3; // (2026-09-26) la valeur par défaut : 2 faisait repasser la migration à chaque chargement
+    /* (vague 3, 2026-09-27) LE DOLLAR DE COURSE A CHANGÉ DE VALEUR (voir ECO3) : les RECORDS D'ARGENT d'une partie (record, Top 10)
+       passent UNE fois à la nouvelle échelle — sinon plus aucune partie ne crierait « NOUVEAU RECORD » avant des mois. Facteur
+       mesuré sur les grandes parties (celles qui font les records) : ECO3.gain × 0,5 (les fuites corrigées en retirent la moitié).
+       ⚠ LA BANQUE N'EST PAS TOUCHÉE : on ne confisque jamais ce qui a été gagné. */
+    if(!(d.eco>=3)){const k9=ECO3.gain*.5;c.best=Math.round(c.best*k9);c.leaders.forEach(function(e){e.s=Math.round(e.s*k9);});}
+    c.eco=3;
     return c;
   },
   load(){
@@ -18947,7 +18991,7 @@ let chain=0,chainVal=0,chainMult=1,chainSeen={},spinHalf=0,
 function chainEst(){ // la MALLETTE : ce que vaut la chaîne SI on pose la caisse maintenant
   // l'airtime brut ne vaut RIEN : seule la CHAÎNE (figures + dauphin) remplit la mallette
   return denom()*chainVal*Math.min(6,chainMult)
-    *(streak>=2?1+Math.min(1,streak*.1):1)*(fever>0?2:1);
+    *ecoSerie()*(fever>0?2:1);
 }
 // ---------- FLAVOUR : les phrases qui font le sel du jeu — courtes, arrogantes, cash ----------
 const pickL=a=>a[Math.floor(Math.random()*a.length)];
@@ -19350,8 +19394,12 @@ function tryLand(dt){
     if(vA<-3){chainVal+=6;chainMult+=.3;trickMsg('À RECULONS — MÊME PAS REGARDÉ !',2);}              // posé en marche arrière
     if(sideL<0&&chainVal>0)trickMsg('FACE CACHÉE ×2',2);
     streak++;
-    const gain=Math.round(flowMult()*denom()*chainVal*Math.min(6,chainMult)*g
-      *(sideL<0?2:1)*(streak>=2?1+Math.min(1,streak*.1):1)*(fever>0?2:1));
+    // (vague 3) qG = la VALEUR DU GESTE, à l'échelle d'AVANT la vague 3 (FLOW +0,5/palier, SÉRIE jusqu'à ×2) : c'est elle qui décide
+    // des pièces MOTEUR, des verdicts de l'annonceur et de la pose muette — rééquilibrer l'argent ne doit changer ni la montée du
+    // moteur, ni les verdicts, ni quelle pose compte comme figure. Le GAIN, lui, suit ECO3 (et ne tombe jamais à 0 $ par arrondi).
+    const qG=chainVal*Math.min(6,chainMult)*g*(sideL<0?2:1)*(1+FLOW.lv*.5)*(streak>=2?1+Math.min(1,streak*.1):1)*(fever>0?2:1);
+    const gain=qG*DENOMS[Math.min(engTier,DENOMS.length-1)]<.5?0:Math.max(1,Math.round(flowMult()*denom()*chainVal*Math.min(6,chainMult)*g
+      *(sideL<0?2:1)*ecoSerie()*(fever>0?2:1)));
     if(gain>0){ // l'airtime brut ne rapporte RIEN : sans chaîne à casher, la pose est muette
       money+=gain;levelCash+=gain;checkUpgrade();
       if(g>=1.5)RUNX.perfect++; // CONTRATS : une pose PARFAITE qui encaisse une figure
@@ -19362,7 +19410,7 @@ function tryLand(dt){
       if(gain>=denom()*25)fxArgent();
       runStats.tricks++;
       // ---- ANNOUNCER : la réplique la plus RARE l'emporte (chacune tombe 1 fois sur 3) ----
-      const q=gain/denom();
+      const q=qG; // (vague 3) la valeur du GESTE, pas celle du dollar (voir qG)
       let vKey=q>=140?'m3':(q>=45?'m2':'m1');
       let vTier=q>=140?3:(q>=45?2:1),vPrio=vTier;
       if(nitroOn&&nitroAirT>1){vKey='meteor';vTier=Math.max(vTier,2);vPrio=4;}    // impact en pleine poussée
@@ -19507,7 +19555,7 @@ function resetGame(){
   coinsGot=0;engTier=0;engSwapT=0; // le moteur se remonte à chaque run (c'est la progression DE LA PARTIE)
   pwrNitroT=0;pwrAirT=0;pwrSpdT=0;
   driftC=0;driftLv=0;driftEnCours=false;raseT=0;raseAnn=false;yawR=0;slipB=0;glisse9=0;driftYaw=0;FROLE.n=0;FROLE.t=0;FROLE.s0=null; // (2026-09-25) une glisse ne survit pas à la partie (sinon MINI-TURBO fantôme au départ)
-  nextRainAt=4e3;moneyRainT=0;sideCd=0;slipT=0;oilCd=0;
+  nextRainAt=4e3*ECO3.gain;moneyRainT=0;sideCd=0;slipT=0;oilCd=0;
   nitroAirT=0;fallUnder=false;pureT=0;pureArmed=true;gapArmed=0;rampCd=0;annStop();deathStop();fxStop(); // la mort précédente se tait : on repart, elle n'a plus rien à dire
   auraRun=0;auraPop=0;auraFlash=0;figCombo=0;figComboT=0;figComboAura=0;chaReset();CHA.v=0;CHA.vAff=-1;recInit();pureNext=0;pureLvl=0; // l'aura de la partie repart de zéro — la banque et le total à vie, eux, restent
   bounceN=0;airFlash=0;flightId=0;
@@ -21993,7 +22041,7 @@ function loop(now){
             // LE MOTEUR MONTE À LA PIÈCE : c'est la ferraille ramassée qui paye le turbo
             addCoins(1);RUNX.coins++;flowAdd(.7);
             {const n9=performance.now();if(n9-(hap._pc||0)>70){hap._pc=n9;hap(5);}} // la pièce : un tic à peine perceptible (bridé : une ligne de pièces ne doit pas bourdonner)
-            const mult=1+Math.min(3,Math.floor(combo/5));
+            const mult=Math.min(ECO3.recolte,1+.5*Math.floor(combo/5)); // (vague 3) ×1 · ×1,5 · ×2 · ×2,5 : sur une route dense la récolte ne retombait jamais — ×4 permanent
             const g=denom()*2.2*mult*(fever>0?2:1)*flowMult(); // × le FLOW
             money+=g;levelCash+=g;blip();addStyle(5);
             checkUpgrade();
