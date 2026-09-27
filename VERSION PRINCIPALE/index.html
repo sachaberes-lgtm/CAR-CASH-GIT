@@ -3614,6 +3614,7 @@ function fovPor(d){return FOV_TK===1?d:Math.min(150,Math.atan(Math.tan(Math.min(
 fovFit(); // RÉSOLUTION ADAPTATIVE — cap desktop 1.5 : sur Retina, 1.75→1.5 = −26 % de pixels, invisible sous bloom+grain (écran 1× : min() ne change rien)
 renderer.setPixelRatio(curDPR);
 let composer=null,bloomPass=null,acesPass=null,POST_ON=false,SHADOW_ON=true; // POST-PROCESSING (assigné juste après)
+let BLOOM_RES=1; // (2026-09-27, passe perf iPhone) part de la résolution du bloom — un cran de l'échelle de qualité (QL) la baisse à ¾
 /* (perf, lot 4) LA TAILLE DE L'ÉCRAN, LUE UNE FOIS PAR REDIMENSIONNEMENT. MESURÉ (profil, téléphone émulé) : sur Chrome mobile, lire
    `innerWidth`/`innerHeight` FORCE une mise en page complète (la page à « viewport » se remet en page pour répondre) — et comme le HUD
    venait d'écrire ses styles, chaque image en payait une : 7,7 % du processeur pendant la carte MOTEUR. Ce qui suit la caisse à l'écran
@@ -3657,6 +3658,8 @@ const ACESShader={
             uVigK:{value:.52},uVigC:{value:new THREE.Vector3(.149,.047,.212)}}, // (2026-09-26, vague 2) la VIGNETTE du niveau (ex-calque DOM #vig), posée par bioApply
   vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
   fragmentShader:['uniform sampler2D tDiffuse;uniform float uExposure,uSat,uContrast,uVivid,uSpeed,uJit,uVigK;uniform vec3 uWB,uSh,uHi,uVigC;uniform vec2 uRes;varying vec2 vUv;',
+    'uniform sampler2D uB1,uB2,uB3,uB4,uB5;uniform vec4 uBw;uniform float uBw5,uBa;', // (2026-09-27, passe perf iPhone) le BLOOM FUSIONNÉ — voir « FUSION DU BLOOM » sous le compositeur
+    'vec3 bloomAt(vec2 u){return clamp(uBw.x*texture2D(uB1,u).rgb+uBw.y*texture2D(uB2,u).rgb+uBw.z*texture2D(uB3,u).rgb+uBw.w*texture2D(uB4,u).rgb+uBw5*texture2D(uB5,u).rgb,0.,1.)*uBa;}',
     'uniform vec4 uNit;uniform float uNitF;', // (vague 3, NITRO) la couleur de la poussée sur les bords (rgb + part) et le coup d'allumage — posés par nfxTick
     // (2026-09-26, audit rendu) LES HAUTES LUMIÈRES ROULENT au lieu de s'écraser : en NUAGES, 98 % du haut de l'image avait un canal au
     // plafond (un aplat bleu électrique, des nuages brûlés). Le coude garde la TEINTE (on divise les trois canaux ensemble) : tout ce
@@ -3665,14 +3668,14 @@ const ACESShader={
     'vec3 aces(vec3 x){const float a=2.51,b=.03,c=2.43,d=.59,e=.14;return clamp((x*(a*x+b))/(x*(c*x+d)+e),0.,1.);}',
     'const vec3 LUM=vec3(.2126,.7152,.0722);',
     'void main(){',
-    '  vec2 dir=vUv-0.5; float r=length(dir); vec3 x;',
+    '  vec2 dir=vUv-0.5; float r=length(dir); vec3 x; vec2 bu=vUv,bd=vec2(0.0);',
     '  vec2 buv=0.5+dir*(1.0+uSpeed*0.60*r*r);',              // WARP AU BOOST : le monde S INCURVE FORT autour de la caisse (centre stable → jouable)
     '  if(uSpeed>0.004){',                                    // + flou radial + aberration chromatique (fuite vers les bords)
     '    float amt=uSpeed*(0.04+r*r*1.7); vec3 acc=vec3(0.0);', // r² : centre NET, filé TRÈS FRANC vers les bords
     '    float jt=fract(52.9829189*fract(dot(gl_FragCoord.xy,vec2(.06711056,.00583715)))+uJit);', // grain ANIMÉ : moins de prises sans dessiner de copies (statique = saleté collée)
     '    for(int i=0;i<'+ACES_N+';i++){ float t='+(ACES_N<8?'(float(i)+jt)/'+ACES_N+'.0':'float(i)/7.0')+'; vec2 off=dir*amt*t*0.62;',
     '      acc+=texture2D(tDiffuse,buv-off).rgb; }',            // (2026-09-26) UNE lecture par prise (il y en avait trois : 18 lectures par pixel au téléphone)
-    '    x=acc/'+ACES_N+'.0;',
+    '    x=acc/'+ACES_N+'.0; bu=buv-dir*amt*0.31;'+(IS_MOBILE?'':' bd=dir*amt*0.155;'), // le halo se lit au milieu de la traînée (PC : aux deux quarts, il FILE comme l'image ; téléphone : une lecture — mesuré invisible, 5 lectures de moins au boost)
     // L'ABERRATION CHROMATIQUE (2026-09-26, vague 2) — MESURÉ : au boost, chaque bord de nuage et chaque fenêtre de la ville s'ourlait
     // d'un ARC-EN-CIEL rose/jaune/cyan de 10-12 px (×.05 de l'amplitude du flou, dès le centre). Réduite au TIERS et seulement au-delà de
     // 45 % du rayon (le bord de l'image fuit, le centre reste propre) — et COUPÉE au téléphone : deux lectures de texture en moins par pixel.
@@ -3692,6 +3695,7 @@ const ACESShader={
     '      vec3 b=a*0.5+0.25*(texture2D(tDiffuse,vUv-d*0.5).rgb+texture2D(tDiffuse,vUv+d*0.5).rgb);',
     '      float lB=dot(b,LUM); x=(lB<lMin||lB>lMax)?a:b; }'].join('\n'):'    x=texture2D(tDiffuse,vUv).rgb;',
     '  }',
+    '  if(uBa>0.0)x+=(bd.x!=0.0||bd.y!=0.0)?0.5*(bloomAt(bu-bd)+bloomAt(bu+bd)):bloomAt(bu);',
     '  x=x*uWB*uExposure;',
     'float L=dot(x,LUM);',
     'vec3 perCh=aces(x);',                              // ACES par canal : sûr mais désature les hautes lumières
@@ -3713,6 +3717,8 @@ const ACESShader={
     '{vec2 vq=vec2((vUv.x-.5)/.5,(vUv.y-.56)/.44);float vg=clamp(length(vq)*1.2354-1.,0.,1.);',
     'gl_FragColor=vec4(mix(clamp(roule(c),0.,1.),uVigC,uVigK*vg),1.0);}}'].join('\n')
 };
+for(let i=1;i<=5;i++)ACESShader.uniforms['uB'+i]={value:null}; // (posées sur acesPass APRÈS sa création : ShaderPass CLONE les uniforms, une texture clonée serait une autre texture)
+ACESShader.uniforms.uBw={value:new THREE.Vector4()};ACESShader.uniforms.uBw5={value:0};ACESShader.uniforms.uBa={value:0};
 ACESShader.uniforms.uNit={value:new THREE.Vector4(1,.478,.141,0)};ACESShader.uniforms.uNitF={value:0}; // (vague 3, NITRO) la poussée sur les bords — voir nfxTick
 const CAN_POST=typeof THREE.EffectComposer==='function'&&typeof THREE.RenderPass==='function'&&typeof THREE.UnrealBloomPass==='function'&&typeof THREE.ShaderPass==='function';
 if(CAN_POST){ try{
@@ -3740,10 +3746,67 @@ if(CAN_POST){ try{
   bloomPass=new THREE.UnrealBloomPass(bRes,IS_MOBILE?0.44:0.54,IS_MOBILE?0.44:.5,0.92);
   // (2026-09-26, audit rendu) `addPass` rappelle setSize(largeur×DPR) : la résolution `bSc` était IGNORÉE (mesuré : ½ au lieu de .42).
   // UnrealBloomPass prend la moitié de ce qu'on lui donne — on lui donne donc 2×bSc.
-  {const s0=bloomPass.setSize.bind(bloomPass);bloomPass.setSize=function(W,H){s0(Math.max(2,Math.round(W*bSc*2)),Math.max(2,Math.round(H*bSc*2)));};}
+  {const s0=bloomPass.setSize.bind(bloomPass);bloomPass.setSize=function(W,H){this._W=W;this._H=H;s0(Math.max(2,Math.round(W*bSc*2*BLOOM_RES)),Math.max(2,Math.round(H*bSc*2*BLOOM_RES)));};} // (_W/_H retenus : l'échelle QL retaille le bloom seul)
   if(REDUCED_MOTION)bloomPass.enabled=false; // reduced-motion : bloom coupé
   composer.addPass(bloomPass);
   acesPass=new THREE.ShaderPass(ACESShader);acesPass.renderToScreen=true;composer.addPass(acesPass);
+  /* FUSION DU BLOOM (2026-09-27, passe perf iPhone). UnrealBloomPass finissait par DEUX passes : un « composite » qui somme ses 5 mips
+     dans une cible 8 bits, puis une COPIE additive de cette cible sur l'image entière — un aller-retour plein écran en demi-flottant
+     rien que pour ajouter le halo, sur un GPU à tuiles (Apple) le plus cher des deux. L'ACES relisait ensuite cette même image. Le halo
+     est désormais sommé DANS l'ACES (5 lectures bilinéaires de petites textures) : deux passes de moins, dont une plein écran.
+     MÊME CALCUL que ce qui se voyait (écart mesuré : 0,3/255 en moyenne au sol, au niveau du bruit en nitro) : poids `strength·mix(f,1.2−f,radius)` (= lerpBloomFactor, facteurs 1/.8/.6/.4/.2,
+     teintes blanches), somme ÉCRÊTÉE à 1 (la cible 8 bits du composite l'écrêtait), puis ×alpha — la copie additive mélangeait en
+     SRC_ALPHA, et l'alpha du composite valait strength·Σpoids écrêté à 1 : sous strength ≈ .29 le halo s'atténuait deux fois, ici aussi.
+     Seule nuance : le halo s'ajoute APRÈS le FXAA / le flou radial au lieu d'avant (il est déjà flou : invisible — captures comparées).
+     `bloomPass.fuse=false` rend l'ancien chemin (repli, banc). */
+  {const R0=THREE.UnrealBloomPass.prototype.render;
+   if(!R0.__fus){THREE.UnrealBloomPass.prototype.render=function(rd,wb,rb,dT,mask){
+      if(!this.fuse||this.renderToScreen)return R0.apply(this,arguments);
+      rd.getClearColor(this._oldClearColor);this.oldClearAlpha=rd.getClearAlpha();const oa=rd.autoClear;rd.autoClear=false;rd.setClearColor(this.clearColor,0);
+      if(mask)rd.state.buffers.stencil.setTest(false);
+      const pl=this.plie!==false&&this.nMips===5&&bloomPlieMat(this); // (voir PLIAGE ci-dessous ; `bloomPass.plie=false` = les 11 passes d'origine)
+      if(!pl){this.highPassUniforms.tDiffuse.value=rb.texture;this.highPassUniforms.luminosityThreshold.value=this.threshold;
+        this.fsQuad.material=this.materialHighPassFilter;rd.setRenderTarget(this.renderTargetBright);rd.clear();this.fsQuad.render(rd);}
+      let inp=pl?rb:this.renderTargetBright;
+      for(let i=0;i<this.nMips;i++){const m=this.separableBlurMaterials[i],hz=this.renderTargetsHorizontal[i],vt=this.renderTargetsVertical[i];
+        if(pl&&i>=3){const q=this._p2[i];q.uniforms.colorTexture.value=inp.texture;q.uniforms.texSize.value=m.uniforms.texSize.value; // mips 3-4 : le flou 2D en UNE passe
+          this.fsQuad.material=q;rd.setRenderTarget(vt);rd.clear();this.fsQuad.render(rd);inp=vt;continue;}
+        const mh=(pl&&i===0)?this._p0:m;if(mh!==m){mh.uniforms.texSize.value=m.uniforms.texSize.value;mh.uniforms.thr.value=this.threshold;mh.uniforms.sw.value=this.highPassUniforms.smoothWidth.value;}
+        this.fsQuad.material=mh;mh.uniforms.colorTexture.value=inp.texture;mh.uniforms.direction.value=THREE.UnrealBloomPass.BlurDirectionX;rd.setRenderTarget(hz);rd.clear();this.fsQuad.render(rd);
+        this.fsQuad.material=m;m.uniforms.colorTexture.value=hz.texture;m.uniforms.direction.value=THREE.UnrealBloomPass.BlurDirectionY;rd.setRenderTarget(vt);rd.clear();this.fsQuad.render(rd);
+        inp=vt;}
+      if(mask)rd.state.buffers.stencil.setTest(true);
+      rd.setClearColor(this._oldClearColor,this.oldClearAlpha);rd.autoClear=oa;};
+    THREE.UnrealBloomPass.prototype.render.__fus=true;}
+   /* PLIAGE (2026-09-27, passe perf iPhone) — trois passes de moins, MÊME calcul :
+      · le SEUIL (la passe « bright ») est plié dans le 1er flou horizontal : ce flou lisait la cible « bright » PILE aux centres de ses
+        texels (même taille, décalages entiers), et chaque texel valait seuil(scène lue au même point) écrêté à [0,1] par la cible 8 bits.
+        Il applique donc le seuil lui-même à chacune de ses 5 lectures de la scène (écrêtage compris) — une cible de moins à remplir ;
+      · les deux plus petits mips (1/16 et 1/32 de la base : ~2 000 et ~500 pixels sur iPhone) font leur gaussienne en 2D en une passe
+        au lieu de H puis V. Une gaussienne est séparable : Σᵢⱼ wᵢwⱼ·I = la passe V de la passe H, au même point, lue aux mêmes endroits —
+        seul l'arrondi 8 bits intermédiaire disparaît. 17² et 21² lectures sur si peu de pixels : moins cher qu'un aller-retour de cible.
+      13 passes plein cadre à l'origine (seuil + 10 flous + composite + copie) → 8. Compilé au 1er rendu du bloom (au menu). */
+   function bloomPlieMat(p){ if(p._p0)return true; try{
+     const vs='varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+       gp='float gp(float x,float s){return 0.39894*exp(-0.5*x*x/(s*s))/s;}';
+     p._p0=new THREE.ShaderMaterial({defines:{KR:3},uniforms:{colorTexture:{value:null},texSize:{value:new THREE.Vector2(1,1)},direction:{value:new THREE.Vector2(1,0)},thr:{value:.9},sw:{value:.01}},vertexShader:vs,
+       fragmentShader:'varying vec2 vUv;uniform sampler2D colorTexture;uniform vec2 texSize,direction;uniform float thr,sw;'+gp+
+         'vec3 hp(vec2 u){vec4 t=texture2D(colorTexture,u);float v=dot(t.xyz,vec3(0.299,0.587,0.114));return clamp(t.rgb*smoothstep(thr,thr+sw,v),0.0,1.0);}'+
+         'void main(){vec2 inv=1.0/texSize;float fs=float(KR),ws=gp(0.0,fs);vec3 s=hp(vUv)*ws;for(int i=1;i<KR;i++){float x=float(i),w=gp(x,fs);vec2 o=direction*inv*x;s+=(hp(vUv+o)+hp(vUv-o))*w;ws+=2.0*w;}gl_FragColor=vec4(s/ws,1.0);}'});
+     p._p2=[];for(const i of [3,4]){const K=[3,5,7,9,11][i];
+       p._p2[i]=new THREE.ShaderMaterial({defines:{KR:K},uniforms:{colorTexture:{value:null},texSize:{value:new THREE.Vector2(1,1)}},vertexShader:vs,
+         fragmentShader:'varying vec2 vUv;uniform sampler2D colorTexture;uniform vec2 texSize;'+gp+
+           'void main(){vec2 inv=1.0/texSize;float fs=float(KR),ws=0.0;vec3 s=vec3(0.0);for(int j=1-KR;j<KR;j++){float wj=gp(float(j),fs);for(int i=1-KR;i<KR;i++){float w=wj*gp(float(i),fs);s+=texture2D(colorTexture,vUv+vec2(float(i),float(j))*inv).rgb*w;ws+=w;}}gl_FragColor=vec4(s/ws,1.0);}'});}
+     return true;}catch(e){p.plie=false;return false;} }
+   const U9=acesPass.uniforms,BF9=[1,.8,.6,.4,.2],bp9=bloomPass;
+   for(let i=0;i<5;i++)U9['uB'+(i+1)].value=bp9.renderTargetsVertical[i].texture; // setSize garde les mêmes objets texture : posé une fois
+   bp9.fuse=true;
+   acesPass.render=function(){ // (appelle le prototype À CHAQUE FOIS, pas une copie : les bancs qui l'enveloppent continuent de mesurer l'ACES)
+     if(bp9.enabled&&bp9.fuse){const s=bp9.strength,r=bp9.radius;
+       const w0=s*(BF9[0]+(1.2-2*BF9[0])*r),w1=s*(BF9[1]+(1.2-2*BF9[1])*r),w2=s*(BF9[2]+(1.2-2*BF9[2])*r),w3=s*(BF9[3]+(1.2-2*BF9[3])*r),w4=s*(BF9[4]+(1.2-2*BF9[4])*r);
+       U9.uBw.value.set(w0,w1,w2,w3);U9.uBw5.value=w4;U9.uBa.value=Math.min(1,Math.max(0,w0+w1+w2+w3+w4));}
+     else U9.uBa.value=0; // bloom éteint (réduire les animations, palier ultime) : ses mips ne sont plus à jour — on ne les lit plus
+     return THREE.ShaderPass.prototype.render.apply(this,arguments);};}
   POST_ON=true;
   {const v9=document.getElementById('vig');if(v9)v9.style.display='none';} // (2026-09-26, vague 2) la vignette est dans l'ACES : un calque plein écran de moins (si le post échoue, #vig reste le repli)
   if(GRADE_ACES)document.body.classList.add('post'); // le shader étalonne → le CSS se retire (si le post échoue, la classe n'est jamais posée : le filtre reste le repli)
@@ -4071,21 +4134,67 @@ function disposeClouds(){
   CLOUDS=[];cloudIn=0;
 }
 let FLOU_OK=true; // (2026-09-26) le flou radial du boost — le palier BAS le coupe
-let QUAL_LOW=false,QUAL_MED=IS_MOBILE||IS_LOW_END; // garde-fous perf : réduisent le raymarch (voir loop + applyPerfTier)
-function applyPerfTier(med,low){
-  if(low&&!QUAL_LOW){
-    QUAL_LOW=true;QUAL_MED=true;
-    // (les nuages ne coûtent plus rien à alléger : mesh opaques, un draw call chacun)
-    if(bloomPass)bloomPass.enabled=false;
-    if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}
-    sun.shadow.mapSize.set(512,512); // (2026-09-26) 512 SANS recompilation — l'ancien passage en BasicShadowMap n'était jamais appliqué aux matériaux déjà compilés
-    FLOU_OK=false;                   // le flou radial du boost saute (le FOV et les filés gardent la sensation)
-  }else if(med&&!QUAL_MED){
-    QUAL_MED=true;
-    if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;} // ombres 1024 dès le palier MED (recrée la map, zéro recompilation)
-    sun.shadow.mapSize.set(1024,1024);
-  }
-}
+let QUAL_LOW=false,QUAL_MED=IS_MOBILE||IS_LOW_END; // (lus par dbgPerf : MED = un allègement posé, LOW = bloom éteint — tenus par qlPose)
+/* ====================== LA NETTETÉ EN DERNIER — l'échelle de qualité QL (2026-09-27, passe perf iPhone) ======================
+   Sacha joue en NETTE (DPR 1,5 sur iPhone 13 Pro) et la voyait fondre « surtout quand on s'envole » : dès que l'image tirait (> 19 ms),
+   la résolution adaptative sabrait la RÉSOLUTION d'abord — la seule chose qu'on voit sur chaque pixel — jusqu'à 0,5, pendant que les
+   paliers MOYEN/BAS (ombre, bloom) attendaient 3 à 5 s puis tombaient POUR TOUTE LA SESSION. L'ordre est retourné, et tout se RÉTABLIT.
+   UNE échelle, un seul curseur `QL.k` : chaque cran enlève la chose la MOINS visible qui reste, et on remonte dans l'ordre inverse
+   (la netteté revient donc la PREMIÈRE). Tous les crans sont sans recompilation (tailles de cibles, uniformes, drapeaux) :
+     1 · l'ombre ne se redessine qu'une image sur deux quand la caisse vole LOIN de toute dalle (> 14 m : l'ombre qu'elle jette est à des
+         dizaines de mètres, le décalage d'une image ne se voit pas — et c'est EN VOL que la passe d'ombre coûte double) ;
+     2 · carte d'ombre 768 (PCF doux : le bord est déjà flouté sur ~3 texels, 6,6 → 8,9 cm par texel ne se lit pas) ;
+     3 · bloom à ¾ de sa résolution (c'est un flou : il a déjà perdu ses détails) ;
+     4 · carte d'ombre 512 ;
+     5 · plus de flou radial au boost (le champ, les filés et le tunnel sombre gardent la sensation) ;
+     puis la RÉSOLUTION, par petits crans jusqu'au PLANCHER NET — en NETTE 1,25 : ~70 % des pixels de 1,5 ; sur un iPhone de 390 pt,
+     un pixel 3D y fait 0,8 pt, plus fin que le plus fin des traits dessinés (liserés néon, pointillés ~2 px), et le FXAA + le grain
+     masquent l'écart ; sous 1,2 la différence avec le HUD (DOM, toujours net) commence à se lire. En RAPIDE, pas de plancher net :
+     l'échelle descend jusqu'à DPR_MIN comme avant — mais seulement après les cinq crans invisibles.
+     Sous le plancher net, puis le bloom éteint en tout dernier : réservés à l'EFFONDREMENT (> 24 ms, 6 s d'affilée, au plancher, hors
+     chargement / onglet / cadence 30 Hz). C'est l'ancien palier BAS — mais il se RELÈVE quand la marge revient.
+   ANTI-YOYO (repris de la résolution v3) : on ne descend que « calme » (ni reconstruction de zone, ni retour d'onglet, ni 30 Hz
+   imposé) ; on remonte d'UN cran après ~4,5 s de marge (< 17,8 ms ou cadence 30 Hz) ; un cran remonté qui retombe en < 6 s
+   devient un MUR pendant 45 s. `dbgPin(true)` fige l'échelle ; `dbgQual(k)` la force (banc) ; `?perf=1` l'affiche à l'écran. */
+const QL={k:0,mur:0,murT:0,roseT:0,up:0,efT:0,effondre:false,fr:0,N_EFF:5,ombre0:sun.shadow.mapSize.x,
+  nom:['ombre en vol ½','ombre 768','bloom ¾','ombre 512','flou radial']};
+function qlBornes(){ // les crans de résolution se recalculent (RAPIDE/NETTE, écran)
+  const cap=DPR_CAP,net=(typeof SAVE!=='undefined'&&SAVE.d&&SAVE.d.q==='net'),pl=net?Math.min(cap,1.25):Math.min(cap,DPR_MIN),
+        nA=Math.max(0,Math.ceil((cap-pl)/.08-1e-6)),nB=Math.max(0,Math.ceil((pl-DPR_MIN)/.08-1e-6)),kNet=QL.N_EFF+nA,kBas=kNet+nB;
+  return {cap,pl,nA,nB,kNet,kBas,kMax:kBas+1};}
+function qlDpr(k,b){ // la résolution que vaut le cran k
+  if(k<=QL.N_EFF)return b.cap;
+  if(k<=b.kNet)return b.cap-(b.cap-b.pl)*(k-QL.N_EFF)/Math.max(1,b.nA);
+  return Math.max(DPR_MIN,b.pl-(b.pl-DPR_MIN)*(k-b.kNet)/Math.max(1,b.nB));}
+function qlPose(k){ const b=qlBornes();k=Math.max(0,Math.min(b.kMax,k|0));QL.k=k;
+  const om=k>=4?512:k>=2?768:QL.ombre0;
+  if(sun.shadow.mapSize.x!==om){if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}sun.shadow.mapSize.set(om,om);} // recrée la carte, zéro recompilation
+  const br=k>=3?.75:1;if(br!==BLOOM_RES){BLOOM_RES=br;if(bloomPass&&bloomPass._W)bloomPass.setSize(bloomPass._W,bloomPass._H);}
+  FLOU_OK=k<5;
+  if(bloomPass)bloomPass.enabled=!REDUCED_MOTION&&k<b.kMax;
+  if(k<1&&renderer.shadowMap.autoUpdate===false)renderer.shadowMap.autoUpdate=true;
+  const d=Math.min(qlDpr(k,b),devicePixelRatio);if(Math.abs(d-curDPR)>.001){curDPR=d;applyDPR();}
+  QUAL_MED=k>0;QUAL_LOW=!!bloomPass&&!bloomPass.enabled&&!REDUCED_MOTION;return k;}
+function qlReprise(){ // RAPIDE⇄NETTE : le choix du joueur rend la pleine résolution tout de suite (les crans invisibles restent, l'échelle redescendra si besoin)
+  QL.mur=0;QL.murT=0;QL.roseT=0;QL.up=0;QL.efT=0;QL.effondre=false;curDPR=-1;qlPose(Math.min(QL.k,QL.N_EFF));}
+window.dbgQual=function(k){ if(k!=null){qlPose(k);RESPIN=true;} const b=qlBornes(); // dbgQual(k) force le cran k ET fige (dbgPin(false) relâche)
+  const al=[];for(let i=0;i<QL.N_EFF&&i<QL.k;i++)al.push(QL.nom[i]);
+  return {k:QL.k,kNet:b.kNet,kMax:b.kMax,plancher:+b.pl.toFixed(2),dpr:+curDPR.toFixed(3),effondre:QL.effondre,mur:(QL.murT&&performance.now()-QL.murT<45000)?QL.mur:0,
+    ombre:sun.shadow.mapSize.x,ombreVolDemi:renderer.shadowMap.autoUpdate===false,bloom:bloomPass?(bloomPass.enabled?BLOOM_RES:0):null,flou:FLOU_OK,allege:al};};
+/* LE MONITEUR (?perf=1 dans l'adresse) — une ligne de texte en haut à gauche, rien d'autre : ms/image (moyenne lissée + pire de la
+   dernière seconde), images/s, résolution (actuelle/plafond), cran de l'échelle et ce qui est allégé. Éteint par défaut (charte :
+   rien de développement à l'écran). Réécrit 4 fois par seconde, et seulement si le texte change. */
+const PERF_MON=/[?&]perf=1/.test(location.search)?(function(){const e=document.createElement('div');e.id='perfMon';
+  e.style.cssText='position:fixed;left:calc(var(--sL) + 6px);top:calc(var(--sT) + 4px);z-index:2147483000;pointer-events:none;'+
+    'font:600 var(--f1)/1.35 var(--sans);color:var(--tx);background:var(--k1);padding:2px 5px;white-space:pre;max-width:70vw';
+  document.body.appendChild(e);return {el:e,t:0,pire:0,txt:''};})():null;
+function perfMonTick(now,rawMs){const M=PERF_MON;if(rawMs>M.pire)M.pire=rawMs;if(now-M.t<250)return;M.t=now;
+  const ms=loop._ms||16,al=[];for(let i=0;i<QL.N_EFF&&i<QL.k;i++)al.push(QL.nom[i]);const b=qlBornes();
+  if(QL.k>b.kNet)al.push(QL.k>=b.kMax?'SOUS LE PLANCHER + BLOOM OFF':'SOUS LE PLANCHER');
+  const tx=ms.toFixed(1)+' ms  pire '+M.pire.toFixed(0)+'  '+Math.round(1000/Math.max(1,ms))+' i/s'+(loop._r30?'  (30 Hz)':'')+
+    '\nDPR '+curDPR.toFixed(2)+'/'+DPR_CAP.toFixed(2)+'  cran '+QL.k+'/'+b.kMax+(RESPIN?'  FIGE':'')+'\n'+(al.length?al.join(' · '):'plein');
+  if(now-(M.p0||0)>1000){M.p0=now;M.pire=0;}
+  if(tx!==M.txt){M.txt=tx;M.el.textContent=tx;}}
 // ============================================================================
 //  NUAGES — MESH SIMPLES (refonte 2026-07-20, décision de Sacha)
 //  Le raymarch volumétrique est SUPPRIMÉ. Pourquoi, précisément : après six rondes
@@ -22488,40 +22597,38 @@ function loop(now){
   {const cad9=(loop._ms||16)>29.5&&(loop._ms||16)<37.5;if(cad9&&loop._jit<2)loop._r30T=now+2500; // tenu 2,5 s : une image sautée (66 ms) ne fait pas basculer
    loop._r30=cad9&&now<(loop._r30T||0);}
   loop._spk=(loop._spk||0)*.985+(rawMs>(loop._r30?45:26)?1:0);
-  /* ⚠ PALIERS DÉFINITIFS = LENTEUR SOUTENUE, JAMAIS UN PIC (2026-09-24). Le palier BAS coupe le bloom et passe les
-     ombres en BasicShadowMap (bords crénelés) POUR TOUTE LA SESSION : il se déclenchait sur une seule bosse de
-     l'EMA — la construction d'une zone, le retour d'un onglet masqué — et le jeu restait terne et pixelisé à
-     60 fps. Il faut désormais 5 s (BAS) ou 3 s (MOYEN) de lenteur CONTINUE, hors chargement et hors onglet caché. */
+  /* ⚠ LENTEUR SOUTENUE, JAMAIS UN PIC (2026-09-24) — toujours vrai : on ne dégrade que « calme » (ni reconstruction de zone, ni retour
+     d'onglet, ni cadence 30 Hz imposée). Mais les paliers ne sont plus DÉFINITIFS et la résolution n'est plus la PREMIÈRE sacrifiée :
+     (2026-09-27, passe perf iPhone) paliers MOYEN/BAS et résolution adaptative ne font plus qu'UNE échelle, `QL` — voir « LA NETTETÉ EN
+     DERNIER » près de qlPose. Même horloge (un pas toutes les 1,1 s), mêmes seuils (19 / 24 / 17,8 ms), même anti-yoyo (4 pas de marge
+     pour remonter, mur mémorisé 45 s) — appliqués au cran de l'échelle au lieu du seul pixelRatio. */
   const calme9=!document.hidden&&now-(loop._rebuildT||0)>2500&&!loop._r30; // ni reconstruction de zone, ni retour d'onglet, ni cadence 30 Hz imposée
-  loop._basT=(calme9&&loop._ms>22)?(loop._basT||0)+dt:0;
-  loop._moyT=(calme9&&(loop._ms>18.5||loop._spk>9))?(loop._moyT||0)+dt:Math.max(0,(loop._moyT||0)-dt*.5);
-  if(!RESPIN&&!QUAL_LOW&&now>12000&&loop._basT>5)applyPerfTier(true,true); // FPS au tapis, pour de vrai : palier BAS
-  else if(!RESPIN&&!QUAL_MED&&now>6000&&loop._moyT>3)applyPerfTier(true,false); // ça tire la langue durablement : palier MOYEN
-  // RÉSOLUTION ADAPTATIVE : on suit le temps par frame (EMA loop._ms) et on ajuste le pixelRatio
-  // — GPU qui peine → on baisse la résolution ; marge confortable → on la remonte (plafond = écran).
-  // v3 ANTI PING-PONG (2026-07-20) : l'ancienne remontée instantanée à <14,5 ms faisait OSCILLER la
-  // résolution sur les machines pile au seuil (monte → rame → descend → respire → remonte…). Chaque
-  // cran re-échantillonne TOUT l'écran, et ce sont les dégradés doux des NUAGES qui le montrent le
-  // plus : un clignotement « sans logique », corrélé à la charge donc au mouvement caméra. Désormais
-  // (1) la remontée exige ~4,5 s de marge CONSÉCUTIVE, (2) une montée qui retombe en <6 s marque ce
-  // palier TROP HAUT (plafond mémorisé 45 s) — le yoyo est structurellement impossible.
+  const qb9=qlBornes();
+  // EFFONDREMENT : au plancher, encore > 24 ms (< 42 i/s) pendant 6 s D'AFFILÉE → on s'autorise sous le plancher (puis le bloom)
+  QL.efT=(calme9&&QL.k>=qb9.kNet&&(loop._ms||16)>24)?QL.efT+dt:0;if(QL.efT>6)QL.effondre=true;
+  // ÉTAGE 1 : l'ombre en vol, une image sur deux — seulement LOIN de toute dalle (radar de tryLand), jamais au sol
+  {const loin9=QL.k>=1&&mode==='fall'&&(lastNearH2+(fallPos.y-lastNearY)*(fallPos.y-lastNearY))>196;
+   if(loin9){renderer.shadowMap.autoUpdate=false;QL.fr^=1;renderer.shadowMap.needsUpdate=QL.fr===0;}
+   else if(renderer.shadowMap.autoUpdate===false)renderer.shadowMap.autoUpdate=true;}
+  /* (historique conservé) RÉSOLUTION ADAPTATIVE v3 ANTI PING-PONG (2026-07-20) : l'ancienne remontée instantanée à <14,5 ms faisait
+     OSCILLER la résolution sur les machines pile au seuil — chaque cran re-échantillonne TOUT l'écran, et les dégradés doux des NUAGES
+     le montrent le plus. D'où (1) la remontée après ~4,5 s de marge CONSÉCUTIVE, (2) une montée qui retombe en < 6 s marque ce cran
+     comme un MUR (45 s). ⚠ LA REMONTÉE À < 14,5 ms ÉTAIT IMPOSSIBLE SUR UN ÉCRAN 60 Hz (2026-09-24) : la synchro plafonne l'image à
+     16,7 ms — le seuil est 17,8 ms (« on tient la synchro 60 »). */
   dprT-=dt;
   if(!RESPIN&&dprT<=0&&now>4000){dprT=1.1;const ms9=loop._ms||16;
-    const dn9=(fl9,d9)=>{curDPR=Math.max(fl9,curDPR-d9);loop._dprUp=0;
-      if(loop._dprRoseT&&now-loop._dprRoseT<6000){loop._dprCeil=curDPR;loop._dprCeilT=now;} // montée retombée aussitôt → ce palier est un mur
-      loop._dprRoseT=0;applyDPR();};
-    /* ⚠ LA REMONTÉE À < 14,5 ms ÉTAIT IMPOSSIBLE SUR UN ÉCRAN 60 Hz (2026-09-24). La synchro verticale y plafonne
-       l'image à 16,7 ms : la condition n'était JAMAIS vraie, la résolution ne faisait que DESCENDRE — un seul
-       à-coup de chargement la clouait au plancher pour toute la session (mesuré : 60 fps, DPR 0,42). Le seuil
-       passe à 17,8 ms (« on tient la synchro 60 ») ; l'anti-yoyo v3 ci-dessus reste le garde-fou. Et on ne
-       descend pas pendant un chargement ou un retour d'onglet : ce ne sont pas des signes de faiblesse du GPU. */
-    if(calme9&&ms9>24&&curDPR>DPR_MIN)dn9(DPR_MIN,.15);        // ça rame fort : gros cran de résolution en moins
-    else if(calme9&&ms9>19&&curDPR>DPR_MIN+.25)dn9(DPR_MIN+.25,.08); // ça tire : petit cran (hystérésis avec la remontée)
-    else if(ms9<17.8||loop._r30){const ceil9=(loop._dprCeilT&&now-loop._dprCeilT<45000)?loop._dprCeil:DPR_CAP;
-      loop._dprUp=(loop._dprUp||0)+1;
-      if(curDPR<ceil9-.001&&loop._dprUp>=4){loop._dprUp=0;loop._dprRoseT=now;curDPR=Math.min(ceil9,curDPR+.08);applyDPR();}}
-    else loop._dprUp=0;
+    if(calme9&&ms9>19&&QL.k<qb9.kMax){
+      const lim9=QL.effondre?qb9.kMax:qb9.kNet;let k9=Math.min(lim9,QL.k+(ms9>24?2:1));
+      // ça tire seulement (19-24 ms) : en RAPIDE on ne descend pas sous DPR_MIN+.25 (l'hystérésis d'avant, gardée)
+      while(ms9<=24&&k9>QL.N_EFF&&k9>QL.k&&qlDpr(k9,qb9)<DPR_MIN+.25-.001)k9--;
+      if(k9>QL.k){if(QL.roseT&&now-QL.roseT<6000){QL.mur=k9;QL.murT=now;} // remonté puis retombé aussitôt → ce cran est un mur
+        QL.roseT=0;QL.up=0;qlPose(k9);}
+      else QL.up=0;}
+    else if(ms9<17.8||loop._r30){const mur9=(QL.murT&&now-QL.murT<45000)?QL.mur:0;QL.up++;
+      if(QL.k>mur9&&QL.up>=4){QL.up=0;QL.roseT=now;if(QL.k-1<=qb9.kNet)QL.effondre=false;qlPose(QL.k-1);}}
+    else QL.up=0;
   }
+  if(PERF_MON)perfMonTick(now,rawMs);
   lvlStep(dt);routeTick(); // NIVEAUX : le noir de l'orbite, la planète et la pluie suivent le même fondu — AVANT bioStep, qui lit LVL.espace
   bioStep(dt); // BIOMES : le voyage d'ambiance avance même au menu/en pause de jeu (c'est le ciel qui vit, pas la sim)
   if(parkGrassMat)parkGrassMat.uniforms.uTime.value=now*.001; // l'herbe longue du parc ondule au vent (now : dispo avant `const t`)
@@ -24459,7 +24566,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   // Le plafond peut monter sans risque parce que la résolution adaptative redescend si le GPU peine — et
   // qu'elle sait maintenant REMONTER (voir la boucle).
   function applyQ(fast){ DPR_CAP=Math.min(devicePixelRatio,fast?1:1.5);
-    curDPR=Math.min(DPR_CAP,devicePixelRatio); applyDPR(); }
+    qlReprise(); } // (2026-09-27) pleine résolution tout de suite + l'échelle QL recalée sur le nouveau plafond (et son plancher NET)
   // ⚠ LES INTERRUPTEURS PASSENT PAR LES BOUTONS DU DESKTOP (`.click()`) au lieu de refaire leur
   // logique : son, voix, musique, Survivant et Parc ont des EFFETS DE BORD (suspend du contexte
   // audio, exclusion mutuelle police/parc, reconstruction de la scène de menu). Les dupliquer, ce
@@ -24853,7 +24960,7 @@ if(!(IS_MOBILE||/[?&]touch=1/.test(location.search))){
   // ⚠ NOM DÉDIÉ (`applyQ9`, pas `applyQ`) : `applyQ` est déclarée `const` À L'INTÉRIEUR du bloc
   // mobile — hors de portée ici (portée de bloc). Se rebrancher sur le MÊME état (`DPR_CAP`/
   // `curDPR`/`applyDPR`), pas une copie qui diverge.
-  function applyQ9(fast){ DPR_CAP=Math.min(devicePixelRatio,fast?1:1.5); curDPR=Math.min(DPR_CAP,devicePixelRatio); applyDPR(); } // mêmes crans que le téléphone (2026-09-24) : RAPIDE ne descend plus sous la résolution d'origine du desktop
+  function applyQ9(fast){ DPR_CAP=Math.min(devicePixelRatio,fast?1:1.5); qlReprise(); } // mêmes crans que le téléphone (2026-09-24) : RAPIDE ne descend plus sous la résolution d'origine du desktop
   // ⚙/⏸ + le déclencheur `body.play` : le MÊME tick que le mobile (140 ms, zéro écriture DOM si
   // rien n'a changé) — mais SANS le gel « téléphone couché » ni `mGo()`, qui n'ont aucun sens ici.
   function dSyncJeu(){
