@@ -3040,12 +3040,19 @@ const skyU={uTime:{value:0},uSunDir:{value:SUN_DIR},
   // brume (le lointain y converge) et position de la caméra (le plafond et les rues d'en bas défilent : parallaxe VRAIE)
   uVille:{value:0},uPluie:{value:0},uFogCol:{value:new THREE.Color(0x331f48)},uCam:{value:new THREE.Vector3()},
   uVilleY:{value:0}, // (2026-09-26) la SKYLINE descend à l'altitude de la ville (en sinus d'élévation) : la route spirale AU-DESSUS des toits
-  uMer:{value:0}}; // (2026-09-26) LA MER DE NUAGES PEINTE sous l'horizon — niveau NUAGES seulement (voir merNuages ; fondue par lvlStep comme la ville)
+  uMer:{value:0}, // (2026-09-26) LA MER DE NUAGES PEINTE sous l'horizon — niveau NUAGES seulement (voir merNuages ; fondue par lvlStep comme la ville)
+  uBasTex:{value:null},uBasInv:{value:new THREE.Vector2(1,1)},uBasTr:{value:0}}; // (2026-09-27, tour 2) LE CIEL EN DEUX TEMPS : la passe lisse (cible hors écran), 1/taille de l'image où la relire, sa trame si elle est en 8 bits (voir CIEL2)
 const skyDome=(function(){
-  const mat=new THREE.ShaderMaterial({uniforms:skyU,side:THREE.BackSide,depthWrite:false,
-    // (2026-09-26, vague 2 — audit GPU) gl_Position.z = w : le dôme se pose sur le PLAN LOINTAIN (profondeur 1,0) — voir renderOrder plus bas
-    vertexShader:'varying vec3 vDir;void main(){vDir=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);gl_Position.z=gl_Position.w;}',
-    fragmentShader:[
+  /* LE CIEL EN DEUX TEMPS (2026-09-27, passe perf iPhone, tour 2) — le pourquoi et le mesuré sont dans CIEL2 (après chauffeDivers).
+     Le shader est rangé en MORCEAUX — la tête, la ville, la mer, les COUCHES (une fonction par couche) et un `main` par programme :
+       · PLEIN : le ciel d'avant, couche par couche DANS LE MÊME ORDRE — le repli (fondus de niveau, fond musical, atelier, `?ciel=plein`) ;
+       · BAS_N / NET_N (nuages, orbite) et BAS_V / NET_V (ville sous la pluie) : le même calcul coupé en deux passes — une passe LISSE
+         à demi-résolution hors écran (dégradé, mer de nuages, soleil, guirlande, voile · plafond et lueur des quartiers) que la passe
+         NETTE, à pleine résolution, relit au pixel près de l'écran pour n'y ajouter que ce qui a des BORDS (étoiles, lune · lumières
+         fines de l'abîme, skyline) et la trame.
+     Aucune couche n'est écrite deux fois : chaque programme appelle LES MÊMES fonctions. */
+  const VS='varying vec3 vDir;void main(){vDir=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);gl_Position.z=gl_Position.w;}';
+  const TETE=[
       'varying vec3 vDir;uniform vec3 uSunDir;uniform float uTime;',
       'uniform vec3 uSkyMul,uSkyLift,uSunTint;uniform float uSunHalo,uCity,uStars,uMoon,uPulse;', // grade biome (identité par défaut) + uPulse musique
       'uniform float uSpace;', // NIVEAU ORBITE : 0 = aucun effet
@@ -3057,6 +3064,8 @@ const skyDome=(function(){
          change juste de couleur — un remplacement aurait donne un aplat, pas une onde. */
       'vec3 hueRot(vec3 c,float a){vec3 k=vec3(.57735);float cs=cos(a),sn=sin(a);',
       '  return c*cs+cross(k,c)*sn+k*dot(k,c)*(1.-cs);}',
+  ];
+  const VILLE=[
       /* ======================== LE CIEL DE LA VILLE (2026-09-26) ========================
          User : « dans le niveau de la ville cette partie est mal gérée — pas les immeubles : la skyline, le sol et le plafond,
          ça casse l'immersion ». MESURÉ sur captures : (1) la SKYLINE était un cylindre peint de 5 200 m, net (sans brouillard)
@@ -3110,7 +3119,15 @@ const skyDome=(function(){
       '  float oeil=step(abs(ax-tw*.52),tw*.17)*step(abs(y-top-tw*.4),tw*.1);',
       '  float bouche=step(ax,tw*.55)*step(abs(y-top+tw*.12),tw*.13);',
       '  return vec3(m,oeil,bouche);}',
-      'vec3 villeCiel(vec3 d,float az,vec3 ciel){',
+  ];
+  const VILLE_CIEL=[
+      /* (2026-09-27, passe perf iPhone, tour 2) LE CIEL DE LA VILLE EN TROIS FONCTIONS — même calcul, réparti selon ce qui a des bords :
+         · `villeLisse` : le plafond (bruits à grande échelle), la brume du bas et la LUEUR des quartiers — tout ce qui varie lentement ;
+         · `villeFin`   : les lumières FINES de l'abîme (artères, rues, toits, sous 7 km) — ajoutées telles quelles : là où elles
+           existent (13° sous l'horizon et plus bas), le mélange haut/bas vaut 0 et `L = G + (1−fl)·fines + fl·lueur moyenne` ;
+         · `villeSkyline` : les tours peintes, nettes au pixel.
+         `villeCiel` les enchaîne dans l'ordre d'avant (programme PLEIN). */
+      'vec3 villeLisse(vec3 d,vec3 ciel){',
       '  float y=d.y;vec3 F=uFogCol,A=mix(uAcc,uAcc2,uFlip),haut=ciel,bas=F;',
       '  float nuit=clamp(1.5-dot(F,vec3(.3,.59,.11))*4.,0.,1.);', // les lumières de la ville ne gagnent que de nuit (carrière : la ville à midi)
       '  float lv=uLvl*(.35+uPulse*.5+uBeatK*.6);',                // ce que la MUSIQUE allume
@@ -3125,17 +3142,27 @@ const skyDome=(function(){
       // (2026-09-27, passe perf iPhone) sous 0,6° (t > 48 km) le plafond pèse exp(-t/4200) < 1e-5 : c est la brume, sans ses 7 bruits
       '  else if(y>-.03&&uPluie>.001)haut=mix(ciel,F,uPluie);',
       '  if(y<.03&&nuit>0.){',                                     // ---- LE SOL : l abîme de la ville basse ---- (vague 2 : ses lumières SEULEMENT de nuit — de jour, bas = brume au pixel près)
-      '    float t=1600./max(-y,.01),px=t*.0016/max(-y,.06);',      // px : ce que couvre un pixel au sol (m) — l anticrénelage suit la distance
+      '    float t=1600./max(-y,.01);',
       // (2026-09-27, passe perf iPhone) au-delà de 26,5 km (3,5° sous l horizon) les lumières pèsent exp(-t/2300) < 1e-5 : il ne reste que la brume
       '    if(t<26500.){',
       '    vec2 p=d.xz*t+uCam.xz;',
       '    float qu=smoothstep(.3,.8,vn(p/1500.))*(.5+.5*vn(p/450.+4.2)),qu2=vn(p/2600.+9.1);', // les QUARTIERS : un centre qui brille, des zones éteintes
       '    vec3 G=mix(vec3(1.,.42,.18),vec3(.9,.25,.6),qu2)*qu*.24;',                    // la lueur des quartiers qui monte dans la brume
+      '    vec3 L=G+smoothstep(3000.,7000.,t)*vec3(.05,.03,.015)*(.25+.75*qu);',           // au loin (au-delà de 7 km) : la lueur MOYENNE, pas de moiré — les fines sont dans villeFin
+      '    bas=F*(1.+.28*smoothstep(-.05,-.6,y)*nuit)+L*exp(-t/2300.)*(1.+.6*lv)*nuit;}', // la brume s éclaire par en dessous
+      '    else bas=F*(1.+.28*smoothstep(-.05,-.6,y)*nuit);}',
+      '  return mix(bas,haut,smoothstep(-.03,.03,y));}',
+      'void villeFin(inout vec3 c,vec3 d){',
+      '  float y=d.y;vec3 F=uFogCol;',
+      '  float nuit=clamp(1.5-dot(F,vec3(.3,.59,.11))*4.,0.,1.),lv=uLvl*(.35+uPulse*.5+uBeatK*.6);',
+      '  if(y<.03&&nuit>0.){float t=1600./max(-y,.01);',
       /* (2026-09-27, passe perf iPhone) AU-DELÀ DE 7 KM (les 13 derniers degrés sous l'horizon, la moitié de l'abîme vu en vol), le
          mélange du bas prenait DÉJÀ 100 % de la lueur moyenne : artères, rues, toits et leur scintillement étaient calculés pour être
          multipliés par zéro. Ils ne sont plus calculés que là où ils comptent — même image. */
-      '    float fl=smoothstep(3000.,7000.,t);vec3 L=G+vec3(.05,.03,.015)*(.25+.75*qu);', // au loin : la lueur MOYENNE, pas de moiré
-      '    if(fl<1.){',
+      '  if(t<7000.){',
+      '    float px=t*.0016/max(-y,.06),fl=smoothstep(3000.,7000.,t);',               // px : ce que couvre un pixel au sol (m) — l anticrénelage suit la distance
+      '    vec2 p=d.xz*t+uCam.xz;',
+      '    float qu=smoothstep(.3,.8,vn(p/1500.))*(.5+.5*vn(p/450.+4.2));',
       // LES ARTÈRES : les lignes de niveau de deux bruits — des routes qui SERPENTENT, se croisent, bouclent. Une grille régulière se lisait
       // comme un sol de synthwave (essai du 26/09) ; vue d en haut à travers la pluie, une ville est un réseau irrégulier de traînées.
       '    float n1=vn(p/950.),n2=vn(p/1350.+5.3),n3=vn(p/420.+11.7),wn=.022+px*.0011;',
@@ -3145,17 +3172,16 @@ const skyDome=(function(){
       '    float pt=step(1.-.32*qu,hl)*smoothstep(.3+px/48.,0.,length(cf))*min(1.,8./px);', // toits et fenêtres, flous dans la brume
       '    pt*=.75+.25*sin(uTime*(1.+hl*3.)+hl*40.);',                                     // quelques-uns scintillent
       '    vec3 pc=mix(vec3(1.,.66,.36),vec3(.4,.85,1.),step(.985,hl));pc=mix(pc,vec3(1.,.35,.7),step(.995,hl));',
-      '    L=mix((vec3(1.,.55,.22)*(route*.5+rue*.3)+pc*pt)*(.25+.75*qu)+G,L,fl);}',
-      '    bas=F*(1.+.28*smoothstep(-.05,-.6,y)*nuit)+L*exp(-t/2300.)*(1.+.6*lv)*nuit;}', // la brume s éclaire par en dessous
-      '    else bas=F*(1.+.28*smoothstep(-.05,-.6,y)*nuit);}',
-      '  vec3 c=mix(bas,haut,smoothstep(-.03,.03,y));',
+      '    c+=(vec3(1.,.55,.22)*(route*.5+rue*.3)+pc*pt)*(.25+.75*qu)*(1.-fl)*exp(-t/2300.)*(1.+.6*lv)*nuit;}}}',
+      'void villeSkyline(inout vec3 c,vec3 d,float az){',
+      '  vec3 F=uFogCol;float nuit=clamp(1.5-dot(F,vec3(.3,.59,.11))*4.,0.,1.),lv=uLvl*(.35+uPulse*.5+uBeatK*.6);',
       // ---- LA SKYLINE : du plus loin au plus proche, chaque rangée un peu moins noyée dans la brume ----
       /* ⚠ (2026-09-26, constat de la passe graphique) LA SKYLINE FLOTTAIT : posée sur l horizon (y≈0), alors que la route de la
          ville descend en SPIRALE au-dessus des toits — la ville 3D est donc SOUS l horizon, et la rangée peinte se lisait comme
          une bande en pointillés suspendue à mi-hauteur au-dessus des vraies tours. Elle se pose désormais à l ÉLÉVATION où
          seraient des toits lointains à l altitude de la ville (`uVilleY`, posé par la boucle d après CITY.n.routeY, ~3,5 km) :
          vue d en haut, elle passe SOUS l horizon, derrière la forêt 3D, noyée de brume ; ses fenêtres sont un cran plus sourdes. */
-      '  y=d.y-uVilleY;',                                            // (le plafond et l abîme sont faits : y ne sert plus qu à la skyline)
+      '  float y=d.y-uVilleY;',                                      // (le plafond et l abîme sont faits : y ne sert plus qu à la skyline)
       '  if(y>-.1&&y<.42){',                                         // (vague 2) la SKYLINE seulement dans sa bande : sous −0,1 le pied est noyé (fo = 0), au-dessus de 0,42 plus une antenne — image identique
       '  float fo=smoothstep(-.1,.015,y),lum=(1.+.7*lv)*(.35+.65*nuit)*.75;', // fo : le PIED des tours se noie — sous l horizon il ne reste que la brume et l abîme
       '  vec3 f0=vec3(1.,.64,.3),f1=vec3(.42,.88,1.),dk=F*.35+vec3(.004,.006,.02),sil;vec4 T;',
@@ -3169,7 +3195,11 @@ const skyDome=(function(){
       '  sil=mix(F,dk,.36*fo)*(1.-.35*H.z)+vec3(1.,.84,.37)*H.y*(.55+.2*sin(uTime*.7))*lum;c=mix(c,sil,min(1.,H.x+H.y)*fo);}',
       '  T=vTours(az,y,72.,3.,.0,.1,.0042);',
       '  sil=mix(F,dk,.34*fo)+mix(f0,f1,step(.8,T.w))*T.x*.42*fo*lum;c=mix(c,sil,T.z*fo);c+=vec3(1.,.18,.14)*T.y*.6*lum*fo;}',
-      '  return c;}',
+      '}',
+      'vec3 villeCiel(vec3 d,float az,vec3 ciel){vec3 c=villeLisse(d,ciel);villeFin(c,d);villeSkyline(c,d,az);return c;}',
+  ];
+  const MER=[
+      '#ifndef MER_FPK','#define MER_FPK 1.','#endif', // (tour 2) l empreinte d un pixel, en pixels de CETTE passe (la passe lisse compte les siens)
       /* ===================== LA MER DE NUAGES PEINTE (2026-09-26) — niveau NUAGES =====================
          MESURÉ sur captures (midi, aprem, matin) : sous l'horizon il n'y avait que le bas du dégradé multiplié par le biome — un
          APLAT bleu roi saturé, d'une autre couleur que la brume : la route lointaine et les nuages 3D noyés de brouillard s'y
@@ -3201,7 +3231,7 @@ const skyDome=(function(){
       '  vec3 F=uFogCol;if(y>=-.004)return F;float yy=min(y,-.0008);',   // (perf iPhone) sur la ligne d horizon la mer EST la brume (dernier mix à 1)
       '  float t=max(140.,uCam.y+480.)/(-yy);',                       // la distance au pont de nuages le long du regard (m)
       '  vec2 p=d.xz*t+uCam.xz+vec2(uTime*4.,uTime*1.6),q=p/900.;', // parallaxe vraie + dérive du vent
-      '  float fp=t*.0016/max(-yy,.02)/900.;',                         // empreinte d un pixel, en périodes de base
+      '  float fp=t*.0016/max(-yy,.02)/900.*MER_FPK;',                         // empreinte d un pixel, en périodes de base
       '  vec2 w=vec2(vn(q*.4+3.7),vn(q*.4-5.1));q+=.85*w;',
       '  vec2 sx=normalize(uSunDir.xz+vec2(1e-4));',
       '  vec2 n2=mfbm2(q,q+sx*.045,fp);float n=n2.x;',
@@ -3217,18 +3247,11 @@ const skyDome=(function(){
       '  m+=uSunTint*pow(sd,5.)*cov*.28*uSunHalo;',                     // à contre-jour, les moutons s ourlent d or
       '  m=mix(mix(F,creux,.4),m,exp(-t/9000.));',                       // la perspective aérienne : le lointain bleuit
       '  return mix(m,F,smoothstep(-.055,-.004,y));}',                   // …et SEULE la ligne d horizon rejoint la brume
-      'void main(){',
-      /* (2026-09-27, passe perf iPhone) EN VILLE, LE CIEL DE TOUJOURS NE SE VOIT NULLE PART. Pluie pleine et ville pleine : le plafond
-         remplace tout ce qui est au-dessus de −.03, l'abîme tout ce qui est en dessous (`mix(ciel,…,1.)` et poids 0 dans la bande) — le
-         dégradé, le soleil, la lune, les étoiles, la guirlande et le voile étaient calculés sur chaque pixel du dôme pour être jetés.
-         On saute directement au ciel de la ville (même fonction, même tramage) : même image. Pendant le fondu d'entrée/sortie du
-         niveau (uVille ou uPluie < 1), le chemin complet reprend, inchangé. */
-      '  if(uVille>.9999&&uPluie>.9999){',
-      '    vec3 cv=villeCiel(vDir,atan(vDir.x,-vDir.z),vec3(0.));',
-      '    cv+=vec3((fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453)-.5)/160.);', // le même tramage que plus bas
-      '    gl_FragColor=vec4(cv,1.);return;}',
-      '  float y=vDir.y;',
+  ];
+  const COUCHES={
+    fond:[
       // VICE CITY NUIT (assombri) : indigo profond au zénith → violet → grande brume ROSE sombre → corail → ambre au ras du soleil
+      'vec3 cielFond(float y){',
       '  vec3 zen=vec3(.060,.080,.22);', // zénith : indigo PROFOND mais VIVANT — règle Alto : le ciel ne meurt jamais en noir
       '  vec3 mve=vec3(.16,.13,.35);',  // violet-indigo assombri
       '  vec3 ros=vec3(.40,.22,.45);',  // mauve magenta plus sombre
@@ -3247,8 +3270,14 @@ const skyDome=(function(){
       '  col=col*uSkyMul+uSkyLift*smoothstep(.35,-.06,y);', // BIOME : teinte du gradient + lift laiteux concentré à l horizon
       '  col=mix(col,vec3(0.),uSpace);', // ORBITE : le NOIR COMPLET (demande du user) — la Terre et la route portent seules la lumiere
       '  col*=1.+uPulse*.13;', // MUSIQUE : tout le ciel respire au beat (souffle global doux)
-      '  float sd=max(dot(vDir,uSunDir),0.);',      // couchant : halo rosé large, couronne corail, coeur incandescent (tamisé)
+      '  return col;}',
+    ],
+    mer:[
+      'void cielMer(inout vec3 col,float y,float sd){',
       '  if(uMer>.001&&y<.02)col=mix(col,merNuages(vDir,y,sd),uMer*(1.-smoothstep(-.016,.012,y))*(1.-uSpace));', // NUAGES : la mer de nuages sous l horizon (voir merNuages)
+      '}',
+    ],
+    soleil:[
       /* (2026-09-27, passe perf iPhone) CHAQUE COUCHE NE SE CALCULE QUE LÀ OÙ ELLE PEINT. Mesuré au banc (dôme seul, mêmes uniformes,
          différence de pixels) : le ciel coûtait 15× un aplat, par une douzaine de petites couches calculées sur TOUT le dôme alors que
          chacune n'existe que sur une bande — la guirlande sur ±7° autour de l'horizon, les étoiles au-dessus de 6° (partout en orbite),
@@ -3256,18 +3285,27 @@ const skyDome=(function(){
          le terme d'origine vaut 0 (smoothstep saturé, step) : l'image est la même au pixel près. Pour la lune et les deux cœurs du
          soleil (des `pow` qui ne s'annulent jamais tout à fait), la borne est prise là où l'apport tombe sous 1e-5 — 400× sous le
          pas d'un niveau de couleur. `atan` (l'azimut) n'est calculé que si une couche qui le lit est allumée sur ce pixel. */
+      'void cielSoleil(inout vec3 col,float sd){',
       '  float sd2=sd*sd;col+=uSunTint*(sd2*sd2)*.45*uSunHalo;',
       '  if(sd>.62){col+=vec3(1.,.60,.36)*pow(sd,32.)*.9*uSunHalo;',        // .62^32 = 2e-7
       '    if(sd>.97)col+=vec3(1.,.90,.78)*pow(sd,480.)*1.25*uSunHalo;}',  // .97^480 = 4e-7
+      '}',
+    ],
+    gon:[
       // LA VILLE SOUS LA MER DE NUAGES : guirlande de lueurs néon rose ↔ cyan qui court sur l horizon, loin du soleil
-      '  bool gOn=abs(y+.03)<.13&&sd<.75&&uCity*(1.-uSpace)>0.&&(uVille<.999||y>-.03);', // la bande de la guirlande (cband > 0, loin du soleil) ; en VILLE, sous -.03 l abime la remplace
-      '  bool sOn=uStars>0.&&(y>.10||uSpace>0.)&&sd<.8;',                    // la voûte des étoiles (hors orbite : au-dessus de .10)
-      '  float az=0.;if(gOn||sOn||uLvl>.001||uVille>.001)az=atan(vDir.x,-vDir.z);',
-      '  if(gOn){',
+      'bool cielGOn(float y,float sd){return abs(y+.03)<.13&&sd<.75&&uCity*(1.-uSpace)>0.&&(uVille<.999||y>-.03);}', // la bande de la guirlande (cband > 0, loin du soleil) ; en VILLE, sous -.03 l abime la remplace
+    ],
+    son:[
+      'bool cielSOn(float y,float sd){return uStars>0.&&(y>.10||uSpace>0.)&&sd<.8;}', // la voûte des étoiles (hors orbite : au-dessus de .10)
+    ],
+    guirl:[
+      'void cielGuirlande(inout vec3 col,float y,float az,float sd){',
       '  float cty=(.5+.5*sin(az*4.+1.3))*.6+(.5+.5*sin(az*9.+4.2))*.4;cty*=cty;',
       '  float cband=smoothstep(.13,.008,abs(y+.03));',
       '  vec3 neon=mix(vec3(1.,.30,.62),vec3(.36,.78,1.),.5+.5*sin(az*2.+2.0));',
       '  col+=neon*cty*cband*(1.-smoothstep(.15,.75,sd))*.42*uCity*(1.-uSpace)*(1.+uPulse*.9);}', // la ville s éteint sous l orage, hurle en NÉON TOTAL — et clignote au beat
+    ],
+    niveau:[
       /* ======================= LE FOND DU NIVEAU — QUATRE COUCHES ==========================
          LE PARI : un fond de rythme (Geometry Dash, Super Hexagon) dans un jeu où l on VISE une
          réception. Donc tout se passe HAUT et sur les CÔTÉS, jamais dans la bande d horizon où l on
@@ -3279,7 +3317,7 @@ const skyDome=(function(){
            4. LES PILIERS — un égaliseur qui monte de l horizon, un barreau par secteur du ciel.
          ⚠ les couches 1, 3 et 4 vivent en PERMANENCE et ne font que gonfler sur la frappe ; seule
          la 2 naît du beat. Un fond qui n existe QUE sur les coups clignote, il ne « joue » pas. */
-      '  if(uLvl>.001&&uVille<.999){',
+      'void cielNiveau(inout vec3 col,float y,float az,float sd){',
       '    float dz=acos(clamp(y,-1.,1.));',                       // angle depuis le ZÉNITH : 0 en haut, 1.57 à l horizon
       /* ⚠ TOUT LE CHAMP VISUEL (2026-08-08). La 1re version protégeait la bande d horizon d un
          `smoothstep(-.02,.15,y)` : le decor n existait qu au-DESSUS de la route, donc en conduite
@@ -3333,9 +3371,11 @@ const skyDome=(function(){
          frappe). L apport ne peut plus depasser ~1,8 quoi qu il arrive, donc plus jamais quatre
          couches qui s empilent en mur blanc. */
       '    col+=fx/(1.+fx*.55);',
-      '  }',
+      '}',
+    ],
+    etoiles:[
       // ÉTOILES : elles s allument avec la nuit, scintillent doucement, jamais dans le halo du soleil
-      '  if(sOn){',
+      'void cielEtoiles(inout vec3 col,float y,float az,float sd){',
       '  vec2 sg=vec2(az*10.1859,vDir.y*22.);', // 64 cellules par tour → zéro couture
       '  vec2 sid=floor(sg),sfr=fract(sg);',
       '  float h=hash21(sid);',
@@ -3348,15 +3388,25 @@ const skyDome=(function(){
       '  float st=(1.-smoothstep(0.,.0026+.0022*fract(h*7.7),sr))*step(.76,h);',
       '  st*=.55+.45*sin(uTime*(1.2+h*2.6)+h*44.);',
       '  col+=mix(vec3(.80,.88,1.),vec3(1.,.86,.70),step(.8,fract(h*3.31)))*st*mix(smoothstep(.10,.42,y),1.,uSpace)*(1.-smoothstep(.25,.8,sd))*.9*uStars*(1.+uSpace*.5)*(1.+uPulse*1.3);}}', // elles descendent plus bas : le haut du cadre est habité — MINUIT les multiplie, l aube les éteint ; elles palpitent au beat
+    ],
+    lune:[
       // LUNE pâle à l opposé du couchant — le témoin du presque-nuit
+      'void cielLune(inout vec3 col){',
       '  vec3 mdir=normalize(vec3(-.52,.40,-.72));',
       '  float md=dot(vDir,mdir);',
       '  if(md>.88){',                                                    // sa calotte : hors d elle, .88^90 × .2 = 2e-6 (perf iPhone)
       '  col+=vec3(.93,.96,1.06)*smoothstep(.9976,.9988,md)*1.05*uMoon;', // VRAI disque (~3°) : l ancre céleste du cadre, règle Alto
       '  col+=vec3(.55,.62,.92)*pow(max(md,0.),420.)*.45*uMoon;',        // aura proche
       '  col+=vec3(.28,.32,.55)*pow(max(md,0.),90.)*.20*uMoon;}',        // halo large qui fond dans la nuit
+      '}',
+    ],
+    voile:[
+      'void cielVoile(inout vec3 col,float y){',
       '  if(y>.05){float w=sin(vDir.x*8.+uTime*.05)*sin(vDir.z*7.-uTime*.04);', // voile tres subtil qui vit (nul sous .05)
       '  col+=vec3(.016,.010,.016)*w*smoothstep(.05,.4,y);}',
+      '}',
+    ],
+    onde:[
       /* ================== L ONDE DE COULEUR — le grand effet du niveau 1 ==================
          ⚠ ELLE EST PLACEE ICI, TOUT A LA FIN, ET C EST LE POINT. Mise dans le bloc des quatre
          couches, elle n aurait teinte que ce que le decor AJOUTE. A cet endroit elle emporte TOUT :
@@ -3367,7 +3417,7 @@ const skyDome=(function(){
          ciel reste ce ciel-la, il a juste change de couleur.
          DEUX FRONTS qui se croisent (sens opposes, vitesses et frequences differentes) : leur
          interference ne se repete pas, donc l onde n a jamais deux fois la meme forme. */
-      '  if(uLvl>.001&&uVille<.999){',
+      'void cielOnde(inout vec3 col,float y,float az){',
       '    float dzw=acos(clamp(y,-1.,1.));',
       '    float w1=sin(dzw*3.4-uWave*6.2831853+az*.60);',        // le front principal roule du zenith vers l horizon
       '    float w2=sin(dzw*1.7-uWave*3.9000000-az*.35+2.1);',    // le second, plus lent et en sens inverse
@@ -3381,11 +3431,73 @@ const skyDome=(function(){
          reste colore. C est la difference entre une lumiere et un trou dans l image. */
       '    vec3 ex=max(col-vec3(.78),vec3(0.));',
       '    col=min(col,vec3(.78))+ex/(1.+ex*4.55);',
-      '  }',
+      '}',
+    ],
+    trame:[
+      'float cielTrame(){return (fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453)-.5)/160.;}', // la trame (dither) : TOUJOURS à pleine résolution, dans la passe qui écrit l écran
+    ]};
+  const LECT='uniform sampler2D uBasTex;uniform vec2 uBasInv;',LECT_TR='uniform float uBasTr;'; // (passes NETTES) la passe lisse, relue au pixel de l'écran · (passes LISSES) leur trame 8 bits
+  const MAIN={
+    plein:[
+      'void main(){',
+      /* (2026-09-27, passe perf iPhone) EN VILLE, LE CIEL DE TOUJOURS NE SE VOIT NULLE PART. Pluie pleine et ville pleine : le plafond
+         remplace tout ce qui est au-dessus de −.03, l'abîme tout ce qui est en dessous (`mix(ciel,…,1.)` et poids 0 dans la bande) — le
+         dégradé, le soleil, la lune, les étoiles, la guirlande et le voile étaient calculés sur chaque pixel du dôme pour être jetés.
+         On saute directement au ciel de la ville (même fonction, même tramage) : même image. Pendant le fondu d'entrée/sortie du
+         niveau (uVille ou uPluie < 1), le chemin complet reprend, inchangé. */
+      '  if(uVille>.9999&&uPluie>.9999){',
+      '    vec3 cv=villeCiel(vDir,atan(vDir.x,-vDir.z),vec3(0.));',
+      '    cv+=vec3(cielTrame());', // le même tramage que plus bas
+      '    gl_FragColor=vec4(cv,1.);return;}',
+      '  float y=vDir.y;',
+      '  vec3 col=cielFond(y);',
+      '  float sd=max(dot(vDir,uSunDir),0.);',      // couchant : halo rosé large, couronne corail, coeur incandescent (tamisé)
+      '  cielMer(col,y,sd);', // NUAGES : la mer de nuages sous l horizon (voir merNuages)
+      '  cielSoleil(col,sd);',
+      '  bool gOn=cielGOn(y,sd),sOn=cielSOn(y,sd);',
+      '  float az=0.;if(gOn||sOn||uLvl>.001||uVille>.001)az=atan(vDir.x,-vDir.z);',
+      '  if(gOn)cielGuirlande(col,y,az,sd);',
+      '  if(uLvl>.001&&uVille<.999)cielNiveau(col,y,az,sd);',
+      '  if(sOn)cielEtoiles(col,y,az,sd);',
+      '  cielLune(col);',
+      '  cielVoile(col,y);',
+      '  if(uLvl>.001&&uVille<.999)cielOnde(col,y,az);',
       '  if(uVille>.001)col=mix(col,villeCiel(vDir,az,col),uVille);', // LE CIEL DE LA VILLE : plafond, skyline, abîme (voir villeCiel)
-      '  col+=vec3((fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453)-.5)/160.);', // dither
+      '  col+=vec3(cielTrame());', // dither
       '  gl_FragColor=vec4(col,1.);',
-      '}'].join('\n')});
+      '}'],
+    /* PASSE LISSE — NUAGES et ORBITE : dégradé, mer de nuages, soleil, guirlande, voile (tout ce qui varie lentement). Sa seule trame
+       (`uBasTr`) ne sert que si la cible est en 8 BITS (téléphone sans demi-flottant) : un arrondi sans trame y poserait des marches
+       d'un niveau que la trame de la passe nette ne ferait que redessiner — on arrondit donc au hasard, juste. En demi-flottant : 0. */
+    basN:[LECT_TR,
+      'void main(){',
+      '  float y=vDir.y;vec3 col=cielFond(y);float sd=max(dot(vDir,uSunDir),0.);',
+      '  cielMer(col,y,sd);cielSoleil(col,sd);',
+      '  if(cielGOn(y,sd))cielGuirlande(col,y,atan(vDir.x,-vDir.z),sd);',
+      '  cielVoile(col,y);',
+      '  gl_FragColor=vec4(col+vec3(cielTrame()*uBasTr),1.);}'],
+    // PASSE NETTE — NUAGES et ORBITE : la passe lisse relue, + étoiles et lune (des bords au pixel), + la trame
+    netN:[LECT,
+      'void main(){',
+      '  vec3 col=texture2D(uBasTex,gl_FragCoord.xy*uBasInv).rgb;float y=vDir.y,sd=max(dot(vDir,uSunDir),0.);',
+      '  if(cielSOn(y,sd))cielEtoiles(col,y,atan(vDir.x,-vDir.z),sd);',
+      '  cielLune(col);',
+      '  col+=vec3(cielTrame());gl_FragColor=vec4(col,1.);}'],
+    // PASSE LISSE — VILLE sous la pluie : le plafond, la brume du bas et la lueur des quartiers
+    basV:[LECT_TR,'void main(){gl_FragColor=vec4(villeLisse(vDir,vec3(0.))+vec3(cielTrame()*uBasTr),1.);}'],
+    // PASSE NETTE — VILLE sous la pluie : la passe lisse relue, + les lumières fines de l'abîme, la skyline, la trame
+    netV:[LECT,
+      'void main(){',
+      '  vec3 c=texture2D(uBasTex,gl_FragCoord.xy*uBasInv).rgb;',
+      '  villeFin(c,vDir);',
+      '  float yv=vDir.y-uVilleY;if(yv>-.1&&yv<.42)villeSkyline(c,vDir,atan(vDir.x,-vDir.z));', // atan seulement dans la bande de la skyline
+      '  c+=vec3(cielTrame());gl_FragColor=vec4(c,1.);}']};
+  /* LES CINQ PROGRAMMES — tous tirés des MÊMES morceaux. Les passes lisses (`basN`/`basV`) n'ont pas de profondeur (ni de trame, hors
+     cible 8 bits) : elles remplissent une cible hors écran qui couvre toute l'image (voir CIEL2). */
+  const src=function(){return [].concat.apply([],arguments).join('\n');},K=COUCHES;
+  // (2026-09-26, vague 2 — audit GPU) gl_Position.z = w : le dôme se pose sur le PLAN LOINTAIN (profondeur 1,0) — voir renderOrder plus bas
+  const mk=(fs,lisse)=>new THREE.ShaderMaterial({uniforms:skyU,side:THREE.BackSide,depthWrite:false,depthTest:!lisse,vertexShader:VS,fragmentShader:fs});
+  const mat=mk(src(TETE,VILLE,VILLE_CIEL,MER,K.fond,K.mer,K.soleil,K.gon,K.son,K.guirl,K.niveau,K.etoiles,K.lune,K.voile,K.onde,K.trame,MAIN.plein));
   /* LE CIEL SE PEINT EN DERNIER (2026-09-26, vague 2 — audit GPU). Il était dessiné en PREMIER (renderOrder −9, sans écrire la
      profondeur) : chaque pixel de l'écran payait le shader le plus lourd du jeu (mer de nuages, ville, étoiles, fond musical)… puis
      la route, la caisse, les nuages le recouvraient. Posé sur le plan lointain (z = w dans le vertex) et dessiné APRÈS tous les
@@ -3393,6 +3505,12 @@ const skyDome=(function(){
      Les transparents (soleil « 1.61 », nappe, rayons, halo de la planète, nuages en fondu) passent toujours après lui ; la Terre
      (opaque) se peint juste derrière (renderOrder 21, même plan lointain). Image identique. */
   const m=new THREE.Mesh(new THREE.SphereGeometry(4300,48,28),mat);
+  const F_BAS=.5,FPK_BAS=1; // la passe lisse : ½ de la résolution en largeur et en hauteur (¼ des pixels) · l'anticrénelage de la mer y compte des pixels d'ÉCRAN (1)
+  m.userData.ciel={plein:mat,f:F_BAS,
+    basN:mk(src('#define MER_FPK '+FPK_BAS.toFixed(4),TETE,VILLE,MER,K.fond,K.mer,K.soleil,K.gon,K.guirl,K.voile,K.trame,MAIN.basN),true),
+    netN:mk(src(TETE,K.son,K.etoiles,K.lune,K.trame,MAIN.netN)),
+    basV:mk(src(TETE,VILLE,VILLE_CIEL,K.trame,MAIN.basV),true),
+    netV:mk(src(TETE,VILLE,VILLE_CIEL,K.trame,MAIN.netV))};
   m.frustumCulled=false;m.renderOrder=20;scene.add(m);return m;
 })();
 let FOG_N=420,FOG_F=2600; // near/far pilotés par les BIOMES (le lerp cloudInS les relit chaque frame)
@@ -13358,6 +13476,71 @@ function chauffeDivers(){
   try{engCarteQuad.visible=engHalo.visible=true;renderer.compile(engVigQuadScene,engVigQuadCam);engCarteQuad.visible=engHalo.visible=false; // (vague 2) le recollage de la carte MOTEUR (sinon son programme naît au 1er palier)
     renderer.initTexture(engHaloMat.map);renderer.setRenderTarget(engRTc);renderer.setRenderTarget(null);}catch(e){} // …et son halo et son tampon montent au GPU dès le menu
 }
+/* ============ LE CIEL EN DEUX TEMPS — CIEL2 (2026-09-27, passe perf iPhone, tour 2) ============
+   MESURÉ (banc du dôme seul à la résolution de l'iPhone en NETTE, 585×1266, rendu logiciel puis carte graphique) : le dôme coûtait
+   ~180 ms d'image logicielle, AU SOL COMME EN VOL, en regardant la mer comme le zénith, aux NUAGES comme en VILLE — éteindre la
+   mer de nuages n'y changeait RIEN. C'est que les `if` d'un shader ne sautent pas le travail comme on l'espère : sous le rendu
+   logiciel et sous ANGLE/D3D (et sans garantie sur la puce d'Apple, qui aplatit volontiers les petites branches), chaque pixel
+   paie une grosse part du programme ENTIER — mer, ville, skyline, étoiles, fond musical — même là où la couche ne peint pas.
+   Deux leviers qui retirent du VRAI travail partout, sans rien changer à l'image :
+     1. MOINS DE PIXELS pour ce qui est LISSE : le dégradé, la mer de nuages, le soleil, la guirlande, le voile (NUAGES, ORBITE) —
+        le plafond de pluie et la lueur des quartiers (VILLE) — sont peints dans une cible HORS ÉCRAN à ½ de la résolution (¼ des
+        pixels). Rien de tout ça n'a de bord : relu en bilinéaire, c'est le même ciel. MESURÉ sur l'image finale (post compris, même
+        image figée) : écart moyen ~0,1 niveau ; les seuls écarts francs sont le liseré de mer juste sous l'horizon, où les ondulations les plus fines (1 à 3 px)
+        se placent un pixel à côté (quelques centaines de pixels à 20-40 niveaux), et des bords de gouttes où le FXAA bascule ; regardé en gros plan à la taille du téléphone
+        (1170×2532) : indiscernable. En cible 8 bits (téléphone sans demi-flottant), la passe lisse se TRAME (`uBasTr`) : sans ça,
+        l'arrondi dessinait des anneaux d'un niveau dans les grands dégradés (mesuré : biais local en courbes de niveau → bruit).
+     2. DES PROGRAMMES À LA TAILLE DE LEUR TRAVAIL : la passe NETTE (le dôme, à pleine résolution, toujours après les opaques donc
+        rejeté là où il est caché) relit la passe lisse AU PIXEL DE L'ÉCRAN (`gl_FragCoord`) et n'ajoute que ce qui a des BORDS —
+        étoiles et lune (NUAGES, ORBITE) · lumières fines de l'abîme et skyline (VILLE) — et la trame. Elle ne contient plus rien d'autre.
+   MÊME CAMÉRA, MÊME IMAGE : la passe lisse est rendue ICI, dans `scene.onBeforeRender` (chaîné, jamais réassigné), c.-à-d. à chaque
+   rendu de la scène, avec LA caméra de ce rendu, après la mise à jour de ses matrices et avant la passe d'ombre et le premier objet —
+   c'est le SEUL point d'appel. Elle reprend le maillage du dôme et sa matrice : les directions interpolées sont exactement celles du
+   dôme. La cible suit la taille du tampon de dessin (donc `curDPR` et l'échelle QL) et prend le format du compositeur (demi-flottant
+   là où il existe : le cœur du soleil y dépasse 1, le bloom le lit).
+   REPLI — le programme PLEIN d'avant, au pixel près : pendant les fondus d'entrée et de sortie de la VILLE, quand le fond musical
+   joue hors de la ville (accueil), à l'atelier, à l'étal, dôme caché, et avec `?ciel=plein` (pour comparer sur le téléphone).
+   Zéro compilation en course : les cinq programmes sont compilés ET dessinés une fois au chargement (`cielChauffe`, cibles 8×8 au
+   format des vraies — la puce d'Apple fabrique son état de pipeline au premier dessin). Bancs : `dbgCiel2()`. */
+const CIEL2={on:!/[?&]ciel=plein/.test(location.search),rt:null,sc:new THREE.Scene(),me:null,v:new THREE.Vector2(),mode:'',n:0};
+CIEL2.sc.autoUpdate=false; // la matrice du maillage est recopiée de celle du dôme (déjà à jour) : rien à recalculer
+CIEL2.me=new THREE.Mesh(skyDome.geometry,skyDome.userData.ciel.basN);CIEL2.me.frustumCulled=false;CIEL2.me.matrixAutoUpdate=false;CIEL2.sc.add(CIEL2.me);
+const cielType=()=>(composer&&composer.renderTarget1)?composer.renderTarget1.texture.type:THREE.UnsignedByteType;
+const cielCible=(w,h,prof)=>new THREE.WebGLRenderTarget(w,h,{format:THREE.RGBAFormat,type:CIEL2.octets?THREE.UnsignedByteType:cielType(),minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,depthBuffer:!!prof,stencilBuffer:false});
+function cielHorsCourse(){try{return garageOn||stallOn;}catch(e){return true;}} // (déclarés plus loin : au tout premier rendu, prudence)
+function cielDeuxTemps(r9,cam){
+  const C=skyDome.userData.ciel,U=skyU;let md='';
+  if(CIEL2.on&&skyDome.visible&&!cielHorsCourse()){
+    if(U.uVille.value<=.001&&U.uLvl.value<=.001)md='N';                  // NUAGES, ORBITE (et leur fondu) : ni ville, ni fond musical
+    else if(U.uVille.value>.9999&&U.uPluie.value>.9999)md='V';}           // VILLE sous la pluie (le raccourci d'avant : la ville seule)
+  CIEL2.mode=md;
+  if(!md){if(skyDome.material!==C.plein)skyDome.material=C.plein;return;}
+  r9.getDrawingBufferSize(CIEL2.v);
+  const w=Math.max(1,Math.round(CIEL2.v.x*C.f)),h=Math.max(1,Math.round(CIEL2.v.y*C.f));
+  if(!CIEL2.rt){CIEL2.rt=cielCible(w,h,false);U.uBasTex.value=CIEL2.rt.texture;U.uBasTr.value=CIEL2.rt.texture.type===THREE.UnsignedByteType?160/255:0;} // (trame d'UN niveau de 8 bits : cielTrame vaut ±1/320)
+  else if(CIEL2.rt.width!==w||CIEL2.rt.height!==h)CIEL2.rt.setSize(w,h);            // la résolution a changé (QL, rotation) : la cible suit
+  const cible=r9.getRenderTarget();
+  if(cible)U.uBasInv.value.set(1/cible.width,1/cible.height);else U.uBasInv.value.set(1/CIEL2.v.x,1/CIEL2.v.y); // le pixel de l'écran → la cible lisse
+  CIEL2.me.material=md==='N'?C.basN:C.basV;CIEL2.me.matrixWorld.copy(skyDome.matrixWorld);
+  r9.setRenderTarget(CIEL2.rt);r9.render(CIEL2.sc,cam);r9.setRenderTarget(cible);
+  skyDome.material=md==='N'?C.netN:C.netV;CIEL2.n++;
+}
+function cielChauffe(){ if(!CIEL2.on)return; try{
+  const C=skyDome.userData.ciel,a=cielCible(8,8,false),b=cielCible(8,8,true),sc=new THREE.Scene(),me=new THREE.Mesh(skyDome.geometry,C.plein);
+  me.frustumCulled=false;sc.add(me);const cible=renderer.getRenderTarget(),t0=skyU.uBasTex.value;skyU.uBasTex.value=a.texture;
+  renderer.setRenderTarget(a);for(const k of ['basN','basV']){me.material=C[k];renderer.render(sc,camera);}
+  renderer.setRenderTarget(b);for(const k of ['netN','netV','plein']){me.material=C[k];renderer.render(sc,camera);}
+  renderer.setRenderTarget(cible);skyU.uBasTex.value=t0;a.dispose();b.dispose(); // (les matières restent : leurs programmes vivent)
+}catch(e){console.warn('cielChauffe',e);} }
+cielChauffe();
+{const ob=scene.onBeforeRender;scene.onBeforeRender=function(r9,s9,cam,rt9){ob.call(this,r9,s9,cam,rt9);cielDeuxTemps(r9,cam);};} // ⚠ CHAÎNÉ (pisteLoin + conesVus passent d'abord)
+/* (banc) `dbgCiel2(false)` = le ciel d'avant, pour des A/B dans la même page · `dbgCiel2(on,{rendre:1})` re-rend l'image courante tout de
+   suite (même caméra, même horloge : deux captures comparables au pixel) · `{octets:1}` force la passe lisse en 8 bits (le cas d'un
+   téléphone sans cible demi-flottante). */
+window.dbgCiel2=function(on,o){if(on!=null)CIEL2.on=!!on;o=o||{};if(o.f)skyDome.userData.ciel.f=Math.max(.25,Math.min(1,+o.f)); // `{f:.667}` : une autre résolution de passe lisse (banc)
+  if(o.octets!=null&&!!o.octets!==!!CIEL2.octets){CIEL2.octets=!!o.octets;if(CIEL2.rt){CIEL2.rt.dispose();CIEL2.rt=null;}}
+  if(o.rendre){if(acesPass)acesPass.uniforms.uSpeed.value=0;if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);}
+  return {on:CIEL2.on,mode:CIEL2.mode,rendus:CIEL2.n,cible:CIEL2.rt?[CIEL2.rt.width,CIEL2.rt.height,CIEL2.rt.texture.type===THREE.UnsignedByteType?8:16]:null,f:skyDome.userData.ciel.f};};
 function engVigBuild(){
   if(engVigMesh){ // ⚠ mkEngine fabrique des matériaux NEUFS à chaque appel : sans ça, une fuite par palier
     engVigScene.remove(engVigMesh);
