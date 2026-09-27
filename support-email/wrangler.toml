@@ -1,0 +1,7 @@
+name = "cashcar-support-mail"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+# Les secrets TELEGRAM_BOT_TOKEN et TELEGRAM_CHAT_ID ne vont PAS ici :
+#   npx wrangler secret put TELEGRAM_BOT_TOKEN
+#   npx wrangler secret put TELEGRAM_CHAT_ID

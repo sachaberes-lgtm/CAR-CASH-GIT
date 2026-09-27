@@ -1,0 +1,10 @@
+{
+  "name": "cashcar-support-mail",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Cloudflare Email Worker : support@<domaine> -> Telegram",
+  "dependencies": {
+    "postal-mime": "^2.3.0"
+  }
+}
