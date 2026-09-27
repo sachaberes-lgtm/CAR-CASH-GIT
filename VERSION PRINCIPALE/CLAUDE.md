@@ -305,6 +305,40 @@ pigeons). Pires images, bridé ×4 : moteur 169 → 65-92 ms, portail 322 → 66
   repasse en 8 bits (testé en forçant le refus : image normale). Contexte WebGL perdu → sauvegarde, rechargement à la restauration.
 - **Écarté après mesure** : grille spatiale pour la recherche de dalle en vol (~20 000 distances par image = moins de 0,1 ms, pas rentable).
 
+## VAGUES GRAPHIQUES 2 et 3 (2026-09-26 / 27) — « L'ENCRE ET L'OR », puis les retours de jeu de Sacha
+**Vague 2** (branche `fusion-gfx2`, six chantiers fusionnés) : ville/route/objets (plots rouge danger, pièces qui émettent l'or, plaques
+turbo en or, liseré par niveau), voitures (laque, ombre cuite à l'encre, liseré de contre-jour, atelier), ciel (soleil « 1.61 » en or,
+planète, ciel peint en DERNIER sur le plan lointain), HUD de course (FILE UNIQUE du couloir `hautPasse`, carte moteur v3 recollée dans
+l'image WebGL), particules (explosion en volutes instanciées, jus pixel, réserves endormies), étalonnage PAR BIOME (`wb/sh/hi/con/bloom/
+vig/rim`, `BIO_ETAL0` = les valeurs d'avant). La bible : encre `#1c0430` pour ombres et contours ; seul ce qui a de la VALEUR émet —
+or `#ffd75e` argent, feu `#ff7a24` nitro, réserve `#5b7dff`, néon `#ff3ec8`/`#5ee6ff`, danger `#ff3b5c`.
+**Vague 3** — les retours de Sacha après avoir joué la vague 2 :
+- **NUAGES** : le « jour cobalt » (ciel bleu roi, mer d'encre, nuages encre/crème, `ETAL_JOUR`, apport de zénith) est REJETÉ — « j'aime
+  pas le niveau dans les nuages, remets une version antérieure », puis « le ciel est bien maintenant, continue sur cette base ». Matin /
+  midi / aprem et le modelé des nuages sont revenus à l'état d'avant la vague 2. ⚠ Ne pas re-cobaltiser le jour.
+- **NITRO façon Asphalt** (bloc NFX, `nitroAllume`/`nitroEteint`) : à l'allumage onde de choc aux tuyères, recul caméra ~1 m + champ
+  +7° (+8° en vol), cabrage ~3°, bords d'écran à la couleur de la poussée (une ligne dans l'ACES), traits de vitesse, « WHOOMP » ; en
+  tenue flamme ×1,85 à cœur blanc, stries de vent 3D ; à l'extinction bouffée + pétarade, champ qui retombe en 1,2 s. Poussée et
+  consommation INCHANGÉES. Aléatoire propre `nfxR` (ne touche pas `Math.random` du jeu). Banc `dbgNitro(r,x)`.
+- **CAMÉRA** (`BOOM_CAM`, `CAM_ROUTE`) : la mort est un PLAN (recul en 0,55 s à ~14 m puis travelling lent et orbite 7°/s, objectif 70°,
+  ciel toujours en haut, boule au centre de la zone libre, garde-fous tour/dalle, zéro ralenti). Sous la route : TONNEAU de ~0,2 s au
+  passage dessus↔dessous (au lieu d'1,2 s de bascule) et CABRAGE ANTICIPÉ (la caméra lit la route 0,65 s devant et pivote d'une part de
+  la pente). `dbgCamRoute({regle:{...}})` règle à chaud (ANTICIPE:0, ANTICIPE_DESSOUS:0, TONNEAU:0 = la caméra d'avant) ; `dbgBoomCam()`.
+- **ÉCONOMIE** (bloc « ÉCONOMIE — VAGUE 3 », après `DENOMS`) : ~8× moins d'argent par partie, prix du garage inchangés. UN bouton
+  global `gain` (dans `denom()`), `prime` (contrats), `defi` (seuils ENCAISSE), `flow` = ×1 · 1,3 · 1,5 · 1,8 · 2 (lu par `flowMult()` —
+  jamais de multiplicateur en dur à l'écran), plafonds `recolte` ×2,5 et `serie` ×1,5. `qG` garde l'échelle des verdicts (MONSTRE…) et
+  des pièces moteur. Record d'argent et Top 10 convertis UNE fois (×0,125, marqueur `eco:3`) ; la BANQUE n'est pas touchée.
+- **HUD** : la barre de FLOW est de la famille de la jauge NITRO (même cadre, lèvre, reflet), juste dessous, 14 px, pictogramme
+  « vague » ; les verdicts de pose (MONSTRE / DOUBLE / TRIPLE / MÉTÉORE / SNAKE LOOP + montant + pastilles de bonus) reviennent sur
+  téléphone : `trickMsg` → `verdPousse` → une carte par image dans la file du couloir (famille `ver`). Banc `dbgHud('verdict',k)`.
+- **ORBITE** (bloc après `pluieTick`, `orbiteBuild/orbiteChauffe/orbiteTick`) : la LUNE (carte 1024×512 peinte en étapes au menu, sphère
+  calculée au pixel, composée au tiers haut-droit avec retard, jamais sur la Terre) et les ASTÉROÏDES (3 InstancedMesh, une matière,
+  rotation dans le shader ; passants au bord extérieur des virages, champ au-dessus, ceinture) ; `visible=false`/`count=0` hors ORBITE.
+  +4 appels de dessin. Banc `dbgOrbite('vue'|'cout'|'photo'|'carte')`.
+- **VILLE** (`VILLE_PENTE={seuil:.30,garde:.35}`, `adoucirPentes`) : la pente de la ville est comprimée au-delà de ~16,7° (pente max
+  ~47° → ~30°), altitude seulement, zéro `rnd()` ajouté : NUAGES et ORBITE identiques au bit. `garde:1` = l'ancienne ville.
+Vérifié : VERIF OK, grand tour 0 shader compilé en course, 60 i/s.
+
 ## ⚠ FUSION SACHA × LÉO + NIVEAUX — 2026-09-24 (branche `fusion-2026-09`)
 - `index.html` = fusion à trois points : appstore-backlog (Sacha) × `main:version-leolei-2026` (Léo),
   base `fusion-atelier-mobile`. Hors ligne : `vendor/` + police locale (aucun CDN, aucune Google Font).
