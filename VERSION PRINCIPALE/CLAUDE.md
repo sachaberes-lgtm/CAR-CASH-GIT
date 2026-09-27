@@ -348,6 +348,15 @@ adaptative descendait EN PREMIER. Cinq lots (branches perf-ciel/-post/-cpu/-pist
   `atan` à la demande), coupures posées à la borne exacte où le terme vaut 0 (écart mesuré ≤ 1/255) ; mer de nuages en UNE passe
   (`mfbm2`) ; VILLE pleine → saut direct à `villeCiel` (le ciel habituel était calculé pour être jeté), abîme/artères bornés en distance.
   ⚠ La mer de nuages est maintenant les 2/3 du dôme aux NUAGES : l'alléger changerait son dessin (4→3 octaves) — décision de Sacha.
+- **CIEL EN DEUX TEMPS** (tour 2, `CIEL2` après `chauffeDivers` ; shader du dôme rangé en morceaux : une fonction par couche, un
+  `main` par programme) : les couches LISSES (dégradé, mer, soleil, guirlande, voile · plafond de pluie, lueur des quartiers) sont
+  peintes à ½ résolution dans une cible hors écran (format du compositeur, suit `curDPR`) ; le dôme à pleine résolution la relit au
+  pixel (`gl_FragCoord`) et n'ajoute que ce qui a des BORDS (étoiles, lune · lumières fines de l'abîme, skyline) + la trame.
+  Un seul point d'appel : `scene.onBeforeRender` (chaîné). Repli = programme PLEIN d'avant (fondus de la ville, fond musical hors
+  ville, atelier, étal, `?ciel=plein`). ⚠ Découverte : sous le rendu logiciel et ANGLE/D3D les `if` du shader NE sautent PAS le
+  travail — chaque pixel payait tout le programme (éteindre la mer ne changeait rien) : ce qui paie, ce sont des programmes à la
+  taille de leur travail. ⚠ Une couche qui a des bords ne va JAMAIS dans la passe lisse ; en cible 8 bits la passe lisse se trame
+  (`uBasTr`), sinon anneaux d'arrondi. Banc `dbgCiel2(on,{rendre,f,octets})`, micro-banc `scratchpad/ciel2/mb.js`.
 - **ÉCHELLE DE QUALITÉ `QL`** (remplace `applyPerfTier`, `dbgQual()`) : UN curseur `QL.k`, chaque cran enlève d'abord ce qui se voit le
   moins — ombre 1 image sur 2 en vol loin des dalles · carte d'ombre 768 · bloom ¾ · ombre 512 · flou radial coupé · PUIS la résolution,
   jusqu'au PLANCHER NET (1,25 en NETTE, `DPR_MIN` en RAPIDE) ; sous le plancher puis bloom éteint seulement sur EFFONDREMENT (> 24 ms 6 s
