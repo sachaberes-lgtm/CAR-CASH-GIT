@@ -4295,10 +4295,23 @@ const CLOUD_TINTS_FAR=[0xf0c8d4,0xe6c0cc,0xeed0da];
 // À l'intérieur : écran laiteux, brouillard resserré, son feutré, brume qui file — on VOLE.
 let CLOUDS=[],cloudIn=0,cloudInS=0,flightId=0;
 const cldV1=new THREE.Vector3(),cldV2=new THREE.Vector3();
+/* `sceneRetire(liste)` (2026-09-28, chasse aux gels) — `scene.remove` cherche CHAQUE objet dans les enfants de la scène (indexOf) puis
+   décale le tableau (splice) : retirer les ~2 000-4 000 pièces d'une piste un par un, dans une scène de ~5 000 enfants, coûtait à lui seul
+   ~15 ms par portail (MESURÉ, profil). Ici : UN passage qui garde les autres enfants dans le MÊME ordre, puis, dans l'ordre de la liste,
+   ce que fait `remove` pour chaque objet réellement enfant de la scène (parent à null, événement « removed »). Même résultat. */
+const RETIRE_EV={type:'removed'};
+function sceneRetire(liste){
+  if(!liste.length)return;
+  const S9=new Set(liste),k=scene.children,partis=new Set();let w=0;
+  for(let i=0;i<k.length;i++){const o=k[i];if(S9.has(o))partis.add(o);else k[w++]=o;}
+  k.length=w;
+  for(const o of liste)if(partis.has(o)){partis.delete(o);o.parent=null;o.dispatchEvent(RETIRE_EV);}
+}
 function disposeClouds(){
   // ⚠ chaque nuage a sa PROPRE géométrie fusionnée : il FAUT la libérer, sinon chaque portail
   // laisse fuir quelques Mo de VRAM. Le matériau (CLOUD_MAT) est partagé : jamais disposé.
-  for(const c of CLOUDS){scene.remove(c.g);if(c.mesh&&c.mesh.geometry)c.mesh.geometry.dispose();}
+  sceneRetire(CLOUDS.map(function(c){return c.g;})); // (chasse aux gels) d'un seul passage
+  for(const c of CLOUDS){if(c.mesh&&c.mesh.geometry)c.mesh.geometry.dispose();}
   CLOUDS=[];cloudIn=0;
 }
 let FLOU_OK=true; // (2026-09-26) le flou radial du boost — le palier BAS le coupe
@@ -4471,11 +4484,11 @@ function mergeSpheres(blobs,rx,ry,rz){
       idx[ni++]=a;idx[ni++]=c1;idx[ni++]=c2;}
   }
   const g=new THREE.BufferGeometry();
-  g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
-  g.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));
-  g.setAttribute('color',new THREE.Float32BufferAttribute(col,3)); // (2026-09-26) le modelé cuit (ventre, creux)
+  g.setAttribute('position',new THREE.BufferAttribute(pos,3)); // (2026-09-28, chasse aux gels) tableaux neufs et à nous : posés TELS QUELS (Float32BufferAttribute en refaisait une copie chacun)
+  g.setAttribute('normal',new THREE.BufferAttribute(nor,3));
+  g.setAttribute('color',new THREE.BufferAttribute(col,3)); // (2026-09-26) le modelé cuit (ventre, creux)
   g.setIndex(new THREE.BufferAttribute(idx.slice(0,ni),1));
-  g.computeBoundingSphere();
+  sphere9(g); // = computeBoundingSphere, au flottant près (voir pisteTranches)
   return g;
 }
 // Boules d'un nuage (metaballs) — coords LOCALES [-1,1] dans la boîte (x,y,z,rayon).
@@ -5776,6 +5789,17 @@ function matSursisTick(){
    `o.loin` : {blocs, pr (sommets par rangée et par bloc), cols (colonnes gardées), trou(i)} · 0 = rien au loin · absent = pas de LOD.
    Bascule par tranche, à chaque rendu (`pisteLoin`, appelée par scene.onBeforeRender). */
 const PISTE_CH=600,PISTE_PAS=1,PISTE_LOD=[];
+const TEINTE9={c:null,n:0}; // (chasse aux gels) la teinte du bitume par (point, colonne) — ne dépend pas de la piste : voir buildTrack
+function sphere9(g){ // (2026-09-28, chasse aux gels) computeBoundingSphere de three r128 recopié sur le tableau brut (même boîte, même centre
+  // (min+max)×0,5, même plus grand carré de distance par Math.max, même racine) : mêmes flottants, sans Vector3 ni getX par sommet
+  const a=g.attributes.position.array,n=a.length;let x0=Infinity,y0=Infinity,z0=Infinity,x1=-Infinity,y1=-Infinity,z1=-Infinity;
+  for(let k=0;k<n;k+=3){const x=a[k],y=a[k+1],z=a[k+2];if(x<x0)x0=x;if(y<y0)y0=y;if(z<z0)z0=z;if(x>x1)x1=x;if(y>y1)y1=y;if(z>z1)z1=z;}
+  const S=g.boundingSphere||(g.boundingSphere=new THREE.Sphere()),c=S.center;
+  if(x1<x0||y1<y0||z1<z0)c.set(0,0,0);else c.set((x0+x1)*.5,(y0+y1)*.5,(z0+z1)*.5);
+  const cx=c.x,cy=c.y,cz=c.z;let m=0;
+  for(let k=0;k<n;k+=3){const dx=cx-a[k],dy=cy-a[k+1],dz=cz-a[k+2];m=Math.max(m,dx*dx+dy*dy+dz*dz);}
+  S.radius=Math.sqrt(m);
+}
 function pisteMaigre(att,c,lz){ // la tranche lointaine : mêmes attributs, une rangée sur PISTE_PAS (+ bords de tranche et de trou), colonnes choisies
   const r0=c*PISTE_CH,r1=Math.min((c+1)*PISTE_CH,NP-1),R=[];
   for(let r=r0;r<r1;r+=PISTE_PAS)R.push(r);R.push(r1);
@@ -5788,7 +5812,7 @@ function pisteMaigre(att,c,lz){ // la tranche lointaine : mêmes attributs, une 
   for(let b=0;b<nb;b++)for(let k=0;k<nR-1;k++){if(lz.trou(R[k]))continue; // le vide reste vide
     for(let j=0;j<nc-1;j++){const a2=(b*nR+k)*nc+j,b2=a2+1,c2=a2+nc,d2=c2+1;ix.push(a2,c2,b2,b2,c2,d2);}}
   if(!ix.length)return null;
-  g.setIndex(ix);g.computeBoundingSphere();return g;
+  g.setIndex(ix);sphere9(g);return g;
 }
 function pisteLoin(cam){ // chaque tranche : entière en deçà du brouillard, maigre (ou absente) quand elle est TOUTE au-delà
   if(!PISTE_LOD.length)return;
@@ -5821,7 +5845,7 @@ function pisteTranches(att,lay,trou,mat,o){ // lay : {blocs, pr (sommets par ran
       for(let b=0;b<lay.blocs;b++)B9.set(A.subarray((b*np+r0)*pr*sz,(b*np+r1+1)*pr*sz),b*nr*pr*sz);
       g.setAttribute(nm,new THREE.BufferAttribute(B9,sz));}
     g.setIndex(new THREE.BufferAttribute(li,1));
-    g.computeBoundingSphere();if(o.marge)g.boundingSphere.radius+=o.marge;
+    sphere9(g);if(o.marge)g.boundingSphere.radius+=o.marge; // (chasse aux gels) sphere9 = computeBoundingSphere, au flottant près
     const m=new THREE.Mesh(g,mat);if(o.ombre)m.receiveShadow=true;if(o.ordre)m.renderOrder=o.ordre;
     m.updateMatrix();m.matrixAutoUpdate=false; // sommets en coordonnées MONDE : la tranche ne bouge jamais
     scene.add(m);trackMeshes.push(m);
@@ -5833,7 +5857,8 @@ function pisteTranches(att,lay,trou,mat,o){ // lay : {blocs, pr (sommets par ran
   }
 }
 function buildTrack(seed){
-  for(const m of trackMeshes){scene.remove(m);if(m.geometry)m.geometry.dispose();if(m.material&&m.material.dispose)MAT_SURSIS.add(m.material);} // (perf) matières en sursis : voir MAT_SURSIS
+  sceneRetire(trackMeshes); // (chasse aux gels) d'un seul passage (voir sceneRetire)
+  for(const m of trackMeshes){if(m.geometry)m.geometry.dispose();if(m.material&&m.material.dispose)MAT_SURSIS.add(m.material);} // (perf) matières en sursis : voir MAT_SURSIS
   matSursisN=3;
   trackMeshes.length=0;PISTE_LOD.length=0;NEON_RAILS.length=0;NEON_GLOW.length=0;PADS=[];PADL=[];PAD_MATS.length=0;BUMPS=[];CONES=[];FLYCONES=[];OILS=[];RAMPS=[];
   const rnd=mulberry32(seed);
@@ -5886,58 +5911,86 @@ function buildTrack(seed){
       HOLES.push({i0:a,i1:b9,lip:lp,v:gm.v,s0:a/(NP-1)*L,s1:b9/(NP-1)*L});
     }
   }
-  const holeSeg=i=>{for(const h of HOLES)if(i>=h.i0&&i<h.i1)return true;return false;}; // le segment i→i+1 est-il dans le vide ?
+  /* (2026-09-28, chasse aux gels) LA CONSTRUCTION SANS TABLEAUX JS — MESURÉ (profil, 4 constructions) : un tiers de buildTrack partait
+     dans des `push()` de centaines de milliers de nombres, recopiés ensuite en Float32Array, et dans computeVertexNormals. Chaque tampon
+     est désormais un tableau TYPÉ à sa taille exacte, écrit en place : mêmes expressions, calculées dans le même ordre, et l'arrondi en
+     float32 se fait à l'écriture exactement comme il se faisait à la conversion — mêmes octets (empreinte vérifiée sur 3 niveaux × 9 graines :
+     sommets, index, normales, couleurs, UV, sphères, tableaux physiques). Le vide est lu d'un coup (`trou9`), la teinte du bitume ne se
+     calcule qu'une fois pour ses deux faces (même fonction pure, mêmes arguments), ses sinus lents en cache. */
+  const trou9=new Uint8Array(NP+1);for(const h of HOLES)for(let i=Math.max(0,h.i0);i<h.i1&&i<NP;i++)trou9[i]=1;
+  const holeSeg=i=>trou9[i]===1; // le segment i→i+1 est-il dans le vide ?
+  let nSeg9=0;for(let i=0;i<NP-1;i++)if(!trou9[i])nSeg9++; // les segments qui ont de la dalle
   campCourbure(); // (2026-09-27) la courbure latérale en chaque point : la CORDE intérieure se paie en distance (voir cordeK)
   if(LVL.cur&&LVL.cur.camp)campRepere(); // (2026-09-27) CAMPAGNE : bancs, portes et coupes posés sur la courbe réelle — AVANT les pads, qui s'en écartent
   // ROUTE ÉPAISSE : grain LONGITUDINAL — stries dans le sens de la route (effet vitesse)
-  const sideL_=[],sideR_=[],sideU_=[];let accT9=0; // sideU_ : (haut 0 / bas 1, mètres le long de la piste) — le liseré des tranches (voir trancheMat)
+  const sideL_=new Float32Array(NP*6),sideR_=new Float32Array(NP*6),sideU_=new Float32Array(NP*4);let accT9=0; // sideU_ : (haut 0 / bas 1, mètres le long de la piste) — le liseré des tranches (voir trancheMat)
   const nz=i=>{const x=Math.sin(i*12.9898)*43758.5453;return x-Math.floor(x);};
   for(let i=0;i<NP;i++){
-    const p=pts[i],b=B[i],nn=Nn[i];if(i>0)accT9+=p.distanceTo(pts[i-1]);sideU_.push(0,accT9,1,accT9);
-    const tl=[p.x-b.x*ROAD_HALF,p.y-b.y*ROAD_HALF,p.z-b.z*ROAD_HALF];
-    const tr=[p.x+b.x*ROAD_HALF,p.y+b.y*ROAD_HALF,p.z+b.z*ROAD_HALF];
-    const bl=[tl[0]-nn.x*THICK,tl[1]-nn.y*THICK,tl[2]-nn.z*THICK];
-    const br=[tr[0]-nn.x*THICK,tr[1]-nn.y*THICK,tr[2]-nn.z*THICK];
-    sideL_.push(...tl,...bl);sideR_.push(...tr,...br);
+    const p=pts[i],b=B[i],nn=Nn[i];if(i>0)accT9+=p.distanceTo(pts[i-1]);const u4=i*4;sideU_[u4]=0;sideU_[u4+1]=accT9;sideU_[u4+2]=1;sideU_[u4+3]=accT9;
+    const tl0=p.x-b.x*ROAD_HALF,tl1=p.y-b.y*ROAD_HALF,tl2=p.z-b.z*ROAD_HALF;
+    const tr0=p.x+b.x*ROAD_HALF,tr1=p.y+b.y*ROAD_HALF,tr2=p.z+b.z*ROAD_HALF,k6=i*6;
+    sideL_[k6]=tl0;sideL_[k6+1]=tl1;sideL_[k6+2]=tl2;sideL_[k6+3]=tl0-nn.x*THICK;sideL_[k6+4]=tl1-nn.y*THICK;sideL_[k6+5]=tl2-nn.z*THICK;
+    sideR_[k6]=tr0;sideR_[k6+1]=tr1;sideR_[k6+2]=tr2;sideR_[k6+3]=tr0-nn.x*THICK;sideR_[k6+4]=tr1-nn.y*THICK;sideR_[k6+5]=tr2-nn.z*THICK;
   }
   /* (2026-09-27, passe perf iPhone) les géométries ENTIÈRES sont bâties comme avant, puis découpées (voir pisteTranches). `normales9` :
-     les normales calculées sur le maillage ENTIER, exactement comme le faisait computeVertexNormals — les tranches les recopient. */
-  const normales9=(P9,I9)=>{const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(P9,3));
-    g.setIndex(new THREE.BufferAttribute(I9,1));g.computeVertexNormals();return g.attributes.normal.array;};
+     les normales calculées sur le maillage ENTIER, exactement comme le faisait computeVertexNormals — les tranches les recopient.
+     (2026-09-28, chasse aux gels) …et c'est désormais SON calcul, recopié opération par opération sur les tableaux bruts (somme des
+     produits vectoriels arrondie en float32 à chaque triangle, lue puis écrite dans le même ordre, puis normalisation `x*(1/(long||1))`) :
+     mêmes octets, 3 à 4 fois plus vite (plus de Vector3, plus de getX/setXYZ). */
+  const normales9=(P9,I9)=>{const N9=new Float32Array(P9.length);
+    for(let t=0,n=I9.length;t<n;t+=3){const a=I9[t]*3,b=I9[t+1]*3,c=I9[t+2]*3;
+      const pBx=P9[b],pBy=P9[b+1],pBz=P9[b+2],cbx=P9[c]-pBx,cby=P9[c+1]-pBy,cbz=P9[c+2]-pBz,abx=P9[a]-pBx,aby=P9[a+1]-pBy,abz=P9[a+2]-pBz;
+      const nx=cby*abz-cbz*aby,ny=cbz*abx-cbx*abz,nw=cbx*aby-cby*abx;
+      const ax=N9[a]+nx,ay=N9[a+1]+ny,az=N9[a+2]+nw,bx=N9[b]+nx,by=N9[b+1]+ny,bz=N9[b+2]+nw,cx=N9[c]+nx,cy=N9[c+1]+ny,cz=N9[c+2]+nw; // lus TOUS avant d'écrire (comme three)
+      N9[a]=ax;N9[a+1]=ay;N9[a+2]=az;N9[b]=bx;N9[b+1]=by;N9[b+2]=bz;N9[c]=cx;N9[c+1]=cy;N9[c+2]=cz;}
+    for(let k=0,n=N9.length;k<n;k+=3){const x=N9[k],y=N9[k+1],z=N9[k+2],s=1/(Math.sqrt(x*x+y*y+z*z)||1);N9[k]=x*s;N9[k+1]=y*s;N9[k+2]=z*s;}
+    return N9;};
   const strip=(arrs,mat)=>{ // (passe perf) les deux flancs d'un coup : un maillage, une matière, découpé en tranches
-    const idx=[],pos=[],uv=[];
-    for(const arr of arrs){const vb=pos.length/3;for(let q=0;q<arr.length;q++)pos.push(arr[q]);for(let q=0;q<sideU_.length;q++)uv.push(sideU_[q]);
-      for(let i=0;i<NP-1;i++){if(holeSeg(i))continue;const a2=vb+2*i,b2=a2+1,c2=a2+2,d2=a2+3;idx.push(a2,c2,b2,b2,c2,d2);}} // le vide n'a pas de tranche
-    const P9=new Float32Array(pos),I9=new Uint32Array(idx);
-    pisteTranches({position:[P9,3],normal:[normales9(P9,I9),3],uv:[new Float32Array(uv),2]},{blocs:2,pr:2,np:NP,pas:1},holeSeg,mat,{ombre:true});
+    const na=arrs.length,P9=new Float32Array(na*NP*6),UV9=new Float32Array(na*NP*4),I9=new Uint32Array(na*nSeg9*6);let w=0;
+    for(let a9=0;a9<na;a9++){const vb=a9*NP*2;P9.set(arrs[a9],a9*NP*6);UV9.set(sideU_,a9*NP*4);
+      for(let i=0;i<NP-1;i++){if(trou9[i])continue;const a2=vb+2*i,b2=a2+1,c2=a2+2,d2=a2+3;I9[w++]=a2;I9[w++]=c2;I9[w++]=b2;I9[w++]=b2;I9[w++]=c2;I9[w++]=d2;}} // le vide n'a pas de tranche
+    pisteTranches({position:[P9,3],normal:[normales9(P9,I9),3],uv:[UV9,2]},{blocs:2,pr:2,np:NP,pas:1},holeSeg,mat,{ombre:true});
   };
   // faces roulables : COLS colonnes de vertex → stries longitudinales + micro-grain étiré
   const COLS=11;
-  const laneShade=[];
-  for(let c9=0;c9<COLS;c9++)laneShade.push(.80+nz(c9*97.31)*.16-Math.abs(c9-(COLS-1)/2)/(COLS-1)*.06);
-  const shadeAt=(i,c9)=>laneShade[c9]+nz(c9*131.7+(i>>5)*7.77)*.05+nz(c9*53.1+(i>>1)*3.3)*.05+nz(i*7.71+c9*13.7)*.03-.08; // grain DIVISÉ par 2 (même luminosité moyenne) : le premier plan se calme, l œil reste sur la route et le ciel
-  {const arr=[],cols=[],idx=[],uvs=[]; // (passe perf) les DEUX faces dans un seul maillage (sommets disjoints : mêmes normales qu'en deux), découpé en tranches
+  /* LA TEINTE D'UNE CASE (grain DIVISÉ par 2, même luminosité moyenne : le premier plan se calme, l œil reste sur la route et le ciel) :
+     laneShade[c9]+nz(c9*131.7+(i>>5)*7.77)*.05+nz(c9*53.1+(i>>1)*3.3)*.05+nz(i*7.71+c9*13.7)*.03-.08, × dim (=1 : les DEUX faces à pleine
+     lumière, même texture dessus et dessous). (2026-09-28, chasse aux gels) Elle ne dépend QUE de (i, c9), jamais de la piste : MESURÉ, ses
+     ~300 000 sinus coûtaient ~9 ms à chaque portail. Elle est donc calculée UNE fois pour la session (`TEINTE9`, les trois flottants de la
+     couleur de chaque case, agrandie si une piste compte plus de points), puis recopiée — mêmes expressions, mêmes octets. */
+  if(TEINTE9.n<NP){
+    const laneShade=[];
+    for(let c9=0;c9<COLS;c9++)laneShade.push(.80+nz(c9*97.31)*.16-Math.abs(c9-(COLS-1)/2)/(COLS-1)*.06);
+    const JA9=(NP>>5)+1,JB9=(NP>>1)+1,nzA=new Float64Array(COLS*JA9),nzB=new Float64Array(COLS*JB9); // les deux premiers sinus ne dépendent que de i>>5 et i>>1
+    for(let c9=0;c9<COLS;c9++){for(let j=0;j<JA9;j++)nzA[c9*JA9+j]=nz(c9*131.7+j*7.77);for(let j=0;j<JB9;j++)nzB[c9*JB9+j]=nz(c9*53.1+j*3.3);}
+    const a9=new Float32Array(NP*COLS*3),dim=1;if(TEINTE9.c)a9.set(TEINTE9.c);
+    for(let i=TEINTE9.n;i<NP;i++)for(let c9=0;c9<COLS;c9++){const sh=(laneShade[c9]+nzA[c9*JA9+(i>>5)]*.05+nzB[c9*JB9+(i>>1)]*.05+nz(i*7.71+c9*13.7)*.03-.08)*dim,k3=(i*COLS+c9)*3;
+      a9[k3]=sh;a9[k3+1]=sh;a9[k3+2]=sh+.04;}
+    TEINTE9.c=a9;TEINTE9.n=NP;}
+  {const nF=NP*COLS,P9=new Float32Array(2*nF*3),C9=new Float32Array(2*nF*3),UV9=new Float32Array(2*nF*2),I9=new Uint32Array(2*nSeg9*(COLS-1)*6); // (passe perf) les DEUX faces dans un seul maillage (sommets disjoints : mêmes normales qu'en deux), découpé en tranches
+  const oC9=new Float64Array(COLS);for(let c9=0;c9<COLS;c9++)oC9[c9]=-ROAD_HALF+2*ROAD_HALF*c9/(COLS-1);
+  C9.set(TEINTE9.c.subarray(0,nF*3));C9.copyWithin(nF*3,0,nF*3); // les teintes, dessus puis dessous (les MÊMES)
+  let w=0,f9=0;
   for(const fy of [0,-THICK]){
-    let acc9=0;const vb=arr.length/3; // (bitume v2) UV en MÈTRES/4 : le grain garde la même taille quelle que soit la largeur de route
-    const dim=1; // les DEUX faces à pleine lumière : même texture dessus et dessous
+    let acc9=0;const vb=f9*nF; // (bitume v2) UV en MÈTRES/4 : le grain garde la même taille quelle que soit la largeur de route
     for(let i=0;i<NP;i++){
       const p=pts[i],b=B[i],nn=Nn[i];
-      if(i>0)acc9+=p.distanceTo(pts[i-1]);
+      if(f9===0&&i>0)acc9+=p.distanceTo(pts[i-1]);
       for(let c9=0;c9<COLS;c9++){
-        const o=-ROAD_HALF+2*ROAD_HALF*c9/(COLS-1);
-        arr.push(p.x+b.x*o+nn.x*fy,p.y+b.y*o+nn.y*fy,p.z+b.z*o+nn.z*fy);
-        uvs.push((o+ROAD_HALF)*.25,acc9*.25);
-        const sh=shadeAt(i,c9)*dim;
-        cols.push(sh,sh,sh+.04);
+        const o=oC9[c9],k3=(vb+i*COLS+c9)*3;
+        P9[k3]=p.x+b.x*o+nn.x*fy;P9[k3+1]=p.y+b.y*o+nn.y*fy;P9[k3+2]=p.z+b.z*o+nn.z*fy;
+        if(f9===0){const k2=(i*COLS+c9)*2;UV9[k2]=(o+ROAD_HALF)*.25;UV9[k2+1]=acc9*.25;}
       }
     }
+    if(f9===1)UV9.copyWithin(nF*2,0,nF*2); // la face du dessous : les MÊMES UV que le dessus (mêmes calculs, déjà faits)
     for(let i=0;i<NP-1;i++){
-      if(holeSeg(i))continue; // LE TROU : pas une seule facette de bitume ici
+      if(trou9[i])continue; // LE TROU : pas une seule facette de bitume ici
       for(let c9=0;c9<COLS-1;c9++){
         const a2=vb+i*COLS+c9,b2=a2+1,c2=a2+COLS,d2=c2+1;
-        idx.push(a2,c2,b2,b2,c2,d2);
+        I9[w++]=a2;I9[w++]=c2;I9[w++]=b2;I9[w++]=b2;I9[w++]=c2;I9[w++]=d2;
       }
     }
+    f9++;
   }
     // BITUME NUIT VIOLET : sombre pour que les LUMIÈRES y vivent (nitro, boost, phares) — spéculaire ROSÉ, le soleil rasant peint une traînée magenta-braise
     // SPÉCULAIRE BRAISE CUIVRÉE (2026-07-20) : l'ancien mauve 0x9a5568 (bleu > vert) teintait TOUS les
@@ -5946,8 +5999,7 @@ function buildTrack(seed){
     // reflet qui NAPPE le bitume au lieu de piquer — la route reste sensuelle, plus crédible.
     // (2026-09-25) LE BITUME v2 — voir roadMat : l'ancien spéculaire saumon au lobe énorme dessinait les taches roses.
     // (passe perf) UNE matière pour les deux faces : c'étaient deux jumelles (même programme, mêmes réglages, mêmes uniformes partagés).
-    const P9=new Float32Array(arr),I9=new Uint32Array(idx),nF=NP*COLS;
-    pisteTranches({position:[P9,3],normal:[normales9(P9,I9),3],color:[new Float32Array(cols),3],uv:[new Float32Array(uvs),2]},
+    pisteTranches({position:[P9,3],normal:[normales9(P9,I9),3],color:[C9,3],uv:[UV9,2]},
       {blocs:2,pr:COLS,np:NP,pas:1},holeSeg,roadMat(),{ombre:true,loin:{blocs:2,pr:COLS,cols:[0,COLS-1],trou:holeSeg}}); // le bitume reçoit les OMBRES LONGUES
   }
   const flank=trancheMat(); // tranches violet-noir : elles boivent le fill néon — (2026-09-26) + leur liseré d'accent et leurs catadioptres
@@ -5962,42 +6014,40 @@ function buildTrack(seed){
   const accC=new THREE.Color(idA9==='nuages'?0x3ee6f0:idA9==='ville'?0xf24aa0:idA9==='espace'?0x5ee6ff:accR);
   ROAD_U.uAcc.value.copy(accC); // (2026-09-26) le bitume mouillé reflète aussi l'accent de la zone
   // BANDES NÉON (dessus + dessous) : les rails de Vice City — couleur d'accent de la zone
-  {const ep=[],ei=[],el=[]; // (passe perf) les QUATRE rails dans un seul maillage, une seule matière (le caméléon les peignait tous pareil), découpé en tranches
-  for(const fy of [0,-THICK]) for(const sd of [-1,1]){
-    const vb=ep.length/3; // el : `aLat`, du milieu du rail vers chaque bord (voir traitMat)
-    for(let i=0;i<NP;i++){
+  {const ep=new Float32Array(4*NP*6),el=new Float32Array(4*NP*6);let q=0; // (passe perf) les QUATRE rails dans un seul maillage, une seule matière (le caméléon les peignait tous pareil), découpé en tranches — (chasse aux gels) écrits en place
+  for(const fy of [0,-THICK]) for(const sd of [-1,1]){ // el : `aLat`, du milieu du rail vers chaque bord (voir traitMat)
+    for(let i=0;i<NP;i++,q+=6){
       const p=pts[i],b=B[i],nn=Nn[i],o=sd*(ROAD_HALF+.05),h=fy+(fy===0?.06:-.06);
-      ep.push(p.x+b.x*(o-sd*.6)+nn.x*h,p.y+b.y*(o-sd*.6)+nn.y*h,p.z+b.z*(o-sd*.6)+nn.z*h,
-              p.x+b.x*o+nn.x*h,p.y+b.y*o+nn.y*h,p.z+b.z*o+nn.z*h);
-      el.push(-b.x*sd*.3,-b.y*sd*.3,-b.z*sd*.3,b.x*sd*.3,b.y*sd*.3,b.z*sd*.3);
+      ep[q]=p.x+b.x*(o-sd*.6)+nn.x*h;ep[q+1]=p.y+b.y*(o-sd*.6)+nn.y*h;ep[q+2]=p.z+b.z*(o-sd*.6)+nn.z*h;
+      ep[q+3]=p.x+b.x*o+nn.x*h;ep[q+4]=p.y+b.y*o+nn.y*h;ep[q+5]=p.z+b.z*o+nn.z*h;
+      el[q]=-b.x*sd*.3;el[q+1]=-b.y*sd*.3;el[q+2]=-b.z*sd*.3;el[q+3]=b.x*sd*.3;el[q+4]=b.y*sd*.3;el[q+5]=b.z*sd*.3;
     }
   }
     const mat9=traitMat(new THREE.MeshBasicMaterial({color:accC,side:THREE.DoubleSide,polygonOffsetFactor:-2,polygonOffsetUnits:-2}),1.5,0);
     mat9.userData.base=accC.clone(); // la teinte d'accent de la zone, à retrouver après chaque pulsation
     NEON_RAILS.push(mat9);
-    pisteTranches({position:[new Float32Array(ep),3],aLat:[new Float32Array(el),3]},{blocs:4,pr:2,np:NP,pas:1},holeSeg,mat9,{marge:20}); // les rails néon s'arrêtent au bord du vide
+    pisteTranches({position:[ep,3],aLat:[el,3]},{blocs:4,pr:2,np:NP,pas:1},holeSeg,mat9,{marge:20}); // les rails néon s'arrêtent au bord du vide
   }
   // NAPPE DE LUEUR sous chaque bande : additif qui saigne vers l intérieur du bitume — sans fog, le néon perce
   // la brume et les rails roses filent jusqu au bout de la nuit (1 mesh par face : gauche+droite fusionnées)
-  {const gp=[],gc=[],gi=[],gl=[];let vb=0; // (passe perf) les deux faces dans un seul maillage, une seule matière (même opacité pulsée), découpé en tranches
+  {const gp=new Float32Array(4*NP*6),gc=new Float32Array(4*NP*6),gl=new Float32Array(4*NP*6);let q=0; // (passe perf) les deux faces dans un seul maillage, une seule matière (même opacité pulsée), découpé en tranches — (chasse aux gels) écrits en place
   for(const fy of [0,-THICK]){
     const mo9=LVL.cur&&LVL.cur.pluie?1:0,lg9=1.15+2.2*mo9,ka9=.48+.14*mo9; // (2026-09-26) sous la PLUIE le bitume mouillé renvoie le rail : la nappe s'élargit (1,15 → 3,35 m) et chauffe un peu
     for(const sd of [-1,1]){
-      for(let i=0;i<NP;i++){
+      for(let i=0;i<NP;i++,q+=6){
         const p=pts[i],b=B[i],nn=Nn[i],h=fy+(fy===0?.045:-.045);
         const oI=sd*(ROAD_HALF+.10-lg9),oO=sd*(ROAD_HALF+.10);
-        gp.push(p.x+b.x*oI+nn.x*h,p.y+b.y*oI+nn.y*h,p.z+b.z*oI+nn.z*h,
-                p.x+b.x*oO+nn.x*h,p.y+b.y*oO+nn.y*h,p.z+b.z*oO+nn.z*h);
-        gl.push(-b.x*sd*lg9*.5,-b.y*sd*lg9*.5,-b.z*sd*lg9*.5,b.x*sd*lg9*.5,b.y*sd*lg9*.5,b.z*sd*lg9*.5);
-        gc.push(0,0,0,accC.r*ka9,accC.g*ka9,accC.b*ka9); // noir additif = invisible → dégradé d'accent qui meurt sur l asphalte
+        gp[q]=p.x+b.x*oI+nn.x*h;gp[q+1]=p.y+b.y*oI+nn.y*h;gp[q+2]=p.z+b.z*oI+nn.z*h;
+        gp[q+3]=p.x+b.x*oO+nn.x*h;gp[q+4]=p.y+b.y*oO+nn.y*h;gp[q+5]=p.z+b.z*oO+nn.z*h;
+        gl[q]=-b.x*sd*lg9*.5;gl[q+1]=-b.y*sd*lg9*.5;gl[q+2]=-b.z*sd*lg9*.5;gl[q+3]=b.x*sd*lg9*.5;gl[q+4]=b.y*sd*lg9*.5;gl[q+5]=b.z*sd*lg9*.5;
+        gc[q+3]=accC.r*ka9;gc[q+4]=accC.g*ka9;gc[q+5]=accC.b*ka9; // noir additif = invisible → dégradé d'accent qui meurt sur l asphalte (le noir : les zéros du tableau neuf)
       }
-      vb+=NP*2;
     }
   }
     const mat9=traitMat(new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide,transparent:true,opacity:.78,blending:THREE.AdditiveBlending,depthWrite:false,fog:false,polygonOffsetFactor:-1,polygonOffsetUnits:-1}),2,1);
     mat9.userData.base=.78; // opacité de repos — la pulsation part de là et y revient
     NEON_GLOW.push(mat9);
-    pisteTranches({position:[new Float32Array(gp),3],color:[new Float32Array(gc),3],aLat:[new Float32Array(gl),3]},{blocs:4,pr:2,np:NP,pas:1},holeSeg,mat9,{ordre:1,marge:20}); // ...et leur nappe aussi
+    pisteTranches({position:[gp,3],color:[gc,3],aLat:[gl,3]},{blocs:4,pr:2,np:NP,pas:1},holeSeg,mat9,{ordre:1,marge:20}); // ...et leur nappe aussi
   }
   // ligne centrale pointillée — sodium doré, comme les vraies voies rapides la nuit (les DEUX faces : zéro dessus-dessous)
   /* (2026-09-26) UNE VRAIE PEINTURE AU SOL. C'était un trait GL d'UN pixel : aussi fin sous la caisse qu'à 2 km, crénelé, et au loin des
@@ -6005,14 +6055,15 @@ function buildTrack(seed){
      d'une texture MIPMAPPÉE : de près des tirets nets en perspective, au loin la carte réduite en fait d'elle-même un filet continu et
      plus doux — plus de clignotement. Même rythme qu'avant (7 points de tiret sur 16), mêmes trous, zéro rnd(). */
   (function(){
-    const lp=[],ll=[],lu=[],sp9=L/Math.max(1,NP-1),per=16*sp9;
+    const nL9=2*Math.ceil(NP/2)*2,lp=new Float32Array(nL9*3),ll=new Float32Array(nL9*3),lu=new Float32Array(nL9*2),sp9=L/Math.max(1,NP-1),per=16*sp9;let q3=0,q2=0; // (chasse aux gels) écrits en place
     for(const fy of [.05,-THICK-.05]){let acc=0;
       for(let i=0;i<NP;i+=2){if(i>0)acc+=pts[i].distanceTo(pts[i-2]);
         const p2=pts[i],nn=Nn[i],b=B[i];
-        for(const sg of [-1,1]){lp.push(p2.x+nn.x*fy+b.x*sg*.12,p2.y+nn.y*fy+b.y*sg*.12,p2.z+nn.z*fy+b.z*sg*.12);ll.push(b.x*sg*.12,b.y*sg*.12,b.z*sg*.12);lu.push(sg<0?0:1,acc/per);}}
+        for(let sg=-1;sg<=1;sg+=2){lp[q3]=p2.x+nn.x*fy+b.x*sg*.12;lp[q3+1]=p2.y+nn.y*fy+b.y*sg*.12;lp[q3+2]=p2.z+nn.z*fy+b.z*sg*.12;
+          ll[q3]=b.x*sg*.12;ll[q3+1]=b.y*sg*.12;ll[q3+2]=b.z*sg*.12;lu[q2]=sg<0?0:1;lu[q2+1]=acc/per;q3+=3;q2+=2;}}
     }
     // (passe perf) découpée en tranches : une paire de sommets tous les 2 points, par face — la ligne centrale ne flotte pas au-dessus du vide
-    pisteTranches({position:[new Float32Array(lp),3],aLat:[new Float32Array(ll),3],uv:[new Float32Array(lu),2]},{blocs:2,pr:2,np:Math.ceil(NP/2),pas:2},
+    pisteTranches({position:[lp,3],aLat:[ll,3],uv:[lu,2]},{blocs:2,pr:2,np:Math.ceil(NP/2),pas:2},
       k=>holeSeg(2*k)||holeSeg(2*k+1),ligneMat(),{ordre:1,marge:20,loin:0}); // au-delà du brouillard : plus de peinture (voir pisteTranches)
   })();
   // BORDS DU VIDE : on ferme la coupe. La dalle montre sa TRANCHE en rouge d'alerte — à pleine vitesse,
@@ -16266,7 +16317,7 @@ function mkPower(kind,dir){
 const pickups=[];
 const mat4b=new THREE.Matrix4(),FLIP_B=new THREE.Vector3(),FLIP_N=new THREE.Vector3(); // FLIP_* : le repère retourné des fruits d'en dessous
 function spawnPickups(rnd){
-  for(const p of pickups)scene.remove(p.mesh);
+  sceneRetire(pickups.map(function(p){return p.mesh;})); // (chasse aux gels) d'un seul passage : un par un, c'était ~15 ms par portail (voir sceneRetire)
   pickups.length=0;
   const HALF=ROAD_HALF-1.8;
   // pose UNE pièce (mirroir deux faces, saute les trous, clamp sur la route)
