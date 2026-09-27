@@ -23796,6 +23796,7 @@ window.dbgPin=function(on){RESPIN=(on===undefined)?true:!!on;
   return {resolution_et_paliers_figes:RESPIN,dpr:+curDPR.toFixed(3),stepBase:null};};
 function loop(now){
   requestAnimationFrame(loop);
+  if(BANC_ON)BANC_T0=performance.now(); // (banc ?banc=1) début de l'image chronométrée
   // ⚠ dt JAMAIS NÉGATIF (2026-09-25) : l'horodatage de rAF est celui du DÉBUT de l'image, et `last` peut avoir été posé
   // par `performance.now()` un peu plus tard (reprise d'onglet, pas-à-pas) — un dt < 0 rendait négatif le rayon
   // des taches de jus, et `arc()` lève alors une IndexSizeError qui cassait l'image entière (mesuré).
@@ -23857,7 +23858,7 @@ function loop(now){
   slowT=0;hitT=0;
   const t=now/1000;
   let speedKmh=0;
-  try{ if(running&&!paused&&!gameOver){
+  try{ if(running&&!paused&&!gameOver&&!BANC_FIGE){ // (banc ?banc=1) BANC_FIGE : la simulation s'arrête, le rendu continue
     // OVERDRIVE : passé le niveau 6, le jeu passe la surmultipliée — +8 %/niveau, jusqu'à +50 %
     // ⚠ JEU DE PROGRESSION : la VITESSE vient du MOTEUR, pas de la caisse équipée — sinon équiper une
     // caisse débloquée ferait démarrer la partie à 400 km/h et il n'y aurait plus rien à gagner.
@@ -25332,6 +25333,7 @@ function loop(now){
   // quad ortho recollé par-dessus. Elle ne touche plus au viewport de la passe finale — c'était ça,
   // la déformation de l'image. ⚠ APRÈS le composer, jamais avant : il écrase le framebuffer.
   try{engVigRender(dt);}catch(e){if(!loop._vigWarn){console.warn('vignette moteur',e);loop._vigWarn=1;}}
+  if(BANC_CB)window.__bancSync(); // (banc ?banc=1) la puce finit l'image, on relève le chrono
 }
 // ---------- INIT ----------
 newTrack();
@@ -26211,6 +26213,79 @@ if(!(IS_MOBILE||/[?&]touch=1/.test(location.search))){
 // service worker n'y a pas sa place : on ne l'installe pas.
 if('serviceWorker'in navigator&&!window.Capacitor&&(location.protocol==='http:'||location.protocol==='https:')){ addEventListener('load',function(){ navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).catch(function(){}); }); }
 /* ============ fin ajout MOBILE / PWA ============ */
+/* ============ LE BANC DU TÉLÉPHONE (?banc=1) — (2026-09-27, passe perf iPhone, tour 2) ============
+   Sacha : « on repasse en mode pixel assez vite après avoir lancé ». Le banc du PC imite un iPhone mais la puce d'Apple (GPU à tuiles,
+   Metal derrière Safari) ne réagit pas comme une carte de bureau : on ne peut plus deviner, il faut MESURER SUR LE TÉLÉPHONE. Ce module,
+   éteint par défaut (charte : rien de développement à l'écran), lance une partie tout seul, fige l'image (la simulation s'arrête, le rendu
+   continue) au sol puis en vol, aux NUAGES puis en VILLE, et chronomètre chaque image SYNCHRONISÉE : après le rendu, un `readPixels` d'un
+   seul pixel oblige le processeur à attendre que la puce ait fini — le temps mesuré est alors le vrai coût de l'image (processeur + puce),
+   sans la grille de 16,7 ms de l'écran qui arrondit tout. Puis il éteint les postes UN PAR UN (résolution, post, bloom, passe d'ombre,
+   ciel, nuages, piste, caisse, transparents, ville, ombres reçues) : l'écart au témoin = ce que coûte ce poste SUR CE TÉLÉPHONE.
+   Résultat : un tableau à capturer (et un bouton COPIER). Rien n'est sauvegardé, aucun son (pas de geste : le contexte audio dort). */
+let BANC_FIGE=false,BANC_CB=null,BANC_T0=0;const BANC_ON=/[?&]banc=1/.test(location.search);
+if(BANC_ON)(function(){
+  const px4=new Uint8Array(4),gl9=renderer.getContext(),Z=ms=>new Promise(r=>setTimeout(r,ms));
+  const box=document.createElement('div');box.id='bancBox';
+  box.style.cssText='position:fixed;left:calc(var(--sL) + 6px);right:calc(var(--sR) + 6px);top:calc(var(--sT) + 4px);z-index:2147483001;'+
+    'font:600 11px/1.35 ui-monospace,Menlo,monospace;color:var(--tx);background:var(--k1);padding:4px 6px;white-space:pre;overflow:auto;max-height:92vh;pointer-events:auto';
+  box.textContent='BANC : ne touche à rien (~3 min)…';document.body.appendChild(box);
+  const etat=t=>{box.textContent='BANC en cours — ne touche à rien\n'+t;};
+  window.__bancSync=function(){ // appelé en fin d'image par la boucle : la puce finit, on relève
+    const t1=performance.now();renderer.setRenderTarget(null);gl9.readPixels(0,0,1,1,gl9.RGBA,gl9.UNSIGNED_BYTE,px4);BANC_CB(performance.now()-BANC_T0,t1-BANC_T0);};
+  const med=a=>{const s=a.slice().sort((x,y)=>x-y);return s[s.length>>1];};
+  const mesure=(n,chauffe)=>new Promise(res=>{let k=0;const T=[],J=[];BANC_CB=(ts,tj)=>{if(k++<(chauffe||8))return;T.push(ts);J.push(tj);
+    if(T.length>=n){BANC_CB=null;res({t:med(T),j:med(J)});}};});
+  const reel=ms=>new Promise(res=>{let n=0;const t0=performance.now();BANC_CB=null;
+    const f=()=>{n++;if(performance.now()-t0<ms)requestAnimationFrame(f);else res({ips:n/((performance.now()-t0)/1000),ms:loop._ms||0});};requestAnimationFrame(f);});
+  const setDPR=d=>{curDPR=Math.min(d,devicePixelRatio);applyDPR();};
+  const cache=L=>{const v=[];for(const o of L)if(o&&o.visible){o.visible=false;v.push(o);}return ()=>{for(const o of v)o.visible=true;};};
+  const P=[ // [étiquette, éteindre → rallumer, images de chauffe]
+    ['DPR 1,25',()=>{setDPR(1.25);return ()=>setDPR(1.5);}],
+    ['DPR 1,0',()=>{setDPR(1);return ()=>setDPR(1.5);}],
+    ['DPR 0,75',()=>{setDPR(.75);return ()=>setDPR(1.5);}],
+    ['sans post',()=>{POST_ON=false;return ()=>{POST_ON=true;};}],
+    ['sans bloom',()=>{if(bloomPass)bloomPass.enabled=false;return ()=>{if(bloomPass)bloomPass.enabled=true;};}],
+    ['sans calcul ombre',()=>{renderer.shadowMap.autoUpdate=false;renderer.shadowMap.needsUpdate=false;return ()=>{renderer.shadowMap.autoUpdate=true;};}],
+    ['sans ciel',()=>cache([skyDome])],
+    ['sans nuages',()=>cache(CLOUDS.map(c=>c.g))],
+    ['sans piste',()=>cache(trackMeshes.concat(CONE_IM||[],CONE_OMB||[],[PAD_IM]))],
+    ['sans caisse',()=>cache([carGroup])],
+    ['sans transparents',()=>{const L=[];scene.traverse(o=>{const m=o.material;if(m&&!Array.isArray(m)&&m.transparent&&o!==skyDome)L.push(o);});return cache(L);}],
+    ['sans ville',()=>cache([CITY.root])],
+    ['sans ombre (recompile)',()=>{sun.castShadow=false;return ()=>{sun.castShadow=true;};},40],
+  ];
+  const R={},COLS=[],LIG=['réel i/s','réel ms','JS ms (figé)','TÉMOIN ms'].concat(P.map(p=>p[0]));
+  const vue=async (col)=>{COLS.push(col);const C=R[col]={};
+    const r=await reel(2500);C['réel i/s']=r.ips.toFixed(0);C['réel ms']=r.ms.toFixed(1);
+    BANC_FIGE=true;await Z(300);
+    const ref=await mesure(30);C['JS ms (figé)']=ref.j.toFixed(1);C['TÉMOIN ms']=ref.t.toFixed(1);
+    for(let i=0;i<P.length;i++){etat(col+' — '+P[i][0]+' ('+(i+1)+'/'+P.length+')'); // ENCADRÉ : témoin juste avant ET juste après — la dérive (chauffe, thermique) s'annule
+      const a=await mesure(16,4);const off=P[i][1]();const m=await mesure(20,P[i][2]);off();const z=await mesure(16,P[i][2]?30:4);
+      const d=m.t-(a.t+z.t)/2;C[P[i][0]]=(d>=0?'+':'')+d.toFixed(1);}
+    BANC_FIGE=false;};
+  const vivant=async ()=>{ if(gameOver){const b=document.querySelector('#mDead.on [data-m="replay"]');if(b)b.click();for(let i=0;i<60&&(!started||gameOver);i++)await Z(250);await Z(2500);}
+    dbgAuto(true,0);};
+  const vol=async ()=>{await vivant();for(let i=0;i<20&&mode!=='drive';i++)await Z(200);try{dbgDauphin(70,60,0,0);}catch(e){}await Z(650);};
+  const rendu=()=>{let gpu='?';try{const x=gl9.getExtension('WEBGL_debug_renderer_info');gpu=x?gl9.getParameter(x.UNMASKED_RENDERER_WEBGL):gl9.getParameter(gl9.RENDERER);}catch(e){}
+    let t='BANC CASH CAR — '+gpu+' — écran '+VP.w+'×'+VP.h+' ×'+devicePixelRatio+' — rendu 1,5\n'+
+      'ms = coût d\'une image synchronisée (processeur + puce).\nLignes « sans … » : écart au TÉMOIN (−3.0 = ce poste coûte 3 ms)\n\n';
+    const w=23,cw=11;t+=''.padEnd(w)+COLS.map(c=>c.padStart(cw)).join('')+'\n';
+    for(const l of LIG)t+=l.padEnd(w)+COLS.map(c=>String(R[c][l]==null?'':R[c][l]).padStart(cw)).join('')+'\n';
+    return t;};
+  (async ()=>{
+    for(let i=0;i<200&&!window.__gameReady;i++)await Z(100);await Z(1500);
+    try{const sp=document.getElementById('splash');if(sp){sp.click();await Z(900);sp.remove();}}catch(e){}
+    try{document.querySelector('#mHome [data-m=play]').click();}catch(e){}await Z(2500);
+    try{document.getElementById('gPlayMain').click();}catch(e){}
+    for(let i=0;i<80&&!started;i++)await Z(250);
+    RESPIN=true;DPR_CAP=Math.min(devicePixelRatio,1.5);qlPose(0);setDPR(1.5);dbgAuto(true,0);
+    try{await Z(3500);await vue('NUAGES sol');await vol();await vue('NUAGES vol');
+      await vivant();dbgSaut();dbgAuto(true,0);await Z(4000);await vue('VILLE sol');await vol();await vue('VILLE vol');}
+    catch(e){R.err=String(e&&e.message);}
+    BANC_FIGE=true;const txt=rendu()+(R.err?'\nERREUR : '+R.err:'')+'\n\nTOUCHE ICI POUR COPIER — puis envoie la capture ou colle le texte';
+    box.textContent=txt;box.onclick=function(){try{navigator.clipboard.writeText(txt);box.style.outline='2px solid var(--or)';}catch(e){}};
+  })();
+})();
 window.__gameReady=true; // la boucle part : le chien de garde du mouchard se tait
 requestAnimationFrame(loop);
 })();
