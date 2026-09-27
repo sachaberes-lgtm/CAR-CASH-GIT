@@ -2661,7 +2661,7 @@ html[data-reduced-motion="1"] .mscr.on,html[data-reduced-motion="1"] #tPanel.ope
    qui s'y ouvre (`#garage.boutique`). ⚠ Tout nouveau style de ces écrans va ICI, pas dans le premier <style>. */
   /* le garage de Léo = la LIGNE DE DÉPART : le PLAY en lettres revient (la charte le cache), la fiche et la barre d'achat
      n'existent qu'en boutique ; la sortie ◀ reste sous le pouce gauche */
-  #garage:not(.boutique):not(.quiet):not(.launching) #gPlayMain{display:inline-flex!important}
+  #garage:not(.boutique):not(.quiet):not(.launching) #gPlayMain{display:inline-flex!important;pointer-events:auto!important} /* ⚠ (2026-09-27) la charte v4 rend #gTop transparent aux clics : sans ce pointer-events, le doigt TRAVERSAIT le PLAY (plus de départ possible) */
   #garage.shopMode #gPlayMain,#garage.shopMode #gHint{display:none}
   #mHome .mPlay,#playBtn{display:none!important}
   #garage:not(.boutique) #gCard{display:none!important}
