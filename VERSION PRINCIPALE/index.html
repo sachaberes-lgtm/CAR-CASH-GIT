@@ -4300,16 +4300,21 @@ let QUAL_LOW=false,QUAL_MED=IS_MOBILE||IS_LOW_END; // (lus par dbgPerf : MED = u
    ANTI-YOYO (repris de la résolution v3) : on ne descend que « calme » (ni reconstruction de zone, ni retour d'onglet, ni 30 Hz
    imposé) ; on remonte d'UN cran après ~4,5 s de marge (< 17,8 ms ou cadence 30 Hz) ; un cran remonté qui retombe en < 6 s
    devient un MUR pendant 45 s. `dbgPin(true)` fige l'échelle ; `dbgQual(k)` la force (banc) ; `?perf=1` l'affiche à l'écran. */
-const QL={k:0,mur:0,murT:0,roseT:0,up:0,efT:0,effondre:false,fr:0,N_EFF:5,ombre0:sun.shadow.mapSize.x,
+const QLR={a:new Float32Array(60),s:new Float32Array(60),i:0,n:0,p50:16,p75:16,p90:16}; // (tour 2) les 60 dernières durées d'image, et leurs centiles
+const QL={k:0,mur:0,murT:0,roseT:0,up:0,efT:0,effondre:false,fr:0,N_EFF:5,ombre0:sun.shadow.mapSize.x,essai:null,plafK:0,plafT:0,
   nom:['ombre en vol ½','ombre 768','bloom ¾','ombre 512','flou radial']};
+/* (2026-09-27, tour 2 — « on repasse en mode pixel assez vite après avoir lancé ») LE MODE PIXEL, C'ÉTAIT LE PLANCHER : sous l'effondrement,
+   l'échelle descendait jusqu'à DPR_MIN 0,5 — un pixel 3D pour six pixels d'écran sur un iPhone. Désormais DEUX planchers par réglage :
+   le NET (où l'on s'arrête en régime normal) et le BAS (qu'on ne franchit JAMAIS, même effondré) — NETTE 1,25 / 1,0 · RAPIDE 0,85 / 0,7.
+   Sous 1,0 en NETTE, le joueur a choisi la netteté : on garde l'image, quitte à perdre des images par seconde. */
 function qlBornes(){ // les crans de résolution se recalculent (RAPIDE/NETTE, écran)
-  const cap=DPR_CAP,net=(typeof SAVE!=='undefined'&&SAVE.d&&SAVE.d.q==='net'),pl=net?Math.min(cap,1.25):Math.min(cap,DPR_MIN),
-        nA=Math.max(0,Math.ceil((cap-pl)/.08-1e-6)),nB=Math.max(0,Math.ceil((pl-DPR_MIN)/.08-1e-6)),kNet=QL.N_EFF+nA,kBas=kNet+nB;
-  return {cap,pl,nA,nB,kNet,kBas,kMax:kBas+1};}
+  const cap=DPR_CAP,net=(typeof SAVE!=='undefined'&&SAVE.d&&SAVE.d.q==='net'),pl=Math.min(cap,net?1.25:.85),bas=Math.min(pl,Math.max(DPR_MIN,net?1:.7)),
+        nA=Math.max(0,Math.ceil((cap-pl)/.08-1e-6)),nB=Math.max(0,Math.ceil((pl-bas)/.08-1e-6)),kNet=QL.N_EFF+nA,kBas=kNet+nB;
+  return {cap,pl,bas,nA,nB,kNet,kBas,kMax:kBas+1};}
 function qlDpr(k,b){ // la résolution que vaut le cran k
   if(k<=QL.N_EFF)return b.cap;
   if(k<=b.kNet)return b.cap-(b.cap-b.pl)*(k-QL.N_EFF)/Math.max(1,b.nA);
-  return Math.max(DPR_MIN,b.pl-(b.pl-DPR_MIN)*(k-b.kNet)/Math.max(1,b.nB));}
+  return Math.max(b.bas,b.pl-(b.pl-b.bas)*(k-b.kNet)/Math.max(1,b.nB));}
 function qlPose(k){ const b=qlBornes();k=Math.max(0,Math.min(b.kMax,k|0));QL.k=k;
   const om=k>=4?512:k>=2?768:QL.ombre0;
   if(sun.shadow.mapSize.x!==om){if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}sun.shadow.mapSize.set(om,om);} // recrée la carte, zéro recompilation
@@ -4320,7 +4325,7 @@ function qlPose(k){ const b=qlBornes();k=Math.max(0,Math.min(b.kMax,k|0));QL.k=k
   const d=Math.min(qlDpr(k,b),devicePixelRatio);if(Math.abs(d-curDPR)>.001){curDPR=d;applyDPR();}
   QUAL_MED=k>0;QUAL_LOW=!!bloomPass&&!bloomPass.enabled&&!REDUCED_MOTION;return k;}
 function qlReprise(){ // RAPIDE⇄NETTE : le choix du joueur rend la pleine résolution tout de suite (les crans invisibles restent, l'échelle redescendra si besoin)
-  QL.mur=0;QL.murT=0;QL.roseT=0;QL.up=0;QL.efT=0;QL.effondre=false;curDPR=-1;qlPose(Math.min(QL.k,QL.N_EFF));}
+  QL.mur=0;QL.murT=0;QL.roseT=0;QL.up=0;QL.efT=0;QL.effondre=false;QL.essai=null;QL.plafT=0;curDPR=-1;qlPose(Math.min(QL.k,QL.N_EFF));}
 window.dbgQual=function(k){ if(k!=null){qlPose(k);RESPIN=true;} const b=qlBornes(); // dbgQual(k) force le cran k ET fige (dbgPin(false) relâche)
   const al=[];for(let i=0;i<QL.N_EFF&&i<QL.k;i++)al.push(QL.nom[i]);
   return {k:QL.k,kNet:b.kNet,kMax:b.kMax,plancher:+b.pl.toFixed(2),dpr:+curDPR.toFixed(3),effondre:QL.effondre,mur:(QL.murT&&performance.now()-QL.murT<45000)?QL.mur:0,
@@ -4335,7 +4340,7 @@ const PERF_MON=/[?&]perf=1/.test(location.search)?(function(){const e=document.c
 function perfMonTick(now,rawMs){const M=PERF_MON;if(rawMs>M.pire)M.pire=rawMs;if(now-M.t<250)return;M.t=now;
   const ms=loop._ms||16,al=[];for(let i=0;i<QL.N_EFF&&i<QL.k;i++)al.push(QL.nom[i]);const b=qlBornes();
   if(QL.k>b.kNet)al.push(QL.k>=b.kMax?'SOUS LE PLANCHER + BLOOM OFF':'SOUS LE PLANCHER');
-  const tx=ms.toFixed(1)+' ms  pire '+M.pire.toFixed(0)+'  '+Math.round(1000/Math.max(1,ms))+' i/s'+(loop._r30?'  (30 Hz)':'')+
+  const tx=ms.toFixed(1)+' ms  pire '+M.pire.toFixed(0)+'  '+Math.round(1000/Math.max(1,ms))+' i/s'+(loop._r30?'  (30 Hz)':'')+'  p50/75/90 '+QLR.p50.toFixed(0)+'/'+QLR.p75.toFixed(0)+'/'+QLR.p90.toFixed(0)+(QL.essai?'  essai':'')+
     '\nDPR '+curDPR.toFixed(2)+'/'+DPR_CAP.toFixed(2)+'  cran '+QL.k+'/'+b.kMax+(RESPIN?'  FIGE':'')+(bloomPass&&!bloomPass.fuse?'  bloom ancien':'')+'\n'+(al.length?al.join(' · '):'plein');
   if(now-(M.p0||0)>1000){M.p0=now;M.pire=0;}
   if(tx!==M.txt){M.txt=tx;M.el.textContent=tx;}}
@@ -21054,7 +21059,7 @@ function traceTick(actif){
 function newTrack(){
   traceVide(); // (2026-09-26) les traces de pneus restent sur l'ancienne route
   trailL.init=trailR.init=false;rainbow.init=false; // (2026-09-26) sinon le ruban de nitro se tendait de l'ancien ovule à la nouvelle piste
-  loop._rebuildT=performance.now(); // la construction d'une zone fait un pic : la qualité auto ne doit pas le prendre pour de la faiblesse
+  loop._rebuildT=performance.now();loop._rebuildD=3500; // la construction d'une zone fait un pic : la qualité auto ne doit pas le prendre pour de la faiblesse
   let sd=(Math.random()*1e9)|0;
   const niv=lvlChoisir(); // LE NIVEAU D'ABORD : buildClouds et buildVoxCity le lisent pendant la construction
   if(niv&&niv.graine)sd=niv.graine; // (2026-09-27) CAMPAGNE : la même piste, les mêmes pièces, les mêmes nuages à chaque essai
@@ -21240,6 +21245,7 @@ function endGame(){
 }
 function start(){
   if(started||document.getElementById('splash'))return;started=true;
+  loop._rebuildT=performance.now();loop._rebuildD=5000; // (tour 2) le départ hache (1ers shaders Metal, 1res textures) : pas une lenteur — 5 s de grâce
   runxReset(); // les compteurs de CONTRAT partent de zéro dès la 1re partie de la session
   // la caisse ÉQUIPÉE dès la première partie de la session (le rejeu le faisait déjà)
   {const e9=equippedCar();if(level!==e9){level=e9;buildCar(CARS[e9]);}levelCash=0;}
@@ -23817,15 +23823,23 @@ function loop(now){
   {const cad9=(loop._ms||16)>29.5&&(loop._ms||16)<37.5;if(cad9&&loop._jit<2)loop._r30T=now+2500; // tenu 2,5 s : une image sautée (66 ms) ne fait pas basculer
    loop._r30=cad9&&now<(loop._r30T||0);}
   loop._spk=(loop._spk||0)*.985+(rawMs>(loop._r30?45:26)?1:0);
+  QLR.a[QLR.i]=rawMs;QLR.i=(QLR.i+1)%QLR.a.length;if(QLR.n<QLR.a.length)QLR.n++; // (tour 2) l'anneau des 60 dernières images, lu par les centiles
   /* ⚠ LENTEUR SOUTENUE, JAMAIS UN PIC (2026-09-24) — toujours vrai : on ne dégrade que « calme » (ni reconstruction de zone, ni retour
      d'onglet, ni cadence 30 Hz imposée). Mais les paliers ne sont plus DÉFINITIFS et la résolution n'est plus la PREMIÈRE sacrifiée :
      (2026-09-27, passe perf iPhone) paliers MOYEN/BAS et résolution adaptative ne font plus qu'UNE échelle, `QL` — voir « LA NETTETÉ EN
      DERNIER » près de qlPose. Même horloge (un pas toutes les 1,1 s), mêmes seuils (19 / 24 / 17,8 ms), même anti-yoyo (4 pas de marge
      pour remonter, mur mémorisé 45 s) — appliqués au cran de l'échelle au lieu du seul pixelRatio. */
-  const calme9=!document.hidden&&now-(loop._rebuildT||0)>2500&&!loop._r30; // ni reconstruction de zone, ni retour d'onglet, ni cadence 30 Hz imposée
+  const calme9=!document.hidden&&now-(loop._rebuildT||0)>(loop._rebuildD||2500)&&!loop._r30; // ni reconstruction de zone, ni départ de partie, ni retour d'onglet, ni cadence 30 Hz imposée
   const qb9=qlBornes();
   // EFFONDREMENT : au plancher, encore > 24 ms (< 42 i/s) pendant 6 s D'AFFILÉE → on s'autorise sous le plancher (puis le bloom)
-  QL.efT=(calme9&&QL.k>=qb9.kNet&&(loop._ms||16)>24)?QL.efT+dt:0;if(QL.efT>6)QL.effondre=true;
+  /* (2026-09-27, tour 2) LA MESURE, C'EST LA PART D'IMAGES RATÉES — plus la moyenne glissante. Sur un écran 60 Hz une image qui
+     déborde d'un rien dure 33,3 ms : la moyenne mélangeait les à-coups (compilations, chargements, 1er vol) et la vraie lenteur, et un
+     départ de partie un peu haché suffisait à faire dévaler toute l'échelle. Désormais, sur les 60 dernières images : `p50` (la
+     médiane — plus de la moitié des images ratées = ça rame fort), `p75` (plus d'un quart ratées = ça tire), `p90` (moins d'une sur
+     dix ratée = marge pour remonter). Un à-coup isolé ne bouge aucun des trois. */
+  if(!loop._qlT||now-loop._qlT>250){loop._qlT=now;const n9=QLR.n,s9=QLR.s;for(let i=0;i<n9;i++)s9[i]=QLR.a[i];
+    const v9=s9.subarray(0,n9).sort();QLR.p50=n9?v9[n9>>1]:16;QLR.p75=n9?v9[(n9*.75)|0]:16;QLR.p90=n9?v9[Math.min(n9-1,(n9*.9)|0)]:16;}
+  QL.efT=(calme9&&QL.k>=qb9.kNet&&QLR.p50>24)?QL.efT+dt:0;if(QL.efT>6)QL.effondre=true;
   // ÉTAGE 1 : l'ombre en vol, une image sur deux — seulement LOIN de toute dalle (radar de tryLand), jamais au sol
   {const loin9=QL.k>=1&&mode==='fall'&&(lastNearH2+(fallPos.y-lastNearY)*(fallPos.y-lastNearY))>196;
    if(loin9){renderer.shadowMap.autoUpdate=false;QL.fr^=1;renderer.shadowMap.needsUpdate=QL.fr===0;}
@@ -23836,16 +23850,23 @@ function loop(now){
      comme un MUR (45 s). ⚠ LA REMONTÉE À < 14,5 ms ÉTAIT IMPOSSIBLE SUR UN ÉCRAN 60 Hz (2026-09-24) : la synchro plafonne l'image à
      16,7 ms — le seuil est 17,8 ms (« on tient la synchro 60 »). */
   dprT-=dt;
-  if(!RESPIN&&dprT<=0&&now>4000){dprT=1.1;const ms9=loop._ms||16;
-    if(calme9&&ms9>19&&QL.k<qb9.kMax){
-      const lim9=QL.effondre?qb9.kMax:qb9.kNet;let k9=Math.min(lim9,QL.k+(ms9>24?2:1));
-      // ça tire seulement (19-24 ms) : en RAPIDE on ne descend pas sous DPR_MIN+.25 (l'hystérésis d'avant, gardée)
-      while(ms9<=24&&k9>QL.N_EFF&&k9>QL.k&&qlDpr(k9,qb9)<DPR_MIN+.25-.001)k9--;
+  if(!RESPIN&&dprT<=0&&now>4000){dprT=1.1;const fort9=QLR.p50>24,tire9=QLR.p75>24||QLR.p50>18.5;
+    /* LA NETTETÉ NE SE SACRIFIE QUE SI ÇA PAIE (tour 2) : un cran de RÉSOLUTION posé, on regarde 3 s plus tard si la médiane a
+       baissé. Si non (le téléphone bute ailleurs : processeur, affichage), la résolution revient et ce cran devient un MUR — on ne
+       floute pas l'image pour rien. */
+    if(QL.essai&&now-QL.essai.t>3300){const e9=QL.essai;QL.essai=null;
+      if(QLR.p50>e9.p50-1.5&&QLR.p75>e9.p75-1.5&&(loop._ms||16)>e9.ms*.92){QL.plafK=e9.k0;QL.plafT=now;QL.up=0;qlPose(e9.k0);}}
+    else if(calme9&&tire9&&QL.k<qb9.kMax&&!QL.essai){
+      const lim9=QL.effondre?qb9.kMax:qb9.kNet;
+      let k9=Math.min(lim9,QL.k+(fort9?2:1));
+      if(k9>QL.N_EFF&&QL.plafT&&now-QL.plafT<45000)k9=Math.max(QL.k,Math.min(k9,QL.plafK)); // un PLAFOND : ce cran de résolution n'a rien rapporté il y a peu
       if(k9>QL.k){if(QL.roseT&&now-QL.roseT<6000){QL.mur=k9;QL.murT=now;} // remonté puis retombé aussitôt → ce cran est un mur
+        const res9=qlDpr(k9,qb9)<qlDpr(QL.k,qb9)-.001;if(res9)QL.essai={t:now,k0:QL.k,p50:QLR.p50,p75:QLR.p75,ms:loop._ms||16};
         QL.roseT=0;QL.up=0;qlPose(k9);}
       else QL.up=0;}
-    else if(ms9<17.8||loop._r30){const mur9=(QL.murT&&now-QL.murT<45000)?QL.mur:0;QL.up++;
-      if(QL.k>mur9&&QL.up>=4){QL.up=0;QL.roseT=now;if(QL.k-1<=qb9.kNet)QL.effondre=false;qlPose(QL.k-1);}}
+    else if(QLR.p90<17.8||loop._r30){const mur9=(QL.murT&&now-QL.murT<45000)?QL.mur:0;QL.up++;
+      // la marge revient : la RÉSOLUTION remonte d'abord, et vite (2 crans d'un coup quand presque aucune image ne rate)
+      if(QL.k>mur9&&QL.up>=3){QL.up=0;QL.roseT=now;const k9=Math.max(mur9,QL.k-(QLR.p90<16.9&&QL.k>QL.N_EFF+1?2:1));if(k9<=qb9.kNet)QL.effondre=false;qlPose(k9);}}
     else QL.up=0;
   }
   if(PERF_MON)perfMonTick(now,rawMs);
