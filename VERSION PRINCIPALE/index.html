@@ -3928,9 +3928,9 @@ if(CAN_POST){ try{
         seul l'arrondi 8 bits intermédiaire disparaît. 17² et 21² lectures sur si peu de pixels : moins cher qu'un aller-retour de cible.
       13 passes plein cadre à l'origine (seuil + 10 flous + composite + copie) → 8. Compilé au 1er rendu du bloom (au menu).
       ⚠ (2026-09-27, tour 2 — « le post-traitement ») LES MIPS 3-4 REDEVIENNENT SÉPARABLES (`plie2d=false`). MESURÉ (image figée, bloom
-      seul, A/B dans la même page) : le flou 2D était PLUS LENT que les deux passes qu'il remplaçait — 17² et 21² prises, chacune avec
-      son `exp` de gaussienne (≈ 800 000 prises et autant d'exponentielles par image), contre 2×17 et 2×21 prises à coefficients
-      pré-calculés. Chrono de la puce (carte PC, 585×1266) : 0,32 → 0,25 ms au sol, 0,31 → 0,23 en vol ; rendu logiciel : −5 à −10 %.
+      seul, A/B dans la même page) : le flou 2D était PLUS LENT que les deux passes qu'il remplaçait — 17² et 21² prises par pixel,
+      chacune pondérée par une gaussienne recalculée (≈ 800 000 prises par image), contre 2×17 et 2×21 prises en deux passes. Chrono
+      de la puce (carte PC, 585×1266) : 0,32 → 0,25 ms au sol, 0,31 → 0,23 en vol ; rendu logiciel : −5 à −10 %.
       Le seuil, lui, reste plié dans le 1er flou (sa passe séparée était plus lente sur la puce, et s'écartait jusqu'à 7/255 en nitro).
       Écart : ≤ 1-2/255 (0,03 en moyenne — l'arrondi 8 bits entre H et V d'origine revient). `?bloom=plie2d` rend le flou 2D (banc). */
    function bloomPlieMat(p){ if(p._p0)return true; try{
