@@ -26254,10 +26254,16 @@ if(BANC_ON)(function(){
     ['sans ville',()=>cache([CITY.root])],
     ['sans ombre (recompile)',()=>{sun.castShadow=false;return ()=>{sun.castShadow=true;};},40],
   ];
-  const R={},COLS=[],LIG=['réel i/s','réel ms','JS ms (figé)','TÉMOIN ms'].concat(P.map(p=>p[0]));
+  // L'AFFICHAGE RÉEL, image figée : le tempo de l'écran (arrondi à 16,7 / 33,3 ms, mais sa MOYENNE sur 2 s dit la part d'images
+  // ratées), avec et sans le HUD — Safari peint et compose le DOM hors de notre chrono synchronisé : c'est ici qu'il se voit.
+  const nuSt=document.createElement('style');nuSt.textContent='body.bancNu>*:not(canvas):not(#bancBox){visibility:hidden!important}';document.head.appendChild(nuSt);
+  const R={},COLS=[],LIG=['réel i/s','réel ms','figé : écran ms','figé : sans HUD','figé : DPR 1,0','JS ms (figé)','TÉMOIN ms'].concat(P.map(p=>p[0]));
   const vue=async (col)=>{COLS.push(col);const C=R[col]={};
     const r=await reel(2500);C['réel i/s']=r.ips.toFixed(0);C['réel ms']=r.ms.toFixed(1);
     BANC_FIGE=true;await Z(300);
+    C['figé : écran ms']=(1000/(await reel(2000)).ips).toFixed(1);
+    document.body.classList.add('bancNu');await Z(200);C['figé : sans HUD']=(1000/(await reel(2000)).ips).toFixed(1);document.body.classList.remove('bancNu');
+    setDPR(1);await Z(200);C['figé : DPR 1,0']=(1000/(await reel(2000)).ips).toFixed(1);setDPR(1.5);await Z(200);
     const ref=await mesure(30);C['JS ms (figé)']=ref.j.toFixed(1);C['TÉMOIN ms']=ref.t.toFixed(1);
     for(let i=0;i<P.length;i++){etat(col+' — '+P[i][0]+' ('+(i+1)+'/'+P.length+')'); // ENCADRÉ : témoin juste avant ET juste après — la dérive (chauffe, thermique) s'annule
       const a=await mesure(16,4);const off=P[i][1]();const m=await mesure(20,P[i][2]);off();const z=await mesure(16,P[i][2]?30:4);
