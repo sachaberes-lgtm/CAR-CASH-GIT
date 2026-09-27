@@ -277,6 +277,44 @@ Commits `2608066` (lot 1) · `c3493a5` (lots 2-3) · `04e8d28` (4) · `bd995f4` 
   ⚠ `dbgSaut()` = passer au NIVEAU suivant (pas un saut) ; pour s'envoler : `dbgDauphin(hauteur,vA,vLat,lat)`. Un test ne mesure le son
   qu'en comptant les `createOscillator` (patch avant chargement).
 
+## PASSE PERF iPHONE (2026-09-27) — « NETTE doit rester nette, surtout en vol » (iPhone 13 Pro, DPR 1,5)
+Mesuré au départ (banc Chrome, viewport iPhone, NETTE figée) : ~750 000 triangles/image dont ~600 000 pour la piste ENTIÈRE dessinée à
+chaque image ; en vol le CIEL devenait le 1er poste GPU (×5, il couvre la moitié de l'écran) ; CPU +60 % en l'air ; et la résolution
+adaptative descendait EN PREMIER. Cinq lots (branches perf-ciel/-post/-cpu/-piste/-caisse fusionnées). Ce qui est devenu une RÈGLE :
+- **CIEL** (`skyDome`) : chaque couche ne se calcule QUE là où elle peint (guirlande, étoiles par cellule, lune, cœurs du soleil, voile,
+  `atan` à la demande), coupures posées à la borne exacte où le terme vaut 0 (écart mesuré ≤ 1/255) ; mer de nuages en UNE passe
+  (`mfbm2`) ; VILLE pleine → saut direct à `villeCiel` (le ciel habituel était calculé pour être jeté), abîme/artères bornés en distance.
+  ⚠ La mer de nuages est maintenant les 2/3 du dôme aux NUAGES : l'alléger changerait son dessin (4→3 octaves) — décision de Sacha.
+- **ÉCHELLE DE QUALITÉ `QL`** (remplace `applyPerfTier`, `dbgQual()`) : UN curseur `QL.k`, chaque cran enlève d'abord ce qui se voit le
+  moins — ombre 1 image sur 2 en vol loin des dalles · carte d'ombre 768 · bloom ¾ · ombre 512 · flou radial coupé · PUIS la résolution,
+  jusqu'au PLANCHER NET (1,25 en NETTE, `DPR_MIN` en RAPIDE) ; sous le plancher puis bloom éteint seulement sur EFFONDREMENT (> 24 ms 6 s
+  d'affilée). RÉVERSIBLE : on remonte dans l'ordre inverse (la netteté revient la première). Anti-yoyo, 30 Hz imposé, chargements : inchangés.
+  Zéro recompilation (tailles de carte, drapeaux, uniforms). `applyQ` → `qlReprise()`.
+- **BLOOM 13 → 8 passes plein écran** : composite + copie additive sommés DANS l'ACES (`bloomPass.fuse`), seuil plié dans le 1er flou,
+  mips 3-4 en flou 2D d'une passe (`plie`). `?bloom=ancien` = l'ancien chemin pour comparer sur le téléphone.
+- **MONITEUR `?perf=1`** : une ligne en haut (ms, pire image, i/s, DPR/plafond, cran QL, allègements). Absent sans le drapeau (charte).
+  C'est ce qu'on demande à Sacha pour tout rapport de fluidité : captures `/jouer/?perf=1` au sol et en vol.
+- **PISTE EN TRANCHES** (`pisteTranches`, `PISTE_CH=600` points) : bitume, flancs, rails, nappes, ligne centrale bâtis ENTIERS (normales
+  calculées sur le tout) puis répartis en tranches à rangée frontière dupliquée, une sphère chacune → le frustum culling de three fait le
+  reste. UNE matière par famille (NEON_RAILS/NEON_GLOW n'en ont plus qu'une chacun). `pisteLoin` : une tranche entièrement au-delà de
+  `scene.fog.far` passe le bitume à 2 colonnes (même surface, déjà couleur du brouillard) et coupe la ligne. Géométrie hashée identique à
+  l'ancien code. `dbgPiste(on,loin)` = témoin sans tri. En vol : −58 à −81 % de triangles.
+- **PLOTS VUS** (`conesVus`, `CONE_PM`, `CONE_OMB`) : avant chaque rendu, seuls les plots dans le champ (4 instances sans ombre) et dans la
+  boîte d'ombre du soleil (3 instances qui ne font QUE l'ombre) partent au GPU ; tampon renvoyé seulement si la liste change ; chauffe
+  forcée 3 rendus (sinon le programme instancié compilait au 1er plot). ⚠ `scene.onBeforeRender` est pris (`pisteLoin`+`conesVus`) :
+  CHAÎNER, ne jamais réassigner.
+- **PLAQUES TURBO** : `padsInstancier()` (dans newTrack après conesInstancier) → UN `InstancedMesh` `PAD_IM` (82 draws → 1) ; toute
+  animation d'une plaque passe par l'instance.
+- **CPU** : `dalleIx`/`dalleProche` (casiers de 64 points dans une sphère) remplacent le balayage de toute la piste par `tryLand` et le
+  viseur (résultat identique prouvé sur 36 000 requêtes, 3-5× plus rapide) ; ⚠ `scene.updateMatrixWorld` SAUTE les enfants directs
+  INVISIBLES (l'atelier caché, pièces hors couloir…) : pour lire `matrixWorld`/`localToWorld` d'un objet caché, l'ajouter à
+  `SCENE_TOUJOURS` (la caisse y est) ; `airPieDraw` dessine hors écran puis UNE copie ; `updatePool` saute les réserves vides ; sur
+  téléphone plus de `fmtC` pour la mallette/le compteur masqués ; nuages `matrixAutoUpdate=false`. En vol le CPU coûte ≈ le sol.
+- **Écarté après mesure** : moins de mips de bloom (halo changé), RT 8 bits (banding), LOD de piste en deçà du brouillard (grain),
+  décimation des rails au loin (silhouettes qui bougent), masquage de la face cachée du bitume (dalle qui vrille), regroupement des nuages.
+- **Bancs** (scratchpad de la session 1a323fdd) : `banc/vol.js` (GPU par passe, `--drawgpu` GPU par draw sur image figée, `--attrib`
+  triangles par objet, `--prof`), `ciel/skybench.js`, `post/echelle.js` (GPU lent simulé), `cpu/cpu.js` (bridé ×4), `piste/equiv.js`.
+
 ## PASSE DÉBOGAGE / PERF (2026-09-26) — lots 1 à 4, mesurée (téléphone émulé, processeur bridé ×4)
 Résultat : 60 i/s partout sur PC, ZÉRO compilation de shader en course (portails, montées de moteur, rejouer, 1re ville, 1er vol de
 pigeons). Pires images, bridé ×4 : moteur 169 → 65-92 ms, portail 322 → 66-111 ms, croisière 36 → 18-22 ms/image. Ce qui est devenu une RÈGLE :
