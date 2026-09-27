@@ -6842,17 +6842,87 @@ function buildTrack(seed){
 const VOX_M=.05;            // LA BRIQUE. Le module de base du jeu, et il n'y en a qu'un.
 const VOX_CITY=VOX_M*128;   // 6,4 m — la maille de la ville : un multiple ENTIER de la brique.
 const CITY={root:null,uT:{value:0},uC:{value:1},n:{}}; // uC : le COURANT de la ville (1 = allumée, 0 = la panne du niveau 16 de la campagne VILLE)
-function villeMatTours(){ // béton du village + fenêtres + pied noyé dans la brume (PARTAGÉ : jamais disposé — voir pose())
-  if(CITY.matT)return CITY.matT;
+/* (2026-09-27/28, passe perf iPhone) LA VILLE NE TRAVAILLE PLUS POUR RIEN — mesuré au banc en rendu logiciel (image figée, iPhone
+   585×1266) : la ville coûtait ~25 % de l'image en VILLE, et la plus grosse part n'était PAS des pixels — avec une fenêtre de rendu
+   d'un seul pixel, elle en coûtait encore les deux tiers. C'était le travail PAR SOMMET : ~5 000 volumes × 24 sommets, chacun éclairé
+   (Lambert calcule la lumière au sommet : hémisphère, 3 directionnelles et ~10 lampes ponctuelles/spots), pour une ville dont 75 à
+   80 % des volumes sont ENTIÈREMENT au-delà du brouillard (la forêt du village : des silhouettes couleur de brume, rien de plus).
+   Cinq règles, à RÉSULTAT IDENTIQUE (A/B au pixel, `dbgVilleAncien`) :
+     · LES QUARTIERS (`villeTri`) : chaque rendu juge des cubes de 320 m — HORS du champ → pas dessinés ; entièrement AU-DELÀ du
+       brouillard → une matière NUE (villeMatToursLoin / villeMatNeonLoin : fogColor, le pied noyé, l'air de la pluie) ; sinon la
+       matière complète. 5 appels de rendu au lieu de 3, tampons mis à jour par petits bouts (voir villeTri) ;
+     · `VILLE_TRI` (au sommet, par instance — centre et demi-diagonale lus dans `instanceMatrix`) : une boîte entièrement hors d'un
+       plan du champ est REPLIÉE en un point (zéro triangle rastérisé) ; entièrement au-delà de `fogFar` (la profondeur de vue du
+       brouillard de three) elle SAUTE l'éclairage — ses fragments valent fogColor (mix(…, fogColor, 1)), la lumière n'y peut rien ;
+     · LA PORTÉE DES LAMPES (`villeLampes`, `uLum9`) : les boucles ponctuelles/spots sautées là où aucune n'arrive (apport exactement 0) ;
+     · au pixel : fenêtres, liserés, enseignes, pied, pluie ne se calculent que là où ils PEIGNENT (brouillard < 1, courant > 0, face
+       murale, motif plus grand que le pixel, carreau allumé, pied < 280 m, pluie > 0) — les dérivées (fwidth) restent calculées
+       AVANT tout branchement, comme avant ;
+     · la ville ne REÇOIT pas d'ombre (receiveShadow false) : `USE_SHADOWMAP` retiré de ses programmes (getShadowMask valait 1 —
+       mais le ternaire `receiveShadow ? getShadow(…)` peut être évalué des deux côtés).
+   `villeMatTours(true)` / `villeMatNeon(true)` = l'ANCIEN chemin (`dbgVilleAncien(true)` : ancienne matière, tout dans l'ordre d'origine). */
+const VILLE_TRI='#ifdef USE_INSTANCING\n'+
+  'if(!isOrthographic){vec3 c9=(modelViewMatrix*vec4(instanceMatrix[3].xyz,1.)).xyz;'+ // le centre de la boîte, dans le repère de la caméra (la ville est posée à l'identité : `root` jamais déplacé)
+  'float r9=.5*length(vec3(length(instanceMatrix[0].xyz),length(instanceMatrix[1].xyz),length(instanceMatrix[2].xyz)))+1.;'+ // demi-diagonale + 1 m de marge
+  'vec2 px9=vec2(projectionMatrix[0][0],projectionMatrix[2][0]),py9=vec2(projectionMatrix[1][1],projectionMatrix[2][1]);'+ // les 4 plans latéraux, tirés de la projection (décalage compris)
+  'if(c9.z>r9||px9.x*c9.x+(px9.y+1.)*c9.z>r9*length(vec2(px9.x,px9.y+1.))||-px9.x*c9.x+(1.-px9.y)*c9.z>r9*length(vec2(px9.x,1.-px9.y))'+
+  '||py9.x*c9.y+(py9.y+1.)*c9.z>r9*length(vec2(py9.x,py9.y+1.))||-py9.x*c9.y+(1.-py9.y)*c9.z>r9*length(vec2(py9.x,1.-py9.y))){gl_Position=vec4(0.,0.,2.,1.);loin9=true;}'+ // HORS CHAMP : repliée en un point
+  '\n#if defined(USE_FOG)&&!defined(FOG_EXP2)\n'+
+  'if(-c9.z-r9>fogFar)loin9=true;'+ // AU-DELÀ DU BROUILLARD : couleur de brume au bit près, la lumière n'y peut rien
+  '\n#endif\n}\n#endif\n';
+const VT={QC:320,H:120,M:60,G:256,K:.3,lum:true,avAr:true,fr:new THREE.Frustum(),pv:new THREE.Matrix4(),pl:new Float64Array(24),lp:new THREE.Vector3(),ord:[],n:0,nu:0,ko:0,ms:0,im:0}; // le tri par QUARTIERS (villeTri) : cube de 320 m, hystérésis brouillard H / champ M, compteur de remontées
+const villePied=Q=> // APRÈS le brouillard de three — partagé par les tours PRÈS et les tours AU LOIN (villeMatToursLoin) : le même code, au caractère près
+  // LE PIED DANS LA BRUME : fondu vers la couleur du brouillard sur 280 m, et la lueur des rues qui monte — (passe perf) au-dessus de 280 m
+  // du pied (mb = 1 : presque toute tour vue de la route) le mélange rendait la couleur telle quelle, il ne se calcule plus
+  '#ifdef USE_FOG\n{float mb=smoothstep(10.,280.,vB9);if('+Q('vB9<280.')+'){vec3 mc=fogColor+vec3(.16,.04,.2)*(1.-smoothstep(0.,160.,vB9));'+
+  'gl_FragColor.rgb=mix(mc,gl_FragColor.rgb,mb);}'+
+  /* L'AIR DE LA PLUIE (2026-09-26) : le brouillard du biome ne commence qu'à 320 m — les trois rangs du canyon (55-330 m) avaient
+     TOUS le même contraste, un seul plan plat. Sous la pluie, l'air s'épaissit dès 40 m : chaque rang un peu plus noyé que le
+     précédent, la profondeur se lit. Et ce qui monte AU-DESSUS de l'œil se noie vers le PLAFOND (plus sombre que la brume de
+     l'horizon) : les grandes tours lointaines ne font plus des aplats lilas plus clairs que le ciel derrière elles. */
+  'if('+Q('uWet9>0.')+'){vec3 e9=vW9-cameraPosition;float d9=length(e9),el9=e9.y/max(d9,1.);'+ // (passe perf) pluie nulle : fc9 = fogColor, les deux termes valent 0
+  'vec3 fc9=fogColor*mix(1.,.62,smoothstep(.04,.5,el9)*uWet9);'+
+  'gl_FragColor.rgb=mix(gl_FragColor.rgb,fc9,uWet9*.36*(1.-exp(-max(0.,d9-40.)/320.)));'+
+  'float ff9=smoothstep(fogNear,fogFar,d9);gl_FragColor.rgb+=(fc9-fogColor)*ff9*mb;}}\n#endif';
+/* (passe perf) LA PORTÉE DES LAMPES — Lambert éclaire au SOMMET, et chaque sommet de chaque tour évaluait toutes les lumières ponctuelles et
+   les spots de la scène (caisse, phares, nitro, traînée, pose, meute, portail : ~10). Leur apport est EXACTEMENT nul au-delà de leur
+   portée (`distance`, décroissance > 0 : pow(saturate(1 − d/portée), décroissance) = 0), et elles vivent toutes près de la caisse, des
+   bots ou du portail. `villeLampes` les regroupe en 4 SPHÈRES de portée (monde) ; une tour qui n'en touche aucune saute ces deux
+   boucles — l'hémisphère et les trois directionnelles restent. Une lampe de portée infinie (ou sans décroissance) : tout le monde calcule. */
+CITY.uL={value:[new THREE.Vector4(0,0,0,-1e30),new THREE.Vector4(0,0,0,-1e30),new THREE.Vector4(0,0,0,-1e30),new THREE.Vector4(0,0,0,-1e30)]};
+const VILLE_LLV=(function(){const c=THREE.ShaderChunk.lights_lambert_vertex,a='#if NUM_POINT_LIGHTS > 0',b='#if NUM_DIR_LIGHTS > 0'; // point et spot, puis directionnelles
+  const i=c.indexOf(a),j=c.indexOf(b);return (i<0||j<i||c.indexOf('#if NUM_SPOT_LIGHTS > 0')<i||c.indexOf('#if NUM_SPOT_LIGHTS > 0')>j)?c:c.slice(0,i)+'if(proche9){\n'+c.slice(i,j)+'}\n'+c.slice(j);})();
+function villeLampes(){
+  const L=CITY.lampes,u=CITY.matT&&renderer.properties.get(CITY.matT).uniforms; // la liste des lampes ; si three en compte PLUS (une lampe née depuis), on la refait
+  if(!L||(u&&u.pointLights&&u.spotLights&&u.pointLights.value.length+u.spotLights.value.length>L.length)){CITY.lampes=[];scene.traverse(function(o){if(o.isPointLight||o.isSpotLight)CITY.lampes.push(o);});}
+  const S=CITY.uL.value,P=VT.lp;let n=0;
+  for(const l of CITY.lampes){if(!l.visible||!(l.intensity>0))continue; // éteinte : sa couleur vaut 0, son apport aussi
+    if(!VT.lum){S[0].set(0,0,0,1e30);n=1;break;} // (banc) dbgVilleTri({lum:false}) : toutes les tours calculent toutes les lampes
+    if(!(l.distance>0)||!(l.decay>0)){S[0].set(0,0,0,1e30);n=1;break;}
+    P.setFromMatrixPosition(l.matrixWorld);const r=l.distance;let b=-1,bR=1e30;
+    for(let i=0;i<n;i++){const s9=S[i],d=Math.hypot(P.x-s9.x,P.y-s9.y,P.z-s9.z),R9=d+r<=s9.w?s9.w:d+s9.w<=r?r:(d+r+s9.w)/2;if(R9<bR){bR=R9;b=i;}}
+    if(b>=0&&(n===4||bR<=Math.max(S[b].w,r)+40)){const s9=S[b],d=Math.hypot(P.x-s9.x,P.y-s9.y,P.z-s9.z); // on fusionne (la sphère qui contient les deux)
+      if(d+r<=s9.w){}else if(d+s9.w<=r)s9.set(P.x,P.y,P.z,r);else{const k=(bR-s9.w)/d;s9.set(s9.x+(P.x-s9.x)*k,s9.y+(P.y-s9.y)*k,s9.z+(P.z-s9.z)*k,bR);}}
+    else S[n++].set(P.x,P.y,P.z,r);}
+  for(let i=n;i<4;i++)S[i].set(0,0,0,-1e30);
+}
+function villeMatTours(ancien){ // béton du village + fenêtres + pied noyé dans la brume (PARTAGÉ : jamais disposé)
+  const K=ancien?'matT0':'matT';if(CITY[K])return CITY[K];
   const m=new THREE.MeshLambertMaterial({color:0xffffff,emissive:0x07080d});
   m.extensions={derivatives:true}; // fwidth (WebGL1) : les fenêtres se filtrent à la taille du pixel
   const DECL='varying vec3 vLoc9;varying vec3 vNrm9;varying float vB9;varying float vSeed9;varying vec3 vSc9;varying vec3 vW9;';
-  m.onBeforeCompile=function(sh){sh.uniforms.uT9=CITY.uT;sh.uniforms.uWet9=ROAD_U.uWet;sh.uniforms.uCour9=CITY.uC;
-    sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\n'+DECL)
+  const Q=c=>ancien?'true':c; // (passe perf) chaque saut de calcul : `true` sur l'ANCIEN chemin (le banc compare au même code)
+  m.onBeforeCompile=function(sh){sh.uniforms.uT9=CITY.uT;sh.uniforms.uWet9=ROAD_U.uWet;sh.uniforms.uCour9=CITY.uC;if(!ancien)sh.uniforms.uLum9=CITY.uL;
+    sh.vertexShader=(ancien?'':'#undef USE_SHADOWMAP\n')+sh.vertexShader.replace('#include <common>','#include <common>\n'+DECL+(ancien?'':'\nuniform vec4 uLum9[4];\n#if defined(USE_FOG)&&!defined(FOG_EXP2)\nuniform float fogFar;\n#endif\n'))
       .replace('#include <begin_vertex>','#include <begin_vertex>\n#ifdef USE_INSTANCING\n'+
         'vec3 sc9=vec3(length(instanceMatrix[0].xyz),length(instanceMatrix[1].xyz),length(instanceMatrix[2].xyz));'+
         'vSeed9=fract(instanceMatrix[3].x*.0131+instanceMatrix[3].z*.0173);vW9=(modelMatrix*instanceMatrix*vec4(position,1.)).xyz;\n#else\nvec3 sc9=vec3(1.);vSeed9=0.;vW9=(modelMatrix*vec4(position,1.)).xyz;\n#endif\n'+
-        'vLoc9=position*sc9;vNrm9=normal;vB9=(position.y+.5)*sc9.y;vSc9=sc9;');
+        'vLoc9=position*sc9;vNrm9=normal;vB9=(position.y+.5)*sc9.y;vSc9=sc9;')
+      .replace('#include <project_vertex>','#include <project_vertex>\nbool loin9=false;\n'+(ancien?'':VILLE_TRI+
+        '#ifdef USE_INSTANCING\nbool proche9=false;{vec3 w9=(modelMatrix*vec4(instanceMatrix[3].xyz,1.)).xyz;float r9=.5*length(sc9)+1.;'+ // la boîte touche-t-elle la portée d'une lampe ?
+        'for(int i=0;i<4;i++)if(distance(w9,uLum9[i].xyz)<uLum9[i].w+r9)proche9=true;}\n#else\nbool proche9=true;\n#endif\n'))
+      .replace('#include <lights_lambert_vertex>',ancien?'#include <lights_lambert_vertex>':'vLightFront=vec3(0.);vIndirectFront=vec3(0.);\nif(!loin9){\n'+VILLE_LLV+'\n}');
+    if(!ancien)sh.fragmentShader='#undef USE_SHADOWMAP\n'+sh.fragmentShader;
     sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9,uWet9,uCour9;'+DECL)
       .replace('#include <fog_fragment>',
         /* LES FENÊTRES v2 (2026-09-26) — chaque tour a sa PERSONNALITÉ, tirée de sa graine : travée 2,6-4,4 m, étage 3,5-4,4 m, taux
@@ -6868,52 +6938,48 @@ function villeMatTours(){ // béton du village + fenêtres + pied noyé dans la 
            plateau sur quatre dort). Le rose n'est plus aux fenêtres : il est aux ENSEIGNES (néon magenta et cyan). */
         '{vec3 an=abs(vNrm9);float fv=step(an.y,.5)*step(9.,min(vSc9.x,vSc9.z));'+
         'float s1=fract(vSeed9*7.13),s2=fract(vSeed9*13.71),s3=fract(vSeed9*29.37),bur=step(.7,s3),fro=step(.58,s3);'+ // fro : tour FROIDE (les bureaux en sont)
-        'vec2 cel=vec2(2.6+s1*1.8,3.5+s2*.9),uv=(an.x>an.z?vLoc9.zy:vLoc9.xy)/cel,fw=max(fwidth(uv),vec2(1e-4)),id=floor(uv),f=fract(uv);'+
-        'vec2 hw=vec2(mix(.3,.46,bur),.26),dd=(hw-abs(f-.5))/fw;float w=clamp(dd.x+.5,0.,1.)*clamp(dd.y+.5,0.,1.);'+
-        'vec2 idH=bur>.5?vec2(floor(id.x/5.),id.y):id;'+                                   // les bureaux s'allument par PLATEAUX
-        'float h=fract(sin(dot(idH+vec2(vSeed9*97.,vSeed9*61.),vec2(12.9898,78.233)))*43758.5453);'+
-        'float hb=fract(sin(floor(id.y/(1.+floor(s1*3.)))*91.7+vSeed9*311.)*43758.5453),vit=step(.26,hb);'+ // les BANDES d'étages : 3 plateaux sur 4 vivent
-        'float tx=.55+.1*s2,on=step(1.-mix(.08,(tx-.02)/.74,vit),h);'+                     // 55-65 % allumées en moyenne (un plateau qui dort garde 8 % de veilleuses)
-        'float hv=fract(sin(dot(id+vec2(floor(uT9/(15.+25.*h)+h*7.),vSeed9*13.),vec2(39.34,11.13)))*24634.63);on=abs(on-step(.94,hv));'+ // la VIE : ~6 % des fenêtres basculent de temps en temps
-        'vec3 cW=vec3(1.,.69,.29),cC=vec3(.56,.85,1.),dom=mix(cW,cC,fro),aut=mix(cC,cW,fro);'+ // #ffb04a / #8fd8ff : la dominante et l'autre
-        'vec3 wc=mix(dom,aut,step(.8,fract(h*7.77)))*(.8+.4*fract(h*13.1));'+
-        'float tv=step(.955,hv)*step(hv,.975)*(.55+.45*sin(uT9*7.3+h*40.)*sin(uT9*2.9+h*9.));wc=mix(wc,vec3(.45,.6,1.)*1.2*tv,step(.001,tv));'+ // les ÉCRANS
-        'float far=smoothstep(.3,.75,max(fw.x,fw.y)),avg=tx*4.*hw.x*hw.y;'+
-        'gl_FragColor.rgb+=mix(wc*w*on,mix(dom,aut,.2)*avg*1.05,far)*fv*1.3*uCour9;'+ // uCour9 : la PANNE éteint les fenêtres (campagne VILLE, niveau 16)
+        'vec2 cel=vec2(2.6+s1*1.8,3.5+s2*.9),uv=(an.x>an.z?vLoc9.zy:vLoc9.xy)/cel,fw=max(fwidth(uv),vec2(1e-4));'+
         // LES TOITS (2026-09-26) : vus d'avion (vol libre, plongeons), c'étaient des dalles noires. Chaque toit porte désormais un LISERÉ
         // néon sur son parapet (ambre, cyan des bureaux, parfois magenta) : d'en haut, la ville dessine ses blocs et ses retraits en
         // lignes de lumière. Anticrénelé, et éteint quand le liseré tombe sous le pixel (pas de fourmillement au loin).
-        'float tt=step(.5,vNrm9.y)*step(9.,min(vSc9.x,vSc9.z)),de=min(vSc9.x*.5-abs(vLoc9.x),vSc9.z*.5-abs(vLoc9.z)),fe=max(fwidth(de),1e-4);'+
-        'vec3 rc=fro>.5?vec3(.24,.91,1.):s2>.72?vec3(1.,.24,.78):vec3(1.,.58,.24);'+ // (vague 2) le parapet suit la dominante de la tour (cyan #3ee8ff / ambre), parfois magenta #ff3ec8
-        'gl_FragColor.rgb+=rc*tt*(1.-smoothstep(.55,.55+fe*1.5,de))*(1.-smoothstep(.5,1.4,fe))*.55*uCour9;}\n'+
-        '#include <fog_fragment>\n'+
-        // LE PIED DANS LA BRUME : fondu vers la couleur du brouillard sur 280 m, et la lueur des rues qui monte
-        '#ifdef USE_FOG\n{float mb=smoothstep(10.,280.,vB9);vec3 mc=fogColor+vec3(.16,.04,.2)*(1.-smoothstep(0.,160.,vB9));'+
-        'gl_FragColor.rgb=mix(mc,gl_FragColor.rgb,mb);'+
-        /* L'AIR DE LA PLUIE (2026-09-26) : le brouillard du biome ne commence qu'à 320 m — les trois rangs du canyon (55-330 m) avaient
-           TOUS le même contraste, un seul plan plat. Sous la pluie, l'air s'épaissit dès 40 m : chaque rang un peu plus noyé que le
-           précédent, la profondeur se lit. Et ce qui monte AU-DESSUS de l'œil se noie vers le PLAFOND (plus sombre que la brume de
-           l'horizon) : les grandes tours lointaines ne font plus des aplats lilas plus clairs que le ciel derrière elles. */
-        'vec3 e9=vW9-cameraPosition;float d9=length(e9),el9=e9.y/max(d9,1.);'+
-        'vec3 fc9=fogColor*mix(1.,.62,smoothstep(.04,.5,el9)*uWet9);'+
-        'gl_FragColor.rgb=mix(gl_FragColor.rgb,fc9,uWet9*.36*(1.-exp(-max(0.,d9-40.)/320.)));'+
-        'float ff9=smoothstep(fogNear,fogFar,d9);gl_FragColor.rgb+=(fc9-fogColor)*ff9*mb;}\n#endif');
+        'float tt=step(.5,vNrm9.y)*step(9.,min(vSc9.x,vSc9.z)),de=min(vSc9.x*.5-abs(vLoc9.x),vSc9.z*.5-abs(vLoc9.z)),fe=max(fwidth(de),1e-4);'+ // (passe perf) les DEUX dérivées avant tout branchement
+        '\n#if defined(USE_FOG)&&!defined(FOG_EXP2)\nbool VIS9=fogDepth<fogFar;\n#else\nbool VIS9=true;\n#endif\n'+ // au-delà, le brouillard rend fogColor au bit près : rien de ce qui suit ne se verrait
+        'if('+Q('VIS9&&uCour9>0.')+'){vec3 cW=vec3(1.,.69,.29),cC=vec3(.56,.85,1.),dom=mix(cW,cC,fro),aut=mix(cC,cW,fro);'+ // #ffb04a / #8fd8ff : la dominante et l'autre
+        'if('+Q('fv>0.')+'){vec2 hw=vec2(mix(.3,.46,bur),.26);float tx=.55+.1*s2,far=smoothstep(.3,.75,max(fw.x,fw.y)),avg=tx*4.*hw.x*hw.y;vec3 wv=mix(dom,aut,.2)*avg*1.05;'+ // wv : la lueur MOYENNE (le lointain)
+        'if('+Q('far<1.')+'){vec2 id=floor(uv),f=fract(uv),dd=(hw-abs(f-.5))/fw;float w=clamp(dd.x+.5,0.,1.)*clamp(dd.y+.5,0.,1.);'+ // (passe perf) motif sous le pixel : la moyenne suffit, les hachages ne se calculent pas
+        'vec3 wo=vec3(0.);if('+Q('w>0.')+'){'+ // (passe perf) entre deux carreaux (la moitié du mur de près) : rien à allumer, les hachages ne se calculent pas
+        'vec2 idH=bur>.5?vec2(floor(id.x/5.),id.y):id;'+                                   // les bureaux s'allument par PLATEAUX
+        'float h=fract(sin(dot(idH+vec2(vSeed9*97.,vSeed9*61.),vec2(12.9898,78.233)))*43758.5453);'+
+        'float hb=fract(sin(floor(id.y/(1.+floor(s1*3.)))*91.7+vSeed9*311.)*43758.5453),vit=step(.26,hb);'+ // les BANDES d'étages : 3 plateaux sur 4 vivent
+        'float on=step(1.-mix(.08,(tx-.02)/.74,vit),h);'+                                  // 55-65 % allumées en moyenne (un plateau qui dort garde 8 % de veilleuses)
+        'float hv=fract(sin(dot(id+vec2(floor(uT9/(15.+25.*h)+h*7.),vSeed9*13.),vec2(39.34,11.13)))*24634.63);on=abs(on-step(.94,hv));'+ // la VIE : ~6 % des fenêtres basculent de temps en temps
+        'if('+Q('on>0.')+'){vec3 wc=mix(dom,aut,step(.8,fract(h*7.77)))*(.8+.4*fract(h*13.1));'+ // (passe perf) fenêtre éteinte : ni teinte ni écran
+        'float tv=step(.955,hv)*step(hv,.975)*(.55+.45*sin(uT9*7.3+h*40.)*sin(uT9*2.9+h*9.));wc=mix(wc,vec3(.45,.6,1.)*1.2*tv,step(.001,tv));'+ // les ÉCRANS
+        'wo=wc*w*on;}}wv=mix(wo,wv,far);}'+
+        'gl_FragColor.rgb+=wv*fv*1.3*uCour9;}'+ // uCour9 : la PANNE éteint les fenêtres (campagne VILLE, niveau 16)
+        'if('+Q('tt>0.&&fe<1.4')+'){vec3 rc=fro>.5?vec3(.24,.91,1.):s2>.72?vec3(1.,.24,.78):vec3(1.,.58,.24);'+ // (vague 2) le parapet suit la dominante de la tour (cyan #3ee8ff / ambre), parfois magenta #ff3ec8
+        'gl_FragColor.rgb+=rc*tt*(1.-smoothstep(.55,.55+fe*1.5,de))*(1.-smoothstep(.5,1.4,fe))*.55*uCour9;}}}\n'+
+        '#include <fog_fragment>\n'+villePied(Q));
   };
-  m.customProgramCacheKey=function(){return 'toursV3';};
-  CITY.matT=m;return m;
+  m.customProgramCacheKey=function(){return ancien?'toursV3':'toursV4';};
+  CITY[K]=m;return m;
 }
-function villeMatNeon(){ // enseignes, couronnes, feux d'antenne — ils RESPIRENT, quelques-uns clignotent, une poignée grésille
-  if(CITY.matN)return CITY.matN;
+function villeMatNeon(ancien){ // enseignes, couronnes, feux d'antenne — ils RESPIRENT, quelques-uns clignotent, une poignée grésille
+  const K=ancien?'matN0':'matN';if(CITY[K])return CITY[K];
+  const Q=c=>ancien?'true':c; // (passe perf) voir villeMatTours
   const m=new THREE.MeshBasicMaterial({color:0xffffff});
   m.extensions={derivatives:true};
   m.onBeforeCompile=function(sh){sh.uniforms.uT9=CITY.uT;sh.uniforms.uCour9=CITY.uC;
-    sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying float vS9;varying vec3 vL9,vN9,vC9;')
+    sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying float vS9;varying vec3 vL9,vN9,vC9;'+(ancien?'':'\n#if defined(USE_FOG)&&!defined(FOG_EXP2)\nuniform float fogFar;\n#endif\n'))
+      .replace('#include <project_vertex>','#include <project_vertex>\nbool loin9=false;\n'+(ancien?'':VILLE_TRI)) // (passe perf) hors champ : repliée en un point
       .replace('#include <begin_vertex>','#include <begin_vertex>\n#ifdef USE_INSTANCING\n'+
         'vS9=fract(instanceMatrix[3].x*.113+instanceMatrix[3].z*.071+instanceMatrix[3].y*.037);vC9=vec3(length(instanceMatrix[0].xyz),length(instanceMatrix[1].xyz),length(instanceMatrix[2].xyz));\n#else\nvS9=0.;vC9=vec3(1.);\n#endif\n'+
         'vL9=position*vC9;vN9=normal;');
     sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9,uCour9;varying float vS9;varying vec3 vL9,vN9,vC9;'+
         'float nH9(vec3 p){return fract(sin(dot(p,vec3(12.9898,78.233,37.719)))*43758.5453);}')
-      .replace('#include <fog_fragment>','{float fl=.8+.2*sin(uT9*(2.+vS9*7.)+vS9*40.);'+
+      .replace('#include <fog_fragment>','{vec3 fL=fwidth(vL9);'+ // ⚠ les dérivées HORS des branches (elles y seraient indéfinies)
+        '\n#if defined(USE_FOG)&&!defined(FOG_EXP2)\nbool VIS9=fogDepth<fogFar;\n#else\nbool VIS9=true;\n#endif\n'+ // (passe perf) au-delà du brouillard : fogColor au bit près, rien ne se calcule
+        'if('+Q('VIS9')+'){float fl=.8+.2*sin(uT9*(2.+vS9*7.)+vS9*40.);'+
         'if(vS9>.88)fl*=step(.3,fract(uT9*(.5+vS9)+vS9*7.));'+
         'if(vS9<.05)fl*=.2+.8*step(.1,fract(sin(floor(uT9*15.)+vS9*91.)*437.5));'+
         /* LES ENSEIGNES PARLENT (2026-09-26) — c'étaient des pavés de couleur unie. Désormais, sans une donnée de plus (tout se déduit de
@@ -6921,7 +6987,7 @@ function villeMatNeon(){ // enseignes, couronnes, feux d'antenne — ils RESPIRE
            tirés au hasard, 4 × 5 pixels, l'alphabet d'une ville qu'on ne lit pas), un cadre et un fond sombre ; une sur trois fait
            DÉFILER son texte pixel par pixel. La COURONNE des toits devient une guirlande d'ampoules qui court. Les détails se fondent
            dans leur lueur moyenne quand ils tombent sous le pixel (fwidth) : zéro scintillement au loin. */
-        'vec3 an=abs(vN9),sc=vC9,fL=fwidth(vL9);float k9=1.;'+ // ⚠ les dérivées HORS des branches (elles y seraient indéfinies)
+        'vec3 an=abs(vN9),sc=vC9;float k9=1.;'+
         'if(sc.y>12.&&min(sc.x,sc.z)<3.){bool fx=sc.x<sc.z;float fn=fx?an.x:an.z;'+
         '  if(fn>.5){vec2 p=fx?vL9.zy:vL9.xy;float W=fx?sc.z:sc.x,ps=W*.15;'+
         '    vec2 e=vec2(W,sc.y)*.5-abs(p),fe=fx?fL.zy:fL.xy;float cad=1.-smoothstep(ps*.6,ps*.6+fe.y*1.5,min(e.x,e.y));'+
@@ -6934,9 +7000,31 @@ function villeMatNeon(){ // enseignes, couronnes, feux d'antenne — ils RESPIRE
         '  float q=(an.x>an.z?vL9.z:vL9.x)+(an.x>an.z?vL9.x:vL9.z)*.3,d=fract(q/2.2-uT9*(1.+vS9*2.));'+
         '  float b=smoothstep(.3,.08,abs(d-.5)),lo=smoothstep(.3,.8,(an.x>an.z?fL.z:fL.x)/2.2);'+
         '  k9=mix(.45,mix(.3+1.1*b,.72,lo),fv);}'+
-        'gl_FragColor.rgb*=fl*k9*mix(.03,1.,uCour9);}\n#include <fog_fragment>');};
-  m.customProgramCacheKey=function(){return 'neonsV2';};
-  CITY.matN=m;return m;
+        'gl_FragColor.rgb*=fl*k9*mix(.03,1.,uCour9);}}\n#include <fog_fragment>');};
+  m.customProgramCacheKey=function(){return ancien?'neonsV2':'neonsV3';};
+  CITY[K]=m;return m;
+}
+/* (2026-09-28, passe perf iPhone) LES MATIÈRES NUES — pour les QUARTIERS entièrement au-delà du brouillard (voir villeTri). Là-bas la
+   matière complète rend, au bit près, `fogColor` (mix(…, fogColor, 1)) puis — pour les tours — le pied noyé et l'air de la pluie,
+   qui ne dépendent que de la position. Ces deux matières ne calculent QUE ça : ni lumière (Lambert l'évaluait au sommet, ~12 lampes),
+   ni fenêtres, ni enseignes, 4 interpolants au lieu de 24. Pas de couleur par instance (villeChauffe les compile pareil). */
+function villeMatToursLoin(){
+  if(CITY.matTL)return CITY.matTL;
+  const m=new THREE.MeshBasicMaterial({color:0x000000});
+  m.onBeforeCompile=function(sh){sh.uniforms.uWet9=ROAD_U.uWet;
+    sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying float vB9;varying vec3 vW9;')
+      .replace('#include <begin_vertex>','#include <begin_vertex>\n#ifdef USE_INSTANCING\n'+ // vB9 et vW9 : les MÊMES expressions que villeMatTours
+        'vB9=(position.y+.5)*length(instanceMatrix[1].xyz);vW9=(modelMatrix*instanceMatrix*vec4(position,1.)).xyz;\n#else\nvB9=position.y+.5;vW9=(modelMatrix*vec4(position,1.)).xyz;\n#endif\n');
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uWet9;varying float vB9;varying vec3 vW9;')
+      .replace('#include <fog_fragment>','#include <fog_fragment>\n'+villePied(c=>c));};
+  m.customProgramCacheKey=function(){return 'toursLoin';};
+  CITY.matTL=m;return m;
+}
+function villeMatNeonLoin(){ // une enseigne au-delà du brouillard : fogColor, rien d'autre
+  if(CITY.matNL)return CITY.matNL;
+  const m=new THREE.MeshBasicMaterial({color:0xffffff});
+  m.customProgramCacheKey=function(){return 'neonsLoin';};
+  CITY.matNL=m;return m;
 }
 /* LES PANNEAUX HOLOGRAPHIQUES (2026-09-26) — le cyberpunk, c'est la PUB : seize réclames en pixels (la police du jeu) peintes UNE
    fois dans un atlas 512², posées face à la route sur les murs du canyon. Additives, elles flottent dans la pluie ; elles défilent
@@ -6974,7 +7062,8 @@ function villeMatPub(){
   m.dispose=function(){};CITY.matP=m;return m;
 }
 function buildVoxCity(seed,accC){
-  CITY.root=null;CITY.n={};CITY.col=null;CITY.ens=[];
+  for(const F of CITY.fam||[])for(const x of [F.im,F.imL])x.dispose(); // (passe perf) les tampons d'instances de l'ancienne ville (les géométries sont parties avec trackMeshes)
+  CITY.root=null;CITY.n={};CITY.col=null;CITY.ens=[];CITY.imC=CITY.imN=null;CITY.fam=null;CITY.lampes=null;
   if(PARK.on)return; // le parc a sa prairie
   if(LVL.cur&&LVL.cur.id!=='ville')return; // NIVEAUX : la ville n'existe qu'au niveau VILLE
   if(!(NP>1))return;
@@ -7004,7 +7093,7 @@ function buildVoxCity(seed,accC){
       for(let dx=-rr;dx<=rr;dx++)for(let dz=-rr;dz<=rr;dz++){const gx=(cx0+dx)*S,gz=(cz0+dz)*S,d=Math.hypot(gx-pts[i].x,gz-pts[i].z);if(d>R)continue;
         const k=(cx0+dx)+','+(cz0+dz),o=m.get(k);if(!o||d<o[0])m.set(k,[d,i,gx,gz]);}}
     const out=[];for(const v of m.values())if(garde(v[0]))out.push(v);return out;};
-  const corps=[],genre=[],neon=[],neonC=[],pubs=[];
+  const corps=[],genre=[],neon=[],neonC=[],pubs=[],tqC=[],tqN=[]; // tqC/tqN (passe perf) : le centre de la TOUR à laquelle appartient chaque volume / néon (son quartier, voir fam)
   // (2026-09-26, vague 2) les ENSEIGNES parlent MAGENTA et CYAN (#ff3ec8 / #3ee8ff et leurs deux voisins) : le jaune, le vert et le violet
   // en faisaient une guirlande. Cinq teintes comme avant (le tirage `vr` ne bouge pas), le feu d'antenne au rouge DANGER, la couronne à l'accent.
   const NEON=[new THREE.Color(0xff3ec8),new THREE.Color(0x3ee8ff),new THREE.Color(0xff4f9e),new THREE.Color(0x52c8ff),
@@ -7019,13 +7108,13 @@ function buildVoxCity(seed,accC){
     else t=yN-230+vr()*vr()*470;                                   // AU LARGE : la forêt du village
     let b=Math.min(yLo,yN)-330-vr()*120;if(t-b>1000)b=t-1000;
     const bt=tourLibre(cx,cz,hd,b,t);if(!bt)return;b=bt[0];t=bt[1];
-    const H=t-b;nT++;
+    const H=t-b,km=(b+t)/2;nT++;
     // LES RETRAITS : volumes EMBOÎTÉS qui partent tous du pied (la brume se lit pareil sur tous), plus étroits et plus hauts
     const et=H>260?(vr()<.55?3:2):(vr()<.4?2:1);
     let wk=w,pk=p;
     for(let k=0;k<et;k++){
       const fr=k===et-1?1:(.5+.36*(k+1)/et+(vr()-.5)*.08);
-      corps.push(cx,b+H*fr/2,cz,wk,H*fr,pk);genre.push(0);
+      corps.push(cx,b+H*fr/2,cz,wk,H*fr,pk);genre.push(0);tqC.push(cx,km,cz);
       wk=snap(wk*.72);pk=snap(pk*.72);if(wk<VOX_CITY*2||pk<VOX_CITY*2)break;
     }
     // LES TUYAUX : ils DESCENDENT le long d'une façade jusque dans la brume
@@ -7033,15 +7122,15 @@ function buildVoxCity(seed,accC){
       const nt=1+((vr()*(IS_MOBILE?2:3))|0),tk=snap(3+vr()*2.5);
       for(let t9=0;t9<nt;t9++){const face=(vr()*4)|0,ht=H*(.5+vr()*.45),gl=(vr()-.5)*.7;
         const ox=face<2?(face?1:-1)*(w/2+tk/2):gl*w,oz=face<2?gl*p:(face===2?1:-1)*(p/2+tk/2);
-        corps.push(cx+ox,b+ht/2,cz+oz,tk,ht,tk);genre.push(1);}
+        corps.push(cx+ox,b+ht/2,cz+oz,tk,ht,tk);genre.push(1);tqC.push(cx,km,cz);}
     }
     // L'ANTENNE et son FEU ROUGE — sinon, parfois, la COURONNE à l'accent de la zone
-    if(H>320&&vr()<.5){const ha=24+vr()*56;corps.push(cx,b+(H+ha)/2,cz,2.4,H+ha,2.4);genre.push(2);neon.push(cx,t+ha,cz,4.5,4.5,4.5);neonC.push(5);}
-    else if(vr()<.32){neon.push(cx,t-1.4,cz,wk/.72*1.05,2.8,pk/.72*1.05);neonC.push(6);}
+    if(H>320&&vr()<.5){const ha=24+vr()*56;corps.push(cx,b+(H+ha)/2,cz,2.4,H+ha,2.4);genre.push(2);tqC.push(cx,km,cz);neon.push(cx,t+ha,cz,4.5,4.5,4.5);neonC.push(5);tqN.push(cx,km,cz);}
+    else if(vr()<.32){neon.push(cx,t-1.4,cz,wk/.72*1.05,2.8,pk/.72*1.05);neonC.push(6);tqN.push(cx,km,cz);}
     // L'ENSEIGNE VERTICALE : le long du canyon, une tour sur deux porte son néon, à hauteur de ROUTE (on la voit passer)
     if(vr()<(canyon?.5:.18)){
       const hs=Math.min(H*.3,30+vr()*60),ys=Math.max(b+hs/2+20,Math.min(t-hs/2-6,yN+(vr()-.3)*80)),fx=vr()<.5,sg=vr()<.5?-1:1;
-      neon.push(cx+(fx?sg*(w/2+1.2):0),ys,cz+(fx?0:sg*(p/2+1.2)),fx?1.8:7.5,hs,fx?7.5:1.8);neonC.push((vr()*5)|0);
+      neon.push(cx+(fx?sg*(w/2+1.2):0),ys,cz+(fx?0:sg*(p/2+1.2)),fx?1.8:7.5,hs,fx?7.5:1.8);neonC.push((vr()*5)|0);tqN.push(cx,km,cz);
       if(canyon&&CITY.ens.length<24)CITY.ens.push([cx+(fx?sg*(w/2+1.2):0),ys,cz+(fx?0:sg*(p/2+1.2)),fx?sg:0,fx?0:sg,hs]); // (dev) quelques enseignes à photographier (dbgEnseigne)
     }
   };
@@ -7076,33 +7165,46 @@ function buildVoxCity(seed,accC){
    for(let k=0;k<genre.length;k++){if(genre[k]===2)continue;const o=k*6,x0=corps[o]-corps[o+3]/2,x1=corps[o]+corps[o+3]/2,z0=corps[o+2]-corps[o+5]/2,z1=corps[o+2]+corps[o+5]/2;
      for(let gx=Math.floor(x0/CG);gx<=Math.floor(x1/CG);gx++)for(let gz=Math.floor(z0/CG);gz<=Math.floor(z1/CG);gz++){const kk=gx+','+gz;let a=g9.get(kk);if(!a)g9.set(kk,a=[]);a.push(o);}}
    CITY.col={g:g9,CG:CG,c:Float32Array.from(corps)};}
-  // ---- LA POSE : trois InstancedMesh ----
-  const CUBE=new THREE.BoxGeometry(1,1,1),M=new THREE.Matrix4(),Q=new THREE.Quaternion(),P=new THREE.Vector3(),SC=new THREE.Vector3(),AY=new THREE.Vector3(0,1,0);
-  const pose=(n,mat,f)=>{
-    const im=new THREE.InstancedMesh(CUBE,mat,n);
-    for(let i=0;i<n;i++){f(i,M);im.setMatrixAt(i,M);}
-    im.instanceMatrix.needsUpdate=true;im.frustumCulled=false; // une boîte englobante pour toute la ville : le culling la ferait clignoter en bloc
-    // ⚠ la GÉOMÉTRIE part au rebuild (trackMeshes), les MATÉRIAUX sont partagés et gardés (dispose neutralisé)
-    root.add(im);trackMeshes.push(im);return im;
-  };
-  const col=new THREE.Color();
-  if(corps.length){const imC=pose(corps.length/6,villeMatTours(),function(i,M){const o=i*6;M.makeScale(corps[o+3],corps[o+4],corps[o+5]);M.setPosition(corps[o],corps[o+1],corps[o+2]);});
-    for(let i=0;i<genre.length;i++){const t9=.8+vr()*.45,g=genre[i];
-      if(g===0)col.setRGB(.20*t9,.21*t9,.26*t9);                   // le BÉTON du village : gris-bleu, mouillé
-      else if(g===1)col.setRGB(.32*t9,.33*t9,.37*t9);              // le MÉTAL des tuyaux : il accroche le néon
-      else col.setRGB(.10,.10,.12);                                // le mât : une ligne sombre
-      imC.setColorAt(i,col);}
-    if(imC.instanceColor)imC.instanceColor.needsUpdate=true;}
-  if(neon.length){const imN=pose(neon.length/6,villeMatNeon(),function(i,M){const o=i*6;M.makeScale(neon[o+3],neon[o+4],neon[o+5]);M.setPosition(neon[o],neon[o+1],neon[o+2]);});
-    for(let i=0;i<neonC.length;i++)imN.setColorAt(i,col.copy(NEON[neonC[i]]));
-    if(imN.instanceColor)imN.instanceColor.needsUpdate=true;}
+  // ---- LA POSE (2026-09-28, passe perf iPhone) : par QUARTIERS, en deux vitesses — voir villeTri ----
+  const CUBE=new THREE.BoxGeometry(1,1,1),M=new THREE.Matrix4();
+  const col=new THREE.Color(),colT=new Float32Array(genre.length*3),colN=new Float32Array(neonC.length*3);
+  for(let i=0;i<genre.length;i++){const t9=.8+vr()*.45,g=genre[i]; // (le tirage `vr` dans le MÊME ordre qu'avant : chaque tour garde sa teinte)
+    if(g===0)col.setRGB(.20*t9,.21*t9,.26*t9);                   // le BÉTON du village : gris-bleu, mouillé
+    else if(g===1)col.setRGB(.32*t9,.33*t9,.37*t9);              // le MÉTAL des tuyaux : il accroche le néon
+    else col.setRGB(.10,.10,.12);                                // le mât : une ligne sombre
+    col.toArray(colT,i*3);}
+  for(let i=0;i<neonC.length;i++)NEON[neonC[i]].toArray(colN,i*3);
+  const fam=(arr,kT,cols,mat,matL)=>{ // une FAMILLE : tableau maître rangé par quartiers + l'instance complète (PRÈS) et l'instance nue (AU LOIN)
+    // ⚠ le quartier se choisit par la TOUR (kT), pas par le volume : les pièces d'une même tour (retraits emboîtés, tuyaux, mât, néons) restent
+    // ensemble et dans leur ordre d'origine — là où deux d'entre elles se croisent, la profondeur tombe à égalité sur une ligne de pixels et
+    // c'est l'ORDRE qui tranche (mesuré : 5 pixels changeaient de camp quand un retrait partait dans un autre quartier)
+    const nb=arr.length/6,cle=new Map();
+    for(let i=0;i<nb;i++){const o=i*3,k=Math.floor(kT[o]/VT.QC)+','+Math.floor(kT[o+1]/VT.QC)+','+Math.floor(kT[o+2]/VT.QC);let L=cle.get(k);if(!L)cle.set(k,L=[]);L.push(i);}
+    const F={n:nb,M:new Float32Array(nb*16),C:new Float32Array(nb*3),rang:new Int32Array(nb),Q:new Float64Array(cle.size*6),e:new Uint8Array(cle.size),
+      z:new Float64Array(cle.size),pP:new Int32Array(cle.size),pL:new Int32Array(cle.size),fP:0,fL:0,d:new Int32Array([2e9,-1,2e9,-1]),vide:[false,false],refait:false};
+    let p=0,j=0;
+    for(const L of cle.values()){const a=p;let x0=1e9,y0=1e9,z0=1e9,x1=-1e9,y1=-1e9,z1=-1e9;
+      for(const i of L){const o=i*6;M.makeScale(arr[o+3],arr[o+4],arr[o+5]);M.setPosition(arr[o],arr[o+1],arr[o+2]);M.toArray(F.M,p*16); // la matrice d'AVANT, au bit près
+        F.C[p*3]=cols[i*3];F.C[p*3+1]=cols[i*3+1];F.C[p*3+2]=cols[i*3+2];F.rang[i]=p++;
+        x0=Math.min(x0,arr[o]-arr[o+3]/2);x1=Math.max(x1,arr[o]+arr[o+3]/2);y0=Math.min(y0,arr[o+1]-arr[o+4]/2);y1=Math.max(y1,arr[o+1]+arr[o+4]/2);
+        z0=Math.min(z0,arr[o+2]-arr[o+5]/2);z1=Math.max(z1,arr[o+2]+arr[o+5]/2);}
+      F.Q[j]=a;F.Q[j+1]=p;F.Q[j+2]=(x0+x1)/2;F.Q[j+3]=(y0+y1)/2;F.Q[j+4]=(z0+z1)/2;F.Q[j+5]=Math.hypot(x1-x0,y1-y0,z1-z0)/2+1;j+=6;}
+    F.im=new THREE.InstancedMesh(CUBE,mat,nb);F.imL=new THREE.InstancedMesh(CUBE,matL,nb);
+    F.im.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(nb*3),3);
+    for(const a of [F.im.instanceMatrix,F.im.instanceColor,F.imL.instanceMatrix])a.setUsage(THREE.DynamicDrawUsage);
+    for(const x of [F.im,F.imL]){x.frustumCulled=false;root.add(x);trackMeshes.push(x);} // (le tri, c'est villeTri) — ⚠ la GÉOMÉTRIE part au rebuild (trackMeshes), les MATÉRIAUX sont partagés et gardés
+    F.e.fill(1);villeRefait(F);villePousse(F); // tout PRÈS tant qu'aucun rendu n'a trié (= la ville d'avant)
+    return F;};
+  CITY.fam=[];
+  if(corps.length){const F=fam(corps,tqC,colT,villeMatTours(),villeMatToursLoin());CITY.imC=F.im;CITY.fam.push(F);}
+  if(neon.length){const F=fam(neon,tqN,colN,villeMatNeon(),villeMatNeonLoin());CITY.imN=F.im;CITY.fam.push(F);}
   if(pubs.length){const Qp=new THREE.Quaternion(),Pp=new THREE.Vector3(),Sp=new THREE.Vector3(),Ay=new THREE.Vector3(0,1,0),PL=new THREE.PlaneGeometry(1,1),n9=pubs.length/6;
     const imP=new THREE.InstancedMesh(PL,villeMatPub(),n9);
     for(let i=0;i<n9;i++){const o=i*6;Qp.setFromAxisAngle(Ay,pubs[o+3]);Pp.set(pubs[o],pubs[o+1],pubs[o+2]);Sp.set(pubs[o+4],pubs[o+5],1);M.compose(Pp,Qp,Sp);imP.setMatrixAt(i,M);}
     imP.instanceMatrix.needsUpdate=true;imP.frustumCulled=false;imP.renderOrder=3;root.add(imP);trackMeshes.push(imP);}
   CITY.n={pubs:pubs.length/6,tours:nT,volumes:corps.length/6,neons:neon.length/6,routeY:[Math.round(yMin),Math.round(yMax)],ms:Math.round(performance.now()-t00),L:Math.round(L),cellsC:CITY.nC,cellsF:CITY.nF};
 }
-for(const f of [villeMatTours,villeMatNeon])f().dispose=function(){}; // partagés sur toute la partie : le rebuild ne les jette pas
+for(const f of [villeMatTours,villeMatNeon,villeMatToursLoin,villeMatNeonLoin])f().dispose=function(){}; // partagés sur toute la partie : le rebuild ne les jette pas
 /* L'HORIZON DE LA VILLE : le cylindre peint (2026-09-25) est RETIRÉ le 2026-09-26 — net derrière des tours noyées de brume, il se
    lisait comme un décor de théâtre, et en vol libre on en voyait les BORDS. La skyline vit désormais dans le dôme du ciel
    (`villeCiel`), calculée par direction du monde : aucune couture, fondue dans la brume comme le reste du lointain. */
@@ -7112,9 +7214,71 @@ function villeChauffe(){ // une instance de chaque, compilée hors écran puis r
      ne le recompile pas quand un objet a ou n'a pas de couleur par instance. Chauffés AVEC `setColorAt`, les panneaux (qui n'en ont
      pas) héritaient d'un programme qui réclame `instanceColor` → `attributes.get(null)` → le rendu jetait à CHAQUE image dès que la
      ville arrivait après la chauffe (auto-école, puis ville : l'écran gelait). Tours et néons ont une couleur par instance, les pubs non. */
-  for(const m of [villeMatTours(),villeMatNeon(),villeMatPub()]){const im=new THREE.InstancedMesh(geo,m,1);im.setMatrixAt(0,new THREE.Matrix4());if(m!==CITY.matP)im.setColorAt(0,c);g.add(im);}
+  for(const m of [villeMatTours(),villeMatToursLoin(),villeMatNeon(),villeMatNeonLoin(),villeMatPub()]){const im=new THREE.InstancedMesh(geo,m,1);im.setMatrixAt(0,new THREE.Matrix4());if(m===CITY.matT||m===CITY.matN)im.setColorAt(0,c);g.add(im);}
+  // (passe perf) les deux matières NUES n'ont pas de couleur par instance. ⚠ L'ORDRE DE COMPILATION fait l'ordre de dessin (three trie les opaques par
+  // numéro de programme) : TOUTES les tours avant TOUS les néons, comme avant — le dessus d'une couronne est au ras du toit, à égalité c'est le néon qui gagne.
   scene.add(g);try{renderer.compile(scene,camera);}catch(e){}scene.remove(g);geo.dispose();
 }
+/* (2026-09-28, passe perf iPhone) LE TRI PAR QUARTIERS — chaîné sur scene.onBeforeRender (après pisteLoin/conesVus : caméra et lumières
+   ont leurs matrices de l'image). Chaque quartier (cube de 320 m du monde, sphère englobante de ses boîtes) est jugé à chaque rendu :
+   HORS du champ (0), PRÈS (1), ou entièrement AU-DELÀ du brouillard (2 : profondeur de vue − rayon > fogFar, la même profondeur que
+   le brouillard de three). Hystérésis, toujours du côté sûr : on ne quitte le champ qu'à `M` m de marge, on ne part au loin qu'à `H` m.
+   ⚠ MESURÉ : tout ranger à chaque changement remontait les tampons 40 à 115 fois par seconde (0,1-0,3 ms de copies par image sur PC,
+   le double sur iPhone, plus l'envoi à la puce). Donc on ne fait QUE l'OBLIGATOIRE, et petit :
+     · un quartier qui doit être dessiné et ne l'est pas → AJOUTÉ au bout de son tampon (on n'envoie que ces quelques instances) ;
+     · un quartier AU LOIN qui revient PRÈS → ajouté au tampon complet ET effacé du tampon nu (repliée en un point : sinon les deux
+       copies se battraient à profondeur égale) ;
+     · tout le reste est PARESSEUX : un quartier sorti du champ ou parti au loin reste où il est — le tampon complet le dessine juste
+       (VILLE_TRI le replie ou lui épargne la lumière, au pixel près) ;
+     · quand ces restes dépassent la moitié de l'utile (ou qu'un tampon déborde), LE MÉNAGE (`villeRefait`) : tout se range, les
+       quartiers PRÈS d'avant en arrière (le test de profondeur précoce écarte le reste — hors puces Apple, qui le font seules). */
+function villeTri(cam){
+  const Fs=CITY.fam;if(!Fs||CITY.ab||!CITY.root||!CITY.root.visible)return;
+  const t00=performance.now();villeLampes();
+  VT.fr.setFromProjectionMatrix(VT.pv.multiplyMatrices(cam.projectionMatrix,cam.matrixWorldInverse));
+  const P9=VT.pl,pl=VT.fr.planes;for(let i=0;i<6;i++){const n=pl[i].normal;P9[i*4]=n.x;P9[i*4+1]=n.y;P9[i*4+2]=n.z;P9[i*4+3]=pl[i].constant;} // (mesuré : le test de three appel par appel coûtait le double)
+  const f=scene.fog,ff=(f&&f.isFog)?f.far:Infinity,e=cam.matrixWorldInverse.elements;
+  for(let q=0;q<Fs.length;q++){const F=Fs[q],Q=F.Q,E=F.e,Z=F.z,pP=F.pP,pL=F.pL;let uP=0,uL=0;
+    for(let k=0,j=0;k<E.length;k++,j+=6){const w=E[k],r=Q[j+5],cx=Q[j+2],cy=Q[j+3],cz=Q[j+4],z=-(e[2]*cx+e[6]*cy+e[10]*cz+e[14]),rr=-(r+(w===0?0:VT.M));Z[k]=z;
+      let s=1;for(let i=0;i<24;i+=4)if(P9[i]*cx+P9[i+1]*cy+P9[i+2]*cz+P9[i+3]<rr){s=0;break;} // la sphère entièrement hors d'un plan du champ
+      if(s===1&&z-r>ff+(w===2?0:VT.H))s=2;
+      const sz=Q[j+1]-Q[j];E[k]=s;
+      if(F.refait)continue;
+      if(s===1){if(pL[k]>=0)villeTue(F,k);if(pP[k]<0){if(F.fP+sz>F.n){F.refait=true;continue;}villeMet(F,k,false);}uP+=sz;}
+      else if(s===2){if(pL[k]>=0)uL+=sz;else if(pP[k]<0){if(F.fL+sz>F.n){F.refait=true;continue;}villeMet(F,k,true);uL+=sz;}}}
+    if(F.refait||F.fP+F.fL-uP-uL>Math.max(VT.G,(uP+uL)*VT.K))villeRefait(F); // LE MÉNAGE
+    villePousse(F);}
+  VT.ms+=performance.now()-t00;VT.im++; // (banc) le coût processeur du tri, lu par dbgCity
+}
+function villeMet(F,k,loin){ // AJOUTE le quartier k au bout d'un tampon (copie du tableau maître)
+  const j=k*6,d=F.Q[j],g=F.Q[j+1],sz=g-d;
+  if(loin){F.imL.instanceMatrix.array.set(F.M.subarray(d*16,g*16),F.fL*16);F.pL[k]=F.fL;villeSale(F,1,F.fL,F.fL+sz);F.fL+=sz;}
+  else{F.im.instanceMatrix.array.set(F.M.subarray(d*16,g*16),F.fP*16);F.im.instanceColor.array.set(F.C.subarray(d*3,g*3),F.fP*3);F.pP[k]=F.fP;villeSale(F,0,F.fP,F.fP+sz);F.fP+=sz;}
+}
+function villeTue(F,k){ // EFFACE le quartier k du tampon nu : ses instances repliées en un point (matrice nulle → zéro pixel)
+  const j=k*6,sz=F.Q[j+1]-F.Q[j],p=F.pL[k];F.imL.instanceMatrix.array.fill(0,p*16,(p+sz)*16);F.pL[k]=-1;villeSale(F,1,p,p+sz);
+}
+function villeSale(F,w,a,b){const D=F.d;if(a<D[w*2])D[w*2]=a;if(b>D[w*2+1])D[w*2+1]=b;}
+function villeRefait(F){ // LE MÉNAGE : les deux tampons refaits d'après le dernier jugement
+  const E=F.e,Z=F.z;F.pP.fill(-1);F.pL.fill(-1);F.fP=F.fL=0;F.refait=false;VT.n++;
+  if(CITY.ab){const a=F.im.instanceMatrix.array,c=F.im.instanceColor.array; // (banc) l'ANCIEN chemin : tout, dans l'ordre d'origine
+    for(let i=0;i<F.n;i++){const p=F.rang[i];a.set(F.M.subarray(p*16,p*16+16),i*16);c.set(F.C.subarray(p*3,p*3+3),i*3);}F.fP=F.n;villeSale(F,0,0,F.n);return;}
+  const L=VT.ord;L.length=0;for(let k=0;k<E.length;k++)if(E[k]===1)L.push(k);
+  if(VT.avAr)L.sort(function(x,y){return Z[x]-Z[y];}); // d'avant en arrière
+  for(let i=0;i<L.length;i++)villeMet(F,L[i],false);
+  for(let k=0;k<E.length;k++)if(E[k]===2)villeMet(F,k,true);
+}
+function villePousse(F){ // n'envoie à la puce QUE la plage touchée (updateRange) — et toujours au moins UNE instance par matière (repliée :
+  const D=F.d;              // zéro pixel) pour que chauffeRendu prépare l'état de pipeline de chacune
+  for(let w=0;w<2;w++){const im=w?F.imL:F.im,fin=w?F.fL:F.fP,A=im.instanceMatrix,C=w?null:im.instanceColor;
+    if(!fin){if(!F.vide[w]){A.array.fill(0,0,16);villeSale(F,w,0,1);F.vide[w]=true;}im.count=1;}else{F.vide[w]=false;im.count=fin;}
+    let a=D[w*2],b=D[w*2+1];D[w*2]=2e9;D[w*2+1]=-1;if(b<=a)continue;
+    if(A.updateRange.count>0){const pa=A.updateRange.offset/16;b=Math.max(b,pa+A.updateRange.count/16);a=Math.min(a,pa);} // une plage pas encore partie : on l'englobe
+    A.updateRange.offset=a*16;A.updateRange.count=(b-a)*16;A.needsUpdate=true;
+    if(C){C.updateRange.offset=a*3;C.updateRange.count=(b-a)*3;C.needsUpdate=true;}
+    VT.nu++;VT.ko+=(b-a)*(C?76:64)/1024;}
+}
+{const ob9=scene.onBeforeRender;scene.onBeforeRender=function(r9,s9,cam,rt){ob9.call(this,r9,s9,cam,rt);villeTri(cam);};} // CHAÎNÉ (jamais réassigné)
 function villeHeurt(p){ // la caisse est-elle DANS une tour de la ville ? (marge : la demi-caisse)
   const C=CITY.col;if(!C||!CITY.root)return false;const a=C.g.get(Math.floor(p.x/C.CG)+','+Math.floor(p.z/C.CG));if(!a)return false;const c=C.c;
   for(let j=0;j<a.length;j++){const o=a[j];if(Math.abs(p.x-c[o])<c[o+3]/2+.9&&Math.abs(p.z-c[o+2])<c[o+5]/2+.9&&Math.abs(p.y-c[o+1])<c[o+4]/2+.5)return true;}
@@ -7144,7 +7308,13 @@ window.dbgEnseigne=function(k){const e=CITY.ens&&CITY.ens[(k|0)%Math.max(1,CITY.
   camera.position.set(e[0]+e[3]*40,e[1]+6,e[2]+e[4]*40);camera.lookAt(e[0],e[1],e[2]);camera.updateMatrixWorld();
   skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);if(acesPass)acesPass.uniforms.uSpeed.value=0;
   if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return {n:CITY.ens.length,h:Math.round(e[5])};};
-window.dbgCity=function(){return CITY.root?Object.assign({},CITY.n,{sousLaCamera:null,brouillardFar:FOG_F}):'absente (autre niveau ou parc)';};
+// `dbgVilleAncien(on)` (banc, 2026-09-27, passe perf iPhone) : pose sur la ville les matières d'AVANT la passe (tout calculé partout,
+// ombre comprise) — A/B au pixel et au chrono dans la même page. Compile deux programmes au 1er appel : jamais en jeu.
+window.dbgVilleTri=function(o){Object.assign(VT,o||{});for(const F of CITY.fam||[])F.refait=true;return {lum:VT.lum,avAr:VT.avAr,H:VT.H,M:VT.M,G:VT.G};}; // (banc) les réglages du tri de la ville ; force un ménage
+window.dbgVilleAncien=function(on){on=!!on;const t=villeMatTours(on),n=villeMatNeon(on);t.dispose=n.dispose=function(){};
+  if(CITY.imC)CITY.imC.material=t;if(CITY.imN)CITY.imN.material=n;CITY.ab=on;for(const F of CITY.fam||[]){F.e.fill(1);villeRefait(F);villePousse(F);}villeTri(camera);return on?'ancien':'neuf';}; // (neuf : villeTri juge, le ménage range)
+window.dbgCity=function(){if(!CITY.root)return 'absente (autre niveau ou parc)';const q=(CITY.fam||[]).map(F=>{const c=[0,0,0];for(const s of F.e)if(s<3)c[s]++;return {quartiers:F.e.length,hors:c[0],pres:c[1],loin:c[2],instPres:F.fP,instLoin:F.fL};});
+  return Object.assign({},CITY.n,{sousLaCamera:null,brouillardFar:FOG_F,tri:q,menages:VT.n,envois:VT.nu,envoisKo:Math.round(VT.ko),triMs:+VT.ms.toFixed(1),triImages:VT.im});};
 // `dbgVille()` (dev, 2026-09-26) : le coût de l'image qu'on regarde (appels de rendu, triangles, programmes) + le CAP de la caméra (pour
 // cadrer `dbgCiel` dans l'axe de la route) — la ville se juge au budget autant qu'à l'œil.
 window.dbgVille=function(){const r=renderer.info,d=camera.getWorldDirection(new THREE.Vector3());
