@@ -23563,6 +23563,8 @@ function traficPrepare(){
   const on=CAMP.n===19&&!PARK.on;VTR.on=on;VTR.cars.length=0;VTR.chocN=0;VTR.froN=0;
   for(const m of [VTR.im,VTR.imL,VTR.cl]){m.visible=on;m.count=0;}
   if(!on)return;
+  frameAt(60,VF);VTR.o.position.copy(VF.p).addScaledVector(VF.n,-60);VTR.o.quaternion.identity();VTR.o.scale.set(1,1,1);VTR.o.updateMatrix(); // UNE instance garée sous la dalle : chauffeRendu dessine les trois maillages (état de pipeline créé avant le 1er bouchon)
+  for(const m of [VTR.im,VTR.imL,VTR.cl]){m.count=1;m.setMatrixAt(0,VTR.o.matrix);m.instanceMatrix.needsUpdate=true;}
   const rr=mulberry32(0x7AF1C0DE); // le même trafic à chaque essai : on apprend l'heure de pointe
   for(let sv=340;sv<L-320;){
     let bo=false;for(const b of VZ.bouchons)if(sv>b.s0&&sv<b.s1){bo=true;break;}
@@ -23791,6 +23793,7 @@ function villeDebut(){ // crochet : campDebut (chaque niveau qui commence)
   CITY.uC.value=1;
   if(CAMP.n!==11)radarsVide();
   foudreCache();VFOU.t=2.5;
+  if(CAMP.n===15){frameAt(Math.min(L-10,60),VF);for(const m of [VFOU.ring,VFOU.inner,VFOU.disc]){m.material.opacity=0;m.position.copy(VF.p);m.visible=true;}} // visibles à opacité 0 jusqu'à la 1re frappe : chauffeRendu (120 ms après newTrack) les dessine, la puce crée leur état de pipeline AVANT l'orage
   fourgonPrepare();traficPrepare();banquierPrepare();
 }
 function villeStop(){ // crochet : campStop (fin de partie)
