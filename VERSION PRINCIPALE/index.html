@@ -3800,7 +3800,7 @@ if(CAN_POST){ try{
      return true;}catch(e){p.plie=false;return false;} }
    const U9=acesPass.uniforms,BF9=[1,.8,.6,.4,.2],bp9=bloomPass;
    for(let i=0;i<5;i++)U9['uB'+(i+1)].value=bp9.renderTargetsVertical[i].texture; // setSize garde les mêmes objets texture : posé une fois
-   bp9.fuse=true;
+   bp9.fuse=bp9.plie=!/[?&]bloom=ancien/.test(location.search); // `?bloom=ancien&perf=1` : les 13 passes d'origine, pour comparer SUR le téléphone
    acesPass.render=function(){ // (appelle le prototype À CHAQUE FOIS, pas une copie : les bancs qui l'enveloppent continuent de mesurer l'ACES)
      if(bp9.enabled&&bp9.fuse){const s=bp9.strength,r=bp9.radius;
        const w0=s*(BF9[0]+(1.2-2*BF9[0])*r),w1=s*(BF9[1]+(1.2-2*BF9[1])*r),w2=s*(BF9[2]+(1.2-2*BF9[2])*r),w3=s*(BF9[3]+(1.2-2*BF9[3])*r),w4=s*(BF9[4]+(1.2-2*BF9[4])*r);
@@ -4192,7 +4192,7 @@ function perfMonTick(now,rawMs){const M=PERF_MON;if(rawMs>M.pire)M.pire=rawMs;if
   const ms=loop._ms||16,al=[];for(let i=0;i<QL.N_EFF&&i<QL.k;i++)al.push(QL.nom[i]);const b=qlBornes();
   if(QL.k>b.kNet)al.push(QL.k>=b.kMax?'SOUS LE PLANCHER + BLOOM OFF':'SOUS LE PLANCHER');
   const tx=ms.toFixed(1)+' ms  pire '+M.pire.toFixed(0)+'  '+Math.round(1000/Math.max(1,ms))+' i/s'+(loop._r30?'  (30 Hz)':'')+
-    '\nDPR '+curDPR.toFixed(2)+'/'+DPR_CAP.toFixed(2)+'  cran '+QL.k+'/'+b.kMax+(RESPIN?'  FIGE':'')+'\n'+(al.length?al.join(' · '):'plein');
+    '\nDPR '+curDPR.toFixed(2)+'/'+DPR_CAP.toFixed(2)+'  cran '+QL.k+'/'+b.kMax+(RESPIN?'  FIGE':'')+(bloomPass&&!bloomPass.fuse?'  bloom ancien':'')+'\n'+(al.length?al.join(' · '):'plein');
   if(now-(M.p0||0)>1000){M.p0=now;M.pire=0;}
   if(tx!==M.txt){M.txt=tx;M.el.textContent=tx;}}
 // ============================================================================
