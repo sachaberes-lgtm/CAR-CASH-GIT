@@ -3090,6 +3090,8 @@ const skyDome=(function(){
       '  else if(y>-.03&&uPluie>.001)haut=mix(ciel,F,uPluie);',
       '  if(y<.03&&nuit>0.){',                                     // ---- LE SOL : l abîme de la ville basse ---- (vague 2 : ses lumières SEULEMENT de nuit — de jour, bas = brume au pixel près)
       '    float t=1600./max(-y,.01),px=t*.0016/max(-y,.06);',      // px : ce que couvre un pixel au sol (m) — l anticrénelage suit la distance
+      // (2026-09-27, passe perf iPhone) au-delà de 26,5 km (3,5° sous l horizon) les lumières pèsent exp(-t/2300) < 1e-5 : il ne reste que la brume
+      '    if(t<26500.){',
       '    vec2 p=d.xz*t+uCam.xz;',
       '    float qu=smoothstep(.3,.8,vn(p/1500.))*(.5+.5*vn(p/450.+4.2)),qu2=vn(p/2600.+9.1);', // les QUARTIERS : un centre qui brille, des zones éteintes
       '    vec3 G=mix(vec3(1.,.42,.18),vec3(.9,.25,.6),qu2)*qu*.24;',                    // la lueur des quartiers qui monte dans la brume
@@ -3109,6 +3111,7 @@ const skyDome=(function(){
       '    vec3 pc=mix(vec3(1.,.66,.36),vec3(.4,.85,1.),step(.985,hl));pc=mix(pc,vec3(1.,.35,.7),step(.995,hl));',
       '    L=mix((vec3(1.,.55,.22)*(route*.5+rue*.3)+pc*pt)*(.25+.75*qu)+G,L,fl);}',
       '    bas=F*(1.+.28*smoothstep(-.05,-.6,y)*nuit)+L*exp(-t/2300.)*(1.+.6*lv)*nuit;}', // la brume s éclaire par en dessous
+      '    else bas=F*(1.+.28*smoothstep(-.05,-.6,y)*nuit);}',
       '  vec3 c=mix(bas,haut,smoothstep(-.03,.03,y));',
       // ---- LA SKYLINE : du plus loin au plus proche, chaque rangée un peu moins noyée dans la brume ----
       /* ⚠ (2026-09-26, constat de la passe graphique) LA SKYLINE FLOTTAIT : posée sur l horizon (y≈0), alors que la route de la
