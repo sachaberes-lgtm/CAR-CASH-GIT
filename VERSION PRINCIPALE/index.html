@@ -3973,7 +3973,7 @@ function carVit(dt){
   else if(!paused&&mode!=='drive')ROUES.v*=Math.exp(-dt*.7);
   if(!paused&&wheels.length){
     const R0=wheels[0].userData.R||.45,pas=Math.max(-.3,Math.min(.3,ROUES.v/R0*dt));
-    if(pas)for(const w of wheels)w.rotation.x+=pas;
+    if(pas){for(const w of wheels)w.rotation.x+=pas;for(const e of ESSIEUX)e.rotation.x+=pas;} // (2026-09-27) les roues d'origine (hors scène, lues ailleurs) + les essieux soudés qu'on VOIT
   }
   const nuit=Math.max(LVL.pluie||0,LVL.espace||0);
   /* LA LAMPE DE CARROSSERIE SE RETIRE AU SOLEIL (2026-09-26, vague 2). `carLight` (blanche, 3 m au-dessus du toit) est la clé de la caisse
@@ -12053,6 +12053,112 @@ Object.assign(SHAPES,{
 });
 /* ===== LA GAMME DES 50 — FIN ===== */
 const CAR_VIEUX=[]; // les matières de la caisse d'avant : libérées à la construction suivante
+/* ===== LA CAISSE EN UN MINIMUM DE DESSINS (2026-09-27, passe perf iPhone) =====
+   MESURÉ (banc iPhone, caisse de départ LA HONTE) : la caisse du joueur coûtait 80 appels de dessin dans la scène + 70 dans l'ombre,
+   150 des ~236 de l'image — des dizaines de boîtes et de cylindres IMMOBILES dans leur groupe, et 4 roues de 8 pièces chacune. Safari
+   (ANGLE → Metal) paie chaque appel. À la construction, on SOUDE donc ce qui ne bouge jamais : même matière, mêmes drapeaux → un dessin.
+   · CARROSSERIE : les enfants directs de `carBody` (maillages simples, visibles, sans enfants) sont regroupés par matière + drapeaux
+     (ombre, ordre, attributs) ; chaque lot d'au moins deux devient UN maillage (sommets posés dans le repère de la carrosserie).
+   · ESSIEUX : les quatre roues tournent du MÊME angle autour de l'axe x (voir carVit) — les deux roues d'un essieu partagent donc une
+     rotation autour de leur axe commun (0, y, z) : elles se soudent par matière dans un groupe `ESSIEUX` que la boucle fait tourner.
+     `wheels` garde les roues D'ORIGINE, détachées (hors scène, zéro dessin) : leur position, leur rayon, leur largeur et leur rotation
+     restent lues comme avant (empreinte au sol, traces de gomme, vitesse de rotation).
+   · Restent à part : tout ce qui bouge (ailes, dérive, hélices), les halos, les tuyères, le flou de jante, les flaques, les
+     multi-matières (le gâteau du pop-tart) et tout ce qui est masqué à la construction.
+   `CAR_PIECES` garde les pièces TELLES QUE CONSTRUITES, avec leur parent d'origine : l'explosion arrache toujours les vraies pièces
+   (une roue, un capot, une plaque de rouille), pas un lot soudé. Les matières restent les MÊMES objets : aucun programme nouveau.
+   Les géométries soudées sont neuves (libérées à la construction suivante, comme le reste) ; les partagées (SPH9, jetGeo) ne sont que
+   LUES. Sommets en float32 posés une fois : l'écart avec la matrice du GPU est sous le micron — aucune différence à l'image. */
+const CAR_PIECES=[],ESSIEUX=[],CAISSE_SOUDE={on:true};
+const FUS={v:new THREE.Vector3(),n:new THREE.Matrix3(),i:new THREE.Matrix4()};
+function fusSoudable(o){ // une pièce qu'on peut souder : maillage simple, visible, sans enfant, une seule matière, rien de particulier
+  if(!o.isMesh||o.isInstancedMesh||o.isSkinnedMesh||!o.visible||o.children.length||Array.isArray(o.material)||!o.material)return false;
+  const g=o.geometry;if(!g||!g.isBufferGeometry||!g.attributes.position||g.drawRange.count!==Infinity||g.drawRange.start!==0)return false;
+  if(g.morphAttributes&&Object.keys(g.morphAttributes).length)return false;
+  if(o.onBeforeRender!==THREE.Object3D.prototype.onBeforeRender)return false;
+  for(const k in g.attributes){const a=g.attributes[k];if(a.isInterleavedBufferAttribute||a.normalized)return false;}
+  return true;}
+function fusCle(o){ // le lot : même matière, mêmes drapeaux, mêmes attributs
+  const g=o.geometry,at=Object.keys(g.attributes).sort().map(k=>k+g.attributes[k].itemSize).join(',');
+  return o.material.uuid+'|'+(o.castShadow?1:0)+(o.receiveShadow?1:0)+(o.frustumCulled?1:0)+'|'+o.renderOrder+'|'+(o.userData.lp?1:0)+'|'+at;}
+function fusGeo(lot){ // lot : [[géométrie, matrice, pièce]] → une géométrie non indexée, sommets posés, normales tournées
+  const g0=lot[0][0],noms=Object.keys(g0.attributes);let n=0;
+  for(const e of lot)n+=e[0].index?e[0].index.count:e[0].attributes.position.count;
+  const arr={};for(const k of noms)arr[k]=new Float32Array(n*g0.attributes[k].itemSize);
+  let o=0;const V=FUS.v,N=FUS.n;
+  for(const e of lot){const g=e[0],m=e[1];
+    const ix=g.index?g.index.array:null,cnt=ix?ix.length:g.attributes.position.count,flip=m.determinant()<0; // MIROIR (roues de gauche
+    N.getNormalMatrix(m);                                                                                      // du kit) : l'ordre des sommets se
+    for(const k of noms){const a=g.attributes[k],s=a.itemSize,d9=arr[k];                                    // retourne, comme three le fait pour
+      for(let i=0;i<cnt;i++){const r=i%3,j=flip?(r===1?i+1:r===2?i-1:i):i,v=ix?ix[j]:j,d=(o+i)*s;           // un maillage d'échelle négative
+        if(k==='position'){V.fromBufferAttribute(a,v).applyMatrix4(m);d9[d]=V.x;d9[d+1]=V.y;d9[d+2]=V.z;}
+        else if(k==='normal'){V.fromBufferAttribute(a,v).applyMatrix3(N).normalize();d9[d]=V.x;d9[d+1]=V.y;d9[d+2]=V.z;}
+        else{d9[d]=a.getX(v);if(s>1)d9[d+1]=a.getY(v);if(s>2)d9[d+2]=a.getZ(v);if(s>3)d9[d+3]=a.getW(v);}}}
+    o+=cnt;}
+  const out=new THREE.BufferGeometry();
+  for(const k of noms)out.setAttribute(k,new THREE.BufferAttribute(arr[k],g0.attributes[k].itemSize));
+  out.computeBoundingSphere();return out;}
+function fusMaillage(L){ // un lot → UN maillage, repère identité dans son parent, gelé (il ne bouge jamais dans son groupe)
+  const o0=L[0][2],m=new THREE.Mesh(fusGeo(L),o0.material);
+  m.castShadow=o0.castShadow;m.receiveShadow=o0.receiveShadow;m.frustumCulled=o0.frustumCulled;m.renderOrder=o0.renderOrder;
+  if(o0.userData.lp)m.userData.lp=1;m.userData.soude=L.length;m.matrixAutoUpdate=false;return m;}
+function caisseSoude(){
+  CAR_PIECES.length=0;ESSIEUX.length=0;
+  for(const ch of carGroup.children)if(ch!==carBody)CAR_PIECES.push([ch,carGroup]); // l'ordre d'avant : c'est celui de l'explosion
+  for(const ch of carBody.children)CAR_PIECES.push([ch,carBody]);
+  if(!CAISSE_SOUDE.on)return; // (banc) `dbgSoude(false)` : la caisse d'avant, pièce par pièce, pour comparer au pixel
+  // 1. LA CARROSSERIE
+  const lots=new Map();
+  for(const ch of carBody.children){if(!fusSoudable(ch))continue;ch.updateMatrix();
+    const k=fusCle(ch);let L=lots.get(k);if(!L)lots.set(k,L=[]);L.push([ch.geometry,ch.matrix.clone(),ch]);}
+  for(const L of lots.values()){if(L.length<2)continue;for(const e of L)carBody.remove(e[2]);carBody.add(fusMaillage(L));}
+  // 2. LES ESSIEUX — deux roues au même (y, z), toutes leurs pièces soudables
+  const ax=new Map();
+  for(const w of (wheels.every(w=>w.parent===carGroup&&w.rotation.x===0)?wheels:[])){
+    const k=w.position.y.toFixed(5)+'|'+w.position.z.toFixed(5);let W=ax.get(k);if(!W)ax.set(k,W=[]);W.push(w);}
+  for(const W of ax.values()){
+    if(W.length<2||W.some(w=>!w.children.length||w.children.some(c=>!fusSoudable(c))))continue;
+    const E=new THREE.Group();E.position.set(0,W[0].position.y,W[0].position.z);E.updateMatrix();FUS.i.copy(E.matrix).invert();
+    const L2=new Map();
+    for(const w of W){w.updateMatrix();for(const c of w.children){c.updateMatrix();
+      const m=new THREE.Matrix4().multiplyMatrices(FUS.i,w.matrix).multiply(c.matrix),k=fusCle(c);
+      let L=L2.get(k);if(!L)L2.set(k,L=[]);L.push([c.geometry,m,c]);}}
+    for(const L of L2.values())E.add(fusMaillage(L)); // (une pièce seule y passe aussi : elle doit tourner avec l'essieu)
+    E.userData.essieu=1;for(const w of W)carGroup.remove(w);carGroup.add(E);ESSIEUX.push(E);
+  }
+  // 3. LES AILES ET LA DÉRIVE : elles bougent EN BLOC (le pivot s'ouvre, se tourne, s'étire) — dedans, rien ne bouge. On soude dans
+  //    le repère du pivot (plumes : 13 dessins → 2 par aile). Les PALES du requin tournent chacune sur son moyeu, mais les deux pales
+  //    d'un même moyeu tournent du même angle (`propSpin`) : elles se soudent en croix, un dessin par hélice (voir carProps).
+  const pales=new Set(carProps.map(p=>p.m));
+  for(const piv of [carWingL,carWingR].concat(carFins))if(piv)fusGroupe(piv,pales);
+  if(carProps.length>1){
+    const moy=new Map();
+    for(const p of carProps){const o=p.m;if(!o.parent||!fusSoudable(o))continue;
+      const k=o.parent.uuid+'|'+o.position.x.toFixed(5)+'|'+o.position.y.toFixed(5)+'|'+o.position.z.toFixed(5)+'|'+fusCle(o);
+      let L=moy.get(k);if(!L)moy.set(k,L=[]);L.push(p);}
+    for(const L of moy.values()){if(L.length<2)continue;
+      const o0=L[0].m,par=o0.parent;o0.updateMatrix();FUS.i.copy(o0.matrix).invert();
+      const lot=L.map(p=>{p.m.updateMatrix();return [p.m.geometry,new THREE.Matrix4().multiplyMatrices(FUS.i,p.m.matrix),p.m];});
+      const m=fusMaillage(lot);m.matrixAutoUpdate=true;m.position.copy(o0.position);m.quaternion.copy(o0.quaternion);m.scale.copy(o0.scale);
+      for(const p of L)par.remove(p.m);par.add(m);
+      const b0=L[0].b;for(let i=carProps.length-1;i>=0;i--)if(L.indexOf(carProps[i])>=0)carProps.splice(i,1);
+      carProps.push({m:m,b:b0});}
+  }
+}
+function fusGroupe(root,exclus){ // soude par matière les pièces d'un groupe, dans SON repère (sous-groupes immobiles compris)
+  const lots=new Map(),vus=[];
+  const va=(nd,M)=>{for(const c of nd.children){if(exclus.has(c))continue;c.updateMatrix();const m=new THREE.Matrix4().multiplyMatrices(M,c.matrix);
+    if(c.isMesh){if(!fusSoudable(c))continue;const k=fusCle(c);let L=lots.get(k);if(!L)lots.set(k,L=[]);L.push([c.geometry,m,c]);}
+    else if(c.isGroup&&c.visible&&c.type==='Group'){vus.push(c);va(c,m);}}};
+  va(root,new THREE.Matrix4());
+  for(const L of lots.values()){if(L.length<2)continue;for(const e of L)e[2].parent.remove(e[2]);root.add(fusMaillage(L));}
+  for(let i=vus.length-1;i>=0;i--){const g=vus[i];if(!g.children.length&&g.parent)g.parent.remove(g);} // les sous-groupes vidés s'en vont
+}
+// l'explosion : la pose MONDE d'une pièce d'origine, qu'elle soit encore en place ou soudée (détachée : son parent d'origine fait foi)
+const CPOSE_M=new THREE.Matrix4(),CPOSE_S=new THREE.Vector3();
+function caissePose(pc,p,q){const o=pc[0];
+  if(o.parent){o.getWorldPosition(p);o.getWorldQuaternion(q);return;}
+  pc[1].updateWorldMatrix(true,false);o.updateMatrix();CPOSE_M.multiplyMatrices(pc[1].matrixWorld,o.matrix).decompose(p,q,CPOSE_S);}
 function buildCar(spec){
   // ⚠ LES PIÈCES LOW-POLY SE LIBÈRENT : chaque caisse a SA géométrie (plusieurs milliers de facettes)
   // et ses matières. Sans ce passage, chaque aller-retour au garage laisserait une caisse en VRAM.
@@ -12065,6 +12171,8 @@ function buildCar(spec){
   carGroup.traverse(o=>{if(o.geometry&&!o.isSprite&&o.geometry!==SPH9&&o.geometry!==jetGeo)o.geometry.dispose();
     const mm=Array.isArray(o.material)?o.material:[o.material];
     for(const m of mm)if(m&&m!==jetShellM&&m!==jetCoreM&&m!==jetGlowM&&CAR_VIEUX.indexOf(m)<0)CAR_VIEUX.push(m);});
+  for(const pc of CAR_PIECES)if(!pc[0].parent)pc[0].traverse(o=>{if(o.geometry&&!o.isSprite&&o.geometry!==SPH9&&o.geometry!==jetGeo)o.geometry.dispose();}); // (2026-09-27) les pièces d'origine SOUDÉES (détachées) : leurs matières sont celles des soudures, déjà relevées
+  CAR_PIECES.length=0;ESSIEUX.length=0;
   while(carGroup.children.length)carGroup.remove(carGroup.children[0]);
   while(carBody.children.length)carBody.remove(carBody.children[0]);
   wheels.length=0;
@@ -12372,6 +12480,7 @@ function buildCar(spec){
   for(const ch of carGroup.children.slice())if(wheels.indexOf(ch)<0&&!(ch.userData&&ch.userData.sol))carBody.add(ch);
   carGroup.add(carBody);carBody.rotation.set(0,0,0);carBody.position.set(0,0,0);carBody.userData.pivY=wheels.length?wheels[0].position.y:.45; // pivot = hauteur des moyeux (⚠ pas de carRoll9=0 ici : buildCar tourne AVANT leur déclaration — zone morte)
   carGroup.traverse(o9=>{if(o9.isMesh&&!o9.userData.noShadow)o9.castShadow=true;}); // toute la caisse porte son ombre LONGUE — sauf la nappe néon (un carré d'ombre, non merci)
+  caisseSoude(); // (2026-09-27, passe perf iPhone) ce qui ne bouge jamais est soudé par matière — voir « LA CAISSE EN UN MINIMUM DE DESSINS »
 }
 /* <<<FIN VOITURES>>> */
 /* ---------- VIGNETTE MOTEUR : on VOIT ce qui nous pousse, en 3D, pendant la course ----------
@@ -12739,6 +12848,7 @@ try{renderer.initTexture(flouRoueTex);}catch(e){} // (2026-09-26) le flou de jan
 window.dbgEquipe=function(i){if(started&&!gameOver)return 'en course';i=Math.max(0,Math.min(CARS.length-1,i|0));SAVE.d.equipped=i;level=i;buildCar(CARS[i]);return CARS[i].name;}; // (2026-09-26) équiper une caisse depuis la console (tests)
 window.dbgPots=function(){const a=v=>[+v.x.toFixed(3),+v.y.toFixed(3),+v.z.toFixed(3)];return {src:CAR_POT_SRC,un:CAR_POT_1,pots:CAR_POTS.map(a),L:a(CAR_POT_L),R:a(CAR_POT_R),C:a(CAR_POT_C)};}; // (dev) les pots relevés sur la caisse montée
 window.dbgSpec=function(i){const c=CARS[i|0];return c?{name:c.name,w:c.w,l:c.l,h:c.h,shape:c.shape}:null;};window.dbgNbCaisses=function(){return CARS.length;}; // (dev) les fiches, pour les bancs d'essai
+window.dbgSoude=function(on){if(on!=null)CAISSE_SOUDE.on=!!on;let d=0;carGroup.traverse(o=>{if((o.isMesh||o.isSprite)&&o.visible)d++;});return {soude:CAISSE_SOUDE.on,dessins:d,pieces:CAR_PIECES.length,essieux:ESSIEUX.length,ailes:[carWingL,carWingR].filter(Boolean).concat(carFins)};}; // (banc, 2026-09-27) souder ou non les caisses construites ensuite (voir caisseSoude)
 window.dbgCar=function(i){buildCar(CARS[Math.max(0,Math.min(CARS.length-1,i|0))]);}; // console : dbgCar(16) → prévisualiser un gabarit sans farmer les milliards (visuel pur, ne touche pas au niveau)
 window.dbgScene=function(){return {car:carGroup,scene:scene,contact:contactShadow,shadow:shadow,cam:camera,rdr:renderer};}; // dissection console (visuel pur) — (2026-09-26) + caméra et renderer : le banc des laques mesure la caisse au pixel
 window.dbgState=function(){return {started:started,running:running,paused:paused,gameOver:gameOver,mode:mode,psi:+psi.toFixed(4),yawR:+yawR.toFixed(4),slipB:+slipB.toFixed(4),glisse:+glisse9.toFixed(3),drift:driftEnCours,roulisDeg:+(carRoll9*57.3).toFixed(1),glisseDeg:+(driftYaw*57.3).toFixed(1),vH:+(mode==='fall'?Math.hypot(fallVel.x,fallVel.z):Math.abs(vA)).toFixed(1),driftLv:driftLv,graceT:+graceT.toFixed(2),
@@ -16076,7 +16186,9 @@ function explode(cause){
   const spec=CARS[level];
   // VRAIS morceaux du modèle arrachés (roues, capot, toit, spoiler…)
   let np9=0;
-  for(const ch of carGroup.children.concat(carBody.children)){ // (la carrosserie est un sous-groupe : on arrache SES pièces, pas le bloc entier)
+  // (2026-09-27, passe perf iPhone) les pièces TELLES QUE CONSTRUITES (`CAR_PIECES`) : la caisse visible est soudée par matière, mais
+  // l'explosion arrache toujours une roue, un capot, une plaque de rouille — pas un lot soudé (voir « LA CAISSE EN UN MINIMUM DE DESSINS »)
+  for(const pc of CAR_PIECES){const ch=pc[0]; // (la carrosserie est un sous-groupe : on arrache SES pièces, pas le bloc entier)
     if(ch===carBody)continue;
     if(np9>=9)break;
     if(!(ch.isMesh||ch.isGroup))continue;
@@ -16084,8 +16196,7 @@ function explode(cause){
     if(Math.random()<.35)continue;
     np9++;
     const d=ch.clone();
-    ch.getWorldPosition(dTmp);d.position.copy(dTmp);
-    ch.getWorldQuaternion(qTmp2);d.quaternion.copy(qTmp2);
+    caissePose(pc,dTmp,qTmp2);d.position.copy(dTmp);d.quaternion.copy(qTmp2);
     // SENS LOGIQUE : chaque pièce part dans SA direction (roue gauche à gauche, capot devant…)
     dTmp.sub(boomPos);
     if(dTmp.lengthSq()<.01)dTmp.set(Math.random()-.5,.3,Math.random()-.5);
