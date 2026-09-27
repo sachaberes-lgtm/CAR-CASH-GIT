@@ -2967,6 +2967,23 @@ const scene=new THREE.Scene();
    monde recomposées par image, plots et pièces immobiles compris. Gelée, elle laisse chaque objet ne se recalculer QUE s'il a bougé
    (et les objets gelés — plots, pièces, fruits — ne se recalculent plus du tout tant qu'on ne les touche pas). */
 scene.matrixAutoUpdate=false;
+/* (2026-09-27, passe perf iPhone) …ET ELLE NE PARCOURT PLUS CE QUI EST ÉTEINT. Recensement en course : ~2 000 objets sous la scène dont
+   1 600 invisibles — l'atelier caché (412 objets qui se recomposaient à chaque image), les ~830 pièces hors couloir, les fruits et
+   pouvoirs masqués (leurs enfants se recalculaient quand même). three r128 les parcourait tous à chaque rendu (`updateMatrixWorld` =
+   8 % du processeur en vol). Un enfant direct INVISIBLE est désormais sauté : il ne se dessine pas, sa matrice monde ne sert à rien.
+   Rien n'est perdu : son propre drapeau (`matrixWorldNeedsUpdate`, posé par `updateMatrix()` ou par nous si la scène avait bougé)
+   reste levé, et il se recalcule — lui et ses enfants — à la première image où il redevient visible, AVANT d'être dessiné.
+   ⚠ Seul risque : lire `.matrixWorld`/`localToWorld` d'un objet caché. Audit fait : seule la caisse le fait (traces de gomme, étincelles,
+   aperçu de traînée) → `SCENE_TOUJOURS` la garde toujours à jour ; le serpent et `getWorldPosition` recalculent eux-mêmes. */
+const SCENE_TOUJOURS=new Set();
+scene.updateMatrixWorld=function(force){
+  if(this.matrixAutoUpdate)this.updateMatrix();
+  if(this.matrixWorldNeedsUpdate||force){this.matrixWorld.copy(this.matrix);this.matrixWorldNeedsUpdate=false;force=true;} // (racine : pas de parent)
+  const ch=this.children;
+  for(let i=0,n=ch.length;i<n;i++){const o=ch[i];
+    if(o.visible===false&&!SCENE_TOUJOURS.has(o)){if(force)o.matrixWorldNeedsUpdate=true;continue;}
+    o.updateMatrixWorld(force);}
+};
 // CIEL « VICE CITY NUIT » : rose Miami / violet, mais ASSOMBRI — indigo profond au zénith,
 // grande brume rose sombre, ambre au ras du couchant, étoiles, lune. La nuit tombe pour de bon.
 scene.background=new THREE.Color(0x0d0820); // fond NUIT violet TRÈS sombre (le ciel dôme couvre, ceci teinte les trouées)
@@ -4277,6 +4294,7 @@ function mkCloud(center,r,o,rr){ // un nuage = ses boules fusionnées en UN mesh
   // redevient sûr (la géométrie est réelle et sa sphère englobante est exacte).
   mesh.castShadow=false;mesh.receiveShadow=false; // la ouate ne projette rien : c'est du décor
   mesh.userData.trav=!!(o.onRoad||(!o.giant&&!o.sea&&!o.veil&&!o.deco&&!o.titan));
+  mesh.matrixAutoUpdate=false; // (2026-09-27, passe perf iPhone) le maillage ne bouge JAMAIS dans son groupe (repère identité) : c'est le groupe qui dérive — plus 90 matrices recomposées pour rien à chaque image
   g.add(mesh);scene.add(g);
   CLOUDS.push({g:g,c:center.clone(),r:r,ry:ry,onRoad:!!o.onRoad,puffs:[],mesh:mesh,ph:rr()*6.28,refT:0,fid:-1,wasIn:false});
 }
@@ -4491,7 +4509,7 @@ function updateClouds(dt,t){
   }
   cloudInS+=(cloudIn-cloudInS)*Math.min(1,dt*(cloudIn>cloudInS?9:3.5));
   if(cloudInS<.004)cloudInS=0;
-  cloudFxEl.style.opacity=(cloudInS*.26).toFixed(3); // JOUABLE : voile discret (était .92 = white-out aveuglant, puis .40 — encore trop blanc sous le bloom)
+  {const o9=(cloudInS*.26).toFixed(3);if(updateClouds._o!==o9){updateClouds._o=o9;cloudFxEl.style.opacity=o9;}} // (2026-09-27) écrit seulement quand il change (hors nuage : « 0.000 » à chaque image) // JOUABLE : voile discret (était .92 = white-out aveuglant, puis .40 — encore trop blanc sous le bloom)
   cloudNearS+=(prox-cloudNearS)*Math.min(1,dt*2.5);
   // CONTRE-JOUR : face au soleil (au carré : ±30° seulement), la brume se dore, l'horizon avance, l'expo respire
   camera.getWorldDirection(cjV);
@@ -7418,7 +7436,7 @@ window.dbgCarriere=function(){return {actif:CARR.actif,progression:SAVE.d.carr||
 window.dbgNiveau=function(){return LVL.cur?{niveau:LVL.n,lieu:LVL.cur.id,ciel:BIO.name,largeurRoute:+(ROAD_HALF*2).toFixed(1),uSpace:+LVL.espace.toFixed(2),
   planete:+LVL.planete.toFixed(2),ville:!!CITY.root,nuages:CLOUDS.length}:'parc freestyle (pas de niveaux)';};
 paintEnv(BIOMES.golden.env,BIOMES.golden.eS1,BIOMES.golden.eS2); // premier reflet = golden hour (la vitrine du menu)
-const carGroup=new THREE.Group();scene.add(carGroup);
+const carGroup=new THREE.Group();scene.add(carGroup);SCENE_TOUJOURS.add(carGroup); // (2026-09-27) sa matrice monde est LUE même cachée (voir scene.updateMatrixWorld)
 const carLight=new THREE.PointLight(0xfff2ea,1,12,2);scene.add(carLight); // (2026-09-25) blanc NEUTRE (le rosé 0xffe6f4 rosissait tout), portée courte en décroissance quadratique : elle éclaire la CARROSSERIE, plus la route (c'était la tache rose)
 // PHARES RÉELS (la nuit tombe) : UN spot chaud qui balaie le bitume devant la caisse — ajouté à l init, jamais togglé (zéro recompilation)
 const headSpot=new THREE.SpotLight(0xffd9a0,1.2,72,.5,.6,1.2);
@@ -13226,9 +13244,17 @@ const RUNX={coins:0,fruits:0,perfect:0,t:0,nitro:0}; // ce que `runStats` ne com
    à la couleur de l'urgence, et les secondes au centre. Dessiné en ×2 pour un trait net sur écran Retina, et SEULEMENT quand
    l'image change (arc au 1/200, dixième de seconde). */
 function airPieDraw(fr,sec,flash){
-  const q=Math.round(fr*120),s10=Math.round(sec*10),col=pwrAirT>0?'#7dffec':fr>.4?'#5ee37a':(fr>.2?'#ffc93a':'#ff5a6e'),key=q+'|'+s10+'|'+col+'|'+flash;
+  // (2026-09-27, passe perf iPhone) DEUX économies, même image :
+  // · la CADENCE. L'arc (1/120 de tour) et les secondes (1/10 s) se redessinaient chacun sur SON arrondi, décalés d'un
+  //   demi-cran : ~40 redessins par seconde en vol au lieu de 20. Le seuil de l'arc est avancé d'un demi-cran (+.5) : ses
+  //   crans tombent désormais PILE sur ceux des secondes. L'arc tracé reste la valeur EXACTE du temps (fr), il avance par
+  //   pas de 3° comme prévu — seulement il ne se redessine plus entre deux pas pour rien.
+  // · la TOILE. Tout dessin sur le cadran AFFICHÉ (accéléré) coûte ~0,5 ms rien que pour la toucher (mesuré : un fillText
+  //   seul sur la toile affichée 0,5 ms, sur une toile hors écran 0,06 ms). On compose hors écran, puis UNE copie.
+  const q=Math.round(fr*120+.5),s10=Math.round(sec*10),col=pwrAirT>0?'#7dffec':fr>.4?'#5ee37a':(fr>.2?'#ffc93a':'#ff5a6e'),key=q+'|'+s10+'|'+col+'|'+flash;
   if(airPieDraw._k===key)return;airPieDraw._k=key;
-  const c=pieCtx,S=152,C=S/2;c.clearRect(0,0,S,S);
+  const S=152,C=S/2,cv0=airPieDraw.cv||(airPieDraw.cv=(function(){const cv=document.createElement('canvas');cv.width=cv.height=S;return cv;})()),
+        c=airPieDraw.cx||(airPieDraw.cx=cv0.getContext('2d'));c.clearRect(0,0,S,S);
   // le liseré, le verre et la piste ne dépendent de rien : CUITS UNE FOIS (plus de dégradé radial ~20 fois par seconde en vol)
   c.drawImage(airPieDraw.fond||(airPieDraw.fond=(function(){const cv=document.createElement('canvas');cv.width=cv.height=S;const x=cv.getContext('2d');
     x.beginPath();x.arc(C,C,66,0,6.2832);x.fillStyle='#0b0730';x.fill();                              // le liseré sombre
@@ -13244,7 +13270,9 @@ function airPieDraw(fr,sec,flash){
   c.font='26px "Press Start 2P",monospace';c.textAlign='center';c.textBaseline='middle';
   c.fillStyle='#0b0730';c.fillText((s10/10).toFixed(1),C,C+3);c.fillStyle='#fff';c.fillText((s10/10).toFixed(1),C,C);
   c.font='10px "Press Start 2P",monospace';c.fillStyle=col;c.fillText('AIR',C,C+30);
+  pieCtx.clearRect(0,0,S,S);pieCtx.drawImage(cv0,0,0); // la seule touche sur le cadran affiché
 }
+
 /* LE FONDU AU NOIR (2026-09-25, user : « les transitions entre les écrans, niveau App Store ») — remplace le rideau à
    cinq barres en `steps()`. C'est le geste des jeux premium quand le DÉCOR change (atelier, boutique, nouvelle course) :
    le voile MONTE en 200 ms, on bascule DESSOUS — même la première construction de l'atelier, qui fige le fil
@@ -17293,8 +17321,12 @@ function spawnP(pool,x,y,z,vx,vy,vz,life){
   pool.life[i]=life;
   if(pool.fa){pool.l0[i]=life>0?life:1;pool.fa[i]=1;} // (particules v2) la vie de naissance : la courbe de fondu s'y mesure
   if(!pool.mesh.visible&&!pool.masque)pool.mesh.visible=true; // (vague 2) la réserve endormie se réveille
+  pool.dort=false; // (2026-09-27) …et updatePool recommence à la parcourir
 }
 function updatePool(pool,dt,grav){
+  // (2026-09-27, passe perf iPhone) une réserve ENDORMIE (tout est mort, rangé, mesh éteint) n'a plus rien à faire : on ne
+  // reparcourt plus ses centaines de cases à chaque image. Seul `spawnP` la réveille (il est le seul à redonner de la vie).
+  if(pool.dort)return;
   let vivant=false;const fa=pool.fa,tr=pool.drag||0,ac=(pool.acc||0)*dt; // `acc` : une VRAIE gravité (m/s²) — l'étincelle monte puis retombe en arc // (particules v2) `drag` : la fumée FREINE dans l'air (elle ne file plus comme une balle)
   const kd=tr>0?Math.exp(-tr*dt):1;
   for(let i=0;i<pool.n;i++){
@@ -17313,6 +17345,7 @@ function updatePool(pool,dt,grav){
     if(fa){at.aF.needsUpdate=true;if(at.aVel){at.aVel.needsUpdate=true;pool.fx.uG.value=grav;}}} // (la « gravité » d'updatePool est une vitesse constante : le trait la suit)
   if(!vivant&&!pool._vivant&&pool.chaud&&pool.mesh.visible)pool.mesh.visible=false; // (vague 2) vide depuis une image (les morts sont rangés) : plus un appel de dessin
   pool._vivant=vivant;
+  if(!vivant&&!pool.mesh.visible)pool.dort=true; // rien de vivant, rien à ranger, rien à dessiner : exactement l'état qu'un tour de plus laisserait intact
 }
 /* `dbgPart()` (2026-09-26, passe graphique) : particules vivantes par réserve + vitesse de référence des traits.
    `dbgPart('cache','vieux'|'rubans'|'plume'|'reserves',true|false)` : masque une famille pour comparer deux captures. */
@@ -20104,14 +20137,48 @@ function startFall(impU,impF){
   whoosh();
 }
 const dTmp=new THREE.Vector3();
-function tryLand(dt){
-  let bestI=-1,bd=1e9;
-  for(let i=0;i<NP;i+=2){
-    if(holeAtI(i))continue; // LE VIDE : on ne se pose pas sur une dalle qui n'existe pas
-    const dx=fallPos.x-pts[i].x,dy=fallPos.y-pts[i].y,dz=fallPos.z-pts[i].z;
-    const dd=dx*dx+dy*dy+dz*dz;
-    if(dd<bd){bd=dd;bestI=i;}
+/* LE RADAR DE DALLE EN CASIERS (2026-09-27, passe perf iPhone) — en vol, deux recherches du point de piste le plus proche tournaient
+   à CHAQUE image sur toute la piste : `tryLand` (1 point sur 2, ~4 500 distances) et le viseur d'atterrissage (1 sur 8, mais 14 pas
+   d'intégration : ~15 700 distances + autant de `holeAtI`). Sous processeur bridé c'était la moitié du temps PROPRE de la boucle.
+   La piste est rangée en casiers de 64 points consécutifs, chacun dans une sphère (centre + rayon, marge d'un millimètre contre
+   l'arrondi). Un casier dont la sphère est plus loin que le meilleur candidat déjà connu ne peut RIEN changer au résultat : on le
+   saute. Les casiers restants sont balayés dans le MÊME ordre, avec la MÊME comparaison stricte et le même pas → même point élu au
+   bit près (égalités comprises). Le casier se rebâtit seul quand la piste change (`pts` est un tableau neuf à chaque buildTrack). */
+const DALLE_K=64,DALLE_IX={pts:null,n:0,nb:0,c:null,r:null};
+function dalleIx(){
+  const X=DALLE_IX;if(X.pts===pts&&X.n===NP)return X;
+  const nb=Math.ceil(NP/DALLE_K);X.pts=pts;X.n=NP;X.nb=nb;X.c=new Float64Array(nb*3);X.r=new Float64Array(nb);
+  for(let b=0;b<nb;b++){const i0=b*DALLE_K,i1=Math.min(NP,i0+DALLE_K);
+    let x0=1e18,y0=1e18,z0=1e18,x1=-1e18,y1=-1e18,z1=-1e18;
+    for(let i=i0;i<i1;i++){const p=pts[i];if(p.x<x0)x0=p.x;if(p.x>x1)x1=p.x;if(p.y<y0)y0=p.y;if(p.y>y1)y1=p.y;if(p.z<z0)z0=p.z;if(p.z>z1)z1=p.z;}
+    const cx=(x0+x1)/2,cy=(y0+y1)/2,cz=(z0+z1)/2;let r2=0;
+    for(let i=i0;i<i1;i++){const p=pts[i],dx=p.x-cx,dy=p.y-cy,dz=p.z-cz,d=dx*dx+dy*dy+dz*dz;if(d>r2)r2=d;}
+    X.c[b*3]=cx;X.c[b*3+1]=cy;X.c[b*3+2]=cz;X.r[b]=Math.sqrt(r2)+1e-3;}
+  return X;
+}
+// distance² MINIMALE possible entre (x,y,z) et un point du casier b (0 si on est dans la sphère)
+function dalleLb(X,b,x,y,z){const dx=x-X.c[b*3],dy=y-X.c[b*3+1],dz=z-X.c[b*3+2],g=Math.sqrt(dx*dx+dy*dy+dz*dz)-X.r[b];return g>0?g*g:0;}
+// le point le plus proche parmi les indices multiples de `pas` (2 ou 8), trous exclus, dd < bd0 — identique au balayage complet.
+// `graine` : un indice dont la distance borne déjà le minimum (le point élu à l'image d'avant) — on écarte tout casier plus loin.
+function dalleProche(x,y,z,pas,bd0,graine){
+  const X=dalleIx();let lim=bd0;
+  if(graine>=0&&graine<NP&&graine%pas===0&&!holeAtI(graine)){const p=pts[graine],dx=x-p.x,dy=y-p.y,dz=z-p.z,d=dx*dx+dy*dy+dz*dz;if(d<lim)lim=d;}
+  let bi=-1,bd=bd0;
+  for(let b=0;b<X.nb;b++){
+    const lb=dalleLb(X,b,x,y,z);if(lb>lim||lb>=bd)continue; // ni ce casier ni aucun de ses points ne peut battre le candidat
+    const i1=Math.min(NP,b*DALLE_K+DALLE_K);
+    for(let i=b*DALLE_K;i<i1;i+=pas){
+      if(holeAtI(i))continue;
+      const p=pts[i],dx=x-p.x,dy=y-p.y,dz=z-p.z,dd=dx*dx+dy*dy+dz*dz;
+      if(dd<bd){bd=dd;bi=i;}
+    }
   }
+  dalleProche.bd=bd;return bi;
+}
+function tryLand(dt){
+  // LE VIDE : on ne se pose pas sur une dalle qui n'existe pas (trous exclus dans dalleProche) — (2026-09-27) balayage en casiers
+  const bestI=dalleProche(fallPos.x,fallPos.y,fallPos.z,2,1e9,tryLand._bi),bd=dalleProche.bd;
+  tryLand._bi=bestI;
   if(bestI<0)return false;
   lastNearY=pts[bestI].y; // altitude de la route la plus proche (référence du plongeon fatal)
   {const hx=fallPos.x-pts[bestI].x,hz=fallPos.z-pts[bestI].z;lastNearH2=hx*hx+hz*hz;} // à plat : sert à savoir si on survole du BITUME ou du VIDE
@@ -23131,7 +23198,7 @@ function loop(now){
           if(nitroOn){const a9=nitroBlue?.05:.036;camera.position.addScaledVector(F.n,Math.sin(t*38.7)*a9).addScaledVector(tmp,Math.sin(t*29.3+1.7)*a9*.7);}
         }
         // indicateur de virage RETIRÉ du HUD épuré (#turnHint est display:none) : on n'évalue plus la courbe à l'avance (frameAt+trig) chaque frame pour rien
-        airPie.style.display='none';
+        if(airPie.style.display!=='none')airPie.style.display='none'; // (2026-09-27) une fois suffit (c'était à chaque image de conduite)
       }
     }else if(mode==='fall'){ // ---- VOL : maniabilité aérienne propre ----
       const dtF=dt*AIR_RATE; // temps de vol accéléré : même arc dans l'espace, moins de temps réel à flotter
@@ -23266,7 +23333,10 @@ function loop(now){
       // (chainVal>0 et plus fallT : l'airtime seul ne vaut rien, une mallette vide n'a rien à montrer)
       if(chain>0||chainVal>0){
         const est=chainEst();
-        {const tx9='💰 '+fmtC(est),fs9=(Math.round(Math.min(30,17+est/denom()*.055)*2)/2)+'px'; // le magot GONFLE à l'écran
+        // (2026-09-27, passe perf iPhone) écran nu : #caseHud est en display:none!important sous body.touch — on ne formate plus
+        // (fmtC + chaînes neuves à chaque image de vol) un montant que personne ne voit. Le cœur (hot) continue de battre.
+        if(loop._nu===undefined)loop._nu=document.body.classList.contains('touch');
+        if(!loop._nu){const tx9='💰 '+fmtC(est),fs9=(Math.round(Math.min(30,17+est/denom()*.055)*2)/2)+'px'; // le magot GONFLE à l'écran
          if(caseHud._t!==tx9){caseHud._t=tx9;caseHud.textContent=tx9;} // (perf) réécrit seulement quand le montant change
          if(caseHud.style.fontSize!==fs9)caseHud.style.fontSize=fs9;
          if(caseHud.style.opacity!=='1')caseHud.style.opacity=1;}
@@ -23337,12 +23407,9 @@ function loop(now){
       for(let st2=0;st2<14;st2++){ // même intégration que la vraie chute : vel par seconde, position ×SPD
         tmp3.y-=FALL_G*.12;
         tmp2.addScaledVector(tmp3,.12*SPD);
-        let bi=-1,bdd=400;
-        for(let i2=0;i2<NP;i2+=8){
-          if(holeAtI(i2))continue; // le viseur ne promet jamais un atterrissage dans le vide
-          const dx=tmp2.x-pts[i2].x,dy=tmp2.y-pts[i2].y,dz=tmp2.z-pts[i2].z,dd2=dx*dx+dy*dy+dz*dz;
-          if(dd2<bdd){bdd=dd2;bi=i2;}
-        }
+        // le point le plus proche à moins de 20 m, 1 sur 8, trous exclus (le viseur ne promet jamais un atterrissage dans le vide)
+        // (2026-09-27, passe perf iPhone) balayage en casiers (dalleProche) : même point élu, ~6× moins de distances
+        const bi=dalleProche(tmp2.x,tmp2.y,tmp2.z,8,400,-1);
         if(bi>=0){
           dTmp.subVectors(tmp2,pts[bi]);
           const h2=dTmp.dot(Nn[bi]),l2=dTmp.dot(B[bi]);
@@ -23361,7 +23428,7 @@ function loop(now){
         }
       }
       // camembert de temps de vol (cyan plein pendant AIRTIME INFINI : c'est le pouvoir qui s'égrène)
-      airPie.style.display='block';
+      if(airPie.style.display!=='block')airPie.style.display='block'; // (2026-09-27) une fois par vol, plus à chaque image
       const fr=pwrAirT>0?Math.min(1,pwrAirT/10):Math.max(0,1-fallTR/AIR_MAX); // jauge en temps RÉEL : 6 s affichées = 6 s vécues
       if(airFlash>0)airFlash=Math.max(0,airFlash-dt);
       airPieDraw(fr,pwrAirT>0?pwrAirT:Math.max(0,AIR_MAX-fallTR),airFlash>0);
@@ -23804,11 +23871,15 @@ function loop(now){
     }
     // (perf, lot 4) chaque écriture DOM se paie d'un recalcul de style — et `textContent=` remplace le nœud texte même à valeur égale :
     // on n'écrit que ce qui a CHANGÉ (sur téléphone ces éléments sont masqués : on leur écrivait quatre fois par image pour rien)
+    // (2026-09-27, passe perf iPhone) écran nu : #speedo est masqué sous body.touch — plus un texte ni un style par image pour lui
+    if(loop._nu===undefined)loop._nu=document.body.classList.contains('touch');
+    if(!loop._nu){
     {const k9=Math.round(speedKmh);if(loop._spK!==k9){loop._spK=k9;elSpeed.textContent=k9;}}
     // le compteur VIT : il gonfle et vire au rouge quand ça devient déraisonnable
     const spdP=Math.min(.24,Math.max(0,(speedKmh-760)/1300)+(nitroOn?.05:0)); // seuils ×2 (SPD .25→.5 : km/h affichés doublés) — le compteur gonfle/rougit au même RÉGIME RESSENTI qu'avant
     {const tr9='scale('+(1+spdP).toFixed(3)+')',co9=speedKmh>920?'#ff5040':'';
      if(loop._spT!==tr9){loop._spT=tr9;elSpeed.style.transform=tr9;}if(loop._spC!==co9){loop._spC=co9;elSpeed.style.color=co9;}}
+    }
     if(!REDUCED_MOTION){const o9=Math.max(0,Math.min(.95,(speedKmh-280)/560)).toFixed(2);if(loop._sfO!==o9){loop._sfO=o9;speedFx.style.opacity=o9;}} // reduced-motion : vignette vitesse coupée
     // panneaux HUD MASQUÉS (#carInfo/#cpInfo/#record en display:none) : on ne reconstruit leur texte (fmtC/fmt alloue) QUE quand la valeur change
     paintCarHud();
