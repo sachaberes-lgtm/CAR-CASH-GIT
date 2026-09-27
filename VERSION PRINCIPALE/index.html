@@ -6011,28 +6011,74 @@ function asphTex(){ if(ASPH_TEX)return ASPH_TEX;
    les phares (SpotLight), le soleil et l'hémisphère restent. ⚠ r128 remplace NUM_POINT_LIGHTS par sa valeur dans le texte du shader :
    on ne peut pas le redéfinir, on retire donc la boucle elle-même. */
 const LFB_SANS_PL=THREE.ShaderChunk.lights_fragment_begin.replace(/#if \( NUM_POINT_LIGHTS > 0 \) && defined\( RE_Direct \)[\s\S]*?#pragma unroll_loop_end\s*#endif/,'');
+/* LE BITUME NE CALCULE QUE CE QUI SE VOIT (2026-09-27, passe perf iPhone, tour 2 — « le bitume, les néons et les ombres »). MESURÉ au banc
+   logiciel (SwiftShader : le temps y suit le travail par pixel ; piste seule à l'écran, image figée, A/B alternés) : le bitume coûtait ~285 ms
+   sur ~600, et sa face CACHÉE autant que la face vue (dessus seul 172 ms, dessous seul 174 ms, les deux 310) — la dalle est dessinée en
+   DoubleSide, dessus et dessous dans le même maillage, et chaque tranche peignait les deux faces. Deux économies, image identique :
+     · LA FACE CACHÉE N'EST PLUS DESSINÉE (`BITUME.face`) : la dalle est un solide FERMÉ (dessus, dessous, flancs, bords du vide en rouge),
+       une face vue de dos est donc toujours derrière une face vue de face. Le bloc du DESSOUS est retourné (sens des triangles inversé,
+       normales et couleurs NIÉES — le signe de la couleur porte l'orientation) et la matière passe en FrontSide : le GPU jette la face de
+       dos avant de la tramer, ~la moitié des triangles du bitume, y compris dans les loopings et les dalles qui vrillent (le test est
+       par TRIANGLE, gratuit). Le shader du dessous reçoit exactement ce qu'il recevait : la normale retournée par `faceDirection` y
+       arrivait déjà niée (−n interpolé = −(n interpolé), au bit près), la couleur est relue en valeur absolue, et le décalage d'ombre
+       (`normalBias`, calculé au SOMMET avec la normale non retournée) reprend son signe d'origine.
+     · LES LUMIÈRES QUI N'ÉCLAIRENT PAS NE SE CALCULENT PAS (`LFB_ROUTE`) : r128 évalue le Blinn-Phong complet (deux normalisations, une
+       puissance, un Schlick) de chaque lumière, même quand elle vaut ZÉRO ici — le phare hors de son cône (presque tout l'écran), le fill
+       bleu qui vient d'EN DESSOUS sur la face du dessus, le soleil sur une face qui lui tourne le dos (et son ombre : 16 lectures de carte).
+       Un `if` exact : hors du cône la couleur vaut 0, dos à la lumière le cosinus vaut 0 — l'apport sautée était 0 × quelque chose.
+   `dbgBitume(face,sauts)` : l'ancien bitume (DoubleSide, toutes les lumières) sur la piste en cours, pour comparer au pixel et au banc. */
+const BITUME={face:true,sauts:true};
+const LFB_ROUTE=(function(){
+  const sp=/(getSpotDirectLightIrradiance\( spotLight, geometry, directLight \);)([\s\S]*?RE_Direct\( directLight, geometry, material, reflectedLight \);)/,
+        di=/(getDirectionalDirectLightIrradiance\( directionalLight, geometry, directLight \);)([\s\S]*?RE_Direct\( directLight, geometry, material, reflectedLight \);)/;
+  const t=LFB_SANS_PL.replace(sp,'$1\n\t\tif ( directLight.visible && directLight.color.r + directLight.color.g + directLight.color.b > 0.0 ) {$2\n\t\t}')
+    .replace(di,'$1\n\t\tif ( dot( geometry.normal, directLight.direction ) > 0.0 && directLight.color.r + directLight.color.g + directLight.color.b > 0.0 ) {$2\n\t\t}');
+  if(!sp.test(LFB_SANS_PL)||!di.test(LFB_SANS_PL)){console.warn('CASH CAR : lumières du bitume non greffées (chunk inattendu)');return LFB_SANS_PL;}
+  return t;})();
 function roadMat(){
   /* (2026-09-26, vague 2) UNE LECTURE DE TEXTURE DE MOINS PAR PIXEL DE ROUTE. Le grain servait deux fois — en `map` ET en `specularMap`,
      la même image lue deux fois dans chaque pixel du bitume (la moitié de l'écran). Le spéculaire prend désormais le rouge du texel
      déjà lu (`specularStrength=texelColor.r`, la carte est en niveaux de gris et en espace linéaire : c'est la même valeur).
      Et le grain est lu 1,7 fois plus FIN (`ASPH_K`) : à 1,6 cm le texel, de près il faisait des pâtés sous le nez de la caisse ; les
      mipmaps et l'anisotropie tiennent le lointain. Les flaques et les impacts de pluie (vUv) gardent leur échelle. */
-  const m=new THREE.MeshPhongMaterial({color:0x322e40,side:THREE.DoubleSide,vertexColors:true,map:asphTex(),
+  const face=BITUME.face,sauts=BITUME.sauts; // (tour 2) figés à la construction : la matière et la géométrie de la piste vont ensemble (voir BITUME)
+  const m=new THREE.MeshPhongMaterial({color:0x322e40,side:face?THREE.FrontSide:THREE.DoubleSide,vertexColors:true,map:asphTex(),
     shininess:30,specular:0x16141e,envMap:envTex,reflectivity:.03}); // (2026-09-26, user : « un peu trop brillante, gère mal le reflet du soleil ») : 80/0x2c2a3a faisait une traînée de soleil DURE et granuleuse — un bitume renvoie une nappe large et sourde
+  m.userData.bitume=face?2:1;m.userData.sauts=sauts; // 2 = face cachée jetée (bloc du dessous retourné), 1 = l'ancien DoubleSide
   m.onBeforeCompile=function(sh){
     sh.uniforms.uLift=ROAD_U.uLift;sh.uniforms.uSheen=ROAD_U.uSheen;sh.uniforms.uSheenCol=ROAD_U.uSheenCol;
     sh.uniforms.uWet=ROAD_U.uWet;sh.uniforms.uAcc9=ROAD_U.uAcc;sh.uniforms.uT9=CITY.uT;
+    if(face)sh.vertexShader=sh.vertexShader.replace('#include <color_vertex>','#include <color_vertex>\nvColor=abs(vColor);') // le dessous porte des couleurs NIÉES : on relit leur valeur
+      .replace('#include <shadowmap_vertex>',THREE.ShaderChunk.shadowmap_vertex.split('inverseTransformDirection( transformedNormal, viewMatrix )')
+        .join('inverseTransformDirection( transformedNormal*(color.r<0.?-1.:1.), viewMatrix )')); // …et le décalage d'ombre reprend la normale d'avant le retournement
     sh.fragmentShader='uniform vec3 uLift;uniform float uSheen;uniform vec3 uSheenCol;uniform float uWet;uniform vec3 uAcc9;uniform float uT9;\n'+
-      sh.fragmentShader.replace('void main() {',BITUME_MOUILLE+'void main() {').replace('#include <lights_fragment_begin>',LFB_SANS_PL)
+      sh.fragmentShader.replace('void main() {',BITUME_MOUILLE+'void main() {').replace('#include <lights_fragment_begin>',sauts?LFB_ROUTE:LFB_SANS_PL)
       .replace('#include <map_fragment>','vec4 texelColor=texture2D(map,vUv*'+ASPH_K.toFixed(2)+');float spec9=texelColor.r;texelColor=mapTexelToLinear(texelColor);diffuseColor*=texelColor;')
       .replace('#include <specularmap_fragment>','float specularStrength=spec9;').replace('#include <envmap_fragment>',
       '#include <envmap_fragment>\n{float fr9=pow(1.0-clamp(abs(dot(normal,normalize(vViewPosition))),0.0,1.0),4.0);float lk9=1.;\n'+
       '#if defined(USE_ENVMAP)&&defined(ENVMAP_TYPE_CUBE)\nif(uWet>.001){vec4 w9=bitumeMouille(outgoingLight,reflectVec,normal,normalize(vViewPosition));outgoingLight=w9.rgb;lk9=w9.a;}\n#endif\n'+
       'outgoingLight+=uLift*lk9+uSheenCol*(uSheen*fr9);}');
   };
-  m.customProgramCacheKey=function(){return 'bitumeV5';}; // UNE compilation pour toutes les pistes
+  m.customProgramCacheKey=function(){return 'bitumeV5'+(face?'f':'')+(sauts?'s':'');}; // UNE compilation pour toutes les pistes
   return m;
 }
+/* (tour 2) le bloc du DESSOUS d'une tranche de bitume, retourné ou remis à l'endroit — EN PLACE, l'opération est son propre inverse :
+   normales et couleurs niées, 2e et 3e sommet de chaque triangle échangés. Sert à `dbgBitume` (la construction, elle, le fait d'emblée). */
+function bitumeRetourne(g){
+  const n=g.attributes.position.count,N9=g.attributes.normal.array,C9=g.attributes.color.array,I=g.index.array,i0=I.length/2;
+  for(let q=n*3/2;q<n*3;q++){N9[q]=-N9[q];C9[q]=-C9[q];}
+  for(let q=i0;q<I.length;q+=3){const t=I[q+1];I[q+1]=I[q+2];I[q+2]=t;}
+  g.attributes.normal.needsUpdate=g.attributes.color.needsUpdate=g.index.needsUpdate=true;
+}
+window.dbgBitume=function(face,sauts){ // (tour 2) banc : l'ancien bitume (false,false) ou le nouveau (true,true) sur la piste en cours
+  if(face!=null||sauts!=null){const f=face==null?BITUME.face:!!face,s=sauts==null?BITUME.sauts:!!sauts;
+    const L=trackMeshes.filter(o=>o.isMesh&&o.material&&o.material.userData&&o.material.userData.bitume);
+    const av=L.length?L[0].material:null,flip=av&&((av.userData.bitume===2)!==f);
+    BITUME.face=f;BITUME.sauts=s;const C=BITUME.dbg||(BITUME.dbg={}),k=(f?'f':'')+(s?'s':''); // les matières du banc restent en vie (aller-retour sans recompiler)
+    if(av&&!C[(av.userData.bitume===2?'f':'')+(av.userData.sauts?'s':'')])C[(av.userData.bitume===2?'f':'')+(av.userData.sauts?'s':'')]=av;
+    const m=C[k]||(C[k]=roadMat());
+    const vus=new Set();for(const o of L){if(flip&&!vus.has(o.geometry)){vus.add(o.geometry);bitumeRetourne(o.geometry);}o.material=m;}}
+  return {face:BITUME.face,sauts:BITUME.sauts,prog:'bitumeV5'+(BITUME.face?'f':'')+(BITUME.sauts?'s':'')};};
 /* LE BITUME MOUILLÉ DE LA VILLE (2026-09-26) — sous la pluie, la route n'était qu'un aplat violet : c'est pourtant LA surface qui fait
    une ville cyberpunk. Tout vit dans le shader du bitume, SANS aucune lumière (la route n'écoute plus les PointLights : LFB_SANS_PL),
    et ne coûte rien ailleurs (`uWet` = LVL.pluie, branche uniforme coupée hors de la pluie) :
@@ -6167,8 +6213,8 @@ function pisteMaigre(att,c,lz){ // la tranche lointaine : mêmes attributs, une 
   for(const nm in att){const A=att[nm][0],sz=att[nm][1],B9=new Float32Array(nv*sz);let w=0;
     for(let b=0;b<nb;b++)for(let k=0;k<nR;k++)for(let j=0;j<nc;j++){const s0=((b*NP+R[k])*pr+cols[j])*sz;for(let q=0;q<sz;q++)B9[w++]=A[s0+q];}
     g.setAttribute(nm,new THREE.BufferAttribute(B9,sz));}
-  for(let b=0;b<nb;b++)for(let k=0;k<nR-1;k++){if(lz.trou(R[k]))continue; // le vide reste vide
-    for(let j=0;j<nc-1;j++){const a2=(b*nR+k)*nc+j,b2=a2+1,c2=a2+nc,d2=c2+1;ix.push(a2,c2,b2,b2,c2,d2);}}
+  for(let b=0;b<nb;b++){const inv=lz.inv&&lz.inv[b];for(let k=0;k<nR-1;k++){if(lz.trou(R[k]))continue; // le vide reste vide
+    for(let j=0;j<nc-1;j++){const a2=(b*nR+k)*nc+j,b2=a2+1,c2=a2+nc,d2=c2+1;if(inv)ix.push(a2,b2,c2,b2,d2,c2);else ix.push(a2,c2,b2,b2,c2,d2);}}} // `inv` : le bloc retourné (voir BITUME)
   if(!ix.length)return null;
   g.setIndex(ix);g.computeBoundingSphere();return g;
 }
@@ -6196,8 +6242,10 @@ function pisteTranches(att,lay,trou,mat,o){ // lay : {blocs, pr (sommets par ran
     let ns=0;for(let k=r0;k<r1;k++)if(!trou(k))ns++;
     if(!ns)continue;
     const li=nv>65535?new Uint32Array(ns*nq*6*lay.blocs):new Uint16Array(ns*nq*6*lay.blocs);let w=0;
-    for(let b=0;b<lay.blocs;b++)for(let k=r0;k<r1;k++){if(trou(k))continue;
-      for(let j=0,a2=(b*nr+k-r0)*pr;j<nq;j++,a2++){const c2=a2+pr;li[w++]=a2;li[w++]=c2;li[w++]=a2+1;li[w++]=a2+1;li[w++]=c2;li[w++]=c2+1;}}
+    for(let b=0;b<lay.blocs;b++){const inv=lay.inv&&lay.inv[b];for(let k=r0;k<r1;k++){if(trou(k))continue;
+      for(let j=0,a2=(b*nr+k-r0)*pr;j<nq;j++,a2++){const c2=a2+pr; // `inv` : le bloc retourné (sens inverse — voir BITUME)
+        if(inv){li[w++]=a2;li[w++]=a2+1;li[w++]=c2;li[w++]=a2+1;li[w++]=c2+1;li[w++]=c2;}
+        else{li[w++]=a2;li[w++]=c2;li[w++]=a2+1;li[w++]=a2+1;li[w++]=c2;li[w++]=c2+1;}}}}
     const g=new THREE.BufferGeometry();
     for(const nm of noms){const A=att[nm][0],sz=att[nm][1],B9=new Float32Array(nv*sz);
       for(let b=0;b<lay.blocs;b++)B9.set(A.subarray((b*np+r0)*pr*sz,(b*np+r1+1)*pr*sz),b*nr*pr*sz);
@@ -6329,8 +6377,12 @@ function buildTrack(seed){
     // (2026-09-25) LE BITUME v2 — voir roadMat : l'ancien spéculaire saumon au lobe énorme dessinait les taches roses.
     // (passe perf) UNE matière pour les deux faces : c'étaient deux jumelles (même programme, mêmes réglages, mêmes uniformes partagés).
     const P9=new Float32Array(arr),I9=new Uint32Array(idx),nF=NP*COLS;
-    pisteTranches({position:[P9,3],normal:[normales9(P9,I9),3],color:[new Float32Array(cols),3],uv:[new Float32Array(uvs),2]},
-      {blocs:2,pr:COLS,np:NP,pas:1},holeSeg,roadMat(),{ombre:true,loin:{blocs:2,pr:COLS,cols:[0,COLS-1],trou:holeSeg}}); // le bitume reçoit les OMBRES LONGUES
+    // (tour 2) la face cachée jetée par le GPU (voir BITUME) : le bloc du DESSOUS est retourné — normales et couleurs niées (calculées
+    // d'abord comme avant, sur le maillage entier), triangles en sens inverse (`inv`, posé par pisteTranches/pisteMaigre)
+    const N9=normales9(P9,I9),C9=new Float32Array(cols),inv9=BITUME.face?[false,true]:null;
+    if(inv9)for(let q=nF*3;q<2*nF*3;q++){N9[q]=-N9[q];C9[q]=-C9[q];}
+    pisteTranches({position:[P9,3],normal:[N9,3],color:[C9,3],uv:[new Float32Array(uvs),2]},
+      {blocs:2,pr:COLS,np:NP,pas:1,inv:inv9},holeSeg,roadMat(),{ombre:true,loin:{blocs:2,pr:COLS,cols:[0,COLS-1],trou:holeSeg,inv:inv9}}); // le bitume reçoit les OMBRES LONGUES
   }
   const flank=trancheMat(); // tranches violet-noir : elles boivent le fill néon — (2026-09-26) + leur liseré d'accent et leurs catadioptres
   strip([sideL_,sideR_],flank);
@@ -9030,6 +9082,24 @@ if(ENV_VERNIS===THREE.ShaderChunk.envmap_fragment)console.warn('CASH CAR : verni
 const RIM_GLSL=cj=>'vec3 nR9=normalize(normal);float nv9=1.-saturate(dot(nR9,normalize(vViewPosition)));\n'+ // `cj` : le poids du contre-jour (les fruits de lpMat n'en veulent pas)
   'float rimF=pow(nv9,uRimPow)*smoothstep(-.25,.55,dot(nR9,uSunV));\n'+
   'rimF+='+cj+'*pow(nv9,5.)*1.6*smoothstep(.1,.8,-uSunV.z)*smoothstep(-.2,.6,dot(nR9.xy,uSunV.xy));\n';
+/* LA CAISSE NE CALCULE PLUS LES LAMPES ÉTEINTES (2026-09-27, passe perf iPhone, tour 2). En course, le programme de la tôle compte DIX
+   lumières ponctuelles (lampe de carrosserie, reflets nitro/traînée, flash de pose, gyrophares, nitro du bot, lampes de l'étal…) et r128
+   les évalue TOUTES, dans chaque pixel de la caisse — atténuation, puissance, Blinn-Phong — même éteintes : presque toujours neuf sur dix.
+   MESURÉ (caisse seule, image figée, GPU 1170×2532) : 0,95 → 0,64 ms. Chaque lampe est désormais sautée quand sa couleur vaut zéro (un test
+   UNIFORME : toute la caisse prend la même branche) ou quand elle n'atteint pas ce pixel (portée) ; le phare hors de son cône et les
+   directionnelles dos à la face aussi. Exact : l'apport sauté valait 0. Dépend de THREE seul (le bloc VOITURES est relu par l'étal). */
+const LFB_CAISSE=(function(){
+  const L0=THREE.ShaderChunk.lights_fragment_begin,
+        po=/(pointLight = pointLights\[ i \];)(\s*getPointDirectLightIrradiance\( pointLight, geometry, directLight \);)([\s\S]*?RE_Direct\( directLight, geometry, material, reflectedLight \);)/,
+        sp=/(getSpotDirectLightIrradiance\( spotLight, geometry, directLight \);)([\s\S]*?RE_Direct\( directLight, geometry, material, reflectedLight \);)/,
+        di=/(getDirectionalDirectLightIrradiance\( directionalLight, geometry, directLight \);)([\s\S]*?RE_Direct\( directLight, geometry, material, reflectedLight \);)/;
+  if(!po.test(L0)||!sp.test(L0)||!di.test(L0)){console.warn('CASH CAR : lumières de la caisse non greffées (chunk inattendu)');return L0;}
+  return L0.replace(po,'$1\n\t\tif ( any( notEqual( pointLight.color, vec3( 0.0 ) ) ) ) {$2\n\t\tif ( directLight.visible ) {$3\n\t\t}\n\t\t}')
+    .replace(sp,'$1\n\t\tif ( directLight.visible && directLight.color.r + directLight.color.g + directLight.color.b > 0.0 ) {$2\n\t\t}')
+    .replace(di,'$1\n\t\tif ( dot( geometry.normal, directLight.direction ) > 0.0 && directLight.color.r + directLight.color.g + directLight.color.b > 0.0 ) {$2\n\t\t}');})();
+/* ⚠ Greffé SEULEMENT là où la matière avait déjà son programme à elle (rimify, lpMat). Les Phong « nues » de la caisse (sombre, rouille,
+   matières des gabarits) partagent le programme Phong générique de la scène : leur donner le leur ajoutait 1 à 7 programmes à relier AU
+   DÉPART de la course (mesuré — le nombre de lumières ponctuelles change entre le garage et la course, tout se relie à ce moment-là). */
 // `v` : le vernis (voir ENV_VERNIS) · `rimK` : part du liseré doré (0 = aucun — le verre et le chrome n'en veulent pas)
 function rimify(m,v,rimK){
   const uV={value:new THREE.Vector4().fromArray(v||[1,1,1,0])},uK={value:rimK==null?1:rimK};
@@ -9038,7 +9108,7 @@ function rimify(m,v,rimK){
     sh.uniforms.uVern=uV;sh.uniforms.uRimK=uK;
     sh.fragmentShader=sh.fragmentShader
       .replace('#include <common>','#include <common>\nuniform vec3 uRimC;uniform vec3 uSunV;uniform float uRimStr;uniform float uRimPow;uniform vec4 uVern;uniform float uRimK;')
-      .replace('#include <envmap_fragment>',ENV_VERNIS)
+      .replace('#include <envmap_fragment>',ENV_VERNIS).replace('#include <lights_fragment_begin>',LFB_CAISSE) // (tour 2) les lampes éteintes sautent (voir LFB_CAISSE)
       .replace('#include <dithering_fragment>',RIM_GLSL('1.')+ // seulement le flanc au soleil : un liseré, pas un halo cartoon (+ le contre-jour : voir RIM_GLSL)
         'gl_FragColor.rgb+=uRimC*rimF*uRimStr*uRimK;\n#include <dithering_fragment>');
   };
@@ -9420,7 +9490,7 @@ function lpMat(g){
     sh.uniforms.uVern=uV;sh.uniforms.uCj=uC;
     sh.fragmentShader=sh.fragmentShader
       .replace('#include <common>','#include <common>\nuniform float uGlow;uniform vec3 uRimC;uniform vec3 uSunV;uniform float uRimStr;uniform float uRimPow;uniform vec4 uVern;uniform float uCj;')
-      .replace('#include <envmap_fragment>',ENV_VERNIS)
+      .replace('#include <envmap_fragment>',ENV_VERNIS).replace('#include <lights_fragment_begin>',LFB_CAISSE) // (tour 2) les lampes éteintes sautent (voir LFB_CAISSE)
       .replace('#include <dithering_fragment>',RIM_GLSL('uCj')+ // le liseré, contre-jour compris (voir RIM_GLSL)
         'gl_FragColor.rgb+=uRimC*rimF*uRimStr*.6+vColor*uGlow;\n#include <dithering_fragment>');
   };
