@@ -7567,7 +7567,7 @@ function pluieTick(t){ // appelée par la boucle : suit la caméra, suit le fond
            alignés qui GLISSENT dans le ciel (mouvement dans le vertex shader, apparition/disparition en fondu aux deux bouts), leurs
            panneaux tournent en phase décalée : l'éclat du soleil COURT le long du train (le « collier de perles » de Starlink).
        [1] LES GROS DÉBRIS : satellite mort à l'aile brisée, étage de fusée (blanc, bande noire, tuyère), grand pan de panneau
-           arraché, petit satellite d'or à quatre ailes.
+           arraché, petit satellite d'or à quatre ailes — variantes EMPILÉES dans les mêmes sommets (`satEmpile`, `SAT_MAT_E`).
        [2] LES ÉCLATS : un seul prisme irrégulier (36 sommets) dont la MATIÈRE change par instance — éclat de cellule, lambeau d'or,
            tige d'argent, écaille de peinture — pour le champ lointain et les deux anneaux de débris (le syndrome de Kessler).
      Chaque panneau solaire est un MIROIR : quand il renvoie le soleil vers l'œil, il FLAMBE. `GLINT` pose une étoile à quatre
@@ -7783,6 +7783,23 @@ function satFusion(pieces){
     o+=c;}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(P,3));g.setAttribute('uv',new THREE.BufferAttribute(U,2));
   g.setAttribute('aPart',new THREE.BufferAttribute(A,1));g.setAttribute('aVg',new THREE.BufferAttribute(G,1));return g;}
+/* LES VARIANTES EMPILÉES (2026-09-27, retour de la passe perf : « ~228 k sommets/image en orbite sur téléphone, c'est lourd »).
+   Les gros débris portaient leurs 4 variantes BOUT À BOUT (828 sommets) et chaque instance les traitait toutes pour n'en garder
+   qu'une : les trois quarts du travail jetés. Ici les variantes partagent les MÊMES sommets — chacune dans `aQ0..aQ3` (xyz + sa
+   PIÈCE en w), leurs uv deux par deux (`aU01`, `aU23`) — et le vertex shader lit celle de l'instance (aVar.z) : 300 sommets par
+   instance au lieu de 828, même appel de rendu. La plus courte est complétée par des sommets repliés (pièce −9). `position` ne sert
+   qu'au compte des sommets. ⚠ LA LIMITE D'ATTRIBUTS : 16 en théorie (iPhone comme PC), mais MESURÉ (Chrome/ANGLE) : 15 puis 14
+   attributs échouaient au lien (« Too many attributes »). Les pièces sont donc rangées en w, et ce chemin ne déclare pas les deux
+   attributs de TRAIN (aMov/aTr, inutiles aux débris) : 12, de la marge partout. */
+function satEmpile(pieces){
+  const V=[0,1,2,3].map(v=>satFusion(pieces.filter(p=>p.vg===v))),N=Math.max(...V.map(g=>g.attributes.position.count));
+  const Q=V.map(()=>new Float32Array(N*4)),U=[new Float32Array(N*4),new Float32Array(N*4)];
+  V.forEach(function(g,v){const c=g.attributes.position.count,x=g.attributes.position.array,u=g.attributes.uv.array,a=g.attributes.aPart.array;
+    for(let i=0;i<N;i++){Q[v][i*4+3]=i<c?a[i]:-9;if(i>=c)continue;Q[v][i*4]=x[i*3];Q[v][i*4+1]=x[i*3+1];Q[v][i*4+2]=x[i*3+2];
+      const o=i*4+(v&1)*2;U[v>>1][o]=u[i*2];U[v>>1][o+1]=u[i*2+1];}});
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(N*3),3)); // (le compte des sommets)
+  for(let v=0;v<4;v++)g.setAttribute('aQ'+v,new THREE.BufferAttribute(Q[v],4));
+  g.setAttribute('aU01',new THREE.BufferAttribute(U[0],4));g.setAttribute('aU23',new THREE.BufferAttribute(U[1],4));return g;}
 const SAT_AILE=[SAT_P.ARG,SAT_P.ARG,SAT_P.CELL,SAT_P.DOS,SAT_P.ARG,SAT_P.ARG]; // un panneau : cellules dessus, dos blanc dessous, cadre d'argent
 function geoStarlink(){ // [0] LE STARLINK : x = l'axe des ailes, y = la face des cellules ; demi-envergure ≈ 1 (variante 0 : une aile, 1 : deux)
   const P=SAT_P,C=SAT_P.COQUE,L=[];
@@ -7810,7 +7827,7 @@ function geoDebris(){ // [1] LES GROS DÉBRIS — 0 satellite mort · 1 étage d
   L.push(satBoite(.40,.008,.16,.33,0,0,SAT_AILE,3),satBoite(.40,.008,.16,-.33,0,0,SAT_AILE,3));
   L.push(satBoite(.16,.008,.40,0,0,.33,SAT_AILE,3,0,0),satBoite(.16,.008,.40,0,0,-.33,SAT_AILE,3));
   L.push(satCyl(.07,.012,.05,7,0,.14,0,P.ARG,3,false,0),satBoite(.012,.16,.012,.07,.19,.07,P.ARG,3));
-  return satFusion(L);}
+  return satEmpile(L);}
 function geoEclat(){ // [2] L'ÉCLAT : un prisme irrégulier ; dessus −1, dessous −2, tranches −3 → la MATIÈRE vient de l'instance (voir SAT_MAT)
   const b=[[-1,-.62],[.92,-.84],[.66,.74],[-.78,.9]],h=[.07,.05,.09,.06],P=[],U=[];
   const v=(i,up)=>[b[i][0],up?h[i]:-h[i]*.6,b[i][1]];
@@ -7825,18 +7842,35 @@ function geoEclat(){ // [2] L'ÉCLAT : un prisme irrégulier ; dessus −1, dess
 const SAT_MAX=IS_MOBILE?[120,140,1300]:[204,220,2000]; // Starlink (passants + champ + trains) · gros débris · éclats (champ + anneaux)
 const SAT_PASS=IS_MOBILE?18:26,SAT_TRAINS=IS_MOBILE?[2,20]:[3,26]; // passants au bord de la route ; trains × satellites par train
 const SAT_U={uT:{value:0},uSol:{value:ORB.cle},uTerre:{value:new THREE.Vector3(0,-1,0)},uFog:{value:new THREE.Color(0,0,0)},uOp:{value:0},uForce:{value:0}}; // uForce : (dev) tous les éclats allumés
-const SAT_VS=['attribute vec4 aRot,aVar,aMov;attribute vec2 aTr;uniform float uT;',
+const SAT_VS=['attribute vec4 aRot,aVar;uniform float uT;',
   'vec3 rotA(vec3 v,vec3 k,float a){float c=cos(a),s=sin(a);return v*c+cross(k,v)*s+k*dot(k,v)*(1.-c);}',
+  '#ifdef EMPILE',
+  'float trainOff(out vec3 off){off=vec3(0.);return 1.;}',                                    // les débris ne roulent pas en train : deux attributs de moins (voir satEmpile)
+  '#else',
+  'attribute vec4 aMov;attribute vec2 aTr;',
   // LE TRAIN : l'objet glisse le long de sa file (aMov = direction, vitesse ; aTr = sa place, longueur) et se replie au bout, en fondu
   'float trainOff(out vec3 off){off=vec3(0.);if(aMov.w==0.)return 1.;float u=mod(aTr.x+uT*aMov.w,aTr.y);off=aMov.xyz*(u-aTr.x);',
-  '  return smoothstep(0.,.08*aTr.y,u)*smoothstep(aTr.y,.92*aTr.y,u);}'].join('\n');
+  '  return smoothstep(0.,.08*aTr.y,u)*smoothstep(aTr.y,.92*aTr.y,u);}',
+  '#endif'].join('\n');
 const SAT_MAT=new THREE.ShaderMaterial({fog:false,extensions:{derivatives:true},uniforms:SAT_U,
-  vertexShader:[SAT_VS,'attribute float aPart,aVg;varying vec3 vVP,vLoc;varying vec2 vUv;varying float vPart,vTon,vPh;',
+  vertexShader:[SAT_VS,
+    '#ifdef EMPILE',
+    'attribute vec4 aQ0,aQ1,aQ2,aQ3,aU01,aU23;',
+    '#else',
+    'attribute float aPart,aVg;',
+    '#endif',
+    'varying vec3 vVP,vLoc;varying vec2 vUv;varying float vPart,vTon,vPh;',
     'void main(){',
-    '  vec3 off;float sc=trainOff(off);if(aVg>-.5&&abs(aVg-aVar.z)>.5)sc=0.;',                   // les sommets des AUTRES variantes : repliés
-    '  vec3 l=rotA(mat3(instanceMatrix)*position*sc,aRot.xyz,aVar.y+uT*aRot.w);',                  // la ROTATION PROPRE, après l échelle
-    '  vec4 mv=modelViewMatrix*vec4(l+instanceMatrix[3].xyz+off,1.);vVP=mv.xyz;vLoc=position;vUv=uv;vTon=aVar.x;vPh=aVar.y;',
-    '  float pt=aPart;if(pt<-.5){float m=aVar.z;pt=m<.5?(pt>-1.5?2.:(pt>-2.5?3.:5.)):(m<1.5?4.:(m<2.5?5.:7.));}vPart=pt;', // l ÉCLAT : sa matière vient de l instance
+    '  vec3 off;float sc=trainOff(off),m=aVar.z;',
+    '#ifdef EMPILE',                                                                                // les variantes EMPILÉES : l instance lit la sienne
+    '  vec4 q=m<.5?aQ0:(m<1.5?aQ1:(m<2.5?aQ2:aQ3));vec3 pos=q.xyz;float pt=q.w;if(pt<-.5)sc=0.;',    // −9 : le bourrage de la variante la plus courte
+    '  vec2 uvv=m<.5?aU01.xy:(m<1.5?aU01.zw:(m<2.5?aU23.xy:aU23.zw));',
+    '#else',
+    '  vec3 pos=position;vec2 uvv=uv;float pt=aPart;if(aVg>-.5&&abs(aVg-m)>.5)sc=0.;',              // les sommets des AUTRES variantes : repliés
+    '  if(pt<-.5)pt=m<.5?(pt>-1.5?2.:(pt>-2.5?3.:5.)):(m<1.5?4.:(m<2.5?5.:7.));',                  // l ÉCLAT : sa matière vient de l instance
+    '#endif',
+    '  vec3 l=rotA(mat3(instanceMatrix)*pos*sc,aRot.xyz,aVar.y+uT*aRot.w);',                       // la ROTATION PROPRE, après l échelle
+    '  vec4 mv=modelViewMatrix*vec4(l+instanceMatrix[3].xyz+off,1.);vVP=mv.xyz;vLoc=pos;vUv=uvv;vTon=aVar.x;vPh=aVar.y;vPart=pt;',
     '  gl_Position=sc>0.?projectionMatrix*mv:vec4(0.,0.,2.,1.);}'].join('\n'),
   fragmentShader:['uniform vec3 uSol,uTerre,uFog;uniform float uOp,uT;varying vec3 vVP,vLoc;varying vec2 vUv;varying float vPart,vTon,vPh;',
     // CE QUE VOIT UN MIROIR DANS L ESPACE : le noir, la Terre en dessous (bleue), le fil lumineux de son atmosphère à l horizon
@@ -7871,13 +7905,15 @@ const SAT_MAT=new THREE.ShaderMaterial({fog:false,extensions:{derivatives:true},
     '  col+=emi;',
     '  col=mix(col,uFog,smoothstep(1800.,7500.,length(vVP)));',                                             // le lointain se noie dans le noir bleuté
     '  gl_FragColor=vec4(mix(uFog,col,uOp),1.);}'].join('\n')});
+const SAT_MAT_E=new THREE.ShaderMaterial({fog:false,extensions:{derivatives:true},uniforms:SAT_U,defines:{EMPILE:''}, // les gros débris : le même code, chemin des variantes EMPILÉES
+  vertexShader:SAT_MAT.vertexShader,fragmentShader:SAT_MAT.fragmentShader});
 const SATS=[geoStarlink(),geoDebris(),geoEclat()].map(function(g,k){
   const N=SAT_MAX[k];
   g.setAttribute('aRot',new THREE.InstancedBufferAttribute(new Float32Array(N*4),4));
   g.setAttribute('aVar',new THREE.InstancedBufferAttribute(new Float32Array(N*4),4));
   g.setAttribute('aMov',new THREE.InstancedBufferAttribute(new Float32Array(N*4),4));   // ⚠ PRÉSENT PARTOUT (à zéro hors des trains) : un attribut absent vaut (0,0,0,1) — une vitesse de 1
   g.setAttribute('aTr',new THREE.InstancedBufferAttribute(new Float32Array(N*2).fill(1),2));
-  const im=new THREE.InstancedMesh(g,SAT_MAT,N);im.count=0;im.visible=false;im.frustumCulled=false; // un champ de plusieurs km : le culling par objet n'a pas de sens
+  const im=new THREE.InstancedMesh(g,k===1?SAT_MAT_E:SAT_MAT,N);im.count=0;im.visible=false;im.frustumCulled=false; // un champ de plusieurs km : le culling par objet n'a pas de sens
   scene.add(im);return im;});
 /* L'ÉCLAT DU SOLEIL SUR LES PANNEAUX — une étoile par Starlink, qui ne vit QUE pendant le reflet (sinon le sommet est jeté hors champ :
    zéro pixel). Le quad partage les tampons d'instances du maillage [0] (matrices, rotation propre, trains) : il suit son satellite. */

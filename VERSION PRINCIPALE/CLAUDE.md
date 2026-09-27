@@ -448,7 +448,8 @@ or `#ffd75e` argent, feu `#ff7a24` nitro, réserve `#5b7dff`, néon `#ff3ec8`/`#
     (`ORB.cle`, suit la caméra avec retard) — la fenêtre d'ombre suit `L_DIR/L_PERP/L_UP` (hors orbite = SUN_DIR au bit près, vérifié par
     `dbgOrbite('lum')`) ; hémisphère sans ciel, dessous = bleu Terre ; `fill` depuis la Terre, `kick` = clair de lune ; liseré (RIM) bleu
     depuis la Terre ; `FLARE` = voile + trait anamorphique du soleil hors cadre. Route d'orbite `route` .9 → .38 (le soleil l'éclaire).
-  6 appels de dessin (+2), ~230 k sommets/image sur téléphone. Zéro shader compilé au portail (mesuré). Bancs `dbgOrbite('vue'|'cout'|
+  6 appels de dessin (+2), ~154 k sommets/image sur téléphone (les 4 variantes de gros débris EMPILÉES dans les mêmes
+  sommets, `satEmpile`/`SAT_MAT_E` : 828 → 300 par instance ; ⚠ 14 attributs échouaient déjà au lien sous ANGLE, ce chemin en a 12). Zéro shader compilé au portail (mesuré). Bancs `dbgOrbite('vue'|'cout'|
   'photo'|'portrait'|'sat'|'train'|'rendu'|'force'|'lum'|'carte')`.
 - **VILLE** (`VILLE_PENTE={seuil:.30,garde:.35}`, `adoucirPentes`) : la pente de la ville est comprimée au-delà de ~16,7° (pente max
   ~47° → ~30°), altitude seulement, zéro `rnd()` ajouté : NUAGES et ORBITE identiques au bit. `garde:1` = l'ancienne ville.
