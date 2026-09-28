@@ -4347,30 +4347,29 @@ html body #engBig .ebRuban{top:-22px!important;left:-10px!important;right:-10px!
 </style>
 <style id="hudTaille">
 /* =====================================================================================================================================
-   LA TAILLE DU HUD (2026-09-28, nuit — Sacha : « réduis la taille des HUD à l'écran, c'est compliqué de voir la route »). Posé APRÈS
-   hudDA (session UHD, d'accord) : rien n'est redessiné, tout le tableau de bord qu'on LIT est rendu à l'échelle --hudK, d'un bloc.
-   MESURÉ avant (banc hudmes.js) : couché (844 × 390, ce que montre l'ordi), la colonne de gauche descendait jusqu'à 63 % de la hauteur
-   (nitro, flow, aura, chaîne) ; debout, aura + chaîne jusqu'à 250 px, les plaques de pouvoir 148 × 120.
-   · `zoom` (et non `scale`) : il réduit la boîte ET ses marges — la colonne se resserre vers SON coin (la gauche vers le haut-gauche, les
-     pouvoirs et le chrono vers le haut-droit) sans qu'aucune position « en dur » (hudH+96, +184, +204…) ne se chevauche, et sans toucher
-     aux `translate`/`scale` des animations d'entrée (hudMaitrise). `scale` aurait laissé chaque bloc à sa place en rétrécissant sur lui-même.
-   · Les SAFE AREAS restent exactes : dans un bloc zoomé, --hudH/--hudG/--hudD sont divisées par --hudK (le zoom les remultiplie) — l'encoche
-     et les bords arrondis gardent leur marge au pixel près. Même chose pour les deux règles qui lisaient env() en direct (nitro, flow).
-   · Ce qu'on TOUCHE ne rétrécit pas : bouton NITRO, ⏸, volant (cibles ≥ 44 px, charte). La carte MOTEUR se règle sur la caisse (UHD).
-   · Les ANNONCES (slam, verdict de pose, geste sur la caisse) : un cran plus doux, en JS (`annK()`), parce que leur corps y est calculé.
+   LA TAILLE DU HUD (2026-09-28, nuit) — Sacha : « réduis la taille des HUD à l'écran, c'est compliqué de voir la route », puis :
+   « remets la barre de nitro et le flow de la même taille qu'avant — c'est surtout les textes de figure et de MONSTRE qui dérangent ».
+   Posé APRÈS hudDA (session UHD, d'accord). Rien n'est redessiné :
+   · les BARRES (nitro, flow) gardent leur taille d'origine ;
+   · SOUS les barres, ce qu'on lit (aura et sa liste de figures, pouvoirs, chrono de vol, emblème, astuce, auto-école, objectif de campagne)
+     est rendu à l'échelle --hudK en `zoom` — il réduit la boîte ET ses marges ; `scale` aurait laissé chaque bloc à sa place en rétrécissant
+     sur lui-même, et les `translate`/`scale` des entrées (hudMaitrise) restent libres ;
+   · l'échelle part du HAUT de cette zone (--hudY0 = 96 px, là où commencent l'aura et le chrono) : rien ne remonte sous les barres, et
+     chaque position « en dur » (hudH+96, +104, +184, +204, +248…) se resserre d'autant — les colonnes gardent leur ordre, sans chevauchement.
+     Mécanique : dans un bloc zoomé, --hudH vaut (encoche + Y0·(1−K)) / K, que le zoom remultiplie ; --hudG/--hudD ÷ K (bords exacts) ;
+   · les TEXTES DE FIGURE : la liste sous l'aura un cran plus petite encore ; le geste sur la caisse et le verdict (MONSTRE…) par `figK()` en
+     JS, les grandes annonces par `annK()` — leur corps y est calculé ;
+   · ce qu'on TOUCHE ne change pas (NITRO, ⏸, volant) ; la carte MOTEUR suit la caisse (UHD).
    ===================================================================================================================================== */
-:root{--hudK:.8}
+:root{--hudK:.8;--hudY0:96px}
 @media (orientation:landscape) and (max-height:540px){:root{--hudK:.72}}
-html body.touch :is(#nitroWrap,#flowHud,#auraV2,#triade,#airHud,#pwrChip,#misBan,#coach,#campChip){zoom:var(--hudK);
-  --hudH:calc(env(safe-area-inset-top,0px) / var(--hudK));
+html body.touch :is(#auraV2,#triade,#airHud,#pwrChip,#misBan,#coach,#campChip){zoom:var(--hudK);
+  --hudH:calc((env(safe-area-inset-top,0px) + var(--hudY0) * (1 - var(--hudK))) / var(--hudK));
   --hudG:calc((env(safe-area-inset-left,0px) + 14px) / var(--hudK));
   --hudD:calc((env(safe-area-inset-right,0px) + 14px) / var(--hudK))}
-html body.touch #nitroWrap{left:var(--hudG)}
-@media (orientation:portrait){
-  html body.touch #nitroWrap,html body.touch #flowHud{right:calc((env(safe-area-inset-right,0px) + 64px) / var(--hudK))}  /* le ⏸ garde sa place */
-}
-/* le voile d'encre du haut suit le tableau de bord (il assombrissait 214 px de ciel pour un HUD qui n'y descend plus) */
-body.touch.play #hud::before{height:calc(env(safe-area-inset-top,0px) + 214px * var(--hudK))}
+html body.touch #avList{zoom:.86}                  /* les figures de la chaîne (« SUPER TURBO +100 ») : un cran sous le compteur */
+/* le voile d'encre du haut suit le tableau de bord : pleine hauteur jusqu'aux barres, à l'échelle en dessous */
+body.touch.play #hud::before{height:calc(env(safe-area-inset-top,0px) + var(--hudY0) + (214px - var(--hudY0)) * var(--hudK))}
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
@@ -17289,7 +17288,7 @@ function popTexte(txt,col,prio){
   e.textContent=TR(txt);e.style.setProperty('--pc',col||'#ffd75e');
   // (vague 2, H5) la police pixel avance d'1 em par lettre PLUS l'interlettrage (2 px) : l'ancien calcul l'oubliait, et « DAUPHIN EN
   // VOL +80 » débordait de 36 px. Plafond 84 % de la largeur (« AIR MONSTRE +110 » barrait l'écran d'un bord à l'autre).
-  const n9L=Math.max(1,e.textContent.length),fs9=Math.max(10,Math.min(Math.round(22*annK()),Math.floor(VP.w*.72/n9L)-2)); // (2026-09-28) .84 → .72 : l'entrée grossit ×1,15 avec un dépassement de ressort — « RECOLTE ×5 +30 » en 84 % sortait par les deux bords (vu en capture)
+  const n9L=Math.max(1,e.textContent.length),fs9=Math.max(10,Math.min(Math.round(22*figK()),Math.floor(VP.w*.72*figK()/n9L)-2)); // (2026-09-28) .84 → .72 : l'entrée grossit ×1,15 avec un dépassement de ressort — « RECOLTE ×5 +30 » en 84 % sortait par les deux bords (vu en capture)
   e.style.fontSize=fs9+'px';popTexte._w=n9L*(fs9+2);
   // (2026-09-27, passe perf iPhone) relance SANS remise en page synchrone : on bascule entre deux animations jumelles (.on / .on2) — un
   // nouveau nom d'animation repart de zéro. L'ancien `remove + void offsetWidth + add` forçait style ET mise en page à chaque figure.
@@ -24428,7 +24427,10 @@ function avE(id){return avEl[id]||(avEl[id]=document.getElementById(id));}
 /* (2026-09-28, nuit — Sacha : « réduis la taille des HUD, c'est compliqué de voir la route ») l'échelle des ANNONCES (slam, verdict, geste sur la
    caisse) : un cran plus douce que celle du tableau de bord (--hudK, <style id="hudTaille">) — ce sont les moments de fête, ils restent gros,
    mais ne couvrent plus la caisse. Couché (l'ordi, un téléphone tourné) : plus petit encore. Même seuil que la media du paysage. */
-function annK(){return (VP.w>VP.h&&VP.h<=540)?.78:.88;}
+function annK(){return (VP.w>VP.h&&VP.h<=540)?.72:.82;}
+/* (même nuit, Sacha : « c'est surtout les textes de figure et de MONSTRE qui dérangent ») les TEXTES DE FIGURE — le geste qui suit la caisse
+   (popTexte) et le verdict de pose (MONSTRE, MÉTÉORE…) — un cran plus petits que les annonces : ils passent SUR la route, souvent. */
+function figK(){return (VP.w>VP.h&&VP.h<=540)?.62:.72;}
 function fmtAura(n){return Math.round(n).toLocaleString(LOC()).replace(/[  ]/g,' ');} // (2026-09-28) au format de la LANGUE (« 12,500 » en anglais), et des espaces que la police pixel sait dessiner
 function sansAcc(t){return String(t).normalize('NFD').replace(/[̀-ͯ]/g,'');} // la police pixel n'a pas de capitales accentuées (« MÉTÉORE » s'afficherait « MéTéORE »)
 function chaineAura(nom,base,fam,brut,muet){ // brut : pas de décote de redite (les échelles qui grimpent déjà : vrilles, bumps) · muet : l'appelant sonne déjà (figure en vol, pose)
@@ -24516,11 +24518,11 @@ function verdAffiche(l1,l2,col,rang,mt,tags){
   let e=VERD.el;
   if(!e){e=VERD.el=document.createElement('div');e.id='verdHud';e.setAttribute('aria-hidden','true');document.body.appendChild(e);}
   const W=VP.w*.84,fit=function(t,max,ls){return Math.max(10,Math.min(max,Math.floor(W/Math.max(1,t.length))-ls));},
-    T1=l1?verdNet(l1):'',T2=verdNet(l2),base=Math.round((VERD_TAILLE[rang]||22)*Math.max(.8,Math.min(1,VP.h/800))*annK()); // écran court (SE) : un cran plus petit, la caisse reste libre
+    T1=l1?verdNet(l1):'',T2=verdNet(l2),base=Math.round((VERD_TAILLE[rang]||22)*Math.max(.8,Math.min(1,VP.h/800))*figK()); // écran court (SE) : un cran plus petit, la caisse reste libre
   let h='';
   if(T1)h+='<b class="vK" style="font-size:'+fit(T1,Math.round(base*.56),2)+'px" data-t="'+T1+'">'+T1+'</b>';
   h+='<b class="vT" style="font-size:'+fit(T2,base,2)+'px" data-t="'+T2+'">'+T2+'</b>';
-  if(mt){const m='+'+String(mt).replace(/[<>&"]/g,'');h+='<em class="vM" style="font-size:'+fit(m,Math.round((rang>=3?20:18)*annK()),1)+'px">'+m+'</em>';}
+  if(mt){const m='+'+String(mt).replace(/[<>&"]/g,'');h+='<em class="vM" style="font-size:'+fit(m,Math.round((rang>=3?20:18)*figK()),1)+'px">'+m+'</em>';}
   if(tags.length)h+='<span class="vTags">'+tags.map(function(g){return '<i style="--tc:'+g[1]+'">'+g[0]+'</i>';}).join('')+'</span>';
   e.innerHTML=h;e.style.setProperty('--vc',col);e.dataset.r=rang;
   e.classList.remove('on');void e.offsetWidth;e.classList.add('on');

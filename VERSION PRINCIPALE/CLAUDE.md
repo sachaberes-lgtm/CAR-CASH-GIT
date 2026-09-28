@@ -1,17 +1,18 @@
 # CASH CAR — guide projet pour Claude Code
 
-## LA TAILLE DU HUD (2026-09-28, nuit) — « réduis la taille des HUD à l'écran, c'est compliqué de voir la route »
-Fait par la session INTERFACE avec l'accord de UHD (qui ne touchait plus au HUD pendant ce temps). MESURÉ avant (banc `hudmes.js`, scratchpad
-93a1dcda `ui/`) : couché (844 × 390, l'ordi), la colonne de gauche descendait à 63 % de la hauteur ; debout, aura + chaîne jusqu'à 250 px.
-- `<style id="hudTaille">`, juste APRÈS hudDA : `--hudK` = .8 debout, .72 couché, appliqué en `zoom` à #nitroWrap, #flowHud, #auraV2, #triade,
-  #airHud, #pwrChip, #misBan, #coach, #campChip. `zoom` (pas `scale`) réduit la boîte ET ses marges : chaque colonne se resserre vers son
-  coin, aucune position en dur (hudH+96, +184, +204…) ne se chevauche, et les `translate`/`scale` des entrées (hudMaitrise) restent libres.
-- ⚠ SAFE AREAS : dans un bloc zoomé, --hudH/--hudG/--hudD sont redéfinies divisées par --hudK (le zoom les remultiplie) ; les deux règles qui
-  lisaient env() en direct (gauche de la nitro, droite de la nitro et du flow debout — la place du ⏸) sont réécrites pareil. Toute nouvelle
-  plaque du HUD : l'ajouter à la liste, et positionner avec --hudH/--hudG/--hudD, jamais env() en direct.
-- Ce qu'on TOUCHE garde sa taille (NITRO, ⏸, volant) ; la carte MOTEUR suit la caisse (hors échelle, demande UHD). Voile d'encre du haut à
-  214 px × K. Les ANNONCES (slam, verdict, geste sur la caisse) : `annK()` en JS (.88 debout, .78 couché) sur leur corps calculé.
-- ⚠ Le texte le plus fin du HUD (8 px) passe à ~6 px couché : lisible sur l'ordi (colonne zoomée ×2,3) ; à juger sur un téléphone tourné.
+## LA TAILLE DU HUD (2026-09-28, nuit) — « réduis la taille des HUD, c'est compliqué de voir la route », puis « remets la barre de nitro et le flow de la même taille qu'avant, c'est surtout les textes de figure et de MONSTRE qui dérangent »
+Fait par la session INTERFACE avec l'accord de UHD. MESURÉ avant (banc `hudmes.js`, scratchpad 93a1dcda `ui/`) : couché (844 × 390, l'ordi),
+la colonne de gauche descendait à 63 % de la hauteur ; debout, aura + chaîne jusqu'à 250 px ; plaques de pouvoir 148 × 120.
+- `<style id="hudTaille">`, juste APRÈS hudDA. Les BARRES NITRO et FLOW gardent leur taille d'origine (2e verdict). SOUS elles, `zoom:var(--hudK)`
+  (.8 debout, .72 couché) sur #auraV2, #triade, #airHud, #pwrChip, #misBan, #coach, #campChip ; la liste des figures (#avList) un cran de plus (×.86).
+  `zoom` (pas `scale`) réduit la boîte ET ses marges, et laisse libres les `translate`/`scale` des entrées (hudMaitrise).
+- ⚠ L'échelle part de `--hudY0` (96 px, le haut de l'aura et du chrono) : dans un bloc zoomé, --hudH = (encoche + Y0·(1−K)) / K, --hudG/--hudD ÷ K
+  — le zoom les remultiplie : rien ne remonte sous les barres, les positions en dur (hudH+96, +104, +184, +204, +248…) se resserrent dans leur
+  ordre, encoche et bords exacts. Toute nouvelle plaque du HUD sous les barres : l'ajouter à la liste, et la placer en --hudH/--hudG/--hudD,
+  jamais env() en direct.
+- TEXTES DE FIGURE (JS) : `figK()` (.72 debout, .62 couché) pour le geste qui suit la caisse (`popTexte`) et le verdict de pose (MONSTRE…, `verdAffiche`) ;
+  `annK()` (.82 / .72) pour les grandes annonces (`slamMontre` : corps ET plafond de largeur). NITRO, ⏸, volant et la carte MOTEUR hors échelle.
+- Voile d'encre du haut : pleine hauteur jusqu'aux barres, à l'échelle en dessous.
 
 ## LA CONSOLE DE SON (2026-09-28, session SON) — « tout ce qui se passe à l'écran doit avoir un son propre et unique, parfaitement maîtrisé et mixé »
 **⚠ RÈGLE POUR TOUTES LES SESSIONS : un son nouveau = `sfx('famille.nom')`, jamais un `chimeNote`/`noiseBurst` bricolé sur place.**
