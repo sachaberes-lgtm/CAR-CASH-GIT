@@ -23027,10 +23027,10 @@ let startBoostT=0;
 // (rejeu direct) ET depuis la fin du LÂCHER du garage (`GAR.go`, prembattre le tout premier départ)
 // pour que le geste soit identique dans les deux cas, sans dupliquer le minuteur du logo.
 function fireLaunchBoost(){
-  // ⚠ (2026-09-24) la nitro OFFERTE n'est plus armée : elle tenait la touche à la place du joueur pendant
-  // 3 s, et le départ de la version de Sacha — la caisse qui s'arrache toute seule au gaz auto — est celui
-  // que le user trouve le plus fun. Le logo et son halo restent : c'est le geste, pas la poussée.
-  startBoostT=0;paintMoney();
+  // (2026-09-24) la nitro OFFERTE avait été désarmée à la fusion (« la caisse qui s'arrache toute seule au gaz auto »)…
+  // (2026-09-28, Léo : « le boost dès le début de la partie a disparu ») …elle REVIENT : 3 s de nitro offerte, qui ne consomme rien
+  // et tient la touche à ta place. Pas à l'auto-école : sa leçon, c'est justement d'appuyer soi-même.
+  startBoostT=(typeof TUTO!=='undefined'&&TUTO.on)?0:3;paintMoney();
   // LE LOGO + SON HALO (agrandis 2026-09-05, « plus impressionnant ») : les DEUX partagent la MÊME
   // classe `.on` et le MÊME minuteur — un flash sans le mot, ou le mot sans le flash, ferait deux
   // demi-effets au lieu d'un seul coup net.
