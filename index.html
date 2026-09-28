@@ -4338,7 +4338,7 @@ const skyU={uTime:{value:0},uSunDir:{value:SUN_DIR},
   // LE CIEL DE LA VILLE (2026-09-26) — voir villeCiel dans le shader : présence du niveau VILLE, de la pluie (le plafond), couleur de la
   // brume (le lointain y converge) et position de la caméra (le plafond et les rues d'en bas défilent : parallaxe VRAIE)
   uVille:{value:0},uPluie:{value:0},uFogCol:{value:new THREE.Color(0x331f48)},uCam:{value:new THREE.Vector3()},
-  uVilleY:{value:0},uParis:{value:0}, // (2026-09-28) uParis : le ciel de PARIS (toits bas à l'horizon, lueur d'or) au lieu des tours de la ville
+  uVilleY:{value:0},uParis:{value:0},uParisT:{value:0}, // (2026-09-28) uParis : le ciel de PARIS (toits bas à l'horizon, lueur d'or) au lieu des tours de la ville
   // (2026-09-26) la SKYLINE descend à l'altitude de la ville (en sinus d'élévation) : la route spirale AU-DESSUS des toits
   uMer:{value:0}, // (2026-09-26) LA MER DE NUAGES PEINTE sous l'horizon — niveau NUAGES seulement (voir merNuages ; fondue par lvlStep comme la ville)
   uBasTex:{value:null},uBasInv:{value:new THREE.Vector2(1,1)},uBasTr:{value:0}}; // (2026-09-27, tour 2) LE CIEL EN DEUX TEMPS : la passe lisse (cible hors écran), 1/taille de l'image où la relire, sa trame si elle est en 8 bits (voir CIEL2)
@@ -4592,6 +4592,33 @@ const skyDome=(function(){
       '  return mix(m,F,smoothstep(-.055,-.004,y));}',                   // …et SEULE la ligne d horizon rejoint la brume
   ];
   const COUCHES={
+    /* PARIS AU SOL (2026-09-28, Léo : « un ciel travaillé ») — le ciel de TROIS HEURES (uParisT : 0 dorée · 1 bleue · 2 nuit, fondu
+       sur la distance parcourue) : dégradé de chaque heure, une couche d altocumulus ÉCLAIRÉS PAR EN DESSOUS (or et argent face au
+       couchant, rose puis ardoise à l heure bleue, la ville orange les allume la nuit), le disque du soleil qui se couche dans l axe
+       des Champs-Élysées. Sous l horizon : la brume de la ville. Mélangé par uParis (0 ailleurs : rien ne change). */
+    paris:[
+      'uniform float uParisT;',
+      'vec3 parisDegrade(float y,float sd){float yy=max(y,0.),T=uParisT;',
+      '  vec3 hO=mix(vec3(.97,.70,.56),vec3(1.,.74,.44),pow(sd,5.)),cO=mix(hO,vec3(.66,.69,.84),smoothstep(0.,.17,yy));cO=mix(cO,vec3(.30,.47,.78),smoothstep(.14,.62,yy));',
+      '  cO+=vec3(1.,.58,.26)*pow(sd,20.)*.55*(1.-smoothstep(0.,.35,yy));',
+      '  vec3 hB=mix(vec3(.46,.43,.66),vec3(.95,.56,.44),pow(sd,5.)*.85),cB=mix(hB,vec3(.21,.29,.60),smoothstep(0.,.2,yy));cB=mix(cB,vec3(.06,.10,.31),smoothstep(.2,.7,yy));',
+      '  vec3 cN=mix(vec3(.21,.14,.18),vec3(.05,.06,.14),smoothstep(0.,.16,yy));cN=mix(cN,vec3(.012,.018,.05),smoothstep(.16,.6,yy));',
+      '  vec3 c=T<1.?mix(cO,cB,T):mix(cB,cN,T-1.);',
+      '  return mix(c,uFogCol,smoothstep(0.,-.06,y));}',
+      'void parisCiel(inout vec3 col,vec3 d,float y,float sd){',
+      '  vec3 c=parisDegrade(y,sd);float T=uParisT;',
+      '  if(y>.012){float t=2600./y;if(t<60000.){',
+      '    vec2 p=d.xz*t+uCam.xz*.9+vec2(uTime*6.,uTime*2.),q=p/2300.;',
+      '    float n=vfbm(q+.55*vec2(vn(q*.5+2.1),vn(q*.5-3.7))),st=vn(vec2(q.x*.4,q.y*3.)+7.);',
+      '    float dn=smoothstep(.47,.77,n)*(.72+.28*st)*exp(-t/24000.),ep=smoothstep(.56,.95,n);',
+      '    vec3 lO=mix(vec3(1.,.66,.55),vec3(1.25,.86,.52),pow(sd,3.)),dO=vec3(.58,.48,.64);',
+      '    vec3 lB=mix(vec3(.50,.38,.55),vec3(.95,.52,.46),pow(sd,3.)),dB=vec3(.17,.19,.36);',
+      '    vec3 lN=vec3(.22,.14,.13),dN=vec3(.05,.05,.09);',
+      '    vec3 cc=T<1.?mix(mix(lO,dO,ep),mix(lB,dB,ep),T):mix(mix(lB,dB,ep),mix(lN,dN,ep),T-1.);',
+      '    c=mix(c,cc,dn*.92);}}',
+      '  float dk=smoothstep(.99982,.99992,sd)*(1.-smoothstep(.25,.7,T));c=mix(c,vec3(1.,.9,.72)*3.2,dk);',
+      '  c+=vec3(1.,.62,.3)*pow(sd,400.)*1.2*(1.-smoothstep(.25,.8,T));',
+      '  col=mix(col,c,uParis);}'],
     fond:[
       // VICE CITY NUIT (assombri) : indigo profond au zénith → violet → grande brume ROSE sombre → corail → ambre au ras du soleil
       'vec3 cielFond(float y){',
@@ -4797,6 +4824,7 @@ const skyDome=(function(){
       '  float sd=max(dot(vDir,uSunDir),0.);',      // couchant : halo rosé large, couronne corail, coeur incandescent (tamisé)
       '  cielMer(col,y,sd);', // NUAGES : la mer de nuages sous l horizon (voir merNuages)
       '  cielSoleil(col,sd);',
+      '  if(uParis>.001)parisCiel(col,vDir,y,sd);', // PARIS AU SOL : le ciel de l heure
       '  bool gOn=cielGOn(y,sd),sOn=cielSOn(y,sd);',
       '  float az=0.;if(gOn||sOn||uLvl>.001||uVille>.001)az=atan(vDir.x,-vDir.z);',
       '  if(gOn)cielGuirlande(col,y,az,sd);',
@@ -4815,7 +4843,7 @@ const skyDome=(function(){
     basN:[LECT_TR,
       'void main(){',
       '  float y=vDir.y;vec3 col=cielFond(y);float sd=max(dot(vDir,uSunDir),0.);',
-      '  cielMer(col,y,sd);cielSoleil(col,sd);',
+      '  cielMer(col,y,sd);cielSoleil(col,sd);if(uParis>.001)parisCiel(col,vDir,y,sd);',
       '  if(cielGOn(y,sd))cielGuirlande(col,y,atan(vDir.x,-vDir.z),sd);',
       '  cielVoile(col,y);',
       '  gl_FragColor=vec4(col+vec3(cielTrame()*uBasTr),1.);}'],
@@ -4840,7 +4868,7 @@ const skyDome=(function(){
   const src=function(){return [].concat.apply([],arguments).join('\n');},K=COUCHES;
   // (2026-09-26, vague 2 — audit GPU) gl_Position.z = w : le dôme se pose sur le PLAN LOINTAIN (profondeur 1,0) — voir renderOrder plus bas
   const mk=(fs,lisse)=>new THREE.ShaderMaterial({uniforms:skyU,side:THREE.BackSide,depthWrite:false,depthTest:!lisse,vertexShader:VS,fragmentShader:fs});
-  const mat=mk(src(TETE,VILLE,VILLE_CIEL,MER,K.fond,K.mer,K.soleil,K.gon,K.son,K.guirl,K.niveau,K.etoiles,K.lune,K.voile,K.onde,K.trame,MAIN.plein));
+  const mat=mk(src(TETE,VILLE,VILLE_CIEL,MER,K.fond,K.mer,K.soleil,K.paris,K.gon,K.son,K.guirl,K.niveau,K.etoiles,K.lune,K.voile,K.onde,K.trame,MAIN.plein));
   /* LE CIEL SE PEINT EN DERNIER (2026-09-26, vague 2 — audit GPU). Il était dessiné en PREMIER (renderOrder −9, sans écrire la
      profondeur) : chaque pixel de l'écran payait le shader le plus lourd du jeu (mer de nuages, ville, étoiles, fond musical)… puis
      la route, la caisse, les nuages le recouvraient. Posé sur le plan lointain (z = w dans le vertex) et dessiné APRÈS tous les
@@ -4850,7 +4878,7 @@ const skyDome=(function(){
   const m=new THREE.Mesh(new THREE.SphereGeometry(4300,48,28),mat);
   const F_BAS=.5,FPK_BAS=1; // la passe lisse : ½ de la résolution en largeur et en hauteur (¼ des pixels) · l'anticrénelage de la mer y compte des pixels d'ÉCRAN (1)
   m.userData.ciel={plein:mat,f:F_BAS,
-    basN:mk(src('#define MER_FPK '+FPK_BAS.toFixed(4),TETE,VILLE,MER,K.fond,K.mer,K.soleil,K.gon,K.guirl,K.voile,K.trame,MAIN.basN),true),
+    basN:mk(src('#define MER_FPK '+FPK_BAS.toFixed(4),TETE,VILLE,MER,K.fond,K.mer,K.soleil,K.paris,K.gon,K.guirl,K.voile,K.trame,MAIN.basN),true),
     netN:mk(src(TETE,K.son,K.etoiles,K.lune,K.trame,MAIN.netN)),
     basV:mk(src(TETE,VILLE,VILLE_CIEL,K.trame,MAIN.basV),true),
     netV:mk(src(TETE,VILLE,VILLE_CIEL,K.trame,MAIN.netV))};
@@ -5536,7 +5564,7 @@ function carVit(dt){
     const R0=wheels[0].userData.R||.45,pas=Math.max(-.3,Math.min(.3,ROUES.v/R0*dt));
     if(pas){for(const w of wheels)w.rotation.x+=pas;for(const e of ESSIEUX)e.rotation.x+=pas;} // (2026-09-27) les roues d'origine (hors scène, lues ailleurs) + les essieux soudés qu'on VOIT
   }
-  const nuit=Math.max(LVL.pluie||0,LVL.espace||0,LVL.paris||0); // (Paris) la nuit, la lampe de carrosserie reste
+  const nuit=Math.max(LVL.pluie||0,LVL.espace||0,(LVL.paris||0)*Math.min(1,PSU.uT.value)); // (Paris) la nuit, la lampe de carrosserie reste
   /* LA LAMPE DE CARROSSERIE SE RETIRE AU SOLEIL (2026-09-26, vague 2). `carLight` (blanche, 3 m au-dessus du toit) est la clé de la caisse
      la NUIT — sans elle, en ville, une caisse noire sort #0e010f. Mais de jour elle s'ajoutait au soleil : MESURÉ au pixel en poursuite
      (banc des laques), c'est elle — plus que le vernis — qui délavait les laques (L'ÉTALON #4f8578 → #77ab98 à midi, L'AIGLE DE FEU noir
@@ -6330,7 +6358,7 @@ function updateClouds(dt,t){
   cloudNearS+=(prox-cloudNearS)*Math.min(1,dt*2.5);
   // CONTRE-JOUR : face au soleil (au carré : ±30° seulement), la brume se dore, l'horizon avance, l'expo respire
   camera.getWorldDirection(cjV);
-  const cj9=Math.max(0,cjV.dot(SUN_DIR))*(1-LVL.pluie)*(1-LVL.paris),cj2=cj9*cj9, // (ville sous la pluie : pas de soleil, pas de contre-jour)
+  const cj9=Math.max(0,cjV.dot(SUN_DIR))*(1-LVL.pluie)*(1-LVL.paris*Math.min(1,PSU.uT.value)),cj2=cj9*cj9, // (ville sous la pluie : pas de soleil, pas de contre-jour)
         fogN9=FOG_N*(1-cj2*.18);
   scene.fog.near=fogN9-(fogN9-120)*cloudInS+CAMP_FOG*.5;   // on garde de la profondeur DANS le nuage (26→120 : la route reste lisible) · (2026-09-27) l'ÉCLAIR de l'orage ouvre le brouillard (CAMP_FOG)
   scene.fog.far=FOG_F-(FOG_F-820)*cloudInS+CAMP_FOG;     // (340→820)
@@ -7447,8 +7475,8 @@ function trancheMat(){
 const _px9=new THREE.Vector2();
 function routeTick(){ // le bitume suit le NIVEAU (fondu du portail : LVL.route / LVL.sheen, voir lvlStep)
   renderer.getDrawingBufferSize(_px9);TRAIT_U.uPx.value=2*Math.tan(camera.fov*Math.PI/360)/Math.max(1,_px9.y); // la taille d'un pixel à 1 m (suit le FOV de vol et la résolution adaptative)
-  const r=LVL.route;ROAD_U.uLift.value.setRGB(.010+.15*r,.009+.13*r,.016+.16*r); // ⚠ l'étalonnage de la pluie écrase le rouge et le vert : la clarté doit être NEUTRE et franche pour se lire (mesuré : (0,0,17) → (2,0,47) avec une clarté bleutée de .05)
-  ROAD_U.uSheen.value=LVL.sheen;ROAD_U.uWet.value=LVL.pluie; // (2026-09-26) le bitume se mouille avec la pluie du niveau, au même fondu
+  const r=LVL.route,pa9=LVL.paris||0;ROAD_U.uLift.value.setRGB(.010+.15*r+(.004-.006*r)*pa9,.009+.13*r+(.005+.012*r)*pa9,.016+.16*r-(.004+.03*r)*pa9); // (Paris) un gris d'asphalte NEUTRE, pas le violet de la nuit // ⚠ l'étalonnage de la pluie écrase le rouge et le vert : la clarté doit être NEUTRE et franche pour se lire (mesuré : (0,0,17) → (2,0,47) avec une clarté bleutée de .05)
+  ROAD_U.uSheen.value=LVL.sheen;ROAD_U.uWet.value=Math.max(LVL.pluie,parisPluie()*1.8); // (2026-09-26) le bitume se mouille avec la pluie du niveau, au même fondu
   coneBandMat.emissiveIntensity=.25+.6*LVL.pluie; // (2026-09-26) la nuit de pluie, les bandes des plots RÉTRORÉFLÉCHISSENT : on les lit de loin (un uniforme, zéro recompilation)
   ROAD_U.uSheenCol.value.copy(scene.fog.color).multiplyScalar(.9); // (2026-09-26) ×1,5 → ×0,9 : la brillance rasante blanchissait tout le lointain
 }
@@ -7557,7 +7585,7 @@ function buildTrack(seed){
   matSursisN=3;
   trackMeshes.length=0;PISTE_LOD.length=0;NEON_RAILS.length=0;NEON_GLOW.length=0;PADS=[];PADL=[];PAD_MATS.length=0;BUMPS=[];CONES=[];FLYCONES=[];OILS=[];RAMPS=[];
   const rnd=mulberry32(seed);
-  const ctrl=PARK.on?genPark(rnd):(LVL.cur&&LVL.cur.piste==='tuto')?genTuto():(LVL.cur&&LVL.cur.piste==='camp')?genCampagne(LVL.cur.camp):genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course · (2026-09-27) CAMPAGNE : la piste dessinée du niveau
+  const ctrl=PARK.on?genPark(rnd):(LVL.cur&&LVL.cur.piste==='tuto')?genTuto():(LVL.cur&&LVL.cur.piste==='camp')?genCampagne(LVL.cur.camp):(LVL.cur&&LVL.cur.piste==='paris')?genParis():genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course · (2026-09-27) CAMPAGNE : la piste dessinée du niveau
   const curve=new THREE.CatmullRomCurve3(ctrl,false,'centripetal'); // (piste v7) centripète : l'uniforme faisait des COUDES entre points inégalement espacés (liaison courte après une grande figure)
   L=curve.getLength();
   const N=Math.min(PARK.on?11000:9000,Math.max(3000,Math.round(L))); // parc : plus long → plus de points pour garder les loops lisses
@@ -7711,7 +7739,7 @@ function buildTrack(seed){
      VILLE = le rose néon #f24aa0, ORBITE = le cyan froid #5ee6ff. ⚠ Le TIRAGE reste (il nourrit le parc, l'auto-école, la carrière
      hors de ces trois mondes) : le flux rnd de la piste ne bouge pas d'un pas. */
   const accR=ACCENTS[Math.floor(rnd()*ACCENTS.length)],idA9=LVL.cur&&!PARK.on?LVL.cur.id:'';
-  const accC=new THREE.Color(idA9==='nuages'?0x3ee6f0:idA9==='ville'?0xf24aa0:idA9==='espace'?0x5ee6ff:idA9==='paris'?0xffc45e:accR); // PARIS : le liseré d'OR des lampadaires
+  const accC=new THREE.Color(idA9==='nuages'?0x3ee6f0:idA9==='ville'?0xf24aa0:idA9==='espace'?0x5ee6ff:idA9==='paris'?0xd9d4ca:accR); // PARIS : une peinture de rive blanche, pas un néon // PARIS : le liseré d'OR des lampadaires
   ROAD_U.uAcc.value.copy(accC); // (2026-09-26) le bitume mouillé reflète aussi l'accent de la zone
   // BANDES NÉON (dessus + dessous) : les rails de Vice City — couleur d'accent de la zone
   {const ep=new Float32Array(4*NP*6),el=new Float32Array(4*NP*6);let q=0; // (passe perf) les QUATRE rails dans un seul maillage, une seule matière (le caméléon les peignait tous pareil), découpé en tranches — (chasse aux gels) écrits en place
@@ -7732,7 +7760,7 @@ function buildTrack(seed){
   // la brume et les rails roses filent jusqu au bout de la nuit (1 mesh par face : gauche+droite fusionnées)
   {const gp=new Float32Array(4*NP*6),gc=new Float32Array(4*NP*6),gl=new Float32Array(4*NP*6);let q=0; // (passe perf) les deux faces dans un seul maillage, une seule matière (même opacité pulsée), découpé en tranches — (chasse aux gels) écrits en place
   for(const fy of [0,-THICK]){
-    const mo9=LVL.cur&&LVL.cur.pluie?1:0,lg9=1.15+2.2*mo9,ka9=.48+.14*mo9; // (2026-09-26) sous la PLUIE le bitume mouillé renvoie le rail : la nappe s'élargit (1,15 → 3,35 m) et chauffe un peu
+    const mo9=LVL.cur&&LVL.cur.pluie?1:0,lg9=1.15+2.2*mo9,ka9=(.48+.14*mo9)*(idA9==='paris'?0:1); // (2026-09-26) sous la PLUIE le bitume mouillé renvoie le rail : la nappe s'élargit (1,15 → 3,35 m) et chauffe un peu
     for(const sd of [-1,1]){
       for(let i=0;i<NP;i++,q+=6){
         const p=pts[i],b=B[i],nn=Nn[i],h=fy+(fy===0?.045:-.045);
@@ -8224,19 +8252,105 @@ function villeMatPub(){
       .replace('#include <fog_fragment>','gl_FragColor.rgb*=(.78+.22*step(.5,fract(gl_FragCoord.y*.25-uT9*6.)))*(.85+.15*sin(uT9*(3.+vS9*4.)))*uCour9;\n#include <fog_fragment>');};
   m.dispose=function(){};CITY.matP=m;return m;
 }
-/* ==== PARIS LA NUIT (2026-09-28, Léo : « je veux une map ville à Paris » — un 4e monde, la nuit) =================================
-   LA ROUTE SURVOLE PARIS. Le ruban est suspendu : on ne peut pas poser la ville « au sol » (la piste descend de plus d'un kilomètre sur
-   un niveau). Comme la VILLE de Sacha, Paris se bâtit LE LONG DU RUBAN : chaque immeuble haussmannien a son toit JUSTE SOUS la route
-   (on rase les toits en zinc), son pied noyé dans la brume — on ne voit que ce qui fait Paris vu d'en haut : les étages nobles, les
-   balcons filants, les mansardes, les cheminées, et des fenêtres dorées. Trois rangs de chaque côté, alignés sur la route.
-   · LA DAME DE FER (`parisTour`) : ~400 m de treillis doré (la tour est illuminée la nuit), posée À CÔTÉ du ruban au milieu du niveau,
-     sur son Champ de Mars (aucun immeuble autour) — on passe à hauteur de son 2e étage, son sommet au-dessus de nous. Elle SCINTILLE
-     (`PARIS.scint` : des éclats blancs qui naissent et meurent sur le treillis) et son PHARE balaie la nuit (deux faisceaux qui tournent).
-   · LE CIEL : celui de la ville (l'abîme de lumières dorées vu d'en haut), mais sans ses tours cyberpunk : `uParis` y peint une ligne
-     de TOITS BAS à l'horizon (parisToits), et la lueur des quartiers vire à l'or.
-   · COÛT : 3 dessins pour tous les immeubles (façades, mansardes, cheminées, en instances), la tour en ~12 pièces, 1 nuage de points,
-     2 faisceaux. Aucune lumière ajoutée. Hook : `dbgParis()` (comptes, ms de construction, place de la tour). */
-const PARIS={root:null,meshes:[],scint:null,phare:null,t:0,n:null,tourPos:null,texT:null,texF:null};
+/* ==== PARIS AU SOL (2026-09-28, Léo : « le niveau Paris doit être un niveau à TERRE, avec un ciel travaillé ; premium, très différent
+   de la ville futuriste ; le Paris que tous les Parisiens connaissent ; un rendu affiné ; trois quartiers distincts en un niveau ») ====
+   Fini la route suspendue au-dessus des toits : on ROULE dans Paris, entre les façades, de la Concorde au Sacré-Cœur.
+   · LE PARCOURS (`genParis`, ~15 km dessinés à la main, zéro tirage) — une traversée, une HEURE du jour par quartier :
+       1 LES CHAMPS-ÉLYSÉES, HEURE DORÉE — la Concorde ouverte (l'obélisque), 1,9 km d'avenue ORIENTÉE PILE vers le soleil
+         couchant (SUN_DIR est à 5,9° : il se couche dans l'axe et se cadre dans l'Arc en approche), l'Étoile : 240° autour de
+         l'ARC DE TRIOMPHE, puis l'avenue d'Iéna qui descend vers la Seine.
+       2 LA SEINE, HEURE BLEUE — le quai (le fleuve à droite, parapet, bouquinistes), la Tour dorée de l'autre côté, les jardins
+         du Trocadéro, le pont d'IÉNA… et la route passe SOUS LA TOUR EIFFEL, entre ses quatre piliers (56 m de route, 8 m de marge),
+         le Champ-de-Mars, l'esplanade des Invalides (le dôme d'or) et le pont ALEXANDRE-III (pylônes, Renommées d'or).
+       3 MONTMARTRE, LA NUIT — le boulevard de Clichy et le MOULIN-ROUGE (les ailes tournent), la BUTTE en lacets (+92 m),
+         petites maisons pastel à volets, cafés à stores, la bruine sur les pavés, et le SACRÉ-CŒUR illuminé au sommet.
+     Deux tronçons ne s'approchent jamais à moins de 250 m (banc du 28/09) : aucune façade n'en chevauche une autre rue.
+   · LA LUMIÈRE (`PSU.uT` : 0 or · 1 bleue · 2 nuit, fondue sur la distance) : or chaud / ombre bleue, puis orange-sarcelle, puis or
+     sur bleu profond — complémentaires. Les façades s'éclairent dans LEUR shader (soleil rasant qui dore les étages hauts, réverbères
+     qui lèchent le bas, fenêtres qui s'allument avec l'heure) ; les biomes `parisOr/parisBleu/parisNuit` tiennent le reste.
+   · LE JEU : les façades sont des MURS (on frotte : étincelles, vitesse perdue ; de face à pleine vitesse, on s'encastre) ; en vol,
+     retomber hors de la rue sous les toits = la façade, dans le fleuve = « À LA SEINE ! ». Ni trous, ni tremplins, ni bancs de nuages.
+   Hooks : `dbgParis()` (comptes, zones, heure), `dbgParisVue(k)` (photo d'un monument), `dbgParisPhoto(k,d,h)` (un immeuble). */
+const PARIS={meshes:[],t:0,n:null,Q:null,Z:null,sol:false,scint:null,phare:null,texT:null,texF:null,tourPos:null,qBio:-1,qAnn:-1,
+  grille:null,HB:120,ailes:null,drapeau:null,bateaux:[],matsNuit:[],mFlaque:null,mHalo:null,murT:0,murAnn:0};
+const PSU={uT:{value:0},uTime:{value:0},uSun:{value:SUN_DIR},uFen:{value:new THREE.Color(0xffc672)}}; // les uniforms PARTAGÉS de Paris
+const PARIS_SW=7; // le trottoir (m) : la ligne des façades est à ROAD_HALF + 7
+function parisColline(x,z){const Q=PARIS.Q;if(!Q||!Q.sc)return 0;const d=Math.hypot(x-Q.sc.x,z-Q.sc.z);return 92*(1-THREE.MathUtils.smoothstep(d,170,950));} // la BUTTE Montmartre
+function genParis(){
+  const ctrl=[];GAPMARK.length=0;CAMPM.length=0; // aucun trou : on roule sur le PAVÉ de Paris
+  let P=new THREE.Vector3(0,0,0),phi=0;
+  const dir=()=>new THREE.Vector3(Math.sin(phi),0,Math.cos(phi)),push=()=>ctrl.push(P.clone());
+  const droite=(l,nn)=>{nn=nn||Math.max(2,Math.round(l/110));for(let k=0;k<nn;k++){P.addScaledVector(dir(),l/nn);push();}};
+  const arc=(aDeg,R)=>{const nn=Math.max(3,Math.ceil(Math.abs(aDeg)/9)),a=aDeg*Math.PI/180,st=a/nn,ch=2*R*Math.sin(Math.abs(st)/2);
+    for(let k=0;k<nn;k++){phi+=st/2;P.addScaledVector(dir(),ch);phi+=st/2;push();}};
+  const Q={},ici=k=>{Q[k]={p:P.clone(),phi:phi};};
+  const cote=(v,d)=>new THREE.Vector3(Math.cos(phi),0,-Math.sin(phi)).multiplyScalar(d).add(v); // B = haut × T : le côté « lat > 0 »
+  push();ici('depart');
+  // ---- 1. LES CHAMPS-ÉLYSÉES — HEURE DORÉE ----
+  droite(320,3);ici('champs0');                        // la CONCORDE, grande ouverte
+  droite(1900,17);ici('champs1');                      // l'AVENUE, pile vers le soleil (voir la rotation, en fin de tracé)
+  // L'ENTRÉE DE L'ÉTOILE : l'avenue file TOUT DROIT sur l'Arc (essai du 28/09 : un S qui décalait la route le cachait derrière les
+  // façades), puis une courbe TANGENTE au rond-point — deux cercles tangents : d1 = √((R2+r1)²−r1²), angle = acos(r1/(R2+r1))
+  const r1=150,R2=170,d1=Math.sqrt((R2+r1)*(R2+r1)-r1*r1),th=Math.acos(r1/(R2+r1))*57.29578;
+  droite(951-d1,6);ici('etoile0');
+  arc(th,r1);Q.arc={p:cote(P,-R2)};ici('ring0');      // on entre sur l'ÉTOILE : l'Arc au centre, côté « lat < 0 »
+  arc(-(th+150),R2);ici('etoile1');
+  arc(90,160);droite(700);arc(-30,400);ici('quai0');  // l'avenue d'Iéna, qui descend vers la Seine
+  // ---- 2. LA SEINE — HEURE BLEUE ----
+  droite(1200,11);ici('quai1');                       // le QUAI : le fleuve côté « lat > 0 »
+  const th2=Math.acos(1-192/640)*57.29578;arc(-th2,320);arc(th2,320);ici('troca'); // les jardins du Trocadéro
+  arc(90,200);ici('iena0');
+  {const n=dir();Q.seine={b:P.clone().addScaledVector(n,120),n:n.clone(),r:new THREE.Vector3(-n.z,0,n.x)};} // le fleuve : un axe, sa normale (vers la Tour)
+  droite(240,3);ici('iena1');                          // le pont d'IÉNA
+  Q.tour={p:P.clone().addScaledVector(dir(),170),phi:phi};
+  droite(820,8);ici('mars1');                          // SOUS la Tour, puis le Champ-de-Mars
+  arc(-90,260);droite(900,8);arc(-90,260);ici('invalides');
+  {const d0=P.clone().sub(Q.seine.b).dot(Q.seine.n);droite(Math.max(200,d0-120),6);} // l'esplanade des Invalides, droit sur le fleuve
+  ici('alex0');droite(240,3);ici('alex1');            // le pont ALEXANDRE-III
+  droite(300,3);ici('q3');
+  // ---- 3. MONTMARTRE — LA NUIT ----
+  arc(-40,420);ici('clichy0');droite(700,7);ici('clichy1'); // le boulevard de Clichy, le Moulin-Rouge
+  arc(60,300);droite(320);arc(-150,200);droite(260);arc(140,210);droite(220);arc(-70,260);ici('parvis');droite(300,3);ici('fin');
+  { // le SACRÉ-CŒUR : au sommet, À CÔTÉ du portail (derrière lui, la sphère le cachait) — du côté le plus dégagé, tourné vers la route
+    let best=null;for(const sg of [-1,1]){const c=cote(P,sg*165).addScaledVector(dir(),200);let dm=1e9;for(let k=0;k<ctrl.length-4;k++)dm=Math.min(dm,Math.hypot(ctrl[k].x-c.x,ctrl[k].z-c.z));
+      if(!best||dm>best.dm)best={c:c,dm:dm};}
+    Q.sc={p:best.c,phi:Math.atan2(best.c.x-P.x,best.c.z-P.z)};}
+  // LA ROTATION : l'avenue des Champs-Élysées file vers le soleil couchant (SUN_DIR est fixe dans le monde)
+  const da=Math.atan2(SUN_DIR.x,SUN_DIR.z)-Q.champs0.phi,ca=Math.cos(da),sa=Math.sin(da);
+  const tourne=v=>{const x=v.x,z=v.z;v.x=x*ca+z*sa;v.z=-x*sa+z*ca;return v;};
+  for(const q of ctrl)tourne(q);
+  for(const k in Q){const o=Q[k];if(o.p)tourne(o.p);if(o.phi!=null)o.phi+=da;}
+  tourne(Q.seine.b);tourne(Q.seine.n);tourne(Q.seine.r);
+  PARIS.Q=Q;Q.sc.x=Q.sc.p.x;Q.sc.z=Q.sc.p.z;
+  for(const q of ctrl)q.y=parisColline(q.x,q.z);     // la BUTTE : seul relief de Paris
+  Q.sc.p.y=parisColline(Q.sc.x,Q.sc.z);
+  return ctrl;
+}
+function parisRepere(){ // les repères du tracé → leur abscisse s sur la piste réelle, puis les ZONES de chaque côté
+  const Q=PARIS.Q;if(!Q)return;
+  const sDe=v=>{let bi=0,bd=1e18;for(let i=0;i<NP;i+=2){const d=pts[i].distanceToSquared(v);if(d<bd){bd=d;bi=i;}}return bi/(NP-1)*L;};
+  for(const k in Q){const o=Q[k];if(o.p&&k!=='arc'&&k!=='tour'&&k!=='sc')o.s=sDe(o.p);}
+  const z=[],Z=(a,b,g,d,st)=>{if(b>a)z.push({s0:a,s1:b,g:g,d:d,st:st||0});}; // st : 0 haussmannien · 1 faubourg · 2 luxe
+  Z(0,Q.champs0.s,'place','place');
+  Z(Q.champs0.s,Q.champs0.s+820,'jardin','jardin');
+  Z(Q.champs0.s+820,Q.ring0.s,'bati','bati',2);
+  Z(Q.ring0.s,Q.etoile1.s,'ile','bati',2);
+  Z(Q.etoile1.s,Q.quai0.s,'bati','bati');
+  Z(Q.quai0.s,Q.quai1.s,'bati','quai');
+  Z(Q.quai1.s,Q.iena0.s,'bati','jardin');
+  Z(Q.iena0.s,Q.iena1.s,'pont','pont');
+  Z(Q.iena1.s,Q.mars1.s,'jardin','jardin');
+  Z(Q.mars1.s,Q.invalides.s,'bati','bati');
+  Z(Q.invalides.s,Q.alex0.s,'jardin','jardin');
+  Z(Q.alex0.s,Q.alex1.s,'pont','pont');
+  Z(Q.alex1.s,Q.clichy1.s,'bati','bati');
+  Z(Q.clichy1.s,L-170,'bati','bati',1);
+  Z(L-170,L+1,'place','place');
+  PARIS.Z=z;
+  Q.t1a=Q.etoile1.s;Q.t1b=Q.quai0.s+200;Q.t2a=Q.alex1.s;Q.t2b=Q.clichy0.s+300; // l'HEURE : or → bleue sur l'avenue d'Iéna, bleue → nuit après le pont
+}
+function parisZone(s9){const Z=PARIS.Z;if(!Z)return null;for(let k=0;k<Z.length;k++)if(s9<Z[k].s1)return Z[k];return Z[Z.length-1];}
+function parisCote(s9,sg){const z=parisZone(s9);return z?(sg<0?z.g:z.d):null;}
 function parisTexTreillis(){ // le treillis de la tour : croisillons, montants, traverses — sur fond transparent (alphaTest)
   if(PARIS.texT)return PARIS.texT;
   const cv=document.createElement('canvas');cv.width=64;cv.height=128;const x=cv.getContext('2d');
@@ -8262,7 +8376,7 @@ function parisPrisme(a0,h0,y0,a1,h1,y1,cel){ // un tronc de pyramide CARRÉ (4 f
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));
   g.setIndex(I);g.computeVertexNormals();return g;
 }
-function parisTour(cx,cy,cz,H){ // LA DAME DE FER — proportions de la vraie (324 m), mise à l'échelle H
+function parisTour(cx,cy,cz,H,solide){ // LA DAME DE FER — proportions de la vraie (324 m), mise à l'échelle H · solide : posée au SOL (pas de pied dans la brume)
   const g=new THREE.Group();g.position.set(cx,cy,cz);scene.add(g);trackMeshes.push(g);PARIS.meshes.push(g);
   const cel=H*.022,tex=parisTexTreillis();
   const or=new THREE.MeshBasicMaterial({map:tex,transparent:true,alphaTest:.4,side:THREE.DoubleSide,fog:true});or.color.setRGB(1.25,.74,.26); // l'or de l'illumination (au-dessus de 1 : le halo la prend)
@@ -8272,7 +8386,7 @@ function parisTour(cx,cy,cz,H){ // LA DAME DE FER — proportions de la vraie (3
     sh.vertexShader='varying float vYw;\n'+sh.vertexShader.replace('#include <fog_vertex>','#include <fog_vertex>\nvYw=(modelMatrix*vec4(transformed,1.)).y;');
     sh.fragmentShader='varying float vYw;uniform float uBase,uFade;\n'+sh.fragmentShader.replace('#include <fog_fragment>','if(smoothstep(0.,uFade,vYw-uBase)<fract(52.9829189*fract(dot(gl_FragCoord.xy,vec2(.06711056,.00583715)))))discard;\n#include <fog_fragment>');};
     m.customProgramCacheKey=function(){return 'parisPied';};};
-  pied(or);pied(plein);
+  if(!solide){pied(or);pied(plein);}
   const add=(geo,mat,y)=>{const m=new THREE.Mesh(geo,mat);if(y!=null)m.position.y=y;g.add(m);trackMeshes.push(m);return m;};
   for(const sx of [-1,1])for(const sz of [-1,1])                                      // les QUATRE PILIERS, qui se penchent l'un vers l'autre
     add(parisPrisme([sx*.152*H,sz*.152*H],.042*H,0,[sx*.094*H,sz*.094*H],.024*H,.178*H,cel),or);
@@ -8306,190 +8420,563 @@ function parisTour(cx,cy,cz,H){ // LA DAME DE FER — proportions de la vraie (3
   for(const s of [0,Math.PI]){const b=new THREE.Mesh(fg,fm);b.rotation.y=s;b.rotation.z=-.08;ph.add(b);trackMeshes.push(b);}
   return g;
 }
-/* HAUSSMANN v2 — LA NOUVELLE MATIÈRE (2026-09-28, Léo : « Paris c'est des bâtiments haussmanniens, nouvelle matière »). Une instance =
-   un immeuble de 1860 PEINT dans le shader, à la cote réelle, de la corniche au trottoir (22 m) : corniche qui accroche la lumière,
-   5e à balcon FILANT, 4e et 3e à garde-corps de porte-fenêtre, 2e NOBLE (fronton sur chaque baie, balcon filant), entresol et
-   rez-de-chaussée en BOSSAGE, boutiques allumées sous leur store rayé et leur enseigne. La pierre de taille crème est léchée PAR EN
-   BAS (les lampadaires du trottoir : l'éclairage de Paris la nuit), ses assises se lisent de près ; le fer forgé (barreaux,
-   anneaux) s'efface au-delà de ~100 m dans sa teinte moyenne (pas de moiré). Sous le trottoir, la rue se perd dans la brume. */
-const PARIS_VS=['varying vec3 vL,vN,vSc;varying float vS,vD;','#include <fog_pars_vertex>','void main(){',
+/* LES MATIÈRES DE PARIS — un immeuble = une instance, tout son décor PEINT dans le shader à la cote réelle, et ÉCLAIRÉ PAR L'HEURE :
+   `lumiere(alb,nw,h)` = le ciel froid dans l'ombre + le soleil rasant qui dore les étages hauts (heure dorée), le ciel bleu et les
+   réverbères qui lèchent le bas (heure bleue), l'or des lampadaires sur le bleu profond (nuit). Les fenêtres s'allument avec l'heure.
+   aSty (par instance) : x = style (0 haussmannien · 1 faubourg de Montmartre · 2 luxe des Champs), y = teinte, z = hauteur de façade
+   (corniche → trottoir), w = hasard. */
+const PARIS_VS=['attribute vec4 aSty;varying vec3 vL,vN,vSc,vNw;varying vec4 vSty;varying float vD;','#include <fog_pars_vertex>','void main(){',
   '#ifdef USE_INSTANCING','mat4 im=instanceMatrix;','#else','mat4 im=mat4(1.);','#endif',
-  'vSc=vec3(length(im[0].xyz),length(im[1].xyz),length(im[2].xyz));vL=position*vSc;vN=normal;',
-  'vS=fract(sin(dot(im[3].xz*.01,vec2(12.9898,78.233)))*43758.5453);',
+  'vSc=vec3(length(im[0].xyz),length(im[1].xyz),length(im[2].xyz));vL=position*vSc;vN=normal;vNw=normalize(mat3(im)*normal);vSty=aSty;',
   'vec4 mvPosition=modelViewMatrix*im*vec4(position,1.);vD=-mvPosition.z;gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
-const PARIS_FS0=['uniform vec3 uPierre,uFen;varying vec3 vL,vN,vSc;varying float vS,vD;','#include <fog_pars_fragment>',
+const PARIS_FS0=['uniform vec3 uFen,uSun;uniform float uT,uTime;','#include <fog_pars_fragment>',
   'float h21(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}',
   'vec3 brume(){',
-  '#ifdef USE_FOG','return fogColor;','#else','return vec3(0.);','#endif','}'].join('\n');
+  '#ifdef USE_FOG','return fogColor;','#else','return vec3(0.);','#endif','}',
+  'float nuitF(){return smoothstep(.55,1.6,uT);}',
+  // LA LUMIÈRE DE L HEURE (h : hauteur au-dessus du trottoir)
+  'vec3 lumiere(vec3 alb,vec3 nw,float h){',
+  '  vec3 sh=normalize(vec3(uSun.x,0.,uSun.z));float sd=max(0.,dot(nw,sh)),gr=1.-abs(dot(nw,sh)),up=max(0.,nw.y);',
+  '  float haut=smoothstep(4.,15.,h);',
+  '  vec3 cO=alb*(vec3(.34,.38,.52)+vec3(1.30,.80,.46)*(sd*.95+gr*.2+up*.3)*(.3+.7*haut)+vec3(.10,.06,.03)*(1.-haut));',
+  '  vec3 cB=alb*(vec3(.16,.19,.33)+up*vec3(.05,.06,.12)+vec3(.44,.28,.13)*exp(-max(h,0.)/5.5));',
+  '  vec3 cN=alb*(vec3(.045,.05,.095)+vec3(.64,.39,.17)*exp(-max(h,0.)/5.)+vec3(.10,.07,.05)*exp(-max(h,0.)/14.));',
+  '  return uT<1.?mix(cO,cB,uT):mix(cB,cN,uT-1.);}'].join('\n');
+const PARIS_VFS='varying vec3 vL,vN,vSc,vNw;varying vec4 vSty;varying float vD;';
+function parisU(){return Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),{uT:PSU.uT,uTime:PSU.uTime,uSun:PSU.uSun,uFen:PSU.uFen});} // les uniforms PARTAGÉS (mêmes objets)
 function parisFacade(){
-  return new THREE.ShaderMaterial({fog:true,
-    uniforms:THREE.UniformsUtils.merge([THREE.UniformsLib.fog,{uPierre:{value:new THREE.Color(0xdcc9a2)},uFen:{value:new THREE.Color(0xffc672)}}]),
-    vertexShader:PARIS_VS,
-    fragmentShader:[PARIS_FS0,
-      // le FER FORGÉ d un garde-corps entre r (lisse haute) et b (lisse basse) : barreaux, anneaux — sa densité moyenne au loin
+  return new THREE.ShaderMaterial({fog:true,uniforms:parisU(),vertexShader:PARIS_VS,
+    fragmentShader:[PARIS_FS0,PARIS_VFS,
       'float fer(float u,float dT,float r,float b,float det){',
-      '  float m=max(step(dT,r+.07),step(b-.06,dT));',
-      '  float br=step(abs(fract(u/.14)-.5),.11);',
+      '  float m=max(step(dT,r+.07),step(b-.06,dT)),br=step(abs(fract(u/.14)-.5),.11);',
       '  vec2 q=vec2((fract(u/.56)-.5)*.56,dT-(r+b)*.5);float an=step(abs(length(q)-.19),.028);',
       '  return mix(.42,max(m,max(br,an)),det);}',
-      'void main(){vec3 n=normalize(vN),FC=brume();vec3 col;float dT=vSc.y*.5-vL.y;',
-      ' if(n.y>.5)col=uPierre*.08;',
-      ' else if(n.y<-.5)col=FC;',                                          // le dessous : la brume (vu d un étage de route plus bas)
+      'void main(){vec3 n=normalize(vN),nw=normalize(vNw);vec3 col;',
+      ' float Hf=vSty.z,dT=vSc.y*.5-vL.y,h=Hf-dT,sty=vSty.x,nf=nuitF();',
+      ' if(n.y<-.5)discard;',
+      ' if(n.y>.5)col=lumiere(vec3(.2,.2,.22),nw,30.);',                                                  // le toit-terrasse (sous la mansarde)
       ' else{bool fx=abs(n.x)>.5;float u=fx?vL.z:vL.x,W=fx?vSc.z:vSc.x;',
-      '  float det=1.-smoothstep(45.,140.,vD),loin=smoothstep(260.,700.,vD);',
-      '  float nb=max(1.,floor(W/3.4)),bw=W/nb,ub=(u+W*.5)/bw,bi=floor(ub),ax=abs((fract(ub)-.5)*bw);', // ax : mètres depuis l axe de la travée
-      '  float up=exp(-max(0.,22.-dT)/7.)*step(dT,23.);',                                                 // les lampadaires du trottoir
-      '  vec3 pierre=uPierre*(.23+.05*(n.x+n.z*.6))+vec3(1.,.6,.28)*uPierre*up*.6;',                    // (essai du 28/09 : à .12 la pierre de taille lisait NOIRE)
-      '  pierre*=1.-.09*det*smoothstep(.88,.97,fract(dT/.52));',                                          // les ASSISES de la pierre de taille
-      '  if(dT>14.1)pierre*=1.-.32*det*smoothstep(.8,.93,fract(dT/.55));',                               // le BOSSAGE du bas
-      '  vec3 iron=vec3(.012,.012,.016);col=pierre;',
-      '  float a=0.,b=0.,r=0.,fi=-1.,bal=0.;',
-      '  if(dT<.9)col=pierre*1.5;else if(dT<1.2)col=pierre*.42;',                                         // la CORNICHE et son ombre
-      '  else if(dT<4.05){a=1.55;b=3.85;r=3.3;fi=5.;bal=1.;}',
-      '  else if(dT<7.15){a=4.5;b=6.95;r=6.45;fi=4.;}',
-      '  else if(dT<10.35){a=7.6;b=10.05;r=9.55;fi=3.;}',
-      '  else if(dT<14.1){a=10.95;b=13.9;r=13.3;fi=2.;bal=1.;}',
-      '  else if(dT<17.1){a=14.55;b=16.6;fi=1.;}',
-      '  else if(dT<22.)fi=0.;',
-      '  float hl=h21(vec2(bi,fi)+vS*37.),w2=h21(vec2(bi*1.3,fi*.7)+vS);',
-      '  if(fi>.5){',
-      '   if(fi==2.&&dT>a-.6&&dT<a-.1&&ax<1.08)col=pierre*1.35;',                                        // le FRONTON de l étage noble
-      '   if(dT>a-.17&&dT<b+.02&&ax<.84)col=pierre*1.25;',                                                // le chambranle
-      '   if(dT>a&&dT<b&&ax<.66){',
-      '    vec3 fen=hl>.42?uFen*mix(vec3(1.),vec3(1.,.72,.52),w2)*(.5+.75*w2):vec3(.022,.028,.05)+vec3(.03,.035,.06)*(dT-a)/(b-a);',
-      '    col=mix(fen,pierre*.45,max(step(ax,.035),step(abs(dT-a-(b-a)*.3),.035))*det);',                 // les croisillons
-      '    if(r>0.&&bal<.5&&dT>r)col=mix(col,iron,fer(u,dT,r,b,det));}',                                   // le garde-corps de la porte-fenêtre
-      '   if(bal>.5&&dT>r&&dT<b)col=mix(col,iron,fer(u,dT,r,b,det));',                                    // le BALCON FILANT
-      '   if(bal>.5&&dT>b&&dT<b+.2)col=pierre*1.35;',                                                     // sa dalle de pierre
-      '  }else if(fi>-.5){',                                                                              // LES BOUTIQUES
-      '   float sb=bw*.39,hb=h21(vec2(bi,9.)+vS*37.);',
-      '   if(ax<sb+.14&&dT>17.15)col=vec3(.02,.04,.03);',                                                  // la devanture en bois peint
-      '   if(ax<sb&&dT>18.35&&dT<21.75){vec3 bq=hb<.3?vec3(1.,.8,.52):hb<.5?uFen*.9:hb<.62?vec3(1.,.55,.3):hb<.72?vec3(.35,.95,.8):hb<.8?vec3(1.,.36,.28):hb<.86?vec3(.7,.8,1.):vec3(.04,.05,.07);',
-      '    float vit=step(.06,abs(fract(ax/.9)-.5)*2.)*step(abs(dT-19.9),1.7);',                            // les montants de la vitrine
-      '    col=bq*(.45+.45*smoothstep(18.35,21.75,dT))*mix(.35,1.,vit);}',
-      '   if(ax<sb&&dT>17.2&&dT<17.7&&hb<.93)col=mix(vec3(.02,.03,.03),uFen*1.2,step(.55,h21(floor(vec2(u/.22,dT/.12))+bi))*det);', // l ENSEIGNE
-      '   if(ax<sb+.25&&dT>17.75&&dT<18.35&&h21(vec2(bi,4.)+vS)>.55){float st=step(.5,fract(u/.5));col=mix(vec3(.5,.05,.06),vec3(.8,.72,.6),st)*(.35+.4*up);}}', // le STORE rayé
-      '  col=mix(col,pierre*1.1+uFen*.12,loin*.85);',                                                     // au loin, la moyenne
-      '  col+=vec3(1.,.58,.25)*.12*exp(-abs(dT-22.4)/2.2);',                                              // la rue allumée qui monte dans la brume
-      '  col=mix(col,FC,smoothstep(22.5,33.,dT)*.5);}',
-      // SOUS LE TROTTOIR : la façade s efface en TRAME (bruit de gradient entrelacé) — mélangée à la couleur de la brume, elle faisait
-      // un SOCLE bleu uni sous chaque immeuble (le ciel derrière n a pas la couleur du brouillard)
-      ' float cut=n.y<-.5?1.:smoothstep(22.5,34.,dT);',
-      ' if(cut>.004&&cut>fract(52.9829189*fract(dot(gl_FragCoord.xy,vec2(.06711056,.00583715))))*.99+.005)discard;',
+      '  float det=1.-smoothstep(45.,140.,vD),loin=smoothstep(280.,760.,vD);',
+      '  vec3 alb,em=vec3(0.);',
+      '  if(sty<.5||sty>1.5){',                                                                           // ---- HAUSSMANN (et le LUXE des Champs) ----
+      '   float nb=max(1.,floor(W/3.4)),bw=W/nb,ub=(u+W*.5)/bw,bi=floor(ub),ax=abs((fract(ub)-.5)*bw);',
+      '   vec3 pierre=vec3(.86,.79,.64)*(.94+.1*vSty.y);',                                                   // la pierre de taille, un rien plus chaude ou plus froide
+      '   pierre*=1.-.08*det*smoothstep(.88,.97,fract(dT/.52));',                                             // les assises
+      '   if(dT>14.1)pierre*=1.-.26*det*smoothstep(.8,.93,fract(dT/.55));',                                  // le bossage du bas
+      '   alb=pierre;float a=0.,b=0.,r=0.,fi=-1.;',
+      '   if(dT<.9)alb=pierre*1.12;else if(dT<1.2)alb=pierre*.55;',                                         // la corniche et son ombre
+      '   else if(dT<4.05){a=1.55;b=3.85;fi=5.;}',
+      '   else if(dT<7.15){a=4.5;b=6.95;r=6.45;fi=4.;}',
+      '   else if(dT<10.35){a=7.6;b=10.05;r=9.55;fi=3.;}',
+      '   else if(dT<14.1){a=10.95;b=13.9;fi=2.;}',
+      '   else if(dT<17.1){a=14.55;b=16.6;fi=1.;}',
+      '   else if(h>0.)fi=0.;',
+      '   else alb=pierre*.55;',                                                                              // le soubassement (les rues qui montent)
+      '   float hl=h21(vec2(bi,fi)+vSty.w*37.),w2=h21(vec2(bi*1.3,fi*.7)+vSty.w);',
+      '   if(fi>.5){',
+      '    if(fi==2.&&dT>a-.6&&dT<a-.1&&ax<1.08)alb=pierre*1.14;',                                          // le fronton de l étage noble
+      '    if(dT>a-.17&&dT<b+.02&&ax<.84)alb=pierre*1.07;',                                                  // le chambranle
+      '    if(dT>a&&dT<b&&ax<.66){',
+      '     float allume=step(hl,mix(.1,.58,nf));',                                                           // les fenêtres s allument avec l heure
+      '     alb=mix(vec3(.10,.12,.18),vec3(.55,.42,.30),.35*(1.-nf))*(.6+.4*w2);',                             // la vitre renvoie le ciel
+      '     em=allume*uFen*mix(vec3(1.),vec3(1.,.72,.52),w2)*(.35+.6*w2)*(.35+.65*nf);',
+      '     float cr=max(step(ax,.035),step(abs(dT-a-(b-a)*.3),.035))*det;alb=mix(alb,pierre*.5,cr);em*=1.-cr;', // les croisillons
+      '     if(r>0.&&dT>r){float fm=fer(u,dT,r,b,det);alb=mix(alb,vec3(.03),fm);em*=1.-fm;}}',                 // le garde-corps de la porte-fenêtre
+      '    if((fi==2.||fi==5.)&&dT>b+.1&&dT<b+.55)alb*=.62;}',                                                // l ombre portée du balcon filant (le vrai est en géométrie)
+      '   else if(fi>-.5){',                                                                                   // LES BOUTIQUES
+      '    float sb=bw*.39,hb=h21(vec2(bi,9.)+vSty.w*37.),lx=step(1.5,sty);',
+      '    if(ax<sb+.14&&h<4.9)alb=mix(vec3(.05,.07,.06),vec3(.09,.07,.04),lx);',                             // la devanture
+      '    if(ax<sb&&h>.25&&h<3.65){',
+      '     vec3 bq=lx>.5?vec3(1.,.84,.58):hb<.3?vec3(1.,.8,.52):hb<.5?uFen*.9:hb<.62?vec3(1.,.55,.3):hb<.72?vec3(.45,.95,.8):hb<.8?vec3(1.,.4,.3):hb<.86?vec3(.7,.8,1.):vec3(.04,.05,.07);',
+      '     float vit=step(.06,abs(fract(ax/.9)-.5)*2.);',
+      '     alb=vec3(.05,.05,.06);em=bq*(.3+.5*smoothstep(3.65,.25,h))*mix(.3,1.,vit)*(mix(.45,1.,nf)+lx*.5);}',
+      '    if(ax<sb&&h>3.72&&h<4.3&&hb<.93){float ens=step(.55,h21(floor(vec2(u/.22,dT/.12))+bi))*det;alb=mix(vec3(.03),vec3(.9,.7,.3),ens);em=uFen*ens*(.3+.9*nf);}}', // l ENSEIGNE
+      '  }else{',                                                                                               // ---- LE FAUBOURG DE MONTMARTRE ----
+      '   float nb=max(1.,floor(W/3.)),bw=W/nb,ub=(u+W*.5)/bw,bi=floor(ub),ax=abs((fract(ub)-.5)*bw),k=floor(vSty.y*6.);',
+      '   vec3 enduit=k<1.?vec3(.93,.86,.72):k<2.?vec3(.93,.72,.70):k<3.?vec3(.90,.75,.52):k<4.?vec3(.95,.90,.68):k<5.?vec3(.92,.91,.87):vec3(.78,.86,.74);',
+      '   enduit*=.93+.1*h21(floor(vec2(u/2.3,h/1.7))+vSty.w);alb=enduit;',                                  // l enduit, jamais tout à fait uni
+      '   if(h<0.)alb=enduit*.55;',
+      '   else if(dT<.45)alb=enduit*.6;',                                                                       // la corniche simple
+      '   else if(h>3.8){float fy=(h-3.8)/2.9,fli=floor(fy),ff=fract(fy),hl=h21(vec2(bi,fli)+vSty.w*37.),w2=h21(vec2(bi*1.7,fli)+vSty.w);',
+      '    vec3 volet=hl<.33?vec3(.22,.38,.28):hl<.66?vec3(.33,.42,.52):vec3(.45,.24,.20);float lames=.8+.2*step(.5,fract(ff*14.));',
+      '    if(ax<.55&&ff>.22&&ff<.82){',                                                                        // la fenêtre
+      '     alb=vec3(.10,.11,.15);em=step(h21(vec2(bi,fli*3.1)+vSty.w),mix(.1,.55,nf))*uFen*(.4+.6*w2)*(.35+.65*nf);',
+      '     if(ax<.04||abs(ff-.5)<.03){alb=enduit*.5;em*=.2;}',
+      '     if(w2>.78){alb=volet*lames;em=vec3(0.);}}',                                                         // les volets fermés, à lames
+      '    else if(ax<1.08&&ff>.22&&ff<.82&&w2<=.78)alb=volet*lames;}',                                         // …et ouverts
+      '   else{float hb=h21(vec2(bi,7.)+vSty.w*29.);',                                                           // le rez-de-chaussée : cafés, épiceries
+      '    alb=hb<.5?vec3(.35,.06,.05):hb<.8?vec3(.08,.18,.12):vec3(.12,.1,.08);',
+      '    if(ax<bw*.38&&h>.3&&h<3.1){alb=vec3(.05);em=vec3(1.,.72,.42)*(.35+.65*nf)*(.8+.4*hb);}}',
+      '   if(vSty.w>.72){float lr=h21(floor(vec2(u/.35,h/.35)))*.6+.4*h21(floor(vec2(u/1.4,h/1.4))+3.);if(lr>.55+.25*(h/Hf)){alb=mix(alb,vec3(.14,.24,.11),.9);em*=.1;}}', // le LIERRE
+      '  }',
+      '  col=lumiere(alb,nw,h)+em;',
+      '  col=mix(col,lumiere(vec3(.7,.64,.54),nw,10.)+uFen*.08*nf,loin*.8);}',                                 // au loin, la moyenne (plus de moiré)
       ' gl_FragColor=vec4(col,1.);','#include <fog_fragment>','}'].join('\n')});
 }
-function parisZinc(){ // LES TOITS DE ZINC : brisis à joints debout, gouttière de pierre, LUCARNES à fronton, œils-de-bœuf, terrasson sombre
-  return new THREE.ShaderMaterial({fog:true,
-    uniforms:THREE.UniformsUtils.merge([THREE.UniformsLib.fog,{uPierre:{value:new THREE.Color(0xdcc9a2)},uFen:{value:new THREE.Color(0xffc672)}}]),
-    vertexShader:PARIS_VS,
-    fragmentShader:[PARIS_FS0,
-      'void main(){vec3 n=normalize(vN),FC=brume(),zc=vec3(.07,.083,.11)+FC*.2;vec3 col;float det=1.-smoothstep(40.,130.,vD);',
-      ' if(n.y>.8)col=zc*(1.+.3*det*smoothstep(.9,1.,fract(vL.x/.6)));',                                // le terrasson
-      ' else if(n.y<-.8)col=zc*.3;',
+function parisZinc(){ // LES TOITS DE ZINC : brisis à joints debout, gouttière, LUCARNES à fronton, œils-de-bœuf, terrasson — le zinc prend le couchant
+  return new THREE.ShaderMaterial({fog:true,uniforms:parisU(),vertexShader:PARIS_VS,
+    fragmentShader:[PARIS_FS0,PARIS_VFS,
+      'void main(){vec3 n=normalize(vN),nw=normalize(vNw);float det=1.-smoothstep(40.,130.,vD),nf=nuitF();vec3 zc=vec3(.36,.40,.46),alb,em=vec3(0.);',
+      ' if(n.y<-.8)discard;',
+      ' if(n.y>.8)alb=zc*.62*(1.+.3*det*smoothstep(.9,1.,fract(vL.x/.6)));',
       ' else{bool fx=abs(n.x)>abs(n.z);float u=fx?vL.z:vL.x,W=(fx?vSc.z:vSc.x)*.93,v=vL.y+vSc.y*.5;',
-      '  col=zc*(1.1+.45*v/vSc.y);',                                                                      // le zinc prend le ciel vers le haut
-      '  col*=1.+.3*det*smoothstep(.9,1.,fract(u/.55));',                                                 // les joints debout
-      '  if(v<.42)col=uPierre*.19;',                                                                      // la gouttière de pierre
+      '  alb=zc*(.75+.35*v/vSc.y)*(1.+.3*det*smoothstep(.9,1.,fract(u/.55)));',
+      '  if(v<.42)alb=vec3(.64,.59,.5);',
       '  float nb=max(1.,floor(W/3.4)),bw=W/nb,ub=(u+W*.5)/bw,bi=floor(ub),ax=abs((fract(ub)-.5)*bw);',
-      '  if(v>.9&&v<3.35&&ax<.78)col=uPierre*.22;',                                                       // la LUCARNE : son chambranle
-      '  if(v>3.3&&v<3.95&&ax<.86*(1.-(v-3.3)/.65))col=uPierre*.25;',                                    // son fronton
-      '  if(v>1.1&&v<3.12&&ax<.55){float h=h21(vec2(bi,vS*91.));col=h>.5?uFen*(.45+.6*h21(vec2(bi,vS*13.))):vec3(.02,.026,.045);',
-      '   if(ax<.03||abs(v-2.)<.03)col*=.4;}',
-      '  if(mod(bi,2.)<1.&&vSc.y>6.6){float o=length(vec2(ax,v-5.15));if(o<.5)col=uPierre*.2;if(o<.34)col=h21(vec2(bi,vS*7.))>.6?uFen*.8:vec3(.02,.026,.045);}', // l ŒIL-DE-BŒUF
-      '  col=mix(col,zc*1.3+uFen*.05,smoothstep(260.,700.,vD)*.8);}',
+      '  if(vSty.x<.5||vSty.x>1.5){',                                                                         // la mansarde haussmannienne
+      '   if(v>.9&&v<3.35&&ax<.78)alb=vec3(.8,.73,.6);',
+      '   if(v>3.3&&v<3.95&&ax<.86*(1.-(v-3.3)/.65))alb=vec3(.82,.75,.62);',
+      '   if(v>1.1&&v<3.12&&ax<.55){alb=vec3(.1,.11,.15);em=step(h21(vec2(bi,vSty.w*91.)),mix(.12,.55,nf))*uFen*(.35+.5*h21(vec2(bi,vSty.w*13.)))*(.35+.65*nf);',
+      '    if(ax<.03||abs(v-2.)<.03){alb*=.4;em*=.3;}}',
+      '   if(mod(bi,2.)<1.&&vSc.y>6.6){float o=length(vec2(ax,v-5.15));if(o<.5)alb=vec3(.8,.73,.6);if(o<.34){alb=vec3(.1,.11,.15);em=step(h21(vec2(bi,vSty.w*7.)),mix(.1,.5,nf))*uFen*.7*(.35+.65*nf);}}}',
+      '  else if(mod(bi,3.)<1.&&v>.8&&v<2.3&&ax<.45){alb=vec3(.1,.11,.15);em=step(h21(vec2(bi,vSty.w*5.)),mix(.1,.5,nf))*uFen*.6*(.35+.65*nf);}', // les tabatières du faubourg
+      ' }',
+      ' vec3 col=lumiere(alb,nw,28.)+em;col=mix(col,lumiere(zc*.8,nw,28.),smoothstep(260.,700.,vD)*.8);',
       ' gl_FragColor=vec4(col,1.);','#include <fog_fragment>','}'].join('\n')});
+}
+function parisFerMat(){ // LES BALCONS FILANTS en fer forgé : une boîte ajourée autour de l'immeuble (barreaux, volutes, lisses) — en trame au loin
+  return new THREE.ShaderMaterial({fog:true,uniforms:parisU(),vertexShader:PARIS_VS,
+    fragmentShader:[PARIS_FS0,PARIS_VFS,
+      'void main(){vec3 n=normalize(vN);if(abs(n.y)>.5)discard;',
+      ' bool fx=abs(n.x)>.5;float u=fx?vL.z:vL.x,y=vL.y+vSc.y*.5,det=1.-smoothstep(40.,170.,vD);',
+      ' float m=max(step(.86,y),step(y,.07)),br=step(abs(fract(u/.13)-.5),.13);',
+      ' vec2 q=vec2((fract(u/.52)-.5)*.52,y-.46);float an=step(abs(length(q)-.17),.03);',
+      ' float a=max(m,mix(.42,max(br,an),det));',
+      ' if(a<.5+.49*fract(52.9829189*fract(dot(gl_FragCoord.xy,vec2(.06711056,.00583715))))-.25*(1.-det))discard;',
+      ' vec3 col=lumiere(vec3(.045,.045,.05),normalize(vNw),10.);',
+      ' gl_FragColor=vec4(col,1.);','#include <fog_fragment>','}'].join('\n')});
+}
+function parisSolMat(){ // LE SOL de Paris (vu depuis la Butte, les places, les jardins) : le stabilisé beige — la nuit, les lumières de la ville
+  return new THREE.ShaderMaterial({fog:true,uniforms:parisU(),
+    vertexShader:['varying vec3 vW;','#include <fog_pars_vertex>','void main(){vec4 wp=modelMatrix*vec4(position,1.);vW=wp.xyz;vec4 mvPosition=viewMatrix*wp;gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n'),
+    fragmentShader:[PARIS_FS0,'varying vec3 vW;',
+      'void main(){vec2 p=vW.xz;float nf=nuitF(),g=h21(floor(p/1.8))*.4+h21(floor(p/7.))*.6;',
+      ' vec3 col=lumiere(mix(vec3(.63,.58,.48),vec3(.52,.48,.40),g),vec3(0.,1.,0.),20.);',
+      ' vec2 c=floor(p/22.),f=fract(p/22.)-.5;col+=uFen*step(.7,h21(c+3.7))*smoothstep(.2,.04,length(f))*nf*.9;', // la ville la nuit, vue d en haut
+      ' gl_FragColor=vec4(col,1.);','#include <fog_fragment>','}'].join('\n')});
+}
+function parisEauMat(b,n,r){ // LA SEINE : l'eau renvoie le ciel de l'heure, la RIVE d'en face (façades, fenêtres, réverbères étirés par les vaguelettes)
+  const U=parisU();U.uB={value:new THREE.Vector2(b.x,b.z)};U.uN={value:n.clone()};U.uR={value:r.clone()};
+  return new THREE.ShaderMaterial({fog:true,uniforms:U,
+    vertexShader:['varying vec3 vW;','#include <fog_pars_vertex>','void main(){vec4 wp=modelMatrix*vec4(position,1.);vW=wp.xyz;vec4 mvPosition=viewMatrix*wp;gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n'),
+    fragmentShader:[PARIS_FS0,'uniform vec2 uB;uniform vec3 uN,uR;varying vec3 vW;',
+      'void main(){vec3 V=normalize(vW-cameraPosition);float t=uTime,nf=nuitF();',
+      ' float al=dot(vW.xz-uB,uR.xz),u=dot(vW.xz-uB,uN.xz);',
+      ' float wa=sin(al*.21+t*1.1+sin(u*.13+t*.4)*2.)+sin(al*.53-t*1.6+u*.21)*.6+sin(al*1.37+t*2.3-u*.4)*.25;',
+      ' float wb=sin(u*.35-t*.9+sin(al*.1)*1.5)+sin(u*.9+al*.3+t*1.7)*.4;',
+      ' vec3 nr=normalize(vec3(0.,1.,0.)+uR*wa*.035+uN*wb*.03),R=reflect(V,nr);',
+      ' float ry=max(R.y,0.);',
+      ' vec3 c0=mix(vec3(.95,.66,.48),vec3(.30,.46,.74),smoothstep(0.,.5,ry)),c1=mix(vec3(.42,.40,.62),vec3(.08,.13,.34),smoothstep(0.,.5,ry)),c2=mix(vec3(.16,.11,.14),vec3(.015,.02,.05),smoothstep(0.,.4,ry));',
+      ' vec3 refl=uT<1.?mix(c0,c1,uT):mix(c1,c2,uT-1.);',
+      ' float Ru=dot(R.xz,uN.xz);',
+      ' if(abs(Ru)>.02){float sg=Ru>0.?1.:-1.,tt=(sg*126.-u)/Ru,hy=vW.y+R.y*tt,a2=al+dot(R.xz,uR.xz)*tt;',
+      '  if(hy>0.&&hy<29.){vec3 fac=uT<1.?mix(vec3(.85,.62,.42),vec3(.22,.24,.36),uT):mix(vec3(.22,.24,.36),vec3(.06,.06,.1),uT-1.);', // la rive d en face
+      '   vec2 cw=floor(vec2(a2/3.4,hy/3.3));fac+=uFen*step(h21(cw),mix(.12,.55,nf))*step(.3,fract(a2/3.4))*step(.25,fract(hy/3.3))*(.4+.6*nf)*.7;',
+      '   if(hy>22.)fac=mix(fac,refl,.5);refl=fac;}',
+      '  else if(hy>-8.&&hy<=0.)refl=uT<1.?mix(vec3(.55,.48,.38),vec3(.15,.16,.22),uT):mix(vec3(.15,.16,.22),vec3(.04,.04,.06),uT-1.);', // le mur du quai
+      '  refl+=uFen*smoothstep(1.3,0.,abs(fract(a2/26.)-.5)*26.)*smoothstep(2.5,0.,abs(hy-5.))*(.25+2.6*nf);}',          // les RÉVERBÈRES, étirés par les vaguelettes
+      ' float fres=.22+.78*pow(1.-max(0.,-V.y),4.);',
+      ' vec3 deep=uT<1.?mix(vec3(.10,.16,.18),vec3(.03,.06,.11),uT):mix(vec3(.03,.06,.11),vec3(.01,.015,.03),uT-1.);',
+      ' gl_FragColor=vec4(mix(deep,refl,fres),1.);','#include <fog_fragment>','}'].join('\n')});
+}
+function parisTex(k){ // les petites textures (une fois par session) : 'dalles' du trottoir, 'rond' (flaques, halos), 'zebre' du passage piéton
+  const T=PARIS.tex||(PARIS.tex={});if(T[k])return T[k];
+  const cv=document.createElement('canvas'),x=cv.getContext('2d'),r9=mulberry32(0xDA11E5);let t;
+  if(k==='dalles'){cv.width=cv.height=128;x.fillStyle='#8f887c';x.fillRect(0,0,128,128);
+    for(let j=0;j<4;j++)for(let i=0;i<2;i++){const g=168+Math.floor(r9()*34);x.fillStyle='rgb('+g+','+(g-5)+','+(g-15)+')';x.fillRect(i*64+(j%2)*32+1,j*32+1,62,30);x.fillRect(i*64+(j%2)*32-127,j*32+1,62,30);}
+    t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;}
+  else if(k==='rond'){cv.width=cv.height=64;const g=x.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.35,'rgba(255,255,255,.45)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,64,64);t=new THREE.CanvasTexture(cv);}
+  else if(k==='zebre'){cv.width=16;cv.height=4;x.fillStyle='rgba(235,235,230,.92)';x.fillRect(0,0,8,4);t=new THREE.CanvasTexture(cv);t.wrapS=THREE.RepeatWrapping;}
+  t.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());T[k]=t;return t;
+}
+/* LES MONUMENTS — chacun en quelques pièces, à la cote réelle (Arc 49,5 × 44,8 × 22,2 m, voûte 29,2 × 14,6 ; Tour 330 m ; pylônes
+   d'Alexandre-III 17 m ; Sacré-Cœur 83 m sur la Butte). Leurs matières s'ILLUMINENT à la nuit (`parisMatNuit` : l'émissive suit l'heure). */
+function parisMatNuit(col,emi,kO,kB,kN,opts){ // une matière Lambert dont l'émissive suit l'heure : or · bleue · nuit
+  const m=new THREE.MeshLambertMaterial(Object.assign({color:col,emissive:emi},opts||{}));
+  PARIS.matsNuit.push({m:m,e:new THREE.Color(emi),k:[kO,kB,kN]});return m;
+}
+function parisAjoute(o,g){(g||scene).add(o);trackMeshes.push(o);PARIS.meshes.push(o);return o;} // tout ce que Paris pose : jeté avec la piste
+function parisMesh(geo,mat,g,x,y,z){const m=new THREE.Mesh(geo,mat);m.position.set(x||0,y||0,z||0);return parisAjoute(m,g);}
+function parisGroupe(x,y,z,yaw){const g=new THREE.Group();g.position.set(x,y,z);g.rotation.y=yaw||0;scene.add(g);trackMeshes.push(g);PARIS.meshes.push(g);return g;}
+function parisArc(p,yaw){ // L'ARC DE TRIOMPHE : deux piles percées de l'arc transversal, la grande voûte, l'entablement, l'attique — et le drapeau
+  const g=parisGroupe(p.x,p.y+.16,p.z,yaw),pierre=parisMatNuit(0xd9c7a4,0xffc890,0,.12,.34),ombre=parisMatNuit(0xb9a684,0xffb070,0,.08,.26);PARIS.arcG=g;g.scale.setScalar(1.8); // ×1,8 (≈ 90 m) : l'objectif de course est TRÈS ouvert — à la vraie cote, au bout de l'avenue, l'Arc faisait quelques pixels (mesuré)
+  const pile=new THREE.Shape();pile.moveTo(-11.1,0);pile.lineTo(-4.22,0);pile.lineTo(-4.22,14.46);pile.absarc(0,14.46,4.22,Math.PI,0,true);
+  pile.lineTo(4.22,0);pile.lineTo(11.1,0);pile.lineTo(11.1,36.6);pile.lineTo(-11.1,36.6);pile.lineTo(-11.1,0);
+  const gp=new THREE.ExtrudeGeometry(pile,{depth:15.1,bevelEnabled:false,curveSegments:12});gp.rotateY(Math.PI/2); // la pile : son arc transversal file selon x
+  for(const sx of [-1,1]){const m=parisMesh(gp,pierre,g);m.position.x=sx<0?-22.41:7.31;}
+  const vo=new THREE.Shape();vo.moveTo(-7.31,21.88);vo.lineTo(-7.31,36.6);vo.lineTo(7.31,36.6);vo.lineTo(7.31,21.88);vo.absarc(0,21.88,7.31,0,Math.PI,false);
+  const gv=new THREE.ExtrudeGeometry(vo,{depth:22.2,bevelEnabled:false,curveSegments:16});gv.translate(0,0,-11.1);parisMesh(gv,pierre,g);
+  parisMesh(new THREE.BoxGeometry(46.4,2.4,23.8),ombre,g,0,37.8,0);                       // l'entablement
+  parisMesh(new THREE.BoxGeometry(44.8,9.5,22.2),pierre,g,0,43.75,0);                     // l'attique
+  parisMesh(new THREE.BoxGeometry(45.8,1.1,23.2),ombre,g,0,49,0);                         // la corniche du sommet
+  for(const sx of [-1,1])for(const sz of [-1,1])parisMesh(new THREE.BoxGeometry(7.2,11,.9),ombre,g,sx*14.9,6.5,sz*11.5); // les quatre groupes sculptés
+  parisMesh(new THREE.BoxGeometry(44.9,1.6,22.3),ombre,g,0,31.4,0);                       // la frise
+  // LE DRAPEAU sous la voûte : bleu, blanc, rouge — il ondule (vertex shader, l'heure de Paris)
+  const cv=document.createElement('canvas');cv.width=48;cv.height=8;const x=cv.getContext('2d');
+  x.fillStyle='#1d3f9e';x.fillRect(0,0,16,8);x.fillStyle='#f4f1ea';x.fillRect(16,0,16,8);x.fillStyle='#d8262f';x.fillRect(32,0,16,8);
+  const tx=new THREE.CanvasTexture(cv);tx.magFilter=THREE.NearestFilter;
+  const fm=parisMatNuit(0xffffff,0x604838,.0,.25,.55,{map:tx,side:THREE.DoubleSide});
+  fm.onBeforeCompile=function(sh){sh.uniforms.uTime=PSU.uTime;sh.vertexShader='uniform float uTime;\n'+sh.vertexShader.replace('#include <begin_vertex>',
+    '#include <begin_vertex>\nfloat pend=(8.5-position.y)/17.;transformed.z+=sin(position.x*.5+uTime*2.1+position.y*.3)*.55*pend+sin(uTime*1.3+position.y*.2)*.35*pend;');};
+  fm.customProgramCacheKey=function(){return 'parisDrapeau';};
+  const fl=parisMesh(new THREE.PlaneGeometry(9,17,8,10),fm,g,0,20.2,0);PARIS.drapeau=fl;
+  return g;
+}
+function parisObelisque(p){ // L'OBÉLISQUE de Louxor : granite rose, pyramidion d'or
+  const g=parisGroupe(p.x,p.y+.16,p.z,0),gr=new THREE.MeshLambertMaterial({color:0x8c8680});
+  parisMesh(new THREE.BoxGeometry(6.2,1.2,6.2),gr,g,0,.6,0);parisMesh(new THREE.BoxGeometry(4.4,3.6,4.4),gr,g,0,3,0);
+  const f=new THREE.CylinderGeometry(.95,1.3,22.8,4,1);f.rotateY(Math.PI/4);parisMesh(f,parisMatNuit(0xc9a189,0xffb080,0,.1,.32),g,0,16.2,0);
+  const py=new THREE.ConeGeometry(.95,2.2,4);py.rotateY(Math.PI/4);parisMesh(py,parisMatNuit(0xe8b851,0x6a4410,.4,.6,1.2),g,0,28.7,0);
+}
+function parisFontaine(p){ // une fontaine de la Concorde : la vasque, la colonne, la coupe
+  const g=parisGroupe(p.x,p.y+.16,p.z,0),pi=new THREE.MeshLambertMaterial({color:0xb7ad98});
+  parisMesh(new THREE.CylinderGeometry(11,11.5,1.1,28),pi,g,0,.55,0);
+  parisMesh(new THREE.CircleGeometry(10.5,28).rotateX(-Math.PI/2),parisMatNuit(0x2c4a5c,0x3a5a70,.05,.25,.4),g,0,1.02,0);
+  parisMesh(new THREE.CylinderGeometry(1.1,1.7,6,12),pi,g,0,3.6,0);parisMesh(new THREE.CylinderGeometry(4,1.2,.9,18),parisMatNuit(0xc8a050,0x5a3a08,.2,.5,.9),g,0,6.8,0);
+}
+function parisInvalides(p,yaw){ // LE DÔME DES INVALIDES : le tambour, le dôme d'or, la lanterne, la flèche
+  const g=parisGroupe(p.x,p.y,p.z,yaw),pi=parisMatNuit(0xd6c6a2,0xffc890,0,.1,.3),or=parisMatNuit(0xd9a53c,0x6a4410,.35,.6,1.1);
+  parisMesh(new THREE.BoxGeometry(64,20,44),pi,g,0,10,0);parisMesh(new THREE.CylinderGeometry(17,17,18,28),pi,g,0,29,0);
+  parisMesh(new THREE.BoxGeometry(40,24,9),pi,g,0,12,24);                                 // la façade à colonnes
+  const d=new THREE.SphereGeometry(17.3,28,12,0,Math.PI*2,0,Math.PI/2);d.scale(1,1.4,1);parisMesh(d,or,g,0,38,0);
+  parisMesh(new THREE.CylinderGeometry(3.2,3.6,8,12),or,g,0,65.5,0);parisMesh(new THREE.ConeGeometry(1.4,12,8),or,g,0,75.5,0);
+}
+function parisMoulin(p,yaw){ // LE MOULIN-ROUGE : la façade rouge, l'enseigne, le moulin — ses ailes TOURNENT
+  const g=parisGroupe(p.x,p.y,p.z,yaw),rg=parisMatNuit(0x9b1b1f,0xff2030,.15,.55,.9),so=parisMatNuit(0x5a0f14,0xff3040,.05,.2,.35);
+  parisMesh(new THREE.BoxGeometry(30,12,16),rg,g,0,6,0);
+  const cv=document.createElement('canvas');cv.width=512;cv.height=64;const x=cv.getContext('2d');x.fillStyle='#240306';x.fillRect(0,0,512,64);
+  x.font='bold 40px Georgia,serif';x.textAlign='center';x.textBaseline='middle';x.shadowColor='#ff2a2a';x.shadowBlur=14;x.fillStyle='#ffe0e0';x.fillText('MOULIN ROUGE',256,34);
+  for(let i=0;i<40;i++){x.fillStyle='#ffd27a';x.beginPath();x.arc(8+i*12.6,6,2.4,0,7);x.arc(8+i*12.6,58,2.4,0,7);x.fill();}
+  const tx=new THREE.CanvasTexture(cv),en=parisMatNuit(0xffffff,0x902020,.3,.8,1.2,{map:tx,emissiveMap:tx});
+  const en1=parisMesh(new THREE.PlaneGeometry(26,3.2),en,g,0,8.3,-8.05);en1.rotation.y=Math.PI;       // l'enseigne, côté rue (−z)
+  parisMesh(new THREE.BoxGeometry(30,1,2.2),so,g,0,4.4,-8.8);                                         // la marquise
+  parisMesh(new THREE.CylinderGeometry(4,4.8,9,8),rg,g,6,16.5,0);parisMesh(new THREE.ConeGeometry(5.2,5,8),so,g,6,23.5,0);
+  const ailes=parisGroupe(0,0,0,0);g.add(ailes);ailes.position.set(6,17.5,-5.2);
+  const bl=new THREE.BoxGeometry(2.4,11.5,.25);bl.translate(0,6.6,0);
+  const am=parisMatNuit(0xb81d24,0xff4050,.2,.7,1.3);
+  for(let k=0;k<4;k++){const m=parisMesh(bl,am,ailes);m.rotation.z=k*Math.PI/2;}
+  parisMesh(new THREE.CylinderGeometry(.6,.6,.8,10).rotateX(Math.PI/2),so,ailes);
+  PARIS.ailes=ailes;
+}
+function parisSacreCoeur(p,yaw){ // LE SACRÉ-CŒUR : la nef, le porche à trois arcs, le tambour, le grand dôme ovoïde, quatre petits dômes, le campanile
+  const g=parisGroupe(p.x,p.y,p.z,yaw),bl=parisMatNuit(0xf1ece2,0xfff2dc,0,.14,.42),bl2=parisMatNuit(0xdcd6ca,0xffe8cc,0,.1,.34);
+  parisMesh(new THREE.BoxGeometry(120,6,110),bl2,g,0,3,0);                                     // la terrasse
+  parisMesh(new THREE.BoxGeometry(62,28,72),bl,g,0,20,5);                                      // la nef
+  const po=new THREE.Shape();po.moveTo(-21,0);for(let k=0;k<3;k++){const c=-14+k*14;po.lineTo(c-4.5,0);po.lineTo(c-4.5,9);po.absarc(c,9,4.5,Math.PI,0,true);po.lineTo(c+4.5,0);}
+  po.lineTo(21,0);po.lineTo(21,18);po.lineTo(-21,18);po.lineTo(-21,0);
+  const gpo=new THREE.ExtrudeGeometry(po,{depth:9,bevelEnabled:false,curveSegments:10});parisMesh(gpo,bl,g,0,6,-40);   // le porche, côté parvis (−z)
+  const lathe=(r,h)=>{const P=[];for(let k=0;k<=10;k++){const a=k/10;P.push(new THREE.Vector2(r*Math.sin(Math.PI*.5*(1-a*a))*(1-.12*a),h*a));}return new THREE.LatheGeometry(P,24);};
+  parisMesh(new THREE.CylinderGeometry(15.5,15.5,20,28),bl,g,0,44,5);                          // le tambour
+  parisMesh(lathe(16.5,30),bl,g,0,54,5);                                                        // le GRAND DÔME, ovoïde
+  parisMesh(new THREE.CylinderGeometry(3,3,6,12),bl,g,0,86,5);parisMesh(lathe(3.4,5),bl,g,0,89,5);parisMesh(new THREE.ConeGeometry(.5,4,6),bl,g,0,96,5);
+  for(const sx of [-1,1])for(const sz of [-1,1]){parisMesh(new THREE.CylinderGeometry(5.5,5.5,8,16),bl,g,sx*24,38,5+sz*24);parisMesh(lathe(6,9),bl,g,sx*24,42,5+sz*24);}
+  parisMesh(new THREE.BoxGeometry(13,48,13),bl,g,0,30,44);parisMesh(lathe(7.5,11),bl,g,0,54,44);                    // le campanile
+}
+function parisBateau(){ // UN BATEAU-MOUCHE : coque blanche, verrière allumée
+  const g=new THREE.Group();scene.add(g);trackMeshes.push(g);PARIS.meshes.push(g);
+  parisMesh(new THREE.BoxGeometry(6,1.8,30),new THREE.MeshLambertMaterial({color:0xe8e6e0}),g,0,.3,0);
+  parisMesh(new THREE.BoxGeometry(5,2,23),parisMatNuit(0x8aa0b0,0xffd89a,.1,.7,1.1,{transparent:true,opacity:.9}),g,0,2.1,-1);
+  parisMesh(new THREE.BoxGeometry(5.4,.2,24),new THREE.MeshLambertMaterial({color:0x2a3440}),g,0,3.15,-1);
+  return g;
 }
 function buildParis(seed){
   for(const m of PARIS.meshes)if(m.isInstancedMesh)m.dispose();
-  PARIS.root=null;PARIS.meshes=[];PARIS.scint=null;PARIS.phare=null;PARIS.n=null;PARIS.tourPos=null;pgpReset(); // (les pigeons de l'ancienne piste s'envolent pour de bon)
-  if(PARK.on||!LVL.cur||LVL.cur.id!=='paris'||!(NP>1))return;
-  const t00=performance.now(),pr=mulberry32((seed^0x9A815C)>>>0);
-  const HB=120,grille=new Map(),pasP=Math.max(1,Math.round(12/(L/(NP-1))));let yMin=1e9,yMax=-1e9;
-  for(let i=0;i<NP;i+=pasP){const p=pts[i],k=Math.floor(p.x/HB)+','+Math.floor(p.z/HB);let a=grille.get(k);if(!a)grille.set(k,a=[]);a.push(i);
-    if(p.y<yMin)yMin=p.y;if(p.y>yMax)yMax=p.y;}
+  PARIS.meshes=[];PARIS.scint=null;PARIS.phare=null;PARIS.n=null;PARIS.tourPos=null;PARIS.ailes=null;PARIS.drapeau=null;PARIS.bateaux=[];PARIS.matsNuit=[];
+  PARIS.sol=false;PARIS.qBio=-1;PARIS.qAnn=-1;PARIS.grille=null;PARIS.mFlaque=null;PARIS.mHalo=null;PARIS.mLant=null;pgpReset();
+  if(PARK.on||!LVL.cur||LVL.cur.piste!=='paris'||!(NP>1)||!PARIS.Q){PARIS.Q=null;PARIS.Z=null;return;}
+  PARIS.sol=true;
+  const t00=performance.now(),pr=mulberry32((seed^0x9A815C)>>>0),Q=PARIS.Q,SV=Q.seine;
+  parisRepere();
+  const inst=(geo,mat,n,col)=>{const m=new THREE.InstancedMesh(geo,mat,Math.max(1,n));if(col)m.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(Math.max(1,n)*3),3);m.count=0;return m;}; // ⚠ r128 : setColorAt crée l'attribut à la taille de `count` — on le crée AVANT de remettre count à 0
+  const fin=m=>{m.frustumCulled=false;m.instanceMatrix.needsUpdate=true;if(m.instanceColor)m.instanceColor.needsUpdate=true;return parisAjoute(m);};
+  const m4=new THREE.Matrix4(),m5=new THREE.Matrix4(),q4=new THREE.Quaternion(),v4=new THREE.Vector3(),s4=new THREE.Vector3(),e4=new THREE.Euler(),UP=new THREE.Vector3(0,1,0),c4=new THREE.Color();
+  const X9=new THREE.Vector3(),Z9=new THREE.Vector3();
+  const F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
+  // la grille de hachage des points de piste (resservira aux collisions en vol)
+  const HB=120,grille=new Map(),pasP=Math.max(1,Math.round(8/(L/(NP-1))));
+  for(let i=0;i<NP;i+=pasP){const p=pts[i],k=Math.floor(p.x/HB)+','+Math.floor(p.z/HB);let a=grille.get(k);if(!a)grille.set(k,a=[]);a.push(i);}
+  PARIS.grille=grille;PARIS.HB=HB;
   const proches=(x,z,R,cb)=>{const r=Math.ceil(R/HB),bx=Math.floor(x/HB),bz=Math.floor(z/HB);
     for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const a=grille.get((bx+dx)+','+(bz+dz));if(a)for(let j=0;j<a.length;j++)cb(a[j]);}};
-  const lat=i=>{const t=T[i],n=Math.hypot(t.x,t.z)||1;return [-t.z/n,t.x/n];};   // la perpendiculaire HORIZONTALE (jamais B[i] : voir les pièges)
-  // LA DAME DE FER : au milieu du niveau, à côté du ruban, là où AUCUN autre étage de route ne passe
-  const HT=IS_MOBILE?360:400;let tour=null;
-  // ⚠ (essai du 28/09) la piste descend en SPIRALE (4-6 km de dénivelé) : sous la tour passe souvent un étage plus bas. Enterrée sous
-  // toutes les routes voisines, elle disparaissait (700 m sous la caisse) — elle reste à hauteur de route, on préfère les places où
-  // RIEN ne passe dessous, et son pied se NOIE dans la brume (onBeforeCompile de parisTour)
-  for(let k=0;k<48;k++){const i=Math.floor(NP*(.3+.55*pr())),p=pts[i],nv=lat(i),sd=pr()<.5?-1:1,d=ROAD_HALF+.2*HT+60+pr()*110;
-    const cx=p.x+nv[0]*sd*d,cz=p.z+nv[1]*sd*d;let dmin=1e9;
-    proches(cx,cz,.2*HT+ROAD_HALF+160,function(j){const q=pts[j],dd=Math.hypot(q.x-cx,q.z-cz)-ROAD_HALF;if(dd<dmin)dmin=dd;});
-    if(dmin<.2*HT+30)continue;
-    const yb=p.y-HT*.6;let dessous=0;proches(cx,cz,320,function(j){const q=pts[j];if(q.y<yb&&Math.hypot(q.x-cx,q.z-cz)<320)dessous++;});
-    const sc=Math.abs(dmin-(.2*HT+80))+dessous*12;if(!tour||sc<tour.sc)tour={sc,cx,cz,y:yb,s:i*L/(NP-1),dessous};}
-  if(tour){parisTour(tour.cx,tour.y,tour.cz,HT);PARIS.tourPos=new THREE.Vector3(tour.cx,tour.y,tour.cz);PARIS.tourS=tour.s;PARIS.tourDessous=tour.dessous;}
-  const RT=.34*HT+40; // le CHAMP DE MARS : pas d'immeuble au pied de la tour
-  // LES IMMEUBLES : trois rangs de chaque côté, alignés sur la route, le toit JUSTE SOUS le bitume
-  const toitMax=(cx,cz,hd)=>{let t=1e9;const r=hd+ROAD_HALF+14,r2=r*r;
-    proches(cx,cz,r,function(i){const p=pts[i],dx=p.x-cx,dz=p.z-cz;if(dx*dx+dz*dz<r2&&p.y-15<t)t=p.y-15;});return t;};
-  const ROWS=[[ROAD_HALF+12,.95],[ROAD_HALF+74,.8],[ROAD_HALF+148,.62]],pasB=Math.max(1,Math.round(44/(L/(NP-1)))),BUD=IS_MOBILE?1000:1700;
-  const I=[];
-  for(let i=pasB;i<NP-pasB;i+=pasB){const p=pts[i],nv=lat(i),t=T[i],yaw=Math.atan2(t.x,t.z);
-    for(const sd of [-1,1])for(const R of ROWS){if(pr()>R[1])continue;
-      const w=24+pr()*22,dp=26+pr()*26,off=R[0]+w*.5+pr()*6,cx=p.x+nv[0]*sd*off,cz=p.z+nv[1]*sd*off;
-      if(tour&&Math.hypot(cx-tour.cx,cz-tour.cz)<RT)continue;
-      const hd=Math.hypot(w,dp)*.5,top=Math.min(p.y-13-pr()*20,toitMax(cx,cz,hd));if(top<p.y-95)continue;
-      // (Haussmann v2) 22 m de la corniche au trottoir, puis la rue qui se perd dans la brume : ~40 m suffisent (c'était 170-220 m de
-      // façade répétée — des tours, pas Paris ; et elles pendaient au-dessus de l'étage de route d'en dessous)
-      let H=36+pr()*8,bas=-1e9;const r9=hd+ROAD_HALF+12,r29=r9*r9;                            // un étage de route PLUS BAS sous l'emprise ?
-      proches(cx,cz,r9,function(k){const q=pts[k],dx=q.x-cx,dz=q.z-cz;if(dx*dx+dz*dz<r29&&q.y<top-10&&q.y+34>bas)bas=q.y+34;});
-      if(bas>top-H){H=top-bas;if(H<28)continue;}                                                  // raccourci au-dessus de lui, ou rien
-      I.push(cx,top,cz,w,H,dp,yaw);}}
-  let n=I.length/7;const garde=Math.min(1,BUD/Math.max(1,n));
-  const B=[];for(let k=0;k<n;k++)if(garde>=1||pr()<garde)B.push(k);n=B.length;PARIS.I=I;PARIS.B=B; // (gardés pour dbgParisPhoto)
-  const fac=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),parisFacade(),Math.max(1,n));
-  const toitG=new THREE.CylinderGeometry(.6,.7071,1,4,1);toitG.rotateY(Math.PI/4);                 // (v2) le BRISIS raide (~72°) de la mansarde
-  const toits=new THREE.InstancedMesh(toitG,parisZinc(),Math.max(1,n));
-  const chem=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshLambertMaterial({color:0xa98068,emissive:0x1c100a}),Math.max(1,n*2)); // les souches en plâtre
-  const pots=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshLambertMaterial({color:0xc4683c,emissive:0x2c1006}),Math.max(1,n*6));let np=0; // et leurs POTS en terre cuite
-  const m4=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler(),v=new THREE.Vector3(),s=new THREE.Vector3();let nc=0;
-  for(let j=0;j<n;j++){const o=B[j]*7,cx=I[o],top=I[o+1],cz=I[o+2],w=I[o+3],H=I[o+4],dp=I[o+5];e.set(0,I[o+6],0);q.setFromEuler(e);
-    m4.compose(v.set(cx,top-H/2,cz),q,s.set(w,H,dp));fac.setMatrixAt(j,m4);
-    const hr=6.5+pr()*2.5;m4.compose(v.set(cx,top+hr/2,cz),q,s.set(w,hr,dp));toits.setMatrixAt(j,m4);         // la MANSARDE en zinc
-    for(let c=0;c<2;c++){if(pr()<.25)continue;const a=(pr()-.5)*w*.6,b=(c?1:-1)*dp*.18,ca=Math.cos(I[o+6]),sa=Math.sin(I[o+6]); // les CHEMINÉES
-      const x9=cx+a*ca+b*sa,z9=cz-a*sa+b*ca;m4.compose(v.set(x9,top+hr+1.1,z9),q,s.set(2.2,3.4,1.2));chem.setMatrixAt(nc++,m4);
-      const k9=2+Math.floor(pr()*2);for(let k=0;k<k9;k++){const px=(k-(k9-1)/2)*.62,hp=.55+pr()*.35; // 2-3 pots par souche
-        m4.compose(v.set(x9+px*ca,top+hr+2.8+hp/2,z9-px*sa),q,s.set(.36,hp,.36));pots.setMatrixAt(np++,m4);}}}
-  chem.count=nc;pots.count=np;
-  for(const im of [fac,toits,chem,pots]){im.frustumCulled=false;im.instanceMatrix.needsUpdate=true;scene.add(im);trackMeshes.push(im);PARIS.meshes.push(im);} // ⚠ la sphère englobante r128 ne couvre pas les instances
-  CITY.n={routeY:[Math.round(yMin),Math.round(yMax)],paris:true}; // la ligne de toits du ciel se pose à l'altitude de la ville (uVilleY)
-  PARIS.n={immeubles:n,cheminees:nc,tour:!!tour,ms:Math.round(performance.now()-t00),L:Math.round(L),yMin:Math.round(yMin),yMax:Math.round(yMax)};
+  const pisteLoin=(x,z,R)=>{let ok=true;proches(x,z,R,function(i){if(ok){const p=pts[i];if((p.x-x)*(p.x-x)+(p.z-z)*(p.z-z)<R*R)ok=false;}});return ok;};
+  const FA=ROAD_HALF+PARIS_SW;
+  const uDe=(x,z)=>(x-SV.b.x)*SV.n.x+(z-SV.b.z)*SV.n.z,aDe=(x,z)=>(x-SV.b.x)*SV.r.x+(z-SV.b.z)*SV.r.z; // le fleuve : en travers / le long
+  const yawDe=(dx,dz)=>Math.atan2(-dz,dx);  // l'axe x local d'un objet posé le long de (dx,dz)
+  // ===== LES MONUMENTS : leurs emprises d'abord (les immeubles s'en écartent) =====
+  const MON=[];
+  frameAt(Math.min(165,L*.02),F9);const pObel=F9.p.clone().addScaledVector(F9.b,-(ROAD_HALF+62)),pFont=F9.p.clone().addScaledVector(F9.b,ROAD_HALF+52);
+  const sInv=Q.invalides.s+170;frameAt(sInv,F9);const pInv=F9.p.clone().addScaledVector(F9.b,-(ROAD_HALF+175)),yInv=yawDe(F9.t.x,F9.t.z);
+  const sMR=(Q.clichy0.s+Q.clichy1.s)/2;frameAt(sMR,F9);const pMR=F9.p.clone().addScaledVector(F9.b,-(FA+8.5)),yMR=yawDe(F9.t.x,F9.t.z);
+  MON.push({x:pObel.x,z:pObel.z,r:30},{x:pFont.x,z:pFont.z,r:24},{x:Q.arc.p.x,z:Q.arc.p.z,r:118},{x:Q.tour.p.x,z:Q.tour.p.z,r:185},
+    {x:Q.sc.p.x,z:Q.sc.p.z,r:165},{x:pInv.x,z:pInv.z,r:62},{x:pMR.x,z:pMR.z,r:17});
+  // ===== LES IMMEUBLES =====
+  const BAT=[],RECTS=new Map(),RC=60;
+  const rect=(x,z,w,d,yaw)=>({x:x,z:z,hw:w/2,hd:d/2,c:Math.cos(yaw),s:Math.sin(yaw),yaw:yaw});
+  const sep=(A,C,ax,az)=>{const pa=A.x*ax+A.z*az,pb=C.x*ax+C.z*az,ra=A.hw*Math.abs(A.c*ax-A.s*az)+A.hd*Math.abs(A.s*ax+A.c*az),rb=C.hw*Math.abs(C.c*ax-C.s*az)+C.hd*Math.abs(C.s*ax+C.c*az);return Math.abs(pa-pb)>ra+rb-.6;};
+  const chev=(A,C)=>!(sep(A,C,A.c,-A.s)||sep(A,C,A.s,A.c)||sep(A,C,C.c,-C.s)||sep(A,C,C.s,C.c));
+  const libre=R=>{let ok=true;const rr=Math.hypot(R.hw,R.hd)+ROAD_HALF+4;
+    proches(R.x,R.z,rr,function(i){if(!ok)return;const p=pts[i],dx=p.x-R.x,dz=p.z-R.z,lx=dx*R.c-dz*R.s,lz=dx*R.s+dz*R.c;if(Math.abs(lx)<R.hw+ROAD_HALF+1.5&&Math.abs(lz)<R.hd+ROAD_HALF+1.5)ok=false;});
+    if(!ok)return false;
+    if(Math.abs(uDe(R.x,R.z))<95+Math.hypot(R.hw,R.hd))return false;                                  // ni dans la Seine
+    for(const m of MON)if(Math.hypot(R.x-m.x,R.z-m.z)<m.r+Math.hypot(R.hw,R.hd)*.8)return false;      // ni sur un monument
+    const gx=Math.floor(R.x/RC),gz=Math.floor(R.z/RC);
+    for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const l9=RECTS.get((gx+a)+','+(gz+b));if(l9)for(const o of l9)if(chev(R,o))return false;}
+    return true;};
+  const pose=R=>{const k=Math.floor(R.x/RC)+','+Math.floor(R.z/RC);let a=RECTS.get(k);if(!a)RECTS.set(k,a=[]);a.push(R);};
+  const batit=(R,sty,Hf,yS,front,ox,oz)=>{if(!libre(R))return false;pose(R);BAT.push({R:R,sty:sty,Hf:Hf,yS:yS,t:pr(),h:pr(),front:front,ox:ox,oz:oz});return true;};
+  pose(rect(pMR.x,pMR.z,30,16,yMR));                                                                   // le Moulin-Rouge prend sa place dans le rang
+  const RUES=[],O=new THREE.Vector3(),Oa=new THREE.Vector3(),O0=new THREE.Vector3();
+  for(const sg of [-1,1]){ // LES RANGS le long de la route : la ligne des façades, un immeuble tous les 17-29 m, une rue de traverse tous les 60-170 m
+    let sA=0,dAcc=0,wC=0,bloc=40+pr()*80,gap=false;
+    frameAt(0,F9);Oa.copy(F9.p).addScaledVector(F9.b,sg*FA);O0.copy(Oa);
+    for(let s9=1.5;s9<L-1;s9+=1.5){
+      frameAt(s9,F9);O.copy(F9.p).addScaledVector(F9.b,sg*FA);dAcc+=O.distanceTo(Oa);Oa.copy(O);
+      if(!wC){const z=parisZone(s9);wC=gap?14+pr()*6:(z&&z.st===1)?8+pr()*6:17+pr()*12;}
+      if(dAcc<wC)continue;
+      const sM=(sA+s9)/2,z=parisZone(sM),typ=z?(sg<0?z.g:z.d):null;
+      frameAt(sM,F9);const ox=F9.b.x*sg,oz=F9.b.z*sg,yS=F9.p.y;
+      const dx=O.x-O0.x,dz=O.z-O0.z,w=Math.hypot(dx,dz)||1,yaw=yawDe(dx/w,dz/w),mx=(O.x+O0.x)/2,mz=(O.z+O0.z)/2;
+      if(typ==='bati'){
+        if(gap)RUES.push({s:sM,sg:sg,w:w,x:mx,z:mz,ox:ox,oz:oz,yaw:yaw,yS:yS});
+        else{const sty=z.st,fb=sty===1,dp=fb?11+pr()*6:26+pr()*14,Hf=fb?(pr()<.55?10.5:13.4):22;
+          if(batit(rect(mx+ox*dp/2,mz+oz*dp/2,w-.2,dp,yaw),sty,Hf,yS,true,ox,oz)&&pr()<(fb?.5:.8)){ // l'ARRIÈRE : les toits de Paris vus d'en haut
+            const dp2=fb?10+pr()*5:24+pr()*14,o2=dp+dp2/2+(fb?1.5:2);batit(rect(mx+ox*o2,mz+oz*o2,w-.2,dp2,yaw),sty,fb?Hf:Hf+(pr()<.3?3.3:0),yS,false,ox,oz);}}
+        bloc-=w;if(gap){gap=false;bloc=60+pr()*110;}else if(bloc<=0)gap=true;
+      }
+      O0.copy(O);sA=s9;dAcc=0;wC=0;
+    }
+  }
+  for(const r of RUES){ // la rue de traverse fermée par une façade (on ne voit jamais le vide au bout)
+    const o=90+16;batit(rect(r.x+r.ox*o,r.z+r.oz*o,r.w+22,32,r.yaw),parisZone(r.s).st===1?1:0,parisZone(r.s).st===1?13.4:22,r.yS,true,-r.ox,-r.oz);}
+  const aI=0,aA=aDe((Q.alex0.p.x+Q.alex1.p.x)/2,(Q.alex0.p.z+Q.alex1.p.z)/2),PONTS=[aI,aA,(aI+aA)/2,aA+900,-2600]; // les ponts (le long du fleuve)
+  for(const sgR of [-1,1]){ // LES QUAIS : les façades qui regardent la Seine, sur les deux rives
+    let a=-4600;while(a<4600){const w=17+pr()*12,dp=24+pr()*14,am=a+w/2,u=sgR*(114+dp/2);
+      batit(rect(SV.b.x+SV.r.x*am+SV.n.x*u,SV.b.z+SV.r.z*am+SV.n.z*u,w-.2,dp,yawDe(SV.r.x,SV.r.z)),0,22,0,true,SV.n.x*sgR,SV.n.z*sgR);
+      a+=w;if(pr()<.12)a+=16;}}
+  // les instances des immeubles (façades, mansardes, corniches, balcons filants, cheminées, pots, stores)
+  const nMax=IS_MOBILE?1700:2600;if(BAT.length>nMax){const av=BAT.filter(b=>b.front),ar=BAT.filter(b=>!b.front);BAT.length=0;BAT.push(...av,...ar.slice(0,Math.max(0,nMax-av.length)));BAT.length=Math.min(BAT.length,nMax);}
+  const n=BAT.length,aS=new Float32Array(n*4),aS2=new Float32Array(n*4);
+  const facG=new THREE.BoxGeometry(1,1,1);facG.setAttribute('aSty',new THREE.InstancedBufferAttribute(aS,4));
+  const tHG=new THREE.CylinderGeometry(.6,.7071,1,4,1);tHG.rotateY(Math.PI/4);tHG.setAttribute('aSty',new THREE.InstancedBufferAttribute(aS2,4));
+  const tFG=new THREE.CylinderGeometry(.2,.7071,1,4,1);tFG.rotateY(Math.PI/4);const aS3=new Float32Array(n*4);tFG.setAttribute('aSty',new THREE.InstancedBufferAttribute(aS3,4));
+  const fac=inst(facG,parisFacade(),n),tH=inst(tHG,parisZinc(),n),tF=inst(tFG,parisZinc(),n);
+  const pierreM=new THREE.MeshLambertMaterial({color:0xd6cab0}),boxG=new THREE.BoxGeometry(1,1,1);
+  const corn=inst(boxG,pierreM,n),dal=inst(boxG,pierreM,n*2),fer=inst(new THREE.BoxGeometry(1,1,1),parisFerMat(),n*2);
+  const chem=inst(boxG,new THREE.MeshLambertMaterial({color:0xa98068,emissive:0x1c100a}),n*2),pots=inst(boxG,new THREE.MeshLambertMaterial({color:0xc4683c,emissive:0x2c1006}),n*6);
+  const stTx=(function(){const cv=document.createElement('canvas');cv.width=16;cv.height=2;const x=cv.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,16,2);x.fillStyle='#c9c4bc';for(let i=0;i<4;i++)x.fillRect(i*4+2,0,2,2);const t=new THREE.CanvasTexture(cv);t.magFilter=THREE.NearestFilter;return t;})();
+  const stores=inst(boxG,new THREE.MeshLambertMaterial({map:stTx,side:THREE.DoubleSide}),n,true);
+  const COUL_ST=[0x8c1414,0x1e4a2e,0x3a1f4f,0x7a5a1e,0x13294d,0x8c1414];
+  for(let j=0;j<n;j++){const b=BAT[j],R=b.R,top=b.yS+b.Hf,H=b.Hf+3.5,fb=b.sty===1;
+    q4.setFromEuler(e4.set(0,R.yaw,0));
+    m4.compose(v4.set(R.x,top-H/2,R.z),q4,s4.set(R.hw*2,H,R.hd*2));fac.setMatrixAt(fac.count++,m4);
+    aS.set([b.sty,b.t,b.Hf,b.h],j*4);
+    const hr=fb?3.2+b.h*1.8:6.5+b.h*2;const tt=fb?tF:tH;m4.compose(v4.set(R.x,top+hr/2,R.z),q4,s4.set(R.hw*2,hr,R.hd*2));
+    (fb?aS3:aS2).set([b.sty,b.t,b.Hf,b.h],tt.count*4);tt.setMatrixAt(tt.count++,m4);
+    if(!fb){m4.compose(v4.set(R.x,top-.37,R.z),q4,s4.set(R.hw*2,.75,R.hd*2+.9));corn.setMatrixAt(corn.count++,m4); // la corniche
+      if(b.front)for(const dT of [3.85,13.9]){                                                                   // les BALCONS FILANTS du 5e et du 2e
+        m4.compose(v4.set(R.x,top-dT-.11,R.z),q4,s4.set(R.hw*2,.22,R.hd*2+1.8));dal.setMatrixAt(dal.count++,m4);
+        m4.compose(v4.set(R.x,top-dT+.48,R.z),q4,s4.set(R.hw*2-.3,.95,R.hd*2+1.7));fer.setMatrixAt(fer.count++,m4);}}
+    for(let c=0;c<2;c++){if(pr()<.3)continue;const a=(pr()-.5)*R.hw*1.2,bb=(c?1:-1)*R.hd*.36,x9=R.x+a*R.c+bb*R.s,z9=R.z-a*R.s+bb*R.c,ch=fb?2.2:3.4; // les CHEMINÉES
+      m4.compose(v4.set(x9,top+hr+ch/2-.6,z9),q4,s4.set(fb?1.4:2.2,ch,fb?.9:1.2));chem.setMatrixAt(chem.count++,m4);
+      const k9=fb?2:2+Math.floor(pr()*2);for(let k=0;k<k9;k++){const px=(k-(k9-1)/2)*.62,hp=.55+pr()*.35;
+        m4.compose(v4.set(x9+px*R.c,top+hr+ch-.6+hp/2,z9-px*R.s),q4,s4.set(.36,hp,.36));pots.setMatrixAt(pots.count++,m4);}}
+    if(b.front&&b.ox!=null&&pr()<(fb?.7:.22)){ // un STORE rayé au-dessus du café
+      X9.set(R.c,0,-R.s);Z9.set(-b.ox,0,-b.oz);const fx=R.x-b.ox*R.hd,fz=R.z-b.oz*R.hd;
+      m5.makeBasis(X9,UP,Z9);m4.makeRotationX(-.38);m5.multiply(m4);m5.scale(s4.set(R.hw*1.45,.08,1.6));m5.setPosition(fx-b.ox*.72,b.yS+3.05,fz-b.oz*.72);
+      stores.setMatrixAt(stores.count,m5);stores.setColorAt(stores.count++,c4.setHex(COUL_ST[(b.t*6)|0]));}
+  }
+  for(const m of [fac,tH,tF,corn,dal,fer,chem,pots,stores])fin(m);
+  // ===== LA RUE : trottoirs et bordures, parapets, passages piétons, rues de traverse, pelouses =====
+  {const P=[],N=[],UV=[],I=[];let v=0,acc=0;const pas=3;
+   for(const sg of [-1,1]){acc=0;let pv=-1;
+    for(let i=0;i<NP;i+=pas){const p=pts[i],b=B[i],nn=Nn[i];if(i>0)acc+=pts[i].distanceTo(pts[Math.max(0,i-pas)]);
+      const lo=sg*ROAD_HALF,hi=sg*(FA+.8),y1=.16;
+      P.push(p.x+b.x*lo-nn.x*.05,p.y+b.y*lo-nn.y*.05,p.z+b.z*lo-nn.z*.05, p.x+b.x*lo+nn.x*y1,p.y+b.y*lo+nn.y*y1,p.z+b.z*lo+nn.z*y1,
+             p.x+b.x*lo+nn.x*y1,p.y+b.y*lo+nn.y*y1,p.z+b.z*lo+nn.z*y1, p.x+b.x*hi+nn.x*y1,p.y+b.y*hi+nn.y*y1,p.z+b.z*hi+nn.z*y1);
+      N.push(-b.x*sg,-b.y*sg,-b.z*sg,-b.x*sg,-b.y*sg,-b.z*sg,nn.x,nn.y,nn.z,nn.x,nn.y,nn.z);
+      UV.push(0,acc/2.4,.07,acc/2.4,0,acc/2.4,(FA+.8-ROAD_HALF)/2.4,acc/2.4);
+      if(pv>=0){const a=pv,c=v;if(sg>0)I.push(a,c,a+1,a+1,c,c+1,a+2,c+2,a+3,a+3,c+2,c+3);else I.push(a,a+1,c,a+1,c+1,c,a+2,a+3,c+2,a+3,c+3,c+2);}
+      pv=v;v+=4;}}
+   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));
+   g.setAttribute('uv',new THREE.Float32BufferAttribute(UV,2));g.setIndex(I);
+   const tx=parisTex('dalles');const mt=new THREE.MeshLambertMaterial({map:tx,color:0xd8d2c6});const m=new THREE.Mesh(g,mt);m.frustumCulled=false;parisAjoute(m);}
+  {const P=[],N=[],I=[];let v=0; // les PARAPETS du quai et des ponts
+   for(const sg of [-1,1]){let pv=-1;
+    for(let i=0;i<NP;i+=3){const s9=i/(NP-1)*L,ty=parisCote(s9,sg),on=ty==='quai'||ty==='pont';if(!on){pv=-1;continue;}
+      const p=pts[i],b=B[i],a=sg*(FA-.1),c=sg*(FA+.5);
+      P.push(p.x+b.x*a,p.y+.16,p.z+b.z*a, p.x+b.x*a,p.y+1.05,p.z+b.z*a, p.x+b.x*c,p.y+1.05,p.z+b.z*c, p.x+b.x*c,p.y-7,p.z+b.z*c);
+      N.push(-b.x*sg,0,-b.z*sg,-b.x*sg,.3,-b.z*sg,b.x*sg,.3,b.z*sg,b.x*sg,0,b.z*sg);
+      if(pv>=0){const q=pv,r=v;for(let k=0;k<3;k++){if(sg>0)I.push(q+k,r+k,q+k+1,q+k+1,r+k,r+k+1);else I.push(q+k,q+k+1,r+k,q+k+1,r+k+1,r+k);}}
+      pv=v;v+=4;}}
+   if(v){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));g.setIndex(I);
+    const m=new THREE.Mesh(g,new THREE.MeshLambertMaterial({color:0xc4b89c,side:THREE.DoubleSide}));m.frustumCulled=false;parisAjoute(m);}}
+  const plat=new THREE.PlaneGeometry(1,1);plat.rotateX(-Math.PI/2);
+  {const zb=inst(plat,new THREE.MeshLambertMaterial({map:parisTex('zebre'),side:THREE.DoubleSide,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}),RUES.length+8);
+   zb.material.map.repeat.set((2*ROAD_HALF-3)/1,1);
+   const ru=inst(plat,new THREE.MeshLambertMaterial({color:0x34333a,side:THREE.DoubleSide}),RUES.length);
+   for(const r of RUES){frameAt(r.s,F9);m4.makeBasis(F9.b,UP,F9.t);m4.scale(s4.set(2*ROAD_HALF-3,1,4.6));m4.setPosition(F9.p.x,F9.p.y+.035,F9.p.z);zb.setMatrixAt(zb.count++,m4);
+     X9.set(Math.cos(r.yaw),0,-Math.sin(r.yaw));Z9.set(r.ox,0,r.oz);m4.makeBasis(X9,UP,Z9);m4.scale(s4.set(r.w-1,1,92));m4.setPosition(r.x+r.ox*46,r.yS+.03,r.z+r.oz*46);ru.setMatrixAt(ru.count++,m4);}
+   fin(zb);fin(ru);}
+  {const pe=inst(plat,new THREE.MeshLambertMaterial({color:0x3f5a2c}),900),gv=inst(plat,new THREE.MeshLambertMaterial({color:0xcbbd9c}),600); // PELOUSES des jardins, et le PAVÉ des places
+   for(let s9=10;s9<L-10;s9+=24)for(const sg of [-1,1]){const ty=parisCote(s9,sg);if(ty!=='jardin'&&ty!=='place')continue;if(ty==='place'&&s9>L-400)continue;frameAt(s9,F9); // (la montée finale : la Butte nue, le parvis suffit)
+     const k=ty==='jardin'?pe:gv,la=ty==='jardin'?30:46;if(k.count>=(k===pe?900:600))continue;
+     m4.makeBasis(F9.b,UP,F9.t);m4.scale(s4.set(la*2,1,25));const off=sg*(FA+.6+la);m4.setPosition(F9.p.x+F9.b.x*off,F9.p.y+(ty==='jardin'?.05:.1),F9.p.z+F9.b.z*off);k.setMatrixAt(k.count++,m4);}
+   fin(pe);fin(gv);
+   const ile=parisMesh(new THREE.CircleGeometry(170-ROAD_HALF-.5,48).rotateX(-Math.PI/2),new THREE.MeshLambertMaterial({color:0xcbbd9c}),null,Q.arc.p.x,Q.arc.p.y+.14,Q.arc.p.z);ile.frustumCulled=true;}
+  // ===== LES ARBRES : le rideau taillé des Champs, les platanes des quais et des boulevards =====
+  {const ARB=[];const arbre=(s9,la,ty,k)=>{frameAt(s9,F9);ARB.push([F9.p.x+F9.b.x*la,F9.p.y+.16,F9.p.z+F9.b.z*la,ty,k*(.9+pr()*.2),pr()*6.3]);};
+   for(let s9=20;s9<L-20;s9+=9){const z=parisZone(s9);if(!z)continue;const k9=((s9/9)|0);
+     for(const sg of [-1,1]){const ty=sg<0?z.g:z.d,R9=s9<Q.etoile0.s?0:1;
+       if(ty==='jardin'){arbre(s9,sg*(ROAD_HALF+4.2),R9,1);if(k9%2===0)arbre(s9+4.5,sg*(FA+11),R9,1.15);}
+       else if(ty==='bati'&&z.st===2)arbre(s9,sg*(ROAD_HALF+4.2),0,1);
+       else if(ty==='bati'&&z.st===0&&s9>Q.etoile1.s&&k9%2===0)arbre(s9,sg*(ROAD_HALF+4.2),1,.95);
+       else if(ty==='quai'&&k9%2===0)arbre(s9,sg*(ROAD_HALF+4.2),1,1.05);}}
+   for(const sgR of [-1,1])for(let a=-4400;a<4400;a+=15){if(PONTS.some(pa=>Math.abs(a-pa)<45))continue;const u=sgR*87;const x=SV.b.x+SV.r.x*a+SV.n.x*u,z=SV.b.z+SV.r.z*a+SV.n.z*u;
+     if(pisteLoin(x,z,70))ARB.push([x,-6,z,1,1.1*(.9+pr()*.2),pr()*6.3]);}                          // les peupliers des bas-ports
+   const trG=new THREE.CylinderGeometry(.22,.32,4.6,5);trG.translate(0,2.3,0);
+   const jit=(g,a)=>{const p=g.attributes.position,hh=(x,y,z)=>{const s=Math.sin(x*12.99+y*78.23+z*37.72)*43758.55;return s-Math.floor(s)-.5;}; // bougé selon la POSITION : les sommets partagés bougent ensemble (pas de fente)
+     for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i),k=1+hh(Math.round(x*100),Math.round(y*100),Math.round(z*100))*a;p.setXYZ(i,x*k,y*k,z*k);}g.computeVertexNormals();return g;};
+   const riG=jit(new THREE.BoxGeometry(6.2,5,5.6,2,2,2),.12);riG.translate(0,6.9,0);
+   const boG=jit(new THREE.IcosahedronGeometry(3.3,1),.18);boG.scale(1,.9,1);boG.translate(0,7.4,0);
+   const nA=ARB.length,tr=inst(trG,new THREE.MeshLambertMaterial({color:0x4a3b2e}),nA),ri=inst(riG,new THREE.MeshLambertMaterial({color:0xffffff,flatShading:true}),nA,true),bo=inst(boG,new THREE.MeshLambertMaterial({color:0xffffff,flatShading:true}),nA,true);
+   for(const a of ARB){q4.setFromEuler(e4.set(0,a[5],0));m4.compose(v4.set(a[0],a[1],a[2]),q4,s4.set(a[4],a[4],a[4]));tr.setMatrixAt(tr.count++,m4);
+     const k=a[3]===0?ri:bo;k.setMatrixAt(k.count,m4);k.setColorAt(k.count++,c4.setRGB(.24+pr()*.06,.36+pr()*.08,.16+pr()*.04));}
+   fin(tr);fin(ri);fin(bo);}
+  // ===== LES CANDÉLABRES : le mât vert sombre, la lanterne qui s'allume avec l'heure, son halo, sa flaque de lumière sur le pavé =====
+  {const LA=[],FL=[];const lampe=(x,y,z,tri)=>{LA.push([x,y,z,tri]);};
+   for(let s9=13;s9<L-10;s9+=26)for(const sg of [-1,1]){const s2=s9+(sg>0?13:0),ty=parisCote(s2,sg);if(!ty||ty==='pont')continue;frameAt(s2,F9);
+     lampe(F9.p.x+F9.b.x*sg*(ROAD_HALF+.8),F9.p.y+.16,F9.p.z+F9.b.z*sg*(ROAD_HALF+.8),0);FL.push([F9.p.x+F9.b.x*sg*(ROAD_HALF-4),F9.p.y+.04,F9.p.z+F9.b.z*sg*(ROAD_HALF-4)]);}
+   for(const k of [['iena0','iena1',0],['alex0','alex1',1]])for(let s9=Q[k[0]].s+8;s9<Q[k[1]].s-4;s9+=20)for(const sg of [-1,1]){frameAt(s9,F9);
+     lampe(F9.p.x+F9.b.x*sg*(FA+.2),F9.p.y+1.05,F9.p.z+F9.b.z*sg*(FA+.2),k[2]);FL.push([F9.p.x+F9.b.x*sg*(ROAD_HALF-4),F9.p.y+.04,F9.p.z+F9.b.z*sg*(ROAD_HALF-4)]);}
+   for(const sgR of [-1,1])for(let a=-4400;a<4400;a+=26){const u=sgR*95.8,x=SV.b.x+SV.r.x*a+SV.n.x*u,z=SV.b.z+SV.r.z*a+SV.n.z*u;if(pisteLoin(x,z,60))lampe(x,.16,z,0);} // les quais d'en face (leurs reflets dans l'eau)
+   const nL=LA.length,poG=new THREE.CylinderGeometry(.08,.13,5.4,6);poG.translate(0,2.7,0);
+   const lnG=geoFusion([new THREE.CylinderGeometry(.3,.19,.72,6),new THREE.ConeGeometry(.42,.36,6).translate(0,.54,0)]);
+   const po=inst(poG,new THREE.MeshLambertMaterial({color:0x1f2a22}),nL),ln=inst(lnG,new THREE.MeshBasicMaterial({color:0xffc98a}),nL*3);PARIS.mLant=ln.material;
+   const hp=[];
+   for(const l of LA){const tri=l[3]===1,h=tri?6.6:5.4;m4.compose(v4.set(l[0],l[1],l[2]),q4.identity(),s4.set(1,h/5.4,1));po.setMatrixAt(po.count++,m4);
+     const pos=tri?[[0,h+.1,0],[.75,h-.5,0],[-.75,h-.5,0]]:[[0,h+.2,0]];
+     for(const o of pos){m4.compose(v4.set(l[0]+o[0],l[1]+o[1],l[2]+o[2]),q4.identity(),s4.set(1,1,1));ln.setMatrixAt(ln.count++,m4);hp.push(l[0]+o[0],l[1]+o[1],l[2]+o[2]);}}
+   fin(po);fin(ln);
+   const hg=new THREE.BufferGeometry();hg.setAttribute('position',new THREE.Float32BufferAttribute(hp,3));
+   const hm=new THREE.ShaderMaterial({uniforms:{uI:{value:0},uPx:{value:Math.min(2,renderer.getPixelRatio())}},transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
+     vertexShader:'uniform float uPx;varying float vF;void main(){vec4 mv=modelViewMatrix*vec4(position,1.);gl_PointSize=uPx*min(90.,2600./max(1.,-mv.z));vF=smoothstep(900.,120.,-mv.z);gl_Position=projectionMatrix*mv;}',
+     fragmentShader:'uniform float uI;varying float vF;void main(){float d=length(gl_PointCoord-.5)*2.;float a=(exp(-d*d*6.)*.9+exp(-d*d*30.)*.8)*uI*vF;gl_FragColor=vec4(vec3(1.,.72,.42)*a,a);}'});
+   const hpts=new THREE.Points(hg,hm);hpts.frustumCulled=false;parisAjoute(hpts);PARIS.mHalo=hm;
+   const flm=new THREE.MeshBasicMaterial({map:parisTex('rond'),color:0xffb865,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
+   const fl=inst(plat,flm,FL.length);for(const f of FL){m4.compose(v4.set(f[0],f[1],f[2]),q4.identity(),s4.set(17,1,17));fl.setMatrixAt(fl.count++,m4);}fin(fl);PARIS.mFlaque=flm;}
+  // ===== LE SOL (la ville vue d'en haut, la Butte en relief, le lit de la Seine) =====
+  {let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(let i=0;i<NP;i+=20){const p=pts[i];x0=Math.min(x0,p.x);x1=Math.max(x1,p.x);z0=Math.min(z0,p.z);z1=Math.max(z1,p.z);}
+   x0-=1600;x1+=1600;z0-=1600;z1+=1600;const nx=150,nz=150,P=[],I=[];
+   for(let j=0;j<=nz;j++)for(let i=0;i<=nx;i++){const x=x0+(x1-x0)*i/nx,z=z0+(z1-z0)*j/nz,u=Math.abs(uDe(x,z));P.push(x,u<93.5?-11:parisColline(x,z)-1,z);}
+   for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const a=j*(nx+1)+i;I.push(a,a+nx+1,a+1,a+1,a+nx+1,a+nx+2);}
+   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setIndex(I);g.computeVertexNormals();
+   const m=new THREE.Mesh(g,parisSolMat());m.frustumCulled=false;parisAjoute(m);}
+  // ===== LA SEINE : l'eau, les murs des quais, les bas-ports, les ponts, les bateaux-mouches =====
+  {const SP=10000,yawR=yawDe(SV.n.x,SV.n.z); // le repère du fleuve : x local = en travers (n), z local = le long (r)
+   const bloc=(u,y,wu,h,wa,mat,aC)=>{const m=parisMesh(new THREE.BoxGeometry(wu,h,wa||SP),mat,null,SV.b.x+SV.n.x*u+SV.r.x*(aC||0),y,SV.b.z+SV.n.z*u+SV.r.z*(aC||0));m.rotation.y=yawR;m.frustumCulled=false;return m;};
+   const eau=parisMesh(new THREE.PlaneGeometry(162,SP,1,1).rotateX(-Math.PI/2),parisEauMat(SV.b,SV.n,SV.r),null,SV.b.x,-8,SV.b.z);eau.rotation.y=yawR;eau.frustumCulled=false;
+   const mur=new THREE.MeshLambertMaterial({color:0xa99c84}),bas=new THREE.MeshLambertMaterial({color:0x8e8576});
+   for(const sg of [-1,1]){bloc(sg*92.7,-2.9,.8,6.4,0,mur);bloc(sg*86.4,-6.25,11.8,.5,0,bas);bloc(sg*80.4,-8.1,.8,2.4,0,mur);}
+   const arcs=(k,nb,fleche,mat,y0)=>{ // la TÊTE d'un pont : son élévation (arches dans l'eau) extrudée sur sa largeur
+     const sh=new THREE.Shape(),hw=122;sh.moveTo(-hw,y0);sh.lineTo(hw,y0);sh.lineTo(hw,-9.5);sh.lineTo(80,-9.5);
+     const pile=nb>1?5:0,port=(160-pile*(nb-1))/nb;let x=80;
+     for(let q=0;q<nb;q++){const c=x-port/2;sh.lineTo(x,-8.2);const N=10;for(let t=1;t<=N;t++){const a=Math.PI*t/N;sh.lineTo(c+Math.cos(a)*port/2,-8.2+Math.sin(a)*fleche);}sh.lineTo(x-port,-9.5);x-=port;if(q<nb-1){sh.lineTo(x-pile,-9.5);x-=pile;}}
+     sh.lineTo(-hw,-9.5);sh.lineTo(-hw,y0);
+     const gg=new THREE.ExtrudeGeometry(sh,{depth:k,bevelEnabled:false});gg.translate(0,0,-k/2);return new THREE.Mesh(gg,mat);};
+   const pierreP=parisMatNuit(0xcdbf9f,0xffc890,0,.06,.18),acier=parisMatNuit(0x2e3c38,0xffb050,0,.1,.25);
+   for(let k=0;k<PONTS.length;k++){const a=PONTS[k],track=k<2,m=arcs(track?2*FA+2:30,k===1?1:k===3?4:5,k===1?4.2:5.2,k===1?acier:pierreP,track?-2.7:.1);
+     m.position.set(SV.b.x+SV.r.x*a,0,SV.b.z+SV.r.z*a);m.rotation.y=yawR;parisAjoute(m);
+     if(!track){const d=parisMesh(new THREE.BoxGeometry(244,.4,30),new THREE.MeshLambertMaterial({color:0x3a3940}),null,SV.b.x+SV.r.x*a,.1,SV.b.z+SV.r.z*a);d.rotation.y=yawR;}}
+   // ALEXANDRE-III : la frise d'or le long du tablier, et les quatre PYLÔNES de 17 m coiffés de leur Renommée d'or
+   {const a=aA,orF=parisMatNuit(0xd8a640,0x6a4410,.35,.7,1.2),gra=parisMatNuit(0xb3aa98,0xffc890,0,.1,.3);
+    for(const sg of [-1,1]){const f=parisMesh(new THREE.BoxGeometry(244,.7,.4),orF,null,SV.b.x+SV.r.x*(a+sg*(FA+1.1)),-3.1,SV.b.z+SV.r.z*(a+sg*(FA+1.1)));f.rotation.y=yawR;}
+    for(const su of [-1,1])for(const sa of [-1,1]){const u=su*112,aa=a+sa*(FA+6),x=SV.b.x+SV.n.x*u+SV.r.x*aa,z=SV.b.z+SV.n.z*u+SV.r.z*aa,g=parisGroupe(x,0,z,yawR);
+      parisMesh(new THREE.BoxGeometry(7,3,7),gra,g,0,1.5,0);parisMesh(new THREE.BoxGeometry(4.4,15,4.4),gra,g,0,10.5,0);parisMesh(new THREE.BoxGeometry(5.4,1.2,5.4),gra,g,0,18.6,0);
+      const cor=parisMesh(new THREE.SphereGeometry(1.6,10,8),orF,g,0,20.6,0);cor.scale.set(1,1.4,1.9);                                        // le Pégase
+      for(const w of [-1,1]){const ai=parisMesh(new THREE.BoxGeometry(.25,3.4,1.6),orF,g,w*1.3,22.4,-.3);ai.rotation.z=w*.55;}             // ses ailes
+      parisMesh(new THREE.SphereGeometry(.7,8,6),orF,g,0,23.4,.9);parisMesh(new THREE.BoxGeometry(.5,2.6,.5),orF,g,0,24,.2);}}                // la Renommée
+   for(let k=0;k<3;k++){const bt=parisBateau();PARIS.bateaux.push({g:bt,a:-3000+k*2100+pr()*400,u:(k%2?1:-1)*(28+pr()*20),v:(k%2?1:-1)*(6+pr()*3)});}
+   PARIS.bateaux.forEach(function(b){b.g.rotation.y=yawDe(SV.n.x,SV.n.z);});}
+  // ===== LES MONUMENTS =====
+  parisObelisque(pObel);parisFontaine(pFont);
+  parisArc(Q.arc.p,Q.champs0.phi);
+  {const g=parisTour(Q.tour.p.x,Q.tour.p.y,Q.tour.p.z,330,true);g.rotation.y=Q.tour.phi;PARIS.tourPos=Q.tour.p.clone();}
+  parisInvalides(pInv,yInv);parisMoulin(pMR,yMR);parisSacreCoeur(Q.sc.p,Q.sc.phi);
+  {const dx=Math.sin(Q.sc.phi),dz=Math.cos(Q.sc.phi);parisMesh(new THREE.CircleGeometry(80,40).rotateX(-Math.PI/2),new THREE.MeshLambertMaterial({color:0xb7ad98}),null,Q.sc.p.x-dx*95,parisColline(Q.sc.p.x-dx*95,Q.sc.p.z-dz*95)-.3,Q.sc.p.z-dz*95);} // le parvis, entre le portail et la basilique
+  PARIS.n={immeubles:n,rues:RUES.length,ms:Math.round(performance.now()-t00),L:Math.round(L),zones:PARIS.Z.length};
 }
-function parisTick(dt){
-  PARIS.t+=dt;
+function parisPluie(){return PARIS.sol?(PARIS.pluie||0):0;} // la BRUINE de Montmartre (lue par pluieTick et routeTick)
+function parisTick(dt){ // l'HEURE avance avec les quartiers ; le décor vit (phare, scintillement, ailes du Moulin, drapeau, bateaux-mouches)
+  PARIS.t+=dt;PSU.uTime.value=PARIS.t;
+  const Q=PARIS.Q;if(!Q||!PARIS.sol)return;
+  const sv=(started&&!gameOver)?s:0,sm=THREE.MathUtils.smoothstep,T=sm(sv,Q.t1a,Q.t1b)+sm(sv,Q.t2a,Q.t2b);
+  PSU.uT.value=T;skyU.uParisT.value=T;PARIS.pluie=sm(sv,Q.t2a,Q.t2b)*.32;
+  const q=T<.5?0:T<1.5?1:2;if(q!==PARIS.qBio){const d0=PARIS.qBio<0;PARIS.qBio=q;bioGo(['parisOr','parisBleu','parisNuit'][q],d0?.01:7);}
+  const an=sv>Q.clichy0.s?3:sv>Q.quai0.s?2:sv>Q.champs0.s?1:0; // les QUARTIERS s'annoncent en entrant
+  if(an!==PARIS.qAnn){if(PARIS.qAnn>=0&&an>PARIS.qAnn&&started&&!gameOver){const A=[null,['LES CHAMPS-ELYSEES','HEURE DOREE','#ffd27a','#ff8a3d'],['LA SEINE','HEURE BLEUE','#9fd8ff','#5b7dff'],['MONTMARTRE','LA NUIT','#ffb0d8','#b14bff']][an];
+    try{slam(TR(A[0]),TR(A[1]),A[2],A[3],30,1);}catch(e){}}PARIS.qAnn=an;}
+  if(Math.abs(T-(PARIS.tE==null?-9:PARIS.tE))>.003){PARIS.tE=T; // les lumières de la ville : elles ne se repeignent que si l'heure bouge
+    const k3=a=>T<1?a[0]+(a[1]-a[0])*T:a[1]+(a[2]-a[1])*(T-1);
+    if(PARIS.mLant){const k=k3([.4,1.15,1.4]);PARIS.mLant.color.setRGB(k,.79*k,.54*k);}
+    if(PARIS.mHalo)PARIS.mHalo.uniforms.uI.value=k3([.1,.75,1]);
+    if(PARIS.mFlaque)PARIS.mFlaque.opacity=k3([0,.26,.46]);
+    for(const o of PARIS.matsNuit)o.m.emissive.copy(o.e).multiplyScalar(k3(o.k));}
   if(PARIS.scint)PARIS.scint.uniforms.uTime.value=PARIS.t;
   if(PARIS.phare)PARIS.phare.rotation.y=PARIS.t*.32;
+  if(PARIS.ailes)PARIS.ailes.rotation.z=-PARIS.t*.9;
+  const SV=Q.seine,yb=Math.atan2(-SV.n.z,SV.n.x);
+  for(const b of PARIS.bateaux){b.a+=b.v*dt;if(b.a>4500)b.a=-4500;else if(b.a<-4500)b.a=4500;
+    b.g.position.set(SV.b.x+SV.r.x*b.a+SV.n.x*b.u,-7.9+Math.sin(PARIS.t*1.3+b.u)*.06,SV.b.z+SV.r.z*b.a+SV.n.z*b.u);b.g.rotation.y=yb+(b.v<0?Math.PI:0);}
 }
-// console : dbgParisVue(h,ty) → PHOTO de la Dame de fer depuis la caisse (œil h m au-dessus, visée ty m au-dessus du pied), met en pause
-window.dbgParisVue=function(h,ty){if(!PARIS.tourPos)return 'pas de tour';if(started&&!gameOver&&!paused)togglePause();
-  const p=carGroup.position,T9=PARIS.tourPos;camera.position.set(p.x,p.y+(h==null?6:h),p.z);camera.up.set(0,1,0);
-  camera.lookAt(T9.x,T9.y+(ty==null?200:ty),T9.z);camera.updateMatrixWorld();
-  RIM_U.uSunV.value.copy(RIM_DIR).transformDirection(camera.matrixWorldInverse);skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);
-  if(acesPass)acesPass.uniforms.uSpeed.value=0;if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
-  return {dist:Math.round(Math.hypot(T9.x-p.x,T9.z-p.z)),dy:Math.round(T9.y-p.y)};};
-// console : dbgParisPhoto(k,d,h) → PHOTO du k-ième immeuble le plus proche de la caisse, face à la route, à d m de sa façade, h m
-// au-dessus de sa mi-hauteur haussmannienne (h > 15 : on voit les toits) — met en pause
-window.dbgParisPhoto=function(k,d,h){const I=PARIS.I,B=PARIS.B;if(!I||!B||!B.length)return 'pas de Paris';
-  if(started&&!gameOver&&!paused)togglePause();const c=carGroup.position,L9=[];
-  for(const b of B){const o=b*7;L9.push([Math.hypot(I[o]-c.x,I[o+2]-c.z),o]);}L9.sort((a,b)=>a[0]-b[0]);
-  const o=L9[Math.min(L9.length-1,k|0)][1],cx=I[o],top=I[o+1],cz=I[o+2],w=I[o+3],yw=I[o+6],ax=Math.cos(yw),az=-Math.sin(yw);
-  const sg=((c.x-cx)*ax+(c.z-cz)*az)<0?-1:1,y0=top-11,dd=w/2+(d==null?30:d),hh=h==null?4:h;
-  camera.position.set(cx+ax*sg*dd,y0+hh,cz+az*sg*dd);camera.up.set(0,1,0);camera.lookAt(cx,y0+hh*.35,cz);camera.updateMatrixWorld();
-  RIM_U.uSunV.value.copy(RIM_DIR).transformDirection(camera.matrixWorldInverse);skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);
-  if(acesPass)acesPass.uniforms.uSpeed.value=0;if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
-  return {dist:Math.round(L9[Math.min(L9.length-1,k|0)][0]),w:Math.round(w),H:Math.round(I[o+4])};};
-// console : dbgParisSeine(D) → PHOTO de la Seine (le méandre peint 1 000 m sous l'œil) : la caméra vise le point du fleuve à ~D m
-window.dbgParisSeine=function(D){if(started&&!gameOver&&!paused)togglePause();const c=carGroup.position,D9=D||2200;let best=null;
-  for(let x=c.x-4000;x<=c.x+4000;x+=20){const z=900*Math.sin(x/2300)+380*Math.sin(x/870+1.7),e=Math.abs(Math.hypot(x-c.x,z-c.z)-D9);if(!best||e<best[0])best=[e,x,z];}
-  camera.position.set(c.x,c.y+20,c.z);camera.up.set(0,1,0);camera.lookAt(best[1],c.y+20-1000,best[2]);camera.updateMatrixWorld();
-  RIM_U.uSunV.value.copy(RIM_DIR).transformDirection(camera.matrixWorldInverse);skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);
-  if(acesPass)acesPass.uniforms.uSpeed.value=0;if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return {x:Math.round(best[1]),z:Math.round(best[2])};};
-window.dbgParis=function(){return {n:PARIS.n,tour:PARIS.tourPos?PARIS.tourPos.toArray().map(Math.round):null,tourS:Math.round(PARIS.tourS||0),dessous:PARIS.tourDessous,niveau:LVL.cur&&LVL.cur.id,uParis:skyU.uParis?+skyU.uParis.value.toFixed(2):null};};
-
+function parisMur(dt){ // LES FAÇADES SONT DES MURS : un CHOC par contact (vitesse perdue selon l'angle), puis on FROTTE (étincelles) — de face à pleine vitesse, on s'encastre
+  const out=Math.sign(lat)||1,lim=ROAD_HALF-1.15;lat=out*lim;
+  const into=vL*driveDir*out;if(into<=0)return;
+  const va=Math.abs(vA),a=Math.asin(Math.min(1,into/Math.max(1,va))),kmh=va*3.6*SPD,now=performance.now();
+  if(a>.52&&kmh>200){explode('facade');return;}
+  psi=-psi*.3;yawR=0;slipB=0;vL=0;
+  const choc=now-(PARIS.chocT||0)>220;if(choc)PARIS.chocT=now;       // (mesuré : perdre à CHAQUE image faisait tomber de 151 à 20 km/h en 3 s)
+  vA*=choc?1-Math.min(.3,.03+a*.9):1-.3*(dt||.016);
+  if(now-PARIS.murT>90){PARIS.murT=now;try{DRIFT_V.set(out*CARS[level].w*.5,.25,.2);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkGold,DRIFT_V,1,6);noiseBurst(.1,.1+a*.3,2600);}catch(e){}
+    shake=Math.max(shake,.12+a);hap(8);}
+  if(now-PARIS.murAnn>2500&&a>.12){PARIS.murAnn=now;try{popTexte(TR('FROTTE !'),'#ffb36b',0);}catch(e){}}
+}
+function parisHeurt(p){ // EN VOL : dans une façade ? dans la Seine ? dans le sol ? — la rue la plus proche, sa zone, la hauteur
+  const Q=PARIS.Q,G=PARIS.grille;if(!Q||!G)return '';
+  const SV=Q.seine,u=Math.abs((p.x-SV.b.x)*SV.n.x+(p.z-SV.b.z)*SV.n.z);
+  if(u<80&&p.y<-6.6)return 'seine';
+  if(Math.hypot(p.x-Q.arc.p.x,p.z-Q.arc.p.z)<42&&p.y<Q.arc.p.y+90)return 'facade';
+  if(Math.hypot(p.x-Q.sc.p.x,p.z-Q.sc.p.z)<62&&p.y<Q.sc.p.y+92)return 'facade';
+  const HB=PARIS.HB,bx=Math.floor(p.x/HB),bz=Math.floor(p.z/HB);let bi=-1,bd=1e18;
+  for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++){const a=G.get((bx+dx)+','+(bz+dz));if(a)for(let j=0;j<a.length;j++){const q=pts[a[j]],d=(q.x-p.x)*(q.x-p.x)+(q.z-p.z)*(q.z-p.z);if(d<bd){bd=d;bi=a[j];}}}
+  if(bi<0)return p.y<parisColline(p.x,p.z)+26&&u>93?'facade':'';                        // loin de toute rue : les toits de Paris
+  const q=pts[bi],b=B[bi],la=(p.x-q.x)*b.x+(p.z-q.z)*b.z,h=p.y-q.y,al=Math.abs(la);
+  if(al<ROAD_HALF+.4)return h<-3?'sol':'';                                                // au-dessus de la chaussée : tryLand décide
+  const ty=parisCote(bi/(NP-1)*L,la<0?-1:1);
+  if(ty==='bati'&&al>ROAD_HALF+PARIS_SW-.4&&h<25)return 'facade';
+  if((ty==='quai'||ty==='pont')&&al>ROAD_HALF+PARIS_SW+.6)return '';                    // au-dessus de l'eau : la Seine décidera
+  if(h<-.6&&u>93)return 'sol';
+  return '';
+}
+// console : dbgParis() → comptes, zones, heure ; dbgParisVue(k,d,h) → PHOTO d'un lieu ('champs' 'arc' 'etoile' 'seine' 'tour' 'alex' 'moulin' 'sc'), met en pause
+window.dbgParis=function(){const Q=PARIS.Q,z=PARIS.sol?parisZone(s):null;
+  const aG=PARIS.arcG;if(aG)aG.updateMatrixWorld(true);const bs9=aG?aG.children.slice(0,4).map(function(m){if(!m.geometry)return null;if(!m.geometry.boundingSphere)m.geometry.computeBoundingSphere();const s9=m.geometry.boundingSphere.clone().applyMatrix4(m.matrixWorld);return [s9.center.toArray().map(Math.round),Math.round(s9.radius),m.frustumCulled,m.visible];}):null;
+  return {camFar:camera.far,camNear:camera.near,arcBS:bs9,arc:aG?{pos:aG.position.toArray().map(Math.round),vis:aG.visible,enf:aG.children.length,dansScene:aG.parent===scene,mw:aG.matrixWorld.elements.slice(12,15).map(Math.round),auto:aG.matrixAutoUpdate}:null,sol:PARIS.sol,n:PARIS.n,heure:+PSU.uT.value.toFixed(2),s:Math.round(s),zone:z?[z.g,z.d,z.st]:null,niveau:LVL.cur&&LVL.cur.id,
+    reperes:Q&&Q.champs0&&Q.champs0.s!=null?Object.fromEntries(['champs0','ring0','etoile1','quai0','iena0','iena1','mars1','alex0','alex1','clichy0','clichy1','parvis'].map(function(k){return [k,Math.round(Q[k].s)];})):null};};
+window.dbgParisVue=function(k,d,h){const Q=PARIS.Q;if(!Q)return 'pas de Paris';if(started&&!gameOver&&!paused)togglePause();
+  const dirDe=phi=>new THREE.Vector3(Math.sin(phi),0,Math.cos(phi));let C=new THREE.Vector3(),V=new THREE.Vector3();
+  const vue=(cible,phi,dd,hh,hc)=>{V.copy(cible);V.y+=hc;C.copy(cible).addScaledVector(dirDe(phi),-dd);C.y=cible.y+hh;};
+  if(k==='champs'){const p=Q.champs0.p;C.set(p.x,p.y+(h||5),p.z);V.copy(Q.arc.p);V.y+=25;}
+  else if(k==='arc')vue(Q.arc.p,Q.champs0.phi,d||300,h||5,24);
+  else if(k==='etoile'){C.copy(Q.ring0.p);C.y+=h||5;V.copy(Q.arc.p);V.y+=25;}
+  else if(k==='seine'){C.copy(Q.quai0.p).addScaledVector(dirDe(Q.quai0.phi),d||500);C.y+=h||5;V.copy(Q.tour.p);V.y+=110;}
+  else if(k==='tour')vue(Q.tour.p,Q.tour.phi,d||450,h||6,120);
+  else if(k==='alex'){C.copy(Q.alex0.p).addScaledVector(dirDe(Q.alex0.phi),-(d||160));C.y+=h||5;V.copy(Q.alex1.p);V.y+=10;}
+  else if(k==='moulin'){C.copy(Q.clichy0.p);C.y+=h||5;V.copy(Q.clichy1.p);V.y+=8;}
+  else if(k==='sc')vue(Q.sc.p,Q.sc.phi,d||330,h||8,50);
+  else return 'lieux : champs arc etoile seine tour alex moulin sc';
+  camera.position.copy(C);camera.up.set(0,1,0);camera.lookAt(V);camera.updateMatrixWorld();skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);
+  RIM_U.uSunV.value.copy(RIM_DIR).transformDirection(camera.matrixWorldInverse);if(acesPass)acesPass.uniforms.uSpeed.value=0;
+  if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return {cam:C.toArray().map(Math.round),vise:V.toArray().map(Math.round)};};
 function buildVoxCity(seed,accC){
   for(const F of CITY.fam||[])for(const x of [F.im,F.imL])x.dispose(); // (passe perf) les tampons d'instances de l'ancienne ville (les géométries sont parties avec trackMeshes)
   CITY.root=null;CITY.n={};CITY.col=null;CITY.ens=[];CITY.imC=CITY.imN=null;CITY.fam=null;CITY.lampes=null;
@@ -9698,6 +10185,31 @@ const BIOMES={
     expo:.78,sat:1.30,
     env:[[0,'#0a1030'],[.3,'#18224c'],[.48,'#3a3a6a'],[.58,'#b06a36'],[.66,'#261c36'],[1,'#07081a']],eS1:[255,200,130,.5],eS2:[140,170,255,.3],
     wb:[1.02,.99,.96],sh:[.004,.008,.03],hi:[.05,.03,0],con:1.12,bloomS:.62,bloomT:.86,vigK:.40,vigC:[.05,.04,.12],rimK:.2,rimS:.4},
+  // ---- PARIS AU SOL (2026-09-28) : trois heures, fondues d'un quartier à l'autre par parisTick (le ciel, lui, suit uParisT) ----
+  parisOr:{ nm:'PARIS — HEURE DORÉE', skyMul:[1,1,1],skyLift:[0,0,0],sunTint:[1,.62,.30],sunHalo:.3,city:0,stars:0,moon:0,
+    fog:[.86,.67,.54],fogN:420,fogF:3400,
+    hemiS:[.62,.70,.95],hemiG:[.36,.27,.2],hemiI:.62, sunC:[1,.72,.42],sunI:1.6,
+    fillC:[.45,.52,.8],fillI:.22, kickC:[1,.6,.4],kickI:.12,
+    volSun:[2,1.3,.8],volSky:[.5,.46,.6],volGnd:[.24,.18,.18],volAmb:.6,
+    expo:.95,sat:1.2,
+    env:[[0,'#5a7ab8'],[.3,'#c8a080'],[.48,'#f2b870'],[.58,'#ffcf80'],[.66,'#7a6a68'],[1,'#3a3a4e']],eS1:[255,214,150,.5],eS2:[255,180,110,.3],
+    wb:[1.03,1,.96],sh:[.01,.015,.04],hi:[.04,.02,0],con:1.06,bloomS:.5,bloomT:.9,vigK:.3,vigC:[.10,.06,.08],rimK:.2,rimS:.5},
+  parisBleu:{ nm:'PARIS — HEURE BLEUE', skyMul:[1,1,1],skyLift:[0,0,0],sunTint:[.9,.5,.5],sunHalo:.05,city:0,stars:.25,moon:.4,
+    fog:[.30,.32,.52],fogN:360,fogF:3200,
+    hemiS:[.40,.50,.85],hemiG:[.2,.14,.10],hemiI:.5, sunC:[.85,.62,.62],sunI:.5,
+    fillC:[1,.66,.36],fillI:.34, kickC:[.6,.7,1],kickI:.14,
+    volSun:[1.2,.9,1],volSky:[.26,.32,.62],volGnd:[.1,.1,.18],volAmb:.5,
+    expo:.86,sat:1.26,
+    env:[[0,'#101a40'],[.3,'#26346a'],[.48,'#5a5a90'],[.58,'#c07a5a'],[.66,'#2a2a52'],[1,'#0c1028']],eS1:[255,190,130,.45],eS2:[120,170,255,.3],
+    wb:[.99,.99,1.03],sh:[.0,.01,.05],hi:[.05,.03,0],con:1.08,bloomS:.6,bloomT:.86,vigK:.36,vigC:[.04,.04,.12],rimK:.3,rimS:.45},
+  parisNuit:{ nm:'PARIS — LA NUIT', skyMul:[1,1,1],skyLift:[0,0,0],sunTint:[.5,.4,.5],sunHalo:0,city:0,stars:.8,moon:1.1,
+    fog:[.07,.07,.13],fogN:300,fogF:3000,
+    hemiS:[.22,.28,.5],hemiG:[.24,.14,.07],hemiI:.4, sunC:[.5,.56,.8],sunI:.28,
+    fillC:[1,.62,.3],fillI:.42, kickC:[.7,.8,1],kickI:.14,
+    volSun:[.9,.9,1.2],volSky:[.14,.16,.34],volGnd:[.1,.07,.05],volAmb:.4,
+    expo:.8,sat:1.3,
+    env:[[0,'#0a1030'],[.3,'#18224c'],[.48,'#3a3a6a'],[.58,'#b06a36'],[.66,'#261c36'],[1,'#07081a']],eS1:[255,200,130,.5],eS2:[140,170,255,.3],
+    wb:[1.02,.99,.96],sh:[.004,.008,.03],hi:[.05,.03,0],con:1.12,bloomS:.64,bloomT:.84,vigK:.4,vigC:[.05,.04,.12],rimK:.2,rimS:.4},
   // ---- L'ATELIER (2026-09-26, vague 2) : l'ambiance du GARAGE — jamais tirée, posée par openGarage, rendue à la fermeture ----
   // MESURÉ avant : saturation .42-.56, les caisses blanches BRÛLÉES — l'atelier héritait du ciel et du SOLEIL de la dernière course
   // (plein midi : `hemiI` .95 + soleil 1,42 à travers les murs) EN PLUS de ses deux lampes et de ses cônes additifs. Un atelier, c'est
@@ -9820,7 +10332,7 @@ const NIVEAUX=[ // ⚠ ORDRE (2026-09-25 au soir, user) : « remets le niveau da
   // planete 0 aux NUAGES (user : « ne mets pas la Terre dans le niveau dans les nuages ») · route/sheen : clarté et brillance du bitume (routeTick)
   {id:'nuages',nm:'MER DE NUAGES',        bio:['matin','midi','aprem'],planete:0,   espace:0,pluie:0,cielMusical:false,route:0,  sheen:.06},
   {id:'ville', nm:'AU-DESSUS DE LA VILLE',bio:['pluie'],               planete:0,   espace:0,pluie:1,cielMusical:true, route:.7, sheen:.12}, // route plus CLAIRE : elle se détache de la ville sombre (user) ; sheen : bitume mouillé par la pluie
-  {id:'paris', nm:'PARIS LA NUIT',        bio:['paris'],               planete:0,   espace:0,pluie:.45,cielMusical:false,route:.85,sheen:.2}, // (2026-09-28, Léo) le 4e monde — voir « PARIS LA NUIT »
+  {id:'paris', nm:'PARIS',                bio:['parisOr'],             planete:0,   espace:0,pluie:0,  cielMusical:false,route:.45,sheen:.16,piste:'paris'}, // (2026-09-28, Léo) le 4e monde, AU SOL — voir « PARIS AU SOL »
   {id:'espace',nm:'EN ORBITE',            bio:['espace'],              planete:1.35,espace:1,pluie:0,cielMusical:false,route:.38,sheen:.12}, // (2026-09-27) route .9 → .38 : le SOLEIL de l'orbite éclaire désormais la route (lumière rasante de côté, voir orbiteLumiere) — la clarté ajoutée n'a plus à tout porter. Avant (vague 2) : (2026-09-26, vague 2) route .2 → .9 : la route (#050212 sur du noir) DISPARAISSAIT — MESURÉ : sous le contraste dur de l'orbite (1,28) tout ce qui sort de l'ACES sous ~.11 tombe au noir, .4 ne suffisait pas (#000008) ; à .9 le ruban se lit, encre indigo #0f0737 sur le vide
 ];
 const LVL={cur:null,n:0,k:1,dur:4,paris:0,parisDe:0,parisA:0, // paris : le CIEL DE PARIS (toits bas, lueur d'or) — fondu comme la ville
@@ -9858,7 +10370,7 @@ function lvlBiome(){ // le ciel du niveau : tiré dans SA liste, jamais deux foi
 }
 function lvlGo(dur){ // les deux leviers HORS biome (uSpace, taille de planète) suivent le même fondu que le ciel
   const c=LVL.cur;
-  LVL.espaceDe=LVL.espace;LVL.planeteDe=LVL.planete;LVL.pluieDe=LVL.pluie;LVL.villeDe=LVL.ville;LVL.villeA=c&&(c.id==='ville'||c.id==='paris')?1:0;LVL.parisDe=LVL.paris;LVL.parisA=c&&c.id==='paris'?1:0;LVL.merDe=LVL.mer;LVL.merA=c&&c.id==='nuages'&&!c.sansNuages?1:0;LVL.routeDe=LVL.route;LVL.sheenDe=LVL.sheen;
+  LVL.espaceDe=LVL.espace;LVL.planeteDe=LVL.planete;LVL.pluieDe=LVL.pluie;LVL.villeDe=LVL.ville;LVL.villeA=c&&c.id==='ville'?1:0;LVL.parisDe=LVL.paris;LVL.parisA=c&&c.id==='paris'?1:0;LVL.merDe=LVL.mer;LVL.merA=c&&c.id==='nuages'&&!c.sansNuages?1:0;LVL.routeDe=LVL.route;LVL.sheenDe=LVL.sheen;
   LVL.espaceA=c?c.espace:0;LVL.planeteA=c?c.planete:0;LVL.pluieA=c?c.pluie:0;LVL.routeA=c&&c.route!=null?c.route:0;LVL.sheenA=c&&c.sheen!=null?c.sheen:.1; // (planète : 0 par défaut — plus de Terre là où le niveau ne la demande pas)
   LVL.k=0;LVL.dur=dur||4;
   if(LVL.dur<=.05)lvlStep(1);
@@ -9953,12 +10465,12 @@ const PLUIE=(function(){
   scene.add(l);return l;
 })();
 function pluieTick(t){ // appelée par la boucle : suit la caméra, suit le fondu — et ne dessine RIEN hors de la ville
-  const u=PLUIE.material.uniforms,U=PLUIE.userData;u.uOp.value=LVL.pluie;u.uTime.value=t;u.uDens.value=1-.5*LVL.paris;u.uOr.value=LVL.paris; // (Paris) bruine dorée
+  const u=PLUIE.material.uniforms,U=PLUIE.userData;u.uOp.value=Math.max(LVL.pluie,parisPluie());u.uTime.value=t;u.uDens.value=1-.5*LVL.paris;u.uOr.value=LVL.paris; // (Paris) bruine dorée
   if(!U.pv){U.pv=new THREE.Vector3().copy(camera.position);U.v9=new THREE.Vector3();U.t=t;}
   const dt9=t-U.t;if(dt9>1e-4&&dt9<.25){U.v9.subVectors(camera.position,U.pv).divideScalar(dt9);if(U.v9.lengthSq()>4.9e5)U.v9.set(0,0,0); // la vitesse de la caméra (un téléport ne compte pas)
     u.uVel.value.lerp(U.v9,Math.min(1,dt9*10));}
   U.pv.copy(camera.position);U.t=t;u.uCam.value.copy(camera.position);
-  PLUIE.visible=LVL.pluie>.01||!PLUIE.userData.vu; // dessinée UNE fois au boot (compilation), ensuite seulement quand il pleut
+  PLUIE.visible=Math.max(LVL.pluie,parisPluie())>.01||!PLUIE.userData.vu; // dessinée UNE fois au boot (compilation), ensuite seulement quand il pleut
   PLUIE.userData.vu=true;
 }
 /* ============================================================================
@@ -10637,11 +11149,11 @@ const CARRIERE=[
     {nm:'AUBE',h:'aube',camp:17,pr:'VIDE LE FOURGON'},{nm:'LEVER',h:'lever',camp:18,pr:'SAUTE D\'UN ETAGE'},
     {nm:'MATIN',h:'matin',camp:19,pr:'FAUFILE-TOI'},{nm:'MIDI',h:'midi',camp:20,pr:'BATS LE BANQUIER'}]},
   // (2026-09-28, Léo : « je veux une map ville à Paris ») PARIS LA NUIT — la route survole les toits, la Dame de fer scintille (buildParis)
-  {id:'paris',nm:'PARIS',ic:'tour',desc:'La nuit sur les toits de Paris, jusqu\'à la tour Eiffel.',niveaux:[
-    {nm:'HEURE BLEUE',h:['aube','paris',.6],pr:'PARIS S\'ALLUME'},{nm:'CHAMP DE MARS',h:'paris',pr:'SALUE LA DAME DE FER'},
-    {nm:'TROCADERO',h:'paris',pr:'VOLE AU-DESSUS DES TOITS'},{nm:'QUAIS DE SEINE',h:'paris',pr:'SUIS LE FLEUVE'},
-    {nm:'PONT ALEXANDRE III',h:'paris',pr:'FILE SOUS LES DORURES'},{nm:'CONCORDE',h:'paris',pr:'TOURNE AUTOUR DE L\'OBELISQUE'},
-    {nm:'CHAMPS-ELYSEES',h:'paris',pr:'LA PLUS BELLE AVENUE'},{nm:'ARC DE TRIOMPHE',h:'paris',pr:'PASSE LA GRANDE PORTE'},
+  {id:'paris',nm:'PARIS',ic:'tour',desc:'De la Concorde au Sacré-Cœur : les Champs, la Seine, Montmartre.',niveaux:[
+    {nm:'HEURE BLEUE',h:['aube','paris',.6],pr:'PARIS S\'ALLUME'},{nm:'CHAMP DE MARS',h:'paris',pr:'PASSE SOUS LA DAME DE FER'},
+    {nm:'TROCADERO',h:'paris',pr:'RASE LES FACADES'},{nm:'QUAIS DE SEINE',h:'paris',pr:'SUIS LE FLEUVE'},
+    {nm:'PONT ALEXANDRE III',h:'paris',pr:'FILE SOUS LES DORURES'},{nm:'CONCORDE',h:'paris',pr:'SALUE L\'OBELISQUE'},
+    {nm:'CHAMPS-ELYSEES',h:'paris',pr:'LA PLUS BELLE AVENUE'},{nm:'ARC DE TRIOMPHE',h:'paris',pr:'FAIS LE TOUR DE L\'ETOILE'},
     {nm:'MONTMARTRE',h:'paris',pr:'PARIS A TES PIEDS'},{nm:'MINUIT',h:'paris',pr:'LA TOUR SCINTILLE POUR TOI'}]},
   {id:'espace',nm:'ESPACE',ic:'etoile',desc:'Au plus près des planètes du système solaire.',niveaux:[
     {nm:'MERCURE',astre:{teinte:0x8a8580,atmo:0xd8c9b0,echelle:1.05}},{nm:'VENUS',astre:{teinte:0xc9a15a,atmo:0xffd98a,echelle:1.25}},
@@ -10662,10 +11174,10 @@ function bioMix(a,b,t){ // un biome INTERMÉDIAIRE, bâti une fois et rangé dan
 }
 function carNiveau(bi,i){ // le niveau de carrière, sous la forme d'un NIVEAU
   const B=CARRIERE[bi],N=B.niveaux[i],h=Array.isArray(N.h)?bioMix(N.h[0],N.h[1],N.h[2]):(N.h||'espace');
-  return {id:B.id,nm:B.nm+' '+(i+1)+' — '+N.nm,bio:[h],piste:N.piste||(N.camp?'camp':null),sansNuages:!!N.sansNuages,
+  return {id:B.id,nm:B.nm+' '+(i+1)+' — '+N.nm,bio:[B.id==='paris'?'parisOr':h],piste:B.id==='paris'?'paris':N.piste||(N.camp?'camp':null),sansNuages:!!N.sansNuages,
     planete:N.planete!=null&&B.id!=='nuages'?N.planete:(B.id==='espace'?((N.astre&&N.astre.echelle)||1.35):0), // jamais de Terre dans les NUAGES (user, 2026-09-25)
-    route:B.id==='ville'?1:B.id==='espace'?.2:B.id==='paris'?.85:0,sheen:B.id==='ville'?.22:B.id==='espace'?.06:B.id==='paris'?.2:.10,
-    espace:B.id==='espace'?1:0,pluie:N.pluie!=null?N.pluie:B.id==='paris'?.45:0,cielMusical:B.id==='ville',astre:N.astre||null,sansLune:!!N.sansLune,carr:{b:bi,i:i}, // (vague 3) le niveau LUNE : l'astre du niveau EST la lune, pas de seconde lune au ciel
+    route:B.id==='ville'?1:B.id==='espace'?.2:B.id==='paris'?.45:0,sheen:B.id==='ville'?.22:B.id==='espace'?.06:B.id==='paris'?.2:.10,
+    espace:B.id==='espace'?1:0,pluie:N.pluie!=null?N.pluie:0,cielMusical:B.id==='ville',astre:N.astre||null,sansLune:!!N.sansLune,carr:{b:bi,i:i}, // (vague 3) le niveau LUNE : l'astre du niveau EST la lune, pas de seconde lune au ciel
     // (2026-09-27) la campagne : piste dessinée, promesse, et une GRAINE fixe — pièces, pads et nuages sont les mêmes à chaque essai
     camp:N.camp||0,pr:N.pr||'',graine:N.camp?(0x5EED00+bi*97+i*13):0};
 }
@@ -26982,12 +27494,20 @@ Object.assign(I18N_ZH,{'RECORD|PERSO':'个人|纪录','RECORDS|MONDIAUX':'世界
 Object.assign(I18N,{'PARIS LA NUIT':'PARIS BY NIGHT','La nuit sur les toits de Paris, jusqu\'à la tour Eiffel.':'Night over the rooftops of Paris, all the way to the Eiffel Tower.',
   'HEURE BLEUE':'BLUE HOUR','CHAMP DE MARS':'CHAMP DE MARS','TROCADERO':'TROCADERO','QUAIS DE SEINE':'SEINE BANKS','PONT ALEXANDRE III':'PONT ALEXANDRE III',
   'CONCORDE':'CONCORDE','CHAMPS-ELYSEES':'CHAMPS-ELYSEES','ARC DE TRIOMPHE':'ARC DE TRIOMPHE','MONTMARTRE':'MONTMARTRE','MINUIT':'MIDNIGHT',
+  'PASSE SOUS LA DAME DE FER':'DRIVE UNDER THE IRON LADY','RASE LES FACADES':'HUG THE FACADES','SALUE L\'OBELISQUE':'SALUTE THE OBELISK','FAIS LE TOUR DE L\'ETOILE':'CIRCLE THE ETOILE',
+  'De la Concorde au Sacré-Cœur : les Champs, la Seine, Montmartre.':'From the Concorde to the Sacré-Cœur: the Champs, the Seine, Montmartre.',
+  'LES CHAMPS-ELYSEES':'THE CHAMPS-ELYSEES','HEURE DOREE':'GOLDEN HOUR','LA SEINE':'THE SEINE','MONTMARTRE':'MONTMARTRE','LA NUIT':'NIGHT','FROTTE !':'SCRAPE!',
+  'ENCASTRE DANS UNE FACADE':'SMASHED INTO A FACADE','A LA SEINE !':'INTO THE SEINE!','ECRASE SUR LE PAVE':'CRASHED ON THE COBBLES',
   'PARIS S\'ALLUME':'PARIS LIGHTS UP','SALUE LA DAME DE FER':'SALUTE THE IRON LADY','VOLE AU-DESSUS DES TOITS':'FLY OVER THE ROOFTOPS','SUIS LE FLEUVE':'FOLLOW THE RIVER',
   'FILE SOUS LES DORURES':'RACE UNDER THE GOLD','TOURNE AUTOUR DE L\'OBELISQUE':'CIRCLE THE OBELISK','LA PLUS BELLE AVENUE':'THE FINEST AVENUE',
   'PASSE LA GRANDE PORTE':'THROUGH THE GREAT ARCH','PARIS A TES PIEDS':'PARIS AT YOUR FEET','LA TOUR SCINTILLE POUR TOI':'THE TOWER SPARKLES FOR YOU'});
 Object.assign(I18N_ZH,{'PARIS':'巴黎','PARIS LA NUIT':'巴黎之夜','La nuit sur les toits de Paris, jusqu\'à la tour Eiffel.':'夜晚飞越巴黎屋顶，直抵埃菲尔铁塔。',
   'HEURE BLEUE':'蓝调时刻','CHAMP DE MARS':'战神广场','TROCADERO':'特罗卡德罗','QUAIS DE SEINE':'塞纳河畔','PONT ALEXANDRE III':'亚历山大三世桥',
   'CONCORDE':'协和广场','CHAMPS-ELYSEES':'香榭丽舍','ARC DE TRIOMPHE':'凯旋门','MONTMARTRE':'蒙马特','MINUIT':'午夜',
+  'PASSE SOUS LA DAME DE FER':'从铁塔下穿过','RASE LES FACADES':'贴着墙面飞驰','SALUE L\'OBELISQUE':'向方尖碑致敬','FAIS LE TOUR DE L\'ETOILE':'绕星形广场一圈',
+  'De la Concorde au Sacré-Cœur : les Champs, la Seine, Montmartre.':'从协和广场到圣心堂：香街、塞纳河、蒙马特。',
+  'LES CHAMPS-ELYSEES':'香榭丽舍大街','HEURE DOREE':'黄金时刻','LA SEINE':'塞纳河','MONTMARTRE':'蒙马特','LA NUIT':'夜晚','FROTTE !':'擦墙！',
+  'ENCASTRE DANS UNE FACADE':'撞进了墙面','A LA SEINE !':'掉进塞纳河！','ECRASE SUR LE PAVE':'摔在石板路上',
   'PARIS S\'ALLUME':'巴黎亮起来了','SALUE LA DAME DE FER':'向铁娘子致敬','VOLE AU-DESSUS DES TOITS':'飞越屋顶','SUIS LE FLEUVE':'沿着河流',
   'FILE SOUS LES DORURES':'在金饰下飞驰','TOURNE AUTOUR DE L\'OBELISQUE':'绕着方尖碑','LA PLUS BELLE AVENUE':'最美的大道',
   'PASSE LA GRANDE PORTE':'穿过凯旋之门','PARIS A TES PIEDS':'巴黎在你脚下','LA TOUR SCINTILLE POUR TOI':'铁塔为你闪耀'});
@@ -28944,7 +29464,8 @@ function loop(now){
       // BORD : si la voiture dépasse le côté de la route, elle bascule et tombe dans le vide.
       // (bord v2) le CENTRE DE GRAVITÉ passe la lèvre : elle BASCULE — ni saut (était +3,4 vers le haut), ni poussée (+4 %) : on ne
       // décolle pas d'un bord plat, on en tombe. Elle garde sa vitesse et sa dérive ; la gravité fait le reste (voir startFall).
-      if(Math.abs(lat)>ROAD_HALF){
+      if(PARIS.sol&&Math.abs(lat)>ROAD_HALF-1.15)parisMur(dt); // (Paris au sol) les façades sont des MURS : on frotte, on ne tombe pas
+      else if(Math.abs(lat)>ROAD_HALF){
         const out=Math.sign(lat);
         if(graceT<=0)startFall(0,1,true);
         else{lat=out*ROAD_HALF;if(vL*out>0)vL=0;}
@@ -29632,6 +30153,7 @@ function loop(now){
       if(TCTL.on&&!TUTO.on&&!(SAVE.d.ast&2)){loop._astV=(loop._astV||0)+dt;if(loop._astV>1){SAVE.d.ast|=2;SAVE.mark(); // ASTUCE (une fois à vie) : l'assiette au pouce
         misBanniere('ASTUCE',TR("En l'air : pouce en HAUT = plonge, en BAS = cabre."),'','eclair');}}
       if(!PARK.on&&portalMesh&&!CAMP.portFerme&&fallPos.distanceToSquared(PORTAL.c)<PORTAL.R*PORTAL.R*.9)portailPasse(); // (2026-09-26) l'ovule traversé EN VOL — du ciel, de côté, d'en dessous
+      else if(PARIS.sol&&(PARIS.heurt=parisHeurt(fallPos))){airPie.style.display='none';try{dolFin();}catch(e){}shake=Math.max(shake,1.2);explode(PARIS.heurt);} // (Paris au sol) une façade, la Seine, le sol
       else if(CITY.col&&villeHeurt(fallPos)){airPie.style.display='none';try{dolFin();}catch(e){}shake=Math.max(shake,1.2);if(PARK.on)parkRespawn();else explode('tour');} // (2026-09-26) DANS UNE TOUR : on meurt
       else if(tryLand(dtF)){airPie.style.display='none';dolFin();} // posé : le total du DAUPHIN se fige et s'encaisse
       else if((fallTR>AIR_MAX&&pwrAirT<=0)||fallPos.y<trackMinY-120){airPie.style.display='none';if(PARK.on)parkRespawn();else explode(fallPos.y<trackMinY-120?'vide':'air');} // FREESTYLE : trop long en l'air ou chute dans le vide = on repart, jamais de mort // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
@@ -30939,7 +31461,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       ot.textContent=TR(SANDBOX?'ENTRAINEMENT TERMINE':(recT?'NOUVEAU RECORD !':'GAME OVER'));
       ot.style.color=recT?'var(--aura)':'var(--neoR)'; // (2026-09-28, charte au complet) l'or est au lingot REJOUER : le record parle la couleur de l'aura
       {const CAUSES={air:"6 S EN L'AIR : POSE-TOI AVANT",vide:'TOMBE DANS LE VIDE',tour:'ENCASTRE DANS UNE TOUR',arret:"6 S A L'ARRET : ROULE OU CREVE",police:'DERNIER DE LA MEUTE',
-         feu:'CRIBLE PAR LA POLICE',seme:"LA CAISSE-NUAGE T'A SEME",finNuages:'LA CAISSE-NUAGE EST A TOI',banquier:"LE BANQUIER T'A BATTU",finVille:'LE LINGOT EST A TOI'}; // (2026-09-27) les fins de la CAMPAGNE
+         feu:'CRIBLE PAR LA POLICE',facade:'ENCASTRE DANS UNE FACADE',seine:'A LA SEINE !',sol:'ECRASE SUR LE PAVE',seme:"LA CAISSE-NUAGE T'A SEME",finNuages:'LA CAISSE-NUAGE EST A TOI',banquier:"LE BANQUIER T'A BATTU",finVille:'LE LINGOT EST A TOI'}; // (2026-09-27) les fins de la CAMPAGNE
        const mc9=$t('mCause'),k9=SANDBOX?'':(CAUSES[mortCause]||'');if(mc9){mc9.textContent=k9?TR(k9):'';mc9.style.display=k9?'':'none';mc9.style.color=(mortCause==='finNuages'||mortCause==='finVille')?'#ffe7a8':'';}}
       if(mortCause==='finNuages'||mortCause==='finVille'){ot.textContent=TR(mortCause==='finVille'?'VILLE TERMINEE':'NUAGES TERMINES');ot.style.color='var(--neoV)';if(mCompteSon._fin!==TCTL.mortT){mCompteSon._fin=TCTL.mortT;setTimeout(function(){try{pixBurst(ot,40);}catch(e){}},700);}} // (2026-09-27) la campagne est FINIE : l'enseigne le dit en or
       mCompteSon(recT);
