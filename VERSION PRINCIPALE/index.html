@@ -3628,6 +3628,88 @@ html #mDead .mStat.mFren b{color:#ff6b78;text-shadow:0 2px 0 var(--txO),0 0 12px
 html #mDead .mStat.mFren.rec b{color:#ffd0d5;text-shadow:0 2px 0 var(--txO),0 0 16px rgba(255,42,61,.8)}
 html #mDead .mStat.mFren.rec span{color:#ff6b78}
 @media (prefers-reduced-motion:reduce){html body #frenChrono.rec{animation:none}}
+/* ---------------------------------------------- 14. « TRIPLE MONSTER » : LE TITRE DE LA FRÉNÉSIE -------------------- */
+/* (JS : frenTitre, FT_G — lettres gothiques au pixel) il CLAQUE au centre du couloir, grésille trois fois comme une enseigne qui
+   s'allume, le sang coule par crans puis ses gouttes tombent, et il s'efface en remontant. Cerné d'encre, auréolé de rouge. */
+#frenTitre{position:fixed;left:50%;top:var(--laneA,34%);z-index:42;display:none;flex-direction:column;align-items:center;gap:6px;pointer-events:none;
+  width:min(92vw,540px,88vh);transform:translate(-50%,-58%);
+  filter:drop-shadow(2px 0 0 #1c0006) drop-shadow(-2px 0 0 #1c0006) drop-shadow(0 2px 0 #1c0006) drop-shadow(0 -2px 0 #1c0006) drop-shadow(0 4px 0 #1c0006) drop-shadow(0 0 18px rgba(255,42,61,.7))}
+#frenTitre.on{display:flex;animation:ftVie 2.7s var(--ease) both}
+#frenTitre svg{display:block;overflow:visible}
+#frenTitre .ftL1{width:60%}
+#frenTitre .ftL2{width:100%;margin-top:-4%}
+#frenTitre .ftFilet{fill:url(#ftSang);transform-box:fill-box;transform-origin:50% 0;transform:scaleY(0)}
+#frenTitre.on .ftFilet{animation:ftCoule 1.3s steps(8) calc(var(--d) + .25s) forwards}
+#frenTitre .ftGoutte{fill:#ff2a3d;opacity:0;transform-box:fill-box}
+#frenTitre.on .ftGoutte{animation:ftGoutte .75s cubic-bezier(.55,0,1,.45) calc(var(--d) + 1.5s) forwards}
+#frenTitre .ftSous{font-family:var(--pix);font-weight:normal;font-size:11px;letter-spacing:.4em;color:#ffd0d5;margin-top:-7%}   /* il remonte entre les filets de sang : sous MONSTER, pas sous ses gouttes */
+@keyframes ftVie{0%{opacity:0;transform:translate(-50%,-58%) scale(1.8)}7%{opacity:1;transform:translate(-50%,-58%) scale(.95)}11%{transform:translate(-50%,-58%) scale(1)}
+  13%{opacity:.25}16%{opacity:1}19%{opacity:.45}22%,86%{opacity:1;transform:translate(-50%,-58%) scale(1)}100%{opacity:0;transform:translate(-50%,-66%) scale(1)}}
+@keyframes ftCoule{to{transform:scaleY(1)}}
+@keyframes ftGoutte{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(9px)}}
+/* pendant qu'il parle, la grande annonce (« FRÉNÉSIE ! ») et le verdict de la pose se taisent : UNE voix au centre */
+body.ftOn #slam9,body.ftOn #verdHud,body.ftOn #lvlBan{visibility:hidden}
+/* l'emblème se pose en même temps : ses écriteaux (chrono, trois traits) attendent que le titre ait fini de parler */
+body.ftOn #frenChrono,body.ftOn #frenTraits{visibility:hidden}
+/* EN PAYSAGE : plus petit et au-dessus de la caisse (pleine taille, il la recouvrait) */
+@media (orientation:landscape) and (max-height:540px){#frenTitre{top:44%;width:min(64vh,420px)}}
+@media (prefers-reduced-motion:reduce){#frenTitre.on{animation:ftVieRM 2.4s linear both}#frenTitre .ftFilet{transform:none}#frenTitre.on .ftFilet,#frenTitre.on .ftGoutte{animation:none}
+  @keyframes ftVieRM{0%{opacity:0}8%,86%{opacity:1}100%{opacity:0}}}
+/* ---------------------------------------------- 15. LE DÉGRADÉ SUR TOUS LES TEXTES DU HUD ---------------------------- */
+/* Sacha : « pas mal — les mêmes effets de dégradé pour tous les textes du HUD ». Deux recettes, une seule main : les GRANDS textes en
+   quatre bandes (lèvre blanche, clair, plein, sombre), les PETITS en deux tons (clair en haut, plein en bas) ; --tc = la couleur du
+   texte ; le contour d'encre passe en drop-shadow. La « lèvre » dessinée à part (::after sur data-t) n'a plus lieu d'être : la bande
+   blanche la remplace. */
+html body :is(#slam9 b,#verdHud b,#lvlNum i,#dolHud .dNom){color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;-webkit-text-stroke:0!important;
+  background:linear-gradient(180deg,#fff 0 12%,color-mix(in srgb,var(--tc) 42%,#fff) 12% 40%,var(--tc) 40% 76%,color-mix(in srgb,var(--tc) 66%,#1c0430) 76%)!important;
+  -webkit-background-clip:text!important;background-clip:text!important;background-size:100% 1lh!important;
+  filter:drop-shadow(3px 0 0 #1c0430) drop-shadow(-3px 0 0 #1c0430) drop-shadow(0 3px 0 #1c0430) drop-shadow(0 -3px 0 #1c0430) drop-shadow(0 6px 0 #1c0430) drop-shadow(0 0 18px color-mix(in srgb,var(--tc) 60%,transparent))}
+html body #slam9 b{--tc:var(--s1,#ffd75e)}
+html body #verdHud b{--tc:var(--vc,#ff5ec8)}
+html body #lvlNum i{--tc:#ffd75e;display:inline-block}
+html body #dolHud .dNom{--tc:var(--dolNom,#9ff3ff)}
+html body #slam9 b::after,html body #verdHud b::after{display:none}
+html body :is(#verdHud .vM,#dolHud .dAura em){color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;
+  background:linear-gradient(180deg,#fff 0 12%,color-mix(in srgb,var(--tc) 42%,#fff) 12% 40%,var(--tc) 40% 76%,color-mix(in srgb,var(--tc) 66%,#1c0430) 76%)!important;
+  -webkit-background-clip:text!important;background-clip:text!important;background-size:100% 1lh!important;filter:var(--contourH) drop-shadow(0 0 12px color-mix(in srgb,var(--tc) 55%,transparent))}
+html body #verdHud .vM{--tc:var(--cash)}
+html body #dolHud .dAura em{--tc:var(--auraRose,#ff7ad5)}
+/* les PETITS textes : deux tons */
+html body :is(#slam9 small,#lvlNom,#auraV2 .avTot em,#avList li,#pwrChip .pw span small,#tSteerHint,#misBan .mbTx small,#coach .coTx b,#campChip b,#campChip small,#tNitro span,#dolHud .dAura small,#frenTraits b,#lvlNom em){
+  color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--tc) 38%,#fff) 0 50%,var(--tc) 50%)!important;-webkit-background-clip:text!important;background-clip:text!important;background-size:100% 1lh!important;
+  filter:var(--contourP)}
+html body #slam9 small{--tc:#ffe9ff}
+html body #lvlNom{--tc:#9fe8ff}
+html body #auraV2 .avTot em{--tc:#e2b6ff}
+html body #avList li{--tc:#e6ddff}
+html body #avList li:first-child{--tc:#ffd75e}
+html body #pwrChip .pw span small{--tc:#ece6ff}
+html body #tSteerHint{--tc:#c9bdf0}
+html body #misBan .mbTx small{--tc:var(--mbC,#62e062)}
+html body #coach .coTx b{--tc:var(--or,#ffd75e)}
+html body #campChip b{--tc:var(--cc,#fff7ee)}
+html body #campChip small{--tc:#c9bdf0}
+html body #tNitro span{--tc:#fff3e0}
+html body #dolHud .dAura small{--tc:#ffd0f0}
+html body #frenTraits b{--tc:var(--frenC,#ffd0d5)}
+html body #lvlNom em{--tc:#ffd75e}
+/* ---------------------------------------------- 16. LA TRIADE : NARCISSE · MACHIAVEL · PSYCHO ----------------------- */
+/* (logique : frenTraitsMaj) trois barres sous le chrono de l'emblème — le nom en deux tons, une jauge fine à diodes rouges ; le trait
+   qui FAIBLIT bat, le trait MORT s'éteint en gris, le trait NOURRI s'illumine */
+html body #frenTraits{gap:4px;left:-6px;right:-6px}
+html body #frenTraits b{letter-spacing:1px;line-height:1.3}
+html body #frenTraits s{height:4px;margin-top:2px;background:#2a0610;box-shadow:0 0 0 1px #1c0006}
+html body #frenTraits s::after{background:linear-gradient(180deg,#ffb3bd 0 1px,var(--fren) 1px);box-shadow:0 0 6px rgba(255,42,61,.8)}
+html body #frenTraits i.mort b{--tc:#9a8aa8}
+/* la frénésie ARMÉE (jauge pleine, en attente d'une figure posée) : la zone rouge bat et toute la bande s'illumine au rythme */
+html body #flowHud.arme .fSeg{animation:hmArme .5s steps(2) infinite}
+@keyframes hmArme{50%{box-shadow:inset 0 0 0 3px #ff2a3d,0 3px 0 #170f55,0 0 16px rgba(255,42,61,.8)}}
+/* EN FRÉNÉSIE, l'emblème porte son chrono et ses trois traits dessous : les POUVOIRS descendent pour ne pas s'y poser (portrait) */
+@media not ((orientation:landscape) and (max-height:540px)){
+  html body.touch.play:has(#triade.on) #pwrChip{top:calc(var(--hudH) + 262px)}
+}
+@media (prefers-reduced-motion:reduce){html body #flowHud.arme .fSeg{animation:none}}
 /* ---------------------------------------------- « RÉDUIRE LES ANIMATIONS » ------------------------------------------- */
 @media (prefers-reduced-motion:reduce){
   html body.touch.play :is(#nitroWrap,#flowHud,#tGear,#auraV2),html body.touch.play #tSteer:not(.used)::after,
@@ -23134,6 +23216,56 @@ window.dbgFren=function(k,n){
     idle:+FLOW.idle.toFixed(2),triade:tr?tr.className:null,hud:FLOW.el?FLOW.el.className:null,
     nit:FLOW.nit,tenue:+FREN.t.toFixed(1),triade:{n:+FREN.tr.n.toFixed(1),m:+FREN.tr.m.toFixed(1),p:+FREN.tr.p.toFixed(1),k:FREN.k},poseA:FLOW.poseA,arme:FREN.arme,record:SAVE.d.frenRec||0,partie:{fren:RUNX.fren|0,max:+(RUNX.frenMax||0).toFixed(1)},nitro:+nitroR.toFixed(2)}; // (v3) le gel du nitro, la tenue, le record
 };
+/* ---- LE TITRE DE LA FRÉNÉSIE : « TRIPLE MONSTER » (2026-09-28, Sacha : « quand on passe en frénésie, ça doit déclencher la voix et
+   l'écriture TRIPLE MONSTER en rouge dégradé, avec une police un peu sataniste, et du sang qui coule du texte »).
+   Les lettres sont GOTHIQUES, dessinées au pixel dans la grille du jeu (cornes en tête, fûts épais, pieds fendus en pointe : la gothique
+   d'une pochette de métal), ombrées en bandes rouges (pâle en tête, sang au pied), cernées d'encre ; du SANG coule de leurs pieds — des
+   filets qui s'allongent par crans, puis une goutte qui se détache. Il naît avec l'emblème DARK TRIAD : un observateur guette
+   `#triade.on` (posé par la logique de la frénésie) — rien à appeler côté jeu. Pendant qu'il parle, la grande annonce et le verdict se
+   taisent (`body.ftOn`). */
+const FT_G={
+  T:['.#.....#.','##.....##','#########','.#######.','...###...','...###...','...###...','...###...','...###...','...###...','...###...','..#####..','.##...##.','.#.....#.'],
+  R:['#........','##.......','#######..','###..###.','###...##.','###..###.','######...','###.##...','###..##..','###..###.','###...##.','###...###','##.....##','#.......#'],
+  I:['#...#','##.##','#####','.###.','.###.','.###.','.###.','.###.','.###.','.###.','.###.','#####','##.##','#...#'],
+  P:['#........','##.......','#######..','###..###.','###...###','###..###.','#######..','###......','###......','###......','###......','####.....','##.......','#........'],
+  L:['#........','##.......','###......','###......','###......','###......','###......','###......','###......','###......','###......','#######.#','##.....##','#.......#'],
+  E:['#......#.','##....##.','########.','###......','###......','###..#...','######...','###..#...','###......','###......','###......','########.','##....##.','#......#.'],
+  M:['#.........#','##.......##','###.#.#.###','###########','###.###.###','###..#..###','###.....###','###.....###','###.....###','###.....###','###.....###','###.....###','##.......##','#.........#'],
+  O:['....#....','...###...','.#######.','###...###','###...###','###...###','###...###','###...###','###...###','###...###','###...###','.#######.','...###...','....#....'],
+  N:['#.......#','##.....##','###...###','####..###','###.#.###','###..####','###...###','###...###','###...###','###...###','###...###','###...###','##.....##','#.......#'],
+  S:['.......#.','.#######.','###...###','###....#.','###......','.######..','..######.','......###','......###','.#....###','###...###','.#######.','.#.......','#........']
+};
+// une ligne de lettres → { d : le chemin SVG (une rangée de cases fusionnée en rectangles), w : largeur en cases, pieds : colonnes où coule le sang }
+function ftLigne(mot){let x=0,d='',pieds=[];
+  for(const ch of mot){if(ch===' '){x+=4;continue;}const g=FT_G[ch];if(!g)continue;const w=g[0].length;
+    for(let y=0;y<g.length;y++){const r=g[y];let a=-1;for(let i=0;i<=w;i++){const on=i<w&&r[i]==='#';if(on&&a<0)a=i;if(!on&&a>=0){d+='M'+(x+a)+' '+y+'h'+(i-a)+'v1h-'+(i-a)+'z';a=-1;}}}
+    const bas=g[g.length-1];for(let i=0;i<w;i++)if(bas[i]==='#')pieds.push(x+i); // le sang coule des POINTES des pieds
+    x+=w+1;}
+  return {d:d,w:x-1,pieds:pieds};}
+function frenTitreEl(){
+  let el=document.getElementById('frenTitre');if(el)return el;
+  el=document.createElement('div');el.id='frenTitre';el.setAttribute('aria-hidden','true');
+  const grad='<defs><linearGradient id="ftGr" x1="0" y1="0" x2="0" y2="14" gradientUnits="userSpaceOnUse">'
+    +'<stop offset=".143" stop-color="#ffe1e4"/><stop offset=".143" stop-color="#ff6a78"/><stop offset=".43" stop-color="#ff6a78"/><stop offset=".43" stop-color="#ff2a3d"/>'
+    +'<stop offset=".71" stop-color="#ff2a3d"/><stop offset=".71" stop-color="#c4001f"/><stop offset=".857" stop-color="#c4001f"/><stop offset=".857" stop-color="#7a0012"/></linearGradient>'
+    +'<linearGradient id="ftSang" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7a0012"/><stop offset=".6" stop-color="#c4001f"/><stop offset="1" stop-color="#ff2a3d"/></linearGradient></defs>';
+  const svg=function(mot,cls,nSang,graine,defs){const L=ftLigne(mot);let s='';
+    // le SANG : quelques pieds tirés (graine fixe : le même dessin à chaque frénésie), un filet de 3 à 9 cases, sa goutte au bout
+    const P=L.pieds.slice();let r=graine;const rnd=function(){r=(r*9301+49297)%233280;return r/233280;};
+    for(let k=0;k<nSang&&P.length;k++){const i=Math.floor(rnd()*P.length),x=P.splice(i,1)[0],l=3+Math.floor(rnd()*7),dl=(.15+rnd()*.5).toFixed(2);
+      s+='<rect class="ftFilet" x="'+x+'" y="14" width="1" height="'+l+'" style="--d:'+dl+'s"/><rect class="ftGoutte" x="'+(x-.15)+'" y="'+(14+l-.2)+'" width="1.3" height="1.3" style="--d:'+dl+'s"/>';}
+    return '<svg class="'+cls+'" viewBox="-1 -1 '+(L.w+2)+' 27" preserveAspectRatio="xMidYMin meet" shape-rendering="crispEdges">'+(defs?grad:'')
+      +'<path class="ftLettres" d="'+L.d+'" fill="url(#ftGr)"/>'+s+'</svg>';};
+  el.innerHTML=svg('TRIPLE','ftL1',4,7,true)+svg('MONSTER','ftL2',8,11,false)+'<b class="ftSous">'+sansAcc(TR('FRÉNÉSIE'))+'</b>';
+  document.body.appendChild(el);return el;}
+function frenTitre(){ try{
+  const el=frenTitreEl();el.classList.remove('on');void el.offsetWidth;el.classList.add('on');
+  document.body.classList.add('ftOn');clearTimeout(frenTitre._t);
+  frenTitre._t=setTimeout(function(){el.classList.remove('on');document.body.classList.remove('ftOn');},2700);
+}catch(e){} }
+(function(){const tr=document.getElementById('triade');if(!tr||!window.MutationObserver)return;let av=tr.classList.contains('on');
+  new MutationObserver(function(){const on=tr.classList.contains('on');if(on&&!av)frenTitre();av=on;}).observe(tr,{attributes:true,attributeFilter:['class']});})();
+window.dbgFrenTitre=function(){frenTitre();return 'ok';}; // banc : le titre seul, sans passer par la frénésie
 function avGainPop(petit,grand,perdu){
   const g=avE('avGain');if(!g)return;
   g.innerHTML='<small>'+sansAcc(petit).replace(/[<>&]/g,'')+'</small>'+grand;g.classList.toggle('perdu',!!perdu);
