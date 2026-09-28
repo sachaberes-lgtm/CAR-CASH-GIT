@@ -143,7 +143,11 @@ QUE pour les NUAGES (`c.camp&&c.id==='nuages'`) — la ville garde zéro nuage (
 - Forçages de test : `?tel=1` (téléphone) / `?pc=1` (menu desktop), quelle que soit l'édition.
 - **LA COLONNE DE L'ORDI (2026-09-28, Sacha : « la disposition des affichages PC et mobile vertical doit être EXACTEMENT la
   même »)** — puis « je voulais la version horizontale sur PC, pardon » (une heure en option), puis, TRANCHÉ : « je veux voir sur
-  mon PC la même chose que je verrais sur mon téléphone quand il sera en vertical » → la colonne est LE DÉFAUT sur l'ordi. `const EDITION` a DÉMÉNAGÉ dans le `<head>` (toujours une seule occurrence : la synchro marche telle quelle), à
+  mon PC la même chose que je verrais sur mon téléphone quand il sera en vertical », et enfin, LE MOT DE LA FIN : « non,
+  justement, je veux voir la version HORIZONTALE DU MOBILE sur mon PC » → le cadre est LE DÉFAUT sur l'ordi, et il est COUCHÉ :
+  **844 × 390** (l'iPhone de référence en paysage), zoomé à la largeur (1600×900 → 1600×739, dpr 1,90 ; dedans innerWidth 844,
+  la mise en page paysage d'un vrai téléphone). `?colonne=portrait` = le téléphone DEBOUT (390 × 844). Le détail qui suit décrit
+  la mécanique (identique dans les deux sens ; la taille du cadre est posée par le script, classes `couche`/`debout`). `const EDITION` a DÉMÉNAGÉ dans le `<head>` (toujours une seule occurrence : la synchro marche telle quelle), à
   côté d'un aiguillage : édition 'mobile' + page principale (`window.top===window`) + écran qui n'est PAS un téléphone (même
   test que TEL_NATIF) + ni `?pc=1` ni `?colonne=0` → la page devient un CADRE (`html.colonne`, `CC_COLONNE`, tout le document
   masqué, le grand script s'arrête à sa 1re ligne, `__gameReady` posé pour le chien de garde) et le jeu tourne dans
