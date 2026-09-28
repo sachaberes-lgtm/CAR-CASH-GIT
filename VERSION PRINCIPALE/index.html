@@ -3478,6 +3478,25 @@ html[data-reduced-motion="1"] #mHome .pb-gold,html[data-reduced-motion="1"] #mHo
 #mDead .mMenu{--nc:var(--tx2);flex:none;flex-direction:column;gap:8px;width:86px;min-height:0;padding:8px 4px 6px 10px;font-size:var(--f1);letter-spacing:1px}
 #mDead .mMenu .pxi{--pxs:3;color:var(--tx2)}
 @media (max-width:360px){#mDead .mMenu{width:72px}#mDead .mFin{gap:10px}}
+/* ---- 20. L'ÉCRAN DE MORT, FINI (2026-09-28, Sacha : « plein de choses sont mal gérées ici, rends ça parfait ») ------------------------
+   MESURÉ en capture (844×390, le cadre de l'ordi) : l'aura « +40 498 » passait sur DEUX lignes ; les deux cartes héros (280 px de haut)
+   gardaient tout en haut et une moitié vide en bas ; « RECORD : STATOREACTEUR » se cassait ; « GAME OVER » et sa cause étaient séparés
+   par un trou (la rangée de l'objectif, à côté, les écartait) ; « 0:00 FRENESIE » criait en rouge une absence ; « MENTHE » ne disait pas
+   ce qu'on achetait, et son ruban flottait seul. */
+.hCard{container-type:inline-size}               /* le chiffre de l'aura se mesure à SA carte (unités cqi) */
+html #mDead .hCard.hAura>b{white-space:nowrap;font-size:min(var(--f7),calc((100cqi - 18px) / var(--n,6)))} /* une ligne, toujours : la police pixel a des chasses de 1 em */
+html #mDead .mStat.mFren.zero b{color:var(--tx3);text-shadow:0 2px 0 var(--txO)} /* pas de frénésie : une case éteinte, pas une alarme */
+.obBig .obCat{margin-right:10px;font-size:var(--f0);letter-spacing:2px;color:var(--tx3);text-shadow:none;vertical-align:middle}
+.obFig .obRub+.pxi{--pxs:2;margin-left:-3px;color:var(--tx)}  /* le ruban part d'une caisse */
+.hBar.hMax u{background:linear-gradient(90deg,var(--au2,#ffb000),var(--au1,#ffd75e));box-shadow:0 0 10px rgba(255,215,94,.55)} /* le rang maximum : la jauge pleine est d'OR */
+@media (orientation:landscape) and (max-height:540px){
+  html #mDead .mOver{align-self:end}             /* le verdict et sa cause se tiennent (la rangée de l'objectif les écartait) */
+  html #mDead .mCause{align-self:start}
+  html #mDead .hCard{justify-content:flex-start;gap:8px}
+  html #mDead .hMot3 .hMotCv{width:100%;margin:-6% 0 -4%}
+}
+html #mDead .hCard>small{margin-bottom:auto}     /* l'étiquette reste en tête des deux cartes (même hauteur), le reste se CENTRE dessous — */
+html #mDead .hCard>:last-child{margin-bottom:auto} /* plus de moitié vide en bas de la carte AURA */
 
 /* L'ÉCRAN DES MISSIONS — 1. LA RÉCOMPENSE : une plaque qu'on lit, livrée verte en tête, la vignette sur son socle de lumière */
 #mMis .mHead{margin-bottom:12px}
@@ -17345,7 +17364,7 @@ function objFig(o){ try{
   if(o.car!=null){const ph=carPhoto(o.car);return '<i class="obFig">'+(ph?'<img src="'+ph+'" alt="">':pxi('voiture'))+'</i>';}
   const d=COSM[o.cat]&&COSM[o.cat][o.i];if(!d)return '';
   if(o.cat==='peinture')return '<i class="obFig"><b class="obSw'+(d.g==='c'?' chrome':d.g==='o'?' or':'')+'" style="background:'+(d.grad?'linear-gradient(160deg,'+d.grad.map(hx9).join(',')+')':hx9(d.c||0))+'"></b></i>';
-  if(o.cat==='trainee')return '<i class="obFig"><b class="obRub" style="color:'+(d.rgb?rg9(d.rgb):'#ff8a24')+';background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,transparent,'+(d.rgb?rg9(d.rgb):'#ff6a14')+' 35%,#fff 100%)')+'"></b></i>';
+  if(o.cat==='trainee')return '<i class="obFig"><b class="obRub" style="color:'+(d.rgb?rg9(d.rgb):'#ff8a24')+';background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,transparent,'+(d.rgb?rg9(d.rgb):'#ff6a14')+' 35%,#fff 100%)')+'"></b>'+pxi('voiture')+'</i>'; // (2026-09-28) le ruban part d'une caisse : sans elle, une barre qui flotte
   return '<i class="obFig">'+pxi('aile')+'</i>';
 }catch(e){return '';} }
 let MIS_REC=null; // la récompense du carnet refermé à cette fin de partie (null sinon)
@@ -17363,7 +17382,7 @@ function objRender(el){
   if(!o){el.className='mObj';el.removeAttribute('data-m');el.innerHTML='<div class="obHd"><span>'+TR('COMPTE')+'</span><b>'+fmtC(b1)+'</b></div>';return;}
   if(b1>=o.prix){
     el.className='mObj pret aFig';el.setAttribute('data-m','buyGoal');
-    el.innerHTML=objFig(o)+'<div class="obHd"><span>'+pxi('etoile')+' '+TR('TU PEUX TE L\'OFFRIR')+'</span></div><div class="obBig">'+TR(o.nom)+'</div>'
+    el.innerHTML=objFig(o)+'<div class="obHd"><span>'+pxi('etoile')+' '+TR('TU PEUX TE L\'OFFRIR')+'</span></div><div class="obBig">'+(o.car==null&&SHOP_LBL[o.cat]?'<small class="obCat">'+TR(SHOP_LBL[o.cat])+'</small>':'')+TR(o.nom)+'</div>' // (2026-09-28) « MENTHE » seul ne disait pas qu'on achète une TRAÎNÉE
       +'<div class="obFt"><span>'+fmtC(o.prix)+'</span><span>'+TR('ACHETER')+' '+pxi('droite')+'</span></div>';
     return;}
   el.className='mObj';el.removeAttribute('data-m');
@@ -30741,11 +30760,12 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
         const ea=RUNX.engAvant|0,nx=ENGINE_TIERS[engTier+1],mq=nx?nx.coins-coinsGot:0,
               pr=!!nx&&mq>0&&engTier+1>ea&&mq<=Math.max(3,Math.ceil((nx.coins-E.coins)*.3)),
               ci=!eN&&ea>engTier?ENGINE_TIERS[ea]:null,an=auraNext(),a1=SAVE.d.aura||0,bas=AURA_RANKS[auraRank()].v;
-        if(h){h.innerHTML='<div class="hCard hAura"><small>'+TR('AURA')+'</small><b id="mAuraV">+0</b><span>'+pxi('etoile')+' '+auraRankName()+'</span>'+(rg?'<em>'+TR('NOUVEAU RANG !')+'</em>':(recA?'<em>'+TR('RECORD !')+'</em>':''))
-            +(an?'<div class="hNx">'+TR('ENCORE')+' '+fA(an.reste)+' · '+TR(an.n)+'</div><div class="hBar"><u id="mAuraB"></u></div>':'')+'</div>'
+        if(h){h.innerHTML='<div class="hCard hAura"><small>'+TR('AURA')+'</small><b id="mAuraV" style="--n:'+(('+'+fA(au)).length)+'">+0</b><span>'+pxi('etoile')+' '+auraRankName()+'</span>'+(rg?'<em>'+TR('NOUVEAU RANG !')+'</em>':(recA?'<em>'+TR('RECORD !')+'</em>':''))
+            +(an?'<div class="hNx"><span>'+TR('ENCORE')+' '+fA(an.reste)+'</span><span>'+pxi('droite')+' '+TR(an.n)+'</span></div><div class="hBar"><u id="mAuraB"></u></div>' // (2026-09-28) deux morceaux : sur deux lignes, plus de « · » orphelin en bout de ligne
+                :'<div class="hNx">'+TR('TOTAL')+' '+fA(a1)+'</div><div class="hBar hMax"><u style="width:100%"></u></div>')+'</div>' // (2026-09-28) au RANG MAXIMUM la carte n'avait plus rien sous le nom : le total de toute ta carrière, sur une jauge pleine
           +'<div class="hCard hMot hMot3" style="--ec:'+hx+'"><small>'+TR('MOTEUR')+'</small><canvas class="hMotCv" width="480" height="321"></canvas>'
             +'<div class="hMotN"><i>'+TR('PALIER')+'</i>'+(engTier+1)+'</div>'+(eN?'<em>'+TR('RECORD !')+'</em>':'')
-            +(pr?'<div class="hNx hPres">'+TR('PLUS QUE')+' '+mq+' '+TR(mq>1?'PIÈCES':'PIÈCE')+' · '+TR(nx.n)+'</div>':ci?'<div class="hNx">'+TR('RECORD')+' : '+TR(ci.n)+'</div>':'')+'</div>';
+            +(pr?'<div class="hNx hPres">'+TR('PLUS QUE')+' '+mq+' '+TR(mq>1?'PIÈCES':'PIÈCE')+' · '+TR(nx.n)+'</div>':ci?'<div class="hNx hRec">'+TR('RECORD')+' · '+TR('PALIER')+' '+(ea+1)+'</div>':'')+'</div>'; // (2026-09-28) « RECORD · PALIER 18 » : le nom du moteur (STATOREACTEUR) cassait la ligne ; la carte parle déjà en paliers
           {const cv9=h.querySelector('.hMotCv');ENG_MORT.cv=cv9;ENG_MORT.ctx=cv9?cv9.getContext('2d'):null;} // le moteur 3D y tourne (engVigRender)
           countUp($t('mAuraV'),au,function(v){return '+'+fA(v);});
           if(an){const u=$t('mAuraB'),D=Math.max(1,an.seuil-bas),w1=Math.min(100,(a1-bas)/D*100),w0=rg?0:Math.max(0,(a1-au-bas)/D*100);
@@ -30753,7 +30773,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       }
       $t('mStatsBox').innerHTML=mStatBox('×'+Math.max(1,runStats.xMax|0),TR('CHAINE MAX'))+ /* (2026-09-26) « 0 FIGURES » à côté de « +820 AURA » : le compteur ne voyait que l'ancienne chaîne en $ */mStatBox(Math.round(runStats.vmax),'KM/H MAX')+mStatBox(LVL.cur&&LVL.cur.carr?LVL.n:runStats.zones+1,TR('NIVEAU')) // (2026-09-27) en carrière : le VRAI numéro du niveau
         // (v3) la plus longue FRÉNÉSIE de la partie — .rec quand elle a battu le record (le style : session UI)
-        +(function(){const t9=RUNX.frenMax||0,rc=t9>=5&&t9>=(SAVE.d.frenRec||0)-.05;return '<div class="mStat mFren'+(rc?' rec':'')+'"><b>'+frenDuree(t9)+'</b><span>'+TR(rc?'RECORD':'FRENESIE')+'</span></div>';})();
+        +(function(){const t9=RUNX.frenMax||0,rc=t9>=5&&t9>=(SAVE.d.frenRec||0)-.05;return '<div class="mStat mFren'+(rc?' rec':'')+(t9<1?' zero':'')+'"><b>'+frenDuree(t9)+'</b><span>'+TR(rc?'RECORD':'FRENESIE')+'</span></div>';})();
       objRender($t('mObj'));
     }else if(mCur==='shop'){
       if(!SAVE.d.shopVu){SAVE.d.shopVu=1;SAVE.flush();}
