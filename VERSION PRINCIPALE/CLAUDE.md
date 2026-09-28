@@ -189,6 +189,11 @@ MÊME image figée (bancs : scratchpad de la session f71fd2a2, `gfx/abx.js`, `gf
   · Traversé, un nuage de coton s'efface autour de l'objectif (fondu 10-40 m, `NUAGE_INST` dans nuageShader) au lieu de claquer.
     Programme `nuageV3coton` compilé au menu (nuageChauffe → cotonInit) : 0 en course (mesuré). Hook `dbgCoton()`. Bancs `gfx/coton.js`
     (sol, vol, vues larges), `gfx/info.js` (triangles/appels A/B), `gfx/ssnu.js` (coût des nuages en rendu logiciel, A/B), `gfx/menu.js`.
+  · (même nuit) FINESSE À L'ÉCRAN : 4 gabarits par forme (7×5 · 10×7 · 16×11 · 22×15), choisis par la taille d'une facette à l'écran
+    (segments ≥ 73·R/d) — les titans vus de l'accueil montraient leurs facettes. Lots vides = aucun appel. `dbgCoton('max')` = le plus gros.
+- **L'ABÎME BLEU** (Sacha : « le sol du niveau nuages tout bleu, sans motif de nuages dessus ») : sous l'horizon des NUAGES, la mer peinte
+  (`merNuages`) devient un bleu uni du biome qui s'approfondit vers le bas ; les nappes plates `sea` ne sont plus posées aux NUAGES
+  (lvlNuageOk, campagne comprise). Les cumulus du ciel de coton flottent dessus. `MER_MOTIF=true` rend l'ancienne mer.
 - **Écarté après captures** : « le monde dans la laque » (le décor du niveau — mer de nuages, mur de tours éclairées — peint dans le cube
   des carrosseries) : INVISIBLE depuis la caméra de poursuite (on voit l'arrière des caisses de face, le vernis n'y renvoie que ~6 %).
 
