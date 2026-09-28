@@ -4216,6 +4216,10 @@ html body #frenTraits b{display:none!important}
 html body #frenTraits s{height:5px!important;margin:0!important;padding:1px;box-sizing:border-box;background:var(--jFond)!important;box-shadow:0 0 0 1px var(--jEncre),0 2px 0 var(--jEncre)!important}
 html body #frenTraits s::after{background:linear-gradient(var(--bandes4),#ffb3bd 0 1px,var(--fren) 1px)!important;box-shadow:none!important}
 html body #frenTraits i.mort{opacity:.3}
+/* (2026-09-28, Sacha : « enlève les mots psychopathe, narcissique et machiavéliste ») LES NOMS DES TRAITS QUITTENT L'ÉCRAN : les étiquettes
+   +NARCISSE / -PSYCHO / +MACHIAVEL de la ligne du flow ne s'affichent plus (flowTag continue de compter, rien n'est retiré de la logique) ;
+   sous l'emblème, les trois barrettes étaient déjà sans nom. */
+html body #flowHud .fT{display:none!important}
 /* ---- 6. L'ASTUCE / LE DÉFI (#misBan) NE SE POSE PLUS SUR LES POUVOIRS (portrait) : centrée, elle couvrait la colonne de droite (plaques
    NITRO MAX, AIR MAX…). Tant qu'une plaque de pouvoir est affichée, elle se range à GAUCHE et s'arrête avant la colonne. ---- */
 @media not ((orientation:landscape) and (max-height:540px)){

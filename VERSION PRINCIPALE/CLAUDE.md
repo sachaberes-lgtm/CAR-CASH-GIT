@@ -127,6 +127,9 @@ d'AURA (police pixel en bandes, cernée d'encre). Ce qui se TOUCHE = plaque PENC
 - **LOT 2** : le métal du moteur de la carte est TEINTÉ à la couleur néon du palier (`engCarteMat.color` = blanc → néon à 42 %, `ENG_TEINTE`) —
   il sortait blanc rosé sur tous les ciels ; `engRim` 1,5 ; nom de plus de 12 caractères un corps plus bas (`#engBig.long`) · l'ASTUCE / le DÉFI
   (`#misBan`) se range à GAUCHE tant qu'une plaque de pouvoir est affichée (portrait) : centrée, elle couvrait NITRO MAX / VITESSE ×2 (section 6).
+- **LES NOMS DES TRAITS QUITTENT L'ÉCRAN** (Sacha : « enlève les mots psychopathe, narcissique et machiavéliste ») : les étiquettes
+  +NARCISSE / -PSYCHO / +MACHIAVEL de la ligne du flow sont masquées (`#flowHud .fT{display:none}` dans hudDA) ; `flowTag` compte
+  toujours (aucune logique retirée). Les barrettes sous l'emblème étaient déjà sans nom. Seuls des COMMENTAIRES gardent ces mots.
 - Bancs (scratchpad session UHD) : `run.js <pfx> <étapes.js> [w] [h]` (DSF, LG), `st-eng2.js` (film de la carte), `st-fren.js`, `st-det.js`
   (états du bouton), `st-pay.js` (paysage), `attente.sh` (attend qu'aucun banc voisin ne tourne).
 
