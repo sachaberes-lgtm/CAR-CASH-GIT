@@ -3966,6 +3966,7 @@ html[data-reduced-motion="1"] body.touch #airPie,html[data-reduced-motion="1"] b
           <b id="mvCtl" hidden></b><!-- (COMMANDES retiré des réglages : user, 2026-09-25 — un seul schéma, le volant) -->
           <div class="mLigne" data-m="q"><i class="pxi pxi-eclair" aria-hidden="true"></i><span class="tpL">IMAGE</span><b id="mvQ" class="valeur">RAPIDE</b></div>
           <div class="mLigne" data-m="lang"><i class="pxi pxi-bulle" aria-hidden="true"></i><span class="tpL">LANGUE</span><b id="mvLang" class="valeur">FR</b></div>
+          <div class="mLigne" data-m="vib"><i class="pxi pxi-pouce" aria-hidden="true"></i><span class="tpL">VIBRATIONS</span><b id="mvVib" class="bascule">ON</b></div><!-- (2026-09-28) la charte, règle 8 : SON et VIBRATIONS sont deux interrupteurs -->
           <div class="mLigne lien" data-m="tuto"><i class="pxi pxi-volant" aria-hidden="true"></i><span class="tpL">REVOIR L'AUTO-ECOLE</span></div>
         </div>
         <div class="mSec">SAUVEGARDE</div>
@@ -8757,6 +8758,7 @@ Object.assign(I18N,{"Une pâtisserie industrielle avec une tête de chat et quat
 Object.assign(I18N_ZH,{"MINI-TURBO": "迷你涡轮", "SUPER TURBO": "超级涡轮", "ULTRA TURBO": "极限涡轮"});
 Object.assign(I18N,{"RASE-BORD": "EDGE RIDER"});Object.assign(I18N_ZH,{"RASE-BORD": "贴边疾驰"});
 // (2026-09-28, chasse aux détails) les figures les plus fréquentes restaient en français en anglais (au-dessus de la caisse et dans la liste de chaîne)
+Object.assign(I18N,{'VIBRATIONS':'VIBRATION'});Object.assign(I18N_ZH,{'VIBRATIONS':'震动'});
 Object.assign(I18N,{'AIR MONSTRE':'MONSTER AIR','DAUPHIN EN VOL':'DOLPHIN RUN','POSE PARFAITE':'PERFECT LANDING','POSE DIVINE':'DIVINE LANDING','IMPACT METEORE':'METEOR IMPACT'});
 Object.assign(I18N_ZH,{'AIR MONSTRE':'怪兽腾空','DAUPHIN EN VOL':'海豚飞行','POSE PARFAITE':'完美着陆','POSE DIVINE':'神级着陆','IMPACT METEORE':'流星撞击'});
 Object.assign(I18N,{"FRÉNÉSIE": "FRENZY", "FRÉNÉSIE !": "FRENZY!", "RESTE DANS LE ROUGE": "STAY IN THE RED", "PLUS VITE !": "FASTER!", "RISQUE + VITESSE": "RISK + SPEED"});Object.assign(I18N_ZH,{"FRÉNÉSIE": "狂热", "FRÉNÉSIE !": "狂热！", "RESTE DANS LE ROUGE": "守住红区"});
@@ -22131,7 +22133,7 @@ function annStop(){
   ANN.queue=null;ANN.duck=false;
 }
 // ---------- MUTE : deux interrupteurs persistants — SON (tout le WebAudio) et VOIX (annonceur) ----------
-const SND={sfx:true,voice:true,music:true};
+const SND={sfx:true,voice:true,music:true,vib:true};
 // ---------- SAVE : UNE clé versionnée ('cashcarSave'), migration douce depuis rrXxx5 ----------
 // Toute la persistance passe par ici : SAVE.d vit en mémoire, flush() écrit tout d'un bloc,
 // mark() note un changement (le filet des 30 s l'écrira). Les anciennes clés rrXxx5 sont lues
@@ -22175,7 +22177,7 @@ const SAVE={
     if(Array.isArray(d.leaders))c.leaders=d.leaders
       .filter(e=>e&&typeof e.n==='string'&&isFinite(+e.s))
       .slice(0,10).map(e=>({n:e.n.slice(0,8),s:Math.max(0,Math.round(+e.s))}));
-    c.sfx=d.sfx!==false;c.vox=d.vox!==false;c.mus=d.mus!==false;
+    c.sfx=d.sfx!==false;c.vox=d.vox!==false;c.mus=d.mus!==false;c.vib=d.vib!==false; // (2026-09-28) VIBRATIONS : leur propre interrupteur
     /* ⚠ LES VOLUMES SONT BORNÉS À [0,1], ET C'EST UNE VRAIE PROTECTION, pas une formalité : ces
        nombres partent DIRECTEMENT dans un GainNode et dans `HTMLAudio.volume`. Un NaN venu d'un
        storage rongé rend tout le graphe WebAudio silencieux sans lever la moindre erreur ; une
@@ -22282,7 +22284,7 @@ if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferen
 }
 SAVE.load();
 setInterval(()=>{if(SAVE.dirty)SAVE.flush();},30000); // le filet : rien ne se perd plus de 30 s
-SND.sfx=SAVE.d.sfx;SND.voice=SAVE.d.vox;SND.music=SAVE.d.mus;
+SND.sfx=SAVE.d.sfx;SND.voice=SAVE.d.vox;SND.music=SAVE.d.mus;SND.vib=SAVE.d.vib!==false;
 VOL.mus=SAVE.d.vol.mus;VOL.sfx=SAVE.d.vol.sfx;VOL.vox=SAVE.d.vol.vox;
 /* ---- LES CURSEURS : appliquer au graphe · repeindre les deux interfaces · retenir --------------
    ⚠ `volApply` ne touche QUE ce qui n'est pas déjà repiloté chaque image. La musique en course est
@@ -22354,13 +22356,13 @@ let AUTO_GAS=false; // mobile : accélération auto (le doigt sert à tourner et
 // le même `keys` et le même `steer` que le clavier — aucune équation n'est réécrite pour le doigt.
 const TCTL={on:false,pad:false,act:false,st:0,sv:0,id:null,ox:0,oy:0,play:null,dead:null,ov:null,airTip:false};
 let SANDBOX=false; // BAC À SABLE : la caisse se replace au lieu de mourir — on s'entraîne, rien n'est enregistré
-// HAPTIQUE : suit l'interrupteur SON (couper le son coupe aussi les vibrations — c'est le même geste)
+// HAPTIQUE : son propre interrupteur depuis le 2026-09-28 (avant, couper le SON coupait aussi les vibrations)
 /* LES VIBRATIONS (2026-09-25) — ⚠ iOS N'A PAS `navigator.vibrate` : sur iPhone, AUCUNE des vibrations du jeu ne
    partait. Sous Capacitor on passe par le Taptic Engine (plugin Haptics) : un motif `navigator.vibrate` est traduit
    en impacts — une impulsion courte = LÉGÈRE, moyenne = MOYENNE, longue = LOURDE, et un motif [on,off,on…] rejoue
    chaque impulsion à son heure. Hors app (navigateur Android), le vibreur d'origine reste la voie. */
 function hap(p){
-  if(!TCTL.on||!SND.sfx)return;
+  if(!TCTL.on||!SND.vib)return; // (2026-09-28) son interrupteur à lui (réglages › VIBRATIONS) : beaucoup jouent son coupé et gardent le retour haptique
   const H=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Haptics;
   if(H){try{
     const L=Array.isArray(p)?p:[p];let at=0;
@@ -30345,6 +30347,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       sv('mvSnd',SND.sfx?'ON':'OFF',SND.sfx);
       sv('mvMus',SND.music?'ON':'OFF',SND.music);
       sv('mvVox',SND.voice?'ON':'OFF',SND.voice);
+      sv('mvVib',SND.vib?'ON':'OFF',SND.vib);
       sv('mvCtl',TR(TCTL.pad?'FLECHES':'VOLANT'),true);
       sv('mvQ',TR(SAVE.d.q==='net'?'NETTE':'RAPIDE'),true);
       sv('mvLang',LANG.toUpperCase(),true);
@@ -30374,6 +30377,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='snd'){ clic(sndBtnEl); uiClic(); mFill(); } // (2026-09-28) cliqué AVANT la bascule, le clic tombait sur SND.sfx encore faux : RALLUMER le son était muet et sans vibration (couper, lui, se tait — c'est juste)
     else if(a==='mus'){ clic(musBtnEl); mFill(); }
     else if(a==='vox'){ clic(voxBtnEl); mFill(); }
+    else if(a==='vib'){ SND.vib=!SND.vib; SAVE.d.vib=SND.vib; SAVE.flush(); if(SND.vib)hap(14); mFill(); } // rallumées : elles se présentent d'une impulsion
     else if(a==='lang'){ langNext(); applyLangDOM(); mFill(); }
     else if(a==='ctl'){ TCTL.pad=!TCTL.pad; TCTL.act=false; TCTL.id=null; TCTL.st=0; TCTL.sv=0;
       keys.ArrowLeft=keys.ArrowRight=false; document.body.classList.toggle('tpad',TCTL.pad);
