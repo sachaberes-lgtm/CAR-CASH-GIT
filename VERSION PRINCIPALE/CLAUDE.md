@@ -113,8 +113,9 @@ simplifiée » (voir cette section plus bas). Banc muet `gp.js` / `sf.js` (scrat
   · **b BOUCLIER** (acier, 20 s) : `bouclierSauve(cause)` en tête d'`explode` — vide, vol trop long, tour → la caisse retombe sur sa dernière
     ligne sûre (`respawn`), la chaîne d'ARGENT du vol est perdue, l'aura, le flow et la partie continuent ; jamais pour une mort de RÈGLE
     (police, feu, arrêt). Sous bouclier, une chute « perdue d'avance » depuis 2,2 s (`MIR.t`) est rattrapée tout de suite. Tant qu'il tient :
-    plots démolis sans rien coûter (`pwrDemoli` : « DÉMOLI ×n », aura, nitro), l'huile ne mord pas ; bulle additive sur la caisse (`pwrHalo`,
-    sprite `lampTex`, zéro compilation) qui bat les 3 dernières secondes. MESURÉ : chute sauvée, la 2e chute sans bouclier tue.
+    plots démolis sans rien coûter (`pwrDemoli` : « DÉMOLI ×n », aura, nitro), l'huile ne mord pas ; un CHAMP DE FORCE qui grésille
+    (`pwrHalo` : étincelles `sparkBlue` nées sur une coque autour de la carrosserie, en tangente, deux fois plus serrées les 3 dernières
+    secondes). ⚠ La bulle en sprite a été essayée : invisible derrière la caisse, et plus forte c'était une TACHE RONDE (verdict du 25/09). MESURÉ : chute sauvée, la 2e chute sans bouclier tue.
   · **x AURA ×2** (or, 12 s) : `chaineAura` et `addAura` ×2.
 - **CUMUL** : le même pouvoir repris AJOUTE sa durée (plafond 2 × `t`, plaque `.cumul`) ; deux pouvoirs actifs = « DOUBLE POUVOIR ! »
   (+70 aura), trois = « TRIPLE POUVOIR ! » (+150). Trois plaques et plus se serrent (`#pwrChip.pw3`, bloc `<style id="pouvoirsV2">`).
