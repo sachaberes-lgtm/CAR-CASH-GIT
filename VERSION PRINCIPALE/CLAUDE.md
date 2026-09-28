@@ -536,6 +536,23 @@ adaptative descendait EN PREMIER. Cinq lots (branches perf-ciel/-post/-cpu/-pist
   à ce pixel — lampe de couleur nulle, hors de portée, phare hors cône, directionnelle dos à la face (le soleil et ses 16 lectures d'ombre
   compris) : exact. `dbgBitume(false,false)` = l'ancien bitume. ⚠ Relevé : `stallKey`/`stallRim` (lampes de l'étal/atelier) passent
   visible → 10 lumières ponctuelles au lieu de 8 : ~30 programmes recompilés en entrant au garage puis au départ (voir la chasse aux gels).
+  · **VILLE tour 2** (bloc « LA VILLE NE TRAVAILLE PLUS POUR RIEN » avant `villeMatTours`) : MESURÉ, la ville coûtait ~25 % de l'image en
+  VILLE et les DEUX TIERS n'étaient pas des pixels (fenêtre de rendu d'1 pixel : encore 2/3 du coût) — 5 000 volumes × 24 sommets éclairés
+  AU SOMMET par ~13 lumières, dont 75-80 % entièrement au-delà du brouillard. Désormais : QUARTIERS de 320 m (`villeTri`, chaîné sur
+  `scene.onBeforeRender`) jugés à chaque rendu — hors champ = pas dessinés · entièrement au-delà de `fogFar` = matière NUE
+  (`villeMatToursLoin`/`villeMatNeonLoin` : fogColor + pied noyé + pluie, zéro lumière, 4 interpolants au lieu de 24) · sinon complète ;
+  tampons mis à jour par AJOUTS au bout / EFFACEMENTS repliés, ménage quand les restes dépassent 30 % (tout ranger à chaque changement
+  remontait les tampons 40-115 fois/s). Au sommet `VILLE_TRI` (boîte hors champ repliée en un point, au-delà du brouillard sans lumière)
+  et la PORTÉE DES LAMPES (`villeLampes` → `uLum9`, 4 sphères : les boucles ponctuelles/spots sautées là où leur apport est nul) ; au
+  pixel, fenêtres/liserés/enseignes/pied/pluie seulement là où ils peignent (dérivées AVANT les branches) ; `USE_SHADOWMAP` retiré (la
+  ville ne reçoit pas d'ombre). 5 appels de rendu au lieu de 3, +2 programmes au menu, 0 en course. Rendu logiciel, A/B dans la même page :
+  ville −30 % au sol, −47 % en vol (sommets −57/−83 %) ; le reste est le PIXEL des tours proches (les `if` n'y sautent rien en logiciel —
+  sur la puce, oui là où c'est cohérent). A/B au pixel (`dbgVilleAncien(true)` = l'ancien chemin) : 0 à quelques pixels d'ARÊTE (une arête
+  rastérisée au bit près autrement). ⚠ Une matière de ville nouvelle passe par `villeChauffe`, dans l'ordre TOURS puis NÉONS (three trie
+  les opaques par programme : le dessus d'une couronne est au ras du toit, à égalité c'est le néon qui gagne) ; ⚠ les quartiers se
+  choisissent par TOUR (`tqC`/`tqN`) : ses pièces restent ensemble et dans leur ordre (égalités de profondeur aux croisements).
+  `dbgCity()` = tri, ménages, envois ; `dbgVilleTri({lum,avAr,H,M,G,K})`. Bancs : scratchpad `ville2/` (m2 A/B+chrono, m6/m10 diff
+  multi-vues, m7 GPU amplifié, churn, valide).
   · **Rendu logiciel = proxy du coût par pixel** : le même banc sous SwiftShader (`--use-angle=swiftshader`, ~11 min) classe les postes
   comme une puce saturée : ciel ~38 %, piste 20-50 %, post ~20 %, ville ~25 % en VILLE, ombres 3-12 %, résolution 1,25 = −23 %.
 - **Écarté après mesure** : moins de mips de bloom (halo changé), RT 8 bits (banding), LOD de piste en deçà du brouillard (grain),
