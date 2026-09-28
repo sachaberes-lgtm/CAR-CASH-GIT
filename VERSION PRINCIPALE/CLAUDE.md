@@ -398,12 +398,31 @@ dans UN bloc en fin de `<style id="charte4">` (« LA CHARTE AU COMPLET », secti
   (`#campChip`) = la plaque du HUD. (9) Colonne de droite FIXE : case du chrono de vol réservée (hudH+96), objectif de campagne à hudH+184,
   pouvoirs à hudH+184 (+248 en campagne) — ils sautaient de 88 px à chaque décollage ; en campagne le couloir `--laneA` descend (384 px).
   `airPieDraw` : le chrono de vol est le frère du cadran NITRO (face carbone nuit, anneau segmenté 16°/4°, « AIR » 8 px affichés).
-- **(10) L'EMBLÈME DE LA FRÉNÉSIE** (`#triade`, Sacha : « en mode frénésie, cette image en noir qui tourne sur elle-même, 2 tours à
-  gauche, 2 tours à droite, pas loin du multiplicateur de flow ») : « THE DARK TRIAD » redessiné en SVG (triangle + NARCISSISM /
-  PSYCHOPATHY / MACHIAVELLIANISM, `textLength` pour tenir quelle que soit la police), NOIR à liseré blanc fin, 68 px sous le `$×` du
-  FLOW, à gauche de la case du chrono de vol. CSS seul : visible quand `#flowHud[data-lv="4"]` (FRÉNÉSIE) ; `k5Triade` 4 s = −720° puis
-  retour (courbe unique). Le centre du viewBox = centre du triangle (il tourne sur place, rayon balayé ~28 px, mesuré sans contact
-  avec le chrono ni le record, dont la barre passe à 70 px pendant la frénésie).
+- **(10) LA FRÉNÉSIE, REFAITE** (même soir, Sacha : « retravaille l'effet frénésie / dark triad, beaucoup beaucoup ; une petite part
+  rouge dans la barre de flow = une zone de tolérance pour rester en frénésie plus souvent ; la barre toute rouge qui scintille quand
+  elle reçoit encore du flow ; le logo plus beau, plus gros, mieux animé, ROUGE ; parfaitement intégré, pro dès le début » — et : « le
+  son, la musique, je la mettrai après » → RIEN n'a été touché côté audio).
+  · **LA ZONE ROUGE** (`FREN`, `flowLvDe` = le SEUL calcul du palier) : hystérésis — on ENTRE à 100 (inchangé), on RESTE tant que
+    `FLOW.v ≥ FREN.seuil` (88) ; dans la zone la fuite est retenue ×`FREN.retient` (.45) → sans style la frénésie tient ~3,6 s au lieu
+    de 1,8. Le tic « ça lâche » vise le bord de la zone. Les coups directs sur `FLOW.v` (foudre, choc, porte) passent par `flowTick`.
+    Dessin : la 4e cellule porte `.fZ` (à partir de `--fzL`, posé par le JS depuis FREN) — hachures rouges tant qu'elle est vide, cran
+    clair au seuil, et son propre remplissage rouge PAR-DESSUS le violet (`FLOW.zs`, classe `.dansZ` = un seul curseur, celui de la zone).
+    `FLOW_CEL` = couleurs des cellules (la 4e reste violette) ; `FLOW_COL[4]` = ROUGE (#ff2a3d, jetons `--fren*` en tête de la section 10).
+  · **LA JAUGE EN FRÉNÉSIE** : `.embrase` (cellules qui flambent de gauche à droite) puis toute rouge, halo `#flowHud::after` qui bat,
+    paillettes (`.fSeg::before` + `u.fG`, deux trames, deux cadences) ; **nourrie** (`frenNourrit`, ≥ 1,2 point, ≤ 1 fois/110 ms) :
+    `.sc1/.sc2` (éclat + reflet qui la balaie + paillettes à fond) et braises `PIX_FREN` (≤ 1 gerbe/420 ms) ; **fuit** : la zone se
+    hachure et clignote ; **lâche** : cadre qui clignote (le tic), emblème qui tremble. Plus d'arc-en-ciel (hue-rotate) nulle part.
+  · **L'EMBLÈME** (`#triade`, 108 px au lieu de 68) : SVG ROUGE (halo cuit, plaque carbone `--frenO`, cadre encre + dégradé + filet,
+    trois rivets, texte en couleurs pleines) et quatre enveloppes (`.trTr` tremble · `.trBat` bat · `.trPouls` frappe) pour que les
+    animations ne s'écrasent pas. JS : `frenEntre` (mesure la zone → `--ox/--oy`, classe `.on`), `frenSort` (`.sort` 440 ms), `.tremble`
+    / `.froid` posées par `flowHudMaj`. Naissance `trNait` 560 ms depuis la zone rouge + onde triangulaire ; vie `trTourne` 5,2 s
+    (−720° en 36 %, arrêt LISIBLE, retour, arrêt) avec deux fantômes du cadre à 45/90 ms (la traînée) ; `trPouls`/`trAura` frappent
+    au départ de chaque double tour ; `#flowGlow` bat en rouge (1,3 s) calé sur ces frappes. Place mesurée (390×844) : disque balayé
+    191-293 × 75-177 — chrono de vol à 298, pouvoirs et objectif de campagne à 184 ; la barre du RECORD se contracte (`#avRec`
+    max-width) pendant la frénésie. « Réduire les animations » : rien ne tourne/bat, fantômes et onde masqués.
+  · Première frénésie de la session : l'annonce dit « RESTE DANS LE ROUGE » (i18n EN/ZH) au lieu du ×. Hook **`dbgFren(k,n)`** :
+    `'v'` n (100 = y entrer par le vrai chemin), `'nourrit'` n, `'idle'` s ; rend zone/emblème/classes. Banc : scratchpad de la session
+    52f21eda, `fr/fren.js` (muet ; ne fige QUE les CSSAnimation — une transition en attente figée reste à 0 px).
 - **Écarté volontairement** (verdicts) : JOUER au garage, bouton d'action dans MODES/CARRIÈRE, ⚙ de l'accueil en bas, flèches du garage,
   rangée LA PARTIE de la pause descendue près de REPRENDRE (QUITTER ne se colle pas au lingot), l'or du HUD (voix des annonces, record en
   or demandé le 26/09 : « plus en lavande 8 px »).
