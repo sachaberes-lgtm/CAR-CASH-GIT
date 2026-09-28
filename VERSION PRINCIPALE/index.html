@@ -3871,6 +3871,8 @@ html .carrNiv::after{height:3px;bottom:10px;box-shadow:none;opacity:.9;
 .volRow{padding-left:62px}
 /* « PLUS QUE 1 PIECE · 3 CYLINDRES » : deux morceaux insécables — le point médian ne reste plus seul en bout de ligne */
 #mDead .hNx>span{white-space:nowrap}
+/* (balade du 29/09) les lignes de deux mots ne laissent plus un mot seul : « POSE-TOI / AVANT », « tu / peux te la payer » */
+#mDead .mCause,#gCard.verrou #gDesc,#toast{text-wrap:balance}
 </style>
 <style id="hudMaitrise">
 /* =====================================================================================================================
@@ -4375,11 +4377,16 @@ html body #engBig .ebRuban{top:-22px!important;left:-10px!important;right:-10px!
    ===================================================================================================================================== */
 :root{--hudK:.8;--hudY0:96px}
 @media (orientation:landscape) and (max-height:540px){:root{--hudK:.72}}
-html body.touch :is(#auraV2,#triade,#airHud,#pwrChip,#misBan,#coach,#campChip){zoom:var(--hudK);
+html body.touch :is(#auraV2,#triade,#airHud,#pwrChip,#campChip){zoom:var(--hudK);
   --hudH:calc((env(safe-area-inset-top,0px) + var(--hudY0) * (1 - var(--hudK))) / var(--hudK));
   --hudG:calc((env(safe-area-inset-left,0px) + 14px) / var(--hudK));
   --hudD:calc((env(safe-area-inset-right,0px) + 14px) / var(--hudK))}
-html body.touch #avList{zoom:.86}                  /* les figures de la chaîne (« SUPER TURBO +100 ») : un cran sous le compteur */
+/* (balade du 29/09) LE PLANCHER DU PIXEL : la police pixel sous 8 px effectifs devient une bouillie (« NITRO MAX », « AIR » tombaient à 6,4 px,
+   « AURA » et « RECORD » à 7,2 couché) — les grands chiffres rétrécissent, les petites étiquettes restent à 8 px nets.
+   L'ASTUCE (#misBan) et l'AUTO-ÉCOLE (#coach) sortent de l'échelle : ce sont des consignes, elles doivent se lire du premier coup (« DÉFI RÉUSSI »
+   était illisible, et PASSER tombait à 35 px de haut). */
+html body.touch :is(#airHud em,#pwrChip .pw small,#campChip small){font-size:calc(8px / var(--hudK))!important}
+html body.touch :is(#auraV2 .avTot em,#avRecT,#avList li){font-size:calc(max(10px * var(--hudK),8px) / var(--hudK))!important}
 /* le voile d'encre du haut suit le tableau de bord : pleine hauteur jusqu'aux barres, à l'échelle en dessous */
 body.touch.play #hud::before{height:calc(env(safe-area-inset-top,0px) + var(--hudY0) + (214px - var(--hudY0)) * var(--hudK))}
 </style>
@@ -18457,6 +18464,9 @@ function tutoAffiche(msg){ // msg (facultatif) : le raté s'écrit dans l'en-tê
   msg=typeof msg==='string'?msg:'';
   const c=tutoCarte(),E=TUTO_ETAPES[TUTO.i];
   c.querySelector('.coN').textContent=msg?TR(msg):TR('AUTO-ÉCOLE')+' · '+(TUTO.i+1)+'/'+TUTO_ETAPES.length;c.classList.toggle('rate',!!msg);
+  /* (2026-09-29, balade) le raté se DIT (rouge, son), puis l'en-tête redevient la progression : « RATÉ ! ON RECOMMENCE » restait écrit
+     tant que l'étape n'était pas réussie — trente secondes de reproche pour qui cherche encore le geste */
+  clearTimeout(tutoAffiche._t);if(msg)tutoAffiche._t=setTimeout(function(){if(TUTO.on&&c.classList.contains('rate')){c.querySelector('.coN').textContent=TR('AUTO-ÉCOLE')+' · '+(TUTO.i+1)+'/'+TUTO_ETAPES.length;c.classList.remove('rate');}},2600);
   c.querySelector('.coSkip').textContent=TR('PASSER');
   c.querySelector('.coIco').className='coIco pxi pxi-'+E.ico;
   c.querySelector('.coTx b').textContent=TR(E.t);
