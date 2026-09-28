@@ -420,6 +420,10 @@ dans UN bloc en fin de `<style id="charte4">` (« LA CHARTE AU COMPLET », secti
     au départ de chaque double tour ; `#flowGlow` bat en rouge (1,3 s) calé sur ces frappes. Place mesurée (390×844) : disque balayé
     191-293 × 75-177 — chrono de vol à 298, pouvoirs et objectif de campagne à 184 ; la barre du RECORD se contracte (`#avRec`
     max-width) pendant la frénésie. « Réduire les animations » : rien ne tourne/bat, fantômes et onde masqués.
+  · **LA VOIX** (Sacha, même soir : « ça doit déclencher la voix TRIPLE MONSTRE quand la frénésie est atteinte ») : entrée
+    `ANN_LIB.frenesie` (même fichier `triple_monstre.mp3`, son propre compteur — elle ne consomme pas le tirage 1/3 des vrais
+    TRIPLE MONSTRE), appelée dans `flowAdd` avec `annSpeak('frenesie',5,true)` : À CHAQUE frénésie, forcée, priorité 5 (coupe
+    un MONSTRE, cède au MÉGA MÉTÉORE), cd 2,5 s ; l'interrupteur VOIX reste maître. Banc muet `fr/voix.js` (compte les `new Audio`).
   · Première frénésie de la session : l'annonce dit « RESTE DANS LE ROUGE » (i18n EN/ZH) au lieu du ×. Hook **`dbgFren(k,n)`** :
     `'v'` n (100 = y entrer par le vrai chemin), `'nourrit'` n, `'idle'` s ; rend zone/emblème/classes. Banc : scratchpad de la session
     52f21eda, `fr/fren.js` (muet ; ne fige QUE les CSSAnimation — une transition en attente figée reste à 0 px).

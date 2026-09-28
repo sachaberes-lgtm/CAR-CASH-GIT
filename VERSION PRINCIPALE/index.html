@@ -15219,7 +15219,8 @@ function flowAdd(q){
   if(lv>FLOW.lv){FLOW.lv=lv;
     // (HUD v4) le palier se lit SUR la caisse avec ce qu'il vaut en cash ; la FRÉNÉSIE, elle, prend le couloir des annonces —
     // et la toute première de la session APPREND la zone rouge au lieu de redire le × que la jauge affiche déjà
-    if(lv===4){slam('FRÉNÉSIE !',FREN.vu?'CASH ×'+fmtMul(flowMult()):'RESTE DANS LE ROUGE',FLOW_COL[4],'#ffb000',44,2,22);FREN.vu=true;flashEcran('rgba(255,42,61,.6)');}
+    if(lv===4){slam('FRÉNÉSIE !',FREN.vu?'CASH ×'+fmtMul(flowMult()):'RESTE DANS LE ROUGE',FLOW_COL[4],'#ffb000',44,2,22);FREN.vu=true;flashEcran('rgba(255,42,61,.6)');
+      try{annSpeak('frenesie',5,true);}catch(e){}} // (2026-09-28, Sacha : « ça doit déclencher la voix TRIPLE MONSTRE quand la frénésie est atteinte ») — à chaque fois, hors règle du 1/3 ; l'interrupteur VOIX reste maître
     else popTexte(FLOW_NOM[lv]+' · $×'+fmtMul(flowMult()),FLOW_COL[lv],1);
     flowPunch();
     hap(lv===4?[20,40,20,40,40]:[12,30,16]);try{flowSnd(lv);}catch(e){}
@@ -20309,6 +20310,7 @@ const ANN_LIB={ // first:1 partout : chaque voix se présente à sa 1re occurren
   pureSpeed: {f:'pure_speed.mp3',    txt:'PURE SPEED',cd:6000,first:1},      // >3 s de nitro au sol à +400 km/h
   launch400: {f:'launch400.mp3',     txt:null,cd:6000,first:1},              // éjecté à +400 km/h
   earlyDead: {f:'early_dead.mp3',    txt:'EARLY DEAD',first:1},              // explose avant le top 5 (level<9)
+  frenesie:  {f:'triple_monstre.mp3',txt:'TRIPLE MONSTRE',cd:2500,first:1},  // (2026-09-28, Sacha) la FRÉNÉSIE atteinte — À CHAQUE FOIS (forcée, voir flowAdd) ; sa propre entrée : elle ne vole pas le tirage des vrais TRIPLE MONSTRE
 };
 for(const k in ANN_LIB){const e=ANN_LIB[k];e.dead=false;e.cool=0;e.n=0;e.slot=e.first?0:Math.floor(Math.random()*3);}
 const ANN={playing:null,queue:null,duck:false};
