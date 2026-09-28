@@ -1,5 +1,26 @@
 # CASH CAR — guide projet pour Claude Code
 
+## PORTÉ DE LA LIGNÉE car-crash (2026-09-28) — pièces instanciées, génération au sol, pleins de nitro
+Repris du travail « progression & récompenses » de la branche `claude/practical-edison-19vbia` du dépôt `car-crash` (même ancêtre) —
+seulement ce qui s'applique ICI sans toucher à l'économie ni au FLOW v2. Banc : scratchpad de la session de26fdc9, `vp/static.js`,
+`vp/smoke.js`, `vp/robust.js` (harnais `harness.js`, `ROOT` = ce dossier, `?colonne=0`).
+- **PIÈCES INSTANCIÉES** (`coinIM`, `COIN_CAP`=4096, `coinPose`, `coinFlush`, `pk.ci`) : une pièce = un appel de dessin ; désormais UNE
+  InstancedMesh. Chaque pièce garde un FANTÔME (`pieceNeuve` rend un Object3D, recyclé par `PIECES_LIBRES`) : aimant, ramassage, LOD,
+  rotation inchangés. Le LOD RANGE EN TÊTE les seules pièces du couloir à chaque image et `count` = leur nombre (même méthode que
+  `conesVus`). ⚠ MESURÉ : une zone 7 porte ~9 100 pièces (2 faces) — les garder toutes dans l'instance, même écrasées à zéro, faisait
+  passer 2,1 M de triangles dégénérés par le vertex shader. Au MENU (LOD à l'arrêt) `spawnPickups` pose d'emblée le couloir du départ.
+  Les pièces du FOURGON restent de vrais maillages. MESURÉ zone 7 palier 22 : **257 → 137 appels de dessin**, triangles inchangés.
+- **`spawnPickups`** : `dodge()` écarte pièces et fruits des plots et des flaques (MESURÉ avant : 3 à 19 pièces posées SUR un plot par zone
+  et par face ; après : 0) ; le pas des motifs s'allonge en `STR`=√(poussée × `lateMul`) (1 → 2,1 ; 1 en CAMPAGNE, pistes fixes). ⚠ L'avance
+  d'un motif au suivant se compte sur sa longueur d'ORIGINE (`/STR`) : le NOMBRE de pièces par zone est identique à avant (mesuré sur
+  7 zones × 3 graines, écart < 0,1 %). Aucun appel `rnd()` ajouté ni retiré.
+- **LE PLEIN = LE MOTEUR** (`nitroCap()`) : portail, NITRO INFINIE / boost de départ et `sandRevive` écrivaient `nitroR=2` en dur — ils
+  VIDAIENT un réservoir de 3,6 (jauge à 55 % pendant la nitro infinie au palier max).
+- Petits : la figure rend ×2 en pose DIVINE (×1,5 en PARFAIT, inchangé) ; `engSndParams` borne `rpm` ≥ 0 (un NaN dans un AudioParam
+  éteint le nœud pour la session) ; `#runStats` en `white-space:pre-line`.
+- **PAS REPRIS, exprès** : décote du bump (sa recharge est une demande de Sacha), débordement vers la réserve bleue (économie des fruits),
+  badge ×N / barre de palier / objectif de fin (le HUD d'ici a les siens), aimant (déjà sans `level`).
+
 ## PASSE DE LANCEMENT (2026-09-28) — « imagine qu'il sort sur l'App Store, vise le top 1 des jeux de course »
 Bancs muets dans le scratchpad de la session d82605e6 (un à la fois) : `balade2.js` (nouveau joueur au vrai doigt), `boucle.js` (mort →
 rejouer : ~2,9 s, les touchers de la 1re demi-seconde sont avalés exprès), `endurance.js` (5 min, 14 niveaux : 0 erreur silencieuse,

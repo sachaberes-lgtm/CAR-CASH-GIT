@@ -451,7 +451,7 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
   #speedo{position:absolute;bottom:210px;right:20px;text-align:right;min-width:150px}
   #minimap{position:absolute;bottom:20px;right:20px;width:176px;height:176px;border:2px solid #9aa0aa;border-radius:4px;background:rgba(18,18,24,.5);box-shadow:0 0 12px rgba(0,0,0,.25)}
   #speedVal{font-size:30px;line-height:1.2;color:#ff3ec8;text-shadow:0 0 16px rgba(255,62,200,.7);display:inline-block;transition:color .25s;transform-origin:100% 50%}
-  #runStats{font-family:var(--pix);font-size:8px;letter-spacing:2px;color:#8fa4c4;margin:2px 0 6px;display:none}
+  #runStats{font-family:var(--pix);font-size:8px;letter-spacing:2px;color:#8fa4c4;margin:2px 0 6px;display:none;white-space:pre-line} /* pre-line : les '\n' du bilan ne passaient à la ligne que dans le code */
   #speedUnit{font-size:9px;color:#9ae6ff;margin-top:4px}
   #cpInfo{position:absolute;bottom:20px;left:20px;font-size:9px;line-height:1.7;color:#9ae6ff}
   #cpBar{width:240px;height:14px;background:#0c0d18;border:2px solid #00eaff;margin-top:8px;overflow:hidden}
@@ -16396,6 +16396,9 @@ function nitroFeu(dt){
   if(vif!==FEU.vif){FEU.vif=vif;FEU.cv.classList.toggle('on',vif);}
 }
 function nitroPct(p){nitroGain(p*((ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2));} // (2026-09-26) une PART de la jauge (0,2 = 20 %), quel que soit le moteur
+// LE PLEIN = la capacité du MOTEUR (2,0 → 3,6). Tout ce qui « remplit la jauge » passe par ici : écrit `nitroR=2` en dur,
+// un portail ou une NITRO INFINIE VIDAIENT un réservoir de 3,6 (porté de la lignée car-crash, 2026-09-28).
+function nitroCap(){return (ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2;}
 function nitroGain(q){
   if(!(q>0))return;const mx=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2;
   const av=nitroR;nitroR=Math.min(mx,nitroR+q);
@@ -18038,28 +18041,65 @@ const mat4b=new THREE.Matrix4(),FLIP_B=new THREE.Vector3(),FLIP_N=new THREE.Vect
    pour une neuve, la visibilité et l'échelle remises à neuf (le couloir d'affichage et l'aimant les avaient touchées). */
 const PIECES_LIBRES=[];
 function pieceNeuve(){const m=PIECES_LIBRES.pop();if(m){m.visible=true;m.scale.set(1,1,1);return m;}
-  const n=new THREE.Mesh(pickGeo,pickMat);n.userData.pi=1;return n;}
+  const n=new THREE.Object3D();n.userData.pi=1;return n;} // (2026-09-28) un FANTÔME : l'or est peint par coinIM (voir plus bas)
+/* LES PIÈCES SONT INSTANCIÉES (2026-09-28, porté de la lignée car-crash — même motif maison que les plots `conesVus`) : une pièce
+   était un Mesh = un appel de dessin, et le couloir LOD en montre ~100-250 en fin de partie. Désormais UNE InstancedMesh les dessine
+   toutes, en UN appel. Chaque pièce garde un FANTÔME (Object3D hors scène, recyclé par PIECES_LIBRES, `pk.ci=1`) qui porte position,
+   rotation, visibilité : aimant, ramassage, LOD et rotation lui parlent EXACTEMENT comme à un Mesh (`scene.remove` d'un non-enfant
+   est un no-op). À chaque image, le LOD RANGE EN TÊTE les seules pièces du couloir (`coinPose`), et `count` = leur nombre : le GPU
+   ne traite QUE celles-là. ⚠ MESURÉ au banc : une zone 7 porte ~9 100 pièces (2 faces) — les laisser toutes dans l'instance, même
+   écrasées à zéro, faisait passer 2,1 M de triangles DÉGÉNÉRÉS par le vertex shader à chaque image. Les pièces du FOURGON de la
+   campagne restent de vrais maillages. ⚠ `frustumCulled=false` : la sphère englobante d'une InstancedMesh r128 ne couvre pas ses
+   instances. */
+const COIN_CAP=4096; // pièces VISIBLES à la fois (le couloir, les deux faces en vol) — au-delà, les plus lointaines attendent l'image suivante
+const coinIM=new THREE.InstancedMesh(pickGeo,pickMat,COIN_CAP);
+coinIM.frustumCulled=false;coinIM.matrixAutoUpdate=false;coinIM.instanceMatrix.setUsage(THREE.DynamicDrawUsage);coinIM.count=0;scene.add(coinIM);
+let coinN=0;
+function coinPose(p){if(coinN<COIN_CAP)coinIM.setMatrixAt(coinN++,p.mesh.matrix);} // une pièce du couloir, rangée en tête
+function coinFlush(){const a=coinIM.instanceMatrix;coinIM.count=coinN;
+  a.updateRange.offset=0;a.updateRange.count=Math.max(1,coinN)*16;a.needsUpdate=true;coinN=0;}
 function spawnPickups(rnd){
   sceneRetire(pickups.map(function(p){return p.mesh;})); // (chasse aux gels) d'un seul passage : un par un, c'était ~15 ms par portail (voir sceneRetire)
   for(const p of pickups){const m9=p.mesh;if(m9&&m9.userData.pi===1&&!m9.parent)PIECES_LIBRES.push(m9);} // (chasse aux gels) nos pièces, hors scène, se recyclent
-  pickups.length=0;
+  pickups.length=0;coinN=0;
   const HALF=ROAD_HALF-1.8;
-  // pose UNE pièce (mirroir deux faces, saute les trous, clamp sur la route)
+  /* (2026-09-28, porté de la lignée car-crash) DEUX RÉGLAGES QUI NE TOUCHENT NI AU FLUX `rnd` NI À L'ÉCONOMIE :
+     · L'ÉCART D'OBSTACLE : des pièces et des fruits tombaient PILE sur un plot ou une flaque (mesuré là-bas : 1-2 par zone) —
+       prendre la pièce, c'était subir l'obstacle sans l'avoir choisi. On les pousse de côté. Les deux faces étant en MIROIR
+       STRICT (mêmes s, mêmes lat), la face du dessus suffit.
+     · LE PAS DES MOTIFS SUIT LE MOTEUR : les motifs sont dessinés pour le départ ; au moteur de fin de partie un zigzag défilait
+       en 0,7 s, plus personne ne le suivait. Le pas s'allonge en √(poussée × surmultipliée) — 1 au départ, plafond 2,1 : on
+       garde un vrai slalom. ⚠ Pas en CAMPAGNE : ses pistes sont identiques à chaque essai, ses pièces aussi. */
+  const STR=(LVL.cur&&LVL.cur.camp)?1:THREE.MathUtils.clamp(Math.sqrt(((ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).push||1)*lateMul()),1,2.1);
+  const dodge=(sp,lt)=>{
+    for(const c of CONES){
+      if(c.face!==1||Math.abs(c.s-sp)>3.4||Math.abs(c.lat-lt)>2.5)continue;
+      let n9=c.lat+(lt>=c.lat?2.8:-2.8);if(Math.abs(n9)>HALF)n9=c.lat+(lt>=c.lat?-2.8:2.8);lt=n9;
+    }
+    for(const o of OILS){
+      if(o.face!==1||Math.abs(o.s-sp)>o.r+2.4||Math.abs(o.lat-lt)>o.r+1.4)continue;
+      let n9=o.lat+(lt>=o.lat?1:-1)*(o.r+1.8);if(Math.abs(n9)>HALF)n9=o.lat+(lt>=o.lat?-1:1)*(o.r+1.8);lt=n9;
+    }
+    return THREE.MathUtils.clamp(lt,-HALF,HALF);
+  };
+  // pose UNE pièce (mirroir deux faces, saute les trous, s'écarte des obstacles, clamp sur la route)
   const place=(sp,lt,isN)=>{
     if(sp<120||sp>L-50||holeAtS(sp))return;
     frameAt(sp,F);mat4b.makeBasis(F.b,F.n,F.t);
-    const cl=THREE.MathUtils.clamp(lt,-HALF,HALF);
+    const cl=dodge(sp,lt);
     const fi=isN?fruitPick():-1; // MÊME fruit sur les deux faces (miroir strict) — tiré hors du rnd seedé
     const lv=isN?fruitLeve(fi):1.3; // les fruits : posés AU-DESSUS du bitume d'après leur vraie taille (voir fruitLeve)
     for(const face of [1,-1]){
-      const m=isN?mkFruit(fi):pieceNeuve(); // (chasse aux gels) une pièce recyclée de la piste d'avant, ou neuve
+      const m=isN?mkFruit(fi):pieceNeuve(); // (chasse aux gels) une pièce recyclée de la piste d'avant, ou neuve — un FANTÔME
       m.position.copy(F.p).addScaledVector(F.b,cl).addScaledVector(F.n,face>0?lv:-(THICK+lv));
       // SOUS la route, le fruit est RETOURNÉ (repère −b, −n, t) : sinon il pendait tête en bas, feuilles plantées dans la dalle
       if(isN&&face<0){mat4b.makeBasis(FLIP_B.copy(F.b).negate(),FLIP_N.copy(F.n).negate(),F.t);m.quaternion.setFromRotationMatrix(mat4b);mat4b.makeBasis(F.b,F.n,F.t);}
       else m.quaternion.setFromRotationMatrix(mat4b);
       m.updateMatrix();m.matrixAutoUpdate=false; // (perf) gelé : seuls les objets du couloir visible se recalculent (voir le LOD)
-      scene.add(m);
-      pickups.push({s:sp,lat:cl,face:face,nitro:isN,fruit:fi,mesh:m,taken:false,ax:F.n.clone().multiplyScalar(face)});
+      if(isN)scene.add(m); // la pièce n'entre pas dans la scène : coinIM la dessine
+      const pk={s:sp,lat:cl,face:face,nitro:isN,fruit:fi,mesh:m,taken:false,ax:F.n.clone().multiplyScalar(face)};
+      if(!isN){pk.ci=1;if(face>0&&sp<760)coinPose(pk);} // au MENU le LOD ne tourne pas : on montre d'emblée le couloir du départ
+      pickups.push(pk);
     }
   };
   /* ---- LE FLUX DE PIÈCES SUIT LA PROGRESSION (2026-08-03) ----------------------------------
@@ -18075,31 +18115,34 @@ function spawnPickups(rnd){
      ⚠ `rnd` est la suite seedée de la piste : on SCALE des résultats, on n'ajoute ni ne retire
      aucun appel — sinon toute la génération en aval se décale (voir CLAUDE.md). */
   const rich=THREE.MathUtils.clamp(.88+(runStats.zones||0)*.52,.88,3.4); // maigre au départ, généreuse plus tard
-  const esp=v=>v/rich;   // les respirations se resserrent quand la route s'enrichit
+  // les respirations se resserrent quand la route s'enrichit. ⚠ Les motifs s'allongent de STR mais l'AVANCE d'un motif au suivant se
+  // compte sur leur longueur d'ORIGINE (`/STR` ci-dessous) : le NOMBRE de pièces par zone ne bouge pas (l'économie de ce jeu est
+  // calée dessus — mesuré au banc, écart < 2 %), seule leur lisibilité à haute vitesse change.
+  const esp=v=>v/rich;
   let ss=200;
   while(ss<L-90){
     if(rnd()<.24/rich){ss+=esp(120+rnd()*160);continue;} // PORTIONS VIDES : plus rares quand ça s'enrichit
     const pat=rnd();
     if(pat<.30){ // ZIGZAG : serpente franchement d'un bord à l'autre (il FAUT slalomer pour tout prendre)
-      const n=5+((rnd()*4)|0),amp=HALF*(.7+rnd()*.3),ph=1.1+rnd()*1.3,st=10+rnd()*4;
+      const n=5+((rnd()*4)|0),amp=HALF*(.7+rnd()*.3),ph=1.1+rnd()*1.3,st=(10+rnd()*4)*STR;
       for(let i=0;i<n;i++)place(ss+i*st,Math.sin(i*ph)*amp,rnd()<.34);
-      ss+=esp(n*st+70+rnd()*50);
+      ss+=esp(n*st/STR+70+rnd()*50);
     }else if(pat<.52){ // ARC : une vague vers un côté puis retour
-      const n=5+((rnd()*4)|0),amp=HALF*(.75+rnd()*.25),sd=rnd()<.5?-1:1,st=11+rnd()*4;
+      const n=5+((rnd()*4)|0),amp=HALF*(.75+rnd()*.25),sd=rnd()<.5?-1:1,st=(11+rnd()*4)*STR;
       for(let i=0;i<n;i++){const u=i/(n-1);place(ss+i*st,sd*amp*Math.sin(u*Math.PI),rnd()<.34);}
-      ss+=esp(n*st+70+rnd()*50);
+      ss+=esp(n*st/STR+70+rnd()*50);
     }else if(pat<.70){ // CERCLE : un anneau posé à plat (il faut le contourner pour le boucler)
-      const R=Math.min(HALF,5.5+rnd()*4),n=8+((rnd()*4)|0);
-      for(let i=0;i<n;i++){const th=i/n*6.2832;place(ss+R+R*Math.sin(th),R*Math.cos(th),false);}
+      const R=Math.min(HALF,5.5+rnd()*4),n=8+((rnd()*4)|0),Rs=R*STR; // (étiré dans le sens de la route à haute vitesse : une ellipse qu'on lit)
+      for(let i=0;i<n;i++){const th=i/n*6.2832;place(ss+Rs+Rs*Math.sin(th),R*Math.cos(th),false);}
       ss+=esp(2*R+80+rnd()*50);
     }else if(pat<.80){ // JACKPOT : RARE — ligne dense, gros combo à rafler d'un coup (la récompense du slalom)
-      const n=12+((rnd()*6)|0),st=6;
+      const n=12+((rnd()*6)|0),st=6*STR;
       for(let i=0;i<n;i++)place(ss+i*st,Math.sin(i*.55)*2.4,false);
-      ss+=esp(n*st+140+rnd()*80); // suivi d'un grand vide : le jackpot se paie cher en distance
+      ss+=esp(n*st/STR+140+rnd()*80); // suivi d'un grand vide : le jackpot se paie cher en distance
     }else{ // ÉPARPILLÉ : deux-trois pièces libres, largement espacées
-      const n=2+((rnd()*3)|0),st=20+rnd()*18;
+      const n=2+((rnd()*3)|0),st=(20+rnd()*18)*STR;
       for(let i=0;i<n;i++)place(ss+i*st,(rnd()*2-1)*HALF,rnd()<.45);
-      ss+=esp(n*st+60+rnd()*50);
+      ss+=esp(n*st/STR+60+rnd()*50);
     }
   }
   // ---- FRUITS EN VOL — RETIRÉS (2026-09-25, demande du user : « rien à ramasser dans les airs »). Tout se
@@ -18136,6 +18179,7 @@ function spawnPickups(rnd){
     }
   }
   if(LVL.cur&&LVL.cur.camp)campPieces(place); // (2026-09-27) CAMPAGNE : les pièces qui DISENT la coupe (le bord qui mène au vide, le jackpot d'en dessous)
+  coinFlush();
 }
 // ---------- TIRELIRE : un petit cochon rose attend sur la ligne de départ… ----------
 // LE LARGAGE : la voiture tombe du ciel, l'écrase — il éclate en tessons roses et en pièces d'or.
@@ -20576,7 +20620,9 @@ function engWave9(AC9,e){
    st = {rpm 0..1 · charge 0..1 · ovr 0..1 · drift −.5..+.5 · nA nitro 0..1 · thr 0|1 ·
          vsp vitesse normalisée · wob · boost · cloudIn · dk ducking} */
 function engSndParams(e,st){
-  const nA=st.nA||0, ch=st.charge||0, ov=st.ovr||0, rpm=st.rpm||0, dr=st.drift||0;
+  // `rpm` ≥ 0 et NaN → 0 : `Math.pow(rpm,.7)` du sifflet rend NaN sur un régime négatif, et un NaN dans un AudioParam éteint le nœud
+  // pour la session (vu au banc de la lignée car-crash sur un saut de palier + portail dans la même image).
+  const nA=st.nA||0, ch=st.charge||0, ov=st.ovr||0, rpm=Math.max(0,st.rpm||0), dr=st.drift||0;
   const meca=e.gr>1?1:0;
   /* ⚠ LE RONRON (2026-09-24) — verdict du user en jouant : « un bruit de moustique, très monotone ;
      je veux qu'il vibre, qu'il ronronne selon comment j'appuie, et au boost ». Trois causes :
@@ -23144,7 +23190,7 @@ function sandRevive(){ // BAC À SABLE : on efface les dégâts et on repart, la
   chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;dolphT=0;
   airPie.style.display='none';airFlash=0;
-  insUsed=false;nitroR=2;nitroX=0;boost=0;slowT=0;hitT=0;
+  insUsed=false;nitroR=nitroCap();nitroX=0;boost=0;slowT=0;hitT=0;
   respawn();
 }
 function parkRespawn(){
@@ -23188,7 +23234,7 @@ function portailPasse(){
   portalSnd();boostSnd();shake=.5;
   const zb=denom()*24*(fever>0?2:1);money+=zb;levelCash+=zb;checkUpgrade(); // portail : 40→24 (régulation 2026-07-30)
   runStats.zones++;
-  nitroR=2; // le portail regonfle la nitro : chaque zone repart pied au plancher
+  nitroR=Math.max(nitroR,nitroCap()); // le portail regonfle la nitro : chaque zone repart pied au plancher — au plein du MOTEUR (en dur à 2, il vidait un réservoir de 3,6)
   trickMsg(pickL(ZONE_LINES)+' +'+fmtC(zb),true);
   flyCash(carGroup.position,8);
   SURV.pBase+=s; // la course traverse le portail : les écarts restent vrais (téléportation invisible)
@@ -23433,7 +23479,7 @@ function tryLand(dt){
       money+=gain;levelCash+=gain;checkUpgrade();
       if(g>=1.5)RUNX.perfect++; // CONTRATS : une pose PARFAITE qui encaisse une figure
       flowAdd(g>=2?14:g>=1.5?10:4,g>=1.5?'risque':'style'); // FLOW : une figure encaissée nourrit la montée — la pose PARFAITE est un RISQUE (on a visé), l'ordinaire du style
-      nitroGain(Math.min(1.2,.45+chainMult*.12)*(g>=1.5?1.5:1)); // LA FIGURE RECHARGE LE NITRO — plus la chaîne est longue, plus ça remplit ; une pose parfaite ×1,5
+      nitroGain(Math.min(1.2,.45+chainMult*.12)*(g>=2?2:g>=1.5?1.5:1)); // LA FIGURE RECHARGE LE NITRO — plus la chaîne est longue, plus ça remplit ; une pose parfaite ×1,5, DIVINE ×2 (l'échelle des grades monte aussi ici)
       // LA CAISSE ENREGISTREUSE : seulement sur un ENCAISSEMENT QUI COMPTE. Sur chaque pose,
       // meme minuscule, le son deviendrait un tic — et 9 samples n'y changeraient rien.
       if(gain>=denom()*25)fxArgent();
@@ -27235,7 +27281,7 @@ function loop(now){
     // CAPACITÉ MOTEUR : la réserve de nitro s'élargit avec le palier (2,0 → 3,6 au réacteur)
     const NRMAX=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2;
     nitroR=Math.min(NRMAX,nitroR+.2*dt);
-    if(pwrNitroT>0||PARK.on||startBoostT>0)nitroR=2; // NITRO INFINIE : jauge pleine, rien ne se consomme (pouvoir, parc freestyle, OU le boost de départ)
+    if(pwrNitroT>0||PARK.on||startBoostT>0)nitroR=NRMAX; // NITRO INFINIE : jauge pleine, rien ne se consomme (pouvoir, parc freestyle, OU le boost de départ) — pleine = la capacité du MOTEUR (à 2 en dur, la jauge restait à 55 % au palier max)
     const wantN=keys.ShiftLeft||keys.ShiftRight||keys.Space||startBoostT>0; // le boost de départ tient la touche à la place du joueur — « pas dur à gérer »
     nitroOn=wantN&&(nitroOn?(nitroR+nitroX)>.005:(nitroR+nitroX)>.3); // hystérésis anti-clignotement
     if(wantN&&!loop._nvW&&!nitroOn&&mode!=='boom'){try{noiseBurst(.04,.06,2500);}catch(e){}hap(6);} // (2026-09-26, audit son) NITRO À VIDE : un « tchk » sec — l'appui répond toujours
@@ -27540,7 +27586,7 @@ function loop(now){
             p.mesh.position.lerp(carGroup.position,Math.min(1,dt*(6+mag*1.5)));
         }
         if(p.mesh.position.distanceTo(carGroup.position)<3.8+mag*.5){ // (2026-09-26) portée FIXE (les objets ont grossi)
-          p.taken=true;scene.remove(p.mesh);
+          p.taken=true;scene.remove(p.mesh); // (une pièce instanciée sort d'elle-même du couloir au prochain LOD)
           if(p.pow){ // POUVOIR : le minuteur démarre, l'écran l'annonce en couleur
             const d=PWR_DEFS[p.pow];
             if(p.pow==='n')pwrNitroT=d.t;
@@ -28129,11 +28175,13 @@ function loop(now){
         // route, invisible derrière la dalle mais DESSINÉ quand même — la moitié des appels de dessin pour rien.
         const vis=Math.abs(pk.s-cS)<lodR&&(mode==='fall'||pk.face===side);
         if(pk.mesh.visible!==vis)pk.mesh.visible=vis;
-        if(!vis)continue; // hors couloir : on ne l'anime même pas
+        if(!vis)continue; // hors couloir : on ne l'anime même pas (une pièce instanciée n'est tout simplement pas rangée)
         pk.mesh.rotateOnWorldAxis(pk.ax,dt*(pk.pow?1.4:2.5));
         if(pk.nitro||pk.pow){if(pk.sc0==null)pk.sc0=pk.mesh.scale.x;pk.mesh.scale.setScalar(pk.sc0*(1+(pk.pow?.10:.08)*Math.sin(t*6+pk.s)));} // (2026-09-26) le battement RESPECTE l'échelle (il ramenait les fruits de ×1,9 à ×1)
         pk.mesh.updateMatrix(); // (perf) les objets sont GELÉS : on recalcule à la main ceux qui tournent (et ceux que l'aimant a tirés plus haut)
+        if(pk.ci)coinPose(pk); // la pièce : sa matrice est rangée en tête de l'instance
       }
+      coinFlush(); // le couloir de l'image part au GPU d'un bloc — et `count` s'y arrête
       // (perf) les plots immobiles sont des INSTANCES (voir conesInstancier) : ni visibilité à tenir, ni draw call par plot
     }
     for(let i9=FLYCONES.length-1;i9>=0;i9--){
