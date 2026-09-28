@@ -15893,7 +15893,8 @@ window.dbgView=function(a,d,h){ // MODE PHOTO : force la pause, cadre la caisse 
 };
 // ombre portée sous la voiture
 const landMark=new THREE.Mesh(new THREE.TorusGeometry(3,.35,8,24),
-  new THREE.MeshBasicMaterial({color:0x62e062,transparent:true,opacity:.85}));
+  new THREE.MeshBasicMaterial({color:0x62e062,transparent:true,opacity:.85,depthTest:false}));
+landMark.renderOrder=999; // (2026-09-28, nuit) le VISEUR passe PAR-DESSUS tout : la caméra de vol garde la caisse plus grande (le « bras », voir la caméra de vol) — elle ne doit jamais cacher l'endroit où l'on se pose
 landMark.visible=false;scene.add(landMark);
 const LM={a:0,vu:false,c:new THREE.Color()}; // (2026-09-28) le viseur en FONDU : il surgissait à 1,7 s de la pose, clignotait près des bords, sautait d'or à blanc
 const shadow=new THREE.Mesh(new THREE.CircleGeometry(2.4,20),
@@ -16644,32 +16645,41 @@ function n9Saut(o){const n=performance.now(),s9=n-(o._viseT||0)>200;o._viseT=n;r
    12. EN FRÉNÉSIE, LE STYLE NOURRIT AUSSI. Un geste rend à son trait `part[famille]` de sa mémoire (au prorata jusqu'à q = 6) : le
        RISQUE le remplit, le STYLE (bump, drift, série, frôlé) en rend un tiers, la route presque rien. Les bumps et les séries
        tiennent donc NARCISSE — sans jamais le remplacer par une vraie figure.
+   LA TRIADE SIMPLIFIÉE (même soir, Sacha : « c'est un peu trop dur d'avoir la dark triad, simplifie quand même un peu plus »).
+   MESURÉ AVANT (simtri.js, le vrai bloc, trois joueurs types, 5 min × 60) : le joueur tranquille et le casse-cou ne l'atteignaient
+   JAMAIS, le maître en 2 min 26. La MONTÉE est allégée — la tenue, elle, reste exigeante (sinon elle redevient « le jeu », loi 6) :
+   13. LA MONTÉE EST PLUS COURTE. Chaque cellule rend plus par geste (`cel` .7 · .55 · .4 · .34), la pente du rose et de la triade
+       est divisée par ~3 (.15), la fuite est plus douce, la triade accepte le STYLE (.7) et un filet de ROUTE (.15), et la vitesse
+       exigée descend à 85 % de la croisière (`gate`) : une pose un peu lourde ne la gèle plus.
+   14. LA TENUE SE MÉRITE UN PEU PLUS. La brûlure selon les traits vivants passe à [4,5 · 2,4 · 0,9 · −1,2] : deux traits tenus ne
+       suffisent plus à la garder longtemps. MESURÉ APRÈS : tranquille ~4 min (60 % l'atteignent en 5 min), casse-cou ~1 min, maître
+       ~40 s ; en frénésie ~5 % · ~50 % · ~70 % du temps.
    ⚠ BLOC PUR : ne lit que ses arguments et FLOW2 — le banc de simulation l'exécute tel quel, hors du jeu. Tous les
    réglages vivent dans FLOW2, nulle part ailleurs.
    ========================================================================== */
 const FLOW2={
   // efficacité des familles selon la cellule : 0 cyan · 1 or · 2 rose · 3 TRIADE (violet + zone rouge) · 4 en FRÉNÉSIE
-  fam:{route:[1,.5,.12,0,0],style:[1,1,.8,.35,0],risque:[1,1,1,1,0]}, // (v4) en frénésie [4] : rien — c'est la TRIADE qui tient la jauge
-  cel:[.5,.35,.22,.14,.5],               // chaque cellule demande plus de gestes que la précédente (v2 : 1 · ,8 · ,65 · ,5)
+  fam:{route:[1,.6,.3,.15,0],style:[1,1,.9,.7,0],risque:[1,1,1,1,0]}, // (v4) en frénésie [4] : rien — c'est la TRIADE qui tient la jauge · (loi 13) avant : route [1,.5,.12,0] · style [1,1,.8,.35]
+  cel:[.7,.55,.4,.34,.5],                // chaque cellule demande plus de gestes que la précédente (v2 : 1 · ,8 · ,65 · ,5 · v3 : ,5 · ,35 · ,22 · ,14)
   vit:[[.6,.35],[1,1],[1.3,1.35]],       // (vitN, ×) — la vitesse multiplie tous les gains, interpolé entre les points
-  gate:.95,                              // sous 95 % de la croisière, la TRIADE ne prend RIEN
+  gate:.85,                              // sous 85 % de la croisière, la TRIADE ne prend RIEN (v2-v5 : 95 %)
   grace:2.5,                             // répit (s) après un geste de style/risque avant que la jauge fuie
-  fuite:[3,3.5,4,3],                     // fuite (/s) passé le répit, par cellule (v2 : 5 · 7 · 9 · 11)
-  pente:[0,0,.4,.4],                     // brûlure PERMANENTE (/s) : le rose et la triade se paient même en enchaînant (v2 : 1 · 2)
+  fuite:[2.5,3,3,2.5],                   // fuite (/s) passé le répit, par cellule (v2 : 5 · 7 · 9 · 11 · v3 : 3 · 3,5 · 4 · 3)
+  pente:[0,0,.15,.15],                   // brûlure PERMANENTE (/s) : le rose et la triade se paient même en enchaînant (v2 : 1 · 2 · v3 : ,4 · ,4)
   routeGarde:50,                         // la route ne rend le répit que sous le FLOW II
   retombee:75,                           // la frénésie perdue, la jauge RETOMBE ici : la triade se vide (v2 : elle restait au bord, à 88)
   // la FRÉNÉSIE : part du nitro consommée (,5 = il dure DEUX FOIS plus)
   fren:{nitro:.5},
   // (v4) LA TRIADE : mémoire (s) de chaque trait · PSYCHO vit aussi à `p.vit` × la croisière sans nitro · brûlure (/s) de la zone
   // rouge selon le nombre de traits vivants [0, 1, 2, 3] — négatif = elle se regonfle
-  triade:{n:{mem:9},m:{mem:25},p:{mem:3,vit:1.3},brule:[4,2,.7,-1.5]},
+  triade:{n:{mem:9},m:{mem:25},p:{mem:3,vit:1.3},brule:[4.5,2.4,.9,-1.2]}, // (loi 14) avant : [4, 2, ,7, −1,5]
   pose:{angle:55,vMin:4},                // (v4) la POSE RATÉE : au-delà de 55° de l'axe (dès 4 m/s de vitesse à plat), le flow tombe à zéro
   // (v5) LA GRAMMAIRE : part de la mémoire d'un trait qu'un geste lui rend en frénésie · PSYCHO hors frénésie (seuils de vitesse au sol
   // et en vol, période, geste [sol, vol]) · -PSYCHO (sous `vit` le répit saute, réarmé à `re`) · -NARCISSE (points de la pose lourde)
   part:{risque:1,style:.35,route:.05},
   psy:{sol:1.12,air:1.15,t:1.5,q:[4,6]},
   lent:{vit:.8,re:.95},
-  faute:{lourd:6}
+  faute:{lourd:4}
 };
 function flowInterp(P,x){if(x<=P[0][0])return P[0][1];for(let i=1;i<P.length;i++)if(x<=P[i][0]){const a=P[i-1],b=P[i];return a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);}return P[P.length-1][1];}
 function flowCel(v,lv){return lv===4?4:Math.min(3,Math.floor(v/25));}
@@ -24234,8 +24244,18 @@ function portailPasse(){
 /* L'ÉTAT DE CAMÉRA DU VOL (2026-09-28). La v2 de l'après-midi (écart tenu court, plan de trois-quarts) a été RETIRÉE le soir même :
    elle rendait la visée impossible — voir le bloc « CAMÉRA DE VOL — RETOUR À LA CAMÉRA DE POURSUITE » dans la boucle. Restent : `t`
    (dernière image de vol : détecte le décollage), `eta` (secondes avant la réception prédite, posé par le viseur, 99 = rien en vue) ·
-   `zoom`/`zp` = le COUP DE ZOOM d'une pose PARFAITE (lu par la caméra au sol). `off/look/hang/side/soon` ne servent plus. */
-const CAMV={off:new THREE.Vector3(),look:new THREE.Vector3(),t:0,hang:0,side:1,soon:0,eta:99,zoom:0,zp:0};
+   `zoom`/`zp` = le COUP DE ZOOM d'une pose PARFAITE (lu par la caméra au sol) · `s0` = la taille de la caisse à l'écran au décollage
+   (le « bras » de la caméra de vol l'y garde) · `off` = vecteur de travail du bras. `look/hang/side/soon` ne servent plus. */
+const CAMV={off:new THREE.Vector3(),look:new THREE.Vector3(),t:0,hang:0,side:1,soon:0,eta:99,zoom:0,zp:0,s0:.2};
+function volR(){const sp=CARS[level]||CARS[0];return .5*Math.hypot(sp.l||4.2,sp.w||1.9,(sp.h||.8)+.6);} // la sphère englobante de la caisse (roues et aileron compris)
+function volTaille(d,fov){return volR()/(Math.max(.5,d)*Math.tan(fov*Math.PI/360));} // sa taille à l'écran : part de la demi-hauteur
+// (dev) dbgCamVol() : la caméra de vol mesurée — distance à la caisse, champ, taille de la caisse à l'écran (part de la hauteur et de
+// la largeur), et où tombent la caisse et l'anneau d'atterrissage à l'écran (NDC, −1..1). Console seulement.
+window.dbgCamVol=function(){try{const b=new THREE.Box3().setFromObject(carGroup),v=new THREE.Vector3();let x0=9,x1=-9,y0=9,y1=-9;
+  for(let i=0;i<8;i++){v.set(i&1?b.max.x:b.min.x,i&2?b.max.y:b.min.y,i&4?b.max.z:b.min.z).project(camera);x0=Math.min(x0,v.x);x1=Math.max(x1,v.x);y0=Math.min(y0,v.y);y1=Math.max(y1,v.y);}
+  const c=carGroup.position.clone().project(camera),r=landMark.visible?landMark.position.clone().project(camera):null;
+  return {mode,fallT:+(+fallT).toFixed(2),d:+camera.position.distanceTo(carGroup.position).toFixed(1),fov:+camera.fov.toFixed(1),
+    taille:+volTaille(camera.position.distanceTo(carGroup.position),camera.fov).toFixed(3),ecart:r?+(Math.hypot(r.x-c.x,r.y-c.y)/Math.max(.01,volTaille(camera.position.distanceTo(carGroup.position),camera.fov))).toFixed(2):null,caisse:[+c.x.toFixed(2),+c.y.toFixed(2)],anneau:r?[+r.x.toFixed(2),+r.y.toFixed(2),r.z<1]:null};}catch(e){return e.message;}};
 /* LA POSE PARFAITE SE VOIT (2026-09-28, Sacha) : en plus du gel d'image (hitT) et du « tchak », un COUP DE ZOOM — le champ se resserre
    sec à l'impact et se relâche en 0,5 s — et une COURONNE DORÉE qui éclate depuis les bords de l'écran (le centre reste net : on voit la
    caisse se poser). DIVIN (braquage) : plus fort, et la couronne bat deux fois. */
@@ -29325,9 +29345,16 @@ function loop(now){
          Gardés de l'après-midi : les secousses calmes (sinus, vent ×.42), la remise à zéro du coup de zoom PARFAIT au décollage, et les
          CHOCS en vol (bump, nuage, catapulte) — mais en petit déplacement de la caméra, plus en coup dans le REGARD (il décadrait la visée). */
       const bigAir=THREE.MathUtils.clamp((fallT-0.5)/2.2,0,1); // 0 au décollage → 1 sur un gros air
-      {const n9=performance.now();if(n9-(CAMV.t||0)>150)CAMV.zoom=0;CAMV.t=n9;} // 1re image du vol : un coup de zoom PARFAIT en cours ne survit pas au décollage
+      {const n9=performance.now();if(n9-(CAMV.t||0)>150){CAMV.zoom=0;CAMV.s0=THREE.MathUtils.clamp(volTaille(camera.position.distanceTo(fallPos),camera.fov),.1,.4);}CAMV.t=n9;} // 1re image du vol : un coup de zoom PARFAIT en cours ne survit pas au décollage · la TAILLE de la caisse au sol, mesurée à l'instant du décollage
       tmp2.copy(fallPos).addScaledVector(tmp,-(9.0-bigAir*2.6)*(1-POR*.16)).addScaledVector(FLY_U,(3.5+bigAir*2.4)*(1+POR*.12)); // derrière la trajectoire, au-dessus de la caisse — « au-dessus » = vers le HAUT DE LA CAISSE (vol libre), pas vers le ciel
       camera.position.lerp(tmp2,Math.min(1,dt*(3+bigAir*4.5))); // suivi plus vif en gros air : la caméra ne décroche pas
+      /* LE BRAS DE LA CAMÉRA (2026-09-28, nuit, Sacha : « sur mobile la voiture devient trop petite en air time — il faut juste pas que ça
+         complexifie »). MESURÉ en portrait : la poursuite décroche à 17-18 m dans la 1re seconde du vol, quand le champ est encore large —
+         la caisse tombait à la MOITIÉ de sa taille au sol (0,12 contre 0,23 de la demi-hauteur), pile sur les sauts courts. Désormais la
+         caméra reste où la poursuite la met (même direction : derrière la trajectoire), mais jamais plus loin que la distance qui garde la
+         caisse à sa taille du DÉCOLLAGE (`CAMV.s0`, mesurée à la 1re image du vol) — au champ du moment. Aucun angle ne change.
+         Mesuré : 0,17-0,19 tout le vol (75-85 % du sol) au lieu de 0,12 ; la course et l'atterrissage n'ont pas bougé. */
+      {const dMx=volR()/(CAMV.s0*Math.tan(camera.fov*Math.PI/360));CAMV.off.subVectors(camera.position,fallPos);const d9=CAMV.off.length();if(d9>dMx)camera.position.copy(fallPos).addScaledVector(CAMV.off,dMx/d9);}
       camUp.lerp(FLY_U,Math.min(1,dt*3)).normalize(); // (vol libre) le haut de l'écran = le haut de la caisse : la caméra ne se remet plus « à l'endroit »
       camera.up.copy(camUp);
       camera.lookAt(fallPos);
