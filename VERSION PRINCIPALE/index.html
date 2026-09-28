@@ -3828,7 +3828,7 @@ html #mDead .hCard.hAura>b.zero{color:var(--tx3);text-shadow:0 2px 0 var(--txO)}
 /* les MISSIONS, paysage : le titre, la règle et les trois défis à gauche ; la colonne des objets à droite, du haut jusqu'à la sortie
    (la règle était posée au-dessus de l'objet ; ENSUITE était un grand panneau vide ; l'écran défilait de 4 px pour rien) */
 @media (orientation:landscape) and (max-height:540px){
-  html #mMis.on{grid-template-columns:minmax(0,1fr) 392px;column-gap:16px;grid-template-areas:"head col" "sec col" "defs col" "dock dock";grid-template-rows:auto auto 1fr auto}
+  html #mMis.on{grid-template-columns:minmax(0,1fr) min(392px,47%);column-gap:16px;grid-template-areas:"head col" "sec col" "defs col" "dock dock";grid-template-rows:auto auto 1fr auto}
   html #mMis .mHead{margin:0 0 8px}
   html #mMis .mSec{grid-area:sec;align-self:end;margin:0 0 8px}
   html #mMis .misTab{display:contents}
@@ -3902,6 +3902,9 @@ html #mDead .mHero{margin-top:18px}
   html #mDead .mStats{grid-area:stats;align-self:end}
   html #mDead>.mRow{align-self:end}
 }
+/* (29/09, encoche simulée) couché avec une encoche sur le côté, la colonne des défis perd ~50 px : le titre de section passait sur deux lignes
+   et chevauchait la livrée du titre MISSIONS */
+@media (orientation:landscape) and (max-height:540px){html #mMis .mSec{white-space:nowrap;letter-spacing:1px;overflow:hidden;text-overflow:ellipsis;min-width:0}}
 </style>
 <style id="hudMaitrise">
 /* =====================================================================================================================
