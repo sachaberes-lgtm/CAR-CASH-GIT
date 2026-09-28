@@ -3845,6 +3845,17 @@ html body.touch.coOn #nitroWrap{height:34px}
     html #garage:not(.boutique) #gAct{pointer-events:auto}
     html #garage:not(.boutique) #gShop{flex:0 0 auto;width:min(230px,30vw);min-height:54px} /* à gauche, à côté du retour : le choix du niveau tient la droite */
   }
+  /* LE HUD DISCRET (2026-09-28, Léo : « un peu de transparence sur les achievements qui durent : si un truc reste plus de 3 s à l'écran,
+     comme la chaîne des pièces, on doit pouvoir jouer à travers — sans enlever ce qui est cool »). (1) Les plaques qui durent (la CHAÎNE,
+     les POUVOIRS) passent en VERRE : fond translucide, même liseré néon, même lueur de livrée, textes cernés d'encre pour rester lisibles.
+     (2) Une plaque présente depuis plus de 3 s s'ESTOMPE (`.discret`, posée par hudDiscretTick) ; un vrai événement la rallume : un × qui
+     monte, un nouveau pouvoir, la fin d'un pouvoir qui clignote, l'objectif de campagne qui change ou qui alerte. */
+  html body.touch #avCh,html body.touch #pwrChip .pw{
+    background:linear-gradient(to bottom right,transparent 50%,var(--fil) 50% calc(50% + 1.3px),transparent calc(50% + 1.3px)) 0 0/8px 8px no-repeat,
+      linear-gradient(to top left,transparent 50%,var(--fil) 50% calc(50% + 1.3px),transparent calc(50% + 1.3px)) 100% 100%/8px 8px no-repeat,
+      linear-gradient(180deg,rgba(28,22,54,.60),rgba(14,10,30,.34) 72%)}
+  html body.touch #avPts,html body.touch #avList,html body.touch #pwrChip .pw span{text-shadow:1px 0 0 #0a0616,-1px 0 0 #0a0616,0 1px 0 #0a0616,0 -1px 0 #0a0616,0 2px 0 #0a0616}
+  html body #avCh.discret:not(.vole):not(.perdu),html body #pwrChip.discret,html body #campChip.discret{opacity:.45!important;transition:opacity .8s var(--ease,ease)!important}
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
@@ -23511,7 +23522,23 @@ function recSurplus(a){const t=avE('avRecT');if(!t)return;const s='+'+fmtAura(Ma
 Object.assign(I18N,{'NOUVEAU SOMMET':'NEW PEAK','AU-DESSUS':'ABOVE','ASTUCE':'TIP'});
 Object.assign(I18N_ZH,{'NOUVEAU SOMMET':'新巅峰','AU-DESSUS':'超出','RECORD BATTU !':'打破纪录！','PALIER':'档位','ASTUCE':'提示','CHAÎNE PERDUE':'连击中断','NOUVEAU MOTEUR':'新引擎'});
 function avPlusPop(t){const e=avE('avPlus');if(!e)return;e.textContent=t;e.classList.remove('on');void e.offsetWidth;e.classList.add('on');}
+/* LE HUD DISCRET — la veille des plaques qui DURENT (voir le bloc CSS du même nom, couche de Léo) : présente depuis plus de 3 s →
+   `.discret` ; cachée → remise à zéro ; `hudReveil(id)` = un événement fort, elle se rallume et repart pour 3 s. Lecture de classes
+   seulement (aucune mise en page forcée), à chaque image. */
+const HUDD={DUREE:3000,L:[
+  {id:'avCh',el:function(){return avE('avCh');},vu:function(e){return e.classList.contains('on');}},
+  {id:'pwrChip',el:function(){return typeof pwrChip!=='undefined'?pwrChip:null;},vu:function(e){return e.style.display==='block';},
+    fort:function(){return !!(loop._pwEl&&loop._pwEl.some(function(x){return x._f;}));}}, // la fin d'un pouvoir clignote EN PLEIN
+  {id:'campChip',el:function(){return document.getElementById('campChip');},vu:function(e){return e.classList.contains('on');},
+    fort:function(e){return e.classList.contains('alerte');}}]};
+function hudDiscretTick(){const now=performance.now();
+  for(const x of HUDD.L){const e=x.el();if(!e)continue;
+    if(!x.vu(e)){if(x.t0){x.t0=0;e.classList.remove('discret');}continue;}
+    if(!x.t0)x.t0=now;
+    const d=now-x.t0>HUDD.DUREE&&!(x.fort&&x.fort(e));if(d!==e.classList.contains('discret'))e.classList.toggle('discret',d);}}
+function hudReveil(id){for(const x of HUDD.L)if(x.id===id&&x.t0){x.t0=performance.now();const e=x.el();if(e)e.classList.remove('discret');}}
 function chaineTick(dt){
+  hudDiscretTick();
   engBigSuit();cratTick(dt);popSuit();
   // le COMPTEUR : il grimpe vers la vraie valeur (on voit l'aura TOMBER dedans), une écriture DOM seulement quand le chiffre change
   CHA.v+=(auraRun-CHA.v)*Math.min(1,dt*7);if(Math.abs(auraRun-CHA.v)<1)CHA.v=auraRun;
@@ -23551,7 +23578,7 @@ function chaHud(fort,monte){
   if(!fort||!CHA.n)return;
   avE('avPts').textContent=fmtAura(CHA.pts);
   const x9=avE('avX'),xv=Math.max(1,CHA.x);x9.textContent='×'+xv;x9.style.setProperty('--xc',X_COUL[Math.min(10,xv)]);x9.classList.toggle('feu',xv>=5);
-  if(monte){x9.classList.remove('up');void x9.offsetWidth;x9.classList.add('up');
+  if(monte){x9.classList.remove('up');void x9.offsetWidth;x9.classList.add('up');hudReveil('avCh'); // un × de plus : la plaque se RALLUME (HUD discret)
     const pal={5:'EN FEU !!',8:'DEMENT !!!',10:'MAX !!!'}[xv]; // (vague 2, H4) plus de « ×3 CHAUD ! » au centre : le × du tableau de bord bat déjà — le couloir ne parle qu'à partir de ×5
     if(pal){slam('×'+xv,pal,X_COUL[xv],'#b14bff',48,0,xv>=8?20:xv>=5?12:0);flashEcran(xv>=8?'rgba(255,57,36,.55)':'rgba(255,94,200,.45)');hap(xv>=8?[14,40,24,40,30]:[12,30,20]);}}
   avE('avList').innerHTML=CHA.liste.map(function(l){return '<li>'+String(l).replace(/[<>&]/g,'')+'</li>';}).join('');
@@ -26031,7 +26058,7 @@ function vChip(txt,sous,col,alerte){
   const k=(txt||'')+'|'+(sous||'')+'|'+(col||'')+'|'+(alerte?1:0);if(k===VC.chip)return;VC.chip=k;
   if(!txt){vChipEl.classList.remove('on','alerte');return;}
   vChipEl.firstChild.textContent=txt;vChipEl.lastChild.textContent=sous||'';vChipEl.lastChild.style.display=sous?'':'none';
-  vChipEl.style.setProperty('--cc',col||'#ffd75e');vChipEl.classList.add('on');vChipEl.classList.toggle('alerte',!!alerte);
+  vChipEl.style.setProperty('--cc',col||'#ffd75e');vChipEl.classList.add('on');vChipEl.classList.toggle('alerte',!!alerte);hudReveil('campChip'); // l'objectif change : il se rallume
 }
 // ============ 1 · LES RADARS ============
 const VRAD=(function(){ // le panneau « RADAR » : bleu autoroute, lettres pixel (redessiné quand la police est prête)
@@ -30084,7 +30111,7 @@ function loop(now){
     pch=pwL.map(function(x){return x[0];}).join('');
     if(pch!==loop._pch){loop._pch=pch;
       pwrChip.innerHTML=pwL.map(function(x){return '<div class="pw" data-k="'+x[0]+'" style="--pc:'+PWR_DEFS[x[0]].tint+'">'+pxi(x[2])+'<span><small>'+x[3]+'</small><b>0.0</b></span><u></u></div>';}).join('');
-      pwrChip.style.display=pch?'block':'none';loop._pwEl=Array.prototype.slice.call(pwrChip.querySelectorAll('.pw'));}
+      pwrChip.style.display=pch?'block':'none';loop._pwEl=Array.prototype.slice.call(pwrChip.querySelectorAll('.pw'));hudReveil('pwrChip');}
     if(loop._pwEl)for(let j=0;j<pwL.length&&j<loop._pwEl.length;j++){const el=loop._pwEl[j],t9=pwL[j][1],tx=t9.toFixed(1);
       if(el._t!==tx){el._t=tx;el.querySelector('b').textContent=tx+'s';}
       el.style.setProperty('--p',Math.min(1,t9/PWR_DEFS[pwL[j][0]].t).toFixed(3));const f9=t9<1.5;if(el._f!==f9){el._f=f9;el.classList.toggle('fin',f9);}}
