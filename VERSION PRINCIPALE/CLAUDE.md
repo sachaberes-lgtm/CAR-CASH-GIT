@@ -39,6 +39,10 @@ explosion, écran de mort, `LG=en` pour l'anglais —, `set.js` réglages, `carr
   cohérent au chargement, REVOIR L'AUTO-ÉCOLE tient parole (prime une fois : `SAVE.d.permis`) · ⚠ **la remise à zéro du Survivant était
   collée DANS un commentaire** (poursuite NUAGES 5 et meute VILLE 14 cassées dès la 2e course) · **l'ESPACE a une fin** (`espaceFinale`,
   « ESPACE TERMINÉ ») · REJOUER après une fin de monde ouvre le monde suivant · bannière de carrière traduite, sans double numéro.
+- **L'ACCUEIL RÉORGANISÉ** (Sacha : « c'est pas beau que les deux boutons du haut soient au-dessus du titre ») : le LOGO ouvre l'écran,
+  seul (marge haute 34 px, 6 px sous 720 px de haut) ; la rangée `.mOutils` (MISSIONS étirée sur la largeur des tuiles, cases au bout ·
+  ⚙ carré qui ferme la rangée) descend entre la bande de la caisse et les tuiles — charte, règle 4 : on LIT en haut, on TOUCHE en bas.
+  `menuCadre()` lit aussi `.mOutils` : la caisse se cadre au-dessus d'elle. Vérifié 844×390, 390×844, 667×375, 375×667, FR/EN (`home.js`).
 - **LAISSÉ À SACHA (décisions, pas des détails)** : `TEST_CARRIERE`/`TEST_CAISSES` encore à `true` (caisses payantes gratuites, pastille
   « TEST » au garage) ; la BOUTIQUE est une vitrine (« BIENTÔT », « -50 % » sur un 9,99 € jamais pratiqué — refus Apple probable) ;
   **droits des sons** : `fx/kaching.mp3` (étiquettes « Yout.com », extrait YouTube), `fx/compteuse.mp3` (« 101soundboards.com »),
@@ -65,8 +69,8 @@ l'écran de début sont bof, je préfère le ciel en journée, il matche mieux a
   débris, meute (`survMenage()`, extrait de `survStart`), carrière en cours rangés ; piste de menu neuve. `rebuildMenuScene()` baisse
   `started` le temps de `newTrack` quand `MENUV.retour` : ciel posé d'un coup (pas le fondu « portail »), ni annonce ni porte d'orbite —
   vaut aussi pour la CARRIÈRE et l'AUTO-ÉCOLE lancées de cet accueil. `resetGame()` éteint `MENUV.retour`. `body.dead` reste posée.
-- **LA PORTE MISSIONS** : `.mMisBtn` dans `#mHome .mTop`, en face du ⚙ (le logo, les tuiles, JOUER et la bande de la vitrine ne bougent
-  pas — la v4 de l'accueil est un verdict) ; trois cases `#mMisPips`, une par défi relevé (posées par `mFill`).
+- **LA PORTE MISSIONS** : `.mMisBtn` dans `#mHome .mOutils` (⚠ depuis la chasse aux détails : la rangée est descendue SOUS la bande de
+  la vitrine, au-dessus des tuiles — voir « L'ACCUEIL RÉORGANISÉ ») ; trois cases `#mMisPips`, une par défi relevé (posées par `mFill`).
 - **L'ÉCRAN `#mMis`** (routeur : `mScr.mis`, `PROF.mis=1`, rempli par `misRender()`) : RÉCOMPENSE (`.misUne` : catégorie, vignette
   `objFig`, nom, phrase qui dit POURQUOI elle ne s'achète pas — `misRecoInfo`, accordée par catégorie ; la JAUGE des trois défis ;
   touchable → `misVoir` ouvre la caisse/l'habillage au garage) · LES TROIS DÉFIS (`.misDef` : consigne, prime en vert billet, jauge

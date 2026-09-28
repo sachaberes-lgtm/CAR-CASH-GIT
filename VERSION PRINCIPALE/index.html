@@ -2172,11 +2172,12 @@ body.touch #overlay[data-ecran="dead"]::before{opacity:.9}
 
 /* ---------------------------------------------- L'ACCUEIL ---------------------------------------------------------- */
 #mHome{min-height:100%}
-#mHome .mTop{display:flex;justify-content:flex-end;align-items:center;width:100%;margin:0 0 6px}
+/* (2026-09-28) la rangée des OUTILS (missions · réglages) : sous la bande de la caisse, au-dessus des tuiles, alignée sur leurs bords */
+#mHome .mOutils{display:flex;align-items:stretch;gap:14px;width:100%;margin:0 0 18px;padding:0 6px;box-sizing:border-box}
 #mHome .mGear{width:50px;min-width:50px;min-height:50px}
 #mHome .mGear .pxi{--pxs:3}
 /* LE LOGO : l'or du titre, penché de la même vitesse que tout le reste, et sa LIVRÉE qui file dessous */
-#mHome .mTitle{position:relative;display:flex;justify-content:center;gap:.2em;margin:18px 0 0;font-family:var(--pix);
+#mHome .mTitle{position:relative;display:flex;justify-content:center;gap:.2em;margin:34px 0 0;font-family:var(--pix);
   font-size:clamp(38px,11.2vw,56px);line-height:1;transform:skewX(var(--sk));filter:drop-shadow(0 8px 0 rgba(0,0,0,.35)) drop-shadow(0 0 22px rgba(255,190,60,.30))}
 #mHome .mTitle .lg{line-height:1}
 #mHome .mTitle::after{content:'';position:absolute;left:14%;right:14%;bottom:-22px;height:5px;background:var(--livree);
@@ -3464,8 +3465,8 @@ html[data-reduced-motion="1"] #mHome .pb-gold,html[data-reduced-motion="1"] #mHo
    récompense — aussi bien fini que tout le reste »). Même grammaire : penché = je touche, droit à coins coupés = je lis, le vert
    néon = les DÉFIS (la bannière « DÉFI RÉUSSI » de la course parle déjà vert), le vert billet = l'argent du jeu, l'or = le lingot. */
 /* la PORTE des missions : en face du ⚙, sur la même ligne — trois cases, une par défi, qui s'allument quand il est relevé */
-#mHome .mTop{justify-content:space-between}
-#mHome .mMisBtn{--nc:var(--neoV);min-height:50px;padding:0 16px 0 18px;gap:10px;font-size:var(--f1)}
+#mHome .mMisBtn{--nc:var(--neoV);flex:1;min-width:0;justify-content:flex-start;min-height:50px;padding:0 18px 0 20px;gap:10px;font-size:var(--f1)}
+#mHome .mMisBtn .mMisPips{margin-left:auto} /* (2026-09-28) les trois cases au bout de la plaque : on lit « MISSIONS … où j'en suis » */
 #mHome .mMisBtn .pxi{--pxs:2;color:var(--neoV)}
 .mMisPips{display:flex;gap:4px;margin-left:4px}
 .mMisPips u{display:block;width:7px;height:14px;background:var(--k0);box-shadow:0 0 0 1px var(--kl2)}
@@ -4042,15 +4043,16 @@ html[data-reduced-motion="1"] body.touch #airPie,html[data-reduced-motion="1"] b
          scène change. Les sous-écrans (MODES, BOUTIQUE, RÉGLAGES) ont leur SORTIE en bas (`.mDock`, collée au bas de l'écran) :
          le retour est sous le pouce, jamais en haut à gauche (charte, règle 4). -->
     <div class="mscr on" id="mHome">
-      <div class="mTop">
-        <!-- (2026-09-28) LES MISSIONS ont leur porte : en face du ⚙, sur la même ligne — le logo, les tuiles et JOUER ne bougent pas
-             d'un pixel (la v4 de l'accueil est un verdict), la bande où la caisse s'expose non plus. Les trois cases = les trois défis. -->
-        <div class="pbtn mMisBtn" data-m="mis" role="button" aria-label="Missions"><i class="pxi pxi-cible" aria-hidden="true"></i><span data-fr="MISSIONS">MISSIONS</span><b class="mMisPips" id="mMisPips" aria-hidden="true"><u></u><u></u><u></u></b></div>
-        <div class="pbtn pbCarre mGear" data-m="set" role="button" aria-label="Réglages"><i class="pxi pxi-reglages" aria-hidden="true"></i></div>
-      </div>
       <div class="mTitle"><span class="lg gold" data-t="CASH">CASH</span><span class="lg grad" data-t="CAR">CAR</span></div>
       <b id="mBest" hidden></b><span id="mCar" hidden></span><!-- (slogan, MEILLEUR et CAISSE retirés de l'accueil : user, 2026-09-25 — le logo parle seul) -->
       <div class="mVide" aria-hidden="true"></div>
+      <!-- (2026-09-28, Sacha : « c'est pas beau que les deux boutons du haut soient au-dessus du titre ») LE TITRE OUVRE L'ÉCRAN, SEUL.
+           La rangée MISSIONS · ⚙ descend au-dessus des tuiles (charte, règle 4 : ce qu'on TOUCHE vit dans le bas, ce qu'on LIT en haut) :
+           la porte des missions s'étire sur la largeur des tuiles, le ⚙ ferme la rangée. Les trois cases = les trois défis. -->
+      <div class="mOutils">
+        <div class="pbtn mMisBtn" data-m="mis" role="button" aria-label="Missions"><i class="pxi pxi-cible" aria-hidden="true"></i><span data-fr="MISSIONS">MISSIONS</span><b class="mMisPips" id="mMisPips" aria-hidden="true"><u></u><u></u><u></u></b></div>
+        <div class="pbtn pbCarre mGear" data-m="set" role="button" aria-label="Réglages"><i class="pxi pxi-reglages" aria-hidden="true"></i></div>
+      </div>
       <div class="mRow mIcons">
         <div class="pbtn ico" data-m="garage" role="button"><i class="pxi pxi-voiture" aria-hidden="true"></i>GARAGE<em class="mBadge" id="bdGar"></em></div>
         <div class="pbtn ico" data-m="carr" role="button"><i class="pxi pxi-trophee" aria-hidden="true"></i><span data-fr="CARRIERE">CARRIERE</span></div><!-- (2026-09-27) la CAMPAGNE a enfin sa porte : dix niveaux dessinés -->
@@ -27858,8 +27860,8 @@ function menuCadre(){ // la zone de l'écran que l'interface laisse libre → o�
   const home=document.getElementById('mHome');
   let x0=W,x1=0,tB=H*.22,iT=H*.74,vu=false;
   if(home&&home.classList.contains('on')&&home.getClientRects().length){
-    for(const q of ['.mTitle','.mIcons','.mPlay']){const e=home.querySelector(q);if(!e)continue;const r=e.getBoundingClientRect();if(r.width<2||r.height<2)continue;
-      vu=true;x0=Math.min(x0,r.left);x1=Math.max(x1,r.right);if(q==='.mTitle')tB=r.bottom;if(q==='.mIcons')iT=r.top;}}
+    for(const q of ['.mTitle','.mOutils','.mIcons','.mPlay']){const e=home.querySelector(q);if(!e)continue;const r=e.getBoundingClientRect();if(r.width<2||r.height<2)continue;
+      vu=true;x0=Math.min(x0,r.left);x1=Math.max(x1,r.right);if(q==='.mTitle')tB=r.bottom;if(q==='.mOutils'||q==='.mIcons')iT=Math.min(iT===H*.74?1e9:iT,r.top);}} // (2026-09-28) la rangée MISSIONS · ⚙ ferme la bande de la caisse par le bas
   if(!vu){C.nx=0;C.ny=-.12;C.fr=W>H?.34:.62;C.fh=.4;return C;} // (menu PC, ?pc=1) : au centre, comme avant
   const gL=x0,gR=W-x1;
   if(W>H*1.15&&Math.max(gL,gR)>W*.14){ // PAYSAGE : la plus large bande latérale — la caisse un peu SOUS le milieu (sur la ligne de la mer),
