@@ -24,15 +24,16 @@
      au document du cadre comme une densité de pixels : dedans, innerWidth = 390, les @media et les vw sont ceux d'un téléphone,
      devicePixelRatio = le facteur d'agrandissement → texte et jauges NETS (mesuré : 1 600 × 1 100 → colonne 499 × 1 080, dpr 1,28).
      Même en file:// (double-clic) : le cadre se charge et partage la sauvegarde (même localStorage, vérifié).
-     ⚠ LE SOIR MÊME, Sacha : « je voulais la version HORIZONTALE sur PC, pardon » → la colonne n'est PLUS le défaut : l'ordi joue
-     de nouveau en plein écran horizontal, et la colonne ne s'ouvre que sur demande, `?colonne=1` (gardée : elle marche, mesurée).
-     Qui passe par la colonne : `?colonne=1` + l'édition 'mobile', ouverte en page principale (pas déjà dans un cadre), sur un écran
-     qui n'est PAS un téléphone (même test que TEL_NATIF). Dans la page-cadre, le grand script s'arrête à sa 1re ligne (`CC_COLONNE`).
+     Historique du soir : « je voulais la version horizontale sur PC, pardon » l'a fait passer en option une heure, puis Sacha a
+     tranché : « je veux voir sur mon PC la même chose que je verrais sur mon téléphone quand il sera en vertical » → la colonne
+     est LE DÉFAUT sur l'ordi. Qui y passe : l'édition 'mobile', ouverte en page principale (pas déjà dans un cadre), sur un écran
+     qui n'est PAS un téléphone (même test que TEL_NATIF), sans `?pc=1` ni `?colonne=0` (l'ancien plein écran horizontal, bancs).
+     Dans la page-cadre, le grand script s'arrête à sa 1re ligne (`CC_COLONNE`) : aucun second jeu, aucun WebGL.
      ⚠ `const EDITION` VIT ICI : c'est LA ligne que `synchro-versions.js` bascule (une seule occurrence, sinon il refuse). -->
 <script>
 /* ⚠ LES DEUX ÉDITIONS (2026-09-25, user : « sépare-les en deux dossiers : VERSION PRINCIPALE = la version mobile fusionnée, AUTRE
    VERSION = la version PC »). C'est UN SEUL jeu : les deux dossiers portent le MÊME index.html, et cette ligne est la SEULE qui
-   diffère. 'mobile' → sur l'ordi aussi on joue la version TÉLÉPHONE (plein écran horizontal ; colonne sur `?colonne=1`) ; 'pc' → l'ordi garde le menu
+   diffère. 'mobile' → sur l'ordi aussi on joue la version TÉLÉPHONE (dans la colonne verticale ; `?colonne=0` = plein écran) ; 'pc' → l'ordi garde le menu
    desktop. Un vrai téléphone reçoit la version téléphone dans les deux cas. On ne modifie JAMAIS « AUTRE VERSION » à la main :
    `node synchro-versions.js` (racine du dépôt) la régénère depuis la principale. Forçages ponctuels : `?tel=1` / `?pc=1`.
    (Déclarée au niveau global — un `const` de script classique est visible du grand script, qui la lit.) */
@@ -43,7 +44,7 @@ const EDITION='mobile';
     addEventListener('message',function(e){var d=e.data;if(e.source!==window.parent||!d||d.cc!=='touche')return;
       try{document.dispatchEvent(new KeyboardEvent(d.t,{key:d.key,code:d.code,repeat:!!d.rep,bubbles:true,cancelable:true}));}catch(_){}});
     return;}
-  if(EDITION!=='mobile'||window.Capacitor||!/[?&]colonne=1/.test(q))return; // (28/09 au soir) SUR DEMANDE seulement : l'ordi joue en horizontal
+  if(EDITION!=='mobile'||window.Capacitor||/[?&](pc|desktop)=1|[?&]colonne=0/.test(q)&&!/[?&](tel|mobile)=1/.test(q))return; // ?pc=1 : menu desktop · ?colonne=0 : l'ancien plein écran
   var tactile=(M&&M('(pointer:coarse)').matches)||('ontouchstart' in window)||navigator.maxTouchPoints>0;
   if(tactile&&((M&&M('(hover:none)').matches)||Math.min(innerWidth,innerHeight)<820))return; // un vrai téléphone : il EST l'écran
   window.CC_COLONNE=true;window.__gameReady=true; // (le chien de garde du démarrage n'a rien à garder ici : le jeu démarre dans le cadre)

@@ -142,17 +142,17 @@ QUE pour les NUAGES (`c.camp&&c.id==='nuages'`) — la ville garde zéro nuage (
   `AUTRE VERSION` (recopie tout sauf son README, bascule la ligne, vérifie). Commiter les deux ensemble.
 - Forçages de test : `?tel=1` (téléphone) / `?pc=1` (menu desktop), quelle que soit l'édition.
 - **LA COLONNE DE L'ORDI (2026-09-28, Sacha : « la disposition des affichages PC et mobile vertical doit être EXACTEMENT la
-  même »)** — ⚠ LE SOIR MÊME : « je voulais la version HORIZONTALE sur PC, pardon » → la colonne n'est PLUS le défaut, elle ne
-  s'ouvre que sur `?colonne=1` ; l'ordi rejoue en plein écran horizontal (la disposition horizontale reste à régler avec lui). `const EDITION` a DÉMÉNAGÉ dans le `<head>` (toujours une seule occurrence : la synchro marche telle quelle), à
+  même »)** — puis « je voulais la version horizontale sur PC, pardon » (une heure en option), puis, TRANCHÉ : « je veux voir sur
+  mon PC la même chose que je verrais sur mon téléphone quand il sera en vertical » → la colonne est LE DÉFAUT sur l'ordi. `const EDITION` a DÉMÉNAGÉ dans le `<head>` (toujours une seule occurrence : la synchro marche telle quelle), à
   côté d'un aiguillage : édition 'mobile' + page principale (`window.top===window`) + écran qui n'est PAS un téléphone (même
-  test que TEL_NATIF) + `?colonne=1` → la page devient un CADRE (`html.colonne`, `CC_COLONNE`, tout le document
+  test que TEL_NATIF) + ni `?pc=1` ni `?colonne=0` → la page devient un CADRE (`html.colonne`, `CC_COLONNE`, tout le document
   masqué, le grand script s'arrête à sa 1re ligne, `__gameReady` posé pour le chien de garde) et le jeu tourne dans
   `<iframe id="colonne">` de **390 × 844** (l'écran de référence de la charte) agrandi par `zoom` = min(h/844, w/390). Chrome
   propage ce zoom au document du cadre : dedans innerWidth 390, @media/vw d'un téléphone, `devicePixelRatio` = le zoom (net) —
   mesuré 1600×900 → colonne 416×900, dpr 1,066 ; 1600×1100 → 499×1080, dpr 1,28. Même en file:// (sauvegarde partagée).
   CLAVIER : focus donné au cadre au chargement et à chaque clic hors colonne ; une touche frappée pendant que la page-cadre a le
   focus est RELAYÉE (`postMessage` {cc:'touche'} → `KeyboardEvent` sur le document du cadre). Bancs muets : scratchpad 52f21eda
-  `fr/col.js` (captures + mesures), `fr/cle.js` (clavier). (Colonne sur demande seulement : les bancs plein écran n'ont rien à changer.)
+  `fr/col.js` (captures + mesures), `fr/cle.js` (clavier). ⚠ Un banc « plein écran » d'avant doit passer `?colonne=0` (ou piloter la frame `colonne=1`).
 - ⚠ **AUTRE VERSION EST GELÉE depuis le 2026-09-25** (user : « travaille que dans la version mobile ») : elle est
   restée à l'état du commit de séparation. On ne relance `synchro-versions.js` que si Sacha le redemande.
 - **LE MOUVEMENT (2026-09-25, « transitions niveau App Store »)** — dernier bloc du `<style>` : UNE courbe `--ease`
