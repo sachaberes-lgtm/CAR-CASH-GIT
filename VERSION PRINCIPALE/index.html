@@ -26668,30 +26668,113 @@ function menuPlan(){ // le meilleur couple (position, angle) pour filmer la cais
   MENUV.sg=MENUV.a0<0?-1:1;
   MENUV.lat=-MENUV.sg*Math.max(0,ROAD_HALF-7); // garée du côté où l'on regarde : la caméra reste sur le bitume, le regard file vers le dehors
 }
-window.dbgVitrine=function(c){if(c!=null){MENUV.cible=c;MENUV.L=-1;}camera.getWorldDirection(tmp2);const h=Math.hypot(tmp2.x,tmp2.z)||1,sh=Math.hypot(SUN_DIR.x,SUN_DIR.z);
+window.dbgVitrine=function(c,plan){if(c!=null){MENUV.cible=c;MENUV.L=-1;}if(plan!==undefined)MENUV.force=plan;camera.getWorldDirection(tmp2);const h=Math.hypot(tmp2.x,tmp2.z)||1,sh=Math.hypot(SUN_DIR.x,SUN_DIR.z);
   return {s:MENUV.s,a0:+MENUV.a0.toFixed(2),lat:+MENUV.lat.toFixed(1),L:Math.round(L),bio:MENUV.bio,tangage:+(Math.asin(tmp2.y)*57.3).toFixed(1),
-    ecartSoleilDeg:+(Math.acos(Math.max(-1,Math.min(1,(tmp2.x*SUN_DIR.x+tmp2.z*SUN_DIR.z)/(h*sh))))*57.3).toFixed(1),sunVis:sunSprite.visible,sunOp:+sunSprite.material.opacity.toFixed(2)};}; // (dev) le plan de la vitrine
+    ecartSoleilDeg:+(Math.acos(Math.max(-1,Math.min(1,(tmp2.x*SUN_DIR.x+tmp2.z*SUN_DIR.z)/(h*sh))))*57.3).toFixed(1),sunVis:sunSprite.visible,sunOp:+sunSprite.material.opacity.toFixed(2),plan:(MENU_PLANS[MENUV.pl]||{}).n,cadre:{nx:+MENUV.cadre.nx.toFixed(2),ny:+MENUV.cadre.ny.toFixed(2),fr:+MENUV.cadre.fr.toFixed(2)}};}; // (dev) le plan de la vitrine
 function menuVitrineFin(){ // on quitte l'accueil : le ciel du niveau reprend la main
   MENUV.bio=false;bioApply(BIO.cur);paintEnv(BIO.to.env,BIO.to.eS1,BIO.to.eS2);skyU.uMer.value=LVL.mer;
+}
+/* LES PLANS DE L'ACCUEIL (2026-09-28, Sacha : « j'aime bien les boutons et la DA, mais ce qui est affiché à l'écran n'est pas ouf —
+   l'image derrière pourrait faire de meilleurs plans, mieux cadrer »). MESURÉ aux captures (844×390 et 390×844) :
+   · en PAYSAGE (ce que l'ordi montre) la caisse était filmée au CENTRE, pile derrière le logo et les tuiles : on ne la voyait JAMAIS ;
+   · une dalle de bitume noir mangeait la moitié basse (caméra à 4 m au-dessus de la route, regard plongeant) ;
+   · au premier instant la caméra arrivait d'en haut, lissée depuis la pose de rebuildMenuScene : une plongée zénithale bizarre.
+   LE REMÈDE, en trois temps :
+   (1) LA CAISSE VA LÀ OÙ L'INTERFACE LAISSE DE LA PLACE. `menuCadre()` lit les boîtes du logo, des tuiles et de JOUER (une fois par
+       seconde, jamais à chaque image : c'est une lecture de mise en page) et en tire la zone libre — la plus large BANDE LATÉRALE en
+       paysage, la bande du MILIEU (entre le logo et les tuiles) en portrait. Le plan vise la caisse, puis la caméra PIVOTE (lacet +
+       tangage, exacts : atan(ndc × tan(demi-champ))) pour la poser au centre de cette zone, et la DISTANCE est calculée pour qu'elle
+       en remplisse la largeur (sa sphère englobante projetée — plus un « ×1,9 + 5,2 » à l'œil).
+   (2) TROIS PLANS EN COUPES FRANCHES, comme un réalisateur (le balancier unique lassait) : AFFICHE (trois-quarts avant, BAS, le couchant
+       derrière — l'angle cherché par menuPlan) · ARRIÈRE (trois-quarts arrière bas : la route qui file devant la caisse vers l'horizon)
+       · PROFIL (plein côté à hauteur de roue, focale longue : la silhouette sur la mer de nuages). Chacun a son mouvement lent ; à la
+       COUPE la caméra est POSÉE, jamais lissée depuis le plan d'avant (on verrait le travelling de raccord). À chaque coupe le plan
+       choisit son CÔTÉ (miroir) : celui où le SOLEIL reste hors de l'image finale, pivot compris (`menuSoleilVu` le projette) — le
+       « 1.61 » se battait avec le logo. Écarté après captures : un plan DRONE depuis le vide
+       (plongée à 35-40° : que du noir sous la caisse).
+   (3) Caméras BASSES : moins de bitume, plus de ciel. Et la lampe de vitrine est DOSÉE par plan (`lum`) : pile en face d'un profil,
+       à 3,4, elle délavait la carrosserie en rose pâle.
+   Hook : `dbgVitrine()` rend aussi le plan en cours et la cible à l'écran ; `dbgVitrine(null,'profil')` force un plan (dev). */
+const MENU_PLANS=[{n:'affiche',t:8,fov:44,lum:3.4},{n:'arriere',t:7,fov:40,lum:2.2},{n:'profil',t:7,fov:30,lum:.45}]; // lum : le PROFIL a le soleil dans le dos (on le garde hors champ) — il éclaire déjà tout le flanc
+MENUV.pl=0;MENUV.pt=0;MENUV.force=null;MENUV.lum=3.4;MENUV.sd=null;MENUV.cadreT=-1;MENUV.cadre={nx:0,ny:-.1,fr:.6,fh:.4,t:-9e9};
+function menuCadre(){ // la zone de l'écran que l'interface laisse libre → où poser la caisse (NDC) et quelle place elle y prend
+  const W=innerWidth,H=Math.max(1,innerHeight),C=MENUV.cadre,T0=performance.now();
+  if(T0-C.t<1000)return C;C.t=T0;
+  const home=document.getElementById('mHome');
+  let x0=W,x1=0,tB=H*.22,iT=H*.74,vu=false;
+  if(home&&home.classList.contains('on')&&home.getClientRects().length){
+    for(const q of ['.mTitle','.mIcons','.mPlay']){const e=home.querySelector(q);if(!e)continue;const r=e.getBoundingClientRect();if(r.width<2||r.height<2)continue;
+      vu=true;x0=Math.min(x0,r.left);x1=Math.max(x1,r.right);if(q==='.mTitle')tB=r.bottom;if(q==='.mIcons')iT=r.top;}}
+  if(!vu){C.nx=0;C.ny=-.12;C.fr=W>H?.34:.62;C.fh=.4;return C;} // (menu PC, ?pc=1) : au centre, comme avant
+  const gL=x0,gR=W-x1;
+  if(W>H*1.15&&Math.max(gL,gR)>W*.14){ // PAYSAGE : la plus large bande latérale — la caisse un peu SOUS le milieu (sur la ligne de la mer),
+    const dr=gR>=gL,bw=dr?gR:gL,cx=dr?x1+bw*.52:bw*.48;   // un rien décalée vers les tuiles (la perspective grossit le nez : il sortait par le bord)
+    C.nx=cx/W*2-1;C.ny=-.2;C.fr=Math.min(.8,bw*.78/W);C.fh=.5;
+  }else{ // PORTRAIT : la bande entre le bas du logo et le haut des tuiles
+    const top=Math.min(tB,iT-40),cy=top+(iT-top)*.56; // un rien sous le milieu de la bande : la caisse pose sur la ligne d'horizon, le ciel au-dessus
+    C.nx=0;C.ny=-(cy/H*2-1);C.fr=.62;C.fh=Math.max(.12,(iT-top)/H*.8);
+  }
+  return C;
+}
+const MENU_SOL=new THREE.Vector3();
+function menuPose(P,C,sd,u,d,tH,tV){ // pose la caméra du plan P, côté `sd` (±1), à l'instant u ∈ [0,1] — la caisse dans la zone libre
+  if(P.n==='affiche'){ // trois-quarts avant, bas — l'angle de menuPlan, qui tourne à peine
+    const a=sd*(Math.min(.72,Math.max(.36,Math.abs(MENUV.a0)))+(u-.5)*.16);
+    MENUV.cam.copy(MENUV.p).addScaledVector(F.t,Math.cos(a)*d).addScaledVector(F.b,Math.sin(a)*d).addScaledVector(F.n,1.7+u*.3);
+  }else if(P.n==='arriere'){ // trois-quarts arrière bas : la route qui file devant la caisse, vers l'horizon
+    const a=sd*(.55+(u-.5)*.14);
+    MENUV.cam.copy(MENUV.p).addScaledVector(F.t,-Math.cos(a)*d).addScaledVector(F.b,Math.sin(a)*d).addScaledVector(F.n,1.45);
+  }else{ // PROFIL : plein côté à hauteur de roue, focale longue, lent travelling avant
+    MENUV.cam.copy(MENUV.p).addScaledVector(F.b,sd*d).addScaledVector(F.t,(u-.5)*d*.28).addScaledVector(F.n,1.05);
+  }
+  camera.position.copy(MENUV.cam);
+  camera.up.set(0,1,0); // l'horizon de niveau : c'est une photo, pas une poursuite
+  camera.lookAt(MENUV.vis);
+  camera.rotateY(Math.atan(C.nx*tH));  // la caisse glisse vers la zone libre (lacet exact) …
+  camera.rotateX(-Math.atan(C.ny*tV)); // … et à la bonne hauteur (tangage exact)
+}
+function menuSoleilVu(){ // le soleil « 1.61 » tombe-t-il dans l'image FINALE (pivot compris) ? Rend 0 hors champ, sinon sa proximité du centre
+  camera.updateMatrixWorld();
+  MENU_SOL.copy(camera.position).addScaledVector(SUN_DIR,1e4).project(camera);
+  if(MENU_SOL.z>1)return 0; // derrière la caméra
+  const ex=Math.abs(MENU_SOL.x),ey=Math.abs(MENU_SOL.y);
+  return (ex<1.25&&ey<1.25)?2.5-ex-ey:0; // (marge : le halo déborde du disque)
+}
+function menuCamera(dt){
+  MENUV.pt+=dt;
+  let P=MENU_PLANS[MENUV.pl],coupe=MENUV.sd==null;
+  if(MENUV.force){const k=MENU_PLANS.findIndex(q=>q.n===MENUV.force);if(k>=0&&k!==MENUV.pl){MENUV.pl=k;MENUV.pt=0;P=MENU_PLANS[k];coupe=true;}}
+  else if(MENUV.pt>P.t){MENUV.pl=(MENUV.pl+1)%MENU_PLANS.length;MENUV.pt=0;P=MENU_PLANS[MENUV.pl];coupe=true;} // LA COUPE
+  const C=menuCadre(),sp=CARS[level]||CARS[0],u=Math.min(1,MENUV.pt/P.t);
+  if(C.t!==MENUV.cadreT){MENUV.cadreT=C.t;coupe=true;} // la mise en page a bougé (rotation, redimensionnement) : on re-choisit
+  const R9=.5*Math.hypot(sp.l||4.2,sp.w||1.9,(sp.h||.8)+.6); // la sphère englobante de la caisse (roues et aileron compris)
+  camera.fov=P.fov;camera.updateProjectionMatrix();
+  const tV=Math.tan(camera.fov*Math.PI/360),tH=tV*camera.aspect;
+  // la distance qui lui donne la largeur de la zone libre (et jamais plus haute que la bande). ×1,3 : MESURÉ aux captures, en trois-quarts
+  // la caisse projetée est ~30 % plus large que sa sphère (le nez, plus près, grossit) — sans lui elle sortait par le bord
+  const d=Math.max(R9*1.3/(C.fr*tH),R9*.8/(C.fh*tV));
+  MENUV.vis.copy(MENUV.p).addScaledVector(F.n,.75);
+  MENUV.lum=P.lum;
+  if(coupe){ // LE CÔTÉ se choisit À LA COUPE, sur l'image du milieu du plan, et tient tout le plan (sinon le soleil qui frôle le bord
+    // du cadre ferait sauter la caméra d'un côté à l'autre en plein plan) : celui où le « 1.61 » reste HORS CHAMP, pivot compris.
+    // À égalité : le côté de la route (la caméra sur le bitume plutôt qu'au-dessus du vide).
+    let best=1e9;
+    for(const sd of [MENUV.sg,-MENUV.sg]){menuPose(P,C,sd,.5,d,tH,tV);const v=menuSoleilVu()+(sd===MENUV.sg?0:.01);if(v<best){best=v;MENUV.sd=sd;}}
+  }
+  menuPose(P,C,MENUV.sd,u,d,tH,tV); // POSÉE : chaque plan est une fonction lisse du temps, la coupe est franche
 }
 function menuVitrine(dt){
   MENUV.t+=dt;
   if(!MENUV.bio||MENUV.pas!==BIO.pas){if(!MENUV.bio)paintEnv(BIOMES[MENU_BIO].env,BIOMES[MENU_BIO].eS1,BIOMES[MENU_BIO].eS2);MENUV.bio=true;MENUV.pas=BIO.pas;bioApply(BIOMES[MENU_BIO]);} // (bioStep a pu repeindre le ciel du niveau cette image : on repasse derrière)
   skyU.uMer.value=1; // la mer de nuages sous l'horizon, même si le niveau du dessous (auto-école) a le ciel nu
-  if(MENUV.L!==L)menuPlan();
+  if(MENUV.L!==L){menuPlan();MENUV.sd=null;}
   const S9=Math.min(L-10,MENUV.s);frameAt(S9,F);
   MENUV.p.copy(F.p).addScaledVector(F.b,MENUV.lat);carGroup.position.copy(MENUV.p);
   mat4.makeBasis(tmp.crossVectors(F.n,F.t).normalize(),F.n,F.t);carGroup.quaternion.setFromRotationMatrix(mat4);carGroup.visible=true;
-  const a=MENUV.sg*Math.min(.7,Math.max(.33,Math.abs(MENUV.a0)+Math.sin(MENUV.t*.11)*.08)),d=(CARS[level]||CARS[0]).l*1.9+5.2; // un balancier lent et BORNÉ : la vitrine vit, la caisse ne sort jamais du cadre
-  MENUV.cam.copy(MENUV.p).addScaledVector(F.t,Math.cos(a)*d).addScaledVector(F.b,Math.sin(a)*d).addScaledVector(F.n,4.0);
-  camera.position.lerp(MENUV.cam,Math.min(1,dt*2.5));
-  camera.up.set(0,1,0); // l'horizon de niveau : c'est une photo, pas une poursuite
-  MENUV.vis.copy(MENUV.p).addScaledVector(F.n,2.2).addScaledVector(F.t,.35); // visée au-dessus du toit et un peu vers le NEZ (le nez, plus près, déborde : il sortait par le bord) : la caisse vers 60-65 % de la hauteur (entre le titre et JOUER), l'horizon au tiers haut — une AFFICHE
-  camera.lookAt(MENUV.vis);
-  camera.fov+=(50-camera.fov)*Math.min(1,dt*3);camera.updateProjectionMatrix(); // un objectif serré : la caisse, pas le paysage
+  menuCamera(dt); // LES PLANS (voir menuCamera) : le réalisateur pose la caméra, la caisse va là où l'interface laisse de la place
   if(landMark)landMark.visible=false;
   // L'ÉCLAIRAGE DE VITRINE : une lumière douce côté caméra (la carrosserie se lit), un contre-jour rose derrière (la silhouette se détache)
-  carLight.position.copy(MENUV.cam).addScaledVector(F.n,2.5);carLight.intensity=3.4;carLight.distance=60; // (vague 2) 2,4 → 3,4 : au couchant la caisse est à contre-jour, la lampe de vitrine la sort de l'ombre
+  carLight.position.copy(MENUV.cam).addScaledVector(F.n,2.5);carLight.intensity=MENUV.lum;carLight.distance=60; // (vague 2) 2,4 → 3,4 : au couchant la caisse est à contre-jour, la lampe de vitrine la sort de l'ombre
   nitroLight.position.copy(MENUV.p).addScaledVector(F.t,-4).addScaledVector(F.n,2.2);nitroLight.color.setHex(0xff4fb0);nitroLight.intensity=1.6;
   headSpot.intensity=1.6;
 }

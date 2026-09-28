@@ -1,5 +1,22 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LES PLANS DE L'ACCUEIL (2026-09-28) — « l'image derrière pourrait faire de meilleurs plans, mieux cadrer »
+Sacha : « j'aime bien les boutons et la DA, mais ce qui est affiché à l'écran n'est pas ouf ». MESURÉ aux captures (844×390 = l'ordi,
+390×844) : en PAYSAGE la caisse était filmée au CENTRE, pile derrière le logo et les tuiles — on ne la voyait JAMAIS ; une dalle de bitume
+noir mangeait le bas (caméra à 4 m, regard plongeant) ; au 1er instant la caméra arrivait d'en haut (lissée depuis rebuildMenuScene).
+- **`menuCadre()`** lit (1×/s) les boîtes de `.mTitle`, `.mIcons`, `.mPlay` de `#mHome` → la ZONE LIBRE : la plus large bande latérale en
+  paysage, la bande entre le logo et les tuiles en portrait (menu PC `?pc=1` : au centre, comme avant). **`menuCamera()`** vise la caisse
+  puis PIVOTE (lacet/tangage exacts, `atan(ndc × tan(demi-champ))`) pour la poser au centre de cette zone ; la DISTANCE sort de la sphère
+  englobante de la caisse (×1,3 : en trois-quarts elle projette ~30 % plus large) pour qu'elle en remplisse la largeur.
+- **TROIS PLANS, COUPES FRANCHES** (`MENU_PLANS`) : AFFICHE 8 s (trois-quarts avant bas, l'angle de `menuPlan`) · ARRIÈRE 7 s (trois-quarts
+  arrière bas, la route qui file vers l'horizon) · PROFIL 7 s (plein côté, focale 30°, lent travelling). Caméra POSÉE à chaque image (le
+  plan est une fonction lisse du temps ; la coupe est franche, pas de travelling de raccord). À chaque coupe, le plan choisit son CÔTÉ
+  (miroir) : celui où le soleil « 1.61 » reste HORS de l'image finale, pivot compris (`menuSoleilVu` le projette). Lampe de vitrine
+  dosée par plan (`lum` ; le profil a le soleil dans le dos, à 3,4 il délavait la carrosserie). Écarté après captures : un plan DRONE
+  depuis le vide (plongée 35-40° : que du noir sous la caisse).
+- Hook : `dbgVitrine()` rend `plan` et `cadre` ; `dbgVitrine(null,'profil')` force un plan, `dbgVitrine(null,null)` rend la main.
+  Banc : scratchpad de26fdc9 `vp/menushot.js` (captures DOM + WebGL, paysage/portrait, 3e argument = plans à forcer).
+
 ## PORTÉ DE LA LIGNÉE car-crash (2026-09-28) — pièces instanciées, génération au sol, pleins de nitro
 Repris du travail « progression & récompenses » de la branche `claude/practical-edison-19vbia` du dépôt `car-crash` (même ancêtre) —
 seulement ce qui s'applique ICI sans toucher à l'économie ni au FLOW v2. Banc : scratchpad de la session de26fdc9, `vp/static.js`,
