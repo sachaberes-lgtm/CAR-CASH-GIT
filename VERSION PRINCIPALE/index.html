@@ -8344,13 +8344,105 @@ function villeLampes(){
     else S[n++].set(P.x,P.y,P.z,r);}
   for(let i=n;i<4;i++)S[i].set(0,0,0,-1e30);
 }
+/* L'IMPACT SUR UN IMMEUBLE (2026-09-28, Sacha : « quand on se crashe sur un immeuble dans la ville, il doit y avoir un impact d'explosion
+   et de destruction de l'immeuble au point d'impact, qui soit cool et maîtrisé »). La tour est UNE instance d'un cube partagé : on ne
+   creuse pas de géométrie, on PEINT la destruction dans le shader des tours (deux uniformes, branche coupée tant qu'il n'y a pas d'impact :
+   zéro coût le reste du temps, zéro programme de plus) et on jette de VRAIS morceaux devant :
+     · LE CRATÈRE : un trou au bord DÉCHIQUETÉ (trois sinus sur l'angle autour du point d'impact, dans le plan de la façade) qui s'ouvre en
+       0,14 s — la cavité est noire, on y lit les DALLES des étages arrachés, et un BRASIER couve au fond (en bas du trou) ;
+     · la LÈVRE DE BRAISES qui court sur le bord, la SUIE qui noircit la façade (et souffle les fenêtres) sur ~2,4 rayons, et l'ÉCLAIR
+       blanc-orange du choc (0,35 s) ;
+     · les ÉCLATS : du béton (gros blocs sombres) et du VERRE allumé (des carreaux ambre et cyan, les fenêtres soufflées) projetés hors de la
+       façade, qui tournoient et tombent dans le vide ; poussière de béton, verre pilé qui scintille, braises ; puis la FUMÉE qui monte du
+       trou quelques secondes. Rayon maîtrisé (7 m : la taille de la boule de feu), le feu retombe en 7 s en braises qui couvent.
+   Joué aussi quand le BOUCLIER sauve la caisse (« j'ai traversé un immeuble et je survis » — GAMEPLAY). Aucune lumière ajoutée : les
+   éclats de verre ÉMETTENT (programme Phong générique, déjà celui des éclats de l'explosion). Hook : `dbgImpact()` (état), `dbgImpact(true)`
+   (un impact sur la tour la plus proche de la caisse, pour les bancs). */
+const IMPACT={u:{value:new THREE.Vector4(0,0,0,7)},n:{value:new THREE.Vector4(0,0,1,-1)},P:new THREE.Vector3(),N:new THREE.Vector3(),T1:new THREE.Vector3(),T2:new THREE.Vector3(),
+  V:new THREE.Vector3(),pieces:[],geo:null,mats:null,fume:0,last:-1e9};
+const VILLE_IMPACT=
+  'if(uImpN9.w>=0.){vec3 dI=vW9-uImp9.xyz;float rI=length(dI),ag=uImpN9.w,RI=uImp9.w*smoothstep(0.,.14,ag);'+
+  'if(rI<uImp9.w*2.6){vec3 nI=uImpN9.xyz,t1=normalize(abs(nI.y)>.9?vec3(1.,0.,0.):cross(vec3(0.,1.,0.),nI)),t2=cross(nI,t1);'+
+  'vec2 qI=vec2(dot(dI,t1),dot(dI,t2));float aI=atan(qI.y,qI.x);'+
+  'float phI=fract(uImp9.x*.137+uImp9.z*.071)*6.283;'+                                                   // chaque impact a SON dessin
+  'float jI=RI*(.84+.09*sin(aI*3.+phI)+.07*sin(aI*7.+1.7*phI)+.05*sin(aI*13.+.4)+.035*sin(aI*29.+2.9*phI));'+ // le bord DÉCHIQUETÉ (irrégulier : plus d étoile)
+  'float fI=mix(1.,.4,smoothstep(1.5,7.,ag)),flI=.72+.28*sin(uT9*17.+aI*3.)*sin(uT9*9.3+rI*.7);'+          // le feu qui retombe · qui danse
+  'float scI=1.-smoothstep(jI*1.25,jI*2.6+.5,rI);gl_FragColor.rgb=gl_FragColor.rgb*(1.-.9*scI)+vec3(.045,.016,.0)*scI*fI;'+ // la SUIE (fenêtres soufflées)
+  'float hI=1.-smoothstep(jI-.35,jI+.05,rI);'+
+  'if(hI>0.){float dpI=clamp(.5-qI.y/(2.*max(RI,.1)),0.,1.),slI=smoothstep(.8,.9,fract(vW9.y/3.9));'+            // le fond du trou · les DALLES des étages
+  'float feI=smoothstep(.55,1.,dpI);vec3 cvI=vec3(.012,.007,.016)+vec3(.12,.1,.13)*slI*(1.-feI)+vec3(1.,.3,.05)*feI*feI*1.3*fI*flI;'+ // cavité NOIRE, dalles, BRASIER au fond (tiers bas)
+  'gl_FragColor.rgb=mix(gl_FragColor.rgb,cvI,hI);}'+
+  'gl_FragColor.rgb+=vec3(1.,.4,.08)*exp(-pow((rI-jI)/.3,2.))*1.1*fI*flI;'+                                   // la LÈVRE de braises
+  'gl_FragColor.rgb+=vec3(1.,.78,.5)*(1.-smoothstep(0.,.35,ag))*(1.-smoothstep(0.,uImp9.w*2.4,rI))*3.;}}\n';  // l ÉCLAIR du choc
+function impactPieces(){ // (au 1er impact) 26 morceaux : un cube partagé, trois matières Phong nues (le programme des éclats de l'explosion)
+  if(IMPACT.geo)return;IMPACT.geo=new THREE.BoxGeometry(1,1,1);
+  IMPACT.mats=[new THREE.MeshPhongMaterial({color:0x5a5470,shininess:8}),new THREE.MeshPhongMaterial({color:0x6c6682,shininess:8}), // le béton du village, éclairé par la ville (plus clair que la façade : il se DÉTACHE du trou)
+    new THREE.MeshPhongMaterial({color:0x140f08,emissive:0xffb04a,emissiveIntensity:1.5,shininess:90}),new THREE.MeshPhongMaterial({color:0x08111a,emissive:0x8fd8ff,emissiveIntensity:1.3,shininess:90})];
+  for(let i=0;i<26;i++){const m=new THREE.Mesh(IMPACT.geo,IMPACT.mats[0]);m.visible=false;m.frustumCulled=false;scene.add(m);
+    IMPACT.pieces.push({m:m,v:new THREE.Vector3(),rx:0,ry:0,rz:0,t:0,life:0,s:new THREE.Vector3()});}
+}
+function villeTourTouchee(p){ // la tour (offset dans CITY.col.c) où la caisse vient d'entrer — même test que villeHeurt
+  const C=CITY.col;if(!C)return -1;const a=C.g.get(Math.floor(p.x/C.CG)+','+Math.floor(p.z/C.CG));if(!a)return -1;const c=C.c;
+  for(let j=0;j<a.length;j++){const o=a[j];if(Math.abs(p.x-c[o])<c[o+3]/2+.9&&Math.abs(p.z-c[o+2])<c[o+5]/2+.9&&Math.abs(p.y-c[o+1])<c[o+4]/2+.5)return o;}
+  return -1;
+}
+function villeImpact(p,vel){
+  const o=villeTourTouchee(p),now=performance.now();if(o<0||now-IMPACT.last<1500)return;IMPACT.last=now;
+  const c=CITY.col.c,dx=p.x-c[o],dy=p.y-c[o+1],dz=p.z-c[o+2],hx=c[o+3]/2,hy=c[o+4]/2,hz=c[o+5]/2;
+  const px=hx+.9-Math.abs(dx),py=hy+.5-Math.abs(dy),pz=hz+.9-Math.abs(dz);                    // la face d'ENTRÉE : la moins traversée
+  const P=IMPACT.P.set(Math.max(-hx,Math.min(hx,dx)),Math.max(-hy,Math.min(hy,dy)),Math.max(-hz,Math.min(hz,dz))),N=IMPACT.N.set(0,0,0);
+  if(px<=pz&&px<=py){N.x=Math.sign(dx)||1;P.x=hx*N.x;}else if(pz<=py){N.z=Math.sign(dz)||1;P.z=hz*N.z;}else{N.y=Math.sign(dy)||1;P.y=hy*N.y;}
+  P.x+=c[o];P.y+=c[o+1];P.z+=c[o+2];
+  const R=Math.max(3.5,Math.min(7,Math.min(N.x?Math.min(hz,hy):N.z?Math.min(hx,hy):Math.min(hx,hz))*.9)); // 7 m, jamais plus que la façade
+  IMPACT.u.value.set(P.x,P.y,P.z,R);IMPACT.n.value.set(N.x,N.y,N.z,0);IMPACT.fume=5.5;
+  try{if(typeof sfx==='function')sfx('impact.immeuble');}catch(e){} // (le son : la console de SON — béton qui éclate, verre qui pleut, ~1,5 s)
+  const T1=IMPACT.T1.set(0,1,0);if(Math.abs(N.y)>.9)T1.set(1,0,0);const T2=IMPACT.T2.crossVectors(N,T1).normalize();T1.crossVectors(T2,N).normalize();
+  const V=IMPACT.V.copy(vel||tmp.set(0,0,0));
+  impactPieces();
+  for(let i=0;i<IMPACT.pieces.length;i++){const q=IMPACT.pieces[i],m=q.m,verre=i>=17,a=Math.random()*6.283,r=Math.sqrt(Math.random())*R*.7;
+    m.material=IMPACT.mats[verre?(i%2?3:2):(i%2)];
+    if(verre)q.s.set(.5+Math.random()*.7,.4+Math.random()*.5,.07);else{const k=.5+Math.random()*1.4;q.s.set(k*(.7+Math.random()*.6),k*(.5+Math.random()*.6),k*(.7+Math.random()*.6));}
+    m.scale.copy(q.s);m.position.copy(P).addScaledVector(T1,Math.cos(a)*r).addScaledVector(T2,Math.sin(a)*r).addScaledVector(N,.4);
+    const sp=6+Math.random()*(verre?16:11);
+    q.v.copy(N).multiplyScalar(sp).addScaledVector(T1,Math.cos(a)*(2+Math.random()*6)).addScaledVector(T2,Math.sin(a)*(2+Math.random()*6)).addScaledVector(V,.12);q.v.y+=2+Math.random()*7;
+    m.rotation.set(Math.random()*6,Math.random()*6,Math.random()*6);q.rx=(Math.random()-.5)*9;q.ry=(Math.random()-.5)*9;q.rz=(Math.random()-.5)*9;
+    q.t=0;q.life=2.6+Math.random()*1.6;m.visible=true;m.updateMatrix();}
+  for(let k=0;k<44;k++){const a=Math.random()*6.283,r=Math.random()*R*.9,s9=2+Math.random()*9; // la POUSSIÈRE de béton qui souffle hors du trou
+    tmp.copy(P).addScaledVector(T1,Math.cos(a)*r).addScaledVector(T2,Math.sin(a)*r);
+    spawnP(dust,tmp.x,tmp.y,tmp.z,N.x*s9+(Math.random()-.5)*4,N.y*s9+1+Math.random()*3,N.z*s9+(Math.random()-.5)*4,1.2+Math.random()*1.4);}
+  for(let k=0;k<14;k++){const s9=3+Math.random()*6;spawnP(smokePool,P.x+(Math.random()-.5)*R,P.y+(Math.random()-.5)*R,P.z+(Math.random()-.5)*R,N.x*s9,N.y*s9+2,N.z*s9,1.4+Math.random()*1.2);}
+  for(let k=0;k<36;k++){const s9=8+Math.random()*18; // le VERRE PILÉ qui scintille
+    spawnP(sparkBlue,P.x+(Math.random()-.5)*R,P.y+(Math.random()-.5)*R,P.z+(Math.random()-.5)*R,N.x*s9+(Math.random()-.5)*10,N.y*s9+Math.random()*8,N.z*s9+(Math.random()-.5)*10,.5+Math.random()*.6);}
+  for(let k=0;k<22;k++){const s9=4+Math.random()*10;spawnP(boomEmbO,P.x+(Math.random()-.5)*R*.8,P.y+(Math.random()-.5)*R*.8,P.z+(Math.random()-.5)*R*.8,N.x*s9+(Math.random()-.5)*6,N.y*s9+2+Math.random()*5,N.z*s9+(Math.random()-.5)*6,.7+Math.random()*.9);}
+}
+function villeImpactTick(dt){ // une fois par image : l'âge du cratère, les morceaux, la fumée qui monte du trou
+  const n=IMPACT.n.value;if(n.w<0)return;n.w+=dt;
+  if(n.w>90){n.w=-1;return;} // (filet) un cratère n'a plus rien à dire au bout d'une minute et demie
+  for(const q of IMPACT.pieces){if(!q.m.visible)continue;q.t+=dt;
+    if(q.t>q.life){q.m.visible=false;continue;}
+    q.v.y-=22*dt;q.m.position.addScaledVector(q.v,dt);q.m.rotation.x+=q.rx*dt;q.m.rotation.y+=q.ry*dt;q.m.rotation.z+=q.rz*dt;
+    const e=Math.min(1,(q.life-q.t)/.4);q.m.scale.copy(q.s).multiplyScalar(e); // se replie en fin de vie (pas de pop)
+    q.m.updateMatrix();}
+  if(IMPACT.fume>0){IMPACT.fume-=dt;const u=IMPACT.u.value,N=IMPACT.N;
+    if(Math.random()<dt*9){const R=u.w;spawnP(smokePool,u.x+N.x*1.5+(Math.random()-.5)*R*.8,u.y+N.y*1.5+(Math.random()-.5)*R*.5,u.z+N.z*1.5+(Math.random()-.5)*R*.8,N.x*1.5+(Math.random()-.5),3+Math.random()*3,N.z*1.5+(Math.random()-.5),2+Math.random()*1.5);}
+    if(Math.random()<dt*14){const R=u.w;spawnP(boomEmbO,u.x+N.x+(Math.random()-.5)*R,u.y-R*.3+Math.random()*R*.5,u.z+N.z+(Math.random()-.5)*R,N.x*2+(Math.random()-.5)*2,2+Math.random()*4,N.z*2+(Math.random()-.5)*2,.6+Math.random()*.7);}}
+}
+function villeImpactFin(){IMPACT.n.value.w=-1;IMPACT.fume=0;for(const q of IMPACT.pieces)q.m.visible=false;} // nouvelle ville : l'ancien cratère s'éteint
+window.dbgImpact=function(go,av){ // av (banc, en pause) : fait vieillir l'impact de av secondes — cratère, morceaux et particules
+  if(av>0){for(let t=0;t<av;t+=1/60){villeImpactTick(1/60);updatePool(dust,1/60,2);updatePool(smokePool,1/60,2.5);updatePool(sparkBlue,1/60,-1);updatePool(boomEmbO,1/60,0);}}
+  if(go){const p=carGroup.position,C=CITY.col;if(!C)return 'pas de ville';let best=-1,bd=1e18,c=C.c;
+    for(let o=0;o<c.length;o+=6){const d=(c[o]-p.x)**2+(c[o+2]-p.z)**2;if(d<bd&&c[o+3]>12&&c[o+5]>12){bd=d;best=o;}}
+    if(best<0)return 'aucune tour';const q=tmp2.set(c[best],Math.min(c[best+1]+c[best+4]/2-4,Math.max(c[best+1]-c[best+4]/2+4,p.y)),c[best+2]);
+    tmp3.subVectors(p,q);tmp3.y=0;tmp3.normalize();q.x+=tmp3.x*(c[best+3]/2+.5);q.z+=tmp3.z*(c[best+5]/2+.5); // un point juste DANS la façade tournée vers la caisse
+    IMPACT.last=-1e9;villeImpact(q,tmp3.clone().multiplyScalar(-40));}
+  const u=IMPACT.u.value,n=IMPACT.n.value;return {actif:n.w>=0,age:+n.w.toFixed(2),rayon:u.w,point:[+u.x.toFixed(1),+u.y.toFixed(1),+u.z.toFixed(1)],normale:[n.x,n.y,n.z],morceaux:IMPACT.pieces.filter(q=>q.m.visible).length};};
 function villeMatTours(ancien){ // béton du village + fenêtres + pied noyé dans la brume (PARTAGÉ : jamais disposé)
   const K=ancien?'matT0':'matT';if(CITY[K])return CITY[K];
   const m=new THREE.MeshLambertMaterial({color:0xffffff,emissive:0x07080d});
   m.extensions={derivatives:true}; // fwidth (WebGL1) : les fenêtres se filtrent à la taille du pixel
   const DECL='varying vec3 vLoc9;varying vec3 vNrm9;varying float vB9;varying float vSeed9;varying vec3 vSc9;varying vec3 vW9;';
   const Q=c=>ancien?'true':c; // (passe perf) chaque saut de calcul : `true` sur l'ANCIEN chemin (le banc compare au même code)
-  m.onBeforeCompile=function(sh){sh.uniforms.uT9=CITY.uT;sh.uniforms.uWet9=ROAD_U.uWet;sh.uniforms.uCour9=CITY.uC;if(!ancien)sh.uniforms.uLum9=CITY.uL;
+  m.onBeforeCompile=function(sh){sh.uniforms.uT9=CITY.uT;sh.uniforms.uWet9=ROAD_U.uWet;sh.uniforms.uCour9=CITY.uC;if(!ancien){sh.uniforms.uLum9=CITY.uL;sh.uniforms.uImp9=IMPACT.u;sh.uniforms.uImpN9=IMPACT.n;}
     sh.vertexShader=(ancien?'':'#undef USE_SHADOWMAP\n')+sh.vertexShader.replace('#include <common>','#include <common>\n'+DECL+(ancien?'':'\nuniform vec4 uLum9[4];\n#if defined(USE_FOG)&&!defined(FOG_EXP2)\nuniform float fogFar;\n#endif\n'))
       .replace('#include <begin_vertex>','#include <begin_vertex>\n#ifdef USE_INSTANCING\n'+
         'vec3 sc9=vec3(length(instanceMatrix[0].xyz),length(instanceMatrix[1].xyz),length(instanceMatrix[2].xyz));'+
@@ -8361,7 +8453,7 @@ function villeMatTours(ancien){ // béton du village + fenêtres + pied noyé da
         'for(int i=0;i<4;i++)if(distance(w9,uLum9[i].xyz)<uLum9[i].w+r9)proche9=true;}\n#else\nbool proche9=true;\n#endif\n'))
       .replace('#include <lights_lambert_vertex>',ancien?'#include <lights_lambert_vertex>':'vLightFront=vec3(0.);vIndirectFront=vec3(0.);\nif(!loin9){\n'+VILLE_LLV+'\n}');
     if(!ancien)sh.fragmentShader='#undef USE_SHADOWMAP\n'+sh.fragmentShader;
-    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9,uWet9,uCour9;'+DECL)
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9,uWet9,uCour9;'+DECL+(ancien?'':'uniform vec4 uImp9,uImpN9;'))
       .replace('#include <fog_fragment>',
         /* LES FENÊTRES v2 (2026-09-26) — chaque tour a sa PERSONNALITÉ, tirée de sa graine : travée 2,6-4,4 m, étage 3,5-4,4 m, taux
            d'allumage 22-62 %, habitation (ambre chaud) ou bureaux (blanc-cyan froid, fenêtres en BANDEAU allumées par plateaux entiers).
@@ -8397,7 +8489,7 @@ function villeMatTours(ancien){ // béton du village + fenêtres + pied noyé da
         'gl_FragColor.rgb+=wv*fv*1.3*uCour9;}'+ // uCour9 : la PANNE éteint les fenêtres (campagne VILLE, niveau 16)
         'if('+Q('tt>0.&&fe<1.4')+'){vec3 rc=fro>.5?vec3(.24,.91,1.):s2>.72?vec3(1.,.24,.78):vec3(1.,.58,.24);'+ // (vague 2) le parapet suit la dominante de la tour (cyan #3ee8ff / ambre), parfois magenta #ff3ec8
         'gl_FragColor.rgb+=rc*tt*(1.-smoothstep(.55,.55+fe*1.5,de))*(1.-smoothstep(.5,1.4,fe))*.55*uCour9;}}}\n'+
-        '#include <fog_fragment>\n'+villePied(Q));
+        (ancien?'':VILLE_IMPACT)+'#include <fog_fragment>\n'+villePied(Q));
   };
   m.customProgramCacheKey=function(){return ancien?'toursV3':'toursV4';};
   CITY[K]=m;return m;
@@ -8501,7 +8593,7 @@ function villeMatPub(){
 }
 function buildVoxCity(seed,accC){
   for(const F of CITY.fam||[])for(const x of [F.im,F.imL])x.dispose(); // (passe perf) les tampons d'instances de l'ancienne ville (les géométries sont parties avec trackMeshes)
-  CITY.root=null;CITY.n={};CITY.col=null;CITY.ens=[];CITY.imC=CITY.imN=null;CITY.fam=null;CITY.lampes=null;
+  CITY.root=null;CITY.n={};CITY.col=null;CITY.ens=[];CITY.imC=CITY.imN=null;CITY.fam=null;CITY.lampes=null;villeImpactFin(); // (l'ancien cratère s'éteint avec son quartier)
   if(PARK.on)return; // le parc a sa prairie
   if(LVL.cur&&LVL.cur.id!=='ville')return; // NIVEAUX : la ville n'existe qu'au niveau VILLE
   if(!(NP>1))return;
@@ -30112,7 +30204,7 @@ function loop(now){
       if(TCTL.on&&!TUTO.on&&!(SAVE.d.ast&2)){loop._astV=(loop._astV||0)+dt;if(loop._astV>1){SAVE.d.ast|=2;SAVE.mark(); // ASTUCE (une fois à vie) : l'assiette au pouce
         misBanniere('ASTUCE',TR("En l'air : pouce en HAUT = plonge, en BAS = cabre."),'','eclair');}}
       if(!PARK.on&&portalMesh&&!CAMP.portFerme&&fallPos.distanceToSquared(PORTAL.c)<PORTAL.R*PORTAL.R*.9)portailPasse(); // (2026-09-26) l'ovule traversé EN VOL — du ciel, de côté, d'en dessous
-      else if(CITY.col&&villeHeurt(fallPos)){airPie.style.display='none';try{dolFin();}catch(e){}shake=Math.max(shake,1.2);if(PARK.on)parkRespawn();else explode('tour');} // (2026-09-26) DANS UNE TOUR : on meurt
+      else if(CITY.col&&villeHeurt(fallPos)){airPie.style.display='none';try{dolFin();}catch(e){}shake=Math.max(shake,1.2);if(PARK.on)parkRespawn();else{try{villeImpact(fallPos,fallVel);}catch(e){}explode('tour');}} // (passe graphismes) l'IMPACT sur la façade, avant explode (le bouclier le laisse jouer aussi) // (2026-09-26) DANS UNE TOUR : on meurt
       else if(tryLand(dtF)){airPie.style.display='none';dolFin();mirPose();} // posé : le total du DAUPHIN se fige et s'encaisse
       else if((fallTR>airMax()&&pwrAirT<=0)||fallPos.y<trackMinY-120||(pwrBouT>0&&MIR.t>2.2&&!PARK.on)){airPie.style.display='none';if(PARK.on)parkRespawn();else explode(fallPos.y<trackMinY-120||MIR.t>2.2?'vide':'air');} // (pouvoirs v2) sous BOUCLIER, une chute perdue d'avance depuis 2,2 s est rattrapée tout de suite (on n'attend pas d'être tombé 120 m sous la piste) // FREESTYLE : trop long en l'air ou chute dans le vide = on repart, jamais de mort // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
     }else if(mode==='boom'){ // ---- EXPLOSION ----
@@ -30146,6 +30238,7 @@ function loop(now){
     // particules
     ptTick(dt); // (particules v2) la vitesse de la caisse : le repère des étincelles étirées
     updatePool(dust,dt,2);
+    villeImpactTick(dt); // (passe graphismes) le cratère de la façade percutée, ses morceaux, sa fumée
     updateStreaks(dt);
     updatePool(flames,dt,1);
     updatePool(flameCore,dt,1);

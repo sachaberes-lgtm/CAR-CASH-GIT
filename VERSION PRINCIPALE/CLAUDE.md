@@ -127,6 +127,16 @@ MÊME image figée (bancs : scratchpad de la session f71fd2a2, `gfx/abx.js`, `gf
 - **LE BITUME GLACÉ** (`ROAD_U.uGlace`, `GLACE`, `roadMat`) : la route sèche renvoie le ciel du biome selon l'angle (Fresnel ^5), dans la
   MÊME lecture du cube que le mélange d'origine — rien sous le nez, le dégradé du ciel vers le lointain et sur les dalles qui tournent ; le
   reflet du SOLEIL en est retiré (la traînée dure refusée le 26/09). NUAGES .45 · ORBITE .5 · VILLE 0 (elle a son eau).
+- **L'IMPACT SUR UN IMMEUBLE** (Sacha : « quand on se crashe sur un immeuble, un impact d'explosion et de destruction au point
+  d'impact, cool et maîtrisé ») — `IMPACT`, `villeImpact(p,vel)` (appelé dans la branche de vol, AVANT `explode('tour')` : il joue aussi
+  quand le BOUCLIER sauve la caisse, accord GAMEPLAY), `villeImpactTick`, `villeImpactFin` (nouvelle ville). La tour est une instance
+  d'un cube partagé : la destruction est PEINTE dans `villeMatTours` (`VILLE_IMPACT`, uniformes `uImp9`/`uImpN9`, branche coupée sans
+  impact) — cratère au bord déchiqueté (dessin propre à chaque impact) qui s'ouvre en 0,14 s, cavité noire où l'on lit les dalles des
+  étages, brasier au tiers bas, lèvre de braises, suie qui souffle les fenêtres sur ~2,6 rayons, éclair du choc 0,35 s ; rayon 7 m (jamais
+  plus que la façade). Devant : 26 VRAIS morceaux (17 blocs de béton, 9 carreaux de verre ÉMISSIFS ambre/cyan — Phong nu, le programme des
+  éclats de l'explosion : 0 compilé, mesuré), poussière `dust`, verre pilé `sparkBlue`, braises, fumée qui monte du trou 5,5 s.
+  Son : `sfx('impact.immeuble')` (console de la session SON, 2,4 s : béton sourd, vitre, pluie de verre, gravats). Hook `dbgImpact(true)`
+  (impact sur la tour la plus proche), `dbgImpact(null,s)` (fait vieillir en pause). Banc : `gfx/imp.js` (planche 0,05 → 4,5 s).
 - **Écarté après captures** : « le monde dans la laque » (le décor du niveau — mer de nuages, mur de tours éclairées — peint dans le cube
   des carrosseries) : INVISIBLE depuis la caméra de poursuite (on voit l'arrière des caisses de face, le vernis n'y renvoie que ~6 %).
 
