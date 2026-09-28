@@ -101,6 +101,30 @@ collé au bord de la route, sans un saut, FRÉNÉSIE en 11 s et gardée pour tou
   sage et colle-bord plafonnent FLOW I / II (0 % de frénésie), pilote de route 2 %, casse-cou 1re frénésie ~60 s (22 % du temps,
   ~26 s d'affilée), maître ~30 s (57 %, ~64 s d'affilée).
 
+## LA FRÉNÉSIE v3 — « PLUS DURE À ATTEINDRE, MOINS FACILE À PERDRE, UN BUT EN SOI » (2026-09-28, l'après-midi)
+Sacha, après le FLOW v2 : « on l'a trop dans le jeu ; en frénésie le nitro baisse 2× plus lentement ; tant que le nitro est activé
+le flow ne baisse pas ; atteindre la frénésie doit être un but en soi » puis « plus dure à atteindre mais moins facile à perdre ».
+MESURÉ AVANT (`sim2.js`, plots fidèles au jeu — un plot touché ne retire PAS de flow) : casse-cou en frénésie à 51 s, 47 % du temps ;
+maître à 24 s, 77 %. Le réglage vit TOUJOURS dans `FLOW2` (commentaire « LE FLOW v3 », lois 5-7) :
+- **LE NITRO GÈLE LE FLOW** (`flowTick` : `FLOW.nit = nitroOn && mode!=='boom'`, passé à `flowPerteDe(…, nit)`) : ni perte ni répit
+  qui s'écoule tant qu'il brûle — comme en vol. La bande prend `.gele` ; pas de fuite affichée ni de tic d'alarme (`flowReste`).
+- **EN FRÉNÉSIE LE NITRO DURE 2×** (`FLOW2.fren.nitro` .5) : la consommation au sol ET le coup de réacteur en vol (12 % × .5).
+  Mesuré au banc : net −0,3/s en frénésie contre −0,8/s hors frénésie (recharge .2/s comprise).
+- **LA MONTÉE EST LONGUE** : `cel` .5 · .35 · .22 · .14 (v2 : 1 · .8 · .65 · .5), fuite 3 · 3,5 · 4 · 3, pente 0 · 0 · .4 · .4, répit 2,5 s.
+- **LA FRÉNÉSIE TIENT** : `fren` pente .7, fuite 1,5, répit 4 s — perdue en ~8,4 s à la croisière sans rien faire (4 s en v2), et le
+  nitro la tient indéfiniment tant qu'il y en a. **PERDUE, LA TRIADE SE VIDE** : `retombee` 75 (+1 de filet) — plus de retour en deux figures.
+- **UN BUT EN SOI** (`frenDebut/frenTient/frenFin/frenChrono/frenDuree`, juste après `flowReset`) : chrono sous l'emblème
+  (`#frenChrono`, `.rec` quand le record tombe), record de tenue `SAVE.d.frenRec` (s, arrondi par défaut, borné dans `san`), l'annonce
+  d'entrée dit « RECORD 0:42 » (dès 5 s de record), « RECORD DE FRÉNÉSIE ! » crié quand il tombe (une fois), « FRÉNÉSIE 0:42 [· RECORD] »
+  à la perte, la plus longue de la partie sur l'écran de mort (`.mStat.mFren`, `.rec` si record — toujours affichée, 0:00 = le but reste
+  sous les yeux). `RUNX.fren`/`RUNX.frenMax` ; `endGame` compte une frénésie encore en cours (QUITTER, fin de campagne).
+- **LE SOUFFLEUR** : frénésie qui fuit au sol + nitro disponible non allumé → « NITRO ! », une fois par frénésie.
+- Le STYLE de `#frenChrono`, `.gele`, `.mStat.mFren` : la session UI (hudMaitrise / charte4) — ici seulement un CSS minimal.
+- Bancs (scratchpad session 7700ae / 41020878, muets, UN à la fois) : `sim2.js <index.html> [T] [--v2]` (joueurs types + réservoir de
+  nitro ; `OV='{cel:[…]}'` surcharge FLOW2 à l'essai), `frenv3.js <racine>` (gel, ×½, tenue, retombée, record, écran de mort).
+  RÉSULTAT (4 min) : sage, colle-bord, pilote de route 0 % ; casse-cou 1re à ~141 s (44 % des parties), 13 % du temps, tenue ~70 s ;
+  maître 1re à ~74 s, tenue jusqu'à 2 min.
+
 ## LA CAMPAGNE NUAGES (2026-09-27) — dix heures du jour, dix idées de jeu
 Brief de Sacha (inspiration rédigée avec Grok) : « les 10 niveaux racontent une journée, de l'aurore au coucher du soleil ; chaque
 niveau ajoute ou détourne UNE idée de jeu ». Tout est BRANCHÉ sur l'existant, rien n'est réécrit.
