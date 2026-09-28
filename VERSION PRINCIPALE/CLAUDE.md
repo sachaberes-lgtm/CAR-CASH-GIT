@@ -434,14 +434,17 @@ dans UN bloc en fin de `<style id="charte4">` (« LA CHARTE AU COMPLET », secti
     paillettes (`.fSeg::before` + `u.fG`, deux trames, deux cadences) ; **nourrie** (`frenNourrit`, ≥ 1,2 point, ≤ 1 fois/110 ms) :
     `.sc1/.sc2` (éclat + reflet qui la balaie + paillettes à fond) et braises `PIX_FREN` (≤ 1 gerbe/420 ms) ; **fuit** : la zone se
     hachure et clignote ; **lâche** : cadre qui clignote (le tic), emblème qui tremble. Plus d'arc-en-ciel (hue-rotate) nulle part.
-  · **L'EMBLÈME** (`#triade`, 108 px au lieu de 68) : SVG ROUGE (halo cuit, plaque carbone `--frenO`, cadre encre + dégradé + filet,
-    trois rivets, texte en couleurs pleines) et quatre enveloppes (`.trTr` tremble · `.trBat` bat · `.trPouls` frappe) pour que les
-    animations ne s'écrasent pas. JS : `frenEntre` (mesure la zone → `--ox/--oy`, classe `.on`), `frenSort` (`.sort` 440 ms), `.tremble`
-    / `.froid` posées par `flowHudMaj`. Naissance `trNait` 560 ms depuis la zone rouge + onde triangulaire ; vie `trTourne` 5,2 s
-    (−720° en 36 %, arrêt LISIBLE, retour, arrêt) avec deux fantômes du cadre à 45/90 ms (la traînée) ; `trPouls`/`trAura` frappent
-    au départ de chaque double tour ; `#flowGlow` bat en rouge (1,3 s) calé sur ces frappes. Place mesurée (390×844) : disque balayé
-    191-293 × 75-177 — chrono de vol à 298, pouvoirs et objectif de campagne à 184 ; la barre du RECORD se contracte (`#avRec`
-    max-width) pendant la frénésie. « Réduire les animations » : rien ne tourne/bat, fantômes et onde masqués.
+  · **L'EMBLÈME v3 — EN PIXEL** (même soir, Sacha : « toute l'interface est faite en pixel, réinterprète la dark triad ») : un BADGE
+    PIXEL de 54 × 49 cases de 2 px (108 × 98, `crispEdges`), généré case par case (scratchpad 52f21eda `fr/pix/gen.js` → chemins
+    `<path style="fill:var(--…)">` par couleur, dans `<g id="trArt">`) : contour d'encre `--frenO`, biseau clair `--frenV` + lèvre
+    `--frenC` à gauche, `--fren` + ombre `--frenS` à droite, base sombre, ÉPAISSEUR dessous à `--encre`, fond carbone tramé, un ŒIL au
+    sommet, trois rivets ; texte « THE / DARK / TRIAD » en Press Start 2P 8 px calé au pixel. Il TOURNE COMME UNE PIÈCE (`.trPiece`
+    preserve-3d + deux `.trFace` dont le revers déjà retourné, `rotateY` −720° / retour sur 5,2 s) : une rotation dans le plan
+    floutait les pixels. Frappe = BOND de 6 px en paliers (`trPouls` steps(3)) + halo ; nourri = +2 px et éclat ; lâche = tremble de
+    2 px ; onde de choc = le contour pixel, par paliers. Plus de fantômes. Enveloppes `.trTr`/`.trBat`/`.trPouls` inchangées ; JS :
+    `frenEntre` (zone → `--ox/--oy`, `.on`), `frenSort` (`.sort` 440 ms), `.tremble`/`.froid` par `flowHudMaj`. `#flowGlow` bat en
+    rouge (1,3 s) calé sur les frappes. Place (390×844) : boîte 188-296 × 72-170 — chrono de vol à 298, pouvoirs/objectif à 184 ;
+    la barre du RECORD se contracte (`#avRec` max-width). « Réduire les animations » : ni tour, ni bond, revers et onde masqués.
   · **LA VOIX** (Sacha, même soir : « ça doit déclencher la voix TRIPLE MONSTRE quand la frénésie est atteinte ») : entrée
     `ANN_LIB.frenesie` (même fichier `triple_monstre.mp3`, son propre compteur — elle ne consomme pas le tirage 1/3 des vrais
     TRIPLE MONSTRE), appelée dans `flowAdd` avec `annSpeak('frenesie',5,true)` : À CHAQUE frénésie, forcée, priorité 5 (coupe
@@ -454,6 +457,9 @@ dans UN bloc en fin de `<style id="charte4">` (« LA CHARTE AU COMPLET », secti
   téléphone, plafond 90), brouillon `JUS_N` 192 cellules ; opacité PLEINE .9 la 1re moitié de la vie puis fondu (c'était ≤ .55 en
   fondu dès l'impact), corps .94 / cœur .9, coulure .95, `#juiceCv` opacité 1 ; l'ellipse du couloir s'élargit de la goutte (son
   BORD reste dehors). Banc `fr/jus.js` (dbgJus figé) : 14 taches = 13,6 % d'écran peint (6,2 % avant).
+  **v3b** (même soir : « trop sur les côtés ; un peu plus grosses ; pouvoir apparaître PARTOUT sur l'écran ») : plus d'ellipse ni de
+  bande du haut interdites — position uniforme sur tout l'écran (le HUD reste dessiné par-dessus) ; rayon ×1,25 (~46-91 px, plafond
+  110), `JUS_N` 240. Cas extrême du banc (14 taches d'un coup) : 45,7 % d'écran peint ; un fruit en projette 1 à 5.
 - **Écarté volontairement** (verdicts) : JOUER au garage, bouton d'action dans MODES/CARRIÈRE, ⚙ de l'accueil en bas, flèches du garage,
   rangée LA PARTIE de la pause descendue près de REPRENDRE (QUITTER ne se colle pas au lingot), l'or du HUD (voix des annonces, record en
   or demandé le 26/09 : « plus en lavande 8 px »).
