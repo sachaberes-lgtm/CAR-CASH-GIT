@@ -5836,16 +5836,43 @@ function qlDpr(k,b){ // la résolution que vaut le cran k
   if(k<=b.kNet)return b.cap-(b.cap-b.pl)*(k-QL.N_EFF)/Math.max(1,b.nA);
   return Math.max(b.bas,b.pl-(b.pl-b.bas)*(k-b.kNet)/Math.max(1,b.nB));}
 function qlPose(k){ const b=qlBornes();k=Math.max(0,Math.min(b.kMax,k|0));QL.k=k;
-  const om=k>=4?512:k>=2?768:QL.ombre0;
+  const om=VHD.on?VHD.ombre:k>=4?512:k>=2?768:QL.ombre0; // (2026-09-28) l'ACCUEIL en haute définition a sa carte d'ombre à lui (voir VHD)
   if(sun.shadow.mapSize.x!==om){if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}sun.shadow.mapSize.set(om,om);} // recrée la carte, zéro recompilation
   const br=k>=3?.75:1;if(br!==BLOOM_RES){BLOOM_RES=br;if(bloomPass&&bloomPass._W)bloomPass.setSize(bloomPass._W,bloomPass._H);}
   FLOU_OK=k<5;
   if(bloomPass)bloomPass.enabled=!REDUCED_MOTION&&k<b.kMax;
   if(k<1&&renderer.shadowMap.autoUpdate===false)renderer.shadowMap.autoUpdate=true;
-  const d=Math.min(qlDpr(k,b),devicePixelRatio);if(Math.abs(d-curDPR)>.001){curDPR=d;applyDPR();}
+  const d=VHD.on?VHD.dpr:Math.min(qlDpr(k,b),devicePixelRatio);if(Math.abs(d-curDPR)>.001){curDPR=d;applyDPR();}
   QUAL_MED=k>0;QUAL_LOW=!!bloomPass&&!bloomPass.enabled&&!REDUCED_MOTION;return k;}
 function qlReprise(){ // RAPIDE⇄NETTE : le choix du joueur rend la pleine résolution tout de suite (les crans invisibles restent, l'échelle redescendra si besoin)
   QL.mur=0;QL.murT=0;QL.roseT=0;QL.up=0;QL.efT=0;QL.effondre=false;QL.essai=null;QL.plafT=0;curDPR=-1;qlPose(Math.min(QL.k,QL.N_EFF));}
+/* L'ACCUEIL EN HAUTE DÉFINITION — VHD (2026-09-28, Sacha : « est-ce que tu peux pousser les graphismes au max, juste pour l'écran
+   d'accueil »). Toute l'échelle QL est taillée pour la COURSE (60 i/s sous la pluie de particules, à 1 400 km/h) ; la vitrine, elle,
+   c'est une caisse arrêtée sur une route, sous un ciel — une AFFICHE. Tant que l'accueil est à l'écran (vitrine qui tourne : ni
+   garage, ni course), on y met tout ce que la machine a :
+     · la RÉSOLUTION PLEINE de l'écran — et au-delà sur l'ordi : sur-échantillonnée ×1,5 (anticrénelage par le haut), sous un
+       budget de pixels (8,3 M = la 4K sur l'ordi, 3,2 M = un iPhone plein sur téléphone, où l'on s'arrête à la densité de l'écran).
+       ⚠ Dans la COLONNE de l'ordi, `devicePixelRatio` = le zoom du cadre (2,3 sur 1 920 px) : le jeu d'ordinaire calculait sa 3D à
+       1 ou 1,5 et l'ÉTIRAIT — c'est le gros du flou que l'on voyait sur PC ;
+     · l'OMBRE en carte 4096 (2048 sur téléphone) au lieu de 1024-1280 : la caisse pose sur le bitume avec une ombre au trait ;
+     · le FILTRAGE de la route et de sa peinture au maximum de la carte (×16) — on la regarde rasante, c'est là qu'elle se lit ;
+     · l'échelle QL au cran 0 (bloom plein, flou, ombre pleine) et MISE EN VEILLE : c'est VHD qui tient la résolution.
+   FILET : si la machine ne suit pas (plus d'un quart des images au-delà de 22 ms, hors cadence 30 Hz imposée), la résolution de
+   la vitrine descend d'un cran (×0,8) toutes les 1,5 s, jamais sous le plafond ordinaire. En sortant (garage, départ de course),
+   tout revient À L'IDENTIQUE : l'échelle reprend le cran qu'elle avait, sa carte d'ombre et sa résolution. Les bascules tombent
+   sous le volet (ecranWipe) : la réallocation des cibles ne se voit pas. `?hd=0` coupe le mode (comparer) ; `dbgVHD()` le décrit. */
+const VHD={on:false,dpr:1,ombre:2048,t:0,k0:0,off:/[?&]hd=0/.test(location.search)};
+function vhdDpr(){ const px=Math.max(1,innerWidth*innerHeight),bud=TEL_NATIF?3.2e6:8.3e6;
+  return Math.max(DPR_CAP,Math.min(devicePixelRatio*(TEL_NATIF?1:1.5),Math.sqrt(bud/px),4));}
+function vhdAniso(on){ const m=renderer.capabilities.getMaxAnisotropy(),n=on?m:Math.min(IS_MOBILE?4:8,m);
+  for(const t of [ASPH_TEX,LIGNE_TEX])if(t&&t.anisotropy!==n){t.anisotropy=n;t.needsUpdate=true;}}
+function vhdBascule(on){ if(VHD.off||on===VHD.on)return;
+  if(on){VHD.k0=QL.k;VHD.dpr=vhdDpr();VHD.ombre=Math.min(TEL_NATIF?2048:4096,renderer.capabilities.maxTextureSize);VHD.t=0;VHD.on=true;curDPR=-1;qlPose(0);}
+  else{VHD.on=false;curDPR=-1;qlPose(VHD.k0);}
+  vhdAniso(on);}
+addEventListener('resize',function(){if(VHD.on){VHD.dpr=vhdDpr();curDPR=-1;qlPose(0);}}); // téléphone tourné, fenêtre retaillée : le budget de pixels se recalcule
+window.dbgVHD=function(){return {on:VHD.on,dpr:+curDPR.toFixed(2),dprEcran:+devicePixelRatio.toFixed(2),plafondCourse:+DPR_CAP.toFixed(2),
+  px:Math.round(innerWidth*innerHeight*curDPR*curDPR),ombre:sun.shadow.mapSize.x,aniso:ASPH_TEX?ASPH_TEX.anisotropy:null,bloom:bloomPass?(bloomPass.enabled?BLOOM_RES:0):null,crans:QL.k};};
 window.dbgDPR=function(d,sansPique){RESPIN=true;curDPR=+d;applyDPR();if(sansPique&&acesPass&&acesPass.uniforms.uSharp)acesPass.uniforms.uSharp.value=0;return {dpr:curDPR,pique:acesPass&&acesPass.uniforms.uSharp?+acesPass.uniforms.uSharp.value.toFixed(3):null};}; // (tour 2) banc : une résolution, sans rien d'autre (fige l'échelle)
 window.dbgQual=function(k){ if(k!=null){qlPose(k);RESPIN=true;} const b=qlBornes(); // dbgQual(k) force le cran k ET fige (dbgPin(false) relâche)
   const al=[];for(let i=0;i<QL.N_EFF&&i<QL.k;i++)al.push(QL.nom[i]);
@@ -28407,7 +28434,10 @@ function loop(now){
      comme un MUR (45 s). ⚠ LA REMONTÉE À < 14,5 ms ÉTAIT IMPOSSIBLE SUR UN ÉCRAN 60 Hz (2026-09-24) : la synchro plafonne l'image à
      16,7 ms — le seuil est 17,8 ms (« on tient la synchro 60 »). */
   dprT-=dt;
-  if(!RESPIN&&dprT<=0&&now>4000){dprT=1.1;const fort9=QLR.p50>24,tire9=QLR.p75>24||QLR.p50>18.5;
+  // (2026-09-28) L'ACCUEIL EN HAUTE DÉFINITION (VHD) : l'échelle dort, c'est la vitrine qui tient la résolution — et son FILET la
+  // redescend (×0,8, toutes les 1,5 s, jamais sous le plafond ordinaire) si plus d'un quart des images passe 22 ms
+  if(VHD.on){VHD.t+=dt;if(VHD.t>1.5&&calme9&&QLR.p75>22&&VHD.dpr>DPR_CAP+.02){VHD.t=0;VHD.dpr=Math.max(DPR_CAP,VHD.dpr*.8);curDPR=-1;qlPose(0);}}
+  else if(!RESPIN&&dprT<=0&&now>4000){dprT=1.1;const fort9=QLR.p50>24,tire9=QLR.p75>24||QLR.p50>18.5;
     /* LA NETTETÉ NE SE SACRIFIE QUE SI ÇA PAIE (tour 2) : un cran de RÉSOLUTION posé, on regarde 3 s plus tard si la médiane a
        baissé. Si non (le téléphone bute ailleurs : processeur, affichage), la résolution revient et ce cran devient un MUR — on ne
        floute pas l'image pour rien. */
@@ -29850,6 +29880,7 @@ function loop(now){
     if(msgT>0){msgT-=dt;if(msgT<=0)elMsg.style.opacity=0;}
   } }catch(err){window.__loopErr=err.message+' | '+(err.stack||'').split('\n').slice(0,3).join(' ¶ ');if(!loop._warned){console.error('loop error',err);loop._warned=true;}}
   // ciel : dôme, soleil « 1.61 », lueur d'horizon et rayons crépusculaires suivent la caméra
+  vhdBascule(!garageOn&&(!started||MENUV.retour)&&!(typeof stallOn!=='undefined'&&stallOn)); // (2026-09-28) l'ACCUEIL en haute définition — tant que la vitrine tourne (voir VHD)
   if(garageOn)garageRender(dt);
   else if(!started||MENUV.retour)menuVitrine(dt); else if(MENUV.bio)menuVitrineFin(); // L'ACCUEIL (au couchant — rendu au niveau dès qu'on le quitte) : la caisse en vitrine sur la route de la ville // GARAGE : place la caisse + oriente la caméra AVANT que le ciel suive
   else if(stallOn)stallRender(dt); // ÉTAL : même showroom, mais c'est un fruit qui tourne
