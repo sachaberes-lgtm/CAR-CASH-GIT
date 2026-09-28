@@ -1,5 +1,49 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA CHASSE AUX DÉTAILS (2026-09-28) — « je ne te demande pas de changer drastiquement : traque tous les détails pour que le jeu soit parfait »
+Sacha : « les animations du nitro pourraient faire beaucoup plus FLAMME, façon Asphalt 9 ; en nitro infini les flammes de la barre font
+trop Minecraft, fais un truc premium ; vérifie que tous les textes sont bons ; pas de débogage ni d'optimisation, cherche les détails ».
+Sept audits en lecture seule (textes, écrans, son, finition visuelle, 5 premières minutes, carrière), corrections par lots, chaque lot vérifié
+au banc muet (scratchpad de la session 514feb73 : `nit.js` flammes/jauge, `tour.js` partie jouée — vol, pose, pause au clavier, NITRO MAX,
+explosion, écran de mort, `LG=en` pour l'anglais —, `set.js` réglages, `carr.js` fin de l'ESPACE ; `chk.js` = syntaxe de chaque `<script>`).
+- **LA FLAMME VIVANTE** (`jetMat`, `JET_VS`/`JET_FS`, horloge `JET_T`) : la plume de la caisse n'est plus une texture fixe qui tourne — un
+  bruit périodique COULE de la tuyère vers la pointe et ronge la matière (les langues se détachent), racine BLEUE de brûleur sous un cœur
+  blanc, corps à la couleur de la poussée qui rougit vers la pointe, bord qui s'efface avec l'angle, pointe qui erre (vertex). Profil tourné
+  (`jetGeo` = LatheGeometry : étroit, ventre, pointe) au lieu d'un cône. `jetShellM.color`/`jetCoreM.color` restent de vraies THREE.Color
+  (la boucle, l'arc-en-ciel, dbgNitro les écrivent). Chaque pot bat à son rythme. La meute brûle avec le même programme (bleu police).
+  Les textures cuites `jetTex`/`jetCoreTex` ont disparu. Programmes compilés en course : 0 (mesuré).
+- **LA JAUGE EN FEU v2** (`FEU`, `feuSprites`, `feuChaud`, `feuNait`, `nitroFeu`) : fini le feu de DOOM 96×18 agrandi — 220 bouffées
+  (sprites radiaux cuits par teinte, blanc → rouge sombre) au pixel de l'écran, étirées en LANGUES, qui naissent sur la barre (la barre EST
+  le foyer : au téléphone il n'y a que ~18 px d'écran au-dessus), tirées vers des foyers qui glissent, + étincelles et lueur de tranche.
+  S'éteint quand la caisse explose. CSS : `#nitroFeu` 60 px, `bottom:0`, plus de `image-rendering:pixelated`.
+- **FINITION VISUELLE** : secousses de caméra en SINUS (sol, vitesse, vol — plus de `Math.random` par image ; le vol calmé comme le sol ;
+  les chocs EN VOL se sentent par le regard) · SUSPENSION (`susY/susV`, ressort sur `carBody`, déclenchée par `squashT` — la pose en pose
+  un) : les roues ne s'écrasent plus en ovale · plots percutés et pièces d'explosion REBONDISSENT sur la dalle (`FLYCONES[].p0/n0/b0`,
+  `BOOM_SOL`) et se replient en fin de vie · gerbes de ramassage là où l'objet disparaît · faisceau des phares éteint hors du sol · ombre de
+  vol dans le plan de la dalle et en fondu · viseur d'atterrissage en fondu (`LM`) · caméra recalée au portail (`loop._camDriveT=0` dans
+  newTrack) · glisse d'huile qui fume · éclats ROUGES pour ce qui coûte (plot, pose lourde) · replacement/repêchage : la caisse RETOMBE
+  (`hopY=2.2`) · meute : plus de flaques rondes, apparition dans la brume (`lodP9`) · étincelles de la montée de moteur qui suivent la caisse ·
+  l'onde d'allumage nitro sans test de profondeur (la route la coupait en fer à cheval).
+- **SON** : les boucles se taisent en fondu à la pause et la SORTIE (`BUSOUT`) descend en ~40 ms avant `suspend()` (`busPlein()` la remet :
+  reprise, compte 3-2-1, filet dans resetGame/endGame) · le « 3 » du compte attend le réveil du contexte · grondement d'explosion pour toutes
+  les caisses · crunch des fruits dans le rang · l'intro obéit au curseur EFFETS · session audio iOS `ambient` quand MUSIQUE est coupée ·
+  **les 4 sons d'argent ramenés à −20 LUFS** (le compteur était à −7 : +13 dB, il couvrait l'annonceur ; sur iPhone seul le fichier compte),
+  même `v` pour tous. `early_dead.mp3` (−15 LUFS, voix grave) laissé tel quel : à juger à l'oreille.
+- **VIBRATIONS** : leur propre interrupteur (`SND.vib`, `SAVE.d.vib`, ligne dans #mSet) — `hap()` ne suit plus le SON.
+- **TEXTES** : figures traduites (AIR MONSTRE, DAUPHIN EN VOL, POSE PARFAITE/DIVINE, IMPACT MÉTÉORE), « PERMIS OBTENU » traduit, `fmtC`
+  ne dit plus « 1000 k » (×.9995), `fmtAura` au format de la langue, anglais américain, « SHORT BY », « DEFIS », guillemets anglais, le chinois
+  retombe sur l'anglais (TR), `<html lang>` suit la langue, apostrophes rendues (la police pixel les a), « TROP LONGTEMPS EN L'AIR » (10,2 s
+  en orbite), « GRAVITÉ RÉDUITE », « FRANCHIS n PORTAILS ». La sauvegarde s'écrit quand l'appli passe en arrière-plan.
+- **ÉCRANS / CARRIÈRE** : JOUER du garage pendant une bascule, glissé pendant le lâcher (`GAR.go`), EN BOUTIQUE, P clavier = panneau ⏸ en
+  coque tactile (`window.__panBascule`), Entrée gardée, RECOMMENCER en carrière (`carrIci`), notes de l'écran de mort gardées, record
+  cohérent au chargement, REVOIR L'AUTO-ÉCOLE tient parole (prime une fois : `SAVE.d.permis`) · ⚠ **la remise à zéro du Survivant était
+  collée DANS un commentaire** (poursuite NUAGES 5 et meute VILLE 14 cassées dès la 2e course) · **l'ESPACE a une fin** (`espaceFinale`,
+  « ESPACE TERMINÉ ») · REJOUER après une fin de monde ouvre le monde suivant · bannière de carrière traduite, sans double numéro.
+- **LAISSÉ À SACHA (décisions, pas des détails)** : `TEST_CARRIERE`/`TEST_CAISSES` encore à `true` (caisses payantes gratuites, pastille
+  « TEST » au garage) ; la BOUTIQUE est une vitrine (« BIENTÔT », « -50 % » sur un 9,99 € jamais pratiqué — refus Apple probable) ;
+  **droits des sons** : `fx/kaching.mp3` (étiquettes « Yout.com », extrait YouTube), `fx/compteuse.mp3` (« 101soundboards.com »),
+  `death/minecraft.m4a` (le son de Minecraft ?) — à remplacer avant la sortie ; noms de caisses en français en anglais (marque).
+
 ## MISSIONS · SORTIE MENU · CIEL DE JOUR À L'ACCUEIL (2026-09-28, soir)
 Sacha, en rafale : « il manque un bouton pour revenir au menu » (écran de mort) · « dans le menu il faut aussi un bouton mission » ·
 « l'écran de mission doit être parfait, avec une jauge de progression et un texte expliquant la récompense » · « les couleurs de
