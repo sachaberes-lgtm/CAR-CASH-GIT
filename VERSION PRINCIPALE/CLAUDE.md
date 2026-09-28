@@ -460,6 +460,15 @@ dans UN bloc en fin de `<style id="charte4">` (« LA CHARTE AU COMPLET », secti
   **v3b** (même soir : « trop sur les côtés ; un peu plus grosses ; pouvoir apparaître PARTOUT sur l'écran ») : plus d'ellipse ni de
   bande du haut interdites — position uniforme sur tout l'écran (le HUD reste dessiné par-dessus) ; rayon ×1,25 (~46-91 px, plafond
   110), `JUS_N` 240. Cas extrême du banc (14 taches d'un coup) : 45,7 % d'écran peint ; un fruit en projette 1 à 5.
+- **(12) NITRO ET CHRONO DE VOL EN PIXEL** (même soir, Sacha : « pas mal, fais pareil pour le camembert air time et le bouton nitro »)
+  — section 11 de charte4. Les deux derniers cadrans LISSES deviennent des disques pixel de la main du badge DARK TRIAD (grille de 2 px,
+  encre `--k0`, biseau d'en haut à gauche `--kl2/--kl/--k4/--k2`, face carbone tramée `--k3/--k2`, épaisseur dessous).
+  · NITRO : `<svg class="nxArt">` (52 × 54 cases, `fr/pix/nitro.js`, classes `.nx-*`) + `.nxJauge` = le MÊME dégradé conique (--nr/--nx,
+    280° depuis 220°, câblage de la boucle intact) vu à travers le masque de cases `--nxMasque` (14 segments). Appui : 2 cases de
+    descente, épaisseur effacée, face orange tramée, jauge claire. Le halo `.plein` (::before) et l'anneau de l'auto-école (::after) restent.
+  · CHRONO : `airPieDraw` + `airPiePx()` (fond cuit une fois en deux versions, normal / « regain » cyan), toile 156 → 78 px `pixelated`,
+    18 segments qui s'éteignent ENTIERS (le temps se lit par crans), chiffres Press Start 24 px de toile calés sur leurs pixels ; tremble
+    de 2 px entiers sous 1,5 s (plus de rotation). Banc `fr/nx.js` (repos, appui, vol à 5,6 s puis 4,1 s).
 - **Écarté volontairement** (verdicts) : JOUER au garage, bouton d'action dans MODES/CARRIÈRE, ⚙ de l'accueil en bas, flèches du garage,
   rangée LA PARTIE de la pause descendue près de REPRENDRE (QUITTER ne se colle pas au lingot), l'or du HUD (voix des annonces, record en
   or demandé le 26/09 : « plus en lavande 8 px »).
