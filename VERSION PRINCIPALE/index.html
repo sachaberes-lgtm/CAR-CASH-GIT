@@ -3491,7 +3491,6 @@ html body.touch #avRec.presque{animation:hmEncore .9s var(--ease) infinite}
 /* le × qui monte : un coup franc, sans la valse d'origine (×2,8 et −16° → +7°) — une petite célébration maîtrisée */
 @keyframes hmX{0%{transform:scale(1.9) rotate(-6deg)}55%{transform:scale(.94) rotate(0)}100%{transform:none}}
 html body.touch #avX.up{animation:hmX .5s var(--ease),avBat .5s ease-in-out .5s infinite alternate}
-html body.touch #avX.feu.up{animation:hmX .5s var(--ease),avBat .42s ease-in-out .5s infinite alternate,avArc 1.1s linear infinite}
 html body.touch #avX{transform-origin:20% 60%}
 /* la chaîne APPARAÎT en glissant de la gauche (elle ne faisait que s'allumer) */
 html body.touch #avCh{transition:opacity var(--t-slow) var(--ease),transform var(--t-slow) var(--ease);transform:translateX(-18px)}
@@ -3512,12 +3511,79 @@ html body #tSteer.act #tStick{animation:hmStick .18s var(--ease)}
 /* ---------------------------------------------- 8. LES AMBIANCES PASSENT SOUS LE TABLEAU DE BORD ------------------------ */
 /* le halo des pouvoirs (#pwrFx, z3) recouvrait la nitro et l'aura d'un voile de couleur : il descend sous le HUD, comme les bords du flow */
 html body #pwrFx{z-index:1}
+/* ---------------------------------------------- 9. LA TYPO DU HUD, TRAVAILLÉE (2026-09-28) ---------------------------- */
+/* Sacha : « retravaille la police de l'aura avec le dégradé violet clair d'avant ; globalement améliore la police du HUD, des trucs
+   beaux, travaillés, détaillés ». ⚠ DÉROGATION NOMMÉE à la règle « pas de dégradé dans un texte » (demandée par Sacha) : les CHIFFRES du
+   HUD de course sont OMBRÉS COMME DU PIXEL ART — une rangée de pixels blancs en tête de lettre (la lèvre), un ton clair, le ton plein, un
+   ton sombre au pied — cernés d'encre par des drop-shadow (un text-shadow passerait PAR-DESSUS un texte découpé dans son fond). Les
+   étiquettes restent en couleur pleine, cernées. Le contour d'encre et l'extrusion dessous sont les mêmes partout (--contourH). */
+:root{--inkH:#1c0430;
+  --contourH:drop-shadow(2px 0 0 var(--inkH)) drop-shadow(-2px 0 0 var(--inkH)) drop-shadow(0 2px 0 var(--inkH)) drop-shadow(0 -2px 0 var(--inkH)) drop-shadow(0 4px 0 var(--inkH));
+  --contourP:drop-shadow(1px 0 0 var(--inkH)) drop-shadow(-1px 0 0 var(--inkH)) drop-shadow(0 1px 0 var(--inkH)) drop-shadow(0 -1px 0 var(--inkH)) drop-shadow(0 2px 0 var(--inkH))}
+/* l'AURA : le dégradé VIOLET CLAIR — blanc en tête, lilas, orchidée, violet au pied — et un halo mauve */
+html body.touch #avVal{line-height:1;text-shadow:none;color:transparent;-webkit-text-fill-color:transparent;
+  background:linear-gradient(180deg,#ffffff 0 12%,#ffe6ff 12% 22%,#f7c2ff 38%,#df97ff 62%,#b77bff 84%,#9a61ff 100%);-webkit-background-clip:text;background-clip:text;
+  filter:var(--contourH) drop-shadow(0 0 12px rgba(206,140,255,.55))}
+html body.touch #auraV2 .avTot em{color:#eac8ff}
+html body.touch #avPlus{color:#f3c6ff}
+/* le × de la CHAÎNE : ombré dans SA couleur (l'échelle des paliers) ; « en feu » il pulse de lumière (plus d'arc-en-ciel : il effaçait le contour) */
+html body.touch #avX{line-height:1;text-shadow:none;color:transparent;-webkit-text-fill-color:transparent;
+  background:linear-gradient(180deg,#fff 0 12%,color-mix(in srgb,var(--xc,#ff5ec8) 42%,#fff) 12% 38%,var(--xc,#ff5ec8) 38% 74%,color-mix(in srgb,var(--xc,#ff5ec8) 68%,var(--inkH)) 74%);
+  -webkit-background-clip:text;background-clip:text;filter:var(--contourH) drop-shadow(0 0 12px color-mix(in srgb,var(--xc,#ff5ec8) 60%,transparent))}
+@keyframes hmFeu{50%{filter:var(--contourH) drop-shadow(0 0 20px var(--xc,#ff5ec8)) brightness(1.3)}}
+html body.touch #avX.feu{animation:avBat .42s ease-in-out infinite alternate,hmFeu .84s var(--ease) infinite}
+html body.touch #avX.feu.up{animation:hmX .5s var(--ease),avBat .42s ease-in-out .5s infinite alternate,hmFeu .84s var(--ease) infinite}
+/* les POINTS de la chaîne : blanc sur lavande */
+html body.touch #avPts{line-height:1;text-shadow:none;color:transparent;-webkit-text-fill-color:transparent;
+  background:linear-gradient(180deg,#fff 0 55%,#d8ccff 55%);-webkit-background-clip:text;background-clip:text;filter:var(--contourH)}
+/* le ×CASH du flow : vert billet ombré ; le NOM du palier : sa couleur, deux tons */
+html body.touch #flowHud .fM{line-height:1.1;text-shadow:none;color:transparent;-webkit-text-fill-color:transparent;
+  background:linear-gradient(180deg,#f0fff4 0 22%,#9dffb6 22% 50%,#46de76 50% 82%,#25a552 82%);-webkit-background-clip:text;background-clip:text;filter:var(--contourP)}
+html body.touch #flowHud .fL{line-height:1.1;text-shadow:none;color:transparent;-webkit-text-fill-color:transparent;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--fc,#fff) 45%,#fff) 0 50%,var(--fc,#fff) 50%);-webkit-background-clip:text;background-clip:text;filter:var(--contourP)}
+/* le RECORD : or deux tons */
+html body.touch #avRecT{text-shadow:none;color:transparent;-webkit-text-fill-color:transparent;line-height:1.2;
+  background:linear-gradient(180deg,#fff4c8 0 50%,#ffc93a 50%);-webkit-background-clip:text;background-clip:text;filter:var(--contourP)}
+/* le MINUTEUR des pouvoirs : ombré dans la couleur du pouvoir */
+html body.touch #pwrChip .pw span b{line-height:1;text-shadow:none;color:transparent;-webkit-text-fill-color:transparent;
+  background:linear-gradient(180deg,#fff 0 12%,color-mix(in srgb,var(--pc) 42%,#fff) 12% 40%,var(--pc) 40% 76%,color-mix(in srgb,var(--pc) 68%,var(--inkH)) 76%);
+  -webkit-background-clip:text;background-clip:text;filter:var(--contourP)}
+/* le GESTE qui jaillit sur la caisse : ombré lui aussi (sa couleur arrive par --pc) */
+html body #popTxt{color:transparent!important;-webkit-text-fill-color:transparent;text-shadow:none!important;
+  background:linear-gradient(180deg,#fff 0 12%,color-mix(in srgb,var(--pc,#ffd75e) 42%,#fff) 12% 40%,var(--pc,#ffd75e) 40% 76%,color-mix(in srgb,var(--pc,#ffd75e) 66%,var(--inkH)) 76%);
+  -webkit-background-clip:text;background-clip:text;filter:var(--contourH) drop-shadow(0 0 14px color-mix(in srgb,var(--pc,#ffd75e) 55%,transparent))}
+/* ---------------------------------------------- 10. LA BANDE DU FLOW : LA TRIADE SE MÉRITE -------------------------- */
+/* au départ, trois cellules seulement (cyan, or, rose) ; la 4e — la TRIADE violette et sa zone rouge — naît quand on s'en approche :
+   elle pousse de 0 à sa pleine largeur entre 55 et 75 (--rv, posé par flowHudMaj), pâle puis franche ; révélée, elle reste */
+html body.touch #flowHud:not(.revele) .fSeg>i:nth-child(4){display:block;flex-grow:var(--rv,0);opacity:calc(.25 + var(--rv,0) * .75);min-width:0}
+html body.touch #flowHud .fSeg>i:nth-child(4){transition:flex-grow .2s linear,opacity .2s linear}
+html body.touch #flowHud.ouvre .fSeg>i:nth-child(4){animation:hmOuvre .6s var(--ease)}
+@keyframes hmOuvre{0%{filter:brightness(2.6) saturate(.4)}100%{filter:none}}
+/* ---------------------------------------------- 11. LES FENÊTRES DE DÉFI ET D'ASTUCE ------------------------------- */
+/* Sacha : « trop d'espace, trop longtemps, c'est dangereux » — une ÉTIQUETTE compacte (plus une carte), plus haut dans le ciel (elle
+   tombait sur l'horizon, là où arrivent les obstacles), une entrée franche sans ressort ; la durée est raccourcie en JS (1,6 s / 2,6 s) */
+html body.touch #misBan{top:max(calc(var(--laneA) - 84px),calc(var(--hudH) + 112px));width:auto;max-width:min(286px,calc(100vw - 56px));
+  gap:10px;padding:7px 12px 7px 8px;transition:transform .22s var(--ease),opacity .2s var(--ease)}
+html body #misBan .mbIco{width:30px;height:30px;--pxs:2}
+html body #misBan.on .mbIco{animation:none}
+html body #misBan .mbTx{gap:4px}
+html body #misBan .mbTx span{font-size:12px;line-height:1.3}
+html body #misBan .mbPrime{padding:5px 7px 4px;font-size:9px}
+/* ---------------------------------------------- 12. L'EMBLÈME DARK TRIAD ----------------------------------------------- */
+/* Sacha : « qu'elle tourne SUR ELLE-MÊME, un coup vers la gauche, un coup vers la droite — pas sur son axe vertical » : un tour à plat
+   vers la gauche, un arrêt (on lit THE DARK TRIAD), un tour vers la droite, un arrêt ; autour du centre du triangle (aux 2/3 de sa hauteur) */
+@keyframes hmTourne{0%{transform:rotate(0deg)}30%{transform:rotate(-360deg)}50%{transform:rotate(-360deg)}80%{transform:rotate(0deg)}100%{transform:rotate(0deg)}}
+html body #triade .trPiece{transform-style:flat;transform-origin:50% 62%;animation:hmTourne var(--frenCycle) var(--ease) var(--frenNait) infinite}
+/* EN PAYSAGE, l'emblème se pose à DROITE des jauges du haut : à sa place d'avant, les plaques de pouvoir (NITRO MAX…) lui tombaient dessus */
+@media (orientation:landscape) and (max-height:540px){
+  html body.touch #triade{top:calc(var(--hudH) + 4px);right:auto;left:calc(var(--hudG) + min(50vw,440px) + 18px)}
+}
 /* ---------------------------------------------- « RÉDUIRE LES ANIMATIONS » ------------------------------------------- */
 @media (prefers-reduced-motion:reduce){
   html body.touch.play :is(#nitroWrap,#flowHud,#tGear,#auraV2),html body.touch.play #tSteer:not(.used)::after,
   html body.touch #nitroBar.plein #nitroR,html body.touch #nitroBar.plein #nitroX,html body.touch #nitroBar::before,html body.touch #nitroBar.bas,
   html body.touch #flowHud.monte .fSeg::after,html body.touch #flowHud.monte .fM,html body.touch #flowHud.monte .fL,html body.touch #auraV2 .avTot.pulse,
-  html body.touch #avRec.presque,html body.touch #avX.up,html body.touch #pwrChip .pw,html body.touch #airPie,html body #tSteer.act #tStick{animation:none!important}
+  html body.touch #avRec.presque,html body.touch #avX.up,html body.touch #avX.feu,html body #triade .trPiece,html body.touch #pwrChip .pw,html body.touch #airPie,html body #tSteer.act #tStick{animation:none!important}
   html body.touch #avCh{transform:none}
 }
 html[data-reduced-motion="1"] body.touch.play :is(#nitroWrap,#flowHud,#tGear,#auraV2),html[data-reduced-motion="1"] body.touch #pwrChip .pw,
@@ -16406,6 +16472,9 @@ function flowHudMaj(rest){
     document.body.appendChild(h);
     const g=document.createElement('div');g.id='flowGlow';g.setAttribute('aria-hidden','true');document.body.appendChild(g);FLOW.glow=g;FLOW.lvAff=-1;}
   const cur=Math.min(3,Math.floor(FLOW.v/25)),zf=Math.max(0,Math.min(1,(FLOW.v-FREN.seuil)/(100-FREN.seuil)));
+  // (2026-09-28, Sacha : « au début la barre ne montre que le cyan, l'or et le rose ; la partie violette et rouge de la DARK TRIAD doit être
+  // masquée et commencer à apparaître quand on s'en approche ») : --rv = 0 sous 55, 1 à 75 (et pour de bon une fois la triade révélée)
+  h.style.setProperty('--rv',FLOW.revele?'1':Math.max(0,Math.min(1,(FLOW.v-55)/20)).toFixed(3));
   for(let j=0;j<4;j++){const i9=FLOW.seg[j];i9.firstChild.style.setProperty('--f',Math.max(0,Math.min(1,(FLOW.v-25*j)/25)).toFixed(3));
     i9.classList.toggle('cur',j===cur);}
   FLOW.zs.style.setProperty('--f',zf.toFixed(3));
@@ -16669,7 +16738,7 @@ function hautVide(){ // l'explosion, l'écran de mort : plus personne ne parle �
   HAUT.cur=null;HAUT.fin=0;engBigCoupe();
   const p=document.getElementById('popTxt');if(p)p.classList.remove('on','on2');popTexte._s=0; // le dernier geste ne survit pas à la caisse (gt1-16)
 }
-function misBanniere(titre,texte,prime,ico){hautPasse(function(){misBanMontre(titre,texte,prime,ico);},3000,'mis',titre==='ASTUCE'?1:2);} // un défi payé vaut un moteur ; une astuce, un niveau
+function misBanniere(titre,texte,prime,ico){hautPasse(function(){misBanMontre(titre,texte,prime,ico);},titre==='ASTUCE'?2800:1800,'mis',titre==='ASTUCE'?1:2);} // un défi payé vaut un moteur ; une astuce, un niveau
 function misBanMontre(titre,texte,prime,ico){
   let b=document.getElementById('misBan');
   if(!b){b=document.createElement('div');b.id='misBan';b.setAttribute('role','status');document.body.appendChild(b);}
@@ -16677,7 +16746,9 @@ function misBanMontre(titre,texte,prime,ico){
     +(prime?'<b class="mbPrime">'+prime+'</b>':'');
   b.classList.toggle('astuce',titre==='ASTUCE'); // (vague 2) l'astuce parle en cyan (l'information), le défi en vert (la validation)
   b.classList.remove('on');void b.offsetWidth;b.classList.add('on');
-  clearTimeout(misBanMontre._t);misBanMontre._t=setTimeout(function(){b.classList.remove('on');},2800);
+  // (2026-09-28, Sacha : « les fenêtres de défi prennent trop d'espace et restent trop longtemps, c'est dangereux ») : un DÉFI se lit
+  // d'un coup d'œil (1,6 s) ; une ASTUCE est une phrase, elle garde le temps de se lire (2,6 s) — c'était 2,8 s pour tout
+  clearTimeout(misBanMontre._t);misBanMontre._t=setTimeout(function(){b.classList.remove('on');},titre==='ASTUCE'?2600:1600);
 }
 // LE PANNEAU DES CONTRATS (menu + écran de mort) : trois lignes, cochées ou avec leur avancement
 function misPanel(el,fraiches){
