@@ -2874,7 +2874,7 @@ html body.touch:has(#campChip.on){--laneA:max(44%,calc(env(safe-area-inset-top,0
    de vol, au-dessus des pouvoirs et de l'objectif de campagne ; la barre du record se contracte pour le laisser passer. */
 :root{--fren:#ff2a3d;--frenV:#ff6b78;--frenC:#ffd0d5;--frenS:#a8001a;--frenN:#4a0010;--frenO:#1c0006;--frenA:#ffb000;
   --frenGr:linear-gradient(180deg,var(--frenC) 0 2px,var(--fren) 2px 50%,var(--frenS) 50% calc(100% - 2px),var(--frenN) calc(100% - 2px));
-  --frenT:108px;--frenH:72px;--frenD:80px;   /* l'emblème : sa taille, sa hauteur sous l'encoche, son écart au bord droit */
+  --frenT:108px;--frenTh:98px;--frenH:72px;--frenD:80px;   /* l'emblème : largeur × hauteur (54 × 49 cases de 2 px), hauteur sous l'encoche, écart au bord droit */
   --frenCycle:5.2s;                          /* deux tours à gauche + un arrêt, deux tours à droite + un arrêt */
   --frenNait:.56s}                           /* sa naissance : tout le reste attend qu'il soit posé */
 /* (a) LA ZONE ROUGE */
@@ -2936,75 +2936,62 @@ html body #flowHud[data-lv="4"].fuit .fSeg .fZ s{animation:frBrule .36s steps(2)
 /* (d) LES BORDS DE L'ÉCRAN battent en rouge */
 #flowGlow[data-lv="4"]{animation:frBat calc(var(--frenCycle) / 4) var(--ease) var(--frenNait) infinite}
 @keyframes frBat{0%{opacity:1}14%{opacity:.5}22%{opacity:.82}40%{opacity:.4}100%{opacity:.4}}
-/* (c) L'EMBLÈME — sa place, ses couches */
-#triade{position:fixed;display:none;z-index:6;pointer-events:none;width:var(--frenT);height:var(--frenT);
+/* (c) L'EMBLÈME — v3 EN PIXEL (même soir, Sacha : « toute l'interface est faite en pixel, réinterprète la dark triad »). Un badge de
+   54 × 49 cases de 2 px (voir le balisage) : il se lit comme les icônes et les plaques du HUD. Tout ce qui le bouge respecte la grille :
+   il TOURNE COMME UNE PIÈCE (rotateY — les pixels restent droits, une rotation dans le plan les floutait), il BONDIT au lieu de gonfler
+   (translations entières, en paliers), il TREMBLE de 2 px, l'onde de choc avance par PALIERS. */
+#triade{position:fixed;display:none;z-index:6;pointer-events:none;width:var(--frenT);height:var(--frenTh);
   top:calc(var(--hudH) + var(--frenH));right:calc(var(--hudD) + var(--frenD))}
 html body.touch.play #triade.on,html body.touch.play #triade.sort{display:block}
 html body #triade.mesure{display:block;visibility:hidden;animation:none}
-#triade .trTr,#triade .trBat,#triade .trPouls{position:absolute;inset:0}
+#triade .trTr,#triade .trBat,#triade .trPouls,#triade .trPiece{position:absolute;inset:0}
 #triade svg{position:absolute;inset:0;display:block;width:100%;height:100%;overflow:visible}
-#triade .trM,#triade .trF{will-change:transform}
-#triade .trAura{position:absolute;left:-35%;top:-35%;width:170%;height:170%;opacity:0;
+#triade .trPiece{transform-style:preserve-3d;will-change:transform}
+#triade .trFace{-webkit-backface-visibility:hidden;backface-visibility:hidden}
+#triade .trFace.dos{transform:rotateY(180deg)}   /* le revers : la même face, déjà retournée — la pièce se lit des deux côtés */
+#triade .trAura{position:absolute;left:-30%;top:-30%;width:160%;height:160%;opacity:0;
   background:radial-gradient(closest-side,color-mix(in srgb,var(--fren) 45%,transparent),transparent)}
-#triade .trS0{stop-color:var(--frenV)}
-#triade .trS1{stop-color:var(--fren)}
-#triade .trS2{stop-color:var(--frenS)}
-#triade .trTx{fill:var(--frenC);fill-opacity:.06}
-#triade .trHalo{fill:none;stroke:var(--fren);stroke-width:12;opacity:.85}
-#triade .trFond{fill:var(--frenO);fill-opacity:.9}
-#triade .trEncre{fill:none;stroke:var(--frenO);stroke-width:13;stroke-linejoin:miter;stroke-miterlimit:2.2}
-#triade .trRouge{fill:none;stroke:url(#trGr);stroke-width:8.5;stroke-linejoin:miter;stroke-miterlimit:2.2}
-#triade .trLevre{fill:none;stroke:var(--frenC);stroke-width:1.3;stroke-opacity:.8;stroke-linejoin:miter;stroke-miterlimit:2.2}
-#triade .trRivet{fill:var(--frenC);stroke:var(--frenO);stroke-width:1.4}
-#triade .trTxt{font-family:'Arial Black','Helvetica Neue',Impact,Arial,sans-serif;font-weight:900;stroke:var(--frenO)}
-#triade .trThe{fill:var(--frenC);stroke-width:1.6}
-#triade .trNom{fill:var(--fren);stroke-width:2.6}
-#triade .trBord{fill:var(--frenV);stroke-width:1.8}
-#triade .trF polygon{fill:none;stroke:var(--fren);stroke-width:8.5;stroke-linejoin:miter;stroke-miterlimit:2.2}
-#triade .trF1{opacity:.42}
-#triade .trF2{opacity:.2}
 #triade .trOnde{opacity:0}
-#triade .trOnde polygon{fill:none;stroke:var(--frenV);stroke-width:4;stroke-linejoin:miter;stroke-miterlimit:2.2}
-/* SA NAISSANCE : parti du centre de la zone rouge (--ox/--oy, relevés par frenEntre), il vrille jusqu'à sa place et CLAQUE — l'onde
-   triangulaire part à l'impact. Mêmes fonctions de transform à chaque étape : une rotation de −200° ne se perd pas en matrice. */
+#triade .trOnde path{fill:var(--frenV)}
+/* SA NAISSANCE : partie du centre de la zone rouge (--ox/--oy, relevés par frenEntre), elle file jusqu'à sa place et CLAQUE — l'onde
+   pixel part à l'impact, par paliers */
 #triade.on{animation:trNait var(--frenNait) var(--ease) both}
-@keyframes trNait{0%{opacity:0;transform:translate(var(--ox,0px),var(--oy,0px)) scale(.14) rotate(-200deg)}22%{opacity:1}
-  62%{transform:translate(0px,0px) scale(1.2) rotate(8deg)}100%{opacity:1;transform:translate(0px,0px) scale(1) rotate(0deg)}}
-#triade.on .trOnde{animation:trOnde .62s var(--ease) calc(var(--frenNait) * .62) forwards}
-@keyframes trOnde{0%{opacity:.95;transform:scale(.7)}100%{opacity:0;transform:scale(2.5)}}
-/* SA VIE : deux tours à gauche, un arrêt (on LIT « THE DARK TRIAD »), deux tours à droite, un arrêt ; chaque départ est une FRAPPE
-   (pouls + halo) ; les fantômes suivent à 45 et 90 ms — une traînée pendant les tours, invisibles à l'arrêt */
-#triade .trM,#triade .trF{animation:trTourne var(--frenCycle) var(--ease) var(--frenNait) infinite}
-#triade .trF1{animation-delay:calc(var(--frenNait) + 45ms)}
-#triade .trF2{animation-delay:calc(var(--frenNait) + 90ms)}
-@keyframes trTourne{0%{transform:rotate(0deg)}36%{transform:rotate(-720deg)}50%{transform:rotate(-720deg)}86%{transform:rotate(0deg)}100%{transform:rotate(0deg)}}
-#triade .trPouls{animation:trPouls var(--frenCycle) var(--ease) var(--frenNait) infinite}
-@keyframes trPouls{0%{transform:scale(1.15)}9%{transform:scale(1)}49.9%{transform:scale(1)}50%{transform:scale(1.15)}59%{transform:scale(1)}100%{transform:scale(1)}}
+@keyframes trNait{0%{opacity:0;transform:translate(var(--ox,0px),var(--oy,0px)) scale(.14)}22%{opacity:1}
+  62%{transform:translate(0px,0px) scale(1.2)}100%{opacity:1;transform:translate(0px,0px) scale(1)}}
+#triade.on .trOnde{animation:trOnde .6s steps(6) calc(var(--frenNait) * .62) forwards}
+@keyframes trOnde{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(2.2)}}
+/* SA VIE : deux tours à gauche, un arrêt (on LIT « THE DARK TRIAD »), deux tours à droite, un arrêt — autour de l'axe vertical ; chaque
+   départ est une FRAPPE : elle bondit de 6 px (trois paliers de 2 px, la grille) et le halo s'embrase */
+#triade .trPiece{animation:trTourne var(--frenCycle) var(--ease) var(--frenNait) infinite}
+@keyframes trTourne{0%{transform:rotateY(0deg)}36%{transform:rotateY(-720deg)}50%{transform:rotateY(-720deg)}86%{transform:rotateY(0deg)}100%{transform:rotateY(0deg)}}
+#triade .trPouls{animation:trPouls var(--frenCycle) steps(3) var(--frenNait) infinite}
+@keyframes trPouls{0%{transform:translateY(-6px)}9%{transform:translateY(0)}49.9%{transform:translateY(0)}50%{transform:translateY(-6px)}59%{transform:translateY(0)}100%{transform:translateY(0)}}
 #triade .trAura{animation:trAura calc(var(--frenCycle) / 2) var(--ease) var(--frenNait) infinite}
 @keyframes trAura{0%{opacity:1;transform:scale(1.12)}45%{opacity:.4;transform:scale(.94)}100%{opacity:.4;transform:scale(.94)}}
-/* on le NOURRIT : il bat · ça FUIT : il pâlit · ça LÂCHE : il tremble · la frénésie tombe : il meurt en vrillant */
-#triade.bat1 .trBat{animation:trBatA .26s var(--ease)}
-#triade.bat2 .trBat{animation:trBatB .26s var(--ease)}
-@keyframes trBatA{from{transform:scale(1.08)}to{transform:scale(1)}}
-@keyframes trBatB{from{transform:scale(1.08)}to{transform:scale(1)}}
+/* on la NOURRIT : elle s'illumine et saute de 2 px · ça FUIT : elle pâlit · ça LÂCHE : elle tremble de 2 px · la frénésie tombe : elle
+   s'éteint en rétrécissant */
+#triade.bat1 .trBat{animation:trBatA .24s steps(3)}
+#triade.bat2 .trBat{animation:trBatB .24s steps(3)}
+@keyframes trBatA{from{transform:translateY(-2px);filter:brightness(1.7)}to{transform:none;filter:none}}
+@keyframes trBatB{from{transform:translateY(-2px);filter:brightness(1.7)}to{transform:none;filter:none}}
 #triade .trTr{transition:opacity var(--t-slow) var(--ease)}
 #triade.froid .trTr{opacity:.72}
 #triade.tremble .trTr{animation:trTremble .1s steps(2) infinite}
-@keyframes trTremble{50%{transform:translate(2px,-1px) rotate(3deg)}}
+@keyframes trTremble{50%{transform:translateX(2px)}}
 #triade.sort{animation:trMeurt .44s var(--ease) both}
-@keyframes trMeurt{0%{opacity:1;transform:scale(1) rotate(0deg)}25%{opacity:1;transform:scale(1.12) rotate(0deg)}100%{opacity:0;transform:scale(.2) rotate(220deg)}}
+@keyframes trMeurt{0%{opacity:1;transform:scale(1)}25%{opacity:1;transform:scale(1.12)}100%{opacity:0;transform:scale(.2)}}
 /* la barre du RECORD se contracte pour laisser passer ses pointes (le texte, lui, ne bouge pas) */
 html body.touch.play:has(#triade.on) #avRec{max-width:calc(100vw - var(--hudD) - var(--frenD) - var(--frenT) - var(--hudG) - 6px)}
 html body.touch.play:has(#triade.on) #avRec i{flex:0 1 70px;width:auto;min-width:18px}
 html body.touch.play:has(#triade.on) #auraV2{z-index:7}   /* le « +820 » d'aura versée court à droite du mot AURA et passe sur l'emblème : l'INFORMATION (1,4 s) gagne sur la décoration */
 body:has(#tPanel.open) #triade,body.dead #triade,body.coOn #triade{visibility:hidden}
 /* « Réduire les animations » (iOS ou réglage) : la zone, le rouge et l'emblème restent ; plus rien ne tourne, ne bat ni ne clignote */
-html[data-reduced-motion="1"] #triade.on,html[data-reduced-motion="1"] #triade .trM,html[data-reduced-motion="1"] #triade .trPouls,
+html[data-reduced-motion="1"] #triade.on,html[data-reduced-motion="1"] #triade .trPiece,html[data-reduced-motion="1"] #triade .trPouls,
 html[data-reduced-motion="1"] #triade .trAura,html[data-reduced-motion="1"] #triade .trBat,html[data-reduced-motion="1"] #triade .trTr,
 html[data-reduced-motion="1"] #flowGlow[data-lv="4"],html[data-reduced-motion="1"] body #flowHud[data-lv="4"]::after,
 html[data-reduced-motion="1"] body #flowHud .fSeg,html[data-reduced-motion="1"] body #flowHud .fSeg>i,html[data-reduced-motion="1"] body #flowHud .fSeg::before,
 html[data-reduced-motion="1"] body #flowHud .fG,html[data-reduced-motion="1"] body #flowHud .fSeg::after,html[data-reduced-motion="1"] body #flowHud .fSeg .fZ s{animation:none!important}
-html[data-reduced-motion="1"] #triade .trF,html[data-reduced-motion="1"] #triade .trOnde,html[data-reduced-motion="1"] #triade.sort{display:none!important}
+html[data-reduced-motion="1"] #triade .trFace.dos,html[data-reduced-motion="1"] #triade .trOnde,html[data-reduced-motion="1"] #triade.sort{display:none!important}
 html[data-reduced-motion="1"] #triade .trAura{opacity:.5}
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
@@ -3091,40 +3078,22 @@ html[data-reduced-motion="1"] #triade .trAura{opacity:.5}
   <div id="money"><span id="moneyTxt">$00000000</span></div>
   <div id="auraV2" aria-hidden="true"><div class="avTot"><span id="avVal">0</span><em>AURA</em><i id="avPlus"></i></div><div id="avRec" class="vide"><span id="avRecT"></span><i><s id="avRecF"></s></i></div>
     <div id="avCh"><div class="avChTop"><b id="avPts">0</b><span id="avX">×1</span></div><div class="avBar"><i id="avBarF"></i></div><ul id="avList"></ul></div></div>
-  <!-- (2026-09-28, Sacha) L'EMBLÈME DE LA FRÉNÉSIE : « THE DARK TRIAD » — refait ROUGE le soir même (« plus beau, plus gros, mieux
-       animé »). Un vecteur, net à toute taille ; le centre du viewBox est le CENTRE du triangle : il tourne sur place. Couches, de
-       l'arrière vers l'avant : le halo qui respire (.trAura), l'onde de choc triangulaire de sa naissance (.trOnde), deux FANTÔMES du
-       cadre qui suivent le vrai avec 45 et 90 ms de retard (la traînée des tours : ils se cachent derrière lui à l'arrêt), puis
-       l'emblème : halo cuit dans le vecteur, plaque carbone, cadre à l'encre + rouge dégradé + filet clair, trois rivets, le texte.
-       Les couleurs sortent de :root (classes .tr*, voir « LA FRÉNÉSIE » en fin de charte4) ; les quatre enveloppes (.trTr tremble,
-       .trBat bat quand on nourrit, .trPouls frappe au départ de chaque double tour) séparent des animations qui s'écraseraient. -->
+  <!-- (2026-09-28, Sacha) L'EMBLÈME DE LA FRÉNÉSIE « THE DARK TRIAD » — v3 EN PIXEL (même soir : « toute l'interface est faite en pixel,
+       réinterprète la dark triad pour qu'elle ressemble plus au reste de l'interface »). Un BADGE PIXEL dessiné sur la grille des icônes
+       du jeu : 54 × 49 cases de 2 px (108 × 98 px, `shape-rendering:crispEdges`), généré case par case (script `fr/pix/gen.js` du
+       scratchpad de la session 52f21eda) — contour d'ENCRE, biseau CLAIR à gauche avec sa lèvre, rouge puis ombre à droite, base sombre,
+       ÉPAISSEUR dessous à l'encre du HUD (la même que les plaques), fond carbone tramé, un ŒIL au sommet, trois rivets, et le texte dans
+       LA police du jeu (Press Start 2P à 8 px, calée au pixel). Il ne tourne plus dans son plan (une rotation libre floute le pixel) :
+       il tourne sur lui-même COMME UNE PIÈCE (axe vertical, deux faces, les pixels restent droits) — toujours deux tours à gauche, deux
+       tours à droite. Les couleurs sortent de :root (style en ligne `var(--…)` : il suit dans les clones de <use>). -->
   <div id="triade" aria-hidden="true"><div class="trTr"><div class="trBat"><div class="trPouls">
     <i class="trAura"></i>
-    <svg class="trOnde" viewBox="-80 -80 160 160"><polygon points="0,-62 53.69,31 -53.69,31"/></svg>
-    <svg class="trF trF2" viewBox="-80 -80 160 160"><polygon points="0,-62 53.69,31 -53.69,31"/></svg>
-    <svg class="trF trF1" viewBox="-80 -80 160 160"><polygon points="0,-62 53.69,31 -53.69,31"/></svg>
-    <svg class="trM" viewBox="-80 -80 160 160" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="trGr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="trS0"/><stop offset=".45" class="trS1"/><stop offset="1" class="trS2"/></linearGradient>
-        <filter id="trFlou" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5"/></filter>
-        <pattern id="trTresse" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect class="trTx" width="2.5" height="5"/></pattern>
-      </defs>
-      <polygon class="trHalo" points="0,-62 53.69,31 -53.69,31" filter="url(#trFlou)"/>
-      <polygon class="trFond" points="0,-62 53.69,31 -53.69,31"/>
-      <polygon class="trTresse" points="0,-62 53.69,31 -53.69,31" fill="url(#trTresse)"/>
-      <polygon class="trEncre" points="0,-62 53.69,31 -53.69,31"/>
-      <polygon class="trRouge" points="0,-62 53.69,31 -53.69,31"/>
-      <polygon class="trLevre" points="0,-57.6 49.88,28.8 -49.88,28.8"/>
-      <path class="trRivet" d="M0,-66.5 4.5,-62 0,-57.5 -4.5,-62Z M53.69,26.5 58.19,31 53.69,35.5 49.19,31Z M-53.69,26.5 -49.19,31 -53.69,35.5 -58.19,31Z"/>
-      <g class="trTxt" text-anchor="middle" paint-order="stroke" stroke-linejoin="round">
-        <text class="trThe" y="-12" font-size="9" textLength="22" lengthAdjust="spacingAndGlyphs">THE</text>
-        <text class="trNom" y="5" font-size="16" textLength="48" lengthAdjust="spacingAndGlyphs">DARK</text>
-        <text class="trNom" y="22.5" font-size="18" textLength="66" lengthAdjust="spacingAndGlyphs">TRIAD</text>
-        <text class="trBord" transform="translate(-34.2 -19.75) rotate(-60)" font-size="7.6" textLength="74" lengthAdjust="spacingAndGlyphs">NARCISSISM</text>
-        <text class="trBord" transform="translate(34.2 -19.75) rotate(60)" font-size="7.6" textLength="80" lengthAdjust="spacingAndGlyphs">PSYCHOPATHY</text>
-        <text class="trBord" y="46.5" font-size="7.6" textLength="96" lengthAdjust="spacingAndGlyphs">MACHIAVELLIANISM</text>
-      </g>
-    </svg>
+    <svg class="trOnde" viewBox="0 0 54 49" shape-rendering="crispEdges"><path d="M26 0h2v1h-2zM26 1h2v1h-2zM25 2h1v1h-1zM28 2h1v1h-1zM25 3h1v1h-1zM28 3h1v1h-1zM24 4h1v1h-1zM29 4h1v1h-1zM24 5h1v1h-1zM29 5h1v1h-1zM23 6h1v1h-1zM30 6h1v1h-1zM22 7h1v1h-1zM31 7h1v1h-1zM22 8h1v1h-1zM31 8h1v1h-1zM21 9h1v1h-1zM32 9h1v1h-1zM21 10h1v1h-1zM32 10h1v1h-1zM20 11h1v1h-1zM33 11h1v1h-1zM20 12h1v1h-1zM33 12h1v1h-1zM19 13h1v1h-1zM34 13h1v1h-1zM18 14h1v1h-1zM35 14h1v1h-1zM18 15h1v1h-1zM35 15h1v1h-1zM17 16h1v1h-1zM36 16h1v1h-1zM17 17h1v1h-1zM36 17h1v1h-1zM16 18h1v1h-1zM37 18h1v1h-1zM16 19h1v1h-1zM37 19h1v1h-1zM15 20h1v1h-1zM38 20h1v1h-1zM14 21h1v1h-1zM39 21h1v1h-1zM14 22h1v1h-1zM39 22h1v1h-1zM13 23h1v1h-1zM40 23h1v1h-1zM13 24h1v1h-1zM40 24h1v1h-1zM12 25h1v1h-1zM41 25h1v1h-1zM11 26h1v1h-1zM42 26h1v1h-1zM11 27h1v1h-1zM42 27h1v1h-1zM10 28h1v1h-1zM43 28h1v1h-1zM10 29h1v1h-1zM43 29h1v1h-1zM9 30h1v1h-1zM44 30h1v1h-1zM9 31h1v1h-1zM44 31h1v1h-1zM8 32h1v1h-1zM45 32h1v1h-1zM7 33h1v1h-1zM46 33h1v1h-1zM7 34h1v1h-1zM46 34h1v1h-1zM6 35h1v1h-1zM47 35h1v1h-1zM6 36h1v1h-1zM47 36h1v1h-1zM5 37h1v1h-1zM48 37h1v1h-1zM5 38h1v1h-1zM48 38h1v1h-1zM4 39h1v1h-1zM49 39h1v1h-1zM3 40h1v1h-1zM50 40h1v1h-1zM3 41h1v1h-1zM50 41h1v1h-1zM2 42h1v1h-1zM51 42h1v1h-1zM2 43h1v1h-1zM51 43h1v1h-1zM1 44h1v1h-1zM52 44h1v1h-1zM1 45h1v1h-1zM52 45h1v1h-1zM0 46h54v1h-54z"/></svg>
+    <div class="trPiece">
+      <svg class="trFace" viewBox="0 0 54 49" shape-rendering="crispEdges"><use href="#trArt"/></svg>
+      <svg class="trFace dos" viewBox="0 0 54 49" shape-rendering="crispEdges"><use href="#trArt"/></svg>
+    </div>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><g id="trArt"><path style="fill:var(--encre)" d="M1 47h52v1h-52zM0 48h54v1h-54z"/><path style="fill:var(--frenO)" d="M26 11h1v1h-1zM27 12h1v1h-1zM26 13h1v1h-1zM28 13h1v1h-1zM25 14h1v1h-1zM27 14h1v1h-1zM29 14h1v1h-1zM24 15h1v1h-1zM23 16h1v1h-1zM24 17h1v1h-1zM30 17h1v1h-1zM23 18h1v1h-1zM25 18h1v1h-1zM27 18h1v1h-1zM29 18h1v1h-1zM31 18h1v1h-1zM22 19h1v1h-1zM24 19h1v1h-1zM26 19h1v1h-1zM28 19h1v1h-1zM30 19h1v1h-1zM21 20h1v1h-1zM23 20h1v1h-1zM25 20h1v1h-1zM27 20h1v1h-1zM29 20h1v1h-1zM31 20h1v1h-1zM20 21h1v1h-1zM22 21h1v1h-1zM24 21h1v1h-1zM26 21h1v1h-1zM28 21h1v1h-1zM30 21h1v1h-1zM32 21h1v1h-1zM21 22h1v1h-1zM23 22h1v1h-1zM25 22h1v1h-1zM27 22h1v1h-1zM29 22h1v1h-1zM31 22h1v1h-1zM33 22h1v1h-1zM20 23h1v1h-1zM22 23h1v1h-1zM24 23h1v1h-1zM26 23h1v1h-1zM28 23h1v1h-1zM30 23h1v1h-1zM32 23h1v1h-1zM34 23h1v1h-1zM19 24h1v1h-1zM21 24h1v1h-1zM23 24h1v1h-1zM25 24h1v1h-1zM27 24h1v1h-1zM29 24h1v1h-1zM31 24h1v1h-1zM33 24h1v1h-1zM18 25h1v1h-1zM20 25h1v1h-1zM22 25h1v1h-1zM24 25h1v1h-1zM26 25h1v1h-1zM28 25h1v1h-1zM30 25h1v1h-1zM32 25h1v1h-1zM34 25h1v1h-1zM17 26h1v1h-1zM19 26h1v1h-1zM21 26h1v1h-1zM23 26h1v1h-1zM25 26h1v1h-1zM27 26h1v1h-1zM29 26h1v1h-1zM31 26h1v1h-1zM33 26h1v1h-1zM35 26h1v1h-1zM18 27h1v1h-1zM20 27h1v1h-1zM22 27h1v1h-1zM24 27h1v1h-1zM26 27h1v1h-1zM28 27h1v1h-1zM30 27h1v1h-1zM32 27h1v1h-1zM34 27h1v1h-1zM36 27h1v1h-1zM17 28h1v1h-1zM19 28h1v1h-1zM21 28h1v1h-1zM23 28h1v1h-1zM25 28h1v1h-1zM27 28h1v1h-1zM29 28h1v1h-1zM31 28h1v1h-1zM33 28h1v1h-1zM35 28h1v1h-1zM37 28h1v1h-1zM16 29h1v1h-1zM18 29h1v1h-1zM20 29h1v1h-1zM22 29h1v1h-1zM24 29h1v1h-1zM26 29h1v1h-1zM28 29h1v1h-1zM30 29h1v1h-1zM32 29h1v1h-1zM34 29h1v1h-1zM36 29h1v1h-1zM15 30h1v1h-1zM17 30h1v1h-1zM19 30h1v1h-1zM21 30h1v1h-1zM23 30h1v1h-1zM25 30h1v1h-1zM27 30h1v1h-1zM29 30h1v1h-1zM31 30h1v1h-1zM33 30h1v1h-1zM35 30h1v1h-1zM37 30h1v1h-1zM16 31h1v1h-1zM18 31h1v1h-1zM20 31h1v1h-1zM22 31h1v1h-1zM24 31h1v1h-1zM26 31h1v1h-1zM28 31h1v1h-1zM30 31h1v1h-1zM32 31h1v1h-1zM34 31h1v1h-1zM36 31h1v1h-1zM38 31h1v1h-1zM15 32h1v1h-1zM17 32h1v1h-1zM19 32h1v1h-1zM21 32h1v1h-1zM23 32h1v1h-1zM25 32h1v1h-1zM27 32h1v1h-1zM29 32h1v1h-1zM31 32h1v1h-1zM33 32h1v1h-1zM35 32h1v1h-1zM37 32h1v1h-1zM39 32h1v1h-1zM14 33h1v1h-1zM16 33h1v1h-1zM18 33h1v1h-1zM20 33h1v1h-1zM22 33h1v1h-1zM24 33h1v1h-1zM26 33h1v1h-1zM28 33h1v1h-1zM30 33h1v1h-1zM32 33h1v1h-1zM34 33h1v1h-1zM36 33h1v1h-1zM38 33h1v1h-1zM40 33h1v1h-1zM13 34h1v1h-1zM15 34h1v1h-1zM17 34h1v1h-1zM19 34h1v1h-1zM21 34h1v1h-1zM23 34h1v1h-1zM25 34h1v1h-1zM27 34h1v1h-1zM29 34h1v1h-1zM31 34h1v1h-1zM33 34h1v1h-1zM35 34h1v1h-1zM37 34h1v1h-1zM39 34h1v1h-1zM12 35h1v1h-1zM14 35h1v1h-1zM16 35h1v1h-1zM18 35h1v1h-1zM20 35h1v1h-1zM22 35h1v1h-1zM24 35h1v1h-1zM26 35h1v1h-1zM28 35h1v1h-1zM30 35h1v1h-1zM32 35h1v1h-1zM34 35h1v1h-1zM36 35h1v1h-1zM38 35h1v1h-1zM40 35h1v1h-1zM13 36h1v1h-1zM15 36h1v1h-1zM17 36h1v1h-1zM19 36h1v1h-1zM21 36h1v1h-1zM23 36h1v1h-1zM25 36h1v1h-1zM27 36h1v1h-1zM29 36h1v1h-1zM31 36h1v1h-1zM33 36h1v1h-1zM35 36h1v1h-1zM37 36h1v1h-1zM39 36h1v1h-1zM41 36h1v1h-1zM12 37h1v1h-1zM14 37h1v1h-1zM16 37h1v1h-1zM18 37h1v1h-1zM20 37h1v1h-1zM22 37h1v1h-1zM24 37h1v1h-1zM26 37h1v1h-1zM28 37h1v1h-1zM30 37h1v1h-1zM32 37h1v1h-1zM34 37h1v1h-1zM36 37h1v1h-1zM38 37h1v1h-1zM40 37h1v1h-1zM42 37h1v1h-1zM11 38h1v1h-1zM13 38h1v1h-1zM15 38h1v1h-1zM17 38h1v1h-1zM19 38h1v1h-1zM21 38h1v1h-1zM23 38h1v1h-1zM25 38h1v1h-1zM27 38h1v1h-1zM29 38h1v1h-1zM31 38h1v1h-1zM33 38h1v1h-1zM35 38h1v1h-1zM37 38h1v1h-1zM39 38h1v1h-1zM41 38h1v1h-1zM10 39h1v1h-1zM12 39h1v1h-1zM14 39h1v1h-1zM16 39h1v1h-1zM18 39h1v1h-1zM20 39h1v1h-1zM22 39h1v1h-1zM24 39h1v1h-1zM26 39h1v1h-1zM28 39h1v1h-1zM30 39h1v1h-1zM32 39h1v1h-1zM34 39h1v1h-1zM36 39h1v1h-1zM38 39h1v1h-1zM40 39h1v1h-1zM42 39h1v1h-1zM9 40h1v1h-1zM11 40h1v1h-1zM13 40h1v1h-1zM15 40h1v1h-1zM17 40h1v1h-1zM19 40h1v1h-1zM21 40h1v1h-1zM23 40h1v1h-1zM25 40h1v1h-1zM27 40h1v1h-1zM29 40h1v1h-1zM31 40h1v1h-1zM33 40h1v1h-1zM35 40h1v1h-1zM37 40h1v1h-1zM39 40h1v1h-1zM41 40h1v1h-1zM43 40h1v1h-1zM10 41h1v1h-1zM12 41h1v1h-1zM14 41h1v1h-1zM16 41h1v1h-1zM18 41h1v1h-1zM20 41h1v1h-1zM22 41h1v1h-1zM24 41h1v1h-1zM26 41h1v1h-1zM28 41h1v1h-1zM30 41h1v1h-1zM32 41h1v1h-1zM34 41h1v1h-1zM36 41h1v1h-1zM38 41h1v1h-1zM40 41h1v1h-1zM42 41h1v1h-1zM44 41h1v1h-1z"/><path style="fill:color-mix(in srgb,var(--frenO) 62%,var(--frenN))" d="M27 11h1v1h-1zM26 12h1v1h-1zM25 13h1v1h-1zM27 13h1v1h-1zM24 14h1v1h-1zM26 14h1v1h-1zM28 14h1v1h-1zM25 15h1v1h-1zM29 15h1v1h-1zM24 16h1v1h-1zM26 16h1v1h-1zM28 16h1v1h-1zM30 16h1v1h-1zM23 17h1v1h-1zM25 17h1v1h-1zM29 17h1v1h-1zM22 18h1v1h-1zM24 18h1v1h-1zM26 18h1v1h-1zM28 18h1v1h-1zM30 18h1v1h-1zM23 19h1v1h-1zM25 19h1v1h-1zM27 19h1v1h-1zM29 19h1v1h-1zM31 19h1v1h-1zM22 20h1v1h-1zM24 20h1v1h-1zM26 20h1v1h-1zM28 20h1v1h-1zM30 20h1v1h-1zM32 20h1v1h-1zM21 21h1v1h-1zM23 21h1v1h-1zM25 21h1v1h-1zM27 21h1v1h-1zM29 21h1v1h-1zM31 21h1v1h-1zM33 21h1v1h-1zM20 22h1v1h-1zM22 22h1v1h-1zM24 22h1v1h-1zM26 22h1v1h-1zM28 22h1v1h-1zM30 22h1v1h-1zM32 22h1v1h-1zM19 23h1v1h-1zM21 23h1v1h-1zM23 23h1v1h-1zM25 23h1v1h-1zM27 23h1v1h-1zM29 23h1v1h-1zM31 23h1v1h-1zM33 23h1v1h-1zM20 24h1v1h-1zM22 24h1v1h-1zM24 24h1v1h-1zM26 24h1v1h-1zM28 24h1v1h-1zM30 24h1v1h-1zM32 24h1v1h-1zM34 24h1v1h-1zM19 25h1v1h-1zM21 25h1v1h-1zM23 25h1v1h-1zM25 25h1v1h-1zM27 25h1v1h-1zM29 25h1v1h-1zM31 25h1v1h-1zM33 25h1v1h-1zM35 25h1v1h-1zM18 26h1v1h-1zM20 26h1v1h-1zM22 26h1v1h-1zM24 26h1v1h-1zM26 26h1v1h-1zM28 26h1v1h-1zM30 26h1v1h-1zM32 26h1v1h-1zM34 26h1v1h-1zM36 26h1v1h-1zM17 27h1v1h-1zM19 27h1v1h-1zM21 27h1v1h-1zM23 27h1v1h-1zM25 27h1v1h-1zM27 27h1v1h-1zM29 27h1v1h-1zM31 27h1v1h-1zM33 27h1v1h-1zM35 27h1v1h-1zM16 28h1v1h-1zM18 28h1v1h-1zM20 28h1v1h-1zM22 28h1v1h-1zM24 28h1v1h-1zM26 28h1v1h-1zM28 28h1v1h-1zM30 28h1v1h-1zM32 28h1v1h-1zM34 28h1v1h-1zM36 28h1v1h-1zM17 29h1v1h-1zM19 29h1v1h-1zM21 29h1v1h-1zM23 29h1v1h-1zM25 29h1v1h-1zM27 29h1v1h-1zM29 29h1v1h-1zM31 29h1v1h-1zM33 29h1v1h-1zM35 29h1v1h-1zM37 29h1v1h-1zM16 30h1v1h-1zM18 30h1v1h-1zM20 30h1v1h-1zM22 30h1v1h-1zM24 30h1v1h-1zM26 30h1v1h-1zM28 30h1v1h-1zM30 30h1v1h-1zM32 30h1v1h-1zM34 30h1v1h-1zM36 30h1v1h-1zM38 30h1v1h-1zM15 31h1v1h-1zM17 31h1v1h-1zM19 31h1v1h-1zM21 31h1v1h-1zM23 31h1v1h-1zM25 31h1v1h-1zM27 31h1v1h-1zM29 31h1v1h-1zM31 31h1v1h-1zM33 31h1v1h-1zM35 31h1v1h-1zM37 31h1v1h-1zM14 32h1v1h-1zM16 32h1v1h-1zM18 32h1v1h-1zM20 32h1v1h-1zM22 32h1v1h-1zM24 32h1v1h-1zM26 32h1v1h-1zM28 32h1v1h-1zM30 32h1v1h-1zM32 32h1v1h-1zM34 32h1v1h-1zM36 32h1v1h-1zM38 32h1v1h-1zM13 33h1v1h-1zM15 33h1v1h-1zM17 33h1v1h-1zM19 33h1v1h-1zM21 33h1v1h-1zM23 33h1v1h-1zM25 33h1v1h-1zM27 33h1v1h-1zM29 33h1v1h-1zM31 33h1v1h-1zM33 33h1v1h-1zM35 33h1v1h-1zM37 33h1v1h-1zM39 33h1v1h-1zM14 34h1v1h-1zM16 34h1v1h-1zM18 34h1v1h-1zM20 34h1v1h-1zM22 34h1v1h-1zM24 34h1v1h-1zM26 34h1v1h-1zM28 34h1v1h-1zM30 34h1v1h-1zM32 34h1v1h-1zM34 34h1v1h-1zM36 34h1v1h-1zM38 34h1v1h-1zM40 34h1v1h-1zM13 35h1v1h-1zM15 35h1v1h-1zM17 35h1v1h-1zM19 35h1v1h-1zM21 35h1v1h-1zM23 35h1v1h-1zM25 35h1v1h-1zM27 35h1v1h-1zM29 35h1v1h-1zM31 35h1v1h-1zM33 35h1v1h-1zM35 35h1v1h-1zM37 35h1v1h-1zM39 35h1v1h-1zM41 35h1v1h-1zM12 36h1v1h-1zM14 36h1v1h-1zM16 36h1v1h-1zM18 36h1v1h-1zM20 36h1v1h-1zM22 36h1v1h-1zM24 36h1v1h-1zM26 36h1v1h-1zM28 36h1v1h-1zM30 36h1v1h-1zM32 36h1v1h-1zM34 36h1v1h-1zM36 36h1v1h-1zM38 36h1v1h-1zM40 36h1v1h-1zM11 37h1v1h-1zM13 37h1v1h-1zM15 37h1v1h-1zM17 37h1v1h-1zM19 37h1v1h-1zM21 37h1v1h-1zM23 37h1v1h-1zM25 37h1v1h-1zM27 37h1v1h-1zM29 37h1v1h-1zM31 37h1v1h-1zM33 37h1v1h-1zM35 37h1v1h-1zM37 37h1v1h-1zM39 37h1v1h-1zM41 37h1v1h-1zM12 38h1v1h-1zM14 38h1v1h-1zM16 38h1v1h-1zM18 38h1v1h-1zM20 38h1v1h-1zM22 38h1v1h-1zM24 38h1v1h-1zM26 38h1v1h-1zM28 38h1v1h-1zM30 38h1v1h-1zM32 38h1v1h-1zM34 38h1v1h-1zM36 38h1v1h-1zM38 38h1v1h-1zM40 38h1v1h-1zM42 38h1v1h-1zM11 39h1v1h-1zM13 39h1v1h-1zM15 39h1v1h-1zM17 39h1v1h-1zM19 39h1v1h-1zM21 39h1v1h-1zM23 39h1v1h-1zM25 39h1v1h-1zM27 39h1v1h-1zM29 39h1v1h-1zM31 39h1v1h-1zM33 39h1v1h-1zM35 39h1v1h-1zM37 39h1v1h-1zM39 39h1v1h-1zM41 39h1v1h-1zM43 39h1v1h-1zM10 40h1v1h-1zM12 40h1v1h-1zM14 40h1v1h-1zM16 40h1v1h-1zM18 40h1v1h-1zM20 40h1v1h-1zM22 40h1v1h-1zM24 40h1v1h-1zM26 40h1v1h-1zM28 40h1v1h-1zM30 40h1v1h-1zM32 40h1v1h-1zM34 40h1v1h-1zM36 40h1v1h-1zM38 40h1v1h-1zM40 40h1v1h-1zM42 40h1v1h-1zM44 40h1v1h-1zM9 41h1v1h-1zM11 41h1v1h-1zM13 41h1v1h-1zM15 41h1v1h-1zM17 41h1v1h-1zM19 41h1v1h-1zM21 41h1v1h-1zM23 41h1v1h-1zM25 41h1v1h-1zM27 41h1v1h-1zM29 41h1v1h-1zM31 41h1v1h-1zM33 41h1v1h-1zM35 41h1v1h-1zM37 41h1v1h-1zM39 41h1v1h-1zM41 41h1v1h-1zM43 41h1v1h-1z"/><path style="fill:var(--frenO)" d="M26 0h2v1h-2zM26 1h2v1h-2zM25 2h1v1h-1zM28 2h1v1h-1zM25 3h1v1h-1zM28 3h1v1h-1zM24 4h1v1h-1zM29 4h1v1h-1zM24 5h1v1h-1zM29 5h1v1h-1zM23 6h1v1h-1zM30 6h1v1h-1zM22 7h1v1h-1zM31 7h1v1h-1zM22 8h1v1h-1zM31 8h1v1h-1zM21 9h1v1h-1zM26 9h2v1h-2zM32 9h1v1h-1zM21 10h1v1h-1zM26 10h2v1h-2zM32 10h1v1h-1zM20 11h1v1h-1zM25 11h1v1h-1zM28 11h1v1h-1zM33 11h1v1h-1zM20 12h1v1h-1zM25 12h1v1h-1zM28 12h1v1h-1zM33 12h1v1h-1zM19 13h1v1h-1zM24 13h1v1h-1zM29 13h1v1h-1zM34 13h1v1h-1zM18 14h1v1h-1zM23 14h1v1h-1zM30 14h1v1h-1zM35 14h1v1h-1zM18 15h1v1h-1zM23 15h1v1h-1zM30 15h1v1h-1zM35 15h1v1h-1zM17 16h1v1h-1zM22 16h1v1h-1zM31 16h1v1h-1zM36 16h1v1h-1zM17 17h1v1h-1zM22 17h1v1h-1zM31 17h1v1h-1zM36 17h1v1h-1zM16 18h1v1h-1zM21 18h1v1h-1zM32 18h1v1h-1zM37 18h1v1h-1zM16 19h1v1h-1zM21 19h1v1h-1zM32 19h1v1h-1zM37 19h1v1h-1zM15 20h1v1h-1zM20 20h1v1h-1zM33 20h1v1h-1zM38 20h1v1h-1zM14 21h1v1h-1zM19 21h1v1h-1zM34 21h1v1h-1zM39 21h1v1h-1zM14 22h1v1h-1zM19 22h1v1h-1zM34 22h1v1h-1zM39 22h1v1h-1zM13 23h1v1h-1zM18 23h1v1h-1zM35 23h1v1h-1zM40 23h1v1h-1zM13 24h1v1h-1zM18 24h1v1h-1zM35 24h1v1h-1zM40 24h1v1h-1zM12 25h1v1h-1zM17 25h1v1h-1zM36 25h1v1h-1zM41 25h1v1h-1zM11 26h1v1h-1zM16 26h1v1h-1zM37 26h1v1h-1zM42 26h1v1h-1zM11 27h1v1h-1zM16 27h1v1h-1zM37 27h1v1h-1zM42 27h1v1h-1zM10 28h1v1h-1zM15 28h1v1h-1zM38 28h1v1h-1zM43 28h1v1h-1zM10 29h1v1h-1zM15 29h1v1h-1zM38 29h1v1h-1zM43 29h1v1h-1zM9 30h1v1h-1zM14 30h1v1h-1zM39 30h1v1h-1zM44 30h1v1h-1zM9 31h1v1h-1zM14 31h1v1h-1zM39 31h1v1h-1zM44 31h1v1h-1zM8 32h1v1h-1zM13 32h1v1h-1zM40 32h1v1h-1zM45 32h1v1h-1zM7 33h1v1h-1zM12 33h1v1h-1zM41 33h1v1h-1zM46 33h1v1h-1zM7 34h1v1h-1zM12 34h1v1h-1zM41 34h1v1h-1zM46 34h1v1h-1zM6 35h1v1h-1zM11 35h1v1h-1zM42 35h1v1h-1zM47 35h1v1h-1zM6 36h1v1h-1zM11 36h1v1h-1zM42 36h1v1h-1zM47 36h1v1h-1zM5 37h1v1h-1zM10 37h1v1h-1zM43 37h1v1h-1zM48 37h1v1h-1zM5 38h1v1h-1zM10 38h1v1h-1zM43 38h1v1h-1zM48 38h1v1h-1zM4 39h1v1h-1zM9 39h1v1h-1zM44 39h1v1h-1zM49 39h1v1h-1zM3 40h1v1h-1zM8 40h1v1h-1zM45 40h1v1h-1zM50 40h1v1h-1zM3 41h1v1h-1zM8 41h1v1h-1zM45 41h1v1h-1zM50 41h1v1h-1zM2 42h1v1h-1zM7 42h40v1h-40zM51 42h1v1h-1zM2 43h1v1h-1zM51 43h1v1h-1zM1 44h1v1h-1zM52 44h1v1h-1zM1 45h1v1h-1zM52 45h1v1h-1zM0 46h54v1h-54z"/><path style="fill:var(--frenS)" d="M6 43h1v1h-1zM9 43h36v1h-36zM47 43h1v1h-1zM4 44h3v1h-3zM9 44h36v1h-36zM47 44h3v1h-3z"/><path style="fill:var(--frenS)" d="M27 2h1v1h-1zM27 3h1v1h-1zM28 4h1v1h-1zM28 5h1v1h-1zM29 6h1v1h-1zM30 7h1v1h-1zM30 8h1v1h-1zM31 9h1v1h-1zM31 10h1v1h-1zM32 11h1v1h-1zM32 12h1v1h-1zM33 13h1v1h-1zM34 14h1v1h-1zM34 15h1v1h-1zM35 16h1v1h-1zM35 17h1v1h-1zM36 18h1v1h-1zM36 19h1v1h-1zM37 20h1v1h-1zM38 21h1v1h-1zM38 22h1v1h-1zM39 23h1v1h-1zM39 24h1v1h-1zM40 25h1v1h-1zM41 26h1v1h-1zM41 27h1v1h-1zM42 28h1v1h-1zM42 29h1v1h-1zM43 30h1v1h-1zM43 31h1v1h-1zM44 32h1v1h-1zM45 33h1v1h-1zM45 34h1v1h-1zM46 35h1v1h-1zM46 36h1v1h-1zM47 37h1v1h-1zM47 38h1v1h-1zM48 39h1v1h-1zM49 40h1v1h-1zM49 41h1v1h-1zM50 42h1v1h-1zM50 43h1v1h-1zM51 44h1v1h-1zM3 45h49v1h-49z"/><path style="fill:var(--fren)" d="M27 4h1v1h-1zM28 6h1v1h-1zM27 7h3v1h-3zM27 8h3v1h-3zM28 9h3v1h-3zM28 10h3v1h-3zM29 11h3v1h-3zM29 12h3v1h-3zM30 13h3v1h-3zM31 14h3v1h-3zM31 15h3v1h-3zM27 16h1v1h-1zM32 16h3v1h-3zM32 17h3v1h-3zM33 18h3v1h-3zM33 19h3v1h-3zM34 20h3v1h-3zM35 21h3v1h-3zM35 22h3v1h-3zM36 23h3v1h-3zM36 24h3v1h-3zM37 25h3v1h-3zM38 26h3v1h-3zM38 27h3v1h-3zM39 28h3v1h-3zM39 29h3v1h-3zM40 30h3v1h-3zM40 31h3v1h-3zM41 32h3v1h-3zM42 33h3v1h-3zM42 34h3v1h-3zM43 35h3v1h-3zM43 36h3v1h-3zM44 37h3v1h-3zM44 38h3v1h-3zM45 39h3v1h-3zM46 40h3v1h-3zM46 41h3v1h-3zM47 42h3v1h-3zM48 43h2v1h-2zM50 44h1v1h-1z"/><path style="fill:var(--frenV)" d="M26 4h1v1h-1zM25 6h1v1h-1zM24 7h3v1h-3zM24 8h3v1h-3zM23 9h3v1h-3zM23 10h3v1h-3zM22 11h3v1h-3zM22 12h3v1h-3zM21 13h3v1h-3zM20 14h3v1h-3zM20 15h3v1h-3zM19 16h3v1h-3zM19 17h3v1h-3zM18 18h3v1h-3zM18 19h3v1h-3zM17 20h3v1h-3zM16 21h3v1h-3zM16 22h3v1h-3zM15 23h3v1h-3zM15 24h3v1h-3zM14 25h3v1h-3zM13 26h3v1h-3zM13 27h3v1h-3zM12 28h3v1h-3zM12 29h3v1h-3zM11 30h3v1h-3zM11 31h3v1h-3zM10 32h3v1h-3zM9 33h3v1h-3zM9 34h3v1h-3zM8 35h3v1h-3zM8 36h3v1h-3zM7 37h3v1h-3zM7 38h3v1h-3zM6 39h3v1h-3zM5 40h3v1h-3zM5 41h3v1h-3zM4 42h3v1h-3zM4 43h2v1h-2zM3 44h1v1h-1z"/><path style="fill:var(--frenC)" d="M26 2h1v1h-1zM26 3h1v1h-1zM25 4h1v1h-1zM25 5h1v1h-1zM24 6h1v1h-1zM23 7h1v1h-1zM23 8h1v1h-1zM22 9h1v1h-1zM22 10h1v1h-1zM21 11h1v1h-1zM21 12h1v1h-1zM20 13h1v1h-1zM19 14h1v1h-1zM19 15h1v1h-1zM26 15h3v1h-3zM18 16h1v1h-1zM25 16h1v1h-1zM29 16h1v1h-1zM18 17h1v1h-1zM26 17h3v1h-3zM17 18h1v1h-1zM17 19h1v1h-1zM16 20h1v1h-1zM15 21h1v1h-1zM15 22h1v1h-1zM14 23h1v1h-1zM14 24h1v1h-1zM13 25h1v1h-1zM12 26h1v1h-1zM12 27h1v1h-1zM11 28h1v1h-1zM11 29h1v1h-1zM10 30h1v1h-1zM10 31h1v1h-1zM9 32h1v1h-1zM8 33h1v1h-1zM8 34h1v1h-1zM7 35h1v1h-1zM7 36h1v1h-1zM6 37h1v1h-1zM6 38h1v1h-1zM5 39h1v1h-1zM4 40h1v1h-1zM4 41h1v1h-1zM3 42h1v1h-1zM3 43h1v1h-1zM2 44h1v1h-1zM2 45h1v1h-1z"/><path style="fill:var(--frenC)" d="M26 5h2v1h-2zM26 6h2v1h-2zM7 43h2v1h-2zM45 43h2v1h-2zM7 44h2v1h-2zM45 44h2v1h-2z"/><text x="27" y="25" text-anchor="middle" style="fill:var(--frenC);font:4px var(--pix)">THE</text><text x="27" y="32" text-anchor="middle" style="fill:var(--frenV);font:4px var(--pix)">DARK</text><text x="27" y="39" text-anchor="middle" style="fill:var(--frenV);font:4px var(--pix)">TRIAD</text></g></defs></svg>
   </div></div></div></div>
   <div id="avGain" aria-hidden="true"></div>
   <div id="auraHud">
@@ -15618,7 +15587,7 @@ function frenEntre(){
       if(b.width>0){ox=Math.round(a.left+a.width/2-(b.left+b.width/2));oy=Math.round(a.top+a.height/2-(b.top+b.height/2));}}}catch(e){}
   tr.style.setProperty('--ox',ox+'px');tr.style.setProperty('--oy',oy+'px');
   tr.classList.add('on');
-  setTimeout(function(){if(tr.classList.contains('on'))try{pixBurst(tr.querySelector('.trM'),12);}catch(e){}},300); // l'impact : la gerbe part quand il se pose
+  setTimeout(function(){if(tr.classList.contains('on'))try{pixBurst(tr.querySelector('.trPiece'),12);}catch(e){}},300); // l'impact : la gerbe part quand il se pose
 }
 function frenSort(){
   const tr=frenEl();if(!tr||!tr.classList.contains('on'))return;
@@ -22056,7 +22025,10 @@ function crunchSfx(rang){
      corps .94 / cœur .9 dans la goutte (80 / 77 % avant), coulure .95 ; le liseré d'encre et le reflet restent pleins ;
    · le COULOIR de conduite reste dégagé : l'ellipse interdite s'élargit de la taille de la goutte (une grosse goutte posée au bord
      de l'ellipse y débordait) ; `JUS_N` (le brouillon) passe de 128 à 192 cellules pour les plus grosses. */
-const JUS_N=192,JUS=[],JUS_PX=4,JUS_TOILE=[],JUS_BLANC=new THREE.Color(1,1,1),JUS_ENCRE='#1c0430',JUS_M=new Uint8Array(JUS_N*JUS_N);let JUS_IM=null; // masque et pixels de brouillon RÉUTILISÉS (JUS_N cellules = la plus grande goutte)
+/* LE JUS v3b (même soir, Sacha : « elles sont trop sur les côtés ; un peu plus grosses, et pouvoir apparaître PARTOUT sur l'écran ») :
+   plus d'ellipse interdite ni de bande du haut — la goutte tombe n'importe où (le HUD reste dessiné par-dessus) ; rayon ×1,25 encore
+   (~46-91 px sur téléphone, plafond 110), `JUS_N` 240. Le couloir dégagé de la vague 2 est donc ABANDONNÉ, à sa demande. */
+const JUS_N=240,JUS=[],JUS_PX=4,JUS_TOILE=[],JUS_BLANC=new THREE.Color(1,1,1),JUS_ENCRE='#1c0430',JUS_M=new Uint8Array(JUS_N*JUS_N);let JUS_IM=null; // masque et pixels de brouillon RÉUTILISÉS (JUS_N cellules = la plus grande goutte)
 function jusToile(){ // une toile libre de la réserve (15 au plus : la file plafonne à 14 taches)
   for(const t of JUS_TOILE)if(!t.pris){t.pris=true;return t;}
   const cv=document.createElement('canvas');cv.width=cv.height=64;const t={cv:cv,x:cv.getContext('2d'),pris:true};JUS_TOILE.push(t);return t;
@@ -22070,17 +22042,11 @@ function juiceScreen(col,power,n){
   const cR=cc.r*255|0,cG=cc.g*255|0,cB=cc.b*255|0,kR=k2.r*255|0,kG=k2.g*255|0,kB=k2.b*255|0,corps='rgba('+cR+','+cG+','+cB+',.95)';
   const B9=Math.min(W,H); // (v3) la taille suit la plus petite dimension : même goutte debout ou couché
   for(let k=0;k<(n||1);k++){
-    // (v3) plus grosses : rayon ~37-73 px sur un téléphone (vague 2 : 24-49), plafond 90 (60) — la forme et ses satellites tiennent dans JUS_N
-    const R=Math.min(90,(B9*.075+Math.random()*B9*.075)*(.8+power*.45)),coul=R*(.5+Math.random()*1.2);
-    /* ⚠ LE COULOIR DE CONDUITE RESTE DÉGAGÉ, et ce n'est pas négociable : c'est au centre qu'on vise
-       une réception. On TIRE JUSQU'À trouver une place hors de l'ellipse centrale — pas de biais, une garantie.
-       (v3) l'ellipse s'élargit de la goutte : c'est son BORD qui doit rester dehors, pas seulement son centre. */
-    let x,y,essais=0;
-    do{
-      x=Math.random()*W;y=H*(.15+Math.random()*.85);   // jamais tout en haut : le HUD y vit
-      const dx=(x-W*.5)/(W*.34+R*.8), dy=(y-H*.45)/(H*.30+R*.8);
-      if(dx*dx+dy*dy>1)break;                          // hors de l'ellipse centrale : bon
-    }while(++essais<12);
+    // (v3b) plus grosses : rayon ~46-91 px sur un téléphone (v3 : 37-73, vague 2 : 24-49), plafond 110 — la forme et ses satellites tiennent dans JUS_N
+    const R=Math.min(110,(B9*.094+Math.random()*B9*.094)*(.8+power*.45)),coul=R*(.5+Math.random()*1.2);
+    /* (v3b, Sacha : « pouvoir apparaître partout sur l'écran ») PARTOUT, uniformément : plus d'ellipse centrale interdite ni de bande du
+       haut (elles repoussaient tout sur les côtés). Le HUD est dessiné PAR-DESSUS le jus, rien de ce qu'on lit n'est jamais caché. */
+    const x=Math.random()*W,y=Math.random()*H;
     // (vague 2) des GOUTTES, plus des flaques (l'ancien montait à 100 px, satellites jusqu'à 2,7 R) — la taille (v3) est tirée plus haut
     if(JUS.length>=14){const v=JUS.shift();v.toile.pris=false;} // plafond : à 20 taches, mesuré, 76 % de l'écran était repeint
     const t=jusToile(),C=JUS_PX/2; // la toile est en CELLULES de 2 px : le liseré fait une cellule, la forme se pose par blocs de deux (4 px)
