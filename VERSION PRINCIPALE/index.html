@@ -19373,8 +19373,11 @@ function explode(cause){
     spawnP(k%2?boomPool:boomYel,boomPos.x,boomPos.y,boomPos.z,
       Math.sin(b)*Math.cos(a)*sp2,Math.cos(b)*sp2*.9+4,Math.sin(b)*Math.sin(a)*sp2,.4+Math.random()*.7);
   }
+  /* (2026-09-28) LE GRONDEMENT POUR TOUT LE MONDE. Il était câblé sur `level>=4` — un reste de l'époque où `level` était une
+     progression ; c'est aujourd'hui l'INDEX de la caisse choisie au garage : les quatre premières caisses explosaient sans grave.
+     Même grondement pour toutes, un peu allégé (.35/.5 → .3, sub .3) : `boomSnd` part dans la même milliseconde sur le même bus. */
+  noiseBurst(1.2,.3,240);subBoom(.3);
   if(level>=4){
-    noiseBurst(1.2,level===5?.5:.35,240);subBoom(level===5?.42:.3);
     shake=Math.max(shake,level===5?3.6:3);
   }
   // (2026-09-26, audit rendu) on RECYCLE la lumière dorée de la pose (toujours en scène, à 0) : le nombre de lumières ne change plus,
@@ -19907,7 +19910,10 @@ function musicElGet(){
   return musicEl;
 }
 function musicPremier(){const n0=NIVEAUX[0],l=n0&&MUSIC_LIEU[n0.id];return l?l.f:(MUSIC_TRACKS[0]||{}).f;} // le morceau du 1er niveau
-function musicSession(){try{if(navigator.audioSession&&navigator.audioSession.type!=='playback')navigator.audioSession.type='playback';}catch(e){}}
+/* (2026-09-28) 'playback' SEULEMENT SI LA MUSIQUE JOUE. Sur iOS 17+, une session 'playback' COUPE l'appli audio du joueur : celui
+   qui éteint notre MUSIQUE pour écouter son Spotify se le faisait couper par le jeu à chaque toucher. MUSIQUE coupée → 'ambient'
+   (les effets se mêlent à sa musique, et suivent le bouton silencieux comme n'importe quel jeu). Rappelé à chaque bascule MUSIQUE. */
+function musicSession(){try{const s9=navigator.audioSession,v9=SND.music?'playback':'ambient';if(s9&&s9.type!==v9)s9.type=v9;}catch(e){}}
 function musicJoue(){ // lance (ou relance) la lecture — un refus n'est jamais perdu : le prochain toucher réessaie
   if(!SND.music||!musicVoulue||paused)return; // ⚠ PAS de garde `document.hidden` ici : certaines WebViews se disent « cachées » au démarrage — la musique ne partirait jamais
   const el=musicElGet();musicSession();
@@ -22233,6 +22239,7 @@ function sndRefresh(){
 sndBtnEl.addEventListener('click',function(e){e.stopPropagation();SND.sfx=!SND.sfx;SAVE.d.sfx=SND.sfx;SAVE.flush();sndRefresh();});
 voxBtnEl.addEventListener('click',function(e){e.stopPropagation();SND.voice=!SND.voice;SAVE.d.vox=SND.voice;SAVE.flush();sndRefresh();});
 if(musBtnEl)musBtnEl.addEventListener('click',function(e){e.stopPropagation();SND.music=!SND.music;SAVE.d.mus=SND.music;SAVE.flush();sndRefresh();
+  musicSession(); // (2026-09-28) la session audio suit l'interrupteur : 'ambient' rend la main à la musique du joueur, 'playback' la reprend
   if(SND.music){ if(started&&running&&!gameOver)musicStartRun(); else musicMenu(); } // rallumée : relance selon le contexte
   else musicStop(false); // éteinte : coupe net
 });
@@ -23169,10 +23176,13 @@ function crunchSfx(rang){
     const f=AC.createBiquadFilter();f.type='bandpass';
     f.frequency.setValueAtTime(1100+rang*340,t);
     f.frequency.exponentialRampToValueAtTime(340+rang*110,t+dur);
-    f.Q.value=2.2;
+    f.Q.value=1.2; // (2026-09-28) 2.2 → 1.2 : une bande plus large croque sans siffler
     const g=AC.createGain();
     g.gain.setValueAtTime(.0001,t);
-    g.gain.exponentialRampToValueAtTime(Math.min(.95,.46+rang*.08),t+.006);
+    /* (2026-09-28) RAMENÉ DANS LE RANG. À .46→.95 sur une bande 1,1-3,1 kHz (là où l'oreille est la plus sensible), plus un thump à .42,
+       c'était le son ponctuel le plus fort du jeu — une vingtaine de dB au-dessus d'une pièce. Le trou creusé par `duckT` suffit à le
+       faire entendre ; il n'a pas besoin de crier par-dessus. */
+    g.gain.exponentialRampToValueAtTime(Math.min(.45,.24+rang*.04),t+.006);
     g.gain.exponentialRampToValueAtTime(.0001,t+dur);
     n.connect(f);f.connect(g);g.connect(MASTER);n.start(t);n.stop(t+dur);
     // --- la PULPE : un thump grave sous le craquement, pour que ça ait du corps
@@ -23181,7 +23191,7 @@ function crunchSfx(rang){
     o.frequency.setValueAtTime(190+rang*26,t);
     o.frequency.exponentialRampToValueAtTime(58,t+.13);
     og.gain.setValueAtTime(.0001,t);
-    og.gain.exponentialRampToValueAtTime(.42,t+.008);
+    og.gain.exponentialRampToValueAtTime(.26,t+.008); // (2026-09-28) .42 → .26
     og.gain.exponentialRampToValueAtTime(.0001,t+.16);
     o.connect(og);og.connect(MASTER);o.start(t);o.stop(t+.17);
     duckT=Math.max(duckT,.12); // ON CREUSE LE MIX : c'est ça qui le sort de la bouillie
@@ -27743,7 +27753,7 @@ $('gPrev').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarge
 $('gTabs').addEventListener('click',e=>{e.stopPropagation();const b=e.target.closest('.gTab');if(!b)return;uiClic();uiPop(b);shopTab(b.getAttribute('data-tab'));});
 $('gCarr').addEventListener('click',e=>{e.stopPropagation();uiClic();carrVue(null);});
 // LA FICHE SE REPLIE (2026-09-24) : deux lignes de description suffisent, elle cachait le tiers bas de la caisse. Un tap la déplie.
-$('gCard').addEventListener('click',e=>{if(e.target.closest('button,.pbtn'))return;e.stopPropagation();$('gCard').classList.toggle('ouvert');});
+$('gCard').addEventListener('click',e=>{if(e.target.closest('button,.pbtn'))return;e.stopPropagation();$('gCard').classList.toggle('ouvert');uiClic();}); // (2026-09-28, charte règle 8) la fiche qui se déplie répond au doigt
 $('carr').addEventListener('click',function(e){ // un seul écouteur pour tout l'écran carrière
   e.stopPropagation();
   const el=e.target&&e.target.closest?e.target.closest('[data-c]'):null;if(!el)return;
@@ -27753,7 +27763,7 @@ $('carr').addEventListener('click',function(e){ // un seul écouteur pour tout l
   else if(c==='biome')carrVue(b);
   else if(c==='niveau')carrLancer(b,i);
   else if(c==='verrou'){ // un niveau fermé RÉPOND : il secoue et dit ce qu'il attend
-    el.classList.remove('secoue');void el.offsetWidth;el.classList.add('secoue');
+    el.classList.remove('secoue');void el.offsetWidth;el.classList.add('secoue');uiClic(); // (2026-09-28, charte règle 8) il secouait en silence : le clic et la vibration disent « reçu, mais non »
     toast(pxi('verrou')+' '+TR('TERMINE LE NIVEAU')+' '+i);return; }
   uiClic();
 });
@@ -29513,13 +29523,17 @@ renderLeaders(-1);
   // Échelle inouïe (intervalles de φ : ni octaves ni quintes — le son littéral de 1.61),
   // compteuse à billets en guise de riser, sub qui bat à 0,618 Hz, jackpot de pièces à la fission.
   function introSound(){
-    if(!SND.sfx)return; // mute SON : l'intro reste muette aussi
+    if(!SND.sfx||!(VOL.sfx>0))return; // mute SON : l'intro reste muette aussi — (2026-09-28) et le curseur EFFETS à zéro aussi
     try{iAC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return;}
     const A=iAC;try{A.resume();}catch(e){}
     const t0=A.currentTime+.05,PHI=1.6180339;
     const phi=k=>110*Math.pow(PHI,k); // l'échelle d'or : 110·φ^k
     const comp=A.createDynamicsCompressor();
-    comp.threshold.value=-14;comp.ratio.value=5;comp.connect(A.destination);
+    /* (2026-09-28) L'INTRO OBÉIT AU CURSEUR EFFETS. Elle vit dans son propre contexte, branché en direct sur la sortie : le bus
+       MASTER (qui porte `VOL.sfx`) ne la voyait pas. Le volume se pose APRÈS le compresseur — posé avant, il changerait la dose de
+       compression, donc le son lui-même ; après, c'est un vrai bouton de volume, et à 100 % rien ne bouge. */
+    const vol9=A.createGain();vol9.gain.value=VOL.sfx;vol9.connect(A.destination);
+    comp.threshold.value=-14;comp.ratio.value=5;comp.connect(vol9);
     master=A.createGain();master.gain.value=1;master.connect(comp);
     const nzBuf=(function(){const n=A.sampleRate*2,b=A.createBuffer(1,n,A.sampleRate),c=b.getChannelData(0);for(let i=0;i<n;i++)c[i]=Math.random()*2-1;return b;})();
     const pan=x=>{const p=A.createStereoPanner?A.createStereoPanner():A.createGain();if(p.pan)p.pan.value=x;return p;};
@@ -29736,8 +29750,16 @@ renderLeaders(-1);
 function togglePause(){ if(!started||gameOver)return;
   paused=!paused; showMsg(paused?'PAUSE':'GO !');
   if(!paused)slowT=Math.max(slowT,.8); // (2026-09-25) reprise au RALENTI : le temps de reposer les pouces
+  /* (2026-09-28) LES BOUCLES SE TAISENT AVEC LA PAUSE. Suspendre le contexte FIGE les sons continus à leur gain du moment : dès que
+     le compte 3-2-1 le réveille (0,9 s, jeu encore gelé, boucle qui ne règle plus rien), moteur, vent, sifflement, crissement et
+     nitro rejouaient plein pot sur une image arrêtée. On les coupe NET avant de suspendre, et on vide le cache de `stt` (`_s9`) :
+     sans ça, à la reprise, la boucle croirait la cible déjà envoyée et laisserait tout à zéro. `jrDep`/`engLfoG` en font partie :
+     ce sont des LFO branchés sur un gain, ils rendraient un trémolo audible même gain principal à zéro. */
+  if(paused&&AC){ try{ const T9=AC.currentTime;
+    for(const n9 of [gainN,windG,whG,skidG,jrG,jrDep,jetG,jetLowG,jetOscG,engLfoG,engWhineG,transG,diffG,ovrG,engTickG,pinkG,DRS&&DRS.g,RSN&&RSN.g,sirG])
+      if(n9){const p9=n9.gain;p9.cancelScheduledValues(T9);p9.setValueAtTime(0,T9);p9._s9=undefined;} }catch(e){} }
   try{ if(AC){ if(paused)AC.suspend(); else if(SND.sfx)AC.resume(); } }catch(e){}
-  if(paused){annStop();fxStop();} // (2026-09-26) les voix et les samples sont des HTMLAudio : suspendre le contexte ne les arrêtait pas
+  if(paused){annStop();fxStop();deathStop();} // (2026-09-26) les voix et les samples sont des HTMLAudio : suspendre le contexte ne les arrêtait pas — (2026-09-28) le son de MORT non plus : une pause pendant l'explosion le laissait hurler par-dessus le panneau
   musicPause(paused); // la musique ne passe plus par l'AudioContext : elle se met en pause elle-même
 }
 // applique la résolution adaptative (reconfigure le renderer et le canvas des speed-lines)
@@ -29908,7 +29930,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
      pas un ralenti, c'est un compte. Rouvrir la pause (ou quitter) pendant le compte l'annule. */
   function repriseCompte(){
     if(repriseCompte.t)return;
-    let n=3;try{if(AC&&SND.sfx&&AC.state!=='running')AC.resume();}catch(e){} // le contexte se réveille : les trois bips s'entendent
+    repriseCompte.t=-1; // (2026-09-28) posé DÈS l'appel : pendant qu'on attend le réveil du son, un second REPRENDRE ne lance pas un second compte
+    let n=3,parti=false;
     const pas=function(){
       const s9=avE('slam9');
       if(!started||gameOver||!paused||(pan.classList.contains('open')&&!pan.classList.contains('sortant'))){repriseCompte.t=0;if(s9)s9.classList.remove('compte','on');return;} // la feuille qui DESCEND encore n'annule rien
@@ -29916,14 +29939,19 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       slam(String(n),'','#ffd75e','#ff7ad5',64,9);{const s8=avE('slam9');if(s8)s8.classList.add('compte');} // un chiffre = 0,3 s : l'entrée doit être lisible tout de suite
       try{chimeNote(noteP(n===1?4:2,1),0,.08,.1);}catch(e){}hap(6); // (2026-09-27) ces bips et la vibration étaient avalés par le commentaire ci-dessus
       n--;repriseCompte.t=setTimeout(pas,300);};
-    pas(); }
+    /* (2026-09-28) LE « 3 » ATTEND QUE LE SON SOIT RÉVEILLÉ. `AC.resume()` est asynchrone : lancé juste avant le compte, le premier
+       bip tombait sur un contexte encore suspendu (`sfxOk` le refuse) — on n'entendait que « 2 » et « 1 ». On part à la promesse
+       résolue (ou rejetée), avec un filet à 400 ms si elle ne répond jamais (iOS « interrupted ») : la pause ne doit jamais rester coincée. */
+    const go=function(){if(parti)return;parti=true;pas();};
+    let r9=null;try{if(AC&&SND.sfx&&AC.state!=='running')r9=AC.resume();}catch(e){}
+    if(r9&&r9.then){r9.then(go,go);setTimeout(go,400);}else go(); }
   // ⚠ `click` EN PLUS DE `touchstart` (2026-09-05) — `#tGear`/`#tPanel` s'affichent maintenant sur
   // DESKTOP aussi (voir CSS `body.play #tSet`), or une souris ne déclenche JAMAIS `touchstart` :
   // sans ce doublon d'écouteurs, le seul bouton de réglages visible en jeu serait injoignable au
   // clavier-souris. Fonctions NOMMÉES (pas des closures anonymes dupliquées) pour qu'un seul corps
   // serve les deux entrées — sinon la logique finit par diverger au premier changement, comme le
   // commentaire plus haut le dit déjà pour les interrupteurs eux-mêmes.
-  function gearOpenHandler(e){ if(e.cancelable)e.preventDefault(); e.stopPropagation(); uiClic(); panOpen(true); hap(10); } // (charte, règle 8) le ⏸ sonne AVANT que la pause ne coupe le son
+  function gearOpenHandler(e){ if(e.cancelable)e.preventDefault(); e.stopPropagation(); uiClic(); panOpen(true); } // (charte, règle 8) le ⏸ sonne AVANT que la pause ne coupe le son — (2026-09-28) plus de hap(10) derrière : uiClic vibre déjà, le pouce sentait DEUX coups
   function panTapHandler(e){
     if(e.cancelable)e.preventDefault(); e.stopPropagation();
     const el=e.target&&e.target.closest?e.target.closest('.tp'):null;
@@ -30135,7 +30163,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     }
   }catch(e){} }
   function mTap(a,el){
-    uiClic();uiPop(el);if(a==='play'||a==='replay')pixBurst(el,16); // chaque bouton REBONDIT ; JOUER lâche une gerbe
+    if(a!=='snd')uiClic();uiPop(el);if(a==='play'||a==='replay')pixBurst(el,16); // chaque bouton REBONDIT ; JOUER lâche une gerbe — (2026-09-28) SON : le clic part APRÈS la bascule (plus bas)
     if(a==='replay'&&started&&gameOver){ goImmersive(); ecranWipe(function(){ if(started&&gameOver)resetGame(); }); } // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS)
     else if(a==='play'||a==='replay'){ if(a==='play')CARR.actif=null;
       tutoArme(); // 1re partie = AUTO-ÉCOLE
@@ -30154,7 +30182,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='surv'){ clic(survBtnEl); mFill(); }
     else if(a==='park'){ clic(parkBtnEl); mFill(); }
     else if(a==='sand'){ SANDBOX=!SANDBOX; SAVE.d.sand=SANDBOX; SAVE.flush(); mFill(); }
-    else if(a==='snd'){ clic(sndBtnEl); mFill(); }
+    else if(a==='snd'){ clic(sndBtnEl); uiClic(); mFill(); } // (2026-09-28) cliqué AVANT la bascule, le clic tombait sur SND.sfx encore faux : RALLUMER le son était muet et sans vibration (couper, lui, se tait — c'est juste)
     else if(a==='mus'){ clic(musBtnEl); mFill(); }
     else if(a==='vox'){ clic(voxBtnEl); mFill(); }
     else if(a==='lang'){ langNext(); applyLangDOM(); mFill(); }
