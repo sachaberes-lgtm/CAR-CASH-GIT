@@ -4617,8 +4617,8 @@ html body #engBig .ebRuban{top:-22px!important;left:-10px!important;right:-10px!
 <script src="vendor/postprocessing/UnrealBloomPass.js"></script>
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
-<script defer src="sons-banque.js?v=2"></script>
-<script defer src="sfx.js?v=1"></script>
+<script defer src="sons-banque.js?v=3"></script>
+<script defer src="sfx.js?v=2"></script>
 <script>
 (function(){
 'use strict';
@@ -4663,7 +4663,7 @@ function modale(o){return new Promise(function(res){
     e.innerHTML=(k.ic?pxi(k.ic):'')+'<span>'+TR(k.l)+'</span>';
     const arme=k.cls==='pb-red'; // (2026-09-26, charte v4) EFFACER / QUITTER / RECOMMENCER s'arment après 420 ms : le 2e tap d'un double appui tombe dans le vide
     if(arme){e.classList.add('arme');setTimeout(function(){e.classList.remove('arme');},420);}
-    e.addEventListener('click',function(ev){ev.stopPropagation();if(e.classList.contains('arme')){hap(6);return;}uiClic();feuilleFerme(m,'on');res({v:k.v,texte:c.value});});b.appendChild(e);}
+    e.addEventListener('click',function(ev){ev.stopPropagation();if(e.classList.contains('arme')){hap(6);return;}uiClic(k.cls==='pb-red'?'danger':k.v?'':'retour');feuilleFerme(m,'on');res({v:k.v,texte:c.value});});b.appendChild(e);}
   feuilleOuvre(m,'on');try{typeof sfx==='function'&&sfx('ui.modale');}catch(e){}
   if(o.champ!=null)setTimeout(function(){try{c.focus();if(o.lecture)c.select();}catch(e){}},60);
 });}
@@ -6693,10 +6693,10 @@ function updateClouds(dt,t){
       if(k>cloudIn)cloudIn=k;
       if(!c.wasIn){
         c.wasIn=true;
-        noiseBurst(.5,.10,520); // on plonge dans la ouate
-        if(mode==='fall'&&c.fid!==flightId){c.fid=flightId;c.refT=1.2;} // budget d'airtime de CE banc
+        if(SONV2){if(!(mode==='drive'&&(c.brokenT||0)<=0&&!c.ecran))sfx('nuage.entre');}else noiseBurst(.5,.10,520); // on plonge dans la ouate (console de son : défoncé au sol, c'est nuage.defonce qui parle)
+        if(mode==='fall'&&c.fid!==flightId){c.fid=flightId;c.refT=1.2;if(SONV2)sfx('air.regain');} // budget d'airtime de CE banc (console de son : le chrono qui se recharge s'entend)
         shatterCloud(cp,Math.min(1,k+.35)); // MILLE MORCEAUX au point de contact (où l'on touche le banc)
-        if(mode==='drive'&&(c.brokenT||0)<=0&&!c.ecran){c.brokenT=4.5;whoosh();addStyle(3);} // la caisse DÉFONCE le banc → il éclate puis se reforme · (2026-09-27) sauf l'ÉCRAN du niveau 5 : défoncé, il ne cacherait plus rien aux tireurs
+        if(mode==='drive'&&(c.brokenT||0)<=0&&!c.ecran){c.brokenT=4.5;if(SONV2)sfx('nuage.defonce');else whoosh();addStyle(3);} // la caisse DÉFONCE le banc → il éclate puis se reforme · (2026-09-27) sauf l'ÉCRAN du niveau 5 : défoncé, il ne cacherait plus rien aux tireurs
       }
       if(mode==='fall'){ // SURF DE NUAGE : coussin d'air + regain d'airtime (au rythme du vol accéléré)
         const dtF=dt*AIR_RATE;
@@ -6714,7 +6714,7 @@ function updateClouds(dt,t){
       // (zéro particule à la traversée — demande de Sacha : la paroi du mesh fait tout le travail)
     }else if(c.wasIn&&d2>1.3){ // ---- SORTIE ----
       c.wasIn=false;
-      noiseBurst(.22,.07,1500); // l'air se rouvre d'un coup
+      if(SONV2)sfx('nuage.sort');else noiseBurst(.22,.07,1500); // l'air se rouvre d'un coup
       if(c.onRoad&&mode==='drive'&&Math.abs(vA)*3.6*SPD>140)addStyle(7); // percée à l'aveugle
       if(c.camp&&c.onRoad&&mode==='drive')try{campBancSorti(c);}catch(e){} // (2026-09-27) CAMPAGNE : la sortie du banc se fête (et le 1er banc du niveau 3 se nomme)
     }
@@ -10055,6 +10055,13 @@ function lvlMontre(){ // la bannière « NIVEAU n — LIEU » (fondu d'opacité 
    const pr9=LVL.cur.pr||(LVL.cur.espace>=.5&&!PARK.on?'GRAVITE REDUITE : SAUTS 2 FOIS PLUS LONGS':''); // (2026-09-28) l'espace a SA promesse : la gravité
    if(pr9){const e9=document.createElement('em');e9.textContent=TR(pr9);nm9.appendChild(e9);}} // (2026-09-27) la PROMESSE du niveau de campagne, une ligne sous le nom
   b.classList.add('on');clearTimeout(lvlBanT);lvlBanT=setTimeout(function(){b.classList.remove('on');},(LVL.cur.pr||LVL.cur.espace>=.5)?3800:2800);
+  /* (2026-09-28, console de son) la bannière s'abat (ui.banniere) et ses lettres tombent en micro-frappes : une sur deux, plus la dernière
+     (le numéro), au plus dix, chacune ~100 ms après le départ de sa chute (45 ms d'écart). setTimeout et pas `{t:}` : ui.lettre n'a que
+     trois voix, dix notes programmées d'un coup se couperaient entre elles avant d'avoir sonné. Carte d'auto-école à l'écran : elle la cache. */
+  if(SONV2&&!document.body.classList.contains('coOn'))try{sfx('ui.banniere');
+    if(!REDUCED_MOTION){const L9=Array.from(TR('NIVEAU')+' '+LVL.n);let k9=0,n9=0;
+      L9.forEach(function(ch,i){if(ch===' ')return;const d9=(k9++%2===0)||i===L9.length-1;if(!d9||n9>=10)return;n9++;
+        setTimeout(function(){try{if(b.classList.contains('on'))sfx('ui.lettre');}catch(e){}},i*45+100);});}}catch(e){}
 }
 /* ---- LA PLUIE DU VILLAGE (2026-09-24) — un rideau de traits qui tombe AUTOUR de la caméra ----------------
    ⚠ ZÉRO CPU PAR FRAME : 1 100 traits (600 sur téléphone) dont la chute ET le repliement vivent dans le
@@ -17057,7 +17064,7 @@ function driftTick(dt,on){
   if(on&&driftCd<=0){
     driftC+=dt;vA*=Math.max(0,1-.10*dt);
     const lv=driftC>1.4?3:driftC>.9?2:driftC>.45?1:0; // (2026-09-25) .5/1/1,7 → .45/.9/1,4 : le SUPER et l'ULTRA tiennent enfin sur la route
-    if(lv>driftLv){driftLv=lv;try{chimeNote([0,noteP(3,1),noteP(5,1),noteP(7,1)][lv],0,.08,.16);}catch(e){}hap(lv===3?[14,30,14]:10);}
+    if(lv>driftLv){driftLv=lv;try{if(SONV2)sfx('drift.charge',{st:sonPd([0,3,5,7][lv]-3)});else chimeNote([0,noteP(3,1),noteP(5,1),noteP(7,1)][lv],0,.08,.16);}catch(e){}hap(lv===3?[14,30,14]:10);}
     driftSpk-=dt;
     if(driftLv>0&&driftSpk<=0){driftSpk=.045;const pool=driftLv===3?sparkPink:driftLv===2?sparkGold:sparkBlue,sp9=CARS[level];
       for(const sd of [-1,1]){DRIFT_V.set(sd*sp9.w*.42,.15,-sp9.l*.38);carGroup.localToWorld(DRIFT_V);sparkBurst(pool,DRIFT_V,2,5);}}
@@ -17067,7 +17074,7 @@ function driftTick(dt,on){
       boost=Math.max(boost,.35+.3*driftLv);vA+=6*driftLv;nitroGain(.16*driftLv);shake=Math.max(shake,.14*driftLv);flowAdd(9*driftLv,'style');
       fovPunch=Math.max(fovPunch,6+6*driftLv);                                   // le champ S'OUVRE d'un coup : on est PROPULSÉ
       if(driftLv===3){slowT=Math.max(slowT,.14);try{flashEl.style.background='#ff5ec8';flashEl.style.opacity=.35;setTimeout(function(){flashEl.style.opacity=0;flashEl.style.background='#ff2020';},90);}catch(e){}}
-      try{boostSnd(1+.35*driftLv);if(driftLv>=2)crackle(.45+.2*driftLv);}catch(e){}hap([12,30,20]);
+      try{if(SONV2)sfx(['','turbo.mini','turbo.super','turbo.ultra'][driftLv]);else{boostSnd(1+.35*driftLv);if(driftLv>=2)crackle(.45+.2*driftLv);}}catch(e){}hap([12,30,20]);
       popTexte(['','MINI-TURBO','SUPER TURBO','ULTRA TURBO'][driftLv],['','#5ee6ff','#ffd75e','#ff5ec8'][driftLv],1);
       try{chaineAura(['','MINI-TURBO','SUPER TURBO','ULTRA TURBO'][driftLv],[0,50,100,180][driftLv],'drift');}catch(e){}
     }
@@ -17274,18 +17281,18 @@ function flowAdd(q,fam,trait){
   const v0=FLOW.v,g=flowGainDe(q,fam,v0,FLOW.lv,FLOW.vit);
   if(FLOW.jr){FLOW.jr.push([+(performance.now()/1000).toFixed(2),fam,+q.toFixed(2),+g.toFixed(2),+v0.toFixed(1),+FLOW.vit.toFixed(2)]);if(FLOW.jr.length>80)FLOW.jr.shift();} // journal : seulement quand dbgFren('journal') l'a ouvert
   if(!(g>0)){ // refusé. Dans la TRIADE sous la vitesse, le jeu le DIT — une fois par partie, et jamais pour une pièce
-    if(fam!=='route'&&FLOW.lv<4&&v0>=75&&FLOW.vit<FLOW2.gate&&!FLOW.lentVu){FLOW.lentVu=true;popTexte('PLUS VITE !',FLOW_COL[4],1);}
+    if(fam!=='route'&&FLOW.lv<4&&v0>=75&&FLOW.vit<FLOW2.gate&&!FLOW.lentVu){FLOW.lentVu=true;popTexte('PLUS VITE !',FLOW_COL[4],1);if(SONV2)sfx('plus.vite');}
     return;}
   FLOW.v=Math.min(100,v0+g);if(flowGardeDe(fam,v0))FLOW.idle=0;
   if(t9&&FLOW.lv<4)flowTag(t9,1); // (v5) l'auteur du geste s'affiche à côté de FLOW
   if(FLOW.lv===4){frenNourrit(g);return;}   // déjà en FRÉNÉSIE : chaque goutte de style fait SCINTILLER la jauge (et cogne dans l'emblème)
   const lv=Math.min(3,flowLvDe(FLOW.v)); // (v4) la jauge pleine ne fait plus entrer : elle ARME (voir frenArme) — c'est la POSE qui déclenche
   if(FLOW.v>=100&&!FREN.arme)frenArme();
-  if(lv>FLOW.lv){FLOW.lv=lv;
+  if(lv>FLOW.lv){FLOW.lv=lv;const rv9=lv>=3&&!FLOW.revele; /* (console de son) la TRIADE qui s'ouvre a SON son : pas « FLOW III » par-dessus */
     if(lv>=3&&!FLOW.revele)flowRevele(); // la rose est pleine : la TRIADE s'ouvre (et c'est elle qu'on annonce, pas « FLOW III »)
     else popTexte(FLOW_NOM[lv]+' · $×'+fmtMul(flowMult()),FLOW_COL[lv],1);
     flowPunch();
-    hap([12,30,16]);try{flowSnd(lv);}catch(e){}
+    hap([12,30,16]);try{if(!(SONV2&&rv9))flowSnd(lv);}catch(e){}
     fovPunch=Math.max(fovPunch,4+lv*2);}
 }
 function flowTagEl(t){
@@ -17326,7 +17333,7 @@ function coinSerie(p){
   if(n<4||c!==n)return;
   flowAdd(3+n*.4,'style','n');
   popTexte(TR('SÉRIE COMPLÈTE')+' ×'+n,'#ffd75e',0);
-  try{chimeNote(noteP(4,1),0,.05,.2);chimeNote(noteP(7,1),.07,.05,.3);}catch(e){}
+  try{if(SONV2)sfx('piece.serie');else{chimeNote(noteP(4,1),0,.05,.2);chimeNote(noteP(7,1),.07,.05,.3);}}catch(e){}
 }
 /* (v4, Sacha : « quand on passe en frénésie après avoir POSÉ UNE FIGURE — l'atterrissage est la condition pour déclencher la frénésie,
    en plus du score de flow — ça doit déclencher la voix TRIPLE MONSTRE et l'écriture TRIPLE MONSTER »). LA JAUGE PLEINE ARME (frenArme :
@@ -17335,7 +17342,7 @@ function coinSerie(p){
 function frenArme(){
   FREN.arme=true;FLOW.aff=-1;
   popTexte('POSE UNE FIGURE !',FLOW_COL[4],2);hap([10,30,10]);
-  try{pixBurst(FLOW.el&&FLOW.el.querySelector('.fZ'),8);chimeNote(noteP(7,1),0,.06,.25);}catch(e){}
+  try{pixBurst(FLOW.el&&FLOW.el.querySelector('.fZ'),8);if(SONV2)sfx('frenesie.arme');else chimeNote(noteP(7,1),0,.06,.25);}catch(e){}
 }
 function frenDeclenche(){
   FREN.arme=false;FLOW.v=100;FLOW.lv=4;FLOW.idle=0;FLOW.aff=-1;
@@ -17376,7 +17383,7 @@ function flowRevele(){
     try{pixBurst(h.querySelector('.fSeg>i:nth-child(4)'),10);}catch(e){}}
   if(FLOW2.lieu==='ville'&&!FREN.apprisV){FREN.apprisV=true;popTexte('VITESSE · DRIFT · TRICHE',FLOW_COL[4],2);} // (loi 15) en VILLE la triade se gagne sur la route : on le dit, une fois
   else popTexte(FREN.appris?'DARK TRIAD':'FIGURES · TRICHE · NITRO',FLOW_COL[4],2);FREN.appris=true; // (v4) la règle de la triade, en trois mots
-  try{subBoom(.14);chimeNote(noteP(0,0),.05,.07,.6);}catch(e){}
+  try{if(SONV2)sfx('triade.revele');else{subBoom(.14);chimeNote(noteP(0,0),.05,.07,.6);}}catch(e){}
   hap([10,40,10]);
 }
 function frenEl(){return FREN.el||(FREN.el=document.getElementById('triade'));}
@@ -17413,7 +17420,7 @@ function frenTient(dt){
   FREN.t+=dt;
   const r=SAVE.d.frenRec||0;
   if(!FREN.rec&&r>=5&&FREN.t>r){FREN.rec=true;FREN.chrS=-1; // le record tombe EN DIRECT : on le crie, on ne le garde pas pour l'écran de mort
-    popTexte('RECORD DE FRÉNÉSIE !','#ffd75e',3);hap([10,30,10,30,30]);try{chimeNote(noteP(0,1),0,.06,.4);chimeNote(noteP(4,1),.09,.06,.4);chimeNote(noteP(7,1),.18,.07,.6);}catch(e){}}
+    popTexte('RECORD DE FRÉNÉSIE !','#ffd75e',3);hap([10,30,10,30,30]);try{if(SONV2)sfx('frenesie.record');else{chimeNote(noteP(0,1),0,.06,.4);chimeNote(noteP(4,1),.09,.06,.4);chimeNote(noteP(7,1),.18,.07,.6);}}catch(e){}}
   frenChrono();
 }
 function frenChrono(){ // écrit seulement quand la seconde change
@@ -17430,7 +17437,7 @@ function frenTrait(t,part){
   if(FLOW.lv!==4||!t||!FLOW2.triade[t])return;
   const mem=FLOW2.triade[t].mem,av=FREN.tr[t];
   FREN.tr[t]=Math.min(mem,av+mem*(part==null?1:part));
-  if(av<=0&&FREN.tr[t]>0){try{chimeNote(noteP(t==='n'?4:t==='m'?7:9,1),0,.07,.3);}catch(e){}hap(8);} // il RENAÎT
+  if(av<=0&&FREN.tr[t]>0){try{if(SONV2)sfx('triade.renait');else chimeNote(noteP(t==='n'?4:t==='m'?7:9,1),0,.07,.3);}catch(e){}hap(8);} // il RENAÎT
   frenNourrit(3); // la jauge scintille : on vient de la nourrir
   const el=frenTraitEl(t);if(el){const k=el._k=!el._k;el.classList.remove(k?'fl1':'fl2');el.classList.add(k?'fl2':'fl1');}
 }
@@ -17440,10 +17447,11 @@ function frenTriade(dt,air,nit){
   if(!air)for(const t in tr)tr[t]=Math.max(0,tr[t]-dt);                 // EN VOL, RIEN NE MEURT (comme le flow)
   const k=(tr.n>0)+(tr.m>0)+(tr.p>0);
   if(a9n!==tr.n>0)flowTag('n',a9n?-1:1);if(a9m!==tr.m>0)flowTag('m',a9m?-1:1);if(a9p!==tr.p>0)flowTag('p',a9p?-1:1);
+  if(SONV2&&!a9p&&tr.p>0)sfx('triade.renait'); // (console de son) PSYCHO renaît au nitro / à la vitesse sans passer par frenTrait : il sonne comme les deux autres
   // un trait MORT : le jeu dit ce qu'il réclame — une fois par trait et par frénésie, un appel à la fois (deux morts ensemble : 0,9 s d'écart)
   const n9=performance.now();
   if(mode==='drive'&&n9-(FREN.appT||0)>900)for(const d of TRAITS)if(tr[d[0]]<=0&&!FREN.dit[d[0]]){FREN.dit[d[0]]=true;FREN.appT=n9;popTexte(d[2],d[3],2);
-    try{chimeNote(noteP(0,0),0,.05,.3);}catch(e){}hap([8,30,8]);break;}
+    try{if(SONV2)sfx('triade.meurt',{var:d[0]==='n'?0:d[0]==='m'?1:2});else chimeNote(noteP(0,0),0,.05,.3);}catch(e){}hap([8,30,8]);break;}
   FREN.k=k;
   frenTraitsMaj();
 }
@@ -17458,6 +17466,7 @@ function frenTraitsMaj(){
 }
 function frenFin(mort){ // la frénésie est tombée (mort = avec la caisse : on ne dit rien, la voix du crash a la parole)
   const t=FREN.t;if(!(t>0))return;FREN.t=0;
+  if(SONV2&&!mort)sfx('frenesie.sort'); // (console de son) la frénésie LÂCHE (la mort et la pose ratée ont leur son)
   RUNX.frenMax=Math.max(RUNX.frenMax||0,t);
   const r=SAVE.d.frenRec||0,neuf=t>r&&t>=5;
   if(neuf){SAVE.d.frenRec=Math.floor(t*10)/10;SAVE.mark();} // arrondi PAR DÉFAUT : le chrono affiche des secondes entières tronquées, le record dit le même chiffre
@@ -17466,17 +17475,19 @@ function frenFin(mort){ // la frénésie est tombée (mort = avec la caisse : on
 /* (v4) LA POSE RATÉE : le flow retombe à ZÉRO, frénésie comprise (sa tenue compte pour le record). La triade reste ouverte : on sait
    ce qu'on vient de perdre. Le jeu dit pourquoi : « DE TRAVERS ! » ou « À CONTRESENS ! ». */
 function flowCasse(contre){
+  if(SONV2)sfx(contre?'pose.contresens':'pose.travers'); // (console de son) la pose RATÉE se dit à l'oreille, flow ou pas
   if(!(FLOW.v>0))return;
   const lv0=FLOW.lv;
   if(lv0===4){try{frenMus(false);}catch(e){}frenFin(true);}
   FLOW.v=0;FLOW.lv=0;FLOW.idle=0;FLOW.tk=0;FREN.acc=0;FREN.arme=false;
   popTexte(contre?'À CONTRESENS !':'DE TRAVERS !','#ff5e7a',3);flowTag('n',-1); // (v5) la pose ratée, c'est NARCISSE qui tombe
-  if(lv0>0){try{flowDropSnd(lv0);}catch(e){}}try{clank9(0,150,.14);}catch(e){}
+  if(!SONV2){if(lv0>0){try{flowDropSnd(lv0);}catch(e){}}try{clank9(0,150,.14);}catch(e){}} /* (console) pose.travers / pose.contresens, en tête, les remplacent */
   hap([30,40,30,40,60]);shake=Math.max(shake,.6);
   if(lv0>=2)try{flashEcran('rgba(255,42,61,.35)');}catch(e){}
   flowTick(0);
 }
 function flowDropSnd(lv){ // (2026-09-25) le palier PERDU : son accord redescend, deux notes douces — on informe, on ne punit pas
+  if(SONV2){if(lv>0&&lv<4)sfx('flow.perdu');return;} // (console de son) la FRÉNÉSIE qui tombe (4) sonne dans frenFin : frenesie.sort
   if(!(lv>0))return;const I=FLOW_ACC[lv];
   chimeNote(noteP(I[2],1),0,.05,.12);chimeNote(noteP(I[0],1),.09,.045,.22);
 }
@@ -17535,7 +17546,7 @@ function flowTick(dt){
   if(FLOW.lv>0&&mode==='drive'&&(!nit||FLOW.lv===4)){ // (v3) nitro allumé : rien ne fuit, rien ne sonne — sauf en frénésie (v4 : la triade décide)
     rest=flowReste();
     FLOW.tk-=dt;
-    if(rest<1.1&&FLOW.tk<=0){FLOW.tk=.1+.3*rest;try{chimeNote(noteP(FLOW_ACC[FLOW.lv][0],2),0,.025,.05);}catch(e){}hap(4);}
+    if(rest<1.1&&FLOW.tk<=0){FLOW.tk=.1+.3*rest;try{if(SONV2)sfx('alerte.tic');else chimeNote(noteP(FLOW_ACC[FLOW.lv][0],2),0,.025,.05);}catch(e){}hap(4);}
   }
   if(lv<FLOW.lv){try{flowDropSnd(FLOW.lv);}catch(e){}hap(fr9?[10,30,10,30,24]:[6,30,6]);FLOW.lv=lv;FLOW.tk=0;
     if(fr9){FLOW.idle=0;try{frenMus(false);}catch(e){} // la frénésie lâche : SON MORCEAU S'ÉTRANGLE — c'est ça qu'on ne veut plus jamais entendre
@@ -17775,7 +17786,7 @@ function misTick(dt){ // appelée par la boucle : les contrats se cochent EN DIR
     if(v9>=m.v){
       s.ok[i]=1;SAVE.d.bank=Math.min(1e30,bank()+m.p);MIS_NEW.push(i);
       misBanniere('DÉFI RÉUSSI',misTxt(m),'+'+fmtC(m.p),'coche');
-      try{fxArgent();}catch(e){}hap([12,40,18]);
+      try{if(SONV2)sfx('ui.mission');else fxArgent();}catch(e){}hap([12,40,18]);
       SAVE.flush();
     }}
 }
@@ -17919,6 +17930,8 @@ function objRender(el){
   if(!el)return;
   if(MIS_REC){const r=MIS_REC;
     el.className='mObj rec';el.setAttribute('data-m','voirRec');el.style.removeProperty('--rc');
+    // (2026-09-28, console de son) CARNET BOUCLÉ — la récompense la plus rare : la carte arrive à 490 ms, UNE fois par mort
+    if(TCTL.mortT&&objRender._c!==TCTL.mortT){objRender._c=TCTL.mortT;setTimeout(function(){try{if(started&&gameOver&&overlay.style.display!=='none')sfx('ui.carnet');}catch(e){}},REDUCED_MOTION?0:490);}
     el.innerHTML='<div class="obHd"><span>'+pxi('cadeau')+' '+TR('DÉFIS RÉUSSIS !')+'</span></div>'
       +'<div class="obBig">'+r.nom+'</div><div class="obFt"><span>'+TR(r.car!=null?'EST À TOI — VA LA VOIR':r.cat?'EST À TOI — ESSAIE-LA':'VERSÉS SUR TON COMPTE')+'</span>'+pxi('droite')+'</div>';
     return;}
@@ -17942,6 +17955,8 @@ function objRender(el){
     +'<span class="obGain">'+g.nom+' '+pxi('droite')+'</span></div>';
   const gi=el.querySelector('.obBar i');
   // la partie REMPLIT la jauge : de zéro à ce qu'elle a fait (après l'entrée de l'écran, pour qu'on la voie monter)
+  // (2026-09-28, console de son) la jauge qui se remplit sonne (ui.jauge, 1,1 s) — UNE fois par mort : mFill rappelle objRender à chaque retour
+  if(w>0&&!REDUCED_MOTION&&TCTL.mortT&&objRender._k!==TCTL.mortT){objRender._k=TCTL.mortT;setTimeout(function(){try{if(started&&gameOver&&overlay.style.display!=='none'&&el.isConnected)sfx('ui.jauge');}catch(e){}},520);}
   setTimeout(function(){requestAnimationFrame(function(){if(gi)gi.style.width=gi.dataset.w+'%';});},REDUCED_MOTION?0:520);
 }
 /* ---------------- L'ÉCRAN DES MISSIONS v2 (2026-09-28, soir) ----------------
@@ -17987,6 +18002,7 @@ function misRender(){
     tab.innerHTML=h+'</div></div>';}
   // les jauges se REMPLISSENT sous les yeux (départ à zéro, arrivée à ton meilleur essai) — après l'entrée de l'écran
   const us=document.querySelectorAll('#mMis u[data-p]');
+  if(!REDUCED_MOTION)try{let p9=0;us.forEach(function(u){if(+u.dataset.p>0)p9=1;});if(p9)sfx('ui.jauge',{t:.26});}catch(e){} // (2026-09-28, console de son) les jauges qui se remplissent (1,1 s dès 260 ms) : des tics qui montent la gamme
   setTimeout(function(){requestAnimationFrame(function(){us.forEach(function(u){u.style.width=(+u.dataset.p*100).toFixed(1)+'%';});});},REDUCED_MOTION?0:260);
 }
 /* LE STUDIO PHOTO (2026-09-25) : chaque caisse premium est CONSTRUITE, photographiée hors écran sous un éclairage de
@@ -18203,7 +18219,7 @@ function tutoCarte(){
       +'<div class="coRow"><i class="coIco pxi"></i><div class="coTx"><b></b><span></span></div></div>'
       +'<div class="coPips"></div><div class="coGeste"></div>';
     document.body.appendChild(c);
-    c.querySelector('.coSkip').addEventListener('click',function(e){e.stopPropagation();uiClic();tutoFin(true);});}
+    c.querySelector('.coSkip').addEventListener('click',function(e){e.stopPropagation();uiClic('retour');tutoFin(true);});}
   return c;
 }
 function tutoAffiche(msg){ // msg (facultatif) : le raté s'écrit dans l'en-tête de la carte, en rouge, jusqu'à la réussite suivante
@@ -18219,6 +18235,7 @@ function tutoAffiche(msg){ // msg (facultatif) : le raté s'écrit dans l'en-tê
   if(E.geste==='nitro'){nitroR=Math.max(nitroR,(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2);nitroGain(.01);} // le PLEIN, offert : on apprend sans compter
   c.classList.remove('bravo');c.classList.remove('entre');void c.offsetWidth;c.classList.add('on','entre');document.body.classList.add('coOn');
   document.body.classList.toggle('coNitro',E.geste==='nitro'); // le bouton NITRO s'entoure d'un anneau qui bat
+  try{sfx(msg?'tuto.rate':'tuto.info');}catch(e){} // (2026-09-28, console de son) la carte de consigne sonne son « ding » ; un raté, ses deux notes qui descendent
 }
 function tutoArme(){ // à appeler AVANT le lancement : la piste d'apprentissage doit être construite pour la 1re zone
   if(SAVE.d.tuto||SANDBOX||PARK.on||TUTO.on||(started&&!gameOver))return;
@@ -18236,7 +18253,7 @@ function tutoDebut(){
 function tutoBravo(){ // la réussite d'une étape : coche, son, vibration, gerbe — puis la suivante
   const c=tutoCarte();if(c.classList.contains('rate')){c.classList.remove('rate');c.querySelector('.coN').textContent=TR('AUTO-ÉCOLE')+' · '+(TUTO.i+1)+'/'+TUTO_ETAPES.length;}
   c.classList.add('bravo');
-  try{chimeNote(1046,0,.10,.16);chimeNote(1568,.09,.14,.16);}catch(e){}hap([10,40,20]);
+  try{if(SONV2)sfx('tuto.bravo');else{chimeNote(1046,0,.10,.16);chimeNote(1568,.09,.14,.16);}}catch(e){} /* (console de son) la quinte, DANS la gamme */hap([10,40,20]);
   pixBurst(c,14);
   TUTO.i++;TUTO.t=0;
   if(TUTO.i>=TUTO_ETAPES.length){setTimeout(function(){tutoFin(false);},700);return;}
@@ -18253,7 +18270,7 @@ function tutoFin(passe){
     if(paye){SAVE.d.permis=1;SAVE.d.bank=Math.min(1e30,bank()+500);}
     misBanniere('AUTO-ÉCOLE',TR('PERMIS OBTENU !'), // (2026-09-28) misBanMontre ne traduit que le titre : le joueur anglais lisait « PERMIS OBTENU »
       paye?'+'+fmtC(500):'','trophee');
-    try{fanfare();}catch(e){}hap([20,60,20,60,60]);}
+    try{if(SONV2)sfx('ui.debloque');else fanfare();}catch(e){}hap([20,60,20,60,60]);}
   SAVE.flush();
   hautArme(); // les cartes retenues pendant la leçon passent maintenant, l'une après l'autre (le permis d'abord)
 }
@@ -19461,6 +19478,7 @@ function pwrPrend(k,pos){
 }
 /* LES MINUTEURS DES NOUVEAUX POUVOIRS (boucle, à côté de ceux d'origine) — la fin se dit à l'oreille (pwrFinSnd). */
 function pwrTick(dt){
+  if(SONV2){const B9=PWR_V2.bt||(PWR_V2.bt={});for(const k of PWR_ORDRE){const t9=pwrT(k);if(t9>0&&t9<1.5){if(!B9[k]&&pwrVu(k)){B9[k]=1;sfx('pwr.bientot');}}else B9[k]=0;}} // (console de son) le tic-tac de fin de pouvoir, une fois
   for(const k of ['m','x','b']){const t0=pwrT(k);if(t0>0){const t1=Math.max(0,t0-dt);pwrSet(k,t1);if(t1<=0){
     let fait=false;if(k==='b')try{if(typeof sfx==='function'){sfx('pwr.bouclierFin');fait=true;}}catch(e){}
     if(!fait)pwrFinSnd(k);}}}
@@ -20444,7 +20462,7 @@ let mortCause=''; // (2026-09-26, audit UX) POURQUOI on est mort — dit sous GA
 function explode(cause){
   if(bouclierSauve(cause))return; // (pouvoirs v2) LE BOUCLIER : une chute, un vol trop long, une tour — pardonnés une fois (voir bouclierSauve)
   if(!(gameOver||mode==='boom'))hautVide(); // (vague 2) la caisse explose : plus AUCUNE voix (carte, niveau, geste) — seule « CHAÎNE PERDUE » peut parler
-  chainePerdue(); // (aura v2) la chaîne ouverte part avec la caisse
+  chainePerdue(true); // (aura v2) la chaîne ouverte part avec la caisse
   if(gameOver||mode==='boom')return;
   mortCause=cause||'';
   dolKill(); // l'aura du DAUPHIN part avec la caisse — comme la mallette
@@ -20714,7 +20732,8 @@ function cratere(pos,nrm,leger){ // leger : le cratère d'un DÉBRIS de l'orbite
   for(let k=0;k<(leger?12:26);k++){const a=Math.random()*6.283,v=8+Math.random()*16;spawnP(dust,pos.x,pos.y+.5,pos.z,Math.cos(a)*v,4+Math.random()*9,Math.sin(a)*v,.8+Math.random()*.7);}
   if(leger)return;
   shake=Math.max(shake,1.1);hitT=Math.max(hitT,.12);hap([30,40,60,40,30]);
-  try{subBoom(.45);thud(22);noiseBurst(.35,.2,220);}catch(e){}
+  CRAT.tSon=performance.now(); // (console de son) la pose qui creuse ce cratère ne sonne pas POSÉ LOURD en plus : on ne célèbre et ne punit pas le même geste
+  try{if(SONV2)sfx('cratere');else{subBoom(.45);thud(22);noiseBurst(.35,.2,220);}}catch(e){}
   flashEcran('rgba(255,110,20,.65)');slam('IMPACT METEORE','','#ffb000','#ff3924',40,3,16);
 }
 function cratTick(dt){
@@ -21943,6 +21962,7 @@ function billsClear(){for(const b of bills)b.m.userData.pris=false;bills.length=
 const chips=[];
 let chipT=6;
 function dropChip(n){
+  if(SONV2&&n>0){const n9=performance.now();if(n9>(dropChip._t||0)){dropChip._t=n9+450;sfx('debris.tole',{vol:Math.min(4,(n-1)*1.5)});}} // (console de son) la tôle qui part s'entend — un cliquetis au plus toutes les 0,45 s
   const spec=CARS[level];
   for(let k=0;k<n;k++){
     const d=new THREE.Mesh(new THREE.BoxGeometry(.07+Math.random()*.14,.04+Math.random()*.07,.07+Math.random()*.14),
@@ -22056,7 +22076,7 @@ const MR={x:new Float32Array(MONN_N),y:new Float32Array(MONN_N),z:new Float32Arr
 let moneyRainT=0,nextRainAt=4e3*ECO3.gain; // calé sur l'éco ×2,5 : ~une pluie par niveau (l'ancien 1e4/×10 suivait l'éco ×10) · ×ECO3.gain (vague 3) : la pluie tombe au même moment de la partie
 function startMoneyRain(){
   moneyRainT=3;
-  try{fanfare();}catch(e){}
+  try{son('pluie.billets',fanfare);}catch(e){} // (console de son) la pluie FROISSE : billets qui tombent partout + pièces (plus la fanfare d'une caisse débloquée)
 }
 function updateMoneyRain(dt,t){
   if(moneyRainT>0){
@@ -23556,6 +23576,11 @@ function volSet(k,pc){
   const bind=function(id,k){const e=document.getElementById(id);if(!e)return;
     const go=function(){volSet(k,+e.value);};
     e.addEventListener('input',go);e.addEventListener('change',function(){go();SAVE.flush();}); // le doigt relâché = on écrit pour de bon
+    /* (2026-09-28, console de son) LE CURSEUR PARLE : un cran (ui.curseur, sa hauteur suit la valeur) à chaque dizaine de % franchie
+       pendant le glissé ; au relâcher du curseur EFFETS, une pièce témoin jouée au NOUVEAU volume (volSet vient de le poser sur MASTER) */
+    e.addEventListener('pointerdown',function(){e._cran=Math.floor(+e.value/10);});
+    e.addEventListener('input',function(){try{const c9=Math.floor(+e.value/10);if(e._cran==null)e._cran=c9;else if(c9!==e._cran){e._cran=c9;sfx('ui.curseur',{st:(c9-5)*2});}}catch(x){}});
+    e.addEventListener('change',function(){e._cran=null;if(k==='sfx')try{sfx('piece',{t:.06});}catch(x){}});
     e.addEventListener('click',function(ev){ev.stopPropagation();}); // ⚠ sinon le clic remonte à la ligne .setRow et rouvre/bascule autre chose
     e.addEventListener('pointerdown',function(ev){ev.stopPropagation();});
   };
@@ -23910,7 +23935,7 @@ function fireLaunchBoost(){
   // classe `.on` et le MÊME minuteur — un flash sans le mot, ou le mot sans le flash, ferait deux
   // demi-effets au lieu d'un seul coup net.
   const ll9=$('launchLogo'),lg9=$('launchGlow');
-  if(ll9){ll9.classList.remove('on');void ll9.offsetWidth;ll9.classList.add('on');}
+  if(ll9){ll9.classList.remove('on');void ll9.offsetWidth;ll9.classList.add('on');try{sfx('depart.logo');}catch(e){}} /* (console de son) le logo CLAQUE : sub + accord d'or */
   if(lg9){lg9.classList.remove('on');void lg9.offsetWidth;lg9.classList.add('on');}
   clearTimeout(fireLaunchBoost._t);fireLaunchBoost._t=setTimeout(function(){
     if(ll9)ll9.classList.remove('on');if(lg9)lg9.classList.remove('on');
@@ -24383,9 +24408,11 @@ function recBattu(){
   // crie « RECORD BATTU » ; la ligne du tableau de bord devient ce qu'on a DE PLUS que le record, et elle grimpe avec le compteur
   if(r){r.classList.remove('presque');r.classList.add('battu');recSurplus(CHA.vAff|0);avE('avRecF').style.setProperty('--r','1');}
   // l'annonce passe par la file (priorité 3) — à moins d'une seconde d'une carte MOTEUR, elle devient son ruban (hautFusion)
-  hautPasse(function(){slamMontre('RECORD BATTU !','AURA '+fmtAura(auraRun),'#ffd75e','#ff7ad5',38,30);},1450,'rec',3,{ru:'AURA '+fmtAura(auraRun)});
+  const f9=function(){slamMontre('RECORD BATTU !','AURA '+fmtAura(auraRun),'#ffd75e','#ff7ad5',38,30);if(SONV2)sfx('aura.record');}; // (console de son) le son part quand la carte S'AFFICHE…
+  hautPasse(f9,1450,'rec',3,{ru:'AURA '+fmtAura(auraRun)});
+  if(SONV2&&!(HAUT.cur&&HAUT.cur.f===f9)&&!HAUT.q.some(function(w){return w.f===f9;}))sfx('aura.record'); // …sauf si elle a FUSIONNÉ dans la carte MOTEUR (hautFusion) : jamais montrée seule, elle sonne maintenant
   flashEcran('rgba(255,215,94,.5)');hap([20,50,20,50,40]);
-  try{chimeNote(noteP(4,1),0,.12,.2);chimeNote(noteP(6,1),.1,.12,.2);chimeNote(noteP(8,1),.2,.14,.4);}catch(e){}
+  if(!SONV2)try{chimeNote(noteP(4,1),0,.12,.2);chimeNote(noteP(6,1),.1,.12,.2);chimeNote(noteP(8,1),.2,.14,.4);}catch(e){} /* (console) aura.record, joué avec la carte */
 }
 function recSurplus(a){const t=avE('avRecT');if(!t)return;const s='+'+fmtAura(Math.max(0,a-CHA.rec))+' '+TR('AU-DESSUS');if(t.textContent!==s)t.textContent=s;}
 // (vague 2) les libellés neufs du HUD de course (police pixel : capitales SANS accent)
@@ -24414,15 +24441,16 @@ function chaineEncaisse(){
     const t9=document.querySelector('#auraV2 .avTot');if(t9){t9.classList.remove('pulse');void t9.offsetWidth;t9.classList.add('pulse');}
     if(g>=300)try{pixBurst(avE('avVal'),Math.min(14,4+Math.round(g/250)));}catch(e){} // (2026-09-26) la chaîne tombe DANS le compteur : il éclabousse
     if(g>=500)flashEcran('rgba(177,75,255,.5)');
-    hap(CHA.x>=4?[12,30,24]:12);try{chimeNote(noteP(Math.min(9,CHA.x+2),1),0,.18,.22);if(CHA.x>=4)sparkle(.1,.08);
+    hap(CHA.x>=4?[12,30,24]:12);try{if(SONV2)sfx(g>=2000?'aura.encaisse3':g>=600?'aura.encaisse2':'aura.encaisse1');else{chimeNote(noteP(Math.min(9,CHA.x+2),1),0,.18,.22);if(CHA.x>=4)sparkle(.1,.08);
       // (2026-09-26, audit son) une chaîne ×10 à 3 000 sonnait comme un +45 : l'accord s'étoffe avec la somme
       if(g>=600)chimeNote(noteP(Math.min(10,CHA.x+4),1),.07,.14,.26);
-      if(g>=2000){chimeNote(noteP(Math.min(10,CHA.x+6),1),.14,.14,.34);sparkle(.14,.1);}}catch(e){}
+      if(g>=2000){chimeNote(noteP(Math.min(10,CHA.x+6),1),.14,.14,.34);sparkle(.14,.1);}}}catch(e){} /* (console) aura.encaisse1/2/3 */
   }
   chaReset();
 }
-function chainePerdue(){ // exploser la chaîne ouverte : tout part avec la caisse
+function chainePerdue(parMort){ // exploser la chaîne ouverte : tout part avec la caisse · parMort : appelée par explode (l'explosion couvre tout)
   if(!CHA.n)return;const g=Math.round(CHA.pts*Math.max(1,CHA.x));
+  if(SONV2&&!parMort)sfx('aura.perdue'); // (console de son)
   slam('CHAÎNE PERDUE','-'+fmtAura(g)+' AURA','#ff5e7a','#b0102a',30,2); // (HUD v4) elle se BRISE sous les yeux, et le couloir dit combien
   {const c9=avE('avCh');if(c9){c9.classList.remove('vole','perdu');void c9.offsetWidth;c9.classList.add('perdu');}}chaReset();
 }
@@ -24434,7 +24462,7 @@ function chaHud(fort,monte){
   const x9=avE('avX'),xv=Math.max(1,CHA.x);x9.textContent='×'+xv;x9.style.setProperty('--xc',X_COUL[Math.min(10,xv)]);x9.classList.toggle('feu',xv>=5);
   if(monte){x9.classList.remove('up');void x9.offsetWidth;x9.classList.add('up');
     const pal={5:'EN FEU !!',8:'DEMENT !!!',10:'MAX !!!'}[xv]; // (vague 2, H4) plus de « ×3 CHAUD ! » au centre : le × du tableau de bord bat déjà — le couloir ne parle qu'à partir de ×5
-    if(pal){slam('×'+xv,pal,X_COUL[xv],'#b14bff',48,0,xv>=8?20:xv>=5?12:0);flashEcran(xv>=8?'rgba(255,57,36,.55)':'rgba(255,94,200,.45)');hap(xv>=8?[14,40,24,40,30]:[12,30,20]);}}
+    if(pal){if(SONV2)sfx('aura.x'+xv);slam('×'+xv,pal,X_COUL[xv],'#b14bff',48,0,xv>=8?20:xv>=5?12:0);flashEcran(xv>=8?'rgba(255,57,36,.55)':'rgba(255,94,200,.45)');hap(xv>=8?[14,40,24,40,30]:[12,30,20]);}}
   avE('avList').innerHTML=CHA.liste.map(function(l){return '<li>'+String(l).replace(/[<>&]/g,'')+'</li>';}).join('');
 }
 /* `dbgHud(k,n)` — (HUD v4) forcer un état du tableau de bord pour le juger sur capture : 'flow' n · 'idle' s · 'chaine' n ·
@@ -24824,6 +24852,7 @@ const flyV=new THREE.Vector3();
 function flyCash(worldPos,n){ // les billets VOLENT de la caisse vers le compteur — l'argent SE VOIT gagné
   flyV.copy(worldPos).project(camera);
   if(flyV.z>1)return; // derrière la caméra : rien à montrer
+  if(SONV2&&!document.body.classList.contains('touch')){const m9=Math.min(4,n|0);for(let k=0;k<m9;k++){const i9=m9>1?Math.round(k*(n-1)/(m9-1)):0;sfx('billet.vole',{t:.58+i9*.045,st:sonPd(k)});}} // (console de son) sur téléphone .bill est masqué (écran nu) : pas de son sans image
   const x0=(flyV.x*.5+.5)*innerWidth,y0=(-flyV.y*.5+.5)*innerHeight;
   const r=elMoney.getBoundingClientRect(),x1=r.left+r.width/2,y1=r.top+r.height/2;
   for(let i=0;i<n;i++){
@@ -24910,7 +24939,7 @@ function dolTick(dt,sur,hF){ // chaque image de VOL, avant tryLand (radar = imag
     if(dolOn){
       dolLive+=dt;
       const nb=Math.min(DOL_BANC.length,1+Math.floor(dolLive/DOL_PAS)); // (v4) le BANC GRANDIT avec la tenue
-      if(nb>dolNb){dolNb=nb;dolHudNom();hap(8);try{if(typeof sfx==='function')sfx('jeu.dauphin',{st:nb});else chimeNote(noteP(Math.min(11,2+nb),1),0,.05,.18);}catch(e){}} // (la session SON : cri de dauphin, note qui monte avec le banc)
+      if(nb>dolNb){dolNb=nb;dolHudNom();hap(8);try{if(SONV2){if(nb>=DOL_BANC.length)sfx('fig.dauphinRoyal');else sfx('jeu.dauphin',{st:nb});}else chimeNote(noteP(Math.min(11,2+nb),1),0,.05,.18);}catch(e){}} // (la session SON : cri de dauphin, note qui monte avec le banc)
       if(!trkDolph&&dolLive>=DOL_FIG){trkDolph=true;dolAura+=DOL_AURA0*dolMul;addTrick('dauphin','🐬 LE DAUPHIN !',3,2);} // (v4) LA FIGURE, à 1 s tenue, une fois par vol
       const ras=Math.max(0,Math.min(1,1-(hF-2.2)/9.8)); // l'esprit du dauphin : nager AU RAS paye plus
       dolAura=Math.min(DOL_AURA_MAX*dolMul,dolAura+(DOL_AURA_S+DOL_AURA_RAS*ras*ras)*(1+.15*(dolNb-1))*dolMul*dt);
@@ -24929,7 +24958,7 @@ function dolStart(){
   dolOn=true;dolLive=0;
   dolMul=auraMultVitesse(); // vA ne bouge pas en vol : la vitesse du décollage multiplie, figée ICI (affiché = versé)
   dolAura=0; // (v4) la prime arrive avec la FIGURE (1 s tenue) : un saut de rien ne la touche pas
-  if(dolShow<=0)dolNb=1; // un banc encore visible (passage précédent du même vol) garde ses dauphins
+  if(dolShow<=0){dolNb=1;if(SONV2)sfx('dauphin.banc');} /* (console) le banc NEUF jaillit : clics et sifflets */ // un banc encore visible (passage précédent du même vol) garde ses dauphins
   dolShow=Math.max(dolShow,DOL_VU);dolIn=0; // LE BANC jaillit — et on a le temps de le VOIR
   dolHudShow();hap([10,24,10]);
 }
@@ -24980,14 +25009,14 @@ function sandRevive(){ // BAC À SABLE : on efface les dégâts et on repart, la
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;dolphT=0;
   airPie.style.display='none';airFlash=0;
   insUsed=false;nitroR=nitroCap();nitroX=0;boost=0;slowT=0;hitT=0;
-  respawn();
+  respawn();if(SONV2)sfx('respawn'); /* (console de son) le repêchage s'entend */
   hopY=2.2;hopV=0;try{flashEcran('rgba(255,255,255,.35)');}catch(e){} // (2026-09-28) elle RETOMBE sur sa ligne (tassement compris) au lieu d'y apparaître : on voit qu'on repart
 }
 function parkRespawn(){
   chain=0;chainVal=0;chainMult=1;chainHud.style.opacity=0;
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;dolphT=0;trkDolph=false;
   airPie.style.display='none';airFlash=0;
-  respawn();hopY=2.2;hopV=0;try{flashEcran('rgba(255,255,255,.35)');}catch(e){} // (2026-09-28) la caisse retombe sur sa ligne
+  respawn();if(SONV2)sfx('respawn');hopY=2.2;hopV=0;try{flashEcran('rgba(255,255,255,.35)');}catch(e){} // (2026-09-28) la caisse retombe sur sa ligne
   showMsg('↻ ON REPART','#7dffec');
 }
 // ⚠ CE N'EST PLUS L'ARGENT DE LA PARTIE QUI DÉBLOQUE LES CAISSES (2026-08-03). Avant, `level` montait
@@ -25001,7 +25030,7 @@ function parkRespawn(){
 function checkUpgrade(){
   const got=carScan();
   if(!got.length)return;
-  boost=Math.max(boost,1.3);fanfare();shake=Math.max(shake,.4);
+  boost=Math.max(boost,1.3);try{if(SONV2)sfx('caisse.debloquee');else fanfare();}catch(e){}shake=Math.max(shake,.4);
   sparkBurst(sparkGold,carGroup.position,30,17);
   for(const i of got){
     const sp9=CARS[i];
@@ -25024,12 +25053,12 @@ const ORBFX={warp:0,feu:0,prev:null,sortie:false,f:new THREE.Vector3(),r:new THR
 function orbWarp(){
   ORBFX.warp=1;ORBFX.feu=0;ORBFX.sortie=false;
   flashEcran('rgba(140,210,255,.85)');hap([20,30,20,30,60]);shake=Math.max(shake,.45);
-  try{whoosh();boostSnd(2.2);subBoom(.14);noiseBurst(1.1,.12,1800);}catch(e){}
+  try{if(SONV2)sfx('orbite.entre');else{whoosh();boostSnd(2.2);subBoom(.14);noiseBurst(1.1,.12,1800);}}catch(e){}
 }
 function orbFeu(){
   ORBFX.feu=1;ORBFX.warp=0;
   flashEcran('rgba(255,120,40,.85)');hap([30,40,30,40,80]);shake=Math.max(shake,.6);
-  try{crackle(1);subBoom(.18);noiseBurst(1.6,.2,420);}catch(e){}
+  try{if(SONV2)sfx('orbite.sort');else{crackle(1);subBoom(.18);noiseBurst(1.6,.2,420);}}catch(e){}
 }
 function orbFxTick(dt){
   if(!(ORBFX.warp>0||ORBFX.feu>0)){if(ORBFX.halo&&ORBFX.halo.visible)ORBFX.halo.visible=ORBFX.halo2.visible=false;return;}
@@ -25042,7 +25071,7 @@ function orbFxTick(dt){
       const a=Math.random()*6.2832,R=7+Math.random()*12,d=25+Math.random()*70,ln=18+50*w;
       ORBFX.p.copy(c).addScaledVector(F9,d).addScaledVector(R9,Math.cos(a)*R).addScaledVector(U9,Math.sin(a)*R*.8);
       spawnStreak(ORBFX.p.x,ORBFX.p.y,ORBFX.p.z,-F9.x*ln,-F9.y*ln,-F9.z*ln);}
-    if(!ORBFX.sortie&&w<.18){ORBFX.sortie=true;flashEcran('rgba(200,235,255,.65)');try{chimeNote(1320,0,.06,.4);}catch(e){}} // la SORTIE du tunnel : l'espace s'ouvre
+    if(!ORBFX.sortie&&w<.18){ORBFX.sortie=true;flashEcran('rgba(200,235,255,.65)');try{if(!SONV2)chimeNote(1320,0,.06,.4);}catch(e){}} // la SORTIE du tunnel : l'espace s'ouvre
   }
   if(ORBFX.feu>0){
     ORBFX.feu=Math.max(0,ORBFX.feu-dt/2.6);const f9=ORBFX.feu,sp=CARS[level];
@@ -25087,12 +25116,13 @@ function portailPasse(){
        restait à rouler jusqu'à l'entrée de l'ovule (son centre est à L−25, son rayon 55 : ~L−80) moins la ligne droite volée. */
     if(!PARK.on&&!TUTO.on){const gagne=(L-80-FLOW.s0)-FLOW.p0.distanceTo(fallPos);if(gagne>=60)flowRaccourci(gagne);else if(gagne>=25)frenTrait('m',gagne/60);}
     // (2026-09-26) …et la CHAÎNE est ENCAISSÉE comme à une pose : avant, l'argent de la mallette disparaissait sans un mot et le HUD restait affiché
-    if(chain>0||chainVal>0){const g9=Math.round(flowMult()*chainEst());if(g9>0){money+=g9;levelCash+=g9;runStats.tricks++;checkUpgrade();trickMsg('CHAÎNE ENCAISSÉE +'+fmtC(g9),2);}}
+    if(chain>0||chainVal>0){const g9=Math.round(flowMult()*chainEst());if(g9>0){money+=g9;levelCash+=g9;runStats.tricks++;checkUpgrade();trickMsg('CHAÎNE ENCAISSÉE +'+fmtC(g9),2);if(SONV2)sfx('argent.gros',{t:.3}); /* (console) après l'aspiration du portail */}}
     chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;}
   flashEcran('rgba(255,79,216,.6)'); // l'annonce, c'est « NIVEAU n — LIEU » (lvlAnnonce, couloir des annonces) : une seule voix au centre
-  portalSnd();boostSnd();shake=.5;
+  portalSnd();if(!SONV2)boostSnd();shake=.5; /* (console de son) `portail` porte tout le passage : plus le souffle d'un pad dessous */
   const zb=denom()*24*(fever>0?2:1);money+=zb;levelCash+=zb;checkUpgrade(); // portail : 40→24 (régulation 2026-07-30)
   runStats.zones++;
+  if(SONV2&&nitroR<nitroCap()-.05)sfx('nitro.plein',{t:.45}); // (console de son) le portail refait le plein : on l'entend, après l'aspiration
   nitroR=Math.max(nitroR,nitroCap()); // le portail regonfle la nitro : chaque zone repart pied au plancher — au plein du MOTEUR (en dur à 2, il vidait un réservoir de 3,6)
   trickMsg(pickL(ZONE_LINES)+' +'+fmtC(zb),true);
   flyCash(carGroup.position,8);
@@ -25161,7 +25191,8 @@ function startFall(impU,impF){
    if(FLY_U.lengthSq()<1e-4)FLY_U.copy(F.b).cross(tmp);FLY_U.normalize();FLY_R.crossVectors(FLY_U,tmp).normalize();}
   // chaîne neuve : le vol commence, tout est à prouver
   chain=0;chainVal=rollover;chainMult=1;chainSeen={};spinHalf=0;
-  if(rollover>0){trickMsg('REPORT +'+Math.round(rollover),false);rollover=0;} // le PARFAIT d'avant paye d'avance
+  heartBeat.vu=0; // (console de son) la mallette pourra chauffer — et le dire — une fois dans ce vol
+  if(rollover>0){if(SONV2)sfx('report');trickMsg('REPORT +'+Math.round(rollover),false);rollover=0;} // le PARFAIT d'avant paye d'avance
   trkMeteor=false;curNear=false;
   if(dolOn)dolFin();dolphT=0;dolphGain=0;trkDolph=false;dolRoadT=0;dolOffT=0;dolAura=0;caseHot=false;heartT=0;ladderI=0;caseHud.style.opacity=0;caseHud.className='';
   chainHud.style.opacity=0;chainHud.classList.remove('pulse');
@@ -25173,7 +25204,10 @@ function startFall(impU,impF){
       (Math.random()-.5)*9,-2-Math.random()*3,(Math.random()-.5)*9,.25);
   }
   if(AC&&engRpm>.42){const e9=ENG_SND[Math.max(0,engLvl)];if(e9&&e9.crk)crackle(e9.crk*.8);} // (2026-09-25) le moteur se décharge en quittant le sol
-  whoosh();
+  if(SONV2){ /* (console de son) tomber n'est pas décoller : chacun son son */
+    if((impU||.9)<2)sfx('chute');
+    else{const kv9=THREE.MathUtils.clamp((Math.max(impU||.9,fallVel.y)-3)/6,0,1),kh9=THREE.MathUtils.clamp(Math.abs(vA)*3.6*SPD/900,0,1);sfx('decollage',{vol:-8+11*Math.max(kv9,kh9*.7)});}
+  }else whoosh();
 }
 const dTmp=new THREE.Vector3();
 /* LE RADAR DE DALLE EN CASIERS (2026-09-27, passe perf iPhone) — en vol, deux recherches du point de piste le plus proche tournaient
@@ -25251,7 +25285,7 @@ function tryLand(dt){
     sideCd=.35;
     // ---- BUMP / DOUBLE BUMP / TRIPLE BUMP : figure GRATUITE (compte pour le HUD/style, zéro dollar) ----
     bounceN++;runStats.bumps++;
-    hap(24);nitroGain(.35);flowAdd(6,'style'); // LE BUMP RECHARGE (2026-09-25, demande du user) : un quart de cellule… de plus à chaque rebond
+    hap(24);{const nv9=nitroR;nitroGain(.35);if(SONV2&&nitroR>nv9+.01)sfx('nitro.plein',{t:.1});}flowAdd(6,'style'); // LE BUMP RECHARGE (2026-09-25, demande du user) : un quart de cellule… de plus à chaque rebond
     fallT=Math.max(0,fallT-airMax()*.5);fallTR=Math.max(0,fallTR-airMax()*.5);airFlash=.6; // DEMI-JAUGE d'airtime rendue (sim + réelle)
     addTrick('bump',bounceN===1?'BUMP':bounceN===2?'DOUBLE BUMP':bounceN===3?'TRIPLE BUMP — LA DALLE EN PLEURE':'MEGA BUMP x'+bounceN+' 💥',
       0,Math.min(3,bounceN),true,true); // free=true : le bump NE PAYE PLUS (fini la machine à cash en longeant la tranche) — il rend l'airtime et le style, c'est tout
@@ -25290,7 +25324,7 @@ function tryLand(dt){
   vA=fallVel.dot(T[bestI]);vL=fallVel.dot(B[bestI])*.4*sideL;
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1; // PARC : on repart dans le sens d'atterrissage (les deux directions roulent) ; COURSE : toujours vers l'avant
   // ATTERRISSAGE : l'impact ralentit la caisse — d'autant plus que le saut etait gros
-  nitroPct(.2); // (2026-09-26, user) TOUTE pose rend 20 % de nitro — parfaite, lourde, à l'arrachée
+  {const nv9=nitroR;nitroPct(.2);if(SONV2&&nitroR>nv9+.01)sfx('nitro.plein',{t:.2});} // (2026-09-26, user) TOUTE pose rend 20 % de nitro — parfaite, lourde, à l'arrachée
   /* (2026-09-26, user : « l'impact MÉTÉORE, c'est quand on entre en collision avec la route EN NITRO avec un angle supérieur à 45° »)
      Plus la figure MÉTÉORE (nitro tenue en l'air) : le CRATÈRE naît d'un PIQUÉ — nitro allumée au contact, et la trajectoire plonge
      dans la dalle à plus de 45° (vitesse normale > vitesse dans le plan : vN² > v² − vN²). Une pose rasante en nitro ne creuse rien. */
@@ -25322,7 +25356,7 @@ function tryLand(dt){
     const reste=airMax()-fallTR;
     if(reste>0&&reste<=.30){
       const extreme=reste<=.10;
-      chaineAura(extreme?'AU CHEVEU':'ARRACHÉE',extreme?220:120,'cheveu');
+      chaineAura(extreme?'AU CHEVEU':'ARRACHÉE',extreme?220:120,'cheveu',false,SONV2);if(SONV2)sfx('pose.cheveu');
       flowAdd(extreme?20:12,'risque'); // (FLOW v2) le geste le plus tendu du jeu : on a joué avec la mort — la triade adore
       if(TCTL.on)popTexte(extreme?'AU CHEVEU !!':'ARRACHÉE !','#ff5ec8',3); // (2026-09-25) le geste le plus tendu du jeu se LIT aussi sur téléphone
       trickMsg(extreme?'⏱ AU CHEVEU — '+reste.toFixed(2)+' s !!':'⏱ À L\'ARRACHÉE — '+reste.toFixed(2)+' s',3);
@@ -25347,7 +25381,7 @@ function tryLand(dt){
     if(fallT>.7)sfaPose(!poseRatee&&g>=1); // (2026-09-28) SANS FAUTE : les poses propres d'affilée
     rollover=g>=1.5?chainVal*.1:0; // ROLLOVER : un PARFAIT reporte 10 % — la fortune voyage au vol suivant
     if(g>=1.5)momT=Math.max(momT,3);else if(g<1)momT*=.5; // (momentum v2) PARFAIT relance la vitesse, POSÉ LOURD en coûte la moitié
-    if(g<1){try{clank9(0,190,.12);clank9(.05,135,.09);}catch(e){}if(!poseRatee)flowFaute('n',FLOW2.faute.lourd,.5);} // (v5) POSÉ LOURD : -NARCISSE // (2026-09-25) POSÉ LOURD : la TÔLE, sans carillon
+    if(g<1){try{if(SONV2){/* (console) pose ratée : flowCasse ; cratère à la pose : il couvre la tôle */if(!poseRatee&&!(performance.now()-(CRAT.tSon||-1e9)<400))sfx('pose.lourde');}else{clank9(0,190,.12);clank9(.05,135,.09);}}catch(e){}if(!poseRatee)flowFaute('n',FLOW2.faute.lourd,.5);} // (v5) POSÉ LOURD : -NARCISSE // (2026-09-25) POSÉ LOURD : la TÔLE, sans carillon
     const snaked=fallUnder&&sideL===fallStartSide; // SNAKE LOOP v2 : passé SOUS la route, reposé face de départ
     if(snaked){chainVal+=14;chainMult+=.5;serpShow=2.6;flowAdd(15,'risque','m');chaineAura('SNAKE LOOP',320,'snake',false,true);} // (2026-09-28, Sacha : « il doit rapporter plus d'aura ») +320 — il n'en versait AUCUNE en propre // (v5) passer SOUS la route : MACHIAVEL // la figure paye sa part + LE SERPENT néon se love autour de la caisse
     // GAP FRANCHI : le vol vient d'une CATAPULTE et il a vraiment traversé — le grand geste de la zone se paye
@@ -25399,6 +25433,7 @@ function tryLand(dt){
       boost=Math.max(boost,1.2);
       addStyle(14+chain*4);
     }
+    if(SONV2&&g>=1.5&&!(gain>0))sfx('pose.parfait',{t:.08}); // (console de son) PARFAIT sans rien à encaisser : le tchak quand même, une fois
     if(fallT>2)slowT=.35; // slow-mo savoureux sur les gros airs
   }
   // (FLOW v2) LE RACCOURCI, DANS TOUS LES MODES : la piste parcourue entre le décollage et la pose, moins la distance VOLÉE en ligne
@@ -25592,6 +25627,7 @@ function commitExploits(){
   commitExploits._aura=Math.round(auraRun);
   commitExploits._rangMonte=auraRank()>rangAvant;  // un rang franchi se crie
   const got=carScan();
+  commitExploits._neuves=got.length; // (console de son) l'écran de mort fait sonner la caisse gagnée à cette fin de partie
   SAVE.flush();
   return got;
 }
@@ -26088,8 +26124,8 @@ function botBoom(b){ // une unité saute : gerbe or+bleu, champignon, et le son 
   frameAt(rel,FB);FB.p.addScaledVector(FB.n,.8);
   sparkBurst(sparkGold,FB.p,36,20);sparkBurst(sparkBlue,FB.p,28,16);
   for(let k=0;k<18;k++)spawnP(smokePool,FB.p.x,FB.p.y+k*.22,FB.p.z,(Math.random()-.5)*2.5,5+Math.random()*4,(Math.random()-.5)*2.5,1.2+Math.random()*.7);
-  if(Math.abs(rel-s)<220){subBoom(.3);thud(11);shake=Math.max(shake,.5);}
-  trickMsg('💥 '+b.name+' EXPLOSE !',2);chimeNote(196,0,.3,.25);
+  if(Math.abs(rel-s)<220){if(SONV2)sfx('explosion.loin');else{subBoom(.3);thud(11);}shake=Math.max(shake,.5);}
+  trickMsg('💥 '+b.name+' EXPLOSE !',2);if(SONV2){if(Math.abs(rel-s)>=220)sfx('rival.boum');}else chimeNote(196,0,.3,.25);
 }
 function survTick(dt){
   if(!SURV.on)return;
@@ -26342,6 +26378,9 @@ function survTick(dt){
   if(SURV.chasse)return; // (2026-09-27) la POURSUITE n'a ni classement, ni minute, ni couperet : ses tirs vivent dans poursuiteTick
   // ---- DERNIER = CONDAMNÉ : la caisse clignote rouge, le HUD crie l'échéance ----
   SURV.last=alive.length>0&&pRank>alive.length;
+  if(SONV2){ /* (console de son) TU ES DERNIER : le bip d'alarme, de plus en plus serré à mesure que la minute s'achève */
+    if(SURV.last&&!gameOver){if(!SURV.alW)SURV.alT=0;SURV.alT-=dt;if(SURV.alT<=0){const r9=Math.max(0,60-SURV.t);SURV.alT=Math.max(.18,Math.min(1.6,r9*.06));sfx('alerte.dernier',{vol:r9<10?2:0});}}
+    SURV.alW=SURV.last&&!gameOver;}
   if(SURV.last&&!gameOver&&!SURV.camp){ // (la campagne dit « DERNIER » sur SA plaque, lisible au téléphone)
     const left=Math.max(0,Math.ceil(60-SURV.t));
     lastAlertEl.innerHTML=TR('⚠ ATTENTION !<br>VOUS ÊTES DERNIER<br>EXPLOSION DANS : 00:')+String(left).padStart(2,'0');
@@ -26361,7 +26400,7 @@ function survTick(dt){
       if(low&&low.totD<pTot){botBoom(low); // la meute s'ÉNERVE : pas plus vite que toi, mais plus téméraire
         for(const b of SURV.bots)if(b.alive){b.agro=Math.min(1,b.agro+.08);b.appBoost=Math.min(1.2,b.appBoost+.1);b.marg=Math.min(.97,b.marg+.02);}}
       if(!SURV.bots.some(b=>b.alive)){
-        SURV.over=true;fanfare();addStyle(100);
+        SURV.over=true;if(SONV2)sfx('victoire');else fanfare();addStyle(100);
         runStats.surv=1; // toute la meute au tapis : ça débloque une caisse (versé dans endGame)
         showMsg('🏆 CHAMPION SURVIVANT — JAUGE OFFERTE !','#ffd75e');
       }
@@ -26505,7 +26544,7 @@ function campNuages(cr){
 }
 function campBancSorti(c){ // on vient de ressortir d'un banc dessiné
   if(c.show&&!CAMP.banc1){CAMP.banc1=true;slam('PERCE-NUAGE !','',  '#ffffff','#9fe8ff',38,2,14);flowAdd(14,'risque');try{chaineAura('PERCE-NUAGE',60,'nuage');}catch(e){}}
-  else if(c.ecran&&SURV.chasse)popTexte('HORS DE VUE','#9fe8ff',0);
+  else if(c.ecran&&SURV.chasse){popTexte('HORS DE VUE','#9fe8ff',0);if(SONV2)sfx('abri');}
   else if(CAMP.n===8&&Math.abs(vA)*3.6*SPD>vmaxShow()*.8){popTexte("A L'INSTINCT !",'#9fe8ff',1);flowAdd(10,'risque','p');try{chaineAura("A L'INSTINCT",40,'instinct');}catch(e){}} // le ciel ment, tu as foncé quand même
 }
 // ---- LE PORTAIL DU NIVEAU 10 ----
@@ -26678,8 +26717,8 @@ function poursuiteTick(dt){
     if(CAMP.dmg>=7){explode('feu');return;}
   }else CAMP.feuT=Math.max(0,CAMP.feuT-dt*3);
   if(!CAMP.semes&&SURV.bots.length){
-    if(!vivants){CAMP.semes=true;slam('SEMES !','LA POLICE EST AU TAPIS','#7dffec','#5b7dff',40,2,18);try{chaineAura('SEMES',150,'semes');}catch(e){}}
-    else if(proche>340&&proche<1e9){CAMP.semes=true;popTexte('SEMES !','#7dffec',2);try{chaineAura('SEMES',100,'semes');}catch(e){}}
+    if(!vivants){CAMP.semes=true;slam('SEMES !','LA POLICE EST AU TAPIS','#7dffec','#5b7dff',40,2,18);try{chaineAura('SEMES',150,'semes');}catch(e){}if(SONV2)sfx('victoire');}
+    else if(proche>340&&proche<1e9){CAMP.semes=true;popTexte('SEMES !','#7dffec',2);try{chaineAura('SEMES',100,'semes');}catch(e){}if(SONV2)sfx('victoire');}
   }
 }
 // ============ L'ORAGE (niveau 9) : l'éclair RÉVÈLE, le tonnerre suit ============
@@ -26710,7 +26749,7 @@ function eclFrappe(){
       ECL.seg.push(prev,q,4.2);prev=q;q++;}}
   ECL.vie=.34;ECL.k=1;
   const dd=CV2.subVectors(CV1,carGroup.position).length();
-  ECL.tonT=.25+dd/1400;ECL.ton=Math.max(.25,1-dd/1400); // le tonnerre arrive après, et plus fort quand c'est près
+  ECL.tonT=.25+dd/1400;ECL.ton=Math.max(.25,1-dd/1400);if(SONV2)sfx('foudre.eclair',{vol:-14+14*ECL.ton}); // le tonnerre arrive après, et plus fort quand c'est près
   if(dd<700)hap(12);
 }
 function eclEcrit(){
@@ -26733,7 +26772,7 @@ function orageTick(dt){
   CAMP_FLASH=.8*e*(ECL.vie>0&&Math.sin(ECL.vie*70)<-.6?.55:1); // le ciel s'allume (et vacille avec l'éclair)
   CAMP_FOG=1900*e;                                            // …et le brouillard recule : la route, le portail se montrent
   eclEcrit();
-  if(ECL.tonT>=0){ECL.tonT-=dt;if(ECL.tonT<0){try{subBoom(.14+.16*ECL.ton);noiseBurst(1.5,.07+.1*ECL.ton,150);noiseBurst(.35,.05*ECL.ton,900);}catch(e){}if(ECL.ton>.7)shake=Math.max(shake,.25);}}
+  if(ECL.tonT>=0){ECL.tonT-=dt;if(ECL.tonT<0){try{if(SONV2)sfx('tonnerre',{vol:-10+10*ECL.ton});else{subBoom(.14+.16*ECL.ton);noiseBurst(1.5,.07+.1*ECL.ton,150);noiseBurst(.35,.05*ECL.ton,900);}}catch(e){}if(ECL.ton>.7)shake=Math.max(shake,.25);}}
 }
 // ============ LA CAISSE-NUAGE (niveau 10) ============
 // La même ouate que le ciel (mergeSpheres : ventre lavande, sommet blanc, creux ombrés ; la matière des nuages et sa lisière d'argent),
@@ -26875,9 +26914,9 @@ function fantomeTick(dt){
     if(Math.random()<dt*26*k){CV2.set((Math.random()-.5)*6,.8+Math.random()*2.2,2+Math.random()*6).applyQuaternion(carGroup.quaternion).add(carGroup.position);
       spawnP(cloudBits,CV2.x,CV2.y,CV2.z,CAMP.vel.x*.7,CAMP.vel.y*.7+.5,CAMP.vel.z*.7,.45);}}
   if(d<18){
-    if(!GH.accr){GH.accr=true;popTexte('ACCROCHE !','#ffe7a8',2);hap(12);}
+    if(!GH.accr){GH.accr=true;popTexte('ACCROCHE !','#ffe7a8',2);hap(12);if(SONV2)sfx('fantome.accroche');}
     GH.prise+=dt;GH.noteT-=dt;
-    if(GH.noteT<=0){GH.noteT=.2;try{chimeNote(noteP(Math.min(7,Math.floor(GH.prise*6)),1),0,.07,.2);}catch(e){}} // un carillon qui MONTE : le compteur, on l'entend
+    if(GH.noteT<=0){GH.noteT=.2;try{if(SONV2)sfx('fantome.prise',{st:sonPd(Math.min(9,Math.floor(GH.prise*6)))});else chimeNote(noteP(Math.min(7,Math.floor(GH.prise*6)),1),0,.07,.2);}catch(e){}} // un carillon qui MONTE : le compteur, on l'entend
     if(GH.prise>=1){fantomePris();return;}
   }else{GH.prise=Math.max(0,GH.prise-dt*1.5);if(GH.prise<=0)GH.accr=false;}
   // la route finit, le portail est fermé : c'est perdu
@@ -26888,26 +26927,26 @@ function fantomePris(){ // ELLE EST À TOI
   CV1.copy(GH.g.position);GH.g.visible=false;trailStep(GH.tr,0,0,0,0,0,0,0);
   try{shatterCloud(CV1,1.5);shatterCloud(carGroup.position,1.1);}catch(e){}
   sparkBurst(sparkGold,CV1,40,18);flashEcran('rgba(255,236,200,.75)');
-  try{fanfare();}catch(e){}hap([30,40,30,40,90]);
+  try{if(SONV2)sfx('victoire');else fanfare();}catch(e){}hap([30,40,30,40,90]);
   slam('ELLE EST A TOI','LA CAISSE-NUAGE','#ffe7a8','#ff9ee6',40,3,26);
   carrMarque(0,9); // les dix niveaux des NUAGES : la caisse-nuage se débloque (condition carrN)
   // TA CAISSE DEVIENT LA CAISSE-NUAGE, dans un nuage d'or (équipée : on la garde en sortant)
   const ci=CARS.findIndex(function(c){return c.shape==='nuage';});
   if(ci>=0){SAVE.d.equipped=ci;level=ci;try{buildCar(CARS[ci]);}catch(e){}SAVE.flush();}
-  CAMP.portFerme=false;portailVisible(true);try{portalSnd();}catch(e){}
+  CAMP.portFerme=false;portailVisible(true);try{if(!SONV2)portalSnd();}catch(e){}
   try{chaineAura('LA CAISSE-NUAGE',400,'nuage');}catch(e){}
   flowAdd(40,'risque');nitroPct(1);
-  setTimeout(function(){if(started&&!gameOver)popTexte("LE PORTAIL S'OUVRE",'#ff9ee6',1);},1500);
+  setTimeout(function(){if(started&&!gameOver){popTexte("LE PORTAIL S'OUVRE",'#ff9ee6',1);if(SONV2)sfx('portail.ouvre');}},1500);
 }
 function fantomeSeme(){ // elle a franchi le portail la première — ou la route s'arrête sous tes roues : c'est perdu
   if(GH.fini||GH.pris)return;GH.fini=true;GH.g.visible=false;trailStep(GH.tr,0,0,0,0,0,0,0);
-  flashEcran('rgba(255,120,190,.5)');try{portalSnd();}catch(e){}
+  flashEcran('rgba(255,120,190,.5)');try{if(SONV2)sfx('defaite');else portalSnd();}catch(e){}
   slam("ELLE T'A SEME",'','#ff9ee6','#ff5e7a',38,3);
   CAMP.finT=1.6;CAMP.cause='seme';
 }
 function campFinale(){ // le portail du COUCHER : les NUAGES sont finis
   const zb=denom()*60;money+=zb;levelCash+=zb;try{checkUpgrade();}catch(e){}
-  try{portalSnd();boostSnd(2);fanfare();}catch(e){}flashEcran('rgba(255,215,140,.75)');hap([40,40,40,40,120]);
+  try{if(SONV2)sfx('monde.fin');else{portalSnd();boostSnd(2);fanfare();}}catch(e){}flashEcran('rgba(255,215,140,.75)');hap([40,40,40,40,120]);
   carrMarque(0,9);runStats.zones++;
   CAMP.garde=true;mortCause='finNuages';
   endGame();
@@ -26915,7 +26954,7 @@ function campFinale(){ // le portail du COUCHER : les NUAGES sont finis
 }
 function espaceFinale(){ // (2026-09-28) le portail de PLUTON : l'ESPACE est fini — même cérémonie que les NUAGES et la VILLE
   const zb=denom()*60;money+=zb;levelCash+=zb;try{checkUpgrade();}catch(e){}
-  try{portalSnd();boostSnd(2);fanfare();}catch(e){}flashEcran('rgba(255,215,140,.75)');hap([40,40,40,40,120]);
+  try{if(SONV2)sfx('monde.fin');else{portalSnd();boostSnd(2);fanfare();}}catch(e){}flashEcran('rgba(255,215,140,.75)');hap([40,40,40,40,120]);
   carrMarque(Math.max(0,CARRIERE.findIndex(function(B){return B.id==='espace';})),9);runStats.zones++;
   CAMP.garde=true;mortCause='finEspace';
   endGame();CARR.actif=null; // tout est fini : REJOUER repart en partie sans fin
@@ -26946,15 +26985,15 @@ function flowRaccourci(gagne){
   flowAdd(Math.min(45,12+gagne*.06),'risque','m'); // (v4) couper la route : MACHIAVEL
   if(CAMP.n)return; // en campagne, campRaccourci (seuil de ses ovales) dit déjà « RACCOURCI ! » et paie sa nitro
   popTexte(TR('RACCOURCI')+' +'+Math.round(gagne)+' M','#7dffec',3);hap([12,24,18]);nitroGain(.3);
-  try{chaineAura('RACCOURCI',Math.round(Math.min(250,60+gagne*.2)),'coupe');}catch(e){}
-  try{chimeNote(noteP(4,1),0,.09,.2);chimeNote(noteP(7,1),.08,.09,.26);}catch(e){}
+  try{chaineAura('RACCOURCI',Math.round(Math.min(250,60+gagne*.2)),'coupe',false,SONV2);}catch(e){}
+  try{if(SONV2)sfx('raccourci');else{chimeNote(noteP(4,1),0,.09,.2);chimeNote(noteP(7,1),.08,.09,.26);}}catch(e){}
 }
 function campRaccourci(d){ // se poser loin devant son décollage : la coupe est payée
   CAMP.coupesN++;
   popTexte('RACCOURCI !','#7dffec',2);hap([12,24,18]);
   nitroGain(.4); // (FLOW v2) le flow du raccourci est versé par flowRaccourci, à la pose — pour TOUS les modes, au prorata des mètres coupés
-  try{chaineAura('RACCOURCI',150,'coupe');}catch(e){}
-  try{chimeNote(noteP(4,1),0,.09,.2);chimeNote(noteP(7,1),.08,.09,.26);}catch(e){}
+  try{chaineAura('RACCOURCI',150,'coupe',false,SONV2);}catch(e){}
+  try{if(SONV2)sfx('raccourci');else{chimeNote(noteP(4,1),0,.09,.2);chimeNote(noteP(7,1),.08,.09,.26);}}catch(e){}
 }
 function campTick(dt){
   if(!CAMP.n||gameOver)return;
@@ -27098,7 +27137,7 @@ function radarsPose(){ // les portiques : deux piliers au ras des bords, une pou
     VC.radFx.push({spr:fx,led:led,t:0});r.fx=VC.radFx.length-1;
   }
 }
-function radarSnd(){try{noiseBurst(.035,.12,5200);chimeNote(1760,0,.06,.09);chimeNote(2349,.08,.05,.1);}catch(e){}}
+function radarSnd(){if(SONV2){sfx('radar');return;}try{noiseBurst(.035,.12,5200);chimeNote(1760,0,.06,.09);chimeNote(2349,.08,.05,.1);}catch(e){}}
 function radarFlash(r){
   // jugé sur la CROISIÈRE réelle (vCroisiere ≈ 1,55 × vmaxShow) : MESURÉ au banc, le pilote auto SANS nitro passait le 1er radar à 317 km/h
   // = 97 % de vmaxShow — tout le monde était « en excès ». L'excès se mérite désormais : nitro, élan, pad (≥ 92 % de la croisière).
@@ -27164,15 +27203,15 @@ function campPad(i){ // crochet : un pad vient d'être pris (boucle de conduite)
   const ch=e.c,k=e.k;if(ch.brise||ch.fini||k!==ch.n)return;
   ch.n++;
   if(k>0){popTexte(TR('LIGNE')+' ×'+(k+1),'#ffd75e',1);nitroGain(.04*k);flowAdd(3+2*k,'route','p');}
-  try{chimeNote(noteP(Math.min(7,k+1),1),0,.09,.2);}catch(e9){}
+  try{if(SONV2)sfx('pad.neon',{st:sonPd(k)});else chimeNote(noteP(Math.min(7,k+1),1),0,.09,.2);}catch(e9){}
   if(ch.n>=ch.lats.length){ch.fini=true;ch.fl=1;const n=ch.lats.length;
     slam('LIGNE PARFAITE','×'+n,'#ffd75e','#ff3ec8',40,2,18);vPaie(6*n,8);nitroPct(.5);flowAdd(15,'style','p');hap([14,30,14,30,40]);
-    try{chaineAura('LIGNE DE NEON',40+12*n,'ligne');fanfare();}catch(e9){}}
+    try{chaineAura('LIGNE DE NEON',40+12*n,'ligne');if(SONV2)sfx('victoire');else fanfare();}catch(e9){}}
 }
 function chainesTick(dt,sp){
   let vu=null;
   for(const ch of VZ.chaines){
-    if(!ch.brise&&!ch.fini&&sp>ch.sP[ch.n]+9){ch.brise=true;popTexte('LIGNE CASSEE','#8f84c8',0);try{chimeNote(noteP(1,0),0,.08,.3);}catch(e){}}
+    if(!ch.brise&&!ch.fini&&sp>ch.sP[ch.n]+9){ch.brise=true;popTexte('LIGNE CASSEE','#8f84c8',0);try{if(SONV2)sfx('defaite',{vol:-5});else chimeNote(noteP(1,0),0,.08,.3);}catch(e){}}
     ch.br+=((ch.brise?1:0)-ch.br)*Math.min(1,dt*3);ch.fl=Math.max(0,ch.fl-dt*.8);
     for(const mt of ch.mats){mt.uniforms.uOn.value=ch.n-1;mt.uniforms.uBr.value=ch.br;mt.uniforms.uF.value=ch.fl;}
     if(!vu&&sp>ch.s0-170&&sp<ch.s1+70)vu=ch;
@@ -27205,7 +27244,7 @@ function flaquesPose(){ // chaque rangée couvre la route SAUF sa ligne sèche ;
     frameAt(sv,F);o.quaternion.setFromRotationMatrix(VM4.makeBasis(F.b,VV1.copy(F.t).negate().multiplyScalar(fy),VV2.copy(F.n).multiplyScalar(fy)));
     o.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,fy>0?.05:-THICK-.05);o.scale.set(R*1.45,R*3.2,1);o.updateMatrix();imE.setMatrixAt(q,o.matrix);
     o.position.addScaledVector(F.n,fy>0?-.01:.01);o.scale.set(R*1.7,R*3.6,1);o.updateMatrix();imR.setMatrixAt(q,o.matrix);q++;
-    OILS.push({s:sv,lat:lt,r:R,face:fy});}
+    OILS.push({s:sv,lat:lt,r:R,face:fy,eau:1});} /* eau:1 → le son de l'eau (console de son), la glisse est la même */
   for(const im of [imE,imR]){im.instanceMatrix.needsUpdate=true;im.frustumCulled=false;scene.add(im);trackMeshes.push(im);}
   imR.renderOrder=1;
 }
@@ -27216,7 +27255,7 @@ function flaquesTick(dt,sp){
     try{sparkBurst(sparkBlue,carGroup.position,12,9);}catch(e){}}
   VC.slip0=slipT;
   for(const f of VZ.flaques){if(f.fait||sp<f.s+(f.d?64:6))continue;f.fait=true;
-    if(!VC.rowSlip){VC.secN=(VC.secN|0)+1;popTexte('A SEC !','#7dffec',0);flowAdd(f.d?10:6,'style');nitroGain(f.d?.1:.06);try{chaineAura('A SEC',f.d?30:18,'sec');}catch(e){}}
+    if(!VC.rowSlip){VC.secN=(VC.secN|0)+1;popTexte('A SEC !','#7dffec',0);flowAdd(f.d?10:6,'style');nitroGain(f.d?.1:.06);try{chaineAura('A SEC',f.d?30:18,'sec',false,SONV2);if(SONV2)sfx('flaque.sec');}catch(e){}}
     VC.rowSlip=false;}
   // la plaque annonce la prochaine rangée (jamais le côté sec : ça, ça se LIT)
   let nx=null;for(const f of VZ.flaques)if(!f.fait&&f.s+(f.d?64:6)>sp){nx=f;break;}
@@ -27267,7 +27306,7 @@ function foudreArme(cel){
 }
 function foudreFrappe(){
   foudreCache();VFOU.t=2+Math.random()*1.2;
-  eclVers(VFOU.p);
+  eclVers(VFOU.p);if(SONV2)sfx('foudre.eclair'); /* (console de son) le craquement IMMÉDIAT — le tonnerre suit (ECL.tonT) */
   try{sparkBurst(sparkBlue,VFOU.p,34,20);sparkBurst(sparkGold,VFOU.p,14,12);}catch(e){}
   for(let k=0;k<10;k++)spawnP(smokePool,VFOU.p.x+(Math.random()-.5)*4,VFOU.p.y+.5,VFOU.p.z+(Math.random()-.5)*4,(Math.random()-.5)*2,3+Math.random()*3,(Math.random()-.5)*2,1+Math.random()*.6);
   const d=carGroup.position.distanceTo(VFOU.p),dessous=mode==='drive'&&side<0;
@@ -27275,8 +27314,8 @@ function foudreFrappe(){
   if(!dessous&&d<VFOU_R+1.2){ // FOUDROYÉ : la vitesse, la nitro et le FLOW prennent la décharge — pas la vie
     vA*=.55;momT=0;nitroR*=.4;nitroX*=.4;FLOW.v=Math.max(0,FLOW.v-25);FLOW.idle=2;VC.zap=.7;VC.foudN=(VC.foudN|0)+1;
     flashEcran('rgba(215,200,255,.9)');shake=Math.max(shake,.7);hap([40,30,90]);
-    popTexte('FOUDROYE !','#b58cff',2);try{crackle(.8);}catch(e){}
-  }else if(dessous)popTexte("A L'ABRI",'#9fe8ff',0);
+    popTexte('FOUDROYE !','#b58cff',2);try{if(SONV2)sfx('foudre.touche');else crackle(.8);}catch(e){}
+  }else if(dessous){popTexte("A L'ABRI",'#9fe8ff',0);if(SONV2)sfx('abri');}
   else if(d<VFOU_R+9){VC.esqN=(VC.esqN|0)+1;popTexte('ESQUIVE !','#7dffec',1);flowAdd(8,'style');nitroGain(.08);try{chaineAura('ESQUIVE',28,'esquive');}catch(e){}}
 }
 function foudreTick(dt,sp){
@@ -27291,7 +27330,7 @@ function foudreTick(dt,sp){
   ECL.k=Math.max(0,ECL.k-dt*1.9);const e=ECL.k*ECL.k;
   CAMP_FLASH=.8*e*(ECL.vie>0&&Math.sin(ECL.vie*70)<-.6?.55:1);CAMP_FOG=1900*e;
   eclEcrit();
-  if(ECL.tonT>=0){ECL.tonT-=dt;if(ECL.tonT<0){try{subBoom(.14+.16*ECL.ton);noiseBurst(1.5,.07+.1*ECL.ton,150);noiseBurst(.35,.05*ECL.ton,900);}catch(e9){}if(ECL.ton>.7)shake=Math.max(shake,.25);}}
+  if(ECL.tonT>=0){ECL.tonT-=dt;if(ECL.tonT<0){try{if(SONV2)sfx('tonnerre',{vol:-10+10*ECL.ton});else{subBoom(.14+.16*ECL.ton);noiseBurst(1.5,.07+.1*ECL.ton,150);noiseBurst(.35,.05*ECL.ton,900);}}catch(e9){}if(ECL.ton>.7)shake=Math.max(shake,.25);}}
   if(cel)vChip(TR('CELLULE D\'ORAGE')+' '+(ci+1)+'/'+VZ.cellules.length,TR('LIS LE CERCLE'),'#b58cff');else vChip('');
 }
 // ============ L'ORBITE · LA PLUIE DE DÉBRIS (2026-09-28, portée de la lignée car-crash) ============
@@ -27353,9 +27392,9 @@ function debFrappe(){
   try{cratere(CRAT.pv.copy(D.p1),CRAT.nv.copy(D.n),true);}catch(e){}
   const d=carGroup.position.distanceTo(D.p1);
   shake=Math.max(shake,.9*Math.max(0,1-d/140));
-  if(d<260)try{subBoom(.34*(1-d/300));noiseBurst(.45,.15*(1-d/300),260);}catch(e){}
+  if(d<260)try{if(SONV2)sfx('explosion.loin',{vol:-14*d/260});else{subBoom(.34*(1-d/300));noiseBurst(.45,.15*(1-d/300),260);}}catch(e){} /* (console) le débris qui tombe : un boum étouffé, dosé par la distance */
   if(mode!=='drive'||gameOver)return; // en vol, on l'a survolé
-  if(side<0){if(d<DEB_R+9)popTexte("A L'ABRI",'#9fe8ff',0);return;}
+  if(side<0){if(d<DEB_R+9){popTexte("A L'ABRI",'#9fe8ff',0);if(SONV2)sfx('abri');}return;}
   if(d<DEB_R+1.2){ // TOUCHÉ : la vitesse et le flow prennent le choc — pas la vie
     vA*=.6;momT=0;FLOW.v=Math.max(0,FLOW.v-20);FLOW.idle=2;D.serie=0;
     hopV=Math.max(hopV,7.5); // en gravité lunaire, ça plane : on voit ce qu'on a pris
@@ -27365,7 +27404,7 @@ function debFrappe(){
     D.serie++;const k=Math.min(4,D.serie);
     popTexte(TR('ESQUIVE !')+(D.serie>1?' ×'+D.serie:''),'#ffb000',1); // le mot de la FOUDRE : même geste, même nom (« FRÔLÉ » est déjà celui des plots)
     flowAdd(6+k*3,'style');nitroGain(.08+k*.04);
-    try{chaineAura('ESQUIVE',24+k*6,'esquive');chimeNote(880+k*110,0,.1,.22);}catch(e){}
+    try{chaineAura('ESQUIVE',24+k*6,'esquive');if(SONV2)sfx('debris.esquive',{st:sonPd(k)});else chimeNote(880+k*110,0,.1,.22);}catch(e){}
     sparkBurst(sparkBlue,carGroup.position,10,10);hap(18);
   }
 }
@@ -27431,12 +27470,12 @@ function panneTick(dt,sp){
   for(let i=0;i<VZ.pannes.length;i++){const p=VZ.pannes[i];
     if(sp>p.s0&&sp<p.s1){dans=i;break;}
     if(sp>p.s0-170&&sp<=p.s0){vac=true;break;}}
-  if(dans>=0&&VC.panI!==dans){VC.panI=dans;VC.panOk=true;VC.panN=(VC.panN|0)+1;popTexte('COUPURE !','#8f84c8',1);panneSnd(true);hap([20,40,20]);}
+  if(dans>=0&&VC.panI!==dans){VC.panI=dans;VC.panOk=true;VC.panN=(VC.panN|0)+1;popTexte('COUPURE !','#8f84c8',1);VC.grT=0;panneSnd(true);hap([20,40,20]);}
   else if(dans<0&&VC.panI>=0){VC.panI=-1;VC.panT=.55;VC.panFl=0;panneSnd(false);
     if(VC.panOk){VC.aveugleN=(VC.aveugleN|0)+1;slam("A L'AVEUGLE",'COURANT RETABLI','#ffd75e','#8f84c8',40,2,14);vPaie(10,6);flowAdd(16,'risque','p');nitroPct(.35);try{chaineAura("A L'AVEUGLE",80,'aveugle');}catch(e){}}
     else popTexte('COURANT RETABLI','#9fe8ff',0);}
   if(VC.panI>=0&&mode==='fall')VC.panOk=false; // une sortie de route dans le noir : pas de prime
-  if(vac){VC.panFl-=dt;if(VC.panFl<=0){VC.panFl=.05+Math.random()*.16;VC.cour=Math.random()<.55?1:.12;}} // le courant VACILLE : ça va sauter
+  if(vac){if(SONV2){VC.grT=(VC.grT||0)-dt;if(VC.grT<=0){VC.grT=.65;sfx('panne.gresille');}}VC.panFl-=dt;if(VC.panFl<=0){VC.panFl=.05+Math.random()*.16;VC.cour=Math.random()<.55?1:.12;}} // le courant VACILLE : ça va sauter
   else if(dans>=0)VC.cour=Math.max(0,VC.cour-dt*6);
   else if(VC.panT>0){VC.panT-=dt;VC.panFl-=dt;if(VC.panFl<=0){VC.panFl=.06+Math.random()*.12;VC.cour=Math.random()<.6?.2:.85;}} // quelques ratés…
   else VC.cour=Math.min(1,VC.cour+dt*2.5);                                                                                          // …puis tout se rallume
@@ -27543,9 +27582,9 @@ function fourgonTick(dt,sp){
   // LE SEMIS : collé derrière lui (sur le dessus de la dalle, ou en vol), ses portes s'ouvrent et les pièces tombent
   const seme=!VFG.fini&&VFG.cash>0&&gp>3&&gp<45&&(mode==='fall'||(moi&&Math.abs(lat-VFG.lat)<20));
   VFG.porte+=((seme?1:0)-VFG.porte)*Math.min(1,dt*(seme?4:2));
-  if(seme){if(VFG.semeT<=0)popTexte('IL SEME SES BILLETS !','#ffd75e',1);VFG.semeT=1.5;
+  if(seme){if(VFG.semeT<=0){popTexte('IL SEME SES BILLETS !','#ffd75e',1);if(SONV2)sfx('fourgon.porte');}VFG.semeT=1.5;
     VFG.acc+=dt*6;while(VFG.acc>=1&&VFG.cash>0){VFG.acc-=1;fourgonPiece(VFG.s-5.2,VFG.lat+(Math.random()-.5)*6);}
-    if(Math.random()<dt*6)try{chimeNote(noteP(3+Math.floor(Math.random()*4),1),0,.04,.12);}catch(e){}}
+    if(Math.random()<dt*6)try{if(SONV2)sfx('fourgon.billets');else chimeNote(noteP(3+Math.floor(Math.random()*4),1),0,.04,.12);}catch(e){}}
   else{VFG.acc=0;VFG.semeT=Math.max(0,VFG.semeT-dt);}
   // LE CHOC : le percuter par l'arrière = un paquet d'un coup, et tu rebondis sur son pare-chocs
   VFG.cd=Math.max(0,VFG.cd-dt);
@@ -27557,7 +27596,7 @@ function fourgonTick(dt,sp){
     try{sparkBurst(sparkGold,carGroup.position,14,10);}catch(e){}}
   if(!VFG.fini&&VFG.cash<=0){VFG.fini=true;VFG.finT=1.4;VC.fourgonVide=true;
     slam('FOURGON VIDE !','','#ffd75e','#ff3ec8',42,2,24);vPaie(25,12);flowAdd(20,'style','m');hap([20,40,20,40,80]);
-    try{chaineAura('FOURGON VIDE',160,'fourgon');fanfare();}catch(e){}}
+    try{chaineAura('FOURGON VIDE',160,'fourgon');if(SONV2)sfx('victoire');else fanfare();}catch(e){}}
   if(VFG.finT>0){VFG.finT-=dt;if(VFG.finT<=0)VFG.fuite=true;} // vidé, allégé : il file
   fourgonPose(dt);
   // la plaque
@@ -27628,7 +27667,7 @@ function traficChoc(c,dl){ // l'accrochage : la voiture part en toupie, toi tu p
   c.w=new THREE.Vector3((Math.random()-.5)*7,(Math.random()-.5)*9,(Math.random()-.5)*7);
   vA*=.62;momT=0;FLOW.v=Math.max(0,FLOW.v-15);FLOW.idle=2;shake=Math.max(shake,.5);hap([30,20,40]);VTR.chocN++;VC.gel=.3;
   popTexte('ACCROCHAGE !','#ff5e7a',1);
-  try{thud(10);noiseBurst(.2,.12,3200);}catch(e){}
+  try{if(SONV2)sfx('trafic.accroche');else{thud(10);noiseBurst(.2,.12,3200);}}catch(e){}
   try{sparkBurst(sparkGold,carGroup.position,16,10);}catch(e){}
 }
 function traficTick(dt,sp){
@@ -27771,10 +27810,10 @@ function banquierTick(dt,sp){
   // le coup d'épaule : on se touche, on s'écarte — personne ne meurt, personne ne triche
   VBQ.cd=Math.max(0,VBQ.cd-dt);
   if(moi&&VBQ.cd<=0&&Math.abs(gp)<5.4&&Math.abs(lat-VBQ.lat)<2.6){VBQ.cd=.8;lat=VBQ.lat+(lat>=VBQ.lat?1:-1)*2.8;vA*=.96;shake=Math.max(shake,.3);hap(18);popTexte("COUP D'EPAULE",'#ffb000',1);try{thud(6);}catch(e){}}
-  const mene=gp<0;if(mene!==VBQ.mene){VBQ.mene=mene;if(mene){popTexte('TU MENES !','#ffd75e',1);try{chimeNote(noteP(5,1),0,.08,.2);}catch(e){}}else popTexte('IL REPASSE DEVANT','#ff5e7a',1);}
+  const mene=gp<0;if(mene!==VBQ.mene){VBQ.mene=mene;if(mene){popTexte('TU MENES !','#ffd75e',1);try{if(SONV2)sfx('rival.devant');else chimeNote(noteP(5,1),0,.08,.2);}catch(e){}}else{popTexte('IL REPASSE DEVANT','#ff5e7a',1);if(SONV2)sfx('rival.passe');}}
   if(VBQ.s>=L-45){ // IL PASSE LE PORTAIL LE PREMIER
     VBQ.fini=true;VBQ.g.visible=false;trailStep(VBQ.tr,0,0,0,0,0,0,0);
-    flashEcran('rgba(255,200,90,.55)');try{portalSnd();}catch(e){}
+    flashEcran('rgba(255,200,90,.55)');try{if(SONV2)sfx('defaite');else portalSnd();}catch(e){}
     slam('LE BANQUIER A GAGNE','','#ffd75e','#ff5e7a',38,3);
     CAMP.finT=1.6;CAMP.cause='banquier';vChip(TR('2E'),TR('LE BANQUIER A GAGNE'),'#ff5e7a');return;}
   banquierPose(dt);
@@ -27784,7 +27823,7 @@ function banquierTick(dt,sp){
 function villeFinale(){ // le portail de MIDI franchi AVANT le banquier : la VILLE est finie, et le lingot est à toi
   VBQ.on=false;VBQ.g.visible=false;trailStep(VBQ.tr,0,0,0,0,0,0,0);
   const zb=denom()*60;money+=zb;levelCash+=zb;try{checkUpgrade();}catch(e){}
-  try{portalSnd();boostSnd(2);fanfare();}catch(e){}flashEcran('rgba(255,215,140,.75)');hap([40,40,40,40,120]);
+  try{if(SONV2)sfx('monde.fin');else{portalSnd();boostSnd(2);fanfare();}}catch(e){}flashEcran('rgba(255,215,140,.75)');hap([40,40,40,40,120]);
   carrMarque(Math.max(0,CARRIERE.findIndex(function(B){return B.id==='ville';})),9);runStats.zones++; // les dix niveaux de la VILLE : le lingot se débloque (condition carrV)
   const ci=CARS.findIndex(function(c){return c.shape==='lingot';});
   if(ci>=0){SAVE.d.equipped=ci;level=ci;try{buildCar(CARS[ci]);}catch(e){}SAVE.flush();} // TA caisse devient le lingot (équipé : on le garde en sortant)
@@ -28365,7 +28404,7 @@ function garageLaunch(){
   if(!GAR._c)GAR._c=new THREE.Vector3();
   GAR.go={t:0,p0:camera.position.clone(),voile:false,quiet:gEl.classList.contains('quiet')};
   gEl.classList.add('launching'); // dès qu'on PART, la vitrine s'efface — qu'on l'ait parcourue ou pas
-  try{noiseBurst(.6,.22,420);chimeNote(196,0,.5,.16);}catch(e){}
+  try{if(SONV2)sfx('garage.lacher');else{noiseBurst(.6,.22,420);chimeNote(196,0,.5,.16);}}catch(e){} /* (console de son) LE LÂCHER : moteur, turbo, départ, et le WHOOSH du voile (1,36 s) — le 196 Hz hors gamme reste en repli */
 }
 // `playViaGarage()` — UNE SEULE PORTE D'ENTRÉE POUR LANCER UNE COURSE (2026-09-05) : « on ne peut
 // jouer que depuis le garage avec la porte qui s'ouvre » (demande du user). Le bouton JOUER du menu,
@@ -28384,12 +28423,12 @@ function playViaGarage(){
 }
 function garageGo(d){
   if(GAR.go)return; // (2026-09-28) pendant la SORTIE (1,7 s), un glissé remplaçait la caisse qui roule vers la porte
-  uiClic(); // ◀ ▶, glissé, clavier : le doigt sent qu'on change de caisse — et l'oreille aussi (2026-09-26, charte règle 8)
+  uiClic('nav'); // ◀ ▶, glissé, clavier : le doigt sent qu'on change de caisse — et l'oreille aussi (2026-09-26, charte règle 8)
   if(SHOP.tab!=='voiture'){ // BOUTIQUE : on feuillette les articles, la caisse reste la tienne
     shopShow(SHOP.tab,SHOP.i[SHOP.tab]+d);try{chimeNote(d>0?880:660,0,.16,.14);}catch(e){}return;}
   if(!garageOn||!GAR.root||GAR.sw){garageShow(garageVoisin(garageI,d));return;}
   GAR.sw={t:0,fait:false,to:garageVoisin(garageI,d)};
-  try{chimeNote(d>0?880:660,0,.16,.14);noiseBurst(.35,.09,900);}catch(e){}
+  try{if(SONV2)sfx('garage.bascule');else{chimeNote(d>0?880:660,0,.16,.14);noiseBurst(.35,.09,900);}}catch(e){} /* (console de son) LA BASCULE, calée sur le retourneur de 1,06 s */
 }
 /* `garageImpact()` — LE TAP : un clic bref sur la caisse (pas un glissé, voir le seuil dans le
    `pointerup` plus bas) EST un petit coup. Elle recule d'un rien (voir `garageRender`, même minuteur
@@ -28407,7 +28446,7 @@ function garageImpact(){
     GAR.impactVel[i].x=Math.cos(a)*sp*.4;GAR.impactVel[i].y=1.6+Math.random()*1.6;GAR.impactVel[i].z=Math.sin(a)*sp*.4+2.2;
     GAR.impactVel[i].rx=(Math.random()-.5)*9;GAR.impactVel[i].ry=(Math.random()-.5)*9;
   }
-  try{chimeNote(340,0,.05,.10);noiseBurst(.14,.05,1400);}catch(e){}
+  try{if(SONV2)sfx('garage.tole');else{chimeNote(340,0,.05,.10);noiseBurst(.14,.05,1400);}}catch(e){} /* (console de son) le TONK de tôle */
   // LES FLÈCHES SE MONTRENT : discrètes au repos, elles se rappellent au bon souvenir pile quand on
   // vient de toucher la caisse — c'est LE moment où « comment je change de voiture » se pose.
   const gp=$('gPrev'),gn=$('gNext');
@@ -28519,6 +28558,7 @@ function gCompteur(){
   if(v===v0)return;
   if(v<v0){const d=document.createElement('i');d.className='gcMoins';d.textContent='-'+fmt(v0-v);el.appendChild(d);setTimeout(function(){d.remove();},1400);}
   el.classList.remove('bouge');void el.offsetWidth;el.classList.add('bouge');
+  if(v<v0&&garageOn&&!gEl.classList.contains('quiet')&&!gEl.classList.contains('launching'))try{sfx('ui.compteur');}catch(e){} // (console de son) la DÉPENSE qui défile (0,9 s) : la liasse qui se compte, la note qui descend — vitrine visible seulement
   const t0=performance.now(),D=900;gCompteur._v=v;
   (function f(){const k=Math.min(1,(performance.now()-t0)/D),e=1-Math.pow(1-k,3);b.textContent=fmt(v0+(v-v0)*e);if(k<1&&gCompteur._v===v)requestAnimationFrame(f);})();
 }
@@ -28621,6 +28661,7 @@ function gStripHabits(cat,i){
 function openGarage(quiet){
   try{if(PHQ.q.length&&!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}catch(e){} // (2026-09-26) les photos en attente reprennent
   if(started&&!gameOver){showMsg('Le garage se visite depuis le menu');return;} // ⚠ gameOver = on EST au menu : refuser ici bloquait le bouton apres la 1re partie
+  try{if(SONV2&&!openGarage._amb)openGarage._amb=sfx('garage.ambiance',{loop:true});}catch(e){} // (console de son) l'ATELIER a sa voix : néons, tube qui grésille, la ville au loin
   garageOn=true;gEl.classList.add('on');gEl.classList.toggle('quiet',!!quiet);overlay.style.display='none';document.body.classList.add('inGarage');
   if(pigGroup)pigGroup.visible=false;
   if(!GAR.root)buildGarageRoom();   // L'ATELIER se bâtit à la PREMIÈRE visite : zéro coût pour qui n'y entre jamais
@@ -28635,6 +28676,7 @@ function openGarage(quiet){
   garageShow(level||0);
 }
 function closeGarage(){
+  try{if(openGarage._amb){openGarage._amb.stop(.35);openGarage._amb=null;}}catch(e){}
   trailApercu(0,false);
   if(SHOP.prev||SHOP.tab!=='voiture'){SHOP.prev=null;SHOP.tab='voiture';buildCar(CARS[equippedCar()]);} // l'essai ne sort pas de l'atelier
   paintEnv(BIO.to.env,BIO.to.eS1,BIO.to.eS2); // (2026-09-26) on rend à la laque le ciel du biome (l'atelier l'avait repeint en studio)
@@ -29147,55 +29189,55 @@ $('stFreq').addEventListener('change',saveFruits);
 addEventListener('keydown',e=>{if(!stallOn)return;
   if(e.code==='Escape')closeStall();else if(e.code==='ArrowLeft')stallShow(stallI-1);else if(e.code==='ArrowRight')stallShow(stallI+1);});
 $('garageBtn').addEventListener('click',e=>{e.stopPropagation();openGarage();});
-$('gClose').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarget);uiClic();ecranWipe(closeGarage);});
+$('gClose').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarget);uiClic('retour');ecranWipe(closeGarage);});
 function gSecoue(b){b.classList.remove('secoue');void b.offsetWidth;b.classList.add('secoue');hap([8,40,8]);} // le NON du garage : ça bouge, ça vibre, et un toast dit pourquoi
 $('gEquip').addEventListener('click',e=>{e.stopPropagation();
   const b=e.currentTarget;
   if(b.getAttribute('aria-disabled')==='true'){
     const vt=SHOP.tab==='voiture',ferme=vt?!carUnlocked(garageI):!shopOwned(SHOP.tab,COSM[SHOP.tab][SHOP.i[SHOP.tab]].id);
     if(!ferme){hap(8);return;}                               // ÉQUIPÉE : un simple accusé (sinon on rejouait la fanfare et réécrivait la sauvegarde)
-    gSecoue(b);uiClic();
+    gSecoue(b);uiClic('refus');
     if(vt)toast(pxi('verrou')+' '+String(carUnlockText(garageI)).replace(/</g,'&lt;')); // boutique : les défis sont déjà listés sur la fiche
     return;}
   uiPop(b);
-  if(SHOP.tab!=='voiture'){const c9=SHOP.tab,i9=SHOP.i[c9];if(shopEquip(c9,i9)){shopShow(c9,i9);uiClic();try{fanfare();}catch(err){}}return;}
+  if(SHOP.tab!=='voiture'){const c9=SHOP.tab,i9=SHOP.i[c9];if(shopEquip(c9,i9)){shopShow(c9,i9);uiClic();try{if(SONV2)sfx('ui.equipe');else fanfare();}catch(err){}}return;}
   if(!carUnlocked(garageI))return;                          // pas encore débloquée (condition propre à CETTE caisse)
   SAVE.d.equipped=garageI;SAVE.flush();
   level=garageI;levelCash=0;                                // la caisse choisie devient la caisse de départ — ⚠ plus de levelCash pré-rempli : il offrait un magot de départ égal au seuil de la caisse (la tirelire à 320 000 d'anciennes sessions venait de là)
   garageShow(garageI);                                      // rafraîchit l'étiquette du bouton
-  try{fanfare();}catch(err){}
+  try{if(SONV2)sfx('ui.equipe');else fanfare();}catch(err){} /* (console de son) équiper = le loquet + la quinte, pas la fanfare d'une victoire */
 });
 /* L'ACHAT. ⚠ on n'ÉQUIPE pas dans la foulée : acheter et choisir sont deux gestes, et les enchaîner
    ferait qu'un achat changerait la caisse de départ sans qu'on l'ait demandé. Le bouton ÉQUIPER
    s'allume juste à côté — le joueur décide. */
-$('gRar').addEventListener('click',e=>{const b=e.target.closest('.gR');if(!b)return;e.stopPropagation();uiPop(b);uiClic();
+$('gRar').addEventListener('click',e=>{const b=e.target.closest('.gR');if(!b)return;e.stopPropagation();uiPop(b);uiClic('onglet');
   if(b.hasAttribute('data-f')){SHOP.filtre=b.getAttribute('data-f');if(SHOP.tab!=='voiture')gStripHabits(SHOP.tab,SHOP.i[SHOP.tab]);return;} // un FILTRE d'habillage
   const L=rarListe(b.getAttribute('data-r'));if(!L.length)return;const eq=SAVE.d.equipped|0;
   garageSaute(L.indexOf(eq)>=0?eq:L[0]);});
-$('gStrip').addEventListener('click',e=>{const t=e.target.closest('.gT');if(!t)return;e.stopPropagation();uiPop(t);uiClic();
+$('gStrip').addEventListener('click',e=>{const t=e.target.closest('.gT');if(!t)return;e.stopPropagation();uiPop(t);uiClic('nav');
   if(t.hasAttribute('data-cos')){const j=+t.getAttribute('data-cos');if(SHOP.tab!=='voiture'&&j!==SHOP.i[SHOP.tab]){shopShow(SHOP.tab,j);try{chimeNote(880,0,.16,.14);}catch(er){}}return;} // un habillage : on l'ESSAIE sur la caisse
   garageSaute(+t.getAttribute('data-car'));});
 // aller DIRECTEMENT à une caisse (vignette, famille) — avec la bascule du plateau, comme les flèches
 function garageSaute(i){if(GAR.go||i===garageI||!(i>=0))return; // (2026-09-28) GAR.go : même garde que garageGo — la caisse qui sort ne se change plus
   if(!garageOn||!GAR.root||GAR.sw){garageShow(i);return;}
-  GAR.sw={t:0,fait:false,to:i};try{chimeNote(880,0,.16,.14);noiseBurst(.35,.09,900);}catch(e){}}
+  GAR.sw={t:0,fait:false,to:i};try{if(SONV2)sfx('garage.bascule');else{chimeNote(880,0,.16,.14);noiseBurst(.35,.09,900);}}catch(e){}}
 $('gBuy').addEventListener('click',e=>{e.stopPropagation();
-  if(SHOP.tab==='voiture'&&e.currentTarget.dataset.bout==='1'){uiClic();hap(8); // LÉGENDAIRE : direction la BOUTIQUE
+  if(SHOP.tab==='voiture'&&e.currentTarget.dataset.bout==='1'){uiClic('nav');hap(8); // LÉGENDAIRE : direction la BOUTIQUE
     // (2026-09-28) la boutique s'ouvre AU LEVER du voile (`apres`) : le clic simulé sur le bouton de l'accueil partait PENDANT le
     // fondu, et son propre ecranWipe était ignoré (garde `_on`) — ou en faisait un second. Pas dans `fn` : l'observateur de l'overlay
     // (bloc mobile) repose l'accueil juste après closeGarage et écraserait la boutique.
     ecranWipe(function(){closeGarage();},function(){if(!garageOn&&window.__mGo)window.__mGo('shop');});return;}
   if(SHOP.tab!=='voiture'){const c9=SHOP.tab,i9=SHOP.i[c9],r9=shopBuy(c9,i9);
-    if(!r9.ok){if(r9.raison==='fonds-insuffisants'){gSecoue(e.currentTarget);uiClic();toast(pxi('croix')+' '+TR('IL TE MANQUE')+' '+fmtC(r9.manque));}return;}
+    if(!r9.ok){if(r9.raison==='fonds-insuffisants'){gSecoue(e.currentTarget);uiClic('refus');toast(pxi('croix')+' '+TR('IL TE MANQUE')+' '+fmtC(r9.manque));}return;}
     shopShow(c9,i9);hap([10,30,20,30,40]);pixBurst($('gCard'),26);gTampon(TR('À TOI')+' !');
-    try{fanfare();}catch(err){}return;}
+    try{if(SONV2){sfx('ui.achat');if(!REDUCED_MOTION)sfx('ui.tampon',{t:.266});}else fanfare();}catch(err){}return;} /* (console de son) le tiroir-caisse, puis le TAMPON quand il s'abat (14 % de 1,9 s) — en mouvement réduit c'est un toast (ui.ok) */
   const r=carBuy(garageI);
   if(!r.ok){
-    if(r.raison==='fonds-insuffisants'){gSecoue(e.currentTarget);uiClic();toast(pxi('croix')+' '+TR('IL TE MANQUE')+' '+fmtC(r.manque));} // #msg est masqué au garage : c'est un toast qui parle
+    if(r.raison==='fonds-insuffisants'){gSecoue(e.currentTarget);uiClic('refus');toast(pxi('croix')+' '+TR('IL TE MANQUE')+' '+fmtC(r.manque));} // #msg est masqué au garage : c'est un toast qui parle
     return;
   }
   garageShow(garageI);pixBurst($('gCard'),26);hap([10,30,20,30,40]);gTampon(TR('À TOI')+' !'); // le bouton disparaît, le compte se met à jour — et ça se FÊTE (tampon + « −$ » du compteur : plus de toast qui le redit)
-  try{fanfare();}catch(err){}
+  try{if(SONV2){sfx('ui.achat');if(!REDUCED_MOTION)sfx('ui.tampon',{t:.266});}else fanfare();}catch(err){} /* (console de son) ACHAT : tiroir-caisse + tampon « À TOI ! » */
 });
 // `buildPlayWord()` — LE JOUER SANS BULLE (2026-09-05 bis) : `#gPlayMain` n'a plus de textContent
 // plat, il a une lettre par `<span class="lg gold">` — le MÊME traitement or extrudé que le logo
@@ -29244,10 +29286,10 @@ $('gPlayMain').addEventListener('keydown',function(e){
   if(e.code==='Enter'||e.code==='Space'){e.preventDefault();e.stopPropagation();playWordWave();setTimeout(garageLaunch,260);}
 });
 $('gPrev').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarget);garageGo(-1);});
-$('gTabs').addEventListener('click',e=>{e.stopPropagation();const b=e.target.closest('.gTab');if(!b)return;uiClic();uiPop(b);shopTab(b.getAttribute('data-tab'));});
-$('gCarr').addEventListener('click',e=>{e.stopPropagation();uiClic();carrVue(null);});
+$('gTabs').addEventListener('click',e=>{e.stopPropagation();const b=e.target.closest('.gTab');if(!b)return;uiClic('onglet');uiPop(b);shopTab(b.getAttribute('data-tab'));});
+$('gCarr').addEventListener('click',e=>{e.stopPropagation();uiClic('nav');carrVue(null);});
 // LA FICHE SE REPLIE (2026-09-24) : deux lignes de description suffisent, elle cachait le tiers bas de la caisse. Un tap la déplie.
-$('gCard').addEventListener('click',e=>{if(e.target.closest('button,.pbtn'))return;e.stopPropagation();$('gCard').classList.toggle('ouvert');uiClic();}); // (2026-09-28, charte règle 8) la fiche qui se déplie répond au doigt
+$('gCard').addEventListener('click',e=>{if(e.target.closest('button,.pbtn'))return;e.stopPropagation();$('gCard').classList.toggle('ouvert');uiClic('nav');}); // (2026-09-28, charte règle 8) la fiche qui se déplie répond au doigt
 $('carr').addEventListener('click',function(e){ // un seul écouteur pour tout l'écran carrière
   e.stopPropagation();
   const el=e.target&&e.target.closest?e.target.closest('[data-c]'):null;if(!el)return;
@@ -29257,9 +29299,9 @@ $('carr').addEventListener('click',function(e){ // un seul écouteur pour tout l
   else if(c==='biome')carrVue(b);
   else if(c==='niveau')carrLancer(b,i);
   else if(c==='verrou'){ // un niveau fermé RÉPOND : il secoue et dit ce qu'il attend
-    el.classList.remove('secoue');void el.offsetWidth;el.classList.add('secoue');uiClic(); // (2026-09-28, charte règle 8) il secouait en silence : le clic et la vibration disent « reçu, mais non »
+    el.classList.remove('secoue');void el.offsetWidth;el.classList.add('secoue');uiClic('refus'); // (2026-09-28, charte règle 8) il secouait en silence : le clic et la vibration disent « reçu, mais non »
     toast(pxi('verrou')+' '+TR('TERMINE LE NIVEAU')+' '+(carrFait(b)+1));return; } // (2026-09-28) le PROCHAIN niveau à finir — `i` (l'index tapé) disait « 4 » pour le 5e avec zéro niveau fini
-  uiClic();
+  uiClic(c==='fermer'||c==='biomes'?'retour':c==='niveau'?'':'nav'); /* (console de son) fermer, revenir aux mondes = retour · lancer un niveau = l'appui principal · ouvrir un monde = aller */
 });
 $('gNext').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarget);garageGo(1);});
 // ⚠ LE SWIPE REMPLACE-T-IL L'ORBITE ? NON — IL SE POSE DESSUS (2026-09-05, demande du user : glisser
@@ -29397,6 +29439,11 @@ function loop(now){
   bioStep(dt); // BIOMES : le voyage d'ambiance avance même au menu/en pause de jeu (c'est le ciel qui vit, pas la sim)
   if(parkGrassMat)parkGrassMat.uniforms.uTime.value=now*.001; // l'herbe longue du parc ondule au vent (now : dispo avant `const t`)
   cityTick(dt,camera.position.y); // LA VILLE : son altitude court après la caméra (hors gate de sim — le décor vit au menu, comme le ciel)
+  if(SONV2){ // (console de son) LE VIDE : en orbite, un bourdon qui respire remplace le vent (windG/whG se taisent, voir la boucle audio)
+    const v9=LVL.espace>.5&&started&&running&&!gameOver&&!garageOn&&mode!=='boom';
+    if(v9&&!loop._vide&&now>(loop._videT||0)){loop._videT=now+500;loop._vide=sfx('espace.ambiance',{loop:true,vol:-24});if(loop._vide)loop._vide.gain(0,.8);}
+    else if(!v9&&loop._vide){loop._vide.stop(.5);loop._vide=null;}
+  }
   // (2026-09-26, user : « enlève tous les modes ralentis du jeu ») : plus de slow-mo (atterrissage, gros air, bullet-time, reprise de
   // pause, ultra-turbo, explosion) ni de HIT-STOP. Les déclencheurs posent encore slowT/hitT : on les vide ici, le temps ne ralentit JAMAIS.
   slowT=0;hitT=0;
@@ -29429,9 +29476,10 @@ function loop(now){
     const NRMAX=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2;
     nitroR=Math.min(NRMAX,nitroR+.2*dt);
     if(pwrNitroT>0||PARK.on||startBoostT>0)nitroR=NRMAX; // NITRO INFINIE : jauge pleine, rien ne se consomme (pouvoir, parc freestyle, OU le boost de départ) — pleine = la capacité du MOTEUR (à 2 en dur, la jauge restait à 55 % au palier max)
+    {const fu9=nitroR>=NRMAX-.001,d9=nitroR-(loop._nR==null?nitroR:loop._nR);if(SONV2&&fu9&&loop._nFu===false&&d9<.06&&!(pwrNitroT>0||PARK.on||startBoostT>0)&&started&&!gameOver)sfx('nitro.pleine');loop._nFu=fu9;loop._nR=nitroR;} // (console de son) PLEINE : ding au franchissement — pas sous nitro infinie, ni quand un plein OFFERT (saut > .06 : portail, pose, bump, fruit) l'a remplie, il a son glouglou
     const wantN=keys.ShiftLeft||keys.ShiftRight||keys.Space||startBoostT>0; // le boost de départ tient la touche à la place du joueur — « pas dur à gérer »
     nitroOn=wantN&&(nitroOn?(nitroR+nitroX)>.005:(nitroR+nitroX)>.3); // hystérésis anti-clignotement
-    if(wantN&&!loop._nvW&&!nitroOn&&mode!=='boom'){try{noiseBurst(.04,.06,2500);}catch(e){}hap(6);} // (2026-09-26, audit son) NITRO À VIDE : un « tchk » sec — l'appui répond toujours
+    if(wantN&&!loop._nvW&&!nitroOn&&mode!=='boom'){try{if(SONV2)sfx('nitro.vide');else noiseBurst(.04,.06,2500);}catch(e){}hap(6);} // (2026-09-26, audit son) NITRO À VIDE : un « tchk » sec — l'appui répond toujours
     loop._nvW=wantN;
     if(nitroOn&&pwrNitroT<=0&&!PARK.on&&startBoostT<=0){
       let take=dt*(FLOW.lv===4?FLOW2.fren.nitro:1); // (v3, Sacha : « en frénésie le nitro baisse 2× plus lentement »)
@@ -29446,10 +29494,11 @@ function loop(now){
     loop._nBl=nitroBlue;
     if(nitroOn){nitroHeldT+=dt;styleFromBoost(dt);} // TENIR le boost remplit la jauge rose — la seule source
     if(!nitroOn&&loop._nOn&&nitroHeldT>.35)blowOff();
+    if(SONV2&&!nitroOn&&loop._nOn&&wantN&&mode!=='boom')sfx('nitro.sec'); // (console de son) PANNE SÈCHE : la jauge lâche sous le doigt
     if(!nitroOn&&loop._nOn)nitroEteint(); // (vague 3) la dernière bouffée (lit nitroHeldT : avant sa remise à zéro)
     if(!nitroOn)nitroHeldT=0;
     loop._nOn=nitroOn;
-    if(keys.KeyR&&mode==='drive'){respawn();keys.KeyR=false;}
+    if(keys.KeyR&&mode==='drive'){respawn();keys.KeyR=false;if(SONV2)sfx('respawn');}
     // PILOTE AUTO DE MESURE (`dbgAuto`) : le volant du bot de poursuite (mêmes équations) posé sur TA caisse —
     // sert à mesurer l'économie sur des dizaines de parties sans jouer à la main. Jamais armé en jeu.
     const target=DBG_AUTO.on?THREE.MathUtils.clamp((routeLacet+(THREE.MathUtils.clamp((DBG_AUTO.lat-lat)/(Math.max(6,Math.abs(vA)*SPD)*.9),-.4,.4)-psi)*3)/lacetMax(vA),-1,1) // (conduite v6) le pilote de mesure corrige son CAP vers la ligne visée // (conduite v4) le pilote de mesure VISE un cap
@@ -29466,7 +29515,7 @@ function loop(now){
         if(idleT>1.6){
           showMsg('⚠ ROULE OU CRÈVE — '+Math.max(0,6-idleT).toFixed(1)+'s','#ff4d4d'); // compte à rebours vivant
           loop._tickT=(loop._tickT||0)-dt; // TIC d'amorce qui S'ACCÉLÈRE vers le boom
-          if(loop._tickT<=0){loop._tickT=Math.max(.10,(6-idleT)*.22);chimeNote(660+ (6-idleT<1?900:0),0,.05,.22);subBoom(.05);}
+          if(loop._tickT<=0){loop._tickT=Math.max(.10,(6-idleT)*.22);if(SONV2)sfx('arret.tic',{st:6-idleT<1?7:0,vol:6-idleT<1?2:0});else{chimeNote(660+ (6-idleT<1?900:0),0,.05,.22);subBoom(.05);}}
         }
         if(idleT>=6){idleT=0;explode('arret');}
       }else{idleT=Math.max(0,idleT-dt*2.5);loop._tickT=0;}
@@ -29538,7 +29587,7 @@ function loop(now){
        glisse9=THREE.MathUtils.clamp(Math.abs(slipB)*2.6+driftT*.5+Math.max(0,Math.abs(yawR*vA)*SPD-22)/70,0,1)*Math.min(1,Math.abs(vA)/35); // (2026-09-26) la gomme fume et crisse dès que la caisse chasse (power-slide)
        // (aura v2) LE VIRAGE SERRÉ : tenir une grosse charge latérale 0,9 s sur la route — prendre un virage À FOND, ça se paie
        {const aL9=Math.abs(yawR*vA)*SPD;if(aL9>32)virT+=dt;else if(aL9<12){virT=0;virPaye=false;}
-        if(virT>.9&&!virPaye){virPaye=true;chaineAura('VIRAGE SERRÉ',45,'virage');}}}
+        if(virT>.9&&!virPaye){virPaye=true;if(SONV2)sfx('virage');chaineAura('VIRAGE SERRÉ',45,'virage');}}}
       driftTick(dt,drifte);
       // (conduite v3) RASE-BORD : frôler le vide à pleine vitesse RECHARGE le nitro — le risque paie
       if(!introD&&!PARK.on&&Math.abs(lat)>ROAD_HALF*.8&&Math.abs(vA)>maxSp*.5){raseT+=dt;nitroGain(.22*dt);flowAdd(6*dt,'route'); // bande du RASE-BORD : les 20 % extérieurs de la demi-route (3 à 4,8 m sur la route large)
@@ -29567,7 +29616,7 @@ function loop(now){
       // PURE SPEED : 3 s de nitro soutenu à +400 km/h sur la route
       if(nitroOn&&speedKmh>400){
         pureT+=dt;
-        if(pureT>3&&pureArmed){pureArmed=false;const tx=annSpeak('pureSpeed',2);if(tx)trickMsg(tx,2);noiseBurst(.5,.12,1200);
+        if(pureT>3&&pureArmed){pureArmed=false;const tx=annSpeak('pureSpeed',2);if(tx)trickMsg(tx,2);if(SONV2)sfx('vitesse.pure',{st:sonPd(0)});else noiseBurst(.5,.12,1200);
           chaineAura('PURE SPEED',120,'pure');pureNext=pureT+2;}
         /* TENIR PLUS LONGTEMPS PAYE PLUS, MAIS PAR PALIERS. Un gain continu redeviendrait le robinet
            qu'on vient de supprimer ; là, chaque 2 secondes tenues déclenche une NOUVELLE salve, plus
@@ -29575,7 +29624,7 @@ function loop(now){
         // ⚠ PALIER PLAFONNÉ À 5 (audit 2026-08-18) : `150+pureLvl*100` sans borne, c'est une rente —
         // tenir 60 s donnait 30 salves dont la derniere a 3 150. L'escalade se sent jusqu'a ×6, apres
         // quoi c'est la DUREE qui paye, pas le multiplicateur.
-        if(!pureArmed&&pureT>pureNext){pureNext=pureT+2;pureLvl=Math.min(5,pureLvl+1);chaineAura('PURE SPEED ×'+(pureLvl+1),60+pureLvl*40,'pure',true);}
+        if(!pureArmed&&pureT>pureNext){pureNext=pureT+2;pureLvl=Math.min(5,pureLvl+1);if(SONV2)sfx('vitesse.pure',{st:sonPd(pureLvl)});chaineAura('PURE SPEED ×'+(pureLvl+1),60+pureLvl*40,'pure',true);}
       }else{pureT=0;pureArmed=true;pureNext=0;pureLvl=0;}
       // point de respawn sûr
       if(side>0&&F.n.y>.5&&Math.abs(lat)<ROAD_HALF-2&&Math.abs(psi)<.5)safeS=s;
@@ -29599,7 +29648,7 @@ function loop(now){
       if(mode==='drive'&&padCd<=0)for(let i9=0;i9<PADS.length;i9++){
         if(Math.abs(s-PADS[i9])<6&&Math.abs(side*lat-PADL[i9])<4.1){ // 2,75 de pad + ~1,35 de caisse : il faut MORDRE dessus
           vA+=18;boost=Math.max(boost,1.5);padCd=1.5; // viser paie plus qu'avant (14 → 18)
-          boostSnd();shake=Math.max(shake,.3);hap(10);
+          if(SONV2)sfx('pad');else boostSnd();shake=Math.max(shake,.3);hap(10);
           slam('BOOST','','#ffb000','#ff3924',46);flashEcran('rgba(255,150,0,.5)');fovPunch=Math.max(fovPunch,10); // (HUD v3) « quand tu roules sur un boost, BOOST en gros »
           nitroGain(.12);flowAdd(6,'route','p');momT=Math.min(4.3,momT+.8);
           campPad(i9); // (2026-09-27) la LIGNE DE NÉON (campagne VILLE, niveau 12)
@@ -29637,7 +29686,7 @@ function loop(now){
       if(mode==='drive'&&hopY===0&&Math.abs(vF)>10)for(const b9 of BUMPS){
         if(Math.abs(s-b9)<2.2){
           hopV=2.4+Math.min(3.2,Math.abs(vF)*.045);
-          vA*=.97;shake=Math.max(shake,.15);noiseBurst(.12,.1,300);
+          vA*=.97;shake=Math.max(shake,.15);if(SONV2)sfx('dosdane');else noiseBurst(.12,.1,300);
           if(Math.random()<.5)dropChip(1);
           break;
         }
@@ -29670,7 +29719,7 @@ function loop(now){
           coneVole(c9); // (perf) il quitte l'instance : un vrai plot part valser
           if(pwrBouT>0)kv.multiplyScalar(1.6); // (pouvoirs v2) BOUCLIER : il part BEAUCOUP plus loin
           FLYCONES.push({m:c9.mesh,v:kv,rx:(Math.random()-.5)*16,rz:(Math.random()-.5)*16,life:1.6,p0:c9.mesh.position.clone(),n0:F.n.clone().multiplyScalar(side),b0:F.b.clone()});
-          try{coneSnd();}catch(e){}
+          try{if(SONV2&&c9.dur&&!(pwrBouT>0))sfx('porte');else coneSnd();}catch(e){}
           if(pwrBouT>0){pwrDemoli(c9.mesh.position);addStyle(2);} // (pouvoirs v2) BOUCLIER : le plot VOLE sans rien coûter — et il paie (DÉMOLI)
           else{
           vA*=.985;shake=Math.max(shake,.14);hap(10);
@@ -29689,7 +29738,7 @@ function loop(now){
         if(Math.abs(lat-side*o9.lat)<o9.r+.6){ // même repère que les plots (posées côté dessus)
           slipT=.75;oilCd=1.2;
           shake=Math.max(shake,.2);
-          noiseBurst(.35,.12,1900); // long crissement
+          if(SONV2)sfx(o9.eau?'flaque.eau':'flaque.huile');else noiseBurst(.35,.12,1900); // long crissement (console de son : l'eau de la ville ne sonne plus comme l'huile)
           hap(60); // (2026-09-26) par hap() : l'interrupteur et le Taptic d'iOS s'appliquent
           break;
         }
@@ -29763,7 +29812,7 @@ function loop(now){
             /* LA RÉCOLTE EN SÉRIE. Une pièce isolée ne donne RIEN en aura — sinon on récompense
                encore le simple fait d'avancer. C'est tous les 5 ramassages SANS laisser retomber le
                combo (fenêtre de 3 s) que la salve tombe, et elle grossit à chaque palier. */
-            if(combo%5===0)chaineAura('RÉCOLTE ×'+combo,30,'recolte',true);
+            if(combo%5===0)chaineAura('RÉCOLTE ×'+combo,30,'recolte',true,SONV2); /* (console) muet : blip() joue piece.recolte */
             // ÉCONOMIE RÉGULÉE (2026-07-30) : on montait de caisse BEAUCOUP trop vite. La pièce vaut
             // ~2,3× moins et le combo se mérite (un palier toutes les 5 pièces, plafond ×4 au lieu de ×5)
             // → rendement max 8,8×denom contre 25×denom avant. La CHAÎNE DE FIGURES reste la vraie fortune.
@@ -30158,7 +30207,7 @@ function loop(now){
          if(caseHud.style.fontSize!==fs9)caseHud.style.fontSize=fs9;
          if(caseHud.style.opacity!=='1')caseHud.style.opacity=1;}
         const hot=est>denom()*20; // au-delà, c'est de la nitroglycérine : tremblement + cœur
-        if(hot!==caseHot){caseHot=hot;caseHud.className=hot?'hot':'';}
+        if(hot!==caseHot){caseHot=hot;caseHud.className=hot?'hot':'';if(hot&&SONV2&&!heartBeat.vu){heartBeat.vu=1;sfx('mallette.chaude');}}
         if(hot){heartT-=dt;if(heartT<=0){heartT=.86;heartBeat();}}
       }
       if(speedKmh>120){ // traits d'air aussi en vol (seuils ×2 : SPD .25→.5)
@@ -30634,15 +30683,15 @@ function loop(now){
       }
       if(windG){
         // MORT ('boom') : coupé NET — sinon spd3 (=speedKmh figé au crash) laisse le vent souffler à fond pour toujours
-        stt(windG.gain,mode==='boom'?0:Math.min(.05,spd3*.0001+(mode==='fall'?.018:0)+cloudInS*.02)*dk,AC.currentTime,mode==='boom'?.08:.15); // coef ÷2 (SPD .25→.5 : spd3 a doublé) — le vent garde sa montée progressive au lieu de saturer dès le mid-game
+        stt(windG.gain,mode==='boom'?0:Math.min(.05,spd3*.0001+(mode==='fall'?.018:0)+cloudInS*.02)*dk*(SONV2?1-Math.min(1,LVL.espace):1),AC.currentTime,mode==='boom'?.08:.15); // coef ÷2 (SPD .25→.5 : spd3 a doublé) — le vent garde sa montée progressive au lieu de saturer dès le mid-game
         stt(windF.frequency,Math.min(16000,(280+spd3*1.25)*(1-.6*cloudInS)+(mode==='fall'?260:0)),AC.currentTime,.15); // ⚠ plafonné : au-delà de 24 kHz le navigateur crachait un avertissement PAR IMAGE // le nuage étouffe le vent, l'air libre l'aère (coef ÷2 : même pitch au même état-caisse)
       }
       if(whG){ // sifflement d'air : la signature des vitesses folles (>330 km/h)
         // MORT : coupé NET (même piège que le vent : sinon le sifflement reste bloqué à fond après le crash)
-        stt(whG.gain,mode==='boom'?0:Math.min(.06,Math.max(0,(spd3-560)/4400))*(1-.7*cloudInS)*(1-.5*nA)*dk,AC.currentTime,mode==='boom'?.08:.12); // seuil+pente ×2 (SPD .25→.5 : spd3 a doublé) — le sifflement reste la signature des VITESSES FOLLES, pas un fond permanent
+        stt(whG.gain,mode==='boom'?0:Math.min(.06,Math.max(0,(spd3-560)/4400))*(1-.7*cloudInS)*(1-.5*nA)*dk*(SONV2?1-Math.min(1,LVL.espace):1),AC.currentTime,mode==='boom'?.08:.12); // seuil+pente ×2 (SPD .25→.5 : spd3 a doublé) — le sifflement reste la signature des VITESSES FOLLES, pas un fond permanent
         stt(whF.frequency,2000+spd3*1.2,AC.currentTime,.1); // coef ÷2 : même pitch au même état-caisse
       }
-      if(cloudInS>.45&&!loop._cldWas)noiseBurst(.45,.08,520); // percée dans la ouate : fwoosh de coton
+      if(cloudInS>.45&&!loop._cldWas&&!SONV2)noiseBurst(.45,.08,520); // percée dans la ouate : fwoosh de coton
       loop._cldWas=cloudInS>.45;
       if(skidG){ // crissement v2 : ZONE MORTE (il signale LA LIMITE, pas la conduite normale), pitch qui monte avec la glisse
         const drift=(mode==='drive')?glisse9:0; // …et il CRISSE (même mesure que la fumée)
@@ -30689,6 +30738,8 @@ function loop(now){
     // portail qui pulse + pads RGB qui défilent
     if(portalMesh){portalMesh.scale.setScalar(1+.035*Math.sin(t*2.2));portalMesh.rotation.y=t*.12;if(PORTAL.mat)PORTAL.mat.uniforms.uT.value=t; // l'ovule respire et tourne lentement
       if(PORTAL.noy)PORTAL.noy.scale.setScalar(PORTAL.R*(.62+.12*Math.sin(t*4.4)));if(PORTAL.halo)PORTAL.halo.material.opacity=.22+.08*Math.sin(t*2.2);} // le NOYAU bat
+    // (console de son) LE PORTAIL APPROCHE : un bourdon qui monte, UNE fois par portail (portalMesh est neuf à chaque piste), ~2 s avant l'ovule — et près du BOUT de la piste (un ruban qui repasse sous l'ovule ne le déclenche pas)
+    if(SONV2&&portalMesh&&PORTAL.son!==portalMesh&&!PARK.on&&!CAMP.portFerme&&mode!=='boom'){const v9=Math.max(10,speedKmh/3.6),d9=carGroup.position.distanceTo(PORTAL.c)-PORTAL.R*.95;if(d9<v9*2&&L-(mode==='fall'?lastNearS:s)<v9*3+120){PORTAL.son=portalMesh;sfx('portail.proche');}}
     // pads turbo : on n'anime la texture (dessin canvas + upload GPU) que si un pad est réellement en vue
     {let pv9=false;for(const p9 of PADS)if(p9>s-80&&p9<s+520){pv9=true;break;}if(pv9)updatePadTex(t);}
     // HUD
@@ -30748,11 +30799,11 @@ function loop(now){
     paintCarHud();
     if(loop._money!==money){loop._money=money;elMoney.innerHTML=fmtGta(money); // un parse HTML seulement quand le compte bouge
       for(const u of unitsL())if(money>=u[0]){ // on vient de changer d'ordre de grandeur ? ça se FÊTE (une fois par session)
-        if(u[0]>unitSeen){unitSeen=u[0];showMsg(TR('💸 TU COMPTES EN ')+u[2]+TR(' MAINTENANT !'),'#7dff9a');}
+        if(u[0]>unitSeen){unitSeen=u[0];if(SONV2)sfx('argent.palier');showMsg(TR('💸 TU COMPTES EN ')+u[2]+TR(' MAINTENANT !'),'#7dff9a');}
         break;}
     }
     if(!gameOver&&money>=nextRainAt){nextRainAt*=2.6;startMoneyRain();showMsg(pickL(RAIN_LINES),'#7dff9a');}
-    if(money>best){best=money;SAVE.d.best=best;SAVE.mark();} // mark : le filet des 30 s (ou la fin de run) écrira
+    if(money>best){if(SONV2&&started&&!gameOver&&!SANDBOX&&!TUTO.on&&best>START_CASH+.5&&!runStats.recSon){runStats.recSon=1;sfx('aura.record');}best=money;SAVE.d.best=best;SAVE.mark();} // mark : le filet des 30 s (ou la fin de run) écrira
     if(loop._bestHud!==best){loop._bestHud=best;elRecord.textContent=TR('record : ')+fmt(best);}
     // ⚠ on n'écrit la jauge QUE si elle a bougé d'un demi-pour-cent : un style par image, c'est un recalcul de style par image
     // (2026-09-28, HUD v5) la rampe dit la MÊME chose que le disque NITRO : la part du RÉSERVOIR du moteur (orange), puis la réserve bleue
@@ -31285,7 +31336,12 @@ function togglePause(){ if(!started||gameOver)return;
   /* (2026-09-28) …et en FONDU : un `suspend()` sec coupait le moteur en plein cycle — un « tic » à chaque pause. La sortie commune
      (`BUSOUT`) descend en ~40 ms, le contexte s'endort derrière ; la reprise (ou le compte 3-2-1) remet la sortie à plein. */
   try{ if(AC){ const T8=AC.currentTime;clearTimeout(togglePause._t);
-    if(paused){if(BUSOUT)BUSOUT.gain.setTargetAtTime(0,T8,.012);togglePause._t=setTimeout(function(){try{if(paused&&AC.state==='running')AC.suspend();}catch(e){}},70);}
+    if(paused){ /* (2026-09-28, console de son) le clic ⏸ et la feuille qui s'ouvre (ui.feuille, posée à 0,36 s) sonnent JUSQU'AU BOUT : la sortie attend `d9` pour descendre et le contexte s'endort
+       d'autant plus tard. Le JEU est gelé tout de suite (paused) et les boucles (moteur, vent, nitro…) sont coupées net juste au-dessus :
+       pendant ces 0,42 s ne sonnent que les sons ponctuels déjà partis. Une reprise dans l'intervalle annule tout
+       (busPlein efface la rampe programmée, clearTimeout la suspension). Onglet caché (retour d'appli) : ni son ni délai. */
+      let d9=0;try{if(SONV2&&!document.hidden)d9=.42;}catch(e){}
+      if(BUSOUT)BUSOUT.gain.setTargetAtTime(0,T8+d9,.012);togglePause._t=setTimeout(function(){try{if(paused&&AC.state==='running')AC.suspend();}catch(e){}},70+d9*1000);}
     else{busPlein();if(SND.sfx)AC.resume();} } }catch(e){}
   if(paused){annStop();fxStop();deathStop();} // (2026-09-26) les voix et les samples sont des HTMLAudio : suspendre le contexte ne les arrêtait pas — (2026-09-28) le son de MORT non plus : une pause pendant l'explosion le laissait hurler par-dessus le panneau
   musicPause(paused); // la musique ne passe plus par l'AudioContext : elle se met en pause elle-même
@@ -31470,9 +31526,9 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     const pas=function(){
       const s9=avE('slam9');
       if(!started||gameOver||!paused||(pan.classList.contains('open')&&!pan.classList.contains('sortant'))){repriseCompte.t=0;if(s9)s9.classList.remove('compte','on');return;} // la feuille qui DESCEND encore n'annule rien
-      if(n===0){repriseCompte.t=0;if(s9)s9.classList.remove('compte','on');togglePause();return;} // retirer `on` AUSSI : sinon l'animation normale repart et le « 1 » revient en grand
+      if(n===0){repriseCompte.t=0;if(s9)s9.classList.remove('compte','on');try{sfx('ui.go');}catch(e){}togglePause();return;} // retirer `on` AUSSI : sinon l'animation normale repart et le « 1 » revient en grand
       slam(String(n),'','#ffd75e','#ff7ad5',64,9);{const s8=avE('slam9');if(s8)s8.classList.add('compte');} // un chiffre = 0,3 s : l'entrée doit être lisible tout de suite
-      try{chimeNote(noteP(n===1?4:2,1),0,.08,.1);}catch(e){}hap(6); // (2026-09-27) ces bips et la vibration étaient avalés par le commentaire ci-dessus
+      try{if(SONV2)sfx('ui.bip');else chimeNote(noteP(n===1?4:2,1),0,.08,.1);}catch(e){}hap(6); // (2026-09-27) ces bips et la vibration étaient avalés par le commentaire ci-dessus
       n--;repriseCompte.t=setTimeout(pas,300);};
     /* (2026-09-28) LE « 3 » ATTEND QUE LE SON SOIT RÉVEILLÉ. `AC.resume()` est asynchrone : lancé juste avant le compte, le premier
        bip tombait sur un contexte encore suspendu (`sfxOk` le refuse) — on n'entendait que « 2 » et « 1 ». On part à la promesse
@@ -31486,7 +31542,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   // clavier-souris. Fonctions NOMMÉES (pas des closures anonymes dupliquées) pour qu'un seul corps
   // serve les deux entrées — sinon la logique finit par diverger au premier changement, comme le
   // commentaire plus haut le dit déjà pour les interrupteurs eux-mêmes.
-  function gearOpenHandler(e){ if(e.cancelable)e.preventDefault(); e.stopPropagation(); uiClic(); panOpen(true); } // (charte, règle 8) le ⏸ sonne AVANT que la pause ne coupe le son — (2026-09-28) plus de hap(10) derrière : uiClic vibre déjà, le pouce sentait DEUX coups
+  function gearOpenHandler(e){ if(e.cancelable)e.preventDefault(); e.stopPropagation(); uiClic('nav'); panOpen(true); } // (charte, règle 8) le ⏸ sonne AVANT que la pause ne coupe le son — (2026-09-28) plus de hap(10) derrière : uiClic vibre déjà, le pouce sentait DEUX coups
   function panTapHandler(e){
     if(e.cancelable)e.preventDefault(); e.stopPropagation();
     const el=e.target&&e.target.closest?e.target.closest('.tp'):null;
@@ -31508,7 +31564,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
         boutons:[{l:q9?'QUITTER':'RECOMMENCER',ic:q9?'quitter':'rejouer',cls:'pb-red',v:1},{l:'CONTINUER',ic:'lecture',v:0}]}) // CONTINUER en DERNIER : Échap clique le dernier bouton
       .then(function(r){ if(!r.v||!started||gameOver)return; panOpen(false);
         if(q9){if(TUTO.on)tutoQuitte();const sb=SANDBOX;SANDBOX=false;endGame();SANDBOX=sb;} else {carrIci();resetGame();} }); } // carrIci : la carrière repart du niveau en cours · (2026-09-28) tutoQuitte : la leçon quittée sera reproposée
-    uiClic(); // ⚠ EN DERNIER : un bouton qui SORT de la pause (reprendre, recommencer, quitter) garde son clic ; en pause il reste le visuel et la vibration
+    uiClic(a==='close'?'retour':a==='snd'?(SND.sfx?'on':'off'):a==='vox'?(SND.voice?'on':'off'):a==='mus'?(SND.music?'on':'off'):a==='surv'?(SURV.armed?'on':'off'):(a==='ctl'||a==='q')?'onglet':(a==='reset'||a==='quit')?'danger':''); /* (console de son) le RÔLE — ici le clic part APRÈS la bascule : l'interrupteur sonne son nouvel état */ // ⚠ EN DERNIER : un bouton qui SORT de la pause (reprendre, recommencer, quitter) garde son clic ; en pause il reste le visuel et la vibration
   }
   if(gear)gear.addEventListener('click',gearOpenHandler); // au relâcher (voir mHit) : le panneau défile, un glissé n'active rien
   if(pan)pan.addEventListener('click',panTapHandler);
@@ -31626,6 +31682,22 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     // (2026-09-28) `mCur` reste 'dead' après REJOUER (et au garage) : la fanfare partait au départ de la course suivante.
     // L'écran de mort, c'est aussi la partie FINIE et le menu VISIBLE.
     const ici=function(){return mCur==='dead'&&started&&gameOver&&overlay.style.display!=='none';};
+    /* (2026-09-28, console de son) L'ÉCRAN DE MORT, CALÉ SUR SES NOUVELLES DURÉES (session INTERFACE). Enseigne à 80 ms · carte AURA à
+       250 ms (son « NOUVEAU RANG ») · le montant s'égrène de 360 à 1110 ms : neuf crans de la gamme qui RALENTISSENT avec le compteur
+       (chaque cran tombe quand le montant franchit un neuvième de plus du chemin : 43 ms d'écart au départ, 250 ms avant la pose),
+       le dernier sur la quinte, puis la POSE sur l'accord (1110 ms) · un RECORD part à 810 ms pour que son TAAA (0,3 s) tombe pile sur
+       la pose — sauf sur une fin de monde, qui a déjà sa fanfare · une caisse gagnée à la fin de la partie sonne quand tout est posé.
+       0 $ versés : pas de compte (mCount affiche d'un coup), donc ni crans ni pose. La jauge des missions et le carnet : objRender. */
+    if(SONV2){
+      const s9=function(ms,id,o){setTimeout(function(){if(ici())try{sfx(id,o);}catch(e){}},ms);};
+      const d9=REDUCED_MOTION?0:360,cpt=!!mCntT,fin9=mortCause==='finNuages'||mortCause==='finVille'||mortCause==='finEspace';
+      s9(80,'mort.enseigne');
+      if(commitExploits._rangMonte)s9(250,'ui.debloque');
+      if(cpt){for(let j=0;j<9;j++)s9(d9+Math.round(750*(1-Math.sqrt(1-j/9))),'ui.compte',{st:sonPd(j)});s9(d9+750,'mort.compteFin');}
+      if(rec&&!fin9)s9(d9+450,'ui.record');
+      if(commitExploits._neuves&&!document.body.classList.contains('touch'))s9(1750,'caisse.debloquee'); /* sur téléphone la caisse gagnée n'est pas affichée (#mNew masqué) : pas de son sans image */
+      if(rec)setTimeout(function(){if(ici())pixBurst($t('mOverT'),34);},900);
+      return;}
     for(let i=0;i<8;i++)setTimeout(function(){if(ici())try{chimeNote(noteP(i,1),0,.035,.06);}catch(e){}},320+i*85);
     setTimeout(function(){if(!ici())return;try{if(rec)rewardSfx('m3',3);else{chimeNote(noteP(4,1),0,.08,.3);chimeNote(noteP(7,1),.06,.07,.36);}}catch(e){}},1040);
     if(rec)setTimeout(function(){if(ici())pixBurst($t('mOverT'),34);},900); // (charte v4) un record, ça se voit aussi : l'enseigne crache ses confettis
@@ -31686,7 +31758,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       misRender();
     }else if(mCur==='home'){
       if(!(started&&!gameOver)&&!SANDBOX){const r9=misFin(); // un carnet rempli mais pas refermé (partie quittée, app tuée) : on le referme ici, et ça se FÊTE
-        if(r9){MIS_REC=r9;misBanniere('DÉFIS RÉUSSIS !',r9.nom,TR('DÉBLOQUÉ'),'cadeau');try{fanfare();}catch(e){}}}
+        if(r9){MIS_REC=r9;misBanniere('DÉFIS RÉUSSIS !',r9.nom,TR('DÉBLOQUÉ'),'cadeau');try{if(SONV2)sfx('ui.carnet');else fanfare();}catch(e){}}}
       {const pp=$t('mMisPips'),s9=misEtat();if(pp)pp.querySelectorAll('u').forEach(function(u,i){u.classList.toggle('ok',!!s9.ok[i]);});} // la porte MISSIONS : une case allumée par défi relevé
       const bv=$t('mBankV');if(bv)bv.textContent=fmtC(bank());
       let nG=shopAPortee();for(let i=0;i<CARS.length;i++){const p9=carPrice(i);if(p9&&!carUnlocked(i)&&p9<=bank())nG++;}
@@ -31711,8 +31783,23 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       volUI();
     }
   }catch(e){} }
+  /* (2026-09-28, console de son) LE RÔLE DU CLIC DE LA COQUE. Le clic part AVANT la bascule (voir mTap) : un interrupteur annonce donc
+     l'état qu'il VA prendre. JOUER / REJOUER gardent l'appui principal (or) ; SON sonne après sa propre bascule (plus bas). */
+  function mRole9(a){
+    if(a==='play'||a==='replay')return '';
+    if(a==='back'||a==='menu')return 'retour';
+    if(a==='mus')return SND.music?'off':'on';
+    if(a==='vox')return SND.voice?'off':'on';
+    if(a==='vib')return SND.vib?'off':'on';
+    if(a==='surv')return SURV.armed?'off':'on';
+    if(a==='park')return PARK.on?'off':'on';
+    if(a==='sand')return SANDBOX?'off':'on';
+    if(a==='q'||a==='lang'||a==='ctl')return 'onglet';
+    if(a==='wipe')return 'danger';
+    return 'nav';
+  }
   function mTap(a,el){
-    if(a!=='snd')uiClic();uiPop(el);if(a==='play'||a==='replay')pixBurst(el,16); // chaque bouton REBONDIT ; JOUER lâche une gerbe — (2026-09-28) SON : le clic part APRÈS la bascule (plus bas)
+    if(a!=='snd')uiClic(mRole9(a));uiPop(el);if(a==='play'||a==='replay')pixBurst(el,16); // chaque bouton REBONDIT ; JOUER lâche une gerbe — (2026-09-28) SON : le clic part APRÈS la bascule (plus bas)
     if(a==='replay'&&started&&gameOver){ goImmersive(); ecranWipe(function(){ if(started&&gameOver){ if(!CARR.actif)tutoArme(); resetGame(); } }); } // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite ; pas en carrière : son niveau passe devant la piste d'apprentissage)
     else if(a==='play'||a==='replay'){ if(a==='play')CARR.actif=null;
       tutoArme(); // 1re partie = AUTO-ÉCOLE
@@ -31735,7 +31822,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='surv'){ clic(survBtnEl); mFill(); }
     else if(a==='park'){ clic(parkBtnEl); mFill(); }
     else if(a==='sand'){ SANDBOX=!SANDBOX; SAVE.d.sand=SANDBOX; SAVE.flush(); mFill(); }
-    else if(a==='snd'){ clic(sndBtnEl); uiClic(); mFill(); } // (2026-09-28) cliqué AVANT la bascule, le clic tombait sur SND.sfx encore faux : RALLUMER le son était muet et sans vibration (couper, lui, se tait — c'est juste)
+    else if(a==='snd'){ clic(sndBtnEl); uiClic(SND.sfx?'on':'off'); mFill(); } // (2026-09-28) cliqué AVANT la bascule, le clic tombait sur SND.sfx encore faux : RALLUMER le son était muet et sans vibration (couper, lui, se tait — c'est juste)
     else if(a==='mus'){ clic(musBtnEl); mFill(); }
     else if(a==='vox'){ clic(voxBtnEl); mFill(); }
     else if(a==='vib'){ SND.vib=!SND.vib; SAVE.d.vib=SND.vib; SAVE.flush(); if(SND.vib)hap(14); mFill(); } // rallumées : elles se présentent d'une impulsion
@@ -31805,8 +31892,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   addEventListener('keydown',function(e){ if(e.code!=='Escape'||e.repeat)return;
     const md=$t('modale'),cr=$t('carr');
     if(md&&md.classList.contains('on')&&!md.classList.contains('sortant')){const bs=md.querySelectorAll('.modB .pbtn');if(bs.length)bs[bs.length-1].click();return;} // le DERNIER bouton d'une fenêtre est toujours l'annulation
-    if(pan&&pan.classList.contains('open')&&!pan.classList.contains('sortant')){panOpen(false,true);uiClic();return;}
-    if(cr&&cr.classList.contains('on')&&!cr.classList.contains('sortant')){uiClic();feuilleFerme(cr,'on');return;}
+    if(pan&&pan.classList.contains('open')&&!pan.classList.contains('sortant')){panOpen(false,true);uiClic('retour');return;}
+    if(cr&&cr.classList.contains('on')&&!cr.classList.contains('sortant')){uiClic('retour');feuilleFerme(cr,'on');return;}
     if(garageOn||(typeof stallOn!=='undefined'&&stallOn))return; // l'atelier et l'étal ont déjà leur Échap
     if(started&&!gameOver){panOpen(true);hap(10);return;}
     if(overlay.style.display!=='none'&&PROF[mCur])mTap('back',null);

@@ -30,7 +30,7 @@
 const S={ac:null,dest:null,bus:{},buf:{},off:{},voix:{},der:{},dern:{},ton:0,ok:false,grp:{},m:null,nDec:0,nTot:0,dec:false};
 const TRIM=-10,FEN=.11,RECUL=-9;
 const BUS={ // niveau du bus (dB) · part envoyée dans la SALLE
-  ui: {db:-3, rev:.05},
+  ui: {db:-5, rev:.05}, // (−3 → −5 : le clic neuf sortait 9 dB au-dessus de l’ancien, quasi inaudible ; on garde la présence sans crier)
   rec:{db: 0, rev:.20},
   fx: {db:+1, rev:.07},
   amb:{db:-4, rev:.30}

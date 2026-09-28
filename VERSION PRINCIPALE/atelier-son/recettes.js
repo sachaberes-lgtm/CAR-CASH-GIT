@@ -927,3 +927,45 @@ D('moteur.palier',{fam:'machine',dur:2.4,st:1,key:1,db:+4,max:1,cd:1,grp:'r',pri
     T.scintille(b,R,I+.25,.8,10,.1);}});
 })(typeof window!=='undefined'?window:globalThis);
 /* <<<FIN MOTEUR>>> */
+
+/* <<<GARAGE>>> */
+(function(G){
+'use strict';
+/* L'ATELIER A UNE VOIX (le garage 3D était muet) : la pièce, pas la musique — le bourdon des tubes néon (100 Hz + harmoniques,
+   le secteur), le TUBE QUI GRÉSILLE deux fois dans la boucle (celui qui clignote à l'image), et la ville au loin par la porte
+   relevée. Très bas, sur le bus d'ambiance : on ne l'entend pas, on le SENT — et le garage devient un lieu. Boucle de 7 s sans
+   couture (fondu enchaîné de ses extrémités). */
+const D=G.CCSON_D,O=G.CCSON_OUTILS,osc=O.osc,bruit=O.bruit,clic=O.clic,T=G.CCSON_T;
+D('garage.ambiance',{fam:'interface',bus:'amb',dur:7,st:1,db:-12,max:1,cd:.5,dit:'l’ATELIER (boucle) : le bourdon des néons, le tube qui grésille, la ville au loin par la porte',
+  r:function(b,R,o){osc(b,{f:100,w:'saw',t0:0,a:.001,h:7,d:.001,v:.05,flt:['lp',520,520,1,.7]});osc(b,{f:50,t0:0,a:.001,h:7,d:.001,v:.1});osc(b,{f:150,t0:0,a:.001,h:7,d:.001,v:.025,pan:.3});
+    bruit(b,{c:'r',t0:0,a:.001,h:7,d:.001,v:.07,ft:'lp',f:700,pan:-.2},R);                       // l'air de la pièce
+    bruit(b,{c:'n',t0:0,a:.001,h:7,d:.001,v:.12,ft:'lp',f:180,am:[.11,.4],pan:.5},R);              // la ville, loin, par la porte
+    for(const t0 of [1.7,4.9]){for(let k=0;k<7;k++){const t=t0+k*.03+R()*.02;clic(b,{t0:t,f:4000,d:.004,v:.12,pan:.6},R);osc(b,{f:100,w:'saw',t0:t,a:.002,h:.015,d:.01,v:.04,pan:.6});}}
+    const n=Math.round(.6*b.sr);for(let i=0;i<n;i++){const k=i/n,j=b.n-n+i;b.L[j]=b.L[j]*(1-k)+b.L[i]*k;if(b.R)b.R[j]=b.R[j]*(1-k)+b.R[i]*k;}
+    for(let i=0;i<n;i++){b.L[i]=b.L[b.n-n+i];if(b.R)b.R[i]=b.R[b.n-n+i];}}});
+})(typeof window!=='undefined'?window:globalThis);
+/* <<<FIN GARAGE>>> */
+
+/* <<<LOT2B>>> */
+(function(G){
+'use strict';
+/* LOT 2B — les sons que le branchement de la piste et de la campagne a réclamés. */
+const D=G.CCSON_D,O=G.CCSON_OUTILS,osc=O.osc,bruit=O.bruit,cloche=O.cloche,clic=O.clic,T=G.CCSON_T;
+const nE=function(st){return 329.6276*Math.pow(2,st/12);};
+D('flaque.sec',{fam:'piste',bus:'fx',dur:.5,key:1,db:-4,max:1,cd:.3,dit:'« À SEC » (une rangée de flaques passée au sec) : le pneu qui accroche le sec + une note de marimba',
+  r:function(b,R,o){bruit(b,{c:'b',t0:0,a:.004,d:.14,v:.3,ft:'bp',f:2100,f1:1600,g:.12,q:4},R);T.marimba(b,R,nE(24),.05,.4,.4);}});
+D('drift.charge',{fam:'machine',bus:'fx',dur:.4,key:1,db:-4,max:2,cd:.1,bases:[0,12],dit:'le DRIFT change de palier (étincelles bleu → or → rose) : l’arc qui claque + la note qui monte (st)',
+  r:function(b,R,o){for(let k=0;k<3;k++)osc(b,{f:1800+k*500,f1:3600,g:.04,t0:k*.012,a:.0005,d:.05,v:.08,fm:{r:3.3,i:2.5,d:.03}});
+    cloche(b,{f:nE(19+o.base),r:[1,2,2.76],m:[1,.3,.12],d:[.28,.1,.04],t0:.01,v:.3},R);}});
+D('fantome.prise',{fam:'campagne',dur:.2,key:1,db:-9,max:3,cd:.06,bases:[0,12],dit:'un cran de la PRISE de la caisse-nuage (la note monte à chaque cran : st)',
+  r:function(b,R,o){T.pluck(b,R,nE(12+o.base),0,.45,.18,1.1);}});
+D('fourgon.billets',{fam:'campagne',bus:'fx',dur:.3,v:3,db:-11,max:3,cd:.06,dit:'des billets et des pièces tombent du coffre du FOURGON',
+  r:function(b,R,o){bruit(b,{c:'b',t0:0,a:.004,d:.1,v:.25,ft:'bp',f:2800+R()*1200,q:1.4,am:[26,.6]},R);cloche(b,{f:nE(24+[0,4,7][o.v]),r:[1,2,3.01,5.43],m:[1,.35,.15,.08],d:[.2,.08,.04,.03],t0:.03,v:.2},R);}});
+D('portail.ouvre',{fam:'piste',dur:1.3,st:1,key:1,db:+1,max:1,cd:1,grp:'r',prio:3,dit:'le PORTAIL SE ROUVRE (après la prise) : l’ovule qui se déploie — souffle qui monte + accord qui s’ouvre',
+  r:function(b,R,o){bruit(b,{c:'r',t0:0,a:.5,d:.4,v:.3,ft:'bp',f:300,f1:3000,g:.8,q:1.2,pan:-.4,pan1:.4},R);T.nappe(b,R,[0,7,12,16],.2,.3,.2,.6,.07,2400);
+    cloche(b,{f:nE(31),r:[1,2,2.76],m:[1,.3,.1],d:[.8,.3,.1],t0:.55,v:.2},R);T.scintille(b,R,.5,.7,8,.08);}});
+D('foudre.touche',{fam:'campagne',bus:'fx',dur:.8,st:1,db:+2,max:1,cd:.5,dit:'FOUDROYÉ mais vivant : l’arc électrique qui grille la carrosserie (sans mort)',
+  r:function(b,R,o){for(let k=0;k<8;k++)osc(b,{f:900+R()*2500,f1:200,g:.05,t0:k*.045+R()*.02,a:.0005,d:.05,v:.12,fm:{r:3.7,i:4,d:.04}});
+    bruit(b,{c:'b',t0:0,a:.002,d:.45,v:.3,ft:'bp',f:5000,q:1,am:[60,.8]},R);T.grave(b,o,0,110,60,.1,.2,.3);}});
+})(typeof window!=='undefined'?window:globalThis);
+/* <<<FIN LOT2B>>> */

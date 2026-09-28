@@ -26,6 +26,23 @@ avec un nom neuf et on le signale à la session SON (ou on écrit la recette dan
 - Console : `dbgSon()` (état, décodage) · `dbgSon('fig.vrille',{st:4})` joue un son.
 - ⚠ **Piège MP3** : le codec étale un pré-écho devant les attaques sèches ; chaque fichier commence par 30 ms de silence et la banque porte
   un ÉTALON (une impulsion) dont le lecteur mesure la crête pour caler l'attaque de TOUS les sons (28,5 ms mesurés dans Chrome).
+- **Lot 2 (tout est branché, ~190 sons)** : chaque événement visible a son son — piste (pads, turbos de drift, nuages entrée/sortie/
+  défonce, dos d'âne, huile ≠ eau, portail et son approche, replacement, chute), score (poses LOURDE/TRAVERS/CONTRESENS/AU CHEVEU,
+  cratère, paliers ×5/×8/×10, encaissements d'aura, triade, frénésie armée/entrée/sortie/record, mallette chaude, REPORT, billets
+  volants, MILLIONS, record en course), campagne (radar, éclair PUIS tonnerre, panne, trafic, fourgon, caisse-nuage, banquier,
+  VICTOIRE ≠ DÉFAITE, fins de monde), meute (alarme du dernier qui accélère), espace (bourdon du vide, le vent SE TAIT), interface
+  (rôles des clics, garage : bascule, tôle, achat + tampon, compteur, lâcher ; départ : logo, bannière lettre à lettre ; écran de
+  mort calé sur l'image : enseigne 80 ms, crans 360→860 ms, pose 1 110 ms ; missions, auto-école, 3-2-1 GO). Carte MOTEUR : une
+  scène d'un seul tenant (`moteur.palier`) calée sur ENG_COULOIR/ENG_PLONGE/T_SWAP — si l'animation change, recaler la recette.
+- **Voix et samples en WebAudio** (`WA_BUF`, `voixWA`, `sampleWA`) quand la page est SERVIE : sur iPhone l'annonceur sortait à plein
+  volume du fichier, sans doublure ni échos. En file:// l'ancien chemin <audio> joue, inchangé. Voix ramenées à −10 LUFS (`VOIX_NORM`).
+- **Curseur EFFETS APRÈS le compresseur** (`MASTER._vol`) ; `MASTER` reste le point de branchement, à 1.
+- **Pause** : la sortie attend 0,42 s avant de s'endormir (le clic ⏸ et la feuille sonnent jusqu'au bout) ; le jeu, lui, gèle tout de suite.
+- **`SON_DUCK`** : les grands moments creusent le moteur/vent (duckT), comme le faisaient les anciennes fanfares.
+- ⚠ **Garde des autres sessions** : `typeof sfx==='function'` est TOUJOURS vrai (la fonction existe même sans console). Pour garder un
+  repli : `if(!(typeof sfx==='function'&&sfx('x')))repli();` (sfx rend null s'il n'a pas joué).
+- ⚠ **Séries** : programmer d'un coup plus de `max` voix d'une fiche avec `{t:}` coupe les premières — les séries partent par setTimeout.
+- Musique : silences morts retirés (NOCTURNAL GROOVE avait 1 s de trou à chaque boucle en VILLE) ; sw.js en `cashcar-v22`.
 ## LE MOUVEMENT DE L'INTERFACE + MISSIONS v2 (2026-09-28, soir) — « travaille les animations, les emplacements, les transitions entre chaque écran : prêt à envoyer à l'App Store »
 Sacha : « il y a des centaines de petites choses à améliorer dans l'interface… travaille les animations quand tu cliques sur les boutons,
 leurs emplacements, les transitions quand tu changes d'écran — que ce soit parfait ; travaille vraiment les transitions entre chaque écran
