@@ -3423,6 +3423,229 @@ html #spNote{position:fixed;bottom:calc(var(--sB) + 84px)}
 @media (prefers-reduced-motion:reduce){#mHome.on>.mPlay,#mHome .pb-gold{animation:none}}
 html[data-reduced-motion="1"] #mHome .pb-gold,html[data-reduced-motion="1"] #mHome.on>.mPlay{animation:none!important}
 </style>
+<style id="hud5">
+/* =====================================================================================================================
+   LE HUD v5 — LE TABLEAU DE BORD À LED (2026-09-28)
+   ---------------------------------------------------------------------------------------------------------------------
+   Sacha : « une refonte complète et maximale des informations affichées pendant la partie — le nitro, la barre de flow, le
+   triangle DARK TRIAD, les boutons, les textes… ajoutés petit à petit : beaucoup plus soignés, beaucoup plus cohérents entre
+   eux ; beau, ADDICTIF, pensé pour MOBILE ». Le diagnostic (17 états capturés) : sept dialectes empilés — une jauge nitro
+   arrondie cerclée d'encre, une bande de flow à cellules, des chiffres cernés de quatre ombres qui flottent sur le ciel, une
+   chaîne sans cadre, des plaques de pouvoirs à part, un badge qui flotte où il peut.
+   L'IDÉE : la police pixel EST un afficheur à LED — tout le HUD devient le tableau de bord d'une voiture de course la nuit.
+     · LA RAMPE (en haut, une seule plaque) : la NITRO en rangée de diodes orange (la réserve en bleu), et sous elle le FLOW en
+       SHIFT LIGHTS — les diodes d'un volant de F1 qui s'allument cyan → or → rose → violet jusqu'à la ZONE ROUGE : la FRÉNÉSIE,
+       c'est le RUPTEUR. Le multiplicateur de cash est lu DANS la plaque. On veut tout allumer : c'est le crochet.
+     · LE SCORE (sous la rampe, à gauche) : l'étiquette AURA au-dessus, le chiffre en grand, le RECORD en rail de diodes or.
+     · LA CHAÎNE : une plaque — les points, le ×, le compte à rebours en diodes qui s'éteignent, les deux derniers gestes.
+     · LA COLONNE DE DROITE : le chrono de vol (disque pixel) et les pouvoirs (plaques, minuteur en diodes).
+     · AU CENTRE, LE COULOIR des annonces ; EN BAS, les pouces (volant, NITRO).
+   PENSÉ POUR LE TÉLÉPHONE : on lit en HAUT par coups d'œil de 100 ms (couleur + remplissage, jamais une phrase), on TOUCHE en
+   BAS ; ce que cache le pouce (le disque NITRO) est redit en haut (la rampe) ; tout passe par les safe areas.
+   ⚠ BLOC AUTORITAIRE : il vient après toutes les passes précédentes (1er <style>, charte4) et redéfinit chaque élément en entier —
+   les classes que le JS pose (flow : .presque .fuit .lache .monte .embrase .sc1 .sc2 .dansZ .revele .ouvre .lent, data-lv ; nitro :
+   .plein .inf .boost .bleu .bas .gain ; triade : .on .sort .tremble .froid .bat1 .bat2) gardent TOUTES leur sens.
+   ===================================================================================================================== */
+:root{
+  --ink:#0b0618;                                   /* l'encre du HUD : contour des chiffres sur le ciel */
+  --plateHud:#110d22;                              /* le fond OPAQUE des plaques du HUD — les jours entre les diodes sont de cette couleur */
+  --ledJour:linear-gradient(90deg,transparent 0 5px,var(--plateHud) 5px 7px) 0 0/7px 100%;   /* une diode = 5 px, un jour = 2 px */
+  --ledOff:rgba(214,200,255,.09);                  /* une diode éteinte */
+  --rampeT:calc(var(--hudH) + 10px);               /* le haut de la rampe (sous l'encoche : --hudH = safe area) */
+  --rampeH:58px;
+  --rampeD:calc(var(--hudD) + 60px);               /* la rampe s'arrête avant le ⏸ */
+  --t1:#35e6ff;--t2:#ffc93a;--t3:#ff4fc2;--t4:#9b6bff; /* les paliers du flow (shift lights) */
+}
+/* ---------------------------------------------- LA RAMPE ------------------------------------------------------------- */
+/* la PLAQUE : sous la nitro ET le flow — un seul instrument */
+html body.touch #nitroWrap{top:var(--rampeT);left:var(--hudG);right:var(--rampeD);width:auto;height:var(--rampeH);box-sizing:border-box;padding:10px 12px 0 36px;transform:none}
+html body.touch #nitroWrap::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:linear-gradient(to bottom right,transparent 50%,var(--fil) 50% calc(50% + 1.3px),transparent calc(50% + 1.3px)) 0 0/10px 10px no-repeat,
+    linear-gradient(to top left,transparent 50%,var(--fil) 50% calc(50% + 1.3px),transparent calc(50% + 1.3px)) 100% 100%/10px 10px no-repeat,
+    linear-gradient(180deg,#191430,var(--plateHud) 60%);
+  clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);
+  box-shadow:inset 0 0 0 1px var(--fil),inset 0 1px 0 rgba(255,255,255,.14);transition:box-shadow var(--t-fast) var(--ease)}
+html body.touch #nitroWrap{isolation:isolate}
+/* LA NITRO : une rangée de diodes — orange (la nitro), bleu (la réserve), éteintes au-delà */
+html body.touch #nitroBar{position:relative;height:14px!important;padding:0;border:0!important;border-radius:0!important;box-sizing:border-box;overflow:visible;
+  background:var(--ledOff)!important;box-shadow:none!important;animation:none}
+html body.touch #nitroBar::after{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:0;animation:none!important;
+  background:var(--ledJour)!important;opacity:1}
+html body.touch #nitroBar::before{left:-29px;top:-3px;width:18px;height:18px;background:#ffb23a;filter:none;transform:none;transition:transform var(--t-fast) var(--ease)}
+html body.touch #nitroR,html body.touch #nitroX{position:relative;height:100%;border-radius:0!important;transition:width .14s linear!important}
+html body.touch #nitroR{background:linear-gradient(180deg,#fff3c0 0 3px,#ffb43c 3px 55%,#ff6a0e 55%)!important;box-shadow:0 0 12px rgba(255,140,40,.55)}
+html body.touch #nitroX{background:linear-gradient(180deg,#dbe6ff 0 3px,#6e92ff 3px 55%,#3558ea 55%)!important;box-shadow:0 0 12px rgba(90,120,255,.5)}
+/* le CURSEUR : un trait blanc au bout de la nitro — posé AU-DESSUS des jours */
+html body.touch #nitroR::after{right:-1px;top:-3px;bottom:-3px;width:2px;border-radius:0;z-index:3;background:#fff;box-shadow:0 0 8px #fff,0 0 14px #ffb35c}
+/* elle BOOSTE : la plaque s'allume de sa couleur, l'éclair grossit ; À SEC : l'éclair clignote rouge ; PLEINE : elle respire */
+html body.touch #nitroBar.boost #nitroR,html body.touch #nitroBar.bleu #nitroX{background-image:none!important;animation:none!important;filter:brightness(1.25)}
+html body.touch #nitroWrap:has(#nitroBar.boost)::before{box-shadow:inset 0 0 0 1px rgba(255,150,50,.75),inset 0 1px 0 rgba(255,255,255,.14),inset 0 0 22px rgba(255,120,30,.35)}
+html body.touch #nitroWrap:has(#nitroBar.bleu)::before{box-shadow:inset 0 0 0 1px rgba(110,146,255,.8),inset 0 1px 0 rgba(255,255,255,.14),inset 0 0 22px rgba(90,120,255,.35)}
+html body.touch #nitroBar.boost::before,html body.touch #nitroBar.bleu::before{transform:scale(1.2);filter:none}
+html body.touch #nitroBar.bas:not(.boost):not(.bleu){animation:none}
+html body.touch #nitroBar.bas:not(.boost):not(.bleu)::before{animation:h5Sec .5s steps(2) infinite}
+@keyframes h5Sec{50%{background:var(--neoR)}}
+html body.touch #nitroBar.plein{animation:none}
+html body.touch #nitroBar.plein #nitroR{animation:h5Plein 1.1s var(--ease) infinite}
+@keyframes h5Plein{50%{filter:brightness(1.35)}}
+html body.touch #nitroBar.gain{animation:none}
+html body.touch #nitroBar.gain #nitroR{animation:h5Gain .45s var(--ease)}
+@keyframes h5Gain{0%{filter:brightness(2.2)}100%{filter:none}}
+/* NITRO MAX (pouvoir) : les diodes chauffées à BLANC, le feu de DOOM lèche la rampe, la plaque brûle */
+html body.touch #nitroBar.inf{box-shadow:none!important}
+html body.touch #nitroBar.inf #nitroR,html body.touch #nitroBar.inf #nitroX{background-image:none!important;animation:none!important;
+  background:linear-gradient(180deg,#fff 0 3px,#fff3c0 3px 55%,#ffc24a 55%)!important;box-shadow:0 0 16px rgba(255,190,60,.9)}
+html body.touch #nitroWrap:has(#nitroBar.inf)::before{box-shadow:inset 0 0 0 1px rgba(255,210,90,.9),inset 0 1px 0 rgba(255,255,255,.2),inset 0 0 26px rgba(255,160,40,.45)}
+html body.touch #nitroFeu{bottom:calc(100% - 6px);height:40px;z-index:1}
+
+/* LE FLOW : les SHIFT LIGHTS, dans la même plaque, sous la nitro — l'icône de la vague, les cellules des paliers, le × de cash */
+html body.touch #flowHud{top:calc(var(--rampeT) + 34px);left:calc(var(--hudG) + 36px);right:calc(var(--rampeD) + 12px);width:auto;height:12px;padding:0;box-sizing:border-box;
+  display:flex;align-items:center;gap:10px;grid-template-columns:none;grid-template-rows:none;background:none;clip-path:none;box-shadow:none;z-index:6}
+html body.touch #flowHud::before{left:-30px;top:-3px;width:18px;height:18px;filter:none}
+html body.touch #flowHud .fL{display:none}
+html body.touch #flowHud .fM{flex:none;order:2;font-size:10px;line-height:1;letter-spacing:0;color:var(--cash);text-shadow:0 0 8px rgba(125,255,155,.45)}
+html body.touch #flowHud[data-lv="0"] .fM{opacity:.45}
+html body.touch #flowHud .fSeg{flex:1;min-width:0;order:1;height:10px;padding:0;gap:3px;border-radius:0;background:none;box-shadow:none}
+html body.touch #flowHud .fSeg>i{border-radius:0!important;background:var(--ledOff);box-shadow:none}
+html body.touch #flowHud .fSeg>i>s{background:linear-gradient(180deg,color-mix(in srgb,var(--sc) 45%,#fff) 0 2px,var(--sc) 2px);box-shadow:none}
+html body.touch #flowHud .fSeg>i::after{content:'';position:absolute;inset:0;z-index:4;pointer-events:none;background:var(--ledJour)}
+html body.touch #flowHud .fSeg>i.cur>s::after{width:2px;background:#fff;box-shadow:0 0 6px var(--sc)}
+html body.touch #flowHud .fSeg::after{display:none}
+/* le palier suivant est À PORTÉE : la cellule en cours bat · ça FUIT : la cellule se hachure · ça LÂCHE : la plaque clignote au tic */
+html body.touch #flowHud.fuit .fSeg{box-shadow:none}
+html body.touch #flowHud.lache .fSeg{animation:none}
+/* ---------------------------------------------- LE SCORE ------------------------------------------------------------- */
+/* l'AURA : l'étiquette AU-DESSUS du chiffre (un compteur se lit « titre, valeur »), le chiffre en grand, et ce que la chaîne vient
+   de verser qui file à côté ; le RECORD dessous en rail de diodes or, sa phrase sous le rail */
+html body.touch #auraV2{left:var(--hudG);top:calc(var(--rampeT) + var(--rampeH) + 12px);max-width:calc(100vw - var(--hudG) - var(--hudD) - 96px);z-index:6}
+html body.touch #auraV2 .avTot{display:grid;grid-template-columns:auto auto;grid-template-rows:auto auto;column-gap:10px;row-gap:6px;align-items:end;justify-content:start;text-shadow:none}
+html body.touch #auraV2 .avTot em{grid-column:1/-1;grid-row:1;font-size:8px;letter-spacing:3px;color:var(--tx2);
+  text-shadow:1px 0 0 var(--ink),-1px 0 0 var(--ink),0 1px 0 var(--ink),0 -1px 0 var(--ink),0 2px 0 var(--ink)}
+html body.touch #avVal{grid-column:1;grid-row:2;font-size:32px;line-height:1;letter-spacing:0;color:var(--aura);filter:none;
+  text-shadow:2px 0 0 var(--ink),-2px 0 0 var(--ink),0 2px 0 var(--ink),0 -2px 0 var(--ink),2px 2px 0 var(--ink),-2px 2px 0 var(--ink),0 4px 0 var(--ink),0 0 18px rgba(255,122,213,.45)}
+html body.touch #avPlus{grid-column:2;grid-row:2;align-self:center;font-size:12px;color:#ff9ee6;
+  text-shadow:1px 0 0 var(--ink),-1px 0 0 var(--ink),0 2px 0 var(--ink),0 0 10px rgba(255,90,220,.7)}
+html body.touch #auraV2 .avTot.pulse{animation:h5Score var(--t-slow) var(--ease)}
+@keyframes h5Score{0%{transform:scale(1.12);filter:brightness(1.6)}100%{transform:none;filter:none}}
+html body.touch #avRec{display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin-top:10px;font-size:8px;letter-spacing:1px;color:var(--au1);
+  text-shadow:1px 0 0 var(--ink),-1px 0 0 var(--ink),0 1px 0 var(--ink),0 -1px 0 var(--ink),0 2px 0 var(--ink)}
+html body.touch #avRec i{position:relative;order:-1;flex:none;width:156px;max-width:100%;height:5px;background:var(--ledOff);box-shadow:none;overflow:hidden}
+html body.touch #avRec i::after{content:'';position:absolute;inset:0;background:var(--ledJour);--plateHud:rgba(8,6,20,.9)}
+html body.touch #avRec s{background:var(--au2);box-shadow:0 0 8px rgba(255,199,42,.7)}
+html body.touch #avRec.presque i{animation:h5RecPres .45s var(--ease) infinite alternate}
+@keyframes h5RecPres{to{box-shadow:0 0 10px var(--au2)}}
+html body.touch #avRec.battu s{background:linear-gradient(90deg,var(--au2),#fff6cf,var(--au2));background-size:200% 100%;animation:recFile 1s linear infinite}
+/* ---------------------------------------------- LA CHAÎNE ------------------------------------------------------------ */
+/* une PLAQUE qui apparaît quand on enchaîne : les points, le × à la couleur de son échelle, le compte à rebours en diodes, les deux
+   derniers gestes. Elle s'ENVOLE dans le score quand elle s'encaisse (.vole), se BRISE quand on la perd (.perdu) */
+html body.touch #avCh{position:relative;width:180px;box-sizing:border-box;margin-top:14px;padding:10px 12px 9px 14px;
+  background:linear-gradient(to bottom right,transparent 50%,var(--fil) 50% calc(50% + 1.3px),transparent calc(50% + 1.3px)) 0 0/8px 8px no-repeat,
+    linear-gradient(to top left,transparent 50%,var(--fil) 50% calc(50% + 1.3px),transparent calc(50% + 1.3px)) 100% 100%/8px 8px no-repeat,
+    linear-gradient(180deg,#191430,var(--plateHud) 60%);
+  clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);
+  box-shadow:inset 3px 0 0 var(--xc,var(--neoM)),inset 44px 0 34px -34px color-mix(in srgb,var(--xc,var(--neoM)) 60%,transparent),inset 0 0 0 1px var(--fil),inset 0 1px 0 rgba(255,255,255,.14)}
+html body.touch #avCh .avChTop{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+html body.touch #avPts{font-size:14px;color:var(--tx);text-shadow:none}
+html body.touch #avX{font-size:24px;line-height:1;color:var(--xc,var(--neoM));filter:none;text-shadow:0 2px 0 var(--ink),0 0 14px color-mix(in srgb,var(--xc,var(--neoM)) 60%,transparent)}
+html body.touch #avX.up{animation:h5Mult .5s cubic-bezier(.2,1.4,.4,1)}      /* un × de plus : une petite célébration, le seul rebond du HUD */
+html body.touch #avX.feu,html body.touch #avX.feu.up{animation:h5Mult .5s cubic-bezier(.2,1.4,.4,1),h5Feu .42s var(--ease) .5s infinite alternate}
+@keyframes h5Mult{0%{transform:scale(1.6);filter:brightness(2)}100%{transform:none;filter:none}}
+@keyframes h5Feu{to{filter:brightness(1.35)}}
+html body.touch #avCh .avBar{position:relative;width:auto;height:5px;margin:9px 0 8px;background:var(--ledOff);box-shadow:none;overflow:hidden}
+html body.touch #avCh .avBar::after{content:'';position:absolute;inset:0;background:var(--ledJour)}
+html body.touch #avCh .avBar i{background:var(--xc,var(--neoM));box-shadow:0 0 8px color-mix(in srgb,var(--xc,var(--neoM)) 70%,transparent)}
+html body.touch #avCh .avBar.urg i{background:var(--neoR);animation:avUrg .18s steps(2) infinite}
+html body.touch #avList{font-size:8px;line-height:2;color:var(--tx2);text-shadow:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body.touch #avList li:first-child{color:var(--tx)}
+html body.touch #avList li:nth-child(n+3){display:none}
+/* ---------------------------------------------- LA COLONNE DE DROITE ------------------------------------------------- */
+/* les POUVOIRS : la plaque de la chaîne, à droite — l'icône, le nom en petit, le minuteur en grand, les diodes qui s'éteignent */
+html body.touch #pwrChip{right:var(--hudD);gap:10px}
+html body.touch #pwrChip .pw{min-width:0;width:140px;box-sizing:border-box;padding:9px 12px 12px 12px;gap:10px;
+  background:linear-gradient(to bottom right,transparent 50%,var(--fil) 50% calc(50% + 1.3px),transparent calc(50% + 1.3px)) 0 0/8px 8px no-repeat,
+    linear-gradient(to top left,transparent 50%,var(--fil) 50% calc(50% + 1.3px),transparent calc(50% + 1.3px)) 100% 100%/8px 8px no-repeat,
+    linear-gradient(180deg,#191430,var(--plateHud) 60%);
+  clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);
+  box-shadow:inset 3px 0 0 var(--pc),inset 44px 0 34px -34px color-mix(in srgb,var(--pc) 60%,transparent),inset 0 0 0 1px var(--fil),inset 0 1px 0 rgba(255,255,255,.14);
+  animation:none}
+html body.touch #pwrChip .pw>.pxi{--pxs:2;color:var(--pc);filter:none}
+html body.touch #pwrChip .pw span small{font-size:8px;letter-spacing:1px;color:var(--tx2);text-shadow:none}
+html body.touch #pwrChip .pw span b{font-size:16px;color:var(--pc);text-shadow:0 0 10px color-mix(in srgb,var(--pc) 55%,transparent)}
+html body.touch #pwrChip .pw u{left:12px;right:12px;bottom:6px;height:4px;background:var(--pc);box-shadow:0 0 8px color-mix(in srgb,var(--pc) 70%,transparent)}
+html body.touch #pwrChip .pw u::after{content:'';position:absolute;inset:0;background:var(--ledJour)}
+html body.touch #pwrChip .pw.fin{animation:chipFin .24s steps(2) infinite}
+/* ---------------------------------------------- LES ÉTATS DU FLOW, SUR LA PLAQUE ------------------------------------- */
+/* ça FUIT : un liseré rouge sur la rampe · ça LÂCHE : la rampe clignote au rythme du tic · un palier de plus : les diodes claquent */
+html body.touch:has(#flowHud.fuit:not([data-lv="4"])) #nitroWrap::before{box-shadow:inset 0 0 0 1px rgba(255,94,122,.75),inset 0 1px 0 rgba(255,255,255,.14),inset 0 -14px 16px -12px rgba(255,74,100,.5)}
+html body.touch:has(#flowHud.lache) #nitroWrap::before{animation:h5Lache .22s steps(2) infinite}
+@keyframes h5Lache{50%{box-shadow:inset 0 0 0 2px #fff,inset 0 0 22px rgba(255,90,110,.6)}}
+html body.touch #flowHud.fuit .fSeg>i.cur>s{background:repeating-linear-gradient(90deg,var(--sc) 0 7px,color-mix(in srgb,var(--sc) 35%,#000) 7px 14px)}
+html body.touch #flowHud.presque .fSeg>i.cur>s{animation:h5Presque .3s steps(2) infinite}
+@keyframes h5Presque{50%{filter:brightness(1.7)}}
+html body.touch #flowHud.monte .fSeg>i{animation:h5Monte var(--t-slow) var(--ease)}
+@keyframes h5Monte{0%{filter:brightness(2.6) saturate(.4)}100%{filter:none}}
+html body.touch #flowHud.monte::before{animation:fIco3 var(--t-slow) var(--ease)}
+/* la TRIADE (4e cellule, violette) et sa ZONE ROUGE : des diodes rouges éteintes au bout, qui s'allument quand on y entre */
+html body.touch #flowHud .fSeg>i:nth-child(4)::before{background:rgba(255,42,61,.26);z-index:1}
+html body.touch #flowHud .fSeg .fZ{z-index:2}
+html body.touch #flowHud .fSeg .fZ s{background:linear-gradient(180deg,#ffd0d5 0 2px,var(--fren) 2px);box-shadow:none}
+html body.touch #flowHud .fZ::after{width:2px;background:#fff;opacity:.85}
+html body.touch #flowHud.fuit .fSeg .fZ s{background:repeating-linear-gradient(90deg,var(--fren) 0 7px,var(--frenS) 7px 14px)}
+/* ---------------------------------------------- LA FRÉNÉSIE : LE RUPTEUR -------------------------------------------- */
+/* toutes les diodes au ROUGE, qui battent au rupteur ; la rampe s'embrase ; l'éclair et la vague rougissent */
+html body.touch #flowHud[data-lv="4"] .fSeg{background:none;box-shadow:none;animation:none}
+html body.touch #flowHud[data-lv="4"] .fSeg>i{background:rgba(255,42,61,.22)}
+html body.touch #flowHud[data-lv="4"] .fSeg>i>s,html body.touch #flowHud[data-lv="4"].fuit .fSeg>i.cur>s{background:linear-gradient(180deg,#ffd0d5 0 2px,var(--fren) 2px);animation:h5Rupteur .36s steps(2) infinite}
+@keyframes h5Rupteur{50%{filter:brightness(1.55)}}
+html body.touch #flowHud[data-lv="4"] .fM{color:#ffd0d5;text-shadow:0 0 10px var(--fren)}
+html body.touch #flowHud[data-lv="4"]::after{left:-8px;right:-8px;top:-10px;height:32px}
+html body.touch:has(#flowHud[data-lv="4"]) #nitroWrap::before{background:linear-gradient(to bottom right,transparent 50%,rgba(255,120,130,.5) 50% calc(50% + 1.3px),transparent calc(50% + 1.3px)) 0 0/10px 10px no-repeat,
+    linear-gradient(to top left,transparent 50%,rgba(255,120,130,.5) 50% calc(50% + 1.3px),transparent calc(50% + 1.3px)) 100% 100%/10px 10px no-repeat,
+    linear-gradient(180deg,#2a0c1c,#16060f 60%);
+  box-shadow:inset 0 0 0 1px rgba(255,90,110,.8),inset 0 1px 0 rgba(255,200,205,.25),inset 0 0 30px rgba(255,42,61,.35);animation:h5FrenPlaque calc(var(--frenCycle) / 4) var(--ease) var(--frenNait) infinite}
+@keyframes h5FrenPlaque{0%{box-shadow:inset 0 0 0 1px #ffb3bd,inset 0 1px 0 rgba(255,200,205,.25),inset 0 0 40px rgba(255,42,61,.6)}40%,100%{box-shadow:inset 0 0 0 1px rgba(255,90,110,.8),inset 0 1px 0 rgba(255,200,205,.25),inset 0 0 30px rgba(255,42,61,.35)}}
+html body.touch:has(#flowHud[data-lv="4"]) #nitroWrap{--plateHud:#16060f}
+html body.touch:has(#flowHud[data-lv="4"]) #flowHud{--plateHud:#16060f}
+/* ---------------------------------------------- L'EMBLÈME DARK TRIAD ------------------------------------------------ */
+/* il NAÎT de la zone rouge de la rampe (frenEntre mesure .fZ) et vient se poser en TÊTE de la colonne de droite, sous le ⏸ — la
+   place de l'emblème est réservée : le chrono de vol et les pouvoirs sont dessous, rien ne saute */
+html body.touch #triade{top:calc(var(--rampeT) + var(--rampeH) + 2px);right:var(--hudD)}
+html body.touch.play:has(#triade.on) #avRec{max-width:none}
+html body.touch.play:has(#triade.on) #avRec i{flex:none;width:156px}
+/* ---------------------------------------------- LE CHRONO DE VOL ------------------------------------------------------ */
+html body.touch #airPie{top:calc(var(--rampeT) + var(--rampeH) + 104px)!important;right:calc(var(--hudD) + 15px)!important}
+/* les POUVOIRS sous le chrono (sa case est réservée) ; l'objectif de campagne s'intercale */
+html body.touch #pwrChip,html body.touch #pwrChip.sousPie,html body.touch.coOn #pwrChip{top:calc(var(--rampeT) + var(--rampeH) + 190px)}
+html body.touch #campChip{top:calc(var(--rampeT) + var(--rampeH) + 190px);right:var(--hudD)}
+html body.touch:has(#campChip.on) #pwrChip{top:calc(var(--rampeT) + var(--rampeH) + 250px)}
+/* ---------------------------------------------- LE ⏸ ------------------------------------------------------------------- */
+/* aligné sur la rampe (centré sur sa hauteur), et sur le bord de la colonne de droite */
+html body #tGear{top:calc(var(--rampeT) + 5px)!important;right:var(--hudD)!important}
+/* ---------------------------------------------- LE PAYSAGE ----------------------------------------------------------- */
+@media (orientation:landscape) and (max-height:540px){
+  html body.touch #nitroWrap{right:auto;width:min(50vw,440px)}
+  html body.touch #flowHud{right:auto;width:calc(min(50vw,440px) - 48px)}
+  html body.touch #triade{top:calc(var(--rampeT) - 6px);right:auto;left:calc(var(--hudG) + min(50vw,440px) + 18px)}
+  html body.touch #airPie{top:calc(var(--rampeT) + 56px)!important;right:calc(var(--hudD) + 15px)!important}
+  html body.touch #pwrChip,html body.touch #pwrChip.sousPie,html body.touch.coOn #pwrChip,html body.touch:has(#campChip.on) #pwrChip{top:calc(var(--rampeT) + 56px);right:calc(var(--hudD) + 104px)}
+  html body.touch #campChip{top:calc(var(--rampeT) + 124px);right:var(--hudD)}
+}
+/* ---------------------------------------------- LES AMBIANCES PLEIN ÉCRAN, SOUS LE HUD ---------------------------------- */
+/* le halo des pouvoirs (#pwrFx) passait PAR-DESSUS le tableau de bord (z3 contre 2) : en frénésie avec un pouvoir actif, toute la rampe
+   paraissait délavée. Il descend sous le HUD, comme les bords du flow (#flowGlow) */
+html body #pwrFx{z-index:1}
+/* ---------------------------------------------- LE PALIER GAGNÉ SE SENT ---------------------------------------------- */
+/* un palier de plus : un ÉCLAT de lumière traverse les shift lights de gauche à droite (en plus du claquement des diodes) */
+html body.touch #flowHud.monte .fSeg::after{content:'';display:block;position:absolute;inset:0;z-index:5;pointer-events:none;animation:h5Balaye .55s var(--ease) both;
+  background:linear-gradient(100deg,transparent 35%,rgba(255,255,255,.95) 50%,transparent 65%) no-repeat;background-size:40% 100%}
+@keyframes h5Balaye{0%{background-position:-60% 0}100%{background-position:160% 0}}
+/* ---------------------------------------------- LES CARTES DU COULOIR ------------------------------------------------ */
+/* l'ASTUCE et le DÉFI : l'icône dans un PUITS cerclé de sa couleur (le seul carré plein de couleur du HUD rompait la famille) */
+html body #misBan .mbIco{color:var(--mbC);background:color-mix(in srgb,var(--mbC) 14%,#0c0919);clip-path:polygon(5px 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100%,0 5px);
+  box-shadow:inset 0 0 0 1px var(--mbC),inset 0 0 14px color-mix(in srgb,var(--mbC) 30%,transparent)}
+html body #misBan .mbIco .pxi{color:var(--mbC)}
+@media (prefers-reduced-motion:reduce){html body.touch #flowHud.monte .fSeg::after{animation:none;display:none}html body.touch #flowHud[data-lv="4"] .fSeg>i>s,html body.touch #nitroBar.plein #nitroR{animation:none}}
+</style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
   <div id="spStage">
