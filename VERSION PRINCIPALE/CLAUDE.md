@@ -157,6 +157,24 @@ MÊME image figée (bancs : scratchpad de la session f71fd2a2, `gfx/abx.js`, `gf
   éclats de l'explosion : 0 compilé, mesuré), poussière `dust`, verre pilé `sparkBlue`, braises, fumée qui monte du trou 5,5 s.
   Son : `sfx('impact.immeuble')` (console de la session SON, 2,4 s : béton sourd, vitre, pluie de verre, gravats). Hook `dbgImpact(true)`
   (impact sur la tour la plus proche), `dbgImpact(null,s)` (fait vieillir en pause). Banc : `gfx/imp.js` (planche 0,05 → 4,5 s).
+- **LE CIEL DE COTON — NUAGES v3** (Sacha : « refonte des nuages : plus de nuages, plus jolis, dans la forme classique qu'on imagine,
+  magnifiques, un peu partout autour de la route — donc légers ») — `COTON`, `cotonBlobs`, `cotonGeo`, `buildCoton`, `cotonTick`.
+  · FORME : six gabarits « de dessin » (classique, bas et large, tour/congestus, flocon, banc, double dôme) — une rangée de BASE aux
+    bourgeons aplatis (le dessous plat), des bourgeons RONDS au-dessus (plus jamais de boules aplaties empilées = les « piles
+    d'assiettes » d'avant), ventre lavande → sommet blanc sur la HAUTEUR du nuage, creux assombris, liseré d'argent du shader inchangé.
+  · LÉGER : tout le DÉCOR devient des instances (6 gabarits × près/loin = 12 appels de dessin pour ~350 nuages). `cotonTick` (chaîné sur
+    scene.onBeforeRender) : hors champ = pas envoyé, au-delà de 650 m = gabarit léger 8×6, lots triés du plus loin au plus près. MESURÉ :
+    ~0,1 ms de processeur par image ; triangles de l'image 619 k → 255 k au sol, 448 k → 332 k en vol ; appels 233 → 122 ; en rendu
+    logiciel (proxy du coût par pixel, même image, nuages visibles/cachés) les nuages coûtaient 75-82 ms, désormais 66 ms au sol, 21 en vol.
+  · PARTOUT AUTOUR DE LA ROUTE, JAMAIS DESSUS : couronne proche (50-350 m du bord, du dessous au-dessus du ruban), au-dessus/en dessous du
+    ruban, couronne du milieu (0,35-1,3 km), COUCHE HAUTE (230-650 m au-dessus de la route : le haut d'un écran portrait est du ciel),
+    lointain (1,2-2,6 km), massifs et titans (ex-« ciel organisé », gabarit tour). Garde `cotonTouche` = nuageTouche sur une grille de
+    120 m. Tout tiré sur `cr` (jamais la piste). VILLE/ORBITE/auto-école : aucun (lvlNuageOk), campagne : `deco` de CAMP_NIV respecté.
+  · Restent des MAILLAGES À PART (rôle de jeu) : bancs sur la route, coussins de vol (recharge d'airtime) et tours géantes qu'on traverse
+    (white-out) — ces deux-là prennent aussi la forme classique —, la mer, les voiles, tout ce que pose la campagne (inchangés).
+  · Traversé, un nuage de coton s'efface autour de l'objectif (fondu 10-40 m, `NUAGE_INST` dans nuageShader) au lieu de claquer.
+    Programme `nuageV3coton` compilé au menu (nuageChauffe → cotonInit) : 0 en course (mesuré). Hook `dbgCoton()`. Bancs `gfx/coton.js`
+    (sol, vol, vues larges), `gfx/info.js` (triangles/appels A/B), `gfx/ssnu.js` (coût des nuages en rendu logiciel, A/B), `gfx/menu.js`.
 - **Écarté après captures** : « le monde dans la laque » (le décor du niveau — mer de nuages, mur de tours éclairées — peint dans le cube
   des carrosseries) : INVISIBLE depuis la caméra de poursuite (on voit l'arrière des caisses de face, le vernis n'y renvoie que ~6 %).
 

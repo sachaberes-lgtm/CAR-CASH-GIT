@@ -6355,7 +6355,11 @@ function nuageShader(sh){
       // LE CŒUR PLEIN (2026-09-28, « plus beau sur iPhone sans coût en plus ») : à 82 % partout, un bourgeon peint AVANT son voisin
       // de devant restait visible au travers — on lisait les boules empilées dans la ouate (arcs et bords internes, mesuré sur captures).
       // Le cœur, vu de face, monte à ~95 % ; la vapeur garde ses 82 % là où la ouate tourne (fr9 > .62) puis s allège au liseré.
-      '  diffuseColor.a=min(1.,diffuseColor.a*mix(uCoeur,1.,smoothstep(.12,.62,fr9)))*(1.-pow(fr9,7.)*.45); }', // le tout dernier liseré de la silhouette s allège
+      '  diffuseColor.a=min(1.,diffuseColor.a*mix(uCoeur,1.,smoothstep(.12,.62,fr9)))*(1.-pow(fr9,7.)*.45);', // le tout dernier liseré de la silhouette s allège
+      '#ifdef NUAGE_INST',
+      '  diffuseColor.a*=smoothstep(10.,40.,length(vViewPosition));',     // (ciel de coton) traversé, le nuage s efface AUTOUR de l objectif au lieu de claquer (10-40 m : à 60 m de l accueil il restait fantôme)
+      '#endif',
+      '}',
       '#endif',
       '#include <envmap_fragment>'].join('\n'));
 }
@@ -6369,7 +6373,7 @@ CLOUD_MAT_IN.color=CLOUD_MAT.color;CLOUD_MAT_IN.emissive=CLOUD_MAT.emissive;CLOU
 CLOUD_MAT_IN.onBeforeCompile=nuageShader;CLOUD_MAT_IN.customProgramCacheKey=function(){return 'nuageV2dedans';};
 let nuageChaud=false,nuageFondu=1; // nuageFondu : 0→1, la ouate d'une nouvelle zone APPARAÎT au lieu de surgir (voir buildClouds)
 function nuageChauffe(){ // (2026-09-26) les deux programmes de nuage compilés AU MENU — jamais au premier nuage traversé en pleine course
-  nuageChaud=true;
+  nuageChaud=true;cotonInit(); // (ciel de coton) ses instances sont dans la scène : renderer.compile les prend avec
   const g=mergeSpheres([[0,0,0,.6,1],[.4,.1,0,.45,1]],2,2,2),a=new THREE.Mesh(g,CLOUD_MAT),b=new THREE.Mesh(g,CLOUD_MAT_IN);
   a.position.copy(camera.position);b.position.copy(camera.position);a.frustumCulled=b.frustumCulled=false;
   scene.add(a);scene.add(b);try{renderer.compile(scene,camera);}catch(e){}scene.remove(a);scene.remove(b);g.dispose();
@@ -6419,6 +6423,159 @@ function mergeSpheres(blobs,rx,ry,rz){
   sphere9(g); // = computeBoundingSphere, au flottant près (voir pisteTranches)
   return g;
 }
+/* LE CIEL DE COTON — NUAGES v3 (2026-09-28, Sacha : « lance une refonte des nuages : plus de nuages, plus jolis, plus dans la forme
+   classique qu'on imagine ; il faut qu'ils soient magnifiques et un peu partout autour de la route — donc ils doivent être légers »).
+   AVANT : ~90 nuages, chacun SON maillage (5 à 20 boules souvent APLATIES : des « piles d'assiettes »), ~90 appels de dessin, jusqu'à
+   6 000 triangles pièce même au bout du ciel.
+   · LA FORME CLASSIQUE (`cotonBlobs`) : le nuage qu'on dessine enfant — une rangée de BASE aux bourgeons aplatis (le dessous plat, le
+     niveau de condensation), un étage de bourgeons RONDS, un DÔME qui domine et de petits bourgeons qui débordent. Six gabarits :
+     classique, bas et large, tour (congestus), flocon, banc, double dôme. Au-dessus de la base, plus aucune boule aplatie.
+   · LE MODELÉ (`cotonGeo`, cuit une fois) : ventre lavande → sommet blanc sur la HAUTEUR du nuage, creux assombris entre deux
+     bourgeons, le liseré d'argent du shader des nuages (inchangé) ; les faces enfouies dans une voisine ne sont pas gardées.
+   · LÉGER : le décor devient des INSTANCES de six gabarits × deux finesses (près / loin) — 12 appels de dessin pour ~300 nuages. À
+     chaque rendu (`cotonTick`, chaîné sur scene.onBeforeRender) : hors du champ = pas envoyé, au-delà de 650 m = gabarit léger, et
+     chaque lot TRIÉ du plus loin au plus près (la ouate est translucide). Programme compilé au menu (`nuageChauffe`), 0 en course.
+   · PARTOUT AUTOUR DE LA ROUTE, JAMAIS DESSUS : une couronne proche (50-350 m du bord, du dessous au-dessus du ruban), des nuages
+     au-dessus et en dessous de la route, une couronne du milieu (0,4-1,3 km) et le lointain (1,3-3 km) ; les massifs et les titans du
+     ciel organisé y passent aussi (gabarit tour). Garde `cotonTouche` = nuageTouche sur une grille de 120 m.
+   · Restent des maillages À PART (ils ont un rôle) : les bancs SUR la route, les coussins de VOL (recharge d'airtime) et les tours
+     géantes qu'on traverse (white-out) — eux aussi prennent la forme classique —, la mer, les voiles et tout ce que pose la campagne.
+   · Traversé, un nuage de coton s'efface autour de l'objectif (fondu 10-40 m dans le shader) au lieu de claquer.
+   Hook : `dbgCoton()` (nuages, envoyés près/loin, triangles, ms). */
+const COTON={S:[],im:[],I:null,n:0,cap:420,mat:null,grid:null,root:null,L:null,M:new THREE.Matrix4(),Q:new THREE.Quaternion(),Sc:new THREE.Vector3(),
+  P:new THREE.Vector3(),Y:new THREE.Vector3(0,1,0),fr:new THREE.Frustum(),pv:new THREE.Matrix4(),lodD:650,nN:0,nF:0,tri:0,ms:0};
+const COTON_KINDS=6;
+function cotonBlobs(k,rng){ // un gabarit : [x,y,z,rayon,aplatissement] en unités du nuage (demi-largeur ~1), base à y = −.35
+  const B=[],J=function(a){return (rng()-.5)*a;},base=-.35;
+  const bas=function(x,z,r,fy){fy=fy||.55;B.push([x+J(.06),base+r*fy,z+J(.1),r,fy]);};    // bourgeon de BASE : aplati, posé sur le niveau de condensation
+  const rond=function(x,y,z,r){B.push([x+J(.05),y+J(.05),z+J(.08),r*(.92+rng()*.16),1]);}; // bourgeon ROND
+  if(k===0){ // CLASSIQUE
+    for(const x of [-.66,-.33,0,.33,.66])bas(x,0,Math.abs(x)>.5?.25:.31);bas(0,.26,.3,.6);bas(-.1,-.24,.28,.6);
+    rond(-.40,-.02,0,.35);rond(-.04,.02,.05,.40);rond(.33,-.03,0,.34);
+    rond(-.08,.32,0,.40);rond(.27,.24,.02,.26);rond(-.44,.16,-.02,.22);}
+  else if(k===1){ // BAS ET LARGE
+    for(const x of [-.8,-.48,-.16,.16,.48,.8])bas(x,J(.2),Math.abs(x)>.6?.22:.27);
+    rond(-.35,-.08,0,.30);rond(.05,-.05,0,.33);rond(.42,-.1,0,.27);rond(-.02,.16,0,.30);}
+  else if(k===2){ // TOUR (congestus) : elle monte à ~1,2
+    for(const x of [-.5,-.17,.17,.5])bas(x,J(.2),.30,.6);
+    rond(-.3,.05,0,.38);rond(.25,.07,0,.37);rond(0,.12,.12,.34);
+    rond(-.16,.44,0,.36);rond(.18,.46,0,.33);
+    rond(0,.78,0,.34);rond(-.26,.66,0,.22);rond(.27,.64,0,.20);rond(.06,.98,0,.20);}
+  else if(k===3){ // FLOCON
+    for(const x of [-.4,0,.4])bas(x,0,.30,.6);
+    rond(-.2,.06,0,.34);rond(.22,.08,0,.32);rond(0,.30,0,.33);}
+  else if(k===4){ // BANC
+    for(let i=0;i<8;i++)bas(-.88+i*.25,J(.3),.22);
+    for(let i=0;i<5;i++)rond(-.66+i*.33,-.1,J(.1),.25);
+    rond(-.2,.08,0,.26);rond(.28,.06,0,.24);}
+  else{ // DOUBLE DÔME
+    for(const x of [-.7,-.36,0,.36,.7])bas(x,0,Math.abs(x)>.5?.25:.30);
+    rond(-.42,0,0,.34);rond(0,-.04,0,.33);rond(.42,0,0,.34);
+    rond(-.36,.30,0,.34);rond(.38,.28,0,.32);rond(0,.20,0,.24);}
+  let top=base;for(const b of B)top=Math.max(top,b[1]+b[3]*b[4]);
+  return {B:B,base:base,top:top};
+}
+function cotonGeo(S,sph){ // les bourgeons fusionnés, en unités du nuage : modelé cuit (ventre lavande → sommet blanc, creux), faces enfouies jetées
+  const Bb=S.B,sp=sph.attributes.position.array,sn=sph.attributes.normal.array,si=sph.index.array,nv=sp.length/3,nb=Bb.length;
+  const pos=new Float32Array(nv*3*nb),nor=new Float32Array(nv*3*nb),col=new Float32Array(nv*3*nb),noy=new Uint8Array(nv*nb);
+  const idx=(nv*nb<65535)?new Uint16Array(si.length*nb):new Uint32Array(si.length*nb);let ni=0;
+  const H=Math.max(.1,S.top-S.base),VR=.70,VG=.74,VB=.93;
+  for(let b=0;b<nb;b++){const e=Bb[b],ox=e[0],oy=e[1],oz=e[2],r=e[3],ry=e[3]*e[4],vo=b*nv*3,vb=b*nv;
+    const voi=[];for(let c=0;c<nb;c++){if(c===b)continue;const q=Bb[c],dx=q[0]-ox,dy=q[1]-oy,dz=q[2]-oz,rr=r+q[3]*1.4;if(dx*dx+dy*dy+dz*dz<rr*rr)voi.push(q);}
+    for(let i=0;i<nv;i++){const px=sp[i*3]*r+ox,py=sp[i*3+1]*ry+oy,pz=sp[i*3+2]*r+oz;
+      pos[vo+i*3]=px;pos[vo+i*3+1]=py;pos[vo+i*3+2]=pz;
+      const nx=sn[i*3]/r,ny=sn[i*3+1]/ry,nz=sn[i*3+2]/r,l=Math.hypot(nx,ny,nz)||1;nor[vo+i*3]=nx/l;nor[vo+i*3+1]=ny/l;nor[vo+i*3+2]=nz/l;
+      let ao=0;for(let k=0;k<voi.length;k++){const q=voi[k],qy=q[3]*q[4],dx=(px-q[0])/q[3],dy=(py-q[1])/qy,dz=(pz-q[2])/q[3],d2=dx*dx+dy*dy+dz*dz;
+        if(d2<.9409){noy[vb+i]=1;break;}if(d2<1.96)ao+=(1.4-Math.sqrt(d2))/.43;}
+      const h=Math.max(0,Math.min(1,(py-S.base)/(H*.62))),hh=h*h*(3-2*h),o=1-.3*Math.min(1,ao);
+      col[vo+i*3]=(VR+(1-VR)*hh)*o;col[vo+i*3+1]=(VG+(1-VG)*hh)*o;col[vo+i*3+2]=(VB+(1-VB)*hh)*o;}
+    for(let i=0;i<si.length;i+=3){const a=si[i]+vb,c1=si[i+1]+vb,c2=si[i+2]+vb;if(noy[a]&&noy[c1]&&noy[c2])continue;idx[ni++]=a;idx[ni++]=c1;idx[ni++]=c2;}}
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('normal',new THREE.BufferAttribute(nor,3));g.setAttribute('color',new THREE.BufferAttribute(col,3));
+  g.setIndex(new THREE.BufferAttribute(idx.slice(0,ni),1));g.computeBoundingSphere();return g;
+}
+function cotonMat(){ if(COTON.mat)return COTON.mat; // la ouate des nuages (MÊMES objets couleur : bioApply la teinte avec CLOUD_MAT) + le fondu près de l'objectif
+  const m=CLOUD_MAT.clone();m.color=CLOUD_MAT.color;m.emissive=CLOUD_MAT.emissive;m.specular=CLOUD_MAT.specular;
+  m.defines={NUAGE_INST:''};m.onBeforeCompile=nuageShader;m.customProgramCacheKey=function(){return 'nuageV3coton';};return (COTON.mat=m);}
+function cotonInit(){ if(COTON.root)return; // une fois par session : 6 gabarits × 2 finesses, en instances
+  const rg=mulberry32(0xC07070),lo=IS_MOBILE||IS_LOW_END,sN=new THREE.SphereGeometry(1,lo?12:16,lo?9:11),sF=new THREE.SphereGeometry(1,8,6),m=cotonMat();
+  COTON.root=new THREE.Group();COTON.root.name='coton';COTON.root.visible=false;scene.add(COTON.root);COTON.L=[];
+  for(let k=0;k<COTON_KINDS;k++){const S=cotonBlobs(k,rg);COTON.S.push(S);
+    for(const sph of [sN,sF]){const im=new THREE.InstancedMesh(cotonGeo(S,sph),m,COTON.cap);im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      im.frustumCulled=false;im.count=0;im.castShadow=im.receiveShadow=false;im.matrixAutoUpdate=false;im.userData.tri=im.geometry.index.count/3;
+      COTON.root.add(im);COTON.im.push(im);COTON.L.push({i:new Int32Array(COTON.cap),d:new Float32Array(COTON.cap),n:0});}}
+  sN.dispose();sF.dispose();COTON.I=new Float32Array(COTON.cap*8);
+}
+function cotonGrille(){ // la piste en cases de 120 m : un point tous les ~18 m (la garde ne teste que les cases voisines)
+  const st=Math.max(1,Math.round(18/Math.max(.5,L/Math.max(1,NP-1)))),g=new Map();
+  for(let i=0;i<NP;i+=st){const p=pts[i],k=Math.floor(p.x/120)+','+Math.floor(p.z/120);let a=g.get(k);if(!a)g.set(k,a=[]);a.push(i);}
+  return g;}
+function cotonTouche(x,y,z,r,ry){ // ce nuage (ellipsoïde r × ry autour de x,y,z) mord-il sur la route ? — même mesure que nuageTouche
+  const g=COTON.grid;if(!g)return false;const rh=r+ROAD_HALF+18,rv=ry+22,ih=1/(rh*rh),iv=1/(rv*rv),n=Math.ceil(rh/120),cx=Math.floor(x/120),cz=Math.floor(z/120);
+  for(let a=-n;a<=n;a++)for(let b=-n;b<=n;b++){const L9=g.get((cx+a)+','+(cz+b));if(!L9)continue;
+    for(let j=0;j<L9.length;j++){const p=pts[L9[j]],dx=p.x-x,dz=p.z-z,dy=p.y-y;if((dx*dx+dz*dz)*ih+dy*dy*iv<1)return true;}}
+  return false;}
+function cotonPose(x,yB,z,r,k,cr){ // un nuage dont le DESSOUS est à yB — refusé s'il toucherait le ruban
+  if(COTON.n>=COTON.cap)return false;const S=COTON.S[k],h=(S.top-S.base)*r;
+  if(cotonTouche(x,yB+h*.5,z,r*1.02,h*.5+r*.05))return false;
+  const o=COTON.n*8,I=COTON.I;I[o]=x;I[o+1]=yB-S.base*r;I[o+2]=z;I[o+3]=r;I[o+4]=cr()*6.2832;I[o+5]=k;I[o+6]=cr()*6.28;I[o+7]=h;COTON.n++;return true;}
+function cotonVide(){COTON.n=0;if(COTON.root){COTON.root.visible=false;for(const im of COTON.im)im.count=0;}}
+const COTON_POIDS={pres:[3,1,.4,3,1,2],mil:[3,1.4,1.2,2,1.4,2],loin:[2,1.6,2.4,1,1.6,1.4]}; // classique · bas · tour · flocon · banc · double
+function cotonKind(cr,w){let s=0;for(const x of w)s+=x;let u=cr()*s;for(let k=0;k<w.length;k++){u-=w[k];if(u<=0)return k;}return 0;}
+function buildCoton(cr){
+  cotonInit();cotonVide();if(!(NP>1)||!pts.length)return;COTON.grid=cotonGrille();
+  const okD=lvlNuageOk({deco:true}),okG=lvlNuageOk({giant:true});if(!okD&&!okG)return;
+  const strat=function(k,K){return Math.min(NP-1,Math.floor(((k+.18+cr()*.64)/K)*NP));};
+  const perp=function(i){const t=T[i],l=Math.hypot(t.x,t.z)||1;return [-t.z/l,t.x/l];}; // le travers HORIZONTAL du ruban (jamais B[i] : piste inclinée)
+  if(okD){
+    for(let k=0;k<80;k++){ // (1) LA COURONNE PROCHE : des deux côtés, 50-350 m du bord, du dessous jusqu'au-dessus de la route
+      const i=strat(k,80),p=pts[i],q=perp(i),sg=cr()<.5?-1:1,r=38+cr()*84,kk=cotonKind(cr,COTON_POIDS.pres),yB=p.y-120+cr()*290;
+      let d=ROAD_HALF+r+50+cr()*300;for(let t=0;t<3;t++,d+=110)if(cotonPose(p.x+q[0]*sg*d,yB,p.z+q[1]*sg*d,r,kk,cr))break;}
+    for(let k=0;k<26;k++){ // (2) AU-DESSUS et EN DESSOUS du ruban (la garde garde 18-22 m de ciel libre autour de la route)
+      const i=strat(k,26),p=pts[i],q=perp(i),r=40+cr()*70,kk=cotonKind(cr,COTON_POIDS.pres),S=COTON.S[kk],h=(S.top-S.base)*r,lat=(cr()-.5)*120;
+      const yB=cr()<.6?p.y+70+cr()*190:p.y-(THICK+60+cr()*170)-h;cotonPose(p.x+q[0]*lat,yB,p.z+q[1]*lat,r,kk,cr);}
+    for(let k=0;k<116;k++){ // (3) LA COURONNE DU MILIEU : 0,35-1,3 km, tout autour, de la mer jusqu'à ~300 m au-dessus de la route
+      const i=strat(k,116),p=pts[i],a=cr()*6.2832,d=350+cr()*950,r=80+cr()*170;
+      cotonPose(p.x+Math.cos(a)*d,p.y-210+cr()*520,p.z+Math.sin(a)*d,r,cotonKind(cr,COTON_POIDS.mil),cr);}
+    for(let k=0;k<44;k++){ // (4) LA COUCHE HAUTE : des cumulus qui se DÉCOUPENT sur le ciel (le haut d'un écran portrait, c'est du ciel)
+      const i=strat(k,44),p=pts[i],a=cr()*6.2832,d=260+cr()*1700,r=90+cr()*150;
+      cotonPose(p.x+Math.cos(a)*d,p.y+230+cr()*420,p.z+Math.sin(a)*d,r,cotonKind(cr,COTON_POIDS.mil),cr);}
+    for(let k=0;k<80;k++){ // (5) LE LOINTAIN : 1,2-2,6 km — l'horizon a ses nuages
+      const i=strat(k,80),p=pts[i],a=cr()*6.2832,d=1200+cr()*1400,r=170+cr()*260;
+      cotonPose(p.x+Math.cos(a)*d,p.y-260+cr()*700,p.z+Math.sin(a)*d,r,cotonKind(cr,COTON_POIDS.loin),cr);}
+  }
+  if(okG){ // (6) MASSIFS et TITANS (ex-« ciel organisé ») : des tours de 300-1 200 m, au large, hors du couloir du couchant
+    const sunAz=Math.atan2(SUN_DIR.z,SUN_DIR.x),loinSol=function(){for(let t=0;t<5;t++){const a=cr()*6.2832;let d9=(a-sunAz)%6.2832;if(d9>3.1416)d9-=6.2832;if(d9<-3.1416)d9+=6.2832;if(Math.abs(d9)>.62)return a;}return sunAz+3.1416;};
+    for(let k=0;k<6;k++){const i=strat(k,6),p=pts[i],a=loinSol(),d=900+cr()*1300,r=280+cr()*300;cotonPose(p.x+Math.cos(a)*d,p.y-320+cr()*160,p.z+Math.sin(a)*d,r,cr()<.7?2:0,cr);}
+    for(let k=0;k<3;k++){const i=strat(k,3),p=pts[i],a=loinSol(),d=1700+cr()*1500,r=600+cr()*450;cotonPose(p.x+Math.cos(a)*d,p.y-420+cr()*200,p.z+Math.sin(a)*d,r,2,cr);}
+    {const i=Math.min(NP-1,Math.floor(NP*(.6+cr()*.15))),p=pts[i],a=sunAz+3.1416+(cr()-.5)*.9,d=1500+cr()*700;cotonPose(p.x+Math.cos(a)*d,p.y-380,p.z+Math.sin(a)*d,760+cr()*300,2,cr);} // LE COLOSSE, à l'opposé du couchant
+  }
+  COTON.root.visible=COTON.n>0;
+}
+const COTON_T0=performance.now();
+function cotonTick(cam){ // à chaque rendu de la scène : ce qui est dans le champ, en quelle finesse, du plus loin au plus près
+  if(!COTON.root||!COTON.root.visible)return;
+  const t00=performance.now(),I=COTON.I,Ls=COTON.L,n=COTON.n,tt=(t00-COTON_T0)*.001;for(let j=0;j<Ls.length;j++)Ls[j].n=0;
+  COTON.pv.multiplyMatrices(cam.projectionMatrix,cam.matrixWorldInverse);COTON.fr.setFromProjectionMatrix(COTON.pv);
+  const pl=COTON.fr.planes,cx=cam.position.x,cy=cam.position.y,cz=cam.position.z;
+  for(let j=0;j<n;j++){const o=j*8,r=I[o+3],h=I[o+7],ph=I[o+6],k=I[o+5],S=COTON.S[k];
+    const x=I[o]+Math.sin(tt*.05+ph)*6,z=I[o+2]+Math.cos(tt*.04+ph)*6,yc=I[o+1]+S.base*r+h*.5,R=Math.max(r*1.08,h*.56); // la ouate DÉRIVE au vent
+    let vis=true;for(let q=0;q<6;q++){const P9=pl[q];if(P9.normal.x*x+P9.normal.y*yc+P9.normal.z*z+P9.constant<-R){vis=false;break;}}
+    if(!vis)continue;
+    const dx=x-cx,dy=yc-cy,dz=z-cz,d=Math.sqrt(dx*dx+dy*dy+dz*dz),Lq=Ls[k*2+(d-R>COTON.lodD?1:0)];Lq.i[Lq.n]=j;Lq.d[Lq.n]=d;Lq.n++;}
+  let nN=0,nF=0,tri=0;
+  for(let q=0;q<Ls.length;q++){const Lq=Ls[q],im=COTON.im[q],A=im.instanceMatrix.array,ii=Lq.i,dd=Lq.d,m=Lq.n;
+    for(let a=1;a<m;a++){const vi=ii[a],vd=dd[a];let b=a-1;while(b>=0&&dd[b]<vd){ii[b+1]=ii[b];dd[b+1]=dd[b];b--;}ii[b+1]=vi;dd[b+1]=vd;} // du plus LOIN au plus près
+    for(let a=0;a<m;a++){const o=ii[a]*8,r=I[o+3];
+      COTON.P.set(I[o]+Math.sin(tt*.05+I[o+6])*6,I[o+1],I[o+2]+Math.cos(tt*.04+I[o+6])*6);COTON.Q.setFromAxisAngle(COTON.Y,I[o+4]);COTON.Sc.set(r,r,r);
+      COTON.M.compose(COTON.P,COTON.Q,COTON.Sc);COTON.M.toArray(A,a*16);}
+    im.count=m;if(m){im.instanceMatrix.updateRange.offset=0;im.instanceMatrix.updateRange.count=m*16;im.instanceMatrix.needsUpdate=true;}
+    if(q&1)nF+=m;else nN+=m;tri+=m*im.userData.tri;}
+  COTON.nN=nN;COTON.nF=nF;COTON.tri=tri;COTON.ms=COTON.ms*.95+(performance.now()-t00)*.05;
+}
+{const ob9=scene.onBeforeRender;scene.onBeforeRender=function(r9,s9,cam,rt){ob9.call(this,r9,s9,cam,rt);cotonTick(cam);};} // CHAÎNÉ (jamais réassigné)
+window.dbgCoton=function(){return {nuages:COTON.n,pres:COTON.nN,loin:COTON.nF,triangles:COTON.tri,ms:+COTON.ms.toFixed(3),visible:!!(COTON.root&&COTON.root.visible),
+  maillagesApart:CLOUDS.length,gabarits:COTON.im.map(function(im){return im.userData.tri;})};};
 // Boules d'un nuage (metaballs) — coords LOCALES [-1,1] dans la boîte (x,y,z,rayon).
 // Chaque famille a sa silhouette : cumulus bourgeonnant, tour empilée, mer plate, voile épars.
 function mkBlobs(o,rng){
@@ -6497,12 +6654,17 @@ function nuageTouche(c,r,ry){
 }
 function mkCloud(center,r,o,rr){ // un nuage = ses boules fusionnées en UN mesh opaque, point.
   if(!lvlNuageOk(o))return; // LES NIVEAUX : chaque monde garde ses familles de nuages (voir NIVEAUX)
-  const ry=r*(o.mur?.56+rr()*.08:o.giant?.55+rr()*.18:o.veil?.16:o.sea?.15:.36+rr()*.16); // (2026-09-27) `mur` : le banc de campagne, haut comme un mur
+  let ry=r*(o.mur?.56+rr()*.08:o.giant?.55+rr()*.18:o.veil?.16:o.sea?.15:.36+rr()*.16); // (2026-09-27) `mur` : le banc de campagne, haut comme un mur
   if(o.baseY!==undefined)center.y=o.baseY+ry*0.64; // plafond de condensation commun
   if(!o.onRoad&&nuageTouche(center,r,ry))return; // (2026-09-26) jamais un nuage de décor posé SUR le ruban
   const g=new THREE.Group();g.position.copy(center);
-  const blobs=mkBlobs(o,rr); // les 5-10 boules de CE nuage (RNG isolé : ne rebrasse pas la génération)
-  const mesh=new THREE.Mesh(mergeSpheres(blobs,r,ry,r),CLOUD_MAT);
+  let geo9;
+  if(!o.camp&&!o.onRoad&&!o.sea&&!o.veil&&!o.mur&&!o.titan&&!o.deco){ // (ciel de coton) les COUSSINS de vol et les TOURS qu'on traverse : la forme classique,
+    cotonInit();const S=cotonBlobs(o.giant?2:[0,5,3][Math.floor(rr()*3)],rr),h=(S.top-S.base)*r; // bourgeons ronds, ventre lavande (voir cotonBlobs)
+    geo9=cotonGeo(S,CLOUD_SPH);geo9.scale(r,r,r);geo9.translate(0,-(S.base+S.top)*.5*r,0);geo9.computeBoundingSphere();
+    ry=h*.5;} // l'ellipsoïde « dedans » (white-out, airtime) suit la vraie hauteur du nuage
+  else geo9=mergeSpheres(mkBlobs(o,rr),r,ry,r); // les 5-10 boules de CE nuage (RNG isolé : ne rebrasse pas la génération)
+  const mesh=new THREE.Mesh(geo9,CLOUD_MAT);
   // Opaque : il s'occlut par le z-buffer comme n'importe quel décor. Aucun tri, aucun mélange,
   // donc AUCUN ordre de dessin ne peut le faire clignoter. Le frustum culling de three.js
   // redevient sûr (la géométrie est réelle et sa sphère englobante est exacte).
@@ -6561,113 +6723,32 @@ function buildClouds(rr){
     mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],(cr()*2-1)*1100)
       .addScaledVector(Nn[i],-(170+cr()*220)),170+cr()*150,{sea:true,noFog:true},cr);
   }
-  // ouate à mi-distance : les nuages rêveurs qu'on longe — moins nombreux, nettement plus GROS
-  for(let k=0;k<3;k++){ // 5→3
-    const i=strat(k,3),r9=95+cr()*85;
-    mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],(r9+ROAD_HALF+50+cr()*260)*(k%2?-1:1))
-      .addScaledVector(Nn[i],-60+cr()*180),r9,{deco:true},cr);
-  }
+  // (ciel de coton, 2026-09-28) la ouate à mi-distance, les RUES de nuages, les électrons libres, le banc haut, les MASSIFS, les TITANS,
+  // les coussins de décor du niveau NUAGES et l'ARCHIPEL sont devenus le CIEL DE COTON (buildCoton, plus bas) : trois fois plus de
+  // nuages, en forme classique, pour une douzaine d'appels de dessin. Ne restent ici que les nuages qui ont une FORME à eux (mer, voiles).
   // voiles d'altitude : nappes roses étirées très haut — le plafond féerique
   for(let k=0;k<4;k++){ // 7→4
     const i=strat(k,4);
     mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],(cr()*2-1)*1400)
       .addScaledVector(Nn[i],230+cr()*220),150+cr()*120,{veil:true,noFog:true},cr);
   }
-  // ============ LE CIEL ORGANISÉ : une MÉTÉO, pas un semis (espace MONDE) ============
-  // (ajouté APRÈS les familles historiques → zéro décalage de leurs positions)
-  // ⚠ On N'UTILISE PAS B[i]/Nn[i] ici : sur la piste inclinée/loopée, la binormale a une grosse composante
-  // verticale et éjecte les nuages à des milliers d'unités SOUS le monde (occlusion). Décalage HORIZONTAL
-  // en XZ + altitude en Y MONDE. Un VENT unique oriente rues et massifs ; le couloir du COUCHANT
-  // reste dégagé (pickAz) — la vue soleil + guirlande néon, c'est le tableau du jeu, on n'y gare rien.
-  const roadY=37; // altitude moyenne du ruban (repère stable pour poser le plafond/plancher de nuages)
-  const wA=cr()*6.2832,wx=Math.cos(wA),wz=Math.sin(wA); // le vent du jour (une direction par piste)
-  const sunAz=Math.atan2(SUN_DIR.z,SUN_DIR.x);
-  const offSun=(a)=>{let d9=(a-sunAz)%6.2832;if(d9>3.1416)d9-=6.2832;if(d9<-3.1416)d9+=6.2832;return Math.abs(d9);};
-  const pickAz=()=>{for(let t9=0;t9<5;t9++){const a=cr()*6.2832;if(offSun(a)>0.62)return a;}return sunAz+3.1416;};
-  // 1) RUES DE NUAGES : chaînes de 2-3 cumulus qui FILENT sous le vent, tous posés sur le MÊME
-  //    plafond de condensation (deckY) — la signature d'un vrai ciel, un étage sous la route
-  const deckY=roadY-58+cr()*18;
-  for(let ch=0;ch<4;ch++){ // 7→4 rues
-    const i=strat(ch,4),a=stratAz(ch,4),d=280+cr()*1200;
-    let x9=pts[i].x+Math.cos(a)*d,z9=pts[i].z+Math.sin(a)*d;
-    const n9=2+Math.floor(cr()*2);
-    for(let m9=0;m9<n9;m9++){
-      cldV1.set(x9+(cr()-.5)*90,0,z9+(cr()-.5)*90);
-      mkCloud(cldV1,90+cr()*110,{deco:true,noFog:true,baseY:deckY+(cr()-.5)*14},cr);
-      const st=300+cr()*200;x9+=wx*st;z9+=wz*st; // la rue file SOUS LE VENT
-    }
-  }
-  // 2) ÉLECTRONS LIBRES : quelques gros cumulus détachés au-dessus du tapis (la couche vivante)
-  for(let k=0;k<4;k++){ // 6→4
-    const i=strat(k,4),a=stratAz(k,4),d=260+cr()*1250;
-    cldV1.set(pts[i].x+Math.cos(a)*d,roadY-20+cr()*260,pts[i].z+Math.sin(a)*d);
-    mkCloud(cldV1,90+cr()*150,{deco:true,noFog:true},cr);
-  }
-  // 3) BANC HAUT : du volume quand on lève les yeux
-  for(let k=0;k<5;k++){ // 9→5
-    const i=strat(k,5),a=stratAz(k,5),d=300+cr()*1700;
-    cldV1.set(pts[i].x+Math.cos(a)*d,roadY+260+cr()*640,pts[i].z+Math.sin(a)*d);
-    mkCloud(cldV1,120+cr()*180,{deco:true,noFog:true},cr);
-  }
-  // 4) L'OCÉAN : l'undercast — un tapis PLAT à perte de vue, loin sous la piste (bande d'altitude
-  //    serrée : une MER avec un niveau, pas des galettes flottant n'importe où)
+  const roadY=37; // altitude moyenne du ruban (repère stable pour poser le plancher de nuages)
+  // L'OCÉAN : l'undercast — un tapis PLAT à perte de vue, loin sous la piste (bande d'altitude serrée : une MER avec un niveau)
   for(let k=0;k<7;k++){ // 12→7 : l'undercast reste un tapis, en moins dense
     const i=strat(k,7),a=stratAz(k,7),d=800+cr()*1600; // l'undercast couvre tout l'horizon, sans trou ni paquet
     cldV1.set(pts[i].x+Math.cos(a)*d,roadY-245+cr()*75,pts[i].z+Math.sin(a)*d);
     mkCloud(cldV1,200+cr()*180,{sea:true,noFog:true},cr);
   }
-  // 5) LES MASSIFS : trois fronts de tours ÉPAULE CONTRE ÉPAULE qui montent du tapis, étalés
-  //    en travers du vent, échelonnés le long du run — l'horizon a une géographie
-  for(let g9=0;g9<2;g9++){ // 3→2 fronts
-    const i=Math.min(NP-1,Math.floor(((g9+cr()*0.9)/3)*NP));
-    const a=pickAz(),d=800+cr()*1300;
-    const bx=pts[i].x+Math.cos(a)*d,bz=pts[i].z+Math.sin(a)*d;
-    for(let m9=0;m9<2;m9++){
-      const al=(cr()-.5)*700,ac=(cr()-.5)*300;
-      cldV1.set(bx-wz*al+wx*ac,roadY-120+cr()*380,bz+wx*al+wz*ac);
-      mkCloud(cldV1,300+cr()*320,{giant:true,noFog:true},cr);
-    }
-  }
-  // 6) LES TITANS : des cathédrales de ouate ×10 — trois posées au large par pickAz, et
-  //    LE COLOSSE : aux 2/3 du run, à l'OPPOSÉ du couchant — sa face prend toute la lumière
-  //    rasante, on le voit grossir pendant des kilomètres. Le repère du run.
-  for(let k=0;k<3;k++){
-    const i=Math.min(NP-1,Math.floor(((k+cr()*0.9)/3)*NP));
-    const a=pickAz(),d=1600+cr()*1600;
-    cldV1.set(pts[i].x+Math.cos(a)*d,roadY-120+cr()*640,pts[i].z+Math.sin(a)*d);
-    mkCloud(cldV1,700+cr()*500,{giant:true,titan:true,noFog:true},cr);
-  }
-  {
-    const i=Math.min(NP-1,Math.floor(NP*(0.6+cr()*0.15)));
-    const a=sunAz+3.1416+(cr()-.5)*0.9,d=1300+cr()*700;
-    cldV1.set(pts[i].x+Math.cos(a)*d,roadY-80+cr()*240,pts[i].z+Math.sin(a)*d);
-    mkCloud(cldV1,850+cr()*350,{giant:true,titan:true,noFog:true},cr);
-  }
-  /* LE NIVEAU NUAGES (2026-09-24) : une couche DE PLUS. La mer se referme sous la route — un second
-     plancher, plus proche, qu'on survole au ras — et des coussins de ouate encadrent le ruban à
-     mi-hauteur. Tout en espace MONDE (même règle que le ciel organisé : jamais B[i]/Nn[i]) et tout
-     tiré sur `cr` : ça ne décale que les nuages, jamais la piste. Posé EN DERNIER : les familles
-     historiques gardent leurs positions au tirage près. */
+  /* LE NIVEAU NUAGES (2026-09-24) : la mer se referme sous la route — un second plancher, plus proche, qu'on survole au ras. Espace
+     MONDE (jamais B[i]/Nn[i]), tiré sur `cr` : ça ne décale que les nuages, jamais la piste. */
   if(LVL.cur&&LVL.cur.id==='nuages'){
     for(let k=0;k<7;k++){
       const i=strat(k,7),a=stratAz(k,7),d=cr()*900;
       cldV1.set(pts[i].x+Math.cos(a)*d,pts[i].y-(130+cr()*110),pts[i].z+Math.sin(a)*d);
       mkCloud(cldV1,170+cr()*140,{sea:true,noFog:true},cr);
     }
-    for(let k=0;k<4;k++){
-      const i=strat(k,4),a=pickAz(),r9=80+cr()*70,d=r9+ROAD_HALF+60+cr()*260;
-      cldV1.set(pts[i].x+Math.cos(a)*d,pts[i].y-30+cr()*90,pts[i].z+Math.sin(a)*d);
-      mkCloud(cldV1,r9,{deco:true},cr);
-    }
   }
-  /* 7) L'ARCHIPEL (2026-09-26, user : « plus de nuages éparpillés dans la map, ailleurs qu'autour de la route ») : seize cumulus
-     semés LOIN du ruban — tout autour (azimuts brassés), à 0,4-2,8 km, à toutes les hauteurs. Le ciel se peuple sans rien poser
-     sur la route (nuageTouche veille). Tiré sur `cr`, en dernier : la piste ne bouge pas d'un mètre. */
-  for(let k=0;k<16;k++){
-    const i=strat(k,16),a=stratAz((k*7)%16,16),d=420+cr()*2400,r9=70+cr()*150;
-    cldV1.set(pts[i].x+Math.cos(a)*d,pts[i].y-140+cr()*560,pts[i].z+Math.sin(a)*d);
-    mkCloud(cldV1,r9,{deco:true,noFog:d>1400},cr);
-  }
+  buildCoton(cr); // LE CIEL DE COTON : tout le décor de nuages, en instances (voir cotonBlobs / cotonTick)
   if(LVL.cur&&LVL.cur.camp)campNuages(cr); // (2026-09-27) CAMPAGNE : les bancs dessinés de la route, et le ciel refermé de l'orage — en dernier, sur `cr`
 }
 function updateClouds(dt,t){
@@ -6677,7 +6758,7 @@ function updateClouds(dt,t){
   // Le frustum culling de three.js s'occupe du reste : la géométrie est réelle, sa sphère
   // englobante est exacte, donc aucun pop possible.
   const cp=carGroup.position;
-  if(nuageFondu<1){nuageFondu=Math.min(1,nuageFondu+dt/2.4);const e9=nuageFondu*nuageFondu*(3-2*nuageFondu);CLOUD_MAT.opacity=.82*e9;CLOUD_MAT_IN.opacity=.93*e9;} // (2026-09-26) la ouate d'une nouvelle zone monte en fondu (2,4 s, le temps que le ciel bascule)
+  if(nuageFondu<1){nuageFondu=Math.min(1,nuageFondu+dt/2.4);const e9=nuageFondu*nuageFondu*(3-2*nuageFondu);CLOUD_MAT.opacity=.82*e9;CLOUD_MAT_IN.opacity=.93*e9;if(COTON.mat)COTON.mat.opacity=.82*e9;} // (2026-09-26) la ouate d'une nouvelle zone monte en fondu (2,4 s, le temps que le ciel bascule)
   for(const c of CLOUDS){
     cldV1.subVectors(cp,c.g.position);
     const dh2=cldV1.x*cldV1.x+cldV1.z*cldV1.z,dv=cldV1.y;
