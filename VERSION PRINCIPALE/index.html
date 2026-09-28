@@ -3914,6 +3914,36 @@ html #mDead .mHero{margin-top:18px}
 /* (29/09, encoche simulée) couché avec une encoche sur le côté, la colonne des défis perd ~50 px : le titre de section passait sur deux lignes
    et chevauchait la livrée du titre MISSIONS */
 @media (orientation:landscape) and (max-height:540px){html #mMis .mSec{white-space:nowrap;letter-spacing:1px;overflow:hidden;text-overflow:ellipsis;min-width:0}}
+/* ---- 24. LA SORTIE (2026-09-29 — Sacha : « fais ça en mode ultra complet, imagine que le jeu sort demain ») — ce que trois audits
+   (App Store, logique des écrans, iPhone) ont relevé et qu'un vrai téléphone montrerait ---- */
+/* iOS : ni flash gris sur les grands conteneurs qui portent les clics (#mob, #carr, #tPanel…), ni loupe/sélection à l'appui long, ni
+   texte grossi en paysage (les libellés en nowrap débordaient), ni image qu'on soulève pour la glisser */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+html,body{-webkit-user-select:none;-webkit-touch-callout:none}
+input,textarea{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+img{-webkit-user-drag:none}
+/* les feuilles DÉFILENT au doigt sans entraîner la page, et la fenêtre défile si elle dépasse (clavier ouvert, petit écran) */
+#carr,#tPanel,#overlay,#modale{overscroll-behavior:contain}
+#modale{overflow-y:auto;-webkit-overflow-scrolling:touch}
+#modC{font-size:16px}                                          /* sous 16 px, iOS zoome la page au focus du champ */
+/* le curseur de VOLUME se saisit au pouce : même dessin (16 × 26), zone de prise 32 × 44 (un range iOS ne saute pas au point touché) */
+.volS{height:44px}
+.volS::-webkit-slider-thumb{width:32px;height:44px;margin-top:-19px;border:solid transparent;border-width:9px 8px;background-clip:padding-box;box-shadow:none}
+/* les flèches du garage : 38 px dessinées, 54 × 70 touchables */
+#garage .gNav::after{content:'';position:absolute;inset:-6px -8px}
+/* les flèches du mode PAD : au-dessus de la barre d'accueil, hors de l'encoche en paysage */
+html body #tLeft,html body #tRight{bottom:calc(env(safe-area-inset-bottom,0px) + 20px)}
+html body #tLeft{left:calc(env(safe-area-inset-left,0px) + 16px)}
+html body #tRight{left:calc(env(safe-area-inset-left,0px) + min(84px,21vh) + 30px)}
+/* la saisie du RECORD, couché : dans la case de l'objectif (elle ouvrait une 6e rangée et l'écran débordait) */
+@media (orientation:landscape) and (max-height:540px){html #mDead #nameEntry{grid-area:obj;align-self:start;z-index:2;background:var(--k0)}}
+/* le CONTRASTE des petits textes (8-10 px) : le lavande éteint gagne un cran (≈ 4,7:1 sur les fonds d'écran), les titres de section de la
+   pause s'écrivent comme les réglages (le voile allégé laisse passer un ciel de jour), l'indication du champ se lit */
+:root{--tx3:#9a90c8}
+#tPanel .tpH:not(:first-child){color:var(--tx2);text-shadow:0 1px 0 var(--k0),0 0 8px var(--k0)}
+#nameInput::placeholder{color:var(--tx3)}
+/* « Affichage agrandi » d'iOS (320 pt de large) : RECOMMENCER tient dans sa plaque, les noms de niveaux reviennent à la ligne */
+@media (max-width:360px){.tpRow .tp .pxi{display:none}#carr .carrNiv span{white-space:normal}}
 </style>
 <style id="hudMaitrise">
 /* =====================================================================================================================
@@ -4432,6 +4462,15 @@ html body.touch :is(#auraV2 .avTot em,#avRecT,#avList li){font-size:calc(max(10p
 body.touch.play #hud::before{height:calc(env(safe-area-inset-top,0px) + var(--hudY0) + (214px - var(--hudY0)) * var(--hudK))}
 /* l'AUTO-ÉCOLE, hors échelle, garde sa taille (172 px) : debout, les plaques de pouvoir passent SOUS sa carte (elles la chevauchaient de 26 px) */
 @media (orientation:portrait){html body.touch.coOn #pwrChip{top:calc(var(--hudH) + 290px)}}
+/* (2026-09-29, audit iPhone) « RÉDUIRE LES ANIMATIONS » : ce qui battait encore — le bouton NITRO plein, le chrono de vol qui tremble et
+   clignote, la jauge en nitro infinie, le reflet du logo, l'invite de l'écran titre, le record battu, l'urgence de la chaîne, les traits */
+@media (prefers-reduced-motion:reduce){
+  html body.touch #tNitro.plein:not(.on)::before,html body.touch #tNitro.inf::before{animation:none!important;opacity:.6}
+  html body.touch #tNitro.plein:not(.on)>.pxi,html body.touch #tNitro.bas:not(.on):not(.inf)>.nxJauge,html body.touch #tNitro.inf>.nxJauge,
+  html body.touch #airPie.danger+#airHud,html body.touch #airPie.danger+#airHud .ahBar,html body #airHud[data-k="inf"] .ahF,
+  html body.touch #nitroBar.inf #nitroR,html body.touch #nitroBar.inf #nitroX,html body.touch #nitroBar.bleu #nitroX,
+  .lg::after,html #spNote.on,#avRec.battu s,body #avCh .avBar.urg i,#frenTraits i.faible{animation:none!important}
+}
 </style>
 <style id="figTaille">
 /* (2026-09-29, Sacha : « les textes de figure sont beaucoup trop gros et bloquent la vue ») — les textes de FIGURE, un cran plus bas partout :
@@ -4833,9 +4872,9 @@ function pxi(n){return '<i class="pxi pxi-'+n+'" aria-hidden="true"></i>';}
 /* LES FEUILLES SE REFERMENT (2026-09-25, transitions App Store) : un panneau ne CLAQUE plus — il redescend et
    s'efface en --t-fast. Il garde sa classe d'ouverture pendant l'animation (sinon `display:none` la couperait net),
    puis la perd. Rouvrir pendant la sortie l'annule simplement. */
-function feuilleOuvre(el,cls){ if(!el)return; clearTimeout(el._fermeT); const deja=el.classList.contains(cls)&&!el.classList.contains('sortant');
+function feuilleOuvre(el,cls){ if(!el)return; try{uiGarde();}catch(e){} clearTimeout(el._fermeT); const deja=el.classList.contains(cls)&&!el.classList.contains('sortant');
   el.classList.remove('sortant'); el.classList.add(cls); if(!deja&&el.id!=='modale')try{typeof sfx==='function'&&sfx('ui.feuille');}catch(e){} } // (2026-09-28) la fenêtre a son propre son (ui.modale) ; une feuille déjà ouverte qui change de page (carrière) ne resonne pas
-function feuilleFerme(el,cls){ if(!el||!el.classList.contains(cls))return; clearTimeout(el._fermeT);
+function feuilleFerme(el,cls){ if(!el||!el.classList.contains(cls))return; try{uiGarde();}catch(e){} clearTimeout(el._fermeT);
   try{typeof sfx==='function'&&sfx('ui.feuilleFerme');}catch(e){}
   if(document.documentElement.getAttribute('data-reduced-motion')==='1'){el.classList.remove(cls,'sortant');return;}
   el.classList.add('sortant'); el._fermeT=setTimeout(function(){el.classList.remove(cls,'sortant');},170); }
@@ -4848,7 +4887,7 @@ function modale(o){return new Promise(function(res){
     e.innerHTML=(k.ic?pxi(k.ic):'')+'<span>'+TR(k.l)+'</span>';
     const arme=k.cls==='pb-red'; // (2026-09-26, charte v4) EFFACER / QUITTER / RECOMMENCER s'arment après 420 ms : le 2e tap d'un double appui tombe dans le vide
     if(arme){e.classList.add('arme');setTimeout(function(){e.classList.remove('arme');},420);}
-    e.addEventListener('click',function(ev){ev.stopPropagation();if(e.classList.contains('arme')){hap(6);return;}uiClic(k.cls==='pb-red'?'danger':k.v?'':'retour');feuilleFerme(m,'on');res({v:k.v,texte:c.value});});b.appendChild(e);}
+    e.addEventListener('click',function(ev){ev.stopPropagation();if(e.classList.contains('arme')){hap(6);return;}uiClic(k.cls==='pb-red'?'danger':k.v?'':'retour');try{c.blur();}catch(_){}feuilleFerme(m,'on');res({v:k.v,texte:c.value});});b.appendChild(e);}
   feuilleOuvre(m,'on');try{typeof sfx==='function'&&sfx('ui.modale');}catch(e){}
   if(o.champ!=null)setTimeout(function(){try{c.focus();if(o.lecture)c.select();}catch(e){}},60);
 });}
@@ -5674,6 +5713,7 @@ const IS_MOBILE=FORCE_TEL||TEL_NATIF;
 const IS_LOW_END=IS_MOBILE||(navigator.hardwareConcurrency>0&&navigator.hardwareConcurrency<=4);
 const REDUCED_MOTION=(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)||false; // ACCESSIBILITÉ : iOS « Réduire les animations » → coupe bloom + grain + effets de vitesse
 if(REDUCED_MOTION)document.documentElement.setAttribute('data-reduced-motion','1');
+try{matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',function(e){if(e.matches)document.documentElement.setAttribute('data-reduced-motion','1');else document.documentElement.removeAttribute('data-reduced-motion');});}catch(e){} // (2026-09-29) le réglage d'iOS change en cours de partie : les règles qui ne lisent que l'attribut suivent
 const renderer=new THREE.WebGLRenderer({antialias:!IS_MOBILE&&!IS_LOW_END,powerPreference:'high-performance'});
 renderer.setSize(innerWidth,innerHeight);
 document.body.appendChild(renderer.domElement);
@@ -11130,20 +11170,26 @@ function carrVue(bi){
     h+='</div>';
   }
   h+='<div class="mDock"><div class="pbtn mBack" data-c="'+(bi==null?'fermer':'biomes')+'" role="button" aria-label="Retour">'+pxi('gauche')+'<span>'+TR('RETOUR')+'</span></div></div>'; // (charte v4) la sortie en BAS, comme partout
+  uiGarde();
   if(el.classList.contains('on')&&!el.classList.contains('sortant'))el.setAttribute('data-sens',bi==null?'retour':'avant');else el.removeAttribute('data-sens'); // (2026-09-28) la feuille est déjà là : on change de PAGE, dans le sens du geste
   el.innerHTML=h+'</div>';feuilleOuvre(el,'on');
 }
 function carrLancer(bi,i){
   if(started&&!gameOver)return; // (2026-09-28) une course tourne : on n'en lance pas une seconde par-dessus (depuis l'écran de mort, gameOver est vrai : ça passe)
+  if(ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go))return;
+  feuilleFerme(document.getElementById('carr'),'on');
+  // (2026-09-29, audit de sortie) la reconstruction de la piste et l'atelier se font SOUS le voile : la feuille se figeait en pleine
+  // animation puis on coupait sec sur l'atelier
+  ecranWipe(function(){carrLancerSous(bi,i);},function(){garageLaunch();});
+}
+function carrLancerSous(bi,i){
   CARR.actif={b:bi,i:i};
   if(PARK.on){PARK.on=false;try{modeLbl();}catch(e){}} // (2026-09-27) la carrière passe devant le parc freestyle : sinon lvlChoisir rendait le parc, jamais le niveau
-  feuilleFerme(document.getElementById('carr'),'on');
   /* (2026-09-28) PASSER PAR LA CARRIÈRE EN PREMIER SAUTAIT L'AUTO-ÉCOLE : le niveau 1 (AURORE) roule sur la piste d'apprentissage, mais
      sans le coach. Jamais faite → on l'arme ici, avec les mêmes refus que tutoArme (sans son rebuildMenuScene : celui d'en dessous suffit). */
   if(CARRIERE[bi]&&CARRIERE[bi].niveaux[i]&&CARRIERE[bi].niveaux[i].piste==='tuto'&&!SAVE.d.tuto&&!SANDBOX&&!TUTO.on)tutoDebut();
   runStats.zones=0;rebuildMenuScene(); // la piste de départ EST celle du niveau choisi
   if(!garageOn)openGarage(true); // lancé depuis le MENU : on passe par l'atelier en sourdine, comme JOUER
-  garageLaunch();
 }
 // (2026-09-28) RECOMMENCER en carrière repart du niveau EN COURS, pas du premier de la série : la même ligne que dans endGame, pour
 // les chemins qui relancent sans passer par la mort (panneau ⏸, bouton du desktop). ⚠ pas dans resetGame : carrLancer y passe
@@ -17323,16 +17369,24 @@ function uiPop(el){ // le rebond d'un bouton relâché (re-déclenchable : on re
 const APPUI_SEL='.pbtn,.mLigne,.tp,.gT,.gTab,.gR,.mMode,.misPrix.voir,.mObj[data-m],.shUne,.shCase';
 (function(){let cur=null,t0=0;
   const lache=function(){if(!cur)return;const el=cur;cur=null;const r=Math.max(0,90-(performance.now()-t0));
-    if(r)setTimeout(function(){el.classList.remove('appui');},r);else el.classList.remove('appui');};
+    clearTimeout(el._apT);if(r)el._apT=setTimeout(function(){el.classList.remove('appui');},r);else el.classList.remove('appui');}; // (2026-09-29) re-appui rapide : l'ancien retrait différé ne l'éteint plus sous le doigt
   addEventListener('pointerdown',function(e){if(e.button>0)return;
     const el=e.target&&e.target.closest?e.target.closest(APPUI_SEL):null;
     if(!el||el.closest('#tNitroZone,#tSteer,#touchCtl,#tNitro'))return;
-    if(cur&&cur!==el)cur.classList.remove('appui');cur=el;t0=performance.now();el.classList.add('appui');
+    if(cur&&cur!==el)cur.classList.remove('appui');clearTimeout(el._apT);cur=el;t0=performance.now();el.classList.add('appui');
     if(!el.classList.contains('off')&&!el.classList.contains('arme'))try{typeof sfx==='function'&&sfx('ui.appui');}catch(err){}},{capture:true,passive:true});
   addEventListener('pointerup',lache,{capture:true,passive:true});
   addEventListener('pointercancel',lache,{capture:true,passive:true});
   addEventListener('blur',lache);
+  document.addEventListener('visibilitychange',lache); // (2026-09-29) l'appli part en arrière-plan en plein appui : la touche ne reste pas enfoncée
 })();
+/* LE VERROU DU DOUBLE-TAP (2026-09-29, audit de sortie) : iOS envoie un `click` par tap. Un double-tap sur RETOUR ouvrait l'accueil au 1er
+   tap et lançait une COURSE au 2e (JOUER est dessous, encore transparent mais déjà touchable) ; un double-tap sur ANNULER traversait la
+   fenêtre qui s'efface et tombait sur REPRENDRE ; un double-tap sur un monde de la carrière lançait un niveau qu'on n'avait pas choisi.
+   Chaque changement d'écran ou de feuille pose `uiGarde()` : pendant 320 ms, les clics d'un vrai doigt sont avalés. Les `.click()`
+   programmés (interrupteurs, Entrée, Échap) passent : `isTrusted` est faux pour eux. */
+function uiGarde(ms){uiGarde.t=Math.max(uiGarde.t||0,performance.now()+(ms||320));}
+addEventListener('click',function(e){if(e.isTrusted&&performance.now()<(uiGarde.t||0)){e.stopPropagation();e.preventDefault();}},true);
 function countUp(el,to,fmt){ // un chiffre qui MONTE (départ franc, arrivée douce) — l'aura se compte, elle ne s'affiche pas
   if(!el)return;const t0=performance.now(),D=900;fmt=fmt||function(v){return Math.round(v);};
   if(REDUCED_MOTION||to<=0){el.textContent=fmt(to);return;}
@@ -17677,8 +17731,8 @@ function frenEntre(){
   // d'où il part : le centre de la zone rouge, relevé une fois (sa place est connue du CSS seul — on la mesure, on ne la recopie pas)
   let ox=0,oy=0;
   try{const z=FLOW.el&&FLOW.el.querySelector('.fZ');
-    if(z){tr.classList.add('mesure');const a=z.getBoundingClientRect(),b=tr.getBoundingClientRect();tr.classList.remove('mesure');
-      if(b.width>0){ox=Math.round(a.left+a.width/2-(b.left+b.width/2));oy=Math.round(a.top+a.height/2-(b.top+b.height/2));}}}catch(e){}
+    if(z){tr.classList.add('mesure');const a=zRect(z),b=zRect(tr),k9=zK(tr);tr.classList.remove('mesure');
+      if(b.width>0){ox=Math.round((a.left+a.width/2-(b.left+b.width/2))/k9);oy=Math.round((a.top+a.height/2-(b.top+b.height/2))/k9);}}}catch(e){} // (2026-09-29) ÷ zoom : --ox/--oy sont lus dans le bloc rétréci (hudTaille)
   tr.style.setProperty('--ox',ox+'px');tr.style.setProperty('--oy',oy+'px');
   tr.classList.add('on');
   setTimeout(function(){if(tr.classList.contains('on'))try{pixBurst(tr.querySelector('.trDA')||tr.querySelector('.trPiece'),12);}catch(e){}},300); // l'impact : la gerbe part quand il se pose
@@ -17957,7 +18011,7 @@ function runxReset(){flowReset();RUNX.best0=best; // le record d'AVANT la partie
 RUNX.coins=RUNX.fruits=RUNX.perfect=0;RUNX.t=RUNX.nitro=0;RUNX.fren=RUNX.frenMax=0;MIS_NEW.length=0;misT=0;
   RUNX.pwr=RUNX.sauves=RUNX.miracles=RUNX.sfMax=0;try{grisantRaz();}catch(e){} // (2026-09-28) pouvoirs v2 et petits trucs grisants
   try{RUNX.engAvant=(SAVE.d.ex&&SAVE.d.ex.eng)|0;}catch(e){RUNX.engAvant=0;} // le meilleur moteur AVANT la partie : l'écran de fin dit « RECORD ! » s'il est battu
-  try{RUNX.bank0=bank();}catch(e){RUNX.bank0=0;}} // la banque AVANT la partie : l'écran de mort remplit la barre depuis là
+  try{RUNX.bank0=bank();}catch(e){RUNX.bank0=0;}RUNX.verse=null;} // la banque AVANT la partie : l'écran de mort remplit la barre depuis là
 function misVal(k){ // la valeur COURANTE d'un critère, dans la partie en cours
   switch(k){
     case 'coins':return RUNX.coins;      case 'fruits':return RUNX.fruits;   case 'perfect':return RUNX.perfect;
@@ -18614,9 +18668,17 @@ function pixCouleurs(el){
   if(el.closest('#coach'))return PIX_VERT;
   return PIX_OR; // l'argent (et le record : or + blanc)
 }
+/* (2026-09-29, audit iPhone) LE RECTANGLE À L'ÉCRAN d'un élément du HUD rétréci par `zoom` (<style id="hudTaille">). Chrome ≥ 128 rend
+   déjà les coordonnées de l'écran ; l'ancien comportement (WebKit, possible sur iPhone) les rend DIVISÉES par le zoom — les gerbes
+   partaient à côté du compteur. On mesure une fois lequel des deux on a. `zK(el)` = le zoom effectif d'un élément (1 hors du HUD). */
+function zK(el){try{const z=el&&el.closest&&el.closest('#auraV2,#triade,#airHud,#pwrChip,#campChip');return z?(parseFloat(getComputedStyle(z).zoom)||1):1;}catch(e){return 1;}}
+function zRect(el){const r=el.getBoundingClientRect();
+  if(zRect.leg===undefined){try{const d=document.createElement('div');d.style.cssText='position:fixed;left:0;top:0;width:100px;height:10px;zoom:.5;visibility:hidden;pointer-events:none';document.body.appendChild(d);zRect.leg=d.getBoundingClientRect().width>75;d.remove();}catch(e){zRect.leg=false;}}
+  const k=zRect.leg?zK(el):1;if(k===1)return r;
+  return {left:r.left*k,top:r.top*k,right:r.right*k,bottom:r.bottom*k,width:r.width*k,height:r.height*k};}
 function pixBurst(el,n){
   if(REDUCED_MOTION||!el)return;
-  const r=el.getBoundingClientRect(),cx=Math.round((r.left+r.width/2)/2)*2,cy=Math.round((r.top+r.height/2)/2)*2,cols=pixCouleurs(el);
+  const r=el.closest?zRect(el):el.getBoundingClientRect(),cx=Math.round((r.left+r.width/2)/2)*2,cy=Math.round((r.top+r.height/2)/2)*2,cols=pixCouleurs(el);
   n=Math.min(12,n||10);
   for(let i=0;i<n;i++){
     const p=document.createElement('i');p.className='pxBurst';
@@ -24374,6 +24436,7 @@ function commitName(){
 nameSave.addEventListener('click',function(e){e.stopPropagation();commitName();});
 nameEntry.addEventListener('click',function(e){e.stopPropagation();});
 // ENTRÉE dans le champ nom : 1er appui = valider le nom · 2e appui (nom déjà validé) = REJOUER direct
+nameInput.addEventListener('blur',function(){setTimeout(function(){try{scrollTo(0,0);}catch(e){}},60);}); // (2026-09-29) iOS laissait la page remontée après le clavier : REJOUER coupé en bas
 nameInput.addEventListener('keydown',function(e){e.stopPropagation();if(e.code==='Enter'){e.preventDefault();if(pendingScore!=null)commitName();else if(gameOver)playViaGarage();}});
 // (2026-09-28) le record MONTE en direct pendant la course (voir la boucle : `money>best`), même d'une partie abandonnée
 // (RECOMMENCER/QUITTER) qui n'entre pas au Top 10. L'écraser par `leaders[0]` au chargement faisait redescendre le record
@@ -25983,6 +26046,7 @@ function endGame(){
   tagline.textContent=TR(pickL(isTop?END_TOP:END_LINES));tagline.style.display=''; // la punchline de fin — même la mort a du style
   const gagnees=commitExploits(); // les exploits de la run entrent au compteur À VIE → nouvelles caisses
   MIS_REC=SANDBOX?null:misFin();   // un carnet rempli se referme ICI, jamais en vol (voir `misFin`)
+  try{RUNX.verse=Math.max(0,Math.round(bank()-(RUNX.bank0||0)));}catch(e){} // (2026-09-29) VERSÉS AU COMPTE figé à la mort : un achat au garage ne le fait plus baisser
   setBestChip();
   runStatsEl.style.display='block';
   /* LE RELEVÉ DE FIN DE PARTIE. L'ordre compte : d'abord ce qu'on a FAIT (les exploits), puis ce que
@@ -28714,6 +28778,7 @@ function garageLaunch(){
   // de caisse puis taper JOUER dans la seconde ne lançait RIEN. On la TERMINE sur-le-champ, exactement comme sa dernière image
   // (l'échange s'il n'a pas eu lieu, puis scanner éteint, échelle rendue) : la caisse qui sort est bien celle qu'on vient de choisir.
   if(GAR.sw){const SW=GAR.sw;GAR.sw=null;if(!SW.fait)garageShow(SW.to);if(GAR.scan)GAR.scan.visible=false;carGroup.scale.set(1,1,1);}
+  window.__mRetour=null; // (2026-09-29) une course part de l'atelier : l'écran qui l'attend à la fin, c'est la mort, pas les missions
   try{ if(carUnlocked(garageI)){const be=$('gEquip'); if(be&&be.getAttribute('aria-disabled')!=='true')be.click();} }catch(e){}
   if(!GAR._v)GAR._v=new THREE.Vector3();
   if(!GAR._c)GAR._c=new THREE.Vector3();
@@ -28729,12 +28794,12 @@ function garageLaunch(){
 // ⚠ `openGarage(true)` — EN SOURDINE (2026-09-05 bis) : le premier jet montrait la fiche d'achat/
 // échange pendant TOUTE la sortie de porte (« un bouton play séparé des achats de voitures », retour
 // du user) — le garage reste la scène du départ, seule sa vitrine de shopping n'a rien à y faire.
-function playViaGarage(){
+function playViaGarage(tuto){
   if(pendingScore!=null||(started&&!gameOver))return; // course en cours, ou nom en cours de saisie : rien à faire
   // (2026-09-25, transitions App Store) le menu ne disparaît plus d'un coup sur l'atelier : fondu au noir, l'atelier
   // s'allume DESSOUS, et le LÂCHER démarre quand le voile se lève — la caméra quitte l'orbite sous les yeux du joueur.
-  if(garageOn){garageLaunch();return;}
-  ecranWipe(function(){openGarage(true);},function(){garageLaunch();});
+  if(garageOn){if(tuto)tutoArme();garageLaunch();return;}
+  ecranWipe(function(){if(tuto)tutoArme();openGarage(true);},function(){garageLaunch();});
 }
 function garageGo(d){
   if(GAR.go)return; // (2026-09-28) pendant la SORTIE (1,7 s), un glissé remplaçait la caisse qui roule vers la porte
@@ -29507,7 +29572,7 @@ $('garageBtn').addEventListener('click',e=>{e.stopPropagation();openGarage();});
 $('gClose').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarget);uiClic('retour');ecranWipe(closeGarage);});
 function gSecoue(b){b.classList.remove('secoue');void b.offsetWidth;b.classList.add('secoue');hap([8,40,8]);} // le NON du garage : ça bouge, ça vibre, et un toast dit pourquoi
 $('gEquip').addEventListener('click',e=>{e.stopPropagation();
-  const b=e.currentTarget;
+  const b=e.currentTarget;if(b.classList.contains('arme')&&e.isTrusted)return; // (2026-09-29) le 2e tap d'un double-tap sur ACHETER n'équipe pas la caisse
   if(b.getAttribute('aria-disabled')==='true'){
     const vt=SHOP.tab==='voiture',ferme=vt?!carUnlocked(garageI):!shopOwned(SHOP.tab,COSM[SHOP.tab][SHOP.i[SHOP.tab]].id);
     if(!ferme){hap(8);return;}                               // ÉQUIPÉE : un simple accusé (sinon on rejouait la fanfare et réécrivait la sauvegarde)
@@ -29551,7 +29616,8 @@ $('gBuy').addEventListener('click',e=>{e.stopPropagation();
     if(r.raison==='fonds-insuffisants'){gSecoue(e.currentTarget);uiClic('refus');toast(pxi('croix')+' '+TR('IL TE MANQUE')+' '+fmtC(r.manque));} // #msg est masqué au garage : c'est un toast qui parle
     return;
   }
-  garageShow(garageI);pixBurst($('gCard'),26);hap([10,30,20,30,40]);gTampon(TR('À TOI')+' !'); // le bouton disparaît, le compte se met à jour — et ça se FÊTE (tampon + « −$ » du compteur : plus de toast qui le redit)
+  garageShow(garageI);{const be=$('gEquip');if(be){be.classList.add('arme');clearTimeout(be._armT);be._armT=setTimeout(function(){be.classList.remove('arme');},420);}} // ÉQUIPER apparaît à la place d'ACHETER : il s'arme d'abord
+  pixBurst($('gCard'),26);hap([10,30,20,30,40]);gTampon(TR('À TOI')+' !'); // le bouton disparaît, le compte se met à jour — et ça se FÊTE (tampon + « −$ » du compteur : plus de toast qui le redit)
   try{if(SONV2){sfx('ui.achat');if(!REDUCED_MOTION)sfx('ui.tampon',{t:.266});}else fanfare();}catch(err){} /* (console de son) ACHAT : tiroir-caisse + tampon « À TOI ! » */
 });
 // `buildPlayWord()` — LE JOUER SANS BULLE (2026-09-05 bis) : `#gPlayMain` n'a plus de textContent
@@ -29627,23 +29693,29 @@ $('gNext').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarge
 // plus horizontale que verticale, on COMMIT le changement de caisse — `garageGo()`, la même fonction
 // que les flèches ◀▶, avec la même animation de retourneur.
 const SWIPE_PX=64;
-addEventListener('pointerdown',e=>{if(!garageOn)return;if(e.target.closest&&e.target.closest('#gTop,#gBottom'))return;
-  garageDrag=true;gpx=gpx0=e.clientX;gpy=gpy0=e.clientY;
+/* (2026-09-29, audit de sortie) UN SEUL DOIGT fait tourner l'atelier : le 2e (le pincement) écrasait le point de départ, l'orbite sautait
+   d'un doigt à l'autre, et au relâcher le premier comptait pour un glissé — la caisse changeait. Rien ne passe à travers le voile. */
+let gpId=null,gPince=false;
+addEventListener('pointerdown',e=>{if(!garageOn||ecranWipe._on)return;if(e.target.closest&&e.target.closest('#gTop,#gBottom,#wipe,#carr,#modale'))return;
+  if(garageDrag){gPince=true;return;}
+  garageDrag=true;gpId=e.pointerId;gPince=false;gpx=gpx0=e.clientX;gpy=gpy0=e.clientY;
   if(!GAR.sw&&!GAR.go)GAR.pressT=GAR.PRESS_D; // LE TOUCHER : la caisse accuse la pression tout de suite, avant même qu'on glisse
 });
+addEventListener('pointercancel',e=>{if(e.pointerId===gpId){garageDrag=false;gpId=null;}});
 addEventListener('pointerup',e=>{
-  if(garageDrag){
+  if(garageDrag&&e.pointerId!==gpId)return;
+  if(garageDrag&&!gPince){
     const dx=e.clientX-gpx0,dy=e.clientY-gpy0;
     if(Math.abs(dx)>SWIPE_PX&&Math.abs(dx)>Math.abs(dy)*1.3)garageGo(dx<0?1:-1); // glisse à GAUCHE → caisse SUIVANTE (même sens qu'un carrousel qu'on feuillette)
     else if(Math.abs(dx)<14&&Math.abs(dy)<14)garageImpact(); // ni glissé ni swipe : un TAP — elle encaisse (voir garageImpact)
   }
   garageDrag=false;
 });
-addEventListener('pointermove',e=>{if(!garageDrag)return;garageAng-=(e.clientX-gpx)*.01;garagePitch=THREE.MathUtils.clamp(garagePitch+(e.clientY-gpy)*.006,.02,.82);gpx=e.clientX;gpy=e.clientY;});
+addEventListener('pointermove',e=>{if(!garageDrag||e.pointerId!==gpId||gPince)return;garageAng-=(e.clientX-gpx)*.01;garagePitch=THREE.MathUtils.clamp(garagePitch+(e.clientY-gpy)*.006,.02,.82);gpx=e.clientX;gpy=e.clientY;});
 // ⚠ ORBITE BORNÉE À 7,8 m : au-delà on sortait par les murs et on traversait la servante et les
 // piles de pneus. Le décor est rangé POUR ce rayon (rien de posé à moins de 8,3 m du centre).
 addEventListener('wheel',e=>{if(!garageOn)return;garageDist=THREE.MathUtils.clamp(garageDist+e.deltaY*.008,4.6,8.6);},{passive:true}); // plafond 7,8→8,6 (2026-09-05) : le zoom arrière par défaut est monté, la molette doit pouvoir suivre
-addEventListener('keydown',e=>{if(!garageOn)return;if(e.code==='Escape'){const cr9=$('carr');if(cr9&&cr9.classList.contains('on'))feuilleFerme(cr9,'on');else if(!GAR.go)ecranWipe(closeGarage);}else if(e.code==='ArrowLeft')garageGo(-1);else if(e.code==='ArrowRight')garageGo(1);}); // même chemin que les flèches à l'écran (boutique comprise, premium exclues)
+addEventListener('keydown',e=>{if(!garageOn||ecranWipe._on)return;if(e.code==='Escape'){const cr9=$('carr');if(cr9&&cr9.classList.contains('on'))feuilleFerme(cr9,'on');else if(!GAR.go)ecranWipe(closeGarage);}else if(e.code==='ArrowLeft')garageGo(-1);else if(e.code==='ArrowRight')garageGo(1);}); // même chemin que les flèches à l'écran (boutique comprise, premium exclues)
 
 // ---------- BOUCLE ----------
 const fwdW=new THREE.Vector3(),tmp=new THREE.Vector3(),tmp2=new THREE.Vector3(),tmp3=new THREE.Vector3(),mat4=new THREE.Matrix4();
@@ -31913,7 +31985,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     // `touch-action:none` sur le canvas et le HUD bloque déjà le scroll du navigateur.
     if(garageOn)return;
     const tg=e.target;
-    if(!(tg&&tg.closest&&tg.closest('#overlay,#gCard,#tPanel'))&&e.cancelable)e.preventDefault();
+    if(!(tg&&tg.closest&&tg.closest('#overlay,#gCard,#tPanel,#carr,#modale'))&&e.cancelable)e.preventDefault(); // (2026-09-29) la CARRIÈRE et la FENÊTRE sont hors de #overlay : leur contenu ne défilait pas au doigt (les mondes, les niveaux 9-10 restaient sous le RETOUR)
   },{passive:false});
   // ---- GARAGE AU DOIGT : le PINCEMENT remplace la molette (il n'y a pas de molette sur un pouce) ----
   (function(){ let pd=0;
@@ -31939,10 +32011,13 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   addEventListener('visibilitychange',function(){
     // (2026-09-26) l'appli passe en arrière-plan en pleine course : la pause générale a gelé le jeu, mais sans panneau — au retour,
     // un jeu figé, volant mort, et « PAUSE » écrit dans un #msg masqué. On ouvre le vrai panneau : REPRENDRE attend sous le pouce.
-    if(document.hidden){ if(started&&!gameOver&&paused&&pan&&!pan.classList.contains('open')){feuilleOuvre(pan,'open');panSync();} return; }
+    if(document.hidden){ if(started&&!gameOver&&paused&&pan&&(!pan.classList.contains('open')||pan.classList.contains('sortant'))){feuilleOuvre(pan,'open');panSync();} return; } // (2026-09-29) « sortant » : parti pendant le 3-2-1 qui suit REPRENDRE — le compte s'annule, le panneau revient
+    // (2026-09-29) une course qui a DÉMARRÉ pendant que l'appli dormait (REJOUER puis bouton d'accueil dans la foulée) : au retour elle
+    // roule sans pause ni panneau — on la met en pause, REPRENDRE sous le pouce
+    if(started&&!gameOver&&!paused&&pan&&!pan.classList.contains('open'))panOpen(true);
     wakeAsk(); audioKick(); });
   // ---- BASCULE D'ORIENTATION : iOS annonce des dimensions PÉRIMÉES — on recadre après le pivot ----
-  const reflow=function(){ setTimeout(function(){
+  const reflow=function(){ clearTimeout(reflow._t); reflow._t=setTimeout(function(){ // (2026-09-29) une seule fois par rafale (clavier, barre d'adresse) : applyDPR réalloue toutes les cibles de rendu
     camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); fovFit(); applyDPR(); },280); };
   addEventListener('orientationchange',reflow);
   if(window.visualViewport)visualViewport.addEventListener('resize',reflow);
@@ -31968,6 +32043,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
      en absolu : il ne pousse pas la page. `sansSortie` : l'overlay vient d'apparaître, il n'y a rien à faire partir. */
   const PROF={home:0,dead:0,modes:1,set:1,shop:1,mis:1},SENS=['on','sort','avant','retour','racine','revu'];
   function mGo(id,sens,sansSortie){
+    if(!sansSortie)uiGarde(); // (2026-09-29) le 2e tap d'un double-tap ne tombe pas sur l'écran qui arrive
     const prev=mCur,de=mScr[prev],vers=mScr[id];mCur=id;
     if(!sens)sens=(prev===id)?'racine':((PROF[id]|0)>(PROF[prev]|0)?'avant':(PROF[id]|0)<(PROF[prev]|0)?'retour':'racine');
     for(const k in mScr){const e=mScr[k];if(!e)continue;clearTimeout(e._sortT);e.classList.remove.apply(e.classList,SENS);}
@@ -31980,10 +32056,10 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     mFill(); }
   function mStatBox(v,l){return '<div class="mStat"><b>'+v+'</b><span>'+l+'</span></div>';}
   let mCntT=0;
-  function mCount(el,to){ // égrène le montant : départ franc, arrivée en douceur (ease-out cubique)
+  function mCount(el,to,direct){ // égrène le montant : départ franc, arrivée en douceur (ease-out cubique)
     if(!el)return;
     if(mCntT)clearInterval(mCntT);
-    if(to<=0){el.textContent=fmtC(0);return;}
+    if(to<=0||direct){el.textContent=fmtC(Math.max(0,to));return;} // direct : on REVIENT sur l'écran (réglages, garage) — le compte ne se rejoue pas
     el.textContent=fmtC(0);let t0=0;const D=750,T0=performance.now()+(REDUCED_MOTION?0:360); // (2026-09-28) le ticket entre à 390 ms (section 21) : le compte part avec lui, en même temps que les notes (320 ms)
     mCntT=setInterval(function(){ if(performance.now()<T0)return; if(!t0)t0=performance.now();
       const k=Math.min(1,(performance.now()-t0)/D),e=1-Math.pow(1-k,3);
@@ -32028,7 +32104,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       /* VERSÉS AU COMPTE = ce que la banque a VRAIMENT gagné depuis le départ — le magot MONTE au lieu de s'afficher : 750 ms qui font le sel de
          la fin de run. (2026-09-28) C'était le seul virement de la course (`_vire`) : « $ 37 VERSÉS » au-dessus d'une barre d'objectif « +$ 537 »,
          qui compte aussi la prime du permis et celles des défis. Même calcul que la barre (objRender) : les deux chiffres ne se contredisent plus. */
-      mCount($t('mCash'),Math.max(0,Math.round(bank()-(RUNX.bank0||0))));
+      const prem9=mFill._mort!==TCTL.mortT;mFill._mort=TCTL.mortT; // (2026-09-29) le compte (montant, aura) ne se joue qu'à la PREMIÈRE apparition de l'écran de cette mort
+      mCount($t('mCash'),RUNX.verse!=null?RUNX.verse:Math.max(0,Math.round(bank()-(RUNX.bank0||0))),!prem9);
       const ot=$t('mOverT');
       // (2026-09-26, audit UX) LES RECORDS NE SE CONTREDISENT PLUS : le jeu criait « RECORD BATTU » sur l'AURA en course, et
       // l'écran de fin ne jugeait que l'argent. Le titre s'allume pour l'argent, l'AURA ou le MOTEUR — les héros de cet écran.
@@ -32060,7 +32137,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
             +'<div class="hMotN"><i>'+TR('PALIER')+'</i>'+(engTier+1)+'</div>'+(eN?'<em>'+TR('RECORD !')+'</em>':'')
             +(pr?'<div class="hNx hPres"><span>'+TR('PLUS QUE')+' '+mq+' '+TR(mq>1?'PIÈCES':'PIÈCE')+'</span><span>'+pxi('droite')+' '+TR(nx.n)+'</span></div>':ci?'<div class="hNx hRec">'+TR('RECORD')+' · '+TR('PALIER')+' '+(ea+1)+'</div>':'')+'</div>'; // (2026-09-28) « RECORD · PALIER 18 » : le nom du moteur (STATOREACTEUR) cassait la ligne ; la carte parle déjà en paliers
           {const cv9=h.querySelector('.hMotCv');ENG_MORT.cv=cv9;ENG_MORT.ctx=cv9?cv9.getContext('2d'):null;} // le moteur 3D y tourne (engVigRender)
-          {const av9=$t('mAuraV');if(av9){av9.textContent='+'+fA(0);av9.classList.toggle('zero',au<=0);}setTimeout(function(){countUp(av9,au,function(v){return '+'+fA(v);});},REDUCED_MOTION?0:260);} // la carte AURA est distribuée à 250 ms : le chiffre monte quand on la voit
+          {const av9=$t('mAuraV');if(av9){av9.textContent='+'+fA(prem9?0:au);av9.classList.toggle('zero',au<=0);}if(prem9)setTimeout(function(){countUp(av9,au,function(v){return '+'+fA(v);});},REDUCED_MOTION?0:260);} // la carte AURA est distribuée à 250 ms : le chiffre monte quand on la voit
           if(an){const u=$t('mAuraB'),D=Math.max(1,an.seuil-bas),w1=Math.min(100,(a1-bas)/D*100),w0=rg?0:Math.max(0,(a1-au-bas)/D*100);
             if(u){u.style.width=w0.toFixed(1)+'%';requestAnimationFrame(function(){requestAnimationFrame(function(){u.style.width=w1.toFixed(1)+'%';});});}}}
       }
@@ -32120,8 +32197,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(a!=='snd')uiClic(mRole9(a));uiPop(el);if(a==='play'||a==='replay')pixBurst(el,16); // chaque bouton REBONDIT ; JOUER lâche une gerbe — (2026-09-28) SON : le clic part APRÈS la bascule (plus bas)
     if(a==='replay'&&started&&gameOver){ goImmersive(); ecranWipe(function(){ if(started&&gameOver){ if(!CARR.actif)tutoArme(); resetGame(); } }); } // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite ; pas en carrière : son niveau passe devant la piste d'apprentissage)
     else if(a==='play'||a==='replay'){ if(a==='play')CARR.actif=null;
-      tutoArme(); // 1re partie = AUTO-ÉCOLE
-      goImmersive(); playViaGarage(); }
+      goImmersive(); playViaGarage(true); } // 1re partie = AUTO-ÉCOLE : tutoArme passe SOUS le voile (la reconstruction de la piste figeait le bouton avant qu'il monte)
     else if(a==='tuto'){ SAVE.d.tuto=0;SAVE.flush();toast(pxi('coche')+' '+TR('L\'AUTO-ÉCOLE T\'ATTEND AU PROCHAIN JOUER')); }
     else if(a==='back')mGo(mRoot());
     else if(a==='carr'){ carrVue(null); } // (2026-09-27) la CARRIÈRE : les mondes, puis les dix niveaux (feuille #carr)
@@ -32129,6 +32205,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     // (2026-09-28) MENU : l'écran de mort rend la main à l'ACCUEIL — sous le volet, la course est rangée et la vitrine revient
     else if(a==='menu'&&started&&gameOver){ ecranWipe(function(){ accueilRetour(); mGo('home','racine'); }); }
     else if(a==='misVoir'){ const c9=carnet(misEtat().n).r; // la récompense des MISSIONS, sur la vraie caisse, au garage (sa fiche porte ses trois défis)
+      window.__mRetour=PROF[mCur]?mCur:null; // (2026-09-29) le RETOUR de l'atelier ramène aux MISSIONS
       ecranWipe(function(){ openGarage(); if(c9.car!=null){shopTab('voiture');garageShow(c9.car);} else if(c9.cat){shopTab(c9.cat);shopShow(c9.cat,COSM[c9.cat].findIndex(x=>x.id===c9.id));} }); }
     else if(a==='shop'){ ecranWipe(function(){mGo('shop');}); } // LA BOUTIQUE : l'écran des caisses en vrai argent
     else if(a==='custom'){ ecranWipe(function(){openGarage();shopTab('peinture');}); } // la PERSONNALISATION (peinture, ailes, traînées) vit au GARAGE
@@ -32202,12 +32279,13 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   // L'OVERLAY APPARAÎT (mort, retour d'atelier) → l'écran racine est posé TOUT DE SUITE, avant la prochaine image — plus
   // au tick de 140 ms (l'ancien écran s'affichait un instant avant de céder la place à celui de la mort).
   try{ new MutationObserver(function(){ const o=overlay.style.display!=='none';
-    if(o!==TCTL.ov){TCTL.ov=o;if(o)mGo(mRoot(),'racine',true);} }).observe(overlay,{attributes:true,attributeFilter:['style']}); }catch(e){}
+    if(o!==TCTL.ov){TCTL.ov=o;if(o){const r9=(window.__mRetour&&mScr[window.__mRetour]&&!(started&&!gameOver))?window.__mRetour:mRoot();window.__mRetour=null;mGo(r9,'racine',true);}} }).observe(overlay,{attributes:true,attributeFilter:['style']}); }catch(e){}
   // un fondu au noir se lève, ou le voile d'ouverture s'efface : l'écran découvert JOUE son entrée à cet instant-là
   document.addEventListener('cc:revele',function(){ if(overlay.style.display!=='none'&&!garageOn)mGo(mCur,'racine',true); });
   // ÉCHAP (la version téléphone jouée au clavier) : il referme ce qui est ouvert, dans l'ordre où l'œil le lit — la
   // fenêtre, la pause, la carrière ; en course il MET EN PAUSE ; dans un sous-écran il REVIENT, comme le bouton retour.
   addEventListener('keydown',function(e){ if(e.code!=='Escape'||e.repeat)return;
+    if(ecranWipe._on)return; // (2026-09-29) sous un voile, l'écran qu'on quitte n'est plus à nous
     const md=$t('modale'),cr=$t('carr');
     if(md&&md.classList.contains('on')&&!md.classList.contains('sortant')){const bs=md.querySelectorAll('.modB .pbtn');if(bs.length)bs[bs.length-1].click();return;} // le DERNIER bouton d'une fenêtre est toujours l'annulation
     if(pan&&pan.classList.contains('open')&&!pan.classList.contains('sortant')){panOpen(false,true);uiClic('retour');return;}
