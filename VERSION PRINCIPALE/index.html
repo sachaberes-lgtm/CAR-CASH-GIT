@@ -14020,6 +14020,7 @@ function buildCar(spec){
   // ni aileron générique — tout ce qui se voit est posé par son gabarit.
   if(A.lpw)Object.assign(A,{lamps:0,pipes:0,sp:0,split:0,doors:0,slats:0});
   const hlX=A.hl[0],hlY=A.hl[1],hlZ=A.hl[2],tlX=A.tl[0],tlY=A.tl[1],tlZ=A.tl[2];
+  carGroup.userData.capot=[0,y0+H9*.78,L9*.28]; // (2026-09-28) le CAPOT, en repère caisse : c'est là que le nouveau moteur RENTRE (voir engBigSuit)
   try{const tD=cosmSur('trainee'); // LA TRAÎNÉE DE LA BOUTIQUE : elle se pose PAR-DESSUS la signature de la caisse
    FX_EFF=(tD&&tD.id!=='nitro')?Object.assign({},spec.fx||{},tD.rainbow?{rainbow:true,trail:null}:{trail:tD.rgb,rainbow:false}):null;
   }catch(e){} // ⚠ 1er buildCar à l'init : `FX_EFF` n'est pas encore déclaré (zone morte) — il vaut null de toute façon
@@ -14335,6 +14336,14 @@ const engRTc=new THREE.WebGLRenderTarget(384,256,{minFilter:THREE.LinearFilter,m
 const ENG_Q={x:0,y:0,w:0,h:0,op:0},ENG_CC=new THREE.Color(),ENG_QK=1.6;
 const engCarteMat=new THREE.MeshBasicMaterial({map:engRTc.texture,transparent:true,depthTest:false,depthWrite:false,
   blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor});
+/* (2026-09-28, user : « le moteur doit apparaître au niveau de la voiture, au-dessus, et donner l'impression de rétrécir et de rentrer
+   dans le capot ») LA LIGNE DU CAPOT : le moteur est une image recollée par-dessus la scène — il ne peut pas passer DERRIÈRE la tôle.
+   Pendant la plongée, tout ce qui descend sous la ligne du capot à l'écran est effacé : le bas du moteur disparaît le premier, il
+   s'ENFONCE. `uClipY` en pixels du tampon, depuis le bas (−1 = rien de coupé). Compilé au menu avec le reste de la carte. */
+engCarteMat.userData.uClip={value:-1};
+engCarteMat.onBeforeCompile=function(sh){sh.uniforms.uClipY=engCarteMat.userData.uClip;
+  sh.fragmentShader='uniform float uClipY;\n'+sh.fragmentShader.replace('void main() {','void main() {\n\tif(gl_FragCoord.y<uClipY)discard;');};
+engCarteMat.customProgramCacheKey=function(){return 'moteurCapot';};
 const engCarteQuad=new THREE.Mesh(engVigQuad.geometry,engCarteMat);engCarteQuad.frustumCulled=false;engCarteQuad.renderOrder=1;engCarteQuad.visible=false;
 const engHaloMat=new THREE.MeshBasicMaterial({transparent:true,depthTest:false,depthWrite:false,
   blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor,
@@ -16392,11 +16401,21 @@ const epEl=document.getElementById('engPop'),epNumEl=document.getElementById('ep
      et claque sur le toit : il est SUR la voiture, et la route devant elle n'est jamais cachée plus d'une seconde.
    Le moteur 3D n'est plus recopié dans un <canvas> (lecture GPU→CPU) : il est recollé directement dans l'image WebGL à la place de
    `.ebScene` (voir `engQuadDraw`) — les textes de la carte sont du DOM, donc au-dessus de lui. `pointer-events:none` partout. */
-const ENG_PLONGE=440,ENG_COULOIR=1000; // 1 s dans le couloir (la bible : jamais plus d'une seconde de route cachée), puis 0,44 s de plongée
+const ENG_PLONGE=500,ENG_COULOIR=900; // (2026-09-28) 0,9 s au-dessus de la caisse, puis 0,5 s pour rétrécir et rentrer dans le capot
+/* LA SCÈNE D'ATELIER CALÉE SUR LE MOTEUR (2026-09-28). Elle partait au passage de palier, la carte parfois plus tard (file du couloir) :
+   le flash et l'onde tombaient pendant que le moteur flottait encore. Sur téléphone elle est désormais armée PAR la carte, pour que sa
+   RÉVÉLATION (u = .38 de T_SWAP : clank, flash, onde, spirale) tombe à l'instant où le moteur disparaît dans le capot — et d'ici là
+   les étincelles de soudure jaillissent du capot pendant qu'il descend en tournant de plus en plus vite. */
+const ENG_ARME=Math.max(0,ENG_COULOIR+ENG_PLONGE-Math.round(T_SWAP*.38*1000));
+function engSwapArme(){
+  if(performance.now()-poseSndT<80)setTimeout(function(){try{engSwapSnd();}catch(e){}},450); // (2026-09-26, audit son) la visseuse attend que le « tchak » d'une pose ait parlé
+  else try{engSwapSnd();}catch(e){}
+  engSwapT=T_SWAP;shake=Math.max(shake,.5);duckT=Math.max(duckT,.45);
+}
 function engBig(E,tier,ru){
   let b=document.getElementById('engBig');
   if(!b){b=document.createElement('div');b.id='engBig';b.setAttribute('aria-live','polite');document.body.appendChild(b);}
-  clearTimeout(engBig._p);clearTimeout(engBig._t);clearTimeout(engBig._z);
+  clearTimeout(engBig._p);clearTimeout(engBig._t);clearTimeout(engBig._z);clearTimeout(engBig._a);
   const hx='#'+(E.col||0xffd75e).toString(16).padStart(6,'0'),n=Math.max(1,Math.min(16,E.cyl||4));
   let cyl='';for(let i=0;i<n;i++)cyl+='<i style="animation-delay:'+(.25+i*.05).toFixed(2)+'s"></i>';
   const rec=tier>(RUNX.engAvant|0); // (2026-09-25) palier jamais atteint AVANT cette partie : le seul moment vraiment neuf
@@ -16410,38 +16429,50 @@ function engBig(E,tier,ru){
   engBig.ctx=null;engBig.on=true;engBig.plonge=0;engBig.t0=performance.now();engBig.col=E.col||0xffd75e;engVigSpin=0;
   document.body.classList.remove('ebPlonge');document.body.classList.add('ebOn');
   b.classList.remove('on','plonge','ruban');void b.offsetWidth;
-  engBigPlace(b);b.classList.add('on');
+  engBigPlace(b);engBigSuit();b.classList.add('on'); // (2026-09-28) posée au-dessus de la caisse dès la 1re image (pas un saut depuis le couloir)
   if(ru)engRuban(ru);
   hap(rec?[18,50,30,60,40]:[18,50,30]);pixBurst(b.querySelector('.ebScene'),rec?28:18);
   clearTimeout(engBig._f);if(rec)engBig._f=setTimeout(function(){if(!gameOver)try{fanfare();}catch(e){}},1200); // APRÈS le démarreur du montage, jamais par-dessus
   engBig._p=setTimeout(engPlonge,ENG_COULOIR);
+  engBig._a=setTimeout(function(){if(!gameOver)engSwapArme();},ENG_ARME); // le clank de la visseuse = l'entrée dans le capot
 }
 /* OÙ SE POSE LA CARTE — lu UNE fois à l'apparition (pas dans la boucle) : le haut de la carte 40 px au-dessus de --laneA (le bas du
    tableau de bord quand la chaîne est ouverte), et une échelle qui laisse la route libre sur un écran court (la ligne à 58 % de la
    hauteur, où roule le toit au sol). La scène 3D est retrouvée par ses offsets (sans transformation) : le quad WebGL s'y recalera. */
 function engBigPlace(b){
   const ca=b.querySelector('.ebCarte'),sc=b.querySelector('.ebScene');if(!ca||!sc)return;
+  // (2026-09-28) le TITRE et le NOM passent AU-DESSUS du moteur : c'est le moteur, pas un texte, qui touche presque le capot (ordre posé
+  // en ligne : la mise en page de la charte ne bouge pas)
+  {const t9=ca.querySelector('.ebTit'),n9=ca.querySelector(':scope>b');if(t9)t9.style.order='-2';if(n9){n9.style.order='-1';n9.style.marginBottom='2px';}}
   const hC=ca.offsetHeight||170,wC=ca.offsetWidth||260,top=laneY()-40;
+  // (2026-09-28) LA CARTE SE POSE AU-DESSUS DE LA CAISSE : ici on ne lit que ses mesures (une fois) ; engBigSuit la place chaque image
+  engBig.hC=hC;engBig.wC=wC;engBig.el=b;engBig.sx=null;
   // ⚠ PAS de réduction d'après le toit réel : en vol et en ORBITE la caméra monte la caisse vers le milieu de l'écran, la carte y
   // rapetissait à 60 % (un moteur de 70 px) — alors que la route devant est AU-DESSUS de la caisse. Là, la carte se pose SUR la voiture
   // (le vœu de Sacha) le temps d'une seconde, puis le moteur y plonge. Seul un écran COURT la réduit.
-  const s=Math.max(.62,Math.min(1,(VP.h*.58-16-top)/hC)),cy=top+hC*s/2;
+  /* (2026-09-28) L'ÉCHELLE SUIT LA CAISSE : en vol la caméra recule, la voiture ne fait plus que ~20 px de haut à l'écran — un moteur de
+     220 px l'avalait tout entière. La hauteur de la caisse projetée (du centre au toit) règle la carte, entre 62 % et 100 %. */
+  ENG_V9.copy(carGroup.position).project(camera);const yC9=(-ENG_V9.y*.5+.5)*VP.h;
+  ENG_V9.copy(carGroup.position).addScaledVector(camera.up,1.9).project(camera);const hR9=Math.abs(yC9-(-ENG_V9.y*.5+.5)*VP.h);
+  const s=Math.max(.62,Math.min(1,hR9/48,(VP.h*.58-16-top)/hC)),cy=top+hC*s/2;
   b.style.setProperty('--ebS',s.toFixed(3));b.style.top=cy.toFixed(0)+'px';b.classList.toggle('mini',s<.8); // réduite : les libellés de 8 px passeraient sous 6 px — ils se taisent
   const rx=sc.offsetLeft+sc.offsetWidth/2-wC/2,ry=sc.offsetTop+sc.offsetHeight/2-hC/2;
   engBig.px=VP.w/2+rx*s;engBig.py=cy+ry*s;engBig.pw=sc.offsetWidth*s;engBig.ph=sc.offsetHeight*s;
+  engBig.s=s;engBig.rx=rx;engBig.ry=ry;
 }
 function engPlonge(){ // LE MOTEUR ENTRE DANS LA CAISSE : les textes s'effacent, le moteur plonge vers le toit, rétrécit et CLAQUE
   if(!engBig.on||engBig.plonge)return;
   engBig.plonge=performance.now();clearTimeout(engBig._p);clearTimeout(engBig._t);clearTimeout(engBig._z);
+  if(engSwapT<=0&&TCTL.on){clearTimeout(engBig._a);engBig._a=setTimeout(function(){if(!gameOver&&engSwapT<=0)engSwapArme();},Math.max(0,ENG_PLONGE-Math.round(T_SWAP*.38*1000)));} // plongée avancée : le clank la suit
   const b=avE('engBig');if(b)b.classList.add('plonge');
   document.body.classList.remove('ebOn');document.body.classList.add('ebPlonge'); // le couloir est LIBRE : la voix suivante parle pendant la plongée
   engBig._z=setTimeout(function(){ // l'impact sur le toit : une gerbe de pixels au point de contact, un tic sous le pouce
-    try{pixBurst({getBoundingClientRect:function(){return {left:ENG_Q.x,top:ENG_Q.y,width:0,height:0};}},12);}catch(e){}hap(8);
+    try{pixBurst({getBoundingClientRect:function(){return {left:engBig.hx||ENG_Q.x,top:engBig.hy||ENG_Q.y,width:0,height:0};}},14);}catch(e){}hap(8); // au CAPOT
     engBig._t=setTimeout(engBigFin,150);},REDUCED_MOTION?0:ENG_PLONGE);
 }
-function engBigFin(){const b=avE('engBig');if(b)b.classList.remove('on','plonge');engBig.on=false;engBig.plonge=0;ENG_Q.op=0;
+function engBigFin(){const b=avE('engBig');if(b)b.classList.remove('on','plonge');engBig.on=false;engBig.plonge=0;ENG_Q.op=0;engCarteMat.userData.uClip.value=-1;
   document.body.classList.remove('ebOn','ebPlonge');}
-function engBigCoupe(){clearTimeout(engBig._p);clearTimeout(engBig._t);clearTimeout(engBig._z);clearTimeout(engBig._f);if(engBig.on)engBigFin();}
+function engBigCoupe(){clearTimeout(engBig._p);clearTimeout(engBig._t);clearTimeout(engBig._z);clearTimeout(engBig._f);clearTimeout(engBig._a);if(engBig.on)engBigFin();}
 function engRuban(ru){ // (H2) le RECORD tombe pendant la carte moteur : pas un 2e couloir — un ruban d'or À LA PLACE du titre
   const b=avE('engBig'),s=b&&b.querySelector('.ebCarte');if(!s||s.querySelector('.ebRuban'))return;
   const r=document.createElement('div');r.className='ebRuban';
@@ -16482,11 +16513,10 @@ function addCoins(n){
     // la vignette — c'est-à-dire sur l'objet qui vient de changer. Les deux ensemble faisaient
     // deux récompenses concurrentes pour un seul événement, et l'œil ne savait plus où aller.
     trickMsg('⚙ '+TR(E.n)+' — '+TR('POUSSÉE ×')+E.push.toFixed(2),3);
-    if(performance.now()-poseSndT<80)setTimeout(function(){try{engSwapSnd();}catch(e){}},450); // (2026-09-26, audit son) sur une pose, une dizaine de sons
-    else try{engSwapSnd();}catch(e){}     // partaient dans la même 50 ms : la visseuse attend que le « tchak » ait parlé — la scène sonore : on dévisse, ça se pose, ça démarre, ça sonne
-    engSwapT=T_SWAP;                      // ⚠ arme la SCÈNE (onde + spirale + flash + vignette qui s'emballe)
+    // la scène sonore (on dévisse, ça se pose, ça démarre, ça sonne) + la SCÈNE (onde + spirale + flash + vignette qui s'emballe) :
+    // sur téléphone c'est la CARTE qui l'arme, calée sur l'entrée du moteur dans le capot (voir engSwapArme) ; ailleurs, tout de suite
+    if(!(TCTL.on&&!TUTO.on))engSwapArme();
     engPop9(E,nt);                        // et le badge qui claque sur la vignette
-    shake=Math.max(shake,.5);duckT=Math.max(duckT,.45);
   }
 }
 /* <<<MOTEURS>>> ---------------------------------------------------------------------------
@@ -21781,17 +21811,42 @@ function verdAffiche(l1,l2,col,rang,mt,tags){
 }
 const X_COUL=['#5ee6ff','#5ee6ff','#5ee6ff','#62e062','#ffd75e','#ff5ec8','#ff5ec8','#ff5ec8','#ff3924','#ff3924','#ff3924'];
 const ENG_V9=new THREE.Vector3();
-function engBigSuit(){ // (vague 2) le moteur 3D de la carte : OÙ le recoller dans l'image, à quelle taille, avec quelle opacité (lu par engQuadDraw)
+/* (2026-09-28, user : « le moteur doit apparaître au niveau de la voiture, au-dessus, et donner l'impression de rétrécir et de rentrer
+   dans le capot ») LA CARTE SUIT LA CAISSE. Le capot (repère de la caisse, `userData.capot`) et le haut de la caisse sont projetés à
+   l'écran à chaque image ; le moteur flotte juste AU-DESSUS (le titre et le nom au-dessus de lui : le capot reste visible avant la plongée), suit la voiture au sol comme en vol
+   (lissé : les secousses de caméra ne font pas trembler les textes), et reste dans l'écran. À la plongée, le moteur fonce vers le
+   CAPOT en accélérant, rétrécit à 10 %, tourne de plus en plus vite (la scène d'atelier, armée pour ça), et tout ce qui passe sous la
+   ligne du capot s'efface (`uClipY`) : il s'enfonce dans la tôle. Les textes, eux, s'effacent au début de la plongée. */
+const ENG_V8=new THREE.Vector3();
+function engBigSuit(){ // le moteur 3D de la carte : OÙ le recoller dans l'image, à quelle taille, avec quelle opacité (lu par engQuadDraw)
   if(!engBig.on){ENG_Q.op=0;return;}
   const n=performance.now(),t=n-engBig.t0,RM=REDUCED_MOTION;
-  let s=1,op=1,x=engBig.px,y=engBig.py;
+  // le CAPOT et le HAUT DE LA CAISSE à l'écran
+  const cp=carGroup.userData.capot||[0,1,1.2];
+  ENG_V9.set(cp[0],cp[1],cp[2]).applyMatrix4(carGroup.matrixWorld).project(camera);
+  const hx=(ENG_V9.x*.5+.5)*VP.w,hy=(-ENG_V9.y*.5+.5)*VP.h;engBig.hx=hx;engBig.hy=hy;
+  ENG_V8.copy(carGroup.position).addScaledVector(camera.up,1.9).project(camera);
+  const yHaut=Math.min(hy,(-ENG_V8.y*.5+.5)*VP.h);
+  // la carte : son bas à 10 px au-dessus de la caisse, centrée sur le capot, gardée dans l'écran
+  const S=engBig.s||1,hC=(engBig.hC||170)*S,wC=(engBig.wC||260)*S,haut9=Math.max(8,laneY()-60);
+  // le MOTEUR juste au-dessus de la caisse (sa silhouette fait ~1,2 × la hauteur de la scène), la carte (titre et nom au-dessus) suit
+  const yS=yHaut-14-(engBig.ph||147)*.6;
+  let cx=THREE.MathUtils.clamp(hx,wC/2+8,VP.w-wC/2-8),cy=Math.max(haut9+hC/2,yS-(engBig.ry||0)*S);
+  if(engBig.sx==null||engBig.plonge){if(engBig.sx==null){engBig.sx=cx;engBig.sy=cy;}}
+  else{const k9=Math.min(1,(n-(engBig._n||n))/1000*14);engBig.sx+=(cx-engBig.sx)*k9;engBig.sy+=(cy-engBig.sy)*k9;}
+  engBig._n=n;
+  const el=engBig.el;if(el&&!engBig.plonge){const l9=engBig.sx.toFixed(0)+'px',t9=engBig.sy.toFixed(0)+'px';
+    if(el.style.left!==l9)el.style.left=l9;if(el.style.top!==t9)el.style.top=t9;} // (perf) on n'écrit que ce qui a bougé d'un pixel
+  let s=1,op=1,x=engBig.sx+(engBig.rx||0)*S,y=engBig.sy+(engBig.ry||0)*S;
   if(t<220&&!RM){const u=t/220,e=1-(1-u)*(1-u)*(1-u);s=1.35-.35*e;op=Math.min(1,u*1.6);} // l'entrée : la même courbe que les textes (eb2Vie)
-  if(!RM)y+=Math.sin(t*.0041)*5; // il FLOTTE (±5 px, un souffle d'1,5 s) — les textes, eux, restent posés
-  if(engBig.plonge){ // LA PLONGÉE : vers le toit de la caisse, en accélérant, en rétrécissant — et il s'éteint en y entrant
+  if(!RM&&!engBig.plonge)y+=Math.sin(t*.0041)*5; // il FLOTTE au-dessus de la caisse (±5 px, un souffle d'1,5 s)
+  let clip=-1;
+  if(engBig.plonge){ // LA PLONGÉE : vers le CAPOT, en accélérant, en rétrécissant — et il s'enfonce sous la ligne du capot
     const u=Math.min(1,(n-engBig.plonge)/ENG_PLONGE),e=u*u;
-    ENG_V9.copy(carGroup.position).addScaledVector(camera.up,1.2).project(camera);
-    x+=((ENG_V9.x*.5+.5)*VP.w-x)*e;y+=((-ENG_V9.y*.5+.5)*VP.h-y)*e;s*=1-.72*e;op*=RM?0:1-Math.max(0,(u-.8)/.2);
+    x+=(hx-x)*e;y+=(hy-y)*e;s*=1-.9*e;op*=RM?0:1-Math.max(0,(u-.9)/.1);
+    if(!RM&&u>.15)clip=Math.max(0,(VP.h-hy)*curDPR); // sous la ligne du capot : dans la tôle
   }
+  engCarteMat.userData.uClip.value=clip;
   ENG_Q.x=x;ENG_Q.y=y;ENG_Q.w=engBig.pw*s*ENG_QK;ENG_Q.h=engBig.ph*s*ENG_QK;ENG_Q.op=op;
 }
 function laneY(){ // où tombe le couloir des annonces (--laneA, safe area comprise) — relu seulement quand la hauteur d'écran change
