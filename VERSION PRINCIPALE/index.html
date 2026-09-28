@@ -24210,11 +24210,10 @@ function portailPasse(){
   SURV.pBase+=s; // la course traverse le portail : les écarts restent vrais (téléportation invisible)
   newTrack();
 }
-/* LA CAMÉRA DE VOL v2 (2026-09-28, Sacha — idée reprise d'une session cloud, refaite sur ce jeu) — voir le bloc « CAMÉRA DE VOL v2 »
-   dans la boucle. `off` = l'écart caisse→caméra LISSÉ (le lisser en position monde la faisait traîner de vitesse÷3 : mesuré 23-36 m
-   derrière la caisse en vol, contre 5-7 m au sol) · `hang` 0..1 = le plan de trois-quarts des gros vols · `side` = de quel côté (le
-   soleil) · `soon` 0..1 = la réception approche · `eta` = secondes avant la réception prédite (posé par le viseur, 99 = rien en vue) ·
-   `zoom`/`zp` = le COUP DE ZOOM d'une pose PARFAITE (lu par la caméra au sol). */
+/* L'ÉTAT DE CAMÉRA DU VOL (2026-09-28). La v2 de l'après-midi (écart tenu court, plan de trois-quarts) a été RETIRÉE le soir même :
+   elle rendait la visée impossible — voir le bloc « CAMÉRA DE VOL — RETOUR À LA CAMÉRA DE POURSUITE » dans la boucle. Restent : `t`
+   (dernière image de vol : détecte le décollage), `eta` (secondes avant la réception prédite, posé par le viseur, 99 = rien en vue) ·
+   `zoom`/`zp` = le COUP DE ZOOM d'une pose PARFAITE (lu par la caméra au sol). `off/look/hang/side/soon` ne servent plus. */
 const CAMV={off:new THREE.Vector3(),look:new THREE.Vector3(),t:0,hang:0,side:1,soon:0,eta:99,zoom:0,zp:0};
 /* LA POSE PARFAITE SE VOIT (2026-09-28, Sacha) : en plus du gel d'image (hitT) et du « tchak », un COUP DE ZOOM — le champ se resserre
    sec à l'impact et se relâche en 0,5 s — et une COURONNE DORÉE qui éclate depuis les bords de l'écran (le centre reste net : on voit la
@@ -29293,47 +29292,34 @@ function loop(now){
       qTmp.premultiply(qTmp2);
       carGroup.quaternion.slerp(qTmp,Math.min(1,dt*8));
       shadow.position.y=-99999;
-      /* ===== LA CAMÉRA DE VOL v2 (2026-09-28, Sacha : « caméra plus proche en vol, plan de trois-quarts sur les gros sauts, retour
-         derrière avant l'atterrissage ») =====
-         (1) ELLE NE TRAÎNE PLUS : on lisse l'ÉCART caisse→caméra, plus sa position dans le monde. Avant, `camera.position.lerp(cible,
-             dt*3)` courait après une cible lancée à ~110 m/s : retard d'équilibre = vitesse ÷ 3, mesuré 23-36 m derrière la caisse (5-7 m
-             au sol) — elle rapetissait à chaque saut, et le zoom (76° → 54°) ne faisait que compenser. Place voulue ~9 m, comme avant,
-             mais TENUE ; le champ reste large (78°) : on voit où l'on va.
-         (2) HANG TIME : sur un GROS vol (réception à plus de 1,3 s), la caméra glisse de TROIS-QUARTS (~57°), côté SOLEIL — la caisse se
-             découpe dans la lumière ; si tu braques fort, elle s'efface à moitié (c'est toi qui pilotes).
-         (3) RÉCEPTION : dès que l'anneau est à moins de ~1,2 s, retour DERRIÈRE (vite), le regard tiré vers l'anneau — on voit OÙ on se
-             pose. Le spectacle ne coûte jamais la lisibilité de l'atterrissage. */
+      /* ===== LA CAMÉRA DE VOL — RETOUR À LA CAMÉRA DE POURSUITE (2026-09-28, soir, Sacha : « la caméra en air time déconne
+         complètement, ça devient beaucoup trop dur de viser juste ») =====
+         La v2 de l'après-midi (écart TENU à 7-9 m + plan de TROIS-QUARTS à 57° sur tout vol de plus de 1,3 s) a été filmée au banc sur
+         un gros saut : dès la 1re seconde, la caméra part sur le flanc et passe SOUS la caisse — on la voit de dessous, en gros plan, la
+         route n'est plus qu'un trait en biais, et gauche/droite ne correspondent plus à l'écran. Viser devient impossible. On revient à
+         la caméra avec laquelle on visait : elle SUIT la trajectoire PAR DERRIÈRE — le lissage en position monde la fait traîner (15 à
+         30 m sur un gros air) et c'est justement ce retard qui aligne le regard sur la direction du VOL : on voit où l'on va, l'anneau
+         devant la caisse — et le champ se resserre avec l'ampleur du saut (76° → 54°) pour que la caisse reste lisible.
+         ⚠ NE PAS remettre de plan de côté ni d'écart tenu court en vol : c'est ce qui a cassé la visée (verdict du 28/09 au soir).
+         Gardés de l'après-midi : les secousses calmes (sinus, vent ×.42), la remise à zéro du coup de zoom PARFAIT au décollage, et les
+         CHOCS en vol (bump, nuage, catapulte) — mais en petit déplacement de la caméra, plus en coup dans le REGARD (il décadrait la visée). */
       const bigAir=THREE.MathUtils.clamp((fallT-0.5)/2.2,0,1); // 0 au décollage → 1 sur un gros air
-      {const C=CAMV,n9=performance.now();
-       if(n9-(C.t||0)>150){ // 1re image du vol (décollage, respawn…) : l'écart part de la caméra RÉELLE — aucune coupe
-         C.off.subVectors(camera.position,fallPos);C.hang=0;C.soon=0;C.eta=99;C.zoom=0;C.side=FLY_R.dot(SUN_DIR)>=0?1:-1;} // (un coup de zoom en cours ne survit pas au décollage)
-       C.t=n9;
-       C.soon+=(THREE.MathUtils.clamp((1.25-C.eta)/.75,0,1)-C.soon)*Math.min(1,dt*6);
-       const hangW=(fallT>.35&&C.eta>1.3&&!dolOn)?(Math.abs(steer)>.5?.45:1):0;
-       C.hang+=(hangW-C.hang)*Math.min(1,dt*(hangW>C.hang?1.6:4.2)); // entre en douceur, SORT vite
-       const bk=(9.0-bigAir*2.6)*(1-POR*.16)*(1+.22*C.hang),hu=(3.5+bigAir*2.4)*(1+POR*.12)+1.2*C.hang;
-       tmp2.copy(tmp).multiplyScalar(-bk).addScaledVector(FLY_U,hu);                 // l'écart VOULU (derrière la trajectoire, au-dessus de la caisse)
-       if(C.hang>.001)tmp2.applyAxisAngle(FLY_U,C.side*C.hang);                      // le plan de TROIS-QUARTS
-       if(C.off.distanceToSquared(tmp2)>3600)C.off.copy(tmp2);                        // téléport (portail, respawn) : on ne lisse pas 60 m
-       C.off.lerp(tmp2,Math.min(1,dt*(4+bigAir*3)));
-       camera.position.copy(fallPos).add(C.off);
-       camUp.lerp(FLY_U,Math.min(1,dt*3)).normalize(); // (vol libre) le haut de l'écran = le haut de la caisse : la caméra ne se remet plus « à l'endroit »
-       camera.up.copy(camUp);
-       C.look.copy(fallPos);
-       // (2026-09-28) LES CHOCS EN VOL SE SENTENT : bump sur la tranche, surf de nuage, catapulte posaient `shake`… que seul le SOL lisait
-       // (il partait donc APRÈS la pose, en retard). En vol, c'est le REGARD qui cogne (la recette de la caméra de mort), et ça décroît ici.
-       if(shake>0){if(!REDUCED_MOTION&&!window.dbgNoShake){const a9=Math.min(1.3,shake)*.35;
-         C.look.addScaledVector(FLY_R,Math.sin(t*47)*a9).addScaledVector(camUp,Math.sin(t*37+1.3)*a9*.8);}
-         shake=Math.max(0,shake-3*dt);}
-       if(landMark.visible&&C.soon>.01){tmp3.subVectors(landMark.position,fallPos);const ll=tmp3.length();if(ll>.01)C.look.addScaledVector(tmp3,Math.min(ll*.3,7)/ll*C.soon*(1-C.hang));} // le regard glisse vers l'anneau (≤ 7 m)
-       camera.lookAt(C.look);
-       // (2026-09-26) la NITRO se VOIT en l'air : le champ s'ouvre sous la poussée (comme au sol) et le coup de réacteur de l'allumage
-       // (`fovPunch`) claque ici aussi. Le champ ne se referme plus sur les gros airs (la caméra ne traîne plus : rien à compenser) —
-       // un léger téléobjectif pendant le trois-quarts, un peu d'ouverture à l'approche de l'anneau.
-       fovPunch=Math.max(0,fovPunch-dt*18);
-       const fovAir=fovPor(78-bigAir*6-7*C.hang+4*C.soon+fovPunch+(nitroOn?(nitroBlue?18:13):0));
-       camera.fov+=(fovAir-camera.fov)*Math.min(1,dt*(NFX.off>0&&fovAir<camera.fov?2:4)); // (vague 3) la nitro coupée : le champ retombe en douceur
-       camera.updateProjectionMatrix();}
+      {const n9=performance.now();if(n9-(CAMV.t||0)>150)CAMV.zoom=0;CAMV.t=n9;} // 1re image du vol : un coup de zoom PARFAIT en cours ne survit pas au décollage
+      tmp2.copy(fallPos).addScaledVector(tmp,-(9.0-bigAir*2.6)*(1-POR*.16)).addScaledVector(FLY_U,(3.5+bigAir*2.4)*(1+POR*.12)); // derrière la trajectoire, au-dessus de la caisse — « au-dessus » = vers le HAUT DE LA CAISSE (vol libre), pas vers le ciel
+      camera.position.lerp(tmp2,Math.min(1,dt*(3+bigAir*4.5))); // suivi plus vif en gros air : la caméra ne décroche pas
+      camUp.lerp(FLY_U,Math.min(1,dt*3)).normalize(); // (vol libre) le haut de l'écran = le haut de la caisse : la caméra ne se remet plus « à l'endroit »
+      camera.up.copy(camUp);
+      camera.lookAt(fallPos);
+      // LES CHOCS EN VOL SE SENTENT (bump sur la tranche, surf de nuage, catapulte) — un petit déplacement qui décroît ici, le regard reste sur la caisse
+      if(shake>0){if(!REDUCED_MOTION&&!window.dbgNoShake){const a9=Math.min(1.3,shake)*.12;
+        camera.position.addScaledVector(FLY_R,Math.sin(t*47)*a9).addScaledVector(camUp,Math.sin(t*37+1.3)*a9*.8);}
+        shake=Math.max(0,shake-3*dt);}
+      // (2026-09-26) la NITRO se VOIT en l'air : le champ s'ouvre sous la poussée (comme au sol) et le coup de réacteur de l'allumage
+      // (`fovPunch`) claque ici aussi — avant, il n'était lu qu'au sol et partait en retard, à l'atterrissage
+      fovPunch=Math.max(0,fovPunch-dt*18);
+      const fovAir=fovPor(76-bigAir*22+fovPunch+(nitroOn?(nitroBlue?18:13):0)); // le champ se resserre avec l'ampleur du saut (76° petit air → 54° gros air)
+      camera.fov+=(fovAir-camera.fov)*Math.min(1,dt*(NFX.off>0&&fovAir<camera.fov?2:4)); // (vague 3) la nitro coupée : le champ retombe en douceur
+      camera.updateProjectionMatrix();
       // (2026-09-28) le vent du VOL au même régime que celui du sol (×.42, le PLANÉ SUPERSONIQUE qui calme, « Réduire les animations ») :
       // en l'air la caméra tremblait 3 à 6 fois plus fort qu'au sol, en bruit blanc, pile sur le beau plan de trois-quarts des gros sauts
       const fshN=THREE.MathUtils.clamp((speedKmh-180)/360,0,1.2),fsh=(REDUCED_MOTION||window.dbgNoShake)?0:fshN*fshN*CAM_SHAKE_V*.42*(1-.7*THREE.MathUtils.smoothstep(speedKmh,700,1800));
