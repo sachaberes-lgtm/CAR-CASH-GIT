@@ -5207,7 +5207,7 @@ const ACESShader={
   vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
   fragmentShader:['uniform sampler2D tDiffuse;uniform float uExposure,uSat,uContrast,uVivid,uSpeed,uJit,uVigK,uSharp;uniform vec3 uWB,uSh,uHi,uVigC,uWE;uniform vec2 uRes,uKC;varying vec2 vUv;',
     'uniform sampler2D uBc;uniform float uBa;', // (2026-09-27, passe perf iPhone) le BLOOM FUSIONNÉ — le halo déjà composé (voir « LE HALO COMPOSÉ » sous le compositeur) ; uBa = 0 : pas de halo
-    'uniform vec4 uNit;uniform float uNitF;', // (vague 3, NITRO) la couleur de la poussée sur les bords (rgb + part) et le coup d'allumage — posés par nfxTick
+    'uniform vec4 uNit;uniform float uNitF;uniform float uTrame;', // (vague 3, NITRO) la couleur de la poussée sur les bords (rgb + part) et le coup d'allumage — posés par nfxTick
     // (2026-09-26, audit rendu) LES HAUTES LUMIÈRES ROULENT au lieu de s'écraser : en NUAGES, 98 % du haut de l'image avait un canal au
     // plafond (un aplat bleu électrique, des nuages brûlés). Le coude garde la TEINTE (on divise les trois canaux ensemble) : tout ce
     // qui tenait déjà sous .86 ne bouge pas d'un iota — seuls les pixels qui saturaient retrouvent leur dégradé.
@@ -5282,10 +5282,16 @@ const ACESShader={
     'c=clamp(roule(c),0.,1.);',
     '{vec2 vq=vec2((vUv.x-.5)/.5,(vUv.y-.56)/.44);float q=dot(vq,vq);',
     'if(q>0.6552)c=mix(c,uVigC,uVigK*clamp(sqrt(q)*1.2354-1.,0.,1.));',
+    // LE TRAMAGE DE SORTIE (2026-09-28, « plus beau sur iPhone sans coût en plus ») : tout est calculé en demi-flottant, mais l'écran
+    // reçoit 8 bits — les grands dégradés (le ciel des NUAGES, la brume, la vignette, la nuit de la VILLE) s'y rangeaient en MARCHES
+    // de 1/255 bien visibles sur un OLED. Un demi-niveau de bruit (le même bruit entrelacé que le flou, animé par uJit) casse les
+    // marches : l'œil moyenne, le dégradé redevient continu. Le noir pur reste noir (arrondi à 0), l'ORBITE garde son noir complet.
+    '{float dn9=fract(52.9829189*fract(dot(gl_FragCoord.xy,vec2(.06711056,.00583715)))+uJit);c+=(dn9-.5)*uTrame;}',
     'gl_FragColor=vec4(c,1.0);}}'].join('\n')
 };
 ACESShader.uniforms.uBc={value:null};ACESShader.uniforms.uBa={value:0}; // (posé sur acesPass APRÈS sa création : ShaderPass CLONE les uniforms, une texture clonée serait une autre texture)
 ACESShader.uniforms.uSharp={value:0}; // (tour 2) le piqué qui compense la résolution — posé par applyDPR
+ACESShader.uniforms.uTrame={value:1/255}; // (passe graphismes mobile) le tramage de sortie — 0 = l'ancienne sortie, voir dbgGfx
 ACESShader.uniforms.uNit={value:new THREE.Vector4(1,.478,.141,0)};ACESShader.uniforms.uNitF={value:0}; // (vague 3, NITRO) la poussée sur les bords — voir nfxTick
 const CAN_POST=typeof THREE.EffectComposer==='function'&&typeof THREE.RenderPass==='function'&&typeof THREE.UnrealBloomPass==='function'&&typeof THREE.ShaderPass==='function';
 if(CAN_POST){ try{
@@ -5905,6 +5911,13 @@ addEventListener('resize',function(){if(VHD.on){VHD.dpr=vhdDpr();curDPR=-1;qlPos
 window.dbgVHD=function(){return {on:VHD.on,dpr:+curDPR.toFixed(2),dprEcran:+devicePixelRatio.toFixed(2),plafondCourse:+DPR_CAP.toFixed(2),
   px:Math.round(innerWidth*innerHeight*curDPR*curDPR),ombre:sun.shadow.mapSize.x,aniso:ASPH_TEX?ASPH_TEX.anisotropy:null,bloom:bloomPass?(bloomPass.enabled?BLOOM_RES:0):null,crans:QL.k};};
 window.dbgDPR=function(d,sansPique){RESPIN=true;curDPR=+d;applyDPR();if(sansPique&&acesPass&&acesPass.uniforms.uSharp)acesPass.uniforms.uSharp.value=0;return {dpr:curDPR,pique:acesPass&&acesPass.uniforms.uSharp?+acesPass.uniforms.uSharp.value.toFixed(3):null};}; // (tour 2) banc : une résolution, sans rien d'autre (fige l'échelle)
+/* (2026-09-28, passe graphismes mobile) BANC : chaque petite technique s'éteint et se rallume À CHAUD (des uniformes : zéro recompilation),
+   pour comparer la même image avec et sans. `dbgGfx({coeur:0,trame:0,pique:0})` = le rendu d'avant ; `dbgGfx()` décrit. */
+window.dbgGfx=function(o){
+  if(o){if(o.coeur!=null)GFX_U.uCoeur.value=o.coeur===true?1.16:(+o.coeur||1);if(o.glace!=null)GLACE.k=o.glace===true?1:+o.glace;
+    if(o.trame!=null&&acesPass)acesPass.uniforms.uTrame.value=o.trame?1/255:0;
+    if(o.pique!=null&&acesPass){RESPIN=true;acesPass.uniforms.uSharp.value=+o.pique;}}
+  return {coeur:GFX_U.uCoeur.value,glace:+ROAD_U.uGlace.value.toFixed(3),trame:acesPass?+(acesPass.uniforms.uTrame.value*255).toFixed(2):null,pique:acesPass?+acesPass.uniforms.uSharp.value.toFixed(3):null,dpr:curDPR,natif:devicePixelRatio};};
 window.dbgQual=function(k){ if(k!=null){qlPose(k);RESPIN=true;} const b=qlBornes(); // dbgQual(k) force le cran k ET fige (dbgPin(false) relâche)
   const al=[];for(let i=0;i<QL.N_EFF&&i<QL.k;i++)al.push(QL.nom[i]);
   return {k:QL.k,kNet:b.kNet,kMax:b.kMax,plancher:+b.pl.toFixed(2),dpr:+curDPR.toFixed(3),effondre:QL.effondre,mur:(QL.murT&&performance.now()-QL.murT<45000)?QL.mur:0,
@@ -5955,10 +5968,11 @@ function perfMonTick(now,rawMs){const M=PERF_MON;if(rawMs>M.pire)M.pire=rawMs;if
    LE MODELÉ : une couleur par sommet cuite une fois (ventre ombré bleuté → sommet blanc, creux entre deux bourgeons assombris)
    et, dans le shader, la LISIÈRE D'ARGENT — face au soleil, le bord de la ouate s'embrase (diffusion avant) — plus un bord
    à peine plus léger. Coût : zéro par image côté CPU, quelques instructions par pixel côté GPU (et deux fois moins de pixels). */
+const GFX_U={uCoeur:{value:1.16}}; // (2026-09-28, passe graphismes mobile) le cœur plein des nuages (1 = l'ancienne ouate à 82 % partout) — voir dbgGfx
 function nuageShader(sh){
-  sh.uniforms.uSunV=RIM_U.uSunV;sh.uniforms.uSunC={value:sun.color}; // la direction du soleil en espace vue (posée chaque image pour les caisses) et SA couleur de biome
+  sh.uniforms.uSunV=RIM_U.uSunV;sh.uniforms.uSunC={value:sun.color};sh.uniforms.uCoeur=GFX_U.uCoeur; // la direction du soleil en espace vue (posée chaque image pour les caisses) et SA couleur de biome
   sh.fragmentShader=sh.fragmentShader.replace('#include <lights_fragment_begin>',LFB_SANS_PL) // (2026-09-26) les nuages ne paient plus les lumières ponctuelles (voir LFB_SANS_PL)
-    .replace('#include <common>','#include <common>\nuniform vec3 uSunV,uSunC;')
+    .replace('#include <common>','#include <common>\nuniform vec3 uSunV,uSunC;uniform float uCoeur;')
     .replace('#include <envmap_fragment>',[
       '#ifdef NUAGE_DEDANS',                                              // DEDANS : ni liseré ni bord — la paroi se fond dans la brume du nuage (white-out uni)
       '#ifdef USE_FOG',
@@ -5968,7 +5982,10 @@ function nuageShader(sh){
       '{ vec3 V9=normalize(vViewPosition);float fr9=1.-abs(dot(normal,V9));',
       '  float cs9=max(dot(-V9,uSunV),0.);',                              // 1 = on regarde droit vers le soleil
       '  outgoingLight+=uSunC*pow(fr9,2.6)*(.07+.75*cs9*cs9*cs9);',     // LA LISIÈRE D ARGENT : le bord s embrase à contre-jour
-      '  diffuseColor.a*=1.-pow(fr9,7.)*.45; }',                         // le tout dernier liseré de la silhouette s allège
+      // LE CŒUR PLEIN (2026-09-28, « plus beau sur iPhone sans coût en plus ») : à 82 % partout, un bourgeon peint AVANT son voisin
+      // de devant restait visible au travers — on lisait les boules empilées dans la ouate (arcs et bords internes, mesuré sur captures).
+      // Le cœur, vu de face, monte à ~95 % ; la vapeur garde ses 82 % là où la ouate tourne (fr9 > .62) puis s allège au liseré.
+      '  diffuseColor.a=min(1.,diffuseColor.a*mix(uCoeur,1.,smoothstep(.12,.62,fr9)))*(1.-pow(fr9,7.)*.45); }', // le tout dernier liseré de la silhouette s allège
       '#endif',
       '#include <envmap_fragment>'].join('\n'));
 }
@@ -7173,7 +7190,8 @@ function genPark(rnd){
      · une BRILLANCE D'HORIZON (fresnel) à la couleur du brouillard : la route luit vers le lointain, elle se lit ;
      · une CLARTÉ PAR NIVEAU (`uLift`) : la VILLE a un bitume plus clair, qui se détache de la ville sombre (user).
    Les uniformes vivent dans ROAD_U, PARTAGÉS par toutes les pistes : routeTick() les écrit une fois par image. */
-const ROAD_U={uLift:{value:new THREE.Color(0,0,0)},uSheen:{value:.1},uSheenCol:{value:new THREE.Color(.4,.3,.5)},uWet:{value:0},uAcc:{value:new THREE.Color(0xf24aa0)}}; // uWet/uAcc : le bitume MOUILLÉ de la ville (voir BITUME_MOUILLE)
+const ROAD_U={uLift:{value:new THREE.Color(0,0,0)},uSheen:{value:.1},uSheenCol:{value:new THREE.Color(.4,.3,.5)},uWet:{value:0},uAcc:{value:new THREE.Color(0xf24aa0)},
+  uGlace:{value:0},uSunW:{value:SUN_DIR}}; // (passe graphismes mobile) uGlace/uSunW : le BITUME GLACÉ des routes sèches (voir roadMat) — la direction du soleil est SUN_DIR lui-même (même objet) // uWet/uAcc : le bitume MOUILLÉ de la ville (voir BITUME_MOUILLE)
 let ASPH_TEX=null;const ASPH_K=1.7; // (vague 2) finesse du grain lu par le bitume (voir roadMat)
 function asphTex(){ if(ASPH_TEX)return ASPH_TEX;
   const N=256,cv=document.createElement('canvas');cv.width=cv.height=N;const c=cv.getContext('2d'),im=c.createImageData(N,N),d=im.data;
@@ -7229,16 +7247,23 @@ function roadMat(){
   m.userData.bitume=face?2:1;m.userData.sauts=sauts; // 2 = face cachée jetée (bloc du dessous retourné), 1 = l'ancien DoubleSide
   m.onBeforeCompile=function(sh){
     sh.uniforms.uLift=ROAD_U.uLift;sh.uniforms.uSheen=ROAD_U.uSheen;sh.uniforms.uSheenCol=ROAD_U.uSheenCol;
-    sh.uniforms.uWet=ROAD_U.uWet;sh.uniforms.uAcc9=ROAD_U.uAcc;sh.uniforms.uT9=CITY.uT;
+    sh.uniforms.uWet=ROAD_U.uWet;sh.uniforms.uAcc9=ROAD_U.uAcc;sh.uniforms.uT9=CITY.uT;sh.uniforms.uGlace=ROAD_U.uGlace;sh.uniforms.uSunW=ROAD_U.uSunW;
     if(face)sh.vertexShader=sh.vertexShader.replace('#include <color_vertex>','#include <color_vertex>\nvColor=abs(vColor);') // le dessous porte des couleurs NIÉES : on relit leur valeur
       .replace('#include <shadowmap_vertex>',THREE.ShaderChunk.shadowmap_vertex.split('inverseTransformDirection( transformedNormal, viewMatrix )')
         .join('inverseTransformDirection( transformedNormal*(color.r<0.?-1.:1.), viewMatrix )')); // …et le décalage d'ombre reprend la normale d'avant le retournement
-    sh.fragmentShader='uniform vec3 uLift;uniform float uSheen;uniform vec3 uSheenCol;uniform float uWet;uniform vec3 uAcc9;uniform float uT9;\n'+
+    sh.fragmentShader='uniform vec3 uLift;uniform float uSheen;uniform vec3 uSheenCol;uniform float uWet;uniform vec3 uAcc9;uniform float uT9;uniform float uGlace;uniform vec3 uSunW;\n'+
       sh.fragmentShader.replace('void main() {',BITUME_MOUILLE+'void main() {').replace('#include <lights_fragment_begin>',sauts?LFB_ROUTE:LFB_SANS_PL)
       .replace('#include <map_fragment>','vec4 texelColor=texture2D(map,vUv*'+ASPH_K.toFixed(2)+');float spec9=texelColor.r;texelColor=mapTexelToLinear(texelColor);diffuseColor*=texelColor;')
       .replace('#include <specularmap_fragment>','float specularStrength=spec9;').replace('#include <envmap_fragment>',
       '#include <envmap_fragment>\n{float fr9=pow(1.0-clamp(abs(dot(normal,normalize(vViewPosition))),0.0,1.0),4.0);float lk9=1.;\n'+
-      '#if defined(USE_ENVMAP)&&defined(ENVMAP_TYPE_CUBE)\nif(uWet>.001){vec4 w9=bitumeMouille(outgoingLight,reflectVec,normal,normalize(vViewPosition));outgoingLight=w9.rgb;lk9=w9.a;}\n#endif\n'+
+      '#if defined(USE_ENVMAP)&&defined(ENVMAP_TYPE_CUBE)\nif(uWet>.001){vec4 w9=bitumeMouille(outgoingLight,reflectVec,normal,normalize(vViewPosition));outgoingLight=w9.rgb;lk9=w9.a;}\n'+
+      /* LE BITUME GLACÉ (2026-09-28, « plus beau sur iPhone sans coût en plus ») — la route sèche des NUAGES n'était qu'un aplat indigo
+         sous un ciel éclatant : rien ne la reliait au monde. Une route vue en rasant renvoie le ciel (Fresnel) : le cube du biome, DÉJÀ
+         lu par ce pixel (le mélange d'origine à 3 %), s'y pose désormais selon l'angle — presque rien sous le nez de la caisse, le
+         dégradé du ciel et la bande rose de l'horizon vers le lointain et sur les dalles qui tournent. Le reflet du SOLEIL en est retiré
+         (la traînée dure que Sacha avait refusée le 26/09) ; la pluie de la VILLE garde son eau (uGlace y vaut 0). Zéro lecture de plus. */
+      'if(uGlace>.001){float cg9=clamp(abs(dot(normal,normalize(vViewPosition))),0.,1.),g9=1.-cg9;g9=g9*g9*g9*g9*g9;'+
+      'outgoingLight+=envColor.rgb*(g9*uGlace*(1.-smoothstep(.90,.985,dot(normalize(reflectVec),uSunW))));}\n#endif\n'+
       'outgoingLight+=uLift*lk9+uSheenCol*(uSheen*fr9);}');
   };
   m.customProgramCacheKey=function(){return 'bitumeV5'+(face?'f':'')+(sauts?'s':'');}; // UNE compilation pour toutes les pistes
@@ -7348,11 +7373,13 @@ function trancheMat(){
   m.customProgramCacheKey=function(){return 'trancheV2';};
   return m;
 }
+const GLACE={k:1,nuages:.45,espace:.5}; // (passe graphismes mobile) la part du ciel dans le bitume sec, par niveau (la VILLE a son eau) — `dbgGfx({glace:0})` = l'ancien bitume
 const _px9=new THREE.Vector2();
 function routeTick(){ // le bitume suit le NIVEAU (fondu du portail : LVL.route / LVL.sheen, voir lvlStep)
   renderer.getDrawingBufferSize(_px9);TRAIT_U.uPx.value=2*Math.tan(camera.fov*Math.PI/360)/Math.max(1,_px9.y); // la taille d'un pixel à 1 m (suit le FOV de vol et la résolution adaptative)
   const r=LVL.route;ROAD_U.uLift.value.setRGB(.010+.15*r,.009+.13*r,.016+.16*r); // ⚠ l'étalonnage de la pluie écrase le rouge et le vert : la clarté doit être NEUTRE et franche pour se lire (mesuré : (0,0,17) → (2,0,47) avec une clarté bleutée de .05)
   ROAD_U.uSheen.value=LVL.sheen;ROAD_U.uWet.value=LVL.pluie; // (2026-09-26) le bitume se mouille avec la pluie du niveau, au même fondu
+  ROAD_U.uGlace.value=GLACE.k*(GLACE.nuages*LVL.mer+GLACE.espace*LVL.espace)*(1-LVL.pluie); // (passe graphismes mobile) le bitume GLACÉ des routes sèches — voir roadMat
   coneBandMat.emissiveIntensity=.25+.6*LVL.pluie; // (2026-09-26) la nuit de pluie, les bandes des plots RÉTRORÉFLÉCHISSENT : on les lit de loin (un uniforme, zéro recompilation)
   ROAD_U.uSheenCol.value.copy(scene.fog.color).multiplyScalar(.9); // (2026-09-26) ×1,5 → ×0,9 : la brillance rasante blanchissait tout le lointain
 }
@@ -30696,12 +30723,18 @@ function togglePause(){ if(!started||gameOver)return;
    la FENÊTRE a changé. Et les deux canvas 2D ne sont retaillés que si leur taille change : retailler un canvas l'EFFACE (les taches de
    jus disparaissaient à chaque cran de résolution adaptative). */
 const DPR_V9=new THREE.Vector2();
-const PIQUE_ON=!/[?&]pique=0/.test(location.search); // `?pique=0` : sans l'accentuation, pour comparer
+const PIQUE_ON=!/[?&]pique=0/.test(location.search),PIQUE_NAT=(function(){const m=/[?&]piquen=([\d.]+)/.exec(location.search);return m?+m[1]:.4;})(); // `?pique=0` : sans l'accentuation, pour comparer · `?piquen=.5` : la force du piqué natif (banc)
 function applyDPR(){ try{ const W=innerWidth,H=innerHeight;
   renderer.getSize(DPR_V9);const neuve=DPR_V9.x!==W||DPR_V9.y!==H;
   renderer.setPixelRatio(curDPR);if(neuve)renderer.setSize(W,H);if(PT_U)PT_U.uPxMax.value=26*curDPR; // le plafond des particules suit la résolution
   if(composer){composer.setPixelRatio(curDPR);if(neuve)composer.setSize(W,H);}
-  if(acesPass&&acesPass.uniforms.uSharp)acesPass.uniforms.uSharp.value=PIQUE_ON?Math.max(0,Math.min(.45,(DPR_CAP-curDPR)/Math.max(.01,DPR_CAP)*1.5)):0; // (tour 2) sous le plafond, le piqué compense (1,25/1,5 → .25 · 1,0/1,5 → .45)
+  /* LE PIQUÉ NATIF (2026-09-28, « plus beau sur iPhone sans coût en plus »). L'iPhone a 3 pixels par point, la 3D en calcule 1,5 (NETTE) :
+     c'est le NAVIGATEUR qui agrandit l'image ×2 en bilinéaire au moment de l'afficher — un flou de plus, même au plafond, que l'ancien
+     piqué (qui ne regardait que la descente sous le plafond) ne compensait jamais. `up9` = cet agrandissement ; au-delà de ×1,05 le
+     piqué rend d'avance le contraste que l'agrandissement va prendre (×2 → .40 ; `?piquen=` pour comparer). Mêmes 4 lectures que le FXAA : coût nul. On garde le
+     plus fort des deux. Sur l'ordi à l'accueil (VHD, sur-échantillonné : up9 < 1) rien ne change. */
+  if(acesPass&&acesPass.uniforms.uSharp){const up9=Math.min(3,devicePixelRatio||1)/Math.max(.01,curDPR),piqN=up9>1.05?Math.min(PIQUE_NAT,(up9-1)*PIQUE_NAT):0;
+    acesPass.uniforms.uSharp.value=PIQUE_ON?Math.max(piqN,Math.min(.45,(DPR_CAP-curDPR)/Math.max(.01,DPR_CAP)*1.5)):0;} // (tour 2) sous le plafond, le piqué compense (1,25/1,5 → .25 · 1,0/1,5 → .45)
   if(slCv.width!==W||slCv.height!==H){slCv.width=W;slCv.height=H;}
   if(juiceCv&&(juiceCv.width!==W||juiceCv.height!==H)){juiceCv.width=W;juiceCv.height=H;} }catch(e){} }
 // PAUSE AUTO : l'appli passe en arrière-plan (onglet caché, app minimisée) → on gèle + on coupe le son

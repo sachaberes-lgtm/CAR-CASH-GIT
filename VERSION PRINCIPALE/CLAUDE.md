@@ -1,5 +1,22 @@
 # CASH CAR — guide projet pour Claude Code
 
+## PLUS BEAU SUR IPHONE, SANS COÛT EN PLUS (2026-09-28, nuit) — « trouve plein de petites techniques »
+Sacha : « les graphismes sont pas mal, on peut encore les pousser — sans que ce soit plus compliqué pour l'iPhone ». Chaque technique est un
+UNIFORME (zéro programme en plus, 0 compilé en course, mesuré au parcours `tour.js`), éteignable à chaud par `dbgGfx({…})` pour comparer la
+MÊME image figée (bancs : scratchpad de la session f71fd2a2, `gfx/abx.js`, `gfx/nuage.js`, `gfx/ab.js`, `gfx/sbs.js` = côte à côte ×2).
+- **LE PIQUÉ NATIF** (`applyDPR`, `PIQUE_NAT`) : l'iPhone affiche 3 px par point, la 3D en calcule 1,5 → le NAVIGATEUR agrandit ×2 en
+  bilinéaire, un flou que l'ancien piqué (qui ne regardait que la descente sous le plafond) ne compensait pas. `uSharp` part désormais de
+  l'agrandissement réel (×2 → .40), mêmes 4 lectures que le FXAA. `?piquen=.6` pour essayer une autre force, `?pique=0` pour l'éteindre.
+- **LE TRAMAGE DE SORTIE** (`uTrame`, fin de l'ACES) : un demi-niveau de bruit entrelacé (animé par `uJit`) casse les marches de 1/255 des
+  grands dégradés (ciel, brume, vignette) sur l'OLED. Le noir pur reste noir (l'ORBITE garde son noir complet).
+- **LE CŒUR PLEIN DES NUAGES** (`GFX_U.uCoeur`, `nuageShader`) : à 82 % partout on voyait les bourgeons empilés AU TRAVERS de la ouate ;
+  le cœur vu de face monte à ~95 %, la vapeur garde 82 % là où la ouate tourne, puis s'allège au liseré.
+- **LE BITUME GLACÉ** (`ROAD_U.uGlace`, `GLACE`, `roadMat`) : la route sèche renvoie le ciel du biome selon l'angle (Fresnel ^5), dans la
+  MÊME lecture du cube que le mélange d'origine — rien sous le nez, le dégradé du ciel vers le lointain et sur les dalles qui tournent ; le
+  reflet du SOLEIL en est retiré (la traînée dure refusée le 26/09). NUAGES .45 · ORBITE .5 · VILLE 0 (elle a son eau).
+- **Écarté après captures** : « le monde dans la laque » (le décor du niveau — mer de nuages, mur de tours éclairées — peint dans le cube
+  des carrosseries) : INVISIBLE depuis la caméra de poursuite (on voit l'arrière des caisses de face, le vernis n'y renvoie que ~6 %).
+
 ## LES POUVOIRS v2 + LES PETITS TRUCS GRISANTS (2026-09-28, nuit) — « des nouveaux power-up, plus longs, des petits trucs grisants, que les débutants prennent leur pied autant que les vétérans »
 Session GAMEPLAY (worktree `CCG-gameplay`, branche `gameplay`). Même lot : la FRÉNÉSIE remise aux réglages d'avant la « triade
 simplifiée » (voir cette section plus bas). Banc muet `gp.js` / `sf.js` (scratchpad de la session 4b30b603 : 200×430, UN à la fois).
