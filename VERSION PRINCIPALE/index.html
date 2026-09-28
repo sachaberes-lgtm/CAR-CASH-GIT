@@ -1694,6 +1694,25 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
     color:#2a0e00;-webkit-text-fill-color:currentColor;filter:none;text-shadow:0 2px 0 rgba(255,243,176,.6)}
   body #engBig .ebRuban small{color:#4a2200;letter-spacing:1px;text-shadow:none}
   @keyframes eb2Ruban{from{opacity:0;transform:rotate(-4deg) scale(1.7)}to{opacity:1;transform:rotate(-4deg)}}
+  /* (2026-09-28) LA CARTE MOTEUR v4 — voir `engBig` : BANDEAU à la couleur du moteur, NOM, ligne PALIER · +N KM/H, cylindres, moteur.
+     Tout est centré ; l'entrée reste `eb2Vie` (la courbe unique), le gain claque à part (`.gain`) quand le dernier cylindre s'allume. */
+  body #engBig .ebTit{display:inline-block;padding:5px 11px 6px;margin:0 0 8px;clip-path:var(--oct);font-size:9px;letter-spacing:3px;
+    background:color-mix(in srgb,var(--ec) 82%,#fff);color:#1c0430;text-shadow:none}
+  body #engBig.rec .ebTit{background:#ffd75e;color:#2a0e00}
+  body #engBig .ebCarte>b{font-size:22px;margin:0}
+  body #engBig .ebInfo{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:9px}
+  body #engBig .ebPal,body #engBig .ebGain{font-size:10px;letter-spacing:2px;line-height:1;padding:6px 9px;clip-path:var(--oct)}
+  body #engBig .ebPal{color:#fff3b0;background:#1c0430;box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--ec) 75%,transparent)}
+  body #engBig .ebGain{color:#0b2a14;background:var(--cashV);opacity:0;transform:scale(1.5)}
+  body #engBig.gain .ebGain{animation:ebGain var(--t-slow) var(--ease) both}
+  @keyframes ebGain{0%{opacity:0;transform:scale(1.5)}60%{opacity:1}100%{opacity:1;transform:none}}
+  body #engBig .ebCarte>.ebCyl{position:relative;z-index:2;display:flex;flex-wrap:nowrap;justify-content:center;gap:4px;max-width:none;margin:9px 0 0}
+  body #engBig .ebCarte>.ebCyl i{width:9px;height:12px}
+  body #engBig .ebCarte>.ebCyl.dense{gap:2px}
+  body #engBig .ebCarte>.ebCyl.dense i{width:6px;height:11px}
+  body #engBig .ebScene{margin:0 0 -18px}
+  body #engBig.mini .ebInfo{margin-top:6px}
+  @media (prefers-reduced-motion:reduce){body #engBig.gain .ebGain{animation:none;opacity:1;transform:none}}
   /* tant que la carte parle, le couloir se tait (filet de la file) ; pendant la plongée, le geste attend encore */
   body.ebOn #lvlBan,body.ebOn #slam9,body.ebOn #misBan,body.ebOn #dolHud,body.ebOn #launchLogo,body.ebOn #avRec,body.ebPlonge #popTxt{visibility:hidden}
   body:has(#misBan.on) #dolHud{visibility:hidden}   /* le compteur du DAUPHIN vit dans le même couloir : il laisse parler la carte de défi / d'astuce (3 s), puis revient */
@@ -14998,7 +15017,12 @@ const engHaloMat=new THREE.MeshBasicMaterial({transparent:true,depthTest:false,d
     g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.35,'rgba(255,255,255,.45)');g.addColorStop(1,'rgba(255,255,255,0)');c.fillStyle=g;c.fillRect(0,0,64,64);
     const t=new THREE.CanvasTexture(cv);t.premultiplyAlpha=true;return t;})()}); // prémultipliée à l'envoi : le halo se fond, il ne dessine pas de carré
 const engHalo=new THREE.Mesh(engVigQuad.geometry,engHaloMat);engHalo.frustumCulled=false;engHalo.renderOrder=0;engHalo.visible=false;
-engVigQuadScene.add(engHalo);engVigQuadScene.add(engCarteQuad);
+/* (v4) LE DISQUE D'ENCRE : le halo coloré additif délavait le moteur sur les ciels clairs (vu en capture : un moteur gris-rose sur un
+   ciel rose). Même texture, couleur NOIRE en mélange prémultiplié = elle ASSOMBRIT ce qui est dessous ; posé sur le halo de couleur,
+   plus petit, il ne laisse de la couleur qu'un LISERÉ. Le moteur se lit sur n'importe quel fond. Même programme : rien à compiler. */
+const engNoirMat=engHaloMat.clone();engNoirMat.color.setHex(0x000000);
+const engNoir=new THREE.Mesh(engVigQuad.geometry,engNoirMat);engNoir.frustumCulled=false;engNoir.renderOrder=0;engNoir.visible=false;
+engVigQuadScene.add(engHalo);engVigQuadScene.add(engNoir);engVigQuadScene.add(engCarteQuad);
 function engVigRendRT(rt){ // le moteur dans SON tampon — fond NOIR transparent (le recollage prémultiplié l'exige), état du renderer restauré
   renderer.getClearColor(ENG_CC);const ca=renderer.getClearAlpha();
   renderer.setClearColor(0x000000,0);renderer.setRenderTarget(rt);renderer.clear();renderer.render(engVigScene,engVigCam);
@@ -15007,14 +15031,15 @@ function engVigRendRT(rt){ // le moteur dans SON tampon — fond NOIR transparen
 }
 function engQuadDraw(){ // chaque image (le framebuffer est redessiné à chaque image), à la place que engBigSuit a calculée
   const Q=ENG_Q;if(!(Q.op>.01&&Q.w>4))return;
-  const W=VP.w||1,H=VP.h||1,cx=Q.x/W*2-1,cy=1-Q.y/H*2,hs=Q.w*.85;
+  const W=VP.w||1,H=VP.h||1,cx=Q.x/W*2-1,cy=1-Q.y/H*2,hs=Q.w*.78;
   engCarteQuad.position.set(cx,cy,0);engCarteQuad.scale.set(Q.w/W*2,Q.h/H*2,1);
-  engCarteMat.color.setScalar(Q.op);engCarteMat.opacity=Q.op;
-  engHalo.position.set(cx,cy,0);engHalo.scale.set(hs/W*2,hs/H*2,1);
-  engHaloMat.color.setHex(engBig.col||0xffd75e).multiplyScalar(.35*Q.op);engHaloMat.opacity=.35*Q.op;
-  engVigQuad.visible=false;engCarteQuad.visible=engHalo.visible=true;
+  engCarteMat.color.setScalar(Q.op*(1+1.3*(Q.fl||0)));engCarteMat.opacity=Q.op; // (v4) l'ÉCLAT d'apparition : le moteur arrive blanc-chaud et retombe à sa couleur
+  engHalo.position.set(cx,cy,0);engHalo.scale.set(hs*1.18/W*2,hs*1.18/H*2,1);
+  engHaloMat.color.setHex(engBig.col||0xffd75e).multiplyScalar(.6*Q.op);engHaloMat.opacity=.6*Q.op;
+  engNoir.position.set(cx,cy,0);engNoir.scale.set(hs*.92/W*2,hs*.92/H*2,1);engNoirMat.opacity=.72*Q.op*(engBig.plonge?0:1); // l'encre s'efface dès la plongée : dans le capot, pas de disque
+  engVigQuad.visible=false;engCarteQuad.visible=engHalo.visible=engNoir.visible=true;
   const ac=renderer.autoClear;renderer.autoClear=false;renderer.render(engVigQuadScene,engVigQuadCam);renderer.autoClear=ac;
-  engVigQuad.visible=true;engCarteQuad.visible=engHalo.visible=false;
+  engVigQuad.visible=true;engCarteQuad.visible=engHalo.visible=engNoir.visible=false;
 }
 let engVigMesh=null,engVigTierShown=-1,engVigSpin=0,engVigForce=null; // engVigForce : palier imposé par la console (visuel pur)
 // LA VIE DU MOTEUR : horloge du battement, chaleur lissée, matériaux qui rougissent, flamme.
@@ -17326,7 +17351,7 @@ const epEl=document.getElementById('engPop'),epNumEl=document.getElementById('ep
      et claque sur le toit : il est SUR la voiture, et la route devant elle n'est jamais cachée plus d'une seconde.
    Le moteur 3D n'est plus recopié dans un <canvas> (lecture GPU→CPU) : il est recollé directement dans l'image WebGL à la place de
    `.ebScene` (voir `engQuadDraw`) — les textes de la carte sont du DOM, donc au-dessus de lui. `pointer-events:none` partout. */
-const ENG_PLONGE=500,ENG_COULOIR=900; // (2026-09-28) 0,9 s au-dessus de la caisse, puis 0,5 s pour rétrécir et rentrer dans le capot
+const ENG_PLONGE=520,ENG_COULOIR=1150; // (2026-09-28, v4) 1,15 s au-dessus de la caisse (0,9 ne laissait pas lire le nom ET le gain), puis 0,52 s pour rentrer dans le capot
 /* LA SCÈNE D'ATELIER CALÉE SUR LE MOTEUR (2026-09-28). Elle partait au passage de palier, la carte parfois plus tard (file du couloir) :
    le flash et l'onde tombaient pendant que le moteur flottait encore. Sur téléphone elle est désormais armée PAR la carte, pour que sa
    RÉVÉLATION (u = .38 de T_SWAP : clank, flash, onde, spirale) tombe à l'instant où le moteur disparaît dans le capot — et d'ici là
@@ -17335,7 +17360,24 @@ const ENG_ARME=Math.max(0,ENG_COULOIR+ENG_PLONGE-Math.round(T_SWAP*.38*1000));
 function engSwapArme(){
   if(performance.now()-poseSndT<80)setTimeout(function(){try{engSwapSnd();}catch(e){}},450); // (2026-09-26, audit son) la visseuse attend que le « tchak » d'une pose ait parlé
   else try{engSwapSnd();}catch(e){}
-  engSwapT=T_SWAP;shake=Math.max(shake,.5);duckT=Math.max(duckT,.45);
+  engSwapT=T_SWAP;shake=Math.max(shake,.15);duckT=Math.max(duckT,.45); // (v4) .5 → .15 : la grosse secousse est gardée pour l'entrée dans le capot (engImpact)
+}
+/* LA CARTE MOTEUR v4 (2026-09-28, Sacha : « rends l'animation du déblocage des moteurs plus belle, plus soignée, plus pro, adaptée à
+   l'écran d'un iPhone, maîtrisée — qu'on soit content de débloquer le moteur »). Filmée à 30 i/s avant d'y toucher : le badge du palier
+   flottait à GAUCHE du moteur, le titre faisait 8 px, le moteur se délavait sur les ciels clairs (halo coloré additif), et rien ne disait
+   ce que le moteur APPORTE. Désormais, une composition centrée et une récompense qui se sent :
+   · un BANDEAU « NOUVEAU MOTEUR » à la couleur du moteur, le NOM en grand, une ligne PALIER · +N KM/H, les cylindres dessous ;
+   · le moteur 3D posé sur un DISQUE D'ENCRE cerclé de sa couleur (lisible sur n'importe quel ciel), un éclat blanc à l'apparition ;
+   · les cylindres s'allument un par un sur une gamme qui MONTE, puis le gain de vitesse claque en vert ;
+   · à l'entrée dans le capot : éclair d'or, coup de caméra, et le moteur RUGIT (poussée brève + flammes) — « +N KM/H » jaillit de la caisse.
+   Le gain est celui de la vitesse de croisière affichée (vmax × FLOW_VREF, mesuré au banc) : ce que le compteur gagne vraiment. */
+function engGain(tier){const a=ENGINE_TIERS[tier],b=ENGINE_TIERS[tier-1];if(!a||!b)return 0;
+  return Math.max(0,Math.round(CARS[0].maxKmh*SPD*lateMul()*(a.push-b.push)*FLOW_VREF));}
+function engImpact(){ // l'entrée dans le capot : le moment où l'on ENCAISSE le moteur
+  if(gameOver||!running)return;
+  flashEcran('rgba(255,215,94,.75)');fovPunch=Math.max(fovPunch,11);shake=Math.max(shake,.4);hap([14,30,24]);
+  boost=Math.max(boost,.8);try{boostSnd(1.4);}catch(e){} // il RUGIT : une poussée brève, les flammes du pad
+  const g=engBig.gain|0;if(g>0)setTimeout(function(){try{if(running&&!gameOver)popTexte('+'+g+' KM/H','#7dff9a',2);}catch(e){}},200);
 }
 function engBig(E,tier,ru){
   let b=document.getElementById('engBig');
@@ -17343,20 +17385,27 @@ function engBig(E,tier,ru){
   clearTimeout(engBig._p);clearTimeout(engBig._t);clearTimeout(engBig._z);clearTimeout(engBig._a);
   const hx='#'+(E.col||0xffd75e).toString(16).padStart(6,'0'),n=Math.max(1,Math.min(16,E.cyl||4));
   let cyl='';for(let i=0;i<n;i++)cyl+='<i style="animation-delay:'+(.25+i*.05).toFixed(2)+'s"></i>';
+  const gain=engGain(tier);engBig.gain=gain;
   const rec=tier>(RUNX.engAvant|0); // (2026-09-25) palier jamais atteint AVANT cette partie : le seul moment vraiment neuf
   b.style.setProperty('--ec',hx);b.classList.toggle('rec',rec);
   {const o9=b.querySelector('canvas');if(o9){o9.width=o9.height=0;}} // (2026-09-26) un ancien canvas rendu tout de suite (iOS plafonne la mémoire des canvas)
   // (H3) « NOUVEAU RECORD ! » disait trois choses (aura, meilleur palier, écran de mort) : le meilleur palier devient un SOMMET
   const nm=TR(E.n);
-  b.innerHTML='<div class="ebCarte"><small class="ebTit">'+TR(rec?'NOUVEAU SOMMET':'NOUVEAU MOTEUR')+'</small>'
-    +'<div class="ebScene"><div class="ebNum"><i>'+TR('PALIER')+'</i>'+(tier+1)+'<div class="ebCyl">'+cyl+'</div></div></div>' // les cylindres sous le badge : la carte finit plus haut, la route respire
-    +'<b data-t="'+String(nm).replace(/[<>&"]/g,'')+'">'+nm+'</b></div>';
+  b.innerHTML='<div class="ebCarte"><small class="ebTit">'+sansAcc(TR(rec?'NOUVEAU SOMMET':'NOUVEAU MOTEUR'))+'</small>'
+    +'<b data-t="'+String(nm).replace(/[<>&"]/g,'')+'">'+nm+'</b>'
+    +'<div class="ebInfo"><span class="ebPal">'+sansAcc(TR('PALIER'))+' '+(tier+1)+'</span>'+(gain>0?'<span class="ebGain">+'+gain+' KM/H</span>':'')+'</div>'
+    +'<div class="ebCyl'+(n>8?' dense':'')+'">'+cyl+'</div>'
+    +'<div class="ebScene"></div></div>'; // (v4) tout est CENTRÉ, dans l'ordre de lecture : ce que c'est, son nom, ce qu'il apporte — puis le moteur
   engBig.ctx=null;engBig.on=true;engBig.plonge=0;engBig.t0=performance.now();engBig.col=E.col||0xffd75e;engVigSpin=0;
   document.body.classList.remove('ebPlonge');document.body.classList.add('ebOn');
-  b.classList.remove('on','plonge','ruban');void b.offsetWidth;
+  b.classList.remove('on','plonge','ruban','gain');void b.offsetWidth;
   engBigPlace(b);engBigSuit();b.classList.add('on'); // (2026-09-28) posée au-dessus de la caisse dès la 1re image (pas un saut depuis le couloir)
   if(ru)engRuban(ru);
   hap(rec?[18,50,30,60,40]:[18,50,30]);pixBurst(b.querySelector('.ebScene'),rec?28:18);
+  // (v4) LES CYLINDRES CHANTENT : une note par cylindre qui s'allume, sur une gamme qui monte — puis le gain claque
+  for(let i=0;i<n;i++)setTimeout(function(){try{if(engBig.on&&!engBig.plonge)chimeNote(noteP(i%5,1+Math.floor(i/5)),0,.028,.08);}catch(e){}},250+i*50);
+  if(gain>0)setTimeout(function(){if(!engBig.on||engBig.plonge)return;b.classList.add('gain');try{chimeNote(noteP(4,2),0,.06,.22);sparkle(.06,.05);}catch(e){}
+    try{pixBurst(b.querySelector('.ebGain'),10);}catch(e){}},330+n*50);
   clearTimeout(engBig._f);if(rec)engBig._f=setTimeout(function(){if(!gameOver)try{fanfare();}catch(e){}},1200); // APRÈS le démarreur du montage, jamais par-dessus
   engBig._p=setTimeout(engPlonge,ENG_COULOIR);
   engBig._a=setTimeout(function(){if(!gameOver)engSwapArme();},ENG_ARME); // le clank de la visseuse = l'entrée dans le capot
@@ -17368,7 +17417,7 @@ function engBigPlace(b){
   const ca=b.querySelector('.ebCarte'),sc=b.querySelector('.ebScene');if(!ca||!sc)return;
   // (2026-09-28) le TITRE et le NOM passent AU-DESSUS du moteur : c'est le moteur, pas un texte, qui touche presque le capot (ordre posé
   // en ligne : la mise en page de la charte ne bouge pas)
-  {const t9=ca.querySelector('.ebTit'),n9=ca.querySelector(':scope>b');if(t9)t9.style.order='-2';if(n9){n9.style.order='-1';n9.style.marginBottom='2px';}}
+  // (v4) le balisage est dans l'ordre de lecture (bandeau, nom, infos, cylindres, moteur) : plus d'ordre forcé en ligne
   const hC=ca.offsetHeight||170,wC=ca.offsetWidth||260,top=laneY()-40;
   // (2026-09-28) LA CARTE SE POSE AU-DESSUS DE LA CAISSE : ici on ne lit que ses mesures (une fois) ; engBigSuit la place chaque image
   engBig.hC=hC;engBig.wC=wC;engBig.el=b;engBig.sx=null;
@@ -17379,7 +17428,7 @@ function engBigPlace(b){
      220 px l'avalait tout entière. La hauteur de la caisse projetée (du centre au toit) règle la carte, entre 62 % et 100 %. */
   ENG_V9.copy(carGroup.position).project(camera);const yC9=(-ENG_V9.y*.5+.5)*VP.h;
   ENG_V9.copy(carGroup.position).addScaledVector(camera.up,1.9).project(camera);const hR9=Math.abs(yC9-(-ENG_V9.y*.5+.5)*VP.h);
-  const s=Math.max(.62,Math.min(1,hR9/48,(VP.h*.58-16-top)/hC)),cy=top+hC*s/2;
+  const s=Math.max(.86,Math.min(1,(VP.h*.58-16-top)/hC)),cy=top+hC*s/2; // (v4) plancher .86 et plus de réduction d'après la caisse : à 62 % le titre se taisait et le nom tombait à 13 px — la caméra de vol v2 garde désormais la caisse grande en l'air
   b.style.setProperty('--ebS',s.toFixed(3));b.style.top=cy.toFixed(0)+'px';b.classList.toggle('mini',s<.8); // réduite : les libellés de 8 px passeraient sous 6 px — ils se taisent
   const rx=sc.offsetLeft+sc.offsetWidth/2-wC/2,ry=sc.offsetTop+sc.offsetHeight/2-hC/2;
   engBig.px=VP.w/2+rx*s;engBig.py=cy+ry*s;engBig.pw=sc.offsetWidth*s;engBig.ph=sc.offsetHeight*s;
@@ -17393,6 +17442,7 @@ function engPlonge(){ // LE MOTEUR ENTRE DANS LA CAISSE : les textes s'effacent,
   document.body.classList.remove('ebOn');document.body.classList.add('ebPlonge'); // le couloir est LIBRE : la voix suivante parle pendant la plongée
   engBig._z=setTimeout(function(){ // l'impact sur le toit : une gerbe de pixels au point de contact, un tic sous le pouce
     try{pixBurst({getBoundingClientRect:function(){return {left:engBig.hx||ENG_Q.x,top:engBig.hy||ENG_Q.y,width:0,height:0};}},14);}catch(e){}hap(8); // au CAPOT
+    try{engImpact();}catch(e){} // (v4) …et le moteur rugit
     engBig._t=setTimeout(engBigFin,150);},REDUCED_MOTION?0:ENG_PLONGE);
 }
 function engBigFin(){const b=avE('engBig');if(b)b.classList.remove('on','plonge');engBig.on=false;engBig.plonge=0;ENG_Q.op=0;engCarteMat.userData.uClip.value=-1;
@@ -22879,6 +22929,7 @@ function engBigSuit(){ // le moteur 3D de la carte : OÙ le recoller dans l'imag
     if(el.style.left!==l9)el.style.left=l9;if(el.style.top!==t9)el.style.top=t9;} // (perf) on n'écrit que ce qui a bougé d'un pixel
   let s=1,op=1,x=engBig.sx+(engBig.rx||0)*S,y=engBig.sy+(engBig.ry||0)*S;
   if(t<220&&!RM){const u=t/220,e=1-(1-u)*(1-u)*(1-u);s=1.35-.35*e;op=Math.min(1,u*1.6);} // l'entrée : la même courbe que les textes (eb2Vie)
+  ENG_Q.fl=RM?0:Math.max(0,1-t/260); // (v4) l'éclat d'apparition (lu par engQuadDraw)
   if(!RM&&!engBig.plonge)y+=Math.sin(t*.0041)*5; // il FLOTTE au-dessus de la caisse (±5 px, un souffle d'1,5 s)
   let clip=-1;
   if(engBig.plonge){ // LA PLONGÉE : vers le CAPOT, en accélérant, en rétrécissant — et il s'enfonce sous la ligne du capot

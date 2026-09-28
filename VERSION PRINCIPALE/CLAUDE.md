@@ -58,6 +58,24 @@ seulement ce qui s'applique ICI sans toucher à l'économie ni au FLOW v2. Banc 
 - **PAS REPRIS, exprès** : décote du bump (sa recharge est une demande de Sacha), débordement vers la réserve bleue (économie des fruits),
   badge ×N / barre de palier / objectif de fin (le HUD d'ici a les siens), aimant (déjà sans `level`).
 
+## LA CARTE MOTEUR v4 (2026-09-28, Sacha : « l'animation du déblocage des moteurs plus belle, plus soignée, plus pro, adaptée à l'iPhone,
+maîtrisée — qu'on soit content de débloquer le moteur »)
+Filmée d'abord (banc `moteurfilm3.js` : captures rapprochées ~85 ms au vrai format 390×844 — ⚠ le screencast CDP rend un 800×600
+tronqué, inutilisable ; planche `planche.py`, scratchpad d82605e6). Le principe voulu par Sacha est GARDÉ (le moteur apparaît au-dessus de
+la caisse puis rentre dans le capot) ; ce qui change :
+- **Composition centrée** (`engBig`) : BANDEAU `.ebTit` à la couleur du moteur (or si « NOUVEAU SOMMET »), NOM 22 px, ligne `.ebInfo`
+  (`.ebPal` PALIER n · `.ebGain` +N KM/H en `--cashV`), cylindres `.ebCyl` dessous (`.dense` au-delà de 8), puis la scène 3D. L'ancien
+  badge `.ebNum` décalé à gauche a disparu. CSS : bloc « LA CARTE MOTEUR v4 » après `@keyframes eb2Ruban` (charte4).
+- **Taille iPhone** (`engBigPlace`) : plancher d'échelle .86, plus de réduction d'après la caisse (à .62 le titre se taisait, nom à 13 px).
+- **Le moteur se lit sur tout ciel** (`engQuadDraw`) : halo à sa couleur + DISQUE D'ENCRE (`engNoir`, même programme prémultiplié) qui ne
+  laisse qu'un liseré ; ÉCLAT blanc-chaud à l'apparition (`ENG_Q.fl`, 260 ms).
+- **Rythme** : 1,15 s au-dessus de la caisse (`ENG_COULOIR`, était 0,9), plongée 0,52 s ; chaque cylindre qui s'allume sonne une note qui
+  MONTE ; le gain claque (`.gain`) quand le dernier s'allume.
+- **La récompense à l'impact** (`engImpact`, appelée par `engPlonge`) : éclair d'or, `fovPunch`, secousse (déplacée de `engSwapArme`, où elle
+  tombait pendant que le moteur flottait), le moteur RUGIT (`boost` .8 + `boostSnd`), et « +N KM/H » jaillit de la caisse (`popTexte`).
+  `engGain(tier)` = vmax × `FLOW_VREF` × Δpoussée (≈ ce que le compteur gagne en croisière : +16 au bicylindre, ~+30 au V12).
+- Signaux gardés : `body.ebOn` / `body.ebPlonge` (la session interface estompe les pouvoirs avec).
+
 ## CAMÉRA DE VOL v2 · POSE PARFAITE · PORTES DE L'ORBITE (2026-09-28 — idées reprises des sessions cloud, refaites ici)
 - **CAMÉRA DE VOL** (bloc « CAMÉRA DE VOL v2 » du mode 'fall', état `CAMV`) : on lisse l'ÉCART caisse→caméra (`CAMV.off`), plus la
   position monde — le `lerp(cible, dt*3)` traînait de vitesse÷3 : MESURÉ 23-36 m derrière en vol, désormais 7-9 m (5-7 au sol).
