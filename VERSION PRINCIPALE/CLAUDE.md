@@ -1,5 +1,18 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA TAILLE DU HUD (2026-09-28, nuit) — « réduis la taille des HUD à l'écran, c'est compliqué de voir la route »
+Fait par la session INTERFACE avec l'accord de UHD (qui ne touchait plus au HUD pendant ce temps). MESURÉ avant (banc `hudmes.js`, scratchpad
+93a1dcda `ui/`) : couché (844 × 390, l'ordi), la colonne de gauche descendait à 63 % de la hauteur ; debout, aura + chaîne jusqu'à 250 px.
+- `<style id="hudTaille">`, juste APRÈS hudDA : `--hudK` = .8 debout, .72 couché, appliqué en `zoom` à #nitroWrap, #flowHud, #auraV2, #triade,
+  #airHud, #pwrChip, #misBan, #coach, #campChip. `zoom` (pas `scale`) réduit la boîte ET ses marges : chaque colonne se resserre vers son
+  coin, aucune position en dur (hudH+96, +184, +204…) ne se chevauche, et les `translate`/`scale` des entrées (hudMaitrise) restent libres.
+- ⚠ SAFE AREAS : dans un bloc zoomé, --hudH/--hudG/--hudD sont redéfinies divisées par --hudK (le zoom les remultiplie) ; les deux règles qui
+  lisaient env() en direct (gauche de la nitro, droite de la nitro et du flow debout — la place du ⏸) sont réécrites pareil. Toute nouvelle
+  plaque du HUD : l'ajouter à la liste, et positionner avec --hudH/--hudG/--hudD, jamais env() en direct.
+- Ce qu'on TOUCHE garde sa taille (NITRO, ⏸, volant) ; la carte MOTEUR suit la caisse (hors échelle, demande UHD). Voile d'encre du haut à
+  214 px × K. Les ANNONCES (slam, verdict, geste sur la caisse) : `annK()` en JS (.88 debout, .78 couché) sur leur corps calculé.
+- ⚠ Le texte le plus fin du HUD (8 px) passe à ~6 px couché : lisible sur l'ordi (colonne zoomée ×2,3) ; à juger sur un téléphone tourné.
+
 ## LA CONSOLE DE SON (2026-09-28, session SON) — « tout ce qui se passe à l'écran doit avoir un son propre et unique, parfaitement maîtrisé et mixé »
 **⚠ RÈGLE POUR TOUTES LES SESSIONS : un son nouveau = `sfx('famille.nom')`, jamais un `chimeNote`/`noiseBurst` bricolé sur place.**
 Appel sous garde depuis n'importe quel code : `typeof sfx==='function'&&sfx('ui.ok')`. Si le son voulu n'existe pas encore, on pose l'appel
