@@ -449,6 +449,11 @@ dans UN bloc en fin de `<style id="charte4">` (« LA CHARTE AU COMPLET », secti
   · Première frénésie de la session : l'annonce dit « RESTE DANS LE ROUGE » (i18n EN/ZH) au lieu du ×. Hook **`dbgFren(k,n)`** :
     `'v'` n (100 = y entrer par le vrai chemin), `'nourrit'` n, `'idle'` s ; rend zone/emblème/classes. Banc : scratchpad de la session
     52f21eda, `fr/fren.js` (muet ; ne fige QUE les CSSAnimation — une transition en attente figée reste à 0 px).
+- **(11) LE JUS v3** (même soir, Sacha : « les taches de jus de fruit doivent être plus opaques et grosses ») — `juiceScreen` /
+  `juiceScreenTick` : taille sur la plus PETITE dimension de l'écran (même goutte debout ou couché), ~×1,5 (rayon ~37-73 px sur
+  téléphone, plafond 90), brouillon `JUS_N` 192 cellules ; opacité PLEINE .9 la 1re moitié de la vie puis fondu (c'était ≤ .55 en
+  fondu dès l'impact), corps .94 / cœur .9, coulure .95, `#juiceCv` opacité 1 ; l'ellipse du couloir s'élargit de la goutte (son
+  BORD reste dehors). Banc `fr/jus.js` (dbgJus figé) : 14 taches = 13,6 % d'écran peint (6,2 % avant).
 - **Écarté volontairement** (verdicts) : JOUER au garage, bouton d'action dans MODES/CARRIÈRE, ⚙ de l'accueil en bas, flèches du garage,
   rangée LA PARTIE de la pause descendue près de REPRENDRE (QUITTER ne se colle pas au lingot), l'or du HUD (voix des annonces, record en
   or demandé le 26/09 : « plus en lavande 8 px »).
