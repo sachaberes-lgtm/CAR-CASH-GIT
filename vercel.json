@@ -1,19 +1,32 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
-  "buildCommand": "rm -rf .vercel-static && cp -R demo/cash-car-demo .vercel-static && cp -R \"VERSION PRINCIPALE\" .vercel-static/jouer && rm -f .vercel-static/jouer/CLAUDE.md .vercel-static/jouer/README.md .vercel-static/jouer/JOUER.bat",
+  "buildCommand": "rm -rf .vercel-static && mkdir -p .vercel-static && cp -R demo/cash-car-demo .vercel-static/demo && cp demo/cash-car-demo/og.jpg .vercel-static/og.jpg && cp -R \"VERSION PRINCIPALE\" .vercel-static/jouer && rm -f .vercel-static/jouer/CLAUDE.md .vercel-static/jouer/README.md .vercel-static/jouer/JOUER.bat",
   "outputDirectory": ".vercel-static",
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/jouer/",
+      "permanent": false
+    }
+  ],
   "headers": [
     {
-      "source": "/(vendor|assets)/(.*)",
+      "source": "/demo/(vendor|assets)/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
       ]
     },
     {
-      "source": "/",
+      "source": "/jouer/",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
       ]
     }
   ]
