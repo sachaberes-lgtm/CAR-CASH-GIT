@@ -1,5 +1,15 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LES TEXTES DE FIGURE, 3e CRAN (2026-09-29, session GRAPHISME) — « les textes de figure sont beaucoup trop gros et bloquent la vue »
+Après le 2e cran d'INTERFACE (figK/annK, voir ci-dessous) — mesuré sur captures 390×844 et 844×390 (banc `gfx/fig.js`, `gfx/fig2.js`) :
+- `annK()` .82/.72 → **.60/.52** (toutes les annonces du couloir), `figK()` .72/.62 → **.56/.48** (geste sur la caisse, verdict MONSTRE…).
+- Les annonces qui naissent des FIGURES ont un corps de base plus petit : « ×5/×8/×10 » 48 → 34, « +AURA » encaissée 40 → 30, CHAÎNE PERDUE
+  30 → 24 (BOOST, FRÉNÉSIE, IMPACT MÉTÉORE… gardent le leur).
+- Le bandeau du DAUPHIN (`#dolHud`) : nom 20-30 px → 13-18 px, aura 12-16 → 9-11 (`<style id="figTaille">`, après hudTaille).
+- **EN VOL, le geste (`popTexte`) ne se pose plus JAMAIS sous la caisse** — c'est là qu'on vise la réception : au-dessus s'il y a la place,
+  sinon il s'efface (`#popTxt.cache`, posé par popSuit) ; la liste des figures à gauche le garde. Au sol, rien ne change.
+- Résultat mesuré (portrait) : annonce ×8 20 px, geste 10-12 px, dauphin 14 px ; les règles `ebOn`/`ebPlonge` (carte moteur) intactes.
+
 ## LA TAILLE DU HUD (2026-09-28, nuit) — « réduis la taille des HUD, c'est compliqué de voir la route », puis « remets la barre de nitro et le flow de la même taille qu'avant, c'est surtout les textes de figure et de MONSTRE qui dérangent »
 Fait par la session INTERFACE avec l'accord de UHD. MESURÉ avant (banc `hudmes.js`, scratchpad 93a1dcda `ui/`) : couché (844 × 390, l'ordi),
 la colonne de gauche descendait à 63 % de la hauteur ; debout, aura + chaîne jusqu'à 250 px ; plaques de pouvoir 148 × 120.

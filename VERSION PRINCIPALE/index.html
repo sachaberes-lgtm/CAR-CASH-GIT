@@ -4383,6 +4383,14 @@ html body.touch #avList{zoom:.86}                  /* les figures de la chaîne 
 /* le voile d'encre du haut suit le tableau de bord : pleine hauteur jusqu'aux barres, à l'échelle en dessous */
 body.touch.play #hud::before{height:calc(env(safe-area-inset-top,0px) + var(--hudY0) + (214px - var(--hudY0)) * var(--hudK))}
 </style>
+<style id="figTaille">
+/* (2026-09-29, Sacha : « les textes de figure sont beaucoup trop gros et bloquent la vue ») — les textes de FIGURE, un cran plus bas partout :
+   le bandeau du DAUPHIN (DAUPHIN ×3 · +322 AURA) passe de 20-30 px à 13-18 px ; le geste sur la caisse s'efface en vol quand il n'a pas la place
+   au-dessus d'elle (voir popSuit). Les tailles calculées en JS (annonces, verdict, geste) suivent annK()/figK(). */
+html body #dolHud .dNom{font-size:clamp(13px,3.6vw,18px)!important}
+html body #dolHud .dAura{font-size:clamp(9px,2.5vw,11px)!important}
+html body #popTxt.cache{opacity:0!important}
+</style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
   <div id="spStage">
@@ -24454,10 +24462,12 @@ function avE(id){return avEl[id]||(avEl[id]=document.getElementById(id));}
 /* (2026-09-28, nuit — Sacha : « réduis la taille des HUD, c'est compliqué de voir la route ») l'échelle des ANNONCES (slam, verdict, geste sur la
    caisse) : un cran plus douce que celle du tableau de bord (--hudK, <style id="hudTaille">) — ce sont les moments de fête, ils restent gros,
    mais ne couvrent plus la caisse. Couché (l'ordi, un téléphone tourné) : plus petit encore. Même seuil que la media du paysage. */
-function annK(){return (VP.w>VP.h&&VP.h<=540)?.72:.82;}
+/* (2026-09-29, 3e verdict — Sacha : « les textes de figure sont beaucoup trop gros et bloquent la vue ») encore un cran : .82/.72 → .60/.52 pour
+   les annonces du couloir (BOOST, ×8 DÉMENT, +AURA, CHAÎNE PERDUE, IMPACT MÉTÉORE…), .72/.62 → .56/.48 pour les textes de figure. */
+function annK(){return (VP.w>VP.h&&VP.h<=540)?.52:.60;}
 /* (même nuit, Sacha : « c'est surtout les textes de figure et de MONSTRE qui dérangent ») les TEXTES DE FIGURE — le geste qui suit la caisse
    (popTexte) et le verdict de pose (MONSTRE, MÉTÉORE…) — un cran plus petits que les annonces : ils passent SUR la route, souvent. */
-function figK(){return (VP.w>VP.h&&VP.h<=540)?.62:.72;}
+function figK(){return (VP.w>VP.h&&VP.h<=540)?.48:.56;}
 function fmtAura(n){return Math.round(n).toLocaleString(LOC()).replace(/[  ]/g,' ');} // (2026-09-28) au format de la LANGUE (« 12,500 » en anglais), et des espaces que la police pixel sait dessiner
 function sansAcc(t){return String(t).normalize('NFD').replace(/[̀-ͯ]/g,'');} // la police pixel n'a pas de capitales accentuées (« MÉTÉORE » s'afficherait « MéTéORE »)
 function chaineAura(nom,base,fam,brut,muet){ // brut : pas de décote de redite (les échelles qui grimpent déjà : vrilles, bumps) · muet : l'appelant sonne déjà (figure en vol, pose)
@@ -24616,7 +24626,10 @@ function popSuit(){ // (HUD v4) le geste JAILLIT DE LA CAISSE : tant que le text
   POP_V9.copy(carGroup.position).addScaledVector(camera.up,2.6).project(camera);const yH=(-POP_V9.y*.5+.5)*VP.h,xC=(POP_V9.x*.5+.5)*VP.w; // le TOIT de la caisse à l'écran
   POP_V9.copy(carGroup.position).addScaledVector(camera.up,-1.4).project(camera);const yB=(-POP_V9.y*.5+.5)*VP.h;  // son bas de caisse
   const mini=la+(HAUT.cur&&performance.now()<HAUT.fin?(HAUT.cur.k==='ver'?Math.max(64,VERD.h-44):64):34); // (vague 2) une voix occupe le couloir (annonce, niveau, défi) : le geste se pose plus bas · (vague 3) sous le VERDICT, plus haut qu'une annonce
-  const y=yH-56>=mini?Math.min(yH-56,VP.h*.64):THREE.MathUtils.clamp(yB+24,mini,VP.h*.74);
+  /* (2026-09-29, Sacha : « les textes de figure bloquent la vue ») EN VOL, le dessous de la caisse, c'est la RÉCEPTION qu'on vise : le geste ne s'y
+     pose plus. Pas la place au-dessus (une annonce occupe le couloir) → il s'efface : la liste des figures, à gauche, le garde. Au sol : comme avant. */
+  const vol9=mode==='fall',haut9=yH-56>=mini;if(vol9!==!!popSuit._v||haut9!==!!popSuit._h){popSuit._v=vol9;popSuit._h=haut9;e.classList.toggle('cache',vol9&&!haut9);}
+  const y=haut9?Math.min(yH-56,VP.h*.64):THREE.MathUtils.clamp(yB+24,mini,VP.h*.74);
   const t9=y.toFixed(0)+'px';if(e.style.top!==t9)e.style.top=t9; // (perf) on n'écrit que ce qui a bougé d'un pixel
   // (vague 2, H5) il suit aussi la caisse en LARGEUR, mais borné : « AUPHIN EN VOL +8 » sortait de l'écran par la gauche
   const hw=(popTexte._w||0)*.58+8,x=Math.max(hw,Math.min(VP.w-hw,xC)),l9=x.toFixed(0)+'px';if(e.style.left!==l9)e.style.left=l9; // .58 : le rebond d'entrée (×1,15) compris
@@ -24667,7 +24680,7 @@ function chaineEncaisse(){
     auraRun+=g;auraPop=Math.min(1,auraPop+g/90);
     // (HUD v4) la chaîne S'ENVOLE dans le compteur, ce qu'elle verse s'affiche à côté ; une grosse chaîne prend aussi le couloir
     avPlusPop('+'+fmtAura(g));{const c9=avE('avCh');if(c9){c9.classList.remove('vole','perdu');void c9.offsetWidth;c9.classList.add('vole');}}
-    if(g>=600||CHA.x>=5)slam('+'+fmtAura(g),(CHA.x>1?fmtAura(CHA.pts)+' ×'+CHA.x+' · ':'')+'AURA','#ff7ad5','#b14bff',40,1,g>=2000?18:0);
+    if(g>=600||CHA.x>=5)slam('+'+fmtAura(g),(CHA.x>1?fmtAura(CHA.pts)+' ×'+CHA.x+' · ':'')+'AURA','#ff7ad5','#b14bff',30,1,g>=2000?18:0); // (2026-09-29) 40 → 30 : un texte de FIGURE (Sacha : « bloquent la vue »)
     const t9=document.querySelector('#auraV2 .avTot');if(t9){t9.classList.remove('pulse');void t9.offsetWidth;t9.classList.add('pulse');}
     if(g>=300)try{pixBurst(avE('avVal'),Math.min(14,4+Math.round(g/250)));}catch(e){} // (2026-09-26) la chaîne tombe DANS le compteur : il éclabousse
     if(g>=500)flashEcran('rgba(177,75,255,.5)');
@@ -24681,7 +24694,7 @@ function chaineEncaisse(){
 function chainePerdue(parMort){ // exploser la chaîne ouverte : tout part avec la caisse · parMort : appelée par explode (l'explosion couvre tout)
   if(!CHA.n)return;const g=Math.round(CHA.pts*Math.max(1,CHA.x));
   if(SONV2&&!parMort)sfx('aura.perdue'); // (console de son)
-  slam('CHAÎNE PERDUE','-'+fmtAura(g)+' AURA','#ff5e7a','#b0102a',30,2); // (HUD v4) elle se BRISE sous les yeux, et le couloir dit combien
+  slam('CHAÎNE PERDUE','-'+fmtAura(g)+' AURA','#ff5e7a','#b0102a',24,2); // (HUD v4) elle se BRISE sous les yeux, et le couloir dit combien — (2026-09-29) 30 → 24
   {const c9=avE('avCh');if(c9){c9.classList.remove('vole','perdu');void c9.offsetWidth;c9.classList.add('perdu');}}chaReset();
 }
 function chaReset(){CHA.pts=0;CHA.x=0;CHA.fam={};CHA.n=0;CHA.t=0;CHA.liste.length=0;if(CHA.urg){CHA.urg=false;const b9=avE('avBarF');if(b9&&b9.parentNode)b9.parentNode.classList.remove('urg');}chaHud(true,false);}
@@ -24692,7 +24705,7 @@ function chaHud(fort,monte){
   const x9=avE('avX'),xv=Math.max(1,CHA.x);x9.textContent='×'+xv;x9.style.setProperty('--xc',X_COUL[Math.min(10,xv)]);x9.classList.toggle('feu',xv>=5);
   if(monte){x9.classList.remove('up');void x9.offsetWidth;x9.classList.add('up');
     const pal={5:'EN FEU !!',8:'DEMENT !!!',10:'MAX !!!'}[xv]; // (vague 2, H4) plus de « ×3 CHAUD ! » au centre : le × du tableau de bord bat déjà — le couloir ne parle qu'à partir de ×5
-    if(pal){if(SONV2)sfx('aura.x'+xv);slam('×'+xv,pal,X_COUL[xv],'#b14bff',48,0,xv>=8?20:xv>=5?12:0);flashEcran(xv>=8?'rgba(255,57,36,.55)':'rgba(255,94,200,.45)');hap(xv>=8?[14,40,24,40,30]:[12,30,20]);}}
+    if(pal){if(SONV2)sfx('aura.x'+xv);slam('×'+xv,pal,X_COUL[xv],'#b14bff',34,0,xv>=8?20:xv>=5?12:0); /* (2026-09-29) 48 → 34 : « ×8 DÉMENT » barrait la route */flashEcran(xv>=8?'rgba(255,57,36,.55)':'rgba(255,94,200,.45)');hap(xv>=8?[14,40,24,40,30]:[12,30,20]);}}
   avE('avList').innerHTML=CHA.liste.map(function(l){return '<li>'+String(l).replace(/[<>&]/g,'')+'</li>';}).join('');
 }
 /* `dbgHud(k,n)` — (HUD v4) forcer un état du tableau de bord pour le juger sur capture : 'flow' n · 'idle' s · 'chaine' n ·
