@@ -3766,6 +3766,14 @@ body.voletSort .mscr.on>.mDock>.mBack,body.voletSort #mDead.on>.mHero>.hCard,bod
 .mscr.on.revu>.mSet>*,.mscr.on.revu .misDefs>*,.mscr.on.revu .misCol>*,#mHome.on.revu>.mIcons>.pbtn,.mscr.on.revu>.mDock>.mBack,
 #mDead.on.revu>.mHero>.hCard,#mDead.on.revu>.mRow>.pbtn,#mDead.on.revu>.mFin>.mMenu{animation:none!important}
 #mDead.on.revu>.mFin>.pb-gold,body.voletSort #mDead.on>.mFin>.pb-gold{animation:k4Lingot 4.2s var(--ease) 1.2s infinite!important}
+/* ================================== 22. LES DÉTAILS (2026-09-28, soir) — la chasse, écran par écran, dans les trois formats =========== */
+/* REJOUER tient dans son lingot dans TOUTES les langues : « PLAY AGAIN » (10 signes) débordait du lingot et se faisait couper. Le corps
+   se règle sur la largeur du lingot (unités cqi : le lingot est son propre conteneur) et le nombre de signes de la langue (--nb) ; en
+   français rien ne change (24 px). */
+#mDead .mFin>[data-m="replay"]{container-type:inline-size;--nb:7;--ls:4px}
+html:lang(en) #mDead .mFin>[data-m="replay"]{--nb:10;--ls:2px}
+#mDead .mFin>[data-m="replay"]>span{font-size:min(var(--f9),calc((100cqi - var(--nb) * var(--ls)) / var(--nb)));letter-spacing:var(--ls);white-space:nowrap}
+@media (orientation:landscape) and (max-height:540px){#mDead .mFin>[data-m="replay"]>span{font-size:min(var(--f6),calc((100cqi - var(--nb) * var(--ls)) / var(--nb)))}}
 </style>
 <style id="hudMaitrise">
 /* =====================================================================================================================
@@ -31648,7 +31656,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       // c'est donc lui qu'on montre en fin de run, pas un palier de voiture qui ne veut plus rien dire.
       const nw=$t('mNew'),E=ENGINE_TIERS[Math.min(ENGINE_TIERS.length-1,Math.max(0,engTier|0))];nw.style.display='none';
       { // LES DEUX CARTES : l'AURA gagnée (et le rang), le MOTEUR atteint (et s'il bat ton record)
-        const au=commitExploits._aura||0,rg=commitExploits._rangMonte,eN=engTier>(RUNX.engAvant|0),hx='#'+(E.col||0xffd75e).toString(16).padStart(6,'0');
+        const au=commitExploits._aura||0,rg=commitExploits._rangMonte,eN=engTier>(RUNX.engAvant|0),hx=(typeof engNeon==='function')?engNeon(E.col||0xffd75e):'#'+(E.col||0xffd75e).toString(16).padStart(6,'0'); /* (2026-09-28) le néon du palier, comme la carte moteur de la course (session UHD) : la rouille et l'acier ne font plus une carte boueuse */
         const h=$t('mHero'),fA=function(v){return fmtAura(v).replace(/[\u202f\u00a0]/g,' ');}; // (2026-09-28) le formateur d'aura du HUD, sans les espaces fines insécables que la police pixel n'a pas (même geste que le compteur du garage)
         /* (2026-09-25) LE « PRESQUE » : mourir à 3 pièces du V6, c'est LA raison de relancer — et c'était invisible. La carte MOTEUR dit la
            distance au palier suivant quand il AURAIT été un record (sinon le record à battre) ; la carte AURA dit ce qui manque au rang suivant,
