@@ -4588,6 +4588,10 @@ html body #engBig .ebRuban{top:-22px!important;left:-10px!important;right:-10px!
 <script src="vendor/postprocessing/ShaderPass.js"></script>
 <script src="vendor/postprocessing/RenderPass.js"></script>
 <script src="vendor/postprocessing/UnrealBloomPass.js"></script>
+<!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
+     pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
+<script defer src="sons-banque.js?v=1"></script>
+<script defer src="sfx.js?v=1"></script>
 <script>
 (function(){
 'use strict';
@@ -19324,7 +19328,8 @@ function pwrPrend(k,pos){
     showMsg(d.msg,d.tint);trickMsg((d.ico?d.ico+' ':'')+TR(d.hud),2);
     slam(d.gros,d.sous,d.tint,d.c2,40,2); // (HUD v3) le pouvoir s'ANNONCE en gros, de sa couleur
   }
-  boostSnd();pwrPrisSnd(k);shake=Math.max(shake,.35);flashEcran(d.fx);hap([14,40,24]);
+  if(!SONV2)boostSnd();pwrPrisSnd(k); // (console) chaque pouvoir a sa signature entière : plus le souffle d'un pad dessous
+ shake=Math.max(shake,.35);flashEcran(d.fx);hap([14,40,24]);
   sparkBurst(d.sp==='bleu'?sparkBlue:d.sp==='rose'?sparkPink:sparkGold,pos,14,9); // là où le cristal éclate
   addStyle(10);RUNX.pwr=(RUNX.pwr|0)+1;
   if(autres>=1){ // DEUX POUVOIRS À LA FOIS : la chasse aux cristaux paie
@@ -20466,7 +20471,8 @@ function explode(cause){
   /* (2026-09-28) LE GRONDEMENT POUR TOUT LE MONDE. Il était câblé sur `level>=4` — un reste de l'époque où `level` était une
      progression ; c'est aujourd'hui l'INDEX de la caisse choisie au garage : les quatre premières caisses explosaient sans grave.
      Même grondement pour toutes, un peu allégé (.35/.5 → .3, sub .3) : `boomSnd` part dans la même milliseconde sur le même bus. */
-  noiseBurst(1.2,.3,240);subBoom(.3);
+  if(!SONV2){noiseBurst(1.2,.3,240);subBoom(.3);}
+  else{const mc9={vide:'mort.vide',air:'mort.air',arret:'mort.arret',police:'mort.police',feu:'mort.feu',tour:'mort.tour'}[mortCause];if(mc9)sfx(mc9);} // (console) chaque mort a sa signature, par-dessus l'explosion : on ENTEND pourquoi on est mort
   if(level>=4){
     shake=Math.max(shake,level===5?3.6:3);
   }
@@ -20482,7 +20488,7 @@ function explode(cause){
   for(let e9=0;e9<BOOMV.rings;e9++)setTimeout(function(){
     if(mode!=='boom')return;
     sparkBurst(Math.random()<.5?sparkGold:sparkBlue,boomPos,10,16);
-    chimeNote(120*BOOMV.pitch*(1+e9*.2),0,.18,.12);
+    if(!SONV2)chimeNote(120*BOOMV.pitch*(1+e9*.2),0,.18,.12);
   },90+e9*130);
   shake=2.6;slowT=.7;
   boomSnd();
@@ -21300,6 +21306,7 @@ function lvlTick(dt,S){
 }
 /* <<<FIN FOND>>> ========================================================== */
 function musicTick(dt,mvt){
+  try{sonTonSuit();}catch(e){} // (console de son) les sons accordés suivent la tonalité du morceau qui joue
   let target=0,beat=0,hiT=0;
   if(musicOn&&musicAna){
     musicAna.getByteFrequencyData(musicData);
@@ -22217,6 +22224,52 @@ function crackle(amt){ // crépitements d'échappement au lâcher : pop-pop-pop 
 // (2026-09-25) LA GARDE DES SONS PONCTUELS : contexte absent, SON coupé, pause ou iOS « interrupted » → on ne fabrique RIEN.
 // Sans elle, chaque pièce, pop et carillon était créé sur une horloge figée, gardé en mémoire, puis joué d'un bloc au rallumage.
 function sfxOk(){return !!AC&&SND.sfx&&AC.state==='running';}
+/* ================= LA CONSOLE DE SON (2026-09-28, session SON) =================
+   Sacha : « tout ce qui se passe à l'écran doit avoir un son propre et unique, parfaitement maîtrisé et mixé, réellement
+   addictif — niveau top 1 App Store ». Audit du jour (4 auditeurs) : ~40 événements visibles SANS son, cinq sons génériques
+   (boostSnd, portalSnd, fanfare, le carillon de chaîne, thud) pour des dizaines d'événements — défaite comprise —, presque
+   toutes les récompenses dans le même timbre de clochette, cinq compteurs de hauteur indépendants qui faisaient zigzaguer
+   « la gamme qui monte », et une pose pouvant empiler 15 à 20 notes en 200 ms.
+   LA NOUVELLE CHAÎNE : les sons ne sont plus bâtis ici en oscillateurs. Ils vivent dans la BANQUE (`sons-banque.js`, rendue et
+   MESURÉE par l'atelier `atelier-son/` : `node atelier-son/cuire.js`) et `sfx.js` les joue — une source et un gain par
+   événement, 4 bus (ui · rec · fx · amb), une salle (réverbe), et un CHEF D'ORCHESTRE qui range les récompenses simultanées
+   par priorité. Tous les sons passent par MASTER : le curseur EFFETS, le compresseur et la pause s'appliquent comme avant.
+   · `sfx(id,o)` = LE point d'entrée (o : st demi-tons · vol dB · pan −1…1 · t délai s · var variante). Les autres sessions
+     l'appellent sous garde `typeof sfx==='function'`. Les noms : voir `sons.html` (le banc d'écoute) ou `dbgSon()`.
+   · `son(id,repli)` : joue `id`, ou appelle `repli` (l'ancien son) si la console est absente.
+   · ⚠ LES ANCIENNES FONCTIONS (blip, chimeNote, rewardSfx…) RESTENT EN REPLI : si `sfx.js` manque, le jeu sonne comme avant.
+   · ⚠ UNE SEULE GAMME PAR VOL (`ECH`, remis à zéro au décollage) : chaque figure, palier d'échelle ou geste en l'air prend le
+     degré suivant de la pentatonique ; la POSE résout sur la tonique (le verdict). Au sol, l'aura garde sa gamme (le × d'aura).
+   · ⚠ LA TONALITÉ SUIT LA MUSIQUE (`sonTonSuit`, appelé par musicTick) : NÉON en fa, VITESSE en si mineur, NOCTURNAL en sol#
+     mineur, NOITE en ré# mineur (mesuré) — les sons accordés sont transposés dans la pentatonique du morceau qui joue. */
+let SONV2=false,ECH=0;
+const SON_PENTA={'jeu.sansFaute':1,'jeu.dauphin':1,'jeu.palierVitesse':1}; // les appelants passent un COMPTE : on le convertit en degré
+function sonPd(i){i=Math.max(0,i|0);return [0,2,4,7,9][i%5]+12*Math.floor(i/5);} // i-ème degré de la pentatonique, en demi-tons
+function sfx(id,o){
+  if(!SONV2||!sfxOk())return null;
+  try{if(o&&o.st!=null&&SON_PENTA[id])o.st=sonPd(o.st);return window.CCSON.play(id,o);}catch(e){return null;}
+}
+function son(id,repli,o){if(SONV2&&window.CCSON.existe(id)){sfx(id,o);return true;}if(repli)try{repli();}catch(e){}return false;}
+function echSt(){return sonPd(Math.min(14,ECH++));} // le degré SUIVANT de la gamme du vol
+function sonConsole(){ // branche la console sur le contexte du jeu (fin d'initAudio ; rejoué si sfx.js arrive après le 1er geste)
+  if(SONV2||!AC||!MASTER||!window.CCSON)return;
+  try{window.CCSON.init(AC,MASTER);SONV2=true;sonTonSuit._t=null;}catch(e){SONV2=false;}
+}
+addEventListener('load',function(){try{sonConsole();}catch(e){}});
+const SON_TON={'lvl1-neon-cash-car':-1,'lvl2-cash-car-vitesse':-2,'nocturnal-groove':0,'noite-de-velocidade':2};
+function sonTonSuit(){
+  if(!SONV2)return;let t=0;
+  try{const el=musicEl;if(SND.music&&el&&el.src){for(const k in SON_TON)if(el.src.indexOf(k)>=0){t=SON_TON[k];break;}if(FRENM.surm)t+=1;}}catch(e){}
+  if(t!==sonTonSuit._t){sonTonSuit._t=t;window.CCSON.ton(t);}
+}
+const FRUIT_SON={'PÊCHE PLATE':'fruit.peche','BANANE':'fruit.banane','GRENADE':'fruit.grenade','ORANGE':'fruit.orange','MYRTILLE':'fruit.myrtille','PASTÈQUE':'fruit.pasteque'};
+function figSnd(id){ // chaque figure a SA matière, posée sur l'échelle du vol
+  if(!SONV2){trickPop(chain);return;}
+  sfx(id==='vrille'?'fig.vrille':id==='meteo'?'fig.meteore':id==='dauphin'?'fig.dauphin':id==='bump'?'fig.bump':'fig.maillon',{st:echSt()});
+  if(id==='vrille'&&spinHalf>=4)sfx('fig.essoreuse');
+}
+// console : `dbgSon()` l'état · `dbgSon('piece',{st:4})` joue un son
+window.dbgSon=function(id,o){if(id)return sfx(id,o||{})?'joué':'muet (console '+SONV2+', contexte '+(AC&&AC.state)+')';return window.CCSON?Object.assign({console:SONV2,echelle:ECH},window.CCSON.etat()):'sfx.js absent';};
 /* `stt(param, valeur, t, tc)` — (2026-09-26, passe perf) les ~50 réglages audio que la boucle envoie à CHAQUE image (moteur, vent,
    crissement, nitro…). Mesuré au profil : `setTargetAtTime` = 11 % du CPU. Deux règles :
    · contexte SUSPENDU (son coupé, pause, onglet caché) → rien : son horloge est arrêtée, chaque réglage s'EMPILAIT dans la file du
@@ -22458,6 +22511,7 @@ function initAudio(){
   const jrLfo=AC.createOscillator();jrLfo.type='sine';jrLfo.frequency.value=5.3;
   jrDep=AC.createGain();jrDep.gain.value=0;
   jrLfo.connect(jrDep);jrDep.connect(jrG.gain);jrLfo.start();
+  sonConsole(); // (2026-09-28) LA CONSOLE DE SON se branche sur ce contexte et ce MASTER
 }
 function noiseBurst(dur,vol,freq){
   if(!sfxOk())return;
@@ -22569,7 +22623,7 @@ function subBoom(vol){ // basse sourde d'impact
     o.connect(g);g.connect(MASTER);o.start();o.stop(AC.currentTime+.32);
   }catch(e){}
 }
-const thud=v=>{duckT=Math.max(duckT,Math.min(.7,v*.05));noiseBurst(.28,Math.min(.5,.14+v*.012),260+v*10);subBoom(Math.min(.28,.08+v*.009));}; // un choc creuse le mix : l'impact se SENT
+const thud=v=>{duckT=Math.max(duckT,Math.min(.7,v*.05));if(SONV2){sfx('pose.choc',{vol:Math.min(8,-10+v*.9)});return;}noiseBurst(.28,Math.min(.5,.14+v*.012),260+v*10);subBoom(Math.min(.28,.08+v*.009));}; // un choc creuse le mix : l'impact se SENT
 const whoosh=()=>noiseBurst(.55,.11,650);
 function heartBeat(){ // la mallette est lourde : le cœur du pilote cogne — toum-toum sourd
   if(!sfxOk())return;
@@ -22598,6 +22652,7 @@ const TON=330; // mi4 : la tonique EXACTE des pièces (660) et de rewardSfx (660
 function noteP(i,oct){return TON*Math.pow(2,GAMME_P[Math.max(0,Math.min(GAMME_P.length-1,i|0))]/12+(oct||0));}
 const FLOW_ACC=[null,[0,2,3],[1,3,5],[2,4,6],[3,5,7]]; // mi majeur · fa#-si-mi · sol#-do#-fa# · si-mi-si : la basse monte d'un degré par palier
 function blip(){
+  if(SONV2){if(!sfxOk())return;const k9=Math.max(0,combo-1);sfx('piece',{st:GAMME_P[Math.min(k9,GAMME_P.length-1)]});if(combo>0&&combo%5===0)sfx('piece.recolte');return;} // (console de son)
   if(!sfxOk())return;
   try{
     const k=Math.max(0,combo-1),st=GAMME_P[Math.min(k,GAMME_P.length-1)],f=660*Math.pow(2,st/12);
@@ -22629,8 +22684,8 @@ function nBlip(){
 /* LES POUVOIRS ONT LEUR SIGNATURE (2026-09-26, audit son) : ils se ramassaient avec le souffle d'un pad et s'éteignaient en silence.
    Deux notes à eux par-dessus le souffle (dans la tonalité), et une tierce qui descend quand le minuteur s'épuise. */
 const PWR_NOTE={n:[2,5],a:[4,7],v:[3,6],m:[0,4],b:[1,5],x:[4,9]}; // (2026-09-28, pouvoirs v2) m aimant · b bouclier · x aura ×2
-function pwrPrisSnd(k){const N=PWR_NOTE[k]||PWR_NOTE.n;try{chimeNote(noteP(N[0],1),.05,.1,.22);chimeNote(noteP(N[1],1),.13,.1,.32);}catch(e){}}
-function pwrFinSnd(){try{chimeNote(noteP(5,1),0,.07,.18);chimeNote(noteP(2,1),.1,.07,.28);}catch(e){}}
+function pwrPrisSnd(k){if(SONV2){sfx(window.CCSON.existe('pwr.'+k)?'pwr.'+k:'pwr.autre');return;}const N=PWR_NOTE[k]||PWR_NOTE.n;try{chimeNote(noteP(N[0],1),.05,.1,.22);chimeNote(noteP(N[1],1),.13,.1,.32);}catch(e){}}
+function pwrFinSnd(k){if(SONV2){sfx(k==='b'?'pwr.bouclierFin':'pwr.fin');return;}try{chimeNote(noteP(5,1),0,.07,.18);chimeNote(noteP(2,1),.1,.07,.28);}catch(e){}}
 function boostSnd(k){
   if(!sfxOk())return;k=k||1;
   try{
@@ -22695,6 +22750,7 @@ function raseSnd(dt,kmh){
 /* LE FRÔLÉ S'ENTEND : un souffle Doppler (aigu à l'approche, grave en s'éloignant — l'objet PASSE à côté de nous) et un
    « ting » qui monte d'un ton par plot enchaîné. La chaîne d'un slalom se joue comme une gamme. */
 function froleSnd(pres,n){
+  if(SONV2){sfx('frole',{st:sonPd(Math.min(9,(n|0)-1)),vol:-3+3*(pres||0)});return;}
   if(!sfxOk())return;
   try{
     const t0=AC.currentTime,d=.32,up=Math.min(1.9,1+(n-1)*.12);
@@ -22718,6 +22774,7 @@ window.dbgConduite=function(q){
     froles:FROLE.n,driftC:+driftC.toFixed(2),driftLv:driftLv,raseT:+raseT.toFixed(2),flow:FLOW.lv};
 };
 function flowSnd(lv){
+  if(SONV2){if(lv>=4)sfx('frenesie.entre');else if(lv>0)sfx('flow.'+lv);return;} // (console) le palier 4 = la FRÉNÉSIE qui part
   if(!AC||!(lv>0))return;
   const I=FLOW_ACC[lv]; // (même tonalité que les pièces : mi · fa# · sol# · si)
   chimeNote(noteP(I[0],1),0,.08,.22);chimeNote(noteP(I[1],1),.06,.07,.24);chimeNote(noteP(I[2],1),.12,.07,.3);
@@ -22726,6 +22783,7 @@ function flowSnd(lv){
   if(lv===4){boostSnd(1.7);duckT=Math.max(duckT,.5);}
 }
 function fanfare(){ // nouvelle voiture : arpège victorieux (et le mix s'incline)
+  if(SONV2){sfx('victoire');return;} // (console) repli générique : les appelants principaux ont chacun leur son (voir LA CONSOLE DE SON)
   if(!sfxOk())return;
   duckT=Math.max(duckT,.5);
   try{
@@ -22770,6 +22828,7 @@ function sparkle(t,vol){ // poussière d'or : souffle bandpass très bref
 }
 function rewardSfx(key,tier){ // signature courte assortie à chaque récompense
   if(!sfxOk())return;
+  if(SONV2){sfx(key==='meteor'?'verdict.meteor':key==='snakeLoop'?'fig.snake':key==='megaMeteor'?'verdict.mega':'verdict.'+Math.max(1,Math.min(3,tier|0)));return;} // (console) le verdict résout la gamme du vol sur la tonique
   if(key==='meteor'){ // braise qui grésille + double note
     noiseBurst(.4,.14,2400);chimeNote(660,0,.10,.3);chimeNote(990,.07,.10,.32);sparkle(.02,.10);return;
   }
@@ -22796,6 +22855,7 @@ function rewardSfx(key,tier){ // signature courte assortie à chaque récompense
   sparkle(tier>=2?.08:.03,.05+tier*.02);
 }
 function pneuMord(k){ // (2026-09-25) LA GOMME ACCROCHE à la pose : une piaillée brève, plus forte si ça tape
+  if(SONV2)return; // (console) le pneu qui mord est DANS le son de pose (pose.choc)
   if(!sfxOk())return;
   try{const t0=AC.currentTime,src=AC.createBufferSource();src.buffer=noiseBuf(.14);
     const f=AC.createBiquadFilter();f.type='bandpass';f.Q.value=7;f.frequency.setValueAtTime(1500,t0);f.frequency.exponentialRampToValueAtTime(950,t0+.1);
@@ -22803,6 +22863,7 @@ function pneuMord(k){ // (2026-09-25) LA GOMME ACCROCHE à la pose : une piaill�
     src.connect(f);f.connect(g);g.connect(MASTER);src.start(t0);src.stop(t0+.14);}catch(e){}
 }
 function coneSnd(){ // (2026-09-25) LE PLOT PERCUTÉ : un « thwock » de plastique creux — la note qui s'enfonce + le claquement
+  if(SONV2){sfx('plot');return;}
   if(!sfxOk())return;
   try{const t0=AC.currentTime,k=.92+.16*Math.random(),o=AC.createOscillator(),g=AC.createGain();o.type='sine';
     o.frequency.setValueAtTime(420*k,t0);o.frequency.exponentialRampToValueAtTime(160*k,t0+.07);
@@ -22810,6 +22871,7 @@ function coneSnd(){ // (2026-09-25) LE PLOT PERCUTÉ : un « thwock » de plasti
     o.connect(g);g.connect(MASTER);o.start(t0);o.stop(t0+.1);noiseBurst(.04,.06,3500);}catch(e){}
 }
 function bumpSfx(n){ // rebond sur la tranche : carillon qui GRIMPE à chaque bump enchaîné
+  if(SONV2){sfx('air.regain');return;} // (console) la figure BUMP sonne dans addTrick ; ici, le chrono d'airtime qui se RECHARGE
   const b9=[1,3,4,5,6][Math.min(4,n-1)]; // une quinte juste qui grimpe, dans la tonalité commune
   chimeNote(noteP(b9),0,.11,.3);
   chimeNote(noteP(b9+3),.07,.09,.32);
@@ -22879,6 +22941,7 @@ function blowOff(){ // relâche : PSSHT + flutter « stu-tu-tu » calé sur le s
   }catch(e){}
 }
 function portalSnd(){ // portail : sweep ascendant
+  if(SONV2){sfx('portail');return;}
   if(!sfxOk())return;
   try{
     const o=AC.createOscillator(),g=AC.createGain();
@@ -22889,6 +22952,7 @@ function portalSnd(){ // portail : sweep ascendant
   }catch(e){}
 }
 function boomSnd(){ // explosion : souffle + sub + crépitement
+  if(SONV2){duckT=1;sfx('explosion');return;}
   if(!sfxOk())return;
   try{
     duckT=1; // l'explosion écrase tout le reste une seconde
@@ -23038,6 +23102,7 @@ function fxWow(combo){
 function fxArgent(force){
   if(fxArgCd>0&&!force)return;
   fxArgCd=6;
+  if(SONV2){sfx('argent.gros');return;} // (console) tiroir-caisse, compteuse ou cascade — cuits, dans le mixage (sur iPhone les samples HTMLAudio échappaient au volume)
   const n=FX_ARGENT.length;
   let i=Math.floor(Math.random()*n);
   if(n>1&&i===fxArgLast)i=(i+1+Math.floor(Math.random()*(n-1)))%n;
@@ -23370,7 +23435,8 @@ function hap(p){
   try{if(navigator.vibrate)navigator.vibrate(p);}catch(e){}
 }
 // LE CLIC D'INTERFACE (2026-09-24) : une note brève et haute + une micro-vibration — chaque bouton RÉPOND, comme une borne d'arcade
-function uiClic(){ try{ if(SND.sfx&&!paused){ if(AC&&AC.state!=='running')AC.resume().then(function(){chimeNote(1480,0,.045,.05);}).catch(function(){}); else chimeNote(1480,0,.045,.05); } }catch(e){} hap(8); } // (2026-09-26) REPRENDRE : le contexte se réveille en asynchrone — la note attend qu'il tourne // en pause le moteur audio dort : la note s'empilerait et partirait en rafale à la reprise
+const UI_CLIC={nav:'ui.nav',retour:'ui.retour',on:'ui.on',off:'ui.off',onglet:'ui.onglet',refus:'ui.refus',danger:'ui.danger'}; // (2026-09-28) uiClic(rôle) : « j'appuie » ne sonne plus comme « je gagne », et un refus ne sonne plus comme un succès
+function uiClic(k){ try{ if(SND.sfx&&!paused){ const f9=function(){if(SONV2)sfx(UI_CLIC[typeof k==='string'?k:'']||'ui.tap');else chimeNote(1480,0,.045,.05);}; if(AC&&AC.state!=='running')AC.resume().then(f9).catch(function(){}); else f9(); } }catch(e){} hap(8); } // (2026-09-26) REPRENDRE : le contexte se réveille en asynchrone — la note attend qu'il tourne // en pause le moteur audio dort : la note s'empilerait et partirait en rafale à la reprise
 window.dbgTouch=function(){return{on:TCTL.on,pad:TCTL.pad,act:TCTL.act,st:+TCTL.st.toFixed(3),sv:+TCTL.sv.toFixed(3),play:TCTL.play,steer:+steer.toFixed(3)};}; // console : l'état du volant tactile (un téléphone ne s'inspecte pas)
 // LE GAZ, exposé : la vignette a besoin de savoir qu'on POUSSE, pas seulement qu'on va vite.
 // (posé une fois par frame dans la physique, à côté de son `up` — une seule vérité, pas deux
@@ -23973,7 +24039,7 @@ function chaineAura(nom,base,fam,brut,muet){ // brut : pas de décote de redite 
   const lb9=sansAcc(TR(nom));CHA.liste.unshift(lb9+' +'+p);if(CHA.liste.length>2)CHA.liste.length=2; // (vague 2, H4) 2 lignes, la dernière en or : la mémoire de la chaîne, pas une 3e voix
   chaHud(true,CHA.x>x0);
   if(TCTL.on)popTexte(lb9+' +'+p,CHA.x>x0?'#ff9ee6':'#ffd75e',0); // au-dessus de la caisse : le geste ET ce qu'il rapporte
-  if(!muet)try{chimeNote(noteP(Math.min(7,CHA.x),1),0,.10,.16);}catch(e){}
+  if(!muet)try{if(SONV2){if(mode==='fall')sfx('fig.maillon',{st:echSt()});else sfx('aura.geste',{st:sonPd(CHA.x)});}else chimeNote(noteP(Math.min(7,CHA.x),1),0,.10,.16);}catch(e){} // (console) en l'air, le geste prend l'échelle du vol ; au sol, la gamme de l'aura (marimba)
   return p;
 }
 /* HUD v3 : LA GRANDE ANNONCE qui claque au centre haut (BOOST, pouvoirs, paliers du ×) — une seule à la fois, la dernière gagne */
@@ -24450,7 +24516,7 @@ function juiceScreenTick(dt){
   }
   juiceCx.globalAlpha=1;
 }
-function fruitCroque(pos,col,power){
+function fruitCroque(pos,col,power,nom){ // nom : le fruit — chacun a SA bouche (console de son)
   fruitRafT=FRUIT_FENETRE;fruitRaf++;
   const r=Math.min(6,fruitRaf);
   /* L'ÉCLABOUSSURE. ⚠ elle partait du CENTRE de la caisse, donc à moitié cachée par la carrosserie —
@@ -24459,10 +24525,10 @@ function fruitCroque(pos,col,power){
   const p2=crV1.copy(pos);p2.y+=1.1;
   juiceSplash(p2,col,Math.min(1.2,power*.9+r*.18));      // la gerbe 3D reste, mais en appoint
   juiceScreen(col,power,1+Math.min(4,r));                 // …et LE JUS REPEINT L'OBJECTIF : ça, on le voit
-  crunchSfx(r);
+  if(SONV2){sfx(FRUIT_SON[nom]||'fruit.peche',{rate:1+Math.min(5,r-1)*.025});sfx('nitro.plein',{t:.14});if(r>=3)sfx('fruit.rafale');}else crunchSfx(r);
   shake=Math.max(shake,Math.min(.55,.18+r*.07));
   if(fruitRaf>=3){                                    // 3 fruits d'affilée : ce n'est plus un hasard
-    chaineAura('RAFALE ×'+fruitRaf,40+r*30,'rafale',true);
+    chaineAura('RAFALE ×'+fruitRaf,40+r*30,'rafale',true,SONV2);
     trickMsg('🧃 RAFALE ×'+fruitRaf,r>=5?3:2);
   }
 }
@@ -24621,7 +24687,7 @@ function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent dé
     chainMult+=n===1?.5:.15;
     while(ladderI<LADDER.length&&Math.min(6,chainMult)>=LADDER[ladderI][0]){ // palier franchi : on le crie
       trickMsg('×'+LADDER[ladderI][0]+' — '+LADDER[ladderI][1],LADDER[ladderI][0]>=4.5?3:2);
-      chimeNote(noteP(ladderI+3,1),0,.12,.22); // l'échelle monte à l'oreille aussi (mi pentatonique)
+      if(SONV2){if(LADDER[ladderI][0]>=6)sfx('fig.jackpot');else sfx('fig.palier',{st:echSt()});}else chimeNote(noteP(ladderI+3,1),0,.12,.22); // l'échelle monte à l'oreille aussi (mi pentatonique)
       ladderI++;
     }
   }
@@ -24629,7 +24695,7 @@ function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent dé
   if(chain>(runStats.chainMax||0))runStats.chainMax=chain;
   trickMsg(txt+(n>2&&!raw?' ×'+n:''),tier||false);
   addStyle(tier===3?16:tier===2?11:7);
-  trickPop(chain);
+  figSnd(id); // (2026-09-28) chaque figure a sa matière, sur l'échelle du vol (voir LA CONSOLE DE SON)
   chainHudShow();
 }
 /* ===== LE DAUPHIN v3 (2026-09-25) — 1 s AU-DESSUS DE LA ROUTE (2 s jusqu'au 26/09) =====
@@ -24881,6 +24947,7 @@ function poseParfaiteFx(divin){
   if(divin)setTimeout(function(){try{if(running&&!gameOver)flashEcran('rgba(255,215,110,.8)');}catch(e){}},200);
 }
 function startFall(impU,impF){
+  ECH=0; // (console de son) une gamme neuve à chaque vol
   traceTick(false); // (2026-09-26) le ruban de gomme se coupe au décollage
   loop._nAir=nitroOn; // (2026-09-26) l'impulsion est celle de l'ALLUMAGE en vol : tenue depuis le sol, elle ne compte pas — mais elle ne dépend plus du vol d'avant
   lastNearS=s;        // (2026-09-26) le couloir de proximité (LOD, aimant) part d'ICI, pas de la fin du vol précédent (les pièces clignotaient une image)
@@ -25151,7 +25218,7 @@ function tryLand(dt){
       rewardSfx(vKey,vTier); // signature sonore courte assortie à la récompense
       if(TCTL.on&&(g>=1.5||gapOk))popTexte(gapOk?(gapArmed===3?'DOUBLE GAP !':'GAP !'):g>=2?'DIVIN !!':'PARFAIT !',g>=2||gapOk?'#ff5ec8':'#ffd75e',2);
       if(gapOk)chaineAura(gapArmed===3?'DOUBLE GAP':'GAP',gapArmed===3?200:120,'gap',false,true);else if(g>=1.5)chaineAura(g>=2?'POSE DIVINE':'POSE PARFAITE',g>=2?120:70,'pose',false,true); // (aura v2) la pose PROLONGE la chaîne // (2026-09-25) la pose ×1,5 : LE geste à répéter — il faut qu'on le voie
-      if(g>=1.5){try{chimeNote(1980,.08,.055,.2);chimeNote(2640,.11,.04,.26);sparkle(.08,.06);if(g>=2)chimeNote(1320,.15,.06,.4);}catch(e){}} // (2026-09-25) le « tchak » du PARFAIT : harmoniques 3 et 4 du 660, au-dessus de l'arpège
+      if(g>=1.5){try{if(SONV2)sfx('pose.parfait',{t:.08});else{chimeNote(1980,.08,.055,.2);chimeNote(2640,.11,.04,.26);sparkle(.08,.06);if(g>=2)chimeNote(1320,.15,.06,.4);}}catch(e){}} // (2026-09-25) le « tchak » du PARFAIT : harmoniques 3 et 4 du 660, au-dessus de l'arpège
       landBoom(carGroup.position,vTier); // P'TIT BOOM D'ATTERRISSAGE : toute figure MONSTER+ éclate à la pose (calibré sur le tier)
       boost=Math.max(boost,1.2);
       addStyle(14+chain*4);
@@ -29508,7 +29575,7 @@ function loop(now){
             {const mx9=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,av9=nitroX;nitroX=Math.min(2,nitroX+.2*mx9);
              if(nitroX>av9+.01){const b=document.getElementById('nitroBar');if(b){b.classList.remove('gain');void b.offsetWidth;b.classList.add('gain');}}}
             RUNX.fruits++;hap(fd.boost>=1.5?[20,40,30]:11);
-            fruitCroque(carGroup.position,fd.jus||0xffd75e,pw); // ON CROQUE : jus, crunch, et la rafale qui monte
+            fruitCroque(carGroup.position,fd.jus||0xffd75e,pw,fd.n); // ON CROQUE : jus, crunch, et la rafale qui monte
             // (le fruit ne touche PAS au moteur : il ne sert qu'au boost — ce sont les pièces qui l'améliorent)
             if(fd.boost>=1.5){ // LE GRAAL : la pastèque, ça se fête
               trickMsg('🍉 '+fd.n+' !',2);sparkBurst(sparkGold,carGroup.position,18,14);shake=Math.max(shake,.3);
@@ -29872,8 +29939,8 @@ function loop(now){
         if(halfs>spinHalf&&fallT>.45){spinHalf=halfs;
           addTrick('vrille',halfs===1?'180°':halfs===2?'VRILLE 360 — LAVE-LINGE !':halfs===3?'540° !!':(halfs*180)+'° — ESSOREUSE COSMIQUE !!',3.5*halfs,halfs>=4?3:(halfs>=2?2:false),true);}
         if(!trkMeteor&&nitroOn&&nitroAirT>1.2){trkMeteor=true;addTrick('meteo','MÉTÉORE',8,2);}
-        if(!trkBigA&&fallTR>1.8){trkBigA=true;chaineAura('BIG AIR',50,'bigair');flowAdd(6,'risque');}          // (aura v2) le temps passé EN L'AIR se paie
-        if(!trkMonstre&&fallTR>3.4){trkMonstre=true;chaineAura('AIR MONSTRE',110,'monstre');flowAdd(10,'risque');}
+        if(!trkBigA&&fallTR>1.8){trkBigA=true;chaineAura('BIG AIR',50,'bigair',false,SONV2);if(SONV2)sfx('fig.bigair',{st:echSt()});flowAdd(6,'risque');}          // (aura v2) le temps passé EN L'AIR se paie
+        if(!trkMonstre&&fallTR>3.4){trkMonstre=true;chaineAura('AIR MONSTRE',110,'monstre',false,SONV2);if(SONV2)sfx('fig.monstre',{st:echSt()});flowAdd(10,'risque');}
         // ---- LE DAUPHIN v3 : chrono du vol AU-DESSUS DE LA ROUTE (dolTick) — hauteur depuis la face de DÉCOLLAGE (miroir des faces) ----
         {const hF=dolDist(); // (dauphin v4) la distance à la DALLE : dessus, dessous ou à côté — tout vol près de la route
          dolTick(dt,DAUPH.force!==null?DAUPH.force:(curNear&&Math.abs(curTOff)<DOL_TMAX&&hF<DOL_HMAX),hF);}
@@ -30035,7 +30102,7 @@ function loop(now){
       airPieDraw(fr,pwrAirT>0?pwrAirT:Math.max(0,airMax()-fallTR),airFlash>0);
       {const dg=pwrAirT<=0&&airMax()-fallTR<1.5;if(dg!==loop._pdg){loop._pdg=dg;airPie.classList.toggle('danger',dg);} // (2026-09-26) il TREMBLE sous 1,5 s
        // …et il TIQUE : les yeux sont sur la caisse, pas sur le chrono — un tic dans la tonalité qui accélère, plus une micro-vibration
-       if(dg){loop._atk=(loop._atk||0)-dt;if(loop._atk<=0){const r9=Math.max(0,airMax()-fallTR);loop._atk=.09+.25*r9/1.5;try{chimeNote(noteP(r9<.5?4:2,1),0,.06,.06);}catch(e){}hap(5);}}else loop._atk=0;}
+       if(dg){loop._atk=(loop._atk||0)-dt;if(loop._atk<=0){const r9=Math.max(0,airMax()-fallTR);loop._atk=.09+.25*r9/1.5;try{if(SONV2)sfx(r9<.5?'alerte.tac':'alerte.tic');else chimeNote(noteP(r9<.5?4:2,1),0,.06,.06);}catch(e){} /* (console) un danger sonne en BOIS, jamais en cloche de récompense */hap(5);}}else loop._atk=0;}
       if(TCTL.on&&!TUTO.on&&!(SAVE.d.ast&2)){loop._astV=(loop._astV||0)+dt;if(loop._astV>1){SAVE.d.ast|=2;SAVE.mark(); // ASTUCE (une fois à vie) : l'assiette au pouce
         misBanniere('ASTUCE',TR("En l'air : pouce en HAUT = plonge, en BAS = cabre."),'','eclair');}}
       if(!PARK.on&&portalMesh&&!CAMP.portFerme&&fallPos.distanceToSquared(PORTAL.c)<PORTAL.R*PORTAL.R*.9)portailPasse(); // (2026-09-26) l'ovule traversé EN VOL — du ciel, de côté, d'en dessous

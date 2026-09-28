@@ -1,5 +1,31 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA CONSOLE DE SON (2026-09-28, session SON) — « tout ce qui se passe à l'écran doit avoir un son propre et unique, parfaitement maîtrisé et mixé »
+**⚠ RÈGLE POUR TOUTES LES SESSIONS : un son nouveau = `sfx('famille.nom')`, jamais un `chimeNote`/`noiseBurst` bricolé sur place.**
+Appel sous garde depuis n'importe quel code : `typeof sfx==='function'&&sfx('ui.ok')`. Si le son voulu n'existe pas encore, on pose l'appel
+avec un nom neuf et on le signale à la session SON (ou on écrit la recette dans `atelier-son/recettes.js`, voir plus bas).
+- **Trois fichiers** : `atelier-son/recettes.js` (l'ATELIER : chaque son est une recette de synthèse, jamais chargée par le jeu) →
+  `node atelier-son/cuire.js` rend, MESURE (sonie −20 LUFS sur 200 ms, crête, spectre), encode en MP3 32 kHz et écrit **`sons-banque.js`**
+  (≈2,7 Mo, ~215 tampons) → **`sfx.js`** (le LECTEUR : décode la banque en tâche de fond dès le chargement, joue une source + un gain par
+  événement). Le jeu charge les deux en `defer` avec `?v=N` : **incrémenter `v` à chaque nouvelle banque** (le service worker garde l'ancienne).
+  `node atelier-son/cuire.js piece` ne recuit que les sons dont l'id contient « piece ».
+- **Le banc d'écoute : `sons.html`** (double-clic, marche en file://) — tous les sons par famille, la tonalité de chaque morceau, des
+  scénarios enchaînés (ligne de pièces, vol complet, frénésie à la pose, menus, écran de mort…). C'est là qu'on JUGE un son, pas en jouant.
+- **Grammaire** : la MATIÈRE dit la famille (argent = métal, figures = synthé néon, aura = marimba, flow = piano électrique, danger = bois/tôle/
+  grave, interface = petits « tock » vitrés) ; ce qui MONTE récompense, ce qui descend retire ; la TAILLE suit la rareté.
+- **4 bus** (ui · rec · fx · amb) + une SALLE (réverbe à convolution calculée) → tout sort dans `MASTER` (curseur EFFETS, compresseur, pause
+  inchangés). `TRIM=-10` cale la palette sur l'ancien mixage (mesuré : pièce −34 LUFS, clic −42, explosion −15).
+- **Le chef d'orchestre** (`grp:'r'` + `prio`) : les récompenses qui partent dans la même fenêtre de 110 ms se rangent — la plus importante
+  devant, les autres −9 dB. (Une pose qui déclenchait la frénésie empilait 15 à 20 notes en 200 ms.)
+- **Une seule gamme par vol** (`ECH`, remis à zéro dans `startFall`, `echSt()`) : figures, paliers d'échelle et gestes en l'air prennent le
+  degré suivant ; le verdict de la pose résout sur la tonique. Au sol l'aura garde sa gamme (`sonPd(CHA.x)`).
+- **La tonalité suit la musique** (`sonTonSuit` dans musicTick, table `SON_TON`) : NÉON fa (−1), VITESSE si m (−2), NOCTURNAL sol# m (0),
+  NOITE ré# m (+2), frénésie surmultipliée +1 — mesuré par chroma. Un nouveau morceau = une ligne dans `SON_TON`.
+- **Repli** : `SONV2` faux (sfx.js absent) → toutes les anciennes fonctions sonnent comme avant. `son(id,repli)` fait les deux.
+- `uiClic(rôle)` : `'nav'` `'retour'` `'on'` `'off'` `'onglet'` `'refus'` `'danger'` (défaut : appui principal). Un refus ne sonne plus comme un succès.
+- Console : `dbgSon()` (état, décodage) · `dbgSon('fig.vrille',{st:4})` joue un son.
+- ⚠ **Piège MP3** : le codec étale un pré-écho devant les attaques sèches ; chaque fichier commence par 30 ms de silence et la banque porte
+  un ÉTALON (une impulsion) dont le lecteur mesure la crête pour caler l'attaque de TOUS les sons (28,5 ms mesurés dans Chrome).
 ## LE MOUVEMENT DE L'INTERFACE + MISSIONS v2 (2026-09-28, soir) — « travaille les animations, les emplacements, les transitions entre chaque écran : prêt à envoyer à l'App Store »
 Sacha : « il y a des centaines de petites choses à améliorer dans l'interface… travaille les animations quand tu cliques sur les boutons,
 leurs emplacements, les transitions quand tu changes d'écran — que ce soit parfait ; travaille vraiment les transitions entre chaque écran
