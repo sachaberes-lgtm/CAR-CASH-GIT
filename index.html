@@ -94,6 +94,8 @@ html.colonne body>*:not(#colonne):not(#tourne){display:none!important}
 html.colonne #tourne{position:fixed;right:16px;bottom:16px;z-index:9;font:700 12px/1 system-ui,-apple-system,sans-serif;letter-spacing:1px;color:#fff;cursor:pointer;padding:11px 16px;border:0;border-radius:12px;
   background:linear-gradient(#7a6cff,#5143d9);box-shadow:0 4px 0 #2c2280,0 8px 18px rgba(0,0,0,.45);opacity:.85}
 html.colonne #tourne:hover{opacity:1}
+/* couché, le cadre prend toute la largeur : le bouton se range au milieu du bas, là où le jeu n'a rien (ni retour, ni niveaux, ni volant, ni nitro) */
+html.colonne:not(.debout) #tourne{right:auto;left:50%;bottom:8px;transform:translateX(-50%);padding:7px 12px;font-size:10px;opacity:.6}
 html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
   box-shadow:0 0 0 1px rgba(255,255,255,.08),0 0 0 3px #07050f,0 24px 70px rgba(0,0,0,.7),0 0 90px rgba(255,62,200,.16)}
 </style>
@@ -3706,7 +3708,13 @@ html body.touch.coOn #nitroWrap{height:34px}
   #mHome .mPlay,#playBtn{display:none!important}
   #garage:not(.boutique) #gCard{display:none!important}
   #garage #gBottom>*,#garage #gAct>*{transition:opacity .3s var(--ease,ease),visibility 0s linear 0s}
-  #garage:not(.boutique) #gBottom>:not(#gAct),#garage:not(.boutique) #gAct>:not(#gClose){opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s,visibility 0s linear .2s}
+  #garage:not(.boutique) #gBottom>:not(#gAct),#garage:not(.boutique) #gAct>:not(#gClose):not(#gShop){opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s,visibility 0s linear .2s}
+  /* (2026-09-28) LE BOUTON BOUTIQUE du garage : magenta (la couleur de la boutique), à côté du retour — la vitrine a le sien (ÉQUIPER/ACHETER) */
+  #gShop{flex:1;min-width:0;min-height:60px;padding:0 16px;gap:12px;font-size:var(--f3);--nc:var(--neoM)}
+  #gShop .pxi{--pxs:2}
+  #garage.boutique #gShop{display:none!important}
+  #garage:not(.boutique) #gBuyRow,#garage:not(.boutique) #gEquip{display:none!important} /* invisibles, ils mangeaient la place du bouton */
+  #garage.quiet #gShop,#garage.launching #gShop{opacity:0;visibility:hidden;pointer-events:none}
   #garage.boutique #gPlayMain,#garage.boutique #lbBoxG{display:none!important}
   /* la SORTIE ◀ de la charte v4 vit en bas à gauche (#gAct) : en portrait, le choix du niveau monte d'un cran pour la laisser au pouce */
   @media (orientation:portrait){#garage:not(.boutique) #gNiv{bottom:calc(env(safe-area-inset-bottom,0px) + 92px)}}
@@ -3835,6 +3843,7 @@ html body.touch.coOn #nitroWrap{height:34px}
     html #garage::after{opacity:0!important}                     /* le voile de la colonne v5 assombrissait le lapin et les affiches : ta boutique n'a pas de colonne */
     html #garage:not(.boutique) #gBottom{left:0;width:auto;pointer-events:none} /* la SORTIE ◀ revient en bas à GAUCHE (la colonne la collait au choix du niveau) */
     html #garage:not(.boutique) #gAct{pointer-events:auto}
+    html #garage:not(.boutique) #gShop{flex:0 0 auto;width:min(230px,30vw);min-height:54px} /* à gauche, à côté du retour : le choix du niveau tient la droite */
   }
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
@@ -3902,6 +3911,8 @@ html body.touch.coOn #nitroWrap{height:34px}
         <button id="gClose" class="pbtn pbCarre" aria-label="Retour"><i class="pxi pxi-gauche" aria-hidden="true"></i></button>
         <div id="gBuyRow"><button id="gBuy" class="pbtn pb-gold">ACHETER</button></div>
         <button id="gEquip" class="pbtn pb-gold">ÉQUIPER</button>
+        <!-- (2026-09-28, Léo : « on voit rien dans le garage ») la BOUTIQUE se voit dès l'entrée — le lapin n'était qu'un secret -->
+        <button id="gShop" class="pbtn pb-mag"><i class="pxi pxi-panier" aria-hidden="true"></i><span data-fr="BOUTIQUE">BOUTIQUE</span></button>
       </div>
       <!-- LE CATALOGUE (2026-09-26, Léo : « ne montre pas tout ») : familles + vignettes rangées derrière ce bouton -->
       <button id="gListe" class="pbtn pb-cyan" aria-label="Catalogue" aria-pressed="false"><i class="pxi pxi-grille" aria-hidden="true"></i><span data-fr="CATALOGUE">CATALOGUE</span></button>
@@ -28330,6 +28341,7 @@ $('stFreq').addEventListener('change',saveFruits);
 addEventListener('keydown',e=>{if(!stallOn)return;
   if(e.code==='Escape')closeStall();else if(e.code==='ArrowLeft')stallShow(stallI-1);else if(e.code==='ArrowRight')stallShow(stallI+1);});
 $('garageBtn').addEventListener('click',e=>{e.stopPropagation();openGarage();});
+$('gShop').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarget);shopOuvre();}); // (2026-09-28) la boutique, sans chercher le lapin
 $('gClose').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarget);uiClic();if(GAR.btq){shopQuitte();return;}ecranWipe(closeGarage);}); // en BOUTIQUE, la croix ramène au garage
 function gSecoue(b){b.classList.remove('secoue');void b.offsetWidth;b.classList.add('secoue');hap([8,40,8]);} // le NON du garage : ça bouge, ça vibre, et un toast dit pourquoi
 $('gEquip').addEventListener('click',e=>{e.stopPropagation();
