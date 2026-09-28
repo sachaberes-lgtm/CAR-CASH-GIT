@@ -3578,6 +3578,26 @@ html body #triade .trPiece{transform-style:flat;transform-origin:50% 62%;animati
 @media (orientation:landscape) and (max-height:540px){
   html body.touch #triade{top:calc(var(--hudH) + 4px);right:auto;left:calc(var(--hudG) + min(50vw,440px) + 18px)}
 }
+/* ---------------------------------------------- 13. LA FRÉNÉSIE v3 : SES NOUVEAUX ÉCRITEAUX ----------------------------- */
+/* (a) le CHRONO de la frénésie (#frenChrono, posé par la logique v3 sous l'emblème — il ne tourne pas avec lui) : des chiffres ombrés
+   ROUGE frénésie ; quand la plus longue tenue tombe (.rec), ils passent à l'OR et battent */
+html body #frenChrono{top:calc(100% + 4px);font-size:14px;line-height:1;letter-spacing:1px;color:transparent;-webkit-text-fill-color:transparent;text-shadow:none;
+  background:linear-gradient(180deg,#fff 0 12%,#ffd0d5 12% 40%,var(--fren) 40% 76%,#a8001a 76%);-webkit-background-clip:text;background-clip:text;filter:var(--contourP)}
+html body #frenChrono.rec{background:linear-gradient(180deg,#fff 0 12%,#fff0b8 12% 40%,#ffc93a 40% 76%,#b86a00 76%);-webkit-background-clip:text;background-clip:text;
+  animation:hmChronoRec .7s var(--ease) infinite}
+@keyframes hmChronoRec{50%{filter:var(--contourP) drop-shadow(0 0 10px rgba(255,201,58,.8)) brightness(1.25)}}
+/* (b) la jauge GELÉE par le nitro (#flowHud.gele — rien ne fuit tant qu'il brûle) : un liseré de GIVRE autour de la bande, les cellules
+   refroidies, la vague blanchie — on voit que le flow est « tenu » */
+html body #flowHud.gele .fSeg{box-shadow:inset 0 0 0 3px #bff4ff,0 3px 0 #170f55,0 0 14px rgba(159,232,255,.65);transition:box-shadow var(--t-fast) var(--ease)}
+html body #flowHud.gele .fSeg>i>s{filter:saturate(.75) brightness(1.15)}
+html body #flowHud.gele::before{background:#e6fbff}
+/* (c) l'ÉCRAN DE MORT compte QUATRE chiffres (la frénésie tenue s'ajoute) : quatre colonnes, étiquettes sans chasse pour tenir */
+html #mDead .mStats{grid-template-columns:repeat(4,minmax(0,1fr))}
+html #mDead .mStat span{letter-spacing:0}
+html #mDead .mStat.mFren b{color:#ff6b78;text-shadow:0 2px 0 var(--txO),0 0 12px rgba(255,42,61,.45)}
+html #mDead .mStat.mFren.rec b{color:#ffd0d5;text-shadow:0 2px 0 var(--txO),0 0 16px rgba(255,42,61,.8)}
+html #mDead .mStat.mFren.rec span{color:#ff6b78}
+@media (prefers-reduced-motion:reduce){html body #frenChrono.rec{animation:none}}
 /* ---------------------------------------------- « RÉDUIRE LES ANIMATIONS » ------------------------------------------- */
 @media (prefers-reduced-motion:reduce){
   html body.touch.play :is(#nitroWrap,#flowHud,#tGear,#auraV2),html body.touch.play #tSteer:not(.used)::after,
