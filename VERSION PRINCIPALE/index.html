@@ -15,6 +15,64 @@
 <meta name="apple-mobile-web-app-title" content="CASH CAR">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/icon-180.png">
+<!-- ================= L'ÉDITION, ET LA COLONNE DE L'ORDI (2026-09-28) =================
+     Sacha : « quand on ouvre cette version, la disposition des affichages de la version PC et de la version mobile verticale doit
+     être EXACTEMENT la même ». Jusqu'ici l'ordi jouait le chemin téléphone dans TOUTE la fenêtre, en paysage : jauges étirées sur
+     1 600 px, HUD minuscule, caisse lointaine, accueil réarrangé (captures 1600×900 du 28/09). Une disposition identique ne
+     s'obtient qu'en donnant au jeu LE MÊME ÉCRAN : sur l'ordi, cette page n'est plus qu'un CADRE, et le jeu tourne dans une
+     colonne de 390 × 844 (l'écran logique d'un iPhone) agrandie à la hauteur de la fenêtre par `zoom`. Chrome propage ce zoom
+     au document du cadre comme une densité de pixels : dedans, innerWidth = 390, les @media et les vw sont ceux d'un téléphone,
+     devicePixelRatio = le facteur d'agrandissement → texte et jauges NETS (mesuré : 1 600 × 1 100 → colonne 499 × 1 080, dpr 1,28).
+     Même en file:// (double-clic) : le cadre se charge et partage la sauvegarde (même localStorage, vérifié).
+     Qui passe par la colonne : l'édition 'mobile', ouverte en page principale (pas déjà dans un cadre), sur un écran qui n'est PAS
+     un téléphone (même test que TEL_NATIF). `?pc=1` garde le menu desktop ; `?colonne=0` = l'ancien plein écran (bancs).
+     Dans la page-cadre, le grand script s'arrête à sa 1re ligne (`CC_COLONNE`) : aucun second jeu, aucun WebGL.
+     ⚠ `const EDITION` VIT ICI : c'est LA ligne que `synchro-versions.js` bascule (une seule occurrence, sinon il refuse). -->
+<script>
+/* ⚠ LES DEUX ÉDITIONS (2026-09-25, user : « sépare-les en deux dossiers : VERSION PRINCIPALE = la version mobile fusionnée, AUTRE
+   VERSION = la version PC »). C'est UN SEUL jeu : les deux dossiers portent le MÊME index.html, et cette ligne est la SEULE qui
+   diffère. 'mobile' → sur l'ordi aussi on joue la version TÉLÉPHONE (dans la colonne, voir plus haut) ; 'pc' → l'ordi garde le menu
+   desktop. Un vrai téléphone reçoit la version téléphone dans les deux cas. On ne modifie JAMAIS « AUTRE VERSION » à la main :
+   `node synchro-versions.js` (racine du dépôt) la régénère depuis la principale. Forçages ponctuels : `?tel=1` / `?pc=1`.
+   (Déclarée au niveau global — un `const` de script classique est visible du grand script, qui la lit.) */
+const EDITION='mobile';
+(function(){
+  var q=location.search,M=window.matchMedia;
+  if(window.top!==window){ // DANS la colonne : les touches frappées pendant que la page-cadre avait le focus arrivent par message
+    addEventListener('message',function(e){var d=e.data;if(e.source!==window.parent||!d||d.cc!=='touche')return;
+      try{document.dispatchEvent(new KeyboardEvent(d.t,{key:d.key,code:d.code,repeat:!!d.rep,bubbles:true,cancelable:true}));}catch(_){}});
+    return;}
+  if(EDITION!=='mobile'||window.Capacitor||/[?&](pc|desktop|colonne)=[01]?/.test(q)&&!/[?&](tel|mobile)=1/.test(q))return;
+  var tactile=(M&&M('(pointer:coarse)').matches)||('ontouchstart' in window)||navigator.maxTouchPoints>0;
+  if(tactile&&((M&&M('(hover:none)').matches)||Math.min(innerWidth,innerHeight)<820))return; // un vrai téléphone : il EST l'écran
+  window.CC_COLONNE=true;window.__gameReady=true; // (le chien de garde du démarrage n'a rien à garder ici : le jeu démarre dans le cadre)
+  document.documentElement.classList.add('colonne');
+  var L=390,H=844; // l'écran logique de référence (iPhone 12 à 15) — celui des captures de la charte
+  document.addEventListener('DOMContentLoaded',function(){
+    var f=document.createElement('iframe'),u=location.href.split('#')[0];
+    f.id='colonne';f.title='CASH CAR';f.setAttribute('allow','autoplay; fullscreen; gamepad');f.setAttribute('allowfullscreen','');
+    f.src=u+(u.indexOf('?')<0?'?':'&')+'colonne=1';
+    document.body.appendChild(f);
+    var cadre=function(){f.style.zoom=Math.max(.5,Math.min(innerHeight/H,innerWidth/L)).toFixed(4);};
+    cadre();addEventListener('resize',cadre);
+    // le CLAVIER va au jeu : focus donné au chargement et à chaque clic hors de la colonne ; une touche frappée entre-temps est relayée
+    var donne=function(){try{f.contentWindow.focus();}catch(_){}};
+    f.addEventListener('load',donne);addEventListener('pointerdown',donne);
+    ['keydown','keyup'].forEach(function(t){addEventListener(t,function(e){
+      try{f.contentWindow.postMessage({cc:'touche',t:t,key:e.key,code:e.code,rep:e.repeat},'*');}catch(_){}
+      if(/^(Space|Arrow|Shift|Escape|Enter)/.test(e.code))e.preventDefault();donne();});});
+  });
+})();
+</script>
+<style>
+/* LA PAGE-CADRE : la nuit du jeu, la colonne au centre, rien d'autre (tout le reste du document dort, masqué) */
+html.colonne,html.colonne body{height:100%;margin:0;overflow:hidden;background:#07050f}
+html.colonne body{display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse 42% 70% at 50% 50%,#241a4a 0,#120c2a 48%,#07050f 100%)}
+html.colonne body>*:not(#colonne){display:none!important}
+html.colonne #colonne{display:block;flex:none;width:390px;height:844px;border:0;background:#07050f;
+  box-shadow:0 0 0 1px rgba(255,255,255,.08),0 0 0 3px #07050f,0 24px 70px rgba(0,0,0,.7),0 0 90px rgba(255,62,200,.16)}
+</style>
 <style>
 @font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/pressstart2p.woff2') format('woff2');}
 :root{--pix:'Press Start 2P',monospace}
@@ -3293,6 +3351,7 @@ html[data-reduced-motion="1"] #triade .trAura{opacity:.5}
 <script>
 (function(){
 'use strict';
+if(window.CC_COLONNE)return; // (2026-09-28) sur l'ordi cette page n'est que le CADRE : le jeu tourne dans la colonne (voir <head>)
 /* ================= LES ICÔNES PIXEL (2026-09-24) =================
    ⚠ POURQUOI : la police pixel du jeu n'a AUCUN des symboles d'interface (✕ ◀ ▶ ⚙ ⏸ ↻ ★ ✓ — mesuré) ; ils
    tombaient dans la police du système ou en EMOJI, chacun avec sa facture, ses couleurs, son épaisseur —
@@ -4137,13 +4196,9 @@ const SUN_PERP=new THREE.Vector3().crossVectors(SUN_DIR,new THREE.Vector3(0,1,0)
    (un écran d'ordi est en paysage, c'est normal), pas de plein écran forcé au premier clic, et une
    résolution d'image à la mesure d'un moniteur (voir `applyQ`). Toutes les commandes tactiles ont un
    repli souris ; le clavier reste branché ; un écran tactile d'ordi marche au doigt. */
-/* ⚠ LES DEUX ÉDITIONS (2026-09-25, user : « sépare-les en deux dossiers : VERSION PRINCIPALE = la version mobile
-   fusionnée, AUTRE VERSION = la version PC »). C'est UN SEUL jeu : les deux dossiers portent le MÊME index.html, et
-   cette ligne est la SEULE qui diffère. 'mobile' → sur l'ordi aussi on joue la version TÉLÉPHONE (coque d'écrans,
-   volant à la souris, gaz auto) ; 'pc' → l'ordi garde le menu desktop. Un vrai téléphone reçoit la version téléphone
-   dans les deux cas. On ne modifie JAMAIS « AUTRE VERSION » à la main : `node synchro-versions.js` (racine du dépôt)
-   la régénère depuis la principale. Forçages ponctuels : `?tel=1` / `?pc=1`. */
-const EDITION='mobile';
+/* ⚠ LES DEUX ÉDITIONS : `EDITION` est déclarée dans le <head> (2026-09-28), à côté de la COLONNE de l'ordi qui en dépend —
+   c'est toujours la SEULE ligne qui diffère entre VERSION PRINCIPALE et AUTRE VERSION (voir synchro-versions.js). Dans la
+   colonne, ce qui suit voit un écran de 390 × 844 non tactile : c'est donc ce chemin `FORCE_TEL` qui y tourne. */
 const TACTILE_NATIF=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||('ontouchstart'in window)||navigator.maxTouchPoints>0;
 const TEL_NATIF=TACTILE_NATIF&&((window.matchMedia&&matchMedia('(hover:none)').matches)||Math.min(innerWidth,innerHeight)<820);
 const FORCE_TEL=/[?&](tel|mobile)=1/.test(location.search)||(EDITION==='mobile'&&!TEL_NATIF&&!/[?&](pc|desktop)=1/.test(location.search)); // l'ORDI qui joue la version téléphone
