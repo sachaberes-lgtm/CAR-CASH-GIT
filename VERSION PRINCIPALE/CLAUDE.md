@@ -376,7 +376,67 @@ QUE pour les NUAGES (`c.camp&&c.id==='nuages'`) — la ville garde zéro nuage (
   · Bancs : scratchpad `v6/conduite/diag/` (diagnostic, sim6.js), `v6/conduite/moi/sim-v6.js` (le modèle retenu + pilote 150 ms),
     `v6/piste/base/` (banc.js étendu, variantes.js, resume.js). `dbgState()` expose psi/yawR/slipB/glisse/drift/roulisDeg/vH.
 
-## LA CHARTE v4 — CARBONE · OR · NÉON (2026-09-26) — TOUTE L'INTERFACE HORS COURSE
+## LA CHARTE v5 — LAQUE · OR · NÉON (2026-09-28) — la v4, un cran plus haut, portrait ET paysage
+Sacha : « ça manque de soin — tous les affichages beaucoup plus soignés, beaucoup plus cohérents entre eux, beaucoup plus
+modernes ; le futur des jeux iPhone, sur les écrans de démo de l'App Store ; reprends la structure globale mais prends des
+libertés ». La GRAMMAIRE de la v4 reste la loi (penché = je touche · droit à coins coupés = je lis · rond = une jauge · l'or = UN
+lingot · le néon = le sens) ; la v5 en change la MATIÈRE, la MAIN et le PAYSAGE. Méthode : 34 écrans capturés en portrait ET en
+paysage, deux critiques DA indépendantes (agents), QA 62 points, tout mesuré avant commit.
+- **OÙ** : toujours `<style id="charte4">` (le nom est resté, c'est la même feuille) — le cœur (jetons → carrière) a été RÉÉCRIT
+  en place ; en fin de bloc : 12 PAYSAGE · 13 SIGNATURES · 14 HUD v5 · 15 vignette de l'objectif.
+- **LA LAQUE** (`--laque` touches, `--laqueP` panneaux) remplace le sergé de carbone : fond lisse noir-violet, REFLET à arêtes
+  franches (une bande oblique, pas un flou — c'est du pixel), LÈVRE de lumière en haut (`--levre`). Compatibilité : `--carbone`
+  pointe sur `--laque`, `--tresse` n'est plus qu'un reflet vertical — toute règle ancienne qui les peignait suit.
+- **LE FILET** (`--fil`, 1 px) fait le tour de chaque plaque, COINS COUPÉS COMPRIS : deux traits en dégradé posés dans les coupes
+  (`linear-gradient(to bottom right|to top left, …) 0 0|100% 100%/var(--c) var(--c)`) + `inset 0 0 0 1px` pour les côtés droits.
+  `--c` = la coupe de l'élément (le filet s'y ajuste). `--plaqueH`/`--filetH` (HUD) suivent la même recette.
+- **LA TOUCHE** : UN anneau d'encre de 1 px (`--anneau`), l'épaisseur dessous (`--tranche`, 5 px), la bande de livrée de 3 px à
+  gauche (`--nc`) dont la lueur déborde sur la face. Fini les trois contours. Le LINGOT : or poli à rebord lumineux en bas, lèvre de
+  2 px, plus de double filet gravé.
+- **LA MATRICE** (`--matrice`, `--fondEcran`) : le fond des écrans est une trame de points d'afficheur + deux halos (magenta en haut à
+  gauche, cyan en bas à droite) — la police pixel y devient une LED. La PAUSE laisse voir la course figée derrière un voile plein.
+- **LA LIVRÉE** (`--livree`, magenta · cyan · or) = la SIGNATURE : sous le logo, sous CHAQUE titre d'écran (`.mHead::after`,
+  `.tpH:first-child::after`), sur le bord du volet `#wipe` ; elle se DESSINE à l'entrée (`k5Livree`, `transform` seul).
+- **CORPS** : gamme courte 8 · 10 · 12 · 14 · 16 · 20 · 24 · 28 · 40 (`--f0…--f8`, `--f1`=`--f2`=10) ; titres d'écran 24 px, mort 20 px.
+- **SOUS LE POUCE** : le contenu des sous-écrans courts (MODES, CARRIÈRE) tombe vers la sortie (`margin-top:auto` sur le 1er bloc
+  après le titre) ; à la pause, les RÉGLAGES descendent vers REPRENDRE, LA PARTIE reste en haut (verdict : QUITTER jamais collé au
+  lingot) ; le dock du RETOUR est quasi opaque.
+- **ÉTATS LISIBLES** : interrupteur OFF = patin SOMBRE (le patin lavande se lisait « allumé ») ; icônes des réglages toutes cyan dans
+  leur PUITS (`.mLigne::before`) ; badges qu'on lit (NOUVEAU RANG, −50 %, OFFRE) redressés ; prix du JEU en vert billet (`--cash`),
+  prix en € en or (`.gT em.eur`, posé par garageFamilles).
+- **ÉCRAN DE MORT** : titre 20 px ; le TICKET = `.mCashL` + `.mStats` fondus en UNE plaque (filets entre colonnes) ; la carte MOTEUR
+  prend la couleur de son palier ÉCLAIRCIE (la rouille faisait une carte boueuse) ; « PLUS QUE n PIÈCES » en ambre ; l'objectif
+  porte sa VIGNETTE (`objFig` : photo / nuancier / ruban / aile).
+- **CARRIÈRE ILLUSTRÉE** : chaque monde a son bandeau de ciel en CSS (`.carrBiome[data-b]::before` : l'aube et ses nuages · la
+  ville la nuit · l'espace et sa planète) ; chaque niveau son HORIZON (`--sky`, posé par `carrCiel(N)` : l'heure du jour via
+  `CIEL_H`, ou l'astre) ; icônes `nuage` et `immeuble` ajoutées à `PXI_G`.
+- **LE PAYSAGE** (section 12, `@media (orientation:landscape) and (max-height:540px)` — c'est ce que l'ordi montre) : ACCUEIL = logo
+  en haut à gauche, ⚙ en haut à droite, trois portes en bas à gauche, JOUER sous le pouce droit · MORT = verdict + héros à gauche,
+  ticket/objectif/portes/REJOUER à droite · PAUSE = deux colonnes (REPRENDRE en bas à gauche, réglages à droite) · RÉGLAGES = deux
+  colonnes · MODES = trois cartes côte à côte · CARRIÈRE = mondes côte à côte, niveaux sur 5 colonnes · BOUTIQUE = vitrine en
+  deux colonnes, grille de 4 · GARAGE = fiche en haut à gauche, commandes en COLONNE à droite, et l'OBJECTIF DÉCENTRÉ en largeur
+  (`garageDecale(k,kx)`, `GAR_DECX` .2, fondu `garageRender._h`) pour que la caisse s'installe dans la moitié libre · FENÊTRE centrée,
+  boutons côte à côte. HUD : nitro et FLOW plafonnées à `min(50vw,440px)`.
+- **HUD v5** (section 14) : plaques (pouvoirs, astuce/défi, auto-école, objectif de campagne) = le panneau des menus en petit ; le
+  VOLANT (invitation et stick) en cadran SEGMENTÉ, frère du disque NITRO (`repeating-conic-gradient` masqué en anneau), patin de
+  laque ; pendant une grande annonce ou un verdict (`slamOn`/`verdOn`) les pouvoirs s'estompent à .22 (DOUBLE MONSTRE les traversait).
+- **SECONDE CRITIQUE (section 17)** : UNE façon de dire « sélectionné » (liseré + fond teinté — la famille LÉGENDES pleine d'or
+  faisait un 2e lingot) ; `.mmP` redressée ; l'argent du jeu VERT partout (prime de défi `.mbPrime`, « +$ » du verdict `.vM`), le € du
+  garage en or (`.gEur`, « TEST » en pastille `.gTest` — elle part avec TEST_CAISSES) ; pastilles des héros en liseré ; patin de volume
+  cyan ; caisse du garage recentrée (`GAR_DECY` .075 au lieu de .13) ; PAUSE : voile plus léger + RÉSUMÉ de la partie `.tpResume`
+  (aura `#tpAu` lue sur `#avVal`, moteur, niveau — rempli par `panSync`) ; HUD : VOILE D'ENCRE en haut (`#hud::before`, z-index 0 :
+  à 1 il passait DEVANT la jauge nitro), pouvoirs effacés sous slam/verdict/carte moteur, barre du record bornée, flammes NITRO MAX
+  fondues par le haut ; écran titre au corps du logo de l'accueil, invite dans le tiers bas ; PAYSAGE : couloir des annonces à 40 %
+  (il tombait sur la caisse), pouvoirs en haut à droite, dock d'un bord à l'autre, vitrine de boutique qui tient, mort avec le défi
+  au-dessus du ticket.
+- **BUG CORRIGÉ (hérité v4)** : l'écran découvert par le VOLET s'éteignait puis se rallumait (retirer `voletSort` relançait
+  `k4Racine` : opacité 1 → .65 → 1) — `.revu` posée au lever du volet (ecranWipe), retirée par mGo (`SENS`).
+- ⚠ **BANCS** : ne JAMAIS arracher `#splash` (`remove()`) — `hide()` tourne quand même plus tard et redispatche `cc:revele` au milieu
+  du test (écrans capturés à moitié entrés). Attendre que `#splash` disparaisse seul. Bancs (scratchpad de la session 312bec4e, `ui/`) :
+  `menus.js <prefixe> [port] [w] [h]` (env `ONLY`, `MORT=1`), `tour.js` (34 écrans, `?colonne=0`), `qa.js` (62 points), `dbg1.js`
+  (trace d'entrée d'écran), `pc.js` (édition PC), `rep.py`/`ins.py` (édition binaire CRLF), `jscheck.py`. Serveur `srv.js <racine> 8201`.
+
+## LA CHARTE v4 — CARBONE · OR · NÉON (2026-09-26) — TOUTE L'INTERFACE HORS COURSE (⚠ sa MATIÈRE est remplacée par la v5 ci-dessus ; sa grammaire reste la loi)
 Verdicts successifs de Sacha : v1 plate (« moche et mal fait ») · v2 borne d'arcade 1985 (« pas très moderne ») · v3 bonbon violet
 brillant (« trop générique, pas de direction artistique »). Demande : « top 1 de l'App Store », refonte intégrale. ⚠ Les sections plus
 bas qui décrivent la CHARTE v2, la CHARTE PIXEL UNIFIÉE, la charte v3 et les règles « INTERFACE » de la PASSE DE FINITION sont

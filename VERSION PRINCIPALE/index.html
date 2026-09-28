@@ -2380,7 +2380,7 @@ body:has(#tPanel.open) #tGear,body:has(#tPanel.open) #touchCtl{visibility:hidden
 #tPanel .tp[data-a="reset"],#tPanel .tp[data-a="quit"]{margin:0}
 #tpIn .tpPanel{display:block}
 /* les RÉGLAGES de la pause descendent vers REPRENDRE (ce qu'on touche, sous le pouce) ; LA PARTIE reste en haut, loin du lingot */
-#tpIn>.tpH:nth-child(4){margin-top:auto}
+#tpIn>.tpResume,#tpIn>.tpHR{margin-top:auto}
 .tpRow{display:flex;gap:16px}
 .tpRow .tp{flex:1;min-width:0;font-size:var(--f1)!important;padding:0 10px!important}
 /* le ⏸ DE COURSE : la même touche que l'engrenage de l'accueil (il ouvre cette pause — il en parle la langue) */
@@ -3166,13 +3166,14 @@ html body.touch #airPie.danger{animation:k6PieDanger .12s steps(2) infinite}
   html .carrNiv{min-height:74px}
   /* LA PAUSE : deux colonnes — le titre, la partie et REPRENDRE à gauche (le lingot en bas, sous le pouce) ; les réglages à droite */
   html #tpIn{max-width:820px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:28px;row-gap:12px;
-    grid-template-rows:auto auto auto 1fr;padding:calc(var(--sT) + 16px) calc(var(--sR) + 24px) calc(var(--sB) + 16px) calc(var(--sL) + 24px)}
+    grid-template-rows:auto auto auto auto 1fr;padding:calc(var(--sT) + 16px) calc(var(--sR) + 24px) calc(var(--sB) + 16px) calc(var(--sL) + 24px)}
   html #tpIn>.tpH:nth-child(1){grid-column:1;grid-row:1}
-  html #tpIn>.tpH:nth-child(2){grid-column:1;grid-row:2;margin-top:6px}
+  html #tpIn>.tpH:nth-child(2){grid-column:1;grid-row:2;margin:4px 0 0}
   html #tpIn>.tpRow{grid-column:1;grid-row:3}
-  html #tpIn>.tpH:nth-child(4){grid-column:2;grid-row:1;align-self:end;margin:0}
-  html #tpIn>.tpPanel{grid-column:2;grid-row:2/span 3;align-self:start}
-  html #tpIn>.tp.go{grid-column:1;grid-row:4;align-self:end;position:relative;bottom:auto;margin:0 0 6px;min-height:64px}
+  html #tpIn>.tpResume{grid-column:1;grid-row:4;margin:6px 0 0}
+  html #tpIn>.tpHR{grid-column:2;grid-row:2;margin:4px 0 0}
+  html #tpIn>.tpPanel{grid-column:2;grid-row:3/span 3;align-self:start}
+  html #tpIn>.tp.go{grid-column:1;grid-row:5;align-self:end;position:relative;bottom:auto;margin:0 0 6px;min-height:64px}
   html #tpIn .tp.ligne{min-height:52px}
   /* LE GARAGE : la fiche en haut à gauche, les commandes en COLONNE à droite (onglets, familles, vignettes, barre d'action) ;
      l'objectif est décentré en JS (garageDecale, GAR_DECX) : la caisse glisse dans la moitié gauche, entre les deux */
@@ -3193,7 +3194,7 @@ html body.touch #airPie.danger{animation:k6PieDanger .12s steps(2) infinite}
   html #gAct #gClose,html #gBuy,html #gEquip{min-height:54px}
   html #gAct #gClose{width:54px;min-width:54px}
   html #garage .gNav{top:calc(50% - 30px)}
-  html #gNext{right:calc(min(50%,430px) + 10px)}
+  html #gNext{right:calc(min(50%,430px) + 4px)}
   html body.inGarage #toast{top:calc(var(--sT) + 14px);bottom:auto;left:auto;right:calc(var(--sR) + 16px);transform:translate(0,-14px)}
   html body.inGarage #toast.on{transform:none}
   /* la FENÊTRE : une feuille centrée, moins haute */
@@ -3308,6 +3309,86 @@ html body.touch.coOn #pwrChip{top:calc(var(--hudH) + 236px)}
 .obSw.chrome{background:linear-gradient(160deg,#fff 0%,#b9c3d2 30%,#f4f7fb 48%,#7d8796 70%,#e9eef5 100%)!important}
 .obSw.or{background:linear-gradient(160deg,#fff4c2 0%,#ffc93a 35%,#fff0a8 50%,#b87400 78%,#ffd65a 100%)!important}
 .obRub{display:block;width:70px;height:10px;transform:skewX(-20deg);filter:drop-shadow(0 0 6px currentColor)}
+/* ---- 17. LA SECONDE CRITIQUE (2026-09-28) — un DA indépendant a relu les 66 captures (portrait + paysage) ; ce qui suit applique ce
+   qui ne contredit aucun verdict de Sacha. Chaque règle dit le défaut qu'elle corrige. */
+/* (a) UNE SEULE FAÇON DE DIRE « SÉLECTIONNÉ » : liseré de sa couleur + fond teinté, jamais un aplat — la famille LÉGENDES, pleine d'or,
+   faisait un DEUXIÈME lingot à côté d'ÉQUIPER */
+html .gR.on{color:var(--rc);background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 22%,#120e26),color-mix(in srgb,var(--rc) 10%,#0c0919));
+  box-shadow:inset 0 0 0 1px var(--rc),inset 0 1px 0 rgba(255,255,255,.14),0 0 0 1px var(--anneau),0 4px 0 1px var(--anneau),0 0 16px color-mix(in srgb,var(--rc) 40%,transparent)}
+html .gR.on::before{background:var(--rc);box-shadow:0 0 8px var(--rc)}
+html .gR.on b{color:var(--tx)}
+/* (b) CE QU'ON LIT EST DROIT : le « 0 / 10 » des mondes de la carrière (une pastille, pas une touche) */
+html .mmP{transform:none;clip-path:polygon(4px 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,0 100%,0 4px)}
+/* (c) L'ARGENT DU JEU EST VERT, PARTOUT : la prime d'un défi réussi (une plaque d'or — « jamais un fond de plaque ») et ce que rapporte
+   une pose (« +$ 45 » sous le verdict) passent au vert billet ; le prix en € du garage passe à l'or */
+html body #misBan .mbPrime{color:#03240e;background:linear-gradient(180deg,#d6ffe0 0 2px,#7df29a 2px 60%,#35c05c 60%);box-shadow:inset 0 0 0 2px #1c0430,inset 0 -4px 0 #1d7a3a}
+html #verdHud .vM{color:var(--cash);text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,2px 2px 0 #1c0430,-2px 2px 0 #1c0430,2px -2px 0 #1c0430,
+  -2px -2px 0 #1c0430,0 5px 0 #1c0430,0 0 14px rgba(125,255,155,.5)}
+#gDesc .gEur{font-weight:400;color:var(--au1)}
+#gDesc .gTest{font-style:normal;padding:3px 6px 2px;margin-right:4px;color:var(--tx3);box-shadow:inset 0 0 0 1px var(--kl2)}
+/* (d) LES PASTILLES DES HÉROS parlent UNE langue : liseré + texte de la couleur de leur carte (NOUVEAU RANG rose plein, RECORD crème :
+   deux langages) */
+html .hCard em{color:var(--hc);background:color-mix(in srgb,var(--hc) 14%,#0c0919);box-shadow:inset 0 0 0 1px var(--hc),0 0 14px color-mix(in srgb,var(--hc) 30%,transparent);text-shadow:none}
+/* (e) LE CURSEUR de volume : un patin cyan, pas un rectangle gris de navigateur */
+.volS::-webkit-slider-thumb{background:linear-gradient(180deg,#e9fdff 0%,#7ff0ff 50%,#00b6d2 100%);box-shadow:0 0 0 1px var(--anneau),0 3px 0 1px var(--anneau),0 0 14px rgba(0,234,255,.55)}
+.volS::-moz-range-thumb{background:linear-gradient(180deg,#e9fdff 0%,#7ff0ff 50%,#00b6d2 100%)}
+/* (f) MODES : l'icône d'un mode éteint reste cyan (comme partout), verte quand il est allumé ; les titres sur deux lignes respirent */
+html .mMode.off .mmT .pxi{color:var(--neoC);filter:none}
+html .mmT>span:first-child{min-width:0;line-height:1.4}
+/* (g) CARRIÈRE : « FIN D'APRÈS-MIDI » tient sur une ligne (la chasse de la touche le cassait au tiret) */
+html .carrNiv span{letter-spacing:0}
+/* (h) LA PAUSE : le voile laisse vraiment voir la course figée ; au milieu, le RÉSUMÉ de la partie (aura, moteur, niveau) — le ticket
+   de l'écran de mort, en petit : on sait ce qu'on quitte avant de toucher QUITTER */
+#tPanel{background:radial-gradient(95% 42% at 8% -4%,rgba(255,62,200,.2),transparent 70%),var(--matrice),linear-gradient(180deg,rgba(9,6,22,.82),rgba(7,5,15,.6) 45%,rgba(7,5,15,.9))}
+.tpResume{--c:12px;display:grid;grid-template-columns:repeat(3,1fr);width:100%;padding:0 0 2px;
+  background:linear-gradient(to bottom right,transparent 50%,var(--fil) 50% calc(50% + 1.3px),transparent calc(50% + 1.3px)) 0 0/var(--c) var(--c) no-repeat,
+    linear-gradient(to top left,transparent 50%,var(--fil) 50% calc(50% + 1.3px),transparent calc(50% + 1.3px)) 100% 100%/var(--c) var(--c) no-repeat,var(--laqueP);
+  clip-path:polygon(var(--c) 0,100% 0,100% calc(100% - var(--c)),calc(100% - var(--c)) 100%,0 100%,0 var(--c));box-shadow:inset 0 0 0 1px var(--fil),var(--levre)}
+.tpResume .mStat{background:none;clip-path:none;box-shadow:none;position:relative;min-height:62px}
+.tpResume .mStat+.mStat::before{content:'';position:absolute;left:0;top:12px;bottom:12px;width:1px;background:var(--fil)}
+.tpResume .mStat:first-child b{color:var(--aura)}
+body:not(.play) .tpResume{display:none}
+/* (i) LE HUD SE LIT SUR CIEL CLAIR : un voile d'encre descend du haut de l'écran derrière le tableau de bord (comme la plupart des
+   jeux de course) — il s'efface à 210 px, la route et le ciel du milieu restent intacts */
+body.touch.play #hud::before{content:'';position:fixed;left:0;right:0;top:0;height:calc(var(--hudH) + 214px);z-index:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(10,6,26,.46) 0%,rgba(10,6,26,.24) 52%,rgba(10,6,26,0) 100%)}
+body.touch.play.dead #hud::before,body.touch.play.coOn #hud::before{opacity:0}
+/* (j) UNE VOIX AU CENTRE : pendant une grande annonce, un verdict ou la carte MOTEUR, les pouvoirs s'effacent vraiment (ils se
+   chevauchaient avec « 3 CYLINDRES ») ; la barre du RECORD ne bute plus sur le chrono de vol ; les flammes de la jauge NITRO MAX se
+   fondent par le haut au lieu de finir en rectangle */
+html body.touch.slamOn #pwrChip,html body.touch.verdOn #pwrChip,html body.touch.ebOn #pwrChip{opacity:.08;transform:translateX(16px)}
+html body.touch #pwrChip{transition:opacity var(--t-fast) var(--ease),transform var(--t-fast) var(--ease)}
+html body.touch #avRec{max-width:calc(100vw - var(--hudG) - var(--hudD) - 100px)}
+html body.touch #avRec i{flex:0 1 110px;min-width:24px}
+#nitroFeu{-webkit-mask:linear-gradient(0deg,#000 38%,transparent 100%);mask:linear-gradient(0deg,#000 38%,transparent 100%)}
+/* (k) L'ÉCRAN TITRE : le logo prend sa place (il flottait, perdu dans le noir) ; l'invite descend dans le tiers bas */
+html #spTitle{font-size:clamp(38px,11.2vw,56px)}   /* la taille du logo de l'accueil : le même logo, du titre au menu */
+html #spNote{position:fixed;bottom:calc(var(--sB) + 84px)}
+/* (l) LE PAYSAGE, suite */
+@media (orientation:landscape) and (max-height:540px){
+  /* le couloir des annonces remonte au tiers (il tombait à 338 px sur 390 : « NIVEAU 1 » sur la caisse, le verdict coupé en bas) */
+  html body.touch,html body.touch:has(#campChip.on){--laneA:40%}
+  /* les pouvoirs s'installent en haut à droite, à gauche du chrono de vol (ils descendaient sur le disque NITRO) */
+  html body.touch #pwrChip,html body.touch #pwrChip.sousPie,html body.touch:has(#campChip.on) #pwrChip,html body.touch.coOn #pwrChip{top:calc(var(--hudH) + 64px);right:calc(var(--hudD) + 92px)}
+  /* l'invitation du volant descend sous le pouce */
+  html body.touch.play #tSteer:not(.used)::after{bottom:calc(var(--sB) + 34px)}
+  /* le dock de sortie va d'un bord à l'autre, et RETOUR tombe toujours au même endroit */
+  html .mDock{margin-left:-24px;margin-right:-24px;padding:22px 24px calc(var(--sB) + 14px);background:none}
+  html .mDock::before{content:'';position:absolute;top:0;bottom:0;left:-100vw;right:-100vw;z-index:-1;pointer-events:none;
+    background:linear-gradient(180deg,rgba(7,5,15,0),rgba(7,5,15,.97) 16px,var(--k0))}
+  html #carr .mDock{margin-left:-24px;margin-right:-24px}
+  /* la vitrine de la boutique tient à l'écran, prix compris */
+  html .shUneCadre{padding:12px 16px 14px;gap:8px 18px}
+  html .shUneCadre .shPhoto{aspect-ratio:auto;height:150px}
+  html .shUneCadre .shPhoto img{width:auto;height:150px}
+  html .shUneTx span{font-size:13px}
+  /* la mort : le moteur et l'aura restent les héros — le défi passe au-dessus du ticket, les chiffres des héros grandissent */
+  html #mDead.on{grid-template-areas:"over obj" "cause obj" "hero cash" "hero stats" "hero esp" "hero row" "hero rej";grid-template-rows:auto auto auto auto 1fr auto auto}
+  html #mDead .mObj{margin:0 0 10px}
+  html #mDead .mCashL{margin-top:0}
+  html #mDead .hAura>b,html #mDead .hMotN{font-size:var(--f7)}
+}
+@media (prefers-reduced-motion:reduce){html body.touch #pwrChip{transition:none}}
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
@@ -3621,7 +3702,8 @@ html body.touch.coOn #pwrChip{top:calc(var(--hudH) + 236px)}
     <div class="tpH" data-g="run">LA PARTIE</div>
     <div class="tpRow"><div class="tp" data-a="reset" data-g="run"><i class="pxi pxi-rejouer" aria-hidden="true"></i> RECOMMENCER</div>
     <div class="tp rouge" data-a="quit" data-g="run"><i class="pxi pxi-quitter" aria-hidden="true"></i> QUITTER</div></div>
-    <div class="tpH">REGLAGES</div>
+    <div class="tpResume" data-g="run" aria-label="La partie en cours"><div class="mStat"><b id="tpAu">0</b><span data-fr="AURA">AURA</span></div><div class="mStat"><b id="tpMo">1</b><span data-fr="MOTEUR">MOTEUR</span></div><div class="mStat"><b id="tpNv">1</b><span data-fr="NIVEAU">NIVEAU</span></div></div><!-- (charte v5) ce que la partie vaut, à l'instant où on la suspend -->
+    <div class="tpH tpHR">REGLAGES</div>
     <div class="tpPanel">
     <div class="tp ligne" data-a="snd"><i class="pxi pxi-son" aria-hidden="true"></i> SON</div>
     <div class="tp ligne" data-a="mus"><i class="pxi pxi-musique" aria-hidden="true"></i> MUSIQUE</div>
@@ -26078,7 +26160,7 @@ function garageShow(i){
   // ressert enfin, il n'était plus affiché nulle part depuis le retrait de la carte de déblocage.
   const ouverte=carUnlocked(garageI),testOuv=TEST_CAISSES&&!carUnlockedVrai(garageI); // testOuv : ouverte pour le TEST seulement
   const u9=CAR_UNLOCK[garageI],dfi=!ouverte&&u9&&u9.k==='carnet';
-  if(testOuv)gDescEl.innerHTML='TEST — '+(u9&&u9.k==='carnet'?defisHtml(u9.v):pxi('verrou')+' '+(u9&&u9.k==='premium'?TR('BOUTIQUE')+' — '+eurTxt(u9.eur):String(carUnlockText(garageI)).replace(/</g,'&lt;'))); // la VRAIE condition reste écrite
+  if(testOuv)gDescEl.innerHTML='<i class="gTest">TEST</i> '+(u9&&u9.k==='carnet'?defisHtml(u9.v):pxi('verrou')+' '+(u9&&u9.k==='premium'?TR('BOUTIQUE')+' — <b class="gEur">'+eurTxt(u9.eur)+'</b>':String(carUnlockText(garageI)).replace(/</g,'&lt;'))); // la VRAIE condition reste écrite (charte v5 : le prix en € en or, « TEST » en pastille discrète — elle disparaît avec TEST_CAISSES)
   else if(ouverte)gDescEl.textContent=TR(c.desc||'');else if(dfi)gDescEl.innerHTML=defisHtml(u9.v);else gDescEl.innerHTML=pxi('verrou')+' '+String(carUnlockText(garageI)).replace(/</g,'&lt;');
   $('gCard').classList.toggle('defis',!!dfi);
   // ÉQUIPER : verrouillé tant que la caisse n'est pas débloquée ; marqué quand c'est déjà la tienne
@@ -26510,7 +26592,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
     camera.up.set(0,1,0);camera.position.copy(GAR._v);
     // (2026-09-26, vague 2) le REGARD aussi glisse de la visée de l'orbite à celle de la poursuite (il sautait d'un coup à la 1re image),
     // et le décentrement de l'objectif (voir garageDecale) revient à zéro sur le même geste
-    {const v9=(garageRender._v||0)*POR,yv=ay+.75-POR*.40-v9*1.35;camera.lookAt(0,yv+(ay+.85-yv)*e9,(cz+3.2)*e9);garageDecale(v9*.13*(1-e9),(garageRender._h||0)*GAR_DECX*(1-e9));}
+    {const v9=(garageRender._v||0)*POR,yv=ay+.75-POR*.40-v9*1.35;camera.lookAt(0,yv+(ay+.85-yv)*e9,(cz+3.2)*e9);garageDecale(v9*GAR_DECY*(1-e9),(garageRender._h||0)*GAR_DECX*(1-e9));}
     const fovL=(56+u*10)*FOV_K;                            // le champ s'ouvre : c'est ça, la vitesse
     if(Math.abs(camera.fov-fovL)>.01){camera.fov=fovL;camera.updateProjectionMatrix();}
     if(!G.voile&&u>.80){G.voile=true;const f=$('gFade');if(f)f.classList.add('on');}
@@ -26559,9 +26641,10 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
      d'action) : la caisse centrée passait dessous. Le même décentrement d'objectif, en largeur cette fois — l'image glisse vers la
      gauche, la caisse s'installe dans la moitié libre. Fondu comme l'autre ; zéro en portrait, à la séquence de départ, au lâcher. */
   garageRender._h=(garageRender._h||0)+(((gEl&&!gEl.classList.contains('quiet')&&!gEl.classList.contains('launching')&&VP.w>VP.h*1.25)?1:0)-(garageRender._h||0))*.12;
-  garageDecale(vG*.13,garageRender._h*GAR_DECX);
+  garageDecale(vG*GAR_DECY,garageRender._h*GAR_DECX);
 }
-const GAR_DECX=.2; // part de la LARGEUR d'image dont l'objectif se décale en paysage (la caisse part vers la gauche, hors de la colonne)
+const GAR_DECY=.075; // (charte v5, 2e critique) .13 collait la caisse sous son nom et laissait 200 px de sol vide dessous : elle se pose au milieu du vide entre la fiche et les onglets
+const GAR_DECX=.23; // part de la LARGEUR d'image dont l'objectif se décale en paysage (la caisse part vers la gauche, hors de la colonne)
 function garageDecale(k,kx){ // k = part de la hauteur d'image dont l'objectif se décale vers le bas (la scène monte) ; 0 = objectif centré ; kx = idem en largeur (paysage)
   kx=kx||0;
   if(Math.abs(k-(GAR.dec||0))<1e-4&&Math.abs(kx-(GAR.decX||0))<1e-4)return;
@@ -28901,7 +28984,9 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   // serait deux vérités qui divergent au premier changement.
   const clic=function(el){ if(el)el.click(); };
   function panSync(){ if(!pan)return;
-    const run=(started&&!gameOver),el=pan.querySelectorAll('.tp,.tpH');
+    const run=(started&&!gameOver),el=pan.querySelectorAll('.tp,.tpH,.tpResume');
+    if(run){const s9=function(id,v){const e=document.getElementById(id);if(e)e.textContent=v;},av9=document.getElementById('avVal'); // (charte v5) la PAUSE dit où en est la partie
+      try{s9('tpAu',av9&&av9.textContent.trim()?av9.textContent:'0');s9('tpMo',(engTier|0)+1);s9('tpNv',LVL.cur&&LVL.cur.carr?LVL.n:runStats.zones+1);}catch(e){}}
     for(let i=0;i<el.length;i++){ const e=el[i],a=e.getAttribute('data-a'),g=e.getAttribute('data-g');
       if(g)e.style.display=((g==='run')===run)?'':'none'; // « LA PARTIE » n'existe qu'en jeu
       if(a==='close')e.innerHTML=run?tpLbl('lecture','REPRENDRE'):tpLbl('croix','FERMER');
