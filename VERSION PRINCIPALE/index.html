@@ -28758,7 +28758,12 @@ if(BANC_ON)(function(){
     for(let i=0;i<P.length;i++){etat(col+' — '+P[i][0]+' ('+(i+1)+'/'+P.length+')'); // ENCADRÉ : témoin juste avant ET juste après — la dérive (chauffe, thermique) s'annule
       const a=await mesure(16,4);const off=P[i][1]();const m=await mesure(20,P[i][2]);off();const z=await mesure(16,P[i][2]?30:4);
       const d=m.t-(a.t+z.t)/2;C[P[i][0]]=(d>=0?'+':'')+d.toFixed(1);}
-    BANC_FIGE=false;};
+    BANC_FIGE=false;garde(false);};
+  /* (2026-09-28) LE TABLEAU SURVIT : Sacha a quitté la page avant d'envoyer la capture — tout était perdu, et le banc repartait de zéro.
+     Chaque vue terminée est gardée sur le téléphone (clé à part `ccBancDernier`, outil de mesure : hors de la sauvegarde du jeu) ;
+     rouvrir `?banc=1` montre le DERNIER tableau (même partiel) avec RELANCER et COPIER. `&refaire=1` relance directement. */
+  const MEMO='ccBancDernier';
+  const garde=fin=>{try{localStorage.setItem(MEMO,JSON.stringify({t:rendu(),d:new Date().toLocaleString('fr-FR'),fin:!!fin,err:R.err||null}));}catch(e){}};
   const vivant=async ()=>{ if(gameOver){const b=document.querySelector('#mDead.on [data-m="replay"]');if(b)b.click();for(let i=0;i<60&&(!started||gameOver);i++)await Z(250);await Z(2500);}
     dbgAuto(true,0);};
   const image=()=>new Promise(r=>requestAnimationFrame(()=>r()));
@@ -28770,7 +28775,18 @@ if(BANC_ON)(function(){
     const w=23,cw=11;t+=''.padEnd(w)+COLS.map(c=>c.padStart(cw)).join('')+'\n';
     for(const l of LIG)t+=l.padEnd(w)+COLS.map(c=>String(R[c][l]==null?'':R[c][l]).padStart(cw)).join('')+'\n';
     return t;};
+  const bouton=(txt,fn)=>{const k=document.createElement('button');k.textContent=txt;
+    k.style.cssText='font:700 13px/1 var(--sans);min-height:44px;padding:0 16px;margin:8px 8px 0 0;border:0;background:var(--or);color:var(--k1);border-radius:0';
+    k.onclick=function(e){e.stopPropagation();fn(k);};box.appendChild(k);return k;};
+  const copier=(txt,k)=>{const non=()=>{k.textContent='FAIS UNE CAPTURE';};try{navigator.clipboard.writeText(txt).then(()=>{k.textContent='COPIÉ !';},non);}catch(e){non();}};
   (async ()=>{
+    let ancien=null;try{ancien=JSON.parse(localStorage.getItem(MEMO)||'null');}catch(e){}
+    if(ancien&&ancien.t&&!/[?&]refaire=1/.test(location.search)){ // le dernier tableau d'abord : on ne relance que sur demande
+      const t0=ancien.t+(ancien.err?'\nERREUR : '+ancien.err:'');
+      box.textContent='DERNIER BANC — '+ancien.d+(ancien.fin?'':' — INCOMPLET (page quittée avant la fin)')+'\n\n'+t0;
+      bouton('COPIER',k=>copier(t0,k));
+      await new Promise(r=>bouton('RELANCER LE BANC',()=>r()));
+      box.textContent='BANC : ne touche à rien (~3 min)…';}
     for(let i=0;i<200&&!window.__gameReady;i++)await Z(100);await Z(1500);
     try{const sp=document.getElementById('splash');if(sp){sp.click();await Z(900);sp.remove();}}catch(e){}
     try{document.querySelector('#mHome [data-m=play]').click();}catch(e){}await Z(2500);
@@ -28780,8 +28796,9 @@ if(BANC_ON)(function(){
     try{await Z(3500);await vue('NUAGES sol');await vol();await vue('NUAGES vol');
       await vivant();dbgSaut();dbgAuto(true,0);await Z(4000);await vue('VILLE sol');await vol();await vue('VILLE vol');}
     catch(e){R.err=String(e&&e.message);}
-    BANC_FIGE=true;const txt=rendu()+(R.err?'\nERREUR : '+R.err:'')+'\n\nTOUCHE ICI POUR COPIER — puis envoie la capture ou colle le texte';
-    box.textContent=txt;box.onclick=function(){try{navigator.clipboard.writeText(txt);box.style.outline='2px solid var(--or)';}catch(e){}};
+    BANC_FIGE=true;garde(true);const txt=rendu()+(R.err?'\nERREUR : '+R.err:'');
+    box.textContent=txt+'\nFINI — fais une capture d\'écran, ou COPIER puis colle le texte. (Gardé : rouvrir ce lien le remontre.)\n';
+    bouton('COPIER',k=>copier(txt,k));
   })();
 })();
 window.__gameReady=true; // la boucle part : le chien de garde du mouchard se tait
