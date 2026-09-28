@@ -1,5 +1,15 @@
 # CASH CAR — guide projet pour Claude Code
 
+## L'ACCUEIL EN HAUTE DÉFINITION — VHD (2026-09-28, nuit) — « pousse les graphismes au max, juste pour l'écran d'accueil »
+- `VHD` (à côté de `qlPose`) : tant que la vitrine tourne (`vhdBascule` dans loop : ni garage, ni course, ni étal), la 3D est calculée à
+  la densité PLEINE de l'écran — sur-échantillonnée ×1,5 sur l'ordi, budget 8,3 M pixels (3,2 M sur téléphone, sans sur-échantillonnage)
+  —, ombre en carte 4096 (2048 téléphone), anisotropie max de la route et de sa peinture (`ASPH_TEX`, `LIGNE_TEX`), échelle QL au cran 0
+  et EN VEILLE. `qlPose` lit `VHD.on` (résolution + carte d'ombre) : UN seul chemin. Filet : p75 > 22 ms (hors 30 Hz) → ×0,8 toutes les
+  1,5 s, jamais sous `DPR_CAP`. À la sortie, `qlPose(VHD.k0)` rend l'échelle telle qu'elle était. `?hd=0` coupe ; `dbgVHD()` décrit.
+- ⚠ MESURÉ sur l'ordi (colonne 844 × 390 zoomée ×2,27 sur 1 920 px) : sans VHD la 3D de l'accueil faisait 0,33 M pixels (DPR 1 en
+  RAPIDE, étiré ×2,27) ; avec, 3,8 M (DPR 3,4). En COURSE rien ne change : DPR 1 / ombre 1024 / aniso 4, comme avant — c'est aussi
+  pourquoi la course paraît floue sur PC en RAPIDE (NETTE = 1,5).
+
 ## MISSIONS · SORTIE MENU · CIEL DE JOUR À L'ACCUEIL (2026-09-28, soir)
 Sacha, en rafale : « il manque un bouton pour revenir au menu » (écran de mort) · « dans le menu il faut aussi un bouton mission » ·
 « l'écran de mission doit être parfait, avec une jauge de progression et un texte expliquant la récompense » · « les couleurs de
