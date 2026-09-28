@@ -1,5 +1,30 @@
 # CASH CAR — guide projet pour Claude Code
 
+## MISSIONS · SORTIE MENU · CIEL DE JOUR À L'ACCUEIL (2026-09-28, soir)
+Sacha, en rafale : « il manque un bouton pour revenir au menu » (écran de mort) · « dans le menu il faut aussi un bouton mission » ·
+« l'écran de mission doit être parfait, avec une jauge de progression et un texte expliquant la récompense » · « les couleurs de
+l'écran de début sont bof, je préfère le ciel en journée, il matche mieux avec les couleurs du jeu rose, bleu, jaune ».
+- **SORTIE MENU** : `.mFin` = MAISON (`.mMenu`, `data-m="menu"`, icône pixel `maison` ajoutée à `PXI_G`) | REJOUER (le lingot, seul en
+  or, prend le reste). ⚠ REJOUER vit désormais DANS `.mFin` : ordre, marges et `grid-area:rej` du paysage sont portés par `.mFin`.
+  `accueilRetour()` (sous le volet) : la partie finie reste finie (`started && gameOver` → le départ suivant passe par `resetGame()`,
+  jamais `start()`), mais `MENUV.retour` fait de l'ACCUEIL la racine (`mRoot`), rallume la VITRINE (loop, ombre de contact, Entrée) ;
+  débris, meute (`survMenage()`, extrait de `survStart`), carrière en cours rangés ; piste de menu neuve. `rebuildMenuScene()` baisse
+  `started` le temps de `newTrack` quand `MENUV.retour` : ciel posé d'un coup (pas le fondu « portail »), ni annonce ni porte d'orbite —
+  vaut aussi pour la CARRIÈRE et l'AUTO-ÉCOLE lancées de cet accueil. `resetGame()` éteint `MENUV.retour`. `body.dead` reste posée.
+- **LA PORTE MISSIONS** : `.mMisBtn` dans `#mHome .mTop`, en face du ⚙ (le logo, les tuiles, JOUER et la bande de la vitrine ne bougent
+  pas — la v4 de l'accueil est un verdict) ; trois cases `#mMisPips`, une par défi relevé (posées par `mFill`).
+- **L'ÉCRAN `#mMis`** (routeur : `mScr.mis`, `PROF.mis=1`, rempli par `misRender()`) : RÉCOMPENSE (`.misUne` : catégorie, vignette
+  `objFig`, nom, phrase qui dit POURQUOI elle ne s'achète pas — `misRecoInfo`, accordée par catégorie ; la JAUGE des trois défis ;
+  touchable → `misVoir` ouvre la caisse/l'habillage au garage) · LES TROIS DÉFIS (`.misDef` : consigne, prime en vert billet, jauge
+  cyan → verte relevée, « TON MEILLEUR ESSAI 410 / 672 ») · LA RÈGLE (une partie par défi, prime tout de suite, récompense à la fin
+  de la partie) · ENSUITE (le contrat suivant, sous cadenas). Nouveau en sauvegarde : `SAVE.d.mis.best` (meilleur essai en UNE partie,
+  tenu par `misTick`, remis à zéro par `misFin`, désinfecté dans `san()`). Paysage : règle à droite du titre, récompense à gauche,
+  défis à droite, ENSUITE dans la rangée du RETOUR — tout tient en 844 × 390 sans défiler ; 390 × 844 aussi. FR/EN/中文.
+  ⚠ `#overlay p` (vieille feuille : centré, interligne 1,9) passe devant une classe seule : `#mMis .misExpl`.
+- **CIEL DE L'ACCUEIL** : `MENU_BIO='matin'` (le jour des NUAGES, validé le 27/09) au lieu de `couchant` ; voile du haut de l'accueil
+  allégé (`#overlay::after` .84 → .48, sinon le zénith restait noir). Comparés en captures : couchant · matin · midi · aprem · aurore ·
+  lever. Hook : `dbgMenuCiel('aprem')` pour en essayer un autre.
+
 ## LES PLANS DE L'ACCUEIL (2026-09-28) — « l'image derrière pourrait faire de meilleurs plans, mieux cadrer »
 Sacha : « j'aime bien les boutons et la DA, mais ce qui est affiché à l'écran n'est pas ouf ». MESURÉ aux captures (844×390 = l'ordi,
 390×844) : en PAYSAGE la caisse était filmée au CENTRE, pile derrière le logo et les tuiles — on ne la voyait JAMAIS ; une dalle de bitume
@@ -538,6 +563,35 @@ QUE pour les NUAGES (`c.camp&&c.id==='nuages'`) — la ville garde zéro nuage (
   · Bancs : scratchpad `v6/conduite/diag/` (diagnostic, sim6.js), `v6/conduite/moi/sim-v6.js` (le modèle retenu + pilote 150 ms),
     `v6/piste/base/` (banc.js étendu, variantes.js, resume.js). `dbgState()` expose psi/yawR/slipB/glisse/drift/roulisDeg/vH.
 
+## LA TRIADE v5 — « LA GRAMMAIRE DU FLOW » (2026-09-28, soir) — les trois traits deviennent les auteurs de TOUT le flow
+Sacha : « pour gagner en flow on a établi trois principes : PSYCHO — la vitesse aérienne, la vitesse max, le nitro ; MACHIAVEL — la
+triche, les raccourcis ; NARCISSE — les figures, les bumps, les séries de pièces entières. Rends les règles parfaites pour aller avec
+ces traits ; quand on fait une figure, "+NARCISSE" en petit à côté de FLOW, "-PSYCHO" si on ralentit trop ; les trois peuvent
+s'afficher ensemble, vert quand on gagne, rouge quand on perd, petits, sur la même ligne, et ils clignotent » — « tu es game designer
+senior, adapte de manière pro en prenant des libertés ». Lois 10-12 de `FLOW2` (commentaire du bloc) :
+- **CHAQUE POINT A UN AUTEUR** (`flowAdd(q,fam,trait)`) : sans trait désigné, style et risque = NARCISSE ; la route seule (pièce, rase-bord)
+  n'en a pas. MACHIAVEL : raccourcis, gaps, le SERPENT (sous la route), la pose sur la FACE CACHÉE (`sideL<0`), le FOURGON braqué.
+  PSYCHO : pads BOOST et lignes de pads, radars, À L'INSTINCT, À L'AVEUGLE, et **la vitesse TENUE** (`FLOW2.psy` : ≥ 1,12 × la croisière
+  au sol ou ≥ 1,15 en vol → un geste toutes les 1,5 s, 4 style / 6 risque — le nitro y mène). NARCISSE : figures, bumps, poses, drift,
+  frôlés, esquives, arrachées… et **LA SÉRIE ENTIÈRE** (`coinSerie`) : chaque motif de pièces (zigzag, arc, cercle, jackpot — pas
+  l'éparpillé) porte un n° (`serieEtat()`, posé par `spawnPickups` SANS toucher au `rnd` seedé) ; la dernière pièce du motif, sur sa face,
+  paie `3 + n×0,4` en style signé NARCISSE + « SÉRIE COMPLÈTE ×n ». Motifs de moins de 4 pièces : rien.
+- **LA FAUTE A UN AUTEUR** (`flowFaute(t,pts,part)`) : hors frénésie le répit saute (fuite immédiate) et `pts` partent sans jamais passer
+  sous le palier en cours ; en frénésie le trait perd `part` de sa mémoire. -PSYCHO : sous `lent.vit` (0,8) × la croisière, au sol, sans
+  nitro, jauge entamée — **armé seulement après avoir atteint 0,95** (le départ lancé monte de 0,4 à 1 en ~6 s : ce n'est pas une lenteur) ;
+  l'étiquette rouge reste tant qu'on traîne. -NARCISSE : POSÉ LOURD (6 pts / ½ mémoire), plot percuté (répit / ¼ mémoire), pose RATÉE
+  (tout, loi 9). MACHIAVEL ne se fait jamais prendre : il ne meurt que d'oubli, en frénésie.
+- **EN FRÉNÉSIE LE STYLE NOURRIT AUSSI** (`FLOW2.part` {risque 1, style .35, route .05}, au prorata jusqu'à q = 6) : bumps, séries, drift
+  tiennent NARCISSE sans remplacer une vraie figure. Le frôlé ne verse plus sa part à part (plus de double versement).
+- **L'AFFICHAGE** (`flowTag(t,±1)`, `FTAG`, `.fT` créé dans `#flowHud` après `.fL`) : trois places fixes N · M · P sur la ligne du nom du
+  palier ; même signe = prolonge (un filet continu la garde allumée), signe contraire = relance ; +1,4 s / −1,8 s ; extinction comptée
+  dans `flowTick` (aucun minuteur). Entrée en frénésie : les trois en vert ; un trait qui meurt / renaît en frénésie s'affiche. La ligne
+  du flow a été repartagée : le ×cash monte au bout de la jauge (rangée 1), le nom + les traits en rangée 2 ; `.fT` a une largeur NULLE
+  (elle déborde à droite sans élargir la grille — sinon le ×cash filait sous le ⏸). ⚠ la vieille règle `#flowHud i{width:64px;overflow:
+  hidden}` du 1er `<style>` rognait les noms : neutralisée sur `.fT i`. En portrait l'emblème descend (`--frenH` 88) pour libérer la ligne.
+- Hooks : `dbgFren('risque',10,'m')` (geste signé), `dbgFren('faute','n')`. Banc : `banctr.js` (scratchpad 312bec4e). ⚠ `sim.js` exécute le
+  bloc FLOW2 (les nouvelles clés n'y gênent pas) mais NE simule PAS la vitesse tenue ni -PSYCHO (ils vivent dans `flowTick`).
+
 ## LE HUD DE COURSE, MAÎTRISÉ ET EN MOUVEMENT (2026-09-28) — le dessin d'origine, plus de rigueur et d'animation
 ⚠ **ÉCARTÉ LE MÊME JOUR : le « tableau de bord à LED »** (rampe unique nitro + flow en shift lights, plaques partout, main b5bfd24 /
 3270d00). Verdict de Sacha : « non, je préfère la première version — remets-la dans le même style, juste avec plus de maîtrise et
@@ -559,6 +613,15 @@ charte4, n'ajoute que du mouvement et des réparations — une retouche d'animat
 - **RESTÉ DU TABLEAU À LED (logique, pas style)** : (1) la jauge nitro compte la PART DU RÉSERVOIR (`nitroR/res`, réserve `nitroX/2`)
   comme le disque NITRO — elle comptait sur 4 unités (réservoir plein = jauge à moitié, disque plein) ; (2) `X_COUL` = cyan, or, rose,
   violet puis rouge feu (×3 était VERT, la couleur de l'argent) ; (3) `recMaj` : à 85 % du record la ligne dit « ENCORE n ».
+- **LA TYPO OMBRÉE, PARTOUT** (Sacha : « les mêmes effets de dégradé pour tous les textes du HUD ») — DÉROGATION NOMMÉE à « pas de
+  dégradé dans un texte » : grands textes en quatre bandes (lèvre blanche, clair, plein, sombre — l'ancienne lèvre `::after[data-t]` est
+  masquée), petits en deux tons, calés PAR LIGNE (`background-size:100% 1lh`, déclaration séparée : repli sûr), couleur par `--tc`,
+  contour d'encre en `drop-shadow` (`--contourH/--contourP`). Aura = violet clair ; annonce, verdict, niveau, dauphin, défi, auto-école,
+  campagne, pouvoirs, liste de chaîne, NITRO, traits. (Section 15 de hudMaitrise ; `#engBig` n'y est pas.)
+- **« TRIPLE MONSTER »** (`#frenTitre`, `FT_G`, `ftLigne`, `frenTitre`) : à l'entrée en frénésie (un observateur guette `#triade.on`),
+  TRIPLE / MONSTER en lettres GOTHIQUES dessinées au pixel (cornes, pieds fendus), bandes rouges pâle → sang, cernées d'encre ; des filets
+  de sang coulent des pieds par crans puis lâchent une goutte ; 2,7 s, `body.ftOn` fait taire annonce/verdict/niveau/chrono/traits. En
+  paysage : plus petit, au-dessus de la caisse. La VOIX « triple_monstre.mp3 » est celle de `frenDeclenche`. Hook `dbgFrenTitre()`.
 - Bancs (scratchpad 312bec4e, `ui/`) : `hud.js` (états de course), `dbg5.js` (entrée en scène + palier : noms d'animation relevés),
   `inshud2.py hudm.css` (réinsère le bloc).
 
