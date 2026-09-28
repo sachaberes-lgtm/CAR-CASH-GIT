@@ -10010,6 +10010,7 @@ function carrVue(bi){
   el.innerHTML=h+'</div>';feuilleOuvre(el,'on');
 }
 function carrLancer(bi,i){
+  if(started&&!gameOver)return; // (2026-09-28) une course tourne : on n'en lance pas une seconde par-dessus (depuis l'écran de mort, gameOver est vrai : ça passe)
   CARR.actif={b:bi,i:i};
   if(PARK.on){PARK.on=false;try{modeLbl();}catch(e){}} // (2026-09-27) la carrière passe devant le parc freestyle : sinon lvlChoisir rendait le parc, jamais le niveau
   feuilleFerme(document.getElementById('carr'),'on');
@@ -10017,6 +10018,10 @@ function carrLancer(bi,i){
   if(!garageOn)openGarage(true); // lancé depuis le MENU : on passe par l'atelier en sourdine, comme JOUER
   garageLaunch();
 }
+// (2026-09-28) RECOMMENCER en carrière repart du niveau EN COURS, pas du premier de la série : la même ligne que dans endGame, pour
+// les chemins qui relancent sans passer par la mort (panneau ⏸, bouton du desktop). ⚠ pas dans resetGame : carrLancer y passe
+// aussi, et on écraserait le niveau que le joueur vient de choisir par celui de la partie d'avant.
+function carrIci(){if(CARR.actif&&LVL.cur&&LVL.cur.carr&&LVL.cur.carr.b===CARR.actif.b)CARR.actif.i=LVL.cur.carr.i;}
 window.dbgCarriere=function(){return {actif:CARR.actif,progression:SAVE.d.carr||{}};};
 window.dbgNiveau=function(){return LVL.cur?{niveau:LVL.n,lieu:LVL.cur.id,ciel:BIO.name,largeurRoute:+(ROAD_HALF*2).toFixed(1),uSpace:+LVL.espace.toFixed(2),
   planete:+LVL.planete.toFixed(2),ville:!!CITY.root,nuages:CLOUDS.length}:'parc freestyle (pas de niveaux)';};
@@ -17248,8 +17253,9 @@ function tutoFin(passe){
   TUTO.on=false;document.body.classList.remove('coNitro','coOn');
   const c=document.getElementById('coach');if(c)c.classList.remove('on','entre','bravo');
   SAVE.d.tuto=1;
-  if(!passe){SAVE.d.bank=Math.min(1e30,bank()+500);
-    misBanniere('AUTO-ÉCOLE','PERMIS OBTENU !','+'+fmtC(500),'trophee');
+  if(!passe){const paye=!SAVE.d.permis; // (2026-09-28) la prime du permis ne se verse qu'UNE fois : REVOIR L'AUTO-ÉCOLE ne doit pas devenir un robinet à 500
+    if(paye){SAVE.d.permis=1;SAVE.d.bank=Math.min(1e30,bank()+500);}
+    misBanniere('AUTO-ÉCOLE','PERMIS OBTENU !',paye?'+'+fmtC(500):'','trophee');
     try{fanfare();}catch(e){}hap([20,60,20,60,60]);}
   SAVE.flush();
   hautArme(); // les cartes retenues pendant la leçon passent maintenant, l'une après l'autre (le permis d'abord)
@@ -22107,7 +22113,7 @@ const SAVE={
       if(Array.isArray(d.shop.own))c.shop.own=[...new Set(d.shop.own.filter(k=>typeof k==='string'&&/^(peinture|aile|trainee):[a-z]{2,12}$/.test(k)))];
       if(d.shop.eq&&typeof d.shop.eq==='object')for(const k of ['peinture','aile','trainee'])if(typeof d.shop.eq[k]==='string'&&/^[a-z]{2,12}$/.test(d.shop.eq[k]))c.shop.eq[k]=d.shop.eq[k];}
     if(typeof d.pseudo==='string')c.pseudo=d.pseudo.slice(0,8);
-    c.tuto=(d.tuto||c.ex.runs>0)?1:0;c.shopVu=d.shopVu?1:0;c.ast=Math.max(0,Math.min(255,Math.round(+d.ast)||0)); // `ast` : les ASTUCES déjà montrées (bits : 1 drift, 2 assiette en vol) // (2026-09-25) la pastille NEW de la boutique ne s'allume que tant qu'on n'y est jamais entré // qui a déjà joué ne refait pas la partie guidée
+    c.tuto=d.tuto===0?0:(d.tuto||c.ex.runs>0)?1:0;c.permis=d.permis?1:0; /* (2026-09-28) un 0 ÉCRIT est respecté : c'est « REVOIR L'AUTO-ÉCOLE » (le « qui a déjà joué » ne vaut que pour les sauvegardes d'avant l'auto-école, sans champ) · `permis` : la prime de 500 déjà versée (une seule fois) */ c.shopVu=d.shopVu?1:0;c.ast=Math.max(0,Math.min(255,Math.round(+d.ast)||0)); // `ast` : les ASTUCES déjà montrées (bits : 1 drift, 2 assiette en vol) // (2026-09-25) la pastille NEW de la boutique ne s'allume que tant qu'on n'y est jamais entré // qui a déjà joué ne refait pas la partie guidée
     c.aura=Math.max(0,Math.min(1e12,Math.round(+d.aura)||0));
     c.auraMax=Math.max(0,Math.min(1e12,Math.round(+d.auraMax)||0));
     c.frenRec=Math.max(0,Math.min(3600,Math.round((+d.frenRec||0)*10)/10)); // (v3) le record de frénésie, borné à une heure
@@ -22268,7 +22274,7 @@ window.dbgTouch=function(){return{on:TCTL.on,pad:TCTL.pad,act:TCTL.act,st:+TCTL.
 // (posé une fois par frame dans la physique, à côté de son `up` — une seule vérité, pas deux
 // façons de relire les touches qui divergeraient le jour où on remappe le clavier)
 let gasOn=false;
-addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight'].includes(e.code))e.preventDefault();if(TCTL.on&&!e.repeat&&(e.code==='Space'||e.code==='Enter')&&boomSkip())return;if(e.code==='KeyP')togglePause();if(e.code==='Enter'&&!e.repeat&&started&&gameOver&&pendingScore==null&&!garageOn&&overlay.style.display!=='none'&&!(e.target&&e.target.closest&&e.target.closest('input,textarea'))&&!document.querySelector('#modale.on,#carr.on,#tPanel.open')){const rp9=document.querySelector('body.touch #mDead.on [data-m="replay"]');if(rp9)rp9.click();else if(!document.body.classList.contains('touch'))playViaGarage();} // (2026-09-25) jamais depuis un champ ou une fenêtre ouverte ; en coque tactile, seul le bouton or de l'écran de mort
+addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight'].includes(e.code))e.preventDefault();if(TCTL.on&&!e.repeat&&(e.code==='Space'||e.code==='Enter')&&boomSkip())return;if(e.code==='KeyP'){if(window.__panBascule){if(!e.repeat)window.__panBascule();}else togglePause();} /* (2026-09-28) en coque tactile P ouvre/ferme le panneau ⏸ (voir __panBascule) ; ailleurs, la pause de toujours */if(e.code==='Enter'&&!e.repeat&&started&&gameOver&&pendingScore==null&&!garageOn&&overlay.style.display!=='none'&&!(e.target&&e.target.closest&&e.target.closest('input,textarea'))&&!document.querySelector('#modale.on,#carr.on,#tPanel.open')){const rp9=document.querySelector('body.touch #mDead.on [data-m="replay"]');if(rp9)rp9.click();else if(!document.body.classList.contains('touch'))playViaGarage();} // (2026-09-25) jamais depuis un champ ou une fenêtre ouverte ; en coque tactile, seul le bouton or de l'écran de mort
   if(e.code==='Space'&&!e.repeat&&started&&!gameOver){ // double-tap NITRO (<280 ms) = BRAQUAGE (e.repeat : une touche MAINTENUE ne compte pas)
     const n9=performance.now();
     // (le double-tap « DÉCOLLAGE » est retiré — voir styleFromBoost)
@@ -22279,7 +22285,7 @@ addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDow
      le clavier : dans la boutique, le garage, les réglages, ESPACE sautait la séquence de départ et posait le HUD de
      course sur l'atelier. Désormais seule ENTRÉE, sur l'accueil, joue — par le même bouton que le doigt (auto-école
      comprise). */
-  if(e.code==='Enter'&&!started&&!garageOn&&!(typeof stallOn!=='undefined'&&stallOn)){
+  if(e.code==='Enter'&&!e.repeat&&!started&&!garageOn&&!(typeof stallOn!=='undefined'&&stallOn)&&!document.querySelector('#modale.on,#carr.on,#tPanel.open')){ // (2026-09-28) la même garde que la branche de mort : la feuille CARRIÈRE, une fenêtre ou le panneau ouverts ne lancent plus la partie derrière
     const pb=document.querySelector('#mHome.on [data-m="play"]');if(pb)pb.click();
   }});
 addEventListener('keyup',e=>{keys[e.code]=false;});
@@ -22689,7 +22695,7 @@ function commitName(){
   leaders.sort(function(a,b){return b.s-a.s;});
   if(leaders.length>10)leaders.length=10;
   saveLeaders();
-  best=leaders[0].s;
+  best=Math.max(best,leaders[0].s); // (2026-09-28) jamais à la baisse : le record d'une partie abandonnée reste le record
   var idx=leaders.findIndex(function(e){return e.n===nm&&e.s===pendingScore;});
   pendingScore=null;nameEntry.style.display='none';goTxt.style.display='';nameInput.value='';
   nameInput.blur(); // on lâche le focus : ENTRÉE peut désormais REJOUER (sinon le champ avale la touche)
@@ -22702,7 +22708,10 @@ nameSave.addEventListener('click',function(e){e.stopPropagation();commitName();}
 nameEntry.addEventListener('click',function(e){e.stopPropagation();});
 // ENTRÉE dans le champ nom : 1er appui = valider le nom · 2e appui (nom déjà validé) = REJOUER direct
 nameInput.addEventListener('keydown',function(e){e.stopPropagation();if(e.code==='Enter'){e.preventDefault();if(pendingScore!=null)commitName();else if(gameOver)playViaGarage();}});
-if(leaders.length)best=leaders[0].s;
+// (2026-09-28) le record MONTE en direct pendant la course (voir la boucle : `money>best`), même d'une partie abandonnée
+// (RECOMMENCER/QUITTER) qui n'entre pas au Top 10. L'écraser par `leaders[0]` au chargement faisait redescendre le record
+// après une relance — et « NOUVEAU RECORD ! » revenait à tort. On garde le plus haut des deux, ici comme à la signature.
+best=Math.max(SAVE.d.best||0,leaders.length?leaders[0].s:0);
 const mmCanvas=$('minimap'),mmCtx=mmCanvas.getContext('2d');
 const mmBg=document.createElement('canvas');mmBg.width=mmCanvas.width;mmBg.height=mmCanvas.height;const mmBgCtx=mmBg.getContext('2d'); // calque STATIQUE : piste + portail pré-rendus une fois par zone (plus de ~240 segments/frame)
 let mmMinX=0,mmMaxX=1,mmMinZ=0,mmMaxZ=1,mmSc=1,mmOx=0,mmOy=0;
@@ -24387,7 +24396,7 @@ $('playBtn').addEventListener('click',function(e){
   e.stopPropagation();
   playViaGarage(); // « on ne peut jouer que depuis le garage » (2026-09-05) — voir playViaGarage()
 });
-$('resetBtn').addEventListener('click',()=>{if(started)resetGame();});
+$('resetBtn').addEventListener('click',()=>{if(started){carrIci();resetGame();}}); // (2026-09-28) carrIci : la carrière repart du niveau en cours
 // ---- sauvegarde : exporter / restaurer par code (le clic ne doit PAS relancer la partie) ----
 const expBtn=$('saveExp'),impBtn=$('saveImp');
 function btnFlash(b,txt){const o=b.innerHTML;b.innerHTML=txt;setTimeout(()=>{b.innerHTML=o;},1600);}
@@ -26866,7 +26875,11 @@ function buildGarageRoom(){
    aussi le nez de la caisse (les pots sont à `-l/2`, donc à l'arrière, en -Z). Les deux coïncident,
    il n'y a rien à retourner — mais si un jour la porte déménage, c'est ici que ça se règle. */
 function garageLaunch(){
-  if(GAR.go||GAR.sw||!garageOn)return;
+  if(GAR.go||!garageOn)return;
+  // (2026-09-28) JOUER PENDANT UNE BASCULE : la bascule dure 1,06 s et le LÂCHER refusait de partir tant qu'elle tournait — changer
+  // de caisse puis taper JOUER dans la seconde ne lançait RIEN. On la TERMINE sur-le-champ, exactement comme sa dernière image
+  // (l'échange s'il n'a pas eu lieu, puis scanner éteint, échelle rendue) : la caisse qui sort est bien celle qu'on vient de choisir.
+  if(GAR.sw){const SW=GAR.sw;GAR.sw=null;if(!SW.fait)garageShow(SW.to);if(GAR.scan)GAR.scan.visible=false;carGroup.scale.set(1,1,1);}
   try{ if(carUnlocked(garageI)){const be=$('gEquip'); if(be&&be.getAttribute('aria-disabled')!=='true')be.click();} }catch(e){}
   if(!GAR._v)GAR._v=new THREE.Vector3();
   if(!GAR._c)GAR._c=new THREE.Vector3();
@@ -26890,6 +26903,7 @@ function playViaGarage(){
   ecranWipe(function(){openGarage(true);},function(){garageLaunch();});
 }
 function garageGo(d){
+  if(GAR.go)return; // (2026-09-28) pendant la SORTIE (1,7 s), un glissé remplaçait la caisse qui roule vers la porte
   uiClic(); // ◀ ▶, glissé, clavier : le doigt sent qu'on change de caisse — et l'oreille aussi (2026-09-26, charte règle 8)
   if(SHOP.tab!=='voiture'){ // BOUTIQUE : on feuillette les articles, la caisse reste la tienne
     shopShow(SHOP.tab,SHOP.i[SHOP.tab]+d);try{chimeNote(d>0?880:660,0,.16,.14);}catch(e){}return;}
@@ -27675,12 +27689,15 @@ $('gStrip').addEventListener('click',e=>{const t=e.target.closest('.gT');if(!t)r
   if(t.hasAttribute('data-cos')){const j=+t.getAttribute('data-cos');if(SHOP.tab!=='voiture'&&j!==SHOP.i[SHOP.tab]){shopShow(SHOP.tab,j);try{chimeNote(880,0,.16,.14);}catch(er){}}return;} // un habillage : on l'ESSAIE sur la caisse
   garageSaute(+t.getAttribute('data-car'));});
 // aller DIRECTEMENT à une caisse (vignette, famille) — avec la bascule du plateau, comme les flèches
-function garageSaute(i){if(i===garageI||!(i>=0))return;
+function garageSaute(i){if(GAR.go||i===garageI||!(i>=0))return; // (2026-09-28) GAR.go : même garde que garageGo — la caisse qui sort ne se change plus
   if(!garageOn||!GAR.root||GAR.sw){garageShow(i);return;}
   GAR.sw={t:0,fait:false,to:i};try{chimeNote(880,0,.16,.14);noiseBurst(.35,.09,900);}catch(e){}}
 $('gBuy').addEventListener('click',e=>{e.stopPropagation();
   if(SHOP.tab==='voiture'&&e.currentTarget.dataset.bout==='1'){uiClic();hap(8); // LÉGENDAIRE : direction la BOUTIQUE
-    ecranWipe(function(){closeGarage();const b=document.querySelector('#mob [data-m=shop]');if(b)setTimeout(function(){b.click();},30);});return;}
+    // (2026-09-28) la boutique s'ouvre AU LEVER du voile (`apres`) : le clic simulé sur le bouton de l'accueil partait PENDANT le
+    // fondu, et son propre ecranWipe était ignoré (garde `_on`) — ou en faisait un second. Pas dans `fn` : l'observateur de l'overlay
+    // (bloc mobile) repose l'accueil juste après closeGarage et écraserait la boutique.
+    ecranWipe(function(){closeGarage();},function(){if(!garageOn&&window.__mGo)window.__mGo('shop');});return;}
   if(SHOP.tab!=='voiture'){const c9=SHOP.tab,i9=SHOP.i[c9],r9=shopBuy(c9,i9);
     if(!r9.ok){if(r9.raison==='fonds-insuffisants'){gSecoue(e.currentTarget);uiClic();toast(pxi('croix')+' '+TR('IL TE MANQUE')+' '+fmtC(r9.manque));}return;}
     shopShow(c9,i9);hap([10,30,20,30,40]);pixBurst($('gCard'),26);gTampon(TR('À TOI')+' !');
@@ -27754,7 +27771,7 @@ $('carr').addEventListener('click',function(e){ // un seul écouteur pour tout l
   else if(c==='niveau')carrLancer(b,i);
   else if(c==='verrou'){ // un niveau fermé RÉPOND : il secoue et dit ce qu'il attend
     el.classList.remove('secoue');void el.offsetWidth;el.classList.add('secoue');
-    toast(pxi('verrou')+' '+TR('TERMINE LE NIVEAU')+' '+i);return; }
+    toast(pxi('verrou')+' '+TR('TERMINE LE NIVEAU')+' '+(carrFait(b)+1));return; } // (2026-09-28) le PROCHAIN niveau à finir — `i` (l'index tapé) disait « 4 » pour le 5e avec zéro niveau fini
   uiClic();
 });
 $('gNext').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarget);garageGo(1);});
@@ -29944,7 +29961,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       modale({titre:q9?'QUITTER LA PARTIE ?':'RECOMMENCER ?',texte:q9?'Tes gains sont versés au compte.':'Les gains de cette partie ne seront PAS versés.',
         boutons:[{l:q9?'QUITTER':'RECOMMENCER',ic:q9?'quitter':'rejouer',cls:'pb-red',v:1},{l:'CONTINUER',ic:'lecture',v:0}]}) // CONTINUER en DERNIER : Échap clique le dernier bouton
       .then(function(r){ if(!r.v||!started||gameOver)return; panOpen(false);
-        if(q9){if(TUTO.on)tutoFin(true);const sb=SANDBOX;SANDBOX=false;endGame();SANDBOX=sb;} else resetGame(); }); }
+        if(q9){if(TUTO.on)tutoFin(true);const sb=SANDBOX;SANDBOX=false;endGame();SANDBOX=sb;} else {carrIci();resetGame();} }); } // carrIci : la carrière repart du niveau en cours
     uiClic(); // ⚠ EN DERNIER : un bouton qui SORT de la pause (reprendre, recommencer, quitter) garde son clic ; en pause il reste le visuel et la vibration
   }
   if(gear)gear.addEventListener('click',gearOpenHandler); // au relâcher (voir mHit) : le panneau défile, un glissé n'active rien
@@ -30058,9 +30075,12 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
      Une seule fois par mort (clé = l'instant de la mort) : mFill est rappelé à chaque retour sur l'écran. */
   function mCompteSon(rec){
     if(!TCTL.mortT||mCompteSon._k===TCTL.mortT)return;mCompteSon._k=TCTL.mortT;
-    for(let i=0;i<8;i++)setTimeout(function(){if(mCur==='dead')try{chimeNote(noteP(i,1),0,.035,.06);}catch(e){}},320+i*85);
-    setTimeout(function(){if(mCur!=='dead')return;try{if(rec)rewardSfx('m3',3);else{chimeNote(noteP(4,1),0,.08,.3);chimeNote(noteP(7,1),.06,.07,.36);}}catch(e){}},1040);
-    if(rec)setTimeout(function(){if(mCur==='dead')pixBurst($t('mOverT'),34);},900); // (charte v4) un record, ça se voit aussi : l'enseigne crache ses confettis
+    // (2026-09-28) `mCur` reste 'dead' après REJOUER (et au garage) : la fanfare partait au départ de la course suivante.
+    // L'écran de mort, c'est aussi la partie FINIE et le menu VISIBLE.
+    const ici=function(){return mCur==='dead'&&started&&gameOver&&overlay.style.display!=='none';};
+    for(let i=0;i<8;i++)setTimeout(function(){if(ici())try{chimeNote(noteP(i,1),0,.035,.06);}catch(e){}},320+i*85);
+    setTimeout(function(){if(!ici())return;try{if(rec)rewardSfx('m3',3);else{chimeNote(noteP(4,1),0,.08,.3);chimeNote(noteP(7,1),.06,.07,.36);}}catch(e){}},1040);
+    if(rec)setTimeout(function(){if(ici())pixBurst($t('mOverT'),34);},900); // (charte v4) un record, ça se voit aussi : l'enseigne crache ses confettis
   }
   function mFill(){ try{
     const b1=$t('mBest'),b2=$t('mBest2'),mc=$t('mCar');
@@ -30085,7 +30105,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       const nw=$t('mNew'),E=ENGINE_TIERS[Math.min(ENGINE_TIERS.length-1,Math.max(0,engTier|0))];nw.style.display='none';
       { // LES DEUX CARTES : l'AURA gagnée (et le rang), le MOTEUR atteint (et s'il bat ton record)
         const au=commitExploits._aura||0,rg=commitExploits._rangMonte,eN=engTier>(RUNX.engAvant|0),hx='#'+(E.col||0xffd75e).toString(16).padStart(6,'0');
-        const h=$t('mHero');
+        const h=$t('mHero'),fA=function(v){return fmtAura(v).replace(/[\u202f\u00a0]/g,' ');}; // (2026-09-28) le formateur d'aura du HUD, sans les espaces fines insécables que la police pixel n'a pas (même geste que le compteur du garage)
         /* (2026-09-25) LE « PRESQUE » : mourir à 3 pièces du V6, c'est LA raison de relancer — et c'était invisible. La carte MOTEUR dit la
            distance au palier suivant quand il AURAIT été un record (sinon le record à battre) ; la carte AURA dit ce qui manque au rang suivant,
            et sa barre se remplit de la partie. ⚠ SAVE.d.aura contient DÉJÀ la partie (commitExploits) : ne pas rajouter auraRun. */
@@ -30093,12 +30113,12 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
               pr=!!nx&&mq>0&&engTier+1>ea&&mq<=Math.max(3,Math.ceil((nx.coins-E.coins)*.3)),
               ci=!eN&&ea>engTier?ENGINE_TIERS[ea]:null,an=auraNext(),a1=SAVE.d.aura||0,bas=AURA_RANKS[auraRank()].v;
         if(h){h.innerHTML='<div class="hCard hAura"><small>'+TR('AURA')+'</small><b id="mAuraV">+0</b><span>'+pxi('etoile')+' '+auraRankName()+'</span>'+(rg?'<em>'+TR('NOUVEAU RANG !')+'</em>':(recA?'<em>'+TR('RECORD !')+'</em>':''))
-            +(an?'<div class="hNx">'+TR('ENCORE')+' '+Math.round(an.reste).toLocaleString('fr-FR')+' · '+TR(an.n)+'</div><div class="hBar"><u id="mAuraB"></u></div>':'')+'</div>'
+            +(an?'<div class="hNx">'+TR('ENCORE')+' '+fA(an.reste)+' · '+TR(an.n)+'</div><div class="hBar"><u id="mAuraB"></u></div>':'')+'</div>'
           +'<div class="hCard hMot hMot3" style="--ec:'+hx+'"><small>'+TR('MOTEUR')+'</small><canvas class="hMotCv" width="480" height="321"></canvas>'
             +'<div class="hMotN"><i>'+TR('PALIER')+'</i>'+(engTier+1)+'</div>'+(eN?'<em>'+TR('RECORD !')+'</em>':'')
             +(pr?'<div class="hNx hPres">'+TR('PLUS QUE')+' '+mq+' '+TR(mq>1?'PIÈCES':'PIÈCE')+' · '+TR(nx.n)+'</div>':ci?'<div class="hNx">'+TR('RECORD')+' : '+TR(ci.n)+'</div>':'')+'</div>';
           {const cv9=h.querySelector('.hMotCv');ENG_MORT.cv=cv9;ENG_MORT.ctx=cv9?cv9.getContext('2d'):null;} // le moteur 3D y tourne (engVigRender)
-          countUp($t('mAuraV'),au,function(v){return '+'+Math.round(v).toLocaleString('fr-FR');});
+          countUp($t('mAuraV'),au,function(v){return '+'+fA(v);});
           if(an){const u=$t('mAuraB'),D=Math.max(1,an.seuil-bas),w1=Math.min(100,(a1-bas)/D*100),w0=rg?0:Math.max(0,(a1-au-bas)/D*100);
             if(u){u.style.width=w0.toFixed(1)+'%';requestAnimationFrame(function(){requestAnimationFrame(function(){u.style.width=w1.toFixed(1)+'%';});});}}}
       }
@@ -30136,7 +30156,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   }catch(e){} }
   function mTap(a,el){
     uiClic();uiPop(el);if(a==='play'||a==='replay')pixBurst(el,16); // chaque bouton REBONDIT ; JOUER lâche une gerbe
-    if(a==='replay'&&started&&gameOver){ goImmersive(); ecranWipe(function(){ if(started&&gameOver)resetGame(); }); } // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS)
+    if(a==='replay'&&started&&gameOver){ goImmersive(); ecranWipe(function(){ if(started&&gameOver){ if(!CARR.actif)tutoArme(); resetGame(); } }); } // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite ; pas en carrière : son niveau passe devant la piste d'apprentissage)
     else if(a==='play'||a==='replay'){ if(a==='play')CARR.actif=null;
       tutoArme(); // 1re partie = AUTO-ÉCOLE
       goImmersive(); playViaGarage(); }
@@ -30229,6 +30249,15 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(started&&!gameOver){panOpen(true);hap(10);return;}
     if(overlay.style.display!=='none'&&PROF[mCur])mTap('back',null);
   });
+  // (2026-09-28) DEUX PORTES POUR LE CODE HORS DE CE BLOC (mGo et panOpen y sont en portée de bloc, 'use strict') :
+  // `__mGo` — le garage envoie en BOUTIQUE au lever de son voile ; `__panBascule` — la touche P passe par le VRAI panneau
+  // (la pause nue figeait le jeu sans rien à l'écran — #msg est masqué en coque — et P relançait la course SOUS le panneau).
+  window.__mGo=function(id){if(mScr[id])mGo(id);};
+  window.__panBascule=function(){
+    const md=$t('modale');if(md&&md.classList.contains('on'))return; // une fenêtre ouverte (RECOMMENCER ?, QUITTER ?) garde la main
+    if(pan&&pan.classList.contains('open')&&!pan.classList.contains('sortant')){panOpen(false,true);return;} // comme REPRENDRE : le 3-2-1
+    if(started&&!gameOver){panOpen(true);hap(10);}
+  };
   mGo('home');
 }
 // ============================================================================
@@ -30274,7 +30303,7 @@ if(!(IS_MOBILE||/[?&]touch=1/.test(location.search))){
     else if(a==='q'){ SAVE.d.q=(SAVE.d.q==='net')?'fast':'net'; SAVE.flush(); applyQ9(SAVE.d.q!=='net'); dPanSync(); }
     else if(a==='surv'){ dClic(survBtnEl); dPanSync(); }
     else if(a==='resp'){ dPanOpen(false); if(started&&!gameOver&&mode==='drive')respawn(); }
-    else if(a==='reset'){ dPanOpen(false); if(started)resetGame(); }
+    else if(a==='reset'){ dPanOpen(false); if(started){carrIci();resetGame();} } // (2026-09-28) carrIci : la carrière repart du niveau en cours
     else if(a==='quit'){ dPanOpen(false); if(started&&!gameOver){ if(TUTO.on)tutoFin(true); const sb=SANDBOX;SANDBOX=false;endGame();SANDBOX=sb; } } // QUITTER pendant l'auto-école : on sort vraiment (sinon « RATÉ ! » et la caisse replacée)
   });
   // ⚠ NOM DÉDIÉ (`applyQ9`, pas `applyQ`) : `applyQ` est déclarée `const` À L'INTÉRIEUR du bloc
