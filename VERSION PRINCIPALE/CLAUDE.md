@@ -663,6 +663,10 @@ senior, adapte de manière pro en prenant des libertés ». Lois 10-12 de `FLOW2
   bloc FLOW2 (les nouvelles clés n'y gênent pas) mais NE simule PAS la vitesse tenue ni -PSYCHO (ils vivent dans `flowTick`).
 
 ## LA TRIADE SIMPLIFIÉE (2026-09-28, nuit) — la montée allégée, la tenue un cran plus exigeante (lois 13-14 de `FLOW2`)
+⚠⚠ **RETIRÉE LE MÊME SOIR** (Sacha : « l'état de frénésie est trop facile à atteindre, remets l'ancienne version ») : `FLOW2` est
+revenu aux réglages de la TRIADE v5 (cel .5/.35/.22/.14, pente .4, fuite 3/3,5/4/3, gate .95, style .35 et route 0 dans la triade,
+brûlure [4 · 2 · ,7 · −1,5], pose lourde 6). Les valeurs simplifiées restent notées en commentaire sur chaque clé. S'il redemande
+« un peu plus facile » : un point ENTRE les deux (mesurer avec `simtri.js`), jamais la version simplifiée telle quelle. Ce qui suit est l'historique.
 Sacha : « c'est un peu trop dur d'avoir la dark triad, simplifie quand même un peu plus ». Les bancs de la session flow (sim.js…sim3.js)
 avaient disparu avec son scratchpad : **`simtri.js`** (scratchpad 312bec4e, `ui/`) exécute le VRAI bloc `<<<FLOW2>>>` extrait
 d'index.html sur trois joueurs types (tranquille · casse-cou · maître : gestes/s, sauts, nitro, raccourcis, fautes, PSYCHO v5),
