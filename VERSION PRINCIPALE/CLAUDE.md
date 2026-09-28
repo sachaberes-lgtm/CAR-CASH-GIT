@@ -449,6 +449,32 @@ adaptative descendait EN PREMIER. Cinq lots (branches perf-ciel/-post/-cpu/-pist
   décimation des rails au loin (silhouettes qui bougent), masquage de la face cachée du bitume (dalle qui vrille), regroupement des nuages.
 - **Bancs** (scratchpad de la session 1a323fdd) : `banc/vol.js` (GPU par passe, `--drawgpu` GPU par draw sur image figée, `--attrib`
   triangles par objet, `--prof`), `ciel/skybench.js`, `post/echelle.js` (GPU lent simulé), `cpu/cpu.js` (bridé ×4), `piste/equiv.js`.
+- **CHASSE AUX GELS** (2026-09-28, branche `perf-gels`) — les images qui figent, pas le débit. MESURÉ avant : 30-36 programmes compilés
+  APRÈS le tap sur JOUER (~1,1-1,3 s de gel sur PC), 1-2 de plus à la 1re image de course, chaque portail ~150-200 ms de JS. Désormais :
+  · **L'ATELIER À 8 LUMIÈRES** (`atelierLampes(on)`) : allumer stallKey/stallRim faisait passer la scène de 8 à 10 PointLights, et three
+    recompile toute matière éclairée pour un nouveau compte (la caisse, l'atelier, le bitume et la ville vus derrière ses murs). Les deux
+    lampes entrent quand les deux GYROPHARES (toujours à 0 hors poursuite) sortent : même compte, mêmes programmes que la course, image
+    identique au bit près (même image figée rendue à 8 et à 10 lumières). ⚠ Ne jamais écrire `stallKey.visible=true` en direct.
+  · **L'atelier se prépare au menu, d'abord** (`atelierChauffe`, dans engChauffe) : bâti caché dès que la police pixel est prête, compilé
+    SEUL et dessiné une fois hors écran — `chauffeRendu(que)` : la scène ne garde que ses lumières (toutes enfants DIRECTS de la scène) et
+    ces sous-arbres, sans passe d'ombre. Le garage du JOUER (`quiet`) ne prend plus de photos (sa bande est masquée) ; `CAR_GARDE` garde
+    la 1re matière de chaque programme de caisse (le studio photo enchaînait deux constructions sans dessin et tuait les programmes).
+    Résultat : **0 programme après JOUER**, même en tapant JOUER 0,3 s après le menu, même après une visite du vrai garage.
+  · **La chauffe** : `chauffeRendu` ne dessine qu'UN exemplaire par couple (matière, géométrie) — les 2 000-4 000 pièces n'en valent
+    qu'une (1 800-3 200 objets → 270-370 appels) ; `chauffeDivers(k)` une étape par image (c'était ~1,8 s d'un bloc) ; `chauffeGrace()` :
+    chaque étape repousse la grâce de la qualité auto (`loop._rebuildT`) — une chauffe n'est pas une lenteur. `dbgChauffe()` (dev).
+  · **buildTrack sans tableaux JS** : tampons typés à la taille exacte écrits en place (l'arrondi float32 à l'écriture = celui de la
+    conversion), `normales9`/`sphere9` = computeVertexNormals/computeBoundingSphere recopiés opération par opération sur le brut,
+    `TEINTE9` (la teinte du bitume ne dépend que de (point, colonne) : une fois par session), `sceneRetire` (retrait de la scène d'un seul
+    passage — remove() un par un était quadratique sur ~5 000 enfants), `PIECES_LIBRES` (les pièces de la piste d'avant recyclées,
+    `userData.pi`). Empreinte IDENTIQUE vérifiée (pts/T/Nn/B, pads, plots, huile, tremplins, trous, pièces, nuages, attributs + index +
+    sphères de chaque maillage, ordre des enfants) sur 18 pistes × 3 niveaux. buildTrack ~2× plus rapide (banc, minima : 140 → 51 ms
+    orbite, 165 → 82 nuages, 150 → 95 ville), pire image après un portail 26 → 16 ms.
+  · Bancs (scratchpad de la session 1a323fdd, `gels/`) : `gels.js <racine> [--menu=ms] [--bride=4] [--garage] [--prof] [--time=f1,f2]`
+    (le parcours réel, programmes liés avec matière/objet/lumières/appelant, images longues par phase), `bt.js <racineA> <racineB>`
+    (newTrack A/B alterné dans le même navigateur, graines forcées, empreinte, chronos, minima), `garcomp.js` (l'atelier à 8 vs 10
+    lumières, même image), `gelsprof.js` (qui occupe chaque image longue). ⚠ Les FRUITS se tirent au Math.random hors graine, que la
+    musique consomme selon son état : ils changent d'une partie à l'autre (normal), pas la piste.
 
 ## PASSE DÉBOGAGE / PERF (2026-09-26) — lots 1 à 4, mesurée (téléphone émulé, processeur bridé ×4)
 Résultat : 60 i/s partout sur PC, ZÉRO compilation de shader en course (portails, montées de moteur, rejouer, 1re ville, 1er vol de
