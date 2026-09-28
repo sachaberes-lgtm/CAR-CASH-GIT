@@ -4204,6 +4204,10 @@ html body #frenTraits i.mort{opacity:.3}
 @media not ((orientation:landscape) and (max-height:540px)){
   html body.touch:has(#pwrChip .pw) #misBan{max-width:calc(100vw - var(--hudG) - var(--hudD) - 148px);margin-left:calc((var(--hudG) - var(--hudD) - 148px) / 2)}
 }
+/* (paysage) les plaques de pouvoir vivent à GAUCHE du chrono de vol : elles le touchaient bord à bord — 10 px d'air */
+@media (orientation:landscape) and (max-height:540px){
+  html body.touch #pwrChip,html body.touch #pwrChip.sousPie,html body.touch:has(#campChip.on) #pwrChip,html body.touch.coOn #pwrChip{right:calc(var(--hudD) + var(--ahW) + 10px)}
+}
 /* SA PLACE (portrait) : la COLONNE DE DROITE, sous le ⏸ — ⏸ · DARK TRIAD · chrono de vol · pouvoirs. Au milieu du haut, il coupait le
    compteur d'aura en deux lignes (« 1 » puis « 418 ») et contractait la barre du record ; le compteur retrouve sa largeur. */
 @media not ((orientation:landscape) and (max-height:540px)){
