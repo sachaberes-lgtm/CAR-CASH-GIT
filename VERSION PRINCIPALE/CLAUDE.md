@@ -1,5 +1,43 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE FLOW v2 — « LE FLOW SE GAGNE AU BORD DU VIDE » (2026-09-28)
+Demande de Sacha : « le flow invite trop à rester sur la route ; on doit parfois prendre des raccourcis pour tricher et ça ne remplit
+pas le flow ; la frénésie DARK TRIAD doit pousser aux figures et aux raccourcis ; plus long à atteindre, à partir d'une certaine
+vitesse ; jouissif d'y arriver et de la garder (sinon la musique s'arrête) ; vitesse et peur de la mort ». MESURÉ AVANT (pilote auto) :
+collé au bord de la route, sans un saut, FRÉNÉSIE en 11 s et gardée pour toujours (rase-bord 10 pts/s qui rendait le répit).
+- **LE BARÈME = le bloc `<<<FLOW2>>>`** (juste avant `const FLOW`) : PUR (ne lit que ses arguments + `FLOW2`), exécuté tel quel par le
+  banc `sim.js` (scratchpad de la session d82605e6). Tous les réglages vivent dans `FLOW2`, nulle part ailleurs :
+  · **3 familles** — `flowAdd(q, fam)` : `'route'` (pièces .7, pads 6, lignes, rase-bord 6/s) CHAUFFE puis s'essouffle (×1 · ×.5 · ×.12 ·
+    0 dans la triade) et ne rend le répit que sous 50 ; `'style'` (drift 9/18/27, frôlé 4-8, bump 6, radar, esquive…) monte bien, faiblit
+    dans la triade (×.35) ; `'risque'` (figures EN VOL en direct via `addTrick`, BIG AIR 6, AIR MONSTRE 10, pose PARFAITE 10 / DIVINE 14,
+    À L'ARRACHÉE 12 / AU CHEVEU 20, GAP 12/18, SERPENT 15, RACCOURCI 12 + 0,06/m coupé plafonné 45, radar en excès, à l'aveugle…) paie partout.
+    Famille par défaut : style. `FLOW2.cel` durcit chaque cellule (×1 · ×.8 · ×.65 · ×.5).
+  · **La vitesse multiplie tout** : `FLOW.vit` = `flowVitN()` = km/h ÷ (`vmaxShow()` × `FLOW_VREF` 2,9) — MESURÉ : ≈1 en croisière élan
+    plein, 1,25-1,4 en nitro, ~0,5 au départ ; en vol, la vitesse HORIZONTALE. ×.35 à .6 → ×1 à 1 → ×1,35 à 1,3. Sous `gate` (.95) la
+    TRIADE ne prend RIEN (classe `.lent` : la 4e cellule gèle en gris ; « PLUS VITE ! » une fois par partie).
+  · **Plus on monte, plus ça brûle** : `pente` permanente (rose 1/s, triade 2/s) + `fuite` passé le répit de 2 s (5·7·9·11). EN VOL RIEN
+    NE FUIT (`flowTick` : le répit ne s'écoule pas en 'fall'). **La frénésie** (`FLOW2.fren`) : pente 1,2 + fuite 2 après 3 s, × la vitesse
+    (×3 à .6 · ×1 à 1 · ×.3 à 1,3) — mesuré en jeu : ~4 s sans rien à la croisière, 15 s+ en nitro continue. Sa perte rend 2 s de répit.
+- **LE RACCOURCI, DANS TOUS LES MODES** (`flowRaccourci`, fin de `tryLand`) : piste parcourue depuis le décollage (`FLOW.s0`, posé dans
+  `startFall`) MOINS la distance volée en ligne droite (`FLOW.p0`) ≥ 60 m. Hors campagne : « RACCOURCI +340 M » (prio 3), nitro, aura.
+  En campagne `campRaccourci` garde son annonce et sa nitro, le flow passe par ici (plus de `flowAdd(22)` là-bas).
+- **LA TRIADE CACHÉE** : la barre démarre en 3 cellules ; la rose pleine → `flowRevele()` (classes `.revele` + `.ouvre` : la 4e pousse
+  de zéro, les autres se serrent ; « RISQUE + VITESSE » la 1re fois de la session, « DARK TRIAD » ensuite). Ouverte jusqu'à la fin de
+  la partie (`flowReset` la referme). CSS : section 10 (a') de charte4.
+- **LA MUSIQUE DE LA FRÉNÉSIE** (`MUSIC_FREN`, `FRENM`, `frenMus(on)`, juste avant `musicPause`) : entrée → le morceau de la triade
+  TOMBE sur le lecteur unique (source changée, jamais un 2e `<audio>` : iOS le refuserait) ; sortie → tape-stop 0,4 s puis la radio
+  reprend À LA SECONDE où elle était (ou le morceau du nouveau lieu si `musicSuitLieu` a changé pendant). ⚠ **LE FICHIER N'EST PAS
+  LIVRÉ** : Sacha le posera en `assets/audio/music/dark-triad.mp3` (ASCII, sans espace ; `drop` = secondes à sauter). Absent (sonde
+  `frenMusSonde` au démarrage, ou erreur de lecture → `frenMusRate`) : REPLI « surmultiplié » — la radio monte d'un demi-ton (+6 %,
+  `playbackRate` sans préservation de hauteur) et retombe à la sortie. `surm:1` l'éteint. `musicStop` remet tout à plat.
+- **Hooks** : `dbgFren('risque'|'style'|'route', n)` (un geste d'une famille), `dbgFren('vit', x)` (force la vitesse, `null` = vraie),
+  `dbgFren('journal')` (ouvre/lit les 80 derniers gains : [t, famille, brut, versé, v, vit] — fermé par défaut, zéro allocation en jeu),
+  `dbgFren()` rend aussi `vit`, `revele`, `musique` ('radio' · 'triade' · 'surmultipliee').
+- **Bancs** (scratchpad d82605e6, muets) : `flowbanc.js` (pilote auto, sources par ligne), `frenbanc.js` (révélation, gel, frénésie,
+  musique ; 2e argument = un mp3 pour simuler le morceau livré), `sim.js` (joueurs types, lit le bloc dans index.html). RÉSULTAT :
+  sage et colle-bord plafonnent FLOW I / II (0 % de frénésie), pilote de route 2 %, casse-cou 1re frénésie ~60 s (22 % du temps,
+  ~26 s d'affilée), maître ~30 s (57 %, ~64 s d'affilée).
+
 ## LA CAMPAGNE NUAGES (2026-09-27) — dix heures du jour, dix idées de jeu
 Brief de Sacha (inspiration rédigée avec Grok) : « les 10 niveaux racontent une journée, de l'aurore au coucher du soleil ; chaque
 niveau ajoute ou détourne UNE idée de jeu ». Tout est BRANCHÉ sur l'existant, rien n'est réécrit.
@@ -425,8 +463,8 @@ dans UN bloc en fin de `<style id="charte4">` (« LA CHARTE AU COMPLET », secti
   elle reçoit encore du flow ; le logo plus beau, plus gros, mieux animé, ROUGE ; parfaitement intégré, pro dès le début » — et : « le
   son, la musique, je la mettrai après » → RIEN n'a été touché côté audio).
   · **LA ZONE ROUGE** (`FREN`, `flowLvDe` = le SEUL calcul du palier) : hystérésis — on ENTRE à 100 (inchangé), on RESTE tant que
-    `FLOW.v ≥ FREN.seuil` (88) ; dans la zone la fuite est retenue ×`FREN.retient` (.45) → sans style la frénésie tient ~3,6 s au lieu
-    de 1,8. Le tic « ça lâche » vise le bord de la zone. Les coups directs sur `FLOW.v` (foudre, choc, porte) passent par `flowTick`.
+    `FLOW.v ≥ FREN.seuil` (88) ; ce qu'elle coûte à tenir vit désormais dans `FLOW2.fren` (voir LE FLOW v2 en tête : `FREN.retient`
+    n'existe plus). Le tic « ça lâche » vise le bord de la zone (`flowReste`). Les coups directs sur `FLOW.v` (foudre, choc, porte) passent par `flowTick`.
     Dessin : la 4e cellule porte `.fZ` (à partir de `--fzL`, posé par le JS depuis FREN) — hachures rouges tant qu'elle est vide, cran
     clair au seuil, et son propre remplissage rouge PAR-DESSUS le violet (`FLOW.zs`, classe `.dansZ` = un seul curseur, celui de la zone).
     `FLOW_CEL` = couleurs des cellules (la 4e reste violette) ; `FLOW_COL[4]` = ROUGE (#ff2a3d, jetons `--fren*` en tête de la section 10).

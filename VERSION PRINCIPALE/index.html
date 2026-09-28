@@ -2886,6 +2886,15 @@ html body #flowHud .fSeg .fZ s{position:absolute;left:0;top:0;bottom:0;right:aut
 html body #flowHud .fZ::after{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--frenC);opacity:.9}   /* le CRAN du seuil : posé APRÈS le remplissage, il reste lisible zone pleine (c'est la marge qu'il reste en frénésie) */
 html body #flowHud:not(.dansZ) .fZ s::after,html body #flowHud.dansZ .fSeg>i.cur>s::after{display:none}   /* UN curseur : celui de la zone quand on y est */
 html body #flowHud.fuit .fSeg .fZ s{background:repeating-linear-gradient(-45deg,var(--fren) 0 4px,var(--frenS) 4px 8px)}
+/* (a') LA TRIADE SE MÉRITE (FLOW v2, même nuit — Sacha : « la barre violette pâle et rouge doit être cachée au début et ne se révéler
+   que quand la partie rose est pleine »). TROIS cellules au départ ; la rose pleine, la 4e S'OUVRE (elle pousse depuis zéro, les trois
+   autres se serrent pour lui faire place, un éclair la traverse) ; elle reste ouverte jusqu'à la fin de la partie. Sous la vitesse de
+   la triade, elle GÈLE (grise, éteinte) : le jeu dit « plus vite » sans écrire un mot. */
+html body #flowHud:not(.revele) .fSeg>i:nth-child(4){display:none}
+html body #flowHud.ouvre .fSeg>i:nth-child(4){animation:frOuvre var(--t-slow) var(--ease) both}
+@keyframes frOuvre{0%{flex-grow:.001;filter:brightness(3) saturate(.3)}70%{flex-grow:1}100%{flex-grow:1;filter:none}}
+html body #flowHud.lent:not([data-lv="4"]) .fSeg>i:nth-child(4){filter:grayscale(1) brightness(.55);transition:filter var(--t-fast) var(--ease)}
+@media (prefers-reduced-motion:reduce){html body #flowHud.ouvre .fSeg>i:nth-child(4){animation:none}}
 /* (b) LA JAUGE EN FRÉNÉSIE : toute rouge, cadre et pictogramme compris */
 html body #flowHud[data-lv="4"] .fSeg{background:var(--frenO);box-shadow:inset 0 0 0 3px var(--frenN),0 3px 0 var(--frenO),0 0 14px color-mix(in srgb,var(--fren) 70%,transparent)}
 html body #flowHud[data-lv="4"] .fSeg>i{background:color-mix(in srgb,var(--frenN) 75%,#000)}
@@ -8052,7 +8061,7 @@ Object.assign(I18N_ZH,{"À TOI": "已拥有"});
 Object.assign(I18N,{"Une pâtisserie industrielle avec une tête de chat et quatre roulettes. Personne n'a demandé pourquoi. Tout le monde a demandé comment.": "An industrial pastry with a cat's head and four little wheels. Nobody asked why. Everybody asked how.", "Bulle de verre, museau de grand blanc, quatre bras d'hélices repliés dans les flancs. Au sol il roule. En l'air, il chasse.": "Glass bubble, great-white snout, four propeller arms folded into its flanks. On the ground it drives. In the air, it hunts.", "Coin furtif, bulle de verre, dérive dorsale. La reine du ciel, et elle le sait. Personne ne l'a jamais vue de face.": "Stealth wedge, glass bubble, dorsal fin. Queen of the sky, and she knows it. No one has ever seen her from the front.", "Un aileron, un baquet, et tes économies peintes en doré. Le circuit appelle ça de la triche. Nous, du talent.": "One wing, one bucket seat, and your savings painted gold. The track calls it cheating. We call it talent.", "Prototype d'endurance : quatre phares longue portée, dérive dorsale, aileron de porte-avions. Faite pour rouler une nuit entière.": "Endurance prototype: four long-range lights, dorsal fin, aircraft-carrier wing. Built to drive all night.", "Le taureau doré, arche de toit bicolore et fer à cheval en calandre. L'assurance a été résiliée d'office.": "The golden bull, two-tone roof arch and horseshoe grille. The insurance was cancelled on sight.", "Compacte japonaise passée au bain d'acide : capot vitré sur le bloc, aileron de table à repasser, échappement qui crache vert.": "A Japanese compact dipped in acid: glass bonnet over the engine, ironing-board wing, exhaust that spits green."});
 Object.assign(I18N_ZH,{"MINI-TURBO": "迷你涡轮", "SUPER TURBO": "超级涡轮", "ULTRA TURBO": "极限涡轮"});
 Object.assign(I18N,{"RASE-BORD": "EDGE RIDER"});Object.assign(I18N_ZH,{"RASE-BORD": "贴边疾驰"});
-Object.assign(I18N,{"FRÉNÉSIE": "FRENZY", "FRÉNÉSIE !": "FRENZY!", "RESTE DANS LE ROUGE": "STAY IN THE RED"});Object.assign(I18N_ZH,{"FRÉNÉSIE": "狂热", "FRÉNÉSIE !": "狂热！", "RESTE DANS LE ROUGE": "守住红区"});
+Object.assign(I18N,{"FRÉNÉSIE": "FRENZY", "FRÉNÉSIE !": "FRENZY!", "RESTE DANS LE ROUGE": "STAY IN THE RED", "PLUS VITE !": "FASTER!", "RISQUE + VITESSE": "RISK + SPEED"});Object.assign(I18N_ZH,{"FRÉNÉSIE": "狂热", "FRÉNÉSIE !": "狂热！", "RESTE DANS LE ROUGE": "守住红区"});
 // ---- la charte v4 (2026-09-26) : les libellés neufs de l'interface (et ceux qui retombaient en français) ----
 Object.assign(I18N,{"COMMUNES":"COMMONS","COMMUNE":"COMMON","RARES":"RARES","ÉPIQUES":"EPICS","ÉPIQUE":"EPIC","LÉGENDES":"LEGENDS","LÉGENDAIRE":"LEGENDARY","DÉFIS":"CHALLENGES","TOUT":"ALL","À MOI":"MINE","À ACHETER":"FOR SALE","TRAÎNÉE":"TRAIL","PEINTURE":"PAINT","AILES":"WINGS"});
 Object.assign(I18N_ZH,{"COMMUNES":"普通","COMMUNE":"普通","RARES":"稀有","RARE":"稀有","ÉPIQUES":"史诗","ÉPIQUE":"史诗","LÉGENDES":"传奇","LÉGENDAIRE":"传奇","DÉFIS":"挑战","TOUT":"全部","À MOI":"已拥有","À ACHETER":"可购买","TRAÎNÉE":"尾迹","PEINTURE":"涂装","AILES":"翅膀"});
@@ -15555,7 +15564,7 @@ function driftTick(dt,on){
   }else if(!on&&driftC>0){
     if(driftLv>0){ // LE MINI-TURBO
       driftCd=.6+.3*driftLv;if(driftLv>=2)momT=4.3; // recharge ; et le SUPER/ULTRA rend la réserve de momentum que la glisse a vidée
-      boost=Math.max(boost,.35+.3*driftLv);vA+=6*driftLv;nitroGain(.16*driftLv);shake=Math.max(shake,.14*driftLv);flowAdd(9*driftLv);
+      boost=Math.max(boost,.35+.3*driftLv);vA+=6*driftLv;nitroGain(.16*driftLv);shake=Math.max(shake,.14*driftLv);flowAdd(9*driftLv,'style');
       fovPunch=Math.max(fovPunch,6+6*driftLv);                                   // le champ S'OUVRE d'un coup : on est PROPULSÉ
       if(driftLv===3){slowT=Math.max(slowT,.14);try{flashEl.style.background='#ff5ec8';flashEl.style.opacity=.35;setTimeout(function(){flashEl.style.opacity=0;flashEl.style.background='#ff2020';},90);}catch(e){}}
       try{boostSnd(1+.35*driftLv);if(driftLv>=2)crackle(.45+.2*driftLv);}catch(e){}hap([12,30,20]);
@@ -15590,28 +15599,101 @@ function n9Saut(o){const n=performance.now(),s9=n-(o._viseT||0)>200;o._viseT=n;r
    seule montée : chaque geste de style remplit la jauge ; la jauge monte par PALIERS — ×2, ×3, ×4, puis ×5 FRÉNÉSIE ;
    chaque palier multiplie les gains, pousse la caisse un peu plus vite, ouvre le champ et colore les bords de l'écran.
    Arrête d'avoir du style : elle retombe. Crash : elle tombe à zéro. On ne VISE plus un score, on CHERCHE un état. */
-const FLOW={v:0,lv:0,idle:0,aff:-1,tk:0};
+/* <<<FLOW2>>> ==================================================================
+   LE BARÈME DU FLOW v2 — « LE FLOW SE GAGNE AU BORD DU VIDE » (2026-09-28, Sacha : « pour l'instant il invite trop à rester
+   sur la route ; la frénésie DARK TRIAD doit inciter à faire des figures et prendre des raccourcis ; plus long à atteindre,
+   à partir d'une certaine vitesse ; jouissif d'y arriver et de la garder — sinon la musique s'arrête »).
+   MESURÉ AVANT (pilote auto, banc) : collé au bord de la route, sans un saut, FRÉNÉSIE en 11 s et gardée pour toujours (le
+   rase-bord versait 10 points/s ET remettait le répit à zéro) ; au centre, les pièces suffisaient à tenir la jauge.
+   LES QUATRE LOIS :
+   1. TROIS FAMILLES DE GESTES. La ROUTE (pièces, pads, lignes, rase-bord) CHAUFFE la jauge mais ne la couronne pas : elle
+      s'essouffle cellule après cellule et ne touche jamais la triade. Le STYLE (drift, frôlé, bump, radar…) monte bien,
+      puis faiblit dans la triade. Le RISQUE (figures en vol, raccourcis, poses parfaites, à l'arrachée, gaps) paie partout.
+   2. LA VITESSE MULTIPLIE TOUT. `vitN` = km/h ÷ croisière (1 ≈ croisière élan plein, ~1,3 en nitro) : ralenti, un geste
+      vaut un tiers ; en nitro, un tiers de plus. Et sous `gate`, la TRIADE ne se remplit PAS DU TOUT.
+   3. PLUS ON MONTE, PLUS ÇA BRÛLE. Une PENTE permanente dans le rose et la triade (même en enchaînant les petits gestes),
+      plus la FUITE classique passé le répit. Seuls le style et le risque rendent le répit — la route seulement sous le
+      FLOW II. EN VOL, RIEN NE FUIT : le vide retient le flow (c'est lui qui le fait vivre).
+   4. LA FRÉNÉSIE A FAIM, ET LA VITESSE LA NOURRIT. Sa brûlure est multipliée par la vitesse : en nitro elle fond 3× moins
+      vite qu'en croisière, et ralentir (pose écrasée, plot, drift raté) la vide 3× plus vite. Nourrie par le risque (et
+      un peu par le style) — jamais par la route.
+   ⚠ BLOC PUR : ne lit que ses arguments et FLOW2 — le banc de simulation l'exécute tel quel, hors du jeu. Tous les
+   réglages vivent dans FLOW2, nulle part ailleurs.
+   ========================================================================== */
+const FLOW2={
+  // efficacité des familles selon la cellule : 0 cyan · 1 or · 2 rose · 3 TRIADE (violet + zone rouge) · 4 en FRÉNÉSIE
+  fam:{route:[1,.5,.12,0,0],style:[1,1,.8,.35,.75],risque:[1,1,1,1,1.25]},
+  cel:[1,.8,.65,.5,.5],                  // chaque cellule demande plus de gestes que la précédente
+  vit:[[.6,.35],[1,1],[1.3,1.35]],       // (vitN, ×) — la vitesse multiplie tous les gains, interpolé entre les points
+  gate:.95,                              // sous 95 % de la croisière, la TRIADE ne prend RIEN
+  grace:2,                               // répit (s) après un geste de style/risque avant que la jauge fuie
+  fuite:[5,7,9,11],                      // fuite (/s) passé le répit, par cellule
+  pente:[0,0,1,2],                       // brûlure PERMANENTE (/s) : le rose et la triade se paient même en enchaînant
+  routeGarde:50,                         // la route ne rend le répit que sous le FLOW II
+  fren:{pente:1.2,fuite:2,grace:3,vit:[[.6,3],[.8,1.7],[1,1],[1.15,.55],[1.3,.3]]}
+};
+function flowInterp(P,x){if(x<=P[0][0])return P[0][1];for(let i=1;i<P.length;i++)if(x<=P[i][0]){const a=P[i-1],b=P[i];return a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);}return P[P.length-1][1];}
+function flowCel(v,lv){return lv===4?4:Math.min(3,Math.floor(v/25));}
+// ce que vaut VRAIMENT un geste `q` de famille `fam`, quand la jauge est à `v` (palier `lv`) et qu'on roule à `vitN`
+function flowGainDe(q,fam,v,lv,vitN){
+  const c=flowCel(v,lv),f=FLOW2.fam[fam]||FLOW2.fam.style;
+  if(c===3&&vitN<FLOW2.gate)return 0;
+  return q*f[c]*FLOW2.cel[c]*flowInterp(FLOW2.vit,vitN);
+}
+// ce geste rend-il le répit ?
+function flowGardeDe(fam,v){return fam!=='route'||v<FLOW2.routeGarde;}
+// ce que la jauge perd pendant `dt` (répit écoulé `idle`, en vol `air`)
+function flowPerteDe(dt,v,lv,idle,air,vitN){
+  if(air||!(dt>0))return 0;
+  if(lv===4){const F=FLOW2.fren;return dt*flowInterp(F.vit,vitN)*(F.pente+(idle>F.grace?F.fuite:0));}
+  const c=Math.min(3,Math.floor(v/25));
+  return dt*(FLOW2.pente[c]+(idle>FLOW2.grace?FLOW2.fuite[c]:0));
+}
+/* <<<FIN FLOW2>>> ========================================================== */
+// l'état du FLOW. vit = vitN du moment (km/h ÷ croisière), relue à chaque image par flowTick · revele = la triade s'est ouverte
+// dans cette partie · lentVu = « PLUS VITE » déjà dit · s0/p0 = d'où est parti le vol (pour reconnaître un RACCOURCI)
+const FLOW={v:0,lv:0,idle:0,aff:-1,tk:0,vit:1,vitF:null,revele:false,lentVu:false,s0:0,p0:new THREE.Vector3(),jr:null};
+/* LA VITESSE DU FLOW. Référence : la CROISIÈRE élan plein — mesurée au banc (pilote auto, gaz auto, sans nitro) à ≈2,9 × vmaxShow,
+   et ≈3,7 × en nitro. vitN ≈ 1 en croisière, ~1,3 en nitro, ~0,6 après une pose écrasée ou un plot. En vol : la vitesse HORIZONTALE
+   (on ne gonfle pas la triade en tombant tout droit). `FLOW.vitF` force la valeur (banc, dbgFren('vit',x)). */
+const FLOW_VREF=2.9;
+function flowVitN(){
+  if(FLOW.vitF!=null)return FLOW.vitF;
+  const vm=vmaxShow()*FLOW_VREF;if(!(vm>0))return 1;
+  const v=mode==='fall'?Math.sqrt(fallVel.x*fallVel.x+fallVel.z*fallVel.z):Math.abs(vA);
+  return v*3.6*SPD/vm;
+}
 const FLOW_COL=['#ffffff','#5ee6ff','#ffd75e','#ff5ec8','#ff2a3d']; // [4] = la FRÉNÉSIE, ROUGE (2026-09-28, Sacha) — elle était violette
 const FLOW_CEL=['#5ee6ff','#ffd75e','#ff5ec8','#b58cff'];            // les quatre cellules de la jauge (la 4e garde son violet : le ROUGE est réservé à la zone)
 /* LA ZONE ROUGE (2026-09-28, Sacha : « une petite part rouge dans la barre de flow — une zone de tolérance pour rester en frénésie
    plus souvent »). Une HYSTÉRÉSIS qu'on VOIT : on ENTRE en FRÉNÉSIE en remplissant la jauge jusqu'au bout (100, inchangé) ; on y
    RESTE tant que le remplissage ne repasse pas sous `FREN.seuil`. Les 12 derniers points de la jauge sont peints en rouge dès le
-   départ — c'est la marge qu'on a le droit de brûler — et dans la zone la fuite est RETENUE (×`FREN.retient`) : sans le moindre
-   geste de style, la frénésie tenait 1,8 s ; elle en tient ~3,6 (1,8 s de répit + 12 points à 6,75/s). Elle ne rapporte pas un sou
-   de plus : elle DURE, c'est tout (c'est ce que réclamera le morceau qui lui sera dédié). `flowLvDe` est le SEUL calcul du palier. */
-const FREN={seuil:88,retient:.45,acc:0,scT:0,brT:0,k:false,vu:false,el:null,hS:0};
+   départ — c'est la marge qu'on a le droit de brûler. (FLOW v2, même nuit) Ce qu'elle coûte à tenir vit dans `FLOW2.fren` : une
+   brûlure permanente que la VITESSE module (en nitro ~3× moins, ralenti ~3× plus), la fuite passé le répit — et rien en vol.
+   `flowLvDe` est le SEUL calcul du palier. */
+const FREN={seuil:88,acc:0,scT:0,brT:0,k:false,vu:false,appris:false,el:null,hS:0};
 function flowLvDe(v){const b=Math.min(4,Math.floor(v/25));return (FLOW.lv===4&&v>=FREN.seuil)?4:b;}
 function flowMult(){return ECO3.flow[FLOW.lv]||1;}          // ×1 · ×1,3 · ×1,5 · ×1,8 · ×2 sur l'argent (vague 3 : c'était +0,5 par palier, jusqu'à ×3 — voir ECO3)
-function flowAdd(q){
+/* flowAdd(q, famille) — `q` est la valeur BRUTE du geste ; la famille ('route' · 'style' · 'risque', style par défaut) et le
+   barème FLOW2 disent ce qu'il vaut VRAIMENT ici, à cette vitesse. */
+function flowAdd(q,fam){
   if(!(q>0)||!started||gameOver||PARK.on)return;
-  FLOW.v=Math.min(100,FLOW.v+q);FLOW.idle=0;
-  if(FLOW.lv===4){frenNourrit(q);return;}   // déjà en FRÉNÉSIE : chaque goutte de style fait SCINTILLER la jauge (et cogne dans l'emblème)
+  fam=fam||'style';
+  const v0=FLOW.v,g=flowGainDe(q,fam,v0,FLOW.lv,FLOW.vit);
+  if(FLOW.jr){FLOW.jr.push([+(performance.now()/1000).toFixed(2),fam,+q.toFixed(2),+g.toFixed(2),+v0.toFixed(1),+FLOW.vit.toFixed(2)]);if(FLOW.jr.length>80)FLOW.jr.shift();} // journal : seulement quand dbgFren('journal') l'a ouvert
+  if(!(g>0)){ // refusé. Dans la TRIADE sous la vitesse, le jeu le DIT — une fois par partie, et jamais pour une pièce
+    if(fam!=='route'&&FLOW.lv<4&&v0>=75&&FLOW.vit<FLOW2.gate&&!FLOW.lentVu){FLOW.lentVu=true;popTexte('PLUS VITE !',FLOW_COL[4],1);}
+    return;}
+  FLOW.v=Math.min(100,v0+g);if(flowGardeDe(fam,v0))FLOW.idle=0;
+  if(FLOW.lv===4){frenNourrit(g);return;}   // déjà en FRÉNÉSIE : chaque goutte de style fait SCINTILLER la jauge (et cogne dans l'emblème)
   const lv=flowLvDe(FLOW.v);
   if(lv>FLOW.lv){FLOW.lv=lv;
     // (HUD v4) le palier se lit SUR la caisse avec ce qu'il vaut en cash ; la FRÉNÉSIE, elle, prend le couloir des annonces —
     // et la toute première de la session APPREND la zone rouge au lieu de redire le × que la jauge affiche déjà
     if(lv===4){slam('FRÉNÉSIE !',FREN.vu?'CASH ×'+fmtMul(flowMult()):'RESTE DANS LE ROUGE',FLOW_COL[4],'#ffb000',44,2,22);FREN.vu=true;flashEcran('rgba(255,42,61,.6)');
-      try{annSpeak('frenesie',5,true);}catch(e){}} // (2026-09-28, Sacha : « ça doit déclencher la voix TRIPLE MONSTRE quand la frénésie est atteinte ») — à chaque fois, hors règle du 1/3 ; l'interrupteur VOIX reste maître
+      try{annSpeak('frenesie',5,true);}catch(e){} // (2026-09-28, Sacha : « ça doit déclencher la voix TRIPLE MONSTRE quand la frénésie est atteinte ») — à chaque fois, hors règle du 1/3 ; l'interrupteur VOIX reste maître
+      try{frenMus(true);}catch(e){}} // …et SON morceau tombe (THE DARK TRIAD — voir MUSIC_FREN)
+    else if(lv>=3&&!FLOW.revele)flowRevele(); // la rose est pleine : la TRIADE s'ouvre (et c'est elle qu'on annonce, pas « FLOW III »)
     else popTexte(FLOW_NOM[lv]+' · $×'+fmtMul(flowMult()),FLOW_COL[lv],1);
     flowPunch();
     hap(lv===4?[20,40,20,40,40]:[12,30,16]);try{flowSnd(lv);}catch(e){}
@@ -15633,6 +15715,19 @@ function frenNourrit(q){
 /* L'EMBLÈME « THE DARK TRIAD » (#triade) : il NAÎT de la zone rouge — parti du bout de la jauge, il vient CLAQUER à sa place (onde de
    choc, braises), puis tourne deux tours à gauche, deux tours à droite, en frappant au départ de chaque double tour ; il tremble quand
    la zone lâche ; il meurt en vrillant quand la frénésie tombe. Tout est en CSS : le JS ne pose que trois classes (.on/.sort/.tremble). */
+/* LA TRIADE S'OUVRE (2026-09-28, Sacha : « la barre violette pâle et rouge doit être cachée au début et ne se révéler que quand la
+   partie rose est pleine »). La jauge démarre en TROIS cellules ; la rose pleine, la 4e s'ouvre — les trois autres se serrent pour lui
+   faire place — et le jeu pose la règle de la triade : RISQUE + VITESSE (la 1re fois de la session ; ensuite, juste son nom). Elle
+   reste ouverte jusqu'à la fin de la partie : on sait ce qu'on chasse. */
+function flowRevele(){
+  FLOW.revele=true;FLOW.aff=-1;
+  const h=FLOW.el;
+  if(h){h.classList.add('revele','ouvre');clearTimeout(flowRevele._t);flowRevele._t=setTimeout(function(){h.classList.remove('ouvre');},700);
+    try{pixBurst(h.querySelector('.fSeg>i:nth-child(4)'),10);}catch(e){}}
+  popTexte(FREN.appris?'DARK TRIAD':'RISQUE + VITESSE',FLOW_COL[4],2);FREN.appris=true;
+  try{subBoom(.14);chimeNote(noteP(0,0),.05,.07,.6);}catch(e){}
+  hap([10,40,10]);
+}
 function frenEl(){return FREN.el||(FREN.el=document.getElementById('triade'));}
 function frenEntre(){
   const tr=frenEl();if(!tr)return;
@@ -15651,7 +15746,10 @@ function frenSort(){
   tr.classList.remove('on','bat1','bat2','tremble');tr.classList.add('sort');
   clearTimeout(FREN.hS);FREN.hS=setTimeout(function(){tr.classList.remove('sort');},440);
 }
-function flowReset(){FLOW.v=0;FLOW.lv=0;FLOW.idle=0;FLOW.tk=0;FLOW.aff=-1;FREN.acc=0;}
+function flowReset(){
+  if(FLOW.lv===4)try{frenMus(false);}catch(e){} // la frénésie meurt avec la caisse (ou la partie) : son morceau aussi
+  FLOW.v=0;FLOW.lv=0;FLOW.idle=0;FLOW.tk=0;FLOW.aff=-1;FREN.acc=0;
+  FLOW.revele=false;FLOW.lentVu=false;if(FLOW.el)FLOW.el.classList.remove('revele','ouvre','lent');}
 function flowDropSnd(lv){ // (2026-09-25) le palier PERDU : son accord redescend, deux notes douces — on informe, on ne punit pas
   if(!(lv>0))return;const I=FLOW_ACC[lv];
   chimeNote(noteP(I[2],1),0,.05,.12);chimeNote(noteP(I[0],1),.09,.045,.22);
@@ -15665,7 +15763,7 @@ const FROLE={n:0,t:0,s0:null};
 function frole(c9,dl,k){
   k=k||1;c9.frole=true;const pres=Math.max(0,Math.min(1,1-(dl-1.6)/2)); // 1 = rasé de près, 0 = large (3,6 m) · k : plots frôlés dans la même image (une PORTE)
   FROLE.n+=k;FROLE.t=1.4;
-  nitroGain((.08+.08*pres)*(k>1?1.5:1));flowAdd((4+4*pres)*(k>1?1.5:1)); // ×1,5 (et non ×2) : la porte paie plus sans gonfler le FLOW
+  nitroGain((.08+.08*pres)*(k>1?1.5:1));flowAdd((4+4*pres)*(k>1?1.5:1),'style'); // ×1,5 (et non ×2) : la porte paie plus sans gonfler le FLOW
   momT=Math.min(4.3,momT+.6); // (momentum v2) le style NOURRIT la réserve de vitesse
   try{chaineAura(FROLE.n>=2?'SLALOM ×'+FROLE.n:'FRÔLÉ',20,'frole');}catch(e){} // sans titre : l'aura monte en silence, le pop ci-dessous parle déjà
   popTexte(k>1?'PORTE !':FROLE.n>=2?'SLALOM ×'+FROLE.n:'FRÔLÉ !',k>1||FROLE.n>=3?'#ffd75e':'#7dffec');
@@ -15673,22 +15771,34 @@ function frole(c9,dl,k){
   hap(FROLE.n>=3?[8,20,8]:8);fovPunch=Math.max(fovPunch,1.5+2*pres);
   try{sparkBurst(sparkBlue,c9.mesh.position,3+Math.round(3*pres),5);}catch(e){}
 }
+// combien de secondes avant de perdre le palier, si on ne nourrit plus (répit, pente, fuite — le même barème que la perte)
+function flowReste(){
+  const fr9=FLOW.lv===4,m=FLOW.v-(fr9?FREN.seuil:FLOW.lv*25);if(m<=0)return 0;
+  const G=fr9?FLOW2.fren.grace:FLOW2.grace,tG=Math.max(0,G-FLOW.idle);
+  const rG=flowPerteDe(1,FLOW.v,FLOW.lv,0,false,FLOW.vit),rF=Math.max(.01,flowPerteDe(1,FLOW.v,FLOW.lv,G+1,false,FLOW.vit));
+  if(rG*tG>=m)return rG>0?m/rG:tG;
+  return tG+(m-rG*tG)/rF;
+}
 function flowTick(dt){
   if(!started||gameOver)return;
-  FLOW.idle+=dt;
-  const fr9=FLOW.lv===4,fuite=(7+FLOW.lv*2)*(fr9?FREN.retient:1); // plus on est haut, plus il faut NOURRIR — sauf dans la ZONE ROUGE, qui retient
-  if(FLOW.idle>1.8)FLOW.v=Math.max(0,FLOW.v-dt*fuite);
+  FLOW.vit=flowVitN();
+  const air=mode==='fall';
+  if(!air)FLOW.idle+=dt; // EN VOL, LE RÉPIT NE S'ÉCOULE PAS : le vide retient le flow (c'est lui qui le fait vivre)
+  const fr9=FLOW.lv===4;
+  FLOW.v=Math.max(0,FLOW.v-flowPerteDe(dt,FLOW.v,FLOW.lv,FLOW.idle,air,FLOW.vit));
   const lv=flowLvDe(FLOW.v);
   // (2026-09-25) LE FLOW PRÉVIENT AVANT DE LÂCHER : un tic qui ACCÉLÈRE quand il reste moins d'1,1 s avant de perdre le palier (au sol
   // seulement : en vol on ne peut rien nourrir). Nourrir (pièce, drift, frôlé…) remet idle à 0 : le tic se tait tout seul.
   // En FRÉNÉSIE, le plancher n'est plus 100 mais le bord de la zone rouge.
   let rest=9;
   if(FLOW.lv>0&&mode==='drive'){
-    rest=Math.max(0,1.8-FLOW.idle)+Math.max(0,FLOW.v-(fr9?FREN.seuil:FLOW.lv*25))/fuite;
+    rest=flowReste();
     FLOW.tk-=dt;
     if(rest<1.1&&FLOW.tk<=0){FLOW.tk=.1+.3*rest;try{chimeNote(noteP(FLOW_ACC[FLOW.lv][0],2),0,.025,.05);}catch(e){}hap(4);}
   }
-  if(lv<FLOW.lv){try{flowDropSnd(FLOW.lv);}catch(e){}hap(fr9?[10,30,10,30,24]:[6,30,6]);FLOW.lv=lv;FLOW.tk=0;}
+  if(lv<FLOW.lv){try{flowDropSnd(FLOW.lv);}catch(e){}hap(fr9?[10,30,10,30,24]:[6,30,6]);FLOW.lv=lv;FLOW.tk=0;
+    if(fr9){FLOW.idle=0;try{frenMus(false);}catch(e){}}} // la frénésie lâche : SON MORCEAU S'ÉTRANGLE — c'est ça qu'on ne veut plus jamais entendre ; et la jauge
+                                                          // ne s'effondre pas dans la même seconde : 2 s de répit (la pente seule) pour la voir tomber, et tenter de la reprendre
   flowHudMaj(rest);
 }
 /* (HUD v4) LA BANDE DU FLOW — la pilule de 9 px qu'on ne lisait pas est devenue une bande PLEINE LARGEUR sous la jauge de nitro.
@@ -15704,8 +15814,9 @@ function flowPunch(){const h=FLOW.el;if(!h)return;
   const c9=FLOW.lv===4?'embrase':'monte';h.classList.remove('monte','embrase');void h.offsetWidth;h.classList.add(c9);
   if(FLOW.lv>=2)try{pixBurst(h.querySelector(FLOW.lv===4?'.fZ':'.fSeg'),6+FLOW.lv*3);}catch(e){}}
 function flowHudMaj(rest){
-  const fuit=FLOW.v>0&&mode==='drive'&&FLOW.idle>1.8,lache=fuit&&FLOW.lv>0&&rest<1.1,pres=FLOW.lv<4&&FLOW.v%25>20;
-  const k=Math.round(FLOW.v*2)+'|'+FLOW.lv+'|'+(fuit?1:0)+(lache?1:0)+(pres?1:0);if(FLOW.aff===k)return;FLOW.aff=k;
+  const fuit=FLOW.v>0&&mode==='drive'&&FLOW.idle>(FLOW.lv===4?FLOW2.fren.grace:FLOW2.grace),lache=fuit&&FLOW.lv>0&&rest<1.1,pres=FLOW.lv<4&&FLOW.v%25>20;
+  const lent=FLOW.revele&&FLOW.lv<4&&FLOW.vit<FLOW2.gate; // la triade GÈLE sous sa vitesse : elle ne prendra rien tant qu'on n'accélère pas
+  const k=Math.round(FLOW.v*2)+'|'+FLOW.lv+'|'+(fuit?1:0)+(lache?1:0)+(pres?1:0)+(lent?1:0)+(FLOW.revele?1:0);if(FLOW.aff===k)return;FLOW.aff=k;
   let h=FLOW.el;
   if(!h){h=FLOW.el=document.createElement('div');h.id='flowHud';h.className='on';h.setAttribute('aria-hidden','true');
     // la 4e cellule porte la ZONE ROUGE (.fZ) : son propre remplissage rouge, par-dessus le violet, et le cran du seuil
@@ -15721,6 +15832,7 @@ function flowHudMaj(rest){
     i9.classList.toggle('cur',j===cur);}
   FLOW.zs.style.setProperty('--f',zf.toFixed(3));
   h.classList.toggle('dansZ',zf>0);h.classList.toggle('fuit',fuit);h.classList.toggle('lache',lache);h.classList.toggle('presque',pres);
+  h.classList.toggle('revele',FLOW.revele);h.classList.toggle('lent',lent);
   const tr=frenEl();if(tr){tr.classList.toggle('tremble',FLOW.lv===4&&lache);tr.classList.toggle('froid',FLOW.lv===4&&fuit&&!lache);}
   if(FLOW.lvAff!==FLOW.lv){const av=FLOW.lvAff;FLOW.lvAff=FLOW.lv;h.style.setProperty('--fc',FLOW_COL[FLOW.lv]);h.dataset.lv=FLOW.lv;
     h.querySelector('.fL').textContent=sansAcc(TR(FLOW_NOM[FLOW.lv]));h.querySelector('.fM').textContent='$×'+fmtMul(flowMult());
@@ -18798,6 +18910,7 @@ function musicSuitLieu(){
   const v=musicLieuVoulu();
   if(v===musicLieu)return;
   musicLieu=v;
+  if(FRENM.sw){FRENM.src='';return;} // en pleine FRÉNÉSIE : son morceau garde l'antenne — à la sortie, on reprendra sur celui du nouveau lieu
   if(v){NIVEAU_FX=2.6;musicPlayCurrent();try{lvlBlast();}catch(e){}}
   else{try{musicNext();}catch(e){}}
 }
@@ -18858,7 +18971,8 @@ function musicElGet(){
     musicEl.addEventListener('ended',function(){if(musicMode==='run'&&!musicLieu)musicNext();}); // la radio enchaîne (les morceaux de LIEU bouclent)
     musicEl.addEventListener('playing',function(){musicOn=true;musicEnAttente=false;musicAnalyse();});
     musicEl.addEventListener('pause',function(){musicOn=false;});
-    musicEl.addEventListener('error',function(){console.warn('musique : fichier illisible',musicEl.currentSrc||musicEl.src);
+    musicEl.addEventListener('error',function(){if(FRENM.sw){frenMusRate();return;} // le morceau de la TRIADE manque : on repart sur la radio, surmultipliée
+      console.warn('musique : fichier illisible',musicEl.currentSrc||musicEl.src);
       if(musicMode==='run'&&!musicLieu)setTimeout(musicNext,400);});
   }
   return musicEl;
@@ -18951,6 +19065,7 @@ function musicNext(){
 }
 function musicStop(tape){ // fin de partie : « tape-stop » (la bande ralentit et s'éteint) ou coupure nette
   musicMode='none';musicVoulue=false;
+  clearInterval(FRENM.iv);FRENM.on=false;FRENM.sw=false;FRENM.surm=false; // la frénésie ne survit pas à la partie
   const el=musicEl;
   if(!el||el.paused||!tape){stopMusic();return;}
   let r=1,v=musicVolCour;
@@ -18959,6 +19074,62 @@ function musicStop(tape){ // fin de partie : « tape-stop » (la bande ralentit 
     try{el.playbackRate=Math.max(.12,r);el.volume=Math.max(0,Math.min(1,v));}catch(e){}
     if(r<=.12){clearInterval(iv);try{el.pause();el.playbackRate=1;el.preservesPitch=true;el.webkitPreservesPitch=true;}catch(e){}musicOn=false;}},55);
 }
+/* ---- LA MUSIQUE DE LA FRÉNÉSIE — « THE DARK TRIAD » (2026-09-28, Sacha : « une musique qui sera très cool… jouissif d'y arriver et
+   de la garder, sinon la musique cool s'arrête »). La frénésie a SON morceau : on y entre, il TOMBE (du début, ou de `drop` secondes
+   s'il a une montée à sauter) ; on la perd, il S'ÉTRANGLE (tape-stop de 0,4 s) et la radio reprend EXACTEMENT où elle en était.
+   MÊME lecteur que tout le reste : l'<audio> unique, libéré au premier toucher — iOS le laisse changer de source hors d'un geste,
+   alors qu'un second élément lancé en pleine course y serait refusé.
+   ⚠ LE FICHIER N'EST PAS ENCORE LIVRÉ : Sacha le posera à `MUSIC_FREN.f` (mp3, nom en ASCII sans espace — une URL mal encodée ne
+   plante pas, elle se tait). Tant qu'il manque (sondé une fois, et rattrapé si la lecture échoue quand même), la frénésie joue le
+   morceau EN COURS « SURMULTIPLIÉ » : un demi-ton plus haut et 6 % plus vite, qui retombe à sa vitesse quand on la perd — on entend
+   déjà ce qu'on gagne et ce qu'on perd. `surm:1` éteint ce repli. */
+const MUSIC_FREN={titre:'THE DARK TRIAD',f:'assets/audio/music/dark-triad.mp3',drop:0,surm:1.06};
+const FRENM={on:false,ok:null,sw:false,surm:false,src:'',t:0,loop:false,iv:0};
+function frenMusSonde(){ // le fichier est-il là ? (une fois — une réponse muette, comme sur iPhone, laisse la question ouverte)
+  if(FRENM.ok!==null||!MUSIC_FREN.f)return;
+  try{const a=document.createElement('audio');a.preload='metadata';a.muted=true;
+    a.addEventListener('loadedmetadata',function(){FRENM.ok=true;a.removeAttribute('src');},{once:true});
+    a.addEventListener('error',function(){FRENM.ok=false;},{once:true});a.src=MUSIC_FREN.f;}catch(e){FRENM.ok=false;}
+}
+function frenMusVit(el,cible,ms,fin){ // la bande accélère ou ralentit (sans garder la hauteur : c'est tout l'effet)
+  clearInterval(FRENM.iv);
+  try{el.preservesPitch=false;el.webkitPreservesPitch=false;}catch(e){}
+  let r0=el.playbackRate||1,k=0;const n=Math.max(1,Math.round(ms/40));
+  FRENM.iv=setInterval(function(){k++;const r=r0+(cible-r0)*Math.min(1,k/n);try{el.playbackRate=Math.max(.12,r);}catch(e){}
+    if(k>=n){clearInterval(FRENM.iv);if(fin)fin();}},40);
+}
+function frenMusRetour(el){ // la radio reprend où elle en était (ou sur le morceau du lieu, s'il a changé pendant la frénésie)
+  try{el.playbackRate=1;el.preservesPitch=true;el.webkitPreservesPitch=true;}catch(e){}
+  if(musicMode!=='run'||gameOver)return; // fin de partie : musicStop / musicMenu ont la main
+  if(!FRENM.src){musicPlayCurrent();return;}
+  el.loop=FRENM.loop;el.src=FRENM.src;const t=FRENM.t;
+  el.addEventListener('loadedmetadata',function(){try{el.currentTime=t;}catch(e){}},{once:true});
+  musicVoulue=true;musicJoue();
+}
+function frenMusRate(){ // le morceau de la triade a échoué : retour radio, puis le repli surmultiplié si la frénésie tient toujours
+  FRENM.ok=false;FRENM.sw=false;const el=musicElGet();frenMusRetour(el);
+  if(FRENM.on&&MUSIC_FREN.surm>1){FRENM.surm=true;frenMusVit(el,MUSIC_FREN.surm,300);}
+}
+function frenMus(on){
+  if(on===FRENM.on)return;FRENM.on=on;
+  const el=musicEl;
+  if(on){
+    if(!SND.music||musicMode!=='run'||!el)return;
+    if(MUSIC_FREN.f&&FRENM.ok!==false){ // LE MORCEAU TOMBE
+      clearInterval(FRENM.iv);
+      FRENM.src=el.src;FRENM.t=el.currentTime||0;FRENM.loop=el.loop;FRENM.sw=true;
+      try{el.playbackRate=1;el.preservesPitch=true;el.webkitPreservesPitch=true;}catch(e){}
+      el.loop=true;el.src=MUSIC_FREN.f;
+      if(MUSIC_FREN.drop>0)el.addEventListener('loadedmetadata',function(){try{el.currentTime=MUSIC_FREN.drop;}catch(e){}},{once:true});
+      musicVoulue=true;musicJoue();try{lvlBlast();}catch(e){}
+    }else if(MUSIC_FREN.surm>1){FRENM.surm=true;frenMusVit(el,MUSIC_FREN.surm,300);} // le repli : la radio S'EMBALLE
+    return;}
+  if(!el){FRENM.sw=false;FRENM.surm=false;return;}
+  if(FRENM.sw){FRENM.sw=false; // IL S'ÉTRANGLE, puis la radio revient
+    frenMusVit(el,.12,400,function(){frenMusRetour(el);});}
+  else if(FRENM.surm){FRENM.surm=false;frenMusVit(el,1,450,function(){try{el.preservesPitch=true;el.webkitPreservesPitch=true;}catch(e){}});} // la radio RETOMBE
+}
+setTimeout(function(){try{frenMusSonde();}catch(e){}},2500);
 // la pause du jeu met la musique en pause (et la reprend) — elle ne passe plus par l'AudioContext suspendu
 function musicPause(p){try{if(!musicEl)return;if(p){if(!musicEl.paused)musicEl.pause();}else if(musicVoulue)musicJoue();}catch(e){}}
 /* <<<FOND>>> ==================================================================
@@ -22004,9 +22175,12 @@ window.dbgFren=function(k,n){
     else if(FLOW.lv<4)FLOW.lv=Math.min(3,Math.floor(FLOW.v/25));              // les paliers ordinaires : posés sans annonce
     flowTick(0);}
   else if(k==='nourrit')flowAdd(n==null?3:n);
+  else if(k==='risque'||k==='route'||k==='style')flowAdd(n==null?10:n,k);   // un geste d'une famille : dbgFren('risque',12)
+  else if(k==='vit')FLOW.vitF=n==null?null:+n;                                 // forcer la vitesse du flow (null = la vraie)
+  else if(k==='journal'){if(n===0){FLOW.jr=null;return 'journal fermé';}FLOW.jr=FLOW.jr||[];return FLOW.jr.slice();}
   else if(k==='idle'){FLOW.idle=n==null?2.5:n;flowTick(0);}
   const tr=frenEl();
-  return {v:+FLOW.v.toFixed(2),lv:FLOW.lv,seuil:FREN.seuil,zone:+Math.max(0,Math.min(1,(FLOW.v-FREN.seuil)/(100-FREN.seuil))).toFixed(3),
+  return {v:+FLOW.v.toFixed(2),lv:FLOW.lv,vit:+FLOW.vit.toFixed(2),revele:FLOW.revele,musique:FRENM.sw?'triade':FRENM.surm?'surmultipliee':'radio',seuil:FREN.seuil,zone:+Math.max(0,Math.min(1,(FLOW.v-FREN.seuil)/(100-FREN.seuil))).toFixed(3),
     idle:+FLOW.idle.toFixed(2),triade:tr?tr.className:null,hud:FLOW.el?FLOW.el.className:null};
 };
 function avGainPop(petit,grand,perdu){
@@ -22320,6 +22494,9 @@ function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent dé
   else if(id==='dauphin')chaineAura('DAUPHIN',80,'dauphin',false,true);
   else if(id==='bump')chaineAura(bounceN>1?'BUMP ×'+bounceN:'BUMP',30,'bump',true,true);
   else chaineAura(String(txt).split(' — ')[0],40,id,false,true);
+  // (FLOW v2) LE RISQUE NOURRIT LE FLOW EN DIRECT : en l'air la jauge monte PENDANT qu'on vrille (et le vide ne la fait pas fuir).
+  // La vrille paie par demi-tour ; les autres selon leur rang, et la redite s'use comme dans la mallette (×0,6).
+  if(mode==='fall'&&!free)flowAdd(id==='vrille'?4:(tier===3?12:tier===2?9:6)*Math.pow(.6,n-1),'risque');
   if(!free){ // une figure gratuite ne touche NI la mallette (chainVal) NI le multiplicateur NI l'échelle
     chainVal+=raw?val:val*Math.pow(.6,n-1);
     chainMult+=n===1?.5:.15;
@@ -22493,6 +22670,7 @@ function startFall(impU,impF){
   frameAt(s,F);
   if(side<0){F.n.multiplyScalar(-1);F.b.multiplyScalar(-1);}
   fallPos.copy(F.p).addScaledVector(F.b,lat).addScaledVector(F.n,(side<0?THICK:0)+.6);
+  FLOW.s0=s;FLOW.p0.copy(fallPos); // (FLOW v2) d'où part le vol — la pose dira si c'était un RACCOURCI
   fallVel.copy(F.t).multiplyScalar(vA*driveDir*(impF||1)).addScaledVector(F.b,vL*driveDir).addScaledVector(F.n,impU||.9); // driveDir : on décolle dans le sens où l'on roulait (le parc autorise les deux)
   // INERTIE RÉELLE (2026-07-20) : fini le plafond TOTAL de 95 qui bridait l'éjection — éjecté à
   // 300 km/h, on VOLE à 300 km/h (le compteur ne s'effondre plus au décollage), et la gravité en
@@ -22598,7 +22776,7 @@ function tryLand(dt){
     sideCd=.35;
     // ---- BUMP / DOUBLE BUMP / TRIPLE BUMP : figure GRATUITE (compte pour le HUD/style, zéro dollar) ----
     bounceN++;runStats.bumps++;
-    hap(24);nitroGain(.35);flowAdd(6); // LE BUMP RECHARGE (2026-09-25, demande du user) : un quart de cellule… de plus à chaque rebond
+    hap(24);nitroGain(.35);flowAdd(6,'style'); // LE BUMP RECHARGE (2026-09-25, demande du user) : un quart de cellule… de plus à chaque rebond
     fallT=Math.max(0,fallT-AIR_MAX*.5);fallTR=Math.max(0,fallTR-AIR_MAX*.5);airFlash=.6; // DEMI-JAUGE d'airtime rendue (sim + réelle)
     addTrick('bump',bounceN===1?'BUMP':bounceN===2?'DOUBLE BUMP':bounceN===3?'TRIPLE BUMP — LA DALLE EN PLEURE':'MEGA BUMP x'+bounceN+' 💥',
       0,Math.min(3,bounceN),true,true); // free=true : le bump NE PAYE PLUS (fini la machine à cash en longeant la tranche) — il rend l'airtime et le style, c'est tout
@@ -22664,6 +22842,7 @@ function tryLand(dt){
     if(reste>0&&reste<=.30){
       const extreme=reste<=.10;
       chaineAura(extreme?'AU CHEVEU':'ARRACHÉE',extreme?220:120,'cheveu');
+      flowAdd(extreme?20:12,'risque'); // (FLOW v2) le geste le plus tendu du jeu : on a joué avec la mort — la triade adore
       if(TCTL.on)popTexte(extreme?'AU CHEVEU !!':'ARRACHÉE !','#ff5ec8',3); // (2026-09-25) le geste le plus tendu du jeu se LIT aussi sur téléphone
       trickMsg(extreme?'⏱ AU CHEVEU — '+reste.toFixed(2)+' s !!':'⏱ À L\'ARRACHÉE — '+reste.toFixed(2)+' s',3);
       if(extreme){hitT=.10;shake=Math.max(shake,.5);try{fxWow(9);}catch(e){}} // le WOW est mérité : on a joué avec la mort
@@ -22686,12 +22865,13 @@ function tryLand(dt){
     if(g>=1.5)momT=Math.max(momT,3);else if(g<1)momT*=.5; // (momentum v2) PARFAIT relance la vitesse, POSÉ LOURD en coûte la moitié
     if(g<1){try{clank9(0,190,.12);clank9(.05,135,.09);}catch(e){}} // (2026-09-25) POSÉ LOURD : la TÔLE, sans carillon
     const snaked=fallUnder&&sideL===fallStartSide; // SNAKE LOOP v2 : passé SOUS la route, reposé face de départ
-    if(snaked){chainVal+=14;chainMult+=.5;serpShow=2.6;} // la figure paye sa part + LE SERPENT néon se love autour de la caisse
+    if(snaked){chainVal+=14;chainMult+=.5;serpShow=2.6;flowAdd(15,'risque');} // la figure paye sa part + LE SERPENT néon se love autour de la caisse
     // GAP FRANCHI : le vol vient d'une CATAPULTE et il a vraiment traversé — le grand geste de la zone se paye
     const gapOk=gapArmed>0&&fallT>.9;
     if(gapOk){
       chainVal+=gapArmed===3?26:(gapArmed===2?20:16);chainMult+=.6;
       runStats.gaps++; // compté pour les DÉFIS de déblocage (cumul à vie, versé dans endGame)
+      flowAdd(gapArmed===3?18:12,'risque');
       trickMsg(gapArmed===3?'🚀 DOUBLE GAP — MONSTRUEUX !':'🚀 GAP FRANCHI !',3);
     }
     if(Math.abs(latOff)<ROAD_HALF*.3){chainVal+=4;chainMult+=.2;trickMsg('PILE AU CENTRE 🎯',false);} // posé sur l'axe
@@ -22707,7 +22887,7 @@ function tryLand(dt){
     if(gain>0){ // l'airtime brut ne rapporte RIEN : sans chaîne à casher, la pose est muette
       money+=gain;levelCash+=gain;checkUpgrade();
       if(g>=1.5)RUNX.perfect++; // CONTRATS : une pose PARFAITE qui encaisse une figure
-      flowAdd(g>=1.5?14:7); // FLOW : une figure encaissée nourrit la montée (parfaite : le double)
+      flowAdd(g>=2?14:g>=1.5?10:4,g>=1.5?'risque':'style'); // FLOW : une figure encaissée nourrit la montée — la pose PARFAITE est un RISQUE (on a visé), l'ordinaire du style
       nitroGain(Math.min(1.2,.45+chainMult*.12)*(g>=1.5?1.5:1)); // LA FIGURE RECHARGE LE NITRO — plus la chaîne est longue, plus ça remplit ; une pose parfaite ×1,5
       // LA CAISSE ENREGISTREUSE : seulement sur un ENCAISSEMENT QUI COMPTE. Sur chaque pose,
       // meme minuscule, le son deviendrait un tic — et 9 samples n'y changeraient rien.
@@ -22738,6 +22918,10 @@ function tryLand(dt){
     }
     if(fallT>2)slowT=.35; // slow-mo savoureux sur les gros airs
   }
+  // (FLOW v2) LE RACCOURCI, DANS TOUS LES MODES : la piste parcourue entre le décollage et la pose, moins la distance VOLÉE en ligne
+  // droite — un saut ordinaire donne ~0 (la route suit le vol), couper une boucle ou tomber sur la dalle d'en dessous donne des centaines
+  // de mètres. C'est le geste que la triade réclame : on triche, et ça paie.
+  if(!PARK.on){const gagne=(s-FLOW.s0)-FLOW.p0.distanceTo(fallPos);if(gagne>=60)flowRaccourci(gagne);}
   chainHud.style.opacity=0;
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;
   gapArmed=0; // la catapulte est encaissée : le prochain vol repart vierge
@@ -23822,9 +24006,9 @@ function campNuages(cr){
   }
 }
 function campBancSorti(c){ // on vient de ressortir d'un banc dessiné
-  if(c.show&&!CAMP.banc1){CAMP.banc1=true;slam('PERCE-NUAGE !','',  '#ffffff','#9fe8ff',38,2,14);flowAdd(14);try{chaineAura('PERCE-NUAGE',60,'nuage');}catch(e){}}
+  if(c.show&&!CAMP.banc1){CAMP.banc1=true;slam('PERCE-NUAGE !','',  '#ffffff','#9fe8ff',38,2,14);flowAdd(14,'risque');try{chaineAura('PERCE-NUAGE',60,'nuage');}catch(e){}}
   else if(c.ecran&&SURV.chasse)popTexte('HORS DE VUE','#9fe8ff',0);
-  else if(CAMP.n===8&&Math.abs(vA)*3.6*SPD>vmaxShow()*.8){popTexte('A L INSTINCT !','#9fe8ff',1);flowAdd(10);try{chaineAura('A L INSTINCT',40,'instinct');}catch(e){}} // le ciel ment, tu as foncé quand même
+  else if(CAMP.n===8&&Math.abs(vA)*3.6*SPD>vmaxShow()*.8){popTexte('A L INSTINCT !','#9fe8ff',1);flowAdd(10,'risque');try{chaineAura('A L INSTINCT',40,'instinct');}catch(e){}} // le ciel ment, tu as foncé quand même
 }
 // ---- LE PORTAIL DU NIVEAU 10 ----
 function portailVisible(v){for(const o of [portalMesh,PORTAL.noy,PORTAL.halo])if(o)o.visible=v;if(PORTAL.lum)PORTAL.lum.intensity=v?1.6:0;}
@@ -24214,7 +24398,7 @@ function fantomePris(){ // ELLE EST À TOI
   if(ci>=0){SAVE.d.equipped=ci;level=ci;try{buildCar(CARS[ci]);}catch(e){}SAVE.flush();}
   CAMP.portFerme=false;portailVisible(true);try{portalSnd();}catch(e){}
   try{chaineAura('LA CAISSE-NUAGE',400,'nuage');}catch(e){}
-  flowAdd(40);nitroPct(1);
+  flowAdd(40,'risque');nitroPct(1);
   setTimeout(function(){if(started&&!gameOver)popTexte('LE PORTAIL S OUVRE','#ff9ee6',1);},1500);
 }
 function fantomeSeme(){ // elle a franchi le portail la première — ou la route s'arrête sous tes roues : c'est perdu
@@ -24252,10 +24436,17 @@ function campDebut(){ // un niveau commence (newTrack, et le 1er départ de la s
   villeDebut();
 }
 function campStop(){fumeVide();tirsVide();eclVide();campFx(0,0,0,0);if(GH.on){GH.g.visible=false;trailStep(GH.tr,0,0,0,0,0,0,0);}villeStop();}
+function flowRaccourci(gagne){
+  flowAdd(Math.min(45,12+gagne*.06),'risque');
+  if(CAMP.n)return; // en campagne, campRaccourci (seuil de ses ovales) dit déjà « RACCOURCI ! » et paie sa nitro
+  popTexte(TR('RACCOURCI')+' +'+Math.round(gagne)+' M','#7dffec',3);hap([12,24,18]);nitroGain(.3);
+  try{chaineAura('RACCOURCI',Math.round(Math.min(250,60+gagne*.2)),'coupe');}catch(e){}
+  try{chimeNote(noteP(4,1),0,.09,.2);chimeNote(noteP(7,1),.08,.09,.26);}catch(e){}
+}
 function campRaccourci(d){ // se poser loin devant son décollage : la coupe est payée
   CAMP.coupesN++;
   popTexte('RACCOURCI !','#7dffec',2);hap([12,24,18]);
-  flowAdd(22);nitroGain(.4);
+  nitroGain(.4); // (FLOW v2) le flow du raccourci est versé par flowRaccourci, à la pose — pour TOUS les modes, au prorata des mètres coupés
   try{chaineAura('RACCOURCI',150,'coupe');}catch(e){}
   try{chimeNote(noteP(4,1),0,.09,.2);chimeNote(noteP(7,1),.08,.09,.26);}catch(e){}
 }
@@ -24411,7 +24602,7 @@ function radarFlash(r){
   flashEcran('rgba(255,255,255,.85)');radarSnd();hap(ex?[20,30,20]:12);
   slam(Math.round(kmh)+' KM/H',ex?'EXCES DE VITESSE !':q>=.66?'FLASHE !':'FLASHE... A PEINE',ex?'#ffd75e':'#ffffff',ex?'#ff3924':'#9fe8ff',44,2,ex?24:0);
   try{chaineAura('RADAR',Math.round(30+100*Math.min(1.1,q)),'radar',true);}catch(e){}
-  flowAdd(ex?20:8);
+  flowAdd(ex?20:8,ex?'risque':'style');
   const f=VC.radFx[r.fx];if(f)f.t=.5;
 }
 function radarsTick(dt,sp){
@@ -24466,10 +24657,10 @@ function campPad(i){ // crochet : un pad vient d'être pris (boucle de conduite)
   padCd=Math.min(padCd,.45); // la file se prend à pleine vitesse : le pad suivant est à ~110 m
   const ch=e.c,k=e.k;if(ch.brise||ch.fini||k!==ch.n)return;
   ch.n++;
-  if(k>0){popTexte(TR('LIGNE')+' ×'+(k+1),'#ffd75e',1);nitroGain(.04*k);flowAdd(3+2*k);}
+  if(k>0){popTexte(TR('LIGNE')+' ×'+(k+1),'#ffd75e',1);nitroGain(.04*k);flowAdd(3+2*k,'route');}
   try{chimeNote(noteP(Math.min(7,k+1),1),0,.09,.2);}catch(e9){}
   if(ch.n>=ch.lats.length){ch.fini=true;ch.fl=1;const n=ch.lats.length;
-    slam('LIGNE PARFAITE','×'+n,'#ffd75e','#ff3ec8',40,2,18);vPaie(6*n,8);nitroPct(.5);flowAdd(15);hap([14,30,14,30,40]);
+    slam('LIGNE PARFAITE','×'+n,'#ffd75e','#ff3ec8',40,2,18);vPaie(6*n,8);nitroPct(.5);flowAdd(15,'style');hap([14,30,14,30,40]);
     try{chaineAura('LIGNE DE NEON',40+12*n,'ligne');fanfare();}catch(e9){}}
 }
 function chainesTick(dt,sp){
@@ -24519,7 +24710,7 @@ function flaquesTick(dt,sp){
     try{sparkBurst(sparkBlue,carGroup.position,12,9);}catch(e){}}
   VC.slip0=slipT;
   for(const f of VZ.flaques){if(f.fait||sp<f.s+(f.d?64:6))continue;f.fait=true;
-    if(!VC.rowSlip){VC.secN=(VC.secN|0)+1;popTexte('A SEC !','#7dffec',0);flowAdd(f.d?10:6);nitroGain(f.d?.1:.06);try{chaineAura('A SEC',f.d?30:18,'sec');}catch(e){}}
+    if(!VC.rowSlip){VC.secN=(VC.secN|0)+1;popTexte('A SEC !','#7dffec',0);flowAdd(f.d?10:6,'style');nitroGain(f.d?.1:.06);try{chaineAura('A SEC',f.d?30:18,'sec');}catch(e){}}
     VC.rowSlip=false;}
   // la plaque annonce la prochaine rangée (jamais le côté sec : ça, ça se LIT)
   let nx=null;for(const f of VZ.flaques)if(!f.fait&&f.s+(f.d?64:6)>sp){nx=f;break;}
@@ -24580,7 +24771,7 @@ function foudreFrappe(){
     flashEcran('rgba(215,200,255,.9)');shake=Math.max(shake,.7);hap([40,30,90]);
     popTexte('FOUDROYE !','#b58cff',2);try{crackle(.8);}catch(e){}
   }else if(dessous)popTexte('A L ABRI','#9fe8ff',0);
-  else if(d<VFOU_R+9){VC.esqN=(VC.esqN|0)+1;popTexte('ESQUIVE !','#7dffec',1);flowAdd(8);nitroGain(.08);try{chaineAura('ESQUIVE',28,'esquive');}catch(e){}}
+  else if(d<VFOU_R+9){VC.esqN=(VC.esqN|0)+1;popTexte('ESQUIVE !','#7dffec',1);flowAdd(8,'style');nitroGain(.08);try{chaineAura('ESQUIVE',28,'esquive');}catch(e){}}
 }
 function foudreTick(dt,sp){
   ECL.t-=dt;if(ECL.t<=0){if(!VFOU.on)eclFrappe();ECL.t=4+Math.random()*4;} // l'orage de fond : des éclairs lointains, jamais pendant une frappe armée
@@ -24629,7 +24820,7 @@ function panneTick(dt,sp){
     if(sp>p.s0-170&&sp<=p.s0){vac=true;break;}}
   if(dans>=0&&VC.panI!==dans){VC.panI=dans;VC.panOk=true;VC.panN=(VC.panN|0)+1;popTexte('COUPURE !','#8f84c8',1);panneSnd(true);hap([20,40,20]);}
   else if(dans<0&&VC.panI>=0){VC.panI=-1;VC.panT=.55;VC.panFl=0;panneSnd(false);
-    if(VC.panOk){VC.aveugleN=(VC.aveugleN|0)+1;slam('A L AVEUGLE','COURANT RETABLI','#ffd75e','#8f84c8',40,2,14);vPaie(10,6);flowAdd(16);nitroPct(.35);try{chaineAura('A L AVEUGLE',80,'aveugle');}catch(e){}}
+    if(VC.panOk){VC.aveugleN=(VC.aveugleN|0)+1;slam('A L AVEUGLE','COURANT RETABLI','#ffd75e','#8f84c8',40,2,14);vPaie(10,6);flowAdd(16,'risque');nitroPct(.35);try{chaineAura('A L AVEUGLE',80,'aveugle');}catch(e){}}
     else popTexte('COURANT RETABLI','#9fe8ff',0);}
   if(VC.panI>=0&&mode==='fall')VC.panOk=false; // une sortie de route dans le noir : pas de prime
   if(vac){VC.panFl-=dt;if(VC.panFl<=0){VC.panFl=.05+Math.random()*.16;VC.cour=Math.random()<.55?1:.12;}} // le courant VACILLE : ça va sauter
@@ -24752,7 +24943,7 @@ function fourgonTick(dt,sp){
     lat=VFG.lat+(lat>=VFG.lat?1:-1)*2.9;shake=Math.max(shake,.45);hap([30,20,30]);try{thud(9);noiseBurst(.12,.12,900);}catch(e){}
     try{sparkBurst(sparkGold,carGroup.position,14,10);}catch(e){}}
   if(!VFG.fini&&VFG.cash<=0){VFG.fini=true;VFG.finT=1.4;VC.fourgonVide=true;
-    slam('FOURGON VIDE !','','#ffd75e','#ff3ec8',42,2,24);vPaie(25,12);flowAdd(20);hap([20,40,20,40,80]);
+    slam('FOURGON VIDE !','','#ffd75e','#ff3ec8',42,2,24);vPaie(25,12);flowAdd(20,'style');hap([20,40,20,40,80]);
     try{chaineAura('FOURGON VIDE',160,'fourgon');fanfare();}catch(e){}}
   if(VFG.finT>0){VFG.finT-=dt;if(VFG.finT<=0)VFG.fuite=true;} // vidé, allégé : il file
   fourgonPose(dt);
@@ -26605,7 +26796,7 @@ function loop(now){
         if(virT>.9&&!virPaye){virPaye=true;chaineAura('VIRAGE SERRÉ',45,'virage');}}}
       driftTick(dt,drifte);
       // (conduite v3) RASE-BORD : frôler le vide à pleine vitesse RECHARGE le nitro — le risque paie
-      if(!introD&&!PARK.on&&Math.abs(lat)>ROAD_HALF*.8&&Math.abs(vA)>maxSp*.5){raseT+=dt;nitroGain(.22*dt);flowAdd(11*dt); // bande du RASE-BORD : les 20 % extérieurs de la demi-route (3 à 4,8 m sur la route large)
+      if(!introD&&!PARK.on&&Math.abs(lat)>ROAD_HALF*.8&&Math.abs(vA)>maxSp*.5){raseT+=dt;nitroGain(.22*dt);flowAdd(6*dt,'route'); // bande du RASE-BORD : les 20 % extérieurs de la demi-route (3 à 4,8 m sur la route large)
         if(raseT>.6&&!raseAnn){raseAnn=true;popTexte('RASE-BORD','#7dffec');hap(12);try{chaineAura('RASE-BORD',40,'rase');}catch(e){}}
         if(Math.random()<dt*14){DRIFT_V.set(Math.sign(lat)*CARS[level].w*.5,.1,-.3);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkBlue,DRIFT_V,1,4);}}
       else{raseT=0;raseAnn=false;}
@@ -26664,7 +26855,7 @@ function loop(now){
           vA+=18;boost=Math.max(boost,1.5);padCd=1.5; // viser paie plus qu'avant (14 → 18)
           boostSnd();shake=Math.max(shake,.3);hap(10);
           slam('BOOST','','#ffb000','#ff3924',46);flashEcran('rgba(255,150,0,.5)');fovPunch=Math.max(fovPunch,10); // (HUD v3) « quand tu roules sur un boost, BOOST en gros »
-          nitroGain(.12);flowAdd(6);momT=Math.min(4.3,momT+.8);
+          nitroGain(.12);flowAdd(6,'route');momT=Math.min(4.3,momT+.8);
           campPad(i9); // (2026-09-27) la LIGNE DE NÉON (campagne VILLE, niveau 12)
           break;
         }
@@ -26832,7 +27023,7 @@ function loop(now){
             // ~2,3× moins et le combo se mérite (un palier toutes les 5 pièces, plafond ×4 au lieu de ×5)
             // → rendement max 8,8×denom contre 25×denom avant. La CHAÎNE DE FIGURES reste la vraie fortune.
             // LE MOTEUR MONTE À LA PIÈCE : c'est la ferraille ramassée qui paye le turbo
-            addCoins(1);RUNX.coins++;flowAdd(.7);
+            addCoins(1);RUNX.coins++;flowAdd(.7,'route');
             {const n9=performance.now();if(n9-(hap._pc||0)>70){hap._pc=n9;hap(5);}} // la pièce : un tic à peine perceptible (bridé : une ligne de pièces ne doit pas bourdonner)
             const mult=Math.min(ECO3.recolte,1+.5*Math.floor(combo/5)); // (vague 3) ×1 · ×1,5 · ×2 · ×2,5 : sur une route dense la récolte ne retombait jamais — ×4 permanent
             const g=denom()*2.2*mult*(fever>0?2:1)*flowMult(); // × le FLOW
@@ -27169,8 +27360,8 @@ function loop(now){
         if(halfs>spinHalf&&fallT>.45){spinHalf=halfs;
           addTrick('vrille',halfs===1?'180°':halfs===2?'VRILLE 360 — LAVE-LINGE !':halfs===3?'540° !!':(halfs*180)+'° — ESSOREUSE COSMIQUE !!',3.5*halfs,halfs>=4?3:(halfs>=2?2:false),true);}
         if(!trkMeteor&&nitroOn&&nitroAirT>1.2){trkMeteor=true;addTrick('meteo','MÉTÉORE',8,2);}
-        if(!trkBigA&&fallTR>1.8){trkBigA=true;chaineAura('BIG AIR',50,'bigair');}          // (aura v2) le temps passé EN L'AIR se paie
-        if(!trkMonstre&&fallTR>3.4){trkMonstre=true;chaineAura('AIR MONSTRE',110,'monstre');}
+        if(!trkBigA&&fallTR>1.8){trkBigA=true;chaineAura('BIG AIR',50,'bigair');flowAdd(6,'risque');}          // (aura v2) le temps passé EN L'AIR se paie
+        if(!trkMonstre&&fallTR>3.4){trkMonstre=true;chaineAura('AIR MONSTRE',110,'monstre');flowAdd(10,'risque');}
         // ---- LE DAUPHIN v3 : chrono du vol AU-DESSUS DE LA ROUTE (dolTick) — hauteur depuis la face de DÉCOLLAGE (miroir des faces) ----
         {const hF=fallStartSide>0?curHOff:-curHOff-THICK;
          dolTick(dt,DAUPH.force!==null?DAUPH.force:(curNear&&Math.abs(curLatOff)<ROAD_HALF&&Math.abs(curTOff)<DOL_TMAX&&hF>0&&hF<DOL_HMAX),hF);}
