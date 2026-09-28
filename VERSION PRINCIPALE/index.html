@@ -15044,7 +15044,7 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   const E=[
   function(){orbiteChauffe();}, // (vague 3) la lune peinte et montée au GPU, lune + rochers compilés : rien ne naît au portail de l'orbite
   function(){if(!CITY.chaud){CITY.chaud=true;villeChauffe();}},
-  function(){cratInit();renderer.initTexture(CRAT.tex);renderer.initTexture(CRAT.halo);}, // (2026-09-27) le cratère du MÉTÉORE : ses matières sont compilées juste en dessous, ses textures montées ici
+  function(){cratInit();renderer.initTexture(CRAT.tex);renderer.initTexture(CRAT.halo);for(const t9 of DEB.tex)renderer.initTexture(t9);}, // (2026-09-28) + les trois textures de la pluie de DÉBRIS // (2026-09-27) le cratère du MÉTÉORE : ses matières sont compilées juste en dessous, ses textures montées ici
   function(){campChauffe();}, // (2026-09-27) la caisse-nuage et la police de la campagne compilées AU MENU — jamais au départ du niveau 5 ou 10
   function(){if(!TRACE.pos)traceInit();const p=mkPigeon();scene.add(p);renderer.compile(scene,camera);scene.remove(p);},
   function(){engCarteQuad.visible=engHalo.visible=true;renderer.compile(engVigQuadScene,engVigQuadCam);engCarteQuad.visible=engHalo.visible=false; // (vague 2) le recollage de la carte MOTEUR (sinon son programme naît au 1er palier)
@@ -19196,16 +19196,17 @@ function cratInit(){
     CRAT.onde=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:cratHaloTex(),color:0xffe0a0,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));
     CRAT.onde.visible=false;CRAT.onde.renderOrder=4;scene.add(CRAT.onde);CRAT.ondeT=9;}
 }
-function cratere(pos,nrm){
+function cratere(pos,nrm,leger){ // leger : le cratère d'un DÉBRIS de l'orbite (plus petit, sans slam — debFrappe dose secousse et son à la distance)
   cratInit(); // (déjà fait au menu : repli si la chauffe a été sautée)
   const c=CRAT.l[CRAT.i];CRAT.i=(CRAT.i+1)%CRAT.l.length;
   CRAT.q.setFromUnitVectors(CRAT.z,nrm);
   for(const m of [c.trou,c.braise]){m.position.copy(pos).addScaledVector(nrm,.09);m.quaternion.copy(CRAT.q);m.visible=true;}
-  c.trou.rotateZ(Math.random()*6.283);c.trou.scale.setScalar(7.5);c.braise.scale.setScalar(8.5);c.t=0;
+  c.trou.rotateZ(Math.random()*6.283);c.trou.scale.setScalar(leger?5.5:7.5);c.braise.scale.setScalar(leger?6.5:8.5);c.t=0;
   CRAT.onde.position.copy(pos).addScaledVector(nrm,.25);CRAT.onde.quaternion.copy(CRAT.q);CRAT.onde.visible=true;CRAT.ondeT=0;
   // l'IMPACT : braises, poussière, secousse, flash, son, et le nom en grand
-  sparkBurst(sparkGold,pos,48,22);sparkBurst(sparkPink,pos,20,16);
-  for(let k=0;k<26;k++){const a=Math.random()*6.283,v=8+Math.random()*16;spawnP(dust,pos.x,pos.y+.5,pos.z,Math.cos(a)*v,4+Math.random()*9,Math.sin(a)*v,.8+Math.random()*.7);}
+  sparkBurst(sparkGold,pos,leger?20:48,22);if(!leger)sparkBurst(sparkPink,pos,20,16);
+  for(let k=0;k<(leger?12:26);k++){const a=Math.random()*6.283,v=8+Math.random()*16;spawnP(dust,pos.x,pos.y+.5,pos.z,Math.cos(a)*v,4+Math.random()*9,Math.sin(a)*v,.8+Math.random()*.7);}
+  if(leger)return;
   shake=Math.max(shake,1.1);hitT=Math.max(hitT,.12);hap([30,40,60,40,30]);
   try{subBoom(.45);thud(22);noiseBurst(.35,.2,220);}catch(e){}
   flashEcran('rgba(255,110,20,.65)');slam('IMPACT METEORE','','#ffb000','#ff3924',40,3,16);
@@ -23749,7 +23750,7 @@ function newTrack(){
   computeMinimap();
   try{musicSuitLieu();}catch(e){} // LA MUSIQUE PAR MONDE : change si le lieu en réclame une autre
   spawnPickups(mulberry32(sd^0x9e3779b9));
-  cratCache();
+  cratCache();debCache();
   s=0;lat=0;psi=0;side=1;driveDir=1;prevTvalid=false;safeS=0;
   if(vA<20)vA=20;
   mode='drive';
@@ -25174,7 +25175,7 @@ function campDebut(){ // un niveau commence (newTrack, et le 1er départ de la s
   campFx(0,0,0,0);
   villeDebut();
 }
-function campStop(){fumeVide();tirsVide();eclVide();campFx(0,0,0,0);if(GH.on){GH.g.visible=false;trailStep(GH.tr,0,0,0,0,0,0,0);}villeStop();}
+function campStop(){debCache();fumeVide();tirsVide();eclVide();campFx(0,0,0,0);if(GH.on){GH.g.visible=false;trailStep(GH.tr,0,0,0,0,0,0,0);}villeStop();}
 function flowRaccourci(gagne){
   flowAdd(Math.min(45,12+gagne*.06),'risque');
   if(CAMP.n)return; // en campagne, campRaccourci (seuil de ses ovales) dit déjà « RACCOURCI ! » et paie sa nitro
@@ -25209,7 +25210,7 @@ function campTick(dt){
 }
 for(const [k,v] of Object.entries({'GRAVITE LUNAIRE : SAUTS 2X PLUS LONGS':'LUNAR GRAVITY: JUMPS LAST 2X LONGER','LA ROUTE EST A TOI':'THE ROAD IS YOURS','TRAVERSE LE NUAGE':'PIERCE THE CLOUD','PASSE LES PORTES':'THREAD THE GATES',
   'SEME LA POLICE':'LOSE THE COPS','ET SI TU COUPAIS ?':'WHAT IF YOU CUT ACROSS?','DANSE AVEC LE RELIEF':'DANCE WITH THE HILLS','LE CIEL MENT':'THE SKY IS LYING',
-  'TRAVERSE L\'ORAGE':'RIDE THROUGH THE STORM','ATTRAPE LA CAISSE-NUAGE':'CATCH THE CLOUD CAR','RACCOURCI !':'SHORTCUT!','RACCOURCI':'SHORTCUT','TOUCHE !':'HIT!',
+  'TRAVERSE L\'ORAGE':'RIDE THROUGH THE STORM','ATTRAPE LA CAISSE-NUAGE':'CATCH THE CLOUD CAR','RACCOURCI !':'SHORTCUT!','RACCOURCI':'SHORTCUT','TOUCHE !':'HIT!','ESQUIVE LES DEBRIS':'DODGE THE DEBRIS',
   'ACCROCHE !':'LOCKED ON!','ELLE EST A TOI':'SHE IS YOURS','LA CAISSE-NUAGE':'THE CLOUD CAR',"ELLE T'A SEME":'SHE LOST YOU','NUAGES TERMINES':'CLOUDS COMPLETE',
   'LA CAISSE-NUAGE EST A TOI':'THE CLOUD CAR IS YOURS','CRIBLE PAR LA POLICE':'SHOT DOWN BY THE COPS',"LA CAISSE-NUAGE T'A SEME":'THE CLOUD CAR LOST YOU',
   'SEMES !':'LOST THEM!','SEMES':'LOST THEM','LA POLICE EST AU TAPIS':'THE COPS ARE DOWN','FLIC AU TAPIS !':'COP DOWN!','LE PORTAIL S OUVRE':'THE PORTAL OPENS',
@@ -25527,6 +25528,113 @@ function foudreTick(dt,sp){
   if(ECL.tonT>=0){ECL.tonT-=dt;if(ECL.tonT<0){try{subBoom(.14+.16*ECL.ton);noiseBurst(1.5,.07+.1*ECL.ton,150);noiseBurst(.35,.05*ECL.ton,900);}catch(e9){}if(ECL.ton>.7)shake=Math.max(shake,.25);}}
   if(cel)vChip(TR('CELLULE D\'ORAGE')+' '+(ci+1)+'/'+VZ.cellules.length,TR('LIS LE CERCLE'),'#b58cff');else vChip('');
 }
+// ============ L'ORBITE · LA PLUIE DE DÉBRIS (2026-09-28, portée de la lignée car-crash) ============
+// Des morceaux de satellites qui RENTRENT en brûlant. Même grammaire que la FOUDRE ci-dessus (un cercle là où tu SERAS, un son
+// qui monte, la frappe pile dedans) : un seul réflexe à apprendre pour deux mondes. Pas « météore » : MÉTÉORE est déjà une FIGURE
+// (la nitro tenue en l'air). Ce qui change : le débris arrive de TROIS-QUARTS AVANT (tombé du zénith il restait hors cadre ; arrivé
+// de face, sa traîne se cachait derrière sa tête — vu au rendu), un FAISCEAU rouge se dresse sur la cible (on la lit de loin), et
+// l'impact laisse le CRATÈRE de la figure MÉTÉORE en version légère. TOUCHÉ = −40 % de vitesse, du flow perdu, la gerbe te
+// soulève (gravité lunaire : ça plane) ; ESQUIVÉ de près = aura, un peu de nitro, et la série fait monter la mise. Sous la dalle : à l'abri.
+// La pluie se durcit vers le portail (≈ 3,4 s entre deux chutes au départ, 1,9 s à la fin) ; le couloir d'un tremplin est épargné.
+const DEB_T=1.5,DEB_R=7.5; // DEB_T : le préavis — le temps de LIRE la cible et de braquer, au pouce ; en dessous c'est une loterie
+const DEB=(function(){
+  const cvT=function(w,h,f){const cv=document.createElement('canvas');cv.width=w;cv.height=h;f(cv.getContext('2d'),w,h);return new THREE.CanvasTexture(cv);};
+  const fondu=function(c,w,h){c.globalCompositeOperation='destination-in';const g=c.createLinearGradient(0,0,w,0);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(.5,'rgba(0,0,0,1)');g.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=g;c.fillRect(0,0,w,h);};
+  const tete=cvT(64,64,function(c){const g=c.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,255,245,1)');g.addColorStop(.22,'rgba(255,220,150,.95)');g.addColorStop(.5,'rgba(255,120,40,.45)');g.addColorStop(1,'rgba(255,60,20,0)');c.fillStyle=g;c.fillRect(0,0,64,64);});
+  const queue=cvT(32,256,function(c,w,h){const g=c.createLinearGradient(0,0,0,h);g.addColorStop(0,'rgba(255,245,215,.95)');g.addColorStop(.18,'rgba(255,170,70,.75)');g.addColorStop(.6,'rgba(255,70,30,.25)');g.addColorStop(1,'rgba(200,30,20,0)');c.fillStyle=g;c.fillRect(0,0,w,h);fondu(c,w,h);});
+  const trait=cvT(16,128,function(c,w,h){const g=c.createLinearGradient(0,h,0,0);g.addColorStop(0,'rgba(255,70,40,.95)');g.addColorStop(.35,'rgba(255,40,30,.45)');g.addColorStop(1,'rgba(255,30,30,0)');c.fillStyle=g;c.fillRect(0,0,w,h);fondu(c,w,h);});
+  const mat=function(c,o,map,sol){const m=new THREE.MeshBasicMaterial({color:c,map:map||null,transparent:true,opacity:o,depthWrite:false,blending:THREE.AdditiveBlending,fog:false,side:THREE.DoubleSide});
+    if(sol){m.polygonOffset=true;m.polygonOffsetFactor=-5;m.polygonOffsetUnits=-5;}return vMat(m);};
+  const ring=new THREE.Mesh(new THREE.RingGeometry(.86,1,64),mat(0xff3320,.9,null,1)),disc=new THREE.Mesh(new THREE.CircleGeometry(1,48),mat(0xff2a10,.3,null,1));
+  const tail=new THREE.Mesh(new THREE.PlaneGeometry(1,1).translate(0,-.5,0),mat(0xffffff,1,queue)); // pivot en HAUT : la traîne part de la tête
+  const beam=new THREE.Mesh(new THREE.PlaneGeometry(1,1).translate(0,.5,0),mat(0xffffff,.9,trait)); // pivot en BAS : le faisceau part de la dalle
+  const head=new THREE.Sprite(vMat(new THREE.SpriteMaterial({map:tete,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false})));
+  for(const m of [ring,disc,tail,beam,head]){m.visible=false;m.frustumCulled=false;m.renderOrder=3;scene.add(m);} // dans la scène dès le boot : orbiteChauffe les compile au menu
+  return {ring:ring,disc:disc,tail:tail,beam:beam,head:head,tex:[tete,queue,trait],on:false,t:0,prochain:4.2,dit:false,serie:0,s:0,lat:0,n9:0,
+    p0:new THREE.Vector3(),p1:new THREE.Vector3(),n:new THREE.Vector3(),q:new THREE.Quaternion(),cam:new THREE.Vector3(),v:new THREE.Vector3(),w:new THREE.Vector3()};
+})();
+function debCache(){const D=DEB;D.on=false;D.prochain=4.2;D.dit=false;D.serie=0;for(const m of [D.ring,D.disc,D.tail,D.beam,D.head])m.visible=false;}
+function debSiffle(){ // le préavis SONORE : un sifflement qui plonge pendant la chute (on ne regarde pas toujours devant)
+  if(!sfxOk())return;
+  try{const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain(),f=AC.createBiquadFilter();
+    o.type='triangle';o.frequency.setValueAtTime(1500,t);o.frequency.exponentialRampToValueAtTime(170,t+DEB_T);
+    f.type='bandpass';f.frequency.value=900;f.Q.value=.7;
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.045,t+DEB_T*.85);g.gain.exponentialRampToValueAtTime(.0005,t+DEB_T+.06);
+    o.connect(f);f.connect(g);g.connect(MASTER);o.start(t);o.stop(t+DEB_T+.1);}catch(e){}
+}
+function debArme(){
+  const D=DEB,ts=s+Math.max(18,Math.abs(vA))*SPD*DEB_T; // la cible tombe LÀ OÙ TU SERAS dans DEB_T s
+  if(ts<140||ts>L-150)return false;                      // le départ et l'approche du portail restent calmes
+  for(const r9 of RAMPS)if(ts>r9.s0&&ts<r9.s1)return false; // le couloir d'un tremplin est un sanctuaire (la catapulte demande déjà tout)
+  const tl=THREE.MathUtils.clamp(lat+(Math.random()-.5)*8,-(ROAD_HALF-5),ROAD_HALF-5); // visée sur TA ligne : il faut bouger
+  frameAt(ts,VF);
+  D.on=true;D.t=0;D.s=ts;D.lat=tl;D.n9++;
+  D.n.copy(VF.n);
+  D.p1.copy(VF.p).addScaledVector(VF.b,tl).addScaledVector(VF.n,.14);
+  D.v.copy(VF.n).multiplyScalar(.45).addScaledVector(VF.t,.72).addScaledVector(VF.b,Math.random()<.5?-.5:.5).normalize(); // de trois-quarts avant, en pente douce (~27°, ~35° de côté) : dans le cadre tôt, traîne visible
+  D.p0.copy(D.p1).addScaledVector(D.v,720);
+  D.q.setFromRotationMatrix(VM4.makeBasis(VF.t,VF.b,VF.n)); // même base que le cercle de la foudre (normale en Z)
+  for(const m of [D.ring,D.disc]){m.position.copy(D.p1);m.quaternion.copy(D.q);m.visible=true;}
+  D.disc.position.addScaledVector(D.n,.02);
+  D.beam.position.copy(D.p1);D.head.position.copy(D.p0);
+  D.head.visible=D.tail.visible=D.beam.visible=true;
+  debSiffle();
+  return true;
+}
+function debFrappe(){
+  const D=DEB;D.on=false;
+  for(const m of [D.ring,D.disc,D.tail,D.beam,D.head])m.visible=false;
+  try{cratere(CRAT.pv.copy(D.p1),CRAT.nv.copy(D.n),true);}catch(e){}
+  const d=carGroup.position.distanceTo(D.p1);
+  shake=Math.max(shake,.9*Math.max(0,1-d/140));
+  if(d<260)try{subBoom(.34*(1-d/300));noiseBurst(.45,.15*(1-d/300),260);}catch(e){}
+  if(mode!=='drive'||gameOver)return; // en vol, on l'a survolé
+  if(side<0){if(d<DEB_R+9)popTexte('A L ABRI','#9fe8ff',0);return;}
+  if(d<DEB_R+1.2){ // TOUCHÉ : la vitesse et le flow prennent le choc — pas la vie
+    vA*=.6;momT=0;FLOW.v=Math.max(0,FLOW.v-20);FLOW.idle=2;D.serie=0;
+    hopV=Math.max(hopV,7.5); // en gravité lunaire, ça plane : on voit ce qu'on a pris
+    flashEcran('rgba(255,120,40,.8)');shake=Math.max(shake,1.1);hap([40,30,90]);
+    popTexte('TOUCHE !','#ff5a3c',2);try{thud(12);}catch(e){}
+  }else if(d<DEB_R+9){ // ESQUIVÉ DE PRÈS : le risque paie, la série fait monter la mise
+    D.serie++;const k=Math.min(4,D.serie);
+    popTexte(TR('ESQUIVE !')+(D.serie>1?' ×'+D.serie:''),'#ffb000',1); // le mot de la FOUDRE : même geste, même nom (« FRÔLÉ » est déjà celui des plots)
+    flowAdd(6+k*3,'style');nitroGain(.08+k*.04);
+    try{chaineAura('ESQUIVE',24+k*6,'esquive');chimeNote(880+k*110,0,.1,.22);}catch(e){}
+    sparkBurst(sparkBlue,carGroup.position,10,10);hap(18);
+  }
+}
+function debTick(dt){
+  const D=DEB;
+  if(!(gK()<1)||!started||TUTO.on){if(D.on)debCache();return;} // seulement en orbite (gK : l'espace, hors parc)
+  if(!D.on){
+    if(mode==='drive'&&side>0&&!introD){D.prochain-=dt;
+      if(D.prochain<=0){const prog=THREE.MathUtils.clamp(s/L,0,1),ok=debArme();
+        if(ok&&!D.dit){D.dit=true;popTexte('ESQUIVE LES DEBRIS','#ff8a4d',2);}
+        D.prochain=ok?(3.4-prog*1.5)*(.8+Math.random()*.4):.35;}}
+    return;}
+  D.t+=dt;const u=Math.min(1,D.t/DEB_T),e=Math.pow(u,1.35); // il ACCÉLÈRE en tombant
+  camera.getWorldDirection(D.cam);
+  D.head.position.lerpVectors(D.p0,D.p1,e);
+  const dC=D.head.position.distanceTo(camera.position); // taille ∝ distance, bornée : un point lisible à 700 m, un ÉCLAT près de l'œil (à 26 m fixes, il bouchait un quart d'écran en passant — vu en capture)
+  D.head.scale.setScalar(THREE.MathUtils.clamp(dC*.085,8,48));
+  D.v.subVectors(D.p0,D.p1).normalize();                    // la TRAÎNE : sur la trajectoire, tournée vers la caméra autour de son axe
+  D.w.crossVectors(D.v,D.cam).normalize();
+  D.tail.quaternion.setFromRotationMatrix(VM4.makeBasis(D.w,D.v,VV1.crossVectors(D.w,D.v)));
+  D.tail.position.copy(D.head.position).addScaledVector(D.v,-1.5);D.tail.scale.set(THREE.MathUtils.clamp(dC*.03,3.5,20),-(120+u*150),1);
+  const R=DEB_R*(1+1.3*(1-u)),pul=.55+.45*Math.sin(D.t*(10+26*u)),r9=DEB_R*Math.max(.02,u); // la CIBLE : l'anneau se resserre en battant, le disque se remplit
+  const kO=THREE.MathUtils.clamp((D.p1.distanceTo(camera.position)-12)/22,0,1); // SOUS L'ŒIL : quand la caisse est dessus, la caméra survole la cible — disque, anneau et faisceau rougissaient la moitié de l'écran (vu en capture)
+  D.ring.scale.set(R,R,1);D.ring.material.opacity=(.45+.5*u)*pul*(.3+.7*kO);
+  D.disc.scale.set(r9,r9,1);D.disc.material.opacity=(.12+.3*u)*kO;
+  D.w.crossVectors(D.n,D.cam).normalize();                  // le FAISCEAU : dressé sur la normale de la dalle, tourné vers la caméra
+  D.beam.quaternion.setFromRotationMatrix(VM4.makeBasis(D.w,D.n,VV1.crossVectors(D.w,D.n)));
+  D.beam.scale.set(2.2+u*1.6,34+u*20,1);D.beam.material.opacity=(.55+.4*u)*(.2+.8*kO);
+  if(u>=1)debFrappe();
+}
+for(const [k,v] of Object.entries({'ESQUIVE LES DEBRIS':'躲开太空碎片','ESQUIVE !':'躲开了！','ESQUIVE':'闪避','TOUCHE !':'被击中！','A L ABRI':'安全',
+  'GRAVITE LUNAIRE : SAUTS 2X PLUS LONGS':'月球重力：跳跃时间翻倍'}))if(!(k in I18N_ZH))I18N_ZH[k]=v; // l'orbite se joue aussi en partie sans fin : ses mots ont leur chinois
+window.dbgDebris=function(arme){ // (dev) dbgDebris() : l'état de la pluie · dbgDebris(1) : une chute armée tout de suite
+  if(arme&&!DEB.on)debArme();
+  return {actif:gK()<1,on:DEB.on,t:+DEB.t.toFixed(2),prochain:+DEB.prochain.toFixed(2),serie:DEB.serie,chutes:DEB.n9,cible:DEB.on?{s:Math.round(DEB.s),lat:+DEB.lat.toFixed(1),ecart:Math.round(DEB.s-s)}:null};};
 // ============ 6 · LA PANNE ============
 // UN uniforme (CITY.uC) éteint les fenêtres, les liserés des toits, les enseignes et les réclames ; le néon de la route est baissé
 // APRÈS musicTick (qui le repeint à chaque image, voir villeApres) ; les phares portent plus loin. Les CATADIOPTRES (ambre à gauche,
@@ -28858,6 +28966,7 @@ function loop(now){
     else styleM=Math.max(0,styleM-13*dt); // LÂCHER le boost fait retomber la jauge vite : c'est « sans lâcher » qui paye
     survTick(dt); // SURVIVANT : la meute roule, saute, et le couperet de la minute tombe
     AIP.tick(dt); // …et pendant ce temps, les IA T'OBSERVENT (même hors mode Survivant)
+    debTick(dt); // (2026-09-28) L'ORBITE : la pluie de débris (tous les niveaux dans l'espace, hors parc)
     campTick(dt); // (2026-09-27) LA CAMPAGNE NUAGES : tirs et fumée (5), raccourcis (6/10), orage (9), caisse-nuage (10)
     { // (perf, lot 4) la jauge de style : écrite seulement quand elle change (classe au changement d'état, largeur au pour-mille)
      const cl9=fever>0?'fever':feverArmed?'armed':'',w9=(Math.round((fever>0?Math.min(1,fever/10)*100:styleM)*10)/10)+'%';

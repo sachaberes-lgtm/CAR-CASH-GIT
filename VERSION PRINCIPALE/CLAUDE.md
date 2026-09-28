@@ -39,6 +39,20 @@ seulement ce qui s'applique ICI sans toucher à l'économie ni au FLOW v2. Banc 
   dos d'âne, plots qui valsent), la jauge d'airtime passe à 10,2 s, la perte à la pose (`bigness`) suit. La bannière du niveau dit
   « GRAVITE LUNAIRE : SAUTS 2X PLUS LONGS ». MESURÉ : même impulsion → 13 m de haut contre 6,4. (Nitro tenue dès le décollage : on
   grimpe, comme aux nuages — c'est le piqué qui ramène.)
+- **PLUIE DE DÉBRIS EN ORBITE** (`DEB`, `debArme`, `debFrappe`, `debTick`, `debCache` ; console `dbgDebris()` / `dbgDebris(1)` arme une
+  chute) : des morceaux de satellites qui rentrent en brûlant — PAS « météore », c'est déjà une FIGURE. Même grammaire que la FOUDRE de
+  la ville (cercle posé là où tu SERAS dans `DEB_T`=1,5 s, sur TA ligne ±4 m, rayon `DEB_R`=7,5, sifflement qui plonge), plus un
+  FAISCEAU rouge dressé sur la cible (lisible de loin) et la tête + traîne qui arrivent de trois-quarts avant (~27° de pente, ~35° de
+  côté : dans le cadre tôt, traîne visible). Impact = `cratere(…, leger)` (le cratère de la figure MÉTÉORE, plus petit, SANS slam ;
+  secousse et son dosés à la distance). **TOUCHÉ** : vitesse ×.6, flow −20, la gerbe soulève (`hopV` 7,5 — ça plane), « TOUCHE ! ».
+  **ESQUIVÉ de près** (< 16,5 m) : « ESQUIVE ! ×n », flow + aura (famille `esquive`, celle de la foudre) + nitro .12 → .24 avec la série.
+  Sous la dalle : « A L ABRI ». Cadence 3,4 s → 1,9 s vers le portail ; rien sur les 140 premiers / 150 derniers mètres ni dans le
+  couloir d'un tremplin. Tous les niveaux où `gK()<1` (EN ORBITE et la carrière ESPACE), jamais au parc ni à l'auto-école ; la meute
+  n'est pas visée (comme pour la foudre). Caché par `newTrack` et `campStop` (fin de partie). MESURÉ en simulation, 8 chutes : pilote
+  qui tient sa ligne → 4 à 6 touchés ; pilote qui s'écarte → 0 touché, série ×7. ⚠ Vu en capture et corrigé : tête de taille FIXE
+  (26 m) = un quart d'écran quand elle passe près de l'œil → taille ∝ distance, bornée ; disque, anneau et faisceau s'éteignent
+  quand la caméra SURVOLE la cible (ils rougissaient la moitié de l'écran) ; PAS de braises `embers` le long de la trajectoire (ce
+  pool se dessine en gros pâtés pixel dans le ciel). Banc : `vp/debris.js` (simulation), `vp/debshot.js` (captures).
 - Petits : la figure rend ×2 en pose DIVINE (×1,5 en PARFAIT, inchangé) ; `engSndParams` borne `rpm` ≥ 0 (un NaN dans un AudioParam
   éteint le nœud pour la session) ; `#runStats` en `white-space:pre-line`.
 - **PAS REPRIS, exprès** : décote du bump (sa recharge est une demande de Sacha), débordement vers la réserve bleue (économie des fruits),
