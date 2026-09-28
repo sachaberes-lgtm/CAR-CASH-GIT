@@ -25693,6 +25693,11 @@ function tryLand(dt){
   // droite — un saut ordinaire donne ~0 (la route suit le vol), couper une boucle ou tomber sur la dalle d'en dessous donne des centaines
   // de mètres. C'est le geste que la triade réclame : on triche, et ça paie.
   if(!PARK.on){const gagne=(s-FLOW.s0)-FLOW.p0.distanceTo(fallPos);if(gagne>=60)flowRaccourci(gagne);else if(gagne>=25)frenTrait('m',gagne/60);} // (v4) une PETITE coupe nourrit MACHIAVEL au prorata
+  /* (2026-09-29, Sacha : « le son "low honor" de Red Dead, une petite note quand tu perds de l'honneur — pendant la frénésie, à chaque fois
+     que le joueur atterrit ») LA NOTE DE LA POSE EN FRÉNÉSIE : un son ORIGINAL dans cet esprit (le fichier de Rockstar est protégé), fait par
+     la console de son. Pas sur un petit saut (< 0,4 s), pas sur la pose ratée (elle a son son et éteint la frénésie), pas sur la pose qui
+     DÉCLENCHE la frénésie (FLOW.lv lu avant). Après le « tchak » de la pose (t .15). */
+  if(FLOW.lv===4&&!poseRatee&&!PARK.on&&fallT>.4&&SONV2)sfx('frenesie.pose',{t:.15});
   if(poseRatee)flowCasse(poseAng>90); // (v4) la pose est jugée (chaîne encaissée, raccourci compté) : ENSUITE le flow tombe
   else if(FREN.arme&&FLOW.lv<4&&(chain>0||trkBigA))frenDeclenche(); // (v4) jauge pleine + FIGURE POSÉE : la FRÉNÉSIE part, ici, au contact
   chainHud.style.opacity=0;

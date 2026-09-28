@@ -154,6 +154,10 @@ d'AURA (police pixel en bandes, cernée d'encre). Ce qui se TOUCHE = plaque PENC
 - **LES NOMS DES TRAITS QUITTENT L'ÉCRAN** (Sacha : « enlève les mots psychopathe, narcissique et machiavéliste ») : les étiquettes
   +NARCISSE / -PSYCHO / +MACHIAVEL de la ligne du flow sont masquées (`#flowHud .fT{display:none}` dans hudDA) ; `flowTag` compte
   toujours (aucune logique retirée). Les barrettes sous l'emblème étaient déjà sans nom. Seuls des COMMENTAIRES gardent ces mots.
+- **LA NOTE DE LA POSE EN FRÉNÉSIE** (2026-09-29, Sacha : « le son low honor de Red Dead, quand on perd de l'honneur — pendant la
+  frénésie, à chaque atterrissage ») : le fichier de Rockstar est protégé (App Store) → un son ORIGINAL dans cet esprit, `frenesie.pose`,
+  commandé à la session SON (recette + cuisson de la banque). Appel dans `tryLand`, avant `flowCasse` : frénésie en cours (lue AVANT le
+  déclenchement), pas de pose ratée, vol > 0,4 s, t .15 (après le tchak). Tant que la banque n'a pas le son, l'appel ne joue rien.
 - Bancs (scratchpad session UHD) : `run.js <pfx> <étapes.js> [w] [h]` (DSF, LG), `st-eng2.js` (film de la carte), `st-fren.js`, `st-det.js`
   (états du bouton), `st-pay.js` (paysage), `attente.sh` (attend qu'aucun banc voisin ne tourne).
 
