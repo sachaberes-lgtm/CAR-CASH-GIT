@@ -3873,6 +3873,35 @@ html .carrNiv::after{height:3px;bottom:10px;box-shadow:none;opacity:.9;
 #mDead .hNx>span{white-space:nowrap}
 /* (balade du 29/09) les lignes de deux mots ne laissent plus un mot seul : « POSE-TOI / AVANT », « tu / peux te la payer » */
 #mDead .mCause,#gCard.verrou #gDesc,#toast{text-wrap:balance}
+/* ---- 23. L'ÉCRAN DE MORT, RESSERRÉ (2026-09-29 — Sacha, sur le cadre couché de l'ordi : « cet écran est encore un peu nul, le texte sous
+   GAME OVER sert à rien, et les fenêtres AURA et MOTEUR sont trop grandes »). MESURÉ avant : couché, les deux cartes prenaient toute la
+   hauteur de la moitié gauche (250 px) et leur contenu flottait au milieu ; debout, 176 px de haut pour un chiffre et un moteur.
+   · la CAUSE de la mort ne s'affiche plus (la caisse qui explose l'a déjà dit) ; les fins de campagne ont leur titre (« NUAGES TERMINÉS ») ;
+   · les cartes ÉPOUSENT leur contenu : plus de hauteur minimale, le moteur 3D à la taille d'une vignette, le chiffre au corps du ticket ;
+   · COUCHÉ : à gauche on LIT (verdict, cartes, puis le ticket collé dessous, aligné sur le bas de REJOUER), à droite on TOUCHE (missions,
+     tuiles, MENU | REJOUER) — les deux colonnes partagent leur haut et leur bas. */
+#mDead .mCause{display:none!important}
+html #mDead .hCard{min-height:0;justify-content:center;gap:6px;padding:14px 10px 12px}
+html #mDead .hCard>small{margin-bottom:5px}html #mDead .hCard>:last-child{margin-bottom:0}
+html #mDead .hMot3 .hMotCv{width:86%;margin:-9% 0 -7%}
+html #mDead .hMotN{font-size:var(--f6)}
+html #mDead .mHero{margin-top:18px}
+@media (max-height:760px){html #mDead .hMot3 .hMotCv{width:74%;margin:-8% 0 -6%}html #mDead .hCard{padding:10px 8px 10px;gap:5px}}
+@media (orientation:landscape) and (max-height:540px){
+  html #mDead.on{align-content:stretch;row-gap:0;
+    grid-template-areas:"over obj" "hero obj" "hero esp" "cash row" "stats rej";grid-template-rows:auto auto 1fr auto auto}
+  html #mDead .mOver{grid-area:over;align-self:start;margin:2px 0 0}
+  html #mDead .mHero{grid-area:hero;align-self:center;margin:12px 0}
+  html #mDead .hCard{padding:13px 10px 12px;gap:7px}
+  html #mDead .hCard.hAura>b{font-size:min(var(--f7),calc((100cqi - 18px) / var(--n,6)))}
+  html #mDead .hMot3 .hMotCv{width:76%;margin:-7% 0 -6%}
+  html #mDead .hMotN{font-size:var(--f6)}
+  html #mDead .hBar{margin-top:2px}
+  html #mDead .mObj{grid-area:obj;align-self:start;margin:0}
+  html #mDead .mCashL{grid-area:cash;align-self:end;margin:0}
+  html #mDead .mStats{grid-area:stats;align-self:end}
+  html #mDead>.mRow{align-self:end}
+}
 </style>
 <style id="hudMaitrise">
 /* =====================================================================================================================
