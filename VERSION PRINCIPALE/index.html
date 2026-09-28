@@ -3730,6 +3730,15 @@ html #mDead .hCard>:last-child{margin-bottom:auto} /* plus de moitié vide en ba
 .gR{transition:translate var(--t-fast) var(--ease),filter var(--t-fast) var(--ease)}
 .gR.appui{translate:0 3px;filter:brightness(1.25)}
 
+/* ---- LA SOURIS (le PC de Sacha montre le téléphone couché, et on y clique) : une touche SURVOLÉE s'éclaire d'un cran — rien sur un
+   écran tactile (hover:hover + pointeur fin), rien pendant l'appui (c'est l'enfoncement qui parle) ---- */
+@media (hover:hover) and (pointer:fine){
+  .pbtn:not(.off):hover,.tp:not(.ligne):hover,.gT:hover,.gR:hover,.mMode:hover,.misPrix.voir:hover,.mObj[data-m]:hover,.shUne:hover,.shCase:hover{filter:brightness(1.14)}
+  .mLigne:hover,.tp.ligne:hover{background:rgba(255,255,255,.035)}
+  .gTab:not(.on):hover{background:rgba(255,255,255,.04)}
+  .gTab:not(.on):hover .pxi,.gTab:not(.on):hover{color:var(--tx2)}
+  .pbtn.appui:hover,.tp.appui:hover{filter:none}
+}
 /* ---- LES TOUCHES VIVENT : un reflet passe sur les tuiles de l'accueil, l'une après l'autre (la lumière de la rue sur une rangée de
    carrosseries) — une fois toutes les 7 s, jamais pendant qu'on les touche. Calque à part : seule sa position de fond bouge. ---- */
 #mHome .mIcons>.pbtn::after{content:'';position:absolute;inset:0;pointer-events:none;
