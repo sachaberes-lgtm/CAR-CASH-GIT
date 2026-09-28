@@ -23290,6 +23290,69 @@ function checkUpgrade(){
 /* LE PASSAGE DU PORTAIL (2026-09-26) — une seule fonction, deux entrées : au SOL (bout de piste ou entrée dans l'ovule) et en VOL
    (l'ovule se traverse d'où qu'on vienne, y compris en tombant du ciel). Le test ne vivait que dans la branche « au sol » de la
    boucle : en l'air, on traversait l'ovule sans rien déclencher. */
+/* L'ORBITE A SES PORTES (2026-09-28, Sacha — idée reprise d'une session cloud) : on n'arrive plus dans l'espace par un simple fondu.
+   ENTRÉE = un TUNNEL DE DISTORSION (1,9 s) : le monde s'incurve à fond (la distorsion du boost, poussée au maximum), le champ se
+   déchire, des traits de lumière filent le long de la caisse, éclair bleu à l'entrée et à la SORTIE du tunnel.
+   SORTIE = une RENTRÉE ATMOSPHÉRIQUE EN FEU (2,6 s) : la caisse retombe dans le ciel enveloppée de plasma — flammes au nez qui
+   lèchent la carrosserie et traînent derrière, braises, tremblement, grondement, éclair orange.
+   Déclenché par newTrack au passage d'un monde à l'autre, seulement quand on FRANCHIT un portail en course (pas au départ d'une
+   partie ni au menu). Rien ne se construit : traits, particules et éclairs sont ceux du jeu. */
+const ORBFX={warp:0,feu:0,prev:null,sortie:false,f:new THREE.Vector3(),r:new THREE.Vector3(),u:new THREE.Vector3(),p:new THREE.Vector3()};
+function orbWarp(){
+  ORBFX.warp=1;ORBFX.feu=0;ORBFX.sortie=false;
+  flashEcran('rgba(140,210,255,.85)');hap([20,30,20,30,60]);shake=Math.max(shake,.45);
+  try{whoosh();boostSnd(2.2);subBoom(.14);noiseBurst(1.1,.12,1800);}catch(e){}
+}
+function orbFeu(){
+  ORBFX.feu=1;ORBFX.warp=0;
+  flashEcran('rgba(255,120,40,.85)');hap([30,40,30,40,80]);shake=Math.max(shake,.6);
+  try{crackle(1);subBoom(.18);noiseBurst(1.6,.2,420);}catch(e){}
+}
+function orbFxTick(dt){
+  if(!(ORBFX.warp>0||ORBFX.feu>0)){if(ORBFX.halo&&ORBFX.halo.visible)ORBFX.halo.visible=ORBFX.halo2.visible=false;return;}
+  if(gameOver||!running||!started){ORBFX.warp=ORBFX.feu=0;if(ORBFX.halo)ORBFX.halo.visible=ORBFX.halo2.visible=false;return;}
+  const q=carGroup.quaternion,c=carGroup.position,F9=ORBFX.f.set(0,0,1).applyQuaternion(q),R9=ORBFX.r.set(1,0,0).applyQuaternion(q),U9=ORBFX.u.set(0,1,0).applyQuaternion(q);
+  if(ORBFX.warp>0){
+    ORBFX.warp=Math.max(0,ORBFX.warp-dt/1.9);const w=ORBFX.warp;
+    fovPunch=Math.max(fovPunch,34*Math.sqrt(w)); // le champ se DÉCHIRE (la caméra relâche fovPunch toute seule)
+    if(!REDUCED_MOTION)for(let k=0;k<2;k++){ // les parois du tunnel : des traits sur un anneau autour de la caisse, qui filent vers l'arrière
+      const a=Math.random()*6.2832,R=7+Math.random()*12,d=25+Math.random()*70,ln=18+50*w;
+      ORBFX.p.copy(c).addScaledVector(F9,d).addScaledVector(R9,Math.cos(a)*R).addScaledVector(U9,Math.sin(a)*R*.8);
+      spawnStreak(ORBFX.p.x,ORBFX.p.y,ORBFX.p.z,-F9.x*ln,-F9.y*ln,-F9.z*ln);}
+    if(!ORBFX.sortie&&w<.18){ORBFX.sortie=true;flashEcran('rgba(200,235,255,.65)');try{chimeNote(1320,0,.06,.4);}catch(e){}} // la SORTIE du tunnel : l'espace s'ouvre
+  }
+  if(ORBFX.feu>0){
+    ORBFX.feu=Math.max(0,ORBFX.feu-dt/2.6);const f9=ORBFX.feu,sp=CARS[level];
+    shake=Math.max(shake,.28*f9);
+    if(!REDUCED_MOTION){ // le PLASMA : né au nez et sur les flancs, il hérite de la vitesse de la caisse (EXV) et LÈCHE la carrosserie vers l'arrière
+      const n=Math.ceil(6*f9);for(let k=0;k<n;k++){
+        // (vu en capture : nées au nez, la caisse les CACHAIT à la caméra de poursuite) — 30 % au nez, 70 % sur la SILHOUETTE vue de
+        // derrière : les deux flancs et le toit, juste au bord de la carrosserie, d'où elles filent vers l'objectif
+        const bout=Math.random()<.3,cote=Math.random()<.5?-1:1,toit=!bout&&Math.random()<.4;
+        ORBFX.p.copy(c).addScaledVector(F9,bout?sp.l*.55+Math.random()*.5:(Math.random()-.2)*sp.l*.7)
+          .addScaledVector(R9,bout?(Math.random()-.5)*sp.w:toit?(Math.random()-.5)*sp.w*.8:cote*sp.w*(.52+Math.random()*.15))
+          .addScaledVector(U9,toit?sp.h+.15+Math.random()*.35:.3+Math.random()*sp.h*.8);
+        const v=9+Math.random()*12;
+        spawnP(flames,ORBFX.p.x,ORBFX.p.y,ORBFX.p.z,EXV.x*.92-F9.x*v+(Math.random()-.5)*3,EXV.y*.92-F9.y*v+Math.random()*2,EXV.z*.92-F9.z*v+(Math.random()-.5)*3,.2+Math.random()*.18);
+        if(k<2)spawnP(flameCore,ORBFX.p.x,ORBFX.p.y,ORBFX.p.z,EXV.x*.95-F9.x*v*.6,EXV.y*.95+.5,EXV.z*.95-F9.z*v*.6,.12+Math.random()*.1);
+        if(Math.random()<.35)spawnP(embers,ORBFX.p.x,ORBFX.p.y,ORBFX.p.z,EXV.x*.8-F9.x*v*.8+(Math.random()-.5)*7,EXV.y*.8+Math.random()*4,EXV.z*.8-F9.z*v*.8+(Math.random()-.5)*7,.4);}}
+    { // LE BOUCLIER DE PLASMA : un halo orange vif au NEZ, une lueur rouge qui ENVELOPPE la caisse — deux sprites additifs (le programme
+      // des halos de pouvoirs : aucune compilation), posés dans la scène et non dans la caisse (buildCar la vide à chaque changement)
+      if(!ORBFX.halo){const m9=new THREE.SpriteMaterial({map:lampTex,color:0xff7a2a,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending});
+        ORBFX.halo=new THREE.Sprite(m9);ORBFX.halo2=new THREE.Sprite(m9.clone());ORBFX.halo2.material.color.setHex(0xff3a12);
+        for(const h9 of [ORBFX.halo,ORBFX.halo2]){h9.renderOrder=5;h9.visible=false;scene.add(h9);}}
+      const tt=performance.now()/1000,fl=.78+.22*Math.sin(tt*41)*Math.sin(tt*17); // (`t` n'existe que dans la boucle)
+      ORBFX.halo.visible=ORBFX.halo2.visible=f9>0;
+      ORBFX.halo.position.copy(c).addScaledVector(F9,sp.l*.52).addScaledVector(U9,sp.h*.45);ORBFX.halo.scale.set(sp.w*2.6,sp.h*2.4,1);
+      ORBFX.halo.material.opacity=Math.min(1,1.1*f9)*fl;
+      ORBFX.halo2.position.copy(c).addScaledVector(U9,sp.h*.5);ORBFX.halo2.scale.set(sp.l*1.7,sp.l*1.2,1);
+      ORBFX.halo2.material.opacity=.55*f9*fl;
+    }
+    ORBFX.pouls=(ORBFX.pouls||0)-dt;
+    if(f9>.3&&ORBFX.pouls<=0){ORBFX.pouls=.45;flashEcran('rgba(255,110,30,'+(.35+.4*f9).toFixed(2)+')');} // les bords de l'écran BATTENT en orange tant que ça brûle
+    if(f9>.4&&Math.random()<dt*5)try{crackle(.3*f9);}catch(e){}
+  }
+}
 function portailPasse(){
   if(CAMP.n===10&&CAMP.pris&&!PARK.on){campFinale();return;}
   if(CAMP.n===20&&!PARK.on){if(!VBQ.fini)villeFinale();return;} // (2026-09-27) le portail de MIDI : le premier arrivé gagne — le banquier passé avant toi, il ne mène plus nulle part // (2026-09-27) le portail du COUCHER : la campagne des NUAGES est finie, on ne va nulle part ailleurs
@@ -23306,6 +23369,20 @@ function portailPasse(){
   flyCash(carGroup.position,8);
   SURV.pBase+=s; // la course traverse le portail : les écarts restent vrais (téléportation invisible)
   newTrack();
+}
+/* LA CAMÉRA DE VOL v2 (2026-09-28, Sacha — idée reprise d'une session cloud, refaite sur ce jeu) — voir le bloc « CAMÉRA DE VOL v2 »
+   dans la boucle. `off` = l'écart caisse→caméra LISSÉ (le lisser en position monde la faisait traîner de vitesse÷3 : mesuré 23-36 m
+   derrière la caisse en vol, contre 5-7 m au sol) · `hang` 0..1 = le plan de trois-quarts des gros vols · `side` = de quel côté (le
+   soleil) · `soon` 0..1 = la réception approche · `eta` = secondes avant la réception prédite (posé par le viseur, 99 = rien en vue) ·
+   `zoom`/`zp` = le COUP DE ZOOM d'une pose PARFAITE (lu par la caméra au sol). */
+const CAMV={off:new THREE.Vector3(),look:new THREE.Vector3(),t:0,hang:0,side:1,soon:0,eta:99,zoom:0,zp:0};
+/* LA POSE PARFAITE SE VOIT (2026-09-28, Sacha) : en plus du gel d'image (hitT) et du « tchak », un COUP DE ZOOM — le champ se resserre
+   sec à l'impact et se relâche en 0,5 s — et une COURONNE DORÉE qui éclate depuis les bords de l'écran (le centre reste net : on voit la
+   caisse se poser). DIVIN (braquage) : plus fort, et la couronne bat deux fois. */
+function poseParfaiteFx(divin){
+  CAMV.zoom=divin?1.3:1;
+  flashEcran(divin?'rgba(255,238,150,1)':'rgba(255,200,60,.95)');
+  if(divin)setTimeout(function(){try{if(running&&!gameOver)flashEcran('rgba(255,215,110,.8)');}catch(e){}},200);
 }
 function startFall(impU,impF){
   traceTick(false); // (2026-09-26) le ruban de gomme se coupe au décollage
@@ -23519,6 +23596,7 @@ function tryLand(dt){
       else if(g===1){g=1.5;gTxt='PARFAIT (BOOST ×2) ! ';hitT=.08;hap(15);}
       else{g=1;gTxt='';}
     }
+    if(g>=1.5)try{poseParfaiteFx(g>=2);}catch(e){} // (2026-09-28) coup de zoom + couronne dorée
     rollover=g>=1.5?chainVal*.1:0; // ROLLOVER : un PARFAIT reporte 10 % — la fortune voyage au vol suivant
     if(g>=1.5)momT=Math.max(momT,3);else if(g<1)momT*=.5; // (momentum v2) PARFAIT relance la vitesse, POSÉ LOURD en coûte la moitié
     if(g<1){try{clank9(0,190,.12);clank9(.05,135,.09);}catch(e){}} // (2026-09-25) POSÉ LOURD : la TÔLE, sans carillon
@@ -23649,6 +23727,8 @@ function newTrack(){
   CHAUFFE_R.t=performance.now()+120; // (tour 2) la nouvelle piste, sa ville, ses nuages : dessinés une fois hors écran dans la foulée (voir chauffeRendu)
   let sd=(Math.random()*1e9)|0;
   const niv=lvlChoisir(); // LE NIVEAU D'ABORD : buildClouds et buildVoxCity le lisent pendant la construction
+  {const id9=niv&&niv.id,av9=ORBFX.prev;ORBFX.prev=id9; // (2026-09-28) L'ORBITE A SES PORTES : tunnel en y entrant, feu en en sortant (portail franchi en course)
+   if(started&&!gameOver&&runStats.zones>0&&!PARK.on&&av9&&id9&&av9!==id9){if(id9==='espace')orbWarp();else if(av9==='espace')orbFeu();}}
   if(niv&&niv.graine)sd=niv.graine; // (2026-09-27) CAMPAGNE : la même piste, les mêmes pièces, les mêmes nuages à chaque essai
   buildTrack(sd);
   conesInstancier(); // (perf) les plots de la nouvelle piste, en instances
@@ -27981,7 +28061,10 @@ function loop(now){
         fovPunch=Math.max(0,fovPunch-dt*18);
         const r9=speedKmh/Math.max(1,vCroisiere()), // (2026-09-25) le champ s'ouvre sur la CROISIÈRE réelle : il continue de réagir au momentum, au pad, au FLOW au lieu d'être collé au plafond
               fovT=Math.min(160,fovPor(fovPunch+FLOW.lv*2.2+72+Math.min(38,r9*28+Math.max(0,r9-1)*10)+(boost>0?8:0)+(nitroOn?(nitroBlue?22:15):0))); // (portrait : élargi par la tangente, voir fovPor) // le tunnel s'ouvre : part RELATIVE + part absolue + GROS coup de FOV au boost (Sacha)
-        camera.fov+=(fovT-camera.fov)*Math.min(1,dt*(NFX.off>0&&fovT<camera.fov?2.4:6)); // (vague 3) à l'extinction de la nitro le champ RETOMBE en douceur (il s'ouvre toujours sec)
+        {const n9=performance.now();if(loop._fovB==null||n9-(loop._fovBT||0)>150)loop._fovB=camera.fov;loop._fovBT=n9;} // le champ « de base » repart du vrai champ à chaque reprise de conduite
+        loop._fovB+=(fovT-loop._fovB)*Math.min(1,dt*(NFX.off>0&&fovT<loop._fovB?2.4:6));
+        CAMV.zoom=Math.max(0,CAMV.zoom-dt*2);CAMV.zp=24*CAMV.zoom*CAMV.zoom; // (2026-09-28) le COUP DE ZOOM d'une pose PARFAITE : sec à l'impact (−24°), relâché en 0,5 s
+        camera.fov=Math.max(20,loop._fovB-CAMV.zp); // (vague 3) à l'extinction de la nitro le champ RETOMBE en douceur (il s'ouvre toujours sec)
         camera.updateProjectionMatrix();
         if(shake>0){
           camera.position.addScaledVector(F.n,(Math.random()-.5)*shake);
@@ -28190,19 +28273,42 @@ function loop(now){
       qTmp.premultiply(qTmp2);
       carGroup.quaternion.slerp(qTmp,Math.min(1,dt*8));
       shadow.position.y=-99999;
-      // CAMÉRA DYNAMIQUE EN VOL : plus le saut est GROS, plus on zoome et on suit serré → la caisse reste héroïque (fini le point minuscule)
+      /* ===== LA CAMÉRA DE VOL v2 (2026-09-28, Sacha : « caméra plus proche en vol, plan de trois-quarts sur les gros sauts, retour
+         derrière avant l'atterrissage ») =====
+         (1) ELLE NE TRAÎNE PLUS : on lisse l'ÉCART caisse→caméra, plus sa position dans le monde. Avant, `camera.position.lerp(cible,
+             dt*3)` courait après une cible lancée à ~110 m/s : retard d'équilibre = vitesse ÷ 3, mesuré 23-36 m derrière la caisse (5-7 m
+             au sol) — elle rapetissait à chaque saut, et le zoom (76° → 54°) ne faisait que compenser. Place voulue ~9 m, comme avant,
+             mais TENUE ; le champ reste large (78°) : on voit où l'on va.
+         (2) HANG TIME : sur un GROS vol (réception à plus de 1,3 s), la caméra glisse de TROIS-QUARTS (~57°), côté SOLEIL — la caisse se
+             découpe dans la lumière ; si tu braques fort, elle s'efface à moitié (c'est toi qui pilotes).
+         (3) RÉCEPTION : dès que l'anneau est à moins de ~1,2 s, retour DERRIÈRE (vite), le regard tiré vers l'anneau — on voit OÙ on se
+             pose. Le spectacle ne coûte jamais la lisibilité de l'atterrissage. */
       const bigAir=THREE.MathUtils.clamp((fallT-0.5)/2.2,0,1); // 0 au décollage → 1 sur un gros air
-      tmp2.copy(fallPos).addScaledVector(tmp,-(9.0-bigAir*2.6)*(1-POR*.16)).addScaledVector(FLY_U,(3.5+bigAir*2.4)*(1+POR*.12)); // on se rapproche et on monte (angle plus épique) — « monter » = vers le HAUT DE LA CAISSE (vol libre), plus vers le ciel
-      camera.position.lerp(tmp2,Math.min(1,dt*(3+bigAir*4.5))); // suivi PLUS VIF en gros air : la caméra ne décroche plus
-      camUp.lerp(FLY_U,Math.min(1,dt*3)).normalize(); // (vol libre) le haut de l'écran = le haut de la caisse : la caméra ne se remet plus « à l'endroit »
-      camera.up.copy(camUp);
-      camera.lookAt(fallPos);
-      // (2026-09-26) la NITRO se VOIT en l'air : le champ s'ouvre sous la poussée (comme au sol) et le coup de réacteur de l'allumage
-      // (`fovPunch`) claque ici aussi — avant, il n'était lu qu'au sol et partait en retard, à l'atterrissage
-      fovPunch=Math.max(0,fovPunch-dt*18);
-      const fovAir=fovPor(76-bigAir*22+fovPunch+(nitroOn?(nitroBlue?18:13):0)); // ZOOM cinématique : le champ se resserre avec l'ampleur du saut (76° petit air → 54° gros air)
-      camera.fov+=(fovAir-camera.fov)*Math.min(1,dt*(NFX.off>0&&fovAir<camera.fov?2:4)); // (vague 3) la nitro coupée : le champ retombe en douceur
-      camera.updateProjectionMatrix();
+      {const C=CAMV,n9=performance.now();
+       if(n9-(C.t||0)>150){ // 1re image du vol (décollage, respawn…) : l'écart part de la caméra RÉELLE — aucune coupe
+         C.off.subVectors(camera.position,fallPos);C.hang=0;C.soon=0;C.eta=99;C.zoom=0;C.side=FLY_R.dot(SUN_DIR)>=0?1:-1;} // (un coup de zoom en cours ne survit pas au décollage)
+       C.t=n9;
+       C.soon+=(THREE.MathUtils.clamp((1.25-C.eta)/.75,0,1)-C.soon)*Math.min(1,dt*6);
+       const hangW=(fallT>.35&&C.eta>1.3&&!dolOn)?(Math.abs(steer)>.5?.45:1):0;
+       C.hang+=(hangW-C.hang)*Math.min(1,dt*(hangW>C.hang?1.6:4.2)); // entre en douceur, SORT vite
+       const bk=(9.0-bigAir*2.6)*(1-POR*.16)*(1+.22*C.hang),hu=(3.5+bigAir*2.4)*(1+POR*.12)+1.2*C.hang;
+       tmp2.copy(tmp).multiplyScalar(-bk).addScaledVector(FLY_U,hu);                 // l'écart VOULU (derrière la trajectoire, au-dessus de la caisse)
+       if(C.hang>.001)tmp2.applyAxisAngle(FLY_U,C.side*C.hang);                      // le plan de TROIS-QUARTS
+       if(C.off.distanceToSquared(tmp2)>3600)C.off.copy(tmp2);                        // téléport (portail, respawn) : on ne lisse pas 60 m
+       C.off.lerp(tmp2,Math.min(1,dt*(4+bigAir*3)));
+       camera.position.copy(fallPos).add(C.off);
+       camUp.lerp(FLY_U,Math.min(1,dt*3)).normalize(); // (vol libre) le haut de l'écran = le haut de la caisse : la caméra ne se remet plus « à l'endroit »
+       camera.up.copy(camUp);
+       C.look.copy(fallPos);
+       if(landMark.visible&&C.soon>.01){tmp3.subVectors(landMark.position,fallPos);const ll=tmp3.length();if(ll>.01)C.look.addScaledVector(tmp3,Math.min(ll*.3,7)/ll*C.soon*(1-C.hang));} // le regard glisse vers l'anneau (≤ 7 m)
+       camera.lookAt(C.look);
+       // (2026-09-26) la NITRO se VOIT en l'air : le champ s'ouvre sous la poussée (comme au sol) et le coup de réacteur de l'allumage
+       // (`fovPunch`) claque ici aussi. Le champ ne se referme plus sur les gros airs (la caméra ne traîne plus : rien à compenser) —
+       // un léger téléobjectif pendant le trois-quarts, un peu d'ouverture à l'approche de l'anneau.
+       fovPunch=Math.max(0,fovPunch-dt*18);
+       const fovAir=fovPor(78-bigAir*6-7*C.hang+4*C.soon+fovPunch+(nitroOn?(nitroBlue?18:13):0));
+       camera.fov+=(fovAir-camera.fov)*Math.min(1,dt*(NFX.off>0&&fovAir<camera.fov?2:4)); // (vague 3) la nitro coupée : le champ retombe en douceur
+       camera.updateProjectionMatrix();}
       const fshN=THREE.MathUtils.clamp((speedKmh-180)/360,0,1.2),fsh=fshN*fshN*CAM_SHAKE_V;
       if(fsh>0){
         camera.position.x+=(Math.random()-.5)*fsh;
@@ -28215,6 +28321,7 @@ function loop(now){
       // viseur : où vais-je atterrir ?
       landMark.visible=false;
       tmp2.copy(fallPos);tmp3.copy(fallVel);
+      CAMV.eta=99; // (caméra de vol v2) temps avant la réception prédite — 99 = rien en vue
       for(let st2=0;st2<14;st2++){ // même intégration que la vraie chute : vel par seconde, position ×SPD
         tmp3.y-=FALL_G*gK()*.12;
         tmp2.addScaledVector(tmp3,.12*SPD);
@@ -28227,7 +28334,7 @@ function loop(now){
           if(Math.abs(l2)<ROAD_HALF&&h2>-THICK-1&&h2<3){
             landMark.position.copy(pts[bi]).addScaledVector(B[bi],l2).addScaledVector(Nn[bi],h2>-1.3?.3:-THICK-.3);
             landMark.quaternion.setFromRotationMatrix(mat4.makeBasis(T[bi],B[bi],Nn[bi]));
-            landMark.visible=true;
+            landMark.visible=true;CAMV.eta=(st2+1)*.12;
             const impP=Math.abs(tmp3.dot(Nn[bi])); // impact PRÉDIT — même unité que le verdict d'atterrissage
             landMark.material.color.setHex(impP<4.5?0xffd75e:impP>=10?0xff5040:0xffffff); // or = fenêtre PARFAIT, rouge = posé lourd
             landMark.scale.setScalar(impP<4.5?1+Math.sin(t*10)*.12:1); // l'anneau OR pulse : vas-y, c'est maintenant
@@ -28373,6 +28480,9 @@ function loop(now){
      if(nitroOn)nitroLight.color.setHex(nitroBlue?0x5b7dff:(fxL!=null?fxL:0xff7a24)); // orange nitro / bleu réserve (mêmes teintes que les particules)
      else if(boost>0)nitroLight.color.setHex(fxL!=null?fxL:0xffd75e); // pad turbo : coup d'or (vague 3 : l'or de la bible)
      else nitroLight.color.setHex(0xf21808);} // repos : rouge feux arrière PROFOND (la signature ne vit qu'à la nitro)
+    if(ORBFX.feu>0&&mode!=='boom'){ // (2026-09-28) LA RENTRÉE EN FEU : le reflet quitte les pots pour le NEZ, rouge-orange, fort et vacillant — la caisse brûle
+      nitroLight.color.setHex(0xff5a1e);nitroLight.position.copy(carGroup.position).addScaledVector(hsF,CARS[level].l*.5).addScaledVector(hsU,.9);
+      nitroLight.intensity=Math.max(nitroLight.intensity,3.4*ORBFX.feu*(.8+.2*Math.sin(t*37)));}
     // PLUME DE RÉACTEUR : court au filage, long et affûté à la nitro — flicker haute fréquence, la flamme VIT
     const jTgt=(mode==='boom')?0:((nitroOn?(nitroBlue?1.35:1.05):((mode!=='drive'||loop._wasUp)&&Math.abs(speedKmh)>20?.34:0))+(boost>0?.4:0));
     JETS.k+=(jTgt-JETS.k)*Math.min(1,dt*11);
@@ -28659,7 +28769,7 @@ function loop(now){
     auraComboTick(dt); // la fenêtre du combo de figures se referme toute seule
     dolHudTick(dt); // l'étiquette DAUPHIN : filet de sortie de vol + total figé qui s'efface
     fruitRafTick(dt);  // …et celle de la rafale de fruits
-    if(!paused){misTick(dt);tutoTick(dt);flowTick(dt);chaineTick(dt);} // …les CONTRATS se cochent en direct, l'AUTO-ÉCOLE suit tes gestes
+    if(!paused){misTick(dt);tutoTick(dt);flowTick(dt);chaineTick(dt);orbFxTick(dt);} // …les CONTRATS se cochent en direct, l'AUTO-ÉCOLE suit tes gestes
     /* LA CHARGE D'AURA. Trois choses à l'écran, et chacune répond à une question :
        le CHIFFRE (« combien j'ai »), la JAUGE (« où je vais » — le rang suivant), le MAX (« quoi
        battre »). Sans la troisième, il n'y a aucune raison de vouloir monter. */
@@ -28772,7 +28882,7 @@ function loop(now){
   // (2026-09-26) éteints = plus dessinés : le sprite additif du soleil couvre 2 000 unités, même à opacité nulle il se paie (garage et étal gardent la main)
   if(!garageOn&&!stallOn){sunSprite.visible=sunSprite.material.opacity>.02;horizonGlow.visible=horizonGlow.material.opacity>.02;for(const r9 of RAYS)r9.visible=r9.material.opacity>.002;}
   if(acesPass){ // EFFETS DE VITESSE (aberration + flou radial + tunnel) — SUR LE BOOST, pas sur le simple fait d'avancer
-    const sfxT=(running&&!gameOver&&!REDUCED_MOTION&&FLOU_OK)?Math.min(1,(nitroOn?0.72:0)+Math.min(1,boost)*0.6):0; // rouler normalement = image nette ; booster = ça FUSE
+    const sfxT=(running&&!gameOver&&!REDUCED_MOTION&&FLOU_OK)?Math.max(ORBFX.warp*.95,Math.min(1,(nitroOn?0.72:0)+Math.min(1,boost)*0.6)):0; // (2026-09-28) + le TUNNEL de l'orbite // rouler normalement = image nette ; booster = ça FUSE
     loop._sfx=(loop._sfx||0)+(sfxT-(loop._sfx||0))*Math.min(1,dt*(sfxT>(loop._sfx||0)?7:3)); // montée franche, retombée douce
     acesPass.uniforms.uSpeed.value=loop._sfx;acesPass.uniforms.uJit.value=(acesPass.uniforms.uJit.value+.618034)%1;
     renderer.getDrawingBufferSize(acesPass.uniforms.uRes.value);acesPass.uniforms.uRes.value.set(1/Math.max(1,acesPass.uniforms.uRes.value.x),1/Math.max(1,acesPass.uniforms.uRes.value.y)); // la taille d'un texel pour le FXAA (suit la résolution adaptative)

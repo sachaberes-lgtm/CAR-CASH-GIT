@@ -44,6 +44,20 @@ seulement ce qui s'applique ICI sans toucher à l'économie ni au FLOW v2. Banc 
 - **PAS REPRIS, exprès** : décote du bump (sa recharge est une demande de Sacha), débordement vers la réserve bleue (économie des fruits),
   badge ×N / barre de palier / objectif de fin (le HUD d'ici a les siens), aimant (déjà sans `level`).
 
+## CAMÉRA DE VOL v2 · POSE PARFAITE · PORTES DE L'ORBITE (2026-09-28 — idées reprises des sessions cloud, refaites ici)
+- **CAMÉRA DE VOL** (bloc « CAMÉRA DE VOL v2 » du mode 'fall', état `CAMV`) : on lisse l'ÉCART caisse→caméra (`CAMV.off`), plus la
+  position monde — le `lerp(cible, dt*3)` traînait de vitesse÷3 : MESURÉ 23-36 m derrière en vol, désormais 7-9 m (5-7 au sol).
+  HANG TIME : réception prédite à plus de 1,3 s (`CAMV.eta`, posé par le viseur d'atterrissage) → la caméra pivote de trois-quarts
+  (~57°) côté SOLEIL autour de `FLY_U` ; réception proche → retour derrière et regard tiré vers l'anneau. Champ 78° (le zoom 76→54°
+  qui compensait la traîne a sauté). L'écart repart de la vraie caméra au 1er plan du vol (aucune coupe).
+- **POSE PARFAITE** (`poseParfaiteFx`, appelée au verdict dès g ≥ 1,5) : COUP DE ZOOM (−24° sec, relâché en 0,5 s — `CAMV.zoom/zp`, lu
+  par la caméra au sol via un champ « de base » `loop._fovB`) + COURONNE DORÉE depuis les bords (`flashEcran` or) ; DIVIN : deux battements.
+- **PORTES DE L'ORBITE** (`ORBFX`, `orbWarp`/`orbFeu`/`orbFxTick`, crochet en tête de `newTrack`, portail franchi en course seulement) :
+  ENTRÉE = tunnel de distorsion 1,9 s (la distorsion `uSpeed` du boost poussée à .95, `fovPunch` jusqu'à 34°, traits de lumière en anneau,
+  éclair bleu à l'entrée et à la sortie) ; SORTIE = rentrée en feu 2,6 s (bouclier de plasma = 2 sprites additifs `lampTex` au nez et
+  autour de la caisse, flammes sur la silhouette vue de derrière — nées au nez, la caisse les cachait —, `nitroLight` passe au nez en
+  rouge-orange, bords d'écran qui battent orange, crépitements). Banc : `camorb.js` / `orbonly.js` (scratchpad d82605e6).
+
 ## PASSE DE LANCEMENT (2026-09-28) — « imagine qu'il sort sur l'App Store, vise le top 1 des jeux de course »
 Bancs muets dans le scratchpad de la session d82605e6 (un à la fois) : `balade2.js` (nouveau joueur au vrai doigt), `boucle.js` (mort →
 rejouer : ~2,9 s, les touchers de la 1re demi-seconde sont avalés exprès), `endurance.js` (5 min, 14 niveaux : 0 erreur silencieuse,
