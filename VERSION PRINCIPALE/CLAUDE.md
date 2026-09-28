@@ -395,6 +395,39 @@ QUE pour les NUAGES (`c.camp&&c.id==='nuages'`) — la ville garde zéro nuage (
   · Bancs : scratchpad `v6/conduite/diag/` (diagnostic, sim6.js), `v6/conduite/moi/sim-v6.js` (le modèle retenu + pilote 150 ms),
     `v6/piste/base/` (banc.js étendu, variantes.js, resume.js). `dbgState()` expose psi/yawR/slipB/glisse/drift/roulisDeg/vH.
 
+## LE HUD v5 — LE TABLEAU DE BORD À LED (2026-09-28) — tout l'affichage de COURSE
+Sacha : « une refonte complète et maximale des informations affichées pendant la partie — nitro, barre de flow, triangle DARK TRIAD,
+boutons, textes… ajoutés petit à petit : beaucoup plus soignés, cohérents, modernes ; BEAU, ADDICTIF, PENSÉ POUR MOBILE ». Tout vit
+dans UN bloc `<style id="hud5">`, posé juste APRÈS `charte4` : il est AUTORITAIRE (il redéfinit chaque élément en entier par-dessus les
+passes « HUD v4 », « vague 2/3 », « charte au complet » du 1er `<style>`) — une retouche du HUD de course s'écrit LÀ, nulle part ailleurs.
+- **L'IDÉE** : la police pixel est un AFFICHEUR À LED ; le HUD est le tableau de bord d'une voiture de course la nuit. Primitive
+  unique : la RANGÉE DE DIODES = un rail de diodes éteintes (`--ledOff`) + le remplissage + un calque de JOURS (`--ledJour` : 5 px de
+  diode, 2 px de jour, de la couleur `--plateHud` du fond) posé PAR-DESSUS (pas de masque : les remplissages R/X de la nitro ne sont pas
+  alignés entre eux, le calque l'est). Nitro, flow, record, chaîne, pouvoirs : la même primitive.
+- **LA RAMPE** (`#nitroWrap::before` = la plaque, opaque, sous la nitro ET le flow ; `--rampeT`/`--rampeH`/`--rampeD`) : rangée 1 = la
+  NITRO (orange, réserve bleue, curseur blanc) ; rangée 2 = le FLOW en SHIFT LIGHTS (cellules cyan → or → rose → violet, la zone
+  rouge au bout, `.fL` masqué, `.fM` = le ×cash à droite). La FRÉNÉSIE = le RUPTEUR : toutes les diodes rouges qui battent
+  (`h5Rupteur`), la plaque qui s'embrase au rythme de l'emblème ; « ça fuit » en frénésie = diodes pâles qui clignotent vite. Les états
+  du flow se lisent SUR la plaque (`body:has(#flowHud.lache)` → la rampe clignote au tic ; `.fuit` → liseré rouge) ; un palier gagné =
+  un éclat qui balaie les diodes (`.monte .fSeg::after`) + coup de poing sur le ×cash. NITRO MAX : diodes chauffées à blanc, le feu de
+  DOOM brûle DANS la rampe (`#nitroWrap{overflow:hidden}`, les jours découpent les flammes en colonnes). ⚠ JS changé : la rampe compte
+  désormais la PART DU RÉSERVOIR (`nitroR/res`, réserve `nitroX/2` par-dessus) comme le disque NITRO — elle comptait sur 4 unités
+  (réservoir plein = rampe à moitié, disque plein).
+- **LE SCORE** (`#auraV2`) : l'étiquette AURA AU-DESSUS du chiffre (grille), 32 px rose cerné d'encre ; le RECORD en rail de diodes or
+  (156 px) et sa phrase dessous ; à 85 % du record la phrase devient « ENCORE n » (`recMaj`).
+- **LA CHAÎNE** (`#avCh`) : une PLAQUE (bande à la couleur du ×), points 16 px, × 28 px, compte à rebours en diodes, 2 gestes. ⚠ JS
+  changé : `X_COUL` = l'échelle des shift lights (blanc, cyan, or, rose, violet, puis rouge feu) — ×3 était VERT, la couleur de l'argent.
+  En paysage elle se range À CÔTÉ du score (elle descendait sous le pouce gauche).
+- **LA COLONNE DE DROITE**, cases FIXES (rien ne saute) : ⏸ aligné sur la rampe · la case de l'emblème DARK TRIAD (108 × 98, il NAÎT de
+  la zone rouge — frenEntre mesure `.fZ` — et s'y pose) · le chrono de vol (`top: rampe + 104`) · les pouvoirs (`rampe + 190`, plaques
+  140 px, minuteur en diodes), l'objectif de campagne s'intercale. En paysage : emblème à droite de la rampe, chrono et pouvoirs en haut à
+  droite. `#pwrFx` (halo des pouvoirs) passe SOUS le HUD (z 1). Sous une grande annonce / un verdict / la carte moteur, les pouvoirs
+  s'effacent.
+- **LE BAS** : l'invitation du volant = un anneau de 24 crans + un disque sombre (frère du disque NITRO), consigne à l'ombre d'encre franche.
+- **AUTO-ÉCOLE** : la rampe se réduit à la nitro (`coOn`). Carte d'astuce/défi : 316 px, icône dans un puits cerclé.
+- Bancs (scratchpad session 312bec4e, `ui/`) : `hud.js <prefixe> [port] [w] [h] [dsf]` (17 états de course ; `CLEAN=1` = fond sans HUD ;
+  `CAMP=1` = campagne), `inshud.py` (réinsère le bloc depuis `hud5-a…e.css`), planche statique `_board/hud.html` + `board.js` (rendu CPU).
+
 ## LA CHARTE v5 — LAQUE · OR · NÉON (2026-09-28) — la v4, un cran plus haut, portrait ET paysage
 Sacha : « ça manque de soin — tous les affichages beaucoup plus soignés, beaucoup plus cohérents entre eux, beaucoup plus
 modernes ; le futur des jeux iPhone, sur les écrans de démo de l'App Store ; reprends la structure globale mais prends des

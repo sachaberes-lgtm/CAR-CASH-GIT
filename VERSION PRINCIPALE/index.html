@@ -3496,7 +3496,8 @@ html body.touch #nitroBar.inf{box-shadow:none!important}
 html body.touch #nitroBar.inf #nitroR,html body.touch #nitroBar.inf #nitroX{background-image:none!important;animation:none!important;
   background:linear-gradient(180deg,#fff 0 3px,#fff3c0 3px 55%,#ffc24a 55%)!important;box-shadow:0 0 16px rgba(255,190,60,.9)}
 html body.touch #nitroWrap:has(#nitroBar.inf)::before{box-shadow:inset 0 0 0 1px rgba(255,210,90,.9),inset 0 1px 0 rgba(255,255,255,.2),inset 0 0 26px rgba(255,160,40,.45)}
-html body.touch #nitroFeu{bottom:calc(100% - 6px);height:40px;z-index:1}
+html body.touch #nitroFeu{bottom:-3px;height:32px;z-index:1}   /* les flammes BRÛLENT DANS la rampe : elles montent des diodes (les jours les découpent en colonnes de feu) et s'arrêtent au bord de la plaque */
+html body.touch #nitroWrap{overflow:hidden}
 
 /* LE FLOW : les SHIFT LIGHTS, dans la même plaque, sous la nitro — l'icône de la vague, les cellules des paliers, le × de cash */
 html body.touch #flowHud{top:calc(var(--rampeT) + 34px);left:calc(var(--hudG) + 36px);right:calc(var(--rampeD) + 12px);width:auto;height:12px;padding:0;box-sizing:border-box;
@@ -3645,6 +3646,38 @@ html body #misBan .mbIco{color:var(--mbC);background:color-mix(in srgb,var(--mbC
   box-shadow:inset 0 0 0 1px var(--mbC),inset 0 0 14px color-mix(in srgb,var(--mbC) 30%,transparent)}
 html body #misBan .mbIco .pxi{color:var(--mbC)}
 @media (prefers-reduced-motion:reduce){html body.touch #flowHud.monte .fSeg::after{animation:none;display:none}html body.touch #flowHud[data-lv="4"] .fSeg>i>s,html body.touch #nitroBar.plein #nitroR{animation:none}}
+/* ---------------------------------------------- LE VOLANT : l'invitation se lit comme une JAUGE ------------------------- */
+/* (l'anneau de 16 crans fins se lisait comme un pointillé) : 24 crans épais, un fond à peine allumé — le frère du disque NITRO */
+html body.touch.play #tSteer:not(.used)::after{background:repeating-conic-gradient(from -5deg,rgba(159,232,255,.8) 0 10deg,transparent 10deg 15deg);
+  -webkit-mask:radial-gradient(closest-side,transparent calc(100% - 6px),#000 calc(100% - 6px));mask:radial-gradient(closest-side,transparent calc(100% - 6px),#000 calc(100% - 6px))}
+html body.touch.play #tSteer:not(.used)::before{content:'';position:absolute;left:calc(50% - 37px);bottom:calc(var(--sB) + 105px);width:74px;height:74px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(0,234,255,.12),rgba(17,13,34,.5))}
+@media (orientation:landscape) and (max-height:540px){html body.touch.play #tSteer:not(.used)::before{bottom:calc(var(--sB) + 43px)}}
+/* ---------------------------------------------- LA CRITIQUE DU HUD (2026-09-28) --------------------------------------- */
+/* les chiffres qui font décider GROSSISSENT : le × de chaîne (28 px), ses points (16 px), le ×cash de la rampe (12 px), le record (10 px) */
+html body.touch #avX{font-size:28px}
+html body.touch #avPts{font-size:16px}
+html body.touch #flowHud .fM{font-size:12px}
+html body.touch #avRec{font-size:10px}
+/* la FRÉNÉSIE QUI FUIT se voit : les diodes rouges pâlissent et clignotent vite, la plaque perd son feu (on la distinguait mal de « nourrie ») */
+html body.touch #flowHud[data-lv="4"].fuit .fSeg>i>s{animation:h5FrenFuit .2s steps(2) infinite}
+@keyframes h5FrenFuit{50%{opacity:.35}}
+html body.touch:has(#flowHud[data-lv="4"].fuit) #nitroWrap::before{animation:none;box-shadow:inset 0 0 0 1px rgba(255,90,110,.45),inset 0 1px 0 rgba(255,200,205,.18)}
+/* la carte d'ASTUCE / de DÉFI : plus étroite, elle mange moins l'horizon */
+html body #misBan{width:min(316px,calc(100vw - 40px))}
+/* la consigne du volant : une ombre d'encre franche (le contour à quatre ombres la dédoublait) */
+html body #tSteerHint{text-shadow:0 2px 0 var(--ink),0 0 6px rgba(11,6,24,.8)}
+/* EN PAYSAGE, la CHAÎNE se range À CÔTÉ du score (elle descendait sous le pouce gauche, contre le volant) */
+@media (orientation:landscape) and (max-height:540px){
+  html body.touch #auraV2{display:grid;grid-template-columns:auto 184px;column-gap:20px;align-items:start;max-width:none}
+  html body.touch #auraV2 .avTot,html body.touch #avRec{grid-column:1}
+  html body.touch #avCh{grid-column:2;grid-row:1/span 2;margin-top:0}
+}
+/* un palier de plus : le ×CASH de la rampe prend un coup de poing (la récompense se VOIT au moment où elle tombe) */
+html body.touch #flowHud.monte .fM{animation:h5Mult .5s cubic-bezier(.2,1.4,.4,1)}
+@media (prefers-reduced-motion:reduce){html body.touch #flowHud.monte .fM,html body.touch #avX.up,html body.touch #avX.feu{animation:none}}
+/* pendant l'AUTO-ÉCOLE le flow se tait (la carte du coach tient le haut) : la rampe se réduit à sa seule rangée de nitro */
+html body.touch.coOn #nitroWrap{height:34px}
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
@@ -22674,7 +22707,9 @@ function verdAffiche(l1,l2,col,rang,mt,tags){
   document.body.classList.add('verdOn');clearTimeout(VERD.t);VERD.t=setTimeout(function(){document.body.classList.remove('verdOn');},rang?1350:1050);
   if(rang>=3)setTimeout(function(){try{pixBurst(e.querySelector('.vT'),rang>=5?12:rang>=4?10:8);}catch(x){}},120); // les gros rangs éclatent en confettis
 }
-const X_COUL=['#5ee6ff','#5ee6ff','#5ee6ff','#62e062','#ffd75e','#ff5ec8','#ff5ec8','#ff5ec8','#ff3924','#ff3924','#ff3924'];
+// (2026-09-28, HUD v5) l'échelle du × de chaîne est CELLE DES SHIFT LIGHTS du flow : blanc, cyan, or, rose, violet, puis le rouge du feu
+// (le vert, couleur de l'ARGENT, ne dit plus « ×3 »)
+const X_COUL=['#dfeeff','#dfeeff','#35e6ff','#ffc93a','#ff4fc2','#9b6bff','#ff3924','#ff3924','#ff3924','#ff3924','#ff3924'];
 const ENG_V9=new THREE.Vector3();
 /* (2026-09-28, user : « le moteur doit apparaître au niveau de la voiture, au-dessus, et donner l'impression de rétrécir et de rentrer
    dans le capot ») LA CARTE SUIT LA CAISSE. Le capot (repère de la caisse, `userData.capot`) et le haut de la caisse sont projetés à
@@ -22742,6 +22777,8 @@ function recInit(){CHA.rec=SAVE.d.auraMax||0;CHA.recB=false;CHA.recP=-1;
 function recMaj(a){
   if(!(CHA.rec>0)||CHA.recB)return;const p=Math.min(1,a/CHA.rec),p2=Math.round(p*100);if(p2===CHA.recP)return;CHA.recP=p2;
   avE('avRecF').style.setProperty('--r',p.toFixed(2));avE('avRec').classList.toggle('presque',p>=.85);
+  // (HUD v5) À PORTÉE, la ligne ne dit plus le record : elle dit ce qu'il MANQUE — « ENCORE 120 » (le crochet qui fait tenter le coup)
+  avE('avRecT').textContent=p>=.85?TR('ENCORE')+' '+fmtAura(Math.max(0,Math.ceil(CHA.rec-a))):TR('RECORD')+' '+fmtAura(CHA.rec);
 }
 function recBattu(){
   CHA.recB=true;const r=avE('avRec');
@@ -28629,7 +28666,9 @@ function loop(now){
     if(money>best){best=money;SAVE.d.best=best;SAVE.mark();} // mark : le filet des 30 s (ou la fin de run) écrira
     if(loop._bestHud!==best){loop._bestHud=best;elRecord.textContent=TR('record : ')+fmt(best);}
     // ⚠ on n'écrit la jauge QUE si elle a bougé d'un demi-pour-cent : un style par image, c'est un recalcul de style par image
-    {const w1=Math.round(nitroR/4*200)/2,w2=Math.round(nitroX/4*200)/2;
+    // (2026-09-28, HUD v5) la rampe dit la MÊME chose que le disque NITRO : la part du RÉSERVOIR du moteur (orange), puis la réserve bleue
+    // par-dessus, plafonnées à la rampe entière — elle comptait sur 4 unités : réservoir plein = rampe à moitié, disque plein (contradiction)
+    {const mx8=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,fR8=Math.min(1,nitroR/mx8),fX8=Math.min(1-fR8,nitroX/2),w1=Math.round(fR8*200)/2,w2=Math.round(fX8*200)/2;
      if(loop._nw1!==w1){loop._nw1=w1;elNR.style.width=w1+'%';}
      if(loop._nw2!==w2){loop._nw2=w2;elNX.style.width=w2+'%';}
      const pl=(nitroR+nitroX)>=((ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2)-.01;
