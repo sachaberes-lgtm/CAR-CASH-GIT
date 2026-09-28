@@ -85,7 +85,7 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
 <style>
 @font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/pressstart2p.woff2') format('woff2');}
 :root{--pix:'Press Start 2P',monospace}
-  html,body{margin:0;padding:0;overflow:hidden;background:#ffffff;font-family:var(--pix);user-select:none}
+  html,body{margin:0;padding:0;overflow:hidden;background:#07050f;font-family:var(--pix);user-select:none} /* (2026-09-29) #07050f, l'encre des écrans : plus de flash blanc entre l'écran natif et le jeu */
   canvas{display:block}
   #hud{position:fixed;inset:0;pointer-events:none;color:#fff;z-index:2} /* au-dessus du canvas filtré (le filter crée un contexte d'empilement) */
   /* HUD épuré : on ne garde que l'argent, le camembert d'airtime, la nitro et les figures */
@@ -1896,14 +1896,19 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
   window.__crash=function(titre,detail){
     if(vu)return;vu=true;
     try{document.title='ERR:'+titre;}catch(_){}
+    /* (2026-09-29, audit de sortie) le JOUEUR lit d'abord une phrase à lui et un bouton RELANCER (l'écran n'avait aucune sortie : pour un
+       testeur d'Apple, c'était un crash) ; le diagnostic technique reste dessous, en petit, pour les captures */
+    var en=!/^fr/i.test((navigator.language||'fr'));
     var b=document.createElement('div');
-    b.setAttribute('style','position:fixed;inset:0;z-index:99999;background:#120a1e;color:#ffd75e;'+
-      'font:13px/1.6 ui-monospace,Menlo,monospace;padding:26px;overflow:auto;-webkit-user-select:text;user-select:text');
-    b.innerHTML='<div style="font-size:17px;letter-spacing:2px;color:#ff5e7a;margin-bottom:14px">CASH CAR N\'A PAS PU DÉMARRER</div>'+
-      '<div style="color:#fff;white-space:pre-wrap;margin-bottom:18px">'+esc(titre)+(detail?'\n'+esc(detail):'')+'</div>'+
-      '<div style="color:#8f84a8;margin-bottom:6px">— envoie cette capture, tout est dedans —</div>'+
-      '<div style="color:#9fe8ff;white-space:pre-wrap">'+esc(diag())+'</div>';
+    b.setAttribute('style','position:fixed;inset:0;z-index:99999;background:#07050f;color:#ffd75e;box-sizing:border-box;'+
+      'font:12px/1.6 ui-monospace,Menlo,monospace;padding:calc(env(safe-area-inset-top,0px) + 28px) 24px calc(env(safe-area-inset-bottom,0px) + 24px);overflow:auto;-webkit-user-select:text;user-select:text');
+    b.innerHTML='<div style="font:600 20px/1.35 -apple-system,system-ui,sans-serif;color:#fff;margin-bottom:10px">'+(en?'CASH CAR hit a snag.':'CASH CAR a calé.')+'</div>'+
+      '<div style="font:500 15px/1.5 -apple-system,system-ui,sans-serif;color:#c9bdf0;margin-bottom:22px">'+(en?'Tap RESTART: your progress is saved.':'Touche RELANCER : ta progression est sauvegardée.')+'</div>'+
+      '<button id="ccRelance" style="display:block;width:100%;max-width:360px;min-height:56px;margin:0 0 28px;border:0;font:600 17px -apple-system,system-ui,sans-serif;letter-spacing:1px;color:#3a1800;background:linear-gradient(180deg,#ffe78e,#f7ae16);box-shadow:0 5px 0 #9c5200;cursor:pointer">'+(en?'RESTART':'RELANCER')+'</button>'+
+      '<div style="color:#ff5e7a;margin-bottom:6px">'+esc(titre)+(detail?'\n'+esc(detail):'')+'</div>'+
+      '<div style="color:#6b6290;white-space:pre-wrap">'+esc(diag())+'</div>';
     (document.body||document.documentElement).appendChild(b);
+    try{document.getElementById('ccRelance').addEventListener('click',function(){location.reload();});}catch(_){}
   };
   /* (2026-09-26, passe débogage) CES ÉCOUTEURS GARDENT LE DÉMARRAGE, PAS LA PARTIE. Ils restaient armés toute la session : la moindre
      erreur tardive (hors du try/catch de la boucle) ou une promesse rejetée — `AC.resume()` au retour d'arrière-plan sur iPhone, un
@@ -1918,9 +1923,13 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
     if(window.__gameReady){try{console.warn('promesse rejetée',e.reason);e.preventDefault();}catch(_){}return;}
     window.__crash('promesse rejetée : '+(e.reason&&e.reason.message||e.reason));});
   // LE CHIEN DE GARDE : 8 s sans que la boucle ait tourné une seule fois = ce n'est plus un chargement long.
+  // (2026-09-29, audit de sortie) une erreur ISOLÉE dans la boucle (rattrapée, la partie continue) posait l'écran plein — on vérifie qu'elle
+  // REVIENT : la boucle la réécrit à chaque image quand elle plante vraiment ; une exception d'une seule image ne revient pas.
   setTimeout(function(){
-    if(!window.__gameReady)window.__crash('Le jeu s\'est chargé mais n\'a jamais démarré.');
-    else if(window.__loopErr)window.__crash('La boucle de jeu plante à chaque image.',String(window.__loopErr&&window.__loopErr.message||window.__loopErr));
+    if(!window.__gameReady){window.__crash('Le jeu s\'est chargé mais n\'a jamais démarré.');return;}
+    if(!window.__loopErr)return;
+    window.__loopErr=null;
+    setTimeout(function(){if(window.__loopErr)window.__crash('La boucle de jeu plante à chaque image.',String(window.__loopErr&&window.__loopErr.message||window.__loopErr));},1500);
   },8000);
 })();
 </script>
@@ -5674,6 +5683,9 @@ document.body.appendChild(renderer.domElement);
    et au retour du contexte on recharge proprement : la sauvegarde est sur le disque, rien n'est perdu. */
 renderer.domElement.addEventListener('webglcontextlost',function(e){e.preventDefault();try{sessionStorage.ccCtxPerdu=(+sessionStorage.ccCtxPerdu||0)+1;}catch(err){}try{SAVE.flush();}catch(err){}},false); // (compteur de session : `sessionStorage.ccCtxPerdu` dit combien de fois c'est arrivé)
 renderer.domElement.addEventListener('webglcontextrestored',function(){location.reload();},false);
+// (2026-09-29, audit de sortie) iOS peut garder le contexte PERDU au retour d'arrière-plan sans jamais le rendre : écran noir pour toujours.
+// Au retour, s'il est encore perdu 1,5 s plus tard, on relance (la sauvegarde a été écrite à la perte).
+addEventListener('visibilitychange',function(){if(document.hidden)return;setTimeout(function(){try{if(!document.hidden&&renderer.getContext().isContextLost())location.reload();}catch(e){}},1500);});
 let DPR_CAP=Math.min(devicePixelRatio,IS_MOBILE?1:1.5),curDPR=Math.min(DPR_CAP,devicePixelRatio),dprT=0; // téléphone .66→1 (2026-09-24) : la résolution adaptative sait désormais REMONTER, elle protège la fluidité
 // PLANCHER DE L'ADAPTATIF : sur téléphone on a le droit de descendre BAS. `setPixelRatio` ne touche
 // que le canvas 3D — le HUD est du DOM, il reste net au pixel quoi qu'il arrive. On enlève donc les
