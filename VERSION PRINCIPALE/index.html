@@ -5485,6 +5485,13 @@ function updatePigeons(dt,t){
     if(b9.life<=0){scene.remove(b9.g);PIGEONS.splice(i9,1);}
   }
 }
+/* ⚠ PLUS AUCUN LOOPING (2026-09-28, Sacha : « enlève tous les loopings du jeu »). UN interrupteur, lu par les QUATRE endroits qui en
+   posaient : le motif « looping » de genCtrl (il devient le GRAND VIRAGE, comme en ville depuis le 26/09), la signature de fin des
+   zones VOLTIGE (une longue descente), le looping de l'auto-école / niveau 1 (genTuto : un grand plongeon), et le module LOOP
+   VERTICAL du Parc freestyle (retiré de la liste). Les pistes des NUAGES et de l'ORBITE changent donc à partir du 1er motif
+   concerné (tirages `rnd` différents) ; la VILLE (déjà sans looping) et les niveaux dessinés de la campagne ne bougent pas.
+   `false` = les loopings reviennent tels qu'avant. Le SNAKE LOOP (passer SOUS la route) est une figure, pas un looping : intact. */
+const SANS_LOOPING=true;
 /* ---- LA PISTE D'APPRENTISSAGE (2026-09-24, niveau 1 de la carrière) : dessinée à la MAIN, pas tirée ----
    « une route beaucoup plus simple où le joueur apprend à jouer et à utiliser sa nitro : des virages simples et
    grisants, un looping, des tout-droits qui laissent booster ». Chaque ligne droite est une INVITATION à la
@@ -5507,7 +5514,8 @@ function genTuto(){
   straight(360,-24,3);          // 1re ligne droite en légère descente : « appuie sur NITRO »
   arc(-90,210,7);               // le grand virage grisant
   straight(420,0,4);            // on reprend de la vitesse…
-  straight(60,-45);loop(42,36);straight(60,-42); // …LE LOOPING
+  if(SANS_LOOPING)straight(240,-80,4);                     // …LE GRAND PLONGEON (18°, l'ancien looping — voir SANS_LOOPING)
+  else{straight(60,-45);loop(42,36);straight(60,-42);}      // …LE LOOPING
   straight(380,0,3);            // la ligne droite de récompense : nitro à fond
   arc(55,170,5);arc(-55,170,5); // les esses, douces
   straight(300,20,3);
@@ -6048,7 +6056,7 @@ function genCtrl(rnd,startPos,startPhi){
   const iDep=ctrl.length-1; // (vague 3) le RELIEF part d'ici : le largage du départ garde sa chute
   while(approx<LEN){
     const mo=pick();
-    if(mo===0&&!sansLoop&&approx-lastLoop>1600){ // UN looping, de temps en temps (route v3 : 1,6 km mini entre deux, plus de doublé) — JAMAIS en ville
+    if(mo===0&&!sansLoop&&!SANS_LOOPING&&approx-lastLoop>1600){ // UN looping, de temps en temps (route v3 : 1,6 km mini entre deux, plus de doublé) — JAMAIS en ville, et plus nulle part (SANS_LOOPING)
       straight(60+rnd()*50,-30);loop((30+rnd()*34)*LOOPS,30+rnd()*22);straight(60+rnd()*50,-30);lastLoop=approx;
     }else if(mo===9){ // (route v3b) LE GRAND BALAYAGE : un virage long et LARGE, 100-150°, qui descend doucement — on le prend à fond, on le SENT
       const sg=sgn(),R9=(RV?160+rnd()*160:110+rnd()*90)*RS,a9=Math.min(100+rnd()*60,(RV?64000:52000)/R9); // (vague 3) plus LARGE en VILLE : R 160-320 (ailleurs 110-200)
@@ -6096,7 +6104,7 @@ function genCtrl(rnd,startPos,startPhi){
     straight(0,0,0);{const l9=(50+rnd()*40)*LV,a9=16+rnd()*20;arc(sgn()*a9,l9/(a9*Math.PI/180),4,-(8+rnd()*8)*LV);} // (route v3c) 16-36° : la liaison TOURNE // (piste v6/v7) la RESPIRATION est un virage de liaison (60-110 m, 8-22°, 4 points : 35 m sur 2 points faisait un coude)
   }
   // SIGNATURE DE FIN : chaque archétype clôt SA zone par SON geste — la zone se retient
-  if(AR.nm==='VOLTIGE'){if(!sansLoop&&approx-lastLoop>900){straight(60,-30);loop(34*LOOPS,34);straight(60,-30);}else straight(120,-30,2);} // (route v3) UN looping, plus le doublé
+  if(AR.nm==='VOLTIGE'){if(!sansLoop&&!SANS_LOOPING&&approx-lastLoop>900){straight(60,-30);loop(34*LOOPS,34);straight(60,-30);}else straight(120,-30,2);} // (route v3) UN looping, plus le doublé — plus aucun depuis SANS_LOOPING
   else if(AR.nm==='ALPIN'){straight(90,-50);straight(80,26);gapRun(1);} // ALPIN se clôt SUR LE VIDE : arrivée surélevée, dernier engagement avant le portail
   else if(AR.nm==='FLOW'){arc(sgn()*110,220*Math.min(2,LV),6,-160);}
   else if(AR.nm==='TECH'){let sgF=sgn();for(let q=0;q<3;q++){arc(sgF*24,90*RS,2,-26);sgF=-sgF;}}
@@ -6168,7 +6176,7 @@ function genPark(rnd){
   straight(210,-70,3);                // LARGAGE : tapis d'atterrissage pour l'intro, puis pente douce
   const modules=[
     ()=>{ arc(sg*(50+rnd()*70),175+rnd()*110,5,(rnd()*2-1)*46); flip(); },                        // GRAND SWEEPER : virage qui chante
-    ()=>{ straight(52+rnd()*28,-30); loop(44+rnd()*30,32+rnd()*24); straight(50+rnd()*28,-28); },  // LOOP VERTICAL
+    ...(SANS_LOOPING?[]:[()=>{ straight(52+rnd()*28,-30); loop(44+rnd()*30,32+rnd()*24); straight(50+rnd()*28,-28); }]),  // LOOP VERTICAL — retiré de la liste (SANS_LOOPING)
     ()=>{ arc(sg*(300+rnd()*260),100+rnd()*65,12,-(70+rnd()*100)); flip(); },                      // HÉLICE / TIRE-BOUCHON : la route s'empile
     ()=>{ arc(sg*(360+rnd()*280),160+rnd()*80,14,(rnd()<.5?-1:1)*(80+rnd()*110)); flip(); },       // SPIRALE GÉANTE : monte OU descend (remplit la boule)
     ()=>{ straight(52+rnd()*26,-(14+rnd()*12)); straight(58+rnd()*26,24+rnd()*14); straight(66+rnd()*32,-(42+rnd()*34)); }, // VAGUES à sauter (airtime)
@@ -21881,6 +21889,12 @@ window.dbgHud=function(k,n){
   if(k==='file'){const c=HAUT.cur,t=performance.now();return {voix:c&&t<HAUT.fin?c.k+':'+c.p:null,attente:HAUT.q.map(function(q){return q.k+':'+q.p;}),moteur:engBig.on?(engBig.plonge?'plonge':'couloir'):null};}
   return {flow:{v:FLOW.v,lv:FLOW.lv,idle:FLOW.idle},cha:{pts:CHA.pts,x:CHA.x,n:CHA.n,t:CHA.t},rec:CHA.rec,recB:CHA.recB,aura:Math.round(auraRun)};
 };
+/* `dbgLooping()` — (2026-09-28, SANS_LOOPING) la piste EN COURS a-t-elle un looping ? Un looping, c'est une portion où la route
+   passe la verticale : tangente horizontale < 0,5 (plus de 60° de pente). Rend le nombre de points et de portions concernés. */
+window.dbgLooping=function(){let n=0,por=0,dans=false,pire=0;
+  for(let i=0;i<NP;i++){const t=T[i];if(!t)continue;const hl=Math.hypot(t.x,t.z),v=hl<.5;pire=Math.max(pire,Math.acos(Math.min(1,hl))*57.3);
+    if(v){n++;if(!dans)por++;}dans=v;}
+  return {lieu:LVL.cur?LVL.cur.id:null,parc:!!PARK.on,points:NP,verticaux:n,portions:por,penteMax:Math.round(pire)};};
 /* `dbgFren(k,n)` — (2026-09-28) LA FRÉNÉSIE au banc : 'v' n = pose le remplissage (le palier suit, zone rouge comprise ; 100 = y entrer
    par le vrai chemin) · 'nourrit' n = une goutte de style de n points · 'idle' s = s secondes sans style. Rend l'état : zone, emblème. */
 window.dbgFren=function(k,n){
