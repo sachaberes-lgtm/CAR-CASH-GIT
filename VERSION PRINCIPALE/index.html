@@ -2676,6 +2676,11 @@ body.inGarage #hud>:not(#garage):not(#gFade){display:none!important}
 #mDead.on>.mOver{animation:k4Enseigne .9s var(--ease) backwards;animation-delay:80ms}
 .mscr.on>.mDock{animation:none}
 body.voletSort .mscr.on,body.voletSort .mscr.on>*,body.voletSort #mDead.on>.mOver{animation:none!important}
+/* (charte v5) l'écran que le VOLET a découvert ne rejoue PAS son entrée quand le volet s'en va : retirer `voletSort` relançait
+   k4Racine depuis zéro — l'écran, déjà là, s'éteignait puis se rallumait (mesuré : opacité 1 → 0,65 → 1 entre 600 et 1 200 ms).
+   `.revu` est posée par ecranWipe au lever du volet, et retirée par mGo au prochain écran. Le reflet du lingot, lui, continue. */
+.mscr.on.revu,.mscr.on.revu>*,#mDead.on.revu>.mOver{animation:none!important}
+.mscr.on.revu>.mPlay,#mDead.on.revu>[data-m="replay"]{animation:k4Lingot 4.2s var(--ease) 1.4s infinite!important}
 @keyframes k4Racine{0%{opacity:0;transform:scale(.985)}100%{opacity:1;transform:none}}
 @keyframes k4Avant{0%{opacity:0;transform:translateX(56px) skewX(-4deg)}100%{opacity:1;transform:none}}
 @keyframes k4Retour{0%{opacity:0;transform:translateX(-56px) skewX(4deg)}100%{opacity:1;transform:none}}
@@ -3147,7 +3152,7 @@ html body.touch #airPie.danger{animation:k6PieDanger .12s steps(2) infinite}
   html .mSet>.mWipe{justify-self:start;margin:22px 0 0 6px}
   html .shGrille{grid-template-columns:repeat(4,minmax(0,1fr))}
   html .shUneCadre{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);grid-template-areas:"ruban ruban" "photo tx" "photo bas";column-gap:18px;align-items:center}
-  html .shUneCadre .shRuban{grid-area:ruban}
+  html .shUneCadre .shRuban{grid-area:ruban;justify-self:start}
   html .shUneCadre .shPhoto{grid-area:photo}
   html .shUneCadre .shUneTx{grid-area:tx}
   html .shUneCadre .shUneBas{grid-area:bas}
@@ -3243,6 +3248,10 @@ html body #carr .mDock{margin-top:12px}
 html .hMot{--hc:color-mix(in srgb,var(--ec,var(--au2)) 66%,#fff)}
 html .hMot .hNx.hPres{color:var(--neoA)}
 html .mObj.pret .obFt span:first-child,html .mObj.rec .obFt span:first-child{color:var(--cash)}
+/* petits téléphones (SE, mini) : le titre de mort garde son corps de 20 px (le compactage de la section 2 le remontait à 25) ; les
+   bandeaux de monde de la carrière s'abaissent pour que les trois mondes tiennent */
+@media (max-height:760px){html #mDead .mOver{font-size:var(--f6)}}
+@media (max-height:720px){#carr .carrBiome{padding-top:62px}#carr .carrBiome::before{height:48px}}
 /* (d) LES PRIX : l'argent du JEU en vert billet, le vrai argent (€) en or — partout */
 .gT em{color:var(--cash)}
 .gT em.eur{color:var(--au1)}
@@ -3276,12 +3285,29 @@ html body #tStick::before{content:'';position:absolute;inset:0;border-radius:50%
 html body #tKnob{border:0;background:radial-gradient(circle at 50% 30%,rgba(255,255,255,.22),transparent 55%),radial-gradient(circle,#2a2350 0%,#161230 72%);
   box-shadow:inset 0 0 0 2px var(--neoC),inset 0 0 14px rgba(0,234,255,.35),0 0 0 2px rgba(3,1,9,.8),0 0 18px rgba(0,234,255,.5)}
 html body #tSteerHint{color:var(--tx2);opacity:.78}
+/* (b') UNE VOIX AU CENTRE, MÊME À DROITE : pendant qu'une grande annonce ou un verdict de pose passe (1,4 s), les plaques de pouvoirs
+   s'effacent aux trois quarts — « DOUBLE MONSTRE » les traversait. L'information revient dès que l'annonce s'en va. */
+html body.touch #pwrChip{transition:opacity var(--t-fast) var(--ease)}
+html body.touch.slamOn #pwrChip,html body.touch.verdOn #pwrChip{opacity:.22}
+/* pendant l'AUTO-ÉCOLE, la carte du coach tient le haut de l'écran (jusqu'à ~190 px) : les pouvoirs passent dessous au lieu d'y dépasser */
+html body.touch.coOn #pwrChip{top:calc(var(--hudH) + 236px)}
 /* (c) EN PAYSAGE, les deux jauges du haut ne traversent plus tout l'écran (730 px de barre à lire d'un bout à l'autre) : elles gardent
    la largeur d'un tableau de bord, à gauche ; le ⏸ reste dans son coin */
 @media (orientation:landscape) and (max-height:540px){
   html body.touch #nitroWrap{right:auto;width:min(50vw,440px);box-sizing:border-box}
   html body.touch #flowHud{right:auto;width:min(50vw,440px)}
 }
+/* ---- 15. LA VIGNETTE DE L'OBJECTIF (écran de mort, objFig) : à droite du ticket « TU PEUX TE L'OFFRIR », droite (on la lit), sur son
+   socle de lumière cyan — la même matière que les vignettes du garage : photo de studio, nuancier, ruban ou aile */
+.mObj.aFig{padding-right:108px}
+.obFig{position:absolute;right:14px;top:50%;width:84px;height:54px;margin-top:-27px;display:flex;align-items:center;justify-content:center;font-style:normal;pointer-events:none;
+  background:radial-gradient(60% 40% at 50% 82%,rgba(0,234,255,.3),transparent 72%)}
+.obFig img{width:118%;max-width:none;height:auto;filter:drop-shadow(0 6px 6px rgba(0,0,0,.5))}
+.obFig .pxi{--pxs:4;color:var(--tx2)}
+.obSw{display:block;width:56px;height:34px;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -3px 0 rgba(0,0,0,.35),0 0 0 1px var(--anneau)}
+.obSw.chrome{background:linear-gradient(160deg,#fff 0%,#b9c3d2 30%,#f4f7fb 48%,#7d8796 70%,#e9eef5 100%)!important}
+.obSw.or{background:linear-gradient(160deg,#fff4c2 0%,#ffc93a 35%,#fff0a8 50%,#b87400 78%,#ffd65a 100%)!important}
+.obRub{display:block;width:70px;height:10px;transform:skewX(-20deg);filter:drop-shadow(0 0 6px currentColor)}
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
@@ -15781,6 +15807,7 @@ function ecranWipe(fn,apres){
       document.body.classList.add('voletSort');clearTimeout(ecranWipe._vs);ecranWipe._vs=setTimeout(function(){document.body.classList.remove('voletSort');},480); // (charte v4) le contenu est DÉJÀ en place quand le volet le découvre
       if(apres){try{apres();}catch(e){console.error(e);}}
       try{document.dispatchEvent(new Event('cc:revele'));}catch(e){} // la coque rejoue l'entrée de l'écran qu'on découvre
+      document.querySelectorAll('#mob .mscr.on').forEach(function(e){e.classList.add('revu');}); // (charte v5) …mais c'est le VOLET qui a fait l'entrée : elle ne se rejouera pas quand il s'en va
       setTimeout(function(){if(ecranWipe._id===id)w.className='';},REDUCED_MOTION?160:460); }; // un fondu relancé entre-temps garde son voile
     requestAnimationFrame(function(){requestAnimationFrame(lever);});
     setTimeout(lever,160); // filet : onglet caché = aucune image, le voile ne doit jamais rester collé
@@ -16361,6 +16388,16 @@ function objectif(){ // la prochaine CAISSE à vendre (la moins chère) ; toutes
   if(!o)for(const cat in COSM)COSM[cat].forEach(function(d,i){if(d.p&&!shopOwned(cat,d.id)&&(!o||d.p<o.prix))o={nom:d.n,prix:d.p,cat:cat,i:i};});
   return o;
 }
+/* (2026-09-28, charte v5) LA VIGNETTE DE L'OBJECTIF : « TU PEUX TE L'OFFRIR — MENTHE » ne vendait rien sans image. Même dessin que les
+   vignettes du garage (photo de studio pour une caisse, nuancier pour une peinture, ruban pour une traînée, aile pour une aile). */
+function objFig(o){ try{
+  const hx9=function(c){return '#'+((c>>>0)&0xffffff).toString(16).padStart(6,'0');},rg9=function(v){return 'rgb('+v.map(function(x){return Math.round(Math.min(1,x/1.45)*255);}).join(',')+')';};
+  if(o.car!=null){const ph=carPhoto(o.car);return '<i class="obFig">'+(ph?'<img src="'+ph+'" alt="">':pxi('voiture'))+'</i>';}
+  const d=COSM[o.cat]&&COSM[o.cat][o.i];if(!d)return '';
+  if(o.cat==='peinture')return '<i class="obFig"><b class="obSw'+(d.g==='c'?' chrome':d.g==='o'?' or':'')+'" style="background:'+(d.grad?'linear-gradient(160deg,'+d.grad.map(hx9).join(',')+')':hx9(d.c||0))+'"></b></i>';
+  if(o.cat==='trainee')return '<i class="obFig"><b class="obRub" style="color:'+(d.rgb?rg9(d.rgb):'#ff8a24')+';background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,transparent,'+(d.rgb?rg9(d.rgb):'#ff6a14')+' 35%,#fff 100%)')+'"></b></i>';
+  return '<i class="obFig">'+pxi('aile')+'</i>';
+}catch(e){return '';} }
 let MIS_REC=null; // la récompense du carnet refermé à cette fin de partie (null sinon)
 /* LE BLOC OBJECTIF DE L'ÉCRAN DE MORT. Trois états : un carnet vient d'être rempli (la récompense, en or) ;
    l'objectif est à portée (« À TOI ! », en or, cliquable) ; sinon la barre — ce qu'il y avait avant la partie
@@ -16375,8 +16412,8 @@ function objRender(el){
   const o=objectif(),b1=bank(),b0=Math.min(b1,RUNX.bank0||0);
   if(!o){el.className='mObj';el.removeAttribute('data-m');el.innerHTML='<div class="obHd"><span>'+TR('COMPTE')+'</span><b>'+fmtC(b1)+'</b></div>';return;}
   if(b1>=o.prix){
-    el.className='mObj pret';el.setAttribute('data-m','buyGoal');
-    el.innerHTML='<div class="obHd"><span>'+pxi('etoile')+' '+TR('TU PEUX TE L\'OFFRIR')+'</span></div><div class="obBig">'+TR(o.nom)+'</div>'
+    el.className='mObj pret aFig';el.setAttribute('data-m','buyGoal');
+    el.innerHTML=objFig(o)+'<div class="obHd"><span>'+pxi('etoile')+' '+TR('TU PEUX TE L\'OFFRIR')+'</span></div><div class="obBig">'+TR(o.nom)+'</div>'
       +'<div class="obFt"><span>'+fmtC(o.prix)+'</span><span>'+TR('ACHETER')+' '+pxi('droite')+'</span></div>';
     return;}
   el.className='mObj';el.removeAttribute('data-m');
@@ -29004,7 +29041,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
      POUSSE (l'écran arrive de droite, l'ancien file à gauche), revenir RAMÈNE (l'inverse), changer de racine
      (accueil ↔ mort) fond l'un dans l'autre. L'écran qui part garde `.sort` le temps de s'effacer, posé EN DESSOUS
      en absolu : il ne pousse pas la page. `sansSortie` : l'overlay vient d'apparaître, il n'y a rien à faire partir. */
-  const PROF={home:0,dead:0,modes:1,set:1,shop:1},SENS=['on','sort','avant','retour','racine'];
+  const PROF={home:0,dead:0,modes:1,set:1,shop:1},SENS=['on','sort','avant','retour','racine','revu'];
   function mGo(id,sens,sansSortie){
     const prev=mCur,de=mScr[prev],vers=mScr[id];mCur=id;
     if(!sens)sens=(prev===id)?'racine':((PROF[id]|0)>(PROF[prev]|0)?'avant':(PROF[id]|0)<(PROF[prev]|0)?'retour':'racine');
