@@ -9097,8 +9097,9 @@ function lvlMontre(){ // la bannière « NIVEAU n — LIEU » (fondu d'opacité 
   const b=document.getElementById('lvlBan');if(!b||!LVL.cur)return;
   document.getElementById('lvlNum').innerHTML=Array.from(TR('NIVEAU')+' '+LVL.n).map(function(c,i){return '<i style="animation-delay:'+(i*45)+'ms">'+(c===' '?'&nbsp;':c)+'</i>';}).join(''); // (2026-09-26) les lettres TOMBENT une à une
   {const nm9=document.getElementById('lvlNom');nm9.textContent=TR(LVL.cur.nm);
-   if(LVL.cur.pr){const e9=document.createElement('em');e9.textContent=TR(LVL.cur.pr);nm9.appendChild(e9);}} // (2026-09-27) la PROMESSE du niveau de campagne, une ligne sous le nom
-  b.classList.add('on');clearTimeout(lvlBanT);lvlBanT=setTimeout(function(){b.classList.remove('on');},LVL.cur.pr?3800:2800);
+   const pr9=LVL.cur.pr||(LVL.cur.espace>=.5&&!PARK.on?'GRAVITE LUNAIRE : SAUTS 2X PLUS LONGS':''); // (2026-09-28) l'espace a SA promesse : la gravité
+   if(pr9){const e9=document.createElement('em');e9.textContent=TR(pr9);nm9.appendChild(e9);}} // (2026-09-27) la PROMESSE du niveau de campagne, une ligne sous le nom
+  b.classList.add('on');clearTimeout(lvlBanT);lvlBanT=setTimeout(function(){b.classList.remove('on');},(LVL.cur.pr||LVL.cur.espace>=.5)?3800:2800);
 }
 /* ---- LA PLUIE DU VILLAGE (2026-09-24) — un rideau de traits qui tombe AUTOUR de la caméra ----------------
    ⚠ ZÉRO CPU PAR FRAME : 1 100 traits (600 sur téléphone) dont la chute ET le repliement vivent dans le
@@ -21940,6 +21941,15 @@ addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDow
 addEventListener('keyup',e=>{keys[e.code]=false;});
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false;}); // alt-tab : aucune touche ne reste coincée
 const GRAV=9.8*.55,FALL_G=33,AXIS_Y=new THREE.Vector3(0,1,0),AIR_MAX=6;
+/* LA GRAVITÉ DE L'ORBITE (2026-09-28, portée de la lignée car-crash) — l'orbite était un décor : mêmes sauts, même jauge qu'aux nuages.
+   En ESPACE (niveau EN ORBITE et toute la carrière ESPACE) la gravité est DIVISÉE PAR DEUX : `gK()` est lu par TOUS les intégrateurs
+   de chute (joueur, vol plané à la nitro, viseur, meute, dos d'âne, plots qui valsent) ; la jauge d'airtime passe de 6 à 10,2 s
+   (`airMax()`) — un saut deux fois plus haut ne doit pas exploser en plein ciel. ⚠ Le VOL PLANÉ à la nitro reprend une PART de la
+   gravité : il est ×gK lui aussi, sinon il la battrait (.6 × 33 > .5 × 33) et la caisse monterait toute seule. Mesuré là-bas :
+   même impulsion → 13,5 m de haut contre 6,7. Jamais au parc (ses sauts sont réglés à part). */
+const ORB_G=.5,ORB_AIR=1.7;
+function gK(){return (LVL.espaceA>=.5&&!PARK.on)?ORB_G:1;}
+function airMax(){return AIR_MAX*(gK()<1?ORB_AIR:1);}
 // AIR_RATE : le vol se joue PLUS VITE en temps réel — la parabole dans l'espace est identique
 // (viseur d'atterrissage + seuils de figures inchangés), mais on passe moins de temps à flotter.
 let fallVH0=-1; // (vol v6) vitesse HORIZONTALE au décollage : au-delà, la traînée de la route s'applique en vol
@@ -23368,7 +23378,7 @@ function tryLand(dt){
     // ---- BUMP / DOUBLE BUMP / TRIPLE BUMP : figure GRATUITE (compte pour le HUD/style, zéro dollar) ----
     bounceN++;runStats.bumps++;
     hap(24);nitroGain(.35);flowAdd(6,'style'); // LE BUMP RECHARGE (2026-09-25, demande du user) : un quart de cellule… de plus à chaque rebond
-    fallT=Math.max(0,fallT-AIR_MAX*.5);fallTR=Math.max(0,fallTR-AIR_MAX*.5);airFlash=.6; // DEMI-JAUGE d'airtime rendue (sim + réelle)
+    fallT=Math.max(0,fallT-airMax()*.5);fallTR=Math.max(0,fallTR-airMax()*.5);airFlash=.6; // DEMI-JAUGE d'airtime rendue (sim + réelle)
     addTrick('bump',bounceN===1?'BUMP':bounceN===2?'DOUBLE BUMP':bounceN===3?'TRIPLE BUMP — LA DALLE EN PLEURE':'MEGA BUMP x'+bounceN+' 💥',
       0,Math.min(3,bounceN),true,true); // free=true : le bump NE PAYE PLUS (fini la machine à cash en longeant la tranche) — il rend l'airtime et le style, c'est tout
     bumpSfx(bounceN);
@@ -23412,7 +23422,7 @@ function tryLand(dt){
      dans la dalle à plus de 45° (vitesse normale > vitesse dans le plan : vN² > v² − vN²). Une pose rasante en nitro ne creuse rien. */
   {const v29=fallVel.lengthSq();if(nitroOn&&v29>36&&2*vN*vN>v29)try{cratere(CRAT.pv.copy(fallPos),CRAT.nv.copy(Nn[bestI]).multiplyScalar(sideL));}catch(e){}}
   const impact=Math.abs(vN);
-  const bigness=Math.max(0,fallT-.8);
+  const bigness=Math.max(0,fallT*gK()-.8); // ×gK : en orbite un même saut dure 2× plus — il ne doit pas coûter 2× plus de vitesse à la pose
   const landLoss=Math.min(.52,bigness*.15+impact*.008); // un peu plus doux qu'avant
   vA*=(1-landLoss);vL*=(1-landLoss);
   if(landLoss>.2)dropChip(2);
@@ -23429,7 +23439,7 @@ function tryLand(dt){
      ⚠ et seulement si la jauge courait vraiment — sous pouvoir d'AIRTIME INFINI il n'y a aucun
      risque, donc aucun mérite. */
   if(pwrAirT<=0){
-    const reste=AIR_MAX-fallTR;
+    const reste=airMax()-fallTR;
     if(reste>0&&reste<=.30){
       const extreme=reste<=.10;
       chaineAura(extreme?'AU CHEVEU':'ARRACHÉE',extreme?220:120,'cheveu');
@@ -24313,7 +24323,7 @@ function survTick(dt){
     if(SURV.chasse&&b.totD>pTot-9){b.totD=pTot-9;b.v=Math.min(b.v,Math.max(0,Math.abs(vA)));} // (2026-09-27) la POURSUITE reste DERRIÈRE : jamais un dépassement, jamais un flic devant ou à côté
     // ============ VOL & BORD : mêmes règles — la roue sort, la caisse décolle ============
     if(b.air){
-      b.vy-=26*dt;b.airH+=b.vy*dt;
+      b.vy-=26*gK()*dt;b.airH+=b.vy*dt; // la meute subit la même gravité (lunaire en orbite)
       b.spin+=b.spinV*dt;b.spinV*=Math.max(0,1-dt*.5);
       if(b.airH<=0){ // la retombée
         b.air=false;b.airH=0;b.vy=0;b.spin=0;b.spinV=0;b.jumpCD=1+Math.random()*1.6;
@@ -25059,7 +25069,7 @@ function campTick(dt){
   if(SURV.chasse&&CAMP.proche<150){const k=(1-CAMP.proche/150)*.85,ph=SURV.ph<.5;r=ph?k:k*.2;b=ph?k*.2:k;}
   campFx(r,b,CAMP.feuT*(.55+.25*Math.sin(performance.now()*.03)),GH.on&&!GH.pris?Math.min(1,GH.prise)*.9:0);
 }
-for(const [k,v] of Object.entries({'LA ROUTE EST A TOI':'THE ROAD IS YOURS','TRAVERSE LE NUAGE':'PIERCE THE CLOUD','PASSE LES PORTES':'THREAD THE GATES',
+for(const [k,v] of Object.entries({'GRAVITE LUNAIRE : SAUTS 2X PLUS LONGS':'LUNAR GRAVITY: JUMPS LAST 2X LONGER','LA ROUTE EST A TOI':'THE ROAD IS YOURS','TRAVERSE LE NUAGE':'PIERCE THE CLOUD','PASSE LES PORTES':'THREAD THE GATES',
   'SEME LA POLICE':'LOSE THE COPS','ET SI TU COUPAIS ?':'WHAT IF YOU CUT ACROSS?','DANSE AVEC LE RELIEF':'DANCE WITH THE HILLS','LE CIEL MENT':'THE SKY IS LYING',
   'TRAVERSE L\'ORAGE':'RIDE THROUGH THE STORM','ATTRAPE LA CAISSE-NUAGE':'CATCH THE CLOUD CAR','RACCOURCI !':'SHORTCUT!','RACCOURCI':'SHORTCUT','TOUCHE !':'HIT!',
   'ACCROCHE !':'LOCKED ON!','ELLE EST A TOI':'SHE IS YOURS','LA CAISSE-NUAGE':'THE CLOUD CAR',"ELLE T'A SEME":'SHE LOST YOU','NUAGES TERMINES':'CLOUDS COMPLETE',
@@ -27578,7 +27588,7 @@ function loop(now){
         }
       }
       if(hopY>0||hopV!==0){
-        hopY+=hopV*dt;hopV-=26*dt;
+        hopY+=hopV*dt;hopV-=26*gK()*dt;
         if(hopY<=0){hopY=0;hopV=0;squashT=Math.max(squashT,.15);if(introD)smashPig();} // SPLAT.
       }
       // plots orange : les percuter les envoie valser (étincelles + petite perte de vitesse)
@@ -27948,7 +27958,7 @@ function loop(now){
       fallT+=dtF;fallTR+=dt; // fallT = temps-sim (figures/paiements) ; fallTR = temps RÉEL (jauge des 6 s — sinon le chrono file à ×1,6)
       if(nitroOn)nitroAirT+=dtF; // temps de réacteur dans CE vol (METEOR / MEGA METEOR)
       if(!nitroOn)loop._nAir=false; // (2026-09-26) l'impulsion se RÉARME au relâché
-      fallVel.y-=FALL_G*dtF;
+      fallVel.y-=FALL_G*gK()*dtF; // gK : gravité LUNAIRE en orbite (÷2)
       // (vol libre, 2026-09-26) l'ANTI-BLOCAGE DU LACET a sauté : il rendait « un minimum d'horizontale » parce que le volant tournait
       // autour de l'axe VERTICAL du monde (mort en trajectoire verticale). Le volant tourne désormais autour du HAUT DE LA CAISSE
       // (FLY_U) : il mord à toutes les assiettes, piqué à pic compris, et il ne redresse plus rien.
@@ -27960,7 +27970,7 @@ function loop(now){
       fallVel.applyAxisAngle(FLY_U,yawIn); // (vol libre) autour du haut de la CAISSE — à gauche à l'écran, c'est à gauche, même sur le dos
       yawAcc+=yawIn;
       if(nitroOn){ // RÉACTEUR : il fait planer et donne l'assiette (piqué/cabré) — il n'accélère plus (vol v7 : inertie)
-        fallVel.y+=FALL_G*(nitroBlue?.75:.6)*dtF; // (vol v7) le RÉACTEUR fait PLANER : il reprend 60 % de la gravité (75 % en réserve bleue)
+        fallVel.y+=FALL_G*gK()*(nitroBlue?.75:.6)*dtF; // (vol v7) le RÉACTEUR fait PLANER : il reprend 60 % de la gravité (75 % en réserve bleue)
         /* (2026-09-26, user : « le boost nitro aérien doit VRAIMENT donner une impulsion, indépendamment de la vitesse de départ, qui s'y
            additionne, comme un propulseur ») : à l'ALLUMAGE en vol, un coup de réacteur de +32 m/s (× le palier moteur) dans l'axe du
            vol, quelle que soit la vitesse d'éjection. Un par allumage (0,5 s mini entre deux), et il coûte 12 % de réserve. */
@@ -28148,7 +28158,7 @@ function loop(now){
       landMark.visible=false;
       tmp2.copy(fallPos);tmp3.copy(fallVel);
       for(let st2=0;st2<14;st2++){ // même intégration que la vraie chute : vel par seconde, position ×SPD
-        tmp3.y-=FALL_G*.12;
+        tmp3.y-=FALL_G*gK()*.12;
         tmp2.addScaledVector(tmp3,.12*SPD);
         // le point le plus proche à moins de 20 m, 1 sur 8, trous exclus (le viseur ne promet jamais un atterrissage dans le vide)
         // (2026-09-27, passe perf iPhone) balayage en casiers (dalleProche) : même point élu, ~6× moins de distances
@@ -28172,18 +28182,18 @@ function loop(now){
       }
       // camembert de temps de vol (cyan plein pendant AIRTIME INFINI : c'est le pouvoir qui s'égrène)
       if(airPie.style.display!=='block')airPie.style.display='block'; // (2026-09-27) une fois par vol, plus à chaque image
-      const fr=pwrAirT>0?Math.min(1,pwrAirT/10):Math.max(0,1-fallTR/AIR_MAX); // jauge en temps RÉEL : 6 s affichées = 6 s vécues
+      const fr=pwrAirT>0?Math.min(1,pwrAirT/10):Math.max(0,1-fallTR/airMax()); // jauge en temps RÉEL : 6 s affichées = 6 s vécues
       if(airFlash>0)airFlash=Math.max(0,airFlash-dt);
-      airPieDraw(fr,pwrAirT>0?pwrAirT:Math.max(0,AIR_MAX-fallTR),airFlash>0);
-      {const dg=pwrAirT<=0&&AIR_MAX-fallTR<1.5;if(dg!==loop._pdg){loop._pdg=dg;airPie.classList.toggle('danger',dg);} // (2026-09-26) il TREMBLE sous 1,5 s
+      airPieDraw(fr,pwrAirT>0?pwrAirT:Math.max(0,airMax()-fallTR),airFlash>0);
+      {const dg=pwrAirT<=0&&airMax()-fallTR<1.5;if(dg!==loop._pdg){loop._pdg=dg;airPie.classList.toggle('danger',dg);} // (2026-09-26) il TREMBLE sous 1,5 s
        // …et il TIQUE : les yeux sont sur la caisse, pas sur le chrono — un tic dans la tonalité qui accélère, plus une micro-vibration
-       if(dg){loop._atk=(loop._atk||0)-dt;if(loop._atk<=0){const r9=Math.max(0,AIR_MAX-fallTR);loop._atk=.09+.25*r9/1.5;try{chimeNote(noteP(r9<.5?4:2,1),0,.06,.06);}catch(e){}hap(5);}}else loop._atk=0;}
+       if(dg){loop._atk=(loop._atk||0)-dt;if(loop._atk<=0){const r9=Math.max(0,airMax()-fallTR);loop._atk=.09+.25*r9/1.5;try{chimeNote(noteP(r9<.5?4:2,1),0,.06,.06);}catch(e){}hap(5);}}else loop._atk=0;}
       if(TCTL.on&&!TUTO.on&&!(SAVE.d.ast&2)){loop._astV=(loop._astV||0)+dt;if(loop._astV>1){SAVE.d.ast|=2;SAVE.mark(); // ASTUCE (une fois à vie) : l'assiette au pouce
         misBanniere('ASTUCE',TR("En l'air : pouce en HAUT = plonge, en BAS = cabre."),'','eclair');}}
       if(!PARK.on&&portalMesh&&!CAMP.portFerme&&fallPos.distanceToSquared(PORTAL.c)<PORTAL.R*PORTAL.R*.9)portailPasse(); // (2026-09-26) l'ovule traversé EN VOL — du ciel, de côté, d'en dessous
       else if(CITY.col&&villeHeurt(fallPos)){airPie.style.display='none';try{dolFin();}catch(e){}shake=Math.max(shake,1.2);if(PARK.on)parkRespawn();else explode('tour');} // (2026-09-26) DANS UNE TOUR : on meurt
       else if(tryLand(dtF)){airPie.style.display='none';dolFin();} // posé : le total du DAUPHIN se fige et s'encaisse
-      else if((fallTR>AIR_MAX&&pwrAirT<=0)||fallPos.y<trackMinY-120){airPie.style.display='none';if(PARK.on)parkRespawn();else explode(fallPos.y<trackMinY-120?'vide':'air');} // FREESTYLE : trop long en l'air ou chute dans le vide = on repart, jamais de mort // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
+      else if((fallTR>airMax()&&pwrAirT<=0)||fallPos.y<trackMinY-120){airPie.style.display='none';if(PARK.on)parkRespawn();else explode(fallPos.y<trackMinY-120?'vide':'air');} // FREESTYLE : trop long en l'air ou chute dans le vide = on repart, jamais de mort // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
     }else if(mode==='boom'){ // ---- EXPLOSION ----
       boomT+=dt;
       for(const d of debris){
@@ -28269,7 +28279,7 @@ function loop(now){
     }
     for(let i9=FLYCONES.length-1;i9>=0;i9--){
       const c9=FLYCONES[i9];
-      c9.life-=dt;c9.v.y-=24*dt;
+      c9.life-=dt;c9.v.y-=24*gK()*dt;
       c9.m.position.addScaledVector(c9.v,dt);
       c9.m.rotation.x+=c9.rx*dt;c9.m.rotation.z+=c9.rz*dt;
       if(c9.life<=0){scene.remove(c9.m);FLYCONES.splice(i9,1);}

@@ -33,6 +33,12 @@ seulement ce qui s'applique ICI sans toucher à l'économie ni au FLOW v2. Banc 
   7 zones × 3 graines, écart < 0,1 %). Aucun appel `rnd()` ajouté ni retiré.
 - **LE PLEIN = LE MOTEUR** (`nitroCap()`) : portail, NITRO INFINIE / boost de départ et `sandRevive` écrivaient `nitroR=2` en dur — ils
   VIDAIENT un réservoir de 3,6 (jauge à 55 % pendant la nitro infinie au palier max).
+- **GRAVITÉ LUNAIRE EN ESPACE** (`gK()`, `airMax()`, `ORB_G`=.5, `ORB_AIR`=1,7) : l'orbite était un décor (mêmes sauts, même jauge qu'aux
+  nuages). En ESPACE (`LVL.espaceA>=.5`, niveau EN ORBITE et carrière ESPACE, jamais au parc) la gravité est ÷2 pour TOUS les
+  intégrateurs (joueur, VOL PLANÉ à la nitro — ⚠ ×gK lui aussi, sinon .6×33 battait .5×33 et la caisse montait seule —, viseur, meute,
+  dos d'âne, plots qui valsent), la jauge d'airtime passe à 10,2 s, la perte à la pose (`bigness`) suit. La bannière du niveau dit
+  « GRAVITE LUNAIRE : SAUTS 2X PLUS LONGS ». MESURÉ : même impulsion → 13 m de haut contre 6,4. (Nitro tenue dès le décollage : on
+  grimpe, comme aux nuages — c'est le piqué qui ramène.)
 - Petits : la figure rend ×2 en pose DIVINE (×1,5 en PARFAIT, inchangé) ; `engSndParams` borne `rpm` ≥ 0 (un NaN dans un AudioParam
   éteint le nœud pour la session) ; `#runStats` en `white-space:pre-line`.
 - **PAS REPRIS, exprès** : décote du bump (sa recharge est une demande de Sacha), débordement vers la réserve bleue (économie des fruits),
