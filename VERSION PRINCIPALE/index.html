@@ -8240,7 +8240,18 @@ function denom(){return DENOMS[Math.min(engTier,DENOMS.length-1)]*ECO3.gain;} //
 // sélecteur (desktop ET mobile) boucle dessus via `langNext()`, un seul écrivain pour ne pas
 // diverger entre les deux (même piège que `modeLbl`).
 const LANG_CYCLE=['fr','en','zh'];
-let LANG=(typeof localStorage!=='undefined'&&LANG_CYCLE.indexOf(localStorage.ccLang)>=0)?localStorage.ccLang:'en';
+/* (2026-09-28, passe de lancement) LA LANGUE DU TÉLÉPHONE PAR DÉFAUT : sans choix enregistré, TOUT LE MONDE démarrait en anglais —
+   un iPhone réglé en français ou en chinois compris. On lit les langues préférées de l'appareil, la 1re que le jeu parle gagne ;
+   le choix fait dans les réglages (`langNext` → `ccLang`) reste maître, et l'automatique n'est jamais écrit : il suit l'appareil.
+   ⚠ LE CHINOIS N'EST PAS CHOISI D'OFFICE : sa traduction est incomplète (mesuré : l'accueil y affiche encore « JOUER ») — un téléphone
+   chinois reçoit l'anglais, complet, et le chinois reste au sélecteur. Quand I18N_ZH sera complet : l'ajouter à LANG_AUTO. */
+const LANG_AUTO=['fr','en'];
+function langAuto(){
+  try{const L=(navigator.languages&&navigator.languages.length)?navigator.languages:[navigator.language||''];
+    for(const l of L){const c=String(l).toLowerCase().slice(0,2);if(LANG_AUTO.indexOf(c)>=0)return c;}}catch(e){}
+  return 'en';
+}
+let LANG=(function(){try{if(LANG_CYCLE.indexOf(localStorage.ccLang)>=0)return localStorage.ccLang;}catch(e){}return langAuto();})();
 function langNext(){
   const i=LANG_CYCLE.indexOf(LANG);
   LANG=LANG_CYCLE[(i+1)%LANG_CYCLE.length];
@@ -8442,6 +8453,21 @@ Object.assign(I18N,{"Une pâtisserie industrielle avec une tête de chat et quat
 Object.assign(I18N_ZH,{"MINI-TURBO": "迷你涡轮", "SUPER TURBO": "超级涡轮", "ULTRA TURBO": "极限涡轮"});
 Object.assign(I18N,{"RASE-BORD": "EDGE RIDER"});Object.assign(I18N_ZH,{"RASE-BORD": "贴边疾驰"});
 Object.assign(I18N,{"FRÉNÉSIE": "FRENZY", "FRÉNÉSIE !": "FRENZY!", "RESTE DANS LE ROUGE": "STAY IN THE RED", "PLUS VITE !": "FASTER!", "RISQUE + VITESSE": "RISK + SPEED"});Object.assign(I18N_ZH,{"FRÉNÉSIE": "狂热", "FRÉNÉSIE !": "狂热！", "RESTE DANS LE ROUGE": "守住红区"});
+/* (2026-09-28, passe de lancement) CE QU'UN JOUEUR ANGLOPHONE LISAIT ENCORE EN FRANÇAIS, relevé à l'écran par un banc qui note chaque
+   texte affiché pendant 3 minutes de jeu : la liste d'aura, les trois pouvoirs, la fête des ordres de grandeur, la meute du Survivant. */
+Object.assign(I18N,{'FRÔLÉ':'CLOSE CALL','RÉCOLTE':'COIN RUSH','RAFALE':'FRUIT RUSH','VIRAGE SERRÉ':'TIGHT TURN','MÉTÉORE':'METEOR',
+  'AU CHEVEU':'BY A HAIR','ARRACHÉE':'CLUTCH','EN FEU !!':'ON FIRE!!','DEMENT !!!':'INSANE!!!','ÇA CHAUFFE !':'HEATING UP!',
+  'IL PLEUT DES BILLETS':'IT\'S RAINING CASH','NITRO ILLIMITEE':'UNLIMITED NITRO','6 S A FOND':'6 S FLAT OUT','AIRTIME INFINI':'INFINITE AIRTIME',
+  '10 S DE VOL':'10 S OF FLIGHT','VITESSE ×2':'SPEED ×2','⚡ VITESSE ×2 — 6 s !':'⚡ SPEED ×2 — 6 s!',' MAINTENANT !':'!','TOI':'YOU','EN TÊTE':'LEADING',
+  'PLUS VITE !':'FASTER!','RISQUE + VITESSE':'RISK + SPEED','🛝 PARC FREESTYLE AU PROCHAIN DÉPART':'🛝 FREESTYLE PARK ON NEXT START',
+  'RETOUR À LA COURSE':'BACK TO RACING','L\'AUTO-ÉCOLE T\'ATTEND AU PROCHAIN JOUER':'DRIVING SCHOOL AWAITS ON YOUR NEXT RUN',
+  'POSÉ LOURD — AÏE… ':'HEAVY LANDING — OUCH… ','PARFAIT (BOOST ×2) ! ':'PERFECT (BOOST ×2)! ','🐬 LE DAUPHIN !':'🐬 THE DOLPHIN!',
+  'VRILLE 360 — LAVE-LINGE !':'360 SPIN — WASHING MACHINE!','TRIPLE BUMP — LA DALLE EN PLEURE':'TRIPLE BUMP — THE ROAD IS CRYING'});
+Object.assign(I18N_ZH,{'FRÔLÉ':'擦边','RÉCOLTE':'金币连收','RAFALE':'水果连吃','VIRAGE SERRÉ':'急弯','MÉTÉORE':'流星','AU CHEVEU':'千钧一发',
+  'ARRACHÉE':'险胜','EN FEU !!':'火力全开！！','DEMENT !!!':'疯了！！！','ÇA CHAUFFE !':'热起来了！','IL PLEUT DES BILLETS':'钞票雨',
+  'NITRO ILLIMITEE':'无限氮气','6 S A FOND':'全速 6 秒','AIRTIME INFINI':'无限滞空','10 S DE VOL':'飞行 10 秒','VITESSE ×2':'速度 ×2',
+  'TOI':'你','EN TÊTE':'领先','PLUS VITE !':'再快点！',
+  'RISQUE + VITESSE':'冒险 + 速度','RACCOURCI':'捷径','RETOUR À LA COURSE':'回到比赛'});
 // ---- la charte v4 (2026-09-26) : les libellés neufs de l'interface (et ceux qui retombaient en français) ----
 Object.assign(I18N,{"COMMUNES":"COMMONS","COMMUNE":"COMMON","RARES":"RARES","ÉPIQUES":"EPICS","ÉPIQUE":"EPIC","LÉGENDES":"LEGENDS","LÉGENDAIRE":"LEGENDARY","DÉFIS":"CHALLENGES","TOUT":"ALL","À MOI":"MINE","À ACHETER":"FOR SALE","TRAÎNÉE":"TRAIL","PEINTURE":"PAINT","AILES":"WINGS"});
 Object.assign(I18N_ZH,{"COMMUNES":"普通","COMMUNE":"普通","RARES":"稀有","RARE":"稀有","ÉPIQUES":"史诗","ÉPIQUE":"史诗","LÉGENDES":"传奇","LÉGENDAIRE":"传奇","DÉFIS":"挑战","TOUT":"全部","À MOI":"已拥有","À ACHETER":"可购买","TRAÎNÉE":"尾迹","PEINTURE":"涂装","AILES":"翅膀"});
@@ -8465,7 +8491,12 @@ function TR(s){ // traduction EXACTE, repli français silencieux
   if(s==null)return s;
   if(LANG==='fr')return majPix(s);
   const dict=LANG==='zh'?I18N_ZH:I18N;
-  const t=dict[s];return majPix(t===undefined?s:t);
+  let t=dict[s];
+  // (2026-09-28, passe de lancement) LES COMPTEURS : « RÉCOLTE ×5 », « CHAÎNE ×3 » — une phrase + un nombre composé à l'exécution n'était
+  // JAMAIS dans le dictionnaire (en anglais, la liste d'aura restait en français). Seulement si la recherche exacte échoue : la tête se
+  // traduit, la queue (× ou +, puis des chiffres) passe telle quelle.
+  if(t===undefined&&typeof s==='string'){const m=/^(.*?\S)(\s*[×+][\s\d.,×+%°]*)$/.exec(s);if(m&&dict[m[1]]!==undefined)t=dict[m[1]]+m[2];}
+  return majPix(t===undefined?s:t);
 }
 // LE HTML STATIQUE — le texte d'origine est mémorisé au premier passage (`data-fr`), sinon rebasculer
 // en FR après un passage en EN traduirait de l'anglais vers rien. On repeint donc TOUJOURS depuis la
@@ -8523,10 +8554,16 @@ function fmtGta(v){
 // ---- UNITÉS COMPACTES : « $ 1,4 M » se lit d'un œil, « $ 1 400 000 » est du bruit. Échelle
 // longue française (million, milliard, billion, billiard, trillion) — assez folle toute seule.
 const UNITS=[[1e30,'Qn','QUINTILLIONS 🛸'],[1e27,'Qd','QUADRILLIARDS'],[1e24,'Q','QUADRILLIONS 🤑'],[1e21,'Td','TRILLIARDS'],[1e18,'T','TRILLIONS 🤯'],[1e15,'Bd','BILLIARDS'],[1e12,'Bn','BILLIONS'],[1e9,'Md','MILLIARDS'],[1e6,'M','MILLIONS'],[1e3,'k','MILLIERS']];
+/* (2026-09-28, passe de lancement) L'ÉCHELLE COURTE POUR QUI NE PARLE PAS FRANÇAIS. En anglais on lisait « $ 1,4 Md » (inconnu) et
+   « $ 2 Bn » — qu'un Américain lit DEUX MILLIARDS alors que c'est 2×10¹² ici : mille fois faux, sur la grandeur la plus importante
+   du jeu. Anglais et chinois comptent en k · M · B · T · Qa… avec un POINT décimal ; le français garde son échelle longue. Mêmes
+   seuils dans les deux tables (unitSeen les compare) et mêmes pictos aux mêmes crans. */
+const UNITS_EN=[[1e30,'No','NONILLIONS 🛸'],[1e27,'Oc','OCTILLIONS'],[1e24,'Sp','SEPTILLIONS 🤑'],[1e21,'Sx','SEXTILLIONS'],[1e18,'Qi','QUINTILLIONS 🤯'],[1e15,'Qa','QUADRILLIONS'],[1e12,'T','TRILLIONS'],[1e9,'B','BILLIONS'],[1e6,'M','MILLIONS'],[1e3,'k','THOUSANDS']];
+function unitsL(){return LANG==='fr'?UNITS:UNITS_EN;}
 let unitSeen=0; // jamais reset : la 1re traversée d'un ordre de grandeur se fête UNE fois par session
 function fmtC(v){
-  v=Math.round(v);
-  for(const u of UNITS)if(v>=u[0]){const q=v/u[0];return CUR()+' '+(q>=100?Math.round(q):q.toFixed(1).replace('.',',').replace(',0',''))+' '+u[1];}
+  v=Math.round(v);const fr=LANG==='fr';
+  for(const u of unitsL())if(v>=u[0]){const q=v/u[0];let t=q>=100?String(Math.round(q)):q.toFixed(1).replace(/\.0$/,'');if(fr)t=t.replace('.',',');return CUR()+' '+t+' '+u[1];}
   return CUR()+' '+v.toLocaleString(LOC());
 }
 // LE COMPTEUR AU MENU : la seule repeinte vivait DANS la boucle, sous le gate de simulation — au menu
@@ -15975,7 +16012,7 @@ function popTexte(txt,col,prio){
   e.textContent=TR(txt);e.style.setProperty('--pc',col||'#ffd75e');
   // (vague 2, H5) la police pixel avance d'1 em par lettre PLUS l'interlettrage (2 px) : l'ancien calcul l'oubliait, et « DAUPHIN EN
   // VOL +80 » débordait de 36 px. Plafond 84 % de la largeur (« AIR MONSTRE +110 » barrait l'écran d'un bord à l'autre).
-  const n9L=Math.max(1,e.textContent.length),fs9=Math.max(10,Math.min(22,Math.floor(VP.w*.84/n9L)-2));
+  const n9L=Math.max(1,e.textContent.length),fs9=Math.max(10,Math.min(22,Math.floor(VP.w*.72/n9L)-2)); // (2026-09-28) .84 → .72 : l'entrée grossit ×1,15 avec un dépassement de ressort — « RECOLTE ×5 +30 » en 84 % sortait par les deux bords (vu en capture)
   e.style.fontSize=fs9+'px';popTexte._w=n9L*(fs9+2);
   // (2026-09-27, passe perf iPhone) relance SANS remise en page synchrone : on bascule entre deux animations jumelles (.on / .on2) — un
   // nouveau nom d'animation repart de zéro. L'ancien `remove + void offsetWidth + add` forçait style ET mise en page à chaque figure.
@@ -22122,7 +22159,7 @@ function renderLeaders(hl){
   else{
     html='<div class="lbTitle">'+trophy+'</div>';
     for(var i=0;i<leaders.length;i++){var e=leaders[i];
-      html+='<div class="lbRow'+(i===hl?' hl':'')+'"><span class="lbRank">'+(i+1)+'</span><span class="lbName">'+lbEsc(e.n)+'</span><span class="lbScore">'+fmt(e.s)+'</span></div>';}
+      html+='<div class="lbRow'+(i===hl?' hl':'')+'"><span class="lbRank">'+(i+1)+'</span><span class="lbName">'+lbEsc(e.n==='TOI'?TR('TOI'):e.n)+'</span><span class="lbScore">'+fmt(e.s)+'</span></div>';}
   }
   elLb.innerHTML=html;
   if(elLbG)elLbG.innerHTML=html;
@@ -24274,12 +24311,12 @@ function survTick(dt){
 function survRender(){
   if(!svRowsEl)return;
   const pTot=SURV.pBase+s;
-  const rows=[{name:'TOI',totD:pTot,alive:!gameOver,me:true},...SURV.bots]
+  const rows=[{name:TR('TOI'),totD:pTot,alive:!gameOver,me:true},...SURV.bots]
     .sort((a,b)=>(b.alive-a.alive)||(b.totD-a.totD));
   const leadD=rows.length&&rows[0].alive?rows[0].totD:pTot;
   let h='',rk=0;
   for(const r of rows){
-    const gap=r.alive?(rk===0?'EN TÊTE':'+'+Math.round(leadD-r.totD)+' m'):'';
+    const gap=r.alive?(rk===0?TR('EN TÊTE'):'+'+Math.round(leadD-r.totD)+' m'):'';
     h+='<div class="svRow'+(r.me?' me':'')+(r.alive?'':' dead')+'">'
       +(r.alive?(++rk)+'. ':'🪦 ')+r.name+' <span>'+gap+'</span></div>';
   }
@@ -28353,8 +28390,8 @@ function loop(now){
     // panneaux HUD MASQUÉS (#carInfo/#cpInfo/#record en display:none) : on ne reconstruit leur texte (fmtC/fmt alloue) QUE quand la valeur change
     paintCarHud();
     if(loop._money!==money){loop._money=money;elMoney.innerHTML=fmtGta(money); // un parse HTML seulement quand le compte bouge
-      for(const u of UNITS)if(money>=u[0]){ // on vient de changer d'ordre de grandeur ? ça se FÊTE (une fois par session)
-        if(u[0]>unitSeen){unitSeen=u[0];showMsg('💸 TU COMPTES EN '+u[2]+' MAINTENANT !','#7dff9a');}
+      for(const u of unitsL())if(money>=u[0]){ // on vient de changer d'ordre de grandeur ? ça se FÊTE (une fois par session)
+        if(u[0]>unitSeen){unitSeen=u[0];showMsg(TR('💸 TU COMPTES EN ')+u[2]+TR(' MAINTENANT !'),'#7dff9a');}
         break;}
     }
     if(!gameOver&&money>=nextRainAt){nextRainAt*=2.6;startMoneyRain();showMsg(pickL(RAIN_LINES),'#7dff9a');}
