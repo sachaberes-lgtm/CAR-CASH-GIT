@@ -15874,7 +15874,8 @@ window.dbgView=function(a,d,h){ // MODE PHOTO : force la pause, cadre la caisse 
 };
 // ombre portée sous la voiture
 const landMark=new THREE.Mesh(new THREE.TorusGeometry(3,.35,8,24),
-  new THREE.MeshBasicMaterial({color:0x62e062,transparent:true,opacity:.85}));
+  new THREE.MeshBasicMaterial({color:0x62e062,transparent:true,opacity:.85,depthTest:false}));
+landMark.renderOrder=999; // (2026-09-28, nuit) le VISEUR passe PAR-DESSUS tout : la caméra de vol garde la caisse plus grande (le « bras », voir la caméra de vol) — elle ne doit jamais cacher l'endroit où l'on se pose
 landMark.visible=false;scene.add(landMark);
 const LM={a:0,vu:false,c:new THREE.Color()}; // (2026-09-28) le viseur en FONDU : il surgissait à 1,7 s de la pose, clignotait près des bords, sautait d'or à blanc
 const shadow=new THREE.Mesh(new THREE.CircleGeometry(2.4,20),
@@ -24215,8 +24216,18 @@ function portailPasse(){
 /* L'ÉTAT DE CAMÉRA DU VOL (2026-09-28). La v2 de l'après-midi (écart tenu court, plan de trois-quarts) a été RETIRÉE le soir même :
    elle rendait la visée impossible — voir le bloc « CAMÉRA DE VOL — RETOUR À LA CAMÉRA DE POURSUITE » dans la boucle. Restent : `t`
    (dernière image de vol : détecte le décollage), `eta` (secondes avant la réception prédite, posé par le viseur, 99 = rien en vue) ·
-   `zoom`/`zp` = le COUP DE ZOOM d'une pose PARFAITE (lu par la caméra au sol). `off/look/hang/side/soon` ne servent plus. */
-const CAMV={off:new THREE.Vector3(),look:new THREE.Vector3(),t:0,hang:0,side:1,soon:0,eta:99,zoom:0,zp:0};
+   `zoom`/`zp` = le COUP DE ZOOM d'une pose PARFAITE (lu par la caméra au sol) · `s0` = la taille de la caisse à l'écran au décollage
+   (le « bras » de la caméra de vol l'y garde) · `off` = vecteur de travail du bras. `look/hang/side/soon` ne servent plus. */
+const CAMV={off:new THREE.Vector3(),look:new THREE.Vector3(),t:0,hang:0,side:1,soon:0,eta:99,zoom:0,zp:0,s0:.2};
+function volR(){const sp=CARS[level]||CARS[0];return .5*Math.hypot(sp.l||4.2,sp.w||1.9,(sp.h||.8)+.6);} // la sphère englobante de la caisse (roues et aileron compris)
+function volTaille(d,fov){return volR()/(Math.max(.5,d)*Math.tan(fov*Math.PI/360));} // sa taille à l'écran : part de la demi-hauteur
+// (dev) dbgCamVol() : la caméra de vol mesurée — distance à la caisse, champ, taille de la caisse à l'écran (part de la hauteur et de
+// la largeur), et où tombent la caisse et l'anneau d'atterrissage à l'écran (NDC, −1..1). Console seulement.
+window.dbgCamVol=function(){try{const b=new THREE.Box3().setFromObject(carGroup),v=new THREE.Vector3();let x0=9,x1=-9,y0=9,y1=-9;
+  for(let i=0;i<8;i++){v.set(i&1?b.max.x:b.min.x,i&2?b.max.y:b.min.y,i&4?b.max.z:b.min.z).project(camera);x0=Math.min(x0,v.x);x1=Math.max(x1,v.x);y0=Math.min(y0,v.y);y1=Math.max(y1,v.y);}
+  const c=carGroup.position.clone().project(camera),r=landMark.visible?landMark.position.clone().project(camera):null;
+  return {mode,fallT:+(+fallT).toFixed(2),d:+camera.position.distanceTo(carGroup.position).toFixed(1),fov:+camera.fov.toFixed(1),
+    taille:+volTaille(camera.position.distanceTo(carGroup.position),camera.fov).toFixed(3),ecart:r?+(Math.hypot(r.x-c.x,r.y-c.y)/Math.max(.01,volTaille(camera.position.distanceTo(carGroup.position),camera.fov))).toFixed(2):null,caisse:[+c.x.toFixed(2),+c.y.toFixed(2)],anneau:r?[+r.x.toFixed(2),+r.y.toFixed(2),r.z<1]:null};}catch(e){return e.message;}};
 /* LA POSE PARFAITE SE VOIT (2026-09-28, Sacha) : en plus du gel d'image (hitT) et du « tchak », un COUP DE ZOOM — le champ se resserre
    sec à l'impact et se relâche en 0,5 s — et une COURONNE DORÉE qui éclate depuis les bords de l'écran (le centre reste net : on voit la
    caisse se poser). DIVIN (braquage) : plus fort, et la couronne bat deux fois. */
@@ -29306,9 +29317,16 @@ function loop(now){
          Gardés de l'après-midi : les secousses calmes (sinus, vent ×.42), la remise à zéro du coup de zoom PARFAIT au décollage, et les
          CHOCS en vol (bump, nuage, catapulte) — mais en petit déplacement de la caméra, plus en coup dans le REGARD (il décadrait la visée). */
       const bigAir=THREE.MathUtils.clamp((fallT-0.5)/2.2,0,1); // 0 au décollage → 1 sur un gros air
-      {const n9=performance.now();if(n9-(CAMV.t||0)>150)CAMV.zoom=0;CAMV.t=n9;} // 1re image du vol : un coup de zoom PARFAIT en cours ne survit pas au décollage
+      {const n9=performance.now();if(n9-(CAMV.t||0)>150){CAMV.zoom=0;CAMV.s0=THREE.MathUtils.clamp(volTaille(camera.position.distanceTo(fallPos),camera.fov),.1,.4);}CAMV.t=n9;} // 1re image du vol : un coup de zoom PARFAIT en cours ne survit pas au décollage · la TAILLE de la caisse au sol, mesurée à l'instant du décollage
       tmp2.copy(fallPos).addScaledVector(tmp,-(9.0-bigAir*2.6)*(1-POR*.16)).addScaledVector(FLY_U,(3.5+bigAir*2.4)*(1+POR*.12)); // derrière la trajectoire, au-dessus de la caisse — « au-dessus » = vers le HAUT DE LA CAISSE (vol libre), pas vers le ciel
       camera.position.lerp(tmp2,Math.min(1,dt*(3+bigAir*4.5))); // suivi plus vif en gros air : la caméra ne décroche pas
+      /* LE BRAS DE LA CAMÉRA (2026-09-28, nuit, Sacha : « sur mobile la voiture devient trop petite en air time — il faut juste pas que ça
+         complexifie »). MESURÉ en portrait : la poursuite décroche à 17-18 m dans la 1re seconde du vol, quand le champ est encore large —
+         la caisse tombait à la MOITIÉ de sa taille au sol (0,12 contre 0,23 de la demi-hauteur), pile sur les sauts courts. Désormais la
+         caméra reste où la poursuite la met (même direction : derrière la trajectoire), mais jamais plus loin que la distance qui garde la
+         caisse à sa taille du DÉCOLLAGE (`CAMV.s0`, mesurée à la 1re image du vol) — au champ du moment. Aucun angle ne change.
+         Mesuré : 0,17-0,19 tout le vol (75-85 % du sol) au lieu de 0,12 ; la course et l'atterrissage n'ont pas bougé. */
+      {const dMx=volR()/(CAMV.s0*Math.tan(camera.fov*Math.PI/360));CAMV.off.subVectors(camera.position,fallPos);const d9=CAMV.off.length();if(d9>dMx)camera.position.copy(fallPos).addScaledVector(CAMV.off,dMx/d9);}
       camUp.lerp(FLY_U,Math.min(1,dt*3)).normalize(); // (vol libre) le haut de l'écran = le haut de la caisse : la caméra ne se remet plus « à l'endroit »
       camera.up.copy(camUp);
       camera.lookAt(fallPos);

@@ -166,6 +166,12 @@ la caisse puis rentre dans le capot) ; ce qui change :
   monde : le retard aligne le regard sur la direction du vol ; champ 76° → 54° avec l'ampleur du saut). Gardés : secousses calmes,
   coup de zoom PARFAIT remis à zéro au décollage, chocs en vol en petit DÉPLACEMENT (plus dans le regard). NE PAS remettre de plan
   de côté ni d'écart tenu court en vol. Banc : `vol.js` (scratchpad 446ee745, film d'un gros saut). Ce qui suit est l'historique.
+  **+ LE BRAS** (même nuit, Sacha : « sur mobile la voiture devient trop petite en air time, il faut juste pas que ça complexifie ») :
+  MESURÉ en portrait, la poursuite décrochait à 17-18 m dans la 1re seconde (caisse à la MOITIÉ de sa taille au sol). La caméra garde
+  la direction de la poursuite mais ne s'éloigne plus au-delà de la distance qui garde la caisse à sa taille du décollage (`CAMV.s0`,
+  `volR`/`volTaille`) : 0,185-0,19 de la demi-hauteur tout le vol (0,12 avant), paysage 0,225-0,26. Le VISEUR (`landMark`) passe
+  par-dessus tout (`depthTest:false`, `renderOrder` 999) : une caisse plus grande ne cache jamais l'endroit où l'on se pose.
+  Mesure console : `dbgCamVol()` (distance, champ, taille, écart anneau/caisse en tailles de caisse).
 - **CAMÉRA DE VOL** (bloc « CAMÉRA DE VOL v2 » du mode 'fall', état `CAMV`) : on lisse l'ÉCART caisse→caméra (`CAMV.off`), plus la
   position monde — le `lerp(cible, dt*3)` traînait de vitesse÷3 : MESURÉ 23-36 m derrière en vol, désormais 7-9 m (5-7 au sol).
   HANG TIME : réception prédite à plus de 1,3 s (`CAMV.eta`, posé par le viseur d'atterrissage) → la caméra pivote de trois-quarts
