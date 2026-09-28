@@ -4931,7 +4931,18 @@ let QUAL_LOW=false,QUAL_MED=IS_MOBILE||IS_LOW_END; // (lus par dbgPerf : MED = u
    ANTI-YOYO (repris de la résolution v3) : on ne descend que « calme » (ni reconstruction de zone, ni retour d'onglet, ni 30 Hz
    imposé) ; on remonte d'UN cran après ~4,5 s de marge (< 17,8 ms ou cadence 30 Hz) ; un cran remonté qui retombe en < 6 s
    devient un MUR pendant 45 s. `dbgPin(true)` fige l'échelle ; `dbgQual(k)` la force (banc) ; `?perf=1` l'affiche à l'écran. */
-const QLR={a:new Float32Array(60),s:new Float32Array(60),i:0,n:0,p50:16,p75:16,p90:16}; // (tour 2) les 60 dernières durées d'image, et leurs centiles
+const QLR={a:new Float32Array(60),s:new Float32Array(60),i:0,n:0,p50:16,p75:16,p90:16, // (tour 2) les 60 dernières durées d'image, et leurs centiles
+  t0:0,sN:0,sA:[],vrai:0,vraiT:0,px:new Uint8Array(4)}; // (tour 2) LA SONDE : le vrai coût d'une image (voir qlSonde)
+/* LA SONDE (2026-09-28) — MESURÉ SUR L'IPHONE 13 PRO DE SACHA (banc ?banc=1, reçu par mail) : une image lui coûte 8 à 13 ms en NETTE,
+   mais l'écran n'en montre que 30 par seconde, PILE, partout — même à DPR 1,0. Ce n'était pas le jeu qui ramait : c'était l'iPhone qui
+   bridait Safari à 30 i/s (mode économie d'énergie, ou surchauffe). Et la règle de qualité, qui ne voyait que « 33 ms par image »,
+   sacrifiait la netteté pour rien — le « mode pixel ». Désormais, avant de baisser quoi que ce soit, on MESURE le vrai coût : cinq
+   images synchronisées (un `readPixels` d'un pixel oblige le processeur à attendre la puce : le temps mesuré est ce que coûte vraiment
+   l'image, hors de la grille de l'écran). Sous 14,5 ms, le téléphone POURRAIT tenir 60 i/s : c'est l'écran qui bride, on ne touche à rien
+   (et on remonte ce qui aurait été baissé). La sonde ne tourne que quand des images sont ratées, au plus toutes les 8 s. */
+function qlSonde(){ try{ const g9=renderer.getContext();renderer.setRenderTarget(null);g9.readPixels(0,0,1,1,g9.RGBA,g9.UNSIGNED_BYTE,QLR.px);
+  QLR.sA.push(performance.now()-QLR.t0);
+  if(--QLR.sN<=0){const s9=QLR.sA.slice().sort((a,c)=>a-c);QLR.vrai=s9[s9.length>>1];QLR.vraiT=performance.now();QLR.sA.length=0;} }catch(e){QLR.sN=0;} }
 const QL={k:0,mur:0,murT:0,roseT:0,up:0,efT:0,effondre:false,fr:0,N_EFF:5,ombre0:sun.shadow.mapSize.x,essai:null,plafK:0,plafT:0,
   nom:['ombre en vol ½','ombre 768','bloom ¾','ombre 512','flou radial']};
 /* (2026-09-27, tour 2 — « on repasse en mode pixel assez vite après avoir lancé ») LE MODE PIXEL, C'ÉTAIT LE PLANCHER : sous l'effondrement,
@@ -4972,7 +4983,7 @@ const PERF_MON=/[?&]perf=1/.test(location.search)?(function(){const e=document.c
 function perfMonTick(now,rawMs){const M=PERF_MON;if(rawMs>M.pire)M.pire=rawMs;if(now-M.t<250)return;M.t=now;
   const ms=loop._ms||16,al=[];for(let i=0;i<QL.N_EFF&&i<QL.k;i++)al.push(QL.nom[i]);const b=qlBornes();
   if(QL.k>b.kNet)al.push(QL.k>=b.kMax?'SOUS LE PLANCHER + BLOOM OFF':'SOUS LE PLANCHER');
-  const tx=ms.toFixed(1)+' ms  pire '+M.pire.toFixed(0)+'  '+Math.round(1000/Math.max(1,ms))+' i/s'+(loop._r30?'  (30 Hz)':'')+'  p50/75/90 '+QLR.p50.toFixed(0)+'/'+QLR.p75.toFixed(0)+'/'+QLR.p90.toFixed(0)+(QL.essai?'  essai':'')+
+  const tx=ms.toFixed(1)+' ms  pire '+M.pire.toFixed(0)+'  '+Math.round(1000/Math.max(1,ms))+' i/s'+(loop._r30?'  (30 Hz)':'')+(QLR.vraiT?'  vrai '+QLR.vrai.toFixed(1):'')+(QL.bride&&now-QL.bride<3000?'  ÉCRAN BRIDÉ':'')+'  p50/75/90 '+QLR.p50.toFixed(0)+'/'+QLR.p75.toFixed(0)+'/'+QLR.p90.toFixed(0)+(QL.essai?'  essai':'')+
     '\nDPR '+curDPR.toFixed(2)+'/'+DPR_CAP.toFixed(2)+'  cran '+QL.k+'/'+b.kMax+(RESPIN?'  FIGE':'')+(bloomPass&&!bloomPass.fuse?'  bloom ancien':'')+'\n'+(al.length?al.join(' · '):'plein');
   if(now-(M.p0||0)>1000){M.p0=now;M.pire=0;}
   if(tx!==M.txt){M.txt=tx;M.el.textContent=tx;}}
@@ -26281,6 +26292,7 @@ window.dbgPin=function(on){RESPIN=(on===undefined)?true:!!on;
 function loop(now){
   requestAnimationFrame(loop);
   if(BANC_ON)BANC_T0=performance.now(); // (banc ?banc=1) début de l'image chronométrée
+  QLR.t0=performance.now(); // (tour 2) début de l'image, pour la sonde de la règle de qualité
   // ⚠ dt JAMAIS NÉGATIF (2026-09-25) : l'horodatage de rAF est celui du DÉBUT de l'image, et `last` peut avoir été posé
   // par `performance.now()` un peu plus tard (reprise d'onglet, pas-à-pas) — un dt < 0 rendait négatif le rayon
   // des taches de jus, et `arc()` lève alors une IndexSizeError qui cassait l'image entière (mesuré).
@@ -26334,6 +26346,9 @@ function loop(now){
        floute pas l'image pour rien. */
     if(QL.essai&&now-QL.essai.t>3300){const e9=QL.essai;QL.essai=null;
       if(QLR.p50>e9.p50-1.5&&QLR.p75>e9.p75-1.5&&(loop._ms||16)>e9.ms*.92){QL.plafK=e9.k0;QL.plafT=now;QL.up=0;qlPose(e9.k0);}}
+    else if(calme9&&tire9&&QL.k<qb9.kMax&&!QL.essai&&!(QLR.vraiT&&now-QLR.vraiT<8000)){QLR.sN=5;QLR.sA.length=0;QL.up=0;} // d'abord la SONDE : on décidera au pas suivant
+    else if(calme9&&tire9&&QL.k<qb9.kMax&&!QL.essai&&QLR.vrai<14.5){QL.bride=now;QL.up++; // l'ÉCRAN bride (économie d'énergie, chaleur) : on ne sacrifie rien…
+      if(QL.k>0&&QL.up>=3){QL.up=0;QL.effondre=false;qlPose(QL.k-1);}} // …et ce qui aurait été baissé remonte
     else if(calme9&&tire9&&QL.k<qb9.kMax&&!QL.essai){
       const lim9=QL.effondre?qb9.kMax:qb9.kNet;
       let k9=Math.min(lim9,QL.k+(fort9?2:1));
@@ -27837,6 +27852,7 @@ function loop(now){
   // la déformation de l'image. ⚠ APRÈS le composer, jamais avant : il écrase le framebuffer.
   try{engVigRender(dt);}catch(e){if(!loop._vigWarn){console.warn('vignette moteur',e);loop._vigWarn=1;}}
   if(BANC_CB)window.__bancSync(); // (banc ?banc=1) la puce finit l'image, on relève le chrono
+  else if(QLR.sN>0)qlSonde(); // (tour 2) la règle de qualité veut le VRAI coût d'une image avant de baisser quoi que ce soit
 }
 // ---------- INIT ----------
 newTrack();

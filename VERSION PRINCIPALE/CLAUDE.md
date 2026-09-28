@@ -575,6 +575,14 @@ adaptative descendait EN PREMIER. Cinq lots (branches perf-ciel/-post/-cpu/-pist
   choisissent par TOUR (`tqC`/`tqN`) : ses pièces restent ensemble et dans leur ordre (égalités de profondeur aux croisements).
   `dbgCity()` = tri, ménages, envois ; `dbgVilleTri({lum,avAr,H,M,G,K})`. Bancs : scratchpad `ville2/` (m2 A/B+chrono, m6/m10 diff
   multi-vues, m7 GPU amplifié, churn, valide).
+  · **LA MESURE DU VRAI IPHONE (28/09, banc `?banc=1` reçu par mail)** — iPhone 13 Pro, NETTE 1,5 : une image coûte **8-13 ms**
+  (JS 1-2 ms), mais l'écran n'en montre que **30 i/s PILE** partout, même à DPR 1,0. Ce n'était PAS le jeu : Safari bridé à 30 i/s par
+  l'iPhone (mode économie d'énergie, ou surchauffe — WebKit « ThermalMitigation »). La règle QL, qui ne voyait que 33 ms/image, baissait la
+  netteté pour rien = le « mode pixel ». **LA SONDE** (`qlSonde`, `QLR.vrai`) : avant toute baisse, 5 images SYNCHRONISÉES (`readPixels` 1 px
+  en fin d'image) donnent le vrai coût ; sous 14,5 ms c'est l'ÉCRAN qui bride → on ne baisse rien et ce qui aurait été baissé remonte
+  (`QL.bride`, « ÉCRAN BRIDÉ » dans `?perf=1`). Sonde seulement quand des images sont ratées, au plus toutes les 8 s. Postes mesurés sur
+  l'iPhone (écarts, en ms) : post −2/−4, piste −1/−5,5 (VILLE sol), ombre −3 (NUAGES sol), DPR 1,0 −1,5/−3 : plus rien de dominant.
+  Le banc garde son tableau (`ccBancDernier`, rouvrir `?banc=1` le remontre, RELANCER / COPIER).
   · **Rendu logiciel = proxy du coût par pixel** : le même banc sous SwiftShader (`--use-angle=swiftshader`, ~11 min) classe les postes
   comme une puce saturée : ciel ~38 %, piste 20-50 %, post ~20 %, ville ~25 % en VILLE, ombres 3-12 %, résolution 1,25 = −23 %.
 - **Écarté après mesure** : moins de mips de bloom (halo changé), RT 8 bits (banding), LOD de piste en deçà du brouillard (grain),
