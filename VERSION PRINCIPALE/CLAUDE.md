@@ -26,8 +26,27 @@ simplifiée » (voir cette section plus bas). Banc muet `gp.js` / `sf.js` (scrat
   chaque centaine franchie se crie à partir d'une centaine sous le record de vie (`VPAL.c0`) ; « RECORD DE VITESSE » quand il tombe.
 - Sons : `PWR_NOTE` a les six clés ; les nouveaux événements appellent `sfx('pwr.double'|'pwr.triple'|'pwr.bouclierCasse'|'pwr.bouclierFin'|
   'pwr.bouclierPlot'|'jeu.miracule'|'jeu.palierVitesse')` sous garde `typeof sfx==='function'` (la session SON les sonorise).
-- Hook : `dbgPwr(k,n)` prend un pouvoir (n fois) ; `dbgPwr()` = minuteurs, poids, sauvetages, MIR, série, palier ; `dbgPwr('plot')` (le pilote
-  vise le prochain plot), `('mir',x)`, `('sf',bool)`, `('devant')`/`('devantPris')` (banc de l'aimant).
+- Hook : `dbgPwr(k,n)` prend un pouvoir (n fois) ; `dbgPwr()` = minuteurs, poids, sauvetages, MIR, série, palier, dauphin (`dol`), lieu
+  du flow ; `dbgPwr('plot')` (le pilote vise le prochain plot), `('mir',x)`, `('sf',bool)`, `('devant')`/`('devantPris')` (banc de l'aimant).
+
+## LE DAUPHIN v4 · SNAKE LOOP · RACCOURCI VERS LE PORTAIL · LA VILLE SE GAGNE SUR LA ROUTE (2026-09-28, nuit — même session)
+- **DAUPHIN v4** (Sacha : « dès qu'on vole près de la route, sans délai, à l'endroit, à l'envers et sur les côtés » · « plus ça dure, plus
+  on voit de dauphins » · « plus d'aura ») : `dolDist()` = distance au RECTANGLE de la dalle dans son plan de coupe (dessus, dessous,
+  bords) ; tout vol à moins de `DOL_HMAX` (40 m) lance le dauphin À LA 1RE IMAGE (`DOL_T`=0). Le banc GRANDIT : 1 dauphin, +1 toutes les
+  `DOL_PAS` (0,6 s) jusqu'à SIX (`DOL_BANC`, 3 gabarits ajoutés ; chaque nouveau JAILLIT en rejoignant le banc, `u.pret`) ; l'étiquette dit
+  « DAUPHIN ×n », l'aura monte ×(1 + 0,15 par dauphin). ⚠ LA FIGURE (chaîne d'argent, « LE DAUPHIN ! », flow) n'arrive qu'à `DOL_FIG`
+  (1 s) tenue, une fois par vol (`trkDolph`) : sinon chaque saut devenait une figure et la frénésie partait à n'importe quelle pose.
+  Plusieurs passages par vol possibles. Aura : figure 80 → 150, prime 40 → 80 (à la figure), 25 → 40/s, au ras 45 → 90/s, plafond 1 200.
+  MESURÉ : sortie par le côté → dauphin dès l'image 1, banc 1 → 5 en 2,4 s pendant la chute sous la route (|lat| 52 m, h −43 m).
+- **SNAKE LOOP** (décoller, passer SOUS la route, se reposer du même côté) : il ne versait AUCUNE aura en propre → `chaineAura('SNAKE LOOP',320)`.
+- **RACCOURCI VERS LE PORTAIL** (« couper la route pour rejoindre le portail plus vite doit rapporter du machiavélisme ») : l'ovule traversé
+  EN VOL compte comme une pose — piste restante jusqu'à son entrée (~L−80) moins la ligne droite volée ≥ 60 m → `flowRaccourci` (MACHIAVEL).
+- **LOI 15 DE FLOW2 — LA VILLE** (« dans la ville on peut moins voler : les traits doivent s'adapter à la vitesse sur route, moins à la
+  voltige ») : `FLOW2.lieux.ville` réécrit fam (route/style montent jusque dans la triade), psy (la vitesse tenue paie 5 toutes les 1,2 s),
+  part (en frénésie le style et la route nourrissent NARCISSE) et les mémoires des traits (13/32/4 s). `flowLieu(nom)` est appelé par
+  `newTrack` ; hors ville tout revient au barème de base. À la révélation de la triade en ville : « VITESSE · DRIFT · TRICHE ».
+  MESURÉ (`simville.js` = simtri avec 2,5× moins de sauts et 2× moins de raccourcis) : barème de base → le maître ne l'atteint presque
+  jamais (93 % des parties) ; loi 15 → ~3 min, 21 % du temps, tenue ~70 s (nuages : 2 min 26, 30 %).
 
 ## LA CHASSE AUX DÉTAILS (2026-09-28) — « je ne te demande pas de changer drastiquement : traque tous les détails pour que le jeu soit parfait »
 Sacha : « les animations du nitro pourraient faire beaucoup plus FLAMME, façon Asphalt 9 ; en nitro infini les flammes de la barre font

@@ -16712,8 +16712,25 @@ const FLOW2={
   part:{risque:1,style:.35,route:.05},
   psy:{sol:1.12,air:1.15,t:1.5,q:[4,6]},
   lent:{vit:.8,re:.95},
-  faute:{lourd:6}                        // (loi 13, retirée : 4)
+  faute:{lourd:6},                       // (loi 13, retirée : 4)
+  /* 15. LA VILLE SE GAGNE SUR LA ROUTE (2026-09-28, nuit, Sacha : « le gameplay change dans la ville, on peut moins voler : l'obtention des
+     traits de la dark triad doit être adaptée à la vitesse sur route, et moins à la voltige »). Entre les tours on saute peu : ce lieu
+     RÉÉCRIT quelques clés (`flowLieu`, appelé par newTrack) — la route et le style montent jusque dans la triade, la vitesse TENUE au sol
+     paie plus souvent et plus fort (PSYCHO), en frénésie le style (drift, frôlé, rase-bord, séries) et la route nourrissent NARCISSE, et
+     les traits se souviennent plus longtemps (les figures et les raccourcis y sont rares). Le risque, lui, paie pareil : il est juste
+     plus rare. Hors ville, rien ne change. */
+  lieux:{ville:{fam:{route:[1,.55,.25,.2,0],style:[1,1,.9,.6,0],risque:[1,1,1,1,0]},
+    psy:{sol:1.08,air:1.15,t:1.2,q:[5,6]},part:{risque:1,style:.7,route:.2},
+    triade:{n:{mem:13},m:{mem:32},p:{mem:4,vit:1.2},brule:[4,2,.7,-1.5]}}},
+  lieu:''
 };
+// pose les réglages du LIEU (ville) par-dessus le barème de base — et les rend en quittant le lieu. Pur : ne touche que FLOW2.
+function flowLieu(nom){
+  const L=FLOW2.lieux[nom]||null;
+  if(!FLOW2._base){FLOW2._base={};for(const k in FLOW2.lieux.ville)FLOW2._base[k]=JSON.parse(JSON.stringify(FLOW2[k]));}
+  for(const k in FLOW2._base)FLOW2[k]=JSON.parse(JSON.stringify(L&&L[k]?L[k]:FLOW2._base[k]));
+  FLOW2.lieu=L?nom:'';
+}
 function flowInterp(P,x){if(x<=P[0][0])return P[0][1];for(let i=1;i<P.length;i++)if(x<=P[i][0]){const a=P[i-1],b=P[i];return a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);}return P[P.length-1][1];}
 function flowCel(v,lv){return lv===4?4:Math.min(3,Math.floor(v/25));}
 // ce que vaut VRAIMENT un geste `q` de famille `fam`, quand la jauge est à `v` (palier `lv`) et qu'on roule à `vitN`
@@ -16875,7 +16892,8 @@ function flowRevele(){
   const h=FLOW.el;
   if(h){h.classList.add('revele','ouvre');clearTimeout(flowRevele._t);flowRevele._t=setTimeout(function(){h.classList.remove('ouvre');},700);
     try{pixBurst(h.querySelector('.fSeg>i:nth-child(4)'),10);}catch(e){}}
-  popTexte(FREN.appris?'DARK TRIAD':'FIGURES · TRICHE · NITRO',FLOW_COL[4],2);FREN.appris=true; // (v4) la règle de la triade, en trois mots
+  if(FLOW2.lieu==='ville'&&!FREN.apprisV){FREN.apprisV=true;popTexte('VITESSE · DRIFT · TRICHE',FLOW_COL[4],2);} // (loi 15) en VILLE la triade se gagne sur la route : on le dit, une fois
+  else popTexte(FREN.appris?'DARK TRIAD':'FIGURES · TRICHE · NITRO',FLOW_COL[4],2);FREN.appris=true; // (v4) la règle de la triade, en trois mots
   try{subBoom(.14);chimeNote(noteP(0,0),.05,.07,.6);}catch(e){}
   hap([10,40,10]);
 }
@@ -18966,15 +18984,15 @@ function pwrPrend(k,pos){
     const tri=autres>=2;
     chaineAura(tri?'TRIPLE POUVOIR':'DOUBLE POUVOIR',tri?150:70,'pwrCombo',true);
     popTexte(sansAcc(TR(tri?'TRIPLE POUVOIR !':'DOUBLE POUVOIR !')),tri?'#ff5ec8':'#ffd75e',3);
-    try{chimeNote(noteP(4,1),.2,.06,.3);chimeNote(noteP(7,1),.28,.06,.34);if(tri)chimeNote(noteP(11,1),.36,.07,.45);}catch(e){}
-    try{if(typeof sfx==='function')sfx(tri?'pwr.triple':'pwr.double');}catch(e){}
+    try{if(typeof sfx==='function')sfx(tri?'pwr.triple':'pwr.double');else{chimeNote(noteP(4,1),.2,.06,.3);chimeNote(noteP(7,1),.28,.06,.34);if(tri)chimeNote(noteP(11,1),.36,.07,.45);}}catch(e){} // la session SON sonorise ; sinon le carillon de repli
     hap(tri?[20,30,20,30,40]:[16,30,24]);
   }
 }
 /* LES MINUTEURS DES NOUVEAUX POUVOIRS (boucle, à côté de ceux d'origine) — la fin se dit à l'oreille (pwrFinSnd). */
 function pwrTick(dt){
-  for(const k of ['m','x','b']){const t0=pwrT(k);if(t0>0){const t1=Math.max(0,t0-dt);pwrSet(k,t1);if(t1<=0){pwrFinSnd();
-    if(k==='b')try{if(typeof sfx==='function')sfx('pwr.bouclierFin');}catch(e){}}}}
+  for(const k of ['m','x','b']){const t0=pwrT(k);if(t0>0){const t1=Math.max(0,t0-dt);pwrSet(k,t1);if(t1<=0){
+    let fait=false;if(k==='b')try{if(typeof sfx==='function'){sfx('pwr.bouclierFin');fait=true;}}catch(e){}
+    if(!fait)pwrFinSnd(k);}}}
   if(PWR_V2.demoT>0)PWR_V2.demoT-=dt;
   pwrHalo();
 }
@@ -19008,8 +19026,7 @@ function bouclierSauve(cause){
   nitroR=Math.max(nitroR,nitroCap()*.5); // on repart avec de quoi voler
   slam('SAUVE !','LE BOUCLIER A CEDE',d.tint,d.c2,48,3,16);
   flashEcran('rgba(207,224,255,.95)');shake=Math.max(shake,.7);hap([30,40,30,40,70]);
-  try{subBoom(.16);chimeNote(noteP(0,1),0,.08,.35);chimeNote(noteP(4,1),.08,.08,.4);chimeNote(noteP(7,1),.16,.1,.55);}catch(e){}
-  try{if(typeof sfx==='function')sfx('pwr.bouclierCasse');}catch(e){}
+  try{if(typeof sfx==='function')sfx('pwr.bouclierCasse');else{subBoom(.16);chimeNote(noteP(0,1),0,.08,.35);chimeNote(noteP(4,1),.08,.08,.4);chimeNote(noteP(7,1),.16,.1,.55);}}catch(e){}
   sparkBurst(sparkBlue,p9,26,16);
   if(PWR_V2.sauves===1&&((SAVE.d.ex&&SAVE.d.ex.runs)|0)<8)setTimeout(function(){try{if(running&&!gameOver)popTexte(sansAcc(TR('LE BOUCLIER T\'A SAUVE')),d.tint,2);}catch(e){}},1500);
   return true;
@@ -19021,7 +19038,7 @@ function pwrDemoli(pos){
   chaineAura(n>1?'DEMOLI ×'+n:'DEMOLI',20+Math.min(6,n)*6,'demoli',true);
   nitroGain(.05);sparkBurst(sparkBlue,pos,8,9);sparkBurst(sparkGold,pos,4,7);
   shake=Math.max(shake,.2);hap(14);
-  try{if(typeof sfx==='function')sfx('pwr.bouclierPlot');}catch(e){}
+  try{if(typeof sfx==='function')sfx('pwr.bouclierPlot');}catch(e){} // (le son du plot percuté, coneSnd, a déjà joué)
 }
 /* ===== LES PETITS TRUCS GRISANTS (2026-09-28, Sacha : « pousse un max de petites modifs en game designer senior pour augmenter le
    fun, l'adrénaline et surtout l'accessibilité ») — trois moments qui n'existaient pas, chacun branché sur ce qui est déjà là :
@@ -19046,8 +19063,7 @@ function mirPose(){ // la pose a réussi (tryLand vrai)
   setTimeout(function(){try{if(running&&!gameOver)popTexte(sansAcc(TR('MIRACULE !')),'#7dffec',3);}catch(e){}},420); // après le verdict de la pose (sa priorité le laisse passer)
   flashEcran('rgba(125,255,236,.7)');hap([18,30,18,30,50]);shake=Math.max(shake,.45);
   sparkBurst(sparkBlue,carGroup.position,22,14);sparkBurst(sparkGold,carGroup.position,12,10);
-  try{chimeNote(noteP(0,1),.05,.07,.3);chimeNote(noteP(4,1),.12,.07,.34);chimeNote(noteP(7,1),.19,.07,.38);chimeNote(noteP(12,1),.26,.09,.55);}catch(e){}
-  try{if(typeof sfx==='function')sfx('jeu.miracule');}catch(e){}
+  try{if(typeof sfx==='function')sfx('jeu.miracule');else{chimeNote(noteP(0,1),.05,.07,.3);chimeNote(noteP(4,1),.12,.07,.34);chimeNote(noteP(7,1),.19,.07,.38);chimeNote(noteP(12,1),.26,.09,.55);}}catch(e){}
 }
 const SFA={n:0};                          // SANS FAUTE : poses propres d'affilée
 function sfaPose(propre){ // appelé au verdict d'une VRAIE pose (fallT > .7)
@@ -19059,7 +19075,7 @@ function sfaPose(propre){ // appelé au verdict d'une VRAIE pose (fallT > .7)
     chaineAura('SANS FAUTE ×'+n,30+Math.min(20,n)*8,'sansfaute',true,true);
     nitroGain(.12);
     setTimeout(function(){try{if(running&&!gameOver)popTexte(sansAcc(TR('SANS FAUTE'))+' ×'+n,'#7dff9a',2);}catch(e){}},700);
-    try{chimeNote(noteP(Math.min(9,2+Math.floor(n/3)),1),.7,.06,.3);}catch(e){}
+    try{if(typeof sfx==='function')sfx('jeu.sansFaute',{st:n});else chimeNote(noteP(Math.min(9,2+Math.floor(n/3)),1),.7,.06,.3);}catch(e){}
   }
 }
 const VPAL={n:0,rec:false,c0:3};          // paliers de vitesse de la partie (n = dernière centaine criée) · rec = record de vie déjà crié · c0 = 1re centaine criée
@@ -19072,8 +19088,7 @@ function vpalTick(kmh){
   if(c>=VPAL.c0&&c>VPAL.n){VPAL.n=c;
     popTexte((c*100)+' KM/H !',c>=8?'#ff5ec8':c>=5?'#ffd75e':'#9fe8ff',1);
     fovPunch=Math.max(fovPunch,5+Math.min(8,c));hap(c>=6?[12,20,18]:10);
-    try{chimeNote(noteP(Math.min(11,c),1),0,.05,.22);}catch(e){}
-    try{if(typeof sfx==='function')sfx('jeu.palierVitesse');}catch(e){}}
+    try{if(typeof sfx==='function')sfx('jeu.palierVitesse',{st:Math.max(0,c-4)});else chimeNote(noteP(Math.min(11,c),1),0,.05,.22);}catch(e){}}
   const ex=SAVE.d.ex,r=ex?(ex.kmh|0):0;
   if(!VPAL.rec&&r>=250&&kmh>r+5){VPAL.rec=true;
     setTimeout(function(){try{if(running&&!gameOver){slam('RECORD DE VITESSE',Math.round(Math.max(kmh,runStats.vmax||0))+' KM/H','#ffd75e','#ff3924',40,2,14);hap([12,30,20]);}}catch(e){}},250);}
@@ -19087,7 +19102,7 @@ window.dbgPwr=function(k,n){try{if(k&&PWR_DEFS[k]){for(let i=0;i<(n||1);i++)pwrP
   if(k==='devant'){const L9=[];for(const p of pickups)if(!p.taken&&!p.pow&&p.face===side&&p.s>s+5&&p.s<s+50)L9.push(p);window.__dv=L9;return L9.length;} // (banc) l'or à portée d'AIMANT…
   if(k==='devantPris'){return (window.__dv||[]).filter(function(p){return p.taken;}).length;} // …et ce qui en a été ramassé
   if(k==='plot'){let b9=null;for(const c of CONES){if(!c.hit&&c.face===1&&c.s>s+50&&(!b9||c.s<b9.s))b9=c;}if(b9){DBG_AUTO.lat=b9.lat;}return b9?{s:Math.round(b9.s),lat:+b9.lat.toFixed(1),moi:Math.round(s)}:null;} // (banc) le pilote de mesure vise le prochain plot
-  const o={};for(const q of PWR_ORDRE)o[q]=+pwrT(q).toFixed(2);return {pwr:o,poids:pwrPoids(),runs:(SAVE.d.ex&&SAVE.d.ex.runs)|0,sauves:PWR_V2.sauves,mir:{t:+MIR.t.toFixed(2),max:+MIR.max.toFixed(2)},sansFaute:SFA.n,sfDern:SFA.dern,poseA:FLOW.poseA,vol:+fallT.toFixed(2),vpal:VPAL.n,c0:VPAL.c0,pieces:RUNX.coins|0,demoli:PWR_V2.demoli,aura:Math.round(auraRun)};}catch(e){return e.message;}};
+  const o={};for(const q of PWR_ORDRE)o[q]=+pwrT(q).toFixed(2);return {pwr:o,poids:pwrPoids(),runs:(SAVE.d.ex&&SAVE.d.ex.runs)|0,sauves:PWR_V2.sauves,mir:{t:+MIR.t.toFixed(2),max:+MIR.max.toFixed(2)},sansFaute:SFA.n,sfDern:SFA.dern,poseA:FLOW.poseA,vol:+fallT.toFixed(2),vpal:VPAL.n,c0:VPAL.c0,pieces:RUNX.coins|0,demoli:PWR_V2.demoli,aura:Math.round(auraRun),lieu:FLOW2.lieu,psyQ:FLOW2.psy.q[0],dol:{on:dolOn,nb:dolNb,live:+dolLive.toFixed(2),aura:Math.round(dolAura),fig:trkDolph,vis:dolphins.filter(function(d){return d.visible;}).length,dist:+dolDist().toFixed(1),h:+curHOff.toFixed(1),lat:+curLatOff.toFixed(1)}};}catch(e){return e.message;}};
 const pickups=[];
 const mat4b=new THREE.Matrix4(),FLIP_B=new THREE.Vector3(),FLIP_N=new THREE.Vector3(); // FLIP_* : le repère retourné des fruits d'en dessous
 /* LES PIÈCES SE RECYCLENT (2026-09-28, chasse aux gels) — une piste pose 2 000 à 4 000 pièces, et chacune était un `new THREE.Mesh`
@@ -20339,10 +20354,14 @@ function mkDauphin(){ // le `makeDolphin` de Léo, pièce pour pièce
 }
 // LE BANC : les 3 premiers gabarits du `setPod(3)` de Léo — vitesse (tempo du bond), amplitude, niveau de la « surface », profondeur
 // (vers la caméra = positif, comme dans l'aperçu), taille. `p0` : où en est chacun au déclenchement (négatif = encore sous l'eau).
+// (dauphin v4) SIX gabarits : ils entrent DANS CET ORDRE, un toutes les DOL_PAS s de dauphin tenu (dolNb) — le banc grandit avec la tenue
 const DOL_BANC=[
   {speed:.30,amp:3.6,base:-1.6,z:0,   scale:1.15,p0:0},
   {speed:.24,amp:2.9,base:-1.2,z:-3.5,scale:.85, p0:-.15},
-  {speed:.38,amp:4.1,base:-1.9,z:1.8, scale:.95, p0:-.35}];
+  {speed:.38,amp:4.1,base:-1.9,z:1.8, scale:.95, p0:-.35},
+  {speed:.27,amp:3.3,base:-1.4,z:4.6, scale:.8,  p0:-.2},
+  {speed:.33,amp:3.9,base:-1.8,z:-6.4,scale:1.0, p0:-.3},
+  {speed:.21,amp:2.6,base:-1.1,z:2.9, scale:.72, p0:-.1}];
 const dolphinRig=new THREE.Group();dolphinRig.visible=false;scene.add(dolphinRig);
 const dolPod=new THREE.Group();dolphinRig.add(dolPod); // la « scène de Léo », posée devant la caisse
 const dolphins=DOL_BANC.map(b=>{const d=mkDauphin();d.userData.b=b;d.userData.p=b.p0;d.userData.tailPh=Math.random()*6.28;d.userData.roll=Math.random()*6.28;d.userData.up=false;dolPod.add(d);return d;});
@@ -20383,7 +20402,9 @@ function updateDolphins(dt){
   else{const a=Math.min(1,dt*1.5);dolKS+=(kT-dolKS)*a;dolW+=(wT-dolW)*a;} // la caméra de vol zoome sur les gros airs : le banc suit en douceur
   dolShow-=dt;dolIn+=dt;
   const fade=Math.min(1,dolShow*2.5),k=dolKS,W=dolW,dir=dolDir;
-  for(const d of dolphins){const u=d.userData,b=u.b;
+  for(let i9=0;i9<dolphins.length;i9++){const d=dolphins[i9],u=d.userData,b=u.b;
+    if(i9>=dolNb){if(d.visible)d.visible=false;u.pret=false;continue;} // (dauphin v4) pas encore dans le banc
+    if(!u.pret){u.pret=true;if(!neuf){u.p=-.05;u.up=false;}} // il REJOINT le banc : il jaillit tout de suite (gerbe comprise)
     u.p+=dt*b.speed*b.speed*8.8; // le tempo de l'aperçu (phase×vitesse×4,4 avec phase+=dt×vitesse×2)
     if(u.p>1.06)u.p=-(.12+Math.random()*.3); // replongé : un temps sous l'eau, et il revient
     const p=u.p,vis=p>-.04&&p<1.04;d.visible=vis;
@@ -24236,7 +24257,7 @@ function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent dé
   // (2026-09-26, audit son) `muet` : `trickPop` plus bas sonne déjà le maillon — deux carillons sur deux notes brouillaient la gamme qui monte
   if(id==='vrille')chaineAura(spinHalf*180+'°',45,'vrille',true,true);
   else if(id==='meteo')chaineAura('MÉTÉORE',100,'meteo',false,true);
-  else if(id==='dauphin')chaineAura('DAUPHIN',80,'dauphin',false,true);
+  else if(id==='dauphin')chaineAura('DAUPHIN',150,'dauphin',false,true); // (dauphin v4) 80 → 150
   else if(id==='bump')chaineAura(bounceN>1?'BUMP ×'+bounceN:'BUMP',30,'bump',true,true);
   else chaineAura(String(txt).split(' — ')[0],40,id,false,true);
   // (FLOW v2) LE RISQUE NOURRIT LE FLOW EN DIRECT : en l'air la jauge monte PENDANT qu'on vrille (et le vide ne la fait pas fuir).
@@ -24269,36 +24290,55 @@ function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent dé
    (2026-09-26, user : « on la voit pas assez […] il faut rester moins longtemps proche de la route ») : DOL_T 2 → 1 s, et le banc
    reste au moins DOL_VU secondes à l'écran une fois lâché — même si on quitte la route aussitôt, chaque dauphin a le temps
    de faire son bond en entier. */
-const DOL_T=1,DOL_VU=2.6,DOL_HMAX=40,DOL_TMAX=4,DOL_GRACE=.12,DOL_FIGE=.6,
-      DOL_AURA0=40,DOL_AURA_S=25,DOL_AURA_RAS=45,DOL_AURA_MAX=400;
-let dolRoadT=0,dolOffT=0,dolOn=false,dolAura=0,dolMul=1,dolHudT=0;
+/* LE DAUPHIN v4 (2026-09-28, nuit, Sacha : « le dauphin doit se déclencher DÈS qu'on vole près de la route, sans délai — à l'endroit,
+   à l'envers et sur les côtés » puis « plus ça dure longtemps, plus on voit de dauphins ; on ne doit pas voir tous les dauphins pour une
+   seconde de dauphin » et « il doit rapporter plus d'aura »).
+   · PRÈS DE LA ROUTE = près de la DALLE, où qu'on soit : au-dessus de la face du dessus, sous la face du dessous, ou à côté des bords —
+     `dolDist` = la distance au rectangle de la dalle dans son plan de coupe (0 au contact). Plus de chrono : le dauphin part à la
+     1re image de vol près de la route (`DOL_T`=0).
+   · LE BANC GRANDIT : un dauphin au départ, un de plus toutes les `DOL_PAS` s tenues, jusqu'à six (`DOL_BANC`) — et l'aura monte avec
+     lui (×(1 + 0,15 par dauphin en plus)). L'étiquette dit « DAUPHIN ×n ».
+   · LA FIGURE (la chaîne d'argent, le cri « LE DAUPHIN ! », le flow) n'arrive qu'à `DOL_FIG` s de dauphin tenu, une fois par vol : la
+     même règle qu'avant (1 s) — sinon CHAQUE saut deviendrait une figure et la frénésie se déclencherait sur n'importe quelle pose.
+   · Un vol peut avoir plusieurs passages près de la route : chacun relance le dauphin (la figure, elle, reste unique).
+   · Aura ×2 à peu près : prime 40 → 80 (à la figure), 25 → 40/s, au ras 45 → 90/s, plafond 400 → 1 200 ; la figure 80 → 150. */
+const DOL_T=0,DOL_VU=2.6,DOL_HMAX=40,DOL_TMAX=4,DOL_GRACE=.12,DOL_FIGE=.6,DOL_FIG=1,DOL_PAS=.6,
+      DOL_AURA0=80,DOL_AURA_S=40,DOL_AURA_RAS=90,DOL_AURA_MAX=1200;
+let dolRoadT=0,dolOffT=0,dolOn=false,dolAura=0,dolMul=1,dolHudT=0,dolLive=0,dolNb=1;
+// la distance de la caisse à la DALLE (dessus, dessous, bords), dans son plan de coupe — radar de tryLand (image d'avant)
+function dolDist(){const dx=Math.max(0,Math.abs(curLatOff)-ROAD_HALF),dy=curHOff>0?curHOff:(curHOff<-THICK?-THICK-curHOff:0);return Math.hypot(dx,dy);}
 const DAUPH={el:null,nom:null,lbl:null,tv:null,v:-1,force:null}; // l'étiquette, bâtie UNE fois · force : hook de test (null = radar réel)
-function dolTick(dt,sur,hF){ // chaque image de VOL, avant tryLand (radar = image d'avant)
+function dolTick(dt,sur,hF){ // chaque image de VOL, avant tryLand (radar = image d'avant) — hF = distance à la dalle (dolDist)
   if(sur){
     dolOffT=0;
-    if(!trkDolph){dolRoadT+=dt;if(dolRoadT>=DOL_T)dolStart();}
+    if(!dolOn){dolRoadT+=dt;if(dolRoadT>=DOL_T)dolStart();}
     if(dolOn){
+      dolLive+=dt;
+      const nb=Math.min(DOL_BANC.length,1+Math.floor(dolLive/DOL_PAS)); // (v4) le BANC GRANDIT avec la tenue
+      if(nb>dolNb){dolNb=nb;dolHudNom();hap(8);try{chimeNote(noteP(Math.min(11,2+nb),1),0,.05,.18);}catch(e){}}
+      if(!trkDolph&&dolLive>=DOL_FIG){trkDolph=true;dolAura+=DOL_AURA0*dolMul;addTrick('dauphin','🐬 LE DAUPHIN !',3,2);} // (v4) LA FIGURE, à 1 s tenue, une fois par vol
       const ras=Math.max(0,Math.min(1,1-(hF-2.2)/9.8)); // l'esprit du dauphin : nager AU RAS paye plus
-      dolAura=Math.min(DOL_AURA_MAX*dolMul,dolAura+(DOL_AURA_S+DOL_AURA_RAS*ras*ras)*dolMul*dt);
-      dolShow=Math.max(dolShow,.7); // ils nagent tant qu'on reste au-dessus ; à la sortie, le fondu de 0,4 s d'updateDolphins
+      dolAura=Math.min(DOL_AURA_MAX*dolMul,dolAura+(DOL_AURA_S+DOL_AURA_RAS*ras*ras)*(1+.15*(dolNb-1))*dolMul*dt);
+      dolShow=Math.max(dolShow,.7); // ils nagent tant qu'on reste près de la route ; à la sortie, le fondu de 0,4 s d'updateDolphins
       dolHudVal();
     }
   }else{
     dolOffT+=dt;
     if(dolOffT>DOL_GRACE){
       if(dolOn)dolFin();
-      else if(!trkDolph)dolRoadT=0; // la continuité est rompue : le chrono repart de zéro
+      else dolRoadT=0; // la continuité est rompue : le chrono repart de zéro
     }
   }
 }
 function dolStart(){
-  trkDolph=true;dolOn=true;
+  dolOn=true;dolLive=0;
   dolMul=auraMultVitesse(); // vA ne bouge pas en vol : la vitesse du décollage multiplie, figée ICI (affiché = versé)
-  dolAura=DOL_AURA0*dolMul; // la prime : la seconde tenue vaut déjà quelque chose
-  dolShow=Math.max(dolShow,DOL_VU);dolIn=0; // LE BANC jaillit — une seule fois par vol, et on a le temps de le VOIR
-  addTrick('dauphin','🐬 LE DAUPHIN !',3,2); // la figure entre dans la CHAÎNE (argent, ×, combo, carillon) — même paye qu'avant, à 1 s
+  dolAura=0; // (v4) la prime arrive avec la FIGURE (1 s tenue) : un saut de rien ne la touche pas
+  if(dolShow<=0)dolNb=1; // un banc encore visible (passage précédent du même vol) garde ses dauphins
+  dolShow=Math.max(dolShow,DOL_VU);dolIn=0; // LE BANC jaillit — et on a le temps de le VOIR
   dolHudShow();hap([10,24,10]);
 }
+function dolHudNom(){if(DAUPH.nom)DAUPH.nom.textContent=TR('DAUPHIN')+(dolNb>1?' ×'+dolNb:'');}
 function dolFin(){ // on QUITTE la route ou on se pose : le total se fige, s'encaisse, puis s'efface
   if(!dolOn)return;dolOn=false;dolHudVal();
   const n=Math.round(dolAura);
@@ -24307,7 +24347,7 @@ function dolFin(){ // on QUITTE la route ou on se pose : le total se fige, s'enc
   dolHudT=DOL_FIGE;
 }
 function dolKill(){ // fin SANS encaissement : explosion, replacement, nouvelle partie, fin de partie
-  dolOn=false;dolAura=0;dolRoadT=0;dolOffT=0;dolShow=0;dolHudOff();
+  dolOn=false;dolAura=0;dolRoadT=0;dolOffT=0;dolShow=0;dolLive=0;dolNb=1;dolHudOff();
 }
 function dolHudInit(){ // une fois, au 1er dauphin — ensuite des classes et UN nœud texte
   const e=document.createElement('div');e.id='dolHud';e.setAttribute('aria-hidden','true');
@@ -24318,7 +24358,7 @@ function dolHudInit(){ // une fois, au 1er dauphin — ensuite des classes et UN
 }
 function dolHudShow(){
   if(!DAUPH.el)dolHudInit();
-  DAUPH.nom.textContent=TR('DAUPHIN');DAUPH.lbl.textContent=TR('AURA');
+  dolHudNom();DAUPH.lbl.textContent=TR('AURA');
   DAUPH.el.classList.toggle('sansAura',PARK.on); // parc freestyle : pas d'aura → le nom seul
   DAUPH.el.classList.remove('fige','on');DAUPH.v=-1;dolHudVal();
   void DAUPH.el.offsetWidth;DAUPH.el.classList.add('on');dolHudT=0;
@@ -24447,6 +24487,10 @@ function portailPasse(){
   if(!PARK.on&&CARR.actif&&LVL.cur&&LVL.cur.carr&&LVL.cur.id==='espace'&&LVL.cur.carr.i===9){espaceFinale();return;} // (2026-09-28) PLUTON n'avait pas de fin : le portail le rejouait à l'infini
   if(TUTO.on&&!CARR.actif&&!PARK.on){SURV.pBase+=s;newTrack();return;} // (2026-09-28) l'auto-école ne s'échappe pas par le portail (le débutant qui n'osait pas sauter finissait la leçon dans la VILLE) : la piste d'apprentissage repart // (2026-09-27) le portail de MIDI : le premier arrivé gagne — le banquier passé avant toi, il ne mène plus nulle part // (2026-09-27) le portail du COUCHER : la campagne des NUAGES est finie, on ne va nulle part ailleurs
   if(mode==='fall'){airPie.style.display='none';try{dolFin();}catch(e){}vA=Math.max(vA,Math.hypot(fallVel.x,fallVel.z)); // traversé en VOL : le vol s'arrête proprement, l'élan est gardé (inertie)
+    /* (2026-09-28, Sacha : « quand on coupe la route pour rejoindre le portail plus vite, ça doit quand même rapporter du machiavélisme »)
+       LE RACCOURCI VERS LE PORTAIL : on n'atterrit pas, donc tryLand ne le voyait jamais. Même mesure qu'à la pose — la piste qu'il
+       restait à rouler jusqu'à l'entrée de l'ovule (son centre est à L−25, son rayon 55 : ~L−80) moins la ligne droite volée. */
+    if(!PARK.on&&!TUTO.on){const gagne=(L-80-FLOW.s0)-FLOW.p0.distanceTo(fallPos);if(gagne>=60)flowRaccourci(gagne);else if(gagne>=25)frenTrait('m',gagne/60);}
     // (2026-09-26) …et la CHAÎNE est ENCAISSÉE comme à une pose : avant, l'argent de la mallette disparaissait sans un mot et le HUD restait affiché
     if(chain>0||chainVal>0){const g9=Math.round(flowMult()*chainEst());if(g9>0){money+=g9;levelCash+=g9;runStats.tricks++;checkUpgrade();trickMsg('CHAÎNE ENCAISSÉE +'+fmtC(g9),2);}}
     chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;}
@@ -24709,7 +24753,7 @@ function tryLand(dt){
     if(g>=1.5)momT=Math.max(momT,3);else if(g<1)momT*=.5; // (momentum v2) PARFAIT relance la vitesse, POSÉ LOURD en coûte la moitié
     if(g<1){try{clank9(0,190,.12);clank9(.05,135,.09);}catch(e){}if(!poseRatee)flowFaute('n',FLOW2.faute.lourd,.5);} // (v5) POSÉ LOURD : -NARCISSE // (2026-09-25) POSÉ LOURD : la TÔLE, sans carillon
     const snaked=fallUnder&&sideL===fallStartSide; // SNAKE LOOP v2 : passé SOUS la route, reposé face de départ
-    if(snaked){chainVal+=14;chainMult+=.5;serpShow=2.6;flowAdd(15,'risque','m');} // (v5) passer SOUS la route : MACHIAVEL // la figure paye sa part + LE SERPENT néon se love autour de la caisse
+    if(snaked){chainVal+=14;chainMult+=.5;serpShow=2.6;flowAdd(15,'risque','m');chaineAura('SNAKE LOOP',320,'snake',false,true);} // (2026-09-28, Sacha : « il doit rapporter plus d'aura ») +320 — il n'en versait AUCUNE en propre // (v5) passer SOUS la route : MACHIAVEL // la figure paye sa part + LE SERPENT néon se love autour de la caisse
     // GAP FRANCHI : le vol vient d'une CATAPULTE et il a vraiment traversé — le grand geste de la zone se paye
     const gapOk=gapArmed>0&&fallT>.9;
     if(gapOk){
@@ -24836,6 +24880,7 @@ function newTrack(){
   CHAUFFE_R.t=performance.now()+120; // (tour 2) la nouvelle piste, sa ville, ses nuages : dessinés une fois hors écran dans la foulée (voir chauffeRendu)
   let sd=(Math.random()*1e9)|0;
   const niv=lvlChoisir(); // LE NIVEAU D'ABORD : buildClouds et buildVoxCity le lisent pendant la construction
+  try{flowLieu(niv&&niv.id==='ville'?'ville':'');}catch(e){} // (2026-09-28, FLOW2 loi 15) en VILLE, la triade se gagne sur la route
   {const id9=niv&&niv.id,av9=ORBFX.prev;ORBFX.prev=id9; // (2026-09-28) L'ORBITE A SES PORTES : tunnel en y entrant, feu en en sortant (portail franchi en course)
    if(started&&!gameOver&&runStats.zones>0&&!PARK.on&&av9&&id9&&av9!==id9){if(id9==='espace')orbWarp();else if(av9==='espace')orbFeu();}}
   if(niv&&niv.graine)sd=niv.graine; // (2026-09-27) CAMPAGNE : la même piste, les mêmes pièces, les mêmes nuages à chaque essai
@@ -28779,9 +28824,9 @@ function loop(now){
     {const pn9=pwrNitroT>0,ps9=pwrSpdT>0;
     pwrNitroT=Math.max(0,pwrNitroT-dt);
     pwrSpdT=Math.max(0,pwrSpdT-dt);
-    if((pn9&&pwrNitroT<=0)||(ps9&&pwrSpdT<=0))pwrFinSnd();} // (2026-09-26) la fin d'un pouvoir se dit aussi à l'oreille
+    if(pn9&&pwrNitroT<=0)pwrFinSnd('n');else if(ps9&&pwrSpdT<=0)pwrFinSnd('v');} // (2026-09-26) la fin d'un pouvoir se dit aussi à l'oreille — (pouvoirs v2) avec sa clé (la session SON la lit)
     if(startBoostT>0)startBoostT=Math.max(0,startBoostT-dt); // LE BOOST DE DÉPART : décroît tout seul, même hors mode 'drive' ne l'arrête pas plus tôt que prévu
-    if(pwrAirT>0){pwrAirT-=dt;if(pwrAirT<=0){pwrAirT=0;if(!TUTO.on)pwrFinSnd();if(mode==='fall'){fallT=0;fallTR=0;airFlash=.6;}}} // (2026-09-28) l'airtime PRÊTÉ par l'auto-école n'est pas un pouvoir : il finit sans bruit
+    if(pwrAirT>0){pwrAirT-=dt;if(pwrAirT<=0){pwrAirT=0;if(!TUTO.on)pwrFinSnd('a');if(mode==='fall'){fallT=0;fallTR=0;airFlash=.6;}}} // (2026-09-28) l'airtime PRÊTÉ par l'auto-école n'est pas un pouvoir : il finit sans bruit
     pwrTick(dt); // (pouvoirs v2) aimant · bouclier · aura ×2
     // nitro : 2s regen (10s de recharge) + 2s réserve (bidons bleus)
     // CAPACITÉ MOTEUR : la réserve de nitro s'élargit avec le palier (2,0 → 3,6 au réacteur)
@@ -29477,8 +29522,8 @@ function loop(now){
         if(!trkBigA&&fallTR>1.8){trkBigA=true;chaineAura('BIG AIR',50,'bigair');flowAdd(6,'risque');}          // (aura v2) le temps passé EN L'AIR se paie
         if(!trkMonstre&&fallTR>3.4){trkMonstre=true;chaineAura('AIR MONSTRE',110,'monstre');flowAdd(10,'risque');}
         // ---- LE DAUPHIN v3 : chrono du vol AU-DESSUS DE LA ROUTE (dolTick) — hauteur depuis la face de DÉCOLLAGE (miroir des faces) ----
-        {const hF=fallStartSide>0?curHOff:-curHOff-THICK;
-         dolTick(dt,DAUPH.force!==null?DAUPH.force:(curNear&&Math.abs(curLatOff)<ROAD_HALF&&Math.abs(curTOff)<DOL_TMAX&&hF>0&&hF<DOL_HMAX),hF);}
+        {const hF=dolDist(); // (dauphin v4) la distance à la DALLE : dessus, dessous ou à côté — tout vol près de la route
+         dolTick(dt,DAUPH.force!==null?DAUPH.force:(curNear&&Math.abs(curTOff)<DOL_TMAX&&hF<DOL_HMAX),hF);}
         if(curNear){ // radar de dalle (rempli par tryLand à la frame précédente)
           if(Math.abs(curLatOff)<ROAD_HALF&&curHOff>2.2&&curHOff<12){
             // ---- LE DAUPHIN : nager au ras de la dalle. Plus on frôle, plus ça paye ----
