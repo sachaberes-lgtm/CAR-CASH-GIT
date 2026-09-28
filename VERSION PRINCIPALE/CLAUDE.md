@@ -1,5 +1,24 @@
 # CASH CAR — guide projet pour Claude Code
 
+## PASSE DE LANCEMENT (2026-09-28) — « imagine qu'il sort sur l'App Store, vise le top 1 des jeux de course »
+Bancs muets dans le scratchpad de la session d82605e6 (un à la fois) : `balade2.js` (nouveau joueur au vrai doigt), `boucle.js` (mort →
+rejouer : ~2,9 s, les touchers de la 1re demi-seconde sont avalés exprès), `endurance.js` (5 min, 14 niveaux : 0 erreur silencieuse,
+tas stable 50-111 Mo), `oreille2.js` (note CHAQUE texte affiché, par langue), `langtest.js`, `ecole.js`/`ecole3.js` (auto-école au clavier),
+`demarrage.js` (profil CPU du lancement).
+- **LANGUE** : `langAuto()` — sans choix enregistré, la langue du TÉLÉPHONE (`LANG_AUTO` = fr, en ; le chinois, incomplet, reste au
+  sélecteur). Avant : tout le monde démarrait en anglais.
+- **ARGENT** : `fmtC` suit la langue — anglais/chinois en échelle COURTE (`UNITS_EN` : k M B T Qa Qi…, point décimal) ; « $ 2 Bn » voulait
+  dire 2×10¹² ici et se lit « deux milliards » aux USA. Le français garde `UNITS` (échelle longue, virgule). La fête des ordres de grandeur
+  lit `unitsL()`.
+- **TR** traduit les compteurs composés « MOT ×n » / « MOT +n » quand la phrase exacte manque (la tête passe au dictionnaire). Ajoutés :
+  la liste d'aura (RÉCOLTE, VIRAGE SERRÉ, FRÔLÉ, RAFALE, MÉTÉORE…), les 3 pouvoirs, la meute (`TR('TOI')`, `TR('EN TÊTE')`), le « TOI » du
+  classement. Banc `oreille2.js` en anglais : 0 texte français restant.
+- **AUTO-ÉCOLE** : l'étape POSE-TOI rend le vol infini ; un débutant passé SOUS le bitume rebondissait contre le flanc de la dalle pour
+  toujours (2 essais sur 2). Après 9 s de vol : `sandRevive`, retour à DÉCOLLE, « RATÉ ! GARDE LE NITRO, VISE LE DESSUS ».
+- **popTexte** : largeur calibrée à 72 % de l'écran (le rebond ×1,15 d'entrée faisait déborder les textes à 84 %).
+- **Mesuré, pas touché** : le lancement bloque ~9 s sur le PC du banc (compilation des shaders « chauffe » : nuages 5 s, ciel 2,4 s) — à
+  mesurer sur iPhone avant toute décision ; les noms de caisses et leurs fiches restent en français (choix de marque à trancher par Sacha).
+
 ## LE FLOW v2 — « LE FLOW SE GAGNE AU BORD DU VIDE » (2026-09-28)
 Demande de Sacha : « le flow invite trop à rester sur la route ; on doit parfois prendre des raccourcis pour tricher et ça ne remplit
 pas le flow ; la frénésie DARK TRIAD doit pousser aux figures et aux raccourcis ; plus long à atteindre, à partir d'une certaine

@@ -8678,6 +8678,7 @@ Object.assign(I18N,{"RASE-BORD": "EDGE RIDER"});Object.assign(I18N_ZH,{"RASE-BOR
 Object.assign(I18N,{"FRÉNÉSIE": "FRENZY", "FRÉNÉSIE !": "FRENZY!", "RESTE DANS LE ROUGE": "STAY IN THE RED", "PLUS VITE !": "FASTER!", "RISQUE + VITESSE": "RISK + SPEED"});Object.assign(I18N_ZH,{"FRÉNÉSIE": "狂热", "FRÉNÉSIE !": "狂热！", "RESTE DANS LE ROUGE": "守住红区"});
 /* (2026-09-28, passe de lancement) CE QU'UN JOUEUR ANGLOPHONE LISAIT ENCORE EN FRANÇAIS, relevé à l'écran par un banc qui note chaque
    texte affiché pendant 3 minutes de jeu : la liste d'aura, les trois pouvoirs, la fête des ordres de grandeur, la meute du Survivant. */
+Object.assign(I18N,{'RATÉ ! GARDE LE NITRO, VISE LE DESSUS':'MISSED! HOLD NITRO, AIM FOR THE TOP'});Object.assign(I18N_ZH,{'RATÉ ! GARDE LE NITRO, VISE LE DESSUS':'失败！按住氮气，瞄准路面'});
 Object.assign(I18N,{'FRÔLÉ':'CLOSE CALL','RÉCOLTE':'COIN RUSH','RAFALE':'FRUIT RUSH','VIRAGE SERRÉ':'TIGHT TURN','MÉTÉORE':'METEOR',
   'AU CHEVEU':'BY A HAIR','ARRACHÉE':'CLUTCH','EN FEU !!':'ON FIRE!!','DEMENT !!!':'INSANE!!!','ÇA CHAUFFE !':'HEATING UP!',
   'IL PLEUT DES BILLETS':'IT\'S RAINING CASH','NITRO ILLIMITEE':'UNLIMITED NITRO','6 S A FOND':'6 S FLAT OUT','AIRTIME INFINI':'INFINITE AIRTIME',
@@ -17075,7 +17076,14 @@ function tutoTick(dt){
             if(TUTO.air>.9){TUTO.vole=true;tutoBravo();}
             else if(mode==='drive'&&TUTO.t>1){TUTO.i=2;TUTO.air=0;tutoAffiche('ENCORE ! NITRO EN L\'AIR');}
             break;
-    case 4: if(mode==='drive')tutoBravo();else if(mode==='fall')pwrAirT=Math.max(pwrAirT,2);break;
+    case 4: if(mode==='drive')tutoBravo();
+            else if(mode==='fall'){pwrAirT=Math.max(pwrAirT,2);
+              /* (2026-09-28, passe de lancement) LE DÉBUTANT QUI NE RETROUVE PLUS LA ROUTE. La piste d'apprentissage n'a qu'un ruban : passé
+                 SOUS le niveau du bitume sans assez de nitro, on ne peut plus se poser — et comme cette étape rend le vol infini, la caisse
+                 rebondissait contre le FLANC de la dalle pour toujours (banc « école » : 2 essais sur 2, plus d'une minute, ni réussite ni
+                 échec). Au bout de 9 s de vol : on la replace, on reprend à DÉCOLLE, et on dit comment réussir. */
+              if(TUTO.t>9){sandRevive();TUTO.i=2;TUTO.air=0;TUTO.t=0;tutoAffiche('RATÉ ! GARDE LE NITRO, VISE LE DESSUS');}}
+            break;
   }
 }
 // LA GERBE DE PIXELS : une poignée de carrés qui jaillissent d'un élément (réussite, achat, clic important)
