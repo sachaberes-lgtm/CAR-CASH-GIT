@@ -193,7 +193,21 @@ const DEFS={};
    fam (la famille, pour le banc d'écoute), dit (ce qu'on entend, en une phrase). */
 function D(id,f){f.id=id;f.bus=f.bus||'rec';f.db=f.db||0;f.max=f.max||3;f.cd=f.cd==null?.03:f.cd;f.v=f.v||1;f.rj=f.rj==null?.012:f.rj;f.vj=f.vj==null?1:f.vj;DEFS[id]=f;}
 G.CCSON_D=D;G.CCSON_DEFS=DEFS;
-G.CCSON_OUTILS={Toile:Toile,osc:osc,bruit:bruit,cloche:cloche,corde:corde,clic:clic,filtre:filtre,sature:sature,decime:decime,echo:echo,fondu:fondu,versStereo:versStereo,env:env,Bq:Bq,bqC:bqC,bqRun:bqRun,gainT:gainT};
+/* LA BOUCLE SANS COUTURE (débogage du 2026-09-29 : la 1re version recopiait la fin sur le début — la couture sautait, et le fondu
+   de sortie de 6 ms creusait un trou à chaque tour). Méthode juste : on garde x[n..N) et on fond sa QUEUE vers x[0..n) à puissance
+   constante — le dernier échantillon retombe pile sur celui qui suit le début. La toile raccourcit de `fen` secondes. */
+function boucle(b,fen){
+  const n=Math.max(1,Math.round(fen*b.sr)),N=b.n,M=N-n;
+  for(const k of ['L','R']){const x=b[k];if(!x)continue;const y=new Float32Array(M);
+    for(let i=0;i<M;i++)y[i]=x[i+n];
+    for(let j=0;j<n;j++){const a=j/n*Math.PI/2;y[M-n+j]=x[N-n+j]*Math.cos(a)+x[j]*Math.sin(a);}
+    b[k]=y;}
+  b.n=M;b.dur=M/b.sr;b.boucle=true;return b;
+}
+/* le passe-haut CIRCULAIRE (anti-décalage continu d'une boucle) : le filtre tourne une fois « à blanc » sur la boucle pour se mettre
+   en régime, puis une seconde fois pour de bon — pas de transitoire au début, donc pas de clic à la couture */
+function hpCirc(b,f){for(const ch of [b.L,b.R]){if(!ch)continue;const s=Bq();s.c=bqC('hp',f,.7071,b.sr);for(let i=0;i<b.n;i++)bqRun(s,ch[i]);for(let i=0;i<b.n;i++)ch[i]=bqRun(s,ch[i]);}}
+G.CCSON_OUTILS={boucle:boucle,Toile:Toile,osc:osc,bruit:bruit,cloche:cloche,corde:corde,clic:clic,filtre:filtre,sature:sature,decime:decime,echo:echo,fondu:fondu,versStereo:versStereo,env:env,Bq:Bq,bqC:bqC,bqRun:bqRun,gainT:gainT};
 
 /* ================================ LA CUISSON ================================================== */
 const REF=-20; // la sonie de référence de toute la palette (LUFS, fenêtre 200 ms) — dans le tampon ; le lecteur retire ensuite TRIM
@@ -211,11 +225,17 @@ function cuireBrut(id,variante,sr,tel,base){
   const R=hasard(hache(id)*31+(variante|0)*7919+(base|0)*104729+1);
   const b=Toile(sr,f.dur||.5,!!f.st);
   f.r(b,R,{tel:!!tel,v:variante|0,base:base|0});
-  // normalisation : sonie de référence + le niveau de la fiche, crête plafonnée à −1 dBFS
+  /* (débogage 2026-09-29) LE DÉCALAGE CONTINU : les carrés asymétriques et le bruit brun laissaient une composante continue (mesurée
+     jusqu'à 0,016 sur ui.erreur / ui.refus) — un « pop » à l'attaque et à la fin, et du grave inutile qui pompe le compresseur.
+     Passe-haut 18 Hz sur tout (circulaire pour une boucle). */
+  if(b.boucle)hpCirc(b,18);else filtre(b,'hp',18,.7071);
+  // normalisation : sonie de référence + le niveau de la fiche
   const L=sonie(b);if(isFinite(L)&&L>-90)gainT(b,Math.pow(10,(REF-L)/20));
-  plafond(b,.89);
-  // fondu de sortie de 6 ms : jamais de clic en fin de tampon
-  fondu(b,.006);
+  /* crête plafonnée à −2 dBFS (et non −1) : décodé, le MP3 DÉPASSE la crête d'origine sur les attaques sèches (nitro.vide et ui.appui
+     écrêtaient : mesuré au contrôle de la banque) */
+  plafond(b,.8);
+  // fondu de sortie de 6 ms : jamais de clic en fin de tampon (sauf une boucle : sa fin EST son début)
+  if(!b.boucle)fondu(b,.006);
   return b;
 }
 G.CCSON_cuireBrut=cuireBrut;G.CCSON_sonie=sonie;G.CCSON_crete=crete;
@@ -277,8 +297,8 @@ D('ui.refus',{fam:'interface',bus:'ui',dur:.3,db:-5,max:1,cd:.25,rj:0,dit:"refus
     osc(b,{f:185,w:'sq',pw:.35,t0:.105,a:.003,h:.03,d:.08,v:.26,flt:['lp',1000,420,.09,.8]});osc(b,{f:92.5,t0:.105,a:.002,d:.08,v:.26});}});
 D('ui.pop',{fam:'interface',bus:'ui',dur:.14,key:1,db:-5,max:3,cd:.05,dit:'une pastille / un badge apparaît : bulle qui éclate vers le haut',
   r:function(b,R){osc(b,{f:nE(12),f1:nE(31),g:.035,gc:.6,t0:0,a:.002,d:.08,v:.45});clic(b,{t0:.03,f:5000,d:.003,v:.2},R);}});
-D('ui.compte',{fam:'interface',bus:'ui',dur:.1,key:1,db:-10,max:4,cd:.028,rj:.004,vj:.5,dit:"un cran du montant qui s'égrène (la hauteur MONTE avec st)",
-  r:function(b,R){clic(b,{t0:0,f:5500,d:.003,v:.25},R);osc(b,{f:nE(24),t0:0,a:.0008,d:.05,v:.45});osc(b,{f:nE(24)*2.76,t0:0,a:.0006,d:.02,v:.1});}});
+D('ui.compte',{fam:'interface',bus:'ui',dur:.1,key:1,db:-10,max:4,cd:0,bases:[0,12],rj:.004,vj:.5,dit:"un cran du montant qui s'égrène (la hauteur MONTE avec st)",
+  r:function(b,R,o){clic(b,{t0:0,f:5500,d:.003,v:.25},R);osc(b,{f:nE(24+o.base),t0:0,a:.0008,d:.05,v:.45});osc(b,{f:nE(24+o.base)*2.76,t0:0,a:.0006,d:.02,v:.1});}});
 D('ui.compteFin',{fam:'interface',bus:'rec',dur:1.3,key:1,db:-2,max:1,cd:.3,dit:"le montant s'arrête : cloche d'accord posé + poussière d'or",
   r:function(b,R){for(const [st,t,v] of [[24,0,.5],[28,.012,.34],[31,.024,.3],[36,.036,.18]])cloche(b,{f:nE(st),r:[1,2,2.76,5.4],m:[1,.3,.16,.05],d:[1.1,.5,.25,.08],t0:t,v:v,jit:.002},R);
     bruit(b,{c:'b',t0:.02,a:.01,d:.35,v:.07,ft:'hp',f:7500},R);osc(b,{f:165,f1:110,g:.08,t0:0,a:.002,d:.18,v:.28});}});
@@ -422,16 +442,16 @@ D('fig.vrille',{fam:'figures',dur:.6,st:1,key:1,db:-1,max:3,cd:.05,v:2,pre:1,bas
 D('fig.essoreuse',{fam:'figures',dur:1.3,st:1,key:1,db:+3,max:1,cd:.3,grp:'r',prio:3,dit:'720° et plus — ESSOREUSE COSMIQUE : tourbillon + accord de cuivres + coup',
   r:function(b,R,o){for(let k=0;k<3;k++)swish(b,R,k*.09,.3,600+k*400,4200,.3,k%2?.9:-.9,k%2?-.9:.9,1.4);
     stab(b,R,[12,19,24,28],.12,.12,.6,.16,1.2);grave(b,o,.12,90,40,.2,.4,.6);scintille(b,R,.15,.6,10,.1);}});
-D('fig.meteore',{fam:'figures',dur:1,st:1,key:1,db:0,max:1,cd:.3,grp:'r',prio:2,dit:'MÉTÉORE (nitro tenue en l’air) : la flamme qui rugit + crépitements + la note',
-  r:function(b,R,o){bruit(b,{c:'n',t0:0,a:.03,h:.05,d:.5,v:.7,ft:'lp',f:400,f1:2600,g:.2,q:.7},R);crepite(b,R,.02,.6,16,.35,500,2600);
+D('fig.meteore',{fam:'figures',dur:1,st:1,key:1,db:0,max:1,cd:.3,bases:[0,12],grp:'r',prio:2,dit:'MÉTÉORE (nitro tenue en l’air) : la flamme qui rugit + crépitements + la note',
+  r:function(b,R,o){const nE=function(st){return 329.6276*Math.pow(2,(st+o.base)/12);};bruit(b,{c:'n',t0:0,a:.03,h:.05,d:.5,v:.7,ft:'lp',f:400,f1:2600,g:.2,q:.7},R);crepite(b,R,.02,.6,16,.35,500,2600);
     pluck(b,R,nE(12),.04,.45,.5,1.2);grave(b,o,0,80,45,.3,.4,.5);}});
-D('fig.bigair',{fam:'figures',dur:1.1,st:1,key:1,db:0,max:1,cd:.3,grp:'r',prio:2,dit:'BIG AIR (1,8 s en l’air) : l’air qui se creuse + la note qui plane',
-  r:function(b,R,o){swish(b,R,0,.5,300,1800,.3,-.3,.3,.9);nappe(b,R,[12,19],0,.12,.1,.7,.07,2600);cloche(b,{f:nE(24),r:[1,2,3],m:[1,.3,.1],d:[.9,.4,.15],t0:.08,v:.3},R);}});
-D('fig.monstre',{fam:'figures',dur:1.6,st:1,key:1,db:+2,max:1,cd:.3,grp:'r',prio:3,dit:'AIR MONSTRE (3,4 s) : la nappe s’ouvre, le grave tombe, la cloche sonne haut',
-  r:function(b,R,o){swish(b,R,0,.7,200,2400,.35,-.6,.6,.8);nappe(b,R,[0,7,12,16],0,.18,.2,1.1,.1,1800);grave(b,o,.05,70,38,.4,.8,.55);
+D('fig.bigair',{fam:'figures',dur:1.1,st:1,key:1,db:0,max:1,cd:.3,bases:[0,12],grp:'r',prio:2,dit:'BIG AIR (1,8 s en l’air) : l’air qui se creuse + la note qui plane',
+  r:function(b,R,o){const nE=function(st){return 329.6276*Math.pow(2,(st+o.base)/12);};swish(b,R,0,.5,300,1800,.3,-.3,.3,.9);nappe(b,R,[12+o.base,19+o.base],0,.12,.1,.7,.07,2600);cloche(b,{f:nE(24),r:[1,2,3],m:[1,.3,.1],d:[.9,.4,.15],t0:.08,v:.3},R);}});
+D('fig.monstre',{fam:'figures',dur:1.6,st:1,key:1,db:+2,max:1,cd:.3,bases:[0,12],grp:'r',prio:3,dit:'AIR MONSTRE (3,4 s) : la nappe s’ouvre, le grave tombe, la cloche sonne haut',
+  r:function(b,R,o){const nE=function(st){return 329.6276*Math.pow(2,(st+o.base)/12);};swish(b,R,0,.7,200,2400,.35,-.6,.6,.8);nappe(b,R,[o.base,7+o.base,12+o.base,16+o.base],0,.18,.2,1.1,.1,1800);grave(b,o,.05,70,38,.4,.8,.55);
     cloche(b,{f:nE(31),r:[1,2,2.76,5.4],m:[1,.35,.2,.06],d:[1.3,.6,.3,.1],t0:.12,v:.28},R);scintille(b,R,.2,.9,8,.08);}});
-D('fig.dauphin',{fam:'figures',dur:.9,st:1,key:1,db:0,max:2,cd:.2,grp:'r',prio:2,dit:'LE DAUPHIN : bloup + éclaboussure + le cri stylisé du dauphin',
-  r:function(b,R,o){bulle(b,R,0,700,380,.09,.45);bruit(b,{c:'b',t0:.02,a:.004,d:.3,v:.25,ft:'bp',f:3200,q:.7},R);
+D('fig.dauphin',{fam:'figures',dur:.9,st:1,key:1,db:0,max:2,cd:.2,bases:[0,12],grp:'r',prio:2,dit:'LE DAUPHIN : bloup + éclaboussure + le cri stylisé du dauphin',
+  r:function(b,R,o){const nE=function(st){return 329.6276*Math.pow(2,(st+o.base)/12);};bulle(b,R,0,700,380,.09,.45);bruit(b,{c:'b',t0:.02,a:.004,d:.3,v:.25,ft:'bp',f:3200,q:.7},R);
     for(let k=0;k<3;k++)osc(b,{f:2400+k*300,f1:4200+k*200,g:.05,t0:.12+k*.07,a:.003,d:.06,v:.07,fm:{r:.5,i:.6,d:.05}});
     pluck(b,R,nE(12),.05,.45,.45,.9);}});
 D('fig.dauphinRoyal',{fam:'figures',dur:1.3,st:1,key:1,db:+2,max:1,cd:.4,grp:'r',prio:3,dit:'DAUPHIN ROYAL : trois bonds qui montent + la couronne d’or',
@@ -757,9 +777,7 @@ D('orbite.sort',{fam:'campagne',bus:'fx',dur:2.6,st:1,db:+4,max:1,cd:2,dit:'la R
 D('espace.ambiance',{fam:'campagne',bus:'amb',dur:6,st:1,db:-8,max:1,cd:1,dit:'le VIDE (orbite, espace) : un bourdon grave qui respire (boucle) — le vent, lui, se tait',
   r:function(b,R,o){for(const [st,v] of [[-24,.25],[-17,.12],[-12,.1]])osc(b,{f:nE(st),t0:0,a:.001,h:6,d:.001,v:v,vib:[.13,.004]});
     bruit(b,{c:'n',t0:0,a:.001,h:6,d:.001,v:.08,ft:'lp',f:200,am:[.17,.5]},R);
-    // la boucle doit se refermer sans couture : fondu enchaîné des 0,5 s d'extrémité
-    const n=Math.round(.5*b.sr);for(let i=0;i<n;i++){const k=i/n;b.L[b.n-n+i]=b.L[b.n-n+i]*(1-k)+b.L[i]*k;if(b.R)b.R[b.n-n+i]=b.R[b.n-n+i]*(1-k)+b.R[i]*k;}
-    for(let i=0;i<n;i++){b.L[i]=b.L[b.n-n+i];if(b.R)b.R[i]=b.R[b.n-n+i];}}});
+    O.boucle(b,.5);}}); // la boucle se referme sans couture (voir `boucle`)
 
 /* ================================ L'INTERFACE, SUITE ========================================== */
 D('ui.appui',{fam:'interface',bus:'ui',dur:.05,db:-12,max:2,cd:.03,pre:1,rj:.02,dit:'le doigt ENFONCE la touche (au contact, avant l’action) : micro-tick',
@@ -910,7 +928,7 @@ D('raccourci',{fam:'piste',dur:1,st:1,key:1,db:+1,max:1,cd:.4,grp:'r',prio:3,dit
    gamme (`moteur.cylindre`, st = degré). */
 const D=G.CCSON_D,O=G.CCSON_OUTILS,osc=O.osc,bruit=O.bruit,cloche=O.cloche,clic=O.clic,T=G.CCSON_T;
 const nE=function(st){return 329.6276*Math.pow(2,st/12);};
-D('moteur.cylindre',{fam:'machine',dur:.3,key:1,db:-8,max:4,cd:.03,bases:[0,12,24],dit:'un CYLINDRE du nouveau moteur s’allume : l’étincelle + la note qui monte (st, un degré par cylindre)',
+D('moteur.cylindre',{fam:'machine',dur:.3,key:1,db:-8,max:4,cd:0,bases:[0,12,24],dit:'un CYLINDRE du nouveau moteur s’allume : l’étincelle + la note qui monte (st, un degré par cylindre)',
   r:function(b,R,o){bruit(b,{c:'n',t0:0,a:.0008,d:.03,v:.35,ft:'lp',f:1800},R);clic(b,{t0:0,f:3000,d:.004,v:.25},R);
     cloche(b,{f:nE(12+o.base),r:[1,2,2.76],m:[1,.3,.12],d:[.22,.09,.04],t0:.002,v:.35},R);}});
 D('moteur.palier',{fam:'machine',dur:2.4,st:1,key:1,db:+4,max:1,cd:1,grp:'r',prio:5,dit:'le NOUVEAU MOTEUR entre dans le capot : visseuse, plongée, clanks, IMPACT + démarreur + poussée + fanfare de palier (calé sur la carte)',
@@ -941,8 +959,7 @@ D('garage.ambiance',{fam:'interface',bus:'amb',dur:7,st:1,db:-12,max:1,cd:.5,dit
     bruit(b,{c:'r',t0:0,a:.001,h:7,d:.001,v:.07,ft:'lp',f:700,pan:-.2},R);                       // l'air de la pièce
     bruit(b,{c:'n',t0:0,a:.001,h:7,d:.001,v:.12,ft:'lp',f:180,am:[.11,.4],pan:.5},R);              // la ville, loin, par la porte
     for(const t0 of [1.7,4.9]){for(let k=0;k<7;k++){const t=t0+k*.03+R()*.02;clic(b,{t0:t,f:4000,d:.004,v:.12,pan:.6},R);osc(b,{f:100,w:'saw',t0:t,a:.002,h:.015,d:.01,v:.04,pan:.6});}}
-    const n=Math.round(.6*b.sr);for(let i=0;i<n;i++){const k=i/n,j=b.n-n+i;b.L[j]=b.L[j]*(1-k)+b.L[i]*k;if(b.R)b.R[j]=b.R[j]*(1-k)+b.R[i]*k;}
-    for(let i=0;i<n;i++){b.L[i]=b.L[b.n-n+i];if(b.R)b.R[i]=b.R[b.n-n+i];}}});
+    O.boucle(b,.6);}}); // la boucle se referme sans couture (voir `boucle`)
 })(typeof window!=='undefined'?window:globalThis);
 /* <<<FIN GARAGE>>> */
 
@@ -969,3 +986,24 @@ D('foudre.touche',{fam:'campagne',bus:'fx',dur:.8,st:1,db:+2,max:1,cd:.5,dit:'FO
     bruit(b,{c:'b',t0:0,a:.002,d:.45,v:.3,ft:'bp',f:5000,q:1,am:[60,.8]},R);T.grave(b,o,0,110,60,.1,.2,.3);}});
 })(typeof window!=='undefined'?window:globalThis);
 /* <<<FIN LOT2B>>> */
+
+/* <<<FRENPOSE>>> */
+(function(G){
+'use strict';
+/* LA POSE EN FRÉNÉSIE (session UHD, demande de Sacha : « le son low honor de Red Dead Redemption 2 » — fichier Rockstar protégé,
+   refusé ; il a choisi un son ORIGINAL dans le même esprit). À chaque atterrissage pendant la frénésie : UNE petite phrase sombre et
+   brève — deux notes qui DESCENDENT d'une tierce mineure (si → sol#, dans la gamme), la seconde plus grave et plus longue. Attaque
+   feutrée : un piano ÉTOUFFÉ (FM douce, marteau feutre) doublé d'une corde grave pincée, sans sous-grave, presque sec (bus fx). Elle
+   revient souvent : discrète, sous le tchak du PARFAIT. */
+const D=G.CCSON_D,O=G.CCSON_OUTILS,osc=O.osc,bruit=O.bruit,corde=O.corde,T=G.CCSON_T;
+const nE=function(st){return 329.6276*Math.pow(2,st/12);};
+function note(b,R,f,t0,v,d){
+  osc(b,{f:f,t0:t0,a:.006,d:d,v:v,fm:{r:1,i:.9,d:.12}});                    // le piano étouffé : peu d'harmoniques, qui meurent vite
+  osc(b,{f:f*2,t0:t0,a:.004,d:d*.35,v:v*.12});
+  corde(b,{f:f,t0:t0,d:d*.9,v:v*.45,br:.18},R);                            // la corde grave, pincée tout doucement (br bas = sombre)
+  bruit(b,{c:'r',t0:t0,a:.002,d:.03,v:v*.25,ft:'lp',f:900},R);               // le feutre du marteau
+}
+D('frenesie.pose',{fam:'flow',bus:'fx',dur:.9,key:1,db:-3,max:1,cd:.5,rj:.004,dit:'une POSE pendant la frénésie : deux notes sombres qui descendent (tierce mineure), piano étouffé + corde grave — dans l’esprit du « low honor »',
+  r:function(b,R,o){note(b,R,nE(-5),0,.42,.28);note(b,R,nE(-8),.15,.5,.62);O.filtre(b,'lp',2600,.7);}});
+})(typeof window!=='undefined'?window:globalThis);
+/* <<<FIN FRENPOSE>>> */

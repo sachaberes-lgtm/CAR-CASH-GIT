@@ -4790,8 +4790,8 @@ html body #popTxt.cache{opacity:0!important}
 <script src="vendor/postprocessing/UnrealBloomPass.js"></script>
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
-<script defer src="sons-banque.js?v=3"></script>
-<script defer src="sfx.js?v=2"></script>
+<script defer src="sons-banque.js?v=4"></script>
+<script defer src="sfx.js?v=3"></script>
 <script>
 (function(){
 'use strict';
@@ -4842,7 +4842,7 @@ function modale(o){return new Promise(function(res){
 });}
 let toastT=0;
 function toast(h){const t=document.getElementById('toast');if(!t)return;t.innerHTML=h;t.classList.add('on');
-  try{if(typeof sfx==='function'){if(/pxi-coche/.test(h))sfx('ui.ok');else if(/pxi-croix/.test(h))sfx('ui.erreur');}}catch(e){} /* (2026-09-28) session SON */ clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('on');},1900);}
+  try{if(SONV2){if(/pxi-coche/.test(h))sfx('ui.ok');else if(/pxi-croix/.test(h))sfx('ui.erreur');}}catch(e){} /* (2026-09-28) session SON */ clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('on');},1900);}
 // une ligne de panneau : icône · libellé · pastille d'état (l'ÉTAT se lit dans la pastille, la plaque ne se grise plus)
 function tpLbl(ic,txt,etat,on){const tg=(etat==='ON'||etat==='OFF'); // ON/OFF → un INTERRUPTEUR pixel ; une valeur → une étiquette or à chevron
   return pxi(ic)+'<span class="tpL">'+TR(txt)+'</span>'+(etat==null?'':tg?'<b class="bascule'+(on?'':' ko')+'">'+etat+'</b>':'<b class="valeur">'+TR(etat)+'</b>');}
@@ -8684,7 +8684,7 @@ function villeImpact(p,vel){
   P.x+=c[o];P.y+=c[o+1];P.z+=c[o+2];
   const R=Math.max(3.5,Math.min(7,Math.min(N.x?Math.min(hz,hy):N.z?Math.min(hx,hy):Math.min(hx,hz))*.9)); // 7 m, jamais plus que la façade
   IMPACT.u.value.set(P.x,P.y,P.z,R);IMPACT.n.value.set(N.x,N.y,N.z,0);IMPACT.fume=5.5;
-  try{if(typeof sfx==='function')sfx('impact.immeuble');}catch(e){} // (le son : la console de SON — béton qui éclate, verre qui pleut, ~1,5 s)
+  try{if(SONV2)sfx('impact.immeuble');}catch(e){} // (le son : la console de SON — béton qui éclate, verre qui pleut, ~1,5 s)
   const T1=IMPACT.T1.set(0,1,0);if(Math.abs(N.y)>.9)T1.set(1,0,0);const T2=IMPACT.T2.crossVectors(N,T1).normalize();T1.crossVectors(T2,N).normalize();
   const V=IMPACT.V.copy(vel||tmp.set(0,0,0));
   impactPieces();
@@ -17279,7 +17279,7 @@ function ecranWipe(fn,apres){
   let w=document.getElementById('wipe');
   if(!w){w=document.createElement('div');w.id='wipe';w.setAttribute('aria-hidden','true');document.body.appendChild(w);}
   if(ecranWipe._on)return;ecranWipe._on=true;const id=ecranWipe._id=(ecranWipe._id|0)+1;
-  w.className='in';try{if(typeof sfx==='function')sfx('ui.volet');else noiseBurst(.18,.05,1800);}catch(e){} // (2026-09-28) le son du volet : session SON
+  w.className='in';try{if(SONV2)sfx('ui.volet');else noiseBurst(.18,.05,1800);}catch(e){} // (2026-09-28) le son du volet : session SON
   setTimeout(function(){
     try{fn();}catch(e){console.error(e);}
     let leve=false;
@@ -17345,7 +17345,7 @@ function driftTick(dt,on){
       if(driftLv===3){slowT=Math.max(slowT,.14);try{flashEl.style.background='#ff5ec8';flashEl.style.opacity=.35;setTimeout(function(){flashEl.style.opacity=0;flashEl.style.background='#ff2020';},90);}catch(e){}}
       try{if(SONV2)sfx(['','turbo.mini','turbo.super','turbo.ultra'][driftLv]);else{boostSnd(1+.35*driftLv);if(driftLv>=2)crackle(.45+.2*driftLv);}}catch(e){}hap([12,30,20]);
       popTexte(['','MINI-TURBO','SUPER TURBO','ULTRA TURBO'][driftLv],['','#5ee6ff','#ffd75e','#ff5ec8'][driftLv],1);
-      try{chaineAura(['','MINI-TURBO','SUPER TURBO','ULTRA TURBO'][driftLv],[0,50,100,180][driftLv],'drift');}catch(e){}
+      try{chaineAura(['','MINI-TURBO','SUPER TURBO','ULTRA TURBO'][driftLv],[0,50,100,180][driftLv],'drift',false,SONV2);}catch(e){}
     }
     driftC=0;driftLv=0;
   }
@@ -17771,7 +17771,7 @@ function frole(c9,dl,k){
   FROLE.n+=k;FROLE.t=1.4;
   nitroGain((.08+.08*pres)*(k>1?1.5:1));flowAdd((4+4*pres)*(k>1?1.5:1),'style','n'); // (v4→v5) frôler, c'est un peu de NARCISSE — flowAdd lui verse la part du style // ×1,5 (et non ×2) : la porte paie plus sans gonfler le FLOW
   momT=Math.min(4.3,momT+.6); // (momentum v2) le style NOURRIT la réserve de vitesse
-  try{chaineAura(FROLE.n>=2?'SLALOM ×'+FROLE.n:'FRÔLÉ',20,'frole');}catch(e){} // sans titre : l'aura monte en silence, le pop ci-dessous parle déjà
+  try{chaineAura(FROLE.n>=2?'SLALOM ×'+FROLE.n:'FRÔLÉ',20,'frole',false,SONV2);}catch(e){} // sans titre : l'aura monte en silence, le pop ci-dessous parle déjà
   popTexte(k>1?'PORTE !':FROLE.n>=2?'SLALOM ×'+FROLE.n:'FRÔLÉ !',k>1||FROLE.n>=3?'#ffd75e':'#7dffec');
   try{froleSnd(pres,FROLE.n);}catch(e){}
   hap(FROLE.n>=3?[8,20,8]:8);fovPunch=Math.max(fovPunch,1.5+2*pres);
@@ -18055,7 +18055,7 @@ function misTick(dt){ // appelée par la boucle : les contrats se cochent EN DIR
     if(v9>=m.v){
       s.ok[i]=1;SAVE.d.bank=Math.min(1e30,bank()+m.p);MIS_NEW.push(i);
       misBanniere('DÉFI RÉUSSI',misTxt(m),'+'+fmtC(m.p),'coche');
-      try{if(SONV2)sfx('ui.mission');else fxArgent();}catch(e){}hap([12,40,18]);
+      try{if(!SONV2)fxArgent();}catch(e){}hap([12,40,18]); /* (débogage son 2026-09-29) le son (ui.mission) part quand la bannière S'AFFICHE : misBanMontre */
       SAVE.flush();
     }}
 }
@@ -18155,6 +18155,7 @@ function hautVide(){ // l'explosion, l'écran de mort : plus personne ne parle �
 }
 function misBanniere(titre,texte,prime,ico){hautPasse(function(){misBanMontre(titre,texte,prime,ico);},titre==='ASTUCE'?2800:1800,'mis',titre==='ASTUCE'?1:2);} // un défi payé vaut un moteur ; une astuce, un niveau
 function misBanMontre(titre,texte,prime,ico){
+  try{if(SONV2&&titre==='DÉFI RÉUSSI')sfx('ui.mission');}catch(e){} /* (débogage son 2026-09-29) pendant l'auto-école la bannière attend la fin : le son l'attend aussi */
   let b=document.getElementById('misBan');
   if(!b){b=document.createElement('div');b.id='misBan';b.setAttribute('role','status');document.body.appendChild(b);}
   b.innerHTML='<i class="mbIco">'+pxi(ico||'coche')+'</i><div class="mbTx"><small>'+TR(titre)+'</small><span>'+texte+'</span></div>'
@@ -18528,8 +18529,8 @@ function tutoBravo(){ // la réussite d'une étape : coche, son, vibration, gerb
   try{if(SONV2)sfx('tuto.bravo');else{chimeNote(1046,0,.10,.16);chimeNote(1568,.09,.14,.16);}}catch(e){} /* (console de son) la quinte, DANS la gamme */hap([10,40,20]);
   pixBurst(c,14);
   TUTO.i++;TUTO.t=0;
-  if(TUTO.i>=TUTO_ETAPES.length){setTimeout(function(){tutoFin(false);},700);return;}
-  setTimeout(tutoAffiche,750);
+  if(TUTO.i>=TUTO_ETAPES.length){setTimeout(function(){if(TUTO.on&&started&&!gameOver)tutoFin(false);},700);return;}
+  setTimeout(function(){if(TUTO.on&&started&&!gameOver)tutoAffiche();},750); /* (débogage son 2026-09-29) QUITTER dans l'intervalle : ni carte ni son sur l'écran de fin */
 }
 function tutoFin(passe){
   TUTO.on=false;document.body.classList.remove('coNitro','coOn');
@@ -19742,9 +19743,9 @@ function pwrPrend(k,pos){
   addStyle(10);RUNX.pwr=(RUNX.pwr|0)+1;
   if(autres>=1){ // DEUX POUVOIRS À LA FOIS : la chasse aux cristaux paie
     const tri=autres>=2;
-    chaineAura(tri?'TRIPLE POUVOIR':'DOUBLE POUVOIR',tri?150:70,'pwrCombo',true);
+    chaineAura(tri?'TRIPLE POUVOIR':'DOUBLE POUVOIR',tri?150:70,'pwrCombo',true,SONV2);
     popTexte(sansAcc(TR(tri?'TRIPLE POUVOIR !':'DOUBLE POUVOIR !')),tri?'#ff5ec8':'#ffd75e',3);
-    try{if(typeof sfx==='function')sfx(tri?'pwr.triple':'pwr.double');else{chimeNote(noteP(4,1),.2,.06,.3);chimeNote(noteP(7,1),.28,.06,.34);if(tri)chimeNote(noteP(11,1),.36,.07,.45);}}catch(e){} // la session SON sonorise ; sinon le carillon de repli
+    try{if(SONV2)sfx(tri?'pwr.triple':'pwr.double');else{chimeNote(noteP(4,1),.2,.06,.3);chimeNote(noteP(7,1),.28,.06,.34);if(tri)chimeNote(noteP(11,1),.36,.07,.45);}}catch(e){} // la session SON sonorise ; sinon le carillon de repli
     hap(tri?[20,30,20,30,40]:[16,30,24]);
   }
 }
@@ -19752,7 +19753,7 @@ function pwrPrend(k,pos){
 function pwrTick(dt){
   if(SONV2){const B9=PWR_V2.bt||(PWR_V2.bt={});for(const k of PWR_ORDRE){const t9=pwrT(k);if(t9>0&&t9<1.5){if(!B9[k]&&pwrVu(k)){B9[k]=1;sfx('pwr.bientot');}}else B9[k]=0;}} // (console de son) le tic-tac de fin de pouvoir, une fois
   for(const k of ['m','x','b']){const t0=pwrT(k);if(t0>0){const t1=Math.max(0,t0-dt);pwrSet(k,t1);if(t1<=0){
-    let fait=false;if(k==='b')try{if(typeof sfx==='function'){sfx('pwr.bouclierFin');fait=true;}}catch(e){}
+    let fait=false;if(k==='b')try{if(SONV2){sfx('pwr.bouclierFin');fait=true;}}catch(e){}
     if(!fait)pwrFinSnd(k);}}}
   if(PWR_V2.demoT>0)PWR_V2.demoT-=dt;
   pwrHalo(dt);
@@ -19792,7 +19793,7 @@ function bouclierSauve(cause){
   nitroR=Math.max(nitroR,nitroCap()*.5); // on repart avec de quoi voler
   slam('SAUVE !','LE BOUCLIER A CEDE',d.tint,d.c2,48,3,16);
   flashEcran('rgba(207,224,255,.95)');shake=Math.max(shake,.7);hap([30,40,30,40,70]);
-  try{if(typeof sfx==='function')sfx('pwr.bouclierCasse');else{subBoom(.16);chimeNote(noteP(0,1),0,.08,.35);chimeNote(noteP(4,1),.08,.08,.4);chimeNote(noteP(7,1),.16,.1,.55);}}catch(e){}
+  try{if(SONV2)sfx('pwr.bouclierCasse');else{subBoom(.16);chimeNote(noteP(0,1),0,.08,.35);chimeNote(noteP(4,1),.08,.08,.4);chimeNote(noteP(7,1),.16,.1,.55);}}catch(e){}
   sparkBurst(sparkBlue,p9,26,16);
   if(PWR_V2.sauves===1&&((SAVE.d.ex&&SAVE.d.ex.runs)|0)<8)setTimeout(function(){try{if(running&&!gameOver)popTexte(sansAcc(TR('LE BOUCLIER T\'A SAUVE')),d.tint,2);}catch(e){}},1500);
   return true;
@@ -19801,10 +19802,10 @@ function bouclierSauve(cause){
 function pwrDemoli(pos){
   PWR_V2.demoli=PWR_V2.demoT>0?PWR_V2.demoli+1:1;PWR_V2.demoT=2;
   const n=PWR_V2.demoli;
-  chaineAura(n>1?'DEMOLI ×'+n:'DEMOLI',20+Math.min(6,n)*6,'demoli',true);
+  chaineAura(n>1?'DEMOLI ×'+n:'DEMOLI',20+Math.min(6,n)*6,'demoli',true,SONV2);
   nitroGain(.05);sparkBurst(sparkBlue,pos,8,9);sparkBurst(sparkGold,pos,4,7);
   shake=Math.max(shake,.2);hap(14);
-  try{if(typeof sfx==='function')sfx('pwr.bouclierPlot');}catch(e){} // (le son du plot percuté, coneSnd, a déjà joué)
+  try{if(SONV2)sfx('pwr.bouclierPlot');}catch(e){} // (le son du plot percuté, coneSnd, a déjà joué)
 }
 /* ===== LES PETITS TRUCS GRISANTS (2026-09-28, Sacha : « pousse un max de petites modifs en game designer senior pour augmenter le
    fun, l'adrénaline et surtout l'accessibilité ») — trois moments qui n'existaient pas, chacun branché sur ce qui est déjà là :
@@ -19829,7 +19830,7 @@ function mirPose(){ // la pose a réussi (tryLand vrai)
   setTimeout(function(){try{if(running&&!gameOver)popTexte(sansAcc(TR('MIRACULE !')),'#7dffec',3);}catch(e){}},420); // après le verdict de la pose (sa priorité le laisse passer)
   flashEcran('rgba(125,255,236,.7)');hap([18,30,18,30,50]);shake=Math.max(shake,.45);
   sparkBurst(sparkBlue,carGroup.position,22,14);sparkBurst(sparkGold,carGroup.position,12,10);
-  try{if(typeof sfx==='function')sfx('jeu.miracule');else{chimeNote(noteP(0,1),.05,.07,.3);chimeNote(noteP(4,1),.12,.07,.34);chimeNote(noteP(7,1),.19,.07,.38);chimeNote(noteP(12,1),.26,.09,.55);}}catch(e){}
+  try{if(SONV2)sfx('jeu.miracule');else{chimeNote(noteP(0,1),.05,.07,.3);chimeNote(noteP(4,1),.12,.07,.34);chimeNote(noteP(7,1),.19,.07,.38);chimeNote(noteP(12,1),.26,.09,.55);}}catch(e){}
 }
 const SFA={n:0};                          // SANS FAUTE : poses propres d'affilée
 function sfaPose(propre){ // appelé au verdict d'une VRAIE pose (fallT > .7)
@@ -19841,7 +19842,7 @@ function sfaPose(propre){ // appelé au verdict d'une VRAIE pose (fallT > .7)
     chaineAura('SANS FAUTE ×'+n,30+Math.min(20,n)*8,'sansfaute',true,true);
     nitroGain(.12);
     setTimeout(function(){try{if(running&&!gameOver)popTexte(sansAcc(TR('SANS FAUTE'))+' ×'+n,'#7dff9a',2);}catch(e){}},700);
-    try{if(typeof sfx==='function')sfx('jeu.sansFaute',{st:n});else chimeNote(noteP(Math.min(9,2+Math.floor(n/3)),1),.7,.06,.3);}catch(e){}
+    try{if(SONV2)sfx('jeu.sansFaute',{st:n});else chimeNote(noteP(Math.min(9,2+Math.floor(n/3)),1),.7,.06,.3);}catch(e){}
   }
 }
 const VPAL={n:0,rec:false,c0:3};          // paliers de vitesse de la partie (n = dernière centaine criée) · rec = record de vie déjà crié · c0 = 1re centaine criée
@@ -19854,7 +19855,7 @@ function vpalTick(kmh){
   if(c>=VPAL.c0&&c>VPAL.n){VPAL.n=c;
     popTexte((c*100)+' KM/H !',c>=8?'#ff5ec8':c>=5?'#ffd75e':'#9fe8ff',1);
     fovPunch=Math.max(fovPunch,5+Math.min(8,c));hap(c>=6?[12,20,18]:10);
-    try{if(typeof sfx==='function')sfx('jeu.palierVitesse',{st:Math.max(0,c-4)});else chimeNote(noteP(Math.min(11,c),1),0,.05,.22);}catch(e){}}
+    try{if(SONV2)sfx('jeu.palierVitesse',{st:Math.max(0,c-4)});else chimeNote(noteP(Math.min(11,c),1),0,.05,.22);}catch(e){}}
   const ex=SAVE.d.ex,r=ex?(ex.kmh|0):0;
   if(!VPAL.rec&&r>=250&&kmh>r+5){VPAL.rec=true;
     setTimeout(function(){try{if(running&&!gameOver){slam('RECORD DE VITESSE',Math.round(Math.max(kmh,runStats.vmax||0))+' KM/H','#ffd75e','#ff3924',40,2,14);hap([12,30,20]);}}catch(e){}},250);}
@@ -20861,7 +20862,7 @@ function explode(cause){
         spawnP(k%2?boomRed:boomYel,ox,oy,oz,
           Math.sin(b2)*Math.cos(a)*sp2,Math.cos(b2)*sp2*.8+3,Math.sin(b2)*Math.sin(a)*sp2,.4+Math.random()*.6);
       }
-      noiseBurst(.35,.2,600);
+      if(!SONV2)noiseBurst(.35,.2,600); /* (débogage son 2026-09-29) les répliques : l'explosion de la console les porte déjà */
     },180+c9*230);
   }
   // fumée noire légère, pour laisser voir la caisse
@@ -20881,7 +20882,7 @@ function explode(cause){
      progression ; c'est aujourd'hui l'INDEX de la caisse choisie au garage : les quatre premières caisses explosaient sans grave.
      Même grondement pour toutes, un peu allégé (.35/.5 → .3, sub .3) : `boomSnd` part dans la même milliseconde sur le même bus. */
   if(!SONV2){noiseBurst(1.2,.3,240);subBoom(.3);}
-  else{const mc9={vide:'mort.vide',air:'mort.air',arret:'mort.arret',police:'mort.police',feu:'mort.feu'}[mortCause];if(mc9)sfx(mc9);} // (console) chaque mort a sa signature, par-dessus l'explosion : on ENTEND pourquoi on est mort
+  else{const mc9={vide:'mort.vide',air:'mort.air',arret:'mort.arret',police:'mort.police',feu:'mort.feu'}[mortCause];if(mc9&&!TUTO.on)sfx(mc9);} // (console) chaque mort a sa signature (sauf à l'auto-école : un crash n'y est qu'un RATÉ), par-dessus l'explosion : on ENTEND pourquoi on est mort
   if(level>=4){
     shake=Math.max(shake,level===5?3.6:3);
   }
@@ -21026,7 +21027,7 @@ function landBoom(pos,tier){
   flashEl.style.transition='opacity .05s';flashEl.style.background='#fff0c8';flashEl.style.opacity=Math.min(.4,.14+tier*.09).toFixed(2);
   setTimeout(function(){flashEl.style.opacity=0;},60);
   setTimeout(function(){flashEl.style.transition='';if(mode!=='boom')flashEl.style.background='#ff2020';},180); // on rend le flash au rouge (mort) et sa transition à la feuille de style
-  subBoom(.10+tier*.07);noiseBurst(.15,.08+tier*.035,300+tier*40); // (2026-09-26, audit son) plus de `thud(6+tier*4)` : calé sur le GAIN et non sur le
+  if(!SONV2){subBoom(.10+tier*.07);noiseBurst(.15,.08+tier*.035,300+tier*40);} /* (débogage son 2026-09-29) // (2026-09-26, audit son) plus de `thud(6+tier*4)` : calé sur le GAIN et non sur le */
   // grade, il rejouait un choc grave à chaque pose qui paye — la PARFAITE cognait plus fort que la LOURDE et le compresseur écrasait son « tchak »
 }
 /* LA GERBE DE POSE (2026-09-26, passe graphique) : se poser faisait 10 points dorés qui montaient droit — et, laissés en l'air
@@ -21878,6 +21879,7 @@ window.dbgDeath=function(n){
 };
 // …et l'état du son en cours : les Audio ne sont PAS dans le DOM, rien ne les observe de l'extérieur
 window.dbgDeathNow=function(){const a=deathEls[0];
+  if(a&&!(a instanceof HTMLMediaElement))return {webaudio:true}; // (console de son) une mort décodée joue en WebAudio
   return a?{t:+a.currentTime.toFixed(2),vol:+a.volume.toFixed(3),enPause:a.paused,fini:a.ended}:null;};
 /* `dbgAura()` — l'état de la NOUVELLE ÉCONOMIE : banque, aura, rang, et pour chaque caisse la voie
    par laquelle elle s'obtient. C'est le seul moyen de vérifier d'un coup qu'aucune caisse n'est
@@ -22653,8 +22655,8 @@ function sfxOk(){return !!AC&&SND.sfx&&AC.state==='running';}
      degré suivant de la pentatonique ; la POSE résout sur la tonique (le verdict). Au sol, l'aura garde sa gamme (le × d'aura).
    · ⚠ LA TONALITÉ SUIT LA MUSIQUE (`sonTonSuit`, appelé par musicTick) : NÉON en fa, VITESSE en si mineur, NOCTURNAL en sol#
      mineur, NOITE en ré# mineur (mesuré) — les sons accordés sont transposés dans la pentatonique du morceau qui joue. */
-let SONV2=false,ECH=0;
-const SON_PENTA={'jeu.sansFaute':1,'jeu.dauphin':1,'jeu.palierVitesse':1}; // les appelants passent un COMPTE : on le convertit en degré
+var SONV2=false,ECH=0; // `var` et non `let` (débogage 2026-09-29) : lu partout dans le fichier, AVANT sa déclaration — une lecture précoce vaut « faux » au lieu de lever une erreur de zone morte
+const SON_PENTA={'jeu.sansFaute':9,'jeu.dauphin':9,'jeu.palierVitesse':7}; // le PLAFOND du degré (débogage 2026-09-29 : SANS FAUTE ×22 montait à ×10) // les appelants passent un COMPTE : on le convertit en degré
 /* LE MIX S'ÉCARTE sous les grands moments (duckT : moteur, vent, flamme reculent jusqu'à −6 dB puis reviennent) — les anciennes fanfares le
    faisaient, leurs remplaçants aussi. La valeur = la profondeur du creux (voir `dk` dans la boucle). */
 const SON_DUCK={'frenesie.entre':.6,'monde.fin':.6,'verdict.mega':.6,'cratere':.6,'impact.immeuble':.6,'verdict.3':.5,'caisse.debloquee':.5,'ui.carnet':.5,'orbite.entre':.5,
@@ -22662,14 +22664,14 @@ const SON_DUCK={'frenesie.entre':.6,'monde.fin':.6,'verdict.mega':.6,'cratere':.
   'victoire':.4,'defaite':.3,'fig.monstre':.25,'pwr.n':.25,'pwr.a':.25,'pwr.v':.25,'pwr.m':.25,'pwr.b':.25,'pwr.x':.25,'pwr.triple':.35};
 function sonPd(i){i=Math.max(0,i|0);return [0,2,4,7,9][i%5]+12*Math.floor(i/5);} // i-ème degré de la pentatonique, en demi-tons
 function sfx(id,o){
-  if(!SONV2||!sfxOk())return null;
-  try{if(o&&o.st!=null&&SON_PENTA[id])o.st=sonPd(o.st);const h=window.CCSON.play(id,o);if(h&&SON_DUCK[id])duckT=Math.max(duckT,SON_DUCK[id]);return h;}catch(e){return null;}
+  if(!SONV2||!sfxOk()||document.hidden)return null;
+  try{if(o&&o.st!=null&&SON_PENTA[id])o.st=sonPd(Math.min(SON_PENTA[id],o.st));const h=window.CCSON.play(id,o);if(h&&SON_DUCK[id])duckT=Math.max(duckT,SON_DUCK[id]);return h;}catch(e){return null;}
 }
 function son(id,repli,o){if(SONV2&&window.CCSON.existe(id)){sfx(id,o);return true;}if(repli)try{repli();}catch(e){}return false;}
-function echSt(){return sonPd(Math.min(14,ECH++));} // le degré SUIVANT de la gamme du vol
+function echSt(){return sonPd(Math.min(9,ECH++));} // plafond au 9e degré (+21 demi-tons) : au-delà la transposition dépasse l'octave de la base // le degré SUIVANT de la gamme du vol
 function sonConsole(){ // branche la console sur le contexte du jeu (fin d'initAudio ; rejoué si sfx.js arrive après le 1er geste)
   if(SONV2||!AC||!MASTER||!window.CCSON)return;
-  try{window.CCSON.init(AC,MASTER);SONV2=true;sonTonSuit._t=null;}catch(e){SONV2=false;}
+  try{window.CCSON.init(AC,MASTER);SONV2=!!(window.CCSON.etat().ok&&window.CCSON.existe('ui.tap'));sonTonSuit._t=null;}catch(e){SONV2=false;} // (débogage 2026-09-29) sans banque chargée, l'ancien son reprend la main
   try{waPrecharge();}catch(e){} // les voix et les samples, décodés pour le mixage (voir LES VOIX ET LES SAMPLES DANS LE MIXAGE)
 }
 addEventListener('load',function(){try{sonConsole();}catch(e){}});
@@ -22683,7 +22685,7 @@ const FRUIT_SON={'PÊCHE PLATE':'fruit.peche','BANANE':'fruit.banane','GRENADE':
 function figSnd(id){ // chaque figure a SA matière, posée sur l'échelle du vol
   if(!SONV2){trickPop(chain);return;}
   sfx(id==='vrille'?'fig.vrille':id==='meteo'?'fig.meteore':id==='dauphin'?'fig.dauphin':id==='bump'?'fig.bump':'fig.maillon',{st:echSt()});
-  if(id==='vrille'&&spinHalf>=4)sfx('fig.essoreuse');
+  if(id==='vrille'&&spinHalf>=4&&!figSnd._ess){figSnd._ess=1;sfx('fig.essoreuse');} /* (débogage son 2026-09-29) une fois par vol */
 }
 // console : `dbgSon()` l'état · `dbgSon('piece',{st:4})` joue un son
 window.dbgSon=function(id,o){
@@ -22704,16 +22706,16 @@ function waCharge(url){
   if(location.protocol==='file:'||!AC||typeof fetch!=='function')return;
   try{fetch(url).then(function(r){if(!r.ok)throw 0;return r.arrayBuffer();})
     .then(function(ab){return new Promise(function(ok,ko){const p=AC.decodeAudioData(ab,ok,ko);if(p&&p.then)p.then(ok,ko);});})
-    .then(function(b){WA_BUF[url]=b;}).catch(function(){});}catch(e){}
+    .then(function(b){WA_BUF[url]=b;}).catch(function(){delete WA_BUF[url];});}catch(e){delete WA_BUF[url];}
 }
 function waPrecharge(){try{for(const k in ANN_LIB)waCharge(ANN_DIR+ANN_LIB[k].f);for(const d of DEATH_LIB)waCharge(DEATH_DIR+d.f);waCharge(FX_DIR+FX_WOW.f);}catch(e){}}
 function voixWA(e,prio){ // l'annonceur en WebAudio : voix + doublure démon (tierce dessous) + échos d'or 162/324 ms — même recette que les 4 <audio>
-  const b=WA_BUF[ANN_DIR+e.f];if(!b||!AC||AC.state!=='running')return false;
+  const u9=ANN_DIR+e.f,b=WA_BUF[u9];if(!b){try{waCharge(u9);}catch(x){}return false;}if(!AC||AC.state!=='running')return false;
   try{
     const V=VOL.vox*Math.pow(10,(VOIX_NORM[e.f]||0)/20),t0=AC.currentTime,els=[];
     const joue=function(rate,vol,ms){const s=AC.createBufferSource(),g=AC.createGain();s.buffer=b;s.playbackRate.value=rate;g.gain.value=vol;
-      s.connect(g);g.connect(AC.destination);s.start(t0+ms/1000);
-      els.push({pause:function(){try{g.gain.setTargetAtTime(0,AC.currentTime,.02);s.stop(AC.currentTime+.12);}catch(x){}}});return s;};
+      s.connect(g);g.connect(MASTER&&MASTER._limIn||AC.destination);s.start(t0+ms/1000);
+      els.push({pause:function(){try{g.gain.cancelScheduledValues(AC.currentTime);g.gain.setTargetAtTime(0,AC.currentTime,.02);s.stop(AC.currentTime+.12);}catch(x){}}});return s;};
     const main=joue(ANN_RATE,ANN_VOICE_VOL*V,0);
     joue(ANN_DEMON_RATE,ANN_DEMON_VOL*V,25);joue(ANN_RATE,.15*V,ANN_ECHO1);joue(ANN_RATE,.06*V,ANN_ECHO2);
     ANN.playing={els:els,prio:prio};ANN.duck=true;
@@ -22726,11 +22728,11 @@ function voixWA(e,prio){ // l'annonceur en WebAudio : voix + doublure démon (ti
   }catch(x){return false;}
 }
 function sampleWA(url,v,max,liste){ // un sample (mort, WOW) en WebAudio : même niveau que l'<audio> d'origine (sortie directe × curseur EFFETS), fondu de 450 ms
-  const b=WA_BUF[url];if(!b||!AC||AC.state!=='running'||!MASTER||!MASTER._vol)return false;
+  const b=WA_BUF[url];if(!b){try{waCharge(url);}catch(x){}return false;}if(!AC||AC.state!=='running'||!MASTER||!MASTER._vol)return false;
   try{const t0=AC.currentTime,s=AC.createBufferSource(),g=AC.createGain(),fin=t0+Math.min(max,b.duration);
     s.buffer=b;g.gain.setValueAtTime(v,t0);g.gain.setValueAtTime(v,Math.max(t0,fin-.45));g.gain.linearRampToValueAtTime(0,fin);
     s.connect(g);g.connect(MASTER._vol);s.start(t0);s.stop(fin+.02);
-    liste.push({pause:function(){try{g.gain.setTargetAtTime(0,AC.currentTime,.02);s.stop(AC.currentTime+.12);}catch(x){}}});if(liste.length>4)liste.shift();
+    liste.push({pause:function(){try{g.gain.cancelScheduledValues(AC.currentTime);g.gain.setTargetAtTime(0,AC.currentTime,.02);s.stop(AC.currentTime+.12);}catch(x){}}});if(liste.length>4)liste.shift();
     return true;}catch(x){return false;}
 }
 /* `stt(param, valeur, t, tc)` — (2026-09-26, passe perf) les ~50 réglages audio que la boucle envoie à CHAQUE image (moteur, vent,
@@ -22812,7 +22814,11 @@ function initAudio(){
   cmp.threshold.value=-16;cmp.knee.value=12;cmp.ratio.value=4;cmp.attack.value=.004;cmp.release.value=.16;
   const lim=AC.createWaveShaper();lim.curve=engCurve(1.3);lim.oversample='2x';
   MASTER.connect(BUSOUT);
-  BUSOUT.connect(cmp);cmp.connect(lim);lim.connect(MASTER._vol);MASTER._vol.connect(AC.destination);
+  BUSOUT.connect(cmp);cmp.connect(lim);lim.connect(MASTER._vol);
+  /* (débogage 2026-09-29) LE PLAFOND DE SORTIE : les voix décodées (directes) + un son de mort + l'explosion pouvaient dépasser 0 dBFS — écrêtage
+     dur. Limiteur à −1 dBFS, transparent en dessous ; son rattrapage automatique (+0,57 dB, spec WebAudio) est compensé en entrée. */
+  MASTER._lim=AC.createDynamicsCompressor();MASTER._lim.threshold.value=-1;MASTER._lim.knee.value=0;MASTER._lim.ratio.value=20;MASTER._lim.attack.value=.001;MASTER._lim.release.value=.1;
+  {const e9=AC.createGain();e9.gain.value=.937;MASTER._vol.connect(e9);e9.connect(MASTER._lim);MASTER._limIn=e9;}MASTER._lim.connect(AC.destination);
   // (la bande-son ne passe plus par ce graphe : voir « LA MUSIQUE v4 »)
   // MOTEUR v2 : 2 oscillateurs à onde harmonique (le timbre de la caisse) désaccordés de 7 cents
   // + sub sinus à f/2 (la poitrine) + souffle d'admission → SATURATION (grain) → filtre (brillance)
@@ -23872,7 +23878,7 @@ function sndRefresh(){
   if(musBtnEl){musBtnEl.innerHTML=pxi('musique')+' <span class="blabel">'+TR('MUS')+'</span>';musBtnEl.classList.toggle('off',!SND.music);} // ⚠ plus de « LVL 1 » (radio à morceau unique par niveau supprimée) : ce libellé est RECONSTRUIT à chaque bascule
   try{if(AC){if(SND.sfx&&!paused)AC.resume();else AC.suspend();}}catch(e){} // suspend = silence total du moteur audio — ⚠ en PAUSE c'est la reprise qui rallume (sinon le moteur ronronnait sur un jeu figé)
   if(!SND.voice)annStop();
-  if(!SND.sfx){deathStop();fxStop();} // ⚠ les sons de mort sont des HTMLAudio : `AC.suspend()` ne les atteint PAS, il faut les couper à la main
+  if(!SND.sfx){deathStop();fxStop();if(ANN.playing&&ANN.playing.els[0]&&!(ANN.playing.els[0] instanceof HTMLMediaElement))annStop();} // ⚠ les sons de mort sont des HTMLAudio : `AC.suspend()` ne les atteint PAS, il faut les couper à la main
   try{volUI();}catch(e){} // les curseurs se grisent quand leur famille est coupée — et c'est ici qu'on l'apprend
 }
 sndBtnEl.addEventListener('click',function(e){e.stopPropagation();SND.sfx=!SND.sfx;SAVE.d.sfx=SND.sfx;SAVE.flush();sndRefresh();});
@@ -23909,7 +23915,10 @@ function hap(p){
 }
 // LE CLIC D'INTERFACE (2026-09-24) : une note brève et haute + une micro-vibration — chaque bouton RÉPOND, comme une borne d'arcade
 const UI_CLIC={nav:'ui.nav',retour:'ui.retour',on:'ui.on',off:'ui.off',onglet:'ui.onglet',refus:'ui.refus',danger:'ui.danger'}; // (2026-09-28) uiClic(rôle) : « j'appuie » ne sonne plus comme « je gagne », et un refus ne sonne plus comme un succès
-function uiClic(k){ try{ if(SND.sfx&&!paused){ const f9=function(){if(SONV2)sfx(UI_CLIC[typeof k==='string'?k:'']||'ui.tap');else chimeNote(1480,0,.045,.05);}; if(AC&&AC.state!=='running')AC.resume().then(f9).catch(function(){}); else f9(); } }catch(e){} hap(8); } // (2026-09-26) REPRENDRE : le contexte se réveille en asynchrone — la note attend qu'il tourne // en pause le moteur audio dort : la note s'empilerait et partirait en rafale à la reprise
+function uiClic(k){ try{ const f9=function(){if(SONV2)sfx(UI_CLIC[typeof k==='string'?k:'']||'ui.tap');else chimeNote(1480,0,.045,.05);};
+  if(SND.sfx&&!paused){ if(AC&&AC.state!=='running')AC.resume().then(f9).catch(function(){}); else f9(); }
+  else if(SND.sfx&&paused&&SONV2){const t9=performance.now(),w9=function(){if(!paused&&AC&&AC.state==='running')f9();else if(performance.now()-t9<700)setTimeout(w9,60);};setTimeout(w9,60);} /* (débogage son 2026-09-29) en pause : le clic attend (0,7 s au plus) que REPRENDRE réveille le son ; un interrupteur du panneau, lui, reste muet */
+  }catch(e){} hap(8); } // (2026-09-26) REPRENDRE : le contexte se réveille en asynchrone — la note attend qu'il tourne // en pause le moteur audio dort : la note s'empilerait et partirait en rafale à la reprise
 window.dbgTouch=function(){return{on:TCTL.on,pad:TCTL.pad,act:TCTL.act,st:+TCTL.st.toFixed(3),sv:+TCTL.sv.toFixed(3),play:TCTL.play,steer:+steer.toFixed(3)};}; // console : l'état du volant tactile (un téléphone ne s'inspecte pas)
 // LE GAZ, exposé : la vignette a besoin de savoir qu'on POUSSE, pas seulement qu'on va vite.
 // (posé une fois par frame dans la physique, à côté de son `up` — une seule vérité, pas deux
@@ -24521,7 +24530,7 @@ function chaineAura(nom,base,fam,brut,muet){ // brut : pas de décote de redite 
   const lb9=sansAcc(TR(nom));CHA.liste.unshift(lb9+' +'+p);if(CHA.liste.length>2)CHA.liste.length=2; // (vague 2, H4) 2 lignes, la dernière en or : la mémoire de la chaîne, pas une 3e voix
   chaHud(true,CHA.x>x0);
   if(TCTL.on)popTexte(lb9+' +'+p,CHA.x>x0?'#ff9ee6':'#ffd75e',0); // au-dessus de la caisse : le geste ET ce qu'il rapporte
-  if(!muet)try{if(SONV2){if(mode==='fall')sfx('fig.maillon',{st:echSt()});else sfx('aura.geste',{st:sonPd(CHA.x)});}else chimeNote(noteP(Math.min(7,CHA.x),1),0,.10,.16);}catch(e){} // (console) en l'air, le geste prend l'échelle du vol ; au sol, la gamme de l'aura (marimba)
+  if(!muet&&!(SONV2&&CHA.x>x0&&(CHA.x===5||CHA.x===8||CHA.x===10)))try{if(SONV2){if(mode==='fall')sfx('fig.maillon',{st:echSt()});else sfx('aura.geste',{st:sonPd(CHA.x)});}else chimeNote(noteP(Math.min(7,CHA.x),1),0,.10,.16);}catch(e){} // (console) en l'air, le geste prend l'échelle du vol ; au sol, la gamme de l'aura (marimba)
   return p;
 }
 /* HUD v3 : LA GRANDE ANNONCE qui claque au centre haut (BOOST, pouvoirs, paliers du ×) — une seule à la fois, la dernière gagne */
@@ -25013,7 +25022,7 @@ function fruitCroque(pos,col,power,nom){ // nom : le fruit — chacun a SA bouch
   const p2=crV1.copy(pos);p2.y+=1.1;
   juiceSplash(p2,col,Math.min(1.2,power*.9+r*.18));      // la gerbe 3D reste, mais en appoint
   juiceScreen(col,power,1+Math.min(4,r));                 // …et LE JUS REPEINT L'OBJECTIF : ça, on le voit
-  if(SONV2){sfx(FRUIT_SON[nom]||'fruit.peche',{rate:1+Math.min(5,r-1)*.025});sfx('nitro.plein',{t:.14});if(r>=3)sfx('fruit.rafale');}else crunchSfx(r);
+  if(SONV2){sfx(FRUIT_SON[nom]||'fruit.peche',{rate:1+Math.min(5,r-1)*.025});if(r>=3)sfx('fruit.rafale');}else crunchSfx(r); /* (débogage son 2026-09-29) le plein de nitro sonne à la pompe, seulement s'il y a eu plein */
   shake=Math.max(shake,Math.min(.55,.18+r*.07));
   if(fruitRaf>=3){                                    // 3 fruits d'affilée : ce n'est plus un hasard
     chaineAura('RAFALE ×'+fruitRaf,40+r*30,'rafale',true,SONV2);
@@ -25386,7 +25395,7 @@ function orbFxTick(dt){
     }
     ORBFX.pouls=(ORBFX.pouls||0)-dt;
     if(f9>.3&&ORBFX.pouls<=0){ORBFX.pouls=.45;flashEcran('rgba(255,110,30,'+(.35+.4*f9).toFixed(2)+')');} // les bords de l'écran BATTENT en orange tant que ça brûle
-    if(f9>.4&&Math.random()<dt*5)try{crackle(.3*f9);}catch(e){}
+    if(!SONV2&&f9>.4&&Math.random()<dt*5)try{crackle(.3*f9);}catch(e){} /* (débogage son 2026-09-29) orbite.sort porte déjà le feu de la rentrée */
   }
 }
 function portailPasse(){
@@ -25437,7 +25446,7 @@ function poseParfaiteFx(divin){
   if(divin)setTimeout(function(){try{if(running&&!gameOver)flashEcran('rgba(255,215,110,.8)');}catch(e){}},200);
 }
 function startFall(impU,impF){
-  ECH=0; // (console de son) une gamme neuve à chaque vol
+  ECH=0;figSnd._ess=0; // (console de son) une gamme neuve à chaque vol
   traceTick(false); // (2026-09-26) le ruban de gomme se coupe au décollage
   loop._nAir=nitroOn; // (2026-09-26) l'impulsion est celle de l'ALLUMAGE en vol : tenue depuis le sol, elle ne compte pas — mais elle ne dépend plus du vol d'avant
   lastNearS=s;        // (2026-09-26) le couloir de proximité (LOD, aimant) part d'ICI, pas de la fin du vol précédent (les pièces clignotaient une image)
@@ -25574,7 +25583,7 @@ function tryLand(dt){
     addTrick('bump',bounceN===1?'BUMP':bounceN===2?'DOUBLE BUMP':bounceN===3?'TRIPLE BUMP — LA DALLE EN PLEURE':'MEGA BUMP x'+bounceN+' 💥',
       0,Math.min(3,bounceN),true,true); // free=true : le bump NE PAYE PLUS (fini la machine à cash en longeant la tranche) — il rend l'airtime et le style, c'est tout
     bumpSfx(bounceN);
-    thud(impB);noiseBurst(.14,.09,1100); // choc + froissement de tôle
+    thud(impB);if(!SONV2)noiseBurst(.14,.09,1100); // choc + froissement de tôle (console : pose.choc le porte)
     shake=Math.min(1.3,.3+impB*.03);
     dropChip(2+Math.floor(Math.min(4,impB*.12))); // ça casse ENCORE PLUS de bouts
     sparkBurst(sparkGold,carGroup.position,12,10);
@@ -25845,6 +25854,7 @@ function die(){
   endGame();
 }
 function resetGame(){
+  try{engBigCoupe();}catch(e){} /* (débogage son 2026-09-29) RECOMMENCER pendant la carte MOTEUR : la visseuse et le NOUVEAU SOMMET ne sonnent plus dans la partie suivante */
   try{busPlein();}catch(e){} // (2026-09-28) filet : une partie quittée depuis la pause ne laisse jamais la sortie audio au silence
   MENUV.retour=false; // (2026-09-28) on repart : l'accueil d'après-mort (accueilRetour) n'est plus la racine
   clearBoom();
@@ -26668,8 +26678,8 @@ function survTick(dt){
   // ---- DERNIER = CONDAMNÉ : la caisse clignote rouge, le HUD crie l'échéance ----
   SURV.last=alive.length>0&&pRank>alive.length;
   if(SONV2){ /* (console de son) TU ES DERNIER : le bip d'alarme, de plus en plus serré à mesure que la minute s'achève */
-    if(SURV.last&&!gameOver){if(!SURV.alW)SURV.alT=0;SURV.alT-=dt;if(SURV.alT<=0){const r9=Math.max(0,60-SURV.t);SURV.alT=Math.max(.18,Math.min(1.6,r9*.06));sfx('alerte.dernier',{vol:r9<10?2:0});}}
-    SURV.alW=SURV.last&&!gameOver;}
+    if(SURV.last&&!gameOver){if(!SURV.alW&&performance.now()-(SURV.alQ||0)>500)SURV.alT=0;SURV.alT-=dt;if(SURV.alT<=0){const r9=Math.max(0,60-SURV.t);SURV.alT=Math.max(.18,Math.min(1.6,r9*.06));sfx('alerte.dernier',{vol:r9<10?2:0});}}
+    if(SURV.alW&&!SURV.last)SURV.alQ=performance.now();SURV.alW=SURV.last&&!gameOver;} /* (débogage son 2026-09-29) une seconde place perdue puis reprise en moins de 0,5 s ne relance pas le bip */
   if(SURV.last&&!gameOver&&!SURV.camp){ // (la campagne dit « DERNIER » sur SA plaque, lisible au téléphone)
     const left=Math.max(0,Math.ceil(60-SURV.t));
     lastAlertEl.innerHTML=TR('⚠ ATTENTION !<br>VOUS ÊTES DERNIER<br>EXPLOSION DANS : 00:')+String(left).padStart(2,'0');
@@ -27006,8 +27016,8 @@ function poursuiteTick(dt){
     if(CAMP.dmg>=7){explode('feu');return;}
   }else CAMP.feuT=Math.max(0,CAMP.feuT-dt*3);
   if(!CAMP.semes&&SURV.bots.length){
-    if(!vivants){CAMP.semes=true;slam('SEMES !','LA POLICE EST AU TAPIS','#7dffec','#5b7dff',40,2,18);try{chaineAura('SEMES',150,'semes');}catch(e){}if(SONV2)sfx('victoire');}
-    else if(proche>340&&proche<1e9){CAMP.semes=true;popTexte('SEMES !','#7dffec',2);try{chaineAura('SEMES',100,'semes');}catch(e){}if(SONV2)sfx('victoire');}
+    if(!vivants){CAMP.semes=true;slam('SEMES !','LA POLICE EST AU TAPIS','#7dffec','#5b7dff',40,2,18);try{chaineAura('SEMES',150,'semes',false,SONV2);}catch(e){}if(SONV2)sfx('victoire');}
+    else if(proche>340&&proche<1e9){CAMP.semes=true;popTexte('SEMES !','#7dffec',2);try{chaineAura('SEMES',100,'semes',false,SONV2);}catch(e){}if(SONV2)sfx('victoire');}
   }
 }
 // ============ L'ORAGE (niveau 9) : l'éclair RÉVÈLE, le tonnerre suit ============
@@ -27223,7 +27233,7 @@ function fantomePris(){ // ELLE EST À TOI
   const ci=CARS.findIndex(function(c){return c.shape==='nuage';});
   if(ci>=0){SAVE.d.equipped=ci;level=ci;try{buildCar(CARS[ci]);}catch(e){}SAVE.flush();}
   CAMP.portFerme=false;portailVisible(true);try{if(!SONV2)portalSnd();}catch(e){}
-  try{chaineAura('LA CAISSE-NUAGE',400,'nuage');}catch(e){}
+  try{chaineAura('LA CAISSE-NUAGE',400,'nuage',false,SONV2);}catch(e){}
   flowAdd(40,'risque');nitroPct(1);
   setTimeout(function(){if(started&&!gameOver){popTexte("LE PORTAIL S'OUVRE",'#ff9ee6',1);if(SONV2)sfx('portail.ouvre');}},1500);
 }
@@ -27435,7 +27445,7 @@ function radarFlash(r){
   vPaie(Math.max(2,kmh/22)*(ex?2:1),ex?10:5);
   flashEcran('rgba(255,255,255,.85)');radarSnd();hap(ex?[20,30,20]:12);
   slam(Math.round(kmh)+' KM/H',ex?'EXCES DE VITESSE !':q>=.66?'FLASHE !':'FLASHE... A PEINE',ex?'#ffd75e':'#ffffff',ex?'#ff3924':'#9fe8ff',44,2,ex?24:0);
-  try{chaineAura('RADAR',Math.round(30+100*Math.min(1.1,q)),'radar',true);}catch(e){}
+  try{chaineAura('RADAR',Math.round(30+100*Math.min(1.1,q)),'radar',true,SONV2);}catch(e){}
   flowAdd(ex?20:8,ex?'risque':'style','p'); // (v5) flashé : PSYCHO
   const f=VC.radFx[r.fx];if(f)f.t=.5;
 }
@@ -27495,7 +27505,7 @@ function campPad(i){ // crochet : un pad vient d'être pris (boucle de conduite)
   try{if(SONV2)sfx('pad.neon',{st:sonPd(k)});else chimeNote(noteP(Math.min(7,k+1),1),0,.09,.2);}catch(e9){}
   if(ch.n>=ch.lats.length){ch.fini=true;ch.fl=1;const n=ch.lats.length;
     slam('LIGNE PARFAITE','×'+n,'#ffd75e','#ff3ec8',40,2,18);vPaie(6*n,8);nitroPct(.5);flowAdd(15,'style','p');hap([14,30,14,30,40]);
-    try{chaineAura('LIGNE DE NEON',40+12*n,'ligne');if(SONV2)sfx('victoire');else fanfare();}catch(e9){}}
+    try{chaineAura('LIGNE DE NEON',40+12*n,'ligne',false,SONV2);if(SONV2)sfx('victoire');else fanfare();}catch(e9){}}
 }
 function chainesTick(dt,sp){
   let vu=null;
@@ -27693,7 +27703,7 @@ function debFrappe(){
     D.serie++;const k=Math.min(4,D.serie);
     popTexte(TR('ESQUIVE !')+(D.serie>1?' ×'+D.serie:''),'#ffb000',1); // le mot de la FOUDRE : même geste, même nom (« FRÔLÉ » est déjà celui des plots)
     flowAdd(6+k*3,'style');nitroGain(.08+k*.04);
-    try{chaineAura('ESQUIVE',24+k*6,'esquive');if(SONV2)sfx('debris.esquive',{st:sonPd(k)});else chimeNote(880+k*110,0,.1,.22);}catch(e){}
+    try{chaineAura('ESQUIVE',24+k*6,'esquive',false,SONV2);if(SONV2)sfx('debris.esquive',{st:sonPd(k)});else chimeNote(880+k*110,0,.1,.22);}catch(e){}
     sparkBurst(sparkBlue,carGroup.position,10,10);hap(18);
   }
 }
@@ -27881,11 +27891,11 @@ function fourgonTick(dt,sp){
     if(gp>0){vA=Math.min(vA,VFG.v*.8);momT=0;for(let k=0;k<10&&VFG.cash>0;k++)fourgonPiece(VFG.s-5.2-Math.random()*6,VFG.lat+(Math.random()-.5)*9);
       popTexte('BRAQUAGE !','#ffd75e',2);try{chaineAura('BRAQUAGE',40,'braquage');}catch(e){}}
     else{vA*=.9;popTexte('ACCROCHAGE','#ff5e7a',1);}
-    lat=VFG.lat+(lat>=VFG.lat?1:-1)*2.9;shake=Math.max(shake,.45);hap([30,20,30]);try{thud(9);noiseBurst(.12,.12,900);}catch(e){}
+    lat=VFG.lat+(lat>=VFG.lat?1:-1)*2.9;shake=Math.max(shake,.45);hap([30,20,30]);try{thud(9);if(!SONV2)noiseBurst(.12,.12,900);}catch(e){}
     try{sparkBurst(sparkGold,carGroup.position,14,10);}catch(e){}}
   if(!VFG.fini&&VFG.cash<=0){VFG.fini=true;VFG.finT=1.4;VC.fourgonVide=true;
     slam('FOURGON VIDE !','','#ffd75e','#ff3ec8',42,2,24);vPaie(25,12);flowAdd(20,'style','m');hap([20,40,20,40,80]);
-    try{chaineAura('FOURGON VIDE',160,'fourgon');if(SONV2)sfx('victoire');else fanfare();}catch(e){}}
+    try{chaineAura('FOURGON VIDE',160,'fourgon',false,SONV2);if(SONV2)sfx('victoire');else fanfare();}catch(e){}}
   if(VFG.finT>0){VFG.finT-=dt;if(VFG.finT<=0)VFG.fuite=true;} // vidé, allégé : il file
   fourgonPose(dt);
   // la plaque
@@ -28099,7 +28109,8 @@ function banquierTick(dt,sp){
   // le coup d'épaule : on se touche, on s'écarte — personne ne meurt, personne ne triche
   VBQ.cd=Math.max(0,VBQ.cd-dt);
   if(moi&&VBQ.cd<=0&&Math.abs(gp)<5.4&&Math.abs(lat-VBQ.lat)<2.6){VBQ.cd=.8;lat=VBQ.lat+(lat>=VBQ.lat?1:-1)*2.8;vA*=.96;shake=Math.max(shake,.3);hap(18);popTexte("COUP D'EPAULE",'#ffb000',1);try{thud(6);}catch(e){}}
-  const mene=gp<0;if(mene!==VBQ.mene){VBQ.mene=mene;if(mene){popTexte('TU MENES !','#ffd75e',1);try{if(SONV2)sfx('rival.devant');else chimeNote(noteP(5,1),0,.08,.2);}catch(e){}}else{popTexte('IL REPASSE DEVANT','#ff5e7a',1);if(SONV2)sfx('rival.passe');}}
+  const mene=VBQ.mene?gp<3:gp<-3;if(mene!==VBQ.mene){ /* (débogage son 2026-09-29) hystérésis de 3 m : au coude à coude, TU MÈNES / IL REPASSE ne s'alternent plus deux fois par seconde */
+ VBQ.mene=mene;if(mene){popTexte('TU MENES !','#ffd75e',1);try{if(SONV2)sfx('rival.devant');else chimeNote(noteP(5,1),0,.08,.2);}catch(e){}}else{popTexte('IL REPASSE DEVANT','#ff5e7a',1);if(SONV2)sfx('rival.passe');}}
   if(VBQ.s>=L-45){ // IL PASSE LE PORTAIL LE PREMIER
     VBQ.fini=true;VBQ.g.visible=false;trailStep(VBQ.tr,0,0,0,0,0,0,0);
     flashEcran('rgba(255,200,90,.55)');try{if(SONV2)sfx('defaite');else portalSnd();}catch(e){}
@@ -28714,7 +28725,7 @@ function garageGo(d){
   if(GAR.go)return; // (2026-09-28) pendant la SORTIE (1,7 s), un glissé remplaçait la caisse qui roule vers la porte
   uiClic('nav'); // ◀ ▶, glissé, clavier : le doigt sent qu'on change de caisse — et l'oreille aussi (2026-09-26, charte règle 8)
   if(SHOP.tab!=='voiture'){ // BOUTIQUE : on feuillette les articles, la caisse reste la tienne
-    shopShow(SHOP.tab,SHOP.i[SHOP.tab]+d);try{chimeNote(d>0?880:660,0,.16,.14);}catch(e){}return;}
+    shopShow(SHOP.tab,SHOP.i[SHOP.tab]+d);try{if(SONV2)sfx('ui.carte');else chimeNote(d>0?880:660,0,.16,.14);}catch(e){}return;}
   if(!garageOn||!GAR.root||GAR.sw){garageShow(garageVoisin(garageI,d));return;}
   GAR.sw={t:0,fait:false,to:garageVoisin(garageI,d)};
   try{if(SONV2)sfx('garage.bascule');else{chimeNote(d>0?880:660,0,.16,.14);noiseBurst(.35,.09,900);}}catch(e){} /* (console de son) LA BASCULE, calée sur le retourneur de 1,06 s */
@@ -29504,7 +29515,7 @@ $('gRar').addEventListener('click',e=>{const b=e.target.closest('.gR');if(!b)ret
   const L=rarListe(b.getAttribute('data-r'));if(!L.length)return;const eq=SAVE.d.equipped|0;
   garageSaute(L.indexOf(eq)>=0?eq:L[0]);});
 $('gStrip').addEventListener('click',e=>{const t=e.target.closest('.gT');if(!t)return;e.stopPropagation();uiPop(t);uiClic('nav');
-  if(t.hasAttribute('data-cos')){const j=+t.getAttribute('data-cos');if(SHOP.tab!=='voiture'&&j!==SHOP.i[SHOP.tab]){shopShow(SHOP.tab,j);try{chimeNote(880,0,.16,.14);}catch(er){}}return;} // un habillage : on l'ESSAIE sur la caisse
+  if(t.hasAttribute('data-cos')){const j=+t.getAttribute('data-cos');if(SHOP.tab!=='voiture'&&j!==SHOP.i[SHOP.tab]){shopShow(SHOP.tab,j);try{if(SONV2)sfx('ui.carte');else chimeNote(880,0,.16,.14);}catch(er){}}return;} // un habillage : on l'ESSAIE sur la caisse
   garageSaute(+t.getAttribute('data-car'));});
 // aller DIRECTEMENT à une caisse (vignette, famille) — avec la bascule du plateau, comme les flèches
 function garageSaute(i){if(GAR.go||i===garageI||!(i>=0))return; // (2026-09-28) GAR.go : même garde que garageGo — la caisse qui sort ne se change plus
@@ -29729,9 +29740,11 @@ function loop(now){
   if(parkGrassMat)parkGrassMat.uniforms.uTime.value=now*.001; // l'herbe longue du parc ondule au vent (now : dispo avant `const t`)
   cityTick(dt,camera.position.y); // LA VILLE : son altitude court après la caméra (hors gate de sim — le décor vit au menu, comme le ciel)
   if(SONV2){ // (console de son) LE VIDE : en orbite, un bourdon qui respire remplace le vent (windG/whG se taisent, voir la boucle audio)
-    const v9=LVL.espace>.5&&started&&running&&!gameOver&&!garageOn&&mode!=='boom';
+    const v9=LVL.espace>.5&&started&&running&&!paused&&!gameOver&&!garageOn&&mode!=='boom';
     if(v9&&!loop._vide&&now>(loop._videT||0)){loop._videT=now+500;loop._vide=sfx('espace.ambiance',{loop:true,vol:-24});if(loop._vide)loop._vide.gain(0,.8);}
     else if(!v9&&loop._vide){loop._vide.stop(.5);loop._vide=null;}
+    if(garageOn&&!openGarage._amb&&now>(loop._garT||0)){loop._garT=now+800;openGarage._amb=sfx('garage.ambiance',{loop:true});} // (débogage 2026-09-29) une ambiance ratée au premier essai est retentée
+    else if(!garageOn&&openGarage._amb){openGarage._amb.stop(.35);openGarage._amb=null;}
   }
   // (2026-09-26, user : « enlève tous les modes ralentis du jeu ») : plus de slow-mo (atterrissage, gros air, bullet-time, reprise de
   // pause, ultra-turbo, explosion) ni de HIT-STOP. Les déclencheurs posent encore slowT/hitT : on les vide ici, le temps ne ralentit JAMAIS.
@@ -29876,7 +29889,7 @@ function loop(now){
        glisse9=THREE.MathUtils.clamp(Math.abs(slipB)*2.6+driftT*.5+Math.max(0,Math.abs(yawR*vA)*SPD-22)/70,0,1)*Math.min(1,Math.abs(vA)/35); // (2026-09-26) la gomme fume et crisse dès que la caisse chasse (power-slide)
        // (aura v2) LE VIRAGE SERRÉ : tenir une grosse charge latérale 0,9 s sur la route — prendre un virage À FOND, ça se paie
        {const aL9=Math.abs(yawR*vA)*SPD;if(aL9>32)virT+=dt;else if(aL9<12){virT=0;virPaye=false;}
-        if(virT>.9&&!virPaye){virPaye=true;if(SONV2)sfx('virage');chaineAura('VIRAGE SERRÉ',45,'virage');}}}
+        if(virT>.9&&!virPaye){virPaye=true;if(SONV2)sfx('virage');chaineAura('VIRAGE SERRÉ',45,'virage',false,SONV2);}}}
       driftTick(dt,drifte);
       // (conduite v3) RASE-BORD : frôler le vide à pleine vitesse RECHARGE le nitro — le risque paie
       if(!introD&&!PARK.on&&Math.abs(lat)>ROAD_HALF*.8&&Math.abs(vA)>maxSp*.5){raseT+=dt;nitroGain(.22*dt);flowAdd(6*dt,'route'); // bande du RASE-BORD : les 20 % extérieurs de la demi-route (3 à 4,8 m sur la route large)
@@ -29906,14 +29919,14 @@ function loop(now){
       if(nitroOn&&speedKmh>400){
         pureT+=dt;
         if(pureT>3&&pureArmed){pureArmed=false;const tx=annSpeak('pureSpeed',2);if(tx)trickMsg(tx,2);if(SONV2)sfx('vitesse.pure',{st:sonPd(0)});else noiseBurst(.5,.12,1200);
-          chaineAura('PURE SPEED',120,'pure');pureNext=pureT+2;}
+          chaineAura('PURE SPEED',120,'pure',false,SONV2);pureNext=pureT+2;}
         /* TENIR PLUS LONGTEMPS PAYE PLUS, MAIS PAR PALIERS. Un gain continu redeviendrait le robinet
            qu'on vient de supprimer ; là, chaque 2 secondes tenues déclenche une NOUVELLE salve, plus
            grosse que la précédente. On entend l'escalade, on ne la subit pas. */
         // ⚠ PALIER PLAFONNÉ À 5 (audit 2026-08-18) : `150+pureLvl*100` sans borne, c'est une rente —
         // tenir 60 s donnait 30 salves dont la derniere a 3 150. L'escalade se sent jusqu'a ×6, apres
         // quoi c'est la DUREE qui paye, pas le multiplicateur.
-        if(!pureArmed&&pureT>pureNext){pureNext=pureT+2;pureLvl=Math.min(5,pureLvl+1);if(SONV2)sfx('vitesse.pure',{st:sonPd(pureLvl)});chaineAura('PURE SPEED ×'+(pureLvl+1),60+pureLvl*40,'pure',true);}
+        if(!pureArmed&&pureT>pureNext){pureNext=pureT+2;pureLvl=Math.min(5,pureLvl+1);if(SONV2)sfx('vitesse.pure',{st:sonPd(pureLvl)});chaineAura('PURE SPEED ×'+(pureLvl+1),60+pureLvl*40,'pure',true,SONV2);}
       }else{pureT=0;pureArmed=true;pureNext=0;pureLvl=0;}
       // point de respawn sûr
       if(side>0&&F.n.y>.5&&Math.abs(lat)<ROAD_HALF-2&&Math.abs(psi)<.5)safeS=s;
@@ -29963,7 +29976,7 @@ function loop(now){
         startFall(6.6+(r9.v===1?1.4:0),1.14); // pop vertical + poussée avant — l'inertie réelle fait payer la vitesse toute seule (portée ∝ vx conservé)
         gapArmed=r9.v+1;                   // ARMÉ APRÈS startFall (qui remet à 0) : le verdict saura d'où vient ce vol
         boost=Math.max(boost,1.5);shake=Math.max(shake,.55);
-        boostSnd();duckT=Math.max(duckT,.35);
+        if(SONV2)sfx('pad');else boostSnd();duckT=Math.max(duckT,.35);
         trickMsg('🚀 CATAPULTE !',2);
         sparkBurst(sparkGold,fallPos,20,14);
         break;
@@ -30087,7 +30100,7 @@ function loop(now){
             // (2026-09-26, user : « les fruits donnent du nitro BLEU ») : chaque fruit remplit la RÉSERVE BLEUE (la nitro la plus forte : poussée
             // 48 contre 30) de 20 % de la jauge — le bleu se voit sur la barre et sur l'anneau du bouton
             {const mx9=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,av9=nitroX;nitroX=Math.min(2,nitroX+.2*mx9);
-             if(nitroX>av9+.01){const b=document.getElementById('nitroBar');if(b){b.classList.remove('gain');void b.offsetWidth;b.classList.add('gain');}}}
+             if(nitroX>av9+.01){if(SONV2)sfx('nitro.plein',{t:.14});const b=document.getElementById('nitroBar');if(b){b.classList.remove('gain');void b.offsetWidth;b.classList.add('gain');}}}
             RUNX.fruits++;hap(fd.boost>=1.5?[20,40,30]:11);
             fruitCroque(carGroup.position,fd.jus||0xffd75e,pw,fd.n); // ON CROQUE : jus, crunch, et la rafale qui monte
             // (le fruit ne touche PAS au moteur : il ne sert qu'au boost — ce sont les pièces qui l'améliorent)
@@ -31610,7 +31623,7 @@ renderLeaders(-1);
 })();
 /* ============ MOBILE / TACTILE / PAUSE / PWA — ajout non intrusif (rien de la physique n'est réécrit) ============ */
 // PAUSE commune : clavier P, bouton tactile ⏸ et pause auto passent tous par ici (gère aussi le son)
-function busPlein(){if(AC&&BUSOUT){const t9=AC.currentTime;BUSOUT.gain.cancelScheduledValues(t9);BUSOUT.gain.setValueAtTime(1,t9);}} // (2026-09-28) la sortie commune à plein (voir le fondu de la pause)
+function busPlein(){clearTimeout(togglePause._t);if(AC&&BUSOUT){const t9=AC.currentTime;BUSOUT.gain.cancelScheduledValues(t9);BUSOUT.gain.setValueAtTime(1,t9);}} // (2026-09-28) la sortie commune à plein (voir le fondu de la pause)
 function togglePause(){ if(!started||gameOver)return;
   paused=!paused; showMsg(paused?'PAUSE':'GO !');
   if(!paused)slowT=Math.max(slowT,.8); // (2026-09-25) reprise au RALENTI : le temps de reposer les pouces
@@ -31629,7 +31642,7 @@ function togglePause(){ if(!started||gameOver)return;
        d'autant plus tard. Le JEU est gelé tout de suite (paused) et les boucles (moteur, vent, nitro…) sont coupées net juste au-dessus :
        pendant ces 0,42 s ne sonnent que les sons ponctuels déjà partis. Une reprise dans l'intervalle annule tout
        (busPlein efface la rampe programmée, clearTimeout la suspension). Onglet caché (retour d'appli) : ni son ni délai. */
-      let d9=0;try{if(SONV2&&!document.hidden)d9=.42;}catch(e){}
+      let d9=0;try{if(SONV2&&!document.hidden)d9=.42;if(SONV2){window.CCSON.annuleFutur(d9);window.CCSON.stopJeu();}}catch(e){} /* (débogage son 2026-09-29) les queues longues (explosion, fanfare, scène moteur) ne repartent plus pendant le 3-2-1 */
       if(BUSOUT)BUSOUT.gain.setTargetAtTime(0,T8+d9,.012);togglePause._t=setTimeout(function(){try{if(paused&&AC.state==='running')AC.suspend();}catch(e){}},70+d9*1000);}
     else{busPlein();if(SND.sfx)AC.resume();} } }catch(e){}
   if(paused){annStop();fxStop();deathStop();} // (2026-09-26) les voix et les samples sont des HTMLAudio : suspendre le contexte ne les arrêtait pas — (2026-09-28) le son de MORT non plus : une pause pendant l'explosion le laissait hurler par-dessus le panneau
@@ -31817,7 +31830,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(!started||gameOver||!paused||(pan.classList.contains('open')&&!pan.classList.contains('sortant'))){repriseCompte.t=0;if(s9)s9.classList.remove('compte','on');return;} // la feuille qui DESCEND encore n'annule rien
       if(n===0){repriseCompte.t=0;if(s9)s9.classList.remove('compte','on');try{sfx('ui.go');}catch(e){}togglePause();return;} // retirer `on` AUSSI : sinon l'animation normale repart et le « 1 » revient en grand
       slam(String(n),'','#ffd75e','#ff7ad5',64,9);{const s8=avE('slam9');if(s8)s8.classList.add('compte');} // un chiffre = 0,3 s : l'entrée doit être lisible tout de suite
-      try{if(SONV2)sfx('ui.bip');else chimeNote(noteP(n===1?4:2,1),0,.08,.1);}catch(e){}hap(6); // (2026-09-27) ces bips et la vibration étaient avalés par le commentaire ci-dessus
+      try{if(SONV2){if(AC&&AC.state!=='running'&&SND.sfx)AC.resume().then(function(){sfx('ui.bip');}).catch(function(){});else sfx('ui.bip');}else chimeNote(noteP(n===1?4:2,1),0,.08,.1);}catch(e){}hap(6); // (2026-09-27) ces bips et la vibration étaient avalés par le commentaire ci-dessus
       n--;repriseCompte.t=setTimeout(pas,300);};
     /* (2026-09-28) LE « 3 » ATTEND QUE LE SON SOIT RÉVEILLÉ. `AC.resume()` est asynchrone : lancé juste avant le compte, le premier
        bip tombait sur un contexte encore suspendu (`sfxOk` le refuse) — on n'entendait que « 2 » et « 1 ». On part à la promesse

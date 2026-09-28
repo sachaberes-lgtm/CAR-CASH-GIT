@@ -67,6 +67,24 @@ avec un nom neuf et on le signale à la session SON (ou on écrit la recette dan
   repli : `if(!(typeof sfx==='function'&&sfx('x')))repli();` (sfx rend null s'il n'a pas joué).
 - ⚠ **Séries** : programmer d'un coup plus de `max` voix d'une fiche avec `{t:}` coupe les premières — les séries partent par setTimeout.
 - Musique : silences morts retirés (NOCTURNAL GROOVE avait 1 s de trou à chaque boucle en VILLE) ; sw.js en `cashcar-v22`.
+- **DÉBOGAGE COMPLET (2026-09-29)** — deux relectures de code + bancs muets en rendu logiciel (SwiftShader : zéro GPU de Sacha) +
+  contrôle de la banque décodée (`qa_banque.py`, `qa_boucle.py` : écrêtage, DC, fins coupées, coutures). Corrigé :
+  · BANQUE : passe-haut 18 Hz partout (DC jusqu'à 0,016 sur ui.erreur/refus), plafond −2 dBFS (le MP3 décodé dépassait 0 dBFS sur les
+    attaques sèches), BOUCLES refaites (`O.boucle` : la queue fondue vers le début à puissance constante ; l'ancienne recopiait la fin sur
+    le début + fondu de 6 ms = trou et clic à chaque tour), la boucle est encodée avec sa propre queue en tête et jouée sur `[tête, tête+lg)`.
+    `cuire.js` garde `boucle/lg` des sons REPRIS lors d'une recuisson partielle (sinon les ambiances rebouclaient mal).
+  · LECTEUR : OfflineAudioContext à 44,1 kHz si 32 kHz est refusé (WebKit < iOS 14.1 : l'étalon n'était jamais décodé) ; l'étalon passe
+    par la file ; l'éviction de polyphonie se fait à l'instant du NOUVEAU son (elle tuait des sons programmés) ; le chef ne « ressuscite »
+    plus les voix finies ; `annuleFutur(s)` et `stopJeu()` à la PAUSE (les queues d'explosion et les billets différés repartaient au 3-2-1).
+  · JEU : reprise en < 0,49 s (la mise en veille tombait pendant le 3-2-1), le « 3 » attend le réveil du contexte, `SONV2` n'est vrai que si
+    la banque est chargée, `var SONV2` (lu avant sa déclaration), replis des autres sessions rendus vivants (`if(SONV2)` au lieu de `typeof`),
+    limiteur de sortie −1 dBFS (`MASTER._lim`, voix comprises), anciens sons qui doublaient (répliques d'explosion, landBoom, bump, fourgon,
+    habillages, catapulte, crépitements de rentrée), `chaineAura(…,muet)` là où l'événement a son son (frôlé, turbos, radar, virage, pure
+    speed, pouvoirs combinés, démoli, semés, caisse-nuage, ligne, fourgon, esquive), le geste qui passe ×5/×8/×10 ne double plus aura.xN,
+    l'essoreuse une fois par vol, le plein de nitro d'un fruit seulement s'il y a plein, alarme du DERNIER et banquier avec hystérésis,
+    boucle du vide muette en pause, pas de signature de mort à l'auto-école, ui.mission quand la bannière s'affiche, degrés plafonnés
+    (SON_PENTA, echSt ≤ 9, figures à base unique cuites sur [0,12]), aucun son quand l'appli est en arrière-plan, le clic REPRENDRE sonne.
+  · Mesuré après correctifs : 0 erreur, 0 son refusé, pas de fuite (sources vivantes stables sur 4 morts/relances et 30 niveaux).
 ## LE MOUVEMENT DE L'INTERFACE + MISSIONS v2 (2026-09-28, soir) — « travaille les animations, les emplacements, les transitions entre chaque écran : prêt à envoyer à l'App Store »
 Sacha : « il y a des centaines de petites choses à améliorer dans l'interface… travaille les animations quand tu cliques sur les boutons,
 leurs emplacements, les transitions quand tu changes d'écran — que ce soit parfait ; travaille vraiment les transitions entre chaque écran

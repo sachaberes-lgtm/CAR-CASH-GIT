@@ -23,17 +23,23 @@ const TMP=fs.mkdtempSync(path.join(os.tmpdir(),'ccson-'));
 const WAVDIR=process.env.WAV?path.join(ICI,'_wav'):null;if(WAVDIR)fs.mkdirSync(WAVDIR,{recursive:true});
 
 function ecritWav(f,b){ // PCM 16 bits (l'entrée de l'encodeur), avec les 30 ms de silence en tête
-  const ch=b.R?2:1,n=b.n+TETE,buf=Buffer.alloc(44+n*ch*2);
+  /* ⚠ UNE BOUCLE n'a pas de silence en tête : on y met sa propre QUEUE (et son début après sa fin). L'encodeur voit alors un signal
+     continu à travers la couture — un silence devant lui ferait croire à une attaque (pré-écho, artefacts) pile à l'endroit où la
+     boucle se referme. Le lecteur boucle exactement sur [tête, tête + lg). */
+  const bo=!!b.boucle,ch=b.R?2:1,n=b.n+TETE+(bo?TETE:0),buf=Buffer.alloc(44+n*ch*2);
   buf.write('RIFF',0);buf.writeUInt32LE(36+n*ch*2,4);buf.write('WAVE',8);buf.write('fmt ',12);buf.writeUInt32LE(16,16);
   buf.writeUInt16LE(1,20);buf.writeUInt16LE(ch,22);buf.writeUInt32LE(SR,24);buf.writeUInt32LE(SR*ch*2,28);buf.writeUInt16LE(ch*2,32);buf.writeUInt16LE(16,34);
-  buf.write('data',36);buf.writeUInt32LE(n*ch*2,40);let o=44+TETE*ch*2;
+  buf.write('data',36);buf.writeUInt32LE(n*ch*2,40);let o=44;
   const q=x=>Math.max(-32767,Math.min(32767,Math.round(x*32767)));
-  for(let i=0;i<b.n;i++){buf.writeInt16LE(q(b.L[i]),o);o+=2;if(b.R){buf.writeInt16LE(q(b.R[i]),o);o+=2;}}
+  const ecr=function(i){buf.writeInt16LE(q(b.L[i]),o);o+=2;if(b.R){buf.writeInt16LE(q(b.R[i]),o);o+=2;}};
+  if(bo)for(let i=b.n-TETE;i<b.n;i++)ecr(i);else o+=TETE*ch*2;
+  for(let i=0;i<b.n;i++)ecr(i);
+  if(bo)for(let i=0;i<TETE;i++)ecr(i);
   fs.writeFileSync(f,buf);
 }
 // la banque existante : on ne recuit que ce qu'on demande
-let ancien={};
-if(filtre&&fs.existsSync(SORTIE)){try{const w={};new Function('window',fs.readFileSync(SORTIE,'utf8'))(w);ancien=(w.CCSON_BANQUE&&w.CCSON_BANQUE.d)||{};}catch(e){}}
+let ancien={},ancienM={};
+if(filtre&&fs.existsSync(SORTIE)){try{const w={};new Function('window',fs.readFileSync(SORTIE,'utf8'))(w);ancien=(w.CCSON_BANQUE&&w.CCSON_BANQUE.d)||{};ancienM=(w.CCSON_BANQUE&&w.CCSON_BANQUE.m)||{};}catch(e){}}
 const meta={},donnees={},lignes=[];let total=0,dureeT=0;
 /* L'ÉTALON : 30 ms de silence puis UNE impulsion. Le MP3 étale un pré-écho devant les attaques sèches (jusqu'à ~15 ms
    mesurés dans Chrome) : chercher « le premier échantillon audible » démarrait les clics d'interface trop tôt. Le retard
@@ -48,8 +54,13 @@ for(const id in DEFS){
   meta[id]={bus:f.bus,db:f.db,max:f.max,cd:f.cd,v:f.v,rj:f.rj,vj:f.vj,key:f.key?1:0,bases:f.bases||[0],grp:f.grp||null,prio:f.prio||0,cede:f.cede?1:0,pre:f.pre?1:0,fam:f.fam||'?',dit:f.dit||''};
   for(const base of (f.bases||[0]))for(let v=0;v<f.v;v++){
     const cle=id+'#'+v+'#'+base;
-    if(filtre&&!filtre.test(id)&&ancien[cle]){donnees[cle]=ancien[cle];total+=ancien[cle].length;continue;}
+    if(filtre&&!filtre.test(id)&&ancien[cle]){donnees[cle]=ancien[cle];total+=ancien[cle].length;
+      /* (débogage 2026-09-29) un son REPRIS de l'ancienne banque garde ses infos de boucle : sans elles, une recuisson partielle faisait
+         reboucler garage.ambiance / espace.ambiance sur tout le tampon (marge de tête + rembourrage MP3 : un trou à chaque tour) */
+      const am=ancienM[id];if(am&&am.boucle){meta[id].boucle=1;meta[id].lg=am.lg;}
+      continue;}
     const b=cuireBrut(id,v,SR,false,base);
+    if(b.boucle){meta[id].boucle=1;meta[id].lg=+(b.n/SR).toFixed(6);}
     let nan=0;for(const c of [b.L,b.R])if(c)for(let i=0;i<c.length;i++)if(!isFinite(c[i])){c[i]=0;nan++;}
     const L=sonie(b),pk=20*Math.log10(Math.max(1e-9,crete(b)));
     const w=path.join(TMP,'x.wav'),m=path.join(TMP,'x.mp3');ecritWav(w,b);
