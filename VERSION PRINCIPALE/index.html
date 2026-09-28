@@ -3102,17 +3102,7 @@ html body.touch #airPie.danger{animation:k6PieDanger .12s steps(2) infinite}
   html .mscr{padding:calc(var(--sT) + 14px) calc(var(--sR) + 24px) calc(var(--sB) + 14px) calc(var(--sL) + 24px)}
   html .mHead{margin:0 0 16px;gap:10px}
   html .mHead h3,html .tpH:first-child{font-size:var(--f6)}
-  /* L'ACCUEIL : le logo en haut à gauche, l'engrenage en haut à droite, le monde au milieu ; en bas, les trois portes à gauche et
-     JOUER à droite, sous le pouce */
-  html #mHome.on{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,330px);grid-template-rows:auto 1fr auto;column-gap:22px}
-  html #mHome .mTop{grid-column:2;grid-row:1;align-self:start;margin:0}
-  html #mHome .mTitle{grid-column:1;grid-row:1;justify-self:start;align-self:start;margin:4px 0 0 10px;font-size:clamp(34px,5.4vw,46px)}
-  html #mHome .mTitle::after{left:2%;right:28%;bottom:-18px;height:4px}
-  html #mHome .mVide{grid-column:1/-1;grid-row:2;min-height:0}
-  html #mHome .mIcons{grid-column:1;grid-row:3;align-self:end;max-width:460px;margin:0;padding:0 0 0 4px}
-  html #mHome .mIcons .pbtn{min-height:70px;gap:8px}
-  html #mHome .mIcons .pbtn .pxi{--pxs:3}
-  html #mHome .mPlay{grid-column:2;grid-row:3;align-self:end;min-height:70px;margin:0 4px 5px 0;font-size:var(--f6)}
+  /* L'ACCUEIL garde sa colonne de la v4 (verdict de Sacha, 28/09 : « pour l'écran d'accueil, remets la v4 ») — voir section 18 */
   /* L'ÉCRAN DE MORT : le verdict et les deux héros à gauche ; le ticket, le défi, les portes et REJOUER à droite */
   html #mDead.on{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:22px;align-content:center;
     grid-template-areas:"over cash" "cause stats" "hero obj" "hero esp" "hero row" "hero rej";grid-template-rows:auto auto auto 1fr auto auto}
@@ -3389,6 +3379,49 @@ html #spNote{position:fixed;bottom:calc(var(--sB) + 84px)}
   html #mDead .hAura>b,html #mDead .hMotN{font-size:var(--f7)}
 }
 @media (prefers-reduced-motion:reduce){html body.touch #pwrChip{transition:none}}
+/* ---- 18. L'ACCUEIL EST CELUI DE LA v4 (2026-09-28, Sacha, après la v5 : « pour l'écran d'accueil, remets la v4 »). L'accueil reprend
+   exactement sa matière et sa mise en page v4 — touches en CARBONE tramé (anneau d'encre 2 px, tranche 6 px), lingot JOUER gravé
+   (filet intérieur, trame de lignes), pastilles v4, livrée du logo fixe, et sa COLONNE centrée aussi en paysage. Tout est scopé sous
+   #mHome : les autres écrans restent en v5. Jetons de la v4 recopiés tels quels (--carbone4, --ombreSol4). */
+:root{--carbone4:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.07) 46%,transparent 62%),
+    linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,0) 48%,rgba(0,0,0,.30)),
+    repeating-linear-gradient(45deg,rgba(255,255,255,.04) 0 3px,transparent 3px 6px),
+    repeating-linear-gradient(-45deg,rgba(0,0,0,.26) 0 3px,transparent 3px 9px);
+  --ombreSol4:0 14px 18px rgba(0,0,0,.55)}
+#mHome .pbtn{background:var(--carbone4),var(--k3);
+  box-shadow:inset 5px 0 0 var(--nc),inset 18px 0 20px -14px var(--nc),inset 0 1px 0 rgba(255,255,255,.22),
+    0 0 0 2px var(--k0),0 6px 0 0 #0a0716,0 6px 0 2px var(--k0),var(--ombreSol4);text-shadow:0 2px 0 var(--txO)}
+#mHome .pbtn .pxi{filter:none}
+#mHome .pbtn:active{transform:skewX(var(--sk)) translateY(6px);
+  box-shadow:inset 5px 0 0 var(--nc),inset 26px 0 26px -14px var(--nc),inset 0 1px 0 rgba(255,255,255,.22),
+    0 0 0 2px var(--k0),0 0 0 0 #0a0716,0 0 0 2px var(--k0),0 5px 8px rgba(0,0,0,.5)}
+#mHome .pbtn.ico{gap:9px;padding:12px 8px 10px 16px}
+#mHome .pb-gold{background:linear-gradient(105deg,transparent 0 38%,rgba(255,255,255,.8) 46%,rgba(255,255,255,0) 54%) no-repeat,
+    repeating-linear-gradient(0deg,rgba(255,255,255,.07) 0 1px,transparent 1px 3px),
+    linear-gradient(180deg,var(--au0) 0%,var(--au1) 22%,var(--au2) 52%,var(--au3) 100%);
+  background-size:250% 100%,auto,auto;background-position:180% 0,0 0,0 0;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.9),inset 0 -4px 0 rgba(190,95,0,.55),
+    0 7px 0 0 var(--auE),0 0 0 2px var(--auO),0 7px 0 2px var(--auO),0 16px 22px rgba(40,10,0,.55),0 0 26px var(--auG);
+  outline:2px solid rgba(160,82,0,.28);outline-offset:-8px;text-shadow:0 2px 0 rgba(255,244,196,.85)}
+#mHome .pb-gold:active{transform:skewX(var(--sk)) translateY(7px);
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.9),inset 0 -4px 0 rgba(190,95,0,.55),
+    0 0 0 2px var(--auO),0 0 0 0 var(--auE),0 0 0 2px var(--auO),0 5px 8px rgba(40,10,0,.5),0 0 36px rgba(255,190,40,.6)}
+@keyframes k4LingotV4{0%,64%{background-position:180% 0,0 0,0 0}94%,100%{background-position:-80% 0,0 0,0 0}}
+#mHome.on>.mPlay{animation:k4Fils var(--t-slow) var(--ease) backwards,k4LingotV4 4.2s var(--ease) 1.4s infinite;animation-delay:calc(var(--i,0)*28ms + 50ms),1.4s}
+#mHome.on.revu>.mPlay{animation:k4LingotV4 4.2s var(--ease) 1.4s infinite!important}
+#mHome .mBadge{top:-11px;min-width:26px;padding:6px 7px 5px;box-shadow:0 0 0 2px var(--k0),0 3px 0 2px var(--k0)}
+#mHome #bdShop{box-shadow:0 0 0 2px var(--k0),0 3px 0 2px var(--k0)}
+#mHome .mTitle::after{left:8%;right:8%;bottom:-20px;height:6px;animation:none;
+  background:linear-gradient(90deg,transparent,var(--neoM) 18%,var(--neoM) 40%,transparent 40.5%,transparent 43%,var(--neoC) 43.5%,var(--neoC) 64%,transparent 64.5%,transparent 67%,var(--au2) 67.5%,var(--au2) 82%,transparent);
+  box-shadow:0 0 14px rgba(255,62,200,.5)}
+#mHome.on .mTitle::after{animation:none}
+#mHome .mIcons{margin:0 0 26px}
+#mHome .mIcons .pbtn{min-height:88px}
+@media (max-height:720px){#mHome .mIcons{margin-bottom:20px}#mHome .mIcons .pbtn{min-height:76px}}
+/* en paysage : la colonne de téléphone de la v4, centrée (la coque est pleine largeur pour les autres écrans) */
+@media (orientation:landscape) and (max-height:540px){html #mHome{max-width:460px;align-self:center;padding:calc(var(--sT) + 10px) calc(var(--sR) + var(--gut)) calc(var(--sB) + 18px) calc(var(--sL) + var(--gut))}}
+@media (prefers-reduced-motion:reduce){#mHome.on>.mPlay,#mHome .pb-gold{animation:none}}
+html[data-reduced-motion="1"] #mHome .pb-gold,html[data-reduced-motion="1"] #mHome.on>.mPlay{animation:none!important}
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
