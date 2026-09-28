@@ -1541,15 +1541,15 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
   @keyframes gTv{to{opacity:.35}}
   /* ===== LES PETITES ANIMATIONS (2026-09-26, user : « barre de nitro avec des flammes animées quand nitro infini, et plein
      d'autres petites animations comme ça partout ») — chacune dit quelque chose, aucune ne bouge pour rien =====
-     · la JAUGE EN FEU (#nitroFeu, le feu de DOOM en pixels) : brasier en NITRO MAX, frange de flammes au boost ;
+     · la JAUGE EN FEU (#nitroFeu, un feu de particules au pixel de l'écran depuis le 28/09) : brasier en NITRO MAX ;
      · la jauge chauffée à blanc pendant NITRO MAX (.inf) ;
      · les POUVOIRS : leur temps restant fond sous le nom, ils clignotent la dernière seconde et demie ;
      · la BANDE DU FLOW : un reflet la balaie tant qu'on tient un palier ;
      · le NIVEAU : ses lettres tombent une à une ;
      · le CHRONO DE VOL tremble sous 1,5 s ;
      · les grandes annonces heureuses (FRÉNÉSIE, RECORD, ×8, MÉTÉORE, grosse chaîne) éclatent en confettis pixel. */
-  #nitroFeu{position:absolute;left:0;width:100%;bottom:calc(100% - 10px);height:46px;pointer-events:none;image-rendering:pixelated;
-    image-rendering:crisp-edges;z-index:2;opacity:0;transition:opacity var(--t-fast) var(--ease)}
+  #nitroFeu{position:absolute;left:0;width:100%;bottom:0;height:60px;pointer-events:none;
+    z-index:2;opacity:0;transition:opacity var(--t-fast) var(--ease)} /* (2026-09-28) au pixel de l'écran : plus de pavés agrandis */
   #nitroFeu.on{opacity:1}
   body.touch #nitroBar.inf{box-shadow:inset 0 0 0 3px #fff3c4,0 4px 0 #170f55,0 0 26px rgba(255,170,40,.95),0 0 44px rgba(255,90,20,.55)!important}
   body.touch #nitroBar.inf #nitroR,body.touch #nitroBar.inf #nitroX{background-image:repeating-linear-gradient(-45deg,rgba(255,255,255,.45) 0 6px,transparent 6px 14px),
@@ -3384,7 +3384,7 @@ html body.touch.slamOn #pwrChip,html body.touch.verdOn #pwrChip,html body.touch.
 html body.touch #pwrChip{transition:opacity var(--t-fast) var(--ease),transform var(--t-fast) var(--ease)}
 html body.touch #avRec{max-width:calc(100vw - var(--hudG) - var(--hudD) - 100px)}
 html body.touch #avRec i{flex:0 1 110px;min-width:24px}
-#nitroFeu{-webkit-mask:linear-gradient(0deg,#000 38%,transparent 100%);mask:linear-gradient(0deg,#000 38%,transparent 100%)}
+#nitroFeu{-webkit-mask:linear-gradient(0deg,#000 55%,transparent 100%);mask:linear-gradient(0deg,#000 55%,transparent 100%)} /* (2026-09-28) les bouffées s'éteignent d'elles-mêmes : le masque n'adoucit plus que le haut du cadre */
 /* (k) L'ÉCRAN TITRE : le logo prend sa place (il flottait, perdu dans le noir) ; l'invite descend dans le tiers bas */
 html #spTitle{font-size:clamp(38px,11.2vw,56px)}   /* la taille du logo de l'accueil : le même logo, du titre au menu */
 html #spNote{position:fixed;bottom:calc(var(--sB) + 84px)}
@@ -10323,7 +10323,9 @@ const beamTex=(function(){
      vers la pointe) — la boucle fait TOURNER le cône sur son axe, les langues ondulent ; plus de cornet orange uniforme ;
    · le CŒUR (jetCoreTex) : blanc brûlant, court, rythmé de DIAMANTS DE CHOC nets (les disques de Mach des réacteurs) séparés par des
      creux sombres — en additif double face, chaque anneau se lit comme une barre lumineuse en travers du jet.
-   Toujours du blanc : la teinte vient des matériaux (orange nitro / bleu réserve / signature). Cuites une fois, partagées. */
+   Toujours du blanc : la teinte vient des matériaux (orange nitro / bleu réserve / signature). Cuites une fois, partagées.
+   ⚠ (2026-09-28) la plume de la CAISSE est désormais CALCULÉE (voir « LA FLAMME VIVANTE » plus bas) : `jetTex` ne sert plus qu'à la
+   meute de police, et `jetCoreTex` (les diamants de choc) a disparu. */
 const jetTex=(function(){
   const W=64,H=256,cv=document.createElement('canvas');cv.width=W;cv.height=H;
   const c=cv.getContext('2d'),im=c.createImageData(W,H),d=im.data;
@@ -10336,25 +10338,44 @@ const jetTex=(function(){
   c.putImageData(im,0,0);
   return new THREE.CanvasTexture(cv);
 })();
-const jetCoreTex=(function(){
-  const W=16,H=256,cv=document.createElement('canvas');cv.width=W;cv.height=H;
-  const c=cv.getContext('2d'),im=c.createImageData(W,H),d=im.data;
-  for(let y=0;y<H;y++){const v=1-y/(H-1);
-    const env=Math.max(0,1-v/.72);                                // le cœur s'arrête avant la pointe de l'enveloppe
-    const ph=v*5.2;                                               // ~4 diamants sur la longueur du cœur
-    const dia=Math.pow(Math.max(0,Math.cos((ph-Math.floor(ph)-.5)*3.1416)),6); // un disque de Mach : pic net, creux franc
-    const k=env*env*(.28+.95*dia*(1-v*.9))+(v<.06?1-v/.06:0)*.6;  // + la gorge de la tuyère, blanche
-    for(let x=0;x<W;x++){const o=(y*W+x)*4;d[o]=d[o+1]=d[o+2]=255;d[o+3]=Math.max(0,Math.min(255,k*255));}}
-  c.putImageData(im,0,0);
-  return new THREE.CanvasTexture(cv);
-})();
-const jetGeo=(function(){
-  const g=new THREE.ConeGeometry(1,1,10,1,true);
-  g.rotateX(-Math.PI/2);g.translate(0,0,-.5); // base à la tuyère, pointe vers l'ARRIÈRE (-Z caisse)
+const jetGeo=(function(){ // (2026-09-28) un PROFIL de flamme tourné (étroit à la tuyère, ventre, pointe effilée) au lieu d'un cône : un cône se lit comme une pointe de crayon
+  const P=[[.5,0],[.8,.07],[.98,.2],[1,.32],[.86,.5],[.62,.68],[.36,.84],[.13,.95],[0,1]].map(function(q){return new THREE.Vector2(q[0],q[1]);});
+  const g=new THREE.LatheGeometry(P,12);
+  g.rotateX(-Math.PI/2); // base à la tuyère (z 0), pointe vers l'ARRIÈRE (-Z caisse) — uv.y : 0 à la tuyère, 1 à la pointe
   return g;
 })();
-const jetShellM=new THREE.MeshBasicMaterial({map:jetTex,color:0xff8c30,transparent:true,opacity:.85,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false});
-const jetCoreM=new THREE.MeshBasicMaterial({map:jetCoreTex,color:0xffe6b0,transparent:true,opacity:.92,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false});
+/* LA FLAMME VIVANTE (2026-09-28, Sacha : « les animations du nitro pourraient faire beaucoup plus FLAMME, façon Asphalt 9 ») — MESURÉ
+   en capture avant : vue de la poursuite, la plume était deux BOUDINS orange lisses (une texture fixe qui tournait sur un cône : aucune
+   langue ne naissait ni ne mourait). Désormais la flamme est CALCULÉE à chaque image : un bruit qui COULE de la tuyère vers la pointe
+   ronge la matière (les langues se détachent et s'éteignent en route), une racine BLEUE de brûleur à gaz sous le cœur blanc — la
+   signature des flammes de nitro —, un corps à la couleur de la poussée qui rougit vers la pointe, et un bord qui s'efface avec
+   l'angle (plus de cornet à arête dure). UN seul programme pour l'enveloppe et le cœur (mêmes sources, uniforms à part), sans
+   brouillard ni lumières : il est compilé au chargement avec le reste (`renderer.compile` parcourt aussi le caché) et ne dépend
+   d'aucun nombre de lumières. `color` reste une vraie THREE.Color (la boucle, l'arc-en-ciel et dbgNitro la lisent/écrivent). */
+const JET_VS='uniform float uT;varying vec2 vUv;varying float vE;void main(){vUv=uv;vec3 p=position;float w=uv.y*uv.y;'
+  +'p.x+=sin(uT*23.+uv.y*9.)*.2*w;p.y+=cos(uT*19.+uv.y*7.)*.2*w;'                // la pointe LÈCHE l'air : elle erre, la racine reste dans le pot
+  +'vec4 mv=modelViewMatrix*vec4(p,1.);vE=abs(dot(normalize(normalMatrix*normal),normalize(-mv.xyz)));gl_Position=projectionMatrix*mv;}';
+const JET_FS='uniform vec3 uCol;uniform vec3 uHot;uniform vec3 uRac;uniform float uT;uniform float uA;uniform float uRonge;uniform float uLong;'
+  +'varying vec2 vUv;varying float vE;'
+  +'float hh(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}'
+  +'float nn(vec2 p,float P){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);'           // bruit de valeur PÉRIODIQUE autour du cône (pas de couture)
+  +'return mix(mix(hh(vec2(mod(i.x,P),i.y)),hh(vec2(mod(i.x+1.,P),i.y)),f.x),mix(hh(vec2(mod(i.x,P),i.y+1.)),hh(vec2(mod(i.x+1.,P),i.y+1.)),f.x),f.y);}'
+  +'void main(){float v=vUv.y,a=vUv.x;'
+  +'float n=nn(vec2(a*6.,v*3.2*uLong-uT*11.),6.)*.62+nn(vec2(a*12.,v*7.*uLong-uT*17.+3.1),12.)*.38;' // le bruit COULE vers la pointe
+  +'float d=smoothstep(0.,.42,(1.-v)*1.3-n*(.18+.9*v)*uRonge);'                   // les langues : la pointe est rongée, la racine tient
+  +'d*=smoothstep(0.,.05,v);'                                                     // la flamme naît DANS la bouche du pot
+  +'vec3 c=mix(uRac,uHot,smoothstep(.05,.26,v));'                                 // racine bleue → cœur blanc
+  +'c=mix(c,uCol,smoothstep(.12,.5,v));'                                          // → la couleur de la poussée
+  +'c=mix(c,uCol*vec3(.95,.42,.3),smoothstep(.55,1.,v));'                         // → qui rougit vers la pointe
+  +'c+=uHot*.35*smoothstep(.55,.95,n)*(1.-v);'                                    // les crêtes du bruit s'embrasent
+  +'gl_FragColor=vec4(c,d*smoothstep(.02,.5,vE)*uA);}';
+function jetMat(col,hot,rac,a,ronge,lng){
+  const u={uCol:{value:new THREE.Color(col)},uHot:{value:new THREE.Color(hot)},uRac:{value:new THREE.Color(rac)},uT:JET_T,uA:{value:a},uRonge:{value:ronge},uLong:{value:lng}};
+  const m=new THREE.ShaderMaterial({uniforms:u,vertexShader:JET_VS,fragmentShader:JET_FS,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false});
+  m.color=u.uCol.value;return m;}
+const JET_T={value:0}; // l'horloge des flammes (partagée par l'enveloppe et le cœur), avancée par la boucle
+const jetShellM=jetMat(0xff8c30,0xfff4dc,0x6f8cff,.95,1,1);
+const jetCoreM=jetMat(0xffe6b0,0xffffff,0xa9c0ff,1,.7,1.35);
 const jetGlowM=new THREE.SpriteMaterial({map:lampTex,color:0xff9040,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false});
 const JETS={shells:[],cores:[],glows:[],k:0}; // rempli par buildCar, animé chaque frame
 /* LES POTS DE LA CAISSE (2026-09-26, user : « pour chaque skin, les flammes des pots d'échappement et la traînée de nitro au bon
@@ -16629,37 +16650,66 @@ function flowHudMaj(rest){
     const g=FLOW.glow;g.style.setProperty('--fc',FLOW_COL[FLOW.lv]);g.dataset.lv=FLOW.lv;g.style.opacity=FLOW.lv?(.25+FLOW.lv*.15).toFixed(2):'0';
     if(FLOW.lv===4)frenEntre();else{h.classList.remove('embrase','sc1','sc2');if(av===4)frenSort();}} // (sans ça, un retour d'écran — display rendu — rejouerait l'embrasement)
 }
-/* LA JAUGE EN FEU (2026-09-26, user : « barre de nitro avec des flammes animées quand nitro infini ») — le feu de DOOM, en pixels :
-   une grille 96 × 18 dont la rangée du bas BRÛLE ; chaque case monte d'un cran en perdant un peu de chaleur, avec un décalage au
-   hasard (le vent), et la palette va de la braise au blanc. Posée SUR la jauge — le pied des flammes lèche la barre — et agrandie
-   en pixels francs : la même DA que la police. NITRO MAX = le brasier plein ; boost ordinaire = une frange ; rien = ça s'éteint
-   tout seul (le feu décroît, on ne le coupe pas). 1 728 cases à 30 images/s, rien quand il est éteint. */
-const FEU={cv:null,cx:null,img:null,f:null,W:96,H:18,src:0,acc:0,vif:false};
-const FEU_PAL=[[0,0,0,0],[40,6,4,120],[70,10,6,170],[110,18,8,210],[150,28,8,235],[190,40,6,250],[220,60,6,255],[240,84,10,255],
-  [250,110,14,255],[255,136,20,255],[255,160,30,255],[255,182,44,255],[255,200,64,255],[255,216,90,255],[255,228,120,255],
-  [255,238,156,255],[255,246,196,255],[255,252,228,255],[255,255,255,255]];
+/* LA JAUGE EN FEU (2026-09-26, user : « barre de nitro avec des flammes animées quand nitro infini ») — refaite le 2026-09-28
+   (Sacha : « en nitro infini les flammes de la barre ressemblent trop à Minecraft, fais un truc premium »). Le feu de DOOM en
+   96 × 18 cases agrandies faisait des PAVÉS. Désormais un vrai feu de particules, au pixel de l'écran : des bouffées douces (un
+   sprite radial cuit une fois par teinte, du blanc brûlant au rouge sombre) qui naissent sur la tranche de la jauge, montent en
+   accélérant (la chaleur tire), ondulent et refroidissent en rapetissant ; en additif, elles se fondent en LANGUES là où la
+   jauge est la plus chaude (des foyers qui glissent le long de la barre) ; des étincelles s'en échappent, et une lueur chauffe
+   la tranche. Réserve fixe de 220 bouffées (zéro allocation en jeu), rien quand il est éteint : NITRO MAX = le brasier plein ;
+   à la fin du pouvoir on ne coupe rien — plus rien ne naît, ce qui brûle finit de brûler. */
+const FEU={cv:null,cx:null,src:0,vif:false,t:0,acc:0,w:0,h:0,dpr:1,N:220,n:0,spr:null,
+  x:null,y:null,vx:null,vy:null,age:null,vie:null,taille:null,st:null,eti:null};
+const FEU_RAMPE=[[255,252,236],[255,236,170],[255,204,96],[255,160,48],[255,116,28],[236,72,20],[176,38,16],[104,20,12]]; // du cœur à la fumée rouge
+const FEU_H=60,FEU_BAS=24; // hauteur du foyer (px CSS) et part posée SUR la jauge : la barre EST le foyer (au téléphone, 18 px d'écran seulement au-dessus d'elle)
+function feuSprites(){ // une bouffée par teinte, 64 px : cœur plein, bord qui s'évanouit (jamais de disque à arête)
+  return FEU_RAMPE.map(function(c){const k=document.createElement('canvas');k.width=k.height=64;const x=k.getContext('2d');
+    const g=x.createRadialGradient(32,32,0,32,32,32),r=c[0]+','+c[1]+','+c[2];
+    g.addColorStop(0,'rgba('+r+',1)');g.addColorStop(.3,'rgba('+r+',.62)');g.addColorStop(.62,'rgba('+r+',.18)');g.addColorStop(1,'rgba('+r+',0)');
+    x.fillStyle=g;x.fillRect(0,0,64,64);return k;});}
+function feuChaud(x,t){return .5+.28*Math.sin(x*.047+t*2.3)+.22*Math.sin(x*.113-t*3.4);} // les FOYERS : là où la jauge brûle le plus, ils glissent
+function feuNait(eti){const F=FEU;if(F.n>=F.N)return;const i=F.n++;
+  let x=0,c=0;for(let k=0;k<4;k++){x=Math.random()*F.w;c=feuChaud(x,F.t);if(Math.random()<c*c*1.4)break;} // tirée vers les foyers
+  F.x[i]=x;F.y[i]=F.h-FEU_BAS*(.15+Math.random()*.6);F.eti[i]=eti?1:0;
+  if(eti){F.vx[i]=(Math.random()-.5)*40;F.vy[i]=-(90+Math.random()*70);F.vie[i]=.45+Math.random()*.4;F.taille[i]=2.2+Math.random()*1.6;F.st[i]=0;}
+  else{F.vx[i]=(Math.random()-.5)*14;F.vy[i]=-(26+Math.random()*30)*(.8+c*.6);F.vie[i]=.4+Math.random()*.3+c*.25;
+    F.taille[i]=(11+Math.random()*8)*(.7+c*.6);F.st[i]=c>.68?0:1;}
+  F.age[i]=0;}
 function nitroFeu(dt){
-  const cible=(pwrNitroT>0&&running&&!gameOver)?1:0; // (2026-09-26, user : « les flammes sur la barre, c'est QUE en nitro infini »)
-  FEU.src+=(cible-FEU.src)*Math.min(1,dt*7);
-  if(!FEU.vif&&FEU.src<.03)return;
-  if(!FEU.cv){const nb=document.getElementById('nitroBar');if(!nb)return;
-    const c=document.createElement('canvas');c.id='nitroFeu';c.width=FEU.W;c.height=FEU.H;c.setAttribute('aria-hidden','true');nb.appendChild(c);
-    FEU.cv=c;FEU.cx=c.getContext('2d');FEU.img=FEU.cx.createImageData(FEU.W,FEU.H);FEU.f=new Uint8Array(FEU.W*FEU.H);}
-  FEU.acc+=dt;if(FEU.acc<1/30)return;FEU.acc=0;
-  const W=FEU.W,H=FEU.H,f=FEU.f,Pm=FEU_PAL.length-1,base=(H-1)*W;
-  // le FOYER : des points chauds qui glissent le long de la jauge (somme de sinus) — c'est eux qui font les LANGUES de feu ; un foyer
-  // uniforme ne donne qu'une bande de bruit (première capture)
-  const t9=(FEU.t=(FEU.t||0)+1/30);
-  for(let x=0;x<W;x++){const n=.5+.25*Math.sin(x*.19+t9*5.1)+.25*Math.sin(x*.47-t9*7.3);
-    f[base+x]=FEU.src>.03?Math.round(Pm*Math.min(1,FEU.src*(.35+.65*n)*(.85+Math.random()*.15))):Math.max(0,f[base+x]-3);}
-  let vif=false;
-  for(let x=0;x<W;x++)for(let y=1;y<H;y++){const s=y*W+x,v=f[s];
-    if(!v){f[s-W]=0;continue;}vif=true;
-    const r=(Math.random()*3)|0,d=Math.max(0,s-W-r+1);f[d]=Math.max(0,v-(r&1)-(Math.random()<.45?1:0));}
-  const px=FEU.img.data;
-  for(let i=0;i<W*H;i++){const c=FEU_PAL[f[i]],o=i*4;px[o]=c[0];px[o+1]=c[1];px[o+2]=c[2];px[o+3]=c[3];}
-  FEU.cx.putImageData(FEU.img,0,0);
-  if(vif!==FEU.vif){FEU.vif=vif;FEU.cv.classList.toggle('on',vif);}
+  const F=FEU,cible=(pwrNitroT>0&&running&&!gameOver)?1:0; // (2026-09-26, user : « les flammes sur la barre, c'est QUE en nitro infini »)
+  F.src+=(cible-F.src)*Math.min(1,dt*7);
+  if(!F.vif&&F.src<.03)return;
+  if(!F.cv){const nb=document.getElementById('nitroBar');if(!nb)return;
+    const c=document.createElement('canvas');c.id='nitroFeu';c.setAttribute('aria-hidden','true');nb.appendChild(c);
+    F.cv=c;F.cx=c.getContext('2d');F.spr=feuSprites();
+    for(const k of ['x','y','vx','vy','age','vie','taille'])F[k]=new Float32Array(F.N);F.st=new Uint8Array(F.N);F.eti=new Uint8Array(F.N);}
+  const w=F.cv.clientWidth||F.cv.parentNode.clientWidth,d9=Math.min(2.5,window.devicePixelRatio||1);
+  if(!w)return;
+  if(w!==F.w||d9!==F.dpr){F.w=w;F.h=FEU_H;F.dpr=d9;F.cv.width=Math.round(w*d9);F.cv.height=Math.round(FEU_H*d9);F.n=0;} // (tourner le téléphone recale le foyer)
+  const h=Math.min(dt,.05);F.t+=h;
+  // NAISSANCES : ~190 bouffées/s au brasier plein (sur 280 px), et quelques étincelles
+  F.acc+=h*F.src*330*(F.w/280);while(F.acc>=1){F.acc-=1;feuNait(Math.random()<.07);}
+  // LA VIE : la chaleur tire vers le haut, le remous fait onduler, on refroidit en rapetissant ; on compacte la réserve sur place
+  let j=0;
+  for(let i=0;i<F.n;i++){let a=F.age[i]+h/F.vie[i];if(a>=1)continue;
+    let vx=F.vx[i],vy=F.vy[i];const y=F.y[i];
+    vy-=(F.eti[i]?30:62)*h;vx+=Math.sin(y*.09+F.t*6.3+i)*(F.eti[i]?90:46)*h;vx*=1-1.6*h;
+    if(j!==i){F.st[j]=F.st[i];F.eti[j]=F.eti[i];F.vie[j]=F.vie[i];F.taille[j]=F.taille[i];}
+    F.x[j]=F.x[i]+vx*h;F.y[j]=y+vy*h;F.vx[j]=vx;F.vy[j]=vy;F.age[j]=a;j++;}
+  F.n=j;
+  const cx=F.cx;cx.setTransform(1,0,0,1,0,0);cx.clearRect(0,0,F.cv.width,F.cv.height);
+  if(F.n){cx.setTransform(F.dpr,0,0,F.dpr,0,0);cx.globalCompositeOperation='lighter';
+    // la tranche CHAUFFE : une lueur basse qui respire avec le brasier
+    const g=cx.createLinearGradient(0,F.h,0,F.h-FEU_BAS*2.6);g.addColorStop(0,'rgba(255,150,40,'+(.42*F.src).toFixed(3)+')');g.addColorStop(1,'rgba(255,90,20,0)');
+    cx.globalAlpha=1;cx.fillStyle=g;cx.fillRect(0,F.h-FEU_BAS*2.6,F.w,FEU_BAS*2.6);
+    const S=F.spr,nS=S.length-1;
+    for(let i=0;i<F.n;i++){const a=F.age[i];
+      const st=Math.min(nS,F.st[i]+Math.floor(a*(F.eti[i]?3:nS+.99-F.st[i])));
+      const al=(a<.1?a/.1:1)*Math.pow(1-a,1.15)*(F.eti[i]?1:.72);if(al<.02)continue;
+      const z=F.taille[i]*(F.eti[i]?1:(1-.55*a)),zy=F.eti[i]?z:z*(1.5+.6*a); // étirée vers le haut : une LANGUE, pas une boule
+      cx.globalAlpha=al;cx.drawImage(S[st],F.x[i]-z*.5,F.y[i]-zy*.62,z,zy);}
+    cx.globalAlpha=1;cx.globalCompositeOperation='source-over';}
+  const vif=F.n>0;if(vif!==F.vif){F.vif=vif;F.cv.classList.toggle('on',vif);}
 }
 function nitroPct(p){nitroGain(p*((ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2));} // (2026-09-26) une PART de la jauge (0,2 = 20 %), quel que soit le moteur
 // LE PLEIN = la capacité du MOTEUR (2,0 → 3,6). Tout ce qui « remplit la jauge » passe par ici : écrit `nitroR=2` en dur,
@@ -22408,7 +22458,7 @@ const NFX={ign:0,ignK:1,air:false,off:0,t0:-9,sT:-9,len:0,edge:0,col:new THREE.C
   g.addColorStop(.9,'rgba(255,255,255,1)');g.addColorStop(.95,'rgba(255,255,255,.35)');g.addColorStop(1,'rgba(255,255,255,0)');
   c.fillStyle=g;c.fillRect(0,0,s,s);
   NFX.ring=new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv),color:0xff7a24,transparent:true,
-    opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false}));
+    opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,depthTest:false,side:THREE.DoubleSide,fog:false})); // (2026-09-28) sans test de profondeur : la route coupait l'onde en FER À CHEVAL
   NFX.ring.visible=false;NFX.ring.frustumCulled=false;NFX.ring.renderOrder=3;scene.add(NFX.ring);
 }
 /* LES STRIES DE VENT : des points POSÉS dans le monde (vitesse nulle), devant l'objectif et décalés de l'axe du regard — la caisse les
@@ -28858,8 +28908,12 @@ function loop(now){
       jetShellM.color.setHex(nitroBlue?0x5b7dff:(fxOn&&FX9&&FX9.jet!=null?FX9.jet:(nitroOn?0xff7a24:(boost>0?0xffd75e:0xff8c30)))); // (vague 2) le pad turbo souffle OR : la poussée qui vient de l'argent — (vague 3) les teintes EXACTES de la bible : feu #ff7a24, réserve #5b7dff, or #ffd75e
       jetCoreM.color.setHex(nitroBlue?0xe2ebff:(fxOn&&FX9&&FX9.core!=null?FX9.core:(nitroOn?0xfff2da:0xffe6b0))); // (vague 3) à la nitro le cœur brûle BLANC : les diamants de choc se lisent sur le corps orange
       jetGlowM.color.copy(jetShellM.color).lerp(NFX.blanc,NFX.len*.45);jetGlowM.opacity=Math.min(1,JETS.k*.95*fl9+iK9*.5); // (vague 3) à la nitro la tuyère est chauffée à BLANC : le point le plus chaud de la flamme
-      for(const m9 of JETS.shells){m9.visible=jOn;m9.scale.set(jr,jr,jl);m9.rotation.z=t*7.3;} // (plume v2) l'enveloppe TOURNE sur son axe : les langues de flamme ondulent
-      for(const m9 of JETS.cores){m9.visible=jOn;m9.scale.set(jr*.48,jr*.48,jl*.72);}
+      JET_T.value=t; // (2026-09-28) la flamme vivante : son bruit coule avec le temps de jeu (figé en pause)
+      jetCoreM.uniforms.uRac.value.setHex(nitroBlue?0xc9b8ff:0x6f8cff); // la racine de brûleur : bleue sous le feu, lilas sous la réserve
+      for(let i9=0;i9<JETS.shells.length;i9++){ // chaque pot VIT pour lui : sa longueur bat à son rythme (deux pots en phase = un décor)
+        const f9=.84+.16*Math.sin(t*31+i9*2.4)*Math.sin(t*13.7+i9*1.7),m9=JETS.shells[i9],c9=JETS.cores[i9];
+        m9.visible=jOn;m9.scale.set(jr*(1.1-.1*f9),jr*(1.1-.1*f9),jl*f9);m9.rotation.z=t*7.3; // (plume v2) l'enveloppe TOURNE sur son axe
+        if(c9){c9.visible=jOn;c9.scale.set(jr*.48,jr*.48,jl*.72*(.9+.1*f9));}}
       const g9=.2+.55*JETS.k*fl9+iK9*1.1+NFX.off*NFX.off*.35; // (vague 3) la tuyère FLASHE à l'allumage, hoquette à l'extinction
       for(const s9 of JETS.glows){s9.visible=jOn;s9.scale.set(g9,g9,1);}
     }
