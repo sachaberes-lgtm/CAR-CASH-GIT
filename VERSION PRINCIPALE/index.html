@@ -4600,7 +4600,7 @@ html body #engBig .ebRuban{top:-22px!important;left:-10px!important;right:-10px!
 <script src="vendor/postprocessing/UnrealBloomPass.js"></script>
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
-<script defer src="sons-banque.js?v=1"></script>
+<script defer src="sons-banque.js?v=2"></script>
 <script defer src="sfx.js?v=1"></script>
 <script>
 (function(){
@@ -18422,7 +18422,7 @@ function engImpact(){ // l'entrée dans le capot : le moment où l'on ENCAISSE l
   if(gameOver||!running)return;
   {const c9=ENG_NE.setHex(engBig.col||0xffd75e);flashEcran('rgba('+Math.round(c9.r*255)+','+Math.round(c9.g*255)+','+Math.round(c9.b*255)+',.6)');} // (v5) l'éclair à la couleur du moteur
   fovPunch=Math.max(fovPunch,11);shake=Math.max(shake,.4);hap([14,30,24]);
-  boost=Math.max(boost,.8);try{boostSnd(1.4);}catch(e){} // il RUGIT : une poussée brève, les flammes du pad
+  boost=Math.max(boost,.8);try{if(!SONV2)boostSnd(1.4);}catch(e){} /* il RUGIT : une poussée brève, les flammes du pad (console de son : la poussée est DANS moteur.palier, calée sur cet instant) */
   const g=engBig.gain|0;if(g>0)setTimeout(function(){try{if(running&&!gameOver)popTexte('+'+g+' KM/H','#7dff9a',2);}catch(e){}},200);
 }
 function engBig(E,tier,ru){
@@ -18452,8 +18452,8 @@ function engBig(E,tier,ru){
   if(ru)engRuban(ru);
   hap(rec?[18,50,30,60,40]:[18,50,30]);pixBurst(b.querySelector('.ebScene'),rec?28:18);
   // (v4) LES CYLINDRES CHANTENT : une note par cylindre qui s'allume, sur une gamme qui monte — puis le gain claque
-  for(let i=0;i<n;i++)setTimeout(function(){try{if(engBig.on&&!engBig.plonge)chimeNote(noteP(i%5,1+Math.floor(i/5)),0,.028,.08);}catch(e){}},250+i*50);
-  clearTimeout(engBig._f);if(rec)engBig._f=setTimeout(function(){if(!gameOver)try{fanfare();}catch(e){}},1200); // APRÈS le démarreur du montage, jamais par-dessus
+  for(let i=0;i<n;i++)setTimeout(function(){try{if(engBig.on&&!engBig.plonge){if(SONV2)sfx('moteur.cylindre',{st:sonPd(i)});else chimeNote(noteP(i%5,1+Math.floor(i/5)),0,.028,.08);}}catch(e){}},250+i*50);
+  clearTimeout(engBig._f);if(rec)engBig._f=setTimeout(function(){if(!gameOver)try{son('ui.record',fanfare);}catch(e){}},SONV2?2150:1200); /* (console de son) le NOUVEAU SOMMET sonne APRÈS l'impact et la fanfare de palier, plus par-dessus la visseuse */ // APRÈS le démarreur du montage, jamais par-dessus
   engBig._p=setTimeout(engPlonge,ENG_COULOIR);
   engBig._a=setTimeout(function(){if(!gameOver)engSwapArme();},ENG_ARME); // le clank de la visseuse = l'entrée dans le capot
 }
@@ -20574,7 +20574,7 @@ function explode(cause){
      progression ; c'est aujourd'hui l'INDEX de la caisse choisie au garage : les quatre premières caisses explosaient sans grave.
      Même grondement pour toutes, un peu allégé (.35/.5 → .3, sub .3) : `boomSnd` part dans la même milliseconde sur le même bus. */
   if(!SONV2){noiseBurst(1.2,.3,240);subBoom(.3);}
-  else{const mc9={vide:'mort.vide',air:'mort.air',arret:'mort.arret',police:'mort.police',feu:'mort.feu',tour:'mort.tour'}[mortCause];if(mc9)sfx(mc9);} // (console) chaque mort a sa signature, par-dessus l'explosion : on ENTEND pourquoi on est mort
+  else{const mc9={vide:'mort.vide',air:'mort.air',arret:'mort.arret',police:'mort.police',feu:'mort.feu'}[mortCause];if(mc9)sfx(mc9);} // (console) chaque mort a sa signature, par-dessus l'explosion : on ENTEND pourquoi on est mort
   if(level>=4){
     shake=Math.max(shake,level===5?3.6:3);
   }
@@ -22346,16 +22346,22 @@ function sfxOk(){return !!AC&&SND.sfx&&AC.state==='running';}
      mineur, NOITE en ré# mineur (mesuré) — les sons accordés sont transposés dans la pentatonique du morceau qui joue. */
 let SONV2=false,ECH=0;
 const SON_PENTA={'jeu.sansFaute':1,'jeu.dauphin':1,'jeu.palierVitesse':1}; // les appelants passent un COMPTE : on le convertit en degré
+/* LE MIX S'ÉCARTE sous les grands moments (duckT : moteur, vent, flamme reculent jusqu'à −6 dB puis reviennent) — les anciennes fanfares le
+   faisaient, leurs remplaçants aussi. La valeur = la profondeur du creux (voir `dk` dans la boucle). */
+const SON_DUCK={'frenesie.entre':.6,'monde.fin':.6,'verdict.mega':.6,'cratere':.6,'impact.immeuble':.6,'verdict.3':.5,'caisse.debloquee':.5,'ui.carnet':.5,'orbite.entre':.5,
+  'moteur.palier':.45,'argent.palier':.45,'fig.jackpot':.45,'portail':.4,'pwr.bouclierCasse':.4,'jeu.miracule':.4,'aura.x10':.4,'verdict.2':.35,'verdict.meteor':.35,'pad':.3,'turbo.ultra':.3,
+  'victoire':.4,'defaite':.3,'fig.monstre':.25,'pwr.n':.25,'pwr.a':.25,'pwr.v':.25,'pwr.m':.25,'pwr.b':.25,'pwr.x':.25,'pwr.triple':.35};
 function sonPd(i){i=Math.max(0,i|0);return [0,2,4,7,9][i%5]+12*Math.floor(i/5);} // i-ème degré de la pentatonique, en demi-tons
 function sfx(id,o){
   if(!SONV2||!sfxOk())return null;
-  try{if(o&&o.st!=null&&SON_PENTA[id])o.st=sonPd(o.st);return window.CCSON.play(id,o);}catch(e){return null;}
+  try{if(o&&o.st!=null&&SON_PENTA[id])o.st=sonPd(o.st);const h=window.CCSON.play(id,o);if(h&&SON_DUCK[id])duckT=Math.max(duckT,SON_DUCK[id]);return h;}catch(e){return null;}
 }
 function son(id,repli,o){if(SONV2&&window.CCSON.existe(id)){sfx(id,o);return true;}if(repli)try{repli();}catch(e){}return false;}
 function echSt(){return sonPd(Math.min(14,ECH++));} // le degré SUIVANT de la gamme du vol
 function sonConsole(){ // branche la console sur le contexte du jeu (fin d'initAudio ; rejoué si sfx.js arrive après le 1er geste)
   if(SONV2||!AC||!MASTER||!window.CCSON)return;
   try{window.CCSON.init(AC,MASTER);SONV2=true;sonTonSuit._t=null;}catch(e){SONV2=false;}
+  try{waPrecharge();}catch(e){} // les voix et les samples, décodés pour le mixage (voir LES VOIX ET LES SAMPLES DANS LE MIXAGE)
 }
 addEventListener('load',function(){try{sonConsole();}catch(e){}});
 const SON_TON={'lvl1-neon-cash-car':-1,'lvl2-cash-car-vitesse':-2,'nocturnal-groove':0,'noite-de-velocidade':2};
@@ -22371,7 +22377,53 @@ function figSnd(id){ // chaque figure a SA matière, posée sur l'échelle du vo
   if(id==='vrille'&&spinHalf>=4)sfx('fig.essoreuse');
 }
 // console : `dbgSon()` l'état · `dbgSon('piece',{st:4})` joue un son
-window.dbgSon=function(id,o){if(id)return sfx(id,o||{})?'joué':'muet (console '+SONV2+', contexte '+(AC&&AC.state)+')';return window.CCSON?Object.assign({console:SONV2,echelle:ECH},window.CCSON.etat()):'sfx.js absent';};
+window.dbgSon=function(id,o){
+  if(id==='voix'){const k=o||'m1';if(!ANN_LIB[k])return 'clés : '+Object.keys(ANN_LIB).join(' ');ANN_LIB[k].cool=0;annSpeak(k,9,true);const e9=ANN.playing&&ANN.playing.els[0];return e9?(e9 instanceof HTMLMediaElement?'voix <audio>':'voix WebAudio'):'muette';} // `dbgSon('voix','m3')` : fait parler l'annonceur et dit par quel chemin
+  if(id)return sfx(id,o||{})?'joué':'muet (console '+SONV2+', contexte '+(AC&&AC.state)+')';
+  return window.CCSON?Object.assign({console:SONV2,echelle:ECH,decodesWA:Object.keys(WA_BUF).filter(function(k){return WA_BUF[k];}).length+'/'+Object.keys(WA_BUF).length},window.CCSON.etat()):'sfx.js absent';};
+/* ---- LES VOIX ET LES SAMPLES DANS LE MIXAGE (2026-09-28, console de son) ----
+   ⚠ SUR IPHONE `HTMLAudio.volume` EST EN LECTURE SEULE : l'annonceur y sortait à 100 % du fichier (−8 LUFS, ~5 dB au-dessus du
+   réglage), SANS sa doublure démon ni ses échos d'or (écartés par VOL_LOCKED), et les curseurs VOIX / EFFETS n'y pouvaient rien ;
+   les sons de mort et le WOW pareil. Quand la page est SERVIE (http, https, capacitor — pas en file://, où fetch est refusé), chaque
+   fichier est DÉCODÉ en WebAudio : la voix retrouve partout son habillage, son niveau et son curseur ; les samples suivent le
+   curseur EFFETS. Tant qu'un fichier n'est pas décodé (ou s'il échoue), le chemin HTMLAudio d'origine joue, intact.
+   Les voix sont aussi RAMENÉES À LA MÊME SONIE (mesuré : −7,8 à −10,4 LUFS, early_dead −15,1) : cible −10, early_dead −12. */
+const WA_BUF={};
+const VOIX_NORM={'monstre.mp3':.4,'double_monstre.mp3':-.6,'triple_monstre.mp3':-2.2,'meteor.mp3':-1.5,'mega_meteor.mp3':-.4,'snake_loop.mp3':.2,'pure_speed.mp3':-.9,'launch400.mp3':-1,'early_dead.mp3':3.1};
+function waCharge(url){
+  if(WA_BUF[url]!==undefined)return;WA_BUF[url]=null;
+  if(location.protocol==='file:'||!AC||typeof fetch!=='function')return;
+  try{fetch(url).then(function(r){if(!r.ok)throw 0;return r.arrayBuffer();})
+    .then(function(ab){return new Promise(function(ok,ko){const p=AC.decodeAudioData(ab,ok,ko);if(p&&p.then)p.then(ok,ko);});})
+    .then(function(b){WA_BUF[url]=b;}).catch(function(){});}catch(e){}
+}
+function waPrecharge(){try{for(const k in ANN_LIB)waCharge(ANN_DIR+ANN_LIB[k].f);for(const d of DEATH_LIB)waCharge(DEATH_DIR+d.f);waCharge(FX_DIR+FX_WOW.f);}catch(e){}}
+function voixWA(e,prio){ // l'annonceur en WebAudio : voix + doublure démon (tierce dessous) + échos d'or 162/324 ms — même recette que les 4 <audio>
+  const b=WA_BUF[ANN_DIR+e.f];if(!b||!AC||AC.state!=='running')return false;
+  try{
+    const V=VOL.vox*Math.pow(10,(VOIX_NORM[e.f]||0)/20),t0=AC.currentTime,els=[];
+    const joue=function(rate,vol,ms){const s=AC.createBufferSource(),g=AC.createGain();s.buffer=b;s.playbackRate.value=rate;g.gain.value=vol;
+      s.connect(g);g.connect(AC.destination);s.start(t0+ms/1000);
+      els.push({pause:function(){try{g.gain.setTargetAtTime(0,AC.currentTime,.02);s.stop(AC.currentTime+.12);}catch(x){}}});return s;};
+    const main=joue(ANN_RATE,ANN_VOICE_VOL*V,0);
+    joue(ANN_DEMON_RATE,ANN_DEMON_VOL*V,25);joue(ANN_RATE,.15*V,ANN_ECHO1);joue(ANN_RATE,.06*V,ANN_ECHO2);
+    ANN.playing={els:els,prio:prio};ANN.duck=true;
+    setTimeout(function(){if(ANN.playing&&ANN.playing.els===els){ANN.playing=null;ANN.duck=false;}},7000);
+    main.onended=function(){
+      if(!(ANN.playing&&ANN.playing.els===els))return;
+      ANN.playing=null;ANN.duck=false;
+      if(ANN.queue&&performance.now()-ANN.queue.at<1800){const q=ANN.queue;ANN.queue=null;annSpeak(q.key,q.prio,true);}else ANN.queue=null;};
+    return true;
+  }catch(x){return false;}
+}
+function sampleWA(url,v,max,liste){ // un sample (mort, WOW) en WebAudio : même niveau que l'<audio> d'origine (sortie directe × curseur EFFETS), fondu de 450 ms
+  const b=WA_BUF[url];if(!b||!AC||AC.state!=='running'||!MASTER||!MASTER._vol)return false;
+  try{const t0=AC.currentTime,s=AC.createBufferSource(),g=AC.createGain(),fin=t0+Math.min(max,b.duration);
+    s.buffer=b;g.gain.setValueAtTime(v,t0);g.gain.setValueAtTime(v,Math.max(t0,fin-.45));g.gain.linearRampToValueAtTime(0,fin);
+    s.connect(g);g.connect(MASTER._vol);s.start(t0);s.stop(fin+.02);
+    liste.push({pause:function(){try{g.gain.setTargetAtTime(0,AC.currentTime,.02);s.stop(AC.currentTime+.12);}catch(x){}}});if(liste.length>4)liste.shift();
+    return true;}catch(x){return false;}
+}
 /* `stt(param, valeur, t, tc)` — (2026-09-26, passe perf) les ~50 réglages audio que la boucle envoie à CHAQUE image (moteur, vent,
    crissement, nitro…). Mesuré au profil : `setTargetAtTime` = 11 % du CPU. Deux règles :
    · contexte SUSPENDU (son coupé, pause, onglet caché) → rien : son horloge est arrêtée, chaque réglage s'EMPILAIT dans la file du
@@ -22444,13 +22496,14 @@ function initAudio(){
      baisser les effets baisserait aussi la bande-son, et les trois curseurs n'en feraient qu'un.
      ⚠ personne n'écrit `MASTER.gain` ailleurs (le ducking `dk` s'applique gain par gain, pas ici) :
      c'est ce qui permet de se l'approprier sans rien casser. Vérifié avant de le faire. */
-  MASTER=AC.createGain();MASTER.gain.value=VOL.sfx; // ← LE VOLUME DES EFFETS
+  MASTER=AC.createGain();MASTER.gain.value=1; // le point de branchement de tout le WebAudio (le VOLUME DES EFFETS est en sortie : MASTER._vol)
+  MASTER._vol=AC.createGain();MASTER._vol.gain.value=VOL.sfx; /* (2026-09-28, console de son) ← LE VOLUME DES EFFETS, APRÈS le compresseur : devant lui, −6 dB au curseur ne baissaient les pics que de ~1,5 dB */
   BUSOUT=AC.createGain();                           // ← le vrai point de sortie commun
   const cmp=AC.createDynamicsCompressor();
   cmp.threshold.value=-16;cmp.knee.value=12;cmp.ratio.value=4;cmp.attack.value=.004;cmp.release.value=.16;
   const lim=AC.createWaveShaper();lim.curve=engCurve(1.3);lim.oversample='2x';
   MASTER.connect(BUSOUT);
-  BUSOUT.connect(cmp);cmp.connect(lim);lim.connect(AC.destination);
+  BUSOUT.connect(cmp);cmp.connect(lim);lim.connect(MASTER._vol);MASTER._vol.connect(AC.destination);
   // (la bande-son ne passe plus par ce graphe : voir « LA MUSIQUE v4 »)
   // MOTEUR v2 : 2 oscillateurs à onde harmonique (le timbre de la caisse) désaccordés de 7 cents
   // + sub sinus à f/2 (la poitrine) + souffle d'admission → SATURATION (grain) → filtre (brillance)
@@ -22654,6 +22707,7 @@ function visseuse9(t,dur){ // clé à chocs : une rafale de percussions serrées
   }catch(e){}
 }
 function engSwapSnd(){ // la scène complète du remplacement
+  if(SONV2){sfx('moteur.palier');return;} // (console de son) la scène entière d'un seul tenant, calée sur la carte : visseuse, plongée, clanks, impact, démarreur, fanfare
   if(!sfxOk())return;
   try{
     visseuse9(0,.34);                       // on dévisse
@@ -23176,6 +23230,7 @@ function fxPreload(){try{
 }catch(e){}}
 function fxPlay(d){ // un sample, plafonné et fondu — jamais de traîne qui mange l'événement suivant
   if(!SND.sfx||!d||d.dead)return;
+  if(sampleWA(FX_DIR+d.f,d.v,d.max,fxEls))return; // (console de son) décodé : dans le mixage
   let a;try{a=new Audio(FX_DIR+d.f);}catch(e){d.dead=true;return;}
   // ⚠ CE SON EST UN HTMLAudio : il ne traverse PAS le bus MASTER, donc le curseur EFFETS ne
   // l'atteint que si on l'applique ici. Oublier ce point donne un réglage qui « ne marche qu'à
@@ -23224,6 +23279,7 @@ function deathSound(sansVoix){ // sansVoix : l'annonceur parle déjà — pas de
   const d=DEATH_LIB[i];
   if(d.dead)return;                       // fichier absent : on ne réessaie pas, et surtout on ne plante pas
   deathStop();
+  if(sampleWA(DEATH_DIR+d.f,d.v,d.max,deathEls))return; // (console de son) décodé : dans le mixage, curseur EFFETS compris sur iPhone
   let a;try{a=new Audio(DEATH_DIR+d.f);}catch(e){d.dead=true;return;}
   a.volume=d.v*VOL.sfx; // HTMLAudio : hors du bus MASTER, le curseur s'applique ici
   a.addEventListener('error',function(){d.dead=true;});
@@ -23241,6 +23297,7 @@ function deathSound(sansVoix){ // sansVoix : l'annonceur parle déjà — pas de
 // toutes à plein volume : au lieu d'une voix habillée, un MUR de quatre voix. Mieux vaut la voix nue.
 const VOL_LOCKED=(function(){try{const a=new Audio();a.volume=.42;return Math.abs(a.volume-.42)>.01;}catch(e){return false;}})();
 function annPlayLayers(e,prio){
+  if(voixWA(e,prio))return; // (console de son) la voix décodée passe par WebAudio : son habillage et son curseur, iPhone compris
   const els=[];
   const mk=function(rate,vol,delay){
     let a;try{a=new Audio(ANN_DIR+e.f);}catch(err){e.dead=true;return null;}
@@ -23456,7 +23513,7 @@ VOL.mus=SAVE.d.vol.mus;VOL.sfx=SAVE.d.vol.sfx;VOL.vox=SAVE.d.vol.vox;
    serait écrasé 16 ms plus tard. On ne pose donc que le bus des EFFETS et le cas MENU, où rien ne
    tourne. Chercher à « tout appliquer » ici, c'est se battre avec la boucle et perdre. */
 function volApply(){
-  try{if(MASTER&&AC)MASTER.gain.setTargetAtTime(VOL.sfx,AC.currentTime,.03);}catch(e){} // rampe courte : un saut de gain CLAQUE
+  try{if(MASTER&&AC)(MASTER._vol||MASTER).gain.setTargetAtTime(VOL.sfx,AC.currentTime,.03);}catch(e){} // rampe courte : un saut de gain CLAQUE
   // (la musique : son volume est réappliqué à chaque image par musicTick — rien à faire ici)
 }
 function volUI(){ // les deux écrans de réglages affichent le MÊME état — il n'y a qu'une source

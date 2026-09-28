@@ -871,3 +871,59 @@ D('jeu.dauphin',{fam:'figures',dur:.7,key:1,db:-3,max:2,cd:.15,bases:[0,12],dit:
     T.pluck(b,R,nE(12+o.base),.12,.4,.4,.9);}});
 })(typeof window!=='undefined'?window:globalThis);
 /* <<<FIN DAUPHIN>>> */
+
+/* <<<LOT2>>> */
+(function(G){
+'use strict';
+/* LOT 2 — les sons demandés par le branchement : la mort dans une tour, le tampon et le compteur du garage, le raccourci. */
+const D=G.CCSON_D,O=G.CCSON_OUTILS,osc=O.osc,bruit=O.bruit,cloche=O.cloche,clic=O.clic,T=G.CCSON_T;
+const nE=function(st){return 329.6276*Math.pow(2,st/12);};
+/* L'IMPACT D'IMMEUBLE (session GRAPHISME, villeImpact) : la caisse percute une TOUR de la ville en vol — éclair sur la façade, cratère
+   en 0,14 s, 17 blocs de béton + 9 carreaux de verre projetés (ils tombent ~3 s). Joue AVANT l'explosion de la caisse — et SEUL quand
+   le bouclier la sauve : il porte donc tout le choc, sans compter sur l'explosion. */
+D('impact.immeuble',{fam:'mort',bus:'fx',dur:2.4,st:1,db:+6,max:1,cd:.5,dit:'la caisse percute une TOUR : le béton qui craque sourd + la vitre qui éclate + la pluie de verre et de gravats (~2 s)',
+  r:function(b,R,o){T.coup(b,R,o,0,1,900,85,34,.5);bruit(b,{c:'r',t0:0,a:.001,d:.6,v:.6,ft:'lp',f:1800,f1:250,g:.5,q:.7},R);
+    bruit(b,{c:'b',t0:.02,a:.0005,d:.3,v:.45,ft:'hp',f:3200,pan:-.3,pan1:.3},R);
+    for(let k=0;k<34;k++)cloche(b,{f:2400+R()*5800,r:[1,1.5,2.2],m:[1,.5,.3],d:[.06+R()*.2,.05,.03],t0:.03+Math.pow(R(),1.3)*1.8,v:(.05+R()*.07)*(1-k/60),pan:R()*1.8-.9},R);
+    for(let k=0;k<9;k++){const t=.25+Math.pow(R(),.8)*1.9;T.coup(b,R,o,t,.18+R()*.15,700,160+R()*80,70,.12);}
+    T.crepite(b,R,.1,2,30,.25,250,1400);}});
+D('ui.tampon',{fam:'interface',bus:'ui',dur:.35,db:-1,max:1,cd:.2,dit:'le TAMPON « À TOI ! » de l’achat qui s’abat (≈266 ms après l’appui) : caoutchouc sur papier',
+  r:function(b,R,o){bruit(b,{c:'r',t0:0,a:.001,d:.07,v:.7,ft:'lp',f:1600},R);T.grave(b,o,0,140,70,.06,.14,.6);clic(b,{t0:0,f:2200,d:.006,v:.3},R);}});
+D('ui.compteur',{fam:'interface',bus:'ui',dur:1,st:1,key:1,db:-9,max:1,cd:.3,dit:'le compteur $ du garage qui DÉFILE vers le bas (0,9 s) : la liasse qui se compte + la note qui descend',
+  r:function(b,R,o){let t=0,k=0;while(t<.88&&k<40){bruit(b,{c:'b',t0:t,a:.0008,d:.016,v:.3,ft:'bp',f:3300+R()*600,q:1.3},R);
+      if(k%3===0)osc(b,{f:nE(31-Math.min(12,k/2)),t0:t,a:.0008,d:.03,v:.18});t+=.022+.03*Math.pow(t/.9,2);k++;}
+    clic(b,{t0:.9,f:2500,d:.006,v:.3},R);}});
+D('raccourci',{fam:'piste',dur:1,st:1,key:1,db:+1,max:1,cd:.4,grp:'r',prio:3,dit:'RACCOURCI (+340 M) : le trou de ver — on saute un bout de route (souffle aspiré + quinte qui s’élève + or)',
+  r:function(b,R,o){bruit(b,{c:'r',t0:0,a:.12,h:0,d:.2,v:.4,ft:'bp',f:600,f1:4500,g:.22,q:1.3,pan:.6,pan1:-.6},R);
+    cloche(b,{f:nE(19),r:[1,2,2.76],m:[1,.3,.1],d:[.5,.2,.06],t0:.14,v:.28},R);cloche(b,{f:nE(26),r:[1,2,2.76],m:[1,.3,.1],d:[.7,.25,.08],t0:.2,v:.3},R);T.scintille(b,R,.2,.6,8,.09);}});
+})(typeof window!=='undefined'?window:globalThis);
+/* <<<FIN LOT2>>> */
+
+/* <<<MOTEUR>>> */
+(function(G){
+'use strict';
+/* LA SCÈNE DU PALIER MOTEUR (carte MOTEUR v5, session UHD) — la plus riche du jeu, qui s'empilait vers 1,7 s (visseuse, clanks,
+   démarreur, fanfare de palier, souffle de pad, + la fanfare de record par-dessus). Recomposée d'UN SEUL TENANT sur les instants de
+   l'image : `moteur.palier` part avec engSwapArme (≈834 ms après la carte) — visseuse 0-340 ms, PLONGÉE de la carte dans le capot
+   (souffle qui descend, 166-646 ms), deux clanks de tôle (400/500 ms), et à 646 ms l'IMPACT (engImpact, ≈1 480 ms) : coup sourd, le
+   démarreur qui lance le moteur neuf, la poussée, et la fanfare de palier qui monte. Les cylindres, eux, s'allument un par un sur la
+   gamme (`moteur.cylindre`, st = degré). */
+const D=G.CCSON_D,O=G.CCSON_OUTILS,osc=O.osc,bruit=O.bruit,cloche=O.cloche,clic=O.clic,T=G.CCSON_T;
+const nE=function(st){return 329.6276*Math.pow(2,st/12);};
+D('moteur.cylindre',{fam:'machine',dur:.3,key:1,db:-8,max:4,cd:.03,bases:[0,12,24],dit:'un CYLINDRE du nouveau moteur s’allume : l’étincelle + la note qui monte (st, un degré par cylindre)',
+  r:function(b,R,o){bruit(b,{c:'n',t0:0,a:.0008,d:.03,v:.35,ft:'lp',f:1800},R);clic(b,{t0:0,f:3000,d:.004,v:.25},R);
+    cloche(b,{f:nE(12+o.base),r:[1,2,2.76],m:[1,.3,.12],d:[.22,.09,.04],t0:.002,v:.35},R);}});
+D('moteur.palier',{fam:'machine',dur:2.4,st:1,key:1,db:+4,max:1,cd:1,grp:'r',prio:5,dit:'le NOUVEAU MOTEUR entre dans le capot : visseuse, plongée, clanks, IMPACT + démarreur + poussée + fanfare de palier (calé sur la carte)',
+  r:function(b,R,o){
+    let t=0,pas=.028;while(t<.34){T.tole(b,R,t,1400+R()*500,.06,.05);t+=pas;pas*=1.06;}                 // la visseuse qui décélère
+    bruit(b,{c:'r',t0:.17,a:.3,h:0,d:.2,v:.35,ft:'bp',f:3200,f1:500,g:.48,gc:.8,q:1.2,pan:.3,pan1:-.1},R); // la carte PLONGE
+    T.tole(b,R,.40,520,.28,.3);T.tole(b,R,.50,340,.24,.3);                                            // la pièce tombe en place
+    const I=.646;
+    T.coup(b,R,o,I,.9,900,100,40,.35);                                                                // l'IMPACT dans le capot
+    for(const dt of [0,.012])osc(b,{f:52,f1:240,g:.6,gc:1.3,w:'saw',t0:I,a:.03,h:.35,d:.4,v:.09,pan:dt*40,flt:['lp',420,2600,.6,.9]}); // le démarreur, puis ça PART
+    bruit(b,{c:'r',t0:I,a:.02,d:.45,v:.4,ft:'bp',f:380,f1:3600,g:.35,q:1.1,pan:-.4,pan1:.4},R);       // la poussée
+    T.crepite(b,R,I+.4,.5,10,.3,300,1200);                                                             // il crache
+    [12,16,19,24].forEach(function(st,i){const d=i===3?1.1:.45;cloche(b,{f:nE(st),r:[1,2.76],m:[1,.35],d:[d,d*.5],t0:I+.03+i*.082,v:.3*(i===3?1.2:1)},R);}); // la fanfare de palier qui MONTE
+    T.scintille(b,R,I+.25,.8,10,.1);}});
+})(typeof window!=='undefined'?window:globalThis);
+/* <<<FIN MOTEUR>>> */
