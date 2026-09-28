@@ -24574,6 +24574,7 @@ function die(){
   endGame();
 }
 function resetGame(){
+  try{busPlein();}catch(e){} // (2026-09-28) filet : une partie quittée depuis la pause ne laisse jamais la sortie audio au silence
   MENUV.retour=false; // (2026-09-28) on repart : l'accueil d'après-mort (accueilRetour) n'est plus la racine
   clearBoom();
   mortCause='';loop._nAir=false; // (2026-09-26) rien ne passe d'une partie à l'autre
@@ -24647,6 +24648,7 @@ function commitExploits(){
   return got;
 }
 function endGame(){
+  try{busPlein();}catch(e){} // (2026-09-28) même filet : QUITTER depuis la pause (sortie en fondu) ne doit pas rendre le menu muet
   if(SANDBOX&&started&&!gameOver){ sandRevive(); return; } // ENTRAÎNEMENT : la mort n'est qu'un replacement — aucun score n'est enregistré
   if(TUTO.on&&started&&!gameOver){ sandRevive(); if(TUTO.i>=3){TUTO.i=2;TUTO.air=0;} tutoAffiche('RATÉ ! ON RECOMMENCE'); return; } // AUTO-ÉCOLE : on ne meurt pas en apprenant
   if(FLOW.lv===4)frenFin(true); // (v3) une frénésie encore en cours (QUITTER, fin de campagne) compte pour l'écran de fin et le record
@@ -30303,6 +30305,7 @@ renderLeaders(-1);
 })();
 /* ============ MOBILE / TACTILE / PAUSE / PWA — ajout non intrusif (rien de la physique n'est réécrit) ============ */
 // PAUSE commune : clavier P, bouton tactile ⏸ et pause auto passent tous par ici (gère aussi le son)
+function busPlein(){if(AC&&BUSOUT){const t9=AC.currentTime;BUSOUT.gain.cancelScheduledValues(t9);BUSOUT.gain.setValueAtTime(1,t9);}} // (2026-09-28) la sortie commune à plein (voir le fondu de la pause)
 function togglePause(){ if(!started||gameOver)return;
   paused=!paused; showMsg(paused?'PAUSE':'GO !');
   if(!paused)slowT=Math.max(slowT,.8); // (2026-09-25) reprise au RALENTI : le temps de reposer les pouces
@@ -30313,8 +30316,12 @@ function togglePause(){ if(!started||gameOver)return;
      ce sont des LFO branchés sur un gain, ils rendraient un trémolo audible même gain principal à zéro. */
   if(paused&&AC){ try{ const T9=AC.currentTime;
     for(const n9 of [gainN,windG,whG,skidG,jrG,jrDep,jetG,jetLowG,jetOscG,engLfoG,engWhineG,transG,diffG,ovrG,engTickG,pinkG,DRS&&DRS.g,RSN&&RSN.g,sirG])
-      if(n9){const p9=n9.gain;p9.cancelScheduledValues(T9);p9.setValueAtTime(0,T9);p9._s9=undefined;} }catch(e){} }
-  try{ if(AC){ if(paused)AC.suspend(); else if(SND.sfx)AC.resume(); } }catch(e){}
+      if(n9){const p9=n9.gain;p9.cancelScheduledValues(T9);p9.setTargetAtTime(0,T9,.012);p9._s9=undefined;} }catch(e){} }
+  /* (2026-09-28) …et en FONDU : un `suspend()` sec coupait le moteur en plein cycle — un « tic » à chaque pause. La sortie commune
+     (`BUSOUT`) descend en ~40 ms, le contexte s'endort derrière ; la reprise (ou le compte 3-2-1) remet la sortie à plein. */
+  try{ if(AC){ const T8=AC.currentTime;clearTimeout(togglePause._t);
+    if(paused){if(BUSOUT)BUSOUT.gain.setTargetAtTime(0,T8,.012);togglePause._t=setTimeout(function(){try{if(paused&&AC.state==='running')AC.suspend();}catch(e){}},70);}
+    else{busPlein();if(SND.sfx)AC.resume();} } }catch(e){}
   if(paused){annStop();fxStop();deathStop();} // (2026-09-26) les voix et les samples sont des HTMLAudio : suspendre le contexte ne les arrêtait pas — (2026-09-28) le son de MORT non plus : une pause pendant l'explosion le laissait hurler par-dessus le panneau
   musicPause(paused); // la musique ne passe plus par l'AudioContext : elle se met en pause elle-même
 }
@@ -30500,7 +30507,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
        bip tombait sur un contexte encore suspendu (`sfxOk` le refuse) — on n'entendait que « 2 » et « 1 ». On part à la promesse
        résolue (ou rejetée), avec un filet à 400 ms si elle ne répond jamais (iOS « interrupted ») : la pause ne doit jamais rester coincée. */
     const go=function(){if(parti)return;parti=true;pas();};
-    let r9=null;try{if(AC&&SND.sfx&&AC.state!=='running')r9=AC.resume();}catch(e){}
+    let r9=null;try{busPlein();if(AC&&SND.sfx&&AC.state!=='running')r9=AC.resume();}catch(e){} // la sortie remonte : les bips du compte s'entendent
     if(r9&&r9.then){r9.then(go,go);setTimeout(go,400);}else go(); }
   // ⚠ `click` EN PLUS DE `touchstart` (2026-09-05) — `#tGear`/`#tPanel` s'affichent maintenant sur
   // DESKTOP aussi (voir CSS `body.play #tSet`), or une souris ne déclenche JAMAIS `touchstart` :
