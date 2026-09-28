@@ -662,6 +662,18 @@ senior, adapte de manière pro en prenant des libertés ». Lois 10-12 de `FLOW2
 - Hooks : `dbgFren('risque',10,'m')` (geste signé), `dbgFren('faute','n')`. Banc : `banctr.js` (scratchpad 312bec4e). ⚠ `sim.js` exécute le
   bloc FLOW2 (les nouvelles clés n'y gênent pas) mais NE simule PAS la vitesse tenue ni -PSYCHO (ils vivent dans `flowTick`).
 
+## LA TRIADE SIMPLIFIÉE (2026-09-28, nuit) — la montée allégée, la tenue un cran plus exigeante (lois 13-14 de `FLOW2`)
+Sacha : « c'est un peu trop dur d'avoir la dark triad, simplifie quand même un peu plus ». Les bancs de la session flow (sim.js…sim3.js)
+avaient disparu avec son scratchpad : **`simtri.js`** (scratchpad 312bec4e, `ui/`) exécute le VRAI bloc `<<<FLOW2>>>` extrait
+d'index.html sur trois joueurs types (tranquille · casse-cou · maître : gestes/s, sauts, nitro, raccourcis, fautes, PSYCHO v5),
+5 min × 60 parties ; `OV='{…}'` surcharge FLOW2 à l'essai. AVANT : tranquille et casse-cou JAMAIS, maître 2 min 26.
+- **Réglages** : `cel` .7/.55/.4/.34 (v3 : .5/.35/.22/.14) · `pente` rose+triade .15 (.4) · `fuite` 2,5/3/3/2,5 · `gate` .85 (.95) ·
+  `fam.style[3]` .7 (.35), `fam.route` [1,.6,.3,.15] (la route touche enfin la triade, un filet) · `brule` [4,5 · 2,4 · ,9 · −1,2]
+  ([4 · 2 · ,7 · −1,5]) · `faute.lourd` 4 (6).
+- **APRÈS** : tranquille ~4 min (60 % l'atteignent en 5 min), casse-cou ~1 min, maître ~40 s ; en frénésie ~5 % · ~50 % · ~70 % du
+  temps. ⚠ Le v3 disait « 77 % du temps pour le maître = c'était le jeu » : si Sacha trouve la frénésie trop présente, durcir la
+  TENUE (`brule`, mémoires des traits), pas la montée.
+
 ## LE HUD DE COURSE, MAÎTRISÉ ET EN MOUVEMENT (2026-09-28) — le dessin d'origine, plus de rigueur et d'animation
 ⚠ **ÉCARTÉ LE MÊME JOUR : le « tableau de bord à LED »** (rampe unique nitro + flow en shift lights, plaques partout, main b5bfd24 /
 3270d00). Verdict de Sacha : « non, je préfère la première version — remets-la dans le même style, juste avec plus de maîtrise et
