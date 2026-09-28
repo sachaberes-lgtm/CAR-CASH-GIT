@@ -21994,11 +21994,15 @@ const FX_WOW={f:'wow.mp3',v:.80,max:2.2};
    se reconnaît, donc elle s'use, et sur un jeu où l'argent tombe toutes les dix secondes elle finit
    par casser les oreilles. Un son de MATIÈRE (tiroir-caisse, billets, compteuse) se fond dans le
    mix et supporte la répétition. Les fichiers restent sur le disque si on veut en récupérer un. */
+/* (2026-09-28, chasse aux détails) LES QUATRE SONT À LA MÊME SONIE — MESURÉ (ebur128) : compteur −7 LUFS, compteuse −18,7, cash −19,2,
+   kaching −22 : tirés au hasard, le compteur claquait 13 dB au-dessus des autres (il couvrait la voix de l'annonceur), et sur iPhone
+   `volume` est ignoré (VOL_LOCKED) : seuls les FICHIERS comptent. Ils ont été ramenés à −20 LUFS (crêtes ≤ −1 dB, étiquettes vidées) ;
+   le `v` est donc le même pour tous. */
 const FX_ARGENT=[
-  {f:'kaching.mp3',   v:.75,max:2.4},  // le tiroir-caisse
-  {f:'cash.mp3',      v:.70,max:2.4},  // la liasse qu'on froisse
-  {f:'compteuse.mp3', v:.62,max:2.6},  // la machine à compter
-  {f:'compteur.mp3',  v:.62,max:2.8}   // le compteur à billets
+  {f:'kaching.mp3',   v:.7,max:2.4},  // le tiroir-caisse
+  {f:'cash.mp3',      v:.7,max:2.4},  // la liasse qu'on froisse
+  {f:'compteuse.mp3', v:.7,max:2.6},  // la machine à compter
+  {f:'compteur.mp3',  v:.7,max:2.8}   // le compteur à billets
 ];
 let fxEls=[],fxArgLast=-1,fxWowCd=0,fxArgCd=0;
 function fxStop(){for(const a of fxEls){try{a.pause();}catch(e){}}fxEls.length=0;}
