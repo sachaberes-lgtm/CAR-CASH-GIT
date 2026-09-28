@@ -2011,7 +2011,7 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
   text-shadow:0 2px 0 var(--txO);
   transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease),filter var(--t-fast) var(--ease),opacity var(--t-fast) var(--ease)}
 .pbtn .pxi{color:var(--nc);filter:drop-shadow(0 0 6px color-mix(in srgb,var(--nc) 45%,transparent))}
-.pbtn:active{transform:skewX(var(--sk)) translateY(5px);
+.pbtn:active,.pbtn.appui{transform:skewX(var(--sk)) translateY(5px);
   box-shadow:inset 3px 0 0 var(--nc),inset 60px 0 44px -34px color-mix(in srgb,var(--nc) 80%,transparent),var(--levre),inset 0 0 0 1px color-mix(in srgb,var(--nc) 30%,transparent),
     0 0 0 1px var(--anneau),0 0 0 0 var(--tranche),0 0 0 1px var(--anneau),0 4px 10px rgba(0,0,0,.55)}
 .pbtn:focus-visible{outline:2px solid var(--nc);outline-offset:6px}
@@ -2027,7 +2027,7 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
   text-shadow:0 1px 0 rgba(255,247,210,.9);
   animation:k4Lingot 4.2s var(--ease) 1.2s infinite}
 .pb-gold .pxi{color:var(--auT);filter:none}
-.pb-gold:active{transform:skewX(var(--sk)) translateY(6px);
+.pb-gold:active,.pb-gold.appui{transform:skewX(var(--sk)) translateY(6px);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -2px 0 rgba(255,238,170,.55),inset 0 0 0 1px rgba(150,72,0,.35),
     0 0 0 1px #331600,0 0 0 0 var(--auE),0 0 0 1px #331600,0 5px 10px rgba(40,10,0,.5),0 0 44px rgba(255,190,40,.62)}
 .pb-gold:focus-visible{outline:2px solid var(--au1);outline-offset:6px}
@@ -2038,14 +2038,14 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 0 0 1px rgba(120,0,20,.35),0 0 0 1px #2a0008,0 5px 0 0 #85091f,0 5px 0 1px #2a0008,var(--ombreSol);
   text-shadow:0 1px 0 #7a0a1e}
 .pb-red .pxi{color:#fff;filter:none}
-.pb-red:active{box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 0 0 1px rgba(120,0,20,.35),0 0 0 1px #2a0008,0 0 0 0 #85091f,0 0 0 1px #2a0008,0 4px 10px rgba(0,0,0,.5)}
+.pb-red:active,.pb-red.appui{box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 0 0 1px rgba(120,0,20,.35),0 0 0 1px #2a0008,0 0 0 0 #85091f,0 0 0 1px #2a0008,0 4px 10px rgba(0,0,0,.5)}
 /* le VERT — valider, niveaux gagnés */
 .pb-green{--nc:#062a12;color:#062a12;
   background:linear-gradient(180deg,#dcffe5 0%,#72f294 30%,#23b853 100%);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.85),inset 0 0 0 1px rgba(0,90,30,.3),0 0 0 1px #03170a,0 5px 0 0 #0c7331,0 5px 0 1px #03170a,var(--ombreSol);
   text-shadow:0 1px 0 rgba(220,255,230,.7)}
 .pb-green .pxi{color:#062a12;filter:none}
-.pb-green:active{box-shadow:inset 0 1px 0 rgba(255,255,255,.85),inset 0 0 0 1px rgba(0,90,30,.3),0 0 0 1px #03170a,0 0 0 0 #0c7331,0 0 0 1px #03170a,0 4px 10px rgba(0,0,0,.5)}
+.pb-green:active,.pb-green.appui{box-shadow:inset 0 1px 0 rgba(255,255,255,.85),inset 0 0 0 1px rgba(0,90,30,.3),0 0 0 1px #03170a,0 0 0 0 #0c7331,0 0 0 1px #03170a,0 4px 10px rgba(0,0,0,.5)}
 /* ÉTEINTE — verrouillée, coupée, pas les moyens : elle répond encore au doigt (secousse), elle n'appelle plus l'œil */
 .pbtn.off{--nc:#4a4270;color:var(--tx3);animation:none;outline:0;
   background:linear-gradient(180deg,#1a1631,#120e24);
@@ -2079,7 +2079,7 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
    Ce qui se LIT : laque droite (on lit mieux à plat), deux coins coupés (--c), le FILET qui en fait le tour — coupes
    comprises : deux traits en dégradé posés dans les coins, là où l'ombre intérieure ne sait pas aller — une lèvre de
    lumière en haut, et la bande de SA couleur à gauche (--fc). */
-.mPanel,.tpPanel,.mMode,.hCard,.mObj,.modIn,#carr .carrBiome,.misUne,.misDef{--c:var(--coupe);--fc:var(--kl2);position:relative;box-sizing:border-box;
+.mPanel,.tpPanel,.mMode,.hCard,.mObj,.modIn,#carr .carrBiome,.misPrix,.misDef{--c:var(--coupe);--fc:var(--kl2);position:relative;box-sizing:border-box;
   background:linear-gradient(to bottom right,transparent 50%,var(--fil) 50% calc(50% + 1.3px),transparent calc(50% + 1.3px)) 0 0/var(--c) var(--c) no-repeat,
     linear-gradient(to top left,transparent 50%,var(--fil) 50% calc(50% + 1.3px),transparent calc(50% + 1.3px)) 100% 100%/var(--c) var(--c) no-repeat,
     var(--tresse),var(--laqueP);
@@ -2108,7 +2108,7 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
   font-family:var(--pix);font-size:var(--f2);letter-spacing:1px;color:var(--tx);text-align:left;border-top:1px solid rgba(255,255,255,.055);
   -webkit-tap-highlight-color:transparent;transition:background var(--t-fast) var(--ease)}
 .mPanel>.mLigne:first-child,.tpPanel>.tp.ligne:first-child{border-top:0}
-.mLigne:active,.tp.ligne:active{background:rgba(255,255,255,.05)}
+.mLigne:active,.tp.ligne:active,.mLigne.appui,.tp.ligne.appui{background:rgba(255,255,255,.05)}
 .mLigne::before,.tp.ligne::before{content:'';position:absolute;left:16px;top:50%;width:34px;height:34px;margin-top:-17px;
   background:linear-gradient(180deg,#221c40,#151129);clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px);
   box-shadow:inset 0 0 0 1px var(--fil),inset 0 1px 0 rgba(255,255,255,.1)}
@@ -2249,7 +2249,7 @@ body.touch #overlay[data-ecran="dead"]::before{opacity:.9}
 .mObj:empty{display:none}
 .mObj.pret,.mObj.rec{cursor:pointer;--fc:var(--neoC);
   box-shadow:inset 0 0 0 1px rgba(0,234,255,.55),inset 0 0 34px rgba(0,234,255,.10),inset 3px 0 0 var(--neoC);animation:k4Ticket 2.2s var(--ease) infinite}
-.mObj.pret:active,.mObj.rec:active{filter:brightness(1.25)}
+.mObj.pret:active,.mObj.rec:active,.mObj.pret.appui,.mObj.rec.appui{filter:brightness(1.25)}
 @keyframes k4Ticket{0%,100%{filter:brightness(1)}50%{filter:brightness(1.18)}}
 .obHd{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:var(--f0);letter-spacing:2px;color:var(--tx2)}
 .obHd span{display:flex;align-items:center;gap:8px}
@@ -2288,13 +2288,13 @@ body.touch #overlay[data-ecran="dead"]::before{opacity:.9}
   background:linear-gradient(180deg,#dcffe5 0%,#72f294 30%,#23b853 100%);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.85),inset 0 0 0 1px rgba(0,90,30,.3),0 0 0 1px #03170a,0 5px 0 0 #0c7331,0 5px 0 1px #03170a,var(--ombreSol);
   text-shadow:0 1px 0 rgba(220,255,230,.7);position:relative;display:flex;align-items:center;justify-content:center;border:0;border-radius:0;cursor:pointer;font-family:var(--pix);transform:skewX(var(--sk))}
-#nameSave:active{transform:skewX(var(--sk)) translateY(5px)}
+#nameSave:active,#nameSave.appui{transform:skewX(var(--sk)) translateY(5px)}
 
 /* ---------------------------------------------- MODES --------------------------------------------------------------- */
 .mMode{--mc:var(--kl2);--fc:var(--mc);display:flex;flex-direction:column;gap:10px;width:100%;margin:0 0 14px;padding:16px 16px 16px 20px;cursor:pointer;text-align:left;
   transition:box-shadow var(--t-fast) var(--ease)}
 .mMode.on{--mc:var(--neoV);box-shadow:inset 0 0 0 1px rgba(94,227,122,.5),var(--levre),inset 3px 0 0 var(--mc),inset 40px 0 44px -36px rgba(94,227,122,.5)}
-.mMode:active{filter:brightness(1.2)}
+.mMode:active,.mMode.appui{filter:brightness(1.2)}
 .mmT{display:flex;align-items:center;justify-content:space-between;gap:12px;font-family:var(--pix);font-size:var(--f3);letter-spacing:1px;color:var(--tx)}
 .mmT>span:first-child{display:flex;align-items:center;gap:12px;transform:skewX(var(--sk))}
 .mmT .pxi{--pxs:3;color:var(--mc)}
@@ -2313,7 +2313,7 @@ body.touch #overlay[data-ecran="dead"]::before{opacity:.9}
   background:var(--laque);text-shadow:0 2px 0 var(--txO);
   box-shadow:inset 3px 0 0 var(--neoR),inset 34px 0 30px -28px rgba(255,74,100,.7),var(--levre),inset 0 0 0 1px rgba(255,74,100,.18),0 0 0 1px var(--anneau),0 5px 0 0 var(--tranche),0 5px 0 1px var(--anneau),var(--ombreSol)}
 .mWipe .pxi{--pxs:2;color:var(--neoR);filter:none}
-.mWipe:active{box-shadow:inset 3px 0 0 var(--neoR),inset 60px 0 44px -34px rgba(255,74,100,.7),var(--levre),0 0 0 1px var(--anneau),0 4px 10px rgba(0,0,0,.5)}
+.mWipe:active,.mWipe.appui{box-shadow:inset 3px 0 0 var(--neoR),inset 60px 0 44px -34px rgba(255,74,100,.7),var(--levre),0 0 0 1px var(--anneau),0 4px 10px rgba(0,0,0,.5)}
 
 /* ---------------------------------------------- LA BOUTIQUE -------------------------------------------------------- */
 /* L'OFFRE À LA UNE : une vitrine de légende — cadre magenta qui scintille, la caisse qui flotte sur son socle de lumière */
@@ -2355,7 +2355,7 @@ body.touch #overlay[data-ecran="dead"]::before{opacity:.9}
     linear-gradient(to top left,transparent 50%,var(--fil) 50% calc(50% + 1.3px),transparent calc(50% + 1.3px)) 100% 100%/var(--c) var(--c) no-repeat,
     radial-gradient(80% 55% at 50% 38%,rgba(255,62,200,.18),transparent 70%),var(--laqueP);
   box-shadow:inset 0 0 0 1px var(--fil),inset 0 3px 0 var(--neoM),var(--levre);transition:filter var(--t-fast) var(--ease)}
-.shCase:active,.shUne:active{filter:brightness(1.2)}
+.shCase:active,.shUne:active,.shCase.appui,.shUne.appui{filter:brightness(1.2)}
 .shCase .shPhoto img{width:118%;animation:none}
 .shNom{font-family:var(--pix);font-weight:400;font-size:var(--f1);line-height:1.5;color:#fff;letter-spacing:1px}
 .shPrix{align-self:flex-start;margin-top:auto;padding:6px 9px 5px;font-family:var(--pix);font-size:var(--f2);color:var(--au1);
@@ -2384,7 +2384,7 @@ body.touch #overlay[data-ecran="dead"]::before{opacity:.9}
     0 0 0 1px var(--anneau),0 5px 0 0 var(--tranche),0 5px 0 1px var(--anneau),var(--ombreSol);
   text-shadow:0 2px 0 var(--txO);transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
 #tPanel .tp:not(.ligne) .pxi{--pxs:2;color:var(--nc)}
-#tPanel .tp:not(.ligne):active{transform:skewX(var(--sk)) translateY(5px);box-shadow:inset 3px 0 0 var(--nc),inset 60px 0 44px -34px color-mix(in srgb,var(--nc) 80%,transparent),var(--levre),0 0 0 1px var(--anneau),0 4px 10px rgba(0,0,0,.5)}
+#tPanel .tp:not(.ligne):active,#tPanel .tp:not(.ligne).appui{transform:skewX(var(--sk)) translateY(5px);box-shadow:inset 3px 0 0 var(--nc),inset 60px 0 44px -34px color-mix(in srgb,var(--nc) 80%,transparent),var(--levre),0 0 0 1px var(--anneau),0 4px 10px rgba(0,0,0,.5)}
 #tPanel .tp.rouge{--nc:var(--neoR);color:var(--neoR)}
 body:has(#tPanel.open) #tGear,body:has(#tPanel.open) #touchCtl{visibility:hidden}
 #tPanel .tp.go{--nc:var(--auT);color:var(--auT);position:sticky;bottom:calc(var(--sB) + 12px);z-index:2;margin:auto 0 6px;min-height:72px;font-size:var(--f5);letter-spacing:4px;
@@ -2395,7 +2395,7 @@ body:has(#tPanel.open) #tGear,body:has(#tPanel.open) #touchCtl{visibility:hidden
     0 0 0 1px #331600,0 6px 0 0 var(--auE),0 6px 0 1px #331600,0 18px 28px -10px rgba(70,24,0,.75),0 0 34px -6px var(--auG);
   outline:1px solid rgba(140,68,0,.32);outline-offset:-7px;text-shadow:0 1px 0 rgba(255,247,210,.9);animation:k4Lingot 4.2s var(--ease) 1.2s infinite}
 #tPanel .tp.go .pxi{--pxs:3;color:var(--auT)}
-#tPanel .tp.go:active{transform:skewX(var(--sk)) translateY(6px);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 0 0 1px #331600,0 5px 10px rgba(40,10,0,.5),0 0 44px rgba(255,190,40,.62)}
+#tPanel .tp.go:active,#tPanel .tp.go.appui{transform:skewX(var(--sk)) translateY(6px);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 0 0 1px #331600,0 5px 10px rgba(40,10,0,.5),0 0 44px rgba(255,190,40,.62)}
 /* LA PARTIE : RECOMMENCER et QUITTER côte à côte (aucun des deux n'est l'action primaire : c'est REPRENDRE, en bas) */
 #tPanel .tp[data-a="reset"],#tPanel .tp[data-a="quit"]{margin:0}
 #tpIn .tpPanel{display:block}
@@ -2409,7 +2409,7 @@ body #tGear{width:48px!important;height:48px!important;border:0!important;border
   box-shadow:inset 3px 0 0 var(--neoC),inset 34px 0 30px -28px rgba(0,234,255,.7),var(--levre),inset 0 0 0 1px rgba(255,255,255,.06),0 0 0 1px var(--anneau),0 5px 0 0 var(--tranche),0 5px 0 1px var(--anneau),0 10px 18px -6px rgba(0,0,0,.6)!important}
 body #tGear::before,body #tGear::after{display:none!important}
 body #tGear .pxi{--pxs:2;color:var(--neoC);filter:none!important}
-body #tGear:active{transform:skewX(var(--sk)) translateY(5px)!important;
+body #tGear:active,body #tGear.appui{transform:skewX(var(--sk)) translateY(5px)!important;
   box-shadow:inset 3px 0 0 var(--neoC),inset 60px 0 44px -34px rgba(0,234,255,.7),var(--levre),0 0 0 1px var(--anneau),0 4px 10px rgba(0,0,0,.5)!important}
 /* sous la pause, le HUD de course se tait (il se lisait à travers le voile) */
 body:has(#tPanel.open) :is(#flowHud,#auraV2,#pwrChip,#pwrFx,#airPie,#nitroWrap,#lvlBan,#slam9){visibility:hidden}
@@ -2559,8 +2559,8 @@ body.inGarage #hud>:not(#garage):not(#gFade){display:none!important}
 .gTab .pxi{--pxs:2;color:var(--tx3);transition:color var(--t-fast) var(--ease)}
 .gTab.on{color:#fff;background:linear-gradient(180deg,#ff72d9,#e0249d 60%,#c01585);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 0 18px rgba(255,62,200,.5);text-shadow:0 1px 0 #8a0f5c}
 .gTab.on .pxi{color:#fff}
-.gTab:active{background:rgba(255,255,255,.06)}
-.gTab.on:active{background:linear-gradient(180deg,#ff72d9,#e0249d 60%,#c01585)}
+.gTab:active,.gTab.appui{background:rgba(255,255,255,.06)}
+.gTab.on:active,.gTab.on.appui{background:linear-gradient(180deg,#ff72d9,#e0249d 60%,#c01585)}
 /* LES FAMILLES : des puces penchées, la couleur de la rareté en filet, un losange qui brille */
 #gRar{display:flex;gap:10px;overflow-x:auto;overflow-y:hidden;margin:0 -14px;padding:4px 20px 6px;
   -webkit-mask:linear-gradient(90deg,transparent 0,#000 24px,#000 calc(100% - 56px),transparent);mask:linear-gradient(90deg,transparent 0,#000 24px,#000 calc(100% - 56px),transparent);scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
@@ -2590,7 +2590,7 @@ body.inGarage #hud>:not(#garage):not(#gFade){display:none!important}
 .gT.lock img{filter:brightness(.42) saturate(.35) contrast(1.1)}   /* fermée, mais on la VOIT : l'envie naît là */
 .gT.lock::before{content:'';position:absolute;left:8px;top:10px;width:9px;height:9px;background:var(--tx3);-webkit-mask:var(--pxi-verrou) center/contain no-repeat;mask:var(--pxi-verrou) center/contain no-repeat;z-index:1}
 .gT.eq::after{content:'';position:absolute;left:8px;bottom:8px;width:8px;height:8px;background:var(--au2);transform:rotate(45deg);box-shadow:0 0 8px var(--au2)}
-.gT:active{translate:0 3px}
+.gT:active,.gT.appui{translate:0 3px}
 .gT.on{transform:skewX(var(--sk)) translateY(-6px);box-shadow:inset 0 2px 0 var(--rc),inset 0 0 0 1px var(--rc),0 0 0 1px var(--anneau),0 5px 0 1px var(--anneau),0 0 24px color-mix(in srgb,var(--rc) 70%,transparent)}
 .gT.cos.on{--rc:var(--neoM)}
 /* les vignettes d'HABILLAGE : un nuancier, une aile, un ruban */
@@ -2614,7 +2614,7 @@ body.inGarage #hud>:not(#garage):not(#gFade){display:none!important}
 /* LES FLÈCHES : de part et d'autre de la caisse, fines et penchées */
 #garage .gNav{position:fixed;top:calc(50% + (var(--sT) - var(--sB)) / 2 - 104px);z-index:3;width:38px;min-width:38px;min-height:58px;padding:0;opacity:.86;
   --nc:var(--neoC);background:var(--laque)}
-#garage .gNav:active{opacity:1}
+#garage .gNav:active,#garage .gNav.appui{opacity:1}
 #garage .gNav .pxi{--pxs:2}
 #gPrev{left:calc(var(--sL) + 8px)}
 #gNext{right:calc(var(--sR) + 8px);--nc:var(--neoC)}
@@ -2632,7 +2632,7 @@ body.inGarage #hud>:not(#garage):not(#gFade){display:none!important}
 #gBuy.pauvre .gPrix{color:var(--neoR)}
 /* ÉQUIPÉE : la touche est ENFONCÉE et y reste — comme un interrupteur verrouillé en bas. Ce n'est plus une action, c'est un état. */
 #gEquip[data-etat="eq"],#gEquip[data-etat="verrou"]{transform:skewX(var(--sk)) translateY(5px)}
-#gEquip[data-etat="eq"]:active,#gEquip[data-etat="verrou"]:active{transform:skewX(var(--sk)) translateY(5px)}
+#gEquip[data-etat="eq"]:active,#gEquip[data-etat="verrou"]:active,#gEquip[data-etat="eq"].appui,#gEquip[data-etat="verrou"].appui{transform:skewX(var(--sk)) translateY(5px)}
 #gEquip[data-etat="eq"]{--nc:var(--neoV);color:var(--neoV);animation:none;outline:0;background:linear-gradient(180deg,#0f2a1d,#0a1d14);
   box-shadow:inset 3px 0 0 var(--neoV),inset 60px 0 44px -34px rgba(94,227,122,.35),inset 0 2px 6px rgba(0,0,0,.55),inset 0 0 0 1px rgba(94,227,122,.3),0 0 0 1px var(--anneau),0 0 18px rgba(94,227,122,.18);text-shadow:0 2px 0 var(--txO)}
 #gEquip[data-etat="eq"] .pxi{color:var(--neoV)}
@@ -3429,7 +3429,7 @@ html #spNote{position:fixed;bottom:calc(var(--sB) + 84px)}
   box-shadow:inset 5px 0 0 var(--nc),inset 18px 0 20px -14px var(--nc),inset 0 1px 0 rgba(255,255,255,.22),
     0 0 0 2px var(--k0),0 6px 0 0 #0a0716,0 6px 0 2px var(--k0),var(--ombreSol4);text-shadow:0 2px 0 var(--txO)}
 #mHome .pbtn .pxi{filter:none}
-#mHome .pbtn:active{transform:skewX(var(--sk)) translateY(6px);
+#mHome .pbtn:active,#mHome .pbtn.appui{transform:skewX(var(--sk)) translateY(6px);
   box-shadow:inset 5px 0 0 var(--nc),inset 26px 0 26px -14px var(--nc),inset 0 1px 0 rgba(255,255,255,.22),
     0 0 0 2px var(--k0),0 0 0 0 #0a0716,0 0 0 2px var(--k0),0 5px 8px rgba(0,0,0,.5)}
 #mHome .pbtn.ico{gap:9px;padding:12px 8px 10px 16px}
@@ -3440,7 +3440,7 @@ html #spNote{position:fixed;bottom:calc(var(--sB) + 84px)}
   box-shadow:inset 0 2px 0 rgba(255,255,255,.9),inset 0 -4px 0 rgba(190,95,0,.55),
     0 7px 0 0 var(--auE),0 0 0 2px var(--auO),0 7px 0 2px var(--auO),0 16px 22px rgba(40,10,0,.55),0 0 26px var(--auG);
   outline:2px solid rgba(160,82,0,.28);outline-offset:-8px;text-shadow:0 2px 0 rgba(255,244,196,.85)}
-#mHome .pb-gold:active{transform:skewX(var(--sk)) translateY(7px);
+#mHome .pb-gold:active,#mHome .pb-gold.appui{transform:skewX(var(--sk)) translateY(7px);
   box-shadow:inset 0 2px 0 rgba(255,255,255,.9),inset 0 -4px 0 rgba(190,95,0,.55),
     0 0 0 2px var(--auO),0 0 0 0 var(--auE),0 0 0 2px var(--auO),0 5px 8px rgba(40,10,0,.5),0 0 36px rgba(255,190,40,.6)}
 @keyframes k4LingotV4{0%,64%{background-position:180% 0,0 0,0 0}94%,100%{background-position:-80% 0,0 0,0 0}}
@@ -3498,100 +3498,265 @@ html #mDead .mStat.mFren.zero b{color:var(--tx3);text-shadow:0 2px 0 var(--txO)}
 html #mDead .hCard>small{margin-bottom:auto}     /* l'étiquette reste en tête des deux cartes (même hauteur), le reste se CENTRE dessous — */
 html #mDead .hCard>:last-child{margin-bottom:auto} /* plus de moitié vide en bas de la carte AURA */
 
-/* L'ÉCRAN DES MISSIONS — 1. LA RÉCOMPENSE : une plaque qu'on lit, livrée verte en tête, la vignette sur son socle de lumière */
+/* L'ÉCRAN DES MISSIONS v2 (2026-09-28, soir — Sacha : « enlève toutes ces histoires de contrat : les défis, et à côté des défis, écrits
+   dans les couleurs de leur rareté, les objets que tu peux gagner »). Deux colonnes lues de gauche à droite : LES TROIS DÉFIS → L'OBJET
+   qu'ils rapportent, sur une plaque de SA couleur (--rc : la famille de la caisse au garage — DÉFI vert —, la couleur de l'habillage sur sa
+   fiche — peinture rose, traînée ambre, ailes cyan) ; dessous, ENSUITE : les objets suivants, chacun dans sa couleur. */
 #mMis .mHead{margin-bottom:12px}
-#mMis>.mHead+.misUne{margin-top:auto}#mMis>.mDock{margin-top:10px}                       /* le vide passe SOUS le titre, le contenu tombe vers la sortie (comme MODES) */
-.misUne{--fc:transparent;display:flex;flex-direction:column;gap:11px;width:100%;padding:14px 18px 14px;font-family:var(--pix);text-align:left;
-  box-shadow:inset 0 0 0 1px var(--fil),var(--levre),inset 0 3px 0 var(--neoV),inset 0 70px 60px -56px rgba(94,227,122,.30)}
-.misUne.voir{cursor:pointer}
-.misUne.voir:active{filter:brightness(1.2)}
-.misTete{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:var(--f0);letter-spacing:2px;color:var(--tx2)}
-.misTete span{display:flex;align-items:center;gap:8px}
-.misTete .pxi{--pxs:1;color:var(--neoV)}
-.misTete b{font-weight:400;letter-spacing:1px;color:var(--neoV);text-shadow:0 0 10px rgba(94,227,122,.45)}
-.misCorps{display:flex;align-items:center;gap:14px;min-height:74px}
-.misUne .obFig{position:relative;right:auto;top:auto;flex:none;width:124px;height:74px;margin:0;
-  background:radial-gradient(62% 42% at 50% 84%,rgba(94,227,122,.34),transparent 72%)}
-.misUne .obFig img{width:122%}
-.misUne .obFig .pxi{--pxs:6;color:var(--tx2)}
-.misUne .obSw{width:84px;height:50px}
-.misUne .obRub{width:108px;height:14px}
-.misUne .misCash .pxi{color:var(--cash)}
-.misNom{flex:1;min-width:0;font-weight:400;font-size:var(--f5);line-height:1.45;letter-spacing:1px;color:#fff;
-  transform:skewX(var(--sk));text-shadow:0 3px 0 var(--txO),0 0 16px rgba(94,227,122,.35)}
-#mMis .misExpl{max-width:none;margin:0;opacity:1;font-family:var(--sans);font-size:14px;line-height:1.5;font-weight:500;color:var(--tx2);text-align:left} /* #mMis : la vieille règle #overlay p (centré, interligne 1.9) passait devant */
-/* la JAUGE des trois défis : trois cellules penchées ; chacune se remplit de ton meilleur essai, pleine et verte une fois relevée */
-.misJauge{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:2px}
-.misJauge i,.misBar{position:relative;display:block;height:10px;overflow:hidden;background:var(--k0);transform:skewX(var(--sk));box-shadow:0 0 0 1px var(--kl)}
-.misJauge u,.misBar u{position:absolute;left:0;top:0;bottom:0;display:block;width:0;background:linear-gradient(90deg,#0a8fa8,var(--neoC));
-  box-shadow:0 0 10px rgba(0,234,255,.45);transition:width 1.1s var(--ease)}
-.misJauge i.ok u,.misDef.ok .misBar u{background:linear-gradient(90deg,#23b853,var(--neoV));box-shadow:0 0 12px rgba(94,227,122,.6)}
-.misPied{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:var(--f0);letter-spacing:1px;color:var(--tx3);white-space:nowrap}
-.misPied b{font-weight:400;font-size:var(--f3);color:var(--neoV)}
-.misLien{display:flex;align-items:center;gap:6px;color:var(--neoC)}
-.misLien .pxi{--pxs:1}
-.misUne.plein{box-shadow:inset 0 0 0 1px rgba(94,227,122,.55),var(--levre),inset 0 3px 0 var(--neoV),inset 0 70px 60px -56px rgba(94,227,122,.45)}
-/* 2. LES TROIS DÉFIS : une plaque par défi — le numéro dans son puits, la consigne, la prime en vert billet, la jauge, l'avancement */
-#mMis .mSec{margin:18px 0 8px}
-.misListe{display:flex;flex-direction:column;gap:10px;width:100%}
-.misDef{--fc:var(--kl2);--c:10px;display:flex;align-items:flex-start;gap:14px;width:100%;padding:11px 16px 11px 16px;font-family:var(--pix);text-align:left}
+#mMis>.mHead+.mSec{margin-top:auto}#mMis>.mDock{margin-top:10px}   /* le vide passe SOUS le titre, le contenu tombe vers la sortie (comme MODES) */
+#mMis .mSec{margin:0 0 10px}
+.misTab{display:grid;grid-template-columns:minmax(0,1fr) 132px;gap:10px;width:100%;align-items:stretch}
+.misDefs{display:flex;flex-direction:column;gap:8px;min-width:0}
+/* un DÉFI : sa consigne (numéro dans son puits, ou la coche), sa jauge, où tu en es et sa prime en vert billet */
+.misDef{--fc:var(--kl2);--c:10px;flex:1;display:flex;flex-direction:column;justify-content:center;gap:8px;width:100%;padding:10px 12px 10px 14px;font-family:var(--pix);text-align:left}
 .misDef.ok{--fc:var(--neoV)}
-.misN{flex:none;display:flex;align-items:center;justify-content:center;width:34px;height:34px;font-style:normal;font-size:var(--f3);color:var(--tx2);
-  background:linear-gradient(180deg,#221c40,#151129);clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px);
-  box-shadow:inset 0 0 0 1px var(--fil),inset 0 1px 0 rgba(255,255,255,.1)}
-.misDef.ok .misN{background:linear-gradient(180deg,#0d3a1f,#07210f);box-shadow:inset 0 0 0 1px #1f8a4b,inset 0 1px 0 rgba(255,255,255,.1)}
-.misN .pxi{--pxs:2;color:var(--neoV)}
-.misC{flex:1;min-width:0;display:flex;flex-direction:column;gap:9px}
-.misL{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;font-size:var(--f1);line-height:1.6;letter-spacing:1px;color:var(--tx)}
-.misL b{flex:none;font-weight:400;color:var(--cash);text-shadow:0 2px 0 var(--cashO),0 0 10px rgba(125,255,155,.35)}
-.misDef.ok .misL span{color:var(--tx2)}
-.misBar{height:6px}
-.misP{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:var(--f0);letter-spacing:1px;color:var(--tx3);white-space:nowrap}
-.misP span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis}
-.misP span:last-child{flex:none;color:var(--tx)}
-.misDef.ok .misP span:first-child{color:var(--neoV)}
-/* 3. LA RÈGLE, en clair : une partie par défi, la prime tout de suite, la récompense à la fin de la partie */
-.misRegle{display:flex;align-items:flex-start;gap:12px;width:100%;margin:12px 0 0;padding:0 4px;box-sizing:border-box;
-  font-family:var(--sans);font-size:13px;line-height:1.5;font-weight:500;color:var(--tx3)}
-.misRegle .pxi{--pxs:2;flex:none;margin-top:2px;color:var(--neoC)}
-/* 4. ET APRÈS : le contrat suivant, sous cadenas — une ligne, pour savoir que ça continue */
-.misSuite{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin:10px 0 4px;padding:11px 16px;box-sizing:border-box;
-  font-family:var(--pix);font-size:var(--f0);letter-spacing:1px;color:var(--tx3);background:var(--k1);box-shadow:inset 0 0 0 1px var(--fil);
-  clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
-.misSuite:empty{display:none}
-.misSuite span{display:flex;align-items:center;gap:8px}
-.misSuite .pxi{--pxs:1;color:var(--tx3)}
-.misSuite b{font-weight:400;color:var(--tx2);text-align:right}
-@media (max-height:760px){
-  .misUne{gap:10px;padding:14px 16px}
-  .misCorps{min-height:70px}
-  .misUne .obFig{width:112px;height:70px}
-  .misDef{padding:11px 14px}
-  #mMis .mSec{margin:18px 0 8px}
+.misL{display:flex;align-items:flex-start;gap:9px;font-size:var(--f1);line-height:1.6;letter-spacing:1px;color:var(--tx)}
+.misL>span{min-width:0}
+.misL>.pxi{--pxs:2;flex:none;margin-top:1px;color:var(--neoV)}
+.misN{flex:none;display:flex;align-items:center;justify-content:center;width:18px;height:18px;margin-top:-1px;font-style:normal;font-size:var(--f0);color:var(--tx2);
+  background:linear-gradient(180deg,#221c40,#151129);clip-path:polygon(4px 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,0 100%,0 4px);
+  box-shadow:inset 0 0 0 1px var(--fil)}
+.misDef.ok .misL>span{color:var(--tx2)}
+.misBar,.misJauge i{position:relative;display:block;height:6px;overflow:hidden;background:var(--k0);transform:skewX(var(--sk));box-shadow:0 0 0 1px var(--kl)}
+.misBar u,.misJauge u{position:absolute;left:0;top:0;bottom:0;display:block;width:0;background:linear-gradient(90deg,#0a8fa8,var(--neoC));
+  box-shadow:0 0 10px rgba(0,234,255,.45);transition:width 1.1s var(--ease)}
+.misDef.ok .misBar u,.misJauge i.ok u{background:linear-gradient(90deg,#23b853,var(--neoV));box-shadow:0 0 12px rgba(94,227,122,.6)}
+.misP{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:var(--f0);letter-spacing:1px;color:var(--tx3);white-space:nowrap}
+.misP b{flex:none;font-weight:400;color:var(--cash);text-shadow:0 2px 0 var(--cashO),0 0 10px rgba(125,255,155,.3)}
+.misDef.ok .misP span{color:var(--neoV)}
+/* L'OBJET À GAGNER : droit à coins coupés (on le lit), la livrée de SA couleur en tête, son nom dans sa couleur — touché : au garage */
+.misPrix{--c:12px;--fc:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-width:0;padding:12px 8px 12px 9px;
+  font-family:var(--pix);text-align:center;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--rc) 42%,transparent),var(--levre),inset 0 3px 0 var(--rc),inset 0 90px 60px -64px color-mix(in srgb,var(--rc) 34%,transparent)}
+.misPrix.voir{cursor:pointer}
+.misPrix small{font-size:var(--f0);letter-spacing:2px;color:var(--tx3)}
+.misPrix .obFig{position:relative;right:auto;top:auto;flex:none;width:106px;height:64px;margin:0;
+  background:radial-gradient(60% 44% at 50% 84%,color-mix(in srgb,var(--rc) 42%,transparent),transparent 72%)}
+.misPrix .obFig img{width:122%}
+.misPrix .obFig .pxi{--pxs:5;color:var(--tx2)}
+.misPrix .obSw{width:72px;height:42px}
+.misPrix .obRub{width:84px;height:12px}
+.misPrix .misCash .pxi{color:var(--cash)}
+.misNom{max-width:100%;font-weight:400;font-size:var(--f3);line-height:1.5;letter-spacing:1px;color:var(--rc);overflow-wrap:anywhere;
+  text-shadow:0 2px 0 var(--txO),0 0 14px color-mix(in srgb,var(--rc) 50%,transparent)}
+.misFam{font-size:var(--f0);letter-spacing:2px;color:var(--rc);opacity:.78}
+.misJauge{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;width:100%;margin-top:3px;box-sizing:border-box;padding:0 4px}
+.misCpt{font-size:var(--f0);letter-spacing:1px;color:var(--tx3)}
+.misCpt b{font-weight:400;font-size:var(--f3);color:var(--neoV)}
+.misLien{display:flex;align-items:center;gap:6px;font-size:var(--f0);letter-spacing:1px;color:var(--neoC)}
+.misLien .pxi{--pxs:1}
+.misPrix.plein{box-shadow:inset 0 0 0 1px var(--rc),var(--levre),inset 0 3px 0 var(--rc),inset 0 120px 70px -60px color-mix(in srgb,var(--rc) 45%,transparent)}
+/* la COLONNE DES OBJETS : l'objet en jeu, puis ENSUITE — les trois suivants, chacun sa silhouette et son nom dans sa couleur */
+.misCol{display:flex;flex-direction:column;gap:8px;min-width:0}
+.misCol>.misPrix{flex:1}
+.misSuiv{display:flex;flex-direction:column;gap:9px;padding:10px 9px 11px 10px;box-sizing:border-box;font-family:var(--pix);
+  background:var(--k1);box-shadow:inset 0 0 0 1px var(--fil);clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
+.misSuiv small{display:flex;align-items:center;gap:6px;font-size:var(--f0);letter-spacing:2px;color:var(--tx3)}
+.misSuiv small .pxi{--pxs:1;color:var(--tx3)}
+.misSv{display:flex;align-items:flex-start;gap:7px;min-width:0;font-size:var(--f0);line-height:1.5;letter-spacing:1px}
+.misSv .pxi{--pxs:1;flex:none;margin-top:1px;color:var(--rc);opacity:.85}
+.misSv b{min-width:0;font-weight:400;color:var(--rc);overflow-wrap:anywhere;text-shadow:0 0 10px color-mix(in srgb,var(--rc) 40%,transparent)}
+/* un grand téléphone debout (390 × 844 et plus) : la même page, en plus généreux — sinon la moitié haute reste vide */
+@media (orientation:portrait) and (min-height:760px){
+  .misTab{grid-template-columns:minmax(0,1fr) 138px;gap:12px}
+  .misDefs,.misCol{gap:12px}
+  .misDef{gap:12px;padding:16px 14px 16px 16px}
+  .misL{font-size:var(--f3);line-height:1.55}
+  .misL>.pxi{margin-top:2px}
+  .misN{width:20px;height:20px;font-size:var(--f1)}
+  .misBar{height:8px}
+  .misPrix{gap:9px;padding:16px 8px 16px 9px}
+  .misPrix .obFig{width:124px;height:76px}
+  .misNom{font-size:var(--f4)}
+  .misSuiv{gap:11px;padding:13px 10px 14px 11px}
+  #mMis .mSec{margin-bottom:12px}
 }
-/* LE PAYSAGE (ce que l'ordi montre) : la récompense à gauche, les trois défis à droite ; la maison de l'écran de mort passe en ligne */
+@media (max-width:360px){.misTab{grid-template-columns:minmax(0,1fr) 112px;gap:8px}.misPrix .obFig{width:98px;height:60px}.misDef{padding:9px 10px 9px 12px}}
+/* LA PORTE DES MISSIONS de l'écran de mort (objRender) : le défi que la partie a le plus approché, sa jauge, l'objet au bout */
+.mObj.misPorte{--fc:var(--neoV);cursor:pointer}
+.mObj.misPorte .obHd{color:var(--neoV)}
+.mObj.misPorte .obHd .pxi{--pxs:2}
+.mObj.misPorte .mMisPips{margin-left:auto}
+.mObj.misPorte .obBig{font-size:var(--f3)}
+.mObj.misPorte .obBar i{background:linear-gradient(90deg,#0a8fa8,var(--neoC));box-shadow:0 0 10px rgba(0,234,255,.45);transition:width 1.1s var(--ease)}
+.mObj.misPorte .obBar.ok i{background:linear-gradient(90deg,#23b853,var(--neoV));box-shadow:0 0 12px rgba(94,227,122,.6)}
+.mObj.misPorte .obFt{color:var(--tx2)}
+.obGain{display:flex;align-items:center;gap:6px;color:var(--rc,var(--neoC));text-shadow:0 0 10px color-mix(in srgb,var(--rc,#00eaff) 40%,transparent)}
+.obPrime{font-style:normal;color:var(--cash)}
+/* LE PAYSAGE (ce que l'ordi montre) : titre et règle en tête, défis → objet sur toute la largeur, ENSUITE dans la rangée du RETOUR ;
+   la maison de l'écran de mort passe en ligne */
 @media (orientation:landscape) and (max-height:540px){
   html #mDead .mMenu{flex-direction:row;width:auto;gap:8px;padding:0 14px 0 16px;font-size:var(--f0)}
   html #mDead .mMenu .pxi{--pxs:2}
   html #mHome .mMisBtn{min-height:44px}
-  /* la RÈGLE monte à droite du titre (on la lit en arrivant), la récompense à gauche, les trois défis à droite, et « ENSUITE »
-     descend dans la rangée du RETOUR : tout tient dans les 390 px d'un téléphone couché, sans défiler */
-  html #mMis.on{max-width:820px;align-self:center;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.08fr);column-gap:22px;align-content:start;
-    grid-template-areas:"head regle" "une sec" "une liste" "dock suite";grid-template-rows:auto auto 1fr auto}
-  html #mMis .mHead{grid-area:head;margin:0 0 12px}
-  html #mMis .misRegle{grid-area:regle;align-self:center;margin:0 0 12px;padding:0;font-size:12px;line-height:1.45}
-  html #mMis .misUne{grid-area:une;align-self:start;margin-top:0;gap:9px;padding:12px 16px}
-  html #mMis .misCorps{min-height:64px}
-  html #mMis .misUne .obFig{width:106px;height:64px}
-  html #mMis .misExpl{font-size:13px}
-  html #mMis .mSec{grid-area:sec;margin:0 0 8px}
-  html #mMis .misListe{grid-area:liste;gap:8px}
-  html #mMis .misDef{padding:9px 14px;gap:12px}
-  html #mMis .misC{gap:6px}
+  html #mMis.on{max-width:820px;align-self:center;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:22px;align-content:start;
+    grid-template-areas:"head sec" "tab tab" "dock dock";grid-template-rows:auto 1fr auto}
+  html #mMis .mHead{grid-area:head;margin:0 0 10px}
+  html #mMis .mSec{grid-area:sec;align-self:end;margin:0 0 14px}
+  html #mMis .misTab{grid-area:tab;grid-template-columns:minmax(0,1fr) 400px;gap:12px}
+  html #mMis .misCol{display:grid;grid-template-columns:minmax(0,1fr) 158px;gap:8px}
+  html #mMis .misDefs{gap:6px}
+  html #mMis .misDef{padding:8px 14px;gap:6px}
+  html #mMis .misPrix{gap:5px;padding:9px 10px}
+  html #mMis .misPrix .misJauge{padding:0 18px}
+  html #mMis .misSuiv{justify-content:center}
   html #mMis .mDock{grid-area:dock}
-  html #mMis .misSuite{grid-area:suite;align-self:center;position:sticky;bottom:calc(var(--sB) + 24px);z-index:4;margin:0;background:var(--k1)}
 }
 @media (prefers-reduced-motion:reduce){.misJauge u,.misBar u{transition:none}}
+/* ================================== 21. LE MOUVEMENT (2026-09-28, soir) =============================================================
+   Sacha : « travaille les animations quand tu cliques sur les boutons, leurs emplacements, les transitions quand tu changes d'écran —
+   il faut que ce soit parfait et prêt à envoyer à l'App Store ; travaille vraiment les transitions entre chaque écran, avec des boutons
+   animés ». FILMÉ AVANT, au ralenti ×8 (banc `film.js`, scratchpad de la session 93a1dcda) :
+   (1) en changeant d'écran, l'ancien et le nouveau restaient superposés à moitié ~150 ms (deux titres l'un sur l'autre) ;
+   (2) les entrées animaient `transform` : le lingot JOUER, penché, arrivait DROIT puis se penchait d'un coup à la fin ;
+   (3) sur iPhone, un tap bref ne montrait jamais la touche enfoncée (`:active` n'a pas le temps de se peindre) — voir `.appui` (JS) ;
+   (4) le RETOUR apparaissait d'un bloc ; les réglages entraient comme UNE plaque ; (5) la carrière rejouait la même montée qu'on
+   entre dans un monde ou qu'on en sorte ; (6) la fenêtre remontait de 22 px au lieu d'arriver du bas comme une feuille.
+   LA LOI : une courbe (--ease), trois durées (--t-out 150 ms pour partir, --t-press pour s'enfoncer, --t-in pour arriver), une cadence
+   (--stag), une poussée (--pousse). On n'anime QUE `opacity` et les propriétés individuelles `translate`/`scale` : elles s'AJOUTENT au
+   `transform` d'une touche penchée au lieu de l'écraser, et elles se composent sur le GPU (aucune repeinte).
+   ⚠ Les verrous existants restent maîtres (ils sont en !important) : `.revu` et `body.voletSort` — l'écran que le VOLET découvre
+   n'a pas d'entrée à lui, c'est le volet qui la fait. */
+:root{--t-in:400ms;--t-out:150ms;--t-press:70ms;--stag:34ms;--pousse:30px}
+
+/* ---- L'ÉCRAN QUI PART : vite, et dans le sens du geste (il file à gauche quand on avance, à droite quand on revient) ---- */
+.mscr.sort{min-height:100%;animation-name:k6SortRacine;animation-duration:var(--t-out);animation-timing-function:var(--ease);animation-fill-mode:forwards} /* min-height : posé en absolu, l'écran qui part perdait sa hauteur — ses blocs « tombés vers la sortie » (margin auto) remontaient d'un coup sous le titre */
+.mscr.sort.avant{animation-name:k6SortAvant}
+.mscr.sort.retour{animation-name:k6SortRetour}
+@keyframes k6SortRacine{to{opacity:0;scale:.985}}
+@keyframes k6SortAvant{to{opacity:0;translate:calc(-1 * var(--pousse)) 0}}
+@keyframes k6SortRetour{to{opacity:0;translate:var(--pousse) 0}}
+
+/* ---- L'ÉCRAN QUI ARRIVE : le cadre ne fait qu'apparaître (après le départ de l'autre) ; ce sont ses BLOCS qui portent la direction,
+   en cascade : le titre d'abord, le contenu, la sortie en dernier ---- */
+.mscr.on,.mscr.on.avant,.mscr.on.retour{animation:k6Fond var(--t-out) var(--ease) 40ms both}
+@keyframes k6Fond{from{opacity:0}}
+.mscr.on>*{animation:k6Monte var(--t-in) var(--ease) backwards;animation-delay:calc(var(--i,0) * var(--stag) + 70ms)}
+.mscr.on.avant>*{animation-name:k6Avant}
+.mscr.on.retour>*{animation-name:k6Retour}
+@keyframes k6Monte{from{opacity:0;translate:0 16px}}
+@keyframes k6Avant{from{opacity:0;translate:var(--pousse) 0}}
+@keyframes k6Retour{from{opacity:0;translate:calc(-1 * var(--pousse)) 0}}
+@keyframes k6Tombe{from{opacity:0;translate:0 -18px}}
+@keyframes k6Surgit{from{opacity:0;translate:0 26px}}
+
+/* la SORTIE (RETOUR) : le dock est déjà là, sa touche glisse depuis le bord gauche — là où le pouce va la chercher */
+.mscr.on>.mDock{animation:none}
+.mscr.on>.mDock>.mBack{animation:k6DuBord var(--t-in) var(--ease) 150ms backwards}
+@keyframes k6DuBord{from{opacity:0;translate:-44px 0}}
+
+/* les CONTENANTS qui portent plusieurs blocs : leurs enfants prennent la cascade à leur tour (le contenant, lui, ne bouge plus) */
+.mscr.on>.mSet{animation:none}
+.mscr.on>.mSet>*{animation:k6Monte var(--t-in) var(--ease) backwards;animation-delay:calc(var(--j,0) * var(--stag) + 110ms)}
+.mscr.on.avant>.mSet>*{animation-name:k6Avant}
+.mscr.on.retour>.mSet>*{animation-name:k6Retour}
+.mSet>:nth-child(1){--j:0}.mSet>:nth-child(2){--j:1}.mSet>:nth-child(3){--j:2}.mSet>:nth-child(4){--j:3}.mSet>:nth-child(5){--j:4}
+.mSet>:nth-child(6){--j:5}.mSet>:nth-child(7){--j:6}.mSet>:nth-child(n+8){--j:7}
+.mscr.on>.misTab{animation:none}
+.mscr.on .misDefs>*,.mscr.on .misCol>*{animation:k6Monte var(--t-in) var(--ease) backwards;animation-delay:calc(var(--j,0) * var(--stag) + 130ms)}
+.mscr.on.avant .misDefs>*{animation-name:k6Avant}
+.mscr.on.retour .misDefs>*{animation-name:k6Retour}
+.misDefs>:nth-child(2){--j:1}.misDefs>:nth-child(3){--j:2}
+.misCol>:nth-child(1){--j:2}.misCol>:nth-child(2){--j:4}
+.mscr.on .misPrix{animation-name:k6Carte}
+@keyframes k6Carte{from{opacity:0;translate:0 20px;scale:.96}}
+
+/* ---- L'ACCUEIL : le logo DESCEND, les tuiles se distribuent une à une, le lingot JOUER SURGIT du bas en dernier ---- */
+#mHome.on>.mTitle{animation-name:k6Tombe}
+#mHome.on>.mIcons{animation:none}
+#mHome.on>.mIcons>.pbtn{animation:k6Monte var(--t-in) var(--ease) backwards}
+#mHome.on.retour>.mIcons>.pbtn{animation-name:k6Retour}
+#mHome.on>.mIcons>.pbtn:nth-child(1){animation-delay:calc(5 * var(--stag) + 70ms)}
+#mHome.on>.mIcons>.pbtn:nth-child(2){animation-delay:calc(6 * var(--stag) + 70ms)}
+#mHome.on>.mIcons>.pbtn:nth-child(3){animation-delay:calc(7 * var(--stag) + 70ms)}
+#mHome.on>.mPlay{animation:k6Surgit var(--t-in) var(--ease) backwards,k4LingotV4 4.2s var(--ease) 1.4s infinite;animation-delay:calc(8 * var(--stag) + 90ms),1.4s}
+
+/* ---- L'ÉCRAN DE MORT : une MISE EN SCÈNE, pas une cascade uniforme — l'enseigne s'allume, les deux cartes se DISTRIBUENT, le ticket
+   (le montant commence à s'égrener quand il apparaît, voir mCount), la porte des MISSIONS glisse de la droite, les tuiles, et REJOUER
+   surgit en dernier sous le pouce ---- */
+#mDead.on>.mCause{animation-delay:220ms}
+#mDead.on>.mHero{animation:none}
+#mDead.on>.mHero>.hCard{animation:k6Carte var(--t-in) var(--ease) 250ms backwards}
+#mDead.on>.mHero>.hCard+.hCard{animation-delay:320ms}
+#mDead.on>.mCashL{animation-delay:390ms}
+#mDead.on>.mStats{animation-delay:430ms}
+#mDead.on>.mObj{animation-name:k6Avant;animation-delay:490ms}
+#mDead.on>.mRow{animation:none}
+#mDead.on>.mRow>.pbtn{animation:k6Monte var(--t-in) var(--ease) 540ms backwards}
+#mDead.on>.mRow>.pbtn:nth-child(2){animation-delay:575ms}
+#mDead.on>.mRow>.pbtn:nth-child(3){animation-delay:610ms}
+#mDead.on>.mFin{animation:none}
+#mDead.on>.mFin>.mMenu{animation:k6DuBord var(--t-in) var(--ease) 640ms backwards}
+#mDead.on>.mFin>.pb-gold{animation:k6Surgit var(--t-in) var(--ease) 660ms backwards,k4Lingot 4.2s var(--ease) 2s infinite}
+
+/* ---- LES FEUILLES : la FENÊTRE arrive du bas comme une vraie feuille et y repart ; ses boutons suivent d'un souffle ---- */
+#modale.on .modIn{animation:k6Feuille var(--t-in) var(--ease) both}
+#modale.sortant .modIn{animation:k6FeuilleOut var(--t-out) var(--ease) forwards}
+#modale.on .modB>.pbtn{animation:k6Monte var(--t-in) var(--ease) 110ms backwards}
+#modale.on .modB>.pbtn+.pbtn{animation-delay:150ms}
+@keyframes k6Feuille{from{translate:0 calc(100% + 40px)}}
+@keyframes k6FeuilleOut{to{opacity:0;translate:0 42%}}
+/* la PAUSE : le voile tombe sur la course, le contenu se range de haut en bas, REPRENDRE surgit sous le pouce */
+#tPanel.open #tpIn{animation:none}
+#tPanel.open #tpIn>*{animation:k6Monte var(--t-in) var(--ease) backwards;animation-delay:calc(var(--j,0) * var(--stag) + 40ms)}
+#tpIn>:nth-child(2){--j:1}#tpIn>:nth-child(3){--j:2}#tpIn>:nth-child(4){--j:3}#tpIn>:nth-child(5){--j:4}#tpIn>:nth-child(6){--j:5}#tpIn>:nth-child(n+7){--j:6}
+#tPanel.open #tpIn>.tp.go{animation:k6Surgit var(--t-in) var(--ease) 230ms backwards,k4Lingot 4.2s var(--ease) 1.2s infinite}
+#tPanel.sortant #tpIn{animation:k6FeuilleOut var(--t-out) var(--ease) forwards}
+/* la CARRIÈRE : entrer dans un monde POUSSE (de la droite), en sortir RAMÈNE (de la gauche) — plus la même montée dans les deux sens ;
+   les dix niveaux se distribuent un à un */
+#carr.on .carrIn{animation:k6Monte var(--t-in) var(--ease) both}
+#carr.on[data-sens] .carrIn{animation:none}
+#carr.on[data-sens] .carrIn>*{animation:k6Avant var(--t-in) var(--ease) backwards;animation-delay:calc(var(--j,0) * var(--stag) + 20ms)}
+#carr.on[data-sens="retour"] .carrIn>*{animation-name:k6Retour}
+.carrIn>:nth-child(2){--j:1}.carrIn>:nth-child(3){--j:2}.carrIn>:nth-child(4){--j:3}.carrIn>:nth-child(n+5){--j:4}
+#carr.on .carrGrille>.carrNiv{animation:k6Monte var(--t-in) var(--ease) backwards;animation-delay:calc(var(--n,0) * 22ms + 80ms)}
+#carr.on[data-sens] .carrIn>.carrGrille{animation:none}
+.carrGrille>:nth-child(2){--n:1}.carrGrille>:nth-child(3){--n:2}.carrGrille>:nth-child(4){--n:3}.carrGrille>:nth-child(5){--n:4}
+.carrGrille>:nth-child(6){--n:5}.carrGrille>:nth-child(7){--n:6}.carrGrille>:nth-child(8){--n:7}.carrGrille>:nth-child(9){--n:8}.carrGrille>:nth-child(n+10){--n:9}
+#carr.sortant .carrIn{animation:k6FeuilleOut var(--t-out) var(--ease) forwards}
+/* le GARAGE : changer de famille ou d'onglet DISTRIBUE la nouvelle bande de vignettes, de la droite (elle défile de ce côté) ; la
+   bande ne se reconstruit qu'à ces changements-là (et après un achat) — feuilleter les caisses ne la rejoue pas */
+#gStrip>.gT{animation:k6Avant var(--t-in) var(--ease) backwards;animation-delay:calc(var(--n,0) * 26ms)}
+#gStrip>:nth-child(2){--n:1}#gStrip>:nth-child(3){--n:2}#gStrip>:nth-child(4){--n:3}#gStrip>:nth-child(5){--n:4}#gStrip>:nth-child(6){--n:5}#gStrip>:nth-child(n+7){--n:6}
+/* le TOAST tombe du haut et s'y retire (il glissait de 14 px) */
+#toast{transform:translate(-50%,-26px) scale(.96)}
+#toast.on{transform:translate(-50%,0) scale(1)}
+
+/* ---- L'APPUI : la touche s'enfonce EN 70 ms (le doigt ne doit jamais attendre l'écran) et remonte en --t-fast ---- */
+.pbtn.appui,.mLigne.appui,.tp.appui,.gT.appui,.gTab.appui,.mMode.appui,.mObj.appui,.misPrix.appui,.shCase.appui,.shUne.appui{transition-duration:var(--t-press)}
+.mObj[data-m].appui,.misPrix.voir.appui{filter:brightness(1.22)}
+.mObj[data-m],.misPrix.voir,.mMode{transition:filter var(--t-fast) var(--ease),translate var(--t-fast) var(--ease)}
+.mObj[data-m].appui,.misPrix.voir.appui,.mMode.appui{translate:0 2px}
+.gR{transition:translate var(--t-fast) var(--ease),filter var(--t-fast) var(--ease)}
+.gR.appui{translate:0 3px;filter:brightness(1.25)}
+
+/* ---- LES TOUCHES VIVENT : un reflet passe sur les tuiles de l'accueil, l'une après l'autre (la lumière de la rue sur une rangée de
+   carrosseries) — une fois toutes les 7 s, jamais pendant qu'on les touche. Calque à part : seule sa position de fond bouge. ---- */
+#mHome .mIcons>.pbtn::after{content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(105deg,transparent 0 40%,rgba(255,255,255,.13) 47%,rgba(255,255,255,.03) 52%,transparent 60%) no-repeat;
+  background-size:260% 100%;background-position:170% 0;animation:k6Reflet 7s var(--ease) 2.2s infinite}
+#mHome .mIcons>.pbtn:nth-child(2)::after{animation-delay:2.42s}
+#mHome .mIcons>.pbtn:nth-child(3)::after{animation-delay:2.64s}
+#mHome .mIcons>.pbtn.appui::after{animation:none}
+@keyframes k6Reflet{0%,78%{background-position:170% 0}96%,100%{background-position:-70% 0}}
+
+/* ---- « RÉDUIRE LES ANIMATIONS » (iOS, ou le réglage du jeu) : plus rien ne glisse ni ne tombe — un fondu, et c'est tout ---- */
+@media (prefers-reduced-motion:reduce){
+  .mscr.on>*,.mscr.on>.mSet>*,.mscr.on .misDefs>*,.mscr.on .misCol>*,#mHome.on>.mIcons>.pbtn,#mHome.on>.mPlay,.mscr.on>.mDock>.mBack,
+  #mDead.on>.mHero>.hCard,#mDead.on>.mRow>.pbtn,#mDead.on>.mFin>*,#modale.on .modB>.pbtn,#tPanel.open #tpIn>*,#carr.on .carrIn>*,#carr.on .carrGrille>.carrNiv,
+  #mHome .mIcons>.pbtn::after,#gStrip>.gT{animation:none!important}
+  .mscr.sort{display:none}
+  #modale.on .modIn,#carr.on .carrIn{animation:k4Voile var(--t-fast) linear both!important}
+  #toast{transform:translate(-50%,0)}
+}
+html[data-reduced-motion="1"] :is(.mscr.on>*,.mscr.on>.mSet>*,.mscr.on .misDefs>*,.mscr.on .misCol>*,#mHome.on>.mIcons>.pbtn,#mHome.on>.mPlay,.mscr.on>.mDock>.mBack,#mDead.on>.mHero>.hCard,#mDead.on>.mRow>.pbtn,#mDead.on>.mFin>*,#modale.on .modB>.pbtn,#tPanel.open #tpIn>*,#carr.on .carrIn>*,#carr.on .carrGrille>.carrNiv),
+html[data-reduced-motion="1"] #mHome .mIcons>.pbtn::after,html[data-reduced-motion="1"] #gStrip>.gT{animation:none!important}
+/* les verrous du VOLET, redits APRÈS cette section (mêmes sélecteurs, même !important : ils gagnaient déjà, on le rend explicite) */
+body.voletSort .mscr.on>.mSet>*,body.voletSort .mscr.on .misDefs>*,body.voletSort .mscr.on .misCol>*,body.voletSort #mHome.on>.mIcons>.pbtn,
+body.voletSort .mscr.on>.mDock>.mBack,body.voletSort #mDead.on>.mHero>.hCard,body.voletSort #mDead.on>.mRow>.pbtn,body.voletSort #mDead.on>.mFin>*,
+.mscr.on.revu>.mSet>*,.mscr.on.revu .misDefs>*,.mscr.on.revu .misCol>*,#mHome.on.revu>.mIcons>.pbtn,.mscr.on.revu>.mDock>.mBack,
+#mDead.on.revu>.mHero>.hCard,#mDead.on.revu>.mRow>.pbtn,#mDead.on.revu>.mFin>.mMenu{animation:none!important}
+#mDead.on.revu>.mFin>.pb-gold,body.voletSort #mDead.on>.mFin>.pb-gold{animation:k4Lingot 4.2s var(--ease) 1.2s infinite!important}
 </style>
 <style id="hudMaitrise">
 /* =====================================================================================================================
@@ -4295,17 +4460,14 @@ html body #engBig .ebRuban{top:-22px!important;left:-10px!important;right:-10px!
       </div>
       <div class="mDock"><div class="pbtn mBack" data-m="back" role="button" aria-label="Retour"><i class="pxi pxi-gauche" aria-hidden="true"></i>RETOUR</div></div>
     </div>
-    <!-- LES MISSIONS (2026-09-28, Sacha : « je veux que l'écran de mission soit parfait, avec une jauge de progression et un texte
-         expliquant la récompense au joueur — aussi bien fini que tout le reste du jeu »). Trois étages, lus de haut en bas : la
-         RÉCOMPENSE du contrat (ce qu'on gagne, pourquoi ça ne s'achète pas, la jauge des trois défis) · les TROIS DÉFIS (chacun sa
-         jauge : ton meilleur essai en UNE partie, et sa prime) · le CONTRAT SUIVANT, sous cadenas. Rempli par `misRender`. -->
+    <!-- LES MISSIONS v2 (2026-09-28, soir — Sacha : « enlève toutes ces histoires de contrat : les défis, et à côté des défis, écrits
+         dans les couleurs de leur rareté, les objets que tu peux gagner »). Lu de gauche à droite : les TROIS DÉFIS (chacun sa jauge :
+         ton meilleur essai en UNE partie, et sa prime) → l'OBJET qu'ils rapportent, dans la couleur de sa famille ; puis ENSUITE, les
+         objets suivants. Rempli par `misRender`. -->
     <div class="mscr" id="mMis">
       <div class="mHead"><h3>MISSIONS</h3></div>
-      <div class="misUne" id="misUne"></div>
-      <div class="mSec"><span data-fr="LES TROIS DEFIS">LES TROIS DEFIS</span></div>
-      <div class="misListe" id="misListe"></div>
-      <div class="misRegle" id="misRegle"></div>
-      <div class="misSuite" id="misSuite"></div>
+      <div class="mSec"><span data-fr="LES DEFIS · CHACUN EN UNE PARTIE">LES DEFIS · CHACUN EN UNE PARTIE</span></div>
+      <div class="misTab" id="misTab"></div>
       <div class="mDock"><div class="pbtn mBack" data-m="back" role="button" aria-label="Retour"><i class="pxi pxi-gauche" aria-hidden="true"></i>RETOUR</div></div>
     </div>
     <!-- LA BOUTIQUE (2026-09-25, user : « le shop ressemble trop au garage — il doit être SEULEMENT pour les voitures
@@ -4455,8 +4617,10 @@ function pxi(n){return '<i class="pxi pxi-'+n+'" aria-hidden="true"></i>';}
 /* LES FEUILLES SE REFERMENT (2026-09-25, transitions App Store) : un panneau ne CLAQUE plus — il redescend et
    s'efface en --t-fast. Il garde sa classe d'ouverture pendant l'animation (sinon `display:none` la couperait net),
    puis la perd. Rouvrir pendant la sortie l'annule simplement. */
-function feuilleOuvre(el,cls){ if(!el)return; clearTimeout(el._fermeT); el.classList.remove('sortant'); el.classList.add(cls); }
+function feuilleOuvre(el,cls){ if(!el)return; clearTimeout(el._fermeT); const deja=el.classList.contains(cls)&&!el.classList.contains('sortant');
+  el.classList.remove('sortant'); el.classList.add(cls); if(!deja&&el.id!=='modale')try{typeof sfx==='function'&&sfx('ui.feuille');}catch(e){} } // (2026-09-28) la fenêtre a son propre son (ui.modale) ; une feuille déjà ouverte qui change de page (carrière) ne resonne pas
 function feuilleFerme(el,cls){ if(!el||!el.classList.contains(cls))return; clearTimeout(el._fermeT);
+  try{typeof sfx==='function'&&sfx('ui.feuilleFerme');}catch(e){}
   if(document.documentElement.getAttribute('data-reduced-motion')==='1'){el.classList.remove(cls,'sortant');return;}
   el.classList.add('sortant'); el._fermeT=setTimeout(function(){el.classList.remove(cls,'sortant');},170); }
 function modale(o){return new Promise(function(res){
@@ -4469,11 +4633,12 @@ function modale(o){return new Promise(function(res){
     const arme=k.cls==='pb-red'; // (2026-09-26, charte v4) EFFACER / QUITTER / RECOMMENCER s'arment après 420 ms : le 2e tap d'un double appui tombe dans le vide
     if(arme){e.classList.add('arme');setTimeout(function(){e.classList.remove('arme');},420);}
     e.addEventListener('click',function(ev){ev.stopPropagation();if(e.classList.contains('arme')){hap(6);return;}uiClic();feuilleFerme(m,'on');res({v:k.v,texte:c.value});});b.appendChild(e);}
-  feuilleOuvre(m,'on');
+  feuilleOuvre(m,'on');try{typeof sfx==='function'&&sfx('ui.modale');}catch(e){}
   if(o.champ!=null)setTimeout(function(){try{c.focus();if(o.lecture)c.select();}catch(e){}},60);
 });}
 let toastT=0;
-function toast(h){const t=document.getElementById('toast');if(!t)return;t.innerHTML=h;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('on');},1900);}
+function toast(h){const t=document.getElementById('toast');if(!t)return;t.innerHTML=h;t.classList.add('on');
+  try{if(typeof sfx==='function'){if(/pxi-coche/.test(h))sfx('ui.ok');else if(/pxi-croix/.test(h))sfx('ui.erreur');}}catch(e){} /* (2026-09-28) session SON */ clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('on');},1900);}
 // une ligne de panneau : icône · libellé · pastille d'état (l'ÉTAT se lit dans la pastille, la plaque ne se grise plus)
 function tpLbl(ic,txt,etat,on){const tg=(etat==='ON'||etat==='OFF'); // ON/OFF → un INTERRUPTEUR pixel ; une valeur → une étiquette or à chevron
   return pxi(ic)+'<span class="tpL">'+TR(txt)+'</span>'+(etat==null?'':tg?'<b class="bascule'+(on?'':' ko')+'">'+etat+'</b>':'<b class="valeur">'+TR(etat)+'</b>');}
@@ -9230,6 +9395,8 @@ Object.assign(I18N_ZH,{'NITRO INFINIE — 9 s À FOND !':'无限氮气 — 全�
   'SANS FAUTE':'完美连续','SERIE CASSEE':'连击中断','MIRACULE':'奇迹','MIRACULE !':'奇迹！','RECORD DE VITESSE':'速度纪录'});
 Object.assign(I18N,{"MISSIONS":"MISSIONS","MENU":"MENU","LES TROIS DEFIS":"THE THREE CHALLENGES"}); // (2026-09-28) la porte et l'écran des MISSIONS, la sortie MENU de l'écran de mort
 Object.assign(I18N_ZH,{"MISSIONS":"任务","MENU":"菜单","LES TROIS DEFIS":"三项挑战"});
+Object.assign(I18N,{"LES DEFIS · CHACUN EN UNE PARTIE":"CHALLENGES · EACH IN ONE RUN","A GAGNER":"TO WIN","ENSUITE":"NEXT","VOIR":"SEE","RELEVÉ":"DONE","À TENTER":"NOT TRIED YET","CETTE PARTIE":"THIS RUN","DÉFI RÉUSSI !":"CHALLENGE DONE!","BONUS":"BONUS"}); // (2026-09-28, soir) MISSIONS v2 et la porte de l'écran de mort
+Object.assign(I18N_ZH,{"LES DEFIS · CHACUN EN UNE PARTIE":"挑战 · 每项单局完成","A GAGNER":"可赢取","ENSUITE":"下一个","VOIR":"查看","RELEVÉ":"已完成","À TENTER":"尚未尝试","CETTE PARTIE":"本局","DÉFI RÉUSSI !":"挑战完成！","BONUS":"奖金"});
 Object.assign(I18N_ZH,{"PIÈCE":"金币","RETOUR":"返回","EN BOUTIQUE":"商店有售","VERROUILLÉE":"未解锁","ÉQUIPÉE":"已装备","IL MANQUE":"还差","LES LEGENDAIRES":"传奇座驾","DÉFI":"挑战","ACHETER":"购买"});
 // ⚠ nommée TR et non T : `T` est DÉJÀ le tableau des tangentes de la piste (T[bi].y) — la
 // collision faisait planter tout le script au parsing, écran noir muet.
@@ -10549,6 +10716,7 @@ function carrVue(bi){
     h+='</div>';
   }
   h+='<div class="mDock"><div class="pbtn mBack" data-c="'+(bi==null?'fermer':'biomes')+'" role="button" aria-label="Retour">'+pxi('gauche')+'<span>'+TR('RETOUR')+'</span></div></div>'; // (charte v4) la sortie en BAS, comme partout
+  if(el.classList.contains('on')&&!el.classList.contains('sortant'))el.setAttribute('data-sens',bi==null?'retour':'avant');else el.removeAttribute('data-sens'); // (2026-09-28) la feuille est déjà là : on change de PAGE, dans le sens du geste
   el.innerHTML=h+'</div>';feuilleOuvre(el,'on');
 }
 function carrLancer(bi,i){
@@ -16712,12 +16880,13 @@ function ecranWipe(fn,apres){
   let w=document.getElementById('wipe');
   if(!w){w=document.createElement('div');w.id='wipe';w.setAttribute('aria-hidden','true');document.body.appendChild(w);}
   if(ecranWipe._on)return;ecranWipe._on=true;const id=ecranWipe._id=(ecranWipe._id|0)+1;
-  w.className='in';try{noiseBurst(.18,.05,1800);}catch(e){}
+  w.className='in';try{if(typeof sfx==='function')sfx('ui.volet');else noiseBurst(.18,.05,1800);}catch(e){} // (2026-09-28) le son du volet : session SON
   setTimeout(function(){
     try{fn();}catch(e){console.error(e);}
     let leve=false;
     const lever=function(){ if(leve)return;leve=true;
       w.className='out';ecranWipe._on=false; // la main revient DÈS que l'écran se redécouvre (le voile qui s'efface ne bloque plus rien)
+      try{typeof sfx==='function'&&sfx('ui.voletSort');}catch(e){}
       document.body.classList.add('voletSort');clearTimeout(ecranWipe._vs);ecranWipe._vs=setTimeout(function(){document.body.classList.remove('voletSort');},480); // (charte v4) le contenu est DÉJÀ en place quand le volet le découvre
       if(apres){try{apres();}catch(e){console.error(e);}}
       try{document.dispatchEvent(new Event('cc:revele'));}catch(e){} // la coque rejoue l'entrée de l'écran qu'on découvre
@@ -16731,6 +16900,25 @@ function uiPop(el){ // le rebond d'un bouton relâché (re-déclenchable : on re
   if(!el||!el.classList||REDUCED_MOTION)return;el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');
   clearTimeout(el._popT);el._popT=setTimeout(function(){el.classList.remove('pop');},300);
 }
+/* L'APPUI SOUS LE DOIGT (2026-09-28, soir — Sacha : « travaille les animations quand tu cliques sur les boutons »). Sur iPhone, `:active`
+   ne se peint pas pour un tap bref : la touche ne s'enfonçait jamais à l'œil. `.appui` est posée AU CONTACT (pointerdown, en capture) sur
+   la touche visée, et tenue au moins 90 ms — un tap de 40 ms se VOIT. Chaque règle `:active` de la charte a sa jumelle `.appui` (même
+   spécificité). Au contact : le visuel et le micro-tic de la touche qui s'enfonce (sfx 'ui.appui', session SON, gardé) ; le son d'action
+   et la vibration restent au relâcher (uiClic) — un seul coup dans le pouce. Un glissé (défilement, bande du garage) annule : pointercancel.
+   Hors course seulement : le volant et la nitro ont leurs propres états. */
+const APPUI_SEL='.pbtn,.mLigne,.tp,.gT,.gTab,.gR,.mMode,.misPrix.voir,.mObj[data-m],.shUne,.shCase';
+(function(){let cur=null,t0=0;
+  const lache=function(){if(!cur)return;const el=cur;cur=null;const r=Math.max(0,90-(performance.now()-t0));
+    if(r)setTimeout(function(){el.classList.remove('appui');},r);else el.classList.remove('appui');};
+  addEventListener('pointerdown',function(e){if(e.button>0)return;
+    const el=e.target&&e.target.closest?e.target.closest(APPUI_SEL):null;
+    if(!el||el.closest('#tNitroZone,#tSteer,#touchCtl,#tNitro'))return;
+    if(cur&&cur!==el)cur.classList.remove('appui');cur=el;t0=performance.now();el.classList.add('appui');
+    if(!el.classList.contains('off')&&!el.classList.contains('arme'))try{typeof sfx==='function'&&sfx('ui.appui');}catch(err){}},{capture:true,passive:true});
+  addEventListener('pointerup',lache,{capture:true,passive:true});
+  addEventListener('pointercancel',lache,{capture:true,passive:true});
+  addEventListener('blur',lache);
+})();
 function countUp(el,to,fmt){ // un chiffre qui MONTE (départ franc, arrivée douce) — l'aura se compte, elle ne s'affiche pas
   if(!el)return;const t0=performance.now(),D=900;fmt=fmt||function(v){return Math.round(v);};
   if(REDUCED_MOTION||to<=0){el.textContent=fmt(to);return;}
@@ -17607,98 +17795,76 @@ let MIS_REC=null; // la récompense du carnet refermé à cette fin de partie (n
 function objRender(el){
   if(!el)return;
   if(MIS_REC){const r=MIS_REC;
-    el.className='mObj rec';el.setAttribute('data-m','voirRec');
+    el.className='mObj rec';el.setAttribute('data-m','voirRec');el.style.removeProperty('--rc');
     el.innerHTML='<div class="obHd"><span>'+pxi('cadeau')+' '+TR('DÉFIS RÉUSSIS !')+'</span></div>'
       +'<div class="obBig">'+r.nom+'</div><div class="obFt"><span>'+TR(r.car!=null?'EST À TOI — VA LA VOIR':r.cat?'EST À TOI — ESSAIE-LA':'VERSÉS SUR TON COMPTE')+'</span>'+pxi('droite')+'</div>';
     return;}
-  const o=objectif(),b1=bank(),b0=Math.min(b1,RUNX.bank0||0);
-  if(!o){el.className='mObj';el.removeAttribute('data-m');el.innerHTML='<div class="obHd"><span>'+TR('COMPTE')+'</span><b>'+fmtC(b1)+'</b></div>';return;}
-  if(b1>=o.prix){
-    el.className='mObj pret aFig';el.setAttribute('data-m','buyGoal');
-    el.innerHTML=objFig(o)+'<div class="obHd"><span>'+pxi('etoile')+' '+TR('TU PEUX TE L\'OFFRIR')+'</span></div><div class="obBig">'+(o.car==null&&SHOP_LBL[o.cat]?'<small class="obCat">'+TR(SHOP_LBL[o.cat])+'</small>':'')+TR(o.nom)+'</div>' // (2026-09-28) « MENTHE » seul ne disait pas qu'on achète une TRAÎNÉE
-      +'<div class="obFt"><span>'+fmtC(o.prix)+'</span><span>'+TR('ACHETER')+' '+pxi('droite')+'</span></div>';
-    return;}
-  el.className='mObj';el.removeAttribute('data-m');
-  const w0=Math.max(0,Math.min(100,b0/o.prix*100)),w1=Math.max(0,Math.min(100,b1/o.prix*100)),n9=shopAPortee();
-  el.innerHTML='<div class="obHd"><span>'+TR('OBJECTIF')+'</span><b>'+TR(o.nom)+'</b></div>'
-    +'<div class="obBar"><s style="width:'+w0.toFixed(1)+'%"></s><i style="width:'+w0.toFixed(1)+'%"></i></div>'
-    +'<div class="obFt"><span>'+(b1>b0?'+'+fmtC(b1-b0):'')+'</span><span>'+fmtC(b1)+' / '+fmtC(o.prix)+'</span></div>'
-    +(n9?'<div class="obShop" data-m="custom">'+pxi('pinceau')+' '+n9+' '+TR(n9>1?'ARTICLES À TA PORTÉE':'ARTICLE À TA PORTÉE')+'</div>':'');
+  /* (2026-09-28, Sacha : « à la place de "tu peux te l'offrir", un bouton qui montre l'accès aux missions, avec la mission où tu as le
+     plus avancé durant la partie ») LA PORTE DES MISSIONS. Le défi que CETTE partie a le plus approché (celui qu'elle vient de relever
+     passe devant), sa jauge qui se remplit de la partie sous les yeux, et au bout ce qu'il rapporte — l'objet, dans la couleur de sa
+     famille. Touchée : l'écran MISSIONS. (L'ancien objectif d'achat — la prochaine caisse à s'offrir — vit au garage et sur sa pastille.) */
+  const s=misEtat(),c=carnet(s.n),g=misGain(c);let bi=-1,bp=-1;
+  for(let i=0;i<3;i++){const nf=MIS_NEW.indexOf(i)>=0;if(s.ok[i]&&!nf)continue;
+    const p=nf?2:misPart(c.m[i],misVal(c.m[i].k));if(p>bp){bp=p;bi=i;}}
+  el.className='mObj misPorte';el.setAttribute('data-m','mis');el.style.setProperty('--rc',g.col);
+  let pips='';for(let i=0;i<3;i++)pips+='<u'+(s.ok[i]?' class="ok"':'')+'></u>';
+  if(bi<0){ // les trois déjà relevés : le carnet se ferme à la fin de la partie (MIS_REC) — filet
+    el.innerHTML='<div class="obHd"><span>'+pxi('cible')+' '+TR('MISSIONS')+'</span><b class="mMisPips">'+pips+'</b></div>'
+      +'<div class="obBig obGain">'+g.nom+'</div><div class="obFt"><span>3 / 3</span><span>'+TR('VOIR')+' '+pxi('droite')+'</span></div>';return;}
+  const m=c.m[bi],nf=MIS_NEW.indexOf(bi)>=0,v=nf?m.v:Math.min(m.v,misVal(m.k)),w=nf?100:misPart(m,v)*100;
+  el.innerHTML='<div class="obHd"><span>'+pxi(nf?'coche':'cible')+' '+TR(nf?'DÉFI RÉUSSI !':'MISSIONS')+'</span><b class="mMisPips">'+pips+'</b></div>'
+    +'<div class="obBig">'+misTxt(m)+'</div>'
+    +'<div class="obBar'+(nf?' ok':'')+'"><i style="width:0%" data-w="'+w.toFixed(1)+'"></i></div>'
+    +'<div class="obFt"><span>'+(nf?'<em class="obPrime">+'+fmtC(m.p)+'</em>':TR('CETTE PARTIE')+' · '+misProgV(m,v))+'</span>'
+    +'<span class="obGain">'+g.nom+' '+pxi('droite')+'</span></div>';
   const gi=el.querySelector('.obBar i');
-  // la partie REMPLIT la barre : départ à la banque d'avant, arrivée à la banque d'après
-  requestAnimationFrame(function(){requestAnimationFrame(function(){if(gi)gi.style.width=w1.toFixed(1)+'%';});});
+  // la partie REMPLIT la jauge : de zéro à ce qu'elle a fait (après l'entrée de l'écran, pour qu'on la voie monter)
+  setTimeout(function(){requestAnimationFrame(function(){if(gi)gi.style.width=gi.dataset.w+'%';});},REDUCED_MOTION?0:520);
 }
-/* ---------------- L'ÉCRAN DES MISSIONS (2026-09-28) ----------------
-   Sacha : « un bouton mission dans le menu », puis « l'écran de mission doit être parfait, avec une jauge de progression et un
-   texte expliquant la récompense au joueur ». Les défis vivaient sur la fiche du garage (verdict du 25/09 : « pas aussi
-   visibles ») : ils y restent, et ont désormais LEUR écran, derrière une porte — rien ne s'affiche sur l'accueil qu'on n'a pas
-   demandé. Ce que l'écran répond, dans l'ordre où on se le demande : QU'EST-CE QUE JE GAGNE (la récompense, sa vignette, pourquoi
-   elle ne s'achète pas) · OÙ J'EN SUIS (la jauge des trois défis, chacune remplie de ton MEILLEUR essai) · COMMENT ÇA MARCHE
-   (une partie par défi, la prime tout de suite, la récompense à la fin de la partie) · ET APRÈS (le contrat suivant, sous cadenas).
-   ⚠ La jauge d'un défi = ton meilleur essai en UNE partie (`SAVE.d.mis.best`, tenu par misTick), pas un cumul : c'est la règle du
-   jeu, et l'écran le dit en toutes lettres. */
+/* ---------------- L'ÉCRAN DES MISSIONS v2 (2026-09-28, soir) ----------------
+   Sacha : « dans l'écran des missions, enlève toutes ces histoires de contrat — les défis, et à côté des défis, écrits dans les
+   couleurs de leur rareté, les objets que tu peux gagner ». Plus de « CONTRAT n », plus de paragraphe de règle, plus de carnet
+   suivant numéroté : l'écran se lit de gauche à droite — LES TROIS DÉFIS → L'OBJET QU'ILS RAPPORTENT (sa vignette, son nom dans la
+   couleur de sa famille : celle du garage, pour qu'on la reconnaisse d'un écran à l'autre) — puis ENSUITE, les objets suivants, chacun
+   dans sa couleur, sous cadenas. La règle tient dans le titre de section (« CHACUN EN UNE PARTIE »).
+   ⚠ La jauge d'un défi = ton meilleur essai en UNE partie (`SAVE.d.mis.best`, tenu par misTick), pas un cumul. */
 function misProgV(m,c){ // « 18 / 25 » à partir d'une valeur donnée (misProg lit la partie en cours)
   c=Math.min(m.v,Math.max(0,c||0));
   if(m.k==='cash')return fmtC(c)+' / '+fmtC(m.v);
   if(m.k==='survie'||m.k==='nitro')return misDuree(c)+' / '+misDuree(m.v);
-  if(m.k==='zones')return (Math.floor(c)+1)+' / '+(m.v+1); // « ATTEINS LE NIVEAU 3 » : on est au niveau 1 sur 3
-  return Math.floor(c)+' / '+m.v;
+  return Math.floor(c)+' / '+m.v; // (2026-09-28) « FRANCHIS 2 PORTAILS » : 1 / 2 (l'ancien « niveau atteint » comptait +1)
 }
 function misPart(m,c){return m.k==='zones'?Math.min(1,(Math.floor(c||0))/Math.max(1,m.v)):Math.min(1,Math.max(0,(c||0)/m.v));}
-function misRecoInfo(c){ // la récompense d'un contrat : sa catégorie, son nom, sa vignette, et la phrase qui l'explique
-  const r=c.r,Lg=LANG==='zh'?2:LANG==='en'?1:0,nom=misRecompense(c);
-  if(r.car!=null)return {nom:nom,fig:objFig({car:r.car}),voir:1,
-    cat:['UNE CAISSE A GAGNER','A CAR TO WIN','可赢取的座驾'][Lg],
-    tx:['Relève les trois défis pour gagner '+nom+'. Cette caisse ne s\'achète pas, ni en pièces ni en euros : c\'est le seul moyen de l\'avoir.',
-        'Beat the three challenges to win '+nom+'. It can\'t be bought, with coins or real money: this is the only way to get it.',
-        '完成三项挑战即可赢得 '+nom+'。它无法用金币或真钱购买：这是获得它的唯一途径。'][Lg]};
-  if(r.cat){const i9=COSM[r.cat].findIndex(x=>x.id===r.id),K={ // catégorie · nom avec article (FR/EN/ZH) · la 2e phrase, accordée (FR/EN)
-      peinture:['UNE PEINTURE A GAGNER','A PAINT TO WIN','可赢取的涂装','la peinture','the paint','涂装','Elle ne se vend pas en boutique : elle se mérite, et elle habille toutes tes caisses.','It\'s not sold in the shop: you earn it, and it fits every car you own.'],
-      trainee:['UNE TRAINEE A GAGNER','A TRAIL TO WIN','可赢取的尾迹','la traînée','the trail','尾迹','Elle ne se vend pas en boutique : elle se mérite, et elle suit toutes tes caisses.','It\'s not sold in the shop: you earn it, and it follows every car you own.'],
-      aile:['DES AILES A GAGNER','WINGS TO WIN','可赢取的翅膀','les ailes','the wings','翅膀','Elles ne se vendent pas en boutique : elles se méritent, et elles vont sur toutes tes caisses.','They\'re not sold in the shop: you earn them, and they fit every car you own.']}[r.cat]
-      ||['UN HABILLAGE A GAGNER','A LOOK TO WIN','可赢取的外观','l\'habillage','the look','外观','Il ne se vend pas en boutique : il se mérite.','It\'s not sold in the shop: you earn it.'];
-    return {nom:nom,fig:objFig({cat:r.cat,i:i9}),voir:1,cat:K[Lg],
-      tx:['Relève les trois défis pour gagner '+K[3]+' '+nom+'. '+K[6],
-          'Beat the three challenges to win '+K[4]+' '+nom+'. '+K[7],
-          '完成三项挑战即可赢得'+K[5]+' '+nom+'。商店不出售：只能靠实力赢取，并可用于你所有的座驾。'][Lg]};}
-  return {nom:nom,fig:'<i class="obFig misCash">'+pxi('piece')+'</i>',voir:0,cat:['UN BONUS A GAGNER','A BONUS TO WIN','可赢取的奖金'][Lg],
-    tx:['Relève les trois défis pour toucher '+nom+' de bonus, versés sur ton compte en plus des primes.',
-        'Beat the three challenges to collect a '+nom+' bonus, paid into your account on top of the rewards.',
-        '完成三项挑战即可领取 '+nom+' 奖金，在各项奖励之外存入你的账户。'][Lg]};
+const MIS_CAT_COL={peinture:'#ff9ad8',aile:'#9fe8ff',trainee:'#ffb040'}; // la couleur d'un habillage sur sa fiche du garage (shopShow)
+function misGain(c){ // l'OBJET d'un carnet : son nom, la couleur de sa famille, l'étiquette de sa famille
+  const r=c.r;
+  if(r.car!=null){const ri=rarInfo(carRar(r.car));return {nom:TR(CARS[r.car].name),col:ri.c,fam:sansAcc(TR(ri.n1)),car:r.car,voir:1};}
+  if(r.cat){const i9=COSM[r.cat].findIndex(x=>x.id===r.id),d=COSM[r.cat][i9];
+    return {nom:d?TR(d.n):'',col:MIS_CAT_COL[r.cat]||'#ffffff',fam:sansAcc(TR(SHOP_LBL[r.cat]||'')),cat:r.cat,i:i9,voir:1};}
+  return {nom:fmtC(r.cash||0),col:'var(--cash)',fam:TR('BONUS'),voir:0};
 }
+function misGainFig(g){return g.car!=null?objFig({car:g.car}):g.cat?objFig({cat:g.cat,i:g.i}):'<i class="obFig misCash">'+pxi('piece')+'</i>';}
 function misRender(){
-  const s=misEtat(),c=carnet(s.n),R=misRecoInfo(c),Lg=LANG==='zh'?2:LANG==='en'?1:0,
-        fait=s.ok.reduce(function(a,b){return a+(b?1:0);},0),
-        part=function(i){return s.ok[i]?1:misPart(c.m[i],s.best[i]);};
-  const une=$('misUne'),li=$('misListe'),rg=$('misRegle'),su=$('misSuite');
-  if(une){
-    une.className='misUne'+(R.voir?' voir':'')+(fait===3?' plein':'');
-    if(R.voir)une.setAttribute('data-m','misVoir');else une.removeAttribute('data-m');
-    let j='';for(let i=0;i<3;i++)j+='<i class="'+(s.ok[i]?'ok':'')+'"><u data-p="'+part(i).toFixed(3)+'"></u></i>';
-    une.innerHTML='<div class="misTete"><span>'+pxi('cadeau')+' '+TR('CONTRAT')+' '+(s.n+1)+'</span><b>'+majPix(R.cat)+'</b></div>'
-      +'<div class="misCorps">'+R.fig+'<b class="misNom">'+R.nom+'</b></div>'
-      +'<p class="misExpl">'+R.tx+'</p>'
-      +'<div class="misJauge" aria-hidden="true">'+j+'</div>'
-      +'<div class="misPied"><span><b>'+fait+'</b> / 3 '+majPix(['DEFIS','CHALLENGES','项挑战'][Lg])+'</span>'
-      +(R.voir?'<span class="misLien">'+majPix(['VOIR AU GARAGE','SEE IN GARAGE','去车库查看'][Lg])+' '+pxi('droite')+'</span>':'')+'</div>';
-  }
-  if(li){let h='';
-    c.m.forEach(function(m,i){const ok=!!s.ok[i],b=s.best[i]||0,
-        et=ok?['RELEVE · PRIME VERSEE','DONE · REWARD PAID','已完成 · 奖励已发放']:b>0?['TON MEILLEUR ESSAI','YOUR BEST RUN','最佳单局']:['PAS ENCORE TENTE','NOT TRIED YET','尚未尝试'];
-      h+='<div class="misDef'+(ok?' ok':'')+'"><i class="misN">'+(ok?pxi('coche'):(i+1))+'</i><div class="misC">'
-        +'<div class="misL"><span>'+misTxt(m)+'</span><b>+'+fmtC(m.p)+'</b></div>'
+  const s=misEtat(),c=carnet(s.n),g=misGain(c),fait=s.ok.reduce(function(a,b){return a+(b?1:0);},0);
+  const tab=$('misTab');
+  if(tab){let h='<div class="misDefs">';
+    c.m.forEach(function(m,i){const ok=!!s.ok[i],b=s.best[i]||0;
+      h+='<div class="misDef'+(ok?' ok':'')+'"><div class="misL">'+(ok?pxi('coche'):'<i class="misN">'+(i+1)+'</i>')+'<span>'+misTxt(m)+'</span></div>'
         +'<div class="misBar"><u data-p="'+(ok?1:misPart(m,b)).toFixed(3)+'"></u></div>'
-        +'<div class="misP"><span>'+majPix(et[Lg])+'</span><span>'+(ok?'':misProgV(m,b))+'</span></div></div></div>';});
-    li.innerHTML=h;}
-  if(rg){ // COMMENT ÇA MARCHE — la règle du jeu, en une phrase (le bac à sable et le parc, où les défis ne comptent pas, ont quitté l'interface le 25/09)
-    rg.innerHTML=pxi('bulle')+'<span>'+['Chaque défi se relève en UNE partie : la jauge garde ton meilleur essai. Sa prime tombe aussitôt ; les trois relevés, la récompense t\'attend à la fin de la partie.',
-        'Each challenge must be beaten in ONE run: the bar keeps your best try. Its reward lands at once; beat all three and the prize is yours when the run ends.',
-        '每项挑战需在单局内完成：进度条保留你的最佳成绩。完成即刻发放奖励；三项全部完成后，大奖在本局结束时归你。'][Lg]+'</span>';}
-  if(su){const n2=carnet(s.n+1);
-    su.innerHTML='<span>'+pxi('verrou')+' '+majPix(['ENSUITE','NEXT','下一个'][Lg])+'</span><b>'+TR('CONTRAT')+' '+(s.n+2)+' · '+misRecompense(n2)+'</b>';}
-  // les jauges se REMPLISSENT sous les yeux (départ à zéro, arrivée à ton meilleur essai) — une fois par entrée d'écran
+        +'<div class="misP"><span>'+(ok?TR('RELEVÉ'):b>0?misProgV(m,b):TR('À TENTER'))+'</span><b>+'+fmtC(m.p)+'</b></div></div>';});
+    h+='</div>';
+    let j='';for(let i=0;i<3;i++)j+='<i'+(s.ok[i]?' class="ok"':'')+'><u data-p="'+(s.ok[i]?1:misPart(c.m[i],s.best[i])).toFixed(3)+'"></u></i>';
+    h+='<div class="misCol"><div class="misPrix'+(g.voir?' voir':'')+(fait===3?' plein':'')+'"'+(g.voir?' data-m="misVoir" role="button"':'')+' style="--rc:'+g.col+'">'
+      +'<small>'+TR('A GAGNER')+'</small>'+misGainFig(g)+'<b class="misNom">'+g.nom+'</b><span class="misFam">'+g.fam+'</span>'
+      +'<div class="misJauge" aria-hidden="true">'+j+'</div><span class="misCpt"><b>'+fait+'</b> / 3</span>'
+      +(g.voir?'<span class="misLien">'+TR('VOIR')+' '+pxi('droite')+'</span>':'')+'</div>';
+    // ENSUITE — sous l'objet en jeu, les trois suivants : chacun sa silhouette et son nom dans SA couleur, sous cadenas
+    h+='<div class="misSuiv"><small>'+pxi('verrou')+' '+TR('ENSUITE')+'</small>';
+    for(let k=1;k<=3;k++){const g2=misGain(carnet(s.n+k));h+='<div class="misSv" style="--rc:'+g2.col+'">'+pxi(g2.car!=null?'voiture':g2.cat==='peinture'?'pinceau':g2.cat||'piece')+'<b>'+g2.nom+'</b></div>';}
+    tab.innerHTML=h+'</div></div>';}
+  // les jauges se REMPLISSENT sous les yeux (départ à zéro, arrivée à ton meilleur essai) — après l'entrée de l'écran
   const us=document.querySelectorAll('#mMis u[data-p]');
-  requestAnimationFrame(function(){requestAnimationFrame(function(){us.forEach(function(u){u.style.width=(+u.dataset.p*100).toFixed(1)+'%';});});});
+  setTimeout(function(){requestAnimationFrame(function(){us.forEach(function(u){u.style.width=(+u.dataset.p*100).toFixed(1)+'%';});});},REDUCED_MOTION?0:260);
 }
 /* LE STUDIO PHOTO (2026-09-25) : chaque caisse premium est CONSTRUITE, photographiée hors écran sous un éclairage de
    studio (clé froide, contre-jour rose, plancher de lumière violet), puis rendue au jeu. On emprunte `carGroup` — la
@@ -31196,8 +31362,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(!el)return;
     if(mCntT)clearInterval(mCntT);
     if(to<=0){el.textContent=fmtC(0);return;}
-    const t0=performance.now(),D=750;
-    mCntT=setInterval(function(){
+    el.textContent=fmtC(0);let t0=0;const D=750,T0=performance.now()+(REDUCED_MOTION?0:360); // (2026-09-28) le ticket entre à 390 ms (section 21) : le compte part avec lui, en même temps que les notes (320 ms)
+    mCntT=setInterval(function(){ if(performance.now()<T0)return; if(!t0)t0=performance.now();
       const k=Math.min(1,(performance.now()-t0)/D),e=1-Math.pow(1-k,3);
       el.textContent=fmtC(Math.round(to*e));
       if(k>=1){clearInterval(mCntT);mCntT=0;if(!REDUCED_MOTION){el.classList.remove('clac');void el.offsetWidth;el.classList.add('clac');}} // (charte v4) l'arrivée CLAQUE
@@ -31256,7 +31422,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
             +'<div class="hMotN"><i>'+TR('PALIER')+'</i>'+(engTier+1)+'</div>'+(eN?'<em>'+TR('RECORD !')+'</em>':'')
             +(pr?'<div class="hNx hPres">'+TR('PLUS QUE')+' '+mq+' '+TR(mq>1?'PIÈCES':'PIÈCE')+' · '+TR(nx.n)+'</div>':ci?'<div class="hNx hRec">'+TR('RECORD')+' · '+TR('PALIER')+' '+(ea+1)+'</div>':'')+'</div>'; // (2026-09-28) « RECORD · PALIER 18 » : le nom du moteur (STATOREACTEUR) cassait la ligne ; la carte parle déjà en paliers
           {const cv9=h.querySelector('.hMotCv');ENG_MORT.cv=cv9;ENG_MORT.ctx=cv9?cv9.getContext('2d'):null;} // le moteur 3D y tourne (engVigRender)
-          countUp($t('mAuraV'),au,function(v){return '+'+fA(v);});
+          {const av9=$t('mAuraV');if(av9)av9.textContent='+'+fA(0);setTimeout(function(){countUp(av9,au,function(v){return '+'+fA(v);});},REDUCED_MOTION?0:260);} // la carte AURA est distribuée à 250 ms : le chiffre monte quand on la voit
           if(an){const u=$t('mAuraB'),D=Math.max(1,an.seuil-bas),w1=Math.min(100,(a1-bas)/D*100),w0=rg?0:Math.max(0,(a1-au-bas)/D*100);
             if(u){u.style.width=w0.toFixed(1)+'%';requestAnimationFrame(function(){requestAnimationFrame(function(){u.style.width=w1.toFixed(1)+'%';});});}}}
       }

@@ -1,5 +1,55 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE MOUVEMENT DE L'INTERFACE + MISSIONS v2 (2026-09-28, soir) — « travaille les animations, les emplacements, les transitions entre chaque écran : prêt à envoyer à l'App Store »
+Sacha : « il y a des centaines de petites choses à améliorer dans l'interface… travaille les animations quand tu cliques sur les boutons,
+leurs emplacements, les transitions quand tu changes d'écran — que ce soit parfait ; travaille vraiment les transitions entre chaque écran
+avec des boutons animés » · « à la place de "tu peux te l'offrir", un bouton qui montre l'accès aux missions avec la mission où tu as le
+plus avancé durant la partie » · « dans l'écran des missions, enlève toutes ces histoires de contrat ; les défis, et à côté, écrits dans les
+couleurs de leur rareté, les objets que tu peux gagner ». Tout filmé AVANT puis APRÈS au ralenti ×8 (banc `film.js`, scratchpad de la session
+93a1dcda, `ui/` : l'horloge de la page ET les animations CSS ralenties, chaque image étiquetée de son temps virtuel ; `scenes*.js` = les gestes).
+- **SECTION 21 de charte4 — LE MOUVEMENT** (en fin de `<style id="charte4">`). Jetons `--t-in` 400 ms (arriver), `--t-out` 150 ms (partir),
+  `--t-press` 70 ms (s'enfoncer), `--stag` 34 ms (cadence), `--pousse` 30 px ; une courbe (`--ease`). ⚠ On n'anime QUE `opacity` et les
+  propriétés individuelles `translate`/`scale` : l'ancienne cascade animait `transform` — le lingot JOUER (penché) arrivait DROIT puis se
+  penchait d'un coup à la fin. Filmé avant : l'ancien et le nouvel écran restaient superposés ~150 ms (deux titres l'un sur l'autre).
+  · ÉCRAN QUI PART : 150 ms dans le sens du geste (`k6SortAvant/Retour/Racine`), `min-height:100%` (en absolu il perdait sa hauteur : ses
+    blocs « tombés vers la sortie » remontaient d'un coup sous le titre). ÉCRAN QUI ARRIVE : le cadre apparaît après 40 ms, ses BLOCS
+    portent la direction en cascade (`k6Monte/Avant/Retour`) ; les contenants (`.mSet`, `.misDefs`, `.misCol`) cascadent leurs enfants ;
+    la touche RETOUR glisse du bord gauche (`k6DuBord`).
+  · ACCUEIL : le logo DESCEND (`k6Tombe`), les trois tuiles se distribuent, JOUER SURGIT du bas en dernier (`k6Surgit`) ; un REFLET passe
+    sur les tuiles l'une après l'autre toutes les 7 s (`::after`, `k6Reflet` — seule la position de fond bouge).
+  · MORT : une mise en scène à délais nommés — enseigne 80 ms, cartes distribuées 250/320 ms (`k6Carte`), ticket 390 ms, porte MISSIONS
+    490 ms (de la droite), tuiles 540-610 ms, MENU 640 ms, REJOUER 660 ms. `mCount` attend 360 ms (le montant s'égrène quand son ticket
+    apparaît, avec les notes de `mCompteSon`) ; l'aura attend 260 ms.
+  · FEUILLES : la fenêtre (`#modale`) arrive du BAS de l'écran (`k6Feuille`, `translate` depuis 100 % + 40 px) et ses boutons suivent ; la
+    PAUSE se range de haut en bas, REPRENDRE surgit en dernier ; la CARRIÈRE a un SENS (`#carr[data-sens]`, posé par `carrVue` quand la
+    feuille est déjà ouverte : entrer dans un monde pousse de la droite, en sortir ramène de la gauche) et ses dix niveaux se distribuent.
+    Garage : changer de famille ou d'onglet distribue la bande de vignettes (`#gStrip>.gT`, elle ne se reconstruit qu'à ces moments-là).
+  · « Réduire les animations » (iOS ou `data-reduced-motion`) : tout redevient un fondu ; les verrous du volet (`.revu`, `body.voletSort`)
+    sont redits pour chaque nouveau sélecteur — l'écran que le VOLET découvre n'a pas d'entrée à lui.
+- **L'APPUI SOUS LE DOIGT** (`APPUI_SEL`, juste après `uiPop`) : sur iPhone `:active` ne se peint pas pour un tap bref — la touche ne
+  s'enfonçait jamais à l'œil. `.appui` est posée au `pointerdown` (capture) et tenue ≥ 90 ms ; les 24 règles `:active` de charte4 ont reçu
+  leur jumelle `.appui` (script `appui.py` : même spécificité, NITRO exclue). Au contact : visuel + `sfx('ui.appui')` (session SON, gardé) ;
+  l'action, son son et la vibration restent au relâcher (`uiClic`) — un seul coup dans le pouce. Un glissé annule (`pointercancel`).
+- **LES SONS D'INTERFACE** (demandés par la session SON, tous gardés `typeof sfx==='function'`) : `ui.volet` / `ui.voletSort` (ecranWipe —
+  le `noiseBurst` d'origine reste en repli), `ui.feuille` / `ui.feuilleFerme` (feuilleOuvre/Ferme — pas quand la carrière change de page,
+  pas pour la fenêtre qui a le sien), `ui.modale`, `ui.ok` / `ui.erreur` (toast, selon l'icône coche/croix). ⚠ Le son est la zone de SON.
+- **MISSIONS v2** (`misRender`, `misGain`, `MIS_CAT_COL`, HTML `#mMis` → `.mSec` + `#misTab`) : plus de « CONTRAT n », plus de paragraphe de
+  règle ni de carnet suivant numéroté. Lu de gauche à droite : LES TROIS DÉFIS (`.misDefs` : consigne, jauge = meilleur essai en UNE partie,
+  avancement, prime en vert billet) → la colonne des OBJETS (`.misCol`) : l'objet en jeu (`.misPrix` : vignette, NOM dans la couleur de sa
+  famille — celle du garage : DÉFI vert pour les caisses ; peinture rose, traînée ambre, ailes cyan comme leur fiche —, jauge des trois,
+  VOIR → garage) puis ENSUITE (`.misSuiv` : les trois objets suivants, chacun sa silhouette pixel et sa couleur). La règle tient dans le titre
+  de section (« LES DEFIS · CHACUN EN UNE PARTIE »). Grand téléphone debout (≥ 760 px) : tout en plus généreux. Paysage : défis | objet |
+  ensuite. `misProgV` : « FRANCHIS 2 PORTAILS » compte 1 / 2 (il comptait +1, reste de l'ancien « atteins le niveau »).
+- **LA PORTE DES MISSIONS de l'écran de mort** (`objRender`, `.mObj.misPorte`, `data-m="mis"`) remplace « TU PEUX TE L'OFFRIR » / l'objectif
+  d'achat : le défi que CETTE partie a le plus approché (celui qu'elle vient de relever passe devant : « DÉFI RÉUSSI ! » + prime), ses trois
+  cases, sa jauge qui se remplit de la partie (après l'entrée de l'écran), « CETTE PARTIE · 263 / 672 » et, au bout, l'objet dans sa
+  couleur. Touchée : l'écran MISSIONS (RETOUR ramène à la mort). Un carnet rempli à cette mort garde son état « DÉFIS RÉUSSIS ! » (→ garage).
+  `objectif()`/`shopAPortee()` restent (pastille du garage, `buyGoal`).
+- ⚠ Décision prise sans Sacha (à confirmer) : « la couleur de leur rareté » = la couleur que le GARAGE donne déjà à l'objet. Toutes les
+  caisses à gagner par défi sont de la famille DÉFI (vert) ; si Sacha veut des raretés différentes par palier de mission (rare → épique…),
+  c'est une décision de jeu (familles du garage), pas d'interface.
+- QA : `qa.js` (62 points, copié de la session 312bec4e) 61/62 — le seul échec est le 404 attendu de `dark-triad.mp3`. Bancs : `tour.js`
+  (captures portrait / paysage / 375×667, `MORT=1`), `film.js` + `scenes.js` / `scenes2.js` / `scenes3.js`, `jscheck.py`.
 ## LA DA DU HUD, UNE SEULE FAMILLE (2026-09-28, session UHD) — « le bouton nitro, le camembert air time et la dark triad ne ressemblent pas à la barre de nitro et au compteur »
 Sacha : « j'aime le résultat, unifie parfaitement la DA en restant sur cette base ; le bouton nitro, le camembert air time et la dark triad n'ont
 pas l'air de ressembler à la barre de nitro et au compteur de score (qui sont bien) ; nitro infini VIOLET comme les flammes, la traînée, la barre ;
