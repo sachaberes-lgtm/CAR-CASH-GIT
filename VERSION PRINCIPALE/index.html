@@ -3893,6 +3893,16 @@ html body #flowHud .fT.trois{gap:5px}
 html[data-reduced-motion="1"] body.touch.play :is(#nitroWrap,#flowHud,#tGear,#auraV2),html[data-reduced-motion="1"] body.touch #pwrChip .pw,
 html[data-reduced-motion="1"] body.touch #airPie,html[data-reduced-motion="1"] body.touch #flowHud.monte .fSeg::after{animation:none!important}
 </style>
+<style id="pouvoirsV2">
+/* POUVOIRS v2 (2026-09-28, session GAMEPLAY) — six pouvoirs, cumulables. Trois plaques et plus à la fois : elles se SERRENT (la colonne
+   de droite tient en portrait comme en paysage) ; un pouvoir CUMULÉ au-delà de sa durée : sa jauge, pleine, brille plus fort. */
+html body.touch #pwrChip.pw3{gap:6px}
+html body.touch #pwrChip.pw3 .pw{min-width:132px;padding:6px 10px 10px 12px}
+html body.touch #pwrChip.pw3 .pw span{gap:3px}
+html body.touch #pwrChip.pw3 .pw span b{font-size:15px}
+html body.touch #pwrChip.pw3 .pw>.pxi{--pxs:2}
+html body.touch #pwrChip .pw.cumul u{height:5px;box-shadow:0 0 12px var(--pc),0 0 3px #fff}
+</style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
   <div id="spStage">
@@ -4257,7 +4267,7 @@ if(window.CC_COLONNE)return; // (2026-09-28) sur l'ordi cette page n'est que le 
    dessinée à la main, convertie UNE fois en SVG et posée en MASQUE CSS : elle prend la couleur de son
    bouton (`currentColor`), reste nette à toutes les tailles (`crispEdges`) et ne coûte aucun fichier.
    Usage : `<i class="pxi pxi-croix"></i>` dans le HTML, `pxi('croix')` dans le JS. */
-const PXI_G={nuage:'.........|.........|....##...|...####..|.##.####.|#########|#########|.#######.|.........',immeuble:'....#....|...###...|...###.##|##.###.##|##.###.##|#########|#########|#########|.........',flamme:'....#....|...##....|...###...|..####.#.|..######.|.###.###.|.##...##.|.##...##.|..#####..',pinceau:'......###|.....####|....####.|...####..|..####...|.#.##....|###......|###......|.#.......',aile:'.........|#........|##.......|###......|#####....|.#######.|..#######|....#####|.......##',trainee:'.........|##.......|.###.....|..####...|...######|..####...|.###.....|##.......|.........',pouce:'...##....|...##....|...##....|...####..|.#######.|.########|.#######.|..#####..|..#####..',cadeau:'.##...##.|#..#.#..#|.#######.|#########|#...#...#|####.####|.#..#..#.|.#..#..#.|.#######.',cible:'..#####..|.#.....#.|#..###..#|#.#...#.#|#.#.#.#.#|#.#...#.#|#..###..#|.#.....#.|..#####..',croix:'##.....##|###...###|.###.###.|..#####..|...###...|..#####..|.###.###.|###...###|##.....##',gauche:'....##...|...###...|..####...|.#####...|######...|.#####...|..####...|...###...|....##...',droite:'...##....|...###...|...####..|...#####.|...######|...#####.|...####..|...###...|...##....',haut:'.........|....#....|...###...|..#####..|.#######.|#########|...###...|...###...|...###...',bas:'...###...|...###...|...###...|#########|.#######.|..#####..|...###...|....#....|.........',lecture:'##.......|####.....|######...|########.|#########|########.|######...|####.....|##.......',pause:'.........|###...###|###...###|###...###|###...###|###...###|###...###|###...###|.........',reglages:'....#....|.#.###.#.|..#####..|.##...##.|###...###|.##...##.|..#####..|.#.###.#.|....#....',son:'....#....|...##..#.|####.#..#|####.#..#|####.#..#|####.#..#|...##..#.|....#....|.........',muet:'....#....|...##....|####..#.#|####...#.|####..#.#|####.....|...##....|....#....|.........',musique:'...######|...#....#|...#....#|...#....#|.###..###|####.####|####.####|.##...##.|.........',voix:'...###...|..#####..|..#####..|..#####..|#.#####.#|#..###..#|.##...##.|...###...|..#####..',volant:'..#####..|.#.....#.|#.......#|#..###..#|#########|#...#...#|#...#...#|.#..#..#.|..#####..',fleches:'.........|..#...#..|.##...##.|###...###|###...###|###...###|.##...##.|..#...#..|.........',eclair:'.....###.|....###..|...###...|..######.|.....##..|....##...|...##....|..##.....|.#.......',drapeau:'#.#.#.#.#|##.#.#.#.|#.#.#.#.#|##.#.#.#.|#.#.#.#.#|#........|#........|#........|#........',voiture:'.........|.........|..####...|.#..#.#..|########.|#########|#########|.##...##.|.##...##.',rampe:'.........|.........|........#|......###|.....####|...######|.########|#########|.........',brique:'#########|#...#...#|#########|..#...#..|#########|#...#...#|#########|..#...#..|#########',copier:'...###...|.##...##.|.#######.|.#.....#.|.#.###.#.|.#.....#.|.#.###.#.|.#.....#.|.#######.',importer:'....#....|....#....|..#.#.#..|...###...|....#....|#.......#|#.......#|#########|.........',corbeille:'...###...|#########|.#.....#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.....#.|..#####..',rejouer:'..#####..|.#.....##|#.....###|#........|#........|#.......#|#.......#|.#.....#.|..#####..',quitter:'#####....|#...#....|#...#.#..|#...#.##.|#..######|#...#.##.|#...#.#..|#...#....|#####....',verrou:'..#####..|.#.....#.|.#.....#.|#########|#########|####.####|####.####|#########|#########',coche:'.........|........#|.......##|#.....##.|##...##..|.##.##...|..###....|...#.....|.........',etoile:'....#....|....#....|...###...|#########|.#######.|..#####..|..##.##..|.##...##.|.#.....#.',trophee:'#########|#.#####.#|#.#####.#|.#######.|..#####..|...###...|....#....|..#####..|.#######.',rotation:'..#####..|.#.....##|#.....###|#........|#..###...|#..#.#..#|#..###..#|.#.....#.|..#####..',panier:'.........|#........|.#######.|.#.#.#.#.|.#######.|..#.#.#..|..#####..|..#...#..|.........',bulle:'.#######.|#.......#|#.#.#.#.#|#.......#|.###.###.|...#.#...|...##....|...#.....|.........',piece:'..#####..|.#.....#.|#..###..#|#.#.....#|#..###..#|#.....#.#|#..###..#|.#.....#.|..#####..',maison:'....#....|...###...|..#####..|.#######.|#########|.#######.|.##...##.|.##...##.|.##...##.'};
+const PXI_G={aimant:'##.....##|.........|##.....##|##.....##|##.....##|###...###|.#######.|..#####..|.........',bouclier:'.#######.|#########|##.######|##.######|#########|.#######.|..#####..|...###...|....#....',nuage:'.........|.........|....##...|...####..|.##.####.|#########|#########|.#######.|.........',immeuble:'....#....|...###...|...###.##|##.###.##|##.###.##|#########|#########|#########|.........',flamme:'....#....|...##....|...###...|..####.#.|..######.|.###.###.|.##...##.|.##...##.|..#####..',pinceau:'......###|.....####|....####.|...####..|..####...|.#.##....|###......|###......|.#.......',aile:'.........|#........|##.......|###......|#####....|.#######.|..#######|....#####|.......##',trainee:'.........|##.......|.###.....|..####...|...######|..####...|.###.....|##.......|.........',pouce:'...##....|...##....|...##....|...####..|.#######.|.########|.#######.|..#####..|..#####..',cadeau:'.##...##.|#..#.#..#|.#######.|#########|#...#...#|####.####|.#..#..#.|.#..#..#.|.#######.',cible:'..#####..|.#.....#.|#..###..#|#.#...#.#|#.#.#.#.#|#.#...#.#|#..###..#|.#.....#.|..#####..',croix:'##.....##|###...###|.###.###.|..#####..|...###...|..#####..|.###.###.|###...###|##.....##',gauche:'....##...|...###...|..####...|.#####...|######...|.#####...|..####...|...###...|....##...',droite:'...##....|...###...|...####..|...#####.|...######|...#####.|...####..|...###...|...##....',haut:'.........|....#....|...###...|..#####..|.#######.|#########|...###...|...###...|...###...',bas:'...###...|...###...|...###...|#########|.#######.|..#####..|...###...|....#....|.........',lecture:'##.......|####.....|######...|########.|#########|########.|######...|####.....|##.......',pause:'.........|###...###|###...###|###...###|###...###|###...###|###...###|###...###|.........',reglages:'....#....|.#.###.#.|..#####..|.##...##.|###...###|.##...##.|..#####..|.#.###.#.|....#....',son:'....#....|...##..#.|####.#..#|####.#..#|####.#..#|####.#..#|...##..#.|....#....|.........',muet:'....#....|...##....|####..#.#|####...#.|####..#.#|####.....|...##....|....#....|.........',musique:'...######|...#....#|...#....#|...#....#|.###..###|####.####|####.####|.##...##.|.........',voix:'...###...|..#####..|..#####..|..#####..|#.#####.#|#..###..#|.##...##.|...###...|..#####..',volant:'..#####..|.#.....#.|#.......#|#..###..#|#########|#...#...#|#...#...#|.#..#..#.|..#####..',fleches:'.........|..#...#..|.##...##.|###...###|###...###|###...###|.##...##.|..#...#..|.........',eclair:'.....###.|....###..|...###...|..######.|.....##..|....##...|...##....|..##.....|.#.......',drapeau:'#.#.#.#.#|##.#.#.#.|#.#.#.#.#|##.#.#.#.|#.#.#.#.#|#........|#........|#........|#........',voiture:'.........|.........|..####...|.#..#.#..|########.|#########|#########|.##...##.|.##...##.',rampe:'.........|.........|........#|......###|.....####|...######|.########|#########|.........',brique:'#########|#...#...#|#########|..#...#..|#########|#...#...#|#########|..#...#..|#########',copier:'...###...|.##...##.|.#######.|.#.....#.|.#.###.#.|.#.....#.|.#.###.#.|.#.....#.|.#######.',importer:'....#....|....#....|..#.#.#..|...###...|....#....|#.......#|#.......#|#########|.........',corbeille:'...###...|#########|.#.....#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.....#.|..#####..',rejouer:'..#####..|.#.....##|#.....###|#........|#........|#.......#|#.......#|.#.....#.|..#####..',quitter:'#####....|#...#....|#...#.#..|#...#.##.|#..######|#...#.##.|#...#.#..|#...#....|#####....',verrou:'..#####..|.#.....#.|.#.....#.|#########|#########|####.####|####.####|#########|#########',coche:'.........|........#|.......##|#.....##.|##...##..|.##.##...|..###....|...#.....|.........',etoile:'....#....|....#....|...###...|#########|.#######.|..#####..|..##.##..|.##...##.|.#.....#.',trophee:'#########|#.#####.#|#.#####.#|.#######.|..#####..|...###...|....#....|..#####..|.#######.',rotation:'..#####..|.#.....##|#.....###|#........|#..###...|#..#.#..#|#..###..#|.#.....#.|..#####..',panier:'.........|#........|.#######.|.#.#.#.#.|.#######.|..#.#.#..|..#####..|..#...#..|.........',bulle:'.#######.|#.......#|#.#.#.#.#|#.......#|.###.###.|...#.#...|...##....|...#.....|.........',piece:'..#####..|.#.....#.|#..###..#|#.#.....#|#..###..#|#.....#.#|#..###..#|.#.....#.|..#####..',maison:'....#....|...###...|..#####..|.#######.|#########|.#######.|.##...##.|.##...##.|.##...##.'};
 (function(){
   let css='',vars='';
   for(const k in PXI_G){
@@ -9003,6 +9013,24 @@ Object.assign(I18N_ZH,{'FRÔLÉ':'擦边','RÉCOLTE':'金币连收','RAFALE':'�
 Object.assign(I18N,{"COMMUNES":"COMMONS","COMMUNE":"COMMON","RARES":"RARES","ÉPIQUES":"EPICS","ÉPIQUE":"EPIC","LÉGENDES":"LEGENDS","LÉGENDAIRE":"LEGENDARY","DÉFIS":"CHALLENGES","TOUT":"ALL","À MOI":"MINE","À ACHETER":"FOR SALE","TRAÎNÉE":"TRAIL","PEINTURE":"PAINT","AILES":"WINGS"});
 Object.assign(I18N_ZH,{"COMMUNES":"普通","COMMUNE":"普通","RARES":"稀有","RARE":"稀有","ÉPIQUES":"史诗","ÉPIQUE":"史诗","LÉGENDES":"传奇","LÉGENDAIRE":"传奇","DÉFIS":"挑战","TOUT":"全部","À MOI":"已拥有","À ACHETER":"可购买","TRAÎNÉE":"尾迹","PEINTURE":"涂装","AILES":"翅膀"});
 Object.assign(I18N,{"PIÈCE":"COIN","RETOUR":"BACK","EN BOUTIQUE":"IN THE SHOP","VERROUILLÉE":"LOCKED","ÉQUIPÉE":"EQUIPPED","IL MANQUE":"SHORT BY","LES LEGENDAIRES":"LEGENDARIES","DÉFI":"CHALLENGE"});
+// (2026-09-28, pouvoirs v2) les six pouvoirs, leurs durées, le cumul, le bouclier qui sauve
+Object.assign(I18N,{'NITRO INFINIE — 9 s À FOND !':'INFINITE NITRO — 9 s FLAT OUT!','🪂 AIRTIME INFINI — 14 s DE VOL !':'🪂 INFINITE AIRTIME — 14 s OF FLIGHT!',
+  '⚡ VITESSE ×2 — 8 s !':'⚡ SPEED ×2 — 8 s!','9 S A FOND':'9 S FLAT OUT','14 S DE VOL':'14 S OF FLIGHT','8 S':'8 S',
+  'AIMANT':'MAGNET','BOUCLIER':'SHIELD','AURA ×2':'AURA ×2','NITRO MAX':'NITRO MAX','AIR MAX':'AIR MAX',
+  'AIMANT — 12 s : TOUT L\'OR VIENT À TOI !':'MAGNET — 12 s: ALL THE GOLD COMES TO YOU!','L\'OR VIENT A TOI':'THE GOLD COMES TO YOU',
+  'BOUCLIER — 20 s : UNE CHUTE PARDONNÉE !':'SHIELD — 20 s: ONE FALL FORGIVEN!','UNE CHUTE PARDONNEE':'ONE FALL FORGIVEN',
+  'AURA ×2 — 12 s : CHAQUE FIGURE COMPTE DOUBLE !':'AURA ×2 — 12 s: EVERY TRICK COUNTS DOUBLE!','CHAQUE FIGURE COMPTE DOUBLE':'EVERY TRICK COUNTS DOUBLE',
+  'DOUBLE POUVOIR':'DOUBLE POWER','TRIPLE POUVOIR':'TRIPLE POWER','DOUBLE POUVOIR !':'DOUBLE POWER!','TRIPLE POUVOIR !':'TRIPLE POWER!',
+  'SAUVE !':'SAVED!','LE BOUCLIER A CEDE':'THE SHIELD BROKE','LE BOUCLIER T\'A SAUVE':'THE SHIELD SAVED YOU','DEMOLI':'SMASHED',
+  'SANS FAUTE':'FLAWLESS','SERIE CASSEE':'STREAK BROKEN','MIRACULE':'MIRACLE','MIRACULE !':'MIRACLE!','RECORD DE VITESSE':'SPEED RECORD'});
+Object.assign(I18N_ZH,{'NITRO INFINIE — 9 s À FOND !':'无限氮气 — 全速 9 秒！','🪂 AIRTIME INFINI — 14 s DE VOL !':'🪂 无限滞空 — 飞行 14 秒！',
+  '⚡ VITESSE ×2 — 8 s !':'⚡ 速度 ×2 — 8 秒！','9 S A FOND':'全速 9 秒','14 S DE VOL':'飞行 14 秒','8 S':'8 秒',
+  'AIMANT':'磁铁','BOUCLIER':'护盾','AURA ×2':'气场 ×2','L\'OR VIENT A TOI':'金币自动飞来','UNE CHUTE PARDONNEE':'免死一次',
+  'AIMANT — 12 s : TOUT L\'OR VIENT À TOI !':'磁铁 — 12 秒：金币自动飞来！','BOUCLIER — 20 s : UNE CHUTE PARDONNÉE !':'护盾 — 20 秒：免死一次！',
+  'AURA ×2 — 12 s : CHAQUE FIGURE COMPTE DOUBLE !':'气场 ×2 — 12 秒：每个特技双倍！','CHAQUE FIGURE COMPTE DOUBLE':'每个特技双倍',
+  'DOUBLE POUVOIR':'双重道具','TRIPLE POUVOIR':'三重道具','DOUBLE POUVOIR !':'双重道具！','TRIPLE POUVOIR !':'三重道具！',
+  'SAUVE !':'得救！','LE BOUCLIER A CEDE':'护盾碎了','LE BOUCLIER T\'A SAUVE':'护盾救了你','DEMOLI':'撞飞',
+  'SANS FAUTE':'完美连续','SERIE CASSEE':'连击中断','MIRACULE':'奇迹','MIRACULE !':'奇迹！','RECORD DE VITESSE':'速度纪录'});
 Object.assign(I18N,{"MISSIONS":"MISSIONS","MENU":"MENU","LES TROIS DEFIS":"THE THREE CHALLENGES"}); // (2026-09-28) la porte et l'écran des MISSIONS, la sortie MENU de l'écran de mort
 Object.assign(I18N_ZH,{"MISSIONS":"任务","MENU":"菜单","LES TROIS DEFIS":"三项挑战"});
 Object.assign(I18N_ZH,{"PIÈCE":"金币","RETOUR":"返回","EN BOUTIQUE":"商店有售","VERROUILLÉE":"未解锁","ÉQUIPÉE":"已装备","IL MANQUE":"还差","LES LEGENDAIRES":"传奇座驾","DÉFI":"挑战","ACHETER":"购买"});
@@ -9051,6 +9079,7 @@ function modeLbl(){
 }
 function applyLangDOM(){
   try{document.documentElement.lang=LANG==='zh'?'zh-Hans':LANG;}catch(e){} // (2026-09-28) VoiceOver lisait l'anglais avec la voix française (<html lang="fr"> ne bougeait jamais)
+  try{for(const k in PWR_DEFS)PWR_DEFS[k].icoDessine();}catch(e){} // (pouvoirs v2) l'étiquette des cristaux suit la langue (PWR_DEFS n'existe pas encore au tout premier appel : ignoré, il se dessine à sa naissance)
   const put=(sel,txt)=>{const e=document.querySelector(sel);if(e)e.textContent=txt;};
   // ⚠ que des éléments à texte PUR : #cpInfo par exemple contient <span id=cpDist> et #cpBar,
   // lui écrire un textContent supprimerait ses enfants (donc la jauge de progression).
@@ -17131,6 +17160,7 @@ function nitroGain(q){
 }
 function runxReset(){flowReset();RUNX.best0=best; // le record d'AVANT la partie : c'est lui que l'écran de mort doit battre
 RUNX.coins=RUNX.fruits=RUNX.perfect=0;RUNX.t=RUNX.nitro=0;RUNX.fren=RUNX.frenMax=0;MIS_NEW.length=0;misT=0;
+  RUNX.pwr=RUNX.sauves=RUNX.miracles=RUNX.sfMax=0;try{grisantRaz();}catch(e){} // (2026-09-28) pouvoirs v2 et petits trucs grisants
   try{RUNX.engAvant=(SAVE.d.ex&&SAVE.d.ex.eng)|0;}catch(e){RUNX.engAvant=0;} // le meilleur moteur AVANT la partie : l'écran de fin dit « RECORD ! » s'il est battu
   try{RUNX.bank0=bank();}catch(e){RUNX.bank0=0;}} // la banque AVANT la partie : l'écran de mort remplit la barre depuis là
 function misVal(k){ // la valeur COURANTE d'un critère, dans la partie en cours
@@ -18840,10 +18870,25 @@ const pwrGeo=new THREE.IcosahedronGeometry(1.9,1),pwrCoreGeo=new THREE.Octahedro
    (#7dffec) se confondaient de loin. Désormais : n = OR-FEU #ffb040 (la jauge, la plaque et les bords d'écran suivent `tint`/`fx`),
    a = CYAN #5ee6ff (l'air), v = MAGENTA #ff3ec8 (la vitesse). Et le cristal ÉMET : verre plus dense (.78), émissif .9, cœur ×1,3, et un
    HALO additif en sprite (une matière par pouvoir, PARTAGÉE, la texture `lampTex` commune) — on le repère au bout de la route. */
-const PWR_DEFS={ // n = nitro infinie · a = airtime infini · v = speed up
-  n:{col:0xffb040,core:0xfff2c8,ico:'',msg:'NITRO INFINIE — 6 s À FOND !',hud:'NITRO ∞',tint:'#ffb040',t:6,gros:'NITRO ILLIMITEE',sous:'6 S A FOND',c2:'#ff7a24',fx:'rgba(255,176,64,.85)',fx2:'rgba(255,122,36,.35)'},
-  a:{col:0x5ee6ff,core:0xe8fcff,ico:'🪂',msg:'🪂 AIRTIME INFINI — 10 s DE VOL !',hud:'AIR ∞',tint:'#5ee6ff',t:10,gros:'AIRTIME INFINI',sous:'10 S DE VOL',c2:'#1fa2e0',fx:'rgba(94,230,255,.8)',fx2:'rgba(30,150,230,.3)'},
-  v:{col:0xff3ec8,core:0xffd6f2,ico:'⚡',msg:'⚡ VITESSE ×2 — 6 s !',hud:'VITESSE ×2',tint:'#ff3ec8',t:6,gros:'VITESSE ×2',sous:'6 S',c2:'#ff2e8a',fx:'rgba(255,62,200,.85)',fx2:'rgba(255,46,138,.35)'}};
+/* LES POUVOIRS v2 (2026-09-28, Sacha : « rajoute des nouveaux items de power up, augmente la durée des power up — des petits trucs
+   grisants, que les débutants prennent leur pied autant que les vétérans »). Chaque fiche porte désormais TOUT ce qui la distingue :
+   `t` la durée (s) · `px` le pictogramme pixel (PXI_G) · `plq` le nom sur la plaque du HUD · `sp` la gerbe de ramassage.
+   · DURÉES ALLONGÉES : nitro 6 → 9 s, airtime 10 → 14 s, vitesse 6 → 8 s.
+   · LE MÊME POUVOIR SE CUMULE : repris pendant qu'il court, il AJOUTE sa durée (plafond 2 × `t`) — « +9 S » jaillit de la caisse.
+   · TROIS NOUVEAUX : m AIMANT (vert billet : il attire l'argent) — tout l'or de la route vient à toi, d'un bord à l'autre et loin
+     devant ; b BOUCLIER (acier) — une chute ou un crash PARDONNÉ (la caisse repart de sa dernière ligne sûre) et, tant qu'il tient,
+     les plots VOLENT sans rien coûter et paient de l'aura, l'huile ne fait plus glisser ; x AURA ×2 (l'OR : la nitro max prend le
+     violet) — chaque point d'aura compte double.
+   · DEUX POUVOIRS EN MÊME TEMPS = « DOUBLÉ ! », trois = « TRIPLÉ ! » : de l'aura en plus — la chasse aux cristaux devient un jeu.
+   · LE TIRAGE LIT LE JOUEUR (`pwrTire`) : un débutant voit surtout BOUCLIER et AIMANT, et le tout premier cristal de ses premières
+     parties est un BOUCLIER ; un vétéran voit plus d'AURA ×2 et de VITESSE. */
+const PWR_DEFS={ // n = nitro infinie · a = airtime infini · v = vitesse ×2 · m = aimant · b = bouclier · x = aura ×2
+  n:{col:0xffb040,core:0xfff2c8,ico:'',px:'flamme',plq:'NITRO MAX',sp:'or',msg:'NITRO INFINIE — 9 s À FOND !',hud:'NITRO ∞',tint:'#ffb040',t:9,gros:'NITRO ILLIMITEE',sous:'9 S A FOND',c2:'#ff7a24',fx:'rgba(255,176,64,.85)',fx2:'rgba(255,122,36,.35)'},
+  a:{col:0x5ee6ff,core:0xe8fcff,ico:'🪂',px:'aile',plq:'AIR MAX',sp:'bleu',msg:'🪂 AIRTIME INFINI — 14 s DE VOL !',hud:'AIR ∞',tint:'#5ee6ff',t:14,gros:'AIRTIME INFINI',sous:'14 S DE VOL',c2:'#1fa2e0',fx:'rgba(94,230,255,.8)',fx2:'rgba(30,150,230,.3)'},
+  v:{col:0xff3ec8,core:0xffd6f2,ico:'⚡',px:'eclair',plq:'VITESSE ×2',sp:'rose',msg:'⚡ VITESSE ×2 — 8 s !',hud:'VITESSE ×2',tint:'#ff3ec8',t:8,gros:'VITESSE ×2',sous:'8 S',c2:'#ff2e8a',fx:'rgba(255,62,200,.85)',fx2:'rgba(255,46,138,.35)'},
+  m:{col:0x3fe06a,core:0xe6ffec,ico:'',px:'aimant',plq:'AIMANT',sp:'or',msg:'AIMANT — 12 s : TOUT L\'OR VIENT À TOI !',hud:'AIMANT',tint:'#5ee37a',t:12,gros:'AIMANT',sous:'L\'OR VIENT A TOI',c2:'#1fae4a',fx:'rgba(94,227,122,.8)',fx2:'rgba(31,174,74,.3)'},
+  b:{col:0xa9c2ff,core:0xffffff,ico:'',px:'bouclier',plq:'BOUCLIER',sp:'bleu',msg:'BOUCLIER — 20 s : UNE CHUTE PARDONNÉE !',hud:'BOUCLIER',tint:'#cfe0ff',t:20,gros:'BOUCLIER',sous:'UNE CHUTE PARDONNEE',c2:'#7f9cff',fx:'rgba(207,224,255,.85)',fx2:'rgba(127,156,255,.35)'},
+  x:{col:0xffc93a,core:0xfff6d8,ico:'',px:'etoile',plq:'AURA ×2',sp:'or',msg:'AURA ×2 — 12 s : CHAQUE FIGURE COMPTE DOUBLE !',hud:'AURA ×2',tint:'#ffd75e',t:12,gros:'AURA ×2',sous:'CHAQUE FIGURE COMPTE DOUBLE',c2:'#ffb000',fx:'rgba(255,215,94,.85)',fx2:'rgba(255,176,0,.35)'}}; // (x en OR : la NITRO MAX passe au violet côté session UHD)
 for(const k in PWR_DEFS){const d=PWR_DEFS[k];
   d.glassM=new THREE.MeshPhongMaterial({color:d.col,emissive:d.col,emissiveIntensity:.9,shininess:260,specular:0xffffff,envMap:envTex,reflectivity:.6,transparent:true,opacity:.78,depthWrite:false,flatShading:true});
   d.coreM=new THREE.MeshBasicMaterial({color:d.core});
@@ -18856,12 +18901,12 @@ for(const k in PWR_DEFS){const d=PWR_DEFS[k];
     /* (2026-09-26, vague 2) LE PICTOGRAMME EN PIXELS, LE MÊME QUE SUR LA PLAQUE DU HUD (`PXI_G` : flamme / aile / éclair). C'était un
        EMOJI (🪂, ⚡) — dessiné par la police du système, en couleurs de dessin animé, différent sur chaque téléphone : la seule image
        du jeu qui n'était pas en pixels. Grille 9×9 à 5 px la case, cernée d'ENCRE (4 décalages), à la couleur du pouvoir. */
-    const g=PXI_G[{n:'flamme',a:'aile',v:'eclair'}[k]];
+    const g=PXI_G[d.px]; // (pouvoirs v2) le pictogramme est dans la fiche
     if(g){const rows=g.split('|'),Z=5,X0=64-4.5*Z,Y0=12;
       for(const o of [[-2,0],[2,0],[0,-2],[0,2],[0,0]]){c.fillStyle=o[0]||o[1]?'#1c0430':d.tint;
         for(let y=0;y<9;y++)for(let x=0;x<9;x++)if(rows[y][x]==='#')c.fillRect(X0+x*Z+o[0],Y0+y*Z+o[1],Z,Z);}}
     // (2026-09-26) l'étiquette dans la POLICE DU JEU (pixel), cerclée d'ENCRE — « ∞ » n'existe pas en pixel : MAX
-    const lb=String(d.hud).replace('∞','MAX').replace(' +60%','');c.font='13px "Press Start 2P",monospace';c.lineWidth=6;c.lineJoin='round';c.strokeStyle='#1c0430';
+    const lb=sansAcc(TR(String(d.hud).replace('∞','MAX').replace(' +60%','')));c.font=(lb.length>9?'11px':'13px')+' "Press Start 2P",monospace'; // (pouvoirs v2) traduit ; un nom long en plus petit (le canvas fait 128 px)c.lineWidth=6;c.lineJoin='round';c.strokeStyle='#1c0430';
     c.strokeText(lb,64,102);c.fillStyle=d.tint;c.fillText(lb,64,102);d.icoM.map.needsUpdate=true;};
   d.icoDessine();
 }
@@ -18878,6 +18923,171 @@ function mkPower(kind,dir){
   const ha=new THREE.Sprite(d.haloM);ha.scale.set(6,6,1);ha.renderOrder=2;ha.updateMatrix();ha.matrixAutoUpdate=false;g.add(ha); // (vague 2) le HALO additif (sprite : 4 sommets, zéro lumière)
   return g;
 }
+/* ===== POUVOIRS v2 — LE MOTEUR (2026-09-28) ===== voir la fiche PWR_DEFS. Un seul endroit lit et écrit les six minuteurs
+   (`pwrT`/`pwrSet`) : la plaque du HUD, les bords d'écran, le ramassage et le tirage passent par ici. */
+const PWR_ORDRE=['n','a','v','m','b','x']; // l'ordre des plaques dans le HUD (toujours le même : l'œil apprend où regarder)
+function pwrT(k){return k==='n'?pwrNitroT:k==='a'?pwrAirT:k==='v'?pwrSpdT:k==='m'?pwrMagT:k==='b'?pwrBouT:k==='x'?pwrAurT:0;}
+function pwrSet(k,v){if(k==='n')pwrNitroT=v;else if(k==='a')pwrAirT=v;else if(k==='v')pwrSpdT=v;else if(k==='m')pwrMagT=v;else if(k==='b')pwrBouT=v;else if(k==='x')pwrAurT=v;}
+function pwrVu(k){return pwrT(k)>0&&!(k==='a'&&TUTO.on);} // (l'airtime PRÊTÉ par l'auto-école n'est pas un pouvoir ramassé)
+const PWR_V2={sauves:0,halo:null,haloM:null,demoli:0,demoT:0};
+function pwrV2Raz(){PWR_V2.sauves=0;PWR_V2.demoli=0;PWR_V2.demoT=0;if(PWR_V2.halo)PWR_V2.halo.visible=false;}
+/* LE TIRAGE (spawnPickups) : UN seul tirage `r` du flux seedé choisit le pouvoir — autant d'appels que l'ancien `kinds[⌊r·3⌋]`, la
+   suite de la génération ne bouge pas. Les poids suivent l'expérience du joueur (`SAVE.d.ex.runs`) : le débutant tombe surtout sur ce
+   qui le garde en vie (BOUCLIER, AIMANT) ; le vétéran sur ce qui fait monter le score (AURA ×2, VITESSE). ⚠ En CAMPAGNE (pistes
+   identiques à chaque essai) les poids restent FIXES : la même graine donne les mêmes cristaux, quel que soit le joueur. */
+function pwrPoids(){
+  const camp=!!(LVL.cur&&LVL.cur.camp),runs=camp?20:((SAVE.d.ex&&SAVE.d.ex.runs)|0);
+  if(runs<8)return {n:.15,a:.12,v:.1,m:.23,b:.28,x:.12};
+  if(runs<30)return {n:.17,a:.15,v:.15,m:.18,b:.18,x:.17};
+  return {n:.18,a:.15,v:.19,m:.14,b:.13,x:.21};
+}
+function pwrTire(r,W){let acc=0;for(const k of PWR_ORDRE){acc+=W[k];if(r<acc)return k;}return 'n';}
+// le tout PREMIER cristal de la partie, pour qui débute (moins de 5 parties, hors campagne) : un BOUCLIER — on apprend sans mourir au 1er saut
+function pwrPremier(){return !(LVL.cur&&LVL.cur.camp)&&!TUTO.on&&!PARK.on&&(runStats.zones|0)===0&&((SAVE.d.ex&&SAVE.d.ex.runs)|0)<5;}
+/* LE RAMASSAGE — tout ce qui se passe quand la caisse éclate un cristal. `pos` = où il éclate. */
+function pwrPrend(k,pos){
+  const d=PWR_DEFS[k];if(!d)return;
+  const t0=pwrT(k),reprise=t0>0;
+  let autres=0;for(const q of PWR_ORDRE)if(q!==k&&pwrVu(q))autres++;
+  pwrSet(k,Math.min(d.t*2,t0+d.t)); // LE MÊME POUVOIR SE CUMULE : il ajoute sa durée, plafond 2 × t
+  if(k==='a')airFlash=.6;
+  if(k==='b'&&!reprise){PWR_V2.demoli=0;PWR_V2.demoT=0;}
+  if(reprise){ // repris en cours : on le DIT — on vient de gagner du temps
+    slam(d.gros,'+'+d.t+' S',d.tint,d.c2,40,2);
+    popTexte(sansAcc(TR(d.plq))+' +'+d.t+' S',d.tint,2);
+  }else{
+    showMsg(d.msg,d.tint);trickMsg((d.ico?d.ico+' ':'')+TR(d.hud),2);
+    slam(d.gros,d.sous,d.tint,d.c2,40,2); // (HUD v3) le pouvoir s'ANNONCE en gros, de sa couleur
+  }
+  boostSnd();pwrPrisSnd(k);shake=Math.max(shake,.35);flashEcran(d.fx);hap([14,40,24]);
+  sparkBurst(d.sp==='bleu'?sparkBlue:d.sp==='rose'?sparkPink:sparkGold,pos,14,9); // là où le cristal éclate
+  addStyle(10);RUNX.pwr=(RUNX.pwr|0)+1;
+  if(autres>=1){ // DEUX POUVOIRS À LA FOIS : la chasse aux cristaux paie
+    const tri=autres>=2;
+    chaineAura(tri?'TRIPLE POUVOIR':'DOUBLE POUVOIR',tri?150:70,'pwrCombo',true);
+    popTexte(sansAcc(TR(tri?'TRIPLE POUVOIR !':'DOUBLE POUVOIR !')),tri?'#ff5ec8':'#ffd75e',3);
+    try{chimeNote(noteP(4,1),.2,.06,.3);chimeNote(noteP(7,1),.28,.06,.34);if(tri)chimeNote(noteP(11,1),.36,.07,.45);}catch(e){}
+    try{if(typeof sfx==='function')sfx(tri?'pwr.triple':'pwr.double');}catch(e){}
+    hap(tri?[20,30,20,30,40]:[16,30,24]);
+  }
+}
+/* LES MINUTEURS DES NOUVEAUX POUVOIRS (boucle, à côté de ceux d'origine) — la fin se dit à l'oreille (pwrFinSnd). */
+function pwrTick(dt){
+  for(const k of ['m','x','b']){const t0=pwrT(k);if(t0>0){const t1=Math.max(0,t0-dt);pwrSet(k,t1);if(t1<=0){pwrFinSnd();
+    if(k==='b')try{if(typeof sfx==='function')sfx('pwr.bouclierFin');}catch(e){}}}}
+  if(PWR_V2.demoT>0)PWR_V2.demoT-=dt;
+  pwrHalo();
+}
+/* LE BOUCLIER SE VOIT SUR LA CAISSE : une bulle d'acier (sprite additif `lampTex`, le programme des halos de pouvoirs — aucune
+   compilation, aucune lumière) qui respire, et qui bat vite dans ses 3 dernières secondes. */
+function pwrHalo(){
+  const on=pwrBouT>0&&running&&!gameOver&&mode!=='boom';
+  if(!on){if(PWR_V2.halo&&PWR_V2.halo.visible)PWR_V2.halo.visible=false;return;}
+  if(!PWR_V2.halo){PWR_V2.haloM=new THREE.SpriteMaterial({map:lampTex,color:0x9fb8ff,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending});
+    PWR_V2.halo=new THREE.Sprite(PWR_V2.haloM);PWR_V2.halo.renderOrder=4;scene.add(PWR_V2.halo);}
+  const sp=CARS[level]||CARS[0],tt=performance.now()/1000,fin=pwrBouT<3;
+  const bat=fin?(.5+.5*Math.sin(tt*18)):(.8+.2*Math.sin(tt*3.2));
+  PWR_V2.halo.visible=true;PWR_V2.halo.position.copy(carGroup.position);
+  const R9=Math.max(sp.l||4.2,3.6)*1.55;PWR_V2.halo.scale.set(R9,R9*.8,1);
+  PWR_V2.haloM.opacity=(fin?.34:.26)*bat;
+}
+/* LE BOUCLIER PARDONNE — appelé en tête d'explode(). Une chute dans le vide, un vol trop long, une tour : la caisse repart de sa
+   dernière ligne SÛRE (`respawn` : safeS), le bouclier se brise. La chaîne d'ARGENT du vol (pas encore encaissée) est perdue — on ne
+   s'est pas posé — mais l'aura, le flow et la partie continuent. Jamais pour une mort de RÈGLE (dernier de la meute, carcasse en feu,
+   6 s à l'arrêt) : le bouclier protège la caisse, pas le règlement. */
+function bouclierSauve(cause){
+  if(!(pwrBouT>0)||gameOver||mode==='boom'||PARK.on||!started)return false;
+  if(cause!=='vide'&&cause!=='air'&&cause!=='tour')return false;
+  pwrBouT=0;PWR_V2.sauves++;RUNX.sauves=(RUNX.sauves|0)+1;SFA.n=0;MIR.t=0;MIR.max=0; // une chute n'est pas une pose propre
+  airPie.style.display='none';airFlash=0;
+  try{dolFin();}catch(e){}
+  chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;
+  caseHud.style.opacity=0;caseHud.className='';caseHot=false;dolphT=0;
+  const d=PWR_DEFS.b,p9=carGroup.position.clone();
+  respawn();hopY=2.2;hopV=0;graceT=Math.max(graceT,2.2);loop._camDriveT=0; // elle RETOMBE sur sa ligne (la caméra se recale, comme au portail)
+  nitroR=Math.max(nitroR,nitroCap()*.5); // on repart avec de quoi voler
+  slam('SAUVE !','LE BOUCLIER A CEDE',d.tint,d.c2,48,3,16);
+  flashEcran('rgba(207,224,255,.95)');shake=Math.max(shake,.7);hap([30,40,30,40,70]);
+  try{subBoom(.16);chimeNote(noteP(0,1),0,.08,.35);chimeNote(noteP(4,1),.08,.08,.4);chimeNote(noteP(7,1),.16,.1,.55);}catch(e){}
+  try{if(typeof sfx==='function')sfx('pwr.bouclierCasse');}catch(e){}
+  sparkBurst(sparkBlue,p9,26,16);
+  if(PWR_V2.sauves===1&&((SAVE.d.ex&&SAVE.d.ex.runs)|0)<8)setTimeout(function(){try{if(running&&!gameOver)popTexte(sansAcc(TR('LE BOUCLIER T\'A SAUVE')),d.tint,2);}catch(e){}},1500);
+  return true;
+}
+/* BOUCLIER : UN PLOT PERCUTÉ VOLE, IL NE COÛTE RIEN — il paie « DÉMOLI » (la série monte si on enchaîne en 2 s) et un filet de nitro. */
+function pwrDemoli(pos){
+  PWR_V2.demoli=PWR_V2.demoT>0?PWR_V2.demoli+1:1;PWR_V2.demoT=2;
+  const n=PWR_V2.demoli;
+  chaineAura(n>1?'DEMOLI ×'+n:'DEMOLI',20+Math.min(6,n)*6,'demoli',true);
+  nitroGain(.05);sparkBurst(sparkBlue,pos,8,9);sparkBurst(sparkGold,pos,4,7);
+  shake=Math.max(shake,.2);hap(14);
+  try{if(typeof sfx==='function')sfx('pwr.bouclierPlot');}catch(e){}
+}
+/* ===== LES PETITS TRUCS GRISANTS (2026-09-28, Sacha : « pousse un max de petites modifs en game designer senior pour augmenter le
+   fun, l'adrénaline et surtout l'accessibilité ») — trois moments qui n'existaient pas, chacun branché sur ce qui est déjà là :
+   · MIRACULÉ — la chute était PERDUE D'AVANCE (sous la route, en train de tomber, aucune réception en vue depuis `MIR.min` s) et
+     pourtant on se pose : au nitro, ou sur la dalle d'en dessous. Le plus grand frisson du jeu n'était pas récompensé.
+   · SANS FAUTE — les poses propres d'affilée (ni lourde, ni ratée, ni chute) : ×3, ×5, ×8, ×12, puis toutes les 5. La régularité
+     devient un score à part — le débutant la vise, le vétéran la tient.
+   · LES PALIERS DE VITESSE — chaque centaine de km/h franchie pour la 1re fois de la partie se crie (« 400 KM/H ! »), et le
+     RECORD de vitesse de toute ta vie aussi. Sur téléphone l'écran est NU (pas de compteur) : c'était la seule vitesse qu'on ne
+     SENTAIT pas en chiffres. */
+const MIR={t:0,max:0,min:.6};            // t = secondes « perdu d'avance » (lissé), max = le pire du vol
+function mirTick(dt){ // dans la branche 'fall', après le viseur (LM.vu vient d'être posé)
+  const perdu=!LM.vu&&fallT>.4&&fallVel.y<-4&&fallPos.y<lastNearY-10;
+  MIR.t=perdu?MIR.t+dt:Math.max(0,MIR.t-dt*2);if(MIR.t>MIR.max)MIR.max=MIR.t;
+}
+function mirPose(){ // la pose a réussi (tryLand vrai)
+  const m=MIR.max;MIR.t=0;MIR.max=0;
+  if(m<MIR.min||PARK.on||TUTO.on)return;
+  RUNX.miracles=(RUNX.miracles|0)+1;
+  chaineAura('MIRACULE',m>1.5?240:160,'miracle',false,true);
+  flowAdd(10,'risque','p'); // se rattraper au nitro : PSYCHO
+  setTimeout(function(){try{if(running&&!gameOver)popTexte(sansAcc(TR('MIRACULE !')),'#7dffec',3);}catch(e){}},420); // après le verdict de la pose (sa priorité le laisse passer)
+  flashEcran('rgba(125,255,236,.7)');hap([18,30,18,30,50]);shake=Math.max(shake,.45);
+  sparkBurst(sparkBlue,carGroup.position,22,14);sparkBurst(sparkGold,carGroup.position,12,10);
+  try{chimeNote(noteP(0,1),.05,.07,.3);chimeNote(noteP(4,1),.12,.07,.34);chimeNote(noteP(7,1),.19,.07,.38);chimeNote(noteP(12,1),.26,.09,.55);}catch(e){}
+  try{if(typeof sfx==='function')sfx('jeu.miracule');}catch(e){}
+}
+const SFA={n:0};                          // SANS FAUTE : poses propres d'affilée
+function sfaPose(propre){ // appelé au verdict d'une VRAIE pose (fallT > .7)
+  SFA.dern=propre; // (banc) la dernière pose jugée
+  if(PARK.on||TUTO.on)return;
+  if(!propre){if(SFA.n>=3)popTexte(sansAcc(TR('SERIE CASSEE')),'#ff5e7a',1);SFA.n=0;return;}
+  SFA.n++;const n=SFA.n;RUNX.sfMax=Math.max(RUNX.sfMax|0,n);
+  if(n===3||n===5||n===8||n===12||(n>12&&n%5===0)){
+    chaineAura('SANS FAUTE ×'+n,30+Math.min(20,n)*8,'sansfaute',true,true);
+    nitroGain(.12);
+    setTimeout(function(){try{if(running&&!gameOver)popTexte(sansAcc(TR('SANS FAUTE'))+' ×'+n,'#7dff9a',2);}catch(e){}},700);
+    try{chimeNote(noteP(Math.min(9,2+Math.floor(n/3)),1),.7,.06,.3);}catch(e){}
+  }
+}
+const VPAL={n:0,rec:false,c0:3};          // paliers de vitesse de la partie (n = dernière centaine criée) · rec = record de vie déjà crié · c0 = 1re centaine criée
+/* MESURÉ (banc gp.js, pilote auto, moteur de départ) : 120 km/h au départ, 300 à ~10 s, 400 à ~40 s. Crier « 300 » à chaque partie
+   deviendrait un tic : on ne crie qu'à partir d'une centaine sous TON record de vie (`c0`, relu à chaque partie) — le débutant entend
+   300, 400… ; le vétéran n'entend que ce qui s'approche de son record, puis « RECORD DE VITESSE » quand il tombe. */
+function vpalTick(kmh){
+  if(PARK.on||TUTO.on||!(kmh>0))return;
+  const c=Math.floor(kmh/100);
+  if(c>=VPAL.c0&&c>VPAL.n){VPAL.n=c;
+    popTexte((c*100)+' KM/H !',c>=8?'#ff5ec8':c>=5?'#ffd75e':'#9fe8ff',1);
+    fovPunch=Math.max(fovPunch,5+Math.min(8,c));hap(c>=6?[12,20,18]:10);
+    try{chimeNote(noteP(Math.min(11,c),1),0,.05,.22);}catch(e){}
+    try{if(typeof sfx==='function')sfx('jeu.palierVitesse');}catch(e){}}
+  const ex=SAVE.d.ex,r=ex?(ex.kmh|0):0;
+  if(!VPAL.rec&&r>=250&&kmh>r+5){VPAL.rec=true;
+    setTimeout(function(){try{if(running&&!gameOver){slam('RECORD DE VITESSE',Math.round(Math.max(kmh,runStats.vmax||0))+' KM/H','#ffd75e','#ff3924',40,2,14);hap([12,30,20]);}}catch(e){}},250);}
+}
+function grisantRaz(){MIR.t=0;MIR.max=0;SFA.n=0;VPAL.n=0;VPAL.rec=false;
+  try{VPAL.c0=Math.max(3,Math.floor(((SAVE.d.ex&&SAVE.d.ex.kmh)|0)/100)-1);}catch(e){VPAL.c0=3;}}
+// console : dbgPwr('b') prend un pouvoir (n a v m b x) · dbgPwr() l'état des six minuteurs et du grisant
+window.dbgPwr=function(k,n){try{if(k&&PWR_DEFS[k]){for(let i=0;i<(n||1);i++)pwrPrend(k,carGroup.position);}
+  if(k==='mir'){MIR.max=n==null?1:n;return MIR.max;} // (banc) la prochaine pose est un MIRACULÉ
+  if(k==='sf'){sfaPose(n!==false);return SFA.n;} // (banc) une pose jugée propre (ou pas : dbgPwr('sf',false))
+  if(k==='devant'){const L9=[];for(const p of pickups)if(!p.taken&&!p.pow&&p.face===side&&p.s>s+5&&p.s<s+50)L9.push(p);window.__dv=L9;return L9.length;} // (banc) l'or à portée d'AIMANT…
+  if(k==='devantPris'){return (window.__dv||[]).filter(function(p){return p.taken;}).length;} // …et ce qui en a été ramassé
+  if(k==='plot'){let b9=null;for(const c of CONES){if(!c.hit&&c.face===1&&c.s>s+50&&(!b9||c.s<b9.s))b9=c;}if(b9){DBG_AUTO.lat=b9.lat;}return b9?{s:Math.round(b9.s),lat:+b9.lat.toFixed(1),moi:Math.round(s)}:null;} // (banc) le pilote de mesure vise le prochain plot
+  const o={};for(const q of PWR_ORDRE)o[q]=+pwrT(q).toFixed(2);return {pwr:o,poids:pwrPoids(),runs:(SAVE.d.ex&&SAVE.d.ex.runs)|0,sauves:PWR_V2.sauves,mir:{t:+MIR.t.toFixed(2),max:+MIR.max.toFixed(2)},sansFaute:SFA.n,sfDern:SFA.dern,poseA:FLOW.poseA,vol:+fallT.toFixed(2),vpal:VPAL.n,c0:VPAL.c0,pieces:RUNX.coins|0,demoli:PWR_V2.demoli,aura:Math.round(auraRun)};}catch(e){return e.message;}};
 const pickups=[];
 const mat4b=new THREE.Matrix4(),FLIP_B=new THREE.Vector3(),FLIP_N=new THREE.Vector3(); // FLIP_* : le repère retourné des fruits d'en dessous
 /* LES PIÈCES SE RECYCLENT (2026-09-28, chasse aux gels) — une piste pose 2 000 à 4 000 pièces, et chacune était un `new THREE.Mesh`
@@ -19011,10 +19221,13 @@ function spawnPickups(rnd){
     }
   }
   // POUVOIRS : orbes rares, hautes et brillantes — on les voit de loin, on les vise (miroir deux faces, intervalle doublé)
-  const kinds='nav';
+  // (pouvoirs v2) SIX pouvoirs tirés par `pwrTire` sur le MÊME tirage (poids selon l'expérience : voir pwrPoids) ; le 1er cristal
+  // d'un débutant est un BOUCLIER (pwrPremier)
+  const W9=pwrPoids();let prem9=pwrPremier();
   for(let ss=380+rnd()*260;ss<L-140;ss+=860+rnd()*760){
-    const kind=kinds[Math.floor(rnd()*3)];
-    const lt=(rnd()*2-1)*(ROAD_HALF-4);
+    let kind=pwrTire(rnd(),W9);
+    let lt=(rnd()*2-1)*(ROAD_HALF-4);
+    if(prem9&&!holeAtS(ss)){kind='b';prem9=false;lt*=.2;} // le 1er BOUCLIER d'un débutant est posé PRÈS DE L'AXE : il le prend sans le chercher
     if(holeAtS(ss))continue; // (tirages consommés au-dessus : le flux rnd reste identique) — pas d'orbe dans le vide
     frameAt(ss,F);
     mat4b.makeBasis(F.b,F.n,F.t);
@@ -19738,6 +19951,7 @@ const BOOM_VARS=[
 let BOOMV=BOOM_VARS[0];
 let mortCause=''; // (2026-09-26, audit UX) POURQUOI on est mort — dit sous GAME OVER : une mort comprise donne envie de rejouer
 function explode(cause){
+  if(bouclierSauve(cause))return; // (pouvoirs v2) LE BOUCLIER : une chute, un vol trop long, une tour — pardonnés une fois (voir bouclierSauve)
   if(!(gameOver||mode==='boom'))hautVide(); // (vague 2) la caisse explose : plus AUCUNE voix (carte, niveau, geste) — seule « CHAÎNE PERDUE » peut parler
   chainePerdue(); // (aura v2) la chaîne ouverte part avec la caisse
   if(gameOver||mode==='boom')return;
@@ -22041,7 +22255,7 @@ function nBlip(){
    force : 1 = pad turbo / pouvoir / catapulte, jusqu'à ~2 = ULTRA TURBO et FRÉNÉSIE. */
 /* LES POUVOIRS ONT LEUR SIGNATURE (2026-09-26, audit son) : ils se ramassaient avec le souffle d'un pad et s'éteignaient en silence.
    Deux notes à eux par-dessus le souffle (dans la tonalité), et une tierce qui descend quand le minuteur s'épuise. */
-const PWR_NOTE={n:[2,5],a:[4,7],v:[3,6]};
+const PWR_NOTE={n:[2,5],a:[4,7],v:[3,6],m:[0,4],b:[1,5],x:[4,9]}; // (2026-09-28, pouvoirs v2) m aimant · b bouclier · x aura ×2
 function pwrPrisSnd(k){const N=PWR_NOTE[k]||PWR_NOTE.n;try{chimeNote(noteP(N[0],1),.05,.1,.22);chimeNote(noteP(N[1],1),.13,.1,.32);}catch(e){}}
 function pwrFinSnd(){try{chimeNote(noteP(5,1),0,.07,.18);chimeNote(noteP(2,1),.1,.07,.28);}catch(e){}}
 function boostSnd(k){
@@ -23090,6 +23304,7 @@ function fireLaunchBoost(){
   },1900);
 }
 let pwrNitroT=0,pwrAirT=0,pwrSpdT=0; // POUVOIRS : nitro infinie · airtime infini · speed up +60%
+let pwrMagT=0,pwrBouT=0,pwrAurT=0;  // (pouvoirs v2) aimant · bouclier · aura ×2 — voir PWR_DEFS
 let gameOver=false,paused=false,running=false,started=false,best=0;
 best=SAVE.d.best;
 const fallPos=new THREE.Vector3(),fallVel=new THREE.Vector3();
@@ -23323,7 +23538,7 @@ function addAura(n,titre,brut){ // brut : n est DÉJÀ multiplié par la vitesse
   // ⚠ RIEN EN FREESTYLE : le parc n'a pas de mort. Une monnaie de panache ne se gagne pas la ou
   // l'on ne risque rien — sinon le mode d'entrainement devient la meilleure facon de monter en rang.
   if(!(n>0)||!running||gameOver||(typeof PARK!=='undefined'&&PARK.on))return;
-  n=brut?Math.round(n):Math.round(n*auraMultVitesse());
+  n=(brut?Math.round(n):Math.round(n*auraMultVitesse()))*(pwrAurT>0?2:1); // (pouvoirs v2) AURA ×2
   auraRun+=n;
   auraPop=Math.min(1,auraPop+n/90);
   if(titre){ // un gain NOMMÉ : il claque à l'écran, avec sa raison
@@ -23378,7 +23593,7 @@ function sansAcc(t){return String(t).normalize('NFD').replace(/[̀-ͯ]/g,'');} /
 function chaineAura(nom,base,fam,brut,muet){ // brut : pas de décote de redite (les échelles qui grimpent déjà : vrilles, bumps) · muet : l'appelant sonne déjà (figure en vol, pose)
   if(!(base>0)||!running||gameOver||(typeof PARK!=='undefined'&&PARK.on))return 0;
   fam=fam||nom;const k=CHA.fam[fam]|0;CHA.fam[fam]=k+1;
-  const p=Math.max(1,Math.round(base*(brut?1:Math.pow(.7,k))));
+  const p=Math.max(1,Math.round(base*(brut?1:Math.pow(.7,k))*(pwrAurT>0?2:1))); // (pouvoirs v2) AURA ×2
   const x0=CHA.x;if(k===0)CHA.x=Math.min(CHA_XMAX,CHA.x+1);
   if(CHA.x>(runStats.xMax|0))runStats.xMax=CHA.x; // le meilleur × de la partie : l'écran de fin le montre
   CHA.pts+=p;CHA.n++;CHA.t=CHA_FEN;
@@ -24273,6 +24488,7 @@ function startFall(impU,impF){
   loop._nAir=nitroOn; // (2026-09-26) l'impulsion est celle de l'ALLUMAGE en vol : tenue depuis le sol, elle ne compte pas — mais elle ne dépend plus du vol d'avant
   lastNearS=s;        // (2026-09-26) le couloir de proximité (LOD, aimant) part d'ICI, pas de la fin du vol précédent (les pièces clignotaient une image)
   FROLE.s0=null;FROLE.n=0;FROLE.t=0; // (2026-09-25) un plot SURVOLÉ n'est pas un frôlé : le balayage repart de l'atterrissage
+  MIR.t=0;MIR.max=0; // (2026-09-28) MIRACULÉ : chaque vol repart « pas perdu »
   mode='fall';fallT=0;fallTR=0;yawAcc=0;airRoll=0;trkBigA=false;trkMonstre=false; // (momentum v2) le saut ne remet plus la réserve à zéro : c'est la POSE qui juge
   driftC=0;driftLv=0;driftEnCours=false;driftArm=0;yawR=0;slipB=0;glisse9=0;driftYaw=0;carRoll9=0;rollV=0;pitch9=0;carBody.rotation.set(0,0,0);carBody.position.set(0,0,0); // une glisse ne survit pas au décollage (pas de mini-turbo en l'air)
   // TEMPO DE VOL ∝ VITESSE (2026-07-20, dosage DOUX sur base V1) : =1 jusqu'à 450 km/h affichés
@@ -24488,6 +24704,7 @@ function tryLand(dt){
       else{g=1;gTxt='';}
     }
     if(g>=1.5)try{poseParfaiteFx(g>=2);}catch(e){} // (2026-09-28) coup de zoom + couronne dorée
+    if(fallT>.7)sfaPose(!poseRatee&&g>=1); // (2026-09-28) SANS FAUTE : les poses propres d'affilée
     rollover=g>=1.5?chainVal*.1:0; // ROLLOVER : un PARFAIT reporte 10 % — la fortune voyage au vol suivant
     if(g>=1.5)momT=Math.max(momT,3);else if(g<1)momT*=.5; // (momentum v2) PARFAIT relance la vitesse, POSÉ LOURD en coûte la moitié
     if(g<1){try{clank9(0,190,.12);clank9(.05,135,.09);}catch(e){}if(!poseRatee)flowFaute('n',FLOW2.faute.lourd,.5);} // (v5) POSÉ LOURD : -NARCISSE // (2026-09-25) POSÉ LOURD : la TÔLE, sans carillon
@@ -24678,7 +24895,7 @@ function resetGame(){
   buildCar(CARS[level]);
   nitroR=2;nitroX=0;boost=0;combo=0;edgeT=0;momT=0;styleM=0;fever=0;streak=0;slowT=0;gameOver=false;paused=false;insUsed=false;feverArmed=false;rollover=0;idleT=0;driftT=0;driftYaw=0;
   coinsGot=0;engTier=0;engSwapT=0; // le moteur se remonte à chaque run (c'est la progression DE LA PARTIE)
-  pwrNitroT=0;pwrAirT=0;pwrSpdT=0;
+  pwrNitroT=0;pwrAirT=0;pwrSpdT=0;pwrMagT=0;pwrBouT=0;pwrAurT=0;pwrV2Raz();
   driftC=0;driftLv=0;driftEnCours=false;raseT=0;raseAnn=false;yawR=0;slipB=0;glisse9=0;driftYaw=0;FROLE.n=0;FROLE.t=0;FROLE.s0=null; // (2026-09-25) une glisse ne survit pas à la partie (sinon MINI-TURBO fantôme au départ)
   nextRainAt=4e3*ECO3.gain;moneyRainT=0;sideCd=0;slipT=0;oilCd=0;
   nitroAirT=0;fallUnder=false;pureT=0;pureArmed=true;gapArmed=0;rampCd=0;annStop();deathStop();fxStop(); // la mort précédente se tait : on repart, elle n'a plus rien à dire
@@ -24763,7 +24980,7 @@ function endGame(){
   for(const n9 of [transG,diffG,ovrG,engTickG,pinkG])if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.2);
   for(const n9 of [whG,skidG,jrG,jrDep,jetG,jetLowG,jetOscG])if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.12); // (2026-09-26) sifflement d'air, crissement et flamme nitro : QUITTER en plein boost les laissait tourner au menu
   nA=0;loop._jetWas=false;
-  pwrNitroT=pwrAirT=pwrSpdT=0;pwrChip.style.display='none';loop._pch='';loop._pfx='';{const f9=avE('pwrFx');if(f9)f9.classList.remove('on');} // les pouvoirs meurent avec la caisse
+  pwrNitroT=pwrAirT=pwrSpdT=0;pwrMagT=pwrBouT=pwrAurT=0;pwrV2Raz();pwrChip.style.display='none';loop._pch='';loop._pfx='';{const f9=avE('pwrFx');if(f9)f9.classList.remove('on');} // les pouvoirs meurent avec la caisse
   if(DRS)DRS.g.gain.setTargetAtTime(0,AC.currentTime,.05);if(RSN)RSN.g.gain.setTargetAtTime(0,AC.currentTime,.05); // QUITTER depuis la pause : la charge du drift et la bande rugueuse ne ronflent plus sur l'écran de mort
   charge9=0;ovr9=0;
   AIP.commit(); // ta manière de jouer entre dans la mémoire des poursuivantes
@@ -28565,6 +28782,7 @@ function loop(now){
     if((pn9&&pwrNitroT<=0)||(ps9&&pwrSpdT<=0))pwrFinSnd();} // (2026-09-26) la fin d'un pouvoir se dit aussi à l'oreille
     if(startBoostT>0)startBoostT=Math.max(0,startBoostT-dt); // LE BOOST DE DÉPART : décroît tout seul, même hors mode 'drive' ne l'arrête pas plus tôt que prévu
     if(pwrAirT>0){pwrAirT-=dt;if(pwrAirT<=0){pwrAirT=0;if(!TUTO.on)pwrFinSnd();if(mode==='fall'){fallT=0;fallTR=0;airFlash=.6;}}} // (2026-09-28) l'airtime PRÊTÉ par l'auto-école n'est pas un pouvoir : il finit sans bruit
+    pwrTick(dt); // (pouvoirs v2) aimant · bouclier · aura ×2
     // nitro : 2s regen (10s de recharge) + 2s réserve (bidons bleus)
     // CAPACITÉ MOTEUR : la réserve de nitro s'élargit avec le palier (2,0 → 3,6 au réacteur)
     const NRMAX=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2;
@@ -28704,6 +28922,7 @@ function loop(now){
       const vF=vA;
       boost=Math.max(0,boost-dt);
       speedKmh=Math.abs(vF)*3.6*SPD*spdMult;
+      vpalTick(speedKmh); // (2026-09-28) les PALIERS DE VITESSE : chaque centaine franchie se crie (écran nu : pas de compteur sur téléphone)
       // PURE SPEED : 3 s de nitro soutenu à +400 km/h sur la route
       if(nitroOn&&speedKmh>400){
         pureT+=dt;
@@ -28808,18 +29027,22 @@ function loop(now){
             .addScaledVector(F.b,(dl9>0?-1:1)*(2+Math.random()*4))
             .addScaledVector(F.n,(5+Math.random()*5)*side); // il valse en s'ÉLOIGNANT de sa dalle
           coneVole(c9); // (perf) il quitte l'instance : un vrai plot part valser
+          if(pwrBouT>0)kv.multiplyScalar(1.6); // (pouvoirs v2) BOUCLIER : il part BEAUCOUP plus loin
           FLYCONES.push({m:c9.mesh,v:kv,rx:(Math.random()-.5)*16,rz:(Math.random()-.5)*16,life:1.6,p0:c9.mesh.position.clone(),n0:F.n.clone().multiplyScalar(side),b0:F.b.clone()});
-          vA*=.985;shake=Math.max(shake,.14);
-          try{coneSnd();}catch(e){}hap(10);
+          try{coneSnd();}catch(e){}
+          if(pwrBouT>0){pwrDemoli(c9.mesh.position);addStyle(2);} // (pouvoirs v2) BOUCLIER : le plot VOLE sans rien coûter — et il paie (DÉMOLI)
+          else{
+          vA*=.985;shake=Math.max(shake,.14);hap(10);
           sparkBurst(boomRed,c9.mesh.position,5,6); // (2026-09-28) un plot percuté COÛTE : éclats rouges (l'or, c'est l'argent)
           addStyle(2);flowFaute('n',0,.25); // (v5) un plot percuté : -NARCISSE, le répit saute
           if(c9.dur){vA*=.9;momT=0;FLOW.v=Math.max(0,FLOW.v-12);FLOW.idle=2;popTexte('TOUCHE !','#ff5e7a',1);} // (2026-09-27) une PORTE du niveau 4 : la toucher ne tue pas, elle coûte (vitesse, élan, FLOW)
+          }
         }
       }
       if(fr9)frole(fr9,fd9,fk9);
       // FLAQUES D'HUILE : passer dessus fait GLISSER (contrôle coupé un instant, la caisse chasse)
       oilCd=Math.max(0,oilCd-dt);
-      if(mode==='drive'&&oilCd<=0)for(const o9 of OILS){
+      if(mode==='drive'&&oilCd<=0&&!(pwrBouT>0))for(const o9 of OILS){ // (pouvoirs v2) sous BOUCLIER, l'huile ne mord pas
         if(o9.face!==side)continue; // chaque flaque vit sur SA face
         if(Math.abs(s-o9.s)>o9.r+2)continue;
         if(Math.abs(lat-side*o9.lat)<o9.r+.6){ // même repère que les plots (posées côté dessus)
@@ -28853,37 +29076,32 @@ function loop(now){
            · EN VOL, elle n'y est plus : ces trois valeurs ne veulent plus rien dire. Seule la
              distance 3D a du sens, et on pré-filtre sur `lastNearS` (où l'on en est le long de la
              piste pendant le vol) pour ne pas tester 550 objets par frame. */
+      const MAG9=pwrMagT>0; // (pouvoirs v2) L'AIMANT : tout l'or et les fruits de la route viennent à toi — d'un bord à l'autre, 55 m devant (les cristaux restent à viser)
       if(mode==='drive'||mode==='fall')for(const p of pickups){
         if(p.taken)continue;
         const enVol=(mode==='fall');
-        const mag=engTier>=ENG_CAP.aimant?1:0;
+        const mag=engTier>=ENG_CAP.aimant?1:0,gros9=MAG9&&!p.pow;
         if(enVol){
-          if(Math.abs(p.s-lastNearS)>70)continue;   // pré-filtre bon marché : le couloir autour du vol
+          if(Math.abs(p.s-lastNearS)>(gros9?90:70))continue;   // pré-filtre bon marché : le couloir autour du vol
           // EN VOL L'AIMANT EST PLUS LARGE : viser une grappe en pleine parabole, sans volant, est
           // déjà difficile — sans coup de pouce on ne les attrape jamais.
-          if(p.mesh.position.distanceTo(carGroup.position)<11+mag*3)
-            p.mesh.position.lerp(carGroup.position,Math.min(1,dt*(5.5+mag*1.5)));
+          if(p.mesh.position.distanceTo(carGroup.position)<(gros9?34:11+mag*3))
+            p.mesh.position.lerp(carGroup.position,Math.min(1,dt*(gros9?8:5.5+mag*1.5)));
         }else{
           if(p.face!==side)continue;
           const ds9=Math.abs(p.s-s);
-          if(ds9>22)continue;
+          if(ds9>(gros9?58:22))continue;
           if(p.air)continue;                        // les grappes du CIEL ne s'attrapent qu'en vol
           // CAPACITÉ MOTEUR (V12 atmosphérique) : L'AIMANT À PIÈCES — elles viennent à toi de bien plus
           // loin, et plus vite. Sans lui, on garde l'attraction d'origine, discrète.
-          if(ds9<15+mag*2&&Math.abs(p.lat-side*lat)<9+mag*2) // (2026-09-26) plus de `level` ici : c'est l'index de la caisse (66), l'aimant faisait 33 m sur les dernières // portée LATÉRALE de l'aimant à pièces (route large)
+          if(gros9){if(p.s>s-6&&ds9<55)p.mesh.position.lerp(carGroup.position,Math.min(1,dt*(3+9*(1-ds9/55))));} // (pouvoirs v2) l'AIMANT : toute la largeur, et ça ACCÉLÈRE en approchant
+          else if(ds9<15+mag*2&&Math.abs(p.lat-side*lat)<9+mag*2) // (2026-09-26) plus de `level` ici : c'est l'index de la caisse (66), l'aimant faisait 33 m sur les dernières // portée LATÉRALE de l'aimant à pièces (route large)
             p.mesh.position.lerp(carGroup.position,Math.min(1,dt*(6+mag*1.5)));
         }
         if(p.mesh.position.distanceTo(carGroup.position)<3.8+mag*.5){ // (2026-09-26) portée FIXE (les objets ont grossi)
           p.taken=true;scene.remove(p.mesh); // (une pièce instanciée sort d'elle-même du couloir au prochain LOD)
-          if(p.pow){ // POUVOIR : le minuteur démarre, l'écran l'annonce en couleur
-            const d=PWR_DEFS[p.pow];
-            if(p.pow==='n')pwrNitroT=d.t;
-            else if(p.pow==='a'){pwrAirT=d.t;airFlash=.6;}
-            else pwrSpdT=d.t;
-            showMsg(d.msg,d.tint);trickMsg(d.ico+' '+TR(d.hud),2);boostSnd();pwrPrisSnd(p.pow);shake=Math.max(shake,.35);
-            slam(d.gros,d.sous,d.tint,d.c2,40,2);flashEcran(d.fx);hap([14,40,24]); // (HUD v3) le pouvoir s'ANNONCE en gros, de sa couleur
-            sparkBurst(p.pow==='a'?sparkBlue:p.pow==='v'?sparkPink:sparkGold,p.mesh.position,14,9); // (2026-09-28) là où le cristal éclate (au centre de la caisse, la gerbe naissait sous la carrosserie) // (vague 2) la gerbe à la couleur du cristal : n or-feu, a cyan, v magenta
-            addStyle(10);
+          if(p.pow){ // POUVOIR : le minuteur démarre (ou se CUMULE), l'écran l'annonce en couleur — (pouvoirs v2) tout vit dans pwrPrend
+            pwrPrend(p.pow,p.mesh.position);
           }
           else if(p.nitro){ // chaque fruit rend SA dose de nitro (réglable dans l'ÉTAL)
             const fd=FRUIT_DEFS[p.fruit]||FRUIT_DEFS[0],pw=Math.min(1,fd.boost/2);
@@ -29409,11 +29627,12 @@ function loop(now){
           }
         }
       }
+      mirTick(dt); // (2026-09-28) MIRACULÉ : depuis combien de temps cette chute est-elle perdue d'avance ?
       LM.a+=((LM.vu?1:0)-LM.a)*Math.min(1,dt*(LM.vu?14:7));landMark.visible=LM.a>.02;landMark.material.opacity=.85*LM.a;
       landMark.material.color.lerp(LM.c,Math.min(1,dt*12));
       // camembert de temps de vol (cyan plein pendant AIRTIME INFINI : c'est le pouvoir qui s'égrène)
       if(airPie.style.display!=='block')airPie.style.display='block'; // (2026-09-27) une fois par vol, plus à chaque image
-      const fr=pwrAirT>0?Math.min(1,pwrAirT/10):Math.max(0,1-fallTR/airMax()); // jauge en temps RÉEL : 6 s affichées = 6 s vécues
+      const fr=pwrAirT>0?Math.min(1,pwrAirT/PWR_DEFS.a.t):Math.max(0,1-fallTR/airMax()); // jauge en temps RÉEL : 6 s affichées = 6 s vécues · (pouvoirs v2) sur la durée du pouvoir (14 s)
       if(airFlash>0)airFlash=Math.max(0,airFlash-dt);
       airPieDraw(fr,pwrAirT>0?pwrAirT:Math.max(0,airMax()-fallTR),airFlash>0);
       {const dg=pwrAirT<=0&&airMax()-fallTR<1.5;if(dg!==loop._pdg){loop._pdg=dg;airPie.classList.toggle('danger',dg);} // (2026-09-26) il TREMBLE sous 1,5 s
@@ -29423,8 +29642,8 @@ function loop(now){
         misBanniere('ASTUCE',TR("En l'air : pouce en HAUT = plonge, en BAS = cabre."),'','eclair');}}
       if(!PARK.on&&portalMesh&&!CAMP.portFerme&&fallPos.distanceToSquared(PORTAL.c)<PORTAL.R*PORTAL.R*.9)portailPasse(); // (2026-09-26) l'ovule traversé EN VOL — du ciel, de côté, d'en dessous
       else if(CITY.col&&villeHeurt(fallPos)){airPie.style.display='none';try{dolFin();}catch(e){}shake=Math.max(shake,1.2);if(PARK.on)parkRespawn();else explode('tour');} // (2026-09-26) DANS UNE TOUR : on meurt
-      else if(tryLand(dtF)){airPie.style.display='none';dolFin();} // posé : le total du DAUPHIN se fige et s'encaisse
-      else if((fallTR>airMax()&&pwrAirT<=0)||fallPos.y<trackMinY-120){airPie.style.display='none';if(PARK.on)parkRespawn();else explode(fallPos.y<trackMinY-120?'vide':'air');} // FREESTYLE : trop long en l'air ou chute dans le vide = on repart, jamais de mort // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
+      else if(tryLand(dtF)){airPie.style.display='none';dolFin();mirPose();} // posé : le total du DAUPHIN se fige et s'encaisse
+      else if((fallTR>airMax()&&pwrAirT<=0)||fallPos.y<trackMinY-120||(pwrBouT>0&&MIR.t>2.2&&!PARK.on)){airPie.style.display='none';if(PARK.on)parkRespawn();else explode(fallPos.y<trackMinY-120||MIR.t>2.2?'vide':'air');} // (pouvoirs v2) sous BOUCLIER, une chute perdue d'avance depuis 2,2 s est rattrapée tout de suite (on n'attend pas d'être tombé 120 m sous la piste) // FREESTYLE : trop long en l'air ou chute dans le vide = on repart, jamais de mort // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
     }else if(mode==='boom'){ // ---- EXPLOSION ----
       boomT+=dt;
       for(const d of debris){
@@ -29911,16 +30130,19 @@ function loop(now){
     let pch='';
     // (2026-09-26, user : « le power-up affiché EN GROS avec un timer en temps réel ») : une plaque par pouvoir — bâtie quand la liste change,
     // puis mise à jour à CHAQUE image (le minuteur au dixième, la jauge en continu, le clignotement de la fin)
-    const pwL=[['n',pwrNitroT,'flamme','NITRO MAX'],['a',pwrAirT,'aile','AIR MAX'],['v',pwrSpdT,'eclair',TR('VITESSE')+' ×2']].filter(function(x){return x[1]>0&&!(x[0]==='a'&&TUTO.on);}); // (2026-09-26) icônes pixel, plus d'emoji · (2026-09-28) pendant l'auto-école, l'airtime est PRÊTÉ par la leçon : pas de plaque « AIR MAX » pour un pouvoir jamais ramassé
+    // (pouvoirs v2) les plaques naissent de la fiche (PWR_DEFS : px, plq) dans l'ordre fixe PWR_ORDRE — (2026-09-28) pendant l'auto-école,
+    // l'airtime est PRÊTÉ par la leçon : pas de plaque « AIR MAX » pour un pouvoir jamais ramassé (pwrVu)
+    const pwL=[];for(const k9 of PWR_ORDRE)if(pwrVu(k9)){const d9=PWR_DEFS[k9];pwL.push([k9,pwrT(k9),d9.px,sansAcc(TR(d9.plq))]);}
     pch=pwL.map(function(x){return x[0];}).join('');
     if(pch!==loop._pch){loop._pch=pch;
       pwrChip.innerHTML=pwL.map(function(x){return '<div class="pw" data-k="'+x[0]+'" style="--pc:'+PWR_DEFS[x[0]].tint+'">'+pxi(x[2])+'<span><small>'+x[3]+'</small><b>0.0</b></span><u></u></div>';}).join('');
-      pwrChip.style.display=pch?'block':'none';loop._pwEl=Array.prototype.slice.call(pwrChip.querySelectorAll('.pw'));}
+      pwrChip.style.display=pch?'block':'none';pwrChip.classList.toggle('pw3',pwL.length>=3);loop._pwEl=Array.prototype.slice.call(pwrChip.querySelectorAll('.pw'));}
     if(loop._pwEl)for(let j=0;j<pwL.length&&j<loop._pwEl.length;j++){const el=loop._pwEl[j],t9=pwL[j][1],tx=t9.toFixed(1);
       if(el._t!==tx){el._t=tx;el.querySelector('b').textContent=tx+'s';}
-      el.style.setProperty('--p',Math.min(1,t9/PWR_DEFS[pwL[j][0]].t).toFixed(3));const f9=t9<1.5;if(el._f!==f9){el._f=f9;el.classList.toggle('fin',f9);}}
+      el.style.setProperty('--p',Math.min(1,t9/PWR_DEFS[pwL[j][0]].t).toFixed(3));const f9=t9<1.5;if(el._f!==f9){el._f=f9;el.classList.toggle('fin',f9);}
+      const x9=t9>PWR_DEFS[pwL[j][0]].t+.05;if(el._x!==x9){el._x=x9;el.classList.toggle('cumul',x9);}} // (pouvoirs v2) cumulé au-delà d'une durée : la jauge déborde (pleine) et la plaque le montre
     {const sp9=airPie.style.display==='block';if(sp9!==loop._psp){loop._psp=sp9;pwrChip.classList.toggle('sousPie',sp9);}}
-    {const k9=pwrNitroT>0?'n':pwrSpdT>0?'v':pwrAirT>0&&!TUTO.on?'a':''; // (HUD v3) les BORDS de l'écran battent à la couleur du pouvoir actif — (2026-09-28) pas l'airtime prêté par l'auto-école
+    {const k9=pwrNitroT>0?'n':pwrSpdT>0?'v':pwrAurT>0?'x':pwrMagT>0?'m':pwrAirT>0&&!TUTO.on?'a':pwrBouT>0?'b':''; // (HUD v3) les BORDS de l'écran battent à la couleur du pouvoir actif — (2026-09-28) pas l'airtime prêté par l'auto-école · (pouvoirs v2) le plus « chaud » d'abord
      if(k9!==loop._pfx){loop._pfx=k9;let e9=avE('pwrFx');if(!e9){e9=document.createElement('div');e9.id='pwrFx';e9.setAttribute('aria-hidden','true');document.body.appendChild(e9);avEl.pwrFx=e9;}
        if(k9){e9.style.setProperty('--pf',PWR_DEFS[k9].fx);e9.style.setProperty('--pf2',PWR_DEFS[k9].fx2);}e9.classList.toggle('on',!!k9);}}
     // JAUGE DE PROGRESSION — elle suivait le cash vers la prochaine VOITURE ; les voitures ne se

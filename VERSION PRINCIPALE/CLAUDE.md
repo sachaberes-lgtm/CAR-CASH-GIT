@@ -1,5 +1,34 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LES POUVOIRS v2 + LES PETITS TRUCS GRISANTS (2026-09-28, nuit) — « des nouveaux power-up, plus longs, des petits trucs grisants, que les débutants prennent leur pied autant que les vétérans »
+Session GAMEPLAY (worktree `CCG-gameplay`, branche `gameplay`). Même lot : la FRÉNÉSIE remise aux réglages d'avant la « triade
+simplifiée » (voir cette section plus bas). Banc muet `gp.js` / `sf.js` (scratchpad de la session 4b30b603 : 200×430, UN à la fois).
+- **LA FICHE** `PWR_DEFS` porte tout : `t` durée · `px` pictogramme (PXI_G, + `aimant` et `bouclier`) · `plq` nom de plaque · `sp` gerbe.
+  Durées : NITRO MAX 6 → **9 s**, AIR MAX 10 → **14 s**, VITESSE ×2 6 → **8 s**. ⚠ la couleur de la NITRO MAX est réécrite par la session
+  UHD (violet, `Object.assign(PWR_DEFS.n,…)` entre l'objet et la boucle des matières) — garder cette ligne à sa place.
+- **TROIS NOUVEAUX** (minuteurs `pwrMagT`/`pwrBouT`/`pwrAurT`, tous lus/écrits par `pwrT(k)`/`pwrSet(k,v)`, ordre fixe `PWR_ORDRE`) :
+  · **m AIMANT** (vert billet, 12 s) : pièces ET fruits de toute la largeur, 55 m devant, viennent à toi (en vol : 34 m) ; les cristaux restent à viser.
+    MESURÉ : l'or à portée ramassé 5/5, 3/3 avec, 1/3 · 2/3 sans.
+  · **b BOUCLIER** (acier, 20 s) : `bouclierSauve(cause)` en tête d'`explode` — vide, vol trop long, tour → la caisse retombe sur sa dernière
+    ligne sûre (`respawn`), la chaîne d'ARGENT du vol est perdue, l'aura, le flow et la partie continuent ; jamais pour une mort de RÈGLE
+    (police, feu, arrêt). Sous bouclier, une chute « perdue d'avance » depuis 2,2 s (`MIR.t`) est rattrapée tout de suite. Tant qu'il tient :
+    plots démolis sans rien coûter (`pwrDemoli` : « DÉMOLI ×n », aura, nitro), l'huile ne mord pas ; bulle additive sur la caisse (`pwrHalo`,
+    sprite `lampTex`, zéro compilation) qui bat les 3 dernières secondes. MESURÉ : chute sauvée, la 2e chute sans bouclier tue.
+  · **x AURA ×2** (or, 12 s) : `chaineAura` et `addAura` ×2.
+- **CUMUL** : le même pouvoir repris AJOUTE sa durée (plafond 2 × `t`, plaque `.cumul`) ; deux pouvoirs actifs = « DOUBLE POUVOIR ! »
+  (+70 aura), trois = « TRIPLE POUVOIR ! » (+150). Trois plaques et plus se serrent (`#pwrChip.pw3`, bloc `<style id="pouvoirsV2">`).
+- **LE TIRAGE LIT LE JOUEUR** (`pwrPoids`, `pwrTire`, UN tirage `rnd` comme avant : le flux seedé ne bouge pas) : < 8 parties → BOUCLIER 28 %,
+  AIMANT 23 % ; 8-30 → équilibré ; 30+ → AURA ×2 21 %, VITESSE 19 %. En campagne : poids fixes. `pwrPremier` : le 1er cristal d'un débutant
+  (< 5 parties, zone 0, hors campagne) est un BOUCLIER posé près de l'axe.
+- **MIRACULÉ** (`MIR`, `mirTick`/`mirPose`) : chute perdue d'avance (pas de réception en vue, en train de tomber, 10 m sous la route) pendant
+  ≥ 0,6 s, et pourtant posée → +160 / +240 aura, flow risque PSYCHO. **SANS FAUTE** (`SFA`, `sfaPose`) : poses propres d'affilée (vol > 0,7 s,
+  ni lourde ni ratée) → ×3, 5, 8, 12 puis toutes les 5 : aura + nitro ; « SÉRIE CASSÉE » dès 3. **PALIERS DE VITESSE** (`VPAL`, `vpalTick`) :
+  chaque centaine franchie se crie à partir d'une centaine sous le record de vie (`VPAL.c0`) ; « RECORD DE VITESSE » quand il tombe.
+- Sons : `PWR_NOTE` a les six clés ; les nouveaux événements appellent `sfx('pwr.double'|'pwr.triple'|'pwr.bouclierCasse'|'pwr.bouclierFin'|
+  'pwr.bouclierPlot'|'jeu.miracule'|'jeu.palierVitesse')` sous garde `typeof sfx==='function'` (la session SON les sonorise).
+- Hook : `dbgPwr(k,n)` prend un pouvoir (n fois) ; `dbgPwr()` = minuteurs, poids, sauvetages, MIR, série, palier ; `dbgPwr('plot')` (le pilote
+  vise le prochain plot), `('mir',x)`, `('sf',bool)`, `('devant')`/`('devantPris')` (banc de l'aimant).
+
 ## LA CHASSE AUX DÉTAILS (2026-09-28) — « je ne te demande pas de changer drastiquement : traque tous les détails pour que le jeu soit parfait »
 Sacha : « les animations du nitro pourraient faire beaucoup plus FLAMME, façon Asphalt 9 ; en nitro infini les flammes de la barre font
 trop Minecraft, fais un truc premium ; vérifie que tous les textes sont bons ; pas de débogage ni d'optimisation, cherche les détails ».
