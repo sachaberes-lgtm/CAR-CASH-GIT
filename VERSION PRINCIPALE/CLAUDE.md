@@ -1,5 +1,39 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA DA DU HUD, UNE SEULE FAMILLE (2026-09-28, session UHD) — « le bouton nitro, le camembert air time et la dark triad ne ressemblent pas à la barre de nitro et au compteur »
+Sacha : « j'aime le résultat, unifie parfaitement la DA en restant sur cette base ; le bouton nitro, le camembert air time et la dark triad n'ont
+pas l'air de ressembler à la barre de nitro et au compteur de score (qui sont bien) ; nitro infini VIOLET comme les flammes, la traînée, la barre ;
+l'animation du moteur débloqué est moche, ne suit pas la voiture et bloque la vision — plus petite, au-dessus de la voiture, belles couleurs, elle
+rétrécit et rentre dedans ; en frénésie, les trois barres de personnalité plus discrètes, sans texte ; pense mobile avant tout ».
+Tout le CSS vit dans `<style id="hudDA">` (APRÈS hudMaitrise, avant `#splash`) — jetons en tête (`--jEncre/--jFond/--jInk/--jCurs`, nitro `--n*`,
+réserve `--b*`, NITRO INFINIE `--v*`, air `--a*`, or `--o*`, rouge `--r*`, menthe `--m*`). Deux MODÈLES font la loi de ce qui se LIT en course :
+LA JAUGE = la barre NITRO (fond d'encre, cadre indigo, épaisseur dessous, QUATRE BANDES, curseur blanc, icône pixel) · LE CHIFFRE = le compteur
+d'AURA (police pixel en bandes, cernée d'encre). Ce qui se TOUCHE = plaque PENCHÉE de la famille du ⏸.
+- **BOUTON NITRO** (section 1) : plus de disque — une touche penchée `--nbW×--nbH` (96×84) : laque, bande de couleur à gauche (`--nc`), l'ÉCLAIR
+  de la barre en trois bandes, « NITRO », et `.nxJauge` redessinée en MINI-BARRE (même recette, `--nr`/`--nx` de la boucle, curseur). `.nxArt`
+  masqué. États : `.plein` halo qui bat · `.on` descend de 5 px et s'embrase · `.bas` bande rouge + jauge qui bat · `.bleu` · `.inf` VIOLET qui
+  file. ⚠ la boucle pose désormais `inf`/`bleu`/`bas` AUSSI sur `#tNitro` (elNB), plus seulement sur la barre.
+- **NITRO INFINIE = VIOLET** (`NINF`, `Object.assign(PWR_DEFS.n,…)` juste après PWR_DEFS — la session GAMEPLAY garde l'ordre) : cristal, plaque
+  NITRO MAX, bords d'écran, barre (`#nitroBar.inf`), son FEU (`FEU_RAMPE` violet), plume (`jetShellM/jetCoreM`, racine `uRac`), particules
+  (`flames/flameCore/embers`), onde d'allumage (`NFX.cT`), `nitroLight`, rubans de traînée. Un SIGNAL : il passe devant la signature de la
+  caisse (comme la réserve bleue) ; l'arc-en-ciel et la gerbe d'eau se taisent pendant le pouvoir.
+- **CHRONO DE VOL** (section 3) : `#airHud` (aile pixel + secondes dans la typo ombrée + barre qui se vide) remplace le camembert. `#airPie`
+  reste l'ÉTAT (display, `.danger`) mais n'est plus dessiné ni vu : `#airPie[style*="block"]+#airHud` le suit sans JS. `airPieDraw` n'écrit que
+  `--a`, les secondes, `data-k` (ok cyan · moyen or · urgent rouge · inf menthe) et `.flash`. `airPiePx` n'est plus appelée.
+- **DARK TRIAD** (section 4) : `.trDA` (icône `pxi-triade` ajoutée à `PXI_G` + « DARK / TRIAD » en bandes rouges de TRIPLE MONSTER) dans
+  `.trPouls` ; `.trPiece/.trOnde/.trAura` masqués (la pièce qui tourne est finie). `--frenTh` 60. Portrait : l'emblème passe dans la COLONNE DE
+  DROITE sous le ⏸ (⏸ · DARK TRIAD · chrono de vol à hudH+204 · pouvoirs) — au milieu il cassait le compteur d'aura en deux lignes. Les trois
+  TRAITS : barrettes fines côte à côte (ordre N · M · P des étiquettes du flow), sans nom, opacité .78.
+- **COMPTEUR D'AURA** : `data-l` posé à l'écriture (`l1` ≥ 6 caractères → 26 px, `l2` ≥ 8 → 22 px), `nowrap` : il ne passe plus à la ligne.
+- **CARTE MOTEUR v5** (section 5 + `engBig`/`engBigPlace`/`engBigSuit`) : étiquette + NOM (typo ombrée, couleur `engNeon` — les gris d'acier
+  deviennent cyan) + moteur 3D ; palier, cylindres et gain quittent la carte (le gain jaillit de la caisse à l'impact). Le moteur fait ~40 % de la
+  largeur APPARENTE de la caisse (`engCaisseL` = boîte de `carBody` projetée), `--ebS` borné .7-1.05 ; posé sur le TOIT (plus de plancher au
+  couloir des annonces), il suit la voiture au sol comme en vol ; 1 s puis 0,48 s de plongée. `engRim` (lumière posée à l'init dans
+  `engVigScene`, éteinte au repos) teinte le métal au néon ; halo plus franc, disque d'encre plus petit ; l'onde `swapRing` et `swapLight` à la
+  couleur du moteur, rayon 5 → 3,8 m. Hook : `dbgEngCarte()` (mesures) / `dbgEngCarte('fige')` (pas de plongée).
+- Bancs (scratchpad session UHD) : `run.js <pfx> <étapes.js> [w] [h]` (DSF, LG), `st-eng2.js` (film de la carte), `st-fren.js`, `st-det.js`
+  (états du bouton), `st-pay.js` (paysage), `attente.sh` (attend qu'aucun banc voisin ne tourne).
+
 ## PLUS BEAU SUR IPHONE, SANS COÛT EN PLUS (2026-09-28, nuit) — « trouve plein de petites techniques »
 Sacha : « les graphismes sont pas mal, on peut encore les pousser — sans que ce soit plus compliqué pour l'iPhone ». Chaque technique est un
 UNIFORME (zéro programme en plus, 0 compilé en course, mesuré au parcours `tour.js`), éteignable à chaud par `dbgGfx({…})` pour comparer la

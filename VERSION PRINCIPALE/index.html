@@ -3903,6 +3903,167 @@ html body.touch #pwrChip.pw3 .pw span b{font-size:15px}
 html body.touch #pwrChip.pw3 .pw>.pxi{--pxs:2}
 html body.touch #pwrChip .pw.cumul u{height:5px;box-shadow:0 0 12px var(--pc),0 0 3px #fff}
 </style>
+<style id="hudDA">
+/* =====================================================================================================================================
+   LA DA DU HUD, UNE SEULE FAMILLE (2026-09-28, session UHD) — Sacha : « le bouton de nitro, le camembert air time et la dark triad n'ont
+   pas du tout l'air de ressembler à la barre de nitro et au compteur de score, qui sont assez bien ; nitro infini doit être violet comme
+   les flammes, la traînée, la barre ; l'animation du moteur débloqué ne suit pas la voiture et bloque la vision ; quand on débloque la
+   dark triad, les trois barres de personnalité plus discrètes et sans le texte au-dessus ; pense jouabilité mobile avant tout ».
+   Deux MODÈLES, ceux qu'il aime, font désormais la loi de tout ce qui se lit en course :
+     · LA JAUGE = la barre NITRO : fond d'encre, cadre indigo, épaisseur dessous, remplissage en QUATRE BANDES (lèvre claire, plein,
+       plein sombre, ourlet), curseur blanc au bout, icône pixel à côté ;
+     · LE CHIFFRE = le compteur d'AURA : police pixel en bandes (lèvre blanche → sombre), cerné d'encre, épaisseur en drop-shadow.
+   Ce qui se TOUCHE est une plaque PENCHÉE de la famille du ⏸ : laque, bande de sa couleur à gauche, épaisseur qui s'efface à l'appui.
+   Ce bloc est le DERNIER du HUD (après hudMaitrise) : il gagne sans rien effacer. Les couleurs sortent de :root.
+   ===================================================================================================================================== */
+:root{
+  --jEncre:#170f55;--jFond:#0d0a2a;--jInk:#1c0430;--jCurs:#fff6d8;             /* la jauge : cadre, fond, encre des textes, curseur */
+  --nL:#ffd58f;--nP:#ff8d2e;--nS:#ff7415;--nO:#ad4200;--nEcl:#ffb81f;--nEclC:#fff3c4;--nEclS:#e07a00;   /* la NITRO (orange) et son éclair */
+  --bL:#b5c4ff;--bP:#4a68f0;--bS:#2a44c8;--bO:#16247a;                        /* la réserve BLEUE */
+  --vL:#f1dcff;--vP:#b06bff;--vS:#8a3dff;--vO:#3e1287;--vG:rgba(164,92,255,.9); /* la NITRO INFINIE : VIOLET */
+  --aL:#d8fbff;--aP:#5ee6ff;--aS:#18b0e2;--aO:#0b4f7a;                        /* l'AIR : cyan (la couleur du pouvoir AIRTIME) */
+  --oL:#fff0b8;--oP:#ffc93a;--oS:#f29a00;--oO:#7a4200;                        /* l'or : le temps qui presse */
+  --rL:#ffd0d6;--rP:#ff5a6e;--rS:#e0203c;--rO:#6e0014;                        /* le rouge : il ne reste plus rien */
+  --mL:#e6fffa;--mP:#7dffec;--mS:#22d6bd;--mO:#0b5e55;                        /* AIRTIME INFINI : menthe */
+  --nbW:96px;--nbH:84px;--nbJ:70px;                                           /* le bouton NITRO : largeur, hauteur, longueur de sa jauge */
+  --ahW:92px;                                                                  /* le chrono de vol */
+  --bandes4:180deg;
+}
+/* ---- 1. LE BOUTON NITRO : une touche PENCHÉE, sœur du ⏸ — l'éclair de la barre, le mot, et SA jauge (la même recette que la barre) ---- */
+html body.touch #tNitro,html body.touch #tNitro:active,html body.touch #tNitro.on{--nc:var(--nP);
+  width:var(--nbW)!important;height:var(--nbH)!important;border:0!important;border-radius:0!important;padding:13px 0 0!important;box-sizing:border-box!important;
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;gap:0!important;
+  background:var(--laque)!important;opacity:1!important;filter:none!important;overflow:visible!important;
+  transform:skewX(var(--sk))!important;transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)!important;
+  box-shadow:inset 3px 0 0 var(--nc),inset 34px 0 30px -28px color-mix(in srgb,var(--nc) 70%,transparent),var(--levre),inset 0 0 0 1px rgba(255,255,255,.06),
+    0 0 0 1px var(--anneau),0 5px 0 var(--tranche),0 5px 0 1px var(--anneau),0 10px 18px -6px rgba(0,0,0,.6)!important}
+html body.touch #tNitro>.nxArt{display:none!important}
+/* l'ÉCLAIR : celui de la barre, en trois bandes (lèvre, plein, ombre) — pas un aplat */
+html body.touch #tNitro>.pxi{--pxs:4;margin:0!important;position:relative;
+  background:linear-gradient(var(--bandes4),var(--nEclC) 0 22%,var(--nEcl) 22% 64%,var(--nEclS) 64%)!important;filter:none!important}
+html body.touch #tNitro>span{position:relative;margin-top:5px!important;font-size:var(--f0)!important;letter-spacing:2px!important;line-height:1!important}
+/* SA JAUGE : la barre NITRO en petit — fond d'encre, cadre indigo, orange en quatre bandes, réserve bleue, curseur blanc */
+html body.touch #tNitro>.nxJauge{position:absolute!important;left:50%!important;top:auto!important;bottom:9px!important;width:calc(var(--nbJ) + 4px)!important;height:12px!important;
+  margin-left:calc(var(--nbJ) / -2 - 2px);padding:2px;box-sizing:border-box;display:block!important;-webkit-mask:none!important;mask:none!important;
+  background-color:var(--jFond)!important;background-origin:content-box!important;background-repeat:no-repeat!important;
+  background-image:linear-gradient(var(--jCurs),var(--jCurs)),
+    linear-gradient(var(--bandes4),var(--nL) 0 2px,var(--nP) 2px 50%,var(--nS) 50% calc(100% - 2px),var(--nO) calc(100% - 2px)),
+    linear-gradient(var(--bandes4),var(--bL) 0 2px,var(--bP) 2px 50%,var(--bS) 50% calc(100% - 2px),var(--bO) calc(100% - 2px))!important;
+  background-size:3px 100%,calc(var(--nr) * var(--nbJ)) 100%,calc(min(var(--nx),1 - var(--nr)) * var(--nbJ)) 100%!important;
+  background-position:calc(var(--nr) * var(--nbJ) - 2px) 0,0 0,calc(var(--nr) * var(--nbJ)) 0!important;
+  box-shadow:inset 0 0 0 2px var(--jEncre),0 2px 0 var(--jEncre)!important}
+/* APPUYÉ : la touche descend de son épaisseur et la face S'EMBRASE à la couleur de la poussée */
+html body.touch #tNitro:active,html body.touch #tNitro.on{transform:skewX(var(--sk)) translateY(5px)!important;
+  background:linear-gradient(0deg,color-mix(in srgb,var(--nc) 62%,transparent),color-mix(in srgb,var(--nc) 8%,transparent) 78%),var(--laque)!important;
+  box-shadow:inset 3px 0 0 var(--nc),inset 0 0 0 1px color-mix(in srgb,var(--nc) 55%,transparent),var(--levre),0 0 0 1px var(--anneau),0 0 22px color-mix(in srgb,var(--nc) 55%,transparent)!important}
+html body.touch #tNitro:active>.pxi,html body.touch #tNitro.on>.pxi{background:linear-gradient(var(--bandes4),#fff 0 30%,var(--nEclC) 30% 70%,var(--nEcl) 70%)!important}
+/* PLEIN : un halo de sa couleur BAT autour de la plaque (le ::before de la charte, redessiné droit) */
+html body.touch #tNitro::before{inset:-3px!important;border-radius:0!important;background:none!important;border:0!important;opacity:0;
+  box-shadow:0 0 0 2px color-mix(in srgb,var(--nc) 80%,transparent),0 0 20px 2px color-mix(in srgb,var(--nc) 60%,transparent)!important}
+html body.touch #tNitro.plein:not(.on)::before{animation:k4NitroPret 1.1s var(--ease) infinite}
+html body.touch #tNitro.plein:not(.on)>.pxi{animation:daEclair 1.1s var(--ease) infinite}
+@keyframes daEclair{0%,100%{transform:none}50%{transform:translateY(-2px)}}
+/* À SEC : la bande et le cadre de la jauge battent ROUGE ; RÉSERVE BLEUE : la bande passe au bleu */
+html body.touch #tNitro.bas:not(.on):not(.inf){--nc:var(--rP)}
+html body.touch #tNitro.bas:not(.on):not(.inf)>.nxJauge{animation:daSec .6s steps(2) infinite}
+@keyframes daSec{50%{box-shadow:inset 0 0 0 2px var(--rP),0 2px 0 var(--jEncre),0 0 10px color-mix(in srgb,var(--rP) 70%,transparent)}}
+html body.touch #tNitro.bleu{--nc:var(--bP)}
+/* NITRO INFINIE : tout passe au VIOLET — bande, halo, éclair, et la jauge pleine qui FILE (rayures) */
+html body.touch #tNitro.inf{--nc:var(--vP)}
+html body.touch #tNitro.inf>.pxi{background:linear-gradient(var(--bandes4),#fff 0 24%,var(--vL) 24% 60%,var(--vP) 60%)!important}
+html body.touch #tNitro.inf::before{animation:k4NitroPret .7s var(--ease) infinite!important}
+html body.touch #tNitro.inf>.nxJauge{background-image:repeating-linear-gradient(-45deg,rgba(255,255,255,.45) 0 4px,transparent 4px 9px),
+    linear-gradient(var(--bandes4),var(--vL) 0 2px,var(--vP) 2px 50%,var(--vS) 50% calc(100% - 2px),var(--vO) calc(100% - 2px))!important;
+  background-size:13px 100%,100% 100%!important;background-position:0 0,0 0!important;background-repeat:repeat-x,no-repeat!important;animation:daFile .25s linear infinite}
+@keyframes daFile{to{background-position:-13px 0,0 0}}
+/* l'anneau de l'auto-école (« appuie ici ») épouse la plaque */
+html body.coNitro #tNitro::after{inset:-8px!important;border-radius:0!important}
+/* ---- 2. LA BARRE NITRO EN NITRO INFINIE : violette (elle brûlait or, comme la nitro ordinaire — on ne voyait pas le pouvoir) ---- */
+html body.touch #nitroBar.inf{box-shadow:inset 0 0 0 3px var(--vL),0 4px 0 var(--jEncre),0 0 24px var(--vG),0 0 44px color-mix(in srgb,var(--vS) 55%,transparent)!important}
+html body.touch #nitroBar.inf #nitroR,html body.touch #nitroBar.inf #nitroX{background-image:repeating-linear-gradient(-45deg,rgba(255,255,255,.45) 0 6px,transparent 6px 14px),
+    linear-gradient(var(--bandes4),var(--vL) 0 3px,var(--vP) 3px 50%,var(--vS) 50% calc(100% - 3px),var(--vO) calc(100% - 3px))!important}
+html body.touch #nitroBar.inf #nitroR::after{box-shadow:0 0 10px var(--vP),0 0 18px var(--vS)!important}
+html body.touch #nitroBar.inf::before{background:linear-gradient(var(--bandes4),#fff 0 24%,var(--vL) 24% 60%,var(--vP) 60%)!important;filter:drop-shadow(0 0 8px var(--vP))!important}
+/* ---- 3. LE CHRONO DE VOL : l'aile, les secondes dans la typo du compteur, la barre de la nitro qui se VIDE ---- */
+html body.touch #airPie{visibility:hidden!important;animation:none!important}   /* il reste l'ÉTAT (display, .danger) : #airHud le suit */
+#airHud{display:none}
+html body.touch #airPie[style*="block"]+#airHud{display:block}
+#airHud{position:fixed;top:calc(var(--hudH) + 96px);right:var(--hudD);width:var(--ahW);z-index:6;pointer-events:none;
+  --tc:var(--aP);--xL:var(--aL);--xP:var(--aP);--xS:var(--aS);--xO:var(--aO);animation:hmPie .32s var(--ease)}
+#airHud[data-k="moyen"]{--tc:var(--oP);--xL:var(--oL);--xP:var(--oP);--xS:var(--oS);--xO:var(--oO)}
+#airHud[data-k="urgent"]{--tc:var(--rP);--xL:var(--rL);--xP:var(--rP);--xS:var(--rS);--xO:var(--rO)}
+#airHud[data-k="inf"]{--tc:var(--mP);--xL:var(--mL);--xP:var(--mP);--xS:var(--mS);--xO:var(--mO)}
+#airHud .ahTop{display:flex;align-items:center;justify-content:flex-end;gap:5px;height:24px}
+#airHud .pxi{--pxs:2;margin:0;background:linear-gradient(var(--bandes4),var(--xL) 0 34%,var(--xP) 34% 72%,var(--xS) 72%)}
+#airHud .ahS{font-family:var(--pix);font-weight:normal;font-size:var(--f6);line-height:1;letter-spacing:0;color:transparent;-webkit-text-fill-color:transparent;
+  background:linear-gradient(var(--bandes4),#fff 0 14%,color-mix(in srgb,var(--tc) 40%,#fff) 14% 42%,var(--tc) 42% 78%,color-mix(in srgb,var(--tc) 64%,var(--jInk)) 78%);
+  -webkit-background-clip:text;background-clip:text;
+  filter:drop-shadow(2px 0 0 var(--jInk)) drop-shadow(-2px 0 0 var(--jInk)) drop-shadow(0 2px 0 var(--jInk)) drop-shadow(0 -2px 0 var(--jInk)) drop-shadow(0 3px 0 var(--jInk)) drop-shadow(0 0 10px color-mix(in srgb,var(--tc) 55%,transparent))}
+#airHud em{font-family:var(--pix);font-style:normal;font-size:var(--f0);line-height:1;letter-spacing:1px;align-self:flex-end;margin-bottom:1px;color:transparent;-webkit-text-fill-color:transparent;
+  background:linear-gradient(var(--bandes4),color-mix(in srgb,var(--tc) 36%,#fff) 0 50%,var(--tc) 50%);-webkit-background-clip:text;background-clip:text;filter:var(--contourP)}
+#airHud .ahBar{position:relative;height:14px;margin-top:6px;padding:3px;box-sizing:border-box;background:var(--jFond);box-shadow:inset 0 0 0 3px var(--jEncre),0 4px 0 var(--jEncre),0 8px 14px rgba(0,0,0,.35)}
+#airHud .ahF{position:relative;display:block;height:100%;width:calc(var(--a,1) * 100%);transition:width .1s linear;
+  background:linear-gradient(var(--bandes4),var(--xL) 0 2px,var(--xP) 2px 50%,var(--xS) 50% calc(100% - 2px),var(--xO) calc(100% - 2px))}
+#airHud .ahF::after{content:'';position:absolute;right:-2px;top:-3px;bottom:-3px;width:4px;background:var(--jCurs);box-shadow:0 0 8px var(--xP),0 0 14px var(--xS)}
+#airHud[style*="--a: 0.0"] .ahF::after,#airHud[style*="--a:0.0"] .ahF::after{display:none}
+#airHud[data-k="inf"] .ahF{background-image:repeating-linear-gradient(-45deg,rgba(255,255,255,.4) 0 4px,transparent 4px 9px),
+  linear-gradient(var(--bandes4),var(--xL) 0 2px,var(--xP) 2px 50%,var(--xS) 50% calc(100% - 2px),var(--xO) calc(100% - 2px));background-size:13px 100%,100% 100%;animation:daFile .4s linear infinite}
+#airHud.flash .ahBar{box-shadow:inset 0 0 0 3px var(--mP),0 4px 0 var(--jEncre),0 0 16px var(--mP)}
+/* il TREMBLE sous 1,5 s (de 2 px entiers, comme tout ce qui bouge dans l'UI pixel) et son cadre bat rouge */
+html body.touch #airPie.danger+#airHud{animation:k6PieDanger .12s steps(2) infinite}
+html body.touch #airPie.danger+#airHud .ahBar{animation:daSecA .3s steps(2) infinite}
+@keyframes daSecA{50%{box-shadow:inset 0 0 0 3px var(--rP),0 4px 0 var(--jEncre),0 0 12px color-mix(in srgb,var(--rP) 70%,transparent)}}
+body:has(#tPanel.open) #airHud,body.dead #airHud{visibility:hidden}
+/* ---- 4. L'EMBLÈME DARK TRIAD : l'icône pixel (triangle et œil) et le nom dans la typo du compteur, en bandes ROUGES (TRIPLE MONSTER) ---- */
+:root{--frenTh:60px}
+html body #triade .trPiece,html body #triade .trOnde,html body #triade .trAura{display:none!important}
+#triade .trDA{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+#triade .trDA .pxi{--pxs:2;margin:0;background:linear-gradient(var(--bandes4),#ffe1e4 0 26%,#ff6a78 26% 50%,var(--fren) 50% 78%,var(--frenS) 78%);
+  filter:drop-shadow(0 0 8px color-mix(in srgb,var(--fren) 80%,transparent))}
+#triade .trNom{display:flex;flex-direction:column;align-items:center;font-family:var(--pix);font-weight:normal;font-size:var(--f4);line-height:1.2;letter-spacing:1px;white-space:nowrap;
+  color:transparent;-webkit-text-fill-color:transparent;
+  background:linear-gradient(var(--bandes4),#ffe1e4 0 14%,#ff6a78 14% 42%,var(--fren) 42% 76%,#c4001f 76%);background-size:100% 1lh;-webkit-background-clip:text;background-clip:text;
+  filter:drop-shadow(2px 0 0 var(--jInk)) drop-shadow(-2px 0 0 var(--jInk)) drop-shadow(0 2px 0 var(--jInk)) drop-shadow(0 -2px 0 var(--jInk)) drop-shadow(0 3px 0 var(--jInk)) drop-shadow(0 0 12px color-mix(in srgb,var(--fren) 60%,transparent))}
+#triade .trNom span{display:block}
+/* le chrono sous le nom (la typo reste celle de la section 13 : chiffres ombrés rouges, or quand le record tombe) */
+html body #frenChrono{top:calc(100% + 2px)!important;font-size:var(--f3)!important}
+/* LES TROIS TRAITS : trois barrettes fines côte à côte, dans l'ordre des étiquettes de la ligne du flow (N · M · P) — plus de noms dessus */
+html body #frenTraits{left:10px!important;right:10px!important;top:calc(100% + 20px)!important;flex-direction:row!important;gap:5px!important;opacity:.78}
+html body #frenTraits i{flex:1 1 0;min-width:0}
+html body #frenTraits b{display:none!important}
+html body #frenTraits s{height:5px!important;margin:0!important;padding:1px;box-sizing:border-box;background:var(--jFond)!important;box-shadow:0 0 0 1px var(--jEncre),0 2px 0 var(--jEncre)!important}
+html body #frenTraits s::after{background:linear-gradient(var(--bandes4),#ffb3bd 0 1px,var(--fren) 1px)!important;box-shadow:none!important}
+html body #frenTraits i.mort{opacity:.3}
+/* SA PLACE (portrait) : la COLONNE DE DROITE, sous le ⏸ — ⏸ · DARK TRIAD · chrono de vol · pouvoirs. Au milieu du haut, il coupait le
+   compteur d'aura en deux lignes (« 1 » puis « 418 ») et contractait la barre du record ; le compteur retrouve sa largeur. */
+@media not ((orientation:landscape) and (max-height:540px)){
+  html body.touch #triade{top:calc(var(--hudH) + 104px)!important;right:var(--hudD)!important;left:auto!important}
+  html body.touch.play:has(#triade.on) #airHud{top:calc(var(--hudH) + 204px)}
+  html body.touch.play:has(#triade.on) #avRec{max-width:calc(100vw - var(--hudD) - var(--frenT) - var(--hudG) - 16px)}
+  html body.touch.play:has(#triade.on) #campChip{top:calc(var(--hudH) + 262px)}
+  html body.touch.play:has(#triade.on):has(#campChip.on) #pwrChip{top:calc(var(--hudH) + 326px)}
+}
+/* ---- 4 bis. LE COMPTEUR D'AURA TIENT SUR UNE LIGNE : il resserre son corps quand le nombre s'allonge (data-l, posé à l'écriture) ---- */
+html body #avVal{white-space:nowrap}
+html body #auraV2 .avTot{flex-wrap:nowrap}
+html body #avVal[data-l="l1"]{font-size:26px!important}
+html body #avVal[data-l="l2"]{font-size:22px!important}
+/* ---- 5. LA CARTE MOTEUR v5 : petite, SUR la caisse — étiquette, nom en néon, moteur à l'échelle de la voiture ---- */
+html body #engBig .ebCarte{width:auto!important;min-width:110px;gap:0!important}
+html body #engBig .ebTit{font-size:var(--f0)!important;padding:3px 7px 4px!important;margin:0 0 4px!important;letter-spacing:2px!important;line-height:1!important;
+  background:var(--ec)!important;color:var(--jInk)!important;text-shadow:none!important;box-shadow:none!important}
+html body #engBig.rec .ebTit{background:var(--au2)!important}
+html body #engBig .ebCarte>b{--tc:var(--ec);font-size:var(--f4)!important;line-height:1.15!important;letter-spacing:1px!important;margin:0!important;white-space:nowrap;
+  color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;
+  background:linear-gradient(var(--bandes4),#fff 0 14%,color-mix(in srgb,var(--tc) 40%,#fff) 14% 42%,var(--tc) 42% 78%,color-mix(in srgb,var(--tc) 60%,var(--jInk)) 78%)!important;
+  -webkit-background-clip:text!important;background-clip:text!important;
+  filter:drop-shadow(1px 0 0 var(--jInk)) drop-shadow(-1px 0 0 var(--jInk)) drop-shadow(0 1px 0 var(--jInk)) drop-shadow(0 -1px 0 var(--jInk)) drop-shadow(0 3px 0 var(--jInk)) drop-shadow(0 0 10px color-mix(in srgb,var(--tc) 70%,transparent))!important}
+html body #engBig .ebCarte>b::after{display:none!important}
+html body #engBig .ebScene{width:112px!important;height:75px!important;margin:0!important}
+html body #engBig.mini .ebTit{visibility:inherit!important}   /* l'étiquette reste (la vieille règle la taisait sous .8) ; inherit : elle part avec la carte */
+html body #engBig .ebInfo,html body #engBig .ebCyl{display:none!important}
+html body #engBig .ebRuban{top:-22px!important;left:-10px!important;right:-10px!important}
+</style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
   <div id="spStage">
@@ -3997,6 +4158,10 @@ html body.touch #pwrChip .pw.cumul u{height:5px;box-shadow:0 0 12px var(--pc),0 
        tours à droite. Les couleurs sortent de :root (style en ligne `var(--…)` : il suit dans les clones de <use>). -->
   <div id="triade" aria-hidden="true"><div class="trTr"><div class="trBat"><div class="trPouls">
     <i class="trAura"></i>
+    <!-- (2026-09-28, Sacha : « la dark triad n'a pas l'air de ressembler à la barre de nitro et au compteur ») L'EMBLÈME v4 : il parle la
+         langue du HUD — une icône pixel (le triangle et son œil, comme l'éclair de la nitro) et le nom dans la typo ombrée du compteur
+         d'aura, en bandes ROUGES (celles de TRIPLE MONSTER). Le badge pixel qui tournait comme une pièce (.trPiece) est masqué. -->
+    <div class="trDA"><i class="pxi pxi-triade"></i><b class="trNom"><span>DARK</span><span>TRIAD</span></b></div>
     <svg class="trOnde" viewBox="0 0 54 49" shape-rendering="crispEdges"><path d="M26 0h2v1h-2zM26 1h2v1h-2zM25 2h1v1h-1zM28 2h1v1h-1zM25 3h1v1h-1zM28 3h1v1h-1zM24 4h1v1h-1zM29 4h1v1h-1zM24 5h1v1h-1zM29 5h1v1h-1zM23 6h1v1h-1zM30 6h1v1h-1zM22 7h1v1h-1zM31 7h1v1h-1zM22 8h1v1h-1zM31 8h1v1h-1zM21 9h1v1h-1zM32 9h1v1h-1zM21 10h1v1h-1zM32 10h1v1h-1zM20 11h1v1h-1zM33 11h1v1h-1zM20 12h1v1h-1zM33 12h1v1h-1zM19 13h1v1h-1zM34 13h1v1h-1zM18 14h1v1h-1zM35 14h1v1h-1zM18 15h1v1h-1zM35 15h1v1h-1zM17 16h1v1h-1zM36 16h1v1h-1zM17 17h1v1h-1zM36 17h1v1h-1zM16 18h1v1h-1zM37 18h1v1h-1zM16 19h1v1h-1zM37 19h1v1h-1zM15 20h1v1h-1zM38 20h1v1h-1zM14 21h1v1h-1zM39 21h1v1h-1zM14 22h1v1h-1zM39 22h1v1h-1zM13 23h1v1h-1zM40 23h1v1h-1zM13 24h1v1h-1zM40 24h1v1h-1zM12 25h1v1h-1zM41 25h1v1h-1zM11 26h1v1h-1zM42 26h1v1h-1zM11 27h1v1h-1zM42 27h1v1h-1zM10 28h1v1h-1zM43 28h1v1h-1zM10 29h1v1h-1zM43 29h1v1h-1zM9 30h1v1h-1zM44 30h1v1h-1zM9 31h1v1h-1zM44 31h1v1h-1zM8 32h1v1h-1zM45 32h1v1h-1zM7 33h1v1h-1zM46 33h1v1h-1zM7 34h1v1h-1zM46 34h1v1h-1zM6 35h1v1h-1zM47 35h1v1h-1zM6 36h1v1h-1zM47 36h1v1h-1zM5 37h1v1h-1zM48 37h1v1h-1zM5 38h1v1h-1zM48 38h1v1h-1zM4 39h1v1h-1zM49 39h1v1h-1zM3 40h1v1h-1zM50 40h1v1h-1zM3 41h1v1h-1zM50 41h1v1h-1zM2 42h1v1h-1zM51 42h1v1h-1zM2 43h1v1h-1zM51 43h1v1h-1zM1 44h1v1h-1zM52 44h1v1h-1zM1 45h1v1h-1zM52 45h1v1h-1zM0 46h54v1h-54z"/></svg>
     <div class="trPiece">
       <svg class="trFace" viewBox="0 0 54 49" shape-rendering="crispEdges"><use href="#trArt"/></svg>
@@ -4031,6 +4196,11 @@ html body.touch #pwrChip .pw.cumul u{height:5px;box-shadow:0 0 12px var(--pc),0 
   <div id="caseHud"></div>
   <div id="turnHint"></div>
   <canvas id="airPie" width="156" height="156"></canvas>
+  <!-- (2026-09-28, Sacha : « le camembert air time ne ressemble pas à la barre de nitro ni au compteur ») LE CHRONO DE VOL, FRÈRE DE LA JAUGE
+       NITRO : l'aile pixel, les secondes dans la typo ombrée du compteur d'aura, et une barre de la même recette que la nitro (cadre
+       d'encre, remplissage en quatre bandes, curseur blanc) qui se vide. Il se montre et se cache AVEC #airPie (sélecteur frère) : le
+       canvas garde son rôle d'état (display, .danger) — plus rien n'y est dessiné. -->
+  <div id="airHud" aria-hidden="true"><div class="ahTop"><i class="pxi pxi-aile"></i><b class="ahS">6.0</b><em>AIR</em></div><div class="ahBar"><i class="ahF"></i></div></div>
   <canvas id="minimap" width="176" height="176"></canvas>
   <div id="survHud"></div>
   <div id="lastAlert"></div>
@@ -4267,7 +4437,7 @@ if(window.CC_COLONNE)return; // (2026-09-28) sur l'ordi cette page n'est que le 
    dessinée à la main, convertie UNE fois en SVG et posée en MASQUE CSS : elle prend la couleur de son
    bouton (`currentColor`), reste nette à toutes les tailles (`crispEdges`) et ne coûte aucun fichier.
    Usage : `<i class="pxi pxi-croix"></i>` dans le HTML, `pxi('croix')` dans le JS. */
-const PXI_G={aimant:'##.....##|.........|##.....##|##.....##|##.....##|###...###|.#######.|..#####..|.........',bouclier:'.#######.|#########|##.######|##.######|#########|.#######.|..#####..|...###...|....#....',nuage:'.........|.........|....##...|...####..|.##.####.|#########|#########|.#######.|.........',immeuble:'....#....|...###...|...###.##|##.###.##|##.###.##|#########|#########|#########|.........',flamme:'....#....|...##....|...###...|..####.#.|..######.|.###.###.|.##...##.|.##...##.|..#####..',pinceau:'......###|.....####|....####.|...####..|..####...|.#.##....|###......|###......|.#.......',aile:'.........|#........|##.......|###......|#####....|.#######.|..#######|....#####|.......##',trainee:'.........|##.......|.###.....|..####...|...######|..####...|.###.....|##.......|.........',pouce:'...##....|...##....|...##....|...####..|.#######.|.########|.#######.|..#####..|..#####..',cadeau:'.##...##.|#..#.#..#|.#######.|#########|#...#...#|####.####|.#..#..#.|.#..#..#.|.#######.',cible:'..#####..|.#.....#.|#..###..#|#.#...#.#|#.#.#.#.#|#.#...#.#|#..###..#|.#.....#.|..#####..',croix:'##.....##|###...###|.###.###.|..#####..|...###...|..#####..|.###.###.|###...###|##.....##',gauche:'....##...|...###...|..####...|.#####...|######...|.#####...|..####...|...###...|....##...',droite:'...##....|...###...|...####..|...#####.|...######|...#####.|...####..|...###...|...##....',haut:'.........|....#....|...###...|..#####..|.#######.|#########|...###...|...###...|...###...',bas:'...###...|...###...|...###...|#########|.#######.|..#####..|...###...|....#....|.........',lecture:'##.......|####.....|######...|########.|#########|########.|######...|####.....|##.......',pause:'.........|###...###|###...###|###...###|###...###|###...###|###...###|###...###|.........',reglages:'....#....|.#.###.#.|..#####..|.##...##.|###...###|.##...##.|..#####..|.#.###.#.|....#....',son:'....#....|...##..#.|####.#..#|####.#..#|####.#..#|####.#..#|...##..#.|....#....|.........',muet:'....#....|...##....|####..#.#|####...#.|####..#.#|####.....|...##....|....#....|.........',musique:'...######|...#....#|...#....#|...#....#|.###..###|####.####|####.####|.##...##.|.........',voix:'...###...|..#####..|..#####..|..#####..|#.#####.#|#..###..#|.##...##.|...###...|..#####..',volant:'..#####..|.#.....#.|#.......#|#..###..#|#########|#...#...#|#...#...#|.#..#..#.|..#####..',fleches:'.........|..#...#..|.##...##.|###...###|###...###|###...###|.##...##.|..#...#..|.........',eclair:'.....###.|....###..|...###...|..######.|.....##..|....##...|...##....|..##.....|.#.......',drapeau:'#.#.#.#.#|##.#.#.#.|#.#.#.#.#|##.#.#.#.|#.#.#.#.#|#........|#........|#........|#........',voiture:'.........|.........|..####...|.#..#.#..|########.|#########|#########|.##...##.|.##...##.',rampe:'.........|.........|........#|......###|.....####|...######|.########|#########|.........',brique:'#########|#...#...#|#########|..#...#..|#########|#...#...#|#########|..#...#..|#########',copier:'...###...|.##...##.|.#######.|.#.....#.|.#.###.#.|.#.....#.|.#.###.#.|.#.....#.|.#######.',importer:'....#....|....#....|..#.#.#..|...###...|....#....|#.......#|#.......#|#########|.........',corbeille:'...###...|#########|.#.....#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.....#.|..#####..',rejouer:'..#####..|.#.....##|#.....###|#........|#........|#.......#|#.......#|.#.....#.|..#####..',quitter:'#####....|#...#....|#...#.#..|#...#.##.|#..######|#...#.##.|#...#.#..|#...#....|#####....',verrou:'..#####..|.#.....#.|.#.....#.|#########|#########|####.####|####.####|#########|#########',coche:'.........|........#|.......##|#.....##.|##...##..|.##.##...|..###....|...#.....|.........',etoile:'....#....|....#....|...###...|#########|.#######.|..#####..|..##.##..|.##...##.|.#.....#.',trophee:'#########|#.#####.#|#.#####.#|.#######.|..#####..|...###...|....#....|..#####..|.#######.',rotation:'..#####..|.#.....##|#.....###|#........|#..###...|#..#.#..#|#..###..#|.#.....#.|..#####..',panier:'.........|#........|.#######.|.#.#.#.#.|.#######.|..#.#.#..|..#####..|..#...#..|.........',bulle:'.#######.|#.......#|#.#.#.#.#|#.......#|.###.###.|...#.#...|...##....|...#.....|.........',piece:'..#####..|.#.....#.|#..###..#|#.#.....#|#..###..#|#.....#.#|#..###..#|.#.....#.|..#####..',maison:'....#....|...###...|..#####..|.#######.|#########|.#######.|.##...##.|.##...##.|.##...##.'};
+const PXI_G={aimant:'##.....##|.........|##.....##|##.....##|##.....##|###...###|.#######.|..#####..|.........',bouclier:'.#######.|#########|##.######|##.######|#########|.#######.|..#####..|...###...|....#....',nuage:'.........|.........|....##...|...####..|.##.####.|#########|#########|.#######.|.........',immeuble:'....#....|...###...|...###.##|##.###.##|##.###.##|#########|#########|#########|.........',flamme:'....#....|...##....|...###...|..####.#.|..######.|.###.###.|.##...##.|.##...##.|..#####..',pinceau:'......###|.....####|....####.|...####..|..####...|.#.##....|###......|###......|.#.......',aile:'.........|#........|##.......|###......|#####....|.#######.|..#######|....#####|.......##',trainee:'.........|##.......|.###.....|..####...|...######|..####...|.###.....|##.......|.........',pouce:'...##....|...##....|...##....|...####..|.#######.|.########|.#######.|..#####..|..#####..',cadeau:'.##...##.|#..#.#..#|.#######.|#########|#...#...#|####.####|.#..#..#.|.#..#..#.|.#######.',cible:'..#####..|.#.....#.|#..###..#|#.#...#.#|#.#.#.#.#|#.#...#.#|#..###..#|.#.....#.|..#####..',croix:'##.....##|###...###|.###.###.|..#####..|...###...|..#####..|.###.###.|###...###|##.....##',gauche:'....##...|...###...|..####...|.#####...|######...|.#####...|..####...|...###...|....##...',droite:'...##....|...###...|...####..|...#####.|...######|...#####.|...####..|...###...|...##....',haut:'.........|....#....|...###...|..#####..|.#######.|#########|...###...|...###...|...###...',bas:'...###...|...###...|...###...|#########|.#######.|..#####..|...###...|....#....|.........',lecture:'##.......|####.....|######...|########.|#########|########.|######...|####.....|##.......',pause:'.........|###...###|###...###|###...###|###...###|###...###|###...###|###...###|.........',reglages:'....#....|.#.###.#.|..#####..|.##...##.|###...###|.##...##.|..#####..|.#.###.#.|....#....',son:'....#....|...##..#.|####.#..#|####.#..#|####.#..#|####.#..#|...##..#.|....#....|.........',muet:'....#....|...##....|####..#.#|####...#.|####..#.#|####.....|...##....|....#....|.........',musique:'...######|...#....#|...#....#|...#....#|.###..###|####.####|####.####|.##...##.|.........',voix:'...###...|..#####..|..#####..|..#####..|#.#####.#|#..###..#|.##...##.|...###...|..#####..',volant:'..#####..|.#.....#.|#.......#|#..###..#|#########|#...#...#|#...#...#|.#..#..#.|..#####..',fleches:'.........|..#...#..|.##...##.|###...###|###...###|###...###|.##...##.|..#...#..|.........',eclair:'.....###.|....###..|...###...|..######.|.....##..|....##...|...##....|..##.....|.#.......',drapeau:'#.#.#.#.#|##.#.#.#.|#.#.#.#.#|##.#.#.#.|#.#.#.#.#|#........|#........|#........|#........',voiture:'.........|.........|..####...|.#..#.#..|########.|#########|#########|.##...##.|.##...##.',rampe:'.........|.........|........#|......###|.....####|...######|.########|#########|.........',brique:'#########|#...#...#|#########|..#...#..|#########|#...#...#|#########|..#...#..|#########',copier:'...###...|.##...##.|.#######.|.#.....#.|.#.###.#.|.#.....#.|.#.###.#.|.#.....#.|.#######.',importer:'....#....|....#....|..#.#.#..|...###...|....#....|#.......#|#.......#|#########|.........',corbeille:'...###...|#########|.#.....#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.....#.|..#####..',rejouer:'..#####..|.#.....##|#.....###|#........|#........|#.......#|#.......#|.#.....#.|..#####..',quitter:'#####....|#...#....|#...#.#..|#...#.##.|#..######|#...#.##.|#...#.#..|#...#....|#####....',verrou:'..#####..|.#.....#.|.#.....#.|#########|#########|####.####|####.####|#########|#########',coche:'.........|........#|.......##|#.....##.|##...##..|.##.##...|..###....|...#.....|.........',etoile:'....#....|....#....|...###...|#########|.#######.|..#####..|..##.##..|.##...##.|.#.....#.',trophee:'#########|#.#####.#|#.#####.#|.#######.|..#####..|...###...|....#....|..#####..|.#######.',rotation:'..#####..|.#.....##|#.....###|#........|#..###...|#..#.#..#|#..###..#|.#.....#.|..#####..',panier:'.........|#........|.#######.|.#.#.#.#.|.#######.|..#.#.#..|..#####..|..#...#..|.........',bulle:'.#######.|#.......#|#.#.#.#.#|#.......#|.###.###.|...#.#...|...##....|...#.....|.........',piece:'..#####..|.#.....#.|#..###..#|#.#.....#|#..###..#|#.....#.#|#..###..#|.#.....#.|..#####..',maison:'....#....|...###...|..#####..|.#######.|#########|.#######.|.##...##.|.##...##.|.##...##.',triade:'....#....|...###...|...###...|..##.##..|.##.#.##.|.###.###.|#########|#########|.........'};
 (function(){
   let css='',vars='';
   for(const k in PXI_G){
@@ -15371,6 +15541,10 @@ engVigScene.add(new THREE.HemisphereLight(0xd8ecff,0x241c3e,.55));
 {const k=new THREE.DirectionalLight(0xffffff,1.1);k.position.set(3.5,5,4.5);engVigScene.add(k);
  const r=new THREE.DirectionalLight(0x7fd8ff,.6);r.position.set(-4,1.5,-3);engVigScene.add(r);
  const b=new THREE.DirectionalLight(0xff7a3c,.55);b.position.set(-2,-3,-4);engVigScene.add(b);} // contre-jour braise : la silhouette se détache du fond sombre
+/* (v5, 2026-09-28, Sacha : « jolie, avec de belles couleurs ») LE LISERÉ NÉON : une lumière de plus, posée UNE fois ici (jamais en course : le
+   nombre de lumières d'une scène change ses programmes), éteinte au repos. La carte MOTEUR l'allume à la couleur néon du moteur : le métal
+   accroche un filet de sa couleur sur la tranche, le moteur n'est plus un bloc cuivré terne au-dessus de la caisse. */
+const engRim=new THREE.DirectionalLight(0xffffff,0);engRim.position.set(-4.2,1.2,2.4);engVigScene.add(engRim); // de trois-quarts avant-gauche : il teinte les faces qu'on VOIT
 const engRT=new THREE.WebGLRenderTarget(480,321,{minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,depthBuffer:true});
 // le quad de recollage — caméra ortho en coordonnées NDC (-1..1), donc positionner = convertir un rect DOM
 const engVigQuadScene=new THREE.Scene();
@@ -15424,8 +15598,8 @@ function engQuadDraw(){ // chaque image (le framebuffer est redessiné à chaque
   engCarteQuad.position.set(cx,cy,0);engCarteQuad.scale.set(Q.w/W*2,Q.h/H*2,1);
   engCarteMat.color.setScalar(Q.op*(1+1.3*(Q.fl||0)));engCarteMat.opacity=Q.op; // (v4) l'ÉCLAT d'apparition : le moteur arrive blanc-chaud et retombe à sa couleur
   engHalo.position.set(cx,cy,0);engHalo.scale.set(hs*1.18/W*2,hs*1.18/H*2,1);
-  engHaloMat.color.setHex(engBig.col||0xffd75e).multiplyScalar(.6*Q.op);engHaloMat.opacity=.6*Q.op;
-  engNoir.position.set(cx,cy,0);engNoir.scale.set(hs*.92/W*2,hs*.92/H*2,1);engNoirMat.opacity=.72*Q.op*(engBig.plonge?0:1); // l'encre s'efface dès la plongée : dans le capot, pas de disque
+  engHaloMat.color.setHex(engBig.col||0xffd75e).multiplyScalar(.9*Q.op);engHaloMat.opacity=.8*Q.op; // (v5) le halo néon, plus franc
+  engNoir.position.set(cx,cy,0);engNoir.scale.set(hs*.7/W*2,hs*.7/H*2,1);engNoirMat.opacity=.5*Q.op*(engBig.plonge?0:1); // l'encre s'efface dès la plongée : dans le capot, pas de disque — (v5) plus petite : il reste un anneau de couleur
   engVigQuad.visible=false;engCarteQuad.visible=engHalo.visible=engNoir.visible=true;
   const ac=renderer.autoClear;renderer.autoClear=false;renderer.render(engVigQuadScene,engVigQuadCam);renderer.autoClear=ac;
   engVigQuad.visible=true;engCarteQuad.visible=engHalo.visible=engNoir.visible=false;
@@ -15880,6 +16054,9 @@ const DBG_AUTO={on:false,lat:0};
 window.dbgMusique=function(){const e=musicEl;return {mode:musicMode,lieu:musicLieu&&musicLieu.titre,cur:musicCur,ctx:AC?AC.state:null,
   el:e?{src:(e.currentSrc||e.src).split('/').pop(),paused:e.paused,t:+e.currentTime.toFixed(2),ready:e.readyState,err:e.error&&e.error.code,vol:+musicVolCour.toFixed(2),voulue:musicVoulue,attente:musicEnAttente,analyse:!!musicAna,muted:e.muted}:null,son:SND.music};};
 window.dbgEngBig=function(i){i=i==null?5:i;engBig(ENGINE_TIERS[i],i);return ENGINE_TIERS[i].n;};
+// (v5) mesurer la carte moteur au banc : dbgEngCarte() rend échelle, tailles, place du moteur ; dbgEngCarte('fige') la garde à l'écran (pas de plongée)
+window.dbgEngCarte=function(k){if(k==='fige'){clearTimeout(engBig._p);clearTimeout(engBig._a);}const b=avE('engBig'),r=b&&b.getBoundingClientRect();
+  return {on:engBig.on,s:engBig.s,pw:engBig.pw,ph:engBig.ph,cw:Math.round(engCaisseL()),Q:{x:Math.round(ENG_Q.x),y:Math.round(ENG_Q.y),w:Math.round(ENG_Q.w),h:Math.round(ENG_Q.h),op:ENG_Q.op},carte:r?[r.left,r.top,r.width,r.height].map(Math.round):null,hex:engBig.hex};};
 window.dbgMoteur=function(){const E=ENGINE_TIERS[engTier+1];if(!E)return 'palier max';addCoins(Math.max(1,E.coins-coinsGot));return engTier+' · '+ENGINE_TIERS[engTier].n;}; // console : monter d'UN palier en course (la vraie scène : son, carte 3D, boîte) // console : la grande carte « NOUVEAU MOTEUR »
 window.dbgAuto=function(on,l){DBG_AUTO.on=!!on;DBG_AUTO.lat=+l||0;return DBG_AUTO.on;};
 // `dbgEco()` : le relevé d'argent d'une partie en cours (pour caler l'économie) · `dbgEco('rejouer')` relance.
@@ -16509,53 +16686,20 @@ const RUNX={coins:0,fruits:0,perfect:0,t:0,nitro:0,fren:0,frenMax:0}; // ce que 
    à la couleur de l'urgence, et les secondes au centre. Dessiné en ×2 pour un trait net sur écran Retina, et SEULEMENT quand
    l'image change (arc au 1/200, dixième de seconde). */
 function airPieDraw(fr,sec,flash){
-  // (2026-09-27, passe perf iPhone) DEUX économies, même image :
-  // · la CADENCE. L'arc (1/120 de tour) et les secondes (1/10 s) se redessinaient chacun sur SON arrondi, décalés d'un
-  //   demi-cran : ~40 redessins par seconde en vol au lieu de 20. Le seuil de l'arc est avancé d'un demi-cran (+.5) : ses
-  //   crans tombent désormais PILE sur ceux des secondes. L'arc tracé reste la valeur EXACTE du temps (fr), il avance par
-  //   pas de 3° comme prévu — seulement il ne se redessine plus entre deux pas pour rien.
-  // · la TOILE. Tout dessin sur le cadran AFFICHÉ (accéléré) coûte ~0,5 ms rien que pour la toucher (mesuré : un fillText
-  //   seul sur la toile affichée 0,5 ms, sur une toile hors écran 0,06 ms). On compose hors écran, puis UNE copie.
-  const q=Math.round(fr*120+.5),s10=Math.round(sec*10),col=pwrAirT>0?'#7dffec':fr>.4?'#5ee37a':(fr>.2?'#ffc93a':'#ff5a6e'),key=q+'|'+s10+'|'+col+'|'+flash;
+  // (2026-09-28, Sacha : « le camembert air time n'a pas l'air de ressembler à la barre de nitro et au compteur ») LE CHRONO DE VOL v3 :
+  // un bloc du HUD (#airHud) de la main de la jauge NITRO — plus un cadran. On n'écrit que ce qui change : la part restante (--a, au
+  // 1/120), les secondes (au dixième), l'état de couleur (data-k : ok cyan · moyen or · urgent rouge · inf = AIRTIME INFINI) et le flash
+  // « on regagne du temps ». La cadence d'avant est gardée (les deux seuils tombent sur les mêmes crans).
+  const q=Math.round(fr*120+.5),s10=Math.round(sec*10),k=pwrAirT>0?'inf':fr>.4?'ok':(fr>.2?'moyen':'urgent'),key=q+'|'+s10+'|'+k+'|'+flash;
   if(airPieDraw._k===key)return;airPieDraw._k=key;
-  // (2026-09-28, Sacha : « fais pareil pour le camembert air time ») EN PIXEL — le frère du bouton NITRO et du badge DARK TRIAD :
-  // 39 × 39 cases de 4 px de toile (78 px affichés, `pixelated`). Le fond (encre, biseau, piste segmentée, face tramée, épaisseur)
-  // est CUIT une fois, en deux versions (normal / « on regagne du temps ») ; à chaque image on ne pose que les SEGMENTS allumés
-  // (18 de 20°, un segment s'éteint entier : le temps se lit par crans) et le chiffre, dans la police du jeu, calé sur ses pixels.
-  const S=156,K=4,cv0=airPieDraw.cv||(airPieDraw.cv=(function(){const cv=document.createElement('canvas');cv.width=cv.height=S;return cv;})()),
-        c=airPieDraw.cx||(airPieDraw.cx=cv0.getContext('2d'));c.clearRect(0,0,S,S);
-  const A=airPieDraw.px||(airPieDraw.px=airPiePx());
-  c.drawImage(flash?A.fondFlash:A.fond,0,0);
-  if(fr>.004){c.fillStyle=col;c.beginPath();for(const q of A.jauge)if(q.a<=fr+1e-6)c.rect(q.x,q.y,K,K);c.fill();} // les segments qui restent
-  const t9=(s10/10).toFixed(1);
-  c.font='24px "Press Start 2P",monospace';c.textAlign='center';c.textBaseline='top';          // 24 px de toile = 12 px affichés, 3 px par pixel de police
-  c.fillStyle=A.encre;c.fillText(t9,78,63);c.fillStyle='#fff';c.fillText(t9,78,60);
-  c.font='16px "Press Start 2P",monospace';c.fillStyle=col;c.fillText('AIR',78,90);          // 16 px dessinés = 8 px affichés (le plancher)
-  pieCtx.clearRect(0,0,S,S);pieCtx.drawImage(cv0,0,0); // la seule touche sur le cadran affiché
+  const el=airPieDraw.el||(airPieDraw.el=document.getElementById('airHud'));if(!el)return;
+  const S=airPieDraw.s||(airPieDraw.s=el.querySelector('.ahS'));
+  el.style.setProperty('--a',Math.max(0,Math.min(1,q/120)).toFixed(3));
+  const t9=(s10/10).toFixed(1);if(S&&S.textContent!==t9)S.textContent=t9;
+  if(el.dataset.k!==k)el.dataset.k=k;
+  if(!!flash!==el.classList.contains('flash'))el.classList.toggle('flash',!!flash);
 }
-function airPiePx(){ // les cases du chrono de vol, calculées UNE fois (couleurs lues dans les jetons de la charte)
-  const S=156,K=4,N=39,Cc=19.5,R=18.5,cs=getComputedStyle(document.documentElement),v=function(n,d){return (cs.getPropertyValue(n)||'').trim()||d;};
-  const T={encre:v('--k0','#07050f'),levre:v('--kl2','#524487'),clair:v('--kl','#3a2f66'),mi:v('--k4','#272047'),sombre:v('--k2','#141027'),
-    face:v('--k3','#1c1636'),face2:v('--k2','#141027'),reflet:v('--k4','#272047'),eteint:'#2a2344',regain:'#7dffec'};
-  const angle=function(i,j){return (Math.atan2(i+.5-Cc,-(j+.5-Cc))*180/Math.PI+360)%360;}; // 0 = midi, sens horaire
-  const mk=function(flash){const cv=document.createElement('canvas');cv.width=cv.height=S;const x=cv.getContext('2d');
-    const cell=function(i,j,col){x.fillStyle=col;x.fillRect(i*K,j*K,K,K);};
-    for(let j=0;j<N;j++)for(let i=0;i<N;i++){const d=Math.hypot(i+.5-Cc,j+.5-Cc);
-      if(d>R){if(Math.hypot(i+.5-Cc,j-.5-Cc)<=R)cell(i,j,T.encre);continue;}  // l'ÉPAISSEUR : le disque décalé d'une case vers le bas
-      const a=angle(i,j);let col;
-      if(d>17.5)col=T.encre;
-      else if(d>16){const l=Math.cos((a-315)*Math.PI/180);col=flash?T.regain:l>.35?T.levre:l<-.35?T.sombre:T.mi;} // biseau d'en haut à gauche
-      else if(d>15)col=T.encre;
-      else if(d>12)col=(a%20)<16?T.eteint:T.encre;                                  // la piste : 18 segments de 16°, 4° d'encre
-      else if(d>11)col=T.encre;
-      else col=(d>10&&Math.cos((a-330)*Math.PI/180)>.55)?T.reflet:(((i+j)&1)?T.face:T.face2); // la face tramée et son reflet
-      cell(i,j,col);}
-    return cv;};
-  const jauge=[];
-  for(let j=0;j<N;j++)for(let i=0;i<N;i++){const d=Math.hypot(i+.5-Cc,j+.5-Cc);if(d>15||d<=12)continue;const a=angle(i,j);
-    if((a%20)<16)jauge.push({x:i*K,y:j*K,a:(Math.floor(a/20)*20+16)/360});} // chaque case sait à quel temps restant son segment s'éteint
-  return {fond:mk(false),fondFlash:mk(true),jauge:jauge,encre:T.encre};
-}
+/* (2026-09-28) `airPiePx` (les cases cuites du cadran pixel) a disparu avec le cadran : le chrono de vol est un bloc du HUD (#airHud). */
 
 /* LE FONDU AU NOIR (2026-09-25, user : « les transitions entre les écrans, niveau App Store ») — remplace le rideau à
    cinq barres en `steps()`. C'est le geste des jeux premium quand le DÉCOR change (atelier, boutique, nouvelle course) :
@@ -16935,7 +17079,7 @@ function frenEntre(){
       if(b.width>0){ox=Math.round(a.left+a.width/2-(b.left+b.width/2));oy=Math.round(a.top+a.height/2-(b.top+b.height/2));}}}catch(e){}
   tr.style.setProperty('--ox',ox+'px');tr.style.setProperty('--oy',oy+'px');
   tr.classList.add('on');
-  setTimeout(function(){if(tr.classList.contains('on'))try{pixBurst(tr.querySelector('.trPiece'),12);}catch(e){}},300); // l'impact : la gerbe part quand il se pose
+  setTimeout(function(){if(tr.classList.contains('on'))try{pixBurst(tr.querySelector('.trDA')||tr.querySelector('.trPiece'),12);}catch(e){}},300); // l'impact : la gerbe part quand il se pose
 }
 function frenSort(){
   const tr=frenEl();if(!tr||!tr.classList.contains('on'))return;
@@ -17143,7 +17287,7 @@ function flowHudMaj(rest){
    à la fin du pouvoir on ne coupe rien — plus rien ne naît, ce qui brûle finit de brûler. */
 const FEU={cv:null,cx:null,src:0,vif:false,t:0,acc:0,w:0,h:0,dpr:1,N:220,n:0,spr:null,
   x:null,y:null,vx:null,vy:null,age:null,vie:null,taille:null,st:null,eti:null};
-const FEU_RAMPE=[[255,252,236],[255,236,170],[255,204,96],[255,160,48],[255,116,28],[236,72,20],[176,38,16],[104,20,12]]; // du cœur à la fumée rouge
+const FEU_RAMPE=[[255,250,255],[244,222,255],[222,176,255],[196,130,255],[168,92,255],[132,56,236],[96,30,184],[56,14,110]]; // du cœur à la fumée — (2026-09-28, Sacha) VIOLET : c'est le feu de la NITRO INFINIE, la couleur du pouvoir
 const FEU_H=60,FEU_BAS=24; // hauteur du foyer (px CSS) et part posée SUR la jauge : la barre EST le foyer (au téléphone, 18 px d'écran seulement au-dessus d'elle)
 function feuSprites(){ // une bouffée par teinte, 64 px : cœur plein, bord qui s'évanouit (jamais de disque à arête)
   return FEU_RAMPE.map(function(c){const k=document.createElement('canvas');k.width=k.height=64;const x=k.getContext('2d');
@@ -17183,7 +17327,7 @@ function nitroFeu(dt){
   const cx=F.cx;cx.setTransform(1,0,0,1,0,0);cx.clearRect(0,0,F.cv.width,F.cv.height);
   if(F.n){cx.setTransform(F.dpr,0,0,F.dpr,0,0);cx.globalCompositeOperation='lighter';
     // la tranche CHAUFFE : une lueur basse qui respire avec le brasier
-    const g=cx.createLinearGradient(0,F.h,0,F.h-FEU_BAS*2.6);g.addColorStop(0,'rgba(255,150,40,'+(.42*F.src).toFixed(3)+')');g.addColorStop(1,'rgba(255,90,20,0)');
+    const g=cx.createLinearGradient(0,F.h,0,F.h-FEU_BAS*2.6);g.addColorStop(0,'rgba(176,100,255,'+(.42*F.src).toFixed(3)+')');g.addColorStop(1,'rgba(120,50,240,0)');
     cx.globalAlpha=1;cx.fillStyle=g;cx.fillRect(0,F.h-FEU_BAS*2.6,F.w,FEU_BAS*2.6);
     const S=F.spr,nS=S.length-1;
     for(let i=0;i<F.n;i++){const a=F.age[i];
@@ -17979,7 +18123,7 @@ const epEl=document.getElementById('engPop'),epNumEl=document.getElementById('ep
      et claque sur le toit : il est SUR la voiture, et la route devant elle n'est jamais cachée plus d'une seconde.
    Le moteur 3D n'est plus recopié dans un <canvas> (lecture GPU→CPU) : il est recollé directement dans l'image WebGL à la place de
    `.ebScene` (voir `engQuadDraw`) — les textes de la carte sont du DOM, donc au-dessus de lui. `pointer-events:none` partout. */
-const ENG_PLONGE=520,ENG_COULOIR=1150; // (2026-09-28, v4) 1,15 s au-dessus de la caisse (0,9 ne laissait pas lire le nom ET le gain), puis 0,52 s pour rentrer dans le capot
+const ENG_PLONGE=480,ENG_COULOIR=1000; // (2026-09-28, v4) 1,15 s au-dessus de la caisse, puis 0,52 s pour rentrer dans le capot — (v5) 1 s puis 0,48 s : la carte ne dit plus que le NOM, elle ne doit pas masquer la route plus longtemps
 /* LA SCÈNE D'ATELIER CALÉE SUR LE MOTEUR (2026-09-28). Elle partait au passage de palier, la carte parfois plus tard (file du couloir) :
    le flash et l'onde tombaient pendant que le moteur flottait encore. Sur téléphone elle est désormais armée PAR la carte, pour que sa
    RÉVÉLATION (u = .38 de T_SWAP : clank, flash, onde, spirale) tombe à l'instant où le moteur disparaît dans le capot — et d'ici là
@@ -17989,6 +18133,7 @@ function engSwapArme(){
   if(performance.now()-poseSndT<80)setTimeout(function(){try{engSwapSnd();}catch(e){}},450); // (2026-09-26, audit son) la visseuse attend que le « tchak » d'une pose ait parlé
   else try{engSwapSnd();}catch(e){}
   engSwapT=T_SWAP;shake=Math.max(shake,.15);duckT=Math.max(duckT,.45); // (v4) .5 → .15 : la grosse secousse est gardée pour l'entrée dans le capot (engImpact)
+  {const c9=engBig.on&&engBig.col?engBig.col:0xffd75e;swapRing.material.color.setHex(c9);swapLight.color.setHex(engBig.on&&engBig.col?c9:0xffd06a);} // (v5) l'onde et le flash à la couleur NÉON du moteur (l'or sans carte)
 }
 /* LA CARTE MOTEUR v4 (2026-09-28, Sacha : « rends l'animation du déblocage des moteurs plus belle, plus soignée, plus pro, adaptée à
    l'écran d'un iPhone, maîtrisée — qu'on soit content de débloquer le moteur »). Filmée à 30 i/s avant d'y toucher : le badge du palier
@@ -18003,7 +18148,8 @@ function engGain(tier){const a=ENGINE_TIERS[tier],b=ENGINE_TIERS[tier-1];if(!a||
   return Math.max(0,Math.round(CARS[0].maxKmh*SPD*lateMul()*(a.push-b.push)*FLOW_VREF));}
 function engImpact(){ // l'entrée dans le capot : le moment où l'on ENCAISSE le moteur
   if(gameOver||!running)return;
-  flashEcran('rgba(255,215,94,.75)');fovPunch=Math.max(fovPunch,11);shake=Math.max(shake,.4);hap([14,30,24]);
+  {const c9=ENG_NE.setHex(engBig.col||0xffd75e);flashEcran('rgba('+Math.round(c9.r*255)+','+Math.round(c9.g*255)+','+Math.round(c9.b*255)+',.6)');} // (v5) l'éclair à la couleur du moteur
+  fovPunch=Math.max(fovPunch,11);shake=Math.max(shake,.4);hap([14,30,24]);
   boost=Math.max(boost,.8);try{boostSnd(1.4);}catch(e){} // il RUGIT : une poussée brève, les flammes du pad
   const g=engBig.gain|0;if(g>0)setTimeout(function(){try{if(running&&!gameOver)popTexte('+'+g+' KM/H','#7dff9a',2);}catch(e){}},200);
 }
@@ -18011,20 +18157,23 @@ function engBig(E,tier,ru){
   let b=document.getElementById('engBig');
   if(!b){b=document.createElement('div');b.id='engBig';b.setAttribute('aria-live','polite');document.body.appendChild(b);}
   clearTimeout(engBig._p);clearTimeout(engBig._t);clearTimeout(engBig._z);clearTimeout(engBig._a);
-  const hx='#'+(E.col||0xffd75e).toString(16).padStart(6,'0'),n=Math.max(1,Math.min(16,E.cyl||4));
-  let cyl='';for(let i=0;i<n;i++)cyl+='<i style="animation-delay:'+(.25+i*.05).toFixed(2)+'s"></i>';
+  const hx=engNeon(E.col||0xffd75e),n=Math.max(1,Math.min(16,E.cyl||4)); // (v5) la couleur du moteur, poussée au NÉON : les premiers paliers sont gris-acier, la carte aurait été terne
   const gain=engGain(tier);engBig.gain=gain;
   const rec=tier>(RUNX.engAvant|0); // (2026-09-25) palier jamais atteint AVANT cette partie : le seul moment vraiment neuf
   b.style.setProperty('--ec',hx);b.classList.toggle('rec',rec);
   {const o9=b.querySelector('canvas');if(o9){o9.width=o9.height=0;}} // (2026-09-26) un ancien canvas rendu tout de suite (iOS plafonne la mémoire des canvas)
   // (H3) « NOUVEAU RECORD ! » disait trois choses (aura, meilleur palier, écran de mort) : le meilleur palier devient un SOMMET
   const nm=TR(E.n);
+  /* (v5, 2026-09-28, Sacha : « l'animation du déblocage d'un moteur est toujours moche, elle ne suit pas la voiture et bloque la vision ;
+     plus petite, elle doit voler au-dessus de la voiture, être jolie avec de belles couleurs, rétrécir et rentrer dedans — pense au mobile »)
+     LA CARTE SE RÉDUIT À L'ESSENTIEL : une étiquette (NOUVEAU MOTEUR), le NOM dans la typo ombrée du HUD, à la couleur néon du moteur, et
+     le moteur 3D à l'échelle de la CAISSE, posé sur son toit. Le palier, les cylindres et le gain ont quitté la carte : le gain jaillit de
+     la voiture à l'entrée dans le capot (engImpact), les cylindres chantent toujours (à l'oreille). */
   b.innerHTML='<div class="ebCarte"><small class="ebTit">'+sansAcc(TR(rec?'NOUVEAU SOMMET':'NOUVEAU MOTEUR'))+'</small>'
     +'<b data-t="'+String(nm).replace(/[<>&"]/g,'')+'">'+nm+'</b>'
-    +'<div class="ebInfo"><span class="ebPal">'+sansAcc(TR('PALIER'))+' '+(tier+1)+'</span>'+(gain>0?'<span class="ebGain">+'+gain+' KM/H</span>':'')+'</div>'
-    +'<div class="ebCyl'+(n>8?' dense':'')+'">'+cyl+'</div>'
-    +'<div class="ebScene"></div></div>'; // (v4) tout est CENTRÉ, dans l'ordre de lecture : ce que c'est, son nom, ce qu'il apporte — puis le moteur
-  engBig.ctx=null;engBig.on=true;engBig.plonge=0;engBig.t0=performance.now();engBig.col=E.col||0xffd75e;engVigSpin=0;
+    +'<div class="ebScene"></div></div>';
+  engBig.ctx=null;engBig.on=true;engBig.plonge=0;engBig.t0=performance.now();engBig.col=parseInt(hx.slice(1),16);engBig.hex=hx;engVigSpin=0;
+  engRim.color.setHex(engBig.col);engRim.intensity=2.1; // le liseré néon du moteur (éteint par engBigFin)
   document.body.classList.remove('ebPlonge');document.body.classList.add('ebOn');
   b.classList.remove('on','plonge','ruban','gain');void b.offsetWidth;
   engBigPlace(b);engBigSuit();b.classList.add('on'); // (2026-09-28) posée au-dessus de la caisse dès la 1re image (pas un saut depuis le couloir)
@@ -18032,8 +18181,6 @@ function engBig(E,tier,ru){
   hap(rec?[18,50,30,60,40]:[18,50,30]);pixBurst(b.querySelector('.ebScene'),rec?28:18);
   // (v4) LES CYLINDRES CHANTENT : une note par cylindre qui s'allume, sur une gamme qui monte — puis le gain claque
   for(let i=0;i<n;i++)setTimeout(function(){try{if(engBig.on&&!engBig.plonge)chimeNote(noteP(i%5,1+Math.floor(i/5)),0,.028,.08);}catch(e){}},250+i*50);
-  if(gain>0)setTimeout(function(){if(!engBig.on||engBig.plonge)return;b.classList.add('gain');try{chimeNote(noteP(4,2),0,.06,.22);sparkle(.06,.05);}catch(e){}
-    try{pixBurst(b.querySelector('.ebGain'),10);}catch(e){}},330+n*50);
   clearTimeout(engBig._f);if(rec)engBig._f=setTimeout(function(){if(!gameOver)try{fanfare();}catch(e){}},1200); // APRÈS le démarreur du montage, jamais par-dessus
   engBig._p=setTimeout(engPlonge,ENG_COULOIR);
   engBig._a=setTimeout(function(){if(!gameOver)engSwapArme();},ENG_ARME); // le clank de la visseuse = l'entrée dans le capot
@@ -18043,25 +18190,26 @@ function engBig(E,tier,ru){
    hauteur, où roule le toit au sol). La scène 3D est retrouvée par ses offsets (sans transformation) : le quad WebGL s'y recalera. */
 function engBigPlace(b){
   const ca=b.querySelector('.ebCarte'),sc=b.querySelector('.ebScene');if(!ca||!sc)return;
-  // (2026-09-28) le TITRE et le NOM passent AU-DESSUS du moteur : c'est le moteur, pas un texte, qui touche presque le capot (ordre posé
-  // en ligne : la mise en page de la charte ne bouge pas)
-  // (v4) le balisage est dans l'ordre de lecture (bandeau, nom, infos, cylindres, moteur) : plus d'ordre forcé en ligne
-  const hC=ca.offsetHeight||170,wC=ca.offsetWidth||260,top=laneY()-40;
-  // (2026-09-28) LA CARTE SE POSE AU-DESSUS DE LA CAISSE : ici on ne lit que ses mesures (une fois) ; engBigSuit la place chaque image
+  const hC=ca.offsetHeight||104,wC=ca.offsetWidth||150;
   engBig.hC=hC;engBig.wC=wC;engBig.el=b;engBig.sx=null;
-  // ⚠ PAS de réduction d'après le toit réel : en vol et en ORBITE la caméra monte la caisse vers le milieu de l'écran, la carte y
-  // rapetissait à 60 % (un moteur de 70 px) — alors que la route devant est AU-DESSUS de la caisse. Là, la carte se pose SUR la voiture
-  // (le vœu de Sacha) le temps d'une seconde, puis le moteur y plonge. Seul un écran COURT la réduit.
-  /* (2026-09-28) L'ÉCHELLE SUIT LA CAISSE : en vol la caméra recule, la voiture ne fait plus que ~20 px de haut à l'écran — un moteur de
-     220 px l'avalait tout entière. La hauteur de la caisse projetée (du centre au toit) règle la carte, entre 62 % et 100 %. */
-  ENG_V9.copy(carGroup.position).project(camera);const yC9=(-ENG_V9.y*.5+.5)*VP.h;
-  ENG_V9.copy(carGroup.position).addScaledVector(camera.up,1.9).project(camera);const hR9=Math.abs(yC9-(-ENG_V9.y*.5+.5)*VP.h);
-  const s=Math.max(.86,Math.min(1,(VP.h*.58-16-top)/hC)),cy=top+hC*s/2; // (v4) plancher .86 et plus de réduction d'après la caisse : à 62 % le titre se taisait et le nom tombait à 13 px — la caméra de vol v2 garde désormais la caisse grande en l'air
-  b.style.setProperty('--ebS',s.toFixed(3));b.style.top=cy.toFixed(0)+'px';b.classList.toggle('mini',s<.8); // réduite : les libellés de 8 px passeraient sous 6 px — ils se taisent
+  /* (v5) L'ÉCHELLE SUIT LA CAISSE : le moteur fait ~45 % de la largeur APPARENTE de la voiture (sa boîte projetée), au sol comme en vol,
+     borné entre 70 % et 115 % de la carte. Le texte ne descend jamais sous 8 px (--ebS ≥ .7). MESURÉ au banc : le moteur visible fait
+     ~0,82 × la largeur de la scène et ~1 × sa hauteur (le quad déborde de ×1,6, le cadrage garde de l'air pour la flamme). */
+  const cw=engCaisseL(),vis=(sc.offsetWidth||112)*.82;
+  const s=THREE.MathUtils.clamp(cw*.4/vis,.7,1.05);
+  b.style.setProperty('--ebS',s.toFixed(3));b.classList.toggle('mini',s<.8);
   const rx=sc.offsetLeft+sc.offsetWidth/2-wC/2,ry=sc.offsetTop+sc.offsetHeight/2-hC/2;
-  engBig.px=VP.w/2+rx*s;engBig.py=cy+ry*s;engBig.pw=sc.offsetWidth*s;engBig.ph=sc.offsetHeight*s;
-  engBig.s=s;engBig.rx=rx;engBig.ry=ry;
+  engBig.pw=sc.offsetWidth*s;engBig.ph=sc.offsetHeight*s;engBig.s=s;engBig.rx=rx;engBig.ry=ry;
 }
+function engCaisseL(){ // la largeur APPARENTE de la caisse (px) : sa boîte englobante projetée — lue une fois, à l'apparition de la carte
+  try{carGroup.updateMatrixWorld(true);ENG_B3.setFromObject(carBody||carGroup);let a=1e9,b=-1e9;
+    for(let i=0;i<8;i++){ENG_V9.set(i&1?ENG_B3.max.x:ENG_B3.min.x,i&2?ENG_B3.max.y:ENG_B3.min.y,i&4?ENG_B3.max.z:ENG_B3.min.z).project(camera);a=Math.min(a,ENG_V9.x);b=Math.max(b,ENG_V9.x);}
+    const l=(Math.min(1,b)-Math.max(-1,a))*.5*(VP.w||1);return isFinite(l)&&l>0?l:160;}catch(e){return 160;}}
+const ENG_B3=new THREE.Box3();
+function engNeon(c){ // la couleur du moteur, poussée au néon (les gris d'acier deviennent CYAN, le reste gagne sa saturation)
+  const C=ENG_NE.setHex(c),h={};C.getHSL(h);if(h.s<.3||h.l>.9)return '#5ee6ff';
+  C.setHSL(h.h,Math.max(.88,h.s),Math.min(.68,Math.max(.58,h.l)));return '#'+C.getHexString();}
+const ENG_NE=new THREE.Color();
 function engPlonge(){ // LE MOTEUR ENTRE DANS LA CAISSE : les textes s'effacent, le moteur plonge vers le toit, rétrécit et CLAQUE
   if(!engBig.on||engBig.plonge)return;
   engBig.plonge=performance.now();clearTimeout(engBig._p);clearTimeout(engBig._t);clearTimeout(engBig._z);
@@ -18073,7 +18221,7 @@ function engPlonge(){ // LE MOTEUR ENTRE DANS LA CAISSE : les textes s'effacent,
     try{engImpact();}catch(e){} // (v4) …et le moteur rugit
     engBig._t=setTimeout(engBigFin,150);},REDUCED_MOTION?0:ENG_PLONGE);
 }
-function engBigFin(){const b=avE('engBig');if(b)b.classList.remove('on','plonge');engBig.on=false;engBig.plonge=0;ENG_Q.op=0;engCarteMat.userData.uClip.value=-1;
+function engBigFin(){const b=avE('engBig');if(b)b.classList.remove('on','plonge');engBig.on=false;engBig.plonge=0;ENG_Q.op=0;engCarteMat.userData.uClip.value=-1;engRim.intensity=0;
   document.body.classList.remove('ebOn','ebPlonge');}
 function engBigCoupe(){clearTimeout(engBig._p);clearTimeout(engBig._t);clearTimeout(engBig._z);clearTimeout(engBig._f);clearTimeout(engBig._a);if(engBig.on)engBigFin();}
 function engRuban(ru){ // (H2) le RECORD tombe pendant la carte moteur : pas un 2e couloir — un ruban d'or À LA PLACE du titre
@@ -18934,6 +19082,12 @@ const PWR_DEFS={ // n = nitro infinie · a = airtime infini · v = vitesse ×2 �
   m:{col:0x3fe06a,core:0xe6ffec,ico:'',px:'aimant',plq:'AIMANT',sp:'or',msg:'AIMANT — 12 s : TOUT L\'OR VIENT À TOI !',hud:'AIMANT',tint:'#5ee37a',t:12,gros:'AIMANT',sous:'L\'OR VIENT A TOI',c2:'#1fae4a',fx:'rgba(94,227,122,.8)',fx2:'rgba(31,174,74,.3)'},
   b:{col:0xa9c2ff,core:0xffffff,ico:'',px:'bouclier',plq:'BOUCLIER',sp:'bleu',msg:'BOUCLIER — 20 s : UNE CHUTE PARDONNÉE !',hud:'BOUCLIER',tint:'#cfe0ff',t:20,gros:'BOUCLIER',sous:'UNE CHUTE PARDONNEE',c2:'#7f9cff',fx:'rgba(207,224,255,.85)',fx2:'rgba(127,156,255,.35)'},
   x:{col:0xffc93a,core:0xfff6d8,ico:'',px:'etoile',plq:'AURA ×2',sp:'or',msg:'AURA ×2 — 12 s : CHAQUE FIGURE COMPTE DOUBLE !',hud:'AURA ×2',tint:'#ffd75e',t:12,gros:'AURA ×2',sous:'CHAQUE FIGURE COMPTE DOUBLE',c2:'#ffb000',fx:'rgba(255,215,94,.85)',fx2:'rgba(255,176,0,.35)'}}; // (x en OR : la NITRO MAX passe au violet côté session UHD)
+/* (2026-09-28, Sacha : « nitro infini doit être VIOLET — les flammes, la traînée, la barre de nitro ») LA NITRO INFINIE A SA COULEUR : l'or-feu
+   #ffb040 se confondait avec la nitro ordinaire (orange) — on ne voyait pas qu'on avait le pouvoir. Un VIOLET électrique, loin du magenta de
+   VITESSE ×2 : le cristal, la plaque du HUD, les bords d'écran, la jauge et son feu, la plume, la traînée et le reflet de la caisse le portent
+   tous (`NINF`, lu par la boucle). Une ligne à part : l'objet ci-dessus appartient à la logique des pouvoirs. */
+Object.assign(PWR_DEFS.n,{col:0xa45cff,core:0xf1e2ff,tint:'#b06bff',c2:'#7b34f0',fx:'rgba(164,92,255,.85)',fx2:'rgba(123,52,240,.35)'});
+const NINF={jet:0x9d4dff,core:0xf3e6ff,lum:0xa050ff,rac:0xd8b8ff,trail:[.95,.45,1.6]}; // la nitro infinie dans le monde : plume, cœur, reflet, racine du brûleur, ruban
 for(const k in PWR_DEFS){const d=PWR_DEFS[k];
   d.glassM=new THREE.MeshPhongMaterial({color:d.col,emissive:d.col,emissiveIntensity:.9,shininess:260,specular:0xffffff,envMap:envTex,reflectivity:.6,transparent:true,opacity:.78,depthWrite:false,flatShading:true});
   d.coreM=new THREE.MeshBasicMaterial({color:d.core});
@@ -23321,7 +23475,7 @@ function nfxTick(dt){ // chaque image (après hsF/hsU) : l'onde, la teinte des b
   // LES BORDS DE L'IMAGE prennent la couleur de la poussée — orange feu, bleu réserve, or du pad turbo (plus discret)
   const eT=vit?(nitroOn?(nitroBlue?.36:.3):(boost>0?.14:0)):0;
   NFX.edge+=(eT-NFX.edge)*Math.min(1,dt*(eT>NFX.edge?8:2.6));
-  NFX.cT.setHex(nitroBlue?0x5b7dff:(nitroOn?0xff7a24:0xffd75e));NFX.col.lerp(NFX.cT,Math.min(1,dt*12));
+  NFX.cT.setHex(nitroBlue?0x5b7dff:(nitroOn?(pwrNitroT>0?NINF.jet:0xff7a24):0xffd75e));NFX.col.lerp(NFX.cT,Math.min(1,dt*12));
   if(acesPass){const U=acesPass.uniforms,b9=NFX.dbgB==null?1:NFX.dbgB;
     U.uNit.value.set(NFX.col.r,NFX.col.g,NFX.col.b,NFX.edge*(REDUCED_MOTION?.5:1)*b9);
     U.uNitF.value=vit?NFX.ign*NFX.ign*NFX.ignK*(REDUCED_MOTION?.25:.7)*b9:0;} // le COUP : un éclair de couleur sur tout le cadre, parti en ~0,3 s
@@ -23755,11 +23909,12 @@ function engBigSuit(){ // le moteur 3D de la carte : OÙ le recoller dans l'imag
   const hx=(ENG_V9.x*.5+.5)*VP.w,hy=(-ENG_V9.y*.5+.5)*VP.h;engBig.hx=hx;engBig.hy=hy;
   ENG_V8.copy(carGroup.position).addScaledVector(camera.up,1.9).project(camera);
   const yHaut=Math.min(hy,(-ENG_V8.y*.5+.5)*VP.h);
-  // la carte : son bas à 10 px au-dessus de la caisse, centrée sur le capot, gardée dans l'écran
-  const S=engBig.s||1,hC=(engBig.hC||170)*S,wC=(engBig.wC||260)*S,haut9=Math.max(8,laneY()-60);
-  // le MOTEUR juste au-dessus de la caisse (sa silhouette fait ~1,2 × la hauteur de la scène), la carte (titre et nom au-dessus) suit
-  const yS=yHaut-14-(engBig.ph||147)*.6;
-  let cx=THREE.MathUtils.clamp(hx,wC/2+8,VP.w-wC/2-8),cy=Math.max(haut9+hC/2,yS-(engBig.ry||0)*S);
+  // (v5) le MOTEUR POSÉ SUR LE TOIT : le bas de sa silhouette (~1,25 × la hauteur de la scène) effleure la caisse ; l'étiquette et le nom
+  // au-dessus de lui ; la carte suit la voiture partout (au sol, en vol), bornée seulement par les bords de l'écran — plus par le couloir
+  // des annonces, qui la faisait flotter haut au milieu de la route
+  const S=engBig.s||1,hC=(engBig.hC||104)*S,wC=(engBig.wC||150)*S;
+  const yS=yHaut-(engBig.ph||75)*.42;
+  let cx=THREE.MathUtils.clamp(hx,wC/2+8,VP.w-wC/2-8),cy=Math.max(hC/2+8,yS-(engBig.ry||0)*S);
   if(engBig.sx==null||engBig.plonge){if(engBig.sx==null){engBig.sx=cx;engBig.sy=cy;}}
   else{const k9=Math.min(1,(n-(engBig._n||n))/1000*14);engBig.sx+=(cx-engBig.sx)*k9;engBig.sy+=(cy-engBig.sy)*k9;}
   engBig._n=n;
@@ -23768,7 +23923,7 @@ function engBigSuit(){ // le moteur 3D de la carte : OÙ le recoller dans l'imag
   let s=1,op=1,x=engBig.sx+(engBig.rx||0)*S,y=engBig.sy+(engBig.ry||0)*S;
   if(t<220&&!RM){const u=t/220,e=1-(1-u)*(1-u)*(1-u);s=1.35-.35*e;op=Math.min(1,u*1.6);} // l'entrée : la même courbe que les textes (eb2Vie)
   ENG_Q.fl=RM?0:Math.max(0,1-t/260); // (v4) l'éclat d'apparition (lu par engQuadDraw)
-  if(!RM&&!engBig.plonge)y+=Math.sin(t*.0041)*5; // il FLOTTE au-dessus de la caisse (±5 px, un souffle d'1,5 s)
+  if(!RM&&!engBig.plonge)y+=Math.sin(t*.0041)*3; // il FLOTTE au-dessus de la caisse (±3 px, un souffle d'1,5 s)
   let clip=-1;
   if(engBig.plonge){ // LA PLONGÉE : vers le CAPOT, en accélérant, en rétrécissant — et il s'enfonce sous la ligne du capot
     const u=Math.min(1,(n-engBig.plonge)/ENG_PLONGE),e=u*u;
@@ -23828,7 +23983,7 @@ function chaineTick(dt){
   engBigSuit();cratTick(dt);popSuit();
   // le COMPTEUR : il grimpe vers la vraie valeur (on voit l'aura TOMBER dedans), une écriture DOM seulement quand le chiffre change
   CHA.v+=(auraRun-CHA.v)*Math.min(1,dt*7);if(Math.abs(auraRun-CHA.v)<1)CHA.v=auraRun;
-  const a9=Math.round(CHA.v);if(a9!==CHA.vAff){CHA.vAff=a9;const e9=avE('avVal');if(e9)e9.textContent=fmtAura(a9);recMaj(a9);if(CHA.recB)recSurplus(a9);}
+  const a9=Math.round(CHA.v);if(a9!==CHA.vAff){CHA.vAff=a9;const e9=avE('avVal');if(e9){const t9=fmtAura(a9);e9.textContent=t9;const n9=t9.length>=8?'l2':t9.length>=6?'l1':'';if(e9.dataset.l!==n9)e9.dataset.l=n9;}recMaj(a9);if(CHA.recB)recSurplus(a9);} // (2026-09-28) data-l : le compteur resserre son corps quand le nombre s'allonge (il passait à la ligne : « 1 » puis « 418 »)
   if(!CHA.recB&&CHA.rec>0&&auraRun>CHA.rec&&running&&!gameOver)recBattu();
   if(!CHA.n)return;
   if(mode!=='fall'&&mode!=='boom')CHA.t-=dt; // en l'air, l'horloge est GELÉE
@@ -29288,8 +29443,8 @@ function loop(now){
         // blanc : avant, des sprites géants restaient plantés dans le monde et la caméra les TRAVERSAIT.
         flames.mesh.material.size=Math.min(.62,.27+Math.min(engTier,15)*.022)*(nitroOn?1.2:1); // (2026-09-26) plus de tirage PAR IMAGE (toute la réserve palpitait d'un bloc) : chaque braise a sa taille (aR) ; et le feu grandit avec le MOTEUR, plus avec l'index de la caisse // PETIT : une étincelle, pas un ballon (le plume mesh fait le volume)
         flameCore.mesh.material.size=Math.min(.34,.14+Math.min(engTier,15)*.012)*(nitroOn?1.25:1);
-        flames.mesh.material.color.set(nitroOn?(nitroBlue?0x5b7dff:0xff7a24):0xff9030); // (vague 3) la bible : feu #ff7a24, réserve #5b7dff
-        flameCore.mesh.material.color.set(nitroOn?(nitroBlue?0xd6e2ff:0xffe4bc):0xffe2a8); // le CŒUR blanchit (blanc chaud / blanc bleuté)
+        flames.mesh.material.color.set(nitroOn?(nitroBlue?0x5b7dff:pwrNitroT>0?NINF.jet:0xff7a24):0xff9030); // (vague 3) la bible : feu #ff7a24, réserve #5b7dff
+        flameCore.mesh.material.color.set(nitroOn?(nitroBlue?0xd6e2ff:pwrNitroT>0?NINF.core:0xffe4bc):0xffe2a8); // le CŒUR blanchit (blanc chaud / blanc bleuté)
         const fl=(up||nitroOn)?(nitroOn?5:2)+Math.min(3,Math.floor(level/5)):(Math.abs(vF)>8?1:0);
         // (2026-09-25) Les étincelles HÉRITENT de la vitesse de la caisse (EXV) : lâchées à −22 m/s en MONDE alors que la caisse file
         // à 50+, elles fonçaient vers la caméra à ~70 m/s relatifs et gonflaient en gros ronds orange devant l'objectif. Le gaz
@@ -29494,9 +29649,9 @@ function loop(now){
         // (des vecteurs qui tournent autour d'un axe local : pas d'angle d'Euler, donc pas de gimbal-lock).
         if(wPitch!==0){const a9=-wPitch*1.7*dtF;fallVel.applyAxisAngle(FLY_R,a9);FLY_U.applyAxisAngle(FLY_R,a9);}
         // jet visible au point de poussée arrière : panache conique, jamais deux fois pareil
-        flames.mesh.material.color.set(nitroBlue?0x5b7dff:0xff7a24);    // (vague 3) le RÉACTEUR aux couleurs de la bible : feu #ff7a24, réserve #5b7dff
-        flameCore.mesh.material.color.set(nitroBlue?0xd6e2ff:0xffe4bc); // cœur blanc chaud / blanc bleuté
-        embers.mesh.material.color.set(nitroBlue?0x8ea4ff:0xffa24a);
+        flames.mesh.material.color.set(nitroBlue?0x5b7dff:pwrNitroT>0?NINF.jet:0xff7a24);    // (vague 3) le RÉACTEUR aux couleurs de la bible : feu #ff7a24, réserve #5b7dff
+        flameCore.mesh.material.color.set(nitroBlue?0xd6e2ff:pwrNitroT>0?NINF.core:0xffe4bc); // cœur blanc chaud / blanc bleuté
+        embers.mesh.material.color.set(nitroBlue?0x8ea4ff:pwrNitroT>0?0xc79bff:0xffa24a);
         tmp3.set(0,0,1).applyQuaternion(carGroup.quaternion);
         potAuHasard(tmp2); // (2026-09-26) en vol aussi, le feu sort des POTS (avant : 2,4 m derrière le centre, au milieu)
         if(Math.random()<.7)spawnP(embers,
@@ -29841,7 +29996,7 @@ function loop(now){
     const nTgt=((mode==='boom')?0:(nitroOn?(nitroBlue?1.5:1.25):(boost>0?.8:0)))*(1+NFX.ign*NFX.ignK*.5); // (vague 3) l'allumage ÉCLAIRE la poupe un instant — un éclair, pas une flaque qui reste // (2026-09-26, audit rendu) AU REPOS : 0 — le reflet rouge permanent était la « tache rouge » derrière la caisse // (2026-09-25) ÷1,5 à ÷2 : additionnée aux flaques et au bloom, elle faisait la « tache violette » // .68 au repos (était .8) : les FEUX ARRIÈRE posent leur reflet rouge en permanence — braise posée, plus le point chaud qui perçait
     nitroLight.intensity+=(nTgt*(.82+.18*Math.sin(t*43))-nitroLight.intensity)*Math.min(1,dt*14); // flamme qui tremble, fondu doux
     {const FL9=CARS[level].fx,fxL=(FL9&&FL9.light!=null&&!nitroBlue)?FL9.light:null; // la signature n'éclaire QUE sous poussée
-     if(nitroOn)nitroLight.color.setHex(nitroBlue?0x5b7dff:(fxL!=null?fxL:0xff7a24)); // orange nitro / bleu réserve (mêmes teintes que les particules)
+     if(nitroOn)nitroLight.color.setHex(nitroBlue?0x5b7dff:(pwrNitroT>0?NINF.lum:(fxL!=null?fxL:0xff7a24))); // orange nitro / bleu réserve (mêmes teintes que les particules) / VIOLET de la nitro infinie
      else if(boost>0)nitroLight.color.setHex(fxL!=null?fxL:0xffd75e); // pad turbo : coup d'or (vague 3 : l'or de la bible)
      else nitroLight.color.setHex(0xf21808);} // repos : rouge feux arrière PROFOND (la signature ne vit qu'à la nitro)
     if(ORBFX.feu>0&&mode!=='boom'){ // (2026-09-28) LA RENTRÉE EN FEU : le reflet quitte les pots pour le NEZ, rouge-orange, fort et vacillant — la caisse brûle
@@ -29860,12 +30015,13 @@ function loop(now){
       // pop-tart, l'eau du requin. Une signature qui est TOUJOURS là ne récompense plus rien.
       // ⚠ la RÉSERVE BLEUE garde la priorité absolue : c'est un SIGNAL de jeu (« tu tapes dans la
       // réserve »), et aucune identité de caisse n'a le droit d'effacer un signal.
-      const FX9=CARS[level].fx,fxOn=(nitroOn||boost>0)&&!nitroBlue;
+      const FX9=CARS[level].fx,fxOn=(nitroOn||boost>0)&&!nitroBlue,inf9=pwrNitroT>0&&!nitroBlue; // (2026-09-28) NITRO INFINIE = VIOLET : un SIGNAL, il passe devant la signature de la caisse (comme la réserve bleue)
+      if(inf9){jetShellM.color.setHex(NINF.jet);jetCoreM.color.setHex(NINF.core);}else{
       jetShellM.color.setHex(nitroBlue?0x5b7dff:(fxOn&&FX9&&FX9.jet!=null?FX9.jet:(nitroOn?0xff7a24:(boost>0?0xffd75e:0xff8c30)))); // (vague 2) le pad turbo souffle OR : la poussée qui vient de l'argent — (vague 3) les teintes EXACTES de la bible : feu #ff7a24, réserve #5b7dff, or #ffd75e
-      jetCoreM.color.setHex(nitroBlue?0xe2ebff:(fxOn&&FX9&&FX9.core!=null?FX9.core:(nitroOn?0xfff2da:0xffe6b0))); // (vague 3) à la nitro le cœur brûle BLANC : les diamants de choc se lisent sur le corps orange
+      jetCoreM.color.setHex(nitroBlue?0xe2ebff:(fxOn&&FX9&&FX9.core!=null?FX9.core:(nitroOn?0xfff2da:0xffe6b0)));} // (vague 3) à la nitro le cœur brûle BLANC : les diamants de choc se lisent sur le corps orange
       jetGlowM.color.copy(jetShellM.color).lerp(NFX.blanc,NFX.len*.45);jetGlowM.opacity=Math.min(1,JETS.k*.95*fl9+iK9*.5); // (vague 3) à la nitro la tuyère est chauffée à BLANC : le point le plus chaud de la flamme
       JET_T.value=t; // (2026-09-28) la flamme vivante : son bruit coule avec le temps de jeu (figé en pause)
-      jetCoreM.uniforms.uRac.value.setHex(nitroBlue?0xc9b8ff:0x6f8cff); // la racine de brûleur : bleue sous le feu, lilas sous la réserve
+      jetCoreM.uniforms.uRac.value.setHex(nitroBlue?0xc9b8ff:inf9?NINF.rac:0x6f8cff); // la racine de brûleur : bleue sous le feu, lilas sous la réserve (et sous la nitro infinie)
       for(let i9=0;i9<JETS.shells.length;i9++){ // chaque pot VIT pour lui : sa longueur bat à son rythme (deux pots en phase = un décor)
         const f9=.84+.16*Math.sin(t*31+i9*2.4)*Math.sin(t*13.7+i9*1.7),m9=JETS.shells[i9],c9=JETS.cores[i9];
         m9.visible=jOn;m9.scale.set(jr*(1.1-.1*f9),jr*(1.1-.1*f9),jl*f9);m9.rotation.z=t*7.3; // (plume v2) l'enveloppe TOURNE sur son axe
@@ -29891,6 +30047,7 @@ function loop(now){
     let tcr,tcg,tcb;
     const FXT=FX_EFF||spec9.fx; // la traînée de la boutique a le dernier mot
     if(nitroBlue){tcr=.52;tcg=.72;tcb=1.5;}                       // la réserve bleue reste un SIGNAL — (vague 3) calée sur #5b7dff
+    else if(pwrNitroT>0){tcr=NINF.trail[0];tcg=NINF.trail[1];tcb=NINF.trail[2];} // (2026-09-28) la NITRO INFINIE aussi : son ruban est VIOLET, comme sa plume et sa jauge
     else if(FXT&&FXT.trail){tcr=FXT.trail[0];tcg=FXT.trail[1];tcb=FXT.trail[2];} // la signature de la caisse
     else if(nitroOn){tcr=1.38;tcg=.62;tcb=.17;}else{tcr=1.25;tcg=.9;tcb=.26;} // couleurs FRANCHES : le ruban doit rester orange/bleu, jamais blanc — (vague 2) le pad turbo : OR #ffd75e (il était orange, on ne le distinguait pas de la nitro) — (vague 3) la nitro calée sur le feu #ff7a24 (elle tirait au rouge)
     const tw9=nitroOn?1.3+NFX.ign*NFX.ignK*.7:1; // (vague 3) à la nitro le fil s'épaissit (et gicle à l'allumage) — toujours plafonné à ~1° d'angle par trailStep
@@ -29907,7 +30064,7 @@ function loop(now){
       // ⚠ ET IL S'EFFACE EN RÉSERVE BLEUE, comme la plume. Sinon la caisse continue d'arborer ses
       // six couleurs pendant que les rubans passent au bleu : le joueur voit deux messages
       // contradictoires et le signal « tu tapes dans la réserve » se perd dans la fête.
-      const rk=(mode==='boom'||nitroBlue)?0:trailK;
+      const rk=(mode==='boom'||nitroBlue||pwrNitroT>0)?0:trailK;
       potMonde(CAR_POT_C,tmp2).addScaledVector(hsU,.19); // (2026-09-26) il naît au-dessus des pots
       rainbowStep(tmp2.x,tmp2.y,tmp2.z,rk,t);
     }else if(rainbow.m.visible){rainbow.m.visible=false;rainbow.init=false;}
@@ -30191,10 +30348,11 @@ function loop(now){
      const pl=(nitroR+nitroX)>=((ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2)-.01;
      if(loop._npl!==pl){loop._npl=pl;elNR.parentNode.classList.toggle('plein',pl);if(elNB)elNB.classList.toggle('plein',pl);}
      try{nitroFeu(dt);}catch(e){} // (2026-09-26) LA JAUGE EN FEU
-     {const inf=pwrNitroT>0;if(loop._ninf!==inf){loop._ninf=inf;elNR.parentNode.classList.toggle('inf',inf);}}
+     {const inf=pwrNitroT>0;if(loop._ninf!==inf){loop._ninf=inf;elNR.parentNode.classList.toggle('inf',inf);if(elNB)elNB.classList.toggle('inf',inf);}} // (2026-09-28) le bouton NITRO porte l'état lui aussi (violet)
      // LA JAUGE VIT : elle file quand on boost (rayures qui défilent, halo), vire au bleu en réserve, clignote rouge à sec
      {const st=(nitroOn?(nitroBlue?'bleu':'boost'):'')+((nitroR+nitroX)<.35?' bas':'');
-      if(loop._nst!==st){loop._nst=st;const nb=elNR.parentNode;nb.classList.toggle('boost',nitroOn&&!nitroBlue);nb.classList.toggle('bleu',nitroOn&&nitroBlue);nb.classList.toggle('bas',(nitroR+nitroX)<.35);}}
+      if(loop._nst!==st){loop._nst=st;const nb=elNR.parentNode;nb.classList.toggle('boost',nitroOn&&!nitroBlue);nb.classList.toggle('bleu',nitroOn&&nitroBlue);nb.classList.toggle('bas',(nitroR+nitroX)<.35);
+       if(elNB){elNB.classList.toggle('bleu',nitroOn&&nitroBlue);elNB.classList.toggle('bas',(nitroR+nitroX)<.35);}}} // (2026-09-28) …et le bouton NITRO : réserve bleue, à sec
      // L'ANNEAU DU BOUTON NITRO : la même réserve, en arc autour du pouce
      const mx9=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,r9=Math.round(Math.min(1,nitroR/mx9)*100)/100,x9=Math.round(Math.min(1,nitroX/2)*100)/100;
      if(elNB&&(loop._nbr!==r9||loop._nbx!==x9)){loop._nbr=r9;loop._nbx=x9;elNB.style.setProperty('--nr',r9);elNB.style.setProperty('--nx',x9);}}
@@ -30339,7 +30497,7 @@ function loop(now){
       const rv=Math.min(1,(u8-.38)/.44);
       // L'ONDE : elle s'ouvre VITE puis freine (racine), comme une onde de choc qui perd son
       // énergie. À vitesse constante on lirait un cerceau qu'on écarte à la main.
-      const ray=.5+Math.sqrt(rv)*5.0;
+      const ray=.5+Math.sqrt(rv)*3.8; // (v5) 5 → 3,8 m : au sol la caméra colle la caisse, l'onde couvrait la moitié de l'écran
       swapRing.visible=true;
       swapRing.position.set(p8.x+sw2.x*.10,p8.y+sw2.y*.10,p8.z+sw2.z*.10);
       swapRing.quaternion.copy(carGroup.quaternion);swapRing.rotateX(-Math.PI/2);
