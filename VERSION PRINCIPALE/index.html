@@ -2079,7 +2079,7 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
    Ce qui se LIT : laque droite (on lit mieux à plat), deux coins coupés (--c), le FILET qui en fait le tour — coupes
    comprises : deux traits en dégradé posés dans les coins, là où l'ombre intérieure ne sait pas aller — une lèvre de
    lumière en haut, et la bande de SA couleur à gauche (--fc). */
-.mPanel,.tpPanel,.mMode,.hCard,.mObj,.modIn,#carr .carrBiome{--c:var(--coupe);--fc:var(--kl2);position:relative;box-sizing:border-box;
+.mPanel,.tpPanel,.mMode,.hCard,.mObj,.modIn,#carr .carrBiome,.misUne,.misDef{--c:var(--coupe);--fc:var(--kl2);position:relative;box-sizing:border-box;
   background:linear-gradient(to bottom right,transparent 50%,var(--fil) 50% calc(50% + 1.3px),transparent calc(50% + 1.3px)) 0 0/var(--c) var(--c) no-repeat,
     linear-gradient(to top left,transparent 50%,var(--fil) 50% calc(50% + 1.3px),transparent calc(50% + 1.3px)) 100% 100%/var(--c) var(--c) no-repeat,
     var(--tresse),var(--laqueP);
@@ -2149,7 +2149,7 @@ body.touch #overlay>#mob{display:flex!important;flex-direction:column;flex:1 0 a
 body.touch #overlay::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:1;transition:opacity var(--t-slow) var(--ease);
   background:var(--fondEcran)}
 body.touch #overlay::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:0;transition:opacity var(--t-slow) var(--ease);
-  background:linear-gradient(180deg,rgba(7,5,15,.84) 0%,rgba(7,5,15,.28) 24%,rgba(7,5,15,0) 40%,rgba(7,5,15,0) 54%,rgba(7,5,15,.4) 70%,rgba(7,5,15,.94) 88%)}
+  background:linear-gradient(180deg,rgba(7,5,15,.48) 0%,rgba(7,5,15,.12) 22%,rgba(7,5,15,0) 38%,rgba(7,5,15,0) 54%,rgba(7,5,15,.4) 70%,rgba(7,5,15,.94) 88%)} /* (2026-09-28) le haut allégé (.84 → .48) : le ciel de JOUR de l'accueil doit se voir derrière le logo */
 body.touch #overlay[data-ecran="home"]::before{opacity:0}
 body.touch #overlay[data-ecran="home"]::after{opacity:1}
 body.touch #overlay[data-ecran="dead"]::before{opacity:.9}
@@ -2691,7 +2691,7 @@ body.inGarage #hud>:not(#garage):not(#gFade){display:none!important}
 .mscr.sort.retour{animation-name:k4SortRetour}
 .mscr.sort>*{animation:none!important}
 .mscr.on>*{animation:k4Fils var(--t-slow) var(--ease) backwards;animation-delay:calc(var(--i,0)*28ms + 50ms)}
-.mscr.on>.mPlay,#mDead.on>[data-m="replay"]{animation:k4Fils var(--t-slow) var(--ease) backwards,k4Lingot 4.2s var(--ease) 1.4s infinite;animation-delay:calc(var(--i,0)*28ms + 50ms),1.4s}
+.mscr.on>.mPlay{animation:k4Fils var(--t-slow) var(--ease) backwards,k4Lingot 4.2s var(--ease) 1.4s infinite;animation-delay:calc(var(--i,0)*28ms + 50ms),1.4s}
 #mDead.on>.mOver{animation:k4Enseigne .9s var(--ease) backwards;animation-delay:80ms}
 .mscr.on>.mDock{animation:none}
 body.voletSort .mscr.on,body.voletSort .mscr.on>*,body.voletSort #mDead.on>.mOver{animation:none!important}
@@ -2699,7 +2699,7 @@ body.voletSort .mscr.on,body.voletSort .mscr.on>*,body.voletSort #mDead.on>.mOve
    k4Racine depuis zéro — l'écran, déjà là, s'éteignait puis se rallumait (mesuré : opacité 1 → 0,65 → 1 entre 600 et 1 200 ms).
    `.revu` est posée par ecranWipe au lever du volet, et retirée par mGo au prochain écran. Le reflet du lingot, lui, continue. */
 .mscr.on.revu,.mscr.on.revu>*,#mDead.on.revu>.mOver{animation:none!important}
-.mscr.on.revu>.mPlay,#mDead.on.revu>[data-m="replay"]{animation:k4Lingot 4.2s var(--ease) 1.4s infinite!important}
+.mscr.on.revu>.mPlay{animation:k4Lingot 4.2s var(--ease) 1.4s infinite!important}
 @keyframes k4Racine{0%{opacity:0;transform:scale(.985)}100%{opacity:1;transform:none}}
 @keyframes k4Avant{0%{opacity:0;transform:translateX(56px) skewX(-4deg)}100%{opacity:1;transform:none}}
 @keyframes k4Retour{0%{opacity:0;transform:translateX(-56px) skewX(4deg)}100%{opacity:1;transform:none}}
@@ -2723,7 +2723,7 @@ body.voletSort .mscr.on,body.voletSort .mscr.on>*,body.voletSort #mDead.on>.mOve
   #mDead .mHero{margin-top:14px}
   .hCard{min-height:164px;padding-top:12px}
   #mDead .mCashL,.mObj{margin-top:12px}
-  #mDead [data-m="replay"]{margin-top:16px}
+  #mDead .mFin{margin-top:16px}
   #mDead>.mRow{margin-top:18px}
   #mDead>.mRow .pbtn{min-height:68px}
   #gCard{margin-top:14px}
@@ -2740,7 +2740,7 @@ body.voletSort .mscr.on,body.voletSort .mscr.on>*,body.voletSort #mDead.on>.mOve
 
 /* ============================================ « RÉDUIRE LES ANIMATIONS » =========================================== */
 @media (prefers-reduced-motion:reduce){
-  .pb-gold,#tPanel .tp.go,.mscr.on>.mPlay,#mDead.on>[data-m="replay"],.mBadge.on,.shUne,.mObj.pret,.mObj.rec,#gCompteur .pxi,.mChev .pxi,.gT .gTv,.shPhoto img,.hMot3 .hMotCv,.shPhoto.big::after,#gEclat.on,#mDead .mCashL b.clac{animation:none!important}
+  .pb-gold,#tPanel .tp.go,.mscr.on>.mPlay,.mBadge.on,.shUne,.mObj.pret,.mObj.rec,#gCompteur .pxi,.mChev .pxi,.gT .gTv,.shPhoto img,.hMot3 .hMotCv,.shPhoto.big::after,#gEclat.on,#mDead .mCashL b.clac{animation:none!important}
   .mscr.on,.mscr.on.avant,.mscr.on.retour{animation:k4Voile var(--t-fast) linear both!important}
   .mscr.on>*,#mDead.on>.mOver{animation:none!important}
   .mscr.sort{display:none}
@@ -2799,9 +2799,9 @@ html #spNote{box-shadow:inset 5px 0 0 var(--neoC),inset 18px 0 20px -14px var(--
    Le ressort (.mEsp) passe au-dessus des tuiles : sur un grand écran il les pousse vers le bas sans creuser le milieu. */
 #mDead>.mEsp{order:1}
 #mDead>.mRow{order:2}
-#mDead>[data-m="replay"]{order:3}
+#mDead>.mFin{order:3}
 html #mDead>.mRow{margin:0}
-html #mDead [data-m="replay"]{margin:20px 0 0}
+html #mDead .mFin{margin:20px 0 0}
 /* les pastilles des cartes prennent la couleur de LEUR carte (rose pour l'aura, couleur du palier pour le moteur) : l'or reste au lingot */
 html .hCard em{color:var(--k0);background:var(--hc);box-shadow:0 0 0 2px var(--k0),0 0 14px color-mix(in srgb,var(--hc) 55%,transparent);text-shadow:none}
 html .hMot .hNx.hPres{color:var(--ec,var(--tx))}
@@ -2819,7 +2819,7 @@ html #mDead .hCard{justify-content:flex-start}
   html .mStat{min-height:50px;gap:6px}
   html .mObj{margin-top:10px;padding:10px 14px;gap:8px}
   html #mDead>.mRow .pbtn{min-height:64px}
-  html #mDead [data-m="replay"]{margin-top:16px}
+  html #mDead .mFin{margin-top:16px}
   html #mDead .mEsp{flex-basis:12px}
 }
 @media (max-height:690px){
@@ -2828,7 +2828,8 @@ html #mDead .hCard{justify-content:flex-start}
   html .mObj .obBig{font-size:var(--f3)}
   html #mDead>.mRow .pbtn{min-height:58px;gap:6px}
   html #mDead>.mRow .pbtn .pxi{--pxs:3}
-  html #mDead [data-m="replay"]{min-height:62px;margin-top:14px}
+  html #mDead .mFin{margin-top:14px}
+  html #mDead .mFin>[data-m="replay"]{min-height:62px}
 }
 
 /* ---- 3. LA CARRIÈRE : la sortie COLLÉE AU BAS comme dans tous les sous-écrans (elle flottait à 60-80 % de la hauteur), les
@@ -3157,7 +3158,8 @@ html body.touch #airPie.danger{animation:k6PieDanger .12s steps(2) infinite}
   html #mDead>.mRow{grid-area:row;margin:0}
   html #mDead>.mRow .pbtn{min-height:48px;flex-direction:row;gap:8px;padding:0 8px 0 12px;font-size:var(--f0)}
   html #mDead>.mRow .pbtn .pxi{--pxs:2}
-  html #mDead [data-m="replay"]{grid-area:rej;margin:16px 0 0;min-height:58px;font-size:var(--f6)}
+  html #mDead .mFin{grid-area:rej;margin:16px 0 0}
+  html #mDead .mFin>[data-m="replay"]{min-height:58px;font-size:var(--f6)}
   html #mDead #nameEntry{grid-column:2}
   /* LES SOUS-ÉCRANS : une colonne plus large, et la place qu'il faut à chacun */
   html #mModes.on,html #mShop.on,html #mSet.on{max-width:820px;align-self:center}
@@ -3456,6 +3458,120 @@ html #spNote{position:fixed;bottom:calc(var(--sB) + 84px)}
 @media (orientation:landscape) and (max-height:540px){html #mHome{max-width:460px;align-self:center;padding:calc(var(--sT) + 10px) calc(var(--sR) + var(--gut)) calc(var(--sB) + 18px) calc(var(--sL) + var(--gut))}}
 @media (prefers-reduced-motion:reduce){#mHome.on>.mPlay,#mHome .pb-gold{animation:none}}
 html[data-reduced-motion="1"] #mHome .pb-gold,html[data-reduced-motion="1"] #mHome.on>.mPlay{animation:none!important}
+
+/* ---- 19. LES MISSIONS ET LA SORTIE MENU (2026-09-28, Sacha : « il manque un bouton pour revenir au menu » · « dans le menu il faut
+   aussi un bouton mission » · « l'écran de mission doit être parfait, avec une jauge de progression et un texte expliquant la
+   récompense — aussi bien fini que tout le reste »). Même grammaire : penché = je touche, droit à coins coupés = je lis, le vert
+   néon = les DÉFIS (la bannière « DÉFI RÉUSSI » de la course parle déjà vert), le vert billet = l'argent du jeu, l'or = le lingot. */
+/* la PORTE des missions : en face du ⚙, sur la même ligne — trois cases, une par défi, qui s'allument quand il est relevé */
+#mHome .mTop{justify-content:space-between}
+#mHome .mMisBtn{--nc:var(--neoV);min-height:50px;padding:0 16px 0 18px;gap:10px;font-size:var(--f1)}
+#mHome .mMisBtn .pxi{--pxs:2;color:var(--neoV)}
+.mMisPips{display:flex;gap:4px;margin-left:4px}
+.mMisPips u{display:block;width:7px;height:14px;background:var(--k0);box-shadow:0 0 0 1px var(--kl2)}
+.mMisPips u.ok{background:var(--neoV);box-shadow:0 0 0 1px #0c5a2a,0 0 8px rgba(94,227,122,.65)}
+/* la SORTIE de l'écran de mort : MAISON | REJOUER. La maison est une touche de laque neutre (lavande, comme RÉGLAGES) — le lingot
+   reste seul en or et prend toute la place qui reste */
+#mDead .mFin{display:flex;align-items:stretch;gap:14px;width:100%}
+#mDead .mFin>[data-m="replay"]{flex:1;min-width:0;width:auto;margin:0;padding:0 16px}
+#mDead .mMenu{--nc:var(--tx2);flex:none;flex-direction:column;gap:8px;width:86px;min-height:0;padding:8px 4px 6px 10px;font-size:var(--f1);letter-spacing:1px}
+#mDead .mMenu .pxi{--pxs:3;color:var(--tx2)}
+@media (max-width:360px){#mDead .mMenu{width:72px}#mDead .mFin{gap:10px}}
+
+/* L'ÉCRAN DES MISSIONS — 1. LA RÉCOMPENSE : une plaque qu'on lit, livrée verte en tête, la vignette sur son socle de lumière */
+#mMis .mHead{margin-bottom:12px}
+#mMis>.mHead+.misUne{margin-top:auto}#mMis>.mDock{margin-top:10px}                       /* le vide passe SOUS le titre, le contenu tombe vers la sortie (comme MODES) */
+.misUne{--fc:transparent;display:flex;flex-direction:column;gap:11px;width:100%;padding:14px 18px 14px;font-family:var(--pix);text-align:left;
+  box-shadow:inset 0 0 0 1px var(--fil),var(--levre),inset 0 3px 0 var(--neoV),inset 0 70px 60px -56px rgba(94,227,122,.30)}
+.misUne.voir{cursor:pointer}
+.misUne.voir:active{filter:brightness(1.2)}
+.misTete{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:var(--f0);letter-spacing:2px;color:var(--tx2)}
+.misTete span{display:flex;align-items:center;gap:8px}
+.misTete .pxi{--pxs:1;color:var(--neoV)}
+.misTete b{font-weight:400;letter-spacing:1px;color:var(--neoV);text-shadow:0 0 10px rgba(94,227,122,.45)}
+.misCorps{display:flex;align-items:center;gap:14px;min-height:74px}
+.misUne .obFig{position:relative;right:auto;top:auto;flex:none;width:124px;height:74px;margin:0;
+  background:radial-gradient(62% 42% at 50% 84%,rgba(94,227,122,.34),transparent 72%)}
+.misUne .obFig img{width:122%}
+.misUne .obFig .pxi{--pxs:6;color:var(--tx2)}
+.misUne .obSw{width:84px;height:50px}
+.misUne .obRub{width:108px;height:14px}
+.misUne .misCash .pxi{color:var(--cash)}
+.misNom{flex:1;min-width:0;font-weight:400;font-size:var(--f5);line-height:1.45;letter-spacing:1px;color:#fff;
+  transform:skewX(var(--sk));text-shadow:0 3px 0 var(--txO),0 0 16px rgba(94,227,122,.35)}
+#mMis .misExpl{max-width:none;margin:0;opacity:1;font-family:var(--sans);font-size:14px;line-height:1.5;font-weight:500;color:var(--tx2);text-align:left} /* #mMis : la vieille règle #overlay p (centré, interligne 1.9) passait devant */
+/* la JAUGE des trois défis : trois cellules penchées ; chacune se remplit de ton meilleur essai, pleine et verte une fois relevée */
+.misJauge{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:2px}
+.misJauge i,.misBar{position:relative;display:block;height:10px;overflow:hidden;background:var(--k0);transform:skewX(var(--sk));box-shadow:0 0 0 1px var(--kl)}
+.misJauge u,.misBar u{position:absolute;left:0;top:0;bottom:0;display:block;width:0;background:linear-gradient(90deg,#0a8fa8,var(--neoC));
+  box-shadow:0 0 10px rgba(0,234,255,.45);transition:width 1.1s var(--ease)}
+.misJauge i.ok u,.misDef.ok .misBar u{background:linear-gradient(90deg,#23b853,var(--neoV));box-shadow:0 0 12px rgba(94,227,122,.6)}
+.misPied{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:var(--f0);letter-spacing:1px;color:var(--tx3);white-space:nowrap}
+.misPied b{font-weight:400;font-size:var(--f3);color:var(--neoV)}
+.misLien{display:flex;align-items:center;gap:6px;color:var(--neoC)}
+.misLien .pxi{--pxs:1}
+.misUne.plein{box-shadow:inset 0 0 0 1px rgba(94,227,122,.55),var(--levre),inset 0 3px 0 var(--neoV),inset 0 70px 60px -56px rgba(94,227,122,.45)}
+/* 2. LES TROIS DÉFIS : une plaque par défi — le numéro dans son puits, la consigne, la prime en vert billet, la jauge, l'avancement */
+#mMis .mSec{margin:18px 0 8px}
+.misListe{display:flex;flex-direction:column;gap:10px;width:100%}
+.misDef{--fc:var(--kl2);--c:10px;display:flex;align-items:flex-start;gap:14px;width:100%;padding:11px 16px 11px 16px;font-family:var(--pix);text-align:left}
+.misDef.ok{--fc:var(--neoV)}
+.misN{flex:none;display:flex;align-items:center;justify-content:center;width:34px;height:34px;font-style:normal;font-size:var(--f3);color:var(--tx2);
+  background:linear-gradient(180deg,#221c40,#151129);clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px);
+  box-shadow:inset 0 0 0 1px var(--fil),inset 0 1px 0 rgba(255,255,255,.1)}
+.misDef.ok .misN{background:linear-gradient(180deg,#0d3a1f,#07210f);box-shadow:inset 0 0 0 1px #1f8a4b,inset 0 1px 0 rgba(255,255,255,.1)}
+.misN .pxi{--pxs:2;color:var(--neoV)}
+.misC{flex:1;min-width:0;display:flex;flex-direction:column;gap:9px}
+.misL{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;font-size:var(--f1);line-height:1.6;letter-spacing:1px;color:var(--tx)}
+.misL b{flex:none;font-weight:400;color:var(--cash);text-shadow:0 2px 0 var(--cashO),0 0 10px rgba(125,255,155,.35)}
+.misDef.ok .misL span{color:var(--tx2)}
+.misBar{height:6px}
+.misP{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:var(--f0);letter-spacing:1px;color:var(--tx3);white-space:nowrap}
+.misP span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.misP span:last-child{flex:none;color:var(--tx)}
+.misDef.ok .misP span:first-child{color:var(--neoV)}
+/* 3. LA RÈGLE, en clair : une partie par défi, la prime tout de suite, la récompense à la fin de la partie */
+.misRegle{display:flex;align-items:flex-start;gap:12px;width:100%;margin:12px 0 0;padding:0 4px;box-sizing:border-box;
+  font-family:var(--sans);font-size:13px;line-height:1.5;font-weight:500;color:var(--tx3)}
+.misRegle .pxi{--pxs:2;flex:none;margin-top:2px;color:var(--neoC)}
+/* 4. ET APRÈS : le contrat suivant, sous cadenas — une ligne, pour savoir que ça continue */
+.misSuite{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin:10px 0 4px;padding:11px 16px;box-sizing:border-box;
+  font-family:var(--pix);font-size:var(--f0);letter-spacing:1px;color:var(--tx3);background:var(--k1);box-shadow:inset 0 0 0 1px var(--fil);
+  clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
+.misSuite:empty{display:none}
+.misSuite span{display:flex;align-items:center;gap:8px}
+.misSuite .pxi{--pxs:1;color:var(--tx3)}
+.misSuite b{font-weight:400;color:var(--tx2);text-align:right}
+@media (max-height:760px){
+  .misUne{gap:10px;padding:14px 16px}
+  .misCorps{min-height:70px}
+  .misUne .obFig{width:112px;height:70px}
+  .misDef{padding:11px 14px}
+  #mMis .mSec{margin:18px 0 8px}
+}
+/* LE PAYSAGE (ce que l'ordi montre) : la récompense à gauche, les trois défis à droite ; la maison de l'écran de mort passe en ligne */
+@media (orientation:landscape) and (max-height:540px){
+  html #mDead .mMenu{flex-direction:row;width:auto;gap:8px;padding:0 14px 0 16px;font-size:var(--f0)}
+  html #mDead .mMenu .pxi{--pxs:2}
+  html #mHome .mMisBtn{min-height:44px}
+  /* la RÈGLE monte à droite du titre (on la lit en arrivant), la récompense à gauche, les trois défis à droite, et « ENSUITE »
+     descend dans la rangée du RETOUR : tout tient dans les 390 px d'un téléphone couché, sans défiler */
+  html #mMis.on{max-width:820px;align-self:center;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.08fr);column-gap:22px;align-content:start;
+    grid-template-areas:"head regle" "une sec" "une liste" "dock suite";grid-template-rows:auto auto 1fr auto}
+  html #mMis .mHead{grid-area:head;margin:0 0 12px}
+  html #mMis .misRegle{grid-area:regle;align-self:center;margin:0 0 12px;padding:0;font-size:12px;line-height:1.45}
+  html #mMis .misUne{grid-area:une;align-self:start;margin-top:0;gap:9px;padding:12px 16px}
+  html #mMis .misCorps{min-height:64px}
+  html #mMis .misUne .obFig{width:106px;height:64px}
+  html #mMis .misExpl{font-size:13px}
+  html #mMis .mSec{grid-area:sec;margin:0 0 8px}
+  html #mMis .misListe{grid-area:liste;gap:8px}
+  html #mMis .misDef{padding:9px 14px;gap:12px}
+  html #mMis .misC{gap:6px}
+  html #mMis .mDock{grid-area:dock}
+  html #mMis .misSuite{grid-area:suite;align-self:center;position:sticky;bottom:calc(var(--sB) + 24px);z-index:4;margin:0;background:var(--k1)}
+}
+@media (prefers-reduced-motion:reduce){.misJauge u,.misBar u{transition:none}}
 </style>
 <style id="hudMaitrise">
 /* =====================================================================================================================
@@ -3927,6 +4043,9 @@ html[data-reduced-motion="1"] body.touch #airPie,html[data-reduced-motion="1"] b
          le retour est sous le pouce, jamais en haut à gauche (charte, règle 4). -->
     <div class="mscr on" id="mHome">
       <div class="mTop">
+        <!-- (2026-09-28) LES MISSIONS ont leur porte : en face du ⚙, sur la même ligne — le logo, les tuiles et JOUER ne bougent pas
+             d'un pixel (la v4 de l'accueil est un verdict), la bande où la caisse s'expose non plus. Les trois cases = les trois défis. -->
+        <div class="pbtn mMisBtn" data-m="mis" role="button" aria-label="Missions"><i class="pxi pxi-cible" aria-hidden="true"></i><span data-fr="MISSIONS">MISSIONS</span><b class="mMisPips" id="mMisPips" aria-hidden="true"><u></u><u></u><u></u></b></div>
         <div class="pbtn pbCarre mGear" data-m="set" role="button" aria-label="Réglages"><i class="pxi pxi-reglages" aria-hidden="true"></i></div>
       </div>
       <div class="mTitle"><span class="lg gold" data-t="CASH">CASH</span><span class="lg grad" data-t="CAR">CAR</span></div>
@@ -3950,7 +4069,9 @@ html[data-reduced-motion="1"] body.touch #airPie,html[data-reduced-motion="1"] b
       <div class="mStats" id="mStatsBox"></div>
       <div class="mObj" id="mObj"></div>
       <div class="mEsp" aria-hidden="true"></div>
-      <div class="pbtn pb-gold big wide" data-m="replay" role="button">REJOUER</div>
+      <!-- (2026-09-28, Sacha : « il manque un bouton pour revenir au menu ») la paire des jeux mobiles : MAISON | REJOUER. Le lingot
+           reste la seule plaque d'or et la plus large ; la maison est une touche de laque, à gauche, jamais sous le pouce du rejeu. -->
+      <div class="mFin"><div class="pbtn mMenu" data-m="menu" role="button" aria-label="Menu"><i class="pxi pxi-maison" aria-hidden="true"></i><span data-fr="MENU">MENU</span></div><div class="pbtn pb-gold big wide" data-m="replay" role="button">REJOUER</div></div>
       <div class="mRow">
         <div class="pbtn ico" data-m="garage" role="button"><i class="pxi pxi-voiture" aria-hidden="true"></i>GARAGE</div>
         <div class="pbtn ico pb-mag" data-m="shop" role="button"><i class="pxi pxi-panier" aria-hidden="true"></i>BOUTIQUE</div>
@@ -3971,6 +4092,19 @@ html[data-reduced-motion="1"] body.touch #airPie,html[data-reduced-motion="1"] b
         <div class="mmT"><span><i class="pxi pxi-brique" aria-hidden="true"></i> BAC A SABLE</span><span class="mmS" id="mmSandS">OFF</span></div>
         <div class="mmD">On s'entraîne sur la vraie piste : la caisse se replace au lieu de mourir. Idéal pour les sauts — mais aucun score n'est enregistré.</div>
       </div>
+      <div class="mDock"><div class="pbtn mBack" data-m="back" role="button" aria-label="Retour"><i class="pxi pxi-gauche" aria-hidden="true"></i>RETOUR</div></div>
+    </div>
+    <!-- LES MISSIONS (2026-09-28, Sacha : « je veux que l'écran de mission soit parfait, avec une jauge de progression et un texte
+         expliquant la récompense au joueur — aussi bien fini que tout le reste du jeu »). Trois étages, lus de haut en bas : la
+         RÉCOMPENSE du contrat (ce qu'on gagne, pourquoi ça ne s'achète pas, la jauge des trois défis) · les TROIS DÉFIS (chacun sa
+         jauge : ton meilleur essai en UNE partie, et sa prime) · le CONTRAT SUIVANT, sous cadenas. Rempli par `misRender`. -->
+    <div class="mscr" id="mMis">
+      <div class="mHead"><h3>MISSIONS</h3></div>
+      <div class="misUne" id="misUne"></div>
+      <div class="mSec"><span data-fr="LES TROIS DEFIS">LES TROIS DEFIS</span></div>
+      <div class="misListe" id="misListe"></div>
+      <div class="misRegle" id="misRegle"></div>
+      <div class="misSuite" id="misSuite"></div>
       <div class="mDock"><div class="pbtn mBack" data-m="back" role="button" aria-label="Retour"><i class="pxi pxi-gauche" aria-hidden="true"></i>RETOUR</div></div>
     </div>
     <!-- LA BOUTIQUE (2026-09-25, user : « le shop ressemble trop au garage — il doit être SEULEMENT pour les voitures
@@ -4102,7 +4236,7 @@ if(window.CC_COLONNE)return; // (2026-09-28) sur l'ordi cette page n'est que le 
    dessinée à la main, convertie UNE fois en SVG et posée en MASQUE CSS : elle prend la couleur de son
    bouton (`currentColor`), reste nette à toutes les tailles (`crispEdges`) et ne coûte aucun fichier.
    Usage : `<i class="pxi pxi-croix"></i>` dans le HTML, `pxi('croix')` dans le JS. */
-const PXI_G={nuage:'.........|.........|....##...|...####..|.##.####.|#########|#########|.#######.|.........',immeuble:'....#....|...###...|...###.##|##.###.##|##.###.##|#########|#########|#########|.........',flamme:'....#....|...##....|...###...|..####.#.|..######.|.###.###.|.##...##.|.##...##.|..#####..',pinceau:'......###|.....####|....####.|...####..|..####...|.#.##....|###......|###......|.#.......',aile:'.........|#........|##.......|###......|#####....|.#######.|..#######|....#####|.......##',trainee:'.........|##.......|.###.....|..####...|...######|..####...|.###.....|##.......|.........',pouce:'...##....|...##....|...##....|...####..|.#######.|.########|.#######.|..#####..|..#####..',cadeau:'.##...##.|#..#.#..#|.#######.|#########|#...#...#|####.####|.#..#..#.|.#..#..#.|.#######.',cible:'..#####..|.#.....#.|#..###..#|#.#...#.#|#.#.#.#.#|#.#...#.#|#..###..#|.#.....#.|..#####..',croix:'##.....##|###...###|.###.###.|..#####..|...###...|..#####..|.###.###.|###...###|##.....##',gauche:'....##...|...###...|..####...|.#####...|######...|.#####...|..####...|...###...|....##...',droite:'...##....|...###...|...####..|...#####.|...######|...#####.|...####..|...###...|...##....',haut:'.........|....#....|...###...|..#####..|.#######.|#########|...###...|...###...|...###...',bas:'...###...|...###...|...###...|#########|.#######.|..#####..|...###...|....#....|.........',lecture:'##.......|####.....|######...|########.|#########|########.|######...|####.....|##.......',pause:'.........|###...###|###...###|###...###|###...###|###...###|###...###|###...###|.........',reglages:'....#....|.#.###.#.|..#####..|.##...##.|###...###|.##...##.|..#####..|.#.###.#.|....#....',son:'....#....|...##..#.|####.#..#|####.#..#|####.#..#|####.#..#|...##..#.|....#....|.........',muet:'....#....|...##....|####..#.#|####...#.|####..#.#|####.....|...##....|....#....|.........',musique:'...######|...#....#|...#....#|...#....#|.###..###|####.####|####.####|.##...##.|.........',voix:'...###...|..#####..|..#####..|..#####..|#.#####.#|#..###..#|.##...##.|...###...|..#####..',volant:'..#####..|.#.....#.|#.......#|#..###..#|#########|#...#...#|#...#...#|.#..#..#.|..#####..',fleches:'.........|..#...#..|.##...##.|###...###|###...###|###...###|.##...##.|..#...#..|.........',eclair:'.....###.|....###..|...###...|..######.|.....##..|....##...|...##....|..##.....|.#.......',drapeau:'#.#.#.#.#|##.#.#.#.|#.#.#.#.#|##.#.#.#.|#.#.#.#.#|#........|#........|#........|#........',voiture:'.........|.........|..####...|.#..#.#..|########.|#########|#########|.##...##.|.##...##.',rampe:'.........|.........|........#|......###|.....####|...######|.########|#########|.........',brique:'#########|#...#...#|#########|..#...#..|#########|#...#...#|#########|..#...#..|#########',copier:'...###...|.##...##.|.#######.|.#.....#.|.#.###.#.|.#.....#.|.#.###.#.|.#.....#.|.#######.',importer:'....#....|....#....|..#.#.#..|...###...|....#....|#.......#|#.......#|#########|.........',corbeille:'...###...|#########|.#.....#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.....#.|..#####..',rejouer:'..#####..|.#.....##|#.....###|#........|#........|#.......#|#.......#|.#.....#.|..#####..',quitter:'#####....|#...#....|#...#.#..|#...#.##.|#..######|#...#.##.|#...#.#..|#...#....|#####....',verrou:'..#####..|.#.....#.|.#.....#.|#########|#########|####.####|####.####|#########|#########',coche:'.........|........#|.......##|#.....##.|##...##..|.##.##...|..###....|...#.....|.........',etoile:'....#....|....#....|...###...|#########|.#######.|..#####..|..##.##..|.##...##.|.#.....#.',trophee:'#########|#.#####.#|#.#####.#|.#######.|..#####..|...###...|....#....|..#####..|.#######.',rotation:'..#####..|.#.....##|#.....###|#........|#..###...|#..#.#..#|#..###..#|.#.....#.|..#####..',panier:'.........|#........|.#######.|.#.#.#.#.|.#######.|..#.#.#..|..#####..|..#...#..|.........',bulle:'.#######.|#.......#|#.#.#.#.#|#.......#|.###.###.|...#.#...|...##....|...#.....|.........',piece:'..#####..|.#.....#.|#..###..#|#.#.....#|#..###..#|#.....#.#|#..###..#|.#.....#.|..#####..'};
+const PXI_G={nuage:'.........|.........|....##...|...####..|.##.####.|#########|#########|.#######.|.........',immeuble:'....#....|...###...|...###.##|##.###.##|##.###.##|#########|#########|#########|.........',flamme:'....#....|...##....|...###...|..####.#.|..######.|.###.###.|.##...##.|.##...##.|..#####..',pinceau:'......###|.....####|....####.|...####..|..####...|.#.##....|###......|###......|.#.......',aile:'.........|#........|##.......|###......|#####....|.#######.|..#######|....#####|.......##',trainee:'.........|##.......|.###.....|..####...|...######|..####...|.###.....|##.......|.........',pouce:'...##....|...##....|...##....|...####..|.#######.|.########|.#######.|..#####..|..#####..',cadeau:'.##...##.|#..#.#..#|.#######.|#########|#...#...#|####.####|.#..#..#.|.#..#..#.|.#######.',cible:'..#####..|.#.....#.|#..###..#|#.#...#.#|#.#.#.#.#|#.#...#.#|#..###..#|.#.....#.|..#####..',croix:'##.....##|###...###|.###.###.|..#####..|...###...|..#####..|.###.###.|###...###|##.....##',gauche:'....##...|...###...|..####...|.#####...|######...|.#####...|..####...|...###...|....##...',droite:'...##....|...###...|...####..|...#####.|...######|...#####.|...####..|...###...|...##....',haut:'.........|....#....|...###...|..#####..|.#######.|#########|...###...|...###...|...###...',bas:'...###...|...###...|...###...|#########|.#######.|..#####..|...###...|....#....|.........',lecture:'##.......|####.....|######...|########.|#########|########.|######...|####.....|##.......',pause:'.........|###...###|###...###|###...###|###...###|###...###|###...###|###...###|.........',reglages:'....#....|.#.###.#.|..#####..|.##...##.|###...###|.##...##.|..#####..|.#.###.#.|....#....',son:'....#....|...##..#.|####.#..#|####.#..#|####.#..#|####.#..#|...##..#.|....#....|.........',muet:'....#....|...##....|####..#.#|####...#.|####..#.#|####.....|...##....|....#....|.........',musique:'...######|...#....#|...#....#|...#....#|.###..###|####.####|####.####|.##...##.|.........',voix:'...###...|..#####..|..#####..|..#####..|#.#####.#|#..###..#|.##...##.|...###...|..#####..',volant:'..#####..|.#.....#.|#.......#|#..###..#|#########|#...#...#|#...#...#|.#..#..#.|..#####..',fleches:'.........|..#...#..|.##...##.|###...###|###...###|###...###|.##...##.|..#...#..|.........',eclair:'.....###.|....###..|...###...|..######.|.....##..|....##...|...##....|..##.....|.#.......',drapeau:'#.#.#.#.#|##.#.#.#.|#.#.#.#.#|##.#.#.#.|#.#.#.#.#|#........|#........|#........|#........',voiture:'.........|.........|..####...|.#..#.#..|########.|#########|#########|.##...##.|.##...##.',rampe:'.........|.........|........#|......###|.....####|...######|.########|#########|.........',brique:'#########|#...#...#|#########|..#...#..|#########|#...#...#|#########|..#...#..|#########',copier:'...###...|.##...##.|.#######.|.#.....#.|.#.###.#.|.#.....#.|.#.###.#.|.#.....#.|.#######.',importer:'....#....|....#....|..#.#.#..|...###...|....#....|#.......#|#.......#|#########|.........',corbeille:'...###...|#########|.#.....#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.....#.|..#####..',rejouer:'..#####..|.#.....##|#.....###|#........|#........|#.......#|#.......#|.#.....#.|..#####..',quitter:'#####....|#...#....|#...#.#..|#...#.##.|#..######|#...#.##.|#...#.#..|#...#....|#####....',verrou:'..#####..|.#.....#.|.#.....#.|#########|#########|####.####|####.####|#########|#########',coche:'.........|........#|.......##|#.....##.|##...##..|.##.##...|..###....|...#.....|.........',etoile:'....#....|....#....|...###...|#########|.#######.|..#####..|..##.##..|.##...##.|.#.....#.',trophee:'#########|#.#####.#|#.#####.#|.#######.|..#####..|...###...|....#....|..#####..|.#######.',rotation:'..#####..|.#.....##|#.....###|#........|#..###...|#..#.#..#|#..###..#|.#.....#.|..#####..',panier:'.........|#........|.#######.|.#.#.#.#.|.#######.|..#.#.#..|..#####..|..#...#..|.........',bulle:'.#######.|#.......#|#.#.#.#.#|#.......#|.###.###.|...#.#...|...##....|...#.....|.........',piece:'..#####..|.#.....#.|#..###..#|#.#.....#|#..###..#|#.....#.#|#..###..#|.#.....#.|..#####..',maison:'....#....|...###...|..#####..|.#######.|#########|.#######.|.##...##.|.##...##.|.##...##.'};
 (function(){
   let css='',vars='';
   for(const k in PXI_G){
@@ -5303,7 +5437,7 @@ function updateContactShadow(){ // appelée juste avant le rendu
   const gen9=carGroup.userData.gen||0;
   if(EMPR.gen!==gen9){EMPR.gen=gen9;emprPeint();}
   // AU GARAGE ET À LA VITRINE DU MENU aussi : la caisse posée sur son plateau ou sur la route n'avait RIEN sous elle
-  const vitrine=garageOn||(!running&&!started&&carGroup.visible);
+  const vitrine=garageOn||(((!running&&!started)||MENUV.retour)&&carGroup.visible); // (2026-09-28) l'accueil d'après-mort aussi (accueilRetour)
   if(!SHADOW_ON||(mode==='boom'&&!garageOn)||(!running&&!vitrine)){contactShadow.visible=false;return;}
   const M9=contactShadow.material;
   if(vitrine||mode==='drive'){
@@ -8818,6 +8952,8 @@ Object.assign(I18N_ZH,{'FRÔLÉ':'擦边','RÉCOLTE':'金币连收','RAFALE':'�
 Object.assign(I18N,{"COMMUNES":"COMMONS","COMMUNE":"COMMON","RARES":"RARES","ÉPIQUES":"EPICS","ÉPIQUE":"EPIC","LÉGENDES":"LEGENDS","LÉGENDAIRE":"LEGENDARY","DÉFIS":"CHALLENGES","TOUT":"ALL","À MOI":"MINE","À ACHETER":"FOR SALE","TRAÎNÉE":"TRAIL","PEINTURE":"PAINT","AILES":"WINGS"});
 Object.assign(I18N_ZH,{"COMMUNES":"普通","COMMUNE":"普通","RARES":"稀有","RARE":"稀有","ÉPIQUES":"史诗","ÉPIQUE":"史诗","LÉGENDES":"传奇","LÉGENDAIRE":"传奇","DÉFIS":"挑战","TOUT":"全部","À MOI":"已拥有","À ACHETER":"可购买","TRAÎNÉE":"尾迹","PEINTURE":"涂装","AILES":"翅膀"});
 Object.assign(I18N,{"PIÈCE":"COIN","RETOUR":"BACK","EN BOUTIQUE":"IN THE SHOP","VERROUILLÉE":"LOCKED","ÉQUIPÉE":"EQUIPPED","IL MANQUE":"SHORT BY","LES LEGENDAIRES":"LEGENDARIES","DÉFI":"CHALLENGE"});
+Object.assign(I18N,{"MISSIONS":"MISSIONS","MENU":"MENU","LES TROIS DEFIS":"THE THREE CHALLENGES"}); // (2026-09-28) la porte et l'écran des MISSIONS, la sortie MENU de l'écran de mort
+Object.assign(I18N_ZH,{"MISSIONS":"任务","MENU":"菜单","LES TROIS DEFIS":"三项挑战"});
 Object.assign(I18N_ZH,{"PIÈCE":"金币","RETOUR":"返回","EN BOUTIQUE":"商店有售","VERROUILLÉE":"未解锁","ÉQUIPÉE":"已装备","IL MANQUE":"还差","LES LEGENDAIRES":"传奇座驾","DÉFI":"挑战","ACHETER":"购买"});
 // ⚠ nommée TR et non T : `T` est DÉJÀ le tableau des tangentes de la piste (T[bi].y) — la
 // collision faisait planter tout le script au parsing, écran noir muet.
@@ -17017,7 +17153,7 @@ function misProg(m){ // « 18 / 25 » — l'avancement DANS la partie en cours (
   if(m.k==='survie')return misDuree(c)+' / '+misDuree(m.v);
   return Math.floor(c)+' / '+m.v;
 }
-function misEtat(){return SAVE.d.mis||(SAVE.d.mis={n:0,ok:[0,0,0]});}
+function misEtat(){const s=SAVE.d.mis||(SAVE.d.mis={n:0,ok:[0,0,0]});if(!s.best)s.best=[0,0,0];return s;}
 /* LES DÉFIS SUR LA FICHE (2026-09-25, user : « les missions ne doivent pas être aussi visibles — dans le garage, certaines
    voitures s'achètent, d'autres se gagnent en faisant des défis »). Plus de panneau sur l'accueil ni sur l'écran de mort :
    une caisse (ou un habillage) à gagner montre SES trois défis, cochés au fur et à mesure. Ils se relèvent dans l'ordre :
@@ -17046,8 +17182,9 @@ function misTick(dt){ // appelée par la boucle : les contrats se cochent EN DIR
   RUNX.t+=dt;if(nitroOn)RUNX.nitro+=dt;
   misT-=dt;if(misT>0)return;misT=.25;
   const s=misEtat(),c=carnet(s.n);
-  for(let i=0;i<3;i++){if(s.ok[i])continue;const m=c.m[i];
-    if(misVal(m.k)>=m.v){
+  for(let i=0;i<3;i++){if(s.ok[i])continue;const m=c.m[i],v9=misVal(m.k);
+    if(v9>s.best[i]){s.best[i]=Math.min(m.v,v9);SAVE.mark();} // (2026-09-28) LE MEILLEUR ESSAI : la jauge de l'écran MISSIONS (une partie, jamais un cumul)
+    if(v9>=m.v){
       s.ok[i]=1;SAVE.d.bank=Math.min(1e30,bank()+m.p);MIS_NEW.push(i);
       misBanniere('DÉFI RÉUSSI',misTxt(m),'+'+fmtC(m.p),'coche');
       try{fxArgent();}catch(e){}hap([12,40,18]);
@@ -17063,7 +17200,7 @@ function misFin(){
   if(r.cat){const o=SAVE.d.shop.own;const k=r.cat+':'+r.id;if(o.indexOf(k)<0)o.push(k);}
   if(r.cash)SAVE.d.bank=Math.min(1e30,bank()+r.cash);
   const out={n:s.n+1,nom:misRecompense(c),car:r.car,cat:r.cat,id:r.id};
-  s.n++;s.ok=[0,0,0];SAVE.flush();
+  s.n++;s.ok=[0,0,0];s.best=[0,0,0];SAVE.flush();
   return out;
 }
 // LA BANNIÈRE DE CONTRAT : descend du haut de l'écran, 2,4 s — le jeu continue dessous
@@ -17210,6 +17347,78 @@ function objRender(el){
   const gi=el.querySelector('.obBar i');
   // la partie REMPLIT la barre : départ à la banque d'avant, arrivée à la banque d'après
   requestAnimationFrame(function(){requestAnimationFrame(function(){if(gi)gi.style.width=w1.toFixed(1)+'%';});});
+}
+/* ---------------- L'ÉCRAN DES MISSIONS (2026-09-28) ----------------
+   Sacha : « un bouton mission dans le menu », puis « l'écran de mission doit être parfait, avec une jauge de progression et un
+   texte expliquant la récompense au joueur ». Les défis vivaient sur la fiche du garage (verdict du 25/09 : « pas aussi
+   visibles ») : ils y restent, et ont désormais LEUR écran, derrière une porte — rien ne s'affiche sur l'accueil qu'on n'a pas
+   demandé. Ce que l'écran répond, dans l'ordre où on se le demande : QU'EST-CE QUE JE GAGNE (la récompense, sa vignette, pourquoi
+   elle ne s'achète pas) · OÙ J'EN SUIS (la jauge des trois défis, chacune remplie de ton MEILLEUR essai) · COMMENT ÇA MARCHE
+   (une partie par défi, la prime tout de suite, la récompense à la fin de la partie) · ET APRÈS (le contrat suivant, sous cadenas).
+   ⚠ La jauge d'un défi = ton meilleur essai en UNE partie (`SAVE.d.mis.best`, tenu par misTick), pas un cumul : c'est la règle du
+   jeu, et l'écran le dit en toutes lettres. */
+function misProgV(m,c){ // « 18 / 25 » à partir d'une valeur donnée (misProg lit la partie en cours)
+  c=Math.min(m.v,Math.max(0,c||0));
+  if(m.k==='cash')return fmtC(c)+' / '+fmtC(m.v);
+  if(m.k==='survie'||m.k==='nitro')return misDuree(c)+' / '+misDuree(m.v);
+  if(m.k==='zones')return (Math.floor(c)+1)+' / '+(m.v+1); // « ATTEINS LE NIVEAU 3 » : on est au niveau 1 sur 3
+  return Math.floor(c)+' / '+m.v;
+}
+function misPart(m,c){return m.k==='zones'?Math.min(1,(Math.floor(c||0))/Math.max(1,m.v)):Math.min(1,Math.max(0,(c||0)/m.v));}
+function misRecoInfo(c){ // la récompense d'un contrat : sa catégorie, son nom, sa vignette, et la phrase qui l'explique
+  const r=c.r,Lg=LANG==='zh'?2:LANG==='en'?1:0,nom=misRecompense(c);
+  if(r.car!=null)return {nom:nom,fig:objFig({car:r.car}),voir:1,
+    cat:['UNE CAISSE A GAGNER','A CAR TO WIN','可赢取的座驾'][Lg],
+    tx:['Relève les trois défis pour gagner '+nom+'. Cette caisse ne s\'achète pas, ni en pièces ni en euros : c\'est le seul moyen de l\'avoir.',
+        'Beat the three challenges to win '+nom+'. It can\'t be bought, with coins or real money: this is the only way to get it.',
+        '完成三项挑战即可赢得 '+nom+'。它无法用金币或真钱购买：这是获得它的唯一途径。'][Lg]};
+  if(r.cat){const i9=COSM[r.cat].findIndex(x=>x.id===r.id),K={ // catégorie · nom avec article (FR/EN/ZH) · la 2e phrase, accordée (FR/EN)
+      peinture:['UNE PEINTURE A GAGNER','A PAINT TO WIN','可赢取的涂装','la peinture','the paint','涂装','Elle ne se vend pas en boutique : elle se mérite, et elle habille toutes tes caisses.','It\'s not sold in the shop: you earn it, and it fits every car you own.'],
+      trainee:['UNE TRAINEE A GAGNER','A TRAIL TO WIN','可赢取的尾迹','la traînée','the trail','尾迹','Elle ne se vend pas en boutique : elle se mérite, et elle suit toutes tes caisses.','It\'s not sold in the shop: you earn it, and it follows every car you own.'],
+      aile:['DES AILES A GAGNER','WINGS TO WIN','可赢取的翅膀','les ailes','the wings','翅膀','Elles ne se vendent pas en boutique : elles se méritent, et elles vont sur toutes tes caisses.','They\'re not sold in the shop: you earn them, and they fit every car you own.']}[r.cat]
+      ||['UN HABILLAGE A GAGNER','A LOOK TO WIN','可赢取的外观','l\'habillage','the look','外观','Il ne se vend pas en boutique : il se mérite.','It\'s not sold in the shop: you earn it.'];
+    return {nom:nom,fig:objFig({cat:r.cat,i:i9}),voir:1,cat:K[Lg],
+      tx:['Relève les trois défis pour gagner '+K[3]+' '+nom+'. '+K[6],
+          'Beat the three challenges to win '+K[4]+' '+nom+'. '+K[7],
+          '完成三项挑战即可赢得'+K[5]+' '+nom+'。商店不出售：只能靠实力赢取，并可用于你所有的座驾。'][Lg]};}
+  return {nom:nom,fig:'<i class="obFig misCash">'+pxi('piece')+'</i>',voir:0,cat:['UN BONUS A GAGNER','A BONUS TO WIN','可赢取的奖金'][Lg],
+    tx:['Relève les trois défis pour toucher '+nom+' de bonus, versés sur ton compte en plus des primes.',
+        'Beat the three challenges to collect a '+nom+' bonus, paid into your account on top of the rewards.',
+        '完成三项挑战即可领取 '+nom+' 奖金，在各项奖励之外存入你的账户。'][Lg]};
+}
+function misRender(){
+  const s=misEtat(),c=carnet(s.n),R=misRecoInfo(c),Lg=LANG==='zh'?2:LANG==='en'?1:0,
+        fait=s.ok.reduce(function(a,b){return a+(b?1:0);},0),
+        part=function(i){return s.ok[i]?1:misPart(c.m[i],s.best[i]);};
+  const une=$('misUne'),li=$('misListe'),rg=$('misRegle'),su=$('misSuite');
+  if(une){
+    une.className='misUne'+(R.voir?' voir':'')+(fait===3?' plein':'');
+    if(R.voir)une.setAttribute('data-m','misVoir');else une.removeAttribute('data-m');
+    let j='';for(let i=0;i<3;i++)j+='<i class="'+(s.ok[i]?'ok':'')+'"><u data-p="'+part(i).toFixed(3)+'"></u></i>';
+    une.innerHTML='<div class="misTete"><span>'+pxi('cadeau')+' '+TR('CONTRAT')+' '+(s.n+1)+'</span><b>'+majPix(R.cat)+'</b></div>'
+      +'<div class="misCorps">'+R.fig+'<b class="misNom">'+R.nom+'</b></div>'
+      +'<p class="misExpl">'+R.tx+'</p>'
+      +'<div class="misJauge" aria-hidden="true">'+j+'</div>'
+      +'<div class="misPied"><span><b>'+fait+'</b> / 3 '+majPix(['DEFIS','CHALLENGES','项挑战'][Lg])+'</span>'
+      +(R.voir?'<span class="misLien">'+majPix(['VOIR AU GARAGE','SEE IN GARAGE','去车库查看'][Lg])+' '+pxi('droite')+'</span>':'')+'</div>';
+  }
+  if(li){let h='';
+    c.m.forEach(function(m,i){const ok=!!s.ok[i],b=s.best[i]||0,
+        et=ok?['RELEVE · PRIME VERSEE','DONE · REWARD PAID','已完成 · 奖励已发放']:b>0?['TON MEILLEUR ESSAI','YOUR BEST RUN','最佳单局']:['PAS ENCORE TENTE','NOT TRIED YET','尚未尝试'];
+      h+='<div class="misDef'+(ok?' ok':'')+'"><i class="misN">'+(ok?pxi('coche'):(i+1))+'</i><div class="misC">'
+        +'<div class="misL"><span>'+misTxt(m)+'</span><b>+'+fmtC(m.p)+'</b></div>'
+        +'<div class="misBar"><u data-p="'+(ok?1:misPart(m,b)).toFixed(3)+'"></u></div>'
+        +'<div class="misP"><span>'+majPix(et[Lg])+'</span><span>'+(ok?'':misProgV(m,b))+'</span></div></div></div>';});
+    li.innerHTML=h;}
+  if(rg){ // COMMENT ÇA MARCHE — la règle du jeu, en une phrase (le bac à sable et le parc, où les défis ne comptent pas, ont quitté l'interface le 25/09)
+    rg.innerHTML=pxi('bulle')+'<span>'+['Chaque défi se relève en UNE partie : la jauge garde ton meilleur essai. Sa prime tombe aussitôt ; les trois relevés, la récompense t\'attend à la fin de la partie.',
+        'Each challenge must be beaten in ONE run: the bar keeps your best try. Its reward lands at once; beat all three and the prize is yours when the run ends.',
+        '每项挑战需在单局内完成：进度条保留你的最佳成绩。完成即刻发放奖励；三项全部完成后，大奖在本局结束时归你。'][Lg]+'</span>';}
+  if(su){const n2=carnet(s.n+1);
+    su.innerHTML='<span>'+pxi('verrou')+' '+majPix(['ENSUITE','NEXT','下一个'][Lg])+'</span><b>'+TR('CONTRAT')+' '+(s.n+2)+' · '+misRecompense(n2)+'</b>';}
+  // les jauges se REMPLISSENT sous les yeux (départ à zéro, arrivée à ton meilleur essai) — une fois par entrée d'écran
+  const us=document.querySelectorAll('#mMis u[data-p]');
+  requestAnimationFrame(function(){requestAnimationFrame(function(){us.forEach(function(u){u.style.width=(+u.dataset.p*100).toFixed(1)+'%';});});});
 }
 /* LE STUDIO PHOTO (2026-09-25) : chaque caisse premium est CONSTRUITE, photographiée hors écran sous un éclairage de
    studio (clé froide, contre-jour rose, plancher de lumière violet), puis rendue au jeu. On emprunte `carGroup` — la
@@ -22280,7 +22489,7 @@ const SAVE={
        `aura` : le total à vie de style. Elle ne s'achète rien — elle donne un RANG, et le rang ouvre
        les caisses que l'argent ne peut pas acheter.
        `owned` : les index des caisses ACHETÉES. Séparé des exploits : un achat n'est pas un exploit. */
-    mis:{n:0,ok:[0,0,0]}, shop:{own:[],eq:{peinture:'usine',aile:'panneaux',trainee:'nitro'}}, pseudo:'', tuto:0, shopVu:0, ast:0, // CONTRATS · BOUTIQUE · nom du Top 10 · 1re partie guidée faite
+    mis:{n:0,ok:[0,0,0],best:[0,0,0]}, shop:{own:[],eq:{peinture:'usine',aile:'panneaux',trainee:'nitro'}}, pseudo:'', tuto:0, shopVu:0, ast:0, // CONTRATS · BOUTIQUE · nom du Top 10 · 1re partie guidée faite
     bank:0, aura:0, owned:[], auraMax:0, gamme:3, eco:3, frenRec:0, // `frenRec` : la plus longue FRÉNÉSIE jamais tenue (s) // `eco` : échelle de l'argent de course (vague 3, voir la migration des records en fin de san) // `gamme` : version de la GAMME de caisses (voir la migration dans san) // `auraMax` : la meilleure aura d'UNE partie — le chiffre à battre, affiché en jeu
     ai:{air:.5,boost:.35,caution:.5,skill:.86,aggr:.55,airDur:1.1,runs:0}};}, // profil d'apprentissage des IA
   san(d){ // désinfection : quoi qu'on charge (storage rongé, code importé), la forme est GARANTIE
@@ -22333,7 +22542,8 @@ const SAVE={
     c.bank=Math.max(0,Math.min(1e30,+d.bank||0));
     // CONTRATS / BOUTIQUE (2026-09-25) — bornés : un code importé ne remplit pas un carnet ni la vitrine
     if(d.mis&&typeof d.mis==='object'){c.mis.n=Math.max(0,Math.min(999,Math.round(+d.mis.n)||0));
-      if(Array.isArray(d.mis.ok))c.mis.ok=[0,1,2].map(i=>d.mis.ok[i]?1:0);}
+      if(Array.isArray(d.mis.ok))c.mis.ok=[0,1,2].map(i=>d.mis.ok[i]?1:0);
+      if(Array.isArray(d.mis.best))c.mis.best=[0,1,2].map(i=>Math.max(0,Math.min(1e30,+d.mis.best[i]||0)));} // (2026-09-28) le meilleur essai de chaque défi (la jauge de l'écran MISSIONS)
     if(d.shop&&typeof d.shop==='object'){
       if(Array.isArray(d.shop.own))c.shop.own=[...new Set(d.shop.own.filter(k=>typeof k==='string'&&/^(peinture|aile|trainee):[a-z]{2,12}$/.test(k)))];
       if(d.shop.eq&&typeof d.shop.eq==='object')for(const k of ['peinture','aile','trainee'])if(typeof d.shop.eq[k]==='string'&&/^[a-z]{2,12}$/.test(d.shop.eq[k]))c.shop.eq[k]=d.shop.eq[k];}
@@ -22511,7 +22721,7 @@ addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDow
      le clavier : dans la boutique, le garage, les réglages, ESPACE sautait la séquence de départ et posait le HUD de
      course sur l'atelier. Désormais seule ENTRÉE, sur l'accueil, joue — par le même bouton que le doigt (auto-école
      comprise). */
-  if(e.code==='Enter'&&!e.repeat&&!started&&!garageOn&&!(typeof stallOn!=='undefined'&&stallOn)&&!document.querySelector('#modale.on,#carr.on,#tPanel.open')){ // (2026-09-28) la même garde que la branche de mort : la feuille CARRIÈRE, une fenêtre ou le panneau ouverts ne lancent plus la partie derrière
+  if(e.code==='Enter'&&!e.repeat&&(!started||MENUV.retour)&&!garageOn&&!(typeof stallOn!=='undefined'&&stallOn)&&!document.querySelector('#modale.on,#carr.on,#tPanel.open')){ // (2026-09-28) la même garde que la branche de mort : la feuille CARRIÈRE, une fenêtre ou le panneau ouverts ne lancent plus la partie derrière · (2026-09-28) l'accueil d'après-mort (MENUV.retour) aussi
     const pb=document.querySelector('#mHome.on [data-m="play"]');if(pb)pb.click();
   }});
 addEventListener('keyup',e=>{keys[e.code]=false;});
@@ -24363,6 +24573,7 @@ function die(){
   endGame();
 }
 function resetGame(){
+  MENUV.retour=false; // (2026-09-28) on repart : l'accueil d'après-mort (accueilRetour) n'est plus la racine
   clearBoom();
   mortCause='';loop._nAir=false; // (2026-09-26) rien ne passe d'une partie à l'autre
   if(TUTO.on)tutoDebut();        // (2026-09-26) RECOMMENCER à l'auto-école repart de la 1re consigne
@@ -24844,9 +25055,13 @@ function sirenInit(){
 }
 const FB={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
 const svM4=new THREE.Matrix4(),svT1=new THREE.Vector3(); // temp partagé de la meute (jamais d'alloc chaude)
-function survStart(){
-  for(const b of SURV.bots)if(b.mesh){scene.remove(b.mesh.g); // grand ménage de l'escadron précédent
+function survMenage(){ // grand ménage de l'escadron précédent (le départ suivant, ou le retour à l'ACCUEIL)
+  for(const b of SURV.bots)if(b.mesh){scene.remove(b.mesh.g);
     b.mesh.g.traverse(o=>{if(o.userData&&o.userData.sol){if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose();}});} // (2026-09-26) ses flaques, propres à chaque voiture
+  SURV.bots=[];
+}
+function survStart(){
+  survMenage();
   // (2026-09-27) LA POURSUITE DU NIVEAU 5 (SURV.chasse) : la CAMPAGNE réclame sa police à elle, et nulle autre — le Survivant armé au menu
   // ne s'invite dans aucun niveau de campagne.
   const ch9=campChasse();
@@ -26758,7 +26973,29 @@ window.dbgRendu=function(){ // (dev) le fourgon, le banquier et les flaques sont
   return o;};
 window.dbgCourant=function(v){VC.cour=+v;CITY.uC.value=+v;return VC.cour;}; // (dev) le courant de la ville (0 = panne) — hors niveau 16, la boucle le laisse tel quel
 // reconstruit le décor du menu dans le mode courant (course/parc) — même séquence que l'init
-function rebuildMenuScene(){ newTrack();respawn();setupIntroPig();frameAt(0,F);camera.position.copy(F.p).addScaledVector(F.t,-9).addScaledVector(F.n,4); }
+function rebuildMenuScene(){
+  // (2026-09-28) revenu à l'ACCUEIL après une mort (`MENUV.retour`), `started` est encore vrai : on le baisse le temps de newTrack,
+  // pour que la piste du menu se construise COMME AU DÉMARRAGE — le ciel posé d'un coup (pas le fondu « portail » d'une partie en
+  // cours ni son creux sombre), ni annonce de niveau, ni porte de l'orbite. Vaut pour l'accueil, la carrière et l'auto-école.
+  const st9=started;if(MENUV.retour)started=false;
+  try{ newTrack();respawn();setupIntroPig();frameAt(0,F);camera.position.copy(F.p).addScaledVector(F.t,-9).addScaledVector(F.n,4); }
+  finally{started=st9;}
+}
+/* LE RETOUR À L'ACCUEIL APRÈS UNE MORT (2026-09-28, Sacha : « il manque un bouton pour revenir au menu »). Appelé sous le volet
+   (ecranWipe). La partie finie reste finie — `started && gameOver` jusqu'au prochain départ, qui passera donc par `resetGame()`
+   (garageLaunch le sait déjà : `wasStarted`) et jamais par `start()`, réservé au tout premier lancement de la session. Ce qui
+   change : `MENUV.retour` fait de l'ACCUEIL la racine (mRoot), rallume la VITRINE (loop, ombre de contact, Entrée) ; la course
+   est rangée comme au chargement de la page — débris de l'explosion, meute, carrière en cours — puis une piste de menu neuve.
+   `resetGame()` éteint `MENUV.retour` au départ suivant. */
+function accueilRetour(){
+  if(!(started&&gameOver)||MENUV.retour)return;
+  MENUV.retour=true;
+  clearBoom();try{deathStop();annStop();}catch(e){}
+  survMenage();SURV.on=false;survHudEl.style.display='none';lastAlertEl.style.display='none';
+  CARR.actif=null;runStats.zones=0; // JOUER, de l'accueil, lance la course libre (la CARRIÈRE a sa porte)
+  rebuildMenuScene();
+  MENUV.L=-1;MENUV.sd=null;MENUV.pl=0;MENUV.pt=0; // la vitrine recadre sur la piste neuve et ouvre sur l'AFFICHE
+}
 survBtnEl.addEventListener('click',e=>{e.stopPropagation();
   SURV.armed=!SURV.armed;
   if(SURV.armed&&PARK.on){PARK.on=false;if(!started)rebuildMenuScene();} // course + police : on quitte le parc
@@ -27499,7 +27736,13 @@ function trailApercu(dt,on){
    de la hauteur, entre le titre et JOUER — une affiche. Le balancier reste (la vitrine vit) mais il est BORNÉ : la caisse ne sort plus
    par le bord. Hook : `dbgVitrine(cible)` (l'écart visé au soleil, en radians). Banc : scratchpad gfx2-etal/menu.js. */
 const MENUV={t:0,cam:new THREE.Vector3(),vis:new THREE.Vector3(),p:new THREE.Vector3(),bio:false,pas:-1,L:-1,s:60,a0:.55,sg:1,lat:0,cible:.4};
-const MENU_BIO='couchant';
+// (2026-09-28, Sacha : « les couleurs de l'écran de début sont bof, je préfère le ciel en journée, il matche mieux avec les couleurs
+// du jeu rose, bleu, jaune ») le JOUR des NUAGES (celui de la course, validé le 27/09) au lieu du couchant : bleu-violet au zénith,
+// bande rose, nuages clairs — le magenta, le cyan et l'or de l'interface s'y lisent mieux. Comparé en captures : couchant · matin ·
+// midi · aprem · aurore · lever (aprem/aurore délavent la caisse, lever retombe dans le rouge du couchant). Le voile du haut de
+// l'accueil (#overlay::after) a été allégé du même coup : à .84 il éteignait le zénith.
+let MENU_BIO='matin';
+window.dbgMenuCiel=function(b){if(b&&BIOMES[b]){MENU_BIO=b;MENUV.bio=false;}return MENU_BIO;}; // (dev) essayer un autre ciel d'accueil : dbgMenuCiel('matin')
 function menuPlan(){ // le meilleur couple (position, angle) pour filmer la caisse devant le couchant — une fois par piste
   MENUV.L=L;let best=9;const sx=SUN_DIR.x,sz=SUN_DIR.z,sn=Math.hypot(sx,sz);
   for(let s9=100;s9<=L-160;s9+=s9<600?20:60){
@@ -27549,6 +27792,7 @@ function menuVitrineFin(){ // on quitte l'accueil : le ciel du niveau reprend la
    Hook : `dbgVitrine()` rend aussi le plan en cours et la cible à l'écran ; `dbgVitrine(null,'profil')` force un plan (dev). */
 const MENU_PLANS=[{n:'affiche',t:8,fov:44,lum:3.4},{n:'arriere',t:7,fov:40,lum:2.2},{n:'profil',t:7,fov:30,lum:.45}]; // lum : le PROFIL a le soleil dans le dos (on le garde hors champ) — il éclaire déjà tout le flanc
 MENUV.pl=0;MENUV.pt=0;MENUV.force=null;MENUV.lum=3.4;MENUV.sd=null;MENUV.cadreT=-1;MENUV.cadre={nx:0,ny:-.1,fr:.6,fh:.4,t:-9e9};
+MENUV.retour=false; // (2026-09-28) vrai entre le bouton MENU de l'écran de mort et le départ suivant (voir accueilRetour)
 function menuCadre(){ // la zone de l'écran que l'interface laisse libre → où poser la caisse (NDC) et quelle place elle y prend
   const W=innerWidth,H=Math.max(1,innerHeight),C=MENUV.cadre,T0=performance.now();
   if(T0-C.t<1000)return C;C.t=T0;
@@ -29604,7 +29848,7 @@ function loop(now){
   } }catch(err){window.__loopErr=err.message+' | '+(err.stack||'').split('\n').slice(0,3).join(' ¶ ');if(!loop._warned){console.error('loop error',err);loop._warned=true;}}
   // ciel : dôme, soleil « 1.61 », lueur d'horizon et rayons crépusculaires suivent la caméra
   if(garageOn)garageRender(dt);
-  else if(!started)menuVitrine(dt); else if(MENUV.bio)menuVitrineFin(); // L'ACCUEIL (au couchant — rendu au niveau dès qu'on le quitte) : la caisse en vitrine sur la route de la ville // GARAGE : place la caisse + oriente la caméra AVANT que le ciel suive
+  else if(!started||MENUV.retour)menuVitrine(dt); else if(MENUV.bio)menuVitrineFin(); // L'ACCUEIL (au couchant — rendu au niveau dès qu'on le quitte) : la caisse en vitrine sur la route de la ville // GARAGE : place la caisse + oriente la caméra AVANT que le ciel suive
   else if(stallOn)stallRender(dt); // ÉTAL : même showroom, mais c'est un fruit qui tourne
   skyDome.position.copy(camera.position);
   skyU.uTime.value=t;
@@ -30290,7 +30534,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   // ---- SYNCHRO PARESSEUSE (8 Hz) : apparition des commandes, écran de mort, gel en paysage.
   //      Un petit tick plutôt qu'un branchement dans loop() — et zéro écriture DOM si rien n'a changé.
   function syncJeu(){
-    const play=(started&&!gameOver),dead=(started&&gameOver);
+    const play=(started&&!gameOver),dead=(started&&gameOver); // (reste vraie à l'accueil d'après-mort : body.dead y masque encore les restes du HUD de course)
     if(dead!==TCTL.dead){ TCTL.dead=dead; document.body.classList.toggle('dead',dead); if(dead)TCTL.mortT=performance.now(); } // l'écran de mort a sa propre hiérarchie
     if(play!==TCTL.play){ TCTL.play=play; document.body.classList.toggle('play',play);
       if(gear)gear.innerHTML=pxi(play?'pause':'reglages'); // en jeu c'est un bouton PAUSE, au menu un bouton réglages
@@ -30357,16 +30601,18 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
      C'est la grammaire des jeux mobiles qui marchent : UN écran = UNE décision, un bouton qui saute
      aux yeux, et le reste rangé derrière des icônes. Le classement a disparu (il ne servait à rien
      sur téléphone). Le GARAGE, lui, n'a pas d'écran ici : son bouton ouvre le VRAI atelier 3D. */
-  const mob=$t('mob'),mScr={home:$t('mHome'),dead:$t('mDead'),modes:$t('mModes'),set:$t('mSet'),shop:$t('mShop')};
+  const mob=$t('mob'),mScr={home:$t('mHome'),dead:$t('mDead'),modes:$t('mModes'),set:$t('mSet'),shop:$t('mShop'),mis:$t('mMis')};
   let mCur='home';
   try{ const ne=$t('nameEntry'),dd=$t('mDead'); // la saisie de record vient s'asseoir DANS l'écran de mort
-    if(ne&&dd){const rp=dd.querySelector('[data-m="replay"]');dd.insertBefore(ne,rp?rp.nextSibling:null);} /* REJOUER en tête : le record se signe ensuite, sans repousser l'action principale sous le clavier */ }catch(e){}
-  function mRoot(){return (started&&gameOver)?'dead':'home';}
+    if(ne&&dd){const rp=dd.querySelector('.mFin');dd.insertBefore(ne,rp?rp.nextSibling:null);} /* REJOUER en tête : le record se signe ensuite, sans repousser l'action principale sous le clavier */ }catch(e){}
+  // (2026-09-28) après une mort, MENU ramène à l'ACCUEIL : la partie finie reste « finie » (started && gameOver) jusqu'au prochain
+  // départ, mais la racine devient l'accueil — le RETOUR des sous-écrans y revient, plus sur l'écran de mort (voir accueilRetour)
+  function mRoot(){return (started&&gameOver&&!MENUV.retour)?'dead':'home';}
   /* LE ROUTEUR, AVEC UN SENS (2026-09-25, transitions App Store). Chaque écran a une PROFONDEUR : aller plus loin
      POUSSE (l'écran arrive de droite, l'ancien file à gauche), revenir RAMÈNE (l'inverse), changer de racine
      (accueil ↔ mort) fond l'un dans l'autre. L'écran qui part garde `.sort` le temps de s'effacer, posé EN DESSOUS
      en absolu : il ne pousse pas la page. `sansSortie` : l'overlay vient d'apparaître, il n'y a rien à faire partir. */
-  const PROF={home:0,dead:0,modes:1,set:1,shop:1},SENS=['on','sort','avant','retour','racine','revu'];
+  const PROF={home:0,dead:0,modes:1,set:1,shop:1,mis:1},SENS=['on','sort','avant','retour','racine','revu'];
   function mGo(id,sens,sansSortie){
     const prev=mCur,de=mScr[prev],vers=mScr[id];mCur=id;
     if(!sens)sens=(prev===id)?'racine':((PROF[id]|0)>(PROF[prev]|0)?'avant':(PROF[id]|0)<(PROF[prev]|0)?'retour':'racine');
@@ -30450,9 +30696,12 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     }else if(mCur==='shop'){
       if(!SAVE.d.shopVu){SAVE.d.shopVu=1;SAVE.flush();}
       shopRender();
+    }else if(mCur==='mis'){
+      misRender();
     }else if(mCur==='home'){
       if(!(started&&!gameOver)&&!SANDBOX){const r9=misFin(); // un carnet rempli mais pas refermé (partie quittée, app tuée) : on le referme ici, et ça se FÊTE
         if(r9){MIS_REC=r9;misBanniere('DÉFIS RÉUSSIS !',r9.nom,TR('DÉBLOQUÉ'),'cadeau');try{fanfare();}catch(e){}}}
+      {const pp=$t('mMisPips'),s9=misEtat();if(pp)pp.querySelectorAll('u').forEach(function(u,i){u.classList.toggle('ok',!!s9.ok[i]);});} // la porte MISSIONS : une case allumée par défi relevé
       const bv=$t('mBankV');if(bv)bv.textContent=fmtC(bank());
       let nG=shopAPortee();for(let i=0;i<CARS.length;i++){const p9=carPrice(i);if(p9&&!carUnlocked(i)&&p9<=bank())nG++;}
       const bg=$t('bdGar'),bs=$t('bdShop');
@@ -30485,7 +30734,11 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='tuto'){ SAVE.d.tuto=0;SAVE.flush();toast(pxi('coche')+' '+TR('L\'AUTO-ÉCOLE T\'ATTEND AU PROCHAIN JOUER')); }
     else if(a==='back')mGo(mRoot());
     else if(a==='carr'){ carrVue(null); } // (2026-09-27) la CARRIÈRE : les mondes, puis les dix niveaux (feuille #carr)
-    else if(a==='modes'||a==='set')mGo(a);
+    else if(a==='modes'||a==='set'||a==='mis')mGo(a);
+    // (2026-09-28) MENU : l'écran de mort rend la main à l'ACCUEIL — sous le volet, la course est rangée et la vitrine revient
+    else if(a==='menu'&&started&&gameOver){ ecranWipe(function(){ accueilRetour(); mGo('home','racine'); }); }
+    else if(a==='misVoir'){ const c9=carnet(misEtat().n).r; // la récompense des MISSIONS, sur la vraie caisse, au garage (sa fiche porte ses trois défis)
+      ecranWipe(function(){ openGarage(); if(c9.car!=null){shopTab('voiture');garageShow(c9.car);} else if(c9.cat){shopTab(c9.cat);shopShow(c9.cat,COSM[c9.cat].findIndex(x=>x.id===c9.id));} }); }
     else if(a==='shop'){ ecranWipe(function(){mGo('shop');}); } // LA BOUTIQUE : l'écran des caisses en vrai argent
     else if(a==='custom'){ ecranWipe(function(){openGarage();shopTab('peinture');}); } // la PERSONNALISATION (peinture, ailes, traînées) vit au GARAGE
     else if(a==='shopSoon'){ toast(pxi('panier')+' '+TR('BIENTÔT DISPONIBLE — À LA SORTIE SUR L\'APP STORE')); }

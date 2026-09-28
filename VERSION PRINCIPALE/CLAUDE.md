@@ -1,5 +1,30 @@
 # CASH CAR — guide projet pour Claude Code
 
+## MISSIONS · SORTIE MENU · CIEL DE JOUR À L'ACCUEIL (2026-09-28, soir)
+Sacha, en rafale : « il manque un bouton pour revenir au menu » (écran de mort) · « dans le menu il faut aussi un bouton mission » ·
+« l'écran de mission doit être parfait, avec une jauge de progression et un texte expliquant la récompense » · « les couleurs de
+l'écran de début sont bof, je préfère le ciel en journée, il matche mieux avec les couleurs du jeu rose, bleu, jaune ».
+- **SORTIE MENU** : `.mFin` = MAISON (`.mMenu`, `data-m="menu"`, icône pixel `maison` ajoutée à `PXI_G`) | REJOUER (le lingot, seul en
+  or, prend le reste). ⚠ REJOUER vit désormais DANS `.mFin` : ordre, marges et `grid-area:rej` du paysage sont portés par `.mFin`.
+  `accueilRetour()` (sous le volet) : la partie finie reste finie (`started && gameOver` → le départ suivant passe par `resetGame()`,
+  jamais `start()`), mais `MENUV.retour` fait de l'ACCUEIL la racine (`mRoot`), rallume la VITRINE (loop, ombre de contact, Entrée) ;
+  débris, meute (`survMenage()`, extrait de `survStart`), carrière en cours rangés ; piste de menu neuve. `rebuildMenuScene()` baisse
+  `started` le temps de `newTrack` quand `MENUV.retour` : ciel posé d'un coup (pas le fondu « portail »), ni annonce ni porte d'orbite —
+  vaut aussi pour la CARRIÈRE et l'AUTO-ÉCOLE lancées de cet accueil. `resetGame()` éteint `MENUV.retour`. `body.dead` reste posée.
+- **LA PORTE MISSIONS** : `.mMisBtn` dans `#mHome .mTop`, en face du ⚙ (le logo, les tuiles, JOUER et la bande de la vitrine ne bougent
+  pas — la v4 de l'accueil est un verdict) ; trois cases `#mMisPips`, une par défi relevé (posées par `mFill`).
+- **L'ÉCRAN `#mMis`** (routeur : `mScr.mis`, `PROF.mis=1`, rempli par `misRender()`) : RÉCOMPENSE (`.misUne` : catégorie, vignette
+  `objFig`, nom, phrase qui dit POURQUOI elle ne s'achète pas — `misRecoInfo`, accordée par catégorie ; la JAUGE des trois défis ;
+  touchable → `misVoir` ouvre la caisse/l'habillage au garage) · LES TROIS DÉFIS (`.misDef` : consigne, prime en vert billet, jauge
+  cyan → verte relevée, « TON MEILLEUR ESSAI 410 / 672 ») · LA RÈGLE (une partie par défi, prime tout de suite, récompense à la fin
+  de la partie) · ENSUITE (le contrat suivant, sous cadenas). Nouveau en sauvegarde : `SAVE.d.mis.best` (meilleur essai en UNE partie,
+  tenu par `misTick`, remis à zéro par `misFin`, désinfecté dans `san()`). Paysage : règle à droite du titre, récompense à gauche,
+  défis à droite, ENSUITE dans la rangée du RETOUR — tout tient en 844 × 390 sans défiler ; 390 × 844 aussi. FR/EN/中文.
+  ⚠ `#overlay p` (vieille feuille : centré, interligne 1,9) passe devant une classe seule : `#mMis .misExpl`.
+- **CIEL DE L'ACCUEIL** : `MENU_BIO='matin'` (le jour des NUAGES, validé le 27/09) au lieu de `couchant` ; voile du haut de l'accueil
+  allégé (`#overlay::after` .84 → .48, sinon le zénith restait noir). Comparés en captures : couchant · matin · midi · aprem · aurore ·
+  lever. Hook : `dbgMenuCiel('aprem')` pour en essayer un autre.
+
 ## LES PLANS DE L'ACCUEIL (2026-09-28) — « l'image derrière pourrait faire de meilleurs plans, mieux cadrer »
 Sacha : « j'aime bien les boutons et la DA, mais ce qui est affiché à l'écran n'est pas ouf ». MESURÉ aux captures (844×390 = l'ordi,
 390×844) : en PAYSAGE la caisse était filmée au CENTRE, pile derrière le logo et les tuiles — on ne la voyait JAMAIS ; une dalle de bitume
