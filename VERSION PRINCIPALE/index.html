@@ -26497,7 +26497,7 @@ function loop(now){
       if(introD){vA=0;momT=0;steer=0;psi=0;} // LARGAGE : chute verticale, contrôles gelés
       if(Math.abs(target)>.1)steerHold=Math.min(.3,steerHold+dt);else steerHold=0;
       // LE DRIFT : braquage FORT à bonne vitesse, ou pouce tiré vers le bas (le geste du frein) en braquant
-      const tireBas=TCTL.act&&TCTL.sv<-.45,vitOk=Math.abs(vA)>maxSp*.42;
+      const tireBas=TCTL.act&&(TCTL.dy||0)>34.9,vitOk=Math.abs(vA)>maxSp*.42; // (2026-09-28) en PIXELS : 34,9 px = l'ancien sv < -0,45 — la sensibilité de l'assiette ne change pas le geste du drift
       // (conduite v3) HYSTÉRÉSIS : on ENTRE en drift à 0,85 de braquage (ou pouce tiré), on n'en SORT que sous 0,45 — il ne clignote plus
       // (2026-09-25) le braquage À FOND doit être TENU 0,12 s pour décrocher : un grand glissé de changement de ligne ne part plus
       // en drift (ni au vide). Le geste du frein (pouce tiré vers le bas, ↓) décroche tout de suite.
@@ -27033,7 +27033,7 @@ function loop(now){
         // VOLANT TACTILE : l'assiette devient ANALOGIQUE (pouce vers le HAUT = piqué, vers le BAS =
         // cabré) — même levier, dosé. Zone morte large : tourner ne doit jamais cabrer par accident.
         const pitT=TCTL.act?TCTL.sv:0;
-        const wPitch=pitT!==0?(Math.abs(pitT)<.12?0:-pitT):((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0); // -1 = piqué, +1 = cabré
+        const wPitch=pitT!==0?(Math.abs(pitT)<.05?0:-pitT):((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0); // -1 = piqué, +1 = cabré
         // (vol libre, 2026-09-26) plus de plafond à ±65° ni de repli « à l'horizontale » : le manche fait tourner la trajectoire ET le
         // haut de la caisse autour de SA droite (FLY_R) — piqué, cabré, looping : aucune assiette n'est interdite, rien ne se bloque
         // (des vecteurs qui tournent autour d'un axe local : pas d'angle d'Euler, donc pas de gimbal-lock).
@@ -27070,8 +27070,8 @@ function loop(now){
         // (2026-09-27, user : « quand j'essaye de redresser dans les airs sans le nitro ça fait rien ») : cette branche ne lisait que le
         // CLAVIER — sur téléphone le pouce (axe Y du volant) était ignoré sans nitro. Même lecture qu'au réacteur : analogique, zone morte.
         const pitT=TCTL.act?TCTL.sv:0;
-        const wPitch=pitT!==0?(Math.abs(pitT)<.12?0:-pitT):((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0); // ↑ piqué · ↓ cabré
-        if(wPitch!==0){const a9=-wPitch*.62*dtF;fallVel.applyAxisAngle(FLY_R,a9);FLY_U.applyAxisAngle(FLY_R,a9);} // (vol libre) même manche, sans plafond — 0,62 rad/s : on infléchit, on ne pilote pas
+        const wPitch=pitT!==0?(Math.abs(pitT)<.05?0:-pitT):((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0); // ↑ piqué · ↓ cabré
+        if(wPitch!==0){const a9=-wPitch*.85*dtF;fallVel.applyAxisAngle(FLY_R,a9);FLY_U.applyAxisAngle(FLY_R,a9);} // (vol libre) même manche, sans plafond — 0,62 rad/s : on infléchit, on ne pilote pas
       }
       /* (vol v7, 2026-09-25, user : « l'airtime doit être basé sur un principe d'INERTIE, dépendre de la vitesse de la voiture au
          moment de l'éjection, et PAS de sa vitesse max ») : en l'air, la caisse garde la vitesse qu'elle avait en quittant la route —
@@ -28270,7 +28270,9 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   // ---- LE VOLANT ANALOGIQUE : toute la moitié gauche. Le stick NAÎT sous le pouce (jamais de
   //      position imposée), FLOTTE au-delà du plein braquage (revenir au centre rend la main
   //      IMMÉDIATEMENT) et se recentre au lâcher. Axe X = braquage · axe Y = assiette en vol.
-  const sz=$t('tSteer'),stk=$t('tStick'),knb=$t('tKnob'),LOCK=54,LOCKV=66; // 54 px = braquage plein · 66 px = assiette pleine (plus de course : on ne cabre pas par accident en tournant)
+  // (2026-09-28, user : « augmente la sensibilité de l'axe haut bas du joystick ») : assiette pleine à 44 px au lieu de 66 (×1,5), zone morte
+  // 14 % → 10 %, courbe 1,25 → 1,15. Le geste du DRIFT (pouce tiré vers le bas au sol) garde SA distance : il lit les pixels (`TCTL.dy`).
+  const sz=$t('tSteer'),stk=$t('tStick'),knb=$t('tKnob'),LOCK=54,LOCKV=44; // 54 px = braquage plein · 44 px = assiette pleine
   function stSet(h,v){ TCTL.st=h; TCTL.sv=v;
     if(knb)knb.style.transform='translate('+(-h*LOCK*.62)+'px,'+(-v*LOCKV*.5)+'px)'; }
   if(sz){
@@ -28281,7 +28283,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     const stDown=function(id,x,y){
       if(boomSkip())return; // (2026-09-25) un tap passe l'explosion
       const r=sz.getBoundingClientRect();
-      TCTL.id=id; TCTL.ox=x; TCTL.oy=y; TCTL.act=true;
+      TCTL.id=id; TCTL.ox=x; TCTL.oy=y; TCTL.act=true; TCTL.dy=0; // (le pouce en pixels repart de zéro : un appui immobile ne rejoue pas le dernier glissé)
       stk.style.left=(x-r.left)+'px'; stk.style.top=(y-r.top)+'px';
       stSet(0,0); sz.classList.add('act'); sz.classList.add('used'); // la consigne « GLISSE POUR TOURNER » a fait son travail
       start();
@@ -28294,9 +28296,10 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(rawY<-LOCKV)TCTL.oy=y+LOCKV;
       const nx=Math.max(-LOCK,Math.min(LOCK,x-TCTL.ox))/LOCK,
             ny=Math.max(-LOCKV,Math.min(LOCKV,y-TCTL.oy))/LOCKV,
-            ax=Math.abs(nx)<.06?0:nx, ay=Math.abs(ny)<.14?0:ny; // zones mortes : le pouce tremble, pas la caisse (large en vertical : tourner ne doit pas cabrer)
+            ax=Math.abs(nx)<.06?0:nx, ay=Math.abs(ny)<.10?0:ny; // zones mortes : le pouce tremble, pas la caisse (un peu plus large en vertical : tourner ne doit pas cabrer)
+      TCTL.dy=Math.max(-LOCKV,Math.min(LOCKV,y-TCTL.oy)); // le pouce en PIXELS vers le bas (le drift s'y mesure, indépendant de la sensibilité)
       stSet(-(ax<0?-1:ax>0?1:0)*Math.pow(Math.abs(ax),1.15),   // pouce à GAUCHE = braquage à gauche (steer>0) — (conduite v4) courbe 1,35 → 1,15 : 25 % de pouce = 20 % du cap (15 % avant)
-            -(ay<0?-1:ay>0?1:0)*Math.pow(Math.abs(ay),1.25));  // pouce vers le HAUT = sv>0 = PIQUÉ (manche d'avion)
+            -(ay<0?-1:ay>0?1:0)*Math.pow(Math.abs(ay),1.15));  // pouce vers le HAUT = sv>0 = PIQUÉ (manche d'avion)
     };
     const stUp=function(){ TCTL.act=false;TCTL.id=null;stSet(0,0);sz.classList.remove('act'); };
     sz.addEventListener('touchstart',function(e){
