@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CASH CAR — Banc d'écoute</title>
+<!-- LE BANC D'ÉCOUTE (2026-09-28) : les VRAIS sons du jeu (sfx.js + sons-banque.js, les mêmes fichiers), un par un,
+     derrière la MÊME chaîne de sortie que le jeu (gain → compresseur −16 dB 4:1 → saturation douce). Pour juger une
+     palette, on l'écoute à froid, son par son, puis en situation (les scénarios). -->
+<style>
+:root{--fond:#0b0d18;--carte:#151a2e;--carte2:#1c2340;--or:#ffd75e;--cyan:#00eaff;--rose:#ff3ec8;--txt:#dfeeff;--doux:#8f9ac8;--ligne:#2a335c}
+*{box-sizing:border-box}
+body{margin:0;background:var(--fond);color:var(--txt);font:15px/1.4 system-ui,-apple-system,'Segoe UI',sans-serif;padding:16px 16px 60px}
+h1{font-size:22px;margin:4px 0 2px;color:var(--or);letter-spacing:.04em}
+.sous{color:var(--doux);font-size:13px;margin-bottom:14px}
+.barre{position:sticky;top:0;z-index:5;background:var(--fond);padding:10px 0;display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-bottom:1px solid var(--ligne);margin-bottom:12px}
+button{font:inherit;color:var(--txt);background:var(--carte2);border:1px solid var(--ligne);border-radius:8px;padding:8px 12px;cursor:pointer;min-height:40px}
+button:hover{border-color:var(--cyan)}
+button:active{transform:translateY(1px)}
+button.or{background:var(--or);color:#1b1400;border-color:var(--or);font-weight:700}
+select,input[type=range]{font:inherit;background:var(--carte2);color:var(--txt);border:1px solid var(--ligne);border-radius:8px;padding:6px}
+#etat{color:var(--doux);font-size:13px}
+.fam{margin:18px 0 6px;font-size:13px;text-transform:uppercase;letter-spacing:.12em;color:var(--cyan)}
+.grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px}
+.son{background:var(--carte);border:1px solid var(--ligne);border-radius:10px;padding:10px;display:flex;gap:10px;align-items:flex-start}
+.son button{min-width:44px;padding:8px}
+.son .id{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--or)}
+.son .dit{font-size:13px;color:var(--doux)}
+.son.joue{border-color:var(--rose)}
+.scen{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 4px}
+label{font-size:13px;color:var(--doux)}
+</style>
+</head>
+<body>
+<h1>CASH CAR — banc d'écoute</h1>
+<div class="sous">Tous les sons du jeu, tels qu'ils sortent en partie. Appuie d'abord sur <b>ACTIVER LE SON</b>. Ton avis en une phrase par son suffit : « trop fort », « trop aigu », « pas assez fun », « parfait ».</div>
+<div class="barre">
+  <button class="or" id="go">ACTIVER LE SON</button>
+  <label>Tonalité (le morceau qui joue) :
+    <select id="ton">
+      <option value="0">NOCTURNAL GROOVE (ville) — mi</option>
+      <option value="2">NOITE DE VELOCIDADE (nuages, menu) — fa#</option>
+      <option value="-1">NÉON CASH CAR — mi♭</option>
+      <option value="-2">CASH CAR VITESSE — ré</option>
+      <option value="1">FRÉNÉSIE (morceau surmultiplié)</option>
+    </select></label>
+  <label>Volume <input type="range" id="vol" min="0" max="100" value="80"></label>
+  <span id="etat">son éteint</span>
+</div>
+<div class="fam">Scénarios — les sons en situation</div>
+<div class="scen" id="scen"></div>
+<div id="liste"></div>
+<script src="sons-banque.js"></script>
+<script src="sfx.js"></script>
+<script>
+(function(){
+'use strict';
+let AC=null,MASTER=null;
+const $=function(i){return document.getElementById(i);};
+function allume(){
+  if(AC){if(AC.state!=='running')AC.resume();return;}
+  AC=new (window.AudioContext||window.webkitAudioContext)();
+  // la même sortie que le jeu : MASTER → compresseur −16 dB 4:1 → saturation douce tanh(1,3)
+  MASTER=AC.createGain();MASTER.gain.value=+$('vol').value/100;
+  const cmp=AC.createDynamicsCompressor();cmp.threshold.value=-16;cmp.knee.value=12;cmp.ratio.value=4;cmp.attack.value=.004;cmp.release.value=.16;
+  const lim=AC.createWaveShaper(),n=256,c=new Float32Array(n);for(let i=0;i<n;i++){const x=i/(n-1)*2-1;c[i]=Math.tanh(x*1.3)/Math.tanh(1.3);}lim.curve=c;lim.oversample='2x';
+  MASTER.connect(cmp);cmp.connect(lim);lim.connect(AC.destination);
+  CCSON.init(AC,MASTER);CCSON.ton(+$('ton').value);
+  $('go').textContent='SON ACTIF';
+}
+$('go').onclick=allume;
+$('ton').onchange=function(){CCSON.ton(+this.value);};
+$('vol').oninput=function(){if(MASTER)MASTER.gain.value=+this.value/100;};
+setInterval(function(){const e=CCSON.etat();$('etat').textContent=AC?('décodés '+e.decodes+'/'+e.total+' · tonalité '+(e.ton>0?'+':'')+e.ton):'son éteint';},300);
+function joue(id,o){allume();return CCSON.play(id,o||{});}
+// ---- la liste, par famille ----
+const L=CCSON.liste(),NOMS={interface:'Interface',argent:'Argent',figures:'Vol et figures',pose:'La pose',aura:'Aura',flow:'Flow · triade · frénésie',machine:'Machine · nitro · pouvoirs',piste:'La piste',fruits:'Fruits',mort:'La mort',campagne:'Campagne · rivaux · espace'};
+const racine=$('liste');
+for(const fam of ['interface','argent','figures','pose','aura','flow','machine','piste','fruits','mort','campagne']){
+  if(!L[fam])continue;
+  const h=document.createElement('div');h.className='fam';h.textContent=(NOMS[fam]||fam)+' ('+L[fam].length+')';racine.appendChild(h);
+  const g=document.createElement('div');g.className='grille';racine.appendChild(g);
+  for(const s of L[fam]){
+    const d=document.createElement('div');d.className='son';
+    const b=document.createElement('button');b.textContent='▶';b.title='écouter';
+    b.onclick=function(){joue(s.id);d.classList.add('joue');setTimeout(function(){d.classList.remove('joue');},400);};
+    const t=document.createElement('div');t.innerHTML='<div class="id"></div><div class="dit"></div>';
+    t.firstChild.textContent=s.id;t.lastChild.textContent=s.dit;
+    d.appendChild(b);d.appendChild(t);g.appendChild(d);
+  }
+}
+// ---- les scénarios : des enchaînements tels qu'ils arrivent en partie ----
+const P=[0,2,4,7,9];function pd(i){return P[((i%5)+5)%5]+12*Math.floor(i/5);}
+function suite(pas){let t=0;for(const [dt,id,o] of pas){t+=dt;setTimeout(function(){joue(id,o);},t*1000);}}
+const SC=[
+  ['Ligne de 10 pièces',function(){const p=[];for(let k=0;k<10;k++){p.push([k?.16:0,'piece',{st:pd(k)}]);if((k+1)%5===0)p.push([0,'piece.recolte',{}]);}suite(p);}],
+  ['Un vol complet : décollage → vrilles → BIG AIR → ×2 → pose PARFAITE → DOUBLE MONSTRE',function(){suite([[0,'decollage'],[.5,'fig.vrille',{st:pd(0)}],[.45,'fig.vrille',{st:pd(1)}],[.4,'fig.palier',{st:pd(2)}],[.3,'fig.bigair',{st:pd(3)}],[.5,'fig.vrille',{st:pd(4)}],[.6,'pose.choc'],[.0,'pose.parfait'],[.0,'verdict.2'],[0,'argent.gros']]);}],
+  ['La FRÉNÉSIE part à la pose (le pire empilement)',function(){suite([[0,'pose.choc'],[0,'pose.parfait'],[0,'verdict.3'],[0,'flow.3'],[0,'argent.gros'],[0,'frenesie.entre']]);}],
+  ['Drift : mini → super → ultra',function(){suite([[0,'turbo.mini'],[.9,'turbo.super'],[1,'turbo.ultra']]);}],
+  ['Slalom de 6 plots frôlés',function(){const p=[];for(let k=0;k<6;k++)p.push([k?.22:0,'frole',{st:pd(k),pan:k%2?.6:-.6}]);suite(p);}],
+  ['Chrono d\'airtime qui s\'épuise',function(){const p=[];let dt=.34;for(let k=0;k<12;k++){p.push([k?dt:0,k>8?'alerte.tac':'alerte.tic']);dt=Math.max(.09,dt*.86);}p.push([.1,'mort.air'],[0,'explosion']);suite(p);}],
+  ['Les six fruits',function(){suite([[0,'fruit.myrtille'],[.4,'fruit.banane'],[.4,'fruit.orange'],[.4,'fruit.peche'],[.4,'fruit.grenade'],[.5,'fruit.pasteque'],[.2,'nitro.plein']]);}],
+  ['Menu : naviguer, se tromper, acheter, équiper',function(){suite([[0,'ui.appui'],[.06,'ui.tap'],[.1,'ui.volet'],[.25,'ui.voletSort'],[.5,'ui.appui'],[.06,'ui.nav'],[.4,'garage.bascule'],[1.1,'ui.appui'],[.06,'ui.refus'],[.6,'ui.appui'],[.06,'ui.achat'],[1.2,'ui.appui'],[.06,'ui.equipe'],[.7,'ui.appui'],[.06,'ui.retour']]);}],
+  ['Écran de mort : enseigne, montant qui s\'égrène, record',function(){const p=[[0,'explosion'],[1.8,'mort.enseigne']];for(let k=0;k<9;k++)p.push([k?.08:.3,'ui.compte',{st:pd(k)}]);p.push([.05,'mort.compteFin'],[.2,'ui.record']);suite(p);}],
+  ['Départ : lâcher du garage → logo → 3-2-1 GO',function(){suite([[0,'garage.lacher'],[1.8,'depart.logo'],[1.4,'ui.bip'],[.3,'ui.bip'],[.3,'ui.bip'],[.3,'ui.go']]);}]
+];
+for(const [nom,f] of SC){const b=document.createElement('button');b.textContent=nom;b.onclick=function(){allume();f();};$('scen').appendChild(b);}
+})();
+</script>
+</body>
+</html>

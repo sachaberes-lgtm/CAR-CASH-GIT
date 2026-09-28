@@ -31,7 +31,8 @@
 //  v23 (2026-09-27) : fusion de la charte v4 de Sacha (sa v21) avec la couche de Léo.
 //  v24 (2026-09-27, Léo) : SWAG CASH CAR, la musique d'intro.
 //  v25 (2026-09-27, Léo) : la BONNE musique d'intro (swag-cash-car-2).
-const CACHE = 'cashcar-v27';
+//  v28 (2026-09-28) : la CONSOLE DE SON de Sacha (sfx.js + sons-banque.js), les silences morts retirés des morceaux.
+const CACHE = 'cashcar-v28';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

@@ -1,5 +1,396 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA CONSOLE DE SON (2026-09-28, session SON) — « tout ce qui se passe à l'écran doit avoir un son propre et unique, parfaitement maîtrisé et mixé »
+**⚠ RÈGLE POUR TOUTES LES SESSIONS : un son nouveau = `sfx('famille.nom')`, jamais un `chimeNote`/`noiseBurst` bricolé sur place.**
+Appel sous garde depuis n'importe quel code : `typeof sfx==='function'&&sfx('ui.ok')`. Si le son voulu n'existe pas encore, on pose l'appel
+avec un nom neuf et on le signale à la session SON (ou on écrit la recette dans `atelier-son/recettes.js`, voir plus bas).
+- **Trois fichiers** : `atelier-son/recettes.js` (l'ATELIER : chaque son est une recette de synthèse, jamais chargée par le jeu) →
+  `node atelier-son/cuire.js` rend, MESURE (sonie −20 LUFS sur 200 ms, crête, spectre), encode en MP3 32 kHz et écrit **`sons-banque.js`**
+  (≈2,7 Mo, ~215 tampons) → **`sfx.js`** (le LECTEUR : décode la banque en tâche de fond dès le chargement, joue une source + un gain par
+  événement). Le jeu charge les deux en `defer` avec `?v=N` : **incrémenter `v` à chaque nouvelle banque** (le service worker garde l'ancienne).
+  `node atelier-son/cuire.js piece` ne recuit que les sons dont l'id contient « piece ».
+- **Le banc d'écoute : `sons.html`** (double-clic, marche en file://) — tous les sons par famille, la tonalité de chaque morceau, des
+  scénarios enchaînés (ligne de pièces, vol complet, frénésie à la pose, menus, écran de mort…). C'est là qu'on JUGE un son, pas en jouant.
+- **Grammaire** : la MATIÈRE dit la famille (argent = métal, figures = synthé néon, aura = marimba, flow = piano électrique, danger = bois/tôle/
+  grave, interface = petits « tock » vitrés) ; ce qui MONTE récompense, ce qui descend retire ; la TAILLE suit la rareté.
+- **4 bus** (ui · rec · fx · amb) + une SALLE (réverbe à convolution calculée) → tout sort dans `MASTER` (curseur EFFETS, compresseur, pause
+  inchangés). `TRIM=-10` cale la palette sur l'ancien mixage (mesuré : pièce −34 LUFS, clic −42, explosion −15).
+- **Le chef d'orchestre** (`grp:'r'` + `prio`) : les récompenses qui partent dans la même fenêtre de 110 ms se rangent — la plus importante
+  devant, les autres −9 dB. (Une pose qui déclenchait la frénésie empilait 15 à 20 notes en 200 ms.)
+- **Une seule gamme par vol** (`ECH`, remis à zéro dans `startFall`, `echSt()`) : figures, paliers d'échelle et gestes en l'air prennent le
+  degré suivant ; le verdict de la pose résout sur la tonique. Au sol l'aura garde sa gamme (`sonPd(CHA.x)`).
+- **La tonalité suit la musique** (`sonTonSuit` dans musicTick, table `SON_TON`) : NÉON fa (−1), VITESSE si m (−2), NOCTURNAL sol# m (0),
+  NOITE ré# m (+2), frénésie surmultipliée +1 — mesuré par chroma. Un nouveau morceau = une ligne dans `SON_TON`.
+- **Repli** : `SONV2` faux (sfx.js absent) → toutes les anciennes fonctions sonnent comme avant. `son(id,repli)` fait les deux.
+- `uiClic(rôle)` : `'nav'` `'retour'` `'on'` `'off'` `'onglet'` `'refus'` `'danger'` (défaut : appui principal). Un refus ne sonne plus comme un succès.
+- Console : `dbgSon()` (état, décodage) · `dbgSon('fig.vrille',{st:4})` joue un son.
+- ⚠ **Piège MP3** : le codec étale un pré-écho devant les attaques sèches ; chaque fichier commence par 30 ms de silence et la banque porte
+  un ÉTALON (une impulsion) dont le lecteur mesure la crête pour caler l'attaque de TOUS les sons (28,5 ms mesurés dans Chrome).
+- **Lot 2 (tout est branché, ~190 sons)** : chaque événement visible a son son — piste (pads, turbos de drift, nuages entrée/sortie/
+  défonce, dos d'âne, huile ≠ eau, portail et son approche, replacement, chute), score (poses LOURDE/TRAVERS/CONTRESENS/AU CHEVEU,
+  cratère, paliers ×5/×8/×10, encaissements d'aura, triade, frénésie armée/entrée/sortie/record, mallette chaude, REPORT, billets
+  volants, MILLIONS, record en course), campagne (radar, éclair PUIS tonnerre, panne, trafic, fourgon, caisse-nuage, banquier,
+  VICTOIRE ≠ DÉFAITE, fins de monde), meute (alarme du dernier qui accélère), espace (bourdon du vide, le vent SE TAIT), interface
+  (rôles des clics, garage : bascule, tôle, achat + tampon, compteur, lâcher ; départ : logo, bannière lettre à lettre ; écran de
+  mort calé sur l'image : enseigne 80 ms, crans 360→860 ms, pose 1 110 ms ; missions, auto-école, 3-2-1 GO). Carte MOTEUR : une
+  scène d'un seul tenant (`moteur.palier`) calée sur ENG_COULOIR/ENG_PLONGE/T_SWAP — si l'animation change, recaler la recette.
+- **Voix et samples en WebAudio** (`WA_BUF`, `voixWA`, `sampleWA`) quand la page est SERVIE : sur iPhone l'annonceur sortait à plein
+  volume du fichier, sans doublure ni échos. En file:// l'ancien chemin <audio> joue, inchangé. Voix ramenées à −10 LUFS (`VOIX_NORM`).
+- **Curseur EFFETS APRÈS le compresseur** (`MASTER._vol`) ; `MASTER` reste le point de branchement, à 1.
+- **Pause** : la sortie attend 0,42 s avant de s'endormir (le clic ⏸ et la feuille sonnent jusqu'au bout) ; le jeu, lui, gèle tout de suite.
+- **`SON_DUCK`** : les grands moments creusent le moteur/vent (duckT), comme le faisaient les anciennes fanfares.
+- ⚠ **Garde des autres sessions** : `typeof sfx==='function'` est TOUJOURS vrai (la fonction existe même sans console). Pour garder un
+  repli : `if(!(typeof sfx==='function'&&sfx('x')))repli();` (sfx rend null s'il n'a pas joué).
+- ⚠ **Séries** : programmer d'un coup plus de `max` voix d'une fiche avec `{t:}` coupe les premières — les séries partent par setTimeout.
+- Musique : silences morts retirés (NOCTURNAL GROOVE avait 1 s de trou à chaque boucle en VILLE) ; sw.js en `cashcar-v22`.
+## LE MOUVEMENT DE L'INTERFACE + MISSIONS v2 (2026-09-28, soir) — « travaille les animations, les emplacements, les transitions entre chaque écran : prêt à envoyer à l'App Store »
+Sacha : « il y a des centaines de petites choses à améliorer dans l'interface… travaille les animations quand tu cliques sur les boutons,
+leurs emplacements, les transitions quand tu changes d'écran — que ce soit parfait ; travaille vraiment les transitions entre chaque écran
+avec des boutons animés » · « à la place de "tu peux te l'offrir", un bouton qui montre l'accès aux missions avec la mission où tu as le
+plus avancé durant la partie » · « dans l'écran des missions, enlève toutes ces histoires de contrat ; les défis, et à côté, écrits dans les
+couleurs de leur rareté, les objets que tu peux gagner ». Tout filmé AVANT puis APRÈS au ralenti ×8 (banc `film.js`, scratchpad de la session
+93a1dcda, `ui/` : l'horloge de la page ET les animations CSS ralenties, chaque image étiquetée de son temps virtuel ; `scenes*.js` = les gestes).
+- **SECTION 21 de charte4 — LE MOUVEMENT** (en fin de `<style id="charte4">`). Jetons `--t-in` 400 ms (arriver), `--t-out` 150 ms (partir),
+  `--t-press` 70 ms (s'enfoncer), `--stag` 34 ms (cadence), `--pousse` 30 px ; une courbe (`--ease`). ⚠ On n'anime QUE `opacity` et les
+  propriétés individuelles `translate`/`scale` : l'ancienne cascade animait `transform` — le lingot JOUER (penché) arrivait DROIT puis se
+  penchait d'un coup à la fin. Filmé avant : l'ancien et le nouvel écran restaient superposés ~150 ms (deux titres l'un sur l'autre).
+  · ÉCRAN QUI PART : 150 ms dans le sens du geste (`k6SortAvant/Retour/Racine`), `min-height:100%` (en absolu il perdait sa hauteur : ses
+    blocs « tombés vers la sortie » remontaient d'un coup sous le titre). ÉCRAN QUI ARRIVE : le cadre apparaît après 40 ms, ses BLOCS
+    portent la direction en cascade (`k6Monte/Avant/Retour`) ; les contenants (`.mSet`, `.misDefs`, `.misCol`) cascadent leurs enfants ;
+    la touche RETOUR glisse du bord gauche (`k6DuBord`).
+  · ACCUEIL : le logo DESCEND (`k6Tombe`), les trois tuiles se distribuent, JOUER SURGIT du bas en dernier (`k6Surgit`) ; un REFLET passe
+    sur les tuiles l'une après l'autre toutes les 7 s (`::after`, `k6Reflet` — seule la position de fond bouge).
+  · MORT : une mise en scène à délais nommés — enseigne 80 ms, cartes distribuées 250/320 ms (`k6Carte`), ticket 390 ms, porte MISSIONS
+    490 ms (de la droite), tuiles 540-610 ms, MENU 640 ms, REJOUER 660 ms. `mCount` attend 360 ms (le montant s'égrène quand son ticket
+    apparaît, avec les notes de `mCompteSon`) ; l'aura attend 260 ms.
+  · FEUILLES : la fenêtre (`#modale`) arrive du BAS de l'écran (`k6Feuille`, `translate` depuis 100 % + 40 px) et ses boutons suivent ; la
+    PAUSE se range de haut en bas, REPRENDRE surgit en dernier ; la CARRIÈRE a un SENS (`#carr[data-sens]`, posé par `carrVue` quand la
+    feuille est déjà ouverte : entrer dans un monde pousse de la droite, en sortir ramène de la gauche) et ses dix niveaux se distribuent.
+    Garage : changer de famille ou d'onglet distribue la bande de vignettes (`#gStrip>.gT`, elle ne se reconstruit qu'à ces moments-là).
+  · « Réduire les animations » (iOS ou `data-reduced-motion`) : tout redevient un fondu ; les verrous du volet (`.revu`, `body.voletSort`)
+    sont redits pour chaque nouveau sélecteur — l'écran que le VOLET découvre n'a pas d'entrée à lui.
+- **L'APPUI SOUS LE DOIGT** (`APPUI_SEL`, juste après `uiPop`) : sur iPhone `:active` ne se peint pas pour un tap bref — la touche ne
+  s'enfonçait jamais à l'œil. `.appui` est posée au `pointerdown` (capture) et tenue ≥ 90 ms ; les 24 règles `:active` de charte4 ont reçu
+  leur jumelle `.appui` (script `appui.py` : même spécificité, NITRO exclue). Au contact : visuel + `sfx('ui.appui')` (session SON, gardé) ;
+  l'action, son son et la vibration restent au relâcher (`uiClic`) — un seul coup dans le pouce. Un glissé annule (`pointercancel`).
+- **LES SONS D'INTERFACE** (demandés par la session SON, tous gardés `typeof sfx==='function'`) : `ui.volet` / `ui.voletSort` (ecranWipe —
+  le `noiseBurst` d'origine reste en repli), `ui.feuille` / `ui.feuilleFerme` (feuilleOuvre/Ferme — pas quand la carrière change de page,
+  pas pour la fenêtre qui a le sien), `ui.modale`, `ui.ok` / `ui.erreur` (toast, selon l'icône coche/croix). ⚠ Le son est la zone de SON.
+- **MISSIONS v2** (`misRender`, `misGain`, `MIS_CAT_COL`, HTML `#mMis` → `.mSec` + `#misTab`) : plus de « CONTRAT n », plus de paragraphe de
+  règle ni de carnet suivant numéroté. Lu de gauche à droite : LES TROIS DÉFIS (`.misDefs` : consigne, jauge = meilleur essai en UNE partie,
+  avancement, prime en vert billet) → la colonne des OBJETS (`.misCol`) : l'objet en jeu (`.misPrix` : vignette, NOM dans la couleur de sa
+  famille — celle du garage : DÉFI vert pour les caisses ; peinture rose, traînée ambre, ailes cyan comme leur fiche —, jauge des trois,
+  VOIR → garage) puis ENSUITE (`.misSuiv` : les trois objets suivants, chacun sa silhouette pixel et sa couleur). La règle tient dans le titre
+  de section (« LES DEFIS · CHACUN EN UNE PARTIE »). Grand téléphone debout (≥ 760 px) : tout en plus généreux. Paysage : défis | objet |
+  ensuite. `misProgV` : « FRANCHIS 2 PORTAILS » compte 1 / 2 (il comptait +1, reste de l'ancien « atteins le niveau »).
+- **LA PORTE DES MISSIONS de l'écran de mort** (`objRender`, `.mObj.misPorte`, `data-m="mis"`) remplace « TU PEUX TE L'OFFRIR » / l'objectif
+  d'achat : le défi que CETTE partie a le plus approché (celui qu'elle vient de relever passe devant : « DÉFI RÉUSSI ! » + prime), ses trois
+  cases, sa jauge qui se remplit de la partie (après l'entrée de l'écran), « CETTE PARTIE · 263 / 672 » et, au bout, l'objet dans sa
+  couleur. Touchée : l'écran MISSIONS (RETOUR ramène à la mort). Un carnet rempli à cette mort garde son état « DÉFIS RÉUSSIS ! » (→ garage).
+  `objectif()`/`shopAPortee()` restent (pastille du garage, `buyGoal`).
+- ⚠ Décision prise sans Sacha (à confirmer) : « la couleur de leur rareté » = la couleur que le GARAGE donne déjà à l'objet. Toutes les
+  caisses à gagner par défi sont de la famille DÉFI (vert) ; si Sacha veut des raretés différentes par palier de mission (rare → épique…),
+  c'est une décision de jeu (familles du garage), pas d'interface.
+- QA : `qa.js` (62 points, copié de la session 312bec4e) 61/62 — le seul échec est le 404 attendu de `dark-triad.mp3`. Bancs : `tour.js`
+  (captures portrait / paysage / 375×667, `MORT=1`), `film.js` + `scenes.js` / `scenes2.js` / `scenes3.js`, `jscheck.py`.
+## LA DA DU HUD, UNE SEULE FAMILLE (2026-09-28, session UHD) — « le bouton nitro, le camembert air time et la dark triad ne ressemblent pas à la barre de nitro et au compteur »
+Sacha : « j'aime le résultat, unifie parfaitement la DA en restant sur cette base ; le bouton nitro, le camembert air time et la dark triad n'ont
+pas l'air de ressembler à la barre de nitro et au compteur de score (qui sont bien) ; nitro infini VIOLET comme les flammes, la traînée, la barre ;
+l'animation du moteur débloqué est moche, ne suit pas la voiture et bloque la vision — plus petite, au-dessus de la voiture, belles couleurs, elle
+rétrécit et rentre dedans ; en frénésie, les trois barres de personnalité plus discrètes, sans texte ; pense mobile avant tout ».
+Tout le CSS vit dans `<style id="hudDA">` (APRÈS hudMaitrise, avant `#splash`) — jetons en tête (`--jEncre/--jFond/--jInk/--jCurs`, nitro `--n*`,
+réserve `--b*`, NITRO INFINIE `--v*`, air `--a*`, or `--o*`, rouge `--r*`, menthe `--m*`). Deux MODÈLES font la loi de ce qui se LIT en course :
+LA JAUGE = la barre NITRO (fond d'encre, cadre indigo, épaisseur dessous, QUATRE BANDES, curseur blanc, icône pixel) · LE CHIFFRE = le compteur
+d'AURA (police pixel en bandes, cernée d'encre). Ce qui se TOUCHE = plaque PENCHÉE de la famille du ⏸.
+- **BOUTON NITRO** (section 1) : plus de disque — une touche penchée `--nbW×--nbH` (96×84) : laque, bande de couleur à gauche (`--nc`), l'ÉCLAIR
+  de la barre en trois bandes, « NITRO », et `.nxJauge` redessinée en MINI-BARRE (même recette, `--nr`/`--nx` de la boucle, curseur). `.nxArt`
+  masqué. États : `.plein` halo qui bat · `.on` descend de 5 px et s'embrase · `.bas` bande rouge + jauge qui bat · `.bleu` · `.inf` VIOLET qui
+  file. ⚠ la boucle pose désormais `inf`/`bleu`/`bas` AUSSI sur `#tNitro` (elNB), plus seulement sur la barre.
+- **NITRO INFINIE = VIOLET** (`NINF`, `Object.assign(PWR_DEFS.n,…)` juste après PWR_DEFS — la session GAMEPLAY garde l'ordre) : cristal, plaque
+  NITRO MAX, bords d'écran, barre (`#nitroBar.inf`), son FEU (`FEU_RAMPE` violet), plume (`jetShellM/jetCoreM`, racine `uRac`), particules
+  (`flames/flameCore/embers`), onde d'allumage (`NFX.cT`), `nitroLight`, rubans de traînée. Un SIGNAL : il passe devant la signature de la
+  caisse (comme la réserve bleue) ; l'arc-en-ciel et la gerbe d'eau se taisent pendant le pouvoir.
+- **CHRONO DE VOL** (section 3) : `#airHud` (aile pixel + secondes dans la typo ombrée + barre qui se vide) remplace le camembert. `#airPie`
+  reste l'ÉTAT (display, `.danger`) mais n'est plus dessiné ni vu : `#airPie[style*="block"]+#airHud` le suit sans JS. `airPieDraw` n'écrit que
+  `--a`, les secondes, `data-k` (ok cyan · moyen or · urgent rouge · inf menthe) et `.flash`. `airPiePx` n'est plus appelée.
+- **DARK TRIAD** (section 4) : `.trDA` (icône `pxi-triade` ajoutée à `PXI_G` + « DARK / TRIAD » en bandes rouges de TRIPLE MONSTER) dans
+  `.trPouls` ; `.trPiece/.trOnde/.trAura` masqués (la pièce qui tourne est finie). `--frenTh` 60. Portrait : l'emblème passe dans la COLONNE DE
+  DROITE sous le ⏸ (⏸ · DARK TRIAD · chrono de vol à hudH+204 · pouvoirs) — au milieu il cassait le compteur d'aura en deux lignes. Les trois
+  TRAITS : barrettes fines côte à côte (ordre N · M · P des étiquettes du flow), sans nom, opacité .78.
+- **COMPTEUR D'AURA** : `data-l` posé à l'écriture (`l1` ≥ 6 caractères → 26 px, `l2` ≥ 8 → 22 px), `nowrap` : il ne passe plus à la ligne.
+- **CARTE MOTEUR v5** (section 5 + `engBig`/`engBigPlace`/`engBigSuit`) : étiquette + NOM (typo ombrée, couleur `engNeon` — les gris d'acier
+  deviennent cyan) + moteur 3D ; palier, cylindres et gain quittent la carte (le gain jaillit de la caisse à l'impact). Le moteur fait ~40 % de la
+  largeur APPARENTE de la caisse (`engCaisseL` = boîte de `carBody` projetée), `--ebS` borné .7-1.05 ; posé sur le TOIT (plus de plancher au
+  couloir des annonces), il suit la voiture au sol comme en vol ; 1 s puis 0,48 s de plongée. `engRim` (lumière posée à l'init dans
+  `engVigScene`, éteinte au repos) teinte le métal au néon ; halo plus franc, disque d'encre plus petit ; l'onde `swapRing` et `swapLight` à la
+  couleur du moteur, rayon 5 → 3,8 m. Hook : `dbgEngCarte()` (mesures) / `dbgEngCarte('fige')` (pas de plongée).
+- **LOT 2** : le métal du moteur de la carte est TEINTÉ à la couleur néon du palier (`engCarteMat.color` = blanc → néon à 42 %, `ENG_TEINTE`) —
+  il sortait blanc rosé sur tous les ciels ; `engRim` 1,5 ; nom de plus de 12 caractères un corps plus bas (`#engBig.long`) · l'ASTUCE / le DÉFI
+  (`#misBan`) se range à GAUCHE tant qu'une plaque de pouvoir est affichée (portrait) : centrée, elle couvrait NITRO MAX / VITESSE ×2 (section 6).
+- Bancs (scratchpad session UHD) : `run.js <pfx> <étapes.js> [w] [h]` (DSF, LG), `st-eng2.js` (film de la carte), `st-fren.js`, `st-det.js`
+  (états du bouton), `st-pay.js` (paysage), `attente.sh` (attend qu'aucun banc voisin ne tourne).
+
+## PLUS BEAU SUR IPHONE, SANS COÛT EN PLUS (2026-09-28, nuit) — « trouve plein de petites techniques »
+Sacha : « les graphismes sont pas mal, on peut encore les pousser — sans que ce soit plus compliqué pour l'iPhone ». Chaque technique est un
+UNIFORME (zéro programme en plus, 0 compilé en course, mesuré au parcours `tour.js`), éteignable à chaud par `dbgGfx({…})` pour comparer la
+MÊME image figée (bancs : scratchpad de la session f71fd2a2, `gfx/abx.js`, `gfx/nuage.js`, `gfx/ab.js`, `gfx/sbs.js` = côte à côte ×2).
+- **LE PIQUÉ NATIF** (`applyDPR`, `PIQUE_NAT`) : l'iPhone affiche 3 px par point, la 3D en calcule 1,5 → le NAVIGATEUR agrandit ×2 en
+  bilinéaire, un flou que l'ancien piqué (qui ne regardait que la descente sous le plafond) ne compensait pas. `uSharp` part désormais de
+  l'agrandissement réel (×2 → .40), mêmes 4 lectures que le FXAA. `?piquen=.6` pour essayer une autre force, `?pique=0` pour l'éteindre.
+- **LE TRAMAGE DE SORTIE** (`uTrame`, fin de l'ACES) : un demi-niveau de bruit entrelacé (animé par `uJit`) casse les marches de 1/255 des
+  grands dégradés (ciel, brume, vignette) sur l'OLED. Le noir pur reste noir (l'ORBITE garde son noir complet).
+- **LE CŒUR PLEIN DES NUAGES** (`GFX_U.uCoeur`, `nuageShader`) : à 82 % partout on voyait les bourgeons empilés AU TRAVERS de la ouate ;
+  le cœur vu de face monte à ~95 %, la vapeur garde 82 % là où la ouate tourne, puis s'allège au liseré.
+- **LE BITUME GLACÉ** (`ROAD_U.uGlace`, `GLACE`, `roadMat`) : la route sèche renvoie le ciel du biome selon l'angle (Fresnel ^5), dans la
+  MÊME lecture du cube que le mélange d'origine — rien sous le nez, le dégradé du ciel vers le lointain et sur les dalles qui tournent ; le
+  reflet du SOLEIL en est retiré (la traînée dure refusée le 26/09). NUAGES .45 · ORBITE .5 · VILLE 0 (elle a son eau).
+- **L'IMPACT SUR UN IMMEUBLE** (Sacha : « quand on se crashe sur un immeuble, un impact d'explosion et de destruction au point
+  d'impact, cool et maîtrisé ») — `IMPACT`, `villeImpact(p,vel)` (appelé dans la branche de vol, AVANT `explode('tour')` : il joue aussi
+  quand le BOUCLIER sauve la caisse, accord GAMEPLAY), `villeImpactTick`, `villeImpactFin` (nouvelle ville). La tour est une instance
+  d'un cube partagé : la destruction est PEINTE dans `villeMatTours` (`VILLE_IMPACT`, uniformes `uImp9`/`uImpN9`, branche coupée sans
+  impact) — cratère au bord déchiqueté (dessin propre à chaque impact) qui s'ouvre en 0,14 s, cavité noire où l'on lit les dalles des
+  étages, brasier au tiers bas, lèvre de braises, suie qui souffle les fenêtres sur ~2,6 rayons, éclair du choc 0,35 s ; rayon 7 m (jamais
+  plus que la façade). Devant : 26 VRAIS morceaux (17 blocs de béton, 9 carreaux de verre ÉMISSIFS ambre/cyan — Phong nu, le programme des
+  éclats de l'explosion : 0 compilé, mesuré), poussière `dust`, verre pilé `sparkBlue`, braises, fumée qui monte du trou 5,5 s.
+  Son : `sfx('impact.immeuble')` (console de la session SON, 2,4 s : béton sourd, vitre, pluie de verre, gravats). Hook `dbgImpact(true)`
+  (impact sur la tour la plus proche), `dbgImpact(null,s)` (fait vieillir en pause). Banc : `gfx/imp.js` (planche 0,05 → 4,5 s).
+- **Écarté après captures** : « le monde dans la laque » (le décor du niveau — mer de nuages, mur de tours éclairées — peint dans le cube
+  des carrosseries) : INVISIBLE depuis la caméra de poursuite (on voit l'arrière des caisses de face, le vernis n'y renvoie que ~6 %).
+
+## LES POUVOIRS v2 + LES PETITS TRUCS GRISANTS (2026-09-28, nuit) — « des nouveaux power-up, plus longs, des petits trucs grisants, que les débutants prennent leur pied autant que les vétérans »
+Session GAMEPLAY (worktree `CCG-gameplay`, branche `gameplay`). Même lot : la FRÉNÉSIE remise aux réglages d'avant la « triade
+simplifiée » (voir cette section plus bas). Banc muet `gp.js` / `sf.js` (scratchpad de la session 4b30b603 : 200×430, UN à la fois).
+- **LA FICHE** `PWR_DEFS` porte tout : `t` durée · `px` pictogramme (PXI_G, + `aimant` et `bouclier`) · `plq` nom de plaque · `sp` gerbe.
+  Durées : NITRO MAX 6 → **9 s**, AIR MAX 10 → **14 s**, VITESSE ×2 6 → **8 s**. ⚠ la couleur de la NITRO MAX est réécrite par la session
+  UHD (violet, `Object.assign(PWR_DEFS.n,…)` entre l'objet et la boucle des matières) — garder cette ligne à sa place.
+- **TROIS NOUVEAUX** (minuteurs `pwrMagT`/`pwrBouT`/`pwrAurT`, tous lus/écrits par `pwrT(k)`/`pwrSet(k,v)`, ordre fixe `PWR_ORDRE`) :
+  · **m AIMANT** (vert billet, 12 s) : pièces ET fruits de toute la largeur, 55 m devant, viennent à toi (en vol : 34 m) ; les cristaux restent à viser.
+    MESURÉ : l'or à portée ramassé 5/5, 3/3 avec, 1/3 · 2/3 sans.
+  · **b BOUCLIER** (acier, 20 s) : `bouclierSauve(cause)` en tête d'`explode` — vide, vol trop long, tour → la caisse retombe sur sa dernière
+    ligne sûre (`respawn`), la chaîne d'ARGENT du vol est perdue, l'aura, le flow et la partie continuent ; jamais pour une mort de RÈGLE
+    (police, feu, arrêt). Sous bouclier, une chute « perdue d'avance » depuis 2,2 s (`MIR.t`) est rattrapée tout de suite. Tant qu'il tient :
+    plots démolis sans rien coûter (`pwrDemoli` : « DÉMOLI ×n », aura, nitro), l'huile ne mord pas ; un CHAMP DE FORCE qui grésille
+    (`pwrHalo` : étincelles `sparkBlue` nées sur une coque autour de la carrosserie, en tangente, deux fois plus serrées les 3 dernières
+    secondes). ⚠ La bulle en sprite a été essayée : invisible derrière la caisse, et plus forte c'était une TACHE RONDE (verdict du 25/09). MESURÉ : chute sauvée, la 2e chute sans bouclier tue.
+  · **x AURA ×2** (or, 12 s) : `chaineAura` et `addAura` ×2.
+- **CUMUL** : le même pouvoir repris AJOUTE sa durée (plafond 2 × `t`, plaque `.cumul`) ; deux pouvoirs actifs = « DOUBLE POUVOIR ! »
+  (+70 aura), trois = « TRIPLE POUVOIR ! » (+150). Trois plaques et plus se serrent (`#pwrChip.pw3`, bloc `<style id="pouvoirsV2">`).
+- **LE TIRAGE LIT LE JOUEUR** (`pwrPoids`, `pwrTire`, UN tirage `rnd` comme avant : le flux seedé ne bouge pas) : < 8 parties → BOUCLIER 28 %,
+  AIMANT 23 % ; 8-30 → équilibré ; 30+ → AURA ×2 21 %, VITESSE 19 %. En campagne : poids fixes. `pwrPremier` : le 1er cristal d'un débutant
+  (< 5 parties, zone 0, hors campagne) est un BOUCLIER posé près de l'axe.
+- **MIRACULÉ** (`MIR`, `mirTick`/`mirPose`) : chute perdue d'avance (pas de réception en vue, en train de tomber, 10 m sous la route) pendant
+  ≥ 0,6 s, et pourtant posée → +160 / +240 aura, flow risque PSYCHO. **SANS FAUTE** (`SFA`, `sfaPose`) : poses propres d'affilée (vol > 0,7 s,
+  ni lourde ni ratée) → ×3, 5, 8, 12 puis toutes les 5 : aura + nitro ; « SÉRIE CASSÉE » dès 3. **PALIERS DE VITESSE** (`VPAL`, `vpalTick`) :
+  chaque centaine franchie se crie à partir d'une centaine sous le record de vie (`VPAL.c0`) ; « RECORD DE VITESSE » quand il tombe.
+- Sons : `PWR_NOTE` a les six clés ; les nouveaux événements appellent `sfx('pwr.double'|'pwr.triple'|'pwr.bouclierCasse'|'pwr.bouclierFin'|
+  'pwr.bouclierPlot'|'jeu.miracule'|'jeu.palierVitesse')` sous garde `typeof sfx==='function'` (la session SON les sonorise).
+- Hook : `dbgPwr(k,n)` prend un pouvoir (n fois) ; `dbgPwr()` = minuteurs, poids, sauvetages, MIR, série, palier, dauphin (`dol`), lieu
+  du flow ; `dbgPwr('plot')` (le pilote vise le prochain plot), `('mir',x)`, `('sf',bool)`, `('devant')`/`('devantPris')` (banc de l'aimant).
+
+## LE DAUPHIN v4 · SNAKE LOOP · RACCOURCI VERS LE PORTAIL · LA VILLE SE GAGNE SUR LA ROUTE (2026-09-28, nuit — même session)
+- **DAUPHIN v4** (Sacha : « dès qu'on vole près de la route, sans délai, à l'endroit, à l'envers et sur les côtés » · « plus ça dure, plus
+  on voit de dauphins » · « plus d'aura ») : `dolDist()` = distance au RECTANGLE de la dalle dans son plan de coupe (dessus, dessous,
+  bords) ; tout vol à moins de `DOL_HMAX` (40 m) lance le dauphin À LA 1RE IMAGE (`DOL_T`=0). Le banc GRANDIT : 1 dauphin, +1 toutes les
+  `DOL_PAS` (0,6 s) jusqu'à SIX (`DOL_BANC`, 3 gabarits ajoutés ; chaque nouveau JAILLIT en rejoignant le banc, `u.pret`) ; l'étiquette dit
+  « DAUPHIN ×n », l'aura monte ×(1 + 0,15 par dauphin). ⚠ LA FIGURE (chaîne d'argent, « LE DAUPHIN ! », flow) n'arrive qu'à `DOL_FIG`
+  (1 s) tenue, une fois par vol (`trkDolph`) : sinon chaque saut devenait une figure et la frénésie partait à n'importe quelle pose.
+  Plusieurs passages par vol possibles. Aura : figure 80 → 150, prime 40 → 80 (à la figure), 25 → 40/s, au ras 45 → 90/s, plafond 1 200.
+  MESURÉ : sortie par le côté → dauphin dès l'image 1, banc 1 → 5 en 2,4 s pendant la chute sous la route (|lat| 52 m, h −43 m).
+- **SNAKE LOOP** (décoller, passer SOUS la route, se reposer du même côté) : il ne versait AUCUNE aura en propre → `chaineAura('SNAKE LOOP',320)`.
+- **RACCOURCI VERS LE PORTAIL** (« couper la route pour rejoindre le portail plus vite doit rapporter du machiavélisme ») : l'ovule traversé
+  EN VOL compte comme une pose — piste restante jusqu'à son entrée (~L−80) moins la ligne droite volée ≥ 60 m → `flowRaccourci` (MACHIAVEL).
+- **LOI 15 DE FLOW2 — LA VILLE** (« dans la ville on peut moins voler : les traits doivent s'adapter à la vitesse sur route, moins à la
+  voltige ») : `FLOW2.lieux.ville` réécrit fam (route/style montent jusque dans la triade), psy (la vitesse tenue paie 5 toutes les 1,2 s),
+  part (en frénésie le style et la route nourrissent NARCISSE) et les mémoires des traits (13/32/4 s). `flowLieu(nom)` est appelé par
+  `newTrack` ; hors ville tout revient au barème de base. À la révélation de la triade en ville : « VITESSE · DRIFT · TRICHE ».
+  MESURÉ (`simville.js` = simtri avec 2,5× moins de sauts et 2× moins de raccourcis) : barème de base → le maître ne l'atteint presque
+  jamais (93 % des parties) ; loi 15 → ~3 min, 21 % du temps, tenue ~70 s (nuages : 2 min 26, 30 %).
+
+## LA CHASSE AUX DÉTAILS (2026-09-28) — « je ne te demande pas de changer drastiquement : traque tous les détails pour que le jeu soit parfait »
+Sacha : « les animations du nitro pourraient faire beaucoup plus FLAMME, façon Asphalt 9 ; en nitro infini les flammes de la barre font
+trop Minecraft, fais un truc premium ; vérifie que tous les textes sont bons ; pas de débogage ni d'optimisation, cherche les détails ».
+Sept audits en lecture seule (textes, écrans, son, finition visuelle, 5 premières minutes, carrière), corrections par lots, chaque lot vérifié
+au banc muet (scratchpad de la session 514feb73 : `nit.js` flammes/jauge, `tour.js` partie jouée — vol, pose, pause au clavier, NITRO MAX,
+explosion, écran de mort, `LG=en` pour l'anglais —, `set.js` réglages, `carr.js` fin de l'ESPACE ; `chk.js` = syntaxe de chaque `<script>`).
+- **LA FLAMME VIVANTE** (`jetMat`, `JET_VS`/`JET_FS`, horloge `JET_T`) : la plume de la caisse n'est plus une texture fixe qui tourne — un
+  bruit périodique COULE de la tuyère vers la pointe et ronge la matière (les langues se détachent), racine BLEUE de brûleur sous un cœur
+  blanc, corps à la couleur de la poussée qui rougit vers la pointe, bord qui s'efface avec l'angle, pointe qui erre (vertex). Profil tourné
+  (`jetGeo` = LatheGeometry : étroit, ventre, pointe) au lieu d'un cône. `jetShellM.color`/`jetCoreM.color` restent de vraies THREE.Color
+  (la boucle, l'arc-en-ciel, dbgNitro les écrivent). Chaque pot bat à son rythme. La meute brûle avec le même programme (bleu police).
+  Les textures cuites `jetTex`/`jetCoreTex` ont disparu. Programmes compilés en course : 0 (mesuré).
+- **LA JAUGE EN FEU v2** (`FEU`, `feuSprites`, `feuChaud`, `feuNait`, `nitroFeu`) : fini le feu de DOOM 96×18 agrandi — 220 bouffées
+  (sprites radiaux cuits par teinte, blanc → rouge sombre) au pixel de l'écran, étirées en LANGUES, qui naissent sur la barre (la barre EST
+  le foyer : au téléphone il n'y a que ~18 px d'écran au-dessus), tirées vers des foyers qui glissent, + étincelles et lueur de tranche.
+  S'éteint quand la caisse explose. CSS : `#nitroFeu` 60 px, `bottom:0`, plus de `image-rendering:pixelated`.
+- **FINITION VISUELLE** : secousses de caméra en SINUS (sol, vitesse, vol — plus de `Math.random` par image ; le vol calmé comme le sol ;
+  les chocs EN VOL se sentent par le regard) · SUSPENSION (`susY/susV`, ressort sur `carBody`, déclenchée par `squashT` — la pose en pose
+  un) : les roues ne s'écrasent plus en ovale · plots percutés et pièces d'explosion REBONDISSENT sur la dalle (`FLYCONES[].p0/n0/b0`,
+  `BOOM_SOL`) et se replient en fin de vie · gerbes de ramassage là où l'objet disparaît · faisceau des phares éteint hors du sol · ombre de
+  vol dans le plan de la dalle et en fondu · viseur d'atterrissage en fondu (`LM`) · caméra recalée au portail (`loop._camDriveT=0` dans
+  newTrack) · glisse d'huile qui fume · éclats ROUGES pour ce qui coûte (plot, pose lourde) · replacement/repêchage : la caisse RETOMBE
+  (`hopY=2.2`) · meute : plus de flaques rondes, apparition dans la brume (`lodP9`) · étincelles de la montée de moteur qui suivent la caisse ·
+  l'onde d'allumage nitro sans test de profondeur (la route la coupait en fer à cheval).
+- **SON** : les boucles se taisent en fondu à la pause et la SORTIE (`BUSOUT`) descend en ~40 ms avant `suspend()` (`busPlein()` la remet :
+  reprise, compte 3-2-1, filet dans resetGame/endGame) · le « 3 » du compte attend le réveil du contexte · grondement d'explosion pour toutes
+  les caisses · crunch des fruits dans le rang · l'intro obéit au curseur EFFETS · session audio iOS `ambient` quand MUSIQUE est coupée ·
+  **les 4 sons d'argent ramenés à −20 LUFS** (le compteur était à −7 : +13 dB, il couvrait l'annonceur ; sur iPhone seul le fichier compte),
+  même `v` pour tous. `early_dead.mp3` (−15 LUFS, voix grave) laissé tel quel : à juger à l'oreille.
+- **VIBRATIONS** : leur propre interrupteur (`SND.vib`, `SAVE.d.vib`, ligne dans #mSet) — `hap()` ne suit plus le SON.
+- **TEXTES** : figures traduites (AIR MONSTRE, DAUPHIN EN VOL, POSE PARFAITE/DIVINE, IMPACT MÉTÉORE), « PERMIS OBTENU » traduit, `fmtC`
+  ne dit plus « 1000 k » (×.9995), `fmtAura` au format de la langue, anglais américain, « SHORT BY », « DEFIS », guillemets anglais, le chinois
+  retombe sur l'anglais (TR), `<html lang>` suit la langue, apostrophes rendues (la police pixel les a), « TROP LONGTEMPS EN L'AIR » (10,2 s
+  en orbite), « GRAVITÉ RÉDUITE », « FRANCHIS n PORTAILS ». La sauvegarde s'écrit quand l'appli passe en arrière-plan.
+- **ÉCRANS / CARRIÈRE** : JOUER du garage pendant une bascule, glissé pendant le lâcher (`GAR.go`), EN BOUTIQUE, P clavier = panneau ⏸ en
+  coque tactile (`window.__panBascule`), Entrée gardée, RECOMMENCER en carrière (`carrIci`), notes de l'écran de mort gardées, record
+  cohérent au chargement, REVOIR L'AUTO-ÉCOLE tient parole (prime une fois : `SAVE.d.permis`) · ⚠ **la remise à zéro du Survivant était
+  collée DANS un commentaire** (poursuite NUAGES 5 et meute VILLE 14 cassées dès la 2e course) · **l'ESPACE a une fin** (`espaceFinale`,
+  « ESPACE TERMINÉ ») · REJOUER après une fin de monde ouvre le monde suivant · bannière de carrière traduite, sans double numéro.
+- **L'ACCUEIL RÉORGANISÉ** (Sacha : « c'est pas beau que les deux boutons du haut soient au-dessus du titre ») : le LOGO ouvre l'écran,
+  seul (marge haute 34 px, 6 px sous 720 px de haut) ; la rangée `.mOutils` (MISSIONS étirée sur la largeur des tuiles, cases au bout ·
+  ⚙ carré qui ferme la rangée) descend entre la bande de la caisse et les tuiles — charte, règle 4 : on LIT en haut, on TOUCHE en bas.
+  `menuCadre()` lit aussi `.mOutils` : la caisse se cadre au-dessus d'elle. Vérifié 844×390, 390×844, 667×375, 375×667, FR/EN (`home.js`).
+- **LAISSÉ À SACHA (décisions, pas des détails)** : `TEST_CARRIERE`/`TEST_CAISSES` encore à `true` (caisses payantes gratuites, pastille
+  « TEST » au garage) ; la BOUTIQUE est une vitrine (« BIENTÔT », « -50 % » sur un 9,99 € jamais pratiqué — refus Apple probable) ;
+  **droits des sons** : `fx/kaching.mp3` (étiquettes « Yout.com », extrait YouTube), `fx/compteuse.mp3` (« 101soundboards.com »),
+  `death/minecraft.m4a` (le son de Minecraft ?) — à remplacer avant la sortie ; noms de caisses en français en anglais (marque).
+
+## L'ACCUEIL EN HAUTE DÉFINITION — VHD (2026-09-28, nuit) — « pousse les graphismes au max, juste pour l'écran d'accueil »
+- `VHD` (à côté de `qlPose`) : tant que la vitrine tourne (`vhdBascule` dans loop : ni garage, ni course, ni étal), la 3D est calculée à
+  la densité PLEINE de l'écran — sur-échantillonnée ×1,5 sur l'ordi, budget 8,3 M pixels (3,2 M sur téléphone, sans sur-échantillonnage)
+  —, ombre en carte 4096 (2048 téléphone), anisotropie max de la route et de sa peinture (`ASPH_TEX`, `LIGNE_TEX`), échelle QL au cran 0
+  et EN VEILLE. `qlPose` lit `VHD.on` (résolution + carte d'ombre) : UN seul chemin. Filet : p75 > 22 ms (hors 30 Hz) → ×0,8 toutes les
+  1,5 s, jamais sous `DPR_CAP`. À la sortie, `qlPose(VHD.k0)` rend l'échelle telle qu'elle était. `?hd=0` coupe ; `dbgVHD()` décrit.
+- ⚠ MESURÉ sur l'ordi (colonne 844 × 390 zoomée ×2,27 sur 1 920 px) : sans VHD la 3D de l'accueil faisait 0,33 M pixels (DPR 1 en
+  RAPIDE, étiré ×2,27) ; avec, 3,8 M (DPR 3,4). En COURSE rien ne change : DPR 1 / ombre 1024 / aniso 4, comme avant — c'est aussi
+  pourquoi la course paraît floue sur PC en RAPIDE (NETTE = 1,5).
+
+## MISSIONS · SORTIE MENU · CIEL DE JOUR À L'ACCUEIL (2026-09-28, soir)
+Sacha, en rafale : « il manque un bouton pour revenir au menu » (écran de mort) · « dans le menu il faut aussi un bouton mission » ·
+« l'écran de mission doit être parfait, avec une jauge de progression et un texte expliquant la récompense » · « les couleurs de
+l'écran de début sont bof, je préfère le ciel en journée, il matche mieux avec les couleurs du jeu rose, bleu, jaune ».
+- **SORTIE MENU** : `.mFin` = MAISON (`.mMenu`, `data-m="menu"`, icône pixel `maison` ajoutée à `PXI_G`) | REJOUER (le lingot, seul en
+  or, prend le reste). ⚠ REJOUER vit désormais DANS `.mFin` : ordre, marges et `grid-area:rej` du paysage sont portés par `.mFin`.
+  `accueilRetour()` (sous le volet) : la partie finie reste finie (`started && gameOver` → le départ suivant passe par `resetGame()`,
+  jamais `start()`), mais `MENUV.retour` fait de l'ACCUEIL la racine (`mRoot`), rallume la VITRINE (loop, ombre de contact, Entrée) ;
+  débris, meute (`survMenage()`, extrait de `survStart`), carrière en cours rangés ; piste de menu neuve. `rebuildMenuScene()` baisse
+  `started` le temps de `newTrack` quand `MENUV.retour` : ciel posé d'un coup (pas le fondu « portail »), ni annonce ni porte d'orbite —
+  vaut aussi pour la CARRIÈRE et l'AUTO-ÉCOLE lancées de cet accueil. `resetGame()` éteint `MENUV.retour`. `body.dead` reste posée.
+- **LA PORTE MISSIONS** : `.mMisBtn` dans `#mHome .mOutils` (⚠ depuis la chasse aux détails : la rangée est descendue SOUS la bande de
+  la vitrine, au-dessus des tuiles — voir « L'ACCUEIL RÉORGANISÉ ») ; trois cases `#mMisPips`, une par défi relevé (posées par `mFill`).
+- **L'ÉCRAN `#mMis`** (routeur : `mScr.mis`, `PROF.mis=1`, rempli par `misRender()`) : RÉCOMPENSE (`.misUne` : catégorie, vignette
+  `objFig`, nom, phrase qui dit POURQUOI elle ne s'achète pas — `misRecoInfo`, accordée par catégorie ; la JAUGE des trois défis ;
+  touchable → `misVoir` ouvre la caisse/l'habillage au garage) · LES TROIS DÉFIS (`.misDef` : consigne, prime en vert billet, jauge
+  cyan → verte relevée, « TON MEILLEUR ESSAI 410 / 672 ») · LA RÈGLE (une partie par défi, prime tout de suite, récompense à la fin
+  de la partie) · ENSUITE (le contrat suivant, sous cadenas). Nouveau en sauvegarde : `SAVE.d.mis.best` (meilleur essai en UNE partie,
+  tenu par `misTick`, remis à zéro par `misFin`, désinfecté dans `san()`). Paysage : règle à droite du titre, récompense à gauche,
+  défis à droite, ENSUITE dans la rangée du RETOUR — tout tient en 844 × 390 sans défiler ; 390 × 844 aussi. FR/EN/中文.
+  ⚠ `#overlay p` (vieille feuille : centré, interligne 1,9) passe devant une classe seule : `#mMis .misExpl`.
+- **CIEL DE L'ACCUEIL** : `MENU_BIO='matin'` (le jour des NUAGES, validé le 27/09) au lieu de `couchant` ; voile du haut de l'accueil
+  allégé (`#overlay::after` .84 → .48, sinon le zénith restait noir). Comparés en captures : couchant · matin · midi · aprem · aurore ·
+  lever. Hook : `dbgMenuCiel('aprem')` pour en essayer un autre.
+
+## LES PLANS DE L'ACCUEIL (2026-09-28) — « l'image derrière pourrait faire de meilleurs plans, mieux cadrer »
+Sacha : « j'aime bien les boutons et la DA, mais ce qui est affiché à l'écran n'est pas ouf ». MESURÉ aux captures (844×390 = l'ordi,
+390×844) : en PAYSAGE la caisse était filmée au CENTRE, pile derrière le logo et les tuiles — on ne la voyait JAMAIS ; une dalle de bitume
+noir mangeait le bas (caméra à 4 m, regard plongeant) ; au 1er instant la caméra arrivait d'en haut (lissée depuis rebuildMenuScene).
+- **`menuCadre()`** lit (1×/s) les boîtes de `.mTitle`, `.mIcons`, `.mPlay` de `#mHome` → la ZONE LIBRE : la plus large bande latérale en
+  paysage, la bande entre le logo et les tuiles en portrait (menu PC `?pc=1` : au centre, comme avant). **`menuCamera()`** vise la caisse
+  puis PIVOTE (lacet/tangage exacts, `atan(ndc × tan(demi-champ))`) pour la poser au centre de cette zone ; la DISTANCE sort de la sphère
+  englobante de la caisse (×1,3 : en trois-quarts elle projette ~30 % plus large) pour qu'elle en remplisse la largeur.
+- **TROIS PLANS, COUPES FRANCHES** (`MENU_PLANS`) : AFFICHE 8 s (trois-quarts avant bas, l'angle de `menuPlan`) · ARRIÈRE 7 s (trois-quarts
+  arrière bas, la route qui file vers l'horizon) · PROFIL 7 s (plein côté, focale 30°, lent travelling). Caméra POSÉE à chaque image (le
+  plan est une fonction lisse du temps ; la coupe est franche, pas de travelling de raccord). À chaque coupe, le plan choisit son CÔTÉ
+  (miroir) : celui où le soleil « 1.61 » reste HORS de l'image finale, pivot compris (`menuSoleilVu` le projette). Lampe de vitrine
+  dosée par plan (`lum` ; le profil a le soleil dans le dos, à 3,4 il délavait la carrosserie). Écarté après captures : un plan DRONE
+  depuis le vide (plongée 35-40° : que du noir sous la caisse).
+- Hook : `dbgVitrine()` rend `plan` et `cadre` ; `dbgVitrine(null,'profil')` force un plan, `dbgVitrine(null,null)` rend la main.
+  Banc : scratchpad de26fdc9 `vp/menushot.js` (captures DOM + WebGL, paysage/portrait, 3e argument = plans à forcer).
+
+## PORTÉ DE LA LIGNÉE car-crash (2026-09-28) — pièces instanciées, génération au sol, pleins de nitro
+Repris du travail « progression & récompenses » de la branche `claude/practical-edison-19vbia` du dépôt `car-crash` (même ancêtre) —
+seulement ce qui s'applique ICI sans toucher à l'économie ni au FLOW v2. Banc : scratchpad de la session de26fdc9, `vp/static.js`,
+`vp/smoke.js`, `vp/robust.js` (harnais `harness.js`, `ROOT` = ce dossier, `?colonne=0`).
+- **PIÈCES INSTANCIÉES** (`coinIM`, `COIN_CAP`=4096, `coinPose`, `coinFlush`, `pk.ci`) : une pièce = un appel de dessin ; désormais UNE
+  InstancedMesh. Chaque pièce garde un FANTÔME (`pieceNeuve` rend un Object3D, recyclé par `PIECES_LIBRES`) : aimant, ramassage, LOD,
+  rotation inchangés. Le LOD RANGE EN TÊTE les seules pièces du couloir à chaque image et `count` = leur nombre (même méthode que
+  `conesVus`). ⚠ MESURÉ : une zone 7 porte ~9 100 pièces (2 faces) — les garder toutes dans l'instance, même écrasées à zéro, faisait
+  passer 2,1 M de triangles dégénérés par le vertex shader. Au MENU (LOD à l'arrêt) `spawnPickups` pose d'emblée le couloir du départ.
+  Les pièces du FOURGON restent de vrais maillages. MESURÉ zone 7 palier 22 : **257 → 137 appels de dessin**, triangles inchangés.
+- **`spawnPickups`** : `dodge()` écarte pièces et fruits des plots et des flaques (MESURÉ avant : 3 à 19 pièces posées SUR un plot par zone
+  et par face ; après : 0) ; le pas des motifs s'allonge en `STR`=√(poussée × `lateMul`) (1 → 2,1 ; 1 en CAMPAGNE, pistes fixes). ⚠ L'avance
+  d'un motif au suivant se compte sur sa longueur d'ORIGINE (`/STR`) : le NOMBRE de pièces par zone est identique à avant (mesuré sur
+  7 zones × 3 graines, écart < 0,1 %). Aucun appel `rnd()` ajouté ni retiré.
+- **LE PLEIN = LE MOTEUR** (`nitroCap()`) : portail, NITRO INFINIE / boost de départ et `sandRevive` écrivaient `nitroR=2` en dur — ils
+  VIDAIENT un réservoir de 3,6 (jauge à 55 % pendant la nitro infinie au palier max).
+- **GRAVITÉ LUNAIRE EN ESPACE** (`gK()`, `airMax()`, `ORB_G`=.5, `ORB_AIR`=1,7) : l'orbite était un décor (mêmes sauts, même jauge qu'aux
+  nuages). En ESPACE (`LVL.espaceA>=.5`, niveau EN ORBITE et carrière ESPACE, jamais au parc) la gravité est ÷2 pour TOUS les
+  intégrateurs (joueur, VOL PLANÉ à la nitro — ⚠ ×gK lui aussi, sinon .6×33 battait .5×33 et la caisse montait seule —, viseur, meute,
+  dos d'âne, plots qui valsent), la jauge d'airtime passe à 10,2 s, la perte à la pose (`bigness`) suit. La bannière du niveau dit
+  « GRAVITE LUNAIRE : SAUTS 2X PLUS LONGS ». MESURÉ : même impulsion → 13 m de haut contre 6,4. (Nitro tenue dès le décollage : on
+  grimpe, comme aux nuages — c'est le piqué qui ramène.)
+- **PLUIE DE DÉBRIS EN ORBITE** (`DEB`, `debArme`, `debFrappe`, `debTick`, `debCache` ; console `dbgDebris()` / `dbgDebris(1)` arme une
+  chute) : des morceaux de satellites qui rentrent en brûlant — PAS « météore », c'est déjà une FIGURE. Même grammaire que la FOUDRE de
+  la ville (cercle posé là où tu SERAS dans `DEB_T`=1,5 s, sur TA ligne ±4 m, rayon `DEB_R`=7,5, sifflement qui plonge), plus un
+  FAISCEAU rouge dressé sur la cible (lisible de loin) et la tête + traîne qui arrivent de trois-quarts avant (~27° de pente, ~35° de
+  côté : dans le cadre tôt, traîne visible). Impact = `cratere(…, leger)` (le cratère de la figure MÉTÉORE, plus petit, SANS slam ;
+  secousse et son dosés à la distance). **TOUCHÉ** : vitesse ×.6, flow −20, la gerbe soulève (`hopV` 7,5 — ça plane), « TOUCHE ! ».
+  **ESQUIVÉ de près** (< 16,5 m) : « ESQUIVE ! ×n », flow + aura (famille `esquive`, celle de la foudre) + nitro .12 → .24 avec la série.
+  Sous la dalle : « A L ABRI ». Cadence 3,4 s → 1,9 s vers le portail ; rien sur les 140 premiers / 150 derniers mètres ni dans le
+  couloir d'un tremplin. Tous les niveaux où `gK()<1` (EN ORBITE et la carrière ESPACE), jamais au parc ni à l'auto-école ; la meute
+  n'est pas visée (comme pour la foudre). Caché par `newTrack` et `campStop` (fin de partie). MESURÉ en simulation, 8 chutes : pilote
+  qui tient sa ligne → 4 à 6 touchés ; pilote qui s'écarte → 0 touché, série ×7. ⚠ Vu en capture et corrigé : tête de taille FIXE
+  (26 m) = un quart d'écran quand elle passe près de l'œil → taille ∝ distance, bornée ; disque, anneau et faisceau s'éteignent
+  quand la caméra SURVOLE la cible (ils rougissaient la moitié de l'écran) ; PAS de braises `embers` le long de la trajectoire (ce
+  pool se dessine en gros pâtés pixel dans le ciel). Banc : `vp/debris.js` (simulation), `vp/debshot.js` (captures).
+- Petits : la figure rend ×2 en pose DIVINE (×1,5 en PARFAIT, inchangé) ; `engSndParams` borne `rpm` ≥ 0 (un NaN dans un AudioParam
+  éteint le nœud pour la session) ; `#runStats` en `white-space:pre-line`.
+- **PAS REPRIS, exprès** : décote du bump (sa recharge est une demande de Sacha), débordement vers la réserve bleue (économie des fruits),
+  badge ×N / barre de palier / objectif de fin (le HUD d'ici a les siens), aimant (déjà sans `level`).
+
+## LA CARTE MOTEUR v4 (2026-09-28, Sacha : « l'animation du déblocage des moteurs plus belle, plus soignée, plus pro, adaptée à l'iPhone,
+maîtrisée — qu'on soit content de débloquer le moteur »)
+Filmée d'abord (banc `moteurfilm3.js` : captures rapprochées ~85 ms au vrai format 390×844 — ⚠ le screencast CDP rend un 800×600
+tronqué, inutilisable ; planche `planche.py`, scratchpad d82605e6). Le principe voulu par Sacha est GARDÉ (le moteur apparaît au-dessus de
+la caisse puis rentre dans le capot) ; ce qui change :
+- **Composition centrée** (`engBig`) : BANDEAU `.ebTit` à la couleur du moteur (or si « NOUVEAU SOMMET »), NOM 22 px, ligne `.ebInfo`
+  (`.ebPal` PALIER n · `.ebGain` +N KM/H en `--cashV`), cylindres `.ebCyl` dessous (`.dense` au-delà de 8), puis la scène 3D. L'ancien
+  badge `.ebNum` décalé à gauche a disparu. CSS : bloc « LA CARTE MOTEUR v4 » après `@keyframes eb2Ruban` (charte4).
+- **Taille iPhone** (`engBigPlace`) : plancher d'échelle .86, plus de réduction d'après la caisse (à .62 le titre se taisait, nom à 13 px).
+- **Le moteur se lit sur tout ciel** (`engQuadDraw`) : halo à sa couleur + DISQUE D'ENCRE (`engNoir`, même programme prémultiplié) qui ne
+  laisse qu'un liseré ; ÉCLAT blanc-chaud à l'apparition (`ENG_Q.fl`, 260 ms).
+- **Rythme** : 1,15 s au-dessus de la caisse (`ENG_COULOIR`, était 0,9), plongée 0,52 s ; chaque cylindre qui s'allume sonne une note qui
+  MONTE ; le gain claque (`.gain`) quand le dernier s'allume.
+- **La récompense à l'impact** (`engImpact`, appelée par `engPlonge`) : éclair d'or, `fovPunch`, secousse (déplacée de `engSwapArme`, où elle
+  tombait pendant que le moteur flottait), le moteur RUGIT (`boost` .8 + `boostSnd`), et « +N KM/H » jaillit de la caisse (`popTexte`).
+  `engGain(tier)` = vmax × `FLOW_VREF` × Δpoussée (≈ ce que le compteur gagne en croisière : +16 au bicylindre, ~+30 au V12).
+- Signaux gardés : `body.ebOn` / `body.ebPlonge` (la session interface estompe les pouvoirs avec).
+
+## CAMÉRA DE VOL v2 · POSE PARFAITE · PORTES DE L'ORBITE (2026-09-28 — idées reprises des sessions cloud, refaites ici)
+- ⚠⚠ **RETIRÉE LE SOIR MÊME** (Sacha : « la caméra en air time déconne complètement, ça devient beaucoup trop dur de viser juste ») :
+  filmée au banc sur un gros saut, la v2 partait sur le flanc et SOUS la caisse dès 1,3 s de vol (caisse vue de dessous en gros plan,
+  route réduite à un trait en biais, gauche/droite inversés à l'écran). Retour à la caméra de POURSUITE d'avant (lissage en position
+  monde : le retard aligne le regard sur la direction du vol ; champ 76° → 54° avec l'ampleur du saut). Gardés : secousses calmes,
+  coup de zoom PARFAIT remis à zéro au décollage, chocs en vol en petit DÉPLACEMENT (plus dans le regard). NE PAS remettre de plan
+  de côté ni d'écart tenu court en vol. Banc : `vol.js` (scratchpad 446ee745, film d'un gros saut). Ce qui suit est l'historique.
+  **+ LE BRAS** (même nuit, Sacha : « sur mobile la voiture devient trop petite en air time, il faut juste pas que ça complexifie ») :
+  MESURÉ en portrait, la poursuite décrochait à 17-18 m dans la 1re seconde (caisse à la MOITIÉ de sa taille au sol). La caméra garde
+  la direction de la poursuite mais ne s'éloigne plus au-delà de la distance qui garde la caisse à sa taille du décollage (`CAMV.s0`,
+  `volR`/`volTaille`) : 0,185-0,19 de la demi-hauteur tout le vol (0,12 avant), paysage 0,225-0,26. Le VISEUR (`landMark`) passe
+  par-dessus tout (`depthTest:false`, `renderOrder` 999) : une caisse plus grande ne cache jamais l'endroit où l'on se pose.
+  Mesure console : `dbgCamVol()` (distance, champ, taille, écart anneau/caisse en tailles de caisse).
+- **CAMÉRA DE VOL** (bloc « CAMÉRA DE VOL v2 » du mode 'fall', état `CAMV`) : on lisse l'ÉCART caisse→caméra (`CAMV.off`), plus la
+  position monde — le `lerp(cible, dt*3)` traînait de vitesse÷3 : MESURÉ 23-36 m derrière en vol, désormais 7-9 m (5-7 au sol).
+  HANG TIME : réception prédite à plus de 1,3 s (`CAMV.eta`, posé par le viseur d'atterrissage) → la caméra pivote de trois-quarts
+  (~57°) côté SOLEIL autour de `FLY_U` ; réception proche → retour derrière et regard tiré vers l'anneau. Champ 78° (le zoom 76→54°
+  qui compensait la traîne a sauté). L'écart repart de la vraie caméra au 1er plan du vol (aucune coupe).
+- **POSE PARFAITE** (`poseParfaiteFx`, appelée au verdict dès g ≥ 1,5) : COUP DE ZOOM (−24° sec, relâché en 0,5 s — `CAMV.zoom/zp`, lu
+  par la caméra au sol via un champ « de base » `loop._fovB`) + COURONNE DORÉE depuis les bords (`flashEcran` or) ; DIVIN : deux battements.
+- **PORTES DE L'ORBITE** (`ORBFX`, `orbWarp`/`orbFeu`/`orbFxTick`, crochet en tête de `newTrack`, portail franchi en course seulement) :
+  ENTRÉE = tunnel de distorsion 1,9 s (la distorsion `uSpeed` du boost poussée à .95, `fovPunch` jusqu'à 34°, traits de lumière en anneau,
+  éclair bleu à l'entrée et à la sortie) ; SORTIE = rentrée en feu 2,6 s (bouclier de plasma = 2 sprites additifs `lampTex` au nez et
+  autour de la caisse, flammes sur la silhouette vue de derrière — nées au nez, la caisse les cachait —, `nitroLight` passe au nez en
+  rouge-orange, bords d'écran qui battent orange, crépitements). Banc : `camorb.js` / `orbonly.js` (scratchpad d82605e6).
+
 ## PASSE DE LANCEMENT (2026-09-28) — « imagine qu'il sort sur l'App Store, vise le top 1 des jeux de course »
 Bancs muets dans le scratchpad de la session d82605e6 (un à la fois) : `balade2.js` (nouveau joueur au vrai doigt), `boucle.js` (mort →
 rejouer : ~2,9 s, les touchers de la 1re demi-seconde sont avalés exprès), `endurance.js` (5 min, 14 niveaux : 0 erreur silencieuse,
@@ -56,6 +447,59 @@ collé au bord de la route, sans un saut, FRÉNÉSIE en 11 s et gardée pour tou
   musique ; 2e argument = un mp3 pour simuler le morceau livré), `sim.js` (joueurs types, lit le bloc dans index.html). RÉSULTAT :
   sage et colle-bord plafonnent FLOW I / II (0 % de frénésie), pilote de route 2 %, casse-cou 1re frénésie ~60 s (22 % du temps,
   ~26 s d'affilée), maître ~30 s (57 %, ~64 s d'affilée).
+
+## LA FRÉNÉSIE v4 — « LA TRIADE » + LA POSE RATÉE + LA FIGURE QUI DÉCLENCHE (2026-09-28, fin d'après-midi)
+Sacha : « l'état de frénésie doit rappeler les traits de la dark triad : tant qu'on les respecte on reste en frénésie — NARCISSISME : la
+prise de risque, l'ambition, les figures inutiles pour le sport ; MACHIAVÉLISME : la triche, couper les chemins ; PSYCHOPATHIE : la vitesse
+à fond, le nitro appuyé tout le temps » ; « en cas de mauvais atterrissage, de travers ou à contresens, le flow retourne à zéro » (tranché
+au questionnaire : DE TRAVERS = plus de ~55° de l'axe, À CONTRESENS = sens inverse ; le bonus « À RECULONS » est SUPPRIMÉ) ; et (relayé par
+la session UI) « la frénésie part après avoir POSÉ UNE FIGURE — l'atterrissage est la condition, en plus du score de flow ». Lois 8-9 de `FLOW2`.
+- **LA TRIADE** (`FLOW2.triade`, `TRAITS`, `frenTrait/frenTriade/frenTraitsMaj`) : en frénésie, trois traits à mémoire — NARCISSE 9 s (tout
+  geste 'risque' par défaut : figures en vol, BIG AIR, poses parfaites, arrachée, serpent… ; un frôlé en rend 30 %), MACHIAVEL 25 s
+  (`flowAdd(…,'risque','m')` : raccourci ≥ 60 m, gap ; une petite coupe 25-60 m au prorata), PSYCHO 3 s (nitro enfoncé, ou `vitN` ≥ 1,3).
+  Ils se vident au sol, jamais en vol. La zone rouge brûle selon les traits VIVANTS : `brule` [4, 2, .7, −1.5] /s (0 · 1 · 2 · 3 vivants —
+  les trois tenus, elle se REGONFLE). Les gestes ne remplissent plus la jauge en frénésie (`fam[…][4]` = 0) ; le nitro n'y GÈLE plus rien
+  (il est PSYCHO) — il ne gèle que la MONTÉE. Un trait qui meurt se crie (« UNE FIGURE ! » · « TRICHE ! » · « NITRO ! »), une fois par trait
+  et par frénésie, 0,9 s entre deux appels ; un trait qui renaît sonne. Entrée : les trois PLEINS. Affichage : `#frenTraits` (trois `<i
+  data-t>` : nom + barre `--f`, `.faible` < 30 %, `.mort`, `.fl1/.fl2` = nourri) sous `#frenChrono`.
+- **LA JAUGE PLEINE ARME, LA FIGURE POSÉE DÉCLENCHE** (`frenArme`, `frenDeclenche`) : à 100, `FREN.arme` (classe `.arme`, « POSE UNE
+  FIGURE ! ») ; la frénésie part dans `tryLand`, à la pose d'un vol qui a porté une figure (`chain>0` ou BIG AIR) et qui n'est pas ratée —
+  voix TRIPLE MONSTRE, slam, musique, `#triade.on` (le titre TRIPLE MONSTER de la session UI l'observe). Désarmée sous la zone rouge (88).
+  `flowAdd` plafonne le palier à 3 : on n'entre en frénésie QUE par `frenDeclenche`.
+- **LA POSE RATÉE** (`poseAng`/`poseRatee` juste après `const impact` dans `tryLand`, `flowCasse`) : angle entre la trajectoire à plat dans
+  la dalle (= le cap de la caisse : le volant tourne le vol lui-même) et l'axe de la route ; > `FLOW2.pose.angle` (55°, dès 4 m/s à plat) :
+  grade décoté comme un POSÉ LOURD (pas de PARFAIT, pas de montée de grade au braquage), puis, la pose jugée, le flow tombe à ZÉRO (frénésie
+  comprise, sa tenue compte pour le record) : « DE TRAVERS ! » / « À CONTRESENS ! » (> 90°). Mesuré : saut droit = ~10°. ⚠ à ces vitesses,
+  braquer franchement en vol fait surtout RATER la dalle (la mort) : la règle mord sur les petits sauts et les vrilles de 180° posées.
+- Hooks : `dbgFren('entre')` (déclenche), `dbgFren('trait','m')` nourrit / `('trait','m0')` vide, `dbgFren('pose',1)` (pose ratée),
+  `dbgFren()` rend `triade {n,m,p,k}`, `arme`, `poseA` (dernier angle de pose). Bancs (scratchpad 41020878) : `sim3.js` (triade + arme ;
+  profils « sans triche », « sans nitro »), `frenv5.js` (arme → vrai saut → frénésie ; PSYCHO seul → deux appels, perdue ~8 s), `poseDroit.js`.
+  Mesuré (sim3, 5 min) : casse-cou 1re à ~157 s, tenue ~73 s, 85 % du temps avec les trois vivants ; maître ~75 s, tenue ~2 min 25 ;
+  maître sans jamais tricher : tenue ~42 s ; sans nitro : ~60 s.
+
+## LA FRÉNÉSIE v3 — « PLUS DURE À ATTEINDRE, MOINS FACILE À PERDRE, UN BUT EN SOI » (2026-09-28, l'après-midi)
+Sacha, après le FLOW v2 : « on l'a trop dans le jeu ; en frénésie le nitro baisse 2× plus lentement ; tant que le nitro est activé
+le flow ne baisse pas ; atteindre la frénésie doit être un but en soi » puis « plus dure à atteindre mais moins facile à perdre ».
+MESURÉ AVANT (`sim2.js`, plots fidèles au jeu — un plot touché ne retire PAS de flow) : casse-cou en frénésie à 51 s, 47 % du temps ;
+maître à 24 s, 77 %. Le réglage vit TOUJOURS dans `FLOW2` (commentaire « LE FLOW v3 », lois 5-7) :
+- **LE NITRO GÈLE LE FLOW** (`flowTick` : `FLOW.nit = nitroOn && mode!=='boom'`, passé à `flowPerteDe(…, nit)`) : ni perte ni répit
+  qui s'écoule tant qu'il brûle — comme en vol. La bande prend `.gele` ; pas de fuite affichée ni de tic d'alarme (`flowReste`).
+- **EN FRÉNÉSIE LE NITRO DURE 2×** (`FLOW2.fren.nitro` .5) : la consommation au sol ET le coup de réacteur en vol (12 % × .5).
+  Mesuré au banc : net −0,3/s en frénésie contre −0,8/s hors frénésie (recharge .2/s comprise).
+- **LA MONTÉE EST LONGUE** : `cel` .5 · .35 · .22 · .14 (v2 : 1 · .8 · .65 · .5), fuite 3 · 3,5 · 4 · 3, pente 0 · 0 · .4 · .4, répit 2,5 s.
+- **LA FRÉNÉSIE TIENT** : `fren` pente .7, fuite 1,5, répit 4 s — perdue en ~8,4 s à la croisière sans rien faire (4 s en v2), et le
+  nitro la tient indéfiniment tant qu'il y en a. **PERDUE, LA TRIADE SE VIDE** : `retombee` 75 (+1 de filet) — plus de retour en deux figures.
+- **UN BUT EN SOI** (`frenDebut/frenTient/frenFin/frenChrono/frenDuree`, juste après `flowReset`) : chrono sous l'emblème
+  (`#frenChrono`, `.rec` quand le record tombe), record de tenue `SAVE.d.frenRec` (s, arrondi par défaut, borné dans `san`), l'annonce
+  d'entrée dit « RECORD 0:42 » (dès 5 s de record), « RECORD DE FRÉNÉSIE ! » crié quand il tombe (une fois), « FRÉNÉSIE 0:42 [· RECORD] »
+  à la perte, la plus longue de la partie sur l'écran de mort (`.mStat.mFren`, `.rec` si record — toujours affichée, 0:00 = le but reste
+  sous les yeux). `RUNX.fren`/`RUNX.frenMax` ; `endGame` compte une frénésie encore en cours (QUITTER, fin de campagne).
+- **LE SOUFFLEUR** : frénésie qui fuit au sol + nitro disponible non allumé → « NITRO ! », une fois par frénésie.
+- Le STYLE de `#frenChrono`, `.gele`, `.mStat.mFren` : la session UI (hudMaitrise / charte4) — ici seulement un CSS minimal.
+- Bancs (scratchpad session 7700ae / 41020878, muets, UN à la fois) : `sim2.js <index.html> [T] [--v2]` (joueurs types + réservoir de
+  nitro ; `OV='{cel:[…]}'` surcharge FLOW2 à l'essai), `frenv3.js <racine>` (gel, ×½, tenue, retombée, record, écran de mort).
+  RÉSULTAT (4 min) : sage, colle-bord, pilote de route 0 % ; casse-cou 1re à ~141 s (44 % des parties), 13 % du temps, tenue ~70 s ;
+  maître 1re à ~74 s, tenue jusqu'à 2 min.
 
 ## LA CAMPAGNE NUAGES (2026-09-27) — dix heures du jour, dix idées de jeu
 Brief de Sacha (inspiration rédigée avec Grok) : « les 10 niveaux racontent une journée, de l'aurore au coucher du soleil ; chaque
@@ -395,38 +839,83 @@ QUE pour les NUAGES (`c.camp&&c.id==='nuages'`) — la ville garde zéro nuage (
   · Bancs : scratchpad `v6/conduite/diag/` (diagnostic, sim6.js), `v6/conduite/moi/sim-v6.js` (le modèle retenu + pilote 150 ms),
     `v6/piste/base/` (banc.js étendu, variantes.js, resume.js). `dbgState()` expose psi/yawR/slipB/glisse/drift/roulisDeg/vH.
 
-## LE HUD v5 — LE TABLEAU DE BORD À LED (2026-09-28) — tout l'affichage de COURSE
-Sacha : « une refonte complète et maximale des informations affichées pendant la partie — nitro, barre de flow, triangle DARK TRIAD,
-boutons, textes… ajoutés petit à petit : beaucoup plus soignés, cohérents, modernes ; BEAU, ADDICTIF, PENSÉ POUR MOBILE ». Tout vit
-dans UN bloc `<style id="hud5">`, posé juste APRÈS `charte4` : il est AUTORITAIRE (il redéfinit chaque élément en entier par-dessus les
-passes « HUD v4 », « vague 2/3 », « charte au complet » du 1er `<style>`) — une retouche du HUD de course s'écrit LÀ, nulle part ailleurs.
-- **L'IDÉE** : la police pixel est un AFFICHEUR À LED ; le HUD est le tableau de bord d'une voiture de course la nuit. Primitive
-  unique : la RANGÉE DE DIODES = un rail de diodes éteintes (`--ledOff`) + le remplissage + un calque de JOURS (`--ledJour` : 5 px de
-  diode, 2 px de jour, de la couleur `--plateHud` du fond) posé PAR-DESSUS (pas de masque : les remplissages R/X de la nitro ne sont pas
-  alignés entre eux, le calque l'est). Nitro, flow, record, chaîne, pouvoirs : la même primitive.
-- **LA RAMPE** (`#nitroWrap::before` = la plaque, opaque, sous la nitro ET le flow ; `--rampeT`/`--rampeH`/`--rampeD`) : rangée 1 = la
-  NITRO (orange, réserve bleue, curseur blanc) ; rangée 2 = le FLOW en SHIFT LIGHTS (cellules cyan → or → rose → violet, la zone
-  rouge au bout, `.fL` masqué, `.fM` = le ×cash à droite). La FRÉNÉSIE = le RUPTEUR : toutes les diodes rouges qui battent
-  (`h5Rupteur`), la plaque qui s'embrase au rythme de l'emblème ; « ça fuit » en frénésie = diodes pâles qui clignotent vite. Les états
-  du flow se lisent SUR la plaque (`body:has(#flowHud.lache)` → la rampe clignote au tic ; `.fuit` → liseré rouge) ; un palier gagné =
-  un éclat qui balaie les diodes (`.monte .fSeg::after`) + coup de poing sur le ×cash. NITRO MAX : diodes chauffées à blanc, le feu de
-  DOOM brûle DANS la rampe (`#nitroWrap{overflow:hidden}`, les jours découpent les flammes en colonnes). ⚠ JS changé : la rampe compte
-  désormais la PART DU RÉSERVOIR (`nitroR/res`, réserve `nitroX/2` par-dessus) comme le disque NITRO — elle comptait sur 4 unités
-  (réservoir plein = rampe à moitié, disque plein).
-- **LE SCORE** (`#auraV2`) : l'étiquette AURA AU-DESSUS du chiffre (grille), 32 px rose cerné d'encre ; le RECORD en rail de diodes or
-  (156 px) et sa phrase dessous ; à 85 % du record la phrase devient « ENCORE n » (`recMaj`).
-- **LA CHAÎNE** (`#avCh`) : une PLAQUE (bande à la couleur du ×), points 16 px, × 28 px, compte à rebours en diodes, 2 gestes. ⚠ JS
-  changé : `X_COUL` = l'échelle des shift lights (blanc, cyan, or, rose, violet, puis rouge feu) — ×3 était VERT, la couleur de l'argent.
-  En paysage elle se range À CÔTÉ du score (elle descendait sous le pouce gauche).
-- **LA COLONNE DE DROITE**, cases FIXES (rien ne saute) : ⏸ aligné sur la rampe · la case de l'emblème DARK TRIAD (108 × 98, il NAÎT de
-  la zone rouge — frenEntre mesure `.fZ` — et s'y pose) · le chrono de vol (`top: rampe + 104`) · les pouvoirs (`rampe + 190`, plaques
-  140 px, minuteur en diodes), l'objectif de campagne s'intercale. En paysage : emblème à droite de la rampe, chrono et pouvoirs en haut à
-  droite. `#pwrFx` (halo des pouvoirs) passe SOUS le HUD (z 1). Sous une grande annonce / un verdict / la carte moteur, les pouvoirs
-  s'effacent.
-- **LE BAS** : l'invitation du volant = un anneau de 24 crans + un disque sombre (frère du disque NITRO), consigne à l'ombre d'encre franche.
-- **AUTO-ÉCOLE** : la rampe se réduit à la nitro (`coOn`). Carte d'astuce/défi : 316 px, icône dans un puits cerclé.
-- Bancs (scratchpad session 312bec4e, `ui/`) : `hud.js <prefixe> [port] [w] [h] [dsf]` (17 états de course ; `CLEAN=1` = fond sans HUD ;
-  `CAMP=1` = campagne), `inshud.py` (réinsère le bloc depuis `hud5-a…e.css`), planche statique `_board/hud.html` + `board.js` (rendu CPU).
+## LA TRIADE v5 — « LA GRAMMAIRE DU FLOW » (2026-09-28, soir) — les trois traits deviennent les auteurs de TOUT le flow
+Sacha : « pour gagner en flow on a établi trois principes : PSYCHO — la vitesse aérienne, la vitesse max, le nitro ; MACHIAVEL — la
+triche, les raccourcis ; NARCISSE — les figures, les bumps, les séries de pièces entières. Rends les règles parfaites pour aller avec
+ces traits ; quand on fait une figure, "+NARCISSE" en petit à côté de FLOW, "-PSYCHO" si on ralentit trop ; les trois peuvent
+s'afficher ensemble, vert quand on gagne, rouge quand on perd, petits, sur la même ligne, et ils clignotent » — « tu es game designer
+senior, adapte de manière pro en prenant des libertés ». Lois 10-12 de `FLOW2` (commentaire du bloc) :
+- **CHAQUE POINT A UN AUTEUR** (`flowAdd(q,fam,trait)`) : sans trait désigné, style et risque = NARCISSE ; la route seule (pièce, rase-bord)
+  n'en a pas. MACHIAVEL : raccourcis, gaps, le SERPENT (sous la route), la pose sur la FACE CACHÉE (`sideL<0`), le FOURGON braqué.
+  PSYCHO : pads BOOST et lignes de pads, radars, À L'INSTINCT, À L'AVEUGLE, et **la vitesse TENUE** (`FLOW2.psy` : ≥ 1,12 × la croisière
+  au sol ou ≥ 1,15 en vol → un geste toutes les 1,5 s, 4 style / 6 risque — le nitro y mène). NARCISSE : figures, bumps, poses, drift,
+  frôlés, esquives, arrachées… et **LA SÉRIE ENTIÈRE** (`coinSerie`) : chaque motif de pièces (zigzag, arc, cercle, jackpot — pas
+  l'éparpillé) porte un n° (`serieEtat()`, posé par `spawnPickups` SANS toucher au `rnd` seedé) ; la dernière pièce du motif, sur sa face,
+  paie `3 + n×0,4` en style signé NARCISSE + « SÉRIE COMPLÈTE ×n ». Motifs de moins de 4 pièces : rien.
+- **LA FAUTE A UN AUTEUR** (`flowFaute(t,pts,part)`) : hors frénésie le répit saute (fuite immédiate) et `pts` partent sans jamais passer
+  sous le palier en cours ; en frénésie le trait perd `part` de sa mémoire. -PSYCHO : sous `lent.vit` (0,8) × la croisière, au sol, sans
+  nitro, jauge entamée — **armé seulement après avoir atteint 0,95** (le départ lancé monte de 0,4 à 1 en ~6 s : ce n'est pas une lenteur) ;
+  l'étiquette rouge reste tant qu'on traîne. -NARCISSE : POSÉ LOURD (6 pts / ½ mémoire), plot percuté (répit / ¼ mémoire), pose RATÉE
+  (tout, loi 9). MACHIAVEL ne se fait jamais prendre : il ne meurt que d'oubli, en frénésie.
+- **EN FRÉNÉSIE LE STYLE NOURRIT AUSSI** (`FLOW2.part` {risque 1, style .35, route .05}, au prorata jusqu'à q = 6) : bumps, séries, drift
+  tiennent NARCISSE sans remplacer une vraie figure. Le frôlé ne verse plus sa part à part (plus de double versement).
+- **L'AFFICHAGE** (`flowTag(t,±1)`, `FTAG`, `.fT` créé dans `#flowHud` après `.fL`) : trois places fixes N · M · P sur la ligne du nom du
+  palier ; même signe = prolonge (un filet continu la garde allumée), signe contraire = relance ; +1,4 s / −1,8 s ; extinction comptée
+  dans `flowTick` (aucun minuteur). Entrée en frénésie : les trois en vert ; un trait qui meurt / renaît en frénésie s'affiche. La ligne
+  du flow a été repartagée : le ×cash monte au bout de la jauge (rangée 1), le nom + les traits en rangée 2 ; `.fT` a une largeur NULLE
+  (elle déborde à droite sans élargir la grille — sinon le ×cash filait sous le ⏸). ⚠ la vieille règle `#flowHud i{width:64px;overflow:
+  hidden}` du 1er `<style>` rognait les noms : neutralisée sur `.fT i`. En portrait l'emblème descend (`--frenH` 88) pour libérer la ligne.
+- Hooks : `dbgFren('risque',10,'m')` (geste signé), `dbgFren('faute','n')`. Banc : `banctr.js` (scratchpad 312bec4e). ⚠ `sim.js` exécute le
+  bloc FLOW2 (les nouvelles clés n'y gênent pas) mais NE simule PAS la vitesse tenue ni -PSYCHO (ils vivent dans `flowTick`).
+
+## LA TRIADE SIMPLIFIÉE (2026-09-28, nuit) — la montée allégée, la tenue un cran plus exigeante (lois 13-14 de `FLOW2`)
+⚠⚠ **RETIRÉE LE MÊME SOIR** (Sacha : « l'état de frénésie est trop facile à atteindre, remets l'ancienne version ») : `FLOW2` est
+revenu aux réglages de la TRIADE v5 (cel .5/.35/.22/.14, pente .4, fuite 3/3,5/4/3, gate .95, style .35 et route 0 dans la triade,
+brûlure [4 · 2 · ,7 · −1,5], pose lourde 6). Les valeurs simplifiées restent notées en commentaire sur chaque clé. S'il redemande
+« un peu plus facile » : un point ENTRE les deux (mesurer avec `simtri.js`), jamais la version simplifiée telle quelle. Ce qui suit est l'historique.
+Sacha : « c'est un peu trop dur d'avoir la dark triad, simplifie quand même un peu plus ». Les bancs de la session flow (sim.js…sim3.js)
+avaient disparu avec son scratchpad : **`simtri.js`** (scratchpad 312bec4e, `ui/`) exécute le VRAI bloc `<<<FLOW2>>>` extrait
+d'index.html sur trois joueurs types (tranquille · casse-cou · maître : gestes/s, sauts, nitro, raccourcis, fautes, PSYCHO v5),
+5 min × 60 parties ; `OV='{…}'` surcharge FLOW2 à l'essai. AVANT : tranquille et casse-cou JAMAIS, maître 2 min 26.
+- **Réglages** : `cel` .7/.55/.4/.34 (v3 : .5/.35/.22/.14) · `pente` rose+triade .15 (.4) · `fuite` 2,5/3/3/2,5 · `gate` .85 (.95) ·
+  `fam.style[3]` .7 (.35), `fam.route` [1,.6,.3,.15] (la route touche enfin la triade, un filet) · `brule` [4,5 · 2,4 · ,9 · −1,2]
+  ([4 · 2 · ,7 · −1,5]) · `faute.lourd` 4 (6).
+- **APRÈS** : tranquille ~4 min (60 % l'atteignent en 5 min), casse-cou ~1 min, maître ~40 s ; en frénésie ~5 % · ~50 % · ~70 % du
+  temps. ⚠ Le v3 disait « 77 % du temps pour le maître = c'était le jeu » : si Sacha trouve la frénésie trop présente, durcir la
+  TENUE (`brule`, mémoires des traits), pas la montée.
+
+## LE HUD DE COURSE, MAÎTRISÉ ET EN MOUVEMENT (2026-09-28) — le dessin d'origine, plus de rigueur et d'animation
+⚠ **ÉCARTÉ LE MÊME JOUR : le « tableau de bord à LED »** (rampe unique nitro + flow en shift lights, plaques partout, main b5bfd24 /
+3270d00). Verdict de Sacha : « non, je préfère la première version — remets-la dans le même style, juste avec plus de maîtrise et
+d'animation ». Son CSS est gardé hors du jeu (scratchpad session 312bec4e, `ui/led/`) ; ne pas le réintroduire sans qu'il le demande.
+Le HUD garde donc EXACTEMENT son dessin (sections HUD du 1er `<style>` + charte4). Un bloc `<style id="hudMaitrise">`, posé juste après
+charte4, n'ajoute que du mouvement et des réparations — une retouche d'animation du HUD de course s'écrit là :
+- **L'ENTRÉE EN SCÈNE** : au départ, chaque bloc arrive de SON bord (nitro et flow du haut, aura de la gauche, invitation du volant du
+  bas), en cascade de 1,15 s à 1,5 s — APRÈS le flash et le logo CASH CAR du départ (lancée tout de suite, elle se jouait sous le flash).
+  Le ⏸ n'attend pas (0,1 s) : un bouton invisible mais touchable est un piège (QA « ⏸ visible en course »).
+- **LA JAUGE NITRO** : PLEINE, elle respire (luminosité des remplissages) et l'éclair bat ; À SEC, le cadre (un `outline`) et l'éclair
+  battent rouge. ⚠ Les animations d'origine `.plein`/`.bas` animaient un `box-shadow` verrouillé en `!important` : elles ne se voyaient
+  JAMAIS — d'où l'`outline` et le `filter`.
+- **LE FLOW** : un palier de plus = un ÉCLAT qui balaie la bande (`.monte .fSeg::after`) et le nom + le ×cash qui frappent.
+- **L'AURA** : l'encaissement grossit le compteur DEPUIS SA GAUCHE, sans ressort ; « ENCORE n » (voir plus bas) bat doucement.
+- **LA CHAÎNE** : le × qui monte = un coup franc (×1,9, −6°) au lieu de la valse d'origine (×2,8, −16° → +7°) ; elle glisse de la gauche.
+- **POUVOIRS / CHRONO / VOLANT** : une plaque de pouvoir glisse de la droite en s'allumant ; le chrono de vol ÉCLÔT au décollage ; le
+  stick éclôt sous le pouce. Propriétés individuelles `translate`/`scale` (elles ne se battent pas avec les `transform` posés ailleurs).
+- **RÉPARATIONS** : `#pwrFx` (halo des pouvoirs) passe SOUS le HUD (z 1) — il voilait la nitro et l'aura.
+- **RESTÉ DU TABLEAU À LED (logique, pas style)** : (1) la jauge nitro compte la PART DU RÉSERVOIR (`nitroR/res`, réserve `nitroX/2`)
+  comme le disque NITRO — elle comptait sur 4 unités (réservoir plein = jauge à moitié, disque plein) ; (2) `X_COUL` = cyan, or, rose,
+  violet puis rouge feu (×3 était VERT, la couleur de l'argent) ; (3) `recMaj` : à 85 % du record la ligne dit « ENCORE n ».
+- **LA TYPO OMBRÉE, PARTOUT** (Sacha : « les mêmes effets de dégradé pour tous les textes du HUD ») — DÉROGATION NOMMÉE à « pas de
+  dégradé dans un texte » : grands textes en quatre bandes (lèvre blanche, clair, plein, sombre — l'ancienne lèvre `::after[data-t]` est
+  masquée), petits en deux tons, calés PAR LIGNE (`background-size:100% 1lh`, déclaration séparée : repli sûr), couleur par `--tc`,
+  contour d'encre en `drop-shadow` (`--contourH/--contourP`). Aura = violet clair ; annonce, verdict, niveau, dauphin, défi, auto-école,
+  campagne, pouvoirs, liste de chaîne, NITRO, traits. (Section 15 de hudMaitrise ; `#engBig` n'y est pas.)
+- **« TRIPLE MONSTER »** (`#frenTitre`, `FT_G`, `ftLigne`, `frenTitre`) : à l'entrée en frénésie (un observateur guette `#triade.on`),
+  TRIPLE / MONSTER en lettres GOTHIQUES dessinées au pixel (cornes, pieds fendus), bandes rouges pâle → sang, cernées d'encre ; des filets
+  de sang coulent des pieds par crans puis lâchent une goutte ; 2,7 s, `body.ftOn` fait taire annonce/verdict/niveau/chrono/traits. En
+  paysage : plus petit, au-dessus de la caisse. La VOIX « triple_monstre.mp3 » est celle de `frenDeclenche`. Hook `dbgFrenTitre()`.
+- Bancs (scratchpad 312bec4e, `ui/`) : `hud.js` (états de course), `dbg5.js` (entrée en scène + palier : noms d'animation relevés),
+  `inshud2.py hudm.css` (réinsère le bloc).
 
 ## LA CHARTE v5 — LAQUE · OR · NÉON (2026-09-28) — la v4, un cran plus haut, portrait ET paysage
 Sacha : « ça manque de soin — tous les affichages beaucoup plus soignés, beaucoup plus cohérents entre eux, beaucoup plus
