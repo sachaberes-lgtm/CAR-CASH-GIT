@@ -5210,10 +5210,13 @@ function updateContactShadow(){ // appelée juste avant le rendu
     const hgt=fallPos.y-lastNearY; // hauteur au-dessus de la route la plus proche → télégraphe d'atterrissage
     if(hgt>0.4&&hgt<46&&lastNearH2<(ROAD_HALF+1.5)*(ROAD_HALF+1.5)){ // ...mais RIEN à survoler au-dessus d'un trou : pas d'ombre suspendue dans le vide — (route ÷2) 560 = 23,7² était la demi-route ×1,7 d'AVANT : sur la route ÷2 l'ombre « tu es au-dessus du bitume » s'allumait jusqu'à 16 m dans le vide ; désormais la dalle + une demi-caisse
       if(M9.map!==contactTex)M9.map=contactTex; // en vol, le télégraphe d'atterrissage reste le disque qui grandit avec la hauteur
-      contactShadow.position.set(fallPos.x,lastNearY+0.06,fallPos.z);
-      contactShadow.quaternion.setFromRotationMatrix(shMat4.makeRotationX(-Math.PI/2)); // à plat
-      const k=1+hgt*0.05;contactShadow.scale.set(5.4*k,6.6*k,1);
-      M9.opacity=Math.max(0,0.7*(1-hgt/46));contactShadow.visible=true;
+      const bi9=tryLand._bi,k=1+hgt*0.05;
+      if(bi9!=null&&bi9>=0&&Nn[bi9]&&curHOff>0){ // (2026-09-28) posée SUR la dalle survolée, dans son plan (sur une pente, le disque à plat s'y enfonçait à moitié)
+        contactShadow.position.copy(fallPos).addScaledVector(Nn[bi9],.06-curHOff);
+        contactShadow.quaternion.setFromRotationMatrix(shMat4.makeBasis(T[bi9],B[bi9],Nn[bi9]));contactShadow.scale.set(6.6*k,5.4*k,1);}
+      else{contactShadow.position.set(fallPos.x,lastNearY+0.06,fallPos.z);
+        contactShadow.quaternion.setFromRotationMatrix(shMat4.makeRotationX(-Math.PI/2));contactShadow.scale.set(5.4*k,6.6*k,1);} // à plat
+      M9.opacity=Math.max(0,Math.min(0.7*(1-hgt/46),(hgt-.4)*1.2));contactShadow.visible=true; // (2026-09-28) en FONDU au décollage (il surgissait à .69 d'un coup)
     }else contactShadow.visible=false;
   }else contactShadow.visible=false;
 }
@@ -16226,7 +16229,7 @@ function countUp(el,to,fmt){ // un chiffre qui MONTE (départ franc, arrivée do
    roses (1,7 s). Au relâcher, le niveau atteint part en MINI-TURBO : une poussée, un coup de boost, et de la nitro rendue.
    Le geste que tous les jeux de caisse arcade ont rendu jouissif, posé sur la physique existante (la caisse pivote plus,
    perd un soupçon de vitesse en glisse — et la récupère au centuple à la sortie). */
-let driftC=0,driftLv=0,driftSpk=0,driftEnCours=false,driftArm=0,driftCd=0,fovPunch=0,carRoll9=0,rollV=0,pitch9=0,raseT=0,raseAnn=false;const DRIFT_V=new THREE.Vector3(),EXV=new THREE.Vector3(); // EXV : la vitesse monde de la caisse, héritée par les étincelles d'échappement
+let driftC=0,driftLv=0,driftSpk=0,driftEnCours=false,driftArm=0,driftCd=0,fovPunch=0,carRoll9=0,rollV=0,susY=0,susV=0,pitch9=0,raseT=0,raseAnn=false;const DRIFT_V=new THREE.Vector3(),EXV=new THREE.Vector3(); // EXV : la vitesse monde de la caisse, héritée par les étincelles d'échappement
 function driftTick(dt,on){
   driftCd=Math.max(0,driftCd-dt); // (2026-09-25) recharge après un mini-turbo : le zigzag de drifts ne se « farme » plus
   if(on&&driftCd<=0){
@@ -19258,6 +19261,7 @@ function explode(cause){
   chainHud.style.opacity=0;
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;
   BOOM_CAM.m0=mode;BOOM_CAM.pret=false; // (vague 3) le PLAN DE LA MORT se pose au premier pas (voir boomCamTick)
+  BOOM_SOL.ok=mode==='drive';if(BOOM_SOL.ok){frameAt(s,BOOM_SOL);BOOM_SOL.p.addScaledVector(BOOM_SOL.n,side<0?-THICK:0);BOOM_SOL.n.multiplyScalar(side);} // (2026-09-28) morte AU SOL : on garde le plan de la dalle
   mode='boom';boomT=0;boomPos.copy(carGroup.position);bmCam.copy(camera.position); // (vague 2) le point d'où l'on regarde la mort
   spawnBoomArt(boomPos,1); // LA BOULE DE FEU DESSINÉE : volutes en chou-fleur + dards
   boomOndePart(boomPos); // (2026-09-26) + l'onde qui court sur le bitume
@@ -19532,7 +19536,7 @@ function poseGerbe(pos,nrm,sg,tan,v,impact){
   const ns=12+Math.round(k*26);
   for(let i=0;i<ns;i++){
     const sd=i&1?1:-1,la=(1.5+Math.random()*6)*(.6+k),ar=v*.9-(2+Math.random()*9),up=.5+Math.random()*(1.5+3*k),o=.3+Math.random()*1.3;
-    spawnP(sparkGold,pos.x+pgB.x*sd*o+nx*.12,pos.y+pgB.y*sd*o+ny*.12,pos.z+pgB.z*sd*o+nz*.12,
+    spawnP(impact>=10?boomEmbO:sparkGold,pos.x+pgB.x*sd*o+nx*.12,pos.y+pgB.y*sd*o+ny*.12,pos.z+pgB.z*sd*o+nz*.12, // (2026-09-28) POSÉ LOURD : braises orange-rouge — l'anneau l'annonçait rouge, la gerbe disait or
       tan.x*ar+pgB.x*sd*la+nx*up,tan.y*ar+pgB.y*sd*la+ny*up,tan.z*ar+pgB.z*sd*la+nz*up,.2+Math.random()*.28);
   }
   const nd=4+Math.round(k*8);
@@ -22301,6 +22305,7 @@ let AIR_RATE=1; // base V1 (temps réel) — startFall le RE-pilote depuis 2026-
 const PARK={on:false}; // MODE FREESTYLE : le parc de figures (pas une course). Armé au menu, persiste entre les runs. Neutralise police/mort/portail.
 const PARK_VCAP=145; // PARC : plafond de vitesse (m/s ≈ 260 km/h affichés) — la nitro infinie ne DOIT PAS envoyer à 1000 km/h ingérables ; on garde une vitesse RAPIDE mais CONTRÔLABLE (sol ET air)
 const SPD=0.48; // +20 % (2026-09-25, user : « augmente la vitesse global du jeu et des voitures de 20 % ») — 0.4 × 1,2 ; il venait de −20 % (0.5 → 0.4) le matin même —  // vitesse globale du jeu — RESTAURÉ à la valeur V1 (2026-07-19) : le ÷2 « trop rapide dès le début » tuait le fun nerveux/arcade de la V1 ; le user tranche pour la V1. SPD scale TOUT : avance joueur/bots, chute, viseur ET compteur (donc les km/h affichés DOUBLENT — seuils de sensation ABSOLUS ajustés en conséquence, les systèmes RELATIFS via vmaxShow s'ajustent seuls)
+const BOOM_SOL={ok:false,p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()}; // (2026-09-28) le bitume sous l'explosion : ses pièces y rebondissent
 const FVISEE={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()}; // le point de la route que la caméra regarde (route v2)
 /* ================= LA CAMÉRA DE ROUTE S'ADAPTE (vague 3, 2026-09-27) =================
    Sacha : « quand on est à l'envers de l'autre côté de la route, et que du coup on a l'impression que ça monte beaucoup, il faut que
@@ -23552,12 +23557,13 @@ function sandRevive(){ // BAC À SABLE : on efface les dégâts et on repart, la
   airPie.style.display='none';airFlash=0;
   insUsed=false;nitroR=nitroCap();nitroX=0;boost=0;slowT=0;hitT=0;
   respawn();
+  hopY=2.2;hopV=0;try{flashEcran('rgba(255,255,255,.35)');}catch(e){} // (2026-09-28) elle RETOMBE sur sa ligne (tassement compris) au lieu d'y apparaître : on voit qu'on repart
 }
 function parkRespawn(){
   chain=0;chainVal=0;chainMult=1;chainHud.style.opacity=0;
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;dolphT=0;trkDolph=false;
   airPie.style.display='none';airFlash=0;
-  respawn();
+  respawn();hopY=2.2;hopV=0;try{flashEcran('rgba(255,255,255,.35)');}catch(e){} // (2026-09-28) la caisse retombe sur sa ligne
   showMsg('↻ ON REPART','#7dffec');
 }
 // ⚠ CE N'EST PLUS L'ARGENT DE LA PARTIE QUI DÉBLOQUE LES CAISSES (2026-08-03). Avant, `level` montait
@@ -23862,7 +23868,7 @@ function tryLand(dt){
   if(landLoss>.28&&fallT>1.6)slowT=Math.max(slowT,.25);
   prevTvalid=false;mode='drive';
   poseGerbe(carGroup.position,Nn[bestI],sideL,T[bestI],vA*SPD*driveDir,impact); // (2026-09-26) la GERBE DE POSE : étincelles de châssis qui rasent le bitume + gomme
-  thud(Math.abs(vN)*(impact<4.5&&landLoss<.2?.75:1));shake=Math.min(1.4,.35+Math.abs(vN)*.05+landLoss*.6); // (2026-09-25) la pose PARFAITE ne cogne plus plus fort que la lourde
+  thud(Math.abs(vN)*(impact<4.5&&landLoss<.2?.75:1));shake=Math.min(1.4,.35+Math.abs(vN)*.05+landLoss*.6);squashT=Math.max(squashT,.1+Math.min(.2,impact*.022)); // (2026-09-28) la caisse se TASSE sur ses ressorts à la pose (la réception n'en avait aucun) // (2026-09-25) la pose PARFAITE ne cogne plus plus fort que la lourde
   engRpm*=.6;charge9=1;if(impact>2)pneuMord(Math.min(1,impact/10)); // la gomme MORD : le moteur reprend en charge, et ça piaille
   /* ---- LA RÉCEPTION À L'ARRACHÉE (2026-08-18) -------------------------------------------------
      Se poser À UN CHEVEU du couperet des 6 secondes. C'est le geste le plus tendu du jeu : rester en
@@ -24051,7 +24057,7 @@ function newTrack(){
   try{musicSuitLieu();}catch(e){} // LA MUSIQUE PAR MONDE : change si le lieu en réclame une autre
   spawnPickups(mulberry32(sd^0x9e3779b9));
   cratCache();debCache();
-  s=0;lat=0;psi=0;side=1;driveDir=1;prevTvalid=false;safeS=0;
+  s=0;lat=0;psi=0;side=1;driveDir=1;prevTvalid=false;safeS=0;loop._camDriveT=0; // (2026-09-28) la caméra repart de sa place sur la NOUVELLE piste (la coupe se cache sous le flash du portail)
   if(vA<20)vA=20;
   mode='drive';
   campDebut(); // (2026-09-27) CAMPAGNE : le niveau qui commence arme ses systèmes (poursuite, orage, caisse-nuage) — ou les éteint
@@ -24488,8 +24494,7 @@ const wkWheelM=new THREE.MeshPhongMaterial({color:0x14161c,shininess:8});
 // MÊME KIT LUMIÈRE QUE LE JOUEUR : halos de phares/feux + cônes de réacteur (matériaux PARTAGÉS par la meute)
 const pcHeadM=new THREE.SpriteMaterial({map:lampTex,color:0xffe2a8,transparent:true,opacity:.95,depthWrite:false});
 const pcTailM=new THREE.SpriteMaterial({map:lampTex,color:0xff2818,transparent:true,opacity:.85,depthWrite:false});
-const pcJetShellM=new THREE.MeshBasicMaterial({map:jetTex,color:0x4f76ff,transparent:true,opacity:.85,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false});
-const pcJetCoreM=new THREE.MeshBasicMaterial({map:jetTex,color:0xd6e4ff,transparent:true,opacity:.92,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false});
+const pcJetShellM=jetMat(0x4f76ff,0xd6e4ff,0x9fb4ff,.85,1,1),pcJetCoreM=jetMat(0xd6e4ff,0xffffff,0xc9b8ff,.92,.7,1.35); // (2026-09-28) la meute brûle avec LA FLAMME VIVANTE du joueur (même programme), en bleu police
 function mkPolice(liv){
   const g=new THREE.Group(),[bodyM,accM]=pcLiv[liv%3];
   const body=new THREE.Mesh(pcBodyG,bodyM);body.position.y=.62;g.add(body);
@@ -24515,8 +24520,8 @@ function mkPolice(liv){
     m9.rotation.x=-Math.PI/2;m9.position.set(0,.062,zc);m9.userData.noShadow=true;m9.userData.sol=1;m9.renderOrder=2;
     g.add(m9);return m9;
   }
-  pool9(6.0,14.5,9.4,0xcfe0ff,.5,beamTex);pool9(4.2,4.4,-4.3,0xff2418,.22); // faisceaux blanc-bleu police + rouge AR
-  const jetPool=pool9(5.2,15.5,-10.2,0x5b7dff,0);
+  pool9(6.0,14.5,9.4,0xcfe0ff,.5,beamTex); // faisceaux blanc-bleu police — (2026-09-28) la flaque rouge AR et le halo bleu au sol sont RETIRÉS,
+  const jetPool={material:{opacity:0}};     // comme sur ta caisse (verdict « plus de taches rondes sur la route ») : ils volaient aussi avec la voiture qui saute
   const jets=[]; // plume de réacteur : les MÊMES cônes que la caisse du joueur, en BLEU police
   for(const sd of[-1,1]){
     const js9=new THREE.Mesh(jetGeo,pcJetShellM),jc9=new THREE.Mesh(jetGeo,pcJetCoreM);
@@ -24806,7 +24811,7 @@ function survTick(dt){
             .addScaledVector(B[bi],(b.lat-c9.lat>0?-1:1)*(2+Math.random()*4))
             .addScaledVector(Nn[bi],5+Math.random()*5);
           coneVole(c9); // (perf) il quitte l'instance : un vrai plot part valser
-          FLYCONES.push({m:c9.mesh,v:kv,rx:(Math.random()-.5)*16,rz:(Math.random()-.5)*16,life:1.6});
+          FLYCONES.push({m:c9.mesh,v:kv,rx:(Math.random()-.5)*16,rz:(Math.random()-.5)*16,life:1.6,p0:c9.mesh.position.clone(),n0:Nn[bi].clone(),b0:B[bi].clone()});
           b.v*=.985;
           if(b.mesh.g.visible)sparkBurst(sparkGold,c9.mesh.position,5,6);
         }
@@ -24836,8 +24841,9 @@ function survTick(dt){
       b.trailK+=((b.boostT>0?1:0)-b.trailK)*Math.min(1,dt*(b.boostT>0?16:5));
       svT1.copy(FB.p).addScaledVector(FB.b,b.lat).addScaledVector(FB.n,1.05+b.airH).addScaledVector(FB.t,-2.5);
       trailStep(b.trail,svT1.x,svT1.y,svT1.z,.5,.62,1.55,b.trailK,1.7);
-      if(gap<340){
-      const m=b.mesh.g;
+      const lodP9=Math.max(340,FOG_N+120); // (2026-09-28) la voiture n'apparaît plus NETTE à 340 m quand la brume commence plus loin : elle naît dans la brume
+      if(gap<lodP9){
+      const m=b.mesh.g;m.scale.setScalar(Math.min(1,(lodP9-gap)/50)); // …et grandit sur les 50 derniers mètres au lieu de surgir
       m.position.copy(FB.p).addScaledVector(FB.b,b.lat).addScaledVector(FB.n,.56+b.airH); // la hauteur de VOL soulève la caisse
       m.quaternion.setFromRotationMatrix(svM4.makeBasis(FB.b,FB.n,FB.t));
       m.rotateY(b.phi); // le cap RÉEL de la sim : on VOIT les braquages, contre-braquages et embardées
@@ -24847,7 +24853,7 @@ function survTick(dt){
       b.mesh.lampR.material=bph?gyroRedOn:gyroRedOff;
       b.mesh.lampB.material=bph?gyroBluOff:gyroBluOn;
       b.mesh.sR.visible=bph;b.mesh.sB.visible=!bph;
-      const gsc=(2.1+Math.sin((SURV.ph+b.ph)*Math.PI*2)*.5)*(1-gap/400); // le halo respire, s'éteint au loin
+      const gsc=(2.1+Math.sin((SURV.ph+b.ph)*Math.PI*2)*.5)*Math.max(0,1-gap/400); // le halo respire, s'éteint au loin (borné : la meute peut désormais s'afficher au-delà de 400 m)
       b.mesh.sR.scale.set(gsc*3,gsc*1.6,1);b.mesh.sB.scale.set(gsc*3,gsc*1.6,1);
       b.mesh.jet.visible=b.boostT>0; // NITRO VISIBLE : la flamme claque derrière la caisse qui pousse
       const jOn9=b.boostT>0; // PLUME DE RÉACTEUR bleue : les mêmes cônes que le joueur
@@ -28159,10 +28165,10 @@ function loop(now){
             .addScaledVector(F.b,(dl9>0?-1:1)*(2+Math.random()*4))
             .addScaledVector(F.n,(5+Math.random()*5)*side); // il valse en s'ÉLOIGNANT de sa dalle
           coneVole(c9); // (perf) il quitte l'instance : un vrai plot part valser
-          FLYCONES.push({m:c9.mesh,v:kv,rx:(Math.random()-.5)*16,rz:(Math.random()-.5)*16,life:1.6});
+          FLYCONES.push({m:c9.mesh,v:kv,rx:(Math.random()-.5)*16,rz:(Math.random()-.5)*16,life:1.6,p0:c9.mesh.position.clone(),n0:F.n.clone().multiplyScalar(side),b0:F.b.clone()});
           vA*=.985;shake=Math.max(shake,.14);
           try{coneSnd();}catch(e){}hap(10);
-          sparkBurst(sparkGold,c9.mesh.position,5,6);
+          sparkBurst(boomRed,c9.mesh.position,5,6); // (2026-09-28) un plot percuté COÛTE : éclats rouges (l'or, c'est l'argent)
           addStyle(2);
           if(c9.dur){vA*=.9;momT=0;FLOW.v=Math.max(0,FLOW.v-12);FLOW.idle=2;popTexte('TOUCHE !','#ff5e7a',1);} // (2026-09-27) une PORTE du niveau 4 : la toucher ne tue pas, elle coûte (vitesse, élan, FLOW)
         }
@@ -28182,7 +28188,7 @@ function loop(now){
         }
       }
       if(slipT>0){ // la voiture chasse : direction quasi coupée + embardée aléatoire
-        slipT-=dt;
+        slipT-=dt;driftT=Math.max(driftT,.7); // (2026-09-28) on VOIT la glisse : fumée de gomme + crissement (au téléphone, le message « huile » est masqué)
         psi+=(Math.random()-.5)*2.6*dt*Math.min(1,Math.abs(vA)/12);
         psi=THREE.MathUtils.clamp(psi,-1.4,1.4);
       }
@@ -28233,7 +28239,7 @@ function loop(now){
             else pwrSpdT=d.t;
             showMsg(d.msg,d.tint);trickMsg(d.ico+' '+TR(d.hud),2);boostSnd();pwrPrisSnd(p.pow);shake=Math.max(shake,.35);
             slam(d.gros,d.sous,d.tint,d.c2,40,2);flashEcran(d.fx);hap([14,40,24]); // (HUD v3) le pouvoir s'ANNONCE en gros, de sa couleur
-            sparkBurst(p.pow==='a'?sparkBlue:p.pow==='v'?sparkPink:sparkGold,carGroup.position,14,9); // (vague 2) la gerbe à la couleur du cristal : n or-feu, a cyan, v magenta
+            sparkBurst(p.pow==='a'?sparkBlue:p.pow==='v'?sparkPink:sparkGold,p.mesh.position,14,9); // (2026-09-28) là où le cristal éclate (au centre de la caisse, la gerbe naissait sous la carrosserie) // (vague 2) la gerbe à la couleur du cristal : n or-feu, a cyan, v magenta
             addStyle(10);
           }
           else if(p.nitro){ // chaque fruit rend SA dose de nitro (réglable dans l'ÉTAL)
@@ -28250,7 +28256,7 @@ function loop(now){
             }else sparkBurst(fd.boost>=.8?sparkGold:sparkBlue,carGroup.position,fd.boost>=.8?8:5,7);
           }
           else{
-            sparkBurst(sparkGold,carGroup.position,8,8);
+            sparkBurst(sparkGold,p.mesh.position,8,8); // (2026-09-28) là où la pièce disparaît
             combo++;comboT=3;
             /* LA RÉCOLTE EN SÉRIE. Une pièce isolée ne donne RIEN en aura — sinon on récompense
                encore le simple fait d'avancer. C'est tous les 5 ramassages SANS laisser retomber le
@@ -28304,10 +28310,13 @@ function loop(now){
            const pv=carBody.userData.pivY||.45;
            carBody.rotation.set(pitch9,0,carRoll9);carBody.position.set(pv*Math.sin(carRoll9),pv-pv*Math.cos(carRoll9),0);}
         }
-        if(squashT>0){ // écrasement à l'atterrissage
-          const sq=squashT/.28;squashT=Math.max(0,squashT-dt);
-          carGroup.scale.set(1+sq*.25,1-sq*.4,1+sq*.15);
-        }else carGroup.scale.set(1,1,1);
+        /* (2026-09-28) LA SUSPENSION : la réception, le dos d'âne, le bump écrasaient TOUTE la caisse (`carGroup.scale`) — roues comprises,
+           qui devenaient ovales, comme du caoutchouc. Désormais la CARROSSERIE plonge sur ses ressorts (ω ≈ 15, amortie) : elle se tasse,
+           remonte en dépassant à peine et se pose ; les roues restent au sol et rondes. `squashT` garde son rôle : c'est l'appui du coup. */
+        {const sq=Math.min(1,squashT/.28),d9=Math.min(dt,1/30);squashT=Math.max(0,squashT-dt);
+         susV+=((-sq*.17-susY)*230-susV*16)*d9;susY=THREE.MathUtils.clamp(susY+susV*d9,-.26,.12);
+         const pv=carBody.userData.pivY||.45;carBody.position.y=pv-pv*Math.cos(carRoll9)+susY;}
+        carGroup.scale.set(1,1,1);
         ROUES.v=vF*SPD; // (2026-09-26) la vitesse du SOL sous les pneus : carVit fait tourner chaque roue à v ÷ R (+ flou de jante)
         // ombre
         shadow.material.opacity=0; // (2026-09-25) .10 → 0 : ce disque à bord NET se lisait comme une tache sombre autour de la caisse — l'ombre portée (shadow map) et le blob de contact doux suffisent // en drive la shadow map fait le travail — le disque noir creusait un DONUT dans le néon/les flaques
@@ -28474,9 +28483,13 @@ function loop(now){
         CAMV.zoom=Math.max(0,CAMV.zoom-dt*2);CAMV.zp=24*CAMV.zoom*CAMV.zoom; // (2026-09-28) le COUP DE ZOOM d'une pose PARFAITE : sec à l'impact (−24°), relâché en 0,5 s
         camera.fov=Math.max(20,loop._fovB-CAMV.zp); // (vague 3) à l'extinction de la nitro le champ RETOMBE en douceur (il s'ouvre toujours sec)
         camera.updateProjectionMatrix();
+        /* (2026-09-28, chasse aux détails) LES SECOUSSES SONT DES COUPS, PLUS DE LA NEIGE : un tirage au hasard à CHAQUE image (±0,7 m à la
+           réception) grésillait à 60 i/s et sautait franchement à 30 — la caméra de mort, elle, tremblait déjà en sinus lisses. Trois sinus
+           désaccordés (un choc qui cogne vers le bas, puis roule) + un soupçon de roulis ; même enveloppe qu'avant (décroît de 3,5/s). */
         if(shake>0){
-          camera.position.addScaledVector(F.n,(Math.random()-.5)*shake);
-          camera.position.addScaledVector(tmp,(Math.random()-.5)*shake);
+          if(!REDUCED_MOTION&&!window.dbgNoShake){const a9=Math.min(1.4,shake)*.3;
+            camera.position.addScaledVector(F.n,a9*(Math.sin(t*31)-.6*Math.abs(Math.sin(t*17)))).addScaledVector(tmp,a9*.7*Math.sin(t*23+1.3));
+            camera.rotateZ(a9*.03*Math.sin(t*27+.7));}
           shake=Math.max(0,shake-3.5*dt);
         }
         // VIBRATION DE VITESSE — RELATIVE à la caisse : ça frémit dès ~45 % de TA vmax (une LA HONTE
@@ -28487,10 +28500,10 @@ function loop(now){
               calm9=1-.7*THREE.MathUtils.smoothstep(speedKmh,700,1800), // fenêtre DOUBLÉE (SPD .25→.5 : les km/h affichés ont doublé) — le plané supersonique calme au même état-caisse qu'avant, pas dès le mid-game
               spdSh=spdN*spdN*CAM_SHAKE_V*.42*calm9*(nitroOn?1.3:1); // FRISSON, pas séisme : à vmax de croisière ≈ .10 d'amplitude (la sensation vient du FOV + speed lines, le tremblement signale juste la LIMITE)
         if(spdSh>0&&!window.dbgNoShake){
-          camera.position.addScaledVector(F.n,(Math.random()-.5)*spdSh);
-          camera.position.addScaledVector(tmp,(Math.random()-.5)*spdSh*1.2);
-          camera.position.addScaledVector(fwdW,(Math.random()-.5)*spdSh*.5);
-          camera.rotateZ((Math.random()-.5)*spdSh*.045+Math.sin(t*27)*spdSh*.014);
+          camera.position.addScaledVector(F.n,spdSh*.36*(Math.sin(t*41)+.5*Math.sin(t*67+2.1))); // (2026-09-28) un GRONDEMENT de sinus, plus un grésillement au hasard
+          camera.position.addScaledVector(tmp,spdSh*.42*(Math.sin(t*37+.9)+.5*Math.sin(t*59)));
+          camera.position.addScaledVector(fwdW,spdSh*.18*Math.sin(t*29+1.7));
+          camera.rotateZ(spdSh*.016*Math.sin(t*33+.4)+Math.sin(t*27)*spdSh*.014);
         }
         // (vague 3) NITRO — LA CAISSE ARRACHE : la caméra DÉCROCHE (0 → pic à ~0,2 s → 0, elle recule et monte un peu) pendant que le
         // champ s'ouvre, puis revient ; tant qu'on tient, un frisson continu (deux sinus : un grondement, pas un grésillement)
@@ -28708,6 +28721,11 @@ function loop(now){
        camUp.lerp(FLY_U,Math.min(1,dt*3)).normalize(); // (vol libre) le haut de l'écran = le haut de la caisse : la caméra ne se remet plus « à l'endroit »
        camera.up.copy(camUp);
        C.look.copy(fallPos);
+       // (2026-09-28) LES CHOCS EN VOL SE SENTENT : bump sur la tranche, surf de nuage, catapulte posaient `shake`… que seul le SOL lisait
+       // (il partait donc APRÈS la pose, en retard). En vol, c'est le REGARD qui cogne (la recette de la caméra de mort), et ça décroît ici.
+       if(shake>0){if(!REDUCED_MOTION&&!window.dbgNoShake){const a9=Math.min(1.3,shake)*.35;
+         C.look.addScaledVector(FLY_R,Math.sin(t*47)*a9).addScaledVector(camUp,Math.sin(t*37+1.3)*a9*.8);}
+         shake=Math.max(0,shake-3*dt);}
        if(landMark.visible&&C.soon>.01){tmp3.subVectors(landMark.position,fallPos);const ll=tmp3.length();if(ll>.01)C.look.addScaledVector(tmp3,Math.min(ll*.3,7)/ll*C.soon*(1-C.hang));} // le regard glisse vers l'anneau (≤ 7 m)
        camera.lookAt(C.look);
        // (2026-09-26) la NITRO se VOIT en l'air : le champ s'ouvre sous la poussée (comme au sol) et le coup de réacteur de l'allumage
@@ -28717,12 +28735,13 @@ function loop(now){
        const fovAir=fovPor(78-bigAir*6-7*C.hang+4*C.soon+fovPunch+(nitroOn?(nitroBlue?18:13):0));
        camera.fov+=(fovAir-camera.fov)*Math.min(1,dt*(NFX.off>0&&fovAir<camera.fov?2:4)); // (vague 3) la nitro coupée : le champ retombe en douceur
        camera.updateProjectionMatrix();}
-      const fshN=THREE.MathUtils.clamp((speedKmh-180)/360,0,1.2),fsh=fshN*fshN*CAM_SHAKE_V;
+      // (2026-09-28) le vent du VOL au même régime que celui du sol (×.42, le PLANÉ SUPERSONIQUE qui calme, « Réduire les animations ») :
+      // en l'air la caméra tremblait 3 à 6 fois plus fort qu'au sol, en bruit blanc, pile sur le beau plan de trois-quarts des gros sauts
+      const fshN=THREE.MathUtils.clamp((speedKmh-180)/360,0,1.2),fsh=(REDUCED_MOTION||window.dbgNoShake)?0:fshN*fshN*CAM_SHAKE_V*.42*(1-.7*THREE.MathUtils.smoothstep(speedKmh,700,1800));
       if(fsh>0){
-        camera.position.x+=(Math.random()-.5)*fsh;
-        camera.position.y+=(Math.random()-.5)*fsh;
-        camera.position.z+=(Math.random()-.5)*fsh;
-        camera.rotateZ((Math.random()-.5)*fsh*.05); // le vent secoue aussi l'horizon
+        camera.position.addScaledVector(camUp,fsh*.36*(Math.sin(t*41)+.5*Math.sin(t*67+2.1)));
+        camera.position.addScaledVector(FLY_R,fsh*.42*(Math.sin(t*37+.9)+.5*Math.sin(t*59)));
+        camera.rotateZ(fsh*.02*Math.sin(t*33+.4)); // le vent secoue aussi l'horizon
       }
       if(nitroOn&&!REDUCED_MOTION&&!window.dbgNoShake)camera.position.addScaledVector(camUp,Math.sin(t*38.7)*(nitroBlue?.05:.036)); // (vague 3) le réacteur GRONDE dans l'image
       if(elTurn.style.opacity!=='0')elTurn.style.opacity=0; // (perf) une fois suffit
@@ -28772,6 +28791,8 @@ function loop(now){
       for(const d of debris){
         d.v.y-=22*dt;
         d.m.position.addScaledVector(d.v,dt);
+        if(BOOM_SOL.ok){tmp3.subVectors(d.m.position,BOOM_SOL.p);const h9=tmp3.dot(BOOM_SOL.n),vn9=d.v.dot(BOOM_SOL.n); // (2026-09-28) roue, capot, éclats REBONDISSENT sur la route
+          if(h9<.15&&vn9<0&&h9>-2.5&&Math.abs(tmp3.dot(BOOM_SOL.b))<ROAD_HALF){d.m.position.addScaledVector(BOOM_SOL.n,.15-h9);d.v.addScaledVector(BOOM_SOL.n,-1.4*vn9).multiplyScalar(.55);d.rx*=.7;d.ry*=.7;}}
         if(boomT<1.2&&Math.random()<.55)spawnP(boomEmbO,d.m.position.x,d.m.position.y,d.m.position.z,d.v.x*.12,d.v.y*.12,d.v.z*.12,.3+Math.random()*.3); // (2026-09-26) chaque éclat TRAÎNE ses braises
         d.m.rotation.x+=d.rx*dt;d.m.rotation.y+=d.ry*dt;d.m.visible=d.m.position.distanceToSquared(camera.position)>(d.hid||11.5); // (vague 2) à moins de 3,4 m (+ sa taille) de l'objectif, un éclat n'est plus qu'un aplat : masqué
         if(!d.part&&d.m.material)d.m.material.emissiveIntensity=Math.max(0,.6-boomT*.45);
@@ -28855,6 +28876,11 @@ function loop(now){
       c9.life-=dt;c9.v.y-=24*gK()*dt;
       c9.m.position.addScaledVector(c9.v,dt);
       c9.m.rotation.x+=c9.rx*dt;c9.m.rotation.z+=c9.rz*dt;
+      // (2026-09-28) il RETOMBE sur le bitume et rebondit (il traversait la dalle en plein cadre) — hors de la route, il tombe dans le vide ;
+      // et il se replie en fin de vie au lieu de s'effacer d'un coup
+      if(c9.p0){tmp3.subVectors(c9.m.position,c9.p0);const h9=tmp3.dot(c9.n0),vn9=c9.v.dot(c9.n0);
+        if(h9<.2&&vn9<0&&h9>-2&&Math.abs(tmp3.dot(c9.b0))<ROAD_HALF){c9.m.position.addScaledVector(c9.n0,.2-h9);c9.v.addScaledVector(c9.n0,-1.45*vn9).multiplyScalar(.62);c9.rx*=.6;c9.rz*=.6;}}
+      if(c9.life<.3)c9.m.scale.setScalar(Math.max(.001,c9.life/.3));
       if(c9.life<=0){scene.remove(c9.m);FLYCONES.splice(i9,1);}
     }
     updateMoneyRain(dt,t);
@@ -28877,7 +28903,7 @@ function loop(now){
     headSpot.position.copy(carGroup.position).addScaledVector(hsF,1.6);headSpot.position.y+=1.5;
     headSpot.target.position.copy(carGroup.position).addScaledVector(hsF,30);headSpot.target.position.y-=1.2;
     headSpot.intensity=(mode==='boom')?0:1.85; // phares qui MORDENT le bitume (la flaque CARPOOL.head assure la lecture, le spot fait répondre le spéculaire)
-    if(CARPOOL.head)CARPOOL.head.visible=(mode!=='boom'); // (2026-09-26) la flaque rouge et le halo nitro au sol n'existent plus : seuls les faisceaux restent
+    if(CARPOOL.head)CARPOOL.head.visible=(mode==='drive'); // (2026-09-28) en VOL la nappe de 15 m flottait dans le ciel devant la caisse et tournait avec la vrille comme une pale // (2026-09-26) la flaque rouge et le halo nitro au sol n'existent plus : seuls les faisceaux restent
     // REFLET NITRO/BOOST : le pool de lumière colle à l'échappement (repère caisse : marche aussi sous la dalle)
     hsU.set(0,1,0).applyQuaternion(carGroup.quaternion);
     potMonde(CAR_POT_C,nitroLight.position).addScaledVector(hsF,-.3).addScaledVector(hsU,.1); // (2026-09-26) au droit des POTS, plus au milieu de la poupe
