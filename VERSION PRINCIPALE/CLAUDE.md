@@ -107,6 +107,9 @@ d'AURA (police pixel en bandes, cernée d'encre). Ce qui se TOUCHE = plaque PENC
   couloir des annonces), il suit la voiture au sol comme en vol ; 1 s puis 0,48 s de plongée. `engRim` (lumière posée à l'init dans
   `engVigScene`, éteinte au repos) teinte le métal au néon ; halo plus franc, disque d'encre plus petit ; l'onde `swapRing` et `swapLight` à la
   couleur du moteur, rayon 5 → 3,8 m. Hook : `dbgEngCarte()` (mesures) / `dbgEngCarte('fige')` (pas de plongée).
+- **LOT 2** : le métal du moteur de la carte est TEINTÉ à la couleur néon du palier (`engCarteMat.color` = blanc → néon à 42 %, `ENG_TEINTE`) —
+  il sortait blanc rosé sur tous les ciels ; `engRim` 1,5 ; nom de plus de 12 caractères un corps plus bas (`#engBig.long`) · l'ASTUCE / le DÉFI
+  (`#misBan`) se range à GAUCHE tant qu'une plaque de pouvoir est affichée (portrait) : centrée, elle couvrait NITRO MAX / VITESSE ×2 (section 6).
 - Bancs (scratchpad session UHD) : `run.js <pfx> <étapes.js> [w] [h]` (DSF, LG), `st-eng2.js` (film de la carte), `st-fren.js`, `st-det.js`
   (états du bouton), `st-pay.js` (paysage), `attente.sh` (attend qu'aucun banc voisin ne tourne).
 

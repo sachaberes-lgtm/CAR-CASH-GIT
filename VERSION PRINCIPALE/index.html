@@ -4199,6 +4199,11 @@ html body #frenTraits b{display:none!important}
 html body #frenTraits s{height:5px!important;margin:0!important;padding:1px;box-sizing:border-box;background:var(--jFond)!important;box-shadow:0 0 0 1px var(--jEncre),0 2px 0 var(--jEncre)!important}
 html body #frenTraits s::after{background:linear-gradient(var(--bandes4),#ffb3bd 0 1px,var(--fren) 1px)!important;box-shadow:none!important}
 html body #frenTraits i.mort{opacity:.3}
+/* ---- 6. L'ASTUCE / LE DÉFI (#misBan) NE SE POSE PLUS SUR LES POUVOIRS (portrait) : centrée, elle couvrait la colonne de droite (plaques
+   NITRO MAX, AIR MAX…). Tant qu'une plaque de pouvoir est affichée, elle se range à GAUCHE et s'arrête avant la colonne. ---- */
+@media not ((orientation:landscape) and (max-height:540px)){
+  html body.touch:has(#pwrChip .pw) #misBan{max-width:calc(100vw - var(--hudG) - var(--hudD) - 148px);margin-left:calc((var(--hudG) - var(--hudD) - 148px) / 2)}
+}
 /* SA PLACE (portrait) : la COLONNE DE DROITE, sous le ⏸ — ⏸ · DARK TRIAD · chrono de vol · pouvoirs. Au milieu du haut, il coupait le
    compteur d'aura en deux lignes (« 1 » puis « 418 ») et contractait la barre du record ; le compteur retrouve sa largeur. */
 @media not ((orientation:landscape) and (max-height:540px)){
@@ -4224,6 +4229,7 @@ html body #engBig .ebCarte>b{--tc:var(--ec);font-size:var(--f4)!important;line-h
   -webkit-background-clip:text!important;background-clip:text!important;
   filter:drop-shadow(1px 0 0 var(--jInk)) drop-shadow(-1px 0 0 var(--jInk)) drop-shadow(0 1px 0 var(--jInk)) drop-shadow(0 -1px 0 var(--jInk)) drop-shadow(0 3px 0 var(--jInk)) drop-shadow(0 0 10px color-mix(in srgb,var(--tc) 70%,transparent))!important}
 html body #engBig .ebCarte>b::after{display:none!important}
+html body #engBig.long .ebCarte>b{font-size:var(--f3)!important}
 html body #engBig .ebScene{width:112px!important;height:75px!important;margin:0!important}
 html body #engBig.mini .ebTit{visibility:inherit!important}   /* l'étiquette reste (la vieille règle la taisait sous .8) ; inherit : elle part avec la carte */
 html body #engBig .ebInfo,html body #engBig .ebCyl{display:none!important}
@@ -15734,7 +15740,7 @@ engVigQuad.frustumCulled=false;engVigQuad.renderOrder=1;engVigQuadScene.add(engV
 const engRTc=new THREE.WebGLRenderTarget(384,256,{minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,depthBuffer:true});
 // ENG_QK : le quad DÉBORDE de sa scène (×1,6). Le cadrage du tampon garde 24 % d'air pour que la flamme dépasse (engVigBuild) : recollé
 // à la taille exacte de `.ebScene`, le moteur n'en occupait qu'un tiers. L'air débordant est transparent — il passe sous les textes.
-const ENG_Q={x:0,y:0,w:0,h:0,op:0},ENG_CC=new THREE.Color(),ENG_QK=1.6;
+const ENG_Q={x:0,y:0,w:0,h:0,op:0},ENG_CC=new THREE.Color(),ENG_QK=1.6,ENG_TEINTE=new THREE.Color();
 const engCarteMat=new THREE.MeshBasicMaterial({map:engRTc.texture,transparent:true,depthTest:false,depthWrite:false,
   blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor});
 /* (2026-09-28, user : « le moteur doit apparaître au niveau de la voiture, au-dessus, et donner l'impression de rétrécir et de rentrer
@@ -15768,7 +15774,7 @@ function engQuadDraw(){ // chaque image (le framebuffer est redessiné à chaque
   const Q=ENG_Q;if(!(Q.op>.01&&Q.w>4))return;
   const W=VP.w||1,H=VP.h||1,cx=Q.x/W*2-1,cy=1-Q.y/H*2,hs=Q.w*.78;
   engCarteQuad.position.set(cx,cy,0);engCarteQuad.scale.set(Q.w/W*2,Q.h/H*2,1);
-  engCarteMat.color.setScalar(Q.op*(1+1.3*(Q.fl||0)));engCarteMat.opacity=Q.op; // (v4) l'ÉCLAT d'apparition : le moteur arrive blanc-chaud et retombe à sa couleur
+  engCarteMat.color.setHex(0xffffff).lerp(ENG_TEINTE.setHex(engBig.col||0xffd75e),.42).multiplyScalar(Q.op*(1+1.3*(Q.fl||0)));engCarteMat.opacity=Q.op; // (v4) l'ÉCLAT d'apparition : le moteur arrive blanc-chaud et retombe à sa couleur — (v5) le métal prend la teinte NÉON du palier (il sortait blanc rosé sur tous les ciels)
   engHalo.position.set(cx,cy,0);engHalo.scale.set(hs*1.18/W*2,hs*1.18/H*2,1);
   engHaloMat.color.setHex(engBig.col||0xffd75e).multiplyScalar(.9*Q.op);engHaloMat.opacity=.8*Q.op; // (v5) le halo néon, plus franc
   engNoir.position.set(cx,cy,0);engNoir.scale.set(hs*.7/W*2,hs*.7/H*2,1);engNoirMat.opacity=.5*Q.op*(engBig.plonge?0:1); // l'encre s'efface dès la plongée : dans le capot, pas de disque — (v5) plus petite : il reste un anneau de couleur
@@ -18330,7 +18336,7 @@ function engBig(E,tier,ru){
   const hx=engNeon(E.col||0xffd75e),n=Math.max(1,Math.min(16,E.cyl||4)); // (v5) la couleur du moteur, poussée au NÉON : les premiers paliers sont gris-acier, la carte aurait été terne
   const gain=engGain(tier);engBig.gain=gain;
   const rec=tier>(RUNX.engAvant|0); // (2026-09-25) palier jamais atteint AVANT cette partie : le seul moment vraiment neuf
-  b.style.setProperty('--ec',hx);b.classList.toggle('rec',rec);
+  b.style.setProperty('--ec',hx);b.classList.toggle('rec',rec);b.classList.toggle('long',String(TR(E.n)).length>12); // (v5) un nom long (« MOTEUR À DISTORSION ») descend d'un corps : il ne barre pas la route d'un bord à l'autre
   {const o9=b.querySelector('canvas');if(o9){o9.width=o9.height=0;}} // (2026-09-26) un ancien canvas rendu tout de suite (iOS plafonne la mémoire des canvas)
   // (H3) « NOUVEAU RECORD ! » disait trois choses (aura, meilleur palier, écran de mort) : le meilleur palier devient un SOMMET
   const nm=TR(E.n);
@@ -18343,7 +18349,7 @@ function engBig(E,tier,ru){
     +'<b data-t="'+String(nm).replace(/[<>&"]/g,'')+'">'+nm+'</b>'
     +'<div class="ebScene"></div></div>';
   engBig.ctx=null;engBig.on=true;engBig.plonge=0;engBig.t0=performance.now();engBig.col=parseInt(hx.slice(1),16);engBig.hex=hx;engVigSpin=0;
-  engRim.color.setHex(engBig.col);engRim.intensity=2.1; // le liseré néon du moteur (éteint par engBigFin)
+  engRim.color.setHex(engBig.col);engRim.intensity=1.5; // le liseré néon du moteur (éteint par engBigFin)
   document.body.classList.remove('ebPlonge');document.body.classList.add('ebOn');
   b.classList.remove('on','plonge','ruban','gain');void b.offsetWidth;
   engBigPlace(b);engBigSuit();b.classList.add('on'); // (2026-09-28) posée au-dessus de la caisse dès la 1re image (pas un saut depuis le couloir)
