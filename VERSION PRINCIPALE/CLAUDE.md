@@ -129,6 +129,35 @@ collé au bord de la route, sans un saut, FRÉNÉSIE en 11 s et gardée pour tou
   sage et colle-bord plafonnent FLOW I / II (0 % de frénésie), pilote de route 2 %, casse-cou 1re frénésie ~60 s (22 % du temps,
   ~26 s d'affilée), maître ~30 s (57 %, ~64 s d'affilée).
 
+## LA FRÉNÉSIE v4 — « LA TRIADE » + LA POSE RATÉE + LA FIGURE QUI DÉCLENCHE (2026-09-28, fin d'après-midi)
+Sacha : « l'état de frénésie doit rappeler les traits de la dark triad : tant qu'on les respecte on reste en frénésie — NARCISSISME : la
+prise de risque, l'ambition, les figures inutiles pour le sport ; MACHIAVÉLISME : la triche, couper les chemins ; PSYCHOPATHIE : la vitesse
+à fond, le nitro appuyé tout le temps » ; « en cas de mauvais atterrissage, de travers ou à contresens, le flow retourne à zéro » (tranché
+au questionnaire : DE TRAVERS = plus de ~55° de l'axe, À CONTRESENS = sens inverse ; le bonus « À RECULONS » est SUPPRIMÉ) ; et (relayé par
+la session UI) « la frénésie part après avoir POSÉ UNE FIGURE — l'atterrissage est la condition, en plus du score de flow ». Lois 8-9 de `FLOW2`.
+- **LA TRIADE** (`FLOW2.triade`, `TRAITS`, `frenTrait/frenTriade/frenTraitsMaj`) : en frénésie, trois traits à mémoire — NARCISSE 9 s (tout
+  geste 'risque' par défaut : figures en vol, BIG AIR, poses parfaites, arrachée, serpent… ; un frôlé en rend 30 %), MACHIAVEL 25 s
+  (`flowAdd(…,'risque','m')` : raccourci ≥ 60 m, gap ; une petite coupe 25-60 m au prorata), PSYCHO 3 s (nitro enfoncé, ou `vitN` ≥ 1,3).
+  Ils se vident au sol, jamais en vol. La zone rouge brûle selon les traits VIVANTS : `brule` [4, 2, .7, −1.5] /s (0 · 1 · 2 · 3 vivants —
+  les trois tenus, elle se REGONFLE). Les gestes ne remplissent plus la jauge en frénésie (`fam[…][4]` = 0) ; le nitro n'y GÈLE plus rien
+  (il est PSYCHO) — il ne gèle que la MONTÉE. Un trait qui meurt se crie (« UNE FIGURE ! » · « TRICHE ! » · « NITRO ! »), une fois par trait
+  et par frénésie, 0,9 s entre deux appels ; un trait qui renaît sonne. Entrée : les trois PLEINS. Affichage : `#frenTraits` (trois `<i
+  data-t>` : nom + barre `--f`, `.faible` < 30 %, `.mort`, `.fl1/.fl2` = nourri) sous `#frenChrono`.
+- **LA JAUGE PLEINE ARME, LA FIGURE POSÉE DÉCLENCHE** (`frenArme`, `frenDeclenche`) : à 100, `FREN.arme` (classe `.arme`, « POSE UNE
+  FIGURE ! ») ; la frénésie part dans `tryLand`, à la pose d'un vol qui a porté une figure (`chain>0` ou BIG AIR) et qui n'est pas ratée —
+  voix TRIPLE MONSTRE, slam, musique, `#triade.on` (le titre TRIPLE MONSTER de la session UI l'observe). Désarmée sous la zone rouge (88).
+  `flowAdd` plafonne le palier à 3 : on n'entre en frénésie QUE par `frenDeclenche`.
+- **LA POSE RATÉE** (`poseAng`/`poseRatee` juste après `const impact` dans `tryLand`, `flowCasse`) : angle entre la trajectoire à plat dans
+  la dalle (= le cap de la caisse : le volant tourne le vol lui-même) et l'axe de la route ; > `FLOW2.pose.angle` (55°, dès 4 m/s à plat) :
+  grade décoté comme un POSÉ LOURD (pas de PARFAIT, pas de montée de grade au braquage), puis, la pose jugée, le flow tombe à ZÉRO (frénésie
+  comprise, sa tenue compte pour le record) : « DE TRAVERS ! » / « À CONTRESENS ! » (> 90°). Mesuré : saut droit = ~10°. ⚠ à ces vitesses,
+  braquer franchement en vol fait surtout RATER la dalle (la mort) : la règle mord sur les petits sauts et les vrilles de 180° posées.
+- Hooks : `dbgFren('entre')` (déclenche), `dbgFren('trait','m')` nourrit / `('trait','m0')` vide, `dbgFren('pose',1)` (pose ratée),
+  `dbgFren()` rend `triade {n,m,p,k}`, `arme`, `poseA` (dernier angle de pose). Bancs (scratchpad 41020878) : `sim3.js` (triade + arme ;
+  profils « sans triche », « sans nitro »), `frenv5.js` (arme → vrai saut → frénésie ; PSYCHO seul → deux appels, perdue ~8 s), `poseDroit.js`.
+  Mesuré (sim3, 5 min) : casse-cou 1re à ~157 s, tenue ~73 s, 85 % du temps avec les trois vivants ; maître ~75 s, tenue ~2 min 25 ;
+  maître sans jamais tricher : tenue ~42 s ; sans nitro : ~60 s.
+
 ## LA FRÉNÉSIE v3 — « PLUS DURE À ATTEINDRE, MOINS FACILE À PERDRE, UN BUT EN SOI » (2026-09-28, l'après-midi)
 Sacha, après le FLOW v2 : « on l'a trop dans le jeu ; en frénésie le nitro baisse 2× plus lentement ; tant que le nitro est activé
 le flow ne baisse pas ; atteindre la frénésie doit être un but en soi » puis « plus dure à atteindre mais moins facile à perdre ».

@@ -3041,6 +3041,17 @@ html body #triade.mesure{display:block;visibility:hidden;animation:none}
 #frenChrono{position:absolute;left:0;right:0;top:100%;text-align:center;font-family:var(--pix);font-weight:normal;font-size:calc(var(--fs-min) + 2px);color:var(--frenC);
   text-shadow:0 2px 0 var(--frenO),0 0 6px var(--fren)}
 #frenChrono.rec{color:var(--frenA)}
+/* (v4) LA TRIADE : trois traits sous le chrono — le nom, et sa barre de mémoire (--f). .faible bat, .mort s'éteint ; .fl1/.fl2 = nourri */
+#frenTraits{position:absolute;left:-12px;right:-12px;top:calc(100% + 26px);display:flex;flex-direction:column;gap:3px}
+#frenTraits i{display:block;position:relative;font-style:normal}
+#frenTraits b{display:block;font-family:var(--pix);font-weight:normal;font-size:var(--fs-min);color:var(--frenC);text-shadow:0 1px 0 var(--frenO)}
+#frenTraits s{display:block;height:3px;margin-top:1px;background:var(--frenN);text-decoration:none}
+#frenTraits s::after{content:'';display:block;height:100%;width:calc(var(--f,1) * 100%);background:var(--fren)}
+#frenTraits i.faible{animation:frBrule .36s steps(2) infinite}
+#frenTraits i.mort{opacity:.35}
+#frenTraits i.fl1,#frenTraits i.fl2{filter:brightness(1.6)}
+/* (v4) ARMÉE : la jauge est pleine, la frénésie attend une figure POSÉE — la zone rouge bat (style fin : session UI) */
+html body #flowHud.arme .fSeg .fZ s{animation:frBrule .3s steps(2) infinite}
 @keyframes trMeurt{0%{opacity:1;transform:scale(1)}25%{opacity:1;transform:scale(1.12)}100%{opacity:0;transform:scale(.2)}}
 /* la barre du RECORD se contracte pour laisser passer ses pointes (le texte, lui, ne bouge pas) */
 html body.touch.play:has(#triade.on) #avRec{max-width:calc(100vw - var(--hudD) - var(--frenD) - var(--frenT) - var(--hudG) - 6px)}
@@ -3709,7 +3720,7 @@ html[data-reduced-motion="1"] body.touch #airPie,html[data-reduced-motion="1"] b
       <svg class="trFace dos" viewBox="0 0 54 49" shape-rendering="crispEdges"><use href="#trArt"/></svg>
     </div>
     <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><g id="trArt"><path style="fill:var(--encre)" d="M1 47h52v1h-52zM0 48h54v1h-54z"/><path style="fill:var(--frenO)" d="M26 11h1v1h-1zM27 12h1v1h-1zM26 13h1v1h-1zM28 13h1v1h-1zM25 14h1v1h-1zM27 14h1v1h-1zM29 14h1v1h-1zM24 15h1v1h-1zM23 16h1v1h-1zM24 17h1v1h-1zM30 17h1v1h-1zM23 18h1v1h-1zM25 18h1v1h-1zM27 18h1v1h-1zM29 18h1v1h-1zM31 18h1v1h-1zM22 19h1v1h-1zM24 19h1v1h-1zM26 19h1v1h-1zM28 19h1v1h-1zM30 19h1v1h-1zM21 20h1v1h-1zM23 20h1v1h-1zM25 20h1v1h-1zM27 20h1v1h-1zM29 20h1v1h-1zM31 20h1v1h-1zM20 21h1v1h-1zM22 21h1v1h-1zM24 21h1v1h-1zM26 21h1v1h-1zM28 21h1v1h-1zM30 21h1v1h-1zM32 21h1v1h-1zM21 22h1v1h-1zM23 22h1v1h-1zM25 22h1v1h-1zM27 22h1v1h-1zM29 22h1v1h-1zM31 22h1v1h-1zM33 22h1v1h-1zM20 23h1v1h-1zM22 23h1v1h-1zM24 23h1v1h-1zM26 23h1v1h-1zM28 23h1v1h-1zM30 23h1v1h-1zM32 23h1v1h-1zM34 23h1v1h-1zM19 24h1v1h-1zM21 24h1v1h-1zM23 24h1v1h-1zM25 24h1v1h-1zM27 24h1v1h-1zM29 24h1v1h-1zM31 24h1v1h-1zM33 24h1v1h-1zM18 25h1v1h-1zM20 25h1v1h-1zM22 25h1v1h-1zM24 25h1v1h-1zM26 25h1v1h-1zM28 25h1v1h-1zM30 25h1v1h-1zM32 25h1v1h-1zM34 25h1v1h-1zM17 26h1v1h-1zM19 26h1v1h-1zM21 26h1v1h-1zM23 26h1v1h-1zM25 26h1v1h-1zM27 26h1v1h-1zM29 26h1v1h-1zM31 26h1v1h-1zM33 26h1v1h-1zM35 26h1v1h-1zM18 27h1v1h-1zM20 27h1v1h-1zM22 27h1v1h-1zM24 27h1v1h-1zM26 27h1v1h-1zM28 27h1v1h-1zM30 27h1v1h-1zM32 27h1v1h-1zM34 27h1v1h-1zM36 27h1v1h-1zM17 28h1v1h-1zM19 28h1v1h-1zM21 28h1v1h-1zM23 28h1v1h-1zM25 28h1v1h-1zM27 28h1v1h-1zM29 28h1v1h-1zM31 28h1v1h-1zM33 28h1v1h-1zM35 28h1v1h-1zM37 28h1v1h-1zM16 29h1v1h-1zM18 29h1v1h-1zM20 29h1v1h-1zM22 29h1v1h-1zM24 29h1v1h-1zM26 29h1v1h-1zM28 29h1v1h-1zM30 29h1v1h-1zM32 29h1v1h-1zM34 29h1v1h-1zM36 29h1v1h-1zM15 30h1v1h-1zM17 30h1v1h-1zM19 30h1v1h-1zM21 30h1v1h-1zM23 30h1v1h-1zM25 30h1v1h-1zM27 30h1v1h-1zM29 30h1v1h-1zM31 30h1v1h-1zM33 30h1v1h-1zM35 30h1v1h-1zM37 30h1v1h-1zM16 31h1v1h-1zM18 31h1v1h-1zM20 31h1v1h-1zM22 31h1v1h-1zM24 31h1v1h-1zM26 31h1v1h-1zM28 31h1v1h-1zM30 31h1v1h-1zM32 31h1v1h-1zM34 31h1v1h-1zM36 31h1v1h-1zM38 31h1v1h-1zM15 32h1v1h-1zM17 32h1v1h-1zM19 32h1v1h-1zM21 32h1v1h-1zM23 32h1v1h-1zM25 32h1v1h-1zM27 32h1v1h-1zM29 32h1v1h-1zM31 32h1v1h-1zM33 32h1v1h-1zM35 32h1v1h-1zM37 32h1v1h-1zM39 32h1v1h-1zM14 33h1v1h-1zM16 33h1v1h-1zM18 33h1v1h-1zM20 33h1v1h-1zM22 33h1v1h-1zM24 33h1v1h-1zM26 33h1v1h-1zM28 33h1v1h-1zM30 33h1v1h-1zM32 33h1v1h-1zM34 33h1v1h-1zM36 33h1v1h-1zM38 33h1v1h-1zM40 33h1v1h-1zM13 34h1v1h-1zM15 34h1v1h-1zM17 34h1v1h-1zM19 34h1v1h-1zM21 34h1v1h-1zM23 34h1v1h-1zM25 34h1v1h-1zM27 34h1v1h-1zM29 34h1v1h-1zM31 34h1v1h-1zM33 34h1v1h-1zM35 34h1v1h-1zM37 34h1v1h-1zM39 34h1v1h-1zM12 35h1v1h-1zM14 35h1v1h-1zM16 35h1v1h-1zM18 35h1v1h-1zM20 35h1v1h-1zM22 35h1v1h-1zM24 35h1v1h-1zM26 35h1v1h-1zM28 35h1v1h-1zM30 35h1v1h-1zM32 35h1v1h-1zM34 35h1v1h-1zM36 35h1v1h-1zM38 35h1v1h-1zM40 35h1v1h-1zM13 36h1v1h-1zM15 36h1v1h-1zM17 36h1v1h-1zM19 36h1v1h-1zM21 36h1v1h-1zM23 36h1v1h-1zM25 36h1v1h-1zM27 36h1v1h-1zM29 36h1v1h-1zM31 36h1v1h-1zM33 36h1v1h-1zM35 36h1v1h-1zM37 36h1v1h-1zM39 36h1v1h-1zM41 36h1v1h-1zM12 37h1v1h-1zM14 37h1v1h-1zM16 37h1v1h-1zM18 37h1v1h-1zM20 37h1v1h-1zM22 37h1v1h-1zM24 37h1v1h-1zM26 37h1v1h-1zM28 37h1v1h-1zM30 37h1v1h-1zM32 37h1v1h-1zM34 37h1v1h-1zM36 37h1v1h-1zM38 37h1v1h-1zM40 37h1v1h-1zM42 37h1v1h-1zM11 38h1v1h-1zM13 38h1v1h-1zM15 38h1v1h-1zM17 38h1v1h-1zM19 38h1v1h-1zM21 38h1v1h-1zM23 38h1v1h-1zM25 38h1v1h-1zM27 38h1v1h-1zM29 38h1v1h-1zM31 38h1v1h-1zM33 38h1v1h-1zM35 38h1v1h-1zM37 38h1v1h-1zM39 38h1v1h-1zM41 38h1v1h-1zM10 39h1v1h-1zM12 39h1v1h-1zM14 39h1v1h-1zM16 39h1v1h-1zM18 39h1v1h-1zM20 39h1v1h-1zM22 39h1v1h-1zM24 39h1v1h-1zM26 39h1v1h-1zM28 39h1v1h-1zM30 39h1v1h-1zM32 39h1v1h-1zM34 39h1v1h-1zM36 39h1v1h-1zM38 39h1v1h-1zM40 39h1v1h-1zM42 39h1v1h-1zM9 40h1v1h-1zM11 40h1v1h-1zM13 40h1v1h-1zM15 40h1v1h-1zM17 40h1v1h-1zM19 40h1v1h-1zM21 40h1v1h-1zM23 40h1v1h-1zM25 40h1v1h-1zM27 40h1v1h-1zM29 40h1v1h-1zM31 40h1v1h-1zM33 40h1v1h-1zM35 40h1v1h-1zM37 40h1v1h-1zM39 40h1v1h-1zM41 40h1v1h-1zM43 40h1v1h-1zM10 41h1v1h-1zM12 41h1v1h-1zM14 41h1v1h-1zM16 41h1v1h-1zM18 41h1v1h-1zM20 41h1v1h-1zM22 41h1v1h-1zM24 41h1v1h-1zM26 41h1v1h-1zM28 41h1v1h-1zM30 41h1v1h-1zM32 41h1v1h-1zM34 41h1v1h-1zM36 41h1v1h-1zM38 41h1v1h-1zM40 41h1v1h-1zM42 41h1v1h-1zM44 41h1v1h-1z"/><path style="fill:color-mix(in srgb,var(--frenO) 62%,var(--frenN))" d="M27 11h1v1h-1zM26 12h1v1h-1zM25 13h1v1h-1zM27 13h1v1h-1zM24 14h1v1h-1zM26 14h1v1h-1zM28 14h1v1h-1zM25 15h1v1h-1zM29 15h1v1h-1zM24 16h1v1h-1zM26 16h1v1h-1zM28 16h1v1h-1zM30 16h1v1h-1zM23 17h1v1h-1zM25 17h1v1h-1zM29 17h1v1h-1zM22 18h1v1h-1zM24 18h1v1h-1zM26 18h1v1h-1zM28 18h1v1h-1zM30 18h1v1h-1zM23 19h1v1h-1zM25 19h1v1h-1zM27 19h1v1h-1zM29 19h1v1h-1zM31 19h1v1h-1zM22 20h1v1h-1zM24 20h1v1h-1zM26 20h1v1h-1zM28 20h1v1h-1zM30 20h1v1h-1zM32 20h1v1h-1zM21 21h1v1h-1zM23 21h1v1h-1zM25 21h1v1h-1zM27 21h1v1h-1zM29 21h1v1h-1zM31 21h1v1h-1zM33 21h1v1h-1zM20 22h1v1h-1zM22 22h1v1h-1zM24 22h1v1h-1zM26 22h1v1h-1zM28 22h1v1h-1zM30 22h1v1h-1zM32 22h1v1h-1zM19 23h1v1h-1zM21 23h1v1h-1zM23 23h1v1h-1zM25 23h1v1h-1zM27 23h1v1h-1zM29 23h1v1h-1zM31 23h1v1h-1zM33 23h1v1h-1zM20 24h1v1h-1zM22 24h1v1h-1zM24 24h1v1h-1zM26 24h1v1h-1zM28 24h1v1h-1zM30 24h1v1h-1zM32 24h1v1h-1zM34 24h1v1h-1zM19 25h1v1h-1zM21 25h1v1h-1zM23 25h1v1h-1zM25 25h1v1h-1zM27 25h1v1h-1zM29 25h1v1h-1zM31 25h1v1h-1zM33 25h1v1h-1zM35 25h1v1h-1zM18 26h1v1h-1zM20 26h1v1h-1zM22 26h1v1h-1zM24 26h1v1h-1zM26 26h1v1h-1zM28 26h1v1h-1zM30 26h1v1h-1zM32 26h1v1h-1zM34 26h1v1h-1zM36 26h1v1h-1zM17 27h1v1h-1zM19 27h1v1h-1zM21 27h1v1h-1zM23 27h1v1h-1zM25 27h1v1h-1zM27 27h1v1h-1zM29 27h1v1h-1zM31 27h1v1h-1zM33 27h1v1h-1zM35 27h1v1h-1zM16 28h1v1h-1zM18 28h1v1h-1zM20 28h1v1h-1zM22 28h1v1h-1zM24 28h1v1h-1zM26 28h1v1h-1zM28 28h1v1h-1zM30 28h1v1h-1zM32 28h1v1h-1zM34 28h1v1h-1zM36 28h1v1h-1zM17 29h1v1h-1zM19 29h1v1h-1zM21 29h1v1h-1zM23 29h1v1h-1zM25 29h1v1h-1zM27 29h1v1h-1zM29 29h1v1h-1zM31 29h1v1h-1zM33 29h1v1h-1zM35 29h1v1h-1zM37 29h1v1h-1zM16 30h1v1h-1zM18 30h1v1h-1zM20 30h1v1h-1zM22 30h1v1h-1zM24 30h1v1h-1zM26 30h1v1h-1zM28 30h1v1h-1zM30 30h1v1h-1zM32 30h1v1h-1zM34 30h1v1h-1zM36 30h1v1h-1zM38 30h1v1h-1zM15 31h1v1h-1zM17 31h1v1h-1zM19 31h1v1h-1zM21 31h1v1h-1zM23 31h1v1h-1zM25 31h1v1h-1zM27 31h1v1h-1zM29 31h1v1h-1zM31 31h1v1h-1zM33 31h1v1h-1zM35 31h1v1h-1zM37 31h1v1h-1zM14 32h1v1h-1zM16 32h1v1h-1zM18 32h1v1h-1zM20 32h1v1h-1zM22 32h1v1h-1zM24 32h1v1h-1zM26 32h1v1h-1zM28 32h1v1h-1zM30 32h1v1h-1zM32 32h1v1h-1zM34 32h1v1h-1zM36 32h1v1h-1zM38 32h1v1h-1zM13 33h1v1h-1zM15 33h1v1h-1zM17 33h1v1h-1zM19 33h1v1h-1zM21 33h1v1h-1zM23 33h1v1h-1zM25 33h1v1h-1zM27 33h1v1h-1zM29 33h1v1h-1zM31 33h1v1h-1zM33 33h1v1h-1zM35 33h1v1h-1zM37 33h1v1h-1zM39 33h1v1h-1zM14 34h1v1h-1zM16 34h1v1h-1zM18 34h1v1h-1zM20 34h1v1h-1zM22 34h1v1h-1zM24 34h1v1h-1zM26 34h1v1h-1zM28 34h1v1h-1zM30 34h1v1h-1zM32 34h1v1h-1zM34 34h1v1h-1zM36 34h1v1h-1zM38 34h1v1h-1zM40 34h1v1h-1zM13 35h1v1h-1zM15 35h1v1h-1zM17 35h1v1h-1zM19 35h1v1h-1zM21 35h1v1h-1zM23 35h1v1h-1zM25 35h1v1h-1zM27 35h1v1h-1zM29 35h1v1h-1zM31 35h1v1h-1zM33 35h1v1h-1zM35 35h1v1h-1zM37 35h1v1h-1zM39 35h1v1h-1zM41 35h1v1h-1zM12 36h1v1h-1zM14 36h1v1h-1zM16 36h1v1h-1zM18 36h1v1h-1zM20 36h1v1h-1zM22 36h1v1h-1zM24 36h1v1h-1zM26 36h1v1h-1zM28 36h1v1h-1zM30 36h1v1h-1zM32 36h1v1h-1zM34 36h1v1h-1zM36 36h1v1h-1zM38 36h1v1h-1zM40 36h1v1h-1zM11 37h1v1h-1zM13 37h1v1h-1zM15 37h1v1h-1zM17 37h1v1h-1zM19 37h1v1h-1zM21 37h1v1h-1zM23 37h1v1h-1zM25 37h1v1h-1zM27 37h1v1h-1zM29 37h1v1h-1zM31 37h1v1h-1zM33 37h1v1h-1zM35 37h1v1h-1zM37 37h1v1h-1zM39 37h1v1h-1zM41 37h1v1h-1zM12 38h1v1h-1zM14 38h1v1h-1zM16 38h1v1h-1zM18 38h1v1h-1zM20 38h1v1h-1zM22 38h1v1h-1zM24 38h1v1h-1zM26 38h1v1h-1zM28 38h1v1h-1zM30 38h1v1h-1zM32 38h1v1h-1zM34 38h1v1h-1zM36 38h1v1h-1zM38 38h1v1h-1zM40 38h1v1h-1zM42 38h1v1h-1zM11 39h1v1h-1zM13 39h1v1h-1zM15 39h1v1h-1zM17 39h1v1h-1zM19 39h1v1h-1zM21 39h1v1h-1zM23 39h1v1h-1zM25 39h1v1h-1zM27 39h1v1h-1zM29 39h1v1h-1zM31 39h1v1h-1zM33 39h1v1h-1zM35 39h1v1h-1zM37 39h1v1h-1zM39 39h1v1h-1zM41 39h1v1h-1zM43 39h1v1h-1zM10 40h1v1h-1zM12 40h1v1h-1zM14 40h1v1h-1zM16 40h1v1h-1zM18 40h1v1h-1zM20 40h1v1h-1zM22 40h1v1h-1zM24 40h1v1h-1zM26 40h1v1h-1zM28 40h1v1h-1zM30 40h1v1h-1zM32 40h1v1h-1zM34 40h1v1h-1zM36 40h1v1h-1zM38 40h1v1h-1zM40 40h1v1h-1zM42 40h1v1h-1zM44 40h1v1h-1zM9 41h1v1h-1zM11 41h1v1h-1zM13 41h1v1h-1zM15 41h1v1h-1zM17 41h1v1h-1zM19 41h1v1h-1zM21 41h1v1h-1zM23 41h1v1h-1zM25 41h1v1h-1zM27 41h1v1h-1zM29 41h1v1h-1zM31 41h1v1h-1zM33 41h1v1h-1zM35 41h1v1h-1zM37 41h1v1h-1zM39 41h1v1h-1zM41 41h1v1h-1zM43 41h1v1h-1z"/><path style="fill:var(--frenO)" d="M26 0h2v1h-2zM26 1h2v1h-2zM25 2h1v1h-1zM28 2h1v1h-1zM25 3h1v1h-1zM28 3h1v1h-1zM24 4h1v1h-1zM29 4h1v1h-1zM24 5h1v1h-1zM29 5h1v1h-1zM23 6h1v1h-1zM30 6h1v1h-1zM22 7h1v1h-1zM31 7h1v1h-1zM22 8h1v1h-1zM31 8h1v1h-1zM21 9h1v1h-1zM26 9h2v1h-2zM32 9h1v1h-1zM21 10h1v1h-1zM26 10h2v1h-2zM32 10h1v1h-1zM20 11h1v1h-1zM25 11h1v1h-1zM28 11h1v1h-1zM33 11h1v1h-1zM20 12h1v1h-1zM25 12h1v1h-1zM28 12h1v1h-1zM33 12h1v1h-1zM19 13h1v1h-1zM24 13h1v1h-1zM29 13h1v1h-1zM34 13h1v1h-1zM18 14h1v1h-1zM23 14h1v1h-1zM30 14h1v1h-1zM35 14h1v1h-1zM18 15h1v1h-1zM23 15h1v1h-1zM30 15h1v1h-1zM35 15h1v1h-1zM17 16h1v1h-1zM22 16h1v1h-1zM31 16h1v1h-1zM36 16h1v1h-1zM17 17h1v1h-1zM22 17h1v1h-1zM31 17h1v1h-1zM36 17h1v1h-1zM16 18h1v1h-1zM21 18h1v1h-1zM32 18h1v1h-1zM37 18h1v1h-1zM16 19h1v1h-1zM21 19h1v1h-1zM32 19h1v1h-1zM37 19h1v1h-1zM15 20h1v1h-1zM20 20h1v1h-1zM33 20h1v1h-1zM38 20h1v1h-1zM14 21h1v1h-1zM19 21h1v1h-1zM34 21h1v1h-1zM39 21h1v1h-1zM14 22h1v1h-1zM19 22h1v1h-1zM34 22h1v1h-1zM39 22h1v1h-1zM13 23h1v1h-1zM18 23h1v1h-1zM35 23h1v1h-1zM40 23h1v1h-1zM13 24h1v1h-1zM18 24h1v1h-1zM35 24h1v1h-1zM40 24h1v1h-1zM12 25h1v1h-1zM17 25h1v1h-1zM36 25h1v1h-1zM41 25h1v1h-1zM11 26h1v1h-1zM16 26h1v1h-1zM37 26h1v1h-1zM42 26h1v1h-1zM11 27h1v1h-1zM16 27h1v1h-1zM37 27h1v1h-1zM42 27h1v1h-1zM10 28h1v1h-1zM15 28h1v1h-1zM38 28h1v1h-1zM43 28h1v1h-1zM10 29h1v1h-1zM15 29h1v1h-1zM38 29h1v1h-1zM43 29h1v1h-1zM9 30h1v1h-1zM14 30h1v1h-1zM39 30h1v1h-1zM44 30h1v1h-1zM9 31h1v1h-1zM14 31h1v1h-1zM39 31h1v1h-1zM44 31h1v1h-1zM8 32h1v1h-1zM13 32h1v1h-1zM40 32h1v1h-1zM45 32h1v1h-1zM7 33h1v1h-1zM12 33h1v1h-1zM41 33h1v1h-1zM46 33h1v1h-1zM7 34h1v1h-1zM12 34h1v1h-1zM41 34h1v1h-1zM46 34h1v1h-1zM6 35h1v1h-1zM11 35h1v1h-1zM42 35h1v1h-1zM47 35h1v1h-1zM6 36h1v1h-1zM11 36h1v1h-1zM42 36h1v1h-1zM47 36h1v1h-1zM5 37h1v1h-1zM10 37h1v1h-1zM43 37h1v1h-1zM48 37h1v1h-1zM5 38h1v1h-1zM10 38h1v1h-1zM43 38h1v1h-1zM48 38h1v1h-1zM4 39h1v1h-1zM9 39h1v1h-1zM44 39h1v1h-1zM49 39h1v1h-1zM3 40h1v1h-1zM8 40h1v1h-1zM45 40h1v1h-1zM50 40h1v1h-1zM3 41h1v1h-1zM8 41h1v1h-1zM45 41h1v1h-1zM50 41h1v1h-1zM2 42h1v1h-1zM7 42h40v1h-40zM51 42h1v1h-1zM2 43h1v1h-1zM51 43h1v1h-1zM1 44h1v1h-1zM52 44h1v1h-1zM1 45h1v1h-1zM52 45h1v1h-1zM0 46h54v1h-54z"/><path style="fill:var(--frenS)" d="M6 43h1v1h-1zM9 43h36v1h-36zM47 43h1v1h-1zM4 44h3v1h-3zM9 44h36v1h-36zM47 44h3v1h-3z"/><path style="fill:var(--frenS)" d="M27 2h1v1h-1zM27 3h1v1h-1zM28 4h1v1h-1zM28 5h1v1h-1zM29 6h1v1h-1zM30 7h1v1h-1zM30 8h1v1h-1zM31 9h1v1h-1zM31 10h1v1h-1zM32 11h1v1h-1zM32 12h1v1h-1zM33 13h1v1h-1zM34 14h1v1h-1zM34 15h1v1h-1zM35 16h1v1h-1zM35 17h1v1h-1zM36 18h1v1h-1zM36 19h1v1h-1zM37 20h1v1h-1zM38 21h1v1h-1zM38 22h1v1h-1zM39 23h1v1h-1zM39 24h1v1h-1zM40 25h1v1h-1zM41 26h1v1h-1zM41 27h1v1h-1zM42 28h1v1h-1zM42 29h1v1h-1zM43 30h1v1h-1zM43 31h1v1h-1zM44 32h1v1h-1zM45 33h1v1h-1zM45 34h1v1h-1zM46 35h1v1h-1zM46 36h1v1h-1zM47 37h1v1h-1zM47 38h1v1h-1zM48 39h1v1h-1zM49 40h1v1h-1zM49 41h1v1h-1zM50 42h1v1h-1zM50 43h1v1h-1zM51 44h1v1h-1zM3 45h49v1h-49z"/><path style="fill:var(--fren)" d="M27 4h1v1h-1zM28 6h1v1h-1zM27 7h3v1h-3zM27 8h3v1h-3zM28 9h3v1h-3zM28 10h3v1h-3zM29 11h3v1h-3zM29 12h3v1h-3zM30 13h3v1h-3zM31 14h3v1h-3zM31 15h3v1h-3zM27 16h1v1h-1zM32 16h3v1h-3zM32 17h3v1h-3zM33 18h3v1h-3zM33 19h3v1h-3zM34 20h3v1h-3zM35 21h3v1h-3zM35 22h3v1h-3zM36 23h3v1h-3zM36 24h3v1h-3zM37 25h3v1h-3zM38 26h3v1h-3zM38 27h3v1h-3zM39 28h3v1h-3zM39 29h3v1h-3zM40 30h3v1h-3zM40 31h3v1h-3zM41 32h3v1h-3zM42 33h3v1h-3zM42 34h3v1h-3zM43 35h3v1h-3zM43 36h3v1h-3zM44 37h3v1h-3zM44 38h3v1h-3zM45 39h3v1h-3zM46 40h3v1h-3zM46 41h3v1h-3zM47 42h3v1h-3zM48 43h2v1h-2zM50 44h1v1h-1z"/><path style="fill:var(--frenV)" d="M26 4h1v1h-1zM25 6h1v1h-1zM24 7h3v1h-3zM24 8h3v1h-3zM23 9h3v1h-3zM23 10h3v1h-3zM22 11h3v1h-3zM22 12h3v1h-3zM21 13h3v1h-3zM20 14h3v1h-3zM20 15h3v1h-3zM19 16h3v1h-3zM19 17h3v1h-3zM18 18h3v1h-3zM18 19h3v1h-3zM17 20h3v1h-3zM16 21h3v1h-3zM16 22h3v1h-3zM15 23h3v1h-3zM15 24h3v1h-3zM14 25h3v1h-3zM13 26h3v1h-3zM13 27h3v1h-3zM12 28h3v1h-3zM12 29h3v1h-3zM11 30h3v1h-3zM11 31h3v1h-3zM10 32h3v1h-3zM9 33h3v1h-3zM9 34h3v1h-3zM8 35h3v1h-3zM8 36h3v1h-3zM7 37h3v1h-3zM7 38h3v1h-3zM6 39h3v1h-3zM5 40h3v1h-3zM5 41h3v1h-3zM4 42h3v1h-3zM4 43h2v1h-2zM3 44h1v1h-1z"/><path style="fill:var(--frenC)" d="M26 2h1v1h-1zM26 3h1v1h-1zM25 4h1v1h-1zM25 5h1v1h-1zM24 6h1v1h-1zM23 7h1v1h-1zM23 8h1v1h-1zM22 9h1v1h-1zM22 10h1v1h-1zM21 11h1v1h-1zM21 12h1v1h-1zM20 13h1v1h-1zM19 14h1v1h-1zM19 15h1v1h-1zM26 15h3v1h-3zM18 16h1v1h-1zM25 16h1v1h-1zM29 16h1v1h-1zM18 17h1v1h-1zM26 17h3v1h-3zM17 18h1v1h-1zM17 19h1v1h-1zM16 20h1v1h-1zM15 21h1v1h-1zM15 22h1v1h-1zM14 23h1v1h-1zM14 24h1v1h-1zM13 25h1v1h-1zM12 26h1v1h-1zM12 27h1v1h-1zM11 28h1v1h-1zM11 29h1v1h-1zM10 30h1v1h-1zM10 31h1v1h-1zM9 32h1v1h-1zM8 33h1v1h-1zM8 34h1v1h-1zM7 35h1v1h-1zM7 36h1v1h-1zM6 37h1v1h-1zM6 38h1v1h-1zM5 39h1v1h-1zM4 40h1v1h-1zM4 41h1v1h-1zM3 42h1v1h-1zM3 43h1v1h-1zM2 44h1v1h-1zM2 45h1v1h-1z"/><path style="fill:var(--frenC)" d="M26 5h2v1h-2zM26 6h2v1h-2zM7 43h2v1h-2zM45 43h2v1h-2zM7 44h2v1h-2zM45 44h2v1h-2z"/><text x="27" y="25" text-anchor="middle" style="fill:var(--frenC);font:4px var(--pix)">THE</text><text x="27" y="32" text-anchor="middle" style="fill:var(--frenV);font:4px var(--pix)">DARK</text><text x="27" y="39" text-anchor="middle" style="fill:var(--frenV);font:4px var(--pix)">TRIAD</text></g></defs></svg>
-  </div></div></div><b id="frenChrono"></b></div>
+  </div></div></div><b id="frenChrono"></b><span id="frenTraits"><i data-t="n"><b data-fr="NARCISSE">NARCISSE</b><s></s></i><i data-t="m"><b data-fr="MACHIAVEL">MACHIAVEL</b><s></s></i><i data-t="p"><b data-fr="PSYCHO">PSYCHO</b><s></s></i></span></div>
   <div id="avGain" aria-hidden="true"></div>
   <div id="auraHud">
     <div id="auraGlow"></div>
@@ -8624,7 +8635,9 @@ Object.assign(I18N,{"DAUPHIN":"DOLPHIN"});Object.assign(I18N_ZH,{"DAUPHIN":"海�
 Object.assign(I18N,{"SORTI ! TON POUCE RAMENE LA CAISSE": "OFF THE ROAD! YOUR THUMB BRINGS IT BACK", "6 S EN L'AIR : POSE-TOI AVANT": "6 S IN THE AIR: LAND SOONER", "TOMBE DANS LE VIDE": "FELL INTO THE VOID", "ENCASTRE DANS UNE TOUR": "CRASHED INTO A TOWER", "6 S A L'ARRET : ROULE OU CREVE": "6 S STANDING STILL: DRIVE OR DIE", "DERNIER DE LA MEUTE": "LAST OF THE PACK", "CHAINE MAX": "BEST CHAIN", "ASTUCE": "TIP", "Tire le pouce vers le BAS en tournant : DRIFT !": "Pull your thumb DOWN while steering: DRIFT!", "En l'air : pouce en HAUT = plonge, en BAS = cabre.": "In the air: thumb UP = dive, DOWN = pull up.", "AUTO-ÉCOLE": "DRIVING SCHOOL", "PASSER": "SKIP", "TOURNE": "STEER", "DÉCOLLE": "TAKE OFF", "VOLE AU NITRO": "FLY ON NITRO", "POSE-TOI": "LAND IT", "Glisse ton pouce à gauche… puis à droite.": "Slide your thumb left… then right.", "Maintiens NITRO : ça pousse fort.": "Hold NITRO: it pushes hard.", "Fonce hors de la route, par le bord. N'aie pas peur.": "Drive off the road, over the edge. Don't be scared.", "En l'air, MAINTIENS NITRO. Ton pouce guide le vol.": "In the air, HOLD NITRO. Your thumb steers the flight.", "Vise l'anneau (en or = parfait) et pose tes quatre roues.": "Aim for the ring (gold = perfect) and land on all four wheels.", "PERMIS OBTENU !": "LICENCE EARNED!", "ENCORE ! ET CETTE FOIS, NITRO EN L'AIR": "AGAIN! AND THIS TIME, NITRO IN THE AIR", "RATÉ ! ON RECOMMENCE": "MISSED! TRY AGAIN", "L'AUTO-ÉCOLE T'ATTEND AU PROCHAIN JOUER": "DRIVING SCHOOL AWAITS ON YOUR NEXT PLAY", "REVOIR L'AUTO-ECOLE": "REPLAY DRIVING SCHOOL"});
 Object.assign(I18N_ZH,{"SORTI ! TON POUCE RAMENE LA CAISSE": "冲出赛道！用拇指把车拉回来", "6 S EN L'AIR : POSE-TOI AVANT": "空中 6 秒：早点着陆", "TOMBE DANS LE VIDE": "坠入虚空", "ENCASTRE DANS UNE TOUR": "撞上高楼", "6 S A L'ARRET : ROULE OU CREVE": "停车 6 秒：开起来，不然就爆", "DERNIER DE LA MEUTE": "垫底出局", "CHAINE MAX": "最长连击", "ASTUCE": "提示", "Tire le pouce vers le BAS en tournant : DRIFT !": "转向时拇指向下拉：漂移！", "En l'air : pouce en HAUT = plonge, en BAS = cabre.": "空中：拇指向上 = 俯冲，向下 = 拉起。", "AUTO-ÉCOLE": "驾校", "PASSER": "跳过", "TOURNE": "转向", "NITRO": "氮气", "DÉCOLLE": "起飞", "VOLE AU NITRO": "氮气飞行", "POSE-TOI": "着陆", "Glisse ton pouce à gauche… puis à droite.": "拇指向左滑……再向右滑。", "Maintiens NITRO : ça pousse fort.": "按住氮气：推力很猛。", "Fonce hors de la route, par le bord. N'aie pas peur.": "从路边冲出去，别怕。", "En l'air, MAINTIENS NITRO. Ton pouce guide le vol.": "在空中按住氮气，用拇指引导飞行。", "Vise l'anneau (en or = parfait) et pose tes quatre roues.": "瞄准圆环（金色＝完美），四轮着地。", "PERMIS OBTENU !": "驾照到手！", "RATÉ ! ON RECOMMENCE": "失败！再来", "REVOIR L'AUTO-ECOLE": "重温驾校"});
 Object.assign(I18N,{"ENCORE ! NITRO EN L'AIR": "AGAIN! NITRO IN THE AIR"});
-Object.assign(I18N,{"RECORD DE FRÉNÉSIE !":"FRENZY RECORD!","NITRO !":"NITRO!","FRENESIE":"FRENZY"});Object.assign(I18N_ZH,{"RECORD DE FRÉNÉSIE !":"狂热纪录！","NITRO !":"氮气！","FRENESIE":"狂热","FRÉNÉSIE":"狂热"}); // (v3) la frénésie, un but en soiObject.assign(I18N_ZH,{"ENCORE ! NITRO EN L'AIR": "再来！空中开氮气"});
+Object.assign(I18N,{"RECORD DE FRÉNÉSIE !":"FRENZY RECORD!","NITRO !":"NITRO!","FRENESIE":"FRENZY"});
+Object.assign(I18N,{"NARCISSE":"NARCISSIST","MACHIAVEL":"MACHIAVELLI","PSYCHO":"PSYCHO","UNE FIGURE !":"DO A TRICK!","TRICHE !":"CHEAT!","TIENS LES TROIS TRAITS":"HOLD ALL THREE TRAITS","FIGURES · TRICHE · NITRO":"TRICKS · CHEATS · NITRO","DE TRAVERS !":"SIDEWAYS!","À CONTRESENS !":"WRONG WAY!","POSE UNE FIGURE !":"LAND A TRICK!"});
+Object.assign(I18N_ZH,{"NARCISSE":"自恋","MACHIAVEL":"权谋","PSYCHO":"疯狂","UNE FIGURE !":"来个花式！","TRICHE !":"作弊！","TIENS LES TROIS TRAITS":"守住三种特质","FIGURES · TRICHE · NITRO":"花式 · 作弊 · 氮气","DE TRAVERS !":"歪了！","À CONTRESENS !":"逆行！","POSE UNE FIGURE !":"落地一个花式！"}); // (v4) la triadeObject.assign(I18N_ZH,{"RECORD DE FRÉNÉSIE !":"狂热纪录！","NITRO !":"氮气！","FRENESIE":"狂热","FRÉNÉSIE":"狂热"}); // (v3) la frénésie, un but en soiObject.assign(I18N_ZH,{"ENCORE ! NITRO EN L'AIR": "再来！空中开氮气"});
 Object.assign(I18N_ZH,{"BOUTIQUE": "商店", "CONTRAT": "合同", "REMPLI !": "完成！", "OBJECTIF": "目标", "TU PEUX TE L'OFFRIR": "你买得起了", "ACHETER": "购买", "ARTICLES À TA PORTÉE": "件商品可购买", "ARTICLE À TA PORTÉE": "件商品可购买", "EST À TOI — VA LA VOIR": "归你了 — 去看看", "EST À TOI — ESSAIE-LA": "归你了 — 试试看", "VERSÉS SUR TON COMPTE": "已存入账户", "VOITURES": "车辆", "PEINTURE": "涂装", "AILES": "翅膀", "TRAÎNÉES": "尾迹", "TRAÎNÉE": "尾迹", "ÉQUIPÉE": "已装备", "D'ORIGINE": "原厂", "MENTHE GLACÉE": "冰薄荷", "BLEU MINUIT": "午夜蓝", "NOIR MAT": "哑光黑", "COUCHER DE SOLEIL": "日落", "CHROME MIROIR": "镜面铬", "OR MASSIF": "纯金", "PANNEAUX": "滑翔板", "HÉLICES": "螺旋桨", "PLUMES D'ANGE": "天使之羽", "CHAUVE-SOURIS": "蝙蝠", "NITRO": "氮气", "MENTHE": "薄荷", "ROSE NÉON": "霓虹粉", "POUDRE D'OR": "金粉", "ARC-EN-CIEL": "彩虹", "LA BULLE": "泡泡", "LE COMBI": "露营车", "LA DOLORÈS": "多洛蕾丝"});
 Object.assign(I18N,{"OFFRE DE LANCEMENT": "LAUNCH OFFER", "LA CAISSE DU MOIS": "CAR OF THE MONTH", "Une voiture exclusive, sa peinture et sa traînée. Introuvable ailleurs.": "An exclusive car, its paint and its trail. Found nowhere else.", "BIENTÔT": "SOON", "VOITURES PREMIUM": "PREMIUM CARS", "LÉGENDAIRE": "LEGENDARY", "ÉPIQUE": "EPIC", "RARE": "RARE", "RESTAURER MES ACHATS": "RESTORE PURCHASES", "BIENTÔT DISPONIBLE — À LA SORTIE SUR L'APP STORE": "COMING SOON — AT THE APP STORE LAUNCH", "AUCUN ACHAT À RESTAURER": "NO PURCHASES TO RESTORE", "CONTRAT RÉUSSI": "CONTRACT DONE", "DÉBLOQUÉ": "UNLOCKED"});
 Object.assign(I18N_ZH,{"OFFRE DE LANCEMENT": "首发优惠", "LA CAISSE DU MOIS": "本月座驾", "BIENTÔT": "即将推出", "VOITURES PREMIUM": "高级车辆", "LÉGENDAIRE": "传说", "ÉPIQUE": "史诗", "RARE": "稀有", "RESTAURER MES ACHATS": "恢复购买", "CONTRAT RÉUSSI": "合同完成", "DÉBLOQUÉ": "已解锁"});
@@ -16243,12 +16256,24 @@ function n9Saut(o){const n=performance.now(),s9=n-(o._viseT||0)>200;o._viseT=n;r
       douces en proportion : on ne perd pas plus vite, on met plus longtemps à arriver.
    7. LA FRÉNÉSIE TIENT, ET SA PERTE SE PAIE. Sa brûlure est plus lente et son répit plus long ; mais quand elle tombe, la
       TRIADE SE VIDE (`retombee`) : y revenir, c'est remonter toute la dernière cellule — plus de retour en deux figures.
+   LA FRÉNÉSIE v4 — « LA TRIADE » (même jour, Sacha : « l'état de frénésie doit rappeler les traits de la dark triad : tant qu'on
+   les respecte on reste en frénésie — NARCISSISME : la prise de risque, l'ambition, les figures inutiles pour le sport ;
+   MACHIAVÉLISME : la triche, couper les chemins ; PSYCHOPATHIE : la vitesse à fond, le nitro appuyé tout le temps »). Et :
+   « en cas de mauvais atterrissage, de travers ou à contresens, le flow retourne à zéro ».
+   8. EN FRÉNÉSIE, LA JAUGE N'OBÉIT QU'À LA TRIADE. Trois traits, chacun sa MÉMOIRE (s) : NARCISSE (figures en vol, poses
+      parfaites, arrachées, serpent… tout le RISQUE ; un frôlé en rend un peu), MACHIAVEL (raccourcis, gaps, petites coupes),
+      PSYCHO (nitro enfoncé, ou vitesse à fond). Nourri, un trait repart plein ; sinon il se vide — pas en vol. La zone rouge
+      brûle selon le nombre de traits VIVANTS (`brule`, indexé 0 · 1 · 2 · 3) : les trois tenus, elle se REGONFLE. Les
+      gestes ne remplissent plus la jauge directement (`fam[…][4]` = 0) : ils nourrissent les traits, les traits la tiennent.
+      Mesuré (sim3.js) : les trois tenus → ~2 min 30 de tenue ; sans jamais tricher → ~40 s ; sans nitro → ~60 s.
+   9. LA POSE RATÉE COÛTE TOUT LE FLOW. Se poser à plus de `pose.angle`° de l'axe de la route (de travers, et au-delà de 90° :
+      à contresens), la frénésie comprise : la jauge retombe à ZÉRO. La vrille (le lacet) se finit donc AXÉE — ou elle tue le flow.
    ⚠ BLOC PUR : ne lit que ses arguments et FLOW2 — le banc de simulation l'exécute tel quel, hors du jeu. Tous les
    réglages vivent dans FLOW2, nulle part ailleurs.
    ========================================================================== */
 const FLOW2={
   // efficacité des familles selon la cellule : 0 cyan · 1 or · 2 rose · 3 TRIADE (violet + zone rouge) · 4 en FRÉNÉSIE
-  fam:{route:[1,.5,.12,0,0],style:[1,1,.8,.35,.75],risque:[1,1,1,1,1.25]},
+  fam:{route:[1,.5,.12,0,0],style:[1,1,.8,.35,0],risque:[1,1,1,1,0]}, // (v4) en frénésie [4] : rien — c'est la TRIADE qui tient la jauge
   cel:[.5,.35,.22,.14,.5],               // chaque cellule demande plus de gestes que la précédente (v2 : 1 · ,8 · ,65 · ,5)
   vit:[[.6,.35],[1,1],[1.3,1.35]],       // (vitN, ×) — la vitesse multiplie tous les gains, interpolé entre les points
   gate:.95,                              // sous 95 % de la croisière, la TRIADE ne prend RIEN
@@ -16257,8 +16282,12 @@ const FLOW2={
   pente:[0,0,.4,.4],                     // brûlure PERMANENTE (/s) : le rose et la triade se paient même en enchaînant (v2 : 1 · 2)
   routeGarde:50,                         // la route ne rend le répit que sous le FLOW II
   retombee:75,                           // la frénésie perdue, la jauge RETOMBE ici : la triade se vide (v2 : elle restait au bord, à 88)
-  // la FRÉNÉSIE : brûlure, fuite passé son répit, répit (s), part du nitro consommée (,5 = il dure DEUX FOIS plus), × vitesse
-  fren:{pente:.7,fuite:1.5,grace:4,nitro:.5,vit:[[.6,3],[.8,1.7],[1,1],[1.15,.55],[1.3,.3]]}
+  // la FRÉNÉSIE : part du nitro consommée (,5 = il dure DEUX FOIS plus)
+  fren:{nitro:.5},
+  // (v4) LA TRIADE : mémoire (s) de chaque trait · PSYCHO vit aussi à `p.vit` × la croisière sans nitro · brûlure (/s) de la zone
+  // rouge selon le nombre de traits vivants [0, 1, 2, 3] — négatif = elle se regonfle
+  triade:{n:{mem:9},m:{mem:25},p:{mem:3,vit:1.3},brule:[4,2,.7,-1.5]},
+  pose:{angle:55,vMin:4}                 // (v4) la POSE RATÉE : au-delà de 55° de l'axe (dès 4 m/s de vitesse à plat), le flow tombe à zéro
 };
 function flowInterp(P,x){if(x<=P[0][0])return P[0][1];for(let i=1;i<P.length;i++)if(x<=P[i][0]){const a=P[i-1],b=P[i];return a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);}return P[P.length-1][1];}
 function flowCel(v,lv){return lv===4?4:Math.min(3,Math.floor(v/25));}
@@ -16270,10 +16299,11 @@ function flowGainDe(q,fam,v,lv,vitN){
 }
 // ce geste rend-il le répit ?
 function flowGardeDe(fam,v){return fam!=='route'||v<FLOW2.routeGarde;}
-// ce que la jauge perd pendant `dt` (répit écoulé `idle`, en vol `air`, nitro allumé `nit`)
-function flowPerteDe(dt,v,lv,idle,air,vitN,nit){
-  if(air||nit||!(dt>0))return 0;
-  if(lv===4){const F=FLOW2.fren;return dt*flowInterp(F.vit,vitN)*(F.pente+(idle>F.grace?F.fuite:0));}
+// ce que la jauge perd pendant `dt` (répit écoulé `idle`, en vol `air`, nitro allumé `nit`, traits de la triade vivants `k`)
+function flowPerteDe(dt,v,lv,idle,air,vitN,nit,k){
+  if(air||!(dt>0))return 0;
+  if(lv===4)return dt*FLOW2.triade.brule[Math.max(0,Math.min(3,k|0))]; // (v4) en frénésie : la triade seule (le nitro y est PSYCHO, il ne gèle plus)
+  if(nit)return 0;
   const c=Math.min(3,Math.floor(v/25));
   return dt*(FLOW2.pente[c]+(idle>FLOW2.grace?FLOW2.fuite[c]:0));
 }
@@ -16299,14 +16329,16 @@ const FLOW_CEL=['#5ee6ff','#ffd75e','#ff5ec8','#b58cff'];            // les quat
    départ — c'est la marge qu'on a le droit de brûler. (FLOW v2, même nuit) Ce qu'elle coûte à tenir vit dans `FLOW2.fren` : une
    brûlure permanente que la VITESSE module (en nitro ~3× moins, ralenti ~3× plus), la fuite passé le répit — et rien en vol.
    `flowLvDe` est le SEUL calcul du palier. */
-const FREN={seuil:88,acc:0,scT:0,brT:0,k:false,vu:false,appris:false,el:null,hS:0,t:0,rec:false,nitDit:false,chr:null,chrS:-1}; // (v3) t = depuis quand on la tient · rec = record battu pendant celle-ci · nitDit = « NITRO ! » déjà soufflé · chr = le chrono sous l'emblème
+const FREN={seuil:88,acc:0,scT:0,brT:0,kb:false,vu:false,appris:false,el:null,hS:0,t:0,rec:false,nitDit:false,chr:null,chrS:-1,
+  tr:{n:0,m:0,p:0},k:3,dit:{n:false,m:false,p:false},trEl:null,trAff:'',arme:false}; // arme = jauge pleine, la frénésie attend une figure POSÉE // (v4) la TRIADE : charge (s) de chaque trait · k = traits vivants · dit = son appel déjà soufflé // (v3) t = depuis quand on la tient · rec = record battu pendant celle-ci · nitDit = « NITRO ! » déjà soufflé · chr = le chrono sous l'emblème
 function flowLvDe(v){const b=Math.min(4,Math.floor(v/25));return (FLOW.lv===4&&v>=FREN.seuil)?4:b;}
 function flowMult(){return ECO3.flow[FLOW.lv]||1;}          // ×1 · ×1,3 · ×1,5 · ×1,8 · ×2 sur l'argent (vague 3 : c'était +0,5 par palier, jusqu'à ×3 — voir ECO3)
 /* flowAdd(q, famille) — `q` est la valeur BRUTE du geste ; la famille ('route' · 'style' · 'risque', style par défaut) et le
    barème FLOW2 disent ce qu'il vaut VRAIMENT ici, à cette vitesse. */
-function flowAdd(q,fam){
+function flowAdd(q,fam,trait){
   if(!(q>0)||!started||gameOver||PARK.on)return;
   fam=fam||'style';
+  if(FLOW.lv===4)frenTrait(trait||(fam==='risque'?'n':null),1); // (v4) en frénésie : le RISQUE nourrit NARCISSE, sauf trait désigné (raccourci, gap → MACHIAVEL)
   const v0=FLOW.v,g=flowGainDe(q,fam,v0,FLOW.lv,FLOW.vit);
   if(FLOW.jr){FLOW.jr.push([+(performance.now()/1000).toFixed(2),fam,+q.toFixed(2),+g.toFixed(2),+v0.toFixed(1),+FLOW.vit.toFixed(2)]);if(FLOW.jr.length>80)FLOW.jr.shift();} // journal : seulement quand dbgFren('journal') l'a ouvert
   if(!(g>0)){ // refusé. Dans la TRIADE sous la vitesse, le jeu le DIT — une fois par partie, et jamais pour une pièce
@@ -16314,20 +16346,35 @@ function flowAdd(q,fam){
     return;}
   FLOW.v=Math.min(100,v0+g);if(flowGardeDe(fam,v0))FLOW.idle=0;
   if(FLOW.lv===4){frenNourrit(g);return;}   // déjà en FRÉNÉSIE : chaque goutte de style fait SCINTILLER la jauge (et cogne dans l'emblème)
-  const lv=flowLvDe(FLOW.v);
+  const lv=Math.min(3,flowLvDe(FLOW.v)); // (v4) la jauge pleine ne fait plus entrer : elle ARME (voir frenArme) — c'est la POSE qui déclenche
+  if(FLOW.v>=100&&!FREN.arme)frenArme();
   if(lv>FLOW.lv){FLOW.lv=lv;
-    // (HUD v4) le palier se lit SUR la caisse avec ce qu'il vaut en cash ; la FRÉNÉSIE, elle, prend le couloir des annonces —
-    // et la toute première de la session APPREND la zone rouge au lieu de redire le × que la jauge affiche déjà
-    if(lv===4){frenDebut(); // (v3) le chrono part — et l'annonce dit ce qu'il y a à BATTRE (le record de tenue), sinon ce que ça paie
-      const rc9=(SAVE.d.frenRec||0)>=5?SAVE.d.frenRec:0;
-      slam('FRÉNÉSIE !',!FREN.vu?'RESTE DANS LE ROUGE':rc9?TR('RECORD')+' '+frenDuree(rc9):'CASH ×'+fmtMul(flowMult()),FLOW_COL[4],'#ffb000',44,2,22);FREN.vu=true;flashEcran('rgba(255,42,61,.6)');
-      try{annSpeak('frenesie',5,true);}catch(e){} // (2026-09-28, Sacha : « ça doit déclencher la voix TRIPLE MONSTRE quand la frénésie est atteinte ») — à chaque fois, hors règle du 1/3 ; l'interrupteur VOIX reste maître
-      try{frenMus(true);}catch(e){}} // …et SON morceau tombe (THE DARK TRIAD — voir MUSIC_FREN)
-    else if(lv>=3&&!FLOW.revele)flowRevele(); // la rose est pleine : la TRIADE s'ouvre (et c'est elle qu'on annonce, pas « FLOW III »)
+    if(lv>=3&&!FLOW.revele)flowRevele(); // la rose est pleine : la TRIADE s'ouvre (et c'est elle qu'on annonce, pas « FLOW III »)
     else popTexte(FLOW_NOM[lv]+' · $×'+fmtMul(flowMult()),FLOW_COL[lv],1);
     flowPunch();
-    hap(lv===4?[20,40,20,40,40]:[12,30,16]);try{flowSnd(lv);}catch(e){}
+    hap([12,30,16]);try{flowSnd(lv);}catch(e){}
     fovPunch=Math.max(fovPunch,4+lv*2);}
+}
+/* (v4, Sacha : « quand on passe en frénésie après avoir POSÉ UNE FIGURE — l'atterrissage est la condition pour déclencher la frénésie,
+   en plus du score de flow — ça doit déclencher la voix TRIPLE MONSTRE et l'écriture TRIPLE MONSTER »). LA JAUGE PLEINE ARME (frenArme :
+   la zone rouge bat, « POSE UNE FIGURE ! ») ; LA FRÉNÉSIE PART À LA POSE d'un vol qui a porté une figure (vrille, météore, dauphin,
+   bump, BIG AIR…) et qui n'est pas RATÉE (tryLand → frenDeclenche). Désarmée si la jauge repasse sous la zone rouge (flowTick). */
+function frenArme(){
+  FREN.arme=true;FLOW.aff=-1;
+  popTexte('POSE UNE FIGURE !',FLOW_COL[4],2);hap([10,30,10]);
+  try{pixBurst(FLOW.el&&FLOW.el.querySelector('.fZ'),8);chimeNote(noteP(7,1),0,.06,.25);}catch(e){}
+}
+function frenDeclenche(){
+  FREN.arme=false;FLOW.v=100;FLOW.lv=4;FLOW.idle=0;FLOW.aff=-1;
+  frenDebut(); // (v3) le chrono part — et l'annonce dit ce qu'il y a à BATTRE (le record de tenue), sinon ce que ça paie
+  const rc9=(SAVE.d.frenRec||0)>=5?SAVE.d.frenRec:0;
+  slam('FRÉNÉSIE !',!FREN.vu?'TIENS LES TROIS TRAITS':rc9?TR('RECORD')+' '+frenDuree(rc9):'CASH ×'+fmtMul(flowMult()),FLOW_COL[4],'#ffb000',44,2,22);FREN.vu=true;flashEcran('rgba(255,42,61,.6)');
+  try{annSpeak('frenesie',5,true);}catch(e){} // (2026-09-28, Sacha : « ça doit déclencher la voix TRIPLE MONSTRE quand la frénésie est atteinte ») — à chaque fois, hors règle du 1/3 ; l'interrupteur VOIX reste maître
+  try{frenMus(true);}catch(e){} // …et SON morceau tombe (THE DARK TRIAD — voir MUSIC_FREN)
+  flowPunch();
+  hap([20,40,20,40,40]);try{flowSnd(4);}catch(e){}
+  fovPunch=Math.max(fovPunch,12);
+  flowHudMaj(9); // l'emblème (#triade.on) se pose TOUT DE SUITE : le titre TRIPLE MONSTER de la session UI l'attend
 }
 /* EN FRÉNÉSIE, LA JAUGE SCINTILLE QUAND ON LA NOURRIT (Sacha : « la barre doit devenir toute rouge et scintiller quand elle reçoit
    encore du flow »). Les gouttes s'accumulent (le RASE-BORD en verse un filet à chaque image, une pièce 0,7) : à 1,2 point on relance
@@ -16337,7 +16384,7 @@ function frenNourrit(q){
   FREN.acc+=q;const t=performance.now();
   if(FREN.acc<1.2||t-FREN.scT<110)return;
   FREN.acc=0;FREN.scT=t;
-  const h=FLOW.el,k=FREN.k=!FREN.k;
+  const h=FLOW.el,k=FREN.kb=!FREN.kb;
   if(h){h.classList.remove(k?'sc1':'sc2');h.classList.add(k?'sc2':'sc1');}
   const tr=frenEl();if(tr&&tr.classList.contains('on')){tr.classList.remove(k?'bat1':'bat2');tr.classList.add(k?'bat2':'bat1');}
   if(h&&t-FREN.brT>420){FREN.brT=t;try{pixBurst(h.querySelector('.fZ'),4);}catch(e){}}
@@ -16354,7 +16401,7 @@ function flowRevele(){
   const h=FLOW.el;
   if(h){h.classList.add('revele','ouvre');clearTimeout(flowRevele._t);flowRevele._t=setTimeout(function(){h.classList.remove('ouvre');},700);
     try{pixBurst(h.querySelector('.fSeg>i:nth-child(4)'),10);}catch(e){}}
-  popTexte(FREN.appris?'DARK TRIAD':'RISQUE + VITESSE',FLOW_COL[4],2);FREN.appris=true;
+  popTexte(FREN.appris?'DARK TRIAD':'FIGURES · TRICHE · NITRO',FLOW_COL[4],2);FREN.appris=true; // (v4) la règle de la triade, en trois mots
   try{subBoom(.14);chimeNote(noteP(0,0),.05,.07,.6);}catch(e){}
   hap([10,40,10]);
 }
@@ -16379,13 +16426,15 @@ function frenSort(){
 function flowReset(){
   if(FLOW.lv===4){try{frenMus(false);}catch(e){}frenFin(true);} // la frénésie meurt avec la caisse (ou la partie) : son morceau aussi — sa tenue, elle, compte
   FLOW.v=0;FLOW.lv=0;FLOW.idle=0;FLOW.tk=0;FLOW.aff=-1;FREN.acc=0;
-  FLOW.revele=false;FLOW.lentVu=false;FLOW.nit=false;if(FLOW.el)FLOW.el.classList.remove('revele','ouvre','lent','gele');}
+  FLOW.revele=false;FLOW.lentVu=false;FLOW.nit=false;if(FLOW.el)FLOW.el.classList.remove('revele','ouvre','lent','gele');
+  FREN.tr.n=FREN.tr.m=FREN.tr.p=0;FREN.k=3;FREN.arme=false;}
 /* (v3) LA FRÉNÉSIE, UN BUT EN SOI (Sacha : « atteindre la frénésie doit être un but en soi »). Chaque frénésie a sa DURÉE, et la
    plus longue jamais tenue est un RECORD (`SAVE.d.frenRec`, en secondes) : on la voit courir sous l'emblème (#frenChrono), l'annonce
    d'entrée dit le chiffre à battre, le battre se crie (une fois par frénésie), et l'écran de mort dit la plus longue de la partie.
    RUNX.fren = frénésies de la partie · RUNX.frenMax = la plus longue (s). */
 function frenDuree(t){t=Math.max(0,Math.floor(t));return Math.floor(t/60)+':'+String(t%60).padStart(2,'0');}
-function frenDebut(){FREN.t=0;FREN.rec=false;FREN.nitDit=false;FREN.chrS=-1;RUNX.fren=(RUNX.fren|0)+1;frenChrono();}
+function frenDebut(){FREN.t=0;FREN.rec=false;FREN.nitDit=false;FREN.chrS=-1;RUNX.fren=(RUNX.fren|0)+1;frenChrono();
+  const T9=FLOW2.triade;FREN.tr.n=T9.n.mem;FREN.tr.m=T9.m.mem;FREN.tr.p=T9.p.mem;FREN.k=3;FREN.dit.n=FREN.dit.m=FREN.dit.p=false;FREN.trAff='';frenTraitsMaj();} // (v4) on y entre les trois traits PLEINS : on vient de les prouver
 function frenTient(dt){
   FREN.t+=dt;
   const r=SAVE.d.frenRec||0;
@@ -16398,12 +16447,59 @@ function frenChrono(){ // écrit seulement quand la seconde change
   const s9=Math.floor(FREN.t);if(s9===FREN.chrS)return;FREN.chrS=s9;
   c.textContent=frenDuree(s9);c.classList.toggle('rec',FREN.rec);
 }
+/* (v4) LA TRIADE — les trois traits de la frénésie. `frenTrait(t, part)` : un geste nourrit un trait (part = fraction de sa mémoire ;
+   1 = plein). `frenTriade(dt)` : chaque image, PSYCHO se nourrit du nitro ou de la vitesse, les trois se vident au sol, on compte les
+   vivants (FREN.k) ; un trait qui MEURT se crie une fois par frénésie avec ce qu'il réclame (« UNE FIGURE ! », « TRICHE ! », « NITRO ! »),
+   un trait qui RENAÎT sonne. `frenTraitsMaj()` peint les trois barres sous l'emblème (écrit seulement quand l'affichage change). */
+const TRAITS=[['n','NARCISSE','UNE FIGURE !','#ffd75e'],['m','MACHIAVEL','TRICHE !','#7dffec'],['p','PSYCHO','NITRO !','#ff7a24']];
+function frenTrait(t,part){
+  if(FLOW.lv!==4||!t||!FLOW2.triade[t])return;
+  const mem=FLOW2.triade[t].mem,av=FREN.tr[t];
+  FREN.tr[t]=Math.min(mem,av+mem*(part==null?1:part));
+  if(av<=0&&FREN.tr[t]>0){try{chimeNote(noteP(t==='n'?4:t==='m'?7:9,1),0,.07,.3);}catch(e){}hap(8);} // il RENAÎT
+  frenNourrit(3); // la jauge scintille : on vient de la nourrir
+  const el=frenTraitEl(t);if(el){const k=el._k=!el._k;el.classList.remove(k?'fl1':'fl2');el.classList.add(k?'fl2':'fl1');}
+}
+function frenTriade(dt,air,nit){
+  const T9=FLOW2.triade,tr=FREN.tr;
+  if(nit||FLOW.vit>=T9.p.vit)tr.p=T9.p.mem;                            // PSYCHO : le pied au plancher
+  if(!air)for(const t in tr)tr[t]=Math.max(0,tr[t]-dt);                 // EN VOL, RIEN NE MEURT (comme le flow)
+  const k=(tr.n>0)+(tr.m>0)+(tr.p>0);
+  // un trait MORT : le jeu dit ce qu'il réclame — une fois par trait et par frénésie, un appel à la fois (deux morts ensemble : 0,9 s d'écart)
+  const n9=performance.now();
+  if(mode==='drive'&&n9-(FREN.appT||0)>900)for(const d of TRAITS)if(tr[d[0]]<=0&&!FREN.dit[d[0]]){FREN.dit[d[0]]=true;FREN.appT=n9;popTexte(d[2],d[3],2);
+    try{chimeNote(noteP(0,0),0,.05,.3);}catch(e){}hap([8,30,8]);break;}
+  FREN.k=k;
+  frenTraitsMaj();
+}
+function frenTraitEl(t){const b=FREN.trEl||(FREN.trEl=document.getElementById('frenTraits'));return b?b.querySelector('[data-t="'+t+'"]'):null;}
+function frenTraitsMaj(){
+  const b=FREN.trEl||(FREN.trEl=document.getElementById('frenTraits'));if(!b)return;
+  let key='';const T9=FLOW2.triade;
+  for(const d of TRAITS){const f=FREN.tr[d[0]]/T9[d[0]].mem;key+=Math.ceil(f*20)+(f<=0?'m':f<.3?'f':'v');}
+  if(key===FREN.trAff)return;FREN.trAff=key;
+  for(const d of TRAITS){const el=b.querySelector('[data-t="'+d[0]+'"]');if(!el)continue;const f=FREN.tr[d[0]]/T9[d[0]].mem;
+    el.style.setProperty('--f',(Math.ceil(f*20)/20).toFixed(2));el.classList.toggle('mort',f<=0);el.classList.toggle('faible',f>0&&f<.3);}
+}
 function frenFin(mort){ // la frénésie est tombée (mort = avec la caisse : on ne dit rien, la voix du crash a la parole)
   const t=FREN.t;if(!(t>0))return;FREN.t=0;
   RUNX.frenMax=Math.max(RUNX.frenMax||0,t);
   const r=SAVE.d.frenRec||0,neuf=t>r&&t>=5;
   if(neuf){SAVE.d.frenRec=Math.floor(t*10)/10;SAVE.mark();} // arrondi PAR DÉFAUT : le chrono affiche des secondes entières tronquées, le record dit le même chiffre
   if(!mort&&t>=3)popTexte(TR('FRÉNÉSIE')+' '+frenDuree(t)+(neuf&&r>=5?' · '+TR('RECORD'):''),neuf&&r>=5?'#ffd75e':FLOW_COL[4],3);
+}
+/* (v4) LA POSE RATÉE : le flow retombe à ZÉRO, frénésie comprise (sa tenue compte pour le record). La triade reste ouverte : on sait
+   ce qu'on vient de perdre. Le jeu dit pourquoi : « DE TRAVERS ! » ou « À CONTRESENS ! ». */
+function flowCasse(contre){
+  if(!(FLOW.v>0))return;
+  const lv0=FLOW.lv;
+  if(lv0===4){try{frenMus(false);}catch(e){}frenFin(true);}
+  FLOW.v=0;FLOW.lv=0;FLOW.idle=0;FLOW.tk=0;FREN.acc=0;FREN.arme=false;
+  popTexte(contre?'À CONTRESENS !':'DE TRAVERS !','#ff5e7a',3);
+  if(lv0>0){try{flowDropSnd(lv0);}catch(e){}}try{clank9(0,150,.14);}catch(e){}
+  hap([30,40,30,40,60]);shake=Math.max(shake,.6);
+  if(lv0>=2)try{flashEcran('rgba(255,42,61,.35)');}catch(e){}
+  flowTick(0);
 }
 function flowDropSnd(lv){ // (2026-09-25) le palier PERDU : son accord redescend, deux notes douces — on informe, on ne punit pas
   if(!(lv>0))return;const I=FLOW_ACC[lv];
@@ -16418,7 +16514,7 @@ const FROLE={n:0,t:0,s0:null};
 function frole(c9,dl,k){
   k=k||1;c9.frole=true;const pres=Math.max(0,Math.min(1,1-(dl-1.6)/2)); // 1 = rasé de près, 0 = large (3,6 m) · k : plots frôlés dans la même image (une PORTE)
   FROLE.n+=k;FROLE.t=1.4;
-  nitroGain((.08+.08*pres)*(k>1?1.5:1));flowAdd((4+4*pres)*(k>1?1.5:1),'style'); // ×1,5 (et non ×2) : la porte paie plus sans gonfler le FLOW
+  nitroGain((.08+.08*pres)*(k>1?1.5:1));flowAdd((4+4*pres)*(k>1?1.5:1),'style');frenTrait('n',.3); // (v4) frôler, c'est un peu de NARCISSE // ×1,5 (et non ×2) : la porte paie plus sans gonfler le FLOW
   momT=Math.min(4.3,momT+.6); // (momentum v2) le style NOURRIT la réserve de vitesse
   try{chaineAura(FROLE.n>=2?'SLALOM ×'+FROLE.n:'FRÔLÉ',20,'frole');}catch(e){} // sans titre : l'aura monte en silence, le pop ci-dessous parle déjà
   popTexte(k>1?'PORTE !':FROLE.n>=2?'SLALOM ×'+FROLE.n:'FRÔLÉ !',k>1||FROLE.n>=3?'#ffd75e':'#7dffec');
@@ -16429,7 +16525,8 @@ function frole(c9,dl,k){
 // combien de secondes avant de perdre le palier, si on ne nourrit plus (répit, pente, fuite — le même barème que la perte)
 function flowReste(){
   const fr9=FLOW.lv===4,m=FLOW.v-(fr9?FREN.seuil:FLOW.lv*25);if(m<=0)return 0;
-  const G=fr9?FLOW2.fren.grace:FLOW2.grace,tG=Math.max(0,G-FLOW.idle);
+  if(fr9){const b=FLOW2.triade.brule[FREN.k];return b>0?m/b:9;} // (v4) en frénésie : la brûlure de la triade
+  const G=FLOW2.grace,tG=Math.max(0,G-FLOW.idle);
   const rG=flowPerteDe(1,FLOW.v,FLOW.lv,0,false,FLOW.vit,FLOW.nit),rF=Math.max(.01,flowPerteDe(1,FLOW.v,FLOW.lv,G+1,false,FLOW.vit,FLOW.nit));
   if(rG*tG>=m)return rG>0?m/rG:tG;
   return tG+(m-rG*tG)/rF;
@@ -16442,17 +16539,16 @@ function flowTick(dt){
   // activé, le flow ne baisse pas ») — LE NITRO NON PLUS : il suspend tout, la perte comme le répit. C'est le bouclier de la montée.
   if(!air&&!nit)FLOW.idle+=dt;
   const fr9=FLOW.lv===4;
-  FLOW.v=Math.max(0,FLOW.v-flowPerteDe(dt,FLOW.v,FLOW.lv,FLOW.idle,air,FLOW.vit,nit));
-  if(fr9){frenTient(dt);
-    // (v3) LE SOUFFLEUR : la frénésie commence à FUIR au sol, et il reste du nitro qu'on n'allume pas — le jeu le souffle, une fois
-    // par frénésie. C'est LA leçon de la frénésie v3 : le nitro la tient (et il y dure deux fois plus).
-    if(!nit&&!FREN.nitDit&&mode==='drive'&&FLOW.idle>FLOW2.fren.grace&&(nitroR+nitroX)>.3){FREN.nitDit=true;popTexte('NITRO !','#ff7a24',2);}}
+  if(fr9)frenTriade(dt,air,nit); // (v4) les trois traits vivent et meurent AVANT qu'on compte la brûlure
+  FLOW.v=Math.min(100,Math.max(0,FLOW.v-flowPerteDe(dt,FLOW.v,FLOW.lv,FLOW.idle,air,FLOW.vit,nit,FREN.k)));
+  if(fr9){frenTient(dt);if(FREN.k===3&&!air&&dt>0)frenNourrit(dt*2);} // les trois tenus : la jauge SE REGONFLE et scintille
   const lv=flowLvDe(FLOW.v);
+  if(FREN.arme&&FLOW.v<FREN.seuil){FREN.arme=false;FLOW.aff=-1;} // (v4) l'arme retombe avec la jauge : sous la zone rouge, il faut la remplir de nouveau
   // (2026-09-25) LE FLOW PRÉVIENT AVANT DE LÂCHER : un tic qui ACCÉLÈRE quand il reste moins d'1,1 s avant de perdre le palier (au sol
   // seulement : en vol on ne peut rien nourrir). Nourrir (pièce, drift, frôlé…) remet idle à 0 : le tic se tait tout seul.
   // En FRÉNÉSIE, le plancher n'est plus 100 mais le bord de la zone rouge.
   let rest=9;
-  if(FLOW.lv>0&&mode==='drive'&&!nit){ // (v3) nitro allumé : rien ne fuit, rien ne sonne
+  if(FLOW.lv>0&&mode==='drive'&&(!nit||FLOW.lv===4)){ // (v3) nitro allumé : rien ne fuit, rien ne sonne — sauf en frénésie (v4 : la triade décide)
     rest=flowReste();
     FLOW.tk-=dt;
     if(rest<1.1&&FLOW.tk<=0){FLOW.tk=.1+.3*rest;try{chimeNote(noteP(FLOW_ACC[FLOW.lv][0],2),0,.025,.05);}catch(e){}hap(4);}
@@ -16478,9 +16574,9 @@ function flowPunch(){const h=FLOW.el;if(!h)return;
   const c9=FLOW.lv===4?'embrase':'monte';h.classList.remove('monte','embrase');void h.offsetWidth;h.classList.add(c9);
   if(FLOW.lv>=2)try{pixBurst(h.querySelector(FLOW.lv===4?'.fZ':'.fSeg'),6+FLOW.lv*3);}catch(e){}}
 function flowHudMaj(rest){
-  const fuit=FLOW.v>0&&mode==='drive'&&!FLOW.nit&&FLOW.idle>(FLOW.lv===4?FLOW2.fren.grace:FLOW2.grace),lache=fuit&&FLOW.lv>0&&rest<1.1,pres=FLOW.lv<4&&FLOW.v%25>20;
+  const fuit=FLOW.lv===4?(mode==='drive'&&FREN.k<3):FLOW.v>0&&mode==='drive'&&!FLOW.nit&&FLOW.idle>FLOW2.grace,lache=fuit&&FLOW.lv>0&&rest<1.1,pres=FLOW.lv<4&&FLOW.v%25>20;
   const lent=FLOW.revele&&FLOW.lv<4&&FLOW.vit<FLOW2.gate; // la triade GÈLE sous sa vitesse : elle ne prendra rien tant qu'on n'accélère pas
-  const k=Math.round(FLOW.v*2)+'|'+FLOW.lv+'|'+(fuit?1:0)+(lache?1:0)+(pres?1:0)+(lent?1:0)+(FLOW.revele?1:0)+(FLOW.nit?1:0);if(FLOW.aff===k)return;FLOW.aff=k;
+  const k=Math.round(FLOW.v*2)+'|'+FLOW.lv+'|'+(fuit?1:0)+(lache?1:0)+(pres?1:0)+(lent?1:0)+(FLOW.revele?1:0)+(FLOW.nit?1:0)+(FREN.arme?1:0);if(FLOW.aff===k)return;FLOW.aff=k;
   let h=FLOW.el;
   if(!h){h=FLOW.el=document.createElement('div');h.id='flowHud';h.className='on';h.setAttribute('aria-hidden','true');
     // la 4e cellule porte la ZONE ROUGE (.fZ) : son propre remplissage rouge, par-dessus le violet, et le cran du seuil
@@ -16500,7 +16596,8 @@ function flowHudMaj(rest){
   FLOW.zs.style.setProperty('--f',zf.toFixed(3));
   h.classList.toggle('dansZ',zf>0);h.classList.toggle('fuit',fuit);h.classList.toggle('lache',lache);h.classList.toggle('presque',pres);
   h.classList.toggle('revele',FLOW.revele);h.classList.toggle('lent',lent);
-  h.classList.toggle('gele',FLOW.nit&&FLOW.v>0); // (v3) le nitro TIENT la jauge : rien ne fuit tant qu'il brûle
+  h.classList.toggle('arme',FREN.arme); // (v4) jauge pleine : la frénésie attend une figure posée
+  h.classList.toggle('gele',FLOW.nit&&FLOW.v>0&&FLOW.lv<4); // (v3) le nitro TIENT la jauge de la montée : rien ne fuit tant qu'il brûle
   const tr=frenEl();if(tr){tr.classList.toggle('tremble',FLOW.lv===4&&lache);tr.classList.toggle('froid',FLOW.lv===4&&fuit&&!lache);}
   if(FLOW.lvAff!==FLOW.lv){const av=FLOW.lvAff;FLOW.lvAff=FLOW.lv;h.style.setProperty('--fc',FLOW_COL[FLOW.lv]);h.dataset.lv=FLOW.lv;
     h.querySelector('.fL').textContent=sansAcc(TR(FLOW_NOM[FLOW.lv]));h.querySelector('.fM').textContent='$×'+fmtMul(flowMult());
@@ -22705,7 +22802,7 @@ const VERD={buf:[],pend:false,el:null,h:0,t:0};
 const VERD_DEF=[ // [texte de l'annonceur, rang, mot du dessus, mot du rang, couleur] — du plus long au plus court (« MEGA METEOR » avant « METEOR »)
   ['MEGA METEOR',5,'MEGA','METEORE','#ff7a24'],['TRIPLE MONSTRE',3,'TRIPLE','MONSTRE','#ffd75e'],['DOUBLE MONSTRE',2,'DOUBLE','MONSTRE','#ff3ec8'],
   ['SNAKE LOOP',4,'SNAKE','LOOP','#b58cff'],['METEOR',4,'','METEORE','#ff7a24'],['MONSTRE',1,'','MONSTRE','#5ee6ff']];
-const VERD_TAG=[[/^FACE CACH/,'#ffd75e'],[/^À RECULONS/,'#5ee6ff'],[/^PILE AU CENTRE/,'#5ee6ff']];   // les bonus de pose (pastilles)
+const VERD_TAG=[[/^FACE CACH/,'#ffd75e'],[/^PILE AU CENTRE/,'#5ee6ff']];   // les bonus de pose (pastilles)
 const VERD_SEUL=[[/CATAPULTE/,'#5ee6ff',0],[/ EXPLOSE !$/,'#ff3b5c',1]];                         // les cartes simples [motif, couleur, priorité]
 const VERD_TAILLE=[22,30,34,38,40,44]; // le mot du rang (px) : carte simple · MONSTRE < DOUBLE < TRIPLE < MÉTÉORE, SNAKE LOOP < MEGA — plafonné par la largeur
 HAUT_MIN.ver=700; // le temps de lecture garanti d'un verdict (le mot, puis le montant)
@@ -22904,7 +23001,7 @@ window.dbgHud=function(k,n){
   if(k==='verdict'){ // (vague 3) un verdict de pose tel que tryLand l'écrit : 'm1' 'm2' 'm3' 'meteor' 'mega' 'snake' · 'tags' (+ bonus) · 'lourd' · 'catapulte'
     if(n==='catapulte'){trickMsg('🚀 CATAPULTE !',2);return 'ok';}
     const V={m1:'MONSTRE',m2:'DOUBLE MONSTRE',m3:'TRIPLE MONSTRE',meteor:'METEOR',mega:'MEGA METEOR',snake:'SNAKE LOOP',lourd:'MONSTRE'}[n]||'DOUBLE MONSTRE';
-    if(n==='tags'){trickMsg('PILE AU CENTRE 🎯',false);trickMsg('À RECULONS — MÊME PAS REGARDÉ !',2);trickMsg('FACE CACHÉE ×2',2);}
+    if(n==='tags'){trickMsg('PILE AU CENTRE 🎯',false);trickMsg('FACE CACHÉE ×2',2);}
     trickMsg((n==='lourd'?'POSÉ LOURD — AÏE… ':n==='m1'?'PARFAIT ! ':'')+V+'  +'+fmtC(denom()*({m1:12,m2:60,m3:180,meteor:90,mega:900,snake:240}[n]||60)),3);return 'ok';}
   if(k==='file'){const c=HAUT.cur,t=performance.now();return {voix:c&&t<HAUT.fin?c.k+':'+c.p:null,attente:HAUT.q.map(function(q){return q.k+':'+q.p;}),moteur:engBig.on?(engBig.plonge?'plonge':'couloir'):null};}
   return {flow:{v:FLOW.v,lv:FLOW.lv,idle:FLOW.idle},cha:{pts:CHA.pts,x:CHA.x,n:CHA.n,t:CHA.t},rec:CHA.rec,recB:CHA.recB,aura:Math.round(auraRun)};
@@ -22920,7 +23017,7 @@ window.dbgLooping=function(){let n=0,por=0,dans=false,pire=0;
    (v3) rend aussi `nit` (le nitro gèle la jauge), `tenue` (s de la frénésie en cours), `record` (SAVE.d.frenRec), `partie` {fren, max}. */
 window.dbgFren=function(k,n){
   if(k==='v'){FLOW.v=Math.max(0,Math.min(100,+n||0));FLOW.idle=0;
-    if(FLOW.v>=100&&FLOW.lv<4){FLOW.v=99.9;flowAdd(1);}                      // la frénésie : par le vrai chemin (annonce, embrasement, emblème)
+    if(FLOW.v>=100&&FLOW.lv<4){FLOW.v=99.9;flowAdd(1);}                      // la jauge pleine : par le vrai chemin (v4 : elle ARME — dbgFren('entre') déclenche)
     else if(FLOW.lv<4)FLOW.lv=Math.min(3,Math.floor(FLOW.v/25));              // les paliers ordinaires : posés sans annonce
     flowTick(0);}
   else if(k==='nourrit')flowAdd(n==null?3:n);
@@ -22928,10 +23025,13 @@ window.dbgFren=function(k,n){
   else if(k==='vit')FLOW.vitF=n==null?null:+n;                                 // forcer la vitesse du flow (null = la vraie)
   else if(k==='journal'){if(n===0){FLOW.jr=null;return 'journal fermé';}FLOW.jr=FLOW.jr||[];return FLOW.jr.slice();}
   else if(k==='idle'){FLOW.idle=n==null?2.5:n;flowTick(0);}
+  else if(k==='trait'){if(n&&n.length===1)frenTrait(n,1);else if(n)FREN.tr[n[0]]=+n.slice(1)||0;} // (v4) dbgFren('trait','m') nourrit · dbgFren('trait','m0') le vide
+  else if(k==='pose')flowCasse(!!n); // (v4) simule une pose ratée (n vrai = à contresens)
+  else if(k==='entre'){if(FLOW.lv<4)frenDeclenche();} // (v4) la frénésie tout de suite (comme une figure posée jauge pleine)
   const tr=frenEl();
   return {v:+FLOW.v.toFixed(2),lv:FLOW.lv,vit:+FLOW.vit.toFixed(2),revele:FLOW.revele,musique:FRENM.sw?'triade':FRENM.surm?'surmultipliee':'radio',seuil:FREN.seuil,zone:+Math.max(0,Math.min(1,(FLOW.v-FREN.seuil)/(100-FREN.seuil))).toFixed(3),
     idle:+FLOW.idle.toFixed(2),triade:tr?tr.className:null,hud:FLOW.el?FLOW.el.className:null,
-    nit:FLOW.nit,tenue:+FREN.t.toFixed(1),record:SAVE.d.frenRec||0,partie:{fren:RUNX.fren|0,max:+(RUNX.frenMax||0).toFixed(1)},nitro:+nitroR.toFixed(2)}; // (v3) le gel du nitro, la tenue, le record
+    nit:FLOW.nit,tenue:+FREN.t.toFixed(1),triade:{n:+FREN.tr.n.toFixed(1),m:+FREN.tr.m.toFixed(1),p:+FREN.tr.p.toFixed(1),k:FREN.k},poseA:FLOW.poseA,arme:FREN.arme,record:SAVE.d.frenRec||0,partie:{fren:RUNX.fren|0,max:+(RUNX.frenMax||0).toFixed(1)},nitro:+nitroR.toFixed(2)}; // (v3) le gel du nitro, la tenue, le record
 };
 function avGainPop(petit,grand,perdu){
   const g=avE('avGain');if(!g)return;
@@ -23648,6 +23748,12 @@ function tryLand(dt){
      dans la dalle à plus de 45° (vitesse normale > vitesse dans le plan : vN² > v² − vN²). Une pose rasante en nitro ne creuse rien. */
   {const v29=fallVel.lengthSq();if(nitroOn&&v29>36&&2*vN*vN>v29)try{cratere(CRAT.pv.copy(fallPos),CRAT.nv.copy(Nn[bestI]).multiplyScalar(sideL));}catch(e){}}
   const impact=Math.abs(vN);
+  /* (v4, Sacha : « en cas de mauvais atterrissage, de manière trop obtuse ou à contresens, le flow retourne à zéro ») L'ANGLE DE POSE :
+     l'écart entre la trajectoire (à plat dans la dalle — c'est aussi le cap de la caisse, le volant tourne le vol lui-même) et l'axe de
+     la route. 0° = axé, 90° = en crabe, 180° = à contresens. Au-delà de FLOW2.pose.angle : pose RATÉE — pas de PARFAIT possible, et le
+     flow (frénésie comprise) tombe à zéro une fois la pose jugée. Une chute presque verticale (< vMin à plat) n'a pas de cap : jamais ratée. */
+  const vT8=fallVel.dot(T[bestI]),vL8=fallVel.dot(B[bestI]),poseAng=Math.hypot(vT8,vL8)>FLOW2.pose.vMin?Math.atan2(Math.abs(vL8),vT8)*57.3:0;
+  const poseRatee=!PARK.on&&poseAng>FLOW2.pose.angle;FLOW.poseA=Math.round(poseAng); // (banc) le dernier angle de pose
   const bigness=Math.max(0,fallT*gK()-.8); // ×gK : en orbite un même saut dure 2× plus — il ne doit pas coûter 2× plus de vitesse à la pose
   const landLoss=Math.min(.52,bigness*.15+impact*.008); // un peu plus doux qu'avant
   vA*=(1-landLoss);vL*=(1-landLoss);
@@ -23680,10 +23786,11 @@ function tryLand(dt){
   if(fallT>.7||chain>0||chainVal>0){ // (2026-09-26) chainVal>0 : le REPORT annoncé au décollage se paie même sur une courte sortie
     // le grade juge tout le vol : pose soyeuse = jackpot, pose écrasée = décote
     let g=1,gTxt='';
-    if(impact<4.5&&landLoss<.2){g=1.5;gTxt='PARFAIT ! ';hitT=.08;hap(15);}
+    if(poseRatee){g=.65;gTxt='';} // (v4) de travers ou à contresens : la décote du POSÉ LOURD, et c'est la chute du flow qui parle
+    else if(impact<4.5&&landLoss<.2){g=1.5;gTxt='PARFAIT ! ';hitT=.08;hap(15);}
     else if(impact>=10){g=.65;gTxt='POSÉ LOURD — AÏE… ';hap(45);}
     else hap(14); // chaque pose se SENT dans la main (la parfaite a son coup sec plus haut, la lourde son choc)
-    if(fever>0){ // BRAQUAGE : tous les grades montent d'un cran — même la casse pardonne
+    if(fever>0&&!poseRatee){ // BRAQUAGE : tous les grades montent d'un cran — même la casse pardonne (pas la pose ratée)
       if(g===1.5){g=2;gTxt='DIVIN !! ';}
       else if(g===1){g=1.5;gTxt='PARFAIT (BOOST ×2) ! ';hitT=.08;hap(15);}
       else{g=1;gTxt='';}
@@ -23699,11 +23806,10 @@ function tryLand(dt){
     if(gapOk){
       chainVal+=gapArmed===3?26:(gapArmed===2?20:16);chainMult+=.6;
       runStats.gaps++; // compté pour les DÉFIS de déblocage (cumul à vie, versé dans endGame)
-      flowAdd(gapArmed===3?18:12,'risque');
+      flowAdd(gapArmed===3?18:12,'risque','m'); // (v4) sauter par-dessus le vide au lieu de suivre la route : MACHIAVEL
       trickMsg(gapArmed===3?'🚀 DOUBLE GAP — MONSTRUEUX !':'🚀 GAP FRANCHI !',3);
     }
     if(Math.abs(latOff)<ROAD_HALF*.3){chainVal+=4;chainMult+=.2;trickMsg('PILE AU CENTRE 🎯',false);} // posé sur l'axe
-    if(vA<-3){chainVal+=6;chainMult+=.3;trickMsg('À RECULONS — MÊME PAS REGARDÉ !',2);}              // posé en marche arrière
     if(sideL<0&&chainVal>0)trickMsg('FACE CACHÉE ×2',2);
     streak++;
     // (vague 3) qG = la VALEUR DU GESTE, à l'échelle d'AVANT la vague 3 (FLOW +0,5/palier, SÉRIE jusqu'à ×2) : c'est elle qui décide
@@ -23749,7 +23855,9 @@ function tryLand(dt){
   // (FLOW v2) LE RACCOURCI, DANS TOUS LES MODES : la piste parcourue entre le décollage et la pose, moins la distance VOLÉE en ligne
   // droite — un saut ordinaire donne ~0 (la route suit le vol), couper une boucle ou tomber sur la dalle d'en dessous donne des centaines
   // de mètres. C'est le geste que la triade réclame : on triche, et ça paie.
-  if(!PARK.on){const gagne=(s-FLOW.s0)-FLOW.p0.distanceTo(fallPos);if(gagne>=60)flowRaccourci(gagne);}
+  if(!PARK.on){const gagne=(s-FLOW.s0)-FLOW.p0.distanceTo(fallPos);if(gagne>=60)flowRaccourci(gagne);else if(gagne>=25)frenTrait('m',gagne/60);} // (v4) une PETITE coupe nourrit MACHIAVEL au prorata
+  if(poseRatee)flowCasse(poseAng>90); // (v4) la pose est jugée (chaîne encaissée, raccourci compté) : ENSUITE le flow tombe
+  else if(FREN.arme&&FLOW.lv<4&&(chain>0||trkBigA))frenDeclenche(); // (v4) jauge pleine + FIGURE POSÉE : la FRÉNÉSIE part, ici, au contact
   chainHud.style.opacity=0;
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;
   gapArmed=0; // la catapulte est encaissée : le prochain vol repart vierge
@@ -25268,7 +25376,7 @@ function campDebut(){ // un niveau commence (newTrack, et le 1er départ de la s
 }
 function campStop(){debCache();fumeVide();tirsVide();eclVide();campFx(0,0,0,0);if(GH.on){GH.g.visible=false;trailStep(GH.tr,0,0,0,0,0,0,0);}villeStop();}
 function flowRaccourci(gagne){
-  flowAdd(Math.min(45,12+gagne*.06),'risque');
+  flowAdd(Math.min(45,12+gagne*.06),'risque','m'); // (v4) couper la route : MACHIAVEL
   if(CAMP.n)return; // en campagne, campRaccourci (seuil de ses ovales) dit déjà « RACCOURCI ! » et paie sa nitro
   popTexte(TR('RACCOURCI')+' +'+Math.round(gagne)+' M','#7dffec',3);hap([12,24,18]);nitroGain(.3);
   try{chaineAura('RACCOURCI',Math.round(Math.min(250,60+gagne*.2)),'coupe');}catch(e){}
