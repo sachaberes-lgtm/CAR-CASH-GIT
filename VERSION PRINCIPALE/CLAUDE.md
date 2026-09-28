@@ -160,6 +160,12 @@ la caisse puis rentre dans le capot) ; ce qui change :
 - Signaux gardés : `body.ebOn` / `body.ebPlonge` (la session interface estompe les pouvoirs avec).
 
 ## CAMÉRA DE VOL v2 · POSE PARFAITE · PORTES DE L'ORBITE (2026-09-28 — idées reprises des sessions cloud, refaites ici)
+- ⚠⚠ **RETIRÉE LE SOIR MÊME** (Sacha : « la caméra en air time déconne complètement, ça devient beaucoup trop dur de viser juste ») :
+  filmée au banc sur un gros saut, la v2 partait sur le flanc et SOUS la caisse dès 1,3 s de vol (caisse vue de dessous en gros plan,
+  route réduite à un trait en biais, gauche/droite inversés à l'écran). Retour à la caméra de POURSUITE d'avant (lissage en position
+  monde : le retard aligne le regard sur la direction du vol ; champ 76° → 54° avec l'ampleur du saut). Gardés : secousses calmes,
+  coup de zoom PARFAIT remis à zéro au décollage, chocs en vol en petit DÉPLACEMENT (plus dans le regard). NE PAS remettre de plan
+  de côté ni d'écart tenu court en vol. Banc : `vol.js` (scratchpad 446ee745, film d'un gros saut). Ce qui suit est l'historique.
 - **CAMÉRA DE VOL** (bloc « CAMÉRA DE VOL v2 » du mode 'fall', état `CAMV`) : on lisse l'ÉCART caisse→caméra (`CAMV.off`), plus la
   position monde — le `lerp(cible, dt*3)` traînait de vitesse÷3 : MESURÉ 23-36 m derrière en vol, désormais 7-9 m (5-7 au sol).
   HANG TIME : réception prédite à plus de 1,3 s (`CAMV.eta`, posé par le viseur d'atterrissage) → la caméra pivote de trois-quarts
