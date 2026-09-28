@@ -5777,23 +5777,25 @@ function genCampagne(n){
       droite(620*K,-18,4);mark('radar');   // RADAR 3 : la dernière, avant le portail
       droite(420*K,-10,3);
     }else if(n===12){ // SOIRÉE — LA LIGNE DE NÉON : des pads en file, reliés par un trait de lumière ; les enchaîner fait monter le ×
-      const PAS=95*K,chaine=(lats,dy)=>{const l=PAS*(lats.length+.6),o={k:'chaine',lats:lats,i0:ctrl.length-1};droite(l,dy==null?-8:dy,Math.max(2,Math.round(l/130)));o.i1=ctrl.length-1;CAMPM.push(o);};
+      // (mesuré au banc) à 95 m entre pads et 12 m d'écart latéral, une file demandait de traverser 12 m en ~1 s — et chaque pad de la file
+      // accélère : le pilote de mesure cassait 4 files sur 5. Pas de 110 m, écarts de 4 m (diagonale, vague) et 8 m (slaloms).
+      const PAS=110*K,chaine=(lats,dy)=>{const l=PAS*(lats.length+.6),o={k:'chaine',lats:lats,i0:ctrl.length-1};droite(l,dy==null?-8:dy,Math.max(2,Math.round(l/130)));o.i1=ctrl.length-1;CAMPM.push(o);};
       droite(520*K,-18,4);
       arc(40,800*K,-10);
       droite(160*K,-4);
       chaine([8,8,8,8,8]);                 // la 1re : tout droit (à côté de la ligne centrale, qu'elle aurait recouverte) — on apprend que ça s'enchaîne
       arc(-80,380*K,-26);
       droite(160*K,-4);
-      chaine([-12,-6,0,6,12]);             // la diagonale : on traverse la route pad après pad
+      chaine([-10,-6,-2,2,6]);             // la diagonale : on traverse la route pad après pad
       arc(96,340*K,-30);
       droite(200*K,-6);
-      chaine([0,12,0,-12,0,12]);           // le slalom
+      chaine([0,8,0,-8,0,8]);              // le slalom
       arc(-60,460*K,-20);arc(60,460*K,-20);
       droite(160*K,-4);
-      chaine([-16,-8,0,8,16,8,0]);         // la vague
+      chaine([-12,-8,-4,0,4,8,12]);        // la vague
       arc(-90,360*K,-30);
       droite(180*K,-4);
-      chaine([12,0,-12,0,12,0,-12],-10);   // le slalom long, pour finir
+      chaine([8,0,-8,0,8,0,-8],-10);       // le slalom long, pour finir
       droite(300*K,-8);
       arc(44,620*K,-14);
       droite(560*K,-18,4);
