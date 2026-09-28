@@ -15680,6 +15680,7 @@ window.dbgView=function(a,d,h){ // MODE PHOTO : force la pause, cadre la caisse 
 const landMark=new THREE.Mesh(new THREE.TorusGeometry(3,.35,8,24),
   new THREE.MeshBasicMaterial({color:0x62e062,transparent:true,opacity:.85}));
 landMark.visible=false;scene.add(landMark);
+const LM={a:0,vu:false,c:new THREE.Color()}; // (2026-09-28) le viseur en FONDU : il surgissait à 1,7 s de la pose, clignotait près des bords, sautait d'or à blanc
 const shadow=new THREE.Mesh(new THREE.CircleGeometry(2.4,20),
   new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.28,depthWrite:false}));
 scene.add(shadow);
@@ -28127,7 +28128,7 @@ function loop(now){
     graceT=Math.max(0,graceT-dt);
     sideCd=Math.max(0,sideCd-dt);
     if(mode==='drive'){
-      landMark.visible=false;
+      landMark.visible=false;LM.a=0; // (au sol : le prochain vol repart d'un viseur éteint)
       // ANTI-IDLE : la musique n'avance pas sans toi — reste quasi à l'arrêt trop longtemps et la caisse explose
       const idleKmh=Math.abs(vA)*3.6*SPD;
       if(!introD&&!PARK.on&&graceT<=0&&idleKmh<22){
@@ -28917,7 +28918,7 @@ function loop(now){
       if(nitroOn&&!REDUCED_MOTION&&!window.dbgNoShake)camera.position.addScaledVector(camUp,Math.sin(t*38.7)*(nitroBlue?.05:.036)); // (vague 3) le réacteur GRONDE dans l'image
       if(elTurn.style.opacity!=='0')elTurn.style.opacity=0; // (perf) une fois suffit
       // viseur : où vais-je atterrir ?
-      landMark.visible=false;
+      LM.vu=false; // (la dernière pose trouvée reste en place pendant le fondu de sortie)
       tmp2.copy(fallPos);tmp3.copy(fallVel);
       CAMV.eta=99; // (caméra de vol v2) temps avant la réception prédite — 99 = rien en vue
       for(let st2=0;st2<14;st2++){ // même intégration que la vraie chute : vel par seconde, position ×SPD
@@ -28932,9 +28933,9 @@ function loop(now){
           if(Math.abs(l2)<ROAD_HALF&&h2>-THICK-1&&h2<3){
             landMark.position.copy(pts[bi]).addScaledVector(B[bi],l2).addScaledVector(Nn[bi],h2>-1.3?.3:-THICK-.3);
             landMark.quaternion.setFromRotationMatrix(mat4.makeBasis(T[bi],B[bi],Nn[bi]));
-            landMark.visible=true;CAMV.eta=(st2+1)*.12;
+            LM.vu=true;CAMV.eta=(st2+1)*.12;
             const impP=Math.abs(tmp3.dot(Nn[bi])); // impact PRÉDIT — même unité que le verdict d'atterrissage
-            landMark.material.color.setHex(impP<4.5?0xffd75e:impP>=10?0xff5040:0xffffff); // or = fenêtre PARFAIT, rouge = posé lourd
+            LM.c.setHex(impP<4.5?0xffd75e:impP>=10?0xff5040:0xffffff);if(LM.a<.05)landMark.material.color.copy(LM.c); // or = fenêtre PARFAIT, rouge = posé lourd — la teinte GLISSE de l'une à l'autre
             landMark.scale.setScalar(impP<4.5?1+Math.sin(t*10)*.12:1); // l'anneau OR pulse : vas-y, c'est maintenant
             // assistance d'atterrissage : recentre doucement (d'autant plus qu'on va vite)
             const asF=AIR_ASSIST*THREE.MathUtils.clamp(fallVel.length()/60,.2,1.4);
@@ -28943,6 +28944,8 @@ function loop(now){
           }
         }
       }
+      LM.a+=((LM.vu?1:0)-LM.a)*Math.min(1,dt*(LM.vu?14:7));landMark.visible=LM.a>.02;landMark.material.opacity=.85*LM.a;
+      landMark.material.color.lerp(LM.c,Math.min(1,dt*12));
       // camembert de temps de vol (cyan plein pendant AIRTIME INFINI : c'est le pouvoir qui s'égrène)
       if(airPie.style.display!=='block')airPie.style.display='block'; // (2026-09-27) une fois par vol, plus à chaque image
       const fr=pwrAirT>0?Math.min(1,pwrAirT/10):Math.max(0,1-fallTR/airMax()); // jauge en temps RÉEL : 6 s affichées = 6 s vécues
@@ -29563,14 +29566,14 @@ function loop(now){
     // ---- 1. LE MONTAGE : la soudure au CAPOT (jamais au centre : au centre on lit une explosion,
     // à l'avant on lit un atelier). Débit contenu et vie COURTE — c'est la BRIÈVETÉ qui fait
     // l'étincelle ; le premier réglage (70/s, .5 s de vie) noyait la caisse dans un nuage doré.
-    const mo=Math.max(0,1-u8/.40);
-    if(Math.random()<dt*24*mo*mo)
+    const mo=Math.max(0,1-u8/.40),V8=PT_U.uVc.value; // (2026-09-28) V8 : la VRAIE vitesse de la caisse — lancées sur place pendant qu'elle file à 40 m/s,
+    if(Math.random()<dt*24*mo*mo)                    // la soudure et la spirale restaient 12 m derrière en 0,3 s : une traînée qu'on ne lisait pas
       spawnP(sparkGold,
         p8.x+sw3.x*1.5+(Math.random()-.5)*.5, p8.y+.60+Math.random()*.18, p8.z+sw3.z*1.5+(Math.random()-.5)*.5,
-        (Math.random()-.5)*5, 2.6+Math.random()*3.4, (Math.random()-.5)*5, .12+Math.random()*.12);
+        V8.x+(Math.random()-.5)*5, V8.y+2.6+Math.random()*3.4, V8.z+(Math.random()-.5)*5, .12+Math.random()*.12);
     if(Math.random()<dt*5*mo*mo)
       spawnP(embers,p8.x+sw3.x*1.4,p8.y+.58,p8.z+sw3.z*1.4,
-        (Math.random()-.5)*3,1.4+Math.random()*2,(Math.random()-.5)*3,.18+Math.random()*.16);
+        V8.x+(Math.random()-.5)*3,V8.y+1.4+Math.random()*2,V8.z+(Math.random()-.5)*3,.18+Math.random()*.16);
     // ---- 3. LA RÉVÉLATION (la pose, elle, est un SILENCE visuel : le creux de la vignette)
     if(u8>.38){
       const rv=Math.min(1,(u8-.38)/.44);
@@ -29594,7 +29597,7 @@ function loop(now){
         const cx=Math.cos(an)*r9,cz=Math.sin(an)*r9;
         spawnP(sparkGold,
           p8.x+sw1.x*cx+sw3.x*cz+sw2.x*h9, p8.y+sw1.y*cx+sw3.y*cz+sw2.y*h9+.2, p8.z+sw1.z*cx+sw3.z*cz+sw2.z*h9,
-          sw2.x*3.2-sw1.x*cz*.9, sw2.y*3.2+2.0, sw2.z*3.2-sw1.z*cz*.9, .26+Math.random()*.20);
+          V8.x+sw2.x*3.2-sw1.x*cz*.9, V8.y+sw2.y*3.2+2.0, V8.z+sw2.z*3.2-sw1.z*cz*.9, .26+Math.random()*.20);
       }
     }
   }else if(swapRing.visible){swapRing.visible=false;swapLight.intensity=0;}
