@@ -4389,6 +4389,8 @@ html body.touch :is(#airHud em,#pwrChip .pw small,#campChip small){font-size:cal
 html body.touch :is(#auraV2 .avTot em,#avRecT,#avList li){font-size:calc(max(10px * var(--hudK),8px) / var(--hudK))!important}
 /* le voile d'encre du haut suit le tableau de bord : pleine hauteur jusqu'aux barres, à l'échelle en dessous */
 body.touch.play #hud::before{height:calc(env(safe-area-inset-top,0px) + var(--hudY0) + (214px - var(--hudY0)) * var(--hudK))}
+/* l'AUTO-ÉCOLE, hors échelle, garde sa taille (172 px) : debout, les plaques de pouvoir passent SOUS sa carte (elles la chevauchaient de 26 px) */
+@media (orientation:portrait){html body.touch.coOn #pwrChip{top:calc(var(--hudH) + 290px)}}
 </style>
 <style id="figTaille">
 /* (2026-09-29, Sacha : « les textes de figure sont beaucoup trop gros et bloquent la vue ») — les textes de FIGURE, un cran plus bas partout :
