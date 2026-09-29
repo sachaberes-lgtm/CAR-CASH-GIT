@@ -143,6 +143,12 @@ avec un nom neuf et on le signale à la session SON (ou on écrit la recette dan
   · RÉSULTAT (% d'un cœur du PC, un téléphone ≈ ×3-5) : MENU 3,4 → 0,13 · COURSE (automation réelle rejouée, tout allumé) 6,0 → 4,8 ·
     course sans nitro 1,9. Banc fonctionnel `portes-banc.js` (le vrai jeu, muet) : menu silencieux portes fermées, nitro ouverte en
     < 120 ms, refermée < 2 s après, mort → tout fermé en < 1 s, relance → rouvert ; régression complète : 0 erreur, pas de fuite.
+  · LA BANQUE ALLÉGÉE (`allege()` dans cuire.js, à chaque cuisson) : 48 FAUX STÉRÉO (deux canaux identiques au bit près) passés en
+    mono — WebAudio remonte un mono en L = R, rendu identique — encodés en q3 (en q4 le joint-stéréo donnait plus de bits au milieu :
+    mesuré contre la source non compressée, le mono q3 en est PLUS près que l'ancien stéréo, 0,34 dB contre 0,39) ; QUEUES MORTES (sous
+    crête −70 dB, 40 ms de marge, fondu dans le silence) retirées : 37 s. Mémoire décodée 55,0 → 42,9 Mo, banque 3,05 → 2,86 Mo,
+    décodage au lancement 133 → 96 ms (PC). Niveaux inchangés (pire écart 0,18 dB), 38 sons identiques à l'octet, boucles intactes,
+    contrôle qualité propre (ni écrêtage, ni DC, ni fin coupée). `mesures.txt` note « mo←st » et « (−x s) ».
 ## LE MOUVEMENT DE L'INTERFACE + MISSIONS v2 (2026-09-28, soir) — « travaille les animations, les emplacements, les transitions entre chaque écran : prêt à envoyer à l'App Store »
 Sacha : « il y a des centaines de petites choses à améliorer dans l'interface… travaille les animations quand tu cliques sur les boutons,
 leurs emplacements, les transitions quand tu changes d'écran — que ce soit parfait ; travaille vraiment les transitions entre chaque écran
