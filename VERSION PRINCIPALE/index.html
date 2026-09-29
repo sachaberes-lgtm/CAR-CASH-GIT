@@ -4707,6 +4707,23 @@ html[data-reduced-motion="1"] body #engBig.on .ebCarte{animation:none}
 html body #engBig.mini .ebTit{visibility:inherit!important}   /* l'étiquette reste (la vieille règle la taisait sous .8) ; inherit : elle part avec la carte */
 html body #engBig .ebInfo,html body #engBig .ebCyl{display:none!important}
 html body #engBig .ebRuban{top:-22px!important;left:-10px!important;right:-10px!important}
+/* ---- 8. LE ⏸ DE COURSE, DANS LA FAMILLE (2026-09-30, session SON) — Sacha : « le bouton pause n'a pas le même design pixel que le reste
+   de l'HUD ». La plaque était déjà sœur de la NITRO (laque, bande à gauche, tranche) ; c'est le PICTOGRAMME qui détonnait : deux barres
+   cyan en aplat, à 2 px le pixel, sans modelé — à côté de l'éclair en bandes, de l'aile du chrono, de l'AURA et des chiffres cernés d'encre.
+   Désormais : 3 px le pixel, TROIS BANDES calées sur ses rangées de pixels (lèvre claire · plein · ombre : jamais une bande coupée en deux
+   dans un pixel) et l'ÉPAISSEUR d'encre dessous, comme les chiffres du HUD. Appuyé : la face s'embrase comme la NITRO. Taille et place de
+   la touche inchangées (48 px ; dessous vivent le compteur d'argent et les cœurs du mode FACILE). ---- */
+:root{--qL:#e2fdff;--qP:var(--neoC);--qS:#0a8fb8}   /* le cyan du ⏸ en trois bandes */
+html body #tGear{--nc:var(--neoC)}
+html body #tGear>.pxi{--pxs:3!important;margin:0!important;transform:skewX(var(--skI));   /* redressé : deux barres hautes penchées de 11° ne sont plus des pixels (les icônes de l'accueil le sont aussi) */
+  
+  background:linear-gradient(var(--bandes4),var(--qL) 0 calc(var(--pxs) * 2px),var(--qP) calc(var(--pxs) * 2px) calc(var(--pxs) * 5px),var(--qS) calc(var(--pxs) * 5px))!important;
+  filter:drop-shadow(0 calc(var(--pxs) * 1px) 0 var(--jInk))!important}
+html body #tGear:active,html body #tGear.appui{
+  background:linear-gradient(0deg,color-mix(in srgb,var(--nc) 62%,transparent),color-mix(in srgb,var(--nc) 8%,transparent) 78%),var(--laque)!important;
+  box-shadow:inset 3px 0 0 var(--nc),inset 0 0 0 1px color-mix(in srgb,var(--nc) 55%,transparent),var(--levre),0 0 0 1px var(--anneau),0 0 22px color-mix(in srgb,var(--nc) 55%,transparent)!important}
+html body #tGear:active>.pxi,html body #tGear.appui>.pxi{background:linear-gradient(var(--bandes4),#fff 0 calc(var(--pxs) * 2px),var(--qL) calc(var(--pxs) * 2px) calc(var(--pxs) * 5px),var(--qP) calc(var(--pxs) * 5px))!important}
+@supports not (color:color-mix(in srgb,red 50%,blue)){html body #tGear:active,html body #tGear.appui{background:var(--laque)!important}}
 </style>
 <style id="hudTaille">
 /* =====================================================================================================================================
