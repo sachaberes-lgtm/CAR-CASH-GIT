@@ -24,6 +24,27 @@
 - **Des nuages plus gros au 1er niveau** (`GZ` dans `buildCoton`, NUAGES seulement) : couronnes proche, milieu, haute et lointaine ×1,45
   (bornes de `cotonR`), cathédrales ×1,25, tours héroïques ×1,3. Même nombre tiré ; la garde de la route rejette ceux qui la toucheraient.
   MESURÉ : 391-415 k triangles envoyés (365-370 k avant).
+- **Le cycle a SIX niveaux** : NUAGES → VILLE → ORBITE → ORAGE → **MINUIT EN VILLE** → **PLUIE DE SATELLITES** (`zn % NIVEAUX.length`).
+  Le compte des visites des NUAGES (filets 3/2/1) divise désormais par `NIVEAUX.length` (il divisait par 3).
+- **MINUIT EN VILLE (5e)** : `{id:'ville', nuit:1, bio:['nuitNoire'], pluie:.55, route:.42}` — GARDER `id:'ville'` (toute la ville, l'entrée
+  surélevée, la triade, les collisions, la musique sont branchées sur l'id ; `nuit` ne change que la lumière). `LVL.nuit` suit le fondu du
+  portail comme `LVL.ville`. Le biome `nuitNoire` (jamais tiré) : clone de la PLUIE NÉON, ciel presque noir, ville peinte en braise
+  (city .5), étoiles, brume noire-bleue 90/950 m, lumières d'ambiance au plancher, expo .62. `villeApres` : 3 fenêtres sur 4 éteintes
+  (`CITY.uC` = 1 − 0,72·nuit, sauf pendant la panne du niveau 16 de la carrière), néons de la route ×0,4, spot des phares ×~2,5 en
+  intensité, portée 72 → ~190 m, angle .5 → .62, du jaune halogène au BLANC xénon. `carVit` : la nappe des phares au sol ×2,1, les halos
+  ×1,45. `PHARE_FX` : deux CÔNES additifs de 70 m devant les phares (créés à l'init, FrontSide, cachés hors de la nuit). 0 programme lié
+  sur tout le cycle (99 → 99, banc `st-nuit.js`).
+- **PLUIE DE SATELLITES (6e, hardcore)** : `{id:'espace', hard:1}`. `orbiteBuild` §0 pose AVANT tout le reste ~165 obstacles SUR la face du
+  dessus : des STARLINK en travers (ailes de 14-20 m, penchés de 8-28°, à hauteur de caisse) et des ÉTAGES DE FUSÉE couchés (10-14 m),
+  seuls ou en RIDEAU de deux avec une trouée de 11-14 m, un tous les 110-230 m dès 650 m ; plus ~30 panneaux EN L'AIR (9-20 m) pour qui
+  saute. Orientation FIGÉE (`aVar.y`=0, `aRot.w`=0) et `aVar.w`=1 (le drapeau d'obstacle : liseré rouge qui pulse dans `SAT_MAT`, balise
+  rapide, étoile `GLINT` qui pulse — on les voit venir). `satHard()` (boucle, à côté de `ligneTick`) : une BOÎTE par obstacle dans son
+  repère (ailes W, face U, profondeur T) gonflée de la demi-caisse → `explode('sat')` (« PERCUTÉ PAR UN SATELLITE », rattrapé par le mode
+  FACILE) ; passé à moins de ~3 m sans toucher → `frole()` (nitro, flow, aura, SLALOM enchaîné). La ligne parfaite ne pose rien dans un
+  satellite (`ligneBloque`). `SATOB` est vidé à CHAQUE `orbiteBuild` (sinon ses obstacles survivaient au portail). Le dessous de la dalle
+  reste libre. Hook `dbgPluie()` / `dbgPluie('va',i,dl,av)` (poser la caisse av m avant l'obstacle i, à dl m de son bord).
+- **Plus de satellites en orbite** : `SAT_MAX` 204/220 → 340/300 (téléphone 120/140 → 230/190), `SAT_PASS` 26 → 44 (18 → 30), trains
+  3 → 5 (2 → 3). MESURÉ (banc téléphone) : ~76 k triangles de satellites.
 
 ## LE GARAGE BRÛLE (2026-09-29, Léo) — « la porte du garage vue sur l'extérieur : une flamme plus grande, adaptée à la situation, qui fasse
 ## comprendre qu'on va passer dans les flammes, puis le jeu se lance avec le boost du début — c'est l'ambiance » · « replace mieux le bouton play,
