@@ -206,6 +206,10 @@ d'AURA (police pixel en bandes, cernée d'encre). Ce qui se TOUCHE = plaque PENC
   frénésie, à chaque atterrissage ») : le fichier de Rockstar est protégé (App Store) → un son ORIGINAL dans cet esprit, `frenesie.pose`,
   commandé à la session SON (recette + cuisson de la banque). Appel dans `tryLand`, avant `flowCasse` : frénésie en cours (lue AVANT le
   déclenchement), pas de pose ratée, vol > 0,4 s, t .15 (après le tchak). Tant que la banque n'a pas le son, l'appel ne joue rien.
+- **REPLI DES VIEUX iPHONE** (hudDA §7, audit de sortie INTERFACE) : sous iOS < 16.2 (pas de `color-mix()`), un texte du HUD en
+  `color:transparent` dont le dégradé contient color-mix DISPARAÎT. `@supports not (color:color-mix(…))` les passe en couleur PLEINE
+  (--tc, --xc, --fc, --pc, --fren, --ec) cernée d'encre (--contourH/P). Simulé au banc (`st-repli.js` pose le contenu du bloc sans
+  condition) : tout reste lisible. Tout NOUVEAU texte ombré du HUD qui utilise color-mix doit être ajouté à ces listes.
 - Bancs (scratchpad session UHD) : `run.js <pfx> <étapes.js> [w] [h]` (DSF, LG), `st-eng2.js` (film de la carte), `st-fren.js`, `st-det.js`
   (états du bouton), `st-pay.js` (paysage), `attente.sh` (attend qu'aucun banc voisin ne tourne).
 

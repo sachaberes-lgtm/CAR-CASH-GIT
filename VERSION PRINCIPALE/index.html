@@ -4390,6 +4390,24 @@ html body #frenTraits i.mort{opacity:.3}
    +NARCISSE / -PSYCHO / +MACHIAVEL de la ligne du flow ne s'affichent plus (flowTag continue de compter, rien n'est retiré de la logique) ;
    sous l'emblème, les trois barrettes étaient déjà sans nom. */
 html body #flowHud .fT{display:none!important}
+/* ---- 7. LE REPLI DES VIEUX iPHONE (iOS < 16.2 : pas de color-mix()) — audit de sortie d'INTERFACE : un texte du HUD en
+   `color:transparent` dont le dégradé contient color-mix() y DISPARAÎT (le dégradé entier est rejeté, il ne reste qu'un texte
+   transparent). Sans color-mix, ces textes passent en COULEUR PLEINE — la teinte du plein de leur dégradé — cernés d'encre
+   (--contourH/--contourP n'en contiennent pas). Les dégradés en hex purs (aura, points, ×cash, record, chrono) ne sont pas touchés. ---- */
+@supports not (color:color-mix(in srgb,red 50%,blue)){
+  html body :is(#slam9 b,#verdHud b,#lvlNum i,#dolHud .dNom,#popTxt,#avX){background:none!important;filter:var(--contourH)!important}
+  html body :is(#verdHud .vM,#dolHud .dAura em,#slam9 small,#lvlNom,#auraV2 .avTot em,#avList li,#pwrChip .pw span small,#pwrChip .pw span b,#tSteerHint,
+    #misBan .mbTx small,#coach .coTx b,#campChip b,#campChip small,#tNitro span,#dolHud .dAura small,#frenTraits b,#lvlNom em,#flowHud .fL,
+    #airHud .ahS,#airHud em,#triade .trNom,#engBig .ebCarte>b){background:none!important;filter:var(--contourP)!important}
+  html body :is(#slam9 b,#verdHud b,#lvlNum i,#dolHud .dNom,#verdHud .vM,#dolHud .dAura em,#slam9 small,#lvlNom,#auraV2 .avTot em,#avList li,
+    #pwrChip .pw span small,#tSteerHint,#misBan .mbTx small,#coach .coTx b,#campChip b,#campChip small,#tNitro span,#dolHud .dAura small,
+    #frenTraits b,#lvlNom em,#airHud .ahS,#airHud em){color:var(--tc,#fff)!important;-webkit-text-fill-color:var(--tc,#fff)!important}
+  html body #avX{color:var(--xc,#ff5ec8)!important;-webkit-text-fill-color:var(--xc,#ff5ec8)!important}
+  html body #flowHud .fL{color:var(--fc,#fff)!important;-webkit-text-fill-color:var(--fc,#fff)!important}
+  html body :is(#pwrChip .pw span b,#popTxt){color:var(--pc,#ffd75e)!important;-webkit-text-fill-color:var(--pc,#ffd75e)!important}
+  html body #triade .trNom{color:var(--fren)!important;-webkit-text-fill-color:var(--fren)!important}
+  html body #engBig .ebCarte>b{color:var(--ec)!important;-webkit-text-fill-color:var(--ec)!important}
+}
 /* ---- 6. L'ASTUCE / LE DÉFI (#misBan) NE SE POSE PLUS SUR LES POUVOIRS (portrait) : centrée, elle couvrait la colonne de droite (plaques
    NITRO MAX, AIR MAX…). Tant qu'une plaque de pouvoir est affichée, elle se range à GAUCHE et s'arrête avant la colonne. ---- */
 @media not ((orientation:landscape) and (max-height:540px)){
