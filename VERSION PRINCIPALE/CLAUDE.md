@@ -1,5 +1,35 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA ROUTE QUI TE RATTRAPE — ESSAI AU NIVEAU NUAGES (2026-09-29, session GRAPHISME)
+- **La demande** : 4 vidéos de Sacha (dans `C:\Users\sacha\Videos\`, 29/09) — deux de VOLTIGEUR (60 % du temps en l'air, sortie par
+  le bord, pose sur la route du dessous) et deux de ROULEUR (au sol, nitro à fond ; il ne vole que quand il RATE un virage, et se
+  rattrape plus bas : MIRACULÉ, RACCOURCI). « Une génération de map qui plaise aux deux et donne des sensations inoubliables. »
+  ⚠ REJETÉ d'abord : le « tourbillon » (toute la piste en spirale calée sur le vol) — « les rouleurs doivent kiffer aussi ».
+  Validé : « un virage bien pris paie PLUS qu'une chute rattrapée » ; essai au niveau NUAGES seul.
+- **Le motif `filet` de genCtrl** (NUAGES du mode principal seulement : ni ville, ni orbite, ni campagne, ni école, ni parc ; son
+  hasard a son propre mulberry32 — un seul `rnd()` de plus, et seulement aux NUAGES) : une APPROCHE droite → un VIRAGE RAPIDE
+  presque plat (55-75°, R (95-140)·RS, pente 4-7 %) → une BRETELLE (ligne qui s'éloigne dans l'axe de sortie, grand demi-tour,
+  ligne du retour : un Dubins « virage · droite · virage » du même côté ; la v1 tournait en rond = escargot, écartée) → le FILET :
+  la route repasse 42 à 54 m plus bas, À L'EXTÉRIEUR du virage, dans le même sens, pile sur le LIEU DES POSES d'une caisse qui sort
+  du virage (sortie au bord extérieur, écartée de `dev` 0,13 rad vers le vide, à `kv`×croisière, poussée de décollage `kick`,
+  gravité FALL_G×SPD, pente du virage comprise). 3 filets à la 1re visite des nuages, 2 à la 2e, 1 ensuite (`FILET.par`).
+- **Les pièges MESURÉS** (banc `filet.js` : la caisse posée au bord, lâchée sans les mains) : (1) la PENTE du virage part avec la
+  caisse — à 780 km/h, 12 % de pente = 26 m/s vers le bas dès la sortie, la caisse passait 44 m sous le filet → virage presque plat
+  + pente dans le calcul ; (2) une caisse qui rate un virage part ÉCARTÉE de la tangente (~0,15 rad) → `dev` ; (3) viser la
+  croisière laissait passer au-dessus tout ce qui va plus vite — or c'est en allant trop vite qu'on rate → `kv` 1,1.
+  Résultat : 39/45 sorties rattrapées de 0,85 à 1,15× la croisière (début de partie) ; au-delà (NITROOO à fond) la caisse passe
+  au-dessus et c'est au joueur de corriger en vol ; à très haute vitesse la tolérance se resserre (un filet de 56 m vu à 500 m).
+  Dégagement mini entre étages ≥ 37 m (`dbgPisteCamp`).
+- **Les paiements** (règle de Sacha) : `filetTick` (au sol) — traverser le virage sans quitter la route ni descendre sous `vFond`
+  (0,8) × sa vitesse de calcul = **VIRAGE A FOND** (120 d'aura brute, flow de route 14, nitro +0,25) ; `filetRattrape` (à la pose,
+  vol parti du virage et posé dans SON filet, `filetDe`) = **RATTRAPE** (50 d'aura, flow 6) À LA PLACE du RACCOURCI ; la pose lourde
+  et la vitesse perdue font le reste. Un seul texte chacun (celui de la chaîne — « moins de textes au milieu », 661854a).
+- **Banc** : `dbgFilet()` (liste), `dbgFilet('neuf',visite)` (nouvelle piste NUAGES), `dbgFilet(i,f,v,ang)` (poser la caisse au bord
+  du virage i), `dbgFilet('va',s,v)`, `dbgFilet('pts')`, `dbgFilet('vol')`. Scratchpad : `filet.js` (plan vu de dessus + taux de
+  rattrapage + rouleur), `filtrace.js` (un vol tracé par rapport à la route), `filvue.js` (ce que voit le joueur).
+- **À juger par Sacha** : la bretelle (assez « route » ? trop longue ?), la fréquence (3 par zone), le montant des deux paiements, et
+  s'il faut un repère visuel du filet (liseré, ligne de pièces sur l'arc de vol) — pas fait dans cet essai.
+
 ## LE SILLAGE DE NITRO v3 + LE BOUCLIER RETIRÉ (2026-09-29, nuit — session GAMEPLAY)
 - Sacha : « retravaille la traînée de nitro : beaucoup plus belle, lisse et lumineuse, deux longues traînées derrière — il faut que ce
   soit magnifique ». Les deux rubans DU JOUEUR (`trailL`/`trailR`) sont désormais le SILLAGE v3 (`mkSillage`, `sillageStep`, réglages
