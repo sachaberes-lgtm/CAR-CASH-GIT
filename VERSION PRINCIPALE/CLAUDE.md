@@ -5,11 +5,20 @@
 ## reprends les boutons du menu d'après le crash et mets-les dans le garage » · « la musique du lobby c'est NOCTURNAL GROOVE »
 - **LE RIDEAU DE FLAMMES** (`buildGarageRoom`, après la route de dehors ; `GAR.feu` / `GAR.feuM` / `GAR.feuLu`, `garFeu(dt)` en tête de
   `garageRender`, `window.dbgFeu([on])`) : UN plan OPAQUE 10 × 4,9 m à z = hd+.36, juste derrière le mur de façade — ses bords passent derrière
-  les piles (±4,8) et le linteau (4,7) : plus de vue dehors, la route et le ciel sont masqués au z-test. ShaderMaterial à DEUX fbm de bruit de
-  valeur (un vent lent qui tord, des langues qui montent), lit de braises au ras du seuil, fumée ROUGIE au-dessus (jamais un trou noir), cœur
-  blanc que le bloom fait briller. `uK` suit le LÂCHER (0 → 1 en 1,7 s) : les langues montent jusqu'au linteau et blanchissent. Lueur
-  additive au sol côté atelier (blobTex teinté, aucune lumière ajoutée). Compilé à la 1re visite du garage (le menu), rien en course.
-  MESURÉ (rendu logiciel, porte plein cadre) : médiane 183 ms/image avec comme sans — le coût se perd dans le reste.
+  les piles (±4,8) et le linteau (4,7) : plus de vue dehors, la route et le ciel sont masqués au z-test. **v2 EN PIXELS** (même soir, Léo :
+  « supprime ce design, recrée-en un inspiré des flammes pixelisées de la jauge — plus gros, plus joli, pixelisé ») : la 1re version (shader
+  fbm, feu « peint ») est RETIRÉE. C'est le FEU DE DOOM de la 1re jauge NITRO MAX (26/09, branche de Léo ; remplacé sur main le 28/09 par des
+  bouffées douces), en grand : grille 80 × 40 (`feuPixPas`, `FEU_PIX` = 36 teintes fumée rougie → braises → orange → jaune → blanc), agrandie
+  en CanvasTexture `NearestFilter` (cases franches), 30 pas/s (12 si « réduire les animations »), seulement atelier ouvert ; 70 pas d'avance
+  au montage (il brûle déjà). ⚠ La CHALEUR vit en 0-255 et ne tombe dans les 36 teintes qu'à la peinture : en 36 crans avec des pertes d'un
+  cran au hasard, c'était une neige de télé (capture). Foyers en sinus qui glissent (les langues), étincelles, `GAR.feu.k` suit le LÂCHER
+  (0 → 1 en 1,7 s) : la perte par rangée baisse, le feu monte au linteau. Lueur additive au sol côté atelier (blobTex teinté, aucune lumière).
+- **LE GARAGE SOBRE** (même soir, Léo : « le point de vue est bizarre, effet loupe ; un garage plus sobre, la voiture au milieu, qui tourne
+  grâce à la plateforme ») : la caméra ne fait plus le tour. FIXE (`GAR_CAM_A = π` : côté établi, elle regarde la porte en feu derrière la
+  caisse) ; c'est le PLATEAU qui tourne, la caisse dessus (`garRot() = GAR_CAM_A − garageAng` → `carGroup.rotation.y` et `GAR.pod.rotation.y`).
+  `garageAng` garde son sens (préréglages .42 / 3,5 aux TRAÎNÉES, glissé du doigt, `dbgGarage`). L'EFFET LOUPE venait du recul bridé à 8 m :
+  l'objectif s'ouvrait jusqu'à ~87° en portrait ; dans l'axe fixe le recul monte à 10,5 m (FOV ~72°). Au LÂCHER, le plateau la remet face à
+  la porte en 0,5 s (`GAR.go.r0`).
   · `paintEnvAtelier` : la face +Z (la porte) est peinte en FEU — la laque de la caisse reflète les flammes, plus la nuit.
   · Le voile du LÂCHER part à u > .90 (était .80) : la caisse ENTRE dans le feu (nez au rideau à u ≈ .82) avant la coupure ; `#gFade` en
     blanc CHAUD `#ffe3b8` — toujours le voile d'une image (le flash plein écran a été jugé « horrible » : l'effet est DANS la scène).

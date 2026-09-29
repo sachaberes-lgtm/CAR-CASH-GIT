@@ -30381,41 +30381,22 @@ function buildGarageRoom(){
      x.fillStyle=gf;x.fillRect(0,0,w,h);});
    const gl=add9(PL,new THREE.MeshBasicMaterial({map:glowTex,transparent:true,fog:false,depthWrite:false,
      blending:THREE.AdditiveBlending}),0,.03,hd+rL/2,rW,rL,1);gl.rotation.x=-Math.PI/2;gl.renderOrder=-1;}
-  /* ===== LE RIDEAU DE FLAMMES (2026-09-29, Léo : « la porte du garage vue sur l'extérieur : génère une flamme plus grande, adaptée
-     à la situation, qui fasse comprendre qu'on va passer dans les flammes — puis le jeu se lance avec le boost du début ») =====
-     La porte relevée ne donne plus sur la nuit : elle BRÛLE, d'un pilier à l'autre et du seuil au linteau. Plus de vue dehors — la
-     sortie EST le feu, et le LÂCHER roule dedans (uK monte avec la sortie : les langues grandissent, le cœur blanchit), puis la course
-     démarre sur le boost de départ : on sort des flammes en flammes.
-     · UN plan OPAQUE juste derrière le mur de façade (z = hd+.36) : ses bords passent derrière les piles (±4,8 m) et le linteau (4,7 m),
-       la route et le ciel de dehors sont masqués au z-test. Tourné vers l'atelier (la caméra ne sort jamais : elle finit à 10,6 m).
-     · Le feu est CALCULÉ (deux fbm de bruit de valeur : un vent lent qui tord, des langues qui montent), pas une texture qui défile :
-       aucune couture, aucune répétition. Lit de braises continu au ras du seuil ; au-dessus des langues, la fumée rougie (jamais noir
-       pur : c'est un four, pas un trou). Le cœur passe au blanc, le bloom du jeu fait le halo.
-     · Compilé à la PREMIÈRE visite du garage (le menu), comme tout l'atelier — rien en course : le plan est dans GAR.root, caché avec lui.
-     · Une LUEUR au sol, additive, sur le pas de la porte côté atelier : le feu éclaire le béton (aucune lumière ajoutée à la scène). */
-  {const fm=new THREE.ShaderMaterial({uniforms:{uT:{value:0},uK:{value:0},uAsp:{value:10/4.9}},depthWrite:true,
-     vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
-     fragmentShader:[
-      'uniform float uT;uniform float uK;uniform float uAsp;varying vec2 vUv;',
-      'float hs(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}',
-      'float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);',
-      '  return mix(mix(hs(i),hs(i+vec2(1.0,0.0)),f.x),mix(hs(i+vec2(0.0,1.0)),hs(i+vec2(1.0,1.0)),f.x),f.y);}',
-      'float fbm(vec2 p){float s=0.0,a=0.5;for(int i=0;i<5;i++){s+=a*vn(p);p=p*2.07+vec2(3.1,1.7);a*=0.5;}return s;}',
-      'void main(){',
-      '  vec2 p=vec2(vUv.x*uAsp,vUv.y);',
-      '  float w=fbm(p*vec2(1.1,1.4)-vec2(0.0,uT*0.55));',          // le vent lent : il tord les langues
-      '  float f=fbm(p*vec2(2.3,1.35)+vec2(w*1.7,-uT*1.9));',       // les langues qui montent
-      '  float y=vUv.y/(0.76+0.3*uK);',                              // la hauteur du feu : le LÂCHER le fait rugir jusqu'au linteau
-      '  float fire=f*1.6-y*y*1.05+0.1+0.55*smoothstep(0.24,0.0,vUv.y);', // > 0 : ça brûle · + le lit de braises au ras du seuil
-      '  float h=clamp(fire,0.0,1.25);',
-      '  vec3 c=mix(vec3(0.3,0.04,0.02),vec3(0.1,0.012,0.016),vUv.y);', // la fumée rougie (par-dessous, le feu l'éclaire : jamais un trou noir)
-      '  c=mix(c,vec3(0.55,0.05,0.02),smoothstep(0.0,0.25,h));',
-      '  c=mix(c,vec3(1.0,0.32,0.04),smoothstep(0.2,0.55,h));',
-      '  c=mix(c,vec3(1.0,0.72,0.22),smoothstep(0.5,0.85,h));',
-      '  c=mix(c,vec3(1.0,0.97,0.82),smoothstep(0.85,1.2,h));',
-      '  gl_FragColor=vec4(c*(1.0+0.6*uK),1.0);',
-      '}'].join('\n')});
-   const fl=add9(PL,fm,0,2.45,hd+.36,10,4.9,1);fl.rotation.y=Math.PI;GAR.feu=fm;GAR.feuM=fl;
+  /* ===== LE RIDEAU DE FLAMMES, v2 EN PIXELS (2026-09-29, Léo : « supprime ce design de flamme et recrée-en un inspiré complètement des
+     flammes pixelisées de la jauge — une grosse, plus jolie, agrandie, mais pixelisée ») =====
+     La porte relevée ne donne plus sur la nuit : elle BRÛLE d'un pilier à l'autre et du seuil au linteau (plus de vue dehors). C'est le
+     FEU DE DOOM de la 1re jauge NITRO MAX (26/09, sur la branche de Léo), en grand : une grille de 80 × 40 CASES dont la rangée du bas
+     brûle ; chaque case monte d'un cran en perdant un peu de chaleur, avec un décalage au hasard (le vent), et la palette va de la fumée
+     rougie au blanc. Agrandie en PIXELS FRANCS (NearestFilter : aucune case lissée) sur un plan OPAQUE juste derrière le mur de façade
+     (ses bords passent derrière les piles ±4,8 m et le linteau 4,7 m). Des FOYERS qui glissent le long du seuil font les langues ; des
+     ÉTINCELLES (une case blanche jetée au hasard) montent et s'éteignent. `GAR.feu.k` suit le LÂCHER : le feu monte jusqu'au linteau.
+     Coût : 3 200 cases à 30 images/s + une texture de 80 × 40 envoyée — rien ; seulement quand l'atelier est ouvert. */
+  {const W9=80,H9=40,cv=document.createElement('canvas');cv.width=W9;cv.height=H9;
+   const tex=new THREE.CanvasTexture(cv);tex.magFilter=THREE.NearestFilter;tex.minFilter=THREE.NearestFilter;tex.generateMipmaps=false;
+   const fm=new THREE.MeshBasicMaterial({map:tex,fog:false,toneMapped:false});
+   const fl=add9(PL,fm,0,2.45,hd+.36,10,4.9,1);fl.rotation.y=Math.PI;
+   const F=GAR.feu={cv:cv,cx:cv.getContext('2d'),img:null,f:new Uint8Array(W9*H9),W:W9,H:H9,tex:tex,acc:0,t:0,k:0};
+   F.img=F.cx.createImageData(W9,H9);GAR.feuM=fl;
+   for(let i=0;i<70;i++)feuPixPas(F); // il BRÛLE déjà quand la porte apparaît (sinon il naîtrait sous les yeux, du seuil vers le haut)
    const lu=flat(blobTex,0,.04,hd-1.3,12.5,6,0,THREE.AdditiveBlending);lu.rotation.x=-Math.PI/2;lu.material.color.setHex(0xff5a14);lu.renderOrder=-1;GAR.feuLu=lu;}
 
   // ===== LE PLATEAU TOURNANT : la caisse est une PIÈCE D'EXPOSITION, pas une bagnole garée =====
@@ -30657,7 +30638,7 @@ function garageLaunch(){
   try{ if(carUnlocked(garageI)){const be=$('gEquip'); if(be&&be.getAttribute('aria-disabled')!=='true')be.click();} }catch(e){}
   if(!GAR._v)GAR._v=new THREE.Vector3();
   if(!GAR._c)GAR._c=new THREE.Vector3();
-  GAR.go={t:0,p0:camera.position.clone(),voile:false,quiet:gEl.classList.contains('quiet')};
+  GAR.go={t:0,p0:camera.position.clone(),voile:false,quiet:gEl.classList.contains('quiet'),r0:Math.atan2(Math.sin(garRot()),Math.cos(garRot()))}; // r0 : où le plateau l'avait tournée
   gEl.classList.add('launching'); // dès qu'on PART, la vitrine s'efface — qu'on l'ait parcourue ou pas
   try{if(SONV2)sfx('garage.lacher');else{noiseBurst(.6,.22,420);chimeNote(196,0,.5,.16);}}catch(e){} /* (console de son) LE LÂCHER : moteur, turbo, départ, et le WHOOSH du voile (1,36 s) — le 196 Hz hors gamme reste en repli */
 }
@@ -31138,26 +31119,53 @@ function menuVitrine(dt){
   nitroLight.position.copy(MENUV.p).addScaledVector(F.t,-4).addScaledVector(F.n,2.2);nitroLight.color.setHex(0xff4fb0);nitroLight.intensity=1.6;
   headSpot.intensity=1.6;
 }
-/* LE RIDEAU DE FLAMMES qui vit (voir buildGarageRoom) : `uT` fait monter les langues, `uK` suit la SORTIE (0 → 1 en 1,7 s, lissé) —
-   les flammes grandissent jusqu'au linteau et blanchissent pendant que la caisse roule dedans. La lueur au sol bat avec elles. */
-function garFeu(dt){
-  if(!GAR.feu)return;const U=GAR.feu.uniforms,G=GAR.go;
-  U.uT.value+=dt*(REDUCED_MOTION?.35:1);
-  const u=G?Math.min(1,G.t/1.7):0,k=u*u*(3-2*u);
-  U.uK.value+=(k-U.uK.value)*Math.min(1,dt*(G?12:3));
-  if(G&&openGarage._feu)try{openGarage._feu.gain(8*U.uK.value,.05);}catch(e){} // le feu GRONDE quand la caisse entre dedans
-  if(GAR.feuLu){const t=U.uT.value;GAR.feuLu.material.opacity=Math.min(1,(.42+.1*Math.sin(t*9.1)+.07*Math.sin(t*23.7))*(1+U.uK.value*.9));}
+/* LE FEU PIXEL de la porte (voir buildGarageRoom). La palette : de la fumée rougie (0 — jamais un trou noir) aux braises, à l'orange, au
+   jaune, au blanc ; 36 crans. */
+const FEU_PIX=(function(){const S=[[0,[22,4,6]],[4,[64,8,6]],[8,[122,16,8]],[12,[182,32,6]],[16,[226,64,8]],[20,[250,110,16]],
+  [24,[255,158,30]],[28,[255,204,70]],[32,[255,236,150]],[35,[255,255,236]]],P=[];
+  for(let i=0;i<=35;i++){let a=S[0],b=S[S.length-1];for(let k=0;k<S.length-1;k++)if(i>=S[k][0]&&i<=S[k+1][0]){a=S[k];b=S[k+1];break;}
+    const u=b[0]>a[0]?(i-a[0])/(b[0]-a[0]):0;P.push([0,1,2].map(function(c){return Math.round(a[1][c]+(b[1][c]-a[1][c])*u);}));}
+  return P;})();
+function feuPixPas(F){ // un pas du feu de DOOM : le foyer, la montée, les étincelles, puis la peinture
+  /* ⚠ LA CHALEUR EST FINE, LES CASES SONT FRANCHES. Une 1re version comptait la chaleur en 36 crans et perdait un cran au hasard à chaque
+     rangée : une neige de cases isolées qui clignotaient (capture). La chaleur vit en 0-255, chaque rangée en perd un peu (tirage doux),
+     et c'est seulement à la PEINTURE qu'elle tombe dans les 36 teintes : des langues nettes, en pixels, plus du bruit de télé. */
+  const W=F.W,H=F.H,f=F.f,Pm=FEU_PIX.length-1,base=(H-1)*W,t=F.t,k=F.k;
+  for(let x=0;x<W;x++){const n=.5+.3*Math.sin(x*.16+t*3.1)+.2*Math.sin(x*.37-t*4.7); // les FOYERS qui glissent : les langues
+    f[base+x]=Math.min(255,Math.round(255*(.7+.3*n+.2*k)*(.95+Math.random()*.05)));}
+  const pd=15-7*k; // la perte par rangée (tirée dans 0..pd) : au repos le feu monte aux 3/4 de la porte, au lâcher jusqu'au linteau
+  for(let x=0;x<W;x++)for(let y=1;y<H;y++){const s=y*W+x,v=f[s];
+    const r=(Math.random()*3)|0,d=Math.max(0,s-W-r+1);                // le vent : la chaleur monte d'un cran, décalée de −1/0/+1
+    f[d]=v>0?Math.max(0,v-((Math.random()*pd)|0)):0;}
+  if(Math.random()<.3+.4*k){const x=(Math.random()*W)|0,y=(H*.35+Math.random()*H*.4)|0;f[y*W+x]=235;} // une ÉTINCELLE qui monte
+  const px=F.img.data;
+  for(let i=0;i<W*H;i++){const c=FEU_PIX[(f[i]*Pm/255)|0],o=i*4;px[o]=c[0];px[o+1]=c[1];px[o+2]=c[2];px[o+3]=255;}
+  F.cx.putImageData(F.img,0,0);F.tex.needsUpdate=true;
 }
-// banc : `dbgFeu()` rend l'état du rideau ; `dbgFeu(false)` l'éteint (mesure A/B du coût), `dbgFeu(true)` le rallume
-window.dbgFeu=function(on){if(!GAR.feu)return null;if(on!=null&&GAR.feuM){GAR.feuM.visible=!!on;if(GAR.feuLu)GAR.feuLu.visible=!!on;}
-  return {uT:+GAR.feu.uniforms.uT.value.toFixed(2),uK:+GAR.feu.uniforms.uK.value.toFixed(2),visible:GAR.feuM?GAR.feuM.visible:null,son:!!openGarage._feu};};
+function garFeu(dt){ // il brûle au repos, il RUGIT pendant le lâcher (k : 0 → 1 en 1,7 s, lissé) ; 30 pas/s (12 si « réduire les animations »)
+  const F=GAR.feu;if(!F)return;const G=GAR.go;
+  const u=G?Math.min(1,G.t/1.7):0,k0=u*u*(3-2*u);F.k+=(k0-F.k)*Math.min(1,dt*(G?12:3));
+  if(G&&openGarage._feu)try{openGarage._feu.gain(8*F.k,.05);}catch(e){} // le feu GRONDE quand la caisse entre dedans
+  if(GAR.feuLu)GAR.feuLu.material.opacity=Math.min(1,(.42+.1*Math.sin(F.t*9.1)+.07*Math.sin(F.t*23.7))*(1+F.k*.9));
+  const pas=REDUCED_MOTION?1/12:1/30;F.acc+=dt;if(F.acc<pas)return;F.acc=Math.min(F.acc-pas,pas);F.t+=pas;feuPixPas(F);
+}
+// banc : `dbgFeu()` rend l'état du feu ; `dbgFeu(false)` l'éteint (mesure A/B du coût), `dbgFeu(true)` le rallume
+window.dbgFeu=function(on){const F=GAR.feu;if(!F)return null;if(on!=null&&GAR.feuM){GAR.feuM.visible=!!on;if(GAR.feuLu)GAR.feuLu.visible=!!on;}
+  let chaud=0;for(let i=0;i<F.f.length;i++)if(F.f[i]>60)chaud++;
+  return {k:+F.k.toFixed(2),t:+F.t.toFixed(2),cases:F.W+'×'+F.H,brule:+(chaud/F.f.length).toFixed(2),visible:GAR.feuM?GAR.feuM.visible:null,son:!!openGarage._feu};};
+/* LE GARAGE SOBRE (2026-09-29, Léo : « le point de vue est bizarre, on dirait un effet loupe ; je veux un garage plus sobre, la voiture au
+   milieu, qui tourne grâce à la plateforme ») : la caméra ne tourne plus autour de la caisse. Elle est FIXE, côté établi, et regarde la
+   porte en feu ; c'est le PLATEAU qui tourne, la caisse dessus. `garageAng` garde son sens (l'angle d'où l'on regarde la caisse : les
+   préréglages .42, 3,5 aux TRAÎNÉES, le glissé du doigt n'ont pas bougé) — il fait tourner la caisse de `GAR_CAM_A − garageAng`. */
+const GAR_CAM_A=Math.PI;
+function garRot(){return GAR_CAM_A-garageAng;}
 function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 360° DANS l'atelier
   trailApercu(dt,SHOP.tab==='trainee');
   const ay=GARAGE_Y,t9=performance.now()*.001;
   if(!GAR.root)buildGarageRoom();
   GAR.root.position.y=ay;GAR.root.visible=true;
   garFeu(dt); // le rideau de flammes de la porte : il brûle au repos, il RUGIT pendant le lâcher
-  carGroup.position.set(0,ay+GAR.POD,0);carGroup.rotation.set(0,0,0);carGroup.visible=true; // posée SUR le plateau
+  carGroup.position.set(0,ay+GAR.POD,0);carGroup.rotation.set(0,garRot(),0);carGroup.visible=true; // posée SUR le plateau — (2026-09-29, Léo) et c'est ELLE qui tourne, avec lui (voir GAR_CAM_A)
   garageFloor.visible=false;                       // l'ancienne nappe de brume : l'atelier a un vrai sol
   // CIEL CYAN étoilé — ce qu'on voit par la porte relevée (poussé après bioStep : ça gagne cette frame)
   skyU.uSkyMul.value.set(.62,.92,1.34);skyU.uStars.value=1.7;skyU.uMoon.value=1.5;skyU.uSunHalo.value=.12;
@@ -31214,7 +31222,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
     // LE PLATEAU S'EMBALLE puis retrouve son ralenti — une cloche, pas une rampe : ce qui se lit
     // comme « une machine s'est mise en marche », c'est l'accélération PUIS la décélération.
     const bo=Math.sin(Math.PI*Math.min(1,SW.t/B));
-    GAR.pod.rotation.y+=dt*(.35+bo*11);
+    GAR.podSpin=(GAR.podSpin||0)+dt*bo*11;GAR.pod.rotation.y=garRot()+GAR.podSpin; // l'échange fait encore tourbillonner le plateau
     GAR.ring.material.opacity=.8+bo*1.7;GAR.ring.scale.setScalar(1+bo*.05);
     // ⚠ FLASH DOSÉ TRÈS BAS. Premier essai à +1,6/+1,3 : tout l'atelier virait au pastel délavé —
     // exactement le défaut noté en tête de garageRender (quatre sources qui s'additionnent sur un
@@ -31222,7 +31230,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
     // les lampes ne font que confirmer, elles ne doivent pas éclairer la scène une deuxième fois.
     stallKey.intensity+=bo*.45;stallRim.intensity+=bo*.35;
   }else if(GAR.pod){
-    GAR.pod.rotation.y+=dt*.35;                              // au repos : le plateau tourne, la caisse non
+    GAR.pod.rotation.y=garRot()+(GAR.podSpin||0);           // (2026-09-29, Léo) le plateau PORTE la caisse : ils tournent ensemble
     // ---- LE TOUCHER (2026-09-05) : la caisse ACCUSE le clic/tap avant même qu'on ait glissé quoi
     // que ce soit — sans ça le geste de swipe n'a rien à répondre à la PRESSION, seulement au
     // déplacement. Un aplatissement bref (fonction sinus : 0→creux→0, jamais de à-coup) qui s'éteint
@@ -31263,7 +31271,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
     const appui=Math.max(0,1-u/.20);                       // l'assiette qui s'écrase au premier quart
     const cz=u*u*17;                                       // ⚠ u² : elle ACCÉLÈRE, elle ne glisse pas
     carGroup.position.set(0,ay+GAR.POD-appui*.055,cz);
-    carGroup.rotation.set(appui*.035,0,0);                 // le nez qui se lève sous la charge
+    {const e0=Math.min(1,u/.3),r9=G.r0*(1-e0*e0*(3-2*e0));carGroup.rotation.set(appui*.035,r9,0);} // le nez qui se lève sous la charge — et le plateau la remet face à la porte (0,5 s)
     if(GAR.ring){GAR.ring.material.opacity=.8+appui*2.2;GAR.ring.scale.setScalar(1+appui*.06);}
     if(GAR.pod)GAR.pod.rotation.y+=dt*.35;
     // la caméra glisse de l'orbite jusqu'à la place de poursuite, et l'y reste
@@ -31299,7 +31307,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   const dG0=garageDist*(1+POR*.34)*(1+vG*.12);
   // (2026-09-26, audit rendu) le recul pouvait atteindre ~12 m alors que rien de haut n'est garanti libre au-delà de 8,3 m : la caméra
   // traversait le décor. On plafonne le rayon HORIZONTAL à 8 m et on rend le cadrage par l'objectif (même taille de caisse à l'écran).
-  const dG=Math.min(dG0,8/Math.max(.2,Math.cos(garagePitch)));
+  const dG=Math.min(dG0,10.5/Math.max(.2,Math.cos(garagePitch))); // (2026-09-29) 8 → 10,5 m : la caméra est FIXE, dans l'axe libre de l'atelier (côté établi) — elle recule au lieu d'ouvrir l'objectif jusqu'à ~87° (« l'effet loupe »)
   if(dG<dG0)fovG=Math.min(88,2*Math.atan(Math.tan(fovG*Math.PI/360)*dG0/dG)*180/Math.PI);
   if(Math.abs(camera.fov-fovG)>.01){camera.fov=fovG;camera.updateProjectionMatrix();}
   const cp=Math.cos(garagePitch)*dG,h=Math.sin(garagePitch)*dG;
@@ -31307,9 +31315,9 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   // GARDE-FOU : la caméra reste DANS l'atelier. On tourne à 360° dedans — jamais à travers un mur,
   // jamais au-dessus du plafond. Le clamp est la seule chose qui rende l'orbite libre SÛRE.
   camera.position.set(
-    THREE.MathUtils.clamp(Math.sin(garageAng)*cp,-GAR.W/2+1.2,GAR.W/2-1.2),
+    THREE.MathUtils.clamp(Math.sin(GAR_CAM_A)*cp,-GAR.W/2+1.2,GAR.W/2-1.2),
     THREE.MathUtils.clamp(ay+h+1.0,ay+1.0,ay+GAR.H-1.05),
-    THREE.MathUtils.clamp(Math.cos(garageAng)*cp,-GAR.D/2+1.2,GAR.D/2-1.2));
+    THREE.MathUtils.clamp(Math.cos(GAR_CAM_A)*cp,-GAR.D/2+1.2,GAR.D/2-1.2));
   camera.lookAt(0,ay+.75-POR*.40-vG*1.35,0);
   /* (2026-09-26, vague 2) LA CAISSE MONTE AU-DESSUS DES FLÈCHES — PAR UN DÉCENTREMENT, PAS EN PIQUANT. À l'onglet VOITURES la caisse
      tombait PILE sur la ligne des flèches ◀ ▶ (y ≈ 330 px sur 844) : LE MUR DU SON (6 m) avait nez et poupe coupés par les boutons, et le
