@@ -43,4 +43,4 @@ garage, radio). Historique détaillé sur la branche `jeu-boucle-argent`.
 
 ## Sons en attente des droits (non inclus)
 heymikey-in-da-back-2, lilb-bor, nettspend-nothinglikeuuu, minecraft, balrog, takemymoney, shutup.
-La radio joue NÉON CASH CAR, CASH CAR VITESSE et ADDICTIVE LOOP (Léo) en attendant ; l'accueil joue SWAG CASH CAR (Léo).
+La radio (l'orbite) joue NÉON CASH CAR, CASH CAR VITESSE et ADDICTIVE LOOP (Léo) en attendant ; l'accueil joue NOCTURNAL GROOVE, L'ORAGE SWAG CASH CAR (Léo).

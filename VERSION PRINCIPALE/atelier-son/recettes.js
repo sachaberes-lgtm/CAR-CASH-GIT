@@ -1038,3 +1038,25 @@ D('nitrooo.palier',{fam:'machine',bus:'fx',dur:.8,st:1,key:1,db:-2,max:1,cd:.3,b
     T.grave(b,o,0,95,50,.1,.22,.4);}});
 })(typeof window!=='undefined'?window:globalThis);
 /* <<<FIN FRENCASH>>> */
+
+/* <<<GARAGEFEU>>> */
+(function(G){
+'use strict';
+/* LE RIDEAU DE FLAMMES A SA VOIX (2026-09-29, Léo : la porte du garage brûle — « c'est l'ambiance ») : une boucle de 6 s sur le bus
+   d'ambiance, jouée tant que l'atelier est ouvert, par-dessus `garage.ambiance`. Le GRONDEMENT (bruit brun sous 320 Hz, qui respire
+   à 0,33 et 0,5 Hz sans rapport : jamais un battement régulier), le SOUFFLE (bruit rose en bande 500-1100 Hz), le CRÉPITEMENT (une
+   cinquantaine de micro-éclats semés sur toute la boucle, partout dans la stéréo) et quatre CLAQUEMENTS de bois qui éclate. Le jeu
+   monte son gain pendant le LÂCHER (`garFeu` : +8 dB quand la caisse entre dans le feu). Pas de note : le feu n'a pas de tonalité. */
+const D=G.CCSON_D,O=G.CCSON_OUTILS,osc=O.osc,bruit=O.bruit,clic=O.clic;
+D('garage.feu',{fam:'interface',bus:'amb',dur:6.6,st:1,db:-9,max:1,cd:.5,rj:0,vj:0,dit:'le RIDEAU DE FLAMMES de la porte (boucle) : grondement qui respire, souffle, crépitement, bois qui claque',
+  r:function(b,R,o){
+    bruit(b,{c:'n',t0:0,a:.001,h:6.6,d:.001,v:.34,ft:'lp',f:320,am:[.33,.45],pan:-.15},R);           // le grondement
+    bruit(b,{c:'n',t0:0,a:.001,h:6.6,d:.001,v:.22,ft:'lp',f:260,am:[.5,.5],pan:.2},R);
+    bruit(b,{c:'r',t0:0,a:.001,h:6.6,d:.001,v:.07,ft:'bp',f:750,q:.8,am:[.7,.55]},R);                 // le souffle
+    for(let i=0;i<52;i++){const t=R()*6.4;                                                            // le crépitement
+      bruit(b,{c:'n',t0:t,a:.0006,d:.01+R()*.035,v:.2+R()*.35,ft:'lp',f:900+R()*2600,q:.7,pan:R()*1.6-.8},R);}
+    for(const t of [.9,2.6,4.1,5.5]){const p=R()*1.2-.6;                                             // le bois qui claque
+      clic(b,{t0:t,f:1800+R()*1200,d:.006,v:.35,pan:p},R);bruit(b,{c:'r',t0:t,a:.0008,d:.07,v:.25,ft:'bp',f:1300,q:1.2,pan:p},R);}
+    O.boucle(b,.6);}});
+})(typeof window!=='undefined'?window:globalThis);
+/* <<<FIN GARAGEFEU>>> */

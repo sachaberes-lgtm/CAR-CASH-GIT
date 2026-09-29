@@ -242,3 +242,4 @@ frenesie.cash#1#0	rec	st	0.38 (−0.07)	-37.0	-10.2	5 Ko
 frenesie.cash#2#0	rec	st	0.38 (−0.07)	-37.0	-10.3	5 Ko	
 nitrooo.palier#0#0	fx	st	0.57 (−0.23)	-32.0	-9.3	7 Ko	
 nitrooo.palier#0#12	fx	st	0.46 (−0.34)	-32.0	-8.0	6 Ko	
+garage.feu#0#0	amb	st	6.00	-39.0	-8.1	69 Ko	

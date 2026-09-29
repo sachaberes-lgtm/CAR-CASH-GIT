@@ -1,9 +1,41 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE GARAGE BRÛLE (2026-09-29, Léo) — « la porte du garage vue sur l'extérieur : une flamme plus grande, adaptée à la situation, qui fasse
+## comprendre qu'on va passer dans les flammes, puis le jeu se lance avec le boost du début — c'est l'ambiance » · « replace mieux le bouton play,
+## reprends les boutons du menu d'après le crash et mets-les dans le garage » · « la musique du lobby c'est NOCTURNAL GROOVE »
+- **LE RIDEAU DE FLAMMES** (`buildGarageRoom`, après la route de dehors ; `GAR.feu` / `GAR.feuM` / `GAR.feuLu`, `garFeu(dt)` en tête de
+  `garageRender`, `window.dbgFeu([on])`) : UN plan OPAQUE 10 × 4,9 m à z = hd+.36, juste derrière le mur de façade — ses bords passent derrière
+  les piles (±4,8) et le linteau (4,7) : plus de vue dehors, la route et le ciel sont masqués au z-test. ShaderMaterial à DEUX fbm de bruit de
+  valeur (un vent lent qui tord, des langues qui montent), lit de braises au ras du seuil, fumée ROUGIE au-dessus (jamais un trou noir), cœur
+  blanc que le bloom fait briller. `uK` suit le LÂCHER (0 → 1 en 1,7 s) : les langues montent jusqu'au linteau et blanchissent. Lueur
+  additive au sol côté atelier (blobTex teinté, aucune lumière ajoutée). Compilé à la 1re visite du garage (le menu), rien en course.
+  MESURÉ (rendu logiciel, porte plein cadre) : médiane 183 ms/image avec comme sans — le coût se perd dans le reste.
+  · `paintEnvAtelier` : la face +Z (la porte) est peinte en FEU — la laque de la caisse reflète les flammes, plus la nuit.
+  · Le voile du LÂCHER part à u > .90 (était .80) : la caisse ENTRE dans le feu (nez au rideau à u ≈ .82) avant la coupure ; `#gFade` en
+    blanc CHAUD `#ffe3b8` — toujours le voile d'une image (le flash plein écran a été jugé « horrible » : l'effet est DANS la scène).
+  · **Le BOOST DE DÉPART revient** (`fireLaunchBoost` : `startBoostT=3`, 0 à l'auto-école — repris de la branche de Léo, 28/09) : on sort des
+    flammes EN flammes.
+  · **Sa voix** : `sfx('garage.feu')` (bloc GARAGEFEU de `atelier-son/recettes.js`, banque v7) — boucle de 6 s sur le bus d'ambiance, par-dessus
+    `garage.ambiance` : grondement qui respire (0,33 / 0,5 Hz), souffle, ~50 crépitements, 4 claquements de bois ; `openGarage._feu`, arrêtée
+    dans `closeGarage`, +8 dB × uK pendant le lâcher (`garFeu`).
+- **LES BOUTONS DE L'ÉCRAN DE MORT À L'ATELIER** : BOUTIQUE · RÉGLAGES en touches carrées en haut à droite (`#gOutils [data-go]`, couché : le
+  vrai coin de l'écran) ; en bas la paire MENU | JOUER, à la place exacte de MENU | REJOUER. `#gClose` est devenu la MAISON (même matière que
+  celle de l'écran de mort) : venu de la mort, il range la course et rentre à l'ACCUEIL (`accueilRetour`) ; venu des MISSIONS, il y retourne.
+  BOUTIQUE / RÉGLAGES passent par `__mRetour` (lu par l'observateur de l'overlay à la fermeture — un `mGo` direct est écrasé par son retour
+  à la racine). GARAGE n'est pas repris (on y est).
+  · **JOUER** (`#gJouer`, `garJouer`) : lingot d'or qui prend toute la barre quand il n'y a rien à décider (ÉQUIPÉE s'efface) ; quand
+    ACHETER / ÉQUIPER / VERROUILLÉE s'affiche (`gActSync` → `#gAct.choix`), c'est LUI qui garde l'or et JOUER passe en laque cyan (charte : un
+    seul lingot). Il lance LE LÂCHER ; une caisse ou un habillage à l'essai (pas à toi) rend la main à la tienne avant la sortie ; le 1er
+    JOUER demande le mode (facChoix) comme celui de l'accueil.
+- **MUSIQUE** : `MUSIC.menu` = NOCTURNAL GROOVE (accueil, garage, écran de fin) ; SWAG CASH CAR → `MUSIC_LIEU.orage` (« le ciel électrique » :
+  lu comme L'ORAGE, le niveau des éclairs, qui n'avait pas de morceau — si Léo parlait de la VILLE, c'est une ligne). ⚠ NOCTURNAL GROOVE est
+  AUSSI le morceau de la VILLE : la même chanson à l'accueil et au niveau 2 (à trancher par Léo : ADDICTIVE LOOP en VILLE, comme sur sa branche ?).
+
 ## LA MUSIQUE DE LÉO SUR MAIN (2026-09-29) — « Sacha doit entendre ma musique quand il pull »
 - Repris de la branche `version-leolei-2026` (elle a divergé de main : 83 commits d'un côté, 71 de l'autre ; le jeu y est à la RACINE, pas
   dans `VERSION PRINCIPALE/` — un `git merge` de cette branche poserait une 2e copie du jeu). Seule la MUSIQUE est reprise ici :
-  · **SWAG CASH CAR** (`assets/audio/music/swag-cash-car-2.m4a`, 2 min 37) = `MUSIC.menu` : accueil, garage, écran de fin, à .8 (avant :
+  · **SWAG CASH CAR** (`assets/audio/music/swag-cash-car-2.m4a`, 2 min 37) = `MUSIC.menu` (⚠ le même soir : parti à L'ORAGE, l'accueil joue
+    NOCTURNAL GROOVE — voir LE GARAGE BRÛLE) : accueil, garage, écran de fin, à .8 (avant :
     le morceau du 1er niveau à .5). Trois lignes reprises de Léo : le 1er toucher précharge `MUSIC.menu||musicPremier()`, `musicMenu` et
     `musicPlayCurrent` le jouent. `musicSession` reste celle de main (le correctif iOS 17 « ambient si MUSIQUE coupée »).
   · **ADDICTIVE LOOP** (`addictive-loop.m4a`, 2 min 58) : chez Léo il REMPLACE NOCTURNAL GROOVE en VILLE ; Léo n'a pas encore tranché pour
