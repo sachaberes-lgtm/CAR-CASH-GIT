@@ -3966,6 +3966,25 @@ html body #tRight{left:calc(env(safe-area-inset-left,0px) + min(84px,21vh) + 30p
 /* couché : les flèches du garage descendent sous la plaque de la condition (elles la chevauchaient) */
 @media (orientation:landscape) and (max-height:540px){html #garage .gNav{top:calc(50% + 22px)}}
 .gT em.def{color:var(--neoV)}.gT em.def .pxi{--pxs:1;color:var(--neoV);margin-right:4px}   /* la caisse des missions en cours : « ◎ 1 / 3 » en vert défi */
+/* la BOUTIQUE couchée (ce que montre l'ordi) : l'offre à gauche, les LÉGENDAIRES à droite — la 2e rangée restait sous le RETOUR, l'écran
+   n'affichait qu'une bannière et un titre de section orphelin ; la vitrine se lit de haut en bas dans sa colonne */
+@media (orientation:landscape) and (max-height:540px){
+  html #mShop.on{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);column-gap:18px;align-content:start;
+    grid-template-areas:"head head" "une sec" "une grille" "une rest" "dock dock";grid-template-rows:auto auto auto 1fr auto}
+  html #mShop>.mHead{grid-area:head;margin-bottom:10px}
+  html #mShop>.shUne{grid-area:une;align-self:start;margin:0}
+  html #mShop>.mSec{grid-area:sec;margin:0 0 8px}
+  html #mShop>.shGrille{grid-area:grille;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-self:start}
+  html #mShop>.shRestaurer{grid-area:rest;align-self:start;justify-self:center;margin:12px 0 0}
+  html #mShop>.mDock{grid-area:dock}
+  html #mShop .shUneCadre{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);grid-template-areas:"ruban ruban" "photo tx" "bas bas";padding:12px 14px 12px;gap:6px 12px}
+  html #mShop .shUneCadre .shPhoto{height:112px}
+  html #mShop .shUneCadre .shPhoto img{height:112px}
+  html #mShop .shUneTx span{font-size:12px;line-height:1.4}
+  html #mShop .shCase{padding:9px 10px 10px;gap:6px}
+  html #mShop .shRemise{top:10px;right:12px}
+  html #mShop .shUneTx{margin-top:12px}
+}
 </style>
 <style id="hudMaitrise">
 /* =====================================================================================================================
