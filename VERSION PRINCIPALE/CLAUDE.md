@@ -86,36 +86,38 @@ doit être exponentielle ; à chaque palier de 10 % ça doit rajouter un compart
   et mourait « TROP LONGTEMPS EN L'AIR », mesuré par GAMEPLAY, banc ntrx.js). PLAFOND COMMUN : `vitMult()` borne AUSSI VITESSE ×2 × NITROOO à ×2,6
   (sinon ×5,2 au plafond, mort presque sûre — trouvé par DEBUGGING ; lu par spdMult ET ligneTick). Le « +N % » de chaque palier suit la même loi. ⚠ Le
   plafond est un garde-fou (au-delà la piste défile plus vite que le viseur et que les collisions balayées) : on peut le lever, pas le supprimer.
-- **LE DRAGON** (`DRG`, `dragonInit`, `dragonTick` appelée juste après `nitroooTick`, `dragonEchine`, `dragonBande`, `window.dbgDragon`) :
-  · UN seul maillage, DEUX groupes de matériaux, tous du programme des RUBANS DE TRAÎNÉE (MeshBasicMaterial map + vertexColors + transparent +
-    DoubleSide + fog:false — mélange, opacité, couleur et texture ne comptent pas dans la clé de programme) : le CORPS PEINT (`DRG_TEX`, écailles
-    rouge-or en mélange normal, lisible sur le ciel rose comme sur l'orage) et le FEU additif (`DRG_FEU` : halo, crête, moustaches, flammes de
-    queue). Bandes face caméra, fondu près de la caméra (sinon voile plein écran). La TÊTE est un sprite PIXEL-ART (`DRG_TETE`, 2 images :
-    gueule fermée / ouverte au rugissement, bois, œil d'or à pupille fendue, crinière de flammes, barbe), retournée par la texture : elle
-    regarde LÀ OÙ TU TOURNES (`steer`), `depthTest:false` + lueur. **0 programme lié pendant tout le banc**.
-  · **UN COMPARTIMENT PAR PALIER** : `1 + NTR.pal` tronçons (lissé : le nouveau POUSSE à la queue), séparés par des ANNEAUX D'OR ; le tronçon
-    neuf s'embrase et le dragon RUGIT (gueule ouverte, gerbe de feu). Il grossit jusqu'à 10 tronçons (`g`), puis s'arrête à 11 tronçons au plus (plafond ×2,6 à 10 s : les paliers cessent au 10e).
-  · **ÇA SE SUIT** : son repère est la DIRECTION DU MOUVEMENT lissée (pas la caisse — il ne vrille pas avec elle, il ne casse ni au décollage
-    ni à la pose) et le HAUT DE L'ÉCRAN lissé (`camUp` : la normale de la face au sol — sur la face du DESSOUS le haut du monde est DANS la
-    dalle —, le toit en vol). NITROOO commencée au sol CONTINUE en vol et inversement (`nitroooPart` sort si `NTR.on`, pas de ré-annonce ni
-    de repaiement) : paliers, boost et tronçons ne repartent pas de zéro.
-  · **AUTOUR DE LA CAISSE** (même nuit, Sacha : « c'est autour de la voiture que le dragon doit se former », « la tête de dragon sur la
-    voiture » — la 1re version dansait en ronde DEVANT le capot, cadrée au tiers haut de l'écran : écartée) : la TÊTE est posée sur le capot,
-    le COU plonge devant le nez, le CORPS fait le tour de la caisse en SPIRALE (`dragonEchine` : ellipse `Rx`/`Rz`, `tours`, évasement `ev`,
-    montée `mt`, bosses `Av`/`cyc` qui courent, l'anneau qui se balance `a0` et respire). La poursuite regarde d'en haut (40-45° en
-    portrait) : l'anneau ENCERCLE la caisse à l'écran sans la cacher — l'arrière passe sous elle, l'avant au-dessus. ⚠ L'anneau est SERRÉ
-    derrière (`Rb`, côté caméra) et LONG devant (`Rz`) : symétrique, au 10e palier l'arrière de la spirale passait sous l'objectif (une nappe
-    rouge sur la moitié basse de l'écran). Tailles : demi-largeur `W` 0,5 → 1,3 m, anneau ~1/4 de tour au 1er palier → 1 tour au 10e, tête
-    2,8 → 4,7 m. Pattes et crête vers l'EXTÉRIEUR de l'anneau (vue d'en haut, la crête dépasse tout autour). Il se DÉROULE hors de la caisse
-    en 0,6 s (`em`). En paysage (PC), la caisse est petite à l'écran, le dragon aussi.
-  · NITRO INFINIE : dragon VIOLET clair (`DRG.VIO`). Fin, recommencer, quitter : `nitroooVide()` (tête de `resetGame` et `endGame`) éteint
-    boost, plasma et dragon — ils restaient figés sur l'écran de fin.
+- **LE DRAGON v5 — LA COMÈTE A LA FORME D'UN DRAGON** (2026-09-30, Sacha : « le dragon, c'est pas ce que je voulais : l'aura de flammes de
+  NITROOO, style comète, doit ELLE-MÊME avoir la forme d'un dragon — une TÊTE DE DRAGON DE FLAMMES qui ENGLOBE la voiture ; plus tu boostes
+  longtemps, plus la tête devient GROSSE, OPAQUE et ENFLAMMÉE ; à chaque palier, le CORPS apparaît petit à petit DERRIÈRE la voiture »).
+  ⚠ Les v1 à v4 sont ÉCARTÉES : un dragon qui vole DEVANT (en S, puis en ronde cadrée au tiers haut de l'écran), puis enroulé AUTOUR de la
+  caisse la tête posée sur le capot — Sacha ne veut pas un dragon À CÔTÉ de la caisse : la caisse EST dans la tête.
+  (`DRG`, `dragonInit`, `dragonTeteInit`, `dragonTick` juste après `nitroooTick`, `dragonHisto`, `dragonEchineCalc`, `dragonEchine`, `dragonBande`)
+  · **LA TÊTE** vit dans le repère de la CAISSE. Un crâne FACETTÉ (`DRG.tm`, la DA poly du jeu) : sept couronnes (`DRG_CR`) de la nuque au
+    bout du museau, une MÂCHOIRE (`DRG_MC`) qui pivote sur sa charnière (grande ouverte au rugissement), quatre CROCS chauffés à blanc.
+    Coordonnées « tête » (`MT`) : x ±1 = 1,32 × la demi-largeur, y −1 (le sol) → 1 (le haut du crâne), z −1 (l'arrière de la caisse) → 1 (le
+    museau, devant le nez). Le FEU PEINT (`DRG_PF` : liseré sombre, rouge, orange, cœur d'or, bords mordus en langues) s'enroule autour — l'arête
+    en or, les flancs plus sombres (`DRG_BR` : du CONTRASTE, sinon elle se fond dans la caisse orange), il DÉFILE vers la nuque. Par-dessus :
+    deux BOIS et leurs andouillers, les SOURCILS froncés (rubans peints), la CRINIÈRE, les MOUSTACHES, la BARBE (rubans additifs), deux YEUX
+    peints en cases (`DRG_OEIL` : amande bridée, iris d'or, pupille fendue — ⚠ le +x de la caisse est à GAUCHE de l'écran en poursuite).
+    ⚠ LEÇON DU BANC : des rubans seuls ne dessinaient qu'un fouillis de traits — de la poursuite, une tête se lit par sa MASSE (un volume).
+  · **ELLE GRANDIT AVEC LA TENUE** (`NTR.gT`, 0 → 1 en 10 s, posé par `nitroooTick`) : taille ×1 → ×1,4 (vers l'AVANT et le HAUT : la nuque
+    reste à l'arrière de la caisse, le menton au ras de la route), opacité 0,5 → 1 (au bout, la caisse est DANS la tête), bois et crinière
+    plus longs. La COMÈTE d'UHD (plasma, langues, halos) grossit pareil (`HS` .85 → 1,6), s'EMBRASE avec la tenue (intensité 0,6 → 1 — c'était
+    l'inverse : 0,7 puis 0,5 après 6 s) et sa gerbe de flammes triple. Au rugissement, la gueule s'ouvre et crache une gerbe devant.
+  · **LE CORPS** suit la TRAJECTOIRE de la caisse (`dragonHisto` : un anneau de positions, un point tous les 35 cm ; au portail il repart
+    tout droit derrière) : sur la route il y serpente, en vol il suit la parabole — pas de barrière entre le sol et l'air. AUCUN compartiment
+    au déclenchement (la tête seule), UN DE PLUS À CHAQUE PALIER (`DRG.nS` → `NTR.pal`), qui POUSSE à la queue : écailles peintes, anneaux
+    d'or, pattes, crête, halo, flammes de queue. Son haut est le haut de l'ÉCRAN lissé (`camUp` : sur la face du dessous, le haut du monde
+    est dans la dalle). ⚠ Près de l'objectif les bandes s'AMINCISSENT (une bande peinte assombrie devenait une nappe NOIRE sous la caméra).
+  · Trois matières du programme des rubans de traînée (un maillage) + la même pour le crâne + le programme des sprites : **0 compilation en
+    course** (banc drg.js). NITRO INFINIE : textures VIOLETTES repeintes au chargement (`drgViolet` : le rouge → violet, l'or → lilas).
+    Fin, recommencer, quitter : `nitroooVide()` → `dragonCache()`.
 - ⚠ **LEÇON** : un `//` en milieu de ligne avale TOUT ce qui suit sur la ligne — `scene.add(DRG.tete)` écrit derrière un commentaire n'a jamais
   tourné (le sprite existait, invisible : `dbgDragon('ecran')` → `par:false`). Commentaire au milieu = `/* */`.
 - Aussi dans ce lot (audit GAMEPLAY) : `eclVide()` rend l'exposition et la brume (mourir pendant un éclair laissait l'écran de fin surexposé) ;
   la bannière de L'ORAGE a sa promesse (`pr` : « LA ROUTE SE CACHE : L'ECLAIR LA MONTRE », EN/ZH).
 - Bancs : `drg.js <racine> <préfixe> [--pay] [--inf]` (photos aux paliers 1/3/6/10, en vol, à la pose, au lâcher + positions écran de la tête,
-  du milieu, de la queue), `dbgDragon()` (tronçons, rayon, long, tours), `dbgDragon('tete')` (la texture), `dbgDragon('ecran')`.
+  de la tête, du nez, d'un bois, du corps), `drgphoto.js <racine> <préfixe> [palier]` (EN PAUSE, 4 angles : derrière, 3/4 avant, profil, dessus), `dbgDragon()` (palier, tronçons, tenue, tête, corps), `dbgDragon('tete')` (la texture), `dbgDragon('ecran')`.
 
 ## L'ORAGE — LE 4e NIVEAU, LE NIVEAU DUR (2026-09-29, nuit — session GRAPHISME, avec l'accord de GAMEPLAY et de la Campagne)
 - Sacha : « rajoute un niveau après les 3 premiers : le biome nuages mais avec un orage, beaucoup plus de nuages, de la pluie, des
