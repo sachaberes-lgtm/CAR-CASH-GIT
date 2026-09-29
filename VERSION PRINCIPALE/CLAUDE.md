@@ -220,6 +220,12 @@ doit être exponentielle ; à chaque palier de 10 % ça doit rajouter un compart
 - **À juger par Sacha** : la bretelle (assez « route » ? trop longue ?), la fréquence (3 par zone), le montant des deux paiements, et
   s'il faut un repère visuel du filet (liseré, ligne de pièces sur l'arc de vol) — pas fait dans cet essai.
 
+## LA FRÉNÉSIE SE PERD PLUS VITE — LOI 19 DE FLOW2 (2026-09-30 — session GAMEPLAY)
+- Sacha (relayé par INTERFACE) : « la dark triad doit se perdre plus facilement après l'avoir obtenue, il faut continuer à jouer comme un
+  malade pour ne pas la perdre ». Seule la TENUE bouge (la montée de la loi 18 est intacte) : `FLOW2.triade` mémoires 4 · 8 · 1,5 s (était
+  7 · 15 · 2,2), brûlure [7 · 4,5 · 2,2 · −0,4] (était [5,5 · 3,5 · 1,7 · −0,6]) ; en VILLE 6 · 13 · 2,4 (était 11 · 24 · 3,5).
+  MESURÉ (simtri2/simville2 de GRAPHISME, 5 min × 60) : tenue moyenne casse-cou 20 → 10 s, maître 25 → 12 s (ville 12 et 16 s).
+
 ## LA PASSE QUALITÉ DU 29/09 (nuit — session GAMEPLAY, Sacha : « regarde si tout fonctionne, il y a plein de petites imperfections »)
 - Méthode : une partie jouée au banc sur les 4 niveaux + menus + mort (`tour.js <prefixe> [fr|en]`, diagnostics débordement / cibles /
   accents pixel / erreurs / programmes liés) et deux auditeurs en lecture seule (logique récente, textes). Zéro erreur en course, 0 programme

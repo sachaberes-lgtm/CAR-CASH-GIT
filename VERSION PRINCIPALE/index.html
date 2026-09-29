@@ -18706,6 +18706,12 @@ function n9Saut(o){const n=performance.now(),s9=n-(o._viseT||0)>200;o._viseT=n;r
        parties qui atteignent la frénésie en 5 min / 1re frénésie médiane : NUAGES tranquille 0 %, casse-cou 13 % (loi 17 : 100 %,
        ~2 min), maître 100 % à ~2 min (~1 min) ; VILLE casse-cou 7 % (90 %, 2 min 22), maître 100 % à ~2 min 20 (1 min 06). En
        frénésie 0 · 1 · 19 % du temps (0 · 15 · 39 %) ; tenue inchangée ~20 · 25 s (ville 21 · 32 s).
+   19. LA TENUE SE PAIE (2026-09-30, Sacha, relayé par INTERFACE : « la dark triad doit se perdre plus facilement après l'avoir obtenue,
+       genre il faut continuer à jouer comme un malade pour ne pas la perdre »). La MONTÉE ne bouge pas (loi 18) ; seule la TENUE, une
+       fois TRIPLE MONSTER lancé : mémoires des traits NARCISSE 7 → 4 s · MACHIAVEL 15 → 8 s · PSYCHO 2,2 → 1,5 s, brûlure [5,5 · 3,5 ·
+       1,7 · −0,6] → [7 · 4,5 · 2,2 · −0,4] (les trois traits vivants regonflent encore, mais moins) ; VILLE 11 · 24 · 3,5 → 6 · 13 · 2,4.
+       MESURÉ (simtri2/simville2, 5 min × 60) : tenue moyenne casse-cou 20 → 10 s, maître 25 → 12 s (ville 21 → 12, 32 → 16) ; 1re
+       frénésie inchangée (maître ~2 min, 2 min 20 en ville).
    ⚠ BLOC PUR : ne lit que ses arguments et FLOW2 — le banc de simulation l'exécute tel quel, hors du jeu. Tous les
    réglages vivent dans FLOW2, nulle part ailleurs.
    ========================================================================== */
@@ -18724,7 +18730,7 @@ const FLOW2={
   fren:{nitro:.5},
   // (v4) LA TRIADE : mémoire (s) de chaque trait · PSYCHO vit aussi à `p.vit` × la croisière sans nitro · brûlure (/s) de la zone
   // rouge selon le nombre de traits vivants [0, 1, 2, 3] — négatif = elle se regonfle
-  triade:{n:{mem:7},m:{mem:15},p:{mem:2.2,vit:1.3},brule:[5.5,3.5,1.7,-.6]}, // (loi 17 · loi 16 : mémoires 6 · 12 · 2, brûlure [6 · 4 · 2 · −,3]) (loi 16) la tenue est une BRAISE · v5 : mémoires 9 · 25 · 3, brûlure [4 · 2 · ,7 · −1,5] (loi 14, retirée : [4,5 · 2,4 · ,9 · −1,2])
+  triade:{n:{mem:4},m:{mem:8},p:{mem:1.5,vit:1.3},brule:[7,4.5,2.2,-.4]}, // (loi 19 : la TENUE se paie — voir la liste · loi 17 : mémoires 7 · 15 · 2,2, brûlure [5,5 · 3,5 · 1,7 · −,6] · loi 16 : mémoires 6 · 12 · 2, brûlure [6 · 4 · 2 · −,3]) (loi 16) la tenue est une BRAISE · v5 : mémoires 9 · 25 · 3, brûlure [4 · 2 · ,7 · −1,5] (loi 14, retirée : [4,5 · 2,4 · ,9 · −1,2])
   pose:{angle:55,vMin:4},                // (v4) la POSE RATÉE : au-delà de 55° de l'axe (dès 4 m/s de vitesse à plat), le flow tombe à zéro
   // (v5) LA GRAMMAIRE : part de la mémoire d'un trait qu'un geste lui rend en frénésie · PSYCHO hors frénésie (seuils de vitesse au sol
   // et en vol, période, geste [sol, vol]) · -PSYCHO (sous `vit` le répit saute, réarmé à `re`) · -NARCISSE (points de la pose lourde)
@@ -18740,7 +18746,7 @@ const FLOW2={
      plus rare. Hors ville, rien ne change. */
   lieux:{ville:{fam:{route:[1,.55,.25,.2,0],style:[1,1,.9,.7,0], /* (loi 17 · loi 16 : ,8) */risque:[1,1,1,1,0]}, // (loi 16) le style de la ville reste au-dessus du barème de base (,6 → ,8)
     psy:{sol:1.08,air:1.15,t:1.2,q:[5,6]},part:{risque:1,style:.7,route:.2},
-    triade:{n:{mem:11},m:{mem:24},p:{mem:3.5,vit:1.2},brule:[5.5,3.5,1.7,-.6]}}}, // (loi 17 · loi 16 : 9 · 16 · 3, brûlure [6 · 4 · 2 · −,3]) (loi 16) même proportion que la base (v5 ville : 13 · 32 · 4)
+    triade:{n:{mem:6},m:{mem:13},p:{mem:2.4,vit:1.2},brule:[7,4.5,2.2,-.4]}}}, // (loi 19 · loi 17 : 11 · 24 · 3,5, brûlure [5,5 · 3,5 · 1,7 · −,6] · loi 16 : 9 · 16 · 3, brûlure [6 · 4 · 2 · −,3]) (loi 16) même proportion que la base (v5 ville : 13 · 32 · 4)
   lieu:''
 };
 // pose les réglages du LIEU (ville) par-dessus le barème de base — et les rend en quittant le lieu. Pur : ne touche que FLOW2.
