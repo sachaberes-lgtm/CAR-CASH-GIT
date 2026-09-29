@@ -9859,6 +9859,8 @@ function ligneBloque(s9,k){
   if(holeAtS(s9))return true;
   for(const r of RAMPS)if(s9>r.s0-60&&s9<r.s1+40)return true; // le couloir du tremplin reste nu
   if(k===1&&campPadNon(s9))return true;
+  for(const c of CONES)if(c.face===1&&Math.abs(c.s-s9)<9)return true; // (audit GAMEPLAY) jamais sur un plot…
+  for(const o of OILS)if(o.face===1&&Math.abs(o.s-s9)<(o.r||4)+7)return true; // …ni dans une flaque
   try{if(VZ.chaines)for(const c of VZ.chaines)if(s9>c.s0-140&&s9<c.s1+100)return true;}catch(e){} // (VZ peut ne pas exister encore au 1er build)
   return false;
 }
@@ -26749,6 +26751,7 @@ function dolHudTick(dt){ // gate de course, quel que soit le mode
 }
 function respawn(){
   for(const t9 of SILS)t9.init=false;rainbow.init=false; // (2026-09-26) pas de ruban tendu jusqu'au point de replacement
+  LIGNE.sPk=null;LIGNE.sPd=LIGNE.sPd0=s; // (LIGNE PARFAITE, audit GAMEPLAY) le balayage de trajet repart d'ici : sinon il ramassait, sans contact, l'objet qu'on venait de rater
   dolKill(); // (dauphin v3) replacer, repartir, recommencer : l'étiquette s'éteint, rien n'est versé
   momT=0; // (momentum v2) repartir = réserve vide
   if(introD){introD=false;if(pigGroup){scene.remove(pigGroup);pigGroup=null;}} // R pendant le largage : on annule proprement
@@ -31566,7 +31569,7 @@ function loop(now){
       if(mode==='drive')for(let i9=0;i9<PADS.length;i9++){
         const pl9=LIGNE.padI.has(i9);if(pl9?LIGNE.padPris.has(i9):padCd>0)continue; // (LIGNE PARFAITE) le pad de la file ne se bloque pas sur la recharge du précédent : il ne se prend qu'UNE fois
         if((Math.abs(s-PADS[i9])<6||(LIGNE.padI.has(i9)&&Math.abs(s-LIGNE.sPd0)<60&&(PADS[i9]-LIGNE.sPd0)*(PADS[i9]-s)<=0))&&Math.abs(side*lat-PADL[i9])<4.1){ // 2,75 de pad + ~1,35 de caisse : il faut MORDRE dessus
-          vA+=18;boost=Math.max(boost,1.5);padCd=1.5; // viser paie plus qu'avant (14 → 18)
+          vA+=18;boost=Math.max(boost,1.5);if(!pl9)padCd=1.5; /* (LIGNE PARFAITE, audit GAMEPLAY) un pad de la file ne met plus la recharge : au niveau 12 il bloquait le 1er pad de la LIGNE DE NÉON au-delà de ~470 km/h (« LIGNE CASSÉE ») */ // viser paie plus qu'avant (14 → 18)
           if(SONV2)sfx('pad');else boostSnd();shake=Math.max(shake,.3);hap(10);
           slam('BOOST','','#ffb000','#ff3924',28); /* (2026-09-29, Sacha : « BOOST écrit plus petit ») 46 → 28 */flashEcran('rgba(255,150,0,.5)');fovPunch=Math.max(fovPunch,10); // (HUD v3) « quand tu roules sur un boost, BOOST en gros »
           if(pl9){LIGNE.pris[1]++;LIGNE.padPris.add(i9);}nitroGain(LIGNE.padI.has(i9)?LIGNE.don:.12);flowAdd(6,'route','p');momT=Math.min(4.3,momT+.8); // (LIGNE PARFAITE) le pad de la file rend de quoi tenir jusqu'au fruit
