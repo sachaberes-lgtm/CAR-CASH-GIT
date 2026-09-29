@@ -11408,27 +11408,28 @@ const PLUIE=(function(){
      de la boîte repliée ni de traits géants qui balafrent l'écran à 1 m de l'objectif : fondu près de l'œil et aux parois. (3) Chaque
      goutte a son éclat, et une sur sept ACCROCHE un néon (magenta, cyan). Toujours un appel de rendu, zéro CPU par goutte. */
   const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,fog:false,
-    uniforms:{uTime:{value:0},uOp:{value:0},uCam:{value:new THREE.Vector3()},uVel:{value:new THREE.Vector3()}},
-    vertexShader:['attribute float aBout;uniform float uTime;uniform vec3 uCam,uVel;uniform float uOp;varying float vA;varying vec3 vC;',
+    uniforms:{uTime:{value:0},uOp:{value:0},uCam:{value:new THREE.Vector3()},uVel:{value:new THREE.Vector3()},uNeon:{value:1},uEcl:{value:0},uVent:{value:new THREE.Vector3(1.4,0,.6)}}, // (2026-09-30) uNeon/uEcl/uVent : voir pluieTick
+    vertexShader:['attribute float aBout;uniform float uTime;uniform vec3 uCam,uVel;uniform float uOp;uniform float uNeon,uEcl;uniform vec3 uVent;varying float vA;varying vec3 vC;',
       'void main(){',
       '  vec3 B=vec3(170.,130.,170.);',
       '  vec3 p=position*B;float vy=95.+position.x*45.;',
-      '  p.y-=uTime*vy;',                                // la chute, un peu différente pour chaque goutte
+      '  p.y-=uTime*vy;p.xz+=uTime*(uVent.xz-vec2(1.4,.6));',   // (2026-09-30) le VENT de l orage pousse les gouttes (nul en ville : la pluie d avant)                                // la chute, un peu différente pour chaque goutte
       '  vec3 o=uCam-B*.5;',
       '  p=o+mod(p-o,B);',                             // repliée dans la boîte qui suit la caméra
-      '  vec3 tr=(vec3(1.4,-vy,.6)-uVel)*.055;float L=length(tr);tr*=min(1.,16./max(L,.001));', // la traînée : vitesse RELATIVE × obturateur (plafonnée à 16 m)
+      '  vec3 tr=(vec3(uVent.x,-vy,uVent.z)-uVel)*.055;float L=length(tr);tr*=min(1.,16./max(L,.001));', // la traînée : vitesse RELATIVE × obturateur (plafonnée à 16 m)
       '  vec3 d=p-uCam;float fo=smoothstep(2.5,8.,length(d))*(1.-smoothstep(58.,84.,max(abs(d.x),abs(d.z))))*(1.-smoothstep(44.,64.,abs(d.y)));', // ni près de l oeil ni au bord de la boîte
       '  p-=tr*aBout;',                                  // la QUEUE : là où la goutte était
       '  float h=fract(position.y*113.7+position.z*57.3);',
-      '  vC=h>.93?vec3(1.,.42,.82):h>.86?vec3(.45,.95,1.):vec3(.80,.90,.96);',            // une goutte sur sept accroche un néon ; les autres ont l EAU de la bible (#dff6ff, à l éclat d avant)
-      '  vA=(1.-aBout*.8)*uOp*fo*(.55+.9*fract(h*7.31))*clamp(7./max(L,.001),.45,1.);', // chaque goutte son éclat ; une longue traînée étale sa lumière
+      '  vec3 e9=vec3(.80,.90,.96);vC=h>.93?mix(e9,vec3(1.,.42,.82),uNeon):h>.86?mix(e9,vec3(.45,.95,1.),uNeon):e9;vC+=vec3(.7,.75,1.)*uEcl*.9;', // les gouttes néon : EN VILLE seulement (uNeon) · l éclair les allume en argent            // une goutte sur sept accroche un néon ; les autres ont l EAU de la bible (#dff6ff, à l éclat d avant)
+      '  vA=(1.-aBout*.8)*uOp*fo*(.55+.9*fract(h*7.31))*clamp(7./max(L,.001),.45,1.)*(1.+uEcl*1.5);', // chaque goutte son éclat ; une longue traînée étale sa lumière
       '  gl_Position=projectionMatrix*viewMatrix*vec4(p,1.);}'].join('\n'),
     fragmentShader:'varying float vA;varying vec3 vC;void main(){gl_FragColor=vec4(vC,vA*.36);}'});
   const l=new THREE.LineSegments(g,m);l.frustumCulled=false;l.renderOrder=9;
   scene.add(l);return l;
 })();
 function pluieTick(t){ // appelée par la boucle : suit la caméra, suit le fondu — et ne dessine RIEN hors de la ville
-  const u=PLUIE.material.uniforms,U=PLUIE.userData;u.uOp.value=LVL.pluie;u.uTime.value=t;
+  const u=PLUIE.material.uniforms,U=PLUIE.userData,or9=LVL.cur&&LVL.cur.id==='orage'?1:0;u.uOp.value=LVL.pluie*(1+.3*or9);u.uTime.value=t;
+  u.uNeon.value=LVL.ville;try{u.uEcl.value=CAMP_FLASH;}catch(e){}u.uVent.value.set(1.4+12.6*or9,0,.6+5.4*or9); // (2026-09-30, revue GAMEPLAY) sans ville, pas de gouttes-enseignes ; l'éclair allume la pluie ; l'ORAGE a du VENT et plus de pluie
   if(!U.pv){U.pv=new THREE.Vector3().copy(camera.position);U.v9=new THREE.Vector3();U.t=t;}
   const dt9=t-U.t;if(dt9>1e-4&&dt9<.25){U.v9.subVectors(camera.position,U.pv).divideScalar(dt9);if(U.v9.lengthSq()>4.9e5)U.v9.set(0,0,0); // la vitesse de la caméra (un téléport ne compte pas)
     u.uVel.value.lerp(U.v9,Math.min(1,dt9*10));}

@@ -16,6 +16,9 @@
   `LVL.ville`, au fondu du portail) : en VILLE (mode principal et carrière) rien ne change ; à l'ORAGE et au niveau 9 de la carrière
   NUAGES, plus d'enseignes. À la place, l'eau renvoie L'ÉCLAIR (`uEcl9` = `CAMP_FLASH`) : les flaques s'allument en argent froid
   avec le ciel. Deux uniformes dans `ROAD_U`, écrits par `routeTick` ; aucun programme de plus.
+- **La pluie de l'orage** (relevé par la revue de GAMEPLAY) : une goutte sur sept était magenta, une sur sept cyan — des gouttes-enseignes
+  sous un ciel sans ville. `PLUIE` : `uNeon` (= `LVL.ville`) mélange ces gouttes vers l'eau hors de la ville, `uEcl` (= `CAMP_FLASH`) les
+  allume en argent à l'éclair, `uVent` pousse les gouttes : (1,4 ; 0,6) en ville comme avant, (14 ; 6) à l'ORAGE, avec 30 % de pluie en plus.
 - **L'orage, plus de nuages** : bancs SUR la route tous les 300-600 m (560-1 180), ~1 sauté sur 16, 45 % de méga-bancs, plus gros, et
   un banc ordinaire sur deux DÉCALÉ d'un côté (il mange une moitié de route : on le frôle). Coton ×1,6 (×1,25), le PLAFOND 42 nuages
   (26) à 70-170 m (110-240), et des MURS : 30 nuages au ras de la route, de chaque côté, à hauteur de caisse — la route file dans un
