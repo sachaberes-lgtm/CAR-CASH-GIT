@@ -25015,7 +25015,7 @@ function chaineAura(nom,base,fam,brut,muet){ // brut : pas de décote de redite 
   CHA.pts+=p;CHA.n++;CHA.t=CHA_FEN;
   const lb9=sansAcc(TR(nom));CHA.liste.unshift(lb9+' +'+p);if(CHA.liste.length>2)CHA.liste.length=2; // (vague 2, H4) 2 lignes, la dernière en or : la mémoire de la chaîne, pas une 3e voix
   chaHud(true,CHA.x>x0);
-  if(TCTL.on)popTexte(lb9+' +'+p,CHA.x>x0?'#ff9ee6':'#ffd75e',0); // au-dessus de la caisse : le geste ET ce qu'il rapporte
+  if(TCTL.on&&!CHA.sansPop)popTexte(lb9+' +'+p,CHA.x>x0?'#ff9ee6':'#ffd75e',0); // au-dessus de la caisse : le geste ET ce qu'il rapporte — (v5) sauf à la pose du dauphin : son récapitulatif parle seul
   if(!muet&&!(SONV2&&CHA.x>x0&&(CHA.x===5||CHA.x===8||CHA.x===10)))try{if(SONV2){if(mode==='fall')sfx('fig.maillon',{st:echSt()});else sfx('aura.geste',{st:sonPd(CHA.x)});}else chimeNote(noteP(Math.min(7,CHA.x),1),0,.10,.16);}catch(e){} // (console) en l'air, le geste prend l'échelle du vol ; au sol, la gamme de l'aura (marimba)
   return p;
 }
@@ -25668,7 +25668,7 @@ function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent dé
   // (2026-09-26, audit son) `muet` : `trickPop` plus bas sonne déjà le maillon — deux carillons sur deux notes brouillaient la gamme qui monte
   if(id==='vrille')chaineAura(spinHalf*180+'°',45,'vrille',true,true);
   else if(id==='meteo')chaineAura('MÉTÉORE',100,'meteo',false,true);
-  else if(id==='dauphin')chaineAura('DAUPHIN',150,'dauphin',false,true); // (dauphin v4) 80 → 150
+  else if(id==='dauphin')dolAura9('DAUPHIN',150,'dauphin',false,true); // (dauphin v4) 80 → 150 — (v5) sa ligne attend la POSE (dolAura9)
   else if(id==='bump')chaineAura(bounceN>1?'BUMP ×'+bounceN:'BUMP',30,'bump',true,true);
   else chaineAura(String(txt).split(' — ')[0],40,id,false,true);
   // (FLOW v2) LE RISQUE NOURRIT LE FLOW EN DIRECT : en l'air la jauge monte PENDANT qu'on vrille (et le vide ne la fait pas fuir).
@@ -25685,7 +25685,7 @@ function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent dé
   }
   chain++;
   if(chain>(runStats.chainMax||0))runStats.chainMax=chain;
-  trickMsg(txt+(n>2&&!raw?' ×'+n:''),tier||false);
+  if(!(id==='dauphin'&&mode==='fall'))trickMsg(txt+(n>2&&!raw?' ×'+n:''),tier||false); // (dauphin v5) en vol, le dauphin ne s'ÉCRIT pas : on le voit nager
   addStyle(tier===3?16:tier===2?11:7);
   figSnd(id); // (2026-09-28) chaque figure a sa matière, sur l'échelle du vol (voir LA CONSOLE DE SON)
   chainHudShow();
@@ -25760,19 +25760,38 @@ function dolStart(){
   dolAura=0; // (v4) la prime arrive avec la FIGURE (1 s tenue) : un saut de rien ne la touche pas
   if(dolShow<=0){dolNb=1;if(SONV2)sfx('dauphin.banc');} /* (console) le banc NEUF jaillit : clics et sifflets */ // un banc encore visible (passage précédent du même vol) garde ses dauphins
   dolShow=Math.max(dolShow,DOL_VU);dolIn=0; // LE BANC jaillit — et on a le temps de le VOIR
-  dolHudShow();hap([10,24,10]);
+  hap([10,24,10]); // (v5) plus d'étiquette en vol (Sacha : « le texte dauphin ne s'affiche qu'à l'atterrissage, avant il y a juste l'animation ») : dolPose
 }
 function dolHudNom(){if(DAUPH.nom)DAUPH.nom.textContent=TR('DAUPHIN')+(dolNb>1?' ×'+dolNb:'');}
 function dolFin(){ // on QUITTE la route ou on se pose : le total se fige, s'encaisse, puis s'efface
   if(!dolOn)return;dolOn=false;dolHudVal();
   const n=Math.round(dolAura);
-  if(n>0)chaineAura('DAUPHIN EN VOL',n,'dauphinLive',true); // brut : la vitesse est DÉJÀ dans le compteur (addAura refuse seule en parc)
+  if(n>0)dolAura9('DAUPHIN EN VOL',n,'dauphinLive',true); // brut : la vitesse est DÉJÀ dans le compteur (addAura refuse seule en parc) — (v5) versé à la POSE
   {const f9=Math.min(DOL_FLOW_MAX,DOL_FLOW_K*dolQ);if(trkDolph&&f9>=.5&&!PARK.on)flowAdd(f9,'risque','n');dolQ=0;} // (v5) le FLOW du dauphin : au ras et vite, pour qui a tenu la figure
-  if(DAUPH.el)DAUPH.el.classList.add('fige');
-  dolHudT=DOL_FIGE;
 }
+/* (v5, 2026-09-29) LE DAUPHIN S'ÉCRIT À LA POSE — Sacha : « le texte dauphin doit s'afficher qu'à l'atterrissage sur la route ; avant, il y a
+   juste l'animation des dauphins ». En vol, tout ce qui ÉCRIT le dauphin attend : les lignes de chaîne (la figure « DAUPHIN » et le total
+   « DAUPHIN EN VOL ») sont mises de côté par `dolAura9`, l'étiquette #dolHud ne s'allume plus. À la POSE sur la route (`dolPose`, appelée
+   après tryLand), elles entrent dans la chaîne sans leurs pops, et UN récapitulatif s'affiche : « DAUPHIN ×n » + le total d'aura du vol.
+   Crash, replacement, nouvelle partie (`dolKill`) : rien ne s'affiche, rien n'est versé (comme la chaîne perdue). Le son et le flow, eux,
+   restent au moment du geste. */
+const DOL_DIFF=[],DOL_POSE=1.5;
+function dolAura9(nom,base,fam,brut,muet){DOL_DIFF.push([nom,base,fam,brut,muet]);return 0;} // toujours mise de côté : même à la pose (tryLand a déjà remis mode='drive'), c'est dolPose qui la verse et l'écrit
+function dolPose(){
+  if(!DOL_DIFF.length)return;
+  let tot=0;CHA.sansPop=true;
+  try{for(const a of DOL_DIFF)tot+=chaineAura(a[0],a[1],a[2],a[3],true)|0;}catch(e){}
+  CHA.sansPop=false;DOL_DIFF.length=0;
+  if(!(tot>0)||PARK.on)return;
+  if(!DAUPH.el)dolHudInit();
+  dolHudNom();DAUPH.lbl.textContent=TR('AURA');DAUPH.el.classList.remove('sansAura','on','fige');
+  DAUPH.v=tot;if(DAUPH.tv)DAUPH.tv.data=tot;
+  void DAUPH.el.offsetWidth;DAUPH.el.classList.add('on','fige');dolHudT=DOL_POSE;dolHudAtt=3; // il PREND SON TOUR : le verdict de la pose parle d'abord (body.verdOn le masque), le récapitulatif suit
+}
+let dolHudAtt=0; // (v5) combien de temps le récapitulatif peut encore attendre que le couloir se libère
+function dolHudLibre(){const c=document.body.classList;return !(c.contains('verdOn')||c.contains('slamOn')||c.contains('ebOn')||(DAUPH.mb||(DAUPH.mb=document.getElementById('misBan')))&&DAUPH.mb.classList.contains('on'));}
 function dolKill(){ // fin SANS encaissement : explosion, replacement, nouvelle partie, fin de partie
-  dolOn=false;dolAura=0;dolRoadT=0;dolOffT=0;dolShow=0;dolLive=0;dolNb=1;dolQ=0;dolHudOff();
+  dolOn=false;dolAura=0;dolRoadT=0;dolOffT=0;dolShow=0;dolLive=0;dolNb=1;dolQ=0;DOL_DIFF.length=0;dolHudOff(); // (v5) les lignes en attente de pose partent avec la caisse
 }
 function dolHudInit(){ // une fois, au 1er dauphin — ensuite des classes et UN nœud texte
   const e=document.createElement('div');e.id='dolHud';e.setAttribute('aria-hidden','true');
@@ -25792,7 +25811,10 @@ function dolHudVal(){const v=Math.round(dolAura);if(v!==DAUPH.v&&DAUPH.tv){DAUPH
 function dolHudOff(){dolHudT=0;if(DAUPH.el)DAUPH.el.classList.remove('on','fige');}
 function dolHudTick(dt){ // gate de course, quel que soit le mode
   if(dolOn&&mode!=='fall')dolFin(); // filet : sorti du vol sans atterrissage (portail/newTrack) → on encaisse
-  if(dolHudT>0){dolHudT-=dt;if(dolHudT<=0)dolHudOff();}
+  if(DOL_DIFF.length&&mode==='drive')dolPose(); // (v5) de retour sur la route par un autre chemin que tryLand (traversée, portail) : le dauphin s'écrit
+  if(dolHudT>0){if(dolHudAtt>0&&!dolHudLibre()){dolHudAtt-=dt;if(dolHudAtt<=0)dolHudOff();return;} // (v5) le couloir est pris : il attend (3 s au plus), son chrono ne tourne pas
+    if(dolHudAtt>0&&DAUPH.el){DAUPH.el.classList.remove('on');void DAUPH.el.offsetWidth;DAUPH.el.classList.add('on');} // le couloir se libère : son ENTRÉE se joue maintenant (elle s'était jouée masquée)
+    dolHudAtt=0;dolHudT-=dt;if(dolHudT<=0)dolHudOff();}
 }
 function respawn(){
   trailL.init=trailR.init=false;rainbow.init=false; // (2026-09-26) pas de ruban tendu jusqu'au point de replacement
@@ -31164,7 +31186,7 @@ function loop(now){
         misBanniere('ASTUCE',TR("En l'air : pouce en HAUT = plonge, en BAS = cabre."),'','eclair');}}
       if(!PARK.on&&portalMesh&&!CAMP.portFerme&&fallPos.distanceToSquared(PORTAL.c)<PORTAL.R*PORTAL.R*.9)portailPasse(); // (2026-09-26) l'ovule traversé EN VOL — du ciel, de côté, d'en dessous
       else if(CITY.col&&villeHeurt(fallPos)){airPie.style.display='none';try{dolFin();}catch(e){}shake=Math.max(shake,1.2);if(PARK.on)parkRespawn();else{try{villeImpact(fallPos,fallVel);}catch(e){}explode('tour');}} // (passe graphismes) l'IMPACT sur la façade, avant explode (le bouclier le laisse jouer aussi) // (2026-09-26) DANS UNE TOUR : on meurt
-      else if(tryLand(dtF)){airPie.style.display='none';dolFin();mirPose();} // posé : le total du DAUPHIN se fige et s'encaisse
+      else if(tryLand(dtF)){airPie.style.display='none';dolFin();dolPose();mirPose();} // posé : le total du DAUPHIN se fige et s'encaisse — (v5) et s'ÉCRIT enfin
       else if((fallTR>airMax()&&pwrAirT<=0)||fallPos.y<trackMinY-120||(pwrBouT>0&&MIR.t>2.2&&!PARK.on)){airPie.style.display='none';if(PARK.on)parkRespawn();else explode(fallPos.y<trackMinY-120||MIR.t>2.2?'vide':'air');} // (pouvoirs v2) sous BOUCLIER, une chute perdue d'avance depuis 2,2 s est rattrapée tout de suite (on n'attend pas d'être tombé 120 m sous la piste) // FREESTYLE : trop long en l'air ou chute dans le vide = on repart, jamais de mort // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
     }else if(mode==='boom'){ // ---- EXPLOSION ----
       boomT+=dt;

@@ -273,6 +273,11 @@ couleurs de leur rareté, les objets que tu peux gagner ». Tout filmé AVANT pu
   été tenue. `dolAura` ne recule jamais (plafond × vitesse qui retombe). MESURÉ au banc : au ras et vite ≈ 380 aura/s (240 max avant) ;
   au large ≈ 40/s. Simulateur (`simtri.js` + DOL=1) : maître 146 → 123 s pour la 1re frénésie, tranquille/casse-cou inchangés.
   Hook : `dbgDauphin('etat')` (on, aura, mul, q, nb, fig, hF, flow, mode).
+- **LE DAUPHIN S'ÉCRIT À LA POSE** (Sacha : « le texte dauphin ne s'affiche qu'à l'atterrissage ; avant, juste l'animation ») : en vol, plus
+  d'étiquette #dolHud, plus de verdict texte (addTrick l'épargne en vol), les lignes de chaîne DAUPHIN / DAUPHIN EN VOL sont mises de côté
+  (`dolAura9` → `DOL_DIFF`). `dolPose` (après tryLand, et filet dans dolHudTick si on revient sur la route autrement) les verse SANS pop
+  (`CHA.sansPop`) et affiche UN récapitulatif « DAUPHIN ×n +total AURA » ; il attend que le verdict de pose libère le couloir
+  (`dolHudLibre`, 3 s au plus) puis rejoue son entrée. Crash / replacement : `dolKill` vide DOL_DIFF (rien d'écrit, rien de versé).
 
 ## LA DA DU HUD, UNE SEULE FAMILLE (2026-09-28, session UHD) — « le bouton nitro, le camembert air time et la dark triad ne ressemblent pas à la barre de nitro et au compteur »
 Sacha : « j'aime le résultat, unifie parfaitement la DA en restant sur cette base ; le bouton nitro, le camembert air time et la dark triad n'ont
