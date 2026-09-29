@@ -1,5 +1,16 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LES NUAGES v4 — PLUS DE FORMES, DES TAILLES HIÉRARCHISÉES (2026-09-29, Sacha à la session GAMEPLAY : « des formes plus aléatoires et belles à regarder, des nuages de tailles différentes — c'est le premier niveau, il faut que ce soit magnifique »)
+- MESURÉ avant (banc `ciel.js` : partie aux NUAGES, ciel `matin` forcé, captures 390 × 844 au sol et en vol) : 6 gabarits pour ~350 nuages
+  (les mêmes silhouettes partout, de grosses boules qu'on comptait), tailles tirées en uniforme, en vol un tapis de pâtés identiques.
+- `cotonAleat(genre,rng)` : 8 gabarits de plus, tirés à chaque session (indices 6-13) — HUMILIS ×2, MEDIOCRIS ×2, CONGESTUS ×2, CASTELLANUS,
+  FRACTUS. Base PLATE + bourgeons RONDS (la forme classique voulue le 28/09), tours empilées qui s'affinent et penchent, bourgeons
+  d'épaule, CHOU-FLEUR au sommet ; ≤ 22 bourgeons. `S.fin` (taille moyenne des bourgeons / .34) allège la finesse choisie par `cotonTick`.
+- Chaque instance a son ÉTIREMENT (largeur ×0,82-1,45, hauteur ×0,78-1,3 ; `COTON_ST` = 10 flottants par nuage). Tailles en LOI DE
+  PUISSANCE (`cotonR`) : beaucoup de petits, quelques géants. Trois TOURS HÉROÏQUES (congestus) à 520-900 m du couloir ; massifs et
+  titans piochent dans les congestus. `COTON_KINDS` 14, `COTON.cap` 480, poids `COTON_POIDS` à 14 entrées.
+- Coût : triangles envoyés 165-200 k (avant 171 k), 0 programme compilé en course (mesuré), un appel par lot (gabarit × finesse) non vide.
+
 ## L'IMPACT DANS LES IMMEUBLES v2 (2026-09-29, Sacha à la session GAMEPLAY : « retravaille sérieusement l'impact, sans que ce soit trop gourmand, mais plus travaillé »)
 - MESURÉ avant (banc `crash.js` : partie → VILLE → `dbgImpact('crash')` lance la caisse dans la tour la plus proche → film de la mort en
   390 × 844) : un trou NOIR plat cerné d'orange en étoile (un autocollant), plus rien après la boule de la caisse.
