@@ -37,8 +37,10 @@ carrière, missions, garage à onglets, boutique), + SEULEMENT :
   part du niveau choisi par `gselJoue`, Entrée aussi), le compte en haut à gauche, RÉGLAGES `#gSet` en haut à droite (→ l'écran de Sacha sous
   le voile), RETOUR en bas à gauche, la MAP `#gMap` en bas à droite (monde + niveau ; un tap ouvre `#gNiv` au-dessus, `#garage.nivOuvert`) ; le
   lingot ne vit plus qu'en boutique. Dehors, trois paires de CANONS À FLAMMES au bord de la route (`FLM`, `buildFlammes`, `flammesTick`) :
-  la FLAMME VIVANTE de la plume (`jetGeo`/`jetMat`) aux couleurs de la NITRO INFINIE (`NINF`, violet) — « comme celles du nitro infini » —,
-  veilleuse + salve toutes les ~4 s, tout crache au lâcher. `dbgFlammes(1)`. Le bouton TOURNER de la page-cadre PC est revenu (`#tourne`).
+  le FEU DE DOOM EN PIXELS de l'ancienne jauge de nitro (Léo : « les flammes pixelisées carrées qui apparaissent sur la jauge ») — une
+  grille 96 × 24 (`FEU_PAL3`, six bandes de 16, une par canon), cases de 20 cm en `NearestFilter` + `alphaTest`, panneaux tournés vers la
+  caméra ; veilleuse + salve toutes les ~4 s (tenue 1,2 s), tout crache au lâcher. `dbgFlammes(1,n)` (n pas d'avance), `dbgFlammes('image')`.
+  Le bouton TOURNER de la page-cadre PC est revenu (`#tourne`).
 - **LE CHOIX DU NIVEAU AU GARAGE** (`#gNiv` dans `#gBottom`, `GSEL`, `gselRendu`, `SAVE.d.sel`) : monde ◀ ▶ (NUAGES · VILLE · ESPACE ·
   SANS FIN) + 10 cases (même règle d'ouverture que la carrière : `TEST_CARRIERE || i ≤ carrFait`). Le JOUER du garage (`gselJoue`) part du
   niveau choisi par `carrLancer` de Sacha (permis d'abord, piste reconstruite sous le voile) ; SANS FIN = `playViaGarage(true)`. À la mort,

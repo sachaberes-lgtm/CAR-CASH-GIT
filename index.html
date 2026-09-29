@@ -29590,59 +29590,78 @@ addEventListener('keydown',e=>{if(!garageOn||ecranWipe._on||GAR.go||GAR.btq)retu
    au garage, une SALVE qui remonte la route depuis la porte (paire après paire) ; au LÂCHER, tout crache en même temps, plus haut. Aucune
    lumière ajoutée : des sprites additifs (une texture cuite une fois, trois couches par jet — l'enveloppe orange, le corps jaune, le cœur
    blanc) et des braises recyclées. Bâti avec l'atelier (chauffé au menu). */
-const FLM={jets:[],braises:[],t:0,salveT:2.2,uT:{value:0},mats:null};
-/* (29/09, Léo : « je pensais plutôt aux flammes comme celles du NITRO INFINI — c'est vraiment le genre de trucs stylés que j'aime ») — ce
-   sont désormais LES MÊMES flammes que la plume de la caisse en nitro infinie : la FLAMME VIVANTE de Sacha (`jetGeo` + `jetMat`, le bruit
-   qui coule et ronge les langues, la racine de brûleur, le cœur blanc), aux couleurs de `NINF` (violet), dressées vers le ciel. Même
-   programme que la plume (aucune compilation de plus) ; leur horloge est la leur (`FLM.uT` : JET_T n'avance qu'en course). */
+const FLM={jets:[],braises:[],t:0,salveT:2.2,mats:null,W:96,H:24,f:null,cx:null,img:null,tex:null,acc:0};
+/* (29/09, Léo : « je parlais des flammes PIXELISÉES CARRÉES qui apparaissent quand on a le nitro sur la jauge ») — c'est le FEU DE DOOM
+   de l'ancienne jauge de nitro (26/09), tel quel : une grille dont la rangée du bas BRÛLE, chaque case monte d'un cran en perdant un peu
+   de chaleur avec un décalage au hasard (le vent), la palette de la braise au blanc (`FEU_PAL3`). UNE grille de 96 × 48 cases, découpée
+   en six bandes de 16 : une par canon (chacun son foyer, sa salve), sur un panneau dressé qui fait face à la caméra (tourné autour de la
+   verticale), texture en `NearestFilter` — les cases restent des PIXELS CARRÉS de 20 cm (à 10 cm, vus de 25 m, ils fondaient). En salve
+   le feu refroidit moins vite (`j.froid`) : il monte jusqu'en haut. 2 304 cases à 30 images/s, au garage seulement. */
+const FEU_PAL3=[[0,0,0,0],[40,6,4,120],[70,10,6,170],[110,18,8,210],[150,28,8,235],[190,40,6,250],[220,60,6,255],[240,84,10,255],
+  [250,110,14,255],[255,136,20,255],[255,160,30,255],[255,182,44,255],[255,200,64,255],[255,216,90,255],[255,228,120,255],
+  [255,238,156,255],[255,246,196,255],[255,252,228,255],[255,255,255,255]];
 function buildFlammes(g){
-  const sh=jetMat(NINF.jet,0xfff4dc,NINF.rac,.95,1,1),co=jetMat(NINF.core,0xffffff,NINF.rac,1,.7,1.35);
-  sh.uniforms.uT=FLM.uT;co.uniforms.uT=FLM.uT;
-  FLM.mats={sh:sh,co:co,gl:new THREE.SpriteMaterial({map:lampTex,color:NINF.lum,transparent:true,opacity:.7,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}),
-    b:new THREE.SpriteMaterial({map:lampTex,color:0xc58bff,transparent:true,opacity:.9,blending:THREE.AdditiveBlending,depthWrite:false,fog:false})};
+  const W=FLM.W,H=FLM.H,cv=document.createElement('canvas');cv.width=W;cv.height=H; // (la grille : 96 × 24 cases)
+  FLM.cx=cv.getContext('2d');FLM.img=FLM.cx.createImageData(W,H);FLM.f=new Uint8Array(W*H);
+  const tx=new THREE.CanvasTexture(cv);tx.magFilter=THREE.NearestFilter;tx.minFilter=THREE.NearestFilter;tx.generateMipmaps=false;FLM.tex=tx;
+  const mat=new THREE.MeshBasicMaterial({map:tx,alphaTest:.3,side:THREE.DoubleSide,fog:false}); // des CASES PLEINES découpées (alphaTest) : des pixels francs, comme sur la jauge
+  const sq=document.createElement('canvas');sq.width=sq.height=4;{const x=sq.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,4,4);}
+  const sqT=new THREE.CanvasTexture(sq);sqT.magFilter=THREE.NearestFilter;sqT.minFilter=THREE.NearestFilter;sqT.generateMipmaps=false;
+  FLM.mats={feu:mat,b:new THREE.SpriteMaterial({map:sqT,color:0xffb040,transparent:true,opacity:1,depthWrite:false,fog:false})};
   const fer=new THREE.MeshLambertMaterial({color:0x22263a,emissive:0x22263a,emissiveIntensity:.08,fog:false});
-  const bague=new THREE.MeshBasicMaterial({color:NINF.jet,fog:false});
+  const bague=new THREE.MeshBasicMaterial({color:0xff7a24,fog:false});
   const hd=GAR.D/2,cyl=new THREE.CylinderGeometry(.34,.44,.52,14),anneau=new THREE.TorusGeometry(.3,.05,6,18);
-  [hd+4.5,hd+10.5,hd+17].forEach(function(z,rang){for(const sx of [-1,1]){
-    const j=new THREE.Group();j.position.set(sx*(4.7+rang*.35),0,z);g.add(j); // au bord de la route, dans l'ouverture de la porte (vue du garage)
+  let k=0;
+  [hd+2.6,hd+8,hd+14].forEach(function(z,rang){for(const sx of [-1,1]){
+    const j=new THREE.Group();j.position.set(sx*(3.9+rang*.4),0,z);g.add(j); // au bord de la route, dans l'ouverture de la porte (vue du garage)
     const base=new THREE.Mesh(cyl,fer);base.position.y=.26;j.add(base);
     const an=new THREE.Mesh(anneau,bague);an.rotation.x=Math.PI/2;an.position.y=.53;j.add(an);
-    const pv=new THREE.Group();pv.position.y=.5;pv.rotation.y=Math.random()*6.28;j.add(pv);  // chaque jet tourné autrement : ses langues ne sont pas celles du voisin
-    const s9=new THREE.Mesh(jetGeo,sh),c9=new THREE.Mesh(jetGeo,co);s9.rotation.x=c9.rotation.x=Math.PI/2; // la pointe vers le CIEL
-    pv.add(s9);pv.add(c9);
-    const gl=new THREE.Sprite(FLM.mats.gl);gl.position.y=.6;gl.scale.set(1.6,1.6,1);j.add(gl);   // la bouche chauffée
-    FLM.jets.push({g:j,s:s9,c:c9,gl:gl,rang:rang,ph:Math.random()*9,d:0,f:0,fT:0,big:4});}});
+    const pg=new THREE.PlaneGeometry(3.2,4.8),uv=pg.attributes.uv,u0=k/6,u1=(k+1)/6;  // SA bande de la grille (16 × 24 cases de 20 cm)
+    for(let q=0;q<uv.count;q++)uv.setX(q,uv.getX(q)<.5?u0:u1);
+    const pl=new THREE.Mesh(pg,mat);pl.position.y=.5+2.4;j.add(pl);
+    FLM.jets.push({g:j,pl:pl,rang:rang,x0:k*16,ph:Math.random()*9,d:0,f:0,fT:0,big:1,src:.35,froid:.45});k++;}});
   for(let i=0;i<28;i++){const s=new THREE.Sprite(FLM.mats.b);s.visible=false;g.add(s);FLM.braises.push({s:s,v:new THREE.Vector3(),t:0});}
 }
-function flammesSalve(tout){ // une SALVE : paire après paire depuis la porte — `tout` (le lâcher) : tout crache en même temps, plus haut
-  for(const j of FLM.jets){j.d=(tout?0:j.rang*.16)+.001;j.big=tout?6.4:4.4;}
+function flammesSalve(tout){ // une SALVE : paire après paire depuis la porte — `tout` (le lâcher) : tout crache en même temps, à fond
+  for(const j of FLM.jets){j.d=(tout?0:j.rang*.16)+.001;j.big=tout?1:.85;}
 }
-function flammeBraise(j){
+function flammeBraise(j){ // une ÉTINCELLE carrée qui s'échappe du brasier
   for(const b of FLM.braises){if(b.t>0)continue;b.t=.7+Math.random()*.5;b.s.visible=true;
-    b.s.position.set(j.g.position.x+(Math.random()-.5)*.6,1+Math.random()*2.5,j.g.position.z+(Math.random()-.5)*.6);
+    b.s.position.set(j.g.position.x+(Math.random()-.5)*.8,2+Math.random()*2.5,j.g.position.z+(Math.random()-.5)*.8);
     b.v.set((Math.random()-.5)*1.6,3+Math.random()*3,(Math.random()-.5)*1.6);return;}
 }
 function flammesTick(dt){
   if(!FLM.jets.length||!garageOn)return;
-  FLM.t+=dt;const t=FLM.t;FLM.uT.value=t;
+  FLM.t+=dt;const t=FLM.t,cam=GAR.camV||camera,ay=GARAGE_Y;
   if(!GAR.btq&&!GAR.go){FLM.salveT-=dt;if(FLM.salveT<=0){FLM.salveT=3.4+Math.random()*1.8;flammesSalve(false);}}
   let son=false;
   for(const j of FLM.jets){
     if(j.d>0){j.d-=dt;if(j.d<=0){j.f=1;j.fT=0;if(j.rang===0)son=true;}}
-    let L=1.1+.18*Math.sin(t*9+j.ph)+.1*Math.sin(t*23+j.ph*2),k=0;               // la veilleuse : une langue violette qui lèche
-    if(j.f){j.fT+=dt;const a=j.fT;k=a<.1?a/.1:a<.45?1:Math.max(0,1-(a-.45)/.45);
-      L+=j.big*k*(1+.1*Math.sin(t*31+j.ph));if(k>.5&&Math.random()<dt*26)flammeBraise(j);if(a>.95)j.f=0;}
-    const r=.42+.36*Math.min(1,L/4)+.05*Math.sin(t*17+j.ph);
-    j.s.scale.set(r,r,L);j.c.scale.set(r*.48,r*.48,L*.72);
-    const gs=1.3+k*1.6;j.gl.scale.set(gs,gs,1);
+    let k=0;if(j.f){j.fT+=dt;const a=j.fT;k=a<.08?a/.08:a<1.2?1:Math.max(0,1-(a-1.2)/.5);if(k>.5&&Math.random()<dt*26)flammeBraise(j);if(a>1.7)j.f=0;} // la salve TIENT 1,2 s : le feu a le temps de monter case par case
+    j.src=.62+.38*k*j.big;j.froid=.5-.36*k;                                   // la veilleuse (des langues orange, basses) → le brasier qui monte jusqu'en haut                                     // la veilleuse (un liseré de braises) → le brasier, qui refroidit moins vite
+    j.pl.rotation.y=Math.atan2(cam.position.x-j.g.position.x,cam.position.z-j.g.position.z); // le panneau fait face à la caméra
   }
-  FLM.mats.gl.opacity=.55+.25*Math.sin(t*13);
+  FLM.acc+=dt;
+  if(FLM.acc>=1/30){FLM.acc=0; // LE FEU DE DOOM, une rangée de foyers par canon, puis la chaleur qui monte
+    const W=FLM.W,H=FLM.H,f=FLM.f,Pm=FEU_PAL3.length-1,base=(H-1)*W,t9=t;
+    for(const j of FLM.jets)for(let x=0;x<16;x++){const X=j.x0+x,e=Math.min(1,Math.abs(x-7.5)/8),n=.5+.25*Math.sin(X*.7+t9*5.1+j.ph)+.25*Math.sin(X*1.3-t9*7.3);
+      f[base+X]=Math.round(Pm*Math.min(1,j.src*(1-e*e*.7)*(.72+.28*n)*(.92+Math.random()*.08)));} // un foyer chauffé à BLANC au centre (sinon le haut du feu sortait rouge sombre, invisible sur la nuit)
+    for(let x=0;x<W;x++)for(let y=1;y<H;y++){const s9=y*W+x,v=f[s9];
+      if(!v){f[s9-W]=0;continue;}
+      const r=(Math.random()*3)|0,dd=Math.max(0,s9-W-r+1);f[dd]=Math.max(0,v-(r&1&&Math.random()<.6?1:0)-(Math.random()<FLM.jets[x>>4].froid?1:0));}
+    const px=FLM.img.data;
+    for(let i=0;i<W*H;i++){const c=FEU_PAL3[f[i]],o=i*4;px[o]=c[0];px[o+1]=c[1];px[o+2]=c[2];px[o+3]=c[3];}
+    FLM.cx.putImageData(FLM.img,0,0);FLM.tex.needsUpdate=true;}
   if(son&&garageOn)try{if(!(typeof sfx==='function'&&sfx('garage.flamme')))noiseBurst(.22,.05,620);}catch(e){} // (console de son : « garage.flamme » à cuire)
   for(const b of FLM.braises){if(b.t<=0)continue;b.t-=dt;b.v.y-=2.5*dt;b.s.position.addScaledVector(b.v,dt);
-    const k=Math.max(0,b.t);b.s.scale.setScalar(.2*Math.min(1,k*2));if(b.t<=0)b.s.visible=false;}
+    const k=Math.max(0,b.t);b.s.scale.setScalar(.16*Math.min(1,k*2));if(b.t<=0)b.s.visible=false;}
 }
-window.dbgFlammes=function(tout){if(tout!=null)flammesSalve(!!tout);const j=FLM.jets[2],v=new THREE.Vector3();if(j)j.s.getWorldPosition(v);
-  return {jets:FLM.jets.length,t:+FLM.t.toFixed(2),salve:+FLM.salveT.toFixed(2),j:j?{vis:j.g.visible&&j.s.visible,sc:j.s.scale.toArray().map(x=>+x.toFixed(2)),f:j.f,d:+j.d.toFixed(2),monde:v.toArray().map(x=>+x.toFixed(1)),parent:!!j.g.parent,rootVis:!!(GAR.root&&GAR.root.visible)}:null};};
+window.dbgFlammesMat=function(o,pos){if(o){Object.assign(FLM.mats.feu,o);FLM.mats.feu.needsUpdate=true;}if(pos)FLM.jets.forEach(function(j,i){j.g.position.set(pos[0]+(i%2?2:-2),0,pos[1]);});return FLM.jets.map(j=>j.g.position.toArray().map(x=>+x.toFixed(1)));};
+window.dbgFlammes=function(tout,pas){if(tout!=null&&tout!=='image')flammesSalve(!!tout);if(pas)for(let i=0;i<pas;i++)flammesTick(1/30); // `pas` : fait avancer le feu (banc)
+  const j=FLM.jets[2],v=new THREE.Vector3();if(j)j.pl.getWorldPosition(v);
+  let ch=0,hm=0;if(FLM.f)for(let i=0;i<FLM.f.length;i++)if(FLM.f[i]){ch++;hm=Math.max(hm,FLM.H-Math.floor(i/FLM.W));}
+  if(tout==='image')return FLM.cx.canvas.toDataURL();
+  return {chaudes:ch,hautMax:hm,jets:FLM.jets.length,t:+FLM.t.toFixed(2),salve:+FLM.salveT.toFixed(2),j:j?{vis:j.g.visible&&j.pl.visible,src:+j.src.toFixed(2),f:j.f,d:+j.d.toFixed(2),monde:v.toArray().map(x=>+x.toFixed(1)),parent:!!j.g.parent,rootVis:!!(GAR.root&&GAR.root.visible)}:null};};
 window.dbgGsel=function(b,i){if(b!=null)gselChoix(b,i|0,false);return {...GSEL,actif:CARR.actif};};
 /* `garageGo(d)` — passer à la caisse suivante/précédente EN MACHINE.
    ⚠ DEUX PORTES D'ENTRÉE, ET C'EST VOULU : `garageShow(i)` reste le chemin INSTANTANÉ, appelé à
