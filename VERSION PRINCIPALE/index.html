@@ -8182,7 +8182,7 @@ function genCtrl(rnd,startPos,startPhi){
   FILETMARK.length=0;
   const FILON=FILET.on&&typeof LVL!=='undefined'&&LVL.cur&&(LVL.cur.id==='nuages'||LVL.cur.id==='orage')&&!LVL.cur.piste&&!(typeof PARK!=='undefined'&&PARK.on);
   const rf=FILON?mulberry32((rnd()*4294967296)>>>0):null;
-  const visF=!FILON?0:FILET.visite!=null?FILET.visite:Math.floor(Math.max(0,(runStats.zones|0)-(LVL.tutoZ|0))/3); // la 1re visite du niveau NUAGES, la 2e…
+  const visF=!FILON?0:FILET.visite!=null?FILET.visite:Math.floor(Math.max(0,(runStats.zones|0)-(LVL.tutoZ|0))/NIVEAUX.length); // la 1re visite du niveau NUAGES, la 2e… (2026-09-30 : le cycle a 6 niveaux, plus 3)
   const filMax=!FILON?0:LVL.cur.id==='orage'?1:FILET.par[Math.min(FILET.par.length-1,visF)]; // (2026-09-29) L'ORAGE, le niveau dur : UN filet
   let filN=0,filNext=900*LV;
   const filet=()=>{
@@ -9930,6 +9930,7 @@ function ligneBloque(s9,k){
   for(const c of CONES)if(c.face===1&&Math.abs(c.s-s9)<9)return true; // (audit GAMEPLAY) jamais sur un plot…
   for(const o of OILS)if(o.face===1&&Math.abs(o.s-s9)<(o.r||4)+7)return true; // …ni dans une flaque
   try{if(VZ.chaines)for(const c of VZ.chaines)if(s9>c.s0-140&&s9<c.s1+100)return true;}catch(e){} // (VZ peut ne pas exister encore au 1er build)
+  if(SATOB.on)for(const o of SATOB.list)if(!o.haut&&Math.abs(o.s-s9)<o.ht+12)return true; // (2026-09-30) jamais dans un satellite (niveau hardcore)
   return false;
 }
 function ligneRaz(){ // à chaque piste neuve (buildTrack) : la file repart du début
@@ -10531,6 +10532,7 @@ Object.assign(I18N,{"FRÉNÉSIE": "FRENZY", "FRÉNÉSIE !": "FRENZY!", "RESTE DA
 /* (2026-09-28, passe de lancement) CE QU'UN JOUEUR ANGLOPHONE LISAIT ENCORE EN FRANÇAIS, relevé à l'écran par un banc qui note chaque
    texte affiché pendant 3 minutes de jeu : la liste d'aura, les trois pouvoirs, la fête des ordres de grandeur, la meute du Survivant. */
 Object.assign(I18N,{'RATÉ ! GARDE LE NITRO, VISE LE DESSUS':'MISSED! HOLD NITRO, AIM FOR THE TOP'});Object.assign(I18N_ZH,{'RATÉ ! GARDE LE NITRO, VISE LE DESSUS':'失败！按住氮气，瞄准路面'});
+Object.assign(I18N,{'PLUIE DE SATELLITES':'SATELLITE STORM','ESQUIVE LES SATELLITES':'DODGE THE SATELLITES','PERCUTE PAR UN SATELLITE':'HIT BY A SATELLITE'});Object.assign(I18N_ZH,{'PLUIE DE SATELLITES':'卫星雨','ESQUIVE LES SATELLITES':'躲开卫星','PERCUTE PAR UN SATELLITE':'撞上卫星'}); // (2026-09-30) le 6e niveau
 Object.assign(I18N,{'L\'ORAGE':'THE STORM','TEMPÊTE':'STORM','LA ROUTE SE CACHE : L\'ECLAIR LA MONTRE':'THE ROAD HIDES: LIGHTNING SHOWS IT'});Object.assign(I18N_ZH,{'L\'ORAGE':'暴风雨','TEMPÊTE':'风暴','LA ROUTE SE CACHE : L\'ECLAIR LA MONTRE':'道路隐没：闪电照亮它'}); // (2026-09-29) le 4e niveau
 Object.assign(I18N,{'VIRAGE A FOND':'FULL THROTTLE TURN','RATTRAPE':'CAUGHT','RATTRAPE !':'CAUGHT!'}); // (2026-09-29) LA ROUTE QUI TE RATTRAPE
 Object.assign(I18N,{'FRÔLÉ':'CLOSE CALL','RÉCOLTE':'COIN RUSH','RAFALE':'FRUIT RUSH','VIRAGE SERRÉ':'TIGHT TURN','MÉTÉORE':'METEOR',
@@ -11224,6 +11226,7 @@ const NIVEAUX=[ // ⚠ ORDRE (2026-09-25 au soir, user) : « remets le niveau da
   {id:'ville', nm:'AU-DESSUS DE LA VILLE',bio:['pluie'],               planete:0,   espace:0,pluie:1,cielMusical:true, route:.7, sheen:.12}, // route plus CLAIRE : elle se détache de la ville sombre (user) ; sheen : bitume mouillé par la pluie
   {id:'espace',nm:'EN ORBITE',            bio:['espace'],              planete:1.35,espace:1,pluie:0,cielMusical:false,route:.38,sheen:.12}, // (2026-09-27) route .9 → .38 : le SOLEIL de l'orbite éclaire désormais la route (lumière rasante de côté, voir orbiteLumiere) — la clarté ajoutée n'a plus à tout porter. Avant (vague 2) : (2026-09-26, vague 2) route .2 → .9 : la route (#050212 sur du noir) DISPARAISSAIT — MESURÉ : sous le contraste dur de l'orbite (1,28) tout ce qui sort de l'ACES sous ~.11 tombe au noir, .4 ne suffisait pas (#000008) ; à .9 le ruban se lit, encre indigo #0f0737 sur le vide
   {id:'orage', nm:'L\'ORAGE',               bio:['tempete'],             planete:0,   espace:0,pluie:1,cielMusical:false,route:.22,sheen:.16,pr:'LA ROUTE SE CACHE : L\'ECLAIR LA MONTRE'}, // (2026-09-29, Sacha) le 4e : les NUAGES sous l'ORAGE — le niveau DUR (voir « L'ORAGE » : tempete, bancs, plafond, éclairs)
+  {id:'espace',nm:'PLUIE DE SATELLITES',  bio:['espace'],              planete:1.35,espace:1,pluie:0,cielMusical:false,route:.38,sheen:.12,hard:1,pr:'ESQUIVE LES SATELLITES'}, // (2026-09-30, Sacha) le 6e : l'ORBITE en HARDCORE — des satellites SUR la route (voir « LA PLUIE DE SATELLITES » : orbiteBuild §0, satHard)
 ];
 const LVL={cur:null,n:0,k:1,dur:4,
   espace:0,espaceDe:0,espaceA:0,       // uSpace : 0 = le ciel de toujours, 1 = le noir étoilé de l'orbite
@@ -11673,8 +11676,8 @@ function geoEclat(){ // [2] L'ÉCLAT : un prisme irrégulier ; dessus −1, dess
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));
   const A=new Float32Array(36);for(let i=0;i<36;i++)A[i]=i<6?-1:(i<12?-2:-3);
   g.setAttribute('aPart',new THREE.BufferAttribute(A,1));g.setAttribute('aVg',new THREE.BufferAttribute(new Float32Array(36).fill(-1),1));return g;}
-const SAT_MAX=IS_MOBILE?[120,140,1300]:[204,220,2000]; // Starlink (passants + champ + trains) · gros débris · éclats (champ + anneaux)
-const SAT_PASS=IS_MOBILE?18:26,SAT_TRAINS=IS_MOBILE?[2,20]:[3,26]; // passants au bord de la route ; trains × satellites par train
+const SAT_MAX=IS_MOBILE?[230,190,1300]:[340,300,2000]; // Starlink (passants + champ + trains) · gros débris · éclats (champ + anneaux) — (2026-09-30, Sacha : « plus de satellites dans l'espace ») 120/140 → 230/190 (téléphone), 204/220 → 340/300 ; le niveau HARDCORE y prend ses obstacles EN PREMIER
+const SAT_PASS=IS_MOBILE?30:44,SAT_TRAINS=IS_MOBILE?[3,20]:[5,26]; // passants au bord de la route ; trains × satellites par train — (2026-09-30) 18/26 → 30/44 passants, 2/3 → 3/5 trains
 const SAT_U={uT:{value:0},uSol:{value:ORB.cle},uTerre:{value:new THREE.Vector3(0,-1,0)},uFog:{value:new THREE.Color(0,0,0)},uOp:{value:0},uForce:{value:0}}; // uForce : (dev) tous les éclats allumés
 const SAT_VS=['attribute vec4 aRot,aVar;uniform float uT;',
   'vec3 rotA(vec3 v,vec3 k,float a){float c=cos(a),s=sin(a);return v*c+cross(k,v)*s+k*dot(k,v)*(1.-c);}',
@@ -11693,9 +11696,9 @@ const SAT_MAT=new THREE.ShaderMaterial({fog:false,extensions:{derivatives:true},
     '#else',
     'attribute float aPart,aVg;',
     '#endif',
-    'varying vec3 vVP,vLoc;varying vec2 vUv;varying float vPart,vTon,vPh;',
+    'varying vec3 vVP,vLoc;varying vec2 vUv;varying float vPart,vTon,vPh,vDg;',
     'void main(){',
-    '  vec3 off;float sc=trainOff(off),m=aVar.z;',
+    '  vec3 off;float sc=trainOff(off),m=aVar.z;vDg=aVar.w;',                                         // (2026-09-30) vDg : 1 = un OBSTACLE sur la route (niveau hardcore)
     '#ifdef EMPILE',                                                                                // les variantes EMPILÉES : l instance lit la sienne
     '  vec4 q=m<.5?aQ0:(m<1.5?aQ1:(m<2.5?aQ2:aQ3));vec3 pos=q.xyz;float pt=q.w;if(pt<-.5)sc=0.;',    // −9 : le bourrage de la variante la plus courte
     '  vec2 uvv=m<.5?aU01.xy:(m<1.5?aU01.zw:(m<2.5?aU23.xy:aU23.zw));',
@@ -11706,7 +11709,7 @@ const SAT_MAT=new THREE.ShaderMaterial({fog:false,extensions:{derivatives:true},
     '  vec3 l=rotA(mat3(instanceMatrix)*pos*sc,aRot.xyz,aVar.y+uT*aRot.w);',                       // la ROTATION PROPRE, après l échelle
     '  vec4 mv=modelViewMatrix*vec4(l+instanceMatrix[3].xyz+off,1.);vVP=mv.xyz;vLoc=pos;vUv=uvv;vTon=aVar.x;vPh=aVar.y;vPart=pt;',
     '  gl_Position=sc>0.?projectionMatrix*mv:vec4(0.,0.,2.,1.);}'].join('\n'),
-  fragmentShader:['uniform vec3 uSol,uTerre,uFog;uniform float uOp,uT;varying vec3 vVP,vLoc;varying vec2 vUv;varying float vPart,vTon,vPh;',
+  fragmentShader:['uniform vec3 uSol,uTerre,uFog;uniform float uOp,uT;varying vec3 vVP,vLoc;varying vec2 vUv;varying float vPart,vTon,vPh,vDg;',
     // CE QUE VOIT UN MIROIR DANS L ESPACE : le noir, la Terre en dessous (bleue), le fil lumineux de son atmosphère à l horizon
     'vec3 h3(vec3 p){p=fract(p*vec3(.1031,.1030,.0973));p+=dot(p,p.yxz+33.33);return fract((p.xxy+p.yxx)*p.zyx);}',
     'vec3 envE(vec3 R){float e=dot(R,uTerre);return mix(vec3(.003,.004,.010),vec3(.035,.09,.24),smoothstep(.30,.95,e))+vec3(.12,.26,.55)*exp(-abs(e-.22)*10.)*.30;}',
@@ -11721,7 +11724,7 @@ const SAT_MAT=new THREE.ShaderMaterial({fog:false,extensions:{derivatives:true},
     '  else if(p==4.){vec3 q=mat3(.8,.36,-.48,-.6,.48,-.64,0.,.8,.6)*vLoc*60.+vPh*3.;N=normalize(N+.55*(h3(floor(q))-.5)+.30*(h3(floor(q*2.3+7.))-.5));', // l OR froissé : des FACETTES au hasard, chacune son reflet
     '    alb=vec3(1.,.72,.26);ks=2.4;sh=60.;met=1.;rf=.55;}',
     '  else if(p==5.){alb=vec3(.84,.86,.90);ks=1.;sh=70.;met=.8;rf=.35;}',                               // l argent
-    '  else if(p==6.){float b=step(.93,fract(uT*.55+vPh*.16));alb=vec3(.2);emi=mix(vec3(1.,.10,.06),vec3(.12,1.,.35),step(.5,fract(vPh)))*(.35+6.*b);}', // la BALISE : un éclair toutes les 2 s
+    '  else if(p==6.){float b=step(.93,fract(uT*(vDg>.5?2.4:.55)+vPh*.16));alb=vec3(.2);emi=mix(vec3(1.,.10,.06),vec3(.12,1.,.35),step(.5,fract(vPh)))*(.35+6.*b);}', // la BALISE : un éclair toutes les 2 s
     '  else if(p==7.){alb=vec3(.66,.67,.69);ks=.35;sh=30.;met=0.;rf=.03;}',                              // la peinture blanche de l étage
     '  else if(p==8.){alb=vec3(.035,.035,.045);ks=.5;sh=40.;met=0.;rf=.05;}',
     '  else if(p==9.){alb=vec3(.24,.20,.17);ks=.8;sh=35.;met=.6;rf=.2;}',                                // la tuyère : métal brûlé
@@ -11737,6 +11740,7 @@ const SAT_MAT=new THREE.ShaderMaterial({fog:false,extensions:{derivatives:true},
     '  col+=vec3(.11,.016,.19)*(1.-w)*.22;',                                                                // l ombre à l ENCRE
     '  col+=vec3(1.,.92,.78)*pow(1.-max(dot(Nv,normalize(-vVP)),0.),3.)*.14*smoothstep(-.2,.5,d);',        // le liseré côté soleil
     '  col+=emi;',
+    '  if(vDg>.5){float fz=pow(1.-max(dot(Nv,normalize(-vVP)),0.),2.);col+=vec3(1.,.28,.10)*(.30+1.3*fz)*(.65+.35*sin(uT*6.+vPh*3.));col+=alb*.45;}', // (2026-09-30) L OBSTACLE se lit dans le noir : liseré rouge qui pulse, coque éclaircie
     '  col=mix(col,uFog,smoothstep(1800.,7500.,length(vVP)));',                                             // le lointain se noie dans le noir bleuté
     '  gl_FragColor=vec4(mix(uFog,col,uOp),1.);}'].join('\n')});
 const SAT_MAT_E=new THREE.ShaderMaterial({fog:false,extensions:{derivatives:true},uniforms:SAT_U,defines:{EMPILE:''}, // les gros débris : le même code, chemin des variantes EMPILÉES
@@ -11762,7 +11766,8 @@ const GLINT=(function(){
       '  vec3 c=instanceMatrix[3].xyz+off,Np=normalize(rotA(R*vec3(0.,1.,0.),aRot.xyz,aVar.y+uT*aRot.w));',
       '  vec3 V=cameraPosition-c;float dist=length(V);V/=dist;',
       '  float g=(dot(Np,V)>0.&&dot(Np,uSol)>0.)?pow(max(dot(reflect(-V,Np),uSol),0.),80.):0.;',   // le panneau renvoie le soleil vers l oeil
-      '  if(aMov.w!=0.)g=max(g,.20+.10*sin(uT*1.7+aVar.y));',                                          // un satellite de TRAIN luit toujours un peu : la file se lit en pointillé lumineux (le « collier de perles »)
+      '  if(aMov.w!=0.)g=max(g,.20+.10*sin(uT*1.7+aVar.y));',
+      '  if(aVar.w>.5)g=max(g,.50+.35*sin(uT*5.+aVar.x*6.3));',                                         // (2026-09-30) l OBSTACLE de la pluie de satellites porte une étoile qui PULSE : on le voit venir de loin                                          // un satellite de TRAIN luit toujours un peu : la file se lit en pointillé lumineux (le « collier de perles »)
       '  g=max(g,uForce);g*=sc*uOp*smoothstep(9000.,2500.,dist);vG=g;vQ=position.xy;',
       '  if(g<.02){gl_Position=vec4(0.,0.,2.,1.);return;}',
       '  vec4 mv=viewMatrix*vec4(c,1.);mv.xyz+=normalize(-mv.xyz)*rad*1.15;',                         // devant l aile : l étoile n est pas coupée par son propre panneau
@@ -11799,6 +11804,7 @@ const FLARE=(function(){
 function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débris autour de la piste d'orbite (et les retire partout ailleurs)
   const c=LVL.cur;ORB.actif=!!(c&&c.id==='espace'&&!PARK.on&&NP>1);if(ORB.actif){ORB.lune=!c.sansLune;ORB.capOk=false;} // en quittant l'orbite la lune reste allumée : elle s'efface avec le fondu du niveau (LVL.espace)
   for(let i=0;i<SATS.length;i++){SATS[i].count=0;SATS[i].visible=false;}GLINT.count=0;GLINT.visible=false;
+  SATOB.list.length=0;SATOB.on=false; // (2026-09-30) la pluie de satellites part avec sa piste (sinon ses obstacles survivaient au portail : la ligne parfaite les évitait encore aux NUAGES)
   if(!ORB.actif)return;
   if(!ORB.peinte)lunePeint();
   const t00=performance.now();
@@ -11823,6 +11829,42 @@ function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débri
     A.aRot.setXYZW(i,ax/l,ay/l,az/l,spd*(r()<.5?-1:1));A.aVar.setXYZW(i,r(),r()*6.283,vr,0);A.aMov.setXYZW(i,0,0,0,0);A.aTr.setXY(i,0,1);return i;};
   const tire=w=>{let u=r()*w.reduce((a,b)=>a+b,0);for(let i=0;i<w.length;i++){u-=w[i];if(u<=0)return i;}return w.length-1;};
   const dS=L/(NP-1);
+  /* 0. LA PLUIE DE SATELLITES (2026-09-30, Sacha : « un 6e niveau dans l'espace, la version hardcore, avec beaucoup plus de satellites :
+     il faut que ça devienne un élément de gameplay de devoir ESQUIVER les satellites »). Des satellites SUR la route (face du dessus),
+     à hauteur de caisse : un STARLINK en travers (ailes de 14-20 m, penché de 8 à 28°) ou un ÉTAGE DE FUSÉE couché (10-14 m) — seul,
+     ou en RIDEAU de deux qui ne laissent qu'une trouée de 11-14 m. Un tous les 110-230 m à partir de 650 m ; et, pour les voltigeurs,
+     des panneaux EN L'AIR (9-20 m au-dessus de la route) tous les ~500 m. Orientation FIGÉE (ni phase ni rotation propre) : la boîte
+     de collision de `satHard` est exactement celle qu'on voit. Le dessous de la dalle reste libre (le raccourci des voltigeurs). */
+  SATOB.on=!!c.hard;
+  if(SATOB.on){
+    const RH=ROAD_HALF-2,Bv=ORB.t1,Wv=ORB.t2,Uv=ORB.t3;
+    const pose0=function(k,s9,la,h,rad,al,be,vr,haut){frameAt(s9,F);
+      const ca=Math.cos(al),sa=Math.sin(al),cb=Math.cos(be),sb=Math.sin(be);
+      const W=new THREE.Vector3(),U=new THREE.Vector3(),Tt=new THREE.Vector3();
+      if(k===0){W.copy(F.b).multiplyScalar(ca).addScaledVector(F.n,sa);U.copy(F.n).multiplyScalar(ca).addScaledVector(F.b,-sa);Tt.copy(F.t);} // le panneau : ailes en travers, penché autour de la route
+      else{W.copy(F.b).multiplyScalar(cb).addScaledVector(F.t,sb);U.copy(F.n);Tt.copy(F.t).multiplyScalar(cb).addScaledVector(F.b,-sb);} // l'étage : couché, un peu de biais
+      W.normalize();U.normalize();Tt.normalize();
+      const q=new THREE.Vector3().copy(F.p).addScaledVector(F.b,la).addScaledVector(F.n,h);
+      ORB.M.makeBasis(W,U,Bv.crossVectors(W,U));const Q9=new THREE.Quaternion().setFromRotationMatrix(ORB.M);
+      const i=pose(k,q.x,q.y,q.z,rad,0,vr,Q9);if(i<0)return false;
+      const A=SATS[k].geometry.attributes;A.aVar.setY(i,0);A.aVar.setW(i,1);A.aRot.setW(i,0); // orientation FIGÉE + drapeau d'obstacle (le liseré rouge)
+      const hw=(k===0?rad:rad*.8),hu=(k===0?rad*.06:rad*.24),ht=(k===0?rad*.13:rad*.24),mx=Math.max(hw,hu,ht)+5;
+      SATOB.list.push({s:s9,lat:la,q:q,W:W,U:U,T:Tt,hw:hw+1.0,hu:hu+.75,ht:ht+2.2,hw0:hw,R2:mx*mx,haut:!!haut,pres:0,min:99,fait:false,fr:{frole:false,mesh:{position:q}}});
+      return true;};
+    let sp=650+r()*100;
+    while(sp<L-420){
+      const rideau=r()<.32;
+      if(rideau){ // deux obstacles, une TROUÉE de 11-14 m quelque part entre eux
+        const gw=11+r()*3,g=(r()*2-1)*(RH-gw/2-6);
+        for(const sg of [-1,1]){const k=r()<.55?0:1,rad=k?6+r()*3:7+r()*3,half=k?rad*.8:rad;
+          pose0(k,sp+(r()-.5)*6,g+sg*(gw/2+half),k?rad*.24+.3:1.15,rad,sg*(8+r()*20)*Math.PI/180,(r()-.5)*.5,1,false);}
+      }else{const k=r()<.55?0:1,rad=k?6+r()*3:7+r()*3,half=k?rad*.8:rad,la=(r()*2-1)*Math.max(0,RH-half*.55);
+        pose0(k,sp,la,k?rad*.24+.3:1.15,rad,(r()<.5?-1:1)*(8+r()*20)*Math.PI/180,(r()-.5)*.6,1,false);}
+      sp+=110+r()*120;
+    }
+    for(let s9=900+r()*300;s9<L-500;s9+=420+r()*220) // EN L'AIR : pour qui saute par-dessus un rideau
+      pose0(0,s9,(r()*2-1)*RH*.8,9+r()*11,6+r()*4,(r()-.5)*1.4,0,1,true);
+  }
   // 1. LES PASSANTS : de grands Starlink au bord de la route, du côté EXTÉRIEUR du virage qui vient (ils ne cachent jamais la route qui tourne)
   {const pasP=(L-900)/SAT_PASS;
    for(let k=0;k<SAT_PASS;k++){const i=Math.min(NP-2,Math.round((420+pasP*(k+.15+r()*.7))/dS)),t9=T[i],hl=Math.hypot(t9.x,t9.z);
@@ -11881,6 +11923,28 @@ function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débri
   GLINT.count=cnt[0];
   ORB.ms=Math.round(performance.now()-t00);
 }
+/* LA COLLISION DES SATELLITES (niveau hardcore) — chaque image de course : une boîte par obstacle, dans SON repère (ailes W, face U,
+   profondeur T), gonflée de la demi-caisse (1,0 en travers, 0,75 en hauteur, 2,2 en long). Dedans : la caisse EXPLOSE (« PERCUTÉ PAR UN
+   SATELLITE »). Passé à moins de ~3 m sans toucher : FRÔLÉ (la même récompense que les plots : nitro, flow, aura — et le SLALOM qui
+   s'enchaîne d'un satellite à l'autre). Le tri par distance au carré (R2) écarte tout ce qui est loin : ~150 obstacles = 150 soustractions. */
+const SATOB={list:[],on:false,d:new THREE.Vector3()};
+function satHard(){
+  if(!SATOB.on||!ORB.actif||!started||gameOver||mode==='boom'||graceT>0)return;
+  const P=carGroup.position,d=SATOB.d;
+  for(const o of SATOB.list){
+    if(o.fait)continue;
+    const dx=P.x-o.q.x,dy=P.y-o.q.y,dz=P.z-o.q.z;
+    if(dx*dx+dy*dy+dz*dz>o.R2){if(o.pres){o.fait=true;if(o.min<3.2)try{frole(o.fr,1.6+o.min*.62,1);}catch(e){}}continue;} // sorti de la bulle : le frôlé se paie
+    d.set(dx,dy,dz);const a=Math.abs(d.dot(o.W)),u=Math.abs(d.dot(o.U)),t=Math.abs(d.dot(o.T));
+    if(a<o.hw&&u<o.hu&&t<o.ht){o.fait=true;shake=Math.max(shake,1.3);try{sparkBurst(sparkGold,o.q,26,16);}catch(e){}explode('sat');return;}
+    if(u<o.hu+1.2&&t<o.ht+1)o.min=Math.min(o.min,Math.max(0,a-o.hw)),o.pres=1; // à hauteur et au droit : la marge qui reste en travers
+  }
+}
+window.dbgPluie=function(k,i,dl,av){ // (banc) la PLUIE DE SATELLITES : l'état · dbgPluie('va',i,dl) pose la caisse 60 m avant l'obstacle i, décalée de dl m de son bord (dl omis : en plein dedans)
+  if(k==='va'){const o=SATOB.list[i|0];if(!o||!started||gameOver)return 'non';s=Math.max(5,o.s-(av||60));side=1;psi=0;yawR=0;slipB=0;mode='drive';prevTvalid=false;graceT=0;
+    lat=dl==null?o.lat:o.lat+(o.lat>0?-1:1)*(o.hw0+dl);lat=Math.max(-ROAD_HALF+1,Math.min(ROAD_HALF-1,lat));vA=Math.max(Math.abs(vA),60/SPD);return {s:Math.round(s),lat:+lat.toFixed(1),o:{s:Math.round(o.s),lat:+o.lat.toFixed(1),hw:+o.hw0.toFixed(1),haut:o.haut}};}
+  const L9=SATOB.list;return {on:SATOB.on,n:L9.length,sol:L9.filter(o=>!o.haut).length,air:L9.filter(o=>o.haut).length,frole:L9.filter(o=>o.fait&&o.pres).length,
+    premiers:L9.slice(0,6).map(o=>[Math.round(o.s),+o.lat.toFixed(1),+o.hw0.toFixed(1),o.haut?1:0]),sat:SATS.map(m=>m.count),cause:mortCause};};
 const L_DIR=new THREE.Vector3().copy(SUN_DIR),L_PERP=new THREE.Vector3(),L_UP=new THREE.Vector3(),ESP_RIM=new THREE.Color(.40,.72,1.45); // la lumière de la BOUCLE (ombres, liseré) : le couchant, ou le soleil de l'orbite
 const FILL_P0=fill.position.clone(),KICK_P0=kick.position.clone();
 function orbiteLumiere(dt9){ // LA LUMIÈRE SPATIALE : le soleil dur, la Terre qui éclaire par-dessous, le clair de lune — pondérés par LVL.espace
@@ -21118,7 +21182,7 @@ function pwrTick(dt){
 /* MODE FACILE — LES 3 VIES : le filet qu'avait le BOUCLIER (retiré le 29/09) — mêmes causes : la caisse, pas le règlement. */
 function facileSauve(cause){
   if(!facFilet()||gameOver||mode==='boom'||!started)return false;
-  if(cause!=='vide'&&cause!=='air'&&cause!=='tour')return false;
+  if(cause!=='vide'&&cause!=='air'&&cause!=='tour'&&cause!=='sat')return false; // (2026-09-30) + le satellite percuté (niveau hardcore)
   FAC.coeurs--;RUNX.vies=(RUNX.vies|0)+1;SFA.n=0;MIR.t=0;MIR.max=0;
   airPie.style.display='none';airFlash=0;
   try{dolFin();}catch(e){}
@@ -31897,6 +31961,7 @@ function loop(now){
     if(startBoostT>0)startBoostT=Math.max(0,startBoostT-dt); // LE BOOST DE DÉPART : décroît tout seul, même hors mode 'drive' ne l'arrête pas plus tôt que prévu
     if(pwrAirT>0){pwrAirT-=dt;if(pwrAirT<=0){pwrAirT=0;if(!TUTO.on)pwrFinSnd('a');if(mode==='fall'){fallT=0;fallTR=0;airFlash=.6;}}} // (2026-09-28) l'airtime PRÊTÉ par l'auto-école n'est pas un pouvoir : il finit sans bruit
     pwrTick(dt); // (pouvoirs v2) aimant · aura ×2
+    satHard(); // (2026-09-30) LA PLUIE DE SATELLITES : collision et frôlés du niveau hardcore (no-op ailleurs)
     ligneTick(dt); // (2026-09-29) LA LIGNE PARFAITE s'allonge devant la caisse
     // nitro : 2s regen (10s de recharge) + 2s réserve (bidons bleus)
     // CAPACITÉ MOTEUR : la réserve de nitro s'élargit avec le palier (2,0 → 3,6 au réacteur)
@@ -34188,7 +34253,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       const tq9=!SANDBOX&&!!TUTO.quitte,recA=!SANDBOX&&!!CHA.recB,recM=!SANDBOX&&engTier>(RUNX.engAvant|0),recT=!tq9&&(rec||recA||recM);
       ot.textContent=TR(SANDBOX?'ENTRAINEMENT TERMINE':tq9?'AUTO-ECOLE INTERROMPUE':(recT?'NOUVEAU RECORD !':'GAME OVER'));
       ot.style.color=recT?'var(--aura)':'var(--neoR)'; // (2026-09-28, charte au complet) l'or est au lingot REJOUER : le record parle la couleur de l'aura
-      {const CAUSES={air:"TROP LONGTEMPS EN L'AIR : POSE-TOI AVANT",vide:'TOMBE DANS LE VIDE',tour:'ENCASTRE DANS UNE TOUR',arret:"6 S A L'ARRET : ROULE OU CREVE",police:'DERNIER DE LA MEUTE',
+      {const CAUSES={air:"TROP LONGTEMPS EN L'AIR : POSE-TOI AVANT",vide:'TOMBE DANS LE VIDE',tour:'ENCASTRE DANS UNE TOUR',sat:'PERCUTE PAR UN SATELLITE',arret:"6 S A L'ARRET : ROULE OU CREVE",police:'DERNIER DE LA MEUTE',
          feu:'CRIBLE PAR LA POLICE',seme:"LA CAISSE-NUAGE T'A SEME",finNuages:'LA CAISSE-NUAGE EST A TOI',banquier:"LE BANQUIER T'A BATTU",finVille:'LE LINGOT EST A TOI',finEspace:'LE SYSTEME SOLAIRE EST A TOI'}; // (2026-09-27) les fins de la CAMPAGNE
        const mc9=$t('mCause'),k9=SANDBOX?'':(CAUSES[mortCause]||'');if(mc9){mc9.textContent=k9?TR(k9):'';mc9.style.display=k9?'':'none';mc9.style.color=(mortCause==='finNuages'||mortCause==='finVille'||mortCause==='finEspace')?'#ffe7a8':'';}}
       if(mortCause==='finNuages'||mortCause==='finVille'||mortCause==='finEspace'){ot.textContent=TR(mortCause==='finEspace'?'ESPACE TERMINE':mortCause==='finVille'?'VILLE TERMINEE':'NUAGES TERMINES');ot.style.color='var(--neoV)';if(mCompteSon._fin!==TCTL.mortT){mCompteSon._fin=TCTL.mortT;setTimeout(function(){try{pixBurst(ot,40);}catch(e){}},700);}} // (2026-09-27) la campagne est FINIE : l'enseigne le dit en or
