@@ -50,6 +50,9 @@ Après le 2e cran d'INTERFACE (figK/annK, voir ci-dessous) — mesuré sur captu
 - **EN VOL, le geste (`popTexte`) ne se pose plus JAMAIS sous la caisse** — c'est là qu'on vise la réception : au-dessus s'il y a la place,
   sinon il s'efface (`#popTxt.cache`, posé par popSuit) ; la liste des figures à gauche le garde. Au sol, rien ne change.
 - Résultat mesuré (portrait) : annonce ×8 20 px, geste 10-12 px, dauphin 14 px ; les règles `ebOn`/`ebPlonge` (carte moteur) intactes.
+- (même jour) **LES VIGNETTES DU GARAGE GARDENT LEURS COULEURS** (`carPhoto`, relevé par INTERFACE) : la relève 1/1,35 se faisait canal par
+  canal — LA HONTE (orange brûlé) sortait pêche pâle. Désormais relève sur la LUMINANCE, saturation ×1,26 (l'étalonnage du jeu est absent
+  hors écran), plafond qui garde la teinte ; clé du studio 1,5 → 1,3. Blancs et caisses sombres inchangés. `dbgPhoto(i,ancien)` : A/B.
 
 ## LA TAILLE DU HUD (2026-09-28, nuit) — « réduis la taille des HUD, c'est compliqué de voir la route », puis « remets la barre de nitro et le flow de la même taille qu'avant, c'est surtout les textes de figure et de MONSTRE qui dérangent »
 Fait par la session INTERFACE avec l'accord de UHD. MESURÉ avant (banc `hudmes.js`, scratchpad 93a1dcda `ui/`) : couché (844 × 390, l'ordi),
