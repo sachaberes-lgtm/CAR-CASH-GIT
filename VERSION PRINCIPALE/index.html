@@ -6855,11 +6855,12 @@ function perfMonTick(now,rawMs){const M=PERF_MON;if(rawMs>M.pire)M.pire=rawMs;if
    LE MODELÉ : une couleur par sommet cuite une fois (ventre ombré bleuté → sommet blanc, creux entre deux bourgeons assombris)
    et, dans le shader, la LISIÈRE D'ARGENT — face au soleil, le bord de la ouate s'embrase (diffusion avant) — plus un bord
    à peine plus léger. Coût : zéro par image côté CPU, quelques instructions par pixel côté GPU (et deux fois moins de pixels). */
-const GFX_U={uCoeur:{value:1.16},uNearF:{value:new THREE.Vector2(10,40)}}; // uNearF : le fondu des nuages de coton près de l'objectif (m) — 10-40 au sol, 30-110 en vol (posé par la boucle) // (2026-09-28, passe graphismes mobile) le cœur plein des nuages (1 = l'ancienne ouate à 82 % partout) — voir dbgGfx
+const GFX_U={uCoeur:{value:1.16},uNearF:{value:new THREE.Vector2(10,40)},uUpV:{value:new THREE.Vector3(0,1,0)},uNuSun:{value:new THREE.Vector3(1.1,.98,.84)},uNuSky:{value:new THREE.Vector3(.9,.98,1.2)},uNuGnd:{value:new THREE.Vector3(.98,.94,1.2)},uDragon:{value:new THREE.Vector3(1,.92,1.08)}}; // uNearF : le fondu des nuages de coton près de l'objectif (m) — 10-40 au sol, 30-110 en vol (posé par la boucle) // (2026-09-28, passe graphismes mobile) le cœur plein des nuages (1 = l'ancienne ouate à 82 % partout) — voir dbgGfx
 function nuageShader(sh){
-  sh.uniforms.uSunV=RIM_U.uSunV;sh.uniforms.uSunC={value:sun.color};sh.uniforms.uCoeur=GFX_U.uCoeur;sh.uniforms.uNearF=GFX_U.uNearF; // la direction du soleil en espace vue (posée chaque image pour les caisses) et SA couleur de biome
+  sh.uniforms.uSunV=RIM_U.uSunV;sh.uniforms.uSunC={value:sun.color};sh.uniforms.uCoeur=GFX_U.uCoeur;sh.uniforms.uNearF=GFX_U.uNearF;
+  sh.uniforms.uUpV=GFX_U.uUpV;sh.uniforms.uNuSun=GFX_U.uNuSun;sh.uniforms.uNuSky=GFX_U.uNuSky;sh.uniforms.uNuGnd=GFX_U.uNuGnd;sh.uniforms.uDragon=GFX_U.uDragon; // (Dragons) la lumière de peintre // la direction du soleil en espace vue (posée chaque image pour les caisses) et SA couleur de biome
   sh.fragmentShader=sh.fragmentShader.replace('#include <lights_fragment_begin>',LFB_SANS_PL) // (2026-09-26) les nuages ne paient plus les lumières ponctuelles (voir LFB_SANS_PL)
-    .replace('#include <common>','#include <common>\nuniform vec3 uSunV,uSunC;uniform float uCoeur;uniform vec2 uNearF;')
+    .replace('#include <common>','#include <common>\nuniform vec3 uSunV,uSunC,uUpV,uNuSun,uNuSky,uNuGnd,uDragon;uniform float uCoeur;uniform vec2 uNearF;')
     .replace('#include <envmap_fragment>',[
       '#ifdef NUAGE_DEDANS',                                              // DEDANS : ni liseré ni bord — la paroi se fond dans la brume du nuage (white-out uni)
       '#ifdef USE_FOG',
@@ -6868,6 +6869,13 @@ function nuageShader(sh){
       '#else',
       '{ vec3 V9=normalize(vViewPosition);float fr9=1.-abs(dot(normal,V9));',
       '  float cs9=max(dot(-V9,uSunV),0.);',                              // 1 = on regarde droit vers le soleil
+      // LA LUMIÈRE DE PEINTRE (2026-09-29, « Dragons ») : la ouate garde SA luminance (Phong + modelé cuit) mais sa TEINTE suit la lumière
+      // du film — côté soleil crème-or (uNuSun), côté ombre bleu ciel sur les flancs (uNuSky) et lavande sous le ventre (uNuGnd), avec
+      // une frontière douce (wr9) et un vrai contraste (.84 à l ombre, ×1,1 au soleil). Couleurs du biome, normalisées en luminance (bioApply).
+      '  { float nl9=dot(normal,uSunV),wr9=smoothstep(-.3,.75,nl9),up9=smoothstep(.15,.85,dot(normal,uUpV)*.5+.5);',
+      '    float lm9=dot(outgoingLight,vec3(.299,.587,.114));',
+      '    vec3 pt9=lm9*mix(mix(uNuGnd,uNuSky,up9)*uDragon.y,uNuSun*uDragon.z,wr9);',
+      '    outgoingLight=mix(outgoingLight,pt9,uDragon.x);}',
       '  outgoingLight+=uSunC*pow(fr9,2.6)*(.07+.75*cs9*cs9*cs9);',     // LA LISIÈRE D ARGENT : le bord s embrase à contre-jour
       // LE CŒUR PLEIN (2026-09-28, « plus beau sur iPhone sans coût en plus ») : à 82 % partout, un bourgeon peint AVANT son voisin
       // de devant restait visible au travers — on lisait les boules empilées dans la ouate (arcs et bords internes, mesuré sur captures).
@@ -7077,9 +7085,9 @@ function cotonTouche(x,y,z,r,ry){ // ce nuage (ellipsoïde r × ry autour de x,y
   for(let a=-n;a<=n;a++)for(let b=-n;b<=n;b++){const L9=g.get((cx+a)+','+(cz+b));if(!L9)continue;
     for(let j=0;j<L9.length;j++){const p=pts[L9[j]],dx=p.x-x,dz=p.z-z,dy=p.y-y;if((dx*dx+dz*dz)*ih+dy*dy*iv<1)return true;}}
   return false;}
-function cotonPose(x,yB,z,r,k,cr){ // un nuage dont le DESSOUS est à yB — refusé s'il toucherait le ruban
+function cotonPose(x,yB,z,r,k,cr,syF){ // un nuage dont le DESSOUS est à yB — refusé s'il toucherait le ruban · syF : étirement vertical imposé (les colonnes des cathédrales)
   if(COTON.n>=COTON.cap)return false;const S=COTON.S[k];
-  const sx=.82+cr()*.63,sy=k===13?.7+cr()*.3:.78+cr()*.52,h=(S.top-S.base)*r*sy; // (v4) chaque nuage a SON étirement : deux nuages du même gabarit ne se ressemblent plus
+  const sx=.82+cr()*.63,sy0=k===13?.7+cr()*.3:.78+cr()*.52,sy=syF||sy0,h=(S.top-S.base)*r*sy; // (v4) chaque nuage a SON étirement : deux nuages du même gabarit ne se ressemblent plus
   if(cotonTouche(x,yB+h*.5,z,r*1.02*sx,h*.5+r*.05))return false;
   const o=COTON.n*COTON_ST,I=COTON.I;I[o]=x;I[o+1]=yB-S.base*r*sy;I[o+2]=z;I[o+3]=r;I[o+4]=cr()*6.2832;I[o+5]=k;I[o+6]=cr()*6.28;I[o+7]=h;I[o+8]=sx;I[o+9]=sy;COTON.n++;return true;}
 function cotonVide(){COTON.n=0;if(COTON.root){COTON.root.visible=false;for(const im of COTON.im)im.count=0;}}
@@ -7092,9 +7100,12 @@ function buildCoton(cr){
   const strat=function(k,K){return Math.min(NP-1,Math.floor(((k+.18+cr()*.64)/K)*NP));};
   const perp=function(i){const t=T[i],l=Math.hypot(t.x,t.z)||1;return [-t.z/l,t.x/l];}; // le travers HORIZONTAL du ruban (jamais B[i] : piste inclinée)
   if(okD){
-    for(let k=0;k<80;k++){ // (1) LA COURONNE PROCHE : des deux côtés, 50-350 m du bord, du dessous jusqu'au-dessus de la route
-      const i=strat(k,80),p=pts[i],q=perp(i),sg=cr()<.5?-1:1,r=cotonR(cr,18,150,1.6),kk=cotonKind(cr,COTON_POIDS.pres),yB=p.y-120+cr()*290; // (v4) tailles en loi de puissance
-      let d=ROAD_HALF+r+50+cr()*300;for(let t=0;t<3;t++,d+=110)if(cotonPose(p.x+q[0]*sg*d,yB,p.z+q[1]*sg*d,r,kk,cr))break;}
+    for(let k=0;k<30;k++){ // (1) LA COURONNE PROCHE, EN ARCHIPELS (Dragons) : des îlots de 2-3 nuages (un grand, ses satellites au même plafond),
+      // et du CIEL OUVERT entre deux — 80 nuages semés un par un encombraient tout le champ (« liberté » = des vides qu'on traverse)
+      const i=strat(k,30),p=pts[i],q=perp(i),sg=cr()<.5?-1:1,r=cotonR(cr,30,160,1.5),kk=cotonKind(cr,COTON_POIDS.pres),yB=p.y-130+cr()*300; // (v4) tailles en loi de puissance
+      let d=ROAD_HALF+r+50+cr()*300,cx=0,cz=0,ok=false;for(let t=0;t<3;t++,d+=110){cx=p.x+q[0]*sg*d;cz=p.z+q[1]*sg*d;if(cotonPose(cx,yB,cz,r,kk,cr)){ok=true;break;}}
+      if(ok){const ns=1+(cr()*2|0),t9=T[i];for(let m=0;m<ns;m++){const a=(m?-1:1)*(1.5+cr()*1.1)*r,rs=r*(.4+cr()*.3); // les satellites, le long de la route et un peu en travers
+        cotonPose(cx+t9.x*a+q[0]*sg*(cr()-.3)*r,yB+(cr()-.5)*r*.3,cz+t9.z*a+q[1]*sg*(cr()-.3)*r,rs,cotonKind(cr,COTON_POIDS.pres),cr);}}}
     for(let k=0;k<26;k++){ // (2) AU-DESSUS et EN DESSOUS du ruban (la garde garde 18-22 m de ciel libre autour de la route)
       const i=strat(k,26),p=pts[i],q=perp(i),r=cotonR(cr,24,130,1.5),kk=cotonKind(cr,COTON_POIDS.pres),S=COTON.S[kk],h=(S.top-S.base)*r*1.3,lat=(cr()-.5)*120;
       const yB=cr()<.6?p.y+70+cr()*190:p.y-(THICK+60+cr()*170)-h;cotonPose(p.x+q[0]*lat,yB,p.z+q[1]*lat,r,kk,cr);}
@@ -7107,6 +7118,16 @@ function buildCoton(cr){
     for(let k=0;k<80;k++){ // (5) LE LOINTAIN : 1,2-2,6 km — l'horizon a ses nuages
       const i=strat(k,80),p=pts[i],a=cr()*6.2832,d=1200+cr()*1400,r=cotonR(cr,120,560,1.4);
       cotonPose(p.x+Math.cos(a)*d,p.y-260+cr()*700,p.z+Math.sin(a)*d,r,cotonKind(cr,COTON_POIDS.loin),cr);}
+  }
+  if(okG){ // (7) LES CATHÉDRALES (2026-09-29, Sacha : « encore plus beau et artistique, qu'on ressente la LIBERTÉ comme dans Dragons 1 ») :
+    // de GRANDS CONGESTUS qui montent de l'abîme (base 220-340 m sous la route) et dominent la route de ~150-250 m, à 300-650 m de son
+    // bord — une PORTE (les deux côtés : on file entre deux géants) ou une FALAISE (un seul côté : on longe un mur de ouate). Toutes les
+    // ~1,4 km. ⚠ Essayé puis retiré : étirer la tour en hauteur (×1,5) et lui poser une COURONNE — les bourgeons devenaient des œufs
+    // empilés, une « chenille » ; la hauteur vient de la TAILLE (r 220-340), l'étirement reste celui des autres nuages (×1-1,15).
+    const K7=Math.max(3,Math.floor(L/1400));
+    for(let k=0;k<K7;k++){const i=strat(k,K7),p=pts[i],q=perp(i),cotes=cr()<.45?[-1,1]:[cr()<.5?-1:1];
+      for(const sg of cotes){const r=220+cr()*120,kk=[10,11,10,11,2][cr()*5|0],yB=p.y-(220+cr()*120);let dd=ROAD_HALF+r*1.25+60+cr()*230;
+        for(let t=0;t<3;t++,dd+=90)if(cotonPose(p.x+q[0]*sg*dd,yB,p.z+q[1]*sg*dd,r,kk,cr,1+cr()*.15))break;}}
   }
   if(okG){ // (6) MASSIFS et TITANS (ex-« ciel organisé ») : des tours de 300-1 200 m, au large, hors du couloir du couchant
     const sunAz=Math.atan2(SUN_DIR.z,SUN_DIR.x),loinSol=function(){for(let t=0;t<5;t++){const a=cr()*6.2832;let d9=(a-sunAz)%6.2832;if(d9>3.1416)d9-=6.2832;if(d9<-3.1416)d9+=6.2832;if(Math.abs(d9)>.62)return a;}return sunAz+3.1416;};
@@ -10856,6 +10877,8 @@ function bioApply(c){ // pousse l'ambiance mélangée dans TOUS les organes (uni
   // NUAGES : mesh Lambert — ils prennent déjà l'éclairage du biome (hemi/soleil). On teinte en plus
   // leur matière avec la couleur solaire du biome pour qu'ils virent crème le soir et bleus la nuit.
   CLOUD_MAT.color.setRGB(Math.min(1,.55+c.volSun[0]*.16),Math.min(1,.55+c.volSun[1]*.16),Math.min(1,.55+c.volSun[2]*.16));
+  {const nz=function(a,u,k){const l=Math.max(.01,a[0]*.299+a[1]*.587+a[2]*.114);u.set(1+(a[0]/l-1)*k,1+(a[1]/l-1)*k,1+(a[2]/l-1)*k);}; // (Dragons) la teinte seule (luminance 1), adoucie vers le blanc de k
+   nz(c.volSun,GFX_U.uNuSun.value,1.25);nz(c.volSky,GFX_U.uNuSky.value,.62);nz(c.volGnd,GFX_U.uNuGnd.value,.85);}
   POST_EXPO=c.expo;
   // (2026-09-26, vague 2) L'ÉTALONNAGE DU NIVEAU (voir BIO_ETAL0) : balance, ombres d'encre, hautes lumières, contraste, vignette
   if(acesPass){const U=acesPass.uniforms;U.uSat.value=c.sat;U.uWB.value.fromArray(c.wb);U.uSh.value.fromArray(c.sh);U.uHi.value.fromArray(c.hi);
@@ -32590,6 +32613,7 @@ function loop(now){
    RIM_U.uRimStr.value=RIM_S0*(1+.9*loop._rimF);} // — vue de dessous, sur les fenêtres de la VILLE ou le noir de l'ORBITE, elle n'était plus qu'une silhouette sombre
   RIM_U.uSunV.value.copy(RIM_DIR);if(LVL.espace>.001)RIM_U.uSunV.value.lerp(ORB.terre,LVL.espace).normalize(); // (2026-09-27) en ORBITE le liseré vient de la TERRE : la silhouette s'ourle du bleu de la planète
   RIM_U.uSunV.value.transformDirection(camera.matrixWorldInverse);
+  GFX_U.uUpV.value.set(0,1,0).transformDirection(camera.matrixWorldInverse); // (Dragons) le haut en espace vue : ventre lavande / flancs bleu ciel
   if(fever>0)RIM_U.uRimC.value.setHex(0xffc55e);
   else if(nitroOn)RIM_U.uRimC.value.setHex(nitroBlue?0xa9b8ff:0xffb886); // (vague 3) la caisse prend le liseré de SA flamme (il était cyan : un néon, pas la nitro de la bible)
   else{RIM_U.uRimC.value.copy(RIM_C0);if(LVL.espace>.001)RIM_U.uRimC.value.lerp(ESP_RIM,LVL.espace);}

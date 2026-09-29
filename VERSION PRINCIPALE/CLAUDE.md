@@ -1,5 +1,23 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE CIEL « DRAGONS » — NUAGES v5 (2026-09-29, nuit — session GRAPHISME, avec l'accord de GAMEPLAY qui avait fait la v4)
+- Sacha : « travaille la génération des nuages pour avoir un truc encore plus beau et artistique, qui fasse ressentir au joueur la
+  LIBERTÉ comme dans le film Dragons 1 ». Banc `dragon.js` (scratchpad GRAPHISME) : Math.random à graine fixe → même piste, même
+  ciel d'une version à l'autre ; 5 endroits × (au sol, en vol) ; `BIO=matin|midi|aprem`, `LS=…` (fractions de piste), `--pay`.
+- **LA LUMIÈRE DE PEINTRE** (`nuageShader`, tous les nuages : coton ET maillages) : la ouate garde sa luminance (Phong + modelé cuit)
+  mais sa TEINTE suit la lumière du film — côté soleil crème-or, flancs à l'ombre bleu ciel, ventre lavande, frontière douce. Les
+  couleurs viennent des `volSun/volSky/volGnd` de chaque biome (restés des anciens nuages volumétriques), normalisées en luminance
+  par `bioApply` → `GFX_U.uNuSun/uNuSky/uNuGnd` ; `GFX_U.uUpV` (le haut en espace vue) posé chaque image à côté de `uSunV` ;
+  `GFX_U.uDragon` = (force, ombre ×.92, soleil ×1,08) — `uDragon.x=0` rend la lumière d'avant (A/B).
+- **LES CATHÉDRALES** (`buildCoton`, couche 7) : toutes les ~1,4 km, de GRANDS congestus (r 220-340, gabarits 10/11/2) qui montent de
+  l'abîme (base 220-340 m sous la route) et la dominent de ~150-250 m, à 300-650 m du bord — une PORTE (les deux côtés, 45 %) ou
+  une FALAISE (un côté). ⚠ Essayé puis retiré : étirer la tour ×1,5 + lui poser une couronne = bourgeons en œufs empilés (« chenille »).
+  `cotonPose` accepte un étirement vertical imposé (`syF`), laissé à 1-1,15.
+- **LES ARCHIPELS** (couche 1) : la couronne proche n'est plus 80 nuages semés un par un mais ~30 îlots de 2-3 (un grand + ses
+  satellites au même plafond) — du CIEL OUVERT entre deux.
+- Coût : ~360 nuages (cap 480), triangles envoyés du même ordre qu'avant (~49-64k au banc), **0 programme lié en course** (tour.js,
+  3 niveaux). Verdicts respectés : base plate et bourgeons ronds, pas de Terre, pas de jour cobalt, hasard hors du flux `rnd` de la piste.
+
 ## LA DARK TRIAD POUR LES BONS JOUEURS — LOI 18 DE FLOW2 (2026-09-29, nuit — session GRAPHISME, avec l'accord de GAMEPLAY)
 - Sacha : « dark triad trop facile à avoir, il faut que ce soit pour les bons joueurs » (après la loi 17, « l'entre-deux »).
 - UN seul levier, la MONTÉE : `FLOW2.cel` .55 · .42 · .30 · .25 → **.55 · .23 · .165 · .14** (les cellules or, rose et triade
