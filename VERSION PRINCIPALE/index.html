@@ -20533,6 +20533,7 @@ function grisantRaz(){MIR.t=0;MIR.max=0;SFA.n=0;VPAL.n=0;VPAL.rec=false;
 // console : dbgPwr('b') prend un pouvoir (n a v m b x) · dbgPwr() l'état des six minuteurs et du grisant
 window.dbgPwr=function(k,n){try{if(k&&PWR_DEFS[k]){for(let i=0;i<(n||1);i++)pwrPrend(k,carGroup.position);}
   if(k==='mir'){MIR.max=n==null?1:n;return MIR.max;} // (banc) la prochaine pose est un MIRACULÉ
+  if(k==='cristaux'){const o9={};for(const p of pickups)if(p.pow&&p.face===1)o9[p.pow]=(o9[p.pow]|0)+1;return o9;} // (banc) les cristaux posés sur la piste, par pouvoir
   if(k==='sf'){sfaPose(n!==false);return SFA.n;} // (banc) une pose jugée propre (ou pas : dbgPwr('sf',false))
   if(k==='devant'){const L9=[];for(const p of pickups)if(!p.taken&&!p.pow&&p.face===side&&p.s>s+5&&p.s<s+50)L9.push(p);window.__dv=L9;return L9.length;} // (banc) l'or à portée d'AIMANT…
   if(k==='devantPris'){return (window.__dv||[]).filter(function(p){return p.taken;}).length;} // …et ce qui en a été ramassé
