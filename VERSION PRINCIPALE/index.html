@@ -22614,7 +22614,8 @@ const MUSIC_TRACKS=[
      COMMENTÉ — droits non tranchés, et le mp3 n'est pas dans le dépôt. Chez Léo il est actif pour jouer en local. */
   // {titre:'HEYMIKEY! — IN DA BACK 2',f:'assets/audio/music/heymikey-in-da-back-2.mp3'}, // 3 min 46
   {titre:'NÉON CASH CAR',  f:'assets/audio/music/lvl1-neon-cash-car-v3.mp3'},  // 3 min 02
-  {titre:'CASH CAR VITESSE',f:'assets/audio/music/lvl2-cash-car-vitesse.mp3'}  // 2 min 37
+  {titre:'CASH CAR VITESSE',f:'assets/audio/music/lvl2-cash-car-vitesse.mp3'}, // 2 min 37
+  {titre:'ADDICTIVE LOOP',  f:'assets/audio/music/addictive-loop.m4a'}        // 2 min 58 — (2026-09-29) le morceau de Léo (branche version-leolei-2026, où il remplace NOCTURNAL GROOVE en VILLE) : ici dans la RADIO (orbite, orage) tant que Léo n'a pas choisi sa place ; AAC (Safari/iPhone ne lisent pas l'Opus en MP4)
 ];
 /* ---- LA MUSIQUE PAR MONDE (2026-09-24) — demandes du user, dans l'ordre : « Noite de Velocidade pour
    les dix premiers niveaux », puis « Nocturnal Groove sur le niveau au-dessus de la ville ».
@@ -22649,7 +22650,7 @@ function musicPickNext(excludeIdx){
   let i;do{i=Math.floor(Math.random()*MUSIC_TRACKS.length);}while(i===excludeIdx);
   return i;
 }
-const MUSIC={menu:''}; // ex : 'assets/audio/music/menu.mp3'
+const MUSIC={menu:'assets/audio/music/swag-cash-car-2.m4a'}; // (2026-09-29, repris de la branche de Léo) LA MUSIQUE D'INTRO : « SWAG CASH CAR » (2e version) — accueil, garage, écran de fin ; jouée à .8 (un extrait de niveau jouait à .5). Vide = le morceau du 1er niveau (musicPremier)
 // musicBaseVol .85→1 (2026-09-24, « la musique pas assez forte comparé au moteur ») : on relève le
 // NIVEAU ACCORDÉ et pas la valeur par défaut du curseur — celle-ci est sauvegardée chez le joueur
 // (`SAVE.d.vol.mus`), la changer n'aurait rien fait pour qui a déjà joué. Le moteur, lui, a reculé
@@ -22721,7 +22722,7 @@ function musicJoue(){ // lance (ou relance) la lecture — un refus n'est jamais
 function musicDeverrouille(){ // appelé à CHAQUE toucher/touche (en capture) : le 1er libère le lecteur, les suivants relancent si besoin
   const el=musicElGet();musicSession();
   if(!musicDeverrouille._ok){musicDeverrouille._ok=true;
-    if(!el.src)el.src=musicPremier();                       // le 1er morceau se charge dès le 1er toucher : aucun blanc au départ
+    if(!el.src)el.src=MUSIC.menu||musicPremier();           // le morceau de l'ACCUEIL se charge dès le 1er toucher : aucun blanc au départ — ⚠ (Léo, 2026-09-27) celui du 1er niveau s'entendait une seconde avant l'intro
     if(!musicVoulue){el.muted=true;const p=el.play();       // lancé une fois, en silence, PENDANT le geste : l'élément est libre
       const fin=function(){if(!musicVoulue){try{el.pause();}catch(e){}}el.muted=false;};
       if(p&&p.then)p.then(fin,function(){el.muted=false;musicDeverrouille._ok=false;});else fin();
@@ -22777,11 +22778,11 @@ function musicStartRun(){ // au début d'une partie (start / resetGame)
 function musicMenu(){
   if(!SND.music)return;
   musicMode='menu';
-  playMusic(musicPremier(),{loop:true,volume:musVol()*.5,garde:true});
+  playMusic(MUSIC.menu||musicPremier(),{loop:true,volume:musVol()*(MUSIC.menu?.8:.5),garde:true}); // l'intro a SON morceau, joué plus franchement que l'extrait d'un niveau
 }
 function musicPlayCurrent(){
   const ouv=musicMode==='run'&&!!musicLieu;
-  const url=musicMode==='menu'?musicPremier():ouv?musicLieu.f:(MUSIC_TRACKS[musicCur]||{}).f;
+  const url=musicMode==='menu'?(MUSIC.menu||musicPremier()):ouv?musicLieu.f:(MUSIC_TRACKS[musicCur]||{}).f;
   if(!url)return;
   playMusic(url,{loop:musicMode==='menu'||ouv,garde:true}); // menu et LIEU bouclent ; ensuite la radio enchaîne (`ended`)
 }
@@ -23980,7 +23981,7 @@ function sonConsole(){ // branche la console sur le contexte du jeu (fin d'initA
   try{waPrecharge();}catch(e){} // les voix et les samples, décodés pour le mixage (voir LES VOIX ET LES SAMPLES DANS LE MIXAGE)
 }
 addEventListener('load',function(){try{sonConsole();}catch(e){}});
-const SON_TON={'lvl1-neon-cash-car':-1,'lvl2-cash-car-vitesse':-2,'nocturnal-groove':0,'noite-de-velocidade':2};
+const SON_TON={'lvl1-neon-cash-car':-1,'lvl2-cash-car-vitesse':-2,'nocturnal-groove':0,'noite-de-velocidade':2,'swag-cash-car-2':-1,'addictive-loop':1}; // (2026-09-29) SWAG do m → −1, ADDICTIVE la m → +1 : énergie par gamme majeure (chroma des partiels), la plus petite des trois pentatoniques de la gamme gagnante — la méthode retrouve NÉON, NOCTURNAL et NOITE (pas VITESSE)
 function sonTonSuit(){
   if(!SONV2)return;let t=0;
   try{const el=musicEl;if(SND.music&&el&&el.src){for(const k in SON_TON)if(el.src.indexOf(k)>=0){t=SON_TON[k];break;}if(FRENM.surm)t+=1;}}catch(e){}

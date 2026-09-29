@@ -1,5 +1,22 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA MUSIQUE DE LÉO SUR MAIN (2026-09-29) — « Sacha doit entendre ma musique quand il pull »
+- Repris de la branche `version-leolei-2026` (elle a divergé de main : 83 commits d'un côté, 71 de l'autre ; le jeu y est à la RACINE, pas
+  dans `VERSION PRINCIPALE/` — un `git merge` de cette branche poserait une 2e copie du jeu). Seule la MUSIQUE est reprise ici :
+  · **SWAG CASH CAR** (`assets/audio/music/swag-cash-car-2.m4a`, 2 min 37) = `MUSIC.menu` : accueil, garage, écran de fin, à .8 (avant :
+    le morceau du 1er niveau à .5). Trois lignes reprises de Léo : le 1er toucher précharge `MUSIC.menu||musicPremier()`, `musicMenu` et
+    `musicPlayCurrent` le jouent. `musicSession` reste celle de main (le correctif iOS 17 « ambient si MUSIQUE coupée »).
+  · **ADDICTIVE LOOP** (`addictive-loop.m4a`, 2 min 58) : chez Léo il REMPLACE NOCTURNAL GROOVE en VILLE ; Léo n'a pas encore tranché pour
+    main → il entre dans la RADIO (`MUSIC_TRACKS`, jouée à l'ORBITE et à L'ORAGE). Le passer en VILLE = une ligne de `MUSIC_LIEU`.
+  · Les deux en AAC-LC 48 kHz (Léo les a ré-encodés depuis de l'Opus/MP4, illisible sur Safari). ⚠ Le Chromium de Playwright n'a PAS l'AAC
+    (`canPlayType` vide, erreur 4 au banc) : c'est le banc, pas le fichier — Chrome et Safari les lisent.
+  · `SON_TON` : SWAG −1 (do m), ADDICTIVE +1 (la m). Méthode : chroma des PARTIELS (pics du spectre, 55-2000 Hz), énergie dans chacune des
+    12 gammes majeures, puis la plus petite des trois pentatoniques de la gamme gagnante. Elle retrouve NÉON (−1), NOCTURNAL (0) et NOITE
+    (+2), pas VITESSE (elle dit 0, la table dit −2) : SWAG est le résultat le plus net des six, ADDICTIVE moins (marge 0,011).
+  · sw.js CACHE → v28 (v26/v27 sautés : la branche de Léo est déjà à v27, même origine en local).
+- ⚠ Toujours manquant (antérieur) : `assets/audio/music/dark-triad.mp3` (THE DARK TRIAD, la musique de FRÉNÉSIE, `MUSIC_FREN`) n'est dans
+  AUCUN commit de main ni de la branche de Léo — 404 à chaque chargement.
+
 ## L'ORAGE — LE 4e NIVEAU, LE NIVEAU DUR (2026-09-29, nuit — session GRAPHISME, avec l'accord de GAMEPLAY et de la Campagne)
 - Sacha : « rajoute un niveau après les 3 premiers : le biome nuages mais avec un orage, beaucoup plus de nuages, de la pluie, des
   éclairs et plein de gros nuages sur la route — ce doit être le niveau dur, ambiance sombre dans le même style que le premier niveau ».

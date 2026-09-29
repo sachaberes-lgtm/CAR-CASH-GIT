@@ -27,11 +27,13 @@
         nocturnal-groove), moteur, voitures low-poly ; charte v2 et passe UX côté Sacha. */
 //  v20 (2026-09-25) : boutique, défis, auto-école, charte v3, lecteur de musique unique, ville en 1er niveau, caisses premium.
 //  v21 (2026-09-27) : portrait ET paysage (manifest en orientation any).
+//  v28 (2026-09-29) : la musique de Léo — SWAG CASH CAR à l'accueil, ADDICTIVE LOOP dans la radio. v26/v27 SAUTÉS : la branche de Léo
+//       (version-leolei-2026) est déjà montée à v27 ; un navigateur qui a ouvert les deux sur la même origine (localhost) purge ainsi l'ancien cache.
 //  v25 (2026-09-29) : banque de sons — frenesie.cash (le ×3 qui s'entend) et nitrooo.palier (NITROOO) — sons-banque.js?v=6.
 //  v24 (2026-09-29) : banque de sons allégée (faux stéréo en mono, queues mortes) — sons-banque.js?v=5.
 //  v23 (2026-09-29) : optimisation du son (portes du graphe audio, k-rate, salle au repos) — sfx.js?v=4.
 //  v22 (2026-09-28) : la CONSOLE DE SON (sfx.js + sons-banque.js) et les silences morts retirés des morceaux (le trou de 1 s à chaque boucle de NOCTURNAL GROOVE en VILLE).
-const CACHE = 'cashcar-v25';
+const CACHE = 'cashcar-v28';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
