@@ -11583,6 +11583,7 @@ function rainbowStep(px,py,pz,k,t){
 }
 
 const rbD=new THREE.Vector3(),rbS=new THREE.Vector3(),rbV=new THREE.Vector3();
+const TR_PJ=new THREE.Vector3(),TR_Q=new THREE.Vector3(),TR_CUT={a:.08,b:.26}; // (2026-09-29) la projection d'un point du ruban, le point où on le COUPE, et la descente à l'écran tolérée (voir « plus de fils de marionnette »)
 function trailStep(tr,px,py,pz,cr,cg,cb,k,wMul){
   if(k<.03){tr.m.visible=false;tr.init=false;return;}
   const h=tr.hist;
@@ -11593,10 +11594,20 @@ function trailStep(tr,px,py,pz,cr,cg,cb,k,wMul){
      tuyère, fil à la queue), jamais plus épais qu'~1° d'angle à l'écran (`dC*.009` : près de l'objectif il s'amincit au lieu de
      grossir — plus de voile possible), tête qui BLANCHIT, et il s'efface quand on le regarde PILE dans l'axe (sinus de l'angle
      ruban/regard `sA` : vu de bout, un ruban devient une nappe — c'était le « tapis »). Le fondu près de l'objectif se resserre à
-     2,4-3,6 m : le fil vit sous la caméra, de la tuyère jusqu'au bas de l'écran. */
+     2,4-3,6 m : le fil vit sous la caméra, de la tuyère jusqu'au bas de l'écran (← c'était ça, les « fils » : voir juste dessous). */
   const P=tr.pos,C=tr.col,wm=wMul||1;
+  /* PLUS DE « FILS DE MARIONNETTE » (2026-09-29, Sacha : « les trois », après deux critiques : « en nitro et en vol, les deux traînées
+     descendent jusqu'au bas de l'écran, la caisse semble pendue à deux fils »). L'historique n'a qu'UN point par image : à pleine
+     vitesse ils sont espacés de plusieurs mètres, le 2e ou le 3e est déjà sous (ou derrière) l'objectif, et la couleur s'étirait
+     sur tout ce segment — un fondu par sommet n'y peut rien. Le ruban est donc COUPÉ géométriquement : dès qu'un point descend à
+     l'écran de plus de TR_CUT.b (0,26 de hauteur normalisée, ~13 % de l'écran) sous sa tuyère, on place un dernier sommet, éteint,
+     pile au franchissement, et tout le reste s'y replie. Il s'estompe dès TR_CUT.a ; il file toujours sur les côtés et au loin ;
+     sa queue fond plus tôt. (0,32 essayé : encore un trait jusqu'aux deux tiers de l'écran.) */
+  TR_PJ.copy(h[0]).project(camera);const yh9=TR_PJ.y;
+  let cut9=false,dp9=0;
   for(let i=0;i<TRAIL_N;i++){
     const p=h[i],pn=h[Math.min(i+1,TRAIL_N-1)],pp=h[Math.max(i-1,0)];
+    if(cut9){P.copyWithin(i*6,(i-1)*6,i*6);C.fill(0,i*6,i*6+6);continue;} // replié sur le point de coupe, éteint
     rbD.subVectors(pn,pp);rbV.subVectors(p,camera.position);
     rbS.crossVectors(rbD,rbV);
     const l2=rbS.lengthSq(),dC=rbV.length(),lD=rbD.length();
@@ -11605,9 +11616,14 @@ function trailStep(tr,px,py,pz,cr,cg,cb,k,wMul){
     const u=1-i/(TRAIL_N-1),w=Math.min((.012+.075*u*u)*wm,dC*.009);
     let f=u*u*k;
     f*=THREE.MathUtils.smoothstep(dC,2.4,3.6)*THREE.MathUtils.smoothstep(sA,.1,.32);
+    TR_PJ.copy(p).project(camera);const d9=TR_PJ.z>1?9:yh9-TR_PJ.y; // (2026-09-29) de combien il est descendu à l'écran (derrière l'objectif : « tout en bas »)
+    let q9=p;
+    if(i>0&&d9>=TR_CUT.b){cut9=true;f=0;q9=TR_Q.lerpVectors(pp,p,THREE.MathUtils.clamp((TR_CUT.b-dp9)/Math.max(1e-4,d9-dp9),0,1));} // LA COUPE, au franchissement
+    else f*=(1-THREE.MathUtils.smoothstep(d9,TR_CUT.a,TR_CUT.b))*THREE.MathUtils.smoothstep(u,0,.45); // il s'estompe en descendant, et sa queue fond plus tôt
+    dp9=d9;
     const hot=u*u*u*u*.55*f; // le cœur chaud de la tête
-    P[i*6]=p.x+rbS.x*w;P[i*6+1]=p.y+rbS.y*w;P[i*6+2]=p.z+rbS.z*w;
-    P[i*6+3]=p.x-rbS.x*w;P[i*6+4]=p.y-rbS.y*w;P[i*6+5]=p.z-rbS.z*w;
+    P[i*6]=q9.x+rbS.x*w;P[i*6+1]=q9.y+rbS.y*w;P[i*6+2]=q9.z+rbS.z*w;
+    P[i*6+3]=q9.x-rbS.x*w;P[i*6+4]=q9.y-rbS.y*w;P[i*6+5]=q9.z-rbS.z*w;
     C[i*6]=cr*f+hot;C[i*6+1]=cg*f+hot;C[i*6+2]=cb*f+hot;
     C[i*6+3]=C[i*6];C[i*6+4]=C[i*6+1];C[i*6+5]=C[i*6+2];
   }
@@ -20100,6 +20116,12 @@ for(const k in PWR_DEFS){const d=PWR_DEFS[k];
   // ÉTIQUETTE FLOTTANTE : pictogramme + nom au-dessus de l'orbe — on sait ce qu'on vise AVANT de le prendre
   const cv=document.createElement('canvas');cv.width=cv.height=128;
   d.icoM=new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthWrite:false});
+  /* (2026-09-29, passe « jeu pro » — deux critiques : « un petit carré doré cerné de noir au centre exact de l'écran, un pixel mort ou un marqueur
+     de débogage ») : c'était cette étiquette, vue de loin (6 m à 300 m = un carré de 3 px). Elle s'efface entre 110 et 160 m ; le cristal et
+     son halo, eux, restent visibles de loin. Programme compilé avec la piste du menu (les cristaux y sont déjà). */
+  d.icoM.onBeforeCompile=function(sh){sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying float vD9;').replace('#include <fog_vertex>','#include <fog_vertex>\nvD9=-mvPosition.z;');
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying float vD9;').replace('#include <fog_fragment>','#include <fog_fragment>\ngl_FragColor.a*=1.-smoothstep(110.,160.,vD9);');};
+  d.icoM.customProgramCacheKey=function(){return 'pwrEtiquette';};
   d.icoDessine=function(){const c=cv.getContext('2d');c.clearRect(0,0,128,128);c.textAlign='center';
     /* (2026-09-26, vague 2) LE PICTOGRAMME EN PIXELS, LE MÊME QUE SUR LA PLAQUE DU HUD (`PXI_G` : flamme / aile / éclair). C'était un
        EMOJI (🪂, ⚡) — dessiné par la police du système, en couleurs de dessin animé, différent sur chaque téléphone : la seule image
@@ -20109,7 +20131,7 @@ for(const k in PWR_DEFS){const d=PWR_DEFS[k];
       for(const o of [[-2,0],[2,0],[0,-2],[0,2],[0,0]]){c.fillStyle=o[0]||o[1]?'#1c0430':d.tint;
         for(let y=0;y<9;y++)for(let x=0;x<9;x++)if(rows[y][x]==='#')c.fillRect(X0+x*Z+o[0],Y0+y*Z+o[1],Z,Z);}}
     // (2026-09-26) l'étiquette dans la POLICE DU JEU (pixel), cerclée d'ENCRE — « ∞ » n'existe pas en pixel : MAX
-    const lb=sansAcc(TR(String(d.hud).replace('∞','MAX').replace(' +60%','')));c.font=(lb.length>9?'11px':'13px')+' "Press Start 2P",monospace'; // (pouvoirs v2) traduit ; un nom long en plus petit (le canvas fait 128 px)c.lineWidth=6;c.lineJoin='round';c.strokeStyle='#1c0430';
+    const lb=sansAcc(TR(String(d.hud).replace('∞','MAX').replace(' +60%','')));c.font=(lb.length>9?'11px':'13px')+' "Press Start 2P",monospace';c.lineWidth=6;c.lineJoin='round';c.strokeStyle='#1c0430'; /* (pouvoirs v2) traduit ; un nom long en plus petit (le canvas fait 128 px) — (2026-09-29) le contour d'ENCRE était avalé par ce commentaire : trait noir d'1 px */
     c.strokeText(lb,64,102);c.fillStyle=d.tint;c.fillText(lb,64,102);d.icoM.map.needsUpdate=true;};
   d.icoDessine();
 }
@@ -25415,6 +25437,12 @@ function crunchSfx(rang){
 /* LE JUS v3b (même soir, Sacha : « elles sont trop sur les côtés ; un peu plus grosses, et pouvoir apparaître PARTOUT sur l'écran ») :
    plus d'ellipse interdite ni de bande du haut — la goutte tombe n'importe où (le HUD reste dessiné par-dessus) ; rayon ×1,25 encore
    (~46-91 px sur téléphone, plafond 110), `JUS_N` 240. Le couloir dégagé de la vague 2 est donc ABANDONNÉ, à sa demande. */
+/* LE JUS v4 — DISCRET ET HORS DE LA ROUTE (2026-09-29, Sacha : « les trois », après la passe « jeu pro » : DEUX critiques indépendantes
+   classaient les taches n°1 des défauts — « on dirait un bug d'affichage », une goutte rose couvrait la moitié de la caisse en pleine nitro,
+   huit « sucettes » orange envahissaient l'écran en ORBITE). La goutte pixel garde son dessin (encre, cœur, reflet) mais :
+   · rayon ÷3 environ (~11-34 px sur un téléphone, plafond 40 — c'était 46-91, plafond 110) ;
+   · elle ne tombe plus sur la zone de CONDUITE (une ellipse autour de la caisse et de la route devant elle) : la couronne et les coins ;
+   · 6 à la fois au plus (14), vie 0,7-1,1 s (1,1-1,8), pleine .8 le premier tiers puis s'efface (.9 la moitié), coulure courte (plus de « tige »). */
 const JUS_N=240,JUS=[],JUS_PX=4,JUS_TOILE=[],JUS_BLANC=new THREE.Color(1,1,1),JUS_ENCRE='#1c0430',JUS_M=new Uint8Array(JUS_N*JUS_N);let JUS_IM=null; // masque et pixels de brouillon RÉUTILISÉS (JUS_N cellules = la plus grande goutte)
 function jusToile(){ // une toile libre de la réserve (15 au plus : la file plafonne à 14 taches)
   for(const t of JUS_TOILE)if(!t.pris){t.pris=true;return t;}
@@ -25430,12 +25458,14 @@ function juiceScreen(col,power,n){
   const B9=Math.min(W,H); // (v3) la taille suit la plus petite dimension : même goutte debout ou couché
   for(let k=0;k<(n||1);k++){
     // (v3b) plus grosses : rayon ~46-91 px sur un téléphone (v3 : 37-73, vague 2 : 24-49), plafond 110 — la forme et ses satellites tiennent dans JUS_N
-    const R=Math.min(110,(B9*.094+Math.random()*B9*.094)*(.8+power*.45)),coul=R*(.5+Math.random()*1.2);
+    const R=Math.min(40,(B9*.035+Math.random()*B9*.035)*(.8+power*.45)),coul=R*(.3+Math.random()*.6); // (v4) ÷3, coulure courte
     /* (v3b, Sacha : « pouvoir apparaître partout sur l'écran ») PARTOUT, uniformément : plus d'ellipse centrale interdite ni de bande du
        haut (elles repoussaient tout sur les côtés). Le HUD est dessiné PAR-DESSUS le jus, rien de ce qu'on lit n'est jamais caché. */
-    const x=Math.random()*W,y=Math.random()*H;
+    let x=Math.random()*W,y=Math.random()*H; // (v4) hors de la ZONE DE CONDUITE : l'ellipse de la caisse et de la route devant elle (8 essais, puis la couronne)
+    for(let t9=0;t9<8;t9++){const ex=(x-W*.5)/(W*.36+R),ey=(y-H*.6)/(H*.32+R);if(ex*ex+ey*ey>1)break;x=Math.random()*W;y=Math.random()*H;
+      if(t9===7){const a9=Math.random()*6.2832;x=W*.5+Math.cos(a9)*(W*.36+R)*1.05;y=H*.6+Math.sin(a9)*(H*.32+R)*1.05;}}
     // (vague 2) des GOUTTES, plus des flaques (l'ancien montait à 100 px, satellites jusqu'à 2,7 R) — la taille (v3) est tirée plus haut
-    if(JUS.length>=14){const v=JUS.shift();v.toile.pris=false;} // plafond : à 20 taches, mesuré, 76 % de l'écran était repeint
+    if(JUS.length>=6){const v=JUS.shift();v.toile.pris=false;} // plafond (v4 : 6 — c'était 14 ; à 20 taches, mesuré, 76 % de l'écran était repeint)
     const t=jusToile(),C=JUS_PX/2; // la toile est en CELLULES de 2 px : le liseré fait une cellule, la forme se pose par blocs de deux (4 px)
     const ext=Math.min(JUS_N-4,Math.ceil(R*2.05/JUS_PX)*JUS_PX),Nw=ext,Nh=Nw+Math.ceil(coul*1.6/C)+4; // demi-étendue en px = largeur en cellules ; la coulure dessous
     if(t.cv.width!==Nw||t.cv.height!==Nh){t.cv.width=Nw;t.cv.height=Nh;}else t.x.clearRect(0,0,Nw,Nh);
@@ -25461,7 +25491,7 @@ function juiceScreen(col,power,n){
       else if(coeur){d[o]=kR;d[o+1]=kG;d[o+2]=kB;d[o+3]=230;}else{d[o]=cR;d[o+1]=cG;d[o+2]=cB;d[o+3]=240;}} // (v3) corps .94, cœur .9
     t.x.putImageData(JUS_IM,0,0,0,0,Nw,Nw);
     JUS.push({x:Math.round(x/JUS_PX)*JUS_PX,y:Math.round(y/JUS_PX)*JUS_PX,r:R,ext:ext,toile:t,c:corps,bas:bas,Lc:0,
-      t:0,vie:1.1+Math.random()*.7,coul:coul});
+      t:0,vie:.7+Math.random()*.4,coul:coul}); // (v4) 0,7-1,1 s
   }
 }
 function juiceScreenTick(dt){
@@ -25482,7 +25512,7 @@ function juiceScreenTick(dt){
     /* la goutte GRANDIT d'un coup puis s'efface. ⚠ LE GONFLEMENT EST EN SECONDES ABSOLUES, pas en fraction de vie : une projection
        arrive TOUJOURS en 90 ms. (vague 2) Il se fait par PALIERS (½, ¾, plein) : jamais de pixels de travers. */
     const g=j.t<.03?.5:j.t<.06?.75:1,e=j.ext*g;
-    juiceCx.globalAlpha=(u<.5?1:Math.pow((1-u)/.5,1.5))*.9; // (v3, Sacha : « plus opaques ») pleine .9 la 1re moitié de sa vie, puis elle s'efface — c'était ≤ .55 en fondu dès l'impact
+    juiceCx.globalAlpha=(u<.34?1:Math.pow((1-u)/.66,1.5))*.8; // (v4) pleine .8 le premier tiers, puis elle s'efface // (v3, Sacha : « plus opaques ») pleine .9 la 1re moitié de sa vie, puis elle s'efface — c'était ≤ .55 en fondu dès l'impact
     juiceCx.drawImage(tc.cv,j.x-e,j.y-e,e*2,e*2*tc.cv.height/tc.cv.width);
   }
   juiceCx.globalAlpha=1;

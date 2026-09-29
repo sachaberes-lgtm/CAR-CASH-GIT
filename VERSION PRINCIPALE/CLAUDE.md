@@ -82,8 +82,18 @@ relecteurs indépendants (directeur artistique, technical artist), triées contr
 - **LE CRATÈRE DE L'IMMEUBLE** : 7 → 5 m (la caméra de la mort, à ~14 m de la façade, ne voyait plus que le trou).
 - **Écarté après essai** : nuages de coton OPAQUES (image quasi identique, mais plus de fondu quand la caméra les traverse) — gardé
   translucide (`dbgGfx({cotonOpaque:1})` pour comparer).
-- **Laissé à Sacha (ses verdicts)** : les taches de jus (n°1 des DEUX critiques : grosses, opaques, partout — voulu le 28/09), la taille
-  des fruits, le « fil » des rubans de nitro jusqu'au bas de l'écran, l'antenne de LA HONTE (un carré doré au centre de l'écran).
+- **Laissé à Sacha, puis tranché (« les trois », même jour)** :
+  · **LE JUS v4** (`juiceScreen`) : rayon ÷3 (plafond 40 px), plus jamais sur la ZONE DE CONDUITE (ellipse caisse + route devant,
+    centrée (½ W, 0,6 H)), 6 taches au plus, vie 0,7-1,1 s, coulure courte. Mesuré `dbgJus(6)` : 15 % de l'écran repeint → ~2 %.
+  · **LES RUBANS NE PENDENT PLUS** (`trailStep`, `TR_CUT`) : l'historique n'a qu'un point par IMAGE — à pleine vitesse le 2e ou 3e
+    point est déjà sous l'objectif et la couleur s'étirait sur tout ce segment jusqu'au bas de l'écran (un fondu par sommet ne
+    peut rien contre ça : essayé, zéro effet). Le ruban est COUPÉ géométriquement dès qu'il descend à l'écran de `TR_CUT.b` (0,26
+    NDC) sous sa tuyère ; il vit toujours sur les côtés (virages, vol). Vaut aussi pour la meute et les fantômes (même fonction).
+    ⚠ Les deux longues FLAMMES orange sous la caisse en nitro, ce sont les plumes `JETS` (la flamme « Asphalt » du 28/09) : gardées.
+  · **LE « CARRÉ DORÉ » AU CENTRE** n'était pas l'antenne de LA HONTE : c'était l'ÉTIQUETTE d'un cristal de pouvoir (sprite de 6 m)
+    vue à 200-300 m — 3 px cernés de noir pile au point de fuite. Elle s'efface de 110 à 160 m (`onBeforeCompile`, clé
+    'pwrEtiquette', compilée AU MENU : 0 programme en course). Et son contour d'encre était AVALÉ par un `//` collé devant
+    (`c.lineWidth/strokeStyle` en commentaire → trait noir d'1 px) : rétabli.
 - **Transmis** : carte MOTEUR 3D qui bouche le point de fuite + voile vert-sarcelle sur le HUD en VILLE (UHD).
 
 ## LES TEXTES DE FIGURE, 3e CRAN (2026-09-29, session GRAPHISME) — « les textes de figure sont beaucoup trop gros et bloquent la vue »
