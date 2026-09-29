@@ -412,6 +412,9 @@ doit être exponentielle ; à chaque palier de 10 % ça doit rajouter un compart
   l'argent et les deux cartes étirées jusqu'en bas ; à droite les missions (même hauteur que titre + argent), les chiffres, les tuiles,
   MENU | REJOUER. Plus de trou. Petit téléphone couché (≤ 760 px) : tuiles pictogramme au-dessus du mot. Section 29 de `charte4`.
 - Banc : `mortv5.js W H lang tag` (vraie partie au pilote auto, mort, capture, chevauchements, défilement).
+- **Écrans courts** (section 30 de `charte4`, relevé par DEBUGGING) : iPhone SE dans Safari (375 × 553) et 320 × 568 — REJOUER tombait
+  SOUS le bord. Palier ≤ 700 px : titre sur une ligne, moteur plus petit ; palier ≤ 620 px : tous les blocs resserrés (aucun retiré).
+  Mesuré (titre « NOUVEAU RECORD ! », le plus long) : REJOUER finit à 526/553, 546/568, 649/667, 646/664, 802/844.
 - **Les vies du mode FACILE** ont descendu d'un cran (`#facVies` à hudH+120 debout / +103 couché, voir LA LIGNE PARFAITE) : le compteur d'argent `#cashHud`
   (session UHD) a pris leur place sous la pause.
 
