@@ -4027,12 +4027,14 @@ html body #coach.passe .coN{color:var(--or);white-space:nowrap}html body #coach 
 #mvTuto{color:var(--neoV);text-shadow:none}#mvTuto::after{display:none}#mvTuto[hidden]{display:none}
 /* ---- 27. MODE FACILE (2026-09-29) : les trois vies, en haut à droite, sous la pause (zone de LECTURE) ---- */
 #facVies{display:none}
-html body.touch.play.facile #facVies{display:flex;position:fixed;top:calc(var(--hudH) + 104px);right:var(--hudD);z-index:6;gap:5px;pointer-events:none;zoom:var(--hudK);
+html body.touch.play.facile #facVies{display:flex;position:fixed;top:calc(var(--hudH) + 120px);right:var(--hudD);z-index:6;gap:5px;pointer-events:none;zoom:var(--hudK);
   --hudH:calc((env(safe-area-inset-top,0px) + var(--hudY0) * (1 - var(--hudK))) / var(--hudK));
   --hudD:calc((env(safe-area-inset-right,0px) + 14px) / var(--hudK))}
 #facVies .pxi{--pxs:1.6;color:var(--neoR);filter:drop-shadow(0 2px 0 var(--k0))}
-/* (29/09) le compteur d'argent (#cashHud, session UHD) a pris la place sous la pause : les vies passent JUSTE DESSOUS (mesuré : argent 72-99 debout, 66-87 couché ; le chrono de vol commence à 118) */
-@media (orientation:landscape) and (max-height:540px){html body.touch.play.facile #facVies{top:calc(var(--hudH) + 90px)}}
+@media (orientation:landscape) and (max-height:540px){html body.touch.play.facile #facVies{top:calc(var(--hudH) + 103px)}}
+/* (29/09, re-mesuré) le compteur d'argent a une 2e ligne, le GAIN (« +$ 43 ») : il descend à 111 debout / 97 couché → les vies à 115 / 101.
+   Debout, le chrono de vol (#airHud, 118) prend leur place en l'air : elles s'effacent le temps du vol (couché, le chrono est plus bas). */
+@media not ((orientation:landscape) and (max-height:540px)){html body.touch:has(#airPie[style*="block"]) #facVies{visibility:hidden}}
 #facVies .pxi.vide{color:var(--tx3);opacity:.45}
 #facVies .pxi.perd{animation:facPerd var(--t-slow) var(--ease)}
 @keyframes facPerd{from{scale:2;color:#fff}to{scale:1}}
@@ -8839,8 +8841,10 @@ function buildTrack(seed){
   // le couloir du tremplin reste NU : ni plot, ni huile, ni pad parasite — la tension a besoin de silence visuel
   const inGap=sp=>{for(const r of RAMPS)if(sp>r.s0&&sp<r.s1)return true;return false;};
   // pads turbo (les deux faces)
+  ligneRaz(); // LA LIGNE PARFAITE : ses pads et ses fruits se posent EN COURSE (ligneTick)
   for(let sp=180+rnd()*150;sp<L-100;sp+=280+rnd()*280){
     rnd(); // (vague 2) l'ancienne couleur tirée au hasard (bleu / blanc / rouge) : la plaque est OR désormais, mais le TIRAGE reste — le flux rnd de la piste ne bouge pas d'un pas
+    if(LIGNE.on)continue; // (2026-09-29) LA LIGNE PARFAITE pose les pads (voir ligneTick) — le tirage ci-dessus reste consommé
     if(inGap(sp)||campPadNon(sp))continue; // la course d'élan garde son SEUL boost, celui qu'on a posé volontairement · (campagne) pas de pad dans une porte de plots
     // (2026-09-25) LE PAD EST UNE CIBLE : il vit sur une VOIE (gauche / axe / droite), déduite de sp — zéro rnd() consommé, la
     // génération en aval ne bouge pas. Avant, il se déclenchait sur toute la largeur : un turbo reçu sans rien faire.
@@ -9722,6 +9726,72 @@ function buildParkGround(){
   });
   const gm=new THREE.Mesh(bg,parkGrassMat);gm.frustumCulled=false;
   scene.add(gm);trackMeshes.push(gm);
+}
+/* LA LIGNE PARFAITE (2026-09-29, Sacha : « il faut alterner la génération d'items entre fruit et booster pour pouvoir aller à fond tout
+   le temps si on a une trajectoire de route parfaite »). Avant : des pads au hasard tous les 280-560 m, des fruits glissés au hasard dans
+   les motifs de pièces — même en prenant TOUT, la nitro tenue (−1/s, +0,2/s de recharge) finissait par s'éteindre. Désormais UNE file :
+   FRUIT, PAD, FRUIT, PAD… posée EN COURSE (ligneTick), LIGNE.voir secondes devant la caisse, espacée de LIGNE.dt secondes à la vitesse
+   RÉELLE du moment — le rythme est le même à 150 et à 600 km/h (MESURÉ : une file précalculée sur la croisière du moteur mettait un objet
+   tous les 38 m, soit 4 par seconde à 527 km/h). Posée sur la TRAJECTOIRE : au centre dans les lignes droites, à la corde dans les virages.
+   Chaque objet rend LIGNE.don secondes de nitro, un peu PLUS que ce qu'on brûle d'un objet à l'autre : qui les prend tous tient la nitro
+   sans la lâcher, qui en rate voit la jauge baisser. Deux faces (miroir), comme tout le reste. ⚠ Aucun rnd() : le flux seedé ne bouge pas.
+   Un objet qui tombe sur un trou, un tremplin, une porte de plots ou une chaîne de néon glisse plus loin ; s'il n'a pas de place il saute,
+   et le suivant garde SON type (l'alternance tient). */
+const LIGNE={on:false,dt:1.2,don:1.15,voir:3.5,prochS:0,k:0,pts:[],padI:new Set(),padPris:new Set(),n:[0,0],pris:[0,0],vP:0,acc:0}; // n : posés · pris : ramassés (fruits, pads) — pour le banc
+const LF0={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},
+      LF1={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},
+      LF2={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
+function ligneLat(s9,H9){ // la CORDE : le virage tire l'objet vers l'intérieur (R 150 m → ~11 m), la ligne droite le laisse au centre
+  frameAt(s9,LF0);frameAt(s9-40,LF1);frameAt(s9+40,LF2);
+  const k=(LF2.t.dot(LF0.b)-LF1.t.dot(LF0.b))/80; // courbure latérale (1/m), signe = côté de l'intérieur
+  return THREE.MathUtils.clamp(k*1600,-H9,H9);
+}
+function ligneBloque(s9,k){
+  if(holeAtS(s9))return true;
+  for(const r of RAMPS)if(s9>r.s0-60&&s9<r.s1+40)return true; // le couloir du tremplin reste nu
+  if(k===1&&campPadNon(s9))return true;
+  try{if(VZ.chaines)for(const c of VZ.chaines)if(s9>c.s0-140&&s9<c.s1+100)return true;}catch(e){} // (VZ peut ne pas exister encore au 1er build)
+  return false;
+}
+function ligneRaz(){ // à chaque piste neuve (buildTrack) : la file repart du début
+  LIGNE.pts.length=0;LIGNE.padI.clear();LIGNE.padPris.clear();LIGNE.prochS=240;LIGNE.k=0;LIGNE.n[0]=LIGNE.n[1]=LIGNE.pris[0]=LIGNE.pris[1]=0;LIGNE.vP=0;LIGNE.acc=20;LIGNE.sPk=null;LIGNE.sPd=0; // acc : l'élan d'un départ lancé, supposé d'avance (les premiers objets se posent avant qu'on l'ait mesuré)
+  LIGNE.on=!PARK.on&&!(LVL.cur&&LVL.cur.piste==='tuto'); // le parc et l'auto-école gardent leur monde
+}
+function lignePad(sp,pl){ // un pad d'OR, deux faces (même recette que la boucle des pads de buildTrack)
+  LIGNE.padI.add(PADS.length);PADS.push(sp);PADL.push(pl);
+  for(const fy of [1,-1]){frameAt(sp,F);const m=new THREE.Mesh(padGeo,PAD_MAT);
+    m.quaternion.setFromRotationMatrix(LM4.makeBasis(LV1.copy(F.b).multiplyScalar(-fy),F.t,LV2.copy(F.n).multiplyScalar(fy)));
+    m.position.copy(F.p).addScaledVector(F.b,pl).addScaledVector(F.n,fy>0?.1:-THICK-.1);scene.add(m);trackMeshes.push(m);}
+}
+function ligneFruit(sp,lt){ // un fruit, deux faces (même recette que `place` dans spawnPickups) — il rend LIGNE.don de nitro
+  const fi=fruitPick(),lv=fruitLeve(fi);frameAt(sp,F);
+  for(const face of [1,-1]){
+    const m=mkFruit(fi);m.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,face>0?lv:-(THICK+lv));
+    if(face<0)LM4.makeBasis(LV1.copy(F.b).negate(),LV2.copy(F.n).negate(),F.t);else LM4.makeBasis(F.b,F.n,F.t);
+    m.quaternion.setFromRotationMatrix(LM4);m.updateMatrix();m.matrixAutoUpdate=false;scene.add(m);
+    pickups.push({s:sp,lat:lt,face:face,nitro:true,fruit:fi,mesh:m,taken:false,ax:F.n.clone().multiplyScalar(face),ligne:true});
+  }
+}
+const LM4=new THREE.Matrix4(),LV1=new THREE.Vector3(),LV2=new THREE.Vector3();
+function ligneTick(dt){ // chaque image de course : la file s'allonge devant la caisse, au rythme de SA vitesse
+  if(!LIGNE.on||!running||gameOver)return;
+  const v0=Math.max(30,Math.abs(vA)*SPD*(pwrSpdT>0?2:1)*(1+NTR.boost)),H9=Math.max(4,(ROAD_HALF-3)*.62); // m de piste par seconde : la vraie avance de `s` (NITROOO jusqu'à +80 %, VITESSE ×2 compris — MESURÉ : sans eux la file arrivait 1,5× trop serrée)
+  /* la vitesse À L'ARRIVÉE sur l'objet, pas celle d'aujourd'hui : un départ lancé passe de 126 à 500 km/h en 12 s (MESURÉ) — espacée sur la
+     vitesse du moment, la file arrivait tassée (un pad tous les 0,4 s, bloqués par les 1,5 s de recharge du pad) */
+  if(LIGNE.vP>0&&dt>0)LIGNE.acc+=((v0-LIGNE.vP)/dt-LIGNE.acc)*Math.min(1,dt*2);LIGNE.vP=v0;
+  const v=v0+Math.max(0,LIGNE.acc)*LIGNE.voir*.7;
+  if(LIGNE.prochS<s+60)LIGNE.prochS=s+60; // jamais derrière soi (portail, replacement)
+  const hz=s+Math.max(220,v*LIGNE.voir);
+  let n9=0;
+  while(LIGNE.prochS<hz&&LIGNE.prochS<L-120&&n9<3){n9++; // au plus 3 par image (un départ lancé n'empile pas tout d'un coup)
+    let s9=-1;
+    for(let d=0;d<=160;d+=20){const q=LIGNE.prochS+d;if(q>=L-120)break;if(!ligneBloque(q,LIGNE.k)){s9=q;break;}}
+    if(s9<0){LIGNE.prochS+=180;continue;}
+    const lt=ligneLat(s9,H9);
+    if(LIGNE.k)lignePad(s9,lt);else ligneFruit(s9,lt);
+    LIGNE.pts.push({s:s9,lat:lt,k:LIGNE.k});LIGNE.n[LIGNE.k]++;if(LIGNE.pts.length>40)LIGNE.pts.shift();
+    LIGNE.k^=1;LIGNE.prochS=s9+Math.max(40,v*LIGNE.dt);
+  }
 }
 function frameAt(s,out){
   s=THREE.MathUtils.clamp(s,0,L-.01);
@@ -17205,6 +17275,8 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   function(){cratInit();renderer.initTexture(CRAT.tex);renderer.initTexture(CRAT.halo);for(const t9 of DEB.tex)renderer.initTexture(t9);}, // (2026-09-28) + les trois textures de la pluie de DÉBRIS // (2026-09-27) le cratère du MÉTÉORE : ses matières sont compilées juste en dessous, ses textures montées ici
   function(){campChauffe();}, // (2026-09-27) la caisse-nuage et la police de la campagne compilées AU MENU — jamais au départ du niveau 5 ou 10
   function(){if(!TRACE.pos)traceInit();const p=mkPigeon();scene.add(p);renderer.compile(scene,camera);scene.remove(p);},
+  function(){const L9=[];for(let i=0;i<FRUIT_DEFS.length;i++){const m=mkFruit(i);scene.add(m);L9.push(m);}const pd=new THREE.Mesh(padGeo,PAD_MAT);scene.add(pd);L9.push(pd); // (2026-09-29) LA LIGNE PARFAITE pose ses fruits et ses pads EN COURSE : leurs programmes et leurs géométries sont prêts dès le menu
+    chauffeRendu(L9);for(const m of L9)scene.remove(m);},
   function(){engCarteQuad.visible=engHalo.visible=true;renderer.compile(engVigQuadScene,engVigQuadCam);engCarteQuad.visible=engHalo.visible=false; // (vague 2) le recollage de la carte MOTEUR (sinon son programme naît au 1er palier)
     renderer.initTexture(engHaloMat.map);renderer.setRenderTarget(engRTc);renderer.setRenderTarget(null);}]; // …et son halo et son tampon montent au GPU dès le menu
   if(k<E.length)try{E[k]();}catch(e){}
@@ -17540,6 +17612,7 @@ window.dbgEngBig=function(i){i=i==null?5:i;engBig(ENGINE_TIERS[i],i);return ENGI
 window.dbgEngCarte=function(k){if(k==='fige'){clearTimeout(engBig._p);clearTimeout(engBig._a);}const b=avE('engBig'),r=b&&b.getBoundingClientRect();
   return {on:engBig.on,s:engBig.s,pw:engBig.pw,ph:engBig.ph,cw:Math.round(engCaisseL()),Q:{x:Math.round(ENG_Q.x),y:Math.round(ENG_Q.y),w:Math.round(ENG_Q.w),h:Math.round(ENG_Q.h),op:ENG_Q.op},carte:r?[r.left,r.top,r.width,r.height].map(Math.round):null,hex:engBig.hex};};
 window.dbgMoteur=function(){const E=ENGINE_TIERS[engTier+1];if(!E)return 'palier max';addCoins(Math.max(1,E.coins-coinsGot));return engTier+' · '+ENGINE_TIERS[engTier].n;}; // console : monter d'UN palier en course (la vraie scène : son, carte 3D, boîte) // console : la grande carte « NOUVEAU MOTEUR »
+window.dbgLigne=function(k){const d=[];for(const q of LIGNE.pts)if(q.s>s-4&&d.length<3)d.push({s:Math.round(q.s),lat:+q.lat.toFixed(1),k:q.k?'pad':'fruit'});if(k==='parfait'&&d.length&&mode==='drive'&&d[0].s-s<90)lat=side*d[0].lat; /* banc : la TRAJECTOIRE PARFAITE (la caisse posée sur l'objet qui arrive) */return {on:LIGNE.on,poses:{fruits:LIGNE.n[0],pads:LIGNE.n[1]},pris:{fruits:LIGNE.pris[0],pads:LIGNE.pris[1]},devant:d,s:Math.round(s),lat:+(side*lat).toFixed(1),nitro:+(nitroR+nitroX).toFixed(2),nitroOn:nitroOn,kmh:Math.round(Math.abs(vA)*3.6*SPD),mode:mode,padCd:+padCd.toFixed(2),devantN:[LIGNE.pts.filter(q=>q.s>s&&!q.k).length,LIGNE.pts.filter(q=>q.s>s&&q.k).length]};}; // banc : LA LIGNE PARFAITE (les objets devant, la jauge, posés / pris)
 window.dbgAuto=function(on,l){DBG_AUTO.on=!!on;DBG_AUTO.lat=+l||0;return DBG_AUTO.on;};
 // `dbgEco()` : le relevé d'argent d'une partie en cours (pour caler l'économie) · `dbgEco('rejouer')` relance.
 window.dbgEco=function(a){if(a==='rejouer'&&gameOver){playViaGarage();}
@@ -20987,11 +21060,11 @@ function spawnPickups(rnd){
     serieEtat().g=pat<.80?++serieEtat().n:0; // (v5) zigzag, arc, cercle, jackpot : une SÉRIE ; l'éparpillé n'en est pas une
     if(pat<.30){ // ZIGZAG : serpente franchement d'un bord à l'autre (il FAUT slalomer pour tout prendre)
       const n=5+((rnd()*4)|0),amp=HALF*(.7+rnd()*.3),ph=1.1+rnd()*1.3,st=(10+rnd()*4)*STR;
-      for(let i=0;i<n;i++)place(ss+i*st,Math.sin(i*ph)*amp,rnd()<.34);
+      for(let i=0;i<n;i++)place(ss+i*st,Math.sin(i*ph)*amp,rnd()<.34&&!LIGNE.on);
       ss+=esp(n*st/STR+70+rnd()*50);
     }else if(pat<.52){ // ARC : une vague vers un côté puis retour
       const n=5+((rnd()*4)|0),amp=HALF*(.75+rnd()*.25),sd=rnd()<.5?-1:1,st=(11+rnd()*4)*STR;
-      for(let i=0;i<n;i++){const u=i/(n-1);place(ss+i*st,sd*amp*Math.sin(u*Math.PI),rnd()<.34);}
+      for(let i=0;i<n;i++){const u=i/(n-1);place(ss+i*st,sd*amp*Math.sin(u*Math.PI),rnd()<.34&&!LIGNE.on);}
       ss+=esp(n*st/STR+70+rnd()*50);
     }else if(pat<.70){ // CERCLE : un anneau posé à plat (il faut le contourner pour le boucler)
       const R=Math.min(HALF,5.5+rnd()*4),n=8+((rnd()*4)|0),Rs=R*STR; // (étiré dans le sens de la route à haute vitesse : une ellipse qu'on lit)
@@ -21003,7 +21076,7 @@ function spawnPickups(rnd){
       ss+=esp(n*st/STR+140+rnd()*80); // suivi d'un grand vide : le jackpot se paie cher en distance
     }else{ // ÉPARPILLÉ : deux-trois pièces libres, largement espacées
       const n=2+((rnd()*3)|0),st=(20+rnd()*18)*STR;
-      for(let i=0;i<n;i++)place(ss+i*st,(rnd()*2-1)*HALF,rnd()<.45);
+      for(let i=0;i<n;i++)place(ss+i*st,(rnd()*2-1)*HALF,rnd()<.45&&!LIGNE.on); // (2026-09-29) les fruits vivent sur LA LIGNE PARFAITE (le tirage reste consommé)
       ss+=esp(n*st/STR+60+rnd()*50);
     }
   }
@@ -31150,6 +31223,7 @@ function loop(now){
     if(startBoostT>0)startBoostT=Math.max(0,startBoostT-dt); // LE BOOST DE DÉPART : décroît tout seul, même hors mode 'drive' ne l'arrête pas plus tôt que prévu
     if(pwrAirT>0){pwrAirT-=dt;if(pwrAirT<=0){pwrAirT=0;if(!TUTO.on)pwrFinSnd('a');if(mode==='fall'){fallT=0;fallTR=0;airFlash=.6;}}} // (2026-09-28) l'airtime PRÊTÉ par l'auto-école n'est pas un pouvoir : il finit sans bruit
     pwrTick(dt); // (pouvoirs v2) aimant · aura ×2
+    ligneTick(dt); // (2026-09-29) LA LIGNE PARFAITE s'allonge devant la caisse
     // nitro : 2s regen (10s de recharge) + 2s réserve (bidons bleus)
     // CAPACITÉ MOTEUR : la réserve de nitro s'élargit avec le palier (2,0 → 3,6 au réacteur)
     const NRMAX=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2;
@@ -31327,12 +31401,14 @@ function loop(now){
       }
       // pads turbo
       padCd=Math.max(0,padCd-dt);
-      if(mode==='drive'&&padCd<=0)for(let i9=0;i9<PADS.length;i9++){
-        if(Math.abs(s-PADS[i9])<6&&Math.abs(side*lat-PADL[i9])<4.1){ // 2,75 de pad + ~1,35 de caisse : il faut MORDRE dessus
+      LIGNE.sPd0=LIGNE.sPd;LIGNE.sPd=s; // (LIGNE PARFAITE) le pad de la file se teste sur le TRAJET de l'image (à 600 km/h et 30 i/s, 5,6 m par image)
+      if(mode==='drive')for(let i9=0;i9<PADS.length;i9++){
+        const pl9=LIGNE.padI.has(i9);if(pl9?LIGNE.padPris.has(i9):padCd>0)continue; // (LIGNE PARFAITE) le pad de la file ne se bloque pas sur la recharge du précédent : il ne se prend qu'UNE fois
+        if((Math.abs(s-PADS[i9])<6||(LIGNE.padI.has(i9)&&Math.abs(s-LIGNE.sPd0)<60&&(PADS[i9]-LIGNE.sPd0)*(PADS[i9]-s)<=0))&&Math.abs(side*lat-PADL[i9])<4.1){ // 2,75 de pad + ~1,35 de caisse : il faut MORDRE dessus
           vA+=18;boost=Math.max(boost,1.5);padCd=1.5; // viser paie plus qu'avant (14 → 18)
           if(SONV2)sfx('pad');else boostSnd();shake=Math.max(shake,.3);hap(10);
           slam('BOOST','','#ffb000','#ff3924',28); /* (2026-09-29, Sacha : « BOOST écrit plus petit ») 46 → 28 */flashEcran('rgba(255,150,0,.5)');fovPunch=Math.max(fovPunch,10); // (HUD v3) « quand tu roules sur un boost, BOOST en gros »
-          nitroGain(.12);flowAdd(6,'route','p');momT=Math.min(4.3,momT+.8);
+          if(pl9){LIGNE.pris[1]++;LIGNE.padPris.add(i9);}nitroGain(LIGNE.padI.has(i9)?LIGNE.don:.12);flowAdd(6,'route','p');momT=Math.min(4.3,momT+.8); // (LIGNE PARFAITE) le pad de la file rend de quoi tenir jusqu'au fruit
           campPad(i9); // (2026-09-27) la LIGNE DE NÉON (campagne VILLE, niveau 12)
           break;
         }
@@ -31451,6 +31527,7 @@ function loop(now){
          derrière, sur les côtés, au-dessus — sur TA face de la route (l'autre face est le miroir de celle-ci, la prendre paierait deux
          fois). La traction est une loi FORTE (5 + 25·(1−d/R)² par seconde) : une pièce dépassée, à 4 m derrière une caisse à 200 km/h,
          doit encore la RATTRAPER — à 13/s elle s'arrêtait à 4,3 m, juste hors de portée du ramassage (3,8 m). */
+      const sA9=LIGNE.sPk==null?s:LIGNE.sPk;LIGNE.sPk=s; // (LIGNE PARFAITE) le fruit de la file se teste aussi sur le TRAJET de l'image
       if(mode==='drive'||mode==='fall')for(const p of pickups){
         if(p.taken)continue;
         const enVol=(mode==='fall');
@@ -31476,7 +31553,7 @@ function loop(now){
           if(ds9<15+mag*2&&Math.abs(p.lat-side*lat)<9+mag*2) // (2026-09-26) plus de `level` ici : c'est l'index de la caisse (66), l'aimant faisait 33 m sur les dernières // portée LATÉRALE de l'aimant à pièces (route large)
             p.mesh.position.lerp(carGroup.position,Math.min(1,dt*(6+mag*1.5)));
         }
-        if(p.mesh.position.distanceTo(carGroup.position)<3.8+mag*.5){ // (2026-09-26) portée FIXE (les objets ont grossi)
+        if(p.mesh.position.distanceTo(carGroup.position)<3.8+mag*.5||(p.ligne&&mode==='drive'&&p.face===side&&Math.abs(p.lat-side*lat)<4.5&&Math.abs(s-sA9)<60&&(p.s-sA9)*(p.s-s)<=0)){ // (2026-09-26) portée FIXE (les objets ont grossi)
           p.taken=true;scene.remove(p.mesh); // (une pièce instanciée sort d'elle-même du couloir au prochain LOD)
           if(p.pow){ // POUVOIR : le minuteur démarre (ou se CUMULE), l'écran l'annonce en couleur — (pouvoirs v2) tout vit dans pwrPrend
             pwrPrend(p.pow,p.mesh.position);
@@ -31485,7 +31562,7 @@ function loop(now){
             const fd=FRUIT_DEFS[p.fruit]||FRUIT_DEFS[0],pw=Math.min(1,fd.boost/2);
             // (2026-09-26, user : « les fruits donnent du nitro BLEU ») : chaque fruit remplit la RÉSERVE BLEUE (la nitro la plus forte : poussée
             // 48 contre 30) de 20 % de la jauge — le bleu se voit sur la barre et sur l'anneau du bouton
-            {const mx9=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,av9=nitroX;nitroX=Math.min(2,nitroX+.2*mx9);
+            {const mx9=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,av9=nitroX;nitroX=Math.min(2,nitroX+(p.ligne?LIGNE.don:.2*mx9));if(p.ligne)LIGNE.pris[0]++; // (LIGNE PARFAITE) le fruit de la file rend de quoi tenir jusqu'au pad
              if(nitroX>av9+.01){if(SONV2)sfx('nitro.plein',{t:.14});const b=document.getElementById('nitroBar');if(b){b.classList.remove('gain');void b.offsetWidth;b.classList.add('gain');}}}
             RUNX.fruits++;hap(fd.boost>=1.5?[20,40,30]:11);
             fruitCroque(carGroup.position,fd.jus||0xffd75e,pw,fd.n); // ON CROQUE : jus, crunch, et la rafale qui monte

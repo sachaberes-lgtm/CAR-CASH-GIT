@@ -185,6 +185,26 @@
 - L'argent vient désormais des pièces ramassées, du portail et des primes de campagne (les fruits ne donnent que du nitro). Vérifié : saut de 2,3 s avec la figure
   DAUPHIN posé → argent inchangé, aura versée à l'encaissement de la chaîne (banc `argent.js`, scratchpad 4b30b603).
 
+## LA LIGNE PARFAITE (2026-09-29, session INTERFACE) — « alterner fruit et booster pour aller à fond tout le temps avec une trajectoire parfaite »
+- Avant : pads au hasard tous les 280-560 m, fruits au hasard dans les motifs de pièces ; même en prenant tout, la nitro tenue (−1/s,
+  +0,2/s) s'éteignait. Désormais **UNE file FRUIT, PAD, FRUIT, PAD…** (`LIGNE`, `ligneTick(dt)` appelée après `pwrTick`) posée **EN
+  COURSE**, `LIGNE.voir` = 3,5 s devant la caisse, espacée de `LIGNE.dt` = 1,2 s à la vitesse RÉELLE d'avance de `s` (NITROOO jusqu'à
+  +80 % et VITESSE ×2 compris, + l'accélération prévue). ⚠ MESURÉ : une file précalculée sur la croisière du moteur mettait un objet tous
+  les 38 m (4 par seconde à 527 km/h) ; sans NITROOO dans le calcul, elle arrivait 1,5× trop serrée.
+- Placée sur la **trajectoire** : centre en ligne droite, corde dans les virages (`ligneLat`, courbure latérale sur ±40 m, ×1600, borné à
+  62 % de la demi-route). Saute trous, couloirs de tremplin, portes de plots (`campPadNon`) et chaînes de néon de la VILLE (`ligneBloque`) ;
+  un objet sans place saute et le suivant garde son type. Deux faces (miroir). **Aucun rnd()** : la boucle des pads au hasard et les
+  fruits des motifs gardent leurs tirages mais ne posent plus rien (`LIGNE.on`). Parc et auto-école : inchangés.
+- **Chaque objet rend `LIGNE.don` = 1,15 s de nitro** (fruit → réserve bleue, pad → `nitroGain`) au lieu de 20 % / 0,12. Le pad de la
+  file ne subit pas la recharge de 1,5 s du précédent (il ne se prend qu'une fois, `padPris`) ; fruit et pad de la file se testent aussi
+  sur le TRAJET de l'image (à 600 km/h et 30 i/s, 5,6 m par image).
+- Programmes : fruits et pad chauffés au menu (`chauffeDivers`) — MESURÉ 99 → 99 programmes pendant la course.
+- Banc `ligne.js parfait|suit|centre ms` (hook `dbgLigne('parfait')`) : trajectoire parfaite = 100 % des objets, nitro allumée 99,7 % du
+  temps sur 60 s (627 km/h de moyenne) ; le pilote auto du jeu (imprécis) = moitié des pads, nitro éteinte 13,6 %.
+- ⚠ Conséquence : un pad ≈ toutes les 2,4 s → « BOOST » (en petit) et « RÉCOLTE / RAFALE » bien plus fréquents.
+- **Vies du mode FACILE** re-mesurées sous le compteur d'argent ET sa ligne de gain : hudH+120 debout / +103 couché ; debout elles
+  s'effacent en vol (le chrono de vol prend leur place).
+
 ## L'ÉCRAN DE FIN v5 (2026-09-29, session INTERFACE) — « pas joli ; on ne compte pas l'aura, c'est le score d'une partie ; l'argent plus en avant »
 - ⚠ **Verdict qui remplace celui du 25/09** (« l'argent n'est pas important quand tu es mort — c'est l'aura et le moteur ») : l'ARGENT est
   le héros de l'écran. `.mCashL` = une plaque verte : « VERSÉS AU COMPTE », le montant au plus gros corps (`--f8`, réglé sur sa longueur
@@ -197,7 +217,7 @@
   l'argent et les deux cartes étirées jusqu'en bas ; à droite les missions (même hauteur que titre + argent), les chiffres, les tuiles,
   MENU | REJOUER. Plus de trou. Petit téléphone couché (≤ 760 px) : tuiles pictogramme au-dessus du mot. Section 29 de `charte4`.
 - Banc : `mortv5.js W H lang tag` (vraie partie au pilote auto, mort, capture, chevauchements, défilement).
-- **Les vies du mode FACILE** ont descendu d'un cran (`#facVies` à hudH+104 debout / +90 couché) : le compteur d'argent `#cashHud`
+- **Les vies du mode FACILE** ont descendu d'un cran (`#facVies` à hudH+120 debout / +103 couché, voir LA LIGNE PARFAITE) : le compteur d'argent `#cashHud`
   (session UHD) a pris leur place sous la pause.
 
 ## MOINS DE TEXTES AU MILIEU DE L'ÉCRAN (2026-09-29, session INTERFACE) — « il y en a trop »
