@@ -12583,7 +12583,8 @@ function sillageStep(tr,px,py,pz,cr,cg,cb,k,wm,dt,wu){ // wm : l'élargissement 
     if(fin){Rf=r+1;break;}
   }
   tr.m.geometry.setDrawRange(0,Math.max(0,Rf-1)*12);tr.m.visible=Rf>1;
-  tr.m.geometry.attributes.position.needsUpdate=true;tr.m.geometry.attributes.color.needsUpdate=true;
+  {const a9=tr.m.geometry.attributes,c9=Math.max(1,Rf)*12;a9.position.updateRange.offset=0;a9.position.updateRange.count=c9;a9.color.updateRange.offset=0;a9.color.updateRange.count=c9; // (revue GAMEPLAY) on n'envoie que les rangées dessinées — sans updateRange, three renvoyait les 2 × 19 Ko du tampon à chaque image, par pot
+   a9.position.needsUpdate=true;a9.color.needsUpdate=true;}
 }
 window.dbgSillage=function(k,v){if(k&&SIL[k]!=null&&v!=null)SIL[k]=+v;return {SIL:SIL,pots:Math.min(4,CAR_POTS.length),sillages:SILS.map(function(t){return {n:t.n,emet:t.emit,vis:t.m.visible,rangees:t.m.geometry.drawRange.count/12,metres:+t.long.toFixed(1),eclat:+t.g.toFixed(2)};})};}; // (banc) l'état des sillages ; dbgSillage('LONG',60) règle à chaud
 /* <<<VOITURES>>> ---------------------------------------------------------------------------
