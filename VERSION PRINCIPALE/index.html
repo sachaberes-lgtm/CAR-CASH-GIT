@@ -6608,6 +6608,7 @@ window.dbgDPR=function(d,sansPique){RESPIN=true;curDPR=+d;applyDPR();if(sansPiqu
    pour comparer la même image avec et sans. `dbgGfx({coeur:0,trame:0,pique:0})` = le rendu d'avant ; `dbgGfx()` décrit. */
 window.dbgGfx=function(o){
   if(o){if(o.coeur!=null)GFX_U.uCoeur.value=o.coeur===true?1.16:(+o.coeur||1);if(o.glace!=null)GLACE.k=o.glace===true?1:+o.glace;
+    if(o.cotonOpaque!=null&&COTON.mat){COTON.mat.transparent=!o.cotonOpaque;COTON.mat.depthWrite=true;}
     if(o.trame!=null&&acesPass)acesPass.uniforms.uTrame.value=o.trame?1/255:0;
     if(o.pique!=null&&acesPass){RESPIN=true;acesPass.uniforms.uSharp.value=+o.pique;}}
   return {coeur:GFX_U.uCoeur.value,glace:+ROAD_U.uGlace.value.toFixed(3),trame:acesPass?+(acesPass.uniforms.uTrame.value*255).toFixed(2):null,pique:acesPass?+acesPass.uniforms.uSharp.value.toFixed(3):null,dpr:curDPR,natif:devicePixelRatio};};
@@ -6661,11 +6662,11 @@ function perfMonTick(now,rawMs){const M=PERF_MON;if(rawMs>M.pire)M.pire=rawMs;if
    LE MODELÉ : une couleur par sommet cuite une fois (ventre ombré bleuté → sommet blanc, creux entre deux bourgeons assombris)
    et, dans le shader, la LISIÈRE D'ARGENT — face au soleil, le bord de la ouate s'embrase (diffusion avant) — plus un bord
    à peine plus léger. Coût : zéro par image côté CPU, quelques instructions par pixel côté GPU (et deux fois moins de pixels). */
-const GFX_U={uCoeur:{value:1.16}}; // (2026-09-28, passe graphismes mobile) le cœur plein des nuages (1 = l'ancienne ouate à 82 % partout) — voir dbgGfx
+const GFX_U={uCoeur:{value:1.16},uNearF:{value:new THREE.Vector2(10,40)}}; // uNearF : le fondu des nuages de coton près de l'objectif (m) — 10-40 au sol, 30-110 en vol (posé par la boucle) // (2026-09-28, passe graphismes mobile) le cœur plein des nuages (1 = l'ancienne ouate à 82 % partout) — voir dbgGfx
 function nuageShader(sh){
-  sh.uniforms.uSunV=RIM_U.uSunV;sh.uniforms.uSunC={value:sun.color};sh.uniforms.uCoeur=GFX_U.uCoeur; // la direction du soleil en espace vue (posée chaque image pour les caisses) et SA couleur de biome
+  sh.uniforms.uSunV=RIM_U.uSunV;sh.uniforms.uSunC={value:sun.color};sh.uniforms.uCoeur=GFX_U.uCoeur;sh.uniforms.uNearF=GFX_U.uNearF; // la direction du soleil en espace vue (posée chaque image pour les caisses) et SA couleur de biome
   sh.fragmentShader=sh.fragmentShader.replace('#include <lights_fragment_begin>',LFB_SANS_PL) // (2026-09-26) les nuages ne paient plus les lumières ponctuelles (voir LFB_SANS_PL)
-    .replace('#include <common>','#include <common>\nuniform vec3 uSunV,uSunC;uniform float uCoeur;')
+    .replace('#include <common>','#include <common>\nuniform vec3 uSunV,uSunC;uniform float uCoeur;uniform vec2 uNearF;')
     .replace('#include <envmap_fragment>',[
       '#ifdef NUAGE_DEDANS',                                              // DEDANS : ni liseré ni bord — la paroi se fond dans la brume du nuage (white-out uni)
       '#ifdef USE_FOG',
@@ -6680,7 +6681,7 @@ function nuageShader(sh){
       // Le cœur, vu de face, monte à ~95 % ; la vapeur garde ses 82 % là où la ouate tourne (fr9 > .62) puis s allège au liseré.
       '  diffuseColor.a=min(1.,diffuseColor.a*mix(uCoeur,1.,smoothstep(.12,.62,fr9)))*(1.-pow(fr9,7.)*.45);', // le tout dernier liseré de la silhouette s allège
       '#ifdef NUAGE_INST',
-      '  diffuseColor.a*=smoothstep(10.,40.,length(vViewPosition));',     // (ciel de coton) traversé, le nuage s efface AUTOUR de l objectif au lieu de claquer (10-40 m : à 60 m de l accueil il restait fantôme)
+      '  diffuseColor.a*=smoothstep(uNearF.x,uNearF.y,length(vViewPosition));',     // (ciel de coton) traversé, le nuage s efface AUTOUR de l objectif au lieu de claquer (10-40 m : à 60 m de l accueil il restait fantôme)
       '#endif',
       '}',
       '#endif',
@@ -8828,7 +8829,7 @@ function villeImpact(p,vel){
   const P=IMPACT.P.set(Math.max(-hx,Math.min(hx,dx)),Math.max(-hy,Math.min(hy,dy)),Math.max(-hz,Math.min(hz,dz))),N=IMPACT.N.set(0,0,0);
   if(px<=pz&&px<=py){N.x=Math.sign(dx)||1;P.x=hx*N.x;}else if(pz<=py){N.z=Math.sign(dz)||1;P.z=hz*N.z;}else{N.y=Math.sign(dy)||1;P.y=hy*N.y;}
   P.x+=c[o];P.y+=c[o+1];P.z+=c[o+2];
-  const R=Math.max(3.5,Math.min(7,Math.min(N.x?Math.min(hz,hy):N.z?Math.min(hx,hy):Math.min(hx,hz))*.9)); // 7 m, jamais plus que la façade
+  const R=Math.max(3,Math.min(5,Math.min(N.x?Math.min(hz,hy):N.z?Math.min(hx,hy):Math.min(hx,hz))*.9)); // 5 m (c'était 7 : la caméra de la mort, à ~14 m de la façade, ne voyait plus que le trou), jamais plus que la façade
   IMPACT.u.value.set(P.x,P.y,P.z,R);IMPACT.n.value.set(N.x,N.y,N.z,0);IMPACT.fume=5.5;
   try{if(SONV2)sfx('impact.immeuble');}catch(e){} // (le son : la console de SON — béton qui éclate, verre qui pleut, ~1,5 s)
   const T1=IMPACT.T1.set(0,1,0);if(Math.abs(N.y)>.9)T1.set(1,0,0);const T2=IMPACT.T2.crossVectors(N,T1).normalize();T1.crossVectors(T2,N).normalize();
@@ -10462,7 +10463,7 @@ function bioApply(c){ // pousse l'ambiance mélangée dans TOUS les organes (uni
   // LE LISERÉ : du côté de LA source du niveau — le soleil le jour, le néon du kick la nuit (sa couleur ×1,4 : un contre-jour, pas un reflet)
   RIM_DIR.copy(SUN_DIR).lerp(KICK_DIR,c.rimK).normalize();
   RIM_C0.setRGB(1,.851,.627).lerp(RIM_T9.setRGB(c.kickC[0]*1.4,c.kickC[1]*1.4,c.kickC[2]*1.4),c.rimK);
-  RIM_U.uRimStr.value=c.rimS;
+  RIM_U.uRimStr.value=c.rimS;RIM_S0=c.rimS; // (RIM_S0 : la base du niveau — la boucle la relève en vol, voir « la caisse se détache »)
   FOG_CLOUD.setRGB(c.fogIn[0],c.fogIn[1],c.fogIn[2]);FOG_CJ.setRGB(c.fogCj[0],c.fogCj[1],c.fogCj[2]); // le white-out et le contre-jour prennent l'air du niveau
   // le SOLEIL « 1.61 », sa nappe d'horizon et ses rayons sont des SPRITES hors shader : ils suivent le halo du biome
   const nuit9=(1-LVL.espace)*(1-LVL.pluie); // ORBITE, NOIR COMPLET — et sous le plafond de PLUIE de la ville, pas de soleil non plus : même le disque « 1.61 » s'éteint (lvlStep tourne AVANT bioStep : la valeur est fraîche)
@@ -10471,6 +10472,7 @@ function bioApply(c){ // pousse l'ambiance mélangée dans TOUS les organes (uni
   for(const r9 of RAYS)r9.material.opacity=RAY_OPACITY*c.sunHalo*nuit9;
 }
 // le liseré des caisses : direction MONDE et teinte de repos, posées par bioApply, relues chaque image par la boucle (voir RIM_U)
+let RIM_S0=.4; // (2026-09-29) la force du liseré posée par le niveau (bioApply) — la boucle la relève en vol
 const RIM_DIR=SUN_DIR.clone(),RIM_C0=new THREE.Color(0xffd9a0),RIM_T9=new THREE.Color(),KICK_DIR=kick.position.clone().normalize();
 const BLOOM_K=IS_MOBILE?.44/.54:1; // le téléphone garde son rapport de bloom (.44 contre .54 sur PC) : les forces des biomes sont des bases PC
 function bioGo(name,dur){ // lance le voyage vers un biome (reflets carrosserie repeints tout de suite : discret)
@@ -31099,6 +31101,8 @@ function loop(now){
          désormais un PLAN de cinéma, voir BOOM_CAM / boomCamTick. */
       boomCamTick(dt);
       if(elTurn.style.opacity!=='0')elTurn.style.opacity=0;
+      if(boomT<2.4){if(Math.random()<dt*11)spawnP(smokePool,boomPos.x+(Math.random()-.5)*2.4,boomPos.y+1+boomT*3.2+(Math.random()-.5)*1.5,boomPos.z+(Math.random()-.5)*2.4,(Math.random()-.5)*1.4,4.5+Math.random()*2.5,(Math.random()-.5)*1.4,1.6+Math.random()*.9); // (2026-09-29, passe « jeu pro ») LA COLONNE DE FUMÉE : à 1,4 s il ne restait rien à voir
+        if(Math.random()<dt*7)spawnP(boomEmbO,boomPos.x+(Math.random()-.5)*1.6,boomPos.y+.6,boomPos.z+(Math.random()-.5)*1.6,(Math.random()-.5)*3,5+Math.random()*5,(Math.random()-.5)*3,.8+Math.random()*.6);} // …et les braises qui s'en échappent
       if(boomT>1.8&&!gameOver)endGame();
     }
     // traînée nitro façon Asphalt 8 — (2026-09-26, passe graphique) ÉTEINTE : ce ruban PLAT de 1,9 m posé derrière la caisse, sans
@@ -31625,8 +31629,9 @@ function loop(now){
   // (2026-09-26) éteints = plus dessinés : le sprite additif du soleil couvre 2 000 unités, même à opacité nulle il se paie (garage et étal gardent la main)
   if(!garageOn&&!stallOn){sunSprite.visible=sunSprite.material.opacity>.02;horizonGlow.visible=horizonGlow.material.opacity>.02;for(const r9 of RAYS)r9.visible=r9.material.opacity>.002;}
   if(acesPass){ // EFFETS DE VITESSE (aberration + flou radial + tunnel) — SUR LE BOOST, pas sur le simple fait d'avancer
-    const sfxT=(running&&!gameOver&&!REDUCED_MOTION&&FLOU_OK)?Math.max(ORBFX.warp*.95,Math.min(1,(nitroOn?0.72:0)+Math.min(1,boost)*0.6)):0; // (2026-09-28) + le TUNNEL de l'orbite // rouler normalement = image nette ; booster = ça FUSE
-    loop._sfx=(loop._sfx||0)+(sfxT-(loop._sfx||0))*Math.min(1,dt*(sfxT>(loop._sfx||0)?7:3)); // montée franche, retombée douce
+    const volK9=mode==='fall'?.5:mode==='boom'?0:1; // (2026-09-29, passe « jeu pro » — deux critiques : la moitié de l'image étalée en vol, la lune en copies à la mort) : EN VOL on VISE la réception, à la MORT on regarde
+    const sfxT=(running&&!gameOver&&!REDUCED_MOTION&&FLOU_OK)?Math.max(ORBFX.warp*.95,Math.min(1,(nitroOn?0.72:0)+Math.min(1,boost)*0.6)*volK9):0; // (2026-09-28) + le TUNNEL de l'orbite // rouler normalement = image nette ; booster = ça FUSE
+    loop._sfx=(loop._sfx||0)+(sfxT-(loop._sfx||0))*Math.min(1,dt*(sfxT>(loop._sfx||0)?7:mode==='boom'?9:3)); // montée franche, retombée douce (sèche à l'explosion)
     acesPass.uniforms.uSpeed.value=loop._sfx;acesPass.uniforms.uJit.value=(acesPass.uniforms.uJit.value+.618034)%1;
     renderer.getDrawingBufferSize(acesPass.uniforms.uRes.value);acesPass.uniforms.uRes.value.set(1/Math.max(1,acesPass.uniforms.uRes.value.x),1/Math.max(1,acesPass.uniforms.uRes.value.y)); // la taille d'un texel pour le FXAA (suit la résolution adaptative)
   }
@@ -31653,6 +31658,9 @@ function loop(now){
   sun.position.copy(shadV).addScaledVector(L_DIR,160);
   sun.target.updateMatrixWorld();
   // rim golden hour : direction de LA source du niveau en espace vue (soleil le jour, néon du kick la nuit : RIM_DIR/RIM_C0, posés par bioApply) + teinte par état
+  {const nf9=GFX_U.uNearF.value,v9=mode==='fall'?1:0;nf9.x+=((v9?30:10)-nf9.x)*Math.min(1,dt*3);nf9.y+=((v9?110:40)-nf9.y)*Math.min(1,dt*3);} // en VOL, le coton s'efface plus loin de l'objectif : la réception se lit
+  {const fk9=mode==='fall'?1:0;loop._rimF=(loop._rimF||0)+(fk9-(loop._rimF||0))*Math.min(1,dt*(fk9?5:2.5)); // (2026-09-29, passe « jeu pro ») EN VOL la caisse se DÉTACHE : le liseré ×1,9
+   RIM_U.uRimStr.value=RIM_S0*(1+.9*loop._rimF);} // — vue de dessous, sur les fenêtres de la VILLE ou le noir de l'ORBITE, elle n'était plus qu'une silhouette sombre
   RIM_U.uSunV.value.copy(RIM_DIR);if(LVL.espace>.001)RIM_U.uSunV.value.lerp(ORB.terre,LVL.espace).normalize(); // (2026-09-27) en ORBITE le liseré vient de la TERRE : la silhouette s'ourle du bleu de la planète
   RIM_U.uSunV.value.transformDirection(camera.matrixWorldInverse);
   if(fever>0)RIM_U.uRimC.value.setHex(0xffc55e);

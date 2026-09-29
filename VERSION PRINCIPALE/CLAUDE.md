@@ -52,6 +52,20 @@ QUATRE audits en lecture seule (App Store, textes FR/EN, logique des écrans, iP
   POP-TART » (Nyan Cat) et noms de marques (QUATTRO, STRATOS, DAYTONA, ELDORADO, VETTE, LE MANS 24) ; côté Mac : icône 1024, PrivacyInfo,
   cible iOS 16.4, `contentInset:'never'`, plugins haptics/preferences, ne pas embarquer CLAUDE.md/README/atelier-son/sons.html.
 
+## LA PASSE « JEU PRO » DU RENDU (2026-09-29, session GRAPHISME) — « peaufine, comme si le jeu avait été fait par une équipe de 50 pros »
+Méthode : 42 captures (3 mondes × sol/route/nitro/vol/après/explosion ×2, debout et couché — banc `gfx/balade.js`), critiquées par DEUX
+relecteurs indépendants (directeur artistique, technical artist), triées contre les verdicts de Sacha. Corrigé :
+- **EN VOL, ON VISE** : le flou de vitesse ×0,5 en vol et coupé net à l'explosion (`volK9` sur `sfxT` — « la moitié de l'image étalée »,
+  « la lune en copies ») ; la caisse se DÉTACHE (`RIM_S0` × 1,9 en vol, lissé — vue de dessous elle n'était qu'une silhouette sombre) ;
+  les nuages de coton s'effacent de 30 à 110 m de l'objectif en vol (10-40 au sol, `GFX_U.uNearF`) — la réception se lit.
+- **L'EXPLOSION NE RETOMBE PLUS À PLAT** : une colonne de fumée (`smokePool`) monte 2,4 s du point d'impact, des braises s'en échappent.
+- **LE CRATÈRE DE L'IMMEUBLE** : 7 → 5 m (la caméra de la mort, à ~14 m de la façade, ne voyait plus que le trou).
+- **Écarté après essai** : nuages de coton OPAQUES (image quasi identique, mais plus de fondu quand la caméra les traverse) — gardé
+  translucide (`dbgGfx({cotonOpaque:1})` pour comparer).
+- **Laissé à Sacha (ses verdicts)** : les taches de jus (n°1 des DEUX critiques : grosses, opaques, partout — voulu le 28/09), la taille
+  des fruits, le « fil » des rubans de nitro jusqu'au bas de l'écran, l'antenne de LA HONTE (un carré doré au centre de l'écran).
+- **Transmis** : carte MOTEUR 3D qui bouche le point de fuite + voile vert-sarcelle sur le HUD en VILLE (UHD).
+
 ## LES TEXTES DE FIGURE, 3e CRAN (2026-09-29, session GRAPHISME) — « les textes de figure sont beaucoup trop gros et bloquent la vue »
 Après le 2e cran d'INTERFACE (figK/annK, voir ci-dessous) — mesuré sur captures 390×844 et 844×390 (banc `gfx/fig.js`, `gfx/fig2.js`) :
 - `annK()` .82/.72 → **.60/.52** (toutes les annonces du couloir), `figK()` .72/.62 → **.56/.48** (geste sur la caisse, verdict MONSTRE…).
