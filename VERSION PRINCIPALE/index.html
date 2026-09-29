@@ -7226,28 +7226,36 @@ function buildCoton(cr){
   const strat=function(k,K){return Math.min(NP-1,Math.floor(((k+.18+cr()*.64)/K)*NP));};
   const perp=function(i){const t=T[i],l=Math.hypot(t.x,t.z)||1;return [-t.z/l,t.x/l];}; // le travers HORIZONTAL du ruban (jamais B[i] : piste inclinée)
   if(okD){
-    const OR=LVL.cur&&LVL.cur.id==='orage',M9=OR?1.25:1,KK=function(n){return Math.round(n*M9);}; // (2026-09-29) L'ORAGE : un tiers de nuages en plus partout
+    const OR=LVL.cur&&LVL.cur.id==='orage',M9=OR?1.6:1,KK=function(n){return Math.round(n*M9);};
+    /* (2026-09-30, Sacha : « retravaille les nuages dans le premier niveau, il en faut des plus gros ») GZ : aux NUAGES, les couronnes proche, du
+       milieu, haute et lointaine grossissent de ~45 % (bornes de la loi de puissance ×1,45) — même nombre de nuages, mais des MASSES qui
+       remplissent le cadre ; la garde de la route rejette toujours ceux qui la toucheraient (on en perd un peu : c'est voulu). */
+    const GZ=LVL.cur&&LVL.cur.id==='nuages'?1.45:1; // (2026-09-29) L'ORAGE : plus de nuages partout — (2026-09-30, « au point que ça gêne la visibilité ») ×1,25 → ×1,6
     for(let k=0;k<KK(30);k++){ // (1) LA COURONNE PROCHE, EN ARCHIPELS (Dragons) : des îlots de 2-3 nuages (un grand, ses satellites au même plafond),
       // et du CIEL OUVERT entre deux — 80 nuages semés un par un encombraient tout le champ (« liberté » = des vides qu'on traverse)
-      const i=strat(k,KK(30)),p=pts[i],q=perp(i),sg=cr()<.5?-1:1,r=cotonR(cr,30,160,1.5),kk=cotonKind(cr,COTON_POIDS.pres),yB=p.y-130+cr()*300; // (v4) tailles en loi de puissance
+      const i=strat(k,KK(30)),p=pts[i],q=perp(i),sg=cr()<.5?-1:1,r=cotonR(cr,30*GZ,160*GZ,1.5),kk=cotonKind(cr,COTON_POIDS.pres),yB=p.y-130+cr()*300; // (v4) tailles en loi de puissance
       let d=ROAD_HALF+r+50+cr()*300,cx=0,cz=0,ok=false;for(let t=0;t<3;t++,d+=110){cx=p.x+q[0]*sg*d;cz=p.z+q[1]*sg*d;if(cotonPose(cx,yB,cz,r,kk,cr)){ok=true;break;}}
       if(ok){const ns=1+(cr()*2|0),t9=T[i];for(let m=0;m<ns;m++){const a=(m?-1:1)*(1.5+cr()*1.1)*r,rs=r*(.4+cr()*.3); // les satellites, le long de la route et un peu en travers
         cotonPose(cx+t9.x*a+q[0]*sg*(cr()-.3)*r,yB+(cr()-.5)*r*.3,cz+t9.z*a+q[1]*sg*(cr()-.3)*r,rs,cotonKind(cr,COTON_POIDS.pres),cr);}}}
     for(let k=0;k<KK(26);k++){ // (2) AU-DESSUS et EN DESSOUS du ruban (la garde garde 18-22 m de ciel libre autour de la route)
-      const i=strat(k,KK(26)),p=pts[i],q=perp(i),r=cotonR(cr,24,130,1.5),kk=cotonKind(cr,COTON_POIDS.pres),S=COTON.S[kk],h=(S.top-S.base)*r*1.3,lat=(cr()-.5)*120;
+      const i=strat(k,KK(26)),p=pts[i],q=perp(i),r=cotonR(cr,24*GZ,130*GZ,1.5),kk=cotonKind(cr,COTON_POIDS.pres),S=COTON.S[kk],h=(S.top-S.base)*r*1.3,lat=(cr()-.5)*120;
       const yB=cr()<.6?p.y+70+cr()*190:p.y-(THICK+60+cr()*170)-h;cotonPose(p.x+q[0]*lat,yB,p.z+q[1]*lat,r,kk,cr);}
     for(let k=0;k<KK(116);k++){ // (3) LA COURONNE DU MILIEU : 0,35-1,3 km, tout autour, de la mer jusqu'à ~300 m au-dessus de la route
-      const i=strat(k,KK(116)),p=pts[i],a=cr()*6.2832,d=350+cr()*950,r=cotonR(cr,50,330,1.6);
+      const i=strat(k,KK(116)),p=pts[i],a=cr()*6.2832,d=(350+cr()*950)*(GZ>1?1.12:1),r=cotonR(cr,50*GZ,330*GZ,1.6);
       cotonPose(p.x+Math.cos(a)*d,p.y-210+cr()*520,p.z+Math.sin(a)*d,r,cotonKind(cr,COTON_POIDS.mil),cr);}
     for(let k=0;k<44;k++){ // (4) LA COUCHE HAUTE : des cumulus qui se DÉCOUPENT sur le ciel (le haut d'un écran portrait, c'est du ciel)
-      const i=strat(k,44),p=pts[i],a=cr()*6.2832,d=260+cr()*1700,r=cotonR(cr,60,300,1.5);
+      const i=strat(k,44),p=pts[i],a=cr()*6.2832,d=260+cr()*1700,r=cotonR(cr,60*GZ,300*GZ,1.5);
       cotonPose(p.x+Math.cos(a)*d,p.y+230+cr()*420,p.z+Math.sin(a)*d,r,cotonKind(cr,COTON_POIDS.mil),cr);}
-    if(OR)for(let k=0;k<26;k++){ // (4 bis) L'ORAGE : LE PLAFOND — de grands nuages plats et bas (rouleaux, humilis) 110-240 m au-dessus de la route, sur elle et
+    if(OR)for(let k=0;k<30;k++){ // (2026-09-30) LES MURS : au RAS de la route (la garde lui laisse ses 18-22 m), de chaque côté, à hauteur de caisse — la route file dans un
+      // couloir de ouate : on ne voit plus d'où vient le virage, seulement la route devant soi, et l'éclair qui éclaire le couloir
+      const i=strat(k,30),p=pts[i],q=perp(i),sg=cr()<.5?-1:1,r=cotonR(cr,40,120,1.3),kk=cotonKind(cr,COTON_POIDS.pres);let dd=ROAD_HALF+r*.8+20+cr()*40;
+      for(let t=0;t<3;t++,dd+=40)if(cotonPose(p.x+q[0]*sg*dd,p.y-r*.45+cr()*30,p.z+q[1]*sg*dd,r,kk,cr))break;}
+    if(OR)for(let k=0;k<42;k++){ // (4 bis) L'ORAGE : LE PLAFOND — de grands nuages plats et bas (rouleaux, humilis) 110-240 m au-dessus de la route, sur elle et
       // autour : le ciel se referme (des trouées entre deux), la lumière passe par en dessous — et l'éclair les allume
-      const i=strat(k,26),p=pts[i],q=perp(i),lat=(cr()-.5)*1100,r=cotonR(cr,110,230,1.2);
-      cotonPose(p.x+q[0]*lat,p.y+110+cr()*130,p.z+q[1]*lat,r,cotonDe(cr,['stratocumulus','stratocumulus','humilis',1,4]),cr,.8+cr()*.25);}
+      const i=strat(k,42),p=pts[i],q=perp(i),lat=(cr()-.5)*900,r=cotonR(cr,110,230,1.2); // (2026-09-30) 26 → 42, et plus BAS (70-170 m) : le ciel se ferme
+      cotonPose(p.x+q[0]*lat,p.y+70+cr()*100,p.z+q[1]*lat,r,cotonDe(cr,['stratocumulus','stratocumulus','humilis',1,4]),cr,.8+cr()*.25);}
     for(let k=0;k<80;k++){ // (5) LE LOINTAIN : 1,2-2,6 km — l'horizon a ses nuages
-      const i=strat(k,80),p=pts[i],a=cr()*6.2832,d=1200+cr()*1400,r=cotonR(cr,120,560,1.4);
+      const i=strat(k,80),p=pts[i],a=cr()*6.2832,d=1200+cr()*1400,r=cotonR(cr,120*GZ,560*GZ,1.4);
       cotonPose(p.x+Math.cos(a)*d,p.y-260+cr()*700,p.z+Math.sin(a)*d,r,cotonKind(cr,COTON_POIDS.loin),cr);}
   }
   if(okG){ // (7) LES CATHÉDRALES (2026-09-29, Sacha : « encore plus beau et artistique, qu'on ressente la LIBERTÉ comme dans Dragons 1 ») :
@@ -7257,14 +7265,14 @@ function buildCoton(cr){
     // empilés, une « chenille » ; la hauteur vient de la TAILLE (r 220-340), l'étirement reste celui des autres nuages (×1-1,15).
     const K7=Math.max(3,Math.floor(L/1400));
     for(let k=0;k<K7;k++){const i=strat(k,K7),p=pts[i],q=perp(i),cotes=cr()<.45?[-1,1]:[cr()<.5?-1:1];
-      for(const sg of cotes){const r=220+cr()*120,kk=cotonDe(cr,['congestus','cisaille','champignon',2]),yB=p.y-(220+cr()*120);let dd=ROAD_HALF+r*1.25+60+cr()*230;
+      for(const sg of cotes){const r=(220+cr()*120)*(LVL.cur&&LVL.cur.id==='nuages'?1.25:1),kk=cotonDe(cr,['congestus','cisaille','champignon',2]),yB=p.y-(220+cr()*120);let dd=ROAD_HALF+r*1.25+60+cr()*230;
         for(let t=0;t<3;t++,dd+=90)if(cotonPose(p.x+q[0]*sg*dd,yB,p.z+q[1]*sg*dd,r,kk,cr,1+cr()*.15))break;}}
   }
   if(okG){ // (6) MASSIFS et TITANS (ex-« ciel organisé ») : des tours de 300-1 200 m, au large, hors du couloir du couchant
     const sunAz=Math.atan2(SUN_DIR.z,SUN_DIR.x),loinSol=function(){for(let t=0;t<5;t++){const a=cr()*6.2832;let d9=(a-sunAz)%6.2832;if(d9>3.1416)d9-=6.2832;if(d9<-3.1416)d9+=6.2832;if(Math.abs(d9)>.62)return a;}return sunAz+3.1416;};
     for(let k=0;k<6;k++){const i=strat(k,6),p=pts[i],a=loinSol(),d=900+cr()*1300,r=280+cr()*300;cotonPose(p.x+Math.cos(a)*d,p.y-320+cr()*160,p.z+Math.sin(a)*d,r,cotonDe(cr,[2,0,'congestus','champignon','stratocumulus']),cr);} // (v4) les massifs piochent aussi dans les congestus tirés — (v6) et les champignons, les rouleaux
     for(let k=0;k<3;k++){const i=strat(k,3),p=pts[i],a=loinSol(),d=1700+cr()*1500,r=600+cr()*450;cotonPose(p.x+Math.cos(a)*d,p.y-420+cr()*200,p.z+Math.sin(a)*d,r,cotonDe(cr,[2,'congestus','champignon']),cr);}
-    for(let k=0;k<3;k++){const i=strat(k,3),p=pts[i],a=loinSol(),d=520+cr()*380,r=200+cr()*140; // (v4) les TOURS HÉROÏQUES : trois congestus qui montent TOUT PRÈS du couloir — le niveau a ses montagnes
+    for(let k=0;k<3;k++){const i=strat(k,3),p=pts[i],a=loinSol(),d=520+cr()*380,r=(200+cr()*140)*(LVL.cur&&LVL.cur.id==='nuages'?1.3:1); // (v4) les TOURS HÉROÏQUES : trois congestus qui montent TOUT PRÈS du couloir — le niveau a ses montagnes
       for(let t=0;t<3;t++)if(cotonPose(p.x+Math.cos(a)*(d+t*160),p.y-300+cr()*80,p.z+Math.sin(a)*(d+t*160),r,cotonDe(cr,['congestus','cisaille']),cr))break;}
     {const i=Math.min(NP-1,Math.floor(NP*(.6+cr()*.15))),p=pts[i],a=sunAz+3.1416+(cr()-.5)*.9,d=1500+cr()*700;cotonPose(p.x+Math.cos(a)*d,p.y-380,p.z+Math.sin(a)*d,760+cr()*300,2,cr);} // LE COLOSSE, à l'opposé du couchant
   }
@@ -7421,12 +7429,13 @@ function buildClouds(rr){
   // bancs SUR la route — espacés : on en traverse PARFOIS, jamais en continu. Un MUR intégral (la caisse
   // disparaît dans le blanc) reste l'exception spectaculaire, pas la règle.
   const OR9=!!(LVL.cur&&LVL.cur.id==='orage'&&!LVL.cur.camp); // (2026-09-29) L'ORAGE : « plein de gros nuages sur la route » — le niveau dur se roule À L'AVEUGLE
-  for(let sp=(OR9?520:1600)+cr()*900;sp<L-300;sp+=OR9?560+cr()*620:1900+cr()*1400){ // (2026-09-26, user : « moins de nuages en contact avec la route ») : ~2× plus rares — à l'ORAGE ~3× plus serrés
-    if(cr()<(OR9?.1:.4))continue; // 2 bancs sur 5 sautés (orage : 1 sur 10)
+  for(let sp=(OR9?420:1600)+cr()*(OR9?300:900);sp<L-300;sp+=OR9?300+cr()*300:1900+cr()*1400){ /* (2026-09-30, Sacha : « beaucoup plus de nuages, au point que ça gêne la visibilité ») : à l'ORAGE un banc tous les 300-600 m (560-1180 avant) */ // (2026-09-26, user : « moins de nuages en contact avec la route ») : ~2× plus rares — à l'ORAGE ~3× plus serrés
+    if(cr()<(OR9?.06:.4))continue; // 2 bancs sur 5 sautés (orage : ~1 sur 16)
     frameAt(sp,F);
-    const mega=cr()<(OR9?.32:.1);
-    mkCloud(cldV1.copy(F.p).addScaledVector(F.n,mega?6+cr()*4:2.5+cr()*2),
-      mega?(OR9?48+cr()*34:40+cr()*30):(OR9?24+cr()*16:18+cr()*14),{onRoad:true,dense:true},cr);
+    const mega=cr()<(OR9?.45:.1);
+    const dl9=OR9&&!mega&&cr()<.5?(cr()<.5?-1:1)*ROAD_HALF*(.35+cr()*.3):0; // (2026-09-30) à l'orage, un banc sur quatre couvre UN côté de la route : on le frôle, on ne sait pas ce qu'il cache
+    mkCloud(cldV1.copy(F.p).addScaledVector(F.n,mega?6+cr()*4:2.5+cr()*2).addScaledVector(F.b,dl9),
+      mega?(OR9?58+cr()*36:40+cr()*30):(OR9?30+cr()*18:18+cr()*14),{onRoad:true,dense:true},cr);
   }
   // CHAMPS de nuages de VOL : les coussins vont par 2-3, échelonnés le long de la piste —
   // une vraie FENÊTRE de recharge d'airtime qu'on lit de loin, pas des miettes perdues
@@ -8435,7 +8444,7 @@ function genPark(rnd){
      · une BRILLANCE D'HORIZON (fresnel) à la couleur du brouillard : la route luit vers le lointain, elle se lit ;
      · une CLARTÉ PAR NIVEAU (`uLift`) : la VILLE a un bitume plus clair, qui se détache de la ville sombre (user).
    Les uniformes vivent dans ROAD_U, PARTAGÉS par toutes les pistes : routeTick() les écrit une fois par image. */
-const ROAD_U={uLift:{value:new THREE.Color(0,0,0)},uSheen:{value:.1},uSheenCol:{value:new THREE.Color(.4,.3,.5)},uWet:{value:0},uAcc:{value:new THREE.Color(0xf24aa0)},
+const ROAD_U={uLift:{value:new THREE.Color(0,0,0)},uSheen:{value:.1},uSheenCol:{value:new THREE.Color(.4,.3,.5)},uWet:{value:0},uAcc:{value:new THREE.Color(0xf24aa0)},uVil:{value:0},uEcl:{value:0},
   uGlace:{value:0},uSunW:{value:SUN_DIR}}; // (passe graphismes mobile) uGlace/uSunW : le BITUME GLACÉ des routes sèches (voir roadMat) — la direction du soleil est SUN_DIR lui-même (même objet) // uWet/uAcc : le bitume MOUILLÉ de la ville (voir BITUME_MOUILLE)
 let ASPH_TEX=null;const ASPH_K=1.7; // (vague 2) finesse du grain lu par le bitume (voir roadMat)
 function asphTex(){ if(ASPH_TEX)return ASPH_TEX;
@@ -8492,11 +8501,11 @@ function roadMat(){
   m.userData.bitume=face?2:1;m.userData.sauts=sauts; // 2 = face cachée jetée (bloc du dessous retourné), 1 = l'ancien DoubleSide
   m.onBeforeCompile=function(sh){
     sh.uniforms.uLift=ROAD_U.uLift;sh.uniforms.uSheen=ROAD_U.uSheen;sh.uniforms.uSheenCol=ROAD_U.uSheenCol;
-    sh.uniforms.uWet=ROAD_U.uWet;sh.uniforms.uAcc9=ROAD_U.uAcc;sh.uniforms.uT9=CITY.uT;sh.uniforms.uGlace=ROAD_U.uGlace;sh.uniforms.uSunW=ROAD_U.uSunW;
+    sh.uniforms.uWet=ROAD_U.uWet;sh.uniforms.uAcc9=ROAD_U.uAcc;sh.uniforms.uT9=CITY.uT;sh.uniforms.uVil9=ROAD_U.uVil;sh.uniforms.uEcl9=ROAD_U.uEcl;sh.uniforms.uGlace=ROAD_U.uGlace;sh.uniforms.uSunW=ROAD_U.uSunW;
     if(face)sh.vertexShader=sh.vertexShader.replace('#include <color_vertex>','#include <color_vertex>\nvColor=abs(vColor);') // le dessous porte des couleurs NIÉES : on relit leur valeur
       .replace('#include <shadowmap_vertex>',THREE.ShaderChunk.shadowmap_vertex.split('inverseTransformDirection( transformedNormal, viewMatrix )')
         .join('inverseTransformDirection( transformedNormal*(color.r<0.?-1.:1.), viewMatrix )')); // …et le décalage d'ombre reprend la normale d'avant le retournement
-    sh.fragmentShader='uniform vec3 uLift;uniform float uSheen;uniform vec3 uSheenCol;uniform float uWet;uniform vec3 uAcc9;uniform float uT9;uniform float uGlace;uniform vec3 uSunW;\n'+
+    sh.fragmentShader='uniform vec3 uLift;uniform float uSheen;uniform vec3 uSheenCol;uniform float uWet;uniform vec3 uAcc9;uniform float uT9;uniform float uGlace;uniform vec3 uSunW;uniform float uVil9,uEcl9;\n'+
       sh.fragmentShader.replace('void main() {',BITUME_MOUILLE+'void main() {').replace('#include <lights_fragment_begin>',sauts?LFB_ROUTE:LFB_SANS_PL)
       .replace('#include <map_fragment>','vec4 texelColor=texture2D(map,vUv*'+ASPH_K.toFixed(2)+');float spec9=texelColor.r;texelColor=mapTexelToLinear(texelColor);diffuseColor*=texelColor;')
       .replace('#include <specularmap_fragment>','float specularStrength=spec9;').replace('#include <envmap_fragment>',
@@ -8562,12 +8571,13 @@ const BITUME_MOUILLE=['#if defined(USE_ENVMAP)&&defined(ENVMAP_TYPE_CUBE)',
   '  vec3 st=bmCol(h1)*step(.55,h1)*exp(-f1*f1*12.)*(.6+.4*sin(uT9*(.6+h1*2.)+h1*50.));',
   '  float x2=az*9.+1.7,i2=floor(x2),f2=fract(x2)-.5,h2=bmH(vec2(i2,-2.3));',
   '  st+=bmCol(h2)*step(.45,h2)*exp(-f2*f2*6.)*.55;',
-  '  st*=smoothstep(.8,.15,abs(R.y))*smoothstep(3.,22.,dz);',                                            // ni le zénith ni le fond de l abîme (la route de la ville DESCEND : ses reflets rasants plongent sous l horizon, et les tours y sont aussi) ; pas sous le nez
+  '  st*=smoothstep(.8,.15,abs(R.y))*smoothstep(3.,22.,dz)*uVil9;',                                   /* (2026-09-30, Sacha : « dans l orage on voit le reflet de la ville dans les flaques, c est pas normal, il n y a pas de ville ») : les enseignes ne se reflètent que s il y a une VILLE (LVL.ville, au fondu du portail) */                                            // ni le zénith ni le fond de l abîme (la route de la ville DESCEND : ses reflets rasants plongent sous l horizon, et les tours y sont aussi) ; pas sous le nez
   '  vec4 ec=textureCube(envMap,vec3(flipEnvMap*R.x,R.yz),1.5);ec=envMapTexelToLinear(ec);',              // le ciel de la ville, un peu flou
   '  float wet=uWet*(.45+.55*P);',
   '  col*=1.-uWet*.2*P;',                                                                                  // la flaque fonce (⚠ pas le reste : l étalonnage de la pluie ÉCRASE les sombres — 10 % de moins et le bitume proche devenait noir)
   '  vec3 refl=(ec.rgb*.7+uSheenCol*.55+st*(.9+1.7*P)*film)*F*wet;',
   '  refl+=(uSheenCol+st*.5+vec3(.04,.05,.07))*ring*uWet*.3;',
+  '  refl+=vec3(.66,.72,1.)*uEcl9*(F*(1.2+2.6*P)+.10*P)*uWet;',                                        /* (2026-09-30) L ORAGE : ce que les flaques renvoient, c est L ÉCLAIR — un miroir froid qui s allume avec le ciel (CAMP_FLASH) */
   '  return vec4(col+refl,1.-uWet*.22*P);}',                                                               // la flaque garde moins de clarté de niveau : c est un miroir, pas une craie
 '#endif',''].join('\n');
 /* (2026-09-26) LES TRAITS DE LA ROUTE TIENNENT JUSQU'À L'HORIZON. Rails néon (60 cm), nappes de lueur et ligne centrale (un trait GL
@@ -8623,7 +8633,7 @@ const _px9=new THREE.Vector2();
 function routeTick(){ // le bitume suit le NIVEAU (fondu du portail : LVL.route / LVL.sheen, voir lvlStep)
   renderer.getDrawingBufferSize(_px9);TRAIT_U.uPx.value=2*Math.tan(camera.fov*Math.PI/360)/Math.max(1,_px9.y); // la taille d'un pixel à 1 m (suit le FOV de vol et la résolution adaptative)
   const r=LVL.route;ROAD_U.uLift.value.setRGB(.010+.15*r,.009+.13*r,.016+.16*r); // ⚠ l'étalonnage de la pluie écrase le rouge et le vert : la clarté doit être NEUTRE et franche pour se lire (mesuré : (0,0,17) → (2,0,47) avec une clarté bleutée de .05)
-  ROAD_U.uSheen.value=LVL.sheen;ROAD_U.uWet.value=LVL.pluie; // (2026-09-26) le bitume se mouille avec la pluie du niveau, au même fondu
+  ROAD_U.uSheen.value=LVL.sheen;ROAD_U.uWet.value=LVL.pluie;ROAD_U.uVil.value=LVL.ville;try{ROAD_U.uEcl.value=CAMP_FLASH;}catch(e){} /* (2026-09-30) les enseignes reflétées : en VILLE seulement · l'éclair dans les flaques (CAMP_FLASH est déclaré plus bas : le try couvre l'init) */ // (2026-09-26) le bitume se mouille avec la pluie du niveau, au même fondu
   ROAD_U.uGlace.value=GLACE.k*(GLACE.nuages*LVL.mer+GLACE.espace*LVL.espace)*(1-LVL.pluie); // (passe graphismes mobile) le bitume GLACÉ des routes sèches — voir roadMat
   coneBandMat.emissiveIntensity=.25+.6*LVL.pluie; // (2026-09-26) la nuit de pluie, les bandes des plots RÉTRORÉFLÉCHISSENT : on les lit de loin (un uniforme, zéro recompilation)
   ROAD_U.uSheenCol.value.copy(scene.fog.color).multiplyScalar(.9); // (2026-09-26) ×1,5 → ×0,9 : la brillance rasante blanchissait tout le lointain
@@ -11110,7 +11120,7 @@ Object.assign(BIOMES.espace,{fog:[.016,.02,.055],wb:[.98,1,1.04],sh:[.008,.008,.
    Clone de l'ORAGE VIOLET SANS la ville peinte à l'horizon (city 0). */
 BIOMES.tempete=Object.assign(JSON.parse(JSON.stringify(BIOMES.orage)),{nm:'TEMPÊTE',
   skyMul:[.34,.38,.60],skyLift:[.012,.014,.032],sunTint:[.75,.78,.95],sunHalo:0,city:0,stars:0,moon:0,
-  fog:[.13,.14,.22],fogN:140,fogF:1050,
+  fog:[.13,.14,.22],fogN:70,fogF:660, /* (2026-09-30, « que ça gêne la visibilité ») 140/1050 → 70/660 : la route se lit à ~600 m, l'éclair l'ouvre (CAMP_FOG) */
   hemiS:[.42,.45,.62],hemiG:[.06,.06,.11],hemiI:.62, sunC:[.66,.70,.92],sunI:.8,
   fillC:[.30,.42,.75],fillI:.32, kickC:[.55,.46,1.0],kickI:.26,
   volSun:[1.02,1.10,1.42],volSky:[.30,.33,.50],volGnd:[.08,.08,.14],volAmb:.5,

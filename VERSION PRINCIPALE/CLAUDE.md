@@ -1,5 +1,24 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LES NIVEAUX RETRAVAILLÉS (2026-09-30, session DEBUGGING/UHD, zones prêtées par GRAPHISME et GAMEPLAY)
+- Sacha : « retravaille le design des niveaux ; ajoute un niveau dans la VILLE après l'orage, plus tard, très sombre, avec des phares
+  puissants ; dans l'orage on voit le reflet de la ville dans les flaques, pas normal, il n'y a pas de ville ; beaucoup plus de nuages
+  dans l'orage, au point que ça gêne la visibilité ; des nuages plus gros au 1er niveau ; plus de satellites dans l'espace et un 6e niveau
+  dans l'espace, la version hardcore, où il faut ESQUIVER les satellites ; retravaille la génération du 1er niveau (un seul module) ».
+- **Le reflet de ville dans les flaques** venait de `BITUME_MOUILLE` : les « reflets étirés des enseignes » (colonnes ambre/cyan/magenta
+  tirées de l'azimut du reflet) étaient calculées sur TOUTE route mouillée, ville ou pas. Elles sont multipliées par `uVil9` (=
+  `LVL.ville`, au fondu du portail) : en VILLE (mode principal et carrière) rien ne change ; à l'ORAGE et au niveau 9 de la carrière
+  NUAGES, plus d'enseignes. À la place, l'eau renvoie L'ÉCLAIR (`uEcl9` = `CAMP_FLASH`) : les flaques s'allument en argent froid
+  avec le ciel. Deux uniformes dans `ROAD_U`, écrits par `routeTick` ; aucun programme de plus.
+- **L'orage, plus de nuages** : bancs SUR la route tous les 300-600 m (560-1 180), ~1 sauté sur 16, 45 % de méga-bancs, plus gros, et
+  un banc ordinaire sur deux DÉCALÉ d'un côté (il mange une moitié de route : on le frôle). Coton ×1,6 (×1,25), le PLAFOND 42 nuages
+  (26) à 70-170 m (110-240), et des MURS : 30 nuages au ras de la route, de chaque côté, à hauteur de caisse — la route file dans un
+  couloir de ouate. Brume de `tempete` 70/660 m (140/1 050) : on lit la route à ~600 m, l'éclair l'ouvre toujours (`CAMP_FOG`).
+  MESURÉ (banc 390×844) : 67-98 k triangles de coton envoyés (67-113 k avant — la brume plus proche coupe le lointain).
+- **Des nuages plus gros au 1er niveau** (`GZ` dans `buildCoton`, NUAGES seulement) : couronnes proche, milieu, haute et lointaine ×1,45
+  (bornes de `cotonR`), cathédrales ×1,25, tours héroïques ×1,3. Même nombre tiré ; la garde de la route rejette ceux qui la toucheraient.
+  MESURÉ : 391-415 k triangles envoyés (365-370 k avant).
+
 ## LE GARAGE BRÛLE (2026-09-29, Léo) — « la porte du garage vue sur l'extérieur : une flamme plus grande, adaptée à la situation, qui fasse
 ## comprendre qu'on va passer dans les flammes, puis le jeu se lance avec le boost du début — c'est l'ambiance » · « replace mieux le bouton play,
 ## reprends les boutons du menu d'après le crash et mets-les dans le garage » · « la musique du lobby c'est NOCTURNAL GROOVE »
