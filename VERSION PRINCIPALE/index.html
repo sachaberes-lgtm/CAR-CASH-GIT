@@ -7588,6 +7588,17 @@ function genTuto(){
    passent jamais. Banc après : max 30,2°, P95 28,5°, entrée ≤ 29° ; la ville tombe de ~5,5 km au lieu de ~8,5 (même tracé en plan, ruban
    8 % plus court), les étages de la spirale gardent ≥ 143 m d'écart. Revenir à l'ancienne ville : `garde:1`. */
 const VILLE_PENTE={seuil:.30,garde:.35};
+/* L'ENTRÉE DANS LA VILLE (2026-09-29, Sacha : « quand on arrive dans la ville, la route doit commencer par être droite et surélevée le
+   temps que le joueur s'adapte, puis la route descend dans la ville »). AVANT : le départ commun à tous les niveaux — 110 m qui plongent
+   de 70 (adoucis à ~23°) — jetait la caisse dans le canyon dès la sortie du portail, murs au-dessus de la route, nitro déjà sur les
+   doigts. DÉSORMAIS, au niveau VILLE (tracé généré, pas les pistes dessinées de la campagne) : une LIGNE DROITE quasi plate de
+   `droite`×LV m (~6 s à la croisière : le temps de lire « NIVEAU 2 », de voir la ville et de prendre la route en main), SURÉLEVÉE —
+   `buildVoxCity` plafonne les toits qui la bordent SOUS la route, de 22 à 142 m (on roule au-dessus de la ville, on la voit défiler) —, puis une GRANDE RAMPE
+   droite de `rampe`×LV m qui plonge de `chute`×LV (adoucie par VILLE_PENTE à ~19° : ~180 m de chute) : les tours remontent autour de
+   la route à mesure qu'elle descend, et le canyon se referme au pied de la rampe. Aucun tirage `rnd` de plus (NUAGES et ORBITE
+   identiques au tirage près) ; `VILLE_ENTREE` garde les deux points de contrôle (fin de la droite, pied de la rampe) pour la ville. */
+const VILLE_ENTREE_R={droite:420,rampe:520,chute:220,toit:22,etage:120}; // toit/etage : sous la droite, les toits de 22 à 142 m sous la route
+let VILLE_ENTREE=null;
 function adoucirPentes(P,o){
   const y0=P.map(function(p){return p.y;});
   for(let i=1;i<P.length;i++){const h=Math.hypot(P[i].x-P[i-1].x,P[i].z-P[i-1].z),dy=y0[i]-y0[i-1],g=h>.5?Math.abs(dy)/h:0;
@@ -8151,7 +8162,10 @@ function genCtrl(rnd,startPos,startPhi){
     straight(150+rnd()*60,-12,2); // DÉGAGEMENT : on respire, on relance
     lastGap=approx;
   };
-  straight(110*LV,-70*LV,2); // DÉPART : ligne droite, rallongée avec la vitesse (était 170 m + la caisse)
+  if(sansLoop&&LVL.cur.id==='ville'){ // (2026-09-29) L'ENTRÉE DANS LA VILLE : droite surélevée, puis la grande rampe qui plonge dans le canyon (voir VILLE_ENTREE_R)
+    const E9=VILLE_ENTREE_R;straight(E9.droite*LV,-6*LV,4);const iA9=ctrl.length-1;
+    straight(E9.rampe*LV,-E9.chute*LV,6);VILLE_ENTREE={pA:ctrl[iA9],pB:ctrl[ctrl.length-1]}; // (les points eux-mêmes : les adoucissements les déplacent, la ville lit leur place FINALE)
+  }else straight(110*LV,-70*LV,2); // DÉPART : ligne droite, rallongée avec la vitesse (était 170 m + la caisse)
   const iDep=ctrl.length-1; // (vague 3) le RELIEF part d'ici : le largage du départ garde sa chute
   while(approx<LEN){
     const mo=(filN<filMax&&approx>filNext&&approx<LEN-2600*LV)?-7:pick();
@@ -8621,12 +8635,14 @@ function buildTrack(seed){
   for(const m of trackMeshes){if(m.geometry)m.geometry.dispose();if(m.material&&m.material.dispose)MAT_SURSIS.add(m.material);} // (perf) matières en sursis : voir MAT_SURSIS
   matSursisN=3;
   trackMeshes.length=0;PISTE_LOD.length=0;NEON_RAILS.length=0;NEON_GLOW.length=0;PADS=[];PADL=[];PAD_MATS.length=0;BUMPS=[];CONES=[];FLYCONES=[];OILS=[];RAMPS=[];
-  const rnd=mulberry32(seed);
+  const rnd=mulberry32(seed);VILLE_ENTREE=null; // (l'entrée surélevée n'existe que si genCtrl la pose : niveau VILLE généré)
   const ctrl=PARK.on?genPark(rnd):(LVL.cur&&LVL.cur.piste==='tuto')?genTuto():(LVL.cur&&LVL.cur.piste==='camp')?genCampagne(LVL.cur.camp):genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course · (2026-09-27) CAMPAGNE : la piste dessinée du niveau
   const curve=new THREE.CatmullRomCurve3(ctrl,false,'centripetal'); // (piste v7) centripète : l'uniforme faisait des COUDES entre points inégalement espacés (liaison courte après une grande figure)
   L=curve.getLength();
   const N=Math.min(PARK.on?11000:9000,Math.max(3000,Math.round(L))); // parc : plus long → plus de points pour garder les loops lisses
   pts=curve.getSpacedPoints(N);NP=pts.length;
+  let sEnt=0; // (2026-09-29) L'ENTRÉE DANS LA VILLE : la droite surélevée est NUE (ni plot, ni flaque, ni dos d'âne) — le temps de s'adapter ; les tirages restent consommés
+  if(VILLE_ENTREE){let dA=1e18,iA=0;const lim=Math.min(NP,Math.ceil(NP*.45));for(let i=0;i<lim;i++){const a=pts[i].distanceToSquared(VILLE_ENTREE.pA);if(a<dA){dA=a;iA=i;}}sEnt=iA*L/(NP-1)+80;VILLE_ENTREE.sA=sEnt;} // (+80 m : pas de plot caché juste derrière la bascule de la rampe)
   trackMinY=Infinity;for(let i=0;i<NP;i++)if(pts[i].y<trackMinY)trackMinY=pts[i].y; // plancher du monde
   T=[];Nn=[];B=[];
   for(let i=0;i<NP;i++){
@@ -8910,7 +8926,7 @@ function buildTrack(seed){
   // le contrat du générateur intact — et remettre le relief un jour ne demande qu'un `false`.
   const BUMP_ON=false;
   for(let sp=320+rnd()*260;sp<L-160;sp+=420+rnd()*420){
-    if(inGap(sp))continue; // pas de dos d'âne dans le couloir du tremplin : la LÈVRE doit rester le seul relief
+    if(inGap(sp)||sp<sEnt)continue; // pas de dos d'âne dans le couloir du tremplin : la LÈVRE doit rester le seul relief (ni sur la droite d'entrée de la ville)
     if(!BUMP_ON)continue;
     BUMPS.push(sp);
     frameAt(sp,F);
@@ -8934,7 +8950,7 @@ function buildTrack(seed){
     if(!straight||climbing)continue;
     frameAt(sp,F);
     const r9=2+rnd()*1.1, lo=(rnd()*2-1)*(ROAD_HALF-4.5);
-    if(inGap(sp)||(LVL.cur&&LVL.cur.camp))continue; // (tirages consommés au-dessus : le filtre gap ne décale pas le flux rnd) · (2026-09-27) la CAMPAGNE n'a pas de flaque surprise : ses pièges sont dessinés, jamais tirés au sort
+    if(inGap(sp)||sp<sEnt||(LVL.cur&&LVL.cur.camp))continue; // (tirages consommés au-dessus : le filtre gap ne décale pas le flux rnd) · (2026-09-27) la CAMPAGNE n'a pas de flaque surprise : ses pièges sont dessinés, jamais tirés au sort
     for(const of9 of [1,-1]){ // la MÊME flaque sur les deux faces : zéro dessus-dessous
       const m=new THREE.Mesh(oilGeo,oilMat);
       m.scale.set(r9*1.35,r9,1);
@@ -8964,7 +8980,7 @@ function buildTrack(seed){
   for(let sp=300+rnd()*220;sp<L-170;sp+=340+rnd()*520){
     const slal=rnd()<.55;                                     // le tirage tombe D'ABORD : le flux rnd ne dépend jamais du filtre gap
     const w9=slal?Math.min(3.5+rnd()*4.5,ROAD_HALF-1.3):0,sd9=slal?0:(rnd()<.5?-1:1); // exactement 2 tirages par tour, comme avant — (route ÷2) écart plafonné à la ligne de bord (ROAD_HALF−1,3, celle des plots de chantier) : au plancher (7,7) un plot à 8 m flottait dans le vide
-    if(inGap(sp)||(LVL.cur&&LVL.cur.camp))continue;           // couloir du tremplin : nu · (2026-09-27) CAMPAGNE : plus un plot au hasard, seulement les portes dessinées
+    if(inGap(sp)||sp<sEnt||(LVL.cur&&LVL.cur.camp))continue;  // couloir du tremplin : nu · (2026-09-29) la droite d'entrée de la ville aussi · (2026-09-27) CAMPAGNE : plus un plot au hasard, seulement les portes dessinées
     if(slal)for(const fc of [1,-1])for(let k=0;k<3;k++)placeCone(sp+k*15,(k%2?-1:1)*w9,fc);      // slalom en quinconce au milieu
     else for(const fc of [1,-1])for(let k=0;k<4;k++)placeCone(sp+k*7.5,sd9*(ROAD_HALF-1.3),fc); // ligne de chantier le long d'un bord
   }
@@ -8977,7 +8993,7 @@ function buildTrack(seed){
     const wrnd=mulberry32((seed^0xCA55E77E)>>>0),z9=Math.min(3,runStats.zones|0);
     for(let sp=385+wrnd()*220;sp<L-170;sp+=(560-z9*40)+wrnd()*500){
       const g9=(wrnd()*2-1)*(ROAD_HALF-6),nP=wrnd()<.5?2:3; // tirages AVANT le filtre, comme partout
-      if(inGap(sp))continue; // même la 2e vague épargne le couloir du tremplin
+      if(inGap(sp)||sp<sEnt)continue; // même la 2e vague épargne le couloir du tremplin (et la droite d'entrée de la ville)
       for(const f9 of [1,-1])for(let k=0;k<nP;k++){placeCone(sp+k*13,g9-3,f9);placeCone(sp+k*13,g9+3,f9);}
     }
   }
@@ -9492,12 +9508,22 @@ function buildVoxCity(seed,accC){
               new THREE.Color(0xff3ec8),new THREE.Color(0xff3b5c),accC];
   let nT=0;
   // UNE TOUR : (cx,cz) son centre, d sa distance à l'axe, yN l'altitude du tronçon qu'elle BORDE, yLo le plus bas de ce tronçon
-  const batir=(cx,cz,d,yN,yLo,canyon,w,p)=>{
+  /* L'ENTRÉE SURÉLEVÉE (voir VILLE_ENTREE) : `eEnt(i)` vaut 1 le long de la droite, glisse à 0 au pied de la rampe. Les tours qui bordent
+     ces tronçons ont leurs toits ramenés SOUS la route (de `toit` à `toit`+`etage` m plus bas, les plus hautes restant les plus hautes) : sans aucun
+     tirage `vr` de plus, la ville garde ses tours, ses teintes et ses néons — elle est juste plus basse là où l'on arrive. */
+  let iEA=-1,iEB=-1;
+  if(VILLE_ENTREE){let dA=1e18,dB=1e18;const lim=Math.min(NP,Math.ceil(NP*.45));
+    for(let i=0;i<lim;i++){const a=pts[i].distanceToSquared(VILLE_ENTREE.pA),b=pts[i].distanceToSquared(VILLE_ENTREE.pB);if(a<dA){dA=a;iEA=i;}if(b<dB){dB=b;iEB=i;}}
+    if(!(iEB>iEA))iEA=iEB=-1;}
+  const eEnt=i=>iEA<0?0:i<=iEA?1:i>=iEB?0:1-THREE.MathUtils.smoothstep((i-iEA)/(iEB-iEA),.25,1);
+  CITY.entree=iEA<0?null:[iEA,iEB];
+  const batir=(cx,cz,d,yN,yLo,canyon,w,p,eE)=>{
     const hd=Math.hypot(w,p)*.5+5;
     let t;
     if(canyon){const k=1-Math.min(1,(d-54)/(R_CAN-54));           // LE CANYON : les murs montent AU-DESSUS de la route
       t=yN-50+290*Math.pow(vr(),.75)*(.55+.45*k);if(k>.5&&vr()<.22)t+=160;}
     else t=yN-230+vr()*vr()*470;                                   // AU LARGE : la forêt du village
+    if(eE>0){const u9=THREE.MathUtils.clamp((t-yN+50)/450,0,1),tE=yN-VILLE_ENTREE_R.toit-(1-u9)*VILLE_ENTREE_R.etage;t+=(tE-t)*eE;} // (2026-09-29) L'ENTRÉE SURÉLEVÉE : le toit passe SOUS la route (juste sous elle pour les plus hautes : on les voit défiler au ras du bitume)
     let b=Math.min(yLo,yN)-330-vr()*120;if(t-b>1000)b=t-1000;
     const bt=tourLibre(cx,cz,hd,b,t);if(!bt)return;b=bt[0];t=bt[1];
     const H=t-b,km=(b+t)/2;nT++;
@@ -9538,17 +9564,17 @@ function buildVoxCity(seed,accC){
     let yLo=pts[i].y;for(let j=Math.max(0,i-pasC*5);j<=Math.min(NP-1,i+pasC*5);j+=pasC)if(pts[j].y<yLo)yLo=pts[j].y; // le pied se noie sous le point le plus bas du tronçon
     for(const sg of [-1,1])for(const rw of ROWS){if(vr()>rw[2]*kC)continue;
       const w=snap(16+vr()*26),p=snap(16+vr()*26),hd=Math.hypot(w,p)*.5,lat=ROAD_HALF+rw[0]+hd+vr()*rw[1],al=(vr()-.5)*SN*.6;
-      const nt0=nT;batir(pts[i].x+px*sg*lat+tx*al,pts[i].z+pz*sg*lat+tz*al,lat,pts[i].y,yLo,true,w,p);
+      const nt0=nT,eI=eEnt(i);batir(pts[i].x+px*sg*lat+tx*al,pts[i].z+pz*sg*lat+tz*al,lat,pts[i].y,yLo,true,w,p,eI);
       // LE PANNEAU : un mur sur quatre du 1er rang porte une réclame, tournée VERS la route, un peu au-dessus d'elle
       if(rw===ROWS[0]&&nT>nt0&&vr()<(IS_MOBILE?.22:.3)){const pw=24+vr()*16,ph=pw*(.75+vr()*.25),d9=lat-hd*.72-1.5;
-        pubs.push(pts[i].x+px*sg*d9+tx*al,pts[i].y+16+vr()*40,pts[i].z+pz*sg*d9+tz*al,Math.atan2(-px*sg,-pz*sg),pw,ph);}}
+        (eI>.3?[]:pubs).push(pts[i].x+px*sg*d9+tx*al,pts[i].y+16+vr()*40,pts[i].z+pz*sg*d9+tz*al,Math.atan2(-px*sg,-pz*sg),pw,ph);}} // (entrée surélevée : pas de réclame en l'air au-dessus des toits — les tirages restent)
   }
   // AU LARGE : la forêt du village, par cases au sol (le fond de scène), calée sur le point de piste le plus proche
   const cF=cellules(SF,R_VIL,d=>d>R_CAN),kF=Math.min(1,BUD*.55/Math.max(1,cF.length));
   for(const v of cF){if(vr()>kF*.8)continue;const cx=v[2]+(vr()-.5)*SF*.4,cz=v[3]+(vr()-.5)*SF*.4;
-    let d2=1e12,yN=pts[v[1]].y,yLo=yN;
-    proches(cx,cz,360,function(i){const p=pts[i],dx=p.x-cx,dz=p.z-cz,e=dx*dx+dz*dz;if(e<d2){d2=e;yN=p.y;}if(e<129600&&p.y<yLo)yLo=p.y;});
-    batir(cx,cz,d2<1e12?Math.sqrt(d2):v[0],yN,yLo,false,snap(20+vr()*30),snap(20+vr()*30));}
+    let d2=1e12,yN=pts[v[1]].y,yLo=yN,iN=v[1];
+    proches(cx,cz,360,function(i){const p=pts[i],dx=p.x-cx,dz=p.z-cz,e=dx*dx+dz*dz;if(e<d2){d2=e;yN=p.y;iN=i;}if(e<129600&&p.y<yLo)yLo=p.y;});
+    const dF=d2<1e12?Math.sqrt(d2):v[0];batir(cx,cz,dF,yN,yLo,false,snap(20+vr()*30),snap(20+vr()*30),eEnt(iN)*(1-THREE.MathUtils.smoothstep(dF,500,1100)));} // (entrée surélevée : la forêt proche baisse aussi, la ligne d'horizon au loin reste)
   CITY.nC=Math.round(NP/pasC);CITY.nF=cF.length;
   // (2026-09-26, user : « enlève les carrés qui bougent en l'air ») : la CIRCULATION VOLANTE est retirée
   // LES TOURS SONT DURES (2026-09-26, user : « si le joueur entre en collision avec un immeuble, il meurt ») : chaque volume est rangé
@@ -11994,6 +12020,7 @@ function carrLancerSous(bi,i){
 // aussi, et on écraserait le niveau que le joueur vient de choisir par celui de la partie d'avant.
 function carrIci(){if(CARR.actif&&LVL.cur&&LVL.cur.carr&&LVL.cur.carr.b===CARR.actif.b)CARR.actif.i=LVL.cur.carr.i;}
 window.dbgCarriere=function(){return {actif:CARR.actif,progression:SAVE.d.carr||{}};};
+window.dbgVilleEntree=function(){return {marque:!!VILLE_ENTREE,troncons:CITY.entree,metres:CITY.entree?CITY.entree.map(function(i){return Math.round(i*L/(NP-1));}):null,alt:CITY.entree?CITY.entree.map(function(i){return Math.round(pts[i].y);}):null,depart:NP?Math.round(pts[0].y):null};}; // (banc) l'entrée surélevée de la ville : où finit la droite, où finit la rampe
 window.dbgNiveau=function(){return LVL.cur?{niveau:LVL.n,lieu:LVL.cur.id,ciel:BIO.name,largeurRoute:+(ROAD_HALF*2).toFixed(1),uSpace:+LVL.espace.toFixed(2),
   planete:+LVL.planete.toFixed(2),ville:!!CITY.root,nuages:CLOUDS.length}:'parc freestyle (pas de niveaux)';};
 paintEnv(BIOMES.golden.env,BIOMES.golden.eS1,BIOMES.golden.eS2); // premier reflet = golden hour (la vitrine du menu)

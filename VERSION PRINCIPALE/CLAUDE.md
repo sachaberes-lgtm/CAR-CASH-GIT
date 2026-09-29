@@ -95,6 +95,20 @@
 - **À juger par Sacha** : la bretelle (assez « route » ? trop longue ?), la fréquence (3 par zone), le montant des deux paiements, et
   s'il faut un repère visuel du filet (liseré, ligne de pièces sur l'arc de vol) — pas fait dans cet essai.
 
+## L'ENTRÉE DANS LA VILLE : DROITE SURÉLEVÉE, PUIS LA RAMPE (2026-09-29, nuit — session GAMEPLAY)
+- Sacha : « quand on arrive dans la ville, la route doit commencer par être droite et surélevée le temps que le joueur s'adapte, puis la
+  route descend dans la ville ». Niveau VILLE généré (`genCtrl`, pas les pistes dessinées de la campagne) : le DÉPART commun (110 m qui
+  plongent de 70) est remplacé par une LIGNE DROITE quasi plate de 420×LV m, puis une GRANDE RAMPE droite de 520×LV m qui plonge de
+  220×LV (adoucie par VILLE_PENTE : ~180 m de chute). Réglages `VILLE_ENTREE_R` (droite, rampe, chute, toit, etage). MESURÉ (banc
+  `vil.js`/`vil2.js`, saut au niveau par `dbgSaut`) : droite finie à ~450 m, rampe à ~1 030 m, de −22 à −202 m.
+- `buildVoxCity` plafonne les toits des tours qui bordent la droite SOUS la route (de 22 à 142 m, les plus hautes restant les plus hautes,
+  `eEnt(i)` glisse de 1 à 0 le long de la rampe ; forêt proche aussi, l'horizon lointain garde sa hauteur) ; pas de réclame en l'air.
+  La droite est NUE : ni plot, ni flaque, ni dos d'âne jusqu'à 80 m après la bascule (`sEnt` dans buildTrack). Zéro tirage `rnd` ou `vr`
+  ajouté ou retiré : NUAGES et ORBITE sont identiques au tirage près. Hook `dbgVilleEntree()`.
+- ⚠ En portrait, la route (56 m de large en ville) remplit le bas de l'écran : on voit surtout la ville AU LOIN sous l'horizon, puis
+  les tours qui MONTENT autour de la rampe. Pour voir les toits défiler sur les côtés, il faudrait un cadrage plus large, pas des tours
+  plus basses.
+
 ## LE SILLAGE DE NITRO v4 + LE BOUCLIER RETIRÉ (2026-09-29, nuit — session GAMEPLAY)
 - Sacha (v3) : « retravaille la traînée de nitro : beaucoup plus belle, lisse et lumineuse, deux longues traînées derrière — il faut que
   ce soit magnifique » ; puis (v4) « plus belles et longues : de longues traînées RÉGULIÈRES jusqu'à 50 mètres derrière ; et selon les
