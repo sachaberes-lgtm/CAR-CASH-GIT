@@ -18026,25 +18026,32 @@ function n9Saut(o){const n=performance.now(),s9=n-(o._viseT||0)>200;o._viseT=n;r
        MESURÉ APRÈS (même banc) : 1re frénésie tranquille ~2 min 30 (95 % l'atteignent), casse-cou ~1 min, maître ~40 s ; tenue
        moyenne ~9 · 13 · 18 s ; en frénésie ~6 · 29 · 46 % du temps, soit ~2 · 7 · 8 frénésies en 5 min. Le multiplicateur d'argent
        moyen d'une partie (temps × palier) passe de ×1,4 · ×1,6 · ×1,8 à ×1,7 · ×2,1 · ×2,3.
+   17. L'ENTRE-DEUX (même jour, Sacha : « la dark triad est trop facile — trouve un entre-deux entre maintenant et avant »). Chaque
+       réglage de montée et de tenue est posé ENTRE la v5 et la loi 16, puis la montée resserrée d'un cran pour que CHAQUE mesure tombe
+       entre les deux (simtri.js, 5 min × 60) : cellules .55 · .42 · .30 · .25, vitesse exigée 92,5 %, répit 2,75 s, fuite 2,4 · 2,8 ·
+       3,2 · 2,4, pente .28, style 50 % dans la triade ; mémoires NARCISSE 7 s · MACHIAVEL 15 s · PSYCHO 2,2 s, brûlure [5,5 · 3,5 · 1,7 ·
+       −0,6] ; en VILLE mémoires 11 · 24 · 3,5 et style 70 %. Le ×3 d'argent de la frénésie ne change pas.
+       MESURÉ : 1re frénésie tranquille JAMAIS (2 % en 5 min ; v5 jamais · loi 16 2 min 30), casse-cou ~2 min (jamais · 1 min), maître
+       ~1 min (2 min 26 · 38 s) ; en frénésie 0 · 15 · 39 % du temps (0 · 0 · 30 % · 6 · 29 · 46 %) ; tenue ~16 · 18 · 25 s.
    ⚠ BLOC PUR : ne lit que ses arguments et FLOW2 — le banc de simulation l'exécute tel quel, hors du jeu. Tous les
    réglages vivent dans FLOW2, nulle part ailleurs.
    ========================================================================== */
 const FLOW2={
   // efficacité des familles selon la cellule : 0 cyan · 1 or · 2 rose · 3 TRIADE (violet + zone rouge) · 4 en FRÉNÉSIE
-  fam:{route:[1,.5,.12,0,0],style:[1,1,.8,.7,0],risque:[1,1,1,1,0]}, // (v4) en frénésie [4] : rien — c'est la TRIADE qui tient la jauge · (loi 16) le style prend 70 % dans la triade (v5 : ,35 · loi 13, retirée : route [1,.6,.3,.15] · style [1,1,.9,.7])
-  cel:[.6,.5,.4,.4,.5],                  // chaque cellule demande au moins autant de gestes que la précédente (loi 16 · v5 : ,5 · ,35 · ,22 · ,14 · v2 : 1 · ,8 · ,65 · ,5 · loi 13, retirée : ,7 · ,55 · ,4 · ,34)
+  fam:{route:[1,.5,.12,0,0],style:[1,1,.8,.5,0],risque:[1,1,1,1,0]}, // (v4) en frénésie [4] : rien — c'est la TRIADE qui tient la jauge · (loi 17) le style prend 50 % dans la triade (loi 16 : ,7) · (loi 16) le style prend 70 % dans la triade (v5 : ,35 · loi 13, retirée : route [1,.6,.3,.15] · style [1,1,.9,.7])
+  cel:[.55,.42,.3,.25,.5],               // chaque cellule demande au moins autant de gestes que la précédente (loi 17, l'entre-deux · loi 16 : ,6 · ,5 · ,4 · ,4 · v5 : ,5 · ,35 · ,22 · ,14 · v2 : 1 · ,8 · ,65 · ,5 · loi 13, retirée : ,7 · ,55 · ,4 · ,34)
   vit:[[.6,.35],[1,1],[1.3,1.35]],       // (vitN, ×) — la vitesse multiplie tous les gains, interpolé entre les points
-  gate:.9,                               // sous 90 % de la croisière, la TRIADE ne prend RIEN (loi 16 · v5 : 95 % · loi 13, retirée : 85 %)
-  grace:3,                               // répit (s) après un geste de style/risque avant que la jauge fuie (loi 16 · v5 : 2,5)
-  fuite:[1.8,2.1,2.4,1.8],               // fuite (/s) passé le répit, par cellule (loi 16 : ×0,6 · v5 : 3 · 3,5 · 4 · 3 · v2 : 5 · 7 · 9 · 11 · loi 13, retirée : 2,5 · 3 · 3 · 2,5)
-  pente:[0,0,.15,.15],                   // brûlure PERMANENTE (/s) : le rose et la triade se paient même en enchaînant (loi 16 · v5 : ,4 · ,4 · v2 : 1 · 2)
+  gate:.925,                             // sous 92,5 % de la croisière, la TRIADE ne prend RIEN (loi 17 · loi 16 : 90 % · v5 : 95 % · loi 13, retirée : 85 %)
+  grace:2.75,                            // répit (s) après un geste de style/risque avant que la jauge fuie (loi 17 · loi 16 : 3 · v5 : 2,5)
+  fuite:[2.4,2.8,3.2,2.4],               // fuite (/s) passé le répit, par cellule (loi 17 · loi 16 : 1,8 · 2,1 · 2,4 · 1,8 · v5 : 3 · 3,5 · 4 · 3 · v2 : 5 · 7 · 9 · 11 · loi 13, retirée : 2,5 · 3 · 3 · 2,5)
+  pente:[0,0,.28,.28],                   // brûlure PERMANENTE (/s) : le rose et la triade se paient même en enchaînant (loi 17 · loi 16 : ,15 · v5 : ,4 · ,4 · v2 : 1 · 2)
   routeGarde:50,                         // la route ne rend le répit que sous le FLOW II
   retombee:75,                           // la frénésie perdue, la jauge RETOMBE ici : la triade se vide (v2 : elle restait au bord, à 88)
   // la FRÉNÉSIE : part du nitro consommée (,5 = il dure DEUX FOIS plus)
   fren:{nitro:.5},
   // (v4) LA TRIADE : mémoire (s) de chaque trait · PSYCHO vit aussi à `p.vit` × la croisière sans nitro · brûlure (/s) de la zone
   // rouge selon le nombre de traits vivants [0, 1, 2, 3] — négatif = elle se regonfle
-  triade:{n:{mem:6},m:{mem:12},p:{mem:2,vit:1.3},brule:[6,4,2,-.3]}, // (loi 16) la tenue est une BRAISE · v5 : mémoires 9 · 25 · 3, brûlure [4 · 2 · ,7 · −1,5] (loi 14, retirée : [4,5 · 2,4 · ,9 · −1,2])
+  triade:{n:{mem:7},m:{mem:15},p:{mem:2.2,vit:1.3},brule:[5.5,3.5,1.7,-.6]}, // (loi 17 · loi 16 : mémoires 6 · 12 · 2, brûlure [6 · 4 · 2 · −,3]) (loi 16) la tenue est une BRAISE · v5 : mémoires 9 · 25 · 3, brûlure [4 · 2 · ,7 · −1,5] (loi 14, retirée : [4,5 · 2,4 · ,9 · −1,2])
   pose:{angle:55,vMin:4},                // (v4) la POSE RATÉE : au-delà de 55° de l'axe (dès 4 m/s de vitesse à plat), le flow tombe à zéro
   // (v5) LA GRAMMAIRE : part de la mémoire d'un trait qu'un geste lui rend en frénésie · PSYCHO hors frénésie (seuils de vitesse au sol
   // et en vol, période, geste [sol, vol]) · -PSYCHO (sous `vit` le répit saute, réarmé à `re`) · -NARCISSE (points de la pose lourde)
@@ -18058,9 +18065,9 @@ const FLOW2={
      paie plus souvent et plus fort (PSYCHO), en frénésie le style (drift, frôlé, rase-bord, séries) et la route nourrissent NARCISSE, et
      les traits se souviennent plus longtemps (les figures et les raccourcis y sont rares). Le risque, lui, paie pareil : il est juste
      plus rare. Hors ville, rien ne change. */
-  lieux:{ville:{fam:{route:[1,.55,.25,.2,0],style:[1,1,.9,.8,0],risque:[1,1,1,1,0]}, // (loi 16) le style de la ville reste au-dessus du barème de base (,6 → ,8)
+  lieux:{ville:{fam:{route:[1,.55,.25,.2,0],style:[1,1,.9,.7,0], /* (loi 17 · loi 16 : ,8) */risque:[1,1,1,1,0]}, // (loi 16) le style de la ville reste au-dessus du barème de base (,6 → ,8)
     psy:{sol:1.08,air:1.15,t:1.2,q:[5,6]},part:{risque:1,style:.7,route:.2},
-    triade:{n:{mem:9},m:{mem:16},p:{mem:3,vit:1.2},brule:[6,4,2,-.3]}}}, // (loi 16) même proportion que la base (v5 ville : 13 · 32 · 4)
+    triade:{n:{mem:11},m:{mem:24},p:{mem:3.5,vit:1.2},brule:[5.5,3.5,1.7,-.6]}}}, // (loi 17 · loi 16 : 9 · 16 · 3, brûlure [6 · 4 · 2 · −,3]) (loi 16) même proportion que la base (v5 ville : 13 · 32 · 4)
   lieu:''
 };
 // pose les réglages du LIEU (ville) par-dessus le barème de base — et les rend en quittant le lieu. Pur : ne touche que FLOW2.
@@ -26309,7 +26316,7 @@ function orbFxTick(dt){
    bien l'animation, 10/10 » puis « la figure doit donner un boost de vitesse de 10 % par seconde une fois déclenchée, tant que le bouton
    nitro est maintenu »). C'est la version VISIBLE de PURE SPEED (même geste, UN seul paiement — le nom change ; la voix « pure speed »
    reste) :
-   · LE GESTE : nitro tenu 3 s AU SOL, au-delà de 55 % de la vmax du moteur (400 km/h absolus : les premiers moteurs n'y arrivaient jamais).
+   · LE GESTE : nitro tenu 2 s AU SOL (3 s jusqu'au 29/09 au soir), au-delà de 55 % de la vmax du moteur (400 km/h absolus : les premiers moteurs n'y arrivaient jamais).
    · LA MÉTÉORITE : la caisse entre dans une ENVELOPPE DE PLASMA — la « flamme vivante » des pots (même programme `JET_VS/JET_FS`, aucune
      compilation) tournée à l'envers autour d'elle : un BOUCLIER blanc-jaune au nez (l'onde de choc), un corps orange qui l'enveloppe et
      s'effiloche en langues derrière ; des flammes nées sur la SILHOUETTE (nez, flancs, toit) qui lèchent la carrosserie vers l'arrière ;
@@ -26330,7 +26337,7 @@ const NTR={on:false,t:0,k:0,kc:0,boost:0,pouls:0,pal:0,shell:null,core:null,halo
     rayon (× largeur), longueur (× longueur), déphasage] */
 const NTR_LANGUES=[[-.44,.42,.5,.2,.1,.24,1.25,0],[.44,.42,.5,-.2,.1,.24,1.25,1.7],[0,.72,.46,0,.2,.3,1.05,3.1],
   [-.3,1.02,.1,.1,.16,.2,.95,4.4],[.3,1.02,.1,-.1,.16,.2,.95,5.6]];
-const NTR_BOOST=.1,NTR_BOOST_MAX=.8,NTR_T=3;
+const NTR_BOOST=.1,NTR_BOOST_MAX=.8,NTR_T=2; // (2026-09-29, Sacha : « le nitrooo doit se déclencher après 2 secondes de nitro » — c'était 3)
 const ntrShellM=jetMat(0xff3a0c,0xfff6d0,0xffffff,.9,1.25,.7),ntrCoreM=jetMat(0xffc050,0xffffff,0xffffff,1,.75,1.1); // (banc) blanc à la racine, corps ROUGE-orange : la caisse orange ne s'y noie plus
 function nitroooPart(){ // le geste est ARMÉ (loop, branche 'drive') : la caisse s'embrase
   NTR.on=true;NTR.t=0;NTR.kc=1;NTR.pal=0;
@@ -30933,7 +30940,7 @@ function loop(now){
       boost=Math.max(0,boost-dt);
       speedKmh=Math.abs(vF)*3.6*SPD*spdMult;
       vpalTick(speedKmh); // (2026-09-28) les PALIERS DE VITESSE : chaque centaine franchie se crie (écran nu : pas de compteur sur téléphone)
-      // PURE SPEED → NITROOO (2026-09-29) : 3 s de nitro soutenu sur la route, au-delà de 55 % de la vmax du moteur (voir le bloc NITROOO)
+      // PURE SPEED → NITROOO (2026-09-29) : 2 s (NTR_T) de nitro soutenu sur la route, au-delà de 55 % de la vmax du moteur (voir le bloc NITROOO)
       if(nitroOn&&startBoostT<=0&&speedKmh>Math.min(400,vmaxShow()*.55)){ // (le boost de DÉPART tient la touche à la place du joueur : il ne compte pas)
         pureT+=dt;
         if(pureT>NTR_T&&pureArmed){pureArmed=false;annSpeak('pureSpeed',2);trickMsg('NITROOO !',3);if(SONV2)sfx('vitesse.pure',{st:sonPd(0)});else noiseBurst(.5,.12,1200);

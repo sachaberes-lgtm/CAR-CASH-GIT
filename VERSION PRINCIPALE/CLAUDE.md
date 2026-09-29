@@ -1,5 +1,14 @@
 # CASH CAR — guide projet pour Claude Code
 
+## L'ENTRE-DEUX DE LA DARK TRIAD + NITROOO À 2 s (2026-09-29, soir — session GAMEPLAY)
+- Sacha : « dark triad trop facile, trouve un entre-deux entre maintenant et avant ». LOI 17 de `FLOW2` (commentaire du bloc) : chaque réglage
+  entre la v5 et la loi 16, montée resserrée d'un cran — cel .55/.42/.30/.25, gate .925, répit 2,75, fuite 2,4/2,8/3,2/2,4, pente .28,
+  style 50 % dans la triade, mémoires 7/15/2,2, brûlure [5,5 · 3,5 · 1,7 · −0,6] ; VILLE 11/24/3,5, style 70 %. ×3 d'argent inchangé.
+  MESURÉ (`simtri.js`) : 1re frénésie tranquille jamais (v5 jamais · loi 16 2 min 30), casse-cou ~2 min (jamais · 1 min), maître ~1 min
+  (2 min 26 · 38 s) ; en frénésie 0/15/39 % du temps (v5 0/0/30 · loi 16 6/29/46) ; tenue ~16/18/25 s.
+- « Le nitrooo doit se déclencher après 2 secondes de nitro » : `NTR_T` 3 → 2. MESURÉ en jeu (banc `ntr.js`) : déclenché à 2,02 s.
+  ⚠ Au moteur de départ le réservoir dure ~2 s : NITROOO demande d'être déjà lancé (55 % de la vmax) ou d'avoir la réserve bleue.
+
 ## LES DAUPHINS, NOUVEAU DESIGN (2026-09-29) — « améliore le design des dauphins »
 - **Avant** : le tube cyan pâle de Léo sous un halo additif laiteux (`dolGlowMat`), nageoires en plaques extrudées — délavé sur le ciel
   de jour, baveux de nuit, 8 meshes par dauphin. **Après** : LOW-POLY NÉON dans la DA des caisses à facettes (`mkDolphinGeo`, `DOL_PR`,
