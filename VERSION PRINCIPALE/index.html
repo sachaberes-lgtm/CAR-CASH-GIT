@@ -18068,6 +18068,20 @@ function coinSerie(p){
    en plus du score de flow — ça doit déclencher la voix TRIPLE MONSTRE et l'écriture TRIPLE MONSTER »). LA JAUGE PLEINE ARME (frenArme :
    la zone rouge bat, « POSE UNE FIGURE ! ») ; LA FRÉNÉSIE PART À LA POSE d'un vol qui a porté une figure (vrille, météore, dauphin,
    bump, BIG AIR…) et qui n'est pas RATÉE (tryLand → frenDeclenche). Désarmée si la jauge repasse sous la zone rouge (flowTick). */
+/* LE RALENTI DE LA FRÉNÉSIE (2026-09-29, Sacha : « quand on débloque la frénésie, rajoute un ralenti le temps que le texte parte »).
+   SEULE exception au verdict du 26/09 (« enlève tous les modes ralentis du jeu ») : les anciens déclencheurs (slowT/hitT) restent
+   muets, vidés dans la boucle. Le temps du jeu tombe à ×RALENTI.k en 0,1 s (le titre TRIPLE MONSTER claque), TIENT pendant que le
+   sang coule, puis revient en douceur pendant que le titre s'efface — RALENTI.d secondes RÉELLES = la vie exacte de #frenTitre
+   (ftVie, 2,7 s). La pause le fige (il reprend où il en était), la mort et le retour au menu l'annulent. `dbgRalenti(d)` au banc. */
+const RALENTI={t:0,d:2.7,k:.3};
+function ralentiPose(d){RALENTI.d=d||2.7;RALENTI.t=RALENTI.d;}
+function ralentiDt(dt){ // dt RÉEL → dt du JEU (appelé par la boucle, après le vidage de slowT/hitT)
+  if(RALENTI.t<=0)return dt;
+  if(!running||gameOver){RALENTI.t=0;return dt;}
+  if(paused)return dt;
+  RALENTI.t=Math.max(0,RALENTI.t-dt);const u=1-RALENTI.t/RALENTI.d,k=RALENTI.k;
+  return dt*(1+(k-1)*THREE.MathUtils.smoothstep(u,0,.04)*(1-THREE.MathUtils.smootherstep(u,.45,1)));}
+window.dbgRalenti=function(d,k){if(k!=null)RALENTI.k=k;ralentiPose(d);return {t:RALENTI.t,d:RALENTI.d,k:RALENTI.k};};
 function frenArme(){
   FREN.arme=true;FLOW.aff=-1;
   popTexte('POSE UNE FIGURE !',FLOW_COL[4],2);hap([10,30,10]);
@@ -18083,6 +18097,7 @@ function frenDeclenche(){
   flowPunch();
   hap([20,40,20,40,40]);try{flowSnd(4);}catch(e){}
   fovPunch=Math.max(fovPunch,12);
+  ralentiPose(2.7); // (2026-09-29, Sacha) le RALENTI, le temps que TRIPLE MONSTER parte — voir RALENTI
   flowHudMaj(9); // l'emblème (#triade.on) se pose TOUT DE SUITE : le titre TRIPLE MONSTER de la session UI l'attend
 }
 /* EN FRÉNÉSIE, LA JAUGE SCINTILLE QUAND ON LA NOURRIT (Sacha : « la barre doit devenir toute rouge et scintiller quand elle reçoit
@@ -20379,6 +20394,8 @@ window.dbgPwr=function(k,n){try{if(k&&PWR_DEFS[k]){for(let i=0;i<(n||1);i++)pwrP
   if(k==='sf'){sfaPose(n!==false);return SFA.n;} // (banc) une pose jugée propre (ou pas : dbgPwr('sf',false))
   if(k==='devant'){const L9=[];for(const p of pickups)if(!p.taken&&!p.pow&&p.face===side&&p.s>s+5&&p.s<s+50)L9.push(p);window.__dv=L9;return L9.length;} // (banc) l'or à portée d'AIMANT…
   if(k==='devantPris'){return (window.__dv||[]).filter(function(p){return p.taken;}).length;} // …et ce qui en a été ramassé
+  if(k==='sphere'){const L9=[];for(const p of pickups)if(!p.taken&&!p.pow&&(p.face===side||p.air)&&p.mesh.position.distanceTo(carGroup.position)<MAG_R)L9.push(p);window.__sp=L9;return {n:L9.length,air:L9.filter(function(p){return p.air;}).length,derriere:L9.filter(function(p){return p.s<s;}).length};} // (banc) tout ce que l'AIMANT v3 doit prendre…
+  if(k==='spherePris'){return (window.__sp||[]).filter(function(p){return p.taken;}).length;} // …et ce qu'il a pris
   if(k==='plot'){let b9=null;for(const c of CONES){if(!c.hit&&c.face===1&&c.s>s+50&&(!b9||c.s<b9.s))b9=c;}if(b9){DBG_AUTO.lat=b9.lat;}return b9?{s:Math.round(b9.s),lat:+b9.lat.toFixed(1),moi:Math.round(s)}:null;} // (banc) le pilote de mesure vise le prochain plot
   const o={};for(const q of PWR_ORDRE)o[q]=+pwrT(q).toFixed(2);return {pwr:o,poids:pwrPoids(),runs:(SAVE.d.ex&&SAVE.d.ex.runs)|0,sauves:PWR_V2.sauves,mir:{t:+MIR.t.toFixed(2),max:+MIR.max.toFixed(2)},sansFaute:SFA.n,sfDern:SFA.dern,poseA:FLOW.poseA,vol:+fallT.toFixed(2),vpal:VPAL.n,c0:VPAL.c0,pieces:RUNX.coins|0,demoli:PWR_V2.demoli,aura:Math.round(auraRun),lieu:FLOW2.lieu,cristaux:pickups.filter(function(p){return p.pow&&!p.taken;}).map(function(p){return p.pow;}).join(''),tutoZ:LVL.tutoZ|0,psyQ:FLOW2.psy.q[0],dol:{on:dolOn,nb:dolNb,live:+dolLive.toFixed(2),aura:Math.round(dolAura),fig:trkDolph,vis:dolphins.filter(function(d){return d.visible;}).length,dist:+dolDist().toFixed(1),h:+curHOff.toFixed(1),lat:+curLatOff.toFixed(1)}};}catch(e){return e.message;}};
 const pickups=[];
@@ -24775,6 +24792,7 @@ function fireLaunchBoost(){
 }
 let pwrNitroT=0,pwrAirT=0,pwrSpdT=0; // POUVOIRS : nitro infinie · airtime infini · speed up +60%
 let pwrMagT=0,pwrBouT=0,pwrAurT=0;  // (pouvoirs v2) aimant · bouclier · aura ×2 — voir PWR_DEFS
+const MAG_R=50; // (2026-09-29, Sacha) le RAYON de l'aimant, en mètres, dans toutes les directions — voir « L'AIMANT v3 »
 let gameOver=false,paused=false,running=false,started=false,best=0;
 best=SAVE.d.best;
 const fallPos=new THREE.Vector3(),fallVel=new THREE.Vector3();
@@ -30362,6 +30380,7 @@ function loop(now){
   // (2026-09-26, user : « enlève tous les modes ralentis du jeu ») : plus de slow-mo (atterrissage, gros air, bullet-time, reprise de
   // pause, ultra-turbo, explosion) ni de HIT-STOP. Les déclencheurs posent encore slowT/hitT : on les vide ici, le temps ne ralentit JAMAIS.
   slowT=0;hitT=0;
+  dt=ralentiDt(dt); // (2026-09-29) …SAUF le ralenti de la FRÉNÉSIE, demandé par Sacha (voir RALENTI) — le dt RÉEL reste celui des mesures de perf ci-dessus
   const t=now/1000;
   let speedKmh=0;
   try{ if(running&&!paused&&!gameOver&&!BANC_FIGE){ // (banc ?banc=1) BANC_FIGE : la simulation s'arrête, le rendu continue
@@ -30681,26 +30700,36 @@ function loop(now){
            · EN VOL, elle n'y est plus : ces trois valeurs ne veulent plus rien dire. Seule la
              distance 3D a du sens, et on pré-filtre sur `lastNearS` (où l'on en est le long de la
              piste pendant le vol) pour ne pas tester 550 objets par frame. */
-      const MAG9=pwrMagT>0; // (pouvoirs v2) L'AIMANT : tout l'or et les fruits de la route viennent à toi — d'un bord à l'autre, 55 m devant (les cristaux restent à viser)
+      const MAG9=pwrMagT>0; // (pouvoirs v2) L'AIMANT : tout l'or et les fruits de la route viennent à toi (les cristaux restent à viser)
+      /* L'AIMANT v3 — UNE SPHÈRE DE MAG_R MÈTRES (2026-09-29, Sacha : « l'aimant doit aimanter toutes les pièces, augmente grandement son
+         rayon, genre 50 mètres »). La v2 ne prenait que ce qui était DEVANT (55 m, jamais derrière), laissait l'or du CIEL au sol, et en
+         vol s'arrêtait à 34 m ; loin, elle tirait mollement (3/s). Désormais : tout ce qui est à moins de MAG_R m de la caisse, devant,
+         derrière, sur les côtés, au-dessus — sur TA face de la route (l'autre face est le miroir de celle-ci, la prendre paierait deux
+         fois). La traction est une loi FORTE (5 + 25·(1−d/R)² par seconde) : une pièce dépassée, à 4 m derrière une caisse à 200 km/h,
+         doit encore la RATTRAPER — à 13/s elle s'arrêtait à 4,3 m, juste hors de portée du ramassage (3,8 m). */
       if(mode==='drive'||mode==='fall')for(const p of pickups){
         if(p.taken)continue;
         const enVol=(mode==='fall');
         const mag=engTier>=ENG_CAP.aimant?1:0,gros9=MAG9&&!p.pow;
-        if(enVol){
-          if(Math.abs(p.s-lastNearS)>(gros9?90:70))continue;   // pré-filtre bon marché : le couloir autour du vol
+        if(gros9){ // (v3) L'AIMANT : la sphère, au sol comme en vol
+          if(Math.abs(p.s-(enVol?lastNearS:s))>MAG_R+(enVol?40:8))continue; // pré-filtre bon marché le long de la piste
+          if(!enVol&&p.face!==side&&!p.air)continue;
+          const d9=p.mesh.position.distanceTo(carGroup.position);
+          if(d9<MAG_R){const q9=1-d9/MAG_R;p.mesh.position.lerp(carGroup.position,Math.min(1,dt*(5+25*q9*q9)));}
+        }else if(enVol){
+          if(Math.abs(p.s-lastNearS)>70)continue;   // pré-filtre bon marché : le couloir autour du vol
           // EN VOL L'AIMANT EST PLUS LARGE : viser une grappe en pleine parabole, sans volant, est
           // déjà difficile — sans coup de pouce on ne les attrape jamais.
-          if(p.mesh.position.distanceTo(carGroup.position)<(gros9?34:11+mag*3))
-            p.mesh.position.lerp(carGroup.position,Math.min(1,dt*(gros9?8:5.5+mag*1.5)));
+          if(p.mesh.position.distanceTo(carGroup.position)<11+mag*3)
+            p.mesh.position.lerp(carGroup.position,Math.min(1,dt*(5.5+mag*1.5)));
         }else{
           if(p.face!==side)continue;
           const ds9=Math.abs(p.s-s);
-          if(ds9>(gros9?58:22))continue;
+          if(ds9>22)continue;
           if(p.air)continue;                        // les grappes du CIEL ne s'attrapent qu'en vol
           // CAPACITÉ MOTEUR (V12 atmosphérique) : L'AIMANT À PIÈCES — elles viennent à toi de bien plus
           // loin, et plus vite. Sans lui, on garde l'attraction d'origine, discrète.
-          if(gros9){if(p.s>s-6&&ds9<55)p.mesh.position.lerp(carGroup.position,Math.min(1,dt*(3+9*(1-ds9/55))));} // (pouvoirs v2) l'AIMANT : toute la largeur, et ça ACCÉLÈRE en approchant
-          else if(ds9<15+mag*2&&Math.abs(p.lat-side*lat)<9+mag*2) // (2026-09-26) plus de `level` ici : c'est l'index de la caisse (66), l'aimant faisait 33 m sur les dernières // portée LATÉRALE de l'aimant à pièces (route large)
+          if(ds9<15+mag*2&&Math.abs(p.lat-side*lat)<9+mag*2) // (2026-09-26) plus de `level` ici : c'est l'index de la caisse (66), l'aimant faisait 33 m sur les dernières // portée LATÉRALE de l'aimant à pièces (route large)
             p.mesh.position.lerp(carGroup.position,Math.min(1,dt*(6+mag*1.5)));
         }
         if(p.mesh.position.distanceTo(carGroup.position)<3.8+mag*.5){ // (2026-09-26) portée FIXE (les objets ont grossi)

@@ -93,6 +93,18 @@ QUATRE audits en lecture seule (App Store, textes FR/EN, logique des écrans, iP
   POP-TART » (Nyan Cat) et noms de marques (QUATTRO, STRATOS, DAYTONA, ELDORADO, VETTE, LE MANS 24) ; côté Mac : icône 1024, PrivacyInfo,
   cible iOS 16.4, `contentInset:'never'`, plugins haptics/preferences, ne pas embarquer CLAUDE.md/README/atelier-son/sons.html.
 
+## LE RALENTI DE LA FRÉNÉSIE + L'AIMANT DE 50 m (2026-09-29, session GRAPHISME, demandes directes de Sacha)
+- **« quand on débloque la frénésie, rajoute un ralenti le temps que le texte parte »** (`RALENTI`, `ralentiPose`, `ralentiDt`) :
+  SEULE exception au verdict du 26/09 (« enlève tous les modes ralentis ») — `slowT`/`hitT` restent vidés à chaque image. Posé par
+  `frenDeclenche` : le temps du jeu tombe à ×0,3 en 0,1 s, tient, et revient en douceur (smootherstep de 45 % à 100 %) sur 2,7 s
+  RÉELLES = la vie de #frenTitre (TRIPLE MONSTER, `ftVie`). Appliqué à `dt` dans la boucle APRÈS les mesures de perf (elles gardent
+  le temps réel). La pause le fige, la mort l'annule. Mesuré : 56 → 17,7 m/s pendant ~1,5 s, retour plein à 2,7 s. `dbgRalenti(d,k)`.
+- **« l'aimant doit aimanter toutes les pièces, augmente grandement son rayon, genre 50 m »** (`MAG_R`) : la v2 ne prenait que
+  DEVANT (55 m), laissait l'or du CIEL au sol et s'arrêtait à 34 m en vol. v3 = une SPHÈRE de 50 m autour de la caisse, sol et vol,
+  devant/derrière/côtés/au-dessus, sur ta face (l'autre est le miroir : la prendre paierait deux fois) ; traction 5 + 25·(1−d/R)² /s —
+  une pièce dépassée doit RATTRAPER la caisse (à 13/s elle calait à 4,3 m, hors du ramassage de 3,8 m). Mesuré sur 10 s :
+  20/20 pièces de la sphère prises (11/17 sans aimant). Banc : `dbgPwr('sphere')` puis `dbgPwr('spherePris')`.
+
 ## LA PASSE « JEU PRO » DU RENDU (2026-09-29, session GRAPHISME) — « peaufine, comme si le jeu avait été fait par une équipe de 50 pros »
 Méthode : 42 captures (3 mondes × sol/route/nitro/vol/après/explosion ×2, debout et couché — banc `gfx/balade.js`), critiquées par DEUX
 relecteurs indépendants (directeur artistique, technical artist), triées contre les verdicts de Sacha. Corrigé :
