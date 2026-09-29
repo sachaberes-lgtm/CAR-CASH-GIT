@@ -120,6 +120,21 @@
 - L'argent vient désormais des pièces ramassées, du portail et des primes de campagne (les fruits ne donnent que du nitro). Vérifié : saut de 2,3 s avec la figure
   DAUPHIN posé → argent inchangé, aura versée à l'encaissement de la chaîne (banc `argent.js`, scratchpad 4b30b603).
 
+## L'ÉCRAN DE FIN v5 (2026-09-29, session INTERFACE) — « pas joli ; on ne compte pas l'aura, c'est le score d'une partie ; l'argent plus en avant »
+- ⚠ **Verdict qui remplace celui du 25/09** (« l'argent n'est pas important quand tu es mort — c'est l'aura et le moteur ») : l'ARGENT est
+  le héros de l'écran. `.mCashL` = une plaque verte : « VERSÉS AU COMPTE », le montant au plus gros corps (`--f8`, réglé sur sa longueur
+  `--n` pour tenir debout), et « COMPTE : $ 128 k » dessous (`#mCashTot`).
+- **L'AURA = le score de la partie** : la carte dit le nombre SANS « + », et dessous « MEILLEUR 52 110 » (`SAVE.d.auraMax`) ou RECORD !
+  Plus de total de carrière, plus de rang ni de jauge sur cet écran. (Le total `SAVE.d.aura` et les rangs existent encore ailleurs :
+  en-tête du garage, POSTER 84 au rang MYTHE — question posée à Sacha.)
+- **Debout** : titre → argent → cartes AURA | MOTEUR → chiffres → missions → tuiles → MENU | REJOUER (`order`).
+- **Couché** (l'écran de l'ordi, 844 × 390) : grille « over obj / cash obj / hero stats / hero row / hero rej » — à gauche le titre,
+  l'argent et les deux cartes étirées jusqu'en bas ; à droite les missions (même hauteur que titre + argent), les chiffres, les tuiles,
+  MENU | REJOUER. Plus de trou. Petit téléphone couché (≤ 760 px) : tuiles pictogramme au-dessus du mot. Section 29 de `charte4`.
+- Banc : `mortv5.js W H lang tag` (vraie partie au pilote auto, mort, capture, chevauchements, défilement).
+- **Les vies du mode FACILE** ont descendu d'un cran (`#facVies` à hudH+104 debout / +90 couché) : le compteur d'argent `#cashHud`
+  (session UHD) a pris leur place sous la pause.
+
 ## MOINS DE TEXTES AU MILIEU DE L'ÉCRAN (2026-09-29, session INTERFACE) — « il y en a trop »
 - Sacha a reçu la liste numérotée des 74 textes du centre (course) et a rayé : **1 VIRAGE SERRÉ, 2 FRÔLÉ !, 4 PORTE !, 5 RASE-BORD,
   13 MINI/SUPER/ULTRA TURBO, 29 les pastilles sous le verdict (FACE CACHÉE ×2, PILE AU CENTRE, POSÉ LOURD)**. Le geste rapporte toujours
