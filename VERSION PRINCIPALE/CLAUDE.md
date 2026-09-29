@@ -5,7 +5,8 @@ Sacha : « NITROOO devient un dragon chinois de feu, de plus en plus grand et vi
 vraiment beau et que ça se suive : commencé au sol, dans les airs il doit se poursuivre, pas de barrière » · « la progression de vitesse
 doit être exponentielle ; à chaque palier de 10 % ça doit rajouter un compartiment au corps du dragon ».
 - **LA VITESSE EXPONENTIELLE** (bloc NITROOO d'UHD) : `NTR.boost = (1+NTR_BOOST)^t − 1` — ×1,10 COMPOSÉ par seconde tenue (+10 %, +21 %,
-  +33 %… +159 % à 10 s), plafond de sûreté `NTR_BOOST_MAX=4` (×5, atteint vers 17 s). Le « +N % » de chaque palier suit la même loi. ⚠ Le
+  +33 %… +159 % à 10 s), plafond `NTR_BOOST_MAX=1.6` (×2,6, palier 10 — Sacha, 29/09 nuit : à ×5 la caisse s'envolait à chaque relief
+  et mourait « TROP LONGTEMPS EN L'AIR », mesuré par GAMEPLAY, banc ntrx.js). Le « +N % » de chaque palier suit la même loi. ⚠ Le
   plafond est un garde-fou (au-delà la piste défile plus vite que le viseur et que les collisions balayées) : on peut le lever, pas le supprimer.
 - **LE DRAGON** (`DRG`, `dragonInit`, `dragonTick` appelée juste après `nitroooTick`, `dragonEchine`, `dragonBande`, `window.dbgDragon`) :
   · UN seul maillage, DEUX groupes de matériaux, tous du programme des RUBANS DE TRAÎNÉE (MeshBasicMaterial map + vertexColors + transparent +
@@ -15,7 +16,7 @@ doit être exponentielle ; à chaque palier de 10 % ça doit rajouter un compart
     gueule fermée / ouverte au rugissement, bois, œil d'or à pupille fendue, crinière de flammes, barbe), retournée par la texture selon le
     côté où elle regarde, `depthTest:false` + lueur. **0 programme lié pendant tout le banc**.
   · **UN COMPARTIMENT PAR PALIER** : `1 + NTR.pal` tronçons (lissé : le nouveau POUSSE à la queue), séparés par des ANNEAUX D'OR ; le tronçon
-    neuf s'embrase et le dragon RUGIT (gueule ouverte, gerbe de feu). Il grossit jusqu'à 10 tronçons (`g`), au-delà il s'allonge encore.
+    neuf s'embrase et le dragon RUGIT (gueule ouverte, gerbe de feu). Il grossit jusqu'à 10 tronçons (`g`), puis s'arrête à 11 tronçons au plus (plafond ×2,6 à 10 s : les paliers cessent au 10e).
   · **ÇA SE SUIT** : son repère est la DIRECTION DU MOUVEMENT lissée (pas la caisse — il ne vrille pas avec elle, il ne casse ni au décollage
     ni à la pose) et le HAUT DE L'ÉCRAN lissé (`camUp` : la normale de la face au sol — sur la face du DESSOUS le haut du monde est DANS la
     dalle —, le toit en vol). NITROOO commencée au sol CONTINUE en vol et inversement (`nitroooPart` sort si `NTR.on`, pas de ré-annonce ni
