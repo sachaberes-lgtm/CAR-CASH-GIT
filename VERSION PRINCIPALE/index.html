@@ -3985,6 +3985,23 @@ html body #tRight{left:calc(env(safe-area-inset-left,0px) + min(84px,21vh) + 30p
   html #mShop .shRemise{top:10px;right:12px}
   html #mShop .shUneTx{margin-top:12px}
 }
+/* le nom de l'objet de la porte des MISSIONS s'abrège par la fin */
+.obGain b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:400}
+.obGain .pxi{flex:none}
+#mMis .mSec{line-height:1.7}
+/* « AFFICHAGE AGRANDI » d'iOS et petits iPhone (320 pt de large) — mesuré au banc 320 × 693 */
+@media (max-width:360px){
+  #mMis .mSec{flex-wrap:wrap;letter-spacing:1px}
+  #mMis .mSec::after{display:none}
+  .shRuban{letter-spacing:0;padding:6px 8px 5px}
+  .shRemise{font-size:var(--f3);padding:6px 8px 5px;right:12px}
+  .shUneBas{flex-wrap:wrap;gap:6px 10px}
+  .shUneBas s,.shUneBas em{white-space:nowrap}
+  #mDead .mStat span{white-space:normal;line-height:1.5}
+  #mDead .hNx>span{white-space:normal}
+  #gTabs{margin:0;gap:2px;padding:3px}
+  .gTab{letter-spacing:0}
+}
 </style>
 <style id="hudMaitrise">
 /* =====================================================================================================================
@@ -18541,7 +18558,7 @@ function objRender(el){
     +'<div class="obBig">'+misTxt(m)+'</div>'
     +'<div class="obBar'+(nf?' ok':'')+'"><i style="width:0%" data-w="'+w.toFixed(1)+'"></i></div>'
     +'<div class="obFt"><span>'+(nf?'<em class="obPrime">+'+fmtC(m.p)+'</em>':TR('CETTE PARTIE')+' · '+misProgV(m,v))+'</span>'
-    +'<span class="obGain">'+g.nom+' '+pxi('droite')+'</span></div>';
+    +'<span class="obGain"><b>'+g.nom+'</b>'+pxi('droite')+'</span></div>'; // le nom dans son <b> : s'il faut l'abréger, c'est sa FIN qui s'efface (« LE CO… »), pas son début
   const gi=el.querySelector('.obBar i');
   // la partie REMPLIT la jauge : de zéro à ce qu'elle a fait (après l'entrée de l'écran, pour qu'on la voie monter)
   // (2026-09-28, console de son) la jauge qui se remplit sonne (ui.jauge, 1,1 s) — UNE fois par mort : mFill rappelle objRender à chaque retour
