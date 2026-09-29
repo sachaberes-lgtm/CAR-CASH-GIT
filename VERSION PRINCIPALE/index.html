@@ -4046,6 +4046,9 @@ html body #coach.passe .coN{color:var(--or);white-space:nowrap}html body #coach 
 #mDead .hMot>small{white-space:nowrap;letter-spacing:1px}
 /* REVOIR L'AUTO-ÉCOLE : la prime encore à prendre, en vert billet, sans second chevron (la ligne a le sien) */
 #mvTuto{color:var(--neoV);text-shadow:none}#mvTuto::after{display:none}#mvTuto[hidden]{display:none}
+/* (29/09, DEBUGGING) « POUCE HAUT EN VOL » passait sur deux lignes avec PLONGE et sur une avec MONTE : la ligne sautait à chaque appui —
+   la valeur prend toujours la place de la plus longue, l'interlettrage de la ligne se resserre d'un demi-pixel */
+.mLigne[data-m="volh"]{letter-spacing:.5px;gap:12px}#mvVolH{min-width:calc(6.6em + 18px);justify-content:flex-end}html:lang(en) #mvVolH{min-width:calc(5.5em + 18px)}html:lang(en) .mLigne[data-m="volh"]{letter-spacing:0}html:lang(zh) #mvVolH{min-width:0}
 /* ---- 27. MODE FACILE (2026-09-29) : les trois vies, en haut à droite, sous la pause (zone de LECTURE) ---- */
 #facVies{display:none}
 html body.touch.play.facile #facVies{display:flex;position:fixed;top:calc(var(--hudH) + 120px);right:var(--hudD);z-index:6;gap:5px;pointer-events:none;zoom:var(--hudK);
@@ -9939,11 +9942,14 @@ function ligneFruit(sp,lt){ // un fruit, deux faces (même recette que `place` d
 const LM4=new THREE.Matrix4(),LV1=new THREE.Vector3(),LV2=new THREE.Vector3();
 function ligneTick(dt){ // chaque image de course : la file s'allonge devant la caisse, au rythme de SA vitesse
   if(!LIGNE.on||!running||gameOver)return;
-  const v0=Math.max(30,Math.abs(vA)*SPD*(pwrSpdT>0?2:1)*(1+NTR.boost)),H9=Math.max(4,(ROAD_HALF-3)*.62); // m de piste par seconde : la vraie avance de `s` (NITROOO jusqu'à +80 %, VITESSE ×2 compris — MESURÉ : sans eux la file arrivait 1,5× trop serrée)
+  const b0=Math.max(30,Math.abs(vA)*SPD),mul=(pwrSpdT>0?2:1)*(1+NTR.boost),v0=b0*mul,H9=Math.max(4,(ROAD_HALF-3)*.62); // m de piste par seconde : la vraie avance de `s` = la vitesse PHYSIQUE × les multiplicateurs d'avance (NITROOO, VITESSE ×2 — MESURÉ : sans eux la file arrivait 1,5× trop serrée)
   /* la vitesse À L'ARRIVÉE sur l'objet, pas celle d'aujourd'hui : un départ lancé passe de 126 à 500 km/h en 12 s (MESURÉ) — espacée sur la
      vitesse du moment, la file arrivait tassée (un pad tous les 0,4 s, bloqués par les 1,5 s de recharge du pad) */
-  if(LIGNE.vP>0&&dt>0)LIGNE.acc+=((v0-LIGNE.vP)/dt-LIGNE.acc)*Math.min(1,dt*2);LIGNE.vP=v0;
-  const v=v0+Math.max(0,LIGNE.acc)*LIGNE.voir*.7;
+  /* ⚠ (audit DEBUGGING) l'accélération se dérive sur la vitesse PHYSIQUE, jamais sur l'avance multipliée : ramasser VITESSE doublait v0 en
+     UNE image → ~9 000 m/s² estimés, la file posait 3 objets à 1 190 m l'un de l'autre (MESURÉ en VILLE 11). Plafond 40 m/s² (un départ
+     lancé ~9, la rampe NITROOO ~15) ; les multiplicateurs s'appliquent APRÈS. */
+  if(LIGNE.vP>0&&dt>0)LIGNE.acc+=(Math.min(40,(b0-LIGNE.vP)/dt)-LIGNE.acc)*Math.min(1,dt*2);LIGNE.vP=b0;
+  const v=(b0+Math.max(0,LIGNE.acc)*LIGNE.voir*.7)*mul;
   if(LIGNE.prochS<s+60)LIGNE.prochS=s+60; // jamais derrière soi (portail, replacement)
   const hz=s+Math.max(220,v*LIGNE.voir);
   let n9=0;
