@@ -1,5 +1,16 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LES CLASSIQUES DE LA BOUTIQUE EN FACETTES (2026-09-29) — « enlève toutes les parties arrondies des voitures du shop, ça ne colle pas avec la DA poly »
+- La boutique vend 13 légendaires : les 6 de la gamme des 50 (kit low-poly, déjà taillées) et 7 CLASSIQUES du vieux kit (CHAT POP-TART,
+  REQUIN, COMÈTE, FORMULE OR, LE MANS 24, EL PATRON, ACIDE : gabarits `poptart`, `requin`, `proto`, `formula`, `lemans`, `hyper`, `tuner`)
+  faites de boules 16 × 12, de cylindres 12-16 côtés et d'un loft 52 × 24 en normales LISSÉES.
+- `facetteCaisse()` (juste avant `buildCar`, appelée en fin de buildCar avant que la caisse rejoigne `carBody`, si `FACET_SHAPES[shape]`
+  ou `spec.facette`) : boule 8 × 6, cylindre/cône ≤ 8 côtés, tore 4 × 10, cercle/tour ≤ 8, et TOUTES les pièces non plates en normales
+  PLATES (non indexé + normales recalculées). Aucune matière touchée (pas de `flatShading` : un #define = un programme de plus) ; le kit
+  `lp`, le sol (`sol`), les plumes de réacteur restent tels quels. Loft du requin 52 × 24 → 18 × 10. Roues des classiques : octogones.
+- Vérifié : planche avant/après des 13 (banc `shop.js` + `planche.py`, scratchpad 4b30b603 `shop/`), les 13 équipées sans erreur (≤ 17 ms),
+  course en CHAT POP-TART sans erreur. `dbgFacette(false)` rend les caisses d'avant.
+
 ## LA PASSE DE SORTIE (2026-09-29) — « balade-toi dans tout le jeu… fais-le en mode ultra complet, imagine que le jeu sort demain »
 Session INTERFACE (worktree `CCG-transitions`). Une partie complète jouée au banc (`balade.js` : premier lancement, auto-école, vraie course,
 vol, pouvoirs, frénésie, pause, mort, missions, garage, carrière — debout, couché, anglais, encoche simulée `NOTCH=1` de `tour.js`), puis

@@ -12863,7 +12863,7 @@ const SHAPES={
       // ⚠ arch/droop sont en unités de PROFIL (rayon max = 1), pas en mètres : le loft se met à
       // l'échelle APRÈS. Les avoir donnés en H (mètres) puis remis à l'échelle faisait un poisson
       // de deux mètres de haut pour une caisse d'un mètre.
-      {len:L*1.02,rings:52,seg:24,arch:.16,droop:.52,wid:.92,flat:.82,
+      {len:L*1.02,rings:18,seg:10,arch:.16,droop:.52,wid:.92,flat:.82, // (2026-09-29) 52 × 24 → 18 × 10 : le corps se TAILLE en facettes (DA poly, voir facetteCaisse)
        top:0x1f4a7a,side:0x5f9fd0,bel:0xf4feff});
     const peau=new THREE.MeshPhongMaterial({vertexColors:true,shininess:150,specular:0xffffff,
       envMap:envTex,reflectivity:.62,combine:THREE.MixOperation});
@@ -15947,6 +15947,53 @@ const CPOSE_M=new THREE.Matrix4(),CPOSE_S=new THREE.Vector3();
 function caissePose(pc,p,q){const o=pc[0];
   if(o.parent){o.getWorldPosition(p);o.getWorldQuaternion(q);return;}
   pc[1].updateWorldMatrix(true,false);o.updateMatrix();CPOSE_M.multiplyMatrices(pc[1].matrixWorld,o.matrix).decompose(p,q,CPOSE_S);}
+/* LES CLASSIQUES DE LA BOUTIQUE EN POLY (2026-09-29, Sacha : « enlève toutes les parties arrondies dans les voitures du shop, ça ne
+   colle pas avec la DA poly »). Les six légendaires de la gamme des 50 sont déjà modelées au kit low-poly (facettes planes) ; les
+   SEPT classiques vendues à côté (chat pop-tart, requin, comète, formule or, le mans 24, el patron, acide) sortaient du vieux kit :
+   boules lisses de 16 × 12, cylindres de 12 à 16 côtés, loft du requin en 52 × 24, tout en normales lissées — des caisses en
+   plastique moulé au milieu d'une gamme taillée au couteau.
+   `facetteCaisse()` repasse sur la caisse montée, JUSTE AVANT qu'elle rejoigne la carrosserie (roues, aile, propulseurs compris) :
+   chaque pièce ronde est refaite avec PEU de segments (boule 8 × 6, cylindre et cône ≤ 8 côtés, tore 4 × 10), et TOUTES ses faces
+   reçoivent une normale PLATE (géométrie non indexée + normales recalculées) — la lumière tombe par facettes, comme sur la gamme.
+   ⚠ Aucune matière n'est touchée (le `flatShading` d'une matière est un #define : un programme de plus à compiler en pleine partie) :
+   seules les géométries changent. Les pièces déjà plates (boîtes, plans), le kit low-poly (`lp`), ce qui épouse le sol (`sol`) et les
+   plumes de réacteur (jetGeo) ne bougent pas. Hook : `dbgFacette(false)` rend les caisses d'avant (comparaison au banc). */
+const FACET_SHAPES={poptart:1,requin:1,proto:1,formula:1,lemans:1,hyper:1,tuner:1};
+const FACETTE={on:true};
+function geoFacette(g){ // la même pièce, taillée : peu de segments, une normale par face — null = déjà plate, on n'y touche pas
+  const P=g.parameters||{};let n;
+  switch(g.type){
+    case 'BoxGeometry':case 'BoxBufferGeometry':case 'PlaneGeometry':case 'PlaneBufferGeometry':return null;
+    case 'SphereGeometry':case 'SphereBufferGeometry':
+      n=new THREE.SphereGeometry(P.radius,Math.min(8,P.widthSegments),Math.min(6,P.heightSegments),P.phiStart,P.phiLength,P.thetaStart,P.thetaLength);break;
+    case 'CylinderGeometry':case 'CylinderBufferGeometry':
+      n=new THREE.CylinderGeometry(P.radiusTop,P.radiusBottom,P.height,Math.max(3,Math.min(8,P.radialSegments)),1,P.openEnded,P.thetaStart,P.thetaLength);break;
+    case 'ConeGeometry':case 'ConeBufferGeometry':
+      n=new THREE.ConeGeometry(P.radius,P.height,Math.max(3,Math.min(8,P.radialSegments)),1,P.openEnded,P.thetaStart,P.thetaLength);break;
+    case 'TorusGeometry':case 'TorusBufferGeometry':
+      n=new THREE.TorusGeometry(P.radius,P.tube,Math.min(4,P.radialSegments),Math.min(10,P.tubularSegments),P.arc);break;
+    case 'CircleGeometry':case 'CircleBufferGeometry':
+      n=new THREE.CircleGeometry(P.radius,Math.max(3,Math.min(8,P.segments)),P.thetaStart,P.thetaLength);break;
+    case 'LatheGeometry':case 'LatheBufferGeometry':
+      n=new THREE.LatheGeometry(P.points,Math.max(3,Math.min(8,P.segments)),P.phiStart,P.phiLength);break;
+    default:n=g.clone(); // extrusions (carProfile), lofts : la forme reste, le LISSAGE s'en va
+  }
+  const f=n.index?n.toNonIndexed():n;if(f!==n)n.dispose();
+  f.computeVertexNormals(); // sans index, chaque triangle a ses trois sommets : la normale calculée est celle de la FACE
+  return f;
+}
+function facetteCaisse(){
+  const neuf=new Map(),vieux=new Set();
+  carGroup.traverse(function(o){
+    if(!o.isMesh||(o.userData&&(o.userData.lp||o.userData.sol)))return;
+    const g=o.geometry,m=o.material;
+    if(!g||g===jetGeo||m===jetShellM||m===jetCoreM||m===jetGlowM)return;
+    let f=neuf.get(g);if(f===undefined){f=geoFacette(g);neuf.set(g,f);}
+    if(f){o.geometry=f;if(g!==SPH9)vieux.add(g);}
+  });
+  for(const g of vieux)g.dispose(); // créées pour cette caisse et jamais dessinées : on les rend tout de suite
+}
+window.dbgFacette=function(on){if(on!=null){FACETTE.on=!!on;try{buildCar(CARS[level]);}catch(e){return e.message;}}return FACETTE.on;};
 function buildCar(spec){
   // ⚠ LES PIÈCES LOW-POLY SE LIBÈRENT : chaque caisse a SA géométrie (plusieurs milliers de facettes)
   // et ses matières. Sans ce passage, chaque aller-retour au garage laisserait une caisse en VRAM.
@@ -16265,6 +16312,7 @@ function buildCar(spec){
   CARPOOL.tail=null; // (2026-09-26, audit rendu) la flaque rouge des feux et le halo nitro plaqués au sol faisaient les taches rondes rouges/orangées derrière la caisse — retirés ; seuls les FAISCEAUX des phares restent
   if(false)CARPOOL.tail=mkPoolPlane(spec.w*1.6,spec.l*.8,-spec.l/2-spec.l*.34,0xf51a0c,.16); // (2026-09-25) plus petite, plus discrète : « la grosse tache violette est mal gérée »          // les feux saignent leur rouge DERRIÈRE — rouge PROFOND (le bleu résiduel de 0xff2418 rosissait la flaque sur le bitume violet)
   CARPOOL.jet=null;if(false)CARPOOL.jet=mkPoolPlane(spec.w*1.8,spec.l*2.6,-spec.l/2-spec.l*1.3,0xff7a24,0);  // (2026-09-25) 5×19 m → 3,4×11 m : le halo de nitro ne peint plus la moitié de l'écran              // le halo de la nitro/traînée (opacité pilotée par JETS.k dans la boucle)
+  if(FACETTE.on&&(FACET_SHAPES[shape]||spec.facette))facetteCaisse(); // (2026-09-29) les classiques de la boutique, taillées en facettes comme la gamme (voir facetteCaisse)
   // LA CARROSSERIE PENCHE (voir carBody) : on y range tout, sauf les roues et ce qui épouse le bitume (néon, flaques)
   for(const ch of carGroup.children.slice())if(wheels.indexOf(ch)<0&&!(ch.userData&&ch.userData.sol))carBody.add(ch);
   carGroup.add(carBody);carBody.rotation.set(0,0,0);carBody.position.set(0,0,0);carBody.userData.pivY=wheels.length?wheels[0].position.y:.45; // pivot = hauteur des moyeux (⚠ pas de carRoll9=0 ici : buildCar tourne AVANT leur déclaration — zone morte)
