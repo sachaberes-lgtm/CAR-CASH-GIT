@@ -66,7 +66,7 @@
   PIÈCES DU MOTEUR (`addCoins`, une ressource de la partie, pas de l'argent) restent — à trancher par Sacha s'il veut aussi les retirer.
 - Portail traversé en vol : la chaîne d'argent n'est plus « ENCAISSÉE » (la figure compte dans `runStats.tricks`). Explosion en vol : plus de
   mallette d'argent perdue ni d'ASSURANCE (`insUsed` ne sert plus) — la chaîne d'AURA part en fumée (`chainePerdue`).
-- L'argent vient désormais des pièces ramassées, du portail, des fruits et des primes de campagne. Vérifié : saut de 2,3 s avec la figure
+- L'argent vient désormais des pièces ramassées, du portail et des primes de campagne (les fruits ne donnent que du nitro). Vérifié : saut de 2,3 s avec la figure
   DAUPHIN posé → argent inchangé, aura versée à l'encaissement de la chaîne (banc `argent.js`, scratchpad 4b30b603).
 
 ## LE MODE FACILE + « POUCE HAUT EN VOL » (2026-09-29, session INTERFACE) — « simplifier l'expérience mobile pour un public jeune »

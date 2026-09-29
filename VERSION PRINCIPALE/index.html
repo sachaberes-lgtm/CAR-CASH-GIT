@@ -26594,7 +26594,7 @@ function tryLand(dt){
     /* (2026-09-29, Sacha : « les figures ne doivent plus rapporter d'argent, seulement de l'aura ») — PLUS UN DOLLAR À LA POSE. `gain` ne
        sert plus qu'à dire si la pose porte une figure (sinon elle reste muette) : l'aura (chaineAura), le flow, le nitro, les verdicts de
        l'annonceur et les pièces du MOTEUR (une ressource de la partie, pas de l'argent) sont gardés ; l'argent, la caisse enregistreuse et
-       les billets qui volent vers le compteur s'en vont. L'argent vient des pièces, du portail, des fruits et de la campagne. */
+       les billets qui volent vers le compteur s'en vont. L'argent vient des pièces, du portail et de la campagne (les fruits ne donnent que du nitro). */
     if(gain>0){ // l'airtime brut ne rapporte RIEN : sans chaîne à casher, la pose est muette
       if(g>=1.5)RUNX.perfect++; // CONTRATS : une pose PARFAITE qui encaisse une figure
       flowAdd(g>=2?14:g>=1.5?10:4,g>=1.5?'risque':'style',sideL<0?'m':'n'); // (v5) posé sur la FACE CACHÉE : l'envers du décor, c'est MACHIAVEL // FLOW : une figure encaissée nourrit la montée — la pose PARFAITE est un RISQUE (on a visé), l'ordinaire du style
