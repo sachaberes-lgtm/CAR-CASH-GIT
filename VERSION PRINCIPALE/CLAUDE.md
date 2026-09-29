@@ -734,6 +734,12 @@ avec un nom neuf et on le signale à la session SON (ou on écrit la recette dan
     crête −70 dB, 40 ms de marge, fondu dans le silence) retirées : 37 s. Mémoire décodée 55,0 → 42,9 Mo, banque 3,05 → 2,86 Mo,
     décodage au lancement 133 → 96 ms (PC). Niveaux inchangés (pire écart 0,18 dB), 38 sons identiques à l'octet, boucles intactes,
     contrôle qualité propre (ni écrêtage, ni DC, ni fin coupée). `mesures.txt` note « mo←st » et « (−x s) ».
+  · ⚠ CE QUI RESTE, ET POURQUOI ON N'Y TOUCHE PAS : la CHAÎNE MASTER coûte ~0,9 % d'un cœur dès qu'UN son passe (Chrome saute le calcul
+    d'un nœud dont l'entrée est marquée silencieuse — dès qu'un son joue, compresseur de bus 0,44 %, tanh suréchantillonné 0,26 %,
+    limiteur de sortie 0,26 %). Le tanh `lim` n'est PAS un simple filet : sa pente à zéro vaut 1,51 (tanh(1,3x)/tanh(1,3)), il COLORE
+    tout le mix — sans son 2x, le 3e harmonique des sons brillants (> 8 kHz) se replierait dans l'audible. C'est le son validé : on le garde.
+    Idem `osc`/`osc2` en a-rate (le timbre de la caisse). Voix/samples décodés à 48 kHz (5,8 Mo) : les passer à 32 kHz couperait l'aigu
+    du WOW pour moins de 2 Mo — gardés.
 ## LE MOUVEMENT DE L'INTERFACE + MISSIONS v2 (2026-09-28, soir) — « travaille les animations, les emplacements, les transitions entre chaque écran : prêt à envoyer à l'App Store »
 Sacha : « il y a des centaines de petites choses à améliorer dans l'interface… travaille les animations quand tu cliques sur les boutons,
 leurs emplacements, les transitions quand tu changes d'écran — que ce soit parfait ; travaille vraiment les transitions entre chaque écran
