@@ -1,5 +1,42 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA FRÉNÉSIE ×3 (2026-09-29, session UHD) — « en mode frénésie on doit gagner 3× l'argent, adapte ça de manière cool au gameplay ; rends la frénésie plus facile à obtenir ET à perdre »
+- **L'ARGENT ×3** : `ECO3.flow[4]` 2 → **3** (les paliers d'avant inchangés : ×1 · 1,3 · 1,5 · 1,8). Toute la paie de course passe par
+  `flowMult()` : pièces (déjà), butins de la ville `vPaie` (déjà), et désormais le **portail** (`denom×24×fever×flowMult`) et les trois
+  **fins de monde** (NUAGES/ESPACE/VILLE, `denom×60×flowMult`). Les figures ne paient plus qu'en aura (session GAMEPLAY) ; les fruits ne
+  donnent que de la nitro. Le multiplicateur moyen d'une partie (temps × palier, banc) : ×1,4 · 1,6 · 1,8 → ×1,7 · 2,1 · 2,3 (tranquille ·
+  casse-cou · maître) — à surveiller côté économie.
+- **LE RETOUR, « DE MANIÈRE COOL »** (le compteur d'argent est masqué sur téléphone : le ×3 se voit là où l'argent naît) — `frenCash(g,pos)`,
+  juste après `frenNourrit`, appelé par la pièce, le portail et `vPaie` (ne fait rien hors frénésie) :
+  · le **« $×3 »** de la bande du flow passe à l'OR (même recette en quatre bandes que le vert billet) et **bat or ⇄ rouge** (steps : deux
+    repeintes par battement) ; chaque gain le fait **frapper** (`.cj1/.cj2`) et, au plus toutes les 0,4 s, en fait jaillir des pixels d'or
+    (`pixCouleurs` : `.fM` → `PIX_OR`) ;
+  · un petit **« ×3 » jaillit de la pièce** ramassée (`fx3Tag`, cinq `<i class="fx3">` recyclés, projetés depuis la position monde ;
+    or plein cerné d'encre, braise rouge ; 0,7 s ; masqué mort/pause ; « réduire les animations » → simple fondu) ;
+  · la gerbe d'or de la pièce grossit en frénésie (14 étincelles au lieu de 8) ;
+  · **LE BUTIN** (`FREN.butin`, remis à zéro par `frenDebut`) : quand la frénésie tombe, « FRÉNÉSIE 0:18 · +$ 1,2 k » (le record, s'il
+    tombe, garde la parole : la ligne doit tenir dans l'écran) ;
+  · l'annonce d'entrée dit « CASH ×3 » (+ « · RECORD 0:42 » s'il existe) ; la 1re de la session garde « TIENS LES TROIS TRAITS ».
+  CSS : `<style id="frenX3">` juste après `figTaille` (hex purs, pas de color-mix ; aucune plaque nouvelle dans les colonnes → rien dans hudTaille).
+  **Son à fabriquer (session SON)** : `sfx('frenesie.cash')` — chaque gain en frénésie, par-dessus le son de la pièce, au plus toutes les 90 ms.
+- **PLUS FACILE À OBTENIR ET À PERDRE** — loi 16 de `FLOW2` : montée cellules .6 · .5 · .4 · .4 (v5 .5 · .35 · .22 · .14), pente .15 (.4),
+  fuite ×0,6 = 1,8 · 2,1 · 2,4 · 1,8, répit 3 s (2,5), style dans la triade .7 (.35), `gate` .9 (.95, non simulé), la route toujours hors
+  de la triade ; tenue : mémoires NARCISSE 6 s · MACHIAVEL 12 s · PSYCHO 2 s (9 · 25 · 3), brûlure [6 · 4 · 2 · −0,3] ([4 · 2 · ,7 · −1,5]),
+  retombée 75 inchangée, zone rouge 88 inchangée. Ville (loi 15) : mémoires 9 · 16 · 3 (13 · 32 · 4), style triade .8 (.6), même brûlure.
+- **MESURÉ** (`simtri.js`, le vrai bloc, 5 min × 60 parties ; copie `simx.js` = + tenue médiane, frénésies/partie, multiplicateur moyen —
+  scratchpad b76e6ad3/frenx3) :
+
+  | joueur | 1re frénésie AVANT | APRÈS | en frénésie AVANT | APRÈS | tenue moy. AVANT | APRÈS |
+  |---|---|---|---|---|---|---|
+  | tranquille | jamais (100 %) | **2 min 32** (5 % jamais) | 0 % | 6 % | — | **9 s** (~2 par partie) |
+  | casse-cou | jamais (100 %) | **59 s** | 0 % | 29 % | — | **13 s** (~7) |
+  | maître | 2 min 26 | **38 s** | 30 % | 46 % | 77 s | **18 s** (~8) |
+
+  Avec le dauphin (`DOL=1`) : 2 min 20 · 56 s · 39 s, mêmes tenues. Banc en jeu (390×844, muet, `dbgFren('entre')` + pilote auto) : les
+  pièces ramassées en frénésie font bien jaillir leurs « ×3 », `dbgFren().mult` = 3, le butin s'additionne ; traits nourris puis lâchés,
+  la frénésie tombe ~7 s plus tard. Hooks : `dbgFren('cash'[, montant])` (le retour d'un gain, sans toucher au compte), `dbgFren()` rend
+  `mult` et `butin`. ⚠ Si Sacha la trouve encore trop présente : durcir la TENUE (`brule[2]`, mémoires), pas la montée.
+
 ## LES NUAGES v4 — PLUS DE FORMES, DES TAILLES HIÉRARCHISÉES (2026-09-29, Sacha à la session GAMEPLAY : « des formes plus aléatoires et belles à regarder, des nuages de tailles différentes — c'est le premier niveau, il faut que ce soit magnifique »)
 - MESURÉ avant (banc `ciel.js` : partie aux NUAGES, ciel `matin` forcé, captures 390 × 844 au sol et en vol) : 6 gabarits pour ~350 nuages
   (les mêmes silhouettes partout, de grosses boules qu'on comptait), tailles tirées en uniforme, en vol un tapis de pâtés identiques.

@@ -4595,6 +4595,40 @@ html body #dolHud .dNom{font-size:clamp(13px,3.6vw,18px)!important}
 html body #dolHud .dAura{font-size:clamp(9px,2.5vw,11px)!important}
 html body #popTxt.cache{opacity:0!important}
 </style>
+<style id="frenX3">
+/* LA FRÉNÉSIE ×3 (2026-09-29, session UHD — Sacha : « en mode frénésie on doit gagner 3× l'argent, adapte ça de manière cool ») : ce qui
+   se VOIT quand l'argent triple (le JS : frenCash / fx3Tag). Deux pièces seulement, dans la grammaire de hudDA/hudMaitrise :
+   · le ×CASH de la bande (« $×3 ») quitte le vert billet pour l'OR — la même recette en quatre bandes que le vert (dérogation nommée des
+     chiffres du HUD), cerné d'encre (--contourP) — et BAT or ⇄ rouge en deux temps francs (steps : deux repeintes par battement, pas
+     soixante) ; chaque dollar gagné le fait FRAPPER (.cj1/.cj2) ;
+   · le « ×3 » qui jaillit de la pièce ramassée : or plein cerné d'encre, braise rouge autour ; il claque, monte de 34 px, reste lisible
+     les deux tiers du trajet et s'éteint (0,7 s — vu au banc : à 0,6 s avec un fondu dès le premier quart, on le lisait à moitié éteint).
+   Aucune plaque nouvelle dans les colonnes du HUD : rien à ajouter à hudTaille. Hex purs : rien à replier pour les vieux iPhone. */
+html body:not(.touch) #flowHud[data-lv="4"] .fM{color:#ffc93a;text-shadow:0 2px 0 #1c0430,0 0 10px #ff2a3d}
+html body.touch #flowHud[data-lv="4"] .fM{color:transparent;-webkit-text-fill-color:transparent;text-shadow:none;
+  background:linear-gradient(180deg,#fffbe8 0 22%,#ffe38a 22% 50%,#ffc93a 50% 82%,#c77800 82%);-webkit-background-clip:text;background-clip:text;
+  filter:var(--contourP) drop-shadow(0 0 7px #ff2a3d);animation:fx3Bat .9s steps(1,end) infinite}
+@keyframes fx3Bat{50%{background-image:linear-gradient(180deg,#fff 0 22%,#ffc2c9 22% 50%,#ff3b4f 50% 82%,#9a0018 82%);filter:var(--contourP) drop-shadow(0 0 9px #ffc93a)}}
+html body.touch #flowHud[data-lv="4"] .fM.cj1{animation:fx3Bat .9s steps(1,end) infinite,fx3Frappe1 .32s var(--ease)}
+html body.touch #flowHud[data-lv="4"] .fM.cj2{animation:fx3Bat .9s steps(1,end) infinite,fx3Frappe2 .32s var(--ease)}
+@keyframes fx3Frappe1{0%{scale:1.5}100%{scale:1}}
+@keyframes fx3Frappe2{0%{scale:1.5}100%{scale:1}}
+.fx3{position:fixed;left:0;top:0;z-index:40;pointer-events:none;display:block;font-family:var(--pix);font-style:normal;font-weight:normal;font-size:var(--f4);
+  line-height:1;letter-spacing:1px;white-space:nowrap;color:#ffc93a;opacity:0;filter:var(--contourP) drop-shadow(0 0 8px #ff2a3d)}
+.fx3.on{animation:fx3Monte1 .7s var(--ease) both}
+.fx3.on2{animation:fx3Monte2 .7s var(--ease) both}
+@keyframes fx3Monte1{0%{opacity:1;transform:translate(-50%,-50%) scale(1.6)}18%{opacity:1;transform:translate(-50%,calc(-50% - 10px)) scale(1)}65%{opacity:1;transform:translate(-50%,calc(-50% - 26px)) scale(1)}100%{opacity:0;transform:translate(-50%,calc(-50% - 34px)) scale(.9)}}
+@keyframes fx3Monte2{0%{opacity:1;transform:translate(-50%,-50%) scale(1.6)}18%{opacity:1;transform:translate(-50%,calc(-50% - 10px)) scale(1)}65%{opacity:1;transform:translate(-50%,calc(-50% - 26px)) scale(1)}100%{opacity:0;transform:translate(-50%,calc(-50% - 34px)) scale(.9)}}
+body.dead .fx3,body:has(#tPanel.open) .fx3{visibility:hidden}
+@keyframes fx3Fondu{0%,65%{opacity:1;transform:translate(-50%,-50%)}100%{opacity:0;transform:translate(-50%,-50%)}}
+@media (prefers-reduced-motion:reduce){
+  html body.touch #flowHud[data-lv="4"] .fM,html body.touch #flowHud[data-lv="4"] .fM.cj1,html body.touch #flowHud[data-lv="4"] .fM.cj2{animation:none}
+  .fx3.on,.fx3.on2{animation:fx3Fondu .7s linear both}
+}
+html[data-reduced-motion="1"] body.touch #flowHud[data-lv="4"] .fM,html[data-reduced-motion="1"] body.touch #flowHud[data-lv="4"] .fM.cj1,
+html[data-reduced-motion="1"] body.touch #flowHud[data-lv="4"] .fM.cj2{animation:none}
+html[data-reduced-motion="1"] .fx3.on,html[data-reduced-motion="1"] .fx3.on2{animation:fx3Fondu .7s linear both}
+</style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
   <div id="spStage">
@@ -9788,8 +9822,12 @@ const ECO3={
   gain:.25,     // LE BOUTON : la valeur du dollar gagné EN COURSE — pièces, poses, portail, assurance passent tous par denom()
   prime:.5,     // les PRIMES DE CONTRAT (versées en banque) : moitié — un salaire de défi, pas une deuxième paie
   defi:{1000:200,20000:2500,100000:12000,500000:60000}, // les défis « ENCAISSE X » (ancien seuil → nouveau), calés sur les parties mesurées
-  flow:[1,1.3,1.5,1.8,2], // FUITE 1 — le FLOW paie ×1,3 · ×1,5 · ×1,8 · ×2 à la FRÉNÉSIE (c'était +0,5 par palier, jusqu'à ×3) ; des valeurs
+  flow:[1,1.3,1.5,1.8,3], // FUITE 1 — le FLOW paie ×1,3 · ×1,5 · ×1,8 · ×3 à la FRÉNÉSIE (c'était +0,5 par palier, jusqu'à ×3) ; des valeurs
                 //   qui s'écrivent juste avec une décimale : la bande du FLOW affiche flowMult() tel quel, elle ne doit pas arrondir
+                //   (2026-09-29, Sacha : « en mode frénésie on doit gagner 3× l'argent ») : la FRÉNÉSIE repasse à ×3 (elle payait ×2) — elle
+                //   seule, les paliers d'avant gardent leur prix. En échange elle se gagne plus vite et TOMBE plus vite (FLOW2, loi 16) : le
+                //   ×3 n'est plus une rente, c'est une rafale qu'on relance. Toute la paie de course passe par flowMult() (pièces, portail,
+                //   butins de la ville, fins de monde) ; les figures, elles, ne paient plus qu'en aura (session GAMEPLAY, même jour).
   recolte:2.5,  // FUITE 2 — la RÉCOLTE monte de ×0,5 toutes les 5 pièces et plafonne à ×2,5 (c'était +1 par 5, jusqu'à ×4)
   serie:.5      // FUITE 3 — la SÉRIE de poses : +5 % par pose, plafond +50 % (c'était +10 %, plafond ×2 dès la 10e pose)
 };
@@ -17973,25 +18011,40 @@ function n9Saut(o){const n=performance.now(),s9=n-(o._viseT||0)>200;o._viseT=n;r
    tous les réglages ci-dessous sont revenus à la TRIADE v5 (cellules .5 · .35 · .22 · .14, pente .4, gate .95, style .35 dans la
    triade, la route n'y touche plus, brûlure [4 · 2 · .7 · −1.5], pose lourde 6). Les valeurs simplifiées sont notées en commentaire
    à côté de chaque clé : si Sacha redemande « plus facile », repartir d'un point ENTRE les deux, pas de l'une ou de l'autre.
+   16. LA FRÉNÉSIE ×3 — VITE GAGNÉE, VITE PERDUE (2026-09-29, Sacha : « en mode frénésie on doit gagner 3× l'argent ; rends l'obtention
+       de la frénésie plus facile à obtenir ET à perdre »). Elle paie désormais ×3 (ECO3.flow[4]) ; elle doit donc être une RAFALE qu'on
+       déclenche souvent et qu'il faut attiser sans arrêt, plus une rente qu'on garde deux minutes. MESURÉ AVANT (simtri.js, v5, 5 min
+       × 60 parties) : tranquille et casse-cou n'y arrivaient JAMAIS ; le maître en 2 min 26, puis la gardait 77 s d'affilée (30 %).
+       · LA MONTÉE S'OUVRE (au-delà de la version simplifiée des lois 13-14, qui laissait encore 40 % des tranquilles dehors) : cellules
+         .6 · .5 · .4 · .4, pente .15, fuite ×0,6 (1,8 · 2,1 · 2,4 · 1,8), répit 3 s, le STYLE prend 70 % dans la triade, vitesse exigée
+         90 % de la croisière (`gate`, non simulé). La ROUTE ne touche toujours pas la triade (loi 1) : les pièces chauffent, elles ne
+         couronnent pas.
+       · LA TENUE DEVIENT UNE BRAISE : mémoires NARCISSE 6 s · MACHIAVEL 12 s · PSYCHO 2 s (v5 : 9 · 25 · 3), brûlure selon les traits
+         vivants [6 · 4 · 2 · −0,3] (v5 : [4 · 2 · ,7 · −1,5]) — les trois tenus ne la regonflent plus qu'à peine, deux ne la tiennent
+         que 6 s, un seul 3 s. Lâcher le nitro ET les figures = ~6 s de sursis. La retombée reste à 75 : on y revient en remplissant
+         la triade, en ~15-20 s pour qui joue bien. En VILLE (loi 15), les mémoires baissent dans la même proportion (9 · 16 · 3).
+       MESURÉ APRÈS (même banc) : 1re frénésie tranquille ~2 min 30 (95 % l'atteignent), casse-cou ~1 min, maître ~40 s ; tenue
+       moyenne ~9 · 13 · 18 s ; en frénésie ~6 · 29 · 46 % du temps, soit ~2 · 7 · 8 frénésies en 5 min. Le multiplicateur d'argent
+       moyen d'une partie (temps × palier) passe de ×1,4 · ×1,6 · ×1,8 à ×1,7 · ×2,1 · ×2,3.
    ⚠ BLOC PUR : ne lit que ses arguments et FLOW2 — le banc de simulation l'exécute tel quel, hors du jeu. Tous les
    réglages vivent dans FLOW2, nulle part ailleurs.
    ========================================================================== */
 const FLOW2={
   // efficacité des familles selon la cellule : 0 cyan · 1 or · 2 rose · 3 TRIADE (violet + zone rouge) · 4 en FRÉNÉSIE
-  fam:{route:[1,.5,.12,0,0],style:[1,1,.8,.35,0],risque:[1,1,1,1,0]}, // (v4) en frénésie [4] : rien — c'est la TRIADE qui tient la jauge · (loi 13, retirée) : route [1,.6,.3,.15] · style [1,1,.9,.7]
-  cel:[.5,.35,.22,.14,.5],               // chaque cellule demande plus de gestes que la précédente (v2 : 1 · ,8 · ,65 · ,5 · loi 13, retirée : ,7 · ,55 · ,4 · ,34)
+  fam:{route:[1,.5,.12,0,0],style:[1,1,.8,.7,0],risque:[1,1,1,1,0]}, // (v4) en frénésie [4] : rien — c'est la TRIADE qui tient la jauge · (loi 16) le style prend 70 % dans la triade (v5 : ,35 · loi 13, retirée : route [1,.6,.3,.15] · style [1,1,.9,.7])
+  cel:[.6,.5,.4,.4,.5],                  // chaque cellule demande au moins autant de gestes que la précédente (loi 16 · v5 : ,5 · ,35 · ,22 · ,14 · v2 : 1 · ,8 · ,65 · ,5 · loi 13, retirée : ,7 · ,55 · ,4 · ,34)
   vit:[[.6,.35],[1,1],[1.3,1.35]],       // (vitN, ×) — la vitesse multiplie tous les gains, interpolé entre les points
-  gate:.95,                              // sous 95 % de la croisière, la TRIADE ne prend RIEN (loi 13, retirée : 85 %)
-  grace:2.5,                             // répit (s) après un geste de style/risque avant que la jauge fuie
-  fuite:[3,3.5,4,3],                     // fuite (/s) passé le répit, par cellule (v2 : 5 · 7 · 9 · 11 · loi 13, retirée : 2,5 · 3 · 3 · 2,5)
-  pente:[0,0,.4,.4],                     // brûlure PERMANENTE (/s) : le rose et la triade se paient même en enchaînant (v2 : 1 · 2 · loi 13, retirée : ,15 · ,15)
+  gate:.9,                               // sous 90 % de la croisière, la TRIADE ne prend RIEN (loi 16 · v5 : 95 % · loi 13, retirée : 85 %)
+  grace:3,                               // répit (s) après un geste de style/risque avant que la jauge fuie (loi 16 · v5 : 2,5)
+  fuite:[1.8,2.1,2.4,1.8],               // fuite (/s) passé le répit, par cellule (loi 16 : ×0,6 · v5 : 3 · 3,5 · 4 · 3 · v2 : 5 · 7 · 9 · 11 · loi 13, retirée : 2,5 · 3 · 3 · 2,5)
+  pente:[0,0,.15,.15],                   // brûlure PERMANENTE (/s) : le rose et la triade se paient même en enchaînant (loi 16 · v5 : ,4 · ,4 · v2 : 1 · 2)
   routeGarde:50,                         // la route ne rend le répit que sous le FLOW II
   retombee:75,                           // la frénésie perdue, la jauge RETOMBE ici : la triade se vide (v2 : elle restait au bord, à 88)
   // la FRÉNÉSIE : part du nitro consommée (,5 = il dure DEUX FOIS plus)
   fren:{nitro:.5},
   // (v4) LA TRIADE : mémoire (s) de chaque trait · PSYCHO vit aussi à `p.vit` × la croisière sans nitro · brûlure (/s) de la zone
   // rouge selon le nombre de traits vivants [0, 1, 2, 3] — négatif = elle se regonfle
-  triade:{n:{mem:9},m:{mem:25},p:{mem:3,vit:1.3},brule:[4,2,.7,-1.5]}, // (loi 14, retirée : [4,5 · 2,4 · ,9 · −1,2])
+  triade:{n:{mem:6},m:{mem:12},p:{mem:2,vit:1.3},brule:[6,4,2,-.3]}, // (loi 16) la tenue est une BRAISE · v5 : mémoires 9 · 25 · 3, brûlure [4 · 2 · ,7 · −1,5] (loi 14, retirée : [4,5 · 2,4 · ,9 · −1,2])
   pose:{angle:55,vMin:4},                // (v4) la POSE RATÉE : au-delà de 55° de l'axe (dès 4 m/s de vitesse à plat), le flow tombe à zéro
   // (v5) LA GRAMMAIRE : part de la mémoire d'un trait qu'un geste lui rend en frénésie · PSYCHO hors frénésie (seuils de vitesse au sol
   // et en vol, période, geste [sol, vol]) · -PSYCHO (sous `vit` le répit saute, réarmé à `re`) · -NARCISSE (points de la pose lourde)
@@ -18005,9 +18058,9 @@ const FLOW2={
      paie plus souvent et plus fort (PSYCHO), en frénésie le style (drift, frôlé, rase-bord, séries) et la route nourrissent NARCISSE, et
      les traits se souviennent plus longtemps (les figures et les raccourcis y sont rares). Le risque, lui, paie pareil : il est juste
      plus rare. Hors ville, rien ne change. */
-  lieux:{ville:{fam:{route:[1,.55,.25,.2,0],style:[1,1,.9,.6,0],risque:[1,1,1,1,0]},
+  lieux:{ville:{fam:{route:[1,.55,.25,.2,0],style:[1,1,.9,.8,0],risque:[1,1,1,1,0]}, // (loi 16) le style de la ville reste au-dessus du barème de base (,6 → ,8)
     psy:{sol:1.08,air:1.15,t:1.2,q:[5,6]},part:{risque:1,style:.7,route:.2},
-    triade:{n:{mem:13},m:{mem:32},p:{mem:4,vit:1.2},brule:[4,2,.7,-1.5]}}},
+    triade:{n:{mem:9},m:{mem:16},p:{mem:3,vit:1.2},brule:[6,4,2,-.3]}}}, // (loi 16) même proportion que la base (v5 ville : 13 · 32 · 4)
   lieu:''
 };
 // pose les réglages du LIEU (ville) par-dessus le barème de base — et les rend en quittant le lieu. Pur : ne touche que FLOW2.
@@ -18065,9 +18118,9 @@ const FLOW_CEL=['#5ee6ff','#ffd75e','#ff5ec8','#b58cff'];            // les quat
    brûlure permanente que la VITESSE module (en nitro ~3× moins, ralenti ~3× plus), la fuite passé le répit — et rien en vol.
    `flowLvDe` est le SEUL calcul du palier. */
 const FREN={seuil:88,acc:0,scT:0,brT:0,kb:false,vu:false,appris:false,el:null,hS:0,t:0,rec:false,nitDit:false,chr:null,chrS:-1,
-  tr:{n:0,m:0,p:0},k:3,dit:{n:false,m:false,p:false},trEl:null,trAff:'',arme:false}; // arme = jauge pleine, la frénésie attend une figure POSÉE // (v4) la TRIADE : charge (s) de chaque trait · k = traits vivants · dit = son appel déjà soufflé // (v3) t = depuis quand on la tient · rec = record battu pendant celle-ci · nitDit = « NITRO ! » déjà soufflé · chr = le chrono sous l'emblème
+  tr:{n:0,m:0,p:0},k:3,dit:{n:false,m:false,p:false},trEl:null,trAff:'',arme:false,butin:0}; // arme = jauge pleine, la frénésie attend une figure POSÉE // (v4) la TRIADE : charge (s) de chaque trait · k = traits vivants · dit = son appel déjà soufflé // (v3) t = depuis quand on la tient · rec = record battu pendant celle-ci · nitDit = « NITRO ! » déjà soufflé · chr = le chrono sous l'emblème
 function flowLvDe(v){const b=Math.min(4,Math.floor(v/25));return (FLOW.lv===4&&v>=FREN.seuil)?4:b;}
-function flowMult(){return ECO3.flow[FLOW.lv]||1;}          // ×1 · ×1,3 · ×1,5 · ×1,8 · ×2 sur l'argent (vague 3 : c'était +0,5 par palier, jusqu'à ×3 — voir ECO3)
+function flowMult(){return ECO3.flow[FLOW.lv]||1;}          // ×1 · ×1,3 · ×1,5 · ×1,8 · ×3 sur l'argent (vague 3 : c'était +0,5 par palier, jusqu'à ×3 · 2026-09-29 : la FRÉNÉSIE ×2 → ×3 — voir ECO3)
 /* flowAdd(q, famille) — `q` est la valeur BRUTE du geste ; la famille ('route' · 'style' · 'risque', style par défaut) et le
    barème FLOW2 disent ce qu'il vaut VRAIMENT ici, à cette vitesse. */
 function flowAdd(q,fam,trait){
@@ -18159,7 +18212,9 @@ function frenDeclenche(){
   FREN.arme=false;FLOW.v=100;FLOW.lv=4;FLOW.idle=0;FLOW.aff=-1;
   frenDebut(); // (v3) le chrono part — et l'annonce dit ce qu'il y a à BATTRE (le record de tenue), sinon ce que ça paie
   const rc9=(SAVE.d.frenRec||0)>=5?SAVE.d.frenRec:0;
-  slam('FRÉNÉSIE !',!FREN.vu?'TIENS LES TROIS TRAITS':rc9?TR('RECORD')+' '+frenDuree(rc9):'CASH ×'+fmtMul(flowMult()),FLOW_COL[4],'#ffb000',44,2,22);FREN.vu=true;flashEcran('rgba(255,42,61,.6)');
+  // (×3, 2026-09-29) passé la 1re de la session (la règle des trois traits), le sous-titre dit TOUJOURS ce que ça paie — et le record à battre à côté
+  const cash9='CASH ×'+fmtMul(flowMult());
+  slam('FRÉNÉSIE !',!FREN.vu?'TIENS LES TROIS TRAITS':rc9?cash9+' · '+TR('RECORD')+' '+frenDuree(rc9):cash9,FLOW_COL[4],'#ffb000',44,2,22);FREN.vu=true;flashEcran('rgba(255,42,61,.6)');
   try{annSpeak('frenesie',5,true);}catch(e){} // (2026-09-28, Sacha : « ça doit déclencher la voix TRIPLE MONSTRE quand la frénésie est atteinte ») — à chaque fois, hors règle du 1/3 ; l'interrupteur VOIX reste maître
   try{frenMus(true);}catch(e){} // …et SON morceau tombe (THE DARK TRIAD — voir MUSIC_FREN)
   flowPunch();
@@ -18180,6 +18235,33 @@ function frenNourrit(q){
   if(h){h.classList.remove(k?'sc1':'sc2');h.classList.add(k?'sc2':'sc1');}
   const tr=frenEl();if(tr&&tr.classList.contains('on')){tr.classList.remove(k?'bat1':'bat2');tr.classList.add(k?'bat2':'bat1');}
   if(h&&t-FREN.brT>420){FREN.brT=t;try{pixBurst(h.querySelector('.fZ'),4);}catch(e){}}
+}
+/* LA FRÉNÉSIE ×3 (2026-09-29, Sacha : « en mode frénésie on doit gagner 3× l'argent, adapte ça de manière cool au gameplay »). Toute la
+   paie de course passe par flowMult() (ECO3.flow[4] = 3). Sur téléphone le compteur d'argent est masqué (écran nu) : le ×3 doit donc se
+   VOIR là où l'argent naît. Chaque gain en frénésie (frenCash — pièces, portail, butins de la ville) :
+   · fait FRAPPER le « $×3 » de la bande du flow (qui bat or ⇄ rouge tant qu'elle tient, <style id="frenX3">) et, au plus toutes les
+     0,4 s, en fait jaillir une petite gerbe de pixels d'OR (pixCouleurs le reconnaît : c'est de l'argent, pas une braise) ;
+   · fait jaillir un petit « ×3 » de la pièce elle-même (fx3Tag : cinq étiquettes recyclées, rien n'est créé en jeu) ;
+   · s'ajoute au BUTIN de cette frénésie, dit quand elle tombe : « FRÉNÉSIE 0:18 · +$ 1,2 k » (frenFin).
+   Bridé à ~11 frappes/s : une ligne de pièces fait CRÉPITER la bande sans la faire vibrer en continu. */
+const FX3={m:null,pool:null,i:0,t:0,bT:0,k:false,v:new THREE.Vector3()};
+function frenCash(g,pos){
+  if(FLOW.lv!==4||!(g>0))return;
+  FREN.butin+=g;
+  const n=performance.now();if(n-FX3.t<90)return;FX3.t=n;
+  const m=FX3.m||(FX3.m=FLOW.el?FLOW.el.querySelector('.fM'):null);
+  if(m){const k=FX3.k=!FX3.k;m.classList.remove(k?'cj1':'cj2');m.classList.add(k?'cj2':'cj1'); // deux animations jumelles : relance sans remise en page
+    if(n-FX3.bT>400){FX3.bT=n;try{pixBurst(m,4);}catch(e){}}}
+  if(pos)try{fx3Tag(pos);}catch(e){}
+  if(SONV2)sfx('frenesie.cash'); // (console de son) À FABRIQUER : l'argent qui tombe EN FRÉNÉSIE, par-dessus le son de la pièce — court, brillant ; au plus toutes les 90 ms
+}
+function fx3Tag(pos){ // le « ×3 » qui jaillit de la pièce : l'étiquette la plus ancienne du bassin est recyclée, projetée là où l'argent est né
+  if(!FX3.pool){FX3.pool=[];for(let j=0;j<5;j++){const e=document.createElement('i');e.className='fx3';e.setAttribute('aria-hidden','true');document.body.appendChild(e);FX3.pool.push({e:e,k:false});}}
+  const v=FX3.v.copy(pos).project(camera);if(v.z>1||v.x<-1.05||v.x>1.05||v.y<-1.05||v.y>1.05)return; // derrière la caméra ou hors champ : rien
+  const o=FX3.pool[FX3.i=(FX3.i+1)%FX3.pool.length],e=o.e,t9='×'+fmtMul(flowMult());
+  if(e.textContent!==t9)e.textContent=t9;
+  e.style.left=Math.round((v.x*.5+.5)*innerWidth)+'px';e.style.top=Math.round((-v.y*.5+.5)*innerHeight)+'px';
+  const k=o.k=!o.k;e.classList.remove(k?'on':'on2');e.classList.add(k?'on2':'on');
 }
 /* L'EMBLÈME « THE DARK TRIAD » (#triade) : il NAÎT de la zone rouge — parti du bout de la jauge, il vient CLAQUER à sa place (onde de
    choc, braises), puis tourne deux tours à gauche, deux tours à droite, en frappant au départ de chaque double tour ; il tremble quand
@@ -18226,7 +18308,7 @@ function flowReset(){
    d'entrée dit le chiffre à battre, le battre se crie (une fois par frénésie), et l'écran de mort dit la plus longue de la partie.
    RUNX.fren = frénésies de la partie · RUNX.frenMax = la plus longue (s). */
 function frenDuree(t){t=Math.max(0,Math.floor(t));return Math.floor(t/60)+':'+String(t%60).padStart(2,'0');}
-function frenDebut(){FREN.t=0;FREN.rec=false;FREN.nitDit=false;FREN.chrS=-1;RUNX.fren=(RUNX.fren|0)+1;frenChrono();
+function frenDebut(){FREN.t=0;FREN.butin=0;FREN.rec=false;FREN.nitDit=false;FREN.chrS=-1;RUNX.fren=(RUNX.fren|0)+1;frenChrono();
   const T9=FLOW2.triade;FREN.tr.n=T9.n.mem;FREN.tr.m=T9.m.mem;FREN.tr.p=T9.p.mem;FREN.k=3;FREN.dit.n=FREN.dit.m=FREN.dit.p=false;FREN.trAff='';frenTraitsMaj();flowTag('n',1);flowTag('m',1);flowTag('p',1);} // (v4) on y entre les trois traits PLEINS : on vient de les prouver
 function frenTient(dt){
   FREN.t+=dt;
@@ -18282,7 +18364,8 @@ function frenFin(mort){ // la frénésie est tombée (mort = avec la caisse : on
   RUNX.frenMax=Math.max(RUNX.frenMax||0,t);
   const r=SAVE.d.frenRec||0,neuf=t>r&&t>=5;
   if(neuf){SAVE.d.frenRec=Math.floor(t*10)/10;SAVE.mark();} // arrondi PAR DÉFAUT : le chrono affiche des secondes entières tronquées, le record dit le même chiffre
-  if(!mort&&t>=3)popTexte(TR('FRÉNÉSIE')+' '+frenDuree(t)+(neuf&&r>=5?' · '+TR('RECORD'):''),neuf&&r>=5?'#ffd75e':FLOW_COL[4],3);
+  const b9=FREN.butin;FREN.butin=0; // (×3) LE BUTIN : ce que cette frénésie a rapporté — dit à la sortie, sauf quand le record a la parole (la ligne tient dans l'écran)
+  if(!mort&&t>=3)popTexte(TR('FRÉNÉSIE')+' '+frenDuree(t)+(neuf&&r>=5?' · '+TR('RECORD'):b9>=1?' · +'+fmtC(b9):''),neuf&&r>=5?'#ffd75e':FLOW_COL[4],3);
 }
 /* (v4) LA POSE RATÉE : le flow retombe à ZÉRO, frénésie comprise (sa tenue compte pour le record). La triade reste ouverte : on sait
    ce qu'on vient de perdre. Le jeu dit pourquoi : « DE TRAVERS ! » ou « À CONTRESENS ! ». */
@@ -19174,6 +19257,7 @@ function pixCouleurs(el){
   if(sl){const a=sl.style.getPropertyValue('--s1').trim()||'#ffd75e',b=sl.style.getPropertyValue('--s2').trim()||'#ff3ec8';return [a,'#ffffff',b,a];}
   const vd=el.closest('#verdHud');if(vd){const c=vd.style.getPropertyValue('--vc').trim()||'#ffd75e';return [c,'#ffffff',c,'#ffd75e'];} // (vague 3) le verdict éclate à la couleur de son rang
   if(el.closest('#auraV2')||el.closest('#auraHud'))return PIX_MAG;
+  if(el.classList&&el.classList.contains('fM'))return PIX_OR; // (×3) le ×CASH de la bande éclate en OR : c'est de l'argent, pas une braise
   if(el.closest('#triade')||(FLOW.el&&FLOW.el.contains(el)&&(FLOW.lv>=4||el.closest('.fZ'))))return PIX_FREN; // la FRÉNÉSIE jaillit en BRAISES (rouge, blanc, ambre)
   if(FLOW.el&&FLOW.el.contains(el)){const c=FLOW_COL[FLOW.lv]||'#ffd75e';return [c,'#ffffff',c,'#ffd75e'];}
   if(el.closest('#coach'))return PIX_VERT;
@@ -25484,11 +25568,12 @@ window.dbgFren=function(k,n,t){
   else if(k==='idle'){FLOW.idle=n==null?2.5:n;flowTick(0);}
   else if(k==='trait'){if(n&&n.length===1)frenTrait(n,1);else if(n)FREN.tr[n[0]]=+n.slice(1)||0;} // (v4) dbgFren('trait','m') nourrit · dbgFren('trait','m0') le vide
   else if(k==='pose')flowCasse(!!n); // (v4) simule une pose ratée (n vrai = à contresens)
-  else if(k==='entre'){if(FLOW.lv<4)frenDeclenche();} // (v4) la frénésie tout de suite (comme une figure posée jauge pleine)
+  else if(k==='entre'){if(FLOW.lv<4)frenDeclenche();}
+  else if(k==='cash')frenCash(n==null?denom()*6:+n,carGroup.position); // (×3) le RETOUR d'un gain en frénésie (bande, « ×3 », butin) — le compte n'est pas touché // (v4) la frénésie tout de suite (comme une figure posée jauge pleine)
   const tr=frenEl();
   return {v:+FLOW.v.toFixed(2),lv:FLOW.lv,vit:+FLOW.vit.toFixed(2),revele:FLOW.revele,musique:FRENM.sw?'triade':FRENM.surm?'surmultipliee':'radio',seuil:FREN.seuil,zone:+Math.max(0,Math.min(1,(FLOW.v-FREN.seuil)/(100-FREN.seuil))).toFixed(3),
     idle:+FLOW.idle.toFixed(2),triade:tr?tr.className:null,hud:FLOW.el?FLOW.el.className:null,
-    nit:FLOW.nit,tenue:+FREN.t.toFixed(1),triade:{n:+FREN.tr.n.toFixed(1),m:+FREN.tr.m.toFixed(1),p:+FREN.tr.p.toFixed(1),k:FREN.k},poseA:FLOW.poseA,arme:FREN.arme,record:SAVE.d.frenRec||0,partie:{fren:RUNX.fren|0,max:+(RUNX.frenMax||0).toFixed(1)},nitro:+nitroR.toFixed(2)}; // (v3) le gel du nitro, la tenue, le record
+    nit:FLOW.nit,tenue:+FREN.t.toFixed(1),triade:{n:+FREN.tr.n.toFixed(1),m:+FREN.tr.m.toFixed(1),p:+FREN.tr.p.toFixed(1),k:FREN.k},poseA:FLOW.poseA,arme:FREN.arme,record:SAVE.d.frenRec||0,partie:{fren:RUNX.fren|0,max:+(RUNX.frenMax||0).toFixed(1)},nitro:+nitroR.toFixed(2),mult:flowMult(),butin:Math.round(FREN.butin)}; // (v3) le gel du nitro, la tenue, le record
 };
 /* ---- LE TITRE DE LA FRÉNÉSIE : « TRIPLE MONSTER » (2026-09-28, Sacha : « quand on passe en frénésie, ça doit déclencher la voix et
    l'écriture TRIPLE MONSTER en rouge dégradé, avec une police un peu sataniste, et du sang qui coule du texte »).
@@ -26225,7 +26310,7 @@ function portailPasse(){
     chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;}
   flashEcran('rgba(255,79,216,.6)'); // l'annonce, c'est « NIVEAU n — LIEU » (lvlAnnonce, couloir des annonces) : une seule voix au centre
   portalSnd();if(!SONV2)boostSnd();shake=.5; /* (console de son) `portail` porte tout le passage : plus le souffle d'un pad dessous */
-  const zb=denom()*24*(fever>0?2:1);money+=zb;levelCash+=zb;checkUpgrade(); // portail : 40→24 (régulation 2026-07-30)
+  const zb=denom()*24*(fever>0?2:1)*flowMult();money+=zb;levelCash+=zb;checkUpgrade();frenCash(zb,carGroup.position); // portail : 40→24 (régulation 2026-07-30) · (2026-09-29) × le FLOW comme les pièces : franchi en FRÉNÉSIE, il paie ×3
   runStats.zones++;
   if(SONV2&&nitroR<nitroCap()-.05)sfx('nitro.plein',{t:.45}); // (console de son) le portail refait le plein : on l'entend, après l'aspiration
   nitroR=Math.max(nitroR,nitroCap()); // le portail regonfle la nitro : chaque zone repart pied au plancher — au plein du MOTEUR (en dur à 2, il vidait un réservoir de 3,6)
@@ -28064,7 +28149,7 @@ function fantomeSeme(){ // elle a franchi le portail la première — ou la rout
   CAMP.finT=1.6;CAMP.cause='seme';
 }
 function campFinale(){ // le portail du COUCHER : les NUAGES sont finis
-  const zb=denom()*60;money+=zb;levelCash+=zb;try{checkUpgrade();}catch(e){}
+  const zb=denom()*60*flowMult();money+=zb;levelCash+=zb;try{checkUpgrade();}catch(e){} // (2026-09-29) × le FLOW : le dernier portail franchi en FRÉNÉSIE paie ×3
   try{if(SONV2)sfx('monde.fin');else{portalSnd();boostSnd(2);fanfare();}}catch(e){}flashEcran('rgba(255,215,140,.75)');hap([40,40,40,40,120]);
   carrMarque(0,9);runStats.zones++;
   CAMP.garde=true;mortCause='finNuages';
@@ -28072,7 +28157,7 @@ function campFinale(){ // le portail du COUCHER : les NUAGES sont finis
   CARR.actif={b:Math.max(0,CARRIERE.findIndex(function(B){return B.id==='ville';})),i:0}; // (2026-09-28) REJOUER ouvre la VILLE (il relançait la chasse de la caisse-nuage qu'on conduit déjà)
 }
 function espaceFinale(){ // (2026-09-28) le portail de PLUTON : l'ESPACE est fini — même cérémonie que les NUAGES et la VILLE
-  const zb=denom()*60;money+=zb;levelCash+=zb;try{checkUpgrade();}catch(e){}
+  const zb=denom()*60*flowMult();money+=zb;levelCash+=zb;try{checkUpgrade();}catch(e){} // (2026-09-29) × le FLOW : le dernier portail franchi en FRÉNÉSIE paie ×3
   try{if(SONV2)sfx('monde.fin');else{portalSnd();boostSnd(2);fanfare();}}catch(e){}flashEcran('rgba(255,215,140,.75)');hap([40,40,40,40,120]);
   carrMarque(Math.max(0,CARRIERE.findIndex(function(B){return B.id==='espace';})),9);runStats.zones++;
   CAMP.garde=true;mortCause='finEspace';
@@ -28204,7 +28289,7 @@ function villeN(){return CAMP.n>10?CAMP.n-10:0;}          // 1..10 dans la campa
 function campMeute(){return campN()===14&&!PARK.on;}
 function vPos(){return mode==='fall'?lastNearS:s;}         // où l'on en est le long du ruban, même en vol
 function vKmh(){return (mode==='fall'?Math.hypot(fallVel.x,fallVel.z):Math.abs(vA))*3.6*SPD;}
-function vPaie(k,n){const g=denom()*k*(fever>0?2:1)*flowMult();money+=g;levelCash+=g;try{checkUpgrade();}catch(e){}if(n)try{flyCash(carGroup.position,n);}catch(e){}return g;}
+function vPaie(k,n){const g=denom()*k*(fever>0?2:1)*flowMult();money+=g;levelCash+=g;try{checkUpgrade();}catch(e){}if(n)try{flyCash(carGroup.position,n);}catch(e){}frenCash(g,carGroup.position);return g;} // (×3) en frénésie, le butin de la ville se voit aussi
 function vPose(o,sv,lt,h,fy){ // poser un objet sur la route (repère b, n, t), face fy
   frameAt(sv,VF);fy=fy||1;
   o.position.copy(VF.p).addScaledVector(VF.b,lt).addScaledVector(VF.n,fy>0?h:-THICK-h);
@@ -28943,7 +29028,7 @@ function banquierTick(dt,sp){
 }
 function villeFinale(){ // le portail de MIDI franchi AVANT le banquier : la VILLE est finie, et le lingot est à toi
   VBQ.on=false;VBQ.g.visible=false;trailStep(VBQ.tr,0,0,0,0,0,0,0);
-  const zb=denom()*60;money+=zb;levelCash+=zb;try{checkUpgrade();}catch(e){}
+  const zb=denom()*60*flowMult();money+=zb;levelCash+=zb;try{checkUpgrade();}catch(e){} // (2026-09-29) × le FLOW : le dernier portail franchi en FRÉNÉSIE paie ×3
   try{if(SONV2)sfx('monde.fin');else{portalSnd();boostSnd(2);fanfare();}}catch(e){}flashEcran('rgba(255,215,140,.75)');hap([40,40,40,40,120]);
   carrMarque(Math.max(0,CARRIERE.findIndex(function(B){return B.id==='ville';})),9);runStats.zones++; // les dix niveaux de la VILLE : le lingot se débloque (condition carrV)
   const ci=CARS.findIndex(function(c){return c.shape==='lingot';});
@@ -30954,7 +31039,7 @@ function loop(now){
             }else sparkBurst(fd.boost>=.8?sparkGold:sparkBlue,carGroup.position,fd.boost>=.8?8:5,7);
           }
           else{
-            sparkBurst(sparkGold,p.mesh.position,8,8); // (2026-09-28) là où la pièce disparaît
+            sparkBurst(sparkGold,p.mesh.position,FLOW.lv===4?14:8,FLOW.lv===4?11:8); // (2026-09-28) là où la pièce disparaît · (×3) en FRÉNÉSIE la gerbe grossit : la pièce vaut trois fois plus
             combo++;comboT=3;
             /* LA RÉCOLTE EN SÉRIE. Une pièce isolée ne donne RIEN en aura — sinon on récompense
                encore le simple fait d'avancer. C'est tous les 5 ramassages SANS laisser retomber le
@@ -30968,7 +31053,7 @@ function loop(now){
             {const n9=performance.now();if(n9-(hap._pc||0)>70){hap._pc=n9;hap(5);}} // la pièce : un tic à peine perceptible (bridé : une ligne de pièces ne doit pas bourdonner)
             const mult=Math.min(ECO3.recolte,1+.5*Math.floor(combo/5)); // (vague 3) ×1 · ×1,5 · ×2 · ×2,5 : sur une route dense la récolte ne retombait jamais — ×4 permanent
             const g=denom()*2.2*mult*(fever>0?2:1)*flowMult(); // × le FLOW
-            money+=g;levelCash+=g;blip();addStyle(5);
+            money+=g;levelCash+=g;blip();addStyle(5);frenCash(g,p.mesh.position); // (×3) en frénésie : le « ×3 » jaillit de la pièce, la bande frappe
             checkUpgrade();
           }
         }
