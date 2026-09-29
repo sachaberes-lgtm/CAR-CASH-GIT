@@ -12051,7 +12051,16 @@ function mkTrail(){
    et le halo ×1,5 (×2 au bout) ; les plafonds près de l'objectif (capC, capG — ce qui empêchait tout voile) relevés d'un cran : c'est
    LÀ qu'on regarde la traînée au sol, elle file vers le bas de l'écran. La TÊTE donne sa direction à la plume du pot (dX/dY/dZ, voir la
    boucle) : la flamme se couche dans le sillage en virage, en glisse, en vrille — plus de cassure entre le feu et le ruban. */
-const SIL={N:150,SUB:2,PAS:.6,DTM:1/45,LONG:75,QUEUE:18,OFF:.9,VMAX:8,cutA:.3,cutK:.55,cutB:9,cutV:.34,kx:.9,wC:.15,wG:.40,wGa:.6,capC:.022,capG:.10,halo:.5,coeur:1,chaud:.7,froid:.55,un:1.4,tete:1.8};
+/* v6 (2026-09-29, même soir, Sacha : « en l'air on voit que les bandes s'arrêtent, je veux qu'elles continuent sur 50 mètres — et fais-les
+   plus grosses, plus travaillées, qu'elles émettent VRAIMENT de la lumière ») :
+   · EN VOL PLUS DE COUPE : `cutV` = `cutB` (la coupe des « fils de marionnette » du 29/09 matin est levée à SA demande) ; le fondu « vu pile
+     dans l'axe » (anti-tapis, pensé pour le SOL) est bien plus doux en vol (`axeV`) — la caméra suit le vol, le sillage file vers elle ;
+   · PLUS GROSSES : cœur .21, halo .56 (+.9 au bout), plafonds près de l'objectif .03 / .13 ;
+   · DE LA LUMIÈRE : le cœur brûle plus fort et blanchit plus loin (`coeur` 1.3, `chaud` .9 — c'est lui que le bloom attrape), le halo .62 ;
+     des POULS d'énergie coulent de la tuyère vers la queue (`pouls`, vitesse `poulsV`) ; et le sillage crache des BRAISES sur toute sa
+     longueur (`braise` par image et par sillage, réserve `silBraises` à la couleur du feu). Pas de lampe au sol : la tache ronde a été
+     refusée (26/09) — la lumière vient du bloom et des braises. */
+const SIL={N:150,SUB:2,PAS:.6,DTM:1/45,LONG:75,QUEUE:18,OFF:.9,VMAX:8,cutA:.3,cutK:.55,cutB:9,cutV:9,kx:.9,wC:.21,wG:.56,wGa:.9,capC:.03,capG:.13,halo:.62,coeur:1.3,chaud:.9,froid:.55,un:1.4,tete:1.8,pres:.6,axeV:.02,pouls:.55,poulsV:30,braise:1.1};
 const SIL_TEX=(function(){ // le profil EN TRAVERS : moitié gauche = le HALO (gaussienne large), moitié droite = le CŒUR (gaussienne serrée + une jupe)
   const cv=document.createElement('canvas');cv.width=128;cv.height=2;const c=cv.getContext('2d'),im=c.createImageData(128,2);
   for(let x=0;x<128;x++){const h=x<64,u=((h?x:x-64)+.5)/32-1,v=h?Math.exp(-u*u*4.5):Math.exp(-u*u*10)+.3*Math.exp(-u*u*2.5);
@@ -12059,7 +12068,7 @@ const SIL_TEX=(function(){ // le profil EN TRAVERS : moitié gauche = le HALO (g
     for(let y=0;y<2;y++){const o=(y*128+x)*4;im.data[o]=im.data[o+1]=im.data[o+2]=g;im.data[o+3]=255;}}
   c.putImageData(im,0,0);const t=new THREE.CanvasTexture(cv);t.generateMipmaps=false;t.minFilter=THREE.LinearFilter;return t; // sans mipmaps : le halo et le cœur ne se mélangent jamais au loin
 })();
-const SIL_ROWS=(SIL.N-1)*SIL.SUB+1,SIL_Q=new Float32Array(SIL_ROWS*8); // la rangée de travail : x y z k r g b (+1)
+const SIL_CD=new THREE.Vector3(),SIL_ROWS=(SIL.N-1)*SIL.SUB+1,SIL_Q=new Float32Array(SIL_ROWS*8); // la rangée de travail : x y z k r g b (+1)
 function mkSillage(){
   const Rm=SIL_ROWS,g=new THREE.BufferGeometry();
   const pos=new Float32Array(Rm*12),col=new Float32Array(Rm*12),uv=new Float32Array(Rm*8);
@@ -12227,6 +12236,11 @@ function sillageStep(tr,px,py,pz,cr,cg,cb,k,wm,dt,wu){ // wm : l'élargissement 
   if(emet){let ac=0,r2=0;for(let r=1;r<R9;r++){const o=r*8;ac+=Math.hypot(Q[o]-Q[o-8],Q[o+1]-Q[o-7],Q[o+2]-Q[o-6]);r2=r;if(ac>=SIL.tete)break;}
     const dx=Q[r2*8]-Q[0],dy=Q[r2*8+1]-Q[1],dz=Q[r2*8+2]-Q[2],l9=Math.sqrt(dx*dx+dy*dy+dz*dz);
     if(l9>.25){tr.dX=dx/l9;tr.dY=dy/l9;tr.dZ=dz/l9;tr.dOk=true;}}
+  // (v6) LES BRAISES : le sillage crache des étincelles sur toute sa longueur (plus serrées près de la tuyère), qui s'écartent et montent
+  if(emet&&R9>6&&dt>0){let nb=SIL.braise*dt*60*tr.g;
+    while(nb>0){if(nb<1&&Math.random()>nb)break;nb--;
+      const r=2+Math.floor(Math.pow(Math.random(),1.6)*(R9-3)),o=r*8,a=Math.random()*6.2832,sp=.8+Math.random()*2.2;
+      spawnP(silBraises,Q[o]+(Math.random()-.5)*.3,Q[o+1]+(Math.random()-.5)*.3,Q[o+2]+(Math.random()-.5)*.3,Math.cos(a)*sp,Math.abs(Math.sin(a))*sp+.6,Math.sin(a)*sp*.6,.35+Math.random()*.4);}}
   // 2) LE RUBAN : face caméra, halo + cœur ; en vol, coupé à l'écran quand il PEND sous sa tuyère
   const P=tr.pos,C=tr.col,cam=camera.position,SM=THREE.MathUtils.smoothstep,wv=wm||1,wa=wu||1,LG=SIL.LONG;
   TR_PJ.set(Q[0],Q[1],Q[2]).project(camera);const yh=TR_PJ.y,xh=TR_PJ.x,asp=camera.aspect||.5;
@@ -12234,7 +12248,7 @@ function sillageStep(tr,px,py,pz,cr,cg,cb,k,wm,dt,wu){ // wm : l'élargissement 
      le côté (`kx`). Au sol (`cutB` 9 : jamais) le sillage file jusqu'au bas de l'écran ; en vol (`cutV`) il ne pend qu'un tiers d'écran,
      le cœur s'éteignant avant le halo (`cutK`). Le seuil glisse d'un régime à l'autre en ~0,4 s. */
   const cut=(tr.cut+=((mode==='fall'?SIL.cutV:SIL.cutB)-tr.cut)*Math.min(1,(dt||0)*2.5)),cutA=cut*SIL.cutA,cutK=cut*SIL.cutK;
-  let arc=0,dp=0,Rf=R9;
+  let arc=0,dp=0,Rf=R9,depP=1e9;camera.getWorldDirection(SIL_CD);const CD=SIL_CD;
   for(let r=0;r<R9;r++){
     const o=r*8,ra=Math.max(0,r-1)*8,rb=Math.min(R9-1,r+1)*8;let x=Q[o],y=Q[o+1],z=Q[o+2];
     if(r>0){const ex=x-Q[o-8],ey=y-Q[o-7],ez=z-Q[o-6];arc+=Math.sqrt(ex*ex+ey*ey+ez*ez);}
@@ -12242,19 +12256,26 @@ function sillageStep(tr,px,py,pz,cr,cg,cb,k,wm,dt,wu){ // wm : l'élargissement 
     const l2=SS.lengthSq(),dC=SV.length(),lD=SD.length();let sA=0;
     if(l2>1e-12){const l9=Math.sqrt(l2);sA=(lD>1e-6&&dC>1e-6)?l9/(lD*dC):0;SS.multiplyScalar(1/l9);}else SS.set(0,0,0);
     const al=Math.min(1,arc/LG);
-    let f=Q[o+3]*tr.g*(1-.22*al)*SM(arc,0,.35)*SM(sA,.05,.22)*(1-SM(arc,LG-SIL.QUEUE,LG)); // RÉGULIER sur 40 m, la queue s'éteint sur les 10 derniers ; la tête naît sous la plume ; vu PILE dans l'axe, il s'efface (le « tapis »)
+    let f=Q[o+3]*tr.g*(1-.22*al)*SM(arc,0,.35)*(mode==='fall'?SM(sA,SIL.axeV*.25,SIL.axeV):SM(sA,.05,.22))*(1-SM(arc,LG-SIL.QUEUE,LG)); // (v6) en vol, vu dans l'axe il RESTE (la caméra suit le vol) // RÉGULIER sur 40 m, la queue s'éteint sur les 10 derniers ; la tête naît sous la plume ; vu PILE dans l'axe, il s'efface (le « tapis »)
     let fin=r>0&&arc>=LG;
-    TR_PJ.set(x,y,z).project(camera);const d=TR_PJ.z>1?9:(yh-TR_PJ.y)-SIL.kx*Math.abs(TR_PJ.x-xh)*asp; // de combien il PEND à l'écran sous sa tuyère (derrière l'objectif : « tout en bas »)
+    /* (v6) DERRIÈRE L'OBJECTIF : le ruban va jusqu'au plan de la caméra (il y fond, `dC`) au lieu de s'arrêter en plein écran — avant, un
+       point passé derrière valait « 9 » et la coupe s'interpolait entre ce 9 factice et le point d'avant : la bande finissait au MILIEU
+       de l'image (MESURÉ en vol, où la caméra suit le sillage). On coupe au vrai plan (profondeur `pres`), interpolé dans l'espace. */
+    const dep=(x-cam.x)*CD.x+(y-cam.y)*CD.y+(z-cam.z)*CD.z;
+    if(!fin&&r>0&&dep<SIL.pres){fin=true;const t9=THREE.MathUtils.clamp((depP-SIL.pres)/Math.max(1e-4,depP-dep),0,1);x=Q[o-8]+(x-Q[o-8])*t9;y=Q[o-7]+(y-Q[o-7])*t9;z=Q[o-6]+(z-Q[o-6])*t9;}
+    depP=dep;
+    TR_PJ.set(x,y,z).project(camera);const d=dep<SIL.pres?dp:(yh-TR_PJ.y)-SIL.kx*Math.abs(TR_PJ.x-xh)*asp; // de combien il PEND à l'écran sous sa tuyère
     if(!fin&&r>0&&d>=cut){fin=true;const t9=THREE.MathUtils.clamp((cut-dp)/Math.max(1e-4,d-dp),0,1);x=Q[o-8]+(x-Q[o-8])*t9;y=Q[o-7]+(y-Q[o-7])*t9;z=Q[o-6]+(z-Q[o-6])*t9;} // LA COUPE, au franchissement
     if(fin)f=0;
     const fK=1-SM(d,cutA*.5,cutK);if(!fin)f*=1-SM(d,cutA,cut);
     dp=d;
     const fC=f*fK*SM(dC,2.4,4.2),fG=f*SM(dC,3,6.5),wk=1+(wv-1)*Math.exp(-arc*.3); // l'élargissement de l'allumage ne gonfle que la TÊTE ; près de l'objectif tout s'efface (jamais de voile)
     const wc=Math.min(SIL.wC*wa*(1+.25*al)*wk,dC*SIL.capC*wa),wg=Math.min((SIL.wG+SIL.wGa*al)*wa*wk,dC*SIL.capG*wa); // le cœur garde sa largeur, le halo s'élargit au loin (v5 : plafonds près de l'objectif réglables)
-    const hot=SIL.chaud*fC*Math.exp(-arc*.4); // la tête BLANCHIT
+    const pu=1+SIL.pouls*Math.pow(Math.max(0,Math.sin(arc*.5-tr.clk*SIL.poulsV)),4); // (v6) les POULS : des perles d'énergie filent de la tuyère vers la queue
+    const hot=SIL.chaud*fC*Math.exp(-arc*.4)*pu; // la tête BLANCHIT
     /* LE FEU REFROIDIT : blanc à la tuyère, la couleur franche sur le corps, puis elle tire vers le ROUGE-MAGENTA vers le bout */
     const c0=Q[o+4],c1=Q[o+5],c2=Q[o+6],fr=SIL.froid*SM(al,.1,.9),qr=c0+(c0*.9+c2*.3-c0)*fr,qg=c1+(c1*.35-c1)*fr,qb=c2+(c2*.9+c0*.3-c2)*fr;
-    const v=r*12,gr=qr*fG*SIL.halo,gg=qg*fG*SIL.halo,gb=qb*fG*SIL.halo,kr=qr*fC*SIL.coeur+hot,kg=qg*fC*SIL.coeur+hot,kb=qb*fC*SIL.coeur+hot;
+    const hk=SIL.halo*(1+(pu-1)*.4),ck=SIL.coeur*pu,v=r*12,gr=qr*fG*hk,gg=qg*fG*hk,gb=qb*fG*hk,kr=qr*fC*ck+hot,kg=qg*fC*ck+hot,kb=qb*fC*ck+hot;
     P[v]=x+SS.x*wg;P[v+1]=y+SS.y*wg;P[v+2]=z+SS.z*wg;P[v+3]=x-SS.x*wg;P[v+4]=y-SS.y*wg;P[v+5]=z-SS.z*wg;
     P[v+6]=x+SS.x*wc;P[v+7]=y+SS.y*wc;P[v+8]=z+SS.z*wc;P[v+9]=x-SS.x*wc;P[v+10]=y-SS.y*wc;P[v+11]=z-SS.z*wc;
     C[v]=C[v+3]=gr;C[v+1]=C[v+4]=gg;C[v+2]=C[v+5]=gb;C[v+6]=C[v+9]=kr;C[v+7]=C[v+10]=kg;C[v+8]=C[v+11]=kb;
@@ -21406,7 +21427,8 @@ const flames=makePool(150,1.8,0xff9030,.8,true,{a:[0,.55,1,.35],etire:1,str:.03,
 flames.mesh.material.blending=THREE.AdditiveBlending;flames.mesh.material.map=sparkTex; // texture étincelle : fini les ballons
 const flameCore=makePool(90,1.0,0xffe9a0,.9,true,{a:[0,.5,1,.4],etire:1,str:.026,v:.4}); // cœur chaud des braises (deux tons)
 flameCore.mesh.material.blending=THREE.AdditiveBlending;flameCore.mesh.material.map=sparkTex;
-const embers=makePool(120,.24,0xffb24a,.8,true,{a:[.06,.5,1,.45],etire:1,str:.05,v:.6}); // braises fines qui s'échappent du feu et montent — (2026-09-25) .55 → .32 : près de la caméra une braise de .55 m faisait un rond de 200 px
+const embers=makePool(120,.24,0xffb24a,.8,true,{a:[.06,.5,1,.45],etire:1,str:.05,v:.6});
+const silBraises=makePool(180,.2,0xffb24a,.85,true,{a:[.06,.5,1,.45],etire:1,str:.05,v:.6}); // (sillage v6) les braises du SILLAGE (réserve à part : celle des flammes reste aux flammes) — même recette, même programme // braises fines qui s'échappent du feu et montent — (2026-09-25) .55 → .32 : près de la caméra une braise de .55 m faisait un rond de 200 px
 embers.mesh.material.blending=THREE.AdditiveBlending;embers.mesh.material.map=sparkTex;
 const exSmoke=null; // (vague 2) le voile de fumée d'échappement n'est plus émis depuis le 26/09 (le DÔME) : la réserve n'est plus créée — les deux `if(false)spawnP(exSmoke,…)` de la boucle restent lettre morte
 // ---------- EXPLOSION ----------
@@ -32193,6 +32215,7 @@ function loop(now){
     updatePool(flames,dt,1);
     updatePool(flameCore,dt,1);
     updatePool(embers,dt,4.5);
+    updatePool(silBraises,dt,2); // (sillage v6) les braises du sillage montent doucement
     updatePool(ventN,dt,0); // (vague 3) les stries de vent de la nitro (posées fixes : la caisse les traverse)
     updatePool(boomPool,dt,3);
     updatePool(boomRed,dt,2.5);
@@ -32346,6 +32369,7 @@ function loop(now){
     else if(pwrNitroT>0){tcr=NINF.trail[0];tcg=NINF.trail[1];tcb=NINF.trail[2];} // (2026-09-28) la NITRO INFINIE aussi : son ruban est VIOLET, comme sa plume et sa jauge
     else if(FXT&&FXT.trail){tcr=FXT.trail[0];tcg=FXT.trail[1];tcb=FXT.trail[2];} // la signature de la caisse
     else if(nitroOn){tcr=1.38;tcg=.62;tcb=.17;}else{tcr=1.25;tcg=.9;tcb=.26;} // couleurs FRANCHES : le ruban doit rester orange/bleu, jamais blanc — (vague 2) le pad turbo : OR #ffd75e (il était orange, on ne le distinguait pas de la nitro) — (vague 3) la nitro calée sur le feu #ff7a24 (elle tirait au rouge)
+    silBraises.mesh.material.color.setRGB(Math.min(1,tcr*.8),Math.min(1,tcg*.8),Math.min(1,tcb*.8)); // (sillage v6) les braises ont la couleur du feu du sillage
     const tw9=nitroOn?1.3+NFX.ign*NFX.ignK*.7:1; // (vague 3) à la nitro le sillage s'épaissit (et gicle à l'allumage — la tête seulement, voir sillageStep)
     { // (2026-09-29, sillage v4) UN SILLAGE PAR POT, né dans sa bouche (les mêmes points que les plumes) — un pot : un sillage plus large ; 3-4 pots : un peu plus fins et moins vifs (ils s'additionnent)
       const np9=Math.min(4,CAR_POTS.length),wu9=np9===1?SIL.un:np9>=3?.85:1,ku9=(np9>=3?.8:1)*.74; // ×.74 (2026-09-25) : additif + bloom, le ruban de nitro faisait un faisceau AVEUGLANT sur la route

@@ -212,6 +212,16 @@
 - Gardés (rejets de Sacha) : pas de tapis (face caméra + fondu dans l'axe), pas de fils de marionnette en vol (`cutV`), pas d'aveuglement.
 - Banc : `sil4.js` / `sil5.js` (copies de ceux de GAMEPLAY) ; mesuré 0 programme lié en course, 60 i/s.
 
+- **v6 (même soir)** — Sacha : « en l'air les bandes s'arrêtent, je veux qu'elles continuent sur 50 m ; plus grosses, plus travaillées,
+  qu'elles émettent vraiment de la lumière ». ⚠ **Il a levé lui-même la coupe des « fils de marionnette »** (verdict du 29/09 matin) :
+  `cutV` = `cutB` (plus de coupe en vol). Et la vraie cause de la bande qui « s'arrête au milieu de l'écran » : un point passé DERRIÈRE
+  l'objectif valait « 9 » et la coupe s'interpolait vers cette valeur factice → désormais on coupe au vrai plan de la caméra (profondeur
+  `SIL.pres` .6, interpolée dans l'espace) et la bande y fond (`dC`) : elle file hors de l'écran. En vol le fondu « vu dans l'axe »
+  (anti-tapis, pensé pour le sol) devient très doux (`axeV`). Plus gros : cœur .21, halo .56 (+.9 au bout), plafonds .03/.13. Lumière :
+  `coeur` 1.3, `chaud` .9 (le bloom l'attrape), halo .62 ; **pouls** d'énergie qui coulent vers la queue (`pouls` .55, `poulsV` 30) ;
+  **braises** crachées sur toute la longueur (`braise`, réserve à part `silBraises` à la couleur du feu, montée 2 m/s). Pas de lampe au
+  sol (`trailLight` reste à 0 : la tache ronde est refusée depuis le 26/09). Mesuré : 0 programme en course, 60 i/s.
+
 ## LA LIGNE PARFAITE (2026-09-29, session INTERFACE) — « alterner fruit et booster pour aller à fond tout le temps avec une trajectoire parfaite »
 - Avant : pads au hasard tous les 280-560 m, fruits au hasard dans les motifs de pièces ; même en prenant tout, la nitro tenue (−1/s,
   +0,2/s) s'éteignait. Désormais **UNE file FRUIT, PAD, FRUIT, PAD…** (`LIGNE`, `ligneTick(dt)` appelée après `pwrTick`) posée **EN
