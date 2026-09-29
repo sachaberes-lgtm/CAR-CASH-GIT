@@ -43,6 +43,13 @@
   FACILE) ; passé à moins de ~3 m sans toucher → `frole()` (nitro, flow, aura, SLALOM enchaîné). La ligne parfaite ne pose rien dans un
   satellite (`ligneBloque`). `SATOB` est vidé à CHAQUE `orbiteBuild` (sinon ses obstacles survivaient au portail). Le dessous de la dalle
   reste libre. Hook `dbgPluie()` / `dbgPluie('va',i,dl,av)` (poser la caisse av m avant l'obstacle i, à dl m de son bord).
+- **Les MODULES du 1er niveau** (« il n'y a qu'un seul module ») : MESURÉ au banc `plan.js` (vue de dessus) — trois nœuds de FILET
+  identiques par zone. `genCtrl`, NUAGES du mode principal seulement (`MODON`) : un MODULE tous les 1,6-2,6 km, tiré dans un paquet
+  MÉLANGÉ de cinq (jamais deux fois le même de suite) — FILET (au plus `filMax`), LACETS (2-3 épingles qui zigzaguent en descendant,
+  jambes côte à côte), MONTAGNES RUSSES (3-4 bosses rondes en ligne), GRAND PLONGEON (~25° sur 200-280 m puis un grand virage de
+  compression), DOS DE CHAMEAU (une grande bosse puis une longue descente lisible). Tout tire dans `rf` : ORAGE, VILLE, ORBITE sortent
+  identiques au tirage près. Les crêtes restent soumises à `adoucirCretes` (jamais de crête aveugle, verdict du 25/09). Banc : 150 s de
+  pilote auto sans saut forcé, 0 mort, 0 erreur ; 0-1 filet par zone au lieu de 3.
 - **Plus de satellites en orbite** : `SAT_MAX` 204/220 → 340/300 (téléphone 120/140 → 230/190), `SAT_PASS` 26 → 44 (18 → 30), trains
   3 → 5 (2 → 3). MESURÉ (banc téléphone) : ~76 k triangles de satellites.
 

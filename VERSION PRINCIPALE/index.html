@@ -8202,6 +8202,31 @@ function genCtrl(rnd,startPos,startPhi){
   const visF=!FILON?0:FILET.visite!=null?FILET.visite:Math.floor(Math.max(0,(runStats.zones|0)-(LVL.tutoZ|0))/NIVEAUX.length); // la 1re visite du niveau NUAGES, la 2e… (2026-09-30 : le cycle a 6 niveaux, plus 3)
   const filMax=!FILON?0:LVL.cur.id==='orage'?1:FILET.par[Math.min(FILET.par.length-1,visF)]; // (2026-09-29) L'ORAGE, le niveau dur : UN filet
   let filN=0,filNext=900*LV;
+  /* LES MODULES DU 1er NIVEAU (2026-09-30, Sacha : « retravaille la génération de terrain dans le premier niveau, il n'y a pour l'instant
+     qu'un seul module »). MESURÉ (banc plan.js, vue de dessus) : trois nœuds de FILET identiques reliés par des virages — la zone se
+     résumait au même geste ×3. Aux NUAGES (mode principal), la zone pioche désormais un MODULE tous les 1,6-2,6 km dans un paquet
+     MÉLANGÉ de cinq, sans jamais le même deux fois de suite :
+       0 · LE FILET (le virage rapide et sa route de rattrapage, voir FILET — au plus `filMax` par zone)
+       1 · LES LACETS : 2-3 épingles qui zigzaguent en descendant, les jambes côte à côte (le voltigeur coupe d'une jambe à l'autre)
+       2 · LES MONTAGNES RUSSES : 3-4 bosses en ligne presque droite — le rouleur sent le rythme, le voltigeur décolle à chaque crête
+       3 · LE GRAND PLONGEON : une longue descente à ~25° qu'on voit venir, puis un grand virage de compression
+       4 · LE DOS DE CHAMEAU : une seule grande bosse, puis une descente longue et lisible — le BIG AIR du niveau
+     Tout passe par `rf` (le hasard du filet) : les autres niveaux ne tirent pas un `rnd` de plus. Les crêtes restent soumises à
+     adoucirCretes (verdict du 25/09 : jamais de crête aveugle) — les bosses sont RONDES, la route derrière se voit. */
+  const MODON=FILON&&LVL.cur.id==='nuages';
+  const modPaq=[];let modNext=1000*LV,modLast=-1;
+  const modTire=()=>{for(let e=0;e<12;e++){if(!modPaq.length){const t=[0,1,2,3,4];for(let i=4;i>0;i--){const j=(rf()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}for(const x of t)modPaq.push(x);}
+    const m=modPaq.shift();if(m===modLast||(m===0&&filN>=filMax))continue;return m;}return 3;};
+  const lacets=()=>{const n=2+(rf()<.5?1:0),sg0=rf()<.5?1:-1,R=(62+rf()*20)*RS,leg=(150+rf()*80)*LV,drop=(34+rf()*10)*LV,aE=172/Math.max(1,Math.sqrt(LV*.7));
+    straight(90*LV,-6*LV,2); // l'approche : on voit la première épingle venir
+    for(let k=0;k<n;k++){const sg=k%2?-sg0:sg0;straight(leg,-drop*.55,3);arc(sg*aE,R,8,-drop*.45);}
+    straight(leg*.8,-drop*.4,3);};
+  const russes=()=>{const n=3+(rf()<.5?1:0),sg=rf()<.5?1:-1;straight(90*LV,-4*LV,2);
+    for(let k=0;k<n;k++){const h=(16+rf()*10)*LV;courbe((80+rf()*25)*LV,h,sg*(4+rf()*4),2);courbe((110+rf()*30)*LV,-(h+(10+rf()*8)*LV),sg*(4+rf()*4),3);}
+    straight(100*LV,-6*LV,2);};
+  const plongeonG=()=>{const L1=(200+rf()*80)*LV;straight(100*LV,4*LV,2);straight(L1,-L1*.46,4); // la lèvre, puis ~25° qu'on voit venir
+    arc((rf()<.5?1:-1)*(40+rf()*30),(150+rf()*70)*RS,4,-12*LV);straight(140*LV,-6*LV,2);}; // la compression : un grand virage presque plat
+  const chameau=()=>{const sg=rf()<.5?1:-1;courbe((140+rf()*40)*LV,(22+rf()*10)*LV,sg*5,3);courbe((220+rf()*60)*LV,-(70+rf()*25)*LV,sg*8,3);straight(100*LV,-6*LV,2);};
   const filet=()=>{
     const sg=rf()<.5+hand*.22?1:-1,R=(95+rf()*45)*RS,th=(55+rf()*20)*Math.PI/180,Re=R+ROAD_HALF;
     const vN=FILET.kv*(70+(LV-1)*100),g=FALL_G*SPD,k0=FILET.kick;
@@ -8291,7 +8316,10 @@ function genCtrl(rnd,startPos,startPhi){
   }else straight(110*LV,-70*LV,2); // DÉPART : ligne droite, rallongée avec la vitesse (était 170 m + la caisse)
   const iDep=ctrl.length-1; // (vague 3) le RELIEF part d'ici : le largage du départ garde sa chute
   while(approx<LEN){
-    const mo=(filN<filMax&&approx>filNext&&approx<LEN-2600*LV)?-7:pick();
+    if(MODON&&approx>modNext&&approx<LEN-2600*LV){const m=modTire();modLast=m; // (2026-09-30) LES MODULES DU 1er NIVEAU (voir plus haut)
+      if(m===0){filet();filN++;}else if(m===1)lacets();else if(m===2)russes();else if(m===3)plongeonG();else chameau();
+      modNext=approx+(1600+rf()*1000)*LV;continue;}
+    const mo=(!MODON&&filN<filMax&&approx>filNext&&approx<LEN-2600*LV)?-7:pick();
     if(mo===-7){filet();filN++;filNext=approx+(1500+rf()*1300)*LV;} // LE VIRAGE À FILET (voir FILET)
     else if(mo===0&&!sansLoop&&!SANS_LOOPING&&approx-lastLoop>1600){ // UN looping, de temps en temps (route v3 : 1,6 km mini entre deux, plus de doublé) — JAMAIS en ville, et plus nulle part (SANS_LOOPING)
       straight(60+rnd()*50,-30);loop((30+rnd()*34)*LOOPS,30+rnd()*22);straight(60+rnd()*50,-30);lastLoop=approx;
@@ -12251,7 +12279,7 @@ const PHARE_FX=(function(){
   c.fillStyle=g;c.fillRect(0,0,4,64);const tx=new THREE.CanvasTexture(cv);
   const geo=new THREE.ConeGeometry(6,70,18,1,true);geo.translate(0,-35,0);geo.rotateX(-Math.PI/2);geo.rotateX(.045); // la pointe au phare, l'ouverture 70 m devant, un rien vers le bitume
   const m=new THREE.MeshBasicMaterial({map:tx,color:0xdfe9ff,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,fog:false,side:THREE.FrontSide});
-  const L=[new THREE.Mesh(geo,m),new THREE.Mesh(geo,m)];for(const o of L){o.visible=false;o.frustumCulled=false;o.renderOrder=2;scene.add(o);}
+  const L=[new THREE.Mesh(geo,m),new THREE.Mesh(geo,m)];for(const o of L){o.visible=false;o.frustumCulled=false;o.renderOrder=7;scene.add(o);} // 7 : au-dessus du museau du dragon de NITROOO (renderOrder 6) — les phares restent nets
   return {L:L,m:m,d:new THREE.Vector3(),u:new THREE.Vector3(),r:new THREE.Vector3()};})();
 // REFLET NITRO/BOOST : la flamme éclaire VRAIMENT le bitume — pool de lumière derrière la caisse,
 // orange nitro / bleu réserve / or pad turbo, intensité 0 au repos (à l init, zéro recompilation)
