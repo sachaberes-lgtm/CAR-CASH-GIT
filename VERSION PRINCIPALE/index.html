@@ -26051,6 +26051,7 @@ function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent dé
   // (2026-09-26, audit son) `muet` : `trickPop` plus bas sonne déjà le maillon — deux carillons sur deux notes brouillaient la gamme qui monte
   if(id==='vrille')chaineAura(spinHalf*180+'°',45,'vrille',true,true);
   else if(id==='meteo')chaineAura('MÉTÉORE',100,'meteo',false,true);
+  else if(id==='airnitro')chaineAura('AIR NITROOO',120,'airnitro',false,true); // (2026-09-29) la comète en vol vaut la comète au sol
   else if(id==='dauphin')dolAura9('DAUPHIN',150,'dauphin',false,true); // (dauphin v4) 80 → 150 — (v5) sa ligne attend la POSE (dolAura9)
   else if(id==='bump')chaineAura(bounceN>1?'BUMP ×'+bounceN:'BUMP',30,'bump',true,true);
   else chaineAura(String(txt).split(' — ')[0],40,id,false,true);
@@ -26327,7 +26328,7 @@ function orbFxTick(dt){
    · EN FRÉNÉSIE le nitro dure 2× : le brasier ne reste pas au maximum — il claque à 1 au déclenchement et à chaque palier, sinon il tient
      à 0,7, puis 0,5 après 6 s.
    · NITRO INFINIE : le plasma prend le VIOLET du pouvoir (NINF), comme tout le reste. */
-const NTR={on:false,t:0,k:0,kc:0,boost:0,pouls:0,pal:0,shell:null,core:null,halo:null,halo2:null,langues:null,
+const NTR={on:false,t:0,k:0,kc:0,boost:0,pouls:0,pal:0,shell:null,core:null,halo:null,halo2:null,langues:null,airT:0,airFig:false,
   f:new THREE.Vector3(),r:new THREE.Vector3(),u:new THREE.Vector3(),p:new THREE.Vector3(),q:new THREE.Quaternion()};
 /* LES LANGUES DU PLASMA (vu au banc : une enveloppe unique, vue de dos, se présentait par la TRANCHE — la flamme vivante efface ce qui est
    vu de biais — : la caisse rougeoyait à peine). Le feu d'une rentrée atmosphérique se voit en LANGUES qui partent du bouclier avant et
@@ -26345,7 +26346,7 @@ function nitroooPart(){ // le geste est ARMÉ (loop, branche 'drive') : la caiss
   try{pixBurst(document.getElementById('tNitro'),10);}catch(e){}
 }
 function nitroooTick(dt){
-  const actif=NTR.on&&nitroOn&&mode==='drive'&&running&&!gameOver;
+  const actif=NTR.on&&nitroOn&&(mode==='drive'||mode==='fall')&&running&&!gameOver; // (AIR NITROOO) la comète vit aussi en l'air — elle survit au décollage comme à la pose
   if(NTR.on&&!actif)NTR.on=false;
   if(actif){NTR.t+=dt;
     const pal=Math.floor(NTR.t); // un PALIER par seconde tenue
@@ -26489,7 +26490,7 @@ function startFall(impU,impF){
   chain=0;chainVal=rollover;chainMult=1;chainSeen={};spinHalf=0;
   heartBeat.vu=0; // (console de son) la mallette pourra chauffer — et le dire — une fois dans ce vol
   if(rollover>0){if(SONV2)sfx('report');trickMsg('REPORT +'+Math.round(rollover),false);rollover=0;} // le PARFAIT d'avant paye d'avance
-  trkMeteor=false;curNear=false;
+  trkMeteor=false;curNear=false;NTR.airT=0;NTR.airFig=false; // (AIR NITROOO) une figure par vol
   if(dolOn)dolFin();dolphT=0;dolphGain=0;trkDolph=false;dolRoadT=0;dolOffT=0;dolAura=0;caseHot=false;heartT=0;ladderI=0;caseHud.style.opacity=0;caseHud.className='';
   chainHud.style.opacity=0;chainHud.classList.remove('pulse');
   // le boost se disperse en petites particules
@@ -31408,6 +31409,11 @@ function loop(now){
       const dtF=dt*AIR_RATE; // temps de vol accéléré : même arc dans l'espace, moins de temps réel à flotter
       fallT+=dtF;fallTR+=dt; // fallT = temps-sim (figures/paiements) ; fallTR = temps RÉEL (jauge des 6 s — sinon le chrono file à ×1,6)
       if(nitroOn)nitroAirT+=dtF; // temps de réacteur dans CE vol (METEOR / MEGA METEOR)
+      /* AIR NITROOO (2026-09-29, Sacha : « nitrooo avec la comète marche aussi dans les airs, mais s'appelle AIR NITROOO ») : le nitro tenu
+         NTR_T s D'AFFILÉE en vol (temps réel, comme au sol) → la figure (une fois par vol, tier 1 : 6 de flow — GAMEPLAY vient de recaler la frénésie —, après MÉTÉORE qui compte le
+         nitro cumulé à 1,2 s), la caisse s'embrase (nitroooPart) et la poussée du réacteur prend le même +10 %/s (NTR.boost, plus bas). */
+      if(nitroOn&&!PARK.on){NTR.airT+=dt;if(NTR.airT>=NTR_T&&!NTR.airFig){NTR.airFig=true;addTrick('airnitro','AIR NITROOO !',10,1);if(!NTR.on)nitroooPart();}}
+      else NTR.airT=0;
       if(!nitroOn)loop._nAir=false; // (2026-09-26) l'impulsion se RÉARME au relâché
       fallVel.y-=FALL_G*gK()*dtF; // gK : gravité LUNAIRE en orbite (÷2)
       // (vol libre, 2026-09-26) l'ANTI-BLOCAGE DU LACET a sauté : il rendait « un minimum d'horizontale » parce que le volant tournait
@@ -31434,7 +31440,7 @@ function loop(now){
           // (30 · 48 en réserve bleue × le palier moteur), dans l'axe du vol — et l'élan gagné au réacteur est GARDÉ (le plafond d'inertie suit)
           // (2026-09-26, user : « dans l'air le nitro doit accélérer plus ») : DEUX FOIS la poussée du sol (60 · 96 en réserve bleue) — rien ne
           // freine en l'air, mais un vol dure 2 à 4 s : à la poussée du sol, on ne sentait presque rien avant de se reposer
-          const sp9=fallVel.length();if(sp9>1){const a9=(nitroBlue?96:60)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*dtF;
+          const sp9=fallVel.length();if(sp9>1){const a9=(nitroBlue?96:60)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*(1+Math.min(.4,NTR.boost))*dtF; // (AIR NITROOO) +10 %/s de poussée tenue, plafonné à +40 % en vol (le viseur n'intègre que 1,7 s : la pose doit rester visible)
             fallVel.multiplyScalar((sp9+a9)/sp9);fallVH0=Math.max(fallVH0,Math.hypot(fallVel.x,fallVel.z));}}
         // ↑/AVANT : PIQUÉ · ↓/FREIN : CABRÉ. On fait TOURNER la vitesse en tangage (pitch) au lieu
         // d'ajouter à .y : ajouter ±12 à un vecteur de 145 puis reclamper ne pliait la trajectoire que

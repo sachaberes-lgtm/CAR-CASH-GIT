@@ -406,6 +406,10 @@ couleurs de leur rareté, les objets que tu peux gagner ». Tout filmé AVANT pu
   lueur qui enveloppe ; flammes sur la silhouette et BRAISES qui restent derrière (pools flames/flameCore/embers, comme la rentrée de l'orbite) ;
   bords d'écran orange toutes les 0,62 s. Intensité : 1 au déclenchement et à chaque palier, 0,7 ensuite, 0,5 après 6 s (le nitro dure 2× en
   frénésie). NITRO INFINIE : tout passe au VIOLET (NINF). Sons : `sfx('nitrooo.palier')` à chaque palier (commandé à SON).
+- **AIR NITROOO** (même jour, Sacha : « nitrooo avec la comète marche aussi dans les airs, mais s'appelle AIR NITROOO ») : nitro tenu `NTR_T` s
+  D'AFFILÉE en vol (`NTR.airT`, temps réel) → `addTrick('airnitro','AIR NITROOO !',10,1)` une fois par vol (tier 1 = 6 de flow, demande de
+  GAMEPLAY après la loi 17 ; ligne de chaîne AIR NITROOO +120) ; la comète vit en 'drive' ET en 'fall' (elle survit au décollage et à la pose) ;
+  la poussée du réacteur en vol prend ×(1 + min(0,4, NTR.boost)) — plafond +40 % en vol : le viseur n'intègre que 1,7 s. Banc `st-airn.js`.
 - ⚠ Avec le PREMIER moteur, le réservoir ne tient que ~2 s (+ la réserve bleue) : NITROOO demande la réserve, un moteur plus gros, la frénésie
   ou la NITRO INFINIE. Banc : `st-ntr.js` (dbgNitro(2,2) recharge pendant la tenue).
 
