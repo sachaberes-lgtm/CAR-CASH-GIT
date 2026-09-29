@@ -6972,7 +6972,7 @@ function mergeSpheres(blobs,rx,ry,rz){
    Hook : `dbgCoton()` (nuages, envoyés près/loin, triangles, ms). */
 const COTON={S:[],im:[],I:null,n:0,cap:560,mat:null,grid:null,root:null,L:null,M:new THREE.Matrix4(),Q:new THREE.Quaternion(),Sc:new THREE.Vector3(), // (v4) 420 → 480 : les petits nuages en plus
   P:new THREE.Vector3(),Y:new THREE.Vector3(0,1,0),fr:new THREE.Frustum(),pv:new THREE.Matrix4(),nN:0,nF:0,tri:0,ms:0,
-  SEG:[[7,5],[10,7],[16,11],[22,15]],FAC:73}; // les QUATRE finesses d'un gabarit ; FAC : on prend la plus légère dont une facette reste sous ~1,7° à l'écran (segments ≥ 73·R/d)
+  SEG:[[7,5],[10,7],[16,11],[22,15]],FAC:73,CH:.45}; // les QUATRE finesses d'un gabarit ; FAC : on prend la plus légère dont une facette reste sous ~1,7° à l'écran (segments ≥ 73·R/d)
 const COTON_KINDS=24; // (v6) les 6 gabarits classiques + 18 tirés au hasard (cotonAleat : neuf genres)
 const COTON_ST=13;    // (v4) une instance = x, dessous, z, r, cap, gabarit, phase, hauteur, ÉTIREMENT largeur, ÉTIREMENT hauteur — (v6) + sa TEINTE r, v, b
 function cotonBlobs(k,rng){ // un gabarit : [x,y,z,rayon,aplatissement] en unités du nuage (demi-largeur ~1), base à y = −.35
@@ -7049,7 +7049,7 @@ function cotonAleat(genre,rng){
       B.push([x-r*.45,base+r*.58,z,r,.58]);B.push([x+r*.45,base+r*.58,z+J(.06),r*.9,.58]);
       rond(x+J(.08),base+r*1.2,z+J(.05),r*U(.95,1.1)/G);if(rng()<.55)rond(x+(rng()<.5?-1:1)*r*.7,base+r*1.0,z+J(.05),r*U(.6,.75)/G);}
   }else{
-    const P={humilis:[5,8,1,2,.2,.38,.26,.34],mediocris:[4,7,2,3,.45,.8,.28,.36],congestus:[4,6,1,2,.95,1.45,.32,.4],castellanus:[6,8,4,5,.38,.62,.2,.26],
+    const P={humilis:[5,8,1,2,.2,.38,.26,.34],mediocris:[4,7,2,3,.45,.8,.28,.36],congestus:[4,6,1,2,.95,1.45,.32,.4],castellanus:[6,8,3,4,.38,.62,.24,.3],
       cisaille:[4,6,1,2,.9,1.3,.3,.38],champignon:[4,6,1,1,1.05,1.45,.32,.38]}[genre];
     const nb=nbG(P[0]+(rng()*(P[1]-P[0]+1)|0));
     for(let i=0;i<nb;i++){const x=-.86+(i+.5+J(.45))/nb*1.72,e=Math.abs(x)/.86;bas(x,J(.3),U(.23,.32)*(1-.3*e),U(.5,.62));} // la BASE, irrégulière
@@ -7059,9 +7059,9 @@ function cotonAleat(genre,rng){
       let x=nt>1?-.56+1.12*(t+.5)/nt+J(.18):J(.3),z=J(.16),r=U(P[6],P[7])*(t===grand?1.12:1);
       const ht=U(P[4],P[5])*(t===grand?1:U(.45,.8)),lean=genre==='cisaille'?vent:J(.22);let y=base+.1+r*.5;
       while(y<base+ht&&B.length<MAX-4){rond(x,y,z,r);
-        if(rng()<.45)rond(x+(rng()<.5?-1:1)*r*U(.75,.95),y-r*.18,z+J(.2),r*U(.5,.65)); // un bourgeon d'ÉPAULE
+        if(rng()<.7)rond(x+(rng()<.5?-1:1)*r*U(.7,.9),y-r*.18,z+J(.2),r*U(.52,.68)); // un bourgeon d'ÉPAULE — (v7) .45 → .7 : une tour bosselée, plus une pile
         if(genre==='cisaille'&&rng()<.6)rond(x-vent*r*U(1.1,1.5),y-r*U(.1,.35),z+J(.2),r*U(.45,.6)); // la TRAÎNE, sous le vent
-        y+=r*U(.62,.82);r*=U(.78,.9);x+=lean*r;}
+        y+=r*U(.5,.66);r*=U(.8,.9);x+=lean*r;} // (v7) .62-.82 → .5-.66 : les bourgeons se chevauchent (des œufs empilés sinon)
       if(genre==='champignon'){ // la TÊTE qui s'étale : une couronne de bourgeons ronds, plus large que la tour
         const nc=5+(rng()*3|0);for(let c=0;c<nc&&B.length<MAX;c++){const a=c/nc*6.2832+J(.5);rond(x+Math.cos(a)*r*U(1.3,1.8),y-r*U(.1,.3),z+Math.sin(a)*r*U(.6,.9),r*U(.62,.85));}}
       else{const k9=genre==='congestus'?3:2; // le CHOU-FLEUR du sommet : de petits bourgeons autour de la tête
@@ -7085,10 +7085,18 @@ function cotonGeo(S,sph){ // les bourgeons fusionnés, en unités du nuage : mod
     const voi=[];for(let c=0;c<nb;c++){if(c===b)continue;const q=Bb[c],dx=q[0]-ox,dy=q[1]-oy,dz=q[2]-oz,rr=r+q[3]*1.4;if(dx*dx+dy*dy+dz*dz<rr*rr)voi.push(q);}
     for(let i=0;i<nv;i++){const px=sp[i*3]*r+ox,py=sp[i*3+1]*ry+oy,pz=sp[i*3+2]*r+oz;
       pos[vo+i*3]=px;pos[vo+i*3+1]=py;pos[vo+i*3+2]=pz;
-      const nx=sn[i*3]/r,ny=sn[i*3+1]/ry,nz=sn[i*3+2]/r,l=Math.hypot(nx,ny,nz)||1;nor[vo+i*3]=nx/l;nor[vo+i*3+1]=ny/l;nor[vo+i*3+2]=nz/l;
+      const nx=sn[i*3]/r,ny=sn[i*3+1]/ry,nz=sn[i*3+2]/r,l=Math.hypot(nx,ny,nz)||1;
+      /* (v7) LA NORMALE DE CHAMP : la lumière suit le gradient d'un champ LISSE (une gaussienne par bourgeon — le sien et ses voisins),
+         mêlée à la normale de la boule (COTON.CH) — le nuage prend la lumière comme UNE masse de ouate aux bosses rondes, plus comme
+         une grappe de ballons qui ont chacun leur reflet et une ligne sombre à chaque soudure. La silhouette ne change pas. */
+      let gx=0,gy=0,gz=0;
+      for(let k=-1;k<voi.length;k++){const q=k<0?e:voi[k],qy=q[3]*q[4],dx=(px-q[0])/q[3],dy=(py-q[1])/qy,dz=(pz-q[2])/q[3],w=Math.exp(-1.3*(dx*dx+dy*dy+dz*dz));gx+=w*dx/q[3];gy+=w*dy/qy;gz+=w*dz/q[3];}
+      const lg=Math.hypot(gx,gy,gz),C9=COTON.CH;
+      let mx=nx/l,my=ny/l,mz=nz/l;if(lg>1e-6){mx=mx*(1-C9)+gx/lg*C9;my=my*(1-C9)+gy/lg*C9;mz=mz*(1-C9)+gz/lg*C9;}
+      const lm=Math.hypot(mx,my,mz)||1;nor[vo+i*3]=mx/lm;nor[vo+i*3+1]=my/lm;nor[vo+i*3+2]=mz/lm;
       let ao=0;for(let k=0;k<voi.length;k++){const q=voi[k],qy=q[3]*q[4],dx=(px-q[0])/q[3],dy=(py-q[1])/qy,dz=(pz-q[2])/q[3],d2=dx*dx+dy*dy+dz*dz;
         if(d2<.9409){noy[vb+i]=1;break;}if(d2<1.96)ao+=(1.4-Math.sqrt(d2))/.43;}
-      const h=Math.max(0,Math.min(1,(py-S.base)/(H*.62))),hh=h*h*(3-2*h),o=1-.3*Math.min(1,ao);
+      const h=Math.max(0,Math.min(1,(py-S.base)/(H*.62))),hh=h*h*(3-2*h),o=1-.17*Math.min(1,ao); // (v7) le creux d'une soudure .3 → .17 : il dessinait une LIGNE entre deux bourgeons
       col[vo+i*3]=(VR+(1-VR)*hh)*o;col[vo+i*3+1]=(VG+(1-VG)*hh)*o;col[vo+i*3+2]=(VB+(1-VB)*hh)*o;}
     for(let i=0;i<si.length;i+=3){const a=si[i]+vb,c1=si[i+1]+vb,c2=si[i+2]+vb;if(noy[a]&&noy[c1]&&noy[c2])continue;idx[ni++]=a;idx[ni++]=c1;idx[ni++]=c2;}}
   const g=new THREE.BufferGeometry();
@@ -7098,10 +7106,33 @@ function cotonGeo(S,sph){ // les bourgeons fusionnés, en unités du nuage : mod
 function cotonMat(){ if(COTON.mat)return COTON.mat; // la ouate des nuages (MÊMES objets couleur : bioApply la teinte avec CLOUD_MAT) + le fondu près de l'objectif
   const m=CLOUD_MAT.clone();m.color=CLOUD_MAT.color;m.emissive=CLOUD_MAT.emissive;m.specular=CLOUD_MAT.specular;
   m.defines={NUAGE_INST:''};m.onBeforeCompile=nuageShader;m.customProgramCacheKey=function(){return 'nuageV3coton';};return (COTON.mat=m);}
+/* NUAGES v7 (2026-09-29, Sacha : « apporte plus de soin aux nuages, il faut qu'ils soient plus beaux dans leurs formes ») — MESURÉ sur
+   captures (banc dragon.js) : les nuages se lisaient comme des GRAPPES DE BALLONS — chaque bourgeon avait son reflet et une ligne sombre à
+   chaque soudure, les tours étaient des PILES D'ŒUFS (l'étirement vertical ×1,3 ovalisait des bourgeons censés être ronds), et aucun
+   détail fin ne venait casser les grosses boules. Désormais :
+   · la NORMALE DE CHAMP (cotonGeo, COTON.CH) : la lumière d'une seule masse de ouate, la silhouette bosselée gardée ;
+   · le CHOU-FLEUR (cotonChouFleur) : 1-2 petits bourgeons ronds (×.34-.5) posés sur le haut de chaque grand bourgeon rond du tiers
+     supérieur — le détail qui fait un cumulus ; `fin` (la finesse) reste calculé sur les bourgeons d'origine ;
+   · des bourgeons qui RESTENT ronds : étirement vertical .85-1,15 (était .78-1,3), largeur .86-1,3 (était .82-1,45) ;
+   · des tours bosselées, plus des piles : pas de montée .5-.66 r (était .62-.82), épaules plus fréquentes, tourelles moins grêles.
+   Verdicts tenus : base PLATE, bourgeons RONDS, pas de chenille. Calculé une fois au chargement : 0 coût en course hors triangles. */
+function cotonChouFleur(S,rg,genre){
+  if(genre==='fractus')return; // les lambeaux restent des lambeaux
+  const B=S.B,n0=B.length,H=S.top-S.base,MAXC=Math.min(32,n0+9);let rm=0;for(const b of B)rm+=b[3];
+  const cand=[];for(let i=0;i<n0;i++){const b=B[i];if(b[4]===1&&b[3]>.14&&b[1]>S.base+H*.35)cand.push(b);}
+  cand.sort(function(a,b){return (b[1]+b[3])-(a[1]+a[3]);});
+  for(const b of cand){if(B.length>=MAXC)break;
+    const nk=b[3]>.22?3:2;
+    for(let c=0;c<nk&&B.length<MAXC;c++){const a=rg()*6.2832,up=.3+rg()*.6,hz=Math.sqrt(1-up*up),rc=b[3]*(.38+rg()*.18);
+      B.push([b[0]+Math.cos(a)*hz*b[3]*.86,b[1]+up*b[3]*.86,b[2]+Math.sin(a)*hz*b[3]*.6,rc,1]);}}
+  let top=S.base;for(const b of B)top=Math.max(top,b[1]+b[3]*b[4]);S.top=top;
+  if(S.fin==null)S.fin=1; // la finesse se juge sur les bourgeons d'ORIGINE (les petits du chou-fleur ne doivent pas l'alléger)
+}
 function cotonInit(){ if(COTON.root)return; // une fois par session : 6 gabarits × 2 finesses, en instances
   const rg=mulberry32(0xC07070),SPH=COTON.SEG.map(function(s){return new THREE.SphereGeometry(1,s[0],s[1]);}),m=cotonMat();
   COTON.root=new THREE.Group();COTON.root.name='coton';COTON.root.visible=false;scene.add(COTON.root);COTON.L=[];
-  for(let k=0;k<COTON_KINDS;k++){const S=k<6?cotonBlobs(k,rg):cotonAleat(COTON_GENRES[k-6],rg);COTON.S.push(S);
+  const rgC=mulberry32(0xC0F1E5); // (v7) le hasard du chou-fleur, à part
+  for(let k=0;k<COTON_KINDS;k++){const S=k<6?cotonBlobs(k,rg):cotonAleat(COTON_GENRES[k-6],rg);cotonChouFleur(S,rgC,cotonGenre(k));COTON.S.push(S);
     for(const sph of SPH){const im=new THREE.InstancedMesh(cotonGeo(S,sph),m,COTON.cap);im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
       im.frustumCulled=false;im.count=0;im.castShadow=im.receiveShadow=false;im.matrixAutoUpdate=false;im.userData.tri=im.geometry.index.count/3;
       im.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(COTON.cap*3).fill(1),3);im.instanceColor.setUsage(THREE.DynamicDrawUsage); // (v6) la teinte par nuage — sur TOUS les lots dès la création : un seul programme
@@ -7119,7 +7150,7 @@ function cotonTouche(x,y,z,r,ry){ // ce nuage (ellipsoïde r × ry autour de x,y
   return false;}
 function cotonPose(x,yB,z,r,k,cr,syF){ // un nuage dont le DESSOUS est à yB — refusé s'il toucherait le ruban · syF : étirement vertical imposé (les colonnes des cathédrales)
   if(COTON.n>=COTON.cap)return false;const S=COTON.S[k];
-  const gn=cotonGenre(k),sx=.82+cr()*.63,sy0=(gn==='fractus'||gn==='altocumulus'||gn==='stratocumulus')?.7+cr()*.3:.78+cr()*.52,sy=syF||sy0,h=(S.top-S.base)*r*sy; // (v4) chaque nuage a SON étirement : deux nuages du même gabarit ne se ressemblent plus
+  const gn=cotonGenre(k),sx=.86+cr()*.44,sy0=(gn==='fractus'||gn==='altocumulus'||gn==='stratocumulus')?.75+cr()*.25:.85+cr()*.3,sy=syF||sy0,h=(S.top-S.base)*r*sy; // (v4) chaque nuage a SON étirement : deux nuages du même gabarit ne se ressemblent plus
   if(cotonTouche(x,yB+h*.5,z,r*1.02*sx,h*.5+r*.05))return false;
   const o=COTON.n*COTON_ST,I=COTON.I;I[o]=x;I[o+1]=yB-S.base*r*sy;I[o+2]=z;I[o+3]=r;I[o+4]=cr()*6.2832;I[o+5]=k;I[o+6]=cr()*6.28;I[o+7]=h;I[o+8]=sx;I[o+9]=sy;
   {const l9=.82+cr()*.22,w9=(cr()-.5)*2,lourd=cr()<.12;I[o+10]=l9*(1+.2*w9)*(lourd?.8:1);I[o+11]=l9*(1+.02*w9)*(lourd?.83:1);I[o+12]=l9*(1-.22*w9)*(lourd?.95:1);} // (v6) SA TEINTE : clair/sourd, chaud/froid, parfois lourd (la moitié passe la lumière de peintre)
@@ -7207,6 +7238,14 @@ function cotonTick(cam){ // à chaque rendu de la scène : ce qui est dans le ch
   COTON.nN=nN;COTON.nF=nF;COTON.tri=tri;COTON.ms=COTON.ms*.95+(performance.now()-t00)*.05;
 }
 {const ob9=scene.onBeforeRender;scene.onBeforeRender=function(r9,s9,cam,rt){ob9.call(this,r9,s9,cam,rt);cotonTick(cam);};} // CHAÎNÉ (jamais réassigné)
+window.dbgCotonPlanche=function(o){o=o||{}; // (banc) les 24 gabarits de nuages en grille devant la caméra, au plus fin, sous la lumière du jeu — pour juger les FORMES
+  if(!COTON.root)return 'pas de coton';const cam=camera,g=new THREE.Group(),f=new THREE.Vector3(),r=new THREE.Vector3(),u=new THREE.Vector3(),M=new THREE.Matrix4(),n=o.k?o.k.length:COTON.S.length,C=o.c||4,R=Math.ceil(n/C);
+  cam.getWorldDirection(f);r.crossVectors(f,cam.up).normalize();u.crossVectors(r,f).normalize();
+  const D=o.d||190,W=o.w||52,c0=cam.position.clone().addScaledVector(f,D);
+  for(let j=0;j<n;j++){const k=o.k?o.k[j]:j,im=new THREE.InstancedMesh(COTON.im[k*4+3].geometry,COTON.im[k*4+3].material,1);im.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array([1,1,1]),3);
+    const cx=(j%C-(C-1)/2)*W,cy=((R-1)/2-Math.floor(j/C))*W*.72,p=c0.clone().addScaledVector(r,cx).addScaledVector(u,cy);
+    M.makeScale(o.s||22,o.s||22,o.s||22).setPosition(p);im.setMatrixAt(0,M);im.instanceMatrix.needsUpdate=true;im.frustumCulled=false;g.add(im);}
+  scene.add(g);COTON.root.visible=false;window.__planche=g;return {gabarits:n};};
 window.dbgCoton=function(q){ // q = 'max' : le plus gros nuage (centre du dessous, rayon) — pour le photographier
   if(q==='max'){const st=COTON_ST;let b=-1;for(let j=0;j<COTON.n;j++)if(b<0||COTON.I[j*st+3]>COTON.I[b*st+3])b=j;if(b<0)return null;const o=b*st,S=COTON.S[COTON.I[o+5]];
     return {x:COTON.I[o],y:COTON.I[o+1]+S.base*COTON.I[o+3]*COTON.I[o+9],z:COTON.I[o+2],r:COTON.I[o+3],h:COTON.I[o+7]};}

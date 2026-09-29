@@ -235,6 +235,21 @@
 - L'argent vient désormais des pièces ramassées, du portail et des primes de campagne (les fruits ne donnent que du nitro). Vérifié : saut de 2,3 s avec la figure
   DAUPHIN posé → argent inchangé, aura versée à l'encaissement de la chaîne (banc `argent.js`, scratchpad 4b30b603).
 
+## LES NUAGES v7 — DES FORMES DE COTON, PLUS DES GRAPPES DE BALLONS (2026-09-29, nuit — session INTERFACE, avec l'accord de GRAPHISME)
+- Sacha : « apporte plus de soin aux nuages, il faut qu'ils soient plus beaux dans leurs formes ». MESURÉ sur captures (dragon.js) et
+  sur une planche STUDIO des 24 gabarits (`dbgCotonPlanche({k,c,s,w,d})`, banc `planche.js` — gros plan : `PL='{"k":[0,2,12,22],"c":2,"s":58,"w":118}'`) :
+  les nuages se lisaient comme des GRAPPES DE BALLONS (un reflet par bourgeon, une ligne sombre à chaque soudure), les tours comme des
+  PILES D'ŒUFS (étirement vertical ×1,3 sur des bourgeons ronds), pas de détail fin.
+- **Normale de CHAMP** (`cotonGeo`, part `COTON.CH` .45) : la lumière suit un champ lisse (gaussiennes du bourgeon et de ses voisins) mêlé
+  à la normale de la boule — une masse de ouate aux bosses rondes ; le creux d'une soudure .3 → .17. ⚠ À .72 le nuage devenait un galet
+  lisse (essayé) : .45 garde le relief des bourgeons.
+- **Chou-fleur** (`cotonChouFleur`, hasard à part `mulberry32(0xC0F1E5)`) : 2-3 petits bourgeons ronds (×.38-.56) sur le haut de chaque
+  grand bourgeon rond au-dessus du tiers bas (32 au plus par gabarit) ; pas sur les fractus ; `fin` (finesse) inchangé.
+- **Bourgeons qui restent ronds** : étirement vertical .85-1,15 (était .78-1,3), largeur .86-1,3 (était .82-1,45) — même nombre de tirages.
+- **Tours bosselées** : montée .5-.66 r (était .62-.82), épaules .7 (était .45), castellanus 3-4 tourelles plus épaisses (.24-.3).
+- Essayé puis écarté : un relief de surface par bruit (aux finesses grossières, des pointes). Verdicts tenus : base PLATE, bourgeons
+  RONDS, pas de chenille. Mesuré : **0 programme lié en course** (tour.js, 3 niveaux), triangles envoyés sous le budget ~80k.
+
 ## LE SILLAGE DE NITRO v5 (2026-09-29, session INTERFACE, repris de GAMEPLAY) — « plus longue, plus large, que les flammes du pot suivent la ligne de nitro, fais un truc parfait »
 - **Plus longue** : `SIL.LONG` 50 → 75 m, `QUEUE` 10 → 18 m, `N` 100 → 150 points (~90 m de réserve même au pas de 0,6 m).
 - **Plus large** : cœur `wC` .075 → .15, halo `wG` .22 → .40 (et `wGa` .6 : il s'élargit encore au loin). Les plafonds près de l'objectif
