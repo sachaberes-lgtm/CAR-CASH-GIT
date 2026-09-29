@@ -6876,7 +6876,7 @@ function nuageShader(sh){
       // une frontière douce (wr9) et un vrai contraste (.84 à l ombre, ×1,1 au soleil). Couleurs du biome, normalisées en luminance (bioApply).
       '  { float nl9=dot(normal,uSunV),wr9=smoothstep(-.3,.75,nl9),up9=smoothstep(.15,.85,dot(normal,uUpV)*.5+.5);',
       '    float lm9=dot(outgoingLight,vec3(.299,.587,.114));',
-      '    vec3 pt9=lm9*mix(mix(uNuGnd,uNuSky,up9)*uDragon.y,uNuSun*uDragon.z,wr9);',
+      '    vec3 pt9=lm9*mix(mix(uNuGnd,uNuSky,up9)*uDragon.y,uNuSun*uDragon.z,wr9)*mix(vec3(1.),outgoingLight/max(lm9,.001),.5);', // (v6) la moitié de la teinte PROPRE du nuage reste (sa couleur par instance)
       '    outgoingLight=mix(outgoingLight,pt9,uDragon.x);}',
       '  outgoingLight+=uSunC*pow(fr9,2.6)*(.07+.75*cs9*cs9*cs9);',     // LA LISIÈRE D ARGENT : le bord s embrase à contre-jour
       // LE CŒUR PLEIN (2026-09-28, « plus beau sur iPhone sans coût en plus ») : à 82 % partout, un bourgeon peint AVANT son voisin
@@ -6973,8 +6973,8 @@ function mergeSpheres(blobs,rx,ry,rz){
 const COTON={S:[],im:[],I:null,n:0,cap:480,mat:null,grid:null,root:null,L:null,M:new THREE.Matrix4(),Q:new THREE.Quaternion(),Sc:new THREE.Vector3(), // (v4) 420 → 480 : les petits nuages en plus
   P:new THREE.Vector3(),Y:new THREE.Vector3(0,1,0),fr:new THREE.Frustum(),pv:new THREE.Matrix4(),nN:0,nF:0,tri:0,ms:0,
   SEG:[[7,5],[10,7],[16,11],[22,15]],FAC:73}; // les QUATRE finesses d'un gabarit ; FAC : on prend la plus légère dont une facette reste sous ~1,7° à l'écran (segments ≥ 73·R/d)
-const COTON_KINDS=14; // (v4) les 6 gabarits classiques + 8 tirés au hasard (cotonAleat : humilis, mediocris, congestus, castellanus, fractus)
-const COTON_ST=10;    // (v4) une instance = 10 flottants : x, dessous, z, r, cap, gabarit, phase, hauteur, ÉTIREMENT largeur, ÉTIREMENT hauteur
+const COTON_KINDS=24; // (v6) les 6 gabarits classiques + 18 tirés au hasard (cotonAleat : neuf genres)
+const COTON_ST=13;    // (v4) une instance = x, dessous, z, r, cap, gabarit, phase, hauteur, ÉTIREMENT largeur, ÉTIREMENT hauteur — (v6) + sa TEINTE r, v, b
 function cotonBlobs(k,rng){ // un gabarit : [x,y,z,rayon,aplatissement] en unités du nuage (demi-largeur ~1), base à y = −.35
   const B=[],J=function(a){return (rng()-.5)*a;},base=-.35;
   const bas=function(x,z,r,fy){fy=fy||.55;B.push([x+J(.06),base+r*fy,z+J(.1),r,fy]);};    // bourgeon de BASE : aplati, posé sur le niveau de condensation
@@ -7019,33 +7019,62 @@ function cotonBlobs(k,rng){ // un gabarit : [x,y,z,rayon,aplatissement] en unit�
    · LES TAILLES SONT HIÉRARCHISÉES (`cotonR`) : beaucoup de petits, quelques GÉANTS (tirage en loi de puissance, pas uniforme) — la
      profondeur se lit enfin ; et trois tours HÉROÏQUES montent tout près du couloir (500-900 m) : le niveau a ses montagnes.
    Même coût de principe : des INSTANCES (14 gabarits × 4 finesses, un appel par lot non vide), 0 programme compilé en course. */
+/* LES NUAGES v6 — PLUS DIFFÉRENTS LES UNS DES AUTRES (2026-09-29, Sacha : « retravaille les nuages, ils ne sont pas assez différents les
+   uns des autres »). Trois raisons mesurées sur les captures : (1) tous les gabarits tirés étaient des cumulus de la MÊME famille (une base,
+   des tours) — les silhouettes se ressemblaient à la seconde ; (2) tous avaient le MÊME grain (des bourgeons de ~.3) ; (3) tous avaient la
+   MÊME teinte. Désormais :
+   · 18 gabarits tirés par session (8 avant) dans NEUF genres — les cinq d'avant et quatre nouveaux aux silhouettes franchement autres :
+     STRATOCUMULUS (un long rouleau bas et bosselé), ALTOCUMULUS (un TROUPEAU de petits flocons détachés), CISAILLÉ (une tour que le vent
+     couche, sa traîne de bourgeons sous le vent), CHAMPIGNON (une tour dont la tête s'ÉTALE en couronne — toujours des bourgeons RONDS) ;
+   · un GRAIN par gabarit : fin (bourgeons ×.72, plus nombreux : le chou-fleur), moyen, ou gros (×1,28 : la ouate molle) ;
+   · une TEINTE par nuage (couleur par instance, voir cotonPose/cotonTick) : plus clair ou plus sourd, plus chaud ou plus froid, et 1 sur 10
+     plus LOURD (gris-bleu : il porte l'ombre d'un voisin). Verdict du 28/09 tenu : la base reste PLATE, les bourgeons RONDS. */
 function cotonAleat(genre,rng){
-  const B=[],base=-.35,U=function(a,b){return a+(b-a)*rng();},J=function(a){return (rng()-.5)*a;},MAX=22;
-  const bas=function(x,z,r,fy){if(B.length<MAX)B.push([x,base+r*(fy||.56),z,r,fy||.56]);};
-  const rond=function(x,y,z,r){if(B.length<MAX)B.push([x,y,z,r,1]);};
+  const B=[],base=-.35,U=function(a,b){return a+(b-a)*rng();},J=function(a){return (rng()-.5)*a;};
+  const g9=rng(),G=g9<.3?.76:g9>.78?1.28:1,MAX=G<1?24:22; // le GRAIN du gabarit (fin : 24 bourgeons au plus — à 28, les triangles envoyés doublaient)
+  const bas=function(x,z,r,fy){if(B.length<MAX)B.push([x,base+r*G*(fy||.56),z,r*G,fy||.56]);};
+  const rond=function(x,y,z,r){if(B.length<MAX)B.push([x,y,z,r*G,1]);};
+  const nbG=function(n){return Math.max(2,Math.round(n/G));}; // un grain fin demande plus de bourgeons pour la même taille
   if(genre==='fractus'){ // des LAMBEAUX : petits paquets aplatis, à peine soudés, étirés dans le vent
     const n=4+(rng()*3|0);let x=-.7,z=0;
     for(let i=0;i<n;i++){const r=U(.16,.27),fy=U(.55,.8);B.push([x,base+r*fy+J(.1),z,r,fy]);x+=U(.24,.36);z+=J(.3);if(rng()<.5)rond(x-.1,base+r*fy*1.5,z+J(.1),r*.6);}
+  }else if(genre==='stratocumulus'){ // un long ROULEAU bas : deux rangs de base, des bosses basses qui ondulent
+    const nb=nbG(8+(rng()*4|0));
+    for(let i=0;i<nb;i++){const x=-.96+(i+.5+J(.35))/nb*1.92;bas(x,J(.3),U(.2,.27),U(.5,.6));}
+    for(let i=0;i<nbG(5);i++)bas(U(-.8,.8),(rng()<.5?-1:1)*U(.14,.26),U(.18,.24));
+    for(let i=0;i<nb&&B.length<MAX;i++)if(rng()<.7){const x=-.9+(i+.5)/nb*1.8+J(.1);rond(x,base+U(.2,.34),J(.2),U(.16,.23));}
+  }else if(genre==='altocumulus'){ // un TROUPEAU de petits cumulus : chacun sa base plate et ses 2-3 bourgeons SOUDÉS, séparés par du ciel
+    const n=4+(rng()*3|0);                                  // (des flocons d'UN bourgeon se lisaient comme des bulles : mesuré en capture)
+    for(let i=0;i<n&&B.length<MAX-3;i++){const x=U(-.85,.85),z=U(-.5,.5),r=U(.14,.2);
+      B.push([x-r*.45,base+r*.58,z,r,.58]);B.push([x+r*.45,base+r*.58,z+J(.06),r*.9,.58]);
+      rond(x+J(.08),base+r*1.2,z+J(.05),r*U(.95,1.1)/G);if(rng()<.55)rond(x+(rng()<.5?-1:1)*r*.7,base+r*1.0,z+J(.05),r*U(.6,.75)/G);}
   }else{
-    const P={humilis:[5,8,1,2,.2,.38,.26,.34],mediocris:[4,7,2,3,.45,.8,.28,.36],congestus:[4,6,1,2,.95,1.45,.32,.4],castellanus:[6,8,4,5,.38,.62,.2,.26]}[genre];
-    const nb=P[0]+(rng()*(P[1]-P[0]+1)|0);
+    const P={humilis:[5,8,1,2,.2,.38,.26,.34],mediocris:[4,7,2,3,.45,.8,.28,.36],congestus:[4,6,1,2,.95,1.45,.32,.4],castellanus:[6,8,4,5,.38,.62,.2,.26],
+      cisaille:[4,6,1,2,.9,1.3,.3,.38],champignon:[4,6,1,1,1.05,1.45,.32,.38]}[genre];
+    const nb=nbG(P[0]+(rng()*(P[1]-P[0]+1)|0));
     for(let i=0;i<nb;i++){const x=-.86+(i+.5+J(.45))/nb*1.72,e=Math.abs(x)/.86;bas(x,J(.3),U(.23,.32)*(1-.3*e),U(.5,.62));} // la BASE, irrégulière
     for(let i=0;i<Math.max(2,nb-3);i++)bas(U(-.55,.55),(rng()<.5?-1:1)*U(.17,.3),U(.2,.27));                              // un 2e rang : le nuage a de l'ÉPAISSEUR
-    const nt=P[2]+(rng()*(P[3]-P[2]+1)|0),grand=rng()*nt|0;
-    for(let t=0;t<nt;t++){ // les TOURS : empilées, qui s'affinent en montant et penchent un peu
+    const nt=P[2]+(rng()*(P[3]-P[2]+1)|0),grand=rng()*nt|0,vent=(rng()<.5?-1:1)*U(.38,.62);
+    for(let t=0;t<nt;t++){ // les TOURS : empilées, qui s'affinent en montant et penchent un peu (CISAILLÉ : beaucoup, toutes du même côté)
       let x=nt>1?-.56+1.12*(t+.5)/nt+J(.18):J(.3),z=J(.16),r=U(P[6],P[7])*(t===grand?1.12:1);
-      const ht=U(P[4],P[5])*(t===grand?1:U(.45,.8)),lean=J(.22);let y=base+.1+r*.5;
-      while(y<base+ht&&B.length<MAX-3){rond(x,y,z,r);
+      const ht=U(P[4],P[5])*(t===grand?1:U(.45,.8)),lean=genre==='cisaille'?vent:J(.22);let y=base+.1+r*.5;
+      while(y<base+ht&&B.length<MAX-4){rond(x,y,z,r);
         if(rng()<.45)rond(x+(rng()<.5?-1:1)*r*U(.75,.95),y-r*.18,z+J(.2),r*U(.5,.65)); // un bourgeon d'ÉPAULE
+        if(genre==='cisaille'&&rng()<.6)rond(x-vent*r*U(1.1,1.5),y-r*U(.1,.35),z+J(.2),r*U(.45,.6)); // la TRAÎNE, sous le vent
         y+=r*U(.62,.82);r*=U(.78,.9);x+=lean*r;}
-      const k9=genre==='congestus'?3:2; // le CHOU-FLEUR du sommet : de petits bourgeons autour de la tête
-      for(let c=0;c<k9&&B.length<MAX;c++){const a=U(.4,2.7);rond(x+Math.cos(a)*r*.72,y-r*.35+Math.sin(a)*r*.5,z+J(.25),r*U(.42,.58));}
+      if(genre==='champignon'){ // la TÊTE qui s'étale : une couronne de bourgeons ronds, plus large que la tour
+        const nc=5+(rng()*3|0);for(let c=0;c<nc&&B.length<MAX;c++){const a=c/nc*6.2832+J(.5);rond(x+Math.cos(a)*r*U(1.3,1.8),y-r*U(.1,.3),z+Math.sin(a)*r*U(.6,.9),r*U(.62,.85));}}
+      else{const k9=genre==='congestus'?3:2; // le CHOU-FLEUR du sommet : de petits bourgeons autour de la tête
+        for(let c=0;c<k9&&B.length<MAX;c++){const a=U(.4,2.7);rond(x+Math.cos(a)*r*.72,y-r*.35+Math.sin(a)*r*.5,z+J(.25),r*U(.42,.58));}}
     }
   }
   let top=base,rm=0;for(const b of B){top=Math.max(top,b[1]+b[3]*b[4]);rm+=b[3];}
   return {B:B,base:base,top:top,fin:Math.max(.55,Math.min(1,rm/Math.max(1,B.length)/.34))}; // fin : ses bourgeons sont PLUS PETITS que ceux des classiques → une finesse plus légère suffit (voir cotonTick)
 }
-const COTON_GENRES=['humilis','humilis','mediocris','mediocris','congestus','congestus','castellanus','fractus']; // les 8 gabarits tirés (indices 6 à 13)
+const COTON_GENRES=['humilis','humilis','mediocris','mediocris','mediocris','congestus','congestus','congestus','castellanus','castellanus','fractus',
+  'stratocumulus','stratocumulus','altocumulus','altocumulus','cisaille','cisaille','champignon']; // (v6) les 18 gabarits tirés (indices 6 à 23)
+function cotonGenre(k){return k<6?'classique':COTON_GENRES[k-6];}
+function cotonDe(cr,gs){const L9=[];for(const g of gs){if(typeof g==='number')L9.push(g);else for(let k=0;k<COTON_GENRES.length;k++)if(COTON_GENRES[k]===g)L9.push(6+k);}return L9[cr()*L9.length|0];} // un gabarit parmi ces genres (ou ces classiques)
 function cotonR(cr,a,b,p){return a*Math.pow(b/a,Math.pow(cr(),p||1.7));} // une TAILLE en loi de puissance : beaucoup de petits, quelques géants
 function cotonGeo(S,sph){ // les bourgeons fusionnés, en unités du nuage : modelé cuit (ventre lavande → sommet blanc, creux), faces enfouies jetées
   const Bb=S.B,sp=sph.attributes.position.array,sn=sph.attributes.normal.array,si=sph.index.array,nv=sp.length/3,nb=Bb.length;
@@ -7075,6 +7104,7 @@ function cotonInit(){ if(COTON.root)return; // une fois par session : 6 gabarits
   for(let k=0;k<COTON_KINDS;k++){const S=k<6?cotonBlobs(k,rg):cotonAleat(COTON_GENRES[k-6],rg);COTON.S.push(S);
     for(const sph of SPH){const im=new THREE.InstancedMesh(cotonGeo(S,sph),m,COTON.cap);im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
       im.frustumCulled=false;im.count=0;im.castShadow=im.receiveShadow=false;im.matrixAutoUpdate=false;im.userData.tri=im.geometry.index.count/3;
+      im.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(COTON.cap*3).fill(1),3);im.instanceColor.setUsage(THREE.DynamicDrawUsage); // (v6) la teinte par nuage — sur TOUS les lots dès la création : un seul programme
       COTON.root.add(im);COTON.im.push(im);COTON.L.push({i:new Int32Array(COTON.cap),d:new Float32Array(COTON.cap),n:0});}}
   for(const s of SPH)s.dispose();COTON.I=new Float32Array(COTON.cap*COTON_ST);
 }
@@ -7089,12 +7119,17 @@ function cotonTouche(x,y,z,r,ry){ // ce nuage (ellipsoïde r × ry autour de x,y
   return false;}
 function cotonPose(x,yB,z,r,k,cr,syF){ // un nuage dont le DESSOUS est à yB — refusé s'il toucherait le ruban · syF : étirement vertical imposé (les colonnes des cathédrales)
   if(COTON.n>=COTON.cap)return false;const S=COTON.S[k];
-  const sx=.82+cr()*.63,sy0=k===13?.7+cr()*.3:.78+cr()*.52,sy=syF||sy0,h=(S.top-S.base)*r*sy; // (v4) chaque nuage a SON étirement : deux nuages du même gabarit ne se ressemblent plus
+  const gn=cotonGenre(k),sx=.82+cr()*.63,sy0=(gn==='fractus'||gn==='altocumulus'||gn==='stratocumulus')?.7+cr()*.3:.78+cr()*.52,sy=syF||sy0,h=(S.top-S.base)*r*sy; // (v4) chaque nuage a SON étirement : deux nuages du même gabarit ne se ressemblent plus
   if(cotonTouche(x,yB+h*.5,z,r*1.02*sx,h*.5+r*.05))return false;
-  const o=COTON.n*COTON_ST,I=COTON.I;I[o]=x;I[o+1]=yB-S.base*r*sy;I[o+2]=z;I[o+3]=r;I[o+4]=cr()*6.2832;I[o+5]=k;I[o+6]=cr()*6.28;I[o+7]=h;I[o+8]=sx;I[o+9]=sy;COTON.n++;return true;}
+  const o=COTON.n*COTON_ST,I=COTON.I;I[o]=x;I[o+1]=yB-S.base*r*sy;I[o+2]=z;I[o+3]=r;I[o+4]=cr()*6.2832;I[o+5]=k;I[o+6]=cr()*6.28;I[o+7]=h;I[o+8]=sx;I[o+9]=sy;
+  {const l9=.82+cr()*.22,w9=(cr()-.5)*2,lourd=cr()<.12;I[o+10]=l9*(1+.2*w9)*(lourd?.8:1);I[o+11]=l9*(1+.02*w9)*(lourd?.83:1);I[o+12]=l9*(1-.22*w9)*(lourd?.95:1);} // (v6) SA TEINTE : clair/sourd, chaud/froid, parfois lourd (la moitié passe la lumière de peintre)
+  COTON.n++;return true;}
 function cotonVide(){COTON.n=0;if(COTON.root){COTON.root.visible=false;for(const im of COTON.im)im.count=0;}}
 // classique · bas · tour · flocon · banc · double | (v4) humilis ×2 · mediocris ×2 · congestus ×2 · castellanus · fractus
-const COTON_POIDS={pres:[2,1,.3,2,.8,1.2,2.2,2.2,1.6,1.6,.35,.35,.8,1.6],mil:[1.4,1,1,1,1,1.4,1,1,2,2,1.5,1.5,1.2,.6],loin:[1,1.2,2,.4,1.2,1,.8,.8,1.4,1.4,2.4,2.4,1,.2]};
+const COTON_POIDS=(function(){ // (v6) près · milieu · loin — les classiques pèsent moins (on les revoyait à chaque partie), chaque genre a sa distance
+  const C={pres:[2,1,.3,2,.8,1.2],mil:[1.4,1,1,1,1,1.4],loin:[1,1.2,2,.4,1.2,1]},W={humilis:[2.2,1,.8],mediocris:[1.6,1.4,1.2],congestus:[.3,1.3,2.2],castellanus:[.8,1.2,1],fractus:[1.6,.6,.2],
+    stratocumulus:[.8,1.3,1.6],altocumulus:[1.2,1.4,.6],cisaille:[.3,1,1.4],champignon:[.1,.6,1.6]},o={pres:[],mil:[],loin:[]};
+  ['pres','mil','loin'].forEach(function(q,j){for(let k=0;k<6;k++)o[q].push(C[q][k]*.55);for(const g of COTON_GENRES)o[q].push(W[g][j]);});return o;})();
 function cotonKind(cr,w){let s=0;for(const x of w)s+=x;let u=cr()*s;for(let k=0;k<w.length;k++){u-=w[k];if(u<=0)return k;}return 0;}
 function buildCoton(cr){
   cotonInit();cotonVide();if(!(NP>1)||!pts.length)return;COTON.grid=cotonGrille();
@@ -7128,15 +7163,15 @@ function buildCoton(cr){
     // empilés, une « chenille » ; la hauteur vient de la TAILLE (r 220-340), l'étirement reste celui des autres nuages (×1-1,15).
     const K7=Math.max(3,Math.floor(L/1400));
     for(let k=0;k<K7;k++){const i=strat(k,K7),p=pts[i],q=perp(i),cotes=cr()<.45?[-1,1]:[cr()<.5?-1:1];
-      for(const sg of cotes){const r=220+cr()*120,kk=[10,11,10,11,2][cr()*5|0],yB=p.y-(220+cr()*120);let dd=ROAD_HALF+r*1.25+60+cr()*230;
+      for(const sg of cotes){const r=220+cr()*120,kk=cotonDe(cr,['congestus','cisaille','champignon',2]),yB=p.y-(220+cr()*120);let dd=ROAD_HALF+r*1.25+60+cr()*230;
         for(let t=0;t<3;t++,dd+=90)if(cotonPose(p.x+q[0]*sg*dd,yB,p.z+q[1]*sg*dd,r,kk,cr,1+cr()*.15))break;}}
   }
   if(okG){ // (6) MASSIFS et TITANS (ex-« ciel organisé ») : des tours de 300-1 200 m, au large, hors du couloir du couchant
     const sunAz=Math.atan2(SUN_DIR.z,SUN_DIR.x),loinSol=function(){for(let t=0;t<5;t++){const a=cr()*6.2832;let d9=(a-sunAz)%6.2832;if(d9>3.1416)d9-=6.2832;if(d9<-3.1416)d9+=6.2832;if(Math.abs(d9)>.62)return a;}return sunAz+3.1416;};
-    for(let k=0;k<6;k++){const i=strat(k,6),p=pts[i],a=loinSol(),d=900+cr()*1300,r=280+cr()*300;cotonPose(p.x+Math.cos(a)*d,p.y-320+cr()*160,p.z+Math.sin(a)*d,r,[2,10,11,0][cr()*4|0],cr);} // (v4) les massifs piochent aussi dans les congestus tirés
-    for(let k=0;k<3;k++){const i=strat(k,3),p=pts[i],a=loinSol(),d=1700+cr()*1500,r=600+cr()*450;cotonPose(p.x+Math.cos(a)*d,p.y-420+cr()*200,p.z+Math.sin(a)*d,r,[2,10,11][cr()*3|0],cr);}
+    for(let k=0;k<6;k++){const i=strat(k,6),p=pts[i],a=loinSol(),d=900+cr()*1300,r=280+cr()*300;cotonPose(p.x+Math.cos(a)*d,p.y-320+cr()*160,p.z+Math.sin(a)*d,r,cotonDe(cr,[2,0,'congestus','champignon','stratocumulus']),cr);} // (v4) les massifs piochent aussi dans les congestus tirés — (v6) et les champignons, les rouleaux
+    for(let k=0;k<3;k++){const i=strat(k,3),p=pts[i],a=loinSol(),d=1700+cr()*1500,r=600+cr()*450;cotonPose(p.x+Math.cos(a)*d,p.y-420+cr()*200,p.z+Math.sin(a)*d,r,cotonDe(cr,[2,'congestus','champignon']),cr);}
     for(let k=0;k<3;k++){const i=strat(k,3),p=pts[i],a=loinSol(),d=520+cr()*380,r=200+cr()*140; // (v4) les TOURS HÉROÏQUES : trois congestus qui montent TOUT PRÈS du couloir — le niveau a ses montagnes
-      for(let t=0;t<3;t++)if(cotonPose(p.x+Math.cos(a)*(d+t*160),p.y-300+cr()*80,p.z+Math.sin(a)*(d+t*160),r,10+(cr()*2|0),cr))break;}
+      for(let t=0;t<3;t++)if(cotonPose(p.x+Math.cos(a)*(d+t*160),p.y-300+cr()*80,p.z+Math.sin(a)*(d+t*160),r,cotonDe(cr,['congestus','cisaille']),cr))break;}
     {const i=Math.min(NP-1,Math.floor(NP*(.6+cr()*.15))),p=pts[i],a=sunAz+3.1416+(cr()-.5)*.9,d=1500+cr()*700;cotonPose(p.x+Math.cos(a)*d,p.y-380,p.z+Math.sin(a)*d,760+cr()*300,2,cr);} // LE COLOSSE, à l'opposé du couchant
   }
   COTON.root.visible=COTON.n>0;
@@ -7156,10 +7191,12 @@ function cotonTick(cam){ // à chaque rendu de la scène : ce qui est dans le ch
   let nN=0,nF=0,tri=0;
   for(let q=0;q<Ls.length;q++){const Lq=Ls[q],im=COTON.im[q],A=im.instanceMatrix.array,ii=Lq.i,dd=Lq.d,m=Lq.n;
     for(let a=1;a<m;a++){const vi=ii[a],vd=dd[a];let b=a-1;while(b>=0&&dd[b]<vd){ii[b+1]=ii[b];dd[b+1]=dd[b];b--;}ii[b+1]=vi;dd[b+1]=vd;} // du plus LOIN au plus près
-    for(let a=0;a<m;a++){const o=ii[a]*COTON_ST,r=I[o+3];
+    const Cq=im.instanceColor.array;
+    for(let a=0;a<m;a++){const o=ii[a]*COTON_ST,r=I[o+3];Cq[a*3]=I[o+10];Cq[a*3+1]=I[o+11];Cq[a*3+2]=I[o+12];
       COTON.P.set(I[o]+Math.sin(tt*.05+I[o+6])*6,I[o+1],I[o+2]+Math.cos(tt*.04+I[o+6])*6);COTON.Q.setFromAxisAngle(COTON.Y,I[o+4]);COTON.Sc.set(r*I[o+8],r*I[o+9],r); // (v4) l'étirement du nuage
       COTON.M.compose(COTON.P,COTON.Q,COTON.Sc);COTON.M.toArray(A,a*16);}
-    im.count=m;im.visible=m>0;if(m){im.instanceMatrix.updateRange.offset=0;im.instanceMatrix.updateRange.count=m*16;im.instanceMatrix.needsUpdate=true;} // (vide : pas d'appel de dessin)
+    im.count=m;im.visible=m>0;if(m){im.instanceMatrix.updateRange.offset=0;im.instanceMatrix.updateRange.count=m*16;im.instanceMatrix.needsUpdate=true;
+      im.instanceColor.updateRange.offset=0;im.instanceColor.updateRange.count=m*3;im.instanceColor.needsUpdate=true;} // (vide : pas d'appel de dessin)
     if((q&3)>=2)nN+=m;else nF+=m;tri+=m*im.userData.tri;}
   COTON.nN=nN;COTON.nF=nF;COTON.tri=tri;COTON.ms=COTON.ms*.95+(performance.now()-t00)*.05;
 }

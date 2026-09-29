@@ -1,5 +1,20 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LES NUAGES v6 — PLUS DIFFÉRENTS LES UNS DES AUTRES (2026-09-29, nuit — session GRAPHISME)
+- Sacha : « retravaille les nuages, ils ne sont pas assez différents les uns des autres ». Trois causes vues sur captures : une seule
+  famille de silhouettes (base + tours), un seul GRAIN de bourgeons, une seule teinte.
+- **18 gabarits tirés par session** (8 avant ; `COTON_KINDS` 14 → 24, `COTON_GENRES`) dans NEUF genres : humilis, mediocris, congestus,
+  castellanus, fractus + STRATOCUMULUS (long rouleau bas), ALTOCUMULUS (troupeau de petits cumulus — ⚠ des flocons d'UN bourgeon se
+  lisaient comme des bulles : chacun a sa base double et 2-3 bourgeons soudés), CISAILLÉ (tour couchée par le vent + traîne), CHAMPIGNON
+  (tête étalée en couronne de bourgeons RONDS). Base plate et bourgeons ronds partout (verdict du 28/09).
+- **Un grain par gabarit** : fin ×.76 (24 bourgeons au plus — à 28 les triangles envoyés doublaient), moyen, gros ×1,28.
+- **Une teinte par nuage** : couleur PAR INSTANCE (`instanceColor` sur TOUS les lots dès `cotonInit` — un seul programme, cf. le piège
+  de `villeChauffe`), posée par `cotonPose` (`COTON_ST` 10 → 13) et suivie par le tri de `cotonTick` : clair/sourd .82-1,04, chaud/froid
+  ±20 %, 12 % « lourds » gris-bleu. La lumière de peintre garde 50 % de la teinte propre (sinon elle l'effaçait).
+- `COTON_POIDS` est construit par genre (les 6 classiques ×.55 : on les revoyait à chaque partie) ; les tours se choisissent par GENRE
+  (`cotonDe(cr,['congestus','cisaille',…])`), plus par indice en dur. Coût : ~80k triangles envoyés au banc (≈ 55k avant), 0 programme
+  lié en course (tour.js, 3 niveaux).
+
 ## LE CIEL « DRAGONS » — NUAGES v5 (2026-09-29, nuit — session GRAPHISME, avec l'accord de GAMEPLAY qui avait fait la v4)
 - Sacha : « travaille la génération des nuages pour avoir un truc encore plus beau et artistique, qui fasse ressentir au joueur la
   LIBERTÉ comme dans le film Dragons 1 ». Banc `dragon.js` (scratchpad GRAPHISME) : Math.random à graine fixe → même piste, même
