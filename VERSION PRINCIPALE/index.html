@@ -4002,6 +4002,21 @@ html body #tRight{left:calc(env(safe-area-inset-left,0px) + min(84px,21vh) + 30p
   #gTabs{margin:0;gap:2px;padding:3px}
   .gTab{letter-spacing:0}
 }
+/* PETIT TÉLÉPHONE COUCHÉ (667 × 375, mesuré au banc) — et tout écran où la colonne se resserre */
+/* un libellé de réglage sur deux lignes ne se chevauche plus (« REVOIR L'AUTO- / ECOLE ») */
+.mLigne .tpL,.tp.ligne .tpL{line-height:1.6}
+/* écran de mort : les libellés du ticket et « PLUS QUE 3 PIECES / ▲ BICYLINDRE » reviennent à la ligne plutôt que de déborder */
+#mDead .mStat span{white-space:normal;line-height:1.5}
+#mDead .hNx>span{white-space:normal;text-align:center}
+@media (orientation:landscape) and (max-height:540px){
+  /* carrière : le nom du monde passe AVANT le compteur « 0 / 10 » (NUAGES, VILLE, ESPACE étaient rognés en « NU », « VI », « ES ») */
+  html .carrBiome .mmT{flex-wrap:wrap;row-gap:8px}
+  html .carrBiome .mmT>span:first-child{flex:1 0 100%}
+  html .carrBiome .mmT>.mmP{margin-left:0}
+  /* boutique : ruban et -50 % ne se touchent plus dans la colonne de la vitrine */
+  html #mShop .shRuban{letter-spacing:0;padding:6px 8px 5px}
+  html #mShop .shRemise{font-size:var(--f3);padding:6px 8px 5px}
+}
 </style>
 <style id="hudMaitrise">
 /* =====================================================================================================================
