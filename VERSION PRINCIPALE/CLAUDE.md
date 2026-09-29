@@ -1,5 +1,35 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA PASSE DE SORTIE (2026-09-29) — « balade-toi dans tout le jeu… fais-le en mode ultra complet, imagine que le jeu sort demain »
+Session INTERFACE (worktree `CCG-transitions`). Une partie complète jouée au banc (`balade.js` : premier lancement, auto-école, vraie course,
+vol, pouvoirs, frénésie, pause, mort, missions, garage, carrière — debout, couché, anglais, encoche simulée `NOTCH=1` de `tour.js`), puis
+QUATRE audits en lecture seule (App Store, textes FR/EN, logique des écrans, iPhone). Commits be8f7e8 → 824b502.
+- **Écran de mort** (Sacha : « le texte sous GAME OVER sert à rien, les fenêtres AURA et MOTEUR sont trop grandes ») : section 23 de charte4 —
+  `#mCause` masqué ; cartes qui épousent leur contenu ; couché : on LIT à gauche (verdict, cartes, ticket aligné sur le bas de REJOUER), on
+  TOUCHE à droite.
+- **Le plancher du pixel** : aucune étiquette du HUD sous 8 px EFFECTIFS (`hudTaille`) ; #misBan et #coach hors de l'échelle ; en auto-école
+  les pouvoirs passent sous la carte ; « RATÉ ! ON RECOMMENCE » 2,6 s puis la progression revient (`tutoAffiche._t`).
+- **Le verrou du double-tap** : `uiGarde(ms)` (320 ms, clics `isTrusted` seulement — les `.click()` programmés passent), posé par `mGo`
+  (hors `sansSortie`), `feuilleOuvre/Ferme`, `carrVue`. Banc `doubletap.js`. ACHETER → ÉQUIPER : `#gEquip.arme` 420 ms.
+- **Garage** : un seul pointeur pilote l'orbite (`gpId`, `gPince`), rien à travers `#wipe/#carr/#modale`, Échap ignoré sous un voile.
+- **Sous le voile** : `playViaGarage(tuto)` (tutoArme dans le voile), `carrLancer` → `ecranWipe(carrLancerSous, garageLaunch)`.
+- **Écran de mort, données** : `RUNX.verse` figé à la mort (endGame) ; `mFill._mort` : le compte ne se rejoue qu'à la 1re apparition ;
+  `window.__mRetour` : VOIR (missions) → garage → retour revient aux MISSIONS (vidé par garageLaunch).
+- **Arrière-plan** : course démarrée pendant que l'appli dormait → `panOpen(true)` au retour ; parti pendant le 3-2-1 → panneau rouvert.
+- **iPhone** (section 24 de charte4) : `touchmove` laisse défiler `#carr` et `#modale` (bloqués au doigt !) ; tap-highlight, user-select,
+  text-size-adjust, overscroll ; `.volS` pouce 32 × 44 ; `.gNav` 54 × 70 ; `#modC` 16 px ; saisie du record couchée dans sa case ; `--tx3`
+  #9a90c8 (contraste) ; `max-width:360px` (Affichage agrandi) ; `matchMedia` suit « Réduire les animations » en direct.
+- **Zoom du HUD** : `zRect(el)`/`zK(el)` = rectangle À L'ÉCRAN identique Chrome ≥ 128 et ancien WebKit (pixBurst, frenEntre).
+- **Robustesse** : le chien de garde vérifie qu'une erreur REVIENT (1,5 s) avant l'écran de crash, qui a une phrase au joueur et RELANCER ;
+  fond `#07050f` (plus de flash blanc) ; contexte WebGL perdu au retour → relance.
+- **Textes** : bloc i18n (les 50 caisses FR → EN, ponctuation, libellés courts, anglais américain) juste avant `// ⚠ nommée TR et non T` ;
+  `fmtC` : « $1.5k » en anglais, « $ 1,5 k » en français ; aria-label traduits par `applyLangDOM` ; punchlines en police système avec accents.
+- **LAISSÉ À SACHA (bloquant pour une vraie sortie)** : `TEST_CAISSES`/`TEST_CARRIERE` à true ; BOUTIQUE sans achats (vitrine, « -50 % »
+  fictif, RESTAURER factice, prix en € en dur — StoreKit ou masquer) ; sons d'origine tierce encore joués (`wow.mp3`, `death/minecraft.m4a`,
+  `eww.m4a`) ou livrés (`kaching`, `compteuse`) ; musiques Suno (dont une « Cover ») et voix ElevenLabs (preuve d'abonnement) ; « CHAT
+  POP-TART » (Nyan Cat) et noms de marques (QUATTRO, STRATOS, DAYTONA, ELDORADO, VETTE, LE MANS 24) ; côté Mac : icône 1024, PrivacyInfo,
+  cible iOS 16.4, `contentInset:'never'`, plugins haptics/preferences, ne pas embarquer CLAUDE.md/README/atelier-son/sons.html.
+
 ## LES TEXTES DE FIGURE, 3e CRAN (2026-09-29, session GRAPHISME) — « les textes de figure sont beaucoup trop gros et bloquent la vue »
 Après le 2e cran d'INTERFACE (figK/annK, voir ci-dessous) — mesuré sur captures 390×844 et 844×390 (banc `gfx/fig.js`, `gfx/fig2.js`) :
 - `annK()` .82/.72 → **.60/.52** (toutes les annonces du couloir), `figK()` .72/.62 → **.56/.48** (geste sur la caisse, verdict MONSTRE…).
