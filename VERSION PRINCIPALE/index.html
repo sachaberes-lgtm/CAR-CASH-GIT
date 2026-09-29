@@ -18351,13 +18351,21 @@ function n9Saut(o){const n=performance.now(),s9=n-(o._viseT||0)>200;o._viseT=n;r
        −0,6] ; en VILLE mémoires 11 · 24 · 3,5 et style 70 %. Le ×3 d'argent de la frénésie ne change pas.
        MESURÉ : 1re frénésie tranquille JAMAIS (2 % en 5 min ; v5 jamais · loi 16 2 min 30), casse-cou ~2 min (jamais · 1 min), maître
        ~1 min (2 min 26 · 38 s) ; en frénésie 0 · 15 · 39 % du temps (0 · 0 · 30 % · 6 · 29 · 46 %) ; tenue ~16 · 18 · 25 s.
+   18. POUR LES BONS JOUEURS (même soir, session GRAPHISME, Sacha : « dark triad trop facile à avoir, il faut que ce soit pour les bons
+       joueurs »). UN seul levier, la MONTÉE : les cellules or, rose et triade demandent ~1,8× plus de gestes (.42 · .30 · .25 → .23 ·
+       .165 · .14 ; la cyan .55 inchangée) ; la tenue, la fuite, la vitesse exigée et la VILLE (qui n'a pas de cellules à elle) ne
+       bougent pas — la fuite punirait aussi les maîtres, et `gate` > 1 réserverait la triade à la nitro seule (essayé : plus personne).
+       MESURÉ (simtri.js 5 min × 60, + un virage à filet par minute aux nuages ; simville.js AVEC le barème ville posé) — part des
+       parties qui atteignent la frénésie en 5 min / 1re frénésie médiane : NUAGES tranquille 0 %, casse-cou 13 % (loi 17 : 100 %,
+       ~2 min), maître 100 % à ~2 min (~1 min) ; VILLE casse-cou 7 % (90 %, 2 min 22), maître 100 % à ~2 min 20 (1 min 06). En
+       frénésie 0 · 1 · 19 % du temps (0 · 15 · 39 %) ; tenue inchangée ~20 · 25 s (ville 21 · 32 s).
    ⚠ BLOC PUR : ne lit que ses arguments et FLOW2 — le banc de simulation l'exécute tel quel, hors du jeu. Tous les
    réglages vivent dans FLOW2, nulle part ailleurs.
    ========================================================================== */
 const FLOW2={
   // efficacité des familles selon la cellule : 0 cyan · 1 or · 2 rose · 3 TRIADE (violet + zone rouge) · 4 en FRÉNÉSIE
   fam:{route:[1,.5,.12,0,0],style:[1,1,.8,.5,0],risque:[1,1,1,1,0]}, // (v4) en frénésie [4] : rien — c'est la TRIADE qui tient la jauge · (loi 17) le style prend 50 % dans la triade (loi 16 : ,7) · (loi 16) le style prend 70 % dans la triade (v5 : ,35 · loi 13, retirée : route [1,.6,.3,.15] · style [1,1,.9,.7])
-  cel:[.55,.42,.3,.25,.5],               // chaque cellule demande au moins autant de gestes que la précédente (loi 17, l'entre-deux · loi 16 : ,6 · ,5 · ,4 · ,4 · v5 : ,5 · ,35 · ,22 · ,14 · v2 : 1 · ,8 · ,65 · ,5 · loi 13, retirée : ,7 · ,55 · ,4 · ,34)
+  cel:[.55,.23,.165,.14,.5],             // chaque cellule demande au moins autant de gestes que la précédente (loi 18, pour les bons joueurs · loi 17 : ,55 · ,42 · ,3 · ,25 · loi 16 : ,6 · ,5 · ,4 · ,4 · v5 : ,5 · ,35 · ,22 · ,14 · v2 : 1 · ,8 · ,65 · ,5 · loi 13, retirée : ,7 · ,55 · ,4 · ,34)
   vit:[[.6,.35],[1,1],[1.3,1.35]],       // (vitN, ×) — la vitesse multiplie tous les gains, interpolé entre les points
   gate:.925,                             // sous 92,5 % de la croisière, la TRIADE ne prend RIEN (loi 17 · loi 16 : 90 % · v5 : 95 % · loi 13, retirée : 85 %)
   grace:2.75,                            // répit (s) après un geste de style/risque avant que la jauge fuie (loi 17 · loi 16 : 3 · v5 : 2,5)

@@ -1,5 +1,16 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA DARK TRIAD POUR LES BONS JOUEURS — LOI 18 DE FLOW2 (2026-09-29, nuit — session GRAPHISME, avec l'accord de GAMEPLAY)
+- Sacha : « dark triad trop facile à avoir, il faut que ce soit pour les bons joueurs » (après la loi 17, « l'entre-deux »).
+- UN seul levier, la MONTÉE : `FLOW2.cel` .55 · .42 · .30 · .25 → **.55 · .23 · .165 · .14** (les cellules or, rose et triade
+  demandent ~1,8× plus de gestes). Inchangés : tenue, fuite, répit, `gate`, triade, ville (`lieux.ville` n'a pas de cellules à elle),
+  ×3 d'argent. Écartés : la fuite (elle punit aussi les maîtres) et `gate` > 1 (la triade ne prend plus qu'à la nitro : plus personne).
+- MESURÉ (5 min × 60 parties) — part des parties qui atteignent la frénésie en 5 min / 1re frénésie médiane :
+  NUAGES (`simtri2.js` = simtri + un virage à filet par minute) tranquille 0 % · casse-cou **13 %** (loi 17 : 100 %, ~2 min) · maître
+  100 % à **~2 min** (~1 min) ; VILLE (`simville2.js` = simville AVEC `flowLieu('ville')` posé — l'ancien simville ne le posait pas,
+  il ne simulait que « moins de sauts ») casse-cou **7 %** (90 %, 2 min 22) · maître à **~2 min 20** (1 min 06). En frénésie
+  0 · 1 · 19 % du temps (0 · 15 · 39 %). Bancs dans le scratchpad de la session GRAPHISME (f71fd2a2…/scratchpad/gfx).
+
 ## LA ROUTE QUI TE RATTRAPE — ESSAI AU NIVEAU NUAGES (2026-09-29, session GRAPHISME)
 - **La demande** : 4 vidéos de Sacha (dans `C:\Users\sacha\Videos\`, 29/09) — deux de VOLTIGEUR (60 % du temps en l'air, sortie par
   le bord, pose sur la route du dessous) et deux de ROULEUR (au sol, nitro à fond ; il ne vole que quand il RATE un virage, et se
