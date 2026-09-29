@@ -95,6 +95,22 @@
 - **À juger par Sacha** : la bretelle (assez « route » ? trop longue ?), la fréquence (3 par zone), le montant des deux paiements, et
   s'il faut un repère visuel du filet (liseré, ligne de pièces sur l'arc de vol) — pas fait dans cet essai.
 
+## LA PASSE QUALITÉ DU 29/09 (nuit — session GAMEPLAY, Sacha : « regarde si tout fonctionne, il y a plein de petites imperfections »)
+- Méthode : une partie jouée au banc sur les 4 niveaux + menus + mort (`tour.js <prefixe> [fr|en]`, diagnostics débordement / cibles /
+  accents pixel / erreurs / programmes liés) et deux auditeurs en lecture seule (logique récente, textes). Zéro erreur en course, 0 programme
+  lié aux changements de niveau ; l'ORAGE tourne à 48 i/s au banc (signalé à GRAPHISME).
+- Corrigé ici : l'AIMANT en vol ne prend plus que la face où l'on vole (les jumeaux sous la dalle étaient aspirés À TRAVERS le bitume et
+  payés deux fois : `fV9`) ; les restes de la chaîne d'ARGENT (le REPORT fabriquait une fausse figure au vol suivant, la mallette et le
+  BATTEMENT DE CŒUR sonnaient encore, l'échelle criait « IL PLEUT DES BILLETS / JACKPOT ») ; le RALENTI de la frénésie s'arrête à
+  l'explosion et au RECOMMENCER ; ~25 textes (virgules FR via `decFr`, astuce post-permis en FACILE, « PLUS QUE 2 VIES », accents de
+  la bannière DÉFI RÉUSSI, mission « BRÛLE 20 S DE NITRO », « MULTI MAX » sur l'écran de fin, « en BAS = monte », la nitro au féminin,
+  « ENCORE N PIÈCES POUR », TOUT EFFACER qui dit que l'argent part, frénésie et écran de crash dans la bonne langue, AURA ×2 = « TOUTE
+  L'AURA COMPTE DOUBLE », triade de la ville dans l'ordre N·M·P et « DRIFT ! »…).
+- Envoyé aux autres : LIGNE PARFAITE (INTERFACE, corrigé f0ad9c4), NITROOO jamais remis à zéro / relancé après AIR NITROOO, exposition
+  et brume figées après un éclair (GRAPHISME), cashHudTick (UHD). Sons muets `nitrooo.palier` et `frenesie.cash` : absents de la banque
+  (session SON). À TRANCHER PAR SACHA : l'ÉCONOMIE depuis que les figures ne paient plus (défis « ENCAISSE », prix du garage) ; deux
+  niveaux nommés ORAGE (carrière Ville 5 et 4e niveau) ; « TRIPLE MONSTER » en anglais dans la version française.
+
 ## L'ENTRÉE DANS LA VILLE : DROITE SURÉLEVÉE, PUIS LA RAMPE (2026-09-29, nuit — session GAMEPLAY)
 - Sacha : « quand on arrive dans la ville, la route doit commencer par être droite et surélevée le temps que le joueur s'adapte, puis la
   route descend dans la ville ». Niveau VILLE généré (`genCtrl`, pas les pistes dessinées de la campagne) : le DÉPART commun (110 m qui
@@ -329,8 +345,8 @@
     le cap revient dans l'axe (`FAC_CAP`). Banc 25 s mains libres : NORMAL sort et explose à ~20 s, FACILE 0 chute (écart max 41 % de
     la demi-route).
   · VOL : `airMax()` ×10/6 (10 s au lieu de 6 ; le chrono en barre suit, il lit `airMax()`).
-  · 3 VIES : `facileSauve(cause)` juste après `bouclierSauve` en tête d'`explode` (le bouclier passe avant). Mêmes causes (vide, air,
-    tour — jamais une mort de règle), même remise à zéro, `respawn()`, annonce « 2 VIES / ON REPART ! » puis « DERNIÈRE VIE ! ». La chute
+  · 3 VIES : `facileSauve(cause)` en tête d'`explode` (le bouclier, qui passait avant, est retiré le 29/09). Mêmes causes (vide, air,
+    tour — jamais une mort de règle), même remise à zéro, `respawn()`, annonce « PLUS QUE 2 VIES / ON REPART ! » puis « DERNIÈRE VIE ! ». La chute
     perdue d'avance est rattrapée à 2,2 s comme sous bouclier (`facFilet()`). Cœurs du HUD : `#facVies` en haut à droite sous la pause
     (zoom `--hudK`, caché pendant la leçon, la pause et la mort), remis à 3 par `facDepart()` — dans `resetGame()` ET `start()`
     (la 1re partie de la session ne passe pas par `resetGame`).
@@ -365,7 +381,7 @@
 ## LES 10 PREMIÈRES MINUTES — CORRECTIFS DE JEU (2026-09-29, audit de la session INTERFACE, corrigé par la session GAMEPLAY)
 - **Après le permis, NUAGES et pas VILLE** : la piste de l'école occupait la zone 0, le portail menait à `NIVEAUX[1]`. `LVL.tutoZ` (posé par
   `lvlChoisir` au départ de chaque partie) décale le compte : après la leçon, NIVEAU 1 = NUAGES, puis VILLE. Mesuré (`ecole.js`).
-- **Le 1er cristal d'après la leçon est le BOUCLIER** (`pwrPremier` compare `runStats.zones` à `LVL.tutoZ`) ; **aucun cristal sur la piste
+- **Le 1er cristal d'après la leçon est un AIMANT** (le BOUCLIER jusqu'au 29/09 ; `pwrPremier` compare `runStats.zones` à `LVL.tutoZ`) ; **aucun cristal sur la piste
   de l'école** (`spawnPickups` saute les pouvoirs sur `piste:'tuto'`, APRÈS les tirages : le flux seedé ne bouge pas).
 - **Une leçon QUITTÉE n'est pas une partie** (`commitExploits` : ni compteurs, ni aura, ni record — la banque seule) et **pas de
   « RECORD BATTU » pendant la leçon**.
