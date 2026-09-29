@@ -17,6 +17,45 @@
 - ⚠ Toujours manquant (antérieur) : `assets/audio/music/dark-triad.mp3` (THE DARK TRIAD, la musique de FRÉNÉSIE, `MUSIC_FREN`) n'est dans
   AUCUN commit de main ni de la branche de Léo — 404 à chaque chargement.
 
+## LE DRAGON DE NITROOO + LA VITESSE EXPONENTIELLE (2026-09-29, nuit — session GRAPHISME, avec l'accord d'UHD qui a fait NITROOO)
+Sacha : « NITROOO devient un dragon chinois de feu, de plus en plus grand et visible à chaque palier de vitesse » · « il faut qu'il soit
+vraiment beau et que ça se suive : commencé au sol, dans les airs il doit se poursuivre, pas de barrière » · « la progression de vitesse
+doit être exponentielle ; à chaque palier de 10 % ça doit rajouter un compartiment au corps du dragon ».
+- **LA VITESSE EXPONENTIELLE** (bloc NITROOO d'UHD) : `NTR.boost = (1+NTR_BOOST)^t − 1` — ×1,10 COMPOSÉ par seconde tenue (+10 %, +21 %,
+  +33 %… +159 % à 10 s), plafond `NTR_BOOST_MAX=1.6` (×2,6, palier 10 — Sacha, 29/09 nuit : à ×5 la caisse s'envolait à chaque relief
+  et mourait « TROP LONGTEMPS EN L'AIR », mesuré par GAMEPLAY, banc ntrx.js). Le « +N % » de chaque palier suit la même loi. ⚠ Le
+  plafond est un garde-fou (au-delà la piste défile plus vite que le viseur et que les collisions balayées) : on peut le lever, pas le supprimer.
+- **LE DRAGON** (`DRG`, `dragonInit`, `dragonTick` appelée juste après `nitroooTick`, `dragonEchine`, `dragonBande`, `window.dbgDragon`) :
+  · UN seul maillage, DEUX groupes de matériaux, tous du programme des RUBANS DE TRAÎNÉE (MeshBasicMaterial map + vertexColors + transparent +
+    DoubleSide + fog:false — mélange, opacité, couleur et texture ne comptent pas dans la clé de programme) : le CORPS PEINT (`DRG_TEX`, écailles
+    rouge-or en mélange normal, lisible sur le ciel rose comme sur l'orage) et le FEU additif (`DRG_FEU` : halo, crête, moustaches, flammes de
+    queue). Bandes face caméra, fondu près de la caméra (sinon voile plein écran). La TÊTE est un sprite PIXEL-ART (`DRG_TETE`, 2 images :
+    gueule fermée / ouverte au rugissement, bois, œil d'or à pupille fendue, crinière de flammes, barbe), retournée par la texture : elle
+    regarde LÀ OÙ TU TOURNES (`steer`), `depthTest:false` + lueur. **0 programme lié pendant tout le banc**.
+  · **UN COMPARTIMENT PAR PALIER** : `1 + NTR.pal` tronçons (lissé : le nouveau POUSSE à la queue), séparés par des ANNEAUX D'OR ; le tronçon
+    neuf s'embrase et le dragon RUGIT (gueule ouverte, gerbe de feu). Il grossit jusqu'à 10 tronçons (`g`), puis s'arrête à 11 tronçons au plus (plafond ×2,6 à 10 s : les paliers cessent au 10e).
+  · **ÇA SE SUIT** : son repère est la DIRECTION DU MOUVEMENT lissée (pas la caisse — il ne vrille pas avec elle, il ne casse ni au décollage
+    ni à la pose) et le HAUT DE L'ÉCRAN lissé (`camUp` : la normale de la face au sol — sur la face du DESSOUS le haut du monde est DANS la
+    dalle —, le toit en vol). NITROOO commencée au sol CONTINUE en vol et inversement (`nitroooPart` sort si `NTR.on`, pas de ré-annonce ni
+    de repaiement) : paliers, boost et tronçons ne repartent pas de zéro.
+  · **AUTOUR DE LA CAISSE** (même nuit, Sacha : « c'est autour de la voiture que le dragon doit se former », « la tête de dragon sur la
+    voiture » — la 1re version dansait en ronde DEVANT le capot, cadrée au tiers haut de l'écran : écartée) : la TÊTE est posée sur le capot,
+    le COU plonge devant le nez, le CORPS fait le tour de la caisse en SPIRALE (`dragonEchine` : ellipse `Rx`/`Rz`, `tours`, évasement `ev`,
+    montée `mt`, bosses `Av`/`cyc` qui courent, l'anneau qui se balance `a0` et respire). La poursuite regarde d'en haut (40-45° en
+    portrait) : l'anneau ENCERCLE la caisse à l'écran sans la cacher — l'arrière passe sous elle, l'avant au-dessus. ⚠ L'anneau est SERRÉ
+    derrière (`Rb`, côté caméra) et LONG devant (`Rz`) : symétrique, au 10e palier l'arrière de la spirale passait sous l'objectif (une nappe
+    rouge sur la moitié basse de l'écran). Tailles : demi-largeur `W` 0,5 → 1,3 m, anneau ~1/4 de tour au 1er palier → 1 tour au 10e, tête
+    2,8 → 4,7 m. Pattes et crête vers l'EXTÉRIEUR de l'anneau (vue d'en haut, la crête dépasse tout autour). Il se DÉROULE hors de la caisse
+    en 0,6 s (`em`). En paysage (PC), la caisse est petite à l'écran, le dragon aussi.
+  · NITRO INFINIE : dragon VIOLET clair (`DRG.VIO`). Fin, recommencer, quitter : `nitroooVide()` (tête de `resetGame` et `endGame`) éteint
+    boost, plasma et dragon — ils restaient figés sur l'écran de fin.
+- ⚠ **LEÇON** : un `//` en milieu de ligne avale TOUT ce qui suit sur la ligne — `scene.add(DRG.tete)` écrit derrière un commentaire n'a jamais
+  tourné (le sprite existait, invisible : `dbgDragon('ecran')` → `par:false`). Commentaire au milieu = `/* */`.
+- Aussi dans ce lot (audit GAMEPLAY) : `eclVide()` rend l'exposition et la brume (mourir pendant un éclair laissait l'écran de fin surexposé) ;
+  la bannière de L'ORAGE a sa promesse (`pr` : « LA ROUTE SE CACHE : L'ECLAIR LA MONTRE », EN/ZH).
+- Bancs : `drg.js <racine> <préfixe> [--pay] [--inf]` (photos aux paliers 1/3/6/10, en vol, à la pose, au lâcher + positions écran de la tête,
+  du milieu, de la queue), `dbgDragon()` (tronçons, rayon, long, tours), `dbgDragon('tete')` (la texture), `dbgDragon('ecran')`.
+
 ## L'ORAGE — LE 4e NIVEAU, LE NIVEAU DUR (2026-09-29, nuit — session GRAPHISME, avec l'accord de GAMEPLAY et de la Campagne)
 - Sacha : « rajoute un niveau après les 3 premiers : le biome nuages mais avec un orage, beaucoup plus de nuages, de la pluie, des
   éclairs et plein de gros nuages sur la route — ce doit être le niveau dur, ambiance sombre dans le même style que le premier niveau ».
@@ -111,6 +150,22 @@
   rattrapage + rouleur), `filtrace.js` (un vol tracé par rapport à la route), `filvue.js` (ce que voit le joueur).
 - **À juger par Sacha** : la bretelle (assez « route » ? trop longue ?), la fréquence (3 par zone), le montant des deux paiements, et
   s'il faut un repère visuel du filet (liseré, ligne de pièces sur l'arc de vol) — pas fait dans cet essai.
+
+## LA PASSE QUALITÉ DU 29/09 (nuit — session GAMEPLAY, Sacha : « regarde si tout fonctionne, il y a plein de petites imperfections »)
+- Méthode : une partie jouée au banc sur les 4 niveaux + menus + mort (`tour.js <prefixe> [fr|en]`, diagnostics débordement / cibles /
+  accents pixel / erreurs / programmes liés) et deux auditeurs en lecture seule (logique récente, textes). Zéro erreur en course, 0 programme
+  lié aux changements de niveau ; l'ORAGE tourne à 48 i/s au banc (signalé à GRAPHISME).
+- Corrigé ici : l'AIMANT en vol ne prend plus que la face où l'on vole (les jumeaux sous la dalle étaient aspirés À TRAVERS le bitume et
+  payés deux fois : `fV9`) ; les restes de la chaîne d'ARGENT (le REPORT fabriquait une fausse figure au vol suivant, la mallette et le
+  BATTEMENT DE CŒUR sonnaient encore, l'échelle criait « IL PLEUT DES BILLETS / JACKPOT ») ; le RALENTI de la frénésie s'arrête à
+  l'explosion et au RECOMMENCER ; ~25 textes (virgules FR via `decFr`, astuce post-permis en FACILE, « PLUS QUE 2 VIES », accents de
+  la bannière DÉFI RÉUSSI, mission « BRÛLE 20 S DE NITRO », « MULTI MAX » sur l'écran de fin, « en BAS = monte », la nitro au féminin,
+  « ENCORE N PIÈCES POUR », TOUT EFFACER qui dit que l'argent part, frénésie et écran de crash dans la bonne langue, AURA ×2 = « TOUTE
+  L'AURA COMPTE DOUBLE », triade de la ville dans l'ordre N·M·P et « DRIFT ! »…).
+- Envoyé aux autres : LIGNE PARFAITE (INTERFACE, corrigé f0ad9c4), NITROOO jamais remis à zéro / relancé après AIR NITROOO, exposition
+  et brume figées après un éclair (GRAPHISME), cashHudTick (UHD). Sons muets `nitrooo.palier` et `frenesie.cash` : absents de la banque
+  (session SON). À TRANCHER PAR SACHA : l'ÉCONOMIE depuis que les figures ne paient plus (défis « ENCAISSE », prix du garage) ; deux
+  niveaux nommés ORAGE (carrière Ville 5 et 4e niveau) ; « TRIPLE MONSTER » en anglais dans la version française.
 
 ## L'ENTRÉE DANS LA VILLE : DROITE SURÉLEVÉE, PUIS LA RAMPE (2026-09-29, nuit — session GAMEPLAY)
 - Sacha : « quand on arrive dans la ville, la route doit commencer par être droite et surélevée le temps que le joueur s'adapte, puis la
@@ -254,6 +309,21 @@
 - L'argent vient désormais des pièces ramassées, du portail et des primes de campagne (les fruits ne donnent que du nitro). Vérifié : saut de 2,3 s avec la figure
   DAUPHIN posé → argent inchangé, aura versée à l'encaissement de la chaîne (banc `argent.js`, scratchpad 4b30b603).
 
+## LES NUAGES v7 — DES FORMES DE COTON, PLUS DES GRAPPES DE BALLONS (2026-09-29, nuit — session INTERFACE, avec l'accord de GRAPHISME)
+- Sacha : « apporte plus de soin aux nuages, il faut qu'ils soient plus beaux dans leurs formes ». MESURÉ sur captures (dragon.js) et
+  sur une planche STUDIO des 24 gabarits (`dbgCotonPlanche({k,c,s,w,d})`, banc `planche.js` — gros plan : `PL='{"k":[0,2,12,22],"c":2,"s":58,"w":118}'`) :
+  les nuages se lisaient comme des GRAPPES DE BALLONS (un reflet par bourgeon, une ligne sombre à chaque soudure), les tours comme des
+  PILES D'ŒUFS (étirement vertical ×1,3 sur des bourgeons ronds), pas de détail fin.
+- **Normale de CHAMP** (`cotonGeo`, part `COTON.CH` .45) : la lumière suit un champ lisse (gaussiennes du bourgeon et de ses voisins) mêlé
+  à la normale de la boule — une masse de ouate aux bosses rondes ; le creux d'une soudure .3 → .17. ⚠ À .72 le nuage devenait un galet
+  lisse (essayé) : .45 garde le relief des bourgeons.
+- **Chou-fleur** (`cotonChouFleur`, hasard à part `mulberry32(0xC0F1E5)`) : 2-3 petits bourgeons ronds (×.38-.56) sur le haut de chaque
+  grand bourgeon rond au-dessus du tiers bas (32 au plus par gabarit) ; pas sur les fractus ; `fin` (finesse) inchangé.
+- **Bourgeons qui restent ronds** : étirement vertical .85-1,15 (était .78-1,3), largeur .86-1,3 (était .82-1,45) — même nombre de tirages.
+- **Tours bosselées** : montée .5-.66 r (était .62-.82), épaules .7 (était .45), castellanus 3-4 tourelles plus épaisses (.24-.3).
+- Essayé puis écarté : un relief de surface par bruit (aux finesses grossières, des pointes). Verdicts tenus : base PLATE, bourgeons
+  RONDS, pas de chenille. Mesuré : **0 programme lié en course** (tour.js, 3 niveaux), triangles envoyés sous le budget ~80k.
+
 ## LE SILLAGE DE NITRO v5 (2026-09-29, session INTERFACE, repris de GAMEPLAY) — « plus longue, plus large, que les flammes du pot suivent la ligne de nitro, fais un truc parfait »
 - **Plus longue** : `SIL.LONG` 50 → 75 m, `QUEUE` 10 → 18 m, `N` 100 → 150 points (~90 m de réserve même au pas de 0,6 m).
 - **Plus large** : cœur `wC` .075 → .15, halo `wG` .22 → .40 (et `wGa` .6 : il s'élargit encore au loin). Les plafonds près de l'objectif
@@ -333,8 +403,8 @@
     le cap revient dans l'axe (`FAC_CAP`). Banc 25 s mains libres : NORMAL sort et explose à ~20 s, FACILE 0 chute (écart max 41 % de
     la demi-route).
   · VOL : `airMax()` ×10/6 (10 s au lieu de 6 ; le chrono en barre suit, il lit `airMax()`).
-  · 3 VIES : `facileSauve(cause)` juste après `bouclierSauve` en tête d'`explode` (le bouclier passe avant). Mêmes causes (vide, air,
-    tour — jamais une mort de règle), même remise à zéro, `respawn()`, annonce « 2 VIES / ON REPART ! » puis « DERNIÈRE VIE ! ». La chute
+  · 3 VIES : `facileSauve(cause)` en tête d'`explode` (le bouclier, qui passait avant, est retiré le 29/09). Mêmes causes (vide, air,
+    tour — jamais une mort de règle), même remise à zéro, `respawn()`, annonce « PLUS QUE 2 VIES / ON REPART ! » puis « DERNIÈRE VIE ! ». La chute
     perdue d'avance est rattrapée à 2,2 s comme sous bouclier (`facFilet()`). Cœurs du HUD : `#facVies` en haut à droite sous la pause
     (zoom `--hudK`, caché pendant la leçon, la pause et la mort), remis à 3 par `facDepart()` — dans `resetGame()` ET `start()`
     (la 1re partie de la session ne passe pas par `resetGame`).
@@ -369,7 +439,7 @@
 ## LES 10 PREMIÈRES MINUTES — CORRECTIFS DE JEU (2026-09-29, audit de la session INTERFACE, corrigé par la session GAMEPLAY)
 - **Après le permis, NUAGES et pas VILLE** : la piste de l'école occupait la zone 0, le portail menait à `NIVEAUX[1]`. `LVL.tutoZ` (posé par
   `lvlChoisir` au départ de chaque partie) décale le compte : après la leçon, NIVEAU 1 = NUAGES, puis VILLE. Mesuré (`ecole.js`).
-- **Le 1er cristal d'après la leçon est le BOUCLIER** (`pwrPremier` compare `runStats.zones` à `LVL.tutoZ`) ; **aucun cristal sur la piste
+- **Le 1er cristal d'après la leçon est un AIMANT** (le BOUCLIER jusqu'au 29/09 ; `pwrPremier` compare `runStats.zones` à `LVL.tutoZ`) ; **aucun cristal sur la piste
   de l'école** (`spawnPickups` saute les pouvoirs sur `piste:'tuto'`, APRÈS les tirages : le flux seedé ne bouge pas).
 - **Une leçon QUITTÉE n'est pas une partie** (`commitExploits` : ni compteurs, ni aura, ni record — la banque seule) et **pas de
   « RECORD BATTU » pendant la leçon**.
