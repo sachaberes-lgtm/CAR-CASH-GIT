@@ -21192,19 +21192,9 @@ function explode(cause){
   BOOMV=BOOM_VARS[0]; // signature FIXE « FEU » (réf. illustrations) — la variété vient des volutes, plus d'une roulette de couleurs
   // la chaîne part en fumée avec la caisse — le sel du bank-or-bust
   // (garde mode==='fall' : une explosion au sol après avoir encaissé ne perd rien)
-  if((chain>0||chainVal>0)&&mode==='fall'){ // (2026-09-26) un report ou un rase-dalle en jeu, c'est aussi une mallette à perdre
-    const lost=chainEst();
-    if(!insUsed){ // L'ASSURANCE : le filet des débutants — 30 % de la mallette sauvés, UNE fois par run.
-      insUsed=true; // Elle enseigne la règle en la cassant : « pose-toi AVANT d'exploser ».
-      const saved=Math.round(lost*.3);
-      money+=saved;levelCash+=saved;checkUpgrade();
-      showMsg('🛡 L\'ASSURANCE RÉPOND — '+fmtC(saved)+' sauvés sur '+fmtC(lost)+' (une seule fois, lis les petites lignes !)','#7dff9a');
-      flyCash(carGroup.position,5); // même en mourant, l'argent sauvé voyage vers le compteur
-    }else{
-      showMsg(pickL(CRASH_LINES)(fmtC(lost)),'#ff5e5e');
-    }
-    sparkBurst(sparkGold,carGroup.position,44,24); // la mallette s'ouvre : les billets giclent
-  }
+  // (2026-09-29, Sacha : « les figures ne rapportent plus d'argent, seulement de l'aura ») : il n'y a plus de mallette d'ARGENT à perdre ni
+  // d'assurance qui en rembourse une part — c'est la chaîne d'AURA qui part en fumée (chainePerdue, plus haut). La gerbe reste.
+  if((chain>0||chainVal>0)&&mode==='fall')sparkBurst(sparkGold,carGroup.position,44,24);
   chainHud.style.opacity=0;
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;
   BOOM_CAM.m0=mode;BOOM_CAM.pret=false; // (vague 3) le PLAN DE LA MORT se pose au premier pas (voir boomCamTick)
@@ -25927,7 +25917,7 @@ function portailPasse(){
        restait à rouler jusqu'à l'entrée de l'ovule (son centre est à L−25, son rayon 55 : ~L−80) moins la ligne droite volée. */
     if(!PARK.on&&!TUTO.on){const gagne=(L-80-FLOW.s0)-FLOW.p0.distanceTo(fallPos);if(gagne>=60)flowRaccourci(gagne);else if(gagne>=25)frenTrait('m',gagne/60);}
     // (2026-09-26) …et la CHAÎNE est ENCAISSÉE comme à une pose : avant, l'argent de la mallette disparaissait sans un mot et le HUD restait affiché
-    if(chain>0||chainVal>0){const g9=Math.round(flowMult()*chainEst());if(g9>0){money+=g9;levelCash+=g9;runStats.tricks++;checkUpgrade();trickMsg('CHAÎNE ENCAISSÉE +'+fmtC(g9),2);if(SONV2)sfx('argent.gros',{t:.3}); /* (console) après l'aspiration du portail */}}
+    if(chain>0||chainVal>0)runStats.tricks++; // (2026-09-29) les figures ne rapportent plus d'argent : la figure du vol compte, rien n'est versé (l'aura ouverte, elle, continue sa chaîne)
     chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;}
   flashEcran('rgba(255,79,216,.6)'); // l'annonce, c'est « NIVEAU n — LIEU » (lvlAnnonce, couloir des annonces) : une seule voix au centre
   portalSnd();if(!SONV2)boostSnd();shake=.5; /* (console de son) `portail` porte tout le passage : plus le souffle d'un pad dessous */
@@ -26212,14 +26202,16 @@ function tryLand(dt){
     const qG=chainVal*Math.min(6,chainMult)*g*(sideL<0?2:1)*(1+FLOW.lv*.5)*(streak>=2?1+Math.min(1,streak*.1):1)*(fever>0?2:1);
     const gain=qG*DENOMS[Math.min(engTier,DENOMS.length-1)]<.5?0:Math.max(1,Math.round(flowMult()*denom()*chainVal*Math.min(6,chainMult)*g
       *(sideL<0?2:1)*ecoSerie()*(fever>0?2:1)));
+    /* (2026-09-29, Sacha : « les figures ne doivent plus rapporter d'argent, seulement de l'aura ») — PLUS UN DOLLAR À LA POSE. `gain` ne
+       sert plus qu'à dire si la pose porte une figure (sinon elle reste muette) : l'aura (chaineAura), le flow, le nitro, les verdicts de
+       l'annonceur et les pièces du MOTEUR (une ressource de la partie, pas de l'argent) sont gardés ; l'argent, la caisse enregistreuse et
+       les billets qui volent vers le compteur s'en vont. L'argent vient des pièces, du portail, des fruits et de la campagne. */
     if(gain>0){ // l'airtime brut ne rapporte RIEN : sans chaîne à casher, la pose est muette
-      money+=gain;levelCash+=gain;checkUpgrade();
       if(g>=1.5)RUNX.perfect++; // CONTRATS : une pose PARFAITE qui encaisse une figure
       flowAdd(g>=2?14:g>=1.5?10:4,g>=1.5?'risque':'style',sideL<0?'m':'n'); // (v5) posé sur la FACE CACHÉE : l'envers du décor, c'est MACHIAVEL // FLOW : une figure encaissée nourrit la montée — la pose PARFAITE est un RISQUE (on a visé), l'ordinaire du style
       nitroGain(Math.min(1.2,.45+chainMult*.12)*(g>=2?2:g>=1.5?1.5:1)); // LA FIGURE RECHARGE LE NITRO — plus la chaîne est longue, plus ça remplit ; une pose parfaite ×1,5, DIVINE ×2 (l'échelle des grades monte aussi ici)
       // LA CAISSE ENREGISTREUSE : seulement sur un ENCAISSEMENT QUI COMPTE. Sur chaque pose,
       // meme minuscule, le son deviendrait un tic — et 9 samples n'y changeraient rien.
-      if(gain>=denom()*25)fxArgent();
       runStats.tricks++;
       // ---- ANNOUNCER : la réplique la plus RARE l'emporte (chacune tombe 1 fois sur 3) ----
       const q=qG; // (vague 3) la valeur du GESTE, pas celle du dollar (voir qG)
@@ -26230,8 +26222,7 @@ function tryLand(dt){
       if(gapOk){vTier=3;vPrio=Math.max(vPrio,5);if(q<45)vKey='m2';}               // traverser le vide mérite au moins le DOUBLE MONSTRE
       if(nitroOn&&nitroAirT>5){vKey='megaMeteor';vTier=3;vPrio=6;}                // 5 s de réacteur : l'ultime
       const vTxt=annSpeak(vKey,vPrio)||'MONSTRE';
-      trickMsg(gTxt+vTxt+'  +'+fmtC(gain),vTier);
-      flyCash(carGroup.position,Math.min(10,3+Math.floor(Math.log10(q+1)*2.5))); // la paye VOYAGE jusqu'au compteur
+      trickMsg(gTxt+vTxt,vTier); // (2026-09-29) plus de « +$ » : la figure paie en aura (la chaîne le dit)
       // LES FIGURES RAPPORTENT DES PIÈCES : une belle chaîne fait progresser le MOTEUR, pas seulement
       // le portefeuille. 2 pièces pour une figure honnête, jusqu'à ~18 pour un enchaînement monstrueux.
       poseSndT=performance.now(); // la pose va sonner : un palier moteur franchi par ces pièces attendra son tour (voir addCoins)

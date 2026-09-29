@@ -1,5 +1,14 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LES FIGURES NE PAIENT PLUS QU'EN AURA (2026-09-29, Sacha : « les figures ne doivent plus rapporter d'argent, seulement de l'aura »)
+- `tryLand` : plus de `money+=gain` à la pose, plus de caisse enregistreuse (`fxArgent`), plus de billets volants (`flyCash`), plus de
+  « +$ » dans le verdict. `gain` ne dit plus que « cette pose porte une figure » : aura (chaineAura), flow, nitro, verdicts de l'annonceur et
+  PIÈCES DU MOTEUR (`addCoins`, une ressource de la partie, pas de l'argent) restent — à trancher par Sacha s'il veut aussi les retirer.
+- Portail traversé en vol : la chaîne d'argent n'est plus « ENCAISSÉE » (la figure compte dans `runStats.tricks`). Explosion en vol : plus de
+  mallette d'argent perdue ni d'ASSURANCE (`insUsed` ne sert plus) — la chaîne d'AURA part en fumée (`chainePerdue`).
+- L'argent vient désormais des pièces ramassées, du portail, des fruits et des primes de campagne. Vérifié : saut de 2,3 s avec la figure
+  DAUPHIN posé → argent inchangé, aura versée à l'encaissement de la chaîne (banc `argent.js`, scratchpad 4b30b603).
+
 ## LES 10 PREMIÈRES MINUTES — CÔTÉ INTERFACE (2026-09-29, session INTERFACE)
 - **PASSER demande** (`tutoPasse`/`tutoPasseRange`) : 1er appui → le bouton devient « VRAIMENT ? » (rouge), l'en-tête dit « PERMIS +$ 500 »
   (or) ; 2e appui dans les 3 s → `tutoFin(true)`. La question reste DANS la carte (pas de modale : la caisse roule pendant la leçon).
