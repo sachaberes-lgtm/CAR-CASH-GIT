@@ -292,6 +292,10 @@ d'AURA (police pixel en bandes, cernée d'encre). Ce qui se TOUCHE = plaque PENC
   `color:transparent` dont le dégradé contient color-mix DISPARAÎT. `@supports not (color:color-mix(…))` les passe en couleur PLEINE
   (--tc, --xc, --fc, --pc, --fren, --ec) cernée d'encre (--contourH/P). Simulé au banc (`st-repli.js` pose le contenu du bloc sans
   condition) : tout reste lisible. Tout NOUVEAU texte ombré du HUD qui utilise color-mix doit être ajouté à ces listes.
+- **v5.1 (critiques DA de GRAPHISME)** : le « fantôme gris » de la carte moteur était son ENTRÉE en fondu (moteur translucide ~150 ms) →
+  opaque en 40 ms, il GRANDIT depuis la caisse (`engBigSuit`), texte `daEbVie` .22 s ; moteur ~33 % de la caisse (scène 92×62, texte
+  inchangé). Sa PLACE au-dessus de la caisse est gardée (verdict de Sacha, malgré la critique « hors de l'axe »). Le halo de bord des
+  pouvoirs (#pwrFx) s'éteint à l'explosion (`mode==='boom'||gameOver` dans la boucle) : l'AIMANT verdissait l'écran jusqu'à la mort.
 - Bancs (scratchpad session UHD) : `run.js <pfx> <étapes.js> [w] [h]` (DSF, LG), `st-eng2.js` (film de la carte), `st-fren.js`, `st-det.js`
   (états du bouton), `st-pay.js` (paysage), `attente.sh` (attend qu'aucun banc voisin ne tourne).
 

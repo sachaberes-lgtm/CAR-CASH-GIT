@@ -4524,7 +4524,12 @@ html body #engBig .ebCarte>b{--tc:var(--ec);font-size:var(--f4)!important;line-h
   filter:drop-shadow(1px 0 0 var(--jInk)) drop-shadow(-1px 0 0 var(--jInk)) drop-shadow(0 1px 0 var(--jInk)) drop-shadow(0 -1px 0 var(--jInk)) drop-shadow(0 3px 0 var(--jInk)) drop-shadow(0 0 10px color-mix(in srgb,var(--tc) 70%,transparent))!important}
 html body #engBig .ebCarte>b::after{display:none!important}
 html body #engBig.long .ebCarte>b{font-size:var(--f3)!important}
-html body #engBig .ebScene{width:112px!important;height:75px!important;margin:0!important}
+html body #engBig .ebScene{width:92px!important;height:62px!important;margin:0!important}
+/* (v5.1) l'entrée de la carte : opaque vite, elle grandit (plus de texte translucide qui traîne au-dessus de la caisse) */
+html body #engBig.on .ebCarte{animation:daEbVie .22s var(--ease) both}
+@keyframes daEbVie{0%{opacity:0;transform:scale(.6)}30%{opacity:1}100%{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){html body #engBig.on .ebCarte{animation:none}}
+html[data-reduced-motion="1"] body #engBig.on .ebCarte{animation:none}
 html body #engBig.mini .ebTit{visibility:inherit!important}   /* l'étiquette reste (la vieille règle la taisait sous .8) ; inherit : elle part avec la carte */
 html body #engBig .ebInfo,html body #engBig .ebCyl{display:none!important}
 html body #engBig .ebRuban{top:-22px!important;left:-10px!important;right:-10px!important}
@@ -19194,8 +19199,8 @@ function engBigPlace(b){
   /* (v5) L'ÉCHELLE SUIT LA CAISSE : le moteur fait ~45 % de la largeur APPARENTE de la voiture (sa boîte projetée), au sol comme en vol,
      borné entre 70 % et 115 % de la carte. Le texte ne descend jamais sous 8 px (--ebS ≥ .7). MESURÉ au banc : le moteur visible fait
      ~0,82 × la largeur de la scène et ~1 × sa hauteur (le quad déborde de ×1,6, le cadrage garde de l'air pour la flamme). */
-  const cw=engCaisseL(),vis=(sc.offsetWidth||112)*.82;
-  const s=THREE.MathUtils.clamp(cw*.4/vis,.7,1.05);
+  const cw=engCaisseL(),vis=(sc.offsetWidth||92)*.82;
+  const s=THREE.MathUtils.clamp(cw*.33/vis,.7,1.05); // (v5.1) ~33 % de la caisse (40 % avant) : la scène a rapetissé, le texte garde son corps
   b.style.setProperty('--ebS',s.toFixed(3));b.classList.toggle('mini',s<.8);
   const rx=sc.offsetLeft+sc.offsetWidth/2-wC/2,ry=sc.offsetTop+sc.offsetHeight/2-hC/2;
   engBig.pw=sc.offsetWidth*s;engBig.ph=sc.offsetHeight*s;engBig.s=s;engBig.rx=rx;engBig.ry=ry;
@@ -25117,7 +25122,7 @@ function engBigSuit(){ // le moteur 3D de la carte : OÙ le recoller dans l'imag
   const el=engBig.el;if(el&&!engBig.plonge){const l9=engBig.sx.toFixed(0)+'px',t9=engBig.sy.toFixed(0)+'px';
     if(el.style.left!==l9)el.style.left=l9;if(el.style.top!==t9)el.style.top=t9;} // (perf) on n'écrit que ce qui a bougé d'un pixel
   let s=1,op=1,x=engBig.sx+(engBig.rx||0)*S,y=engBig.sy+(engBig.ry||0)*S;
-  if(t<220&&!RM){const u=t/220,e=1-(1-u)*(1-u)*(1-u);s=1.35-.35*e;op=Math.min(1,u*1.6);} // l'entrée : la même courbe que les textes (eb2Vie)
+  if(t<220&&!RM){const u=t/220,e=1-(1-u)*(1-u)*(1-u);s=.55+.45*e;op=Math.min(1,u*6);} // l'entrée — (v5.1) opaque en 40 ms, il GRANDIT depuis la caisse : le fondu depuis le transparent se lisait « fantôme gris » sur les captures
   ENG_Q.fl=RM?0:Math.max(0,1-t/260); // (v4) l'éclat d'apparition (lu par engQuadDraw)
   if(!RM&&!engBig.plonge)y+=Math.sin(t*.0041)*3; // il FLOTTE au-dessus de la caisse (±3 px, un souffle d'1,5 s)
   let clip=-1;
@@ -31631,7 +31636,7 @@ function loop(now){
       el.style.setProperty('--p',Math.min(1,t9/PWR_DEFS[pwL[j][0]].t).toFixed(3));const f9=t9<1.5;if(el._f!==f9){el._f=f9;el.classList.toggle('fin',f9);}
       const x9=t9>PWR_DEFS[pwL[j][0]].t+.05;if(el._x!==x9){el._x=x9;el.classList.toggle('cumul',x9);}} // (pouvoirs v2) cumulé au-delà d'une durée : la jauge déborde (pleine) et la plaque le montre
     {const sp9=airPie.style.display==='block';if(sp9!==loop._psp){loop._psp=sp9;pwrChip.classList.toggle('sousPie',sp9);}}
-    {const k9=pwrNitroT>0?'n':pwrSpdT>0?'v':pwrAurT>0?'x':pwrMagT>0?'m':pwrAirT>0&&!TUTO.on?'a':pwrBouT>0?'b':''; // (HUD v3) les BORDS de l'écran battent à la couleur du pouvoir actif — (2026-09-28) pas l'airtime prêté par l'auto-école · (pouvoirs v2) le plus « chaud » d'abord
+    {const k9=(mode==='boom'||gameOver)?'':pwrNitroT>0?'n':pwrSpdT>0?'v':pwrAurT>0?'x':pwrMagT>0?'m':pwrAirT>0&&!TUTO.on?'a':pwrBouT>0?'b':''; // (HUD v3) les BORDS de l'écran battent à la couleur du pouvoir actif — (2026-09-28) pas l'airtime prêté par l'auto-école · (pouvoirs v2) le plus « chaud » d'abord
      if(k9!==loop._pfx){loop._pfx=k9;let e9=avE('pwrFx');if(!e9){e9=document.createElement('div');e9.id='pwrFx';e9.setAttribute('aria-hidden','true');document.body.appendChild(e9);avEl.pwrFx=e9;}
        if(k9){e9.style.setProperty('--pf',PWR_DEFS[k9].fx);e9.style.setProperty('--pf2',PWR_DEFS[k9].fx2);}e9.classList.toggle('on',!!k9);}}
     // JAUGE DE PROGRESSION — elle suivait le cash vers la prochaine VOITURE ; les voitures ne se
