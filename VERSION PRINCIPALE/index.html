@@ -4110,6 +4110,36 @@ html body #mDead>.mObj{order:-2}
   html body #mDead>.mRow .pbtn.ico .pxi{--pxs:2}
   html body #mDead .mStat b{font-size:var(--f5)}
 }
+/* ---- 30. ÉCRAN DE FIN, ÉCRANS COURTS (2026-09-29, relevé par DEBUGGING) : iPhone SE dans Safari (375 × 553) et 320 × 568 — REJOUER
+   tombait ENTIÈREMENT sous le bord (567-629 pour 553). On resserre chaque bloc, on n'en retire aucun : REJOUER reste la seule plaque d'or,
+   sous le pouce, sans défiler. ---- */
+/* palier 1 (≤ 700 px : iPhone 8 / SE 2 plein écran, 667) : le titre sur UNE ligne (« NOUVEAU RECORD ! » en prenait deux), le moteur un cran plus petit */
+@media (orientation:portrait) and (max-height:700px){
+  html body #mDead .mOver{white-space:nowrap;font-size:min(var(--f6),calc((100vw - 48px) / 17))}
+  html body #mDead .hMot3 .hMotCv{width:62%;margin:-6% 0 -5%}
+  html body #mDead .hCard{min-height:0}
+}
+/* palier 2 (≤ 620 px : Safari avec ses barres) : tout se resserre */
+@media (orientation:portrait) and (max-height:620px){
+  html body #mDead .mOver{margin:0;white-space:nowrap;font-size:min(var(--f5),calc((100vw - 48px) / 17))}
+  html body #mDead .mCashL{margin-top:8px;padding:9px 12px 8px;gap:5px}
+  html body #mDead .mCashL>b{font-size:min(var(--f7),calc((100cqi - 28px) / var(--n,6) - 2px))}
+  html body #mDead>.mHero{margin-top:8px;gap:8px}
+  html body #mDead .hCard{min-height:0;padding:8px 8px 8px;gap:4px}
+  html body #mDead .hCard>small{margin-bottom:0}
+  html body #mDead .hMot3 .hMotCv{width:48%;margin:0 0 -4%}
+  html body #mDead .hMotN{font-size:var(--f5)}
+  html body #mDead .hAura>b{font-size:min(var(--f6),calc((100cqi - 18px) / var(--n,6)))}
+  html body #mDead .mStats{margin-top:8px}
+  html body #mDead .mStat{min-height:0;padding:7px 4px;gap:6px}
+  html body #mDead .mStat b{font-size:var(--f4)}
+  html body #mDead .mObj{margin-top:8px;padding:8px 12px 8px 14px;gap:6px}
+  html body #mDead .mEsp{flex:0 0 4px;max-height:4px}
+  html body #mDead>.mRow{margin-top:8px}
+  html body #mDead>.mRow .pbtn{min-height:50px;gap:4px}
+  html body #mDead .mFin{margin-top:10px}
+  html body #mDead .mFin>[data-m="replay"]{min-height:56px}
+}
 </style>
 <style id="hudMaitrise">
 /* =====================================================================================================================
