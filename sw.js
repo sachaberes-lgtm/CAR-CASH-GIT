@@ -32,7 +32,8 @@
 //  v24 (2026-09-27, Léo) : SWAG CASH CAR, la musique d'intro.
 //  v25 (2026-09-27, Léo) : la BONNE musique d'intro (swag-cash-car-2).
 //  v28 (2026-09-28) : la CONSOLE DE SON de Sacha (sfx.js + sons-banque.js), les silences morts retirés des morceaux.
-const CACHE = 'cashcar-v28';
+//  v29 (2026-09-28) : on repart de la version de Sacha (main c2950ab) ; de Léo : la musique (SWAG CASH CAR, ADDICTIVE LOOP), le bouton rouge, les affiches de records, le plan produit et JOUER au garage.
+const CACHE = 'cashcar-v29';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

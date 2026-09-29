@@ -1,5 +1,30 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA COUCHE DE LÉO (2026-09-29) — ce dépôt local = la version de SACHA + quelques éléments de Léo (branche `version-leolei-2026`)
+Léo : « garde quelques éléments de toute cette discussion, ramène ça sur la version la plus récente de Sacha ; tous les trucs de
+sélection, c'est Sacha, c'est mieux ». BASE = `VERSION PRINCIPALE/index.html` de Sacha (main c2950ab) TELLE QUELLE (accueil avec JOUER,
+carrière, missions, garage à onglets, boutique), + SEULEMENT :
+- **LA MUSIQUE DE LÉO** : `MUSIC.menu` = SWAG CASH CAR (`swag-cash-car-2.m4a` : accueil, garage, écran de fin ; préchargée au 1er toucher),
+  `MUSIC_LIEU.ville` = ADDICTIVE LOOP (`addictive-loop.m4a`). `SON_TON` : addictive-loop +1 (la m), swag-cash-car-2 −1 (do m), mesurés par
+  chroma (même méthode que les 4 de Sacha, vérifiée dessus).
+- **LE GARAGE** (bloc « LA COUCHE DE LÉO AU GARAGE », juste après `buildGarageRoom`) : la structure de Sacha ne bouge pas ; par-dessus,
+  · le PLAN PRODUIT de Léo (`GARV` : trois-quarts avant .62, hauteur .34, dérive ±2°, objectif serré en paysage, debout `dP`/`yP`) —
+    plus de tour automatique ; le doigt fait TOURNER LA CAISSE, lancée elle garde son élan (`GAR.yaw/yawV`) ; le swipe « caisse suivante »
+    est retiré (flèches, vignettes, clavier) ; onglet TRAÎNÉES : elle se pose de trois-quarts arrière ;
+  · le BOUTON ROUGE (`buildBoutonRouge`, `BR_POS` 3,2/3,75 — visible couché ET debout) : colonne + gros dôme + étiquette BOUTIQUE ; tap =
+    la BOUTIQUE de Sacha (chemin de « EN BOUTIQUE »). Léo : « une petite boîte boutique, peut-être plus tard ; pour l'instant un bouton rouge » ;
+  · les AFFICHES DE RECORDS en PANNEAUX SUR PIED derrière la caisse (`AFF_POS`, tournés vers le plan : sur les murs, le plan produit les
+    coupait au bord haut) — RECORD PERSO (meilleure partie, aura max, palier moteur, vitesse max + record du dernier niveau de carrière
+    joué) / RECORDS MONDIAUX (« bientôt en ligne ») ; `afficheTap` = le point d'extension ;
+  · le RECORD PAR NIVEAU (`NIVA`, `SAVE.d.nivAura`, `SAVE.d.nivDer`, gardés par `san`) : « RECORD DU NIVEAU » au portail ;
+  · JOUER AU GARAGE : sur l'équipée, le lingot dit JOUER (état `jouer` de `gEtat`, « ÉQUIPÉE » écrit sous le nom) et lance le même départ
+    que le JOUER de l'accueil (`garageLaunch` ne le reclique pas).
+  ⚠ la caméra du jeu sert à d'autres prises entre deux images : le tap vise `GAR.camV` (copie du plan, fin de garageRender).
+  Hooks : `dbgPlan(a,p,{dP,yP})`, `dbgBouton(x,z)`, `dbgAffichePos(i,x,z)`, `dbgGarProj(pts)`, `dbgNiveaux()`.
+- **PAS REPRIS** (restent dans l'historique, commit e11925d et avant) : PARIS au sol, boost de départ, HUD discret, guide du jeu, lumière v2,
+  tic des boutons, accueil GARAGE/RÉGLAGES, lapin/boîte-boutique, choix du niveau au garage.
+- `sw.js` : `cashcar-v29`. Tests muets (sfx/mus/vox à false), jamais de push sur le `main` de Sacha.
+
 ## LA CONSOLE DE SON (2026-09-28, session SON) — « tout ce qui se passe à l'écran doit avoir un son propre et unique, parfaitement maîtrisé et mixé »
 **⚠ RÈGLE POUR TOUTES LES SESSIONS : un son nouveau = `sfx('famille.nom')`, jamais un `chimeNote`/`noiseBurst` bricolé sur place.**
 Appel sous garde depuis n'importe quel code : `typeof sfx==='function'&&sfx('ui.ok')`. Si le son voulu n'existe pas encore, on pose l'appel
