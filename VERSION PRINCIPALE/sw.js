@@ -27,8 +27,9 @@
         nocturnal-groove), moteur, voitures low-poly ; charte v2 et passe UX côté Sacha. */
 //  v20 (2026-09-25) : boutique, défis, auto-école, charte v3, lecteur de musique unique, ville en 1er niveau, caisses premium.
 //  v21 (2026-09-27) : portrait ET paysage (manifest en orientation any).
+//  v23 (2026-09-29) : optimisation du son (portes du graphe audio, k-rate, salle au repos) — sfx.js?v=4.
 //  v22 (2026-09-28) : la CONSOLE DE SON (sfx.js + sons-banque.js) et les silences morts retirés des morceaux (le trou de 1 s à chaque boucle de NOCTURNAL GROOVE en VILLE).
-const CACHE = 'cashcar-v22';
+const CACHE = 'cashcar-v23';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

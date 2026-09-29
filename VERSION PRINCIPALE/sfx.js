@@ -100,7 +100,11 @@ function init(ac,dest){
     const hp=ac.createBiquadFilter();hp.type='highpass';hp.frequency.value=280;
     const cv=ac.createConvolver();cv.normalize=true;cv.buffer=salleIR(ac);
     const ret=ac.createGain();ret.gain.value=.55;
-    pre.connect(hp);hp.connect(cv);cv.connect(ret);ret.connect(S.dest);
+    pre.connect(hp);hp.connect(cv);cv.connect(ret);S.salRet=ret;S.salOn=false; // (optimisation 2026-09-29) la salle n'est branchée que quand un son passe
+    /* LA SALLE AU REPOS : une convolution de 1,25 s calcule même sur un silence (2,7 % d'un cœur MESURÉS, en permanence). Elle se branche
+       au premier son et se débranche 1,4 s après la fin du dernier (sa queue est éteinte) — débranchée, elle ne calcule plus rien. */
+    setInterval(function(){if(!S.salOn||!S.ac)return;const n=S.ac.currentTime;let fin=S.coupe||0; /* une voix COUPÉE sort du compte, sa queue de salle non */for(const k in S.voix)for(const x of S.voix[k])if(x.fin>fin)fin=x.fin;
+      if(n>fin+1.4){try{S.salRet.disconnect(S.dest);}catch(e){}S.salOn=false;}},500);
     for(const k in BUS){const g=ac.createGain();g.gain.value=dbL(BUS[k].db);g.connect(S.dest);
       const s=ac.createGain();s.gain.value=BUS[k].rev;g.connect(s);s.connect(pre);S.bus[k]=g;}
     S.ok=true;
@@ -141,7 +145,7 @@ function play(id,o){
   const dbC=chef(f,t0);if(dbC===null)return null;
   // la polyphonie de CE son : au-delà de `max`, la plus ancienne voix s'efface (en 15 ms, jamais coupée net)
   const L=S.voix[id]||(S.voix[id]=[]);for(let i=L.length-1;i>=0;i--)if(L[i].fin<now)L.splice(i,1);
-  while(L.length>=f.max){const x=L.shift(),tt=Math.max(now,t0);x.fin=0;try{x.g.gain.cancelScheduledValues(tt);x.g.gain.setTargetAtTime(0,tt,.005);x.s.stop(tt+.05);}catch(e){}} // à l'instant du NOUVEAU son (débogage 2026-09-29)
+  while(L.length>=f.max){const x=L.shift(),tt=Math.max(now,t0);x.fin=0;S.coupe=Math.max(S.coupe||0,tt+.05);try{x.g.gain.cancelScheduledValues(tt);x.g.gain.setTargetAtTime(0,tt,.005);x.s.stop(tt+.05);}catch(e){}} // à l'instant du NOUVEAU son (débogage 2026-09-29)
   try{
     const s=ac.createBufferSource();s.buffer=ab;
     const rate=Math.pow(2,(st-base)/12)*(o.rate||1)*(1+(Math.random()*2-1)*f.rj);
@@ -158,8 +162,9 @@ function play(id,o){
     if(o.pan&&ac.createStereoPanner){const p=ac.createStereoPanner();p.pan.value=Math.max(-1,Math.min(1,o.pan));g.connect(p);tete=p;}
     s.connect(g);tete.connect(S.bus[o.bus||f.bus]||S.bus.rec);
     s.start(t0,dep);S.der[id]=t0;
+    if(!S.salOn&&S.salRet){try{S.salRet.connect(S.dest);}catch(e){}S.salOn=true;}
     const x={s:s,g:g,g0:g0,t0:t0,bus:o.bus||f.bus,cede:!!f.cede,fin:o.loop?1e9:t0+(ab.duration-dep)/rate,
-      stop:function(tc){try{const n=ac.currentTime;g.gain.cancelScheduledValues(n);g.gain.setTargetAtTime(0,n,tc||.03);s.stop(n+(tc||.03)*6);}catch(e){}x.fin=0;},
+      stop:function(tc){try{const n=ac.currentTime;g.gain.cancelScheduledValues(n);g.gain.setTargetAtTime(0,n,tc||.03);s.stop(n+(tc||.03)*6);S.coupe=Math.max(S.coupe||0,n+(tc||.03)*6);}catch(e){}x.fin=0;},
       gain:function(db,tc){try{g.gain.setTargetAtTime(dbL(TRIM+f.db+db),ac.currentTime,tc||.05);}catch(e){}},
       rate:function(r,tc){try{s.playbackRate.setTargetAtTime(r,ac.currentTime,tc||.05);}catch(e){}}};
     L.push(x);if(f.grp&&S.grp[f.grp]){const V=S.grp[f.grp].voix;V.push(x);if(V.length>32)V.shift();}
@@ -173,12 +178,12 @@ function ton(n){S.ton=+n||0;}
    reprise, leur fin rejouait pendant le 3-2-1. L'INTERFACE (le clic ⏸, la feuille qui s'ouvre) et les BOUCLES (qui ont leur propre logique) restent. */
 function stopJeu(){if(!S.ac)return;const n=S.ac.currentTime;for(const k in S.voix)for(const x of S.voix[k]){if(x.bus==='ui'||x.fin===1e9||!(x.fin>n))continue;x.stop(.02);}}
 function annuleFutur(apres){if(!S.ac)return;const n=S.ac.currentTime+(apres||0);for(const k in S.voix)for(const x of S.voix[k])if(x.t0>n&&x.fin>0){try{x.s.stop();}catch(e){}x.fin=0;}}
-function stop(id){const now=S.ac?S.ac.currentTime:0;for(const k in S.voix){if(id&&k!==id)continue;for(const x of S.voix[k]){try{x.g.gain.setTargetAtTime(0,now,.01);x.s.stop(now+.08);}catch(e){}}S.voix[k]=[];}}
+function stop(id){const now=S.ac?S.ac.currentTime:0;S.coupe=Math.max(S.coupe||0,now+.08);for(const k in S.voix){if(id&&k!==id)continue;for(const x of S.voix[k]){try{x.g.gain.setTargetAtTime(0,now,.01);x.s.stop(now+.08);}catch(e){}}S.voix[k]=[];}}
 function liste(){const o={},M=S.m||(G.CCSON_BANQUE&&G.CCSON_BANQUE.m)||{};for(const id in M){const f=M[id];(o[f.fam]||(o[f.fam]=[])).push({id:id,dit:f.dit});}return o;}
 G.CCSON={charge:charge,init:init,play:play,ton:ton,stop:stop,liste:liste,annuleFutur:annuleFutur,stopJeu:stopJeu,
   bus:function(k){return S.bus[k]||null;},
   existe:function(id){return !!(S.m&&S.m[id]);},
-  etat:function(){return{ok:S.ok,ton:S.ton,decodes:S.nDec,total:S.nTot};},
+  etat:function(){return{ok:S.ok,ton:S.ton,decodes:S.nDec,total:S.nTot,salle:!!S.salOn};},
   // le banc : où commence chaque son (ms) — tous doivent tomber près des 30 ms de tête (± le retard de l'encodeur)
   attaques:function(){const v=Object.keys(S.off).map(function(k){return Math.round(S.off[k]*1000);}).sort(function(a,b){return a-b;});
     return {etalon:S.t0==null?null:Math.round(S.t0*10000)/10,n:v.length,min:v[0],med:v[v.length>>1],max:v[v.length-1],hors:Object.keys(S.off).filter(function(k){return S.off[k]<.02||S.off[k]>.07;})};}};

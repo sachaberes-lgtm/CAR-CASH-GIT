@@ -115,6 +115,23 @@ avec un nom neuf et on le signale à la session SON (ou on écrit la recette dan
     boucle du vide muette en pause, pas de signature de mort à l'auto-école, ui.mission quand la bannière s'affiche, degrés plafonnés
     (SON_PENTA, echSt ≤ 9, figures à base unique cuites sur [0,12]), aucun son quand l'appli est en arrière-plan, le clic REPRENDRE sonne.
   · Mesuré après correctifs : 0 erreur, 0 son refusé, pas de fuite (sources vivantes stables sur 4 morts/relances et 30 niveaux).
+- **OPTIMISATION DU SON (2026-09-29)** — mesurée au BANC ISOLÉ (`banc-graphe.js` : le bloc `// ---------- AUDIO ----------` →
+  fin d'`initAudio` extrait seul dans une page vierge, rendu hors ligne 20 s, variantes alternées, 3 passes, médiane). ⚠ La sonde « jeu
+  entier hors ligne » (remplacer AudioContext dans le vrai jeu) donnait 2 à 20 % selon les passes : INUTILISABLE pour comparer.
+  · LES PORTES (`PORTES`, `porte(g,dest,lfo)`, `portesTick()`, console `dbgPortes()`) : chaque chaîne continue (moteur, vent, sifflement,
+    crissement, 4 couches nitro, charge du drift, rase-bord, sirène) se DÉBRANCHE de MASTER quand sa consigne est nulle et sa chute finie
+    (7 constantes de temps, −60 dB) et se REBRANCHE dans l'appel `setTargetAtTime` qui la rallume (zéro image de retard, zéro clic).
+    WebAudio tire le calcul depuis la sortie : débranché = plus rien ne calcule en amont. ⚠ Un nouvel écrivain de ces gains DOIT passer
+    par `setTargetAtTime` (`stt` le fait) — un `.value=` ou une rampe n'ouvriraient pas la porte.
+  · LA SALLE AU REPOS (sfx.js) : la convolution 1,25 s ne se branche qu'au premier son et se débranche 1,4 s après la fin du dernier
+    (`S.coupe` retient les voix coupées : leur queue de salle sonne encore). `CCSON.etat().salle` pour l'observer.
+  · k-rate sur les paramètres pilotés à chaque image (filtres du moteur/vent/nitro, oscillateurs secondaires) : un biquad automatisé en
+    a-rate recalcule ses coefficients à CHAQUE échantillon. Vérifié au spectre (même graine) : filtres = écart nul. ⚠ `osc`/`osc2` (le timbre)
+    restent a-rate, skF1/skF2 aussi (LFO audio dessus), les gains aussi (paliers audibles).
+  · suréchantillonnage 2x retiré des saturations moteur/nitro (filtré sous 2,8 kHz derrière / du bruit).
+  · RÉSULTAT (% d'un cœur du PC, un téléphone ≈ ×3-5) : MENU 3,4 → 0,13 · COURSE (automation réelle rejouée, tout allumé) 6,0 → 4,8 ·
+    course sans nitro 1,9. Banc fonctionnel `portes-banc.js` (le vrai jeu, muet) : menu silencieux portes fermées, nitro ouverte en
+    < 120 ms, refermée < 2 s après, mort → tout fermé en < 1 s, relance → rouvert ; régression complète : 0 erreur, pas de fuite.
 ## LE MOUVEMENT DE L'INTERFACE + MISSIONS v2 (2026-09-28, soir) — « travaille les animations, les emplacements, les transitions entre chaque écran : prêt à envoyer à l'App Store »
 Sacha : « il y a des centaines de petites choses à améliorer dans l'interface… travaille les animations quand tu cliques sur les boutons,
 leurs emplacements, les transitions quand tu changes d'écran — que ce soit parfait ; travaille vraiment les transitions entre chaque écran

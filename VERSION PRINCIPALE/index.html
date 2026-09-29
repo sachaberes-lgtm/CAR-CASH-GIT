@@ -4860,7 +4860,7 @@ html body #popTxt.cache{opacity:0!important}
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
 <script defer src="sons-banque.js?v=4"></script>
-<script defer src="sfx.js?v=3"></script>
+<script defer src="sfx.js?v=4"></script>
 <script>
 (function(){
 'use strict';
@@ -23033,6 +23033,37 @@ function flamePop(dur,vol,freq){ // pop de combustion : tranche de bruit BROWN f
     src.connect(f);f.connect(g);g.connect(MASTER);src.start();
   }catch(e){}
 }
+/* ================= LES PORTES DU GRAPHE AUDIO (optimisation 2026-09-29, session SON) =================
+   MESURÉ (banc isolé : le bloc AUDIO extrait seul dans une page vierge, rendu hors ligne 20 s, 3 passes alternées, médiane) : au MENU,
+   le graphe prenait 3,5 % d'un cœur du PC — pour du SILENCE. Un nœud WebAudio branché calcule même à gain nul : le moteur (2 oscillateurs
+   à table d'onde, sub, souffle, chuffs, bruit rose, boîte, pont, frein moteur, ronron, sifflet, saturation, 4 filtres), le vent, le
+   sifflement d'air, le crissement, les 4 couches de la nitro, la sirène… tournaient tout le temps. Portes fermées : 0,47 % ; salle de
+   la console débranchée en plus (sfx.js) : 0,14 %. 25 fois moins — un téléphone, c'est 3 à 5 fois ce PC : ça comptait double là-bas.
+   LE PRINCIPE : WebAudio TIRE le calcul depuis la sortie — une chaîne débranchée de la sortie ne calcule plus RIEN en amont. Chaque
+   chaîne a une PORTE sur son gain de sortie :
+   · elle S'OUVRE À LA CONSIGNE, dans l'appel setTargetAtTime lui-même, AVANT que la rampe ne parte : zéro image de retard (se rebrancher
+     à l'image suivante faisait repartir le son à 18 % de son niveau — un tic à chaque nitro) ;
+   · elle se FERME quand la consigne est à zéro ET que la décroissance est finie : 7 constantes de temps après la chute (−60 dB), jamais
+     avant — couper une queue de 0,2 s à mi-course, c'est un clic.
+   ⚠ La porte lit la CONSIGNE (`_cib`, posée à chaque setTargetAtTime) et non la valeur courante : un nœud débranché ne fait plus avancer
+   sa valeur, elle resterait figée — on ne se rebrancherait jamais. ⚠ Tout écrivain de ces gains passe par setTargetAtTime (vérifié :
+   `stt` et les coupures du menu) ; un `.value=` ou une rampe n'ouvriraient PAS la porte. */
+const PORTES=[];
+function porteOuvre(P){if(P.on)return;try{P.g.connect(P.d);}catch(e){}P.on=true;}
+function porteMarque(prm,P){prm._P=P;if(prm._pm)return;prm._pm=1;prm._cib=prm.value;prm._fin=0;const o=AudioParam.prototype.setTargetAtTime;
+  prm.setTargetAtTime=function(v,t,tc){
+    if(v>1e-4){if(this._P)porteOuvre(this._P);}
+    else if(this._cib>1e-4)this._fin=t+7*tc; // la chute commence : la porte attendra qu'elle soit finie
+    this._cib=v;return o.call(this,v,t,tc);};}
+function porte(g,d,lfo){ // g : le gain de sortie de la chaîne · d : où il se branche · lfo : une modulation qui s'AJOUTE à ce gain (ronron, flutter)
+  if(!g||!d)return null;const P={g:g,d:d,lfo:lfo||null,on:true};porteMarque(g.gain,P);if(lfo)porteMarque(lfo.gain,P);PORTES.push(P);return P;}
+function portesTick(){ // à chaque image, hors de la simulation (la porte doit aussi se fermer au menu) — ne fait que FERMER
+  if(!AC||AC.state!=='running')return;const n=AC.currentTime;
+  for(const P of PORTES){if(!P.on)continue;const a=P.g.gain,b=P.lfo&&P.lfo.gain;
+    if(a._cib>1e-4||n<a._fin||(b&&(b._cib>1e-4||n<b._fin)))continue;
+    try{P.g.disconnect(P.d);}catch(e){}P.on=false;}
+}
+window.dbgPortes=function(){return PORTES.map(function(P,i){return i+':'+(P.on?'ouverte':'fermée');}).join(' ');}; // console : l'état des portes
 function initAudio(){
   AC=new (window.AudioContext||window.webkitAudioContext)();
   if(!SND.sfx)try{AC.suspend();}catch(e){} // le mute SON survit au redémarrage
@@ -23070,7 +23101,7 @@ function initAudio(){
   engNzF=AC.createBiquadFilter();engNzF.type='bandpass';engNzF.frequency.value=800;engNzF.Q.value=.8;
   engNzG=AC.createGain();engNzG.gain.value=0;
   enz.connect(engNzF);engNzF.connect(engNzG);engNzG.connect(engMix);
-  engShaper=AC.createWaveShaper();engShaper.oversample='2x';
+  engShaper=AC.createWaveShaper();engShaper.oversample='none'; // (optimisation 2026-09-29) 2x → none : le moteur est filtré sous 2,8 kHz juste derrière — les replis d'aliasing tombent au-dessus, coupés ; ~1 % d'un cœur rendu
   /* ---- L'ÉTAGE DE CHARGE : c'est ICI que se joue « rauque à fond / rond en stabilisé » ----
      ⚠ ON NE CHANGE PAS LA COURBE DE SATURATION. La dureté d'un waveshaper dépend du NIVEAU
      qu'on lui envoie, pas de sa forme : pousser fort dedans écrête et fabrique des harmoniques
@@ -23188,7 +23219,7 @@ function initAudio(){
   jetF=AC.createBiquadFilter();jetF.type='bandpass';jetF.frequency.value=900;jetF.Q.value=.8;
   jetG=AC.createGain();jetG.gain.value=0;
   const jPre=AC.createGain();jPre.gain.value=2.6; // on pousse le souffle fort dans la saturation…
-  jetDist=AC.createWaveShaper();jetDist.curve=engCurve(3);jetDist.oversample='2x'; // …et le souffle devient FLAMME (grain de fusée)
+  jetDist=AC.createWaveShaper();jetDist.curve=engCurve(3);jetDist.oversample='none'; /* (optimisation) du BRUIT saturé : l'aliasing y est du bruit, inaudible */ // …et le souffle devient FLAMME (grain de fusée)
   jsrc.connect(jetF);jetF.connect(jPre);
   const jcomb=AC.createDelay(.05);jcomb.delayTime.value=.0071;
   jcFb=AC.createGain();jcFb.gain.value=.12;
@@ -23220,6 +23251,21 @@ function initAudio(){
   jrDep=AC.createGain();jrDep.gain.value=0;
   jrLfo.connect(jrDep);jrDep.connect(jrG.gain);jrLfo.start();
   sonConsole(); // (2026-09-28) LA CONSOLE DE SON se branche sur ce contexte et ce MASTER
+  try{porte(gainN,MASTER,engLfoG);porte(windG,MASTER);porte(whG,MASTER);porte(skidG,MASTER);porte(jrG,MASTER,jrDep);porte(jetG,MASTER);porte(jetLowG,MASTER);porte(jetOscG,MASTER);}catch(e){} // (optimisation) les PORTES du graphe
+  /* (optimisation 2026-09-29) LES PARAMÈTRES PILOTÉS À CHAQUE IMAGE PASSENT EN k-rate. La boucle pose une consigne par image sur les
+     fréquences du moteur, du vent, de la nitro : en a-rate (le défaut) un filtre biquad AUTOMATISÉ recalcule ses coefficients à CHAQUE
+     ÉCHANTILLON (sinus, cosinus, racine — 48 000 fois par seconde et par filtre), un oscillateur recalcule son pas de phase pareil.
+     En k-rate : une fois par bloc de 128 échantillons (2,7 ms). Sur des glissés à constante de temps ≥ 50 ms, l'écart est sous le
+     seuil d'audition ; la phase des oscillateurs reste continue (zéro clic). MESURÉ en course, automation réelle rejouée (une consigne
+     par image et par paramètre, régime qui balaie) : 6,0 → 4,8 % d'un cœur. Vérifié À L'OREILLE DU CALCUL (même graine, spectre en
+     tiers d'octave) : filtres en k-rate = écart NUL ; oscillateurs secondaires = écart sous celui d'un désaccord de 1 cent.
+     ⚠ PAS `osc`/`osc2` (le TIMBRE de la caisse, à table d'onde) : en k-rate leur spectre moyen bougeait de 0,3 dB de plus qu'un
+     désaccord inaudible — pour 0,2 % d'un cœur, le moteur reste au bit près. ⚠ PAS le crissement (skF1/skF2) : un LFO de broutage les
+     module à la fréquence audio, en k-rate il serait échantillonné. ⚠ PAS les gains : en k-rate un gain saute par paliers (effet
+     « fermeture éclair ») — et le banc n'y gagnait rien. */
+  for(const q of [filt.frequency,engNzF.frequency,ovrF.frequency,engEq.gain,windF.frequency,whF.frequency,jrF.frequency,jetF.frequency,
+    engSub.frequency,engLfo.frequency,transO.frequency,diffO.frequency,engTickO.frequency,engWhine.frequency,jetOsc.frequency,skLfo.frequency])
+    try{if(q&&'automationRate' in q)q.automationRate='k-rate';}catch(e){}
 }
 function noiseBurst(dur,vol,freq){
   if(!sfxOk())return;
@@ -23426,7 +23472,7 @@ function driftChargeSnd(){
       o1.type='square';o2.type='square';lp.type='lowpass';lp.Q.value=3.5;lp.frequency.value=700;
       am.gain.value=.6;lfo.type='sine';lfo.frequency.value=15;lg.gain.value=.4;lfo.connect(lg);lg.connect(am.gain);
       g.gain.value=0;o1.connect(lp);o2.connect(lp);lp.connect(am);am.connect(g);g.connect(MASTER);
-      o1.start();o2.start();lfo.start();DRS={o1:o1,o2:o2,lp:lp,g:g,lfo:lfo};}catch(e){DRS=false;return;} }
+      o1.start();o2.start();lfo.start();DRS={o1:o1,o2:o2,lp:lp,g:g,lfo:lfo};porte(g,MASTER);}catch(e){DRS=false;return;} }
   const T=AC.currentTime;
   if(on){
     const lv=driftLv,base=[123.47,164.81,246.94,329.63][lv],d0=[0,.45,.9,1.4][lv],dd=[.45,.45,.5,1][lv],fr=lv>=3?1:Math.min(1,Math.max(0,(driftC-d0)/dd));
@@ -23450,7 +23496,7 @@ function raseSnd(dt,kmh){
       const am=AC.createGain();am.gain.value=.5;const lfo=AC.createOscillator(),lg=AC.createGain();lfo.type='square';lfo.frequency.value=30;lg.gain.value=.5;
       lfo.connect(lg);lg.connect(am.gain);
       const g=AC.createGain();g.gain.value=0;src.connect(bp);bp.connect(am);am.connect(g);g.connect(MASTER);src.start();lfo.start();
-      RSN={g:g,lfo:lfo};}catch(e){RSN=false;return;} }
+      RSN={g:g,lfo:lfo};porte(g,MASTER);}catch(e){RSN=false;return;} }
   const T=AC.currentTime;
   if(on){ RSN.g.gain.setTargetAtTime(Math.min(.22,.09+raseT*.12),T,.03);RSN.lfo.frequency.setTargetAtTime(Math.min(60,18+kmh*.05),T,.05); // ⚠ la vitesse arrive en paramètre (speedKmh est locale à loop : ReferenceError avalée, le tic ne partait jamais) ; plafond 60 Hz : au-delà le hachage devient une note
     raseSnd._h=(raseSnd._h||0)-dt;if(raseSnd._h<=0){raseSnd._h=.16;hap(4);} }
@@ -24155,7 +24201,7 @@ function hap(p){
 const UI_CLIC={nav:'ui.nav',retour:'ui.retour',on:'ui.on',off:'ui.off',onglet:'ui.onglet',refus:'ui.refus',danger:'ui.danger'}; // (2026-09-28) uiClic(rôle) : « j'appuie » ne sonne plus comme « je gagne », et un refus ne sonne plus comme un succès
 function uiClic(k){ try{ const f9=function(){if(SONV2)sfx(UI_CLIC[typeof k==='string'?k:'']||'ui.tap');else chimeNote(1480,0,.045,.05);};
   if(SND.sfx&&!paused){ if(AC&&AC.state!=='running')AC.resume().then(f9).catch(function(){}); else f9(); }
-  else if(SND.sfx&&paused&&SONV2){const t9=performance.now(),w9=function(){if(!paused&&AC&&AC.state==='running')f9();else if(performance.now()-t9<700)setTimeout(w9,60);};setTimeout(w9,60);} /* (débogage son 2026-09-29) en pause : le clic attend (0,7 s au plus) que REPRENDRE réveille le son ; un interrupteur du panneau, lui, reste muet */
+  else if(SND.sfx&&paused&&SONV2){const r9=k==='retour',t9=performance.now(),w9=function(){if((!paused||r9)&&AC&&AC.state==='running')f9();else if(performance.now()-t9<(r9?1200:700))setTimeout(w9,60);};setTimeout(w9,60);} /* (QA 2026-09-29) REPRENDRE (« retour ») n'attend plus la fin de la pause : le 3-2-1 la tient ≥ 0,9 s, le clic était perdu — il part dès que le compte a réveillé le son */ /* (débogage son 2026-09-29) en pause : le clic attend (0,7 s au plus) que REPRENDRE réveille le son ; un interrupteur du panneau, lui, reste muet */
   }catch(e){} hap(8); } // (2026-09-26) REPRENDRE : le contexte se réveille en asynchrone — la note attend qu'il tourne // en pause le moteur audio dort : la note s'empilerait et partirait en rafale à la reprise
 window.dbgTouch=function(){return{on:TCTL.on,pad:TCTL.pad,act:TCTL.act,st:+TCTL.st.toFixed(3),sv:+TCTL.sv.toFixed(3),play:TCTL.play,steer:+steer.toFixed(3)};}; // console : l'état du volant tactile (un téléphone ne s'inspecte pas)
 // LE GAZ, exposé : la vignette a besoin de savoir qu'on POUSSE, pas seulement qu'on va vite.
@@ -26576,7 +26622,7 @@ function sirenInit(){
     vb.type='sine';vb.frequency.value=5.3;vg.gain.value=5;
     vb.connect(vg);vg.connect(sirO.frequency);
     sirO.connect(f);f.connect(sirG);sirG.connect(MASTER);
-    sirO.start();wl.start();vb.start();
+    sirO.start();wl.start();vb.start();porte(sirG,MASTER);
   }catch(e){sirG=null;}
 }
 const FB={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
@@ -29988,6 +30034,7 @@ function loop(now){
   bioStep(dt); // BIOMES : le voyage d'ambiance avance même au menu/en pause de jeu (c'est le ciel qui vit, pas la sim)
   if(parkGrassMat)parkGrassMat.uniforms.uTime.value=now*.001; // l'herbe longue du parc ondule au vent (now : dispo avant `const t`)
   cityTick(dt,camera.position.y); // LA VILLE : son altitude court après la caméra (hors gate de sim — le décor vit au menu, comme le ciel)
+  try{portesTick();}catch(e){} // (optimisation) les chaînes muettes se débranchent, les chaînes appelées se rebranchent
   if(SONV2){ // (console de son) LE VIDE : en orbite, un bourdon qui respire remplace le vent (windG/whG se taisent, voir la boucle audio)
     const v9=LVL.espace>.5&&started&&running&&!paused&&!gameOver&&!garageOn&&mode!=='boom';
     if(v9&&!loop._vide&&now>(loop._videT||0)){loop._videT=now+500;loop._vide=sfx('espace.ambiance',{loop:true,vol:-24});if(loop._vide)loop._vide.gain(0,.8);}
