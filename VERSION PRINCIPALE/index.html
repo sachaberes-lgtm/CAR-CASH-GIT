@@ -9942,7 +9942,7 @@ function ligneFruit(sp,lt){ // un fruit, deux faces (même recette que `place` d
 const LM4=new THREE.Matrix4(),LV1=new THREE.Vector3(),LV2=new THREE.Vector3();
 function ligneTick(dt){ // chaque image de course : la file s'allonge devant la caisse, au rythme de SA vitesse
   if(!LIGNE.on||!running||gameOver)return;
-  const b0=Math.max(30,Math.abs(vA)*SPD),mul=(pwrSpdT>0?2:1)*(1+NTR.boost),v0=b0*mul,H9=Math.max(4,(ROAD_HALF-3)*.62); // m de piste par seconde : la vraie avance de `s` = la vitesse PHYSIQUE × les multiplicateurs d'avance (NITROOO, VITESSE ×2 — MESURÉ : sans eux la file arrivait 1,5× trop serrée)
+  const b0=Math.max(30,Math.abs(vA)*SPD),mul=vitMult(),v0=b0*mul,H9=Math.max(4,(ROAD_HALF-3)*.62); // m de piste par seconde : la vraie avance de `s` = la vitesse PHYSIQUE × les multiplicateurs d'avance (NITROOO, VITESSE ×2 — MESURÉ : sans eux la file arrivait 1,5× trop serrée)
   /* la vitesse À L'ARRIVÉE sur l'objet, pas celle d'aujourd'hui : un départ lancé passe de 126 à 500 km/h en 12 s (MESURÉ) — espacée sur la
      vitesse du moment, la file arrivait tassée (un pad tous les 0,4 s, bloqués par les 1,5 s de recharge du pad) */
   /* ⚠ (audit DEBUGGING) l'accélération se dérive sur la vitesse PHYSIQUE, jamais sur l'avance multipliée : ramasser VITESSE doublait v0 en
@@ -26958,6 +26958,12 @@ const NTR={on:false,t:0,k:0,kc:0,boost:0,pouls:0,pal:0,shell:null,core:null,halo
 const NTR_LANGUES=[[-.44,.42,.5,.2,.1,.24,1.25,0],[.44,.42,.5,-.2,.1,.24,1.25,1.7],[0,.72,.46,0,.2,.3,1.05,3.1],
   [-.3,1.02,.1,.1,.16,.2,.95,4.4],[.3,1.02,.1,-.1,.16,.2,.95,5.6]];
 const NTR_BOOST=.1,NTR_BOOST_MAX=1.6,NTR_T=2; // (2026-09-29, nuit, Sacha : « à ×2,6 ») PLAFOND ×2,6 (+160 %, palier 10 : le dragon est adulte) — MESURÉ au banc (ntrx.js) avec ×5 : dès ×2 la caisse décolle à chaque relief, vers ×4,6 elle s'envolait 8 s et mourait « TROP LONGTEMPS EN L'AIR » · (2026-09-29, Sacha : « le nitrooo doit se déclencher après 2 secondes de nitro » — c'était 3) · (même soir, Sacha : « la progression de vitesse EXPONENTIELLE, pas de barrière ») : ×1,10 PAR PALIER, composé (+10, +21, +33, +46, +61, +77, +95, +114, +136, +159 %…) ; le plafond de sûreté passe de +80 % à ×5 (palier 17 — hors d'atteinte d'un réservoir en jeu) : au-delà la physique n'a jamais été éprouvée
+/* LE PLAFOND DE VITESSE COMMUN (2026-09-29, nuit — trouvé par DEBUGGING, mesuré) : VITESSE ×2 ramassée au plafond de NITROOO faisait
+   ×2 × 2,6 = ×5,2 — au-delà du seuil mortel mesuré (×4,6 : la caisse s'envole à chaque relief et meurt « TROP LONGTEMPS EN L'AIR »).
+   Sacha a fixé ×2,6 comme la vitesse la plus haute qui reste pilotable : c'est le plafond de TOUT ce qui multiplie l'avance (NITROOO,
+   VITESSE ×2). VITESSE garde tout son effet tant que NITROOO n'est pas lancé (×2), et complète jusqu'à ×2,6 ensuite. Un seul endroit : la
+   boucle (spdMult) et la LIGNE PARFAITE (ligneTick) lisent vitMult(). */
+function vitMult(){return Math.min(1+NTR_BOOST_MAX,(pwrSpdT>0?2:1)*(1+NTR.boost));}
 const ntrShellM=jetMat(0xff3a0c,0xfff6d0,0xffffff,.9,1.25,.7),ntrCoreM=jetMat(0xffc050,0xffffff,0xffffff,1,.75,1.1); // (banc) blanc à la racine, corps ROUGE-orange : la caisse orange ne s'y noie plus
 function nitroooPart(){ // le geste est ARMÉ (loop, branche 'drive') : la caisse s'embrase
   if(NTR.on){NTR.kc=1;return;} // (2026-09-29) DÉJÀ en cours (une AIR NITROOO qui se pose, et l'inverse) : elle CONTINUE — paliers, boost et dragon ne repartent pas de zéro
@@ -31931,7 +31937,7 @@ function loop(now){
       driftT=Math.max(0,driftT-dt*2.2); // retombe après un atterrissage en travers
       psi=THREE.MathUtils.clamp(psi,-1.4,1.4);
       vL=vA*Math.sin(psi-slipB); // la TRAJECTOIRE : le cap moins la glisse (0 hors drift)
-      const spdMult=(pwrSpdT>0?2:1)*(1+NTR.boost); // (NITROOO) +10 %/s tenue, plafonné à +80 % — SPEED UP : le sol défile DEUX FOIS plus vite (2026-09-26, user : « le power-up vitesse doit faire ×2 »), sans casser la physique
+      const spdMult=vitMult(); // (NITROOO) ×1,10/s tenue, et avec VITESSE ×2 : PLAFOND COMMUN ×2,6 (voir vitMult) — SPEED UP : le sol défile DEUX FOIS plus vite (2026-09-26, user : « le power-up vitesse doit faire ×2 »), sans casser la physique
       lat+=vL*driveDir*dt*SPD*spdMult;
       const sPrev9=s; // ⚠ mémorisé AVANT l'avance : les tremplins se testent sur le SEGMENT parcouru, pas sur un point
       s+=vA*Math.cos(psi-slipB)*driveDir*dt*SPD*spdMult*cordeK(s,side*lat); // avance le long du ruban dans le SENS de conduite (parc : avant OU arrière) · (2026-09-27) CAMPAGNE : la corde intérieure est vraiment plus courte (cordeK = 1 ailleurs)
