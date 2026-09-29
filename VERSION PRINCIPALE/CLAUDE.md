@@ -1,5 +1,11 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE JUS v5 — UN PEU PLUS VISIBLE, ET GÊNANT (2026-09-30, session GRAPHISME — Sacha à INTERFACE : « rends un peu plus visibles et gênantes à l'écran les taches de jus de fruit »)
+- Entre la v4 (discrète, hors de la zone de conduite, 11-34 px, 6 au plus) et la v3b (46-91 px, partout, 14 — jugée trop) : rayon ~19-57 px
+  sur un téléphone (plafond 68), coulure un peu plus longue ; **55 % des gouttes tombent PARTOUT** (route et caisse comprises : ça gêne), les
+  autres gardent la couronne ; **8 à la fois au plus** (avec la LIGNE PARFAITE il y a un fruit toutes les ~2,4 s : le plafond reste), vie
+  0,9-1,4 s, pleines .86 les premiers 40 %. Tout est dans `juiceScreen`/`juiceScreenTick` (bloc « LE JUS v5 »). Banc `jus5.js` (dbgJus).
+
 ## LES NIVEAUX RETRAVAILLÉS (2026-09-30, session DEBUGGING/UHD, zones prêtées par GRAPHISME et GAMEPLAY)
 - Sacha : « retravaille le design des niveaux ; ajoute un niveau dans la VILLE après l'orage, plus tard, très sombre, avec des phares
   puissants ; dans l'orage on voit le reflet de la ville dans les flaques, pas normal, il n'y a pas de ville ; beaucoup plus de nuages

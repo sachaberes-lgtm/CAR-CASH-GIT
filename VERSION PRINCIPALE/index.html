@@ -26443,6 +26443,12 @@ function crunchSfx(rang){
    · rayon ÷3 environ (~11-34 px sur un téléphone, plafond 40 — c'était 46-91, plafond 110) ;
    · elle ne tombe plus sur la zone de CONDUITE (une ellipse autour de la caisse et de la route devant elle) : la couronne et les coins ;
    · 6 à la fois au plus (14), vie 0,7-1,1 s (1,1-1,8), pleine .8 le premier tiers puis s'efface (.9 la moitié), coulure courte (plus de « tige »). */
+/* LE JUS v5 — UN PEU PLUS VISIBLE, ET GÊNANT (2026-09-30, Sacha à la session INTERFACE : « rends un peu plus visibles et gênantes à l'écran
+   les taches de jus de fruit »). Entre la v4 (discrète, hors de la route) et la v3b (jugée trop) :
+   · rayon ×1,7 environ (~19-57 px sur un téléphone, plafond 68 — v4 : 11-34 / 40, v3b : 46-91 / 110), coulure un peu plus longue ;
+   · GÊNANTES : plus de la moitié tombent n'importe où, route et caisse comprises (55 %) ; les autres gardent la couronne ;
+   · 8 à la fois au plus (v4 : 6, v3b : 14 — avec la LIGNE PARFAITE, un fruit toutes les ~2,4 s : le plafond reste), vie 0,9-1,4 s,
+     pleines .86 les premiers 40 % puis elles s'effacent. */
 const JUS_N=240,JUS=[],JUS_PX=4,JUS_TOILE=[],JUS_BLANC=new THREE.Color(1,1,1),JUS_ENCRE='#1c0430',JUS_M=new Uint8Array(JUS_N*JUS_N);let JUS_IM=null; // masque et pixels de brouillon RÉUTILISÉS (JUS_N cellules = la plus grande goutte)
 function jusToile(){ // une toile libre de la réserve (15 au plus : la file plafonne à 14 taches)
   for(const t of JUS_TOILE)if(!t.pris){t.pris=true;return t;}
@@ -26458,14 +26464,14 @@ function juiceScreen(col,power,n){
   const B9=Math.min(W,H); // (v3) la taille suit la plus petite dimension : même goutte debout ou couché
   for(let k=0;k<(n||1);k++){
     // (v3b) plus grosses : rayon ~46-91 px sur un téléphone (v3 : 37-73, vague 2 : 24-49), plafond 110 — la forme et ses satellites tiennent dans JUS_N
-    const R=Math.min(40,(B9*.035+Math.random()*B9*.035)*(.8+power*.45)),coul=R*(.3+Math.random()*.6); // (v4) ÷3, coulure courte
+    const R=Math.min(68,(B9*.058+Math.random()*B9*.06)*(.8+power*.45)),coul=R*(.35+Math.random()*.7); // (v5) ×1,7 — (v4) ÷3, coulure courte
     /* (v3b, Sacha : « pouvoir apparaître partout sur l'écran ») PARTOUT, uniformément : plus d'ellipse centrale interdite ni de bande du
        haut (elles repoussaient tout sur les côtés). Le HUD est dessiné PAR-DESSUS le jus, rien de ce qu'on lit n'est jamais caché. */
     let x=Math.random()*W,y=Math.random()*H; // (v4) hors de la ZONE DE CONDUITE : l'ellipse de la caisse et de la route devant elle (8 essais, puis la couronne)
-    for(let t9=0;t9<8;t9++){const ex=(x-W*.5)/(W*.36+R),ey=(y-H*.6)/(H*.32+R);if(ex*ex+ey*ey>1)break;x=Math.random()*W;y=Math.random()*H;
+    if(Math.random()>.55)for(let t9=0;t9<8;t9++){const ex=(x-W*.5)/(W*.36+R),ey=(y-H*.6)/(H*.32+R);if(ex*ex+ey*ey>1)break;x=Math.random()*W;y=Math.random()*H; // (v5) 55 % tombent PARTOUT, route comprise : ça gêne
       if(t9===7){const a9=Math.random()*6.2832;x=W*.5+Math.cos(a9)*(W*.36+R)*1.05;y=H*.6+Math.sin(a9)*(H*.32+R)*1.05;}}
     // (vague 2) des GOUTTES, plus des flaques (l'ancien montait à 100 px, satellites jusqu'à 2,7 R) — la taille (v3) est tirée plus haut
-    if(JUS.length>=6){const v=JUS.shift();v.toile.pris=false;} // plafond (v4 : 6 — c'était 14 ; à 20 taches, mesuré, 76 % de l'écran était repeint)
+    if(JUS.length>=8){const v=JUS.shift();v.toile.pris=false;} // (v5) 8 // plafond (v4 : 6 — c'était 14 ; à 20 taches, mesuré, 76 % de l'écran était repeint)
     const t=jusToile(),C=JUS_PX/2; // la toile est en CELLULES de 2 px : le liseré fait une cellule, la forme se pose par blocs de deux (4 px)
     const ext=Math.min(JUS_N-4,Math.ceil(R*2.05/JUS_PX)*JUS_PX),Nw=ext,Nh=Nw+Math.ceil(coul*1.6/C)+4; // demi-étendue en px = largeur en cellules ; la coulure dessous
     if(t.cv.width!==Nw||t.cv.height!==Nh){t.cv.width=Nw;t.cv.height=Nh;}else t.x.clearRect(0,0,Nw,Nh);
@@ -26491,7 +26497,7 @@ function juiceScreen(col,power,n){
       else if(coeur){d[o]=kR;d[o+1]=kG;d[o+2]=kB;d[o+3]=230;}else{d[o]=cR;d[o+1]=cG;d[o+2]=cB;d[o+3]=240;}} // (v3) corps .94, cœur .9
     t.x.putImageData(JUS_IM,0,0,0,0,Nw,Nw);
     JUS.push({x:Math.round(x/JUS_PX)*JUS_PX,y:Math.round(y/JUS_PX)*JUS_PX,r:R,ext:ext,toile:t,c:corps,bas:bas,Lc:0,
-      t:0,vie:.7+Math.random()*.4,coul:coul}); // (v4) 0,7-1,1 s
+      t:0,vie:.9+Math.random()*.5,coul:coul}); // (v5) 0,9-1,4 s — (v4) 0,7-1,1 s
   }
 }
 function juiceScreenTick(dt){
@@ -26512,7 +26518,7 @@ function juiceScreenTick(dt){
     /* la goutte GRANDIT d'un coup puis s'efface. ⚠ LE GONFLEMENT EST EN SECONDES ABSOLUES, pas en fraction de vie : une projection
        arrive TOUJOURS en 90 ms. (vague 2) Il se fait par PALIERS (½, ¾, plein) : jamais de pixels de travers. */
     const g=j.t<.03?.5:j.t<.06?.75:1,e=j.ext*g;
-    juiceCx.globalAlpha=(u<.34?1:Math.pow((1-u)/.66,1.5))*.8; // (v4) pleine .8 le premier tiers, puis elle s'efface // (v3, Sacha : « plus opaques ») pleine .9 la 1re moitié de sa vie, puis elle s'efface — c'était ≤ .55 en fondu dès l'impact
+    juiceCx.globalAlpha=(u<.4?1:Math.pow((1-u)/.6,1.5))*.86; /* (v5) pleine .86 les premiers 40 % */ // (v4) pleine .8 le premier tiers, puis elle s'efface // (v3, Sacha : « plus opaques ») pleine .9 la 1re moitié de sa vie, puis elle s'efface — c'était ≤ .55 en fondu dès l'impact
     juiceCx.drawImage(tc.cv,j.x-e,j.y-e,e*2,e*2*tc.cv.height/tc.cv.width);
   }
   juiceCx.globalAlpha=1;
