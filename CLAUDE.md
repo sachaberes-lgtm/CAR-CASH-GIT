@@ -11,8 +11,8 @@ carrière, missions, garage à onglets, boutique), + SEULEMENT :
   · le PLAN PRODUIT de Léo (`GARV` : trois-quarts avant .62, hauteur .34, dérive ±2°, objectif serré en paysage, debout `dP`/`yP`) —
     plus de tour automatique ; le doigt fait TOURNER LA CAISSE, lancée elle garde son élan (`GAR.yaw/yawV`) ; le swipe « caisse suivante »
     est retiré (flèches, vignettes, clavier) ; onglet TRAÎNÉES : elle se pose de trois-quarts arrière ;
-  · le BOUTON ROUGE (`buildBoutonRouge`, `BR_POS` : debout 3,1/3,6 sous la caisse, couché 4/−4 à sa droite — il suit l'orientation) : colonne + gros dôme + étiquette BOUTIQUE ; tap =
-    la BOUTIQUE de Sacha (chemin de « EN BOUTIQUE »). Léo : « une petite boîte boutique, peut-être plus tard ; pour l'instant un bouton rouge » ;
+  · le BOUTON ROUGE (`buildBoutonRouge`, `BR_POS` −2,5/0,3 : sur le plateau à côté de la caisse) : colonne + gros dôme + étiquette BOUTIQUE ;
+    tap = LA BOUTIQUE DU GARAGE SE DÉPLOIE (voir plus bas) — la boutique PAYANTE (€) reste celle de Sacha, sur l'accueil. Léo : « une petite boîte boutique, peut-être plus tard ; pour l'instant un bouton rouge » ;
   · les AFFICHES DE RECORDS en PANNEAUX SUR PIED derrière la caisse (`AFF_POS`, tournés vers le plan : sur les murs, le plan produit les
     coupait au bord haut) — RECORD PERSO (meilleure partie, aura max, palier moteur, vitesse max + record du dernier niveau de carrière
     joué) / RECORDS MONDIAUX (« bientôt en ligne ») ; `afficheTap` = le point d'extension ;
@@ -26,6 +26,13 @@ carrière, missions, garage à onglets, boutique), + SEULEMENT :
   bord droit (icône, nom de l'actif seul), flèches à mi-hauteur, en bas choix du niveau → familles → vignettes → barre d'action ; couché,
   fiche en haut à gauche, onglets en haut à droite, familles + vignettes en bas à gauche (RETOUR au coin), choix du niveau + lingot en bas
   à droite. `GAR_DECX` .23 → .04 (plus de colonne à éviter : la caisse reste au centre). L'équipée = une COCHE pixel verte après « CAISSE n ».
+- **DEUX ÉTATS AU GARAGE** (29/09, Léo : « la boutique payante est sur l'écran d'accueil ; dans le garage, c'est le bouton rouge qui sert de
+  boutique, qui se déploie ») : au GARAGE (la ligne de départ) = la vue de Léo derrière la caisse, vers la PORTE (`garageAng` π, qui balance
+  au repos, le doigt pivote la vue), les affiches au mur de la porte, le bouton rouge sur le plateau ; à l'écran : le compte, le choix du
+  niveau, RETOUR, lingot JOUER. Le bouton rouge → `shopOuvre` : `#garage.boutique`, le plan « produit » (`GAR.bk` fond les deux vues), la
+  caisse tourne sous le doigt, la structure de Sacha se déploie sur les bords (fiche, onglets, familles, vignettes, flèches, ACHETER/ÉQUIPER),
+  le bouton rentre dans le sol, le choix du niveau se retire ; la caisse « à ta portée » de Sacha (`garPortee`, `GAR.pc`) s'y affiche.
+  RETOUR / Échap → `shopQuitte` (TA caisse revient) ; le lâcher replie toujours la boutique d'abord. `dbgBoutique(1|0)`.
 - **LE CHOIX DU NIVEAU AU GARAGE** (`#gNiv` dans `#gBottom`, `GSEL`, `gselRendu`, `SAVE.d.sel`) : monde ◀ ▶ (NUAGES · VILLE · ESPACE ·
   SANS FIN) + 10 cases (même règle d'ouverture que la carrière : `TEST_CARRIERE || i ≤ carrFait`). Le JOUER du garage (`gselJoue`) part du
   niveau choisi par `carrLancer` de Sacha (permis d'abord, piste reconstruite sous le voile) ; SANS FIN = `playViaGarage(true)`. À la mort,
