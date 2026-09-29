@@ -27051,10 +27051,10 @@ const DRG_TETE=(function(){
 const DRG_STR={corps:96,pat0:5,pat1:5,pat2:5,pat3:5,halo:40,crete:40,mousG:14,mousD:14,que0:7,que1:7,que2:7}; // les 5 premières : peintes (NORMAL) ; les autres : le FEU (ADDITIF)
 const DRG={m:null,tete:null,lueur:null,S:{},NP:0,pos:null,col:null,uv:null,st:0,ph:0,roar:0,pal:-1,t:0,em:0,S9:.5,cote:1,nS:0,neuf:0,
   vF:new THREE.Vector3(0,0,1),vP:new THREE.Vector3(),vOk:false,Us:new THREE.Vector3(0,1,0),
-  Lb:8,Rx:8,Rz:4,Rm:6,zC:14,yC:5,th:0,Av:1,cyc:1.2,
+  Rx:3,Rz:4,Rb:3,zO:0,y0:1,xH:0,yH:1.5,zH:1.5,a0:0,sens:1,tours:.5,ev:.1,mt:.5,un:.2,Av:.3,cyc:1.2,
   P:[],c:new THREE.Vector3(),F:new THREE.Vector3(),R:new THREE.Vector3(),U:new THREE.Vector3(),
   d:new THREE.Vector3(),e:new THREE.Vector3(),q:new THREE.Vector3(),H0:new THREE.Vector3(),a:new THREE.Vector3(),b:new THREE.Vector3(),T:new THREE.Vector3(),
-  cr:new THREE.Vector3(),cu:new THREE.Vector3(),pj:new THREE.Vector3(),fr:new THREE.Vector3(),yA:0,yN:.3,
+  cr:new THREE.Vector3(),cu:new THREE.Vector3(),pj:new THREE.Vector3(),
   W:new Float32Array(100),CR:new Float32Array(100),CG:new Float32Array(100),CB:new Float32Array(100),
   FEU:{H:[1,.82,.4],B:[1,.46,.12],Q:[.95,.2,.05],C:[1,.72,.2],G:[1,.86,.46],A:[1,.34,.06],corps:0xffffff,tete:0xffffff},
   VIO:{H:[.95,.82,1],B:[.74,.4,1],Q:[.5,.14,.9],C:[.92,.7,1],G:[.98,.88,1],A:[.62,.2,1],corps:0xd6b8ff,tete:0xe4d0ff}}; // (nitro infinie) plus CLAIR : sur le ciel violet, le violet sombre se perdait
@@ -27086,15 +27086,16 @@ function dragonBande(nom,tuile){ // écrit la bande `nom` à partir de DRG.P / D
     if(i>0)v+=p.distanceTo(P[i-1])/tuile;const u=(s.o+i)*4;uv[u+1]=uv[u+3]=v;}
 }
 function dragonEchine(u,out){ // un point du CORPS (u : 0 la tête → 1 le bout de la queue), dans le repère du MOUVEMENT
-  /* ⚠ (banc, deux essais) vu par la poursuite — une caméra BASSE, derrière — un corps tendu vers l'avant se voit en raccourci (une
-     colonne), et une onde gauche-droite s'aplatit en une bande. La DANSE DU DRAGON : il TOURNE en grande boucle au-dessus de la route,
-     devant la caisse (la boucle grandit avec ses tronçons), son corps fait des BOSSES verticales, sa tête passe de PROFIL d'un bord à
-     l'autre — on lit sa longueur, ses bosses, sa tête. */
-  const t=DRG.t,th=DRG.th-u*DRG.Lb/DRG.Rm;
-  const x=Math.sin(th)*DRG.Rx,z=DRG.zC+Math.cos(th)*DRG.Rz;
-  const y=DRG.yC+DRG.Av*Math.sin(6.2832*DRG.cyc*u-2.6*t)+.25*DRG.Av*Math.sin(3.3*t+th);
-  const em=DRG.em;
-  out.copy(DRG.c).addScaledVector(DRG.R,x*em).addScaledVector(DRG.U,y*em+(1-em)*1.2).addScaledVector(DRG.F,z*em); // il JAILLIT de la caisse
+  /* (2026-09-29, Sacha : « c'est AUTOUR de la voiture que le dragon doit se former », « la tête de dragon SUR la voiture ») LA TÊTE est
+     posée sur le capot ; le COU plonge devant le nez, et le CORPS fait le tour de la caisse en spirale. La poursuite regarde d'en haut
+     (40-45° en portrait) : l'anneau ENCERCLE la caisse à l'écran sans la cacher — l'arrière passe sous elle, l'avant au-dessus.
+     Plus de tronçons : un anneau plus large et plus de tours, la spirale s'évase et monte d'un cran pour ne pas se recouvrir. */
+  const t=DRG.t,em=DRG.em,s=Math.max(0,u-DRG.un)/(1-DRG.un),a=DRG.a0+DRG.sens*6.2832*DRG.tours*s;
+  const k=1+DRG.ev*s+.05*Math.sin(6.2832*DRG.cyc*s-3.4*t); // (et il RESPIRE : l'anneau gonfle et dégonfle par vagues)
+  const c9=Math.cos(a),x=Math.sin(a)*DRG.Rx*k,z=DRG.zO+c9*(c9>0?DRG.Rz*k:DRG.Rb*(1+.35*(k-1))),y=DRG.y0+DRG.mt*s+DRG.Av*Math.sin(6.2832*DRG.cyc*s-2.9*t);
+  const nk=THREE.MathUtils.smoothstep(u,0,DRG.un); // le COU : de la tête posée sur le capot jusqu'à l'anneau, devant le nez
+  const X=DRG.xH+(x-DRG.xH)*nk,Y=DRG.yH+(y-DRG.yH)*nk,Z=DRG.zH+(z-DRG.zH)*nk;
+  out.copy(DRG.c).addScaledVector(DRG.R,X*em).addScaledVector(DRG.U,Y*em+(1-em)*.7).addScaledVector(DRG.F,Z*em); // il SE DÉROULE hors de la caisse
   return out;
 }
 function dragonCoul(i,c,k){DRG.CR[i]=c[0]*k;DRG.CG[i]=c[1]*k;DRG.CB[i]=c[2]*k;}
@@ -27121,16 +27122,14 @@ function dragonTick(dt){
   const n9=Math.max(1,DRG.nS),g=Math.min(1,(n9-1)/9); // g : la croissance (0 → 1 à 10 tronçons) — au-delà il s'allonge encore, il ne grossit plus
   const sp=CARS[level],R9=DRG.roar,em=DRG.em,S=(.45+.55*g)*(.5+.5*em)+.07*R9,V=vis*(.8+.2*g)*(1+.25*R9);
   DRG.S9=S;DRG.c.copy(c);
-  const Lc=3.8+2.2*g,Lb=(3.4+n9*Lc)*(.5+.5*em),un=Math.min(.4,3.4/Math.max(1,Lb)); // un tronçon (m), le corps, la part du COU
-  DRG.Lb=Lb;DRG.Rx=Math.min(26,Math.max(5.5,Lb/(6.2832*.72)));DRG.Rz=DRG.Rx*.55;DRG.Rm=Math.sqrt((DRG.Rx*DRG.Rx+DRG.Rz*DRG.Rz)/2); // LA BOUCLE : ~3/4 de tour, qui grandit avec les tronçons
-  DRG.zC=sp.l*.5+6.5+DRG.Rz+5.5*g;DRG.yC=sp.h+4.2+4.3*g+DRG.yA;DRG.th+=dt*(7+6*g)/DRG.Rm; // le centre de la ronde devant le capot, au-dessus de la route ; il NAGE à 7-13 m/s
-  /* LE CADRAGE : le centre de la ronde vise le TIERS HAUT de l'écran (yN, en coordonnées écran) — au-dessus des textes qui naissent au milieu,
-     sous le bandeau du haut. Un asservissement doux sur la caméra de l'image d'avant : portrait, paysage, poursuite, vol, tout y passe. */
-  {const f9=DRG.fr.copy(DRG.c).addScaledVector(DRG.U,DRG.yC).addScaledVector(DRG.F,DRG.zC).applyMatrix4(camera.matrixWorldInverse),pr9=-f9.z;
-    DRG.yN=camera.aspect<1?.3:.2; /* en PAYSAGE plus près du centre : le flou radial du boost fuit vers les bords, et les astuces occupent le haut */
-    if(pr9>3){f9.applyMatrix4(camera.projectionMatrix);DRG.yA=Math.min(12,Math.max(-3,DRG.yA+(DRG.yN-f9.y)*pr9*Math.tan(camera.fov*.00873)*Math.min(1,dt*2.2)));}}
-  DRG.cyc=.9+.05*n9;DRG.Av=1.2+2.2*g; // les BOSSES : plus de tronçons, plus de bosses
-  const inf=pwrNitroT>0,C9=inf?DRG.VIO:DRG.FEU,P=DRG.P,E=DRG.e,W=1.3+1.9*g+.12*R9,tuile=W*4.2;
+  const W=.5+.72*g+.08*R9; // la DEMI-largeur du corps : 1 m au 1er palier, 2,5 m au 10e — une caisse fait 2 m de large
+  const Lc=2.6+1.1*g,Lb=(3+n9*Lc)*(.5+.5*em),un=Math.min(.3,2.6/Math.max(1,Lb)); // un tronçon (m), le corps, la part du COU
+  DRG.un=un;DRG.Rx=sp.w*.5+1.3+2.1*g;DRG.Rz=sp.l*.5+1.6+3*g;DRG.Rb=sp.l*.5+.9+.7*g;DRG.zO=sp.l*.12; // L'ANNEAU : une ellipse longue comme la caisse, qui s'élargit avec les tronçons
+  {const C0=6.2832*Math.sqrt((DRG.Rx*DRG.Rx+DRG.Rz*DRG.Rz)*.5);DRG.tours=Lb*(1-un)/(C0*1.12);DRG.ev=.24*DRG.tours;DRG.mt=1.3*DRG.tours;} // un tour au 7e palier, 1,3 au 10e
+  DRG.y0=.35+W*1.1;DRG.a0=.4*Math.sin(.55*t); // au ras de la route (le ventre la frôle) ; l'anneau se BALANCE autour de la caisse
+  DRG.xH=0;DRG.zH=sp.l*.36;DRG.yH=sp.h+.4+.5*g; // LA TÊTE posée sur le capot
+  DRG.cyc=1.2+.18*n9;DRG.Av=.22+.4*g; // les BOSSES qui courent le long du corps : plus de tronçons, plus de bosses
+  const inf=pwrNitroT>0,C9=inf?DRG.VIO:DRG.FEU,P=DRG.P,E=DRG.e,tuile=W*4.2;
   DRG.m.material[0].color.setHex(C9.corps);DRG.m.material[0].opacity=Math.min(1,.3+V*.9);
   DRG.tete.material.color.setHex(C9.tete);DRG.tete.material.opacity=Math.min(1,V*1.1);
   const prof=function(u){return u<.5?.55+.45*THREE.MathUtils.smoothstep(u,0,.2):1-.82*THREE.MathUtils.smoothstep(u,.5,1);}; // cou fin, ventre plein, queue effilée
@@ -27143,26 +27142,25 @@ function dragonTick(dt){
     dragonEchine(u,P[i]);DRG.W[i]=W*prof(u)*(1+.18*rg);DRG.CR[i]=k*(1+.6*rg);DRG.CG[i]=k*(1+.42*rg);DRG.CB[i]=k*(1-.5*rg);}
     dragonBande('corps',tuile);}
   // LES PATTES (peintes) : la paire avant au 1er tronçon, la paire arrière au dernier — griffes refermées vers l'avant
-  {const C4=[.45,.55,Math.max(.8,n9-.55),Math.max(.9,n9-.45)];for(let j=0;j<4;j++){const u=uDe(Math.min(n9,C4[j])),Lp=.9+1.3*S;dragonEchine(u,DRG.b);dragonEchine(Math.max(0,u-.012),DRG.a);DRG.T.subVectors(DRG.a,DRG.b).normalize();
-    DRG.a.copy(DRG.U).multiplyScalar(-.9).addScaledVector(DRG.F,(j%2?1:-1)*.35).normalize();
+  {const C4=[.45,.55,Math.max(.8,n9-.55),Math.max(.9,n9-.45)];for(let j=0;j<4;j++){const u=uDe(Math.min(n9,C4[j])),Lp=.6+.9*S;dragonEchine(u,DRG.b);dragonEchine(Math.max(0,u-.012),DRG.a);DRG.T.subVectors(DRG.a,DRG.b).normalize();
+    DRG.d.subVectors(DRG.b,DRG.c);DRG.d.addScaledVector(DRG.U,-DRG.d.dot(DRG.U)).normalize();DRG.a.copy(DRG.U).multiplyScalar(-.45).addScaledVector(DRG.d,.8).addScaledVector(DRG.T,(j%2?1:-1)*.3).normalize();
     for(let i=0;i<5;i++){const w=i/4;P[i].copy(DRG.b).addScaledVector(DRG.a,Lp*w).addScaledVector(DRG.T,.45*Lp*w*w);DRG.W[i]=W*(.42-.3*w);dragonCoul(i,[1,1,1],.95);}
     dragonBande('pat'+j,tuile*.6);}}
   // LE HALO de feu autour du corps (additif)
   {const n=DRG_STR.halo;for(let i=0;i<n;i++){const u=i/(n-1);dragonEchine(u,P[i]);DRG.W[i]=W*2.1*prof(u);dragonCoul(i,C9.A,V*.7*fl(u));}dragonBande('halo',tuile*2);}
   // LA CRÊTE : trois flammes par tronçon, en dents de scie qui défilent sur le dos
-  {const n=DRG_STR.crete;for(let i=0;i<n;i++){const u=un*.5+(1-un*.5)*.9*i/(n-1),cu=Math.max(0,cuDe(u));dragonEchine(u,P[i]).addScaledVector(DRG.U,W*1.05);
+  {const n=DRG_STR.crete;for(let i=0;i<n;i++){const u=un*.5+(1-un*.5)*.9*i/(n-1),cu=Math.max(0,cuDe(u));dragonEchine(u,P[i]);DRG.d.subVectors(P[i],DRG.c);DRG.d.addScaledVector(DRG.U,-DRG.d.dot(DRG.U));const l9=DRG.d.length();if(l9>.01)P[i].addScaledVector(DRG.d,W*.95/l9);P[i].addScaledVector(DRG.U,W*.45);
     const sc=(cu*3-t*.6)%1,saw=sc<0?sc+1:sc;DRG.W[i]=W*.7*(.18+.82*saw)*prof(u);dragonCoul(i,C9.C,V*1.2*fl(u+.3));}dragonBande('crete',tuile*.6);}
   // LA TÊTE (sprite) : de profil, tournée vers le côté où elle file à l'écran ; gueule ouverte quand il rugit
-  const H0=dragonEchine(0,DRG.H0);dragonEchine(.06,DRG.a);
-  DRG.pj.copy(H0).project(camera);const hx=DRG.pj.x;DRG.pj.copy(DRG.a).project(camera);
-  const vers=hx-DRG.pj.x;if(Math.abs(vers)>.004)DRG.cote=vers>0?1:-1; // le museau regarde du côté opposé au cou
-  const hS=(4.3+6.7*g)*(.5+.5*em)*(1+.1*R9),ouvert=R9>.25||Math.sin(t*1.7)>.93;
+  const H0=dragonEchine(0,DRG.H0);
+  if(Math.abs(steer)>.22)DRG.cote=steer>0?-1:1; // il regarde LÀ OÙ TU TOURNES (steer > 0 : à gauche)
+  const hS=(2.8+1.9*g)*(.5+.5*em)*(1+.12*R9),ouvert=R9>.25||Math.sin(t*1.7)>.93;
   DRG_TETE.repeat.x=DRG.cote>0?.5:-.5;DRG_TETE.offset.x=(ouvert?.5:0)+(DRG.cote>0?0:.5);
   DRG.cr.setFromMatrixColumn(camera.matrixWorld,0);DRG.cu.setFromMatrixColumn(camera.matrixWorld,1);
-  DRG.tete.position.copy(H0).addScaledVector(DRG.cr,DRG.cote*hS*.42).addScaledVector(DRG.cu,hS*.05);DRG.tete.scale.set(hS*1.6,hS,1);
+  DRG.tete.position.copy(H0).addScaledVector(DRG.cr,DRG.cote*hS*.22).addScaledVector(DRG.cu,hS*.24);DRG.tete.scale.set(hS*1.6,hS,1);
   DRG.lueur.position.copy(DRG.tete.position);DRG.lueur.scale.set(hS*3.4,hS*2.6,1);DRG.lueur.material.color.setHex(inf?0xb080ff:0xff6a1a);DRG.lueur.material.opacity=Math.min(.85,.5*V*(1+.6*R9)*fl(.1));
   // LES MOUSTACHES : du bout du museau, longues, elles ondulent derrière la tête
-  for(const s of [-1,1]){const Lm=2.4+4.6*S;DRG.b.copy(DRG.tete.position).addScaledVector(DRG.cr,DRG.cote*hS*.66).addScaledVector(DRG.cu,-hS*.1+s*hS*.06);
+  for(const s of [-1,1]){const Lm=1.8+2.6*S;DRG.b.copy(DRG.tete.position).addScaledVector(DRG.cr,DRG.cote*hS*.66).addScaledVector(DRG.cu,-hS*.1+s*hS*.06);
     for(let i=0;i<14;i++){const w=i/13;P[i].copy(DRG.b).addScaledVector(DRG.F,-Lm*w*.9).addScaledVector(DRG.cr,-DRG.cote*Lm*w*.35)
       .addScaledVector(DRG.U,(s*.25+.45*Math.sin(1.4*i-6*t+s))*S*w).addScaledVector(DRG.R,.3*S*Math.sin(1.1*i-5*t)*w);
       DRG.W[i]=W*(.16-.12*w)*(1+.2*S);dragonCoul(i,C9.G,V*1.15);}
@@ -27184,7 +27182,7 @@ function dragonTick(dt){
 window.dbgDragon=function(q){if(q==='tete')return DRG_TETE.image.toDataURL();
   if(q==='ecran'){if(!DRG.m||!DRG.m.visible)return null;const o={};for(const [n,u] of [['tete',0],['milieu',.5],['queue',1]]){dragonEchine(u,DRG.pj);const d9=DRG.pj.distanceTo(camera.position);DRG.pj.project(camera);o[n]=[+DRG.pj.x.toFixed(2),+DRG.pj.y.toFixed(2),Math.round(d9)];}
     DRG.pj.copy(DRG.tete.position).project(camera);o.sprite=[+DRG.pj.x.toFixed(2),+DRG.pj.y.toFixed(2),+DRG.tete.scale.y.toFixed(1)];o.W=+(DRG.W[40]||0).toFixed(2);o.spr={vis:DRG.tete.visible,op:+DRG.tete.material.opacity.toFixed(2),par:!!DRG.tete.parent,img:!!(DRG_TETE.image&&DRG_TETE.image.width),v:DRG_TETE.version,rep:DRG_TETE.repeat.toArray(),off:DRG_TETE.offset.toArray(),pos:DRG.tete.position.toArray().map(Math.round),cam:camera.position.toArray().map(Math.round),layers:DRG.tete.layers.mask,camL:camera.layers.mask,lueur:DRG.lueur.material.opacity.toFixed(2)};o.F=DRG.F.toArray().map(function(v){return +v.toFixed(2);});return o;}
-  return {visible:!!(DRG.m&&DRG.m.visible),taille:+DRG.S9.toFixed(2),palier:NTR.pal,troncons:+DRG.nS.toFixed(2),boost:+NTR.boost.toFixed(2),intensite:+NTR.k.toFixed(2),rugit:+DRG.roar.toFixed(2),points:DRG.NP,devant:+DRG.zC.toFixed(1),haut:+DRG.yC.toFixed(1),rayon:+DRG.Rx.toFixed(1),cote:DRG.cote};};
+  return {visible:!!(DRG.m&&DRG.m.visible),taille:+DRG.S9.toFixed(2),palier:NTR.pal,troncons:+DRG.nS.toFixed(2),boost:+NTR.boost.toFixed(2),intensite:+NTR.k.toFixed(2),rugit:+DRG.roar.toFixed(2),points:DRG.NP,rayon:+DRG.Rx.toFixed(1),long:+DRG.Rz.toFixed(1),tours:+DRG.tours.toFixed(2),cote:DRG.cote};};
 function nitroooVide(){ // (2026-09-29, audit GAMEPLAY) une partie qui finit ou recommence : plus de boost, plus de plasma, plus de dragon
   NTR.on=false;NTR.t=NTR.boost=NTR.k=NTR.kc=0;NTR.pal=0;NTR.airT=0;NTR.airFig=false;
   if(NTR.shell){NTR.shell.visible=NTR.core.visible=NTR.halo.visible=NTR.halo2.visible=false;for(const m of NTR.langues)m.visible=false;}
