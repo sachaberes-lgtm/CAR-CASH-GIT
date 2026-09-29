@@ -55,7 +55,8 @@ vraiment beau et que ça se suive : commencé au sol, dans les airs il doit se p
 doit être exponentielle ; à chaque palier de 10 % ça doit rajouter un compartiment au corps du dragon ».
 - **LA VITESSE EXPONENTIELLE** (bloc NITROOO d'UHD) : `NTR.boost = (1+NTR_BOOST)^t − 1` — ×1,10 COMPOSÉ par seconde tenue (+10 %, +21 %,
   +33 %… +159 % à 10 s), plafond `NTR_BOOST_MAX=1.6` (×2,6, palier 10 — Sacha, 29/09 nuit : à ×5 la caisse s'envolait à chaque relief
-  et mourait « TROP LONGTEMPS EN L'AIR », mesuré par GAMEPLAY, banc ntrx.js). Le « +N % » de chaque palier suit la même loi. ⚠ Le
+  et mourait « TROP LONGTEMPS EN L'AIR », mesuré par GAMEPLAY, banc ntrx.js). PLAFOND COMMUN : `vitMult()` borne AUSSI VITESSE ×2 × NITROOO à ×2,6
+  (sinon ×5,2 au plafond, mort presque sûre — trouvé par DEBUGGING ; lu par spdMult ET ligneTick). Le « +N % » de chaque palier suit la même loi. ⚠ Le
   plafond est un garde-fou (au-delà la piste défile plus vite que le viseur et que les collisions balayées) : on peut le lever, pas le supprimer.
 - **LE DRAGON** (`DRG`, `dragonInit`, `dragonTick` appelée juste après `nitroooTick`, `dragonEchine`, `dragonBande`, `window.dbgDragon`) :
   · UN seul maillage, DEUX groupes de matériaux, tous du programme des RUBANS DE TRAÎNÉE (MeshBasicMaterial map + vertexColors + transparent +
