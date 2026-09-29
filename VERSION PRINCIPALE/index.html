@@ -27050,6 +27050,18 @@ const DRG_TETE=(function(){
   tete(0,false);tete(W,true);
   const d=c.getImageData(0,0,W*2,H),a=d.data;for(let i=3;i<a.length;i+=4)a[i]=a[i]>90?255:0;c.putImageData(d,0,0); // le SEUIL : des cases franches
   const t=new THREE.CanvasTexture(cv);t.magFilter=THREE.NearestFilter;t.repeat.set(.5,1);return t;})();
+function drgViolet(src){ // repeint un canevas du dragon en VIOLET : le rouge → violet, l'or → lilas pâle, les ombres → violet profond
+  const cv=document.createElement('canvas');cv.width=src.width;cv.height=src.height;const c=cv.getContext('2d');c.drawImage(src,0,0);
+  const im=c.getImageData(0,0,cv.width,cv.height),d=im.data;
+  for(let i=0;i<d.length;i+=4){const r=d[i]/255,g=d[i+1]/255,b=d[i+2]/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b),L=(mx+mn)/2,ch=mx-mn;if(ch<.02)continue;
+    let h=(mx===r?((g-b)/ch)%6:mx===g?(b-r)/ch+2:(r-g)/ch+4)*60;if(h>180)h-=360;if(h<-180)h+=360; /* −180..180 : le rouge ≈ 0, l'or ≈ 45 */
+    const S=Math.min(1,ch/(1-Math.abs(2*L-1)+1e-6)),or=THREE.MathUtils.smoothstep(h,22,42),H2=(272+.35*h)/60,S2=S*(1-.45*or),L2=Math.min(1,L+.12*or+.04);
+    const C=(1-Math.abs(2*L2-1))*S2,X=C*(1-Math.abs(H2%2-1)),m=L2-C/2,k=Math.floor(H2)%6;
+    const R=k===0||k===5?C:k===1||k===4?X:0,G=k===1||k===2?C:k===0||k===3?X:0,B=k===3||k===4?C:k===2||k===5?X:0;
+    d[i]=(R+m)*255;d[i+1]=(G+m)*255;d[i+2]=(B+m)*255;}
+  c.putImageData(im,0,0);return cv;}
+const DRG_TEX_V=(function(){const t=new THREE.CanvasTexture(drgViolet(DRG_TEX.image));t.wrapT=THREE.RepeatWrapping;return t;})();
+const DRG_TETE_V=(function(){const t=new THREE.CanvasTexture(drgViolet(DRG_TETE.image));t.magFilter=THREE.NearestFilter;t.repeat.set(.5,1);return t;})();
 const DRG_STR={corps:96,pat0:5,pat1:5,pat2:5,pat3:5,halo:40,crete:40,mousG:14,mousD:14,que0:7,que1:7,que2:7}; // les 5 premières : peintes (NORMAL) ; les autres : le FEU (ADDITIF)
 const DRG={m:null,tete:null,lueur:null,S:{},NP:0,pos:null,col:null,uv:null,st:0,ph:0,roar:0,pal:-1,t:0,em:0,S9:.5,cote:1,nS:0,neuf:0,
   vF:new THREE.Vector3(0,0,1),vP:new THREE.Vector3(),vOk:false,Us:new THREE.Vector3(0,1,0),
@@ -27059,7 +27071,7 @@ const DRG={m:null,tete:null,lueur:null,S:{},NP:0,pos:null,col:null,uv:null,st:0,
   cr:new THREE.Vector3(),cu:new THREE.Vector3(),pj:new THREE.Vector3(),
   W:new Float32Array(100),CR:new Float32Array(100),CG:new Float32Array(100),CB:new Float32Array(100),
   FEU:{H:[1,.82,.4],B:[1,.46,.12],Q:[.95,.2,.05],C:[1,.72,.2],G:[1,.86,.46],A:[1,.34,.06],corps:0xffffff,tete:0xffffff},
-  VIO:{H:[.95,.82,1],B:[.74,.4,1],Q:[.5,.14,.9],C:[.92,.7,1],G:[.98,.88,1],A:[.62,.2,1],corps:0xd6b8ff,tete:0xe4d0ff}}; // (nitro infinie) plus CLAIR : sur le ciel violet, le violet sombre se perdait
+  VIO:{H:[.95,.82,1],B:[.74,.4,1],Q:[.5,.14,.9],C:[.92,.7,1],G:[.98,.88,1],A:[.62,.2,1],corps:0xffffff,tete:0xffffff}}; /* (la couleur du corps et de la tête est dans DRG_TEX_V / DRG_TETE_V) */ // (nitro infinie) plus CLAIR : sur le ciel violet, le violet sombre se perdait
 for(let i=0;i<100;i++)DRG.P.push(new THREE.Vector3());
 function dragonInit(){ // bâti au 1er embrasement
   let n=0;for(const k in DRG_STR){DRG.S[k]={o:n,n:DRG_STR[k]};n+=DRG_STR[k];}DRG.NP=n;
@@ -27111,7 +27123,8 @@ function dragonTick(dt){
   const c=carGroup.position;
   if(!DRG.vOk){DRG.vF.set(0,0,1).applyQuaternion(carGroup.quaternion);DRG.vP.copy(c);DRG.Us.copy(camUp);DRG.vOk=true;}
   else if(dt>1e-4){DRG.e.subVectors(c,DRG.vP);const l=DRG.e.length();
-    if(l>.05&&l<dt*400+5){DRG.e.multiplyScalar(1/l);DRG.vF.lerp(DRG.e,1-Math.exp(-dt*3.5)).normalize();} // (un portail, un téléport : ignorés)
+    if(l>.05&&l<dt*400+5){DRG.e.multiplyScalar(1/l);DRG.vF.lerp(DRG.e,1-Math.exp(-dt*3.5)).normalize();}
+    else if(l>=dt*400+5)DRG.vF.set(0,0,1).applyQuaternion(carGroup.quaternion); /* un PORTAIL, un téléport : le cap repart du nez de la caisse (l'ancien pointait n'importe où sur la nouvelle piste — la queue passait derrière la caméra) */
     DRG.vP.copy(c);}
   /* ⚠ (banc) le haut du MONDE ne va pas : sur la face du DESSOUS il est DANS la dalle, et le dragon traversait la route. Son haut est celui
      de l'ÉCRAN (camUp : la normale de la face au sol, le toit de la caisse en vol), lissé à ~0,4 s — il bascule en douceur d'une face à l'autre. */
@@ -27132,6 +27145,7 @@ function dragonTick(dt){
   DRG.xH=0;DRG.zH=sp.l*.36;DRG.yH=sp.h+.4+.5*g; // LA TÊTE posée sur le capot
   DRG.cyc=1.2+.18*n9;DRG.Av=.22+.4*g; // les BOSSES qui courent le long du corps : plus de tronçons, plus de bosses
   const inf=pwrNitroT>0,C9=inf?DRG.VIO:DRG.FEU,P=DRG.P,E=DRG.e,tuile=W*4.2;
+  {const m9=DRG.m.material[0],t9=inf?DRG_TEX_V:DRG_TEX,h9=inf?DRG_TETE_V:DRG_TETE;if(m9.map!==t9)m9.map=t9;if(DRG.tete.material.map!==h9)DRG.tete.material.map=h9;} // NITRO INFINIE : le dragon VIOLET
   DRG.m.material[0].color.setHex(C9.corps);DRG.m.material[0].opacity=Math.min(1,.3+V*.9);
   DRG.tete.material.color.setHex(C9.tete);DRG.tete.material.opacity=Math.min(1,V*1.1);
   const prof=function(u){return u<.5?.55+.45*THREE.MathUtils.smoothstep(u,0,.2):1-.82*THREE.MathUtils.smoothstep(u,.5,1);}; // cou fin, ventre plein, queue effilée
@@ -27157,7 +27171,7 @@ function dragonTick(dt){
   const H0=dragonEchine(0,DRG.H0);
   if(Math.abs(steer)>.22)DRG.cote=steer>0?-1:1; // il regarde LÀ OÙ TU TOURNES (steer > 0 : à gauche)
   const hS=(2.8+1.9*g)*(.5+.5*em)*(1+.12*R9),ouvert=R9>.25||Math.sin(t*1.7)>.93;
-  DRG_TETE.repeat.x=DRG.cote>0?.5:-.5;DRG_TETE.offset.x=(ouvert?.5:0)+(DRG.cote>0?0:.5);
+  for(const h9 of [DRG_TETE,DRG_TETE_V]){h9.repeat.x=DRG.cote>0?.5:-.5;h9.offset.x=(ouvert?.5:0)+(DRG.cote>0?0:.5);}
   DRG.cr.setFromMatrixColumn(camera.matrixWorld,0);DRG.cu.setFromMatrixColumn(camera.matrixWorld,1);
   DRG.tete.position.copy(H0).addScaledVector(DRG.cr,DRG.cote*hS*.22).addScaledVector(DRG.cu,hS*.24);DRG.tete.scale.set(hS*1.6,hS,1);
   DRG.lueur.position.copy(DRG.tete.position);DRG.lueur.scale.set(hS*3.4,hS*2.6,1);DRG.lueur.material.color.setHex(inf?0xb080ff:0xff6a1a);DRG.lueur.material.opacity=Math.min(.85,.5*V*(1+.6*R9)*fl(.1));
@@ -27181,6 +27195,7 @@ function dragonTick(dt){
       for(let i=0;i<18;i++){const v=14+Math.random()*12;spawnP(flames,DRG.a.x,DRG.a.y,DRG.a.z,EXV.x+DRG.F.x*v+DRG.cr.x*DRG.cote*6+(Math.random()-.5)*4,EXV.y+(Math.random()-.3)*4,EXV.z+DRG.F.z*v+DRG.cr.z*DRG.cote*6+(Math.random()-.5)*4,.28+Math.random()*.16);
         if(i<6)spawnP(flameCore,DRG.a.x,DRG.a.y,DRG.a.z,EXV.x+DRG.F.x*v*.8,EXV.y+1,EXV.z+DRG.F.z*v*.8,.18+Math.random()*.08);}}}
 }
+window.dbgFace=function(f){if(f)side=f<0?-1:1;return side;}; // (banc) rouler sur la face du DESSOUS (−1) ou du dessus (1)
 window.dbgDragon=function(q){if(q==='tete')return DRG_TETE.image.toDataURL();
   if(q==='ecran'){if(!DRG.m||!DRG.m.visible)return null;const o={};for(const [n,u] of [['tete',0],['milieu',.5],['queue',1]]){dragonEchine(u,DRG.pj);const d9=DRG.pj.distanceTo(camera.position);DRG.pj.project(camera);o[n]=[+DRG.pj.x.toFixed(2),+DRG.pj.y.toFixed(2),Math.round(d9)];}
     DRG.pj.copy(DRG.tete.position).project(camera);o.sprite=[+DRG.pj.x.toFixed(2),+DRG.pj.y.toFixed(2),+DRG.tete.scale.y.toFixed(1)];o.W=+(DRG.W[40]||0).toFixed(2);o.spr={vis:DRG.tete.visible,op:+DRG.tete.material.opacity.toFixed(2),par:!!DRG.tete.parent,img:!!(DRG_TETE.image&&DRG_TETE.image.width),v:DRG_TETE.version,rep:DRG_TETE.repeat.toArray(),off:DRG_TETE.offset.toArray(),pos:DRG.tete.position.toArray().map(Math.round),cam:camera.position.toArray().map(Math.round),layers:DRG.tete.layers.mask,camL:camera.layers.mask,lueur:DRG.lueur.material.opacity.toFixed(2)};o.F=DRG.F.toArray().map(function(v){return +v.toFixed(2);});return o;}
