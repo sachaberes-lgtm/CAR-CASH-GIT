@@ -2,7 +2,7 @@
 
 ## LA COUCHE DE LÉO (2026-09-29) — ce dépôt local = la version de SACHA + quelques éléments de Léo (branche `version-leolei-2026`)
 Léo : « garde quelques éléments de toute cette discussion, ramène ça sur la version la plus récente de Sacha ; tous les trucs de
-sélection, c'est Sacha, c'est mieux ». BASE = `VERSION PRINCIPALE/index.html` de Sacha (main c2950ab) TELLE QUELLE (accueil avec JOUER,
+sélection, c'est Sacha, c'est mieux ». BASE = `VERSION PRINCIPALE/index.html` de Sacha (main d198d6d, 29/09 — refusionné à trois points depuis c2950ab) TELLE QUELLE (accueil avec JOUER,
 carrière, missions, garage à onglets, boutique), + SEULEMENT :
 - **LA MUSIQUE DE LÉO** : `MUSIC.menu` = SWAG CASH CAR (`swag-cash-car-2.m4a` : accueil, garage, écran de fin ; préchargée au 1er toucher),
   `MUSIC_LIEU.ville` = ADDICTIVE LOOP (`addictive-loop.m4a`). `SON_TON` : addictive-loop +1 (la m), swag-cash-car-2 −1 (do m), mesurés par
@@ -11,7 +11,7 @@ carrière, missions, garage à onglets, boutique), + SEULEMENT :
   · le PLAN PRODUIT de Léo (`GARV` : trois-quarts avant .62, hauteur .34, dérive ±2°, objectif serré en paysage, debout `dP`/`yP`) —
     plus de tour automatique ; le doigt fait TOURNER LA CAISSE, lancée elle garde son élan (`GAR.yaw/yawV`) ; le swipe « caisse suivante »
     est retiré (flèches, vignettes, clavier) ; onglet TRAÎNÉES : elle se pose de trois-quarts arrière ;
-  · le BOUTON ROUGE (`buildBoutonRouge`, `BR_POS` 3,2/3,75 — visible couché ET debout) : colonne + gros dôme + étiquette BOUTIQUE ; tap =
+  · le BOUTON ROUGE (`buildBoutonRouge`, `BR_POS` : debout 3,1/3,6 sous la caisse, couché 4/−4 à sa droite — il suit l'orientation) : colonne + gros dôme + étiquette BOUTIQUE ; tap =
     la BOUTIQUE de Sacha (chemin de « EN BOUTIQUE »). Léo : « une petite boîte boutique, peut-être plus tard ; pour l'instant un bouton rouge » ;
   · les AFFICHES DE RECORDS en PANNEAUX SUR PIED derrière la caisse (`AFF_POS`, tournés vers le plan : sur les murs, le plan produit les
     coupait au bord haut) — RECORD PERSO (meilleure partie, aura max, palier moteur, vitesse max + record du dernier niveau de carrière
@@ -21,9 +21,132 @@ carrière, missions, garage à onglets, boutique), + SEULEMENT :
     que le JOUER de l'accueil (`garageLaunch` ne le reclique pas).
   ⚠ la caméra du jeu sert à d'autres prises entre deux images : le tap vise `GAR.camV` (copie du plan, fin de garageRender).
   Hooks : `dbgPlan(a,p,{dP,yP})`, `dbgBouton(x,z)`, `dbgAffichePos(i,x,z)`, `dbgGarProj(pts)`, `dbgNiveaux()`.
+- **LE GARAGE AUX BORDS** (29/09, Léo : « les boutons sur les bords du garage pour laisser la vue sur la voiture et tous les customs ») :
+  CSS en fin de `<style id="leo">` — les pièces de Sacha gardent dessin et câblage, elles se RANGENT : debout, onglets en colonne sur le
+  bord droit (icône, nom de l'actif seul), flèches à mi-hauteur, en bas choix du niveau → familles → vignettes → barre d'action ; couché,
+  fiche en haut à gauche, onglets en haut à droite, familles + vignettes en bas à gauche (RETOUR au coin), choix du niveau + lingot en bas
+  à droite. `GAR_DECX` .23 → .04 (plus de colonne à éviter : la caisse reste au centre). L'équipée = une COCHE pixel verte après « CAISSE n ».
+- **LE CHOIX DU NIVEAU AU GARAGE** (`#gNiv` dans `#gBottom`, `GSEL`, `gselRendu`, `SAVE.d.sel`) : monde ◀ ▶ (NUAGES · VILLE · ESPACE ·
+  SANS FIN) + 10 cases (même règle d'ouverture que la carrière : `TEST_CARRIERE || i ≤ carrFait`). Le JOUER du garage (`gselJoue`) part du
+  niveau choisi par `carrLancer` de Sacha (permis d'abord, piste reconstruite sous le voile) ; SANS FIN = `playViaGarage(true)`. À la mort,
+  le choix suit le niveau où l'on est tombé (`nivSelSuit`). Clavier : ↑ ↓ le monde. Le JOUER de l'accueil et la CARRIÈRE de Sacha ne changent pas.
 - **PAS REPRIS** (restent dans l'historique, commit e11925d et avant) : PARIS au sol, boost de départ, HUD discret, guide du jeu, lumière v2,
-  tic des boutons, accueil GARAGE/RÉGLAGES, lapin/boîte-boutique, choix du niveau au garage.
-- `sw.js` : `cashcar-v29`. Tests muets (sfx/mus/vox à false), jamais de push sur le `main` de Sacha.
+  tic des boutons, accueil GARAGE/RÉGLAGES, lapin/boîte-boutique. Sacha a porté PARIS sur sa version dans sa branche `paris` (pas dans son main).
+- `sw.js` : `cashcar-v30`. Tests muets (sfx/mus/vox à false), jamais de push sur le `main` de Sacha.
+
+
+## LES 10 PREMIÈRES MINUTES — CÔTÉ INTERFACE (2026-09-29, session INTERFACE)
+- **PASSER demande** (`tutoPasse`/`tutoPasseRange`) : 1er appui → le bouton devient « VRAIMENT ? » (rouge), l'en-tête dit « PERMIS +$ 500 »
+  (or) ; 2e appui dans les 3 s → `tutoFin(true)`. La question reste DANS la carte (pas de modale : la caisse roule pendant la leçon).
+  Permis déjà payé (REVOIR L'AUTO-ÉCOLE) → un seul appui. Réglages : « REVOIR L'AUTO-ÉCOLE » porte « +$ 500 » (`#mvTuto`) tant que la prime
+  n'a pas été versée.
+- **Le permis se fête** : grande annonce centrale « PERMIS OBTENU ! +$ 500 » (`slamMontre` tenu 1,6 s), puis, la 1re fois, l'ASTUCE
+  « Fini l'entraînement : UNE SEULE VIE. En l'air, pose-toi avant la fin du chrono. » (la leçon ne tue pas et prête l'airtime).
+- **Raté du coach sur une ligne** : « SORTI ! SUIS LA ROUTE », « RATÉ ! NITRO, VISE LE DESSUS » (la carte montait à 31 % de l'écran).
+- **Écran de mort** : carte « MOTEUR ATTEINT » (il repart de zéro à chaque partie) ; « À 2 PIÈCES DU ▲ 3 CYLINDRES » (`presqueTxt`, FR/EN/ZH)
+  au lieu de « PLUS QUE 2 PIÈCES » (lu « il m'en faut 2 pour l'acheter ») ; **pastille GARAGE** `#bdGar2` (même compte que l'accueil) ;
+  le garage ouvert depuis une tuile se pose sur la caisse la moins chère qu'on peut s'offrir (`garPortee`, une fois par caisse et par
+  session — inopérant tant que `TEST_CAISSES=true`, qui débloque tout).
+- **Leçon quittée** : la modale dit « Tu reprendras la leçon au prochain départ : le PERMIS et sa prime t'attendent » ; l'écran de fin
+  n'affiche aucun RECORD et le lingot dit **REPRENDRE** (le texte vit dans le `<span>` que la règle « tient dans le lingot » dimensionne).
+- **Carrière avant le permis** : un niveau autre qu'AURORE lance AURORE avec le toast « PASSE D'ABORD TON PERMIS » (tant que la leçon n'a
+  été ni passée ni sautée).
+- **La caisse gagnée aux MISSIONS** (VA LA VOIR) : une gerbe sur ÉQUIPER à l'arrivée au garage.
+- Écarté : la cause de mort pendant l'explosion (verdict de Sacha : « la caisse qui explose l'a déjà dit »). Banc : `dix.js w h lang`
+  (PASSER, permis, mort, réglages, leçon quittée — son coupé) ; hook `dbgTuto('permis')`.
+
+## LES 10 PREMIÈRES MINUTES — CORRECTIFS DE JEU (2026-09-29, audit de la session INTERFACE, corrigé par la session GAMEPLAY)
+- **Après le permis, NUAGES et pas VILLE** : la piste de l'école occupait la zone 0, le portail menait à `NIVEAUX[1]`. `LVL.tutoZ` (posé par
+  `lvlChoisir` au départ de chaque partie) décale le compte : après la leçon, NIVEAU 1 = NUAGES, puis VILLE. Mesuré (`ecole.js`).
+- **Le 1er cristal d'après la leçon est le BOUCLIER** (`pwrPremier` compare `runStats.zones` à `LVL.tutoZ`) ; **aucun cristal sur la piste
+  de l'école** (`spawnPickups` saute les pouvoirs sur `piste:'tuto'`, APRÈS les tirages : le flux seedé ne bouge pas).
+- **Une leçon QUITTÉE n'est pas une partie** (`commitExploits` : ni compteurs, ni aura, ni record — la banque seule) et **pas de
+  « RECORD BATTU » pendant la leçon**.
+- Laissé à Sacha (décisions de jeu, pas des bugs) : l'airtime prêté à POSE-TOI (le chrono des 6 s n'est jamais vu à l'école), la leçon
+  quittée qui repart à 1/5, le défi « ENCAISSE $200 » (argent masqué en course), les rangs d'aura 1-5 sans récompense, la carrière
+  AURORE = la piste de l'école, le logo de 1,9 s à chaque REJOUER, une prime du jour.
+
+## LES CLASSIQUES DE LA BOUTIQUE EN FACETTES (2026-09-29) — « enlève toutes les parties arrondies des voitures du shop, ça ne colle pas avec la DA poly »
+- La boutique vend 13 légendaires : les 6 de la gamme des 50 (kit low-poly, déjà taillées) et 7 CLASSIQUES du vieux kit (CHAT POP-TART,
+  REQUIN, COMÈTE, FORMULE OR, LE MANS 24, EL PATRON, ACIDE : gabarits `poptart`, `requin`, `proto`, `formula`, `lemans`, `hyper`, `tuner`)
+  faites de boules 16 × 12, de cylindres 12-16 côtés et d'un loft 52 × 24 en normales LISSÉES.
+- `facetteCaisse()` (juste avant `buildCar`, appelée en fin de buildCar avant que la caisse rejoigne `carBody`, si `FACET_SHAPES[shape]`
+  ou `spec.facette`) : boule 8 × 6, cylindre/cône ≤ 8 côtés, tore 4 × 10, cercle/tour ≤ 8, et TOUTES les pièces non plates en normales
+  PLATES (non indexé + normales recalculées). Aucune matière touchée (pas de `flatShading` : un #define = un programme de plus) ; le kit
+  `lp`, le sol (`sol`), les plumes de réacteur restent tels quels. Loft du requin 52 × 24 → 18 × 10. Roues des classiques : octogones.
+- Vérifié : planche avant/après des 13 (banc `shop.js` + `planche.py`, scratchpad 4b30b603 `shop/`), les 13 équipées sans erreur (≤ 17 ms),
+  course en CHAT POP-TART sans erreur. `dbgFacette(false)` rend les caisses d'avant.
+
+## LA PASSE DE SORTIE (2026-09-29) — « balade-toi dans tout le jeu… fais-le en mode ultra complet, imagine que le jeu sort demain »
+Session INTERFACE (worktree `CCG-transitions`). Une partie complète jouée au banc (`balade.js` : premier lancement, auto-école, vraie course,
+vol, pouvoirs, frénésie, pause, mort, missions, garage, carrière — debout, couché, anglais, encoche simulée `NOTCH=1` de `tour.js`), puis
+QUATRE audits en lecture seule (App Store, textes FR/EN, logique des écrans, iPhone). Commits be8f7e8 → 824b502.
+- **Écran de mort** (Sacha : « le texte sous GAME OVER sert à rien, les fenêtres AURA et MOTEUR sont trop grandes ») : section 23 de charte4 —
+  `#mCause` masqué ; cartes qui épousent leur contenu ; couché : on LIT à gauche (verdict, cartes, ticket aligné sur le bas de REJOUER), on
+  TOUCHE à droite.
+- **Le plancher du pixel** : aucune étiquette du HUD sous 8 px EFFECTIFS (`hudTaille`) ; #misBan et #coach hors de l'échelle ; en auto-école
+  les pouvoirs passent sous la carte ; « RATÉ ! ON RECOMMENCE » 2,6 s puis la progression revient (`tutoAffiche._t`).
+- **Le verrou du double-tap** : `uiGarde(ms)` (320 ms, clics `isTrusted` seulement — les `.click()` programmés passent), posé par `mGo`
+  (hors `sansSortie`), `feuilleOuvre/Ferme`, `carrVue`. Banc `doubletap.js`. ACHETER → ÉQUIPER : `#gEquip.arme` 420 ms.
+- **Garage** : un seul pointeur pilote l'orbite (`gpId`, `gPince`), rien à travers `#wipe/#carr/#modale`, Échap ignoré sous un voile.
+- **Sous le voile** : `playViaGarage(tuto)` (tutoArme dans le voile), `carrLancer` → `ecranWipe(carrLancerSous, garageLaunch)`.
+- **Écran de mort, données** : `RUNX.verse` figé à la mort (endGame) ; `mFill._mort` : le compte ne se rejoue qu'à la 1re apparition ;
+  `window.__mRetour` : VOIR (missions) → garage → retour revient aux MISSIONS (vidé par garageLaunch).
+- **Arrière-plan** : course démarrée pendant que l'appli dormait → `panOpen(true)` au retour ; parti pendant le 3-2-1 → panneau rouvert.
+- **iPhone** (section 24 de charte4) : `touchmove` laisse défiler `#carr` et `#modale` (bloqués au doigt !) ; tap-highlight, user-select,
+  text-size-adjust, overscroll ; `.volS` pouce 32 × 44 ; `.gNav` 54 × 70 ; `#modC` 16 px ; saisie du record couchée dans sa case ; `--tx3`
+  #9a90c8 (contraste) ; `max-width:360px` (Affichage agrandi) ; `matchMedia` suit « Réduire les animations » en direct.
+- **Zoom du HUD** : `zRect(el)`/`zK(el)` = rectangle À L'ÉCRAN identique Chrome ≥ 128 et ancien WebKit (pixBurst, frenEntre).
+- **Robustesse** : le chien de garde vérifie qu'une erreur REVIENT (1,5 s) avant l'écran de crash, qui a une phrase au joueur et RELANCER ;
+  fond `#07050f` (plus de flash blanc) ; contexte WebGL perdu au retour → relance.
+- **Textes** : bloc i18n (les 50 caisses FR → EN, ponctuation, libellés courts, anglais américain) juste avant `// ⚠ nommée TR et non T` ;
+  `fmtC` : « $1.5k » en anglais, « $ 1,5 k » en français ; aria-label traduits par `applyLangDOM` ; punchlines en police système avec accents.
+- **LAISSÉ À SACHA (bloquant pour une vraie sortie)** : `TEST_CAISSES`/`TEST_CARRIERE` à true ; BOUTIQUE sans achats (vitrine, « -50 % »
+  fictif, RESTAURER factice, prix en € en dur — StoreKit ou masquer) ; sons d'origine tierce encore joués (`wow.mp3`, `death/minecraft.m4a`,
+  `eww.m4a`) ou livrés (`kaching`, `compteuse`) ; musiques Suno (dont une « Cover ») et voix ElevenLabs (preuve d'abonnement) ; « CHAT
+  POP-TART » (Nyan Cat) et noms de marques (QUATTRO, STRATOS, DAYTONA, ELDORADO, VETTE, LE MANS 24) ; côté Mac : icône 1024, PrivacyInfo,
+  cible iOS 16.4, `contentInset:'never'`, plugins haptics/preferences, ne pas embarquer CLAUDE.md/README/atelier-son/sons.html.
+
+## LA PASSE « JEU PRO » DU RENDU (2026-09-29, session GRAPHISME) — « peaufine, comme si le jeu avait été fait par une équipe de 50 pros »
+Méthode : 42 captures (3 mondes × sol/route/nitro/vol/après/explosion ×2, debout et couché — banc `gfx/balade.js`), critiquées par DEUX
+relecteurs indépendants (directeur artistique, technical artist), triées contre les verdicts de Sacha. Corrigé :
+- **EN VOL, ON VISE** : le flou de vitesse ×0,5 en vol et coupé net à l'explosion (`volK9` sur `sfxT` — « la moitié de l'image étalée »,
+  « la lune en copies ») ; la caisse se DÉTACHE (`RIM_S0` × 1,9 en vol, lissé — vue de dessous elle n'était qu'une silhouette sombre) ;
+  les nuages de coton s'effacent de 30 à 110 m de l'objectif en vol (10-40 au sol, `GFX_U.uNearF`) — la réception se lit.
+- **L'EXPLOSION NE RETOMBE PLUS À PLAT** : une colonne de fumée (`smokePool`) monte 2,4 s du point d'impact, des braises s'en échappent.
+- **LE CRATÈRE DE L'IMMEUBLE** : 7 → 5 m (la caméra de la mort, à ~14 m de la façade, ne voyait plus que le trou).
+- **Écarté après essai** : nuages de coton OPAQUES (image quasi identique, mais plus de fondu quand la caméra les traverse) — gardé
+  translucide (`dbgGfx({cotonOpaque:1})` pour comparer).
+- **Laissé à Sacha (ses verdicts)** : les taches de jus (n°1 des DEUX critiques : grosses, opaques, partout — voulu le 28/09), la taille
+  des fruits, le « fil » des rubans de nitro jusqu'au bas de l'écran, l'antenne de LA HONTE (un carré doré au centre de l'écran).
+- **Transmis** : carte MOTEUR 3D qui bouche le point de fuite + voile vert-sarcelle sur le HUD en VILLE (UHD).
+
+## LES TEXTES DE FIGURE, 3e CRAN (2026-09-29, session GRAPHISME) — « les textes de figure sont beaucoup trop gros et bloquent la vue »
+Après le 2e cran d'INTERFACE (figK/annK, voir ci-dessous) — mesuré sur captures 390×844 et 844×390 (banc `gfx/fig.js`, `gfx/fig2.js`) :
+- `annK()` .82/.72 → **.60/.52** (toutes les annonces du couloir), `figK()` .72/.62 → **.56/.48** (geste sur la caisse, verdict MONSTRE…).
+- Les annonces qui naissent des FIGURES ont un corps de base plus petit : « ×5/×8/×10 » 48 → 34, « +AURA » encaissée 40 → 30, CHAÎNE PERDUE
+  30 → 24 (BOOST, FRÉNÉSIE, IMPACT MÉTÉORE… gardent le leur).
+- Le bandeau du DAUPHIN (`#dolHud`) : nom 20-30 px → 13-18 px, aura 12-16 → 9-11 (`<style id="figTaille">`, après hudTaille).
+- **EN VOL, le geste (`popTexte`) ne se pose plus JAMAIS sous la caisse** — c'est là qu'on vise la réception : au-dessus s'il y a la place,
+  sinon il s'efface (`#popTxt.cache`, posé par popSuit) ; la liste des figures à gauche le garde. Au sol, rien ne change.
+- Résultat mesuré (portrait) : annonce ×8 20 px, geste 10-12 px, dauphin 14 px ; les règles `ebOn`/`ebPlonge` (carte moteur) intactes.
+- (même jour) **LES VIGNETTES DU GARAGE GARDENT LEURS COULEURS** (`carPhoto`, relevé par INTERFACE) : la relève 1/1,35 se faisait canal par
+  canal — LA HONTE (orange brûlé) sortait pêche pâle. Désormais relève sur la LUMINANCE, saturation ×1,26 (l'étalonnage du jeu est absent
+  hors écran), plafond qui garde la teinte ; clé du studio 1,5 → 1,3. Blancs et caisses sombres inchangés. `dbgPhoto(i,ancien)` : A/B.
+
+## LA TAILLE DU HUD (2026-09-28, nuit) — « réduis la taille des HUD, c'est compliqué de voir la route », puis « remets la barre de nitro et le flow de la même taille qu'avant, c'est surtout les textes de figure et de MONSTRE qui dérangent »
+Fait par la session INTERFACE avec l'accord de UHD. MESURÉ avant (banc `hudmes.js`, scratchpad 93a1dcda `ui/`) : couché (844 × 390, l'ordi),
+la colonne de gauche descendait à 63 % de la hauteur ; debout, aura + chaîne jusqu'à 250 px ; plaques de pouvoir 148 × 120.
+- `<style id="hudTaille">`, juste APRÈS hudDA. Les BARRES NITRO et FLOW gardent leur taille d'origine (2e verdict). SOUS elles, `zoom:var(--hudK)`
+  (.8 debout, .72 couché) sur #auraV2, #triade, #airHud, #pwrChip, #misBan, #coach, #campChip ; la liste des figures (#avList) un cran de plus (×.86).
+  `zoom` (pas `scale`) réduit la boîte ET ses marges, et laisse libres les `translate`/`scale` des entrées (hudMaitrise).
+- ⚠ L'échelle part de `--hudY0` (96 px, le haut de l'aura et du chrono) : dans un bloc zoomé, --hudH = (encoche + Y0·(1−K)) / K, --hudG/--hudD ÷ K
+  — le zoom les remultiplie : rien ne remonte sous les barres, les positions en dur (hudH+96, +104, +184, +204, +248…) se resserrent dans leur
+  ordre, encoche et bords exacts. Toute nouvelle plaque du HUD sous les barres : l'ajouter à la liste, et la placer en --hudH/--hudG/--hudD,
+  jamais env() en direct.
+- TEXTES DE FIGURE (JS) : `figK()` (.72 debout, .62 couché) pour le geste qui suit la caisse (`popTexte`) et le verdict de pose (MONSTRE…, `verdAffiche`) ;
+  `annK()` (.82 / .72) pour les grandes annonces (`slamMontre` : corps ET plafond de largeur). NITRO, ⏸, volant et la carte MOTEUR hors échelle.
+- Voile d'encre du haut : pleine hauteur jusqu'aux barres, à l'échelle en dessous.
 
 ## LA CONSOLE DE SON (2026-09-28, session SON) — « tout ce qui se passe à l'écran doit avoir un son propre et unique, parfaitement maîtrisé et mixé »
 **⚠ RÈGLE POUR TOUTES LES SESSIONS : un son nouveau = `sfx('famille.nom')`, jamais un `chimeNote`/`noiseBurst` bricolé sur place.**
@@ -68,6 +191,47 @@ avec un nom neuf et on le signale à la session SON (ou on écrit la recette dan
   repli : `if(!(typeof sfx==='function'&&sfx('x')))repli();` (sfx rend null s'il n'a pas joué).
 - ⚠ **Séries** : programmer d'un coup plus de `max` voix d'une fiche avec `{t:}` coupe les premières — les séries partent par setTimeout.
 - Musique : silences morts retirés (NOCTURNAL GROOVE avait 1 s de trou à chaque boucle en VILLE) ; sw.js en `cashcar-v22`.
+- **DÉBOGAGE COMPLET (2026-09-29)** — deux relectures de code + bancs muets en rendu logiciel (SwiftShader : zéro GPU de Sacha) +
+  contrôle de la banque décodée (`qa_banque.py`, `qa_boucle.py` : écrêtage, DC, fins coupées, coutures). Corrigé :
+  · BANQUE : passe-haut 18 Hz partout (DC jusqu'à 0,016 sur ui.erreur/refus), plafond −2 dBFS (le MP3 décodé dépassait 0 dBFS sur les
+    attaques sèches), BOUCLES refaites (`O.boucle` : la queue fondue vers le début à puissance constante ; l'ancienne recopiait la fin sur
+    le début + fondu de 6 ms = trou et clic à chaque tour), la boucle est encodée avec sa propre queue en tête et jouée sur `[tête, tête+lg)`.
+    `cuire.js` garde `boucle/lg` des sons REPRIS lors d'une recuisson partielle (sinon les ambiances rebouclaient mal).
+  · LECTEUR : OfflineAudioContext à 44,1 kHz si 32 kHz est refusé (WebKit < iOS 14.1 : l'étalon n'était jamais décodé) ; l'étalon passe
+    par la file ; l'éviction de polyphonie se fait à l'instant du NOUVEAU son (elle tuait des sons programmés) ; le chef ne « ressuscite »
+    plus les voix finies ; `annuleFutur(s)` et `stopJeu()` à la PAUSE (les queues d'explosion et les billets différés repartaient au 3-2-1).
+  · JEU : reprise en < 0,49 s (la mise en veille tombait pendant le 3-2-1), le « 3 » attend le réveil du contexte, `SONV2` n'est vrai que si
+    la banque est chargée, `var SONV2` (lu avant sa déclaration), replis des autres sessions rendus vivants (`if(SONV2)` au lieu de `typeof`),
+    limiteur de sortie −1 dBFS (`MASTER._lim`, voix comprises), anciens sons qui doublaient (répliques d'explosion, landBoom, bump, fourgon,
+    habillages, catapulte, crépitements de rentrée), `chaineAura(…,muet)` là où l'événement a son son (frôlé, turbos, radar, virage, pure
+    speed, pouvoirs combinés, démoli, semés, caisse-nuage, ligne, fourgon, esquive), le geste qui passe ×5/×8/×10 ne double plus aura.xN,
+    l'essoreuse une fois par vol, le plein de nitro d'un fruit seulement s'il y a plein, alarme du DERNIER et banquier avec hystérésis,
+    boucle du vide muette en pause, pas de signature de mort à l'auto-école, ui.mission quand la bannière s'affiche, degrés plafonnés
+    (SON_PENTA, echSt ≤ 9, figures à base unique cuites sur [0,12]), aucun son quand l'appli est en arrière-plan, le clic REPRENDRE sonne.
+  · Mesuré après correctifs : 0 erreur, 0 son refusé, pas de fuite (sources vivantes stables sur 4 morts/relances et 30 niveaux).
+- **OPTIMISATION DU SON (2026-09-29)** — mesurée au BANC ISOLÉ (`banc-graphe.js` : le bloc `// ---------- AUDIO ----------` →
+  fin d'`initAudio` extrait seul dans une page vierge, rendu hors ligne 20 s, variantes alternées, 3 passes, médiane). ⚠ La sonde « jeu
+  entier hors ligne » (remplacer AudioContext dans le vrai jeu) donnait 2 à 20 % selon les passes : INUTILISABLE pour comparer.
+  · LES PORTES (`PORTES`, `porte(g,dest,lfo)`, `portesTick()`, console `dbgPortes()`) : chaque chaîne continue (moteur, vent, sifflement,
+    crissement, 4 couches nitro, charge du drift, rase-bord, sirène) se DÉBRANCHE de MASTER quand sa consigne est nulle et sa chute finie
+    (7 constantes de temps, −60 dB) et se REBRANCHE dans l'appel `setTargetAtTime` qui la rallume (zéro image de retard, zéro clic).
+    WebAudio tire le calcul depuis la sortie : débranché = plus rien ne calcule en amont. ⚠ Un nouvel écrivain de ces gains DOIT passer
+    par `setTargetAtTime` (`stt` le fait) — un `.value=` ou une rampe n'ouvriraient pas la porte.
+  · LA SALLE AU REPOS (sfx.js) : la convolution 1,25 s ne se branche qu'au premier son et se débranche 1,4 s après la fin du dernier
+    (`S.coupe` retient les voix coupées : leur queue de salle sonne encore). `CCSON.etat().salle` pour l'observer.
+  · k-rate sur les paramètres pilotés à chaque image (filtres du moteur/vent/nitro, oscillateurs secondaires) : un biquad automatisé en
+    a-rate recalcule ses coefficients à CHAQUE échantillon. Vérifié au spectre (même graine) : filtres = écart nul. ⚠ `osc`/`osc2` (le timbre)
+    restent a-rate, skF1/skF2 aussi (LFO audio dessus), les gains aussi (paliers audibles).
+  · suréchantillonnage 2x retiré des saturations moteur/nitro (filtré sous 2,8 kHz derrière / du bruit).
+  · RÉSULTAT (% d'un cœur du PC, un téléphone ≈ ×3-5) : MENU 3,4 → 0,13 · COURSE (automation réelle rejouée, tout allumé) 6,0 → 4,8 ·
+    course sans nitro 1,9. Banc fonctionnel `portes-banc.js` (le vrai jeu, muet) : menu silencieux portes fermées, nitro ouverte en
+    < 120 ms, refermée < 2 s après, mort → tout fermé en < 1 s, relance → rouvert ; régression complète : 0 erreur, pas de fuite.
+  · LA BANQUE ALLÉGÉE (`allege()` dans cuire.js, à chaque cuisson) : 48 FAUX STÉRÉO (deux canaux identiques au bit près) passés en
+    mono — WebAudio remonte un mono en L = R, rendu identique — encodés en q3 (en q4 le joint-stéréo donnait plus de bits au milieu :
+    mesuré contre la source non compressée, le mono q3 en est PLUS près que l'ancien stéréo, 0,34 dB contre 0,39) ; QUEUES MORTES (sous
+    crête −70 dB, 40 ms de marge, fondu dans le silence) retirées : 37 s. Mémoire décodée 55,0 → 42,9 Mo, banque 3,05 → 2,86 Mo,
+    décodage au lancement 133 → 96 ms (PC). Niveaux inchangés (pire écart 0,18 dB), 38 sons identiques à l'octet, boucles intactes,
+    contrôle qualité propre (ni écrêtage, ni DC, ni fin coupée). `mesures.txt` note « mo←st » et « (−x s) ».
 ## LE MOUVEMENT DE L'INTERFACE + MISSIONS v2 (2026-09-28, soir) — « travaille les animations, les emplacements, les transitions entre chaque écran : prêt à envoyer à l'App Store »
 Sacha : « il y a des centaines de petites choses à améliorer dans l'interface… travaille les animations quand tu cliques sur les boutons,
 leurs emplacements, les transitions quand tu changes d'écran — que ce soit parfait ; travaille vraiment les transitions entre chaque écran
@@ -152,6 +316,21 @@ d'AURA (police pixel en bandes, cernée d'encre). Ce qui se TOUCHE = plaque PENC
 - **LOT 2** : le métal du moteur de la carte est TEINTÉ à la couleur néon du palier (`engCarteMat.color` = blanc → néon à 42 %, `ENG_TEINTE`) —
   il sortait blanc rosé sur tous les ciels ; `engRim` 1,5 ; nom de plus de 12 caractères un corps plus bas (`#engBig.long`) · l'ASTUCE / le DÉFI
   (`#misBan`) se range à GAUCHE tant qu'une plaque de pouvoir est affichée (portrait) : centrée, elle couvrait NITRO MAX / VITESSE ×2 (section 6).
+- **LES NOMS DES TRAITS QUITTENT L'ÉCRAN** (Sacha : « enlève les mots psychopathe, narcissique et machiavéliste ») : les étiquettes
+  +NARCISSE / -PSYCHO / +MACHIAVEL de la ligne du flow sont masquées (`#flowHud .fT{display:none}` dans hudDA) ; `flowTag` compte
+  toujours (aucune logique retirée). Les barrettes sous l'emblème étaient déjà sans nom. Seuls des COMMENTAIRES gardent ces mots.
+- **LA NOTE DE LA POSE EN FRÉNÉSIE** (2026-09-29, Sacha : « le son low honor de Red Dead, quand on perd de l'honneur — pendant la
+  frénésie, à chaque atterrissage ») : le fichier de Rockstar est protégé (App Store) → un son ORIGINAL dans cet esprit, `frenesie.pose`,
+  commandé à la session SON (recette + cuisson de la banque). Appel dans `tryLand`, avant `flowCasse` : frénésie en cours (lue AVANT le
+  déclenchement), pas de pose ratée, vol > 0,4 s, t .15 (après le tchak). Tant que la banque n'a pas le son, l'appel ne joue rien.
+- **REPLI DES VIEUX iPHONE** (hudDA §7, audit de sortie INTERFACE) : sous iOS < 16.2 (pas de `color-mix()`), un texte du HUD en
+  `color:transparent` dont le dégradé contient color-mix DISPARAÎT. `@supports not (color:color-mix(…))` les passe en couleur PLEINE
+  (--tc, --xc, --fc, --pc, --fren, --ec) cernée d'encre (--contourH/P). Simulé au banc (`st-repli.js` pose le contenu du bloc sans
+  condition) : tout reste lisible. Tout NOUVEAU texte ombré du HUD qui utilise color-mix doit être ajouté à ces listes.
+- **v5.1 (critiques DA de GRAPHISME)** : le « fantôme gris » de la carte moteur était son ENTRÉE en fondu (moteur translucide ~150 ms) →
+  opaque en 40 ms, il GRANDIT depuis la caisse (`engBigSuit`), texte `daEbVie` .22 s ; moteur ~33 % de la caisse (scène 92×62, texte
+  inchangé). Sa PLACE au-dessus de la caisse est gardée (verdict de Sacha, malgré la critique « hors de l'axe »). Le halo de bord des
+  pouvoirs (#pwrFx) s'éteint à l'explosion (`mode==='boom'||gameOver` dans la boucle) : l'AIMANT verdissait l'écran jusqu'à la mort.
 - Bancs (scratchpad session UHD) : `run.js <pfx> <étapes.js> [w] [h]` (DSF, LG), `st-eng2.js` (film de la carte), `st-fren.js`, `st-det.js`
   (états du bouton), `st-pay.js` (paysage), `attente.sh` (attend qu'aucun banc voisin ne tourne).
 
@@ -179,6 +358,29 @@ MÊME image figée (bancs : scratchpad de la session f71fd2a2, `gfx/abx.js`, `gf
   éclats de l'explosion : 0 compilé, mesuré), poussière `dust`, verre pilé `sparkBlue`, braises, fumée qui monte du trou 5,5 s.
   Son : `sfx('impact.immeuble')` (console de la session SON, 2,4 s : béton sourd, vitre, pluie de verre, gravats). Hook `dbgImpact(true)`
   (impact sur la tour la plus proche), `dbgImpact(null,s)` (fait vieillir en pause). Banc : `gfx/imp.js` (planche 0,05 → 4,5 s).
+- **LE CIEL DE COTON — NUAGES v3** (Sacha : « refonte des nuages : plus de nuages, plus jolis, dans la forme classique qu'on imagine,
+  magnifiques, un peu partout autour de la route — donc légers ») — `COTON`, `cotonBlobs`, `cotonGeo`, `buildCoton`, `cotonTick`.
+  · FORME : six gabarits « de dessin » (classique, bas et large, tour/congestus, flocon, banc, double dôme) — une rangée de BASE aux
+    bourgeons aplatis (le dessous plat), des bourgeons RONDS au-dessus (plus jamais de boules aplaties empilées = les « piles
+    d'assiettes » d'avant), ventre lavande → sommet blanc sur la HAUTEUR du nuage, creux assombris, liseré d'argent du shader inchangé.
+  · LÉGER : tout le DÉCOR devient des instances (6 gabarits × près/loin = 12 appels de dessin pour ~350 nuages). `cotonTick` (chaîné sur
+    scene.onBeforeRender) : hors champ = pas envoyé, au-delà de 650 m = gabarit léger 8×6, lots triés du plus loin au plus près. MESURÉ :
+    ~0,1 ms de processeur par image ; triangles de l'image 619 k → 255 k au sol, 448 k → 332 k en vol ; appels 233 → 122 ; en rendu
+    logiciel (proxy du coût par pixel, même image, nuages visibles/cachés) les nuages coûtaient 75-82 ms, désormais 66 ms au sol, 21 en vol.
+  · PARTOUT AUTOUR DE LA ROUTE, JAMAIS DESSUS : couronne proche (50-350 m du bord, du dessous au-dessus du ruban), au-dessus/en dessous du
+    ruban, couronne du milieu (0,35-1,3 km), COUCHE HAUTE (230-650 m au-dessus de la route : le haut d'un écran portrait est du ciel),
+    lointain (1,2-2,6 km), massifs et titans (ex-« ciel organisé », gabarit tour). Garde `cotonTouche` = nuageTouche sur une grille de
+    120 m. Tout tiré sur `cr` (jamais la piste). VILLE/ORBITE/auto-école : aucun (lvlNuageOk), campagne : `deco` de CAMP_NIV respecté.
+  · Restent des MAILLAGES À PART (rôle de jeu) : bancs sur la route, coussins de vol (recharge d'airtime) et tours géantes qu'on traverse
+    (white-out) — ces deux-là prennent aussi la forme classique —, la mer, les voiles, tout ce que pose la campagne (inchangés).
+  · Traversé, un nuage de coton s'efface autour de l'objectif (fondu 10-40 m, `NUAGE_INST` dans nuageShader) au lieu de claquer.
+    Programme `nuageV3coton` compilé au menu (nuageChauffe → cotonInit) : 0 en course (mesuré). Hook `dbgCoton()`. Bancs `gfx/coton.js`
+    (sol, vol, vues larges), `gfx/info.js` (triangles/appels A/B), `gfx/ssnu.js` (coût des nuages en rendu logiciel, A/B), `gfx/menu.js`.
+  · (même nuit) FINESSE À L'ÉCRAN : 4 gabarits par forme (7×5 · 10×7 · 16×11 · 22×15), choisis par la taille d'une facette à l'écran
+    (segments ≥ 73·R/d) — les titans vus de l'accueil montraient leurs facettes. Lots vides = aucun appel. `dbgCoton('max')` = le plus gros.
+- **L'ABÎME BLEU** (Sacha : « le sol du niveau nuages tout bleu, sans motif de nuages dessus ») : sous l'horizon des NUAGES, la mer peinte
+  (`merNuages`) devient un bleu uni du biome qui s'approfondit vers le bas ; les nappes plates `sea` ne sont plus posées aux NUAGES
+  (lvlNuageOk, campagne comprise). Les cumulus du ciel de coton flottent dessus. `MER_MOTIF=true` rend l'ancienne mer.
 - **Écarté après captures** : « le monde dans la laque » (le décor du niveau — mer de nuages, mur de tours éclairées — peint dans le cube
   des carrosseries) : INVISIBLE depuis la caméra de poursuite (on voit l'arrière des caisses de face, le vernis n'y renvoie que ~6 %).
 
