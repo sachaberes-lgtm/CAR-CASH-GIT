@@ -6477,6 +6477,25 @@ const GAP_ON=false; // ⚠ LES TREMPLINS SONT COUPÉS (demande du user) — un s
 let RAMPS=[];
 // passerelle genCtrl → buildTrack : positions MONDE (lèvre + les deux bords du vide), retrouvées sur la courbe réelle
 const GAPMARK=[];
+/* LA ROUTE QUI TE RATTRAPE (2026-09-29, Sacha, après 4 vidéos : deux de VOLTIGEUR — en l'air 60 % du temps, sortie par le bord,
+   pose sur la route du dessous — et deux de ROULEUR — au sol, nitro à fond, qui ne vole que quand il RATE un virage : « il faut une
+   génération de map qui plaise aux deux et donne des sensations inoubliables » ; « pas de tourbillon, les rouleurs doivent kiffer
+   aussi » ; « oui » à : un virage bien pris paie PLUS qu'une chute rattrapée ; essai au niveau NUAGES seul).
+   LE VIRAGE À FILET (motif de genCtrl) : un virage RAPIDE, puis la route fait une grande boucle (avec une épingle au fond) et repasse
+   30-60 m PLUS BAS, à l'EXTÉRIEUR du virage, dans le même sens — pile là où retombe une caisse qui sort du virage par le bord. Le
+   filet est calculé sur la vraie physique du vol : sortie à l'angle α du virage, au bord extérieur (rayon R+RH), droit devant (la
+   tangente) à la vitesse de croisière vN, poussée de décollage vers le haut (`kick`), gravité FALL_G×SPD ; la pose a lieu quand la
+   caisse est descendue de `dh(α)` → le point de pose est à l'angle α + atan(x/Re) du centre, au rayon √(Re²+x²) : le filet est ce
+   LIEU DES POSES, pour α de −15 % à 115 % du virage. Le rouleur qui passe : VIRAGE À FOND (et il roule SOUS le virage qu'il vient de
+   prendre). Le rouleur qui sort : RATTRAPÉ (plus modeste). Le voltigeur : un tremplin qu'il voit venir.
+   `on` : l'interrupteur · `kv` : vitesse de calcul = kv × croisière du palier moteur (celle de lvPiste) · `dh`/`dhS` : la chute
+   visée au début/en plus à la fin du virage · `dip` : l'épingle au fond de la boucle (part du rayon) · `par` : filets par zone
+   selon la visite du niveau NUAGES (1re, 2e, 3e et +) — de moins en moins de filets : la même vitesse devient un vrai pari.
+   `vFond` : part de vN à tenir dans le virage pour VIRAGE À FOND. */
+const FILET={on:true,kv:1.1,dh:42,dhS:12,kick:1.6,dev:.13,par:[3,2,1],vFond:.8,visite:null}; // dev : la caisse qui rate un virage part ÉCARTÉE de la tangente, vers le vide (~0,15 rad mesuré au banc)
+const FILETMARK=[];
+let FILETS=[]; // les filets de la piste courante, en distance le long de la piste : {sC0,sC1 (le virage), sN0,sN1 (le filet), cote (−1/+1 : le côté du vide)}
+function filetDe(s0,s1){for(const q of FILETS)if(s0>q.sC0-80&&s0<q.sC1+60&&s1>q.sN0-160&&s1<q.sN1+260)return q;return null;} // un vol parti de ce virage et posé dans son filet ?
 // LE TROU, POUR DE VRAI : portions de dalle PUREMENT ABSENTES {i0,i1:index pts · s0,s1:arc-length}.
 // Zéro mesh, zéro collision, zéro atterrissage possible : c'est du VIDE. On le franchit ou on tombe.
 let HOLES=[];
@@ -7975,6 +7994,51 @@ function genCtrl(rnd,startPos,startPhi){
   const wsum=W.reduce((a,b)=>a+b,0);
   const pick=()=>{let x=rnd()*wsum;for(let k=0;k<13;k++){x-=W[k];if(x<0)return k;}return 5;};
   const LEN=14400*(1+Math.min(1.5,(LV-1)*.55)); // (2026-09-25, user : « double la longueur de chaque niveau ») 7200 → 14400 — et plus longues encore à haute vitesse
+  // ---- LE VIRAGE À FILET (voir FILET) : NUAGES seulement ; son hasard a SON générateur (un seul tirage de `rnd`, et seulement ici) ----
+  FILETMARK.length=0;
+  const FILON=FILET.on&&typeof LVL!=='undefined'&&LVL.cur&&LVL.cur.id==='nuages'&&!LVL.cur.piste&&!(typeof PARK!=='undefined'&&PARK.on);
+  const rf=FILON?mulberry32((rnd()*4294967296)>>>0):null;
+  const visF=!FILON?0:FILET.visite!=null?FILET.visite:Math.floor(Math.max(0,(runStats.zones|0)-(LVL.tutoZ|0))/3); // la 1re visite du niveau NUAGES, la 2e…
+  const filMax=FILON?FILET.par[Math.min(FILET.par.length-1,visF)]:0;
+  let filN=0,filNext=900*LV;
+  const filet=()=>{
+    const sg=rf()<.5+hand*.22?1:-1,R=(95+rf()*45)*RS,th=(55+rf()*20)*Math.PI/180,Re=R+ROAD_HALF;
+    const vN=FILET.kv*(70+(LV-1)*100),g=FALL_G*SPD,k0=FILET.kick;
+    straight(70*LV,-10*LV,2); // l'APPROCHE : droite et lisible — le virage et son filet se voient venir
+    const A=P.clone(),ph0=phi,yA=P.y,pC=.04+rf()*.03,dropC=th*R*pC; // un virage PRESQUE PLAT : sa pente part avec la caisse (vy = −v·pente) — à 780 km/h, 12 % de pente jetaient la caisse 44 m sous le filet (mesuré)
+    const C=new THREE.Vector3(A.x+sg*R*Math.cos(ph0),0,A.z-sg*R*Math.sin(ph0));
+    const at=(ps,r,y)=>P.set(C.x-sg*Math.cos(ph0+sg*ps)*r,y,C.z+sg*Math.sin(ph0+sg*ps)*r); // le point à l'angle parcouru ps, au rayon r
+    const pose=f=>{const fc=Math.min(1,Math.max(0,f)),dh=FILET.dh+FILET.dhS*fc,b=vN*pC-k0,t=(-b+Math.sqrt(b*b+2*g*dh))/g,x=vN*t; // ½g·t² + (v·pente − kick)·t = dh
+      const xr=Re+x*Math.sin(FILET.dev),xt=x*Math.cos(FILET.dev);return {ps:f*th+Math.atan2(xt,xr),r:Math.hypot(xr,xt),y:yA-dropC*fc-dh};}; // (la sortie, écartée de `dev` vers le vide)
+    arc(sg*th*180/Math.PI,R,Math.max(5,Math.ceil(th*57.3/10)),-dropC);   // LE VIRAGE RAPIDE
+    const E=P.clone(),yE=P.y,iE=ctrl.length-1;
+    const f0=-.15,f1=1.15,p0=pose(f0),aN=2*Math.PI+p0.ps;
+    at(aN,p0.r,p0.y);const N=P.clone(),hN=ph0+sg*aN;P.copy(E); // le début du filet (at a déplacé P : il revient en E)
+    /* LA BRETELLE (v2 — la v1 tournait en rond autour du virage : un « escargot », trop proche des spirales retirées le 26/09 pour
+       « on tourne sans rien voir venir »). Comme une bretelle d'échangeur : une LIGNE qui s'éloigne dans l'axe de sortie du virage, un
+       grand DEMI-TOUR, la ligne du RETOUR, puis le virage qui entre dans le filet (un Dubins « virage · droite · virage » du même
+       côté, rayon `rB`). Les hauteurs se posent ensuite, à la longueur parcourue : la chute de E au filet s'étale sur toute la bretelle. */
+    let len=0,prev=P.clone();
+    const a0=approx;
+    straight((200+rf()*140)*LV,0,3);
+    {const rB=Math.max(55*RS,(.72+rf()*.3)*R),md=a=>((a%(2*Math.PI))+2*Math.PI)%(2*Math.PI);
+     const c1x=P.x+sg*rB*Math.cos(phi),c1z=P.z-sg*rB*Math.sin(phi),c2x=N.x+sg*rB*Math.cos(hN),c2z=N.z-sg*rB*Math.sin(hN);
+     const D=Math.hypot(c2x-c1x,c2z-c1z),hs=Math.atan2(c2x-c1x,c2z-c1z),b1=md(sg*(hs-phi)),b2=md(sg*(hN-hs));
+     if(b1>.01)arc(sg*b1*57.2958,rB,Math.ceil(b1*57.2958/10),0);
+     if(D>2)straight(D,0,Math.max(1,Math.round(D/110)));
+     if(b2>.01)arc(sg*b2*57.2958,rB,Math.ceil(b2*57.2958/10),0);}
+    {let tot=0;const cum=[0];for(let k=iE+1;k<ctrl.length;k++){tot+=Math.hypot(ctrl[k].x-ctrl[k-1].x,ctrl[k].z-ctrl[k-1].z);cum.push(tot);}
+     for(let k=iE+1;k<ctrl.length;k++)ctrl[k].y=yE+(p0.y-yE)*THREE.MathUtils.smootherstep(cum[k-iE]/Math.max(1,tot),0,1);
+     len=approx-a0;approx=a0;P.copy(ctrl[ctrl.length-1]);prev.copy(P);}
+    const nF=Math.max(6,Math.ceil((pose(f1).ps-p0.ps)/(8*Math.PI/180)));
+    let last=null;
+    for(let k=1;k<=nF;k++){const q=pose(f0+(f1-f0)*k/nF);at(2*Math.PI+q.ps,q.r,q.y);len+=P.distanceTo(prev);prev.copy(P);push();last=q;} // LE FILET
+    for(let k=1;k<=3;k++){at(2*Math.PI+last.ps+k*.14,last.r,last.y-6*k);len+=P.distanceTo(prev);prev.copy(P);push();} // la sortie, dans l'élan
+    phi=ph0+sg*(2*Math.PI+last.ps+.42);approx+=len; // (le virage, arc() l'a déjà compté)
+    const pz=f=>{const q=pose(f);at(2*Math.PI+q.ps,q.r,q.y);return P.clone();};
+    FILETMARK.push({sg:sg,A:A,E:E,N0:pz(0),N1:pz(1),Nlo:pz(f0),Nhi:pz(f1),R:R,th:th,vN:vN});
+    at(2*Math.PI+last.ps+.42,last.r,last.y-18); // (pz a déplacé P : il revient au dernier point posé)
+  };
   // ---- LE GAP CATAPULTE : le grand geste du générateur — RARE, et il y a un VRAI TROU ----
   // Tout est COLINÉAIRE : la route d'en face est droit devant, on lit la promesse d'un coup d'œil
   // (condition non négociable pour que ça marche à 1200 km/h). La recette, dans l'ordre :
@@ -8023,8 +8087,9 @@ function genCtrl(rnd,startPos,startPhi){
   straight(110*LV,-70*LV,2); // DÉPART : ligne droite, rallongée avec la vitesse (était 170 m + la caisse)
   const iDep=ctrl.length-1; // (vague 3) le RELIEF part d'ici : le largage du départ garde sa chute
   while(approx<LEN){
-    const mo=pick();
-    if(mo===0&&!sansLoop&&!SANS_LOOPING&&approx-lastLoop>1600){ // UN looping, de temps en temps (route v3 : 1,6 km mini entre deux, plus de doublé) — JAMAIS en ville, et plus nulle part (SANS_LOOPING)
+    const mo=(filN<filMax&&approx>filNext&&approx<LEN-2600*LV)?-7:pick();
+    if(mo===-7){filet();filN++;filNext=approx+(1500+rf()*1300)*LV;} // LE VIRAGE À FILET (voir FILET)
+    else if(mo===0&&!sansLoop&&!SANS_LOOPING&&approx-lastLoop>1600){ // UN looping, de temps en temps (route v3 : 1,6 km mini entre deux, plus de doublé) — JAMAIS en ville, et plus nulle part (SANS_LOOPING)
       straight(60+rnd()*50,-30);loop((30+rnd()*34)*LOOPS,30+rnd()*22);straight(60+rnd()*50,-30);lastLoop=approx;
     }else if(mo===9){ // (route v3b) LE GRAND BALAYAGE : un virage long et LARGE, 100-150°, qui descend doucement — on le prend à fond, on le SENT
       const sg=sgn(),R9=(RV?160+rnd()*160:110+rnd()*90)*RS,a9=Math.min(100+rnd()*60,(RV?64000:52000)/R9); // (vague 3) plus LARGE en VILLE : R 160-320 (ailleurs 110-200)
@@ -8545,6 +8610,13 @@ function buildTrack(seed){
      float32 se fait à l'écriture exactement comme il se faisait à la conversion — mêmes octets (empreinte vérifiée sur 3 niveaux × 9 graines :
      sommets, index, normales, couleurs, UV, sphères, tableaux physiques). Le vide est lu d'un coup (`trou9`), la teinte du bitume ne se
      calcule qu'une fois pour ses deux faces (même fonction pure, mêmes arguments), ses sinus lents en cache. */
+  FILETS=[]; // (2026-09-29) LA ROUTE QUI TE RATTRAPE : les filets posés par genCtrl, retrouvés sur la courbe lissée (voir FILET)
+  if(FILETMARK.length&&!(LVL.cur&&LVL.cur.camp)){
+    const nearF=p=>{let bi=-1,bd=1e12;for(let i=0;i<NP;i++){const dx=p.x-pts[i].x,dy=p.y-pts[i].y,dz=p.z-pts[i].z,dd=dx*dx+dy*dy+dz*dz;if(dd<bd){bd=dd;bi=i;}}return bd<3600?bi:-1;},sI=i=>i/(NP-1)*L;
+    for(const m of FILETMARK){const a=nearF(m.A),e=nearF(m.E),n0=nearF(m.Nlo),n1=nearF(m.Nhi);
+      if(a<0||e<0||n0<0||n1<0||!(a<e&&e<n0&&n0<n1))continue;
+      FILETS.push({sC0:sI(a),sC1:sI(e),sN0:sI(n0),sN1:sI(n1),cote:-m.sg,R:m.R,vN:m.vN,paye:false,yN:Math.min(pts[n0].y,pts[n1].y)});}
+  }
   const trou9=new Uint8Array(NP+1);for(const h of HOLES)for(let i=Math.max(0,h.i0);i<h.i1&&i<NP;i++)trou9[i]=1;
   const holeSeg=i=>trou9[i]===1; // le segment i→i+1 est-il dans le vide ?
   let nSeg9=0;for(let i=0;i<NP-1;i++)if(!trou9[i])nSeg9++; // les segments qui ont de la dalle
@@ -10185,6 +10257,7 @@ Object.assign(I18N,{"FRÉNÉSIE": "FRENZY", "FRÉNÉSIE !": "FRENZY!", "RESTE DA
 /* (2026-09-28, passe de lancement) CE QU'UN JOUEUR ANGLOPHONE LISAIT ENCORE EN FRANÇAIS, relevé à l'écran par un banc qui note chaque
    texte affiché pendant 3 minutes de jeu : la liste d'aura, les trois pouvoirs, la fête des ordres de grandeur, la meute du Survivant. */
 Object.assign(I18N,{'RATÉ ! GARDE LE NITRO, VISE LE DESSUS':'MISSED! HOLD NITRO, AIM FOR THE TOP'});Object.assign(I18N_ZH,{'RATÉ ! GARDE LE NITRO, VISE LE DESSUS':'失败！按住氮气，瞄准路面'});
+Object.assign(I18N,{'VIRAGE A FOND':'FULL THROTTLE TURN','RATTRAPE':'CAUGHT','RATTRAPE !':'CAUGHT!'}); // (2026-09-29) LA ROUTE QUI TE RATTRAPE
 Object.assign(I18N,{'FRÔLÉ':'CLOSE CALL','RÉCOLTE':'COIN RUSH','RAFALE':'FRUIT RUSH','VIRAGE SERRÉ':'TIGHT TURN','MÉTÉORE':'METEOR',
   'AU CHEVEU':'BY A HAIR','ARRACHÉE':'CLUTCH','EN FEU !!':'ON FIRE!!','DEMENT !!!':'INSANE!!!','ÇA CHAUFFE !':'HEATING UP!',
   'IL PLEUT DES BILLETS':'IT\'S RAINING CASH','NITRO ILLIMITEE':'UNLIMITED NITRO','6 S A FOND':'6 S FLAT OUT','AIRTIME INFINI':'INFINITE AIRTIME',
@@ -26653,6 +26726,7 @@ function startFall(impU,impF){
   lastNearS=s;        // (2026-09-26) le couloir de proximité (LOD, aimant) part d'ICI, pas de la fin du vol précédent (les pièces clignotaient une image)
   FROLE.s0=null;FROLE.n=0;FROLE.t=0; // (2026-09-25) un plot SURVOLÉ n'est pas un frôlé : le balayage repart de l'atterrissage
   MIR.t=0;MIR.max=0; // (2026-09-28) MIRACULÉ : chaque vol repart « pas perdu »
+  FILR.ok=false; // (2026-09-29) on a quitté la route : ce virage à filet n'est plus « à fond »
   mode='fall';fallT=0;fallTR=0;yawAcc=0;airRoll=0;trkBigA=false;trkMonstre=false; // (momentum v2) le saut ne remet plus la réserve à zéro : c'est la POSE qui juge
   driftC=0;driftLv=0;driftEnCours=false;driftArm=0;yawR=0;slipB=0;glisse9=0;driftYaw=0;carRoll9=0;rollV=0;pitch9=0;carBody.rotation.set(0,0,0);carBody.position.set(0,0,0); // une glisse ne survit pas au décollage (pas de mini-turbo en l'air)
   // TEMPO DE VOL ∝ VITESSE (2026-07-20, dosage DOUX sur base V1) : =1 jusqu'à 450 km/h affichés
@@ -26934,7 +27008,7 @@ function tryLand(dt){
   // (FLOW v2) LE RACCOURCI, DANS TOUS LES MODES : la piste parcourue entre le décollage et la pose, moins la distance VOLÉE en ligne
   // droite — un saut ordinaire donne ~0 (la route suit le vol), couper une boucle ou tomber sur la dalle d'en dessous donne des centaines
   // de mètres. C'est le geste que la triade réclame : on triche, et ça paie.
-  if(!PARK.on){const gagne=(s-FLOW.s0)-FLOW.p0.distanceTo(fallPos);if(gagne>=60)flowRaccourci(gagne);else if(gagne>=25)frenTrait('m',gagne/60);} // (v4) une PETITE coupe nourrit MACHIAVEL au prorata
+  if(!PARK.on){const gagne=(s-FLOW.s0)-FLOW.p0.distanceTo(fallPos),fl9=filetDe(FLOW.s0,s);if(fl9)filetRattrape(fl9);else if(gagne>=60)flowRaccourci(gagne);else if(gagne>=25)frenTrait('m',gagne/60);} // (2026-09-29) posé dans le FILET de son virage : RATTRAPÉ, pas RACCOURCI (voir FILET) // (v4) une PETITE coupe nourrit MACHIAVEL au prorata
   /* (2026-09-29, Sacha : « le son "low honor" de Red Dead, une petite note quand tu perds de l'honneur — pendant la frénésie, à chaque fois
      que le joueur atterrit ») LA NOTE DE LA POSE EN FRÉNÉSIE : un son ORIGINAL dans cet esprit (le fichier de Rockstar est protégé), fait par
      la console de son. Pas sur un petit saut (< 0,4 s), pas sur la pose ratée (elle a son son et éteint la frénésie), pas sur la pose qui
@@ -28489,6 +28563,27 @@ function campDebut(){ // un niveau commence (newTrack, et le 1er départ de la s
   villeDebut();
 }
 function campStop(){debCache();fumeVide();tirsVide();eclVide();campFx(0,0,0,0);if(GH.on){GH.g.visible=false;trailStep(GH.tr,0,0,0,0,0,0,0);}villeStop();}
+/* LA ROUTE QUI TE RATTRAPE — LES DEUX PAIEMENTS (Sacha : « un virage bien pris paie PLUS qu'une chute rattrapée »).
+   VIRAGE À FOND : traverser un virage à filet sans quitter la route, sans jamais descendre sous FILET.vFond × sa vitesse de calcul
+   (120 d'aura, du flow de route, un peu de nitro) — en plus du VIRAGE SERRÉ s'il tombe. RATTRAPÉ : sortir de ce virage et retomber
+   dans son filet (50 d'aura, un peu de flow) — la pose LOURDE et la vitesse perdue font le reste. Les figures du vol (BIG AIR, dauphin…)
+   restent au voltigeur. */
+const FILR={q:null,ok:false,vMin:0};
+function filetTick(){ // appelée chaque image AU SOL (la boucle de conduite)
+  if(!FILETS.length)return;
+  let q=null;for(const f9 of FILETS)if(s>=f9.sC0&&s<=f9.sC1){q=f9;break;}
+  const v9=Math.abs(vA)*SPD;
+  if(q&&FILR.q!==q){FILR.q=q;FILR.ok=!q.paye;FILR.vMin=v9;}
+  else if(q){FILR.vMin=Math.min(FILR.vMin,v9);}
+  else if(FILR.q){const q9=FILR.q;FILR.q=null;
+    if(FILR.ok&&s>q9.sC1&&s<q9.sC1+200&&FILR.vMin>=FILET.vFond*q9.vN){q9.paye=true;
+      try{chaineAura('VIRAGE A FOND',120,'fond',true,false);flowAdd(14,'route');nitroGain(.25);hap([10,20,14]);}catch(e){}}
+    FILR.ok=false;}
+}
+function filetRattrape(q){
+  try{chaineAura('RATTRAPE',50,'filet',false,SONV2);flowAdd(6,'risque');hap([12,24,18]); // (un seul texte : celui de la chaîne — « moins de textes au milieu de l'écran », 661854a)
+    if(SONV2)sfx('raccourci');}catch(e){}
+}
 function flowRaccourci(gagne){
   flowAdd(Math.min(45,12+gagne*.06),'risque','m'); // (v4) couper la route : MACHIAVEL
   if(CAMP.n)return; // en campagne, campRaccourci (seuil de ses ovales) dit déjà « RACCOURCI ! » et paie sa nitro
@@ -28529,6 +28624,20 @@ for(const [k,v] of Object.entries({'GRAVITE REDUITE : SAUTS 2 FOIS PLUS LONGS':'
   'SEMES !':'LOST THEM!','SEMES':'LOST THEM','LA POLICE EST AU TAPIS':'THE COPS ARE DOWN','FLIC AU TAPIS !':'COP DOWN!',"LE PORTAIL S'OUVRE":'THE PORTAL OPENS',
   'HORS DE VUE':'OUT OF SIGHT',"A L'INSTINCT !":'ON INSTINCT!',"A L'INSTINCT":'ON INSTINCT','PERCE-NUAGE !':'CLOUD PIERCER!','PERCE-NUAGE':'CLOUD PIERCER','LE MOTEUR TOUSSE':'ENGINE COUGHING','CA VA LACHER !':'SHE\'S GONNA BLOW!',
   'Tu l\'as chassée tout un coucher de soleil. Elle est douce comme un nuage et elle file comme un orage.':'You chased her through a whole sunset. Soft as a cloud, fast as a storm.'}))if(!(k in I18N))I18N[k]=v;
+/* `dbgFilet()` — les filets de la piste · `dbgFilet(i,f,v,ang)` : pose la caisse dans le virage i à la fraction f (0-1), au BORD
+   extérieur, à v m/s MONDE (défaut : sa vitesse de calcul), cap tourné de `ang` rad vers le vide — le vol fait le reste (banc).
+   `dbgFilet('neuf',visite)` : une nouvelle piste NUAGES (visite 0 = la 1re, la plus garnie). */
+window.dbgFilet=function(i,f,v,ang){
+  if(i==='pts'){const o=[];for(let k=0;k<NP;k+=(f|0)||6)o.push([Math.round(pts[k].x),Math.round(pts[k].y),Math.round(pts[k].z)]);return {pts:o,pas:L/(NP-1)*((f|0)||6)};} // (banc) la piste pour la dessiner vue de dessus
+  if(i==='vol')return {mode:mode,s:Math.round(s),y:mode==='fall'?+fallPos.y.toFixed(1):null,t:+fallTR.toFixed(2),mort:gameOver,x:Math.round(fallPos.x),z:Math.round(fallPos.z),h:+curHOff.toFixed(1),lo:+curLatOff.toFixed(1),sn:Math.round(lastNearS),vh:Math.round(Math.hypot(fallVel.x,fallVel.z)*SPD)};
+  if(i==='va'){if(!started||gameOver)return 'pas de course';s=Math.max(5,Math.min(L-100,+f||0));side=1;lat=0;psi=0;yawR=0;slipB=0;vA=(v||70)/SPD;vL=0;mode='drive';prevTvalid=false;graceT=.3;return Math.round(s);} // (banc) poser la caisse à s, au milieu, à v m/s
+  if(i==='neuf'){FILET.visite=f==null?0:f;runStats.zones=(runStats.zones|0)+3;SURV.pBase+=s;newTrack();FILET.visite=null;return FILETS.length;}
+  if(i==null)return {filets:FILETS.map(function(q){return {sC0:Math.round(q.sC0),sC1:Math.round(q.sC1),sN0:Math.round(q.sN0),sN1:Math.round(q.sN1),cote:q.cote,R:Math.round(q.R),vN:Math.round(q.vN),paye:q.paye,yN:Math.round(q.yN)};}),
+    s:Math.round(s),mode:mode,v:Math.round(Math.abs(vA)*SPD),lieu:LVL.cur&&LVL.cur.id,L:Math.round(L)};
+  const q=FILETS[i|0];if(!q||!started||gameOver)return 'pas de filet';
+  s=q.sC0+(q.sC1-q.sC0)*(f==null?.4:f);side=1;lat=q.cote*(ROAD_HALF-3);psi=q.cote*(ang==null?.25:ang);yawR=0;slipB=0;
+  vA=(v||q.vN)/SPD;vL=0;mode='drive';prevTvalid=false;graceT=0;
+  return {s:Math.round(s),lat:+lat.toFixed(1),cote:q.cote,v:Math.round(Math.abs(vA)*SPD)};};
 window.dbgPisteCamp=function(){ // (dev) la piste courante au banc : croisements (dégagement vertical), rayon mini, pente maxi, longueur
   const cell=48,H=new Map(),seg=L/(NP-1),key=(x,z)=>Math.floor(x/cell)+'_'+Math.floor(z/cell);
   for(let i=0;i<NP;i+=2){const k=key(pts[i].x,pts[i].z);let a=H.get(k);if(!a){a=[];H.set(k,a);}a.push(i);}
@@ -31112,7 +31221,8 @@ function loop(now){
        glisse9=THREE.MathUtils.clamp(Math.abs(slipB)*2.6+driftT*.5+Math.max(0,Math.abs(yawR*vA)*SPD-22)/70,0,1)*Math.min(1,Math.abs(vA)/35); // (2026-09-26) la gomme fume et crisse dès que la caisse chasse (power-slide)
        // (aura v2) LE VIRAGE SERRÉ : tenir une grosse charge latérale 0,9 s sur la route — prendre un virage À FOND, ça se paie
        {const aL9=Math.abs(yawR*vA)*SPD;if(aL9>32)virT+=dt;else if(aL9<12){virT=0;virPaye=false;}
-        if(virT>.9&&!virPaye){virPaye=true;if(SONV2)sfx('virage');chaineAuraMuette('VIRAGE SERRÉ',45,'virage',false,SONV2);}}} // (2026-09-29, Sacha) ne s'écrit plus
+        if(virT>.9&&!virPaye){virPaye=true;if(SONV2)sfx('virage');chaineAuraMuette('VIRAGE SERRÉ',45,'virage',false,SONV2);}} // (2026-09-29, Sacha) ne s'écrit plus
+       filetTick();} // (2026-09-29) LA ROUTE QUI TE RATTRAPE : le VIRAGE À FOND (voir FILET)
       driftTick(dt,drifte);
       // (conduite v3) RASE-BORD : frôler le vide à pleine vitesse RECHARGE le nitro — le risque paie
       if(!introD&&!PARK.on&&Math.abs(lat)>ROAD_HALF*.8&&Math.abs(vA)>maxSp*.5){raseT+=dt;nitroGain(.22*dt);flowAdd(6*dt,'route'); // bande du RASE-BORD : les 20 % extérieurs de la demi-route (3 à 4,8 m sur la route large)
