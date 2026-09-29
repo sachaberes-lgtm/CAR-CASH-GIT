@@ -6970,7 +6970,7 @@ function mergeSpheres(blobs,rx,ry,rz){
      géantes qu'on traverse (white-out) — eux aussi prennent la forme classique —, la mer, les voiles et tout ce que pose la campagne.
    · Traversé, un nuage de coton s'efface autour de l'objectif (fondu 10-40 m dans le shader) au lieu de claquer.
    Hook : `dbgCoton()` (nuages, envoyés près/loin, triangles, ms). */
-const COTON={S:[],im:[],I:null,n:0,cap:480,mat:null,grid:null,root:null,L:null,M:new THREE.Matrix4(),Q:new THREE.Quaternion(),Sc:new THREE.Vector3(), // (v4) 420 → 480 : les petits nuages en plus
+const COTON={S:[],im:[],I:null,n:0,cap:560,mat:null,grid:null,root:null,L:null,M:new THREE.Matrix4(),Q:new THREE.Quaternion(),Sc:new THREE.Vector3(), // (v4) 420 → 480 : les petits nuages en plus
   P:new THREE.Vector3(),Y:new THREE.Vector3(0,1,0),fr:new THREE.Frustum(),pv:new THREE.Matrix4(),nN:0,nF:0,tri:0,ms:0,
   SEG:[[7,5],[10,7],[16,11],[22,15]],FAC:73}; // les QUATRE finesses d'un gabarit ; FAC : on prend la plus légère dont une facette reste sous ~1,7° à l'écran (segments ≥ 73·R/d)
 const COTON_KINDS=24; // (v6) les 6 gabarits classiques + 18 tirés au hasard (cotonAleat : neuf genres)
@@ -7137,21 +7137,26 @@ function buildCoton(cr){
   const strat=function(k,K){return Math.min(NP-1,Math.floor(((k+.18+cr()*.64)/K)*NP));};
   const perp=function(i){const t=T[i],l=Math.hypot(t.x,t.z)||1;return [-t.z/l,t.x/l];}; // le travers HORIZONTAL du ruban (jamais B[i] : piste inclinée)
   if(okD){
-    for(let k=0;k<30;k++){ // (1) LA COURONNE PROCHE, EN ARCHIPELS (Dragons) : des îlots de 2-3 nuages (un grand, ses satellites au même plafond),
+    const OR=LVL.cur&&LVL.cur.id==='orage',M9=OR?1.25:1,KK=function(n){return Math.round(n*M9);}; // (2026-09-29) L'ORAGE : un tiers de nuages en plus partout
+    for(let k=0;k<KK(30);k++){ // (1) LA COURONNE PROCHE, EN ARCHIPELS (Dragons) : des îlots de 2-3 nuages (un grand, ses satellites au même plafond),
       // et du CIEL OUVERT entre deux — 80 nuages semés un par un encombraient tout le champ (« liberté » = des vides qu'on traverse)
-      const i=strat(k,30),p=pts[i],q=perp(i),sg=cr()<.5?-1:1,r=cotonR(cr,30,160,1.5),kk=cotonKind(cr,COTON_POIDS.pres),yB=p.y-130+cr()*300; // (v4) tailles en loi de puissance
+      const i=strat(k,KK(30)),p=pts[i],q=perp(i),sg=cr()<.5?-1:1,r=cotonR(cr,30,160,1.5),kk=cotonKind(cr,COTON_POIDS.pres),yB=p.y-130+cr()*300; // (v4) tailles en loi de puissance
       let d=ROAD_HALF+r+50+cr()*300,cx=0,cz=0,ok=false;for(let t=0;t<3;t++,d+=110){cx=p.x+q[0]*sg*d;cz=p.z+q[1]*sg*d;if(cotonPose(cx,yB,cz,r,kk,cr)){ok=true;break;}}
       if(ok){const ns=1+(cr()*2|0),t9=T[i];for(let m=0;m<ns;m++){const a=(m?-1:1)*(1.5+cr()*1.1)*r,rs=r*(.4+cr()*.3); // les satellites, le long de la route et un peu en travers
         cotonPose(cx+t9.x*a+q[0]*sg*(cr()-.3)*r,yB+(cr()-.5)*r*.3,cz+t9.z*a+q[1]*sg*(cr()-.3)*r,rs,cotonKind(cr,COTON_POIDS.pres),cr);}}}
-    for(let k=0;k<26;k++){ // (2) AU-DESSUS et EN DESSOUS du ruban (la garde garde 18-22 m de ciel libre autour de la route)
-      const i=strat(k,26),p=pts[i],q=perp(i),r=cotonR(cr,24,130,1.5),kk=cotonKind(cr,COTON_POIDS.pres),S=COTON.S[kk],h=(S.top-S.base)*r*1.3,lat=(cr()-.5)*120;
+    for(let k=0;k<KK(26);k++){ // (2) AU-DESSUS et EN DESSOUS du ruban (la garde garde 18-22 m de ciel libre autour de la route)
+      const i=strat(k,KK(26)),p=pts[i],q=perp(i),r=cotonR(cr,24,130,1.5),kk=cotonKind(cr,COTON_POIDS.pres),S=COTON.S[kk],h=(S.top-S.base)*r*1.3,lat=(cr()-.5)*120;
       const yB=cr()<.6?p.y+70+cr()*190:p.y-(THICK+60+cr()*170)-h;cotonPose(p.x+q[0]*lat,yB,p.z+q[1]*lat,r,kk,cr);}
-    for(let k=0;k<116;k++){ // (3) LA COURONNE DU MILIEU : 0,35-1,3 km, tout autour, de la mer jusqu'à ~300 m au-dessus de la route
-      const i=strat(k,116),p=pts[i],a=cr()*6.2832,d=350+cr()*950,r=cotonR(cr,50,330,1.6);
+    for(let k=0;k<KK(116);k++){ // (3) LA COURONNE DU MILIEU : 0,35-1,3 km, tout autour, de la mer jusqu'à ~300 m au-dessus de la route
+      const i=strat(k,KK(116)),p=pts[i],a=cr()*6.2832,d=350+cr()*950,r=cotonR(cr,50,330,1.6);
       cotonPose(p.x+Math.cos(a)*d,p.y-210+cr()*520,p.z+Math.sin(a)*d,r,cotonKind(cr,COTON_POIDS.mil),cr);}
     for(let k=0;k<44;k++){ // (4) LA COUCHE HAUTE : des cumulus qui se DÉCOUPENT sur le ciel (le haut d'un écran portrait, c'est du ciel)
       const i=strat(k,44),p=pts[i],a=cr()*6.2832,d=260+cr()*1700,r=cotonR(cr,60,300,1.5);
       cotonPose(p.x+Math.cos(a)*d,p.y+230+cr()*420,p.z+Math.sin(a)*d,r,cotonKind(cr,COTON_POIDS.mil),cr);}
+    if(OR)for(let k=0;k<26;k++){ // (4 bis) L'ORAGE : LE PLAFOND — de grands nuages plats et bas (rouleaux, humilis) 110-240 m au-dessus de la route, sur elle et
+      // autour : le ciel se referme (des trouées entre deux), la lumière passe par en dessous — et l'éclair les allume
+      const i=strat(k,26),p=pts[i],q=perp(i),lat=(cr()-.5)*1100,r=cotonR(cr,110,230,1.2);
+      cotonPose(p.x+q[0]*lat,p.y+110+cr()*130,p.z+q[1]*lat,r,cotonDe(cr,['stratocumulus','stratocumulus','humilis',1,4]),cr,.8+cr()*.25);}
     for(let k=0;k<80;k++){ // (5) LE LOINTAIN : 1,2-2,6 km — l'horizon a ses nuages
       const i=strat(k,80),p=pts[i],a=cr()*6.2832,d=1200+cr()*1400,r=cotonR(cr,120,560,1.4);
       cotonPose(p.x+Math.cos(a)*d,p.y-260+cr()*700,p.z+Math.sin(a)*d,r,cotonKind(cr,COTON_POIDS.loin),cr);}
@@ -7182,11 +7187,12 @@ function cotonTick(cam){ // à chaque rendu de la scène : ce qui est dans le ch
   const t00=performance.now(),I=COTON.I,Ls=COTON.L,n=COTON.n,tt=(t00-COTON_T0)*.001;for(let j=0;j<Ls.length;j++)Ls[j].n=0;
   COTON.pv.multiplyMatrices(cam.projectionMatrix,cam.matrixWorldInverse);COTON.fr.setFromProjectionMatrix(COTON.pv);
   const pl=COTON.fr.planes,cx=cam.position.x,cy=cam.position.y,cz=cam.position.z;
+  const fF=(LVL.cur&&LVL.cur.id==='orage'&&scene.fog)?scene.fog.far*1.02:1e9; // (2026-09-29) L'ORAGE : sa brume est à ~1 km — un nuage ENTIÈREMENT au-delà est de la brume pure : pas envoyé (mesuré : 407k triangles → voir CLAUDE.md) ; l'éclair qui ouvre la brume les fait revenir
   for(let j=0;j<n;j++){const o=j*COTON_ST,r=I[o+3],h=I[o+7],ph=I[o+6],k=I[o+5],S=COTON.S[k];
     const x=I[o]+Math.sin(tt*.05+ph)*6,z=I[o+2]+Math.cos(tt*.04+ph)*6,yc=I[o+1]+S.base*r*I[o+9]+h*.5,R=Math.max(r*1.08*I[o+8],h*.56); // la ouate DÉRIVE au vent
     let vis=true;for(let q=0;q<6;q++){const P9=pl[q];if(P9.normal.x*x+P9.normal.y*yc+P9.normal.z*z+P9.constant<-R){vis=false;break;}}
     if(!vis)continue;
-    const dx=x-cx,dy=yc-cy,dz=z-cz,d=Math.sqrt(dx*dx+dy*dy+dz*dz),sg=COTON.FAC*R*(S.fin||1)/Math.max(1,d-R*.5); // les segments qu'il faut pour que la facette ne se voie pas — (v4) à la taille de SES bourgeons
+    const dx=x-cx,dy=yc-cy,dz=z-cz,d=Math.sqrt(dx*dx+dy*dy+dz*dz);if(d-R>fF)continue;const sg=COTON.FAC*R*(S.fin||1)/Math.max(1,d-R*.5); // les segments qu'il faut pour que la facette ne se voie pas — (v4) à la taille de SES bourgeons
     const Lq=Ls[k*4+(sg<=7?0:sg<=10?1:sg<=16?2:3)];Lq.i[Lq.n]=j;Lq.d[Lq.n]=d;Lq.n++;}
   let nN=0,nF=0,tri=0;
   for(let q=0;q<Ls.length;q++){const Lq=Ls[q],im=COTON.im[q],A=im.instanceMatrix.array,ii=Lq.i,dd=Lq.d,m=Lq.n;
@@ -7317,12 +7323,13 @@ function buildClouds(rr){
   const stratAz=(k,K)=>((k+.15+cr()*.7)/K)*6.2832; // idem pour les azimuts : le ciel est peuplé TOUT AUTOUR
   // bancs SUR la route — espacés : on en traverse PARFOIS, jamais en continu. Un MUR intégral (la caisse
   // disparaît dans le blanc) reste l'exception spectaculaire, pas la règle.
-  for(let sp=1600+cr()*900;sp<L-300;sp+=1900+cr()*1400){ // (2026-09-26, user : « moins de nuages en contact avec la route ») : ~2× plus rares
-    if(cr()<.4)continue; // 2 bancs sur 5 sautés
+  const OR9=!!(LVL.cur&&LVL.cur.id==='orage'&&!LVL.cur.camp); // (2026-09-29) L'ORAGE : « plein de gros nuages sur la route » — le niveau dur se roule À L'AVEUGLE
+  for(let sp=(OR9?520:1600)+cr()*900;sp<L-300;sp+=OR9?560+cr()*620:1900+cr()*1400){ // (2026-09-26, user : « moins de nuages en contact avec la route ») : ~2× plus rares — à l'ORAGE ~3× plus serrés
+    if(cr()<(OR9?.1:.4))continue; // 2 bancs sur 5 sautés (orage : 1 sur 10)
     frameAt(sp,F);
-    const mega=cr()<.1;
+    const mega=cr()<(OR9?.32:.1);
     mkCloud(cldV1.copy(F.p).addScaledVector(F.n,mega?6+cr()*4:2.5+cr()*2),
-      mega?40+cr()*30:18+cr()*14,{onRoad:true,dense:true},cr);
+      mega?(OR9?48+cr()*34:40+cr()*30):(OR9?24+cr()*16:18+cr()*14),{onRoad:true,dense:true},cr);
   }
   // CHAMPS de nuages de VOL : les coussins vont par 2-3, échelonnés le long de la piste —
   // une vraie FENÊTRE de recharge d'airtime qu'on lit de loin, pas des miettes perdues
@@ -8056,10 +8063,10 @@ function genCtrl(rnd,startPos,startPhi){
   const LEN=14400*(1+Math.min(1.5,(LV-1)*.55)); // (2026-09-25, user : « double la longueur de chaque niveau ») 7200 → 14400 — et plus longues encore à haute vitesse
   // ---- LE VIRAGE À FILET (voir FILET) : NUAGES seulement ; son hasard a SON générateur (un seul tirage de `rnd`, et seulement ici) ----
   FILETMARK.length=0;
-  const FILON=FILET.on&&typeof LVL!=='undefined'&&LVL.cur&&LVL.cur.id==='nuages'&&!LVL.cur.piste&&!(typeof PARK!=='undefined'&&PARK.on);
+  const FILON=FILET.on&&typeof LVL!=='undefined'&&LVL.cur&&(LVL.cur.id==='nuages'||LVL.cur.id==='orage')&&!LVL.cur.piste&&!(typeof PARK!=='undefined'&&PARK.on);
   const rf=FILON?mulberry32((rnd()*4294967296)>>>0):null;
   const visF=!FILON?0:FILET.visite!=null?FILET.visite:Math.floor(Math.max(0,(runStats.zones|0)-(LVL.tutoZ|0))/3); // la 1re visite du niveau NUAGES, la 2e…
-  const filMax=FILON?FILET.par[Math.min(FILET.par.length-1,visF)]:0;
+  const filMax=!FILON?0:LVL.cur.id==='orage'?1:FILET.par[Math.min(FILET.par.length-1,visF)]; // (2026-09-29) L'ORAGE, le niveau dur : UN filet
   let filN=0,filNext=900*LV;
   const filet=()=>{
     const sg=rf()<.5+hand*.22?1:-1,R=(95+rf()*45)*RS,th=(55+rf()*20)*Math.PI/180,Re=R+ROAD_HALF;
@@ -8776,7 +8783,7 @@ function buildTrack(seed){
      VILLE = le rose néon #f24aa0, ORBITE = le cyan froid #5ee6ff. ⚠ Le TIRAGE reste (il nourrit le parc, l'auto-école, la carrière
      hors de ces trois mondes) : le flux rnd de la piste ne bouge pas d'un pas. */
   const accR=ACCENTS[Math.floor(rnd()*ACCENTS.length)],idA9=LVL.cur&&!PARK.on?LVL.cur.id:'';
-  const accC=new THREE.Color(idA9==='nuages'?0x3ee6f0:idA9==='ville'?0xf24aa0:idA9==='espace'?0x5ee6ff:accR);
+  const accC=new THREE.Color(idA9==='nuages'?0x3ee6f0:idA9==='ville'?0xf24aa0:idA9==='espace'?0x5ee6ff:idA9==='orage'?0x8a7dff:accR); // (2026-09-29) L'ORAGE : le violet électrique de l'éclair
   ROAD_U.uAcc.value.copy(accC); // (2026-09-26) le bitume mouillé reflète aussi l'accent de la zone
   // BANDES NÉON (dessus + dessous) : les rails de Vice City — couleur d'accent de la zone
   {const ep=new Float32Array(4*NP*6),el=new Float32Array(4*NP*6);let q=0; // (passe perf) les QUATRE rails dans un seul maillage, une seule matière (le caméléon les peignait tous pareil), découpé en tranches — (chasse aux gels) écrits en place
@@ -10385,6 +10392,7 @@ Object.assign(I18N,{"FRÉNÉSIE": "FRENZY", "FRÉNÉSIE !": "FRENZY!", "RESTE DA
 /* (2026-09-28, passe de lancement) CE QU'UN JOUEUR ANGLOPHONE LISAIT ENCORE EN FRANÇAIS, relevé à l'écran par un banc qui note chaque
    texte affiché pendant 3 minutes de jeu : la liste d'aura, les trois pouvoirs, la fête des ordres de grandeur, la meute du Survivant. */
 Object.assign(I18N,{'RATÉ ! GARDE LE NITRO, VISE LE DESSUS':'MISSED! HOLD NITRO, AIM FOR THE TOP'});Object.assign(I18N_ZH,{'RATÉ ! GARDE LE NITRO, VISE LE DESSUS':'失败！按住氮气，瞄准路面'});
+Object.assign(I18N,{'L\'ORAGE':'THE STORM','TEMPÊTE':'STORM'});Object.assign(I18N_ZH,{'L\'ORAGE':'暴风雨','TEMPÊTE':'风暴'}); // (2026-09-29) le 4e niveau
 Object.assign(I18N,{'VIRAGE A FOND':'FULL THROTTLE TURN','RATTRAPE':'CAUGHT','RATTRAPE !':'CAUGHT!'}); // (2026-09-29) LA ROUTE QUI TE RATTRAPE
 Object.assign(I18N,{'FRÔLÉ':'CLOSE CALL','RÉCOLTE':'COIN RUSH','RAFALE':'FRUIT RUSH','VIRAGE SERRÉ':'TIGHT TURN','MÉTÉORE':'METEOR',
   'AU CHEVEU':'BY A HAIR','ARRACHÉE':'CLUTCH','EN FEU !!':'ON FIRE!!','DEMENT !!!':'INSANE!!!','ÇA CHAUFFE !':'HEATING UP!',
@@ -10962,6 +10970,19 @@ const BIO_ETAL0={wb:[1.02,.985,1.03],sh:[.004,-.008,.062],hi:[.052,.008,-.014],c
 // (vague 3) ETAL_JOUR retiré : le jour des NUAGES reprend l'étalonnage d'origine (BIO_ETAL0), voir le haut de BIOMES
 Object.assign(BIOMES.pluie,{bloomS:.55,bloomT:.88,rimK:1,rimS:.55}); // VILLE : l'étalonnage d'avant (déjà au niveau) — le liseré vient du NÉON de contre-jour
 Object.assign(BIOMES.espace,{fog:[.016,.02,.055],wb:[.98,1,1.04],sh:[.008,.008,.03],hi:[.03,.03,.03],con:1.28,bloomS:.50,bloomT:.90,vigK:.42,vigC:[.05,.012,.09],rimK:0,rimS:.62}); // ORBITE : le vide NOIR et froid, un contraste dur ; la brume n'est plus le noir absolu mais le noir bleuté #04050e de la bible (le lointain de la route s'y fond, et la brillance d'horizon du bitume, qui en prend la couleur, n'est plus nulle)
+/* LA TEMPÊTE (2026-09-29) — le ciel du niveau L'ORAGE (jamais tiré au hasard) : les NUAGES du niveau 1 dans le noir — ardoise au zénith,
+   brume proche et sombre (on voit la route à ~1 km, moins dans les bancs : l'ÉCLAIR ouvre le brouillard, voir orageTick), pas de soleil
+   (la pluie l'éteint), les nuages éclairés d'un argent FROID (volSun bleuté) sur des flancs d'ardoise, le liseré des caisses vient du néon.
+   Clone de l'ORAGE VIOLET SANS la ville peinte à l'horizon (city 0). */
+BIOMES.tempete=Object.assign(JSON.parse(JSON.stringify(BIOMES.orage)),{nm:'TEMPÊTE',
+  skyMul:[.34,.38,.60],skyLift:[.012,.014,.032],sunTint:[.75,.78,.95],sunHalo:0,city:0,stars:0,moon:0,
+  fog:[.13,.14,.22],fogN:140,fogF:1050,
+  hemiS:[.42,.45,.62],hemiG:[.06,.06,.11],hemiI:.62, sunC:[.66,.70,.92],sunI:.8,
+  fillC:[.30,.42,.75],fillI:.32, kickC:[.55,.46,1.0],kickI:.26,
+  volSun:[1.02,1.10,1.42],volSky:[.30,.33,.50],volGnd:[.08,.08,.14],volAmb:.5,
+  expo:.86,sat:1.2,
+  env:[[0,'#161a2c'],[.3,'#232a44'],[.48,'#3a4260'],[.58,'#566080'],[.66,'#20263c'],[1,'#0c0e18']],eS1:[170,190,255,.30],eS2:[110,140,220,.25],
+  bloomS:.6,bloomT:.85,vigK:.6,vigC:[.02,.02,.07],rimK:.7,rimS:.5,fogIn:[.33,.35,.46],fogCj:[.28,.29,.40]});
 for(const k9 in BIOMES)for(const f9 in BIO_ETAL0)if(BIOMES[k9][f9]==null)BIOMES[k9][f9]=JSON.parse(JSON.stringify(BIO_ETAL0[f9]));
 // Le tirage du jour, dans l'ordre des heures (+ l'ORAGE en joker météo) — la NUIT ne se tire pas,
 // elle se MÉRITE (3 portails). 9 ambiances en rotation : deux parties ne se ressemblent plus.
@@ -11058,6 +11079,7 @@ const NIVEAUX=[ // ⚠ ORDRE (2026-09-25 au soir, user) : « remets le niveau da
   {id:'nuages',nm:'MER DE NUAGES',        bio:['matin','midi','aprem'],planete:0,   espace:0,pluie:0,cielMusical:false,route:0,  sheen:.06},
   {id:'ville', nm:'AU-DESSUS DE LA VILLE',bio:['pluie'],               planete:0,   espace:0,pluie:1,cielMusical:true, route:.7, sheen:.12}, // route plus CLAIRE : elle se détache de la ville sombre (user) ; sheen : bitume mouillé par la pluie
   {id:'espace',nm:'EN ORBITE',            bio:['espace'],              planete:1.35,espace:1,pluie:0,cielMusical:false,route:.38,sheen:.12}, // (2026-09-27) route .9 → .38 : le SOLEIL de l'orbite éclaire désormais la route (lumière rasante de côté, voir orbiteLumiere) — la clarté ajoutée n'a plus à tout porter. Avant (vague 2) : (2026-09-26, vague 2) route .2 → .9 : la route (#050212 sur du noir) DISPARAISSAIT — MESURÉ : sous le contraste dur de l'orbite (1,28) tout ce qui sort de l'ACES sous ~.11 tombe au noir, .4 ne suffisait pas (#000008) ; à .9 le ruban se lit, encre indigo #0f0737 sur le vide
+  {id:'orage', nm:'L\'ORAGE',               bio:['tempete'],             planete:0,   espace:0,pluie:1,cielMusical:false,route:.22,sheen:.16}, // (2026-09-29, Sacha) le 4e : les NUAGES sous l'ORAGE — le niveau DUR (voir « L'ORAGE » : tempete, bancs, plafond, éclairs)
 ];
 const LVL={cur:null,n:0,k:1,dur:4,
   espace:0,espaceDe:0,espaceA:0,       // uSpace : 0 = le ciel de toujours, 1 = le noir étoilé de l'orbite
@@ -11097,7 +11119,7 @@ function lvlBiome(){ // le ciel du niveau : tiré dans SA liste, jamais deux foi
 }
 function lvlGo(dur){ // les deux leviers HORS biome (uSpace, taille de planète) suivent le même fondu que le ciel
   const c=LVL.cur;
-  LVL.espaceDe=LVL.espace;LVL.planeteDe=LVL.planete;LVL.pluieDe=LVL.pluie;LVL.villeDe=LVL.ville;LVL.villeA=c&&c.id==='ville'?1:0;LVL.merDe=LVL.mer;LVL.merA=c&&c.id==='nuages'&&!c.sansNuages?1:0;LVL.routeDe=LVL.route;LVL.sheenDe=LVL.sheen;
+  LVL.espaceDe=LVL.espace;LVL.planeteDe=LVL.planete;LVL.pluieDe=LVL.pluie;LVL.villeDe=LVL.ville;LVL.villeA=c&&c.id==='ville'?1:0;LVL.merDe=LVL.mer;LVL.merA=c&&(c.id==='nuages'||c.id==='orage')&&!c.sansNuages?1:0;LVL.routeDe=LVL.route;LVL.sheenDe=LVL.sheen;
   LVL.espaceA=c?c.espace:0;LVL.planeteA=c?c.planete:0;LVL.pluieA=c?c.pluie:0;LVL.routeA=c&&c.route!=null?c.route:0;LVL.sheenA=c&&c.sheen!=null?c.sheen:.1; // (planète : 0 par défaut — plus de Terre là où le niveau ne la demande pas)
   LVL.k=0;LVL.dur=dur||4;
   if(LVL.dur<=.05)lvlStep(1);
@@ -11134,7 +11156,7 @@ function lvlPlanete(dt){
 function lvlNuageOk(o){ // quelles familles de nuages chaque monde garde (lu par mkCloud)
   const c=LVL.cur;if(!c)return true;
   if(c.sansNuages)return false; // un niveau au ciel NU (l'aurore d'apprentissage) : pas un seul nuage
-  if(o.sea&&c.id==='nuages'&&!MER_MOTIF)return false; // (2026-09-28) l'ABÎME BLEU : plus de nappes de nuages plates sous la route (les cumulus du ciel de coton restent)
+  if(o.sea&&(c.id==='nuages'||c.id==='orage')&&!MER_MOTIF)return false; // (2026-09-28) l'ABÎME BLEU : plus de nappes de nuages plates sous la route (les cumulus du ciel de coton restent)
   if(c.camp&&c.id==='nuages')return campNuageOk(o); // (2026-09-27) la CAMPAGNE NUAGES : chaque niveau choisit son ciel, et les bancs de la route sont posés à la main (la campagne VILLE, elle, garde la règle de la ville : zéro nuage)
   if(c.id==='espace')return false; // (2026-09-26, user : « pas de nuage dans l'espace ») — même plus les coussins de vol
   if(c.id==='ville')return false;                                        // la VILLE n'a AUCUN nuage (user, 2026-09-25) : on la voit de haut en bas, jusqu'à l'horizon
@@ -28843,6 +28865,9 @@ window.dbgCoupe=function(i,ang,v,garderS){ // (dev) poser la caisse sur leg1 de 
   return {s:Math.round(s),lat:+lat.toFixed(1),cote:c.side,ecart:+c.gap.toFixed(1)};};
 window.dbgSeulsBancs=function(on){for(const c of CLOUDS)c.g.visible=on?!!c.camp:true;const c=CLOUDS.find(function(c){return c.camp;});if(!c)return null;frameAt(CAMP.bancs[0]?CAMP.bancs[0].s:0,GF);c.mesh.geometry.computeBoundingBox();const bb=c.mesh.geometry.boundingBox;return {bb:[bb.min.toArray().map(Math.round),bb.max.toArray().map(Math.round)],sc:c.g.scale.toArray(),mvis:c.mesh.visible,mat:c.mesh.material.type+' op'+c.mesh.material.opacity+' side'+c.mesh.material.side,layers:c.mesh.layers.mask,parent:!!c.g.parent,c:c.g.position.toArray().map(Math.round),route:GF.p.toArray().map(Math.round),n:GF.n.toArray().map(function(v){return +v.toFixed(2);}),r:c.r,ry:c.ry,car:carGroup.position.toArray().map(Math.round),cam:camera.position.toArray().map(Math.round)};}; // (dev) isoler les bancs dessinés
 window.dbgFwd=function(){const v=CV1.set(0,0,1).applyQuaternion(carGroup.quaternion);return [v.x,v.y,v.z];}; // (dev) le cap monde de la caisse (pour cadrer une photo)
+window.dbgOrage=function(q){ // (2026-09-29) L'ORAGE du mode principal : l'état des éclairs · dbgOrage('eclair') en fait tomber un tout de suite
+  if(q==='eclair'){if(!(LVL.cur&&LVL.cur.id==='orage')||CAMP.n)return 'pas au niveau orage';eclFrappe();ECL.t=6;}
+  return {lieu:LVL.cur&&LVL.cur.id,flash:+CAMP_FLASH.toFixed(3),brumeOuverte:Math.round(CAMP_FOG),prochain:+ECL.t.toFixed(2),pluie:+LVL.pluie.toFixed(2),brume:[Math.round(scene.fog.near),Math.round(scene.fog.far)],bancs:CLOUDS.filter(function(c){return c.onRoad||c.mesh&&c.mesh.userData.trav;}).length,nuages:CLOUDS.length};};
 window.dbgEclair=function(){if(CAMP.n!==9)return 'pas d orage';eclFrappe();ECL.t=6;return {k:ECL.k};}; // (dev) un éclair tout de suite (niveau 9)
 window.dbgFumee=function(d){CAMP.dmg=+d||0;CAMP.palier=0;return CAMP.dmg;}; // (dev) forcer les dégâts de la poursuite (la fumée suit)
 window.dbgCampagne=function(n,b){ // (dev) lancer un niveau de carrière depuis la console : dbgCampagne(5) (NUAGES), dbgCampagne(3,1) (VILLE)
@@ -32713,6 +32738,7 @@ function loop(now){
     AIP.tick(dt); // …et pendant ce temps, les IA T'OBSERVENT (même hors mode Survivant)
     debTick(dt); // (2026-09-28) L'ORBITE : la pluie de débris (tous les niveaux dans l'espace, hors parc)
     campTick(dt); // (2026-09-27) LA CAMPAGNE NUAGES : tirs et fumée (5), raccourcis (6/10), orage (9), caisse-nuage (10)
+    if(!CAMP.n&&!PARK.on&&LVL.cur&&LVL.cur.id==='orage')orageTick(dt); // (2026-09-29) L'ORAGE du mode principal : les éclairs du niveau 9 (ECL) — l'éclair RÉVÈLE : il ouvre la brume (CAMP_FOG), le tonnerre suit ; remis à zéro à chaque piste par campDebut
     { // (perf, lot 4) la jauge de style : écrite seulement quand elle change (classe au changement d'état, largeur au pour-mille)
      const cl9=fever>0?'fever':feverArmed?'armed':'',w9=(Math.round((fever>0?Math.min(1,fever/10)*100:styleM)*10)/10)+'%';
      if(elStyleF.className!==cl9)elStyleF.className=cl9;if(loop._stW!==w9){loop._stW=w9;elStyleF.style.width=w9;}}

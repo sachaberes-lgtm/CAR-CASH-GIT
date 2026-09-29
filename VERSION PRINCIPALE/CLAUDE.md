@@ -1,5 +1,26 @@
 # CASH CAR — guide projet pour Claude Code
 
+## L'ORAGE — LE 4e NIVEAU, LE NIVEAU DUR (2026-09-29, nuit — session GRAPHISME, avec l'accord de GAMEPLAY et de la Campagne)
+- Sacha : « rajoute un niveau après les 3 premiers : le biome nuages mais avec un orage, beaucoup plus de nuages, de la pluie, des
+  éclairs et plein de gros nuages sur la route — ce doit être le niveau dur, ambiance sombre dans le même style que le premier niveau ».
+- **`NIVEAUX`** : `{id:'orage', nm:"L'ORAGE", bio:['tempete'], pluie:1, …}` en 4e — le cycle devient NUAGES → VILLE → ORBITE → ORAGE
+  (`zn % NIVEAUX.length`). L'orage fait comme les nuages pour l'abîme bleu (`LVL.merA`), les nappes (`lvlNuageOk`), les virages à filet
+  (mais UN seul : `filMax`), et prend l'accent violet électrique `0x8a7dff`. `pluie:1` suffit pour : le rideau de pluie (PLUIE), le
+  bitume mouillé, le soleil éteint, les plots rétroréfléchissants, la lampe de caisse de nuit.
+- **Le biome `tempete`** (jamais tiré au hasard) : clone de l'ORAGE VIOLET SANS la ville peinte (city 0) — ardoise au zénith, brume
+  proche 140-1050 m, nuages éclairés d'un argent FROID (volSun bleuté → la lumière de peintre les fait ardoise), liseré du néon.
+- **Plein de gros nuages sur la route** (`buildClouds`, `OR9`) : les bancs `onRoad` tous les 560-1180 m (1900-3300 ailleurs), 1 sur 10
+  sauté (2 sur 5), 32 % de méga-bancs (10 %), plus gros — ~29 bancs par piste (≈ 4 aux nuages). Le hasard reste sur `cr`.
+- **Plus de nuages** (`buildCoton`, `OR`) : ×1,25 sur les couronnes + un PLAFOND bas (26 grands rouleaux/humilis 110-240 m au-dessus de
+  la route, sur elle et autour). ⚠ MESURÉ : 407k triangles envoyés — tout le lointain était dessiné, noyé dans la brume. `cotonTick`
+  ne l'envoie plus à l'orage (un nuage entièrement au-delà de `fog.far`) → 60-105k, comme les nuages. `COTON.cap` 480 → 560.
+- **Les éclairs** : ceux du niveau 9 de la campagne (`orageTick` : ECL, eclFrappe, tonnerre retardé selon la distance), appelés par la
+  boucle quand `LVL.cur.id==='orage'` et JAMAIS en campagne (un seul écrivain d'ECL/CAMP_FLASH). L'ÉCLAIR RÉVÈLE : le flash monte
+  l'exposition et OUVRE la brume (`CAMP_FOG` : 140/1050 → ~500/1800 m) — dans le noir et les bancs, c'est lui qui montre la route.
+  Remis à zéro à chaque piste par `campDebut` et à la mort par `campStop`. Hook : `dbgOrage()` / `dbgOrage('eclair')`.
+- 0 programme lié en arrivant à l'orage (banc `orage.js` : trois portails, route/éclair/vol ×3). Pas de morceau de musique propre
+  (`MUSIC_LIEU` n'a pas d'orage : la radio joue) — à fournir par Sacha / la session SON.
+
 ## LES NUAGES v6 — PLUS DIFFÉRENTS LES UNS DES AUTRES (2026-09-29, nuit — session GRAPHISME)
 - Sacha : « retravaille les nuages, ils ne sont pas assez différents les uns des autres ». Trois causes vues sur captures : une seule
   famille de silhouettes (base + tours), un seul GRAIN de bourgeons, une seule teinte.
