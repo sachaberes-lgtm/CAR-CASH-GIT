@@ -1,5 +1,21 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE SILLAGE DE NITRO v3 + LE BOUCLIER RETIRÉ (2026-09-29, nuit — session GAMEPLAY)
+- Sacha : « retravaille la traînée de nitro : beaucoup plus belle, lisse et lumineuse, deux longues traînées derrière — il faut que ce
+  soit magnifique ». Les deux rubans DU JOUEUR (`trailL`/`trailR`) sont désormais le SILLAGE v3 (`mkSillage`, `sillageStep`, réglages
+  `SIL`) ; `mkTrail`/`trailStep` restent ceux de la meute, du fantôme et du fourgon. Le sillage vit dans le MONDE ~1,6 s (un point tous
+  les 0,6 m, 45/s au plus, Catmull-Rom entre eux) : il s'étire en arc dans les virages et suit la parabole en vol. Deux couches dans un
+  seul ruban (atlas `SIL_TEX`) : un CŒUR fin qui blanchit à la tuyère, un HALO doux qui s'évase ; le feu REFROIDIT vers le rouge-magenta
+  en vieillissant. Chaque point garde sa couleur et son intensité : lâcher la nitro laisse le sillage s'éteindre dans l'air.
+- ⚠ Les deux critiques d'avant tiennent : la COUPE à l'écran reste (ce qui PEND sous la tuyère est coupé, ce qui s'écarte sur le côté
+  vit : `kx`) — au sol jusqu'au quart bas de l'écran (`cutB` .5), en vol presque rien (`cutV` .16 : deux traits sous une caisse en l'air,
+  ce sont deux FILS) ; le cœur s'éteint avant le halo (`cutK`). Même matériau que les rubans d'avant : 0 programme compilé en course.
+  Banc `sil.js`/`sil2.js`/`sil3.js` ; hook `dbgSillage()` (et `dbgSillage('VIE',2)` à chaud).
+- Sacha : « supprime le pouvoir bouclier ». Il reste CINQ pouvoirs (n a v m x) ; ses parts de tirage sont rendues aux autres
+  (`pwrPoids`), le 1er cristal offert au débutant est un AIMANT. Plus de chute pardonnée par un cristal, plus de plots « DÉMOLI », plus
+  d'huile neutralisée. Le seul filet qui reste est celui, en OPTION, du MODE FACILE (`facileSauve`, `facFilet`). Banc `bou.js`,
+  hook `dbgPwr('cristaux')`. Les sons `pwr.bouclier*` et les traductions BOUCLIER ne sont plus appelés (laissés à la session SON).
+
 ## L'ENTRE-DEUX DE LA DARK TRIAD + NITROOO À 2 s (2026-09-29, soir — session GAMEPLAY)
 - Sacha : « dark triad trop facile, trouve un entre-deux entre maintenant et avant ». LOI 17 de `FLOW2` (commentaire du bloc) : chaque réglage
   entre la v5 et la loi 16, montée resserrée d'un cran — cel .55/.42/.30/.25, gate .925, répit 2,75, fuite 2,4/2,8/3,2/2,4, pente .28,
