@@ -1,5 +1,39 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE DRAGON DE NITROOO + LA VITESSE EXPONENTIELLE (2026-09-29, nuit — session GRAPHISME, avec l'accord d'UHD qui a fait NITROOO)
+Sacha : « NITROOO devient un dragon chinois de feu, de plus en plus grand et visible à chaque palier de vitesse » · « il faut qu'il soit
+vraiment beau et que ça se suive : commencé au sol, dans les airs il doit se poursuivre, pas de barrière » · « la progression de vitesse
+doit être exponentielle ; à chaque palier de 10 % ça doit rajouter un compartiment au corps du dragon ».
+- **LA VITESSE EXPONENTIELLE** (bloc NITROOO d'UHD) : `NTR.boost = (1+NTR_BOOST)^t − 1` — ×1,10 COMPOSÉ par seconde tenue (+10 %, +21 %,
+  +33 %… +159 % à 10 s), plafond de sûreté `NTR_BOOST_MAX=4` (×5, atteint vers 17 s). Le « +N % » de chaque palier suit la même loi. ⚠ Le
+  plafond est un garde-fou (au-delà la piste défile plus vite que le viseur et que les collisions balayées) : on peut le lever, pas le supprimer.
+- **LE DRAGON** (`DRG`, `dragonInit`, `dragonTick` appelée juste après `nitroooTick`, `dragonEchine`, `dragonBande`, `window.dbgDragon`) :
+  · UN seul maillage, DEUX groupes de matériaux, tous du programme des RUBANS DE TRAÎNÉE (MeshBasicMaterial map + vertexColors + transparent +
+    DoubleSide + fog:false — mélange, opacité, couleur et texture ne comptent pas dans la clé de programme) : le CORPS PEINT (`DRG_TEX`, écailles
+    rouge-or en mélange normal, lisible sur le ciel rose comme sur l'orage) et le FEU additif (`DRG_FEU` : halo, crête, moustaches, flammes de
+    queue). Bandes face caméra, fondu près de la caméra (sinon voile plein écran). La TÊTE est un sprite PIXEL-ART (`DRG_TETE`, 2 images :
+    gueule fermée / ouverte au rugissement, bois, œil d'or à pupille fendue, crinière de flammes, barbe), retournée par la texture selon le
+    côté où elle regarde, `depthTest:false` + lueur. **0 programme lié pendant tout le banc**.
+  · **UN COMPARTIMENT PAR PALIER** : `1 + NTR.pal` tronçons (lissé : le nouveau POUSSE à la queue), séparés par des ANNEAUX D'OR ; le tronçon
+    neuf s'embrase et le dragon RUGIT (gueule ouverte, gerbe de feu). Il grossit jusqu'à 10 tronçons (`g`), au-delà il s'allonge encore.
+  · **ÇA SE SUIT** : son repère est la DIRECTION DU MOUVEMENT lissée (pas la caisse — il ne vrille pas avec elle, il ne casse ni au décollage
+    ni à la pose) et le HAUT DE L'ÉCRAN lissé (`camUp` : la normale de la face au sol — sur la face du DESSOUS le haut du monde est DANS la
+    dalle —, le toit en vol). NITROOO commencée au sol CONTINUE en vol et inversement (`nitroooPart` sort si `NTR.on`, pas de ré-annonce ni
+    de repaiement) : paliers, boost et tronçons ne repartent pas de zéro.
+  · **LA DANSE DU DRAGON** : vu par la poursuite (caméra basse, derrière), un corps tendu vers l'avant se voit en raccourci et une onde en
+    travers s'aplatit — il TOURNE en grande ronde devant le capot (la ronde grandit avec les tronçons), avec des BOSSES verticales ; sa tête
+    passe de profil d'un bord à l'autre.
+  · **LE CADRAGE** : un asservissement doux (caméra de l'image d'avant) place le centre de la ronde au TIERS HAUT de l'écran (`DRG.yN` : .3 en
+    portrait, .2 en paysage — le flou radial du boost fuit vers les bords) : au-dessus des textes qui naissent au milieu, sous le bandeau.
+  · NITRO INFINIE : dragon VIOLET clair (`DRG.VIO`). Fin, recommencer, quitter : `nitroooVide()` (tête de `resetGame` et `endGame`) éteint
+    boost, plasma et dragon — ils restaient figés sur l'écran de fin.
+- ⚠ **LEÇON** : un `//` en milieu de ligne avale TOUT ce qui suit sur la ligne — `scene.add(DRG.tete)` écrit derrière un commentaire n'a jamais
+  tourné (le sprite existait, invisible : `dbgDragon('ecran')` → `par:false`). Commentaire au milieu = `/* */`.
+- Aussi dans ce lot (audit GAMEPLAY) : `eclVide()` rend l'exposition et la brume (mourir pendant un éclair laissait l'écran de fin surexposé) ;
+  la bannière de L'ORAGE a sa promesse (`pr` : « LA ROUTE SE CACHE : L'ECLAIR LA MONTRE », EN/ZH).
+- Bancs : `drg.js <racine> <préfixe> [--pay] [--inf]` (photos aux paliers 1/3/6/10, en vol, à la pose, au lâcher + positions écran de la tête,
+  du milieu, de la queue), `dbgDragon()` (tronçons, devant, haut, rayon), `dbgDragon('tete')` (la texture), `dbgDragon('ecran')`.
+
 ## L'ORAGE — LE 4e NIVEAU, LE NIVEAU DUR (2026-09-29, nuit — session GRAPHISME, avec l'accord de GAMEPLAY et de la Campagne)
 - Sacha : « rajoute un niveau après les 3 premiers : le biome nuages mais avec un orage, beaucoup plus de nuages, de la pluie, des
   éclairs et plein de gros nuages sur la route — ce doit être le niveau dur, ambiance sombre dans le même style que le premier niveau ».
