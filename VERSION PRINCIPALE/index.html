@@ -21779,47 +21779,112 @@ const crV1=new THREE.Vector3(),crV2=new THREE.Vector3();
    portrait, on ne voit plus trois têtes d'épingle.
    Les gerbes et le sillage vivent DANS le repère du banc (`dolPod`) : ils suivent la caisse lancée à 400 km/h au lieu de rester
    plantés dans le ciel derrière elle. */
-const DOL_L=3.2, // longueur du corps (unités de Léo) — le nez en +x
-  DOL_RP=[[0,.015],[.05,.045],[.1,.085],[.145,.2],[.21,.32],[.33,.4],[.48,.365],[.63,.275],[.78,.175],[.9,.1],[1,.05]]; // (u, rayon) du nez au pédoncule
-function dolRad(u){for(let i=0;i<DOL_RP.length-1;i++){if(u<=DOL_RP[i+1][0]){const a=DOL_RP[i],b=DOL_RP[i+1];
-  let t=(u-a[0])/(b[0]-a[0]);t=.5-.5*Math.cos(t*Math.PI);return a[1]+(b[1]-a[1])*t;}}return .05;}
-function mkDolphinGeo(){ // corps : anneaux le long d'une épine, dos cyan → ventre nacré peint DANS les sommets (48×20 au lieu des 70×26 de l'aperçu : téléphone)
-  const L=DOL_L,RINGS=48,SEG=20,P=[],C=[],idx=[],cT=new THREE.Color(0x39b6e6),cS=new THREE.Color(0x7fd8f5),cB=new THREE.Color(0xf2ffff);
-  for(let i=0;i<RINGS;i++){const u=i/(RINGS-1),x=L*.5-u*L,r=dolRad(u),
-      arch=.34*Math.sin(Math.PI*Math.min(1,u*1.02)),droop=u<.16?(.16-u)*1.4:0,sy=arch-droop; // dos bombé, rostre incliné vers le bas
-    for(let j=0;j<=SEG;j++){const a=j/SEG*Math.PI*2;let py=Math.cos(a)*r*1.1;const pz=Math.sin(a)*r;if(py<0)py*=.86; // ventre un peu aplati
-      P.push(x,sy+py,pz);const tt=(Math.cos(a)+1)/2,c=cB.clone().lerp(cS,Math.min(1,tt*1.5));
-      c.lerp(cT,Math.max(0,tt-.55)*2.2);C.push(c.r,c.g,c.b);}}
-  const rw=SEG+1;for(let i=0;i<RINGS-1;i++)for(let j=0;j<SEG;j++){const a=i*rw+j,b=a+1,c=a+rw,d=c+1;idx.push(a,c,b,b,c,d);}
-  const nI=P.length/3;P.push(L*.5+.02,-.224,0);C.push(cB.r,cB.g,cB.b);for(let j=0;j<SEG;j++)idx.push(nI,j+1,j); // le bout du rostre, fermé
-  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));
-  g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));g.setIndex(idx);g.computeVertexNormals();return g;
+/* ---- LES DAUPHINS, NOUVEAU DESIGN (2026-09-29, Sacha : « améliore le design des dauphins ») ----
+   Le dauphin porté de Léo était un tube cyan pâle sous un halo additif laiteux, nageoires en PLAQUES extrudées : sur le ciel de jour il
+   se fondait dans le bleu, de nuit il bavait. Il est refait en LOW-POLY NÉON, dans la DA des caisses à facettes :
+   · UNE géométrie par dauphin (corps, dorsale, pectorales, caudale et yeux FUSIONNÉS : 1 appel de dessin au lieu de 8, ~790 triangles au
+     lieu de ~4 200), facettes à plat et UNE couleur par facette — la robe se lit comme un logo : dos indigo, CAPE qui plonge en V sous la
+     dorsale (le dessin du dauphin commun), flanc avant ROSE Vice City, flanc arrière CYAN, ventre nacré,
+     nageoires qui virent au néon à la pointe ; le néon, c'est une couleur « trop pleine » (> 1) que le shader allume ;
+   · il NAGE : l'ondulation dos-ventre du corps entier (la tête reste droite, le pédoncule pompe, la caudale suit la pente de la vague)
+     et la cambrure qui épouse l'arc du bond vivent dans le vertex shader — zéro coût CPU, la géométrie reste partagée ;
+   · il SORT DE L'EAU : la « surface » de la gerbe le coupe au pixel, avec une ligne d'écume lumineuse là où il la traverse — il ne
+     gonfle plus depuis un point au milieu de la gerbe ;
+   · un liseré néon (rose par-dessus, cyan par-dessous) dessine sa silhouette sur tous les ciels, jour comme nuit ;
+   · un bond sur trois, une VRILLE sur son axe (le dauphin à long bec qui tourne sur lui-même).
+   PERF : une matière par dauphin (6 clones, UN SEUL programme `dauphin2` : ils ne diffèrent que par leurs uniforms ; tout est en scène
+   dès l'init, compilé au menu avec le reste), géométrie bâtie une fois, aucune lumière, aucune allocation par image. Les gerbes passent
+   aux particules v2 (programme `pt2`, déjà compilé pour la fumée) : chaque goutte naît, vit et s'éteint en fondu, à sa propre taille. */
+const DOL_L=3.2; // longueur du corps (unités de Léo) — le nez en +x, la queue en −x (le sillage et les photos s'y calent)
+// le PROFIL, du bout du rostre (u 0) au pédoncule (u 1) : [u, dessus, dessous, demi-largeur] — rostre fin, PLI, melon qui monte, dos plein, queue en lame
+const DOL_PR=[[0,-.19,-.25,.03],[.04,-.12,-.28,.07],[.085,-.075,-.3,.105],[.11,0,-.31,.15],[.15,.16,-.33,.21],[.21,.29,-.355,.275],
+  [.3,.385,-.375,.33],[.42,.43,-.37,.35],[.55,.385,-.315,.31],[.67,.285,-.215,.215],[.78,.185,-.115,.125],[.89,.105,-.045,.068],[1,.055,-.005,.034]];
+function dolPr(u,k){for(let i=0;i<DOL_PR.length-1;i++){const a=DOL_PR[i],b=DOL_PR[i+1];
+  if(u<=b[0]){let t=(u-a[0])/(b[0]-a[0]);t=.5-.5*Math.cos(t*Math.PI);return a[k]+(b[k]-a[k])*t;}}return DOL_PR[DOL_PR.length-1][k];}
+// la PALETTE — `neon*` dépasse 1 : le shader en fait de la lumière (la facette brille pour de bon, le bloom la prend)
+const DOL_C={dos:new THREE.Color(0x2c1b8e),dosQ:new THREE.Color(0x55199c),rose:new THREE.Color(0xff3aa6),cyan:new THREE.Color(0x12c2ff),
+  ventre:new THREE.Color(0xeedcff),neon:new THREE.Color(0x8ff6ff).multiplyScalar(1.6),neonR:new THREE.Color(0xff52cc).multiplyScalar(1.6),oeil:new THREE.Color(0x06030e)};
+function dolRobe(u,t,out){ // la ROBE, facette par facette : u le long du corps, t = cos de l'angle autour (1 = arête du dos, −1 = quille du ventre)
+  if(u<.13)return out.copy(t>-.12?DOL_C.dos:DOL_C.ventre); // le rostre : dessus sombre, mâchoire nacrée
+  const tc=.45-.5*Math.exp(-Math.pow((u-.5)/.13,2)),tb=-.7; // tc : le bord de la CAPE, qui plonge en V sous la dorsale · tb : le ventre
+  if(t>tc)return out.copy(DOL_C.dos).lerp(DOL_C.dosQ,u); // dos indigo qui vire au violet vers la queue
+  if(t<tb)return out.copy(DOL_C.ventre);
+  return out.copy(u<.47+.16*t?DOL_C.rose:DOL_C.cyan); // le SABLIER : flanc avant rose, flanc arrière cyan, frontière en biais
 }
-function dolAileron(pts,depth){ // une nageoire = une LAME falciforme extrudée (jamais un cône)
-  const s=new THREE.Shape();s.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)s.lineTo(pts[i][0],pts[i][1]);
-  const g=new THREE.ExtrudeGeometry(s,{depth:depth,bevelEnabled:true,bevelThickness:depth*.6,bevelSize:depth*.5,bevelSegments:2,steps:1});
-  g.center();g.computeVertexNormals();return g;
+function mkDolphinGeo(){ // corps + nageoires + yeux en UNE géométrie non indexée : trois sommets par facette, une couleur par facette
+  const P=[],C=[],col=new THREE.Color(),e1=new THREE.Vector3(),e2=new THREE.Vector3(),nn=new THREE.Vector3(),cc=new THREE.Vector3(),ref=new THREE.Vector3(),V=(x,y,z)=>new THREE.Vector3(x,y,z);
+  function tri(a,b,c,cl,rf){ // une facette, TOUJOURS tournée vers l'extérieur (rf = un point intérieur) : le tri des faces arrière reste juste
+    e1.subVectors(b,a);e2.subVectors(c,a);nn.crossVectors(e1,e2);cc.copy(a).add(b).add(c).multiplyScalar(1/3).sub(rf);
+    if(nn.dot(cc)<0){const t=b;b=c;c=t;}
+    P.push(a.x,a.y,a.z,b.x,b.y,b.z,c.x,c.y,c.z);for(let k=0;k<3;k++)C.push(cl.r,cl.g,cl.b);
+  }
+  // LE CORPS : 22 anneaux de 16 pans (8 rangées de facettes par côté : 3 de dos, 3 de flanc, 2 de ventre) ; la section s'affine en LAME vers la queue (carène dessus-dessous du pédoncule)
+  const U=[0,.025,.05,.075,.095,.115,.14,.17,.21,.26,.32,.39,.46,.53,.6,.67,.73,.79,.845,.895,.945,1],SEG=16,R=[];
+  for(const u of U){const yt=dolPr(u,1),yb=dolPr(u,2),w=dolPr(u,3),rg=[],pe=2/(2-.7*Math.max(0,(u-.6)/.4));
+    rg.x=DOL_L*.5-u*DOL_L;rg.cy=(yt+yb)/2;const hy=(yt-yb)/2;
+    for(let j=0;j<SEG;j++){const a=j/SEG*Math.PI*2,c=Math.cos(a),s=Math.sin(a);
+      rg.push(V(rg.x,rg.cy+hy*Math.sign(c)*Math.pow(Math.abs(c),pe),w*Math.sign(s)*Math.pow(Math.abs(s),pe)));}
+    R.push(rg);}
+  for(let i=0;i<R.length-1;i++){const A=R[i],B=R[i+1],uc=(U[i]+U[i+1])/2;ref.set((A.x+B.x)/2,(A.cy+B.cy)/2,0);
+    for(let j=0;j<SEG;j++){const j1=(j+1)%SEG;dolRobe(uc,Math.cos((j+.5)/SEG*Math.PI*2),col);tri(A[j],B[j],A[j1],col,ref);tri(A[j1],B[j],B[j1],col,ref);}}
+  const R0=R[0],Rn=R[R.length-1],nez=V(R0.x+.04,R0.cy,0),bout=V(Rn.x-.025,Rn.cy,0);
+  for(let j=0;j<SEG;j++){const j1=(j+1)%SEG,t=Math.cos((j+.5)/SEG*Math.PI*2);
+    dolRobe(0,t,col);ref.set(R0.x-.06,R0.cy,0);tri(nez,R0[j],R0[j1],col,ref);
+    dolRobe(1,t,col);ref.set(Rn.x+.06,Rn.cy,0);tri(bout,Rn[j],Rn[j1],col,ref);}
+  // LES YEUX : un petit losange noir de chaque côté, juste derrière le pli du rostre (le reflet, c'est le spéculaire qui le pose)
+  {const u=.155,a=Math.acos(.2),yt=dolPr(u,1),yb=dolPr(u,2),w=dolPr(u,3),cy=(yt+yb)/2,hy=(yt-yb)/2,x=DOL_L*.5-u*DOL_L;
+    for(const sd of [1,-1]){const o=V(x,cy+hy*Math.cos(a),sd*(w*Math.sin(a)+.004)),q=[V(.058,0,0),V(-.058,0,0),V(0,.042,0),V(0,-.042,0),V(0,0,sd*.022)];
+      ref.copy(o);ref.z-=sd*.03;
+      for(const [i,j] of [[0,2],[2,1],[1,3],[3,0]])tri(o.clone().add(q[i]),o.clone().add(q[j]),o.clone().add(q[4]),DOL_C.oeil,ref);}}
+  // LES NAGEOIRES : chacune est une LENTILLE à facettes — contour à épaisseur nulle, cœur bombé de ±th ; une couleur par arête du contour
+  function lentille(pts,th,ax,cols){const cen=V(0,0,0);for(const p of pts)cen.add(p);cen.multiplyScalar(1/pts.length);
+    const cP=cen.clone().addScaledVector(ax,th),cM=cen.clone().addScaledVector(ax,-th);
+    for(let k=0;k<pts.length;k++){const a=pts[k],b=pts[(k+1)%pts.length];tri(a,b,cP,cols[k],cM);tri(b,a,cM,cols[k],cP);}}
+  const d0=DOL_C.dos,dQ=DOL_C.dosQ,nR=DOL_C.neonR,nC=DOL_C.neon,xU=u=>DOL_L*.5-u*DOL_L;
+  // la DORSALE, falciforme : bord d'attaque sombre, pointe et bord de fuite au néon rose
+  lentille([V(xU(.38),dolPr(.38,1)-.05,0),V(.26,.6,0),V(.12,.79,0),V(-.13,.95,0),V(-.14,.8,0),V(-.09,.63,0),V(xU(.575),dolPr(.575,1)-.05,0)],.06,V(0,0,1),[d0,d0,nR,nR,dQ,d0,d0]);
+  // les PECTORALES : des pagaies balayées vers l'arrière et le bas, bout néon cyan
+  for(const sd of [1,-1]){const u=.27,a=2.15,yt=dolPr(u,1),yb=dolPr(u,2),w=dolPr(u,3),
+      o=V(xU(u),(yt+yb)/2+(yt-yb)/2*Math.cos(a)*.8,sd*w*Math.sin(a)*.8),s=V(-.32,-.5,sd*.8).normalize(),c=V(1,0,0),ax=new THREE.Vector3();
+    c.addScaledVector(s,-c.dot(s)).normalize();ax.crossVectors(s,c);
+    const F=(ps,pc)=>o.clone().addScaledVector(s,ps).addScaledVector(c,pc);
+    lentille([F(0,.1),F(.2,.12),F(.4,.05),F(.57,-.07),F(.44,-.11),F(.22,-.09),F(0,-.1)],.035,ax,[d0,d0,nC,nC,d0,d0,d0]);}
+  // la CAUDALE : deux lobes en croissant, pointes au néon rose — elle suit la vague du corps (le shader la fait pomper)
+  const yq=Rn.cy;
+  for(const sd of [1,-1])lentille([V(-1.5,yq,0),V(-1.62,yq,sd*.13),V(-1.74,yq,sd*.32),V(-1.88,yq,sd*.51),V(-2.06,yq,sd*.64),V(-2.01,yq,sd*.49),
+    V(-1.96,yq,sd*.32),V(-1.97,yq,sd*.15),V(-1.93,yq,0)],.045,V(0,1,0),[dQ,dQ,dQ,nR,nR,nR,dQ,dQ,dQ]);
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));
+  g.computeVertexNormals();g.computeBoundingSphere();g.boundingSphere.radius+=.7; // + la marge de la vague et de la cambrure (le shader déplace les sommets)
+  return g;
 }
-const DOL_GEO=mkDolphinGeo(),
-  DOL_DORSAL=dolAileron([[0,0],[.34,.08],[.3,.34],[.12,.6],[-.06,.66],[-.18,.4],[-.16,.1]],.05),
-  DOL_PECT=dolAileron([[0,0],[.1,.05],[.44,.02],[.62,-.1],[.4,-.16],[.1,-.1]],.035),
-  DOL_FLUKE=dolAileron([[0,0],[.1,.06],[.46,.1],[.66,.02],[.5,-.06],[.14,-.06]],.04);
-// les teintes de Léo ; l'émissif est relevé (son aperçu avait un fond bleu clair, ici c'est la NUIT — sinon des silhouettes noires)
-const dolBodyMat=new THREE.MeshPhongMaterial({vertexColors:true,shininess:75,specular:0x9fe8ff,emissive:0x1a6a8e,emissiveIntensity:.9});
-const dolFinMat=new THREE.MeshPhongMaterial({color:0x63c9ec,shininess:60,specular:0x9fe8ff,emissive:0x1a5a78,emissiveIntensity:.8});
-const dolGlowMat=new THREE.MeshBasicMaterial({color:0x8fecff,transparent:true,opacity:.3,side:THREE.BackSide,blending:THREE.AdditiveBlending,depthWrite:false,fog:false});
-function mkDauphin(){ // le `makeDolphin` de Léo, pièce pour pièce
-  const g=new THREE.Group();
-  g.add(new THREE.Mesh(DOL_GEO,dolBodyMat));
-  const gl=new THREE.Mesh(DOL_GEO,dolGlowMat);gl.scale.setScalar(1.09);g.add(gl); // la lueur onirique
-  const dor=new THREE.Mesh(DOL_DORSAL,dolFinMat);dor.position.set(.05,.74,0);dor.rotation.z=-.15;dor.scale.setScalar(1.15);g.add(dor);
-  for(const s of [1,-1]){const p=new THREE.Mesh(DOL_PECT,dolFinMat);p.position.set(.62,.02,s*.3);p.rotation.set(s*.5,0,-.35);g.add(p);}
-  const tail=new THREE.Group();tail.position.set(-DOL_L*.5,.02,0); // pivot de queue : il BAT (la propulsion)
-  for(const s of [1,-1]){const f=new THREE.Mesh(DOL_FLUKE,dolFinMat);f.position.set(-.18,0,s*.26);f.rotation.set(Math.PI/2,s*.35,0);tail.add(f);}
-  const tg=new THREE.Mesh(DOL_FLUKE,dolGlowMat);tg.position.set(-.2,0,0);tail.add(tg);
-  g.add(tail);g.userData.tail=tail;g.visible=false;return g;
+const DOL_GEO=mkDolphinGeo();
+// uniforms PARTAGÉS : largeur de la ligne d'écume (m — suit la taille du banc) · force du liseré néon
+const DOL_U={uEcume:{value:.2},uRimK:{value:1.5}};
+function dolShader(sh){ // (dauphin2) nage + surface d'eau + liseré néon — appelée en méthode : `this` = la matière du dauphin, ses uniforms à lui
+  const m=this.userData;sh.uniforms.uDol=m.uDol;sh.uniforms.uSurf=m.uSurf;sh.uniforms.uEcume=DOL_U.uEcume;sh.uniforms.uRimK=DOL_U.uRimK;
+  // uDol : x = amplitude de la vague, y = sa phase, z = son nombre d'onde sur le corps, w = la cambrure (le corps épouse l'arc du bond)
+  sh.vertexShader='uniform vec4 uDol;uniform vec4 uSurf;varying float vSurf9;\n'+sh.vertexShader
+    .replace('#include <begin_vertex>','#include <begin_vertex>\n'+
+      'float u9=clamp((1.6-position.x)/3.2,0.,1.3),e9=smoothstep(.2,1.05,u9);\n'+
+      'transformed.y+=uDol.x*e9*e9*sin(uDol.y-u9*uDol.z)-uDol.w*position.x*position.x;')
+    .replace('#include <project_vertex>','#include <project_vertex>\nvSurf9=dot(uSurf.xyz,(modelMatrix*vec4(transformed,1.)).xyz)-uSurf.w;');
+  // sous la surface : rien (discard) ; au ras : l'écume qui brille ; partout : la couleur s'allume d'elle-même (le néon > 1 plus fort) + le liseré
+  sh.fragmentShader='uniform float uEcume;uniform float uRimK;varying float vSurf9;\n'+sh.fragmentShader
+    .replace('#include <clipping_planes_fragment>','if(vSurf9<0.)discard;\n#include <clipping_planes_fragment>')
+    .replace('#include <emissivemap_fragment>','#include <emissivemap_fragment>\n'+
+      'totalEmissiveRadiance=totalEmissiveRadiance*diffuseColor.rgb+max(diffuseColor.rgb-1.,0.)*3.;\n'+
+      'float fr9=smoothstep(.62,1.,1.-abs(dot(normal,normalize(vViewPosition))));fr9*=fr9;\n'+ // le liseré ne vit que sur les facettes de SILHOUETTE (vu d'au-dessus, un liseré large délavait tout le dos)
+      'totalEmissiveRadiance+=mix(vec3(.1,.8,1.),vec3(1.,.25,.78),smoothstep(-.35,.35,normal.y))*fr9*uRimK;\n'+
+      'float ec9=1.-smoothstep(0.,uEcume,vSurf9);totalEmissiveRadiance+=vec3(.75,.97,1.)*ec9*ec9*2.2;');
 }
-// LE BANC : les 3 premiers gabarits du `setPod(3)` de Léo — vitesse (tempo du bond), amplitude, niveau de la « surface », profondeur
+function mkDauphin(){ // UN mesh, SA matière (clone) : le programme est partagé, les uniforms (vague, surface) sont les siens
+  const m=new THREE.MeshPhongMaterial({vertexColors:true,flatShading:true,shininess:32,specular:0x7a6488,emissive:0x5c5c5c}); // emissive = part de la robe qui s'éclaire seule (× la couleur, dans le shader)
+  m.userData.uDol={value:new THREE.Vector4(0,0,2.3,0)};m.userData.uSurf={value:new THREE.Vector4(0,1,0,-1e9)};
+  m.onBeforeCompile=dolShader;m.customProgramCacheKey=function(){return 'dauphin2';};
+  const d=new THREE.Mesh(DOL_GEO,m);d.rotation.order='YZX'; // la VRILLE tourne autour du corps (x local), puis le tangage, puis le cap
+  d.visible=false;return d;
+}
+// LE BANC : les gabarits du `setPod` de Léo — vitesse (tempo du bond), amplitude, niveau de la « surface », profondeur
 // (vers la caméra = positif, comme dans l'aperçu), taille. `p0` : où en est chacun au déclenchement (négatif = encore sous l'eau).
 // (dauphin v4) SIX gabarits : ils entrent DANS CET ORDRE, un toutes les DOL_PAS s de dauphin tenu (dolNb) — le banc grandit avec la tenue
 const DOL_BANC=[
@@ -21831,23 +21896,30 @@ const DOL_BANC=[
   {speed:.21,amp:2.6,base:-1.1,z:2.9, scale:.72, p0:-.1}];
 const dolphinRig=new THREE.Group();dolphinRig.visible=false;scene.add(dolphinRig);
 const dolPod=new THREE.Group();dolphinRig.add(dolPod); // la « scène de Léo », posée devant la caisse
-const dolphins=DOL_BANC.map(b=>{const d=mkDauphin();d.userData.b=b;d.userData.p=b.p0;d.userData.tailPh=Math.random()*6.28;d.userData.roll=Math.random()*6.28;d.userData.up=false;dolPod.add(d);return d;});
-// le sillage d'étincelles et les gerbes d'eau — pools de particules rattachés au BANC (repère local)
-const dolTrail=makePool(120,.4,0x9fe8ff,.8),dolSplash=makePool(160,.55,0xdff6ff,.9);
-for(const p of [dolTrail,dolSplash]){p.mesh.material.blending=THREE.AdditiveBlending;dolPod.add(p.mesh);
+const dolphins=DOL_BANC.map((b,i)=>{const d=mkDauphin();d.userData.b=b;d.userData.p=b.p0;d.userData.tailPh=i*1.7;d.userData.roll=i*2.3;d.userData.up=false;d.userData.vr=0;dolPod.add(d);return d;});
+// le sillage d'étincelles (rose) et les gerbes d'eau — particules v2 rattachées au BANC (repère local) : fondu de vie, taille propre
+const dolTrail=makePool(200,.32,0xff6ad6,.9,false,{a:[.05,.65,1,.2],v:.5,pr:[3,7,24,0]}),dolSplash=makePool(320,.5,0xd6faff,.95,false,{a:[.03,.5,1.1,.5],v:.7,pr:[3,7,30,0]}); // pr : le garde-objectif (fondu à 3-7 m, 24-30 px au plus) — un banc qui frôle la caméra ne fait plus de grosses taches
+for(const p of [dolTrail,dolSplash]){p.mesh.material.blending=THREE.AdditiveBlending;p.mesh.material.map=sparkTex;dolPod.add(p.mesh);
   for(let i=0;i<p.n;i++)p.pos[i*3+1]=-99999;} // ⚠ en repère LOCAL, une particule jamais née (0,0,0) se dessinerait au milieu du banc : on les range loin
-function dolPoolStep(p,dt,g){ // comme updatePool, mais avec une VRAIE gravité (la gerbe monte, s'arrête, retombe — l'eau de l'aperçu)
-  for(let i=0;i<p.n;i++){if(p.life[i]>0){p.life[i]-=dt;p.vel[i*3+1]-=g*dt;
-    p.pos[i*3]+=p.vel[i*3]*dt;p.pos[i*3+1]+=p.vel[i*3+1]*dt;p.pos[i*3+2]+=p.vel[i*3+2]*dt;if(p.life[i]<=0)p.pos[i*3+1]=-99999;}}
-  p.mesh.geometry.attributes.position.needsUpdate=true;
+function dolPoolStep(p,dt,g){ // comme updatePool, mais avec une VRAIE gravité (la gerbe monte, s'arrête, retombe) — et la vie des particules v2
+  let viv=false;
+  for(let i=0;i<p.n;i++){if(p.life[i]>0){viv=true;p.life[i]-=dt;p.vel[i*3+1]-=g*dt;
+    p.pos[i*3]+=p.vel[i*3]*dt;p.pos[i*3+1]+=p.vel[i*3+1]*dt;p.pos[i*3+2]+=p.vel[i*3+2]*dt;
+    p.fa[i]=p.life[i]>0?p.life[i]/p.l0[i]:0;if(p.life[i]<=0)p.pos[i*3+1]=-99999;}}
+  if(viv||p._vivant){const at=p.mesh.geometry.attributes;at.position.needsUpdate=true;at.aF.needsUpdate=true;} // une réserve vide n'est plus renvoyée au GPU
+  p._vivant=viv;
 }
-function dolGerbe(x,y,z,power,k){ // l'éclaboussure de Léo : un anneau de gouttelettes au passage de la surface
-  for(let n=0;n<26;n++){const a=Math.random()*6.28,sp=(.6+Math.random()*1.6)*power*k;
-    spawnP(dolSplash,x,y,z,Math.cos(a)*sp*.6,(.8+Math.random()*1.4)*power*k,Math.sin(a)*sp*.6,.7+Math.random()*.5);}
+function dolGerbe(x,y,z,power,k){ // la gerbe : une COURONNE qui monte, un ANNEAU d'écume qui file au ras de l'eau, trois grosses gouttes au centre
+  for(let n=0;n<18;n++){const a=Math.random()*6.28,sp=(.7+Math.random()*1.3)*power*k;
+    spawnP(dolSplash,x,y,z,Math.cos(a)*sp*.55,(1.1+Math.random()*1.4)*power*k,Math.sin(a)*sp*.55,.6+Math.random()*.45);}
+  for(let n=0;n<14;n++){const a=n/14*6.28+Math.random()*.3,sp=(1.5+Math.random()*.7)*power*k; // l'anneau : il monte juste ce qu'il faut pour rester à fleur d'eau (g = 6k)
+    spawnP(dolSplash,x,y,z,Math.cos(a)*sp,1.35*k,Math.sin(a)*sp,.4+Math.random()*.15);}
+  for(let n=0;n<3;n++)spawnP(dolSplash,x+(Math.random()-.5)*.3*k,y,z+(Math.random()-.5)*.3*k,0,(2.3+Math.random()*1.2)*power*k,0,.8+Math.random()*.3);
 }
-const crV3=new THREE.Vector3();
+const crV3=new THREE.Vector3(),dolUp=new THREE.Vector3();
 let dolShow=0,dolIn=9,dolPart=0,dolDir=-1,dolKS=1,dolW=13; // dolShow : secondes d'affichage restantes · dolIn : secondes depuis le déclenchement · dolPart : vie restante des gerbes · dolDir : sens de traversée · dolKS/dolW : taille et demi-largeur du banc (m)
-function updateDolphins(dt){
+function updateDolphins(dt,photo){
+  if(paused&&!photo)return; // (2026-09-29) la PAUSE fige le banc : il nageait (et s'usait) derrière le panneau — `photo` : le pas à pas de dbgDolView
   if(dolShow<=0&&dolPart<=0){if(dolphinRig.visible)dolphinRig.visible=false;return;} // rien à montrer : zéro draw call
   dolphinRig.visible=true;dolPart=Math.max(0,dolPart-dt);
   // le REPÈRE DU VOL (sans la vrille) : x = latéral, y = haut de la caisse, z = trajectoire — celui de la caméra de vol
@@ -21856,38 +21928,45 @@ function updateDolphins(dt){
     mat4.makeBasis(crV2,crV3,crV1);dolphinRig.quaternion.setFromRotationMatrix(mat4);}
   else dolphinRig.quaternion.copy(carGroup.quaternion);
   dolPoolStep(dolTrail,dt,0);dolPoolStep(dolSplash,dt,6*dolKS);
-  if(dolShow<=0){if(dolphins[0].visible)for(const d of dolphins)d.visible=false;return;}
+  if(dolShow<=0){for(const d of dolphins)if(d.visible)d.visible=false;return;} // (tous : le 1er pouvait être sous l'eau pendant qu'un autre restait figé en l'air)
   // LISIBILITÉ : mesurée sur la VRAIE caméra — distance du banc, champ vertical, format de l'écran
   const neuf=dolIn===0;
   dolPod.position.set(0,-.35*dolKS,4+4*dolKS); // devant la caisse (le plus proche passe ~6 m devant le nez), un poil sous sa ligne
   dolPod.getWorldPosition(crV1);camera.getWorldDirection(crV2);
+  dolUp.set(0,1,0).applyQuaternion(dolphinRig.quaternion);const surf0=dolUp.dot(crV1); // la SURFACE de l'eau : le plan du banc, à la hauteur de chaque gerbe
   const dist=Math.max(6,crV2.dot(crV1.sub(camera.position))),hv=dist*Math.tan(camera.fov*Math.PI/360),hw=hv*camera.aspect,
         kT=THREE.MathUtils.clamp(.17*Math.min(hv,hw),.8,3),wT=Math.max(7,.8*hw); // un dauphin ≈ ⅓ de la plus petite dimension ; les gerbes tombent DANS l'écran
   if(neuf){dolKS=kT;dolW=wT;dolDir=-dolDir;
     for(const d of dolphins){d.userData.p=d.userData.b.p0;d.userData.up=false;}
-    dolTrail.mesh.material.size=.4*kT;dolSplash.mesh.material.size=.55*kT;}
+    dolTrail.mesh.material.size=.24*kT;dolSplash.mesh.material.size=.5*kT;}
   else{const a=Math.min(1,dt*1.5);dolKS+=(kT-dolKS)*a;dolW+=(wT-dolW)*a;} // la caméra de vol zoome sur les gros airs : le banc suit en douceur
   dolShow-=dt;dolIn+=dt;
   const fade=Math.min(1,dolShow*2.5),k=dolKS,W=dolW,dir=dolDir;
+  DOL_U.uEcume.value=.2*k;
   for(let i9=0;i9<dolphins.length;i9++){const d=dolphins[i9],u=d.userData,b=u.b;
     if(i9>=dolNb){if(d.visible)d.visible=false;u.pret=false;continue;} // (dauphin v4) pas encore dans le banc
-    if(!u.pret){u.pret=true;if(!neuf){u.p=-.05;u.up=false;}} // il REJOINT le banc : il jaillit tout de suite (gerbe comprise)
+    if(!u.pret){u.pret=true;if(!neuf){u.p=-.12;u.up=false;}} // il REJOINT le banc : il perce la surface tout de suite (gerbe comprise)
     u.p+=dt*b.speed*b.speed*8.8; // le tempo de l'aperçu (phase×vitesse×4,4 avec phase+=dt×vitesse×2)
-    if(u.p>1.06)u.p=-(.12+Math.random()*.3); // replongé : un temps sous l'eau, et il revient
-    const p=u.p,vis=p>-.04&&p<1.04;d.visible=vis;
+    if(u.p>1.2){u.p=-(.2+Math.random()*.3);u.vr=Math.random()<.34?(Math.random()<.5?1:-1):0;} // replongé : un temps sous l'eau, et il revient — une fois sur trois en VRILLE
+    const p=u.p,vis=p>-.18&&p<1.18;d.visible=vis; // la surface le coupe : il est « là » dès que le rostre peut la percer
     const arc=Math.sin(p*Math.PI),amp=b.amp*k,base=b.base*k,x=dir*W*(2*p-1),y=base+arc*amp,z=-b.z*k;
     const above=y>base+.15*k&&p>0&&p<1;
     if(above!==u.up){dolGerbe(x,base+.05*k,z,(above?1.2:.9)*b.scale,k);dolPart=1.3;u.up=above;} // on JAILLIT / on REPLONGE → gerbe
     if(!vis)continue;
-    const emerge=THREE.MathUtils.smoothstep(p,-.04,.07)*(1-THREE.MathUtils.smoothstep(p,.93,1.04)); // on sort de la gerbe, on y rentre
-    d.scale.setScalar(k*b.scale*(.5+.5*fade)*emerge);
+    const s=k*b.scale*(.5+.5*fade);d.scale.setScalar(s); // pleine taille dès la sortie : c'est la surface qui le révèle, plus la gerbe qui le gonfle
     d.position.set(x,y,z);
     const pitch=Math.atan2(Math.cos(p*Math.PI)*amp*Math.PI,2*W*.8); // le nez suit la vitesse du bond
     u.roll+=dt*1.3;
-    d.rotation.set(Math.sin(u.roll)*.12,dir>0?0:Math.PI,pitch); // léger roulis gracieux ; demi-tour de cap quand le banc part dans l'autre sens
-    u.tailPh+=dt*(6+b.speed*6);u.tail.rotation.z=Math.sin(u.tailPh)*.45; // battement caudal
-    if(above&&Math.random()<dt*55){const q=DOL_L*.5*k*b.scale; // le sillage part de la QUEUE
-      spawnP(dolTrail,x-dir*Math.cos(pitch)*q+(Math.random()-.5)*.15*k,y-Math.sin(pitch)*q+(Math.random()-.5)*.15*k,z+(Math.random()-.5)*.15*k,0,0,0,.5);dolPart=Math.max(dolPart,.5);}
+    d.rotation.set(Math.sin(u.roll)*.12+u.vr*6.2832*THREE.MathUtils.smoothstep(p,.12,.88),dir>0?0:Math.PI,pitch); // roulis gracieux (+ la vrille) ; demi-tour de cap quand le banc part dans l'autre sens
+    u.tailPh+=dt*(7.5+b.speed*8);const hors=Math.max(0,arc);
+    const mu=d.material.userData;
+    mu.uDol.value.set(.11+.22*(1-hors)*(1-hors),u.tailPh,2.3,Math.min(.1,.5*Math.PI*Math.PI*amp/(4*W*W)*s*1.4)); // la queue POMPE fort en perçant l'eau, se relâche au sommet ; le corps se CAMBRE sur l'arc
+    mu.uSurf.value.set(dolUp.x,dolUp.y,dolUp.z,surf0+base);
+    {const sp9=Math.sin(pitch),t9=Math.abs(sp9)>.12?(base-y)/sp9:99; // l'ÉCUME : tant que le corps perce la surface, ça bouillonne à l'endroit exact où son axe la traverse
+      if(Math.abs(t9)<DOL_L*.5*s&&Math.random()<dt*42){const x9=x+dir*Math.cos(pitch)*t9;dolPart=Math.max(dolPart,.6);
+        spawnP(dolSplash,x9+(Math.random()-.5)*.35*k,base+.04*k,z+(Math.random()-.5)*.35*k,(Math.random()-.5)*1.2*k,(1+Math.random()*1.3)*k,(Math.random()-.5)*1.2*k,.3+Math.random()*.25);}}
+    if(above&&Math.random()<dt*55){const q=DOL_L*.5*s; // le sillage part de la QUEUE
+      spawnP(dolTrail,x-dir*Math.cos(pitch)*q+(Math.random()-.5)*.15*k,y-Math.sin(pitch)*q+(Math.random()-.5)*.15*k,z+(Math.random()-.5)*.15*k,0,0,0,.55);dolPart=Math.max(dolPart,.55);}
   }
 }
 // ---- SERPENT : tube néon (cyan→magenta, ventre doré) à reptation en place ----
@@ -22686,7 +22765,27 @@ window.dbgLogo=function(n){
   return {tirages:n,distribution:JETONS.map(j=>({jeton:j.n,voulu:j.p+' %',
     obtenu:+(100*(c[j.n]||0)/n).toFixed(2)+' %',unClicSur:Math.round(n/Math.max(1,c[j.n]||0))}))};
 };
-window.dbgDolphins=function(sec){dolShow=sec||4;dolIn=0;};
+window.dbgDolphins=function(sec,nb){dolShow=sec||4;dolIn=0;if(nb)dolNb=Math.max(1,Math.min(DOL_BANC.length,nb|0));}; // (2026-09-29) `nb` : le banc au complet d'entrée (banc photo)
+// (dev, 2026-09-29) `dbgDolView(i,a,d,h,pas)` : MODE PHOTO d'un dauphin — met en pause, fait nager le banc `pas` images de 1/60 s, cadre le
+// dauphin i (i = -1 : tout le banc) sous l'angle a (rad, dans le repère du banc : 0 = de face, π/2 = de profil), à d × sa longueur, hauteur
+// h × sa longueur, et rend UNE image. Renvoie la pose (phase du bond, échelle) pour que le banc sache ce qu'il a photographié.
+window.dbgDolView=function(i,a,d,h,pas,ph){ // `ph` : on nage jusqu'à ce que le dauphin i soit à cette phase du bond (0,5 = le sommet)
+  if(started&&!gameOver&&!paused)togglePause();
+  for(let k=0;k<(pas|0);k++)updateDolphins(1/60,true);
+  if(ph!=null&&i>=0)for(let k=0;k<900&&Math.abs(dolphins[i].userData.p-ph)>.012;k++){dolphins[i].userData.vr=0;updateDolphins(1/60,true);} // (sans la vrille : au sommet du bond, il serait sur le dos)
+  dolphinRig.updateMatrixWorld(true);
+  const D=dolphins[Math.max(0,i|0)],L=i<0?dolW*.5:DOL_L*Math.max(.01,D.scale.x);
+  if(i<0)dolPod.getWorldPosition(crV1);else D.getWorldPosition(crV1);
+  crV2.set(Math.sin(a||0),h==null?.35:h,Math.cos(a||0)).multiplyScalar((d||2.4)*L).applyQuaternion(dolphinRig.quaternion).add(crV1);
+  const f0=camera.fov;camera.fov=34;camera.updateProjectionMatrix(); // un téléobjectif le temps de la photo (le grand-angle du portrait rapetisse tout), rendu juste après
+  camera.position.copy(crV2);camera.up.set(0,1,0).applyQuaternion(dolphinRig.quaternion);camera.lookAt(crV1);camera.updateMatrixWorld();camera.up.set(0,1,0);
+  skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);if(acesPass)acesPass.uniforms.uSpeed.value=0;
+  RIM_U.uSunV.value.copy(SUN_DIR).transformDirection(camera.matrixWorldInverse);
+  if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
+  try{window.dbgDolView.png=renderer.domElement.toDataURL('image/png');}catch(e){} // lue DANS la même tâche que le rendu : la boucle, qui re-rend en pause (flou de boost figé compris), ne l'a pas encore écrasée
+  camera.fov=f0;camera.updateProjectionMatrix();
+  return {p:+D.userData.p.toFixed(2),ech:+D.scale.x.toFixed(2),vis:D.visible,nb:dolNb,kS:+dolKS.toFixed(2)};
+};
 // `dbgDauphin(impU,v,vl,lat0)` : un VRAI décollage (startFall) depuis la position courante — impU 60 ≈ 3,6 s de vol ; v = vitesse le long
 // de la piste ; vl = dérive latérale ; lat0 = départ dans la largeur. `dbgDauphin('force',true|false|null)` impose le verdict « au-dessus »
 // (null = radar réel) · `dbgDauphin('boom')` explose en vol.

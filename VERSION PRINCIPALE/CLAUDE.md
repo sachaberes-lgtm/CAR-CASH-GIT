@@ -1,5 +1,31 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LES DAUPHINS, NOUVEAU DESIGN (2026-09-29) — « améliore le design des dauphins »
+- **Avant** : le tube cyan pâle de Léo sous un halo additif laiteux (`dolGlowMat`), nageoires en plaques extrudées — délavé sur le ciel
+  de jour, baveux de nuit, 8 meshes par dauphin. **Après** : LOW-POLY NÉON dans la DA des caisses à facettes (`mkDolphinGeo`, `DOL_PR`,
+  `dolRobe`, `DOL_C`). UNE géométrie non indexée par dauphin (corps 22 anneaux × 16 pans, dorsale falciforme, pectorales, caudale en
+  croissant, yeux — les nageoires sont des LENTILLES à facettes, `lentille()`), une couleur PAR FACETTE : dos indigo → violet, CAPE qui
+  plonge en V sous la dorsale, SABLIER flanc avant ROSE / flanc arrière CYAN, ventre nacré, pointes de nageoires au néon (couleur > 1 que
+  le shader allume). ⚠ `tri()` oriente chaque facette vers l'extérieur (point intérieur de référence) : garder ce garde-fou si on
+  retouche la forme, sinon le tri des faces arrière troue le corps.
+- **Shader `dauphin2`** (`dolShader`, onBeforeCompile sur `MeshPhongMaterial` à facettes) : ONDULATION dos-ventre du corps entier
+  (`uDol` : amplitude, phase, nombre d'onde, CAMBRURE qui épouse l'arc du bond) ; SURFACE D'EAU invisible (`uSurf`, plan du banc à la
+  hauteur de la gerbe) : sous elle `discard`, au ras une LIGNE D'ÉCUME lumineuse (`DOL_U.uEcume`) — le dauphin perce l'eau rostre en
+  premier au lieu de gonfler dans la gerbe ; auto-éclairage × sa couleur ; LISERÉ néon rose (dessus) / cyan (dessous) sur les seules
+  facettes de silhouette (`DOL_U.uRimK` ; large, il délavait le dos vu d'en haut). Un bond sur trois : une VRILLE (`u.vr`, ordre
+  d'Euler `YZX` = autour du corps). Pendant la traversée de la surface, l'écume BOUILLONNE au point exact où l'axe la perce.
+- **Perf** : ~790 triangles par dauphin (~4 200 avant), 1 appel de dessin (8 avant), 6 matières CLONES pour UN programme
+  (`customProgramCacheKey` 'dauphin2' ; `this` dans onBeforeCompile = la matière du dauphin, ses uniforms à lui). MESURÉ au banc :
+  `dbgProgs().n` identique avant et après le 1er banc, en ville, en orbite et en vol → compilé AU MENU. Gerbes et sillage passés aux
+  particules v2 (programme `pt2` déjà compilé), avec garde-objectif (`pr` : fondu 3-7 m, 24-30 px). Zéro lumière, zéro allocation.
+- **La PAUSE fige le banc** : `updateDolphins(dt,photo)` sort en pause (il nageait et s'usait derrière le panneau).
+- **Hooks** : `dbgDolphins(sec,nb)` — `nb` = le banc complet d'entrée ; `dbgDolView(i,a,d,h,pas,ph)` = MODE PHOTO d'un dauphin (i = -1 :
+  le banc), angle a dans le repère du banc (π = côté caméra de jeu), d/h en longueurs de dauphin, `pas` images de nage, `ph` = phase
+  du bond visée (vrille coupée) ; téléobjectif 34° le temps de l'image, et l'image est lue DANS la même tâche (`dbgDolView.png`) —
+  la boucle re-rend en pause avec le flou de boost figé, une capture d'écran classique ne montre pas la photo.
+- Inchangé : la logique de la figure (`dolTick`/`dolStart`/`dolFin`/`dolKill`, aura, flow), `DOL_BANC`, `dolShow`/`dolIn`/`dolNb`,
+  la taille lue sur la vraie caméra (`dolKS`/`dolW`).
+
 ## LA FRÉNÉSIE ×3 (2026-09-29, session UHD) — « en mode frénésie on doit gagner 3× l'argent, adapte ça de manière cool au gameplay ; rends la frénésie plus facile à obtenir ET à perdre »
 - **L'ARGENT ×3** : `ECO3.flow[4]` 2 → **3** (les paliers d'avant inchangés : ×1 · 1,3 · 1,5 · 1,8). Toute la paie de course passe par
   `flowMult()` : pièces (déjà), butins de la ville `vPaie` (déjà), et désormais le **portail** (`denom×24×fever×flowMult`) et les trois
