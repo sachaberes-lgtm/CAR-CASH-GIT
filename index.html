@@ -62,6 +62,17 @@ const EDITION='mobile';
     document.body.appendChild(f);
     var cadre=function(){f.style.zoom=Math.max(.5,Math.min(innerHeight/H,innerWidth/L)).toFixed(4);};
     cadre();addEventListener('resize',cadre);
+    /* LE BOUTON TOURNER (2026-09-26, Léo : « un petit bouton pour changer de perspective mobile » — sa touche de débogage des BORDS,
+       remise le 29/09) : le téléphone passe COUCHÉ ⇄ DEBOUT sans recharger — le jeu, dans la colonne, ne reçoit qu'un resize (fovFit, HUD,
+       garage suivent seuls), on peut tourner en pleine course. L'adresse garde le choix (`?colonne=portrait`) pour le prochain chargement. */
+    var tb=document.createElement('button');tb.id='tourne';tb.type='button';document.body.appendChild(tb);
+    var tLbl=function(){tb.textContent=debout?'\u21bb  PAYSAGE':'\u21bb  PORTRAIT';tb.setAttribute('aria-label',debout?'Tenir le téléphone couché':'Tenir le téléphone debout');};
+    tLbl();
+    tb.addEventListener('click',function(e){e.stopPropagation();debout=!debout;L=debout?390:844;H=debout?844:390;
+      document.documentElement.classList.toggle('debout',debout);document.documentElement.classList.toggle('couche',!debout);
+      f.style.width=L+'px';f.style.height=H+'px';cadre();tLbl();
+      try{var u=new URL(location.href);if(debout)u.searchParams.set('colonne','portrait');else u.searchParams.delete('colonne');history.replaceState(null,'',u.toString());}catch(_){}
+      donne();});
     // le CLAVIER va au jeu : focus donné au chargement et à chaque clic hors de la colonne ; une touche frappée entre-temps est relayée
     var donne=function(){try{f.contentWindow.focus();}catch(_){}};
     f.addEventListener('load',donne);addEventListener('pointerdown',donne);
@@ -78,7 +89,13 @@ html.colonne,html.colonne body{height:100%;margin:0;overflow:hidden;background:#
 html.colonne body{display:flex;align-items:center;justify-content:center;
   background:radial-gradient(ellipse 70% 42% at 50% 50%,#241a4a 0,#120c2a 48%,#07050f 100%)}
 html.colonne.debout body{background:radial-gradient(ellipse 42% 70% at 50% 50%,#241a4a 0,#120c2a 48%,#07050f 100%)}
-html.colonne body>*:not(#colonne){display:none!important}
+html.colonne body>*:not(#colonne):not(#tourne){display:none!important}
+/* (Léo) le bouton TOURNER, dans un coin de la page-cadre (hors du téléphone) */
+html.colonne #tourne{position:fixed;right:16px;bottom:16px;z-index:9;font:700 12px/1 system-ui,-apple-system,sans-serif;letter-spacing:1px;color:#fff;cursor:pointer;padding:11px 16px;border:0;border-radius:12px;
+  background:linear-gradient(#7a6cff,#5143d9);box-shadow:0 4px 0 #2c2280,0 8px 18px rgba(0,0,0,.45);opacity:.85}
+html.colonne #tourne:hover{opacity:1}
+/* couché, le cadre prend toute la largeur : le bouton se range au milieu du bas, là où le jeu n'a rien */
+html.colonne:not(.debout) #tourne{right:auto;left:50%;bottom:8px;transform:translateX(-50%);padding:7px 12px;font-size:10px;opacity:.6}
 html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
   box-shadow:0 0 0 1px rgba(255,255,255,.08),0 0 0 3px #07050f,0 24px 70px rgba(0,0,0,.7),0 0 90px rgba(255,62,200,.16)}
 </style>
@@ -4628,6 +4645,31 @@ html #garage:not(.boutique) :is(#gCard,#gTabs,#gRar,#gStrip,#gPrev,#gNext,#gBuyR
 html #garage.boutique #gNiv{display:none!important}
 html #garage.boutique :is(#gCard,#gTabs,#gRar,#gStrip,#gPrev,#gNext){animation:leoDeploie var(--t-in,400ms) var(--ease,ease) backwards}
 @keyframes leoDeploie{from{opacity:0;translate:0 14px}}
+/* LE GARAGE AU REPOS, SES COINS (2026-09-29, Léo : « les boutons dans le même style, répartis à différents coins ; JOUER en haut au-dessus
+   de la voiture ; un bouton qui indique quelle map on va jouer ») — le compte en haut à gauche, RÉGLAGES en haut à droite, RETOUR en bas à
+   gauche, la MAP en bas à droite (un tap : le choix du niveau s'ouvre au-dessus d'elle) ; JOUER en grandes lettres d'or, en haut, au milieu,
+   au-dessus de la caisse. Le lingot n'y est plus (JOUER est en haut) : il revient dans la boutique (ACHETER / ÉQUIPER / JOUER). */
+html #garage:not(.boutique):not(.quiet):not(.launching) #gPlayMain{display:inline-flex!important;pointer-events:auto!important;position:fixed;left:50%;
+  top:calc(var(--sT) + 10px);transform:translateX(-50%);z-index:5;margin:0}
+html #garage #gPlayMain .lg{font-size:40px}
+@media (orientation:portrait){html #garage:not(.boutique):not(.quiet):not(.launching) #gPlayMain{top:calc(var(--sT) + 74px)}} /* debout : sous le compte et RÉGLAGES (même poids de sélecteur, sinon la règle générale gagnait) */
+html #garage:not(.boutique) :is(#gBuyRow,#gEquip){display:none!important}
+html #garage:not(.boutique) #gAct #gClose{position:fixed;left:calc(var(--sL) + 14px);bottom:calc(var(--sB) + 14px);z-index:5}
+#gSet,#gMap{display:none}
+html #garage:not(.boutique):not(.quiet):not(.launching) #gSet{display:flex;position:fixed;top:calc(var(--sT) + 12px);right:calc(var(--sR) + 14px);z-index:5;
+  width:48px;height:48px;min-width:0;min-height:0;padding:0;--pxs:2;align-items:center;justify-content:center}
+html #garage:not(.boutique):not(.quiet):not(.launching) #gMap{display:flex;position:fixed;right:calc(var(--sR) + 14px);bottom:calc(var(--sB) + 14px);z-index:5;
+  align-items:center;gap:12px;min-height:58px;padding:0 16px 0 18px;max-width:calc(100vw - 120px);--nc:var(--neoC,#5ee6ff)}
+#gMap .gmIc{--pxs:2;color:var(--neoC,#5ee6ff);flex:none}
+#gMap .gmTxt{display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-width:0}
+#gMap .gmNom{font-family:var(--pix);font-weight:400;font-size:12px;letter-spacing:1px;color:var(--au1,#ffd75e);white-space:nowrap}
+#gMap .gmSous{font-family:var(--pix);font-style:normal;font-size:8px;letter-spacing:.5px;color:var(--tx2,#c9c4f0);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:190px}
+#gMap .gmChev{--pxs:1;opacity:.7;flex:none;transition:transform var(--t-fast,140ms) var(--ease,ease)}
+html #garage.nivOuvert #gMap .gmChev{transform:rotate(180deg)}
+/* le choix du niveau : fermé au repos, il s'ouvre au-dessus de la map */
+html #garage:not(.boutique) #gNiv{display:none!important}
+html #garage.nivOuvert:not(.boutique):not(.quiet):not(.launching) #gNiv{display:flex!important;position:fixed;right:calc(var(--sR) + 14px);left:auto;
+  bottom:calc(var(--sB) + 84px);width:min(312px,calc(100vw - 28px));margin:0;z-index:6;animation:leoDeploie var(--t-in,400ms) var(--ease,ease) backwards}
 @media (prefers-reduced-motion:reduce){html #garage.boutique :is(#gCard,#gTabs,#gRar,#gStrip,#gPrev,#gNext){animation:none}}
 @media (orientation:portrait){
   /* les onglets : une colonne sur le bord droit, sous la fiche — l'icône, et le nom de l'onglet actif seulement */
@@ -4725,6 +4767,9 @@ html #garage.boutique :is(#gCard,#gTabs,#gRar,#gStrip,#gPrev,#gNext){animation:l
         <div id="gBuyRow"><button id="gBuy" class="pbtn pb-gold">ACHETER</button></div>
         <button id="gEquip" class="pbtn pb-gold">ÉQUIPER</button>
       </div>
+      <!-- (2026-09-29, Léo) LE GARAGE AU REPOS, SES COINS : RÉGLAGES en haut à droite, la MAP qu'on va jouer en bas à droite (un tap : le choix du niveau) -->
+      <button id="gSet" class="pbtn pbCarre" type="button" aria-label="Réglages"><i class="pxi pxi-reglages" aria-hidden="true"></i></button>
+      <button id="gMap" class="pbtn" type="button" aria-label="Map"><i class="pxi gmIc" aria-hidden="true"></i><span class="gmTxt"><b class="gmNom"></b><em class="gmSous"></em></span><i class="pxi pxi-haut gmChev" aria-hidden="true"></i></button>
     </div>
   </div>
   <!-- LE VOILE DU DÉPART : il couvre la seule COUPE de la séquence — l'instant où l'on quitte
@@ -29235,7 +29280,7 @@ function buildGarageRoom(){
      const m=new THREE.Mesh(IB,BA([0xffd75e,0xff8a3d,0xffef9e][i%3]));
      m.visible=false;g.add(m);GAR.impactMeshes.push(m);GAR.impactVel.push({x:0,y:0,z:0,rx:0,ry:0});}
   }
-  buildBoutonRouge(g);buildAffiches(g); // (Léo) le bouton rouge et les affiches : bâtis AVEC l'atelier — donc chauffés au menu avec lui (atelierChauffe)
+  buildBoutonRouge(g);buildAffiches(g);buildFlammes(g); // (Léo) le bouton rouge, les affiches, les flammes de la porte : bâtis AVEC l'atelier — donc chauffés au menu avec lui (atelierChauffe)
   return g;
 }
 /* ============================================================================
@@ -29344,7 +29389,7 @@ function boutonOuvre(){shopOuvre();} // LE TAP : la BOUTIQUE DU GARAGE se déplo
    En sortant, TA caisse équipée revient (partir en course avec la voiture qu'on feuilletait, c'était la trahir). */
 function shopOuvre(){
   if(!garageOn||GAR.btq||GAR.go||GAR.sw)return;
-  GAR.btq=true;GAR.btnPress=.26;GAR.yawV=.45;GAR.affH=null;GAR.btnHover=false; // la caisse part à tourner… et ne s'arrêtera que si TU l'arrêtes
+  GAR.btq=true;GAR.btnPress=.26;GAR.yawV=.45;GAR.affH=null;GAR.btnHover=false;gEl.classList.remove('nivOuvert'); // la caisse part à tourner… et ne s'arrêtera que si TU l'arrêtes
   gEl.classList.add('boutique');document.body.style.cursor='';
   shopTab(SHOP.tab||'voiture');
   if(GAR.pc>=0&&SHOP.tab==='voiture'&&GAR.pc!==garageI&&GAR.pod){GAR.sw={t:0,fait:false,to:GAR.pc};} // (Sacha) la caisse que ta banque peut payer, une fois
@@ -29502,6 +29547,7 @@ function gselVerrou(j){
   toast(pxi('verrou')+' '+sansAcc(TR('TERMINE LE NIVEAU'))+' '+(carrFait(GSEL.b)+1));
 }
 function gselRendu(){
+  gMapMaj();
   const el=document.getElementById('gNiv');if(!el)return;
   const nom=el.querySelector('.gnNom'),pips=el.querySelector('.gnPips'),info=el.querySelector('.gnInfo');
   if(GSEL.b<0){
@@ -29523,6 +29569,80 @@ function gselRendu(){
    if(!gselOuvert(GSEL.b,j)){gselVerrou(j);return;}uiPop(p);gselChoix(GSEL.b,j,true);});
   gselInit();gselRendu();}}
 addEventListener('keydown',e=>{if(!garageOn||ecranWipe._on||GAR.go)return;if(e.code==='ArrowUp'||e.code==='ArrowDown'){e.preventDefault();gselMonde(e.code==='ArrowUp'?-1:1);}});
+function gMapMaj(){ // la MAP du garage : le monde et le niveau qui vont se jouer
+  const bt=document.getElementById('gMap');if(!bt)return;
+  const ic=bt.querySelector('.gmIc'),nm=bt.querySelector('.gmNom'),so=bt.querySelector('.gmSous');
+  let icn='drapeau',a,b9;
+  if(GSEL.b<0||!CARRIERE[GSEL.b]){a=sansAcc(TR('SANS FIN'));b9=sansAcc(TR('NUAGES > VILLE > ESPACE'));}
+  else{const B=CARRIERE[GSEL.b];icn=B.ic||'drapeau';a=sansAcc(TR(B.nm))+' '+(GSEL.i+1);b9=sansAcc(TR(B.niveaux[GSEL.i].nm));}
+  if(ic&&ic._n!==icn){ic._n=icn;ic.className='pxi pxi-'+icn+' gmIc';}
+  if(nm.textContent!==a)nm.textContent=a;if(so.textContent!==b9)so.textContent=b9;
+}
+{const mp=document.getElementById('gMap');
+ if(mp)mp.addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarget);const o=gEl.classList.toggle('nivOuvert');uiClic(o?'nav':'retour');});
+ const st=document.getElementById('gSet');
+ if(st)st.addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarget);uiClic('nav'); // RÉGLAGES : l'écran de Sacha, au lever du voile (comme la boutique payante)
+   if(GAR.go)return;ecranWipe(function(){closeGarage();},function(){if(!garageOn&&window.__mGo)window.__mGo('set');});});
+ gMapMaj();}
+addEventListener('keydown',e=>{if(!garageOn||ecranWipe._on||GAR.go||GAR.btq)return;if(e.code==='Enter'&&!e.repeat){e.preventDefault();gselJoue();}}); // Entrée = JOUER, au garage
+/* ---- LES FLAMMES DE LA PORTE (2026-09-29, Léo : « au dehors de la porte du garage, des flammes qui jaillissent ») --------------------
+   Trois paires de CANONS À FLAMMES de part et d'autre de la route, juste dehors : une veilleuse qui lèche en permanence et, toutes les ~4 s
+   au garage, une SALVE qui remonte la route depuis la porte (paire après paire) ; au LÂCHER, tout crache en même temps, plus haut. Aucune
+   lumière ajoutée : des sprites additifs (une texture cuite une fois, trois couches par jet — l'enveloppe orange, le corps jaune, le cœur
+   blanc) et des braises recyclées. Bâti avec l'atelier (chauffé au menu). */
+const FLM={jets:[],braises:[],t:0,salveT:2.2,uT:{value:0},mats:null};
+/* (29/09, Léo : « je pensais plutôt aux flammes comme celles du NITRO INFINI — c'est vraiment le genre de trucs stylés que j'aime ») — ce
+   sont désormais LES MÊMES flammes que la plume de la caisse en nitro infinie : la FLAMME VIVANTE de Sacha (`jetGeo` + `jetMat`, le bruit
+   qui coule et ronge les langues, la racine de brûleur, le cœur blanc), aux couleurs de `NINF` (violet), dressées vers le ciel. Même
+   programme que la plume (aucune compilation de plus) ; leur horloge est la leur (`FLM.uT` : JET_T n'avance qu'en course). */
+function buildFlammes(g){
+  const sh=jetMat(NINF.jet,0xfff4dc,NINF.rac,.95,1,1),co=jetMat(NINF.core,0xffffff,NINF.rac,1,.7,1.35);
+  sh.uniforms.uT=FLM.uT;co.uniforms.uT=FLM.uT;
+  FLM.mats={sh:sh,co:co,gl:new THREE.SpriteMaterial({map:lampTex,color:NINF.lum,transparent:true,opacity:.7,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}),
+    b:new THREE.SpriteMaterial({map:lampTex,color:0xc58bff,transparent:true,opacity:.9,blending:THREE.AdditiveBlending,depthWrite:false,fog:false})};
+  const fer=new THREE.MeshLambertMaterial({color:0x22263a,emissive:0x22263a,emissiveIntensity:.08,fog:false});
+  const bague=new THREE.MeshBasicMaterial({color:NINF.jet,fog:false});
+  const hd=GAR.D/2,cyl=new THREE.CylinderGeometry(.34,.44,.52,14),anneau=new THREE.TorusGeometry(.3,.05,6,18);
+  [hd+4.5,hd+10.5,hd+17].forEach(function(z,rang){for(const sx of [-1,1]){
+    const j=new THREE.Group();j.position.set(sx*(4.7+rang*.35),0,z);g.add(j); // au bord de la route, dans l'ouverture de la porte (vue du garage)
+    const base=new THREE.Mesh(cyl,fer);base.position.y=.26;j.add(base);
+    const an=new THREE.Mesh(anneau,bague);an.rotation.x=Math.PI/2;an.position.y=.53;j.add(an);
+    const pv=new THREE.Group();pv.position.y=.5;pv.rotation.y=Math.random()*6.28;j.add(pv);  // chaque jet tourné autrement : ses langues ne sont pas celles du voisin
+    const s9=new THREE.Mesh(jetGeo,sh),c9=new THREE.Mesh(jetGeo,co);s9.rotation.x=c9.rotation.x=Math.PI/2; // la pointe vers le CIEL
+    pv.add(s9);pv.add(c9);
+    const gl=new THREE.Sprite(FLM.mats.gl);gl.position.y=.6;gl.scale.set(1.6,1.6,1);j.add(gl);   // la bouche chauffée
+    FLM.jets.push({g:j,s:s9,c:c9,gl:gl,rang:rang,ph:Math.random()*9,d:0,f:0,fT:0,big:4});}});
+  for(let i=0;i<28;i++){const s=new THREE.Sprite(FLM.mats.b);s.visible=false;g.add(s);FLM.braises.push({s:s,v:new THREE.Vector3(),t:0});}
+}
+function flammesSalve(tout){ // une SALVE : paire après paire depuis la porte — `tout` (le lâcher) : tout crache en même temps, plus haut
+  for(const j of FLM.jets){j.d=(tout?0:j.rang*.16)+.001;j.big=tout?6.4:4.4;}
+}
+function flammeBraise(j){
+  for(const b of FLM.braises){if(b.t>0)continue;b.t=.7+Math.random()*.5;b.s.visible=true;
+    b.s.position.set(j.g.position.x+(Math.random()-.5)*.6,1+Math.random()*2.5,j.g.position.z+(Math.random()-.5)*.6);
+    b.v.set((Math.random()-.5)*1.6,3+Math.random()*3,(Math.random()-.5)*1.6);return;}
+}
+function flammesTick(dt){
+  if(!FLM.jets.length||!garageOn)return;
+  FLM.t+=dt;const t=FLM.t;FLM.uT.value=t;
+  if(!GAR.btq&&!GAR.go){FLM.salveT-=dt;if(FLM.salveT<=0){FLM.salveT=3.4+Math.random()*1.8;flammesSalve(false);}}
+  let son=false;
+  for(const j of FLM.jets){
+    if(j.d>0){j.d-=dt;if(j.d<=0){j.f=1;j.fT=0;if(j.rang===0)son=true;}}
+    let L=1.1+.18*Math.sin(t*9+j.ph)+.1*Math.sin(t*23+j.ph*2),k=0;               // la veilleuse : une langue violette qui lèche
+    if(j.f){j.fT+=dt;const a=j.fT;k=a<.1?a/.1:a<.45?1:Math.max(0,1-(a-.45)/.45);
+      L+=j.big*k*(1+.1*Math.sin(t*31+j.ph));if(k>.5&&Math.random()<dt*26)flammeBraise(j);if(a>.95)j.f=0;}
+    const r=.42+.36*Math.min(1,L/4)+.05*Math.sin(t*17+j.ph);
+    j.s.scale.set(r,r,L);j.c.scale.set(r*.48,r*.48,L*.72);
+    const gs=1.3+k*1.6;j.gl.scale.set(gs,gs,1);
+  }
+  FLM.mats.gl.opacity=.55+.25*Math.sin(t*13);
+  if(son&&garageOn)try{if(!(typeof sfx==='function'&&sfx('garage.flamme')))noiseBurst(.22,.05,620);}catch(e){} // (console de son : « garage.flamme » à cuire)
+  for(const b of FLM.braises){if(b.t<=0)continue;b.t-=dt;b.v.y-=2.5*dt;b.s.position.addScaledVector(b.v,dt);
+    const k=Math.max(0,b.t);b.s.scale.setScalar(.2*Math.min(1,k*2));if(b.t<=0)b.s.visible=false;}
+}
+window.dbgFlammes=function(tout){if(tout!=null)flammesSalve(!!tout);const j=FLM.jets[2],v=new THREE.Vector3();if(j)j.s.getWorldPosition(v);
+  return {jets:FLM.jets.length,t:+FLM.t.toFixed(2),salve:+FLM.salveT.toFixed(2),j:j?{vis:j.g.visible&&j.s.visible,sc:j.s.scale.toArray().map(x=>+x.toFixed(2)),f:j.f,d:+j.d.toFixed(2),monde:v.toArray().map(x=>+x.toFixed(1)),parent:!!j.g.parent,rootVis:!!(GAR.root&&GAR.root.visible)}:null};};
 window.dbgGsel=function(b,i){if(b!=null)gselChoix(b,i|0,false);return {...GSEL,actif:CARR.actif};};
 /* `garageGo(d)` — passer à la caisse suivante/précédente EN MACHINE.
    ⚠ DEUX PORTES D'ENTRÉE, ET C'EST VOULU : `garageShow(i)` reste le chemin INSTANTANÉ, appelé à
@@ -29555,6 +29675,7 @@ function garageLaunch(){
   window.__mRetour=null; // (2026-09-29) une course part de l'atelier : l'écran qui l'attend à la fin, c'est la mort, pas les missions
   try{ if(carUnlocked(garageI)){const be=$('gEquip'); if(be&&be.getAttribute('aria-disabled')!=='true'&&be.dataset.etat!=='jouer')be.click();} }catch(e){} // (Léo) ⚠ JOUER est déjà l'équipée : le recliquer relancerait le départ
   if(GAR.btq)shopQuitte(true); // (Léo) on ne part jamais de la vitrine : la boutique se replie, TA caisse revient
+  gEl.classList.remove('nivOuvert');try{flammesSalve(true);}catch(e){} // (Léo) au départ, TOUTES les flammes de la porte crachent
   if(!GAR._v)GAR._v=new THREE.Vector3();
   if(!GAR._c)GAR._c=new THREE.Vector3();
   GAR.go={t:0,p0:camera.position.clone(),voile:false,quiet:gEl.classList.contains('quiet')};
@@ -29835,13 +29956,13 @@ function openGarage(quiet){
   bioApply(BIOMES.atelier);MENUV.bio=false;
   garageAng=.42;garagePitch=.22;garageDist=7.8; // départ trois-quarts avant : on voit la caisse ET l'établi derrière ; ⚠ 6,9→7,8 (2026-09-05, « trop zoomé ») — la caisse ne mange plus tout le cadre
   // (Léo) « le garage est la LIGNE DE DÉPART » : on entre DERRIÈRE la caisse, la porte ouverte au fond du cadre ; toujours au garage, jamais en boutique
-  garageAng=Math.PI;garagePitch=.2;GAR.btq=false;GAR.bk=0;GAR.swK=0;GAR.swO=0;GAR.swP=0;GAR.btnK=1;gEl.classList.remove('boutique');
+  garageAng=Math.PI;garagePitch=.2;GAR.btq=false;GAR.bk=0;GAR.swK=0;GAR.swO=0;GAR.swP=0;GAR.btnK=1;gEl.classList.remove('boutique');gEl.classList.remove('nivOuvert');FLM.salveT=1.2;
   garageShow(level||0);
 }
 function closeGarage(){
   try{if(openGarage._amb){openGarage._amb.stop(.35);openGarage._amb=null;}}catch(e){}
   trailApercu(0,false);
-  GAR.yaw=0;GAR.yawV=0;GAR.btnHover=false;GAR.btnDown=false;GAR.affH=null;GAR.btq=false;GAR.bk=0;GAR.pc=-1;gEl.classList.remove('boutique');if(document.body.style.cursor)document.body.style.cursor=''; // (Léo)
+  GAR.yaw=0;GAR.yawV=0;GAR.btnHover=false;GAR.btnDown=false;GAR.affH=null;GAR.btq=false;GAR.bk=0;GAR.pc=-1;gEl.classList.remove('boutique');gEl.classList.remove('nivOuvert');if(document.body.style.cursor)document.body.style.cursor=''; // (Léo)
   if(SHOP.prev||SHOP.tab!=='voiture'){SHOP.prev=null;SHOP.tab='voiture';buildCar(CARS[equippedCar()]);} // l'essai ne sort pas de l'atelier
   paintEnv(BIO.to.env,BIO.to.eS1,BIO.to.eS2); // (2026-09-26) on rend à la laque le ciel du biome (l'atelier l'avait repeint en studio)
   bioApply(BIO.cur); // ⚠ (2026-09-24) le garage/l'étal écrasent le ciel chaque frame (nuit étoilée) : on rend la main au BIOME en sortant, sinon la 1re course gardait leur ciel
@@ -30052,7 +30173,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
     else if(SHOP.tab==='trainee'){let d9=(GARV.a+Math.PI-.55)-GAR.yaw;d9=Math.atan2(Math.sin(d9),Math.cos(d9));GAR.yaw+=d9*Math.min(1,dt*3);GAR.yawV=0;}
     else if(!garageDrag)GAR.yaw+=GAR.yawV*dt;}
   carGroup.position.set(0,ay+GAR.POD,0);carGroup.rotation.set(0,GAR.yaw,0);carGroup.visible=true; // posée SUR le plateau
-  boutonTick(dt,t9);affichesTick(dt); // (Léo) le bouton rouge respire, les affiches répondent au survol
+  boutonTick(dt,t9);affichesTick(dt);flammesTick(dt); // (Léo) le bouton rouge respire, les affiches répondent au survol, les flammes de la porte lèchent et crachent
   garageFloor.visible=false;                       // l'ancienne nappe de brume : l'atelier a un vrai sol
   // CIEL CYAN étoilé — ce qu'on voit par la porte relevée (poussé après bioStep : ça gagne cette frame)
   skyU.uSkyMul.value.set(.62,.92,1.34);skyU.uStars.value=1.7;skyU.uMoon.value=1.5;skyU.uSunHalo.value=.12;
@@ -30478,13 +30599,13 @@ function playWordWave(clickX){
   });
 }
 $('gPlayMain').addEventListener('click',function(e){
-  e.stopPropagation();CARR.actif=null; // le PLAY du garage = la partie sans fin
+  e.stopPropagation(); // (Léo, 29/09) le JOUER en lettres, en haut au-dessus de la caisse, part du NIVEAU choisi (la map) — gselJoue
   playWordWave(e.clientX); // ⚠ (2026-09-25) cet appel était COLLÉ au commentaire ci-dessus : la vague ne partait jamais
-  tutoArme();
-  setTimeout(garageLaunch,260); // la vague a le temps de partir avant que le garage ne s'éteigne
+  try{uiClic();}catch(err){}
+  setTimeout(gselJoue,260); // la vague a le temps de partir avant que le garage ne s'éteigne
 });
 $('gPlayMain').addEventListener('keydown',function(e){
-  if(e.code==='Enter'||e.code==='Space'){e.preventDefault();e.stopPropagation();playWordWave();setTimeout(garageLaunch,260);}
+  if(e.code==='Enter'||e.code==='Space'){e.preventDefault();e.stopPropagation();playWordWave();setTimeout(gselJoue,260);}
 });
 $('gPrev').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarget);garageGo(-1);});
 $('gTabs').addEventListener('click',e=>{e.stopPropagation();const b=e.target.closest('.gTab');if(!b)return;uiClic('onglet');uiPop(b);shopTab(b.getAttribute('data-tab'));});
@@ -30523,6 +30644,7 @@ let gpId=null,gPince=false;
    sauter ; ailleurs, la caisse encaisse (garageImpact, comme avant). La garde « un seul doigt » de Sacha (gpId/gPince) est gardée. */
 addEventListener('pointerdown',e=>{if(!garageOn||ecranWipe._on)return;if(e.target.closest&&e.target.closest('#gTop,#gBottom,#gNiv,#wipe,#carr,#modale'))return;
   if(garageDrag){gPince=true;return;}
+  gEl.classList.remove('nivOuvert'); // (Léo) un tap dans l'atelier referme le choix du niveau
   garageDrag=true;gpId=e.pointerId;gPince=false;gpx=gpx0=e.clientX;gpy=gpy0=e.clientY;GAR._mt=performance.now();
   if(!GAR.btq&&GAR.swK){garageAng+=GAR.swO||0;garagePitch=THREE.MathUtils.clamp(garagePitch+(GAR.swP||0),.02,.82);GAR.swO=GAR.swP=GAR.swK=0;} // le balancement est VERSÉ dans la vue : pas de saut sous le doigt
   GAR.btnDown=boutonVise(e);if(GAR.btnDown){GAR.btnPress=.26;return;} // le bouton s'enfonce sous le doigt : la caisse n'a pas à broncher
@@ -30554,7 +30676,7 @@ addEventListener('pointermove',e=>{
 // ⚠ ORBITE BORNÉE À 7,8 m : au-delà on sortait par les murs et on traversait la servante et les
 // piles de pneus. Le décor est rangé POUR ce rayon (rien de posé à moins de 8,3 m du centre).
 addEventListener('wheel',e=>{if(!garageOn)return;garageDist=THREE.MathUtils.clamp(garageDist+e.deltaY*.008,4.6,8.6);},{passive:true}); // plafond 7,8→8,6 (2026-09-05) : le zoom arrière par défaut est monté, la molette doit pouvoir suivre
-addEventListener('keydown',e=>{if(!garageOn||ecranWipe._on)return;if(e.code==='Escape'){const cr9=$('carr');if(cr9&&cr9.classList.contains('on'))feuilleFerme(cr9,'on');else if(GAR.btq)shopQuitte();else if(!GAR.go)ecranWipe(closeGarage);}else if(e.code==='ArrowLeft')garageGo(-1);else if(e.code==='ArrowRight')garageGo(1);}); // même chemin que les flèches à l'écran (boutique comprise, premium exclues)
+addEventListener('keydown',e=>{if(!garageOn||ecranWipe._on)return;if(e.code==='Escape'){const cr9=$('carr');if(cr9&&cr9.classList.contains('on'))feuilleFerme(cr9,'on');else if(gEl.classList.contains('nivOuvert'))gEl.classList.remove('nivOuvert');else if(GAR.btq)shopQuitte();else if(!GAR.go)ecranWipe(closeGarage);}else if(e.code==='ArrowLeft')garageGo(-1);else if(e.code==='ArrowRight')garageGo(1);}); // même chemin que les flèches à l'écran (boutique comprise, premium exclues)
 
 // ---------- BOUCLE ----------
 const fwdW=new THREE.Vector3(),tmp=new THREE.Vector3(),tmp2=new THREE.Vector3(),tmp3=new THREE.Vector3(),mat4=new THREE.Matrix4();

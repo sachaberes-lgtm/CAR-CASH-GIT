@@ -33,6 +33,12 @@ carrière, missions, garage à onglets, boutique), + SEULEMENT :
   caisse tourne sous le doigt, la structure de Sacha se déploie sur les bords (fiche, onglets, familles, vignettes, flèches, ACHETER/ÉQUIPER),
   le bouton rentre dans le sol, le choix du niveau se retire ; la caisse « à ta portée » de Sacha (`garPortee`, `GAR.pc`) s'y affiche.
   RETOUR / Échap → `shopQuitte` (TA caisse revient) ; le lâcher replie toujours la boutique d'abord. `dbgBoutique(1|0)`.
+- **LES COINS DU GARAGE + LA PORTE EN FEU** (29/09, Léo) : au repos, JOUER en grandes lettres d'or en haut au-dessus de la caisse (`#gPlayMain`,
+  part du niveau choisi par `gselJoue`, Entrée aussi), le compte en haut à gauche, RÉGLAGES `#gSet` en haut à droite (→ l'écran de Sacha sous
+  le voile), RETOUR en bas à gauche, la MAP `#gMap` en bas à droite (monde + niveau ; un tap ouvre `#gNiv` au-dessus, `#garage.nivOuvert`) ; le
+  lingot ne vit plus qu'en boutique. Dehors, trois paires de CANONS À FLAMMES au bord de la route (`FLM`, `buildFlammes`, `flammesTick`) :
+  la FLAMME VIVANTE de la plume (`jetGeo`/`jetMat`) aux couleurs de la NITRO INFINIE (`NINF`, violet) — « comme celles du nitro infini » —,
+  veilleuse + salve toutes les ~4 s, tout crache au lâcher. `dbgFlammes(1)`. Le bouton TOURNER de la page-cadre PC est revenu (`#tourne`).
 - **LE CHOIX DU NIVEAU AU GARAGE** (`#gNiv` dans `#gBottom`, `GSEL`, `gselRendu`, `SAVE.d.sel`) : monde ◀ ▶ (NUAGES · VILLE · ESPACE ·
   SANS FIN) + 10 cases (même règle d'ouverture que la carrière : `TEST_CARRIERE || i ≤ carrFait`). Le JOUER du garage (`gselJoue`) part du
   niveau choisi par `carrLancer` de Sacha (permis d'abord, piste reconstruite sous le voile) ; SANS FIN = `playViaGarage(true)`. À la mort,
