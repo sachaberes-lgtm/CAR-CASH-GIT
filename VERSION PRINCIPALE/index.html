@@ -4025,6 +4025,17 @@ html body #coach.passe .coN{color:var(--or);white-space:nowrap}html body #coach 
 #mDead .hMot>small{white-space:nowrap;letter-spacing:1px}
 /* REVOIR L'AUTO-ÉCOLE : la prime encore à prendre, en vert billet, sans second chevron (la ligne a le sien) */
 #mvTuto{color:var(--neoV);text-shadow:none}#mvTuto::after{display:none}#mvTuto[hidden]{display:none}
+/* ---- 27. MODE FACILE (2026-09-29) : les trois vies, en haut à droite, sous la pause (zone de LECTURE) ---- */
+#facVies{display:none}
+html body.touch.play.facile #facVies{display:flex;position:fixed;top:calc(var(--hudH) + 66px);right:var(--hudD);z-index:6;gap:5px;pointer-events:none;zoom:var(--hudK);
+  --hudH:calc((env(safe-area-inset-top,0px) + var(--hudY0) * (1 - var(--hudK))) / var(--hudK));
+  --hudD:calc((env(safe-area-inset-right,0px) + 14px) / var(--hudK))}
+#facVies .pxi{--pxs:2;color:var(--neoR);filter:drop-shadow(0 2px 0 var(--k0))}
+#facVies .pxi.vide{color:var(--tx3);opacity:.45}
+#facVies .pxi.perd{animation:facPerd var(--t-slow) var(--ease)}
+@keyframes facPerd{from{scale:2;color:#fff}to{scale:1}}
+body.coOn #facVies,body.dead #facVies,body:has(#tPanel.open) #facVies{visibility:hidden}
+@media (prefers-reduced-motion:reduce){#facVies .pxi.perd{animation:none}}
 </style>
 <style id="hudMaitrise">
 /* =====================================================================================================================
@@ -4666,6 +4677,7 @@ html body #popTxt.cache{opacity:0!important}
   </div>
   <div id="carInfo" class="panel"><div id="carName">LA HONTE</div><div id="carLevel">MOTEUR ROUILLÉ</div></div>
   <div id="money"><span id="moneyTxt">$00000000</span></div>
+  <div id="facVies" aria-hidden="true"></div><!-- (2026-09-29) MODE FACILE : les trois vies -->
   <div id="auraV2" aria-hidden="true"><div class="avTot"><span id="avVal">0</span><em>AURA</em><i id="avPlus"></i></div><div id="avRec" class="vide"><span id="avRecT"></span><i><s id="avRecF"></s></i></div>
     <div id="avCh"><div class="avChTop"><b id="avPts">0</b><span id="avX">×1</span></div><div class="avBar"><i id="avBarF"></i></div><ul id="avList"></ul></div></div>
   <!-- (2026-09-28, Sacha) L'EMBLÈME DE LA FRÉNÉSIE « THE DARK TRIAD » — v3 EN PIXEL (même soir : « toute l'interface est faite en pixel,
@@ -4854,6 +4866,8 @@ html body #popTxt.cache{opacity:0!important}
           <b id="mvCtl" hidden></b><!-- (COMMANDES retiré des réglages : user, 2026-09-25 — un seul schéma, le volant) -->
           <div class="mLigne" data-m="q"><i class="pxi pxi-eclair" aria-hidden="true"></i><span class="tpL">IMAGE</span><b id="mvQ" class="valeur">RAPIDE</b></div>
           <div class="mLigne" data-m="lang"><i class="pxi pxi-bulle" aria-hidden="true"></i><span class="tpL">LANGUE</span><b id="mvLang" class="valeur">FR</b></div>
+          <div class="mLigne" data-m="facile"><i class="pxi pxi-coeur" aria-hidden="true"></i><span class="tpL">MODE FACILE</span><b id="mvFacile" class="bascule">OFF</b></div>
+          <div class="mLigne" data-m="volh"><i class="pxi pxi-aile" aria-hidden="true"></i><span class="tpL">POUCE HAUT EN VOL</span><b id="mvVolH" class="valeur">PLONGE</b></div>
           <div class="mLigne" data-m="vib"><i class="pxi pxi-vibre" aria-hidden="true"></i><span class="tpL">VIBRATIONS</span><b id="mvVib" class="bascule">ON</b></div><!-- (2026-09-28) la charte, règle 8 : SON et VIBRATIONS sont deux interrupteurs -->
           <div class="mLigne lien" data-m="tuto"><i class="pxi pxi-volant" aria-hidden="true"></i><span class="tpL">REVOIR L'AUTO-ECOLE</span><b id="mvTuto" class="valeur" hidden></b></div>
         </div>
@@ -4958,7 +4972,7 @@ if(window.CC_COLONNE)return; // (2026-09-28) sur l'ordi cette page n'est que le 
    dessinée à la main, convertie UNE fois en SVG et posée en MASQUE CSS : elle prend la couleur de son
    bouton (`currentColor`), reste nette à toutes les tailles (`crispEdges`) et ne coûte aucun fichier.
    Usage : `<i class="pxi pxi-croix"></i>` dans le HTML, `pxi('croix')` dans le JS. */
-const PXI_G={vibre:'..#####..|#.#...#.#|#.#...#.#|..#...#..|#.#...#.#|#.#...#.#|..#...#..|..#.#.#..|..#####..',aimant:'##.....##|.........|##.....##|##.....##|##.....##|###...###|.#######.|..#####..|.........',bouclier:'#########|##.....##|##.....##|##.....##|.##...##.|.##...##.|..##.##..|...###...|....#....',nuage:'.........|.........|....##...|...####..|.##.####.|#########|#########|.#######.|.........',immeuble:'....#....|...###...|...###.##|##.###.##|##.###.##|#########|#########|#########|.........',flamme:'....#....|...##....|...###...|..####.#.|..######.|.###.###.|.##...##.|.##...##.|..#####..',pinceau:'......###|.....####|....####.|...####..|..####...|.#.##....|###......|###......|.#.......',aile:'.........|#........|##.......|###......|#####....|.#######.|..#######|....#####|.......##',trainee:'.........|##.......|.###.....|..####...|...######|..####...|.###.....|##.......|.........',pouce:'...##....|...##....|...##....|...####..|.#######.|.########|.#######.|..#####..|..#####..',cadeau:'.##...##.|#..#.#..#|.#######.|#########|#...#...#|####.####|.#..#..#.|.#..#..#.|.#######.',cible:'..#####..|.#.....#.|#..###..#|#.#...#.#|#.#.#.#.#|#.#...#.#|#..###..#|.#.....#.|..#####..',croix:'##.....##|###...###|.###.###.|..#####..|...###...|..#####..|.###.###.|###...###|##.....##',gauche:'....##...|...###...|..####...|.#####...|######...|.#####...|..####...|...###...|....##...',droite:'...##....|...###...|...####..|...#####.|...######|...#####.|...####..|...###...|...##....',haut:'.........|....#....|...###...|..#####..|.#######.|#########|...###...|...###...|...###...',bas:'...###...|...###...|...###...|#########|.#######.|..#####..|...###...|....#....|.........',lecture:'##.......|####.....|######...|########.|#########|########.|######...|####.....|##.......',pause:'.........|###...###|###...###|###...###|###...###|###...###|###...###|###...###|.........',reglages:'....#....|.#.###.#.|..#####..|.##...##.|###...###|.##...##.|..#####..|.#.###.#.|....#....',son:'....#....|...##..#.|####.#..#|####.#..#|####.#..#|####.#..#|...##..#.|....#....|.........',muet:'....#....|...##....|####..#.#|####...#.|####..#.#|####.....|...##....|....#....|.........',musique:'...######|...#....#|...#....#|...#....#|.###..###|####.####|####.####|.##...##.|.........',voix:'...###...|..#####..|..#####..|..#####..|#.#####.#|#..###..#|.##...##.|...###...|..#####..',volant:'..#####..|.#.....#.|#.......#|#..###..#|#########|#...#...#|#...#...#|.#..#..#.|..#####..',fleches:'.........|..#...#..|.##...##.|###...###|###...###|###...###|.##...##.|..#...#..|.........',eclair:'.....###.|....###..|...###...|..######.|.....##..|....##...|...##....|..##.....|.#.......',drapeau:'#.#.#.#.#|##.#.#.#.|#.#.#.#.#|##.#.#.#.|#.#.#.#.#|#........|#........|#........|#........',voiture:'.........|.........|..####...|.#..#.#..|########.|#########|#########|.##...##.|.##...##.',rampe:'.........|.........|........#|......###|.....####|...######|.########|#########|.........',brique:'#########|#...#...#|#########|..#...#..|#########|#...#...#|#########|..#...#..|#########',copier:'...###...|.##...##.|.#######.|.#.....#.|.#.###.#.|.#.....#.|.#.###.#.|.#.....#.|.#######.',importer:'....#....|....#....|..#.#.#..|...###...|....#....|#.......#|#.......#|#########|.........',corbeille:'...###...|#########|.#.....#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.....#.|..#####..',rejouer:'..#####..|.#.....##|#.....###|#........|#........|#.......#|#.......#|.#.....#.|..#####..',quitter:'#####....|#...#....|#...#.#..|#...#.##.|#..######|#...#.##.|#...#.#..|#...#....|#####....',verrou:'..#####..|.#.....#.|.#.....#.|#########|#########|####.####|####.####|#########|#########',coche:'.........|........#|.......##|#.....##.|##...##..|.##.##...|..###....|...#.....|.........',etoile:'....#....|....#....|...###...|#########|.#######.|..#####..|..##.##..|.##...##.|.#.....#.',trophee:'#########|#.#####.#|#.#####.#|.#######.|..#####..|...###...|....#....|..#####..|.#######.',rotation:'..#####..|.#.....##|#.....###|#........|#..###...|#..#.#..#|#..###..#|.#.....#.|..#####..',panier:'.........|#........|.#######.|.#.#.#.#.|.#######.|..#.#.#..|..#####..|..#...#..|.........',bulle:'.#######.|#.......#|#.#.#.#.#|#.......#|.###.###.|...#.#...|...##....|...#.....|.........',piece:'..#####..|.#.....#.|#..###..#|#.#.....#|#..###..#|#.....#.#|#..###..#|.#.....#.|..#####..',maison:'....#....|...###...|..#####..|.#######.|#########|.#######.|.##...##.|.##...##.|.##...##.',triade:'....#....|...###...|...###...|..##.##..|.##.#.##.|.###.###.|#########|#########|.........'};
+const PXI_G={coeur:'.........|.##...##.|####.####|#########|#########|.#######.|..#####..|...###...|....#....',vibre:'..#####..|#.#...#.#|#.#...#.#|..#...#..|#.#...#.#|#.#...#.#|..#...#..|..#.#.#..|..#####..',aimant:'##.....##|.........|##.....##|##.....##|##.....##|###...###|.#######.|..#####..|.........',bouclier:'#########|##.....##|##.....##|##.....##|.##...##.|.##...##.|..##.##..|...###...|....#....',nuage:'.........|.........|....##...|...####..|.##.####.|#########|#########|.#######.|.........',immeuble:'....#....|...###...|...###.##|##.###.##|##.###.##|#########|#########|#########|.........',flamme:'....#....|...##....|...###...|..####.#.|..######.|.###.###.|.##...##.|.##...##.|..#####..',pinceau:'......###|.....####|....####.|...####..|..####...|.#.##....|###......|###......|.#.......',aile:'.........|#........|##.......|###......|#####....|.#######.|..#######|....#####|.......##',trainee:'.........|##.......|.###.....|..####...|...######|..####...|.###.....|##.......|.........',pouce:'...##....|...##....|...##....|...####..|.#######.|.########|.#######.|..#####..|..#####..',cadeau:'.##...##.|#..#.#..#|.#######.|#########|#...#...#|####.####|.#..#..#.|.#..#..#.|.#######.',cible:'..#####..|.#.....#.|#..###..#|#.#...#.#|#.#.#.#.#|#.#...#.#|#..###..#|.#.....#.|..#####..',croix:'##.....##|###...###|.###.###.|..#####..|...###...|..#####..|.###.###.|###...###|##.....##',gauche:'....##...|...###...|..####...|.#####...|######...|.#####...|..####...|...###...|....##...',droite:'...##....|...###...|...####..|...#####.|...######|...#####.|...####..|...###...|...##....',haut:'.........|....#....|...###...|..#####..|.#######.|#########|...###...|...###...|...###...',bas:'...###...|...###...|...###...|#########|.#######.|..#####..|...###...|....#....|.........',lecture:'##.......|####.....|######...|########.|#########|########.|######...|####.....|##.......',pause:'.........|###...###|###...###|###...###|###...###|###...###|###...###|###...###|.........',reglages:'....#....|.#.###.#.|..#####..|.##...##.|###...###|.##...##.|..#####..|.#.###.#.|....#....',son:'....#....|...##..#.|####.#..#|####.#..#|####.#..#|####.#..#|...##..#.|....#....|.........',muet:'....#....|...##....|####..#.#|####...#.|####..#.#|####.....|...##....|....#....|.........',musique:'...######|...#....#|...#....#|...#....#|.###..###|####.####|####.####|.##...##.|.........',voix:'...###...|..#####..|..#####..|..#####..|#.#####.#|#..###..#|.##...##.|...###...|..#####..',volant:'..#####..|.#.....#.|#.......#|#..###..#|#########|#...#...#|#...#...#|.#..#..#.|..#####..',fleches:'.........|..#...#..|.##...##.|###...###|###...###|###...###|.##...##.|..#...#..|.........',eclair:'.....###.|....###..|...###...|..######.|.....##..|....##...|...##....|..##.....|.#.......',drapeau:'#.#.#.#.#|##.#.#.#.|#.#.#.#.#|##.#.#.#.|#.#.#.#.#|#........|#........|#........|#........',voiture:'.........|.........|..####...|.#..#.#..|########.|#########|#########|.##...##.|.##...##.',rampe:'.........|.........|........#|......###|.....####|...######|.########|#########|.........',brique:'#########|#...#...#|#########|..#...#..|#########|#...#...#|#########|..#...#..|#########',copier:'...###...|.##...##.|.#######.|.#.....#.|.#.###.#.|.#.....#.|.#.###.#.|.#.....#.|.#######.',importer:'....#....|....#....|..#.#.#..|...###...|....#....|#.......#|#.......#|#########|.........',corbeille:'...###...|#########|.#.....#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.....#.|..#####..',rejouer:'..#####..|.#.....##|#.....###|#........|#........|#.......#|#.......#|.#.....#.|..#####..',quitter:'#####....|#...#....|#...#.#..|#...#.##.|#..######|#...#.##.|#...#.#..|#...#....|#####....',verrou:'..#####..|.#.....#.|.#.....#.|#########|#########|####.####|####.####|#########|#########',coche:'.........|........#|.......##|#.....##.|##...##..|.##.##...|..###....|...#.....|.........',etoile:'....#....|....#....|...###...|#########|.#######.|..#####..|..##.##..|.##...##.|.#.....#.',trophee:'#########|#.#####.#|#.#####.#|.#######.|..#####..|...###...|....#....|..#####..|.#######.',rotation:'..#####..|.#.....##|#.....###|#........|#..###...|#..#.#..#|#..###..#|.#.....#.|..#####..',panier:'.........|#........|.#######.|.#.#.#.#.|.#######.|..#.#.#..|..#####..|..#...#..|.........',bulle:'.#######.|#.......#|#.#.#.#.#|#.......#|.###.###.|...#.#...|...##....|...#.....|.........',piece:'..#####..|.#.....#.|#..###..#|#.#.....#|#..###..#|#.....#.#|#..###..#|.#.....#.|..#####..',maison:'....#....|...###...|..#####..|.#######.|#########|.#######.|.##...##.|.##...##.|.##...##.',triade:'....#....|...###...|...###...|..##.##..|.##.#.##.|.###.###.|#########|#########|.........'};
 (function(){
   let css='',vars='';
   for(const k in PXI_G){
@@ -4982,6 +4996,10 @@ function feuilleFerme(el,cls){ if(!el||!el.classList.contains(cls))return; try{u
   try{typeof sfx==='function'&&sfx('ui.feuilleFerme');}catch(e){}
   if(document.documentElement.getAttribute('data-reduced-motion')==='1'){el.classList.remove(cls,'sortant');return;}
   el.classList.add('sortant'); el._fermeT=setTimeout(function(){el.classList.remove(cls,'sortant');},170); }
+/* (2026-09-29) LE 1er JOUER DEMANDE LE MODE : FACILE (virages aidés, 10 s en l'air, 3 vies) ou NORMAL. Posé une fois, changeable dans les
+   RÉGLAGES. Échap clique le dernier bouton : NORMAL. */
+function facChoix(){return modale({titre:'CHOISIS TON MODE',texte:"En FACILE, la voiture suit mieux les virages, tu restes plus longtemps en l'air et tu as 3 vies. Tu pourras changer dans les réglages.",
+  boutons:[{l:'FACILE',ic:'coeur',cls:'pb-green',v:1},{l:'NORMAL',ic:'eclair',v:0}]}).then(function(r){SAVE.d.facile=r.v?1:0;SAVE.flush();});}
 function modale(o){return new Promise(function(res){
   const m=document.getElementById('modale'),c=document.getElementById('modC'),b=m.querySelector('.modB');
   document.getElementById('modT').textContent=TR(o.titre);document.getElementById('modX').textContent=o.texte?TR(o.texte):'';
@@ -10158,6 +10176,9 @@ Object.assign(I18N,{"CASH CAR — toucher pour jouer":"CASH CAR — tap to play"
 // (2026-09-29, les dix premières minutes) PASSER qui demande, le permis fêté, la carrière qui passe par l'auto-école
 Object.assign(I18N,{"VRAIMENT ?": "SURE?", "PERMIS": "LICENSE", "SORTI ! SUIS LA ROUTE": "OFF THE ROAD! FOLLOW IT", "RATÉ ! NITRO, VISE LE DESSUS": "MISSED! NITRO, AIM ABOVE IT", "Fini l'entraînement : UNE SEULE VIE. En l'air, pose-toi avant la fin du chrono.": "Training's over: ONE LIFE. In the air, land before the timer runs out.", "Tu reprendras la leçon au prochain départ.": "You'll pick the lesson up on your next start.", "Tu reprendras la leçon au prochain départ : le PERMIS et sa prime t'attendent.": "You'll pick the lesson up on your next start: the LICENSE and its bonus are waiting.", "PASSE D'ABORD TON PERMIS": "GET YOUR LICENSE FIRST"});
 Object.assign(I18N_ZH,{"VRAIMENT ?": "确定？", "PERMIS": "驾照", "SORTI ! SUIS LA ROUTE": "冲出赛道！沿着路走", "RATÉ ! NITRO, VISE LE DESSUS": "失败！用氮气，瞄准路面上方", "Fini l'entraînement : UNE SEULE VIE. En l'air, pose-toi avant la fin du chrono.": "训练结束：只有一条命。空中要在计时结束前着陆。", "Tu reprendras la leçon au prochain départ.": "下次出发时继续课程。", "Tu reprendras la leçon au prochain départ : le PERMIS et sa prime t'attendent.": "下次出发时继续课程：驾照和奖金在等你。", "PASSE D'ABORD TON PERMIS": "先考驾照", "MOTEUR ATTEINT": "达到的引擎"});
+// (2026-09-29) MODE FACILE + pouce haut en vol
+Object.assign(I18N,{"MODE FACILE": "EASY MODE", "POUCE HAUT EN VOL": "THUMB UP IN FLIGHT", "PLONGE": "DIVE", "MONTE": "CLIMB", "CHOISIS TON MODE": "PICK YOUR MODE", "En FACILE, la voiture suit mieux les virages, tu restes plus longtemps en l'air et tu as 3 vies. Tu pourras changer dans les réglages.": "In EASY, the car follows the turns better, you stay longer in the air and you get 3 lives. You can change it in the settings.", "FACILE": "EASY", "NORMAL": "NORMAL", "VIES": "LIVES", "DERNIERE VIE !": "LAST LIFE!", "ON REPART !": "BACK ON THE ROAD!", "En l'air : pouce en HAUT = monte, en BAS = plonge.": "In the air: thumb UP = climb, DOWN = dive."});
+Object.assign(I18N_ZH,{"MODE FACILE": "简单模式", "POUCE HAUT EN VOL": "空中拇指向上", "PLONGE": "俯冲", "MONTE": "爬升", "CHOISIS TON MODE": "选择模式", "En FACILE, la voiture suit mieux les virages, tu restes plus longtemps en l'air et tu as 3 vies. Tu pourras changer dans les réglages.": "简单模式：车更容易过弯，空中停留更久，还有 3 条命。可以在设置里更改。", "FACILE": "简单", "NORMAL": "普通", "VIES": "条命", "DERNIERE VIE !": "最后一条命！", "ON REPART !": "重新上路！", "En l'air : pouce en HAUT = monte, en BAS = plonge.": "空中：拇指向上 = 爬升，向下 = 俯冲。"});
 // ⚠ nommée TR et non T : `T` est DÉJÀ le tableau des tangentes de la piste (T[bi].y) — la
 // collision faisait planter tout le script au parsing, écran noir muet.
 /* LES CLÉS SANS LEUR SYMBOLE (2026-09-24) : les symboles de tête (✓ 🔒 ★ 📋…) sont devenus des ICÔNES PIXEL
@@ -20324,6 +20345,33 @@ function bouclierSauve(cause){
   if(PWR_V2.sauves===1&&((SAVE.d.ex&&SAVE.d.ex.runs)|0)<8)setTimeout(function(){try{if(running&&!gameOver)popTexte(sansAcc(TR('LE BOUCLIER T\'A SAUVE')),d.tint,2);}catch(e){}},1500);
   return true;
 }
+/* MODE FACILE — LES 3 VIES : même filet que le bouclier (mêmes causes : la caisse, pas le règlement), la vie remplace le cristal. */
+function facileSauve(cause){
+  if(!facFilet()||gameOver||mode==='boom'||!started)return false;
+  if(cause!=='vide'&&cause!=='air'&&cause!=='tour')return false;
+  FAC.coeurs--;RUNX.vies=(RUNX.vies|0)+1;SFA.n=0;MIR.t=0;MIR.max=0;
+  airPie.style.display='none';airFlash=0;
+  try{dolFin();}catch(e){}
+  chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;
+  caseHud.style.opacity=0;caseHud.className='';caseHot=false;dolphT=0;
+  const p9=carGroup.position.clone();
+  respawn();hopY=2.2;hopV=0;graceT=Math.max(graceT,2.2);loop._camDriveT=0;
+  nitroR=Math.max(nitroR,nitroCap()*.5); // on repart avec de quoi voler
+  slam(FAC.coeurs>1?FAC.coeurs+' '+TR('VIES'):'DERNIERE VIE !','ON REPART !','#ff5e7a','#ffd75e',44,3,12);
+  shake=Math.max(shake,.5);hap([30,50,70]);
+  try{if(SONV2)sfx('tuto.rate');else{chimeNote(noteP(4,1),0,.08,.3);chimeNote(noteP(0,1),.1,.1,.4);}}catch(e){}
+  sparkBurst(sparkGold,p9,20,12);
+  facViesAff(true);
+  return true;
+}
+window.dbgFacile=function(k){if(k==='mort'&&started&&!gameOver&&mode!=='boom')explode('vide');return {on:facOn(),coeurs:FAC.coeurs,airMax:+airMax().toFixed(2),volSens:volSens(),mode:mode,gameOver:gameOver,psi:+psi.toFixed(3),lat:+lat.toFixed(1),demiRoute:+ROAD_HALF.toFixed(1)};}; // banc : l'état du mode FACILE ; dbgFacile('mort') provoque une chute
+function facDepart(){FAC.coeurs=3;document.body.classList.toggle('facile',facOn());facViesAff(false);}
+function facViesAff(perdu){ // les cœurs du HUD (en haut à droite) : pleins, vides, et celui qu'on vient de perdre qui éclate
+  const e=document.getElementById('facVies');if(!e)return;
+  if(e.childElementCount!==3)e.innerHTML=pxi('coeur')+pxi('coeur')+pxi('coeur');
+  const k=e.children;for(let i=0;i<3;i++)k[i].classList.toggle('vide',i>=FAC.coeurs);
+  if(perdu&&k[FAC.coeurs]){const c=k[FAC.coeurs];c.classList.remove('perd');void c.offsetWidth;c.classList.add('perd');}
+}
 /* BOUCLIER : UN PLOT PERCUTÉ VOLE, IL NE COÛTE RIEN — il paie « DÉMOLI » (la série monte si on enchaîne en 2 s) et un filet de nitro. */
 function pwrDemoli(pos){
   PWR_V2.demoli=PWR_V2.demoT>0?PWR_V2.demoli+1:1;PWR_V2.demoT=2;
@@ -21262,7 +21310,7 @@ const BOOM_VARS=[
 let BOOMV=BOOM_VARS[0];
 let mortCause=''; // (2026-09-26, audit UX) POURQUOI on est mort — dit sous GAME OVER : une mort comprise donne envie de rejouer
 function explode(cause){
-  if(bouclierSauve(cause))return; // (pouvoirs v2) LE BOUCLIER : une chute, un vol trop long, une tour — pardonnés une fois (voir bouclierSauve)
+  if(bouclierSauve(cause)||facileSauve(cause))return; // (MODE FACILE) une vie de moins au lieu de la partie · (pouvoirs v2) LE BOUCLIER : une chute, un vol trop long, une tour — pardonnés une fois (voir bouclierSauve)
   if(!(gameOver||mode==='boom'))hautVide(); // (vague 2) la caisse explose : plus AUCUNE voix (carte, niveau, geste) — seule « CHAÎNE PERDUE » peut parler
   chainePerdue(true); // (aura v2) la chaîne ouverte part avec la caisse
   if(gameOver||mode==='boom')return;
@@ -24279,6 +24327,8 @@ const SAVE={
       .filter(e=>e&&typeof e.n==='string'&&isFinite(+e.s))
       .slice(0,10).map(e=>({n:e.n.slice(0,8),s:Math.max(0,Math.round(+e.s))}));
     c.sfx=d.sfx!==false;c.vox=d.vox!==false;c.mus=d.mus!==false;c.vib=d.vib!==false; // (2026-09-28) VIBRATIONS : leur propre interrupteur
+    if(d.facile===1||d.facile===true)c.facile=1;else if(d.facile===0||d.facile===false)c.facile=0; // (2026-09-29) MODE FACILE : absent = jamais choisi (le 1er JOUER le propose)
+    c.volH=d.volH==='monte'?'monte':'plonge'; // (2026-09-29) pouce en HAUT en vol : plonge (manche d'avion, d'origine) ou monte
     /* ⚠ LES VOLUMES SONT BORNÉS À [0,1], ET C'EST UNE VRAIE PROTECTION, pas une formalité : ces
        nombres partent DIRECTEMENT dans un GainNode et dans `HTMLAudio.volume`. Un NaN venu d'un
        storage rongé rend tout le graphe WebAudio silencieux sans lever la moindre erreur ; une
@@ -24515,7 +24565,20 @@ const GRAV=9.8*.55,FALL_G=33,AXIS_Y=new THREE.Vector3(0,1,0),AIR_MAX=6;
    même impulsion → 13,5 m de haut contre 6,7. Jamais au parc (ses sauts sont réglés à part). */
 const ORB_G=.5,ORB_AIR=1.7;
 function gK(){return (LVL.espaceA>=.5&&!PARK.on)?ORB_G:1;}
-function airMax(){return AIR_MAX*(gK()<1?ORB_AIR:1);}
+/* LE MODE FACILE (2026-09-29, Sacha : « simplifier l'expérience mobile pour un public jeune » — il a choisi lui-même l'EXCEPTION à
+   « zéro assistance », mais EN OPTION : proposée au 1er JOUER, interrupteur dans les RÉGLAGES). Tout passe par facOn() : mode normal
+   = rien ne change, au bit près. Quatre aides, chacune sur UNE ligne du moteur :
+   · VIRAGES — la caisse suit 80 % de chaque virage de la route (FAC_VIRAGE, l'ancien ASSIST_VIRAGE de la conduite v2) et, pouce lâché,
+     son cap revient doucement dans l'axe (FAC_CAP) : lâcher = continuer sur la route, pas en sortir ;
+   · VOL — le chrono passe de 6 à 10 s (airMax) ;
+   · 3 VIES — une chute, un vol trop long, une tour : la caisse repart de sa ligne sûre, comme sous BOUCLIER (facileSauve) ;
+   · POSE — 5 m de bitume en plus de chaque côté pour se poser (la caisse est ramenée dans la largeur), angle de pose ratée +30°. */
+const FAC={coeurs:3},FAC_AIR=10/6,FAC_BORD=5,FAC_VIRAGE=.8,FAC_CAP=1.6;
+function facOn(){return !!(SAVE.d&&SAVE.d.facile)&&!PARK.on;}
+function facBord(){return facOn()?FAC_BORD:0;}
+function facFilet(){return facOn()&&FAC.coeurs>1&&!TUTO.on;} // il reste une vie à perdre : la chute perdue d'avance est rattrapée tout de suite
+function volSens(){return SAVE.d&&SAVE.d.volH==='monte'?-1:1;} // (2026-09-29) « pouce en HAUT = monte » : l'assiette au pouce s'inverse (le clavier ne change pas)
+function airMax(){return AIR_MAX*(gK()<1?ORB_AIR:1)*(facOn()?FAC_AIR:1);}
 // AIR_RATE : le vol se joue PLUS VITE en temps réel — la parabole dans l'espace est identique
 // (viseur d'atterrissage + seuils de figures inchangés), mais on passe moins de temps à flotter.
 let fallVH0=-1; // (vol v6) vitesse HORIZONTALE au décollage : au-delà, la traînée de la route s'applique en vol
@@ -26219,7 +26282,7 @@ function tryLand(dt){
   // dalle (interpolé entre l'image d'avant et celle-ci) ; s'il est au-dessus du vide, on tombe. Aucun recentrage.
   if(!sideL)return false;
   const hS9=sideL>0?0:-THICK,dh9=prevH-hOff,f9=Math.abs(dh9)>1e-4?THREE.MathUtils.clamp((prevH-hS9)/dh9,0,1):1,latX9=prevL+(latOff-prevL)*f9;
-  if(Math.abs(latX9)>=ROAD_HALF)return false;
+  if(Math.abs(latX9)>=ROAD_HALF+facBord())return false; // (MODE FACILE) 5 m de plus de chaque côté : la caisse est ramenée dans la largeur juste dessous
   s=THREE.MathUtils.clamp(bestI/(NP-1)*L+THREE.MathUtils.clamp(dTmp.dot(T[bestI]),-2,2),0,L-1);
   side=sideL;lat=THREE.MathUtils.clamp(latX9,-ROAD_HALF+.02,ROAD_HALF-.02)*sideL;
   // RÉCEPTION EN GLISSE : la caisse se pose de travers et rattrape — petit drift au lieu d'un psi=0 sec
@@ -26240,7 +26303,7 @@ function tryLand(dt){
      la route. 0° = axé, 90° = en crabe, 180° = à contresens. Au-delà de FLOW2.pose.angle : pose RATÉE — pas de PARFAIT possible, et le
      flow (frénésie comprise) tombe à zéro une fois la pose jugée. Une chute presque verticale (< vMin à plat) n'a pas de cap : jamais ratée. */
   const vT8=fallVel.dot(T[bestI]),vL8=fallVel.dot(B[bestI]),poseAng=Math.hypot(vT8,vL8)>FLOW2.pose.vMin?Math.atan2(Math.abs(vL8),vT8)*57.3:0;
-  const poseRatee=!PARK.on&&poseAng>FLOW2.pose.angle;FLOW.poseA=Math.round(poseAng); // (banc) le dernier angle de pose
+  const poseRatee=!PARK.on&&poseAng>FLOW2.pose.angle+(facOn()?30:0);FLOW.poseA=Math.round(poseAng); // (banc) le dernier angle de pose
   const bigness=Math.max(0,fallT*gK()-.8); // ×gK : en orbite un même saut dure 2× plus — il ne doit pas coûter 2× plus de vitesse à la pose
   const landLoss=Math.min(.52,bigness*.15+impact*.008); // un peu plus doux qu'avant
   vA*=(1-landLoss);vL*=(1-landLoss);
@@ -26471,7 +26534,7 @@ function resetGame(){
   try{busPlein();}catch(e){} // (2026-09-28) filet : une partie quittée depuis la pause ne laisse jamais la sortie audio au silence
   MENUV.retour=false; // (2026-09-28) on repart : l'accueil d'après-mort (accueilRetour) n'est plus la racine
   clearBoom();
-  mortCause='';loop._nAir=false; // (2026-09-26) rien ne passe d'une partie à l'autre
+  mortCause='';loop._nAir=false;facDepart(); // (MODE FACILE) trois vies neuves à chaque partie // (2026-09-26) rien ne passe d'une partie à l'autre
   TUTO.quitte=0;                 // (2026-09-28) la leçon quittée ne concerne que l'écran de fin qui la suit (une carrière relancée ne repasse pas par tutoDebut)
   if(TUTO.on)tutoDebut();        // (2026-09-26) RECOMMENCER à l'auto-école repart de la 1re consigne
   money=START_CASH; // on repart avec la mise de départ, jamais à sec
@@ -26623,6 +26686,7 @@ function start(){
   if(started||document.getElementById('splash'))return;started=true;
   loop._rebuildT=performance.now();loop._rebuildD=5000; // (tour 2) le départ hache (1ers shaders Metal, 1res textures) : pas une lenteur — 5 s de grâce
   runxReset(); // les compteurs de CONTRAT partent de zéro dès la 1re partie de la session
+  facDepart(); // (MODE FACILE) la 1re partie de la session passe par start(), pas par resetGame()
   // la caisse ÉQUIPÉE dès la première partie de la session (le rejeu le faisait déjà)
   {const e9=equippedCar();if(level!==e9){level=e9;buildCar(CARS[e9]);}levelCash=0;}
   // ⚠ BUG CORRIGÉ (2026-09-05) : « ça recommence trop haut » (retour du user). `respawn()` remet
@@ -30469,7 +30533,7 @@ function loop(now){
         // rails — le vrillage du ruban y fabrique un « virage » qui n'en est pas un (mesuré : 8 % des loopings infaisables pouce à fond,
         // 1 % hors de ces parties). Sur la route (dalle < 60°), l'aide reste à ZÉRO.
         const nyR9=side<0?-F.n.y:F.n.y,rails9=THREE.MathUtils.clamp((.5-nyR9)/.3,0,1);
-        psi=THREE.MathUtils.clamp(psi-dyaw*(1-Math.max(ASSIST_VIRAGE,rails9)),-1.4,1.4);routeLacet=dt>0?dyaw/dt:0; // (le pilote de mesure s'en sert pour anticiper)
+        psi=THREE.MathUtils.clamp(psi-dyaw*(1-Math.max(ASSIST_VIRAGE,rails9,facOn()?FAC_VIRAGE:0)),-1.4,1.4);routeLacet=dt>0?dyaw/dt:0; // (le pilote de mesure s'en sert pour anticiper)
       }
       prevTv.copy(F.t);prevTvalid=true;
       // MOMENTUM : tenir la ligne droite fait monter la puissance en exponentiel
@@ -30518,6 +30582,7 @@ function loop(now){
        const b0=slipB,bT=drifte?Math.sign(steer)*.42*Math.min(1,Math.abs(steer)):0;
        slipB+=(bT-slipB)*(1-Math.exp(-dt*(drifte?4:6)));
        psi+=yawR*dt+(slipB-b0); // le nez = la trajectoire + la glisse
+       if(facOn()&&!drifte&&Math.abs(steer)<.1)psi*=Math.exp(-dt*FAC_CAP); // (MODE FACILE) pouce lâché : le cap revient dans l'axe de la route
        glisse9=THREE.MathUtils.clamp(Math.abs(slipB)*2.6+driftT*.5+Math.max(0,Math.abs(yawR*vA)*SPD-22)/70,0,1)*Math.min(1,Math.abs(vA)/35); // (2026-09-26) la gomme fume et crisse dès que la caisse chasse (power-slide)
        // (aura v2) LE VIRAGE SERRÉ : tenir une grosse charge latérale 0,9 s sur la route — prendre un virage À FOND, ça se paie
        {const aL9=Math.abs(yawR*vA)*SPD;if(aL9>32)virT+=dt;else if(aL9<12){virT=0;virPaye=false;}
@@ -31049,7 +31114,7 @@ function loop(now){
         // BORNÉE à ±65° d'assiette → jamais vertical → pas de gimbal-lock, pas de vrille coincée.
         // VOLANT TACTILE : l'assiette devient ANALOGIQUE (pouce vers le HAUT = piqué, vers le BAS =
         // cabré) — même levier, dosé. Zone morte large : tourner ne doit jamais cabrer par accident.
-        const pitT=TCTL.act?TCTL.sv:0;
+        const pitT=TCTL.act?TCTL.sv*volSens():0; // (2026-09-29) réglage « POUCE HAUT EN VOL : PLONGE / MONTE »
         const wPitch=pitT!==0?(Math.abs(pitT)<.05?0:-pitT):((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0); // -1 = piqué, +1 = cabré
         // (vol libre, 2026-09-26) plus de plafond à ±65° ni de repli « à l'horizontale » : le manche fait tourner la trajectoire ET le
         // haut de la caisse autour de SA droite (FLY_R) — piqué, cabré, looping : aucune assiette n'est interdite, rien ne se bloque
@@ -31086,7 +31151,7 @@ function loop(now){
       } else { // VOL SANS BOOST : léger pilotage haut/bas — assez pour infléchir la trajectoire, bien moins qu'au réacteur
         // (2026-09-27, user : « quand j'essaye de redresser dans les airs sans le nitro ça fait rien ») : cette branche ne lisait que le
         // CLAVIER — sur téléphone le pouce (axe Y du volant) était ignoré sans nitro. Même lecture qu'au réacteur : analogique, zone morte.
-        const pitT=TCTL.act?TCTL.sv:0;
+        const pitT=TCTL.act?TCTL.sv*volSens():0;
         const wPitch=pitT!==0?(Math.abs(pitT)<.05?0:-pitT):((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0); // ↑ piqué · ↓ cabré
         if(wPitch!==0){const a9=-wPitch*.85*dtF;fallVel.applyAxisAngle(FLY_R,a9);FLY_U.applyAxisAngle(FLY_R,a9);} // (vol libre) même manche, sans plafond — 0,62 rad/s : on infléchit, on ne pilote pas
       }
@@ -31250,8 +31315,8 @@ function loop(now){
         if(bi>=0){
           dTmp.subVectors(tmp2,pts[bi]);
           const h2=dTmp.dot(Nn[bi]),l2=dTmp.dot(B[bi]);
-          if(Math.abs(l2)<ROAD_HALF&&h2>-THICK-1&&h2<3){
-            landMark.position.copy(pts[bi]).addScaledVector(B[bi],l2).addScaledVector(Nn[bi],h2>-1.3?.3:-THICK-.3);
+          if(Math.abs(l2)<ROAD_HALF+facBord()&&h2>-THICK-1&&h2<3){
+            landMark.position.copy(pts[bi]).addScaledVector(B[bi],facOn()?THREE.MathUtils.clamp(l2,1-ROAD_HALF,ROAD_HALF-1):l2).addScaledVector(Nn[bi],h2>-1.3?.3:-THICK-.3);
             landMark.quaternion.setFromRotationMatrix(mat4.makeBasis(T[bi],B[bi],Nn[bi]));
             LM.vu=true;CAMV.eta=(st2+1)*.12;
             const impP=Math.abs(tmp3.dot(Nn[bi])); // impact PRÉDIT — même unité que le verdict d'atterrissage
@@ -31276,11 +31341,11 @@ function loop(now){
        // …et il TIQUE : les yeux sont sur la caisse, pas sur le chrono — un tic dans la tonalité qui accélère, plus une micro-vibration
        if(dg){loop._atk=(loop._atk||0)-dt;if(loop._atk<=0){const r9=Math.max(0,airMax()-fallTR);loop._atk=.09+.25*r9/1.5;try{if(SONV2)sfx(r9<.5?'alerte.tac':'alerte.tic');else chimeNote(noteP(r9<.5?4:2,1),0,.06,.06);}catch(e){} /* (console) un danger sonne en BOIS, jamais en cloche de récompense */hap(5);}}else loop._atk=0;}
       if(TCTL.on&&!TUTO.on&&!(SAVE.d.ast&2)){loop._astV=(loop._astV||0)+dt;if(loop._astV>1){SAVE.d.ast|=2;SAVE.mark(); // ASTUCE (une fois à vie) : l'assiette au pouce
-        misBanniere('ASTUCE',TR("En l'air : pouce en HAUT = plonge, en BAS = cabre."),'','eclair');}}
+        misBanniere('ASTUCE',TR(volSens()<0?"En l'air : pouce en HAUT = monte, en BAS = plonge.":"En l'air : pouce en HAUT = plonge, en BAS = cabre."),'','eclair');}}
       if(!PARK.on&&portalMesh&&!CAMP.portFerme&&fallPos.distanceToSquared(PORTAL.c)<PORTAL.R*PORTAL.R*.9)portailPasse(); // (2026-09-26) l'ovule traversé EN VOL — du ciel, de côté, d'en dessous
       else if(CITY.col&&villeHeurt(fallPos)){airPie.style.display='none';try{dolFin();}catch(e){}shake=Math.max(shake,1.2);if(PARK.on)parkRespawn();else{try{villeImpact(fallPos,fallVel);}catch(e){}explode('tour');}} // (passe graphismes) l'IMPACT sur la façade, avant explode (le bouclier le laisse jouer aussi) // (2026-09-26) DANS UNE TOUR : on meurt
       else if(tryLand(dtF)){airPie.style.display='none';dolFin();dolPose();mirPose();} // posé : le total du DAUPHIN se fige et s'encaisse — (v5) et s'ÉCRIT enfin
-      else if((fallTR>airMax()&&pwrAirT<=0)||fallPos.y<trackMinY-120||(pwrBouT>0&&MIR.t>2.2&&!PARK.on)){airPie.style.display='none';if(PARK.on)parkRespawn();else explode(fallPos.y<trackMinY-120||MIR.t>2.2?'vide':'air');} // (pouvoirs v2) sous BOUCLIER, une chute perdue d'avance depuis 2,2 s est rattrapée tout de suite (on n'attend pas d'être tombé 120 m sous la piste) // FREESTYLE : trop long en l'air ou chute dans le vide = on repart, jamais de mort // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
+      else if((fallTR>airMax()&&pwrAirT<=0)||fallPos.y<trackMinY-120||((pwrBouT>0||facFilet())&&MIR.t>2.2&&!PARK.on)){airPie.style.display='none';if(PARK.on)parkRespawn();else explode(fallPos.y<trackMinY-120||MIR.t>2.2?'vide':'air');} // (pouvoirs v2) sous BOUCLIER, une chute perdue d'avance depuis 2,2 s est rattrapée tout de suite (on n'attend pas d'être tombé 120 m sous la piste) // FREESTYLE : trop long en l'air ou chute dans le vide = on repart, jamais de mort // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
     }else if(mode==='boom'){ // ---- EXPLOSION ----
       boomT+=dt;
       for(const d of debris){
@@ -32740,6 +32805,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       sv('mvMus',SND.music?'ON':'OFF',SND.music);
       sv('mvVox',SND.voice?'ON':'OFF',SND.voice);
       sv('mvVib',SND.vib?'ON':'OFF',SND.vib);
+      sv('mvFacile',SAVE.d.facile?'ON':'OFF',!!SAVE.d.facile);
+      sv('mvVolH',TR(volSens()<0?'MONTE':'PLONGE'),true);
       sv('mvCtl',TR(TCTL.pad?'FLECHES':'VOLANT'),true);
       sv('mvQ',TR(SAVE.d.q==='net'?'NETTE':'RAPIDE'),true);
       sv('mvLang',LANG.toUpperCase(),true);
@@ -32756,6 +32823,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(a==='mus')return SND.music?'off':'on';
     if(a==='vox')return SND.voice?'off':'on';
     if(a==='vib')return SND.vib?'off':'on';
+    if(a==='facile')return SAVE.d.facile?'off':'on';
+    if(a==='volh')return 'onglet';
     if(a==='surv')return SURV.armed?'off':'on';
     if(a==='park')return PARK.on?'off':'on';
     if(a==='sand')return SANDBOX?'off':'on';
@@ -32767,7 +32836,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(a!=='snd')uiClic(mRole9(a));uiPop(el);if(a==='play'||a==='replay')pixBurst(el,16); // chaque bouton REBONDIT ; JOUER lâche une gerbe — (2026-09-28) SON : le clic part APRÈS la bascule (plus bas)
     if(a==='replay'&&started&&gameOver){ goImmersive(); ecranWipe(function(){ if(started&&gameOver){ if(!CARR.actif)tutoArme(); resetGame(); } }); } // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite ; pas en carrière : son niveau passe devant la piste d'apprentissage)
     else if(a==='play'||a==='replay'){ if(a==='play')CARR.actif=null;
-      goImmersive(); playViaGarage(true); } // 1re partie = AUTO-ÉCOLE : tutoArme passe SOUS le voile (la reconstruction de la piste figeait le bouton avant qu'il monte)
+      if(a==='play'&&SAVE.d.facile==null&&!SAVE.d.tuto){facChoix().then(function(){goImmersive();playViaGarage(true);});} // (2026-09-29) le 1er JOUER demande le mode
+      else{goImmersive(); playViaGarage(true);} } // 1re partie = AUTO-ÉCOLE : tutoArme passe SOUS le voile (la reconstruction de la piste figeait le bouton avant qu'il monte)
     else if(a==='tuto'){ SAVE.d.tuto=0;SAVE.flush();toast(pxi('coche')+' '+TR('L\'AUTO-ÉCOLE T\'ATTEND AU PROCHAIN JOUER')); }
     else if(a==='back')mGo(mRoot());
     else if(a==='carr'){ carrVue(null); } // (2026-09-27) la CARRIÈRE : les mondes, puis les dix niveaux (feuille #carr)
@@ -32792,6 +32862,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='vox'){ clic(voxBtnEl); mFill(); }
     else if(a==='vib'){ SND.vib=!SND.vib; SAVE.d.vib=SND.vib; SAVE.flush(); if(SND.vib)hap(14); mFill(); } // rallumées : elles se présentent d'une impulsion
     else if(a==='lang'){ langNext(); applyLangDOM(); mFill(); }
+    else if(a==='facile'){ SAVE.d.facile=SAVE.d.facile?0:1; SAVE.flush(); if(SAVE.d.facile)hap(14); mFill(); }
+    else if(a==='volh'){ SAVE.d.volH=volSens()<0?'plonge':'monte'; SAVE.flush(); mFill(); }
     else if(a==='ctl'){ TCTL.pad=!TCTL.pad; TCTL.act=false; TCTL.id=null; TCTL.st=0; TCTL.sv=0;
       keys.ArrowLeft=keys.ArrowRight=false; document.body.classList.toggle('tpad',TCTL.pad);
       SAVE.d.tctl=TCTL.pad?'pad':'stick'; SAVE.flush(); mFill(); }

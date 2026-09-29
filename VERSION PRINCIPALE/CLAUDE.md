@@ -21,6 +21,27 @@
 - L'argent vient désormais des pièces ramassées, du portail, des fruits et des primes de campagne. Vérifié : saut de 2,3 s avec la figure
   DAUPHIN posé → argent inchangé, aura versée à l'encaissement de la chaîne (banc `argent.js`, scratchpad 4b30b603).
 
+## LE MODE FACILE + « POUCE HAUT EN VOL » (2026-09-29, session INTERFACE) — « simplifier l'expérience mobile pour un public jeune »
+- **Sacha a choisi lui-même l'EXCEPTION à « zéro assistance », mais EN OPTION** (tout public visé). Tout passe par `facOn()`
+  (`SAVE.d.facile`, et jamais au parc). **En mode NORMAL, rien ne change au bit près** — ne jamais laisser une aide fuir hors de `facOn()`.
+- **Les quatre aides**, chacune sur une ligne du moteur :
+  · VIRAGES : la caisse suit 80 % de chaque virage (`FAC_VIRAGE` dans la ligne `psi-=dyaw*…`) et, pouce lâché (|steer|<.1, hors drift),
+    le cap revient dans l'axe (`FAC_CAP`). Banc 25 s mains libres : NORMAL sort et explose à ~20 s, FACILE 0 chute (écart max 41 % de
+    la demi-route).
+  · VOL : `airMax()` ×10/6 (10 s au lieu de 6 ; le chrono en barre suit, il lit `airMax()`).
+  · 3 VIES : `facileSauve(cause)` juste après `bouclierSauve` en tête d'`explode` (le bouclier passe avant). Mêmes causes (vide, air,
+    tour — jamais une mort de règle), même remise à zéro, `respawn()`, annonce « 2 VIES / ON REPART ! » puis « DERNIÈRE VIE ! ». La chute
+    perdue d'avance est rattrapée à 2,2 s comme sous bouclier (`facFilet()`). Cœurs du HUD : `#facVies` en haut à droite sous la pause
+    (zoom `--hudK`, caché pendant la leçon, la pause et la mort), remis à 3 par `facDepart()` — dans `resetGame()` ET `start()`
+    (la 1re partie de la session ne passe pas par `resetGame`).
+  · POSE : `tryLand` accepte 5 m au-delà du bord (`facBord()`, la caisse est ramenée dans la largeur), pose ratée à +30° ; le viseur
+    s'allume sur la même zone.
+- **Le 1er JOUER demande le mode** (`facChoix()` : FACILE vert / NORMAL, Échap = NORMAL) tant que `SAVE.d.facile` n'a jamais été posé et
+  que la leçon n'est pas faite. Interrupteur **MODE FACILE** dans RÉGLAGES › JEU.
+- **POUCE HAUT EN VOL : PLONGE / MONTE** (`SAVE.d.volH`, `volSens()`) : multiplie les deux lectures de `TCTL.sv` en vol ; d'origine
+  PLONGE (manche d'avion). L'ASTUCE du vol dit le bon sens. Le clavier ne change pas.
+- Banc : `fac.js w h lang` (choix, cœurs, 3 chutes, mains libres NORMAL/FACILE, réglages) ; hook `dbgFacile('mort')`.
+
 ## LES 10 PREMIÈRES MINUTES — CÔTÉ INTERFACE (2026-09-29, session INTERFACE)
 - **PASSER demande** (`tutoPasse`/`tutoPasseRange`) : 1er appui → le bouton devient « VRAIMENT ? » (rouge), l'en-tête dit « PERMIS +$ 500 »
   (or) ; 2e appui dans les 3 s → `tutoFin(true)`. La question reste DANS la carte (pas de modale : la caisse roule pendant la leçon).
