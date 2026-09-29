@@ -18,7 +18,9 @@
     tombe, garde la parole : la ligne doit tenir dans l'écran) ;
   · l'annonce d'entrée dit « CASH ×3 » (+ « · RECORD 0:42 » s'il existe) ; la 1re de la session garde « TIENS LES TROIS TRAITS ».
   CSS : `<style id="frenX3">` juste après `figTaille` (hex purs, pas de color-mix ; aucune plaque nouvelle dans les colonnes → rien dans hudTaille).
-  **Son à fabriquer (session SON)** : `sfx('frenesie.cash')` — chaque gain en frénésie, par-dessus le son de la pièce, au plus toutes les 90 ms.
+  **Son** : `sfx('frenesie.cash')` — chaque gain en frénésie, par-dessus le son de la pièce, au plus toutes les 90 ms : TROIS micro-pièces
+  qui montent en 60 ms (le ×3 qui s'entend), une octave au-dessus de la pièce, + poussière d'or ; 3 variantes (bloc FRENCASH de
+  `atelier-son/recettes.js`, banque v6). Mesuré au lecteur : 3 dB sous la pièce en sonie (−37 contre −34 LUFS200) — il la couronne, il ne la couvre pas.
 - **PLUS FACILE À OBTENIR ET À PERDRE** — loi 16 de `FLOW2` : montée cellules .6 · .5 · .4 · .4 (v5 .5 · .35 · .22 · .14), pente .15 (.4),
   fuite ×0,6 = 1,8 · 2,1 · 2,4 · 1,8, répit 3 s (2,5), style dans la triade .7 (.35), `gate` .9 (.95, non simulé), la route toujours hors
   de la triade ; tenue : mémoires NARCISSE 6 s · MACHIAVEL 12 s · PSYCHO 2 s (9 · 25 · 3), brûlure [6 · 4 · 2 · −0,3] ([4 · 2 · ,7 · −1,5]),
@@ -370,7 +372,9 @@ couleurs de leur rareté, les objets que tu peux gagner ». Tout filmé AVANT pu
   `ntrShellM` blanc → rouge-orange (la caisse orange ne s'y noie pas) ; halo du nez en `depthTest:false` (vu de dos, la tôle le cachait) +
   lueur qui enveloppe ; flammes sur la silhouette et BRAISES qui restent derrière (pools flames/flameCore/embers, comme la rentrée de l'orbite) ;
   bords d'écran orange toutes les 0,62 s. Intensité : 1 au déclenchement et à chaque palier, 0,7 ensuite, 0,5 après 6 s (le nitro dure 2× en
-  frénésie). NITRO INFINIE : tout passe au VIOLET (NINF). Sons : `sfx('nitrooo.palier')` à chaque palier (commandé à SON).
+  frénésie). NITRO INFINIE : tout passe au VIOLET (NINF). Sons : `sfx('nitrooo.palier')` à chaque palier (bloc FRENCASH de
+  `atelier-son/recettes.js`, banque v6 : bouffée de feu, braises, ton de chauffe qui monte d'une quarte se poser sur la note du palier, cloche ;
+  chef d'orchestre prio 1 sous `vitesse.pure` prio 2 : aux secondes paires la salve NITROOO ×n passe devant, le palier recule de 9 dB — mesuré).
 - ⚠ Avec le PREMIER moteur, le réservoir ne tient que ~2 s (+ la réserve bleue) : NITROOO demande la réserve, un moteur plus gros, la frénésie
   ou la NITRO INFINIE. Banc : `st-ntr.js` (dbgNitro(2,2) recharge pendant la tenue).
 

@@ -1007,3 +1007,34 @@ D('frenesie.pose',{fam:'flow',bus:'fx',dur:.9,key:1,db:-3,max:1,cd:.5,rj:.004,di
   r:function(b,R,o){note(b,R,nE(-5),0,.42,.28);note(b,R,nE(-8),.15,.5,.62);O.filtre(b,'lp',2600,.7);}});
 })(typeof window!=='undefined'?window:globalThis);
 /* <<<FIN FRENPOSE>>> */
+
+/* <<<FRENCASH>>> */
+(function(G){
+'use strict';
+/* LES DEUX SONS COMMANDÉS PAR LA SESSION UHD (2026-09-29) — appelés par le jeu depuis la frénésie ×3 et NITROOO, muets jusqu'ici.
+   · `frenesie.cash` (frenCash : pièce, portail, butin de la ville — EN FRÉNÉSIE seulement, au plus toutes les 90 ms, PAR-DESSUS le son
+     de la pièce) : le « ×3 » s'ENTEND — TROIS micro-pièces qui montent en 60 ms, une octave au-dessus de la pièce (elle garde sa note de
+     combo, celui-ci la couronne), + une pincée de poussière d'or. Court, brillant, doux : il revient jusqu'à ~11 fois par seconde.
+     Trois variantes (trois tercets pentatoniques) : un son répété à l'identique devient une alarme.
+   · `nitrooo.palier` (nitroooTick : un palier par seconde de NITROOO tenue, st = sonPd(palier) — la gamme MONTE avec la vitesse) :
+     la rentrée atmosphérique — bouffée de feu qui s'ouvre, braises qui crépitent, un ton de chauffe qui monte d'une quarte et se pose
+     sur la note du palier, une cloche de palier, un coup sourd. Dans le chef d'orchestre sous `vitesse.pure` (prio 1 < 2) : aux
+     secondes paires les deux partent ensemble, la salve NITROOO ×n passe devant, le palier recule de 9 dB. */
+const D=G.CCSON_D,O=G.CCSON_OUTILS,osc=O.osc,bruit=O.bruit,cloche=O.cloche,clic=O.clic,T=G.CCSON_T;
+const nE=function(st){return 329.6276*Math.pow(2,st/12);};
+const TERCETS=[[24,28,31],[26,31,33],[28,31,36]]; // mi6 · fa#6 · sol#6 · si6 · do#7 · mi7 : la pentatonique, au-dessus de la pièce
+D('frenesie.cash',{fam:'argent',dur:.45,st:1,key:1,db:-7,max:2,cd:.09,v:3,rj:.004,vj:.5,dit:'un gain EN FRÉNÉSIE (par-dessus la pièce) : le ×3 — trois micro-pièces qui montent en 60 ms + poussière d’or',
+  r:function(b,R,o){const N=TERCETS[o.v%3];
+    N.forEach(function(st,i){const t=i*.028,p=(i-1)*.35;
+      clic(b,{t0:t,f:7000,d:.0015,v:.16+i*.04,pan:p},R);
+      cloche(b,{f:nE(st),r:[1,2,3.01,5.43],m:[1,.35,.14,.1],d:[.16+i*.06,.07,.04,.02],t0:t,v:.26+i*.06,pan:p,jit:.003},R);});
+    bruit(b,{c:'b',t0:.02,a:.004,d:.14,v:.05,ft:'hp',f:7500,pan:-.4,pan1:.4},R);}});
+D('nitrooo.palier',{fam:'machine',bus:'fx',dur:.8,st:1,key:1,db:-2,max:1,cd:.3,bases:[0,12],grp:'r',prio:1,dit:'un PALIER de NITROOO (chaque seconde tenue, st) : bouffée de feu + braises + ton de chauffe qui monte se poser sur la note + cloche',
+  r:function(b,R,o){const B=o.base;
+    bruit(b,{c:'n',t0:0,a:.03,h:.03,d:.35,v:.55,ft:'lp',f:250,f1:2200,g:.12,q:.7},R);   // la bouffée : le feu qui s'ouvre
+    T.swish(b,R,0,.28,700,4200,.25,-.3,.3);T.crepite(b,R,.05,.45,10,.22,600,2500);
+    for(const dt of [-.006,.006])osc(b,{f:nE(7+B)*(1+dt),f1:nE(12+B)*(1+dt),g:.09,gc:.6,w:'saw',t0:.01,a:.005,h:.06,d:.3,v:.06,pan:dt*80,flt:['lp',900,5000,.12,.9,.5]});
+    cloche(b,{f:nE(24+B),r:[1,2,2.76],m:[1,.3,.12],d:[.35,.15,.06],t0:.07,v:.18},R);
+    T.grave(b,o,0,95,50,.1,.22,.4);}});
+})(typeof window!=='undefined'?window:globalThis);
+/* <<<FIN FRENCASH>>> */

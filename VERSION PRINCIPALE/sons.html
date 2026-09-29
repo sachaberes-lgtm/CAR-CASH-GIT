@@ -96,6 +96,8 @@ const SC=[
   ['Ligne de 10 pièces',function(){const p=[];for(let k=0;k<10;k++){p.push([k?.16:0,'piece',{st:pd(k)}]);if((k+1)%5===0)p.push([0,'piece.recolte',{}]);}suite(p);}],
   ['Un vol complet : décollage → vrilles → BIG AIR → ×2 → pose PARFAITE → DOUBLE MONSTRE',function(){suite([[0,'decollage'],[.5,'fig.vrille',{st:pd(0)}],[.45,'fig.vrille',{st:pd(1)}],[.4,'fig.palier',{st:pd(2)}],[.3,'fig.bigair',{st:pd(3)}],[.5,'fig.vrille',{st:pd(4)}],[.6,'pose.choc'],[.0,'pose.parfait'],[.0,'verdict.2'],[0,'argent.gros']]);}],
   ['La FRÉNÉSIE part à la pose (le pire empilement)',function(){suite([[0,'pose.choc'],[0,'pose.parfait'],[0,'verdict.3'],[0,'flow.3'],[0,'argent.gros'],[0,'frenesie.entre']]);}],
+  ['Ligne de 8 pièces EN FRÉNÉSIE (le ×3 par-dessus chaque pièce)',function(){const p=[];for(let k=0;k<8;k++){p.push([k?.16:0,'piece',{st:pd(k)}],[0,'frenesie.cash']);if((k+1)%5===0)p.push([0,'piece.recolte',{}]);}suite(p);}],
+  ['NITROOO tenu 8 s : un palier par seconde, la salve NITROOO ×n toutes les 2 s',function(){const p=[[0,'vitesse.pure',{st:pd(0)}]];for(let k=1;k<=8;k++){p.push([1,'nitrooo.palier',{st:pd(Math.min(7,k))}]);if(k%2===0)p.push([0,'vitesse.pure',{st:pd(k/2)}]);}suite(p);}],
   ['Drift : mini → super → ultra',function(){suite([[0,'turbo.mini'],[.9,'turbo.super'],[1,'turbo.ultra']]);}],
   ['Slalom de 6 plots frôlés',function(){const p=[];for(let k=0;k<6;k++)p.push([k?.22:0,'frole',{st:pd(k),pan:k%2?.6:-.6}]);suite(p);}],
   ['Chrono d\'airtime qui s\'épuise',function(){const p=[];let dt=.34;for(let k=0;k<12;k++){p.push([k?dt:0,k>8?'alerte.tac':'alerte.tic']);dt=Math.max(.09,dt*.86);}p.push([.1,'mort.air'],[0,'explosion']);suite(p);}],

@@ -4993,7 +4993,7 @@ html[data-reduced-motion="1"] .fx3.on,html[data-reduced-motion="1"] .fx3.on2{ani
 <script src="vendor/postprocessing/UnrealBloomPass.js"></script>
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
-<script defer src="sons-banque.js?v=5"></script>
+<script defer src="sons-banque.js?v=6"></script>
 <script defer src="sfx.js?v=4"></script>
 <script>
 (function(){
@@ -18253,7 +18253,7 @@ function frenCash(g,pos){
   if(m){const k=FX3.k=!FX3.k;m.classList.remove(k?'cj1':'cj2');m.classList.add(k?'cj2':'cj1'); // deux animations jumelles : relance sans remise en page
     if(n-FX3.bT>400){FX3.bT=n;try{pixBurst(m,4);}catch(e){}}}
   if(pos)try{fx3Tag(pos);}catch(e){}
-  if(SONV2)sfx('frenesie.cash'); // (console de son) À FABRIQUER : l'argent qui tombe EN FRÉNÉSIE, par-dessus le son de la pièce — court, brillant ; au plus toutes les 90 ms
+  if(SONV2)sfx('frenesie.cash'); // (console de son) l'argent qui tombe EN FRÉNÉSIE, par-dessus le son de la pièce : trois micro-pièces qui montent (le ×3) — recette dans atelier-son/recettes.js (bloc FRENCASH) ; au plus toutes les 90 ms
 }
 function fx3Tag(pos){ // le « ×3 » qui jaillit de la pièce : l'étiquette la plus ancienne du bassin est recyclée, projetée là où l'argent est né
   if(!FX3.pool){FX3.pool=[];for(let j=0;j<5;j++){const e=document.createElement('i');e.className='fx3';e.setAttribute('aria-hidden','true');document.body.appendChild(e);FX3.pool.push({e:e,k:false});}}
