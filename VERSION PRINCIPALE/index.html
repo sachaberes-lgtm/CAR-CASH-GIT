@@ -4017,6 +4017,14 @@ html body #tRight{left:calc(env(safe-area-inset-left,0px) + min(84px,21vh) + 30p
   html #mShop .shRuban{letter-spacing:0;padding:6px 8px 5px}
   html #mShop .shRemise{font-size:var(--f3);padding:6px 8px 5px}
 }
+/* ---- 26. LES DIX PREMIÈRES MINUTES (2026-09-29, audit d'un joueur neuf) ---- */
+/* PASSER demande : « VRAIMENT ? » en rouge (le destructeur), l'en-tête dit en or ce qu'on laisse */
+html body #coach .coSkip.sur{color:var(--neoR)}
+html body #coach.passe .coN{color:var(--or);white-space:nowrap}html body #coach .coSkip.sur{white-space:nowrap}
+/* la carte MOTEUR de l'écran de mort : « MOTEUR ATTEINT » sur une ligne, comme « AURA » en face */
+#mDead .hMot>small{white-space:nowrap;letter-spacing:1px}
+/* REVOIR L'AUTO-ÉCOLE : la prime encore à prendre, en vert billet, sans second chevron (la ligne a le sien) */
+#mvTuto{color:var(--neoV);text-shadow:none}#mvTuto::after{display:none}#mvTuto[hidden]{display:none}
 </style>
 <style id="hudMaitrise">
 /* =====================================================================================================================
@@ -4781,7 +4789,7 @@ html body #popTxt.cache{opacity:0!important}
            reste la seule plaque d'or et la plus large ; la maison est une touche de laque, à gauche, jamais sous le pouce du rejeu. -->
       <div class="mFin"><div class="pbtn mMenu" data-m="menu" role="button" aria-label="Menu"><i class="pxi pxi-maison" aria-hidden="true"></i><span data-fr="MENU">MENU</span></div><div class="pbtn pb-gold big wide" data-m="replay" role="button">REJOUER</div></div>
       <div class="mRow">
-        <div class="pbtn ico" data-m="garage" role="button"><i class="pxi pxi-voiture" aria-hidden="true"></i>GARAGE</div>
+        <div class="pbtn ico" data-m="garage" role="button"><i class="pxi pxi-voiture" aria-hidden="true"></i>GARAGE<em class="mBadge" id="bdGar2"></em></div>
         <div class="pbtn ico pb-mag" data-m="shop" role="button"><i class="pxi pxi-panier" aria-hidden="true"></i>BOUTIQUE</div>
         <div class="pbtn ico" data-m="set" role="button"><i class="pxi pxi-reglages" aria-hidden="true"></i>REGLAGES</div>
       </div>
@@ -4842,7 +4850,7 @@ html body #popTxt.cache{opacity:0!important}
           <div class="mLigne" data-m="q"><i class="pxi pxi-eclair" aria-hidden="true"></i><span class="tpL">IMAGE</span><b id="mvQ" class="valeur">RAPIDE</b></div>
           <div class="mLigne" data-m="lang"><i class="pxi pxi-bulle" aria-hidden="true"></i><span class="tpL">LANGUE</span><b id="mvLang" class="valeur">FR</b></div>
           <div class="mLigne" data-m="vib"><i class="pxi pxi-vibre" aria-hidden="true"></i><span class="tpL">VIBRATIONS</span><b id="mvVib" class="bascule">ON</b></div><!-- (2026-09-28) la charte, règle 8 : SON et VIBRATIONS sont deux interrupteurs -->
-          <div class="mLigne lien" data-m="tuto"><i class="pxi pxi-volant" aria-hidden="true"></i><span class="tpL">REVOIR L'AUTO-ECOLE</span></div>
+          <div class="mLigne lien" data-m="tuto"><i class="pxi pxi-volant" aria-hidden="true"></i><span class="tpL">REVOIR L'AUTO-ECOLE</span><b id="mvTuto" class="valeur" hidden></b></div>
         </div>
         <div class="mSec">SAUVEGARDE</div>
         <div class="mPanel">
@@ -10078,6 +10086,9 @@ Object.assign(I18N,{
 });
 // (2026-09-29) les étiquettes VoiceOver (aria-label), traduites par applyLangDOM
 Object.assign(I18N,{"CASH CAR — toucher pour jouer":"CASH CAR — tap to play","Compte":"Account","Familles":"Rarities","Vignettes":"Thumbnails","Précédente":"Previous","Suivante":"Next","Retour":"Back","Fermer":"Close","Carrière":"Career","Menu principal CASH CAR":"CASH CAR main menu","Missions":"Missions","Menu":"Menu","Volant — glisse pour tourner":"Steering — swipe to steer","Gauche":"Left","Droite":"Right","Nitro":"Nitro","La partie en cours":"Current run","Fruit précédent":"Previous fruit","Fruit suivant":"Next fruit","Réglages":"Settings"});
+// (2026-09-29, les dix premières minutes) PASSER qui demande, le permis fêté, la carrière qui passe par l'auto-école
+Object.assign(I18N,{"VRAIMENT ?": "SURE?", "PERMIS": "LICENSE", "SORTI ! SUIS LA ROUTE": "OFF THE ROAD! FOLLOW IT", "RATÉ ! NITRO, VISE LE DESSUS": "MISSED! NITRO, AIM ABOVE IT", "Fini l'entraînement : UNE SEULE VIE. En l'air, pose-toi avant la fin du chrono.": "Training's over: ONE LIFE. In the air, land before the timer runs out.", "Tu reprendras la leçon au prochain départ.": "You'll pick the lesson up on your next start.", "Tu reprendras la leçon au prochain départ : le PERMIS et sa prime t'attendent.": "You'll pick the lesson up on your next start: the LICENSE and its bonus are waiting.", "PASSE D'ABORD TON PERMIS": "GET YOUR LICENSE FIRST"});
+Object.assign(I18N_ZH,{"VRAIMENT ?": "确定？", "PERMIS": "驾照", "SORTI ! SUIS LA ROUTE": "冲出赛道！沿着路走", "RATÉ ! NITRO, VISE LE DESSUS": "失败！用氮气，瞄准路面上方", "Fini l'entraînement : UNE SEULE VIE. En l'air, pose-toi avant la fin du chrono.": "训练结束：只有一条命。空中要在计时结束前着陆。", "Tu reprendras la leçon au prochain départ.": "下次出发时继续课程。", "Tu reprendras la leçon au prochain départ : le PERMIS et sa prime t'attendent.": "下次出发时继续课程：驾照和奖金在等你。", "PASSE D'ABORD TON PERMIS": "先考驾照", "MOTEUR ATTEINT": "达到的引擎"});
 // ⚠ nommée TR et non T : `T` est DÉJÀ le tableau des tangentes de la piste (T[bi].y) — la
 // collision faisait planter tout le script au parsing, écran noir muet.
 /* LES CLÉS SANS LEUR SYMBOLE (2026-09-24) : les symboles de tête (✓ 🔒 ★ 📋…) sont devenus des ICÔNES PIXEL
@@ -10091,6 +10102,9 @@ for(const D of [I18N,I18N_ZH])for(const k of Object.keys(D)){
 /* ⚠ LES CAPITALES ACCENTUÉES NE PASSENT PAS EN PIXEL (2026-09-24) : la police dessine « É » comme un « é »
    minuscule — « RÉGLAGES » s'affichait « RéGLAGES » dans le panneau de pause. Tout ce qui passe par TR()
    perd donc l'accent de ses CAPITALES (À→A, É→E…) ; les minuscules accentuées, elles, sont bien dessinées. */
+/* (2026-09-29, audit) « PLUS QUE 2 PIÈCES ▲ 3 CYLINDRES » se lisait « il m'en faut 2 pour l'ACHETER » : le moteur repart de zéro à chaque
+   partie, la carte dit à quelle distance du palier suivant on est MORT */
+function presqueTxt(mq){if(LANG==='en')return mq+' '+(mq>1?'COINS':'COIN')+' SHORT OF';if(LANG==='zh')return '差 '+mq+' 枚金币';return majPix('À '+mq+' '+(mq>1?'PIÈCES':'PIÈCE')+' DU');}
 function majPix(s){return typeof s==='string'?s.replace(/[\u00C0-\u00D6\u00D8-\u00DE]/g,c=>c.normalize('NFD')[0]):s;}
 function TR(s){ // traduction EXACTE, repli français silencieux
   if(s==null)return s;
@@ -11415,6 +11429,10 @@ function carrVue(bi){
   el.innerHTML=h+'</div>';feuilleOuvre(el,'on');
 }
 function carrLancer(bi,i){
+  /* (2026-09-29, audit des 10 premières minutes) VILLE 1 et ESPACE 1 sont ouverts dès le départ : un joueur neuf qui les choisissait faisait
+     sa 1re partie sans une consigne (seule AURORE arme la leçon). Tant que le permis n'est ni passé ni sauté : AURORE d'abord, en le disant. */
+  if(!SAVE.d.tuto&&!SAVE.d.permis&&!SANDBOX&&CARRIERE[bi]&&CARRIERE[bi].niveaux[i]&&CARRIERE[bi].niveaux[i].piste!=='tuto'&&CARRIERE[0].niveaux[0].piste==='tuto'){
+    toast(pxi('volant')+' '+TR("PASSE D'ABORD TON PERMIS"));bi=0;i=0;}
   if(started&&!gameOver)return; // (2026-09-28) une course tourne : on n'en lance pas une seconde par-dessus (depuis l'écran de mort, gameOver est vrai : ça passe)
   if(ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go))return;
   feuilleFerme(document.getElementById('carr'),'on');
@@ -18778,6 +18796,9 @@ function shopRender(){
   }
   une.innerHTML=hU;gr.innerHTML=hG;
 }
+function garPortee(){ // (2026-09-29, audit) la caisse la moins chère que la banque paie — le garage s'ouvre dessus, UNE fois par caisse et par session
+  let b=-1,bp=Infinity;for(let i=0;i<CARS.length;i++){const p=carPrice(i);if(p&&!carUnlocked(i)&&p<=bank()&&p<bp){bp=p;b=i;}}
+  const v=garPortee.vu||(garPortee.vu={});if(b<0||v[b])return -1;v[b]=1;return b;}
 function shopAPortee(){let n=0;for(const cat in COSM)for(const d of COSM[cat])if(d.p&&!shopOwned(cat,d.id)&&d.p<=bank())n++;return n;}
 /* ---------------- LA BOUTIQUE ---------------- */
 const COSM={
@@ -18858,12 +18879,30 @@ function tutoCarte(){
       +'<div class="coRow"><i class="coIco pxi"></i><div class="coTx"><b></b><span></span></div></div>'
       +'<div class="coPips"></div><div class="coGeste"></div>';
     document.body.appendChild(c);
-    c.querySelector('.coSkip').addEventListener('click',function(e){e.stopPropagation();uiClic('retour');tutoFin(true);});}
+    c.querySelector('.coSkip').addEventListener('click',function(e){e.stopPropagation();tutoPasse(this);});}
   return c;
+}
+/* (2026-09-29, audit des 10 premières minutes) PASSER COÛTAIT LE PERMIS EN UN TAP, SANS LE DIRE : 500 $, le tiers d'une 1re caisse. Le 1er
+   appui DEMANDE — le bouton devient « VRAIMENT ? » en rouge, l'en-tête dit ce qu'on laisse (« PERMIS +$ 500 ») — le 2e, dans les
+   3 s, passe. Pas de fenêtre par-dessus la course : pendant la leçon la caisse roule, la question reste dans la carte, sous le pouce.
+   Permis déjà payé (REVOIR L'AUTO-ÉCOLE) : rien à perdre, un seul appui comme avant. */
+function tutoPasse(b){
+  const c=document.getElementById('coach');if(!c||!TUTO.on)return;
+  if(SAVE.d.permis||b.classList.contains('sur')){clearTimeout(tutoPasse._t);uiClic('retour');tutoFin(true);return;}
+  uiClic('danger');hap(8);
+  b.classList.add('sur');b.textContent=TR('VRAIMENT ?').replace(' ',' ');
+  clearTimeout(tutoAffiche._t);c.classList.remove('rate');c.classList.add('passe');
+  c.querySelector('.coN').textContent=TR('PERMIS')+' +'+fmtC(500);
+  clearTimeout(tutoPasse._t);tutoPasse._t=setTimeout(function(){tutoPasseRange(c);},3000);
+}
+function tutoPasseRange(c){ // la question retombe : PASSER et la progression reviennent
+  clearTimeout(tutoPasse._t);if(!c)return;const b=c.querySelector('.coSkip');
+  if(b){b.classList.remove('sur');b.textContent=TR('PASSER');}
+  if(c.classList.contains('passe')){c.classList.remove('passe');c.querySelector('.coN').textContent=TR('AUTO-ÉCOLE')+' · '+(TUTO.i+1)+'/'+TUTO_ETAPES.length;}
 }
 function tutoAffiche(msg){ // msg (facultatif) : le raté s'écrit dans l'en-tête de la carte, en rouge, jusqu'à la réussite suivante
   msg=typeof msg==='string'?msg:'';
-  const c=tutoCarte(),E=TUTO_ETAPES[TUTO.i];
+  const c=tutoCarte(),E=TUTO_ETAPES[TUTO.i];tutoPasseRange(c); // une nouvelle consigne range la question de PASSER
   c.querySelector('.coN').textContent=msg?TR(msg):TR('AUTO-ÉCOLE')+' · '+(TUTO.i+1)+'/'+TUTO_ETAPES.length;c.classList.toggle('rate',!!msg);
   /* (2026-09-29, balade) le raté se DIT (rouge, son), puis l'en-tête redevient la progression : « RATÉ ! ON RECOMMENCE » restait écrit
      tant que l'étape n'était pas réussie — trente secondes de reproche pour qui cherche encore le geste */
@@ -18910,8 +18949,11 @@ function tutoFin(passe){
   SAVE.d.tuto=1;
   if(!passe){const paye=!SAVE.d.permis; // (2026-09-28) la prime du permis ne se verse qu'UNE fois : REVOIR L'AUTO-ÉCOLE ne doit pas devenir un robinet à 500
     if(paye){SAVE.d.permis=1;SAVE.d.bank=Math.min(1e30,bank()+500);}
-    misBanniere('AUTO-ÉCOLE',TR('PERMIS OBTENU !'), // (2026-09-28) misBanMontre ne traduit que le titre : le joueur anglais lisait « PERMIS OBTENU »
-      paye?'+'+fmtC(500):'','trophee');
+    /* (2026-09-29, audit des 10 premières minutes) LE PERMIS SE FÊTE : c'était une bannière du haut de 1,8 s, la même qu'un défi. La grande
+       annonce du centre (tenue 1,6 s, les cartes retenues pendant la leçon attendent derrière), puis — à la 1re fois — ce qui vient de
+       changer : le joueur sort d'une leçon où il ne pouvait pas mourir et où le vol était infini. */
+    hautPasse(function(){slamMontre('PERMIS OBTENU !',paye?'+'+fmtC(500):'','#62e062','#ffd75e',40,22);},1900,'slam',3,{min:1600});
+    if(paye)hautPasse(function(){misBanMontre('ASTUCE',TR("Fini l'entraînement : UNE SEULE VIE. En l'air, pose-toi avant la fin du chrono."),'','drapeau');},2800,'mis',3);
     try{if(SONV2)sfx('ui.debloque');else fanfare();}catch(e){}hap([20,60,20,60,60]);}
   SAVE.flush();
   hautArme(); // les cartes retenues pendant la leçon passent maintenant, l'une après l'autre (le permis d'abord)
@@ -18919,6 +18961,7 @@ function tutoFin(passe){
 /* (2026-09-28) QUITTER N'EST PAS PASSER. Les deux passaient par tutoFin(true), qui écrit SAVE.d.tuto=1 : quitter la partie au milieu de
    la leçon la marquait faite POUR TOUJOURS. Ici on range la leçon pareil, mais elle sera reproposée au prochain JOUER — PASSER (le bouton
    de la carte) reste le seul abandon définitif. Le drapeau `quitte` dit à l'écran de mort que ce n'est pas une partie (pas de record). */
+window.dbgTuto=function(k){if(k==='permis'&&TUTO.on)tutoFin(false);return {on:TUTO.on,i:TUTO.i,tuto:SAVE.d.tuto,permis:SAVE.d.permis,bank:bank()};}; // banc : l'état de la leçon ; dbgTuto('permis') la termine comme une réussite
 function tutoQuitte(){tutoFin(true);SAVE.d.tuto=0;TUTO.quitte=1;SAVE.flush();}
 function tutoTick(dt){
   if(!TUTO.on||!started||gameOver||paused)return;
@@ -18927,7 +18970,7 @@ function tutoTick(dt){
   /* (2026-09-26, audit UX : 3 essais sur 3, la caisse sortait de la route juste après TOURNE, et l'étape NITRO ne se validait
      pas en l'air → 6 s de vol, explosion, « RATÉ »). Aux deux premières étapes, une sortie de route (plus d'une demi-seconde
      en l'air : une bosse ne compte pas) remet la caisse sur la piste tout de suite, en DISANT pourquoi. Zéro aide en vraie course. */
-  if(TUTO.i<2&&mode==='fall'){TUTO.chute=(TUTO.chute||0)+dt;if(TUTO.chute>.5){TUTO.chute=0;sandRevive();tutoAffiche('SORTI ! GLISSE TON POUCE POUR SUIVRE LA ROUTE');return;}}else TUTO.chute=0; /* (2026-09-28) « ton pouce ramène la caisse » ne disait pas QUEL geste */
+  if(TUTO.i<2&&mode==='fall'){TUTO.chute=(TUTO.chute||0)+dt;if(TUTO.chute>.5){TUTO.chute=0;sandRevive();tutoAffiche('SORTI ! SUIS LA ROUTE');return;}}else TUTO.chute=0; /* (2026-09-28) « ton pouce ramène la caisse » ne disait pas QUEL geste */
   switch(TUTO.i){
     case 0: if(steer<-.25)TUTO.l=1;if(steer>.25)TUTO.r=1;if(TUTO.l&&TUTO.r)tutoBravo();break; // .45 exigeait la moitié du braquage : on sortait de la route en le cherchant
     case 1: if(nitroOn)TUTO.hold+=dt;if(TUTO.hold>1.1)tutoBravo();break; // la nitro tenue compte aussi en l'air (une crête ne remet plus le compteur à zéro)
@@ -18946,7 +18989,7 @@ function tutoTick(dt){
                  ACCORDÉ (tutoBravo valide la dernière étape → tutoFin). Il a décollé et volé deux fois : la pose s'apprendra en jouant. */
               if(TUTO.t>9){sandRevive();TUTO.rates=(TUTO.rates|0)+1;
                 if(TUTO.rates>=2)tutoBravo();
-                else{TUTO.i=2;TUTO.air=0;TUTO.t=0;tutoAffiche('RATÉ ! GARDE LE NITRO, VISE LE DESSUS');}}}
+                else{TUTO.i=2;TUTO.air=0;TUTO.t=0;tutoAffiche('RATÉ ! NITRO, VISE LE DESSUS');}}}
             break;
   }
 }
@@ -32314,7 +32357,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='surv'){ clic(survBtnEl); panSync(); }
     else if(a==='resp'){ panOpen(false); if(started&&!gameOver&&mode==='drive')respawn(); }
     else if(a==='reset'||a==='quit'){ const q9=a==='quit'; // (2026-09-25) CONFIRMÉS : QUITTER tombait sous le pouce et terminait la partie d'un seul tap
-      modale({titre:q9?'QUITTER LA PARTIE ?':'RECOMMENCER ?',texte:q9?'Tes gains sont versés au compte.':'Les gains de cette partie ne seront PAS versés.',
+      modale({titre:q9?'QUITTER LA PARTIE ?':'RECOMMENCER ?',texte:q9?(TUTO.on?(SAVE.d.permis?'Tu reprendras la leçon au prochain départ.':"Tu reprendras la leçon au prochain départ : le PERMIS et sa prime t'attendent."):'Tes gains sont versés au compte.'):'Les gains de cette partie ne seront PAS versés.', // (2026-09-29) pendant la leçon, « tes gains sont versés » taisait l'enjeu
         boutons:[{l:q9?'QUITTER':'RECOMMENCER',ic:q9?'quitter':'rejouer',cls:'pb-red',v:1},{l:'CONTINUER',ic:'lecture',v:0}]}) // CONTINUER en DERNIER : Échap clique le dernier bouton
       .then(function(r){ if(!r.v||!started||gameOver)return; panOpen(false);
         if(q9){if(TUTO.on)tutoQuitte();const sb=SANDBOX;SANDBOX=false;endGame();SANDBOX=sb;} else {carrIci();resetGame();} }); } // carrIci : la carrière repart du niveau en cours · (2026-09-28) tutoQuitte : la leçon quittée sera reproposée
@@ -32485,6 +32528,10 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       mCompteSon(recT);
       // Ce qui se gagne DANS une partie, c'est le MOTEUR (la caisse, elle, se choisit au garage) :
       // c'est donc lui qu'on montre en fin de run, pas un palier de voiture qui ne veut plus rien dire.
+      {const rj=document.querySelector('#mDead [data-m="replay"]');if(rj){const k9=tq9&&!CARR.actif?'REPRENDRE':'REJOUER',tx=TR(k9);let sp=rj.querySelector('span');if(!sp){sp=document.createElement('span');rj.textContent='';rj.appendChild(sp);}
+        sp.textContent=tx;if(sp.dataset.fr)sp.dataset.fr=k9;rj.style.setProperty('--nb',Math.max(7,tx.length));}} // (le texte vit dans son <span> : c'est lui que la règle « tient dans le lingot » dimensionne sur --nb signes) // (2026-09-29) après une leçon QUITTÉE, le lingot relance la leçon : il le dit
+      {let nG=shopAPortee();for(let i=0;i<CARS.length;i++){const p9=carPrice(i);if(p9&&!carUnlocked(i)&&p9<=bank())nG++;} // (2026-09-29, audit) la pastille du GARAGE vit aussi ici : le débutant enchaîne REJOUER et ne revoit pas l'accueil
+       const bg=$t('bdGar2');if(bg){bg.textContent=nG||'';bg.classList.toggle('on',nG>0);}}
       const nw=$t('mNew'),E=ENGINE_TIERS[Math.min(ENGINE_TIERS.length-1,Math.max(0,engTier|0))];nw.style.display='none';
       { // LES DEUX CARTES : l'AURA gagnée (et le rang), le MOTEUR atteint (et s'il bat ton record)
         const au=commitExploits._aura||0,rg=commitExploits._rangMonte,eN=engTier>(RUNX.engAvant|0),hx=(typeof engNeon==='function')?engNeon(E.col||0xffd75e):'#'+(E.col||0xffd75e).toString(16).padStart(6,'0'); /* (2026-09-28) le néon du palier, comme la carte moteur de la course (session UHD) : la rouille et l'acier ne font plus une carte boueuse */
@@ -32495,12 +32542,12 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
         const ea=RUNX.engAvant|0,nx=ENGINE_TIERS[engTier+1],mq=nx?nx.coins-coinsGot:0,
               pr=!!nx&&mq>0&&engTier+1>ea&&mq<=Math.max(3,Math.ceil((nx.coins-E.coins)*.3)),
               ci=!eN&&ea>engTier?ENGINE_TIERS[ea]:null,an=auraNext(),a1=SAVE.d.aura||0,bas=AURA_RANKS[auraRank()].v;
-        if(h){h.innerHTML='<div class="hCard hAura"><small>'+TR('AURA')+'</small><b id="mAuraV" style="--n:'+(('+'+fA(au)).length)+'">+0</b><span>'+pxi('etoile')+' '+auraRankName()+'</span>'+(rg?'<em>'+TR('NOUVEAU RANG !')+'</em>':(recA?'<em>'+TR('RECORD !')+'</em>':''))
+        if(h){h.innerHTML='<div class="hCard hAura"><small>'+TR('AURA')+'</small><b id="mAuraV" style="--n:'+(('+'+fA(au)).length)+'">+0</b><span>'+pxi('etoile')+' '+auraRankName()+'</span>'+(tq9?'':rg?'<em>'+TR('NOUVEAU RANG !')+'</em>':(recA?'<em>'+TR('RECORD !')+'</em>':''))
             +(an?'<div class="hNx"><span>'+TR('ENCORE')+' '+fA(an.reste)+'</span><span>'+pxi('haut')+' '+TR(an.n)+'</span></div><div class="hBar"><u id="mAuraB"></u></div>' // (2026-09-28) deux morceaux : sur deux lignes, plus de « · » orphelin en bout de ligne
                 :'<div class="hNx">'+TR('TOTAL')+' '+fA(a1)+'</div><div class="hBar hMax"><u style="width:100%"></u></div>')+'</div>' // (2026-09-28) au RANG MAXIMUM la carte n'avait plus rien sous le nom : le total de toute ta carrière, sur une jauge pleine
-          +'<div class="hCard hMot hMot3" style="--ec:'+hx+'"><small>'+TR('MOTEUR')+'</small><canvas class="hMotCv" width="480" height="321"></canvas>'
-            +'<div class="hMotN"><i>'+TR('PALIER')+'</i>'+(engTier+1)+'</div>'+(eN?'<em>'+TR('RECORD !')+'</em>':'')
-            +(pr?'<div class="hNx hPres"><span>'+TR('PLUS QUE')+' '+mq+' '+TR(mq>1?'PIÈCES':'PIÈCE')+'</span><span>'+pxi('haut')+' '+TR(nx.n)+'</span></div>':ci?'<div class="hNx hRec">'+TR('RECORD')+' · '+TR('PALIER')+' '+(ea+1)+'</div>':'')+'</div>'; // (2026-09-28) « RECORD · PALIER 18 » : le nom du moteur (STATOREACTEUR) cassait la ligne ; la carte parle déjà en paliers
+          +'<div class="hCard hMot hMot3" style="--ec:'+hx+'"><small>'+TR('MOTEUR ATTEINT')+'</small><canvas class="hMotCv" width="480" height="321"></canvas>'
+            +'<div class="hMotN"><i>'+TR('PALIER')+'</i>'+(engTier+1)+'</div>'+(eN&&!tq9?'<em>'+TR('RECORD !')+'</em>':'')
+            +(pr?'<div class="hNx hPres"><span>'+presqueTxt(mq)+'</span><span>'+pxi('haut')+' '+TR(nx.n)+'</span></div>':ci?'<div class="hNx hRec">'+TR('RECORD')+' · '+TR('PALIER')+' '+(ea+1)+'</div>':'')+'</div>'; // (2026-09-28) « RECORD · PALIER 18 » : le nom du moteur (STATOREACTEUR) cassait la ligne ; la carte parle déjà en paliers
           {const cv9=h.querySelector('.hMotCv');ENG_MORT.cv=cv9;ENG_MORT.ctx=cv9?cv9.getContext('2d'):null;} // le moteur 3D y tourne (engVigRender)
           {const av9=$t('mAuraV');if(av9){av9.textContent='+'+fA(prem9?0:au);av9.classList.toggle('zero',au<=0);}if(prem9)setTimeout(function(){countUp(av9,au,function(v){return '+'+fA(v);});},REDUCED_MOTION?0:260);} // la carte AURA est distribuée à 250 ms : le chiffre monte quand on la voit
           if(an){const u=$t('mAuraB'),D=Math.max(1,an.seuil-bas),w1=Math.min(100,(a1-bas)/D*100),w0=rg?0:Math.max(0,(a1-au-bas)/D*100);
@@ -32540,6 +32587,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       sv('mvCtl',TR(TCTL.pad?'FLECHES':'VOLANT'),true);
       sv('mvQ',TR(SAVE.d.q==='net'?'NETTE':'RAPIDE'),true);
       sv('mvLang',LANG.toUpperCase(),true);
+
+      {const e9=$t('mvTuto');if(e9){const on9=!SAVE.d.permis;e9.hidden=!on9;e9.textContent=on9?'+'+fmtC(500):'';}} // (2026-09-29, audit) tant que la prime n'a pas été versée, REVOIR L'AUTO-ÉCOLE le dit
       volUI();
     }
   }catch(e){} }
@@ -32576,9 +32625,9 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='custom'){ ecranWipe(function(){openGarage();shopTab('peinture');}); } // la PERSONNALISATION (peinture, ailes, traînées) vit au GARAGE
     else if(a==='shopSoon'){ toast(pxi('panier')+' '+TR('BIENTÔT DISPONIBLE')); }
     else if(a==='shopRestore'){ toast(pxi('coche')+' '+TR('AUCUN ACHAT À RESTAURER')); } // LA BOUTIQUE : le même atelier 3D, onglet PEINTURE — on essaie sur la vraie caisse
-    else if(a==='voirRec'&&MIS_REC){ const r=MIS_REC; ecranWipe(function(){ openGarage(); if(r.car!=null){shopTab('voiture');garageShow(r.car);} else if(r.cat){shopTab(r.cat);shopShow(r.cat,COSM[r.cat].findIndex(x=>x.id===r.id));} }); }
+    else if(a==='voirRec'&&MIS_REC){ const r=MIS_REC; ecranWipe(function(){ openGarage(); if(r.car!=null){shopTab('voiture');garageShow(r.car);setTimeout(function(){const be=$('gEquip');if(be&&garageOn&&be.offsetParent)pixBurst(be,12);},520);} else if(r.cat){shopTab(r.cat);shopShow(r.cat,COSM[r.cat].findIndex(x=>x.id===r.id));} }); }
     else if(a==='buyGoal'){ const g9=objectif(); ecranWipe(function(){ openGarage(); if(g9){ if(g9.car!=null){shopTab('voiture');garageShow(g9.car);} else {shopTab(g9.cat);shopShow(g9.cat,g9.i);} } }); }
-    else if(a==='garage'){ ecranWipe(function(){openGarage();shopTab('voiture');}); } // LE VRAI ATELIER : la caisse tourne au milieu, on glisse pour l'admirer
+    else if(a==='garage'){ const pc=garPortee(); ecranWipe(function(){openGarage();shopTab('voiture');if(pc>=0)garageShow(pc);}); } // LE VRAI ATELIER : la caisse tourne au milieu, on glisse pour l'admirer
     else if(a==='surv'){ clic(survBtnEl); mFill(); }
     else if(a==='park'){ clic(parkBtnEl); mFill(); }
     else if(a==='sand'){ SANDBOX=!SANDBOX; SAVE.d.sand=SANDBOX; SAVE.flush(); mFill(); }

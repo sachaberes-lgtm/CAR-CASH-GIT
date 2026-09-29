@@ -1,5 +1,25 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LES 10 PREMIÈRES MINUTES — CÔTÉ INTERFACE (2026-09-29, session INTERFACE)
+- **PASSER demande** (`tutoPasse`/`tutoPasseRange`) : 1er appui → le bouton devient « VRAIMENT ? » (rouge), l'en-tête dit « PERMIS +$ 500 »
+  (or) ; 2e appui dans les 3 s → `tutoFin(true)`. La question reste DANS la carte (pas de modale : la caisse roule pendant la leçon).
+  Permis déjà payé (REVOIR L'AUTO-ÉCOLE) → un seul appui. Réglages : « REVOIR L'AUTO-ÉCOLE » porte « +$ 500 » (`#mvTuto`) tant que la prime
+  n'a pas été versée.
+- **Le permis se fête** : grande annonce centrale « PERMIS OBTENU ! +$ 500 » (`slamMontre` tenu 1,6 s), puis, la 1re fois, l'ASTUCE
+  « Fini l'entraînement : UNE SEULE VIE. En l'air, pose-toi avant la fin du chrono. » (la leçon ne tue pas et prête l'airtime).
+- **Raté du coach sur une ligne** : « SORTI ! SUIS LA ROUTE », « RATÉ ! NITRO, VISE LE DESSUS » (la carte montait à 31 % de l'écran).
+- **Écran de mort** : carte « MOTEUR ATTEINT » (il repart de zéro à chaque partie) ; « À 2 PIÈCES DU ▲ 3 CYLINDRES » (`presqueTxt`, FR/EN/ZH)
+  au lieu de « PLUS QUE 2 PIÈCES » (lu « il m'en faut 2 pour l'acheter ») ; **pastille GARAGE** `#bdGar2` (même compte que l'accueil) ;
+  le garage ouvert depuis une tuile se pose sur la caisse la moins chère qu'on peut s'offrir (`garPortee`, une fois par caisse et par
+  session — inopérant tant que `TEST_CAISSES=true`, qui débloque tout).
+- **Leçon quittée** : la modale dit « Tu reprendras la leçon au prochain départ : le PERMIS et sa prime t'attendent » ; l'écran de fin
+  n'affiche aucun RECORD et le lingot dit **REPRENDRE** (le texte vit dans le `<span>` que la règle « tient dans le lingot » dimensionne).
+- **Carrière avant le permis** : un niveau autre qu'AURORE lance AURORE avec le toast « PASSE D'ABORD TON PERMIS » (tant que la leçon n'a
+  été ni passée ni sautée).
+- **La caisse gagnée aux MISSIONS** (VA LA VOIR) : une gerbe sur ÉQUIPER à l'arrivée au garage.
+- Écarté : la cause de mort pendant l'explosion (verdict de Sacha : « la caisse qui explose l'a déjà dit »). Banc : `dix.js w h lang`
+  (PASSER, permis, mort, réglages, leçon quittée — son coupé) ; hook `dbgTuto('permis')`.
+
 ## LES 10 PREMIÈRES MINUTES — CORRECTIFS DE JEU (2026-09-29, audit de la session INTERFACE, corrigé par la session GAMEPLAY)
 - **Après le permis, NUAGES et pas VILLE** : la piste de l'école occupait la zone 0, le portail menait à `NIVEAUX[1]`. `LVL.tutoZ` (posé par
   `lvlChoisir` au départ de chaque partie) décale le compte : après la leçon, NIVEAU 1 = NUAGES, puis VILLE. Mesuré (`ecole.js`).
