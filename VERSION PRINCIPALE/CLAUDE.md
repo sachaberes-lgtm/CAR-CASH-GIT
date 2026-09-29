@@ -1,5 +1,171 @@
 # CASH CAR — guide projet pour Claude Code
 
+## L'ORAGE — LE 4e NIVEAU, LE NIVEAU DUR (2026-09-29, nuit — session GRAPHISME, avec l'accord de GAMEPLAY et de la Campagne)
+- Sacha : « rajoute un niveau après les 3 premiers : le biome nuages mais avec un orage, beaucoup plus de nuages, de la pluie, des
+  éclairs et plein de gros nuages sur la route — ce doit être le niveau dur, ambiance sombre dans le même style que le premier niveau ».
+- **`NIVEAUX`** : `{id:'orage', nm:"L'ORAGE", bio:['tempete'], pluie:1, …}` en 4e — le cycle devient NUAGES → VILLE → ORBITE → ORAGE
+  (`zn % NIVEAUX.length`). L'orage fait comme les nuages pour l'abîme bleu (`LVL.merA`), les nappes (`lvlNuageOk`), les virages à filet
+  (mais UN seul : `filMax`), et prend l'accent violet électrique `0x8a7dff`. `pluie:1` suffit pour : le rideau de pluie (PLUIE), le
+  bitume mouillé, le soleil éteint, les plots rétroréfléchissants, la lampe de caisse de nuit.
+- **Le biome `tempete`** (jamais tiré au hasard) : clone de l'ORAGE VIOLET SANS la ville peinte (city 0) — ardoise au zénith, brume
+  proche 140-1050 m, nuages éclairés d'un argent FROID (volSun bleuté → la lumière de peintre les fait ardoise), liseré du néon.
+- **Plein de gros nuages sur la route** (`buildClouds`, `OR9`) : les bancs `onRoad` tous les 560-1180 m (1900-3300 ailleurs), 1 sur 10
+  sauté (2 sur 5), 32 % de méga-bancs (10 %), plus gros — ~29 bancs par piste (≈ 4 aux nuages). Le hasard reste sur `cr`.
+- **Plus de nuages** (`buildCoton`, `OR`) : ×1,25 sur les couronnes + un PLAFOND bas (26 grands rouleaux/humilis 110-240 m au-dessus de
+  la route, sur elle et autour). ⚠ MESURÉ : 407k triangles envoyés — tout le lointain était dessiné, noyé dans la brume. `cotonTick`
+  ne l'envoie plus à l'orage (un nuage entièrement au-delà de `fog.far`) → 60-105k, comme les nuages. `COTON.cap` 480 → 560.
+- **Les éclairs** : ceux du niveau 9 de la campagne (`orageTick` : ECL, eclFrappe, tonnerre retardé selon la distance), appelés par la
+  boucle quand `LVL.cur.id==='orage'` et JAMAIS en campagne (un seul écrivain d'ECL/CAMP_FLASH). L'ÉCLAIR RÉVÈLE : le flash monte
+  l'exposition et OUVRE la brume (`CAMP_FOG` : 140/1050 → ~500/1800 m) — dans le noir et les bancs, c'est lui qui montre la route.
+  Remis à zéro à chaque piste par `campDebut` et à la mort par `campStop`. Hook : `dbgOrage()` / `dbgOrage('eclair')`.
+- 0 programme lié en arrivant à l'orage (banc `orage.js` : trois portails, route/éclair/vol ×3). Pas de morceau de musique propre
+  (`MUSIC_LIEU` n'a pas d'orage : la radio joue) — à fournir par Sacha / la session SON.
+
+## LES NUAGES v6 — PLUS DIFFÉRENTS LES UNS DES AUTRES (2026-09-29, nuit — session GRAPHISME)
+- Sacha : « retravaille les nuages, ils ne sont pas assez différents les uns des autres ». Trois causes vues sur captures : une seule
+  famille de silhouettes (base + tours), un seul GRAIN de bourgeons, une seule teinte.
+- **18 gabarits tirés par session** (8 avant ; `COTON_KINDS` 14 → 24, `COTON_GENRES`) dans NEUF genres : humilis, mediocris, congestus,
+  castellanus, fractus + STRATOCUMULUS (long rouleau bas), ALTOCUMULUS (troupeau de petits cumulus — ⚠ des flocons d'UN bourgeon se
+  lisaient comme des bulles : chacun a sa base double et 2-3 bourgeons soudés), CISAILLÉ (tour couchée par le vent + traîne), CHAMPIGNON
+  (tête étalée en couronne de bourgeons RONDS). Base plate et bourgeons ronds partout (verdict du 28/09).
+- **Un grain par gabarit** : fin ×.76 (24 bourgeons au plus — à 28 les triangles envoyés doublaient), moyen, gros ×1,28.
+- **Une teinte par nuage** : couleur PAR INSTANCE (`instanceColor` sur TOUS les lots dès `cotonInit` — un seul programme, cf. le piège
+  de `villeChauffe`), posée par `cotonPose` (`COTON_ST` 10 → 13) et suivie par le tri de `cotonTick` : clair/sourd .82-1,04, chaud/froid
+  ±20 %, 12 % « lourds » gris-bleu. La lumière de peintre garde 50 % de la teinte propre (sinon elle l'effaçait).
+- `COTON_POIDS` est construit par genre (les 6 classiques ×.55 : on les revoyait à chaque partie) ; les tours se choisissent par GENRE
+  (`cotonDe(cr,['congestus','cisaille',…])`), plus par indice en dur. Coût : ~80k triangles envoyés au banc (≈ 55k avant), 0 programme
+  lié en course (tour.js, 3 niveaux).
+
+## LE CIEL « DRAGONS » — NUAGES v5 (2026-09-29, nuit — session GRAPHISME, avec l'accord de GAMEPLAY qui avait fait la v4)
+- Sacha : « travaille la génération des nuages pour avoir un truc encore plus beau et artistique, qui fasse ressentir au joueur la
+  LIBERTÉ comme dans le film Dragons 1 ». Banc `dragon.js` (scratchpad GRAPHISME) : Math.random à graine fixe → même piste, même
+  ciel d'une version à l'autre ; 5 endroits × (au sol, en vol) ; `BIO=matin|midi|aprem`, `LS=…` (fractions de piste), `--pay`.
+- **LA LUMIÈRE DE PEINTRE** (`nuageShader`, tous les nuages : coton ET maillages) : la ouate garde sa luminance (Phong + modelé cuit)
+  mais sa TEINTE suit la lumière du film — côté soleil crème-or, flancs à l'ombre bleu ciel, ventre lavande, frontière douce. Les
+  couleurs viennent des `volSun/volSky/volGnd` de chaque biome (restés des anciens nuages volumétriques), normalisées en luminance
+  par `bioApply` → `GFX_U.uNuSun/uNuSky/uNuGnd` ; `GFX_U.uUpV` (le haut en espace vue) posé chaque image à côté de `uSunV` ;
+  `GFX_U.uDragon` = (force, ombre ×.92, soleil ×1,08) — `uDragon.x=0` rend la lumière d'avant (A/B).
+- **LES CATHÉDRALES** (`buildCoton`, couche 7) : toutes les ~1,4 km, de GRANDS congestus (r 220-340, gabarits 10/11/2) qui montent de
+  l'abîme (base 220-340 m sous la route) et la dominent de ~150-250 m, à 300-650 m du bord — une PORTE (les deux côtés, 45 %) ou
+  une FALAISE (un côté). ⚠ Essayé puis retiré : étirer la tour ×1,5 + lui poser une couronne = bourgeons en œufs empilés (« chenille »).
+  `cotonPose` accepte un étirement vertical imposé (`syF`), laissé à 1-1,15.
+- **LES ARCHIPELS** (couche 1) : la couronne proche n'est plus 80 nuages semés un par un mais ~30 îlots de 2-3 (un grand + ses
+  satellites au même plafond) — du CIEL OUVERT entre deux.
+- Coût : ~360 nuages (cap 480), triangles envoyés du même ordre qu'avant (~49-64k au banc), **0 programme lié en course** (tour.js,
+  3 niveaux). Verdicts respectés : base plate et bourgeons ronds, pas de Terre, pas de jour cobalt, hasard hors du flux `rnd` de la piste.
+
+## LA DARK TRIAD POUR LES BONS JOUEURS — LOI 18 DE FLOW2 (2026-09-29, nuit — session GRAPHISME, avec l'accord de GAMEPLAY)
+- Sacha : « dark triad trop facile à avoir, il faut que ce soit pour les bons joueurs » (après la loi 17, « l'entre-deux »).
+- UN seul levier, la MONTÉE : `FLOW2.cel` .55 · .42 · .30 · .25 → **.55 · .23 · .165 · .14** (les cellules or, rose et triade
+  demandent ~1,8× plus de gestes). Inchangés : tenue, fuite, répit, `gate`, triade, ville (`lieux.ville` n'a pas de cellules à elle),
+  ×3 d'argent. Écartés : la fuite (elle punit aussi les maîtres) et `gate` > 1 (la triade ne prend plus qu'à la nitro : plus personne).
+- MESURÉ (5 min × 60 parties) — part des parties qui atteignent la frénésie en 5 min / 1re frénésie médiane :
+  NUAGES (`simtri2.js` = simtri + un virage à filet par minute) tranquille 0 % · casse-cou **13 %** (loi 17 : 100 %, ~2 min) · maître
+  100 % à **~2 min** (~1 min) ; VILLE (`simville2.js` = simville AVEC `flowLieu('ville')` posé — l'ancien simville ne le posait pas,
+  il ne simulait que « moins de sauts ») casse-cou **7 %** (90 %, 2 min 22) · maître à **~2 min 20** (1 min 06). En frénésie
+  0 · 1 · 19 % du temps (0 · 15 · 39 %). Bancs dans le scratchpad de la session GRAPHISME (f71fd2a2…/scratchpad/gfx).
+
+## LA ROUTE QUI TE RATTRAPE — ESSAI AU NIVEAU NUAGES (2026-09-29, session GRAPHISME)
+- **La demande** : 4 vidéos de Sacha (dans `C:\Users\sacha\Videos\`, 29/09) — deux de VOLTIGEUR (60 % du temps en l'air, sortie par
+  le bord, pose sur la route du dessous) et deux de ROULEUR (au sol, nitro à fond ; il ne vole que quand il RATE un virage, et se
+  rattrape plus bas : MIRACULÉ, RACCOURCI). « Une génération de map qui plaise aux deux et donne des sensations inoubliables. »
+  ⚠ REJETÉ d'abord : le « tourbillon » (toute la piste en spirale calée sur le vol) — « les rouleurs doivent kiffer aussi ».
+  Validé : « un virage bien pris paie PLUS qu'une chute rattrapée » ; essai au niveau NUAGES seul.
+- **Le motif `filet` de genCtrl** (NUAGES du mode principal seulement : ni ville, ni orbite, ni campagne, ni école, ni parc ; son
+  hasard a son propre mulberry32 — un seul `rnd()` de plus, et seulement aux NUAGES) : une APPROCHE droite → un VIRAGE RAPIDE
+  presque plat (55-75°, R (95-140)·RS, pente 4-7 %) → une BRETELLE (ligne qui s'éloigne dans l'axe de sortie, grand demi-tour,
+  ligne du retour : un Dubins « virage · droite · virage » du même côté ; la v1 tournait en rond = escargot, écartée) → le FILET :
+  la route repasse 42 à 54 m plus bas, À L'EXTÉRIEUR du virage, dans le même sens, pile sur le LIEU DES POSES d'une caisse qui sort
+  du virage (sortie au bord extérieur, écartée de `dev` 0,13 rad vers le vide, à `kv`×croisière, poussée de décollage `kick`,
+  gravité FALL_G×SPD, pente du virage comprise). 3 filets à la 1re visite des nuages, 2 à la 2e, 1 ensuite (`FILET.par`).
+- **Les pièges MESURÉS** (banc `filet.js` : la caisse posée au bord, lâchée sans les mains) : (1) la PENTE du virage part avec la
+  caisse — à 780 km/h, 12 % de pente = 26 m/s vers le bas dès la sortie, la caisse passait 44 m sous le filet → virage presque plat
+  + pente dans le calcul ; (2) une caisse qui rate un virage part ÉCARTÉE de la tangente (~0,15 rad) → `dev` ; (3) viser la
+  croisière laissait passer au-dessus tout ce qui va plus vite — or c'est en allant trop vite qu'on rate → `kv` 1,1.
+  Résultat : 39/45 sorties rattrapées de 0,85 à 1,15× la croisière (début de partie) ; au-delà (NITROOO à fond) la caisse passe
+  au-dessus et c'est au joueur de corriger en vol ; à très haute vitesse la tolérance se resserre (un filet de 56 m vu à 500 m).
+  Dégagement mini entre étages ≥ 37 m (`dbgPisteCamp`).
+- **Les paiements** (règle de Sacha) : `filetTick` (au sol) — traverser le virage sans quitter la route ni descendre sous `vFond`
+  (0,8) × sa vitesse de calcul = **VIRAGE A FOND** (120 d'aura brute, flow de route 14, nitro +0,25) ; `filetRattrape` (à la pose,
+  vol parti du virage et posé dans SON filet, `filetDe`) = **RATTRAPE** (50 d'aura, flow 6) À LA PLACE du RACCOURCI ; la pose lourde
+  et la vitesse perdue font le reste. Un seul texte chacun (celui de la chaîne — « moins de textes au milieu », 661854a).
+- **Banc** : `dbgFilet()` (liste), `dbgFilet('neuf',visite)` (nouvelle piste NUAGES), `dbgFilet(i,f,v,ang)` (poser la caisse au bord
+  du virage i), `dbgFilet('va',s,v)`, `dbgFilet('pts')`, `dbgFilet('vol')`. Scratchpad : `filet.js` (plan vu de dessus + taux de
+  rattrapage + rouleur), `filtrace.js` (un vol tracé par rapport à la route), `filvue.js` (ce que voit le joueur).
+- **À juger par Sacha** : la bretelle (assez « route » ? trop longue ?), la fréquence (3 par zone), le montant des deux paiements, et
+  s'il faut un repère visuel du filet (liseré, ligne de pièces sur l'arc de vol) — pas fait dans cet essai.
+
+## L'ENTRÉE DANS LA VILLE : DROITE SURÉLEVÉE, PUIS LA RAMPE (2026-09-29, nuit — session GAMEPLAY)
+- Sacha : « quand on arrive dans la ville, la route doit commencer par être droite et surélevée le temps que le joueur s'adapte, puis la
+  route descend dans la ville ». Niveau VILLE généré (`genCtrl`, pas les pistes dessinées de la campagne) : le DÉPART commun (110 m qui
+  plongent de 70) est remplacé par une LIGNE DROITE quasi plate de 420×LV m, puis une GRANDE RAMPE droite de 520×LV m qui plonge de
+  220×LV (adoucie par VILLE_PENTE : ~180 m de chute). Réglages `VILLE_ENTREE_R` (droite, rampe, chute, toit, etage). MESURÉ (banc
+  `vil.js`/`vil2.js`, saut au niveau par `dbgSaut`) : droite finie à ~450 m, rampe à ~1 030 m, de −22 à −202 m.
+- `buildVoxCity` plafonne les toits des tours qui bordent la droite SOUS la route (de 22 à 142 m, les plus hautes restant les plus hautes,
+  `eEnt(i)` glisse de 1 à 0 le long de la rampe ; forêt proche aussi, l'horizon lointain garde sa hauteur) ; pas de réclame en l'air.
+  La droite est NUE : ni plot, ni flaque, ni dos d'âne jusqu'à 80 m après la bascule (`sEnt` dans buildTrack). Zéro tirage `rnd` ou `vr`
+  ajouté ou retiré : NUAGES et ORBITE sont identiques au tirage près. Hook `dbgVilleEntree()`.
+- ⚠ En portrait, la route (56 m de large en ville) remplit le bas de l'écran : on voit surtout la ville AU LOIN sous l'horizon, puis
+  les tours qui MONTENT autour de la rampe. Pour voir les toits défiler sur les côtés, il faudrait un cadrage plus large, pas des tours
+  plus basses.
+
+## LE SILLAGE DE NITRO v4 + LE BOUCLIER RETIRÉ (2026-09-29, nuit — session GAMEPLAY)
+- Sacha (v3) : « retravaille la traînée de nitro : beaucoup plus belle, lisse et lumineuse, deux longues traînées derrière — il faut que
+  ce soit magnifique » ; puis (v4) « plus belles et longues : de longues traînées RÉGULIÈRES jusqu'à 50 mètres derrière ; et selon les
+  voitures, la nitro doit être adaptée pour SORTIR DU POT ». Les sillages DU JOUEUR (`SILS[0..3]`, `trailL`/`trailR` = les deux
+  premiers) sont `mkSillage`/`sillageStep` (réglages `SIL`) ; `mkTrail`/`trailStep` restent ceux de la meute, du fantôme, du fourgon.
+- UN SILLAGE PAR POT, né dans la bouche du pot (`CAR_POTS`, les mêmes points que les plumes `JETS`, 4 au plus) : un pot = une traînée
+  plus large (`SIL.un`), 3-4 pots = 3-4 traînées plus fines. ⚠ La v3 tirait deux traînées de part et d'autre d'un pot central : elles
+  ne sortaient d'aucun pot. AUDIT des 68 caisses (banc `pots.js`, hook `dbgJetsVoir(i,côté,dist,haut,longueur)`) : le relevé trouve les
+  pots de 55 caisses, 3 les déclarent (`pots:` de la fiche), 10 retombent sur les pots CANONIQUES chromés dessinés par buildCar (la
+  flamme sort bien de leur bouche) ; 12 n'ont qu'un pot.
+- 50 MÈTRES RÉGULIERS : la longueur se compte en mètres de chemin (`LONG` 50), même largeur et presque même éclat de bout en bout, la
+  queue s'éteint sur les 10 derniers mètres (`QUEUE`) ; lâcher la nitro éteint tout le sillage en ~0,9 s (`OFF`), là où il est.
+  Un point tous les 0,6 m (45/s au plus), Catmull-Rom ; cœur fin qui blanchit à la tuyère + halo qui s'élargit, le feu refroidit
+  vers le rouge-magenta au bout. Au SOL il file jusqu'au bas de l'écran (plus de coupe : `cutB` 9) ; EN VOL ce qui PEND tout droit
+  sous la caisse est coupé à un tiers d'écran (`cutV` .34 — deux traits sous une caisse en l'air = « fils de marionnette ») ; ce qui
+  part sur le côté (virage, vrille) se voit sur toute sa longueur (`kx`). Même matériau qu'avant : 0 programme compilé en course.
+  Bancs `sil.js` `sil4.js` `sil5.js` (un pot / quatre pots / lâcher-rallumer) ; hook `dbgSillage()` (mètres, éclat par sillage).
+- Sacha : « supprime le pouvoir bouclier ». Il reste CINQ pouvoirs (n a v m x) ; ses parts de tirage sont rendues aux autres
+  (`pwrPoids`), le 1er cristal offert au débutant est un AIMANT. Plus de chute pardonnée par un cristal, plus de plots « DÉMOLI », plus
+  d'huile neutralisée. Le seul filet qui reste est celui, en OPTION, du MODE FACILE (`facileSauve`, `facFilet`). Banc `bou.js`,
+  hook `dbgPwr('cristaux')`. Les sons `pwr.bouclier*` et les traductions BOUCLIER ne sont plus appelés (laissés à la session SON).
+
+## L'ENTRE-DEUX DE LA DARK TRIAD + NITROOO À 2 s (2026-09-29, soir — session GAMEPLAY)
+- Sacha : « dark triad trop facile, trouve un entre-deux entre maintenant et avant ». LOI 17 de `FLOW2` (commentaire du bloc) : chaque réglage
+  entre la v5 et la loi 16, montée resserrée d'un cran — cel .55/.42/.30/.25, gate .925, répit 2,75, fuite 2,4/2,8/3,2/2,4, pente .28,
+  style 50 % dans la triade, mémoires 7/15/2,2, brûlure [5,5 · 3,5 · 1,7 · −0,6] ; VILLE 11/24/3,5, style 70 %. ×3 d'argent inchangé.
+  MESURÉ (`simtri.js`) : 1re frénésie tranquille jamais (v5 jamais · loi 16 2 min 30), casse-cou ~2 min (jamais · 1 min), maître ~1 min
+  (2 min 26 · 38 s) ; en frénésie 0/15/39 % du temps (v5 0/0/30 · loi 16 6/29/46) ; tenue ~16/18/25 s.
+- « Le nitrooo doit se déclencher après 2 secondes de nitro » : `NTR_T` 3 → 2. MESURÉ en jeu (banc `ntr.js`) : déclenché à 2,02 s.
+  ⚠ Au moteur de départ le réservoir dure ~2 s : NITROOO demande d'être déjà lancé (55 % de la vmax) ou d'avoir la réserve bleue.
+
+## LES DAUPHINS, NOUVEAU DESIGN (2026-09-29) — « améliore le design des dauphins »
+- **Avant** : le tube cyan pâle de Léo sous un halo additif laiteux (`dolGlowMat`), nageoires en plaques extrudées — délavé sur le ciel
+  de jour, baveux de nuit, 8 meshes par dauphin. **Après** : LOW-POLY NÉON dans la DA des caisses à facettes (`mkDolphinGeo`, `DOL_PR`,
+  `dolRobe`, `DOL_C`). UNE géométrie non indexée par dauphin (corps 22 anneaux × 16 pans, dorsale falciforme, pectorales, caudale en
+  croissant, yeux — les nageoires sont des LENTILLES à facettes, `lentille()`), une couleur PAR FACETTE : dos indigo → violet, CAPE qui
+  plonge en V sous la dorsale, SABLIER flanc avant ROSE / flanc arrière CYAN, ventre nacré, pointes de nageoires au néon (couleur > 1 que
+  le shader allume). ⚠ `tri()` oriente chaque facette vers l'extérieur (point intérieur de référence) : garder ce garde-fou si on
+  retouche la forme, sinon le tri des faces arrière troue le corps.
+- **Shader `dauphin2`** (`dolShader`, onBeforeCompile sur `MeshPhongMaterial` à facettes) : ONDULATION dos-ventre du corps entier
+  (`uDol` : amplitude, phase, nombre d'onde, CAMBRURE qui épouse l'arc du bond) ; SURFACE D'EAU invisible (`uSurf`, plan du banc à la
+  hauteur de la gerbe) : sous elle `discard`, au ras une LIGNE D'ÉCUME lumineuse (`DOL_U.uEcume`) — le dauphin perce l'eau rostre en
+  premier au lieu de gonfler dans la gerbe ; auto-éclairage × sa couleur ; LISERÉ néon rose (dessus) / cyan (dessous) sur les seules
+  facettes de silhouette (`DOL_U.uRimK` ; large, il délavait le dos vu d'en haut). Un bond sur trois : une VRILLE (`u.vr`, ordre
+  d'Euler `YZX` = autour du corps). Pendant la traversée de la surface, l'écume BOUILLONNE au point exact où l'axe la perce.
+- **Perf** : ~790 triangles par dauphin (~4 200 avant), 1 appel de dessin (8 avant), 6 matières CLONES pour UN programme
+  (`customProgramCacheKey` 'dauphin2' ; `this` dans onBeforeCompile = la matière du dauphin, ses uniforms à lui). MESURÉ au banc :
+  `dbgProgs().n` identique avant et après le 1er banc, en ville, en orbite et en vol → compilé AU MENU. Gerbes et sillage passés aux
+  particules v2 (programme `pt2` déjà compilé), avec garde-objectif (`pr` : fondu 3-7 m, 24-30 px). Zéro lumière, zéro allocation.
+- **La PAUSE fige le banc** : `updateDolphins(dt,photo)` sort en pause (il nageait et s'usait derrière le panneau).
+- **Hooks** : `dbgDolphins(sec,nb)` — `nb` = le banc complet d'entrée ; `dbgDolView(i,a,d,h,pas,ph)` = MODE PHOTO d'un dauphin (i = -1 :
+  le banc), angle a dans le repère du banc (π = côté caméra de jeu), d/h en longueurs de dauphin, `pas` images de nage, `ph` = phase
+  du bond visée (vrille coupée) ; téléobjectif 34° le temps de l'image, et l'image est lue DANS la même tâche (`dbgDolView.png`) —
+  la boucle re-rend en pause avec le flou de boost figé, une capture d'écran classique ne montre pas la photo.
+- Inchangé : la logique de la figure (`dolTick`/`dolStart`/`dolFin`/`dolKill`, aura, flow), `DOL_BANC`, `dolShow`/`dolIn`/`dolNb`,
+  la taille lue sur la vraie caméra (`dolKS`/`dolW`).
+
 ## LA FRÉNÉSIE ×3 (2026-09-29, session UHD) — « en mode frénésie on doit gagner 3× l'argent, adapte ça de manière cool au gameplay ; rends la frénésie plus facile à obtenir ET à perdre »
 - **L'ARGENT ×3** : `ECO3.flow[4]` 2 → **3** (les paliers d'avant inchangés : ×1 · 1,3 · 1,5 · 1,8). Toute la paie de course passe par
   `flowMult()` : pièces (déjà), butins de la ville `vPaie` (déjà), et désormais le **portail** (`denom×24×fever×flowMult`) et les trois
@@ -70,6 +236,77 @@
   mallette d'argent perdue ni d'ASSURANCE (`insUsed` ne sert plus) — la chaîne d'AURA part en fumée (`chainePerdue`).
 - L'argent vient désormais des pièces ramassées, du portail et des primes de campagne (les fruits ne donnent que du nitro). Vérifié : saut de 2,3 s avec la figure
   DAUPHIN posé → argent inchangé, aura versée à l'encaissement de la chaîne (banc `argent.js`, scratchpad 4b30b603).
+
+## LE SILLAGE DE NITRO v5 (2026-09-29, session INTERFACE, repris de GAMEPLAY) — « plus longue, plus large, que les flammes du pot suivent la ligne de nitro, fais un truc parfait »
+- **Plus longue** : `SIL.LONG` 50 → 75 m, `QUEUE` 10 → 18 m, `N` 100 → 150 points (~90 m de réserve même au pas de 0,6 m).
+- **Plus large** : cœur `wC` .075 → .15, halo `wG` .22 → .40 (et `wGa` .6 : il s'élargit encore au loin). Les plafonds près de l'objectif
+  deviennent des réglages (`capC` .011 → .022, `capG` .06 → .10) : au sol la traînée file vers le BAS de l'écran, donc tout près de
+  l'objectif — c'est là qu'elle était un fil. Toujours additive et sombre (`halo` .5, ×.74) : pas de faisceau aveuglant.
+- **La flamme suit la ligne** : `sillageStep` calcule la direction des ~1,8 premiers mètres du sillage (`tr.dX/dY/dZ`, `tr.dOk`) ; dans la
+  boucle, chaque plume (`JETS.shells[i]`, `cores[i]`) s'y couche (`JET_DIR[i]`, repère caisse via `JET_QI`, lissé, au plus 70° de la
+  poupe), la rotation propre de l'enveloppe passe en quaternion (`JET_QS`). En virage, en glisse, en vrille : la flamme se plie dans son
+  sillage. Sans sillage (filage, repos), elle reprend l'axe de la caisse.
+- Gardés (rejets de Sacha) : pas de tapis (face caméra + fondu dans l'axe), pas de fils de marionnette en vol (`cutV`), pas d'aveuglement.
+- Banc : `sil4.js` / `sil5.js` (copies de ceux de GAMEPLAY) ; mesuré 0 programme lié en course, 60 i/s.
+
+- **v6 (même soir)** — Sacha : « en l'air les bandes s'arrêtent, je veux qu'elles continuent sur 50 m ; plus grosses, plus travaillées,
+  qu'elles émettent vraiment de la lumière ». ⚠ **Il a levé lui-même la coupe des « fils de marionnette »** (verdict du 29/09 matin) :
+  `cutV` = `cutB` (plus de coupe en vol). Et la vraie cause de la bande qui « s'arrête au milieu de l'écran » : un point passé DERRIÈRE
+  l'objectif valait « 9 » et la coupe s'interpolait vers cette valeur factice → désormais on coupe au vrai plan de la caméra (profondeur
+  `SIL.pres` .6, interpolée dans l'espace) et la bande y fond (`dC`) : elle file hors de l'écran. En vol le fondu « vu dans l'axe »
+  (anti-tapis, pensé pour le sol) devient très doux (`axeV`). Plus gros : cœur .21, halo .56 (+.9 au bout), plafonds .03/.13. Lumière :
+  `coeur` 1.3, `chaud` .9 (le bloom l'attrape), halo .62 ; **pouls** d'énergie qui coulent vers la queue (`pouls` .55, `poulsV` 30) ;
+  **braises** crachées sur toute la longueur (`braise`, réserve à part `silBraises` à la couleur du feu, montée 2 m/s). Pas de lampe au
+  sol (`trailLight` reste à 0 : la tache ronde est refusée depuis le 26/09). Mesuré : 0 programme en course, 60 i/s.
+- **v6b** — « encore plus longue, 100 mètres » : `LONG` 100, `QUEUE` 24, `N` 200 (~120 m de réserve au pas de 0,6 m), `VMAX` 8 → 12 s
+  (100 m dès 30 km/h). Mesuré sur une caisse à 4 pots, stabilisée : 16,7 ms par image à 100 m contre 18 à 10 m — le coût se perd dans le bruit.
+
+## LA LIGNE PARFAITE (2026-09-29, session INTERFACE) — « alterner fruit et booster pour aller à fond tout le temps avec une trajectoire parfaite »
+- Avant : pads au hasard tous les 280-560 m, fruits au hasard dans les motifs de pièces ; même en prenant tout, la nitro tenue (−1/s,
+  +0,2/s) s'éteignait. Désormais **UNE file FRUIT, PAD, FRUIT, PAD…** (`LIGNE`, `ligneTick(dt)` appelée après `pwrTick`) posée **EN
+  COURSE**, `LIGNE.voir` = 3,5 s devant la caisse, espacée de `LIGNE.dt` = 1,2 s à la vitesse RÉELLE d'avance de `s` (NITROOO jusqu'à
+  +80 % et VITESSE ×2 compris, + l'accélération prévue). ⚠ MESURÉ : une file précalculée sur la croisière du moteur mettait un objet tous
+  les 38 m (4 par seconde à 527 km/h) ; sans NITROOO dans le calcul, elle arrivait 1,5× trop serrée.
+- Placée sur la **trajectoire** : centre en ligne droite, corde dans les virages (`ligneLat`, courbure latérale sur ±40 m, ×1600, borné à
+  62 % de la demi-route). Saute trous, couloirs de tremplin, portes de plots (`campPadNon`) et chaînes de néon de la VILLE (`ligneBloque`) ;
+  un objet sans place saute et le suivant garde son type. Deux faces (miroir). **Aucun rnd()** : la boucle des pads au hasard et les
+  fruits des motifs gardent leurs tirages mais ne posent plus rien (`LIGNE.on`). Parc et auto-école : inchangés.
+- **Chaque objet rend `LIGNE.don` = 1,15 s de nitro** (fruit → réserve bleue, pad → `nitroGain`) au lieu de 20 % / 0,12. Le pad de la
+  file ne subit pas la recharge de 1,5 s du précédent (il ne se prend qu'une fois, `padPris`) ; fruit et pad de la file se testent aussi
+  sur le TRAJET de l'image (à 600 km/h et 30 i/s, 5,6 m par image).
+- Programmes : fruits et pad chauffés au menu (`chauffeDivers`) — MESURÉ 99 → 99 programmes pendant la course.
+- Banc `ligne.js parfait|suit|centre ms` (hook `dbgLigne('parfait')`) : trajectoire parfaite = 100 % des objets, nitro allumée 99,7 % du
+  temps sur 60 s (627 km/h de moyenne) ; le pilote auto du jeu (imprécis) = moitié des pads, nitro éteinte 13,6 %.
+- ⚠ Conséquence : un pad ≈ toutes les 2,4 s → « BOOST » (en petit) et « RÉCOLTE / RAFALE » bien plus fréquents.
+- **Vies du mode FACILE** re-mesurées sous le compteur d'argent ET sa ligne de gain : hudH+120 debout / +103 couché ; debout elles
+  s'effacent en vol (le chrono de vol prend leur place).
+
+## L'ÉCRAN DE FIN v5 (2026-09-29, session INTERFACE) — « pas joli ; on ne compte pas l'aura, c'est le score d'une partie ; l'argent plus en avant »
+- ⚠ **Verdict qui remplace celui du 25/09** (« l'argent n'est pas important quand tu es mort — c'est l'aura et le moteur ») : l'ARGENT est
+  le héros de l'écran. `.mCashL` = une plaque verte : « VERSÉS AU COMPTE », le montant au plus gros corps (`--f8`, réglé sur sa longueur
+  `--n` pour tenir debout), et « COMPTE : $ 128 k » dessous (`#mCashTot`).
+- **L'AURA = le score de la partie** : la carte dit le nombre SANS « + », et dessous « MEILLEUR 52 110 » (`SAVE.d.auraMax`) ou RECORD !
+  Plus de total de carrière, plus de rang ni de jauge sur cet écran. (Le total `SAVE.d.aura` et les rangs existent encore ailleurs :
+  en-tête du garage, POSTER 84 au rang MYTHE — question posée à Sacha.)
+- **Debout** : titre → argent → cartes AURA | MOTEUR → chiffres → missions → tuiles → MENU | REJOUER (`order`).
+- **Couché** (l'écran de l'ordi, 844 × 390) : grille « over obj / cash obj / hero stats / hero row / hero rej » — à gauche le titre,
+  l'argent et les deux cartes étirées jusqu'en bas ; à droite les missions (même hauteur que titre + argent), les chiffres, les tuiles,
+  MENU | REJOUER. Plus de trou. Petit téléphone couché (≤ 760 px) : tuiles pictogramme au-dessus du mot. Section 29 de `charte4`.
+- Banc : `mortv5.js W H lang tag` (vraie partie au pilote auto, mort, capture, chevauchements, défilement).
+- **Les vies du mode FACILE** ont descendu d'un cran (`#facVies` à hudH+120 debout / +103 couché, voir LA LIGNE PARFAITE) : le compteur d'argent `#cashHud`
+  (session UHD) a pris leur place sous la pause.
+
+## MOINS DE TEXTES AU MILIEU DE L'ÉCRAN (2026-09-29, session INTERFACE) — « il y en a trop »
+- Sacha a reçu la liste numérotée des 74 textes du centre (course) et a rayé : **1 VIRAGE SERRÉ, 2 FRÔLÉ !, 4 PORTE !, 5 RASE-BORD,
+  13 MINI/SUPER/ULTRA TURBO, 29 les pastilles sous le verdict (FACE CACHÉE ×2, PILE AU CENTRE, POSÉ LOURD)**. Le geste rapporte toujours
+  son aura — `chaineAuraMuette()` = `chaineAura` sans le pop au-dessus de la caisse. Le SLALOM (n° 3) reste. **Ne pas les rallumer.**
+- **BOOST** (pad) en plus petit : taille 46 → 28 (17 px mesurés). **Pouvoir ramassé** : le NOM seul, 40 → 26 (16 px), plus de sous-titre,
+  plus de « +6 S » à la reprise, plus de « DOUBLE / TRIPLE POUVOIR ! » (l'aura compte).
+- **DAUPHIN** (récapitulatif à la pose, `#dolHud`) : plus petit (11 px) et **en eau** — une lettre = un `<i>` qui ondule sur sa phase
+  (`dolVague`), dégradé écume / lagon / marine, une vague de pixels qui coule dessous (`::after`, `--dolVagueM`, `dolCoule`). Section 28
+  du `<style id="charte4">`.
+- Mesure (banc `textes.js`, 2 min de pilote auto, route seule) : 76 textes avant, 52 après. Le reste : RÉCOLTE/RAFALE (fruits), carte
+  moteur, +N KM/H, paliers de vitesse, DÉMOLI, défis.
 
 ## LE MODE FACILE + « POUCE HAUT EN VOL » (2026-09-29, session INTERFACE) — « simplifier l'expérience mobile pour un public jeune »
 - **Sacha a choisi lui-même l'EXCEPTION à « zéro assistance », mais EN OPTION** (tout public visé). Tout passe par `facOn()`
@@ -361,6 +598,18 @@ couleurs de leur rareté, les objets que tu peux gagner ». Tout filmé AVANT pu
   c'est une décision de jeu (familles du garage), pas d'interface.
 - QA : `qa.js` (62 points, copié de la session 312bec4e) 61/62 — le seul échec est le 404 attendu de `dark-triad.mp3`. Bancs : `tour.js`
   (captures portrait / paysage / 375×667, `MORT=1`), `film.js` + `scenes.js` / `scenes2.js` / `scenes3.js`, `jscheck.py`.
+## LE COMPTEUR D'ARGENT + LA COLONNE DE DROITE (2026-09-29, session UHD) — « un compteur d'argent stylé, inspiré de loin de GTA, avec notre DA ; réorganise le HUD de manière pro »
+- `#cashHud` (hudDA §8, JS `CASH`/`cashTxt`/`cashSnap`/`cashEcrit`/`cashHudTick`, appelé par la boucle à côté du compteur du bureau, recalé par
+  `paintMoney`) : en haut à droite SOUS LE ⏸ (la place de l'argent dans GTA), le total de la partie (`money`) qui DÉFILE vers sa valeur
+  (centimes sous 10 $, groupes de milliers, compact au-delà de 100 000), et sous lui le « +$ » qui s'ADDITIONNE tant que ça tombe (1,8 s après le
+  dernier gain) — en OR avec « ×3 » pendant la frénésie. Typo en quatre bandes VERT billet cernée d'encre (hex purs : rien pour le repli iOS) ;
+  frappe de 3 px en paliers à chaque gain (jumelles b1/b2, t1/t2). Pas zoomé par hudTaille (il vit au-dessus de --hudY0).
+- LA COLONNE DE DROITE, UN SEUL RYTHME (portrait, positions écran) : ⏸ 10-58 · ARGENT 72 · DARK TRIAD 123 (`top` hudH+130) · CHRONO DE VOL 118
+  (hudH+124 ; 182→198 en frénésie : hudH+224) · POUVOIRS 166 (241 en frénésie) · CAMPAGNE 166 (251 en frénésie : hudH+290 ; pouvoirs alors
+  hudH+354). ⚠ Les tops de ces blocs sont en coordonnées ZOOMÉES : écran = 96 + (T − 96) × K. Paysage : argent hudH+66, plaques de pouvoir
+  descendues à hudH+124 (elles se posaient sur l'argent), et l'emblème DARK TRIAD placé à `hudG + (min(50vw,440px)+18px)/--hudK` — calculé à
+  l'échelle 1, le zoom le faisait tomber SOUS les barres.
+
 ## NITROOO (2026-09-29, session UHD) — « nitro tenu 3 s sur la route : la caisse s'entoure de flammes comme une météorite ; +10 % de vitesse par seconde tant qu'on tient »
 - C'est la version VISIBLE de PURE SPEED (conseil de GAMEPLAY : même geste, UN paiement) : bloc « PURE SPEED → NITROOO » de la boucle ('drive') —
   seuil 55 % de la vmax du moteur (plus 400 km/h absolus), `NTR_T` 3 s, le boost de DÉPART ne compte pas ; « NITROOO ! » (verdict), ligne de
@@ -375,6 +624,10 @@ couleurs de leur rareté, les objets que tu peux gagner ». Tout filmé AVANT pu
   frénésie). NITRO INFINIE : tout passe au VIOLET (NINF). Sons : `sfx('nitrooo.palier')` à chaque palier (bloc FRENCASH de
   `atelier-son/recettes.js`, banque v6 : bouffée de feu, braises, ton de chauffe qui monte d'une quarte se poser sur la note du palier, cloche ;
   chef d'orchestre prio 1 sous `vitesse.pure` prio 2 : aux secondes paires la salve NITROOO ×n passe devant, le palier recule de 9 dB — mesuré).
+- **AIR NITROOO** (même jour, Sacha : « nitrooo avec la comète marche aussi dans les airs, mais s'appelle AIR NITROOO ») : nitro tenu `NTR_T` s
+  D'AFFILÉE en vol (`NTR.airT`, temps réel) → `addTrick('airnitro','AIR NITROOO !',10,1)` une fois par vol (tier 1 = 6 de flow, demande de
+  GAMEPLAY après la loi 17 ; ligne de chaîne AIR NITROOO +120) ; la comète vit en 'drive' ET en 'fall' (elle survit au décollage et à la pose) ;
+  la poussée du réacteur en vol prend ×(1 + min(0,4, NTR.boost)) — plafond +40 % en vol : le viseur n'intègre que 1,7 s. Banc `st-airn.js`.
 - ⚠ Avec le PREMIER moteur, le réservoir ne tient que ~2 s (+ la réserve bleue) : NITROOO demande la réserve, un moteur plus gros, la frénésie
   ou la NITRO INFINIE. Banc : `st-ntr.js` (dbgNitro(2,2) recharge pendant la tenue).
 
