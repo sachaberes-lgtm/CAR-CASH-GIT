@@ -1,5 +1,17 @@
 # CASH CAR — guide projet pour Claude Code
 
+## L'IMPACT DANS LES IMMEUBLES v2 (2026-09-29, Sacha à la session GAMEPLAY : « retravaille sérieusement l'impact, sans que ce soit trop gourmand, mais plus travaillé »)
+- MESURÉ avant (banc `crash.js` : partie → VILLE → `dbgImpact('crash')` lance la caisse dans la tour la plus proche → film de la mort en
+  390 × 844) : un trou NOIR plat cerné d'orange en étoile (un autocollant), plus rien après la boule de la caisse.
+- `VILLE_IMPACT` (shader des tours, mêmes deux uniformes, compilé au menu — linkProgram = 0 pendant l'impact, mesuré) : bord en bruit de
+  valeur sur l'angle (3 octaves bouclées) ; CAVITÉ (épaisseur de béton, dalles éclairées par le brasier, fers à béton, langues de feu à
+  trois ondes sans rapport) ; onze LÉZARDES de braise qui serpentent hors du trou (écart angulaire SIGNÉ — `abs()` les dédoublait en
+  boucles) ; SUIE étirée vers le haut ; lèvre blanche puis rouge ; ONDE DE CHOC sur la façade ; les étages autour CLIGNOTENT (courant).
+- `villeImpact` : rayon selon la vitesse du choc (3,4 → 6 m, borné par la façade) ; 32 morceaux (béton, DALLES, FERS À BÉTON rougis, verre) ;
+  `impactBouffee` = deux répliques de feu (0,3 et 0,72 s) ; `villeImpactTick` : verre qui PLEUT le long de la façade 1,1 s, FLAMMES qui
+  lèchent la façade et FUMÉE 8 s (le feu retombe sur les 3 dernières). Aucune lumière, pools existants seulement.
+- Bancs : `crash.js <prefixe>` (scratchpad 4b30b603, `crash/`) — `dbgImpact('crash')` est le crochet de test.
+
 ## LES FIGURES NE PAIENT PLUS QU'EN AURA (2026-09-29, Sacha : « les figures ne doivent plus rapporter d'argent, seulement de l'aura »)
 - `tryLand` : plus de `money+=gain` à la pose, plus de caisse enregistreuse (`fxArgent`), plus de billets volants (`flyCash`), plus de
   « +$ » dans le verdict. `gain` ne dit plus que « cette pose porte une figure » : aura (chaineAura), flow, nitro, verdicts de l'annonceur et

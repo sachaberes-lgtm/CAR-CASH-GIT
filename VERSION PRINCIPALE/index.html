@@ -8810,24 +8810,44 @@ function villeLampes(){
 const IMPACT={u:{value:new THREE.Vector4(0,0,0,7)},n:{value:new THREE.Vector4(0,0,1,-1)},P:new THREE.Vector3(),N:new THREE.Vector3(),T1:new THREE.Vector3(),T2:new THREE.Vector3(),
   V:new THREE.Vector3(),pieces:[],geo:null,mats:null,fume:0,last:-1e9};
 const VILLE_IMPACT=
-  'if(uImpN9.w>=0.){vec3 dI=vW9-uImp9.xyz;float rI=length(dI),ag=uImpN9.w,RI=uImp9.w*smoothstep(0.,.14,ag);'+
-  'if(rI<uImp9.w*2.6){vec3 nI=uImpN9.xyz,t1=normalize(abs(nI.y)>.9?vec3(1.,0.,0.):cross(vec3(0.,1.,0.),nI)),t2=cross(nI,t1);'+
-  'vec2 qI=vec2(dot(dI,t1),dot(dI,t2));float aI=atan(qI.y,qI.x);'+
-  'float phI=fract(uImp9.x*.137+uImp9.z*.071)*6.283;'+                                                   // chaque impact a SON dessin
-  'float jI=RI*(.84+.09*sin(aI*3.+phI)+.07*sin(aI*7.+1.7*phI)+.05*sin(aI*13.+.4)+.035*sin(aI*29.+2.9*phI));'+ // le bord DÉCHIQUETÉ (irrégulier : plus d étoile)
-  'float fI=mix(1.,.4,smoothstep(1.5,7.,ag)),flI=.72+.28*sin(uT9*17.+aI*3.)*sin(uT9*9.3+rI*.7);'+          // le feu qui retombe · qui danse
-  'float scI=1.-smoothstep(jI*1.25,jI*2.6+.5,rI);gl_FragColor.rgb=gl_FragColor.rgb*(1.-.9*scI)+vec3(.045,.016,.0)*scI*fI;'+ // la SUIE (fenêtres soufflées)
-  'float hI=1.-smoothstep(jI-.35,jI+.05,rI);'+
-  'if(hI>0.){float dpI=clamp(.5-qI.y/(2.*max(RI,.1)),0.,1.),slI=smoothstep(.8,.9,fract(vW9.y/3.9));'+            // le fond du trou · les DALLES des étages
-  'float feI=smoothstep(.55,1.,dpI);vec3 cvI=vec3(.012,.007,.016)+vec3(.12,.1,.13)*slI*(1.-feI)+vec3(1.,.3,.05)*feI*feI*1.3*fI*flI;'+ // cavité NOIRE, dalles, BRASIER au fond (tiers bas)
+  'if(uImpN9.w>=0.){vec3 dI=vW9-uImp9.xyz;float rI=length(dI),ag=uImpN9.w,R0=uImp9.w,opI=smoothstep(0.,.14,ag),RI=R0*opI;'+
+  'if(rI<R0*3.4){vec3 nI=uImpN9.xyz,t1=normalize(abs(nI.y)>.9?vec3(1.,0.,0.):cross(vec3(0.,1.,0.),nI)),t2=cross(nI,t1);'+ // t2 = le HAUT de la façade
+  'vec2 qI=vec2(dot(dI,t1),dot(dI,t2));float aI=atan(qI.y,qI.x),phI=fract(uImp9.x*.137+uImp9.z*.071)*6.283;'+
+  // LE BORD : un bruit de valeur sur l'angle, trois octaves bouclées (jamais une étoile : le béton casse au hasard)
+  'float jN=0.;for(int k=0;k<3;k++){float fq=8.*exp2(float(k)),x=(aI/6.2832+.5)*fq,i0=floor(x),fr=fract(x);'+
+  'float h0=fract(sin(i0*127.1+phI*311.7)*43758.5453),h1=fract(sin(mod(i0+1.,fq)*127.1+phI*311.7)*43758.5453);'+
+  'jN+=(mix(h0,h1,fr*fr*(3.-2.*fr))-.5)/exp2(float(k));}'+
+  'float jI=RI*(.86+.3*jN);'+
+  'float fI=mix(1.,.35,smoothstep(1.5,8.,ag)),flI=.72+.28*sin(uT9*17.+aI*3.)*sin(uT9*9.3+rI*.7);'+ // le feu qui retombe · qui danse
+  // LES FISSURES : onze secteurs, une lézarde par secteur (angle et longueur tirés), qui serpente et s'éloigne du trou
+  'float scC=floor((aI/6.2832+.5)*11.),hC=fract(sin(scC*91.3+phI*7.)*4375.85),caI=((scC+.5+.7*(hC-.5))/11.-.5)*6.2832;'+
+  'float lnC=jI*(2.3+1.3*fract(hC*17.3)),daI=(mod(aI-caI+3.1416,6.2832)-3.1416)*rI-.28*sin(rI*2.3+scC*5.)-.12*sin(rI*6.1+scC);'+ // (v2) plus LONGUES : elles sortent de la suie et barrent les fenêtres
+  'float wcI=mix(.15,.035,clamp((rI-jI)/max(lnC-jI,.1),0.,1.)),crI=(1.-smoothstep(wcI*.4,wcI,abs(daI)))*step(jI,rI)*(1.-smoothstep(lnC*.6,lnC,rI))*opI;'+ // larges au trou, fines au bout
+  // LA SUIE : une auréole brûlée étirée vers le HAUT (la fumée lèche la façade)
+  'float rsI=length(vec2(qI.x,qI.y-max(0.,qI.y)*.45)),scI=(1.-smoothstep(jI*1.15,jI*2.7+.6,rsI))*opI;'+
+  'gl_FragColor.rgb=gl_FragColor.rgb*(1.-.88*scI)+vec3(.05,.018,.0)*scI*fI;'+
+  'gl_FragColor.rgb*=1.-.85*crI;gl_FragColor.rgb+=vec3(1.,.3,.05)*crI*(.25+.9*exp(-(rI-jI)*.45))*fI*flI;'+ /* (v2) les lézardes RESTENT braises sur toute leur longueur (sombres sur la suie, on ne les voyait pas) */ // lézardes sombres, qui rougeoient près du trou
+  // LE TROU : une CAVITÉ — l'épaisseur de béton au bord, les dalles des étages éclairées par en dessous, des fers à béton, le BRASIER au fond
+  'float hI=1.-smoothstep(jI-.3,jI+.05,rI);'+
+  'if(hI>0.){float uI=rI/max(jI,.1),dpI=clamp(.5-qI.y/(2.*max(RI,.1)),0.,1.),slI=smoothstep(.78,.9,fract(vW9.y/3.9)),bdI=smoothstep(.55,1.,uI);'+
+  'vec3 cvI=vec3(.01,.006,.014)+vec3(.16,.12,.14)*slI*(1.-dpI*.6)*(.3+.7*bdI)+vec3(.9,.35,.08)*slI*dpI*fI*flI*.8+vec3(.22,.2,.24)*bdI*(1.-dpI)*.5;'+
+  'cvI=mix(cvI,vec3(.02),step(.965,fract(qI.x*1.3+phI))*step(.2,uI)*(1.-dpI)*.8);'+ // les FERS À BÉTON qui pendent
+  'float lgI=smoothstep(.42,1.05,dpI+.14*sin(qI.x*1.7+uT9*5.+phI)+.1*sin(qI.x*3.9-uT9*7.3+phI*2.)+.07*sin(qI.x*8.3+uT9*11.)+.05*sin(uT9*3.1+phI));'+ // les LANGUES du brasier : trois ondes aux fréquences sans rapport (plus de dents régulières)
+  'cvI+=mix(vec3(.55,.06,.02),vec3(1.,.42,.08),lgI)*lgI*1.4*fI*flI+vec3(1.,.82,.5)*pow(lgI,5.)*.9*fI;'+ // du rouge sombre aux pointes à l'orange, cœur jaune au fond
   'gl_FragColor.rgb=mix(gl_FragColor.rgb,cvI,hI);}'+
-  'gl_FragColor.rgb+=vec3(1.,.4,.08)*exp(-pow((rI-jI)/.3,2.))*1.1*fI*flI;'+                                   // la LÈVRE de braises
-  'gl_FragColor.rgb+=vec3(1.,.78,.5)*(1.-smoothstep(0.,.35,ag))*(1.-smoothstep(0.,uImp9.w*2.4,rI))*3.;}}\n';  // l ÉCLAIR du choc
-function impactPieces(){ // (au 1er impact) 26 morceaux : un cube partagé, trois matières Phong nues (le programme des éclats de l'explosion)
+  // LA LÈVRE : blanche de chaleur au choc, rouge sombre ensuite ; L'ÉCLAIR ; L'ONDE DE CHOC qui file sur la façade (0,45 s)
+  'gl_FragColor.rgb+=mix(vec3(1.,.85,.55),vec3(1.,.3,.05),smoothstep(0.,1.2,ag))*exp(-pow((rI-jI)/.22,2.))*1.1*fI*flI;'+
+  'gl_FragColor.rgb+=vec3(1.,.78,.5)*(1.-smoothstep(0.,.3,ag))*(1.-smoothstep(0.,R0*2.4,rI))*3.;'+
+  'gl_FragColor.rgb+=vec3(1.,.9,.75)*exp(-pow((rI-R0*(.6+6.*ag))/(.5+ag*2.),2.))*(1.-smoothstep(0.,.45,ag))*1.4;'+
+  // LE COURANT SAUTE : autour du trou, les étages clignotent une seconde (étage par étage)
+  'gl_FragColor.rgb*=1.-(1.-smoothstep(jI*2.,jI*3.3,rI))*step(jI*1.15,rI)*smoothstep(.1,.3,ag)*(1.-smoothstep(1.2,2.5,ag))*.6*step(.5,fract(uT9*11.+floor(vW9.y/3.9)*.37));'+
+  '}}\n';
+function impactPieces(){ // (au 1er impact) 32 morceaux : un cube partagé, cinq matières Phong nues (le programme des éclats de l'explosion)
   if(IMPACT.geo)return;IMPACT.geo=new THREE.BoxGeometry(1,1,1);
   IMPACT.mats=[new THREE.MeshPhongMaterial({color:0x5a5470,shininess:8}),new THREE.MeshPhongMaterial({color:0x6c6682,shininess:8}), // le béton du village, éclairé par la ville (plus clair que la façade : il se DÉTACHE du trou)
-    new THREE.MeshPhongMaterial({color:0x140f08,emissive:0xffb04a,emissiveIntensity:1.5,shininess:90}),new THREE.MeshPhongMaterial({color:0x08111a,emissive:0x8fd8ff,emissiveIntensity:1.3,shininess:90})];
-  for(let i=0;i<26;i++){const m=new THREE.Mesh(IMPACT.geo,IMPACT.mats[0]);m.visible=false;m.frustumCulled=false;scene.add(m);
+    new THREE.MeshPhongMaterial({color:0x140f08,emissive:0xffb04a,emissiveIntensity:1.5,shininess:90}),new THREE.MeshPhongMaterial({color:0x08111a,emissive:0x8fd8ff,emissiveIntensity:1.3,shininess:90}),
+    new THREE.MeshPhongMaterial({color:0x2a211c,emissive:0x5a1a04,emissiveIntensity:.6,shininess:40})]; // (2026-09-29) le FER À BÉTON, rougi par le feu
+  for(let i=0;i<32;i++){const m=new THREE.Mesh(IMPACT.geo,IMPACT.mats[0]);m.visible=false;m.frustumCulled=false;scene.add(m);
     IMPACT.pieces.push({m:m,v:new THREE.Vector3(),rx:0,ry:0,rz:0,t:0,life:0,s:new THREE.Vector3()});}
 }
 function villeTourTouchee(p){ // la tour (offset dans CITY.col.c) où la caisse vient d'entrer — même test que villeHeurt
@@ -8835,6 +8855,19 @@ function villeTourTouchee(p){ // la tour (offset dans CITY.col.c) où la caisse 
   for(let j=0;j<a.length;j++){const o=a[j];if(Math.abs(p.x-c[o])<c[o+3]/2+.9&&Math.abs(p.z-c[o+2])<c[o+5]/2+.9&&Math.abs(p.y-c[o+1])<c[o+4]/2+.5)return o;}
   return -1;
 }
+/* L'IMPACT v2 (2026-09-29, Sacha à la session GAMEPLAY : « retravaille sérieusement l'impact dans les immeubles, sans que ce soit trop
+   gourmand, mais plus travaillé »). MESURÉ avant (banc crash.js, 390 × 844, plan de la mort) : un trou NOIR plat cerné d'orange en étoile —
+   un autocollant — et plus rien une fois la boule de la caisse retombée (~1 s) : ni profondeur, ni feu qui dure, ni fumée qui monte.
+   Même contrat de coût : AUCUNE lumière, AUCUN programme de plus (le cratère est dans le shader des tours, compilé au menu ; linkProgram = 0
+   pendant l'impact, mesuré), des particules des pools existants, des morceaux recyclés. Ce qui change :
+     · LE CRATÈRE (VILLE_IMPACT) : bord en bruit de valeur (irrégulier, plus d'étoile) ; une CAVITÉ — épaisseur de béton au bord, dalles
+       des étages éclairées par le brasier d'en dessous, fers à béton qui pendent, langues de feu qui dansent au fond ; LÉZARDES qui partent
+       du trou (onze, sombres, rougeoyantes près du bord) ; SUIE étirée vers le haut ; lèvre chauffée à BLANC puis rouge ; ONDE DE CHOC qui
+       file sur la façade ; les étages autour CLIGNOTENT une seconde (le courant saute).
+     · LA TAILLE SUIT LA VITESSE : 3,4 m à l'arrêt → 6 m lancé à fond (toujours bornée par la façade).
+     · LE TEMPS DU FEU : deux REPLIQUES (0,3 et 0,7 s : une bouffée de feu ressort du trou), des FLAMMES qui lèchent la façade au-dessus du
+       trou et une colonne de FUMÉE noire pendant 8 s, le VERRE qui pleut le long de la façade la 1re seconde.
+     · LES MORCEAUX : béton (blocs), DALLES (plaques larges), FERS À BÉTON (tiges rougies) et verre allumé — 32 au lieu de 26. */
 function villeImpact(p,vel){
   const o=villeTourTouchee(p),now=performance.now();if(o<0||now-IMPACT.last<1500)return;IMPACT.last=now;
   const c=CITY.col.c,dx=p.x-c[o],dy=p.y-c[o+1],dz=p.z-c[o+2],hx=c[o+3]/2,hy=c[o+4]/2,hz=c[o+5]/2;
@@ -8842,20 +8875,24 @@ function villeImpact(p,vel){
   const P=IMPACT.P.set(Math.max(-hx,Math.min(hx,dx)),Math.max(-hy,Math.min(hy,dy)),Math.max(-hz,Math.min(hz,dz))),N=IMPACT.N.set(0,0,0);
   if(px<=pz&&px<=py){N.x=Math.sign(dx)||1;P.x=hx*N.x;}else if(pz<=py){N.z=Math.sign(dz)||1;P.z=hz*N.z;}else{N.y=Math.sign(dy)||1;P.y=hy*N.y;}
   P.x+=c[o];P.y+=c[o+1];P.z+=c[o+2];
-  const R=Math.max(3,Math.min(5,Math.min(N.x?Math.min(hz,hy):N.z?Math.min(hx,hy):Math.min(hx,hz))*.9)); // 5 m (c'était 7 : la caméra de la mort, à ~14 m de la façade, ne voyait plus que le trou), jamais plus que la façade
-  IMPACT.u.value.set(P.x,P.y,P.z,R);IMPACT.n.value.set(N.x,N.y,N.z,0);IMPACT.fume=5.5;
+  const V=IMPACT.V.copy(vel||tmp.set(0,0,0)),vW=V.length()*SPD; // la vitesse MONDE du choc (la chute est intégrée ×SPD)
+  const R=Math.max(3,Math.min(3.4+Math.min(2.6,vW/28),Math.min(N.x?Math.min(hz,hy):N.z?Math.min(hx,hy):Math.min(hx,hz))*.9)); // (v2) la taille suit la VITESSE — jamais plus que la façade
+  IMPACT.u.value.set(P.x,P.y,P.z,R);IMPACT.n.value.set(N.x,N.y,N.z,0);IMPACT.fume=8;IMPACT.rep=0;IMPACT.verre=1.1;
   try{if(SONV2)sfx('impact.immeuble');}catch(e){} // (le son : la console de SON — béton qui éclate, verre qui pleut, ~1,5 s)
   const T1=IMPACT.T1.set(0,1,0);if(Math.abs(N.y)>.9)T1.set(1,0,0);const T2=IMPACT.T2.crossVectors(N,T1).normalize();T1.crossVectors(T2,N).normalize();
-  const V=IMPACT.V.copy(vel||tmp.set(0,0,0));
   impactPieces();
-  for(let i=0;i<IMPACT.pieces.length;i++){const q=IMPACT.pieces[i],m=q.m,verre=i>=17,a=Math.random()*6.283,r=Math.sqrt(Math.random())*R*.7;
-    m.material=IMPACT.mats[verre?(i%2?3:2):(i%2)];
-    if(verre)q.s.set(.5+Math.random()*.7,.4+Math.random()*.5,.07);else{const k=.5+Math.random()*1.4;q.s.set(k*(.7+Math.random()*.6),k*(.5+Math.random()*.6),k*(.7+Math.random()*.6));}
+  for(let i=0;i<IMPACT.pieces.length;i++){const q=IMPACT.pieces[i],m=q.m,a=Math.random()*6.283,r=Math.sqrt(Math.random())*R*.7;
+    const sorte=i<12?0:i<18?1:i<22?2:3; // 0 béton · 1 dalle · 2 fer à béton · 3 verre
+    m.material=IMPACT.mats[sorte===3?(i%2?3:2):sorte===2?4:(i%2)];
+    if(sorte===3)q.s.set(.5+Math.random()*.7,.4+Math.random()*.5,.07);
+    else if(sorte===2)q.s.set(.07,.07,1.4+Math.random()*1.4);
+    else if(sorte===1){const k=.8+Math.random()*.8;q.s.set(k*(1.3+Math.random()*.9),.16+Math.random()*.12,k*(.9+Math.random()*.6));}
+    else{const k=.5+Math.random()*1.4;q.s.set(k*(.7+Math.random()*.6),k*(.5+Math.random()*.6),k*(.7+Math.random()*.6));}
     m.scale.copy(q.s);m.position.copy(P).addScaledVector(T1,Math.cos(a)*r).addScaledVector(T2,Math.sin(a)*r).addScaledVector(N,.4);
-    const sp=6+Math.random()*(verre?16:11);
+    const sp=(6+Math.random()*(sorte===3?16:sorte===1?7:11))*(.8+Math.min(.6,vW/150));
     q.v.copy(N).multiplyScalar(sp).addScaledVector(T1,Math.cos(a)*(2+Math.random()*6)).addScaledVector(T2,Math.sin(a)*(2+Math.random()*6)).addScaledVector(V,.12);q.v.y+=2+Math.random()*7;
-    m.rotation.set(Math.random()*6,Math.random()*6,Math.random()*6);q.rx=(Math.random()-.5)*9;q.ry=(Math.random()-.5)*9;q.rz=(Math.random()-.5)*9;
-    q.t=0;q.life=2.6+Math.random()*1.6;m.visible=true;m.updateMatrix();}
+    m.rotation.set(Math.random()*6,Math.random()*6,Math.random()*6);const sv=sorte===1?4:9;q.rx=(Math.random()-.5)*sv;q.ry=(Math.random()-.5)*sv;q.rz=(Math.random()-.5)*sv;
+    q.t=0;q.life=2.6+Math.random()*1.8;m.visible=true;m.updateMatrix();}
   for(let k=0;k<44;k++){const a=Math.random()*6.283,r=Math.random()*R*.9,s9=2+Math.random()*9; // la POUSSIÈRE de béton qui souffle hors du trou
     tmp.copy(P).addScaledVector(T1,Math.cos(a)*r).addScaledVector(T2,Math.sin(a)*r);
     spawnP(dust,tmp.x,tmp.y,tmp.z,N.x*s9+(Math.random()-.5)*4,N.y*s9+1+Math.random()*3,N.z*s9+(Math.random()-.5)*4,1.2+Math.random()*1.4);}
@@ -8864,7 +8901,16 @@ function villeImpact(p,vel){
     spawnP(sparkBlue,P.x+(Math.random()-.5)*R,P.y+(Math.random()-.5)*R,P.z+(Math.random()-.5)*R,N.x*s9+(Math.random()-.5)*10,N.y*s9+Math.random()*8,N.z*s9+(Math.random()-.5)*10,.5+Math.random()*.6);}
   for(let k=0;k<22;k++){const s9=4+Math.random()*10;spawnP(boomEmbO,P.x+(Math.random()-.5)*R*.8,P.y+(Math.random()-.5)*R*.8,P.z+(Math.random()-.5)*R*.8,N.x*s9+(Math.random()-.5)*6,N.y*s9+2+Math.random()*5,N.z*s9+(Math.random()-.5)*6,.7+Math.random()*.9);}
 }
-function villeImpactTick(dt){ // une fois par image : l'âge du cratère, les morceaux, la fumée qui monte du trou
+function impactBouffee(k){ // (v2) une RÉPLIQUE : le feu ressort du trou, par la bouche du cratère
+  const u=IMPACT.u.value,N=IMPACT.N,T1=IMPACT.T1,T2=IMPACT.T2,R=u.w;
+  for(let i=0;i<k;i++){const a=Math.random()*6.283,r=Math.random()*R*.6,s9=5+Math.random()*9;
+    tmp.set(u.x,u.y,u.z).addScaledVector(T1,Math.cos(a)*r).addScaledVector(T2,Math.sin(a)*r*.7-R*.15);
+    spawnP(boomPool,tmp.x,tmp.y,tmp.z,N.x*s9+T1.x*Math.cos(a)*3,N.y*s9+3+Math.random()*4,N.z*s9+T1.z*Math.cos(a)*3,.35+Math.random()*.4);}
+  for(let i=0;i<Math.round(k*.7);i++){const s9=4+Math.random()*8;
+    spawnP(boomEmbO,u.x+(Math.random()-.5)*R,u.y+(Math.random()-.5)*R*.6,u.z+(Math.random()-.5)*R,N.x*s9+(Math.random()-.5)*5,N.y*s9+2+Math.random()*5,N.z*s9+(Math.random()-.5)*5,.6+Math.random()*.7);}
+  shake=Math.max(shake,.25);
+}
+function villeImpactTick(dt){ // une fois par image : l'âge du cratère, les morceaux, le feu et la fumée qui montent du trou
   const n=IMPACT.n.value;if(n.w<0)return;n.w+=dt;
   if(n.w>90){n.w=-1;return;} // (filet) un cratère n'a plus rien à dire au bout d'une minute et demie
   for(const q of IMPACT.pieces){if(!q.m.visible)continue;q.t+=dt;
@@ -8872,12 +8918,30 @@ function villeImpactTick(dt){ // une fois par image : l'âge du cratère, les mo
     q.v.y-=22*dt;q.m.position.addScaledVector(q.v,dt);q.m.rotation.x+=q.rx*dt;q.m.rotation.y+=q.ry*dt;q.m.rotation.z+=q.rz*dt;
     const e=Math.min(1,(q.life-q.t)/.4);q.m.scale.copy(q.s).multiplyScalar(e); // se replie en fin de vie (pas de pop)
     q.m.updateMatrix();}
-  if(IMPACT.fume>0){IMPACT.fume-=dt;const u=IMPACT.u.value,N=IMPACT.N;
-    if(Math.random()<dt*9){const R=u.w;spawnP(smokePool,u.x+N.x*1.5+(Math.random()-.5)*R*.8,u.y+N.y*1.5+(Math.random()-.5)*R*.5,u.z+N.z*1.5+(Math.random()-.5)*R*.8,N.x*1.5+(Math.random()-.5),3+Math.random()*3,N.z*1.5+(Math.random()-.5),2+Math.random()*1.5);}
-    if(Math.random()<dt*14){const R=u.w;spawnP(boomEmbO,u.x+N.x+(Math.random()-.5)*R,u.y-R*.3+Math.random()*R*.5,u.z+N.z+(Math.random()-.5)*R,N.x*2+(Math.random()-.5)*2,2+Math.random()*4,N.z*2+(Math.random()-.5)*2,.6+Math.random()*.7);}}
+  const u=IMPACT.u.value,N=IMPACT.N,T1=IMPACT.T1,T2=IMPACT.T2,R=u.w;
+  if(IMPACT.rep<2&&n.w>(IMPACT.rep?.72:.3)){IMPACT.rep++;impactBouffee(IMPACT.rep===1?14:9);} // (v2) les deux RÉPLIQUES
+  if(IMPACT.verre>0){IMPACT.verre-=dt; // (v2) le VERRE PLEUT le long de la façade, depuis les étages au-dessus du trou
+    if(Math.random()<dt*40){const a=(Math.random()-.5)*R*2.4;tmp.set(u.x,u.y,u.z).addScaledVector(T1,a).addScaledVector(T2,R*(.6+Math.random()*1.6)).addScaledVector(N,.6);
+      spawnP(sparkBlue,tmp.x,tmp.y,tmp.z,N.x*(1+Math.random()*2),-2-Math.random()*4,N.z*(1+Math.random()*2),.6+Math.random()*.5);}}
+  if(IMPACT.fume>0){IMPACT.fume-=dt;const f9=Math.min(1,IMPACT.fume/3); // le feu RETOMBE sur les 3 dernières secondes
+    if(Math.random()<dt*9){spawnP(smokePool,u.x+N.x*1.5+(Math.random()-.5)*R*.8,u.y+R*.3+(Math.random()-.5)*R*.5,u.z+N.z*1.5+(Math.random()-.5)*R*.8,N.x*1.5+(Math.random()-.5),3.5+Math.random()*3,N.z*1.5+(Math.random()-.5),2.2+Math.random()*1.6);}
+    if(Math.random()<dt*22*f9){const a=(Math.random()-.5)*R*1.3; // (v2) les FLAMMES lèchent la façade au-dessus du trou
+      tmp.set(u.x,u.y,u.z).addScaledVector(T1,a).addScaledVector(T2,R*(.25+Math.random()*.55)).addScaledVector(N,.5+Math.random()*.6);
+      spawnP(flames,tmp.x,tmp.y,tmp.z,N.x*1.2+(Math.random()-.5)*.8,4+Math.random()*4,N.z*1.2+(Math.random()-.5)*.8,.35+Math.random()*.35);}
+    if(Math.random()<dt*14*f9){spawnP(boomEmbO,u.x+N.x+(Math.random()-.5)*R,u.y-R*.3+Math.random()*R*.5,u.z+N.z+(Math.random()-.5)*R,N.x*2+(Math.random()-.5)*2,2+Math.random()*4,N.z*2+(Math.random()-.5)*2,.6+Math.random()*.7);}
+    if(Math.random()<dt*10*f9){spawnP(embers,u.x+N.x*.8+(Math.random()-.5)*R,u.y+(Math.random()-.2)*R*.6,u.z+N.z*.8+(Math.random()-.5)*R,(Math.random()-.5)*2,3+Math.random()*4,(Math.random()-.5)*2,1+Math.random());}}
 }
-function villeImpactFin(){IMPACT.n.value.w=-1;IMPACT.fume=0;for(const q of IMPACT.pieces)q.m.visible=false;} // nouvelle ville : l'ancien cratère s'éteint
+function villeImpactFin(){IMPACT.n.value.w=-1;IMPACT.fume=0;IMPACT.verre=0;IMPACT.rep=2;for(const q of IMPACT.pieces)q.m.visible=false;} // nouvelle ville : l'ancien cratère s'éteint
 window.dbgImpact=function(go,av){ // av (banc, en pause) : fait vieillir l'impact de av secondes — cratère, morceaux et particules
+  if(go==='crash'){ // (banc) la caisse FONCE dans la tour la plus proche : vraie collision, vraie mort, vrai plan de la mort
+    const C=CITY.col;if(!C||!started||gameOver)return 'pas de ville ou pas de course';
+    const p=carGroup.position,c=C.c;let best=-1,bd=1e18;
+    for(let o=0;o<c.length;o+=6){const d=(c[o]-p.x)**2+(c[o+2]-p.z)**2;if(d<bd&&d>900&&c[o+3]>12&&c[o+5]>12&&c[o+4]>30){bd=d;best=o;}}
+    if(best<0)return 'aucune tour';
+    const q=new THREE.Vector3(c[best],THREE.MathUtils.clamp(p.y,c[best+1]-c[best+4]/2+8,c[best+1]+c[best+4]/2-8),c[best+2]);
+    const d=new THREE.Vector3(p.x-q.x,0,p.z-q.z).normalize(),hr=Math.max(c[best+3],c[best+5])*.5;
+    pwrBouT=0;startFall(0,1);fallPos.copy(q).addScaledVector(d,hr+26);fallVel.copy(d).multiplyScalar(-60/SPD);fallVel.y=2;fallVH0=-1;
+    return {tour:best,dist:Math.round(hr+26)};}
   if(av>0){for(let t=0;t<av;t+=1/60){villeImpactTick(1/60);updatePool(dust,1/60,2);updatePool(smokePool,1/60,2.5);updatePool(sparkBlue,1/60,-1);updatePool(boomEmbO,1/60,0);}}
   if(go){const p=carGroup.position,C=CITY.col;if(!C)return 'pas de ville';let best=-1,bd=1e18,c=C.c;
     for(let o=0;o<c.length;o+=6){const d=(c[o]-p.x)**2+(c[o+2]-p.z)**2;if(d<bd&&c[o+3]>12&&c[o+5]>12){bd=d;best=o;}}
