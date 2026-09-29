@@ -30765,8 +30765,11 @@ function loop(now){
         if(!trkBigA&&fallTR>1.8){trkBigA=true;chaineAura('BIG AIR',50,'bigair',false,SONV2);if(SONV2)sfx('fig.bigair',{st:echSt()});flowAdd(6,'risque');}          // (aura v2) le temps passé EN L'AIR se paie
         if(!trkMonstre&&fallTR>3.4){trkMonstre=true;chaineAura('AIR MONSTRE',110,'monstre',false,SONV2);if(SONV2)sfx('fig.monstre',{st:echSt()});flowAdd(10,'risque');}
         // ---- LE DAUPHIN v3 : chrono du vol AU-DESSUS DE LA ROUTE (dolTick) — hauteur depuis la face de DÉCOLLAGE (miroir des faces) ----
-        {const hF=dolDist(); // (dauphin v4) la distance à la DALLE : dessus, dessous ou à côté — tout vol près de la route
-         dolTick(dt,DAUPH.force!==null?DAUPH.force:(curNear&&Math.abs(curTOff)<DOL_TMAX&&hF<DOL_HMAX),hF);}
+        {const hF=dolDist(); // (dauphin v4) la distance à la DALLE, au-dessus ou en dessous
+         // (2026-09-29, Sacha : « le dauphin ne doit pas se déclencher sur les côtés ») il faut être AU-DESSUS ou EN DESSOUS de la route,
+         // dans sa largeur, à 3 m du bord au moins : voler à côté de la dalle, ou quitter la route par le côté (on décolle AU bord, et le
+         // dauphin partait à la 1re image), ne compte plus — le « sur les côtés » du 28/09 est retiré
+         dolTick(dt,DAUPH.force!==null?DAUPH.force:(curNear&&Math.abs(curTOff)<DOL_TMAX&&Math.abs(curLatOff)<=ROAD_HALF-3&&hF<DOL_HMAX),hF);}
         if(curNear){ // radar de dalle (rempli par tryLand à la frame précédente)
           if(Math.abs(curLatOff)<ROAD_HALF&&curHOff>2.2&&curHOff<12){
             // ---- LE DAUPHIN : nager au ras de la dalle. Plus on frôle, plus ça paye ----
