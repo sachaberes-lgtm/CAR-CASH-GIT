@@ -200,6 +200,18 @@
 - L'argent vient désormais des pièces ramassées, du portail et des primes de campagne (les fruits ne donnent que du nitro). Vérifié : saut de 2,3 s avec la figure
   DAUPHIN posé → argent inchangé, aura versée à l'encaissement de la chaîne (banc `argent.js`, scratchpad 4b30b603).
 
+## LE SILLAGE DE NITRO v5 (2026-09-29, session INTERFACE, repris de GAMEPLAY) — « plus longue, plus large, que les flammes du pot suivent la ligne de nitro, fais un truc parfait »
+- **Plus longue** : `SIL.LONG` 50 → 75 m, `QUEUE` 10 → 18 m, `N` 100 → 150 points (~90 m de réserve même au pas de 0,6 m).
+- **Plus large** : cœur `wC` .075 → .15, halo `wG` .22 → .40 (et `wGa` .6 : il s'élargit encore au loin). Les plafonds près de l'objectif
+  deviennent des réglages (`capC` .011 → .022, `capG` .06 → .10) : au sol la traînée file vers le BAS de l'écran, donc tout près de
+  l'objectif — c'est là qu'elle était un fil. Toujours additive et sombre (`halo` .5, ×.74) : pas de faisceau aveuglant.
+- **La flamme suit la ligne** : `sillageStep` calcule la direction des ~1,8 premiers mètres du sillage (`tr.dX/dY/dZ`, `tr.dOk`) ; dans la
+  boucle, chaque plume (`JETS.shells[i]`, `cores[i]`) s'y couche (`JET_DIR[i]`, repère caisse via `JET_QI`, lissé, au plus 70° de la
+  poupe), la rotation propre de l'enveloppe passe en quaternion (`JET_QS`). En virage, en glisse, en vrille : la flamme se plie dans son
+  sillage. Sans sillage (filage, repos), elle reprend l'axe de la caisse.
+- Gardés (rejets de Sacha) : pas de tapis (face caméra + fondu dans l'axe), pas de fils de marionnette en vol (`cutV`), pas d'aveuglement.
+- Banc : `sil4.js` / `sil5.js` (copies de ceux de GAMEPLAY) ; mesuré 0 programme lié en course, 60 i/s.
+
 ## LA LIGNE PARFAITE (2026-09-29, session INTERFACE) — « alterner fruit et booster pour aller à fond tout le temps avec une trajectoire parfaite »
 - Avant : pads au hasard tous les 280-560 m, fruits au hasard dans les motifs de pièces ; même en prenant tout, la nitro tenue (−1/s,
   +0,2/s) s'éteignait. Désormais **UNE file FRUIT, PAD, FRUIT, PAD…** (`LIGNE`, `ligneTick(dt)` appelée après `pwrTick`) posée **EN

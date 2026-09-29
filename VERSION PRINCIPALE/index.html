@@ -12046,7 +12046,12 @@ function mkTrail(){
    · Pas de « tapis » (vu pile dans l'axe il s'efface), pas de faisceau aveuglant (le halo est sombre, ×.74 sur la couleur).
    · Même matériau que les rubans d'avant (MeshBasic, texture + couleurs de sommets, additif) : 0 programme compilé en course ;
      zéro allocation (tableaux fixes, une rangée de travail partagée). Réglages vivants : `SIL`, hook `dbgSillage()` (bancs sil*.js). */
-const SIL={N:100,SUB:2,PAS:.6,DTM:1/45,LONG:50,QUEUE:10,OFF:.9,VMAX:8,cutA:.3,cutK:.55,cutB:9,cutV:.34,kx:.9,wC:.075,wG:.22,wGa:.3,halo:.5,coeur:1,chaud:.7,froid:.55,un:1.4};
+/* v5 (2026-09-29, Sacha : « la traînée n'est pas assez belle : plus longue, plus large, que les flammes du pot suivent la ligne de nitro,
+   fais un truc parfait ») : 75 m au lieu de 50 (N 150 : ~90 m de points même au pas de 0,6 m), la queue s'éteint sur 18 m ; le cœur ×1,6
+   et le halo ×1,5 (×2 au bout) ; les plafonds près de l'objectif (capC, capG — ce qui empêchait tout voile) relevés d'un cran : c'est
+   LÀ qu'on regarde la traînée au sol, elle file vers le bas de l'écran. La TÊTE donne sa direction à la plume du pot (dX/dY/dZ, voir la
+   boucle) : la flamme se couche dans le sillage en virage, en glisse, en vrille — plus de cassure entre le feu et le ruban. */
+const SIL={N:150,SUB:2,PAS:.6,DTM:1/45,LONG:75,QUEUE:18,OFF:.9,VMAX:8,cutA:.3,cutK:.55,cutB:9,cutV:.34,kx:.9,wC:.15,wG:.40,wGa:.6,capC:.022,capG:.10,halo:.5,coeur:1,chaud:.7,froid:.55,un:1.4,tete:1.8};
 const SIL_TEX=(function(){ // le profil EN TRAVERS : moitié gauche = le HALO (gaussienne large), moitié droite = le CŒUR (gaussienne serrée + une jupe)
   const cv=document.createElement('canvas');cv.width=128;cv.height=2;const c=cv.getContext('2d'),im=c.createImageData(128,2);
   for(let x=0;x<128;x++){const h=x<64,u=((h?x:x-64)+.5)/32-1,v=h?Math.exp(-u*u*4.5):Math.exp(-u*u*10)+.3*Math.exp(-u*u*2.5);
@@ -12065,7 +12070,7 @@ function mkSillage(){
   const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:SIL_TEX,vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false}));
   m.frustumCulled=false;m.visible=false;m.renderOrder=2;scene.add(m);
   const F=function(){return new Float32Array(SIL.N);};
-  return {m,pos,col,X:F(),Y:F(),Z:F(),T:F(),K:F(),CR:F(),CG:F(),CB:F(),n:0,emit:false,clk:0,init:false,cut:SIL.cutB,g:0,tOff:0,long:0};
+  return {m,pos,col,X:F(),Y:F(),Z:F(),T:F(),K:F(),CR:F(),CG:F(),CB:F(),n:0,emit:false,clk:0,init:false,cut:SIL.cutB,g:0,tOff:0,long:0,dOk:false,dX:0,dY:0,dZ:-1};
 }
 const SILS=[mkSillage(),mkSillage(),mkSillage(),mkSillage()],trailL=SILS[0],trailR=SILS[1];let trailK=0; // (2026-09-29) les sillages DU JOUEUR, un par pot (4 au plus, comme les plumes) ; mkTrail/trailStep restent ceux de la meute, du fantôme et du fourgon
 /* ---- L'ARC-EN-CIEL DU CHAT POP-TART -----------------------------------------------------------
@@ -12217,6 +12222,11 @@ function sillageStep(tr,px,py,pz,cr,cg,cb,k,wm,dt,wu){ // wm : l'élargissement 
       Q[o+3]=K[i]+(K[b]-K[i])*u;Q[o+4]=tr.CR[i]+(tr.CR[b]-tr.CR[i])*u;Q[o+5]=tr.CG[i]+(tr.CG[b]-tr.CG[i])*u;Q[o+6]=tr.CB[i]+(tr.CB[b]-tr.CB[i])*u;R9++;}
   }
   {const o=R9*8,l=n-1;Q[o]=X[l];Q[o+1]=Y[l];Q[o+2]=Z[l];Q[o+3]=K[l];Q[o+4]=tr.CR[l];Q[o+5]=tr.CG[l];Q[o+6]=tr.CB[l];R9++;}
+  // (v5) OÙ FILE LA TÊTE : la direction de ses ~1,8 premiers mètres — la plume du pot s'y couche (plus de flamme droite sur un sillage qui tourne)
+  tr.dOk=false;
+  if(emet){let ac=0,r2=0;for(let r=1;r<R9;r++){const o=r*8;ac+=Math.hypot(Q[o]-Q[o-8],Q[o+1]-Q[o-7],Q[o+2]-Q[o-6]);r2=r;if(ac>=SIL.tete)break;}
+    const dx=Q[r2*8]-Q[0],dy=Q[r2*8+1]-Q[1],dz=Q[r2*8+2]-Q[2],l9=Math.sqrt(dx*dx+dy*dy+dz*dz);
+    if(l9>.25){tr.dX=dx/l9;tr.dY=dy/l9;tr.dZ=dz/l9;tr.dOk=true;}}
   // 2) LE RUBAN : face caméra, halo + cœur ; en vol, coupé à l'écran quand il PEND sous sa tuyère
   const P=tr.pos,C=tr.col,cam=camera.position,SM=THREE.MathUtils.smoothstep,wv=wm||1,wa=wu||1,LG=SIL.LONG;
   TR_PJ.set(Q[0],Q[1],Q[2]).project(camera);const yh=TR_PJ.y,xh=TR_PJ.x,asp=camera.aspect||.5;
@@ -12240,7 +12250,7 @@ function sillageStep(tr,px,py,pz,cr,cg,cb,k,wm,dt,wu){ // wm : l'élargissement 
     const fK=1-SM(d,cutA*.5,cutK);if(!fin)f*=1-SM(d,cutA,cut);
     dp=d;
     const fC=f*fK*SM(dC,2.4,4.2),fG=f*SM(dC,3,6.5),wk=1+(wv-1)*Math.exp(-arc*.3); // l'élargissement de l'allumage ne gonfle que la TÊTE ; près de l'objectif tout s'efface (jamais de voile)
-    const wc=Math.min(SIL.wC*wa*(1+.25*al)*wk,dC*.011*wa),wg=Math.min((SIL.wG+SIL.wGa*al)*wa*wk,dC*.06*wa); // le cœur garde sa largeur, le halo s'élargit au loin
+    const wc=Math.min(SIL.wC*wa*(1+.25*al)*wk,dC*SIL.capC*wa),wg=Math.min((SIL.wG+SIL.wGa*al)*wa*wk,dC*SIL.capG*wa); // le cœur garde sa largeur, le halo s'élargit au loin (v5 : plafonds près de l'objectif réglables)
     const hot=SIL.chaud*fC*Math.exp(-arc*.4); // la tête BLANCHIT
     /* LE FEU REFROIDIT : blanc à la tuyère, la couleur franche sur le corps, puis elle tire vers le ROUGE-MAGENTA vers le bout */
     const c0=Q[o+4],c1=Q[o+5],c2=Q[o+6],fr=SIL.froid*SM(al,.1,.9),qr=c0+(c0*.9+c2*.3-c0)*fr,qg=c1+(c1*.35-c1)*fr,qb=c2+(c2*.9+c0*.3-c2)*fr;
@@ -12446,6 +12456,7 @@ const jetShellM=jetMat(0xff8c30,0xfff4dc,0x6f8cff,.95,1,1);
 const jetCoreM=jetMat(0xffe6b0,0xffffff,0xa9c0ff,1,.7,1.35);
 const jetGlowM=new THREE.SpriteMaterial({map:lampTex,color:0xff9040,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false});
 const JETS={shells:[],cores:[],glows:[],k:0}; // rempli par buildCar, animé chaque frame
+const JET_DIR=[0,1,2,3].map(function(){return new THREE.Vector3(0,0,-1);}),JET_NZ=new THREE.Vector3(0,0,-1),JET_Z=new THREE.Vector3(0,0,1),JET_V=new THREE.Vector3(),JET_QI=new THREE.Quaternion(),JET_QS=new THREE.Quaternion(); // (sillage v5) l'axe de chaque plume, dans le repère caisse
 /* LES POTS DE LA CAISSE (2026-09-26, user : « pour chaque skin, les flammes des pots d'échappement et la traînée de nitro au bon
    endroit ») — MESURÉ : toutes les flammes, la traînée et la lueur sortaient d'une formule unique (±22 % de la largeur, 43 cm,
    au bout de la fiche), alors que 58 caisses sur 66 dessinent LEURS pots : d'un seul côté, au centre, par quatre, en turbine,
@@ -32298,10 +32309,19 @@ function loop(now){
       jetGlowM.color.copy(jetShellM.color).lerp(NFX.blanc,NFX.len*.45);jetGlowM.opacity=Math.min(1,JETS.k*.95*fl9+iK9*.5); // (vague 3) à la nitro la tuyère est chauffée à BLANC : le point le plus chaud de la flamme
       JET_T.value=t; // (2026-09-28) la flamme vivante : son bruit coule avec le temps de jeu (figé en pause)
       jetCoreM.uniforms.uRac.value.setHex(nitroBlue?0xc9b8ff:inf9?NINF.rac:0x6f8cff); // la racine de brûleur : bleue sous le feu, lilas sous la réserve (et sous la nitro infinie)
+      JET_QI.copy(carGroup.quaternion).invert();
       for(let i9=0;i9<JETS.shells.length;i9++){ // chaque pot VIT pour lui : sa longueur bat à son rythme (deux pots en phase = un décor)
         const f9=.84+.16*Math.sin(t*31+i9*2.4)*Math.sin(t*13.7+i9*1.7),m9=JETS.shells[i9],c9=JETS.cores[i9];
-        m9.visible=jOn;m9.scale.set(jr*(1.1-.1*f9),jr*(1.1-.1*f9),jl*f9);m9.rotation.z=t*7.3; // (plume v2) l'enveloppe TOURNE sur son axe
-        if(c9){c9.visible=jOn;c9.scale.set(jr*.48,jr*.48,jl*.72*(.9+.1*f9));}}
+        m9.visible=jOn;m9.scale.set(jr*(1.1-.1*f9),jr*(1.1-.1*f9),jl*f9);
+        /* (sillage v5) LA FLAMME SUIT LA LIGNE : l'axe de la plume se couche vers les premiers mètres de SON sillage (ramenés dans le repère
+           caisse), lissé, et jamais à plus de 70° de la poupe ; sans sillage (filage, repos), elle reprend l'axe de la caisse */
+        const sl9=SILS[i9],dl9=JET_DIR[i9]||JET_DIR[0];
+        if(jOn&&sl9&&sl9.dOk){JET_V.set(sl9.dX,sl9.dY,sl9.dZ).applyQuaternion(JET_QI);
+          if(JET_V.z>-.34){const q9=Math.sqrt((1-.34*.34)/Math.max(1e-6,JET_V.x*JET_V.x+JET_V.y*JET_V.y));JET_V.x*=q9;JET_V.y*=q9;JET_V.z=-.34;}}
+        else JET_V.copy(JET_NZ);
+        dl9.lerp(JET_V,Math.min(1,dt*16)).normalize();
+        m9.quaternion.setFromUnitVectors(JET_NZ,dl9).multiply(JET_QS.setFromAxisAngle(JET_Z,t*7.3)); // (plume v2) l'enveloppe TOURNE sur son axe
+        if(c9){c9.visible=jOn;c9.scale.set(jr*.48,jr*.48,jl*.72*(.9+.1*f9));c9.quaternion.setFromUnitVectors(JET_NZ,dl9);}}
       const g9=.2+.55*JETS.k*fl9+iK9*1.1+NFX.off*NFX.off*.35; // (vague 3) la tuyère FLASHE à l'allumage, hoquette à l'extinction
       for(const s9 of JETS.glows){s9.visible=jOn;s9.scale.set(g9,g9,1);}
     }
