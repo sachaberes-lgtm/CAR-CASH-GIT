@@ -3944,6 +3944,8 @@ html body #tRight{left:calc(env(safe-area-inset-left,0px) + min(84px,21vh) + 30p
 #nameInput::placeholder{color:var(--tx3)}
 /* « Affichage agrandi » d'iOS (320 pt de large) : RECOMMENCER tient dans sa plaque, les noms de niveaux reviennent à la ligne */
 @media (max-width:360px){.tpRow .tp .pxi{display:none}#carr .carrNiv span{white-space:normal}}
+/* (29/09) la condition d'une caisse à vendre s'écrit sur deux lignes voulues (prix, puis ce qu'il manque / « tu peux te la payer ») */
+#gCard #gDesc{white-space:pre-line}
 </style>
 <style id="hudMaitrise">
 /* =====================================================================================================================
@@ -18923,8 +18925,8 @@ function carUnlockText(i){ // ce qu'il reste à faire, en une ligne — affiché
   if(u.p){
     const manque=u.p-bank();
     return ['PRIX : ','PRICE: ','价格：'][L]+fmtC(u.p)+(manque>0
-      ? ['   (il te manque ','   (short by ','   （还差 '][L]+fmtC(manque)+')'
-      : ['   — tu peux te la payer !','   — you can afford it!','   — 你买得起了！'][L]);
+      ? ['\n(il te manque ','\n(short by ','\n（还差 '][L]+fmtC(manque)+')'
+      : ['\nTU PEUX TE LA PAYER !','\nYOU CAN AFFORD IT!','\n你买得起了！'][L]); // (2026-09-29) la 2e moitié sur SA ligne (#gDesc en pre-line) : « — tu peux » tombait seul en tête de ligne
   }
   const v=u.v,cur=carStat(u.k);
   if(u.k==='carnet')return ['SE GAGNE EN RELEVANT 3 DEFIS', /* (2026-09-28) police pixel : pas de capitale accentuée (« DéFIS ») */'WON BY BEATING 3 CHALLENGES','完成 3 项挑战即可获得'][L];
