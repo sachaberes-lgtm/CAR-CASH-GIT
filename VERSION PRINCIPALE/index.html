@@ -4446,7 +4446,7 @@ html body.touch #nitroBar.inf::before{background:linear-gradient(var(--bandes4),
 html body.touch #airPie{visibility:hidden!important;animation:none!important}   /* il reste l'ÉTAT (display, .danger) : #airHud le suit */
 #airHud{display:none}
 html body.touch #airPie[style*="block"]+#airHud{display:block}
-#airHud{position:fixed;top:calc(var(--hudH) + 96px);right:var(--hudD);width:var(--ahW);z-index:6;pointer-events:none;
+#airHud{position:fixed;top:calc(var(--hudH) + 124px);right:var(--hudD);width:var(--ahW);z-index:6;pointer-events:none;
   --tc:var(--aP);--xL:var(--aL);--xP:var(--aP);--xS:var(--aS);--xO:var(--aO);animation:hmPie .32s var(--ease)}
 #airHud[data-k="moyen"]{--tc:var(--oP);--xL:var(--oL);--xP:var(--oP);--xS:var(--oS);--xO:var(--oO)}
 #airHud[data-k="urgent"]{--tc:var(--rP);--xL:var(--rL);--xP:var(--rP);--xS:var(--rS);--xO:var(--rO)}
@@ -4496,6 +4496,39 @@ html body #frenTraits i.mort{opacity:.3}
    +NARCISSE / -PSYCHO / +MACHIAVEL de la ligne du flow ne s'affichent plus (flowTag continue de compter, rien n'est retiré de la logique) ;
    sous l'emblème, les trois barrettes étaient déjà sans nom. */
 html body #flowHud .fT{display:none!important}
+/* ---- 8. LE COMPTEUR D'ARGENT (#cashHud) — GTA de loin : en haut à droite, gros chiffres VERTS cernés, le « +$ » qui tombe dessous. De chez
+   nous : la police pixel, la typo en quatre bandes du compteur d'aura (vert billet), le cerne d'encre et l'épaisseur ; il FRAPPE à chaque
+   gain (paliers de 2 px, jamais de ressort) ; en frénésie le « +$ » est en OR. Il ne se touche pas : droit, sans plaque. ---- */
+#cashHud{display:none}
+html body.touch.play #cashHud{display:block;position:fixed;top:calc(var(--hudH) + 72px);right:var(--hudD);z-index:6;pointer-events:none;text-align:right}
+#cashHud .chV{display:flex;align-items:baseline;justify-content:flex-end;gap:5px;font-weight:normal;white-space:nowrap}
+#cashHud .chV i,#cashHud .chV span,#cashHud .chD{font-family:var(--pix);font-style:normal;line-height:1;letter-spacing:0;color:transparent;-webkit-text-fill-color:transparent;
+  background:linear-gradient(var(--bandes4),#f0fff4 0 16%,#9dffb6 16% 46%,#46de76 46% 80%,#1f9a4a 80%);-webkit-background-clip:text;background-clip:text}
+#cashHud .chV i{font-size:var(--f5);filter:drop-shadow(2px 0 0 var(--jInk)) drop-shadow(-2px 0 0 var(--jInk)) drop-shadow(0 2px 0 var(--jInk)) drop-shadow(0 -2px 0 var(--jInk)) drop-shadow(0 3px 0 var(--jInk))}
+#cashHud .chV span{font-size:var(--f6);filter:drop-shadow(2px 0 0 var(--jInk)) drop-shadow(-2px 0 0 var(--jInk)) drop-shadow(0 2px 0 var(--jInk)) drop-shadow(0 -2px 0 var(--jInk)) drop-shadow(0 4px 0 var(--jInk)) drop-shadow(0 0 10px rgba(70,222,118,.45))}
+#cashHud .chD{display:block;margin-top:7px;font-size:var(--f3);opacity:0;transition:opacity .4s var(--ease);
+  filter:drop-shadow(1px 0 0 var(--jInk)) drop-shadow(-1px 0 0 var(--jInk)) drop-shadow(0 1px 0 var(--jInk)) drop-shadow(0 -1px 0 var(--jInk)) drop-shadow(0 2px 0 var(--jInk))}
+#cashHud .chD.vu{opacity:1;transition:opacity .12s var(--ease)}
+#cashHud .chD.x3{background:linear-gradient(var(--bandes4),var(--oL) 0 50%,var(--oP) 50%);-webkit-background-clip:text;background-clip:text}
+#cashHud.b1 .chV,#cashHud.b2 .chV{animation-duration:.24s;animation-timing-function:steps(3);animation-fill-mode:both}
+#cashHud.b1 .chV{animation-name:daCashA}#cashHud.b2 .chV{animation-name:daCashB}
+@keyframes daCashA{0%{transform:translateY(-3px);filter:brightness(1.6)}100%{transform:none;filter:none}}
+@keyframes daCashB{0%{transform:translateY(-3px);filter:brightness(1.6)}100%{transform:none;filter:none}}
+#cashHud .chD.t1,#cashHud .chD.t2{animation-duration:.2s;animation-timing-function:steps(2);animation-fill-mode:both}
+#cashHud .chD.t1{animation-name:daCashDA}#cashHud .chD.t2{animation-name:daCashDB}
+@keyframes daCashDA{0%{transform:translateY(-4px)}100%{transform:none}}
+@keyframes daCashDB{0%{transform:translateY(-4px)}100%{transform:none}}
+body:has(#tPanel.open) #cashHud,body.dead #cashHud,body.coOn #cashHud{visibility:hidden}
+@media (orientation:landscape) and (max-height:540px){
+  html body.touch.play #cashHud{top:calc(var(--hudH) + 66px)}
+  /* l'emblème DARK TRIAD, à droite des barres : sa place se compte en coordonnées ZOOMÉES (hudTaille) — calculée à l'échelle 1 elle
+     tombait à 72 % de la distance, SOUS les barres */
+  html body.touch #triade{left:calc(var(--hudG) + (min(50vw,440px) + 18px) / var(--hudK))!important}
+  #cashHud .chV span{font-size:var(--f5)}#cashHud .chV i{font-size:var(--f3)}#cashHud .chD{font-size:var(--f1);margin-top:5px}
+  /* les plaques de pouvoir (à gauche du chrono de vol) descendent sous le compteur : elles s'y posaient */
+  html body.touch #pwrChip,html body.touch #pwrChip.sousPie,html body.touch:has(#campChip.on) #pwrChip,html body.touch.coOn #pwrChip{top:calc(var(--hudH) + 124px)}
+}
+@media (prefers-reduced-motion:reduce){#cashHud.b1 .chV,#cashHud.b2 .chV,#cashHud .chD.t1,#cashHud .chD.t2{animation:none}}
 /* ---- 7. LE REPLI DES VIEUX iPHONE (iOS < 16.2 : pas de color-mix()) — audit de sortie d'INTERFACE : un texte du HUD en
    `color:transparent` dont le dégradé contient color-mix() y DISPARAÎT (le dégradé entier est rejeté, il ne reste qu'un texte
    transparent). Sans color-mix, ces textes passent en COULEUR PLEINE — la teinte du plein de leur dégradé — cernés d'encre
@@ -4526,11 +4559,11 @@ html body #flowHud .fT{display:none!important}
 /* SA PLACE (portrait) : la COLONNE DE DROITE, sous le ⏸ — ⏸ · DARK TRIAD · chrono de vol · pouvoirs. Au milieu du haut, il coupait le
    compteur d'aura en deux lignes (« 1 » puis « 418 ») et contractait la barre du record ; le compteur retrouve sa largeur. */
 @media not ((orientation:landscape) and (max-height:540px)){
-  html body.touch #triade{top:calc(var(--hudH) + 104px)!important;right:var(--hudD)!important;left:auto!important}
-  html body.touch.play:has(#triade.on) #airHud{top:calc(var(--hudH) + 204px)}
+  html body.touch #triade{top:calc(var(--hudH) + 130px)!important;right:var(--hudD)!important;left:auto!important}
+  html body.touch.play:has(#triade.on) #airHud{top:calc(var(--hudH) + 224px)}
   html body.touch.play:has(#triade.on) #avRec{max-width:calc(100vw - var(--hudD) - var(--frenT) - var(--hudG) - 16px)}
-  html body.touch.play:has(#triade.on) #campChip{top:calc(var(--hudH) + 262px)}
-  html body.touch.play:has(#triade.on):has(#campChip.on) #pwrChip{top:calc(var(--hudH) + 326px)}
+  html body.touch.play:has(#triade.on) #campChip{top:calc(var(--hudH) + 290px)}
+  html body.touch.play:has(#triade.on):has(#campChip.on) #pwrChip{top:calc(var(--hudH) + 354px)}
 }
 /* ---- 4 bis. LE COMPTEUR D'AURA TIENT SUR UNE LIGNE : il resserre son corps quand le nombre s'allonge (data-l, posé à l'écriture) ---- */
 html body #avVal{white-space:nowrap}
@@ -4725,6 +4758,10 @@ html[data-reduced-motion="1"] .fx3.on,html[data-reduced-motion="1"] .fx3.on2{ani
   </div>
   <div id="carInfo" class="panel"><div id="carName">LA HONTE</div><div id="carLevel">MOTEUR ROUILLÉ</div></div>
   <div id="money"><span id="moneyTxt">$00000000</span></div>
+  <!-- (2026-09-29, Sacha : « rajoute un compteur d'argent stylé, inspiré de loin de GTA, mais avec notre DA ») LE COMPTEUR D'ARGENT DU
+       TÉLÉPHONE : en haut à droite sous le ⏸ (la place de l'argent dans GTA), le total de la partie qui DÉFILE vers sa valeur, et sous lui le
+       « +$ » qui s'additionne tant que ça tombe (1,8 s) — en or pendant la frénésie (×3). Typo ombrée VERTE (l'argent du jeu est vert). -->
+  <div id="cashHud" aria-hidden="true"><b class="chV"><i>$</i><span>0</span></b><em class="chD"></em></div>
   <div id="facVies" aria-hidden="true"></div><!-- (2026-09-29) MODE FACILE : les trois vies -->
   <div id="auraV2" aria-hidden="true"><div class="avTot"><span id="avVal">0</span><em>AURA</em><i id="avPlus"></i></div><div id="avRec" class="vide"><span id="avRecT"></span><i><s id="avRecF"></s></i></div>
     <div id="avCh"><div class="avChTop"><b id="avPts">0</b><span id="avX">×1</span></div><div class="avBar"><i id="avBarF"></i></div><ul id="avList"></ul></div></div>
@@ -10381,7 +10418,36 @@ function fmtC(v){
 // LE COMPTEUR AU MENU : la seule repeinte vivait DANS la boucle, sous le gate de simulation — au menu
 // elle ne tournait jamais et le HUD gardait le « $00000000 » écrit en dur dans le HTML. Tout passe
 // désormais par ici (init, départ, reset, changement de langue) : un seul écrivain, plus d'oubli.
-function paintMoney(){try{elMoney.innerHTML=fmtGta(money);loop._money=money;}catch(e){}}
+function paintMoney(){try{elMoney.innerHTML=fmtGta(money);loop._money=money;}catch(e){}try{cashSnap();}catch(e){}}
+/* LE COMPTEUR D'ARGENT DU TÉLÉPHONE (#cashHud, 2026-09-29) — le total de la partie DÉFILE vers `money` (on voit l'argent entrer, comme dans
+   GTA), et chaque gain s'additionne dans un « +$ » sous lui tant que ça tombe (1,8 s après le dernier) ; en FRÉNÉSIE il passe à l'or et dit
+   « ×3 ». On n'écrit le DOM que quand le texte change. `cashSnap` (via paintMoney : départ, reset, langue) recale sans défilement. */
+const CASH={el:null,v:null,d:null,disp:0,last:0,delta:0,dT:0,tv:'',td:'',k:false,kd:false};
+function cashTxt(v){v=Math.max(0,v);
+  if(v>=1e5)return fmtC(v).replace(/^\$\s?/,'');
+  const e=Math.floor(v+1e-6);
+  if(v<10&&v-e>.004){const t=v.toFixed(2);return LANG==='fr'?t.replace('.',','):t;} // la mise de départ (1,61) garde ses centimes
+  return e.toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' ');}
+function cashSnap(){CASH.disp=money;CASH.last=money;CASH.delta=0;CASH.dT=0;cashEcrit(true);}
+function cashEcrit(force){
+  const e=CASH.el||(CASH.el=document.getElementById('cashHud'));if(!e)return;
+  if(!CASH.v){CASH.v=e.querySelector('.chV span');CASH.d=e.querySelector('.chD');}
+  const t=cashTxt(CASH.disp);if(force||t!==CASH.tv){CASH.tv=t;CASH.v.textContent=t;}
+  const vu=CASH.dT>0&&CASH.delta>0;
+  if(vu){const x3=FLOW.lv===4,td='+$ '+cashTxt(CASH.delta)+(x3?' ×3':'');if(td!==CASH.td){CASH.td=td;CASH.d.textContent=td;}if(x3!==CASH.d.classList.contains('x3'))CASH.d.classList.toggle('x3',x3);}
+  if(vu!==CASH.d.classList.contains('vu'))CASH.d.classList.toggle('vu',vu);
+}
+function cashHudTick(dt){
+  const m=money;
+  if(m<CASH.last-.001){cashSnap();return;} // l'argent a DIMINUÉ (nouvelle partie) : on recale sans défiler
+  if(m>CASH.last+.001){const g=m-CASH.last;CASH.last=m;CASH.delta=(CASH.dT>0?CASH.delta:0)+g;CASH.dT=1.8;
+    const e=CASH.el||(CASH.el=document.getElementById('cashHud'));
+    if(e){CASH.k=!CASH.k;e.classList.remove(CASH.k?'b1':'b2');e.classList.add(CASH.k?'b2':'b1'); // le total FRAPPE (deux jumelles : relance sans remise en page)
+      if(CASH.d){CASH.kd=!CASH.kd;CASH.d.classList.remove(CASH.kd?'t1':'t2');CASH.d.classList.add(CASH.kd?'t2':'t1');}}}
+  if(CASH.dT>0)CASH.dT=Math.max(0,CASH.dT-dt);
+  const ec=m-CASH.disp;CASH.disp=ec<.01?m:CASH.disp+ec*Math.min(1,dt*7); // le DÉFILEMENT : rapide, puis il se pose
+  cashEcrit(false);
+}
 // LA FICHE DE CAISSE : même histoire. Le cache ne regardait que `level` — or depuis que la voiture est
 // COSMÉTIQUE, `level` ne bouge plus en partie et c'est le PALIER MOTEUR qui pilote la valeur des
 // pièces. La clé porte donc les deux : le nom et le « pièces de X » se rafraîchissent enfin.
@@ -32213,6 +32279,7 @@ function loop(now){
     if(!REDUCED_MOTION){const o9=Math.max(0,Math.min(.95,(speedKmh-280)/560)).toFixed(2);if(loop._sfO!==o9){loop._sfO=o9;speedFx.style.opacity=o9;}} // reduced-motion : vignette vitesse coupée
     // panneaux HUD MASQUÉS (#carInfo/#cpInfo/#record en display:none) : on ne reconstruit leur texte (fmtC/fmt alloue) QUE quand la valeur change
     paintCarHud();
+    if(TCTL.on)cashHudTick(dt); // (2026-09-29) le compteur d'argent du téléphone (#cashHud)
     if(loop._money!==money){loop._money=money;elMoney.innerHTML=fmtGta(money); // un parse HTML seulement quand le compte bouge
       for(const u of unitsL())if(money>=u[0]){ // on vient de changer d'ordre de grandeur ? ça se FÊTE (une fois par session)
         if(u[0]>unitSeen){unitSeen=u[0];if(SONV2)sfx('argent.palier');showMsg(TR('💸 TU COMPTES EN ')+u[2]+TR(' MAINTENANT !'),'#7dff9a');}

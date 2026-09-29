@@ -422,6 +422,18 @@ couleurs de leur rareté, les objets que tu peux gagner ». Tout filmé AVANT pu
   c'est une décision de jeu (familles du garage), pas d'interface.
 - QA : `qa.js` (62 points, copié de la session 312bec4e) 61/62 — le seul échec est le 404 attendu de `dark-triad.mp3`. Bancs : `tour.js`
   (captures portrait / paysage / 375×667, `MORT=1`), `film.js` + `scenes.js` / `scenes2.js` / `scenes3.js`, `jscheck.py`.
+## LE COMPTEUR D'ARGENT + LA COLONNE DE DROITE (2026-09-29, session UHD) — « un compteur d'argent stylé, inspiré de loin de GTA, avec notre DA ; réorganise le HUD de manière pro »
+- `#cashHud` (hudDA §8, JS `CASH`/`cashTxt`/`cashSnap`/`cashEcrit`/`cashHudTick`, appelé par la boucle à côté du compteur du bureau, recalé par
+  `paintMoney`) : en haut à droite SOUS LE ⏸ (la place de l'argent dans GTA), le total de la partie (`money`) qui DÉFILE vers sa valeur
+  (centimes sous 10 $, groupes de milliers, compact au-delà de 100 000), et sous lui le « +$ » qui s'ADDITIONNE tant que ça tombe (1,8 s après le
+  dernier gain) — en OR avec « ×3 » pendant la frénésie. Typo en quatre bandes VERT billet cernée d'encre (hex purs : rien pour le repli iOS) ;
+  frappe de 3 px en paliers à chaque gain (jumelles b1/b2, t1/t2). Pas zoomé par hudTaille (il vit au-dessus de --hudY0).
+- LA COLONNE DE DROITE, UN SEUL RYTHME (portrait, positions écran) : ⏸ 10-58 · ARGENT 72 · DARK TRIAD 123 (`top` hudH+130) · CHRONO DE VOL 118
+  (hudH+124 ; 182→198 en frénésie : hudH+224) · POUVOIRS 166 (241 en frénésie) · CAMPAGNE 166 (251 en frénésie : hudH+290 ; pouvoirs alors
+  hudH+354). ⚠ Les tops de ces blocs sont en coordonnées ZOOMÉES : écran = 96 + (T − 96) × K. Paysage : argent hudH+66, plaques de pouvoir
+  descendues à hudH+124 (elles se posaient sur l'argent), et l'emblème DARK TRIAD placé à `hudG + (min(50vw,440px)+18px)/--hudK` — calculé à
+  l'échelle 1, le zoom le faisait tomber SOUS les barres.
+
 ## NITROOO (2026-09-29, session UHD) — « nitro tenu 3 s sur la route : la caisse s'entoure de flammes comme une météorite ; +10 % de vitesse par seconde tant qu'on tient »
 - C'est la version VISIBLE de PURE SPEED (conseil de GAMEPLAY : même geste, UN paiement) : bloc « PURE SPEED → NITROOO » de la boucle ('drive') —
   seuil 55 % de la vmax du moteur (plus 400 km/h absolus), `NTR_T` 3 s, le boost de DÉPART ne compte pas ; « NITROOO ! » (verdict), ligne de
