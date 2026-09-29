@@ -104,6 +104,18 @@
 - L'argent vient désormais des pièces ramassées, du portail et des primes de campagne (les fruits ne donnent que du nitro). Vérifié : saut de 2,3 s avec la figure
   DAUPHIN posé → argent inchangé, aura versée à l'encaissement de la chaîne (banc `argent.js`, scratchpad 4b30b603).
 
+## MOINS DE TEXTES AU MILIEU DE L'ÉCRAN (2026-09-29, session INTERFACE) — « il y en a trop »
+- Sacha a reçu la liste numérotée des 74 textes du centre (course) et a rayé : **1 VIRAGE SERRÉ, 2 FRÔLÉ !, 4 PORTE !, 5 RASE-BORD,
+  13 MINI/SUPER/ULTRA TURBO, 29 les pastilles sous le verdict (FACE CACHÉE ×2, PILE AU CENTRE, POSÉ LOURD)**. Le geste rapporte toujours
+  son aura — `chaineAuraMuette()` = `chaineAura` sans le pop au-dessus de la caisse. Le SLALOM (n° 3) reste. **Ne pas les rallumer.**
+- **BOOST** (pad) en plus petit : taille 46 → 28 (17 px mesurés). **Pouvoir ramassé** : le NOM seul, 40 → 26 (16 px), plus de sous-titre,
+  plus de « +6 S » à la reprise, plus de « DOUBLE / TRIPLE POUVOIR ! » (l'aura compte).
+- **DAUPHIN** (récapitulatif à la pose, `#dolHud`) : plus petit (11 px) et **en eau** — une lettre = un `<i>` qui ondule sur sa phase
+  (`dolVague`), dégradé écume / lagon / marine, une vague de pixels qui coule dessous (`::after`, `--dolVagueM`, `dolCoule`). Section 28
+  du `<style id="charte4">`.
+- Mesure (banc `textes.js`, 2 min de pilote auto, route seule) : 76 textes avant, 52 après. Le reste : RÉCOLTE/RAFALE (fruits), carte
+  moteur, +N KM/H, paliers de vitesse, DÉMOLI, défis.
+
 ## LE MODE FACILE + « POUCE HAUT EN VOL » (2026-09-29, session INTERFACE) — « simplifier l'expérience mobile pour un public jeune »
 - **Sacha a choisi lui-même l'EXCEPTION à « zéro assistance », mais EN OPTION** (tout public visé). Tout passe par `facOn()`
   (`SAVE.d.facile`, et jamais au parc). **En mode NORMAL, rien ne change au bit près** — ne jamais laisser une aide fuir hors de `facOn()`.
