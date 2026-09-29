@@ -256,6 +256,8 @@
   `coeur` 1.3, `chaud` .9 (le bloom l'attrape), halo .62 ; **pouls** d'énergie qui coulent vers la queue (`pouls` .55, `poulsV` 30) ;
   **braises** crachées sur toute la longueur (`braise`, réserve à part `silBraises` à la couleur du feu, montée 2 m/s). Pas de lampe au
   sol (`trailLight` reste à 0 : la tache ronde est refusée depuis le 26/09). Mesuré : 0 programme en course, 60 i/s.
+- **v6b** — « encore plus longue, 100 mètres » : `LONG` 100, `QUEUE` 24, `N` 200 (~120 m de réserve au pas de 0,6 m), `VMAX` 8 → 12 s
+  (100 m dès 30 km/h). Mesuré sur une caisse à 4 pots, stabilisée : 16,7 ms par image à 100 m contre 18 à 10 m — le coût se perd dans le bruit.
 
 ## LA LIGNE PARFAITE (2026-09-29, session INTERFACE) — « alterner fruit et booster pour aller à fond tout le temps avec une trajectoire parfaite »
 - Avant : pads au hasard tous les 280-560 m, fruits au hasard dans les motifs de pièces ; même en prenant tout, la nitro tenue (−1/s,

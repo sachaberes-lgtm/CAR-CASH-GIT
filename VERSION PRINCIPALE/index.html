@@ -12109,7 +12109,7 @@ function mkTrail(){
      des POULS d'énergie coulent de la tuyère vers la queue (`pouls`, vitesse `poulsV`) ; et le sillage crache des BRAISES sur toute sa
      longueur (`braise` par image et par sillage, réserve `silBraises` à la couleur du feu). Pas de lampe au sol : la tache ronde a été
      refusée (26/09) — la lumière vient du bloom et des braises. */
-const SIL={N:150,SUB:2,PAS:.6,DTM:1/45,LONG:75,QUEUE:18,OFF:.9,VMAX:8,cutA:.3,cutK:.55,cutB:9,cutV:9,kx:.9,wC:.21,wG:.56,wGa:.9,capC:.03,capG:.13,halo:.62,coeur:1.3,chaud:.9,froid:.55,un:1.4,tete:1.8,pres:.6,axeV:.02,pouls:.55,poulsV:30,braise:1.1};
+const SIL={N:200,SUB:2,PAS:.6,DTM:1/45,LONG:100,QUEUE:24, /* (v6b, 29/09 soir, Sacha : « encore plus longue, 100 mètres ») : 100 m, la queue s'éteint sur 24 m, 200 points (~120 m de réserve même au pas de 0,6 m) */OFF:.9,VMAX:12,cutA:.3,cutK:.55,cutB:9,cutV:9,kx:.9,wC:.21,wG:.56,wGa:.9,capC:.03,capG:.13,halo:.62,coeur:1.3,chaud:.9,froid:.55,un:1.4,tete:1.8,pres:.6,axeV:.02,pouls:.55,poulsV:30,braise:1.1};
 const SIL_TEX=(function(){ // le profil EN TRAVERS : moitié gauche = le HALO (gaussienne large), moitié droite = le CŒUR (gaussienne serrée + une jupe)
   const cv=document.createElement('canvas');cv.width=128;cv.height=2;const c=cv.getContext('2d'),im=c.createImageData(128,2);
   for(let x=0;x<128;x++){const h=x<64,u=((h?x:x-64)+.5)/32-1,v=h?Math.exp(-u*u*4.5):Math.exp(-u*u*10)+.3*Math.exp(-u*u*2.5);
