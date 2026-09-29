@@ -26073,6 +26073,96 @@ function orbFxTick(dt){
     if(!SONV2&&f9>.4&&Math.random()<dt*5)try{crackle(.3*f9);}catch(e){} /* (débogage son 2026-09-29) orbite.sort porte déjà le feu de la rentrée */
   }
 }
+/* NITROOO (2026-09-29, Sacha : « rajoute "nitrooo" en tant que nouvelle figure : quand le joueur utilise son nitro pendant 3 secondes et
+   plus en restant sur la route ; la voiture doit alors s'entourer de flammes comme une météorite qui rentre dans l'atmosphère — travaille
+   bien l'animation, 10/10 » puis « la figure doit donner un boost de vitesse de 10 % par seconde une fois déclenchée, tant que le bouton
+   nitro est maintenu »). C'est la version VISIBLE de PURE SPEED (même geste, UN seul paiement — le nom change ; la voix « pure speed »
+   reste) :
+   · LE GESTE : nitro tenu 3 s AU SOL, au-delà de 55 % de la vmax du moteur (400 km/h absolus : les premiers moteurs n'y arrivaient jamais).
+   · LA MÉTÉORITE : la caisse entre dans une ENVELOPPE DE PLASMA — la « flamme vivante » des pots (même programme `JET_VS/JET_FS`, aucune
+     compilation) tournée à l'envers autour d'elle : un BOUCLIER blanc-jaune au nez (l'onde de choc), un corps orange qui l'enveloppe et
+     s'effiloche en langues derrière ; des flammes nées sur la SILHOUETTE (nez, flancs, toit) qui lèchent la carrosserie vers l'arrière ;
+     des braises ; deux halos (le nez chauffé à blanc, la lueur qui enveloppe) ; les bords de l'écran battent orange.
+   · LE BOOST : +10 % de vitesse par seconde tenue APRÈS le déclenchement (`spdMult`, comme VITESSE ×2 : le sol défile plus vite, la physique
+     ne bouge pas), plafonné à +80 % ; chaque palier se voit (« +20 % » jaillit de la caisse, le feu reprend, le champ s'ouvre). Au lâcher,
+     tout retombe en ~0,6 s.
+   · EN FRÉNÉSIE le nitro dure 2× : le brasier ne reste pas au maximum — il claque à 1 au déclenchement et à chaque palier, sinon il tient
+     à 0,7, puis 0,5 après 6 s.
+   · NITRO INFINIE : le plasma prend le VIOLET du pouvoir (NINF), comme tout le reste. */
+const NTR={on:false,t:0,k:0,kc:0,boost:0,pouls:0,pal:0,shell:null,core:null,halo:null,halo2:null,langues:null,
+  f:new THREE.Vector3(),r:new THREE.Vector3(),u:new THREE.Vector3(),p:new THREE.Vector3(),q:new THREE.Quaternion()};
+/* LES LANGUES DU PLASMA (vu au banc : une enveloppe unique, vue de dos, se présentait par la TRANCHE — la flamme vivante efface ce qui est
+   vu de biais — : la caisse rougeoyait à peine). Le feu d'une rentrée atmosphérique se voit en LANGUES qui partent du bouclier avant et
+   filent le long de la carrosserie : cinq flammes vivantes, du même programme que les pots (qui, eux, se lisent très bien de dos), nées
+   au nez, aux deux coins avant, sur le capot et au bord du toit, couchées vers l'arrière et un peu vers l'extérieur.
+   [x (× largeur), y (× hauteur), z (× longueur, +avant), lacet (rad, + = pointe vers la gauche), tangage (rad, + = pointe vers le haut),
+    rayon (× largeur), longueur (× longueur), déphasage] */
+const NTR_LANGUES=[[-.44,.42,.5,.2,.1,.24,1.25,0],[.44,.42,.5,-.2,.1,.24,1.25,1.7],[0,.72,.46,0,.2,.3,1.05,3.1],
+  [-.3,1.02,.1,.1,.16,.2,.95,4.4],[.3,1.02,.1,-.1,.16,.2,.95,5.6]];
+const NTR_BOOST=.1,NTR_BOOST_MAX=.8,NTR_T=3;
+const ntrShellM=jetMat(0xff3a0c,0xfff6d0,0xffffff,.9,1.25,.7),ntrCoreM=jetMat(0xffc050,0xffffff,0xffffff,1,.75,1.1); // (banc) blanc à la racine, corps ROUGE-orange : la caisse orange ne s'y noie plus
+function nitroooPart(){ // le geste est ARMÉ (loop, branche 'drive') : la caisse s'embrase
+  NTR.on=true;NTR.t=0;NTR.kc=1;NTR.pal=0;
+  flashEcran('rgba(255,120,30,.85)');fovPunch=Math.max(fovPunch,9);shake=Math.max(shake,.35);hap([18,30,24,30,40]);
+  try{pixBurst(document.getElementById('tNitro'),10);}catch(e){}
+}
+function nitroooTick(dt){
+  const actif=NTR.on&&nitroOn&&mode==='drive'&&running&&!gameOver;
+  if(NTR.on&&!actif)NTR.on=false;
+  if(actif){NTR.t+=dt;
+    const pal=Math.floor(NTR.t); // un PALIER par seconde tenue
+    if(pal>NTR.pal&&NTR.boost<NTR_BOOST_MAX-.001){NTR.pal=pal;NTR.kc=1;
+      const pct=Math.round(Math.min(NTR_BOOST_MAX,pal*NTR_BOOST)*100);
+      try{popTexte('+'+pct+' %','#ffb040',1);}catch(e){}fovPunch=Math.max(fovPunch,4);flashEcran('rgba(255,140,40,.45)');hap(10);
+      if(SONV2)sfx('nitrooo.palier',{st:sonPd(Math.min(7,pal))});}
+    NTR.boost=Math.min(NTR_BOOST_MAX,Math.max(NTR.boost,NTR.t*NTR_BOOST));
+  }else NTR.boost=Math.max(0,NTR.boost-dt*1.4);
+  const cible=actif?(NTR.kc>0?1:(NTR.t>6?.5:.7)):0;
+  NTR.kc=Math.max(0,NTR.kc-dt*1.6); // le coup de chaud d'un palier dure ~0,6 s
+  NTR.k+=(cible-NTR.k)*Math.min(1,dt*(cible>NTR.k?9:3.2));
+  const k=NTR.k,on=k>.02;
+  if(!on){if(NTR.shell&&NTR.shell.visible){NTR.shell.visible=NTR.core.visible=NTR.halo.visible=NTR.halo2.visible=false;for(const m of NTR.langues)m.visible=false;}return;}
+  if(!NTR.shell){ // bâti au 1er embrasement : le programme est celui des pots (déjà compilé), les halos celui des sprites
+    NTR.shell=new THREE.Mesh(jetGeo,ntrShellM);NTR.core=new THREE.Mesh(jetGeo,ntrCoreM);
+    const m9=new THREE.SpriteMaterial({map:lampTex,color:0xffc070,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending});
+    NTR.halo=new THREE.Sprite(m9);NTR.halo2=new THREE.Sprite(m9.clone());NTR.halo2.material.color.setHex(0xff4a14);
+    m9.depthTest=false; // le BOUCLIER du nez passe par-dessus la tôle : vu de dos, la carrosserie le cachait — il déborde en lueur autour de l'avant
+    NTR.langues=NTR_LANGUES.map(function(d){const m=new THREE.Mesh(jetGeo,ntrShellM);m.userData.q=new THREE.Quaternion().setFromEuler(new THREE.Euler(d[4],d[3],0,'YXZ'));return m;});
+    for(const o of [NTR.shell,NTR.core,NTR.halo,NTR.halo2].concat(NTR.langues)){o.frustumCulled=false;o.renderOrder=5;o.visible=false;scene.add(o);}}
+  const inf=pwrNitroT>0,sp=CARS[level],c=carGroup.position,q=carGroup.quaternion;
+  ntrShellM.color.setHex(inf?NINF.jet:0xff3a0c);ntrShellM.uniforms.uHot.value.setHex(inf?NINF.core:0xfff6d0);ntrShellM.uniforms.uRac.value.setHex(inf?0xf0dcff:0xffffff);
+  ntrCoreM.color.setHex(inf?0xd8b0ff:0xffc050);ntrCoreM.uniforms.uRac.value.setHex(inf?0xffffff:0xfff6d6);
+  const F9=NTR.f.set(0,0,1).applyQuaternion(q),R9=NTR.r.set(1,0,0).applyQuaternion(q),U9=NTR.u.set(0,1,0).applyQuaternion(q);
+  const tt=JET_T.value,fl=.84+.16*Math.sin(tt*37)*Math.sin(tt*13.3);
+  // L'ENVELOPPE : la base (l'onde de choc) posée juste devant le nez, le corps autour de la caisse, les langues derrière
+  NTR.shell.visible=NTR.core.visible=true;
+  NTR.shell.position.copy(c).addScaledVector(F9,sp.l*.62).addScaledVector(U9,sp.h*.5);NTR.shell.quaternion.copy(q);
+  NTR.shell.scale.set(sp.w*.78*(1+.06*k),sp.h*1.05*(1+.06*k),sp.l*(.75+.62*k)*fl);ntrShellM.uniforms.uA.value=1.25*k;
+  for(let i=0;i<NTR.langues.length;i++){const d=NTR_LANGUES[i],m=NTR.langues[i],fi=.8+.2*Math.sin(tt*(21+i*3.7)+d[7])*Math.sin(tt*(9.3+i)+d[7]*2);
+    m.visible=true;m.position.copy(c).addScaledVector(R9,d[0]*sp.w).addScaledVector(U9,d[1]*sp.h).addScaledVector(F9,d[2]*sp.l);
+    m.quaternion.copy(q).multiply(m.userData.q);
+    m.scale.set(sp.w*d[5]*(.8+.3*k),sp.w*d[5]*(.8+.3*k),sp.l*d[6]*(.45+.75*k)*fi);}
+  NTR.core.position.copy(c).addScaledVector(F9,sp.l*.66).addScaledVector(U9,sp.h*.45);NTR.core.quaternion.copy(q);
+  NTR.core.scale.set(sp.w*.46,sp.h*.62,sp.l*(.3+.34*k)*fl);ntrCoreM.uniforms.uA.value=k;
+  // LES HALOS : le nez chauffé à blanc, la lueur qui enveloppe la caisse
+  NTR.halo.visible=NTR.halo2.visible=true;
+  NTR.halo.material.color.setHex(inf?0xf0e0ff:0xfff0c0);NTR.halo2.material.color.setHex(inf?NINF.jet:0xff2a08);
+  NTR.halo.position.copy(c).addScaledVector(F9,sp.l*.6).addScaledVector(U9,sp.h*.5);NTR.halo.scale.set(sp.w*2.7,sp.h*2.3,1);NTR.halo.material.opacity=.72*k*fl; // le BOUCLIER : le nez chauffé à blanc déborde de la silhouette, même vu de dos
+  NTR.halo2.position.copy(c).addScaledVector(U9,sp.h*.5);NTR.halo2.scale.set(sp.l*1.6,sp.l*1.1,1);NTR.halo2.material.opacity=.5*k*fl;
+  // LA GERBE : des flammes nées sur la silhouette (30 % au nez, le reste flancs et toit) qui LÈCHENT la carrosserie vers l'arrière
+  if(!REDUCED_MOTION){const n=Math.ceil(4*k);
+    for(let i=0;i<n;i++){const bout=Math.random()<.3,cote=Math.random()<.5?-1:1,toit=!bout&&Math.random()<.4;
+      NTR.p.copy(c).addScaledVector(F9,bout?sp.l*.55+Math.random()*.4:(Math.random()-.2)*sp.l*.7)
+        .addScaledVector(R9,bout?(Math.random()-.5)*sp.w:toit?(Math.random()-.5)*sp.w*.8:cote*sp.w*(.52+Math.random()*.15))
+        .addScaledVector(U9,toit?sp.h+.15+Math.random()*.3:.3+Math.random()*sp.h*.8);
+      const v=10+Math.random()*12;
+      spawnP(flames,NTR.p.x,NTR.p.y,NTR.p.z,EXV.x*.92-F9.x*v+(Math.random()-.5)*3,EXV.y*.92-F9.y*v+Math.random()*2,EXV.z*.92-F9.z*v+(Math.random()-.5)*3,.16+Math.random()*.16);
+      if(i<1)spawnP(flameCore,NTR.p.x,NTR.p.y,NTR.p.z,EXV.x*.95-F9.x*v*.6,EXV.y*.95+.5,EXV.z*.95-F9.z*v*.6,.1+Math.random()*.08);
+      if(Math.random()<.6)spawnP(embers,NTR.p.x,NTR.p.y,NTR.p.z,EXV.x*.78-F9.x*v*1.1+(Math.random()-.5)*7,EXV.y*.8+Math.random()*4,EXV.z*.78-F9.z*v*1.1+(Math.random()-.5)*7,.45+Math.random()*.35);}} // les BRAISES : la traîne de la météorite, elles restent derrière
+  // LES BORDS DE L'ÉCRAN battent orange tant que ça brûle (plus doux que la rentrée de l'orbite : c'est un état qui dure)
+  NTR.pouls-=dt;if(k>.4&&NTR.pouls<=0){NTR.pouls=.62;flashEcran(inf?'rgba(170,90,255,'+(.18+.22*k).toFixed(2)+')':'rgba(255,110,30,'+(.18+.22*k).toFixed(2)+')');}
+  if(actif)shake=Math.max(shake,.08*k);
+}
 function portailPasse(){
   if(CAMP.n===10&&CAMP.pris&&!PARK.on){campFinale();return;}
   if(CAMP.n===20&&!PARK.on){if(!VBQ.fini)villeFinale();return;}
@@ -30604,7 +30694,7 @@ function loop(now){
       driftT=Math.max(0,driftT-dt*2.2); // retombe après un atterrissage en travers
       psi=THREE.MathUtils.clamp(psi,-1.4,1.4);
       vL=vA*Math.sin(psi-slipB); // la TRAJECTOIRE : le cap moins la glisse (0 hors drift)
-      const spdMult=pwrSpdT>0?2:1; // SPEED UP : le sol défile DEUX FOIS plus vite (2026-09-26, user : « le power-up vitesse doit faire ×2 »), sans casser la physique
+      const spdMult=(pwrSpdT>0?2:1)*(1+NTR.boost); // (NITROOO) +10 %/s tenue, plafonné à +80 % — SPEED UP : le sol défile DEUX FOIS plus vite (2026-09-26, user : « le power-up vitesse doit faire ×2 »), sans casser la physique
       lat+=vL*driveDir*dt*SPD*spdMult;
       const sPrev9=s; // ⚠ mémorisé AVANT l'avance : les tremplins se testent sur le SEGMENT parcouru, pas sur un point
       s+=vA*Math.cos(psi-slipB)*driveDir*dt*SPD*spdMult*cordeK(s,side*lat); // avance le long du ruban dans le SENS de conduite (parc : avant OU arrière) · (2026-09-27) CAMPAGNE : la corde intérieure est vraiment plus courte (cordeK = 1 ailleurs)
@@ -30612,18 +30702,19 @@ function loop(now){
       boost=Math.max(0,boost-dt);
       speedKmh=Math.abs(vF)*3.6*SPD*spdMult;
       vpalTick(speedKmh); // (2026-09-28) les PALIERS DE VITESSE : chaque centaine franchie se crie (écran nu : pas de compteur sur téléphone)
-      // PURE SPEED : 3 s de nitro soutenu à +400 km/h sur la route
-      if(nitroOn&&speedKmh>400){
+      // PURE SPEED → NITROOO (2026-09-29) : 3 s de nitro soutenu sur la route, au-delà de 55 % de la vmax du moteur (voir le bloc NITROOO)
+      if(nitroOn&&startBoostT<=0&&speedKmh>Math.min(400,vmaxShow()*.55)){ // (le boost de DÉPART tient la touche à la place du joueur : il ne compte pas)
         pureT+=dt;
-        if(pureT>3&&pureArmed){pureArmed=false;const tx=annSpeak('pureSpeed',2);if(tx)trickMsg(tx,2);if(SONV2)sfx('vitesse.pure',{st:sonPd(0)});else noiseBurst(.5,.12,1200);
-          chaineAura('PURE SPEED',120,'pure',false,SONV2);pureNext=pureT+2;}
+        if(pureT>NTR_T&&pureArmed){pureArmed=false;annSpeak('pureSpeed',2);trickMsg('NITROOO !',3);if(SONV2)sfx('vitesse.pure',{st:sonPd(0)});else noiseBurst(.5,.12,1200);
+          chaineAura('NITROOO',120,'pure',false,SONV2);pureNext=pureT+2;nitroooPart();
+          if(!PARK.on)flowAdd(5,'risque','p');} // (NITROOO) un petit geste de flow, UNE fois par tenue (PSYCHO paie déjà la vitesse tenue)
         /* TENIR PLUS LONGTEMPS PAYE PLUS, MAIS PAR PALIERS. Un gain continu redeviendrait le robinet
            qu'on vient de supprimer ; là, chaque 2 secondes tenues déclenche une NOUVELLE salve, plus
            grosse que la précédente. On entend l'escalade, on ne la subit pas. */
         // ⚠ PALIER PLAFONNÉ À 5 (audit 2026-08-18) : `150+pureLvl*100` sans borne, c'est une rente —
         // tenir 60 s donnait 30 salves dont la derniere a 3 150. L'escalade se sent jusqu'a ×6, apres
         // quoi c'est la DUREE qui paye, pas le multiplicateur.
-        if(!pureArmed&&pureT>pureNext){pureNext=pureT+2;pureLvl=Math.min(5,pureLvl+1);if(SONV2)sfx('vitesse.pure',{st:sonPd(pureLvl)});chaineAura('PURE SPEED ×'+(pureLvl+1),60+pureLvl*40,'pure',true,SONV2);}
+        if(!pureArmed&&pureT>pureNext){pureNext=pureT+2;pureLvl=Math.min(5,pureLvl+1);if(SONV2)sfx('vitesse.pure',{st:sonPd(pureLvl)});chaineAura('NITROOO ×'+(pureLvl+1),60+pureLvl*40,'pure',true,SONV2);}
       }else{pureT=0;pureArmed=true;pureNext=0;pureLvl=0;}
       // point de respawn sûr
       if(side>0&&F.n.y>.5&&Math.abs(lat)<ROAD_HALF-2&&Math.abs(psi)<.5)safeS=s;
@@ -31774,7 +31865,7 @@ function loop(now){
     auraComboTick(dt); // la fenêtre du combo de figures se referme toute seule
     dolHudTick(dt); // l'étiquette DAUPHIN : filet de sortie de vol + total figé qui s'efface
     fruitRafTick(dt);  // …et celle de la rafale de fruits
-    if(!paused){misTick(dt);tutoTick(dt);flowTick(dt);chaineTick(dt);orbFxTick(dt);} // …les CONTRATS se cochent en direct, l'AUTO-ÉCOLE suit tes gestes
+    if(!paused){misTick(dt);tutoTick(dt);flowTick(dt);chaineTick(dt);orbFxTick(dt);nitroooTick(dt);} // …les CONTRATS se cochent en direct, l'AUTO-ÉCOLE suit tes gestes
     /* LA CHARGE D'AURA. Trois choses à l'écran, et chacune répond à une question :
        le CHIFFRE (« combien j'ai »), la JAUGE (« où je vais » — le rang suivant), le MAX (« quoi
        battre »). Sans la troisième, il n'y a aucune raison de vouloir monter. */

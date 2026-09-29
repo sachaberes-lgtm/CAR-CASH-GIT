@@ -311,6 +311,21 @@ couleurs de leur rareté, les objets que tu peux gagner ». Tout filmé AVANT pu
   c'est une décision de jeu (familles du garage), pas d'interface.
 - QA : `qa.js` (62 points, copié de la session 312bec4e) 61/62 — le seul échec est le 404 attendu de `dark-triad.mp3`. Bancs : `tour.js`
   (captures portrait / paysage / 375×667, `MORT=1`), `film.js` + `scenes.js` / `scenes2.js` / `scenes3.js`, `jscheck.py`.
+## NITROOO (2026-09-29, session UHD) — « nitro tenu 3 s sur la route : la caisse s'entoure de flammes comme une météorite ; +10 % de vitesse par seconde tant qu'on tient »
+- C'est la version VISIBLE de PURE SPEED (conseil de GAMEPLAY : même geste, UN paiement) : bloc « PURE SPEED → NITROOO » de la boucle ('drive') —
+  seuil 55 % de la vmax du moteur (plus 400 km/h absolus), `NTR_T` 3 s, le boost de DÉPART ne compte pas ; « NITROOO ! » (verdict), ligne de
+  chaîne NITROOO +120 puis NITROOO ×n toutes les 2 s (inchangé), voix « pure speed » gardée, flowAdd(5,'risque','p') UNE fois par tenue.
+- LE BOOST : `NTR.boost` = +10 %/s tenue après le déclenchement, plafond +80 % (`NTR_BOOST_MAX`), multiplié dans `spdMult` (comme VITESSE ×2 :
+  le sol défile, la physique ne bouge pas) ; « +N % » jaillit à chaque palier ; au lâcher il retombe en ~0,6 s.
+- LA MÉTÉORITE (`nitroooTick`, appelée à côté d'orbFxTick) : cinq LANGUES de flamme vivante (`NTR_LANGUES` : coins avant, capot, bords du toit,
+  couchées vers l'arrière et l'extérieur) + une enveloppe + un cœur au nez, TOUS du programme des pots (`jetMat`, zéro compilation), couleurs
+  `ntrShellM` blanc → rouge-orange (la caisse orange ne s'y noie pas) ; halo du nez en `depthTest:false` (vu de dos, la tôle le cachait) +
+  lueur qui enveloppe ; flammes sur la silhouette et BRAISES qui restent derrière (pools flames/flameCore/embers, comme la rentrée de l'orbite) ;
+  bords d'écran orange toutes les 0,62 s. Intensité : 1 au déclenchement et à chaque palier, 0,7 ensuite, 0,5 après 6 s (le nitro dure 2× en
+  frénésie). NITRO INFINIE : tout passe au VIOLET (NINF). Sons : `sfx('nitrooo.palier')` à chaque palier (commandé à SON).
+- ⚠ Avec le PREMIER moteur, le réservoir ne tient que ~2 s (+ la réserve bleue) : NITROOO demande la réserve, un moteur plus gros, la frénésie
+  ou la NITRO INFINIE. Banc : `st-ntr.js` (dbgNitro(2,2) recharge pendant la tenue).
+
 ## LE DAUPHIN v5 (2026-09-29, session UHD) — « plus tu es proche de la route et plus tu vas vite, plus tu gagnes d'aura et de flow »
 - Constantes et commentaire en tête du bloc DAUPHIN (`DOL_AURA_S` 20, `DOL_AURA_RAS` 160, `DOL_FLOW_K` 4, `DOL_FLOW_MAX` 6). Proximité : ×9 entre
   le large et le ras (×3,25 avant). Vitesse LUE EN CONTINU (`dolVitMul` = |fallVel| sur la vmax du moteur, ×0,6 → ×2,1, lissée) au lieu d'être
