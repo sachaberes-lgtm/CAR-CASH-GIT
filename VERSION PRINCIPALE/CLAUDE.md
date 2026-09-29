@@ -41,17 +41,23 @@
 - **À juger par Sacha** : la bretelle (assez « route » ? trop longue ?), la fréquence (3 par zone), le montant des deux paiements, et
   s'il faut un repère visuel du filet (liseré, ligne de pièces sur l'arc de vol) — pas fait dans cet essai.
 
-## LE SILLAGE DE NITRO v3 + LE BOUCLIER RETIRÉ (2026-09-29, nuit — session GAMEPLAY)
-- Sacha : « retravaille la traînée de nitro : beaucoup plus belle, lisse et lumineuse, deux longues traînées derrière — il faut que ce
-  soit magnifique ». Les deux rubans DU JOUEUR (`trailL`/`trailR`) sont désormais le SILLAGE v3 (`mkSillage`, `sillageStep`, réglages
-  `SIL`) ; `mkTrail`/`trailStep` restent ceux de la meute, du fantôme et du fourgon. Le sillage vit dans le MONDE ~1,6 s (un point tous
-  les 0,6 m, 45/s au plus, Catmull-Rom entre eux) : il s'étire en arc dans les virages et suit la parabole en vol. Deux couches dans un
-  seul ruban (atlas `SIL_TEX`) : un CŒUR fin qui blanchit à la tuyère, un HALO doux qui s'évase ; le feu REFROIDIT vers le rouge-magenta
-  en vieillissant. Chaque point garde sa couleur et son intensité : lâcher la nitro laisse le sillage s'éteindre dans l'air.
-- ⚠ Les deux critiques d'avant tiennent : la COUPE à l'écran reste (ce qui PEND sous la tuyère est coupé, ce qui s'écarte sur le côté
-  vit : `kx`) — au sol jusqu'au quart bas de l'écran (`cutB` .5), en vol presque rien (`cutV` .16 : deux traits sous une caisse en l'air,
-  ce sont deux FILS) ; le cœur s'éteint avant le halo (`cutK`). Même matériau que les rubans d'avant : 0 programme compilé en course.
-  Banc `sil.js`/`sil2.js`/`sil3.js` ; hook `dbgSillage()` (et `dbgSillage('VIE',2)` à chaud).
+## LE SILLAGE DE NITRO v4 + LE BOUCLIER RETIRÉ (2026-09-29, nuit — session GAMEPLAY)
+- Sacha (v3) : « retravaille la traînée de nitro : beaucoup plus belle, lisse et lumineuse, deux longues traînées derrière — il faut que
+  ce soit magnifique » ; puis (v4) « plus belles et longues : de longues traînées RÉGULIÈRES jusqu'à 50 mètres derrière ; et selon les
+  voitures, la nitro doit être adaptée pour SORTIR DU POT ». Les sillages DU JOUEUR (`SILS[0..3]`, `trailL`/`trailR` = les deux
+  premiers) sont `mkSillage`/`sillageStep` (réglages `SIL`) ; `mkTrail`/`trailStep` restent ceux de la meute, du fantôme, du fourgon.
+- UN SILLAGE PAR POT, né dans la bouche du pot (`CAR_POTS`, les mêmes points que les plumes `JETS`, 4 au plus) : un pot = une traînée
+  plus large (`SIL.un`), 3-4 pots = 3-4 traînées plus fines. ⚠ La v3 tirait deux traînées de part et d'autre d'un pot central : elles
+  ne sortaient d'aucun pot. AUDIT des 68 caisses (banc `pots.js`, hook `dbgJetsVoir(i,côté,dist,haut,longueur)`) : le relevé trouve les
+  pots de 55 caisses, 3 les déclarent (`pots:` de la fiche), 10 retombent sur les pots CANONIQUES chromés dessinés par buildCar (la
+  flamme sort bien de leur bouche) ; 12 n'ont qu'un pot.
+- 50 MÈTRES RÉGULIERS : la longueur se compte en mètres de chemin (`LONG` 50), même largeur et presque même éclat de bout en bout, la
+  queue s'éteint sur les 10 derniers mètres (`QUEUE`) ; lâcher la nitro éteint tout le sillage en ~0,9 s (`OFF`), là où il est.
+  Un point tous les 0,6 m (45/s au plus), Catmull-Rom ; cœur fin qui blanchit à la tuyère + halo qui s'élargit, le feu refroidit
+  vers le rouge-magenta au bout. Au SOL il file jusqu'au bas de l'écran (plus de coupe : `cutB` 9) ; EN VOL ce qui PEND tout droit
+  sous la caisse est coupé à un tiers d'écran (`cutV` .34 — deux traits sous une caisse en l'air = « fils de marionnette ») ; ce qui
+  part sur le côté (virage, vrille) se voit sur toute sa longueur (`kx`). Même matériau qu'avant : 0 programme compilé en course.
+  Bancs `sil.js` `sil4.js` `sil5.js` (un pot / quatre pots / lâcher-rallumer) ; hook `dbgSillage()` (mètres, éclat par sillage).
 - Sacha : « supprime le pouvoir bouclier ». Il reste CINQ pouvoirs (n a v m x) ; ses parts de tirage sont rendues aux autres
   (`pwrPoids`), le 1er cristal offert au débutant est un AIMANT. Plus de chute pardonnée par un cristal, plus de plots « DÉMOLI », plus
   d'huile neutralisée. Le seul filet qui reste est celui, en OPTION, du MODE FACILE (`facileSauve`, `facFilet`). Banc `bou.js`,

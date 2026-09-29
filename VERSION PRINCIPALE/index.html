@@ -11894,27 +11894,29 @@ function mkTrail(){
   const hist=[];for(let i=0;i<TRAIL_N;i++)hist.push(new THREE.Vector3());
   return {m,pos,col,hist,init:false};
 }
-/* ---- LE SILLAGE v3 — LA TRAÎNÉE DE NITRO DU JOUEUR (2026-09-29, Sacha : « retravaille la traînée de nitro : elle doit être beaucoup
-   plus belle, lisse et lumineuse — il faut que ça laisse deux longues traînées derrière — il faut que ce soit magnifique »).
-   MESURÉ avant (banc sil.js, 390 × 844) : les deux rubans n'étaient plus que deux FILS d'un doigt, coupés à 13 % d'écran sous la
-   tuyère — au sol la plume les cachait, en vol on ne les voyait pas du tout. Ce qui change :
-   · LONGS : le sillage vit dans le MONDE ~1,6 s. Ce n'est plus « la trace des 26 dernières images » (0,4 s à 60 i/s, 0,2 s sur un
-     écran 120 Hz) mais un chemin que la caisse DESSINE : en virage il s'étire en arc sur le côté, en vol il suit la parabole.
-   · LISSES : un point tous les 0,6 m (45 par seconde au plus, quel que soit l'écran), puis une courbe de Catmull-Rom repasse entre
-     eux (3 rangées par segment) — plus de cassures, plus de dents quand l'image tousse.
-   · LUMINEUX : DEUX couches dans le même ruban (un seul appel de dessin) — un CŒUR fin qui blanchit à la tuyère (c'est lui que le
-     bloom attrape) et un HALO large et doux qui S'ÉVASE en vieillissant, comme une traînée de réacteur qui se dilue dans l'air.
-   · IL RESTE DANS L'AIR quand on lâche la nitro : chaque point garde SA couleur et SON intensité d'émission, et s'éteint à son âge
-     (plus de ruban qui disparaît d'un coup ; passer de l'orange au bleu de réserve laisse un dégradé derrière soi). Rallumer
-     alors que l'ancien flotte encore pose une COUPURE : jamais de trait tendu entre les deux.
-   · DEUX TRAÎNÉES pour toutes les caisses : celles qui n'ont qu'un pot central en tirent deux, de part et d'autre.
-   · LES CRITIQUES D'AVANT TIENNENT : pas de « fils de marionnette » (la coupe à l'écran reste, plus bas et en fondu : le sillage
-     descend au plus d'un quart d'écran sous sa tuyère — c'est en virage et en vol qu'il s'allonge), pas de « tapis » (vu dans
-     l'axe il s'efface, près de l'objectif aussi), pas de faisceau aveuglant (le halo est SOMBRE : c'est le cœur fin qui brille).
+/* ---- LE SILLAGE — LA TRAÎNÉE DE NITRO DU JOUEUR ----
+   v3 (2026-09-29, Sacha : « beaucoup plus belle, lisse et lumineuse — deux longues traînées — il faut que ce soit magnifique »), puis
+   v4 le même soir (Sacha : « plus belles et plus longues : de longues traînées RÉGULIÈRES jusqu'à 50 mètres derrière ; et selon les
+   voitures, la nitro doit être adaptée pour SORTIR DU POT »).
+   · UNE TRAÎNÉE PAR POT : chaque sillage naît dans la bouche d'un pot de la caisse (`CAR_POTS` : les mêmes points que les plumes
+     `JETS`, relevés sur le modèle ou déclarés par la fiche — jusqu'à 4). Une caisse à UN pot (la Postière, la Deuche, le Monospace…)
+     en tire une seule, plus large — la v3 en tirait deux, de part et d'autre, qui ne sortaient d'AUCUN pot. Une caisse à 4 pots en
+     tire 4, un peu plus fines.
+   · 50 MÈTRES RÉGULIERS : la longueur se compte en MÈTRES de chemin, plus en secondes — lent ou à fond, le sillage couvre les 50
+     derniers mètres, même largeur et presque même éclat de bout en bout, et ne s'éteint que dans ses 10 derniers mètres (`QUEUE`).
+     Lâcher la nitro l'éteint EN ENTIER en ~0,9 s, là où il est : il reste dans l'air, il ne se rembobine pas.
+   · LISSE : un point tous les 0,6 m (45 par seconde au plus, quel que soit l'écran), Catmull-Rom entre eux ; jamais de courbe tendue
+     à travers une coupure.
+   · LUMINEUX : deux couches dans le même ruban (un seul appel de dessin) — un CŒUR fin qui blanchit à la tuyère (c'est lui que le
+     bloom attrape) et un HALO doux qui s'élargit au loin ; le feu tire vers le rouge-magenta vers le bout (l'orange nitro finit braise,
+     le bleu de réserve finit violet, le violet infini finit pourpre).
+   · Au SOL il file jusqu'au bas de l'écran (une traînée de lumière sur le bitume) et s'efface avant l'objectif. EN VOL, ce qui PEND
+     tout droit sous la caisse est coupé plus tôt (`cutV`) et n'y reste qu'en halo — deux traits sous une caisse en l'air, ce sont deux
+     « fils de marionnette » (critique du 29/09) ; dès qu'on vire ou qu'on vrille, il part sur le côté et on le voit sur toute sa longueur.
+   · Pas de « tapis » (vu pile dans l'axe il s'efface), pas de faisceau aveuglant (le halo est sombre, ×.74 sur la couleur).
    · Même matériau que les rubans d'avant (MeshBasic, texture + couleurs de sommets, additif) : 0 programme compilé en course ;
-     zéro allocation (tableaux fixes, une seule rangée de travail partagée par les deux sillages).
-   Réglages vivants : `SIL` (banc sil.js). */
-const SIL={N:64,SUB:3,PAS:.6,DTM:1/45,VIE:1.6,cutA:.35,cutK:.6,cutB:.5,cutV:.16,kx:.9,wC:.085,wG:.26,wGa:1.1,halo:.55,coeur:1,chaud:.7,froid:.75};
+     zéro allocation (tableaux fixes, une rangée de travail partagée). Réglages vivants : `SIL`, hook `dbgSillage()` (bancs sil*.js). */
+const SIL={N:100,SUB:2,PAS:.6,DTM:1/45,LONG:50,QUEUE:10,OFF:.9,VMAX:8,cutA:.3,cutK:.55,cutB:9,cutV:.34,kx:.9,wC:.075,wG:.22,wGa:.3,halo:.5,coeur:1,chaud:.7,froid:.55,un:1.4};
 const SIL_TEX=(function(){ // le profil EN TRAVERS : moitié gauche = le HALO (gaussienne large), moitié droite = le CŒUR (gaussienne serrée + une jupe)
   const cv=document.createElement('canvas');cv.width=128;cv.height=2;const c=cv.getContext('2d'),im=c.createImageData(128,2);
   for(let x=0;x<128;x++){const h=x<64,u=((h?x:x-64)+.5)/32-1,v=h?Math.exp(-u*u*4.5):Math.exp(-u*u*10)+.3*Math.exp(-u*u*2.5);
@@ -11922,7 +11924,7 @@ const SIL_TEX=(function(){ // le profil EN TRAVERS : moitié gauche = le HALO (g
     for(let y=0;y<2;y++){const o=(y*128+x)*4;im.data[o]=im.data[o+1]=im.data[o+2]=g;im.data[o+3]=255;}}
   c.putImageData(im,0,0);const t=new THREE.CanvasTexture(cv);t.generateMipmaps=false;t.minFilter=THREE.LinearFilter;return t; // sans mipmaps : le halo et le cœur ne se mélangent jamais au loin
 })();
-const SIL_ROWS=(SIL.N-1)*SIL.SUB+1,SIL_Q=new Float32Array(SIL_ROWS*8); // la rangée de travail : x y z âge k r g b
+const SIL_ROWS=(SIL.N-1)*SIL.SUB+1,SIL_Q=new Float32Array(SIL_ROWS*8); // la rangée de travail : x y z k r g b (+1)
 function mkSillage(){
   const Rm=SIL_ROWS,g=new THREE.BufferGeometry();
   const pos=new Float32Array(Rm*12),col=new Float32Array(Rm*12),uv=new Float32Array(Rm*8);
@@ -11933,9 +11935,9 @@ function mkSillage(){
   const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:SIL_TEX,vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false}));
   m.frustumCulled=false;m.visible=false;m.renderOrder=2;scene.add(m);
   const F=function(){return new Float32Array(SIL.N);};
-  return {m,pos,col,X:F(),Y:F(),Z:F(),T:F(),K:F(),CR:F(),CG:F(),CB:F(),n:0,emit:false,clk:0,init:false,cut:SIL.cutB};
+  return {m,pos,col,X:F(),Y:F(),Z:F(),T:F(),K:F(),CR:F(),CG:F(),CB:F(),n:0,emit:false,clk:0,init:false,cut:SIL.cutB,g:0,tOff:0,long:0};
 }
-const trailL=mkSillage(),trailR=mkSillage();let trailK=0; // (2026-09-29) les deux rubans DU JOUEUR sont le SILLAGE v3 ci-dessous ; mkTrail/trailStep restent ceux de la meute, du fantôme et du fourgon
+const SILS=[mkSillage(),mkSillage(),mkSillage(),mkSillage()],trailL=SILS[0],trailR=SILS[1];let trailK=0; // (2026-09-29) les sillages DU JOUEUR, un par pot (4 au plus, comme les plumes) ; mkTrail/trailStep restent ceux de la meute, du fantôme et du fourgon
 /* ---- L'ARC-EN-CIEL DU CHAT POP-TART -----------------------------------------------------------
    ⚠ POURQUOI UN RUBAN À PART. Les traînées normales n'ont que DEUX sommets en travers : entre eux
    le GPU interpole en ligne droite, donc un dégradé rouge→violet passe par un mauve boueux au lieu
@@ -12055,41 +12057,43 @@ function trailStep(tr,px,py,pz,cr,cg,cb,k,wMul){
   tr.m.geometry.attributes.position.needsUpdate=true;
   tr.m.geometry.attributes.color.needsUpdate=true;
 }
-const SV=new THREE.Vector3(),SD=new THREE.Vector3(),SS=new THREE.Vector3(); // (sillage v3) réutilisés : zéro allocation
+const SV=new THREE.Vector3(),SD=new THREE.Vector3(),SS=new THREE.Vector3(); // (sillage) réutilisés : zéro allocation
 function silPousse(tr){for(const a of [tr.X,tr.Y,tr.Z,tr.T,tr.K,tr.CR,tr.CG,tr.CB])a.copyWithin(1,0,SIL.N-1);tr.n=Math.min(SIL.N,tr.n+1);} // un cran : la case 0 se libère pour la tête
 function silPose(tr,i,x,y,z,k,r,g,b){tr.X[i]=x;tr.Y[i]=y;tr.Z[i]=z;tr.T[i]=tr.clk;tr.K[i]=k;tr.CR[i]=r;tr.CG[i]=g;tr.CB[i]=b;}
-function sillageStep(tr,px,py,pz,cr,cg,cb,k,wm,dt){
+function sillageStep(tr,px,py,pz,cr,cg,cb,k,wm,dt,wu){ // wm : l'élargissement de la TÊTE (nitro, allumage) · wu : la largeur de TOUT le sillage (un pot seul : plus large)
   tr.clk+=dt||0;
-  if(!tr.init){tr.n=0;tr.emit=false;tr.init=true;} // réveil, portail, replacement : on repart de RIEN (pas de trait tendu depuis l'ancienne position)
+  if(!tr.init){tr.n=0;tr.emit=false;tr.init=true;tr.g=0;} // réveil, portail, replacement : on repart de RIEN (pas de trait tendu depuis l'ancienne position)
   const emet=k>=.03;
   if(emet){
     if(tr.n===0){silPose(tr,0,px,py,pz,k,cr,cg,cb);tr.n=1;silPousse(tr);} // la graine : un point fixe, puis la tête
-    else if(!tr.emit){tr.K[0]=0;silPousse(tr);silPose(tr,0,px,py,pz,0,cr,cg,cb);silPousse(tr);} // on RALLUME sous l'ancien sillage : une COUPURE (deux points éteints)
+    else if(!tr.emit){ // on RALLUME sous l'ancien sillage qui s'éteignait : il garde l'éclat où il en était, et une COUPURE (deux points éteints) le sépare du neuf
+      for(let i=0;i<tr.n;i++)tr.K[i]*=tr.g;tr.K[0]=0;silPousse(tr);silPose(tr,0,px,py,pz,0,cr,cg,cb);silPousse(tr);}
     else{const dx=px-tr.X[1],dy=py-tr.Y[1],dz=pz-tr.Z[1];if(dx*dx+dy*dy+dz*dz>SIL.PAS*SIL.PAS&&tr.clk-tr.T[1]>=SIL.DTM)silPousse(tr);} // la tête se FIXE : un point de plus
-    silPose(tr,0,px,py,pz,k,cr,cg,cb); // la tête colle à la tuyère
-  }
+    silPose(tr,0,px,py,pz,k,cr,cg,cb);tr.g=1; // la tête colle à la bouche du pot
+  }else if(tr.emit)tr.tOff=tr.clk; // on vient de lâcher : le sillage entier s'éteint à partir de maintenant
   tr.emit=emet;
-  while(tr.n>0&&tr.clk-tr.T[tr.n-1]>SIL.VIE)tr.n--; // les points trop vieux tombent
-  if(tr.n<2){tr.m.visible=false;tr.n=emet?tr.n:0;return;}
-  // 1) LA COURBE : Catmull-Rom entre les points (jamais à travers une coupure), âge/intensité/couleur interpolés
+  if(!emet&&tr.n>0){tr.g=Math.max(0,1-(tr.clk-tr.tOff)/SIL.OFF);if(tr.g<=0)tr.n=0;}
+  // 50 MÈTRES : on garde le chemin jusqu'au premier point au-delà de LONG (il sert au fondu de la queue), et rien de plus vieux que VMAX
+  {let acc=0;const X=tr.X,Y=tr.Y,Z=tr.Z;for(let i=1;i<tr.n;i++){const dx=X[i]-X[i-1],dy=Y[i]-Y[i-1],dz=Z[i]-Z[i-1];acc+=Math.sqrt(dx*dx+dy*dy+dz*dz);
+    if(acc>SIL.LONG||tr.clk-tr.T[i]>SIL.VMAX){tr.n=i+1;break;}}tr.long=acc;}
+  if(tr.n<2){tr.m.visible=false;if(!emet)tr.n=0;return;}
+  // 1) LA COURBE : Catmull-Rom entre les points (jamais à travers une coupure), intensité et couleur interpolées
   const Q=SIL_Q,S=SIL.SUB,n=tr.n,X=tr.X,Y=tr.Y,Z=tr.Z,K=tr.K;let R9=0;
   for(let i=0;i<n-1;i++){
     const a=(i>0&&K[i]!==0)?i-1:i,d=(i+2<n&&K[i+1]!==0)?i+2:i+1,b=i+1;
     for(let q=0;q<S;q++){
       const u=q/S,u2=u*u,u3=u2*u,c0=-.5*u3+u2-.5*u,c1=1.5*u3-2.5*u2+1,c2=-1.5*u3+2*u2+.5*u,c3=.5*u3-.5*u2,o=R9*8;
       Q[o]=c0*X[a]+c1*X[i]+c2*X[b]+c3*X[d];Q[o+1]=c0*Y[a]+c1*Y[i]+c2*Y[b]+c3*Y[d];Q[o+2]=c0*Z[a]+c1*Z[i]+c2*Z[b]+c3*Z[d];
-      Q[o+3]=tr.clk-(tr.T[i]+(tr.T[b]-tr.T[i])*u);Q[o+4]=K[i]+(K[b]-K[i])*u;
-      Q[o+5]=tr.CR[i]+(tr.CR[b]-tr.CR[i])*u;Q[o+6]=tr.CG[i]+(tr.CG[b]-tr.CG[i])*u;Q[o+7]=tr.CB[i]+(tr.CB[b]-tr.CB[i])*u;R9++;}
+      Q[o+3]=K[i]+(K[b]-K[i])*u;Q[o+4]=tr.CR[i]+(tr.CR[b]-tr.CR[i])*u;Q[o+5]=tr.CG[i]+(tr.CG[b]-tr.CG[i])*u;Q[o+6]=tr.CB[i]+(tr.CB[b]-tr.CB[i])*u;R9++;}
   }
-  {const o=R9*8,l=n-1;Q[o]=X[l];Q[o+1]=Y[l];Q[o+2]=Z[l];Q[o+3]=tr.clk-tr.T[l];Q[o+4]=K[l];Q[o+5]=tr.CR[l];Q[o+6]=tr.CG[l];Q[o+7]=tr.CB[l];R9++;}
-  // 2) LE RUBAN : face caméra, halo + cœur, coupé à l'écran quand il descend trop sous sa tuyère
-  const P=tr.pos,C=tr.col,cam=camera.position,SM=THREE.MathUtils.smoothstep,wv=wm||1;
+  {const o=R9*8,l=n-1;Q[o]=X[l];Q[o+1]=Y[l];Q[o+2]=Z[l];Q[o+3]=K[l];Q[o+4]=tr.CR[l];Q[o+5]=tr.CG[l];Q[o+6]=tr.CB[l];R9++;}
+  // 2) LE RUBAN : face caméra, halo + cœur ; en vol, coupé à l'écran quand il PEND sous sa tuyère
+  const P=tr.pos,C=tr.col,cam=camera.position,SM=THREE.MathUtils.smoothstep,wv=wm||1,wa=wu||1,LG=SIL.LONG;
   TR_PJ.set(Q[0],Q[1],Q[2]).project(camera);const yh=TR_PJ.y,xh=TR_PJ.x,asp=camera.aspect||.5;
-  /* CE QUI PEND EST COUPÉ, CE QUI S'ÉCARTE VIT : la « descente » d'un point, c'est sa chute à l'écran sous la tuyère MOINS son écart
-     sur le côté (`kx`). Au sol le sillage file sur le bitume jusqu'au quart bas de l'écran ; EN VOL (`cutV`) il ne pend presque pas
-     sous la caisse — deux traits droits sous une voiture en l'air, c'est deux FILS — mais dès qu'on vire, qu'on vrille ou que la
-     caméra tourne, il part sur le côté et s'étire en arc sur toute sa longueur. Le seuil glisse d'un régime à l'autre en ~0,4 s. */
-  const cut=(tr.cut+=((mode==='fall'?SIL.cutV:SIL.cutB)-tr.cut)*Math.min(1,(dt||0)*2.5)),cutA=cut*SIL.cutA,cutK=cut*SIL.cutK; // le HALO va jusqu'à la coupe ; le CŒUR s'éteint avant (cutK) : ce qui descend vers le bas de l'écran n'est plus qu'une lueur douce, jamais un fil
+  /* CE QUI PEND EST COUPÉ, CE QUI S'ÉCARTE VIT : la « descente » d'un point, c'est sa chute à l'écran sous la tuyère MOINS son écart sur
+     le côté (`kx`). Au sol (`cutB` 9 : jamais) le sillage file jusqu'au bas de l'écran ; en vol (`cutV`) il ne pend qu'un tiers d'écran,
+     le cœur s'éteignant avant le halo (`cutK`). Le seuil glisse d'un régime à l'autre en ~0,4 s. */
+  const cut=(tr.cut+=((mode==='fall'?SIL.cutV:SIL.cutB)-tr.cut)*Math.min(1,(dt||0)*2.5)),cutA=cut*SIL.cutA,cutK=cut*SIL.cutK;
   let arc=0,dp=0,Rf=R9;
   for(let r=0;r<R9;r++){
     const o=r*8,ra=Math.max(0,r-1)*8,rb=Math.min(R9-1,r+1)*8;let x=Q[o],y=Q[o+1],z=Q[o+2];
@@ -12097,19 +12101,19 @@ function sillageStep(tr,px,py,pz,cr,cg,cb,k,wm,dt){
     SD.set(Q[rb]-Q[ra],Q[rb+1]-Q[ra+1],Q[rb+2]-Q[ra+2]);SV.set(x-cam.x,y-cam.y,z-cam.z);SS.crossVectors(SD,SV);
     const l2=SS.lengthSq(),dC=SV.length(),lD=SD.length();let sA=0;
     if(l2>1e-12){const l9=Math.sqrt(l2);sA=(lD>1e-6&&dC>1e-6)?l9/(lD*dC):0;SS.multiplyScalar(1/l9);}else SS.set(0,0,0);
-    const a=Math.min(1,Math.max(0,Q[o+3]/SIL.VIE)),vie=1-a;
-    let f=Q[o+4]*Math.pow(vie,1.4)*SM(arc,0,.35)*SM(sA,.05,.22); // il s'éteint à son âge ; la tête naît sous la plume ; vu PILE dans l'axe, il s'efface (le « tapis »)
+    const al=Math.min(1,arc/LG);
+    let f=Q[o+3]*tr.g*(1-.22*al)*SM(arc,0,.35)*SM(sA,.05,.22)*(1-SM(arc,LG-SIL.QUEUE,LG)); // RÉGULIER sur 40 m, la queue s'éteint sur les 10 derniers ; la tête naît sous la plume ; vu PILE dans l'axe, il s'efface (le « tapis »)
+    let fin=r>0&&arc>=LG;
     TR_PJ.set(x,y,z).project(camera);const d=TR_PJ.z>1?9:(yh-TR_PJ.y)-SIL.kx*Math.abs(TR_PJ.x-xh)*asp; // de combien il PEND à l'écran sous sa tuyère (derrière l'objectif : « tout en bas »)
-    let fin=false;
-    if(r>0&&d>=cut){fin=true;f=0;const t9=THREE.MathUtils.clamp((cut-dp)/Math.max(1e-4,d-dp),0,1);x=Q[o-8]+(x-Q[o-8])*t9;y=Q[o-7]+(y-Q[o-7])*t9;z=Q[o-6]+(z-Q[o-6])*t9;} // LA COUPE, au franchissement (plus de fils de marionnette)
-    let fK=1;if(!fin){f*=1-SM(d,cutA,cut);fK=1-SM(d,cutA*.5,cutK);}
+    if(!fin&&r>0&&d>=cut){fin=true;const t9=THREE.MathUtils.clamp((cut-dp)/Math.max(1e-4,d-dp),0,1);x=Q[o-8]+(x-Q[o-8])*t9;y=Q[o-7]+(y-Q[o-7])*t9;z=Q[o-6]+(z-Q[o-6])*t9;} // LA COUPE, au franchissement
+    if(fin)f=0;
+    const fK=1-SM(d,cutA*.5,cutK);if(!fin)f*=1-SM(d,cutA,cut);
     dp=d;
-    const fC=f*fK*SM(dC,2.4,4.2),fG=f*SM(dC,3,6.5),wk=1+(wv-1)*Math.exp(-arc*.3); // l'élargissement de l'allumage ne gonfle que la TÊTE
-    const wc=Math.min(SIL.wC*(1-.45*a)*wk,dC*.011),wg=Math.min((SIL.wG+SIL.wGa*a)*wk,dC*.06); // le cœur s'affine en vieillissant, le halo S'ÉVASE
-    const hot=SIL.chaud*fC*Math.exp(-arc*.4)*vie*vie*vie; // la tête BLANCHIT
-    /* LE FEU REFROIDIT : blanc à la tuyère (hot), la couleur franche au milieu, puis elle tire vers le ROUGE-MAGENTA en vieillissant
-       (l'orange nitro finit rouge braise, le bleu de réserve finit violet, le violet infini finit pourpre) — le dégradé du couchant. */
-    const c0=Q[o+5],c1=Q[o+6],c2=Q[o+7],fr=SIL.froid*SM(a,.05,.8),qr=c0+(c0*.9+c2*.3-c0)*fr,qg=c1+(c1*.35-c1)*fr,qb=c2+(c2*.9+c0*.3-c2)*fr;
+    const fC=f*fK*SM(dC,2.4,4.2),fG=f*SM(dC,3,6.5),wk=1+(wv-1)*Math.exp(-arc*.3); // l'élargissement de l'allumage ne gonfle que la TÊTE ; près de l'objectif tout s'efface (jamais de voile)
+    const wc=Math.min(SIL.wC*wa*(1+.25*al)*wk,dC*.011*wa),wg=Math.min((SIL.wG+SIL.wGa*al)*wa*wk,dC*.06*wa); // le cœur garde sa largeur, le halo s'élargit au loin
+    const hot=SIL.chaud*fC*Math.exp(-arc*.4); // la tête BLANCHIT
+    /* LE FEU REFROIDIT : blanc à la tuyère, la couleur franche sur le corps, puis elle tire vers le ROUGE-MAGENTA vers le bout */
+    const c0=Q[o+4],c1=Q[o+5],c2=Q[o+6],fr=SIL.froid*SM(al,.1,.9),qr=c0+(c0*.9+c2*.3-c0)*fr,qg=c1+(c1*.35-c1)*fr,qb=c2+(c2*.9+c0*.3-c2)*fr;
     const v=r*12,gr=qr*fG*SIL.halo,gg=qg*fG*SIL.halo,gb=qb*fG*SIL.halo,kr=qr*fC*SIL.coeur+hot,kg=qg*fC*SIL.coeur+hot,kb=qb*fC*SIL.coeur+hot;
     P[v]=x+SS.x*wg;P[v+1]=y+SS.y*wg;P[v+2]=z+SS.z*wg;P[v+3]=x-SS.x*wg;P[v+4]=y-SS.y*wg;P[v+5]=z-SS.z*wg;
     P[v+6]=x+SS.x*wc;P[v+7]=y+SS.y*wc;P[v+8]=z+SS.z*wc;P[v+9]=x-SS.x*wc;P[v+10]=y-SS.y*wc;P[v+11]=z-SS.z*wc;
@@ -12119,7 +12123,7 @@ function sillageStep(tr,px,py,pz,cr,cg,cb,k,wm,dt){
   tr.m.geometry.setDrawRange(0,Math.max(0,Rf-1)*12);tr.m.visible=Rf>1;
   tr.m.geometry.attributes.position.needsUpdate=true;tr.m.geometry.attributes.color.needsUpdate=true;
 }
-window.dbgSillage=function(k,v){if(k&&SIL[k]!=null&&v!=null)SIL[k]=+v;return {SIL:SIL,g:{n:trailL.n,emet:trailL.emit,vis:trailL.m.visible,rangees:trailL.m.geometry.drawRange.count/12},d:{n:trailR.n,vis:trailR.m.visible}};}; // (banc) l'état des deux sillages ; dbgSillage('VIE',2) règle à chaud
+window.dbgSillage=function(k,v){if(k&&SIL[k]!=null&&v!=null)SIL[k]=+v;return {SIL:SIL,pots:Math.min(4,CAR_POTS.length),sillages:SILS.map(function(t){return {n:t.n,emet:t.emit,vis:t.m.visible,rangees:t.m.geometry.drawRange.count/12,metres:+t.long.toFixed(1),eclat:+t.g.toFixed(2)};})};}; // (banc) l'état des sillages ; dbgSillage('LONG',60) règle à chaud
 /* <<<VOITURES>>> ---------------------------------------------------------------------------
    LA CARROSSERIE — tout ce qui fabrique une caisse, des matériaux jusqu'aux flaques au sol.
    Ces balises servent à `voitures.html` (L'ÉTAL DES VOITURES), qui LIT ce fichier au chargement
@@ -17442,7 +17446,18 @@ window.dbgEquipe=function(i){if(started&&!gameOver)return 'en course';i=Math.max
 window.dbgPots=function(){const a=v=>[+v.x.toFixed(3),+v.y.toFixed(3),+v.z.toFixed(3)];return {src:CAR_POT_SRC,un:CAR_POT_1,pots:CAR_POTS.map(a),L:a(CAR_POT_L),R:a(CAR_POT_R),C:a(CAR_POT_C)};}; // (dev) les pots relevés sur la caisse montée
 window.dbgSpec=function(i){const c=CARS[i|0];return c?{name:c.name,w:c.w,l:c.l,h:c.h,shape:c.shape}:null;};window.dbgNbCaisses=function(){return CARS.length;}; // (dev) les fiches, pour les bancs d'essai
 window.dbgSoude=function(on){if(on!=null)CAISSE_SOUDE.on=!!on;let d=0;carGroup.traverse(o=>{if((o.isMesh||o.isSprite)&&o.visible)d++;});return {soude:CAISSE_SOUDE.on,dessins:d,pieces:CAR_PIECES.length,essieux:ESSIEUX.length,ailes:[carWingL,carWingR].filter(Boolean).concat(carFins)};}; // (banc, 2026-09-27) souder ou non les caisses construites ensuite (voir caisseSoude)
-window.dbgCar=function(i){buildCar(CARS[Math.max(0,Math.min(CARS.length-1,i|0))]);}; // console : dbgCar(16) → prévisualiser un gabarit sans farmer les milliards (visuel pur, ne touche pas au niveau)
+window.dbgCar=function(i){buildCar(CARS[Math.max(0,Math.min(CARS.length-1,i|0))]);};
+window.dbgJetsVoir=function(i,side,d,h,lg){ // (banc) la caisse i, plumes de nitro ALLUMÉES, photographiée de trois quarts arrière (side : 0 = pile derrière, 1 = de côté) — la flamme sort-elle du pot ?
+  if(started&&!gameOver&&!paused)togglePause();if(i!=null)buildCar(CARS[Math.max(0,Math.min(CARS.length-1,i|0))]);
+  const jl=lg==null?1.3:lg,jr=.17,vu=jl>0;for(let k=0;k<JETS.shells.length;k++){const m=JETS.shells[k],c=JETS.cores[k];m.visible=vu;m.scale.set(jr,jr,jl);if(c){c.visible=vu;c.scale.set(jr*.48,jr*.48,Math.max(.01,jl)*.72);}}
+  for(const g of JETS.glows){g.visible=vu;g.scale.set(.5,.5,1);}jetShellM.color.setHex(0xff7a24);jetCoreM.color.setHex(0xfff2da);jetGlowM.opacity=.9;
+  const q=carGroup.quaternion,p=carGroup.position,sd=side==null?.45:side,D=d||6.5,H=h==null?1.6:h;
+  const F=new THREE.Vector3(0,0,1).applyQuaternion(q),Rt=new THREE.Vector3(1,0,0).applyQuaternion(q),U=new THREE.Vector3(0,1,0).applyQuaternion(q);
+  camera.position.copy(p).addScaledVector(F,-D*Math.cos(sd)).addScaledVector(Rt,D*Math.sin(sd)).addScaledVector(U,H);camera.up.copy(U);
+  const L=p.clone().addScaledVector(U,.6).addScaledVector(F,-.8);camera.lookAt(L);camera.updateMatrixWorld();camera.up.set(0,1,0);
+  RIM_U.uSunV.value.copy(RIM_DIR).transformDirection(camera.matrixWorldInverse);if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
+  const o=window.dbgPots();o.n=CARS.length;o.nom=(CARS[i|0]||{}).name;return o;};
+ // console : dbgCar(16) → prévisualiser un gabarit sans farmer les milliards (visuel pur, ne touche pas au niveau)
 window.dbgScene=function(){return {car:carGroup,scene:scene,contact:contactShadow,shadow:shadow,cam:camera,rdr:renderer};}; // dissection console (visuel pur) — (2026-09-26) + caméra et renderer : le banc des laques mesure la caisse au pixel
 window.dbgState=function(){return {started:started,running:running,paused:paused,gameOver:gameOver,mode:mode,psi:+psi.toFixed(4),yawR:+yawR.toFixed(4),slipB:+slipB.toFixed(4),glisse:+glisse9.toFixed(3),drift:driftEnCours,roulisDeg:+(carRoll9*57.3).toFixed(1),glisseDeg:+(driftYaw*57.3).toFixed(1),vH:+(mode==='fall'?Math.hypot(fallVel.x,fallVel.z):Math.abs(vA)).toFixed(1),driftLv:driftLv,graceT:+graceT.toFixed(2),
   /* flux des PIÈCES : sans ces trois-là, régler leur arrivée se fait à l'aveugle */
@@ -23232,7 +23247,7 @@ window.dbgNitro=function(r,x){if(r==='bords'){NFX.dbgB=x;return 'bords ×'+x;} /
 window.dbgJet=function(){const c=CARS[level];return {
   caisse:c.name,fx:c.fx?{jet:'#'+(c.fx.jet||0).toString(16).padStart(6,'0'),rainbow:!!c.fx.rainbow}:null,
   plume:'#'+jetShellM.color.getHexString(),coeur:'#'+jetCoreM.color.getHexString(),k:+JETS.k.toFixed(2),
-  ruban:{k:+trailK.toFixed(2),visible:trailL.m.visible,points:trailL.n+'/'+trailR.n},
+  ruban:{k:+trailK.toFixed(2),visible:trailL.m.visible,points:SILS.map(function(t){return t.n;}).join('/')},
   arcEnCiel:{visible:rainbow.m.visible,arme:!!(c.fx&&c.fx.rainbow)},
   helices:carProps.length,deploiement:+wingT.toFixed(2),
   reflet:'#'+nitroLight.color.getHexString()};};
@@ -23383,7 +23398,7 @@ window.dbgPart=function(a,k,v){
   if(a==='prog')return (renderer.info.programs||[]).map(function(q){return q.name+' ¦ '+q.cacheKey;});
   if(a==='cache'){const on=!v;
     if(k==='vieux')trailMesh.visible=on;
-    else if(k==='rubans'){trailL.m.visible=trailR.m.visible=on;}
+    else if(k==='rubans'){for(const t9 of SILS)t9.m.visible=on;}
     else if(k==='plume'){for(const m of JETS.shells.concat(JETS.cores,JETS.glows))m.visible=on;}
     else if(k==='reserves'){for(const n in R){R[n].masque=!on;R[n].mesh.visible=on;}}
     else if(R[k]){R[k].masque=!on;R[k].mesh.visible=on;}
@@ -26479,7 +26494,7 @@ function dolHudTick(dt){ // gate de course, quel que soit le mode
     dolHudAtt=0;dolHudT-=dt;if(dolHudT<=0)dolHudOff();}
 }
 function respawn(){
-  trailL.init=trailR.init=false;rainbow.init=false; // (2026-09-26) pas de ruban tendu jusqu'au point de replacement
+  for(const t9 of SILS)t9.init=false;rainbow.init=false; // (2026-09-26) pas de ruban tendu jusqu'au point de replacement
   dolKill(); // (dauphin v3) replacer, repartir, recommencer : l'étiquette s'éteint, rien n'est versé
   momT=0; // (momentum v2) repartir = réserve vide
   if(introD){introD=false;if(pigGroup){scene.remove(pigGroup);pigGroup=null;}} // R pendant le largage : on annule proprement
@@ -27088,7 +27103,7 @@ function traceTick(actif){
 }
 function newTrack(){
   traceVide(); // (2026-09-26) les traces de pneus restent sur l'ancienne route
-  trailL.init=trailR.init=false;rainbow.init=false; // (2026-09-26) sinon le ruban de nitro se tendait de l'ancien ovule à la nouvelle piste
+  for(const t9 of SILS)t9.init=false;rainbow.init=false; // (2026-09-26) sinon le ruban de nitro se tendait de l'ancien ovule à la nouvelle piste
   loop._rebuildT=performance.now();loop._rebuildD=3500; // la construction d'une zone fait un pic : la qualité auto ne doit pas le prendre pour de la faiblesse
   CHAUFFE_R.t=performance.now()+120; // (tour 2) la nouvelle piste, sa ville, ses nuages : dessinés une fois hors écran dans la foulée (voir chauffeRendu)
   let sd=(Math.random()*1e9)|0;
@@ -32175,10 +32190,11 @@ function loop(now){
     else if(FXT&&FXT.trail){tcr=FXT.trail[0];tcg=FXT.trail[1];tcb=FXT.trail[2];} // la signature de la caisse
     else if(nitroOn){tcr=1.38;tcg=.62;tcb=.17;}else{tcr=1.25;tcg=.9;tcb=.26;} // couleurs FRANCHES : le ruban doit rester orange/bleu, jamais blanc — (vague 2) le pad turbo : OR #ffd75e (il était orange, on ne le distinguait pas de la nitro) — (vague 3) la nitro calée sur le feu #ff7a24 (elle tirait au rouge)
     const tw9=nitroOn?1.3+NFX.ign*NFX.ignK*.7:1; // (vague 3) à la nitro le sillage s'épaissit (et gicle à l'allumage — la tête seulement, voir sillageStep)
-    for(const s9 of [-1,1]){ // (2026-09-26) les rubans partent des POTS : moyenne de chaque côté — (2026-09-29, sillage v3) DEUX traînées pour tout le monde : un pot central en tire deux, de part et d'autre
-      const tr9=s9<0?trailL:trailR;
-      if(CAR_POT_1)potMonde(CAR_POT_C,tmp2).addScaledVector(hsR,s9*(spec9.w||1.9)*.2*carGroup.scale.x);else potMonde(s9<0?CAR_POT_L:CAR_POT_R,tmp2);
-      sillageStep(tr9,tmp2.x,tmp2.y,tmp2.z,tcr*.74,tcg*.74,tcb*.74,trailK,tw9,dt); // ×.74 (2026-09-25) : additif + bloom, le ruban de nitro faisait un faisceau AVEUGLANT sur la route
+    { // (2026-09-29, sillage v4) UN SILLAGE PAR POT, né dans sa bouche (les mêmes points que les plumes) — un pot : un sillage plus large ; 3-4 pots : un peu plus fins et moins vifs (ils s'additionnent)
+      const np9=Math.min(4,CAR_POTS.length),wu9=np9===1?SIL.un:np9>=3?.85:1,ku9=(np9>=3?.8:1)*.74; // ×.74 (2026-09-25) : additif + bloom, le ruban de nitro faisait un faisceau AVEUGLANT sur la route
+      for(let i9=0;i9<4;i9++){
+        if(i9<np9){potMonde(CAR_POTS[i9],tmp2);sillageStep(SILS[i9],tmp2.x,tmp2.y,tmp2.z,tcr*ku9,tcg*ku9,tcb*ku9,trailK,tw9,dt,wu9);}
+        else sillageStep(SILS[i9],0,0,0,0,0,0,0,1,dt);} // un pot de moins (changement de caisse) : ce sillage s'éteint
     }
     // L'ARC-EN-CIEL EST LA TRAÎNÉE DE NITRO DE CETTE CAISSE — pas un décor permanent. Il suit donc
     // `trailK`, exactement comme les rubans des autres : il se déclenche à l'appui, s'éteint en
