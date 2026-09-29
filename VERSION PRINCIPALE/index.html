@@ -26277,7 +26277,8 @@ function frenTitreEl(){
   el.innerHTML=svg('TRIPLE','ftL1',4,7,true)+svg('MONSTER','ftL2',8,11,false)+'<b class="ftSous">'+sansAcc(TR('FRÉNÉSIE'))+'</b>';
   document.body.appendChild(el);return el;}
 function frenTitre(){ try{
-  const el=frenTitreEl();{const sb9=el.querySelector('.ftSous');if(sb9)sb9.textContent=sansAcc(TR('FRÉNÉSIE'));} // (passe qualité) construit une fois : il gardait la 1re langueel.classList.remove('on');void el.offsetWidth;el.classList.add('on');
+  const el=frenTitreEl();{const sb9=el.querySelector('.ftSous');if(sb9)sb9.textContent=sansAcc(TR('FRÉNÉSIE'));} // (passe qualité) construit une fois : il gardait la 1re langue
+  el.classList.remove('on');void el.offsetWidth;el.classList.add('on'); /* (débogage 29/09) cette ligne était COLLÉE derrière le // ci-dessus : le titre TRIPLE MONSTER ne s'allumait plus, mais body.ftOn taisait quand même annonces et verdicts 2,7 s */
   document.body.classList.add('ftOn');clearTimeout(frenTitre._t);
   frenTitre._t=setTimeout(function(){el.classList.remove('on');document.body.classList.remove('ftOn');},2700);
 }catch(e){} }
