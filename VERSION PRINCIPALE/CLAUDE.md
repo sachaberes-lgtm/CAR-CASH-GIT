@@ -1,5 +1,16 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LES 10 PREMIÈRES MINUTES — CORRECTIFS DE JEU (2026-09-29, audit de la session INTERFACE, corrigé par la session GAMEPLAY)
+- **Après le permis, NUAGES et pas VILLE** : la piste de l'école occupait la zone 0, le portail menait à `NIVEAUX[1]`. `LVL.tutoZ` (posé par
+  `lvlChoisir` au départ de chaque partie) décale le compte : après la leçon, NIVEAU 1 = NUAGES, puis VILLE. Mesuré (`ecole.js`).
+- **Le 1er cristal d'après la leçon est le BOUCLIER** (`pwrPremier` compare `runStats.zones` à `LVL.tutoZ`) ; **aucun cristal sur la piste
+  de l'école** (`spawnPickups` saute les pouvoirs sur `piste:'tuto'`, APRÈS les tirages : le flux seedé ne bouge pas).
+- **Une leçon QUITTÉE n'est pas une partie** (`commitExploits` : ni compteurs, ni aura, ni record — la banque seule) et **pas de
+  « RECORD BATTU » pendant la leçon**.
+- Laissé à Sacha (décisions de jeu, pas des bugs) : l'airtime prêté à POSE-TOI (le chrono des 6 s n'est jamais vu à l'école), la leçon
+  quittée qui repart à 1/5, le défi « ENCAISSE $200 » (argent masqué en course), les rangs d'aura 1-5 sans récompense, la carrière
+  AURORE = la piste de l'école, le logo de 1,9 s à chaque REJOUER, une prime du jour.
+
 ## LES CLASSIQUES DE LA BOUTIQUE EN FACETTES (2026-09-29) — « enlève toutes les parties arrondies des voitures du shop, ça ne colle pas avec la DA poly »
 - La boutique vend 13 légendaires : les 6 de la gamme des 50 (kit low-poly, déjà taillées) et 7 CLASSIQUES du vieux kit (CHAT POP-TART,
   REQUIN, COMÈTE, FORMULE OR, LE MANS 24, EL PATRON, ACIDE : gabarits `poptart`, `requin`, `proto`, `formula`, `lemans`, `hyper`, `tuner`)

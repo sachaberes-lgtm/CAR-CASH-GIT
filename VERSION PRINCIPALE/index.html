@@ -10538,6 +10538,7 @@ const LVL={cur:null,n:0,k:1,dur:4,
 const LARGEUR=[2.0]; // (2026-09-26, user : « fais les routes un peu plus larges ») 1,7 → 2,0 : 47,6 → 56 m // (2026-09-25, user : « enlève le rétrécissement de la route, ça sert à rien, la vitesse fait tout le travail ») : 47,6 m partout — était [1.7,1.55,1.4,1.25,1.1]
 function lvlChoisir(){ // appelé par newTrack AVANT buildTrack
   const z=runStats.zones|0;
+  if(z===0)LVL.tutoZ=TUTO.on?1:0; // (2026-09-29) la zone 0 de cette partie est-elle la piste de l'école ? (voir plus bas)
   ROAD_HALF=ROAD_HALF0*(PARK.on?1.4:LARGEUR[Math.min(LARGEUR.length-1,z)]);
   if(PARK.on){LVL.cur=null;lvlAstre(null);return null;}
   if(CARR.actif){ // CARRIÈRE : le niveau de départ + les portails franchis ; chaque portail TERMINE le précédent
@@ -10546,10 +10547,13 @@ function lvlChoisir(){ // appelé par newTrack AVANT buildTrack
     LVL.cur=carNiveau(bi,i);LVL.n=i+1;ROAD_HALF=ROAD_HALF0*CARR_LARG[i];lvlAstre(LVL.cur.astre);
     return LVL.cur;
   }
+  /* (2026-09-29, audit « 10 premières minutes », session INTERFACE) LA PISTE DE L'ÉCOLE N'EST PAS UN NIVEAU : elle occupait la zone 0, donc
+     après le permis le portail menait à NIVEAUX[1] — la VILLE — au lieu des NUAGES (verdict du 25/09 : « NUAGES en 1er »). `LVL.tutoZ` dit, au
+     départ de chaque partie (z = 0), si la zone 0 est la leçon ; les niveaux se comptent APRÈS elle. */
   if(TUTO.on&&z===0){ // L'AUTO-ÉCOLE : la piste dessinée à la main, sous le ciel nu de l'aurore
     LVL.cur=Object.assign({},NIVEAUX.find(n9=>n9.id==='nuages'),{bio:['aurore'],sansNuages:1,piste:'tuto'}); // (l'auto-école garde le ciel NU de l'aurore : on y lit tout)
     LVL.n=1;lvlAstre(null);ROAD_HALF=ROAD_HALF0*2.0;return LVL.cur;}
-  LVL.cur=NIVEAUX[z%NIVEAUX.length];LVL.n=z+1;lvlAstre(null);
+  {const zn=Math.max(0,z-(LVL.tutoZ|0));LVL.cur=NIVEAUX[zn%NIVEAUX.length];LVL.n=zn+1;lvlAstre(null);}
   return LVL.cur;
 }
 function lvlBiome(){ // le ciel du niveau : tiré dans SA liste, jamais deux fois le même de suite
@@ -20092,7 +20096,7 @@ function pwrPoids(){
 }
 function pwrTire(r,W){let acc=0;for(const k of PWR_ORDRE){acc+=W[k];if(r<acc)return k;}return 'n';}
 // le tout PREMIER cristal de la partie, pour qui débute (moins de 5 parties, hors campagne) : un BOUCLIER — on apprend sans mourir au 1er saut
-function pwrPremier(){return !(LVL.cur&&LVL.cur.camp)&&!TUTO.on&&!PARK.on&&(runStats.zones|0)===0&&((SAVE.d.ex&&SAVE.d.ex.runs)|0)<5;}
+function pwrPremier(){return !(LVL.cur&&LVL.cur.camp)&&!TUTO.on&&!PARK.on&&(runStats.zones|0)===(LVL.tutoZ|0)&&((SAVE.d.ex&&SAVE.d.ex.runs)|0)<5;} // (2026-09-29) après le permis, la 1re VRAIE zone (celle d'après la piste de l'école) a son bouclier
 /* LE RAMASSAGE — tout ce qui se passe quand la caisse éclate un cristal. `pos` = où il éclate. */
 function pwrPrend(k,pos){
   const d=PWR_DEFS[k];if(!d)return;
@@ -20240,7 +20244,7 @@ window.dbgPwr=function(k,n){try{if(k&&PWR_DEFS[k]){for(let i=0;i<(n||1);i++)pwrP
   if(k==='devant'){const L9=[];for(const p of pickups)if(!p.taken&&!p.pow&&p.face===side&&p.s>s+5&&p.s<s+50)L9.push(p);window.__dv=L9;return L9.length;} // (banc) l'or à portée d'AIMANT…
   if(k==='devantPris'){return (window.__dv||[]).filter(function(p){return p.taken;}).length;} // …et ce qui en a été ramassé
   if(k==='plot'){let b9=null;for(const c of CONES){if(!c.hit&&c.face===1&&c.s>s+50&&(!b9||c.s<b9.s))b9=c;}if(b9){DBG_AUTO.lat=b9.lat;}return b9?{s:Math.round(b9.s),lat:+b9.lat.toFixed(1),moi:Math.round(s)}:null;} // (banc) le pilote de mesure vise le prochain plot
-  const o={};for(const q of PWR_ORDRE)o[q]=+pwrT(q).toFixed(2);return {pwr:o,poids:pwrPoids(),runs:(SAVE.d.ex&&SAVE.d.ex.runs)|0,sauves:PWR_V2.sauves,mir:{t:+MIR.t.toFixed(2),max:+MIR.max.toFixed(2)},sansFaute:SFA.n,sfDern:SFA.dern,poseA:FLOW.poseA,vol:+fallT.toFixed(2),vpal:VPAL.n,c0:VPAL.c0,pieces:RUNX.coins|0,demoli:PWR_V2.demoli,aura:Math.round(auraRun),lieu:FLOW2.lieu,psyQ:FLOW2.psy.q[0],dol:{on:dolOn,nb:dolNb,live:+dolLive.toFixed(2),aura:Math.round(dolAura),fig:trkDolph,vis:dolphins.filter(function(d){return d.visible;}).length,dist:+dolDist().toFixed(1),h:+curHOff.toFixed(1),lat:+curLatOff.toFixed(1)}};}catch(e){return e.message;}};
+  const o={};for(const q of PWR_ORDRE)o[q]=+pwrT(q).toFixed(2);return {pwr:o,poids:pwrPoids(),runs:(SAVE.d.ex&&SAVE.d.ex.runs)|0,sauves:PWR_V2.sauves,mir:{t:+MIR.t.toFixed(2),max:+MIR.max.toFixed(2)},sansFaute:SFA.n,sfDern:SFA.dern,poseA:FLOW.poseA,vol:+fallT.toFixed(2),vpal:VPAL.n,c0:VPAL.c0,pieces:RUNX.coins|0,demoli:PWR_V2.demoli,aura:Math.round(auraRun),lieu:FLOW2.lieu,cristaux:pickups.filter(function(p){return p.pow&&!p.taken;}).map(function(p){return p.pow;}).join(''),tutoZ:LVL.tutoZ|0,psyQ:FLOW2.psy.q[0],dol:{on:dolOn,nb:dolNb,live:+dolLive.toFixed(2),aura:Math.round(dolAura),fig:trkDolph,vis:dolphins.filter(function(d){return d.visible;}).length,dist:+dolDist().toFixed(1),h:+curHOff.toFixed(1),lat:+curLatOff.toFixed(1)}};}catch(e){return e.message;}};
 const pickups=[];
 const mat4b=new THREE.Matrix4(),FLIP_B=new THREE.Vector3(),FLIP_N=new THREE.Vector3(); // FLIP_* : le repère retourné des fruits d'en dessous
 /* LES PIÈCES SE RECYCLENT (2026-09-28, chasse aux gels) — une piste pose 2 000 à 4 000 pièces, et chacune était un `new THREE.Mesh`
@@ -20381,6 +20385,7 @@ function spawnPickups(rnd){
     let kind=pwrTire(rnd(),W9);
     let lt=(rnd()*2-1)*(ROAD_HALF-4);
     if(prem9&&!holeAtS(ss)){kind='b';prem9=false;lt*=.2;} // le 1er BOUCLIER d'un débutant est posé PRÈS DE L'AXE : il le prend sans le chercher
+    if(LVL.cur&&LVL.cur.piste==='tuto')continue; // (2026-09-29, audit) PAS DE CRISTAUX À L'ÉCOLE : « AURA ×2 — CHAQUE FIGURE COMPTE DOUBLE » tombait en pleine consigne TOURNE (tirages consommés au-dessus : le flux ne bouge pas)
     if(holeAtS(ss))continue; // (tirages consommés au-dessus : le flux rnd reste identique) — pas d'orbe dans le vide
     frameAt(ss,F);
     mat4b.makeBasis(F.b,F.n,F.t);
@@ -25135,7 +25140,7 @@ function chaineTick(dt){
   // le COMPTEUR : il grimpe vers la vraie valeur (on voit l'aura TOMBER dedans), une écriture DOM seulement quand le chiffre change
   CHA.v+=(auraRun-CHA.v)*Math.min(1,dt*7);if(Math.abs(auraRun-CHA.v)<1)CHA.v=auraRun;
   const a9=Math.round(CHA.v);if(a9!==CHA.vAff){CHA.vAff=a9;const e9=avE('avVal');if(e9){const t9=fmtAura(a9);e9.textContent=t9;const n9=t9.length>=8?'l2':t9.length>=6?'l1':'';if(e9.dataset.l!==n9)e9.dataset.l=n9;}recMaj(a9);if(CHA.recB)recSurplus(a9);} // (2026-09-28) data-l : le compteur resserre son corps quand le nombre s'allonge (il passait à la ligne : « 1 » puis « 418 »)
-  if(!CHA.recB&&CHA.rec>0&&auraRun>CHA.rec&&running&&!gameOver)recBattu();
+  if(!CHA.recB&&CHA.rec>0&&auraRun>CHA.rec&&running&&!gameOver&&!TUTO.on)recBattu(); // (2026-09-29) pas de « RECORD BATTU » pendant la leçon
   if(!CHA.n)return;
   if(mode!=='fall'&&mode!=='boom')CHA.t-=dt; // en l'air, l'horloge est GELÉE
   if(CHA.t<=0){chaineEncaisse();return;}
@@ -26319,6 +26324,10 @@ function resetGame(){
 // ⚠ appelé APRÈS l'écriture de `best` dans endGame : les conditions `cash` lisent ce record.
 function commitExploits(){
   const ex=SAVE.d.ex;if(!ex)return [];
+  /* (2026-09-29, audit « 10 premières minutes ») UNE LEÇON QUITTÉE N'EST PAS UNE PARTIE : elle comptait une partie jouée et posait son
+     aura (~30) en RECORD — la leçon suivante criait « RECORD BATTU ! » au bout de 5 s. Seule la banque est versée (l'argent gagné reste). */
+  const lecon=!!TUTO.quitte;
+  if(!lecon){
   ex.eng=Math.max(ex.eng,engTier);
   ex.tricks+=runStats.tricks|0;
   ex.gaps+=runStats.gaps|0;
@@ -26328,6 +26337,7 @@ function commitExploits(){
   ex.chain=Math.max(ex.chain,runStats.chainMax|0);
   ex.kmh=Math.max(ex.kmh,Math.round(runStats.vmax)||0);
   ex.runs++;
+  }
   /* ---- LE VIREMENT ET L'AURA PARTENT EN PERSISTANT ------------------------------------------
      ⚠ ON NE VERSE QUE LES GAINS, PAS LE COMPTEUR. `money` démarre à `START_CASH` (1,61 €) à chaque
      partie : verser `money` tel quel créditerait 1,61 € offerts par run — de l'argent créé à partir
@@ -26338,8 +26348,8 @@ function commitExploits(){
   const vire=Math.max(0,money-START_CASH);
   SAVE.d.bank=Math.min(1e30,bank()+vire);
   const rangAvant=auraRank();
-  SAVE.d.aura=(SAVE.d.aura||0)+Math.round(auraRun);
-  SAVE.d.auraMax=Math.max(SAVE.d.auraMax||0,Math.round(auraRun)); // le MAX d'une partie : c'est LUI qu'on affiche comme objectif
+  if(!lecon){SAVE.d.aura=(SAVE.d.aura||0)+Math.round(auraRun);
+  SAVE.d.auraMax=Math.max(SAVE.d.auraMax||0,Math.round(auraRun));} // le MAX d'une partie : c'est LUI qu'on affiche comme objectif
   commitExploits._vire=vire;                       // relus par l'écran de fin
   commitExploits._aura=Math.round(auraRun);
   commitExploits._rangMonte=auraRank()>rangAvant;  // un rang franchi se crie
