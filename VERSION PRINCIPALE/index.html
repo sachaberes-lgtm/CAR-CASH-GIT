@@ -27283,8 +27283,8 @@ const DRG_OEIL_V=DRG_OEIL.map(function(t0){const t=new THREE.CanvasTexture(drgVi
 const DRG_TEX_V=(function(){const t=new THREE.CanvasTexture(drgViolet(DRG_TEX.image));t.wrapT=THREE.RepeatWrapping;return t;})();
 const DRG_PF_V=(function(){const t=new THREE.CanvasTexture(drgViolet(DRG_PF.image));t.wrapT=THREE.RepeatWrapping;return t;})();
 const DRG_STR={corps:72,pat0:5,pat1:5,pat2:5,pat3:5,                                                          // le CORPS peint (écailles)
-  sourG:6,sourD:6,corG:10,corD:10,andG:5,andD:5,                                                               // la TÊTE : sourcils et bois de feu peint
-  halo:36,crete:30,cri0:8,cri1:8,cri2:8,cri3:8,cri4:8,cri5:8,mousG:14,mousD:14,bar0:5,bar1:5,bar2:5,que0:6,que1:6,que2:6}; // le FEU additif
+  sourG:6,sourD:6,corG:10,corD:10,oreG:6,oreD:6,andG:5,andD:5,                                                               // la TÊTE : sourcils et bois de feu peint
+  halo:36,crete:30,cri0:8,cri1:8,cri2:8,cri3:8,cri4:8,cri5:8,mousG:14,mousD:14,bar0:5,bar1:5,bar2:5,que0:6,que1:6,que2:6,fla0:6,fla1:6,fla2:6,fla3:6,fla4:6,fla5:6}; // le FEU additif
 /* LA TÊTE EN VOLUME (v5.1 — au banc, des rubans seuls ne dessinaient qu'un fouillis de traits : de la poursuite, une tête se lit par sa
    MASSE). Un crâne FACETTÉ (la DA poly du jeu) de sept couronnes, de la nuque au bout du museau, et une MÂCHOIRE qui s'ouvre, quatre CROCS
    chauffés à blanc ; la caisse est DEDANS. Coordonnées « tête » : x ±1 (1,32 × la demi-largeur), y −1 (le sol) → 1 (le haut du crâne),
@@ -27297,7 +27297,7 @@ const DRG_MC=[[-.2,.86,-.55,.8,-.88,-.98],[.3,.66,-.52,.62,-.86,-.96],[.7,.44,-.
 const DRG_RK=[3,2,1,0,1,2,3],DRG_RS=[-1,-1,-1,0,1,1,1],DRG_U7=[0,.17,.33,.5,.67,.83,1],DRG_BR=[1.25,.95,.72,.5]; /* (banc) plus de CONTRASTE entre l'arête et les flancs : sinon la tête se fondait dans la caisse orange et le plasma */ // une couronne : bas gauche → sommet → bas droit ; la lumière vient du HAUT
 const DRG_HN=220; // la TRAJECTOIRE : un point tous les 35 cm (77 m au moins, bien plus à pleine vitesse)
 const DRG={m:null,yeux:null,S:{},NP:0,pos:null,col:null,uv:null,roar:0,pal:-1,t:0,em:0,nS:0,neuf:0,
-  tm:null,nez:new THREE.Vector3(),vP:new THREE.Vector3(),vOk:false,Us:new THREE.Vector3(0,1,0),
+  tm:null,bouche:null,lS:0,nez:new THREE.Vector3(),vP:new THREE.Vector3(),vOk:false,vF:new THREE.Vector3(0,0,1),hF:new THREE.Vector3(0,0,1),hU:new THREE.Vector3(0,1,0),hR:new THREE.Vector3(1,0,0),cl:2,Us:new THREE.Vector3(0,1,0),
   hx:new Float32Array(DRG_HN*3),hN:0,hI:0, // l'anneau des positions : hI = le plus récent (la caisse)
   SPN:40,SP:[],SL:[],Lb:0,dA:1,Wb:.5,Aw:.5,Av:.3,y0:.8,lam:4.5,Hs:1,
   P:[],c:new THREE.Vector3(),U:new THREE.Vector3(),cF:new THREE.Vector3(),cR:new THREE.Vector3(),cU:new THREE.Vector3(),hC:new THREE.Vector3(),N0:new THREE.Vector3(),
@@ -27327,6 +27327,7 @@ function dragonInit(){ // bâti au 1er embrasement : UN maillage, TROIS matière
   const mO=new THREE.SpriteMaterial({map:lampTex,color:0xffa030,transparent:true,opacity:0,depthWrite:false,depthTest:false,blending:THREE.AdditiveBlending});
   const oeil=function(t){return new THREE.SpriteMaterial({map:t,transparent:true,opacity:0,depthWrite:false,depthTest:false});};
   DRG.yeux=[mO,mO,oeil(DRG_OEIL[0]),oeil(DRG_OEIL[1])].map(function(m,i){const s=new THREE.Sprite(m);s.renderOrder=i<2?7:8;s.visible=false;scene.add(s);return s;});
+  DRG.bouche=new THREE.Sprite(mO.clone());DRG.bouche.renderOrder=7;DRG.bouche.visible=false;scene.add(DRG.bouche); // la LUEUR de la gueule
   dragonTeteInit();
 }
 function dragonTeteInit(){ // le CRÂNE facetté : ses sommets bougent à chaque image (il respire, il flambe, la gueule s'ouvre), ses faces jamais
@@ -27341,7 +27342,7 @@ function dragonTeteInit(){ // le CRÂNE facetté : ses sommets bougent à chaque
   DRG.tm=new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:DRG_PF,vertexColors:true,transparent:true,depthWrite:false,side:THREE.DoubleSide,fog:false})); // la matière des rubans peints : même programme
   DRG.tm.frustumCulled=false;DRG.tm.renderOrder=6;DRG.tm.visible=false;scene.add(DRG.tm);
 }
-function dragonCache(){if(DRG.m){DRG.m.visible=DRG.tm.visible=false;for(const s of DRG.yeux)s.visible=false;}}
+function dragonCache(){if(DRG.m){DRG.m.visible=DRG.tm.visible=DRG.bouche.visible=false;for(const s of DRG.yeux)s.visible=false;}}
 function dragonBande(nom,tuile,v0){ // écrit la bande `nom` à partir de DRG.P / DRG.W (demi-largeur) / DRG.CR,CG,CB — tournée vers la caméra, effacée près de l'objectif ; v0 fait DÉFILER la texture
   const s=DRG.S[nom],n=s.n,P=DRG.P,pos=DRG.pos,col=DRG.col,uv=DRG.uv,cam=camera.position,D=DRG.d,V=DRG.e,X=DRG.q;let v=v0||0;
   for(let i=0;i<n;i++){const p=P[i],pn=P[Math.min(i+1,n-1)],pp=P[Math.max(i-1,0)];
@@ -27384,15 +27385,25 @@ function dragonTick(dt){
   const vis=NTR.k;
   if(vis<.02){if(DRG.m&&DRG.m.visible)dragonCache();DRG.pal=-1;DRG.roar=0;DRG.em=0;DRG.vOk=false;DRG.nS=0;return;}
   if(!DRG.m)dragonInit();
-  DRG.m.visible=DRG.tm.visible=true;for(const s9 of DRG.yeux)s9.visible=true;DRG.t+=dt;const t=DRG.t;
+  DRG.m.visible=DRG.tm.visible=DRG.bouche.visible=true;for(const s9 of DRG.yeux)s9.visible=true;DRG.t+=dt;const t=DRG.t;
   DRG.em=Math.min(1,DRG.em+dt/.6); // il JAILLIT de la caisse
   const c=carGroup.position,q=carGroup.quaternion,sp=CARS[level];
   DRG.c.copy(c);DRG.cF.set(0,0,1).applyQuaternion(q);DRG.cR.set(1,0,0).applyQuaternion(q);DRG.cU.set(0,1,0).applyQuaternion(q);
   // LA TRAJECTOIRE (un PORTAIL, un téléport : le corps repart tout droit derrière) et le HAUT du corps : le haut de l'ÉCRAN lissé — sur la
   // face du DESSOUS le haut du monde est DANS la dalle
-  if(!DRG.vOk){DRG.Us.copy(camUp);dragonHisto(c,true);DRG.vP.copy(c);DRG.vOk=true;}
-  else{dragonHisto(c,c.distanceTo(DRG.vP)>=dt*400+5);DRG.vP.copy(c);}
+  if(!DRG.vOk){DRG.Us.copy(camUp);DRG.vF.copy(DRG.cF);dragonHisto(c,true);DRG.vP.copy(c);DRG.lS=0;DRG.vOk=true;}
+  else{const l=c.distanceTo(DRG.vP);
+    /* ⚠ (banc drgvol) le seuil de téléport était FIXE (dt×400+5 : 11,7 m par image à 60 i/s) — en vol au 10e palier la caisse en fait autant :
+       faux portail, le cap sautait de 84° sur le nez de la caisse. Le seuil suit la VITESSE du moment (le pas moyen lissé). */
+    if(l>4*DRG.lS+10){DRG.vF.copy(DRG.cF);dragonHisto(c,true);} // un PORTAIL, un téléport : le cap repart du nez, le corps tout droit derrière
+    else{DRG.lS+=(l-DRG.lS)*.3;dragonHisto(c,false);if(l>.02){DRG.e.subVectors(c,DRG.vP).multiplyScalar(1/l);DRG.vF.lerp(DRG.e,1-Math.exp(-dt*6)).normalize();}}
+    DRG.vP.copy(c);}
   DRG.Us.lerp(camUp,1-Math.exp(-dt*2.5));if(DRG.Us.lengthSq()<1e-4)DRG.Us.copy(camUp);DRG.Us.normalize();DRG.U.copy(DRG.Us);
+  /* (2026-09-30, Sacha : « mieux géré, notamment en AIRTIME ») LE REPÈRE DE LA TÊTE n'est plus celui de la caisse : en vol elle vrille,
+     pique, se retourne — la tête tournait avec elle, le cou traversait la caisse pour rejoindre le corps. Elle suit la TRAJECTOIRE lissée
+     et le HAUT DE L'ÉCRAN lissé, au sol comme en vol (un seul repère : aucun saut à la pose ni au décollage) ; la caisse fait ses
+     figures DEDANS, le cou reste toujours derrière, vers le corps. */
+  DRG.hF.copy(DRG.vF);DRG.hU.copy(DRG.Us).addScaledVector(DRG.hF,-DRG.Us.dot(DRG.hF));if(DRG.hU.lengthSq()<1e-4)DRG.hU.copy(DRG.cU).addScaledVector(DRG.hF,-DRG.cU.dot(DRG.hF));DRG.hU.normalize();DRG.hR.crossVectors(DRG.hU,DRG.hF);
   // LES COMPARTIMENTS : AUCUN au déclenchement (la tête seule), UN DE PLUS À CHAQUE PALIER — lissé : le nouveau POUSSE à la queue
   let rugit=false;if(NTR.pal!==DRG.pal){if(DRG.pal>=0&&NTR.pal>DRG.pal){DRG.roar=1;rugit=true;DRG.neuf=1;}DRG.pal=NTR.pal;} // un palier = un RUGISSEMENT
   DRG.roar=Math.max(0,DRG.roar-dt*1.4);DRG.neuf=Math.max(0,DRG.neuf-dt*1.1);
@@ -27402,10 +27413,14 @@ function dragonTick(dt){
   const fl=function(u){return .78+.22*Math.sin(23*u-11*t)*Math.sin(7*u+5.3*t);};
   {const m9=DRG.m.material,t0=inf?DRG_TEX_V:DRG_TEX,t1=inf?DRG_PF_V:DRG_PF;if(m9[0].map!==t0)m9[0].map=t0;if(m9[1].map!==t1)m9[1].map=t1; // NITRO INFINIE : VIOLET
     m9[0].opacity=Math.min(1,.3+.9*V);m9[1].opacity=Math.min(1,(.45+.55*gT)*V*(.4+.6*em));}
-  // ===== LA TÊTE : un crâne FACETTÉ dans le repère de la CAISSE, qui l'englobe — elle GROSSIT et devient OPAQUE avec la tenue =====
+  // ===== LA TÊTE : un crâne FACETTÉ autour de la caisse, dans le repère de la TRAJECTOIRE — elle GROSSIT et devient OPAQUE avec la tenue =====
   const hw=sp.w*.5,hh=sp.h,hl=sp.l*.5,Hs=(1+.4*gT)*(.45+.55*em)*(1+.06*R9);DRG.Hs=Hs;
   const TX=hw*1.32*Hs,TY=hh*.875*Hs,TZ=hl*1.4*Hs,Z0=-hl+1.4*hl*Hs; // elle grossit vers l'AVANT et vers le HAUT : la nuque reste à l'arrière de la caisse, le menton au ras de la route
-  const MT=function(x,y,z,o){return o.copy(c).addScaledVector(DRG.cR,x*TX).addScaledVector(DRG.cU,.04+(y+1)*TY).addScaledVector(DRG.cF,Z0+z*TZ);}; // coordonnées TÊTE → monde
+  const sw=.07*Math.sin(t*1.3)+.03*Math.sin(t*3.1),nod=.05*Math.sin(t*2.1+1)+.04*R9; // la tête VIT : elle regarde un peu à droite, à gauche, elle hoche (le museau bouge, la nuque non)
+  const MT=function(x,y,z,o){const zz=Math.max(0,z+1)*.5;return o.copy(c).addScaledVector(DRG.hR,(x+sw*zz)*TX).addScaledVector(DRG.hU,.04+(y+1+nod*zz)*TY).addScaledVector(DRG.hF,Z0+z*TZ);}; // coordonnées TÊTE → monde
+  // ⚠ la CAMÉRA DANS LA TÊTE (caméra de vol serrée, gros crâne au 10e palier) : on ne verrait que l'intérieur du feu — la tête s'efface quand l'objectif s'en approche
+  let fC=1;{DRG.e.subVectors(camera.position,c);const x9=DRG.e.dot(DRG.hR)/TX,y9=(DRG.e.dot(DRG.hU)-.04)/TY-1,z9=(DRG.e.dot(DRG.hF)-Z0)/TZ,q9=x9*x9+y9*y9/1.44+z9*z9/1.32;fC=THREE.MathUtils.smoothstep(q9,1.05,2.1);}DRG.fC=fC;
+  DRG.m.material[1].opacity*=fC;
   MT(0,.2,0,DRG.hC);MT(0,.04,1.13,DRG.nez);
   const k4=function(i,x,y,z){K[i][0]=x;K[i][1]=y;K[i][2]=z;};
   const courbe=function(nom,wA,wB,cA,cB,additif,tuile,v0){ // un RUBAN le long de la courbe de Bézier K0 → K3 (coordonnées TÊTE) : demi-largeur wA → wB (m), couleur cA → cB
@@ -27428,25 +27443,34 @@ function dragonTick(dt){
     for(const sg of [-1,1]){put(sg*.47,-.36,.46,.5,1,1.7);put(sg*.57,-.36,.62,.5,1,1.7);put(sg*.53,-.68,.55,.5,1,1.9); // les CROCS chauffés à blanc : sous le museau…
       jaw(sg*.4,-.5,.64,.5,1,1.7);jaw(sg*.46,-.5,.78,.5,1,1.7);jaw(sg*.43,-.22,.71,.5,1,1.9);}                             // …et sur la mâchoire
     A.position.needsUpdate=A.color.needsUpdate=A.uv.needsUpdate=true;
-    const mt=DRG.tm.material,t2=inf?DRG_PF_V:DRG_PF;if(mt.map!==t2)mt.map=t2;mt.opacity=Math.min(1,(.5+.5*gT)*V*(.4+.6*em));} // OPAQUE avec la tenue : au bout, la caisse est DANS la tête
+    const mt=DRG.tm.material,t2=inf?DRG_PF_V:DRG_PF;if(mt.map!==t2)mt.map=t2;mt.opacity=Math.min(1,(.5+.5*gT)*V*(.4+.6*em))*fC;} // OPAQUE avec la tenue : au bout, la caisse est DANS la tête
   for(const sg of [-1,1]){const G=sg<0?'G':'D';
     // les SOURCILS : des bourrelets de feu au-dessus des yeux, qui se relèvent vers l'extérieur (il est FÂCHÉ)
     k4(0,sg*.3,.84,.02);k4(1,sg*.62,.92,-.12);k4(2,sg*.9,.92,-.28);k4(3,sg*1.1,1.04,-.46);courbe('sour'+G,.26,.08,W1,W1,false,1.6,-t*1.8);
     // les BOIS : deux cornes qui partent de l'arrière du crâne, montent et se recourbent — elles poussent avec la tenue
     const hf=.95+.3*gT,bx=sg*.42,by=.86,bz=-.72;k4(0,bx,by,bz);k4(1,bx+sg*.1*hf,by+.45*hf,bz-.2*hf);k4(2,bx+sg*.32*hf,by+.85*hf,bz-.38*hf);k4(3,bx+sg*.55*hf,by+1.1*hf,bz-.25*hf);
     courbe('cor'+G,.3,.05,W1,W1,false,2,-t*1.2);
+    // les NAGEOIRES : un éventail de feu derrière l'œil, qui bat
+    {const b9=.08*Math.sin(t*4.3+sg);k4(0,sg*.94,.42,-.42);k4(1,sg*(1.18+b9),.58,-.6);k4(2,sg*(1.42+b9),.74,-.76);k4(3,sg*(1.58+b9*1.5),.96,-.82);courbe('ore'+G,.3,.05,W1,W1,false,1.4,-t*1.6);}
     {const u=.45,a=(1-u)*(1-u)*(1-u),b=3*(1-u)*(1-u)*u,cc=3*(1-u)*u*u,d=u*u*u,x0=K[0][0]*a+K[1][0]*b+K[2][0]*cc+K[3][0]*d,y0=K[0][1]*a+K[1][1]*b+K[2][1]*cc+K[3][1]*d,z0=K[0][2]*a+K[1][2]*b+K[2][2]*cc+K[3][2]*d;
       k4(0,x0,y0,z0);k4(1,x0+sg*.04,y0+.25*hf,z0+.1);k4(2,x0+sg*.08,y0+.45*hf,z0+.2);k4(3,x0+sg*.1,y0+.6*hf,z0+.32);courbe('and'+G,.18,.04,W1,W1,false,1.4,-t*1.2);} // l'ANDOUILLER, dressé au milieu du bois
     // les YEUX, sur les flancs du crâne, sous les sourcils — ⚠ le +x de la caisse est À GAUCHE de l'écran quand on la suit : l'œil de
     // sg>0 prend la texture « gauche », coin extérieur relevé du bon côté
     const oe=DRG.yeux[sg<0?0:1],oi=DRG.yeux[sg<0?2:3];MT(sg*.98,.54,-.3,oe.position);oi.position.copy(oe.position);
-    const eb=(1+.35*R9)*(.9+.2*gT);oe.scale.set(2.6*Hs*eb,1.3*Hs*eb,1);oi.scale.set(1.5*Hs*eb,.75*Hs*eb,1);}
+    const eb=(1+.35*R9)*(.9+.2*gT),cli=DRG.cl<.09?.15:1;oe.scale.set(2.6*Hs*eb,1.3*Hs*eb,1);oi.scale.set(1.5*Hs*eb,.75*Hs*eb*cli,1);} // il CLIGNE (90 ms, toutes les 2,5-4,5 s)
+  DRG.cl-=dt;if(DRG.cl<0)DRG.cl=2.5+Math.random()*2;
   {const o9=inf?DRG_OEIL_V:DRG_OEIL;if(DRG.yeux[2].material.map!==o9[0]){DRG.yeux[2].material.map=o9[0];DRG.yeux[3].material.map=o9[1];}}
-  DRG.yeux[0].material.color.setHex(C9.O);DRG.yeux[0].material.opacity=Math.min(1,.7*V);DRG.yeux[2].material.opacity=DRG.yeux[3].material.opacity=Math.min(1,1.3*V*(.5+.5*em));
+  DRG.yeux[0].material.color.setHex(C9.O);DRG.yeux[0].material.opacity=Math.min(1,.7*V);DRG.yeux[2].material.opacity=DRG.yeux[3].material.opacity=Math.min(1,1.3*V*(.5+.5*em))*fC;DRG.yeux[0].material.opacity*=fC;
+  // la LUEUR de la GUEULE : le feu qui couve entre les crocs — elle éclate au rugissement
+  MT(0,-.42,.95,DRG.bouche.position);{const b9=(2.2+1.6*R9)*Hs*(.9+.1*Math.sin(t*17));DRG.bouche.scale.set(b9*1.3,b9,1);DRG.bouche.material.color.setHex(inf?0xd0a0ff:0xffc050);DRG.bouche.material.opacity=Math.min(1,(.55+.45*R9)*V*fC);}
   // la CRINIÈRE : six langues de feu qui partent de la nuque vers l'arrière et l'extérieur — plus longues avec la tenue
   {const ml=.8+.4*gT;for(let j=0;j<6;j++){const sg=j<3?-1:1,lv=j%3,bx=sg*.86,by=-.1+.35*lv,bz=-.95,w1=.12*Math.sin(t*7.3+j*1.7),w2=.14*Math.sin(t*5.1+j*2.3);
     k4(0,bx,by,bz);k4(1,bx+sg*.2,by+.12+w1,bz-.3*ml);k4(2,bx+sg*.4,by+.25+w2,bz-.6*ml);k4(3,bx+sg*.55+w1,by+.38+w2,bz-.9*ml);
     courbe('cri'+j,.5,.06,C9.H,C9.Q,true,1.6,-t*2.4);}}
+  // les FLAMMÈCHES : six langues qui lèchent le crâne vers la nuque (sur l'arête et sur les joues) — la tête est EN FEU, plus avec la tenue
+  {const lf=.55+.55*gT;for(let j=0;j<6;j++){const sg=j%2?1:-1,rg=j>>1,bx=sg*[.18,.72,.9][rg],by=[.7,.5,0][rg],bz=[.35,-.05,.15][rg],w1=.1*Math.sin(t*13+j*2.1),w2=.12*Math.sin(t*9.7+j*1.3);
+    k4(0,bx,by,bz);k4(1,bx+sg*.06+w1,by+.2*lf,bz-.25*lf);k4(2,bx+sg*.12+w2,by+.36*lf,bz-.5*lf);k4(3,bx+sg*.16+w1,by+.46*lf+w2,bz-.8*lf);
+    courbe('fla'+j,.26,.03,C9.H,C9.Q,true,1,-t*3.2);}}
   // les MOUSTACHES : des flancs du museau, longues, elles fouettent le long de la tête
   {const mm=1+.5*gT;for(const sg of [-1,1]){const w=Math.sin(t*4.1+sg),w2=Math.sin(t*3.3+sg*2);
     k4(0,sg*.46,-.08,.9);k4(1,sg*(.85+.1*w),.02+.15*w2,.7);k4(2,sg*(1.25+.12*w2),-.08+.12*w,.15);k4(3,sg*(1.5+.15*w),.15+.15*w2,-.5*mm);
@@ -27488,9 +27512,9 @@ function dragonTick(dt){
   if(!REDUCED_MOTION){
     if(corps){const n=Math.ceil(2*V*(.5+gB));for(let i=0;i<n;i++){dragonEchine(.04+Math.random()*.9,DRG.e);spawnP(embers,DRG.e.x,DRG.e.y,DRG.e.z,EXV.x*.85+(Math.random()-.5)*3,EXV.y*.85+1+Math.random()*2,EXV.z*.85+(Math.random()-.5)*3,.5+Math.random()*.4);}}
     const nb=rugit?20:(Math.random()<dt*5*(.3+gT)?2:0);
-    if(nb){MT(0,-.45,1.1,DRG.a);for(let i=0;i<nb;i++){const v=14+Math.random()*12;
-      spawnP(flames,DRG.a.x,DRG.a.y,DRG.a.z,EXV.x+DRG.cF.x*v+(Math.random()-.5)*4,EXV.y+DRG.cF.y*v+(Math.random()-.3)*3,EXV.z+DRG.cF.z*v+(Math.random()-.5)*4,.24+Math.random()*.16);
-      if(i<6)spawnP(flameCore,DRG.a.x,DRG.a.y,DRG.a.z,EXV.x+DRG.cF.x*v*.8,EXV.y+DRG.cF.y*v*.8+.5,EXV.z+DRG.cF.z*v*.8,.16+Math.random()*.08);}}}
+    if(nb){MT(0,-.45,1.1,DRG.a);const H9=DRG.hF;for(let i=0;i<nb;i++){const v=14+Math.random()*12;
+      spawnP(flames,DRG.a.x,DRG.a.y,DRG.a.z,EXV.x+H9.x*v+(Math.random()-.5)*4,EXV.y+H9.y*v+(Math.random()-.3)*3,EXV.z+H9.z*v+(Math.random()-.5)*4,.24+Math.random()*.16);
+      if(i<6)spawnP(flameCore,DRG.a.x,DRG.a.y,DRG.a.z,EXV.x+H9.x*v*.8,EXV.y+H9.y*v*.8+.5,EXV.z+H9.z*v*.8,.16+Math.random()*.08);}}}
 }
 window.dbgFace=function(f){if(f)side=f<0?-1:1;return side;}; // (banc) rouler sur la face du DESSOUS (−1) ou du dessus (1)
 window.dbgDragon=function(q){
@@ -27498,7 +27522,7 @@ window.dbgDragon=function(q){
     const mid=function(nom,der){const s=DRG.S[nom],o9=(s.o+(der?s.n-1:Math.floor(s.n/2)))*6,p=DRG.pos;return DRG.a.set((p[o9]+p[o9+3])/2,(p[o9+1]+p[o9+4])/2,(p[o9+2]+p[o9+5])/2);};
     pr('tete',DRG.hC);pr('oeil',DRG.yeux[1].position);pr('nez',DRG.nez);pr('corne',mid('corD',true));pr('corps',mid('corps',false));pr('queue',mid('corps',true));return o;}
   return {visible:!!(DRG.m&&DRG.m.visible),palier:NTR.pal,troncons:+DRG.nS.toFixed(2),tenue:+NTR.gT.toFixed(2),tete:+DRG.Hs.toFixed(2),corps:+DRG.Lb.toFixed(1),histo:DRG.hN,
-    boost:+NTR.boost.toFixed(2),intensite:+NTR.k.toFixed(2),rugit:+DRG.roar.toFixed(2),points:DRG.NP};};
+    boost:+NTR.boost.toFixed(2),intensite:+NTR.k.toFixed(2),rugit:+DRG.roar.toFixed(2),points:DRG.NP,cap:DRG.hF.toArray().map(function(v){return +v.toFixed(3);}),nezc:DRG.cF.toArray().map(function(v){return +v.toFixed(2);}),pos:DRG.c.toArray().map(function(v){return +v.toFixed(1);}),camDedans:+(1-(DRG.fC==null?1:DRG.fC)).toFixed(2),vol:mode==='fall'};};
 function nitroooVide(){ // (2026-09-29, audit GAMEPLAY) une partie qui finit ou recommence : plus de boost, plus de plasma, plus de dragon
   NTR.on=false;NTR.t=NTR.boost=NTR.k=NTR.kc=0;NTR.pal=0;NTR.airT=0;NTR.airFig=false;
   if(NTR.shell){NTR.shell.visible=NTR.core.visible=NTR.halo.visible=NTR.halo2.visible=false;for(const m of NTR.langues)m.visible=false;}

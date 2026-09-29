@@ -146,6 +146,16 @@ doit être exponentielle ; à chaque palier de 10 % ça doit rajouter un compart
     au déclenchement (la tête seule), UN DE PLUS À CHAQUE PALIER (`DRG.nS` → `NTR.pal`), qui POUSSE à la queue : écailles peintes, anneaux
     d'or, pattes, crête, halo, flammes de queue. Son haut est le haut de l'ÉCRAN lissé (`camUp` : sur la face du dessous, le haut du monde
     est dans la dalle). ⚠ Près de l'objectif les bandes s'AMINCISSENT (une bande peinte assombrie devenait une nappe NOIRE sous la caméra).
+  · **EN VOL — v5.2** (même jour, Sacha : « beaucoup plus beau, et mieux géré, notamment en AIRTIME ») : la tête n'est PLUS dans le repère de
+    la caisse (en vol elle vrille, pique, se retourne : la tête tournait avec elle et le cou traversait la caisse pour rejoindre le corps).
+    Son repère (`DRG.hF/hU/hR`) = la TRAJECTOIRE lissée (`DRG.vF`, les écarts de position) et le HAUT DE L'ÉCRAN lissé, au sol comme en vol —
+    un seul repère, aucun saut au décollage ni à la pose ; la caisse fait ses figures DEDANS, le cou reste derrière. ⚠ Le seuil de TÉLÉPORT
+    suit la vitesse (`l > 4 × le pas lissé + 10 m`) : fixe (11,7 m/image), il se déclenchait en vol au 10e palier (faux portail, cap qui
+    sautait de 84°). Mesuré (banc `drgvol.js`, sondé à 60 ms) : ≤ 7° au décollage ; les seuls sauts restants sont de VRAIS téléports
+    (190 m en une image : la tête se recale sur le nez, comme la caméra). La CAMÉRA DANS LA TÊTE (caméra de vol serrée) : le crâne, les
+    rubans peints et les yeux s'effacent quand l'objectif entre dans l'ellipsoïde de la tête (`fC`). Plus beau : deux NAGEOIRES en éventail
+    derrière les yeux, six FLAMMÈCHES qui lèchent le crâne vers la nuque (plus longues avec la tenue), la LUEUR de la gueule (`DRG.bouche`,
+    elle éclate au rugissement), les yeux qui CLIGNENT, et la tête qui VIT (le museau regarde à droite, à gauche, hoche ; la nuque ne bouge pas).
   · Trois matières du programme des rubans de traînée (un maillage) + la même pour le crâne + le programme des sprites : **0 compilation en
     course** (banc drg.js). NITRO INFINIE : textures VIOLETTES repeintes au chargement (`drgViolet` : le rouge → violet, l'or → lilas).
     Fin, recommencer, quitter : `nitroooVide()` → `dragonCache()`.
