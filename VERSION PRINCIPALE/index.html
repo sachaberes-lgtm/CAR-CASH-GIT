@@ -22421,6 +22421,7 @@ window.dbgDolphins=function(sec){dolShow=sec||4;dolIn=0;};
 window.dbgDauphin=function(a,b,c,d){
   if(a==='force'){DAUPH.force=(b==null?null:!!b);return DAUPH.force;}
   if(a==='boom'){explode();return window.dbgState();}
+  if(a==='etat')return {on:dolOn,aura:+dolAura.toFixed(1),mul:+dolMul.toFixed(2),q:+dolQ.toFixed(2),nb:dolNb,fig:trkDolph,hF:+dolDist().toFixed(1),flow:+FLOW.v.toFixed(1),mode:mode}; // (v5) le dauphin au banc : aura, vitesse, qualité
   if(!started||gameOver)return 'pas de course en cours';
   if(mode!=='drive')return 'déjà en vol : '+mode;
   lat=d||0;vA=b||15;vL=c||0;startFall(a||60,1);return window.dbgState();
@@ -25692,9 +25693,20 @@ function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent dé
      même règle qu'avant (1 s) — sinon CHAQUE saut deviendrait une figure et la frénésie se déclencherait sur n'importe quelle pose.
    · Un vol peut avoir plusieurs passages près de la route : chacun relance le dauphin (la figure, elle, reste unique).
    · Aura ×2 à peu près : prime 40 → 80 (à la figure), 25 → 40/s, au ras 45 → 90/s, plafond 400 → 1 200 ; la figure 80 → 150. */
+/* LE DAUPHIN v5 (2026-09-29, Sacha : « pour la figure dauphin, plus tu es proche de la route et plus tu vas vite, plus tu gagnes d'aura et
+   de flow »). Trois changements, rien d'autre dans la figure :
+   · LA PROXIMITÉ PÈSE PLUS : le taux d'aura au large tombe (40 → 20/s) et au ras il monte (40+90 → 20+160/s au contact) — ×9 entre le
+     large et le ras, au lieu de ×3,25.
+   · LA VITESSE EST LUE EN CONTINU (`dolVitMul`, lissée) : la vitesse RÉELLE du vol (|fallVel|, le nitro en vol compte) sur la vmax du
+     moteur — ×0,6 à 30 % de la vmax, ×2,1 à 120 %. Elle était figée au décollage (auraMultVitesse, ×1 à ×1,85).
+   · LE FLOW SUIT LE MÊME GESTE : pendant le dauphin, `dolQ` cumule ras² × (0,3 + 0,7 × vitesse) ; à l'encaissement (dolFin), s'il a tenu
+     assez pour être une FIGURE, il verse min(6, 4 × dolQ) en RISQUE signé NARCISSE — rien pour un dauphin lent et loin. Mesuré au
+     simulateur (simtri.js + un dauphin par saut) : le maître atteint la frénésie en 123 s au lieu de 146 ; tranquille et casse-cou
+     inchangés (jamais en 5 min, la frénésie v5 reste dure). */
 const DOL_T=0,DOL_VU=2.6,DOL_HMAX=40,DOL_TMAX=4,DOL_GRACE=.12,DOL_FIGE=.6,DOL_FIG=1,DOL_PAS=.6,
-      DOL_AURA0=80,DOL_AURA_S=40,DOL_AURA_RAS=90,DOL_AURA_MAX=1200;
-let dolRoadT=0,dolOffT=0,dolOn=false,dolAura=0,dolMul=1,dolHudT=0,dolLive=0,dolNb=1;
+      DOL_AURA0=80,DOL_AURA_S=20,DOL_AURA_RAS=160,DOL_AURA_MAX=1200,DOL_FLOW_K=4,DOL_FLOW_MAX=6;
+let dolRoadT=0,dolOffT=0,dolOn=false,dolAura=0,dolMul=1,dolHudT=0,dolLive=0,dolNb=1,dolQ=0;
+function dolVitMul(){const vm=vmaxShow();if(!(vm>0))return 1;const p=fallVel.length()*3.6*SPD/vm;return .6+1.5*Math.max(0,Math.min(1,(p-.3)/.9));} // ×0,6 (30 % de la vmax) → ×2,1 (120 %)
 // la distance de la caisse à la DALLE (dessus, dessous, bords), dans son plan de coupe — radar de tryLand (image d'avant)
 function dolDist(){const dx=Math.max(0,Math.abs(curLatOff)-ROAD_HALF),dy=curHOff>0?curHOff:(curHOff<-THICK?-THICK-curHOff:0);return Math.hypot(dx,dy);}
 const DAUPH={el:null,nom:null,lbl:null,tv:null,v:-1,force:null}; // l'étiquette, bâtie UNE fois · force : hook de test (null = radar réel)
@@ -25708,7 +25720,9 @@ function dolTick(dt,sur,hF){ // chaque image de VOL, avant tryLand (radar = imag
       if(nb>dolNb){dolNb=nb;dolHudNom();hap(8);try{if(SONV2){if(nb>=DOL_BANC.length)sfx('fig.dauphinRoyal');else sfx('jeu.dauphin',{st:nb});}else chimeNote(noteP(Math.min(11,2+nb),1),0,.05,.18);}catch(e){}} // (la session SON : cri de dauphin, note qui monte avec le banc)
       if(!trkDolph&&dolLive>=DOL_FIG){trkDolph=true;dolAura+=DOL_AURA0*dolMul;addTrick('dauphin','🐬 LE DAUPHIN !',3,2);} // (v4) LA FIGURE, à 1 s tenue, une fois par vol
       const ras=Math.max(0,Math.min(1,1-(hF-2.2)/9.8)); // l'esprit du dauphin : nager AU RAS paye plus
-      dolAura=Math.min(DOL_AURA_MAX*dolMul,dolAura+(DOL_AURA_S+DOL_AURA_RAS*ras*ras)*(1+.15*(dolNb-1))*dolMul*dt);
+      dolMul+=(dolVitMul()-dolMul)*Math.min(1,dt*4); // (v5) la vitesse, relue en continu (lissée : un coup de nitro se sent en ~0,25 s)
+      dolQ+=ras*ras*(.3+.7*Math.max(0,Math.min(1,(dolMul-.6)/1.5)))*dt; // (v5) la QUALITÉ du geste : au ras ET vite — elle fera le flow
+      dolAura=Math.max(dolAura,Math.min(DOL_AURA_MAX*dolMul,dolAura+(DOL_AURA_S+DOL_AURA_RAS*ras*ras)*(1+.15*(dolNb-1))*dolMul*dt)); // (v5) jamais de recul : la vitesse qui retombe baisse le plafond, pas le gagné
       dolShow=Math.max(dolShow,.7); // ils nagent tant qu'on reste près de la route ; à la sortie, le fondu de 0,4 s d'updateDolphins
       dolHudVal();
     }
@@ -25722,7 +25736,7 @@ function dolTick(dt,sur,hF){ // chaque image de VOL, avant tryLand (radar = imag
 }
 function dolStart(){
   dolOn=true;dolLive=0;
-  dolMul=auraMultVitesse(); // vA ne bouge pas en vol : la vitesse du décollage multiplie, figée ICI (affiché = versé)
+  dolMul=dolVitMul();dolQ=0; // (v5) la vitesse du vol, relue ensuite à chaque image (dolTick) ; la qualité repart de zéro à chaque passage
   dolAura=0; // (v4) la prime arrive avec la FIGURE (1 s tenue) : un saut de rien ne la touche pas
   if(dolShow<=0){dolNb=1;if(SONV2)sfx('dauphin.banc');} /* (console) le banc NEUF jaillit : clics et sifflets */ // un banc encore visible (passage précédent du même vol) garde ses dauphins
   dolShow=Math.max(dolShow,DOL_VU);dolIn=0; // LE BANC jaillit — et on a le temps de le VOIR
@@ -25733,11 +25747,12 @@ function dolFin(){ // on QUITTE la route ou on se pose : le total se fige, s'enc
   if(!dolOn)return;dolOn=false;dolHudVal();
   const n=Math.round(dolAura);
   if(n>0)chaineAura('DAUPHIN EN VOL',n,'dauphinLive',true); // brut : la vitesse est DÉJÀ dans le compteur (addAura refuse seule en parc)
+  {const f9=Math.min(DOL_FLOW_MAX,DOL_FLOW_K*dolQ);if(trkDolph&&f9>=.5&&!PARK.on)flowAdd(f9,'risque','n');dolQ=0;} // (v5) le FLOW du dauphin : au ras et vite, pour qui a tenu la figure
   if(DAUPH.el)DAUPH.el.classList.add('fige');
   dolHudT=DOL_FIGE;
 }
 function dolKill(){ // fin SANS encaissement : explosion, replacement, nouvelle partie, fin de partie
-  dolOn=false;dolAura=0;dolRoadT=0;dolOffT=0;dolShow=0;dolLive=0;dolNb=1;dolHudOff();
+  dolOn=false;dolAura=0;dolRoadT=0;dolOffT=0;dolShow=0;dolLive=0;dolNb=1;dolQ=0;dolHudOff();
 }
 function dolHudInit(){ // une fois, au 1er dauphin — ensuite des classes et UN nœud texte
   const e=document.createElement('div');e.id='dolHud';e.setAttribute('aria-hidden','true');

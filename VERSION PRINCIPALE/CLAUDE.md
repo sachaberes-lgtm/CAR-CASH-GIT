@@ -247,6 +247,14 @@ couleurs de leur rareté, les objets que tu peux gagner ». Tout filmé AVANT pu
   c'est une décision de jeu (familles du garage), pas d'interface.
 - QA : `qa.js` (62 points, copié de la session 312bec4e) 61/62 — le seul échec est le 404 attendu de `dark-triad.mp3`. Bancs : `tour.js`
   (captures portrait / paysage / 375×667, `MORT=1`), `film.js` + `scenes.js` / `scenes2.js` / `scenes3.js`, `jscheck.py`.
+## LE DAUPHIN v5 (2026-09-29, session UHD) — « plus tu es proche de la route et plus tu vas vite, plus tu gagnes d'aura et de flow »
+- Constantes et commentaire en tête du bloc DAUPHIN (`DOL_AURA_S` 20, `DOL_AURA_RAS` 160, `DOL_FLOW_K` 4, `DOL_FLOW_MAX` 6). Proximité : ×9 entre
+  le large et le ras (×3,25 avant). Vitesse LUE EN CONTINU (`dolVitMul` = |fallVel| sur la vmax du moteur, ×0,6 → ×2,1, lissée) au lieu d'être
+  figée au décollage. Flow : `dolQ` cumule ras² × (0,3 + 0,7 × vitesse) ; `dolFin` verse min(6, 4·dolQ) en RISQUE (NARCISSE) si la figure a
+  été tenue. `dolAura` ne recule jamais (plafond × vitesse qui retombe). MESURÉ au banc : au ras et vite ≈ 380 aura/s (240 max avant) ;
+  au large ≈ 40/s. Simulateur (`simtri.js` + DOL=1) : maître 146 → 123 s pour la 1re frénésie, tranquille/casse-cou inchangés.
+  Hook : `dbgDauphin('etat')` (on, aura, mul, q, nb, fig, hF, flow, mode).
+
 ## LA DA DU HUD, UNE SEULE FAMILLE (2026-09-28, session UHD) — « le bouton nitro, le camembert air time et la dark triad ne ressemblent pas à la barre de nitro et au compteur »
 Sacha : « j'aime le résultat, unifie parfaitement la DA en restant sur cette base ; le bouton nitro, le camembert air time et la dark triad n'ont
 pas l'air de ressembler à la barre de nitro et au compteur de score (qui sont bien) ; nitro infini VIOLET comme les flammes, la traînée, la barre ;
