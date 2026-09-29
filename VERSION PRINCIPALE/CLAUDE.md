@@ -747,6 +747,13 @@ avec un nom neuf et on le signale à la session SON (ou on écrit la recette dan
     tout le mix — sans son 2x, le 3e harmonique des sons brillants (> 8 kHz) se replierait dans l'audible. C'est le son validé : on le garde.
     Idem `osc`/`osc2` en a-rate (le timbre de la caisse). Voix/samples décodés à 48 kHz (5,8 Mo) : les passer à 32 kHz couperait l'aigu
     du WOW pour moins de 2 Mo — gardés.
+- **LES FRUITS FONT SPLOTCH (2026-09-30, relayé par INTERFACE)** — Sacha : « quand tu ramasses un fruit, ça doit faire un bruit de fruit
+  qu'on écrase ». Outil `ecrase(b,R,t0,o)` (recettes.js, bloc des fruits) : la peau qui cède (tk sourd + poids discret), le SPLOTCH (bruit dans
+  deux formants qui GLISSENT VERS LE BAS, haché en grains irréguliers de 2-8 ms — c'est le hachage qui fait humide), la succion (bulles qui
+  montent), le jus (gouttes de plus en plus rares + bruine). Chaque fruit garde sa signature par-dessus (peau de banane + pulpe molle, pépins de
+  grenade, zeste d'orange qui gicle, myrtille minuscule, pastèque : écorce + énorme splotch + l'accord doré). 4 PRISES par fruit, ±6 % de
+  hauteur, ±1,5 dB (un fruit toutes les ~2,4 s sur LA LIGNE PARFAITE). Mesuré : le médium domine (grave −4 à −16 dB), centroïde 1-3 kHz selon
+  la taille du fruit. `nitro.plein` suit 0,14 s après, à −4 dB : le splotch passe devant. Banque ?v=8, sw v30.
 ## LE MOUVEMENT DE L'INTERFACE + MISSIONS v2 (2026-09-28, soir) — « travaille les animations, les emplacements, les transitions entre chaque écran : prêt à envoyer à l'App Store »
 Sacha : « il y a des centaines de petites choses à améliorer dans l'interface… travaille les animations quand tu cliques sur les boutons,
 leurs emplacements, les transitions quand tu changes d'écran — que ce soit parfait ; travaille vraiment les transitions entre chaque écran

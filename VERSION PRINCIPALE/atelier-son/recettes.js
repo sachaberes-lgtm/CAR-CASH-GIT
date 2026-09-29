@@ -687,24 +687,57 @@ D('debris.esquive',{fam:'piste',dur:.4,key:1,db:-3,max:2,cd:.1,bases:[0,12],dit:
 D('decollage',{fam:'piste',bus:'fx',dur:.6,st:1,db:-3,max:1,cd:.3,dit:'décollage : l’air qui se creuse sous la caisse (volume selon la hauteur du saut)',
   r:function(b,R,o){bruit(b,{c:'r',t0:0,a:.03,d:.5,v:.5,ft:'bp',f:300,f1:1400,g:.4,q:.8},R);bruit(b,{c:'b',t0:0,a:.01,d:.15,v:.1,ft:'hp',f:4000},R);}});
 
-/* ================================ LES FRUITS — la MATIÈRE VIVANTE : jus, pulpe, pépins ============
-   Avant : le même croc pour les six fruits (seul le rang changeait la hauteur), et la pastèque — le graal — sonnait comme
-   une myrtille. Chaque fruit a maintenant SA bouche. (`st` = le rang de la rafale : ça monte quand on enchaîne.) */
-D('fruit.peche',{fam:'fruits',bus:'fx',dur:.5,db:+1,max:2,cd:.05,pre:1,dit:'PÊCHE PLATE : morsure tendre et juteuse (« schlp ») + une goutte',
-  r:function(b,R,o){bruit(b,{c:'r',t0:0,a:.003,d:.14,v:.5,ft:'bp',f:1300,f1:700,g:.12,q:1.5,am:[45,.5]},R);bulle(b,R,.02,520,260,.08,.3);bulle(b,R,.14,900,1500,.04,.15);grave(b,o,0,160,70,.08,.12,.3);}});
-D('fruit.banane',{fam:'fruits',bus:'fx',dur:.5,db:+1,max:2,cd:.05,dit:'BANANE : « thwup » de peau + la pulpe molle, un ressort rigolo',
-  r:function(b,R,o){bruit(b,{c:'r',t0:0,a:.002,d:.06,v:.45,ft:'bp',f:2200,q:2},R);osc(b,{f:320,f1:190,g:.18,t0:.03,a:.004,d:.22,v:.3,vib:[16,.08]});bruit(b,{c:'n',t0:.03,a:.004,d:.12,v:.4,ft:'lp',f:800},R);}});
-D('fruit.grenade',{fam:'fruits',bus:'fx',dur:.5,db:+1,max:2,cd:.05,dit:'GRENADE : les pépins qui éclatent en rafale (crépitement cristallin)',
-  r:function(b,R,o){bruit(b,{c:'r',t0:0,a:.002,d:.08,v:.35,ft:'lp',f:1500},R);for(let k=0;k<18;k++)bruit(b,{c:'b',t0:Math.pow(R(),1.4)*.2,a:.0004,d:.006+R()*.01,v:.25+R()*.3,ft:'bp',f:3000+R()*3500,q:3,pan:R()*.8-.4},R);grave(b,o,0,150,70,.06,.1,.25);}});
-D('fruit.orange',{fam:'fruits',bus:'fx',dur:.5,db:+1,max:2,cd:.05,dit:'ORANGE : le zeste qui gicle (jet fin, acide) + la pulpe',
-  r:function(b,R,o){bruit(b,{c:'b',t0:0,a:.003,d:.2,v:.3,ft:'hp',f:3500,pan:-.3,pan1:.3},R);bruit(b,{c:'r',t0:0,a:.003,d:.12,v:.45,ft:'bp',f:1100,f1:600,g:.12,q:1.4,am:[55,.5]},R);cloche(b,{f:nE(36),r:[1,2.76],m:[1,.2],d:[.15,.05],t0:.02,v:.1},R);}});
-D('fruit.myrtille',{fam:'fruits',bus:'fx',dur:.25,db:-1,max:3,cd:.04,dit:'MYRTILLE : un petit « pop » de bulle (minuscule, mignon)',
-  r:function(b,R,o){bulle(b,R,0,700,1700,.035,.5);clic(b,{t0:.02,f:4000,d:.003,v:.2},R);bruit(b,{c:'r',t0:.01,a:.002,d:.05,v:.15,ft:'bp',f:1500,q:1.5},R);}});
-D('fruit.pasteque',{fam:'fruits',dur:1.6,st:1,key:1,db:+5,max:1,cd:.3,grp:'r',prio:3,dit:'PASTÈQUE — le graal : le gros CRRRUNCH, la gerbe de jus, et l’accord doré qui dit « jackpot »',
-  r:function(b,R,o){for(let k=0;k<30;k++)bruit(b,{c:'b',t0:Math.pow(R(),1.8)*.18,a:.0004,d:.01+R()*.02,v:.3+R()*.4,ft:'bp',f:1200+R()*2500,q:1.5,pan:R()*.8-.4},R);
-    bruit(b,{c:'r',t0:0,a:.002,d:.3,v:.5,ft:'lp',f:1200},R);grave(b,o,0,140,50,.15,.3,.7);bruit(b,{c:'b',t0:.06,a:.01,d:.5,v:.25,ft:'bp',f:2600,q:.6,pan:-.6,pan1:.6},R);
-    for(let k=0;k<6;k++)bulle(b,R,.1+R()*.3,500+R()*400,1300+R()*600,.04,.12,R()*1.2-.6);
-    stab(b,R,[12,19,24,28],.18,.2,.9,.14,1.2);cloche(b,{f:nE(36),r:[1,2,2.76],m:[1,.3,.1],d:[1.1,.4,.15],t0:.2,v:.22},R);scintille(b,R,.2,1,12,.1);}});
+/* ================================ LES FRUITS — le SPLOTCH (2026-09-30, Sacha : « quand tu ramasses un fruit, ça doit faire un
+   bruit de fruit qu'on écrase ») ==================================================================================================
+   Avant : une « bouche » par fruit (morsure, zeste, pépins, pop) — jolie, mais personne n'entendait un fruit ÉCRASÉ. Maintenant le
+   CORPS de chaque son est un vrai splotch (`ecrase`), et chaque fruit garde SA signature par-dessus, plus discrète. Avec LA LIGNE
+   PARFAITE un fruit tombe toutes les ~2,4 s : 4 PRISES par fruit (jamais deux fois la même d'affilée, `v`) + ±6 % de hauteur (`rj`)
+   + ±1,5 dB (`vj`) — la même main qui écrase, jamais le même fruit. (`st` = le rang de la rafale : ça monte quand on enchaîne.) */
+/* L'ÉCRASÉ. Ce qui fait « mouillé » à l'oreille, ce n'est pas un timbre, c'est un MOUVEMENT :
+   1. la PEAU qui cède — un « tk » sourd (rose, passe-bas : c'est mou, pas un clic) et le POIDS qui s'affaisse (un grave qui tombe) ;
+   2. le SPLOTCH — du bruit dans deux FORMANTS qui GLISSENT VERS LE BAS (la voyelle « splô » de la matière qui s'étale), HACHÉ en grains
+      irréguliers de 2 à 8 ms (la pulpe ne coule pas d'un bloc, elle gicle par paquets : c'est CE hachage qui fait humide) ;
+   3. la SUCCION — 2 à 4 petites bulles qui montent (l'air aspiré par la pulpe : le « squelch ») ;
+   4. le JUS — des gouttes qui retombent, de plus en plus espacées, et un voile de bruine.
+   o = {t: durée ×, f: hauteur × (petit fruit = aigu), jus: quantité de gouttes ×, mou: bulles graves en plus (banane), v, pan} */
+function ecrase(b,R,t0,o){
+  const sr=b.sr,T=o.t||1,F=o.f||1,J=o.jus==null?1:o.jus,v=o.v==null?.5:o.v,pan=o.pan||0;
+  // 1. la peau cède, le poids s'affaisse
+  bruit(b,{c:'r',t0:t0,a:.0006,d:.03,v:v*.6,ft:'lp',f:2400*F,q:.7,pan:pan},R);
+  osc(b,{f:170*F,f1:70*F,g:.04*T,gc:.6,t0:t0,a:.001,d:.06*T,v:v*.2,pan:pan});   /* discret : plus fort, c'était un « boum » de grosse caisse, pas un fruit (mesuré : le grave écrasait le médium de 8 dB) */
+  // 2. le splotch : deux formants qui descendent, hachés en grains
+  const dur=.17*T,i0=Math.round(t0*sr),n=Math.min(b.n-i0,Math.ceil((dur*1.6)*sr));
+  if(n>0){const q1=O.Bq(),q2=O.Bq(),P=[Math.cos((pan+1)*Math.PI/4),Math.sin((pan+1)*Math.PI/4)],kS=1-Math.exp(-1/(sr*.0012));let g=0,gv=0,gT=0;
+    for(let i=0;i<n;i++){const t=i/sr;
+      if((i&15)===0){const u=Math.min(1,t/dur);q1.c=O.bqC('bp',(1150-700*Math.pow(u,.55))*F,2.4,sr);q2.c=O.bqC('bp',(2700-1600*Math.pow(u,.65))*F,3.2,sr);}
+      if(t>=gT){gT=t+(.002+R()*.006)*(1+2.2*t/dur);gv=R()<.28?.12:.45+R()*.55;}   // un paquet de pulpe de plus, de plus en plus espacés
+      g+=(gv-g)*kS;                                                                // lissé à 1,2 ms : du mouillé, pas du grésillement
+      const w=R()*2-1,sx=O.bqRun(q1,w)+O.bqRun(q2,w)*.6,x=sx*g*O.env(t,.004,.012*T,dur)*v*1.9,k=i0+i;
+      if(b.R){b.L[k]+=x*P[0];b.R[k]+=x*P[1];}else b.L[k]+=x;}}
+  // 3. la succion : de petites bulles qui montent
+  const nb=2+Math.floor(R()*3);
+  for(let k=0;k<nb;k++)bulle(b,R,t0+(.015+R()*.08)*T,(240+R()*160)*F,(620+R()*420)*F,.012+R()*.016,v*(.14+R()*.1),pan+(R()-.5)*.4);
+  if(o.mou)for(let k=0;k<o.mou;k++)osc(b,{f:(420+R()*120)*F,f1:(150+R()*40)*F,g:.05,gc:.7,t0:t0+(.03+R()*.08)*T,a:.002,d:.06,v:v*.16,pan:pan});
+  // 4. le jus : des gouttes qui retombent (de plus en plus rares) + un voile de bruine
+  const ng=Math.round((5+R()*3)*J);
+  for(let k=0;k<ng;k++){const f0=(1300+R()*1700)*F;bulle(b,R,t0+(.05+Math.pow(R(),1.7)*.34)*T,f0,f0*(1.35+R()*.5),.005+R()*.009,v*(.05+R()*.09),pan+(R()-.5)*.9);}
+  bruit(b,{c:'b',t0:t0+.01,a:.004,d:.14*T,v:v*.07*J,ft:'hp',f:4800,q:.7,pan:pan-.3,pan1:pan+.3},R);
+}
+D('fruit.peche',{fam:'fruits',bus:'fx',dur:.55,v:4,rj:.06,vj:1.5,db:+1,max:2,cd:.05,pre:1,dit:'PÊCHE PLATE : le splotch rond et généreux, beaucoup de jus',
+  r:function(b,R,o){ecrase(b,R,0,{t:1,f:1,jus:1.1,v:.55});}});
+D('fruit.banane',{fam:'fruits',bus:'fx',dur:.6,v:4,rj:.06,vj:1.5,db:+1,max:2,cd:.05,dit:'BANANE : la peau qui claque puis la pulpe qui s’écrase MOLLE (bulles graves, peu de jus)',
+  r:function(b,R,o){bruit(b,{c:'r',t0:0,a:.002,d:.05,v:.18,ft:'bp',f:2200,q:2},R);ecrase(b,R,.012,{t:1.3,f:.78,jus:.35,mou:3,v:.55});}});
+D('fruit.grenade',{fam:'fruits',bus:'fx',dur:.55,v:4,rj:.06,vj:1.5,db:+1,max:2,cd:.05,dit:'GRENADE : le splotch + les pépins qui éclatent dedans (crépitement cristallin)',
+  r:function(b,R,o){ecrase(b,R,0,{t:.9,f:1.1,jus:1.2,v:.5});
+    for(let k=0;k<12;k++)bruit(b,{c:'b',t0:.01+Math.pow(R(),1.4)*.16,a:.0004,d:.005+R()*.008,v:.1+R()*.14,ft:'bp',f:3000+R()*3200,q:3},R);}});
+D('fruit.orange',{fam:'fruits',bus:'fx',dur:.55,v:4,rj:.06,vj:1.5,db:+1,max:2,cd:.05,dit:'ORANGE : le splotch + le zeste qui GICLE (jet fin et acide)',
+  r:function(b,R,o){ecrase(b,R,0,{t:1,f:1.06,jus:1.3,v:.55});bruit(b,{c:'b',t0:.005,a:.003,d:.16,v:.16,ft:'bp',f:5200,f1:3600,g:.12,q:1.6},R);}});
+D('fruit.myrtille',{fam:'fruits',bus:'fx',dur:.3,v:4,rj:.06,vj:1.5,db:-1,max:3,cd:.04,dit:'MYRTILLE : un tout petit splotch aigu qui éclate (« plic »)',
+  r:function(b,R,o){ecrase(b,R,0,{t:.5,f:1.75,jus:.45,v:.5});}});
+D('fruit.pasteque',{fam:'fruits',dur:1.6,st:1,key:1,v:2,rj:.03,db:+5,max:1,cd:.3,grp:'r',prio:3,dit:'PASTÈQUE — le graal : l’écorce qui CRAQUE, un ÉNORME splotch et sa gerbe de jus, puis l’accord doré qui dit « jackpot »',
+  r:function(b,R,o){for(let k=0;k<14;k++)bruit(b,{c:'b',t0:Math.pow(R(),1.8)*.07,a:.0004,d:.01+R()*.02,v:.2+R()*.3,ft:'bp',f:1200+R()*2200,q:1.5,pan:R()*.8-.4},R);
+    ecrase(b,R,.02,{t:1.9,f:.7,jus:2.4,v:.7,pan:-.15});ecrase(b,R,.05,{t:1.5,f:.78,jus:1.2,v:.35,pan:.2});
+    stab(b,R,[12,19,24,28],.26,.2,.9,.12,1.2);cloche(b,{f:nE(36),r:[1,2,2.76],m:[1,.3,.1],d:[1.1,.4,.15],t0:.28,v:.2},R);scintille(b,R,.28,1,12,.1);}});
 D('fruit.rafale',{fam:'fruits',dur:.8,st:1,key:1,db:0,max:1,cd:.3,grp:'r',prio:2,dit:'RAFALE de fruits (3 et plus) : le mixeur qui s’emballe + trois notes',
   r:function(b,R,o){osc(b,{f:180,f1:420,g:.4,w:'saw',t0:0,a:.02,h:.1,d:.2,v:.05,flt:['lp',1200,1200,1,.8]});[12,16,19].forEach(function(st,i){marimba(b,R,nE(st+12),.1+i*.06,.4,.4);});}});
 
