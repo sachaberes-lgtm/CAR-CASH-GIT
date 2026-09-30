@@ -2706,6 +2706,7 @@ body.inGarage #hud>:not(#garage):not(#gFade){display:none!important}
 #garage.menu #gTopRow,#garage.menu #gCard,#garage.menu #gCarr,#garage.menu #gBottom,#garage.menu .gNav,#garage.menu #gOutils{display:none!important}
 #garage.menu::before{height:min(30%,230px)}
 html #garage.menu::after{top:auto;left:0;right:0;bottom:0;width:auto;height:min(28%,210px);background:linear-gradient(0deg,rgba(7,5,15,.92),rgba(7,5,15,0))}
+html #garage.menu.ciel::after{background:linear-gradient(0deg,rgba(6,28,60,.62),rgba(6,28,60,0))} /* (2026-09-30, niveau 1 v2) au CIEL, le bandeau des boutons n'est plus un noir d'atelier : l'azur profond du zénith, assez dense pour lire les plaques */
 html #garage.menu #gTop{position:absolute;left:0;right:0;top:0;width:auto;max-width:none;margin:0;align-items:center;padding:calc(var(--sT) + 16px) 0 0}
 html #garage.menu #gPlayMain{display:inline-flex!important;pointer-events:auto;align-self:center;margin-top:4px}
 #gProfil{position:absolute;left:calc(var(--sL) + var(--gut));top:calc(var(--sT) + 12px);display:flex;align-items:center;gap:10px;pointer-events:auto;
@@ -5664,6 +5665,7 @@ const skyU={uTime:{value:0},uSunDir:{value:SUN_DIR},
   uVille:{value:0},uPluie:{value:0},uFogCol:{value:new THREE.Color(0x331f48)},uCam:{value:new THREE.Vector3()},
   uVilleY:{value:0},uParis:{value:0},uParisT:{value:0}, // (2026-09-28) uParis : le ciel de PARIS (toits bas à l'horizon, lueur d'or) au lieu des tours de la ville
   // (2026-09-26) la SKYLINE descend à l'altitude de la ville (en sinus d'élévation) : la route spirale AU-DESSUS des toits
+  uMzA:{value:new THREE.Vector4(760,.8,15,.25)},uMzB:{value:new THREE.Vector4(.20,.16,.26,.8)}, // (2026-09-30, niveau 1 v2) LA MER SCULPTÉE : échelle des cellules, part « gonflée », franchise de la lumière, remous · couverture, fermeture au loin, creux, clarté des trouées
   uJour:{value:0},uMerLoin:{value:16000},uJZen:{value:new THREE.Vector3()},uJMid:{value:new THREE.Vector3()},uJHor:{value:new THREE.Vector3()},uJSol:{value:new THREE.Vector3()}, // (2026-09-30) LE JOUR D'ALTITUDE (voir cielJour) : 0 = le ciel d'avant
   uMer:{value:0}, // (2026-09-26) LA MER DE NUAGES PEINTE sous l'horizon — niveau NUAGES seulement (voir merNuages ; fondue par lvlStep comme la ville)
   uBasTex:{value:null},uBasInv:{value:new THREE.Vector2(1,1)},uBasTr:{value:0}}; // (2026-09-27, tour 2) LE CIEL EN DEUX TEMPS : la passe lisse (cible hors écran), 1/taille de l'image où la relire, sa trame si elle est en 8 bits (voir CIEL2)
@@ -5681,7 +5683,7 @@ const skyDome=(function(){
       'varying vec3 vDir;uniform vec3 uSunDir;uniform float uTime;',
       'uniform vec3 uSkyMul,uSkyLift,uSunTint;uniform float uSunHalo,uCity,uStars,uMoon,uPulse;', // grade biome (identité par défaut) + uPulse musique
       'uniform float uSpace;', // NIVEAU ORBITE : 0 = aucun effet
-      'uniform float uJour,uMerLoin;uniform vec3 uJZen,uJMid,uJHor,uJSol;', // (2026-09-30) LE JOUR D ALTITUDE : 0 = le ciel d avant, au bit près
+      'uniform float uJour,uMerLoin;uniform vec3 uJZen,uJMid,uJHor,uJSol;uniform vec4 uMzA,uMzB;', // (2026-09-30) LE JOUR D ALTITUDE : 0 = le ciel d avant, au bit près
       'uniform float uLvl,uSpin,uBeatK,uFlip,uBar,uHi,uWave,uHueAmp;uniform vec3 uAcc,uAcc2;uniform vec4 uRingR,uRingA;', // LE FOND DU NIVEAU
       'float hash21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}',
       /* ROTATION DE TEINTE AUTOUR DE L AXE DES GRIS (Rodrigues). ⚠ c est LA fonction qui permet les
@@ -5908,19 +5910,28 @@ const skyDome=(function(){
          anticrénelage, même parallaxe vraie, même coût : mfbm2). Les dômes : sommets crème au soleil, flancs bleu-lavande à l ombre,
          creux plus sombres ; côté soleil la mer s embrase ; au loin tout se noie dans la brume (perspective aérienne) et SEULE la
          ligne d horizon rejoint le ciel. Mélangée par uJour (0 = la mer d avant). */
+      /* (2026-09-30, niveau 1 v2 — la mer de la v1 se lisait comme une AQUARELLE ÉTALÉE : cellules de 1,3 km étirées par un remous fort,
+         trouées d azur profond qui, rasantes, devenaient des traînées sombres horizontales, une lumière molle). LA MER SCULPTÉE : des cellules
+         de cumulus plus petites (uMzA.x m), un bruit « gonflé » (1−|2n−1|, uMzA.y) qui fait des DÔMES ronds aux creux nets, une lumière
+         côté soleil / côté ombre plus franche (uMzA.z), les creux entre les dômes assombris (uMzB.z), un remous léger (uMzA.w) ; au loin la
+         mer se FERME (uMzB.y : plus de trouées étirées en rubans) et les trouées prennent l azur du milieu du ciel (uMzB.w), pas l encre. */
       'vec3 merZ(vec3 d,float y,float sd){vec3 F=uFogCol;if(y>=-.002)return F;float yy=min(y,-.0006);',
       '  float t=max(160.,uCam.y+420.)/(-yy);',
-      '  vec2 p=d.xz*t+uCam.xz+vec2(uTime*6.,uTime*2.4),q=p/1300.;',
-      '  float fp=t*.0016/max(-yy,.02)/1300.*MER_FPK;',
-      '  vec2 w=vec2(vn(q*.35+3.7),vn(q*.35-5.1));q+=1.1*w;',
+      '  vec2 p=d.xz*t+uCam.xz+vec2(uTime*6.,uTime*2.4),q=p/uMzA.x;',
+      '  float fp=t*.0016/max(-yy,.02)/uMzA.x*MER_FPK;',
+      '  vec2 w=vec2(vn(q*.23+3.7),vn(q*.23-5.1));q+=uMzA.w*w;',
       '  vec2 sx=normalize(uSunDir.xz+vec2(1e-4));',
-      '  vec2 n2=mfbm2(q,q+sx*.06,fp);float n=n2.x;',
-      '  float lit=clamp(.55+(n-n2.y)*9.,0.,1.);',
-      '  float cov=smoothstep(.24,.48,n),cr=smoothstep(.42,.78,n);',
-      '  vec3 trou=uJZen*.55;',
-      '  vec3 ombre=mix(uJMid*.62+vec3(.10,.10,.15),F,.22);',
+      '  vec2 n2=mfbm2(q,q+sx*.05,fp);',
+      '  float n=mix(n2.x,1.-abs(2.*n2.x-1.),uMzA.y),ns=mix(n2.y,1.-abs(2.*n2.y-1.),uMzA.y);',
+      '  float far=1.-exp(-t/9000.);',
+      '  float lit=clamp(.5+(n-ns)*uMzA.z,0.,1.);',
+      '  float big=vn(q*.07+11.3)-.5;',
+      '  float cov=smoothstep(uMzB.x-uMzB.y*far-.22*big,uMzB.x+.14-uMzB.y*far-.22*big,n),cr=smoothstep(.55,.82,n),ao=smoothstep(uMzB.x,uMzB.x+.32,n);',
+      '  vec3 trou=mix(uJZen*.6,uJMid*.85,uMzB.w);',
+      '  vec3 ombre=mix(uJMid*.58+vec3(.10,.10,.16),F,.2);',
       '  vec3 haut=mix(vec3(1.,.985,.96),uSunTint,.18);',
-      '  vec3 m=mix(ombre,haut,lit*(.55+.45*cr));',
+      '  vec3 m=mix(ombre,haut,lit*(.45+.55*cr));',
+      '  m*=1.-uMzB.z*(1.-ao);',
       '  m=mix(trou,m,cov);',
       '  m+=uJSol*pow(sd,4.)*cov*.35;',
       '  m=mix(m,F,(1.-exp(-t/uMerLoin))*.8);',
@@ -6636,13 +6647,28 @@ const ACES_N=IS_MOBILE?6:8;   // flou radial du boost : 18 lectures de texture a
    WebGL1 (très vieux appareils) : `texelFetch`/`textureLod` n'y existent pas — mêmes calculs en `texture2D`, comme avant. */
 const W2_POST=!!(renderer.capabilities&&renderer.capabilities.isWebGL2);
 const TXL=(s,u)=>W2_POST?'textureLod('+s+','+u+',0.0)':'texture2D('+s+','+u+')'; // une lecture filtrée, sans dérivées quand on peut
+/* LA CAISSE RESTE NETTE (2026-09-30, niveau 1 v2) : où est la caisse à l'écran (uCtr, en coordonnées d'image 0-1), quelle taille y fait-elle
+   (uSafe : le rayon de son disque net), et l'échelle qui ramène la distance à la caisse à celle d'avant (uRn : le coin le plus loin de la
+   caisse compte comme le coin de l'image comptait depuis le milieu). Hors cadre (derrière la caméra) : le milieu, comme avant. */
+const POST_CV=new THREE.Vector3(),POST_CV2=new THREE.Vector3();
+function postCaisse(U){
+  let x=.5,y=.5,rs=0;
+  if(started&&!gameOver&&carGroup.visible){POST_CV.copy(carGroup.position).project(camera);
+    if(POST_CV.z<1&&Math.abs(POST_CV.x)<1.4&&Math.abs(POST_CV.y)<1.4){x=POST_CV.x*.5+.5;y=POST_CV.y*.5+.5;
+      const R9=.55*((CARS[level]&&CARS[level].l)||4.2);POST_CV2.setFromMatrixColumn(camera.matrixWorld,0).multiplyScalar(R9).add(carGroup.position).project(camera);
+      rs=Math.min(.32,Math.hypot((POST_CV2.x-POST_CV.x)*.5,(POST_CV2.y-POST_CV.y)*.5));}}
+  x=Math.min(.85,Math.max(.15,x));y=Math.min(.85,Math.max(.15,y));
+  U.uCtr.value.set(x,y);U.uSafe.value=rs;
+  U.uRn.value=.7071/Math.max(Math.hypot(Math.max(x,1-x),Math.max(y,1-y)),.5);
+}
 const ACESShader={
   uniforms:{tDiffuse:{value:null},uExposure:{value:POST_EXPO},uSat:{value:POST_SAT},uContrast:{value:POST_CONTRAST},
             uVivid:{value:POST_VIVID},uWB:{value:POST_WB},uSh:{value:POST_SHADOW},uHi:{value:POST_HI},uSpeed:{value:0},uJit:{value:0},uRes:{value:new THREE.Vector2(1/1024,1/1024)},
             uVigK:{value:.52},uVigC:{value:new THREE.Vector3(.149,.047,.212)}, // (2026-09-26, vague 2) la VIGNETTE du niveau (ex-calque DOM #vig), posée par bioApply
-            uWE:{value:new THREE.Vector3(1,1,1)},uKC:{value:new THREE.Vector2(1,0)}}, // (tour 2, post) uWB×uExposure et le contraste (pente, décalage) — posés par acesPass.render à chaque image
+            uWE:{value:new THREE.Vector3(1,1,1)},uKC:{value:new THREE.Vector2(1,0)},
+            uCtr:{value:new THREE.Vector2(.5,.5)},uSafe:{value:0},uRn:{value:1}}, // (2026-09-30, niveau 1 v2) le flou de vitesse part de la CAISSE et la garde nette (voir « LA CAISSE RESTE NETTE ») // (tour 2, post) uWB×uExposure et le contraste (pente, décalage) — posés par acesPass.render à chaque image
   vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
-  fragmentShader:['uniform sampler2D tDiffuse;uniform float uExposure,uSat,uContrast,uVivid,uSpeed,uJit,uVigK,uSharp;uniform vec3 uWB,uSh,uHi,uVigC,uWE;uniform vec2 uRes,uKC;varying vec2 vUv;',
+  fragmentShader:['uniform sampler2D tDiffuse;uniform float uExposure,uSat,uContrast,uVivid,uSpeed,uJit,uVigK,uSharp;uniform vec3 uWB,uSh,uHi,uVigC,uWE;uniform vec2 uRes,uKC,uCtr;uniform float uSafe,uRn;varying vec2 vUv;',
     'uniform sampler2D uBc;uniform float uBa;', // (2026-09-27, passe perf iPhone) le BLOOM FUSIONNÉ — le halo déjà composé (voir « LE HALO COMPOSÉ » sous le compositeur) ; uBa = 0 : pas de halo
     'uniform vec4 uNit;uniform float uNitF;uniform float uTrame;', // (vague 3, NITRO) la couleur de la poussée sur les bords (rgb + part) et le coup d'allumage — posés par nfxTick
     // (2026-09-26, audit rendu) LES HAUTES LUMIÈRES ROULENT au lieu de s'écraser : en NUAGES, 98 % du haut de l'image avait un canal au
@@ -6657,16 +6683,21 @@ const ACESShader={
     '  vec2 dir=vUv-0.5; vec3 x; vec2 bu=vUv,bd=vec2(0.0);',
     '  bool fx=uSpeed>0.0||uNit.a+uNitF>0.0; float r=0.0; if(fx)r=length(dir);',
     '  if(uSpeed>0.004){',                                    // + flou radial + aberration chromatique (fuite vers les bords)
-    '    vec2 buv=0.5+dir*(1.0+uSpeed*0.60*r*r);',            // WARP AU BOOST : le monde S INCURVE FORT autour de la caisse (centre stable → jouable)
-    '    float amt=uSpeed*(0.04+r*r*1.7); vec3 acc=vec3(0.0);', // r² : centre NET, filé TRÈS FRANC vers les bords
+    /* LA CAISSE RESTE NETTE (2026-09-30, niveau 1 v2 — mesuré sur les captures : en portrait la caisse est en BAS de l'image, le flou
+       partait du MILIEU, elle était le premier objet étalé, à la moindre plaque BOOST). Le flou part désormais de la caisse (uCtr, sa
+       position à l'écran) ; sa force suit la distance à la caisse ramenée à la même échelle qu'avant (uRn : le coin le plus loin vaut
+       le coin d'avant) ; et un disque de la taille de la caisse (uSafe) reste NET — le monde file, la caisse jamais. */
+    '    vec2 dc=vUv-uCtr; float rb=length(dc)*uRn, ms=smoothstep(uSafe,uSafe*2.2+.02,length(dc));',
+    '    vec2 buv=uCtr+dc*(1.0+uSpeed*0.60*rb*rb*ms);',            // WARP AU BOOST : le monde S INCURVE FORT autour de la caisse (centre stable → jouable)
+    '    float amt=uSpeed*(0.04+rb*rb*1.7)*ms; vec3 acc=vec3(0.0);', // r² : centre NET, filé TRÈS FRANC vers les bords
     '    float jt=fract(52.9829189*fract(dot(gl_FragCoord.xy,vec2(.06711056,.00583715)))+uJit);', // grain ANIMÉ : moins de prises sans dessiner de copies (statique = saleté collée)
-    '    for(int i=0;i<'+ACES_N+';i++){ float t='+(ACES_N<8?'(float(i)+jt)/'+ACES_N+'.0':'float(i)/7.0')+'; vec2 off=dir*amt*t*0.62;',
+    '    for(int i=0;i<'+ACES_N+';i++){ float t='+(ACES_N<8?'(float(i)+jt)/'+ACES_N+'.0':'float(i)/7.0')+'; vec2 off=dc*amt*t*0.62;',
     '      acc+='+TXL('tDiffuse','buv-off')+'.rgb; }',        // (2026-09-26) UNE lecture par prise (il y en avait trois : 18 lectures par pixel au téléphone)
-    '    x=acc/'+ACES_N+'.0; bu=buv-dir*amt*0.31;'+(IS_MOBILE?'':' bd=dir*amt*0.155;'), // le halo se lit au milieu de la traînée (PC : aux deux quarts, il FILE comme l'image ; téléphone : une lecture — mesuré invisible, 5 lectures de moins au boost)
+    '    x=acc/'+ACES_N+'.0; bu=buv-dc*amt*0.31;'+(IS_MOBILE?'':' bd=dc*amt*0.155;'), // le halo se lit au milieu de la traînée (PC : aux deux quarts, il FILE comme l'image ; téléphone : une lecture — mesuré invisible, 5 lectures de moins au boost)
     // L'ABERRATION CHROMATIQUE (2026-09-26, vague 2) — MESURÉ : au boost, chaque bord de nuage et chaque fenêtre de la ville s'ourlait
     // d'un ARC-EN-CIEL rose/jaune/cyan de 10-12 px (×.05 de l'amplitude du flou, dès le centre). Réduite au TIERS et seulement au-delà de
     // 45 % du rayon (le bord de l'image fuit, le centre reste propre) — et COUPÉE au téléphone : deux lectures de texture en moins par pixel.
-    IS_MOBILE?'':'    { vec2 mid=buv-dir*amt*0.31, ca=dir*amt*0.015*smoothstep(.45,.9,r);'+
+    IS_MOBILE?'':'    { vec2 mid=buv-dc*amt*0.31, ca=dc*amt*0.015*smoothstep(.45,.9,rb);'+
     '      x.r=mix(x.r,'+TXL('tDiffuse','mid-ca')+'.r,0.5); x.b=mix(x.b,'+TXL('tDiffuse','mid+ca')+'.b,0.5); }',
     '  } else {',
     FXAA_ON?[ // ANTICRÉNELAGE LÉGER (FXAA simplifié) — seulement image nette (le flou de boost lisse déjà) ; hors bord, 5 lectures et on sort
@@ -9285,7 +9316,7 @@ function trancheMat(){
   m.customProgramCacheKey=function(){return 'trancheV2';};
   return m;
 }
-const ROUTE_JOUR=[1.0,1.12,.88]; // (2026-09-30) la teinte du bitume au jour d'altitude (× la base violette 0x322e40 → un anthracite à peine bleuté)
+const ROUTE_JOUR=[.86,.94,.86]; /* (niveau 1 v2) [1,1.12,.88] → plus SOMBRE : au banc le bitume du midi sortait gris clair (L* ~55), au niveau des nuages — la route doit être le ruban le plus sombre de l'image pour que la caisse orange et le ciel clair se lisent contre elle (L10 26 → 10) */ // (2026-09-30) la teinte du bitume au jour d'altitude (× la base violette 0x322e40 → un anthracite à peine bleuté)
 const GLACE={k:1,nuages:.45,espace:.5}; // (passe graphismes mobile) la part du ciel dans le bitume sec, par niveau (la VILLE a son eau) — `dbgGfx({glace:0})` = l'ancien bitume
 const _px9=new THREE.Vector2();
 function routeTick(){ // le bitume suit le NIVEAU (fondu du portail : LVL.route / LVL.sheen, voir lvlStep)
@@ -12667,18 +12698,18 @@ const BIO_DAY=['aube','lever','matin','midi','aprem','golden','couchant','soir',
    le rose de la nuit teintaient le jour en MAGENTA) ; l'étalonnage neutre-frais (plus de voile magenta, vignette bleu nuit, ombres à
    peine sarcelle) ; des nuages BLANCS au soleil (volSun presque neutre : la pêche, c'est l'après-midi). Réglé au banc (ciel2.js, menu
    et course figée, debout et couché) ; `dbgAmb(nom,{…})` pour retoucher à chaud. Le menu (MENU_BIO = 'matin') prend le même ciel. */
-{const G9={wb:[1,1,1],sh:[-.006,.008,.03],hi:[-.01,-.02,.03],con:1.2, /* hi : compense le split or de la couche DA (+.02,+.038,−.042) — sinon un nuage blanc, haute lumière, sortait ORANGE */vigC:[.05,.14,.22],vigK:.34,fogIn:[.93,.95,.97],hemiG:[.78,.80,.86],volGnd:[.60,.66,.78],volSky:[.55,.75,.95]};
- Object.assign(BIOMES.matin,G9,{jour:1,jZen:[.10,.36,.66],jMid:[.30,.66,.86],jHor:[.93,.93,.86],jSol:[.55,.38,.18],sunTint:[1,.90,.70],sunHalo:.8,
-   fog:[.84,.90,.92],fogN:900,fogF:5200,fogCj:[.96,.90,.78],hemiS:[.78,.86,.95],hemiI:.78,sunC:[1,.95,.84],sunI:1.5,fillC:[.55,.75,.95],
-   volSun:[2.05,1.98,1.84],volAmb:.9,expo:1.0,
+{const G9={wb:[1,1,1],sh:[-.006,.008,.03],hi:[-.01,-.02,.03],con:1.2, /* hi : compense le split or de la couche DA (+.02,+.038,−.042) — sinon un nuage blanc, haute lumière, sortait ORANGE */vigC:[.05,.14,.22],vigK:.26, /* (niveau 1 v2) .34 → .26 : avec le bitume plus sombre, le bas de l'image tournait au trou noir */fogIn:[.93,.95,.97],hemiG:[.78,.80,.86],volGnd:[.60,.66,.78],volSky:[.55,.75,.95]};
+ Object.assign(BIOMES.matin,G9,{jour:1,con:1.28,jZen:[.08,.30,.62],jMid:[.30,.66,.86],jHor:[.93,.93,.86],jSol:[.55,.38,.18],sunTint:[1,.90,.70],sunHalo:.8,
+   fog:[.84,.90,.92],fogN:900,fogF:5200,fogCj:[.96,.90,.78],hemiS:[.78,.86,.95],hemiI:.70,sunC:[1,.95,.84],sunI:1.5,fillC:[.55,.75,.95],
+   volSun:[2.05,1.98,1.84],volAmb:.9,expo:.96,
    env:[[0,'#2f7fc0'],[.3,'#6cc0dc'],[.48,'#e6f2ee'],[.58,'#fff4de'],[.66,'#b9c9d6'],[1,'#8ea4ba']],eS1:[255,248,230,.44],eS2:[150,215,240,.32]});
- Object.assign(BIOMES.midi,G9,{jour:1,jZen:[.05,.30,.64],jMid:[.24,.62,.88],jHor:[.86,.92,.94],jSol:[.40,.36,.26],sunTint:[1,.96,.88],sunHalo:.6,
-   fog:[.82,.90,.95],fogN:1000,fogF:5600,fogCj:[.94,.93,.86],hemiS:[.76,.86,.98],hemiI:.82,sunC:[1,.98,.92],sunI:1.55,fillC:[.5,.72,.96],
-   volSun:[2.3,2.25,2.15],volAmb:.92,expo:1.0,
+ Object.assign(BIOMES.midi,G9,{jour:1,con:1.3,jZen:[.03,.22,.55],jMid:[.18,.55,.84],jHor:[.86,.92,.94],jSol:[.40,.36,.26],sunTint:[1,.96,.88],sunHalo:.6,
+   fog:[.78,.87,.95],fogN:1000,fogF:5600,fogCj:[.94,.93,.86],hemiS:[.76,.86,.98],hemiI:.70,sunC:[1,.98,.92],sunI:1.55,fillC:[.5,.72,.96],
+   volSun:[2.3,2.25,2.15],volAmb:.92,expo:.95,
    env:[[0,'#1f6cc4'],[.3,'#5ab0e0'],[.48,'#dff0f6'],[.58,'#ffffff'],[.66,'#bccbd8'],[1,'#90a4bc']],eS1:[255,255,248,.46],eS2:[140,205,250,.3]});
- Object.assign(BIOMES.aprem,G9,{jour:1,jZen:[.14,.34,.62],jMid:[.40,.62,.82],jHor:[.98,.88,.74],jSol:[.75,.42,.16],sunTint:[1,.82,.58],sunHalo:.9,
-   fog:[.90,.87,.83],fogN:900,fogF:5000,fogCj:[1,.84,.66],hemiS:[.80,.84,.96],hemiI:.78,sunC:[1,.88,.72],sunI:1.35,fillC:[.58,.66,.86],
-   volSun:[1.9,1.6,1.3],volAmb:.8,expo:.98,hi:[.01,0,-.01], // l'après-midi garde un peu d'or dans ses lumières
+ Object.assign(BIOMES.aprem,G9,{jour:1,con:1.28,jZen:[.14,.34,.62],jMid:[.40,.62,.82],jHor:[.98,.88,.74],jSol:[.75,.42,.16],sunTint:[1,.82,.58],sunHalo:.9,
+   fog:[.90,.87,.83],fogN:900,fogF:5000,fogCj:[1,.84,.66],hemiS:[.80,.84,.96],hemiI:.70,sunC:[1,.88,.72],sunI:1.35,fillC:[.58,.66,.86],
+   volSun:[1.9,1.6,1.3],volAmb:.8,expo:.94,hi:[.01,0,-.01], // l'après-midi garde un peu d'or dans ses lumières
    env:[[0,'#3a78b8'],[.3,'#80b4d6'],[.48,'#f2dcbc'],[.58,'#ffd9a0'],[.66,'#c2b8b4'],[1,'#8e98ac']],eS1:[255,236,200,.44],eS2:[170,205,240,.3]});}
 const BIO={cur:JSON.parse(JSON.stringify(BIOMES.golden)),from:null,to:BIOMES.golden,k:1,dur:4,name:'golden'};
 function bioLerp(a,b,e,out){ // mixe deux biomes champ à champ (tableaux = composantes, nombres = scalaires)
@@ -33932,7 +33963,7 @@ let MENU_BIO='matin';
 window.dbgAmb=function(n,o){n=n||MENU_BIO;const B=BIOMES[n];if(!B)return null;if(o&&typeof o==='object')Object.assign(B,JSON.parse(JSON.stringify(o))); // (2026-09-30, dev) retoucher une ambiance à chaud : dbgAmb('matin',{jZen:[…]})
   MENUV.bio=false;if(BIO.name===n||BIO.to===B){bioLerp(B,B,1,BIO.cur);bioApply(BIO.cur);paintEnv(B.env,B.eS1,B.eS2);BIO.pas=(BIO.pas|0)+1;}
   return JSON.parse(JSON.stringify(B));};
-window.dbgCielObj=function(){return {horizonGlow:horizonGlow,sunSprite:sunSprite,RAYS:RAYS,CLOUD_MAT:CLOUD_MAT,COTON:COTON,GFX_U:GFX_U,skyU:skyU,fog:scene.fog,aces:acesPass,LVL:LVL,BIO:BIO,hemi:hemi,sun:sun,fill:fill,kick:kick};}; // (2026-09-30, dev) disséquer le ciel au banc
+window.dbgCielObj=function(){return {ROAD_U:ROAD_U,ROUTE_JOUR:ROUTE_JOUR,CHUTE_P:CHUTE_P,horizonGlow:horizonGlow,sunSprite:sunSprite,RAYS:RAYS,CLOUD_MAT:CLOUD_MAT,COTON:COTON,GFX_U:GFX_U,skyU:skyU,fog:scene.fog,aces:acesPass,LVL:LVL,BIO:BIO,hemi:hemi,sun:sun,fill:fill,kick:kick};}; // (2026-09-30, dev) disséquer le ciel au banc
 window.dbgMenuCiel=function(b){if(b&&BIOMES[b]){MENU_BIO=b;MENUV.bio=false;}return MENU_BIO;}; // (dev) essayer un autre ciel d'accueil : dbgMenuCiel('matin')
 function menuPlan(){ // le meilleur couple (position, angle) pour filmer la caisse devant le couchant — une fois par piste
   MENUV.L=L;let best=9;const sx=SUN_DIR.x,sz=SUN_DIR.z,sn=Math.hypot(sx,sz);
@@ -34177,7 +34208,7 @@ window.dbgFeu=function(on){const F=GAR.feu;if(!F)return null;if(on!=null&&GAR.fe
 var CHUTE={oA:0,oAc:0,oW:0,oP:0,oPc:0,mvT:0,on:false,t:0,go:null,L:-1,s:0,C:new THREE.Vector3(),cam:new THREE.Vector3(),f:new THREE.Vector3(),fh:new THREE.Vector3(),lh:new THREE.Vector3(),
   q:new THREE.Quaternion(),m:new THREE.Matrix4(),v1:new THREE.Vector3(),v2:new THREE.Vector3(),v3:new THREE.Vector3(),w:null,fil:null,voile:null,bioPas:-1,vent:false,entree:0};
 const CHUTE_OK=!/[?&]chute=0\b/.test(location.search); // (et seulement avec les boutons de Sacha : le menu de Léo, ?menu=leo, garde son atelier — son étiquette MISSIONS vit sur le socle)
-const CHUTE_P={cle:.5,brume:2.5,expo:.82,trainee:0,alt:1500,avant:1500,pitch:.22,roule:.2,cap:.42,elev:.22,vit:26,echelle:1,taille:.82,sol:.3,sous:70,plancher:0}; // (2026-09-30, le JOUR D'ALTITUDE) de très haut au-dessus de TOUT le monde du niveau : les cumulus deviennent un champ de nuages sous la caisse, la mer à perte de vue ; plus de traînée orange ni de plancher peint ; brume repoussée, exposition et clé baissées (l'image sortait délavée) // (choisi aux captures : l'horizon et la mer de nuages dans l'image, le soleil de côté devant — sa lueur rose-or sur l'horizon)
+const CHUTE_P={cle:.5,brume:2.5,expo:.82,trainee:0,alt:1500,avant:1500,pitch:.55,roule:.25,cap:.42,elev:.3, /* (niveau 1 v2) pitch .22 → .55, elev .22 → .30 : à plat, elle PLANAIT ; le nez piqué vers la mer, on la voit TOMBER */vit:26,echelle:1,taille:.82,sol:.3,sous:70,plancher:0}; // (2026-09-30, le JOUR D'ALTITUDE) de très haut au-dessus de TOUT le monde du niveau : les cumulus deviennent un champ de nuages sous la caisse, la mer à perte de vue ; plus de traînée orange ni de plancher peint ; brume repoussée, exposition et clé baissées (l'image sortait délavée) // (choisi aux captures : l'horizon et la mer de nuages dans l'image, le soleil de côté devant — sa lueur rose-or sur l'horizon)
 window.dbgChute=function(o){if(o&&typeof o==='object'){Object.assign(CHUTE_P,o);CHUTE.L=-1;}
   return {on:CHUTE.on,go:!!CHUTE.go,s:Math.round(CHUTE.s),C:CHUTE.C.toArray().map(Math.round),cam:CHUTE.cam.toArray().map(function(x){return +x.toFixed(1);}),P:CHUTE_P,
     route:(function(){try{frameAt(CHUTE.s,F);const q=F.p.clone().project(camera);return [+q.x.toFixed(2),+q.y.toFixed(2),+q.z.toFixed(3)];}catch(e){return null;}})()};};
@@ -34242,14 +34273,15 @@ function chuteEntre(){ // de l'atelier (ou de rien) au ciel
   CHUTE.on=true;CHUTE.t=0;CHUTE.bioPas=-1;CHUTE.oA=CHUTE.oAc=CHUTE.oW=CHUTE.oP=CHUTE.oPc=0; // (2026-09-30) l'orbite repart du plan de face
   if(!CHUTE.av)CHUTE.av={c:new THREE.Color()};CHUTE.av.e=acesPass?acesPass.uniforms.uExposure.value:null;if(scene.fog){CHUTE.av.c.copy(scene.fog.color);CHUTE.av.n=scene.fog.near;CHUTE.av.f=scene.fog.far;} // (2026-09-30) l'exposition et la brume d'avant (l'atelier les retrouve)
   if(!CHUTE.w)chuteMonte();
-  if(GAR.root)GAR.root.visible=false;garageFloor.visible=false;
+  if(GAR.root)GAR.root.visible=false;garageFloor.visible=false;gEl.classList.add('ciel'); /* (niveau 1 v2) le bandeau du bas prend l'azur profond du ciel (voir #garage.menu.ciel::after) */
   try{if(openGarage._amb){openGarage._amb.stop(.35);openGarage._amb=null;}if(openGarage._feu){openGarage._feu.stop(.35);openGarage._feu=null;}}catch(e){} // l'atelier se tait : là-haut, c'est le vent
   if(CHUTE.entree){const v=chuteVoileEl();v.style.transition='none';v.style.opacity='1';void v.offsetWidth;v.style.transition='opacity .45s ease-out';v.style.opacity='0';} // revenu de la boutique : on sort de l'atelier PAR un nuage
   CHUTE.entree=1;
 }
 function chuteSort(ferme){ // on quitte le ciel : l'atelier (boutique, missions) ou la course (ferme)
   if(!CHUTE.on&&!CHUTE.go)return;
-  CHUTE.on=false;CHUTE.go=null;
+  CHUTE.on=false;CHUTE.go=null;gEl.classList.remove('ciel');if(COTON.root)COTON.root.visible=COTON.n>0;
+  if(CHUTE.snd){try{CHUTE.snd.stop(ferme?.5:.3);}catch(e){}CHUTE.snd=null;} /* (niveau 1 v2) la chute libre se tait */
   if(CHUTE.w)for(const w of CHUTE.w){w.sp.visible=false;}
   if(CHUTE.fil)CHUTE.fil.m.visible=false;
   if(CHUTE.sol)for(const sp of CHUTE.sol)sp.visible=false;
@@ -34277,6 +34309,7 @@ function chuteRender(dt){
   if(scene.fog){scene.fog.color.copy(FOG_BASE);scene.fog.near=FOG_N*P.brume;scene.fog.far=FOG_F*P.brume;skyU.uFogCol.value.copy(FOG_BASE);} // (P.brume : de là-haut, la brume s'éloigne — la mer de nuages fait sa propre perspective)
   if(acesPass)acesPass.uniforms.uExposure.value=POST_EXPO*P.expo;
   if(GAR.root&&GAR.root.visible)GAR.root.visible=false;
+  if(COTON.root&&COTON.root.visible)COTON.root.visible=false; /* (niveau 1 v2) au menu, de 1 500 m, les cumulus du niveau passaient en BOULES translucides devant la caisse (le « fantôme » de la capture de Sacha) : la mer de nuages suffit — chuteSort les rend */
   if(CHUTE.L!==L)chutePlan();
   // L'ANCRE : au-dessus du début de piste, en retrait, à P.alt mètres
   frameAt(CHUTE.s,F);const lh=CHUTE.lh,sw=Math.sin(t*.11)*.07+Math.sin(t*.047+1.1)*.04; // la vue BALANCE lentement autour de la caisse
@@ -34347,10 +34380,15 @@ function chuteRender(dt){
      const x0=C.x+S9.x,z0=C.z+S9.z,y0=C.y+S9.y,y1=y0-S9.l*(G?1+u*2:1),hw=S9.w*.5,wx=ax/an*hw,wz=az/an*hw,o=i*12;
      pos[o]=x0-wx;pos[o+1]=y0;pos[o+2]=z0-wz;pos[o+3]=x0+wx;pos[o+4]=y0;pos[o+5]=z0+wz;
      pos[o+6]=x0-wx;pos[o+7]=y1;pos[o+8]=z0-wz;pos[o+9]=x0+wx;pos[o+10]=y1;pos[o+11]=z0+wz;
-     const a=S9.a*Math.min(1,(S9.y+44)/10)*Math.min(1,(44-S9.y)/10)*(G?1.3:.42);   // la tête du filet blanche, la queue éteinte
+     const cp9=camera.position,dc9=Math.hypot(x0-cp9.x,(y0+y1)*.5-cp9.y,z0-cp9.z); /* (niveau 1 v2) un filet qui frôle la CAMÉRA devenait un rayon de lumière vertical sur tout l'écran (lu comme un bug) : il s'efface avant */
+     const a=S9.a*Math.min(1,(S9.y+44)/10)*Math.min(1,(44-S9.y)/10)*(G?1.3:.3)*Math.min(1,Math.max(0,(dc9-6)/8));   // la tête du filet blanche, la queue éteinte
      col[o]=col[o+3]=a;col[o+1]=col[o+4]=a;col[o+2]=col[o+5]=a;col[o+6]=col[o+9]=0;col[o+7]=col[o+10]=0;col[o+8]=col[o+11]=0;}
    Fi.m.visible=true;Fi.m.geometry.attributes.position.needsUpdate=true;Fi.m.geometry.attributes.color.needsUpdate=true;}
   // LE VENT : le souffle et le sifflement de la chute (les nœuds du moteur de son, au repos hors course)
+  /* (niveau 1 v2) LA CHUTE LIBRE a sa boucle (`chute.vent` : grondement, rafales, l'air qui claque sur les tôles) ; retentée tant que le son
+     n'est pas prêt (premier geste). Au piqué de JOUER, elle monte de 4 dB et s'accélère de 25 % : l'air hurle. */
+  if(SONV2&&!CHUTE.snd&&t>(CHUTE.sndT||0)){CHUTE.sndT=t+1;try{CHUTE.snd=sfx('chute.vent',{loop:true,vol:-20});if(CHUTE.snd)CHUTE.snd.gain(0,1.4);}catch(e){}}
+  if(CHUTE.snd&&G){CHUTE.snd.gain(4*u,.15);CHUTE.snd.rate(1+.25*u,.15);}
   if(AC&&windG&&whG){try{if(!CHUTE.vent||G){CHUTE.vent=true;stt(windG.gain,G?.05+.05*u:.03,AC.currentTime,.3);stt(windF.frequency,G?900+2400*u:760,AC.currentTime,.3);stt(whG.gain,G?.02+.05*u:.008,AC.currentTime,.3);}}catch(e){}}
   // JOUER : le banc de nuage traversé (voile blanc), puis la course sous le voile
   if(G){if(!G.voile&&u>.74){G.voile=true;try{sfx('nuage.entre');}catch(e){}}
@@ -36920,6 +36958,7 @@ function loop(now){
     const sfxT=(running&&!gameOver&&!REDUCED_MOTION&&FLOU_OK)?Math.max(ORBFX.warp*.95,Math.min(1,(nitroOn?0.72:0)+Math.min(1,boost)*0.6+(CAM_HEROS.on&&mode==='drive'?CAM_HEROS.flou*THREE.MathUtils.clamp((speedKmh/Math.max(1,vCroisiere())-.7)/.8,0,1):0))*volK9):0; /* (CAM_HEROS) un voile de flou sur les BORDS en croisière rapide : la vitesse se lit sans ouvrir le champ */ // (2026-09-28) + le TUNNEL de l'orbite // rouler normalement = image nette ; booster = ça FUSE
     loop._sfx=(loop._sfx||0)+(sfxT-(loop._sfx||0))*Math.min(1,dt*(sfxT>(loop._sfx||0)?7:mode==='boom'?9:3)); // montée franche, retombée douce (sèche à l'explosion)
     acesPass.uniforms.uSpeed.value=loop._sfx;acesPass.uniforms.uJit.value=(acesPass.uniforms.uJit.value+.618034)%1;
+    if(loop._sfx>.004)postCaisse(acesPass.uniforms); /* LA CAISSE RESTE NETTE : le centre et le disque net du flou suivent la caisse à l'écran */
     renderer.getDrawingBufferSize(acesPass.uniforms.uRes.value);acesPass.uniforms.uRes.value.set(1/Math.max(1,acesPass.uniforms.uRes.value.x),1/Math.max(1,acesPass.uniforms.uRes.value.y)); // la taille d'un texel pour le FXAA (suit la résolution adaptative)
   }
   lvlPlanete(dt); // la planète tient sa place dans le ciel — et en ORBITE elle passe sous la route (voir NIVEAUX)
@@ -36927,7 +36966,7 @@ function loop(now){
   pluieTick(t);   // la pluie de la VILLE tombe autour de la caméra (invisible ailleurs)
   planetGroup.userData.globe.rotation.y=t*.014;                                 // …et tourne lentement sur son axe
   sunSprite.position.copy(camera.position).addScaledVector(SUN_DIR,3600);
-  sunSprite.userData.chif.material.opacity=Math.min(1,sunSprite.material.opacity*1.6); // (vague 2) les chiffres d'or suivent le halo du biome, mais NETS : pleins dès .62
+  sunSprite.userData.chif.material.opacity=Math.min(1,sunSprite.material.opacity*1.6)*(1-Math.min(1,skyU.uJour.value)); /* (2026-09-30, niveau 1 v2) au JOUR D'ALTITUDE le soleil est un astre, pas un logo : les chiffres « 1.61 », lus comme un bug au-dessus de la mer de nuages (capture de Sacha), s'effacent — les autres niveaux les gardent */ // (vague 2) les chiffres d'or suivent le halo du biome, mais NETS : pleins dès .62
   horizonGlow.position.copy(camera.position).addScaledVector(SUN_DIR,3650);
   horizonGlow.position.y-=GLOW_DROP;
   for(let r9=0;r9<RAYS.length;r9++){
