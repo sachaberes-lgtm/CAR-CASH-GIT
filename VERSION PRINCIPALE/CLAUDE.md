@@ -263,6 +263,14 @@ scratchpad GAMEPLAY). Ce qui suit est EN JEU, mesuré au banc sauf mention.
     au fond), inclinaison .2, et la visée passe AU-DELÀ de la caisse vers la porte (z +1,5, à 1 m couché ; debout la hauteur d'avant, .35 —
     l'interface du bas l'exige). Le lâcher part de cette visée (plus de saut). Pas repris : ses affiches, son socle SHOP, son PLAY en haut
     (il chevauchait le compteur) — l'interface est celle de main (MENU | BOUTIQUE | JOUER).
+  · LE CADRAGE MESURÉ (2026-09-30, Léo : « la voiture est toujours pas cadrée, c'est chelou ») : les décalages d'objectif FIXES (GAR_DECY
+    .075 en portrait, GAR_DECX .23 dès que l'écran était couché) sont remplacés par `garLibre()` (la place que laissent `#gTop` et `#gBottom`,
+    en bas ou en colonne à droite — relue toutes les 250 ms) + `garCadre(k)` (projette le centre du plateau, décentre l'objectif pour le poser
+    au milieu de cette place ; lissé ; k s'éteint au lâcher). Sur écran d'ordi le décalage .23 envoyait la caisse à gauche, à moitié sous
+    les onglets centrés. ET LA COLONNE vaut aussi pour l'ordi pas très haut : `(orientation:landscape) and (min-aspect-ratio:3/2) and
+    (max-height:820px)` en plus du téléphone couché (les règles du garage sorties du grand bloc « max-height:540px », les autres écrans
+    inchangés) — à 1000 × 570 les commandes empilées mangeaient la moitié de l'écran. `garageDecale(0)` efface tout (closeGarage).
+    Vérifié en capture : 390 × 844, 844 × 390, 1000 × 570, 1400 × 800, 1440 × 900.
   · FEU : les cases froides prennent un FOND de fumée qui rougeoie par rangée (rouge sombre au pied → presque noir sous le linteau) — elles
     tombaient au presque-noir et trouaient le haut du feu (« la flamme, corrige-la »).
   · `paintEnvAtelier` : la face +Z (la porte) est peinte en FEU — la laque de la caisse reflète les flammes, plus la nuit.

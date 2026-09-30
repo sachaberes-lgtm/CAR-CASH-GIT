@@ -3228,6 +3228,16 @@ html body.touch #airPie.danger{animation:k6PieDanger .12s steps(2) infinite}
   html #tpIn>.tpPanel{grid-column:2;grid-row:3/span 3;align-self:start}
   html #tpIn>.tp.go{grid-column:1;grid-row:5;align-self:end;position:relative;bottom:auto;margin:0 0 6px;min-height:64px}
   html #tpIn .tp.ligne{min-height:52px}
+  /* la FENÊTRE : une feuille centrée, moins haute */
+  html #modale{align-items:center}
+  html .modIn{max-width:520px;padding:20px 22px 18px;gap:10px}
+  html .modB{flex-direction:row-reverse;gap:16px;margin-top:6px}
+  html .modB .pbtn{flex:1}
+}
+/* (2026-09-30, Léo : « la voiture est toujours pas cadrée ») LE GARAGE EN COLONNE vaut aussi pour l'écran d'ORDI pas très haut (large, ≤ 820 px) :
+   à 1000 × 570 les commandes empilées en bas mangeaient la moitié de l'écran et la fiche le haut — la caisse, coincée entre les deux, passait
+   derrière le texte. Mêmes règles que le téléphone couché, sorties de son bloc (les autres écrans n'en changent pas) ; garCadre lit la colonne. */
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
   /* LE GARAGE : la fiche en haut à gauche, les commandes en COLONNE à droite (onglets, familles, vignettes, barre d'action) ;
      l'objectif est décentré en JS (garageDecale, GAR_DECX) : la caisse glisse dans la moitié gauche, entre les deux */
   html #garage::before{height:min(46%,200px);background:linear-gradient(180deg,rgba(7,5,15,.88),rgba(7,5,15,.5) 55%,rgba(7,5,15,0))}
@@ -3254,11 +3264,6 @@ html body.touch #airPie.danger{animation:k6PieDanger .12s steps(2) infinite}
   html #gNext{right:calc(min(50%,430px) + 4px)}
   html body.inGarage #toast{top:calc(var(--sT) + 14px);bottom:auto;left:auto;right:calc(var(--sR) + 16px);transform:translate(0,-14px)}
   html body.inGarage #toast.on{transform:none}
-  /* la FENÊTRE : une feuille centrée, moins haute */
-  html #modale{align-items:center}
-  html .modIn{max-width:520px;padding:20px 22px 18px;gap:10px}
-  html .modB{flex-direction:row-reverse;gap:16px;margin-top:6px}
-  html .modB .pbtn{flex:1}
 }
 /* ---- 13. LES SIGNATURES v5 (2026-09-28) — ce qui fait qu'on reconnaît le jeu sur une seule capture ----
    (a) LA LIVRÉE SE DESSINE : à l'entrée de chaque écran, les trois traits sous le titre (et sous le logo) filent de gauche à droite —
@@ -3995,7 +4000,7 @@ html body #tRight{left:calc(env(safe-area-inset-left,0px) + min(84px,21vh) + 30p
 #mDead [data-m="set"]{--nc:var(--neoC)}
 #mDead [data-m="set"] .pxi{color:var(--neoC)}
 /* couché : les flèches du garage descendent sous la plaque de la condition (elles la chevauchaient) */
-@media (orientation:landscape) and (max-height:540px){html #garage .gNav{top:calc(50% + 22px)}}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){html #garage .gNav{top:calc(50% + 22px)}}
 .gT em.def{color:var(--neoV)}.gT em.def .pxi{--pxs:1;color:var(--neoV);margin-right:4px}   /* la caisse des missions en cours : « ◎ 1 / 3 » en vert défi */
 /* la BOUTIQUE couchée (ce que montre l'ordi) : l'offre à gauche, les LÉGENDAIRES à droite — la 2e rangée restait sous le RETOUR, l'écran
    n'affichait qu'une bannière et un titre de section orphelin ; la vitrine se lit de haut en bas dans sa colonne */
@@ -4187,7 +4192,7 @@ html body #mDead>.mObj{order:-2}
 #gAct #gShopBas{flex:none;flex-direction:column;gap:6px;width:84px;min-width:84px;padding:6px 4px 4px 8px;font-size:var(--f0);letter-spacing:1px}
 #gAct #gShopBas .pxi{--pxs:3}
 #gOutils [data-go="shop"]{display:none}
-@media (orientation:landscape) and (max-height:540px){html #gAct #gShopBas{width:76px;min-width:76px;min-height:54px;gap:4px;padding:4px 2px 2px 6px}}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){html #gAct #gShopBas{width:76px;min-width:76px;min-height:54px;gap:4px;padding:4px 2px 2px 6px}}
 /* quand une caisse est à acheter / équiper (`.choix`), la décision prend la place : la BOUTIQUE devient un carré (son panier), et sur un très
    petit écran elle s'efface le temps du choix (ACHETER tombait à 41 px de large, MESURÉ) */
 html #gAct.choix :is(#gShopBas,#gClose){width:52px;min-width:52px;padding:0;gap:0}html #gAct.choix :is(#gShopBas,#gClose) span{display:none}
@@ -33459,7 +33464,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
     camera.up.set(0,1,0);camera.position.copy(GAR._v);
     // (2026-09-26, vague 2) le REGARD aussi glisse de la visée de l'orbite à celle de la poursuite (il sautait d'un coup à la 1re image),
     // et le décentrement de l'objectif (voir garageDecale) revient à zéro sur le même geste
-    {const v9=(garageRender._v||0)*POR,yv=ay+1.0-POR*.65-v9*1.35;camera.lookAt(0,yv+(ay+.85-yv)*e9,1.5+(cz+3.2-1.5)*e9);garageDecale(v9*GAR_DECY*(1-e9),(garageRender._h||0)*GAR_DECX*(1-e9));}
+    {const v9=(garageRender._v||0)*POR,yv=ay+1.0-POR*.65-v9*1.35;camera.lookAt(0,yv+(ay+.85-yv)*e9,1.5+(cz+3.2-1.5)*e9);garCadre(1-e9);}
     const fovL=(56+u*10)*FOV_K;                            // le champ s'ouvre : c'est ça, la vitesse
     if(Math.abs(camera.fov-fovL)>.01){camera.fov=fovL;camera.updateProjectionMatrix();}
     if(!G.voile&&u>.90){G.voile=true;const f=$('gFade');if(f)f.classList.add('on');} // (2026-09-29) .80 → .90 : la caisse ENTRE dans le rideau de flammes (la porte est à cz 13, atteinte à u .875) avant la coupure
@@ -33508,12 +33513,40 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
      d'action) : la caisse centrée passait dessous. Le même décentrement d'objectif, en largeur cette fois — l'image glisse vers la
      gauche, la caisse s'installe dans la moitié libre. Fondu comme l'autre ; zéro en portrait, à la séquence de départ, au lâcher. */
   garageRender._h=(garageRender._h||0)+(((gEl&&!gEl.classList.contains('quiet')&&!gEl.classList.contains('launching')&&VP.w>VP.h*1.25)?1:0)-(garageRender._h||0))*.12;
-  garageDecale(vG*GAR_DECY,garageRender._h*GAR_DECX);
+  garCadre(1);
+}
+/* LE CADRAGE MESURÉ (2026-09-30, Léo : « la voiture est toujours pas cadrée, c'est chelou »). Deux décalages FIXES d'objectif faisaient le
+   cadrage : .075 de la hauteur en portrait, .23 de la LARGEUR dès que l'écran était couché — pensé pour le téléphone couché, où les commandes
+   forment une colonne à droite. Sur un écran d'ordi les commandes sont CENTRÉES en bas : la caisse partait à gauche pour rien, à moitié
+   sous les onglets (capture 1400 × 800). Désormais on MESURE : `garLibre` lit la place que laissent la fiche du haut et les commandes (en
+   bas, ou en colonne à droite), `garCadre` projette le CENTRE DU PLATEAU (la caisse tourne autour : le cadrage ne bouge pas avec elle) et
+   décentre l'objectif (`setViewOffset`) pour le poser au milieu de cette place — n'importe quel écran, n'importe quel onglet. Lissé ; `k`
+   (0 → 1) le fond au lâcher ; plafonné au tiers de l'écran. GAR_DECY / GAR_DECX restent pour la mémoire, plus lus. */
+function garLibre(){
+  const n=performance.now();if(garLibre._r&&n-garLibre._t<250)return garLibre._r;garLibre._t=n;
+  const W=VP.w,H=VP.h,r={x0:0,x1:W,y0:0,y1:H};
+  if(gEl&&!gEl.classList.contains('quiet')&&!gEl.classList.contains('launching')){
+    const b=$('gBottom'),t=$('gTop'),bb=b&&b.getBoundingClientRect(),tb=t&&t.getBoundingClientRect();
+    if(bb&&bb.width>0){
+      if(bb.left>W*.3&&bb.height>H*.6)r.x1=bb.left;          // téléphone couché : la colonne à droite
+      else r.y1=bb.top;}                                       // sinon : les commandes en bas
+    if(tb&&tb.height>0&&tb.bottom<r.y1-120)r.y0=tb.bottom;}    // la fiche du haut (si elle laisse de la place)
+  r.cx=(r.x0+r.x1)/2;r.cy=(r.y0+r.y1)/2;return garLibre._r=r;
+}
+function garCadre(k){
+  const r=garLibre();camera.clearViewOffset();camera.updateMatrixWorld();
+  const v=GAR._pc||(GAR._pc=new THREE.Vector3());v.set(0,GARAGE_Y+GAR.POD+.55,0).project(camera); // le centre du plateau, à mi-hauteur de caisse
+  const sx=(v.x*.5+.5)*VP.w,sy=(.5-v.y*.5)*VP.h,cl=THREE.MathUtils.clamp;
+  const dx=cl((sx-r.cx)*k,-VP.w/3,VP.w/3),dy=cl((sy-r.cy)*k,-VP.h/3,VP.h/3);
+  GAR.cdx=(GAR.cdx||0)+(dx-(GAR.cdx||0))*.18;GAR.cdy=(GAR.cdy||0)+(dy-(GAR.cdy||0))*.18;
+  if(Math.abs(GAR.cdx)<.5&&Math.abs(GAR.cdy)<.5)return;                // centré : l'objectif reste droit
+  camera.setViewOffset(VP.w,VP.h,GAR.cdx,GAR.cdy,VP.w,VP.h);            // décaler l'objectif de +dx fait glisser l'image de −dx
 }
 const GAR_DECY=.075; // (charte v5, 2e critique) .13 collait la caisse sous son nom et laissait 200 px de sol vide dessous : elle se pose au milieu du vide entre la fiche et les onglets
 const GAR_DECX=.23; // part de la LARGEUR d'image dont l'objectif se décale en paysage (la caisse part vers la gauche, hors de la colonne)
 function garageDecale(k,kx){ // k = part de la hauteur d'image dont l'objectif se décale vers le bas (la scène monte) ; 0 = objectif centré ; kx = idem en largeur (paysage)
   kx=kx||0;
+  if(!(Math.abs(k)>1e-4||Math.abs(kx)>1e-4)){GAR.dec=GAR.decX=0;GAR.cdx=GAR.cdy=0;camera.clearViewOffset();return;} // (2026-09-30) zéro = TOUT effacer, cadrage mesuré compris (closeGarage)
   if(Math.abs(k-(GAR.dec||0))<1e-4&&Math.abs(kx-(GAR.decX||0))<1e-4)return;
   GAR.dec=k<1e-4?0:k;GAR.decX=Math.abs(kx)<1e-4?0:kx;
   if(!GAR.dec&&!GAR.decX){camera.clearViewOffset();return;}
