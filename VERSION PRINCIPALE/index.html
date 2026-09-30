@@ -6069,11 +6069,12 @@ document.body.appendChild(renderer.domElement);
    (appel, appareil photo, jeu lourd). Sans ces deux écouteurs, le jeu revenait sur un ÉCRAN NOIR définitif — le
    refus classique pour « l'app ne répond plus ». On empêche l'abandon (`preventDefault` = « je veux le récupérer »),
    et au retour du contexte on recharge proprement : la sauvegarde est sur le disque, rien n'est perdu. */
-renderer.domElement.addEventListener('webglcontextlost',function(e){e.preventDefault();try{sessionStorage.ccCtxPerdu=(+sessionStorage.ccCtxPerdu||0)+1;}catch(err){}try{SAVE.flush();}catch(err){}},false); // (compteur de session : `sessionStorage.ccCtxPerdu` dit combien de fois c'est arrivé)
-renderer.domElement.addEventListener('webglcontextrestored',function(){location.reload();},false);
+// (2026-09-30) les trois chemins finissent par un RECHARGEMENT : la partie en cours est posée (enCoursPose) avant d'être perdue — SAVE.load la versera
+renderer.domElement.addEventListener('webglcontextlost',function(e){e.preventDefault();try{sessionStorage.ccCtxPerdu=(+sessionStorage.ccCtxPerdu||0)+1;}catch(err){}try{enCoursPose();SAVE.flush();}catch(err){}},false); // (compteur de session : `sessionStorage.ccCtxPerdu` dit combien de fois c'est arrivé)
+renderer.domElement.addEventListener('webglcontextrestored',function(){try{enCoursPose();SAVE.flush();}catch(e){}location.reload();},false);
 // (2026-09-29, audit de sortie) iOS peut garder le contexte PERDU au retour d'arrière-plan sans jamais le rendre : écran noir pour toujours.
 // Au retour, s'il est encore perdu 1,5 s plus tard, on relance (la sauvegarde a été écrite à la perte).
-addEventListener('visibilitychange',function(){if(document.hidden)return;setTimeout(function(){try{if(!document.hidden&&renderer.getContext().isContextLost())location.reload();}catch(e){}},1500);});
+addEventListener('visibilitychange',function(){if(document.hidden)return;setTimeout(function(){try{if(!document.hidden&&renderer.getContext().isContextLost()){try{enCoursPose();SAVE.flush();}catch(e){}location.reload();}}catch(e){}},1500);});
 let DPR_CAP=Math.min(devicePixelRatio,IS_MOBILE?1:1.5),curDPR=Math.min(DPR_CAP,devicePixelRatio),dprT=0; // téléphone .66→1 (2026-09-24) : la résolution adaptative sait désormais REMONTER, elle protège la fluidité
 // PLANCHER DE L'ADAPTATIF : sur téléphone on a le droit de descendre BAS. `setPixelRatio` ne touche
 // que le canvas 3D — le HUD est du DOM, il reste net au pixel quoi qu'il arrive. On enlève donc les
@@ -23990,17 +23991,21 @@ const MONN_TEX=(function(){
 const MONN_N=600,MONN=mkPanneaux(MONN_N,MONN_TEX,4,4,false,1,2);
 const MR={x:new Float32Array(MONN_N),y:new Float32Array(MONN_N),z:new Float32Array(MONN_N),vx:new Float32Array(MONN_N),vy:new Float32Array(MONN_N),
   vz:new Float32Array(MONN_N),ph:new Float32Array(MONN_N),rs:new Float32Array(MONN_N),rot:new Float32Array(MONN_N),life:new Float32Array(MONN_N),
-  sc:new Float32Array(MONN_N),f:new Uint8Array(MONN_N),head:0,viv:0};
+  sc:new Float32Array(MONN_N),f:new Uint8Array(MONN_N),head:0,viv:0,acc:0};
 let moneyRainT=0,nextRainAt=4e3*ECO3.gain; // calé sur l'éco ×2,5 : ~une pluie par niveau (l'ancien 1e4/×10 suivait l'éco ×10) · ×ECO3.gain (vague 3) : la pluie tombe au même moment de la partie
 function startMoneyRain(){
-  moneyRainT=3;
+  moneyRainT=3;MR.acc=0;
   try{son('pluie.billets',fanfare);}catch(e){} // (console de son) la pluie FROISSE : billets qui tombent partout + pièces (plus la fanfare d'une caisse débloquée)
 }
 function updateMoneyRain(dt,t){
   if(moneyRainT>0){
     moneyRainT-=dt;
     tmp3.set(0,0,1).applyQuaternion(carGroup.quaternion);
-    for(let k=0;k<3;k++){ // le défilé : ça pleut devant et autour, on traverse le rideau
+    /* (2026-09-30) 180 GLYPHES PAR SECONDE, pas 3 par image : l'averse dépendait de la cadence — 270 glyphes à 30 i/s, 540 à 60,
+       1 080 à 120 Hz pour 600 places en anneau (des glyphes encore en l'air étaient écrasés et réapparaissaient ailleurs). Un
+       accumulateur, comme nfxVent : 540 sur les 3 s, vivants 3,2-5 s → jamais plus de ~540 à la fois, l'anneau tient. */
+    MR.acc+=dt*180;
+    while(MR.acc>=1){MR.acc-=1; // le défilé : ça pleut devant et autour, on traverse le rideau
       const i=MR.head;MR.head=(i+1)%MONN_N;
       const g9=(Math.random()*CURR.length)|0,d9=12+Math.random()*60;
       MR.f[i]=(3-(g9>>2))*4+(g9&3); // la case de l'atlas (la toile a y vers le BAS, les UV vers le HAUT)
@@ -25455,6 +25460,10 @@ const SAVE={
     c.aura=Math.max(0,Math.min(1e12,Math.round(+d.aura)||0));
     c.auraMax=Math.max(0,Math.min(1e12,Math.round(+d.auraMax)||0));
     c.frenRec=Math.max(0,Math.min(3600,Math.round((+d.frenRec||0)*10)/10)); // (v3) le record de frénésie, borné à une heure
+    // (2026-09-30) LA PARTIE INTERROMPUE (voir enCoursPose) : bornée comme les exploits — un code importé ne remplit pas la banque par ce biais
+    if(d.enCours&&typeof d.enCours==='object'){const e=d.enCours,n=(k,hi)=>Math.min(hi,Math.max(0,Math.round(+e[k])||0));
+      c.enCours={v:Math.min(1e12,Math.max(0,+e.v||0)),a:n('a',1e6),e:n('e',ENGINE_TIERS.length-1),tr:n('tr',1e5),ga:n('ga',1e5),bu:n('bu',1e5),
+        sv:n('sv',1e3),zo:n('zo',1e4),ch:n('ch',1e5),km:n('km',1e5),s:n('s',1e12),f:Math.min(3600,Math.max(0,Math.floor((+e.f||0)*10)/10))};}
     if(Array.isArray(d.owned))c.owned=[...new Set(d.owned
       .map(x=>Math.round(+x)).filter(x=>isFinite(x)&&x>=0&&x<CARS.length))].slice(0,CARS.length);
     if(d.ai&&typeof d.ai==='object'){const a=d.ai,g=(k,dv,lo,hi)=>THREE.MathUtils.clamp(isFinite(+a[k])?+a[k]:dv,lo,hi);
@@ -25492,13 +25501,26 @@ const SAVE={
     }
     // migrations futures : une marche par version, dans l'ordre — if(d&&d.v<3){…}
     this.d=this.san(d);
+    /* (2026-09-30) UNE PARTIE A ÉTÉ TUÉE EN ARRIÈRE-PLAN : on verse ce qu'un QUITTER aurait versé (mêmes règles que commitExploits
+       + endGame), on efface l'instantané, et le flush qui suit écrit les deux d'UN bloc — jamais la banque créditée ET l'instantané
+       sur le disque en même temps. `repris` : ce qui vient d'être versé (le toast du menu, dbgEnCours). */
+    const ec=this.d.enCours;
+    if(ec){delete this.d.enCours;const x=this.d.ex,L=this.d.leaders;
+      this.d.bank=Math.min(1e30,this.d.bank+ec.v);
+      this.d.aura=(this.d.aura||0)+ec.a;this.d.auraMax=Math.max(this.d.auraMax||0,ec.a);
+      x.eng=Math.max(x.eng,ec.e);x.tricks+=ec.tr;x.gaps+=ec.ga;x.bumps+=ec.bu;x.surv+=ec.sv;
+      x.zones=Math.max(x.zones,ec.zo);x.chain=Math.max(x.chain,ec.ch);x.kmh=Math.max(x.kmh,ec.km);x.runs++;
+      if(ec.f>=5&&ec.f>(this.d.frenRec||0))this.d.frenRec=ec.f; // la frénésie qui tenait encore (endGame : frenFin)
+      if(ec.s>0&&(L.length<10||ec.s>L[L.length-1].s)){L.push({n:this.d.pseudo||'TOI',s:ec.s});L.sort(function(a,b){return b.s-a.s;});if(L.length>10)L.length=10;} // le Top 10, comme lbQualifies
+      this.repris={v:ec.v,a:ec.a};}
     this.flush();
   },
   mark(){this.dirty=true;},
-  flush(){try{this.d.v=this.V;const s=JSON.stringify(this.d);localStorage[this.K]=s;this.dirty=false;
+  natif:0, // (2026-09-30) le miroir natif : 0 libre · 1 suspendu (on attend la lecture du secours) · 2 restauration en cours, plus AUCUNE écriture (voir plus bas)
+  flush(){if(this.natif===2)return;try{this.d.v=this.V;const s=JSON.stringify(this.d);localStorage[this.K]=s;this.dirty=false;
     // P0-03 : miroir natif sous Capacitor — NSUserDefaults (Preferences) survit aux purges WKWebView.
     // Le web n'a pas ce plugin : la garde saute et on reste sur localStorage seul.
-    if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences){try{window.Capacitor.Plugins.Preferences.set({key:this.K,value:s});}catch(e){}}
+    if(this.natif===0&&window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences){try{window.Capacitor.Plugins.Preferences.set({key:this.K,value:s});}catch(e){}}
   }catch(e){}},
   export(){return btoa(unescape(encodeURIComponent(JSON.stringify(this.d))));}, // code à copier-coller
   import(code){ // rend true si le code est valide — la désinfection repasse derrière
@@ -25511,12 +25533,26 @@ const SAVE={
 };
 // P0-03 : sous Capacitor, si le localStorage a été purgé mais que les Preferences natifs ont encore la
 // sauvegarde, on la sème puis on recharge UNE fois (le boot est synchrone, impossible de le bloquer).
+/* (2026-09-30) ⚠ LE MIROIR ATTEND LA LECTURE. `Preferences.get` est asynchrone : SAVE.load() tourne AVANT sa réponse, trouve le
+   localStorage vide, et son flush() envoyait aussitôt `Preferences.set(sauvegarde VIERGE)` — deux appels natifs en vol, dans un
+   ordre que rien ne garantit : l'écriture passée la première, le secours était écrasé par du vide (perte totale). Donc
+   `SAVE.natif=1` le temps de la lecture (le localStorage s'écrit, le natif n'est pas touché) ; réponse vide → 0 et un flush
+   rattrape le miroir ; réponse pleine → 2 : plus AUCUNE écriture jusqu'au rechargement (le passage en arrière-plan qui accompagne
+   un rechargement flushait la sauvegarde vierge PAR-DESSUS celle qu'on venait de semer). Lecture en échec : on reste à 1 — on
+   n'écrase pas un secours qu'on n'a pas pu lire. Et on ne recharge que si le localStorage a GARDÉ la valeur (sinon : boucle). */
 if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences&&!localStorage[SAVE.K]){
+  SAVE.natif=1;
   try{window.Capacitor.Plugins.Preferences.get({key:SAVE.K}).then(function(r){
-    if(r&&r.value){try{localStorage[SAVE.K]=r.value;}catch(e){}location.reload();}
+    if(r&&r.value){SAVE.natif=2;let ok=false;try{localStorage[SAVE.K]=r.value;ok=localStorage[SAVE.K]===r.value;}catch(e){}
+      if(ok)location.reload();else SAVE.natif=1;}
+    else{SAVE.natif=0;SAVE.flush();}
   }).catch(function(){});}catch(e){}
 }
 SAVE.load();
+/* (2026-09-30) la partie tuée en arrière-plan vient d'être versée (SAVE.load) : le menu le DIT, une fois, à son apparition */
+Object.assign(I18N,{'PARTIE INTERROMPUE':'RUN INTERRUPTED'});Object.assign(I18N_ZH,{'PARTIE INTERROMPUE':'对局中断'});
+if(SAVE.repris)document.addEventListener('cc:revele',function(){const r=SAVE.repris;if(!r||!(r.v>=1||r.a>=1))return;
+  try{toast(pxi('coche')+' '+TR('PARTIE INTERROMPUE')+' : +'+(r.v>=1?fmtC(r.v)+' '+TR('VERSÉS AU COMPTE'):fmtAura(r.a)+' '+TR('AURA')));}catch(e){}},{once:true});
 setInterval(()=>{if(SAVE.dirty)SAVE.flush();},30000); // le filet : rien ne se perd plus de 30 s
 SND.sfx=SAVE.d.sfx;SND.voice=SAVE.d.vox;SND.music=SAVE.d.mus;SND.vib=SAVE.d.vib!==false;
 VOL.mus=SAVE.d.vol.mus;VOL.sfx=SAVE.d.vol.sfx;VOL.vox=SAVE.d.vol.vox;
@@ -28085,6 +28121,7 @@ function resetGame(){
   TUTO.quitte=0;                 // (2026-09-28) la leçon quittée ne concerne que l'écran de fin qui la suit (une carrière relancée ne repasse pas par tutoDebut)
   if(TUTO.on)tutoDebut();        // (2026-09-26) RECOMMENCER à l'auto-école repart de la 1re consigne
   money=START_CASH; // on repart avec la mise de départ, jamais à sec
+  enCoursRetire(); // (2026-09-30) RECOMMENCER abandonne la partie (« ses gains ne seront PAS versés ») : un instantané d'arrière-plan resté en mémoire ne la verserait pas en douce
   // LA CAISSE ÉQUIPÉE S'APPLIQUE (2026-08-03) — les règles de déblocage étant tranchées, le bouton
   // ÉQUIPER du garage sert enfin. « On repart en bas de l'échelle » reste vrai : ce qui redémarre à
   // zéro, c'est le MOTEUR et les 1,61 € ; la carrosserie, elle, est un choix cosmétique qui ne donne
@@ -28123,6 +28160,7 @@ function resetGame(){
 // collectionne (figures, gaps, bumps), records pour ce qui se bat (zones, chaîne, vitesse).
 // ⚠ appelé APRÈS l'écriture de `best` dans endGame : les conditions `cash` lisent ce record.
 function commitExploits(){
+  delete SAVE.d.enCours; // (2026-09-30) la partie est versée pour de vrai : l'instantané d'arrière-plan part dans le MÊME flush (voir enCoursPose)
   const ex=SAVE.d.ex;if(!ex)return [];
   /* (2026-09-29, audit « 10 premières minutes ») UNE LEÇON QUITTÉE N'EST PAS UNE PARTIE : elle comptait une partie jouée et posait son
      aura (~30) en RECORD — la leçon suivante criait « RECORD BATTU ! » au bout de 5 s. Seule la banque est versée (l'argent gagné reste). */
@@ -28158,6 +28196,33 @@ function commitExploits(){
   SAVE.flush();
   return got;
 }
+/* (2026-09-30) LA PARTIE INTERROMPUE. iOS tue sans prévenir une appli restée en arrière-plan ; la banque, l'aura et les exploits d'une
+   partie ne partaient au disque que par commitExploits (la FIN de partie) — une course en cours à la mise en veille était PERDUE,
+   record excepté (`best` s'écrit en direct). Au passage en arrière-plan on pose donc ce qu'un QUITTER verserait À CET INSTANT, aux
+   règles de endGame + commitExploits : l'argent ENCAISSÉ seulement (la mallette en vol reste en jeu), la chaîne d'aura ouverte AU SOL
+   encaissée (chaineEncaisse), la frénésie qui tient comptée pour son record (frenFin), le score au Top 10. SAVE.load le verse si
+   l'appli a été tuée. C'est un INSTANTANÉ, jamais un incrément : le reposer l'écrase — deux arrière-plans de suite ne versent qu'une
+   fois. Il part au retour (enCoursRetire) et à tout versement réel (commitExploits) : le disque n'a jamais À LA FOIS la banque
+   créditée et l'instantané. Bac à sable, auto-école et parc : rien n'est posé. */
+function enCoursPose(){
+  try{
+    if(!(started&&!gameOver&&!SANDBOX&&!TUTO.on&&!PARK.on))return false;
+    const g=(CHA.n&&mode==='drive'&&running)?Math.round(CHA.pts*Math.max(1,CHA.x)):0; // endGame : chaineEncaisse() au sol seulement
+    SAVE.d.enCours={v:Math.max(0,money-START_CASH),a:Math.round(auraRun)+Math.max(0,g),e:engTier|0,
+      tr:runStats.tricks|0,ga:runStats.gaps|0,bu:runStats.bumps|0,sv:runStats.surv|0,zo:runStats.zones|0,ch:runStats.chainMax|0,
+      km:Math.round(runStats.vmax)||0,s:Math.round(money),f:(FLOW.lv===4&&FREN.t>0)?Math.floor(FREN.t*10)/10:0};
+    return true;
+  }catch(e){return false;}
+}
+function enCoursRetire(){try{if(SAVE.d&&SAVE.d.enCours){delete SAVE.d.enCours;SAVE.flush();}}catch(e){}} // l'appli est revenue : la partie continue, c'est elle qui versera
+/* `dbgEnCours(a)` — (2026-09-30) la sauvegarde d'arrière-plan : sans argument, l'état (mémoire, disque, miroir natif, ce que ce
+   lancement a versé) · 'pose' = ce que ferait la mise en arrière-plan (+ flush) · 'retire' = le retour. Pour le banc « appli tuée » :
+   en course, dbgEnCours('pose'), puis RECHARGER la page — dbgEnCours().repris dit ce qui a été versé. */
+window.dbgEnCours=function(a){
+  if(a==='pose'){enCoursPose();SAVE.flush();}else if(a==='retire')enCoursRetire();
+  let dq=null;try{dq=(JSON.parse(localStorage[SAVE.K]||'null')||{}).enCours||null;}catch(e){}
+  return {memoire:SAVE.d.enCours||null,disque:dq,natif:SAVE.natif,repris:SAVE.repris||null,banque:bank(),aura:SAVE.d.aura||0,parties:SAVE.d.ex.runs};
+};
 function endGame(){
   try{nitroooVide();}catch(e){} // (2026-09-29) …ni sur l'écran de fin
   try{busPlein();}catch(e){} // (2026-09-28) même filet : QUITTER depuis la pause (sortie en fondu) ne doit pas rendre le menu muet
@@ -32173,6 +32238,7 @@ function pickupsTick(dt){
     }
   }
 }
+function loopWarn(b,nom,e){if(!((loop._crWarn|0)&b)){console.warn('créatures/musique · '+nom,e);loop._crWarn=(loop._crWarn|0)|b;}} // (2026-09-30) un bit par appel gardé : chaque panne se dit UNE fois, sans masquer celle du voisin
 function loop(now){
   requestAnimationFrame(loop);
   if(BANC_ON)BANC_T0=performance.now(); // (banc ?banc=1) début de l'image chronométrée
@@ -33759,7 +33825,13 @@ function loop(now){
   }else if(swapRing.visible){swapRing.visible=false;swapLight.intensity=0;}
   juiceScreenTick(dt); // les taches de jus s'effacent, meme en pause
   fxTick(dt); // ⚠ hors du gate de sim : un refractaire fige en pause rejoue le son au retour
-  try{musicTick(dt,musMvt);villeApres();updateDolphins(dt);updateSerpent(dt);updateBoomArt(dt);}catch(e){if(!loop._crWarn){console.warn('créatures/musique',e);loop._crWarn=1;}}
+  /* (2026-09-30) UN try PAR APPEL : dans un seul bloc, une exception de musicTick ou de villeApres sautait les suivants — le banc de
+     dauphins, le serpent et la BOULE DE FEU restaient figés en l'air. Chacun son filet, chacun son avertissement (une fois : loopWarn) */
+  try{musicTick(dt,musMvt);}catch(e){loopWarn(1,'musique',e);}
+  try{villeApres();}catch(e){loopWarn(2,'ville',e);}
+  try{updateDolphins(dt);}catch(e){loopWarn(4,'dauphins',e);}
+  try{updateSerpent(dt);}catch(e){loopWarn(8,'serpent',e);}
+  try{updateBoomArt(dt);}catch(e){loopWarn(16,'boule de feu',e);}
   if(POST_ON&&composer)composer.render(); // ACES + bloom
   else renderer.render(scene,camera);      // repli si le post n'a pas pu se charger
   matSursisTick(); // (perf) les matières de la piste d'avant partent une fois la neuve rendue
@@ -34142,7 +34214,9 @@ function applyDPR(){ try{ const W=innerWidth,H=innerHeight;
 addEventListener('visibilitychange',function(){ if(document.hidden&&started&&!gameOver&&!paused)togglePause();
   // (2026-09-26) au menu, au garage ou sur l'écran de mort, une vingtaine de sources en boucle tournaient encore en arrière-plan
   try{ if(AC){ if(document.hidden){if(AC.state==='running')AC.suspend();} else if(SND.sfx&&!paused&&AC.state!=='running')AC.resume(); } }catch(e){}
-  if(document.hidden)try{SAVE.flush();}catch(e){} // (2026-09-28) l'appli part en arrière-plan : ce qui attendait le filet de 30 s (record de frénésie, meilleur moteur…) est écrit TOUT DE SUITE — iOS peut la tuer sans prévenir
+  if(document.hidden)try{enCoursPose();SAVE.flush();}catch(e){} // (2026-09-28) l'appli part en arrière-plan : ce qui attendait le filet de 30 s (record de frénésie, meilleur moteur…) est écrit TOUT DE SUITE — iOS peut la tuer sans prévenir · (2026-09-30) et la PARTIE en cours avec (enCoursPose)
+  // (2026-09-30) au retour la partie continue : l'instantané part — SAUF contexte 3D perdu, que suit un rechargement (voir webglcontextlost) : il est alors le seul à porter la partie
+  if(!document.hidden){let perdu=false;try{perdu=renderer.getContext().isContextLost();}catch(e){}if(!perdu)enCoursRetire();}
   if(!document.hidden){loop._pn=0;loop._rebuildT=performance.now();} }); // retour d'onglet : la frame « absente » n'est pas une lenteur
 // IMMERSION : plein écran + verrou PORTRAIT + veille désactivée. Les trois exigent un GESTE
 // utilisateur — on les redemande à chaque contact utile, et on ne râle jamais si elles sont refusées.
