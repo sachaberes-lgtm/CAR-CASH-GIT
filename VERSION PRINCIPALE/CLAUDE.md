@@ -540,6 +540,13 @@ doit être exponentielle ; à chaque palier de 10 % ça doit rajouter un compart
     racine au bout (de la soie, plus un tremblement). 0 programme lié en course. Bancs (scratchpad SON) : `drg-poursuite.js <préfixe>`
     (poursuite + gros plans de la tête, état `yeux/virage/air/ressort` de `dbgDragon()`), `drgphoto-ss.js` (4 angles, SwiftShader) ;
     `dbgDragon('tick')` recalcule une image du dragon pour la caméra d'une photo en pause.
+  · **v6.1 — IL SE FORME** (Sacha : « il doit se former plus lentement : au début c'est juste des flammes, et petit à petit ça devient un vrai
+    dragon ») : `DRG.fo` 0 → 1 en `DRG_FORME` = 6 s de NITROOO tenue (remis à 0 quand elle s'éteint). Chaque partie naît à son heure :
+    flammes seules et langues sauvages (`CH`, le chaos du début : crâne qui ondoie ×4, crinière et flammèches plus longues) ; braises
+    ASPIRÉES vers la tête ; le CRÂNE apparaît et se resserre hors du feu (`fCr` .2-.58 : opacité, taille ×1,25 → 1) ; bois, sourcils,
+    nageoires (`fTr` .38-.75), moustaches et barbe (`fMo` .3-.7), lueur de la gueule (`fBo`) POUSSENT ; les YEUX s'ouvrent (`fOe` .68-.86,
+    paupières) et il RUGIT (`DRG.ne` : il est né) ; le CORPS sort ensuite (`fCo` .7-1). Banc `drg-forme.js` (15 photos de poursuite + un
+    trois-quarts en pause) : flammes → masse de la tête → dragon complet à 0,94. `dbgDragon().forme`.
 - ⚠ **LEÇON** : un `//` en milieu de ligne avale TOUT ce qui suit sur la ligne — `scene.add(DRG.tete)` écrit derrière un commentaire n'a jamais
   tourné (le sprite existait, invisible : `dbgDragon('ecran')` → `par:false`). Commentaire au milieu = `/* */`.
 - Aussi dans ce lot (audit GAMEPLAY) : `eclVide()` rend l'exposition et la brume (mourir pendant un éclair laissait l'écran de fin surexposé) ;
