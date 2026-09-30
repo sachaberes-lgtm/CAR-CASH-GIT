@@ -11214,7 +11214,7 @@ const BIOMES={
    · fogIn/fogCj : la couleur du white-out DANS un nuage, et celle de la brume à contre-jour.
    Un biome sans étalonnage reçoit les valeurs d'avant (`BIO_ETAL0`) : la ville, l'heure bleue, le soir… ne bougent pas d'un bit.
    ⚠ bioLerp parcourt les clés du biome d'ARRIVÉE : le remplissage ci-dessous garantit que TOUS les biomes les ont toutes. */
-const BIO_ETAL0={wb:[1.02,.985,1.03],sh:[.004,-.008,.062],hi:[.052,.008,-.014],con:1.23,bloomS:.54,bloomT:.92,vigK:.52,vigC:[.149,.047,.212],
+const BIO_ETAL0={wb:[1.02,.985,1.03],sh:[.004,-.008,.062],hi:[.052,.008,-.014],con:1.23,bloomS:.54,bloomT:.92,vigK:.52,vigC:[.149,.047,.212],daCon:1,daExpo:1,daWbN:1,daSh:1,
   rimK:0,rimS:.40,fogIn:[.847,.737,.816],fogCj:[.753,.416,.329]};
 // (vague 3) ETAL_JOUR retiré : le jour des NUAGES reprend l'étalonnage d'origine (BIO_ETAL0), voir le haut de BIOMES
 Object.assign(BIOMES.pluie,{bloomS:.55,bloomT:.88,rimK:1,rimS:.55}); // VILLE : l'étalonnage d'avant (déjà au niveau) — le liseré vient du NÉON de contre-jour
@@ -11243,6 +11243,7 @@ BIOMES.nuitNoire=Object.assign(JSON.parse(JSON.stringify(BIOMES.pluie)),{nm:'MIN
   expo:.62,sat:1.25,
   env:[[0,'#05060c'],[.3,'#0a0d16'],[.48,'#141a26'],[.58,'#2a1830'],[.66,'#0a0c14'],[1,'#030408']],eS1:[255,90,200,.22],eS2:[80,230,255,.18],
   bloomS:.62,bloomT:.80,vigK:.72,vigC:[.0,.0,.03],rimK:.6,rimS:.5});
+Object.assign(BIOMES.tempete,{daCon:0,daExpo:1.12,daWbN:.5,daSh:.35});Object.assign(BIOMES.nuitNoire,{daCon:0,daExpo:1.16,daWbN:.4,daSh:.25});Object.assign(BIOMES.espace,{daSh:.1,daWbN:.6}); // (DA) les niveaux sombres : voir daPose
 for(const k9 in BIOMES)for(const f9 in BIO_ETAL0)if(BIOMES[k9][f9]==null)BIOMES[k9][f9]=JSON.parse(JSON.stringify(BIO_ETAL0[f9]));
 // Le tirage du jour, dans l'ordre des heures (+ l'ORAGE en joker météo) — la NUIT ne se tire pas,
 // elle se MÉRITE (3 portails). 9 ambiances en rotation : deux parties ne se ressemblent plus.
@@ -11254,6 +11255,24 @@ function bioLerp(a,b,e,out){ // mixe deux biomes champ à champ (tableaux = comp
     else if(Array.isArray(bv)&&typeof bv[0]==='number'){const ov=out[key];for(let i=0;i<bv.length;i++)ov[i]=a[key][i]+(bv[i]-a[key][i])*e;}
   }
 }
+/* LA COUCHE « DA » (2026-09-30, Sacha : « retravaille les graphismes, la DA et l'étalonnage du jeu » — session INTERFACE, avec l'accord
+   de GRAPHISME) : UN seul endroit qui règle l'étalonnage de TOUS les niveaux par-dessus leurs ambiances (BIOMES), sans toucher aux
+   biomes eux-mêmes. Que des uniforms : 0 programme compilé. `DA.on=0` rend l'image d'avant au bit près (A/B au banc : dbgDA). */
+/* Réglage retenu au banc (etal.js, 5 niveaux × 4 variantes, deux tours) : l'image sortait noyée dans UN violet (ciel, route, nuages et
+   caisse), la caisse orange lue saumon pâle. → la chroma gardée dans les hautes lumières (vivid 1), le voile magenta retiré (wbN 1),
+   un vrai split TEAL / ORANGE (ombres bleu-vert, lumières or-orange), saturation ×1,2, contraste ×1,14, exposition ×1,06. */
+const DA={on:1,expo:1.06,sat:1.2,con:1.14,vivid:1,wbN:1,sh:[-.026,.045,-.006],hi:[.02,.038,-.042],vigK:1};
+function daPose(U,c){
+  // par ambiance (champs lerpés comme les autres) : daCon / daExpo / daWbN — les niveaux SOMBRES (tempête, minuit) prennent moins de
+  // contraste, plus d'exposition et gardent la moitié de leur voile violet (MESURÉ : le contraste de la couche DA les noyait dans le noir)
+  const o=DA.on,kc=o?(c.daCon==null?1:c.daCon):1;U.uSat.value=c.sat*(o?DA.sat:1);U.uContrast.value=c.con*(o?1+(DA.con-1)*kc:1);U.uVivid.value=o?DA.vivid:POST_VIVID;
+  const w=o?DA.wbN*(c.daWbN==null?1:c.daWbN):0;U.uWB.value.set(c.wb[0]+(1-c.wb[0])*w,c.wb[1]+(1-c.wb[1])*w,c.wb[2]+(1-c.wb[2])*w);
+  const ks=o?(c.daSh==null?1:c.daSh):0; // (DA) la teinte TEAL des ombres, dosée par ambiance : elle colore aussi le NOIR — l'orbite (vide) et les nuits la prennent à peine
+  U.uSh.value.set(c.sh[0]+DA.sh[0]*ks,c.sh[1]+DA.sh[1]*ks,c.sh[2]+DA.sh[2]*ks);
+  U.uHi.value.set(c.hi[0]+(o?DA.hi[0]:0),c.hi[1]+(o?DA.hi[1]:0),c.hi[2]+(o?DA.hi[2]:0));
+  U.uVigK.value=c.vigK*(o?DA.vigK:1);
+}
+window.dbgDA=function(o){if(o)for(const k in o){if(Array.isArray(o[k]))DA[k]=o[k].slice();else DA[k]=o[k];}bioApply(BIO.cur);if(acesPass)acesPass.uniforms.uExposure.value=POST_EXPO;if(o&&o.fige){if(started&&!gameOver&&!paused)togglePause();}if(o&&o.degele&&paused)togglePause();if(paused&&POST_ON&&composer)composer.render();return JSON.parse(JSON.stringify(DA));}; // banc : essayer un étalonnage sur l'image figée
 function bioApply(c){ // pousse l'ambiance mélangée dans TOUS les organes (uniforms/couleurs only)
   skyU.uSkyMul.value.fromArray(c.skyMul);skyU.uSkyLift.value.fromArray(c.skyLift);skyU.uSunTint.value.fromArray(c.sunTint);
   skyU.uSunHalo.value=c.sunHalo;skyU.uCity.value=c.city;skyU.uStars.value=c.stars;skyU.uMoon.value=c.moon;
@@ -11267,10 +11286,9 @@ function bioApply(c){ // pousse l'ambiance mélangée dans TOUS les organes (uni
   CLOUD_MAT.color.setRGB(Math.min(1,.55+c.volSun[0]*.16),Math.min(1,.55+c.volSun[1]*.16),Math.min(1,.55+c.volSun[2]*.16));
   {const nz=function(a,u,k){const l=Math.max(.01,a[0]*.299+a[1]*.587+a[2]*.114);u.set(1+(a[0]/l-1)*k,1+(a[1]/l-1)*k,1+(a[2]/l-1)*k);}; // (Dragons) la teinte seule (luminance 1), adoucie vers le blanc de k
    nz(c.volSun,GFX_U.uNuSun.value,1.25);nz(c.volSky,GFX_U.uNuSky.value,.62);nz(c.volGnd,GFX_U.uNuGnd.value,.85);}
-  POST_EXPO=c.expo;
+  POST_EXPO=c.expo*(DA.on?DA.expo*(c.daExpo==null?1:c.daExpo):1); // (DA) l'exposition du niveau × celle de la couche DA (× la retouche de l'ambiance)
   // (2026-09-26, vague 2) L'ÉTALONNAGE DU NIVEAU (voir BIO_ETAL0) : balance, ombres d'encre, hautes lumières, contraste, vignette
-  if(acesPass){const U=acesPass.uniforms;U.uSat.value=c.sat;U.uWB.value.fromArray(c.wb);U.uSh.value.fromArray(c.sh);U.uHi.value.fromArray(c.hi);
-    U.uContrast.value=c.con;U.uVigK.value=c.vigK;U.uVigC.value.fromArray(c.vigC);}
+  if(acesPass){const U=acesPass.uniforms;daPose(U,c);U.uVigC.value.fromArray(c.vigC);} // (DA) saturation, balance, ombres, lumières, contraste, vignette : le niveau × la couche DA
   // le BLOOM du niveau : musicTick module la force au beat autour de `musicTick._bloom` — c'est donc la BASE qu'on écrit
   if(bloomPass){musicTick._bloom=c.bloomS*BLOOM_K;bloomPass.threshold=c.bloomT;}
   // LE LISERÉ : du côté de LA source du niveau — le soleil le jour, le néon du kick la nuit (sa couleur ×1,4 : un contre-jour, pas un reflet)

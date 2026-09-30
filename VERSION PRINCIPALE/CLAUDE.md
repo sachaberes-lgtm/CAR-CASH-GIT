@@ -1,5 +1,17 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA COUCHE « DA » DE L'ÉTALONNAGE (2026-09-30, session INTERFACE, avec l'accord de GRAPHISME) — « retravaille les graphismes, la DA et l'étalonnage »
+- MESURÉ (banc `etal.js` : 5 niveaux, image de course figée, variantes A/B de l'étalonnage ; `balade.js` pour l'état des lieux) : tout
+  baignait dans UN violet (ciel, route, nuages, caisse), la caisse orange se lisait saumon pâle (l'ACES par canal mangeait sa chroma et
+  le voile magenta la rosissait), l'Orage et Minuit étaient boueux. La direction de Sacha : saturé, contrasté, teal/orange (GTA 6).
+- **`DA` + `daPose(U,c)`** (juste avant `bioApply`) : UNE couche par-dessus TOUTES les ambiances, sans toucher aux `BIOMES` —
+  `vivid` 1 (chroma gardée dans les hautes lumières), `wbN` 1 (voile magenta retiré), ombres TEAL `sh` [−.026,.045,−.006], lumières
+  OR-ORANGE `hi` [.02,.038,−.042], saturation ×1,2, contraste ×1,14, exposition ×1,06. Que des uniforms : 0 programme lié en course
+  (tour.js). `DA.on=0` = l'image d'avant au bit près. Hook `dbgDA({…, fige:1 | degele:1})` : essayer un réglage sur l'image figée.
+- **Dosage par ambiance** (champs lerpés comme les autres, défauts dans `BIO_ETAL0`) : `daCon` (part du contraste DA), `daExpo`,
+  `daWbN`, `daSh` (la teinte teal colore AUSSI le noir). Tempête {0, 1,12, .5, .35}, Minuit {0, 1,16, .4, .25}, Orbite {daSh .1,
+  daWbN .6} — sans ça l'orbite virait au vert-bleu et les nuits se noyaient dans le noir.
+
 ## LES NUAGES NE FONT QUE BLOQUER LA VUE + LES BANCS CACHENT LE VIRAGE SUIVANT (2026-09-30, session GRAPHISME — Sacha : « 2 oui ; sinon les nuages doivent juste bloquer la vue, rien d'autre »)
 - **Plus AUCUN effet de jeu d'un nuage sur la caisse** (`updateClouds`, bloc DEDANS) : plus de regain d'airtime (le budget de 1,2 s par banc —
   à l'ORAGE un vol bas rechargeait toutes les 2-4 s), plus de coussin d'air (portance), plus de turbulence (vitesse et vrille chahutées),
