@@ -16,6 +16,21 @@
     Les autres chemins vers l'atelier (mort → GARAGE, missions → VOIR, objectif) l'ouvrent en BOUTIQUE.
 - JOUER (pixels, clic ou Entrée) passe par `garJouer` : 1er JOUER → le mode (facChoix), essai → ta caisse, auto-école.
 - Pas repris du sketch (en attente de Léo) : le grand rectangle vertical à gauche (non légendé).
+- **LE GARAGE QUI VIT** (même soir, Léo : « on est censé pouvoir tourner autour — soit le garage en rotation sans qu'on touche, soit avec
+  le doigt on glisse et on voit légèrement ; inspire-toi de ma branche ») : LES DEUX. Au repos la VUE balance autour de la caisse (les deux
+  sinus de sa branche, ±~11°, + un souffle de hauteur : `GAR.swK/swO/swP`) ; au MENU, glisser tourne le REGARD (`GAR.vA`, ±.36 rad,
+  hauteur .08-.42), qui revient seul dans l'axe de la porte ~1 s après le lâcher ; le balancement est VERSÉ dans le regard au toucher
+  (aucun saut). `garCamA()` = l'azimut réel (axe + regard + balancement) ; la visée reste au-delà de la caisse, côté opposé ; le LÂCHER part
+  de cette visée (`GAR.go.lx0/lz0`). En BOUTIQUE glisser fait toujours tourner la caisse ; le plateau tourne toujours. L'étiquette MISSIONS
+  reste COLLÉE AU BORD quand le socle sort du cadre, et ne se pose jamais sur JOUER (à côté, sinon dessous — `garLibre().pl`).
+  `dbgGarage(a,p,d,v)` fige (4e argument = le regard), `dbgGarage('etat')`, `dbgGarage('libre')`. Banc `regard.mjs W H nom`.
+- **DEBOUT, PLUS GRAND** (Léo : « les trucs sont un peu petits en mode portrait ») : bloc `@media (orientation:portrait) and
+  (max-width:760px)` — profil (avatar 58, chiffres 12 px, jauges 8 px), ⚙ 60 × 56, JOUER 46 px, MISSIONS 42 px de haut, rangée du bas
+  86 × 82 ; palier ≤ 360 px resserré (vérifié 390 × 844, 375 × 667, 320 × 568). Au MENU la caméra ne recule plus pour une bande de
+  vignettes qu'il n'a pas (`garageRender._v` à 0) : debout ×.82 — la caisse de PROFIL (le plateau la tourne) tient dans la largeur.
+- **LE BOUTON PORTRAIT SUR L'ORDI** (Léo : « une option où je peux regarder en mode portrait ») : `#tourne` de sa branche, dans la
+  page-cadre (`<head>`) — le téléphone passe COUCHÉ ⇄ DEBOUT sans recharger (le jeu ne reçoit qu'un resize), l'adresse garde
+  `?colonne=portrait`. Banc `tourne.mjs`. sw.js → v31.
 
 ## LA BOUTIQUE EN BAS DU GARAGE (2026-09-30, session INTERFACE — demande de Sacha relayée par DEBUGGING, idée de Léo)
 - `#gShopBas` (pb-mag, panier + mot) dans `#gAct` : **MENU | BOUTIQUE | lingot d'or** — même format que MENU, même chemin que l'ancienne

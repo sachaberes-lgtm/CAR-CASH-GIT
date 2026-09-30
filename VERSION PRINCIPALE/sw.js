@@ -36,7 +36,7 @@
 //  v23 (2026-09-29) : optimisation du son (portes du graphe audio, k-rate, salle au repos) — sfx.js?v=4.
 //  v22 (2026-09-28) : la CONSOLE DE SON (sfx.js + sons-banque.js) et les silences morts retirés des morceaux (le trou de 1 s à chaque boucle de NOCTURNAL GROOVE en VILLE).
 //  v30 (2026-09-30) : les fruits font SPLOTCH (4 prises par fruit) — sons-banque.js?v=8.
-const CACHE = 'cashcar-v30';
+const CACHE = 'cashcar-v31';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
