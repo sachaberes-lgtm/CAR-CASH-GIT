@@ -149,6 +149,10 @@
   · Le départ depuis cet écran passe par LE RETOUR AU FEU (≥ 0,8 s : la vue d'ensemble redescend derrière la caisse, `pre.mk0`).
   · La porte MISSIONS de l'écran de mort (`mTap 'mis'`) ouvre CET écran (via `accueilRetour` + `GAR.aMis`) ; l'ancien écran `#mMis`
     n'est plus ouvert depuis le jeu (son code reste). `garMissionsOuvre()`, `dbgMissions(f)`. Bancs `missions.mjs W H nom [court]`.
+  · ⚠ (même soir) Sacha l'avait RANGÉ (f474c51, « c'est pas mal mais un peu brouillon » : les trois défis en une rangée de cases égales,
+    la récompense en bas avec « ENSUITE » dedans, les cartes des carnets suivants retirées). Léo : « remets le système des missions, cette
+    version a beaucoup changé » → f474c51 est ANNULÉ (git revert), sauf son correctif de l'image de la récompense (`.obFig` est en position
+    absolue ailleurs : elle recouvrait le nom → `position:relative` dans `.gmC.r`). À TRANCHER ENTRE SACHA ET LÉO avant d'y retoucher.
 - **CHOISIR UNE MAP LANCE LA PARTIE** (Léo : « quand je choisis une map, ça ne lance pas la partie, il faut revenir en arrière ») : un
   NIVEAU de la grille lançait déjà (vérifié au banc, téléphone et cadre PC) — c'est la carte d'un MONDE qui ne faisait qu'ouvrir sa
   grille. Désormais la carte d'un monde (`data-c="monde"`) LANCE son niveau en cours (le prochain à finir) et dit « ▶ JOUER · NIVEAU n »
