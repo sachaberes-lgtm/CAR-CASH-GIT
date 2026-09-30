@@ -126,6 +126,26 @@ scratchpad GAMEPLAY). Ce qui suit est EN JEU, mesuré au banc sauf mention.
   portail (2,5 s sans plot ni flaque) ; `MODMARK`→`MODS` : pas de plot ni d'huile dans les modules ; un banc de route retire les plots et
   les flaques qu'il cache — **SAUF les plots de l'ORAGE** (décision GAMEPLAY : sa promesse est « la route se cache », ses bancs couvrent la
   piste, le filtre y retirait 50-92 % des plots) ; huile jugée en mètres ; pas de pigeon en ORBITE ni à l'ORAGE. `dbgPas()`.
+- **LE VOL v8.1 « NEWTON »** (Sacha à SON : « rends la physique du air time plus réaliste, inspire-toi des vraies règles de l'inertie et
+  de la gravité » ; plan de SON, appliqué par GAMEPLAY ; `NEWTON`, `VOLN`, `volCorps`/`volRepere`/`volNez`/`volAero`, `volViseur`,
+  `volBump`, `chuteLongue`, `volBordMord`, `dbgVol()`). Le volant et le manche tournent la CAISSE (lacet ψ, assiette α, girouette
+  K_W·qt·sin, amortissement) ; la portance et la traînée de travers plient la trajectoire ; aucune traînée dans l'axe : SANS LES MAINS la
+  parabole est identique au millimètre (filets, catapultes intacts). La nitro pousse le long du NEZ. La vrille = lacet du corps (MESURÉ au
+  banc navigateur : 180° vers 1,8 s, 360° vers 2,4 s, la chaîne compte les figures). `airRoll` tourne autour du nez. **NTR-VOL** : le vol
+  part à la VRAIE vitesse (× `volMult`) et la pose la redivise (banc : VITESSE ×2 → 692 km/h en vol, vA revenu à 194 au sol). **Pose** :
+  angle = le pire du nez et de la trajectoire, perte = Coulomb (0,9·impact/v) + ripage (0,6·(1−cos)) au lieu de la durée du vol, PARFAIT
+  = pose propre et impact < 4,5 ; le cap au sol = le nez, l'écart devient une glisse (`slipB`). **Bump** borné (e .45, μ .3, +22 max).
+  **Viseur v8** = la même intégration que le vol (nitro, volant, manche), rouge FIXE si pose ratée prédite, anneau plaqué sur la FAÇADE en
+  ville (`villeFacade`) et au point de choc à PARIS (`volViseurParis`). **CHUTE-LONGUE** : 2,2 s sans pose en vue, sans nitro, et aucune
+  dalle à portée balistique (généreuse) → `explode('vide')`. **v8.1 LE BORD MORD** : un vol né d'une SORTIE PAR LE BORD (`startFall(3.4,
+  1.04,true)`) dont le volant RAMÈNE vers la route garde le volant d'avant (la vitesse tourne, 1,15+… rad/s) jusqu'à 0,35 s, fondu à
+  0,6 s, à moins de 6 m du plan quitté — les roues mordent encore la tranche. BANC navigateur sur une MÊME piste (campagne à graine fixe,
+  même s) : pouce qui ramène → posée à 0,35 s AVANT comme APRÈS ; mains libres → même chute ; volant vers le vide → vrai vol (42 m de côté
+  au lieu de 109 : l'inertie). ⚠ Un A/B de bord se fait sur la MÊME piste (graine fixe) : sur deux pistes aléatoires le dévers et la
+  courbure faussent tout. 0 programme en course (tour.js 7 niveaux), ramassage en vol inchangé (ram.js). ⚠ À JUGER par Sacha : moins de
+  débattement latéral en vol (30 % de volant 2 s = 39 m au lieu de 105) ; manche sans nitro sans remontée ; plus de looping serré au
+  réacteur ; PARFAIT plus rare quand on braque en l'air ; au clavier, tenir la flèche = vrille (on vise par appuis courts : 0,2 s = 34° de
+  caisse, retour en 0,75 s). Tout se règle à chaud : `dbgVol({K_P:…,A_S:…})`.
 
 ## L'AUTOROUTE ORBITALE (2026-09-30, session SON) — « vu qu'on va très vite, adapte le terrain dans le niveau espace »
 - **MESURÉ d'abord** (`dbgTerrain(kmh,mult)`, nouveau crochet : part de la piste hors d'atteinte du volant à la croisière — lacet v·κ contre
