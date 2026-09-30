@@ -27134,9 +27134,10 @@ const FLY_U=new THREE.Vector3(0,1,0),FLY_R=new THREE.Vector3(1,0,0);
    MESURÉ (banc node vol-newton.js, code extrait, 60 et 30 i/s) : 30 % de volant 2 s = 39 m d'écart à 400 comme à 800 km/h (avant 105
    et 210 m) ; appui de 0,2 / 0,5 s = 34 / 69° de caisse, de retour dans le vent en 0,75 / 0,83 s, 30 / 42 m d'écart ; plein volant tenu =
    180° à 1,85 s, 360° à 2,38 s, cap de la trajectoire −2° (avant : demi-tour) ; sans les mains : la trajectoire d'avant AU MILLIMÈTRE.
-   ⚠ CE QUI CHANGE AU JEU (à juger au banc et par Sacha) : (1) le BORD n'est plus « collant » — sorti par le bord en ramenant le pouce,
-   l'ancien volant rattrapait la caisse en 0,37 s (24 cas sur 24 au banc vol-bord.js), le corps à ailerons presque jamais (3 sur 24) : la
-   vitesse latérale reste (l'inertie) ; à la nitro, revenir sur la route qu'on a quittée prend 3,5 s au lieu de 1 à 2. (2) Le manche sans
+   ⚠ CE QUI CHANGE AU JEU (à juger au banc et par Sacha) : (1) le BORD : sorti par le bord en ramenant le pouce, l'ancien volant
+   rattrapait la caisse en 0,37 s, le corps à ailerons seul presque jamais — d'où la v8.1 « LE BORD MORD » (volBordMord) : 35 cas sur 36
+   rattrapés comme avant ; mais une fois VRAIMENT parti (au-delà de 0,6 s), revenir sur la route qu'on a quittée prend 3,5 s de nitro au
+   lieu de 1 à 2 (étape POSE-TOI de l'auto-école comprise). (2) Le manche sans
    nitro ne fait plus remonter (le cabré à 0,85 rad/s transformait la vitesse en +127 m d'altitude) : il divise la chute par deux, pas plus.
    (3) Braquer en vol ne freine plus la chute (l'ancien volant tournait la vitesse autour d'un « haut » penché et écrasait sa part
    verticale : impact 9,5 au lieu de 18,6 sur un appui bref) — le PARFAIT se gagne au plané de la nitro ou au manche, plus au volant. */
@@ -27146,7 +27147,8 @@ const NEWTON={V_A:55,V_T:45,K_P:30,K_W:24,C_Y:6.5,A_S:80,D_S:25,K_Pa:17,K_Wa:24,
 // du vol (vecteurs À SOI : tmp/tmp2/tmp3 sont aux particules et à la caméra), la dernière pose (dbgVol), et les vecteurs du viseur
 const VOLN={psi:0,w:0,al:0,wa:0,qt:1,p0:1,n:new THREE.Vector3(0,0,1),t:new THREE.Vector3(0,0,1),ax:new THREE.Vector3(1,0,0),az:new THREE.Vector3(0,0,1),
   pose:{imp:0,loss:0,grade:'',ang:0,nez:0,vit:0,fallT:0},vc:{psi:0,w:0,al:0,wa:0},vp:new THREE.Vector3(),vv:new THREE.Vector3(),vu:new THREE.Vector3(),
-  vr:new THREE.Vector3(),vt:new THREE.Vector3(),vn:new THREE.Vector3(),vq:new THREE.Vector3(),vo:new THREE.Vector3(),fP:new THREE.Vector3(),fN:new THREE.Vector3(),fA:new THREE.Vector3(),fX:new THREE.Vector3()};
+  vr:new THREE.Vector3(),vt:new THREE.Vector3(),vn:new THREE.Vector3(),vq:new THREE.Vector3(),vo:new THREE.Vector3(),fP:new THREE.Vector3(),fN:new THREE.Vector3(),fA:new THREE.Vector3(),fX:new THREE.Vector3(),
+  bord:false,bY:0,bP:new THREE.Vector3(),bN:new THREE.Vector3(),bR:new THREE.Vector3(),fB:new THREE.Vector3()};
 /* NTR-VOL (2026-09-30, trouvé par SON) : au sol l'avance réelle est vA × vitMult() (NITROOO jusqu'à ×2,6, VITESSE ×2), mais le vol repartait
    de vA — la caisse perdait jusqu'à 60 % de sa vitesse au décollage. Désormais la vitesse du vol est la VRAIE (× vitMult au décollage) et la
    pose (et le portail franchi en vol) la redivise. Le diviseur garde le facteur VITESSE du DÉCOLLAGE (p0) et le boost NITROOO du moment :
@@ -27173,6 +27175,23 @@ function volAero(v,T,R,U,psi,al,h){ // portance et traînée de travers — unit
   let aS=NEWTON.A_S*qa*Math.sin(2*psi),aL=NEWTON.A_L*qa*Math.sin(2*al);const m=Math.hypot(aS,aL);if(m>NEWTON.G_MAX){aS*=NEWTON.G_MAX/m;aL*=NEWTON.G_MAX/m;}
   const sp=Math.sin(psi),sa=Math.sin(al),aD=Math.min(l*.5/h,qa*(NEWTON.D_S*sp*sp+NEWTON.D_L*sa*sa)); // la traînée ne retourne jamais la vitesse
   v.addScaledVector(R,aS*h).addScaledVector(U,aL*h).addScaledVector(T,-aD*h);
+}
+/* v8.1 « LE BORD MORD » (2026-09-30, orchestrateur GAMEPLAY, d'après Sacha le 29/09 : « les rouleurs doivent kiffer aussi »). MESURÉ au
+   banc vol-bord.js : la caisse qui FRÔLE le bord (cap vers le vide de 1,7 à 3,4°), pouce DÉJÀ en train de ramener, se reposait en 0,37 s
+   dans 24 cas sur 24 avec l'ancien volant — avec le corps à ailerons seul, 3 sur 24 : un frôlement devenait une mort quasi certaine, et le
+   RASE-BORD (payé en nitro) un piège. Or la caisse n'a pas fini de quitter la dalle : les roues côté route mordent encore la TRANCHE. Donc,
+   pour un vol né d'une SORTIE PAR LE BORD (startFall(…,…,true) : le seul chemin `|lat| > ROAD_HALF` de la conduite) et SEULEMENT si le
+   volant RAMÈNE vers la route : le volant fait tourner la VITESSE comme l'ancien modèle (sa formule exacte, origin/main 036c511 :
+   steer·(1,15 + min(0,6 ; |v|·0,004)) rad/s autour de FLY_U), plein effet jusqu'à 0,35 s de vol, fondu linéaire jusqu'à 0,6 s, et tant
+   que la caisse reste à moins de 6 m du plan de la face qu'elle quitte ; le corps ne reçoit que le reste du volant (1 − poids). Pouce
+   lâché, ou tourné vers le vide : rien — la sortie volontaire reste un VRAI vol (NEWTON, vrille, crabe, CHUTE-LONGUE). Aucun autre vol
+   n'est touché. Rend la consigne du CORPS ; le lacet donné à la vitesse est dans VOLN.bY (la vrille le compte, comme avant). */
+function volBordMord(v,U,R,p,tF,st,h){
+  VOLN.bY=0;
+  if(!VOLN.bord||tF>=.6||st===0||st*R.dot(VOLN.bR)<=0)return st;
+  if(Math.abs(VOLN.fB.subVectors(p,VOLN.bP).dot(VOLN.bN))>=6)return st;
+  const w=tF<.35?1:1-(tF-.35)/.25;VOLN.bY=st*(1.15+Math.min(.6,v.length()*.004))*h*w;v.applyAxisAngle(U,VOLN.bY);
+  return st*(1-w);
 }
 // TREMPLIN HÉROS : gapArmed = variante du tremplin qui a lancé CE vol (0 = vol ordinaire, 1/2/3 = v+1),
 // lu au verdict d'atterrissage pour le GAP FRANCHI ; rampCd empêche de re-catapulter en reposant dessus.
@@ -29085,7 +29104,7 @@ window.dbgCamVol=function(){try{const b=new THREE.Box3().setFromObject(carGroup)
 // (km/h, et l'avance à plat), le multiplicateur du vol (volMult), la vrille comptée (yawAcc en °), et la DERNIÈRE POSE (impact, perte,
 // angle, angle du nez, grade physique). dbgVol({K_P:28,…}) règle NEWTON à chaud (banc) et rend l'état. Console seulement.
 window.dbgVol=function(o){if(o&&typeof o==='object')for(const k in o)if(k in NEWTON&&isFinite(+o[k]))NEWTON[k]=+o[k];
-  return {mode:mode,psi:Math.round(VOLN.psi*57.3),alpha:Math.round(VOLN.al*57.3),wpsi:+VOLN.w.toFixed(2),walpha:+VOLN.wa.toFixed(2),qt:+VOLN.qt.toFixed(2),
+  return {mode:mode,bord:VOLN.bord&&fallT<.6,psi:Math.round(VOLN.psi*57.3),alpha:Math.round(VOLN.al*57.3),wpsi:+VOLN.w.toFixed(2),walpha:+VOLN.wa.toFixed(2),qt:+VOLN.qt.toFixed(2),
     kmh:mode==='fall'?Math.round(fallVel.length()*3.6*SPD):null,avance:mode==='fall'?Math.round(Math.hypot(fallVel.x,fallVel.z)*3.6*SPD):Math.round(Math.abs(vA)*vitMult()*3.6*SPD),
     mult:+(mode==='fall'?volMult():vitMult()).toFixed(2),vrille:Math.round(yawAcc*57.3),steer:+steer.toFixed(2),fallT:+fallT.toFixed(2),
     nez:VOLN.n.toArray().map(function(v){return +v.toFixed(2);}),viseur:LM.vu?(LM.tour?'tour':'#'+LM.c.getHexString()):null,pose:Object.assign({},VOLN.pose),NEWTON:Object.assign({},NEWTON)};};
@@ -29097,7 +29116,7 @@ function poseParfaiteFx(divin){
   flashEcran(divin?'rgba(255,238,150,1)':'rgba(255,200,60,.95)');
   if(divin)setTimeout(function(){try{if(running&&!gameOver)flashEcran('rgba(255,215,110,.8)');}catch(e){}},200);
 }
-function startFall(impU,impF){
+function startFall(impU,impF,bord){ // bord : SORTIE PAR LE BORD (v8.1 « LE BORD MORD », voir volBordMord)
   ECH=0;figSnd._ess=0; // (console de son) une gamme neuve à chaque vol
   traceTick(false); // (2026-09-26) le ruban de gomme se coupe au décollage
   loop._nAir=nitroOn; // (2026-09-26) l'impulsion est celle de l'ALLUMAGE en vol : tenue depuis le sol, elle ne compte pas — mais elle ne dépend plus du vol d'avant
@@ -29124,6 +29143,7 @@ function startFall(impU,impF){
   frameAt(s,F);
   if(side<0){F.n.multiplyScalar(-1);F.b.multiplyScalar(-1);}
   fallPos.copy(F.p).addScaledVector(F.b,lat).addScaledVector(F.n,(side<0?THICK:0)+.6);
+  VOLN.bord=!!bord;if(bord){VOLN.bN.copy(F.n);VOLN.bP.copy(F.p).addScaledVector(F.n,side<0?THICK:0);VOLN.bR.copy(F.b).multiplyScalar(lat>0?-1:1);} // (v8.1) la face quittée (point, normale) et la direction de la route vue de la caisse
   FLOW.s0=s;FLOW.p0.copy(fallPos); // (FLOW v2) d'où part le vol — la pose dira si c'était un RACCOURCI
   fallVel.copy(F.t).multiplyScalar(vA*driveDir*(impF||1)*m0).addScaledVector(F.b,vL*driveDir*m0).addScaledVector(F.n,impU||.9); // driveDir : on décolle dans le sens où l'on roulait (le parc autorise les deux)
   // INERTIE RÉELLE (2026-07-20) : fini le plafond TOTAL de 95 qui bridait l'éjection — éjecté à
@@ -29464,7 +29484,8 @@ function volViseur(t,dt,st,pi){
   for(let k=0;k<14;k++){
     const tau=k*H;q.copy(p);V.vo.copy(v);
     v.y-=FALL_G*gK()*H;
-    volRepere(v,U,R,Tv);volCorps(C,st,pi,volQt(v.length()*SPD),H);volAero(v,Tv,R,U,C.psi,C.al,H);
+    const stC=volBordMord(v,U,R,p,fallT+tau,st,H); // (v8.1) le bord mord aussi dans la prédiction
+    volRepere(v,U,R,Tv);volCorps(C,stC,pi,volQt(v.length()*SPD),H);volAero(v,Tv,R,U,C.psi,C.al,H);
     if(tau<nO+nB){const bl=tau>=nO;v.y+=FALL_G*gK()*(bl?.75:.6)*H;volNez(V.vn,Tv,R,U,C.psi,C.al);v.addScaledVector(V.vn,(bl?96:60)*push*kN*H);vh0=Math.max(vh0,Math.hypot(v.x,v.z));}
     else{const hx=Math.hypot(v.x,v.z);if(hx>vh0&&hx>1){v.x*=vh0/hx;v.z*=vh0/hx;}}
     if(PARK.on){const cp=PARK_VCAP*volMult();if(v.lengthSq()>cp*cp)v.setLength(cp);}
@@ -34266,7 +34287,7 @@ function loop(now){
       if(PARIS.sol&&Math.abs(lat)>ROAD_HALF-1.15)parisMur(dt); // (Paris au sol) les façades sont des MURS : on frotte, on ne tombe pas
       else if(Math.abs(lat)>ROAD_HALF){
         const out=Math.sign(lat);
-        if(graceT<=0){startFall(3.4,1.04);hap([10,26,10]);} // petit boost de saut en sortie de route — (SON-SORTIE, 2026-09-30) c'est LE décollage du jeu (60 % du temps en l'air, on sort volontiers par le bord) : startFall y joue sfx('decollage') (poussée 3,4 ≥ 2), et la main le sent
+        if(graceT<=0){startFall(3.4,1.04,true);hap([10,26,10]);} // petit boost de saut en sortie de route — (SON-SORTIE, 2026-09-30) c'est LE décollage du jeu (60 % du temps en l'air, on sort volontiers par le bord) : startFall y joue sfx('decollage') (poussée 3,4 ≥ 2), et la main le sent
         else{lat=out*ROAD_HALF;if(vL*out>0)vL=0;}
       }
       if(graceT<=0&&F.n.y*1<-.15&&Math.abs(vF)<7)startFall();
@@ -34661,9 +34682,10 @@ function loop(now){
          VOLN.n = le nez : des vecteurs À SOI (tmp/tmp2/tmp3 appartiennent aux particules et à la caméra, plus bas). */
       const pitT=TCTL.act?TCTL.sv*volSens():0; // (2026-09-29) réglage « POUCE HAUT EN VOL : PLONGE / MONTE »
       const wPitch=pitT!==0?(Math.abs(pitT)<.05?0:-pitT):((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0); // -1 = piqué, +1 = cabré
+      const stC=volBordMord(fallVel,FLY_U,FLY_R,fallPos,fallT,steer,dtF);yawAcc+=VOLN.bY; // (v8.1) LE BORD MORD : sorti par le bord en ramenant, le volant tourne encore la vitesse 0,35-0,6 s
       volRepere(fallVel,FLY_U,FLY_R,VOLN.t);
       VOLN.qt=volQt(fallVel.length()*SPD);
-      yawAcc+=volCorps(VOLN,steer,wPitch,VOLN.qt,dtF); // LA VRILLE (la figure) = le lacet du CORPS, plus celui de la trajectoire
+      yawAcc+=volCorps(VOLN,stC,wPitch,VOLN.qt,dtF); // LA VRILLE (la figure) = le lacet du CORPS, plus celui de la trajectoire
       volAero(fallVel,VOLN.t,FLY_R,FLY_U,VOLN.psi,VOLN.al,dtF);
       volNez(VOLN.n,VOLN.t,FLY_R,FLY_U,VOLN.psi,VOLN.al);
       if(nitroOn){ // RÉACTEUR : il fait planer et pousse le long du NEZ (vol v7 : l'inertie ; v8 : la direction, c'est la caisse)
