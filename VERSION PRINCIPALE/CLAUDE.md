@@ -1,5 +1,20 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA FRONDE + LE TRAIN DE BOOSTS (2026-09-30, session SON — GAMEPLAY a passé la main) — « trouve des moyens de rendre le jeu plus fun pour le gameplay quand tu roules »
+- **Mesuré d'abord** (banc `route-journal.js`, scratchpad session f6f592c0 : pilote auto, moteur 8, 90 s au sol, chaque son de la console
+  horodaté en temps de jeu) : ~290 événements par minute, jamais plus de 2,5 s sans rien, dont 2/3 de pièces. La route ne manque pas
+  d'ÉVÉNEMENTS ; elle manquait de gestes de PILOTAGE qui rendent de la VITESSE (le VIRAGE SERRÉ ne rendait que de l'aura muette).
+- **LA FRONDE** (`FRONDE`, `frondeLache`, bloc du virage dans la conduite) : un virage serré (charge > 32 tenue 0,9 s) pris SANS GLISSER
+  catapulte à la SORTIE (charge < 12) — `vA += 16·p`, boost (flamme d'or aux pots), champ qui s'ouvre, gerbe d'or, son `fronde` (l'élastique
+  qui lâche, st = la force). `p` = 0,4 → 1,6 : la TENUE (0,9 → 2,7 s) et la CORDE (`virC` : temps sur la moitié INTÉRIEURE, `lat·yawR > 0`,
+  au-delà de 20 % de la demi-route — l'intérieur, c'est la ligne de course). Une glisse (drift, flaque) DÉSARME le virage (`virD`) : le drift
+  a son mini-turbo, l'adhérence sa fronde. Remise à zéro au décollage (`startFall`) et à la partie. Aura `FRONDE` par la chaîne MUETTE,
+  zéro texte au centre. Au banc : 22 frondes en 90 s (une par virage serré), 0 mort.
+- **LE TRAIN DE BOOSTS** (`PADCH`, `padTrain`) : prendre les pads À LA SUITE sans en rater un (un pad passé à côté ou survolé casse le
+  train) — `+18 +5·(n−1)` d'élan (plafond au 5e), poussée plus longue, la plaque sonne un degré de pentatonique plus haut, `BOOST ×n`
+  dans la MÊME annonce. Traverse le portail (`newTrack` repose `sL=0`).
+- Banc : `window.dbgRoule()` (frondes, force max, corde, train). Interrupteurs : `FRONDE.on`, `PADCH.on`.
+
 ## LA CHUTE — LE MENU DANS LE CIEL (2026-09-30, session DEBUGGING) — Sacha, capture de Zelda : Tears of the Kingdom : « la voiture doit tomber du ciel en face d'une route, dans le biome nuage, de très haut, à l'infini ; garde l'affichage et les boutons ; on la voit tomber sur la gauche, et sur la droite mes boutons »
 - C'est le mode MENU de l'atelier, peint ailleurs : `garageRender` passe la main à `chuteRender` tant que `chuteVoulue()`. Il faut
   CHUTE_OK (`?chute=0` = l'atelier comme avant), MENU_SACHA (le menu de Léo, `?menu=leo`, garde son atelier et l'étiquette MISSIONS

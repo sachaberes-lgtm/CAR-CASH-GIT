@@ -641,6 +641,15 @@ D('turbo.super',{fam:'machine',bus:'fx',dur:.8,st:1,key:1,db:+2,max:1,cd:.2,grp:
 D('turbo.ultra',{fam:'machine',bus:'fx',dur:1.2,st:1,key:1,db:+4,max:1,cd:.2,grp:'r',prio:4,dit:'ULTRA TURBO (drift rose) : l’arc électrique + accord qui scintille + gros souffle',
   r:function(b,R,o){for(let k=0;k<5;k++)osc(b,{f:2200+k*300,f1:400,g:.07,t0:k*.015,a:.0005,d:.07,v:.1,fm:{r:3.3,i:3,d:.05}});swish(b,R,0,.45,400,6500,.5,-.7,.7);crepite(b,R,0,.4,12,.3,500,2000);
     [24,28,31,36].forEach(function(st,i){cloche(b,{f:nE(st),r:[1,2,2.76],m:[1,.3,.1],d:[.6,.25,.08],t0:.04+i*.04,v:.2,pan:(i-1.5)*.3},R);});grave(b,o,0,90,40,.15,.35,.6);}});
+/* LA FRONDE (2026-09-30) : la sortie d'un virage pris à fond, SANS glisser (le drift a ses turbos). L'élastique tendu qui LÂCHE — un
+   « thwoung » boisé qui plonge — puis l'air qui s'ouvre et traverse la stéréo, et l'élan en quinte qui monte ; st = la force (tenue, corde). */
+D('fronde',{fam:'machine',bus:'fx',dur:.9,st:1,key:1,db:+1,max:1,cd:.3,grp:'r',prio:2,dit:'LA FRONDE (sortie d’un virage serré pris sans glisser) : l’élastique qui lâche + l’air qui s’ouvre + l’élan (st = la force)',
+  r:function(b,R,o){clic(b,{t0:0,f:1400,d:.008,v:.45},R);
+    osc(b,{f:nE(-5),f1:nE(-24),g:.1,gc:.6,w:'tri',t0:0,a:.001,d:.18,v:.32,flt:['lp',3200,600,.14,1.4]});
+    corde(b,{f:nE(-12),d:.3,v:.26,br:.85},R);
+    swish(b,R,.02,.55,450,6200,.5,-.55,.55,1.1);
+    cloche(b,{f:nE(19),r:[1,2.76],m:[1,.2],d:[.3,.1],t0:.08,v:.17},R);cloche(b,{f:nE(26),r:[1,2.76],m:[1,.2],d:[.45,.14],t0:.15,v:.17},R);
+    grave(b,o,0,85,40,.12,.3,.5);}});
 D('vitesse.pure',{fam:'machine',bus:'fx',dur:1,st:1,key:1,db:+1,max:1,cd:.5,bases:[0,12],grp:'r',prio:2,dit:'PURE SPEED (et ses paliers : st) : le mur d’air + cuivre qui monte',
   r:function(b,R,o){bruit(b,{c:'r',t0:0,a:.1,h:.1,d:.5,v:.4,ft:'bp',f:600,f1:3000,g:.4,q:.7},R);stab(b,R,[12+o.base,19+o.base],.08,.1,.5,.12,1.1);}});
 D('virage',{fam:'machine',bus:'fx',dur:.3,st:1,db:-6,max:2,cd:.15,dit:'VIRAGE SERRÉ : le pneu qui zippe',

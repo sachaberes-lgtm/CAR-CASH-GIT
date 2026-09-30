@@ -5535,7 +5535,7 @@ html body #flowHud[data-lv="0"] .fM{opacity:.8!important}
 <script src="vendor/postprocessing/UnrealBloomPass.js"></script>
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
-<script defer src="sons-banque.js?v=9"></script>
+<script defer src="sons-banque.js?v=10"></script>
 <script defer src="sfx.js?v=4"></script>
 <script>
 (function(){
@@ -11937,6 +11937,7 @@ Object.assign(I18N_ZH,{"À TOI": "已拥有"});
 Object.assign(I18N,{"Une pâtisserie industrielle avec une tête de chat et quatre roulettes. Personne n'a demandé pourquoi. Tout le monde a demandé comment.": "An industrial pastry with a cat's head and four little wheels. Nobody asked why. Everybody asked how.", "Bulle de verre, museau de grand blanc, quatre bras d'hélices repliés dans les flancs. Au sol il roule. En l'air, il chasse.": "Glass bubble, great-white snout, four propeller arms folded into its flanks. On the ground it drives. In the air, it hunts.", "Coin furtif, bulle de verre, dérive dorsale. La reine du ciel, et elle le sait. Personne ne l'a jamais vue de face.": "Stealth wedge, glass bubble, dorsal fin. Queen of the sky, and she knows it. No one has ever seen her from the front.", "Un aileron, un baquet, et tes économies peintes en doré. Le circuit appelle ça de la triche. Nous, du talent.": "One wing, one bucket seat, and your savings painted gold. The track calls it cheating. We call it talent.", "Prototype d'endurance : quatre phares longue portée, dérive dorsale, aileron de porte-avions. Faite pour rouler une nuit entière.": "Endurance prototype: four long-range lights, dorsal fin, aircraft-carrier wing. Built to drive all night.", "Le taureau doré, arche de toit bicolore et fer à cheval en calandre. L'assurance a été résiliée d'office.": "The golden bull, two-tone roof arch and horseshoe grille. The insurance was cancelled on sight.", "Compacte japonaise passée au bain d'acide : capot vitré sur le bloc, aileron de table à repasser, échappement qui crache vert.": "A Japanese compact dipped in acid: glass bonnet over the engine, ironing-board wing, exhaust that spits green."});
 Object.assign(I18N_ZH,{"MINI-TURBO": "迷你涡轮", "SUPER TURBO": "超级涡轮", "ULTRA TURBO": "极限涡轮"});
 Object.assign(I18N,{"RASE-BORD": "EDGE RIDER"});Object.assign(I18N_ZH,{"RASE-BORD": "贴边疾驰"});
+Object.assign(I18N,{"FRONDE": "SLINGSHOT"});Object.assign(I18N_ZH,{"FRONDE": "弹弓"}); /* (2026-09-30) LA FRONDE : le nom de l'aura, dans la chaîne */
 // (2026-09-28, chasse aux détails) les figures les plus fréquentes restaient en français en anglais (au-dessus de la caisse et dans la liste de chaîne)
 Object.assign(I18N,{'VIBRATIONS':'VIBRATION'});Object.assign(I18N,{'APPRENDS A VOLER':'LEARN TO FLY','ESPACE TERMINE':'SPACE COMPLETE','LE SYSTEME SOLAIRE EST A TOI':'THE SOLAR SYSTEM IS YOURS'});Object.assign(I18N_ZH,{'APPRENDS A VOLER':'学会飞翔','ESPACE TERMINE':'太空完成','LE SYSTEME SOLAIRE EST A TOI':'太阳系归你了'});Object.assign(I18N_ZH,{'VIBRATIONS':'震动'});
 Object.assign(I18N,{'AIR MONSTRE':'MONSTER AIR','DAUPHIN EN VOL':'DOLPHIN RUN','POSE PARFAITE':'PERFECT LANDING','POSE DIVINE':'DIVINE LANDING','IMPACT METEORE':'METEOR IMPACT'});
@@ -27931,7 +27932,7 @@ function auraFigure(n){
      POSE : PARFAITE +70 · DIVINE +120 · GAP +120 · ARRACHÉE +120 · AU CHEVEU +220
      ROUTE : VIRAGE SERRÉ +45 · FRÔLÉ/SLALOM +20 · RASE-BORD +40 · MINI/SUPER/ULTRA TURBO +50/100/180 · RÉCOLTE +30 · PURE SPEED +120 */
 const CHA={pts:0,x:0,fam:{},n:0,t:0,liste:[],v:0,vAff:-1,rec:0,recB:false,recP:-1,urg:false},CHA_FEN=3.5,CHA_XMAX=10;
-let trkBigA=false,trkMonstre=false,virT=0,virPaye=false;
+let trkBigA=false,trkMonstre=false,virT=0,virPaye=false,virC=0,virD=false;
 const avEl={};
 function avE(id){return avEl[id]||(avEl[id]=document.getElementById(id));}
 /* (2026-09-28, nuit — Sacha : « réduis la taille des HUD, c'est compliqué de voir la route ») l'échelle des ANNONCES (slam, verdict, geste sur la
@@ -27948,6 +27949,37 @@ function sansAcc(t){return String(t).normalize('NFD').replace(/[̀-ͯ]/g,'');} /
 /* (2026-09-29, Sacha : « liste des textes qui s'affichent au milieu de l'écran, il y en a trop » — il a rayé les n° 1 VIRAGE SERRÉ,
    2 FRÔLÉ, 4 PORTE, 5 RASE-BORD, 13 MINI/SUPER/ULTRA TURBO, 29 les pastilles sous le verdict). Le geste rapporte toujours son aura (le
    compteur en haut à gauche monte) ; il ne s'ÉCRIT plus au-dessus de la caisse. */
+/* LA FRONDE (2026-09-30, Sacha : « trouve des moyens de rendre le jeu plus fun quand tu roules »). Mesuré au pilote auto (route-journal.js,
+   moteur 8, 90 s au sol) : ~290 événements par minute, jamais plus de 2,5 s sans rien — la route ne manque pas d'ÉVÉNEMENTS. Ce qui manquait :
+   que bien PILOTER rende de la VITESSE qu'on sent. Le VIRAGE SERRÉ (charge latérale > 32 tenue 0,9 s) ne rendait que de l'aura muette.
+   Désormais, pris SANS GLISSER, il catapulte à la SORTIE (la charge retombe sous 12) : élan, flamme d'or, champ qui s'ouvre, son de fronde.
+   Sa force monte avec la TENUE (0,9 → 2,7 s) et avec la CORDE (le temps passé sur la moitié intérieure du virage, au-delà de 20 % de la
+   demi-route) : l'intérieur, c'est la ligne de course. Deux styles, deux paiements : le drift a son MINI-TURBO, l'adhérence sa FRONDE
+   (un virage où l'on a glissé — drift, flaque — ne tire pas). Aucun texte au centre : l'aura passe par la chaîne muette. */
+const FRONDE={on:true,dv:16,k0:.9,kT:1.8,corde:.6,cd:0,n:0,pMax:0};
+function frondeLache(t,c){
+  if(!FRONDE.on||introD||PARK.on||mode!=='drive'||FRONDE.cd>0||!(vA>8)||!running||gameOver)return;
+  const k=THREE.MathUtils.clamp((t-FRONDE.k0)/FRONDE.kT,0,1),co=t>0?Math.min(1,c/t):0,p=(.4+.6*k)*(1+FRONDE.corde*co); /* 0,4 (tenu juste) → 1,6 (tenu long, à la corde) */
+  vA+=FRONDE.dv*p;boost=Math.max(boost,.45+.45*p);momT=Math.min(4.3,momT+.6*p);nitroGain(.05+.07*p); /* un pad donne +18 : la fronde pleine en vaut une et demie */
+  fovPunch=Math.max(fovPunch,5+6*p);shake=Math.max(shake,.1+.08*p);hap(p>1.1?[10,24,16]:[10,20]);
+  flowAdd(4+6*p,'route');FRONDE.cd=.8;FRONDE.n++;FRONDE.pMax=Math.max(FRONDE.pMax,p);
+  try{if(SONV2)sfx('fronde',{st:sonPd(Math.round(p*3))});else boostSnd(1+.2*p);}catch(e){}
+  try{chaineAuraMuette('FRONDE',Math.round(30+40*p),'fronde',false,SONV2);}catch(e){}
+  try{const sp9=CARS[level];for(const sd of [-1,1]){DRIFT_V.set(sd*sp9.w*.22,.43,-sp9.l*.5-.2);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkGold,DRIFT_V,3+Math.round(3*p),7);}}catch(e){} /* la gerbe d'or aux pots : on la voit partir */
+}
+/* LE TRAIN DE BOOSTS (même demande) : les pads vivent sur trois voies (gauche, axe, droite) — les prendre TOUS, À LA SUITE, sans en rater
+   un, pousse de plus en plus fort : +18 → +38 d'élan, la poussée dure plus longtemps, la plaque sonne un degré plus haut à chaque maillon
+   (pentatonique), BOOST ×2, ×3… dans la MÊME annonce (pas de texte en plus). Un pad passé sans le prendre (à côté, ou survolé) casse le
+   train : le suivant repart à ×1. Plafond de la poussée au 5e maillon ; le compte, lui, continue. */
+const PADCH={on:true,n:0,sL:null,max:0};
+function padTrain(sp){
+  if(!PADCH.on)return 1;
+  let rate=PADCH.sL==null||sp<PADCH.sL;
+  if(!rate)for(let j=0;j<PADS.length;j++){const q=PADS[j];if(q>PADCH.sL+8&&q<sp-8&&!holeAtS(q)){rate=true;break;}}
+  PADCH.n=rate?1:PADCH.n+1;PADCH.sL=sp;if(PADCH.n>PADCH.max)PADCH.max=PADCH.n;
+  return PADCH.n;
+}
+window.dbgRoule=function(){return {fronde:FRONDE.n,frondeMax:+FRONDE.pMax.toFixed(2),virT:+virT.toFixed(2),virC:+virC.toFixed(2),virD:virD,train:PADCH.n,trainMax:PADCH.max,boost:+boost.toFixed(2)};}; /* banc : la fronde et le train */
 function chaineAuraMuette(nom,base,fam,brut,muet){const s9=CHA.sansPop;CHA.sansPop=true;try{return chaineAura(nom,base,fam,brut,muet);}finally{CHA.sansPop=s9;}}
 function chaineAura(nom,base,fam,brut,muet){ // brut : pas de décote de redite (les échelles qui grimpent déjà : vrilles, bumps) · muet : l'appelant sonne déjà (figure en vol, pose)
   if(!(base>0)||!running||gameOver||(typeof PARK!=='undefined'&&PARK.on))return 0;
@@ -29499,6 +29531,7 @@ function startFall(impU,impF){
   lastNearS=s;        // (2026-09-26) le couloir de proximité (LOD, aimant) part d'ICI, pas de la fin du vol précédent (les pièces clignotaient une image)
   LIGNE.sPk=null;     // (2026-09-30) LIGNE PARFAITE : le balayage de trajet repart de la POSE — sinon la 1re image au sol balayait tout le vol (≤ 60 m) et prenait sans contact le fruit survolé. Ici plutôt qu'à la pose : UNE entrée en vol, plusieurs sorties (tryLand, portail, replacement, parc…)
   FROLE.s0=null;FROLE.n=0;FROLE.t=0; // (2026-09-25) un plot SURVOLÉ n'est pas un frôlé : le balayage repart de l'atterrissage
+  virT=0;virC=0;virD=false;virPaye=false; /* (LA FRONDE) un virage quitté par le bord ne se paie pas à la pose */
   MIR.t=0;MIR.max=0; // (2026-09-28) MIRACULÉ : chaque vol repart « pas perdu »
   FILR.ok=false; // (2026-09-29) on a quitté la route : ce virage à filet n'est plus « à fond »
   mode='fall';fallT=0;fallTR=0;yawAcc=0;airRoll=0;trkBigA=false;trkMonstre=false; // (momentum v2) le saut ne remet plus la réserve à zéro : c'est la POSE qui juge
@@ -29859,6 +29892,7 @@ function traceTick(actif){
     a.needsUpdate=true;}
 }
 function newTrack(){
+  PADCH.sL=0; /* (LE TRAIN DE BOOSTS) il traverse le portail — mais les pads de la nouvelle piste comptent dès son début */
   traceVide(); // (2026-09-26) les traces de pneus restent sur l'ancienne route
   for(const t9 of SILS)t9.init=false;rainbow.init=false; // (2026-09-26) sinon le ruban de nitro se tendait de l'ancien ovule à la nouvelle piste
   loop._rebuildT=performance.now();loop._rebuildD=3500; // la construction d'une zone fait un pic : la qualité auto ne doit pas le prendre pour de la faiblesse
@@ -29939,7 +29973,7 @@ function resetGame(){
   nitroR=2;nitroX=0;boost=0;combo=0;edgeT=0;momT=0;styleM=0;fever=0;streak=0;slowT=0;gameOver=false;paused=false;insUsed=false;feverArmed=false;rollover=0;RALENTI.t=0;idleT=0;driftT=0;driftYaw=0;
   coinsGot=0;engTier=0;engSwapT=0; // le moteur se remonte à chaque run (c'est la progression DE LA PARTIE)
   pwrNitroT=0;pwrAirT=0;pwrSpdT=0;pwrMagT=0;pwrAurT=0;pwrV2Raz();
-  driftC=0;driftLv=0;driftEnCours=false;raseT=0;raseAnn=false;yawR=0;slipB=0;glisse9=0;driftYaw=0;FROLE.n=0;FROLE.t=0;FROLE.s0=null; // (2026-09-25) une glisse ne survit pas à la partie (sinon MINI-TURBO fantôme au départ)
+  driftC=0;driftLv=0;driftEnCours=false;raseT=0;raseAnn=false;virT=0;virC=0;virD=false;virPaye=false;FRONDE.cd=0;FRONDE.n=0;FRONDE.pMax=0;PADCH.n=0;PADCH.sL=null;PADCH.max=0;yawR=0;slipB=0;glisse9=0;driftYaw=0;FROLE.n=0;FROLE.t=0;FROLE.s0=null; // (2026-09-25) une glisse ne survit pas à la partie (sinon MINI-TURBO fantôme au départ)
   nextRainAt=4e3*ECO3.gain;moneyRainT=0;sideCd=0;slipT=0;oilCd=0;
   nitroAirT=0;fallUnder=false;pureT=0;pureArmed=true;gapArmed=0;rampCd=0;annStop();deathStop();fxStop(); // la mort précédente se tait : on repart, elle n'a plus rien à dire
   auraRun=0;auraPop=0;auraFlash=0;figCombo=0;figComboT=0;figComboAura=0;chaReset();CHA.v=0;CHA.vAff=-1;recInit();pureNext=0;pureLvl=0; // l'aura de la partie repart de zéro — la banque et le total à vie, eux, restent
@@ -35493,7 +35527,7 @@ function loop(now){
        const aB9=Math.abs(yawR/spdMult*vA)*SPD; // (HAUTE VITESSE) la charge latérale de BASE : celle qu'aurait le même virage à ×1
        glisse9=THREE.MathUtils.clamp(Math.abs(slipB)*2.6+driftT*.5+Math.max(0,aB9-22)/70,0,1)*Math.min(1,Math.abs(vA)/35); // (2026-09-26) la gomme fume et crisse dès que la caisse chasse (power-slide)
        // (aura v2) LE VIRAGE SERRÉ : tenir une grosse charge latérale 0,9 s sur la route — prendre un virage À FOND, ça se paie
-       {const aL9=aB9;if(aL9>32)virT+=dt*spdMult;else if(aL9<12){virT=0;virPaye=false;} // (HAUTE VITESSE) les 0,9 s se comptent en temps ×1 : le même virage paie, pris à ×1 comme à ×2,6
+       {const aL9=aB9;FRONDE.cd=Math.max(0,FRONDE.cd-dt);if(aL9>32){virT+=dt*spdMult;if(lat*yawR*driveDir>ROAD_HALF*.2*Math.abs(yawR))virC+=dt*spdMult;if(drifte||slipT>0)virD=true;}else if(aL9<12){if(virPaye&&!virD)frondeLache(virT,virC);virT=0;virC=0;virD=false;virPaye=false;} /* (LA FRONDE) la corde = la moitié INTÉRIEURE du virage (lat du côté où l'on tourne) ; une glisse (drift, flaque) désarme la fronde */ // (HAUTE VITESSE) les 0,9 s se comptent en temps ×1 : le même virage paie, pris à ×1 comme à ×2,6
         if(virT>.9&&!virPaye){virPaye=true;if(SONV2)sfx('virage');chaineAuraMuette('VIRAGE SERRÉ',45,'virage',false,SONV2);}} // (2026-09-29, Sacha) ne s'écrit plus
        filetTick();} // (2026-09-29) LA ROUTE QUI TE RATTRAPE : le VIRAGE À FOND (voir FILET)
       driftTick(dt,drifte);
@@ -35561,10 +35595,11 @@ function loop(now){
         const pl9=LIGNE.padI.has(i9);if(pl9?LIGNE.padPris.has(i9):padCd>0)continue; // (LIGNE PARFAITE) le pad de la file ne se bloque pas sur la recharge du précédent : il ne se prend qu'UNE fois
         if(pl9?((Math.abs(s-PADS[i9])<6||(Math.abs(s-LIGNE.sPd0)<60&&(PADS[i9]-LIGNE.sPd0)*(PADS[i9]-s)<=0))&&Math.abs(side*lat-PADL[i9])<4.1) /* le pad de la LIGNE : son test à lui, inchangé */
           :balEcart(PADS[i9],6,sDe9,s,side*lDe9,side*lat,PADL[i9])<4.1){ // 2,75 de pad + ~1,35 de caisse : il faut MORDRE dessus — (BALAYAGE) sur le trajet : à 30 i/s il sautait par-dessus au-delà de ~1 300 km/h
-          vA+=18;boost=Math.max(boost,1.5);if(!pl9)padCd=1.5; /* (LIGNE PARFAITE, audit GAMEPLAY) un pad de la file ne met plus la recharge : au niveau 12 il bloquait le 1er pad de la LIGNE DE NÉON au-delà de ~470 km/h (« LIGNE CASSÉE ») */ // viser paie plus qu'avant (14 → 18)
-          if(SONV2)sfx('pad');else boostSnd();shake=Math.max(shake,.3);hap(10);
-          slam('BOOST','','#ffb000','#ff3924',28); /* (2026-09-29, Sacha : « BOOST écrit plus petit ») 46 → 28 */flashEcran('rgba(255,150,0,.5)');fovPunch=Math.max(fovPunch,10); // (HUD v3) « quand tu roules sur un boost, BOOST en gros »
-          if(pl9){LIGNE.pris[1]++;LIGNE.padPris.add(i9);}nitroGain(LIGNE.padI.has(i9)?LIGNE.don:.12);flowAdd(6,'route','p');momT=Math.min(4.3,momT+.8); // (LIGNE PARFAITE) le pad de la file rend de quoi tenir jusqu'au fruit
+          const tr9=padTrain(PADS[i9]),trk9=Math.min(5,tr9)-1; /* (LE TRAIN DE BOOSTS) 1, 2, 3… les pads pris à la suite, sans en rater un */
+          vA+=18+5*trk9;boost=Math.max(boost,1.5+.2*trk9);if(!pl9)padCd=1.5; /* (LIGNE PARFAITE, audit GAMEPLAY) un pad de la file ne met plus la recharge : au niveau 12 il bloquait le 1er pad de la LIGNE DE NÉON au-delà de ~470 km/h (« LIGNE CASSÉE ») */ // viser paie plus qu'avant (14 → 18)
+          if(SONV2)sfx('pad',{st:sonPd(trk9)});else boostSnd(1+.1*trk9);shake=Math.max(shake,.3+.04*trk9);hap(trk9?[10,16,10]:10);
+          slam(tr9>1?TR('BOOST')+' ×'+tr9:'BOOST','','#ffb000','#ff3924',28); /* (2026-09-29, Sacha : « BOOST écrit plus petit ») 46 → 28 */flashEcran('rgba(255,150,0,.5)');fovPunch=Math.max(fovPunch,10+2*trk9); // (HUD v3) « quand tu roules sur un boost, BOOST en gros »
+          if(pl9){LIGNE.pris[1]++;LIGNE.padPris.add(i9);}nitroGain(LIGNE.padI.has(i9)?LIGNE.don:.12);flowAdd(6+2*trk9,'route','p');momT=Math.min(4.3,momT+.8); // (LIGNE PARFAITE) le pad de la file rend de quoi tenir jusqu'au fruit
           campPad(i9); // (2026-09-27) la LIGNE DE NÉON (campagne VILLE, niveau 12)
           break;
         }
