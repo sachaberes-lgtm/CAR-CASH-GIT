@@ -1,5 +1,29 @@
 # CASH CAR — guide projet pour Claude Code
 
+## L'ATELIER v2 — LA LUMIÈRE ET LA MATIÈRE (2026-09-30, session GAMEPLAY — Sacha : « améliore le modèle 3D du garage en le rendant plus beau »)
+- Le garage est le MENU : c'est la 1re image du jeu. Léo le voulait SOBRE : rien n'est ajouté en bazar, on a travaillé la MATIÈRE et la
+  LUMIÈRE (bloc « L'ATELIER v2 » dans `buildGarageRoom`, état `GAR.beau`, animation `garBeaute(dt,t9)` appelée après `garFeu`).
+- **Le sol** : époxy sombre en dalles de 2,2 m (`solTex` 512², joint noir + arête claire, traces de gomme), `MeshPhongMaterial` brillant :
+  la lampe clé y court en reflet. **Le reflet du feu** : la VRAIE texture du rideau de flammes (`GAR.feu.tex`, même objet, zéro envoi de
+  plus) sur un RUBAN au sol de 24 rangées posées selon la loi du miroir vue de la caméra du menu (le point de hauteur y se reflète à
+  d·hc/(hc+y) de la caméra, d0 = 22 m, hc = 3 m) — un plan couché de 6 m, lui, s'écrasait en un filet. Fondu par couleurs de sommet.
+  ⚠ Un reflet dépend du REGARD : il s'efface quand la caméra ne regarde plus la porte (`camera.getWorldDirection`, z) — vu de dos ou de
+  l'écran MISSIONS c'était une mosaïque de couleurs au sol.
+- **Le feu éclaire** (lumière cuite, additive, `nappe`) : façade autour de l'ouverture (`GAR.beau.fac`, trou découpé à la place du feu),
+  les deux murs côté porte (`murG`/`murD`), le plafond (`plaf`) — elles battent avec les flammes et RUGISSENT au lâcher (`GAR.feu.k`).
+- **Le portail** : liseré néon rose autour de l'ouverture (cœur blanc, halo rose, bloom), bandes de danger peintes, deux gyrophares ambrés
+  (sprites `lampTex` qui battent). **Le plafond** : une bande LED sous chaque poutre + deux le long des gaines. **Les murs** : bardage de
+  panneaux de 2,6 m (`murTexB` + `murM(rx,ry,oy)` : une matière par mur, la répétition est une propriété de la texture).
+- **Le plateau** : dessus en acier brossé SATINÉ (Phong, specular bas : à .55/70 la lampe clé y faisait une tache blanche), anneau de LED
+  qui court (`GAR.beau.led`, deux comètes de tirets, hors du plateau : il tourne à sa vitesse), halo sous la caisse et halo au sol.
+  **Les braises** : 64 points qui sortent du feu et entrent dans l'atelier (un appel de dessin).
+- **Les lampes** (`stallKey`/`stallRim`, toujours recyclées — AUCUNE lumière ajoutée) suivent la CAMÉRA (`garCamA`) et plus le plateau :
+  depuis que la caméra est fixe et que le plateau tourne, elles tournaient AVEC la caisse (même côté éclairé, aucun reflet ne courait).
+  Le CONTRE-JOUR face à la porte devient la BRAISE du feu (cyan → orange selon l'angle, vacille avec les flammes).
+- Règles tenues : rien de haut dans l'anneau de la caméra (règle des 8,3 m), nappes additives en FrontSide, 0 programme en course
+  (tour.js 7 niveaux). MESURÉ au menu (menuperf.js, téléphone ×2) : 3,6-3,77 ms → 3,75-3,88 ms par image. Bancs : `garshot3.js`
+  (menu, 3D seule, trois angles, écran MISSIONS), `menuperf.js`.
+
 ## L'ORDRE DU HUD (2026-09-30, session GRAPHISME — Sacha : « retravaille le HUD pour le rendre bien organisé, bien équilibré, bien proportionné »)
 - **UN SEUL ENDROIT pour les PLACES du HUD de course : `<style id="hudOrdre">`**, posé EN DERNIER (après frenX3) — les blocs d'avant (charte4,
   hudMaitrise, pouvoirsV2, hudDA, hudTaille, figTaille, frenX3) gardent le DESSIN ; une place nouvelle se règle ICI.
