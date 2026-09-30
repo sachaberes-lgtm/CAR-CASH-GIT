@@ -17,8 +17,8 @@
 6. **Le système « la musique suit la vitesse »** : à l'arrêt quelques notes, mélodieuses et harmonieuses ; la musique
    s'enrichit **en parallèle de la vitesse** de la voiture. Méthode voulue : Léo choisit une boucle pour un niveau → on la
    livre en couches → le jeu les ouvre selon la vitesse.
-7. Sauvegarder proprement + ce document. **« Pour l'instant, garde ça sur le côté »** : rien n'est encore intégré au jeu
-   au-delà des points 1-2 (voir §6).
+7. Sauvegarder proprement + ce document. **« Pour l'instant, garde ça sur le côté »**.
+8. « NÉON DRIVE est pas mal, ajoute-la, on joue sur la map 1 NUAGES pour tester l'effet vitesse » → fait (§5 bis).
 
 ## 2. Les fichiers
 
@@ -118,6 +118,20 @@ Bloc `<<<GENERATEUR>>>` de `index.html` (juste après `musicPause`). RÉGLAGES �
 vol = batterie retirée + filtre ouvert, pose = « drop », nitro = charley en doubles + souffle, frénésie = recette `fren`.
 L'écran MISSIONS joue toujours Glassy + une couche composée (`genMissions`, appelé dans `mGo`). Console : `dbgMusGen()`.
 Testé (muet) : accueil → missions → course → vol → frénésie → pause → mort → retour, zéro erreur.
+
+## 5 bis. DANS LE JEU DEPUIS LE 2026-10-01 : NÉON DRIVE sur la map 1 (NUAGES)
+
+Léo : « NÉON DRIVE est pas mal, ajoute-la, on joue sur la map 1 NUAGES pour tester l'effet vitesse ». Bloc `<<<COUCHES>>>` de
+`index.html` (juste après `<<<FIN GENERATEUR>>>`), `musique-vitesse.js` chargé dans le `<head>`.
+- `MUSIC_COUCHES = { nuages: NÉON DRIVE (6 couches) }` : sur un lieu qui y figure, la musique à couches passe DEVANT la radio,
+  le morceau du lieu (NOITE DE VELOCIDADE) et le générateur. Ville, orbite, menu, garage, mort : inchangés (Glassy au lobby).
+- Vitesse = `flowVitN()` ; en vol (`mode==='fall'`) la grosse caisse se tait ; nitro = brillance ; FRÉNÉSIE = tout ouvert.
+- Contexte `GEN.ac` créé au 1er toucher (la boucle se charge déjà pendant le menu), limiteur partagé, volume `musicVolCour`.
+- Pause : arrêt, reprise du début de la boucle ; arrière-plan : idem ; mort : fondu.
+- Repli : page en file:// ou fichier absent → l'ancienne musique. Console : `dbgCouches()` (avec `pourquoiPas`), `dbgCouches(0|1)`.
+- Testé (muet, Chrome) : départ → couches qui montent avec la vitesse, vol (grosse caisse 0), pose (elle revient), frénésie
+  (tout à 0,99), pause/reprise, mort → musique du menu. Zéro erreur. **Pas encore entendu sur iPhone.**
+- Ajouter la VILLE / l'ORBITE : une entrée dans `MUSIC_COUCHES` (copier `couches` depuis `boucles-donnees.js`).
 
 ## 6. CE QUI RESTE À FAIRE (intégration au jeu)
 

@@ -67,7 +67,7 @@ carrière, missions, garage à onglets, boutique), + SEULEMENT :
   dans le jeu. + 12 boucles de 8 s (4 mesures, `atelier-son/boucles8.py`, ids `lobby-*` : COUCHER DE SOLEIL outrun, ASCENSEUR
   DORÉ bossa, PIÈCE D'OR 8 bits, LUXE trap, VAPEUR vaporwave, FILTRE D’OR french house, BONHOMME rock (guitares Karplus saturées), ENCRE FRAÎCHE rock punk façon Splatoon (180 BPM × 6 mesures, splats, bulles, « OH ! ») ; `niv-*` : ALTITUDE nuages, NÉON NOIR et
   MÉTRO ville, GRAVITÉ ZÉRO et SATELLITE orbite, TRIPLE MONSTRE frénésie). Banc d'écoute : `boucles.html` (sections par groupe)
-- **LA MUSIQUE QUI SUIT LA VITESSE** (2026-10-01, pas encore dans le jeu) : `musique-vitesse.js` (module autonome) joue une
+- **LA MUSIQUE QUI SUIT LA VITESSE** (2026-10-01 ; EN JEU sur NUAGES avec NÉON DRIVE : bloc `<<<COUCHES>>>`, `MUSIC_COUCHES`, `dbgCouches()`) : `musique-vitesse.js` (module autonome) joue une
   boucle livrée en COUCHES (`COUCHES` + `rendre_couches` dans boucles.py → `*--cN.m4a`, s'additionnent exactement) ; couche 1
   harmonique, les autres s'ouvrent à leur seuil de vitesse, `sol` se tait en vol, rattrapage ≤ +14 dB à l'arrêt. Démo : curseur
   VITESSE / SIMULER UNE COURSE de `boucles.html`. **Tout est résumé pour une autre discussion dans `MUSIQUE-PASSATION.md`.** (clic = écoute, EN VOL, NITRO, ENCHAÎNER ; servie = boucle sans couture).

@@ -5061,6 +5061,7 @@ html #garage.nivOuvert:not(.boutique):not(.quiet):not(.launching) #gNiv{display:
   </div></div>
 </div>
 <script src="vendor/three.min.js"></script>
+<script src="musique-vitesse.js?v=1"></script><!-- (2026-10-01) la musique qui suit la vitesse (voir <<<COUCHES>>>) -->
 <!-- POST-PROCESSING r128 (bloom cinématique) — version EXACTE alignée sur three r128. Chargés avant le jeu ;
      si l'un manque, le jeu retombe proprement sur renderer.render() (garde CAN_POST). -->
 <!-- ORDRE IMPORTANT : EffectComposer.js définit THREE.Pass, dont héritent Shader/Render/UnrealBloomPass — il doit venir AVANT elles. -->
@@ -21983,6 +21984,7 @@ function musicPremier(){const n0=NIVEAUX[0],l=n0&&MUSIC_LIEU[n0.id];return l?l.f
 function musicSession(){try{const s9=navigator.audioSession,v9=SND.music?'playback':'ambient';if(s9&&s9.type!==v9)s9.type=v9;}catch(e){}}
 function musicJoue(){ // lance (ou relance) la lecture — un refus n'est jamais perdu : le prochain toucher réessaie
   if(!SND.music||!musicVoulue||paused)return;
+  if(mcvVeut()){mcvJoue();return;}else if(MCV.actif||MCV.voulu)mcvStop(false); // (2026-10-01) LA MUSIQUE À COUCHES du lieu passe devant (voir <<<COUCHES>>>)
   if(GEN.on||GEN.mis){genJoue();return;} // (2026-10-01) LE GÉNÉRATEUR tient l'antenne (voir <<<GENERATEUR>>>) : le <audio> se tait
   // ⚠ PAS de garde `document.hidden` ici : certaines WebViews se disent « cachées » au démarrage — la musique ne partirait jamais
   const el=musicElGet();musicSession();
@@ -21999,13 +22001,14 @@ function musicDeverrouille(){ // appelé à CHAQUE toucher/touche (en capture) :
       if(p&&p.then)p.then(fin,function(){el.muted=false;musicDeverrouille._ok=false;});else fin();
       return;}
   }
-  if(GEN.ac&&GEN.ac.state==='suspended'&&GEN.voulu&&!paused)try{GEN.ac.resume();}catch(e){} // (2026-10-01) le contexte du GÉNÉRATEUR se relance au toucher
+  if(GEN.ac&&GEN.ac.state==='suspended'&&(GEN.voulu||MCV.voulu)&&!paused)try{GEN.ac.resume();}catch(e){} // (2026-10-01) le contexte du GÉNÉRATEUR se relance au toucher
+  if(!musicDeverrouille._mcv&&MCV.on&&/^https?:/.test(location.protocol)&&typeof MusiqueVitesse==='function'){musicDeverrouille._mcv=1;try{mcvPrepare();}catch(e){}} // (2026-10-01) le contexte naît PENDANT ce toucher (iOS), et la boucle des NUAGES se charge déjà
   if(musicVoulue&&SND.music&&(el.paused||musicEnAttente))musicJoue();
 }
 ['pointerdown','touchend','keydown'].forEach(function(ev){addEventListener(ev,function(){try{musicDeverrouille();}catch(e){}},MUSIC_PASSIF);});
 // l'arrière-plan : on se tait, et on reprend au retour si la musique devait jouer
 document.addEventListener('visibilitychange',function(){try{
-  if(document.hidden){if(musicEl&&!musicEl.paused)musicEl.pause();if(GEN.joue)genPause(true);}
+  if(document.hidden){if(musicEl&&!musicEl.paused)musicEl.pause();if(GEN.joue)genPause(true);if(MCV.actif){mcvStop(false);MCV.voulu=true;}}
   else if(musicVoulue&&!paused)musicJoue();}catch(e){}});
 /* L'ANALYSE DU RYTHME (le ciel qui bat) — une DÉRIVATION, jamais sur le chemin du son. `captureStream()` (Chrome,
    Edge, Android) rend une copie du flux : l'élément continue de jouer normalement. ⚠ PAS `mozCaptureStream` : sous
@@ -22034,7 +22037,7 @@ function playMusic(url,opt){opt=opt||{};
   if(el.paused||!meme)musicJoue();
   return el;
 }
-function stopMusic(){musicVoulue=false;try{genStop(false);}catch(e){}if(musicEl){try{musicEl.pause();}catch(e){}}musicOn=false;}
+function stopMusic(){musicVoulue=false;try{genStop(false);mcvStop(false);}catch(e){}if(musicEl){try{musicEl.pause();}catch(e){}}musicOn=false;}
 // ---- LE GESTIONNAIRE : menu étouffé → partie (même morceau, qui s'ouvre) → radio → tape-stop en fin ----
 function musicStartRun(){ // au début d'une partie (start / resetGame)
   if(!SND.music||!MUSIC_TRACKS.length)return;
@@ -22071,6 +22074,7 @@ function musicNext(){
 function musicStop(tape){ // fin de partie : « tape-stop » (la bande ralentit et s'éteint) ou coupure nette
   musicMode='none';musicVoulue=false;
   clearInterval(FRENM.iv);FRENM.on=false;FRENM.sw=false;FRENM.surm=false; // la frénésie ne survit pas à la partie
+  MCV.fren=false;if(MCV.actif)mcvStop(!!tape); // (2026-10-01) la musique à couches s'éteint en fondu
   if(GEN.on){GEN.fren=false;genStop(!!tape);return;} // (2026-10-01) le générateur s'étouffe comme une bande
   const el=musicEl;
   if(!el||el.paused||!tape){stopMusic();return;}
@@ -22118,6 +22122,7 @@ function frenMusRate(){ // le morceau de la triade a échoué : retour radio, pu
 }
 function frenMus(on){
   if(on===FRENM.on)return;FRENM.on=on;
+  if(MCV.actif||MCV.voulu){MCV.fren=on&&musicMode==='run';return;} // (2026-10-01) la musique à couches : la frénésie ouvre tout et fait briller
   if(GEN.on){GEN.fren=on&&musicMode==='run';return;} // (2026-10-01) le générateur bascule sur sa recette FRÉNÉSIE à la barre suivante
   const el=musicEl;
   if(on){
@@ -22138,7 +22143,9 @@ function frenMus(on){
 }
 setTimeout(function(){try{frenMusSonde();}catch(e){}},2500);
 // la pause du jeu met la musique en pause (et la reprend) — elle ne passe plus par l'AudioContext suspendu
-function musicPause(p){try{if(GEN.on||GEN.mis){genPause(p);return;}if(!musicEl)return;if(p){if(!musicEl.paused)musicEl.pause();}else if(musicVoulue)musicJoue();}catch(e){}}
+function musicPause(p){try{if(p&&MCV.actif){mcvStop(false);MCV.voulu=true;return;} // (2026-10-01) la musique à couches : arrêtée à la pause…
+  if(!p&&MCV.voulu){if(mcvVeut()){mcvJoue();return;}MCV.voulu=false;} // …relancée à la reprise (du début de la boucle)
+  if(GEN.on||GEN.mis){genPause(p);return;}if(!musicEl)return;if(p){if(!musicEl.paused)musicEl.pause();}else if(musicVoulue)musicJoue();}catch(e){}}
 /* <<<GENERATEUR>>> ============================================================
    LE GÉNÉRATEUR DE MUSIQUE (2026-10-01, Léo : « générateur musique cash car » → « musique procédurale en jeu »)
    ----------------------------------------------------------------------------
@@ -22213,7 +22220,7 @@ function genGraphe(){ // bâti UNE fois, sur SON contexte
   GEN.bat=ac.createGain();GEN.bat.connect(GEN.filt);                      // la batterie ne pompe pas
   GEN.filt.connect(GEN.cmp);GEN.cmp.connect(GEN.out);
   const lim=ac.createDynamicsCompressor();lim.threshold.value=-1.5;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=.002;lim.release.value=.12;
-  GEN.out.connect(lim);lim.connect(ac.destination);
+  GEN.out.connect(lim);lim.connect(ac.destination);GEN.lim=lim; // (le limiteur sert aussi à la musique À COUCHES)
   GEN.ana=ac.createAnalyser();GEN.ana.fftSize=256;GEN.ana.smoothingTimeConstant=.55;GEN.out.connect(GEN.ana);
   GEN.nz=genBruit(ac);
   return true;
@@ -22399,6 +22406,81 @@ function musGenBascule(on){
 }
 // (l'interrupteur se lit après SAVE : voir la ligne « SND.sfx=SAVE.d.sfx »)
 /* <<<FIN GENERATEUR>>> ====================================================== */
+/* <<<COUCHES>>> ==============================================================
+   LA MUSIQUE QUI SUIT LA VITESSE, EN JEU (2026-10-01, Léo : « NÉON DRIVE est pas mal, ajoute-la, on joue sur la map 1 NUAGES pour
+   tester l'effet vitesse »). Une boucle livrée en COUCHES (atelier-son/boucles.py → `*--cN.m4a`) jouée par `musique-vitesse.js` :
+   à l'arrêt la NAPPE seule, puis ARPÈGE, BASSE, RYTHME, GROSSE CAISSE, LEAD entrent à leur seuil de `flowVitN()` (≈ 1 en
+   croisière) ; EN VOL la grosse caisse se tait et retombe à la pose ; nitro = brillance ; FRÉNÉSIE = tout ouvert + brillance.
+   · Le lieu qui a une boucle à couches (`MUSIC_COUCHES`) passe DEVANT la radio, le morceau de lieu et le générateur ; ailleurs
+     rien ne change. Menu / garage / mort : la musique d'avant (Glassy au lobby).
+   · Même contexte audio que le générateur (`GEN.ac`, créé au 1er toucher, indépendant de l'interrupteur SON) et même limiteur ;
+     volume = `musicVolCour` (curseur MUSIQUE + ducking de l'annonceur) ; son analyseur fait battre le ciel.
+   · Page ouverte en file:// (fetch impossible) ou fichier absent : `MCV.ok=false`, repli silencieux sur l'ancienne musique.
+   · Console : `dbgCouches()` (état, gains des couches, rattrapage) · `dbgCouches(0|1)` coupe / rallume le système.
+   ========================================================================== */
+const MUSIC_COUCHES={
+  nuages:{id:'neon-drive',titre:'NÉON DRIVE',ton:-4,dur:32.54238,couches:[
+    {nom:'NAPPE',f:'assets/audio/music/boucles/neon-drive--c1.m4a',seuil:0,sol:false,rms:.03057},
+    {nom:'ARPEGE',f:'assets/audio/music/boucles/neon-drive--c2.m4a',seuil:.3,sol:false,rms:.01237},
+    {nom:'BASSE',f:'assets/audio/music/boucles/neon-drive--c3.m4a',seuil:.5,sol:false,rms:.05609},
+    {nom:'RYTHME',f:'assets/audio/music/boucles/neon-drive--c4.m4a',seuil:.7,sol:false,rms:.03339},
+    {nom:'GROSSE CAISSE',f:'assets/audio/music/boucles/neon-drive--c5.m4a',seuil:.82,sol:true,rms:.15993},
+    {nom:'LEAD',f:'assets/audio/music/boucles/neon-drive--c6.m4a',seuil:.97,sol:false,rms:.02568}]}
+};
+const MCV={ok:null,on:true,mv:null,vol:null,id:'',pret:false,charge:null,voulu:false,actif:false,fren:false,boucle:null};
+function mcvBoucle(){return (LVL.cur&&MUSIC_COUCHES[LVL.cur.id])||null;}
+function mcvVeut(){
+  return MCV.on&&MCV.ok!==false&&SND.music&&musicMode==='run'&&!gameOver&&!paused&&!!mcvBoucle()&&
+    typeof MusiqueVitesse==='function'&&/^https?:/.test(location.protocol);
+}
+function mcvPrepare(){ // le contexte, le nœud de volume, le lecteur — et le chargement de la boucle du lieu
+  if(!genGraphe())return false;
+  if(!MCV.mv){MCV.vol=GEN.ac.createGain();MCV.vol.gain.value=0;MCV.vol.connect(GEN.lim);MCV.vol.connect(GEN.ana);
+    MCV.mv=MusiqueVitesse(GEN.ac,MCV.vol);}
+  const b=mcvBoucle()||MUSIC_COUCHES.nuages;
+  if(MCV.id!==b.id){MCV.id=b.id;MCV.boucle=b;MCV.pret=false;
+    MCV.charge=MCV.mv.charge(b).then(function(){if(MCV.id!==b.id)return;MCV.pret=true;if(MCV.voulu&&!MCV.actif&&mcvVeut())mcvDemarre();})
+      .catch(function(e){console.warn('musique à couches : ',e);MCV.ok=false;MCV.voulu=false;if(musicMode==='run')try{musicPlayCurrent();}catch(x){}});}
+  return true;
+}
+function mcvDemarre(){
+  try{if(GEN.ac.state==='suspended')GEN.ac.resume();}catch(e){}
+  if(musicEl&&!musicEl.paused){try{musicEl.pause();}catch(e){}}
+  MCV.mv.joue();MCV.actif=true;genAna(true);
+  const t=GEN.ac.currentTime,g=MCV.vol.gain;g.cancelScheduledValues(t);g.setValueAtTime(0,t);g.setTargetAtTime(Math.max(0,musicVolCour),t,.15);
+  sonTonSuit._t=null;
+}
+function mcvJoue(){
+  MCV.voulu=true;
+  if(GEN.joue)genStop(false);                                     // le générateur laisse la place
+  if(musicEl&&!musicEl.paused){try{musicEl.pause();}catch(e){}}
+  if(!mcvPrepare())return;
+  if(MCV.actif)return;
+  if(MCV.pret)mcvDemarre();                                        // sinon : démarre à la fin du chargement
+}
+function mcvStop(tape){
+  MCV.voulu=false;if(!MCV.actif)return;MCV.actif=false;
+  const t=GEN.ac.currentTime,g=MCV.vol.gain;g.cancelScheduledValues(t);g.setValueAtTime(g.value,t);g.setTargetAtTime(0,t,tape?.25:.03);
+  const mv=MCV.mv;setTimeout(function(){if(!MCV.actif)mv.stop();},tape?1200:150);
+  if(!GEN.joue)genAna(false);
+}
+function mcvTick(dt){
+  if(!MCV.actif)return;
+  if(!mcvVeut()){mcvStop(false);return;}
+  if(GEN.ac.state==='suspended'&&!document.hidden){try{GEN.ac.resume();}catch(e){}}
+  const v=MCV.fren?1.3:flowVitN();
+  MCV.mv.regle({vitesse:v,enVol:mode==='fall',nitro:nitroOn||MCV.fren});
+  MCV.vol.gain.setTargetAtTime(Math.max(0,musicVolCour),GEN.ac.currentTime,.08);
+  musicOn=true;
+}
+window.dbgCouches=function(a){
+  if(a===0||a===1){MCV.on=!!a;if(!a)mcvStop(false);else if(musicMode==='run')musicPlayCurrent();return dbgCouches();}
+  const pq=[!MCV.on&&'coupé',MCV.ok===false&&'échec du chargement',!SND.music&&'MUSIQUE éteinte',musicMode!=='run'&&('mode '+musicMode),
+    gameOver&&'partie finie',paused&&'pause',!mcvBoucle()&&('lieu sans couches : '+(LVL.cur&&LVL.cur.id))].filter(Boolean);
+  return{pourquoiPas:pq.join(' · ')||'—',on:MCV.on,ok:MCV.ok,boucle:MCV.id,pret:MCV.pret,actif:MCV.actif,voulu:MCV.voulu,fren:MCV.fren,
+    vitesse:+flowVitN().toFixed(2),enVol:mode==='fall',couches:MCV.mv?MCV.mv.etat():null};
+};
+/* <<<FIN COUCHES>>> ========================================================= */
 /* <<<FOND>>> ==================================================================
    LE FOND DU NIVEAU 1 — le décor JOUE la musique
    ----------------------------------------------------------------------------
@@ -22536,6 +22618,7 @@ function lvlTick(dt,S){
 }
 /* <<<FIN FOND>>> ========================================================== */
 function musicTick(dt,mvt){
+  try{mcvTick(dt);}catch(e){} // (2026-10-01) la musique à couches suit la vitesse
   try{genTick(dt,mvt);}catch(e){} // (2026-10-01) le générateur lit la course (vitesse, vol, nitro) et l'écran MISSIONS
   try{sonTonSuit();}catch(e){} // (console de son) les sons accordés suivent la tonalité du morceau qui joue
   let target=0,beat=0,hiT=0;
@@ -23498,7 +23581,7 @@ addEventListener('load',function(){try{sonConsole();}catch(e){}});
 const SON_TON={'lvl1-neon-cash-car':-1,'lvl2-cash-car-vitesse':-2,'nocturnal-groove':0,'noite-de-velocidade':2,'addictive-loop':1,'swag-cash-car-2':-1,'glassy-plucks':0}; // (2026-10-01) GLASSY PLUCKS : centre do#, dorien → 0 // (Léo) ADDICTIVE LOOP la m (+1), SWAG CASH CAR do m (−1) — mesurés par chroma, même méthode (vérifiée sur les quatre de Sacha)
 function sonTonSuit(){
   if(!SONV2)return;let t=0;
-  if((GEN.on||GEN.mis)&&GEN.rec){t=GEN.rec.ton;}else
+  if(MCV.actif&&MCV.boucle){t=MCV.boucle.ton;}else if((GEN.on||GEN.mis)&&GEN.rec){t=GEN.rec.ton;}else
   try{const el=musicEl;if(SND.music&&el&&el.src){for(const k in SON_TON)if(el.src.indexOf(k)>=0){t=SON_TON[k];break;}if(FRENM.surm)t+=1;}}catch(e){}
   if(t!==sonTonSuit._t){sonTonSuit._t=t;window.CCSON.ton(t);}
 }
