@@ -26981,6 +26981,10 @@ function froleSnd(pres,n){
    (do · ré · mi · sol), la poussière d'or à ×3, le coup de poitrine à ×4 — et la FRÉNÉSIE part avec le fwoosh entier. */
 // Hook console : `dbgConduite()` — l'état des nouveaux sons de conduite, et `dbgConduite('son')` les JOUE tous une fois
 // (renvoie la première erreur s'il y en a : les appels de la boucle sont sous try/catch, une panne y serait muette).
+window.dbgBord=function(o){ // (banc) LE BORD DE LA ROUTE : pose la caisse à un écart latéral (lat) avec une vitesse latérale (vL) · rend l'état (lat, bumps du vol, mode)
+  if(o&&mode==='drive'){if(o.lat!=null)lat=+o.lat;if(o.vL!=null)vL=+o.vL;if(o.grace!=null)graceT=+o.grace;if(o.psi!=null){psi=+o.psi;yawR=0;}if(o.saut)startFall(+o.saut,1);}
+  if(o&&mode==='fall'&&o.rentre!=null&&tryLand._bi>=0)fallVel.addScaledVector(B[tryLand._bi],-Math.sign(curLatOff||1)*(+o.rentre)*vitMult()); // (banc) en vol : une vitesse vers la route (le joueur qui braque déjà)
+  return {mode:mode,lat:+lat.toFixed(2),demi:ROAD_HALF,vL:+vL.toFixed(2),bumps:bounceN,fallT:+fallT.toFixed(2),side:side,hOff:+curHOff.toFixed(2),latOff:+curLatOff.toFixed(2),steer:+steer.toFixed(2),basc:bascOn};};
 window.dbgConduite=function(q){
   if(q==='son'){const E=[];for(const f of [function(){blip();},function(){boostSnd(1.5);},function(){froleSnd(1,3);},function(){flowSnd(4);}])
     try{f();}catch(e){E.push(String(e));}return E.length?E:'ok';}
@@ -27960,6 +27964,17 @@ let steer=0,money=START_CASH,levelCash=0,boost=0,fallT=0,fallTR=0,padCd=0,shake=
    Les variables `airBank` / `airRollT` / `AIR_BANK_*` ont donc été RETIRÉES : les laisser en place
    aurait fait croire à un réglage disponible alors que plus rien ne les lit. */
 let airRoll=0; // vrille visuelle en vol
+/* LA PHYSIQUE DU BORD v2 — portée de la branche de Léo (cb3e82c, 2026-09-26, Léo : « quand on s'approche du bord la voiture déclique vers le
+   ciel, fais plus réaliste ») sur main le 2026-09-30 (Sacha : « quand on roule au bord de la route on est comme TÉLÉPORTÉ à côté — c'est un
+   petit CLIC bizarre, Léo l'avait corrigé »). Mesuré sur main avant (banc bord5.js, sortie douce) : au passage du bord la caisse SAUTAIT de
+   0,79 NDC à l'écran en UNE image (×52 son mouvement normal — du bord droit de l'image au centre : la caméra de vol la visait d'un coup),
+   restait figée une image puis rattrapait 2,7 m, montait de 60 cm, et recevait un coup de saut de +3,4. Désormais c'est une vraie BASCULE :
+   roues dehors → la caisse penche vers le vide ; centre de gravité dehors → elle bascule sans décoller, du côté du vide, de plus en plus
+   vite ; si l'on braque à temps, le pneu raccroche la LÈVRE au lieu d'aller cogner la tranche ; et la caméra glisse au lieu de sauter.
+   `bascOn` = ce vol vient d'une sortie par le bord, `bascDir` = sens de la vrille (+1 = celui de toujours), `levreY` = la marche que la
+   caisse remonte en raccrochant (décroît). */
+let bascOn=false,bascDir=1,levreY=0;
+const LEVRE_H=.7; // sous la surface, jusqu'où le pneu peut encore raccrocher la lèvre (plus bas : c'est la tranche qui cogne → BUMP)
 /* VOL LIBRE (2026-09-26) — le REPÈRE DU VOL : FLY_U = le « haut » de la caisse en l'air, FLY_R = sa droite. Plus aucune référence au
    ciel : au décollage FLY_U part de la normale de la route (dessus comme dessous), puis il est TRANSPORTÉ avec la trajectoire
    (on lui retire sa part le long de la vitesse, image après image). Le volant tourne autour de FLY_U, le manche autour de FLY_R,
@@ -29346,7 +29361,7 @@ function respawn(){
   momT=0; // (momentum v2) repartir = réserve vide
   if(introD){introD=false;if(pigGroup){scene.remove(pigGroup);pigGroup=null;}} // R pendant le largage : on annule proprement
   s=THREE.MathUtils.clamp(safeS-8,0,Math.max(0,L-80));
-  lat=0;psi=0;vA=26;vL=0;side=1;driveDir=1;graceT=1.6;prevTvalid=false;yawAcc=0;hopY=0;hopV=0;mode='drive';yawR=0;slipB=0;glisse9=0;driftYaw=0;driftEnCours=false;driftC=0;driftLv=0;driftT=0;carRoll9=0;rollV=0;pitch9=0;
+  lat=0;psi=0;vA=26;vL=0;side=1;driveDir=1;graceT=1.6;prevTvalid=false;yawAcc=0;hopY=0;hopV=0;levreY=0;bascOn=false;mode='drive';yawR=0;slipB=0;glisse9=0;driftYaw=0;driftEnCours=false;driftC=0;driftLv=0;driftT=0;carRoll9=0;rollV=0;pitch9=0;
 }
 // FREESTYLE : on ne MEURT jamais dans le parc — on repart sur la piste. La chaîne en cours est perdue
 // (on n'a pas su reposer), mais aucune explosion, aucun game over : c'est un bac à sable de figures.
@@ -29986,7 +30001,8 @@ function poseParfaiteFx(divin){
   flashEcran(divin?'rgba(255,238,150,1)':'rgba(255,200,60,.95)');
   if(divin)setTimeout(function(){try{if(running&&!gameOver)flashEcran('rgba(255,215,110,.8)');}catch(e){}},200);
 }
-function startFall(impU,impF){
+function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (physique du bord v2) — pas de pop, bascule vers le vide
+  const roll0=carRoll9; // (bord v2) le roulis de la carrosserie AVANT la remise à zéro : la bascule part de là
   ECH=0;figSnd._ess=0; // (console de son) une gamme neuve à chaque vol
   traceTick(false); // (2026-09-26) le ruban de gomme se coupe au décollage
   loop._nAir=nitroOn; // (2026-09-26) l'impulsion est celle de l'ALLUMAGE en vol : tenue depuis le sol, elle ne compte pas — mais elle ne dépend plus du vol d'avant
@@ -30013,10 +30029,11 @@ function startFall(impU,impF){
   if(Math.abs(vA)*3.6*SPD>400)annSpeak('launch400',1); // éjecté à +400 km/h (1 fois sur 3)
   frameAt(s,F);
   if(side<0){F.n.multiplyScalar(-1);F.b.multiplyScalar(-1);}
-  fallPos.copy(F.p).addScaledVector(F.b,lat).addScaledVector(F.n,(side<0?THICK:0)+.6);
+  // (bord v2) au BORD la caisse part d'où elle est (hopY) : le +0,6 d'origine la faisait monter de 60 cm en une image — le « déclic »
+  fallPos.copy(F.p).addScaledVector(F.b,lat).addScaledVector(F.n,(side<0?THICK:0)+(bord?hopY:.6));
   FLOW.s0=s;FLOW.p0.copy(fallPos); // (FLOW v2) d'où part le vol — la pose dira si c'était un RACCOURCI
   {const vm9=vitMult(); /* (2026-09-30) l'ÉJECTION = la vitesse d'avance RÉELLE : au sol, NITROOO et VITESSE ×2 multiplient l'avance (vitMult), pas vA — la caisse décollait sans eux */
-  fallVel.copy(F.t).multiplyScalar(vA*driveDir*(impF||1)*vm9).addScaledVector(F.b,vL*driveDir*vm9).addScaledVector(F.n,impU||.9);} // driveDir : on décolle dans le sens où l'on roulait (le parc autorise les deux)
+  fallVel.copy(F.t).multiplyScalar(vA*driveDir*(impF||1)*vm9).addScaledVector(F.b,vL*driveDir*vm9).addScaledVector(F.n,impU==null?.9:impU);} // driveDir : on décolle dans le sens où l'on roulait (le parc autorise les deux) — ⚠ (bord v2) `impU==null` et non `impU||` : le bord passe 0 (aucune impulsion), qui valait .9
   // INERTIE RÉELLE (2026-07-20) : fini le plafond TOTAL de 95 qui bridait l'éjection — éjecté à
   // 300 km/h, on VOLE à 300 km/h (le compteur ne s'effondre plus au décollage), et la gravité en
   // RAJOUTE en descente, comme une vraie chute. Seule la composante VERTICALE est bornée (70) :
@@ -30029,6 +30046,16 @@ function startFall(impU,impF){
   lastNearY=fallPos.y; // référence du plongeon fatal tant que tryLand n'a pas mieux
   {tmp.copy(fallVel).normalize();FLY_U.copy(F.n).addScaledVector(tmp,-F.n.dot(tmp)); // (vol libre) le haut du vol part de celui de la route
    if(FLY_U.lengthSq()<1e-4)FLY_U.copy(F.b).cross(tmp);FLY_U.normalize();FLY_R.crossVectors(FLY_U,tmp).normalize();}
+  // (bord v2) LA BASCULE : la vrille part du côté du VIDE (le toit vers l'extérieur : signe opposé à `lat`, même convention que carRoll9),
+  // et elle part du roulis que la carrosserie avait déjà — reporté sur la caisse entière, sinon il s'effaçait d'un coup à la sortie
+  bascOn=!!bord;bascDir=bord?-(Math.sign(lat)||1):1;levreY=0;
+  if(bord){airRoll=roll0;qTmp.setFromAxisAngle(tmp.set(0,0,1),roll0);carGroup.quaternion.multiply(qTmp);}
+  /* (bord v2) L'IMAGE DU DÉCOLLAGE : elle ne passe ni par le placement de la conduite (le mode vient de changer) ni par celui du vol
+     (il commence à l'image suivante) — la caisse et la caméra restaient FIGÉES une image puis rattrapaient deux pas d'un coup (2,7 m au
+     banc). On les avance ici d'un même pas ; la caméra de vol repart de là (voir le suivi en vol), et la conduite, au retour, repartira
+     de la caméra RÉELLE (`_camDriveT`/`_camLatT` périmés) au lieu d'un écart d'avant le saut. */
+  {tmp.subVectors(fallPos,carGroup.position);if(tmp.lengthSq()<400){carGroup.position.copy(fallPos);camera.position.add(tmp);}
+   loop._camAirT=0;loop._camDriveT=0;loop._camLatT=0;}
   // chaîne neuve : le vol commence, tout est à prouver
   chain=0;chainVal=rollover;chainMult=1;chainSeen={};spinHalf=0;
   heartBeat.vu=0; // (console de son) la mallette pourra chauffer — et le dire — une fois dans ce vol
@@ -30036,8 +30063,9 @@ function startFall(impU,impF){
   trkMeteor=false;curNear=false;NTR.airT=0;NTR.airFig=false; // (AIR NITROOO) une figure par vol
   if(dolOn)dolFin();dolphT=0;dolphGain=0;trkDolph=false;dolRasT=0;dolRoadT=0;dolOffT=0;dolAura=0;caseHot=false;heartT=0;ladderI=0;caseHud.style.opacity=0;caseHud.className='';
   chainHud.style.opacity=0;chainHud.classList.remove('pulse');
-  // le boost se disperse en petites particules
-  for(let k=0;k<14;k++){
+  // le boost se disperse en petites particules — (bord v2) sauf au BORD : une caisse qui bascule ne crache pas de flammes, son plancher RACLE la lèvre
+  if(bord){sparkBurst(sparkGold,fallPos,10,6);if(!SONV2)try{noiseBurst(.12,.07,700);}catch(e){}}
+  else for(let k=0;k<14;k++){
     spawnP(dust,fallPos.x,fallPos.y,fallPos.z,
       (Math.random()-.5)*7,-1-Math.random()*3,(Math.random()-.5)*7,.4+Math.random()*.3);
     if(k<8)spawnP(flameCore,fallPos.x,fallPos.y,fallPos.z,
@@ -30116,12 +30144,20 @@ function tryLand(dt){
   const prevH=hOff-vN*dt*SPD,prevL=latOff-vB*dt*SPD;
   const bumpIn=Math.abs(latOff)>=ROAD_HALF&&Math.abs(latOff)<ROAD_HALF+2.6&&vB*Math.sign(latOff)<-3;
   const bumpThru=Math.abs(prevL)>=ROAD_HALF&&Math.abs(latOff)<ROAD_HALF&&Math.sign(prevL)*vB<-3; // paroi percée en une frame
+  /* (bord v2) LA LÈVRE : juste après une BASCULE, les roues sont encore au ras du bitume. Si la caisse revient vers la route à cet
+     instant (le côté intérieur encore au-dessus de la dalle), le pneu ACCROCHE la lèvre et remonte, comme sur un trottoir — au lieu de
+     cogner la tranche et d'être renvoyé au ciel par le BUMP. Plus bas que LEVRE_H, c'est la carrosserie qui heurte la tranche : BUMP.
+     Rien n'est payé ni rendu (ni nitro, ni figure) : on a juste sauvé sa peau. Dessus seulement (la face du dessous n'a pas de sol). */
+  if(bascOn&&fallStartSide>0&&sideCd<=0&&fallT<.6&&hOff>-LEVRE_H&&hOff<.8&&Math.abs(latOff)<ROAD_HALF+CARS[level].w*.5&&vB*Math.sign(latOff)<-.5){
+    levreRattrape(bestI,latOff,hOff,dTmp.dot(T[bestI]));return true;}
   if(sideCd<=0&&hOff>-THICK-.8&&hOff<.8&&(bumpIn||bumpThru)){
     const sg=bumpThru?Math.sign(prevL):Math.sign(latOff),impB=Math.abs(vB);
     fallVel.addScaledVector(B[bestI],-vB*1.65); // réflexion amortie sur la paroi
     fallVel.multiplyScalar(.78);
     fallVel.y+=2.4; // la tranche RENVOIE la caisse vers le ciel
-    fallPos.copy(pts[bestI]).addScaledVector(B[bestI],sg*(ROAD_HALF+1.8)).addScaledVector(Nn[bestI],hOff);
+    // (bord v2) la caisse est remise CONTRE la tranche (sa demi-largeur), là où elle la touche : avant, elle était téléportée à 1,8 m du bord
+    // ET recalée sur le point de piste le plus proche (jusqu'à 1,6 m le long du ruban) — un saut d'image, pas un choc
+    fallPos.addScaledVector(B[bestI],sg*Math.max(bumpThru?0:Math.abs(latOff),ROAD_HALF+CARS[level].w*.5)-latOff);
     sideCd=.35;
     // ---- BUMP / DOUBLE BUMP / TRIPLE BUMP : figure GRATUITE (compte pour le HUD/style, zéro dollar) ----
     bounceN++;runStats.bumps++;
@@ -30333,6 +30369,26 @@ function traceQuad(q,A0,A1,B0,B1,v0,v1){ // écrit le quad q : (A0,A1) = bord ar
   P[o]=A0.x;P[o+1]=A0.y;P[o+2]=A0.z;P[o+3]=A1.x;P[o+4]=A1.y;P[o+5]=A1.z;P[o+6]=B0.x;P[o+7]=B0.y;P[o+8]=B0.z;P[o+9]=B1.x;P[o+10]=B1.y;P[o+11]=B1.z;
   U[u]=0;U[u+1]=v0;U[u+2]=1;U[u+3]=v0;U[u+4]=0;U[u+5]=v1;U[u+6]=1;U[u+7]=v1;
   if(TRACE.lo<0||q<TRACE.lo)TRACE.lo=q;if(q>TRACE.hi)TRACE.hi=q;
+}
+// (bord v2) LA LÈVRE RACCROCHÉE — voir tryLand. La caisse repasse en conduite là où elle touche la lèvre, cap = direction de sa
+// trajectoire (aucun redressement), sa vitesse moins le choc. Le roulis pris en basculant repart dans le RESSORT de la carrosserie
+// (elle se repose, elle ne se redresse pas d'un coup) et la marche sous la lèvre se remonte en ~0,15 s (`levreY`).
+function levreRattrape(bI,latOff,hOff,tOff){
+  tmp.set(0,1,0).applyQuaternion(carGroup.quaternion);
+  const r9=Math.atan2(-tmp.dot(B[bI]),tmp.dot(Nn[bI])); // le roulis VISIBLE, dans la convention de carRoll9 (+ = toit vers −B)
+  const vm9=vitMult(),vTan=fallVel.dot(T[bI])/vm9,vLat=fallVel.dot(B[bI])/vm9; // (30/09) le vol porte la vitesse RÉELLE (× vitMult) : ramenée au vA d'avant le multiplicateur, comme à la pose
+  s=THREE.MathUtils.clamp(bI/(NP-1)*L+THREE.MathUtils.clamp(tOff,-2,2),0,L-1);
+  side=1;lat=Math.sign(latOff)*(ROAD_HALF-.05);
+  psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=0;slipB=0;driftYaw=0;
+  vA=vTan*.94;vL=0; // le choc de la lèvre coûte 6 %
+  if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1;
+  levreY=Math.min(0,hOff);carRoll9=THREE.MathUtils.clamp(r9,-.42,.42);rollV=0;
+  mode='drive';prevTvalid=false;bascOn=false;
+  if(chain===0&&chainVal>0)rollover=chainVal; // le REPORT d'un PARFAIT, consommé au décollage, n'est pas perdu pour autant
+  chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;gapArmed=0;
+  squashT=Math.max(squashT,.14);shake=Math.max(shake,.28);hap(18);
+  sparkBurst(sparkGold,carGroup.position,8,7);
+  try{thud(3.5);if(!SONV2)noiseBurst(.1,.08,900);pneuMord(.35);}catch(e){}
 }
 function traceTick(actif){
   if(!actif||wheels.length<4){TRACE.r[0]=TRACE.r[1]=null;return;}
@@ -36084,7 +36140,9 @@ function loop(now){
       if(PARIS.sol&&Math.abs(lat)>ROAD_HALF-1.15)parisMur(dt); // (Paris au sol) les façades sont des MURS : on frotte, on ne tombe pas
       else if(Math.abs(lat)>ROAD_HALF){
         const out=Math.sign(lat);
-        if(graceT<=0)startFall(3.4,1.04); // petit boost de saut en sortie de route
+        // (bord v2) le CENTRE DE GRAVITÉ passe la lèvre : elle BASCULE — ni saut (était +3,4 vers le haut), ni poussée (+4 %) : on ne
+        // décolle pas d'un bord plat, on en tombe. Elle garde sa vitesse et sa dérive ; la gravité fait le reste (voir startFall).
+        if(graceT<=0)startFall(0,1,true);
         else{lat=out*ROAD_HALF;if(vL*out>0)vL=0;}
       }
       if(graceT<=0&&F.n.y*1<-.15&&Math.abs(vF)<7)startFall();
@@ -36215,7 +36273,8 @@ function loop(now){
       if(mode==='drive'){
         frameAt(s,F);
         if(side<0){F.n.multiplyScalar(-1);F.b.multiplyScalar(-1);}
-        carGroup.position.copy(F.p).addScaledVector(F.b,lat).addScaledVector(F.n,(side<0?THICK:0)+hopY);
+        if(levreY<0){levreY*=Math.exp(-dt*16);if(levreY>-.005)levreY=0;} // (bord v2) la caisse qui a raccroché la LÈVRE finit de remonter sa marche (~0,15 s)
+        carGroup.position.copy(F.p).addScaledVector(F.b,lat).addScaledVector(F.n,(side<0?THICK:0)+hopY+levreY);
         fwdW.copy(F.t).multiplyScalar(Math.cos(psi)*driveDir).addScaledVector(F.b,Math.sin(psi)*driveDir).normalize(); // la caisse REGARDE son sens de marche (parc : peut faire face à -T)
         tmp.crossVectors(F.n,fwdW).normalize();
         mat4.makeBasis(tmp,F.n,fwdW);
@@ -36240,8 +36299,13 @@ function loop(now){
           // LE ROULIS (v2) : la CARROSSERIE s'écrase sur l'EXTÉRIEUR du virage, à proportion de la charge latérale (lacet × vitesse) —
           // 6° pour un petit virage, 13-15° en plein braquage, +4° en drift. Un RESSORT (ω 14, amortissement .55) : elle plonge, dépasse
           // à peine et se pose ; un gauche-droite la fait basculer d'un flanc sur l'autre. Les roues, elles, restent au sol.
+          /* (bord v2) LES ROUES DEHORS : dès que les roues extérieures passent la lèvre, plus rien ne porte ce côté — la carrosserie
+             s'affaisse vers le VIDE (jusqu'à ~9° quand le centre de gravité arrive au bord, où la bascule prend le relais) et le plancher
+             RACLE la lèvre (étincelles). C'est l'avertissement physique : on SENT le bord avant d'y tomber. */
+          const hw9=CARS[level].w*.5,dB9=Math.abs(lat)-(ROAD_HALF-hw9),pe9=dB9>0&&!(PARIS.sol)?Math.min(1,dB9/hw9):0;
+          if(pe9>0&&Math.abs(vA)>12&&Math.random()<dt*28*pe9){DRIFT_V.set(Math.sign(lat)*Math.max(0,hw9-dB9),.08,(Math.random()-.5)*CARS[level].l*.7);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkGold,DRIFT_V,1,6);}
           {const aLat=yawR/spdMult*Math.abs(vA)*SPD,d9=Math.min(dt,1/30), /* (HAUTE VITESSE) le lacet de BASE : le roulis du même virage qu'à ×1 */
-                rollT=Math.sign(aLat)*.26*(1-Math.exp(-Math.abs(aLat)/35))+(driftEnCours?Math.sign(slipB)*.07:0);
+                rollT=Math.sign(aLat)*.26*(1-Math.exp(-Math.abs(aLat)/35))+(driftEnCours?Math.sign(slipB)*.07:0)-Math.sign(lat)*.15*pe9*(2-pe9);
            rollV+=((rollT-carRoll9)*196-rollV*15.4)*d9;carRoll9=THREE.MathUtils.clamp(carRoll9+rollV*d9,-.42,.42);
            pitch9+=(((dn||driftEnCours)?.035:0)-((nitroOn||boost>0)?.03:0)-NFX.ign*NFX.ignK*.1-pitch9)*Math.min(1,dt*6); // plonge au frein/drift, s'accroupit à la poussée — (vague 3) et SE CABRE à l'allumage de la nitro (≈3° le temps du coup)
            const pv=carBody.userData.pivY||.45;
@@ -36639,7 +36703,9 @@ function loop(now){
          ARCADE, pas un oubli — la lisibilité aéronautique n'est pas le sujet de ce jeu.
          ⚠ à ne pas confondre avec la FIGURE « vrille » qui paye : celle-là se compte en demi-tours
          de LACET (`yawAcc`) et n'a rien à voir avec cette rotation visuelle. */
-      airRoll+=(3.0+steer*2.2+Math.min(2,fallT*.5))*dtF; // VRILLE : la caisse tourne sur elle-même (suit le vol accéléré)
+      // (bord v2) après une sortie par le BORD la vrille tourne du côté du vide (`bascDir`) et DÉMARRE comme une vraie bascule : le pivot sur
+      // la lèvre l'accélère de 25 % à 100 % en ~0,4 s. Hors bord : bascDir = 1, facteur 1 → la formule de toujours, au chiffre près.
+      airRoll+=(bascDir*(3.0+Math.min(2,fallT*.5))*(bascOn?Math.min(1,.25+fallT*1.9):1)+steer*2.2)*dtF; // VRILLE : la caisse tourne sur elle-même (suit le vol accéléré)
       qTmp2.setFromAxisAngle(tmp,airRoll);
       qTmp.premultiply(qTmp2);
       carGroup.quaternion.slerp(qTmp,Math.min(1,dt*8));
@@ -36658,7 +36724,14 @@ function loop(now){
       const bigAir=THREE.MathUtils.clamp((fallT-0.5)/2.2,0,1); // 0 au décollage → 1 sur un gros air
       {const n9=performance.now();if(n9-(CAMV.t||0)>150){CAMV.zoom=0;CAMV.s0=THREE.MathUtils.clamp(volTaille(camera.position.distanceTo(fallPos),camera.fov),.1,.4);}CAMV.t=n9;} // 1re image du vol : un coup de zoom PARFAIT en cours ne survit pas au décollage · la TAILLE de la caisse au sol, mesurée à l'instant du décollage
       tmp2.copy(fallPos).addScaledVector(tmp,-(9.0-bigAir*2.6)*(1-POR*.16)).addScaledVector(FLY_U,(3.5+bigAir*2.4)*(1+POR*.12)); // derrière la trajectoire, au-dessus de la caisse — « au-dessus » = vers le HAUT DE LA CAISSE (vol libre), pas vers le ciel
-      camera.position.lerp(tmp2,Math.min(1,dt*(3+bigAir*4.5))); // suivi plus vif en gros air : la caméra ne décroche pas
+      /* (bord v2) LE SUIVI SANS À-COUP : l'ancien `camera.position.lerp(cible)` suivait une cible qui file — à la 1re image de vol la caméra
+         passait d'un coup de « roule AVEC la caisse » (conduite : écart lissé) à « reste presque sur place » : la caisse s'échappait. On
+         lisse l'ÉCART caisse→caméra, et la TRAÎNE que produisait l'ancien lerp (l'avance de la caisse, `fallVel·SPD·dtF`) s'installe en
+         0,6 s — une fois installée, c'est l'ancien suivi au chiffre près (même cible, même raideur, même retard en régime établi). */
+      {const oA=CAMV.oA||(CAMV.oA=new THREE.Vector3());loop._camAirT=(loop._camAirT||0)+dt;
+       oA.subVectors(camera.position,fallPos).addScaledVector(fallVel,SPD*dtF*(1-Math.min(1,loop._camAirT/.6))) // l'écart de l'image d'avant, moins la part de traîne pas encore installée
+         .lerp(tmp2.sub(fallPos),Math.min(1,dt*(3+bigAir*4.5))); // suivi plus vif en gros air : la caméra ne décroche pas
+       camera.position.copy(fallPos).add(oA);}
       /* LE BRAS DE LA CAMÉRA (2026-09-28, nuit, Sacha : « sur mobile la voiture devient trop petite en air time — il faut juste pas que ça
          complexifie »). MESURÉ en portrait : la poursuite décroche à 17-18 m dans la 1re seconde du vol, quand le champ est encore large —
          la caisse tombait à la MOITIÉ de sa taille au sol (0,12 contre 0,23 de la demi-hauteur), pile sur les sauts courts. Désormais la
@@ -36668,7 +36741,13 @@ function loop(now){
       {const dMx=volR()/(CAMV.s0*Math.tan(camera.fov*Math.PI/360));CAMV.off.subVectors(camera.position,fallPos);const d9=CAMV.off.length();if(d9>dMx)camera.position.copy(fallPos).addScaledVector(CAMV.off,dMx/d9);}
       camUp.lerp(FLY_U,Math.min(1,dt*3)).normalize(); // (vol libre) le haut de l'écran = le haut de la caisse : la caméra ne se remet plus « à l'endroit »
       camera.up.copy(camUp);
-      camera.lookAt(fallPos);
+      /* (bord v2) LA VISÉE GLISSE — c'était LE « clic » du bord : au sol la caméra vise ~10 m DEVANT la caisse (`loop._vise`, la caisse en
+         bas de l'image, décalée du côté où elle file), en vol elle vise la caisse ; le passage se faisait en UNE image. La visée de conduite
+         fond désormais vers la caisse en ~0,4 s, la penche du virage aussi — et comme `n9Saut` reste nourri en vol, la visée repart EN
+         DOUCEUR à l'atterrissage au lieu d'y sauter. */
+      if(Math.abs(camLean)>.001){camLean*=Math.exp(-dt*5);qTmp2.setFromAxisAngle(tmp,-camLean);camera.up.applyQuaternion(qTmp2);}
+      {const v9=loop._vise;if(v9){if(n9Saut(loop))v9.set(0,0,0);else v9.multiplyScalar(Math.exp(-dt*5));}
+       camera.lookAt(fallPos.x+(v9?v9.x:0),fallPos.y+(v9?v9.y:0),fallPos.z+(v9?v9.z:0));}
       // LES CHOCS EN VOL SE SENTENT (bump sur la tranche, surf de nuage, catapulte) — un petit déplacement qui décroît ici, le regard reste sur la caisse
       if(shake>0){if(!REDUCED_MOTION&&!window.dbgNoShake){const a9=Math.min(1.3,shake)*.12;
         camera.position.addScaledVector(FLY_R,Math.sin(t*47)*a9).addScaledVector(camUp,Math.sin(t*37+1.3)*a9*.8);}

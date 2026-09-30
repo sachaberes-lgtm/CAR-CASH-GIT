@@ -1,5 +1,28 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA PHYSIQUE DU BORD v2 — le « clic » du bord corrigé (2026-10-01, session GFX) — Sacha : « quand on roule au bord de la route on est comme TÉLÉPORTÉ à côté — c'est un petit CLIC bizarre, Léo l'avait corrigé »
+- LA SOURCE : le correctif de Léo (`cb3e82c`, branche `version-leolei-2026`, 26/09) n'avait jamais été porté sur main. Porté et adapté
+  (vitesse réelle `vitMult`, caméra de vol d'aujourd'hui avec son bras `CAMV`).
+- MESURÉ AVANT (banc `bord5.js`, sortie douce par le bord) : à l'image du passage, la caisse SAUTAIT de 0,79 NDC à l'écran (×52 son
+  mouvement normal — du bord de l'image au centre, la caméra de vol la visait d'un coup), restait figée une image puis rattrapait 2,7 m, et
+  recevait +0,6 m et un coup de saut (+3,4). APRÈS : 0,04 NDC (×2, le mouvement ordinaire). Décollage d'un saut normal : 0,40 → 0,04.
+- CE QUI A CHANGÉ :
+  · la sortie par le bord = une BASCULE : `startFall(0,1,true)` — ni impulsion ni poussée, la caisse part de sa hauteur (`hopY`) ; la vrille
+    tourne du côté du VIDE (`bascDir`) et démarre lentement (le pivot sur la lèvre), en partant du roulis qu'avait la carrosserie ;
+  · ROUES DEHORS (au sol) : la carrosserie penche vers le vide (jusqu'à ~9°) et le plancher RACLE la lèvre (étincelles d'or) — on SENT le
+    bord avant d'y tomber (`pe9`, dans le ressort du roulis) ;
+  · LA LÈVRE (`levreRattrape`, dans tryLand avant le BUMP) : dans les 0,6 s d'une bascule, si la caisse revient vers la route à moins de
+    `LEVRE_H` (0,7 m) sous la surface, le pneu raccroche et elle repart en conduite (−6 % de vitesse, rien de payé, rien de rendu). Banc
+    `levre.js` : raccroché en 2 images à 1-7 m/s vers la route, zéro BUMP ;
+  · le BUMP ne téléporte plus la caisse à 1,8 m du bord (ni ne la recale sur le point de piste) : elle est remise CONTRE la tranche ;
+  · la CAMÉRA DE VOL : l'image du décollage avance caisse ET caméra d'un même pas (plus d'image figée) ; le suivi lisse l'ÉCART caisse→caméra
+    et sa traîne s'installe en 0,6 s (en régime établi : l'ancien suivi au chiffre près) ; la VISÉE de conduite (`loop._vise`, ~10 m devant)
+    fond vers la caisse en ~0,4 s au lieu de sauter, et la penche du virage (`camLean`) s'efface en douceur.
+- ⚠ PAS RÉGLÉ : à l'ATTERRISSAGE la caisse saute encore de ~0,3 NDC vers le bas de l'image en une image (déjà là avant : 0,44-0,46 mesuré).
+  Cause pas encore trouvée — piste : ce qui s'applique d'un coup à la reprise de conduite (la visée, elle, est censée glisser).
+- Hook `dbgBord({lat,vL,grace,psi,saut,rentre})` : pose la caisse au bord, force un petit saut, ou pousse la caisse vers la route en vol ;
+  rend `{mode,lat,demi,vL,bumps,fallT,side,hOff,latOff,steer,basc}`. Bancs (scratchpad GFX) : `bord5.js doux|lent|retour`, `levre.js 1,4,7`.
+
 ## LES NUAGES v8 — REFAITS À ZÉRO (2026-10-01, nuit, session GAMEPLAY) — Sacha : « les nuages dans le premier niveau sont toujours aussi moches, il faut que tu reprennes tout à zéro et que tu me fasses une vraie génération de nuages adaptée au jeu et à la DA — pousse-toi dans tes limites, prends tout ton temps et surprends-moi »
 - LE DIAGNOSTIC : v1-v7 retouchaient les formes et les couleurs d'un même principe — des SPHÈRES fusionnées, chacune avec sa lumière Phong.
   Un nuage restait une grappe (les boules se comptaient, chaque soudure faisait une ligne), les gabarits étaient des piles de bourgeons
