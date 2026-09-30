@@ -5079,6 +5079,9 @@ html body.touch #pwrChip .pw span b{font-size:17px!important}
 /* EN BAS : la même marge que le haut */
 html body.touch #tNitro{right:var(--hudD)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 16px)!important}
 html body.touch #tSteerHint{left:var(--hudG)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 20px)!important}
+/* LA MISSION SUIVIE (#misFocus, relevé par GAMEPLAY) : debout, sa ligne n'a que ~244 px entre la marge et NITRO — « ENCHAINE 3 FIGURES D'UN
+   VOL » finissait en « … ». Deux lignes au plus, équilibrées ; la boîte grandit vers le HAUT (ancrée en bas), l'avancement reste à droite. */
+@media (orientation:portrait){html body #misFocus span{white-space:normal;text-overflow:clip;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;text-wrap:balance;min-width:0}}
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
