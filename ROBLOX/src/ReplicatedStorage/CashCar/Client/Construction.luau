@@ -5,6 +5,9 @@
 -- dans les virages, aucune pièce qui chevauche sa voisine (donc aucun scintillement). Les tronçons droits
 -- sont fusionnés en longs quadrilatères : peu de pièces là où la route ne tourne pas.
 -- Le long de chaque bord, un rail de NÉON cyan qui dépasse un peu dessus et dessous : il se lit des deux faces.
+-- (1er retour de Sacha, capture Studio : « c'est normal que ça ressemble à ça ? » — la route lisse et claire se
+-- lisait comme une nappe d'eau qui se fondait dans le ciel. Bitume d'asphalte sombre et MAT, pointillés,
+-- rails plus larges : c'est un ruban de route, il doit trancher sur le ciel.)
 local Config = require(script.Parent.Parent:WaitForChild("Config"))
 local Piste = require(script.Parent.Parent:WaitForChild("Piste"))
 local M = Config.M
@@ -21,9 +24,9 @@ modeleCoin.CanQuery = false
 modeleCoin.CanTouch = false
 modeleCoin.TopSurface = Enum.SurfaceType.Smooth
 modeleCoin.BottomSurface = Enum.SurfaceType.Smooth
-modeleCoin.Material = Enum.Material.SmoothPlastic
+modeleCoin.Material = Enum.Material.Asphalt
 modeleCoin.Color = R.bitume
-modeleCoin.Reflectance = 0.04
+modeleCoin.Reflectance = 0
 
 local function part(taille: Vector3, cf: CFrame, couleur: Color3, matiere: Enum.Material, parent: Instance): Part
 	local p = Instance.new("Part")
@@ -72,7 +75,7 @@ local function rail(a: Vector3, b: Vector3, haut: Vector3, parent: Instance)
 	local l = d.Magnitude
 	if l < 0.01 then return end
 	local cf = CFrame.lookAt((a + b) / 2, b, haut)
-	local p = part(Vector3.new(0.6 * M, EP + 0.3 * M, l + 0.05), cf, R.neon, Enum.Material.Neon, parent)
+	local p = part(Vector3.new(1.1 * M, EP + 0.3 * M, l + 0.05), cf, R.neon, Enum.Material.Neon, parent)
 	p.CastShadow = false
 end
 
@@ -98,12 +101,32 @@ function Construction.route(piste: Piste.Piste, dossier: Instance, ceder: (() ->
 		local gB, dB = mB - fb.RightVector * demi, mB + fb.RightVector * demi
 		triangle(gA, dA, dB, EP, dossier)
 		triangle(gA, dB, gB, EP, dossier)
-		local rA, rB = demi - 0.25 * M, demi - 0.25 * M
+		local rA, rB = demi - 0.5 * M, demi - 0.5 * M
 		rail(mA - fa.RightVector * rA, mB - fb.RightVector * rB, (fa.UpVector + fb.UpVector).Unit, dossier)
 		rail(mA + fa.RightVector * rA, mB + fb.RightVector * rB, (fa.UpVector + fb.UpVector).Unit, dossier)
 		i = j
 		compte += 1
 		if ceder and compte % 60 == 0 then ceder() end
+	end
+	-- le marquage : une ligne centrale SODIUM en pointillés (tous les 12 m) et deux lignes de voie blanches
+	-- (tous les 24 m) — sur un ruban de 56 m, c'est lui qui dit la vitesse et l'échelle
+	local haut = 0.03 * M
+	local s = 6 * M
+	local k = 0
+	while s < piste.len - 6 * M do
+		local f = Piste.repere(piste, s)
+		local cfl = CFrame.fromMatrix(f.Position + f.UpVector * haut, f.RightVector, f.UpVector, -f.LookVector)
+		local c = part(Vector3.new(0.5 * M, 0.06 * M, 4.5 * M), cfl, R.sodium, Enum.Material.Neon, dossier)
+		c.CastShadow = false
+		if k % 2 == 0 then
+			for _, cote in { -1, 1 } do
+				local v = part(Vector3.new(0.4 * M, 0.06 * M, 6 * M), cfl + f.RightVector * (cote * RH * 0.5 * M), R.voie, Enum.Material.SmoothPlastic, dossier)
+				v.CastShadow = false
+			end
+		end
+		k += 1
+		s += 12 * M
+		if ceder and k % 150 == 0 then ceder() end
 	end
 end
 
@@ -185,37 +208,17 @@ function Construction.objets(piste: Piste.Piste, dossier: Instance, ceder: (() -
 	return liste
 end
 
--- ── la mer de nuages et les cumulus : des bulles blanches ovales, pas une texture ──
+-- ── les cumulus le long de la route : des bulles blanches ovales, pas une texture ──
+-- (la MER de nuages ne se bâtit plus par zone — 2 à 4 km sous le départ, la brume l'effaçait : elle suit
+-- la caisse, voir Client/Mer)
 function Construction.nuages(piste: Piste.Piste, dossier: Instance, graine: number, ceder: (() -> ())?)
 	local rnd = Random.new(graine + 17)
-	local mn, mx = Vector3.new(math.huge, math.huge, math.huge), Vector3.new(-math.huge, -math.huge, -math.huge)
-	for i = 1, piste.n, 20 do
-		local p = piste.F[i].Position
-		mn = mn:Min(p)
-		mx = mx:Max(p)
-	end
-	local marge = 900 * M
-	local base = piste.minY - 260 * M
-	local C = Config.CIEL
 	local function bulle(c: Vector3, t: Vector3, teinte: Color3)
 		local p = part(Vector3.new(math.min(2040, t.X), math.min(2040, t.Y), math.min(2040, t.Z)), CFrame.new(c), teinte, Enum.Material.SmoothPlastic, dossier)
 		p.CastShadow = false
 		local m = Instance.new("SpecialMesh")
 		m.MeshType = Enum.MeshType.Sphere
 		m.Parent = p
-	end
-	-- la mer : des dômes serrés, écrasés, sous toute la zone
-	local pasMer = 800
-	local nb = 0
-	for x = mn.X - marge, mx.X + marge, pasMer do
-		for z = mn.Z - marge, mx.Z + marge, pasMer do
-			local w = rnd:NextNumber(1000, 1600)
-			local c = Vector3.new(x + rnd:NextNumber(-200, 200), base + rnd:NextNumber(-60, 40), z + rnd:NextNumber(-200, 200))
-			local blanc = rnd:NextNumber(0.9, 1)
-			bulle(c, Vector3.new(w, rnd:NextNumber(160, 300), w * rnd:NextNumber(0.8, 1.2)), C.mer:Lerp(Color3.new(1, 1, 1), blanc - 0.2))
-			nb += 1
-			if ceder and nb % 80 == 0 then ceder() end
-		end
 	end
 	-- les cumulus : des grappes à l'écart de la route (jamais DANS le couloir de la route)
 	local function libre(c: Vector3, rayon: number): boolean
@@ -224,7 +227,7 @@ function Construction.nuages(piste: Piste.Piste, dossier: Instance, graine: numb
 		end
 		return true
 	end
-	for _ = 1, 42 do
+	for _ = 1, 80 do
 		local i = rnd:NextInteger(1, piste.n)
 		local f = piste.F[i]
 		local cote = rnd:NextNumber() < 0.5 and -1 or 1

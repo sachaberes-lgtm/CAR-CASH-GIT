@@ -18,7 +18,7 @@ function Ciel.poser(Lighting: Lighting, ws: Workspace)
 	local C = Config.CIEL
 	Lighting.ClockTime = C.heure
 	Lighting.GeographicLatitude = 23
-	Lighting.Brightness = 3.1
+	Lighting.Brightness = 2.6
 	Lighting.Ambient = C.ambiance
 	Lighting.OutdoorAmbient = C.ambianceExt
 	Lighting.EnvironmentDiffuseScale = 1
@@ -40,7 +40,7 @@ function Ciel.poser(Lighting: Lighting, ws: Workspace)
 	atm.Offset = 0.08
 	atm.Color = C.horizon
 	atm.Decay = C.zenith
-	atm.Glare = 0.35
+	atm.Glare = 0.3
 	atm.Haze = C.brumeVoile
 
 	local bloom = obtenir(Lighting, "BloomEffect", "Bloom")

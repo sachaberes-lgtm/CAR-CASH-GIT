@@ -20,6 +20,7 @@ local Construction = require(CL:WaitForChild("Construction"))
 local Hud = require(CL:WaitForChild("Hud"))
 local Sons = require(CL:WaitForChild("Sons"))
 local Controles = require(CL:WaitForChild("Controles"))
+local Mer = require(CL:WaitForChild("Mer"))
 
 local M, SPD = Config.M, Config.SPD
 local RH, THICK = Config.ROAD_HALF, Config.THICK
@@ -735,14 +736,14 @@ local function camera(dt: number)
 		camVise = camVise:Lerp(boomPos, math.min(1, dt * 4))
 		camUp = camUp:Lerp(Vector3.yAxis, math.min(1, dt * 3)).Unit
 		fov = 70
-	else -- menu : on tourne autour de la caisse posée au départ
-		orbite += dt * 0.18
+	else -- menu : on tourne autour de la caisse posée au départ, d'assez haut pour voir le ruban et le vide
+		orbite += dt * 0.12
 		local cf = carCF
-		pos = p + (cf.RightVector * math.cos(orbite) - cf.LookVector * math.sin(orbite)) * (13 * M) + cf.UpVector * (4 * M)
+		pos = p + (cf.RightVector * math.cos(orbite) - cf.LookVector * math.sin(orbite)) * (19 * M) + cf.UpVector * (8.5 * M)
 		camPos = camPos:Lerp(pos, math.min(1, dt * 3))
-		camVise = camVise:Lerp(p + cf.UpVector * (1 * M), math.min(1, dt * 4))
+		camVise = camVise:Lerp(p + cf.UpVector * (0.5 * M), math.min(1, dt * 4))
 		camUp = cf.UpVector
-		fov = 58
+		fov = 56
 	end
 	camFov += (math.min(Config.CAM.fovMax, fov) - camFov) * math.min(1, dt * 6)
 	cam.FieldOfView = camFov
@@ -987,11 +988,13 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 		end
 		habiller(dt)
 		camera(dt)
+		Mer.suivre(cam.CFrame.Position, carCF.Position.Y, dt)
 	end
 	hud()
 end)
 
 -- ════════ le démarrage : on bâtit la zone 1 derrière l'écran de chargement ════════
+Mer.creer(graine)
 local z1 = preparer(1, nil)
 local t0 = os.clock()
 while not z1.pret do
@@ -1006,7 +1009,7 @@ _G.cashcar = function()
 	return { mode = mode, zone = zoneN, s = s, lat = lat, side = side, vA = vA, kmh = kmh(), psi = psi,
 		nitro = nitroR, tier = tier, argent = argent, aura = aura, fallT = fallT, n = piste and piste.n, len = piste and piste.len }
 end
-]]></ProtectedString></Properties></Item></Item></Item><Item class="ReplicatedStorage" referent="RBX00000010"><Properties><string name="Name">ReplicatedStorage</string></Properties><Item class="Folder" referent="RBX0000000F"><Properties><string name="Name">CashCar</string></Properties><Item class="ModuleScript" referent="RBX00000006"><Properties><string name="Name">Caisse</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LA CAISSE : le modèle 3D, en pièces Roblox (aucun maillage importé, aucun ID d'asset).
+]]></ProtectedString></Properties></Item></Item></Item><Item class="ReplicatedStorage" referent="RBX00000011"><Properties><string name="Name">ReplicatedStorage</string></Properties><Item class="Folder" referent="RBX00000010"><Properties><string name="Name">CashCar</string></Properties><Item class="ModuleScript" referent="RBX00000006"><Properties><string name="Name">Caisse</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LA CAISSE : le modèle 3D, en pièces Roblox (aucun maillage importé, aucun ID d'asset).
 -- Bâtie par le SERVEUR (tout le monde la voit), pilotée par le JOUEUR (propriétaire réseau : c'est
 -- son téléphone qui la déplace, le serveur ne fait que relayer). Le nez regarde -Z (LookVector de Roblox).
 -- Échelle : 1 m du jeu web = Config.M studs. La caisse fait ~2 m × 4,4 m : 5 × 11 studs.
@@ -1205,7 +1208,7 @@ function Ciel.poser(Lighting: Lighting, ws: Workspace)
 	local C = Config.CIEL
 	Lighting.ClockTime = C.heure
 	Lighting.GeographicLatitude = 23
-	Lighting.Brightness = 3.1
+	Lighting.Brightness = 2.6
 	Lighting.Ambient = C.ambiance
 	Lighting.OutdoorAmbient = C.ambianceExt
 	Lighting.EnvironmentDiffuseScale = 1
@@ -1227,7 +1230,7 @@ function Ciel.poser(Lighting: Lighting, ws: Workspace)
 	atm.Offset = 0.08
 	atm.Color = C.horizon
 	atm.Decay = C.zenith
-	atm.Glare = 0.35
+	atm.Glare = 0.3
 	atm.Haze = C.brumeVoile
 
 	local bloom = obtenir(Lighting, "BloomEffect", "Bloom")
@@ -1256,13 +1259,16 @@ function Ciel.poser(Lighting: Lighting, ws: Workspace)
 end
 
 return Ciel
-]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX0000000C"><Properties><string name="Name">Client</string></Properties><Item class="ModuleScript" referent="RBX00000008"><Properties><string name="Name">Construction</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LA CONSTRUCTION : de la piste calculée (des nombres) aux pièces qu'on voit.
+]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX0000000D"><Properties><string name="Name">Client</string></Properties><Item class="ModuleScript" referent="RBX00000008"><Properties><string name="Name">Construction</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LA CONSTRUCTION : de la piste calculée (des nombres) aux pièces qu'on voit.
 -- Bâtie CHEZ LE JOUEUR, jamais sur le serveur : rien à envoyer, rien que le « streaming » puisse effacer.
 --
 -- La dalle est un ruban de TRIANGLES (deux coins par triangle, la vieille recette Roblox) : aucun trou
 -- dans les virages, aucune pièce qui chevauche sa voisine (donc aucun scintillement). Les tronçons droits
 -- sont fusionnés en longs quadrilatères : peu de pièces là où la route ne tourne pas.
 -- Le long de chaque bord, un rail de NÉON cyan qui dépasse un peu dessus et dessous : il se lit des deux faces.
+-- (1er retour de Sacha, capture Studio : « c'est normal que ça ressemble à ça ? » — la route lisse et claire se
+-- lisait comme une nappe d'eau qui se fondait dans le ciel. Bitume d'asphalte sombre et MAT, pointillés,
+-- rails plus larges : c'est un ruban de route, il doit trancher sur le ciel.)
 local Config = require(script.Parent.Parent:WaitForChild("Config"))
 local Piste = require(script.Parent.Parent:WaitForChild("Piste"))
 local M = Config.M
@@ -1279,9 +1285,9 @@ modeleCoin.CanQuery = false
 modeleCoin.CanTouch = false
 modeleCoin.TopSurface = Enum.SurfaceType.Smooth
 modeleCoin.BottomSurface = Enum.SurfaceType.Smooth
-modeleCoin.Material = Enum.Material.SmoothPlastic
+modeleCoin.Material = Enum.Material.Asphalt
 modeleCoin.Color = R.bitume
-modeleCoin.Reflectance = 0.04
+modeleCoin.Reflectance = 0
 
 local function part(taille: Vector3, cf: CFrame, couleur: Color3, matiere: Enum.Material, parent: Instance): Part
 	local p = Instance.new("Part")
@@ -1330,7 +1336,7 @@ local function rail(a: Vector3, b: Vector3, haut: Vector3, parent: Instance)
 	local l = d.Magnitude
 	if l < 0.01 then return end
 	local cf = CFrame.lookAt((a + b) / 2, b, haut)
-	local p = part(Vector3.new(0.6 * M, EP + 0.3 * M, l + 0.05), cf, R.neon, Enum.Material.Neon, parent)
+	local p = part(Vector3.new(1.1 * M, EP + 0.3 * M, l + 0.05), cf, R.neon, Enum.Material.Neon, parent)
 	p.CastShadow = false
 end
 
@@ -1356,12 +1362,32 @@ function Construction.route(piste: Piste.Piste, dossier: Instance, ceder: (() ->
 		local gB, dB = mB - fb.RightVector * demi, mB + fb.RightVector * demi
 		triangle(gA, dA, dB, EP, dossier)
 		triangle(gA, dB, gB, EP, dossier)
-		local rA, rB = demi - 0.25 * M, demi - 0.25 * M
+		local rA, rB = demi - 0.5 * M, demi - 0.5 * M
 		rail(mA - fa.RightVector * rA, mB - fb.RightVector * rB, (fa.UpVector + fb.UpVector).Unit, dossier)
 		rail(mA + fa.RightVector * rA, mB + fb.RightVector * rB, (fa.UpVector + fb.UpVector).Unit, dossier)
 		i = j
 		compte += 1
 		if ceder and compte % 60 == 0 then ceder() end
+	end
+	-- le marquage : une ligne centrale SODIUM en pointillés (tous les 12 m) et deux lignes de voie blanches
+	-- (tous les 24 m) — sur un ruban de 56 m, c'est lui qui dit la vitesse et l'échelle
+	local haut = 0.03 * M
+	local s = 6 * M
+	local k = 0
+	while s < piste.len - 6 * M do
+		local f = Piste.repere(piste, s)
+		local cfl = CFrame.fromMatrix(f.Position + f.UpVector * haut, f.RightVector, f.UpVector, -f.LookVector)
+		local c = part(Vector3.new(0.5 * M, 0.06 * M, 4.5 * M), cfl, R.sodium, Enum.Material.Neon, dossier)
+		c.CastShadow = false
+		if k % 2 == 0 then
+			for _, cote in { -1, 1 } do
+				local v = part(Vector3.new(0.4 * M, 0.06 * M, 6 * M), cfl + f.RightVector * (cote * RH * 0.5 * M), R.voie, Enum.Material.SmoothPlastic, dossier)
+				v.CastShadow = false
+			end
+		end
+		k += 1
+		s += 12 * M
+		if ceder and k % 150 == 0 then ceder() end
 	end
 end
 
@@ -1443,37 +1469,17 @@ function Construction.objets(piste: Piste.Piste, dossier: Instance, ceder: (() -
 	return liste
 end
 
--- ── la mer de nuages et les cumulus : des bulles blanches ovales, pas une texture ──
+-- ── les cumulus le long de la route : des bulles blanches ovales, pas une texture ──
+-- (la MER de nuages ne se bâtit plus par zone — 2 à 4 km sous le départ, la brume l'effaçait : elle suit
+-- la caisse, voir Client/Mer)
 function Construction.nuages(piste: Piste.Piste, dossier: Instance, graine: number, ceder: (() -> ())?)
 	local rnd = Random.new(graine + 17)
-	local mn, mx = Vector3.new(math.huge, math.huge, math.huge), Vector3.new(-math.huge, -math.huge, -math.huge)
-	for i = 1, piste.n, 20 do
-		local p = piste.F[i].Position
-		mn = mn:Min(p)
-		mx = mx:Max(p)
-	end
-	local marge = 900 * M
-	local base = piste.minY - 260 * M
-	local C = Config.CIEL
 	local function bulle(c: Vector3, t: Vector3, teinte: Color3)
 		local p = part(Vector3.new(math.min(2040, t.X), math.min(2040, t.Y), math.min(2040, t.Z)), CFrame.new(c), teinte, Enum.Material.SmoothPlastic, dossier)
 		p.CastShadow = false
 		local m = Instance.new("SpecialMesh")
 		m.MeshType = Enum.MeshType.Sphere
 		m.Parent = p
-	end
-	-- la mer : des dômes serrés, écrasés, sous toute la zone
-	local pasMer = 800
-	local nb = 0
-	for x = mn.X - marge, mx.X + marge, pasMer do
-		for z = mn.Z - marge, mx.Z + marge, pasMer do
-			local w = rnd:NextNumber(1000, 1600)
-			local c = Vector3.new(x + rnd:NextNumber(-200, 200), base + rnd:NextNumber(-60, 40), z + rnd:NextNumber(-200, 200))
-			local blanc = rnd:NextNumber(0.9, 1)
-			bulle(c, Vector3.new(w, rnd:NextNumber(160, 300), w * rnd:NextNumber(0.8, 1.2)), C.mer:Lerp(Color3.new(1, 1, 1), blanc - 0.2))
-			nb += 1
-			if ceder and nb % 80 == 0 then ceder() end
-		end
 	end
 	-- les cumulus : des grappes à l'écart de la route (jamais DANS le couloir de la route)
 	local function libre(c: Vector3, rayon: number): boolean
@@ -1482,7 +1488,7 @@ function Construction.nuages(piste: Piste.Piste, dossier: Instance, graine: numb
 		end
 		return true
 	end
-	for _ = 1, 42 do
+	for _ = 1, 80 do
 		local i = rnd:NextInteger(1, piste.n)
 		local f = piste.F[i]
 		local cote = rnd:NextNumber() < 0.5 and -1 or 1
@@ -1969,7 +1975,69 @@ function Hud.tick()
 end
 
 return Hud
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000000B"><Properties><string name="Name">Sons</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES SONS (côté joueur). Un son = un nom de Config.SONS. Numéro vide → le son de secours
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000000B"><Properties><string name="Name">Mer</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LA MER DE NUAGES. Dans le jeu web, c'est un dégradé peint sous l'horizon (merZ) : on ne
+-- l'atteint jamais. Ici, un champ de dômes blancs toujours ~380 m SOUS la caisse, qui la suit.
+-- Chaque dôme reste FIXE dans le monde tant qu'il est dans la tuile autour de la caméra, et ressort de l'autre
+-- côté quand il la quitte (tuile torique) : la parallaxe est juste, le champ n'a pas de bord.
+-- La route plonge de 2 à 4 km par zone : une mer posée une fois pour toutes sous le point le plus bas se
+-- perdait dans la brume (1er retour de Sacha : « c'est normal que ça ressemble à ça ? »).
+local Config = require(script.Parent.Parent:WaitForChild("Config"))
+local M = Config.M
+
+local Mer = {}
+
+local TUILE = 7600      -- studs : le côté de la tuile qui se répète (la brume mange le reste)
+local SOUS = 380 * M    -- profondeur de la mer sous la caisse
+local dossier: Folder
+local domes: { { p: BasePart, ox: number, oz: number, dy: number } } = {}
+local yMer = nil :: number?
+
+function Mer.creer(graine: number)
+	dossier = Instance.new("Folder")
+	dossier.Name = "MerDeNuages"
+	local rnd = Random.new(graine + 991)
+	local C = Config.CIEL
+	for _ = 1, 70 do
+		local w = rnd:NextNumber(1000, 1700)
+		local p = Instance.new("Part")
+		p.Anchored = true
+		p.CanCollide = false
+		p.CanQuery = false
+		p.CanTouch = false
+		p.CastShadow = false
+		p.Material = Enum.Material.SmoothPlastic
+		p.Size = Vector3.new(math.min(2040, w), rnd:NextNumber(180, 380), math.min(2040, w * rnd:NextNumber(0.75, 1.2)))
+		p.Color = C.mer:Lerp(Color3.new(1, 1, 1), rnd:NextNumber(0.55, 0.9))
+		local m = Instance.new("SpecialMesh")
+		m.MeshType = Enum.MeshType.Sphere
+		m.Parent = p
+		p.Parent = dossier
+		table.insert(domes, { p = p, ox = rnd:NextNumber(0, TUILE), oz = rnd:NextNumber(0, TUILE), dy = rnd:NextNumber(-90, 50) })
+	end
+	dossier.Parent = workspace
+end
+
+-- à chaque image : camPos = la caméra, yCaisse = l'altitude de la caisse (studs)
+function Mer.suivre(camPos: Vector3, yCaisse: number, dt: number)
+	if not dossier then return end
+	local cible = yCaisse - SOUS
+	-- la mer descend avec la caisse, mais en douceur (un saut de portail la recale d'un coup)
+	if not yMer or math.abs(cible - yMer) > 600 * M then
+		yMer = cible
+	else
+		yMer = (yMer :: number) + (cible - (yMer :: number)) * math.min(1, dt * 0.8)
+	end
+	local y = yMer :: number
+	local demi = TUILE / 2
+	for _, d in domes do
+		local x = camPos.X - demi + ((d.ox - camPos.X + demi) % TUILE)
+		local z = camPos.Z - demi + ((d.oz - camPos.Z + demi) % TUILE)
+		d.p.CFrame = CFrame.new(x, y + d.dy, z)
+	end
+end
+
+return Mer
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000000C"><Properties><string name="Name">Sons</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES SONS (côté joueur). Un son = un nom de Config.SONS. Numéro vide → le son de secours
 -- livré avec Roblox s'il existe (Config.SONS_SECOURS), sinon silence : un son manquant ne casse JAMAIS rien.
 local SoundService = game:GetService("SoundService")
 local Config = require(script.Parent.Parent:WaitForChild("Config"))
@@ -2066,7 +2134,7 @@ function Sons.regler(nom: string, volume: number, hauteur: number?)
 end
 
 return Sons
-]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX0000000D"><Properties><string name="Name">Config</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES RÉGLAGES. Tous les chiffres du jeu web (VERSION PRINCIPALE/index.html) sont repris
+]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX0000000E"><Properties><string name="Name">Config</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES RÉGLAGES. Tous les chiffres du jeu web (VERSION PRINCIPALE/index.html) sont repris
 -- tels quels, avec le numéro de ligne d'où ils viennent : la caisse Roblox doit se conduire, voler et
 -- payer comme l'autre. Les distances sont en MÈTRES du jeu ; Config.M les convertit en studs.
 local Config = {}
@@ -2150,16 +2218,18 @@ Config.CIEL = {
 	soleil = rgb(1, 0.95, 0.84),
 	ambiance = Color3.fromRGB(70, 86, 118),
 	ambianceExt = Color3.fromRGB(150, 170, 200),
-	expo = 0.1,
-	brumeDensite = 0.24,
-	brumeVoile = 1.4,
-	saturation = 0.16,
-	contraste = 0.10,
+	expo = -0.05,                -- (1er retour : la capture Studio était délavée, laiteuse)
+	brumeDensite = 0.22,
+	brumeVoile = 0.6,
+	saturation = 0.22,
+	contraste = 0.16,
 	mer = rgb(0.84, 0.90, 0.92),          -- la mer de nuages (couleur du brouillard du matin)
 	merOmbre = Color3.fromRGB(160, 178, 214),
 }
 Config.ROUTE = {
-	bitume = Color3.fromRGB(43, 44, 55),  -- 0x322e40 × ROUTE_JOUR [.86,.94,.86]
+	bitume = Color3.fromRGB(30, 31, 40),  -- 0x322e40 × ROUTE_JOUR, assombri : sous l'éclairage Future de Roblox il remontait en gris-bleu clair
+	sodium = Color3.fromRGB(255, 188, 72), -- la ligne centrale
+	voie = Color3.fromRGB(210, 216, 230),  -- les lignes de voie
 	neon = Color3.fromRGB(62, 230, 240),  -- 0x3ee6f0 : les rails de néon
 	tranche = Color3.fromRGB(255, 59, 92), -- 0xff3b5c : la tranche de la dalle
 	pad = Color3.fromRGB(255, 176, 64),
@@ -2198,7 +2268,7 @@ Config.SONS_SECOURS = {
 }
 
 return Config
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000000E"><Properties><string name="Name">Piste</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LA PISTE : le ruban de route suspendu dans le ciel, calculé à partir d'une GRAINE.
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000000F"><Properties><string name="Name">Piste</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LA PISTE : le ruban de route suspendu dans le ciel, calculé à partir d'une GRAINE.
 -- Le serveur ne tire que la graine ; chaque joueur calcule la même route chez lui (Random.new est
 -- déterministe) : zéro pièce de route sur le réseau, et la physique lit des nombres, jamais des pièces.
 --
@@ -2717,7 +2787,7 @@ function Piste.suite(p: Piste): CFrame
 end
 
 return Piste
-]]></ProtectedString></Properties></Item></Item></Item><Item class="ServerScriptService" referent="RBX00000012"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="Script" referent="RBX00000011"><Properties><string name="Name">Serveur</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LE SERVEUR. Il fait peu, exprès :
+]]></ProtectedString></Properties></Item></Item></Item><Item class="ServerScriptService" referent="RBX00000013"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="Script" referent="RBX00000012"><Properties><string name="Name">Serveur</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LE SERVEUR. Il fait peu, exprès :
 --   1. il tire la GRAINE de la piste (tout le serveur roule sur la même route : chaque joueur la bâtit
 --      chez lui à partir de ce nombre — zéro pièce de route à envoyer sur le réseau) ;
 --   2. il pose le CIEL (lumière, atmosphère, mer de nuages) ;
@@ -2881,4 +2951,4 @@ evFin.OnServerEvent:Connect(function(p, montant, distance)
 		end
 	end
 end)
-]]></ProtectedString></Properties></Item></Item><Item class="StarterGui" referent="RBX00000013"><Properties><string name="Name">StarterGui</string></Properties></Item><Item class="SoundService" referent="RBX00000014"><Properties><string name="Name">SoundService</string></Properties></Item></roblox>
+]]></ProtectedString></Properties></Item></Item><Item class="StarterGui" referent="RBX00000014"><Properties><string name="Name">StarterGui</string></Properties></Item><Item class="SoundService" referent="RBX00000015"><Properties><string name="Name">SoundService</string></Properties></Item></roblox>

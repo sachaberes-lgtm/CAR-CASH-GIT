@@ -20,6 +20,7 @@ local Construction = require(CL:WaitForChild("Construction"))
 local Hud = require(CL:WaitForChild("Hud"))
 local Sons = require(CL:WaitForChild("Sons"))
 local Controles = require(CL:WaitForChild("Controles"))
+local Mer = require(CL:WaitForChild("Mer"))
 
 local M, SPD = Config.M, Config.SPD
 local RH, THICK = Config.ROAD_HALF, Config.THICK
@@ -735,14 +736,14 @@ local function camera(dt: number)
 		camVise = camVise:Lerp(boomPos, math.min(1, dt * 4))
 		camUp = camUp:Lerp(Vector3.yAxis, math.min(1, dt * 3)).Unit
 		fov = 70
-	else -- menu : on tourne autour de la caisse posée au départ
-		orbite += dt * 0.18
+	else -- menu : on tourne autour de la caisse posée au départ, d'assez haut pour voir le ruban et le vide
+		orbite += dt * 0.12
 		local cf = carCF
-		pos = p + (cf.RightVector * math.cos(orbite) - cf.LookVector * math.sin(orbite)) * (13 * M) + cf.UpVector * (4 * M)
+		pos = p + (cf.RightVector * math.cos(orbite) - cf.LookVector * math.sin(orbite)) * (19 * M) + cf.UpVector * (8.5 * M)
 		camPos = camPos:Lerp(pos, math.min(1, dt * 3))
-		camVise = camVise:Lerp(p + cf.UpVector * (1 * M), math.min(1, dt * 4))
+		camVise = camVise:Lerp(p + cf.UpVector * (0.5 * M), math.min(1, dt * 4))
 		camUp = cf.UpVector
-		fov = 58
+		fov = 56
 	end
 	camFov += (math.min(Config.CAM.fovMax, fov) - camFov) * math.min(1, dt * 6)
 	cam.FieldOfView = camFov
@@ -987,11 +988,13 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 		end
 		habiller(dt)
 		camera(dt)
+		Mer.suivre(cam.CFrame.Position, carCF.Position.Y, dt)
 	end
 	hud()
 end)
 
 -- ════════ le démarrage : on bâtit la zone 1 derrière l'écran de chargement ════════
+Mer.creer(graine)
 local z1 = preparer(1, nil)
 local t0 = os.clock()
 while not z1.pret do
