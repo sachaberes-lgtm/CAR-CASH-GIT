@@ -11845,6 +11845,19 @@ const FLARE=(function(){
       '  else{col=vec3(.50,.70,1.)*exp(-vQ.y*vQ.y*9.)*exp(-abs(vQ.x-uS.x)*1.1)*.42;}', // le trait anamorphique, bleuté
       '  gl_FragColor=vec4(col*uOp,1.);}'].join('\n')});
   const me=new THREE.Mesh(g,m);me.frustumCulled=false;me.visible=false;me.renderOrder=9999;scene.add(me);return me;})();
+/* (2026-09-30) LES PASSAGES OBLIGÉS : aucun obstacle de la PLUIE DE SATELLITES ne se pose là où l'on n'a pas le choix de sa route — une
+   coupe de campagne (leg1 d'où l'on saute, leg3 où l'on retombe), une porte, un banc dessiné, le couloir d'un tremplin, les abords d'un
+   trou. Aujourd'hui la pluie ne tombe qu'en orbite (6e niveau du cycle, PLUTON en carrière), où rien de tout ça n'existe : la disposition
+   reste identique au satellite près. C'est l'assurance du jour où une piste dessinée recevra `hard`. */
+function satPassage(s9){
+  if(LVL.cur&&LVL.cur.camp){
+    for(const c of CAMP.coupes)if((s9>c.sA0-60&&s9<c.sA1+60)||(s9>c.sB0-60&&s9<c.sB1+60))return true;
+    for(const p of CAMP.portes)if(Math.abs(s9-p.s)<80)return true;
+    for(const b of CAMP.bancs)if(Math.abs(s9-b.s)<b.r+60)return true;}
+  for(const r9 of RAMPS)if(s9>r9.s0&&s9<r9.s1)return true;
+  for(const h of HOLES)if(s9>h.s0-120&&s9<h.s1+160)return true;
+  return false;
+}
 function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débris autour de la piste d'orbite (et les retire partout ailleurs)
   const c=LVL.cur;ORB.actif=!!(c&&c.id==='espace'&&!PARK.on&&NP>1);if(ORB.actif){ORB.lune=!c.sansLune;ORB.capOk=false;} // en quittant l'orbite la lune reste allumée : elle s'efface avec le fondu du niveau (LVL.espace)
   for(let i=0;i<SATS.length;i++){SATS[i].count=0;SATS[i].visible=false;}GLINT.count=0;GLINT.visible=false;
@@ -11882,7 +11895,7 @@ function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débri
   SATOB.on=!!c.hard;
   if(SATOB.on){
     const RH=ROAD_HALF-2,Bv=ORB.t1,Wv=ORB.t2,Uv=ORB.t3;
-    const pose0=function(k,s9,la,h,rad,al,be,vr,haut){frameAt(s9,F);
+    const pose0=function(k,s9,la,h,rad,al,be,vr,haut){if(satPassage(s9))return false;frameAt(s9,F);
       const ca=Math.cos(al),sa=Math.sin(al),cb=Math.cos(be),sb=Math.sin(be);
       const W=new THREE.Vector3(),U=new THREE.Vector3(),Tt=new THREE.Vector3();
       if(k===0){W.copy(F.b).multiplyScalar(ca).addScaledVector(F.n,sa);U.copy(F.n).multiplyScalar(ca).addScaledVector(F.b,-sa);Tt.copy(F.t);} // le panneau : ailes en travers, penché autour de la route
@@ -12153,16 +12166,20 @@ const CARRIERE=[
   // « LA CAMPAGNE VILLE »). La ville se bâtit TOUTE SEULE autour de n'importe quel ruban (buildVoxCity) : on ne dessine que la route.
   {id:'ville',nm:'VILLE',ic:'immeuble',desc:'Du coucher du soleil à midi, au-dessus du village caché de la pluie.',niveaux:[
     {nm:'COUCHER DE SOLEIL',h:'couchant',camp:11,pr:'FAIS-TOI FLASHER'},{nm:'SOIREE',h:'soir',camp:12,pr:'SUIS LA LIGNE DE NEON'},
-    {nm:'PLUIE NEON',h:'pluie',pluie:1,camp:13,pr:'LIS LES FLAQUES'},{nm:'MINUIT',h:'nuit',camp:14,pr:'NE FINIS PAS DERNIER'},
+    {nm:'PLUIE NEON',h:'pluie',pluie:1,camp:13,pr:'LIS LES FLAQUES'},{nm:'MINUIT',h:'nuit',nuit:1,camp:14,pr:'NE FINIS PAS DERNIER'}, /* (2026-09-30) nuit:1 = le MINUIT EN VILLE du mode principal (fenêtres éteintes, phares xénon — villeApres) */
     {nm:'ORAGE',h:'orage',pluie:1,camp:15,pr:'ESQUIVE LA FOUDRE'},{nm:'AVANT L\'AUBE',h:['nuit','aube',.5],camp:16,pr:'ROULE DANS LE NOIR'},
     {nm:'AUBE',h:'aube',camp:17,pr:'VIDE LE FOURGON'},{nm:'LEVER',h:'lever',camp:18,pr:'SAUTE D\'UN ETAGE'},
     {nm:'MATIN',h:'matin',camp:19,pr:'FAUFILE-TOI'},{nm:'MIDI',h:'midi',camp:20,pr:'BATS LE BANQUIER'}]},
+  /* (2026-09-30) L'ESPACE a enfin ses PROMESSES (`pr`, ≤ 32 signes, pixel sans accent) : chacune dit ce que la planète a de vrai — la
+     gravité (Mercure, la 1re), ce que font les débris (Vénus → Lune), la pluie qui se resserre (−4,5 % d'attente par planète, debTick),
+     et PLUTON, la dernière, qui reprend la PLUIE DE SATELLITES du mode principal (`hard:1` → orbiteBuild §0). La gravité reste la même
+     partout (elle toucherait les sauts et le viseur : décision à part). */
   {id:'espace',nm:'ESPACE',ic:'etoile',desc:'Au plus près des planètes du système solaire.',niveaux:[
-    {nm:'MERCURE',astre:{teinte:0x8a8580,atmo:0xd8c9b0,echelle:1.05}},{nm:'VENUS',astre:{teinte:0xc9a15a,atmo:0xffd98a,echelle:1.25}},
-    {nm:'TERRE',astre:{teinte:0x55708c,atmo:0x8fd4ff,echelle:1.35}},{nm:'LUNE',astre:{teinte:0x9a9a9a,atmo:0xdfe6ee,echelle:1.1},sansLune:1},
-    {nm:'MARS',astre:{teinte:0xb5532e,atmo:0xffa27a,echelle:1.2}},{nm:'JUPITER',astre:{teinte:0xc49a6c,atmo:0xffd3a0,echelle:1.35}},
-    {nm:'SATURNE',astre:{teinte:0xd8c08a,atmo:0xfff0c0,echelle:1.35}} /* (2026-09-28) 1,5 et 1,45 : la planète « mangeait tout le cadre dès qu'on plongeait » (mesuré pour lvlPlanete, d'où 1,35) */,{nm:'URANUS',astre:{teinte:0x7fd6d8,atmo:0xb8ffff,echelle:1.35}},
-    {nm:'NEPTUNE',astre:{teinte:0x3a5fd0,atmo:0x7fa8ff,echelle:1.35}},{nm:'PLUTON',astre:{teinte:0xb8a48c,atmo:0xe8dccb,echelle:1.0}}]},
+    {nm:'MERCURE',astre:{teinte:0x8a8580,atmo:0xd8c9b0,echelle:1.05},pr:'GRAVITE REDUITE : VOLE PLUS LONG'},{nm:'VENUS',astre:{teinte:0xc9a15a,atmo:0xffd98a,echelle:1.25},pr:'LES DEBRIS VISENT TA LIGNE'},
+    {nm:'TERRE',astre:{teinte:0x55708c,atmo:0x8fd4ff,echelle:1.35},pr:"SOUS LA DALLE, TU ES A L'ABRI"},{nm:'LUNE',astre:{teinte:0x9a9a9a,atmo:0xdfe6ee,echelle:1.1},sansLune:1,pr:'ESQUIVE DE PRES : LA SERIE PAIE'},
+    {nm:'MARS',astre:{teinte:0xb5532e,atmo:0xffa27a,echelle:1.2},pr:'LA PLUIE DE DEBRIS SE DURCIT'},{nm:'JUPITER',astre:{teinte:0xc49a6c,atmo:0xffd3a0,echelle:1.35},pr:'LA GEANTE ATTIRE LES DEBRIS'},
+    {nm:'SATURNE',astre:{teinte:0xd8c08a,atmo:0xfff0c0,echelle:1.35},pr:'LES ANNEAUX PLEUVENT SUR TOI'} /* (2026-09-28) 1,5 et 1,45 : la planète « mangeait tout le cadre dès qu'on plongeait » (mesuré pour lvlPlanete, d'où 1,35) */,{nm:'URANUS',astre:{teinte:0x7fd6d8,atmo:0xb8ffff,echelle:1.35},pr:'DEBRIS SERRES, GARDE LE CAP'},
+    {nm:'NEPTUNE',astre:{teinte:0x3a5fd0,atmo:0x7fa8ff,echelle:1.35},pr:'LA DERNIERE PLUIE AVANT PLUTON'},{nm:'PLUTON',astre:{teinte:0xb8a48c,atmo:0xe8dccb,echelle:1.0},hard:1,pr:'ESQUIVE LES SATELLITES'}]},
 ];
 const CARR_LARG=[2,2,2,2,2,2,2,2,2,2]; // (2026-09-26) plus larges, comme la course // (2026-09-25) la carrière ne rétrécit plus non plus : c'est la vitesse qui monte
 const CARR={actif:null}; // {b: index de biome, i: niveau de départ} — null = partie sans fin
@@ -12181,7 +12198,9 @@ function carNiveau(bi,i){ // le niveau de carrière, sous la forme d'un NIVEAU
     route:B.id==='ville'?1:B.id==='espace'?.38:0,sheen:B.id==='ville'?.22:B.id==='espace'?.12:.10, // (2026-09-28) ESPACE : les valeurs d'EN ORBITE (.38/.12) — à .2 la route disparaissait
     espace:B.id==='espace'?1:0,pluie:N.pluie||0,cielMusical:B.id==='ville',astre:N.astre||null,sansLune:!!N.sansLune,carr:{b:bi,i:i}, // (vague 3) le niveau LUNE : l'astre du niveau EST la lune, pas de seconde lune au ciel
     // (2026-09-27) la campagne : piste dessinée, promesse, et une GRAINE fixe — pièces, pads et nuages sont les mêmes à chaque essai
-    camp:N.camp||0,pr:N.pr||'',graine:N.camp?(0x5EED00+bi*97+i*13):0};
+    // (2026-09-30) l'ESPACE aussi : sa piste reste tirée par genCtrl, mais à graine FIXE (la même route, les mêmes satellites à chaque
+    // essai — son échelle suit encore le palier MOTEUR, comme les pistes dessinées : lvPiste) ; `hard` (PLUTON : la pluie de satellites) et `nuit` (MINUIT) passent
+    camp:N.camp||0,pr:N.pr||'',graine:(N.camp||B.id==='espace')?(0x5EED00+bi*97+i*13):0,hard:N.hard?1:0,nuit:N.nuit?1:0};
 }
 const PLANETE_DEF={teinte:0x55708c,atmo:0x8fd4ff};
 function lvlAstre(a){ // la planète du niveau d'espace : teinte du globe + couleur du limbe
@@ -29148,7 +29167,7 @@ const CAMP_NIV={ // ce que chaque niveau garde du ciel (campNuageOk) — les ban
   2:{coussin:0,deco:1},3:{coussin:1,deco:1},4:{coussin:1,deco:1},5:{coussin:1,deco:1},6:{coussin:0,deco:0},
   7:{coussin:0,deco:1},8:{coussin:0,deco:1},9:{coussin:0,deco:1},10:{coussin:1,deco:1}};
 const CAMP={n:0,dmg:0,cause:'',garde:false,finT:0,air0:false,s0:0,coupesN:0,bancs:[],portes:[],coupes:[],cordes:[],portFerme:false,pris:false,
-  pv:new THREE.Vector3(),pvOk:false,vel:new THREE.Vector3(),toux:0,tirSndT:0,hitT:0,semes:false,proche:1e9,feuT:0,palier:0,banc1:false};
+  pv:new THREE.Vector3(),pvOk:false,vel:new THREE.Vector3(),toux:0,tirSndT:0,hitT:0,semes:false,proche:1e9,feuT:0,palier:0,banc1:false,porteOk:0};
 let CORDE_ON=false,CAMP_FLASH=0,CAMP_FOG=0,KAPB=new Float32Array(1);
 const CV1=new THREE.Vector3(),CV2=new THREE.Vector3(),CV3=new THREE.Vector3(),CV4=new THREE.Vector3(),CM4=new THREE.Matrix4(); // temporaires DU MODULE (jamais tmp/tmp2/tmp3)
 const GF={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},
@@ -29187,7 +29206,7 @@ function campRepere(){
       c.side=CV1.subVectors(GF2.p,GF.p).dot(GF.b)>=0?1:-1; // le bord de leg1 d'où l'on VOIT leg3
       c.gap=Math.abs(CV1.dot(GF.b));CAMP.coupes.push(c);}
     else if(m.k==='banc'&&m.p)CAMP.bancs.push({s:near(m.p),r:m.r||30,ecran:!!m.ecran,show:!!m.show});
-    else if(m.k==='porte'&&m.p)CAMP.portes.push({s:near(m.p),c:m.c||0,w:m.w||8});
+    else if(m.k==='porte'&&m.p)CAMP.portes.push({s:near(m.p),c:m.c||0,w:m.w||8,fait:false,touche:false}); // fait/touche : le compte des portes (campPortesTick)
     else if(m.k==='corde'&&m.p0)CAMP.cordes.push({s0:near(m.p0),s1:near(m.p1)});
     else if(m.k==='radar'&&m.p)VZ.radars.push({s:near(m.p),fait:false});
     else if(m.k==='flaque'&&m.p)VZ.flaques.push({s:near(m.p),c:m.c||0,w:m.w||10,d:m.d|0});
@@ -29215,7 +29234,7 @@ function campPlots(placeCone){
       for(let x=b;x<=H;x+=SP)placeCone(p.s,x,fc);
       placeCone(p.s-2.6,a,fc);placeCone(p.s-2.6,b,fc);
     }
-    for(let k=n0;k<CONES.length;k++)CONES[k].dur=1;
+    for(let k=n0;k<CONES.length;k++){CONES[k].dur=1;CONES[k].pt=p;} // pt : SA porte (un plot touché la marque — campPortesTick ne la compte pas propre)
   }
   villePlots(); // (2026-09-27) la VILLE : radars, file de pads, flaques, catadioptres, colonnes des étages
 }
@@ -29624,11 +29643,19 @@ function fantomeTick(dt){
     if(GH.noteT<=0){GH.noteT=.2;try{if(SONV2)sfx('fantome.prise',{st:sonPd(Math.min(9,Math.floor(GH.prise*6)))});else chimeNote(noteP(Math.min(7,Math.floor(GH.prise*6)),1),0,.07,.2);}catch(e){}} // un carillon qui MONTE : le compteur, on l'entend
     if(GH.prise>=1){fantomePris();return;}
   }else{GH.prise=Math.max(0,GH.prise-dt*1.5);if(GH.prise<=0)GH.accr=false;}
-  // la route finit, le portail est fermé : c'est perdu
-  if(CAMP.portFerme&&mode==='drive'&&s>L-70)fantomeSeme();
+  // la route finit, le portail est fermé : c'est perdu — (2026-09-30) et si tu es DEVANT elle, on te dit pourquoi (« ELLE T'A SEMÉ » tombait
+  // sur qui l'avait doublée : on la gagne dans son sillage, pas en la battant)
+  if(CAMP.portFerme&&mode==='drive'&&s>L-70){fantomeSeme(sP>GH.s+18);return;}
+  /* (2026-09-30) LA PLAQUE, comme le banquier du niveau 20 : la caisse-nuage n'avait AUCUN repère — ni où elle est, ni ce que vaut le
+     sillage. Dans sa bulle : SILLAGE et la prise qui monte (1 s tenue = elle est à toi). Sinon : elle mène de X m (cyan), ou elle est
+     derrière et ELLE REVIENT (son aspiration la ramène dans ta roue : c'est là qu'on la cueille). */
+  const e9=Math.round(Math.abs(GH.s-sP)/5)*5;
+  if(GH.accr&&GH.prise>0)vChip(TR('SILLAGE'),Math.round(GH.prise*100)+(LANG==='fr'?' %':'%'),'#ffe7a8');
+  else if(GH.s>=sP)vChip(TR('LA CAISSE-NUAGE'),TR('ELLE MENE DE')+' '+e9+' M','#9fe8ff');
+  else vChip(TR('ELLE REVIENT'),TR('DERRIERE TOI')+' '+e9+' M','#ffd75e');
 }
 function fantomePris(){ // ELLE EST À TOI
-  GH.pris=true;CAMP.pris=true;GH.prise=1;
+  GH.pris=true;CAMP.pris=true;GH.prise=1;vChip(''); // (la plaque se tait : le slam le dit, puis le portail s'ouvre)
   CV1.copy(GH.g.position);GH.g.visible=false;trailStep(GH.tr,0,0,0,0,0,0,0);
   try{shatterCloud(CV1,1.5);shatterCloud(carGroup.position,1.1);}catch(e){}
   sparkBurst(sparkGold,CV1,40,18);flashEcran('rgba(255,236,200,.75)');
@@ -29643,11 +29670,11 @@ function fantomePris(){ // ELLE EST À TOI
   flowAdd(40,'risque');nitroPct(1);
   setTimeout(function(){if(started&&!gameOver){popTexte("LE PORTAIL S'OUVRE",'#ff9ee6',1);if(SONV2)sfx('portail.ouvre');}},1500);
 }
-function fantomeSeme(){ // elle a franchi le portail la première — ou la route s'arrête sous tes roues : c'est perdu
-  if(GH.fini||GH.pris)return;GH.fini=true;GH.g.visible=false;trailStep(GH.tr,0,0,0,0,0,0,0);
+function fantomeSeme(devant){ // elle a franchi le portail la première — ou la route s'arrête sous tes roues : c'est perdu (devant : tu l'avais doublée)
+  if(GH.fini||GH.pris)return;GH.fini=true;GH.g.visible=false;trailStep(GH.tr,0,0,0,0,0,0,0);vChip('');
   flashEcran('rgba(255,120,190,.5)');try{if(SONV2)sfx('defaite');else portalSnd();}catch(e){}
-  slam("ELLE T'A SEME",'','#ff9ee6','#ff5e7a',38,3);
-  CAMP.finT=1.6;CAMP.cause='seme';
+  slam(devant?"TU L'AS DOUBLEE":"ELLE T'A SEME",devant?'IL FALLAIT LA SUIVRE':'','#ff9ee6','#ff5e7a',38,3);
+  CAMP.finT=1.6;CAMP.cause=devant?'devant':'seme';
 }
 function campFinale(){ // le portail du COUCHER : les NUAGES sont finis
   const zb=denom()*60*flowMult();money+=zb;levelCash+=zb;try{checkUpgrade();}catch(e){} // (2026-09-29) × le FLOW : le dernier portail franchi en FRÉNÉSIE paie ×3
@@ -29679,6 +29706,7 @@ function campDebut(){ // un niveau commence (newTrack, et le 1er départ de la s
   CAMP.n=campN();CORDE_ON=CAMP.n>0;
   CAMP.dmg=0;CAMP.salveT=2.2;CAMP.salveOn=false;CAMP.cause='';CAMP.finT=0;CAMP.garde=false;CAMP.air0=false;CAMP.coupesN=0;CAMP.feuT=0;CAMP.semes=false;CAMP.palier=0;CAMP.proche=1e9;CAMP.pris=false;CAMP.banc1=false;CAMP.pvOk=false;
   CAMP.portFerme=CAMP.n===10&&!PARK.on;
+  CAMP.porteOk=0;for(const p of CAMP.portes){p.fait=false;p.touche=false;}
   fumeVide();tirsVide();eclVide();ECL.t=3;ECL.dernier=false;
   fantomePrepare();
   if(started&&!gameOver&&runStats.zones>0&&(CAMP.n===5||SURV.chasse||CAMP.n===14||SURV.camp))survStart(); // on ENTRE dans la poursuite ou la meute (ou on en sort) en pleine partie
@@ -29709,11 +29737,16 @@ function filetRattrape(q){
 }
 function flowRaccourci(gagne,decl){ // decl : l'appelant fera partir la frénésie armée si le lieu l'accepte (tryLand, loi 20) — le portail, non : il a déjà son annonce de niveau
   (decl&&FLOW2.decl.racc?flowAddDecl:flowAdd)(Math.min(45,12+gagne*.06),'risque','m'); // (v4) couper la route : MACHIAVEL
-  if(CAMP.n)return; // en campagne, campRaccourci (seuil de ses ovales) dit déjà « RACCOURCI ! » et paie sa nitro
+  /* (2026-09-30) en campagne, SEULE la coupe d'un ovale (leg1 → leg3) est criée par campRaccourci — ici on se tait pour ne pas la doubler.
+     Toutes les AUTRES vraies coupes (piste parcourue − ligne volée ≥ 60 m) paient comme en partie sans fin : avant, le `return` les
+     taisait toutes, pendant que campRaccourci criait « RACCOURCI ! » au moindre long vol qui suivait la route. */
+  if(CAMP.n&&campCoupeDe(FLOW.s0,s))return;
   popTexte(TR('RACCOURCI')+' +'+Math.round(gagne)+' M','#7dffec',3);hap([12,24,18]);nitroGain(.3);
   try{chaineAura('RACCOURCI',Math.round(Math.min(250,60+gagne*.2)),'coupe',false,SONV2);}catch(e){}
   try{if(SONV2)sfx('raccourci');else{chimeNote(noteP(4,1),0,.09,.2);chimeNote(noteP(7,1),.08,.09,.26);}}catch(e){}
 }
+function campCoupeDe(s0,s1){ // (2026-09-30) un vol parti de leg1 d'une coupe (ovale des niveaux 6, 10, 18) et posé sur SON leg3 ?
+  for(const c of CAMP.coupes)if(s0>=c.sA0-60&&s0<=c.sA1+60&&s1>=c.sB0-60&&s1<=c.sB1+60)return c;return null;}
 function campRaccourci(d){ // se poser loin devant son décollage : la coupe est payée
   CAMP.coupesN++;
   popTexte('RACCOURCI !','#7dffec',2);hap([12,24,18]);
@@ -29721,15 +29754,34 @@ function campRaccourci(d){ // se poser loin devant son décollage : la coupe est
   try{chaineAura('RACCOURCI',150,'coupe',false,SONV2);}catch(e){}
   try{if(SONV2)sfx('raccourci');else{chimeNote(noteP(4,1),0,.09,.2);chimeNote(noteP(7,1),.08,.09,.26);}}catch(e){}
 }
+/* (2026-09-30) LES PORTES COMPTENT (niveau 4, « PASSE LES PORTES ») : passer une porte ne rendait rien, rien ne se comptait — seules les
+   portes ÉTROITES payaient, par le FRÔLÉ de leurs deux poteaux. Une porte passée AU SOL sans toucher un de ses plots (`touche`, posé par
+   la boucle) est PROPRE : un pluck qui monte d'une porte à l'autre, un petit coup de FLOW et d'aura (sans texte : la liste d'aura), et la
+   plaque du haut compte « PORTES 6 / 9 ». Survolée (en vol à son passage), elle ne compte pas : on l'a sautée, pas passée. Rien au centre. */
+function campPortesTick(){ // (⚠ PAS « portesTick » : ce nom est déjà celui des portes du SON, appelé à chaque image — le second l'aurait écrasé)
+  const P=CAMP.portes;if(!P.length)return;
+  const sp=vPos();let nx=null,der=0,n9=0;
+  for(let i=0;i<P.length;i++){const p=P[i];if(p.s>der)der=p.s;
+    if(!p.fait&&sp>p.s+3){p.fait=true;
+      if(mode==='drive'&&!p.touche){CAMP.porteOk++;
+        try{if(SONV2)sfx('pad.neon',{st:sonPd(i)});else chimeNote(noteP(Math.min(7,i),1),0,.09,.2);}catch(e){} // (« porte » est le buzzer de la porte TOUCHÉE : le pluck de la ligne de néon compte juste)
+        hap(10);flowAdd(4,'route');try{chaineAuraMuette('PORTE',20,'porte',false,true);}catch(e){}}}
+    if(p.fait)n9++;else if(!nx||p.s<nx.s)nx=p;}
+  const d=nx?nx.s-sp:1e9;
+  if(sp>der+160||(!n9&&d>520))vChip('');
+  else vChip(TR('PORTES')+' '+CAMP.porteOk+' / '+P.length,d<420?TR('DANS')+' '+Math.max(0,Math.round(d/10)*10)+' M':'',CAMP.porteOk===n9?'#ffd75e':'#9fe8ff');
+}
 function campTick(dt){
   if(!CAMP.n||gameOver)return;
-  // LE RACCOURCI : un vol qui se pose > 300 m plus loin que son décollage (les ovales des niveaux 6 et 10)
+  // LE RACCOURCI : un vol parti de leg1 d'un ovale (niveaux 6, 10, 18) et posé sur leg3 — (2026-09-30) et plus « tout vol posé > 300 m
+  // plus loin » : à 115 m/s, un saut de 2,6 s qui SUIVAIT la route criait « RACCOURCI ! » (+150 d'aura, +40 % de nitro)
   if(mode==='fall'&&!CAMP.air0){CAMP.air0=true;CAMP.s0=s;}
-  else if(mode==='drive'&&CAMP.air0){CAMP.air0=false;if(s-CAMP.s0>300)campRaccourci(s-CAMP.s0);}
+  else if(mode==='drive'&&CAMP.air0){CAMP.air0=false;if(campCoupeDe(CAMP.s0,s))campRaccourci(s-CAMP.s0);}
   else if(mode==='boom')CAMP.air0=false;
   if(SURV.chasse)poursuiteTick(dt);
   if(gameOver)return;
   fumeTick(dt);tirsEcrit(dt);
+  if(CAMP.n===4)campPortesTick();
   if(CAMP.n===9)orageTick(dt);
   if(CAMP.n===10)fantomeTick(dt);
   if(CAMP.n>10)villeTick(dt); // (2026-09-27) la campagne VILLE
@@ -29747,6 +29799,15 @@ for(const [k,v] of Object.entries({'GRAVITE REDUITE : SAUTS 2 FOIS PLUS LONGS':'
   'SEMES !':'LOST THEM!','SEMES':'LOST THEM','LA POLICE EST AU TAPIS':'THE COPS ARE DOWN','FLIC AU TAPIS !':'COP DOWN!',"LE PORTAIL S'OUVRE":'THE PORTAL OPENS',
   'HORS DE VUE':'OUT OF SIGHT',"A L'INSTINCT !":'ON INSTINCT!',"A L'INSTINCT":'ON INSTINCT','PERCE-NUAGE !':'CLOUD PIERCER!','PERCE-NUAGE':'CLOUD PIERCER','LE MOTEUR TOUSSE':'ENGINE COUGHING','CA VA LACHER !':'SHE\'S GONNA BLOW!',
   'Tu l\'as chassée tout un coucher de soleil. Elle est douce comme un nuage et elle file comme un orage.':'You chased her through a whole sunset. Soft as a cloud, fast as a storm.'}))if(!(k in I18N))I18N[k]=v;
+// (2026-09-30) les mots de la passe CAMPAGNE : la plaque de la caisse-nuage, les portes du niveau 4, les promesses de l'ESPACE — anglais et chinois
+for(const [k,v,z] of [['SILLAGE','SLIPSTREAM','尾流'],['ELLE MENE DE','SHE LEADS BY','她领先'],['ELLE REVIENT',"SHE'S COMING BACK",'她追上来了'],['DERRIERE TOI','BEHIND YOU','在你身后'],
+  ["TU L'AS DOUBLEE",'YOU PASSED HER','你超过了她'],['IL FALLAIT LA SUIVRE','YOU HAD TO FOLLOW HER','应该跟在她后面'],["TU L'AS DOUBLEE — IL FALLAIT LA SUIVRE",'YOU PASSED HER — YOU HAD TO FOLLOW HER','你超过了她 — 应该跟在她后面'],
+  ['LA CAISSE-NUAGE','THE CLOUD CAR',null],['PORTES','GATES','门'],['PORTE','GATE','门'],['DANS','IN','还有'],['RADAR','SPEED CAMERA','测速'],
+  ['GRAVITE REDUITE : VOLE PLUS LONG','LOW GRAVITY: FLY LONGER','低重力：飞得更久'],['LES DEBRIS VISENT TA LIGNE','THE DEBRIS AIM AT YOUR LINE','碎片瞄准你的路线'],
+  ["SOUS LA DALLE, TU ES A L'ABRI","UNDER THE ROAD, YOU'RE SAFE",'在路面下方最安全'],['ESQUIVE DE PRES : LA SERIE PAIE','DODGE CLOSE: THE STREAK PAYS','贴身闪避：连击有奖'],
+  ['LA PLUIE DE DEBRIS SE DURCIT','THE DEBRIS RAIN GETS HARDER','碎片雨越来越猛'],['LA GEANTE ATTIRE LES DEBRIS','THE GIANT PULLS IN DEBRIS','巨行星吸来更多碎片'],
+  ['LES ANNEAUX PLEUVENT SUR TOI','THE RINGS RAIN DOWN ON YOU','光环碎片砸向你'],['DEBRIS SERRES, GARDE LE CAP','TIGHT DEBRIS, HOLD YOUR LINE','碎片密集，稳住方向'],
+  ['LA DERNIERE PLUIE AVANT PLUTON','THE LAST RAIN BEFORE PLUTO','冥王星前的最后一场雨']]){if(!(k in I18N))I18N[k]=v;if(z&&!(k in I18N_ZH))I18N_ZH[k]=z;} // (LA CAISSE-NUAGE garde son nom anglais en chinois, comme les 49 autres caisses)
 /* `dbgFilet()` — les filets de la piste · `dbgFilet(i,f,v,ang)` : pose la caisse dans le virage i à la fraction f (0-1), au BORD
    extérieur, à v m/s MONDE (défaut : sa vitesse de calcul), cap tourné de `ang` rad vers le vide — le vol fait le reste (banc).
    `dbgFilet('neuf',visite)` : une nouvelle piste NUAGES (visite 0 = la 1re, la plus garnie). */
@@ -29785,7 +29846,7 @@ window.dbgFumee=function(d){CAMP.dmg=+d||0;CAMP.palier=0;return CAMP.dmg;}; // (
 window.dbgCampagne=function(n,b){ // (dev) lancer un niveau de carrière depuis la console : dbgCampagne(5) (NUAGES), dbgCampagne(3,1) (VILLE)
   n=Math.max(1,Math.min(10,n|0));b=Math.max(0,Math.min(CARRIERE.length-1,b|0));if(started&&!gameOver)return 'en course';carrLancer(b,n-1);return CARRIERE[b].id+' '+n;};
 window.dbgCamp=function(){return {niveau:CAMP.n,corde:CORDE_ON,degats:+CAMP.dmg.toFixed(2),proche:Math.round(CAMP.proche),coupes:CAMP.coupes.map(function(c){return {sA0:Math.round(c.sA0),sA1:Math.round(c.sA1),sB0:Math.round(c.sB0),cote:c.side,ecart:+(c.gap||0).toFixed(1)};}),
-  bancs:CAMP.bancs.map(function(b){return Math.round(b.s);}),nuagesCamp:CLOUDS.filter(function(c){return c.camp;}).map(function(c){return {r:Math.round(c.r),ry:Math.round(c.ry),sc:+c.g.scale.x.toFixed(2),vis:c.g.visible&&c.mesh.visible,d:Math.round(c.g.position.distanceTo(carGroup.position)),dc:Math.round(c.g.position.distanceTo(camera.position)),nv:c.mesh.geometry.index?c.mesh.geometry.index.count:0,op:+c.mesh.material.opacity.toFixed(2)};}),portes:CAMP.portes.length,portailFerme:CAMP.portFerme,raccourcis:CAMP.coupesN,
+  bancs:CAMP.bancs.map(function(b){return Math.round(b.s);}),nuagesCamp:CLOUDS.filter(function(c){return c.camp;}).map(function(c){return {r:Math.round(c.r),ry:Math.round(c.ry),sc:+c.g.scale.x.toFixed(2),vis:c.g.visible&&c.mesh.visible,d:Math.round(c.g.position.distanceTo(carGroup.position)),dc:Math.round(c.g.position.distanceTo(camera.position)),nv:c.mesh.geometry.index?c.mesh.geometry.index.count:0,op:+c.mesh.material.opacity.toFixed(2)};}),portes:CAMP.portes.length,portesOk:CAMP.porteOk,portesPassees:CAMP.portes.filter(function(p){return p.fait;}).length,plaque:VC.chip,portailFerme:CAMP.portFerme,raccourcis:CAMP.coupesN,
   fantome:GH.on?{s:Math.round(GH.s),lat:+GH.lat.toFixed(1),v:Math.round(GH.v*SPD*3.6),air:GH.air,prise:+GH.prise.toFixed(2),pris:GH.pris,fini:GH.fini,ecart:Math.round(GH.s-s)}:null,
   vol:mode==='fall'?{h:+curHOff.toFixed(1),lat:+curLatOff.toFixed(1),sNear:Math.round(lastNearS),t:+fallT.toFixed(2),vy:+fallVel.y.toFixed(1)}:null,
   cause:mortCause,niv:LVL.n,
@@ -29827,7 +29888,7 @@ const VF={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:ne
 function villeN(){return CAMP.n>10?CAMP.n-10:0;}          // 1..10 dans la campagne VILLE, 0 ailleurs
 function campMeute(){return campN()===14&&!PARK.on;}
 function vPos(){return mode==='fall'?lastNearS:s;}         // où l'on en est le long du ruban, même en vol
-function vKmh(){return (mode==='fall'?Math.hypot(fallVel.x,fallVel.z):Math.abs(vA))*3.6*SPD;}
+function vKmh(){return (mode==='fall'?Math.hypot(fallVel.x,fallVel.z):Math.abs(vA)*vitMult())*3.6*SPD;} // (2026-09-30) au sol, la VRAIE vitesse d'avance (× vitMult : NITROOO, VITESSE ×2 — celle du compteur, speedKmh) : tenir NITROOO devant un radar ne changeait rien
 function vPaie(k,n){const g=denom()*k*(fever>0?2:1)*flowMult();money+=g;levelCash+=g;try{checkUpgrade();}catch(e){}if(n)try{flyCash(carGroup.position,n);}catch(e){}frenCash(g,carGroup.position);return g;} // (×3) en frénésie, le butin de la ville se voit aussi
 function vPose(o,sv,lt,h,fy){ // poser un objet sur la route (repère b, n, t), face fy
   frameAt(sv,VF);fy=fy||1;
@@ -29886,7 +29947,7 @@ function radarFlash(r){
   // = 97 % de vmaxShow — tout le monde était « en excès ». L'excès se mérite désormais : nitro, élan, pad (≥ 92 % de la croisière).
   const kmh=vKmh(),q=kmh/Math.max(1,vCroisiere()),ex=q>=.92;
   VC.radN++;VC.radMax=Math.max(VC.radMax,kmh);VC.radDit=[Math.round(kmh),ex];VC.radDitT=2.4;
-  vPaie(Math.max(2,kmh/22)*(ex?2:1),ex?10:5);
+  vPaie(Math.max(2,Math.min(kmh,vCroisiere()*1.6)/22)*(ex?2:1),ex?10:5); // (2026-09-30) plafonné à 1,6 × la croisière : NITROOO à ×2,6 ne fait pas sauter la banque
   flashEcran('rgba(255,255,255,.85)');radarSnd();hap(ex?[20,30,20]:12);
   slam(Math.round(kmh)+' KM/H',ex?'EXCES DE VITESSE !':q>=.66?'FLASHE !':'FLASHE… A PEINE',ex?'#ffd75e':'#ffffff',ex?'#ff3924':'#9fe8ff',44,2,ex?24:0);
   try{chaineAura('RADAR',Math.round(30+100*Math.min(1.1,q)),'radar',true,SONV2);}catch(e){}
@@ -29901,7 +29962,8 @@ function radarsTick(dt,sp){
   // la plaque : le prochain radar, ou la vitesse flashée
   if(VC.radDitT>0){VC.radDitT-=dt;vChip(VC.radDit[0]+' KM/H',TR(VC.radDit[1]?'EXCES DE VITESSE !':'FLASHE !'),VC.radDit[1]?'#ffd75e':'#ffffff');return;}
   let nx=null;for(const r of VZ.radars)if(!r.fait&&r.s>sp){nx=r;break;}
-  if(nx&&nx.s-sp<420)vChip(TR('RADAR'),TR('DANS')+' '+Math.max(0,Math.round((nx.s-sp)/10)*10)+' M','#9fe8ff');else vChip('');
+  // (2026-09-30) …et la vitesse VISÉE : le seuil de l'excès (92 % de la croisière, arrondi à la dizaine au-dessus) — on sait ce qu'il faut battre
+  if(nx&&nx.s-sp<420)vChip(TR('RADAR'),TR('DANS')+' '+Math.max(0,Math.round((nx.s-sp)/10)*10)+' M · '+Math.ceil(vCroisiere()*.092)*10+' KM/H','#9fe8ff');else vChip('');
 }
 // ============ 2 · LA LIGNE DE NÉON ============
 // Un trait de lumière sur la route relie les pads d'une file : les tronçons déjà parcourus brillent, celui qui mène au pad suivant
@@ -29945,7 +30007,7 @@ function campPad(i){ // crochet : un pad vient d'être pris (boucle de conduite)
   padCd=Math.min(padCd,.45); // la file se prend à pleine vitesse : le pad suivant est à ~110 m
   const ch=e.c,k=e.k;if(ch.brise||ch.fini||k!==ch.n)return;
   ch.n++;
-  if(k>0){popTexte(TR('LIGNE')+' ×'+(k+1),'#ffd75e',1);nitroGain(.04*k);flowAdd(3+2*k,'route','p');}
+  if(k>0){nitroGain(.04*k);flowAdd(3+2*k,'route','p');} // (2026-09-30) plus de « LIGNE ×k » au milieu : la plaque « LIGNE 3 / 6 » compte, le pluck monte
   try{if(SONV2)sfx('pad.neon',{st:sonPd(k)});else chimeNote(noteP(Math.min(7,k+1),1),0,.09,.2);}catch(e9){}
   if(ch.n>=ch.lats.length){ch.fini=true;ch.fl=1;const n=ch.lats.length;
     slam('LIGNE PARFAITE','×'+n,'#ffd75e','#ff3ec8',40,2,18);vPaie(6*n,8);nitroPct(.5);flowAdd(15,'style','p');hap([14,30,14,30,40]);
@@ -30151,6 +30213,9 @@ function debFrappe(){
     sparkBurst(sparkBlue,carGroup.position,10,10);hap(18);
   }
 }
+// (2026-09-30) LA CARRIÈRE ESPACE SE DURCIT : l'attente entre deux chutes × (1 − 0,045·i) — Mercure ×1, Pluton ×0,6 (ses satellites en plus).
+// Hors carrière (l'orbite du cycle) : ×1, rien ne bouge.
+function debK(){const c=LVL.cur;return c&&c.carr&&c.id==='espace'?1-.045*Math.min(9,c.carr.i|0):1;}
 function debTick(dt){
   const D=DEB;
   if(!(gK()<1)||!started||TUTO.on){if(D.on)debCache();return;} // seulement en orbite (gK : l'espace, hors parc)
@@ -30158,7 +30223,7 @@ function debTick(dt){
     if(mode==='drive'&&side>0&&!introD){D.prochain-=dt;
       if(D.prochain<=0){const prog=THREE.MathUtils.clamp(s/L,0,1),ok=debArme();
         if(ok&&!D.dit){D.dit=true;popTexte('ESQUIVE LES DEBRIS','#ff8a4d',2);}
-        D.prochain=ok?(3.4-prog*1.5)*(.8+Math.random()*.4):.35;}}
+        D.prochain=ok?(3.4-prog*1.5)*(.8+Math.random()*.4)*debK():.35;}}
     return;}
   D.t+=dt;const u=Math.min(1,D.t/DEB_T),e=Math.pow(u,1.35); // il ACCÉLÈRE en tombant
   camera.getWorldDirection(D.cam);
@@ -30213,7 +30278,7 @@ function panneTick(dt,sp){
   for(let i=0;i<VZ.pannes.length;i++){const p=VZ.pannes[i];
     if(sp>p.s0&&sp<p.s1){dans=i;break;}
     if(sp>p.s0-170&&sp<=p.s0){vac=true;break;}}
-  if(dans>=0&&VC.panI!==dans){VC.panI=dans;VC.panOk=true;VC.panN=(VC.panN|0)+1;popTexte('COUPURE !','#8f84c8',1);VC.grT=0;panneSnd(true);hap([20,40,20]);}
+  if(dans>=0&&VC.panI!==dans){VC.panI=dans;VC.panOk=true;VC.panN=(VC.panN|0)+1;VC.grT=0;panneSnd(true);hap([20,40,20]);} // (2026-09-30) plus de « COUPURE ! » au milieu : la plaque « COUPURE DE COURANT » et le noir le disent
   else if(dans<0&&VC.panI>=0){VC.panI=-1;VC.panT=.55;VC.panFl=0;panneSnd(false);
     if(VC.panOk){VC.aveugleN=(VC.aveugleN|0)+1;slam("A L'AVEUGLE",'COURANT RETABLI','#ffd75e','#8f84c8',40,2,14);vPaie(10,6);flowAdd(16,'risque','p');nitroPct(.35);try{chaineAura("A L'AVEUGLE",80,'aveugle');}catch(e){}}
     else popTexte('COURANT RETABLI','#9fe8ff',0);}
@@ -30285,7 +30350,7 @@ function fourgonPrepare(){
   for(const c of VFG.pool){if(c.pk){c.pk.taken=true;}if(c.m.parent)scene.remove(c.m);c.pk=null;c.dans=false;}
   if(!on)return;
   VFG.s=Math.min(L-60,230);VFG.lane=9;VFG.lat=VFG.latP=9;VFG.v=Math.max(26,Math.abs(vA));VFG.momT=0;VFG.yaw=0;
-  VFG.cash=VFG.cash0=80;VFG.acc=0;VFG.porte=0;VFG.cd=0;VFG.fini=false;VFG.fuite=false;VFG.finT=0;VFG.semeT=0;VFG.pris=0;
+  VFG.cash=VFG.cash0=80;VFG.acc=0;VFG.porte=0;VFG.cd=0;VFG.fini=false;VFG.fuite=false;VFG.finT=0;VFG.semeT=0;VFG.pris=0;VFG.dit=false;
   fourgonPose(0);
 }
 function fourgonPiece(sv,lt){ // une pièce tombe du coffre : un maillage de la réserve, une entrée dans `pickups` (le ramassage du jeu fait le reste)
@@ -30328,14 +30393,14 @@ function fourgonTick(dt,sp){
   // LE SEMIS : collé derrière lui (sur le dessus de la dalle, ou en vol), ses portes s'ouvrent et les pièces tombent
   const seme=!VFG.fini&&VFG.cash>0&&gp>3&&gp<45&&(mode==='fall'||(moi&&Math.abs(lat-VFG.lat)<20));
   VFG.porte+=((seme?1:0)-VFG.porte)*Math.min(1,dt*(seme?4:2));
-  if(seme){if(VFG.semeT<=0){popTexte('IL SEME SES BILLETS !','#ffd75e',1);if(SONV2)sfx('fourgon.porte');}VFG.semeT=1.5;
+  if(seme){if(VFG.semeT<=0){if(!VFG.dit){VFG.dit=true;popTexte('IL SEME SES BILLETS !','#ffd75e',1);}if(SONV2)sfx('fourgon.porte');}VFG.semeT=1.5; // (2026-09-30) le texte du milieu UNE fois par niveau (il revenait à chaque retour derrière lui) : ensuite la porte, le son et la plaque « RESTE DERRIERE LUI »
     VFG.acc+=dt*6;while(VFG.acc>=1&&VFG.cash>0){VFG.acc-=1;fourgonPiece(VFG.s-5.2,VFG.lat+(Math.random()-.5)*6);}
     if(Math.random()<dt*6)try{if(SONV2)sfx('fourgon.billets');else chimeNote(noteP(3+Math.floor(Math.random()*4),1),0,.04,.12);}catch(e){}}
   else{VFG.acc=0;VFG.semeT=Math.max(0,VFG.semeT-dt);}
   // LE CHOC : le percuter par l'arrière = un paquet d'un coup, et tu rebondis sur son pare-chocs
   VFG.cd=Math.max(0,VFG.cd-dt);
   if(moi&&VFG.cd<=0&&Math.abs(gp)<6.2&&Math.abs(lat-VFG.lat)<2.8){VFG.cd=1.2;
-    if(gp>0){vA=Math.min(vA,VFG.v*.8);momT=0;for(let k=0;k<10&&VFG.cash>0;k++)fourgonPiece(VFG.s-5.2-Math.random()*6,VFG.lat+(Math.random()-.5)*9);
+    if(gp>0){vA=Math.min(vA,VFG.v*.8/vitMult());momT=0; /* (2026-09-30) VFG.v suit ta vitesse d'AVANCE (vKmh × vitMult) : le coup de frein se ramène au vA d'avant le multiplicateur */for(let k=0;k<10&&VFG.cash>0;k++)fourgonPiece(VFG.s-5.2-Math.random()*6,VFG.lat+(Math.random()-.5)*9);
       popTexte('BRAQUAGE !','#ffd75e',2);try{chaineAura('BRAQUAGE',40,'braquage');}catch(e){}}
     else{vA*=.9;popTexte('ACCROCHAGE','#ff5e7a',1);}
     lat=VFG.lat+(lat>=VFG.lat?1:-1)*2.9;shake=Math.max(shake,.45);hap([30,20,30]);try{thud(9);if(!SONV2)noiseBurst(.12,.12,900);}catch(e){}
@@ -30558,7 +30623,7 @@ function banquierTick(dt,sp){
   VBQ.cd=Math.max(0,VBQ.cd-dt);
   if(moi&&VBQ.cd<=0&&Math.abs(gp)<5.4&&Math.abs(lat-VBQ.lat)<2.6){VBQ.cd=.8;lat=VBQ.lat+(lat>=VBQ.lat?1:-1)*2.8;vA*=.96;shake=Math.max(shake,.3);hap(18);popTexte("COUP D'EPAULE",'#ffb000',1);try{thud(6);}catch(e){}}
   const mene=VBQ.mene?gp<3:gp<-3;if(mene!==VBQ.mene){ /* (débogage son 2026-09-29) hystérésis de 3 m : au coude à coude, TU MÈNES / IL REPASSE ne s'alternent plus deux fois par seconde */
- VBQ.mene=mene;if(mene){popTexte('TU MENES !','#ffd75e',1);try{if(SONV2)sfx('rival.devant');else chimeNote(noteP(5,1),0,.08,.2);}catch(e){}}else{popTexte('IL REPASSE DEVANT','#ff5e7a',1);if(SONV2)sfx('rival.passe');}}
+ VBQ.mene=mene;if(mene){try{if(SONV2)sfx('rival.devant');else chimeNote(noteP(5,1),0,.08,.2);}catch(e){}}else{if(SONV2)sfx('rival.passe');}} /* (2026-09-30) plus de « TU MÈNES ! / IL REPASSE DEVANT » au milieu : la plaque (1ER / 2E) le dit déjà — le son reste */
   if(VBQ.s>=L-45){ // IL PASSE LE PORTAIL LE PREMIER
     VBQ.fini=true;VBQ.g.visible=false;trailStep(VBQ.tr,0,0,0,0,0,0,0);
     flashEcran('rgba(255,200,90,.55)');try{if(SONV2)sfx('defaite');else portalSnd();}catch(e){}
@@ -32724,7 +32789,7 @@ function loop(now){
           vA*=.985;shake=Math.max(shake,.14);hap(10);
           sparkBurst(boomRed,c9.mesh.position,5,6); // (2026-09-28) un plot percuté COÛTE : éclats rouges (l'or, c'est l'argent)
           addStyle(2);flowFaute('n',0,.25); // (v5) un plot percuté : -NARCISSE, le répit saute
-          if(c9.dur){vA*=.9;momT=0;FLOW.v=Math.max(0,FLOW.v-12);FLOW.idle=2;popTexte('TOUCHE !','#ff5e7a',1);} // (2026-09-27) une PORTE du niveau 4 : la toucher ne tue pas, elle coûte (vitesse, élan, FLOW)
+          if(c9.dur){if(c9.pt)c9.pt.touche=true;vA*=.9;momT=0;FLOW.v=Math.max(0,FLOW.v-12);FLOW.idle=2;popTexte('TOUCHE !','#ff5e7a',1);} // (2026-09-30) la porte touchée ne se compte pas propre (campPortesTick) · (2026-09-27) une PORTE du niveau 4 : la toucher ne tue pas, elle coûte (vitesse, élan, FLOW)
         }
       }
       if(fr9)frole(fr9,fd9,fk9);
@@ -34715,7 +34780,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       ot.textContent=TR(SANDBOX?'ENTRAINEMENT TERMINE':tq9?'AUTO-ECOLE INTERROMPUE':(recT?'NOUVEAU RECORD !':'GAME OVER'));
       ot.style.color=recT?'var(--aura)':'var(--neoR)'; // (2026-09-28, charte au complet) l'or est au lingot REJOUER : le record parle la couleur de l'aura
       {const CAUSES={air:"TROP LONGTEMPS EN L'AIR : POSE-TOI AVANT",vide:'TOMBE DANS LE VIDE',tour:'ENCASTRE DANS UNE TOUR',sat:'PERCUTE PAR UN SATELLITE',arret:"6 S A L'ARRET : ROULE OU CREVE",police:'DERNIER DE LA MEUTE',
-         feu:'CRIBLE PAR LA POLICE',seme:"LA CAISSE-NUAGE T'A SEME",finNuages:'LA CAISSE-NUAGE EST A TOI',banquier:"LE BANQUIER T'A BATTU",finVille:'LE LINGOT EST A TOI',finEspace:'LE SYSTEME SOLAIRE EST A TOI'}; // (2026-09-27) les fins de la CAMPAGNE
+         feu:'CRIBLE PAR LA POLICE',seme:"LA CAISSE-NUAGE T'A SEME",devant:"TU L'AS DOUBLEE — IL FALLAIT LA SUIVRE",finNuages:'LA CAISSE-NUAGE EST A TOI',banquier:"LE BANQUIER T'A BATTU",finVille:'LE LINGOT EST A TOI',finEspace:'LE SYSTEME SOLAIRE EST A TOI'}; // (2026-09-27) les fins de la CAMPAGNE
        const mc9=$t('mCause'),k9=SANDBOX?'':(CAUSES[mortCause]||'');if(mc9){mc9.textContent=k9?TR(k9):'';mc9.style.display=k9?'':'none';mc9.style.color=(mortCause==='finNuages'||mortCause==='finVille'||mortCause==='finEspace')?'#ffe7a8':'';}}
       if(mortCause==='finNuages'||mortCause==='finVille'||mortCause==='finEspace'){ot.textContent=TR(mortCause==='finEspace'?'ESPACE TERMINE':mortCause==='finVille'?'VILLE TERMINEE':'NUAGES TERMINES');ot.style.color='var(--neoV)';if(mCompteSon._fin!==TCTL.mortT){mCompteSon._fin=TCTL.mortT;setTimeout(function(){try{pixBurst(ot,40);}catch(e){}},700);}} // (2026-09-27) la campagne est FINIE : l'enseigne le dit en or
       mCompteSon(recT);
