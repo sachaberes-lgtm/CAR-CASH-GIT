@@ -29116,11 +29116,13 @@ function survRender(){
 }
 // (dev, 2026-09-30) dbgSurv() : l'état du Survivant — rang, minute, verdict, où l'on en est (s / lastNearS), la plaque · dbgSurv('arme') : armé
 // pour le prochain départ (le bouton du menu, sans le menu) · dbgSurv('minute',57) : la minute avancée (le couperet dans 3 s) ·
-// dbgSurv('dernier') : toute la meute vivante 60-80 m devant toi (tu deviens le condamné). Console seulement.
+// dbgSurv('dernier') : toute la meute vivante 60-80 m devant toi (tu deviens le condamné) · dbgSurv('seul') : il n'en reste qu'un, derrière.
+// Console seulement.
 window.dbgSurv=function(k,v){
   if(k==='arme')SURV.armed=true; // (hors parc et hors campagne : survStart les écarte)
   else if(k==='minute'&&SURV.on)SURV.t=+v||57;
   else if(k==='dernier'&&SURV.on){const p9=survPTot();for(const b of SURV.bots)if(b.alive)b.totD=Math.max(b.totD,p9+60+Math.random()*20);}
+  else if(k==='seul'&&SURV.on){const p9=survPTot();let n9=0;for(const b of SURV.bots)if(b.alive){if(n9++){b.alive=false;b.mesh.g.visible=false;}else b.totD=Math.min(b.totD,p9-60);}} // un seul survivant, 60 m derrière : + 'minute' = le CHAMPION
   const p=survPTot();let rk=1,vv=0;for(const b of SURV.bots)if(b.alive){vv++;if(b.totD>p)rk++;}
   return {on:SURV.on,arme:SURV.armed,fini:SURV.over,t:+SURV.t.toFixed(2),mode,rang:rk+'/'+(vv+1),dernier:SURV.last,pBase:Math.round(SURV.pBase),
     pTot:Math.round(p),s:Math.round(s),lastNearS:Math.round(lastNearS),L:Math.round(L),plaque:VC.chip};};
