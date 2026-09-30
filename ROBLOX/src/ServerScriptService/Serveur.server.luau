@@ -7,7 +7,6 @@
 --   4. il tient le CLASSEMENT et la SAUVEGARDE (record à vie + COMPTE cumulé, comme le compte du jeu web).
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local DataStoreService = game:GetService("DataStoreService")
 local Lighting = game:GetService("Lighting")
 
 local CC = ReplicatedStorage:WaitForChild("CashCar")
@@ -48,44 +47,24 @@ local COULEURS = {
 	Color3.fromRGB(255, 215, 94), Color3.fromRGB(98, 224, 98), Color3.fromRGB(160, 110, 255),
 }
 
--- ── 4. la sauvegarde ──
-local store
-do
-	local ok, s = pcall(function()
-		return DataStoreService:GetDataStore(Config.DATASTORE)
-	end)
-	if ok then store = s end
+-- ── 4. les profils (compte, caisses, missions, carrière, réglages — voir Profils) ──
+local Profils = require(script.Parent:WaitForChild("Profils"))
+local fnProfil = remote("Profil", "RemoteFunction")   -- le client lit son profil
+local fnAction = remote("Action", "RemoteFunction")   -- le client demande (acheter, équiper, régler…), le serveur vérifie
+local evProfil = remote("ProfilMaj")                  -- le serveur pousse le profil à jour
+Profils.pousser = function(p: Player) evProfil:FireClient(p, Profils.de(p)) end
+
+fnProfil.OnServerInvoke = function(p)
+	return Profils.de(p)
 end
-
-type Fiche = { record: number, compte: number }
-local fiches: { [number]: Fiche } = {}
-
-local function charger(p: Player): Fiche
-	local f = { record = 0, compte = 0 }
-	if not store then return f end
-	local ok, v = pcall(function()
-		return store:GetAsync("j_" .. p.UserId)
-	end)
-	if ok and type(v) == "table" then
-		if type(v.record) == "number" then f.record = v.record end
-		if type(v.compte) == "number" then f.compte = v.compte end
-	end
-	return f
-end
-
-local function sauver(p: Player)
-	if not store then return end
-	local f = fiches[p.UserId]
-	if not f then return end
-	pcall(function()
-		store:UpdateAsync("j_" .. p.UserId, function(ancien)
-			local a = type(ancien) == "table" and ancien or {}
-			return {
-				record = math.max(type(a.record) == "number" and a.record or 0, f.record),
-				compte = math.max(type(a.compte) == "number" and a.compte or 0, f.compte),
-			}
-		end)
-	end)
+fnAction.OnServerInvoke = function(p, nom, ...)
+	local f = Profils.actions[nom]
+	if type(nom) ~= "string" or not f then return false, "action inconnue", Profils.de(p) end
+	local prof = Profils.de(p)
+	local ok, res, msg = pcall(f, p, prof, ...)
+	if not ok then return false, "erreur", prof end
+	if res then task.spawn(Profils.sauver, p) end
+	return res, msg, prof
 end
 
 local function arrivee(p: Player)
@@ -112,15 +91,10 @@ local function arrivee(p: Player)
 	m.Parent = dossier
 
 	task.spawn(function()
-		local f = charger(p)
-		local g = fiches[p.UserId]
-		if g then
-			f.record = math.max(f.record, g.record)
-			f.compte = math.max(f.compte, g.compte)
-		end
-		fiches[p.UserId] = f
-		rec.Value = f.record
-		evRecord:FireClient(p, f.record, f.compte)
+		local prof = Profils.charger(p)
+		rec.Value = math.floor(prof.record)
+		evRecord:FireClient(p, prof.record, prof.compte)
+		Profils.pousser(p)
 	end)
 end
 Players.PlayerAdded:Connect(arrivee)
@@ -130,13 +104,13 @@ for _, p in Players:GetPlayers() do task.spawn(arrivee, p) end
 Players.PlayerRemoving:Connect(function(p)
 	local m = dossier:FindFirstChild(p.Name)
 	if m then m:Destroy() end
-	sauver(p)
-	fiches[p.UserId] = nil
+	Profils.sauver(p)
+	Profils.oublier(p)
 end)
 
 game:BindToClose(function()
 	for _, p in Players:GetPlayers() do
-		sauver(p)
+		Profils.sauver(p)
 	end
 end)
 
@@ -168,22 +142,36 @@ evPos.OnServerEvent:Connect(function(p, cf)
 end)
 
 -- Fin de partie : le montant vient du joueur. On le borne (un montant absurde est ignoré) —
--- ce n'est pas une banque, c'est un tableau d'honneur.
+-- l'argent est VERSÉ AU COMPTE (le compte du web), le record et les stats suivent.
 local dernierEnvoi: { [number]: number } = {}
-evFin.OnServerEvent:Connect(function(p, montant, distance)
+evFin.OnServerEvent:Connect(function(p, montant, distance, aura, stats)
 	if type(montant) ~= "number" or montant ~= montant or montant < 0 or montant > 1e15 then return end
 	local t = os.clock()
 	if dernierEnvoi[p.UserId] and t - dernierEnvoi[p.UserId] < 2 then return end
 	dernierEnvoi[p.UserId] = t
-	local f = fiches[p.UserId] or { record = 0, compte = 0 }
-	fiches[p.UserId] = f
-	f.compte += montant
-	local ls = p:FindFirstChild("leaderstats")
-	if ls then ls["Dernier $"].Value = math.floor(montant) end
-	if montant > f.record then
-		f.record = montant
-		if ls then ls["Record $"].Value = math.floor(montant) end
+	local prof = Profils.de(p)
+	prof.compte += montant
+	if montant > prof.record then prof.record = montant end
+	if type(aura) == "number" and aura == aura and aura >= 0 and aura < 1e12 then
+		prof.auraMeilleur = math.max(prof.auraMeilleur, aura)
 	end
-	evRecord:FireClient(p, f.record, f.compte)
-	task.spawn(sauver, p)
+	prof.stats.parties += 1
+	if type(distance) == "number" and distance == distance and distance > 0 and distance < 1e7 then
+		prof.stats.distance += distance
+	end
+	if type(stats) == "table" then
+		for _, k in { "pieces", "figures" } do
+			local v = stats[k]
+			if type(v) == "number" and v == v and v >= 0 and v < 1e6 then prof.stats[k] += v end
+		end
+		if Profils.finPartie then pcall(Profils.finPartie, p, prof, stats) end -- (missions, carrière)
+	end
+	local ls = p:FindFirstChild("leaderstats")
+	if ls then
+		ls["Dernier $"].Value = math.floor(montant)
+		ls["Record $"].Value = math.floor(prof.record)
+	end
+	evRecord:FireClient(p, prof.record, prof.compte)
+	Profils.pousser(p)
+	task.spawn(Profils.sauver, p)
 end)
