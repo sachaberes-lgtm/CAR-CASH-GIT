@@ -435,6 +435,16 @@ scratchpad GAMEPLAY). Ce qui suit est EN JEU, mesuré au banc sauf mention.
     (max-height:820px)` en plus du téléphone couché (les règles du garage sorties du grand bloc « max-height:540px », les autres écrans
     inchangés) — à 1000 × 570 les commandes empilées mangeaient la moitié de l'écran. `garageDecale(0)` efface tout (closeGarage).
     Vérifié en capture : 390 × 844, 844 × 390, 1000 × 570, 1400 × 800, 1440 × 900.
+  · **FEU v3 — PIXEL PREMIUM, ET DISCRET** (2026-09-30, Léo : « plus discret les flammes, ça fait cheap ; rendu pixel premium ; les flammes
+    dépassent le haut de la porte » · « les reflets des flammes un peu forts ne vont pas avec l'aspect premium — surtout le sol, et le reflet
+    en général ») : le feu de DOOM (chaleur qui monte case par case) est RETIRÉ, `FEU_PIX` aussi. `feuPixPas` DESSINE les flammes : une
+    hauteur par colonne (deux houles + des LANGUES en sinus au cube) — ~45 % de la porte au repos, ~80 % au lâcher, JAMAIS plus de 90 %
+    (la pointe reste sous le linteau) —, la colonne lue ondule avec la hauteur, l'intensité tombe dans SEPT bandes franches (`FEU_PAL`) ;
+    au-dessus une FUMÉE sombre en tramage ordonné Bayer 4 × 4 (`FEU_BAY`, `FEU_FUM`) ; des BRAISES d'une case (`F.em`, ~3,5/s au repos,
+    une gerbe au lâcher). Grille 96 × 48 (cases de 10 cm), un cran plus sombre au repos (`D`). LES REFLETS (atelier v2 de Sacha, dosés) :
+    miroir au sol .5 → .14 et fondu éteint à 60 % de la hauteur, murs .42 → .15, plafond .16 → .06, façade .5 → .2 (désormais animée),
+    lueur du seuil .42 → .16, souffle `fl` ±7 % au lieu de ±16 % — tout remonte au LÂCHER (`1+k·1,4`) ; la laque de la caisse ne prend
+    plus que le BAS de la porte en feu, sombre. `dbgFeu()` rend `brule` = hauteur moyenne des flammes, `braises`.
   · FEU : les cases froides prennent un FOND de fumée qui rougeoie par rangée (rouge sombre au pied → presque noir sous le linteau) — elles
     tombaient au presque-noir et trouaient le haut du feu (« la flamme, corrige-la »).
   · `paintEnvAtelier` : la face +Z (la porte) est peinte en FEU — la laque de la caisse reflète les flammes, plus la nuit.
