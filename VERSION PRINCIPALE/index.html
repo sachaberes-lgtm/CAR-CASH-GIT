@@ -4936,6 +4936,34 @@ html[data-reduced-motion="1"] body.touch #flowHud[data-lv="4"] .fM,html[data-red
 html[data-reduced-motion="1"] body.touch #flowHud[data-lv="4"] .fM.cj2{animation:none}
 html[data-reduced-motion="1"] .fx3.on,html[data-reduced-motion="1"] .fx3.on2{animation:fx3Fondu .7s linear both}
 </style>
+<style id="hudOrdre">
+/* =====================================================================================================================================
+   L'ORDRE DU HUD (2026-09-30, Sacha à GRAPHISME : « retravaille le HUD pour le rendre bien organisé, bien équilibré, bien proportionné »).
+   Posé EN DERNIER : c'est ICI, et seulement ici, que vivent désormais les PLACES du HUD de course (les blocs d'avant gardent leur dessin).
+   Mesuré avant (banc hudaudit.js) : quatre bords droits différents (376 · 382 · 384 · 389 sur 390 — les plaques de pouvoir touchaient le
+   bord), la barre nitro à 1 px du ⏸, la colonne de droite à places FIXES (le chrono et les pouvoirs gardaient leur trou quand l'autre était
+   caché), les plaques de pouvoir 1,6 × plus larges que le chrono de vol, et couché elles flottaient À CÔTÉ de lui au lieu de dessous.
+   LA GRILLE : UNE marge (--hudG / --hudD : 14 px + la zone sûre) des deux côtés, un pas de 8 px.
+   · EN HAUT, ce qu'on lit d'abord : la jauge NITRO et le FLOW (leur taille d'origine, verdict du 28/09), le ⏸ sur la même marge que tout
+     le reste, à 12 px des barres ;
+   · À GAUCHE, le score (l'AURA et sa chaîne) ; À DROITE, une COLONNE qui s'EMPILE toute seule (hudColonne, en JS) : ARGENT · DARK TRIAD
+     (debout) · CHRONO DE VOL · POUVOIRS · CAMPAGNE — ce qui est caché ne laisse pas de trou, rien ne se chevauche, tout tombe sur le même
+     bord droit ; les plaques de pouvoir à la largeur de la colonne ;
+   · EN BAS, ce qu'on touche : le volant et sa consigne à gauche, NITRO à droite, sur la même marge.
+   ===================================================================================================================================== */
+html body.touch #tGear{right:var(--hudD)!important;top:calc(env(safe-area-inset-top,0px) + 8px)!important}
+html body.touch #nitroWrap,html body.touch #flowHud{right:calc(var(--hudD) + 60px)!important}
+@media (orientation:landscape) and (max-height:540px){html body.touch #nitroWrap,html body.touch #flowHud{right:auto!important}}
+html body.touch :is(#cashHud,#airHud,#pwrChip,#campChip){right:var(--hudD)!important;left:auto!important}
+@media (orientation:portrait){html body.touch #triade{right:var(--hudD)!important;left:auto!important}}
+/* les POUVOIRS : empilés, calés à droite, à la largeur de la colonne (112 px à l'écran : ÷ --hudK dans le bloc rétréci) */
+html body.touch #pwrChip[style*="block"]{flex-direction:column!important;align-items:flex-end!important;gap:calc(8px / var(--hudK))!important;max-width:none!important}
+html body.touch #pwrChip .pw{min-width:calc(112px / var(--hudK))!important;box-sizing:border-box}
+html body.touch #pwrChip .pw span b{font-size:17px!important}
+/* EN BAS : la même marge que le haut */
+html body.touch #tNitro{right:var(--hudD)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 16px)!important}
+html body.touch #tSteerHint{left:var(--hudG)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 20px)!important}
+</style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
   <div id="spStage">
@@ -12030,6 +12058,21 @@ function cashEcrit(force){
     if(kd!==CASH.kd2){CASH.kd2=kd;const td='+$ '+cashTxt(CASH.delta)+(x3?' ×3':'');if(td!==CASH.td){CASH.td=td;CASH.d.textContent=td;}}
     if(x3!==CASH.d.classList.contains('x3'))CASH.d.classList.toggle('x3',x3);}
   if(vu!==CASH.d.classList.contains('vu'))CASH.d.classList.toggle('vu',vu);
+}
+/* LA COLONNE DE DROITE S'EMPILE (2026-09-30, voir <style id="hudOrdre">) : ce qui est VISIBLE, dans l'ordre, sous le ⏸, à 8 px l'un de
+   l'autre — ce qui est caché ne laisse pas de trou. Un bloc rétréci par `zoom` reçoit un `top` divisé par son zoom (zK), mesuré à l'écran
+   (zRect.leg : l'ancien WebKit rend les boîtes divisées par le zoom). Couché, l'emblème DARK TRIAD garde sa place en haut au milieu (la
+   colonne n'a pas la hauteur). Les VIES du mode FACILE (#facVies) prennent leur rang sous l'argent. Dix fois par seconde. */
+const HUDCOL={t:0,els:null};
+function hudColonne(dt){
+  HUDCOL.t-=dt;if(HUDCOL.t>0)return;HUDCOL.t=.1;
+  if(!HUDCOL.els)HUDCOL.els=['cashHud','facVies','triade','airHud','pwrChip','campChip'].map(function(i){return document.getElementById(i);});
+  const pay=innerWidth>innerHeight,g=document.getElementById('tGear');
+  let y=g?zRect(g).bottom+10:66;
+  for(const e of HUDCOL.els){if(!e||(pay&&e.id==='triade'))continue;
+    const cs=getComputedStyle(e);if(cs.display==='none'||cs.visibility==='hidden')continue;
+    const z=parseFloat(cs.zoom)||1,r=e.getBoundingClientRect();if(zRect.leg===undefined)zRect(e);const h=r.height*(zRect.leg?z:1);if(h<2)continue;
+    e.style.setProperty('top',(y/z).toFixed(1)+'px','important');y+=h+8;}
 }
 function cashHudTick(dt){
   const m=money;
@@ -35471,7 +35514,7 @@ function loop(now){
     if(!REDUCED_MOTION){const o9=Math.max(0,Math.min(.95,(speedKmh-280)/560)).toFixed(2);if(loop._sfO!==o9){loop._sfO=o9;speedFx.style.opacity=o9;}} // reduced-motion : vignette vitesse coupée
     // panneaux HUD MASQUÉS (#carInfo/#cpInfo/#record en display:none) : on ne reconstruit leur texte (fmtC/fmt alloue) QUE quand la valeur change
     paintCarHud();
-    if(TCTL.on)cashHudTick(dt); // (2026-09-29) le compteur d'argent du téléphone (#cashHud)
+    if(TCTL.on){cashHudTick(dt);hudColonne(dt);} // (2026-09-29) le compteur d'argent du téléphone (#cashHud) · (2026-09-30) la colonne de droite s'empile
     if(loop._money!==money){loop._money=money;elMoney.innerHTML=fmtGta(money); // un parse HTML seulement quand le compte bouge
       for(const u of unitsL())if(money>=u[0]){ // on vient de changer d'ordre de grandeur ? ça se FÊTE (une fois par session)
         if(u[0]>unitSeen){unitSeen=u[0];if(SONV2)sfx('argent.palier');showMsg(TR('💸 TU COMPTES EN ')+u[2]+TR(' MAINTENANT !'),'#7dff9a');}
