@@ -26851,7 +26851,8 @@ let AUTO_GAS=false; // mobile : accélération auto (le doigt sert à tourner et
 // LE VOLANT ANALOGIQUE À DEUX AXES. `st` = braquage (X) · `sv` = assiette en vol (Y, + = pouce vers
 // le HAUT = PIQUÉ, manche d'avion). Un SEUL point d'entrée dans la physique : le tactile écrit dans
 // le même `keys` et le même `steer` que le clavier — aucune équation n'est réécrite pour le doigt.
-const TCTL={on:false,pad:false,act:false,st:0,sv:0,id:null,ox:0,oy:0,play:null,dead:null,ov:null,airTip:false};
+const TCTL={on:false,pad:false,act:false,st:0,sv:0,id:null,ox:0,oy:0,dy:0,dyS:0,x0:0,lx:0,ly:0,ab:0,tr:0,ar:-1,play:null,dead:null,ov:null,airTip:false};
+const DRIFT_PX=34.9; // LE GESTE DU DRIFT : pouce tiré de 34,9 px vers le bas (réglé le 28/09 — l'ancien sv < -0,45), lu par la conduite ; pour ENTRER à droite, `TCTL.dyS` (le seuil de l'ARC du pouce, voir stMove) peut le relever
 let SANDBOX=false; // BAC À SABLE : la caisse se replace au lieu de mourir — on s'entraîne, rien n'est enregistré
 // HAPTIQUE : son propre interrupteur depuis le 2026-09-28 (avant, couper le SON coupait aussi les vibrations)
 /* LES VIBRATIONS (2026-09-25) — ⚠ iOS N'A PAS `navigator.vibrate` : sur iPhone, AUCUNE des vibrations du jeu ne
@@ -26875,7 +26876,7 @@ function uiClic(k){ try{ const f9=function(){if(SONV2)sfx(UI_CLIC[typeof k==='st
   if(SND.sfx&&!paused){ if(AC&&AC.state!=='running')AC.resume().then(f9).catch(function(){}); else f9(); }
   else if(SND.sfx&&paused&&SONV2){const r9=k==='retour',t9=performance.now(),w9=function(){if((!paused||r9)&&AC&&AC.state==='running')f9();else if(performance.now()-t9<(r9?1200:700))setTimeout(w9,60);};setTimeout(w9,60);} /* (QA 2026-09-29) REPRENDRE (« retour ») n'attend plus la fin de la pause : le 3-2-1 la tient ≥ 0,9 s, le clic était perdu — il part dès que le compte a réveillé le son */ /* (débogage son 2026-09-29) en pause : le clic attend (0,7 s au plus) que REPRENDRE réveille le son ; un interrupteur du panneau, lui, reste muet */
   }catch(e){} hap(8); } // (2026-09-26) REPRENDRE : le contexte se réveille en asynchrone — la note attend qu'il tourne // en pause le moteur audio dort : la note s'empilerait et partirait en rafale à la reprise
-window.dbgTouch=function(){return{on:TCTL.on,pad:TCTL.pad,act:TCTL.act,st:+TCTL.st.toFixed(3),sv:+TCTL.sv.toFixed(3),dy:+(TCTL.dy||0).toFixed(1),play:TCTL.play,steer:+steer.toFixed(3)};}; // console : l'état du volant tactile (un téléphone ne s'inspecte pas)
+window.dbgTouch=function(){return{on:TCTL.on,pad:TCTL.pad,act:TCTL.act,st:+TCTL.st.toFixed(3),sv:+TCTL.sv.toFixed(3),dy:+(TCTL.dy||0).toFixed(1),seuil:+(driftEnCours?DRIFT_PX:Math.max(DRIFT_PX,TCTL.dyS)).toFixed(1),arc:TCTL.ar<0?null:+TCTL.ar.toFixed(1),exces:+(TCTL.tr>0?TCTL.ab/TCTL.tr*Math.max(0,TCTL.ox-TCTL.x0):0).toFixed(1),drift:driftEnCours,play:TCTL.play,steer:+steer.toFixed(3)};}; // console : l'état du volant tactile (un téléphone ne s'inspecte pas) — `seuil` : les px vers le bas qu'il faut dépasser pour entrer (ou rester) en drift · `arc` : la descente de l'arc du pouce à la butée droite, lue aux glissés · `exces` : ce que le bout de l'arc descend en plus, retiré à la butée
 // LE GAZ, exposé : la vignette a besoin de savoir qu'on POUSSE, pas seulement qu'on va vite.
 // (posé une fois par frame dans la physique, à côté de son `up` — une seule vérité, pas deux
 // façons de relire les touches qui divergeraient le jour où on remappe le clavier)
@@ -33972,7 +33973,7 @@ function loop(now){
       if(introD){vA=0;momT=0;steer=0;psi=0;} // LARGAGE : chute verticale, contrôles gelés
       if(Math.abs(target)>.1)steerHold=Math.min(.3,steerHold+dt);else steerHold=0;
       // LE DRIFT : braquage FORT à bonne vitesse, ou pouce tiré vers le bas (le geste du frein) en braquant
-      const tireBas=TCTL.act&&(TCTL.dy||0)>34.9,vitOk=Math.abs(vA)>maxSp*.42; // (2026-09-28) en PIXELS : 34,9 px = l'ancien sv < -0,45 — la sensibilité de l'assiette ne change pas le geste du drift
+      const tireBas=TCTL.act&&(TCTL.dy||0)>(driftEnCours?DRIFT_PX:Math.max(DRIFT_PX,TCTL.dyS)),vitOk=Math.abs(vA)>maxSp*.42; // (2026-09-28) en PIXELS : 34,9 px = l'ancien sv < -0,45 — la sensibilité de l'assiette ne change pas le geste du drift — (2026-09-30) pour ENTRER à droite, au moins le seuil de l'ARC du pouce (`dyS`, ≤ 42,5) ; pour TENIR, 34,9 px comme avant : on en sort au même geste
       // (conduite v3) HYSTÉRÉSIS : on ENTRE en drift à 0,85 de braquage (ou pouce tiré), on n'en SORT que sous 0,45 — il ne clignote plus
       // (2026-09-25) le braquage À FOND doit être TENU 0,12 s pour décrocher : un grand glissé de changement de ligne ne part plus
       // en drift (ni au vide). Le geste du frein (pouce tiré vers le bas, ↓) décroche tout de suite.
@@ -35830,7 +35831,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   //      IMMÉDIATEMENT) et se recentre au lâcher. Axe X = braquage · axe Y = assiette en vol.
   // (2026-09-28, user : « augmente la sensibilité de l'axe haut bas du joystick ») : assiette pleine à 44 px au lieu de 66 (×1,5), zone morte
   // 14 % → 10 %, courbe 1,25 → 1,15. Le geste du DRIFT (pouce tiré vers le bas au sol) garde SA distance : il lit les pixels (`TCTL.dy`).
-  const sz=$t('tSteer'),stk=$t('tStick'),knb=$t('tKnob'),LOCK=54,LOCKV=44; // 54 px = braquage plein · 44 px = assiette pleine
+  const sz=$t('tSteer'),stk=$t('tStick'),knb=$t('tKnob'),LOCK=54,LOCKV=44,ARC_B=.45,ARC_P=1.5,ARC_M=6,ARC_MAX=42.5,ARC_R0=38; // 54 px = braquage plein · 44 px = assiette pleine · ARC_* : l'arc du pouce (voir stMove)
   function stSet(h,v,kx,ky){ TCTL.st=h; TCTL.sv=v; // kx/ky : la place du POUCE en pixels depuis la base
     if(knb)knb.style.transform='translate('+(kx||0)+'px,'+(ky||0)+'px)'; } // (2026-09-30) le bouton est dessiné SOUS le pouce (×1) : à ×0,62 de la course (×0,5 en vertical, sur la valeur COURBÉE) il traînait derrière le doigt et mentait sur la butée
   if(sz){
@@ -35848,19 +35849,38 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(boomSkip())return; // (2026-09-25) un tap passe l'explosion
       const r=sz.getBoundingClientRect(); sL=r.left; sT=r.top; sB=r.bottom;
       gx=Math.max(24,Math.min(LOCK,x-sL-6)); gy=Math.max(20,Math.min(LOCKV,sB-y-6));
-      TCTL.id=id; TCTL.ox=x; TCTL.oy=y; TCTL.act=true; TCTL.dy=0; // (le pouce en pixels repart de zéro : un appui immobile ne rejoue pas le dernier glissé)
+      TCTL.id=id; TCTL.ox=x; TCTL.oy=y; TCTL.x0=TCTL.lx=x; TCTL.ly=y; TCTL.ab=TCTL.tr=0; TCTL.ar=-1; TCTL.act=true; TCTL.dy=0; TCTL.dyS=0; // (le pouce en pixels repart de zéro : un appui immobile ne rejoue pas le dernier glissé)
       stk.style.left=(x-sL)+'px'; stk.style.top=(y-sT)+'px';
       stSet(0,0); sz.classList.add('act'); sz.classList.add('used'); // la consigne « GLISSE POUR TOURNER » a fait son travail
       start();
     };
     const stMove=function(x,y){
-      const ox0=TCTL.ox,oy0=TCTL.oy,rawX=x-ox0,rawY=y-oy0;
+      const ox0=TCTL.ox,oy0=TCTL.oy,rawX=x-ox0,dxm=x-TCTL.lx,dym=y-TCTL.ly; TCTL.lx=x; TCTL.ly=y;
       if(rawX>LOCK){TCTL.ox=x-LOCK;gx=Math.max(gx,Math.min(LOCK,TCTL.ox-sL-6));} // STICK FLOTTANT sur les DEUX axes : la base suit le doigt (en s'écartant du bord, le demi-axe gauche regagne sa place — jamais il ne rétrécit en cours d'appui)
       if(rawX<-gx)TCTL.ox=x+gx;       // au-delà de la butée, donc revenir au centre rend la main
-      if(rawY>gy)TCTL.oy=y-gy;        // IMMÉDIATEMENT (jamais collé au plein braquage)
-      if(rawY<-LOCKV){TCTL.oy=y+LOCKV;gy=Math.max(gy,Math.min(LOCKV,sB-TCTL.oy-6));}
+      /* (2026-09-30, le drift au geste) LE SOCLE SUIT L'ARC. Le pouce gauche pivote à sa base (sous le coin bas-gauche) : glissé vers la
+         DROITE il DESCEND, de plus en plus (pente .3-.5 au départ, .6-1,2 au-delà de la butée) ; vers la GAUCHE il monte, de moins en moins.
+         Au-delà de la butée le socle ne flottait qu'en X : la descente de l'arc s'accumulait dans `py` — 37 à 44 px à +80 px (sim-drift.js)
+         = DRIFT involontaire, et en vol un cabré de -0,66 à -1. Un seul point ne peut pas être juste aux deux bouts du stick, d'où deux parts :
+         · le socle GLISSE sur l'arc à la pente qu'a l'arc SOUS lui (ARC_B = .45, la pente de départ des prises simulées), quand le pouce
+           descend (à droite) ou monte (à gauche) — au NEUTRE, le pouce revenu sous l'anneau se lit à plat. (À gauche la glisse ne suit pas
+           la montée du pouce, plus plate au bout : le socle coulait de 12 px à chaque slalom ±80.) Bonus mesuré : posé à droite du volant,
+           un grand balayage jusqu'au bord gauche piquait en vol (0,7 à 1, et encore 0,7-0,9 revenu au neutre) — 0 (prise tendue : 0,35).
+         · ce que le bout de l'arc descend EN PLUS (le pouce y est plus pentu que le socle) est un excès PAR PIXEL de socle parcouru à
+           droite de la pose (`ab`/`tr`, borné à ARC_P par px de glissé), retiré de la lecture à proportion du braquage à droite (`cr`) :
+           à la butée on lit ce qu'on lisait en y arrivant, au neutre et à gauche rien ne change, et un slalom relit la même chose au même
+           endroit. Essayés et rejetés au banc node : tout rentrer dans le socle (piqué 0,2 à 0,7 au neutre au retour, jusqu'à 1 en
+           contre-braquant) ; le rendre au retour (drift au 2e passage) ; un excès cumulé sans position (5 slaloms : plus de drift du tout).
+         Le vrai geste du drift (tirer vers le bas, droit ou vers la base du pouce) ne tire pas le socle en X : il compte en entier. */
+      const fx=TCTL.ox-ox0;
+      if(fx>0&&dym>0){const g=Math.min(dym,ARC_B*fx),f9=Math.min(fx,TCTL.ox-TCTL.x0);TCTL.oy+=g;
+        if(f9>0){TCTL.ab+=Math.min(dym-g,(ARC_P-ARC_B)*fx)*f9/fx;TCTL.tr+=f9;}}
+      else if(fx<0&&dym<0)TCTL.oy+=ARC_B*fx;
+      const pxr=x-TCTL.ox,cr=pxr>0&&TCTL.tr>0?TCTL.ab/TCTL.tr*Math.max(0,TCTL.ox-TCTL.x0)*Math.min(1,pxr/LOCK):0,rawY=y-TCTL.oy-cr;
+      if(rawY>gy)TCTL.oy=y-cr-gy;        // IMMÉDIATEMENT (jamais collé au plein braquage)
+      if(rawY<-LOCKV){TCTL.oy=y-cr+LOCKV;gy=Math.max(gy,Math.min(LOCKV,sB-TCTL.oy-6));}
       if(TCTL.ox!==ox0||TCTL.oy!==oy0){stk.style.left=(TCTL.ox-sL)+'px';stk.style.top=(TCTL.oy-sT)+'px';} // (2026-09-30) l'ANNEAU suit la base flottante (il restait planté où le pouce s'était posé) — écrit seulement quand la base bouge
-      const px=Math.max(-gx,Math.min(LOCK,x-TCTL.ox)),py=Math.max(-LOCKV,Math.min(gy,y-TCTL.oy)),
+      const px=Math.max(-gx,Math.min(LOCK,pxr)),py=Math.max(-LOCKV,Math.min(gy,y-TCTL.oy-cr)),
             nx=px<0?px/gx:px/LOCK,ny=py<0?py/LOCKV:py/gy,
             ax=Math.abs(nx)<.06?0:nx, // zone morte : le pouce tremble, pas la caisse
             /* (2026-09-30) ZONE MORTE CROISÉE : le pouce pivote à sa base, un glissé « de côté » décrit un ARC — 54 px de braquage portent
@@ -35870,8 +35890,21 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
                re-étalée colle à l'ancienne (ny^1,15) à 0,015 près au-delà de 40 % de course — la sensibilité réglée le 28/09 est gardée. */
             dz=.10+.45*Math.abs(nx),ay=Math.abs(ny)<=dz?0:(ny<0?-1:1)*(Math.abs(ny)-dz)/(1-dz);
       TCTL.dy=py>0?py*LOCKV/gy:py; // le pouce en PIXELS vers le bas (le drift s'y mesure, indépendant de la sensibilité) — rapporté aux 44 px d'une course pleine quand le bas de l'écran la raccourcit
+      /* (2026-09-30) L'ENTRÉE EN DRIFT CONNAÎT L'ARC DU JOUEUR. Dans la course, l'arc d'un pouce tendu descend déjà de 37,6 px à la butée
+         droite (> 34,9 : drift sans rien tirer), celui d'une prise basse de 21,7. `ar` = la descente de CET arc à la butée, relevée pendant
+         les glissés LATÉRAUX (|dx| > |dy|, braquage ≥ 40 %) : sur toutes les prises simulées la descente suit nx^1,2 à ±1,5 px près. Pour
+         ENTRER à droite il faut tirer ARC_M px sous son propre arc — jamais moins que 34,9 (le geste réglé le 28/09, inchangé pour les
+         prises à plat : basse 13 px à la butée, moyenne 7), jamais plus que 42,5 (sous la course de 44 : toujours joignable). Tirer est
+         vertical ou vers la base du pouce : `ar` ne bouge pas, le tirage compte en entier. Avant le premier glissé, ARC_R0 = 38 (prudent).
+         `ar` monte d'un coup mais ne DESCEND que d'1 px par glissé : un pouce qui tremble (±2 px) l'échantillonnait au creux, et le pic
+         suivant passait le seuil (simulé : 1 drift sur une prise tendue tenue à la butée ; 0 ainsi, sans rien tirer de plus). Pas de
+         relevé pouce déjà TIRÉ (dy ≥ 42,5) : pousser plus loin en plein drift ne fait pas croire à un arc profond (sinon +8 px au drift suivant).
+         `dyS` = ce seuil d'entrée (la conduite y applique le plancher 34,9) ; RESTER en drift demande 34,9 comme avant (`tireBas`) : on en
+         sort au même geste. */
+      if(nx>=.4&&Math.abs(dxm)>Math.abs(dym)&&TCTL.dy<ARC_MAX){const r9=TCTL.dy/Math.pow(nx,1.2);TCTL.ar=TCTL.ar<0||r9>TCTL.ar?r9:Math.max(r9,TCTL.ar-1);}
+      TCTL.dyS=nx>0?Math.min(ARC_MAX,(TCTL.ar<0?ARC_R0:TCTL.ar)*Math.pow(nx,1.2)+ARC_M):0; // la conduite y ajoute le plancher de 34,9 (DRIFT_PX)
       stSet(-(ax<0?-1:ax>0?1:0)*Math.pow(Math.abs(ax),1.15),   // pouce à GAUCHE = braquage à gauche (steer>0) — (conduite v4) courbe 1,35 → 1,15 : 25 % de pouce = 20 % du cap (15 % avant)
-            -ay,px,py);                                         // pouce vers le HAUT = sv>0 = PIQUÉ (manche d'avion)
+            -ay,px,Math.max(-LOCKV,Math.min(gy,y-TCTL.oy))); // pouce vers le HAUT = sv>0 = PIQUÉ (manche d'avion) — le bouton reste SOUS le pouce (sans `cr`)
     };
     const stUp=function(){ TCTL.act=false;TCTL.id=null;stSet(0,0);sz.classList.remove('act'); };
     sz.addEventListener('touchstart',function(e){
