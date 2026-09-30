@@ -258,6 +258,13 @@ scratchpad GAMEPLAY). Ce qui suit est EN JEU, mesuré au banc sauf mention.
   `garageAng` garde son sens (préréglages .42 / 3,5 aux TRAÎNÉES, glissé du doigt, `dbgGarage`). L'EFFET LOUPE venait du recul bridé à 8 m :
   l'objectif s'ouvrait jusqu'à ~87° en portrait ; dans l'axe fixe le recul monte à 10,5 m (FOV ~72°). Au LÂCHER, le plateau la remet face à
   la porte en 0,5 s (`GAR.go.r0`).
+  · (2026-09-30, Léo, capture de sa branche `version-leolei-2026` : « c'est ça que je veux, avec l'interface boutique de la nouvelle
+    version ») LE CADRAGE DE SA BRANCHE : on entre DERRIÈRE la caisse (`garageAng=π` à l'ouverture : l'arrière face à nous, la porte en feu
+    au fond), inclinaison .2, et la visée passe AU-DELÀ de la caisse vers la porte (z +1,5, à 1 m couché ; debout la hauteur d'avant, .35 —
+    l'interface du bas l'exige). Le lâcher part de cette visée (plus de saut). Pas repris : ses affiches, son socle SHOP, son PLAY en haut
+    (il chevauchait le compteur) — l'interface est celle de main (MENU | BOUTIQUE | JOUER).
+  · FEU : les cases froides prennent un FOND de fumée qui rougeoie par rangée (rouge sombre au pied → presque noir sous le linteau) — elles
+    tombaient au presque-noir et trouaient le haut du feu (« la flamme, corrige-la »).
   · `paintEnvAtelier` : la face +Z (la porte) est peinte en FEU — la laque de la caisse reflète les flammes, plus la nuit.
   · Le voile du LÂCHER part à u > .90 (était .80) : la caisse ENTRE dans le feu (nez au rideau à u ≈ .82) avant la coupure ; `#gFade` en
     blanc CHAUD `#ffe3b8` — toujours le voile d'une image (le flash plein écran a été jugé « horrible » : l'effet est DANS la scène).
