@@ -5038,6 +5038,20 @@ html[data-reduced-motion="1"] body.touch #flowHud[data-lv="4"] .fM,html[data-red
 html[data-reduced-motion="1"] body.touch #flowHud[data-lv="4"] .fM.cj2{animation:none}
 html[data-reduced-motion="1"] .fx3.on,html[data-reduced-motion="1"] .fx3.on2{animation:fx3Fondu .7s linear both}
 </style>
+<style id="carrNoms">
+/* LES NOMS DES NIVEAUX DE LA CARRIÈRE (2026-09-30, Sacha : « dans la carrière, les niveaux sont écrits avec la mauvaise police, c'est
+   inacceptable ») — le nom était en pixel 8 px (--f0), maigre, sans contour, forcé sur UNE ligne, sous un numéro de 16 px et un titre de
+   monde de 12 px cerné : il se lisait comme une note de bas de page. Désormais 9 px (10 px cassait PONT ALEXANDRE III sur trois lignes et
+   les tuiles n'avaient plus la même hauteur), le contour d'ENCRE des libellés pixel (1 px et l'épaisseur dessous), DEUX lignes au plus,
+   équilibrées, et la même hauteur pour toutes les tuiles ;
+   la plaque DORÉE (le niveau en cours) garde son texte sombre, sans contour. */
+html body #carr .carrNiv span{font-size:9px!important;line-height:1.5!important;letter-spacing:0!important;white-space:normal!important;text-wrap:balance;
+  text-align:center;min-height:3em!important;max-height:3em;overflow:hidden;align-items:center!important;
+  text-shadow:1px 0 0 var(--jInk,#1c0430),-1px 0 0 var(--jInk,#1c0430),0 1px 0 var(--jInk,#1c0430),0 -1px 0 var(--jInk,#1c0430),0 2px 0 var(--jInk,#1c0430)}
+html body #carr .carrNiv.pb-gold span{text-shadow:none}
+html body #carr .carrNiv b{text-shadow:1px 0 0 var(--jInk,#1c0430),-1px 0 0 var(--jInk,#1c0430),0 1px 0 var(--jInk,#1c0430),0 -1px 0 var(--jInk,#1c0430),0 3px 0 var(--jInk,#1c0430)}
+html body #carr .carrNiv.pb-gold b{text-shadow:none}
+</style>
 <style id="hudOrdre">
 /* =====================================================================================================================================
    L'ORDRE DU HUD (2026-09-30, Sacha à GRAPHISME : « retravaille le HUD pour le rendre bien organisé, bien équilibré, bien proportionné »).

@@ -1,5 +1,13 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LES NOMS DES NIVEAUX DE LA CARRIÈRE (2026-09-30, session GRAPHISME — Sacha : « dans la carrière les niveaux sont écrits avec la mauvaise police, c'est inacceptable »)
+- `<style id="carrNoms">` (juste avant hudOrdre) : le nom d'un niveau (`.carrNiv span`) était en pixel 8 px (--f0), maigre, sans contour, forcé
+  sur UNE ligne sous un numéro de 16 px — il se lisait comme une note de bas de page. Désormais 9 px, le contour d'ENCRE des libellés pixel
+  (1 px + l'épaisseur dessous, le numéro aussi), DEUX lignes au plus (`text-wrap:balance`), la même hauteur pour toutes les tuiles (10 px
+  cassait PONT ALEXANDRE III sur trois lignes) ; la plaque DORÉE (niveau en cours) garde son texte sombre sans contour. Banc `carr.js`
+  (liste des mondes + les quatre grilles, textes lus, `--pay` pour couché). ⚠ Toujours SANS accents (la police pixel n'a pas de capitales
+  accentuées) : si Sacha veut les accents, il faudra une autre police pour ces noms.
+
 ## LE MENU = LE GARAGE + LES BOUTONS DE SACHA (2026-09-30, session GAMEPLAY — Sacha : « les boutons ne vont pas du tout dans la version de Léo : on garde la base de garage pour le menu mais on remet les mêmes boutons que ceux que j'avais faits pour ma version »)
 - Le décor du menu reste L'ATELIER (le garage en mode `menu`) ; ce qui se TOUCHE redevient l'accueil de Sacha, `#mHome` tel quel (logo CASH CAR,
   MISSIONS · ⚙, GARAGE · CARRIÈRE · BOUTIQUE, lingot JOUER — mêmes styles, même routeur `mTap`). `garMode` pose `body.garMenuH` en mode menu
