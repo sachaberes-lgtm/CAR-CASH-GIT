@@ -1,5 +1,25 @@
 # CASH CAR — guide projet pour Claude Code
 
+## CE QUI VIENT DE LÉO, PORTÉ SUR LA VERSION DE SACHA (2026-09-30, session DEBUGGING/UHD)
+- Sacha, à propos de la branche `version-leolei-2026` (83 commits de Léo jamais fusionnés, arrêtée le 28/09) : « PARIS, le HUD qui
+  s'estompe, le boost de départ, le bouton BOUTIQUE — c'est pas mal, adapte ça bien à ce qu'on a déjà construit pour pas tout casser ».
+- **PARIS** : repris du portage déjà fait le 28/09 (branche `paris`, 22e6395 — PARIS LA NUIT + PARIS AU SOL, jamais testé ni fusionné),
+  appliqué sur main avec 10 conflits réglés en gardant TOUT l'actuel (pluie de l'orage, reflets de ville, nuit, satellites, causes de mort)
+  + le strict nécessaire de Paris. Paris est le 3e niveau du cycle : NUAGES → VILLE → **PARIS** → ORBITE → ORAGE → MINUIT EN VILLE → PLUIE DE
+  SATELLITES (7 niveaux) — et un MONDE de carrière (10 niveaux, de l'heure bleue à minuit), rangé entre VILLE et ESPACE : la progression
+  est gardée par `id` (sauvegarde intacte). ⚠ Les cartes de la carrière se reconnaissent désormais par leur MONDE (`data-id`) : par leur
+  rang, Paris prenait le bandeau de l'orbite. Bandeau de Paris : l'heure dorée, des toits, la Dame de fer. En paysage : une rangée de quatre.
+- **La chauffe de Paris** (`parisChauffe`, une étape de `chauffeDivers`) : MESURÉ, 16 programmes liés au 1er portail de Paris, en pleine
+  course (tous les autres niveaux : 0). Une instance de CHAQUE matière de Paris est compilée au menu (façades, zinc, fer, sol, Seine, Lambert
+  simple/double face avec ou sans texture, en maillage / instances / instances colorées, le treillis de la tour, le scintillement, les halos,
+  le drapeau qui ondule, l'enseigne à émissive) ; les matières de chauffe ne sont JAMAIS libérées. Les matières faites à la volée sont
+  passées en fabriques (`parisScintMat`, `parisHaloMat`, `parisDrapeauMat`) pour que la chauffe compile le MÊME programme. Résultat : 0 au
+  portail (131 → 131, banc `st-paris.js`). Les morts de Paris (façade, Seine, pavé) sont rattrapées par le mode FACILE.
+- **Le HUD discret** (b4ad9ff de Léo) : `hudDiscretTick` (en tête de `chaineTick`) — la CHAÎNE, les POUVOIRS et l'OBJECTIF de campagne
+  présents depuis plus de 3 s tombent à 45 % ; `hudReveil` les rallume (× qui monte, nouveau pouvoir, fin de pouvoir qui clignote, objectif
+  qui change ou alerte). Adapté à la charte : pas de fond « verre » (règle 1), c'est l'opacité d'ensemble qui baisse (hudDA §9).
+- **Le boost de départ** : déjà sur main depuis le 29/09 (`fireLaunchBoost`, 3 s de nitro offerte, pas à l'auto-école).
+- **Le bouton BOUTIQUE du garage** : confié à la session INTERFACE (sa zone, la charte : le tactile en bas, une seule plaque d'or).
 ## LA COUCHE « DA » DE L'ÉTALONNAGE (2026-09-30, session INTERFACE, avec l'accord de GRAPHISME) — « retravaille les graphismes, la DA et l'étalonnage »
 - MESURÉ (banc `etal.js` : 5 niveaux, image de course figée, variantes A/B de l'étalonnage ; `balade.js` pour l'état des lieux) : tout
   baignait dans UN violet (ciel, route, nuages, caisse), la caisse orange se lisait saumon pâle (l'ACES par canal mangeait sa chroma et
