@@ -29112,12 +29112,12 @@ window.dbgCamVol=function(){try{const b=new THREE.Box3().setFromObject(carGroup)
   return {mode,fallT:+(+fallT).toFixed(2),d:+camera.position.distanceTo(carGroup.position).toFixed(1),fov:+camera.fov.toFixed(1),
     taille:+volTaille(camera.position.distanceTo(carGroup.position),camera.fov).toFixed(3),ecart:r?+(Math.hypot(r.x-c.x,r.y-c.y)/Math.max(.01,volTaille(camera.position.distanceTo(carGroup.position),camera.fov))).toFixed(2):null,caisse:[+c.x.toFixed(2),+c.y.toFixed(2)],anneau:r?[+r.x.toFixed(2),+r.y.toFixed(2),r.z<1]:null};}catch(e){return e.message;}};
 // (dev) dbgVol() : le VOL NEWTON mesuré — le corps (ψ lacet, α assiette en degrés, leurs vitesses en rad/s), l'air (qt), la vitesse MONDE
-// (km/h, et l'avance à plat), le multiplicateur du vol (volMult), la vrille comptée (yawAcc en °), et la DERNIÈRE POSE (impact, perte,
+// (km/h, et l'avance à plat), le multiplicateur du vol (volMult), la vrille comptée (yawAcc en °) et déjà PAYÉE (vrillePayee, VRI-1), la SÉRIE de poses (serie, SER-1), et la DERNIÈRE POSE (impact, perte,
 // angle, angle du nez, grade physique). dbgVol({K_P:28,…}) règle NEWTON à chaud (banc) et rend l'état. Console seulement.
 window.dbgVol=function(o){if(o&&typeof o==='object')for(const k in o)if(k in NEWTON&&isFinite(+o[k]))NEWTON[k]=+o[k];
   return {mode:mode,bord:VOLN.bord&&fallT<.6,psi:Math.round(VOLN.psi*57.3),alpha:Math.round(VOLN.al*57.3),wpsi:+VOLN.w.toFixed(2),walpha:+VOLN.wa.toFixed(2),qt:+VOLN.qt.toFixed(2),
     kmh:mode==='fall'?Math.round(fallVel.length()*3.6*SPD):null,avance:mode==='fall'?Math.round(Math.hypot(fallVel.x,fallVel.z)*3.6*SPD):Math.round(Math.abs(vA)*vitMult()*3.6*SPD),
-    mult:+(mode==='fall'?volMult():vitMult()).toFixed(2),vrille:Math.round(yawAcc*57.3),steer:+steer.toFixed(2),fallT:+fallT.toFixed(2),
+    mult:+(mode==='fall'?volMult():vitMult()).toFixed(2),vrille:Math.round(yawAcc*57.3),vrillePayee:vriPaye*180,serie:streak,steer:+steer.toFixed(2),fallT:+fallT.toFixed(2),
     nez:VOLN.n.toArray().map(function(v){return +v.toFixed(2);}),viseur:LM.vu?(LM.tour?'tour':'#'+LM.c.getHexString()):null,pose:Object.assign({},VOLN.pose),NEWTON:Object.assign({},NEWTON)};};
 /* LA POSE PARFAITE SE VOIT (2026-09-28, Sacha) : en plus du gel d'image (hitT) et du « tchak », un COUP DE ZOOM — le champ se resserre
    sec à l'impact et se relâche en 0,5 s — et une COURONNE DORÉE qui éclate depuis les bords de l'écran (le centre reste net : on voit la
