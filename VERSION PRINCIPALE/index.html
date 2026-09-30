@@ -18552,6 +18552,9 @@ function carOwned(i){return !!(SAVE.d.owned&&SAVE.d.owned.indexOf(i)>=0);}
    ⚠ à remettre à false pour la version publique : c'est l'unique interrupteur. */
 const TEST_CAISSES=true;
 function carUnlocked(i){return TEST_CAISSES||carUnlockedVrai(i);}
+/* (2026-09-30) ⚠ carUnlocked OUVRE (équiper, JOUER) ; ce qui dit AU JOUEUR où il en est — « une caisse à ta portée » (objectif, garPortee,
+   pastille du GARAGE), « nouvelle caisse gagnée » (carSnapshot/carScan) et le bouton ACHETER — lit carUnlockedVrai : en TEST tout était
+   « déjà à toi », le testeur ne voyait jamais la boucle achat → caisse que vivra le joueur. */
 function carUnlockedVrai(i){
   if(i<=((SAVE.d.ex&&SAVE.d.ex.floor)|0))return true; // acquise sous les anciennes règles : elle le reste
   const u=CAR_UNLOCK[i];
@@ -19357,16 +19360,21 @@ function nitroGain(q){
   if(nitroR>av+.01){const b=document.getElementById('nitroBar');if(b){b.classList.remove('gain');void b.offsetWidth;b.classList.add('gain');}}
 }
 function runxReset(){flowReset();RUNX.best0=best; // le record d'AVANT la partie : c'est lui que l'écran de mort doit battre
-RUNX.coins=RUNX.fruits=RUNX.perfect=0;RUNX.t=RUNX.nitro=0;RUNX.fren=RUNX.frenMax=0;MIS_NEW.length=0;misT=0;
+RUNX.coins=RUNX.fruits=RUNX.perfect=RUNX.zf=0;RUNX.t=RUNX.nitro=0;RUNX.fren=RUNX.frenMax=0;MIS_NEW.length=0;misT=0;
   RUNX.pwr=RUNX.miracles=RUNX.sfMax=0;RAM.n.fill(0);RAM.ok=false;/* (2026-09-30) le ramassage (dbgRamasse) */try{grisantRaz();}catch(e){} // (2026-09-28) pouvoirs v2 et petits trucs grisants
   try{RUNX.engAvant=(SAVE.d.ex&&SAVE.d.ex.eng)|0;}catch(e){RUNX.engAvant=0;} // le meilleur moteur AVANT la partie : l'écran de fin dit « RECORD ! » s'il est battu
   try{RUNX.bank0=bank();}catch(e){RUNX.bank0=0;}RUNX.verse=null;} // la banque AVANT la partie : l'écran de mort remplit la barre depuis là
+/* (2026-09-30) « FRANCHIS N PORTAILS » restait à 0 / 1 toute la zone : la mort à 90 m du portail disait « 0 », comme la mort au départ.
+   La zone EN COURS compte pour sa part de piste roulée (s/L, jamais 1 : l'entier ne tombe qu'AU portail, la complétion ne change pas).
+   Pas en campagne/carrière (niveaux dessinés : le portail y finit parfois la partie), ni à l'auto-école (son portail tourne en rond).
+   Hors partie (écran de mort), la dernière part lue : la piste du menu peut se reconstruire sous `s`. */
+function misZoneFrac(){try{if(!misOn())return RUNX.zf||0;if((LVL.cur&&(LVL.cur.camp||LVL.cur.carr))||CARR.actif||TUTO.on||!(L>0))return RUNX.zf=0;return RUNX.zf=Math.min(.99,Math.max(0,s/L));}catch(e){return 0;}}
 function misVal(k){ // la valeur COURANTE d'un critère, dans la partie en cours
   switch(k){
     case 'coins':return RUNX.coins;      case 'fruits':return RUNX.fruits;   case 'perfect':return RUNX.perfect;
     case 'survie':return RUNX.t;         case 'nitro':return RUNX.nitro;
     case 'cash':return Math.max(0,money-START_CASH);
-    case 'kmh':return Math.round(runStats.vmax||0);  case 'zones':return runStats.zones||0;
+    case 'kmh':return Math.round(runStats.vmax||0);  case 'zones':return (runStats.zones||0)+misZoneFrac();
     case 'tricks':return runStats.tricks||0;         case 'gaps':return runStats.gaps||0;
     case 'chain':return runStats.chainMax||0;
   }
@@ -19404,10 +19412,15 @@ function carnet(n){
 }
 function carnetBrut(n){ // au-delà des carnets écrits : une suite SANS FIN, tirée d'un pool, qui monte à chaque carnet
   if(n<CARNETS.length)return CARNETS[n];
-  const l=n-CARNETS.length+1,pr=ecoRond(5000*ECO3.prime*(1+.25*l)),POOL=[ // (vague 3) +25 % de la prime de base par carnet (c'était ×1,5)
-    {k:'coins',v:60+20*l},{k:'fruits',v:10+3*l},{k:'cash',v:ecoRond(ecoCash(100000)*Math.min(4,1+.3*l))},{k:'tricks',v:8+3*l}, // (vague 3) seuil d'argent : une BONNE partie +30 % par carnet, plafond ×4 (c'était ×2,2 par carnet : 440 k dès le 1er, impossible)
-    {k:'perfect',v:3+l},{k:'kmh',v:Math.min(1200,680+48*l)},{k:'zones',v:Math.min(6,2+(l>>1))},{k:'gaps',v:1+l},
-    {k:'survie',v:150+30*l},{k:'chain',v:4+l},{k:'nitro',v:20+5*l}].filter(function(x){return GAP_ON||x.k!=='gaps';}); // jamais de mission impossible
+  /* (2026-09-30) LES PLAFONDS promis plus haut n'existaient que pour l'argent, les km/h et les portails : les autres seuils montaient sans
+     fin (chaîne 4+l : 24 figures d'un vol au 20e carnet ; survie 150+30l : 17 min) — et un carnet exige ses TROIS défis, un seul hors
+     d'atteinte bloque toute la suite pour toujours. Chaque seuil plafonne sur ce qu'une TRÈS bonne partie fait (chaîne 8, parfaites 10,
+     figures 30, 7 min, 60 s de nitro, 300 pièces, 60 fruits : 2,4 min de LIGNE PARFAITE à un fruit toutes les 2,4 s, ~5 min à moitié
+     prise — sous le plafond de survie) ; passé le plafond, c'est la PRIME qui continue de monter (+25 %/carnet, sans plafond). */
+  const l=n-CARNETS.length+1,pr=ecoRond(5000*ECO3.prime*(1+.25*l)),M=Math.min,POOL=[ // (vague 3) +25 % de la prime de base par carnet (c'était ×1,5)
+    {k:'coins',v:M(300,60+20*l)},{k:'fruits',v:M(60,10+3*l)},{k:'cash',v:ecoRond(ecoCash(100000)*M(4,1+.3*l))},{k:'tricks',v:M(30,8+3*l)}, // (vague 3) seuil d'argent : une BONNE partie +30 % par carnet, plafond ×4 (c'était ×2,2 par carnet : 440 k dès le 1er, impossible)
+    {k:'perfect',v:M(10,3+l)},{k:'kmh',v:M(1200,680+48*l)},{k:'zones',v:M(6,2+(l>>1))},{k:'gaps',v:M(6,1+l)},
+    {k:'survie',v:M(420,150+30*l)},{k:'chain',v:M(8,4+l)},{k:'nitro',v:M(60,20+5*l)}].filter(function(x){return GAP_ON||x.k!=='gaps';}); // jamais de mission impossible
   const m=[];let h=(Math.imul(n,2654435761)>>>0)||1;
   while(m.length<3){h=(Math.imul(h,1103515245)+12345)>>>0;const c=POOL[(h>>>8)%POOL.length];
     if(!m.some(x=>x.k===c.k))m.push({k:c.k,v:c.v,p:pr});}
@@ -19438,6 +19451,7 @@ function misProg(m){ // « 18 / 25 » — l'avancement DANS la partie en cours (
   if(m.k==='cash')return fmtC(c)+' / '+fmtC(m.v);
   if(m.k==='survie')return misDuree(c)+' / '+misDuree(m.v);
   if(m.k==='nitro')return Math.floor(c)+' S / '+m.v+' S';
+  if(m.k==='zones')return misProgV(m,c); // (2026-09-30) la zone en cours, en %
   return Math.floor(c)+' / '+m.v;
 }
 function misEtat(){const s=SAVE.d.mis||(SAVE.d.mis={n:0,ok:[0,0,0]});if(!s.best)s.best=[0,0,0];return s;}
@@ -19597,7 +19611,7 @@ function misPanel(el,fraiches){
 /* ---------------- L'OBJECTIF ---------------- */
 function objectif(){ // la prochaine CAISSE à vendre (la moins chère) ; toutes acquises → l'article le moins cher
   let o=null;
-  for(let i=0;i<CARS.length;i++){const p=carPrice(i);if(p&&!carUnlocked(i)&&(!o||p<o.prix))o={nom:CARS[i].name,prix:p,car:i};}
+  for(let i=0;i<CARS.length;i++){const p=carPrice(i);if(p&&!carUnlockedVrai(i)&&(!o||p<o.prix))o={nom:CARS[i].name,prix:p,car:i};}
   if(!o)for(const cat in COSM)COSM[cat].forEach(function(d,i){if(d.p&&!shopOwned(cat,d.id)&&(!o||d.p<o.prix))o={nom:d.n,prix:d.p,cat:cat,i:i};});
   return o;
 }
@@ -19659,9 +19673,10 @@ function misProgV(m,c){ // « 18 / 25 » à partir d'une valeur donnée (misProg
   c=Math.min(m.v,Math.max(0,c||0));
   if(m.k==='cash')return fmtC(c)+' / '+fmtC(m.v);
   if(m.k==='survie'||m.k==='nitro')return misDuree(c)+' / '+misDuree(m.v);
+  if(m.k==='zones'&&c<m.v&&c%1>=.01)return Math.floor(c)+' / '+m.v+' · '+Math.floor(c%1*100+1e-6)+(LANG==='fr'?'\u00a0%':'%'); // (2026-09-30) « 0 / 1 · 73 % » : la zone en cours, roulée aux trois quarts
   return Math.floor(c)+' / '+m.v; // (2026-09-28) « FRANCHIS 2 PORTAILS » : 1 / 2 (l'ancien « niveau atteint » comptait +1)
 }
-function misPart(m,c){return m.k==='zones'?Math.min(1,(Math.floor(c||0))/Math.max(1,m.v)):Math.min(1,Math.max(0,(c||0)/m.v));}
+function misPart(m,c){return Math.min(1,Math.max(0,(c||0)/Math.max(1e-9,m.v)));} // (2026-09-30) les portails aussi : plus d'arrondi, la zone en cours remplit sa part (misZoneFrac)
 const MIS_CAT_COL={peinture:'#ff9ad8',aile:'#9fe8ff',trainee:'#ffb040'}; // la couleur d'un habillage sur sa fiche du garage (shopShow)
 function misGain(c){ // l'OBJET d'un carnet : son nom, la couleur de sa famille, l'étiquette de sa famille
   const r=c.r;
@@ -19854,7 +19869,7 @@ function shopPhotoTour(){
   setTimeout(shopPhotoTour,40); // une photo, puis on rend la main : l'écran respire entre deux
 }
 function garPortee(){ // (2026-09-29, audit) la caisse la moins chère que la banque paie — le garage s'ouvre dessus, UNE fois par caisse et par session
-  let b=-1,bp=Infinity;for(let i=0;i<CARS.length;i++){const p=carPrice(i);if(p&&!carUnlocked(i)&&p<=bank()&&p<bp){bp=p;b=i;}}
+  let b=-1,bp=Infinity;for(let i=0;i<CARS.length;i++){const p=carPrice(i);if(p&&!carUnlockedVrai(i)&&p<=bank()&&p<bp){bp=p;b=i;}}
   const v=garPortee.vu||(garPortee.vu={});if(b<0||v[b])return -1;v[b]=1;return b;}
 function shopAPortee(){let n=0;for(const cat in COSM)for(const d of COSM[cat])if(d.p&&!shopOwned(cat,d.id)&&d.p<=bank())n++;return n;}
 /* ---------------- LA BOUTIQUE ---------------- */
@@ -20099,7 +20114,7 @@ function carBuy(i){
   if(bank()<p)return {ok:false,raison:'fonds-insuffisants',manque:p-bank()};
   SAVE.d.bank=bank()-p;
   if(!Array.isArray(SAVE.d.owned))SAVE.d.owned=[];
-  SAVE.d.owned.push(i);
+  SAVE.d.owned.push(i);carWas[i]=true; // (2026-09-30) l'achat se fête AU GARAGE (tampon) : sans ça, le 1er carScan de la course suivante la recriait « 🔑 … (au garage) » + fanfare
   SAVE.d.bestCar=Math.max(SAVE.d.bestCar|0,i); // l'indicateur d'avancement suit
   SAVE.flush();
   return {ok:true,paye:p,reste:bank()};
@@ -20150,10 +20165,10 @@ let carWas=[];
 // sauvegarde importée ou d'une règle antérieure doit retomber sur la cabossée plutôt que d'offrir
 // une caisse non méritée.
 function equippedCar(){const i=SAVE.d.equipped|0;return (i>=0&&i<CARS.length&&carUnlocked(i))?i:0;}
-function carSnapshot(){carWas=[];for(let i=0;i<CARS.length;i++)carWas[i]=carUnlocked(i);}
+function carSnapshot(){carWas=[];for(let i=0;i<CARS.length;i++)carWas[i]=carUnlockedVrai(i);}
 function carScan(){ // rend les caisses NOUVELLEMENT débloquées + resynchronise l'indicateur bestCar
   const got=[];
-  for(let i=0;i<CARS.length;i++){const u=carUnlocked(i);if(u&&!carWas[i])got.push(i);carWas[i]=u;}
+  for(let i=0;i<CARS.length;i++){const u=carUnlockedVrai(i);if(u&&!carWas[i])got.push(i);carWas[i]=u;}
   let bc=0;for(let i=0;i<CARS.length;i++)if(carWas[i])bc=i;
   if(bc!==(SAVE.d.bestCar|0)){SAVE.d.bestCar=bc;SAVE.mark();}
   return got;
@@ -20201,8 +20216,16 @@ function engSwapArme(){
    · les cylindres s'allument un par un sur une gamme qui MONTE, puis le gain de vitesse claque en vert ;
    · à l'entrée dans le capot : éclair d'or, coup de caméra, et le moteur RUGIT (poussée brève + flammes) — « +N KM/H » jaillit de la caisse.
    Le gain est celui de la vitesse de croisière affichée (vmax × FLOW_VREF, mesuré au banc) : ce que le compteur gagne vraiment. */
-function engGain(tier){const a=ENGINE_TIERS[tier],b=ENGINE_TIERS[tier-1];if(!a||!b)return 0;
-  return Math.max(0,Math.round(CARS[0].maxKmh*SPD*lateMul()*(a.push-b.push)*FLOW_VREF));}
+/* (2026-09-30) le gain appliquait l'overdrive du palier COURANT aux deux paliers comparés — or chaque palier 9-22 ajoute aussi +3,5 %
+   d'overdrive sur TOUT le moteur : « +28 KM/H » affiché au palier 10 pour +44 réels. Chacun son facteur (engLate). `de` : le palier de
+   la carte précédente (deux paliers fondus en une carte — engBigFile — disent leur gain cumulé). */
+function engGain(tier,de){if(de==null)de=tier-1;const a=ENGINE_TIERS[tier],b=ENGINE_TIERS[de];if(!a||!b)return 0;
+  return Math.max(0,Math.round(CARS[0].maxKmh*SPD*(engLate(tier)*a.push-engLate(de)*b.push)*FLOW_VREF));}
+/* (2026-09-30) LES CAPACITÉS MOTEUR (ENG_CAP) arrivaient sans un mot : la carte du palier qui en ouvre une la NOMME dans son petit
+   titre, à la place de « NOUVEAU MOTEUR » — pas une ligne de plus sur la route. (La COMÈTE est aussi le NOM du moteur ENG_CAP.comete : son titre
+   dit ce qu'elle fait, « CAISSE EN FEU », pas deux fois « COMÈTE ».) */
+const ENG_CAP_NOM={billets:'PLUIE DE BILLETS',aimant:'AIMANT À PIÈCES',comete:'CAISSE EN FEU'};
+function engCapNom(de,tier){let n=null;for(const k in ENG_CAP)if(ENG_CAP[k]>de&&ENG_CAP[k]<=tier&&ENG_CAP_NOM[k])n=ENG_CAP_NOM[k];return n;}
 function engImpact(){ // l'entrée dans le capot : le moment où l'on ENCAISSE le moteur
   if(gameOver||!running)return;
   {const c9=ENG_NE.setHex(engBig.col||0xffd75e);flashEcran('rgba('+Math.round(c9.r*255)+','+Math.round(c9.g*255)+','+Math.round(c9.b*255)+',.6)');} // (v5) l'éclair à la couleur du moteur
@@ -20215,7 +20238,8 @@ function engBig(E,tier,ru){
   if(!b){b=document.createElement('div');b.id='engBig';b.setAttribute('aria-live','polite');document.body.appendChild(b);}
   clearTimeout(engBig._p);clearTimeout(engBig._t);clearTimeout(engBig._z);clearTimeout(engBig._a);
   const hx=engNeon(E.col||0xffd75e),n=Math.max(1,Math.min(16,E.cyl||4)); // (v5) la couleur du moteur, poussée au NÉON : les premiers paliers sont gris-acier, la carte aurait été terne
-  const gain=engGain(tier);engBig.gain=gain;
+  const de=engBig.vu!=null&&engBig.vu<tier?engBig.vu:tier-1;engBig.vu=tier; // la carte d'AVANT (plus haute = partie précédente : on repart d'un cran)
+  const gain=engGain(tier,de),cap9=engCapNom(de,tier);engBig.gain=gain;
   const rec=tier>(RUNX.engAvant|0); // (2026-09-25) palier jamais atteint AVANT cette partie : le seul moment vraiment neuf
   b.style.setProperty('--ec',hx);b.classList.toggle('rec',rec);b.classList.toggle('long',String(TR(E.n)).length>12); // (v5) un nom long (« MOTEUR À DISTORSION ») descend d'un corps : il ne barre pas la route d'un bord à l'autre
   {const o9=b.querySelector('canvas');if(o9){o9.width=o9.height=0;}} // (2026-09-26) un ancien canvas rendu tout de suite (iOS plafonne la mémoire des canvas)
@@ -20226,7 +20250,7 @@ function engBig(E,tier,ru){
      LA CARTE SE RÉDUIT À L'ESSENTIEL : une étiquette (NOUVEAU MOTEUR), le NOM dans la typo ombrée du HUD, à la couleur néon du moteur, et
      le moteur 3D à l'échelle de la CAISSE, posé sur son toit. Le palier, les cylindres et le gain ont quitté la carte : le gain jaillit de
      la voiture à l'entrée dans le capot (engImpact), les cylindres chantent toujours (à l'oreille). */
-  b.innerHTML='<div class="ebCarte"><small class="ebTit">'+sansAcc(TR(rec?'NOUVEAU SOMMET':'NOUVEAU MOTEUR'))+'</small>'
+  b.innerHTML='<div class="ebCarte"><small class="ebTit">'+(cap9?'+ '+sansAcc(TR(cap9)):sansAcc(TR(rec?'NOUVEAU SOMMET':'NOUVEAU MOTEUR')))+'</small>'
     +'<b data-t="'+String(nm).replace(/[<>&"]/g,'')+'">'+nm+'</b>'
     +'<div class="ebScene"></div></div>';
   engBig.ctx=null;engBig.on=true;engBig.plonge=0;engBig.t0=performance.now();engBig.col=parseInt(hx.slice(1),16);engBig.hex=hx;engVigSpin=0;
@@ -21192,6 +21216,9 @@ const PWR_ORDRE=['n','a','v','m','x']; // l'ordre des plaques dans le HUD (toujo
 function pwrT(k){return k==='n'?pwrNitroT:k==='a'?pwrAirT:k==='v'?pwrSpdT:k==='m'?pwrMagT:k==='x'?pwrAurT:0;}
 function pwrSet(k,v){if(k==='n')pwrNitroT=v;else if(k==='a')pwrAirT=v;else if(k==='v')pwrSpdT=v;else if(k==='m')pwrMagT=v;else if(k==='x')pwrAurT=v;}
 function pwrVu(k){return pwrT(k)>0&&!(k==='a'&&TUTO.on);} // (l'airtime PRÊTÉ par l'auto-école n'est pas un pouvoir ramassé)
+/* (2026-09-30) AIR MAX promet « 14 S DE VOL » mais fondait au sol comme en l'air : pris sur une ligne droite, il en restait 5 s au premier
+   saut. Au sol il s'use au QUART (il attend le décollage), en vol à plein. L'airtime prêté par l'auto-école garde son temps réel. */
+function pwrAirK(){return mode==='fall'||TUTO.pa?1:.25;}
 const PWR_V2={bt:null}; // (le tic-tac de fin, une fois par pouvoir)
 function pwrV2Raz(){PWR_V2.bt=null;}
 /* LE TIRAGE (spawnPickups) : UN seul tirage `r` du flux seedé choisit le pouvoir — autant d'appels que l'ancien `kinds[⌊r·3⌋]`, la
@@ -21202,7 +21229,7 @@ function pwrPoids(){
   const camp=!!(LVL.cur&&LVL.cur.camp),runs=camp?20:((SAVE.d.ex&&SAVE.d.ex.runs)|0);
   if(runs<8)return {n:.2,a:.22,v:.12,m:.3,x:.16}; // (29/09) les parts du BOUCLIER retiré sont rendues aux autres
   if(runs<30)return {n:.21,a:.19,v:.18,m:.21,x:.21};
-  return {n:.21,a:.17,v:.22,m:.16,x:.24};
+  return {n:.21,a:.17,v:.16,m:.19,x:.27}; // (2026-09-30) VITESSE .22 → .16 : chez un vétéran NITROOO passe vite +30 %, et le plafond commun vitMult (×2,6) avale alors le ×2 — ses parts vont à l'AURA ×2 et à l'AIMANT (somme 1, un seul tirage)
 }
 function pwrTire(r,W){let acc=0;for(const k of PWR_ORDRE){acc+=W[k];if(r<acc)return k;}return 'n';}
 // le tout PREMIER cristal de la partie, pour qui débute (moins de 5 parties, hors campagne) : un AIMANT près de l'axe — le 1er pouvoir se prend sans le chercher et l'or vient tout seul (un BOUCLIER jusqu'au 29/09)
@@ -25661,11 +25688,12 @@ const CAM_SHAKE_V=.45; // intensité du tremblement caméra lié à la vitesse (
 // OVERDRIVE : il suivait le NIVEAU DE CAISSE (+8 %/niveau à partir du 6e). Depuis que la caisse est
 // équipée au choix, ça revenait à vendre de la vitesse au garage. Il suit désormais le PALIER MOTEUR,
 // calé pour que le sommet donne exactement le même +50 % qu'avant (palier 22 sur 30 et au-delà).
-function lateMul(){return 1+Math.min(.5,Math.max(0,engTier-8)*.035);}
+function lateMul(){return engLate(engTier);}
+function engLate(t){return 1+Math.min(.5,Math.max(0,t-8)*.035);} // (2026-09-30) l'overdrive d'UN palier donné : lateMul (le palier courant), lvPiste (+2) et engGain (les deux paliers comparés) le lisent ici
 /* (piste v6) L'ÉCHELLE DES VIRAGES suit la VITESSE : croisière (momentum compris ≈ 2,75 × maxSp) du palier moteur +2 (on monte
    pendant la zone). 70 m/s (253 km/h) → 1 ; 132 m/s → 1,6 ; 290 m/s → 3,2 ; plafond 4,4. Sans aide au virage (conduite v6), un
    rayon fixe devenait infaisable à 1000 km/h sur une route de 24 m : les virages grandissent, leur NOMBRE par minute reste. */
-function lvPiste(){const t=Math.min(ENGINE_TIERS.length-1,(engTier|0)+2),late=1+Math.min(.5,Math.max(0,t-8)*.035),
+function lvPiste(){const t=Math.min(ENGINE_TIERS.length-1,(engTier|0)+2),late=engLate(t),
   vw=2.75*CARS[0].maxKmh/3.6*late*ENGINE_TIERS[t].push*SPD;return 1+THREE.MathUtils.clamp((vw-70)/140*1.4,0,3.4);}
 // vitesse max AFFICHÉE — la sensation de vitesse (tremblement, filés, FOV) se juge RELATIVE à elle.
 // ⚠ elle doit décrire la vitesse RÉELLEMENT atteignable : lire CARS[level].maxKmh (la fiche de la
@@ -26329,6 +26357,8 @@ function recBattu(){
 function recSurplus(a){const t=avE('avRecT');if(!t)return;const s='+'+fmtAura(Math.max(0,a-CHA.rec))+' '+TR('AU-DESSUS');if(t.textContent!==s)t.textContent=s;}
 // (vague 2) les libellés neufs du HUD de course (police pixel : capitales SANS accent)
 Object.assign(I18N,{'NOUVEAU SOMMET':'NEW PEAK','AU-DESSUS':'ABOVE','ASTUCE':'TIP'});
+Object.assign(I18N,{'PLUIE DE BILLETS':'CASH RAIN','AIMANT À PIÈCES':'COIN MAGNET','CAISSE EN FEU':'CAR ON FIRE'}); // (2026-09-30) les capacités moteur, dans le titre de la carte
+Object.assign(I18N_ZH,{'PLUIE DE BILLETS':'钞票雨','AIMANT À PIÈCES':'金币磁铁','CAISSE EN FEU':'烈焰车身'});
 Object.assign(I18N_ZH,{'NOUVEAU SOMMET':'新巅峰','AU-DESSUS':'超出','RECORD BATTU !':'打破纪录！','PALIER':'档位','ASTUCE':'提示','CHAÎNE PERDUE':'连击中断','NOUVEAU MOTEUR':'新引擎'});
 function avPlusPop(t){const e=avE('avPlus');if(!e)return;e.textContent=t;e.classList.remove('on');void e.offsetWidth;e.classList.add('on');}
 function chaineTick(dt){
@@ -27813,8 +27843,11 @@ function tryLand(dt){
        sert plus qu'à dire si la pose porte une figure (sinon elle reste muette) : l'aura (chaineAura), le flow, le nitro, les verdicts de
        l'annonceur et les pièces du MOTEUR (une ressource de la partie, pas de l'argent) sont gardés ; l'argent, la caisse enregistreuse et
        les billets qui volent vers le compteur s'en vont. L'argent vient des pièces, du portail et de la campagne (les fruits ne donnent que du nitro). */
+    // CONTRATS « POSE(S) PARFAITE(S) » (2026-09-30) : elle ne comptait que la parfaite qui ENCAISSE une figure — or une pose parfaite sans
+    // figure a sa couronne et son zoom, et l'auto-école apprend « or = parfait ». Compte : tout VRAI vol (fallT>.7, le seuil de SANS FAUTE)
+    // posé parfait, plus la courte sortie parfaite qui encaisse (elle comptait déjà) — une fois par pose, on est dans le verdict.
+    if(g>=1.5&&!poseRatee&&(fallT>.7||gain>0))RUNX.perfect++;
     if(gain>0){ // l'airtime brut ne rapporte RIEN : sans chaîne à casher, la pose est muette
-      if(g>=1.5)RUNX.perfect++; // CONTRATS : une pose PARFAITE qui encaisse une figure
       flowAdd(g>=2?14:g>=1.5?10:4,g>=1.5?'risque':'style',sideL<0?'m':'n'); // (v5) posé sur la FACE CACHÉE : l'envers du décor, c'est MACHIAVEL // FLOW : une figure encaissée nourrit la montée — la pose PARFAITE est un RISQUE (on a visé), l'ordinaire du style
       nitroGain(Math.min(1.2,.45+chainMult*.12)*(g>=2?2:g>=1.5?1.5:1)); // LA FIGURE RECHARGE LE NITRO — plus la chaîne est longue, plus ça remplit ; une pose parfaite ×1,5, DIVINE ×2 (l'échelle des grades monte aussi ici)
       // LA CAISSE ENREGISTREUSE : seulement sur un ENCAISSEMENT QUI COMPTE. Sur chaque pose,
@@ -27971,7 +28004,7 @@ function die(){
 }
 function resetGame(){
   try{nitroooVide();}catch(e){} // (2026-09-29) NITROOO et le dragon ne débordent plus sur la partie suivante
-  try{engBigCoupe();}catch(e){} /* (débogage son 2026-09-29) RECOMMENCER pendant la carte MOTEUR : la visseuse et le NOUVEAU SOMMET ne sonnent plus dans la partie suivante */
+  try{engBigCoupe();engBig.vu=null;}catch(e){} /* (2026-09-30) vu : la dernière carte moteur montrée — une partie neuve repart de zéro */ /* (débogage son 2026-09-29) RECOMMENCER pendant la carte MOTEUR : la visseuse et le NOUVEAU SOMMET ne sonnent plus dans la partie suivante */
   try{busPlein();}catch(e){} // (2026-09-28) filet : une partie quittée depuis la pause ne laisse jamais la sortie audio au silence
   MENUV.retour=false; // (2026-09-28) on repart : l'accueil d'après-mort (accueilRetour) n'est plus la racine
   clearBoom();
@@ -30978,15 +31011,16 @@ function garageShow(i){
      qu'elle finira par s'acheter, alors que non — c'est tout l'intérêt de la voie aura. */
   const bb=$('gBuy'),row=$('gBuyRow'),prix=carPrice(garageI);
   $('gCard').classList.toggle('verrou',(!ouverte&&!dfi&&!prix)||testOuv); // (test) la condition se lit même sur une caisse ouverte pour l'essai // défi d'aura : la condition DOIT se lire (elle était écrite… puis masquée)
-  if(row)row.style.display=(prix&&!ouverte)?'':'none';
-  if(bb&&prix&&!ouverte){
+  const aVendre=prix&&(!ouverte||testOuv); // (2026-09-30) en TEST aussi, la caisse à vendre pas encore payée montre ACHETER (sinon la pastille « à ta portée » n'avait pas d'issue) ; JOUER l'équipe toujours (garageLaunch clique ÉQUIPER)
+  if(row)row.style.display=aVendre?'':'none';
+  if(bb&&aVendre){
     const peut=bank()>=prix;
     bb.innerHTML=gPrixHtml(peut,prix); // le verbe, puis le prix en gros (charte v4)
     bb.classList.toggle('pauvre',!peut); // ⚠ plus de `disabled` : un bouton désactivé n'émet AUCUN clic — pas de son, pas de vibration, rien
   }
   // ⚠ UN SEUL BOUTON D'ACTION (2026-09-25) : une caisse à vendre affichait « IL MANQUE 25 k » ET « VERROUILLÉE »
   // l'un sous l'autre — deux fois la même nouvelle. À vendre : ACHETER seul ; à défi : le verrou seul.
-  if(bt&&prix&&!ouverte)bt.style.display='none';else if(bt)bt.style.display='';
+  if(bt&&aVendre)bt.style.display='none';else if(bt)bt.style.display='';
   gActSync(); // (2026-09-29) JOUER prend toute la barre s'il n'y a rien à décider
   gDots(garageListe().map(function(i9){return {on:i9===garageI,a:carUnlocked(i9),eq:i9===eq};}));
   const sw=$('gSw');if(sw){sw.style.display='none';sw.innerHTML='';}
@@ -32180,7 +32214,7 @@ function loop(now){
     pwrSpdT=Math.max(0,pwrSpdT-dt);
     if(pn9&&pwrNitroT<=0)pwrFinSnd('n');else if(ps9&&pwrSpdT<=0)pwrFinSnd('v');} // (2026-09-26) la fin d'un pouvoir se dit aussi à l'oreille — (pouvoirs v2) avec sa clé (la session SON la lit)
     if(startBoostT>0)startBoostT=Math.max(0,startBoostT-dt); // LE BOOST DE DÉPART : décroît tout seul, même hors mode 'drive' ne l'arrête pas plus tôt que prévu
-    if(pwrAirT>0){pwrAirT-=dt;if(pwrAirT<=0){pwrAirT=0;if(!TUTO.on)pwrFinSnd('a');if(mode==='fall'){fallT=0;fallTR=0;airFlash=.6;}}} // (2026-09-28) l'airtime PRÊTÉ par l'auto-école n'est pas un pouvoir : il finit sans bruit
+    if(pwrAirT>0){pwrAirT-=dt*pwrAirK();if(pwrAirT<=0){pwrAirT=0;if(!TUTO.on)pwrFinSnd('a');if(mode==='fall'){fallT=0;fallTR=0;airFlash=.6;}}} // (2026-09-28) l'airtime PRÊTÉ par l'auto-école n'est pas un pouvoir : il finit sans bruit
     pwrTick(dt); // (pouvoirs v2) aimant · aura ×2
     satHard(); // (2026-09-30) LA PLUIE DE SATELLITES : collision et frôlés du niveau hardcore (no-op ailleurs)
     ligneTick(dt); // (2026-09-29) LA LIGNE PARFAITE s'allonge devant la caisse
@@ -33492,7 +33526,7 @@ function loop(now){
       pwrChip.style.display=pch?'block':'none';pwrChip.classList.toggle('pw3',pwL.length>=3);loop._pwEl=Array.prototype.slice.call(pwrChip.querySelectorAll('.pw'));}
     if(loop._pwEl)for(let j=0;j<pwL.length&&j<loop._pwEl.length;j++){const el=loop._pwEl[j],t9=pwL[j][1],tx=t9.toFixed(1);
       if(el._t!==tx){el._t=tx;el.querySelector('b').textContent=tx+'s';}
-      el.style.setProperty('--p',Math.min(1,t9/PWR_DEFS[pwL[j][0]].t).toFixed(3));const f9=t9<1.5;if(el._f!==f9){el._f=f9;el.classList.toggle('fin',f9);}
+      el.style.setProperty('--p',Math.min(1,t9/PWR_DEFS[pwL[j][0]].t).toFixed(3));const f9=t9<1.5*(pwL[j][0]==='a'?pwrAirK():1); /* (2026-09-30) AIR MAX au sol s'use au quart : il clignote dans sa DERNIÈRE seconde et demie réelle */if(el._f!==f9){el._f=f9;el.classList.toggle('fin',f9);}
       const x9=t9>PWR_DEFS[pwL[j][0]].t+.05;if(el._x!==x9){el._x=x9;el.classList.toggle('cumul',x9);}} // (pouvoirs v2) cumulé au-delà d'une durée : la jauge déborde (pleine) et la plaque le montre
     {const sp9=airPie.style.display==='block';if(sp9!==loop._psp){loop._psp=sp9;pwrChip.classList.toggle('sousPie',sp9);}}
     {const k9=(mode==='boom'||gameOver)?'':pwrNitroT>0?'n':pwrSpdT>0?'v':pwrAurT>0?'x':pwrMagT>0?'m':pwrAirT>0&&!TUTO.on?'a':''; // (HUD v3) les BORDS de l'écran battent à la couleur du pouvoir actif — (2026-09-28) pas l'airtime prêté par l'auto-école · (pouvoirs v2) le plus « chaud » d'abord
@@ -34399,7 +34433,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       // c'est donc lui qu'on montre en fin de run, pas un palier de voiture qui ne veut plus rien dire.
       {const rj=document.querySelector('#mDead [data-m="replay"]');if(rj){const k9=tq9&&!CARR.actif?'REPRENDRE':'REJOUER',tx=TR(k9);let sp=rj.querySelector('span');if(!sp){sp=document.createElement('span');rj.textContent='';rj.appendChild(sp);}
         sp.textContent=tx;if(sp.dataset.fr)sp.dataset.fr=k9;rj.style.setProperty('--nb',Math.max(7,tx.length));}} // (le texte vit dans son <span> : c'est lui que la règle « tient dans le lingot » dimensionne sur --nb signes) // (2026-09-29) après une leçon QUITTÉE, le lingot relance la leçon : il le dit
-      {let nG=shopAPortee();for(let i=0;i<CARS.length;i++){const p9=carPrice(i);if(p9&&!carUnlocked(i)&&p9<=bank())nG++;} // (2026-09-29, audit) la pastille du GARAGE vit aussi ici : le débutant enchaîne REJOUER et ne revoit pas l'accueil
+      {let nG=shopAPortee();for(let i=0;i<CARS.length;i++){const p9=carPrice(i);if(p9&&!carUnlockedVrai(i)&&p9<=bank())nG++;} // (2026-09-29, audit) la pastille du GARAGE vit aussi ici : le débutant enchaîne REJOUER et ne revoit pas l'accueil
        const bg=$t('bdGar2');if(bg){bg.textContent=nG||'';bg.classList.toggle('on',nG>0);}}
       const nw=$t('mNew'),E=ENGINE_TIERS[Math.min(ENGINE_TIERS.length-1,Math.max(0,engTier|0))];nw.style.display='none';
       { // LES DEUX CARTES : l'AURA gagnée (et le rang), le MOTEUR atteint (et s'il bat ton record)
@@ -34438,7 +34472,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
         if(r9){MIS_REC=r9;misBanniere('DÉFIS RÉUSSIS !',r9.nom,TR('DÉBLOQUÉ'),'cadeau');try{if(SONV2)sfx('ui.carnet');else fanfare();}catch(e){}}}
       {const pp=$t('mMisPips'),s9=misEtat();if(pp)pp.querySelectorAll('u').forEach(function(u,i){u.classList.toggle('ok',!!s9.ok[i]);});} // la porte MISSIONS : une case allumée par défi relevé
       const bv=$t('mBankV');if(bv)bv.textContent=fmtC(bank());
-      let nG=shopAPortee();for(let i=0;i<CARS.length;i++){const p9=carPrice(i);if(p9&&!carUnlocked(i)&&p9<=bank())nG++;}
+      let nG=shopAPortee();for(let i=0;i<CARS.length;i++){const p9=carPrice(i);if(p9&&!carUnlockedVrai(i)&&p9<=bank())nG++;}
       const bg=$t('bdGar'),bs=$t('bdShop');
       if(bg){bg.textContent=nG||'';bg.classList.toggle('on',nG>0);} // tout ce qui s'achète en argent du jeu est au GARAGE
       if(bs){bs.textContent='NEW';bs.classList.toggle('on',!SAVE.d.shopVu);} // allumée en permanence, elle apprenait à l'œil à ignorer les pastilles
