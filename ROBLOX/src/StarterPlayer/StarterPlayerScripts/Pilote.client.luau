@@ -21,6 +21,7 @@ local Hud = require(CL:WaitForChild("Hud"))
 local Sons = require(CL:WaitForChild("Sons"))
 local Controles = require(CL:WaitForChild("Controles"))
 local Mer = require(CL:WaitForChild("Mer"))
+local Bus = require(CL:WaitForChild("Bus"))
 
 local M, SPD = Config.M, Config.SPD
 local RH, THICK = Config.ROAD_HALF, Config.THICK
@@ -169,6 +170,7 @@ local fallT, fallTR, fallVH0, yawAcc, demiTours, dolphT, dolphPop, bumpCd, sDeco
 local chainVal, chainMult, auraChaine, vus, echelon = 0, 1, 0, {}, 0
 local boomT, boomPos, causeMort = 0, Vector3.zero, "autre"
 local tempsDepart = 0
+local ralentiK, ralentiT = 1, 0 -- le RALENTI (la frénésie l'emploie) : facteur de temps et durée restante
 local secousse = 0 -- la vibration de caméra (atterrissage, explosion)
 local intro = false                          -- la CHUTE du départ : la caisse tombe du ciel sur la route
 local multiMax, piecesPrises = 1, 0
@@ -177,6 +179,14 @@ local eclats: { { p: BasePart, v: Vector3, r: Vector3, t: number } } = {}
 local carCF = CFrame.identity
 local carVel = Vector3.zero
 
+-- le GUICHET de l'argent : toute recette y passe, multipliée par ce que les systèmes y branchent (FLOW, frénésie)
+Bus.multArgent = function(_source: string): number return 1 end
+local function encaisser(x: number, source: string): number
+	local g = x * Bus.multArgent(source)
+	argent += g
+	Bus.emit("argent", g, source)
+	return g
+end
 local function pousseMoteur(): number return MOT[tier + 1][2] end
 local function tardif(): number return 1 + math.min(0.5, math.max(0, tier - 8) * 0.035) end
 local function reservoir(): number return NI.resMin + (NI.resMax - NI.resMin) * tier / (#MOT - 1) end
@@ -195,8 +205,9 @@ local function ajouterPieces(n: number)
 	local avant = tier
 	while tier < #MOT - 1 and coinsGot >= MOT[tier + 2][1] do tier += 1 end
 	if tier > avant then
-		Hud.pop(T.moteur .. " " .. tier, Hud.C.or_, 26)
+		Hud.pop(MOT[tier + 1].nom, Hud.C.or_, 26)
 		Sons.jouer("nitroPlein", 1.1)
+		Bus.emit("moteur", tier)
 	end
 end
 
@@ -208,6 +219,7 @@ local function figure(nom: string, val: number, auraV: number)
 	chainMult += (n == 1) and 0.5 or 0.15
 	auraChaine += auraV * 0.7 ^ (n - 1)
 	nbFig += 1
+	Bus.emit("figure", nom, val, auraV, n)
 	Hud.pop(nom, Hud.C.or_)
 	Sons.jouer("maillon", Sons.demiTons(math.min(12, nbFig * 2)))
 	while echelon < #ECHELLE and chainMult >= ECHELLE[echelon + 1][1] do
@@ -251,7 +263,10 @@ local function gererNitro(dt: number, auSol: boolean)
 		ntrHold = 0
 		ntrBoost = math.max(0, ntrBoost - dt * 0.6)
 	end
-	if avant ~= nitroOn then evEtat:FireServer("nitro", nitroOn) end
+	if avant ~= nitroOn then
+		evEtat:FireServer("nitro", nitroOn)
+		Bus.emit("nitro", nitroOn)
+	end
 end
 
 -- ════════ décoller (startFall, L29730) ════════
@@ -277,6 +292,7 @@ local function decoller(impU: number, impF: number)
 	sDecol = s
 	mode = "fall"
 	Sons.jouer("decollage")
+	Bus.emit("decollage", intro)
 end
 
 -- ════════ exploser ════════
@@ -287,6 +303,7 @@ local function exploser(cause: string)
 	if chainVal > 0 and mode == "fall" then
 		Hud.pop(FR and "CHAINE PERDUE" or "CHAIN LOST", Hud.C.rouge)
 	end
+	Bus.emit("mort", cause, mode == "fall", chainVal)
 	mode = "boom"
 	boomT = 0
 	nitroOn = false
@@ -322,6 +339,11 @@ end
 
 -- ════════ atterrir (tryLand, L29832) ════════
 local voisins: { number } = {}
+local function nbFigVolN(): number
+	local n = 0
+	for _, v in vus do n += v end
+	return n
+end
 local function atterrir(j: number, face: number, latX: number, sX: number)
 	side = face
 	s = sX
@@ -405,6 +427,8 @@ local function atterrir(j: number, face: number, latX: number, sX: number)
 		if chainVal > 0 then Sons.jouer("encaisse") end
 	end
 	if note then Hud.pop(note, couleur, 26) end
+	Bus.emit("pose", { g = g, impact = impact, face = face, chainVal = chainVal, chainMult = chainMult,
+		aura = gainA, raccourci = s - sDecol, figures = nbFigVolN(), note = note, fallT = fallT, reste = reste })
 	mode = "drive"
 	graceT = 0.15
 	E.air.Visible = false
@@ -499,9 +523,10 @@ local function ramasser(o: any)
 		combo = (t - dernierePiece < O.combo) and combo + 1 or 1
 		dernierePiece = t
 		local mult = math.min(2.5, 1 + 0.5 * math.floor(combo / 5))
-		argent += denom() * 2.2 * mult
+		local g = encaisser(denom() * 2.2 * mult, "piece")
 		piecesPrises += 1
 		ajouterPieces(1)
+		Bus.emit("piece", g, combo)
 		Sons.jouer("piece", Sons.demiTons(({ 0, 2, 4, 7, 9, 12, 14, 16 })[((combo - 1) % 8) + 1]))
 	elseif k == "pad" then
 		if padCd > 0 then return end
@@ -512,6 +537,7 @@ local function ramasser(o: any)
 		padCd = 1.5
 		nitroR = math.min(reservoir(), nitroR + 0.12)
 		Sons.jouer("pad", Sons.demiTons((padTrain - 1) * 2))
+		Bus.emit("pad", padTrain)
 		if padTrain >= 2 then Hud.pop("BOOST x" .. padTrain, Color3.fromRGB(255, 176, 64)) end
 	elseif k == "cristal" then
 		local pw = Config.POUVOIRS[o.o.pw]
@@ -519,6 +545,7 @@ local function ramasser(o: any)
 		elseif o.o.pw == "v" then pwV = pw.duree else pwM = pw.duree end
 		Hud.grand(Hud.FR and pw.nom or pw.nomEN, pw.couleur, 1)
 		Sons.jouer("nitroPlein")
+		Bus.emit("pouvoir", o.o.pw)
 		aura += 50
 		-- le cristal de l'autre face disparaît avec lui (on ne le prend qu'une fois)
 		for _, x in zone.objets :: { any } do
@@ -609,8 +636,9 @@ local function passerPortail(): boolean
 	remettreObjets(suiv)
 	activer(suiv)
 	oublier(ancienne)
-	argent += denom() * 24
+	encaisser(denom() * 24, "portail")
 	nitroR = reservoir()
+	Bus.emit("portail", zoneN)
 	Hud.grand("ZONE " .. zoneN, Hud.C.cyan, 1.2)
 	Sons.jouer("portail")
 	preparer(zoneN + 1, Piste.suite(piste))
@@ -658,7 +686,10 @@ local function etapeSol(dt: number)
 	if boost > 0 then boost -= dt end
 	-- rase-bord : longer le vide recharge la nitro
 	local k = kmh()
-	if math.abs(lat) > 0.8 * RH and k > 0.5 * vmaxShow() then nitroR = math.min(reservoir(), nitroR + 0.22 * dt) end
+	if math.abs(lat) > 0.8 * RH and k > 0.5 * vmaxShow() then
+		nitroR = math.min(reservoir(), nitroR + 0.22 * dt)
+		Bus.emit("rasebord", dt, math.abs(lat) / RH)
+	end
 	-- roule ou crève
 	if tempsDepart > 1.5 and k < Config.ARRET_KMH then
 		arretT += dt
@@ -928,6 +959,8 @@ local function nouvellePartie()
 	distAvant, vmax, nbFig, serie, nbZones = 0, 0, 0, 0, 0
 	multiMax, piecesPrises = 1, 0
 	tempsDepart = 0
+	ralentiK, ralentiT = 1, 0
+	Bus.emit("partie")
 	E.chaine.Text = ""
 	E.air.Visible = false
 	montrerCaisse(true)
@@ -947,6 +980,7 @@ local function nouvellePartie()
 	sDecol = s
 	mode = "fall"
 	Sons.jouer("decollage")
+	Bus.emit("decollage", intro)
 end
 
 local function finPartie()
@@ -980,6 +1014,8 @@ local function finPartie()
 		E.mStats[i][2].Text = v[2]
 	end
 	Hud.ecran("mort")
+	Bus.emit("fin", { argent = argent, aura = aura, distance = dist, pieces = piecesPrises, figures = nbFig,
+		kmh = vmax, zone = nbZones + 1, tier = tier, multi = multiMax, cause = causeMort, record = rec })
 	-- le montant s'égrène (750 ms), puis se pose
 	local cible = argent
 	task.spawn(function()
@@ -1071,6 +1107,25 @@ task.spawn(function()
 	end
 end)
 
+-- ════════ ce que les systèmes peuvent lire et faire (voir Client/Bus) ════════
+Bus.etat = function()
+	return {
+		mode = mode, pause = enPause, intro = intro, s = s, lat = lat, side = side, RH = RH, psi = psi,
+		steer = steerS, yawR = yawR, vA = vA, kmh = kmh(), vmax = vmaxShow(), nitroOn = nitroOn, nitroR = nitroR,
+		reservoir = reservoir(), tier = tier, argent = argent, aura = aura, fallT = fallT, fallTR = fallTR,
+		zone = zoneN, figures = nbFig, carCF = carCF, chainMult = chainMult, chainVal = chainVal, frein = Controles.frein,
+	}
+end
+Bus.agir.encaisser = encaisser
+Bus.agir.aura = function(x: number) aura += x end
+Bus.agir.nitro = function(x: number) nitroR = math.clamp(nitroR + x, 0, reservoir()) end
+Bus.agir.vitesse = function(dv: number) vA += dv end
+Bus.agir.boost = function(t: number) boost = math.max(boost, t) end
+Bus.agir.ralenti = function(k: number, t: number) ralentiK, ralentiT = k, t end
+Bus.agir.figure = function(nom: string, val: number, auraV: number) if mode == "fall" then figure(nom, val, auraV) end end
+Bus.agir.pieces = function(n: number) ajouterPieces(n) end
+Bus.agir.exploser = function(cause: string) exploser(cause) end
+
 -- ════════ LA BOUCLE ════════
 local envoiT = 0
 RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, function(dtBrut)
@@ -1079,6 +1134,10 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 	if hitT > 0 then
 		hitT -= dt
 		dt *= 0.04 -- le HIT-STOP du PARFAIT : 80 ms de gel
+	end
+	if ralentiT > 0 then
+		ralentiT -= dtBrut
+		dt *= ralentiK
 	end
 	if mode == "charge" then return end
 	if not enPause then
@@ -1093,6 +1152,7 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			if mode == "drive" or mode == "fall" then
 				objets(dt, carCF.Position, os.clock())
 				vmax = math.max(vmax, kmh())
+				Bus.emit("tick", dt)
 			end
 		elseif mode == "boom" then
 			boomT += dt
