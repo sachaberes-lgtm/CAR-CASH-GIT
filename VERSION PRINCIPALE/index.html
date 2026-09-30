@@ -32500,13 +32500,30 @@ function buildGarageRoom(){
   const cvT=(w,h,f)=>{const cv=document.createElement('canvas');cv.width=w;cv.height=h;f(cv.getContext('2d'),w,h);return new THREE.CanvasTexture(cv);};
 
   // ===== LES TEXTURES PEINTES : sept canvas, et le décor cesse d'être un tas de cubes nus =====
-  const solTex=cvT(256,256,(x,w,h)=>{ // béton lissé, tacheté, avec son joint de dalle
-    x.fillStyle='#3a404b';x.fillRect(0,0,w,h);
-    for(let i=0;i<2400;i++){const a=(Math.random()*.14).toFixed(3);
-      x.fillStyle=(Math.random()<.5?'rgba(0,0,0,':'rgba(255,255,255,')+a+')';x.fillRect(Math.random()*w,Math.random()*h,2,2);}
-    x.strokeStyle='rgba(8,10,16,.42)';x.lineWidth=3;x.strokeRect(1,1,w-2,h-2);
+  /* (2026-09-30, L'ATELIER v2) LE SOL : un ÉPOXY sombre en grandes dalles de 2,2 m (joint noir + arête claire), moucheté, deux ou trois traces
+     de pneus — et BRILLANT (Phong) : les deux lampes qui suivent la caméra y courent en reflets. L'ancien béton tacheté, mat, faisait de la
+     moitié basse de l'écran du menu un aplat bleu nuit. */
+  const solTex=cvT(512,512,(x,w,h)=>{const T9=128;
+    x.fillStyle='#1c2029';x.fillRect(0,0,w,h);
+    for(let i=0;i<4;i++)for(let j=0;j<4;j++){const l=(Math.random()*8-4)|0;x.fillStyle='rgb('+(30+l)+','+(35+l)+','+(46+l)+')';x.fillRect(i*T9+2,j*T9+2,T9-4,T9-4);}
+    for(let i=0;i<9000;i++){const a=(Math.random()*.09).toFixed(3);x.fillStyle=(Math.random()<.5?'rgba(0,0,0,':'rgba(190,210,255,')+a+')';
+      x.fillRect(Math.random()*w,Math.random()*h,1+Math.random()*1.4,1+Math.random()*1.4);}
+    x.fillStyle='rgba(3,5,9,.9)';for(let i=0;i<=4;i++){x.fillRect(i*T9-2,0,3,h);x.fillRect(0,i*T9-2,w,3);}          // le joint
+    x.fillStyle='rgba(130,155,205,.13)';for(let i=0;i<4;i++){x.fillRect(i*T9+1,0,1,h);x.fillRect(0,i*T9+1,w,1);}    // l'arête qui accroche la lumière
+    x.lineWidth=7;for(let k=0;k<3;k++){x.strokeStyle='rgba(0,0,0,'+(.1+Math.random()*.1).toFixed(2)+')';x.beginPath();
+      x.arc(Math.random()*w,Math.random()*h,70+Math.random()*140,Math.random()*6,Math.random()*6+1.3);x.stroke();}   // traces de gomme
   });
-  solTex.wrapS=solTex.wrapT=THREE.RepeatWrapping;solTex.repeat.set(6,7);M.sol.map=solTex;
+  solTex.wrapS=solTex.wrapT=THREE.RepeatWrapping;solTex.repeat.set(W/8.8,D/8.8);solTex.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy());
+  M.sol=new THREE.MeshPhongMaterial({color:0xffffff,map:solTex,specular:0x2c3850,shininess:90,emissive:0x04060b,fog:false});
+  // LES MURS : un bardage de panneaux de 2,6 m (nervures, joint, rivets, lisse) avec la lumière du plafond cuite (clair en haut, sombre
+  // en bas) — une matière par mur, parce que la répétition d'une texture est une propriété de la TEXTURE (et les murs n'ont pas la même largeur)
+  const murTexB=cvT(128,256,(x,w,h)=>{const gr=x.createLinearGradient(0,0,0,h);gr.addColorStop(0,'#566279');gr.addColorStop(.45,'#3c465a');gr.addColorStop(1,'#252c3a');
+    x.fillStyle=gr;x.fillRect(0,0,w,h);
+    for(let i=0;i<8;i++){const xx=8+i*15;x.fillStyle='rgba(255,255,255,.07)';x.fillRect(xx,0,3,h);x.fillStyle='rgba(0,0,0,.16)';x.fillRect(xx+3,0,3,h);}
+    x.fillStyle='rgba(0,0,0,.55)';x.fillRect(0,0,3,h);x.fillStyle='rgba(255,255,255,.1)';x.fillRect(3,0,1,h);
+    x.fillStyle='rgba(0,0,0,.35)';for(let j=6;j<h;j+=24)x.fillRect(5,j,2,2);
+    x.fillStyle='rgba(0,0,0,.3)';x.fillRect(0,h*.5,w,2);x.fillStyle='rgba(255,255,255,.06)';x.fillRect(0,h*.5+2,w,1);});
+  const murM=(rx,ry,oy)=>{const t=murTexB.clone();t.needsUpdate=true;t.wrapS=THREE.RepeatWrapping;t.repeat.set(rx,ry||1);t.offset.y=oy||0;return L(0xffffff,0x0b0e15,{map:t});};
   const pegTex=cvT(64,64,(x,w,h)=>{ // le panneau perforé de l'établi
     x.fillStyle='#414c60';x.fillRect(0,0,w,h);x.fillStyle='#141a26';
     for(let i=0;i<8;i++)for(let j=0;j<8;j++){x.beginPath();x.arc(i*8+4,j*8+4,1.6,0,7);x.fill();}
@@ -32548,10 +32565,10 @@ function buildGarageRoom(){
 
   // ===== LA COQUE : sol, murs, plafond, charpente =====
   const sol=add9(PL,M.sol,0,0,0,W,D,1);sol.rotation.x=-Math.PI/2;sol.receiveShadow=true;
-  bx(0,H/2,-hd-.15,W+.6,H,.3,M.mur);                                    // mur du fond (l'atelier)
-  bx(-hw-.15,H/2,0,.3,H,D,M.mur);bx(hw+.15,H/2,0,.3,H,D,M.mur);
-  bx(-7.9,H/2,hd+.15,6.2,H,.3,M.mur);bx(7.9,H/2,hd+.15,6.2,H,.3,M.mur); // piles de la porte
-  bx(0,5.45,hd+.15,9.6,1.5,.3,M.mur);                                   // linteau
+  bx(0,H/2,-hd-.15,W+.6,H,.3,murM((W+.6)/2.6));                                    // mur du fond (l'atelier)
+  {const mL=murM(D/2.6);bx(-hw-.15,H/2,0,.3,H,D,mL);bx(hw+.15,H/2,0,.3,H,D,mL);}
+  {const mP=murM(6.2/2.6);bx(-7.9,H/2,hd+.15,6.2,H,.3,mP);bx(7.9,H/2,hd+.15,6.2,H,.3,mP);} // piles de la porte
+  bx(0,5.45,hd+.15,9.6,1.5,.3,murM(9.6/2.6,1.5/H,1-1.5/H));                                   // linteau
   bx(0,H+.15,0,W+.6,.3,D+.6,M.toit);                                    // plafond
   // soubassement peint + bande de sécurité jaune : deux traits, et le mur devient un ATELIER
   for(const p of [[0,-hd+.09,W,0],[-hw+.09,0,D,1],[hw-.09,0,D,1]]){
@@ -32826,6 +32843,105 @@ function buildGarageRoom(){
    for(let i=0;i<N;i++){
      const m=new THREE.Mesh(IB,BA([0xffd75e,0xff8a3d,0xffef9e][i%3]));
      m.visible=false;g.add(m);GAR.impactMeshes.push(m);GAR.impactVel.push({x:0,y:0,z:0,rx:0,ry:0});}
+  }
+  /* ===== L'ATELIER v2 — LA LUMIÈRE ET LA MATIÈRE (2026-09-30, Sacha : « améliore le modèle 3D du garage en le rendant plus beau ») =====
+     Le garage est devenu le MENU : c'est la première image du jeu. Il était juste (tout y est) mais plat — un sol bleu nuit uni qui
+     prenait la moitié basse de l'écran, des murs de la même couleur partout, un plafond noir, et le feu de la porte qui n'éclairait rien.
+     Léo a demandé un atelier SOBRE : on n'ajoute pas de bazar, on travaille ce qui fait une belle image — la MATIÈRE et la LUMIÈRE.
+     · le SOL devient un époxy sombre en grandes dalles, BRILLANT (Phong : les deux lampes qui suivent la caméra y courent en reflets), et
+       il REFLÈTE la porte en feu : c'est la VRAIE texture du feu (même objet, zéro envoi de plus), à plat, en miroir, fondue vers la salle ;
+     · le FEU ÉCLAIRE : trois nappes de lumière peintes (façade autour de l'ouverture, murs latéraux, plafond côté porte), additives, qui
+       battent avec les flammes — « lumière cuite », aucune lumière ajoutée ;
+     · la PORTE est un portail : liseré néon rose autour de l'ouverture, bandes de danger, deux gyrophares ambrés qui tournent ;
+     · le PLAFOND a ses bandes LED sous les poutres : des lignes qui filent vers le feu ;
+     · le PLATEAU est une pièce de showroom : dessus en acier brossé brillant, anneau de LED qui court, halo sous la caisse et au sol ;
+     · des BRAISES sortent du feu et dérivent dans l'atelier.
+     ⚠ Rien de haut dans l'anneau de la caméra (règle des 8,3 m) : tout est plaqué aux murs, au plafond ou au ras du sol. ⚠ Aucune
+     lumière ajoutée. ⚠ Nappes additives en FrontSide (le voile blanc plein écran, voir les cônes des tubes). Tout est animé par garBeaute. */
+  {const B9=GAR.beau={};
+   const add=(o)=>{g.add(o);return o;};
+   const nappe=(tex,col,x,y,z,w,h,op)=>{const m=add(new THREE.Mesh(PL,new THREE.MeshBasicMaterial({map:tex,color:col,transparent:true,opacity:op,
+     fog:false,depthWrite:false,blending:THREE.AdditiveBlending})));m.position.set(x,y,z);m.scale.set(w,h,1);return m;};
+   /* --- LE REFLET DU FEU : la VRAIE texture du rideau de flammes, au sol, en miroir. Un plan couché de 6 m ne marchait pas : vu de la
+      caméra du menu (≈3 m de haut, ≈22 m de la porte), la perspective l'écrasait en un filet sous la porte. Un miroir, lui, montre le haut
+      de la porte LOIN devant elle : le point de hauteur y se reflète à d·hc/(hc+y) de la caméra. Le ruban suit donc cette loi, rangée par
+      rangée (24 rangées) — exact depuis le menu, un reflet traîné (le sol est brillant, pas un miroir) dès qu'on tourne. Couleurs de sommet
+      = le fondu : fort au seuil, éteint vers la salle. */
+   {const N=24,d0=22,hc=3,pos=[],uv=[],col=[],idx=[];
+    for(let r=0;r<=N;r++){const v=r/N,y9=4.9*v,dz=d0-d0*hc/(hc+y9),f9=Math.pow(1-v,1.4)*(1-.35*v);
+      for(const sx of [-1,1]){pos.push(sx*4.72,0,-dz);uv.push(sx<0?1:0,v);col.push(f9,f9,f9);}}
+    for(let r=0;r<N;r++){const a=r*2;idx.push(a,a+1,a+2,a+1,a+3,a+2);}
+    const gR=new THREE.BufferGeometry();gR.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));gR.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
+    gR.setAttribute('color',new THREE.Float32BufferAttribute(col,3));gR.setIndex(idx);
+    const rf=add(new THREE.Mesh(gR,new THREE.MeshBasicMaterial({map:GAR.feu.tex,vertexColors:true,transparent:true,opacity:.5,fog:false,depthWrite:false,
+      blending:THREE.AdditiveBlending,toneMapped:false,side:THREE.DoubleSide})));
+    rf.position.set(0,.014,hd);rf.renderOrder=-1;B9.reflet=rf;}
+   // --- LES NAPPES DU FEU : la façade autour de l'ouverture, les deux murs, le plafond côté porte
+   const facTex=cvT(256,72,(x,w,h)=>{ // l'ouverture fait 9,6 × 4,7 m dans une façade de 22,6 × 6,2 : trou au centre-bas
+     const ox=w*(9.6/22.6)/2,oy=h*(4.7/6.2);
+     const gr=x.createRadialGradient(w/2,h,ox*.6,w/2,h,w*.48);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.35,'rgba(255,255,255,.45)');gr.addColorStop(1,'rgba(255,255,255,0)');
+     x.fillStyle=gr;x.fillRect(0,0,w,h);
+     x.globalCompositeOperation='destination-out';x.fillStyle='#000';x.fillRect(w/2-ox,h-oy,ox*2,oy);});
+   B9.fac=nappe(facTex,0xff5a18,0,3.1,hd-.02,22.6,6.2,.5);B9.fac.rotation.y=Math.PI;
+   const murTex=cvT(128,32,(x,w,h)=>{const gr=x.createLinearGradient(0,0,w,0);gr.addColorStop(0,'rgba(255,255,255,0)');gr.addColorStop(.7,'rgba(255,255,255,.35)');gr.addColorStop(1,'rgba(255,255,255,1)');
+     x.fillStyle=gr;x.fillRect(0,0,w,h);x.globalCompositeOperation='destination-in';
+     const gv=x.createLinearGradient(0,0,0,h);gv.addColorStop(0,'rgba(0,0,0,.25)');gv.addColorStop(.6,'rgba(0,0,0,1)');gv.addColorStop(1,'rgba(0,0,0,.7)');x.fillStyle=gv;x.fillRect(0,0,w,h);});
+   B9.murG=nappe(murTex,0xff5a18,hw-.02,3.1,hd-6,12,6.2,.42);B9.murG.rotation.y=-Math.PI/2;              // x > 0 : u croît vers la porte
+   B9.murD=nappe(murTex,0xff5a18,-hw+.02,3.1,hd-6,-12,6.2,.42);B9.murD.rotation.y=Math.PI/2;             // (miroir : échelle négative)
+   const plaTex=cvT(64,128,(x,w,h)=>{const gr=x.createLinearGradient(0,h,0,0);gr.addColorStop(0,'rgba(255,255,255,0)');gr.addColorStop(1,'rgba(255,255,255,1)');
+     x.fillStyle=gr;x.fillRect(0,0,w,h);x.globalCompositeOperation='destination-in';const gh=x.createLinearGradient(0,0,w,0);
+     gh.addColorStop(0,'rgba(0,0,0,0)');gh.addColorStop(.3,'rgba(0,0,0,1)');gh.addColorStop(.7,'rgba(0,0,0,1)');gh.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=gh;x.fillRect(0,0,w,h);});
+   B9.plaf=nappe(plaTex,0xff5a18,0,H-.02,hd-6,W-1,12,.16);B9.plaf.rotation.x=Math.PI/2;
+   // --- LE PORTAIL : liseré néon rose autour de l'ouverture (un cœur blanc, un halo rose — le bloom finit le travail)
+   const neoTex=cvT(32,4,(x,w,h)=>{const gr=x.createLinearGradient(0,0,w,0);
+     gr.addColorStop(0,'rgba(255,255,255,0)');gr.addColorStop(.36,'rgba(255,90,190,.55)');gr.addColorStop(.5,'rgba(255,245,252,1)');gr.addColorStop(.64,'rgba(255,90,190,.55)');gr.addColorStop(1,'rgba(255,255,255,0)');
+     x.fillStyle=gr;x.fillRect(0,0,w,h);});
+   B9.neons=[];
+   for(const sx of [-1,1]){const m=nappe(neoTex,0xffffff,sx*4.64,2.32,hd-.33,.46,4.62,.95);m.rotation.y=Math.PI;B9.neons.push(m);}
+   {const m=nappe(neoTex,0xffffff,0,4.62,hd-.33,.46,9.28,.95);m.rotation.set(0,Math.PI,Math.PI/2);B9.neons.push(m);}
+   // les bandes de danger de part et d'autre de l'ouverture (peintes, éclairées : elles ne brillent pas, elles SE LISENT)
+   const danTex=cvT(32,32,(x,w,h)=>{x.fillStyle='#e8ae1c';x.fillRect(0,0,w,h);x.fillStyle='#12151c';
+     for(let i=-1;i<3;i++){x.beginPath();x.moveTo(i*16,h);x.lineTo(i*16+8,h);x.lineTo(i*16+8+h,0);x.lineTo(i*16+h,0);x.fill();}});
+   danTex.wrapS=danTex.wrapT=THREE.RepeatWrapping;danTex.repeat.set(1,11);
+   const danM=L(0xffffff,0x1a1204,{map:danTex});
+   for(const sx of [-1,1]){const m=add(new THREE.Mesh(PL,danM));m.position.set(sx*5.15,2.36,hd-.015);m.scale.set(.36,4.7,1);m.rotation.y=Math.PI;}
+   // les deux GYROPHARES ambrés, en haut de l'ouverture : un socle, un dôme, et le halo qui tourne (un sprite qui bat)
+   B9.gyro=[];
+   for(const sx of [-1,1]){bx(sx*5.3,4.9,hd-.24,.26,.12,.26,M.fer);
+     cy(sx*5.3,5.03,hd-.24,.1,.16,BA(0xffb22e));
+     const sp=add(new THREE.Sprite(new THREE.SpriteMaterial({map:lampTex,color:0xffa218,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,fog:false})));
+     sp.position.set(sx*5.3,5.04,hd-.34);sp.scale.set(2.2,1.3,1);B9.gyro.push({s:sp,ph:sx>0?0:Math.PI*.85});}
+   // --- LE PLAFOND : une bande LED sous chaque poutre, et deux qui filent le long des gaines vers le feu
+   const ledM=BA(0xc8f1ff);
+   for(let i=-2;i<=2;i++)bx(0,H-.86,i*5.4,W-1.4,.035,.1,ledM);
+   for(const px of [-3.4,3.4])bx(px,H-1.12,0,.05,.035,D-2,ledM);
+   // --- LE PLATEAU DE SHOWROOM : le dessus en acier brossé brillant (le côté et le dessous gardent le fer)
+   const podTex=cvT(512,512,(x,w,h)=>{x.fillStyle='#1b2130';x.fillRect(0,0,w,h);
+     for(let r=8;r<256;r+=3){x.strokeStyle='rgba('+(Math.random()<.5?'0,0,0,':'170,190,230,')+(Math.random()*.08).toFixed(3)+')';x.lineWidth=1.5;x.beginPath();x.arc(256,256,r,0,7);x.stroke();} // le brossé
+     x.strokeStyle='rgba(120,150,210,.08)';x.lineWidth=2;for(let i=0;i<16;i++){const a=i/16*Math.PI*2;x.beginPath();x.moveTo(256+Math.cos(a)*70,256+Math.sin(a)*70);x.lineTo(256+Math.cos(a)*238,256+Math.sin(a)*238);x.stroke();}
+     for(const r of [70,150,238]){x.strokeStyle='rgba(0,0,0,.55)';x.lineWidth=4;x.beginPath();x.arc(256,256,r,0,7);x.stroke();
+       x.strokeStyle='rgba(160,190,240,.22)';x.lineWidth=1.5;x.beginPath();x.arc(256,256,r+3,0,7);x.stroke();}});
+   dis.material=[M.fer,new THREE.MeshPhongMaterial({color:0xffffff,map:podTex,specular:0x252c3c,shininess:30,emissive:0x05070c,fog:false}),M.fer];
+   // l'anneau de LED qui COURT : deux comètes de tirets, qui tournent plus vite que le plateau (voir garBeaute)
+   const ledTex=cvT(512,512,(x,w,h)=>{const N=72,r0=256*4.18/4.42,r1=256*4.36/4.42;x.lineCap='butt';
+     for(let i=0;i<N;i++){const a=i/N*Math.PI*2,q=(i%(N/2))/(N/2),v=.1+.9*Math.pow(1-q,2.2);
+       x.strokeStyle='rgba(255,255,255,'+v.toFixed(3)+')';x.lineWidth=r1-r0;x.beginPath();x.arc(256,256,(r0+r1)/2,a,a+Math.PI*2/N*.62);x.stroke();}});
+   const ledRing=new THREE.Mesh(new THREE.RingGeometry(4.12,4.42,96,1),new THREE.MeshBasicMaterial({map:ledTex,color:0x5ff0ff,transparent:true,opacity:.9,
+     fog:false,depthWrite:false,blending:THREE.AdditiveBlending}));
+   ledRing.rotation.x=-Math.PI/2;ledRing.position.y=GAR.POD+.006;g.add(ledRing);B9.led=ledRing; // hors du plateau : il tourne À SA vitesse
+   // le halo SOUS la caisse (sur le plateau) et le halo du plateau AU SOL
+   const haloTex=cvT(128,128,x=>{const gr=x.createRadialGradient(64,64,0,64,64,63);gr.addColorStop(0,'rgba(255,255,255,0)');gr.addColorStop(.55,'rgba(255,255,255,.35)');
+     gr.addColorStop(.8,'rgba(255,255,255,.9)');gr.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=gr;x.fillRect(0,0,128,128);});
+   B9.sous=nappe(haloTex,0x3fdcff,0,GAR.POD+.009,0,7.4,7.4,.22);B9.sous.rotation.x=-Math.PI/2;B9.sous.renderOrder=1;
+   const solHaloTex=cvT(256,256,x=>{const gr=x.createRadialGradient(128,128,0,128,128,127);gr.addColorStop(0,'rgba(255,255,255,0)');gr.addColorStop(.66,'rgba(255,255,255,0)');
+     gr.addColorStop(.72,'rgba(255,255,255,.8)');gr.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=gr;x.fillRect(0,0,256,256);});
+   B9.solHalo=nappe(solHaloTex,0x2fb8ff,0,.016,0,13,13,.3);B9.solHalo.rotation.x=-Math.PI/2;B9.solHalo.renderOrder=-1;
+   // --- LES BRAISES : 64 étincelles qui sortent du feu, montent, dérivent dans l'atelier et s'éteignent (un seul appel de dessin)
+   {const N=64,pos=new Float32Array(N*3),v=new Float32Array(N*4);
+    for(let i=0;i<N;i++){pos[i*3+1]=-50;v[i*4+3]=Math.random()*3;} // (au départ hors de vue ; elles naissent au fil des secondes)
+    const gb=new THREE.BufferGeometry();gb.setAttribute('position',new THREE.BufferAttribute(pos,3));
+    B9.braises=add(new THREE.Points(gb,new THREE.PointsMaterial({color:0xff9a3c,size:.075,transparent:true,opacity:.85,depthWrite:false,fog:false,blending:THREE.AdditiveBlending})));
+    B9.braises.frustumCulled=false;B9.bv=v;}
   }
   try{buildAffiches(g);}catch(e){console.warn('affiches',e);}
   try{gmHoloBuild(g);}catch(e){console.warn('missions',e);} // (2026-09-30) les hologrammes des MISSIONS (invisibles hors de leur écran) // (2026-09-30) LES AFFICHES DE RECORDS, de part et d'autre de la porte
@@ -33392,6 +33508,21 @@ function garFeu(dt){ // il brûle au repos, il RUGIT pendant le lâcher (k : 0 �
   if(GAR.feuLu)GAR.feuLu.material.opacity=Math.min(1,(.42+.1*Math.sin(F.t*9.1)+.07*Math.sin(F.t*23.7))*(1+F.k*.9));
   const pas=REDUCED_MOTION?1/12:1/30;F.acc+=dt;if(F.acc<pas)return;F.acc=Math.min(F.acc-pas,pas);F.t+=pas;feuPixPas(F);
 }
+function garBeaute(dt,t9){ // (2026-09-30) L'ATELIER v2 : ce qui vit — le feu qui éclaire et se reflète, le néon, les gyrophares, l'anneau de LED, les braises
+  const B=GAR.beau;if(!B)return;const k=GAR.feu?GAR.feu.k:0;
+  const fl=(1+.16*Math.sin(t9*9.1)+.1*Math.sin(t9*23.7)+.06*Math.sin(t9*41.3))*(1+k*.8); // le souffle des flammes (celui de la lueur du seuil), et le RUGISSEMENT du lâcher
+  {const d9=camera.getWorldDirection(B.cd||(B.cd=new THREE.Vector3())),w9=Math.max(0,Math.min(1,d9.z*1.25));B.reflet.visible=w9>.05;B.reflet.material.opacity=Math.min(1,.5*fl)*w9*w9;} // un REFLET dépend du regard : calé sur la vue de la porte, il s'efface quand la caméra ne regarde plus la porte (vu de dos, ou de la vue des MISSIONS, ce n'était plus qu'une mosaïque de couleurs au sol)B.fac.material.opacity=Math.min(1,.5*fl);
+  B.murG.material.opacity=B.murD.material.opacity=Math.min(1,.42*fl);B.plaf.material.opacity=Math.min(1,.16*fl);
+  for(const n of B.neons)n.material.opacity=.86+.1*Math.sin(t9*2.3)+(Math.random()<.004?-.5:0); // le néon respire, et hoquette parfois
+  for(const G9 of B.gyro){const c=Math.cos(t9*4.2+G9.ph),c3=c>0?c*c*c:0;G9.s.material.opacity=c3*.95;G9.s.scale.x=1.2+1.6*c3;} // le faisceau qui passe
+  B.led.rotation.z+=dt*(.9+k*6);B.led.material.opacity=Math.min(1,.75+.2*Math.sin(t9*3.1)+k*.6);
+  const P=B.braises.geometry.attributes.position,a=P.array,v=B.bv,hd=GAR.D/2,n9=v.length/4;
+  for(let i=0;i<n9;i++){const j=i*3,q=i*4;v[q+3]-=dt;
+    if(v[q+3]<=0){a[j]=(Math.random()-.5)*9;a[j+1]=.2+Math.random()*2.6;a[j+2]=hd-.4; // elle naît dans le feu…
+      v[q]=(Math.random()-.5)*.9;v[q+1]=.5+Math.random()*1.1;v[q+2]=-(.6+Math.random()*1.8)*(1+k*2);v[q+3]=1.4+Math.random()*2.6;}
+    a[j]+=v[q]*dt+Math.sin(t9*1.7+i)*dt*.25;a[j+1]+=v[q+1]*dt;a[j+2]+=v[q+2]*dt;} // …monte, et entre dans l'atelier
+  P.needsUpdate=true;
+}
 // banc : `dbgFeu()` rend l'état du feu ; `dbgFeu(false)` l'éteint (mesure A/B du coût), `dbgFeu(true)` le rallume
 window.dbgFeu=function(on){const F=GAR.feu;if(!F)return null;if(on!=null&&GAR.feuM){GAR.feuM.visible=!!on;if(GAR.feuLu)GAR.feuLu.visible=!!on;}
   let chaud=0;for(let i=0;i<F.f.length;i++)if(F.f[i]>60)chaud++;
@@ -33408,7 +33539,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   const ay=GARAGE_Y,t9=performance.now()*.001;
   if(!GAR.root)buildGarageRoom();
   GAR.root.position.y=ay;GAR.root.visible=true;
-  garFeu(dt); // le rideau de flammes de la porte : il brûle au repos, il RUGIT pendant le lâcher
+  garFeu(dt);garBeaute(dt,t9); // le rideau de flammes de la porte : il brûle au repos, il RUGIT pendant le lâcher
   carGroup.position.set(0,ay+GAR.POD,0);carGroup.rotation.set(0,garRot(),0);carGroup.visible=true; // posée SUR le plateau — (2026-09-29, Léo) et c'est ELLE qui tourne, avec lui (voir GAR_CAM_A)
   garageFloor.visible=false;                       // l'ancienne nappe de brume : l'atelier a un vrai sol
   // CIEL CYAN étoilé — ce qu'on voit par la porte relevée (poussé après bioStep : ça gagne cette frame)
@@ -33423,9 +33554,14 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   // toujours prise sous son meilleur angle et le reflet COURT sur la tôle pendant qu'on tourne.
   // C'est le vieux truc du photographe de studio, et ça vaut mille lumières fixes.
   atelierLampes(true);stallKey.color.setHex(0xffdca8);stallKey.intensity=1.25;stallKey.distance=30; // (chasse aux gels) les lampes entrent, les gyrophares sortent : 8 lumières, les programmes de la course
-  stallKey.position.set(Math.sin(garageAng+.72)*5.2,ay+4.1,Math.cos(garageAng+.72)*5.2);
-  stallRim.color.setHex(0x6fd0ff);stallRim.intensity=.5;stallRim.distance=26;
-  stallRim.position.set(Math.sin(garageAng+3.5)*6,ay+2.3,Math.cos(garageAng+3.5)*6);
+  /* (2026-09-30, L'ATELIER v2) les lampes suivent la CAMÉRA (garCamA), plus le plateau : depuis que la caméra est fixe et que c'est le
+     plateau qui tourne (« le garage sobre »), elles tournaient AVEC la caisse — elle montrait toujours le même côté éclairé et aucun reflet
+     ne courait sur la tôle. Et le CONTRE-JOUR, c'est le FEU : face à la porte (au menu, au lâcher) il passe du cyan à la braise et vacille
+     avec les flammes — la caisse se découpe sur le rideau de feu, bordée d'orange. Dos à la porte, il redevient le cyan d'avant. */
+  {const cA9=garCamA(),wF=Math.max(0,-Math.cos(cA9)),fl9=1+.13*Math.sin(t9*9.1)+.08*Math.sin(t9*23.7);
+   stallKey.position.set(Math.sin(cA9+.72)*5.2,ay+4.1,Math.cos(cA9+.72)*5.2);
+   stallRim.color.setRGB(.44+.56*wF,.82-.42*wF,1-.86*wF);stallRim.intensity=(.5+.6*wF)*(wF>0?fl9:1);stallRim.distance=26;
+   stallRim.position.set(Math.sin(cA9+Math.PI+.35)*6,ay+2.3,Math.cos(cA9+Math.PI+.35)*6);}
   // LE TUBE AU MAUVAIS STARTER : un néon sur six grésille. C'est ce seul détail qui fait passer le
   // décor de « maquette bien rangée » à « garage » — un atelier neuf, ça n'existe pas.
   if(GAR.flick){const b9=Math.sin(t9*13.7)*Math.sin(t9*4.3)+Math.sin(t9*31.1)*.4;
