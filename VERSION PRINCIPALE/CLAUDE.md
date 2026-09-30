@@ -1,5 +1,19 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE DAUPHIN v7 — L'AURA MONTE EN VOL + LE JUS v6 + LA BANNIÈRE DE NIVEAU (2026-09-30, session INTERFACE)
+- **Dauphin** (Sacha : « on ne voit plus le texte dauphin quand on se pose ; on doit voir l'aura monter pendant l'animation des dauphins,
+  pendant qu'on survole la route »). Mesuré au banc (`dolpose.js`) : depuis la v6 de GAMEPLAY, un rase-dalle de 1,4 s à 3 m (dauphins à
+  l'écran tout du long) ne payait rien et n'écrivait rien — la porte de la figure (1 s au ras après 0,35 s de vol) n'était pas franchie et
+  la nage sans figure valait 0. Désormais : `DOL_AURA_NUE` 0 → **0,5** (la nage paie la moitié tant que la figure n'est pas née, plein tarif
+  ensuite) ; EN VOL, le compteur SEUL (étoile + nombre + AURA, classe `vol`, `dolHudVol()`) monte **juste sous la caisse** (la caméra de
+  vol la centre ; le couloir du haut était masqué par défis/carte moteur/annonces pendant tout le vol, mesuré) et BONDIT quand la figure naît
+  (classe `fig`) ; il affiche ce qui sera VRAIMENT versé. À LA POSE : le récapitulatif « DAUPHIN » + total dans le couloir du haut, qui
+  patiente 4,5 s au plus (3) et reste 2,2 s (1,5). La figure (cri, maillon d'argent, prime, flow) garde sa porte v6. CSS : section 32 de charte4.
+- **Jus v6** (Sacha : « les taches de fruit éclaté ne sont pas assez grosses et dérangeantes ») : rayon ~45-90 px sur téléphone, plafond 112
+  (v5 : 19-57 / 68) ; 35 % tombent EXPRÈS sur la caisse et la route, 45 % n'importe où, 20 % dans la couronne ; 10 à la fois (8) ; vie
+  1,3-2 s ; pleines .93 les premiers 55 % ; passé 0,3 s elles GLISSENT vers le bas (12-34 px/s, par pas de 4 px).
+- **Bannière de niveau** (Sacha : « trop de texte, laisse juste MER DE NUAGES ») : `LVL_BAN.prom:0` (plus de promesse), `LVL_BAN.num:0`
+  (plus de « NIVEAU n », ni ses micro-frappes), 2,4 s à l'écran. Rallumer = remettre 1.
 ## LA PORTE DU GARAGE FERMÉE, OUVERTE AU JOUER (2026-09-30, session DEBUGGING, avec l'accord de GAMEPLAY) — « la porte du garage doit être fermée au début et s'ouvrir avec les flammes quand on clique sur JOUER »
 - `buildGarageRoom` : les cinq panneaux empilés sous le plafond deviennent une PORTE SECTIONNELLE sur son rail (`GAR.porte`) — tôle nervurée
   (deux nervures par panneau, joints), une rangée de six HUBLOTS au 4e panneau qui laissent voir le feu (émissive qui bat avec les
