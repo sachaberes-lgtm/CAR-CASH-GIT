@@ -33,6 +33,13 @@ local T = Hud.T
 local FR = Hud.FR
 
 local cam = workspace.CurrentCamera
+-- le jeu web n'a ni fenêtre de chat ni tableau des joueurs : ils recouvraient la nitro et la pause
+do
+	local StarterGui = game:GetService("StarterGui")
+	for _, t in { Enum.CoreGuiType.PlayerList, Enum.CoreGuiType.Chat, Enum.CoreGuiType.Backpack, Enum.CoreGuiType.Health, Enum.CoreGuiType.EmotesMenu } do
+		pcall(function() StarterGui:SetCoreGuiEnabled(t, false) end)
+	end
+end
 Hud.creer()
 Hud.ecran("charge")
 
@@ -743,8 +750,8 @@ local function etapeAir(dt: number)
 	essayerAtterrir(dt)
 	if mode ~= "fall" then return end
 	-- la chaîne en direct
-	if chainVal > 0 then
-		E.chaine.Text = "x" .. string.format("%.1f", math.min(6, chainMult)) .. "  ·  " .. nbFigVol() .. ""
+	if nbFig > 0 and next(vus) ~= nil then
+		E.chaine.Text = "x" .. string.format("%.1f", math.min(6, chainMult)) .. "  ·  " .. nbFigVol()
 		E.chaine.TextColor3 = Hud.C.cyan
 	end
 	-- la mort en vol
@@ -946,7 +953,7 @@ local function finPartie()
 	mode = "mort"
 	local dist = distAvant + math.max(0, s)
 	local rec = argent > record and argent > Config.CASH_DEPART + 0.01
-	evFin:FireServer(argent, dist)
+	evFin:FireServer(argent, dist, aura, { pieces = piecesPrises, figures = nbFig, kmh = vmax, zone = nbZones + 1, tier = tier, multi = multiMax, cause = causeMort })
 	if rec then record = argent end
 	meilleurAura = math.max(meilleurAura, aura)
 	local cause = T.morts[causeMort] or T.morts.autre
