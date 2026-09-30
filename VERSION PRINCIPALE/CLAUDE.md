@@ -88,6 +88,10 @@
   de celui de Léo : `gmRenderS`/`gmPlace`/`gmSuitS`/`gmHoloPlace` + ses ancres à `pp`, CSS sous `html.misS` ; `gmRender`/`gmSuit` de Léo
   aiguillent en tête) et SA porte fermée. **`?menu=leo`** = toute la version de Léo, intacte (sketch, ses missions à 6 ancres, porte
   relevée). `?menu=sacha` marche toujours. Les paragraphes ci-dessous décrivent l'état d'avant ce choix (défaut Léo).
+  · (Sacha : « c'est buggé, les boutons ne sont pas connectés ») GARAGE et MISSIONS de #mHome étaient MORTS APRÈS UNE PARTIE : leur branche
+    « started && gameOver » (écran de mort → accueilRetour) rejouait au menu, où accueilRetour ne fait plus rien (MENUV.retour). Garde
+    `&&!garageOn` : l'atelier ouvert, on y va tout droit. Banc `pc3.js` (scratchpad GAMEPLAY) : l'ORDI, la SOURIS, la COLONNE — chaque
+    bouton avant / après une / après deux parties. ⚠ Les bancs en émulation tactile ne voyaient pas ce chemin : tester aussi à la souris.
 - ⚠ **(même soir, Léo : « remets ma version sketch, Sacha dit que c'est brouillon »)** — LES DEUX MENUS COEXISTENT, un seul booléen :
   `MENU_SACHA` (juste avant `garMode`) = `?menu=sacha` dans l'adresse. PAR DÉFAUT le menu du SKETCH de Léo (#gMenu) ; avec `?menu=sacha`
   (le cadre de l'ordi la transmet à la colonne) les boutons de Sacha décrits ci-dessous. À TRANCHER ENTRE SACHA ET LÉO : ne pas
