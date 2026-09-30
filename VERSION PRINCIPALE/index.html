@@ -32445,7 +32445,7 @@ Object.assign(I18N_ZH,{'GUIDE DU JEU':'游戏指南','COMPRIS !':'明白了！',
   'Le lapin ouvre la boutique. Garde le doigt sur ta voiture : elle charge un boost.':'小兔子打开商店。按住你的车：它会蓄力加速。','ESPACE':'空格'});
 function buildAffiches(g){
   const hd=GAR.D/2;GAR.affiches=[];
-  for(const a of [{k:'perso',x:6.45,cad:0xffc83d},{k:'monde',x:-8.5,cad:0x5fd8ff}]){  // x > 0 = à GAUCHE vu de la caisse
+  for(const a of [{k:'perso',x:6.45,cad:0xffc83d}]){  // x > 0 = à GAUCHE vu de la caisse — (2026-09-30, Sacha : « enlève le truc de classement mondial ») l'affiche RECORDS MONDIAUX ({k:'monde',x:-8.5,cad:0x5fd8ff}) est retirée : il reste le RECORD PERSO
     // (2026-09-30) 2,78 → 2,05 m et ×1,2 : sur main la caméra du menu est plus proche et l'objectif décentré — là-haut, elles passaient
     // DERRIÈRE JOUER et l'étiquette MISSIONS. PERSO contre le pilier gauche de la porte ; MONDE vers le coin droit (−8,5, pas −6,45) : vu
     // de la caméra, le SOCLE DES MISSIONS (−2,9 ; 2,5) tombait pile devant elle.
