@@ -184,7 +184,8 @@ scratchpad GAMEPLAY). Ce qui suit est EN JEU, mesuré au banc sauf mention.
   portail (2,5 s sans plot ni flaque) ; `MODMARK`→`MODS` : pas de plot ni d'huile dans les modules ; un banc de route retire les plots et
   les flaques qu'il cache — **SAUF les plots de l'ORAGE** (décision GAMEPLAY : sa promesse est « la route se cache », ses bancs couvrent la
   piste, le filtre y retirait 50-92 % des plots) ; huile jugée en mètres ; pas de pigeon en ORBITE ni à l'ORAGE. `dbgPas()`.
-- **LE VOL v8.1 « NEWTON »** (Sacha à SON : « rends la physique du air time plus réaliste, inspire-toi des vraies règles de l'inertie et
+- ⛔ **RETIRÉ le 2026-09-30** (Sacha : « je veux que la voiture reste contrôlable, mais qu elle aille plus vite et qu elle tombe plus vite ») : les commits 61ab2d2 + 7ef83e2 sont annulés, on revient au vol d avant (le volant tourne la trajectoire), avec `AIR_RATE=1.3` dans `startFall` (on avance et on tombe 30 % plus vite, même arc dans l espace). Le paragraphe ci-dessous n est plus qu une archive.
+- **LE VOL v8.1 « NEWTON »** (ARCHIVE) (Sacha à SON : « rends la physique du air time plus réaliste, inspire-toi des vraies règles de l'inertie et
   de la gravité » ; plan de SON, appliqué par GAMEPLAY ; `NEWTON`, `VOLN`, `volCorps`/`volRepere`/`volNez`/`volAero`, `volViseur`,
   `volBump`, `chuteLongue`, `volBordMord`, `dbgVol()`). Le volant et le manche tournent la CAISSE (lacet ψ, assiette α, girouette
   K_W·qt·sin, amortissement) ; la portance et la traînée de travers plient la trajectoire ; aucune traînée dans l'axe : SANS LES MAINS la
