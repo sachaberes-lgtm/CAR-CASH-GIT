@@ -672,6 +672,31 @@ D('nuage.sort',{fam:'piste',bus:'amb',dur:.5,st:1,db:-8,max:2,cd:.2,rj:.04,dit:'
   r:function(b,R,o){bruit(b,{c:'r',t0:0,a:.06,d:.3,v:.45,ft:'bp',f:1200,f1:3500,g:.3,q:.8},R);}});
 D('nuage.defonce',{fam:'piste',bus:'amb',dur:.9,st:1,db:+2,max:1,cd:.3,dit:'défoncer un banc de nuage au sol : WHOUMPF + souffle',
   r:function(b,R,o){coup(b,R,o,0,.6,500,90,45,.3);bruit(b,{c:'r',t0:0,a:.01,d:.6,v:.6,ft:'lp',f:2000,f1:300,g:.5,q:.6,pan:-.4,pan1:.4},R);}});
+/* LE SON DU NIVEAU 1 — LA MER DE NUAGES (2026-09-30, Sacha : « refonte totale du niveau 1, le fer de lance du jeu » ; GAMEPLAY refait
+   l'IMAGE, la session SON fait l'OREILLE). Deux boucles sur le bus d'ambiance, qu'on SENT plus qu'on n'entend :
+   · `nuages.ambiance` — EN COURSE, au niveau NUAGES : l'air d'altitude, haut et clair, qui respire une fois par boucle ; une épaisseur
+     très basse ; deux rafales LOINTAINES qui traversent la stéréo ; et les HARMONIQUES DU VENT (harpe éolienne : des sinus hauts qui
+     gonflent et s'éteignent, dans la tonalité de la musique — key). Le vent de la VITESSE reste celui du moteur (windG/whG) : celle-ci
+     est le LIEU, pas la vitesse.
+   · `chute.vent` — AU MENU (la CHUTE) : la chute libre. Le grondement brun qui respire, le souffle en deux bandes aux rafales décalées
+     (jamais la même boucle deux fois de suite à l'oreille), le CLAQUEMENT de l'air sur les tôles (un battement de 16-19 Hz dans les
+     médiums : c'est lui qui dit « on tombe vite ») et le sifflet des arêtes, étroit et discret. Le menu en règle le volume et la
+     vitesse de lecture sur le plongeon (handle.gain / handle.rate). */
+D('nuages.ambiance',{fam:'piste',bus:'amb',dur:8.8,st:1,key:1,db:-10,max:1,cd:1,dit:'LA MER DE NUAGES (boucle, en course au niveau 1) : l’air d’altitude qui respire, des rafales lointaines, les harmoniques du vent (dans la tonalité)',
+  r:function(b,R,o){bruit(b,{c:'r',t0:0,a:.001,h:8.8,d:.001,v:.17,ft:'lp',f:5200,am:[.125,.5]},R);            // l'air, haut et clair, qui respire
+    bruit(b,{c:'n',t0:0,a:.001,h:8.8,d:.001,v:.05,ft:'lp',f:230,am:[.25,.3]},R);                             // l'épaisseur, très bas (un téléphone ne la rend pas : elle ne porte rien)
+    swish(b,R,.9,2.6,350,1400,.15,-.8,.35,.7);swish(b,R,4.9,2.8,300,1250,.13,.8,-.35,.7);                  // deux rafales lointaines
+    [[24,1.2,3.2],[31,3.1,3.4],[28,5.4,3],[36,6.9,2.2]].forEach(function(p){osc(b,{f:nE(p[0]),t0:p[1],a:1.1,h:.4,d:p[2]*.6,v:.022,vib:[4.7,.003]});}); // la harpe éolienne
+    O.boucle(b,.8);}}); // la boucle se referme sans couture (voir `boucle`)
+D('chute.vent',{fam:'interface',bus:'amb',dur:6.6,st:1,db:-6,max:1,cd:.5,dit:'LA CHUTE LIBRE (boucle, menu) : le grondement, le souffle en rafales, l’air qui claque sur la carrosserie, le sifflet des arêtes',
+  r:function(b,R,o){bruit(b,{c:'n',t0:0,a:.001,h:6.6,d:.001,v:.13,ft:'lp',f:160,am:[.23,.35]},R);            // le grondement
+    bruit(b,{c:'r',t0:0,a:.001,h:6.6,d:.001,v:.26,ft:'bp',f:560,q:.6,am:[.37,.45],pan:-.45},R);              // le souffle, deux bandes…
+    bruit(b,{c:'r',t0:0,a:.001,h:6.6,d:.001,v:.26,ft:'bp',f:820,q:.6,am:[.53,.45],pan:.45},R);               // …aux rafales décalées
+    bruit(b,{c:'r',t0:0,a:.001,h:6.6,d:.001,v:.17,ft:'bp',f:1300,q:1.1,am:[16.7,.8],pan:-.2},R);             // le CLAQUEMENT sur les tôles
+    bruit(b,{c:'r',t0:0,a:.001,h:6.6,d:.001,v:.12,ft:'bp',f:1900,q:1.2,am:[19.1,.7],pan:.25},R);
+    bruit(b,{c:'b',t0:0,a:.001,h:6.6,d:.001,v:.035,ft:'bp',f:2600,q:7,am:[.31,.6],pan:.1},R);                // le sifflet des arêtes
+    bruit(b,{c:'r',t0:0,a:.001,h:6.6,d:.001,v:.07,ft:'hp',f:2800,am:[.41,.4],pan:-.1},R);                     // la vitesse de l'air : un voile de souffle aigu
+    O.boucle(b,.6);}});
 D('chute',{fam:'piste',bus:'fx',dur:1.2,st:1,key:1,db:+1,max:1,cd:1,dit:'sortie de route / trou : le sifflet qui tombe + « oh-oh » (deux notes qui descendent)',
   r:function(b,R,o){osc(b,{f:1500,f1:280,g:1,gc:1.4,t0:0,a:.02,d:1,v:.12});bruit(b,{c:'r',t0:0,a:.1,d:.9,v:.2,ft:'bp',f:900,f1:250,g:1,q:1},R);
     osc(b,{f:nE(7),w:'sq',pw:.4,t0:.05,a:.005,h:.1,d:.12,v:.08,flt:['lp',1600,1600,1,.8]});osc(b,{f:nE(4),w:'sq',pw:.4,t0:.22,a:.005,h:.15,d:.2,v:.08,flt:['lp',1400,1400,1,.8]});}});
