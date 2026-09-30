@@ -510,6 +510,25 @@ doit être exponentielle ; à chaque palier de 10 % ça doit rajouter un compart
   · Trois matières du programme des rubans de traînée (un maillage) + la même pour le crâne + le programme des sprites : **0 compilation en
     course** (banc drg.js). NITRO INFINIE : textures VIOLETTES repeintes au chargement (`drgViolet` : le rouge → violet, l'or → lilas).
     Fin, recommencer, quitter : `nitroooVide()` → `dragonCache()`.
+- **DRAGON v6** (2026-09-30, session SON, GRAPHISME a passé la main — Sacha : « on ne doit pas voir ses yeux quand on boost, vu qu'il
+  regarde vers l'avant ; travaille les effets dans les virages et dans les airs, et mieux l'animation au global ») :
+  · **LES YEUX** étaient des SPRITES `depthTest:false` : face à la caméra et par-dessus tout, on les voyait de DOS, posés sur la nuque comme
+    s'il regardait la caméra. Chaque œil a désormais l'axe de SON regard (`DRG.oN` : vers l'extérieur et l'AVANT) et s'efface quand la
+    caméra ne voit pas sa face (`DRG.vu`, smoothstep .08-.42) — lueurs comprises (la lueur du 2e œil a sa propre matière, même programme).
+    Mesuré : poursuite 0/0 sur toute la course et tout le vol ; pause photo (`drgphoto-ss.js`) : derrière 0/0, dessus 0/0, trois-quarts
+    avant et profil = l'œil tourné vers la caméra. La LUEUR DE LA GUEULE ne rougeoie plus à travers le crâne vue de dos (×.18).
+  · **LE VIRAGE** (`DRG.vir`, lacet de la trajectoire lissée + l'intention du volant au sol) : la tête PENCHE dedans (repère `kU/kR` de `MT`,
+    jusqu'à 17°), le museau REGARDE dedans, crinière, moustaches et flammèches rejetées vers l'EXTÉRIEUR, la nageoire extérieure s'ouvre,
+    le corps se TEND (ondes ×.55), des braises giclent du flanc extérieur.
+  · **L'AIR** (`DRG.air`) : le corps NAGE (ondes plus longues et plus lentes, `DRG.ph` : la phase court à sa vitesse), il traîne un peu
+    SOUS la trajectoire (entre la caméra et la caisse, un corps qui montait cachait la pose), les nageoires battent comme des AILES, la
+    gueule s'entrouvre et SOUFFLE, crinière et moustaches s'allongent. DÉCOLLAGE : la tête se cabre (`envol`) ; POSE : elle s'ÉCRASE
+    (`imp` : tassée, gueule qui claque, couronne de braises au ras de la route).
+  · **L'ANIMATION** : la tête a une INERTIE (ressort amorti `nodS/nodV` : elle plonge quand la caisse accélère, se cabre quand elle ralentit,
+    rebondit), elle RESPIRE (±2,2 %), le RUGISSEMENT a une attaque de 130 ms, crinière et moustaches ondulent en ONDES qui courent de la
+    racine au bout (de la soie, plus un tremblement). 0 programme lié en course. Bancs (scratchpad SON) : `drg-poursuite.js <préfixe>`
+    (poursuite + gros plans de la tête, état `yeux/virage/air/ressort` de `dbgDragon()`), `drgphoto-ss.js` (4 angles, SwiftShader) ;
+    `dbgDragon('tick')` recalcule une image du dragon pour la caméra d'une photo en pause.
 - ⚠ **LEÇON** : un `//` en milieu de ligne avale TOUT ce qui suit sur la ligne — `scene.add(DRG.tete)` écrit derrière un commentaire n'a jamais
   tourné (le sprite existait, invisible : `dbgDragon('ecran')` → `par:false`). Commentaire au milieu = `/* */`.
 - Aussi dans ce lot (audit GAMEPLAY) : `eclVide()` rend l'exposition et la brume (mourir pendant un éclair laissait l'écran de fin surexposé) ;
