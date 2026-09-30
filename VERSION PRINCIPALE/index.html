@@ -7579,11 +7579,13 @@ function buildCoton(cr){
   const strat=function(k,K){return Math.min(NP-1,Math.floor(((k+.18+cr()*.64)/K)*NP));};
   const perp=function(i){const t=T[i],l=Math.hypot(t.x,t.z)||1;return [-t.z/l,t.x/l];}; // le travers HORIZONTAL du ruban (jamais B[i] : piste inclinée)
   if(okD){
-    const OR=LVL.cur&&LVL.cur.id==='orage',M9=OR?1.6:1,KK=function(n){return Math.round(n*M9);};
+    const OR=LVL.cur&&LVL.cur.id==='orage',M9=OR?1.6:1,KK=function(n){return Math.max(1,Math.round(n*M9*(LVL.cur&&LVL.cur.id==='nuages'?.5:1)));}; // (2026-09-30) ×0,5 aux NUAGES (NZ, plus bas)
     /* (2026-09-30, Sacha : « retravaille les nuages dans le premier niveau, il en faut des plus gros ») GZ : aux NUAGES, les couronnes proche, du
        milieu, haute et lointaine grossissent de ~45 % (bornes de la loi de puissance ×1,45) — même nombre de nuages, mais des MASSES qui
        remplissent le cadre ; la garde de la route rejette toujours ceux qui la toucheraient (on en perd un peu : c'est voulu). */
-    const GZ=LVL.cur&&LVL.cur.id==='nuages'?1.45:1; // (2026-09-29) L'ORAGE : plus de nuages partout — (2026-09-30, « au point que ça gêne la visibilité ») ×1,25 → ×1,6
+    /* (2026-09-30, 2e passe, Sacha : « moins de nuages dans le premier niveau, mais il faut qu'ils soient plus gros ») : aux NUAGES, DEUX fois moins
+       de nuages dans chaque couronne (NZ) et des tailles ×1,9 (GZ, 1,45 à la 1re passe) — de grandes masses, et du ciel entre elles. */
+    const GZ=LVL.cur&&LVL.cur.id==='nuages'?1.9:1,NZ=LVL.cur&&LVL.cur.id==='nuages'?.5:1; // (2026-09-29) L'ORAGE : plus de nuages partout — (2026-09-30, « au point que ça gêne la visibilité ») ×1,25 → ×1,6
     for(let k=0;k<KK(30);k++){ // (1) LA COURONNE PROCHE, EN ARCHIPELS (Dragons) : des îlots de 2-3 nuages (un grand, ses satellites au même plafond),
       // et du CIEL OUVERT entre deux — 80 nuages semés un par un encombraient tout le champ (« liberté » = des vides qu'on traverse)
       const i=strat(k,KK(30)),p=pts[i],q=perp(i),sg=cr()<.5?-1:1,r=cotonR(cr,30*GZ,160*GZ,1.5),kk=cotonKind(cr,COTON_POIDS.pres),yB=p.y-130+cr()*300; // (v4) tailles en loi de puissance
@@ -7596,8 +7598,8 @@ function buildCoton(cr){
     for(let k=0;k<KK(116);k++){ // (3) LA COURONNE DU MILIEU : 0,35-1,3 km, tout autour, de la mer jusqu'à ~300 m au-dessus de la route
       const i=strat(k,KK(116)),p=pts[i],a=cr()*6.2832,d=(350+cr()*950)*(GZ>1?1.12:1),r=cotonR(cr,50*GZ,330*GZ,1.6);
       cotonPose(p.x+Math.cos(a)*d,p.y-210+cr()*520,p.z+Math.sin(a)*d,r,cotonKind(cr,COTON_POIDS.mil),cr);}
-    for(let k=0;k<44;k++){ // (4) LA COUCHE HAUTE : des cumulus qui se DÉCOUPENT sur le ciel (le haut d'un écran portrait, c'est du ciel)
-      const i=strat(k,44),p=pts[i],a=cr()*6.2832,d=260+cr()*1700,r=cotonR(cr,60*GZ,300*GZ,1.5);
+    for(let k=0,K4=Math.round(44*NZ);k<K4;k++){ // (4) LA COUCHE HAUTE : des cumulus qui se DÉCOUPENT sur le ciel (le haut d'un écran portrait, c'est du ciel)
+      const i=strat(k,K4),p=pts[i],a=cr()*6.2832,d=260+cr()*1700,r=cotonR(cr,60*GZ,300*GZ,1.5);
       cotonPose(p.x+Math.cos(a)*d,p.y+230+cr()*420,p.z+Math.sin(a)*d,r,cotonKind(cr,COTON_POIDS.mil),cr);}
     if(OR)for(let k=0;k<30;k++){ // (2026-09-30) LES MURS : au RAS de la route (la garde lui laisse ses 18-22 m), de chaque côté, à hauteur de caisse — la route file dans un
       // couloir de ouate : on ne voit plus d'où vient le virage, seulement la route devant soi, et l'éclair qui éclaire le couloir
@@ -7607,8 +7609,8 @@ function buildCoton(cr){
       // autour : le ciel se referme (des trouées entre deux), la lumière passe par en dessous — et l'éclair les allume
       const i=strat(k,42),p=pts[i],q=perp(i),lat=(cr()-.5)*900,r=cotonR(cr,110,230,1.2); // (2026-09-30) 26 → 42, et plus BAS (70-170 m) : le ciel se ferme
       cotonPose(p.x+q[0]*lat,p.y+70+cr()*100,p.z+q[1]*lat,r,cotonDe(cr,['stratocumulus','stratocumulus','humilis',1,4]),cr,.8+cr()*.25);}
-    for(let k=0;k<80;k++){ // (5) LE LOINTAIN : 1,2-2,6 km — l'horizon a ses nuages
-      const i=strat(k,80),p=pts[i],a=cr()*6.2832,d=1200+cr()*1400,r=cotonR(cr,120*GZ,560*GZ,1.4);
+    for(let k=0,K5=Math.round(80*NZ);k<K5;k++){ // (5) LE LOINTAIN : 1,2-2,6 km — l'horizon a ses nuages
+      const i=strat(k,K5),p=pts[i],a=cr()*6.2832,d=1200+cr()*1400,r=cotonR(cr,120*GZ,560*GZ,1.4);
       cotonPose(p.x+Math.cos(a)*d,p.y-260+cr()*700,p.z+Math.sin(a)*d,r,cotonKind(cr,COTON_POIDS.loin),cr);}
   }
   if(okG){ // (7) LES CATHÉDRALES (2026-09-29, Sacha : « encore plus beau et artistique, qu'on ressente la LIBERTÉ comme dans Dragons 1 ») :
@@ -7616,16 +7618,16 @@ function buildCoton(cr){
     // bord — une PORTE (les deux côtés : on file entre deux géants) ou une FALAISE (un seul côté : on longe un mur de ouate). Toutes les
     // ~1,4 km. ⚠ Essayé puis retiré : étirer la tour en hauteur (×1,5) et lui poser une COURONNE — les bourgeons devenaient des œufs
     // empilés, une « chenille » ; la hauteur vient de la TAILLE (r 220-340), l'étirement reste celui des autres nuages (×1-1,15).
-    const K7=Math.max(3,Math.floor(L/1400));
+    const K7=Math.max(3,Math.floor(L/(LVL.cur&&LVL.cur.id==='nuages'?2000:1400))); // (2026-09-30) aux NUAGES : moins de cathédrales, plus grosses
     for(let k=0;k<K7;k++){const i=strat(k,K7),p=pts[i],q=perp(i),cotes=cr()<.45?[-1,1]:[cr()<.5?-1:1];
-      for(const sg of cotes){const r=(220+cr()*120)*(LVL.cur&&LVL.cur.id==='nuages'?1.25:1),kk=cotonDe(cr,['congestus','cisaille','champignon',2]),yB=p.y-(220+cr()*120);let dd=ROAD_HALF+r*1.25+60+cr()*230;
+      for(const sg of cotes){const r=(220+cr()*120)*(LVL.cur&&LVL.cur.id==='nuages'?1.45:1),kk=cotonDe(cr,['congestus','cisaille','champignon',2]),yB=p.y-(220+cr()*120);let dd=ROAD_HALF+r*1.25+60+cr()*230;
         for(let t=0;t<3;t++,dd+=90)if(cotonPose(p.x+q[0]*sg*dd,yB,p.z+q[1]*sg*dd,r,kk,cr,1+cr()*.15))break;}}
   }
   if(okG){ // (6) MASSIFS et TITANS (ex-« ciel organisé ») : des tours de 300-1 200 m, au large, hors du couloir du couchant
     const sunAz=Math.atan2(SUN_DIR.z,SUN_DIR.x),loinSol=function(){for(let t=0;t<5;t++){const a=cr()*6.2832;let d9=(a-sunAz)%6.2832;if(d9>3.1416)d9-=6.2832;if(d9<-3.1416)d9+=6.2832;if(Math.abs(d9)>.62)return a;}return sunAz+3.1416;};
     for(let k=0;k<6;k++){const i=strat(k,6),p=pts[i],a=loinSol(),d=900+cr()*1300,r=280+cr()*300;cotonPose(p.x+Math.cos(a)*d,p.y-320+cr()*160,p.z+Math.sin(a)*d,r,cotonDe(cr,[2,0,'congestus','champignon','stratocumulus']),cr);} // (v4) les massifs piochent aussi dans les congestus tirés — (v6) et les champignons, les rouleaux
     for(let k=0;k<3;k++){const i=strat(k,3),p=pts[i],a=loinSol(),d=1700+cr()*1500,r=600+cr()*450;cotonPose(p.x+Math.cos(a)*d,p.y-420+cr()*200,p.z+Math.sin(a)*d,r,cotonDe(cr,[2,'congestus','champignon']),cr);}
-    for(let k=0;k<3;k++){const i=strat(k,3),p=pts[i],a=loinSol(),d=520+cr()*380,r=(200+cr()*140)*(LVL.cur&&LVL.cur.id==='nuages'?1.3:1); // (v4) les TOURS HÉROÏQUES : trois congestus qui montent TOUT PRÈS du couloir — le niveau a ses montagnes
+    for(let k=0;k<3;k++){const i=strat(k,3),p=pts[i],a=loinSol(),d=520+cr()*380,r=(200+cr()*140)*(LVL.cur&&LVL.cur.id==='nuages'?1.5:1); // (v4) les TOURS HÉROÏQUES : trois congestus qui montent TOUT PRÈS du couloir — le niveau a ses montagnes
       for(let t=0;t<3;t++)if(cotonPose(p.x+Math.cos(a)*(d+t*160),p.y-300+cr()*80,p.z+Math.sin(a)*(d+t*160),r,cotonDe(cr,['congestus','cisaille']),cr))break;}
     {const i=Math.min(NP-1,Math.floor(NP*(.6+cr()*.15))),p=pts[i],a=sunAz+3.1416+(cr()-.5)*.9,d=1500+cr()*700;cotonPose(p.x+Math.cos(a)*d,p.y-380,p.z+Math.sin(a)*d,760+cr()*300,2,cr);} // LE COLOSSE, à l'opposé du couchant
   }

@@ -363,6 +363,9 @@ scratchpad GAMEPLAY). Ce qui suit est EN JEU, mesuré au banc sauf mention.
 - **Des nuages plus gros au 1er niveau** (`GZ` dans `buildCoton`, NUAGES seulement) : couronnes proche, milieu, haute et lointaine ×1,45
   (bornes de `cotonR`), cathédrales ×1,25, tours héroïques ×1,3. Même nombre tiré ; la garde de la route rejette ceux qui la toucheraient.
   MESURÉ : 391-415 k triangles envoyés (365-370 k avant).
+  **2e passe** (« moins de nuages dans le premier niveau, mais plus gros ») : aux NUAGES, chaque couronne ×0,5 (`NZ`, et `KK` ×0,5), tailles
+  ×1,9 (`GZ`), cathédrales plus rares (L/2000) et ×1,45, tours héroïques ×1,5. MESURÉ en course : 188 nuages posés (355), 185-218 k
+  triangles envoyés (226-323 k) — de grandes masses et du ciel entre elles.
 - **Le cycle a SIX niveaux** : NUAGES → VILLE → ORBITE → ORAGE → **MINUIT EN VILLE** → **PLUIE DE SATELLITES** (`zn % NIVEAUX.length`).
   Le compte des visites des NUAGES (filets 3/2/1) divise désormais par `NIVEAUX.length` (il divisait par 3).
 - **MINUIT EN VILLE (5e)** : `{id:'ville', nuit:1, bio:['nuitNoire'], pluie:.55, route:.42}` — GARDER `id:'ville'` (toute la ville, l'entrée
