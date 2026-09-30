@@ -1,5 +1,22 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE GARAGE EST LE MENU (2026-09-30, sketch de Léo) — « le garage devient le nouveau menu »
+- L'ACCUEIL n'existe plus à l'écran : le routeur (`mGo`), en arrivant sur 'home', appelle `garAccueil()` qui ouvre l'atelier en mode MENU
+  (direct au 1er lancement et sous un voile déjà levé, sinon par `ecranWipe`) ; refusé si une course tourne ou si un nom se saisit. Tout ce qui
+  revenait à l'accueil y revient donc : retour des RÉGLAGES, des MISSIONS, de la BOUTIQUE (vrai argent), MENU de l'écran de mort.
+- DEUX MODES, UNE SCÈNE (`garMode('menu'|'boutique')`, classe `#garage.menu`) :
+  · MENU (`#gMenu`) : profil en haut à gauche (`#gProfil` : avatar pixel SVG, argent + jauge vers la prochaine caisse à vendre (`objectif()`),
+    aura + rang + jauge vers le rang suivant), JOUER en pixels en haut au centre (`#gPlayMain`, enfin montré — sous le profil sur écran
+    étroit < 760 px), ⚙ en haut à droite (`#gReglage`), le SOCLE DES MISSIONS (3D : fût de fer cerclé de néon vert, cible qui tourne, à droite
+    de la caisse hors du plateau, `GAR.misCible`/`GAR.misPos`) + son étiquette DOM qui le suit (`#gMisAncre`, `garMenuSuit`, retenue dans
+    l'écran), en bas `#gMenuBas` : [🔒 BIENTÔT — verrouillé pour l'instant] [NIVEAU n · MONDE — la carrière en cours, ouvre `carrVue`]
+    [BOUTIQUE]. Au menu : TA caisse (pas d'essai), un glissé fait tourner le plateau sans changer de caisse, Échap ne fait rien, la caméra
+    s'approche (×.8 : plus d'onglets en bas) ; `garLibre` cadre entre JOUER et la rangée du bas.
+  · BOUTIQUE : l'ancien atelier tel quel (fiche, onglets, vignettes, achat, MENU | BOUTIQUE | JOUER) — sa MAISON (et Échap) rendent le MENU.
+    Les autres chemins vers l'atelier (mort → GARAGE, missions → VOIR, objectif) l'ouvrent en BOUTIQUE.
+- JOUER (pixels, clic ou Entrée) passe par `garJouer` : 1er JOUER → le mode (facChoix), essai → ta caisse, auto-école.
+- Pas repris du sketch (en attente de Léo) : le grand rectangle vertical à gauche (non légendé).
+
 ## LA BOUTIQUE EN BAS DU GARAGE (2026-09-30, session INTERFACE — demande de Sacha relayée par DEBUGGING, idée de Léo)
 - `#gShopBas` (pb-mag, panier + mot) dans `#gAct` : **MENU | BOUTIQUE | lingot d'or** — même format que MENU, même chemin que l'ancienne
   icône (`#gOutils [data-go=shop]`, désormais masquée : une seule porte, dans le tiers bas, charte règles 3-4).
