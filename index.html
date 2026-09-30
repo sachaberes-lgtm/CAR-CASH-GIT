@@ -4972,6 +4972,7 @@ html #garage.nivOuvert:not(.boutique):not(.quiet):not(.launching) #gNiv{display:
           <div class="volRow" id="mVolRowSfx"><div class="volHd"><span>VOLUME</span><b id="mVolSfxV">100%</b></div><input type="range" class="volS" id="mVolSfx" min="0" max="100" step="5" value="100"></div>
           <div class="mLigne avecVol" data-m="mus"><i class="pxi pxi-musique" aria-hidden="true"></i><span class="tpL">MUSIQUE</span><b id="mvMus" class="bascule">ON</b></div>
           <div class="volRow" id="mVolRowMus"><div class="volHd"><span>VOLUME</span><b id="mVolMusV">62%</b></div><input type="range" class="volS" id="mVolMus" min="0" max="100" step="5" value="62"></div>
+          <div class="mLigne" data-m="musGen"><i class="pxi pxi-musique" aria-hidden="true"></i><span class="tpL">SOURCE</span><b id="mvMusGen" class="valeur">FICHIERS</b></div><!-- (2026-10-01) la musique : les FICHIERS ou le GÉNÉRATEUR -->
           <div class="mLigne avecVol" data-m="vox"><i class="pxi pxi-voix" aria-hidden="true"></i><span class="tpL">VOIX</span><b id="mvVox" class="bascule">ON</b></div>
           <div class="volRow" id="mVolRowVox"><div class="volHd"><span>VOLUME</span><b id="mVolVoxV">100%</b></div><input type="range" class="volS" id="mVolVox" min="0" max="100" step="5" value="100"></div>
         </div>
@@ -10225,7 +10226,7 @@ Object.assign(I18N_ZH,{"VRAIMENT ?": "确定？", "PERMIS": "驾照", "SORTI ! S
 /* LES CLÉS SANS LEUR SYMBOLE (2026-09-24) : les symboles de tête (✓ 🔒 ★ 📋…) sont devenus des ICÔNES PIXEL
    posées à côté du texte. Chaque clé « symbole + espace + texte » reçoit donc un ALIAS « texte » seul, qui
    traduit pareil — sans ça, retirer l'emoji d'un libellé lui aurait fait perdre sa traduction. */
-for(const [k,v] of Object.entries({"JOUER": "PLAY", "CARRIERE": "CAREER", "MODES": "MODES", "REGLAGES": "SETTINGS", "REJOUER": "PLAY AGAIN", "MEILLEUR :": "BEST:", "MEILLEUR": "BEST", "CAISSE": "CAR", "UNE SEULE VIE · TOUT LE CIEL": "ONE LIFE · THE WHOLE SKY", "AUDIO": "AUDIO", "JEU": "GAME", "SAUVEGARDE": "SAVE", "SON": "SOUND", "MUSIQUE": "MUSIC", "VOIX": "VOICE", "VOLUME": "VOLUME", "COMMANDES": "CONTROLS", "IMAGE": "GRAPHICS", "LANGUE": "LANGUAGE", "DEVISE": "CURRENCY", "COPIER MA SAUVEGARDE": "COPY MY SAVE", "RESTAURER UN CODE": "RESTORE A CODE", "EFFACER MA PROGRESSION": "ERASE MY PROGRESS", "SURVIVANT": "SURVIVOR", "PARC FREESTYLE": "FREESTYLE PARK", "BAC A SABLE": "SANDBOX", "REPRENDRE": "RESUME", "FERMER": "CLOSE", "REPLACER LA CAISSE": "RESET THE CAR", "RECOMMENCER": "RESTART", "QUITTER": "QUIT", "PAUSE": "PAUSE", "LA PARTIE": "THIS RUN", "VOLANT": "WHEEL", "FLECHES": "ARROWS", "RAPIDE": "FAST", "NETTE": "SHARP", "FIGURES": "TRICKS", "ENTRAINEMENT TERMINE": "TRAINING OVER", "NOUVEAU RECORD !": "NEW RECORD!", "MOTEUR ATTEINT": "ENGINE REACHED", "GLISSE POUR TOURNER": "SWIPE TO STEER", "glisse pour tourner · pince pour zoomer": "drag to turn · pinch to zoom", "touche CASH CAR — le son s'allume avec toi": "tap CASH CAR — sound comes alive with you", "MA SAUVEGARDE": "MY SAVE", "Garde ce code : il restaure toute ta progression.": "Keep this code: it restores all your progress.", "COPIER": "COPY", "COPIE !": "COPIED!", "RESTAURER": "RESTORE", "Colle ton code de sauvegarde.": "Paste your save code.", "ANNULER": "CANCEL", "RESTAURE — RECHARGE…": "RESTORED — RELOADING…", "CODE INVALIDE": "INVALID CODE", "TOUT EFFACER ?": "ERASE EVERYTHING?", "Records, caisses débloquées, carrière et réglages repartent de zéro.": "Records, unlocked cars, career and settings start over.", "EFFACER": "ERASE", "TERMINE LE NIVEAU": "FINISH LEVEL", "NUAGES": "CLOUDS", "VILLE": "CITY", "ESPACE": "SPACE", "10 heures du jour, de l'aurore au coucher du soleil.": "10 hours of the day, from dawn to sunset.", "Du coucher du soleil à midi, au-dessus du village de la pluie.": "From sunset to noon, above the hidden rain village.", "Au plus près des planètes du système solaire.": "Up close to the planets of the solar system.", "AURORE": "DAWN", "PREMIERES LUEURS": "FIRST LIGHT", "LEVER DU SOLEIL": "SUNRISE", "MATIN FRAIS": "CRISP MORNING", "MATIN": "MORNING", "MIDI": "NOON", "APRES-MIDI": "AFTERNOON", "FIN D'APRES-MIDI": "LATE AFTERNOON", "HEURE DOREE": "GOLDEN HOUR", "COUCHER DE SOLEIL": "SUNSET", "SOIREE": "EVENING", "PLUIE NEON": "NEON RAIN", "MINUIT": "MIDNIGHT", "ORAGE": "STORM", "AVANT L'AUBE": "BEFORE DAWN", "AUBE": "DAYBREAK", "LEVER": "SUNRISE", "MERCURE": "MERCURY", "VENUS": "VENUS", "TERRE": "EARTH", "LUNE": "MOON", "MARS": "MARS", "JUPITER": "JUPITER", "SATURNE": "SATURN", "URANUS": "URANUS", "NEPTUNE": "NEPTUNE", "PLUTON": "PLUTO", "Elle démarre par pitié. Fais des thunes et oublie-la vite.": "It starts out of pity. Make cash and forget it fast.", "Ça roule. Vu d'où tu viens, c'est déjà un miracle.": "It runs. Given where you're from, that's already a miracle.", "Conçue pour rouler prudemment. Toi, prudent ? On y croit fort.": "Built to drive carefully. You, careful? Sure.", "Elle ne double pas. Elle DÉPLACE.": "It doesn't overtake. It RELOCATES.", "L'écologie te fait coucou dans le rétro. T'as pas de rétro.": "Ecology waves at you in the mirror. You don't have mirrors.", "Refuse de rouler sous 200. Toi aussi, maintenant.": "Refuses to go under 200. So do you, now.", "Elle découpe les virages. Les autres les négocient.": "It carves corners. Others negotiate them.", "Ceux qui l'ont doublée en parlent encore. Ah non : personne.": "Those who passed it still talk about it. Oh wait: nobody.", "Le taureau doré. Assurance résiliée d'office.": "The golden bull. Insurance cancelled on sight.", "Le circuit appelle ça tricher. Nous, du talent.": "The track calls it cheating. We call it talent.", "Prototype d'endurance. Faite pour rouler la nuit entière.": "Endurance prototype. Built to run all night.", "La reine du ciel, et elle le sait.": "Queen of the sky, and she knows it.", "Passée au bain d'acide. Ça se voit.": "Dipped in acid. It shows.", "Personne n'a demandé pourquoi. Tout le monde a demandé comment.": "Nobody asked why. Everybody asked how.", "Au sol, il roule. En l'air, il chasse.": "On the ground, it drives. In the air, it hunts."}))if(!(k in I18N))I18N[k]=v; // la coque mobile, la carrière, les fenêtres, les fiches des caisses (2026-09-24)
+for(const [k,v] of Object.entries({"JOUER": "PLAY", "CARRIERE": "CAREER", "MODES": "MODES", "REGLAGES": "SETTINGS", "REJOUER": "PLAY AGAIN", "MEILLEUR :": "BEST:", "MEILLEUR": "BEST", "CAISSE": "CAR", "UNE SEULE VIE · TOUT LE CIEL": "ONE LIFE · THE WHOLE SKY", "AUDIO": "AUDIO", "JEU": "GAME", "SAUVEGARDE": "SAVE", "SON": "SOUND", "MUSIQUE": "MUSIC", "VOIX": "VOICE", "VOLUME": "VOLUME", "COMMANDES": "CONTROLS", "IMAGE": "GRAPHICS", "LANGUE": "LANGUAGE", "DEVISE": "CURRENCY", "COPIER MA SAUVEGARDE": "COPY MY SAVE", "RESTAURER UN CODE": "RESTORE A CODE", "EFFACER MA PROGRESSION": "ERASE MY PROGRESS", "SURVIVANT": "SURVIVOR", "PARC FREESTYLE": "FREESTYLE PARK", "BAC A SABLE": "SANDBOX", "REPRENDRE": "RESUME", "FERMER": "CLOSE", "REPLACER LA CAISSE": "RESET THE CAR", "RECOMMENCER": "RESTART", "QUITTER": "QUIT", "PAUSE": "PAUSE", "LA PARTIE": "THIS RUN", "VOLANT": "WHEEL", "FLECHES": "ARROWS", "RAPIDE": "FAST", "NETTE": "SHARP", "FIGURES": "TRICKS", "ENTRAINEMENT TERMINE": "TRAINING OVER", "NOUVEAU RECORD !": "NEW RECORD!", "MOTEUR ATTEINT": "ENGINE REACHED", "GLISSE POUR TOURNER": "SWIPE TO STEER", "glisse pour tourner · pince pour zoomer": "drag to turn · pinch to zoom", "touche CASH CAR — le son s'allume avec toi": "tap CASH CAR — sound comes alive with you", "MA SAUVEGARDE": "MY SAVE", "Garde ce code : il restaure toute ta progression.": "Keep this code: it restores all your progress.", "COPIER": "COPY", "COPIE !": "COPIED!", "RESTAURER": "RESTORE", "Colle ton code de sauvegarde.": "Paste your save code.", "ANNULER": "CANCEL", "RESTAURE — RECHARGE…": "RESTORED — RELOADING…", "CODE INVALIDE": "INVALID CODE", "TOUT EFFACER ?": "ERASE EVERYTHING?", "Records, caisses débloquées, carrière et réglages repartent de zéro.": "Records, unlocked cars, career and settings start over.", "EFFACER": "ERASE", "TERMINE LE NIVEAU": "FINISH LEVEL", "NUAGES": "CLOUDS", "VILLE": "CITY", "ESPACE": "SPACE", "10 heures du jour, de l'aurore au coucher du soleil.": "10 hours of the day, from dawn to sunset.", "Du coucher du soleil à midi, au-dessus du village de la pluie.": "From sunset to noon, above the hidden rain village.", "Au plus près des planètes du système solaire.": "Up close to the planets of the solar system.", "AURORE": "DAWN", "PREMIERES LUEURS": "FIRST LIGHT", "LEVER DU SOLEIL": "SUNRISE", "MATIN FRAIS": "CRISP MORNING", "MATIN": "MORNING", "MIDI": "NOON", "APRES-MIDI": "AFTERNOON", "FIN D'APRES-MIDI": "LATE AFTERNOON", "HEURE DOREE": "GOLDEN HOUR", "COUCHER DE SOLEIL": "SUNSET", "SOIREE": "EVENING", "PLUIE NEON": "NEON RAIN", "MINUIT": "MIDNIGHT", "ORAGE": "STORM", "AVANT L'AUBE": "BEFORE DAWN", "AUBE": "DAYBREAK", "LEVER": "SUNRISE", "MERCURE": "MERCURY", "VENUS": "VENUS", "TERRE": "EARTH", "LUNE": "MOON", "MARS": "MARS", "JUPITER": "JUPITER", "SATURNE": "SATURN", "URANUS": "URANUS", "NEPTUNE": "NEPTUNE", "PLUTON": "PLUTO", "Elle démarre par pitié. Fais des thunes et oublie-la vite.": "It starts out of pity. Make cash and forget it fast.", "Ça roule. Vu d'où tu viens, c'est déjà un miracle.": "It runs. Given where you're from, that's already a miracle.", "Conçue pour rouler prudemment. Toi, prudent ? On y croit fort.": "Built to drive carefully. You, careful? Sure.", "Elle ne double pas. Elle DÉPLACE.": "It doesn't overtake. It RELOCATES.", "L'écologie te fait coucou dans le rétro. T'as pas de rétro.": "Ecology waves at you in the mirror. You don't have mirrors.", "Refuse de rouler sous 200. Toi aussi, maintenant.": "Refuses to go under 200. So do you, now.", "Elle découpe les virages. Les autres les négocient.": "It carves corners. Others negotiate them.", "Ceux qui l'ont doublée en parlent encore. Ah non : personne.": "Those who passed it still talk about it. Oh wait: nobody.", "Le taureau doré. Assurance résiliée d'office.": "The golden bull. Insurance cancelled on sight.", "Le circuit appelle ça tricher. Nous, du talent.": "The track calls it cheating. We call it talent.", "Prototype d'endurance. Faite pour rouler la nuit entière.": "Endurance prototype. Built to run all night.", "La reine du ciel, et elle le sait.": "Queen of the sky, and she knows it.", "Passée au bain d'acide. Ça se voit.": "Dipped in acid. It shows.", "Personne n'a demandé pourquoi. Tout le monde a demandé comment.": "Nobody asked why. Everybody asked how.", "Au sol, il roule. En l'air, il chasse.": "On the ground, it drives. In the air, it hunts."}))if(!(k in I18N))I18N[k]=v;for(const [k,v] of Object.entries({"SOURCE":"SOURCE","FICHIERS":"FILES","GENEREE":"GENERATED"}))if(!(k in I18N))I18N[k]=v; // (2026-10-01) la source de la musique · la coque mobile, la carrière, les fenêtres, les fiches des caisses (2026-09-24)
 for(const D of [I18N,I18N_ZH])for(const k of Object.keys(D)){
   const m=/^[\u2190-\u2BFF\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF]+\s+(.+)$/.exec(k);
   if(m&&!(m[1] in D))D[m[1]]=String(D[k]).replace(/^[\u2190-\u2BFF\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF]+\s+/,'');
@@ -21917,7 +21918,8 @@ function musicPickNext(excludeIdx){
   let i;do{i=Math.floor(Math.random()*MUSIC_TRACKS.length);}while(i===excludeIdx);
   return i;
 }
-const MUSIC={menu:'assets/audio/music/swag-cash-car-2.m4a'}; // (2026-09-27, Léo) LA MUSIQUE D'INTRO : « SWAG CASH CAR » (2e version) — accueil, garage, écran de fin (livrée en Opus/MP4, ré-encodée en AAC) · vide = le morceau du 1er niveau
+const MUSIC={menu:'assets/audio/music/glassy-plucks-boucle.m4a'}; // (2026-10-01, Léo) le LOBBY = la boucle GLASSY PLUCKS (la section 1:04 → 2:14, voir GEN_GLASSY) · avant : 'assets/audio/music/swag-cash-car-2.m4a' (SWAG CASH CAR)
+// // (2026-09-27, Léo) LA MUSIQUE D'INTRO : « SWAG CASH CAR » (2e version) — accueil, garage, écran de fin (livrée en Opus/MP4, ré-encodée en AAC) · vide = le morceau du 1er niveau
 // musicBaseVol .85→1 (2026-09-24, « la musique pas assez forte comparé au moteur ») : on relève le
 // NIVEAU ACCORDÉ et pas la valeur par défaut du curseur — celle-ci est sauvegardée chez le joueur
 // (`SAVE.d.vol.mus`), la changer n'aurait rien fait pour qui a déjà joué. Le moteur, lui, a reculé
@@ -21980,7 +21982,9 @@ function musicPremier(){const n0=NIVEAUX[0],l=n0&&MUSIC_LIEU[n0.id];return l?l.f
    (les effets se mêlent à sa musique, et suivent le bouton silencieux comme n'importe quel jeu). Rappelé à chaque bascule MUSIQUE. */
 function musicSession(){try{const s9=navigator.audioSession,v9=SND.music?'playback':'ambient';if(s9&&s9.type!==v9)s9.type=v9;}catch(e){}}
 function musicJoue(){ // lance (ou relance) la lecture — un refus n'est jamais perdu : le prochain toucher réessaie
-  if(!SND.music||!musicVoulue||paused)return; // ⚠ PAS de garde `document.hidden` ici : certaines WebViews se disent « cachées » au démarrage — la musique ne partirait jamais
+  if(!SND.music||!musicVoulue||paused)return;
+  if(GEN.on||GEN.mis){genJoue();return;} // (2026-10-01) LE GÉNÉRATEUR tient l'antenne (voir <<<GENERATEUR>>>) : le <audio> se tait
+  // ⚠ PAS de garde `document.hidden` ici : certaines WebViews se disent « cachées » au démarrage — la musique ne partirait jamais
   const el=musicElGet();musicSession();
   try{el.volume=Math.max(0,Math.min(1,musicVolCour));}catch(e){}
   const p=el.play();
@@ -21995,12 +21999,13 @@ function musicDeverrouille(){ // appelé à CHAQUE toucher/touche (en capture) :
       if(p&&p.then)p.then(fin,function(){el.muted=false;musicDeverrouille._ok=false;});else fin();
       return;}
   }
+  if(GEN.ac&&GEN.ac.state==='suspended'&&GEN.voulu&&!paused)try{GEN.ac.resume();}catch(e){} // (2026-10-01) le contexte du GÉNÉRATEUR se relance au toucher
   if(musicVoulue&&SND.music&&(el.paused||musicEnAttente))musicJoue();
 }
 ['pointerdown','touchend','keydown'].forEach(function(ev){addEventListener(ev,function(){try{musicDeverrouille();}catch(e){}},MUSIC_PASSIF);});
 // l'arrière-plan : on se tait, et on reprend au retour si la musique devait jouer
 document.addEventListener('visibilitychange',function(){try{
-  if(document.hidden){if(musicEl&&!musicEl.paused)musicEl.pause();}
+  if(document.hidden){if(musicEl&&!musicEl.paused)musicEl.pause();if(GEN.joue)genPause(true);}
   else if(musicVoulue&&!paused)musicJoue();}catch(e){}});
 /* L'ANALYSE DU RYTHME (le ciel qui bat) — une DÉRIVATION, jamais sur le chemin du son. `captureStream()` (Chrome,
    Edge, Android) rend une copie du flux : l'élément continue de jouer normalement. ⚠ PAS `mozCaptureStream` : sous
@@ -22029,7 +22034,7 @@ function playMusic(url,opt){opt=opt||{};
   if(el.paused||!meme)musicJoue();
   return el;
 }
-function stopMusic(){musicVoulue=false;if(musicEl){try{musicEl.pause();}catch(e){}}musicOn=false;}
+function stopMusic(){musicVoulue=false;try{genStop(false);}catch(e){}if(musicEl){try{musicEl.pause();}catch(e){}}musicOn=false;}
 // ---- LE GESTIONNAIRE : menu étouffé → partie (même morceau, qui s'ouvre) → radio → tape-stop en fin ----
 function musicStartRun(){ // au début d'une partie (start / resetGame)
   if(!SND.music||!MUSIC_TRACKS.length)return;
@@ -22066,6 +22071,7 @@ function musicNext(){
 function musicStop(tape){ // fin de partie : « tape-stop » (la bande ralentit et s'éteint) ou coupure nette
   musicMode='none';musicVoulue=false;
   clearInterval(FRENM.iv);FRENM.on=false;FRENM.sw=false;FRENM.surm=false; // la frénésie ne survit pas à la partie
+  if(GEN.on){GEN.fren=false;genStop(!!tape);return;} // (2026-10-01) le générateur s'étouffe comme une bande
   const el=musicEl;
   if(!el||el.paused||!tape){stopMusic();return;}
   let r=1,v=musicVolCour;
@@ -22112,6 +22118,7 @@ function frenMusRate(){ // le morceau de la triade a échoué : retour radio, pu
 }
 function frenMus(on){
   if(on===FRENM.on)return;FRENM.on=on;
+  if(GEN.on){GEN.fren=on&&musicMode==='run';return;} // (2026-10-01) le générateur bascule sur sa recette FRÉNÉSIE à la barre suivante
   const el=musicEl;
   if(on){
     if(!SND.music||musicMode!=='run'||!el)return;
@@ -22131,7 +22138,267 @@ function frenMus(on){
 }
 setTimeout(function(){try{frenMusSonde();}catch(e){}},2500);
 // la pause du jeu met la musique en pause (et la reprend) — elle ne passe plus par l'AudioContext suspendu
-function musicPause(p){try{if(!musicEl)return;if(p){if(!musicEl.paused)musicEl.pause();}else if(musicVoulue)musicJoue();}catch(e){}}
+function musicPause(p){try{if(GEN.on||GEN.mis){genPause(p);return;}if(!musicEl)return;if(p){if(!musicEl.paused)musicEl.pause();}else if(musicVoulue)musicJoue();}catch(e){}}
+/* <<<GENERATEUR>>> ============================================================
+   LE GÉNÉRATEUR DE MUSIQUE (2026-10-01, Léo : « générateur musique cash car » → « musique procédurale en jeu »)
+   ----------------------------------------------------------------------------
+   Une bande-son COMPOSÉE EN DIRECT, qui joue la course au lieu de passer à côté : au sol le groove, EN VOL la batterie
+   se retire et le filtre s'ouvre (on flotte), à la POSE la grosse caisse retombe (le drop, c'est toi qui le déclenches),
+   la NITRO pousse les charlestons en doubles et monte un souffle, la FRÉNÉSIE bascule sur sa propre recette (808 qui
+   glisse, lead saturé). Chaque MONDE a sa recette (tempo, tonalité, grille, rythmes) ; tout change à la BARRE, jamais
+   au milieu d'un temps.
+   · INTERRUPTEUR : RÉGLAGES › SOURCE (FICHIERS · GÉNÉRÉE), `SAVE.d.musGen`, `?musgen=1|0` pour essayer. Éteint (défaut),
+     rien ne change : la radio de fichiers joue comme avant.
+   · SON PROPRE CONTEXTE AUDIO (`GEN.ac`, créé pendant un toucher, relancé par chaque toucher suivant) : sur `AC` il se
+     taisait avec l'interrupteur SON (qui suspend le contexte des effets). ⚠ Sur iPhone, WebAudio suit le bouton SILENCIEUX :
+     c'est le prix de la synthèse — les FICHIERS restent le défaut.
+   · SORTIE : gain (volume MUSIQUE × ducking de l'annonceur, lus sur `musicVolCour`) → compresseur doux → limiteur → haut-
+     parleurs. Son analyseur REMPLACE `musicAna` tant qu'il joue (rendu à la fin) : le ciel qui bat, les rails, le bloom
+     réagissent sans une ligne de plus.
+   · TONALITÉ : chaque recette porte `ton` (même échelle que `SON_TON` : la pentatonique de MI décalée de `ton`
+     demi-tons ; la tonique mineure est donc DO# + ton) — les récompenses de la console de son jouent dans la gamme.
+   · RECETTES : `GEN_REC`. Une nouvelle ambiance = une entrée (tirée de morceaux de référence : on en garde le TEMPO, la
+     TONALITÉ, la GRILLE et les RYTHMES — jamais l'audio ni la mélodie, qui restent protégés).
+   · Console : `dbgMusGen()` (état) · `dbgMusGen(1|0)` (allumer/éteindre) · `dbgMusGen('ville')` (forcer une recette,
+     `null` rend la main).
+   ========================================================================== */
+/* degrés de la gamme mineure naturelle, en demi-tons depuis la tonique */
+const GEN_GAM=[0,2,3,5,7,8,10];
+/* LES RECETTES. prog = degrés (0 = i, 5 = VI…) une barre chacun · k/s/h = grosse caisse / caisse claire / charleston
+   sur 16 doubles-croches ('x' plein, 'o' fantôme, '.' rien) · b = basse (degré de l'accord en demi-tons, '.' rien,
+   '-' tenue) · arp = ordre de l'arpège · pad/arp/lead = timbres · half = batterie en demi-tempo. */
+/* LA BOUCLE « GLASSY PLUCKS » (2026-10-01, Léo : « la partie intéressante de 1:04 à après 2:10, pour la musique du lobby,
+   et une boucle pour les missions avec une musique par-dessus ») — la section pleine du morceau Suno, 1:04,13 → 2:14,37 :
+   44 mesures EXACTES à 150,335 BPM (tempo mesuré au flux spectral : 150,38 ; les bornes sont les deux transitoires qui
+   ouvrent et ferment la section), raccord fondu 30 ms dans ce qui précède naturellement le début. Tonalité : centre DO#,
+   couleur DORIENNE (do# mi fa# la# si en tête du chroma) → `ton` 0, gamme dorienne. Rendue par le générateur en
+   AudioBuffer bouclé à l'échantillon près, la couche composée est donc CALÉE sur ses mesures. */
+const GEN_GLASSY={f:'assets/audio/music/glassy-plucks-boucle.m4a',dur:70.24333,bpm:150.335,g:.9};
+const GEN_DOR=[0,2,3,5,7,9,10];
+const GEN_REC={
+  lobby: {bpm:150.335,ton:0,gam:GEN_DOR,boucle:GEN_GLASSY,seul:1,prog:[0,3,6,4],k:'................',s:'................',h:'................',
+          b:'................',arp:[0],padC:900,arpW:'triangle',swing:0},
+  missions:{bpm:150.335,ton:0,gam:GEN_DOR,boucle:GEN_GLASSY,int:.72,prog:[0,0,3,4],k:'x.........x.....',s:'....x.......x...',h:'..x...x...x.x.x.',
+          b:'0-.....0..0.....',arp:[0,4,7,9,7,4],padC:800,arpW:'sine',swing:0,glide:1,sansNappe:1},
+  menu:  {bpm:92, ton:-1,prog:[0,5,2,6],k:'x.......x.x.....',s:'....x.......x...',h:'..x...x...x...x.',
+          b:'0.......0..0....',arp:[0,2,4,7,4,2],padC:900, arpW:'triangle',swing:.12},
+  nuages:{bpm:116,ton:2, prog:[0,6,5,6],k:'x.....x...x.....',s:'....x.......x...',h:'x.x.x.x.x.x.x.x.',
+          b:'0.0.0-0.0.0.0-0.',arp:[0,4,7,11,7,4],padC:1600,arpW:'triangle',swing:0},
+  ville: {bpm:126,ton:1, prog:[0,3,5,4],k:'x...x...x...x...',s:'....x.......x...',h:'.xx..xx..xx..xx.',
+          b:'0..0..0.0..0..7.',arp:[0,3,7,10,12,10],padC:1100,arpW:'sawtooth',swing:0},
+  orbite:{bpm:100,ton:0, prog:[0,5,3,6],k:'x.........x.....',s:'........x.......',h:'..x...x...x...xx',
+          b:'0-------5-------',arp:[0,7,12,14,12,7],padC:700, arpW:'sine',swing:.08,half:1},
+  fren:  {bpm:140,ton:3, prog:[0,0,5,6],k:'x..x..x...x..x..',s:'....x.......x..x',h:'xxxxxxxxxxxxxxxx',
+          b:'0..0..0.-.0..7..',arp:[0,3,7,12,15,12],padC:2400,arpW:'sawtooth',swing:0,lead:1,glide:1}
+};
+const GEN={on:false,joue:false,ac:null,out:null,cmp:null,filt:null,duck:null,dly:null,dlyG:null,nz:null,
+  iv:0,t:0,pas:0,mis:false,int:.3,src:null,buf:null,bufEtat:0,barre:0,rec:null,nom:'',force:null,vol:0,alea:mulberry32(0xCA5CA7),
+  air:0,nitro:0,fren:false,drop:0,tape:false};
+function genSur(){return !!GEN.on;} // le générateur tient l'antenne ?
+function genBruit(ac){const n=ac.sampleRate|0,b=ac.createBuffer(1,n,ac.sampleRate),d=b.getChannelData(0);let s=0x9E3779B9;
+  for(let i=0;i<n;i++){s^=s<<13;s^=s>>>17;s^=s<<5;d[i]=((s>>>0)/4294967296)*2-1;}return b;}
+function genGraphe(){ // bâti UNE fois, sur SON contexte
+  if(GEN.ac&&GEN.out){if(GEN.ac.state==='suspended'&&!document.hidden&&!paused)try{GEN.ac.resume();}catch(e){}return true;}
+  const C=window.AudioContext||window.webkitAudioContext;if(!C)return false;
+  let ac;try{ac=GEN.ac=new C({latencyHint:'playback'});}catch(e){try{ac=GEN.ac=new C();}catch(x){return false;}}
+  try{ac.resume();}catch(e){}
+  GEN.out=ac.createGain();GEN.out.gain.value=0;
+  GEN.filt=ac.createBiquadFilter();GEN.filt.type='lowpass';GEN.filt.frequency.value=1200;GEN.filt.Q.value=.6;
+  GEN.cmp=ac.createDynamicsCompressor();GEN.cmp.threshold.value=-16;GEN.cmp.ratio.value=3;GEN.cmp.attack.value=.01;GEN.cmp.release.value=.2;
+  GEN.duck=ac.createGain();GEN.duck.gain.value=1;                         // la « pompe » : tout ce qui n'est pas la batterie respire sous la grosse caisse
+  GEN.dly=ac.createDelay(1);GEN.dlyG=ac.createGain();GEN.dlyG.gain.value=.32; // l'écho de l'arpège, calé sur la croche pointée
+  const dF=ac.createBiquadFilter();dF.type='lowpass';dF.frequency.value=2600;
+  GEN.dly.connect(dF);dF.connect(GEN.dlyG);GEN.dlyG.connect(GEN.dly);GEN.dlyG.connect(GEN.duck);
+  GEN.duck.connect(GEN.filt);
+  GEN.bat=ac.createGain();GEN.bat.connect(GEN.filt);                      // la batterie ne pompe pas
+  GEN.filt.connect(GEN.cmp);GEN.cmp.connect(GEN.out);
+  const lim=ac.createDynamicsCompressor();lim.threshold.value=-1.5;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=.002;lim.release.value=.12;
+  GEN.out.connect(lim);lim.connect(ac.destination);
+  GEN.ana=ac.createAnalyser();GEN.ana.fftSize=256;GEN.ana.smoothingTimeConstant=.55;GEN.out.connect(GEN.ana);
+  GEN.nz=genBruit(ac);
+  return true;
+}
+function genAna(on){ // l'analyseur du ciel : le nôtre tant qu'on joue, celui des FICHIERS ensuite
+  if(on){if(musicAna!==GEN.ana){GEN._anaPrev=musicAna;GEN._dataPrev=musicData;musicAna=GEN.ana;musicData=new Uint8Array(GEN.ana.frequencyBinCount);}}
+  else if(GEN.ana&&musicAna===GEN.ana){musicAna=GEN._anaPrev||null;musicData=GEN._dataPrev||null;}
+}
+function genRecVoulue(){
+  if(GEN.force&&GEN_REC[GEN.force])return GEN.force;
+  if(GEN.mis)return 'missions';
+  if(musicMode==='menu'||musicMode==='none')return GEN.buf?'lobby':'menu'; // la boucle GLASSY si elle est décodée, sinon le menu composé
+  if(GEN.fren)return 'fren';
+  const id=LVL.cur&&LVL.cur.id;
+  return id==='ville'?'ville':(id==='orbite'||(typeof gK==='function'&&gK()<1))?'orbite':'nuages';
+}
+function genHz(st){return 138.591*Math.pow(2,st/12);} // DO#3 = la tonique quand ton = 0
+function genNote(deg,oct){const r=GEN.rec,d=((deg%7)+7)%7;return r.ton+(r.gam||GEN_GAM)[d]+12*(Math.floor(deg/7)+(oct||0));}
+/* ---- LES INSTRUMENTS : une note = quelques nœuds, jetés à la fin (rien ne reste branché) ---- */
+function genEnv(g,t,a,v,d){g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+a);g.gain.setTargetAtTime(0,t+a,d);}
+function genKick(t,v){const ac=GEN.ac,o=ac.createOscillator(),g=ac.createGain();
+  o.frequency.setValueAtTime(155,t);o.frequency.exponentialRampToValueAtTime(44,t+.13);
+  g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+.42);
+  o.connect(g);g.connect(GEN.bat);o.start(t);o.stop(t+.45);
+  const dg=GEN.duck.gain;dg.cancelScheduledValues(t);dg.setValueAtTime(.35,t);dg.setTargetAtTime(1,t+.02,.09);} // la pompe
+function genBr(t,dur,type,f,q,v,dest){const ac=GEN.ac,s=ac.createBufferSource(),fl=ac.createBiquadFilter(),g=ac.createGain();
+  s.buffer=GEN.nz;s.loop=true;fl.type=type;fl.frequency.value=f;fl.Q.value=q;
+  g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);
+  s.connect(fl);fl.connect(g);g.connect(dest||GEN.bat);s.start(t,GEN.alea()*.8);s.stop(t+dur+.02);}
+function genCaisse(t,v){genBr(t,.2,'bandpass',1900,.8,v*.55);
+  const ac=GEN.ac,o=ac.createOscillator(),g=ac.createGain();o.type='triangle';o.frequency.setValueAtTime(210,t);o.frequency.exponentialRampToValueAtTime(140,t+.08);
+  g.gain.setValueAtTime(v*.45,t);g.gain.exponentialRampToValueAtTime(.001,t+.12);o.connect(g);g.connect(GEN.bat);o.start(t);o.stop(t+.14);}
+function genCharley(t,v,ouvert){genBr(t,ouvert?.16:.035,'highpass',7600,.7,v*.22);}
+function genBasse(t,st,dur,v){const r=GEN.rec,ac=GEN.ac,o=ac.createOscillator(),f=ac.createBiquadFilter(),g=ac.createGain();
+  o.type=r.glide?'sine':'sawtooth';const hz=genHz(st-24);
+  if(r.glide&&GEN._bHz){o.frequency.setValueAtTime(GEN._bHz,t);o.frequency.exponentialRampToValueAtTime(hz,t+.06);}else o.frequency.setValueAtTime(hz,t);
+  GEN._bHz=hz;
+  f.type='lowpass';f.Q.value=4;f.frequency.setValueAtTime(r.glide?400:180+900*v,t);f.frequency.setTargetAtTime(160,t,.08);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(r.glide?.55:.32,t+.006);g.gain.setTargetAtTime(0,t+dur*.85,.03);
+  o.connect(f);f.connect(g);g.connect(GEN.duck);o.start(t);o.stop(t+dur+.2);
+  if(r.glide){const s9=ac.createWaveShaper();s9.curve=genSat();g.disconnect();g.connect(s9);s9.connect(GEN.duck);}} // la 808 de la frénésie grogne
+function genSat(){if(genSat._c)return genSat._c;const n=256,c=new Float32Array(n);for(let i=0;i<n;i++){const x=i/(n-1)*2-1;c[i]=Math.tanh(x*2.6)*.8;}return genSat._c=c;}
+function genNappe(t,deg,dur,v){const r=GEN.rec,ac=GEN.ac,f=ac.createBiquadFilter(),g=ac.createGain();
+  f.type='lowpass';f.frequency.value=r.padC*(1+GEN.air*.9);f.Q.value=.5;
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+Math.min(.5,dur*.3));g.gain.setValueAtTime(v,t+dur*.8);g.gain.linearRampToValueAtTime(0,t+dur+.25);
+  f.connect(g);g.connect(GEN.duck);
+  const acc=[0,2,4,6]; // l'accord de 7e dans la gamme (i7, VImaj7…) : la couleur synthwave
+  for(let k=0;k<acc.length;k++)for(let j=0;j<2;j++){const o=ac.createOscillator();o.type='sawtooth';
+    o.frequency.value=genHz(genNote(deg+acc[k],-1));o.detune.value=j?9:-9;o.connect(f);o.start(t);o.stop(t+dur+.3);}}
+function genPluck(t,st,v,dur){const r=GEN.rec,ac=GEN.ac,o=ac.createOscillator(),f=ac.createBiquadFilter(),g=ac.createGain();
+  o.type=r.arpW;o.frequency.value=genHz(st+12);
+  f.type='lowpass';f.frequency.setValueAtTime(3200+2400*GEN.air,t);f.frequency.setTargetAtTime(600,t,.07);
+  genEnv(g,t,.004,v,dur||.09);o.connect(f);f.connect(g);g.connect(GEN.duck);g.connect(GEN.dly);o.start(t);o.stop(t+.6);}
+function genLead(t,st,dur,v){const ac=GEN.ac,o=ac.createOscillator(),o2=ac.createOscillator(),lf=ac.createOscillator(),lg=ac.createGain(),g=ac.createGain(),s9=ac.createWaveShaper();
+  o.type=o2.type='sawtooth';o.frequency.value=o2.frequency.value=genHz(st+12);o2.detune.value=14;
+  lf.frequency.value=5.5;lg.gain.value=9;lf.connect(lg);lg.connect(o.detune);lg.connect(o2.detune);
+  s9.curve=genSat();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.02);g.gain.setTargetAtTime(0,t+dur,.05);
+  o.connect(s9);o2.connect(s9);s9.connect(g);g.connect(GEN.duck);g.connect(GEN.dly);
+  [o,o2,lf].forEach(function(x){x.start(t);x.stop(t+dur+.3);});}
+function genSouffle(t,dur){ // la montée de nitro : un bruit qui grimpe
+  const ac=GEN.ac,s=ac.createBufferSource(),f=ac.createBiquadFilter(),g=ac.createGain();s.buffer=GEN.nz;s.loop=true;
+  f.type='bandpass';f.Q.value=2;f.frequency.setValueAtTime(600,t);f.frequency.exponentialRampToValueAtTime(7000,t+dur);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.09,t+dur*.9);g.gain.linearRampToValueAtTime(0,t+dur+.05);
+  s.connect(f);f.connect(g);g.connect(GEN.filt);s.start(t);s.stop(t+dur+.1);}
+/* ---- LA BOUCLE ENREGISTRÉE : décodée une fois (page SERVIE : en file:// fetch échoue, la recette joue sans elle) ---- */
+function genBoucleCharge(){
+  if(GEN.bufEtat||!GEN.ac)return;GEN.bufEtat=1;
+  fetch(GEN_GLASSY.f).then(function(r){if(!r.ok)throw 0;return r.arrayBuffer();})
+    .then(function(a){return new Promise(function(ok,ko){GEN.ac.decodeAudioData(a,ok,ko);});})
+    .then(function(b){ // ⚠ l'AAC porte ~2 112 échantillons d'amorce que tous les décodeurs ne retirent pas : on cale le début sur la 1re attaque
+      const d=b.getChannelData(0),n=Math.min(d.length,b.sampleRate|0);let i=0;while(i<n&&Math.abs(d[i])<.02)i++;
+      GEN.bufDeb=Math.max(0,(i-Math.round(.008*b.sampleRate))/b.sampleRate);GEN.buf=b;GEN.bufEtat=2;})
+    .catch(function(){GEN.bufEtat=3;});
+}
+function genBoucle(t,on){ // lance la boucle PILE sur une barre, ou l'éteint
+  if(GEN.src){try{const g9=GEN.srcG.gain;g9.setTargetAtTime(0,t,.05);GEN.src.stop(t+.4);}catch(e){}GEN.src=null;}
+  if(!on||!GEN.buf)return;
+  const ac=GEN.ac,s=ac.createBufferSource(),g=ac.createGain();s.buffer=GEN.buf;s.loop=true;
+  s.loopStart=GEN.bufDeb;s.loopEnd=GEN.bufDeb+GEN_GLASSY.dur;g.gain.value=GEN_GLASSY.g;
+  s.connect(g);g.connect(GEN.filt);s.start(t,GEN.bufDeb);GEN.src=s;GEN.srcG=g;GEN.srcT=t;
+}
+/* ---- LE CHEF : un pas de double-croche, programmé ~0,2 s en avance (la boucle de rendu ne pose aucune note) ---- */
+function genPas(t){
+  const p=GEN.pas&15;
+  if(p===0){ // UNE BARRE NEUVE : c'est là, et seulement là, qu'on change de recette ou de tempo
+    const n=genRecVoulue();
+    if(n!==GEN.nom){const b0=GEN.rec&&GEN.rec.boucle,b1=GEN_REC[n].boucle;
+      GEN.nom=n;GEN.rec=GEN_REC[n];GEN.barre=0;GEN.pas=0;sonTonSuit._t=null;
+      if(b0!==b1||(b1&&!GEN.src))genBoucle(t,!!b1);}                     // la boucle démarre avec la barre : la couche est calée sur ses mesures
+    else{GEN.barre++;if(GEN.rec.boucle&&!GEN.src&&GEN.buf)genBoucle(t,true);}
+    GEN.alea=mulberry32((0xCA5CA7^(GEN.barre>>2)*2654435761)>>>0); // même phrase = mêmes variations : ça sonne composé, pas tiré au dé
+  }
+  const r=GEN.rec,sp=15/r.bpm*(r.half?2:1),bi=GEN.barre%r.prog.length,deg=r.prog[bi];
+  const fin=(GEN.barre%8)===7&&p>=12;                                     // la fin de phrase : un roulement
+  if(r.seul){GEN.pas++;return sp;}                                        // la boucle seule : rien de composé par-dessus
+  const I=r.int||GEN.int,vol=GEN.air>.5,bat=musicMode==='run'?1:.55;
+  const dropK=GEN.drop>0;                                                 // la pose : la grosse caisse revient en force
+  if(p===0&&!r.sansNappe){genNappe(t,deg,sp*16,.045+.02*(1-I));}
+  if(r.k[p]==='x'&&(!vol||dropK)&&I>.12)genKick(t,(dropK&&p===0?1:.82)*bat);
+  if(!vol&&I>.3){if(fin&&(p&1)===0)genCaisse(t,.35+.1*(p-12));else if(r.s[p]==='x')genCaisse(t,.7*bat);}
+  if(I>.42&&(!vol||GEN.nitro>.5)){const hN=GEN.nitro>.5;if(r.h[p]==='x'||hN)genCharley(t,(p&3)===2?1:.6,(p&7)===6);}
+  const bc=r.b[p];if(bc!=='.'&&bc!=='-'&&I>.18&&!vol){let lg=1;for(let j=p+1;j<16&&r.b[j]==='-';j++)lg++;
+    genBasse(t,genNote(deg)+(+bc===7?7:0),sp*lg,I);}
+  if((I>.55||vol||musicMode==='menu')&&(p&1)===0&&(!r.boucle||(p&3)===0)){const a=r.arp,k=((GEN.pas>>1)+(GEN.alea()<.15?1:0))%a.length;
+    genPluck(t,genNote(deg)+a[k],.07+.04*GEN.air,vol?.18:.09);}
+  if(r.lead&&(p===0||p===6||p===10)&&GEN.alea()<.8){const m=[0,3,7,10,12];genLead(t,genNote(deg)+m[(GEN.alea()*m.length)|0],sp*(p===10?6:4),.05);}
+  if(GEN.nitro>.5&&p===8&&GEN._souf!==GEN.barre){GEN._souf=GEN.barre;genSouffle(t,sp*8);}
+  if(p===15&&GEN.drop>0)GEN.drop--;
+  GEN.pas++;
+  return sp*(r.swing&&(p&1)?1+r.swing:r.swing&&!(p&1)?1-r.swing:1);
+}
+function genHorloge(){
+  if(!GEN.joue||!GEN.ac||GEN.ac.state!=='running')return;
+  const now=GEN.ac.currentTime;
+  if(GEN.t<now-.1)GEN.t=now+.05;                                           // l'onglet a dormi : on ne rattrape pas une rafale de notes
+  let n=0;while(GEN.t<now+.22&&n++<16)GEN.t+=genPas(GEN.t);
+}
+function genJoue(){
+  GEN.voulu=true;
+  if(!genGraphe())return;                                                 // pas encore de contexte : genTick réessaie
+  genAna(true);genBoucleCharge();
+  if(GEN.joue)return;
+  GEN.joue=true;GEN.tape=false;GEN.pas=0;GEN.nom='';GEN.t=GEN.ac.currentTime+.08;
+  GEN.dly.delayTime.value=.3;
+  clearInterval(GEN.iv);GEN.iv=setInterval(function(){try{genHorloge();}catch(e){}},50);
+  const g=GEN.out.gain,t=GEN.ac.currentTime;g.cancelScheduledValues(t);g.setValueAtTime(g.value,t);
+}
+function genStop(tape){
+  GEN.voulu=false;if(!GEN.joue)return;GEN.joue=false;clearInterval(GEN.iv);
+  genAna(false);if(!GEN.ac)return;const t=GEN.ac.currentTime;genBoucle(t+(tape?.6:.05),false);GEN.nom='';GEN.rec=null;
+  if(tape){GEN.filt.frequency.cancelScheduledValues(t);GEN.filt.frequency.setTargetAtTime(90,t,.18);} // étouffée, comme une bande qui s'éteint
+  GEN.out.gain.cancelScheduledValues(t);GEN.out.gain.setTargetAtTime(0,t,tape?.22:.03);
+}
+function genPause(p){if(p){if(GEN.joue){GEN.joue=false;clearInterval(GEN.iv);GEN.voulu=true;if(GEN.ac){genBoucle(GEN.ac.currentTime,false);try{GEN.ac.suspend();}catch(e){}}GEN.nom='';}}else if(GEN.voulu)genJoue();}
+/* appelé par musicTick : l'état de la course → l'intensité, le filtre, le volume */
+/* L'ÉCRAN MISSIONS : la boucle GLASSY + une couche composée par-dessus — même quand la source est FICHIERS (le générateur
+   prend l'antenne le temps de l'écran, le <audio> se tait ; en sortant, la musique d'avant reprend). */
+function genMissions(){
+  const veut=window.__ecran==='mis'&&SND.music&&(musicMode==='menu'||musicMode==='none');
+  if(veut===GEN.mis)return;
+  GEN.mis=veut;
+  if(veut){if(musicEl&&!GEN.on){try{musicEl.pause();}catch(e){}}genJoue();}
+  else if(!GEN.on){genStop(false);if(musicVoulue&&musicEl){musicJoue();}}
+}
+function genTick(dt,mvt){
+  try{genMissions();}catch(e){}
+  if(!GEN.on&&!GEN.mis)return;
+  if(GEN.voulu&&!GEN.joue&&!paused&&!document.hidden&&SND.music&&musicVoulue)genJoue();
+  if(!GEN.joue||!GEN.ac)return;
+  if(GEN.ac.state==='suspended'&&!paused&&!document.hidden&&!(GEN._rT>0)){GEN._rT=.5;try{GEN.ac.resume();}catch(e){}} // la reprise (3-2-1, retour d'appli) rallume le contexte ; un refus attend le prochain toucher
+  if(GEN._rT>0)GEN._rT-=dt;
+  musicOn=true;
+  const run=musicMode==='run'&&running&&!gameOver;
+  const iC=musicMode==='menu'?.35:run?Math.min(1,.25+(mvt||0)*.6+(nitroOn?.2:0)+(GEN.fren?.3:0)):.3;
+  GEN.int=(GEN.int==null?iC:GEN.int+(iC-GEN.int)*Math.min(1,dt*1.5));
+  const enVol=run&&mode==='fall';
+  if(GEN._vol&&!enVol&&run)GEN.drop=2;                                     // on vient de se POSER : deux barres de drop
+  GEN._vol=enVol;
+  GEN.air+=((enVol?1:0)-GEN.air)*Math.min(1,dt*(enVol?3:6));
+  GEN.nitro+=((run&&nitroOn?1:0)-GEN.nitro)*Math.min(1,dt*5);
+  const t=GEN.ac.currentTime;
+  if(!GEN.tape){
+    const fc=(GEN.rec&&GEN.rec.boucle)?18000:musicMode==='menu'?2200:1500+(MUSIC_FILT_OPEN*.55-1500)*Math.min(1,musicBoostEnv*.8+GEN.air*.5+GEN.nitro*.4);
+    GEN.filt.frequency.setTargetAtTime(fc,t,.08);
+    GEN.out.gain.setTargetAtTime(Math.max(0,musicVolCour)*.9,t,.08);
+  }
+}
+window.dbgMusGen=function(a){
+  if(a===1||a===0||a===true||a===false){musGenBascule(!!a);return dbgMusGen();}
+  if(a!==undefined){GEN.force=a;return 'recette forcée : '+a;}
+  return{on:GEN.on,joue:GEN.joue,recette:GEN.nom,barre:GEN.barre,int:GEN.int&&+GEN.int.toFixed(2),air:+GEN.air.toFixed(2),
+    nitro:+GEN.nitro.toFixed(2),fren:GEN.fren,drop:GEN.drop,ctx:GEN.ac&&GEN.ac.state,voulu:!!GEN.voulu,mis:GEN.mis,mode:musicMode,musiqueVoulue:musicVoulue,boucle:['—','charge','prête','absente'][GEN.bufEtat],vol:GEN.out&&+GEN.out.gain.value.toFixed(3)};
+};
+/* LA BASCULE FICHIERS ⇄ GÉNÉRÉE : on coupe la source qui part, on relance selon le contexte */
+function musGenBascule(on){
+  if(on===GEN.on)return;
+  const ctx=musicMode;
+  if(on){if(musicEl){try{musicEl.pause();}catch(e){}}GEN.on=true;}
+  else{genStop(false);GEN.on=false;GEN.voulu=false;}
+  SAVE.d.musGen=on;SAVE.flush();
+  if(!SND.music)return;
+  if(ctx==='run')musicStartRun();else if(ctx==='menu')musicMenu();
+}
+// (l'interrupteur se lit après SAVE : voir la ligne « SND.sfx=SAVE.d.sfx »)
+/* <<<FIN GENERATEUR>>> ====================================================== */
 /* <<<FOND>>> ==================================================================
    LE FOND DU NIVEAU 1 — le décor JOUE la musique
    ----------------------------------------------------------------------------
@@ -22269,6 +22536,7 @@ function lvlTick(dt,S){
 }
 /* <<<FIN FOND>>> ========================================================== */
 function musicTick(dt,mvt){
+  try{genTick(dt,mvt);}catch(e){} // (2026-10-01) le générateur lit la course (vitesse, vol, nitro) et l'écran MISSIONS
   try{sonTonSuit();}catch(e){} // (console de son) les sons accordés suivent la tonalité du morceau qui joue
   let target=0,beat=0,hiT=0;
   if(musicOn&&musicAna){
@@ -23227,9 +23495,10 @@ function sonConsole(){ // branche la console sur le contexte du jeu (fin d'initA
   try{waPrecharge();}catch(e){} // les voix et les samples, décodés pour le mixage (voir LES VOIX ET LES SAMPLES DANS LE MIXAGE)
 }
 addEventListener('load',function(){try{sonConsole();}catch(e){}});
-const SON_TON={'lvl1-neon-cash-car':-1,'lvl2-cash-car-vitesse':-2,'nocturnal-groove':0,'noite-de-velocidade':2,'addictive-loop':1,'swag-cash-car-2':-1}; // (Léo) ADDICTIVE LOOP la m (+1), SWAG CASH CAR do m (−1) — mesurés par chroma, même méthode (vérifiée sur les quatre de Sacha)
+const SON_TON={'lvl1-neon-cash-car':-1,'lvl2-cash-car-vitesse':-2,'nocturnal-groove':0,'noite-de-velocidade':2,'addictive-loop':1,'swag-cash-car-2':-1,'glassy-plucks':0}; // (2026-10-01) GLASSY PLUCKS : centre do#, dorien → 0 // (Léo) ADDICTIVE LOOP la m (+1), SWAG CASH CAR do m (−1) — mesurés par chroma, même méthode (vérifiée sur les quatre de Sacha)
 function sonTonSuit(){
   if(!SONV2)return;let t=0;
+  if((GEN.on||GEN.mis)&&GEN.rec){t=GEN.rec.ton;}else
   try{const el=musicEl;if(SND.music&&el&&el.src){for(const k in SON_TON)if(el.src.indexOf(k)>=0){t=SON_TON[k];break;}if(FRENM.surm)t+=1;}}catch(e){}
   if(t!==sonTonSuit._t){sonTonSuit._t=t;window.CCSON.ton(t);}
 }
@@ -24311,7 +24580,7 @@ const SAVE={
     if(Array.isArray(d.leaders))c.leaders=d.leaders
       .filter(e=>e&&typeof e.n==='string'&&isFinite(+e.s))
       .slice(0,10).map(e=>({n:e.n.slice(0,8),s:Math.max(0,Math.round(+e.s))}));
-    c.sfx=d.sfx!==false;c.vox=d.vox!==false;c.mus=d.mus!==false;c.vib=d.vib!==false; // (2026-09-28) VIBRATIONS : leur propre interrupteur
+    c.sfx=d.sfx!==false;c.vox=d.vox!==false;c.mus=d.mus!==false;c.vib=d.vib!==false;c.musGen=d.musGen===true; // (2026-09-28) VIBRATIONS : leur propre interrupteur
     /* ⚠ LES VOLUMES SONT BORNÉS À [0,1], ET C'EST UNE VRAIE PROTECTION, pas une formalité : ces
        nombres partent DIRECTEMENT dans un GainNode et dans `HTMLAudio.volume`. Un NaN venu d'un
        storage rongé rend tout le graphe WebAudio silencieux sans lever la moindre erreur ; une
@@ -24420,6 +24689,7 @@ if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferen
 SAVE.load();
 setInterval(()=>{if(SAVE.dirty)SAVE.flush();},30000); // le filet : rien ne se perd plus de 30 s
 SND.sfx=SAVE.d.sfx;SND.voice=SAVE.d.vox;SND.music=SAVE.d.mus;SND.vib=SAVE.d.vib!==false;
+try{const q9=new URLSearchParams(location.search).get('musgen');if(q9!=null)SAVE.d.musGen=q9!=='0';GEN.on=!!SAVE.d.musGen;}catch(e){} // (2026-10-01) la SOURCE de la musique : FICHIERS ou GÉNÉRÉE (?musgen=1|0 pour essayer)
 VOL.mus=SAVE.d.vol.mus;VOL.sfx=SAVE.d.vol.sfx;VOL.vox=SAVE.d.vol.vox;
 /* ---- LES CURSEURS : appliquer au graphe · repeindre les deux interfaces · retenir --------------
    ⚠ `volApply` ne touche QUE ce qui n'est pas déjà repiloté chaque image. La musique en course est
@@ -33034,7 +33304,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   const PROF={home:0,dead:0,modes:1,set:1,shop:1,mis:1},SENS=['on','sort','avant','retour','racine','revu'];
   function mGo(id,sens,sansSortie){
     if(!sansSortie)uiGarde(); // (2026-09-29) le 2e tap d'un double-tap ne tombe pas sur l'écran qui arrive
-    const prev=mCur,de=mScr[prev],vers=mScr[id];mCur=id;
+    const prev=mCur,de=mScr[prev],vers=mScr[id];mCur=id;window.__ecran=id;try{genMissions();}catch(e){} // (2026-10-01) le générateur de musique écoute l'écran MISSIONS — appelé ICI, dans le toucher : iOS n'ouvre un contexte audio que pendant un geste
     if(!sens)sens=(prev===id)?'racine':((PROF[id]|0)>(PROF[prev]|0)?'avant':(PROF[id]|0)<(PROF[prev]|0)?'retour':'racine');
     for(const k in mScr){const e=mScr[k];if(!e)continue;clearTimeout(e._sortT);e.classList.remove.apply(e.classList,SENS);}
     if(de&&de!==vers&&!sansSortie&&!REDUCED_MOTION){de.classList.add('sort',sens);
@@ -33165,6 +33435,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       {const i9=$t('mvSnd');const x9=i9&&i9.parentNode.querySelector('.pxi');if(x9)x9.className='pxi pxi-'+(SND.sfx?'son':'muet');} // (2026-09-28) le même haut-parleur que la pause : barré quand le son est coupé
       sv('mvMus',SND.music?'ON':'OFF',SND.music);
       sv('mvVox',SND.voice?'ON':'OFF',SND.voice);
+      sv('mvMusGen',TR(GEN.on?'GENEREE':'FICHIERS'),true);
       sv('mvVib',SND.vib?'ON':'OFF',SND.vib);
       sv('mvCtl',TR(TCTL.pad?'FLECHES':'VOLANT'),true);
       sv('mvQ',TR(SAVE.d.q==='net'?'NETTE':'RAPIDE'),true);
@@ -33185,7 +33456,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(a==='surv')return SURV.armed?'off':'on';
     if(a==='park')return PARK.on?'off':'on';
     if(a==='sand')return SANDBOX?'off':'on';
-    if(a==='q'||a==='lang'||a==='ctl')return 'onglet';
+    if(a==='q'||a==='lang'||a==='ctl'||a==='musGen')return 'onglet';
     if(a==='wipe')return 'danger';
     return 'nav';
   }
@@ -33216,6 +33487,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='snd'){ clic(sndBtnEl); uiClic(SND.sfx?'on':'off'); mFill(); } // (2026-09-28) cliqué AVANT la bascule, le clic tombait sur SND.sfx encore faux : RALLUMER le son était muet et sans vibration (couper, lui, se tait — c'est juste)
     else if(a==='mus'){ clic(musBtnEl); mFill(); }
     else if(a==='vox'){ clic(voxBtnEl); mFill(); }
+    else if(a==='musGen'){ musGenBascule(!GEN.on); mFill(); } // (2026-10-01) FICHIERS ⇄ GÉNÉRÉE
     else if(a==='vib'){ SND.vib=!SND.vib; SAVE.d.vib=SND.vib; SAVE.flush(); if(SND.vib)hap(14); mFill(); } // rallumées : elles se présentent d'une impulsion
     else if(a==='lang'){ langNext(); applyLangDOM(); mFill(); }
     else if(a==='ctl'){ TCTL.pad=!TCTL.pad; TCTL.act=false; TCTL.id=null; TCTL.st=0; TCTL.sv=0;

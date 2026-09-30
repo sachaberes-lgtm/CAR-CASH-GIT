@@ -47,7 +47,30 @@ carrière, missions, garage à onglets, boutique), + SEULEMENT :
   le choix suit le niveau où l'on est tombé (`nivSelSuit`). Clavier : ↑ ↓ le monde. Le JOUER de l'accueil et la CARRIÈRE de Sacha ne changent pas.
 - **PAS REPRIS** (restent dans l'historique, commit e11925d et avant) : PARIS au sol, boost de départ, HUD discret, guide du jeu, lumière v2,
   tic des boutons, accueil GARAGE/RÉGLAGES, lapin/boîte-boutique. Sacha a porté PARIS sur sa version dans sa branche `paris` (pas dans son main).
-- `sw.js` : `cashcar-v30`. Tests muets (sfx/mus/vox à false), jamais de push sur le `main` de Sacha.
+- `sw.js` : `cashcar-v31`. Tests muets (sfx/mus/vox à false), jamais de push sur le `main` de Sacha.
+- **LE GÉNÉRATEUR DE MUSIQUE** (2026-10-01, bloc `<<<GENERATEUR>>>` juste après `musicPause`) : musique composée en direct
+  (WebAudio, SON PROPRE contexte `GEN.ac` — indépendant de l'interrupteur SON). RÉGLAGES › SOURCE (FICHIERS · GÉNÉRÉE,
+  `SAVE.d.musGen`, `?musgen=1`). Recettes `GEN_REC` (menu, nuages, ville, orbite, fren, lobby, missions) : tempo, `ton` (échelle
+  de `SON_TON`), grille, rythmes ; changement à la BARRE. En course : vol = batterie retirée + filtre ouvert, pose = « drop »
+  de 2 barres, nitro = charlestons en doubles + souffle, frénésie = recette `fren` (808 qui glisse). Son analyseur remplace
+  `musicAna` tant qu'il joue. Branché dans musicJoue/stopMusic/musicStop/musicPause/frenMus/musicTick/sonTonSuit.
+  Console `dbgMusGen()` · `(1|0)` · `('ville')` force une recette.
+- **GLASSY PLUCKS** (morceau Suno de Léo) : la section 1:04,13 → 2:14,37 = `glassy-plucks-boucle.m4a`, 44 mesures exactes à
+  150,335 BPM, centre do# dorien (`ton` 0). C'est le LOBBY (`MUSIC.menu` ; SWAG CASH CAR en commentaire) ; l'écran MISSIONS la
+  joue TOUJOURS par le générateur (AudioBuffer bouclé, calé à l'échantillon) + une couche composée (808, charley, arpège dorien),
+  même en source FICHIERS (`genMissions`, appelé dans `mGo` pour ouvrir le contexte pendant le toucher). ⚠ Droits : garder la
+  preuve d'abonnement Suno payant.
+- **LES BOUCLES MAISON** (2026-10-01) : `atelier-son/boucles.py` (numpy + scipy + afconvert) synthétise 7 boucles de 16 mesures,
+  sans couture (queue repliée sur le début), −15 dB RMS, crête −1 dBFS → `assets/audio/music/boucles/*.m4a` + `boucles-donnees.js`
+  (titre, BPM, clé, `ton`, pics). NÉON DRIVE (course/nuages) · PLUIE NÉON (ville) · APESANTEUR (orbite) · DARK TRIAD (phonk,
+  frénésie) · CAISSE ENREGISTREUSE (boutique/missions) · GARAGE (lo-fi) · HYPERVITESSE (DnB, nitro). Aucune n'est encore branchée
+  dans le jeu. + 12 boucles de 8 s (4 mesures, `atelier-son/boucles8.py`, ids `lobby-*` : COUCHER DE SOLEIL outrun, ASCENSEUR
+  DORÉ bossa, PIÈCE D'OR 8 bits, LUXE trap, VAPEUR vaporwave, FILTRE D’OR french house, BONHOMME rock (guitares Karplus saturées), ENCRE FRAÎCHE rock punk façon Splatoon (180 BPM × 6 mesures, splats, bulles, « OH ! ») ; `niv-*` : ALTITUDE nuages, NÉON NOIR et
+  MÉTRO ville, GRAVITÉ ZÉRO et SATELLITE orbite, TRIPLE MONSTRE frénésie). Banc d'écoute : `boucles.html` (sections par groupe)
+- **LA MUSIQUE QUI SUIT LA VITESSE** (2026-10-01, pas encore dans le jeu) : `musique-vitesse.js` (module autonome) joue une
+  boucle livrée en COUCHES (`COUCHES` + `rendre_couches` dans boucles.py → `*--cN.m4a`, s'additionnent exactement) ; couche 1
+  harmonique, les autres s'ouvrent à leur seuil de vitesse, `sol` se tait en vol, rattrapage ≤ +14 dB à l'arrêt. Démo : curseur
+  VITESSE / SIMULER UNE COURSE de `boucles.html`. **Tout est résumé pour une autre discussion dans `MUSIQUE-PASSATION.md`.** (clic = écoute, EN VOL, NITRO, ENCHAÎNER ; servie = boucle sans couture).
 
 
 ## LES 10 PREMIÈRES MINUTES — CÔTÉ INTERFACE (2026-09-29, session INTERFACE)

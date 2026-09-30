@@ -34,7 +34,7 @@
 //  v28 (2026-09-28) : la CONSOLE DE SON de Sacha (sfx.js + sons-banque.js), les silences morts retirés des morceaux.
 //  v29 (2026-09-28) : on repart de la version de Sacha (main c2950ab) ; de Léo : la musique (SWAG CASH CAR, ADDICTIVE LOOP), le bouton rouge, les affiches de records, le plan produit et JOUER au garage.
 //  v30 (2026-09-29) : la version de Sacha du 29/09 (main d198d6d : sons allégés, sfx.js v4, sons-banque.js v5…) + la couche de Léo (garage aux bords, choix du niveau).
-const CACHE = 'cashcar-v30';
+const CACHE = 'cashcar-v31';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
