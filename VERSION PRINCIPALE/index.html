@@ -6869,6 +6869,7 @@ function emprPeint(){
   c.putImageData(im,0,0);EMPR.tex.needsUpdate=true;
 }
 function updateContactShadow(){ // appelée juste avant le rendu
+  if(CHUTE&&CHUTE.on){contactShadow.visible=false;return;} // (2026-09-30) LA CHUTE : pas de sol sous elle (CHUTE est un var : undefined avant sa ligne)
   const gen9=carGroup.userData.gen||0;
   if(EMPR.gen!==gen9){EMPR.gen=gen9;emprPeint();}
   // AU GARAGE ET À LA VITRINE DU MENU aussi : la caisse posée sur son plateau ou sur la route n'avait RIEN sous elle
@@ -19176,7 +19177,7 @@ CIEL2.sc.autoUpdate=false; // la matrice du maillage est recopiée de celle du d
 CIEL2.me=new THREE.Mesh(skyDome.geometry,skyDome.userData.ciel.basN);CIEL2.me.frustumCulled=false;CIEL2.me.matrixAutoUpdate=false;CIEL2.sc.add(CIEL2.me);
 const cielType=()=>(composer&&composer.renderTarget1)?composer.renderTarget1.texture.type:THREE.UnsignedByteType;
 const cielCible=(w,h,prof)=>new THREE.WebGLRenderTarget(w,h,{format:THREE.RGBAFormat,type:CIEL2.octets?THREE.UnsignedByteType:cielType(),minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,depthBuffer:!!prof,stencilBuffer:false});
-function cielHorsCourse(){try{return garageOn||stallOn;}catch(e){return true;}} // (déclarés plus loin : au tout premier rendu, prudence)
+function cielHorsCourse(){try{return (garageOn&&!(CHUTE&&CHUTE.on))||stallOn;}catch(e){return true;}} // (déclarés plus loin : au tout premier rendu, prudence)
 function cielDeuxTemps(r9,cam){
   const C=skyDome.userData.ciel,U=skyU;let md='';
   if(CIEL2.on&&skyDome.visible&&!cielHorsCourse()){
@@ -33429,6 +33430,7 @@ function garageLaunch(){
   if(GAR.sw){const SW=GAR.sw;GAR.sw=null;if(!SW.fait)garageShow(SW.to);if(GAR.scan)GAR.scan.visible=false;carGroup.scale.set(1,1,1);}
   window.__mRetour=null; // (2026-09-29) une course part de l'atelier : l'écran qui l'attend à la fin, c'est la mort, pas les missions
   try{ if(carUnlocked(garageI)){const be=$('gEquip'); if(be&&be.getAttribute('aria-disabled')!=='true')be.click();} }catch(e){}
+  if(CHUTE.on){chuteLance();return;} // (2026-09-30) LA CHUTE : depuis le ciel, pas de porte — elle PIQUE vers la route (voir chuteRender)
   if(!GAR._v)GAR._v=new THREE.Vector3();
   if(!GAR._c)GAR._c=new THREE.Vector3();
   /* (2026-09-30, Léo : « fais le retour vers la porte (mieux) quand on appuie sur PLAY ») LE RETOUR AU FEU : si le regard est parti
@@ -33723,6 +33725,7 @@ function openGarage(quiet){
   if(GAR.aMis){GAR.aMis=false;garMode('missions');} // (2026-09-30) la porte des MISSIONS, venue d'ailleurs (écran de mort…) // (2026-09-30) ouvert par l'ACCUEIL = le menu ; par un autre chemin (mort → GARAGE, missions, objectif) = la boutique
 }
 function closeGarage(){
+  chuteSort(true); // (2026-09-30) LA CHUTE : les nuages, les filets de vent et le vent s'en vont avec le menu
   try{if(openGarage._amb){openGarage._amb.stop(.35);openGarage._amb=null;}}catch(e){}
   try{if(openGarage._feu){openGarage._feu.stop(.35);openGarage._feu=null;}}catch(e){}
   trailApercu(0,false);
@@ -33753,7 +33756,7 @@ function closeGarage(){
    longueur. On dessine donc deux rubans d'aperçu qui partent des tuyères et ondulent vers l'arrière, à la couleur de la
    traînée essayée (arc-en-ciel compris), additifs et fondus au bout — seulement dans l'onglet TRAÎNÉES. */
 const TRPV={r:[],t:0,v1:new THREE.Vector3(),c:new THREE.Color()};
-function trailApercu(dt,on){
+function trailApercu(dt,on,k9){ // k9 (2026-09-30, LA CHUTE) : l'intensité, 1 par défaut
   if(!on){for(const r of TRPV.r)r.m.visible=false;return;}
   const N=36;
   if(!TRPV.r.length)for(let k=0;k<2;k++){
@@ -33765,7 +33768,7 @@ function trailApercu(dt,on){
   TRPV.t+=dt;
   const d=cosm('trainee'),sp=CARS[garageI]||CARS[0],rgb=d&&d.rgb?d.rgb:[1.2,.62,.10],arc=d&&d.rainbow;
   for(let k=0;k<2;k++){const R=TRPV.r[k],sd=k?1:-1;R.m.visible=true;
-    for(let i=0;i<N;i++){const u=i/(N-1),w=.2*(1-u)+.035,fa=Math.pow(1-u,1.6)*.8*Math.min(1,u*9+.35); // (2026-09-30, revue des écrans) plus fin, plus doux, fondu dès la tuyère : on voit la couleur, plus un pavé orange
+    for(let i=0;i<N;i++){const u=i/(N-1),w=.2*(1-u)+.035,fa=Math.pow(1-u,1.6)*.8*Math.min(1,u*9+.35)*(k9==null?1:k9); // (2026-09-30, revue des écrans) plus fin, plus doux, fondu dès la tuyère : on voit la couleur, plus un pavé orange
       const x=sd*sp.w*.22+Math.sin(u*3.2-TRPV.t*4.5)*.35*u+sd*u*.5,y=.43+Math.sin(u*2.4-TRPV.t*3.2)*.22*u+u*.35,z=-(sp.l/2+.28)-u*9;
       for(const e of [-1,1]){TRPV.v1.set(x,y+e*w,z);carGroup.localToWorld(TRPV.v1);const o=(i*2+(e>0?1:0))*3;R.pos[o]=TRPV.v1.x;R.pos[o+1]=TRPV.v1.y;R.pos[o+2]=TRPV.v1.z;
         if(arc)TRPV.c.setHSL((u*1.2+(e>0?.08:0)-TRPV.t*.25)%1,1,.55);else TRPV.c.setRGB(rgb[0],rgb[1],rgb[2]);
@@ -34011,6 +34014,205 @@ function garBeaute(dt,t9){ // (2026-09-30) L'ATELIER v2 : ce qui vit — le feu 
 window.dbgFeu=function(on){const F=GAR.feu;if(!F)return null;if(on!=null&&GAR.feuM){GAR.feuM.visible=!!on;if(GAR.feuLu)GAR.feuLu.visible=!!on;}
   let hm=0;for(let i=0;i<F.W;i++)hm+=F.h[i];
   return {k:+F.k.toFixed(2),t:+F.t.toFixed(2),cases:F.W+'×'+F.H,brule:+(hm/F.W).toFixed(2),braises:F.em.length,visible:GAR.feuM?GAR.feuM.visible:null,son:!!openGarage._feu};};
+/* ===================== LA CHUTE — LE MENU DANS LE CIEL (2026-09-30, Sacha, capture de Zelda : Tears of the Kingdom à l'appui) =====================
+   « Au lieu d'être dans le garage, la voiture doit TOMBER DU CIEL, en face d'une route, dans le biome nuage, de très haut, à l'infini ; garde
+   l'affichage et les boutons ; on la voit tomber sur la gauche, à la place de la voiture du garage, et sur la droite les boutons que j'ai faits. »
+   · C'EST LE MODE « MENU » DE L'ATELIER, PEINT AILLEURS : tout le reste ne bouge pas (garageOn, #mHome par-dessus, garMode, les portes
+     GARAGE / MISSIONS / BOUTIQUE qui ouvrent l'atelier sous leur volet). `garageRender` passe la main à `chuteRender` tant que l'atelier est
+     en mode MENU (et pas MISSIONS) — l'atelier est caché, le monde du niveau 1 (la piste du menu, ses nuages, la mer, le ciel du JOUR des
+     NUAGES `MENU_BIO`) est dessiné ; revenu à l'atelier (boutique, missions), `chuteSort` lui rend sa lumière, son reflet et ses sons.
+   · LA PLACE : la caisse est posée là où l'interface laisse de la place (`menuCadre`, celui de la vitrine : la bande de GAUCHE couché, la
+     bande entre le titre et les boutons debout) ; elle y garde la même taille quelle que soit la caisse (sa sphère englobante).
+   · L'INFINI : la caisse ne descend pas — c'est l'AIR qui monte. Des bancs de nuage (sprites) montent autour d'elle et passent la caméra,
+     des filets de vent (quads additifs, UN appel de dessin) filent vers le haut, SA traînée (celle de la boutique, `trailApercu`) monte
+     derrière elle, la caisse tangue, roule, ses roues tournent, la vue balance lentement. De 190 m de haut, la route ne se rapproche
+     pas à l'œil : c'est ce qu'on voit, vraiment, en chute libre.
+   · LE PLAN : `chutePlan()` cherche une fois par piste un tronçon droit du début de la piste que la caméra regarde en ENFILADE (la route
+     file devant, vers l'horizon), le soleil DERRIÈRE la caméra de côté (la caisse éclairée de trois-quarts), et un ciel dégagé autour
+     de la caisse (aucun nuage du niveau contre l'objectif).
+   · JOUER (`chuteLance`) : elle PIQUE — le nez plonge, elle accélère vers la route, la caméra passe derrière elle, l'air rugit, le champ
+     s'ouvre ; elle traverse un banc de nuage (le voile BLANC, `#chuteVoile`) et, sous le voile, la course démarre (même fin que le
+     lâcher de l'atelier : closeGarage, puis start()/resetGame()).
+   · COÛT : ~16 sprites + 1 maillage de filets + la traînée — les matières sont celles de l'atelier et de la traînée d'aperçu (zéro
+     programme de plus mesuré au banc). Hooks : `dbgChute()` (état), `dbgChute({…})` (règle un paramètre de CHUTE_P), `?chute=0` (l'atelier
+     comme avant).
+   ⚠ `var` et pas `const` : updateContactShadow et cielHorsCourse, déclarées bien plus haut, lisent CHUTE — `var` vaut `undefined` avant
+   cette ligne au lieu de lever une erreur (la zone morte d'un const planterait le tout premier rendu). */
+var CHUTE={on:false,t:0,go:null,L:-1,s:0,C:new THREE.Vector3(),cam:new THREE.Vector3(),f:new THREE.Vector3(),fh:new THREE.Vector3(),lh:new THREE.Vector3(),
+  q:new THREE.Quaternion(),m:new THREE.Matrix4(),v1:new THREE.Vector3(),v2:new THREE.Vector3(),v3:new THREE.Vector3(),w:null,fil:null,voile:null,bioPas:-1,vent:false,entree:0};
+const CHUTE_OK=!/[?&]chute=0\b/.test(location.search); // (et seulement avec les boutons de Sacha : le menu de Léo, ?menu=leo, garde son atelier — son étiquette MISSIONS vit sur le socle)
+const CHUTE_P={alt:240,avant:720,pitch:.62,roule:.2,cap:.42,elev:.15,vit:26,echelle:1,taille:.82,sol:.3,sous:70,plancher:1}; // (choisi aux captures : l'horizon et la mer de nuages dans l'image, le soleil de côté devant — sa lueur rose-or sur l'horizon)
+window.dbgChute=function(o){if(o&&typeof o==='object'){Object.assign(CHUTE_P,o);CHUTE.L=-1;}
+  return {on:CHUTE.on,go:!!CHUTE.go,s:Math.round(CHUTE.s),C:CHUTE.C.toArray().map(Math.round),cam:CHUTE.cam.toArray().map(function(x){return +x.toFixed(1);}),P:CHUTE_P,
+    route:(function(){try{frameAt(CHUTE.s,F);const q=F.p.clone().project(camera);return [+q.x.toFixed(2),+q.y.toFixed(2),+q.z.toFixed(3)];}catch(e){return null;}})()};};
+function chuteVoulue(){return CHUTE_OK&&MENU_SACHA&&garageOn&&!!gEl&&gEl.classList.contains('menu')&&!gEl.classList.contains('missions');}
+function chutePlan(){ // le tronçon du début de piste filmé en enfilade, soleil dans le dos de la caméra (de côté), ciel dégagé
+  CHUTE.L=L;let best=1e9;const sx=SUN_DIR.x,sz=SUN_DIR.z,sn=Math.hypot(sx,sz)||1;
+  for(let s9=60;s9<=Math.min(L-420,2600);s9+=20){
+    frameAt(s9,F);const ax=F.t.x,az=F.t.z,an=Math.hypot(ax,az)||1,p0y=F.p.y;frameAt(s9+380,F);const d9=(ax*F.t.x+az*F.t.z)/(an*(Math.hypot(F.t.x,F.t.z)||1));
+    if(d9<.72)continue;                                                           // la route file droit devant (une épingle sortirait du cadre)
+    const cs=(ax*sx+az*sz)/(an*sn);                                               // le regard vers le soleil : on le veut DERRIÈRE, de côté (~ −0,55)
+    let enc=0;const cx=F.p.x,cz=F.p.z;frameAt(s9,F);
+    const px=F.p.x-ax/an*CHUTE_P.avant,pz=F.p.z-az/an*CHUTE_P.avant,py=p0y+CHUTE_P.alt; // où serait la caisse
+    for(const c of CLOUDS){const q=c.g.position,rr=(c.r||60)+45,rv=Math.max(1,c.ry||c.r||60)+45;
+      const dx=px-q.x,dy=py-q.y,dz=pz-q.z;if((dx*dx+dz*dz)/(rr*rr)+dy*dy/(rv*rv)<1)enc++;}
+    const sc=Math.abs(cs-CHUTE_P.sol)+(1-d9)*1.5+enc*1.2+s9*.00008;
+    if(sc<best){best=sc;CHUTE.s=s9;}}
+  frameAt(CHUTE.s,F);CHUTE.lh.set(F.t.x,0,F.t.z).normalize();                     // le regard : dans l'axe de la route
+  if(CHUTE.sol){const R=F.p,lx=CHUTE.lh.x,lz=CHUTE.lh.z;let k=0;                     // LE PLANCHER : une mer de cumulus SOUS la route, devant la caméra
+    for(const sp of CHUTE.sol){const a=(k*2.399)%6.2832,r=90+Math.sqrt((k+.5)/CHUTE.sol.length)*980,fw=Math.max(-.2,Math.cos(a));k++;
+      const px=R.x+lx*(r*fw*.9+120)+(-lz)*Math.sin(a)*r,pz=R.z+lz*(r*fw*.9+120)+lx*Math.sin(a)*r,w9=150+((k*53)%100)*1.9;
+      sp.position.set(px,R.y-CHUTE_P.sous-((k*37)%60),pz);sp.scale.set(w9,w9*.52,1);sp.material.rotation=((k*71)%20-10)*.01;}}
+}
+function chuteNuageTex(){ // un banc de cumulus peint une fois : des boules douces serrées, le ventre un peu bleuté
+  const cv=document.createElement('canvas');cv.width=cv.height=256;const x=cv.getContext('2d');
+  const B=[[128,138,70],[82,150,52],[176,150,56],[110,108,50],[154,106,46],[60,168,34],[200,168,36],[128,172,54]];
+  for(const b of B){const g=x.createRadialGradient(b[0],b[1],0,b[0],b[1],b[2]);
+    g.addColorStop(0,'rgba(255,255,255,.62)');g.addColorStop(.55,'rgba(244,248,255,.34)');g.addColorStop(1,'rgba(226,236,252,0)');x.fillStyle=g;x.fillRect(0,0,256,256);}
+  x.globalCompositeOperation='source-atop';const v=x.createLinearGradient(0,70,0,230);v.addColorStop(0,'rgba(255,255,255,0)');v.addColorStop(1,'rgba(150,176,214,.55)');
+  x.fillStyle=v;x.fillRect(0,0,256,256);
+  const t=new THREE.CanvasTexture(cv);t.minFilter=THREE.LinearFilter;return t;
+}
+function chuteMonte(){ // les bancs de nuage et les filets de vent (une fois)
+  const tex=chuteNuageTex(),W=[];
+  for(let i=0;i<16;i++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,opacity:0,depthWrite:false,fog:false}));
+    sp.visible=false;sp.renderOrder=4;scene.add(sp);W.push({sp:sp,x:0,y:0,z:0,s:1,v:1,r:0});}
+  for(const w of W)chuteNuageNeuf(w,true);
+  CHUTE.w=W;
+  const SOL=[];for(let i=0;i<30;i++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,opacity:.95,depthWrite:false,fog:false}));
+    sp.visible=false;sp.renderOrder=-3;scene.add(sp);SOL.push(sp);}
+  CHUTE.sol=SOL;
+  const N=46,g=new THREE.BufferGeometry(),pos=new Float32Array(N*4*3),col=new Float32Array(N*4*3),idx=[];
+  for(let i=0;i<N;i++){const a=i*4;idx.push(a,a+1,a+2,a+1,a+3,a+2);}
+  g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('color',new THREE.BufferAttribute(col,3));g.setIndex(idx);
+  const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false}));
+  m.frustumCulled=false;m.renderOrder=5;m.visible=false;scene.add(m);
+  const S=[];for(let i=0;i<N;i++){S.push({x:0,y:0,z:0,l:1,v:1,w:.06,a:1});chuteFilNeuf(S[i],true);}
+  CHUTE.fil={m:m,pos:pos,col:col,S:S};
+}
+function chuteNuageNeuf(w,partout){ // un banc naît sous la caisse, à l'écart de l'axe caméra → caisse
+  const a=Math.random()*6.2832,r=9+Math.pow(Math.random(),.7)*52;
+  w.x=Math.cos(a)*r;w.z=Math.sin(a)*r;w.y=partout?-95+Math.random()*150:-110-Math.random()*40;
+  w.s=16+Math.random()*30;w.v=.75+Math.random()*.55;w.r=(Math.random()-.5)*.6;w.sp.material.rotation=w.r;
+}
+function chuteFilNeuf(f,partout){const a=Math.random()*6.2832,r=1.6+Math.pow(Math.random(),1.4)*13;
+  f.x=Math.cos(a)*r;f.z=Math.sin(a)*r;f.y=partout?-40+Math.random()*80:-40-Math.random()*16;f.l=1.2+Math.random()*3.4;f.v=2.4+Math.random()*1.8;f.w=.025+Math.random()*.05;f.a=.35+Math.random()*.5;}
+function chuteVoileEl(){ // le banc de nuage traversé au JOUER : un voile blanc plein écran
+  if(CHUTE.voile)return CHUTE.voile;const e=document.createElement('div');e.id='chuteVoile';
+  e.style.cssText='position:fixed;inset:0;pointer-events:none;opacity:0;z-index:60;background:radial-gradient(ellipse at 50% 55%,#ffffff 0%,#f4f9ff 48%,#dfeefe 100%)';
+  document.body.appendChild(e);CHUTE.voile=e;return e;
+}
+function chuteEntre(){ // de l'atelier (ou de rien) au ciel
+  CHUTE.on=true;CHUTE.t=0;CHUTE.bioPas=-1;
+  if(!CHUTE.w)chuteMonte();
+  if(GAR.root)GAR.root.visible=false;garageFloor.visible=false;
+  try{if(openGarage._amb){openGarage._amb.stop(.35);openGarage._amb=null;}if(openGarage._feu){openGarage._feu.stop(.35);openGarage._feu=null;}}catch(e){} // l'atelier se tait : là-haut, c'est le vent
+  if(CHUTE.entree){const v=chuteVoileEl();v.style.transition='none';v.style.opacity='1';void v.offsetWidth;v.style.transition='opacity .45s ease-out';v.style.opacity='0';} // revenu de la boutique : on sort de l'atelier PAR un nuage
+  CHUTE.entree=1;
+}
+function chuteSort(ferme){ // on quitte le ciel : l'atelier (boutique, missions) ou la course (ferme)
+  if(!CHUTE.on&&!CHUTE.go)return;
+  CHUTE.on=false;CHUTE.go=null;
+  if(CHUTE.w)for(const w of CHUTE.w){w.sp.visible=false;}
+  if(CHUTE.fil)CHUTE.fil.m.visible=false;
+  if(CHUTE.sol)for(const sp of CHUTE.sol)sp.visible=false;
+  trailApercu(0,false);
+  if(CHUTE.vent&&AC){try{stt(windG.gain,0,AC.currentTime,.25);stt(whG.gain,0,AC.currentTime,.25);}catch(e){}}CHUTE.vent=false;
+  if(ferme)return;
+  MENUV.bio=false;bioApply(BIOMES.atelier);paintEnvAtelier();                    // l'atelier reprend sa lumière et son reflet
+  if(GAR.root)GAR.root.visible=true;
+  try{if(SONV2&&!openGarage._amb)openGarage._amb=sfx('garage.ambiance',{loop:true});if(SONV2&&!openGarage._feu)openGarage._feu=sfx('garage.feu',{loop:true});}catch(e){}
+}
+function chuteLance(){ // JOUER, depuis le ciel : elle pique
+  CHUTE.go=GAR.go={t:0,chute:true,son:false,voile:false};
+  gEl.classList.add('launching');document.body.classList.remove('garMenuH');
+  garLacherSon();
+}
+function chuteRender(dt){
+  if(!CHUTE.on)chuteEntre();
+  CHUTE.t+=dt;const t=CHUTE.t,P=CHUTE_P,G=CHUTE.go;
+  // LE CIEL DU JOUR DES NUAGES (celui de l'accueil d'avant : MENU_BIO), repeint si le voyage BIO est passé derrière
+  if(!MENUV.bio||CHUTE.bioPas!==BIO.pas){if(!MENUV.bio)paintEnv(BIOMES[MENU_BIO].env,BIOMES[MENU_BIO].eS1,BIOMES[MENU_BIO].eS2);MENUV.bio=true;CHUTE.bioPas=BIO.pas;bioApply(BIOMES[MENU_BIO]);}
+  skyU.uMer.value=1;
+  if(GAR.root&&GAR.root.visible)GAR.root.visible=false;
+  if(CHUTE.L!==L)chutePlan();
+  // L'ANCRE : au-dessus du début de piste, en retrait, à P.alt mètres
+  frameAt(CHUTE.s,F);const lh=CHUTE.lh,sw=Math.sin(t*.11)*.07+Math.sin(t*.047+1.1)*.04; // la vue BALANCE lentement autour de la caisse
+  const cA=Math.cos(sw),sA=Math.sin(sw);const lx=lh.x*cA-lh.z*sA,lz=lh.x*sA+lh.z*cA;
+  CHUTE.C.set(F.p.x-lh.x*P.avant,F.p.y+P.alt,F.p.z-lh.z*P.avant);
+  // LE CAP : de trois-quarts, vers la droite de l'écran et vers la route (P.cap) — le nez plonge de P.pitch
+  const rx=-lz,rz=lx;                                                             // la droite de l'écran (regard × haut) : le nez pique vers la DROITE, la traînée file en haut à gauche
+  CHUTE.fh.set(rx*Math.cos(P.cap)+lx*Math.sin(P.cap),0,rz*Math.cos(P.cap)+lz*Math.sin(P.cap)).normalize();
+  let u=0,pi=P.pitch+.06*Math.sin(t*.9)+.03*Math.sin(t*2.3),ro=P.roule*Math.sin(t*.53)+.07*Math.sin(t*1.7),dy=0,fwd=0;
+  if(G){G.t+=dt;u=Math.min(1,G.t/1.75);const e=u*u*(3-2*u);
+    pi+=(1.3-pi)*Math.min(1,u/.3);ro*=1-e;                                         // le nez PLONGE
+    dy=-Math.pow(u,2.3)*150;fwd=Math.pow(u,2)*25;}                                 // elle accélère vers la route
+  const f=CHUTE.f.copy(CHUTE.fh).multiplyScalar(Math.cos(pi));f.y=-Math.sin(pi);f.normalize();
+  const C=CHUTE.v3.copy(CHUTE.C).addScaledVector(CHUTE.fh,fwd);C.y+=dy+Math.sin(t*2.1)*.12;C.x+=Math.sin(t*1.3)*.1;
+  // l'assiette : axes de la caisse (x = haut × avant, y = haut, z = avant), le roulis autour de l'avant
+  const up=CHUTE.v1.set(0,1,0).addScaledVector(f,-f.y).normalize(),sd=CHUTE.v2.crossVectors(up,f).normalize();
+  const cr=Math.cos(ro),sr=Math.sin(ro);const ux=up.x*cr+sd.x*sr,uy=up.y*cr+sd.y*sr,uz=up.z*cr+sd.z*sr;up.set(ux,uy,uz);sd.crossVectors(up,f).normalize();
+  CHUTE.m.makeBasis(sd,up,f);carGroup.quaternion.setFromRotationMatrix(CHUTE.m);
+  const sp=CARS[garageI]||CARS[0],sc=P.echelle;carGroup.scale.set(sc,sc,sc);
+  carGroup.position.copy(C).addScaledVector(up,-.45*sc);carGroup.visible=true;   // (le centre de la caisse, pas ses roues, sur l'ancre)
+  for(const w of wheels)w.rotation.x+=dt*(7+u*30);for(const e of ESSIEUX)e.rotation.x+=dt*(7+u*30); // les roues tournent dans le vide
+  // LA CAMÉRA : dans l'axe de la route, un peu au-dessus, la caisse dans la place libre (menuCadre)
+  const Cd=menuCadre(),R9=.5*Math.hypot(sp.l||4.2,sp.w||1.9,(sp.h||.8)+.6)*sc,fov0=G?44+26*u*u:44;
+  const nx=Cd.nx+(camera.aspect<1?-.16:0);
+  if(Math.abs(camera.fov-fov0)>.01){camera.fov=fov0;camera.updateProjectionMatrix();}
+  const tV=Math.tan(camera.fov*Math.PI/360),tH=tV*camera.aspect;
+  const d=Math.max(R9*P.taille*(camera.aspect>1?1.75:1)/(Cd.fr*tH),R9*.8/(Cd.fh*tV))*(1+.03*Math.sin(t*.37));
+  const ce=Math.cos(P.elev),se=Math.sin(P.elev);
+  CHUTE.cam.set(C.x-lx*ce*d,C.y+se*d,C.z-lz*ce*d);
+  if(G){const k=Math.min(1,u/.5),e9=k*k*(3-2*k);                                   // la caméra passe DERRIÈRE elle (poursuite plongeante)
+    const bx=C.x-f.x*9,by=C.y-f.y*9+3.2,bz=C.z-f.z*9;
+    CHUTE.cam.set(CHUTE.cam.x+(bx-CHUTE.cam.x)*e9,CHUTE.cam.y+(by-CHUTE.cam.y)*e9,CHUTE.cam.z+(bz-CHUTE.cam.z)*e9);}
+  camera.position.copy(CHUTE.cam);camera.up.set(0,1,0);camera.lookAt(C);
+  if(!G){camera.rotateY(Math.atan(nx*tH));camera.rotateX(-Math.atan(Cd.ny*tV));}   // la caisse glisse dans la zone libre (lacet, tangage exacts)
+  else{const k=1-Math.min(1,u/.5);camera.rotateY(Math.atan(nx*tH)*k);camera.rotateX(-Math.atan(Cd.ny*tV)*k);}
+  if(G&&u>.2){const a=(u-.2)*.9;camera.position.x+=(Math.random()-.5)*.08*a;camera.position.y+=(Math.random()-.5)*.08*a;} // l'air qui cogne
+  camera.updateMatrixWorld();
+  // LA LUMIÈRE : le soleil du ciel fait le gros ; une clé douce du côté caméra, un contre-jour bleu ciel qui détoure la caisse
+  stallKey.color.setHex(0xfff1dc);stallKey.intensity=.9;stallKey.distance=60;stallKey.position.copy(CHUTE.cam).addScaledVector(up,4);
+  stallRim.color.setHex(0xbfe4ff);stallRim.intensity=1.1;stallRim.distance=40;stallRim.position.copy(C).addScaledVector(camera.getWorldDirection(CHUTE.v2),7).addScaledVector(up,2.5);
+  carLight.position.copy(CHUTE.cam).addScaledVector(up,2.5);carLight.intensity=1.6;carLight.distance=60;
+  headSpot.intensity=0;if(CARPOOL.head)CARPOOL.head.visible=false; // en plein jour, en l'air : ni phares (leur tache bleue sur les nuages au piqué), ni la nappe de 15 m des faisceaux (un plan qui flotte devant le nez)
+  sunSprite.visible=sunSprite.material.opacity>.02;horizonGlow.visible=horizonGlow.material.opacity>.02;for(const r9 of RAYS)r9.visible=r9.material.opacity>.002;
+  if(pigGroup)pigGroup.visible=false;if(landMark)landMark.visible=false;
+  // SA TRAÎNÉE monte derrière elle (celle de la boutique) ; L'AIR MONTE : les bancs de nuage et les filets de vent
+  trailApercu(dt,true,.45);
+  for(const sp of CHUTE.sol)sp.visible=!!P.plancher;
+  const vk=1+(G?u*u*7:0),cp=camera.position,dC=cp.distanceTo(C);
+  for(const w of CHUTE.w){w.y+=P.vit*w.v*vk*dt;if(w.y>70)chuteNuageNeuf(w,false);
+    const s=w.sp;s.visible=true;s.position.set(C.x+w.x,C.y+w.y,C.z+w.z);s.scale.set(w.s*1.35,w.s,1);
+    let o=Math.min(1,(w.y+110)/35)*Math.min(1,(70-w.y)/30);                          // fondu à la naissance et à la sortie
+    const dW=cp.distanceTo(s.position);o*=Math.min(1,Math.max(0,(dW-w.s*.35)/(w.s*.6))); // on ne se prend pas un nuage dans l'objectif au repos
+    if(dW<dC+w.s){CHUTE.v1.copy(s.position).project(camera);CHUTE.v2.copy(C).project(camera);
+      const e=Math.hypot((CHUTE.v1.x-CHUTE.v2.x)*camera.aspect,CHUTE.v1.y-CHUTE.v2.y),tV9=Math.tan(camera.fov*Math.PI/360),
+            rW=w.s*.62/(Math.max(1,dW)*tV9),rC=R9*1.2/(Math.max(1,dC)*tV9);
+      o*=Math.max(0,Math.min(1,(e-(rW*.75+rC))/(rW*.5+.08)));}                       // …et jamais une ouate DEVANT la caisse (son disque projeté contre celui de la caisse)
+    s.material.opacity=o*(G?1:.78);}
+  {const Fi=CHUTE.fil,pos=Fi.pos,col=Fi.col,cd=camera.getWorldDirection(CHUTE.v1);
+   const ax=-cd.z,az=cd.x,an=Math.hypot(ax,az)||1;                                // la largeur des filets : horizontale, face caméra
+   for(let i=0;i<Fi.S.length;i++){const S9=Fi.S[i];S9.y+=P.vit*S9.v*vk*dt;if(S9.y>44)chuteFilNeuf(S9,false);
+     const x0=C.x+S9.x,z0=C.z+S9.z,y0=C.y+S9.y,y1=y0-S9.l*(G?1+u*2:1),hw=S9.w*.5,wx=ax/an*hw,wz=az/an*hw,o=i*12;
+     pos[o]=x0-wx;pos[o+1]=y0;pos[o+2]=z0-wz;pos[o+3]=x0+wx;pos[o+4]=y0;pos[o+5]=z0+wz;
+     pos[o+6]=x0-wx;pos[o+7]=y1;pos[o+8]=z0-wz;pos[o+9]=x0+wx;pos[o+10]=y1;pos[o+11]=z0+wz;
+     const a=S9.a*Math.min(1,(S9.y+44)/10)*Math.min(1,(44-S9.y)/10)*(G?1.3:.42);   // la tête du filet blanche, la queue éteinte
+     col[o]=col[o+3]=a;col[o+1]=col[o+4]=a;col[o+2]=col[o+5]=a;col[o+6]=col[o+9]=0;col[o+7]=col[o+10]=0;col[o+8]=col[o+11]=0;}
+   Fi.m.visible=true;Fi.m.geometry.attributes.position.needsUpdate=true;Fi.m.geometry.attributes.color.needsUpdate=true;}
+  // LE VENT : le souffle et le sifflement de la chute (les nœuds du moteur de son, au repos hors course)
+  if(AC&&windG&&whG){try{if(!CHUTE.vent||G){CHUTE.vent=true;stt(windG.gain,G?.05+.05*u:.03,AC.currentTime,.3);stt(windF.frequency,G?900+2400*u:760,AC.currentTime,.3);stt(whG.gain,G?.02+.05*u:.008,AC.currentTime,.3);}}catch(e){}}
+  // JOUER : le banc de nuage traversé (voile blanc), puis la course sous le voile
+  if(G){if(!G.voile&&u>.74){G.voile=true;try{sfx('nuage.entre');}catch(e){}}
+    const v=chuteVoileEl();v.style.transition='none';v.style.opacity=String(Math.max(0,Math.min(1,(u-.74)/.2)));
+    if(u>=1){
+      const wasStarted=started;GAR.go=null;CHUTE.go=null;carGroup.scale.set(1,1,1);
+      closeGarage();
+      if(wasStarted)resetGame();else{start();fireLaunchBoost();}
+      setTimeout(function(){v.style.transition='opacity .5s ease-out';v.style.opacity='0';},60); // le nuage se déchire SUR la piste
+    }}
+}
 /* LE GARAGE SOBRE (2026-09-29, Léo : « le point de vue est bizarre, on dirait un effet loupe ; je veux un garage plus sobre, la voiture au
    milieu, qui tourne grâce à la plateforme ») : la caméra ne tourne plus autour de la caisse. Elle est FIXE, côté établi, et regarde la
    porte en feu ; c'est le PLATEAU qui tourne, la caisse dessus. `garageAng` garde son sens (l'angle d'où l'on regarde la caisse : les
@@ -34019,6 +34221,7 @@ const GAR_CAM_A=Math.PI;
 function garRot(){return GAR_CAM_A-garageAng;}
 function garCamA(){return GAR_CAM_A+(GAR.vA||0)+(GAR.swO||0);} // (2026-09-30) l'azimut RÉEL de la caméra : l'axe + le regard du doigt + le balancement (voir « LE GARAGE QUI VIT »)
 function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 360° DANS l'atelier
+  if(chuteVoulue()||CHUTE.go){chuteRender(dt);return;}if(CHUTE.on)chuteSort(); // (2026-09-30) LA CHUTE : au MENU, la caisse tombe du ciel (voir « LA CHUTE ») ; la boutique et les missions rouvrent l'atelier
   trailApercu(dt,SHOP.tab==='trainee');
   const ay=GARAGE_Y,t9=performance.now()*.001;
   if(!GAR.root)buildGarageRoom();
@@ -35128,7 +35331,7 @@ function loop(now){
     const v9=LVL.espace>.5&&started&&running&&!paused&&!gameOver&&!garageOn&&mode!=='boom';
     if(v9&&!loop._vide&&now>(loop._videT||0)){loop._videT=now+500;loop._vide=sfx('espace.ambiance',{loop:true,vol:-24});if(loop._vide)loop._vide.gain(0,.8);}
     else if(!v9&&loop._vide){loop._vide.stop(.5);loop._vide=null;}
-    if(garageOn&&!openGarage._amb&&now>(loop._garT||0)){loop._garT=now+800;openGarage._amb=sfx('garage.ambiance',{loop:true});} // (débogage 2026-09-29) une ambiance ratée au premier essai est retentée
+    if(garageOn&&!(CHUTE&&CHUTE.on)&&!openGarage._amb&&now>(loop._garT||0)){loop._garT=now+800;openGarage._amb=sfx('garage.ambiance',{loop:true});} // (débogage 2026-09-29) une ambiance ratée au premier essai est retentée
     else if(!garageOn&&openGarage._amb){openGarage._amb.stop(.35);openGarage._amb=null;}
   }
   // (2026-09-26, user : « enlève tous les modes ralentis du jeu ») : plus de slow-mo (atterrissage, gros air, bullet-time, reprise de

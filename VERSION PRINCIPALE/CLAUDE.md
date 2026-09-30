@@ -1,5 +1,31 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA CHUTE — LE MENU DANS LE CIEL (2026-09-30, session DEBUGGING) — Sacha, capture de Zelda : Tears of the Kingdom : « la voiture doit tomber du ciel en face d'une route, dans le biome nuage, de très haut, à l'infini ; garde l'affichage et les boutons ; on la voit tomber sur la gauche, et sur la droite mes boutons »
+- C'est le mode MENU de l'atelier, peint ailleurs : `garageRender` passe la main à `chuteRender` tant que `chuteVoulue()`. Il faut
+  CHUTE_OK (`?chute=0` = l'atelier comme avant), MENU_SACHA (le menu de Léo, `?menu=leo`, garde son atelier et l'étiquette MISSIONS
+  de son socle), garageOn, et `#garage.menu` sans `.missions`. Rien d'autre ne bouge : #mHome par-dessus, garMode, les portes GARAGE
+  (boutique) et MISSIONS rouvrent l'atelier sous leur volet, et `chuteSort()` lui rend biome, reflet et sons. Le retour au ciel
+  (HOME) passe par un voile blanc (`#chuteVoile`).
+- Le décor est le monde du niveau 1 (la piste du menu, ses nuages, la mer de nuages du dôme) sous le ciel `MENU_BIO` (le JOUR des
+  NUAGES de l'ancien accueil). Plan (`chutePlan`, une fois par piste) : un tronçon DROIT du début de piste regardé en enfilade, le
+  soleil de côté devant (`CHUTE_P.sol` = cos visé), aucun nuage du niveau contre la caisse. Caisse à `alt` 240 m, `avant` 720 m en
+  retrait ; caméra à `elev` .15 ; la caisse est posée dans la place libre de l'interface (`menuCadre` de la vitrine : bande de GAUCHE
+  couché, bande du milieu debout un peu à gauche). Réglages par `dbgChute({…})` (CHUTE_P) — choisis aux captures, debout et couché.
+- L'INFINI : la caisse ne descend pas, c'est l'AIR qui monte. 16 bancs de nuage (sprites, texture `chuteNuageTex`) montent autour
+  d'elle — JAMAIS devant elle : leur disque projeté est comparé à celui de la caisse. 46 filets de vent (un maillage additif) filent.
+  SA traînée monte (`trailApercu(dt,true,.45)` : le 3e paramètre, nouveau, est l'intensité). Elle tangue et roule, ses roues tournent,
+  la vue balance, et le vent souffle (`windG`/`whG`, les nœuds du son de course, au repos au menu). Un plancher de 30 cumulus (fog:false)
+  est posé sous la route. Phares éteints et `CARPOOL.head` caché : au piqué, la tache bleue et la nappe de 15 m flottaient.
+- JOUER (`chuteLance`, via garageLaunch) : `GAR.go = CHUTE.go` (tous les « pendant le lâcher » s'appliquent). En 1,75 s le nez plonge,
+  elle accélère vers la route, la caméra passe en poursuite plongeante, le champ s'ouvre, l'air rugit. À u .74 le voile BLANC monte
+  (`nuage.entre`) ; à 1, sous le voile, c'est la fin du lâcher de l'atelier (closeGarage, puis start()/resetGame()), et le nuage se
+  déchire sur la piste.
+- ⚠ `var CHUTE` : updateContactShadow et cielHorsCourse (bien plus haut) le lisent ; un const planterait le premier rendu. Au ciel :
+  pas d'ombre de contact, ciel en deux temps (cielHorsCourse), ambiance et feu de l'atelier coupés (la relance à 800 ms est gardée).
+- MESURÉ : 140 programmes au menu et en course (comme avant), 60 i/s au menu, 0 erreur, et ces parcours passent :
+  - menu ↔ boutique ↔ missions ;
+  - JOUER → course ;
+  - mort → MENU → chute.
 ## LES MEUBLES DU GARAGE AU NIVEAU DE LA CAISSE (2026-09-30, session DEBUGGING) — « retravaille le garage, notamment les objets : il faut que tous les objets et les meubles soient du niveau de la voiture »
 - Dans `buildGarageRoom`, TOUT le mobilier (de « MUR DU FOND » au couloir de la caméra) est construit avec **le kit de la caisse** :
   `lpKit` (facettes franches, couleur dans les sommets), `lpMat` (laque vernie `p`, chrome `c`, laiton `o`, satiné `s`, mat `m`, verre/huile
