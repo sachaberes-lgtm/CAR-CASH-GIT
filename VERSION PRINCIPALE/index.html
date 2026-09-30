@@ -4697,6 +4697,7 @@ html body #engBig .ebCarte{width:auto!important;min-width:110px;gap:0!important}
 html body #engBig .ebTit{font-size:var(--f0)!important;padding:3px 7px 4px!important;margin:0 0 4px!important;letter-spacing:2px!important;line-height:1!important;
   background:var(--ec)!important;color:var(--jInk)!important;text-shadow:none!important;box-shadow:none!important}
 html body #engBig.rec .ebTit{background:var(--au2)!important}
+html body #engBig .ebTit.cap{letter-spacing:1px!important;white-space:nowrap!important} /* (2026-09-30) « + PLUIE DE BILLETS » se cassait sur deux lignes (mesuré au banc, carte de 188 px) : la capacité tient sur UNE */
 html body #engBig .ebCarte>b{--tc:var(--ec);font-size:var(--f4)!important;line-height:1.15!important;letter-spacing:1px!important;margin:0!important;white-space:nowrap;
   color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;
   background:linear-gradient(var(--bandes4),#fff 0 14%,color-mix(in srgb,var(--tc) 40%,#fff) 14% 42%,var(--tc) 42% 78%,color-mix(in srgb,var(--tc) 60%,var(--jInk)) 78%)!important;
@@ -20290,7 +20291,7 @@ function engBig(E,tier,ru){
      LA CARTE SE RÉDUIT À L'ESSENTIEL : une étiquette (NOUVEAU MOTEUR), le NOM dans la typo ombrée du HUD, à la couleur néon du moteur, et
      le moteur 3D à l'échelle de la CAISSE, posé sur son toit. Le palier, les cylindres et le gain ont quitté la carte : le gain jaillit de
      la voiture à l'entrée dans le capot (engImpact), les cylindres chantent toujours (à l'oreille). */
-  b.innerHTML='<div class="ebCarte"><small class="ebTit">'+(cap9?'+ '+sansAcc(TR(cap9)):sansAcc(TR(rec?'NOUVEAU SOMMET':'NOUVEAU MOTEUR')))+'</small>'
+  b.innerHTML='<div class="ebCarte"><small class="ebTit'+(cap9?' cap':'')+'">'+(cap9?'+ '+sansAcc(TR(cap9)):sansAcc(TR(rec?'NOUVEAU SOMMET':'NOUVEAU MOTEUR')))+'</small>'
     +'<b data-t="'+String(nm).replace(/[<>&"]/g,'')+'">'+nm+'</b>'
     +'<div class="ebScene"></div></div>';
   engBig.ctx=null;engBig.on=true;engBig.plonge=0;engBig.t0=performance.now();engBig.col=parseInt(hx.slice(1),16);engBig.hex=hx;engVigSpin=0;
