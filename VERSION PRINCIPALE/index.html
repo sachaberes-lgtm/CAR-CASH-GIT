@@ -6062,6 +6062,7 @@ const IS_MOBILE=FORCE_TEL||TEL_NATIF;
 const IS_LOW_END=IS_MOBILE||(navigator.hardwareConcurrency>0&&navigator.hardwareConcurrency<=4);
 const REDUCED_MOTION=(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)||false; // ACCESSIBILITÉ : iOS « Réduire les animations » → coupe bloom + grain + effets de vitesse
 if(REDUCED_MOTION)document.documentElement.setAttribute('data-reduced-motion','1');
+const FOVP_K=REDUCED_MOTION?.3:1; // (2026-09-30) « Réduire les animations » : les COUPS de champ (fovPunch — nitro, boost, drift, +34° à l'entrée en orbite) à 30 %, là où ils s'appliquent
 try{matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',function(e){if(e.matches)document.documentElement.setAttribute('data-reduced-motion','1');else document.documentElement.removeAttribute('data-reduced-motion');});}catch(e){} // (2026-09-29) le réglage d'iOS change en cours de partie : les règles qui ne lisent que l'attribut suivent
 const renderer=new THREE.WebGLRenderer({antialias:!IS_MOBILE&&!IS_LOW_END,powerPreference:'high-performance'});
 renderer.setSize(innerWidth,innerHeight);
@@ -22125,7 +22126,7 @@ function boomCamTick(dt){
   const fT=fovPor(C.FOV),f=C.f0+(fT-C.f0)*e;if(Math.abs(camera.fov-f)>.01){camera.fov=f;camera.updateProjectionMatrix();}
   C.v.copy(boomPos).add(C.ao);C.v.y+=C.VISEE_MONTE*t;
   if(shake>0){ // TREMBLEMENT lisse sur la visée (et plus sur la position) : il s'éteint en ~0,9 s
-    const a=shake*C.TREMBLE*r/18;C.w.subVectors(C.v,camera.position).cross(C.Y);
+    const a=REDUCED_MOTION||window.dbgNoShake?0:shake*C.TREMBLE*r/18;C.w.subVectors(C.v,camera.position).cross(C.Y); // (2026-09-30) « Réduire les animations » : le plan de la mort ne tremble pas (la secousse s’éteint quand même, elle ne déborde pas sur la partie suivante) ; dbgNoShake comme les autres plans
     if(C.w.lengthSq()>1e-6)C.w.normalize();
     C.v.addScaledVector(C.w,Math.sin(t*47)*a).addScaledVector(C.Y,Math.sin(t*37+1.3)*a*.8);
     shake=Math.max(0,shake-3*dt);}
@@ -22213,11 +22214,11 @@ function debrisLoin(v){
   return v;
 }
 function signatureBoom(lvl){
-  const toss=(m,sp)=>{ // éjection « logique » : vers l'extérieur et vers le haut, en tournoyant
+  const toss=(m,sp,part)=>{ // éjection « logique » : vers l'extérieur et vers le haut, en tournoyant — `part` : matière/géométrie PARTAGÉES (ni éteintes ni jetées au ménage)
     const a=Math.random()*Math.PI*2;
     m.position.copy(boomPos);m.position.y+=.4;
     debris.push({m:m,v:debrisLoin(new THREE.Vector3(Math.cos(a)*(5+Math.random()*sp),8+Math.random()*10,Math.sin(a)*(5+Math.random()*sp))),
-      rx:(Math.random()-.5)*11,ry:(Math.random()-.5)*11});
+      rx:(Math.random()-.5)*11,ry:(Math.random()-.5)*11,part:part});
     scene.add(m);
   };
   // ⚠ REMAPPÉ SUR LA GAMME DES SIX (2026-09-24) : ce tableau datait de l'ère des 24, ses index ne
@@ -22258,6 +22259,23 @@ function signatureBoom(lvl){
         (Math.random()-.5)*2,6+Math.random()*5,(Math.random()-.5)*2,1.4+Math.random()*.8);
     }
   }
+  /* (2026-09-30) LES RÉCOMPENSES DES CAMPAGNES MEURENT À LEUR FAÇON — elles mouraient comme LA HONTE (les signatures sont indexées 0..5).
+     Reconnues par leur FORME, jamais par un index (la gamme bouge). Rien de neuf pour le GPU : le lingot lance des lingots taillés dans
+     SA matière (LINGOT_MAT, celle de la caisse qu'on voit exploser : programme déjà lié ; `part` : elle n'est ni éteinte ni jetée au
+     ménage) sur UNE géométrie partagée ; la caisse-nuage crève dans les réserves de ouate (cloudBits, foam). */
+  const sh9=(CARS[lvl]||{}).shape;
+  if(sh9==='lingot'){ // LE LINGOT : la réserve d'or saute — lingots en gerbe, pluie de billets, étincelles d'or
+    if(!signatureBoom.lgG){const g=lingotGeo();g.translate(0,-.475,0);g.scale(.12,.16,.12);signatureBoom.lgG=g;} // 24 × 15 × 50 cm, née à la 1re mort du lingot, gardée
+    for(let k=0;k<8;k++)toss(new THREE.Mesh(signatureBoom.lgG,LINGOT_MAT),12,true);
+    for(let k=0;k<36;k++)spawnBill(boomPos,new THREE.Vector3((Math.random()-.5)*22,8+Math.random()*16,(Math.random()-.5)*22),1.9+Math.random()*1.6);
+    sparkBurst(sparkGold,boomPos,40,22);
+  }
+  if(sh9==='nuage'){ // LA CAISSE-NUAGE : elle CRÈVE — la ouate éclate en mille bouts, une bouffée plus haut, un voile de brume qui s'étale
+    shatterCloud(boomPos,1.6);
+    tmp3.copy(boomPos);tmp3.y+=1.8;shatterCloud(tmp3,.8);
+    for(let k=0;k<16;k++){const a=Math.random()*6.2832,sp=2+Math.random()*5;
+      spawnP(foam,boomPos.x+Math.cos(a)*1.5,boomPos.y+.6+Math.random(),boomPos.z+Math.sin(a)*1.5,Math.cos(a)*sp,.6+Math.random()*1.8,Math.sin(a)*sp,1+Math.random()*.8);}
+  }
 }
 // LES MORTS NE SE RESSEMBLENT PLUS : 5 signatures d'explosion tirées au sort (couleurs + forme + son)
 const BOOM_VARS=[
@@ -22293,6 +22311,10 @@ window.dbgMorts=function(q){ // (dev) {ici, niveaux:{clé:{morts:{cause:n}, tota
     o[k]={morts:Object.assign({},m),total:n,min:+(s/60).toFixed(2),parMin:s>0?+(n*60/s).toFixed(3):null};}
   return {ici:MORTS.k,niveaux:o};};
 let mortCause=''; // (2026-09-26, audit UX) POURQUOI on est mort — dit sous GAME OVER : une mort comprise donne envie de rejouer
+/* (2026-09-30) LA PARTIE BAT-ELLE UN RECORD ? Les TROIS de l'écran de mort (mFill) : l'ARGENT (montants bruts ; 1,61 $ n'en est pas un),
+   l'AURA battue en course (CHA.recB), le MOTEUR (un palier jamais atteint avant cette partie). explode s'en sert pour ne pas se moquer
+   d'une partie que l'écran de mort va couronner « NOUVEAU RECORD ! ». */
+function partieRecord(){try{return !SANDBOX&&((money>(RUNX.best0||0)&&money>START_CASH+.5)||!!CHA.recB||engTier>(RUNX.engAvant|0));}catch(e){return false;}}
 function explode(cause){
   if(facileSauve(cause))return; // (MODE FACILE) une vie de moins au lieu de la partie (le BOUCLIER, qui pardonnait une chute, est retiré le 29/09)
   RALENTI.t=0; // (passe qualité) le ralenti de la frénésie s'arrête net à l'explosion : sinon le plan de la mort passait à ×0,3 et l'écran de fin arrivait 2× plus tard
@@ -22303,6 +22325,12 @@ function explode(cause){
   try{mortsCompte(mortCause);}catch(e){} // (2026-09-30) la mesure des morts par niveau (voir MORTS)
   dolKill(); // l'aura du DAUPHIN part avec la caisse — comme la mallette
   flowReset();try{flowTick(0);}catch(e){} // le crash VIDE le flow
+  /* (2026-09-30) LA MUSIQUE MEURT AVEC LA CAISSE : le tape-stop partait d'endGame, 1,8 s APRÈS l'explosion — toute la boule de feu se
+     jouait sur la bande à plein (sur iPhone `el.volume` est verrouillé et `duckT` ne creuse que le WebAudio) : le son de mort, la voix
+     et le son de cause passaient DESSOUS. Il part ici, sur l'image du crash ; endGame le laisse finir (musicStop) et la musique du menu
+     revient comme avant. Pas au BAC À SABLE ni à l'AUTO-ÉCOLE (endGame replace la caisse, la course continue), ni pour une vie du mode
+     FACILE (facileSauve est sorti plus haut). Après flowReset : une frénésie qui s'éteint ne relance pas la radio par-dessus. */
+  if(!SANDBOX&&!TUTO.on)musicStop(true);
   hap([55,45,160]); // le téléphone encaisse le crash avec toi
   BOOMV=BOOM_VARS[0]; // signature FIXE « FEU » (réf. illustrations) — la variété vient des volutes, plus d'une roulette de couleurs
   // la chaîne part en fumée avec la caisse — le sel du bank-or-bust
@@ -22319,8 +22347,11 @@ function explode(cause){
   boomOndePart(boomPos); // (2026-09-26) + l'onde qui court sur le bitume
   /* (2026-09-28) PENDANT L'AUTO-ÉCOLE, un crash n'est qu'un RATÉ (endGame replace la caisse) : ni la voix « EARLY DEAD » — qui se
      présentait là pour la toute 1re fois, à un joueur qui n'est même pas mort —, ni le son de mort. L'explosion et le « RATÉ » du coach suffisent. */
-  const tx9=engTier<23&&!TUTO.on?annSpeak('earlyDead',6):null; // (2026-09-26, audit son) la VOIX d'abord : si elle parle, le tirage du son de mort écarte le « ewww »
-  if(!TUTO.on)deathSound(!!ANN.playing); // …et LE SON DE MORT, tiré au sort — il tombe sur l'image de l'explosion, pas après
+  /* (2026-09-30) « EARLY DEAD » NE SE MOQUE PLUS À CONTRETEMPS : elle tombait sur la toute 1re mort de chaque joueur (`first:1` : la voix
+     se présente à sa 1re occurrence), sur une partie que l'écran de mort allait couronner « NOUVEAU RECORD ! », et en mode FACILE (le
+     public jeune). Elle se tait donc à la 1re partie, sur un record (partieRecord) et en FACILE — où le « ewww » est écarté aussi. */
+  const fac9=facOn(),tx9=engTier<23&&!TUTO.on&&!fac9&&((SAVE.d.ex&&SAVE.d.ex.runs)|0)>0&&!partieRecord()?annSpeak('earlyDead',6):null; // (2026-09-26, audit son) la VOIX d'abord : si elle parle, le tirage du son de mort écarte le « ewww »
+  if(!TUTO.on)deathSound(!!ANN.playing||fac9); // …et LE SON DE MORT, tiré au sort — il tombe sur l'image de l'explosion, pas après
   if(tx9)trickMsg(tx9,3); // mort avant le haut de l'échelle — indexé sur le MOTEUR (le niveau de caisse n'est plus une progression mais un choix de garage)
   carGroup.visible=false;shadow.position.y=-99999;landMark.visible=false;
   const spec=CARS[level];
@@ -22435,7 +22466,7 @@ function explode(cause){
      progression ; c'est aujourd'hui l'INDEX de la caisse choisie au garage : les quatre premières caisses explosaient sans grave.
      Même grondement pour toutes, un peu allégé (.35/.5 → .3, sub .3) : `boomSnd` part dans la même milliseconde sur le même bus. */
   if(!SONV2){noiseBurst(1.2,.3,240);subBoom(.3);}
-  else{const mc9={vide:'mort.vide',air:'mort.air',arret:'mort.arret',police:'mort.police',feu:'mort.feu'}[mortCause];if(mc9&&!TUTO.on)sfx(mc9);} // (console) chaque mort a sa signature (sauf à l'auto-école : un crash n'y est qu'un RATÉ), par-dessus l'explosion : on ENTEND pourquoi on est mort
+  else{const mc9={vide:'mort.vide',air:'mort.air',arret:'mort.arret',police:'mort.police',feu:'mort.feu',sat:'mort.foudre'}[mortCause];if(mc9&&!TUTO.on)sfx(mc9);} // (console) chaque mort a sa signature (sauf à l'auto-école : un crash n'y est qu'un RATÉ), par-dessus l'explosion : on ENTEND pourquoi on est mort · (2026-09-30) le SATELLITE percuté (PLUIE DE SATELLITES) : l'arc électrique qui grille, `mort.foudre` — cuit dans la banque, joué nulle part jusqu'ici
   if(level>=4){
     shake=Math.max(shake,level===5?3.6:3);
   }
@@ -22445,7 +22476,7 @@ function explode(cause){
   /* (vague 2) LE FLASH : il était BEIGE à 95 % et, par la transition CSS de 0,5 s (montée PUIS descente), il voilait l'écran ~0,8 s —
      le « écran entier beige ». Désormais un éclair blanc-or à 42 %, 70 ms, bords francs (transition courte le temps du coup, puis
      rendue à la feuille de style). */
-  flashEl.style.transition='opacity .06s';flashEl.style.background='#fff0c8';flashEl.style.opacity=.42;
+  flashEl.style.transition='opacity .06s';flashEl.style.background='#fff0c8';flashEl.style.opacity=REDUCED_MOTION?.25:.42; // (2026-09-30) « Réduire les animations » : l'éclair de la mort adouci
   setTimeout(function(){flashEl.style.opacity=0;},70);setTimeout(function(){flashEl.style.transition='';},200);
   // les répliques : chaque signature a son nombre de gerbes (les ondes, elles, sont dans spawnBoomArt)
   for(let e9=0;e9<BOOMV.rings;e9++)setTimeout(function(){
@@ -23105,7 +23136,8 @@ function playMusic(url,opt){opt=opt||{};
   el.loop=opt.loop!==false;
   if(!meme)el.src=url;                                       // on CHANGE de source : jamais d'élément neuf (il serait verrouillé)
   else if(!opt.garde){try{el.currentTime=0;}catch(e){}}      // même morceau : du début… sauf s'il faut le GARDER (menu → partie)
-  try{el.playbackRate=1;}catch(e){}
+  if(musicStop._iv){clearInterval(musicStop._iv);musicStop._iv=0;} // (2026-09-30) un tape-stop encore en cours ne rattrape plus le morceau qu'on relance (REJOUER rapide)
+  musicBandeNette(el); // …et la bande repart à SA vitesse et SA hauteur (le tape-stop coupé en route la laissait sans `preservesPitch`)
   if(opt.volume!=null){musicVolCible=opt.volume;if(!meme||el.paused)musicVolCour=opt.volume;}
   musicVoulue=true;
   if(el.paused||!meme)musicJoue();
@@ -23149,13 +23181,20 @@ function musicStop(tape){ // fin de partie : « tape-stop » (la bande ralentit 
   musicMode='none';musicVoulue=false;
   clearInterval(FRENM.iv);FRENM.on=false;FRENM.sw=false;FRENM.surm=false; // la frénésie ne survit pas à la partie
   const el=musicEl;
+  /* (2026-09-30) LA BANDE N'A PLUS QU'UN FIL : l'intervalle du tape-stop (~0,6 s) n'était jamais rangé — un REJOUER rapide (uiGarde
+     libère au bout de 320 ms) relançait le morceau, et l'intervalle d'avant continuait de le ralentir, de baisser son volume, puis le
+     METTAIT EN PAUSE : la partie repartait muette. Il vit désormais dans `musicStop._iv`, que playMusic coupe ; et un second tape-stop
+     (explode lance le premier, endGame redemande le sien 1,8 s plus tard) laisse finir celui qui tourne au lieu de remonter la bande. */
+  if(tape&&musicStop._iv&&el&&!el.paused)return;
+  if(musicStop._iv){clearInterval(musicStop._iv);musicStop._iv=0;musicBandeNette(el);}
   if(!el||el.paused||!tape){stopMusic();return;}
-  let r=1,v=musicVolCour;
+  let r=Math.min(1,el.playbackRate||1),v=musicVolCour; // (la frénésie a pu laisser la bande surmultipliée, ou déjà à demi étranglée : on part de là)
   try{el.preservesPitch=false;el.webkitPreservesPitch=false;}catch(e){} // (2026-09-26) sans ça, le navigateur GARDE la hauteur : pas de chute de bande
-  const iv=setInterval(function(){r-=.08;v*=.84;
+  musicStop._iv=setInterval(function(){r-=.08;v*=.84;
     try{el.playbackRate=Math.max(.12,r);el.volume=Math.max(0,Math.min(1,v));}catch(e){}
-    if(r<=.12){clearInterval(iv);try{el.pause();el.playbackRate=1;el.preservesPitch=true;el.webkitPreservesPitch=true;}catch(e){}musicOn=false;}},55);
+    if(r<=.12){clearInterval(musicStop._iv);musicStop._iv=0;try{el.pause();}catch(e){}musicBandeNette(el);musicOn=false;}},55);
 }
+function musicBandeNette(el){if(el)try{el.playbackRate=1;el.preservesPitch=true;el.webkitPreservesPitch=true;}catch(e){}} // la bande à SA vitesse et SA hauteur
 /* ---- LA MUSIQUE DE LA FRÉNÉSIE — « THE DARK TRIAD » (2026-09-28, Sacha : « une musique qui sera très cool… jouissif d'y arriver et
    de la garder, sinon la musique cool s'arrête »). La frénésie a SON morceau : on y entre, il TOMBE (du début, ou de `drop` secondes
    s'il a une montée à sauter) ; on la perd, il S'ÉTRANGLE (tape-stop de 0,4 s) et la radio reprend EXACTEMENT où elle en était.
@@ -26340,6 +26379,11 @@ function slamMontre(txt,sous,c1,c2,taille,fete){
   if(fete)setTimeout(function(){try{pixBurst(e.querySelector('b'),fete);}catch(x){}},140); // (2026-09-26) les annonces HEUREUSES éclatent en confettis pixel
 }
 function flashEcran(col){ // un coup de couleur sur les bords : le boost, le pouvoir, le gros encaissement
+  /* (2026-09-30) « RÉDUIRE LES ANIMATIONS » (iOS) : 33 appels passent par ici — pouvoirs, cratère, record, pulsations de NITROOO toutes les
+     0,62 s, rentrée d'orbite toutes les 0,45 s… Sous REDUCED_MOTION : UN coup par seconde au plus, et jamais plus de 40 % d'opacité
+     (l'alpha de la couleur est plafonné). Rien ne change quand l'option est éteinte. */
+  if(REDUCED_MOTION){const n=performance.now();if(n-(flashEcran._t||-1e9)<1000)return;flashEcran._t=n;
+    col=String(col).replace(/rgba?\(([^,]+),([^,]+),([^,)]+)(?:,([^)]+))?\)/,function(m,r,g,b,a){return 'rgba('+r+','+g+','+b+','+Math.min(.4,a==null||!isFinite(+a)?1:+a)+')';});}
   let e=avE('flash9');if(!e){e=document.createElement('div');e.id='flash9';e.setAttribute('aria-hidden','true');document.body.appendChild(e);avEl.flash9=e;}
   e.style.setProperty('--ff',col);e.classList.remove('on');void e.offsetWidth;e.classList.add('on');
 }
@@ -32889,11 +32933,11 @@ function loop(now){
         fovPunch=Math.max(0,fovPunch-dt*18);
         const r9=speedKmh/Math.max(1,vCroisiere()), // (2026-09-25) le champ s'ouvre sur la CROISIÈRE réelle : il continue de réagir au momentum, au pad, au FLOW au lieu d'être collé au plafond
               fb9=FLOW.lv*2.2+72+Math.min(38,r9*28+Math.max(0,r9-1)*10)+(boost>0?8:0)+(nitroOn?(nitroBlue?22:15):0); // le tunnel s'ouvre : part RELATIVE + part absolue + GROS coup de FOV au boost (Sacha)
-        let fovT=Math.min(160,fovPor(fovPunch+fb9)); // (portrait : élargi par la tangente, voir fovPor)
+        let fovT=Math.min(160,fovPor(fovPunch*FOVP_K+fb9)); // (portrait : élargi par la tangente, voir fovPor)
         if(ct9){const f09=Math.min(160,fovPor(fb9));fovT=camTailleFov(f09)+(fovT-f09);} // (2026-09-30) CAM_TAILLE : le champ tenu passe par le genou, le COUP (fovPunch) passe par-dessus, intact
         {const n9=performance.now();if(loop._fovB==null||n9-(loop._fovBT||0)>150)loop._fovB=camera.fov;loop._fovBT=n9;} // le champ « de base » repart du vrai champ à chaque reprise de conduite
         loop._fovB+=(fovT-loop._fovB)*Math.min(1,dt*(NFX.off>0&&fovT<loop._fovB?2.4:6));
-        CAMV.zoom=Math.max(0,CAMV.zoom-dt*2);CAMV.zp=24*CAMV.zoom*CAMV.zoom; // (2026-09-28) le COUP DE ZOOM d'une pose PARFAITE : sec à l'impact (−24°), relâché en 0,5 s
+        CAMV.zoom=Math.max(0,CAMV.zoom-dt*2);CAMV.zp=24*CAMV.zoom*CAMV.zoom*FOVP_K; // (2026-09-28) le COUP DE ZOOM d'une pose PARFAITE : sec à l'impact (−24°), relâché en 0,5 s — (2026-09-30) à 30 % sous « Réduire les animations », comme fovPunch
         camera.fov=Math.max(20,loop._fovB-CAMV.zp); // (vague 3) à l'extinction de la nitro le champ RETOMBE en douceur (il s'ouvre toujours sec)
         camera.updateProjectionMatrix();
         /* (2026-09-28, chasse aux détails) LES SECOUSSES SONT DES COUPS, PLUS DE LA NEIGE : un tirage au hasard à CHAQUE image (±0,7 m à la
@@ -33135,7 +33179,7 @@ function loop(now){
       // (2026-09-26) la NITRO se VOIT en l'air : le champ s'ouvre sous la poussée (comme au sol) et le coup de réacteur de l'allumage
       // (`fovPunch`) claque ici aussi — avant, il n'était lu qu'au sol et partait en retard, à l'atterrissage
       fovPunch=Math.max(0,fovPunch-dt*18);
-      const fovAir=fovPor(76-bigAir*22+fovPunch+(nitroOn?(nitroBlue?18:13):0)); // le champ se resserre avec l'ampleur du saut (76° petit air → 54° gros air)
+      const fovAir=fovPor(76-bigAir*22+fovPunch*FOVP_K+(nitroOn?(nitroBlue?18:13):0)); // le champ se resserre avec l'ampleur du saut (76° petit air → 54° gros air)
       camera.fov+=(fovAir-camera.fov)*Math.min(1,dt*(NFX.off>0&&fovAir<camera.fov?2:4)); // (vague 3) la nitro coupée : le champ retombe en douceur
       camera.updateProjectionMatrix();
       // (2026-09-28) le vent du VOL au même régime que celui du sol (×.42, le PLANÉ SUPERSONIQUE qui calme, « Réduire les animations ») :
