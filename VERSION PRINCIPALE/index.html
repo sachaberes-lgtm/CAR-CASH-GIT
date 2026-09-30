@@ -14519,7 +14519,7 @@ function lpMat(g){
       .replace('#include <dithering_fragment>',RIM_GLSL('uCj')+ // le liseré, contre-jour compris (voir RIM_GLSL)
         'gl_FragColor.rgb+=uRimC*rimF*uRimStr*.6+vColor*uGlow;\n#include <dithering_fragment>');
   };
-  m.userData.lp=1;m.userData.g=g;return m; // `g` : la famille de matière (le banc des laques y reconnaît la tôle)
+  m.userData.lp=1;m.userData.g=g;m.userData.uG=uG;return m; // `g` : la famille de matière (le banc des laques y reconnaît la tôle) · `uG` : le plancher lumineux (l'atelier le relève pour ses meubles)
 }
 /* L'ATELIER. `pal` : clé → {g: matière, c: couleur, f: 0 pour couper le fondu vertical}.
    Toutes les pièces sont versées dans des tampons par matière, à facettes (non indexé) ; `done()`
@@ -32668,6 +32668,25 @@ function afficheTap(a){ // ⚠ LE POINT D'EXTENSION des affiches : leurs vraies 
   try{uiClic();chimeNote(a.k==='perso'?659:587,0,.12,.12);chimeNote(a.k==='perso'?988:880,.06,.18,.1);}catch(e){}
   toast(sansAcc(TR(a.k==='perso'?'TES RECORDS : BIENTOT EN DETAIL':'CLASSEMENT MONDIAL : BIENTOT EN LIGNE')));
 }
+/* (2026-09-30) UNE BOÎTE CHANFREINÉE à la vraie taille w × h × d, chanfrein b : 6 faces, 12 biseaux, 8 coins (44 triangles), non indexée
+   (facettes franches, comme la caisse). NEUVE à chaque appel : les meubles du garage la versent dans leur kit (lpKit.put la déplace EN
+   PLACE puis la libère — une géométrie gardée en cache en sortirait déformée). */
+function chanfreinGeo(w,h,d,b){
+  const X=w/2,Y=h/2,Z=d/2,pos=[];
+  const V=(sx,sy,sz,t)=>t===0?[sx*X,sy*(Y-b),sz*(Z-b)]:t===1?[sx*(X-b),sy*Y,sz*(Z-b)]:[sx*(X-b),sy*(Y-b),sz*Z];
+  const face=(P,n)=>{const a=P[0],c1=P[1],c2=P[2],ux=c1[0]-a[0],uy=c1[1]-a[1],uz=c1[2]-a[2],vx=c2[0]-a[0],vy=c2[1]-a[1],vz=c2[2]-a[2];
+    const Q=((uy*vz-uz*vy)*n[0]+(uz*vx-ux*vz)*n[1]+(ux*vy-uy*vx)*n[2])<0?P.slice().reverse():P; // l'ordre qui regarde DEHORS
+    for(let i=1;i<Q.length-1;i++)pos.push(Q[0][0],Q[0][1],Q[0][2],Q[i][0],Q[i][1],Q[i][2],Q[i+1][0],Q[i+1][1],Q[i+1][2]);};
+  for(const s of [-1,1]){
+    face([V(s,-1,-1,0),V(s,1,-1,0),V(s,1,1,0),V(s,-1,1,0)],[s,0,0]);
+    face([V(-1,s,-1,1),V(1,s,-1,1),V(1,s,1,1),V(-1,s,1,1)],[0,s,0]);
+    face([V(-1,-1,s,2),V(1,-1,s,2),V(1,1,s,2),V(-1,1,s,2)],[0,0,s]);}
+  for(const sx of [-1,1])for(const sy of [-1,1])face([V(sx,sy,-1,0),V(sx,sy,1,0),V(sx,sy,1,1),V(sx,sy,-1,1)],[sx,sy,0]);   // biseaux le long de z
+  for(const sx of [-1,1])for(const sz of [-1,1])face([V(sx,-1,sz,0),V(sx,1,sz,0),V(sx,1,sz,2),V(sx,-1,sz,2)],[sx,0,sz]);   // le long de y
+  for(const sy of [-1,1])for(const sz of [-1,1])face([V(-1,sy,sz,1),V(1,sy,sz,1),V(1,sy,sz,2),V(-1,sy,sz,2)],[0,sy,sz]);   // le long de x
+  for(const sx of [-1,1])for(const sy of [-1,1])for(const sz of [-1,1])face([V(sx,sy,sz,0),V(sx,sy,sz,1),V(sx,sy,sz,2)],[sx,sy,sz]); // les coins
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));return g;
+}
 function buildGarageRoom(){
   const W=GAR.W,D=GAR.D,H=GAR.H,hw=W/2,hd=D/2;
   const g=new THREE.Group();g.visible=false;scene.add(g);GAR.root=g;
@@ -32881,132 +32900,340 @@ function buildGarageRoom(){
     add9(PL,new THREE.MeshBasicMaterial({map:oilTex,transparent:true,fog:false,depthWrite:false}),
          p[0],.008,p[1],p[2],p[2]*.8,1).rotation.x=-Math.PI/2;
 
+  /* ===== LES MEUBLES DU NIVEAU DE LA CAISSE (2026-09-30, Sacha : « retravaille le garage, notamment les objets : il faut que tous les
+     objets et les meubles soient du niveau de la voiture ») =====
+     Les meubles étaient des cubes Lambert mis à l'échelle — pas un reflet, pas une arête, trois cents appels de dessin — posés à côté
+     d'une caisse taillée au kit, en laque vernie qui renvoie le studio. Ils sont désormais construits avec LE MÊME KIT QUE LA CAISSE
+     (`lpKit` : facettes franches, couleur dans les sommets ; `lpMat` : laque vernie, chrome, or, satiné, mat, verre ; `lpOmbre` : l'ombre
+     cuite au pied) et au même degré de détail : l'établi en lamellé-collé avec ses blocs-tiroirs, la servante à tiroirs et barres de
+     tirage, le compresseur à fonds bombés avec son moteur, sa pompe à ailettes, son carter de courroie et ses manomètres, deux V8
+     (blocs, culasses, cache-culbuteurs laqués, collecteurs chromés, poulies, courroie, faisceau d'allumage), le palan hydraulique et sa
+     chaîne maillon par maillon, le pont à deux poteaux en U, les pneus au vrai profil des roues de la gamme, les jantes à bâtons…
+     · TOUT tient en UNE géométrie PAR MATIÈRE : ~6 appels de dessin pour tout le mobilier (contre ~300), et les programmes sont ceux de
+       la caisse (même shader, mêmes réglages : zéro programme de plus au menu, rien à relier en course).
+     · Les places ne bougent pas : les ancres des MISSIONS (compresseur, établi, pont, rack, distributeur) visent toujours leur meuble,
+       rien de haut à moins de 8,3 m du centre, et le couloir de la caméra ne garde que du ras du sol (sous 50 cm).
+     · `uG` (le plancher lumineux de lpMat) est relevé par famille : l'atelier est sombre, et une laque sans lui y sortait noire. */
+  const MK=lpKit({
+    R:{g:'p',c:0xd53c2f},B:{g:'p',c:0x2f6cb8},V:{g:'p',c:0x2f9e63},J:{g:'p',c:0xefb52a},O:{g:'p',c:0xe8721f},  // les laques franches
+    N:{g:'p',c:0x1d2027},K:{g:'p',c:0x626b79},                                                           // laque noire, gris moteur
+    C:{g:'c',c:0xe6e9ee},Or:{g:'o',c:0xffc24a},                                                          // chrome, laiton
+    F:{g:'s',c:0x2c3445},A:{g:'s',c:0x8792a4},W:{g:'s',c:0x8a6237},W2:{g:'s',c:0xa3794a},E:{g:'s',c:0xd8d0bc},Wb:{g:'s',c:0xf2f0ea},
+    P:{g:'m',c:0x1a1c21},D:{g:'m',c:0x101217},T:{g:'m',c:0xb08b5a},T2:{g:'m',c:0x9c7a4c},                // pneu, caoutchouc, carton
+    G:{g:'g',c:0x1b3550},H:{g:'g',c:0x07080b}});                                                        // verre, huile
+  const q9=new THREE.Quaternion(),e9=new THREE.Euler(),y9v=new THREE.Vector3(0,1,0),x9v=new THREE.Vector3(1,0,0),d9=new THREE.Vector3();
+  // boîte chanfreinée (arêtes qui attrapent la lumière), cylindre, tour, tore, tube entre deux points, poutre entre deux points
+  const cb=(k,w,h,d,x,y,z,rx,ry,rz,b)=>{b=b!=null?b:Math.min(.03,Math.min(w,h,d)*.2);
+    MK.put(k,b<.004?new THREE.BoxGeometry(w,h,d):chanfreinGeo(w,h,d,b),x,y,z,rx,ry,rz);};
+  const cl=(k,r,len,n,x,y,z,rx,ry,rz,r2)=>MK.put(k,new THREE.CylinderGeometry(r2!=null?r2:r,r,len,n||10),x,y,z,rx,ry,rz);
+  const lt=(k,pts,n,x,y,z,rx,ry,rz)=>MK.put(k,new THREE.LatheGeometry(pts.map(p=>new THREE.Vector2(p[0],p[1])),n||16),x,y,z,rx,ry,rz);
+  const to=(k,R,t,x,y,z,rx,ry,rz,ns,arc)=>MK.put(k,new THREE.TorusGeometry(R,t,ns||5,16,arc||Math.PI*2),x,y,z,rx,ry,rz);
+  const seg=(k,r,a,b,n)=>{d9.set(b[0]-a[0],b[1]-a[1],b[2]-a[2]);const L9=d9.length();if(L9<1e-4)return;d9.divideScalar(L9);
+    q9.setFromUnitVectors(y9v,d9);e9.setFromQuaternion(q9,'XYZ');
+    MK.put(k,new THREE.CylinderGeometry(r,r,L9,n||6),(a[0]+b[0])/2,(a[1]+b[1])/2,(a[2]+b[2])/2,e9.x,e9.y,e9.z);};
+  const barre=(k,t,a,b,h)=>{d9.set(b[0]-a[0],b[1]-a[1],b[2]-a[2]);const L9=d9.length();if(L9<1e-4)return;d9.divideScalar(L9);
+    q9.setFromUnitVectors(x9v,d9);e9.setFromQuaternion(q9,'XYZ');
+    MK.put(k,chanfreinGeo(L9,h||t,t,Math.min(.02,t*.2)),(a[0]+b[0])/2,(a[1]+b[1])/2,(a[2]+b[2])/2,e9.x,e9.y,e9.z);};
+  /* LES PIÈCES QUI REVIENNENT. Le pneu a le profil des roues de la gamme (lpWheel : 16 pans, épaules chanfreinées) + deux rainures ;
+     couché par défaut (axe y). La jante couchée : lèvre, fond sombre, bâtons, moyeu et écrou de laiton. */
+  const pneu=(x,y,z,R,w,rx,ry,rz,lettre)=>{const h=w/2;
+    lt('P',[[R*.6,h],[R*.6,-h],[R*.83,-h],[R*.97,-h*.8],[R,-h*.45],[R,h*.45],[R*.97,h*.8],[R*.83,h],[R*.6,h]],16,x,y,z,rx,ry,rz);
+    for(const s of [-.18,.18])lt('D',[[R+.003,s*w-.012],[R+.003,s*w+.012]],16,x,y,z,rx,ry,rz);
+    if(lettre)lt('J',[[R*.88,h+.003],[R*.72,h+.003]],16,x,y,z,rx,ry,rz);};          // flanc lettré jaune : des gommes de course
+  const jante=(x,y,z,r,n)=>{
+    lt('C',[[r,-.05],[r*1.05,-.04],[r*1.05,.04],[r,.05],[r*.92,.05]],18,x,y,z);
+    lt('D',[[r*.92,.03],[r*.92,-.04],[0,-.04]],18,x,y,z);
+    for(let s=0;s<n;s++){const a=s/n*Math.PI*2;cb('C',r*.13,.03,r*.78,x+Math.sin(a)*r*.46,y+.035,z+Math.cos(a)*r*.46,0,a,0,.006);}
+    cl('C',r*.22,.07,12,x,y+.03,z);cl('Or',r*.08,.08,6,x,y+.045,z);};
+  const carton=(x,y0,z,w,h,d,ry)=>{ry=ry||0;cb(ry?'T2':'T',w,h,d,x,y0+h/2,z,0,ry,0,.012);
+    cb('E',w+.006,.005,.09,x,y0+h+.002,z,0,ry,0,0);                                   // le scotch
+    if(!ry)cb('Wb',Math.min(.22,w*.4),.12,.005,x-w*.18,y0+h*.55,z+d/2+.003,0,0,0,0);}; // l'étiquette
+  const bidon=(x,y0,z,k)=>{lt(k,[[0,0],[.18,0],[.19,.015],[.19,.3],[.16,.37],[.07,.41],[0,.41]],14,x,y0,z);
+    lt('Wb',[[.194,.09],[.194,.23]],14,x,y0,z);cl('D',.05,.05,10,x,y0+.43,z);};
+  const jerry=(x,y0,z,k)=>{cb(k,.36,.5,.24,x,y0+.25,z,0,0,0,.03);
+    for(const s of [-1,1]){barre(k,.028,[x-.12,y0+.08,z+s*.122],[x+.12,y0+.42,z+s*.122]);barre(k,.028,[x+.12,y0+.08,z+s*.122],[x-.12,y0+.42,z+s*.122]);} // le X embouti
+    for(const s of [-.1,0,.1])cb(k,.035,.08,.06,x+s,y0+.54,z,0,0,0,.01);cb(k,.26,.03,.06,x,y0+.585,z,0,0,0,.008);   // les trois anses
+    cl('A',.03,.07,8,x+.15,y0+.53,z,0,0,-.5);};
+  const clefM=(x,y,z,L)=>{cb('C',.045,L,.018,x,y,z,0,0,0,.006);to('C',.05,.016,x,y+L/2+.035,z,0,0,0,4);          // la clé mixte pendue : œil…
+    cb('C',.028,.075,.018,x-.042,y-L/2-.025,z,0,0,0,.005);cb('C',.028,.075,.018,x+.042,y-L/2-.025,z,0,0,0,.005);cb('C',.12,.03,.018,x,y-L/2+.012,z,0,0,0,.005); // …et fourche
+    cl('A',.007,.09,5,x,y+L/2+.035,z-.04,Math.PI/2);};
+  /* LE V8 : vilebrequin selon x, la FAÇADE (poulies, courroie, ventilateur) tournée vers la salle (−x). Bloc et culasses gris,
+     cache-culbuteurs en laque rouge à nervures chromées, filtre à air chromé, collecteurs chromés, faisceau d'allumage, carter, volant. */
+  const moteur=(x,y,z)=>{const TH=.72,c9=Math.cos(TH),s9=Math.sin(TH);
+    const BK=(s,lx,ly,lz)=>[x+lx,y+ly*c9-lz*s*s9,z+ly*s*s9+lz*c9];                   // repère d'une rangée (penchée de ±41°)
+    cb('F',.86,.14,.42,x+.04,y-.33,z,0,0,0,.03);cb('F',.4,.06,.3,x+.12,y-.42,z,0,0,0,.02);   // le carter d'huile
+    cb('K',1.0,.34,.56,x,y-.1,z,0,0,0,.03);                                            // le bas du bloc
+    for(const s of [-1,1]){let p=BK(s,0,.2,0);cb('K',.94,.34,.3,p[0],p[1],p[2],s*TH,0,0,.025);            // la rangée
+      p=BK(s,0,.4,0);cb('K',.96,.07,.32,p[0],p[1],p[2],s*TH,0,0,.015);                  // la culasse
+      p=BK(s,0,.48,0);cb('R',.9,.1,.25,p[0],p[1],p[2],s*TH,0,0,.03);                    // le cache-culbuteurs
+      for(const v of [-.07,0,.07]){p=BK(s,0,.535,v);cb('C',.78,.014,.02,p[0],p[1],p[2],s*TH,0,0,0);}
+      p=BK(s,.3,.55,0);cl('Or',.035,.035,10,p[0],p[1],p[2],s*TH);                       // le bouchon
+      for(let i=0;i<4;i++){const lx=-.33+i*.22;p=BK(s,lx,.3,s*.17);cl('D',.022,.08,6,p[0],p[1],p[2],s*TH+s*Math.PI/2);  // les antiparasites
+        seg('R',.008,p,[x+.46,y+.62,z+s*.03]);                                          // le faisceau jusqu'à l'allumeur
+        const q=BK(s,lx,.06,s*.16);seg('C',.028,q,[x+lx+.02,y-.12,z+s*.44]);}            // les primaires du collecteur
+      seg('C',.045,[x-.42,y-.13,z+s*.44],[x+.36,y-.15,z+s*.44]);seg('C',.05,[x+.36,y-.15,z+s*.44],[x+.42,y-.38,z+s*.46]);}
+    cb('K',.8,.14,.24,x,y+.42,z,0,0,0,.02);cb('A',.2,.1,.2,x,y+.53,z,0,0,0,.02);       // la pipe d'admission, le carbu
+    lt('C',[[0,.58],[.21,.58],[.23,.6],[.23,.64],[.21,.66],[.12,.68],[0,.685]],20,x,y,z);  // le filtre à air chromé
+    lt('R',[[.216,.6],[.216,.64]],20,x,y,z);cl('Or',.03,.03,6,x,y+.7,z);
+    cb('K',.07,.42,.34,x-.53,y+.02,z,0,0,0,.02);                                       // le carter de distribution
+    cl('C',.12,.05,16,x-.6,y-.14,z,0,0,Math.PI/2);cl('C',.08,.04,14,x-.61,y+.16,z,0,0,Math.PI/2);     // poulies : vilebrequin, pompe à eau
+    cl('A',.1,.2,14,x-.46,y+.24,z-.3,0,0,Math.PI/2);cl('C',.05,.04,10,x-.6,y+.24,z-.3,0,0,Math.PI/2); // l'alternateur
+    seg('D',.014,[x-.62,y-.26,z+.02],[x-.62,y+.1,z+.07]);seg('D',.014,[x-.62,y+.22,z-.06],[x-.62,y+.28,z-.26]);seg('D',.014,[x-.62,y-.2,z-.1],[x-.62,y+.2,z-.34]); // la courroie
+    for(let i=0;i<4;i++)cb('N',.012,.3,.07,x-.66,y+.16,z,i*Math.PI/4+.3,0,0,.004);     // le ventilateur
+    lt('A',[[.12,0],[.3,.07],[.3,.13],[0,.13]],16,x+.5,y-.08,z,0,0,-Math.PI/2);        // la cloche d'embrayage
+    cl('N',.045,.16,10,x+.46,y+.54,z);lt('R',[[.07,.62],[.07,.66],[.03,.69],[0,.69]],10,x+.46,y,z);   // l'allumeur
+    cl('O',.055,.14,12,x+.12,y-.24,z+.32,Math.PI/2);cl('A',.07,.24,10,x+.3,y-.24,z-.33,0,0,Math.PI/2);}; // filtre à huile, démarreur
+
   // ===== MUR DU FOND : l'établi, le panneau d'outils, l'étagère — le vrai bordel utile =====
-  const zB=-hd+.9;
-  bx(-3,.92,zB,9.8,.14,1.5,M.bois);bx(-3,.42,zB,9.5,.06,1.25,M.acier);
-  for(const px of [-7.6,-3,1.6]){bx(px,.46,zB-.55,.13,.92,.13,M.fer);bx(px,.46,zB+.55,.13,.92,.13,M.fer);}
-  bx(-3,1.06,zB-.73,9.8,.14,.08,M.fer);
-  flat(pegTex,-3,2.6,-hd+.18,9.6,2.6);                                  // le panneau perforé
-  for(let i=0;i<7;i++){const px=-7+i*.62;                                // clés plates suspendues
-    bx(px,3.2,-hd+.26,.09,.62+(i%3)*.12,.05,M.chrome);bx(px,3.53+(i%3)*.06,-hd+.26,.16,.12,.05,M.chrome);}
-  bx(-2.2,3.2,-hd+.26,.1,.7,.06,M.bois);bx(-2.2,3.58,-hd+.26,.36,.16,.1,M.acier);   // marteau
-  for(let i=0;i<4;i++){bx(-1.3+i*.42,3.15,-hd+.26,.12,.5,.06,M.rouge);bx(-1.3+i*.42,2.82,-hd+.26,.05,.34,.05,M.chrome);}
-  bx(.9,3.25,-hd+.26,.5,.42,.05,M.acier);bx(1.5,3.05,-hd+.26,.75,.1,.05,M.chrome);  // scie
-  for(let i=0;i<3;i++)bx(2.4+i*.5,3.3,-hd+.26,.14,.66,.06,M.bleu);                  // pinces
-  bx(-3,4.35,-hd+.34,9.4,.1,.62,M.fer);                                             // étagère haute
-  for(let i=0;i<7;i++)cy(-6.6+i*1.15,4.62,-hd+.34,.19,.44,i%3?M.bleu:M.vert);       // bidons d'huile
-  for(let i=0;i<4;i++)bx(1.2+i*.8,4.62,-hd+.36,.66,.44,.5,M.carton);                // cartons
-  bx(-6.3,1.12,zB+.15,.52,.28,.36,M.acier);cy(-6.3,1.12,zB+.52,.05,.62,M.chrome).rotation.x=Math.PI/2;
-  bx(-6.3,1.32,zB+.15,.14,.14,.5,M.chrome);                                          // l'étau
-  bx(-4.6,1.14,zB,.72,.3,.42,M.rouge);bx(-4.6,1.3,zB+.22,.6,.06,.03,M.chrome);       // caisse à outils
-  bx(-1.5,1.16,zB-.1,.86,.34,.28,M.noir);                                            // le poste qui gueule
-  for(const sx of [-.25,.25])cy(-1.5+sx,1.16,zB+.05,.13,.05,M.acier).rotation.x=Math.PI/2;
-  cy(-.2,1.06,zB+.2,.06,.14,M.beige);cy(.3,1.05,zB-.15,.05,.12,M.rouge);            // gobelets froids
-  bx(1.1,1.01,zB+.1,.5,.02,.36,M.beige);bx(1.9,1.06,zB-.1,.34,.12,.26,M.orange);    // paperasse + chiffon
-  for(let i=0;i<5;i++)bx(-.9+i*.22,1.0,zB+.5,.05,.03,.3,M.chrome);                   // clés qui traînent
+  const zB=-hd+.9,pz=-hd+.26;
+  // L'ÉTABLI : plateau en lamellé-collé (neuf lames de deux teintes), chant d'acier, pieds à vérins, deux blocs-tiroirs
+  for(let i=0;i<9;i++)cb(i%2?'W':'W2',9.8,.1,.158,-3,.93,zB-.667+i*.1667,0,0,0,.018);
+  cb('A',9.86,.13,.035,-3,.925,zB+.765,0,0,0,.008);cb('F',9.6,.08,.05,-3,.84,zB+.7);
+  for(const px of [-7.7,-3,1.7])for(const s of [-.62,.62]){cb('F',.1,.8,.1,px,.46,zB+s,0,0,0,.012);cl('C',.018,.06,6,px,.04,zB+s);cl('D',.05,.02,10,px,.01,zB+s);}
+  cb('A',5.4,.04,1.2,-2.9,.36,zB,0,0,0,.01);                                           // l'étagère basse
+  for(const cx of [-6.35,.55]){cb('F',1.3,.76,1.1,cx,.45,zB+.05,0,0,0,.02);cb('D',1.26,.05,1.0,cx,.05,zB+.05,0,0,0,.005);
+    for(let d=0;d<4;d++){const y9=.19+d*.18;cb('R',1.22,.155,.04,cx,y9,zB+.615,0,0,0,.012);
+      cl('C',.011,.9,6,cx,y9+.035,zB+.66,0,0,Math.PI/2);for(const sx of [-.45,.45])cb('C',.02,.02,.04,cx+sx,y9+.035,zB+.645,0,0,0,0);
+      cb('Wb',.12,.035,.005,cx-.47,y9-.03,zB+.637,0,0,0,0);}}
+  carton(-4.6,.38,zB-.1,.7,.42,.6);carton(-3.75,.38,zB+.05,.55,.3,.5,.2);bidon(-1.2,.38,zB+.1,'V');
+  cb('F',9.8,.14,.08,-3,1.06,zB-.73);                                                  // la lisse du fond
+  cb('E',1.3,.08,.05,-.4,1.05,zB-.675,0,0,0,.01);for(let i=0;i<5;i++)cb('D',.07,.04,.01,-.9+i*.25,1.05,zB-.648,0,0,0,0);  // la multiprise
+  // L'ÉTAU, mâchoires vers la salle
+  {const vx=-6.3,vz=zB+.3;lt('B',[[.17,0],[.17,.05],[.14,.07],[0,.07]],14,vx,.98,vz);
+   cb('B',.34,.18,.46,vx,1.14,vz+.05,0,0,0,.02);cb('B',.5,.2,.12,vx,1.32,vz-.15,0,0,0,.02);cb('B',.5,.2,.12,vx,1.32,vz+.13,0,0,0,.02);
+   cb('A',.46,.12,.02,vx,1.36,vz-.08,0,0,0,.004);cb('A',.46,.12,.02,vx,1.36,vz+.06,0,0,0,.004);
+   cl('C',.025,.3,8,vx,1.2,vz+.34,Math.PI/2);cl('C',.012,.46,6,vx,1.2,vz+.5,0,0,Math.PI/2);
+   for(const sx of [-.23,.23])lt('C',[[0,-.03],[.028,-.02],[.03,0],[.028,.02],[0,.03]],8,vx+sx,1.2,vz+.5,0,0,Math.PI/2);
+   cb('B',.18,.1,.2,vx,1.32,vz-.31,0,0,0,.02);cl('B',.07,.2,8,vx,1.32,vz-.5,-Math.PI/2,0,0,.012);}
+  // LA CAISSE À OUTILS
+  {const tx=-4.6,tz=zB+.05;cb('R',.74,.26,.4,tx,1.11,tz,0,0,0,.02);cb('R',.76,.08,.42,tx,1.285,tz,0,0,0,.02);cb('D',.745,.012,.405,tx,1.243,tz,0,0,0,0);
+   cl('D',.018,.4,6,tx,1.41,tz,0,0,Math.PI/2);for(const sx of [-.22,.22]){cb('C',.03,.1,.04,tx+sx,1.36,tz,0,0,0,.005);cb('C',.05,.06,.02,tx+sx,1.23,tz+.215,0,0,0,.004);}
+   cb('Or',.12,.05,.006,tx,1.14,tz+.203,0,0,0,0);}
+  // LE POSTE qui gueule : haut-parleurs, cadran, poignée, antenne
+  {const rx9=-1.5,rz=zB-.05,fz=rz+.14;cb('N',.86,.34,.28,rx9,1.155,rz,0,0,0,.03);
+   for(const sx of [-.25,.25]){lt('C',[[.135,0],[.13,.012],[.11,.012],[.105,.004]],16,rx9+sx,1.15,fz,Math.PI/2);
+     lt('D',[[.106,.006],[.04,.002],[0,.004]],16,rx9+sx,1.15,fz,Math.PI/2);cl('C',.028,.02,10,rx9+sx,1.15,fz+.01,Math.PI/2);}
+   cb('G',.16,.08,.012,rx9,1.22,fz,0,0,0,.003);for(const sx of [-.04,.04])cl('C',.02,.03,10,rx9+sx,1.09,fz+.012,Math.PI/2);
+   cl('C',.012,.62,6,rx9,1.385,rz,0,0,Math.PI/2);for(const sx of [-.3,.3])cl('C',.012,.07,6,rx9+sx,1.355,rz);
+   cl('C',.005,.8,4,rx9+.36,1.66,rz-.05,-.3,0,-.45);}
+  // les tasses de café froid, la paperasse, le chiffon, les clés qui traînent
+  for(const t of [[-.2,zB+.2,'E'],[.3,zB-.15,'R']]){const x9=t[0],z9=t[1];
+    lt(t[2],[[0,0],[.055,0],[.06,.005],[.062,.13],[.056,.13],[.052,.012],[0,.012]],12,x9,.98,z9);
+    cl('D',.054,.004,12,x9,1.085,z9);to(t[2],.035,.009,x9+.062,1.045,z9,0,0,-Math.PI/2,4,Math.PI);}
+  cb('E',.5,.018,.36,1.1,.99,zB+.1,0,.12,0,.004);cb('Wb',.46,.012,.32,1.13,1.004,zB+.12,0,-.1,0,0);
+  cb('O',.34,.07,.26,1.9,1.01,zB-.1,.1,.4,.08,.03);cb('O',.26,.05,.2,1.95,1.05,zB-.05,-.2,1.1,.1,.02);
+  for(let i=0;i<5;i++){const x9=-.9+i*.22,a=.15*i-.3;cb('C',.04,.012,.3,x9,.99,zB+.5,0,a,0,.004);to('C',.035,.011,x9+Math.sin(a)*.17,.992,zB+.5+Math.cos(a)*.17,Math.PI/2,0,0,4);}
+  // LE PANNEAU PERFORÉ (texture) dans son cadre, et ses outils pendus
+  flat(pegTex,-3,2.6,-hd+.18,9.6,2.6);
+  cb('F',9.76,.08,.05,-3,3.94,-hd+.2,0,0,0,.01);cb('F',9.76,.08,.05,-3,1.26,-hd+.2,0,0,0,.01);
+  for(const s of [-1,1])cb('F',.08,2.76,.05,-3+s*4.84,2.6,-hd+.2,0,0,0,.01);
+  for(let i=0;i<7;i++)clefM(-7+i*.62,3.15,pz,.5+(i%3)*.1);                            // les clés mixtes
+  cl('W',.028,.62,8,-2.2,3.1,pz);cl('D',.034,.22,8,-2.2,2.9,pz);                        // le marteau
+  cb('A',.36,.1,.1,-2.2,3.46,pz,0,0,0,.02);cb('A',.12,.06,.09,-2.42,3.42,pz,0,0,.5,.01);
+  for(let i=0;i<4;i++){const x9=-1.3+i*.42;                                             // les tournevis
+    lt(['R','J','B','V'][i],[[0,0],[.03,.01],[.038,.06],[.036,.16],[.03,.2],[.018,.23],[0,.23]],8,x9,3.12,pz);
+    cl('C',.009,.34,6,x9,2.95,pz);cl('C',.006,.03,4,x9,2.765,pz,0,0,0,.001);}
+  MK.plate('A',[[.55,3.1],[1.55,3.16],[1.55,3.36],[.55,3.34]],.008,pz-.004);           // la scie
+  cb('D',1.0,.012,.012,1.05,3.13,pz,0,0,.06,0);cb('W',.24,.3,.04,1.68,3.24,pz,0,0,0,.02);cb('D',.12,.12,.045,1.7,3.24,pz,0,0,0,0);
+  for(let i=0;i<3;i++){const x9=2.4+i*.5;                                               // les pinces
+    for(const s of [-1,1])cb('B',.035,.42,.018,x9+s*.04,3.18,pz,0,0,s*.1,.006);
+    cb('C',.05,.16,.018,x9,3.47,pz,0,0,0,.006);cl('C',.02,.03,8,x9,3.38,pz,Math.PI/2);}
+  // L'ÉTAGÈRE HAUTE sur équerres : bidons d'huile étiquetés, cartons scotchés
+  cb('F',9.4,.06,.62,-3,4.35,-hd+.34,0,0,0,.01);cb('A',9.4,.08,.02,-3,4.34,-hd+.655,0,0,0,.004);
+  for(const ex of [-7.4,-3,1.4])MK.prism('F',[[-hd+.02,4.32],[-hd+.02,3.86],[-hd+.5,4.32]],.04,ex);
+  for(let i=0;i<7;i++)bidon(-6.6+i*1.15,4.38,-hd+.34,i%3?'B':'V');
+  for(let i=0;i<4;i++)carton(1.2+i*.8,4.38,-hd+.36,.66,.36+(i%2)*.08,.5);
   GAR.neons.push(flat(neonTex('CASH CAR',0xff4fbf,26),-2.4,5.35,-hd+.2,7.2,2.25,0,THREE.AdditiveBlending));
   GAR.neons.push(flat(neonTex('$',0x5ff0ff,52),5.4,4.5,-hd+.2,1.9,1.9,0,THREE.AdditiveBlending));
-  flat(postTex,6.9,2.9,-hd+.2,2.3,1.72);
-  flat(calTex,3.9,2.9,-hd+.2,.86,1.08);
-  c8(8.9,3.3,-hd+.24,.42,.1,M.beige).rotation.x=Math.PI/2;                            // l'horloge
-  bx(8.9,3.44,-hd+.3,.05,.26,.05,M.noir);bx(9.03,3.3,-hd+.3,.2,.05,.05,M.noir);
+  flat(postTex,6.9,2.9,-hd+.2,2.3,1.72);                                                // l'affiche, dans un cadre noir
+  cb('N',2.42,.06,.04,6.9,3.79,-hd+.19,0,0,0,.01);cb('N',2.42,.06,.04,6.9,2.01,-hd+.19,0,0,0,.01);
+  for(const s of [-1,1])cb('N',.06,1.84,.04,6.9+s*1.18,2.9,-hd+.19,0,0,0,.01);
+  flat(calTex,3.9,2.9,-hd+.2,.86,1.08);cl('C',.012,.05,6,3.9,3.5,-hd+.22,Math.PI/2);
+  {const cx=8.9,cy9=3.3,cz=-hd+.2;                                                       // l'horloge
+   lt('N',[[.42,0],[.42,.07],[.37,.08],[.36,.03]],24,cx,cy9,cz,Math.PI/2);lt('E',[[.36,.03],[0,.03]],24,cx,cy9,cz,Math.PI/2);
+   for(let h=0;h<12;h++){const a=h/12*Math.PI*2;cb('D',.02,h%3?.04:.07,.01,cx+Math.sin(a)*.3,cy9+Math.cos(a)*.3,cz+.035,0,0,-a,0);}
+   cb('D',.025,.2,.01,cx,cy9+.09,cz+.045,0,0,0,0);cb('D',.16,.02,.01,cx+.07,cy9,cz+.05,0,0,0,0);cl('R',.02,.02,8,cx,cy9,cz+.055,Math.PI/2);}
 
   // ===== MUR GAUCHE : pneus, servante, compresseur, cric, et tout ce qui roule =====
-  for(const st of [[-9.6,-7.2,5],[-9.6,-5.1,4],[-9.4,7.4,6]]){                        // les piles de pneus
-    for(let i=0;i<st[2];i++){const t=new THREE.Mesh(TOR,M.pneu);
-      t.rotation.x=-Math.PI/2;t.rotation.z=i*.4;t.scale.set(.74,.74,.74);
-      t.position.set(st[0]+(i%2?.04:-.03),.11+i*.235,st[1]);g.add(t);}
-    c8(st[0],.11+st[2]*.235,st[1],.2,.06,M.chrome);}
-  bx(-9.4,.62,-1.6,1.5,1.24,.8,M.rouge);                                              // LA SERVANTE
-  for(let i=0;i<4;i++){bx(-9.4,.28+i*.29,-1.22,1.38,.24,.06,M.rouge);bx(-9.4,.28+i*.29,-1.19,.42,.05,.05,M.chrome);}
-  bx(-9.4,1.27,-1.6,1.56,.06,.86,M.acier);
-  for(const sx of [-1,1])for(const sz of [-1,1])c8(-9.4+sx*.6,.05,-1.6+sz*.3,.07,.1,M.noir);
-  bx(-9.35,1.36,-1.8,.5,.12,.3,M.chrome);bx(-9.35,1.34,-1.4,.3,.08,.24,M.bleu);
-  cy(-9.5,.85,2.6,.42,1.9,M.bleu).rotation.x=Math.PI/2;                               // LE COMPRESSEUR
-  bx(-9.5,1.38,2.6,.6,.42,.7,M.noir);cy(-9.5,1.66,2.6,.24,.16,M.acier);
-  for(const sz of [-.8,.8])c8(-9.5,.16,2.6+sz,.16,.1,M.noir).rotation.z=Math.PI/2;
-  cy(-9.2,1.35,3.6,.1,.16,M.chrome).rotation.x=Math.PI/2;
-  {const h9=new THREE.Mesh(TOR,M.jaune);h9.scale.set(1.5,1.5,1.5);h9.position.set(-10.6,2.5,4.3);h9.rotation.y=Math.PI/2;g.add(h9);}
-  bx(-8.2,.16,-5.4,.5,.24,1.3,M.rouge);bx(-8.2,.42,-5.9,.07,.5,.07,M.chrome);         // le cric rouleur
-  for(const sz of [-.5,.5])for(const sx of [-1,1])c8(-8.2+sx*.2,.07,-5.4+sz,.07,.1,M.noir).rotation.z=Math.PI/2;
-  for(const p of [[-8.2,-3.6],[-8.7,-3.0]]){c8(p[0],.28,p[1],.13,.56,M.jaune);bx(p[0],.05,p[1],.44,.1,.44,M.jaune);}
-  bx(-8.6,.09,1.2,.5,.08,1.5,M.orange);bx(-8.6,.2,1.85,.44,.14,.2,M.noir);            // la planche à roulettes
-  bx(-8.9,.55,5.6,.7,1.1,.7,M.fer);cy(-8.9,1.16,5.6,.36,.12,M.fer);                   // la poubelle
-  cy(-8.15,.85,6.4,.04,1.7,M.bois).rotation.z=.16;bx(-8.29,.06,6.4,.42,.12,.14,M.bleu);
-  c8(-9.9,.24,6.9,.28,.48,M.jaune);                                                    // le seau
-  for(let i=0;i<3;i++)bx(-9.9,.08+i*.16,-9.4,1.2,.14,1.0,M.bois);                      // palettes
-  for(let i=0;i<3;i++)bx(-9.7+i*.1,.72+i*.5,-9.4,.9,.5,.8,M.carton);
-  bx(-10.7,2.3,-4.5,.14,.5,.22,M.rouge);cy(-10.6,2.5,-4.5,.16,.7,M.rouge);            // l'extincteur
-  cy(-10.6,2.9,-4.5,.06,.16,M.noir);
+  for(const st of [[-9.6,-7.2,5],[-9.6,-5.1,4],[-9.4,7.4,6]]){                        // les piles de pneus, une jante sur chacune
+    for(let i=0;i<st[2];i++)pneu(st[0]+(i%2?.04:-.03),.118+i*.236,st[1],.37,.235,0,i*.4,0,st[1]>0);
+    jante(st[0],.236*st[2]+.05,st[1],.25,5);}
+  // LA SERVANTE, façade vers la salle : cinq tiroirs à barres de tirage, tapis, poignée, roulettes
+  {const sx=-9.4,sz=-1.6,fx=sx+.4;cb('R',.8,1.1,1.5,sx,.68,sz,0,0,0,.035);cb('F',.8,.08,1.5,sx,.09,sz,0,0,0,.01);
+   let y9=.16;for(const h9 of [.3,.24,.18,.14,.12]){const yc=y9+h9/2;cb('R',.04,h9,1.4,fx+.01,yc,sz,0,0,0,.01);
+     cl('C',.012,1.2,6,fx+.06,yc+h9/2-.04,sz,Math.PI/2);for(const s of [-.62,.62])cb('C',.04,.02,.02,fx+.045,yc+h9/2-.04,sz+s,0,0,0,0);y9+=h9+.012;}
+   cb('Or',.006,.05,.3,fx+.035,1.14,sz+.45,0,0,0,0);cb('D',.82,.03,1.52,sx,1.245,sz,0,0,0,.008);
+   for(const a of [-.3,.3])for(const b of [-.62,.62]){cb('A',.08,.05,.08,sx+a,.075,sz+b,0,0,0,.005);cl('D',.05,.04,10,sx+a,.05,sz+b,0,0,Math.PI/2);}
+   cl('C',.018,.6,8,sx,1.0,sz-.86,0,0,Math.PI/2);for(const a of [-.26,.26])cl('C',.014,.12,6,sx+a,1.0,sz-.8,Math.PI/2);
+   cb('N',.4,.07,.3,sx-.05,1.295,sz-.3,0,.2,0,.01);cb('C',.03,.02,.28,sx+.1,1.272,sz+.25,0,.5,0,.005);
+   lt('B',[[0,0],[.045,0],[.045,.2],[.03,.23],[0,.23]],10,sx+.15,1.26,sz+.55);cl('Wb',.012,.03,6,sx+.15,1.505,sz+.55);}
+  // LE COMPRESSEUR : réservoir à fonds bombés, moteur à ailettes, pompe bicylindre, carter de courroie, manomètres
+  {const cx=-9.5,cz=2.6,ty=.74;
+   lt('B',[[0,-.95],[.2,-.93],[.32,-.87],[.39,-.78],[.42,-.66],[.42,.66],[.39,.78],[.32,.87],[.2,.93],[0,.95]],20,cx,ty,cz,Math.PI/2);
+   for(const s of [-1,1])lt('A',[[.424,s*.6-.02],[.432,s*.6],[.424,s*.6+.02]],20,cx,ty,cz,Math.PI/2);
+   cb('Wb',.006,.18,.56,cx+.421,ty+.02,cz-.1,0,0,0,0);cb('J',.007,.04,.56,cx+.424,ty-.1,cz-.1,0,0,0,0);
+   for(const s of [-.55,.55])cb('F',.5,.28,.14,cx,.18,cz+s,0,0,0,.02);
+   for(const s of [-1,1])pneu(cx+s*.48,.17,cz+.72,.17,.08,0,0,Math.PI/2);
+   cl('A',.02,1.0,6,cx,.17,cz+.72,0,0,Math.PI/2);cl('Or',.02,.07,6,cx,.3,cz);
+   cb('F',.5,.04,.8,cx,1.18,cz-.2,0,0,0,.01);                                               // la platine
+   lt('N',[[0,-.25],[.14,-.25],[.16,-.22],[.16,.22],[.14,.25],[0,.25]],16,cx+.02,1.36,cz-.35,Math.PI/2);
+   for(let f=0;f<6;f++)lt('N',[[.172,-.19+f*.075],[.172,-.17+f*.075]],16,cx+.02,1.36,cz-.35,Math.PI/2);
+   cb('A',.3,.14,.3,cx,1.25,cz+.35,0,0,0,.02);
+   for(const s of [-.08,.08]){cl('A',.07,.24,10,cx+s,1.44,cz+.35);for(let f=0;f<5;f++)cl('A',.1,.012,10,cx+s,1.35+f*.045,cz+.35);cb('R',.13,.04,.13,cx+s,1.585,cz+.35,0,0,0,.01);}
+   cb('R',.06,.3,.7,cx+.3,1.36,cz,0,0,0,.02);for(const s of [-.35,.35])cl('R',.15,.06,14,cx+.3,1.36,cz+s,0,0,Math.PI/2);
+   for(let i=0;i<3;i++)cb('D',.004,.03,.42,cx+.332,1.28+i*.08,cz,0,0,0,0);                   // les ouïes du carter
+   cb('Or',.08,.08,.26,cx+.26,1.22,cz+.82,0,0,0,.01);cl('Or',.015,.2,6,cx+.26,1.08,cz+.82);
+   for(const s of [-.08,.08]){lt('C',[[.07,0],[.07,.03],[.062,.035]],16,cx+.3,1.24,cz+.82+s,0,0,-Math.PI/2);lt('Wb',[[.062,.032],[0,.032]],16,cx+.3,1.24,cz+.82+s,0,0,-Math.PI/2);
+     cb('R',.004,.045,.006,cx+.335,1.255,cz+.82+s,0,0,0,0);}
+   cl('C',.018,.7,8,cx,1.05,cz+1.02,0,0,Math.PI/2);for(const s of [-.33,.33])seg('C',.016,[cx+s,1.05,cz+1.02],[cx+s,.66,cz+.86]);}
+  for(let i=0;i<5;i++)to('J',.4+i*.012,.026,-10.74+i*.045,2.5-i*.01,4.3,0,Math.PI/2,0,5);  // le tuyau d'air, enroulé au mur
+  cb('F',.2,.14,.3,-10.9,2.96,4.3,0,0,0,.02);cb('F',.3,.05,.1,-10.78,2.92,4.3,0,0,0,.01);cl('Or',.025,.08,8,-10.5,2.18,4.62,0,0,.6);
+  // LE CRIC ROULEUR
+  {const jx=-8.2,jz=-5.4;
+   for(const s of [-.19,.19])MK.prism('R',[[jz-.65,.06],[jz+.65,.06],[jz+.65,.24],[jz-.3,.3],[jz-.65,.2]],.04,jx+s);
+   cb('F',.34,.03,1.2,jx,.08,jz,0,0,0,.005);cl('C',.05,.34,10,jx,.19,jz+.1,Math.PI/2);
+   seg('R',.035,[jx,.22,jz-.1],[jx,.38,jz-.72]);lt('D',[[.09,0],[.09,.03],[.07,.04],[0,.04]],12,jx,.38,jz-.74);
+   for(const s of [-.22,.22]){cl('A',.075,.04,12,jx+s,.075,jz-.52,0,0,Math.PI/2);cl('D',.05,.04,10,jx+s,.05,jz+.55,0,0,Math.PI/2);}
+   seg('C',.018,[jx,.24,jz+.6],[jx,1.0,jz+1.3]);seg('D',.026,[jx,.94,jz+1.25],[jx,1.08,jz+1.37]);}
+  for(const p of [[-8.2,-3.6],[-8.7,-3.0]]){lt('J',[[.2,0],[.2,.02],[.07,.36],[0,.36]],4,p[0],0,p[1],0,Math.PI/4,0);   // les chandelles
+    cl('A',.03,.3,8,p[0],.45,p[1]);cb('A',.14,.03,.08,p[0],.6,p[1],0,0,0,.005);for(const s of [-.06,.06])cb('A',.02,.06,.08,p[0]+s,.64,p[1],0,0,0,0);
+    cb('R',.02,.05,.1,p[0]+.05,.36,p[1]+.05,0,0,0,0);}
+  {const px=-8.6,pz9=1.2;cb('O',.48,.05,1.4,px,.13,pz9,0,0,0,.02);cb('D',.44,.07,.26,px,.19,pz9+.52,0,0,0,.03);  // la planche à roulettes
+   for(const s of [-.26,.26])cb('F',.03,.04,1.5,px+s,.12,pz9,0,0,0,.005);
+   for(const a of [-.2,.2])for(const b of [-.6,0,.6])lt('D',[[0,-.05],[.045,-.04],[.05,0],[.045,.04],[0,.05]],8,px+a,.05,pz9+b);}
+  {const px=-8.9,pz9=5.6;lt('A',[[0,0],[.3,0],[.32,.03],[.34,.95],[.36,.97],[.36,1.0],[0,1.0]],16,px,0,pz9);   // la poubelle
+   for(const y9 of [.3,.65])lt('A',[[.33,y9-.025],[.345,y9],[.33,y9+.025]],16,px,0,pz9);
+   lt('A',[[.37,1.0],[.37,1.04],[.3,1.1],[.08,1.13],[0,1.13]],16,px,0,pz9);
+   cl('C',.015,.2,6,px,1.17,pz9,0,0,Math.PI/2);for(const s of [-.1,.1])cl('C',.012,.05,6,px+s,1.14,pz9);}
+  cl('W',.022,1.7,6,-8.15,.85,6.4,0,0,.16);cb('B',.42,.08,.14,-8.29,.1,6.4,0,0,.16,.02);cb('D',.4,.07,.12,-8.29,.04,6.4,0,0,0,.02);   // le balai
+  lt('J',[[0,.02],[.21,.02],[.21,0],[.23,0],[.29,.46],[.3,.48],[.28,.48],[.215,.04],[0,.04]],16,-9.9,0,6.9);   // le seau
+  lt('G',[[.26,.32],[0,.32]],16,-9.9,0,6.9);to('C',.29,.008,-9.9,.48,6.9,0,0,0,4,Math.PI);
+  {const palette=(x,y0,z)=>{for(let i=0;i<5;i++)cb('W',1.2,.022,.14,x,y0+.139,z-.43+i*.215,0,0,0,.004);
+     for(const s of [-.55,0,.55])cb('W2',.1,.1,1.0,x+s,y0+.078,z,0,0,0,.008);
+     for(const s of [-.43,0,.43])cb('W',1.2,.022,.14,x,y0+.011,z+s,0,0,0,.004);};
+   for(let i=0;i<3;i++)palette(-9.9,i*.15,-9.4);
+   carton(-9.75,.45,-9.4,.9,.5,.8);carton(-9.65,.95,-9.35,.8,.45,.7,.1);carton(-9.55,1.4,-9.4,.6,.4,.5,-.15);}
+  {const ex=-10.62,ez=-4.5;cb('F',.08,.36,.2,-10.93,2.45,ez,0,0,0,.01);cb('F',.34,.04,.22,-10.72,2.1,ez,0,0,0,.01);   // l'extincteur
+   lt('R',[[0,0],[.14,0],[.15,.02],[.15,.56],[.12,.64],[.05,.68],[0,.68]],16,ex,2.12,ez);lt('Wb',[[.153,.2],[.153,.42]],16,ex,2.12,ez);
+   cl('C',.035,.08,8,ex,2.84,ez);cb('N',.2,.03,.05,ex+.03,2.91,ez,0,0,-.2,.005);cb('C',.16,.03,.04,ex+.02,2.86,ez,0,0,.15,.005);
+   seg('D',.018,[ex-.04,2.86,ez],[ex-.16,2.6,ez+.12]);seg('D',.02,[ex-.16,2.6,ez+.12],[ex-.12,2.3,ez+.17]);cl('N',.03,.1,8,ex-.12,2.22,ez+.17);
+   cb('R',.02,.34,.34,-10.97,3.25,ez,0,0,0,.01);cb('Wb',.022,.16,.1,-10.97,3.25,ez,0,0,0,0);}
 
-  // ===== MUR DROIT : le palan, le moteur nu, le rack, le distributeur =====
-  // LE PALAN et son bloc-moteur suspendu : la pièce maîtresse, celle qui dit « ici, on DÉMONTE »
-  bx(8.4,.12,-6.4,.28,.24,3.4,M.orange);bx(9.4,.12,-6.4,2.2,.24,.26,M.orange);
-  for(const sz of [-1.5,1.5])c8(8.4,.08,-6.4+sz,.11,.14,M.noir).rotation.z=Math.PI/2;
-  bx(8.4,1.5,-6.4,.3,2.8,.3,M.orange);bx(7.1,2.72,-6.4,2.9,.26,.3,M.orange);
-  add9(BX,M.orange,7.9,2.2,-6.4,1.4,.14,.24).rotation.z=-.62;
-  cy(5.8,2.05,-6.4,.035,1.1,M.chrome);c8(5.8,1.42,-6.4,.1,.26,M.acier);
-  bx(5.8,.98,-6.4,1.0,.66,.9,M.acier);bx(5.8,1.35,-6.4,.7,.14,.66,M.fer);              // le bloc pendu
-  for(const sx of [-1,1])cy(5.8+sx*.28,1.5,-6.4,.1,.22,M.chrome);
-  bx(9.1,.1,-2.2,1.3,.2,1.3,M.fer);                                                     // le moteur nu sur pied
-  for(const s of [[-1,-1],[1,-1],[-1,1],[1,1]])bx(9.1+s[0]*.55,.1,-2.2+s[1]*.55,.2,.2,.2,M.fer);
-  cy(9.1,.62,-2.2,.1,1.0,M.fer);bx(9.1,1.3,-2.2,.95,.8,.85,M.acier);
-  bx(9.1,1.76,-2.2,.72,.14,.66,M.rouge);for(let i=0;i<3;i++)cy(8.85+i*.25,1.9,-2.2,.06,.2,M.chrome);
-  for(let i=0;i<4;i++)bx(9.6,.5+i*1.15,3.4,1.5,.08,4.4,M.fer);                          // LE RACK
-  for(const sz of [-2.1,2.1])for(const sx of [-.68,.68])bx(9.6+sx,2.1,3.4+sz,.1,4.2,.1,M.fer);
-  for(let i=0;i<4;i++)bx(9.6,.82+i*1.15,2.1+i*.3,1.2,.56,1.0,i%2?M.carton:M.bleu);
-  for(let i=0;i<3;i++)c8(9.6,1.72,4.6+i*.26,.34,.22,M.chrome).rotation.z=Math.PI/2;
-  for(let i=0;i<5;i++)cy(9.2+(i%2)*.5,3.09,4.4+i*.3,.14,.36,M.vert);
-  bx(10.3,1.0,8.4,.9,2.0,1.5,M.rouge);bx(10.3,2.06,8.4,.96,.14,1.56,M.noir);            // le distributeur
+  // ===== MUR DROIT : le palan, le moteur sur pied, le rack, le distributeur =====
+  // LE PALAN HYDRAULIQUE : colonne au pied du mur, jambes vers la salle sous la charge, vérin, chaîne maillon par maillon, palonnier, un V8 pendu
+  {const hz=-6.4,cx=9.3,tx=5.8;
+   for(const s of [-1,1]){barre('O',.12,[cx,.1,hz+s*.35],[6.0,.1,hz+s*.85]);pneu(6.0,.07,hz+s*.85,.07,.05,0,0,Math.PI/2);cb('A',.06,.08,.12,6.0,.14,hz+s*.85,0,0,0,.005);
+     pneu(cx+.1,.07,hz+s*.72,.07,.05,0,0,Math.PI/2);}
+   barre('O',.12,[cx,.1,hz-.76],[cx,.1,hz+.76]);
+   cb('O',.16,2.25,.16,cx,1.22,hz,0,0,0,.02);cl('C',.04,.24,8,cx,2.3,hz,Math.PI/2);
+   barre('O',.14,[cx+.05,2.3,hz],[6.5,2.72,hz]);barre('A',.1,[6.7,2.69,hz],[tx-.04,2.83,hz]);
+   seg('R',.07,[cx-.08,.75,hz],[8.5,1.75,hz],10);seg('C',.035,[8.5,1.75,hz],[7.76,2.46,hz],8);
+   seg('C',.018,[cx-.12,.95,hz],[cx-.55,1.45,hz+.3]);seg('D',.026,[cx-.5,1.39,hz+.27],[cx-.62,1.53,hz+.35]);
+   for(let i=0;i<14;i++)to('C',.03,.009,tx,2.76-i*.066,hz,0,i%2?Math.PI/2:0,0,4);          // la chaîne
+   to('A',.06,.018,tx,1.8,hz,0,0,Math.PI,4,Math.PI*1.3);barre('A',.06,[tx-.42,1.72,hz],[tx+.42,1.72,hz]);
+   for(const s of [-.36,.36])seg('C',.01,[tx+s,1.7,hz],[tx+s*.8,1.36,hz+(s>0?.3:-.3)]);
+   moteur(tx,.9,hz);}
+  // LE MOTEUR SUR PIED : pied en T à roulettes, colonne, bras et platine boulonnée derrière le volant
+  {const mz=-2.2,mx=8.75;
+   for(const s of [-1,1]){barre('R',.1,[9.8,.08,mz+s*.3],[8.0,.08,mz+s*.55]);pneu(8.0,.06,mz+s*.55,.06,.045,0,0,Math.PI/2);}
+   barre('R',.1,[9.8,.08,mz-.45],[9.8,.08,mz+.45]);for(const s of [-1,1])pneu(9.8,.06,mz+s*.45,.06,.045,0,0,Math.PI/2);
+   cb('R',.12,1.1,.12,9.75,.66,mz,0,0,0,.02);barre('R',.1,[9.75,1.2,mz],[9.4,1.2,mz]);
+   cl('A',.2,.05,16,9.37,1.2,mz,0,0,Math.PI/2);for(let i=0;i<4;i++){const a=i/4*Math.PI*2+.4;cb('A',.03,.04,.14,9.33,1.2+Math.sin(a)*.12,mz+Math.cos(a)*.12,-a,0,0,.005);}
+   moteur(mx,1.25,mz);}
+  // LE RACK : montants bleus à croisillons, lisses orange, planchers d'acier — bacs, jantes, jerricans, cartons, un pneu
+  {const rx0=9.6,rz0=3.4;
+   for(const px of [-.68,.68])for(const s of [-2.1,2.1]){cb('B',.1,4.3,.1,rx0+px,2.15,rz0+s,0,0,0,.012);cb('F',.16,.02,.16,rx0+px,.01,rz0+s,0,0,0,0);}
+   for(const s of [-2.1,2.1])for(let j=0;j<4;j++)barre('B',.035,[rx0-.66,.3+j*1.0,rz0+s],[rx0+.66,.8+j*1.0,rz0+s]);
+   for(let i=0;i<4;i++){const y9=.5+i*1.15;for(const px of [-.7,.7])cb('O',.06,.12,4.3,rx0+px,y9,rz0,0,0,0,.012);
+     cb('A',1.36,.025,4.2,rx0,y9+.055,rz0,0,0,0,.005);for(let k=0;k<6;k++)cb('F',1.36,.02,.03,rx0,y9+.03,rz0-1.8+k*.72,0,0,0,0);}
+   const bac=(z9,y0,k)=>{const bf=rx0-.5;cb(k,.9,.28,.44,rx0-.05,y0+.14,z9,0,0,0,.02);cb('D',.84,.006,.38,rx0-.05,y0+.281,z9,0,0,0,0);   // le bac, sa lèvre, son étiquette
+     cb(k,.06,.1,.4,bf-.02,y0+.07,z9,0,0,0,.01);cb('Wb',.005,.07,.2,bf-.003,y0+.2,z9,0,0,0,0);};
+   bac(1.9,.57,'B');bac(2.45,.57,'B');carton(rx0,.57,3.6,.9,.5,.8,.1);carton(rx0-.05,.57,4.6,.8,.42,.7);
+   for(let i=0;i<3;i++)jante(rx0,1.77+i*.1,rz0+1.2,.32,5);carton(rx0,1.72,2.05,.9,.55,.9,-.08);carton(rx0,1.72,3.0,.7,.36,.6,.12);
+   for(let i=0;i<5;i++)jerry(rx0-.1+(i%2)*.2,2.87,4.4+i*.3-.6,'V');bac(2.0,2.87,'R');bac(2.55,2.87,'B');
+   carton(rx0,4.02,1.9,.9,.5,.8);carton(rx0,4.02,2.8,.8,.4,.7,.1);carton(rx0,4.52,1.95,.7,.36,.6,-.12);pneu(rx0,4.14,4.3,.37,.235,0,.3,0);}
+  // LE DISTRIBUTEUR : caisse laquée, chapeau, cadre chromé de la vitrine, trappe, fente à pièces, pieds
+  {const dx=10.3,dz=8.4,fx=9.85;
+   cb('R',.9,1.94,1.5,dx,1.03,dz,0,0,0,.04);cb('N',.96,.16,1.56,dx,2.06,dz,0,0,0,.03);cb('D',.86,.06,1.44,dx,.03,dz,0,0,0,.01);
+   for(const s of [-1,1])cb('C',.03,1.56,.04,fx-.01,1.15,dz+s*.62,0,0,0,.006);for(const y9 of [.39,1.91])cb('C',.03,.04,1.28,fx-.01,y9,dz,0,0,0,.006);
+   cb('N',.05,.3,.74,fx-.005,.22,dz,0,0,0,.01);cb('D',.06,.12,.6,fx-.02,.2,dz,0,0,0,.006);cb('C',.02,.1,.06,fx-.01,.22,dz+.56,0,0,0,.004);
+   cb('C',.012,.04,1.3,fx-.006,2.06,dz,0,0,0,0);}
   flat(vendTex,9.82,1.15,8.4,1.2,1.5,-Math.PI/2);
-  bx(9.83,.28,8.4,.06,.3,.7,M.noir);
-  for(const p of [[7.2,9.6],[6.2,10.3],[8.2,10.4]]){                                     // cônes de chantier
-    add9(CN,M.orange,p[0],.32,p[1],.62,.64,.62);bx(p[0],.04,p[1],.66,.08,.66,M.orange);
-    c8(p[0],.34,p[1],.19,.08,M.beige);}
-  c8(7.6,.5,-4.2,.34,.09,M.bleu);cy(7.6,.26,-4.2,.06,.42,M.chrome);                      // le tabouret roulant
-  for(let i=0;i<5;i++){const a=i/5*Math.PI*2;c8(7.6+Math.sin(a)*.28,.05,-4.2+Math.cos(a)*.28,.05,.08,M.noir);}
-  for(let i=-1;i<=1;i++){bx(hw-.16,4.6,i*4.4,.08,1.3,2.6,M.verre);                       // fenêtres hautes
-    bx(hw-.2,4.6,i*4.4,.06,1.42,.1,M.fer);bx(hw-.2,3.95,i*4.4,.06,.12,2.7,M.fer);bx(hw-.2,5.26,i*4.4,.06,.12,2.7,M.fer);}
-  for(let i=0;i<3;i++){cy(-6.6+i*1.0,.5,10.4,.42,1.0,i===1?M.vert:M.bleu);               // les fûts, côté porte
-    cy(-6.6+i*1.0,.72,10.4,.44,.07,M.chrome);cy(-6.6+i*1.0,.3,10.4,.44,.07,M.chrome);
-    c8(-6.6+i*1.0,1.02,10.4,.1,.06,M.chrome);}
-  {const cch=cy(-3.4,.42,10.9,.42,1.0,M.rouge);cch.rotation.x=Math.PI/2;cch.rotation.z=.1;}
-  for(let i=0;i<3;i++){bx(-8.6+i*.44,.28,9.2,.36,.56,.24,M.vert);bx(-8.6+i*.44,.6,9.2,.1,.12,.1,M.acier);}
+  for(const p of [[7.2,9.6],[6.2,10.3],[8.2,10.4]]){lt('O',[[.26,.07],[.05,.72],[.035,.74],[0,.74]],16,p[0],0,p[1]);   // cônes de chantier
+    for(const b of [[.34,.44],[.52,.6]])lt('Wb',[[.26-(b[0]-.07)*.323+.004,b[0]],[.26-(b[1]-.07)*.323+.004,b[1]]],16,p[0],0,p[1]);
+    cb('D',.62,.07,.62,p[0],.035,p[1],0,.3,0,.02);}
+  {const tx=7.6,tz=-4.2;lt('B',[[0,.44],[.28,.44],[.33,.47],[.34,.52],[.3,.56],[0,.57]],16,tx,0,tz);   // le tabouret roulant
+   cl('N',.05,.14,10,tx,.37,tz);cl('C',.03,.2,8,tx,.22,tz);to('C',.2,.012,tx,.26,tz,Math.PI/2,0,0,4);
+   for(let i=0;i<5;i++){const a=i/5*Math.PI*2;barre('N',.04,[tx,.12,tz],[tx+Math.sin(a)*.3,.08,tz+Math.cos(a)*.3]);
+     lt('D',[[0,-.04],[.035,-.03],[.04,0],[.035,.03],[0,.04]],8,tx+Math.sin(a)*.3,.04,tz+Math.cos(a)*.3);}}
+  for(let i=-1;i<=1;i++){cb('G',.06,1.3,2.6,hw-.16,4.6,i*4.4,0,0,0,0);                   // fenêtres hautes : verre, dormant, croisillons
+    for(const s of [-1,1])cb('F',.08,1.42,.1,hw-.2,4.6,i*4.4+s*1.33,0,0,0,.01);for(const y9 of [3.93,5.27])cb('F',.08,.1,2.76,hw-.2,y9,i*4.4,0,0,0,.01);
+    cb('F',.05,1.3,.05,hw-.19,4.6,i*4.4,0,0,0,0);cb('F',.05,.05,2.6,hw-.19,4.6,i*4.4,0,0,0,0);}
+  {const fut=(x,y,z,k,rx,ry,rz)=>{lt(k,[[0,0],[.4,0],[.42,.03],[.42,.97],[.4,1.0],[0,1.0]],18,x,y,z,rx,ry,rz);    // les fûts, côté porte
+     for(const h of [.32,.66])lt(k,[[.42,h-.03],[.44,h],[.42,h+.03]],18,x,y,z,rx,ry,rz);
+     for(const h of [0,1])lt('A',[[.415,h-.012],[.43,h],[.415,h+.012]],18,x,y,z,rx,ry,rz);};
+   for(let i=0;i<3;i++){const x9=-6.6+i*1.0;fut(x9,0,10.4,i===1?'V':'B');cl('Or',.05,.03,8,x9+.2,1.01,10.3);cl('Or',.035,.03,8,x9-.22,1.01,10.5);
+     cb('Wb',.3,.2,.006,x9,.5,10.4-.423,0,0,0,0);}
+   fut(-3.35,.42,10.4,'R',Math.PI/2,0,.1);}
+  for(let i=0;i<3;i++)jerry(-8.6+i*.44,0,9.2,'V');
 
-  // ===== LE PONT ÉLÉVATEUR : deux colonnes et quatre bras, le meuble qui dit « atelier » =====
-  bx(9.9,.09,-10.3,2.0,.18,4.6,M.fer);
-  for(const sz of [-1.7,1.7]){bx(9.9,1.75,-10.3+sz,.44,3.4,.44,M.jaune);
-    bx(9.9,3.5,-10.3+sz,.6,.16,.6,M.fer);
-    for(const sx of [-1,1]){bx(9.9+sx*.85,.42,-10.3+sz,1.3,.14,.22,M.jaune);
-      c8(9.9+sx*1.45,.28,-10.3+sz,.09,.26,M.acier);}}
-  bx(9.9,3.62,-10.3,.5,.14,3.6,M.fer);cy(9.9,3.0,-10.3,.05,1.2,M.chrome).rotation.x=Math.PI/2;
+  // ===== LE PONT ÉLÉVATEUR : deux poteaux en U, chariots, quatre bras à tampons, traverse haute, groupe hydraulique =====
+  {const lx=9.9,lz=-10.3;cb('F',.5,.04,3.0,lx,.02,lz,0,0,0,.01);
+   for(const s of [-1,1]){const cz=lz+s*1.7;
+     cb('J',.5,3.5,.12,lx,1.75,cz+s*.16,0,0,0,.02);for(const sx of [-.22,.22])cb('J',.08,3.5,.34,lx+sx,1.75,cz,0,0,0,.015);
+     cb('F',.62,.08,.62,lx,.04,cz,0,0,0,.015);for(const a of [[-.24,.24],[.24,.24],[-.24,-.24],[.24,-.24]])cl('C',.022,.05,6,lx+a[0],.1,cz+a[1]);
+     for(let k=0;k<5;k++)cb('N',.012,.05,.36,lx-.266,.3+k*.14,cz,.6,0,0,0);                  // les zébrures au pied
+     cb('F',.36,.5,.3,lx,.95,cz,0,0,0,.02);seg('C',.01,[lx+.14,.7,cz-s*.08],[lx+.14,3.4,cz-s*.08]);
+     for(const sx of [-1,1]){const tx=lx+sx*.95,tz=lz+s*.55;barre('J',.1,[lx+sx*.12,.8,cz],[tx,.8,tz]);
+       lt('D',[[0,0],[.12,0],[.12,.05],[.1,.07],[0,.07]],12,tx,.85,tz);cl('A',.05,.08,8,tx,.82,tz);}
+     cb('J',.14,.14,.14,lx,3.58,cz,0,0,0,.02);}
+   barre('J',.16,[lx,3.62,lz-1.9],[lx,3.62,lz+1.9]);cb('F',.05,.06,3.2,lx-.1,3.46,lz,0,0,0,.01);
+   cl('N',.1,.3,12,lx+.44,1.25,lz-1.7,Math.PI/2);cb('R',.18,.34,.22,lx+.44,.9,lz-1.7,0,0,0,.02);cl('Or',.03,.05,6,lx+.44,1.1,lz-1.7);}
 
   // ===== LE COULOIR DE LA CAMÉRA : que du RAS DU SOL =====
   // Entre le plateau (4,4 m) et les murs (8,5 m) s'étendait un désert de béton : la caméra passe
   // par là, on ne peut rien y poser de HAUT. Mais elle vole à 1 m minimum et regarde la caisse —
   // donc tout ce qui reste sous 50 cm est autorisé. C'est là que vit le vrai bazar d'un garage :
   // ce qu'on a posé par terre en se disant qu'on le rangerait plus tard.
-  {const plat=(x,z,r9)=>{const t=new THREE.Mesh(TOR,M.pneu);t.rotation.x=-Math.PI/2;t.rotation.z=r9||0;
-     t.scale.set(.74,.74,.74);t.position.set(x,.11,z);g.add(t);return t;};
-   plat(5.9,3.3);plat(6.15,3.05,.5);c8(6.0,.24,3.2,.24,.1,M.chrome);      // deux pneus à plat + une jante posée dessus
-   plat(-5.4,-5.6,.8);
-   bx(-5.6,.17,4.4,.62,.34,.34,M.rouge);bx(-5.6,.35,4.5,.5,.05,.1,M.chrome);  // caisse à outils oubliée là
-   {const b9=cy(6.6,.2,-3.4,.2,.4,M.vert);b9.rotation.z=Math.PI/2;b9.rotation.y=.4;}  // bidon renversé
-   bx(7.2,.16,1.4,.46,.32,.3,M.noir);for(const sx of [-.13,.13])c8(7.2+sx,.35,1.4,.05,.06,M.chrome); // la batterie
-   bx(-6.4,.06,-2.6,.9,.12,.6,M.acier);                                    // le plateau de vidange
-   c8(5.2,.18,5.6,.13,.36,M.rouge);bx(5.2,.4,5.6,.06,.4,.06,M.chrome);     // le cric bouteille
-   for(const p of [[-4.2,6.6],[-4.55,6.35]]){bx(p[0],.09,p[1],.3,.18,.42,M.jaune);}  // cales de roue
-   bx(-3.6,.03,6.2,.42,.05,.34,M.rouge);                                   // le chiffon
-   for(let i=0;i<9;i++){const a=1.1+i*.42,r9=5.4+((i*7)%5)*.5;             // la rallonge qui serpente
-     bx(Math.sin(a)*r9,.03,Math.cos(a)*r9,.06,.05,.5,M.jaune).rotation.y=-a;}
-   for(let i=0;i<7;i++){const a=i*2.4,r9=5.2+((i*3)%5)*.6;                 // clés, douilles, boulons semés
-     bx(Math.sin(a)*r9,.03,Math.cos(a)*r9,.05+(i%3)*.03,.04,.18+(i%3)*.1,M.acier).rotation.y=a;}
-   c8(-1.6,.012,-6.4,.55,.02,M.fer);                                       // la bouche d'égout
-   for(let i=0;i<4;i++)bx(-1.6,.03,-6.75+i*.23,1.0,.03,.09,M.noir);
-   for(const p of [[4.6,-5.2,2.2],[-6.2,2.2,2.6]])                          // deux flaques de plus
-     add9(PL,new THREE.MeshBasicMaterial({map:oilTex,transparent:true,fog:false,depthWrite:false}),
-          p[0],.008,p[1],p[2],p[2]*.8,1).rotation.x=-Math.PI/2;}
-
+  pneu(5.9,.118,3.3,.37,.235,0,0,0);jante(5.9,.285,3.3,.25,6);pneu(6.5,.118,2.62,.37,.235,0,.5,0);   // deux pneus, une jante posée dessus
+  pneu(-5.4,.118,-5.6,.37,.235,0,.8,0);
+  {const a=.3;cb('R',.62,.3,.34,-5.6,.15,4.4,0,a,0,.02);cb('R',.64,.06,.36,-5.6,.33,4.4,0,a,0,.02);          // caisse à outils oubliée là
+   cl('D',.016,.36,6,-5.6,.42,4.4,0,a,Math.PI/2);for(const s of [-.2,.2])cb('C',.03,.06,.03,-5.6+s*Math.cos(a),.39,4.4-s*Math.sin(a),0,a,0,.004);}
+  lt('V',[[0,0],[.18,0],[.19,.015],[.19,.3],[.16,.37],[.07,.41],[0,.41]],14,6.789,.2,-3.48,0,.4,Math.PI/2);  // bidon renversé
+  cb('N',.46,.3,.3,7.2,.15,1.4,0,0,0,.02);cb('D',.47,.04,.31,7.2,.32,1.4,0,0,0,.01);                          // la batterie
+  cl('R',.035,.05,10,7.07,.36,1.4);cl('A',.035,.05,10,7.33,.36,1.4);cl('Or',.02,.03,8,7.07,.39,1.4);cl('Or',.02,.03,8,7.33,.39,1.4);
+  cb('Wb',.2,.1,.005,7.2,.17,1.553,0,0,0,0);
+  lt('A',[[0,0],[.42,0],[.46,.1],[.44,.1],[.4,.02],[0,.02]],20,-6.4,0,-2.6);lt('H',[[.43,.07],[0,.07]],20,-6.4,0,-2.6);   // le plateau de vidange, plein
+  lt('R',[[0,0],[.14,0],[.14,.04],[.1,.07],[.09,.28],[.07,.3],[0,.3]],12,5.2,0,5.6);cl('C',.05,.12,10,5.2,.36,5.6);    // le cric bouteille
+  lt('A',[[.06,.42],[.06,.45],[0,.45]],10,5.2,0,5.6);cb('A',.06,.06,.08,5.3,.08,5.6,0,0,0,.01);cb('C',.02,.04,.3,5.3,.1,5.78,0,0,0,.004);
+  for(const p of [[-4.2,6.6],[-4.55,6.35]])MK.prism('J',[[p[1]-.21,0],[p[1]+.21,0],[p[1]+.21,.04],[p[1]-.02,.18],[p[1]-.21,.18]],.3,p[0]);  // cales de roue
+  cb('R',.42,.04,.34,-3.6,.02,6.2,0,.5,0,.015);cb('R',.3,.05,.2,-3.5,.05,6.25,.2,1.2,.1,.015);                // le chiffon
+  {let pr=null;for(let i=0;i<9;i++){const a=1.1+i*.42,r9=5.4+((i*7)%5)*.5,p=[Math.sin(a)*r9,.02,Math.cos(a)*r9];   // la rallonge qui serpente
+     if(pr)seg('J',.018,pr,p,5);else cb('N',.06,.05,.12,p[0],.025,p[2],0,-a,0,.01);pr=p;}
+   cb('J',.16,.08,.1,pr[0],.04,pr[2],0,.3,0,.015);}
+  for(let i=0;i<7;i++){const a=i*2.4,r9=5.2+((i*3)%5)*.6,x9=Math.sin(a)*r9,z9=Math.cos(a)*r9,L9=.18+(i%3)*.1;   // clés, douilles, boulons semés
+    if(i%3===2)cl('C',.035,.06,8,x9,.035,z9,0,a,Math.PI/2);
+    else{cb('C',.04,.012,L9,x9,.006,z9,0,a,0,.004);to('C',.03,.01,x9+Math.sin(a)*L9/2,.01,z9+Math.cos(a)*L9/2,Math.PI/2,0,0,4);}}
+  lt('F',[[.55,0],[.55,.02],[.5,.026],[0,.026]],20,-1.6,0,-6.4);for(let i=0;i<4;i++)cb('D',.8,.01,.07,-1.6,.03,-6.75+i*.23,0,0,0,0);  // la bouche d'égout
+  for(const p of [[4.6,-5.2,2.2],[-6.2,2.2,2.6]])                          // deux flaques de plus
+    add9(PL,new THREE.MeshBasicMaterial({map:oilTex,transparent:true,fog:false,depthWrite:false}),
+         p[0],.008,p[1],p[2],p[2]*.8,1).rotation.x=-Math.PI/2;
+  // LE MOBILIER VERSÉ : une géométrie par matière, l'ombre cuite au pied (lpOmbre), le plancher lumineux relevé (uG)
+  {const G9=MK.done(),GL={p:.22,c:.16,o:.2,s:.24,m:.16,g:.06};GAR.meubles=[];
+   for(const f in G9){lpOmbre(G9[f],1.1);const mt=lpMat(f);if(mt.userData.uG)mt.userData.uG.value=GL[f]!=null?GL[f]:.2;
+     /* le satiné et le mat de lpMat n'ont pas de cube d'environnement — une variante de programme que la CAISSE n'emploie pas (mesuré :
+        141 programmes au menu contre 140). Ils prennent le cube (8 % de reflet sur le satiné, 0 sur le mat) : le programme de la caisse. */
+     if(!mt.envMap){mt.envMap=envTex;mt.combine=THREE.MixOperation;mt.reflectivity=f==='s'?.08:0;}
+     const me=new THREE.Mesh(G9[f],mt);me.matrixAutoUpdate=false;me.updateMatrix();g.add(me);GAR.meubles.push(me);}}
+  /* LES MEUBLES POSÉS : une ombre douce à l'ENCRE sous chaque gros meuble (la recette de l'ombre de la caisse, blobTex) — sans elle,
+     établi, servante, compresseur, rack flottaient sur l'époxy. Toutes dans UNE géométrie (un seul appel de dessin). */
+  {const F9=[[-3,zB,9.8,1.5],[-9.4,-1.6,.8,1.5],[-9.5,2.6,.9,2.1],[-9.6,-7.2,.8,.8],[-9.6,-5.1,.8,.8],[-9.4,7.4,.8,.8],[-8.9,5.6,.7,.7],
+     [-9.9,-9.4,1.2,1.0],[7.7,-6.4,3.4,1.8],[9.0,-2.2,1.9,1.2],[9.6,3.4,1.5,4.4],[10.3,8.4,.9,1.5],[-5.6,10.4,3.2,1.0],[9.9,-10.3,1.2,4.0],
+     [-8.2,-5.4,.6,1.4],[-8.6,1.2,.5,1.5],[7.6,-4.2,.6,.6],[-8.16,9.2,1.3,.3]],P9=[],U9=[];
+   for(const f of F9){const w9=f[2]*1.5+.4,d9b=f[3]*1.5+.4,x0=f[0]-w9/2,x1=f[0]+w9/2,z0=f[1]-d9b/2,z1=f[1]+d9b/2;
+     P9.push(x0,.009,z1, x1,.009,z1, x1,.009,z0, x0,.009,z1, x1,.009,z0, x0,.009,z0);U9.push(0,0,1,0,1,1,0,0,1,1,0,1);}
+   const gA=new THREE.BufferGeometry();gA.setAttribute('position',new THREE.Float32BufferAttribute(P9,3));gA.setAttribute('uv',new THREE.Float32BufferAttribute(U9,2));
+   const mA=new THREE.Mesh(gA,new THREE.MeshBasicMaterial({map:blobTex,color:0x1c0430,transparent:true,opacity:.72,fog:false,depthWrite:false}));mA.renderOrder=-1;g.add(mA);}
   // ===== LE PLAFOND QUI ÉCLAIRE : six tubes, leur cône de poussière, et la baladeuse =====
   // (2026-09-26, vague 2) les tubes à .62 de blanc (0xfff3d2 → 0x9e9682) et les cônes à .05 (.085) : plein blanc, les tubes passaient
   // au-dessus du seuil du bloom et BRÛLAIENT le haut de l'écran en taches laiteuses, et les six cônes additifs voilaient toute la moitié

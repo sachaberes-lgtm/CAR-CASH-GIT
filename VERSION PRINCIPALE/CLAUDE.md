@@ -1,5 +1,23 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LES MEUBLES DU GARAGE AU NIVEAU DE LA CAISSE (2026-09-30, session DEBUGGING) — « retravaille le garage, notamment les objets : il faut que tous les objets et les meubles soient du niveau de la voiture »
+- Dans `buildGarageRoom`, TOUT le mobilier (de « MUR DU FOND » au couloir de la caméra) est construit avec **le kit de la caisse** :
+  `lpKit` (facettes franches, couleur dans les sommets), `lpMat` (laque vernie `p`, chrome `c`, laiton `o`, satiné `s`, mat `m`, verre/huile
+  `g`), `lpOmbre` (l'ombre cuite au pied, H 1,1). Palette `MK` : R B V J O N K (laques) · C · Or · F A W W2 E Wb (satinés) · P D T T2 (mats)
+  · G H (verre, huile). Aides locales : `cb` (boîte CHANFREINÉE, `chanfreinGeo` neuve à chaque appel — put la déplace en place), `cl`, `lt`
+  (tour), `to` (tore), `seg` (tube entre deux points), `barre` (poutre entre deux points) ; pièces : `pneu` (profil lpWheel + rainures,
+  flanc lettré), `jante` (lèvre, fond, bâtons, moyeu, écrou), `carton`, `bidon`, `jerry`, `clefM`, `moteur` (un V8 : bloc, culasses,
+  cache-culbuteurs laqués à nervures, filtre à air chromé, collecteurs, poulies, courroie, ventilateur, faisceau d'allumage, cloche).
+- **UNE géométrie par matière** : 6 appels de dessin pour tout le mobilier (contre ~300 boîtes Lambert), + UNE géométrie pour toutes
+  les ombres douces des meubles ; ~55 000 triangles (p 16 k, c 13,6 k, m 13,8 k, s 10,4 k, o 0,8 k). MESURÉ : 140 programmes au menu
+  ET en course, exactement comme avant — les matières sont celles de la caisse. ⚠ Le satiné `s` et le mat `m` de lpMat n'ont pas de
+  cube d'environnement : une variante que la caisse n'emploie pas (141 programmes). Ils reçoivent le cube au garage (reflet .08 / 0).
+- `lpMat` expose maintenant `m.userData.uG` (son plancher lumineux) : le garage le relève par famille (`GL` en fin de bloc) — l'atelier
+  est sombre et une laque sans lui y sortait noire. Ça ne touche pas au programme (uniform).
+- ⚠ Les PLACES n'ont pas bougé (ancres des MISSIONS : compresseur −9,3/2,6 · établi −4,4/−12 · pont 9,9/−10,3 · rack 9,5/3,4 ·
+  distributeur 9,6/8,4) ; règle des 8,3 m et couloir sous 50 cm respectés. Seules la servante (façade tournée vers la salle), le palan
+  (jambes sous la charge, colonne au pied du mur) et le pont (bras vers l'axe, poteaux en U) ont été redessinés sur la même emprise.
+- La surcharge Phong de la palette `M` (1re passe) est retirée : la COQUE (murs, charpente, porte, plateau) garde ses Lambert.
 ## LE CIEL POMMELÉ DU NIVEAU NUAGES (2026-09-30, session GRAPHISME — Sacha : « dans le niveau nuages, mets des nuages en motif dans le fond » → « dans le ciel »)
 - Couche `COUCHES.motif` / `cielMotif(col,vDir,y,sd)` du dôme du ciel, dans les passes PLEINE et LISSE (basN) — aucun programme de plus
   (0 lié en course, banc coton.js). Un MOTIF de petits nuages ronds (trois bourgeons) sur un plafond à ~1,6 km, en rangées DÉCALÉES, avec
