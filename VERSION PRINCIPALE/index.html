@@ -25908,7 +25908,19 @@ function capVise(v){const vw=Math.max(6,Math.abs(v)*SPD);return Math.asin(Math.m
    R 150 → dehors en 1,2 s. La glisse n'existe plus qu'en DRIFT VOLONTAIRE (pouce tiré vers le bas / ↓) : le nez tourne plus que la
    trajectoire (`slipB`, jusqu'à ~20°) — une vraie glisse, qui se voit ET se conduit. */
 const VOL_R0=40,VOL_RK=.3,VOL_TAU=.1;
-function lacetMax(v){const vw=Math.max(8,Math.abs(v)*SPD);return vw/(VOL_R0+VOL_RK*vw);} // rad/s au plein pouce
+function lacetMax(v){const vw=Math.max(8,Math.abs(v)*SPD);return vw/(VOL_R0+VOL_RK*vw);} // rad/s au plein pouce — ×spdMult dans la boucle (HAUTE VITESSE, 2026-09-30)
+/* LE BALAYAGE (2026-09-30, HAUTE VITESSE). Plots, pads, dos d'âne et flaques se testaient en UN POINT (`|s−objet| < w`) : la caisse avance
+   de km/h ÷ 3,6 ÷ images/s par image — à 30 i/s (iPhone bridé) un plot (w 2,6) devenait fantôme au-delà de ~560 km/h, un dos d'âne (w 2,2)
+   de ~475, une flaque (w 4-5) de ~860 ; à 60 i/s, le double. On teste désormais le TRAJET de l'image, comme la catapulte : l'écart latéral
+   le plus serré pendant que la caisse RECOUVRE l'objet (|s−so| ≤ w), `lat` interpolé le long du trajet (sA→sB, lA→lB). Infinity = pas de
+   recouvrement. Au pas, le trajet est un point : c'est l'ancien test (il en est un sur-ensemble). */
+function balEcart(so,w,sA,sB,lA,lB,lo){
+  const a=Math.max(Math.min(sA,sB),so-w),b=Math.min(Math.max(sA,sB),so+w);
+  if(a>b)return Infinity;
+  const d=sB-sA;if(Math.abs(d)<1e-6)return Math.abs(lB-lo);
+  const ea=lA+(lB-lA)*(a-sA)/d-lo,eb=lA+(lB-lA)*(b-sA)/d-lo;
+  return ea*eb<=0?0:Math.min(Math.abs(ea),Math.abs(eb));
+}
 let yawR=0,slipB=0,glisse9=0,routeLacet=0; // lacet courant · angle de glisse (drift) · glisse ressentie (fumée, crissement)
 const AIR_ASSIST=0; // (conduite v6) règle n°1 : aucun recentrage, en vol non plus — était .2 ; // aide au recentrage en vol (0 = off), monte avec la vitesse — ÷5 (2026-09-25, user : « un effet qui t'attire vers le centre de la route, trop puissant, baisse-le au point qu'il ne soit plus remarquable ») : à 1,0 un ressort de 0,7·écart m/s² ramenait la caisse sur l'axe en plein vol ; il reste un filet qu'on ne sent plus
 const CAM_SHAKE_V=.45; // intensité du tremblement caméra lié à la vitesse (position + roulis) — .78→.45 : un frémissement, plus un séisme (user : « c'est trop »)
@@ -32595,7 +32607,7 @@ function loop(now){
     if(wantN&&!loop._nvW&&!nitroOn&&mode!=='boom'){try{if(SONV2)sfx('nitro.vide');else noiseBurst(.04,.06,2500);}catch(e){}hap(6);} // (2026-09-26, audit son) NITRO À VIDE : un « tchk » sec — l'appui répond toujours
     loop._nvW=wantN;
     if(nitroOn&&pwrNitroT<=0&&!PARK.on&&startBoostT<=0){
-      let take=dt*(FLOW.lv===4?FLOW2.fren.nitro:1); // (v3, Sacha : « en frénésie le nitro baisse 2× plus lentement »)
+      let take=dt*((FLOW.lv===4||NTR.on)?FLOW2.fren.nitro:1); // (v3, Sacha : « en frénésie le nitro baisse 2× plus lentement ») · (2026-09-30, HAUTE VITESSE) NITROOO aussi : réservoir plein, sans rien ramasser, il restait 0,5 s de NITROOO au moteur 1 (0 palier) et 2,5 s au moteur max (2) ; ×0,5 pendant NTR.on → 1,3 s (1 palier) et 6,6 s (6, +88 %). PAS cumulé avec la frénésie (×0,25 : 0,05/s net, une nitro quasi infinie)
       if(nitroR>=take)nitroR-=take;
       else{take-=nitroR;nitroR=0;nitroX=Math.max(0,nitroX-take);}
     }
@@ -32614,7 +32626,8 @@ function loop(now){
     if(keys.KeyR&&mode==='drive'){respawn();keys.KeyR=false;if(SONV2)sfx('respawn');}
     // PILOTE AUTO DE MESURE (`dbgAuto`) : le volant du bot de poursuite (mêmes équations) posé sur TA caisse —
     // sert à mesurer l'économie sur des dizaines de parties sans jouer à la main. Jamais armé en jeu.
-    const target=DBG_AUTO.on?THREE.MathUtils.clamp((routeLacet+(THREE.MathUtils.clamp((DBG_AUTO.lat-lat)/(Math.max(6,Math.abs(vA)*SPD)*.9),-.4,.4)-psi)*3)/lacetMax(vA),-1,1) // (conduite v6) le pilote de mesure corrige son CAP vers la ligne visée // (conduite v4) le pilote de mesure VISE un cap
+    const mA9=DBG_AUTO.on&&mode==='drive'?vitMult():1; // (HAUTE VITESSE, 2026-09-30) le pilote de mesure connaît sa caisse : au sol, le lacet est ×spdMult, et l'écart latéral s'y referme en autant de SECONDES qu'à ×1
+    const target=DBG_AUTO.on?THREE.MathUtils.clamp((routeLacet+(THREE.MathUtils.clamp((DBG_AUTO.lat-lat)/(Math.max(6,Math.abs(vA)*SPD*mA9)*.9),-.4,.4)-psi)*3)/(lacetMax(vA)*mA9),-1,1) // (conduite v6) le pilote de mesure corrige son CAP vers la ligne visée // (conduite v4) le pilote de mesure VISE un cap
       :TCTL.act?TCTL.st:(lf?1:0)-(rt?1:0); // VOLANT TACTILE : le pouce prend la main sur le tout-ou-rien (même lissage derrière)
     steer+=(target-steer)*Math.min(1,dt*18);
     graceT=Math.max(0,graceT-dt);
@@ -32692,15 +32705,26 @@ function loop(now){
       // retombe à 0 et le cap reste figé dans le monde. En DRIFT : la TRAJECTOIRE tourne 15 % plus serré, et le NEZ pivote en plus
       // (slipB, jusqu'à 24°) — ⚠ la glisse s'AJOUTE au nez, elle ne se retire pas de la trajectoire : sinon, le temps qu'elle
       // s'installe, la caisse partait tout droit (mesuré : décrochée à 1,4 rad/s, elle ne tournait plus du tout pendant 0,2 s).
-      {const rT=steer*lacetMax(vA)*(drifte?1.15:1)*THREE.MathUtils.clamp(vA/8,-1,1)*(slipT>0?.18:1); // flaque : la direction ne mord presque plus
-       yawR+=(rT-yawR)*(1-Math.exp(-dt/VOL_TAU));
+      /* (2026-09-30, HAUTE VITESSE) LE LACET SUIT L'AVANCE. `spdMult` (NITROOO ×1,10/s, VITESSE ×2 — plafond ×2,6) multiplie l'AVANCE : la
+         route tournait donc sous la caisse ×spdMult plus vite, le lacet non — le rayon mini de braquage était ×spdMult. CALCUL : l'épingle
+         TECH du 1er moteur (R 68 m ; rayon mini 61 m à 253 km/h) = 89 % de pouce à ×1 → 233 % à ×2,6 : impossible, sortie forcée (le banc
+         ntrx.js : « la caisse sort et s'envole »). Le lacet commandé ET l'inertie (VOL_TAU) suivent spdMult : même pouce = même TRAJECTOIRE,
+         parcourue plus vite. √spdMult écarté : 144 % sur cette épingle ; au banc node (pilote de mesure), 0,15 à 0,7 sortie/km restaient
+         à ×2,6 au 1er moteur (0 avec ×spdMult). VOL_TAU ÷ spdMult : la caisse PÈSE le même nombre de MÈTRES qu'à ×1 — au moteur 10 sous nitro,
+         ×2,6 (1 700 km/h), 0,36 → 0,01 sortie/km. Les EFFETS (power-slide, roulis, fumée, traces, VIRAGE SERRÉ) lisent le lacet de BASE
+         `yawR/spdMult` : mêmes images et mêmes paiements qu'à ×1 dans le même virage (sinon, à ×2,6, la caisse restait en travers en
+         permanence et VIRAGE SERRÉ sonnait dans des courbes molles). Rien ne tourne tout seul : pouce lâché, yawR retombe à 0 comme avant. */
+      const spdMult=vitMult(); // (NITROOO) ×1,10/s tenue, et avec VITESSE ×2 : PLAFOND COMMUN ×2,6 (voir vitMult) — SPEED UP : le sol défile DEUX FOIS plus vite (2026-09-26, user : « le power-up vitesse doit faire ×2 »), sans casser la physique
+      {const rT=steer*lacetMax(vA)*spdMult*(drifte?1.15:1)*THREE.MathUtils.clamp(vA/8,-1,1)*(slipT>0?.18:1); // flaque : la direction ne mord presque plus
+       yawR+=(rT-yawR)*(1-Math.exp(-dt*spdMult/VOL_TAU));
        const b0=slipB,bT=drifte?Math.sign(steer)*.42*Math.min(1,Math.abs(steer)):0;
        slipB+=(bT-slipB)*(1-Math.exp(-dt*(drifte?4:6)));
        psi+=yawR*dt+(slipB-b0); // le nez = la trajectoire + la glisse
-       if(facOn()&&!drifte&&Math.abs(steer)<.1)psi*=Math.exp(-dt*FAC_CAP); // (MODE FACILE) pouce lâché : le cap revient dans l'axe de la route
-       glisse9=THREE.MathUtils.clamp(Math.abs(slipB)*2.6+driftT*.5+Math.max(0,Math.abs(yawR*vA)*SPD-22)/70,0,1)*Math.min(1,Math.abs(vA)/35); // (2026-09-26) la gomme fume et crisse dès que la caisse chasse (power-slide)
+       if(facOn()&&!drifte&&Math.abs(steer)<.1)psi*=Math.exp(-dt*FAC_CAP*spdMult); // (MODE FACILE) pouce lâché : le cap revient dans l'axe de la route — (HAUTE VITESSE) en autant de MÈTRES qu'à ×1
+       const aB9=Math.abs(yawR/spdMult*vA)*SPD; // (HAUTE VITESSE) la charge latérale de BASE : celle qu'aurait le même virage à ×1
+       glisse9=THREE.MathUtils.clamp(Math.abs(slipB)*2.6+driftT*.5+Math.max(0,aB9-22)/70,0,1)*Math.min(1,Math.abs(vA)/35); // (2026-09-26) la gomme fume et crisse dès que la caisse chasse (power-slide)
        // (aura v2) LE VIRAGE SERRÉ : tenir une grosse charge latérale 0,9 s sur la route — prendre un virage À FOND, ça se paie
-       {const aL9=Math.abs(yawR*vA)*SPD;if(aL9>32)virT+=dt;else if(aL9<12){virT=0;virPaye=false;}
+       {const aL9=aB9;if(aL9>32)virT+=dt*spdMult;else if(aL9<12){virT=0;virPaye=false;} // (HAUTE VITESSE) les 0,9 s se comptent en temps ×1 : le même virage paie, pris à ×1 comme à ×2,6
         if(virT>.9&&!virPaye){virPaye=true;if(SONV2)sfx('virage');chaineAuraMuette('VIRAGE SERRÉ',45,'virage',false,SONV2);}} // (2026-09-29, Sacha) ne s'écrit plus
        filetTick();} // (2026-09-29) LA ROUTE QUI TE RATTRAPE : le VIRAGE À FOND (voir FILET)
       driftTick(dt,drifte);
@@ -32720,8 +32744,8 @@ function loop(now){
       driftT=Math.max(0,driftT-dt*2.2); // retombe après un atterrissage en travers
       psi=THREE.MathUtils.clamp(psi,-1.4,1.4);
       vL=vA*Math.sin(psi-slipB); // la TRAJECTOIRE : le cap moins la glisse (0 hors drift)
-      const spdMult=vitMult(); // (NITROOO) ×1,10/s tenue, et avec VITESSE ×2 : PLAFOND COMMUN ×2,6 (voir vitMult) — SPEED UP : le sol défile DEUX FOIS plus vite (2026-09-26, user : « le power-up vitesse doit faire ×2 »), sans casser la physique
-      lat+=vL*driveDir*dt*SPD*spdMult;
+      const lat09=lat; // (BALAYAGE, voir balEcart) la ligne de la caisse AVANT l'avance : plots, pads, dos d'âne et flaques se testent sur le trajet
+      lat+=vL*driveDir*dt*SPD*spdMult; // (spdMult : calculé avant le lacet, voir HAUTE VITESSE)
       const sPrev9=s; // ⚠ mémorisé AVANT l'avance : les tremplins se testent sur le SEGMENT parcouru, pas sur un point
       s+=vA*Math.cos(psi-slipB)*driveDir*dt*SPD*spdMult*cordeK(s,side*lat); // avance le long du ruban dans le SENS de conduite (parc : avant OU arrière) · (2026-09-27) CAMPAGNE : la corde intérieure est vraiment plus courte (cordeK = 1 ailleurs)
       const vF=vA;
@@ -32762,9 +32786,11 @@ function loop(now){
       // pads turbo
       padCd=Math.max(0,padCd-dt);
       LIGNE.sPd0=LIGNE.sPd;LIGNE.sPd=s; // (LIGNE PARFAITE) le pad de la file se teste sur le TRAJET de l'image (à 600 km/h et 30 i/s, 5,6 m par image)
+      const bal9=Math.abs(s-sPrev9)<60,sDe9=bal9?sPrev9:s,lDe9=bal9?lat09:lat; // (BALAYAGE) le trajet de l'image — un saut de `s` (portail, replacement) retombe sur le test en un point
       if(mode==='drive')for(let i9=0;i9<PADS.length;i9++){
         const pl9=LIGNE.padI.has(i9);if(pl9?LIGNE.padPris.has(i9):padCd>0)continue; // (LIGNE PARFAITE) le pad de la file ne se bloque pas sur la recharge du précédent : il ne se prend qu'UNE fois
-        if((Math.abs(s-PADS[i9])<6||(LIGNE.padI.has(i9)&&Math.abs(s-LIGNE.sPd0)<60&&(PADS[i9]-LIGNE.sPd0)*(PADS[i9]-s)<=0))&&Math.abs(side*lat-PADL[i9])<4.1){ // 2,75 de pad + ~1,35 de caisse : il faut MORDRE dessus
+        if(pl9?((Math.abs(s-PADS[i9])<6||(Math.abs(s-LIGNE.sPd0)<60&&(PADS[i9]-LIGNE.sPd0)*(PADS[i9]-s)<=0))&&Math.abs(side*lat-PADL[i9])<4.1) /* le pad de la LIGNE : son test à lui, inchangé */
+          :balEcart(PADS[i9],6,sDe9,s,side*lDe9,side*lat,PADL[i9])<4.1){ // 2,75 de pad + ~1,35 de caisse : il faut MORDRE dessus — (BALAYAGE) sur le trajet : à 30 i/s il sautait par-dessus au-delà de ~1 300 km/h
           vA+=18;boost=Math.max(boost,1.5);if(!pl9)padCd=1.5; /* (LIGNE PARFAITE, audit GAMEPLAY) un pad de la file ne met plus la recharge : au niveau 12 il bloquait le 1er pad de la LIGNE DE NÉON au-delà de ~470 km/h (« LIGNE CASSÉE ») */ // viser paie plus qu'avant (14 → 18)
           if(SONV2)sfx('pad');else boostSnd();shake=Math.max(shake,.3);hap(10);
           slam('BOOST','','#ffb000','#ff3924',28); /* (2026-09-29, Sacha : « BOOST écrit plus petit ») 46 → 28 */flashEcran('rgba(255,150,0,.5)');fovPunch=Math.max(fovPunch,10); // (HUD v3) « quand tu roules sur un boost, BOOST en gros »
@@ -32802,7 +32828,7 @@ function loop(now){
       if(mode==='drive'&&holeAtS(s))startFall(1.1,1);
       // dos d'âne : petit saut — sur les DEUX faces (hopY suit F.n déjà retournée quand side<0)
       if(mode==='drive'&&hopY===0&&Math.abs(vF)>10)for(const b9 of BUMPS){
-        if(Math.abs(s-b9)<2.2){
+        if(b9>=Math.min(sDe9,s)-2.2&&b9<=Math.max(sDe9,s)+2.2){ // (BALAYAGE) sur le trajet de l'image : à 30 i/s, il passait entre deux images au-delà de ~475 km/h
           hopV=2.4+Math.min(3.2,Math.abs(vF)*.045);
           vA*=.97;shake=Math.max(shake,.15);if(SONV2)sfx('dosdane');else noiseBurst(.12,.1,300);
           if(Math.random()<.5)dropChip(1);
@@ -32825,11 +32851,12 @@ function loop(now){
         // ⚠ les plots sont posés dans le repère du DESSUS (F.b jamais retournée) : sous la dalle, la caisse y est à side·lat —
         // la même règle que les pièces. Avant, on percutait (et on frôlait) le plot SYMÉTRIQUE, invisible.
         const dl9=lat-side*c9.lat;
-        // LE FRÔLÉ se juge quand le plot SORT de la fenêtre de choc (2,6 derrière) : on ne paie pas un plot qu'on peut encore percuter
-        if(!c9.frole&&c9.dm!=null&&c9.s>sFr0-2.6&&c9.s<=s-2.6){c9.frole=true;if(graceT<=0&&speedKmh>vmaxShow()*.45&&c9.dm>=1.6&&c9.dm<3.6){fk9++;if(c9.dm<fd9){fd9=c9.dm;fr9=c9;}}}
-        if(Math.abs(s-c9.s)>2.6)continue;
-        c9.dm=Math.min(c9.dm==null?9:c9.dm,Math.abs(dl9)); // l'écart le plus serré vu pendant le passage
-        if(Math.abs(dl9)<1.6){
+        /* (2026-09-30, BALAYAGE) le passage se mesure sur le TRAJET de l'image, et AVANT le jugement du frôlé : à 30 i/s, au-delà de ~560 km/h
+           (~1 120 à 60 i/s), la caisse sautait la fenêtre de choc (±2,6) d'une image à l'autre — `dm` restait vide : ni choc, ni frôlé, le
+           plot était un fantôme. Un plot traversé EN UNE image se juge désormais dans cette image-là (choc, sinon frôlé juste en dessous). */
+        const e9=balEcart(c9.s,2.6,sDe9,s,lDe9,lat,side*c9.lat);
+        if(e9<Infinity)c9.dm=Math.min(c9.dm==null?9:c9.dm,e9); // l'écart le plus serré vu pendant le passage
+        if(e9<1.6){
           c9.hit=true;
           const kv=new THREE.Vector3().copy(F.t).multiplyScalar(Math.max(8,Math.abs(vA)*.55))
             .addScaledVector(F.b,(dl9>0?-1:1)*(2+Math.random()*4))
@@ -32841,15 +32868,17 @@ function loop(now){
           sparkBurst(boomRed,c9.mesh.position,5,6); // (2026-09-28) un plot percuté COÛTE : éclats rouges (l'or, c'est l'argent)
           addStyle(2);flowFaute('n',0,.25); // (v5) un plot percuté : -NARCISSE, le répit saute
           if(c9.dur){if(c9.pt)c9.pt.touche=true;vA*=.9;momT=0;FLOW.v=Math.max(0,FLOW.v-12);FLOW.idle=2;popTexte('TOUCHE !','#ff5e7a',1);} // (2026-09-30) la porte touchée ne se compte pas propre (campPortesTick) · (2026-09-27) une PORTE du niveau 4 : la toucher ne tue pas, elle coûte (vitesse, élan, FLOW)
+          continue;
         }
+        // LE FRÔLÉ se juge quand le plot SORT de la fenêtre de choc (2,6 derrière) : on ne paie pas un plot qu'on peut encore percuter
+        if(!c9.frole&&c9.dm!=null&&c9.s>sFr0-2.6&&c9.s<=s-2.6){c9.frole=true;if(graceT<=0&&speedKmh>vmaxShow()*.45&&c9.dm>=1.6&&c9.dm<3.6){fk9++;if(c9.dm<fd9){fd9=c9.dm;fr9=c9;}}}
       }
       if(fr9)frole(fr9,fd9,fk9);
       // FLAQUES D'HUILE : passer dessus fait GLISSER (contrôle coupé un instant, la caisse chasse)
       oilCd=Math.max(0,oilCd-dt);
       if(mode==='drive'&&oilCd<=0)for(const o9 of OILS){
         if(o9.face!==side)continue; // chaque flaque vit sur SA face
-        if(Math.abs(s-o9.s)>o9.r+2)continue;
-        if(Math.abs(lat-side*o9.lat)<o9.r+.6){ // même repère que les plots (posées côté dessus)
+        if(balEcart(o9.s,o9.r+2,sDe9,s,lDe9,lat,side*o9.lat)<o9.r+.6){ // même repère que les plots (posées côté dessus) — (BALAYAGE) sur le trajet de l'image : à 30 i/s, une flaque de 2 m sautait au-delà de ~860 km/h
           slipT=.75;oilCd=1.2;
           shake=Math.max(shake,.2);
           if(SONV2)sfx(o9.eau?'flaque.eau':'flaque.huile');else noiseBurst(.35,.12,1900); // long crissement (console de son : l'eau de la ville ne sonne plus comme l'huile)
@@ -32887,7 +32916,7 @@ function loop(now){
              l'arrière CHASSE à proportion de la charge du virage (lacet × vitesse) — le nez rentre dans la courbe jusqu'à ~18°, la
              trajectoire reste celle qu'on pilote. ⚠ À ne pas confondre avec l'ancien « Tokyo drift » retiré en v6 : lui pivotait dès
              qu'on touchait le pouce sous nitro, même en ligne droite — celui-ci n'existe QUE dans un virage, et grandit avec lui. */
-          const aLat9=yawR*Math.abs(vA)*SPD,tdWant=Math.sign(aLat9)*.32*(1-Math.exp(-Math.abs(aLat9)/38))*Math.min(1,tdKmh/90);
+          const aLat9=yawR/spdMult*Math.abs(vA)*SPD,tdWant=Math.sign(aLat9)*.32*(1-Math.exp(-Math.abs(aLat9)/38))*Math.min(1,tdKmh/90);
           driftYaw+=(tdWant-driftYaw)*Math.min(1,dt*(Math.abs(tdWant)>Math.abs(driftYaw)?5:3.2)); // départ franc, rattrapage plus doux
           if(Math.abs(driftYaw)>.003){
             qTmp.setFromAxisAngle(F.n,driftYaw);
@@ -32897,7 +32926,7 @@ function loop(now){
           // LE ROULIS (v2) : la CARROSSERIE s'écrase sur l'EXTÉRIEUR du virage, à proportion de la charge latérale (lacet × vitesse) —
           // 6° pour un petit virage, 13-15° en plein braquage, +4° en drift. Un RESSORT (ω 14, amortissement .55) : elle plonge, dépasse
           // à peine et se pose ; un gauche-droite la fait basculer d'un flanc sur l'autre. Les roues, elles, restent au sol.
-          {const aLat=yawR*Math.abs(vA)*SPD,d9=Math.min(dt,1/30),
+          {const aLat=yawR/spdMult*Math.abs(vA)*SPD,d9=Math.min(dt,1/30), /* (HAUTE VITESSE) le lacet de BASE : le roulis du même virage qu'à ×1 */
                 rollT=Math.sign(aLat)*.26*(1-Math.exp(-Math.abs(aLat)/35))+(driftEnCours?Math.sign(slipB)*.07:0);
            rollV+=((rollT-carRoll9)*196-rollV*15.4)*d9;carRoll9=THREE.MathUtils.clamp(carRoll9+rollV*d9,-.42,.42);
            pitch9+=(((dn||driftEnCours)?.035:0)-((nitroOn||boost>0)?.03:0)-NFX.ign*NFX.ignK*.1-pitch9)*Math.min(1,dt*6); // plonge au frein/drift, s'accroupit à la poussée — (vague 3) et SE CABRE à l'allumage de la nitro (≈3° le temps du coup)
@@ -32921,7 +32950,7 @@ function loop(now){
         // fumée de gomme : SEULEMENT quand ça glisse (même zone morte que le crissement) —
         // la poussière permanente derrière les roues, c'était du bruit visuel, pas de la vitesse
         const drf9=glisse9; // (conduite v6) la fumée suit la VRAIE glisse (drift, grosse charge, réception) — plus l'angle à la route, qui n'est plus une glisse
-        traceTick(Math.abs(vF)>10&&(glisse9>.08||Math.abs(yawR*vA)*SPD>9)); // (2026-09-26) LES TRACES DE PNEUS : dès que ça tourne fort ou que ça glisse
+        traceTick(Math.abs(vF)>10&&(glisse9>.08||Math.abs(yawR/spdMult*vA)*SPD>9)); // (2026-09-26) LES TRACES DE PNEUS : dès que ça tourne fort ou que ça glisse
         if(drf9>0&&Math.abs(vF)>14){
           const nD9=1+(drf9>.5?1:0),VC9=PT_U.uVc.value;
           for(let k=0;k<nD9;k++){
