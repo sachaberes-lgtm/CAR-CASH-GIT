@@ -1,5 +1,27 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA REVUE DE TOUS LES ÉCRANS (2026-09-30, soir, session GAMEPLAY — Sacha : « vérifie tous les menus, tous les écrans d'interface, il y a plein de petits détails qui ne vont pas »)
+- Banc `ui.js` (scratchpad GAMEPLAY) : chaque écran debout 390×844 ET couché 844×390 (= le PC), FR et EN, captures + mesures (débords,
+  cibles < 44 px, capitales accentuées en police pixel, textes coupés). `?menu=sacha` pour le menu de Sacha, `leo.js` pour celui de Léo.
+  0 erreur de page. Deux relectures indépendantes des captures (debout / couché).
+- **Écran de mort** : `#mCash` en `word-spacing:-.55em` (l'espace de la police pixel est une case PLEINE : « $    9 » au corps du héros) ;
+  badge `em.mCashRec` « RECORD ! » dans la plaque d'argent quand c'est le record d'ARGENT (`rec`) — « NOUVEAU RECORD ! » ne disait pas
+  lequel ; la ligne de la mission passe à la ligne au lieu de couper la récompense (« LA … »), debout ET couché.
+- **Pause** : ligne `data-a="volh"` « POUCE HAUT EN VOL » (un seul écrivain : `volhBascule()`, partagé avec les réglages) ; cachée au
+  clavier (`dPanSync`) — `volSens` ne touche que le pouce. Un seul vide au milieu (`.tp.go` collé aux réglages).
+- **Réglages** : l'icône de « POUCE HAUT EN VOL » rend les 4 px de son espacement serré (le libellé retombe dans l'alignement) ; COPIER MA
+  SAUVEGARDE sans presse-papier = toast « COPIE IMPOSSIBLE » + la feuille revient avec le code à copier à la main.
+- **Mots composés** : `insec(t)` (à côté de `fmtC`) enveloppe « X-Y » dans `i.nw` (insécable) — carrière (« FIN / D'APRES-MIDI », avec
+  `i.nwB` : la tuile met son nom en FLEX, sans cet enveloppe l'espace sautait) et boutique (« CHAT / POP-TART »). Texte SANS balise seulement.
+- **Garage** : flèches ◀ ▶ à 14 px du bord (la pente mangeait les 8) ; `#gOutils` 44 px ; aperçu de TRAÎNÉE fin et fondu (un pavé orange
+  barrait l'écran) ; AILES : le nom a 82 px (« PROPELLERS » = 80), l'aile à vendre se range entre le cadenas et le prix.
+- **Boutique** : prix barré dessiné (`s::after` au milieu des chiffres — le line-through de la police pixel tombait dessous) ; couchée,
+  l'offre de gauche est `sticky` (elle partait avec le défilement, une moitié d'écran vide).
+- **Carrière** : la pastille « 0 / 10 » a 44 px de zone tapable. **Menu de Sacha** : pastilles « 12 » / « NEW » à 6 px de la rangée MISSIONS.
+- Relevé du HUD de course transmis à GRAPHISME (NITRO/⏸ au bord, « $×1 », consigne du volant : corrigés par lui).
+- **NON TOUCHÉ, à trancher par Sacha et Léo** : l'écran MISSIONS de Léo debout (cartes qui se chevauchent, textes coupés — la remise en
+  ordre f474c51 a été annulée à la demande de Léo) ; le menu de Léo (MISSIONS 34-42 px de haut, JOUER en haut de l'écran) ; « HOME » en
+  français (choix de Léo) ; l'étiquette TEST ; le nom « CHAT POP-TART » (marque déposée) ; « MER DE NUAGES » (JOUER) / « AURORE » (carrière).
 ## LE DAUPHIN v7 — L'AURA MONTE EN VOL + LE JUS v6 + LA BANNIÈRE DE NIVEAU (2026-09-30, session INTERFACE)
 - **Dauphin** (Sacha : « on ne voit plus le texte dauphin quand on se pose ; on doit voir l'aura monter pendant l'animation des dauphins,
   pendant qu'on survole la route »). Mesuré au banc (`dolpose.js`) : depuis la v6 de GAMEPLAY, un rase-dalle de 1,4 s à 3 m (dauphins à
