@@ -1,5 +1,20 @@
 # CASH CAR — guide projet pour Claude Code
 
+## L'ARGENT DE L'ATELIER — LES TAS DE BILLETS (2026-10-01, session INTERFACE — Sacha : « plus on gagne d'argent, plus il doit y avoir des tas de billets sur le sol du garage, un peu placés partout, sur les meubles et tout »)
+- `garArgent(g)` (défini juste avant `buildGarageRoom`, appelé avant `gmHoloBuild`) bâtit UNE fois un seul mesh de liasses en couleurs de
+  sommets dans la matière MATE des meubles (`GAR.meubles`, famille 'm') : **zéro programme de plus** (mesuré 144 → 144), 28 ms sur PC.
+  `garArgentMaj()` (une comparaison de `bank()` par image, dans `garageRender`) règle seulement combien on en dessine (`setDrawRange`).
+- **Courbe** : n = 12 × (compte / 50)^0,4 objets — 1 k → 40, 20 k → 132, 300 k → 389, 2,5 M (la caisse la plus chère) → 909 ; 910 au plus.
+  C'est le compte ACTUEL : dépenser fait fondre les tas (l'argent part de l'atelier).
+- **Où** : 10 tas bas (3 couches, 33 cm) dans le couloir de la caméra, 7 gros tas (5 couches) au pied des murs, des piles sur les fûts, le
+  distributeur, le rack, la servante et l'établi, puis 6 palettes (10 couches de 8) contre les murs quand on est riche. Places cherchées sur
+  une grille (`libre`) : loin des meubles (les rectangles de `F9`) et du bazar au sol, **rien entre la caméra et la caisse** (demande de
+  SON : la caisse est la vedette), rien dans l'allée de la porte (la caisse sort par là), rien de haut devant l'affiche du record. Ordre :
+  ce que la caméra voit d'abord ; chaque place s'ouvre à un seuil, puis la moins remplie reçoit l'objet suivant (les tas montent ensemble).
+- Liasses VERTES et sombres (tranche vert-de-gris, face vert billet, bande kraft) : une 1re version à bandes or/rose/cyan et tranche crème
+  se lisait comme des confettis. Hook : `dbgArgent(compte)` force un compte (sans toucher la sauvegarde), `dbgArgent(null)` relâche.
+  Banc : `garargent.js W H tag` (COMPTES=0,1000,… en variable d'env).
+
 ## LA PHYSIQUE DU BORD v2 — le « clic » du bord corrigé (2026-10-01, session GFX) — Sacha : « quand on roule au bord de la route on est comme TÉLÉPORTÉ à côté — c'est un petit CLIC bizarre, Léo l'avait corrigé »
 - LA SOURCE : le correctif de Léo (`cb3e82c`, branche `version-leolei-2026`, 26/09) n'avait jamais été porté sur main. Porté et adapté
   (vitesse réelle `vitMult`, caméra de vol d'aujourd'hui avec son bras `CAMV`).
