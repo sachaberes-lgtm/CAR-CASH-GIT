@@ -10546,6 +10546,7 @@ Object.assign(I18N,{"FRÉNÉSIE": "FRENZY", "FRÉNÉSIE !": "FRENZY!", "RESTE DA
 /* (2026-09-28, passe de lancement) CE QU'UN JOUEUR ANGLOPHONE LISAIT ENCORE EN FRANÇAIS, relevé à l'écran par un banc qui note chaque
    texte affiché pendant 3 minutes de jeu : la liste d'aura, les trois pouvoirs, la fête des ordres de grandeur, la meute du Survivant. */
 Object.assign(I18N,{'RATÉ ! GARDE LE NITRO, VISE LE DESSUS':'MISSED! HOLD NITRO, AIM FOR THE TOP'});Object.assign(I18N_ZH,{'RATÉ ! GARDE LE NITRO, VISE LE DESSUS':'失败！按住氮气，瞄准路面'});
+Object.assign(I18N,{'LES NUAGES TE PORTENT':'THE CLOUDS CARRY YOU','LES TOURS NE PARDONNENT PAS':'TOWERS SHOW NO MERCY'});Object.assign(I18N_ZH,{'LES NUAGES TE PORTENT':'云朵托着你','LES TOURS NE PARDONNENT PAS':'高楼绝不留情'}); // (2026-09-30) les promesses des NUAGES et de la VILLE
 Object.assign(I18N,{'MINUIT EN VILLE':'MIDNIGHT CITY','PLEINS PHARES':'HIGH BEAMS'});Object.assign(I18N_ZH,{'MINUIT EN VILLE':'午夜城市','PLEINS PHARES':'远光灯'});
 Object.assign(I18N,{'PLUIE DE SATELLITES':'SATELLITE STORM','ESQUIVE LES SATELLITES':'DODGE THE SATELLITES','PERCUTE PAR UN SATELLITE':'HIT BY A SATELLITE'});Object.assign(I18N_ZH,{'PLUIE DE SATELLITES':'卫星雨','ESQUIVE LES SATELLITES':'躲开卫星','PERCUTE PAR UN SATELLITE':'撞上卫星'}); // (2026-09-30) le 6e niveau
 Object.assign(I18N,{'L\'ORAGE':'THE STORM','TEMPÊTE':'STORM','LA ROUTE SE CACHE : L\'ECLAIR LA MONTRE':'THE ROAD HIDES: LIGHTNING SHOWS IT'});Object.assign(I18N_ZH,{'L\'ORAGE':'暴风雨','TEMPÊTE':'风暴','LA ROUTE SE CACHE : L\'ECLAIR LA MONTRE':'道路隐没：闪电照亮它'}); // (2026-09-29) le 4e niveau
@@ -11248,8 +11249,9 @@ window.dbgBio=function(n,d){bioGo(n,d||2);}; // console : dbgBio('nuit') → tes
    Rien ne dépend de la position dans ce tableau (tout passe par `id`) : réordonner est sans risque (musicPremier lit NIVEAUX[0]). */
 const NIVEAUX=[ // ⚠ ORDRE (2026-09-25 au soir, user) : « remets le niveau dans les nuages en PREMIER, avant la ville » — NUAGES, puis VILLE, puis ORBITE
   // planete 0 aux NUAGES (user : « ne mets pas la Terre dans le niveau dans les nuages ») · route/sheen : clarté et brillance du bitume (routeTick)
-  {id:'nuages',nm:'MER DE NUAGES',        bio:['matin','midi','aprem'],planete:0,   espace:0,pluie:0,cielMusical:false,route:0,  sheen:.06},
-  {id:'ville', nm:'AU-DESSUS DE LA VILLE',bio:['pluie'],               planete:0,   espace:0,pluie:1,cielMusical:true, route:.7, sheen:.12}, // route plus CLAIRE : elle se détache de la ville sombre (user) ; sheen : bitume mouillé par la pluie
+  // (2026-09-30) `pr`, la PROMESSE (bannière de niveau, ≤ 32 signes, sans accent) : NUAGES = un nuage traversé en vol te soulève et rend de l'airtime (updateClouds, refT) · VILLE = en vol, une tour tue (villeHeurt → explode('tour'))
+  {id:'nuages',nm:'MER DE NUAGES',        bio:['matin','midi','aprem'],planete:0,   espace:0,pluie:0,cielMusical:false,route:0,  sheen:.06,pr:'LES NUAGES TE PORTENT'},
+  {id:'ville', nm:'AU-DESSUS DE LA VILLE',bio:['pluie'],               planete:0,   espace:0,pluie:1,cielMusical:true, route:.7, sheen:.12,pr:'LES TOURS NE PARDONNENT PAS'}, // route plus CLAIRE : elle se détache de la ville sombre (user) ; sheen : bitume mouillé par la pluie
   {id:'espace',nm:'EN ORBITE',            bio:['espace'],              planete:1.35,espace:1,pluie:0,cielMusical:false,route:.38,sheen:.12}, // (2026-09-27) route .9 → .38 : le SOLEIL de l'orbite éclaire désormais la route (lumière rasante de côté, voir orbiteLumiere) — la clarté ajoutée n'a plus à tout porter. Avant (vague 2) : (2026-09-26, vague 2) route .2 → .9 : la route (#050212 sur du noir) DISPARAISSAIT — MESURÉ : sous le contraste dur de l'orbite (1,28) tout ce qui sort de l'ACES sous ~.11 tombe au noir, .4 ne suffisait pas (#000008) ; à .9 le ruban se lit, encre indigo #0f0737 sur le vide
   {id:'orage', nm:'L\'ORAGE',               bio:['tempete'],             planete:0,   espace:0,pluie:1,cielMusical:false,route:.22,sheen:.16,pr:'LA ROUTE SE CACHE : L\'ECLAIR LA MONTRE'}, // (2026-09-29, Sacha) le 4e : les NUAGES sous l'ORAGE — le niveau DUR (voir « L'ORAGE » : tempete, bancs, plafond, éclairs)
   {id:'ville', nm:'MINUIT EN VILLE',      bio:['nuitNoire'],           planete:0,   espace:0,pluie:.55,cielMusical:true,route:.42,sheen:.2,nuit:1,pr:'PLEINS PHARES'}, // (2026-09-30, Sacha) le 5e : la VILLE plus tard, après l'orage — très sombre, des PHARES PUISSANTS (id 'ville' : toute la ville suit ; `nuit` ne change que la lumière — voir « MINUIT EN VILLE »)
@@ -11338,16 +11340,27 @@ function lvlNuageOk(o){ // quelles familles de nuages chaque monde garde (lu par
   return true;
 }
 let lvlBanT=0;
+/* (2026-09-30) LA PROMESSE SE LIT EN ENTIER. La bannière à promesse restait 3,8 s à l'écran mais ne réservait le couloir que 2,8 s (la
+   carte suivante s'affichait PAR-DESSUS pendant la dernière seconde) et, en priorité 1, une carte MOTEUR (2) la coupait à tout instant :
+   la règle du niveau disparaissait au portail, pile quand elle sert. Désormais le couloir est réservé toute sa durée (3,8 s) et VERROUILLÉ
+   3 s (`ferme` : même une voix plus forte attend dans la file — la carte moteur passe à 3 s, un record patiente) ; seule la mort la
+   coupe : l'explosion (hautVide) et la vie perdue du mode FACILE (facileSauve). Sans promesse : inchangé (2,8 s, coupable à 1,4 s). */
+const LVL_BAN={ms:2800,msPr:3800,verrou:3000};
+function lvlPromesse(){ // la ligne sous le nom ('' = aucune) — UN seul endroit : le couloir (sa durée) et la bannière (son texte, sa durée) la lisent
+  const c=LVL.cur;if(!c||c.piste==='tuto')return ''; // la piste de l'école hérite des NUAGES : pas de « LES NUAGES TE PORTENT » sous son ciel nu
+  return c.pr||(c.espace>=.5&&!PARK.on?'GRAVITE REDUITE : SAUTS 2 FOIS PLUS LONGS':''); // (2026-09-28) l'espace a SA promesse : la gravité
+}
 function lvlAnnonce(){ // (vague 2) le niveau prend son tour dans la file du couloir : il ne parle plus PAR-DESSUS un palier ou un record
-  if(!document.getElementById('lvlBan')||!LVL.cur)return;hautPasse(lvlMontre,2800,'lvl',1);}
+  if(!document.getElementById('lvlBan')||!LVL.cur)return;
+  if(lvlPromesse())hautPasse(lvlMontre,LVL_BAN.msPr,'lvl',1,{min:LVL_BAN.verrou,ferme:1});else hautPasse(lvlMontre,LVL_BAN.ms,'lvl',1);}
 function lvlMontre(){ // la bannière « NIVEAU n — LIEU » (fondu d'opacité seul : rien ne bouge, REDUCED_MOTION compris)
   const b=document.getElementById('lvlBan');if(!b||!LVL.cur)return;
   document.getElementById('lvlNum').innerHTML=Array.from(TR('NIVEAU')+' '+LVL.n).map(function(c,i){return '<i style="animation-delay:'+(i*45)+'ms">'+(c===' '?'&nbsp;':c)+'</i>';}).join(''); // (2026-09-26) les lettres TOMBENT une à une
   {const nm9=document.getElementById('lvlNom'),c9=LVL.cur.carr,B9=c9&&CARRIERE[c9.b]; // (2026-09-28) en carrière « NIVEAU 2 / NUAGES — PREMIERES LUEURS » (le numéro était écrit deux fois, et la ligne composée n'était dans aucun dictionnaire : restée en français en anglais)
    nm9.textContent=B9&&B9.niveaux[c9.i]?TR(B9.nm)+' — '+TR(B9.niveaux[c9.i].nm):TR(LVL.cur.nm);
-   const pr9=LVL.cur.pr||(LVL.cur.espace>=.5&&!PARK.on?'GRAVITE REDUITE : SAUTS 2 FOIS PLUS LONGS':''); // (2026-09-28) l'espace a SA promesse : la gravité
+   const pr9=lvlPromesse(); // (2026-09-30) lue au même endroit que la durée du couloir (lvlAnnonce)
    if(pr9){const e9=document.createElement('em');e9.textContent=TR(pr9);nm9.appendChild(e9);}} // (2026-09-27) la PROMESSE du niveau de campagne, une ligne sous le nom
-  b.classList.add('on');clearTimeout(lvlBanT);lvlBanT=setTimeout(function(){b.classList.remove('on');},(LVL.cur.pr||LVL.cur.espace>=.5)?3800:2800);
+  b.classList.add('on');clearTimeout(lvlBanT);lvlBanT=setTimeout(function(){b.classList.remove('on');},lvlPromesse()?LVL_BAN.msPr:LVL_BAN.ms);
   /* (2026-09-28, console de son) la bannière s'abat (ui.banniere) et ses lettres tombent en micro-frappes : une sur deux, plus la dernière
      (le numéro), au plus dix, chacune ~100 ms après le départ de sa chute (45 ms d'écart). setTimeout et pas `{t:}` : ui.lettre n'a que
      trois voix, dix notes programmées d'un coup se couperaient entre elles avant d'avoir sonné. Carte d'auto-école à l'écran : elle la cache. */
@@ -19540,7 +19553,10 @@ function misFin(){
    · un TEMPS DE LECTURE garanti (`min`) : avant, seule une voix plus forte peut couper ; après, la suivante passe ;
    · une PATIENCE (`ttl`) : un BOOST qui attendrait 2 s ne voudrait plus rien dire — il se tait ; un défi, un moteur attendent leur tour ;
    · deux événements à moins d'une seconde FUSIONNENT : la carte MOTEUR prend le ruban « RECORD BATTU » au lieu de deux annonces ;
-   · l'explosion VIDE tout (`hautVide()` en tête d'`explode`). Toujours piloté par événements : rien dans la boucle. */
+   · l'explosion VIDE tout (`hautVide()` en tête d'`explode`). Toujours piloté par événements : rien dans la boucle.
+   · (2026-09-30) un VERROU (`ferme`) : pendant son temps de lecture, PERSONNE ne coupe la voix en place, même plus forte (la bannière
+     de niveau à promesse, voir lvlAnnonce — la mort seule passe : hautVide, facileSauve) ; un record qui arrive derrière voit sa patience
+     allongée d'autant. */
 const HAUT={fin:0,q:[],t:0,cur:null};
 const HAUT_MIN={slam:450,rec:1000,eng:900,lvl:1400,mis:2000};   // le temps de lecture garanti de chaque famille (ms)
 const HAUT_TTL=[450,900,1500,3000];                               // combien de temps une annonce accepte d'ATTENDRE, par priorité
@@ -19551,17 +19567,19 @@ const HAUT_COUPE={ // faire taire la voix qui occupe le couloir (la suivante pre
   lvl:function(){const b=document.getElementById('lvlBan');if(b)b.classList.remove('on');clearTimeout(lvlBanT);},
   mis:function(){const b=document.getElementById('misBan');if(b)b.classList.remove('on');clearTimeout(misBanMontre._t);}
 };
-function hautPasse(f,ms,k,p,o){ // f affiche · ms = le temps où elle occupe le couloir · k = sa famille · p = sa priorité · o = {ru (ruban), min, ttl}
+function hautPasse(f,ms,k,p,o){ // f affiche · ms = le temps où elle occupe le couloir · k = sa famille · p = sa priorité · o = {ru (ruban), min, ttl, ferme}
   o=o||{};p=p==null?(k==='eng'?2:1):p;
   const n=performance.now(),g=k==='eng'||k==='mis',
-    it={f:f,ms:ms,k:k,p:p,q:n,s:0,ru:o.ru||null,garde:g,min:o.min!=null?o.min:(HAUT_MIN[k]||450),
+    it={f:f,ms:ms,k:k,p:p,q:n,s:0,ru:o.ru||null,garde:g,ferme:!!o.ferme,min:o.min!=null?o.min:(HAUT_MIN[k]||450),
         ttl:o.ttl!=null?o.ttl:(g?9e9:k==='lvl'?4500:HAUT_TTL[Math.max(0,Math.min(3,p))])};
   if(hautFusion(it,n))return;
   if(g&&TUTO.on){HAUT.q.push(it);return;} // l'auto-école garde le haut pour elle : tutoFin relâche la file
   const c=HAUT.cur;
-  if(!c||n>=HAUT.fin||p>c.p||n>=c.s+c.min){hautMontre(it,n);return;}
+  if(hautCede(c,p,n)){hautMontre(it,n);return;}
+  if(c.ferme&&it.k==='rec')it.ttl=Math.max(it.ttl,c.s+c.min-n+400); // un RECORD derrière un verrou : il patiente jusqu'au bout (3 s de patience, 3 s de verrou)
   HAUT.q.push(it);hautArme();
 }
+function hautCede(c,p,n){return !c||n>=HAUT.fin||n>=c.s+c.min||(p>c.p&&!c.ferme);} // la voix en place laisse-t-elle passer une annonce de priorité p ? (`ferme` : pas même une plus forte avant la fin de son temps de lecture)
 function hautMontre(it,n){
   const c=HAUT.cur;if(c&&c!==it&&n<HAUT.fin)try{HAUT_COUPE[c.k]();}catch(e){}
   HAUT.cur=it;it.s=n;HAUT.fin=n+it.ms;
@@ -19580,11 +19598,11 @@ function hautArme(){clearTimeout(HAUT.t);
   const n=performance.now(),b=hautMeilleur(n);if(!b)return;
   const c=HAUT.cur;
   let at=n;
-  if(c&&n<HAUT.fin&&b.p<=c.p){at=c.s+c.min;if(at>=HAUT.fin)at=HAUT.fin+120;} // la voix en place a droit à son temps de lecture
+  if(c&&n<HAUT.fin&&(b.p<=c.p||c.ferme)){at=c.s+c.min;if(at>=HAUT.fin)at=HAUT.fin+120;} // la voix en place a droit à son temps de lecture (verrouillée : même face à plus fort)
   HAUT.t=setTimeout(function(){
     const n2=performance.now(),b2=hautMeilleur(n2);if(!b2)return;
     const c2=HAUT.cur;
-    if(!c2||n2>=HAUT.fin||b2.p>c2.p||n2>=c2.s+c2.min){HAUT.q.splice(HAUT.q.indexOf(b2),1);hautMontre(b2,n2);}else hautArme();
+    if(hautCede(c2,b2.p,n2)){HAUT.q.splice(HAUT.q.indexOf(b2),1);hautMontre(b2,n2);}else hautArme();
   },Math.max(0,at-n));
 }
 function hautFusion(it,n){ // un RECORD et un MOTEUR à moins d'une seconde l'un de l'autre : une seule carte, le moteur portant le ruban
@@ -21294,6 +21312,7 @@ function facileSauve(cause){
   const p9=carGroup.position.clone();
   respawn();hopY=2.2;hopV=0;graceT=Math.max(graceT,2.2);loop._camDriveT=0;
   nitroR=Math.max(nitroR,nitroCap()*.5); // on repart avec de quoi voler
+  if(HAUT.cur&&HAUT.cur.ferme)HAUT.cur.ferme=false; // (2026-09-30) une vie perdue vaut une mort : comme l'explosion, elle passe le VERROU de la bannière de niveau (voir lvlAnnonce)
   slam(FAC.coeurs>1?(LANG==='en'?FAC.coeurs+' LIVES LEFT':LANG==='zh'?'还剩 '+FAC.coeurs+' 条命':'PLUS QUE '+FAC.coeurs+' VIES'):'DERNIERE VIE !','ON REPART !','#ff5e7a','#ffd75e',44,3,12);
   shake=Math.max(shake,.5);hap([30,50,70]);
   try{if(SONV2)sfx('tuto.rate');else{chimeNote(noteP(4,1),0,.08,.3);chimeNote(noteP(0,1),.1,.1,.4);}}catch(e){}
@@ -22238,6 +22257,30 @@ const BOOM_VARS=[
   {n:'GLACE',  r1:0xd8f4ff,r2:0x7ab8e8,li:0x9fd8ff,fl:'#e8f8ff',sk:0xcfeaff,rings:6,pitch:2.0}
 ];
 let BOOMV=BOOM_VARS[0];
+/* ---- LES MORTS PAR NIVEAU (2026-09-30) — une MESURE, jamais un affichage ------------------------------------------------------
+   Aucun chiffre ne disait OÙ l'on meurt : le cycle a six niveaux et leur difficulté se réglait au ressenti. Chaque mort RÉELLE (l'explosion
+   qui mène à l'écran de fin : ni les vies du mode FACILE, ni l'auto-école, ni le bac à sable, ni le parc) compte dans
+   `SAVE.d.ex.morts[niveau][cause]`, et le temps de course dans `SAVE.d.ex.temps[niveau]` (secondes RÉELLES : pause, explosion et ralenti
+   de frénésie n'y changent rien). Clé : l'id + sa variante (`ville-nuit`, `espace-hard`), `ecole` (la piste de la leçon, roulée après le
+   permis), `c-<id>-<n>` en carrière (ses niveaux ne se mêlent pas au cycle). Le temps s'accumule en MÉMOIRE et se verse au changement de
+   niveau, à la mort, à la fin de partie et toutes les 20 s (SAVE.mark : c'est le filet des 30 s qui écrit). `dbgMorts()` lit tout ça. */
+const MORTS={c:null,k:'',t:0};
+function mortsCle(c){if(!c)return '';if(c.carr)return 'c-'+c.id+'-'+(c.carr.i+1);if(c.piste==='tuto')return 'ecole';return c.id+(c.nuit?'-nuit':'')+(c.hard?'-hard':'');}
+function mortsEx(){const E=SAVE.d.ex;if(!E.morts||typeof E.morts!=='object')E.morts={};if(!E.temps||typeof E.temps!=='object')E.temps={};return E;}
+function mortsVerse(){if(MORTS.k&&MORTS.t>0){const T=mortsEx().temps;T[MORTS.k]=Math.min(1e8,Math.round(((T[MORTS.k]||0)+MORTS.t)*10)/10);SAVE.mark();}MORTS.t=0;}
+function mortsSuit(){if(LVL.cur!==MORTS.c){mortsVerse();MORTS.c=LVL.cur;MORTS.k=mortsCle(LVL.cur);}} // la clé se calcule UNE fois par niveau (zéro chaîne par image)
+function mortsHors(){return PARK.on||SANDBOX||TUTO.on;} // parc, bac à sable, leçon : on n'y meurt pas pour de vrai
+function mortsTick(dt){if(!started||mode==='boom'||mortsHors())return;mortsSuit();if(MORTS.k){MORTS.t+=dt;if(MORTS.t>20)mortsVerse();}} // chaque image de course (porte de sim de loop : pause exclue)
+function mortsCompte(cause){ // une mort RÉELLE (explode, passé le filet du mode FACILE)
+  if(mortsHors())return;mortsSuit();const k=MORTS.k;if(!k)return;
+  const M=mortsEx().morts,c=/^[a-z]{1,12}$/.test(cause)?cause:'autre',o=M[k]||(M[k]={});
+  o[c]=Math.min(1e6,(o[c]|0)+1);mortsVerse();SAVE.mark();}
+window.dbgMorts=function(q){ // (dev) {ici, niveaux:{clé:{morts:{cause:n}, total, min (de course), parMin (morts/minute)}}} · dbgMorts('raz') remet à zéro
+  const E=mortsEx();if(q==='raz'){E.morts={};E.temps={};MORTS.t=0;SAVE.flush();return 'ok';}
+  const o={},ks=new Set(Object.keys(E.morts).concat(Object.keys(E.temps)));if(MORTS.k)ks.add(MORTS.k);
+  for(const k of ks){const m=E.morts[k]||{},s=(E.temps[k]||0)+(k===MORTS.k?MORTS.t:0);let n=0;for(const c in m)n+=m[c]|0;
+    o[k]={morts:Object.assign({},m),total:n,min:+(s/60).toFixed(2),parMin:s>0?+(n*60/s).toFixed(3):null};}
+  return {ici:MORTS.k,niveaux:o};};
 let mortCause=''; // (2026-09-26, audit UX) POURQUOI on est mort — dit sous GAME OVER : une mort comprise donne envie de rejouer
 function explode(cause){
   if(facileSauve(cause))return; // (MODE FACILE) une vie de moins au lieu de la partie (le BOUCLIER, qui pardonnait une chute, est retiré le 29/09)
@@ -22246,6 +22289,7 @@ function explode(cause){
   chainePerdue(true); // (aura v2) la chaîne ouverte part avec la caisse
   if(gameOver||mode==='boom')return;
   mortCause=cause||'';
+  try{mortsCompte(mortCause);}catch(e){} // (2026-09-30) la mesure des morts par niveau (voir MORTS)
   dolKill(); // l'aura du DAUPHIN part avec la caisse — comme la mallette
   flowReset();try{flowTick(0);}catch(e){} // le crash VIDE le flow
   hap([55,45,160]); // le téléphone encaisse le crash avec toi
@@ -25331,7 +25375,7 @@ const SAVE={
     // `floor` = clause de GRAND-PÈRE : les caisses gagnées sous les anciennes règles (déblocage à
     // l'argent de la partie) restent acquises. Sans elle, changer de règles reprenait au joueur des
     // caisses qu'il avait méritées — une mise à jour ne doit jamais confisquer.
-    ex:{eng:0,tricks:0,gaps:0,bumps:0,zones:0,chain:0,kmh:0,surv:0,runs:0,floor:0},
+    ex:{eng:0,tricks:0,gaps:0,bumps:0,zones:0,chain:0,kmh:0,surv:0,runs:0,floor:0,morts:{},temps:{}}, // (2026-09-30) `morts`/`temps` : la mesure des morts par niveau (voir MORTS) — jamais affichée
     /* ---- LE COMPTE EN BANQUE ET L'AURA (2026-08-17) --------------------------------------------
        `bank` : l'argent survit désormais à la partie. À la fin d'un run, ce qui a été ENCAISSÉ y est
        versé — et c'est avec ça qu'on achète les caisses. ⚠ ça n'annule pas le bank-or-bust : la
@@ -25375,7 +25419,13 @@ const SAVE={
     if(d.ex&&typeof d.ex==='object'){const e=d.ex,n=(k,hi)=>Math.min(hi,Math.max(0,Math.round(+e[k])||0)); // bornés : un code importé bidon ne débloque pas le roster
       c.ex={eng:n('eng',ENGINE_TIERS.length-1),tricks:n('tricks',1e7),gaps:n('gaps',1e6),bumps:n('bumps',1e6),
         zones:n('zones',1e4),chain:n('chain',1e5),kmh:n('kmh',1e5),surv:n('surv',1e5),runs:n('runs',1e6),
-        floor:n('floor',CARS.length-1)};}
+        floor:n('floor',CARS.length-1),morts:{},temps:{}};
+      /* (2026-09-30) LES MORTS PAR NIVEAU : des objets de NOMBRES — clés filtrées (niveau a-z0-9-, cause a-z), 64 niveaux × 16 causes au plus,
+         valeurs entières bornées ; un import bidon ne gonfle pas la sauvegarde et ne glisse rien d'autre qu'un nombre. */
+      const K9=/^[a-z0-9-]{1,24}$/,C9=/^[a-z]{1,12}$/,ok9=function(x){return x&&typeof x==='object'&&!Array.isArray(x);};
+      if(ok9(e.morts))for(const k of Object.keys(e.morts).slice(0,64)){const o=e.morts[k];if(!K9.test(k)||!ok9(o))continue;const r={};let u=0;
+        for(const q of Object.keys(o).slice(0,16)){const v=Math.min(1e6,Math.max(0,Math.round(+o[q])||0));if(C9.test(q)&&v){r[q]=v;u=1;}}if(u)c.ex.morts[k]=r;}
+      if(ok9(e.temps))for(const k of Object.keys(e.temps).slice(0,64)){const v=Math.min(1e8,Math.max(0,+e.temps[k]||0));if(K9.test(k)&&v>0)c.ex.temps[k]=Math.round(v*10)/10;}}
     /* ⚠ SECONDE CLAUSE DE GRAND-PÈRE (2026-08-17, passage à la BANQUE). Les caisses se gagnaient par
        conditions (record d'argent, figures, gaps, chaîne, km/h…) ; elles s'ACHÈTENT désormais. Ces
        conditions ayant disparu de la table, un joueur qui avait mérité la VEUVE NOIRE se la verrait
@@ -28113,6 +28163,7 @@ function endGame(){
   try{busPlein();}catch(e){} // (2026-09-28) même filet : QUITTER depuis la pause (sortie en fondu) ne doit pas rendre le menu muet
   if(SANDBOX&&started&&!gameOver){ sandRevive(); return; } // ENTRAÎNEMENT : la mort n'est qu'un replacement — aucun score n'est enregistré
   if(TUTO.on&&started&&!gameOver){ sandRevive(); if(TUTO.i>=3){TUTO.i=2;TUTO.air=0;} tutoAffiche('RATÉ ! ON RECOMMENCE'); return; } // AUTO-ÉCOLE : on ne meurt pas en apprenant
+  try{mortsVerse();}catch(e){} // (2026-09-30) le temps du dernier niveau rejoint la sauvegarde (flush plus bas)
   if(FLOW.lv===4)frenFin(true); // (v3) une frénésie encore en cours (QUITTER, fin de campagne) compte pour l'écran de fin et le record
   if(mode!=='boom'&&!CAMP.garde)mortCause=''; // (2026-09-26) QUITTER n'est pas une mort : pas la cause de la partie d'avant · (2026-09-27) sauf une fin de CAMPAGNE (semé, terminé) qui pose la sienne
   if(CARR.actif&&LVL.cur&&LVL.cur.carr&&LVL.cur.carr.b===CARR.actif.b)CARR.actif.i=LVL.cur.carr.i; // (2026-09-27) REJOUER repart du niveau où l'on s'est arrêté, pas du premier de la série
@@ -32240,6 +32291,7 @@ function loop(now){
     if(pwrAirT>0){pwrAirT-=dt*pwrAirK();if(pwrAirT<=0){pwrAirT=0;if(!TUTO.on)pwrFinSnd('a');if(mode==='fall'){fallT=0;fallTR=0;airFlash=.6;}}} // (2026-09-28) l'airtime PRÊTÉ par l'auto-école n'est pas un pouvoir : il finit sans bruit
     pwrTick(dt); // (pouvoirs v2) aimant · aura ×2
     satHard(); // (2026-09-30) LA PLUIE DE SATELLITES : collision et frôlés du niveau hardcore (no-op ailleurs)
+    mortsTick(Math.min(.05,rawMs*.001)); // (2026-09-30) le temps de course par niveau — le temps RÉEL de l'image (le dt de sim passe au ralenti en frénésie)
     ligneTick(dt); // (2026-09-29) LA LIGNE PARFAITE s'allonge devant la caisse
     // nitro : 2s regen (10s de recharge) + 2s réserve (bidons bleus)
     // CAPACITÉ MOTEUR : la réserve de nitro s'élargit avec le palier (2,0 → 3,6 au réacteur)
@@ -34221,7 +34273,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   function panSync(){ if(!pan)return;
     const run=(started&&!gameOver),el=pan.querySelectorAll('.tp,.tpH,.tpResume');
     if(run){const s9=function(id,v){const e=document.getElementById(id);if(e)e.textContent=v;},av9=document.getElementById('avVal'); // (charte v5) la PAUSE dit où en est la partie
-      try{s9('tpAu',av9&&av9.textContent.trim()?av9.textContent:'0');s9('tpMo',(engTier|0)+1);s9('tpNv',LVL.cur&&LVL.cur.carr?LVL.n:runStats.zones+1);}catch(e){}}
+      try{s9('tpAu',av9&&av9.textContent.trim()?av9.textContent:'0');s9('tpMo',(engTier|0)+1);s9('tpNv',LVL.cur?LVL.n:runStats.zones+1);}catch(e){}}
     for(let i=0;i<el.length;i++){ const e=el[i],a=e.getAttribute('data-a'),g=e.getAttribute('data-g');
       if(g)e.style.display=((g==='run')===run)?'':'none'; // « LA PARTIE » n'existe qu'en jeu
       if(a==='close')e.innerHTML=run?tpLbl('lecture','REPRENDRE'):tpLbl('croix','FERMER');
@@ -34481,7 +34533,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
           if(an){const u=$t('mAuraB'),D=Math.max(1,an.seuil-bas),w1=Math.min(100,(a1-bas)/D*100),w0=rg?0:Math.max(0,(a1-au-bas)/D*100);
             if(u){u.style.width=w0.toFixed(1)+'%';requestAnimationFrame(function(){requestAnimationFrame(function(){u.style.width=w1.toFixed(1)+'%';});});}}}
       }
-      $t('mStatsBox').innerHTML=mStatBox('×'+Math.max(1,runStats.xMax|0),TR('MULTI MAX'))+ /* (2026-09-26) « 0 FIGURES » à côté de « +820 AURA » : le compteur ne voyait que l'ancienne chaîne en $ */mStatBox(Math.round(runStats.vmax),'KM/H MAX')+mStatBox(LVL.cur&&LVL.cur.carr?LVL.n:runStats.zones+1,TR('NIVEAU')) // (2026-09-27) en carrière : le VRAI numéro du niveau
+      $t('mStatsBox').innerHTML=mStatBox('×'+Math.max(1,runStats.xMax|0),TR('MULTI MAX'))+ /* (2026-09-26) « 0 FIGURES » à côté de « +820 AURA » : le compteur ne voyait que l'ancienne chaîne en $ */mStatBox(Math.round(runStats.vmax),'KM/H MAX')+mStatBox(LVL.cur?LVL.n:runStats.zones+1,TR('NIVEAU')) // (2026-09-27) en carrière : le VRAI numéro du niveau · (2026-09-30) partout : celui de la bannière (runStats.zones compte la zone de l'école : « NIVEAU 2 » après « NIVEAU 1 »)
         // (v3) la plus longue FRÉNÉSIE de la partie — .rec quand elle a battu le record (le style : session UI)
         +(function(){const t9=RUNX.frenMax||0,rc=t9>=5&&t9>=(SAVE.d.frenRec||0)-.05;return '<div class="mStat mFren'+(rc?' rec':'')+(t9<1?' zero':'')+'"><b>'+frenDuree(t9)+'</b><span>'+TR(rc?'RECORD':'FRENESIE')+'</span></div>';})();
       objRender($t('mObj'));
