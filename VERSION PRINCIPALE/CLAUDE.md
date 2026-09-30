@@ -104,6 +104,14 @@
   aussi est zoomé) ; une nouvelle plaque de la colonne : l'ajouter à la liste de `HUDCOL.els`, JAMAIS un `top` en dur. Les POUVOIRS empilés,
   calés à droite, à la largeur de la colonne (112 px à l'écran). EN BAS : consigne du volant et NITRO sur la même marge.
 - Inchangé : les pouvoirs s'effacent (opacité .08) sous une grande annonce, un verdict ou la carte moteur (règle voulue de la charte).
+- **Retouches (relevé de GAMEPLAY, même soir)** : ⏸ et NITRO sont des plaques PENCHÉES dont la pente déborde de la boîte (4 et 8 px) — leur
+  coin touchait presque le bord : décalées d'autant (`right: --hudD + 4 / + 8`), les barres reculent à `--hudD + 70` (12 px avant le ⏸) ;
+  la consigne du volant, couchée, passe À GAUCHE de l'anneau-fantôme sur deux lignes (en bas, le pouce la couvrait ; au-dessus de
+  l'anneau elle tombait sur la route, et debout sur l'arrière de la caisse) ; le « $×1 » du FLOW au palier 0 passe de .4 à .8 d'opacité ;
+  la mission suivie (#misFocus) sur deux lignes debout (elle finissait en « … »). NON retenus : les centimes du compteur sous 10 $ (sans
+  eux, un gain de pièce afficherait « +$ 0 ») ; le dégradé de « NIVEAU n » (Sacha, 28/09 : « les mêmes effets de dégradé pour tous les
+  textes du HUD » — il passe avant l'ancienne règle 2 de la charte) ; « MER DE NUAGES » est le nom du niveau 1 du mode LIBRE, la carrière
+  affiche déjà « NUAGES — AURORE ».
 
 ## LE GARAGE EST LE MENU (2026-09-30, sketch de Léo) — « le garage devient le nouveau menu »
 - L'ACCUEIL n'existe plus à l'écran : le routeur (`mGo`), en arrivant sur 'home', appelle `garAccueil()` qui ouvre l'atelier en mode MENU
