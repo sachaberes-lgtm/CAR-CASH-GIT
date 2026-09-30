@@ -503,3 +503,113 @@ BOUCLES8 = [
     ('niv-satellite', nv_satellite, I('SATELLITE', 'ORBITE', 126, 'ré mineur', 1, "Techno minimale : grosse caisse profonde qui gronde, bips de télémétrie d'une oreille à l'autre (les trains Starlink).", NIV)),
     ('niv-monstre', nv_monstre, I('TRIPLE MONSTRE', 'FRÉNÉSIE', 120, 'fa phrygien', 4, "Drift phonk : cowbell en arpège qui ne lâche pas, 808 saturée, grosse caisse qui cogne. Plus méchant que DARK TRIAD.", NIV)),
 ]
+
+# ============================================================ NÉON DRIVE « MOTEUR » — la musique qui évolue
+"""(2026-10-01, Léo : « que la musique puisse évoluer encore plus — ni trop vite ni trop lentement, pas casse-tête, bien
+rythmée, en fonction de la vitesse ET du moteur, un mélange des deux pour une expérience fluide »).
+NÉON DRIVE refaite en 8 mesures (16,3 s) dont chaque partie a des VARIANTES que le jeu échange aux fins de phrase :
+la répétition ne s'entend plus, et le moteur débloque des variantes plus riches + la couche ÉNERGIE.
+`sel` choisit la variante de chaque partie ; le rendu en couches (boucles.py, VARIANTES) fait une piste par (partie, variante)."""
+def neon2(sel=None):
+    S = {'pad': 'A', 'arp': 'A', 'basse': 'A', 'bat': 'A', 'lead': 'A', 'energie': 'A'}; S.update(sel or {})
+    M = Morceau(118, mesures=8, graine=12); de = M.de; T = 57  # la mineur
+    prog = [0, 0, 5, 5, 2, 2, 6, 6]  # i · VI · III · VII, deux mesures chacun
+    M.patron('kick', 'x...x...x...x...', lambda: kick(de), 1.0)
+    # RYTHME — A : clap + charley ouverte · B : + doubles-croches fantômes, shaker, roulement en mesure 8
+    M.patron('bat', '....x.......x...', lambda: clap(de), .55, .1)
+    M.patron('bat', '..x...x...x...x.', lambda: charley(de, True), .22, .2)
+    if S['bat'] == 'B':
+        M.patron('bat', 'oxoxoxoxoxoxoxox', lambda: charley(de), .13, -.3)
+        M.patron('bat', 'xxxxxxxxxxxxxxxx', lambda: shaker(de), .3, .35)
+        M.patron('bat', '........x.x.xxxx', lambda: caisse(de, 210, 1., .1, 2200), .35, mes=[7])
+    kicks = [M.t(m, p) for m in range(8) for p in (0, 4, 8, 12)]
+    pad = M.piste('pad'); arp = M.piste('arp'); b = M.piste('basse'); ld = M.piste('lead'); en = M.piste('energie')
+    for m in range(8):
+        d = prog[m]; r = deg(T - 12, 'min', d)
+        # BASSE — A : octaves en doubles-croches · B : galop (1 · 3-4 · …) qui pousse
+        pas_b = range(16) if S['basse'] == 'A' else (0, 3, 4, 7, 8, 11, 12, 14, 15)
+        for p in pas_b:
+            n = r + (12 if (S['basse'] == 'A' and p % 2) or (S['basse'] == 'B' and p in (4, 12)) else 0) + (7 if S['basse'] == 'B' and p == 14 else 0)
+            dur = M.dc * .9; nn = int(dur * SR)
+            s = scie(hz(n), nn) * env(nn, .003, .08, .3)
+            b.pose(M.t(m, p), balaye(s, np.full(nn, 380 + 900 * (p % 4 == 2))), .5 if S['basse'] == 'A' else .62)
+        # NAPPE — A : l'accord · B : ouverte (9e, octave en haut, filtre qui s'ouvre sur les deux mesures)
+        if m % 2 == 0:
+            notes = accord(T, 'min', d) + ([deg(T + 12, 'min', d + 1), deg(T + 12, 'min', d + 4)] if S['pad'] == 'B' else [])
+            for note in notes:
+                l, r2 = supersaw(note, M.temps * 8 + .3, 5, 16, de)
+                e = env(len(l), .25, 9, 1, .35, M.temps * 8 - .1)
+                if S['pad'] == 'B':
+                    fc = 1800 + 3200 * np.clip(np.arange(len(l)) / (M.temps * 8 * SR), 0, 1)
+                    pad.pose2(M.t(m), balaye(l * e, fc), balaye(r2 * e, fc), .13)
+                else:
+                    pad.pose2(M.t(m), filtre(l * e, 'low', 2600), filtre(r2 * e, 'low', 2600), .16)
+        # ARPÈGE — A : croches · B : doubles-croches à l'octave · C : syncopé, accords pincés
+        if S['arp'] == 'A':
+            motif = [0, 2, 4, 7, 9, 7, 4, 2]
+            for p in range(0, 16, 2):
+                n = deg(T + 12, 'min', d + motif[(p // 2 + m) % 8]); nn = int(.14 * SR)
+                arp.pose(M.t(m, p), filtre(carre(hz(n), nn, .3) * env(nn, .002, .05), 'low', 3800), .13, .3 * (1 if p % 4 else -1))
+        elif S['arp'] == 'B':
+            for p in range(16):
+                n = deg(T + 12, 'min', d + [0, 4, 7, 4][p % 4]) + (12 if p % 8 >= 4 else 0); nn = int(.09 * SR)
+                arp.pose(M.t(m, p), filtre(carre(hz(n), nn, .25) * env(nn, .002, .03), 'low', 5000), .1, .45 * np.sin(p * .7))
+        else:
+            for p in (0, 3, 6, 10, 12, 14):
+                for k, n in enumerate(accord(T + 12, 'min', d, False)):
+                    l, r2 = supersaw(n, .35, 3, 12, de); e = env(len(l), .002, .07, 0)
+                    arp.pose2(M.t(m, p), filtre(l * e, 'low', 4200), filtre(r2 * e, 'low', 4200), .2)  # .06 → .2 : au niveau des deux autres
+        # ÉNERGIE (débloquée par le moteur) : ride en croches, stabs à contretemps, montée en fin de boucle
+        if S['energie'] == 'A':
+            for p in range(0, 16, 2):
+                en.pose(M.t(m, p), charley(de, True, 10000), .18, -.5)
+            for p in (2, 6, 10, 14):
+                for n in accord(T + 12, 'min', d, False):
+                    l, r2 = supersaw(n, .22, 5, 20, de); e = env(len(l), .002, .06, 0)
+                    en.pose2(M.t(m, p), filtre(l * e, 'low', 5500), filtre(r2 * e, 'low', 5500), .14)
+    if S['energie'] == 'A':
+        nn = int(M.temps * 4 * SR); t = np.arange(nn) / SR
+        en.pose(M.t(7), balaye(de.bruit(nn), 400 * (25 ** (t / t[-1]))) * (t / t[-1]) ** 2 * .22, 1)
+    # LEAD — trois mélodies maison (mesure, pas, degré, durée) ; C = plus haut, notes tenues (moteur fort)
+    mel = {'A': [(0, 0, 7, 6), (0, 6, 9, 2), (0, 8, 11, 6), (0, 14, 9, 2), (1, 0, 7, 8), (1, 8, 4, 8),
+                 (4, 0, 7, 6), (4, 6, 9, 2), (4, 8, 11, 4), (4, 12, 14, 4), (5, 0, 11, 12), (5, 12, 9, 4)],
+           'B': [(2, 0, 4, 4), (2, 4, 6, 4), (2, 8, 7, 8), (3, 0, 9, 4), (3, 4, 7, 4), (3, 8, 6, 8),
+                 (6, 0, 4, 4), (6, 4, 6, 4), (6, 8, 7, 4), (6, 12, 9, 4), (7, 0, 11, 12)],
+           'C': [(0, 0, 14, 16), (2, 0, 12, 16), (4, 0, 11, 8), (4, 8, 12, 8), (6, 0, 14, 12), (7, 12, 16, 4)]}[S['lead']]
+    for mm, p, dd, lg in mel:
+        n = deg(T + 12, 'min', dd); dur = lg * M.dc; nn = int((dur + .3) * SR); t = np.arange(nn) / SR
+        vib = 1 + .004 * np.sin(2 * np.pi * 5.5 * t) * np.clip(t / .3, 0, 1)
+        s = (scie(hz(n) * vib, nn) + scie(hz(n) * vib * 1.006, nn)) * .5 * env(nn, .02, 9, 1, .12, dur)
+        ld.pose(M.t(mm, p), balaye(s, 1200 + 2500 * np.exp(-t / .25)), .22)
+    g = pompe(M.n, kicks, .75)
+    for k in ('basse', 'pad', 'arp', 'energie'): M.bus[k].L *= g; M.bus[k].R *= g
+    eL, eR = echo(arp.L + ld.L * .5, arp.R + ld.R * .5, M.temps * .75, .45)
+    rL, rR = reverbe(pad.L + ld.L + eL * .5 + M.bus['bat'].L * .15, pad.R + ld.R + eR * .5 + M.bus['bat'].R * .15, 2.8, de=de)
+    M.piste('fx').L += eL * .7 + rL * .35; M.piste('fx').R += eR * .7 + rR * .35
+    return M, fin(M, {'kick': 1, 'bat': 1, 'basse': 1, 'pad': 1, 'arp': 1, 'lead': 1, 'energie': 1, 'fx': 1})
+
+def neon2_transition():
+    """le PASSAGE DE PALIER : une mesure de montée (bruit qui grimpe + scie qui monte d'une octave), puis sur le temps fort
+    un crash, une grosse caisse de fond et une queue de réverbe. Joué une mesure AVANT la barre visée."""
+    M = Morceau(118, mesures=2, graine=13); de = M.de
+    nn = int(M.temps * 4 * SR); t = np.arange(nn) / SR; u = t / t[-1]
+    up = balaye(de.bruit(nn), 300 * (40 ** u)) * u ** 2 * .5
+    up += scie(hz(57) * (2 ** u), nn) * u ** 3 * .12
+    fx = M.piste('fx'); fx.pose(0, up, 1)
+    fx.pose(M.t(1), crash(de, 2.), .8, -.3); fx.pose(M.t(1), crash(de, 1.6), .6, .3)
+    fx.pose(M.t(1), kick(de, 120, 38, .9, .3, 2.), .9)
+    L, R = fx.L.copy(), fx.R.copy(); rL, rR = reverbe(L, R, 2.5, 6000, de=de)
+    L = L + rL * .5; R = R + rR * .5
+    pk = max(np.abs(L).max(), np.abs(R).max()); return L * .7 / pk, R * .7 / pk
+
+VARIANTES = {  # (nom, bus, seuil, sol, clé de variante, [(variante, moteur minimum)])
+    'neon-drive-2': dict(fn=neon2, transition=neon2_transition, titre='NÉON DRIVE · MOTEUR', bpm=118, ton=-4, couches=[
+        ('NAPPE', ['pad'], 0, False, 'pad', [('A', 0), ('B', .35)]),
+        ('ARPEGE', ['arp'], .3, False, 'arp', [('A', 0), ('C', 0), ('B', .25)]),
+        ('BASSE', ['basse'], .5, False, 'basse', [('A', 0), ('B', .2)]),
+        ('RYTHME', ['bat'], .68, False, 'bat', [('A', 0), ('B', .3)]),
+        ('GROSSE CAISSE', ['kick'], .8, True, None, [('A', 0)]),
+        ('LEAD', ['lead'], .95, False, 'lead', [('A', 0), ('B', 0), ('C', .5)]),
+        ('ENERGIE', ['energie'], .9, False, 'energie', [('A', .45)]),
+    ]),
+}

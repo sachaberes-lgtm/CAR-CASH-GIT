@@ -70,7 +70,8 @@ carrière, missions, garage à onglets, boutique), + SEULEMENT :
 - **LA MUSIQUE QUI SUIT LA VITESSE** (2026-10-01 ; EN JEU sur NUAGES avec NÉON DRIVE : bloc `<<<COUCHES>>>`, `MUSIC_COUCHES`, `dbgCouches()`) : `musique-vitesse.js` (module autonome) joue une
   boucle livrée en COUCHES (`COUCHES` + `rendre_couches` dans boucles.py → `*--cN.m4a`, s'additionnent exactement) ; couche 1
   harmonique, les autres s'ouvrent à leur seuil de vitesse, `sol` se tait en vol, rattrapage ≤ +14 dB à l'arrêt. Démo : curseur
-  VITESSE / SIMULER UNE COURSE de `boucles.html`. **Tout est résumé pour une autre discussion dans `MUSIQUE-PASSATION.md`.** (clic = écoute, EN VOL, NITRO, ENCHAÎNER ; servie = boucle sans couture).
+  VITESSE / SIMULER UNE COURSE de `boucles.html`. v2 : NUAGES joue `neon-drive-2` (variantes par partie, couche ÉNERGIE, transition
+  de palier) ; décisions calées sur les temps, moteur = `engTier/12` (voir MUSIQUE-PASSATION.md §5 ter). **Tout est résumé pour une autre discussion dans `MUSIQUE-PASSATION.md`.** (clic = écoute, EN VOL, NITRO, ENCHAÎNER ; servie = boucle sans couture).
 
 
 ## LES 10 PREMIÈRES MINUTES — CÔTÉ INTERFACE (2026-09-29, session INTERFACE)

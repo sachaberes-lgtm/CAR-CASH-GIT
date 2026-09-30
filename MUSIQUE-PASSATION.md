@@ -19,6 +19,7 @@
    livre en couches → le jeu les ouvre selon la vitesse.
 7. Sauvegarder proprement + ce document. **« Pour l'instant, garde ça sur le côté »**.
 8. « NÉON DRIVE est pas mal, ajoute-la, on joue sur la map 1 NUAGES pour tester l'effet vitesse » → fait (§5 bis).
+9. « Qu'elle évolue encore plus, ni trop vite ni trop lentement, bien rythmée, vitesse ET moteur » → v2 (§5 ter).
 
 ## 2. Les fichiers
 
@@ -132,6 +133,40 @@ Léo : « NÉON DRIVE est pas mal, ajoute-la, on joue sur la map 1 NUAGES pour t
 - Testé (muet, Chrome) : départ → couches qui montent avec la vitesse, vol (grosse caisse 0), pose (elle revient), frénésie
   (tout à 0,99), pause/reprise, mort → musique du menu. Zéro erreur. **Pas encore entendu sur iPhone.**
 - Ajouter la VILLE / l'ORBITE : une entrée dans `MUSIC_COUCHES` (copier `couches` depuis `boucles-donnees.js`).
+
+## 5 ter. v2 — VITESSE + MOTEUR, BIEN RYTHMÉE (2026-10-01)
+
+Léo : « qu'elle évolue encore plus — ni trop vite ni trop lentement, pas casse-tête, bien rythmée, en fonction de la vitesse ET
+du moteur, un mélange des deux pour une expérience fluide ». Sur NUAGES, le jeu joue désormais **NÉON DRIVE · MOTEUR**
+(`neon-drive-2`, `neon2()` dans boucles8.py) : 8 mesures (16,3 s), chaque partie a des VARIANTES :
+
+| Couche | Seuil | Variantes (moteur minimum) |
+|---|---|---|
+| NAPPE | 0 | A accord · B ouverte, 9e, filtre qui s'ouvre (≥ 0,35) |
+| ARPÈGE | 30 % | A croches · C accords syncopés · B doubles-croches à l'octave (≥ 0,25) |
+| BASSE | 50 % | A octaves · B galop (≥ 0,2) |
+| RYTHME | 68 % | A clap + charley · B + fantômes, shaker, roulement (≥ 0,3) |
+| GROSSE CAISSE* | 80 % | — (se tait en vol) |
+| LEAD | 95 % | A · B (deux mélodies) · C haute et tenue (≥ 0,5) |
+| ÉNERGIE | 90 % | ride + stabs + montée — débloquée à moteur ≥ 0,45 |
+
++ `neon-drive-2--transition.m4a` : une mesure de montée puis crash, joué à chaque palier pour tomber SUR la mesure.
+
+Règles (`MV_REGLES` de `musique-vitesse.js` v2) :
+- **Moteur** = `engTier / 12` (0 → 1 vers le 12e palier) : avance les seuils jusqu'à −20 %, débloque variantes et ÉNERGIE.
+- **Sur les temps** : une couche n'entre/ne sort qu'au prochain temps ; hystérésis ±0,04 ; 2 temps minimum entre deux
+  changements ; entrer = net, sortir = en douceur ; en vol la grosse caisse sort à la croche, revient sur le temps.
+- **Anti-lassitude** : à chaque tour (16 s), chaque partie à variantes change une fois sur deux (au moins une change) ;
+  le LEAD joue un tour sur deux tant que le moteur < 0,7 (tout le temps en frénésie).
+- **Palier gagné** : la transition tombe sur la mesure, les variantes les plus riches débloquées entrent sur cette mesure.
+- Mesuré (page + jeu, muet) : arrêt = nappe seule (+11,6 dB de rattrapage) ; 60 % = + arpège + basse ; 100 % = tout sauf
+  ÉNERGIE ; vol = grosse caisse coupée ; palier à moteur 0,5-0,68 = NAPPE B, BASSE B, LEAD B/C, ÉNERGIE ; les variantes
+  tournent au tour suivant et le lead se repose un tour sur deux.
+- ⚠ Mémoire : 15 pistes de 16 s décodées ≈ 85 Mo (float32, 44,1-48 kHz). À surveiller sur iPhone ; si trop lourd : passer
+  basse et grosse caisse en mono, ou réduire le nombre de variantes.
+- Page : `boucles.html`, groupe MUSIQUE DE JEU — curseurs VITESSE et MOTEUR, bouton PALIER +1, SIMULER UNE COURSE (le
+  moteur y monte d'un palier toutes les 7 s).
+- Données du jeu : `assets/audio/music/boucles/couches-jeu.js` (`window.COUCHES_JEU`, écrit par boucles.py).
 
 ## 6. CE QUI RESTE À FAIRE (intégration au jeu)
 

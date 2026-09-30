@@ -79,6 +79,8 @@ h2:first-child{margin-top:0}
     <label class="ctl" title="Ce que fait le jeu quand la caisse s'envole : le son s'étouffe">EN VOL <input type="range" id="vol9" min="0" max="100" value="0"></label>
     <button class="bt nitro" id="nitro" title="Maintiens : le son s'ouvre et pousse, comme la nitro en course">NITRO</button>
     <label class="ctl" title="La vitesse de la caisse (% de la vitesse de croisière) — pour les boucles À COUCHES">VITESSE <input type="range" id="vit" min="0" max="130" value="0"> <b id="vitV" style="color:var(--tx);min-width:42px">0%</b></label>
+    <label class="ctl" title="Le moteur de la caisse (les paliers gagnés) — débloque les variantes riches et la couche ÉNERGIE">MOTEUR <input type="range" id="mot" min="0" max="100" value="0"> <b id="motV" style="color:var(--tx);min-width:42px">0%</b></label>
+    <button class="bt" id="pal" title="Un palier moteur gagné : montée + crash sur la mesure suivante">PALIER +1</button>
     <button class="bt" id="sim" title="Une course simulée : départ arrêté, accélération, un saut, la nitro, un virage, le crash">SIMULER UNE COURSE</button>
     <button class="bt" id="ench" title="À la fin d'un tour, passe à la boucle suivante">ENCHAINER</button>
     <span class="etat" id="etat">—</span>
@@ -106,7 +108,7 @@ const SERVI=location.protocol.startsWith('http');
 let AC=null,sortie=null,filtre=null,brillance=null,analyseur=null;
 const BUF={},EL={};
 let cur=null,src=null,t0=0,ench=false,nitro=false;
-let mv=null,mvOn=false,vitCur=0,sim=null,simVol=false; // la musique qui suit la vitesse (musique-vitesse.js)
+let mv=null,mvOn=false,vitCur=0,sim=null,simVol=false,motCur=0,simP=null; // la musique qui suit la vitesse (musique-vitesse.js)
 
 function audio(){
   if(AC)return AC;
@@ -215,11 +217,13 @@ const SIM=[[0,0,0,0,'ARRET'],[2,.12,0,0,'DEMARRAGE'],[7,.5,0,0,'ACCELERE'],[12,.
 function simAt(t){for(let k=SIM.length-1;k>=0;k--)if(t>=SIM[k][0]){const a=SIM[k],b=SIM[k+1]||a,u=b===a?0:(t-a[0])/(b[0]-a[0]);
   return{v:a[1]+(b[1]-a[1])*(a[4]==='CRASH'?0:Math.min(1,u)),vol:!!a[2],nitro:!!a[3],leg:a[4]||SIM.slice(0,k).reverse().find(x=>x[4])[4]};}}
 (function boucle(){
-  if(sim){const t=(performance.now()-sim)/1000;if(t>44){sim=performance.now();}const e=simAt(Math.min(t,43.99));vitCur=e.v;
+  if(sim){const t=(performance.now()-sim)/1000;if(t>44){sim=performance.now();simP=null;motCur=0;}const e=simAt(Math.min(t,43.99));vitCur=e.v;
     document.getElementById('vit').value=Math.round(vitCur*100);document.getElementById('vitV').textContent=Math.round(vitCur*100)+'%';
-    simVol=e.vol;if(e.nitro!==nitro)setNitro(e.nitro);etat((LISTE[cur]?sa(LISTE[cur].titre)+' · ':'')+e.leg);}
-  if(mvOn&&cur!=null){const enVol=simVol||(+document.getElementById('vol9').value>=50);mv.regle({vitesse:vitCur,enVol:enVol,nitro:nitro});
+    simVol=e.vol;if(e.nitro!==nitro)setNitro(e.nitro);
+    const pal9=Math.floor(t/7);if(pal9!==simP){if(simP!=null&&mvOn&&mv.palier){motCur=Math.min(1,motCur+1/12);mv.palier(motCur);}simP=pal9;document.getElementById('mot').value=Math.round(motCur*100);document.getElementById('motV').textContent=Math.round(motCur*100)+'%';}etat((LISTE[cur]?sa(LISTE[cur].titre)+' · ':'')+e.leg);}
+  if(mvOn&&cur!=null){const enVol=simVol||(+document.getElementById('vol9').value>=50);mv.regle({vitesse:vitCur,enVol:enVol,nitro:nitro,moteur:motCur});
     const st=mv.etat(),c=cartes[cur];c.querySelectorAll('.cou i').forEach((el,j)=>el.style.setProperty('--g',st.gains[j]));
+    c.querySelectorAll('.cou span').forEach((el,j)=>{if(st.variantes&&st.variantes[j]&&LISTE[cur].couches[j].variantes)el.textContent=st.variantes[j]+' · '+Math.round(LISTE[cur].couches[j].seuil*100)+'%';});
     const mk=c.querySelector('.mk');if(mk)mk.textContent='+'+st.rattrapage;}
   if(cur!=null){const b=LISTE[cur];dessine(cur,pos()/b.dur);
     const tt=tours();if(ench&&src&&tt>derTour){derTour=tt;const n=(cur+1)%LISTE.length;joue(n);}else derTour=tt;
@@ -234,10 +238,12 @@ document.getElementById('vol').addEventListener('input',function(){if(sortie)vol
 document.getElementById('vol9').addEventListener('input',volFiltre);
 document.getElementById('vit').addEventListener('input',function(){simArrete();vitCur=this.value/100;document.getElementById('vitV').textContent=this.value+'%';});
 function simArrete(){if(!sim)return;sim=null;simVol=false;setNitro(false);document.getElementById('sim').classList.remove('on');}
+document.getElementById('mot').addEventListener('input',function(){motCur=this.value/100;document.getElementById('motV').textContent=this.value+'%';});
+document.getElementById('pal').addEventListener('click',function(){motCur=Math.min(1,motCur+1/12);const m=document.getElementById('mot');m.value=Math.round(motCur*100);document.getElementById('motV').textContent=m.value+'%';if(mvOn&&mv.palier)mv.palier(motCur);});
 document.getElementById('sim').addEventListener('click',function(){
   if(sim){simArrete();return;}
   if(cur==null||!LISTE[cur].couches){const k=LISTE.findIndex(b=>b.couches);if(k>=0)joue(k);} // lance une boucle À COUCHES si besoin
-  sim=performance.now();this.classList.add('on');});
+  sim=performance.now();simP=null;motCur=0;this.classList.add('on');});
 const nb=document.getElementById('nitro');
 function setNitro(v){nitro=v;nb.classList.toggle('on',v);volFiltre();}
 nb.addEventListener('pointerdown',e=>{e.preventDefault();setNitro(true);});

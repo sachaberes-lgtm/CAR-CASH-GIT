@@ -555,6 +555,40 @@ def rendre_couches(bid, fn, couches):
     finally:
         mod.FIN_BRUT = False; MUET.clear()
 
+def rendre_variantes(vid, spec):
+    """VARIANTES (2026-10-01) : une piste par (couche, variante), toutes calées, qui s'additionnent comme les couches.
+    Chaque piste est rendue SEULE (les autres bus muets) — le mélange est linéaire, donc « seule » = sa part exacte.
+    Un seul gain (celui du morceau complet, variantes A) ; + la TRANSITION de palier (un coup à part)."""
+    fn = spec['fn']; mod = sys.modules[fn.__globals__['fin'].__module__]; MUET = mod.MUET
+    mod.FIN_BRUT = True; MUET.clear()
+    try:
+        M, (L, R) = fn({})
+        k = 10 ** (-15 / 20) / max(np.sqrt(((L ** 2 + R ** 2) / 2).mean()), 1e-9)
+        g = min(1., .89 / max(np.abs(L * k).max(), np.abs(R * k).max())); k *= g
+        tous = set(M.bus) - {'fx'}; lg = len(L)
+        couches = []
+        for i, (nom, bus, seuil, sol, cle, vs) in enumerate(spec['couches']):
+            c = {'nom': nom, 'seuil': seuil, 'sol': sol, 'variantes': []}
+            for v, mm in vs:
+                MUET.clear(); MUET.update(tous - set(bus))
+                _, (l, r) = fn({cle: v} if cle else {}); l = l * k; r = r * k
+                f = '%s--%d%s' % (vid, i + 1, v.lower()); wav = os.path.join(SORTIE, f + '.wav')
+                ecrit_wav(wav, l, r)
+                subprocess.run(['afconvert', '-f', 'm4af', '-d', 'aac', '-b', '160000', '-q', '127', wav, os.path.join(SORTIE, f + '.m4a')], check=True); os.remove(wav)
+                rms = float(np.sqrt(((l ** 2 + r ** 2) / 2).mean()))
+                c['variantes'].append({'v': v, 'f': 'assets/audio/music/boucles/' + f + '.m4a', 'moteur': mm, 'rms': round(rms, 5)})
+                print('   %d%s %-13s seuil %.2f moteur ≥ %.2f  RMS %.1f dB' % (i + 1, v, nom, seuil, mm, 20 * np.log10(rms + 1e-9)))
+            c['rms'] = c['variantes'][0]['rms']; couches.append(c)
+    finally:
+        mod.FIN_BRUT = False; MUET.clear()
+    tL, tR = spec['transition']()
+    f = vid + '--transition'; wav = os.path.join(SORTIE, f + '.wav'); ecrit_wav(wav, tL, tR)
+    subprocess.run(['afconvert', '-f', 'm4af', '-d', 'aac', '-b', '160000', '-q', '127', wav, os.path.join(SORTIE, f + '.m4a')], check=True); os.remove(wav)
+    Mn, (Ln, Rn) = fn({})  # le morceau complet, normalisé (pour la forme d'onde de la page)
+    return {'id': vid, 'titre': spec['titre'], 'bpm': spec['bpm'], 'ton': spec['ton'], 'mesures': Mn.mes, 'dur': round(lg / SR, 5),
+            'couches': couches, 'transition': {'f': 'assets/audio/music/boucles/' + f + '.m4a', 'avance': round(4 * 60 / spec['bpm'], 5)},
+            'pics': pics(Ln, Rn)}
+
 def pics(L, R, n=600):
     m = np.maximum(np.abs(L), np.abs(R)); k = len(m) // n
     return [round(float(v), 3) for v in m[:k * n].reshape(n, k).max(1)]
@@ -588,6 +622,24 @@ if __name__ == '__main__':
                                   'mesures': M.mes, 'pics': pics(L, R)})
         if bid in COUCHES: d['couches'] = rendre_couches(bid, fn, COUCHES[bid])
         liste.append(d)
-    ordre = [b[0] for b in TOUTES]; liste.sort(key=lambda d: ordre.index(d['id']))
+    from boucles8 import VARIANTES
+    for vid, spec in VARIANTES.items():
+        if filtre_id and filtre_id not in vid:
+            if vid in anciennes: liste.append(anciennes[vid])
+            continue
+        print('…', vid, '(variantes)', flush=True)
+        d = rendre_variantes(vid, spec)
+        d.update({'groupe': 'MUSIQUE DE JEU · VITESSE + MOTEUR', 'pour': 'NUAGES · EN JEU', 'cle': 'la mineur',
+                  'idee': "NÉON DRIVE refaite pour le jeu : 8 mesures, chaque partie a 2-3 variantes échangées aux fins de phrase ; la vitesse ouvre les couches, le moteur débloque les variantes riches, la couche ÉNERGIE et une transition à chaque palier."})
+        liste.append(d)
+    ordre = [b[0] for b in TOUTES] + list(VARIANTES); liste.sort(key=lambda d: ordre.index(d['id']))
     open(donnees_f, 'w').write('window.BOUCLES=' + json.dumps(liste, ensure_ascii=False) + ';\n')
+    # ce que le JEU charge : seulement les boucles à couches, sans les formes d'onde
+    jeu = {}
+    for d in liste:
+        if not d.get('couches'): continue
+        cs = [{k: c[k] for k in ('nom', 'seuil', 'sol', 'rms')} | {'variantes': c.get('variantes') or [{'v': 'A', 'f': c['f'], 'moteur': 0, 'rms': c['rms']}]} for c in d['couches']]
+        jeu[d['id']] = {'titre': d['titre'], 'bpm': d['bpm'], 'ton': d['ton'], 'mesures': d['mesures'], 'dur': d['dur'], 'couches': cs,
+                        'transition': d.get('transition')}
+    open(os.path.join(SORTIE, 'couches-jeu.js'), 'w').write('window.COUCHES_JEU=' + json.dumps(jeu, ensure_ascii=False) + ';\n')
     print('ok →', SORTIE)
