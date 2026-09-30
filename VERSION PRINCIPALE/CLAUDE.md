@@ -1,5 +1,21 @@
 # CASH CAR — guide projet pour Claude Code
 
+## L'ORDRE DU HUD (2026-09-30, session GRAPHISME — Sacha : « retravaille le HUD pour le rendre bien organisé, bien équilibré, bien proportionné »)
+- **UN SEUL ENDROIT pour les PLACES du HUD de course : `<style id="hudOrdre">`**, posé EN DERNIER (après frenX3) — les blocs d'avant (charte4,
+  hudMaitrise, pouvoirsV2, hudDA, hudTaille, figTaille, frenX3) gardent le DESSIN ; une place nouvelle se règle ICI.
+- MESURÉ avant (banc `hudaudit.js <racine> <préfixe> [--pay]` : 5 situations — route, vol, pouvoirs, frénésie, textes —, captures + boîtes
+  de chaque élément) : quatre bords droits différents (376 · 382 · 384 · 389 sur 390 : les plaques de pouvoir touchaient le bord), la
+  barre nitro à 1 px du ⏸, la colonne de droite à places FIXES (trous quand un bloc était caché, chevauchements selon les états), les
+  plaques de pouvoir 1,6 × plus larges que le chrono de vol, couché elles flottaient À CÔTÉ du chrono.
+- LA GRILLE : UNE marge (--hudG / --hudD : 14 px + zone sûre) des deux côtés, un pas de 8 px. EN HAUT : NITRO et FLOW (taille d'origine,
+  verdict du 28/09, 10 px plus courts debout) et le ⏸ sur la marge, à 12 px des barres. À GAUCHE : l'AURA et sa chaîne. À DROITE : une
+  COLONNE qui S'EMPILE toute seule — **`hudColonne(dt)`** (à côté de cashHudTick, 10 fois/s) pose le `top` (inline !important) de ce qui est
+  VISIBLE, dans l'ordre ARGENT · VIES du FACILE · DARK TRIAD (debout ; couché elle garde sa place en haut au milieu) · CHRONO DE VOL ·
+  POUVOIRS · CAMPAGNE, à 8 px l'un de l'autre, sous le ⏸ — ⚠ un bloc rétréci par `zoom` reçoit top ÷ son zoom (lu sur l'élément : #facVies
+  aussi est zoomé) ; une nouvelle plaque de la colonne : l'ajouter à la liste de `HUDCOL.els`, JAMAIS un `top` en dur. Les POUVOIRS empilés,
+  calés à droite, à la largeur de la colonne (112 px à l'écran). EN BAS : consigne du volant et NITRO sur la même marge.
+- Inchangé : les pouvoirs s'effacent (opacité .08) sous une grande annonce, un verdict ou la carte moteur (règle voulue de la charte).
+
 ## LE GARAGE EST LE MENU (2026-09-30, sketch de Léo) — « le garage devient le nouveau menu »
 - L'ACCUEIL n'existe plus à l'écran : le routeur (`mGo`), en arrivant sur 'home', appelle `garAccueil()` qui ouvre l'atelier en mode MENU
   (direct au 1er lancement et sous un voile déjà levé, sinon par `ecranWipe`) ; refusé si une course tourne ou si un nom se saisit. Tout ce qui
@@ -212,7 +228,8 @@ scratchpad GAMEPLAY). Ce qui suit est EN JEU, mesuré au banc sauf mention.
   portail (2,5 s sans plot ni flaque) ; `MODMARK`→`MODS` : pas de plot ni d'huile dans les modules ; un banc de route retire les plots et
   les flaques qu'il cache — **SAUF les plots de l'ORAGE** (décision GAMEPLAY : sa promesse est « la route se cache », ses bancs couvrent la
   piste, le filtre y retirait 50-92 % des plots) ; huile jugée en mètres ; pas de pigeon en ORBITE ni à l'ORAGE. `dbgPas()`.
-- **LE VOL v8.1 « NEWTON »** (Sacha à SON : « rends la physique du air time plus réaliste, inspire-toi des vraies règles de l'inertie et
+- ⛔ **RETIRÉ le 2026-09-30** (Sacha : « je veux que la voiture reste contrôlable, mais qu elle aille plus vite et qu elle tombe plus vite ») : les commits 61ab2d2 + 7ef83e2 sont annulés, on revient au vol d avant (le volant tourne la trajectoire), avec `AIR_RATE=1.3` dans `startFall` (on avance et on tombe 30 % plus vite, même arc dans l espace). Le paragraphe ci-dessous n est plus qu une archive.
+- **LE VOL v8.1 « NEWTON »** (ARCHIVE) (Sacha à SON : « rends la physique du air time plus réaliste, inspire-toi des vraies règles de l'inertie et
   de la gravité » ; plan de SON, appliqué par GAMEPLAY ; `NEWTON`, `VOLN`, `volCorps`/`volRepere`/`volNez`/`volAero`, `volViseur`,
   `volBump`, `chuteLongue`, `volBordMord`, `dbgVol()`). Le volant et le manche tournent la CAISSE (lacet ψ, assiette α, girouette
   K_W·qt·sin, amortissement) ; la portance et la traînée de travers plient la trajectoire ; aucune traînée dans l'axe : SANS LES MAINS la
