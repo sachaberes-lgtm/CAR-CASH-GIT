@@ -6580,7 +6580,12 @@ const GAPMARK=[];
    `vFond` : part de vN à tenir dans le virage pour VIRAGE À FOND. */
 const FILET={on:true,kv:1.1,dh:42,dhS:12,kick:1.6,dev:.13,par:[3,2,1],vFond:.8,visite:null}; // dev : la caisse qui rate un virage part ÉCARTÉE de la tangente, vers le vide (~0,15 rad mesuré au banc)
 const FILETMARK=[];
-let FILETS=[]; // les filets de la piste courante, en distance le long de la piste : {sC0,sC1 (le virage), sN0,sN1 (le filet), cote (−1/+1 : le côté du vide)}
+/* (2026-09-30, revue PISTE) LES MODULES SONT DES FIGURES, PAS DES CHANTIERS : genCtrl note ici {i0,i1} (index de points de contrôle) le
+   début et la fin de chaque module des NUAGES (lacets, montagnes russes, grand plongeon, dos de chameau) et, pour chaque FILET, son
+   virage rapide puis son filet — buildTrack les traduit en tronçons `s` (MODS) où ni plot ni huile ne sont tirés au hasard : ils
+   tombaient pile au bord où le voltigeur sort, sur la crête où il décolle. Zéro tirage `rnd` : on lit ctrl.length, rien d'autre. */
+const MODMARK=[];
+let FILETS=[],MODS=[]; // les filets de la piste courante, en distance le long de la piste : {sC0,sC1 (le virage), sN0,sN1 (le filet), cote (−1/+1 : le côté du vide)}
 function filetDe(s0,s1){for(const q of FILETS)if(s0>q.sC0-80&&s0<q.sC1+60&&s1>q.sN0-160&&s1<q.sN1+260)return q;return null;} // un vol parti de ce virage et posé dans son filet ?
 // LE TROU, POUR DE VRAI : portions de dalle PUREMENT ABSENTES {i0,i1:index pts · s0,s1:arc-length}.
 // Zéro mesh, zéro collision, zéro atterrissage possible : c'est du VIDE. On le franchit ou on tombe.
@@ -7627,11 +7632,17 @@ function spawnPigeonFlock(){
     PIGEONS.push({g:p,v:dir9.clone().multiplyScalar(sp9*(.9+Math.random()*.2)),ph:Math.random()*6,ph2:Math.random()*6,life:26});
   }
 }
+/* (2026-09-30, revue PISTE) PAS DE PIGEON EN ORBITE NI DANS L'ORAGE : une volée de ramiers passait devant la Terre vue du vide (les deux
+   niveaux ESPACE) ou en plein déluge sous les éclairs. Là, pas d'apparition — et la volée d'avant le portail s'efface. */
+const PGBAN={c:undefined,v:false}; // mémo par niveau : le test ne se refait qu'au portail
+function pigeonsInterdits(){const c=LVL.cur;if(c===PGBAN.c)return PGBAN.v;PGBAN.c=c;
+  return PGBAN.v=!!c&&(c.id==='espace'||c.id==='orage'||/orage|tempete/i.test(String(c.bio&&c.bio[0]||'')));} // (la campagne : le niveau 9 « orage doré », le 15 « orage »)
 function updatePigeons(dt,t){
   pigeonT-=dt;
-  if(pigeonT<=0&&PIGEONS.length===0&&mode!=='boom'){spawnPigeonFlock();pigeonT=24+Math.random()*32;} // RARE, exprès
+  const ban9=pigeonsInterdits();
+  if(pigeonT<=0&&PIGEONS.length===0&&mode!=='boom'){if(!ban9)spawnPigeonFlock();pigeonT=24+Math.random()*32;} // RARE, exprès
   for(let i9=PIGEONS.length-1;i9>=0;i9--){
-    const b9=PIGEONS[i9];b9.life-=dt;
+    const b9=PIGEONS[i9];b9.life-=dt;if(ban9)b9.life=0; // (la volée n'a rien à faire là : elle s'en va avec le portail)
     b9.g.position.addScaledVector(b9.v,dt);
     b9.g.position.y+=Math.sin(t*1.2+b9.ph)*.5*dt;
     const amp=.25+.6*Math.max(0,Math.sin(t*.8+b9.ph2)); // battements… puis vol plané
@@ -8175,7 +8186,7 @@ function genCtrl(rnd,startPos,startPhi){
   const pick=()=>{let x=rnd()*wsum;for(let k=0;k<13;k++){x-=W[k];if(x<0)return k;}return 5;};
   const LEN=14400*(1+Math.min(1.5,(LV-1)*.55)); // (2026-09-25, user : « double la longueur de chaque niveau ») 7200 → 14400 — et plus longues encore à haute vitesse
   // ---- LE VIRAGE À FILET (voir FILET) : NUAGES seulement ; son hasard a SON générateur (un seul tirage de `rnd`, et seulement ici) ----
-  FILETMARK.length=0;
+  FILETMARK.length=0;MODMARK.length=0;
   const FILON=FILET.on&&typeof LVL!=='undefined'&&LVL.cur&&(LVL.cur.id==='nuages'||LVL.cur.id==='orage')&&!LVL.cur.piste&&!(typeof PARK!=='undefined'&&PARK.on);
   const rf=FILON?mulberry32((rnd()*4294967296)>>>0):null;
   const visF=!FILON?0:FILET.visite!=null?FILET.visite:Math.floor(Math.max(0,(runStats.zones|0)-(LVL.tutoZ|0))/NIVEAUX.length); // la 1re visite du niveau NUAGES, la 2e… (2026-09-30 : le cycle a 6 niveaux, plus 3)
@@ -8208,7 +8219,7 @@ function genCtrl(rnd,startPos,startPhi){
   const chameau=()=>{const sg=rf()<.5?1:-1;courbe((140+rf()*40)*LV,(22+rf()*10)*LV,sg*5,3);courbe((220+rf()*60)*LV,-(70+rf()*25)*LV,sg*8,3);straight(100*LV,-6*LV,2);};
   const filet=()=>{
     const sg=rf()<.5+hand*.22?1:-1,R=(95+rf()*45)*RS,th=(55+rf()*20)*Math.PI/180,Re=R+ROAD_HALF;
-    const vN=FILET.kv*(70+(LV-1)*100),g=FALL_G*SPD,k0=FILET.kick;
+    const vN=FILET.kv*(70+(LV-1)*100),g=FALL_G*SPD,k0=FILET.kick,iM0=ctrl.length-1; // iM0 : début du module (MODMARK)
     straight(70*LV,-10*LV,2); // l'APPROCHE : droite et lisible — le virage et son filet se voient venir
     const A=P.clone(),ph0=phi,yA=P.y,pC=.04+rf()*.03,dropC=th*R*pC; // un virage PRESQUE PLAT : sa pente part avec la caisse (vy = −v·pente) — à 780 km/h, 12 % de pente jetaient la caisse 44 m sous le filet (mesuré)
     const C=new THREE.Vector3(A.x+sg*R*Math.cos(ph0),0,A.z-sg*R*Math.sin(ph0));
@@ -8236,9 +8247,10 @@ function genCtrl(rnd,startPos,startPhi){
      for(let k=iE+1;k<ctrl.length;k++)ctrl[k].y=yE+(p0.y-yE)*THREE.MathUtils.smootherstep(cum[k-iE]/Math.max(1,tot),0,1);
      len=approx-a0;approx=a0;P.copy(ctrl[ctrl.length-1]);prev.copy(P);}
     const nF=Math.max(6,Math.ceil((pose(f1).ps-p0.ps)/(8*Math.PI/180)));
-    let last=null;
+    let last=null;const iN0=ctrl.length;
     for(let k=1;k<=nF;k++){const q=pose(f0+(f1-f0)*k/nF);at(2*Math.PI+q.ps,q.r,q.y);len+=P.distanceTo(prev);prev.copy(P);push();last=q;} // LE FILET
     for(let k=1;k<=3;k++){at(2*Math.PI+last.ps+k*.14,last.r,last.y-6*k);len+=P.distanceTo(prev);prev.copy(P);push();} // la sortie, dans l'élan
+    MODMARK.push({i0:iM0,i1:iE},{i0:iN0,i1:ctrl.length-1}); // (revue PISTE) le virage d'où l'on sort, le filet où l'on se pose — la bretelle entre les deux reste une route comme une autre
     phi=ph0+sg*(2*Math.PI+last.ps+.42);approx+=len; // (le virage, arc() l'a déjà compté)
     const pz=f=>{const q=pose(f);at(2*Math.PI+q.ps,q.r,q.y);return P.clone();};
     FILETMARK.push({sg:sg,A:A,E:E,N0:pz(0),N1:pz(1),Nlo:pz(f0),Nhi:pz(f1),R:R,th:th,vN:vN});
@@ -8295,8 +8307,9 @@ function genCtrl(rnd,startPos,startPhi){
   }else straight(110*LV,-70*LV,2); // DÉPART : ligne droite, rallongée avec la vitesse (était 170 m + la caisse)
   const iDep=ctrl.length-1; // (vague 3) le RELIEF part d'ici : le largage du départ garde sa chute
   while(approx<LEN){
-    if(MODON&&approx>modNext&&approx<LEN-2600*LV){const m=modTire();modLast=m; // (2026-09-30) LES MODULES DU 1er NIVEAU (voir plus haut)
+    if(MODON&&approx>modNext&&approx<LEN-2600*LV){const m=modTire(),iM9=ctrl.length-1;modLast=m; // (2026-09-30) LES MODULES DU 1er NIVEAU (voir plus haut)
       if(m===0){filet();filN++;}else if(m===1)lacets();else if(m===2)russes();else if(m===3)plongeonG();else chameau();
+      if(m!==0)MODMARK.push({i0:iM9,i1:ctrl.length-1}); // (revue PISTE) le module entier (le filet pose ses deux tronçons lui-même)
       modNext=approx+(1600+rf()*1000)*LV;continue;}
     const mo=(!MODON&&filN<filMax&&approx>filNext&&approx<LEN-2600*LV)?-7:pick();
     if(mo===-7){filet();filN++;filNext=approx+(1500+rf()*1300)*LV;} // LE VIRAGE À FILET (voir FILET)
@@ -8766,14 +8779,32 @@ function buildTrack(seed){
   for(const m of trackMeshes){if(m.geometry)m.geometry.dispose();if(m.material&&m.material.dispose)MAT_SURSIS.add(m.material);} // (perf) matières en sursis : voir MAT_SURSIS
   matSursisN=3;
   trackMeshes.length=0;PISTE_LOD.length=0;NEON_RAILS.length=0;NEON_GLOW.length=0;PADS=[];PADL=[];PAD_MATS.length=0;BUMPS=[];CONES=[];FLYCONES=[];OILS=[];RAMPS=[];
-  const rnd=mulberry32(seed);VILLE_ENTREE=null; // (l'entrée surélevée n'existe que si genCtrl la pose : niveau VILLE généré)
+  const rnd=mulberry32(seed);VILLE_ENTREE=null;MODMARK.length=0; // (l'entrée surélevée n'existe que si genCtrl la pose : niveau VILLE généré) · (les modules aussi : le parc, l'école et la campagne n'en ont pas)
   const ctrl=PARK.on?genPark(rnd):(LVL.cur&&LVL.cur.piste==='tuto')?genTuto():(LVL.cur&&LVL.cur.piste==='camp')?genCampagne(LVL.cur.camp):genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course · (2026-09-27) CAMPAGNE : la piste dessinée du niveau
   const curve=new THREE.CatmullRomCurve3(ctrl,false,'centripetal'); // (piste v7) centripète : l'uniforme faisait des COUDES entre points inégalement espacés (liaison courte après une grande figure)
+  /* (2026-09-30, revue PISTE) LE PAS DE LA PISTE. Tout le jeu suppose `pts` ÉQUIDISTANTS (frameAt : f = s/L·(NP−1) ; s avance en mètres).
+     Or three r128 ne mesure la longueur qu'en 200 tronçons (`arcLengthDivisions`) pour les 450-550 points de contrôle de genCtrl : entre
+     deux mesures il suppose le paramètre uniforme, alors qu'un point de virage (≤ 12°) est à 20 m du suivant et un point de droite à 150.
+     MESURÉ (6 graines × 4 niveaux, node) : écart réel/supposé p1 0,38-0,49 · p99 1,52-1,98 · extrêmes 0,16-3,5 ; ~58 sauts de vitesse
+     monde ≥ ×1,5 d'un point au suivant par zone ; L sous-estimée de ~100 m (parc : −6 %). La caisse accélérait et freinait EN SILENCE
+     (le compteur ne bougeait pas), plots et pads n'étaient pas aux mètres annoncés. 16 mesures par point de contrôle : p1-p99 0,99-1,01,
+     zéro saut, L exacte, +3 ms à la construction (banc piste/pas.js, temps.js). */
+  curve.arcLengthDivisions=Math.max(200,ctrl.length*16);
   L=curve.getLength();
   const N=Math.min(PARK.on?11000:9000,Math.max(3000,Math.round(L))); // parc : plus long → plus de points pour garder les loops lisses
   pts=curve.getSpacedPoints(N);NP=pts.length;
   let sEnt=0; // (2026-09-29) L'ENTRÉE DANS LA VILLE : la droite surélevée est NUE (ni plot, ni flaque, ni dos d'âne) — le temps de s'adapter ; les tirages restent consommés
   if(VILLE_ENTREE){let dA=1e18,iA=0;const lim=Math.min(NP,Math.ceil(NP*.45));for(let i=0;i<lim;i++){const a=pts[i].distanceToSquared(VILLE_ENTREE.pA);if(a<dA){dA=a;iA=i;}}sEnt=iA*L/(NP-1)+80;VILLE_ENTREE.sA=sEnt;} // (+80 m : pas de plot caché juste derrière la bascule de la rampe)
+  /* (2026-09-30, revue PISTE) LE SAS DU PORTAIL. On repart en s = 0 À PLEINE VITESSE, pendant le fondu sombre (BIO.dip, 1,2 s) et la
+     bannière du niveau : le 1er plot tombait 300-520 m plus loin — 2 s au palier 10, ~1 s au palier 20, souvent avant d'avoir revu la
+     route. Les 2,5 premières secondes de croisière sont nues (≈ 195 m au palier 0 : rien ne change ; ≈ 850 m en fin de partie). Les
+     tirages restent consommés (les filtres passent après eux). Pas dans le parc, l'école ni la campagne : leurs pistes sont dessinées. */
+  const gen9=!PARK.on&&!(LVL.cur&&(LVL.cur.piste==='tuto'||LVL.cur.piste==='camp')),vC9=70+(lvPiste()-1)*100; // vC9 : la croisière de conception de la piste (m/s, celle du filet)
+  if(gen9)sEnt=Math.max(sEnt,2.5*vC9);
+  MODS=[]; // les tronçons des MODULES (voir MODMARK) : index de contrôle → abscisse exacte, par la table de longueurs de la courbe elle-même
+  if(MODMARK.length){const lg9=curve.getLengths(),n9=Math.max(1,ctrl.length-1),sDe=i=>{const f=i/n9*(lg9.length-1),k=Math.max(0,Math.min(lg9.length-2,Math.floor(f)));return lg9[k]+(lg9[k+1]-lg9[k])*(f-k);};
+    for(const m of MODMARK)MODS.push({s0:sDe(m.i0)-60,s1:sDe(m.i1)+vC9});} // −60 m : un groupe de plots (≤ 45 m) ne déborde pas dedans · +1 s de croisière : la réception du voltigeur
+  const inModule=sp=>{for(const m of MODS)if(sp>m.s0&&sp<m.s1)return true;return false;};
   trackMinY=Infinity;for(let i=0;i<NP;i++)if(pts[i].y<trackMinY)trackMinY=pts[i].y; // plancher du monde
   T=[];Nn=[];B=[];
   for(let i=0;i<NP;i++){
@@ -9076,12 +9107,19 @@ function buildTrack(seed){
     if(rnd()<.4)continue; // encore plus rare
     const io=Math.floor(sp/L*(NP-1));
     const ia=Math.max(0,io-40),ib=Math.min(NP-1,io+40);
-    const straight=T[ia].dot(T[ib])>.995;        // pas de virage
+    const straight=T[ia].dot(T[ib])>.995;        // pas de virage (⚠ ce test à ±40 POINTS décide des 2 tirages ci-dessous : il reste, pour le flux rnd)
     const climbing=T[io].y>.04;                  // pas en montée (on ne la verrait pas)
     if(!straight||climbing)continue;
     frameAt(sp,F);
     const r9=2+rnd()*1.1, lo=(rnd()*2-1)*(ROAD_HALF-4.5);
-    if(inGap(sp)||sp<sEnt||(LVL.cur&&LVL.cur.camp))continue; // (tirages consommés au-dessus : le filtre gap ne décale pas le flux rnd) · (2026-09-27) la CAMPAGNE n'a pas de flaque surprise : ses pièges sont dessinés, jamais tirés au sort
+    if(inGap(sp)||sp<sEnt||(LVL.cur&&LVL.cur.camp)||inModule(sp))continue; // (tirages consommés au-dessus : le filtre gap ne décale pas le flux rnd) · (2026-09-27) la CAMPAGNE n'a pas de flaque surprise : ses pièges sont dessinés, jamais tirés au sort
+    /* (2026-09-30, revue PISTE) LA LIGNE DROITE SE MESURE EN MÈTRES. ±40 points, c'était ±75 m au palier 0 mais la glisse (0,75 s,
+       direction à 18 %) court ~220 m à ~300 m/s : en fin de partie elle débordait dans le virage suivant, volant mort. La flaque exige
+       désormais une route qui ne s'écarte pas de plus de ~6° de son axe sur ±max(60 m, 1,1 s de croisière) — S compris (le test
+       historique ne comparait que les deux bouts). Filtre APRÈS les tirages : le flux rnd est intact. */
+    {const w9=Math.ceil(Math.max(60,1.1*vC9)/(L/(NP-1))),t9=T[io];let tordu=false;
+     for(let k=Math.max(0,io-w9),e=Math.min(NP-1,io+w9);k<=e;k++)if(T[k].dot(t9)<.995){tordu=true;break;}
+     if(tordu)continue;}
     for(const of9 of [1,-1]){ // la MÊME flaque sur les deux faces : zéro dessus-dessous
       const m=new THREE.Mesh(oilGeo,oilMat);
       m.scale.set(r9*1.35,r9,1);
@@ -9093,10 +9131,11 @@ function buildTrack(seed){
       rim.quaternion.copy(m.quaternion);
       rim.position.copy(F.p).addScaledVector(F.b,lo).addScaledVector(F.n,of9>0?.04:-THICK-.04);
       scene.add(rim);trackMeshes.push(rim);
-      OILS.push({s:sp,lat:lo,r:r9,face:of9});
+      OILS.push({s:sp,lat:lo,r:r9,face:of9,ms:[m,rim]}); // ms : ses deux maillages (la flaque cachée par un banc est retirée après buildClouds)
     }
   }
   // plots de chantier orange : slaloms + lignes de bord — à esquiver… ou à envoyer valser
+  let grp9=0; // (revue PISTE) le GROUPE du plot (slalom, ligne, porte) : un banc de nuage retire le groupe entier, jamais une moitié de slalom
   function placeCone(cs,cl,fc){
     fc=fc||1;
     if(cs>L-140)return;
@@ -9105,13 +9144,14 @@ function buildTrack(seed){
     m.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(F.b.clone(),F.n.clone().multiplyScalar(fc),F.t.clone().multiplyScalar(fc)));
     m.position.copy(F.p).addScaledVector(F.b,cl).addScaledVector(F.n,fc>0?.12:-THICK-.12);
     m.updateMatrix();m.matrixAutoUpdate=false;
-    CONES.push({s:cs,lat:cl,mesh:m,hit:false,face:fc});
+    CONES.push({s:cs,lat:cl,mesh:m,hit:false,face:fc,grp:grp9});
   }
   // chaque GROUPE de plots existe sur LES DEUX faces (même chantier) — intervalle doublé : densité par face inchangée
   for(let sp=300+rnd()*220;sp<L-170;sp+=340+rnd()*520){
     const slal=rnd()<.55;                                     // le tirage tombe D'ABORD : le flux rnd ne dépend jamais du filtre gap
     const w9=slal?Math.min(3.5+rnd()*4.5,ROAD_HALF-1.3):0,sd9=slal?0:(rnd()<.5?-1:1); // exactement 2 tirages par tour, comme avant — (route ÷2) écart plafonné à la ligne de bord (ROAD_HALF−1,3, celle des plots de chantier) : au plancher (7,7) un plot à 8 m flottait dans le vide
-    if(inGap(sp)||sp<sEnt||(LVL.cur&&LVL.cur.camp))continue;  // couloir du tremplin : nu · (2026-09-29) la droite d'entrée de la ville aussi · (2026-09-27) CAMPAGNE : plus un plot au hasard, seulement les portes dessinées
+    if(inGap(sp)||sp<sEnt||(LVL.cur&&LVL.cur.camp)||inModule(sp))continue;  // couloir du tremplin : nu · (2026-09-29) la droite d'entrée de la ville aussi · (2026-09-27) CAMPAGNE : plus un plot au hasard, seulement les portes dessinées · (2026-09-30) ni dans un MODULE (voir MODMARK)
+    grp9++;
     if(slal)for(const fc of [1,-1])for(let k=0;k<3;k++)placeCone(sp+k*15,(k%2?-1:1)*w9,fc);      // slalom en quinconce au milieu
     else for(const fc of [1,-1])for(let k=0;k<4;k++)placeCone(sp+k*7.5,sd9*(ROAD_HALF-1.3),fc); // ligne de chantier le long d'un bord
   }
@@ -9124,7 +9164,8 @@ function buildTrack(seed){
     const wrnd=mulberry32((seed^0xCA55E77E)>>>0),z9=Math.min(3,runStats.zones|0);
     for(let sp=385+wrnd()*220;sp<L-170;sp+=(560-z9*40)+wrnd()*500){
       const g9=(wrnd()*2-1)*(ROAD_HALF-6),nP=wrnd()<.5?2:3; // tirages AVANT le filtre, comme partout
-      if(inGap(sp)||sp<sEnt)continue; // même la 2e vague épargne le couloir du tremplin (et la droite d'entrée de la ville)
+      if(inGap(sp)||sp<sEnt||inModule(sp))continue; // même la 2e vague épargne le couloir du tremplin (et la droite d'entrée de la ville, et les MODULES)
+      grp9++;
       for(const f9 of [1,-1])for(let k=0;k<nP;k++){placeCone(sp+k*13,g9-3,f9);placeCone(sp+k*13,g9+3,f9);}
     }
   }
@@ -9133,6 +9174,25 @@ function buildTrack(seed){
   /* (2026-09-30, revue GAMEPLAY) les 14 NUAGES D'HORIZON (sprites roses, fog:false) sont RETIRÉS : ils restaient en VILLE (où aucun nuage
      n'a sa place), perçaient la brume de l'ORAGE (650-1850 m contre une brume à 70/660) et la moitié tombait sous l'horizon dans l'abîme
      des NUAGES. Aucun tirage `rnd` n'avait lieu après eux dans buildTrack : la piste ne bouge pas. Le ciel lointain, c'est COTON. */
+  /* (2026-09-30, revue PISTE) LE BANC NE CACHE PLUS DE PIÈGE. Un banc posé SUR la route (onRoad) se traverse à l'aveugle — c'est le jeu,
+     et sa sortie paie la percée. Mais un plot ou une flaque DANS le banc, ou dans la seconde qui suit sa sortie, ne se voit qu'une fois
+     touché. MESURÉ (Monte-Carlo, banc_mc.js) : ~1,4 groupe caché par zone aux NUAGES, 19 à 36 à l'ORAGE. On retire le GROUPE entier
+     (grp) et la flaque (ses deux maillages) de sB − r − 10 m à sB + r + 1 s de croisière. Les bancs ne bougent pas, rien n'est tiré. */
+  /* (2026-09-30, GAMEPLAY) SAUF les plots de l'ORAGE : sa promesse est « LA ROUTE SE CACHE : L'ÉCLAIR LA MONTRE », ses ~90 bancs couvrent la
+     piste (le filtre y retirait 50 % des plots au palier 0, 92 % au palier 20 — un orage vide, sans frôlé ni FLOW). Un plot coûte, il ne tue
+     pas : là-bas il reste la surprise du niveau. La FLAQUE, elle (glisse de 0,75 s), part partout. */
+  if(gen9){const Z9=[],orage9=!!(LVL.cur&&LVL.cur.id==='orage');
+    const d9=(i,c)=>{const p=pts[i],dx=p.x-c.c.x,dy=p.y-c.c.y,dz=p.z-c.c.z;return dx*dx+dy*dy+dz*dz;};
+    for(const c of CLOUDS){if(!c.onRoad)continue;let bi=0,bd=1e18; // le point de piste le plus proche du banc (grossier tous les 8, puis affiné) : ~90 bancs à l'orage
+      for(let i=0;i<NP;i+=8){const dd=d9(i,c);if(dd<bd){bd=dd;bi=i;}}
+      for(let i=Math.max(0,bi-8),e=Math.min(NP-1,bi+8);i<=e;i++){const dd=d9(i,c);if(dd<bd){bd=dd;bi=i;}}
+      const sB=bi/(NP-1)*L;Z9.push(sB-c.r-10,sB+c.r+vC9);}
+    if(Z9.length){const cache9=s9=>{for(let k=0;k<Z9.length;k+=2)if(s9>Z9[k]&&s9<Z9[k+1])return true;return false;};
+      const g9=new Set();if(!orage9)for(const c of CONES)if(cache9(c.s))g9.add(c.grp||c);
+      if(g9.size)CONES=CONES.filter(c=>!g9.has(c.grp||c));
+      for(let k=OILS.length-1;k>=0;k--){const o=OILS[k];if(!o.ms||!cache9(o.s))continue;
+        for(const m of o.ms){scene.remove(m);const j=trackMeshes.indexOf(m);if(j>=0)trackMeshes.splice(j,1);}
+        OILS.splice(k,1);}}}
   /* PORTAIL D'ARRIVÉE — L'OVULE (2026-09-26, user : « plus gros et rond comme un ovule ; on peut le franchir en venant de n'importe
      quelle direction »). Plus un anneau de 24 m posé sur la route : une SPHÈRE de 55 m (plus large que la route qui la traverse)
      — une membrane translucide qui ondule (rose → cyan, brillante sur les bords, fresnel), un NOYAU éclatant qui bat au centre,
@@ -28256,6 +28316,16 @@ function newTrack(){
   mode='drive';
   campDebut(); // (2026-09-27) CAMPAGNE : le niveau qui commence arme ses systèmes (poursuite, orage, caisse-nuage) — ou les éteint
 }
+// (2026-09-30, revue PISTE) console : dbgPas() → le PAS réel de la piste (écart réel/supposé p1/p50/p99, extrêmes, sauts ≥ ×1,5), les
+// tronçons de MODULES, et ce qui reste de plots dans un module, dans un banc de route (+1 s) ou avant le sas — tout doit valoir 0.
+window.dbgPas=function(){const ds=L/(NP-1),r=[];let sauts=0;for(let i=1;i<NP;i++){r.push(pts[i].distanceTo(pts[i-1])/ds);if(i>1){const k=r[i-1]/r[i-2];if(k>=1.5||k<=1/1.5)sauts++;}}
+  r.sort(function(a,b){return a-b;});const q=function(p){return +r[Math.floor(p*(r.length-1))].toFixed(3);},vC=70+(lvPiste()-1)*100;
+  const Z=[];for(const c of CLOUDS)if(c.onRoad){let bi=0,bd=1e18;for(let i=0;i<NP;i+=4){const d2=pts[i].distanceToSquared(c.c);if(d2<bd){bd=d2;bi=i;}}const sB=bi*ds;Z.push([sB-c.r-10,sB+c.r+vC]);}
+  const dans=function(s9,T9){return T9.some(function(z){return s9>z[0]&&s9<z[1];});};
+  return {L:Math.round(L),NP:NP,pas:{p1:q(.01),p50:q(.5),p99:q(.99),min:+r[0].toFixed(3),max:+r[r.length-1].toFixed(3),sauts:sauts},vC:Math.round(vC),
+    modules:MODS.map(function(m){return [Math.round(m.s0),Math.round(m.s1)];}),plots:CONES.length,flaques:OILS.length,bancs:Z.length,
+    plotsDansModule:CONES.filter(function(c){return dans(c.s,MODS.map(function(m){return [m.s0+60,m.s1];}));}).length,
+    plotsDansBanc:CONES.filter(function(c){return dans(c.s,Z);}).length,premierPlot:CONES.length?Math.round(Math.min.apply(null,CONES.map(function(c){return c.s;}))):null,sas:Math.round(2.5*vC)};};
 // console : dbgPortail(d) → la caisse à d mètres AVANT l'ovule (sur la route) ; dbgPortail('ciel') → lâchée à la verticale AU-DESSUS de lui
 window.dbgPortail=function(d){if(!started||gameOver||PARK.on)return 'pas de course';
   if(d==='ciel'){s=Math.max(0,L-400);startFall(10,1);fallPos.copy(PORTAL.c);fallPos.y+=PORTAL.R*1.7;fallVel.set(0,-35,0);return {mode,c:PORTAL.c.toArray().map(Math.round),R:PORTAL.R};}
