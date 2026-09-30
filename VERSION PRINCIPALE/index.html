@@ -33556,13 +33556,14 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   /* LE GARAGE QUI VIT (2026-09-30, Léo : « on est censé pouvoir tourner autour — soit le garage en rotation sans qu'on touche, soit
      avec le doigt on glisse et on voit légèrement ; inspire-toi de ma branche ») : LES DEUX. (1) Au repos la VUE balance doucement
      autour de la caisse — les deux sinus lents de sa branche (±~11°, ~22 s) et un souffle de hauteur ; elle s'efface dès qu'on touche
-     (le balancement est VERSÉ dans le regard : aucun saut sous le doigt) et revient en fondu. (2) Au MENU, glisser déplace le REGARD
-     autour de l'atelier (`GAR.vA`, borné à ±.36 rad ≈ 20°, hauteur .08-.42) ; lâché, il revient seul dans l'axe de la porte en ~2 s après
-     une seconde de pause (l'interface est cadrée pour cet axe). En BOUTIQUE glisser fait toujours tourner la caisse. Le plateau tourne
+     (le balancement est VERSÉ dans le regard : aucun saut sous le doigt) et revient en fondu. (2) Au MENU, glisser fait TOURNER LE REGARD
+     autour de l'atelier (`GAR.vA`) — le TOUR COMPLET depuis que Léo a dit « on doit pouvoir voir derrière » (d'abord borné à ±20°), hauteur
+     .08-.42 ; lâché, il revient seul dans l'axe de la porte (par le plus court chemin) après 3 s sans toucher : l'interface est cadrée
+     pour cet axe, et le LÂCHER part de là où l'on regarde (voir GAR.go). En BOUTIQUE glisser fait toujours tourner la caisse. Le plateau tourne
      toujours. `GAR.fige` (dbgGarage) gèle tout pour les captures. */
   GAR.swK=(GAR.swK||0)+(((garageDrag||GAR.go||GAR.fige)?0:1)-(GAR.swK||0))*Math.min(1,dt*.7);
   GAR.swO=(Math.sin(t9*.28)*.15+Math.sin(t9*.117+1.3)*.05)*GAR.swK;GAR.swP=Math.sin(t9*.21)*.025*GAR.swK;
-  if(!garageDrag&&!GAR.fige&&!GAR.go){GAR.vT=(GAR.vT||0)+dt;if(GAR.vT>1){const r9=1-Math.exp(-dt*1.5);GAR.vA=(GAR.vA||0)*(1-r9);if(menu9)garagePitch+=(.2-garagePitch)*r9;}}
+  if(!garageDrag&&!GAR.fige&&!GAR.go){GAR.vT=(GAR.vT||0)+dt;if(GAR.vT>3){GAR.vA=Math.atan2(Math.sin(GAR.vA||0),Math.cos(GAR.vA||0));const r9=1-Math.exp(-dt*1.1);GAR.vA*=1-r9;if(menu9)garagePitch+=(.2-garagePitch)*r9;}} // le retour dans l'axe de la porte, par le plus court chemin, après 3 s sans toucher
   // CADRAGE PORTRAIT : le `fov` de three est VERTICAL — sur un téléphone à la verticale le champ
   // horizontal s'effondre et la caisse sort du cadre par les côtés. On rouvre l'angle (FOV_K), on
   // RECULE un peu, et on vise plus BAS pour la faire remonter au-dessus de la fiche. Les trois se
@@ -33579,8 +33580,12 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
     if(GAR.pod)GAR.pod.rotation.y+=dt*.35;
     // la caméra glisse de l'orbite jusqu'à la place de poursuite, et l'y reste
     const k=Math.min(1,u/.42),e9=k*k*(3-2*k);              // lissage : pas de départ brutal
-    GAR._c.set(0,ay+1.72,cz-6.4);
-    GAR._v.copy(G.p0).lerp(GAR._c,e9);
+    /* (2026-09-30, le tour complet) la caméra REJOINT la place de poursuite en tournant autour de la caisse (angle, rayon, hauteur
+       interpolés) : en ligne droite depuis le côté de la porte, elle traversait la caisse. Dans l'axe (a0 = π) c'est la ligne droite d'avant. */
+    if(G.a0===undefined){G.a0=Math.atan2(G.p0.x,G.p0.z);G.r0p=Math.hypot(G.p0.x,G.p0.z);}
+    {let da=Math.PI-G.a0;da=Math.atan2(Math.sin(da),Math.cos(da));
+     const a9=G.a0+da*e9,r9=G.r0p+((6.4-Math.min(cz,6.3))-G.r0p)*e9;
+     if(e9<1)GAR._v.set(Math.sin(a9)*r9,G.p0.y+(ay+1.72-G.p0.y)*e9,Math.cos(a9)*r9);else GAR._v.set(0,ay+1.72,cz-6.4);}
     camera.up.set(0,1,0);camera.position.copy(GAR._v);
     // (2026-09-26, vague 2) le REGARD aussi glisse de la visée de l'orbite à celle de la poursuite (il sautait d'un coup à la 1re image),
     // et le décentrement de l'objectif (voir garageDecale) revient à zéro sur le même geste
@@ -33610,10 +33615,11 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   const dG0=garageDist*(1+POR*.34)*(1+vG*.12)*(gEl&&gEl.classList.contains('menu')?.8+.02*POR:1); // (debout ×.82 et plus de recul pour la bande de vignettes : la caisse de PROFIL — le plateau la tourne — tient encore dans la largeur) // (2026-09-30) au MENU il n'y a plus d'onglets en bas : la caméra s'approche, la caisse est le sujet
   // (2026-09-26, audit rendu) le recul pouvait atteindre ~12 m alors que rien de haut n'est garanti libre au-delà de 8,3 m : la caméra
   // traversait le décor. On plafonne le rayon HORIZONTAL à 8 m et on rend le cadrage par l'objectif (même taille de caisse à l'écran).
-  const dG=Math.min(dG0,10.5/Math.max(.2,Math.cos(garagePitch))); // (2026-09-29) 8 → 10,5 m : la caméra est FIXE, dans l'axe libre de l'atelier (côté établi) — elle recule au lieu d'ouvrir l'objectif jusqu'à ~87° (« l'effet loupe »)
+  const cA=garCamA(),cPit=garagePitch+(GAR.swP||0);
+  const capH=8+2.5*Math.pow(Math.max(0,-Math.cos(cA)),2); // (2026-09-30, le tour complet) 10,5 m seulement dans l'axe libre (côté établi) ; ailleurs le décor est rangé pour 8 m (la règle des 8,3 m)
+  const dG=Math.min(dG0,capH/Math.max(.2,Math.cos(garagePitch))); // (2026-09-29) 8 → 10,5 m : la caméra est FIXE, dans l'axe libre de l'atelier (côté établi) — elle recule au lieu d'ouvrir l'objectif jusqu'à ~87° (« l'effet loupe »)
   if(dG<dG0)fovG=Math.min(88,2*Math.atan(Math.tan(fovG*Math.PI/360)*dG0/dG)*180/Math.PI);
   if(Math.abs(camera.fov-fovG)>.01){camera.fov=fovG;camera.updateProjectionMatrix();}
-  const cA=garCamA(),cPit=garagePitch+(GAR.swP||0);
   const cp=Math.cos(cPit)*dG,h=Math.sin(cPit)*dG;
   camera.up.set(0,1,0);
   // GARDE-FOU : la caméra reste DANS l'atelier. On tourne à 360° dedans — jamais à travers un mur,
@@ -33865,11 +33871,15 @@ function garMenuMaj(){ // le profil (argent, aura), le niveau de la carrière, l
 }
 function garMenuSuit(){ // l'étiquette MISSIONS se pose sur le socle, où qu'il soit à l'écran
   const an=$('gMisAncre');if(!an||!GAR.misPos)return;
-  const v=GAR._mv||(GAR._mv=new THREE.Vector3());v.copy(GAR.misPos);v.y+=GARAGE_Y;v.project(camera);
-  const vis=v.z<1&&Math.abs(v.y)<1.05; // (2026-09-30) plus de test sur x : quand la vue balance ou que le doigt la tourne, le socle peut sortir par le côté — l'étiquette reste alors COLLÉE AU BORD (on ne perd jamais la porte des missions)
+  const v=GAR._mv||(GAR._mv=new THREE.Vector3());v.copy(GAR.misPos);v.y+=GARAGE_Y;
+  v.applyMatrix4(camera.matrixWorldInverse);const der=v.z>-.5,cote=v.x;     // (2026-09-30, le tour complet) DERRIÈRE la caméra (on regarde l'établi) : la projection s'inverse
+  v.applyMatrix4(camera.projectionMatrix);                                   // (= v.project(camera), en deux temps pour lire le repère caméra au passage)
+  const vis=der||Math.abs(v.y)<1.05; // (2026-09-30) plus de test sur x : quand la vue balance ou que le doigt la tourne, le socle peut sortir par le côté — l'étiquette reste alors COLLÉE AU BORD (on ne perd jamais la porte des missions)
   an.style.visibility=vis?'':'hidden';
   if(!vis)return;const w9=an.offsetWidth||140,m9=8+w9/2;                     // l'étiquette reste DANS l'écran (le socle est au bord en portrait)
-  let x9=Math.max(m9,Math.min(VP.w-m9,(v.x*.5+.5)*VP.w)),y9=(.5-v.y*.5)*VP.h;
+  let x9,y9;
+  if(der){const L9=garLibre()||{};x9=cote>=0?VP.w-m9:m9;y9=(L9.y0||VP.h*.25)+(an.offsetHeight||34)+10;} // le socle est dans notre dos : l'étiquette attend au bord de SON côté, sous JOUER
+  else{x9=Math.max(m9,Math.min(VP.w-m9,(v.x*.5+.5)*VP.w));y9=(.5-v.y*.5)*VP.h;}
   /* (2026-09-30) elle ne se pose jamais SUR JOUER (couché, le haut du socle tombait dans le mot) : à côté de lui si la place le permet,
      sinon dessous */
   const pl=(garLibre()||{}).pl;
@@ -34037,7 +34047,7 @@ addEventListener('pointerup',e=>{
   garageDrag=false;
 });
 addEventListener('pointermove',e=>{if(!garageDrag||e.pointerId!==gpId||gPince)return;
-  if(gEl&&gEl.classList.contains('menu')){GAR.vA=THREE.MathUtils.clamp((GAR.vA||0)-(e.clientX-gpx)*.0035,-.36,.36);garagePitch=THREE.MathUtils.clamp(garagePitch+(e.clientY-gpy)*.003,.08,.42);} // (2026-09-30, Léo) au MENU le doigt fait TOURNER LE REGARD autour de l'atelier, un peu (voir « LE GARAGE QUI VIT »)
+  if(gEl&&gEl.classList.contains('menu')){GAR.vA=(GAR.vA||0)-(e.clientX-gpx)*.007;garagePitch=THREE.MathUtils.clamp(garagePitch+(e.clientY-gpy)*.003,.08,.42);} // (Léo : « on doit pouvoir voir derrière ») plus de borne : le tour complet // (2026-09-30, Léo) au MENU le doigt fait TOURNER LE REGARD autour de l'atelier, un peu (voir « LE GARAGE QUI VIT »)
   else{garageAng-=(e.clientX-gpx)*.01;garagePitch=THREE.MathUtils.clamp(garagePitch+(e.clientY-gpy)*.006,.02,.82);}
   gpx=e.clientX;gpy=e.clientY;});
 // ⚠ ORBITE BORNÉE À 7,8 m : au-delà on sortait par les murs et on traversait la servante et les
@@ -36706,7 +36716,10 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='shopRestore'){ toast(pxi('coche')+' '+TR('AUCUN ACHAT À RESTAURER')); } // LA BOUTIQUE : le même atelier 3D, onglet PEINTURE — on essaie sur la vraie caisse
     else if(a==='voirRec'&&MIS_REC){ const r=MIS_REC; ecranWipe(function(){ openGarage(); if(r.car!=null){shopTab('voiture');garageShow(r.car);setTimeout(function(){const be=$('gEquip');if(be&&garageOn&&be.offsetParent)pixBurst(be,12);},520);} else if(r.cat){shopTab(r.cat);shopShow(r.cat,COSM[r.cat].findIndex(x=>x.id===r.id));} }); }
     else if(a==='buyGoal'){ const g9=objectif(); ecranWipe(function(){ openGarage(); if(g9){ if(g9.car!=null){shopTab('voiture');garageShow(g9.car);} else {shopTab(g9.cat);shopShow(g9.cat,g9.i);} } }); }
-    else if(a==='garage'){ const pc=garPortee(); ecranWipe(function(){openGarage();shopTab('voiture');if(pc>=0)garageShow(pc);}); } // LE VRAI ATELIER : la caisse tourne au milieu, on glisse pour l'admirer
+    /* (2026-09-30, Léo : « quand je finis une partie et que j'appuie sur GARAGE, ça me renvoie sur l'ancien ») GARAGE ouvre LE GARAGE-MENU
+       (profil, JOUER, missions, [NIVEAU], BOUTIQUE) — plus l'atelier en mode boutique. Après une partie, c'est le chemin de MENU (la course
+       est rangée sous le volet, puis l'accueil = le garage). La boutique reste à un bouton (BOUTIQUE, en bas du garage). */
+    else if(a==='garage'){ if(started&&gameOver)ecranWipe(function(){ accueilRetour(); mGo('home','racine'); }); else ecranWipe(function(){ if(garageOn)garMode('menu'); else {GAR.aMenu=true;openGarage();} }); }
     else if(a==='surv'){ clic(survBtnEl); mFill(); }
     else if(a==='park'){ clic(parkBtnEl); mFill(); }
     else if(a==='sand'){ SANDBOX=!SANDBOX; SAVE.d.sand=SANDBOX; SAVE.flush(); mFill(); }

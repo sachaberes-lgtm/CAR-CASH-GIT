@@ -24,6 +24,15 @@
   de cette visée (`GAR.go.lx0/lz0`). En BOUTIQUE glisser fait toujours tourner la caisse ; le plateau tourne toujours. L'étiquette MISSIONS
   reste COLLÉE AU BORD quand le socle sort du cadre, et ne se pose jamais sur JOUER (à côté, sinon dessous — `garLibre().pl`).
   `dbgGarage(a,p,d,v)` fige (4e argument = le regard), `dbgGarage('etat')`, `dbgGarage('libre')`. Banc `regard.mjs W H nom`.
+  · **LE TOUR COMPLET** (même soir, Léo : « on doit pouvoir voir derrière ») : plus de borne au regard (0,007 rad/px : un glissé d'un
+    bord à l'autre ≈ un demi-tour debout) ; retour dans l'axe de la porte par le plus court chemin après 3 s sans toucher. Le recul
+    maxi dépend de l'azimut (`capH` : 10,5 m dans l'axe libre côté établi, 8 m ailleurs — la règle des 8,3 m). Socle des missions DANS
+    LE DOS de la caméra : l'étiquette attend au bord de son côté, sous JOUER. Le LÂCHER rejoint la place de poursuite en TOURNANT autour
+    de la caisse (angle/rayon/hauteur interpolés, `G.a0`) — en ligne droite depuis le côté porte il la traversait. Banc `regard2.mjs`.
+- **GARAGE APRÈS UNE PARTIE = LE GARAGE-MENU** (Léo : « quand je finis une partie et que j'appuie sur GARAGE, ça me renvoie sur l'ancien ») :
+  la tuile GARAGE de l'écran de mort prend le chemin de MENU (`accueilRetour` sous le volet, puis l'accueil = le garage en mode menu).
+  ⚠ Du coup MENU (maison) et GARAGE de l'écran de mort mènent au même endroit. Restent en BOUTIQUE : missions → VOIR, objectif,
+  récompense, personnalisation (ils visent un objet précis). Banc `mortgar.mjs` (course → mort → GARAGE, deux fois).
 - **DEBOUT, PLUS GRAND** (Léo : « les trucs sont un peu petits en mode portrait ») : bloc `@media (orientation:portrait) and
   (max-width:760px)` — profil (avatar 58, chiffres 12 px, jauges 8 px), ⚙ 60 × 56, JOUER 46 px, MISSIONS 42 px de haut, rangée du bas
   86 × 82 ; palier ≤ 360 px resserré (vérifié 390 × 844, 375 × 667, 320 × 568). Au MENU la caméra ne recule plus pour une bande de
