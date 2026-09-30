@@ -25653,7 +25653,7 @@ function uiClic(k){ try{ const f9=function(){if(SONV2)sfx(UI_CLIC[typeof k==='st
   if(SND.sfx&&!paused){ if(AC&&AC.state!=='running')AC.resume().then(f9).catch(function(){}); else f9(); }
   else if(SND.sfx&&paused&&SONV2){const r9=k==='retour',t9=performance.now(),w9=function(){if((!paused||r9)&&AC&&AC.state==='running')f9();else if(performance.now()-t9<(r9?1200:700))setTimeout(w9,60);};setTimeout(w9,60);} /* (QA 2026-09-29) REPRENDRE (« retour ») n'attend plus la fin de la pause : le 3-2-1 la tient ≥ 0,9 s, le clic était perdu — il part dès que le compte a réveillé le son */ /* (débogage son 2026-09-29) en pause : le clic attend (0,7 s au plus) que REPRENDRE réveille le son ; un interrupteur du panneau, lui, reste muet */
   }catch(e){} hap(8); } // (2026-09-26) REPRENDRE : le contexte se réveille en asynchrone — la note attend qu'il tourne // en pause le moteur audio dort : la note s'empilerait et partirait en rafale à la reprise
-window.dbgTouch=function(){return{on:TCTL.on,pad:TCTL.pad,act:TCTL.act,st:+TCTL.st.toFixed(3),sv:+TCTL.sv.toFixed(3),play:TCTL.play,steer:+steer.toFixed(3)};}; // console : l'état du volant tactile (un téléphone ne s'inspecte pas)
+window.dbgTouch=function(){return{on:TCTL.on,pad:TCTL.pad,act:TCTL.act,st:+TCTL.st.toFixed(3),sv:+TCTL.sv.toFixed(3),dy:+(TCTL.dy||0).toFixed(1),play:TCTL.play,steer:+steer.toFixed(3)};}; // console : l'état du volant tactile (un téléphone ne s'inspecte pas)
 // LE GAZ, exposé : la vignette a besoin de savoir qu'on POUSSE, pas seulement qu'on va vite.
 // (posé une fois par frame dans la physique, à côté de son `up` — une seule vérité, pas deux
 // façons de relire les touches qui divergeraient le jour où on remappe le clavier)
@@ -34277,38 +34277,60 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   // (2026-09-28, user : « augmente la sensibilité de l'axe haut bas du joystick ») : assiette pleine à 44 px au lieu de 66 (×1,5), zone morte
   // 14 % → 10 %, courbe 1,25 → 1,15. Le geste du DRIFT (pouce tiré vers le bas au sol) garde SA distance : il lit les pixels (`TCTL.dy`).
   const sz=$t('tSteer'),stk=$t('tStick'),knb=$t('tKnob'),LOCK=54,LOCKV=44; // 54 px = braquage plein · 44 px = assiette pleine
-  function stSet(h,v){ TCTL.st=h; TCTL.sv=v;
-    if(knb)knb.style.transform='translate('+(-h*LOCK*.62)+'px,'+(-v*LOCKV*.5)+'px)'; }
+  function stSet(h,v,kx,ky){ TCTL.st=h; TCTL.sv=v; // kx/ky : la place du POUCE en pixels depuis la base
+    if(knb)knb.style.transform='translate('+(kx||0)+'px,'+(ky||0)+'px)'; } // (2026-09-30) le bouton est dessiné SOUS le pouce (×1) : à ×0,62 de la course (×0,5 en vertical, sur la valeur COURBÉE) il traînait derrière le doigt et mentait sur la butée
   if(sz){
     /* ⚠ TROIS GESTES NOMMÉS, DEUX ENTRÉES (2026-09-24) : le doigt ET la souris passent par les mêmes
        `stDown/stMove/stUp`. Sans le repli souris, le volant était le seul contrôle du téléphone
        injoignable sur l'écran d'ordi (`?tel=1`) — on n'y conduisait qu'aux flèches du clavier, pas
        « au pouce ». La souris prend l'identifiant 'souris'. */
+    /* (2026-09-30, relecture du volant) LA PLACE AU BORD : un stick né à 20 px du bord gauche n'avait que 20/54 = 37 % de sa course vers
+       la gauche, 32 % de braquage (le doigt bute sur le verre avant la butée) ; né à moins de ~35 px du bas, ni drift ni assiette pleine. Le demi-axe GAUCHE
+       (gx) et le demi-axe BAS (gy) se calent sur la place RÉELLE à la naissance (6 px de marge : un pouce ne pointe pas le dernier pixel
+       du verre), planchers 24/20 px pour ne pas faire une gâchette. Loin des bords, rien ne change : gx=54, gy=44. Le rectangle du
+       volant est lu UNE fois par appui (sL/sT/sB) : aucune lecture de layout forcée pendant le glissé. */
+    let sL=0,sT=0,sB=0,gx=LOCK,gy=LOCKV;
     const stDown=function(id,x,y){
       if(boomSkip())return; // (2026-09-25) un tap passe l'explosion
-      const r=sz.getBoundingClientRect();
+      const r=sz.getBoundingClientRect(); sL=r.left; sT=r.top; sB=r.bottom;
+      gx=Math.max(24,Math.min(LOCK,x-sL-6)); gy=Math.max(20,Math.min(LOCKV,sB-y-6));
       TCTL.id=id; TCTL.ox=x; TCTL.oy=y; TCTL.act=true; TCTL.dy=0; // (le pouce en pixels repart de zéro : un appui immobile ne rejoue pas le dernier glissé)
-      stk.style.left=(x-r.left)+'px'; stk.style.top=(y-r.top)+'px';
+      stk.style.left=(x-sL)+'px'; stk.style.top=(y-sT)+'px';
       stSet(0,0); sz.classList.add('act'); sz.classList.add('used'); // la consigne « GLISSE POUR TOURNER » a fait son travail
       start();
     };
     const stMove=function(x,y){
-      const rawX=x-TCTL.ox,rawY=y-TCTL.oy;
-      if(rawX>LOCK)TCTL.ox=x-LOCK;    // STICK FLOTTANT sur les DEUX axes : la base suit le doigt
-      if(rawX<-LOCK)TCTL.ox=x+LOCK;   // au-delà de la butée, donc revenir au centre rend la main
-      if(rawY>LOCKV)TCTL.oy=y-LOCKV;  // IMMÉDIATEMENT (jamais collé au plein braquage)
-      if(rawY<-LOCKV)TCTL.oy=y+LOCKV;
-      const nx=Math.max(-LOCK,Math.min(LOCK,x-TCTL.ox))/LOCK,
-            ny=Math.max(-LOCKV,Math.min(LOCKV,y-TCTL.oy))/LOCKV,
-            ax=Math.abs(nx)<.06?0:nx, ay=Math.abs(ny)<.10?0:ny; // zones mortes : le pouce tremble, pas la caisse (un peu plus large en vertical : tourner ne doit pas cabrer)
-      TCTL.dy=Math.max(-LOCKV,Math.min(LOCKV,y-TCTL.oy)); // le pouce en PIXELS vers le bas (le drift s'y mesure, indépendant de la sensibilité)
+      const ox0=TCTL.ox,oy0=TCTL.oy,rawX=x-ox0,rawY=y-oy0;
+      if(rawX>LOCK){TCTL.ox=x-LOCK;gx=Math.max(gx,Math.min(LOCK,TCTL.ox-sL-6));} // STICK FLOTTANT sur les DEUX axes : la base suit le doigt (en s'écartant du bord, le demi-axe gauche regagne sa place — jamais il ne rétrécit en cours d'appui)
+      if(rawX<-gx)TCTL.ox=x+gx;       // au-delà de la butée, donc revenir au centre rend la main
+      if(rawY>gy)TCTL.oy=y-gy;        // IMMÉDIATEMENT (jamais collé au plein braquage)
+      if(rawY<-LOCKV){TCTL.oy=y+LOCKV;gy=Math.max(gy,Math.min(LOCKV,sB-TCTL.oy-6));}
+      if(TCTL.ox!==ox0||TCTL.oy!==oy0){stk.style.left=(TCTL.ox-sL)+'px';stk.style.top=(TCTL.oy-sT)+'px';} // (2026-09-30) l'ANNEAU suit la base flottante (il restait planté où le pouce s'était posé) — écrit seulement quand la base bouge
+      const px=Math.max(-gx,Math.min(LOCK,x-TCTL.ox)),py=Math.max(-LOCKV,Math.min(gy,y-TCTL.oy)),
+            nx=px<0?px/gx:px/LOCK,ny=py<0?py/LOCKV:py/gy,
+            ax=Math.abs(nx)<.06?0:nx, // zone morte : le pouce tremble, pas la caisse
+            /* (2026-09-30) ZONE MORTE CROISÉE : le pouce pivote à sa base, un glissé « de côté » décrit un ARC — 54 px de braquage portent
+               15 à 30 px de vertical, soit 35 à 70 % d'assiette avec l'ancienne zone morte fixe de 10 % (tourner en vol faisait piquer ou
+               cabrer). La zone morte verticale s'ÉLARGIT avec le braquage (10 % au neutre → 55 % = 24 px au plein braquage) et la sortie est
+               re-étalée sur ce qui reste : une poussée franche (44 px) donne toujours l'assiette pleine. Au neutre la courbe linéaire
+               re-étalée colle à l'ancienne (ny^1,15) à 0,015 près au-delà de 40 % de course — la sensibilité réglée le 28/09 est gardée. */
+            dz=.10+.45*Math.abs(nx),ay=Math.abs(ny)<=dz?0:(ny<0?-1:1)*(Math.abs(ny)-dz)/(1-dz);
+      TCTL.dy=py>0?py*LOCKV/gy:py; // le pouce en PIXELS vers le bas (le drift s'y mesure, indépendant de la sensibilité) — rapporté aux 44 px d'une course pleine quand le bas de l'écran la raccourcit
       stSet(-(ax<0?-1:ax>0?1:0)*Math.pow(Math.abs(ax),1.15),   // pouce à GAUCHE = braquage à gauche (steer>0) — (conduite v4) courbe 1,35 → 1,15 : 25 % de pouce = 20 % du cap (15 % avant)
-            -(ay<0?-1:ay>0?1:0)*Math.pow(Math.abs(ay),1.15));  // pouce vers le HAUT = sv>0 = PIQUÉ (manche d'avion)
+            -ay,px,py);                                         // pouce vers le HAUT = sv>0 = PIQUÉ (manche d'avion)
     };
     const stUp=function(){ TCTL.act=false;TCTL.id=null;stSet(0,0);sz.classList.remove('act'); };
     sz.addEventListener('touchstart',function(e){
       if(TCTL.pad)return;
       if(e.cancelable)e.preventDefault();
+      /* (2026-09-30) LE VOLANT N'A QU'UN PROPRIÉTAIRE : un 2e contact dans la moitié gauche (la paume, un doigt de la main qui tient le
+         téléphone) VOLAIT le stick — il sautait sous l'intrus, le vrai pouce était ignoré, et au lever de l'intrus le braquage tombait à 0
+         sous un pouce toujours posé. Tant que le pouce qui tient le volant est sur le verre, un nouveau contact ne fait que passer
+         l'explosion. (Un identifiant RECYCLÉ — Android réemploie 0, 1, 2… — qui arrive dans changedTouches est un nouvel appui.) */
+      if(TCTL.act){ let tient=false;
+        for(let i=0;i<e.touches.length;i++)if(e.touches[i].identifier===TCTL.id)tient=true;
+        for(let i=0;i<e.changedTouches.length;i++)if(e.changedTouches[i].identifier===TCTL.id)tient=false;
+        if(tient){boomSkip();return;} }
       const t=e.changedTouches[0]; stDown(t.identifier,t.clientX,t.clientY);
     },{passive:false});
     sz.addEventListener('touchmove',function(e){
