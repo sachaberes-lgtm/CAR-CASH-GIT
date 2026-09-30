@@ -4388,6 +4388,20 @@ html #gAct:not(.choix) #gJouer{container-type:inline-size;padding:0 10px}
 html #gAct:not(.choix) #gJouer>span{font-size:min(var(--f8),calc((100cqi - 84px) / 6.2));letter-spacing:2px;white-space:nowrap}
 @container (max-width:230px){html #gAct:not(.choix) #gJouer .mChev{display:none}html #gAct:not(.choix) #gJouer>span{font-size:min(var(--f8),calc((100cqi - 24px) / 6))}}
 @media (max-width:360px){html #gAct{gap:10px}html #gAct #gShopBas{width:74px;min-width:74px;letter-spacing:0}html #gAct #gClose{width:60px;min-width:60px}html #gAct.choix #gShopBas{display:none}}
+/* ---- 32. LE DAUPHIN EN VOL (2026-09-30, Sacha : « on doit voir l'aura monter pendant l'animation des dauphins ») — en vol, le compteur
+   SEUL (étoile + nombre + AURA), assez gros pour qu'on le voie grimper ; le mot DAUPHIN s'écrit à la pose (récapitulatif). La figure
+   qui naît le fait BONDIR une fois. ---- */
+html body #dolHud.vol .dNom{display:none}
+/* il ne vit pas dans le couloir du haut (défis, carte moteur, annonces le masquaient pendant tout le vol, mesuré) : JUSTE SOUS la caisse,
+   au niveau des dauphins qui nagent — et il reste visible quand le couloir parle */
+html body #dolHud.vol{top:calc(50% + max(48px,7vh))} /* en vol la caméra CENTRE la caisse : juste dessous */
+html body:is(.slamOn,.ebOn):not(.verdOn) #dolHud.vol.on,html body:has(#misBan.on):not(.verdOn) #dolHud.vol.on{visibility:visible}
+html body #dolHud.vol .dAura{font-size:clamp(13px,3.9vw,17px)!important;gap:7px}
+html body #dolHud.vol .dAura .pxi{--pxs:3}
+html body #dolHud.vol .dAura small{font-size:9px}
+html body #dolHud.vol.fig .dAura{animation:dolFigBond var(--t-slow) var(--ease)}
+@keyframes dolFigBond{from{scale:1.45;filter:brightness(1.8)}to{scale:1;filter:none}}
+@media (prefers-reduced-motion:reduce){html body #dolHud.vol.fig .dAura{animation:none}}
 </style>
 <style id="hudMaitrise">
 /* =====================================================================================================================
@@ -12744,9 +12758,9 @@ let lvlBanT=0;
    la règle du niveau disparaissait au portail, pile quand elle sert. Désormais le couloir est réservé toute sa durée (3,8 s) et VERROUILLÉ
    3 s (`ferme` : même une voix plus forte attend dans la file — la carte moteur passe à 3 s, un record patiente) ; seule la mort la
    coupe : l'explosion (hautVide) et la vie perdue du mode FACILE (facileSauve). Sans promesse : inchangé (2,8 s, coupable à 1,4 s). */
-const LVL_BAN={ms:2800,msPr:3800,verrou:3000};
+const LVL_BAN={ms:2400,msPr:3800,verrou:3000,prom:0,num:0}; // (2026-09-30, Sacha : « trop de texte, laisse juste MER DE NUAGES ») prom / num : la promesse et « NIVEAU n » — éteints ; la bannière ne dit plus que le NOM
 function lvlPromesse(){ // la ligne sous le nom ('' = aucune) — UN seul endroit : le couloir (sa durée) et la bannière (son texte, sa durée) la lisent
-  const c=LVL.cur;if(!c||c.piste==='tuto')return ''; // la piste de l'école hérite des NUAGES : pas de « LES NUAGES CACHENT LES VIRAGES » sous son ciel nu
+  const c=LVL.cur;if(!c||c.piste==='tuto'||!LVL_BAN.prom)return ''; // la piste de l'école hérite des NUAGES : pas de « LES NUAGES CACHENT LES VIRAGES » sous son ciel nu
   return c.pr||(c.espace>=.5&&!PARK.on?'GRAVITE REDUITE : SAUTS 2 FOIS PLUS LONGS':''); // (2026-09-28) l'espace a SA promesse : la gravité
 }
 function lvlAnnonce(){ // (vague 2) le niveau prend son tour dans la file du couloir : il ne parle plus PAR-DESSUS un palier ou un record
@@ -12754,6 +12768,7 @@ function lvlAnnonce(){ // (vague 2) le niveau prend son tour dans la file du cou
   if(lvlPromesse())hautPasse(lvlMontre,LVL_BAN.msPr,'lvl',1,{min:LVL_BAN.verrou,ferme:1});else hautPasse(lvlMontre,LVL_BAN.ms,'lvl',1);}
 function lvlMontre(){ // la bannière « NIVEAU n — LIEU » (fondu d'opacité seul : rien ne bouge, REDUCED_MOTION compris)
   const b=document.getElementById('lvlBan');if(!b||!LVL.cur)return;
+  {const n9=document.getElementById('lvlNum');n9.style.display=LVL_BAN.num?'':'none';}
   document.getElementById('lvlNum').innerHTML=Array.from(TR('NIVEAU')+' '+LVL.n).map(function(c,i){return '<i style="animation-delay:'+(i*45)+'ms">'+(c===' '?'&nbsp;':c)+'</i>';}).join(''); // (2026-09-26) les lettres TOMBENT une à une
   {const nm9=document.getElementById('lvlNom'),c9=LVL.cur.carr,B9=c9&&CARRIERE[c9.b]; // (2026-09-28) en carrière « NIVEAU 2 / NUAGES — PREMIERES LUEURS » (le numéro était écrit deux fois, et la ligne composée n'était dans aucun dictionnaire : restée en français en anglais)
    nm9.textContent=B9&&B9.niveaux[c9.i]?TR(B9.nm)+' — '+TR(B9.niveaux[c9.i].nm):TR(LVL.cur.nm);
@@ -12764,7 +12779,7 @@ function lvlMontre(){ // la bannière « NIVEAU n — LIEU » (fondu d'opacité 
      (le numéro), au plus dix, chacune ~100 ms après le départ de sa chute (45 ms d'écart). setTimeout et pas `{t:}` : ui.lettre n'a que
      trois voix, dix notes programmées d'un coup se couperaient entre elles avant d'avoir sonné. Carte d'auto-école à l'écran : elle la cache. */
   if(SONV2&&!document.body.classList.contains('coOn'))try{sfx('ui.banniere');
-    if(!REDUCED_MOTION){const L9=Array.from(TR('NIVEAU')+' '+LVL.n);let k9=0,n9=0;
+    if(!REDUCED_MOTION&&LVL_BAN.num){const L9=Array.from(TR('NIVEAU')+' '+LVL.n);let k9=0,n9=0; /* (les micro-frappes accompagnent les lettres de « NIVEAU n » : sans elles, silence) */
       L9.forEach(function(ch,i){if(ch===' ')return;const d9=(k9++%2===0)||i===L9.length-1;if(!d9||n9>=10)return;n9++;
         setTimeout(function(){try{if(b.classList.contains('on'))sfx('ui.lettre');}catch(e){}},i*45+100);});}}catch(e){}
 }
@@ -28306,6 +28321,12 @@ function crunchSfx(rang){
    · GÊNANTES : plus de la moitié tombent n'importe où, route et caisse comprises (55 %) ; les autres gardent la couronne ;
    · 8 à la fois au plus (v4 : 6, v3b : 14 — avec la LIGNE PARFAITE, un fruit toutes les ~2,4 s : le plafond reste), vie 0,9-1,4 s,
      pleines .86 les premiers 40 % puis elles s'effacent. */
+/* LE JUS v6 — GROS ET DÉRANGEANT (2026-09-30, Sacha : « les taches de fruit éclaté sur l'écran ne sont pas assez grosses et
+   dérangeantes »). Retour vers la v3b (qu'il avait voulue) et plus loin dans la gêne :
+   · rayon ~45-90 px sur un téléphone, plafond 112 (v5 : 19-57 / 68 ; v3b : 46-91 / 110) ; coulure plus longue ;
+   · OÙ : 35 % tombent EXPRÈS sur la zone de conduite (la caisse et la route devant elle), 45 % n'importe où, 20 % dans la couronne ;
+   · 10 à la fois au plus (8), vie 1,3-2 s (0,9-1,4), pleines .93 les premiers 55 % (.86 / 40 %) ;
+   · elles GLISSENT : passé 0,3 s, la goutte descend l'écran (12-34 px/s, par pas de 4 px) — du jus qui coule sur la vitre. */
 const JUS_N=240,JUS=[],JUS_PX=4,JUS_TOILE=[],JUS_BLANC=new THREE.Color(1,1,1),JUS_ENCRE='#1c0430',JUS_M=new Uint8Array(JUS_N*JUS_N);let JUS_IM=null; // masque et pixels de brouillon RÉUTILISÉS (JUS_N cellules = la plus grande goutte)
 function jusToile(){ // une toile libre de la réserve (15 au plus : la file plafonne à 14 taches)
   for(const t of JUS_TOILE)if(!t.pris){t.pris=true;return t;}
@@ -28321,14 +28342,16 @@ function juiceScreen(col,power,n){
   const B9=Math.min(W,H); // (v3) la taille suit la plus petite dimension : même goutte debout ou couché
   for(let k=0;k<(n||1);k++){
     // (v3b) plus grosses : rayon ~46-91 px sur un téléphone (v3 : 37-73, vague 2 : 24-49), plafond 110 — la forme et ses satellites tiennent dans JUS_N
-    const R=Math.min(68,(B9*.058+Math.random()*B9*.06)*(.8+power*.45)),coul=R*(.35+Math.random()*.7); // (v5) ×1,7 — (v4) ÷3, coulure courte
+    const R=Math.min(112,(B9*.1+Math.random()*B9*.1)*(.8+power*.45)),coul=R*(.5+Math.random()*.9); // (v6) ~45-90 px, plafond 112 — (v5) ×1,7 — (v4) ÷3
     /* (v3b, Sacha : « pouvoir apparaître partout sur l'écran ») PARTOUT, uniformément : plus d'ellipse centrale interdite ni de bande du
        haut (elles repoussaient tout sur les côtés). Le HUD est dessiné PAR-DESSUS le jus, rien de ce qu'on lit n'est jamais caché. */
     let x=Math.random()*W,y=Math.random()*H; // (v4) hors de la ZONE DE CONDUITE : l'ellipse de la caisse et de la route devant elle (8 essais, puis la couronne)
-    if(Math.random()>.55)for(let t9=0;t9<8;t9++){const ex=(x-W*.5)/(W*.36+R),ey=(y-H*.6)/(H*.32+R);if(ex*ex+ey*ey>1)break;x=Math.random()*W;y=Math.random()*H; // (v5) 55 % tombent PARTOUT, route comprise : ça gêne
+    const o9=Math.random();
+    if(o9<.35){const a9=Math.random()*6.2832,r9=Math.sqrt(Math.random());x=W*.5+Math.cos(a9)*W*.3*r9;y=H*.6+Math.sin(a9)*H*.24*r9;} // (v6) 35 % EXPRÈS sur la caisse et la route : ça gêne
+    else if(o9>.8)for(let t9=0;t9<8;t9++){const ex=(x-W*.5)/(W*.36+R),ey=(y-H*.6)/(H*.32+R);if(ex*ex+ey*ey>1)break;x=Math.random()*W;y=Math.random()*H; // (v5) 55 % tombent PARTOUT, route comprise : ça gêne
       if(t9===7){const a9=Math.random()*6.2832;x=W*.5+Math.cos(a9)*(W*.36+R)*1.05;y=H*.6+Math.sin(a9)*(H*.32+R)*1.05;}}
     // (vague 2) des GOUTTES, plus des flaques (l'ancien montait à 100 px, satellites jusqu'à 2,7 R) — la taille (v3) est tirée plus haut
-    if(JUS.length>=8){const v=JUS.shift();v.toile.pris=false;} // (v5) 8 // plafond (v4 : 6 — c'était 14 ; à 20 taches, mesuré, 76 % de l'écran était repeint)
+    if(JUS.length>=10){const v=JUS.shift();v.toile.pris=false;} // (v6) 10 — (v5) 8 // plafond (v4 : 6 — c'était 14 ; à 20 taches, mesuré, 76 % de l'écran était repeint)
     const t=jusToile(),C=JUS_PX/2; // la toile est en CELLULES de 2 px : le liseré fait une cellule, la forme se pose par blocs de deux (4 px)
     const ext=Math.min(JUS_N-4,Math.ceil(R*2.05/JUS_PX)*JUS_PX),Nw=ext,Nh=Nw+Math.ceil(coul*1.6/C)+4; // demi-étendue en px = largeur en cellules ; la coulure dessous
     if(t.cv.width!==Nw||t.cv.height!==Nh){t.cv.width=Nw;t.cv.height=Nh;}else t.x.clearRect(0,0,Nw,Nh);
@@ -28354,7 +28377,7 @@ function juiceScreen(col,power,n){
       else if(coeur){d[o]=kR;d[o+1]=kG;d[o+2]=kB;d[o+3]=230;}else{d[o]=cR;d[o+1]=cG;d[o+2]=cB;d[o+3]=240;}} // (v3) corps .94, cœur .9
     t.x.putImageData(JUS_IM,0,0,0,0,Nw,Nw);
     JUS.push({x:Math.round(x/JUS_PX)*JUS_PX,y:Math.round(y/JUS_PX)*JUS_PX,r:R,ext:ext,toile:t,c:corps,bas:bas,Lc:0,
-      t:0,vie:.9+Math.random()*.5,coul:coul}); // (v5) 0,9-1,4 s — (v4) 0,7-1,1 s
+      t:0,vie:1.3+Math.random()*.7,coul:coul,gl:12+Math.random()*22,gy:0}); // (v6) 1,3-2 s, et elle GLISSE (gl px/s) — (v5) 0,9-1,4 s — (v4) 0,7-1,1 s
   }
 }
 function juiceScreenTick(dt){
@@ -28375,8 +28398,9 @@ function juiceScreenTick(dt){
     /* la goutte GRANDIT d'un coup puis s'efface. ⚠ LE GONFLEMENT EST EN SECONDES ABSOLUES, pas en fraction de vie : une projection
        arrive TOUJOURS en 90 ms. (vague 2) Il se fait par PALIERS (½, ¾, plein) : jamais de pixels de travers. */
     const g=j.t<.03?.5:j.t<.06?.75:1,e=j.ext*g;
-    juiceCx.globalAlpha=(u<.4?1:Math.pow((1-u)/.6,1.5))*.86; /* (v5) pleine .86 les premiers 40 % */ // (v4) pleine .8 le premier tiers, puis elle s'efface // (v3, Sacha : « plus opaques ») pleine .9 la 1re moitié de sa vie, puis elle s'efface — c'était ≤ .55 en fondu dès l'impact
-    juiceCx.drawImage(tc.cv,j.x-e,j.y-e,e*2,e*2*tc.cv.height/tc.cv.width);
+    if(j.t>.3)j.gy+=j.gl*dt; // (v6) le jus GLISSE sur la vitre — par pas de 4 px (jamais de pixel de travers)
+    juiceCx.globalAlpha=(u<.55?1:Math.pow((1-u)/.45,1.5))*.93; /* (v6) pleine .93 les premiers 55 % */ /* (v5) pleine .86 les premiers 40 % */ // (v4) pleine .8 le premier tiers, puis elle s'efface // (v3, Sacha : « plus opaques ») pleine .9 la 1re moitié de sa vie, puis elle s'efface — c'était ≤ .55 en fondu dès l'impact
+    juiceCx.drawImage(tc.cv,j.x-e,j.y+Math.floor(j.gy/JUS_PX)*JUS_PX-e,e*2,e*2*tc.cv.height/tc.cv.width);
   }
   juiceCx.globalAlpha=1;
 }
@@ -28619,12 +28643,12 @@ function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent dé
      bloc de vol, 2,2-12 m) : il reste sur tout saut au-dessus de la route (hors de ce lot : il porte les pièces MOTEUR et le nitro de la pose). */
 const DOL_T=0,DOL_VU=2.6,DOL_HMAX=40,DOL_TMAX=4,DOL_GRACE=.12,DOL_FIGE=.6,DOL_FIG=1,DOL_PAS=.6,
       DOL_AURA0=80,DOL_AURA_S=0,DOL_AURA_RAS=190,DOL_AURA_MAX=1200,DOL_FLOW_K=4,DOL_FLOW_MAX=6,
-      DOL_RAS_H=6.5,DOL_RAS_T0=.35,DOL_AURA_NUE=0,DOL_AURA_MIN=10; // (v6) le RAS de la figure (m), sa porte (fallT), la part de la nage SANS figure, la plus petite ligne écrite
+      DOL_RAS_H=6.5,DOL_RAS_T0=.35,DOL_AURA_NUE=.5,DOL_AURA_MIN=10; // (v6) le RAS de la figure (m), sa porte (fallT), la part de la nage SANS figure, la plus petite ligne écrite
 let dolRoadT=0,dolOffT=0,dolOn=false,dolAura=0,dolMul=1,dolHudT=0,dolLive=0,dolNb=1,dolQ=0,dolRasT=0,dolRasV=0; // (v6) dolRasT : secondes AU RAS dans ce vol (la figure) · dolRasV : la proximité de l'image (0-1) que le banc montre
 function dolVitMul(){const vm=vmaxShow();if(!(vm>0))return 1;const p=fallVel.length()*3.6*SPD/vm;return .6+1.5*Math.max(0,Math.min(1,(p-.3)/.9));} // ×0,6 (30 % de la vmax) → ×2,1 (120 %)
 // la distance de la caisse à la DALLE (dessus, dessous, bords), dans son plan de coupe — radar de tryLand (image d'avant)
 function dolDist(){const dx=Math.max(0,Math.abs(curLatOff)-ROAD_HALF),dy=curHOff>0?curHOff:(curHOff<-THICK?-THICK-curHOff:0);return Math.hypot(dx,dy);}
-const DAUPH={el:null,nom:null,lbl:null,tv:null,v:-1,force:null}; // l'étiquette, bâtie UNE fois · force : hook de test (null = radar réel)
+const DAUPH={el:null,nom:null,lbl:null,tv:null,v:-1,force:null,enVol:false}; // (v7) enVol : le compteur d'aura est à l'écran pendant la nage // l'étiquette, bâtie UNE fois · force : hook de test (null = radar réel)
 function dolTick(dt,sur,hF){ // chaque image de VOL, avant tryLand (radar = image d'avant) — hF = distance à la dalle (dolDist)
   if(sur){
     dolOffT=0;
@@ -28634,13 +28658,14 @@ function dolTick(dt,sur,hF){ // chaque image de VOL, avant tryLand (radar = imag
       const nb=Math.min(DOL_BANC.length,1+Math.floor(dolLive/DOL_PAS)); // (v4) le BANC GRANDIT avec la tenue
       if(nb>dolNb){dolNb=nb;dolHudNom();hap(8);if(nb>=DOL_BANC.length)dolSync=true;/* (v6) le 6e : le banc bondit d'un seul corps (updateDolphins) */try{if(SONV2){if(nb>=DOL_BANC.length)sfx('fig.dauphinRoyal');else sfx('jeu.dauphin',{st:nb});}else chimeNote(noteP(Math.min(11,2+nb),1),0,.05,.18);}catch(e){}} // (la session SON : cri de dauphin, note qui monte avec le banc)
       if(hF<=DOL_RAS_H&&fallT>DOL_RAS_T0)dolRasT+=dt; // (v6) le temps AU RAS, cumulé sur tout le vol (plusieurs passages s'additionnent)
-      if(!trkDolph&&dolRasT>=DOL_FIG){trkDolph=true;dolAura+=DOL_AURA0*dolMul;addTrick('dauphin','🐬 LE DAUPHIN !',3,2);} // (v6) LA FIGURE, à 1 s AU RAS (v4 : 1 s de n'importe quel vol proche), une fois par vol
+      if(!trkDolph&&dolRasT>=DOL_FIG){trkDolph=true;dolAura+=DOL_AURA0*dolMul;addTrick('dauphin','🐬 LE DAUPHIN !',3,2);
+        if(DAUPH.enVol&&DAUPH.el){DAUPH.el.classList.remove('fig');void DAUPH.el.offsetWidth;DAUPH.el.classList.add('fig');}} // (v7) la figure NAÎT : le compteur bondit (la nage passe à plein tarif + la prime) // (v6) LA FIGURE, à 1 s AU RAS (v4 : 1 s de n'importe quel vol proche), une fois par vol
       const ras=Math.max(0,Math.min(1,1-(hF-2.2)/9.8));dolRasV=ras; // l'esprit du dauphin : nager AU RAS paye plus — (v6) et SE VOIT (dolRasV → updateDolphins)
       dolMul+=(dolVitMul()-dolMul)*Math.min(1,dt*4); // (v5) la vitesse, relue en continu (lissée : un coup de nitro se sent en ~0,25 s)
       dolQ+=ras*ras*(.3+.7*Math.max(0,Math.min(1,(dolMul-.6)/1.5)))*dt; // (v5) la QUALITÉ du geste : au ras ET vite — elle fera le flow
       dolAura=Math.max(dolAura,Math.min(DOL_AURA_MAX*dolMul,dolAura+(DOL_AURA_S+DOL_AURA_RAS*ras*ras)*(1+.15*(dolNb-1))*dolMul*dt)); // (v5) jamais de recul : la vitesse qui retombe baisse le plafond, pas le gagné
       dolShow=Math.max(dolShow,.7); // ils nagent tant qu'on reste près de la route ; à la sortie, le fondu de 0,4 s d'updateDolphins
-      dolHudVal();
+      dolHudVal();if(!DAUPH.enVol&&!PARK.on&&Math.round(dolAura*(trkDolph?1:DOL_AURA_NUE))>=DOL_AURA_MIN)dolHudVol(); // (v7) l'aura MONTE sous les yeux pendant que les dauphins nagent
     }
   }else{
     dolOffT+=dt;
@@ -28664,6 +28689,7 @@ function dolHudNom(){if(!DAUPH.nom)return;const t=TR('DAUPHIN')+(dolNb>1?' ×'+d
   DAUPH.nom.classList.add('eau');DAUPH.nom.innerHTML=Array.from(t).map(function(c,i){return c===' '?' ':'<i style="--i:'+i+'">'+c.replace(/[<>&]/g,'')+'</i>';}).join('');}
 function dolFin(){ // on QUITTE la route ou on se pose : le total se fige, s'encaisse, puis s'efface
   if(!dolOn)return;dolOn=false;dolHudVal();
+  if(DAUPH.enVol){DAUPH.enVol=false;dolHudT=.7;dolHudAtt=0;} // (v7) le compteur de vol reste 0,7 s figé — à la pose, le récapitulatif le remplace
   const n=Math.round(dolAura*(trkDolph?1:DOL_AURA_NUE)); // (v6) la nage ne s'encaisse que si le dauphin est NÉ (la figure : 1 s au ras) — la règle de son flow (v5)
   if(n>=DOL_AURA_MIN)dolAura9('DAUPHIN EN VOL',n,'dauphinLive',true); /* (v6) sous 10 : pas de ligne */ // brut : la vitesse est DÉJÀ dans le compteur (addAura refuse seule en parc) — (v5) versé à la POSE
   {const f9=Math.min(DOL_FLOW_MAX,DOL_FLOW_K*dolQ);if(trkDolph&&f9>=.5&&!PARK.on)flowAdd(f9,'risque','n');dolQ=0;} // (v5) le FLOW du dauphin : au ras et vite, pour qui a tenu la figure
@@ -28674,7 +28700,7 @@ function dolFin(){ // on QUITTE la route ou on se pose : le total se fige, s'enc
    après tryLand), elles entrent dans la chaîne sans leurs pops, et UN récapitulatif s'affiche : « DAUPHIN ×n » + le total d'aura du vol.
    Crash, replacement, nouvelle partie (`dolKill`) : rien ne s'affiche, rien n'est versé (comme la chaîne perdue). Le son et le flow, eux,
    restent au moment du geste. */
-const DOL_DIFF=[],DOL_POSE=1.5;
+const DOL_DIFF=[],DOL_POSE=2.2; // (v7) 2,2 s à l'écran (1,5) : on a le temps de le LIRE
 function dolAura9(nom,base,fam,brut,muet){DOL_DIFF.push([nom,base,fam,brut,muet]);return 0;} // toujours mise de côté : même à la pose (tryLand a déjà remis mode='drive'), c'est dolPose qui la verse et l'écrit
 function dolPose(){
   if(!DOL_DIFF.length)return;
@@ -28683,9 +28709,9 @@ function dolPose(){
   CHA.sansPop=false;DOL_DIFF.length=0;
   if(!(tot>0)||PARK.on)return;
   if(!DAUPH.el)dolHudInit();
-  dolHudNom();DAUPH.lbl.textContent=TR('AURA');DAUPH.el.classList.remove('sansAura','on','fige');
+  dolHudNom();DAUPH.lbl.textContent=TR('AURA');DAUPH.el.classList.remove('sansAura','on','fige','vol','fig');DAUPH.enVol=false;
   DAUPH.v=tot;if(DAUPH.tv)DAUPH.tv.data=tot;
-  void DAUPH.el.offsetWidth;DAUPH.el.classList.add('on','fige');dolHudT=DOL_POSE;dolHudAtt=3; // il PREND SON TOUR : le verdict de la pose parle d'abord (body.verdOn le masque), le récapitulatif suit
+  void DAUPH.el.offsetWidth;DAUPH.el.classList.add('on','fige');dolHudT=DOL_POSE;dolHudAtt=4.5; // (v7) il attend jusqu'à 4,5 s (3) : carte moteur + verdict + défi, mesuré, dépassaient 3 s // il PREND SON TOUR : le verdict de la pose parle d'abord (body.verdOn le masque), le récapitulatif suit
 }
 let dolHudAtt=0; // (v5) combien de temps le récapitulatif peut encore attendre que le couloir se libère
 function dolHudLibre(){const c=document.body.classList;return !(c.contains('verdOn')||c.contains('slamOn')||c.contains('ebOn')||(DAUPH.mb||(DAUPH.mb=document.getElementById('misBan')))&&DAUPH.mb.classList.contains('on'));}
@@ -28703,11 +28729,26 @@ function dolHudShow(){
   if(!DAUPH.el)dolHudInit();
   dolHudNom();DAUPH.lbl.textContent=TR('AURA');
   DAUPH.el.classList.toggle('sansAura',PARK.on); // parc freestyle : pas d'aura → le nom seul
-  DAUPH.el.classList.remove('fige','on');DAUPH.v=-1;dolHudVal();
+  DAUPH.el.classList.remove('fige','on','vol','fig');DAUPH.enVol=false;DAUPH.v=-1;dolHudVal();
   void DAUPH.el.offsetWidth;DAUPH.el.classList.add('on');dolHudT=0;
 }
-function dolHudVal(){const v=Math.round(dolAura);if(v!==DAUPH.v&&DAUPH.tv){DAUPH.v=v;DAUPH.tv.data=v;}} // n'écrit QUE si l'entier change
-function dolHudOff(){dolHudT=0;if(DAUPH.el)DAUPH.el.classList.remove('on','fige');}
+function dolHudVal(){const v=Math.round(dolAura*(trkDolph?1:DOL_AURA_NUE));if(v!==DAUPH.v&&DAUPH.tv){DAUPH.v=v;DAUPH.tv.data=v;}} // n'écrit QUE si l'entier change — (v7) ce qui sera VRAIMENT versé (la moitié tant que la figure n'est pas née)
+function dolHudOff(){dolHudT=0;DAUPH.enVol=false;if(DAUPH.el)DAUPH.el.classList.remove('on','fige');}
+/* LE DAUPHIN v7 — L'AURA MONTE EN VOL (2026-09-30, Sacha : « on ne voit plus le texte dauphin quand on se pose ; on doit voir l'aura monter
+   pendant l'animation des dauphins, pendant qu'on survole la route »). Mesuré au banc (dolpose.js) : depuis la v6, un rase-dalle de 1,4 s
+   à 3 m (dauphins à l'écran tout du long) ne payait RIEN et n'écrivait rien — la porte de la figure (1 s au ras APRÈS 0,35 s de vol)
+   n'était pas franchie, et la nage sans figure valait 0.
+   · EN VOL, le compteur seul (étoile + nombre + AURA, sans le mot DAUPHIN) monte sous la caisse dès que les dauphins nagent — il affiche
+     ce qui sera VRAIMENT versé : la nage paie la MOITIÉ tant que la figure n'est pas née (`DOL_AURA_NUE` 0 → 0,5), plein tarif ensuite ;
+     à la naissance de la figure (1 s au ras, règle v6 inchangée) il BONDIT (classe `fig`) ;
+   · À LA POSE, le récapitulatif « DAUPHIN » + total (figure comprise) — il patiente 4,5 s au plus derrière la carte moteur, le verdict et
+     les défis (3 s ne suffisaient pas), puis reste 2,2 s (1,5).
+   La figure (le cri, le maillon de la chaîne d'argent, la prime, le flow) garde sa porte : un saut ordinaire ne la déclenche toujours pas. */
+function dolHudVol(){
+  if(!DAUPH.el)dolHudInit();
+  DAUPH.lbl.textContent=TR('AURA');DAUPH.el.classList.remove('fige','fig','sansAura','on');DAUPH.el.classList.add('vol');DAUPH.v=-1;dolHudVal();
+  void DAUPH.el.offsetWidth;DAUPH.el.classList.add('on');DAUPH.enVol=true;dolHudT=0;dolHudAtt=0;
+}
 function dolHudTick(dt){ // gate de course, quel que soit le mode
   if(dolOn&&mode!=='fall')dolFin(); // filet : sorti du vol sans atterrissage (portail/newTrack) → on encaisse
   if(DOL_DIFF.length&&mode==='drive')dolPose(); // (v5) de retour sur la route par un autre chemin que tryLand (traversée, portail) : le dauphin s'écrit
