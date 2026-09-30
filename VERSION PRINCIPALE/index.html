@@ -5241,6 +5241,16 @@ html #mHome .mIcons .mBadge{top:-9px!important;right:6px!important;transform:sca
 @media (orientation:portrait){html #mHome .mPlay.mMot{margin-bottom:6px!important}html #mHome .mPlay.mMot .lg{font-size:42px}}
 @media (prefers-reduced-motion:reduce){html #mHome .mPlay.mMot .lg.pxScale{animation:none}}
 html[data-reduced-motion="1"] #mHome .mPlay.mMot .lg.pxScale{animation:none!important}
+/* L'ACCUEIL QUI RESPIRE (2026-10-01, session DEBUGGING, dans cette couche avec l'accord de SON — Sacha, capture debout : « les boutons du bas
+   sont trop tassés »). MESURÉ (st-accueil.js, 5 formats) : 8 px entre MISSIONS et les tuiles, 8 px entre les tuiles et JOUER — mais chaque
+   plaque porte sous elle sa TRANCHE de 5 px (drop-shadow, hors de sa boîte) : il ne restait que 3 px de jour visible, et la pastille « 30 »,
+   à cheval sur le bord haut de sa tuile (−9 px), touchait la rangée MISSIONS. Désormais : 18 px sous MISSIONS (la pastille y tient, 4 px de
+   jour au-dessus d'elle), 16 px entre les tuiles et JOUER, 12 px entre MISSIONS et ⚙. Tailles des boutons, cibles de 44 px, logo et colonne
+   couchée de 340 px : inchangés. */
+html #mHome .mOutils{margin-bottom:18px;gap:12px}
+html #mHome .mIcons{margin-bottom:0}
+html #mHome .mPlay.mMot{margin-top:16px!important}
+@media (orientation:landscape) and (max-height:540px){html #mHome .mOutils{margin-bottom:16px}html #mHome .mPlay.mMot{margin:12px 0 0 auto!important}}
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
