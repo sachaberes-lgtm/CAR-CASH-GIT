@@ -5342,6 +5342,26 @@ html #mHome .mIcons{margin-bottom:0}
 html #mHome .mPlay.mMot{margin-top:16px!important}
 @media (orientation:landscape) and (max-height:540px){html #mHome .mOutils{margin-bottom:16px}html #mHome .mPlay.mMot{margin:12px 0 0 auto!important}}
 </style>
+<style id="garageV7">
+/* LE GARAGE v7 — LA PERFECTION (2026-10-01, session SON — Sacha : « retravaille le garage, je veux la perfection » ; DEBUGGING, auteur du v6,
+   a passé la main). Relevé MESURÉ d'abord (da/gar-audit.js, 4 formats, onglets, caisse rare, caisse verrouillée) ; UNE couche, par-dessus la v6,
+   même portée (la BOUTIQUE : html body #garage:not(.menu)) :
+   · le PRIX n'est dit qu'UNE fois : pour une caisse à acheter, l'encadré « PRIX : $ 20 k (il te manque $ 20 k) » redisait le bouton
+     « IL MANQUE $ 20 k » et mordait sur la scène → masqué (.prixSeul, posé par la fiche) ; les conditions qui ne sont PAS de l'argent
+     (défis, boutique en €) restent écrites ;
+   · le rang « 1 / 68 » était en 8 px (illisible) → 11 px ;
+   · les puces de rareté (32-34 px de haut) : leur zone de TOUCHE (::after) passe de 42 à 44 px sans changer le dessin (charte, règle 5) ;
+   · la bande de vignettes ne se COUPE plus net au bord de la console : elle s'y FOND (on lit « ça défile », pas « c'est cassé ») ;
+   · l'étiquette MISSIONS posée sur le décor (#gMisAncre) n'a rien à faire dans la BOUTIQUE : elle y flottait à côté de la caisse. */
+html body #garage:not(.menu) #gCard.prixSeul #gDesc{display:none!important}
+html body #garage:not(.menu) #gLvl{font-size:11px!important;line-height:1.3!important;letter-spacing:2px}
+html body #garage:not(.menu) #gRar .gR::after{top:-6px;bottom:-6px} /* la zone de touche (déjà en ::after, le ::before est le losange) : 32 + 12 = 44 px */
+html body #garage:not(.menu) #gStrip{-webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 40px),transparent)}
+html body #garage:not(.menu) #gStrip.finDroite{-webkit-mask-image:none;mask-image:none}
+html body #garage:not(.menu) #gMisAncre{display:none!important}
+html body #garage:not(.menu) #gRar .gR b{font-size:var(--f1)} /* les comptes « 1/15 » étaient à 8 px */
+html body #garage:not(.menu) .gTab{font-size:var(--f1)} /* les onglets étaient en --f0 (8 px) : 10 px, « TRAINEES » tient encore dans son quart de console debout (80 px dans 89) */
+</style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
   <div id="spStage">
@@ -13088,7 +13108,7 @@ const BIOMES={
    · fogIn/fogCj : la couleur du white-out DANS un nuage, et celle de la brume à contre-jour.
    Un biome sans étalonnage reçoit les valeurs d'avant (`BIO_ETAL0`) : la ville, l'heure bleue, le soir… ne bougent pas d'un bit.
    ⚠ bioLerp parcourt les clés du biome d'ARRIVÉE : le remplissage ci-dessous garantit que TOUS les biomes les ont toutes. */
-const BIO_ETAL0={wb:[1.02,.985,1.03],sh:[.004,-.008,.062],hi:[.052,.008,-.014],con:1.23,bloomS:.54,bloomT:.92,vigK:.52,vigC:[.149,.047,.212],daCon:1,daExpo:1,daWbN:1,daSh:1,
+const BIO_ETAL0={wb:[1.02,.985,1.03],sh:[.004,-.008,.062],hi:[.052,.008,-.014],con:1.23,bloomS:.54,bloomT:.92,vigK:.52,vigC:[.149,.047,.212],daCon:1,daExpo:1,daWbN:1,daSh:1,daHi:1,
   rimK:0,rimS:.40,fogIn:[.847,.737,.816],fogCj:[.753,.416,.329],
   jour:0,jZen:[0,0,0],jMid:[0,0,0],jHor:[0,0,0],jSol:[0,0,0]}; // (2026-09-30) LE JOUR D'ALTITUDE : 0 = le ciel d'avant (voir cielJour)
 // (vague 3) ETAL_JOUR retiré : le jour des NUAGES reprend l'étalonnage d'origine (BIO_ETAL0), voir le haut de BIOMES
@@ -13131,7 +13151,7 @@ const BIO_DAY=['aube','lever','matin','midi','aprem','golden','couchant','soir',
    le rose de la nuit teintaient le jour en MAGENTA) ; l'étalonnage neutre-frais (plus de voile magenta, vignette bleu nuit, ombres à
    peine sarcelle) ; des nuages BLANCS au soleil (volSun presque neutre : la pêche, c'est l'après-midi). Réglé au banc (ciel2.js, menu
    et course figée, debout et couché) ; `dbgAmb(nom,{…})` pour retoucher à chaud. Le menu (MENU_BIO = 'matin') prend le même ciel. */
-{const G9={wb:[1,1,1],sh:[-.006,.008,.03],hi:[-.01,-.02,.03],con:1.2, /* hi : compense le split or de la couche DA (+.02,+.038,−.042) — sinon un nuage blanc, haute lumière, sortait ORANGE */vigC:[.05,.14,.22],vigK:.26, /* (niveau 1 v2) .34 → .26 : avec le bitume plus sombre, le bas de l'image tournait au trou noir */fogIn:[.93,.95,.97],hemiG:[.78,.80,.86],volGnd:[.60,.66,.78],volSky:[.55,.75,.95]};
+{const G9={daHi:0,wb:[1,1,1],sh:[-.006,.008,.03],hi:[0,0,0],con:1.2, /* (2026-10-01) daHi 0 : plus de split or de la couche DA au jour d'altitude (les blancs sortaient SABLE) — le hi de compensation n'a plus lieu d'être */ /* hi : compense le split or de la couche DA (+.02,+.038,−.042) — sinon un nuage blanc, haute lumière, sortait ORANGE */vigC:[.05,.14,.22],vigK:.26, /* (niveau 1 v2) .34 → .26 : avec le bitume plus sombre, le bas de l'image tournait au trou noir */fogIn:[.93,.95,.97],hemiG:[.78,.80,.86],volGnd:[.60,.66,.78],volSky:[.55,.75,.95]};
  Object.assign(BIOMES.matin,G9,{jour:1,con:1.28,jZen:[.08,.30,.62],jMid:[.30,.66,.86],jHor:[.93,.93,.86],jSol:[.55,.38,.18],sunTint:[1,.90,.70],sunHalo:.8,
    fog:[.84,.90,.92],fogN:900,fogF:5200,fogCj:[.96,.90,.78],hemiS:[.78,.86,.95],hemiI:.70,sunC:[1,.95,.84],sunI:1.5,fillC:[.55,.75,.95],
    volSun:[2.05,1.98,1.84],volAmb:.9,expo:.96,
@@ -13165,7 +13185,8 @@ function daPose(U,c){
   const w=o?DA.wbN*(c.daWbN==null?1:c.daWbN):0;U.uWB.value.set(c.wb[0]+(1-c.wb[0])*w,c.wb[1]+(1-c.wb[1])*w,c.wb[2]+(1-c.wb[2])*w);
   const ks=o?(c.daSh==null?1:c.daSh):0; // (DA) la teinte TEAL des ombres, dosée par ambiance : elle colore aussi le NOIR — l'orbite (vide) et les nuits la prennent à peine
   U.uSh.value.set(c.sh[0]+DA.sh[0]*ks,c.sh[1]+DA.sh[1]*ks,c.sh[2]+DA.sh[2]*ks);
-  U.uHi.value.set(c.hi[0]+(o?DA.hi[0]:0),c.hi[1]+(o?DA.hi[1]:0),c.hi[2]+(o?DA.hi[2]:0));
+  const kh=o?(isFinite(c.daHi)?c.daHi:1):0; /* (2026-10-01) le split OR des hautes lumières, dosé par ambiance : au JOUR D'ALTITUDE il jaunissait tout ce qui est clair — nuages, peinture de route — en crème-sable (MESURÉ par GAMEPLAY : moyenne des clairs (221,219,195) → (206,202,200) sans la couche DA) */
+  U.uHi.value.set(c.hi[0]+DA.hi[0]*kh,c.hi[1]+DA.hi[1]*kh,c.hi[2]+DA.hi[2]*kh);
   U.uVigK.value=c.vigK*(o?DA.vigK:1);
 }
 window.dbgDA=function(o){if(o)for(const k in o){if(Array.isArray(o[k]))DA[k]=o[k].slice();else DA[k]=o[k];}bioApply(BIO.cur);if(acesPass)acesPass.uniforms.uExposure.value=POST_EXPO;if(o&&o.fige){if(started&&!gameOver&&!paused)togglePause();}if(o&&o.degele&&paused)togglePause();if(paused&&POST_ON&&composer)composer.render();return JSON.parse(JSON.stringify(DA));}; // banc : essayer un étalonnage sur l'image figée
@@ -34376,6 +34397,7 @@ function garageShow(i){
   if(testOuv)gDescEl.innerHTML='<i class="gTest">TEST</i> '+(u9&&u9.k==='carnet'?defisHtml(u9.v):pxi('verrou')+' '+(u9&&u9.k==='premium'?TR('BOUTIQUE')+' — <b class="gEur">'+eurTxt(u9.eur)+'</b>':String(carUnlockText(garageI)).replace(/</g,'&lt;'))); // la VRAIE condition reste écrite (charte v5 : le prix en € en or, « TEST » en pastille discrète — elle disparaît avec TEST_CAISSES)
   else if(ouverte)gDescEl.textContent=LANG==='fr'?(c.desc||''):TR(c.desc||''); /* (2026-09-29) en police système : « Ça se voit », pas « Ca se voit » */else if(dfi)gDescEl.innerHTML=defisHtml(u9.v);else gDescEl.innerHTML=pxi('verrou')+' '+String(carUnlockText(garageI)).replace(/</g,'&lt;');
   $('gCard').classList.toggle('defis',!!dfi);
+  $('gCard').classList.toggle('prixSeul',!!(u9&&u9.p&&!dfi&&u9.k!=='premium'&&(!ouverte||testOuv))); /* (garage v7) le prix est sur le bouton (« IL MANQUE $ X ») et sur la vignette : l'encadré ne le redit plus */
   // ÉQUIPER : verrouillé tant que la caisse n'est pas débloquée ; marqué quand c'est déjà la tienne
   // ⚠ on teste carUnlocked(i), PAS `garageI>bestCar` : les caisses ne se gagnent plus dans l'ordre
   // (chacune a sa condition), donc un simple « au-dessus du meilleur » laisserait passer les trous.
@@ -34438,6 +34460,7 @@ function garageFamilles(r){
       photoFile(i,function(url){const v=el.querySelector('.gTv');if(v)v.remove();if(!el.querySelector('img')){const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);}});});}
   st.querySelectorAll('.gT').forEach(function(el){el.classList.toggle('on',+el.getAttribute('data-car')===garageI);});
   const on=st.querySelector('.gT.on');if(on){const x=on.offsetLeft-(st.clientWidth-on.offsetWidth)/2;try{st.scrollTo({left:x,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){st.scrollLeft=x;}}
+  if(!st._fin){st._fin=1;const f9=function(){st.classList.toggle('finDroite',st.scrollLeft+st.clientWidth>=st.scrollWidth-4);};st.addEventListener('scroll',f9,{passive:true});setTimeout(f9,400);} /* (garage v7) au bout de la bande, plus de fondu */
 }
 // LA FILE DU STUDIO PHOTO : une vignette par image, jamais pendant la bascule du plateau ni hors du garage
 const PHQ={q:[],on:false};
@@ -34559,6 +34582,7 @@ function gStripHabits(cat,i){
       return '<div class="gT cos c-'+cat+(a?'':' lock')+(eqd?' eq':'')+'" data-cos="'+j+'" role="button" aria-label="'+String(TR(d.n)).replace(/"/g,'')+'">'+fig+(cat==='aile'?'<b>'+sansAcc(TR(d.n))+'</b>':'')+'<em>'+et+'</em></div>';}).join('');} // (le nom se lit en grand sur la fiche : la vignette montre la MATIÈRE — sauf l'aile, que seul son nom distingue)
   st.querySelectorAll('.gT').forEach(function(el){el.classList.toggle('on',+el.getAttribute('data-cos')===i);});
   const on=st.querySelector('.gT.on');if(on){const x=on.offsetLeft-(st.clientWidth-on.offsetWidth)/2;try{st.scrollTo({left:x,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){st.scrollLeft=x;}}
+  if(!st._fin){st._fin=1;const f9=function(){st.classList.toggle('finDroite',st.scrollLeft+st.clientWidth>=st.scrollWidth-4);};st.addEventListener('scroll',f9,{passive:true});setTimeout(f9,400);} /* (garage v7) au bout de la bande, plus de fondu */
 }
 // `openGarage(quiet)` — 2026-09-05 : `quiet=true` (voir `playViaGarage`) ouvre le MÊME atelier 3D
 // (la caisse, la salle, la porte) mais SANS la fiche d'achat/échange (`#gTop`/`#gCard`/les flèches) —
@@ -35126,7 +35150,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   // Les deux lampes SUIVENT la caméra (clé à 40° devant, contre-jour derrière) : la caisse est
   // toujours prise sous son meilleur angle et le reflet COURT sur la tôle pendant qu'on tourne.
   // C'est le vieux truc du photographe de studio, et ça vaut mille lumières fixes.
-  atelierLampes(true);stallKey.color.setHex(0xffdca8);stallKey.intensity=1.25;stallKey.distance=30; // (chasse aux gels) les lampes entrent, les gyrophares sortent : 8 lumières, les programmes de la course
+  atelierLampes(true);stallKey.color.setHex(0xffdca8);stallKey.intensity=gEl.classList.contains('menu')?1.25:1.6;stallKey.distance=gEl.classList.contains('menu')?30:22; /* (garage v7) BOUTIQUE : la clé plus forte mais plus COURTE (portée 22) — la caisse se détache, la pièce garde son ombre */ // (chasse aux gels) les lampes entrent, les gyrophares sortent : 8 lumières, les programmes de la course
   /* (2026-09-30, L'ATELIER v2) les lampes suivent la CAMÉRA (garCamA), plus le plateau : depuis que la caméra est fixe et que c'est le
      plateau qui tourne (« le garage sobre »), elles tournaient AVEC la caisse — elle montrait toujours le même côté éclairé et aucun reflet
      ne courait sur la tôle. Et le CONTRE-JOUR, c'est le FEU : face à la porte (au menu, au lâcher) il passe du cyan à la braise et vacille
@@ -35363,8 +35387,8 @@ function garLibre(){
     if(bb&&bb.width>0){
       if(bb.left>W*.3&&(bb.height>H*.6||W>H*1.2))r.x1=bb.left; // téléphone couché : la colonne à droite — (garage v6) la CONSOLE n'en prend plus toute la hauteur
       else r.y1=bb.top;}                                       // sinon : les commandes en bas
-    if(tb&&tb.height>0&&tb.bottom<r.y1-120)r.y0=tb.bottom;}    // la fiche du haut (si elle laisse de la place)
-  r.cx=(r.x0+r.x1)/2;r.cy=(r.y0+r.y1)/2;return garLibre._r=r;
+    if(tb&&tb.height>0&&tb.bottom<r.y1-120)r.y0=tb.bottom;r.shop=true;}    // la fiche du haut (si elle laisse de la place)
+  r.cx=(r.x0+r.x1)/2;r.cy=(r.y0+r.y1)/2;if(r.shop)r.cy=r.y0+(r.y1-r.y0)*.44; /* (garage v7) la caisse se posait BAS dans sa zone (DEBUGGING) : son centre à 44 % de la zone, pas 50 */return garLibre._r=r;
 }
 function garCadre(k){
   const r=garLibre();camera.clearViewOffset();camera.updateMatrixWorld();
