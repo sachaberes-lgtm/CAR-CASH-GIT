@@ -1,5 +1,18 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE MENU = LE GARAGE + LES BOUTONS DE SACHA (2026-09-30, session GAMEPLAY — Sacha : « les boutons ne vont pas du tout dans la version de Léo : on garde la base de garage pour le menu mais on remet les mêmes boutons que ceux que j'avais faits pour ma version »)
+- Le décor du menu reste L'ATELIER (le garage en mode `menu`) ; ce qui se TOUCHE redevient l'accueil de Sacha, `#mHome` tel quel (logo CASH CAR,
+  MISSIONS · ⚙, GARAGE · CARRIÈRE · BOUTIQUE, lingot JOUER — mêmes styles, même routeur `mTap`). `garMode` pose `body.garMenuH` en mode menu
+  (pas en MISSIONS, pas en BOUTIQUE) ; closeGarage et le LÂCHER la retirent. CSS « LE MENU = LE GARAGE + LES BOUTONS DE SACHA » : `#overlay`
+  passe au-dessus de l'atelier (z 61, sous #gFade 70, #carr 80, modale, toast, wipe), transparent ; sur l'accueil seuls ses `[data-m]` prennent
+  le doigt (le glissé et le tap sur la caisse restent à l'atelier). Le menu de Léo (`#gMenu` : profil, JOUER en pixels, [verrou][NIVEAU]
+  [BOUTIQUE], l'étiquette du socle) est MASQUÉ, son code reste. Couché (PC, paysage), la colonne se range à DROITE pour ne pas couvrir la caisse.
+- Les boutons font ce qu'ils faisaient dans sa version, l'atelier étant déjà là : GARAGE → l'atelier en mode BOUTIQUE (caisses, peinture,
+  ailes, traînées ; HOME y ramène) · CARRIÈRE → la feuille #carr par-dessus · BOUTIQUE et ⚙ → l'atelier se ferme sous le volet et
+  l'observateur de l'overlay ouvre l'écran (`__mRetour`), RETOUR = le menu · MISSIONS → l'écran MISSIONS de l'atelier (HOME y ramène) ·
+  JOUER → le LÂCHER (la caisse sort par la porte en feu). `window.__mHomeSur` : le garage-menu remet l'accueil à l'écran si le routeur
+  était ailleurs. `garLibre` cadre la caisse entre le LOGO et la rangée MISSIONS (debout), dans la moitié gauche (couché).
+- BANC `menub.js` (vrais taps, debout + couché) : chaque bouton aller-retour, JOUER → course, 0 programme lié, 0 erreur.
 ## LE VOL À LA VITESSE D'ÉJECTION (2026-09-30, soir, session GRAPHISME — Sacha : « l'air time est trop rapide, il faut que ce soit vraiment lié de manière réaliste à la vitesse d'expulsion »)
 - **`AIR_RATE=1`** (startFall) : le vol se joue en TEMPS RÉEL — le ×1,3 du midi (« qu'elle aille plus vite et tombe plus vite », 6ac7d3c) est
   retiré. C'est la 3e fois que la demande revient (25/09 vol v6 : « la vitesse en airtime est trop importante proportionnellement à celle sur
