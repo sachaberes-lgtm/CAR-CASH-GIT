@@ -1,5 +1,18 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LES NUAGES NE FONT QUE BLOQUER LA VUE + LES BANCS CACHENT LE VIRAGE SUIVANT (2026-09-30, session GRAPHISME — Sacha : « 2 oui ; sinon les nuages doivent juste bloquer la vue, rien d'autre »)
+- **Plus AUCUN effet de jeu d'un nuage sur la caisse** (`updateClouds`, bloc DEDANS) : plus de regain d'airtime (le budget de 1,2 s par banc —
+  à l'ORAGE un vol bas rechargeait toutes les 2-4 s), plus de coussin d'air (portance), plus de turbulence (vitesse et vrille chahutées),
+  au sol plus de tangage ni de frein. Il reste ce qui se VOIT et s'ENTEND : le voile, la paroi vue de dedans, le son feutré, le banc qui
+  éclate quand on le défonce, un léger tremblement de caméra. ⚠ Donc les « coussins de VOL » (les champs de 2-3 nuages, les GUÉS DE OUATE
+  des niveaux 6 et 10 de la campagne) ne rendent plus rien : ce sont des nuages comme les autres. Les RÉCOMPENSES de style gardées (percée à
+  l'aveugle `addStyle`, PERCE-NUAGE de la campagne) récompensent le joueur, pas le nuage — à retirer aussi si Sacha le veut.
+- **Les bancs de route (hors ORAGE) CACHENT LE VIRAGE SUIVANT** (relevé par la revue de GAMEPLAY : ~la moitié tombait EN virage ; la règle du
+  niveau 8 de la campagne) : `bancVirage` cherche, 150 à 1200 m plus loin, l'ENTRÉE d'un virage (rayon < 200 m) précédée d'une portion
+  droite (courbure MOYENNE < 1/330 sur 200 m — ⚠ la piste des NUAGES n'a presque pas de droite pure : courbure médiane 3,4 mrad/m) ; le banc
+  se pose son bord ~160 m avant l'entrée. Sans virage à cacher, il quitte au moins la courbe (portion droite à moins de 600 m). AUCUN tirage
+  de plus ni de moins (`cr` inchangé) : le reste du ciel ne bouge pas. Mesuré (banc `bancs.js`, `dbgBancs()`) : sur 3 pistes, les bancs en
+  virage passent de 7 à 2 sur 15. L'ORAGE garde ses bancs n'importe où (le niveau dur se roule à l'aveugle).
 ## LA GRANDE RELECTURE (2026-09-30, session GAMEPLAY — Sacha : « arrête-toi sur chaque détail, une idée → un sous-agent »)
 8 relecteurs en lecture seule (une tranche chacun) → idées vérifiées dans le code → un sous-agent par lot (worktree `amel-<lot>`) →
 intégration une par une, bancs navigateur UN à la fois (integ1/2/3.js, pistes.js, perfab.js, hvbanc.js, ligne-g.js, tour.js dans le

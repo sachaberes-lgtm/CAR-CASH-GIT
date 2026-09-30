@@ -7417,6 +7417,18 @@ function mkCloud(center,r,o,rr){ // un nuage = ses boules fusionnées en UN mesh
   CLOUDS.push({g:g,c:center.clone(),r:r,ry:ry,onRoad:!!o.onRoad,puffs:[],mesh:mesh,ph:rr()*6.28,refT:0,fid:-1,wasIn:false});
 }
 // (le repli SPRITES a été supprimé avec le raymarch : il n'y a plus qu'UN seul chemin de nuage)
+let BANC_LOG=[];window.dbgBancs=function(){const k=[];for(let s=0;s<L;s+=20)k.push(bancCourbe(s)*1000);k.sort(function(a,b){return a-b;});const q=function(p){return +k[Math.floor(p*(k.length-1))].toFixed(2);};
+  return {niveau:LVL.cur&&LVL.cur.id,L:Math.round(L),courbure:{p25:q(.25),p50:q(.5),p75:q(.75),p90:q(.9),p97:q(.97)},bancs:BANC_LOG};}; // (banc) les bancs de route : [s, courbure, courbure à sa place d'avant]
+function bancCourbe(s){ // la courbure de la piste (rad/m) autour de s, mesurée sur ±8 m
+  const ds=L/(NP-1),a=Math.max(1,Math.round(8/ds)),i=Math.round(Math.max(0,Math.min(L,s))/ds),i0=Math.max(0,i-a),i1=Math.min(NP-1,i+a);
+  return Math.acos(Math.min(1,T[i0].dot(T[i1])))/Math.max(1,(i1-i0)*ds);}
+function bancVirage(s0,deja){ // l'entrée du prochain VIRAGE (rayon < 200 m) précédé d'une portion DROITE (courbure moyenne < 1/330 sur 200 m), entre s0+150 et s0+1200 — ou −1
+  /* ⚠ (banc bancs.js) la piste des NUAGES n'a presque pas de droite pure (courbure médiane 3,4 mrad/m, rayon ~290 m) : « droite » = en MOYENNE */
+  for(let c=s0+150;c<Math.min(L-320,s0+1200);c+=8){
+    if(bancCourbe(c)<1/200||bancCourbe(c-12)>=1/200)continue; if(Math.abs(c-deja)<120)continue; // l'ENTRÉE du virage (juste avant, ça ne tournait pas encore)
+    let m=0,n=0;for(let q=c-210;q<c-10;q+=10){m+=bancCourbe(q);n++;}
+    if(m/n<1/330)return c;}
+  return -1;}
 function buildClouds(rr){
   disposeClouds();
   nuageFondu=started?0:1; // (2026-09-26) en course (portail), les nuages de la nouvelle zone montent en fondu avec le ciel — au menu, tout de suite
@@ -7430,11 +7442,18 @@ function buildClouds(rr){
   // bancs SUR la route — espacés : on en traverse PARFOIS, jamais en continu. Un MUR intégral (la caisse
   // disparaît dans le blanc) reste l'exception spectaculaire, pas la règle.
   const OR9=!!(LVL.cur&&LVL.cur.id==='orage'&&!LVL.cur.camp); // (2026-09-29) L'ORAGE : « plein de gros nuages sur la route » — le niveau dur se roule À L'AVEUGLE
+  let cBanc=-1e9;BANC_LOG=[]; // (2026-09-30) le dernier virage caché : deux bancs ne cachent jamais le même
   for(let sp=(OR9?420:1600)+cr()*(OR9?300:900);sp<L-300;sp+=OR9?300+cr()*300:1900+cr()*1400){ /* (2026-09-30, Sacha : « beaucoup plus de nuages, au point que ça gêne la visibilité ») : à l'ORAGE un banc tous les 300-600 m (560-1180 avant) */ // (2026-09-26, user : « moins de nuages en contact avec la route ») : ~2× plus rares — à l'ORAGE ~3× plus serrés
     if(cr()<(OR9?.06:.4))continue; // 2 bancs sur 5 sautés (orage : ~1 sur 16)
     frameAt(sp,F);
     const mega=cr()<(OR9?.45:.1);
     const dl9=OR9&&!mega&&cr()<.5?(cr()<.5?-1:1)*ROAD_HALF*(.35+cr()*.3):0; // (2026-09-30) à l'orage, un banc sur quatre couvre UN côté de la route : on le frôle, on ne sait pas ce qu'il cache
+    /* (2026-09-30, Sacha : « oui » — relevé par la revue de GAMEPLAY : ~la moitié des bancs tombaient EN virage) hors de l'ORAGE, le banc CACHE LE
+       VIRAGE SUIVANT : au bout d'une vraie droite, son bord ~160 m avant l'entrée de la courbe — on le voit venir, on en ressort avec le temps
+       de lire le virage (la règle du niveau 8 de la campagne). Aucun tirage de plus ni de moins : sans virage à cacher, il garde sa place. */
+    let s9=sp;if(!OR9){const r9=mega?55:25,c9=bancVirage(sp,cBanc);if(c9>=0){cBanc=c9;s9=Math.max(sp,c9-160-r9);frameAt(s9,F);}
+      else if(bancCourbe(sp)>=1/300){for(let q=sp+20;q<Math.min(L-320,sp+600);q+=20)if(bancCourbe(q)<1/330){s9=q;frameAt(s9,F);break;}}} // pas de virage à cacher : au moins PAS EN virage
+    BANC_LOG.push([Math.round(s9),Math.round(bancCourbe(s9)*1e4)/10,Math.round(bancCourbe(sp)*1e4)/10]); // (banc) où il est tombé, sa courbure (mrad/m) — et celle de sa place d'avant
     mkCloud(cldV1.copy(F.p).addScaledVector(F.n,mega?6+cr()*4:2.5+cr()*2).addScaledVector(F.b,dl9),
       mega?(OR9?58+cr()*36:40+cr()*30):(OR9?30+cr()*18:18+cr()*14),{onRoad:true,dense:true},cr);
   }
@@ -7523,23 +7542,14 @@ function updateClouds(dt,t){
       if(!c.wasIn){
         c.wasIn=true;
         if(SONV2){if(!(mode==='drive'&&(c.brokenT||0)<=0&&!c.ecran))sfx('nuage.entre');}else noiseBurst(.5,.10,520); // on plonge dans la ouate (console de son : défoncé au sol, c'est nuage.defonce qui parle)
-        if(mode==='fall'&&c.fid!==flightId){c.fid=flightId;c.refT=1.2;if(SONV2)sfx('air.regain');} // budget d'airtime de CE banc (console de son : le chrono qui se recharge s'entend)
+        /* (2026-09-30, Sacha : « les nuages doivent juste BLOQUER LA VUE, rien d'autre ») plus de budget d'airtime rendu par un banc (1,2 s — à l'ORAGE, un vol bas rechargeait toutes les 2-4 s) */
         shatterCloud(cp,Math.min(1,k+.35)); // MILLE MORCEAUX au point de contact (où l'on touche le banc)
         if(mode==='drive'&&(c.brokenT||0)<=0&&!c.ecran){c.brokenT=4.5;if(SONV2)sfx('nuage.defonce');else whoosh();addStyle(3);} // la caisse DÉFONCE le banc → il éclate puis se reforme · (2026-09-27) sauf l'ÉCRAN du niveau 5 : défoncé, il ne cacherait plus rien aux tireurs
       }
-      if(mode==='fall'){ // SURF DE NUAGE : coussin d'air + regain d'airtime (au rythme du vol accéléré)
-        const dtF=dt*AIR_RATE;
-        fallVel.y+=7*k*dtF;
-        fallVel.x+=(Math.random()-.5)*6*k*dtF;
-        fallVel.z+=(Math.random()-.5)*6*k*dtF;
-        airRoll+=(Math.random()-.5)*2.4*k*dtF; // TURBULENCE : la ouate chahute la vrille
-        shake=Math.max(shake,.13*k);          // …et secoue la caméra — on SENT la matière
-        if(c.refT>0){const rf=Math.min(c.refT,dtF*.9);c.refT-=rf;fallT=Math.max(0,fallT-rf);fallTR=Math.max(0,fallTR-rf/AIR_RATE);airFlash=.55;} // la jauge réelle est rendue au même RYTHME (rf est en temps-sim)
-      }else if(k>.1){
-        psi+=(Math.random()-.5)*.3*k*dt; // au sol : la route disparaît, la caisse tangue à peine
-        vA*=Math.max(0,1-.07*k*dt);      // la ouate FREINE un peu : percer un banc se paye en élan
-        shake=Math.max(shake,.09*k);
-      }
+      /* (2026-09-30, Sacha : « les nuages doivent juste bloquer la vue, rien d'autre ») le nuage ne touche plus à la CAISSE : plus de coussin
+         d'air (portance), plus de turbulence (vitesse et vrille chahutées), plus de regain d'airtime ; au sol plus de tangage ni de frein.
+         Il reste ce qui se VOIT et s'ENTEND : le voile blanc, la paroi vue de dedans, le son feutré — et la caméra qui tremble à peine. */
+      shake=Math.max(shake,(mode==='fall'?.1:.07)*k);
       // (zéro particule à la traversée — demande de Sacha : la paroi du mesh fait tout le travail)
     }else if(c.wasIn&&d2>1.3){ // ---- SORTIE ----
       c.wasIn=false;
