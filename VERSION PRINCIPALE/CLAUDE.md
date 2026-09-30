@@ -7,8 +7,16 @@
   buildTrack (vérifié) : la piste ne bouge pas. Le ciel lointain, c'est COTON.
 - **La brume d'un banc** visait 120/820 en dur (pensée pour les NUAGES) : à l'ORAGE (70/660) entrer dans un banc ÉCLAIRCISSAIT la brume →
   `Math.min(fogN9,120)` / `Math.min(FOG_F,820)` : jamais plus clair qu'avant d'entrer.
-- **En attente** : la finesse de cotonInit à la demande et mkCloud qui clone COTON (le reste du gel au lancement/portail — proposé à
-  INTERFACE, auteure des formes v7) ; À TRANCHER PAR SACHA : distinguer à l'œil les nuages UTILES (coussins/tours qui rendent de l'airtime)
+- **L'OUVRIER DES NUAGES** (même jour, INTERFACE m'a passé la main ; la normale de champ et le chou-fleur de la v7 sont intacts) : le
+  calcul d'une forme (`cotonCalc`, PUR : aucune variable du jeu) part dans un Web Worker bâti depuis sa propre source (`cotonOuvrier`, un
+  seul code). `cotonInit` ne calcule plus que la finesse la plus LÉGÈRE (7×5) et la pose dans les quatre lots ; les trois autres arrivent
+  de l'ouvrier (les plus légères d'abord, `cotonFinesse` remplace l'ébauche). Les coussins et les tours (`mkCloud`) naissent en ÉBAUCHE
+  (`CLOUD_SPH_LO` 10×7) et reçoivent leur forme fine de l'ouvrier (jetée si le nuage a disparu entre-temps). Repli si le navigateur
+  refuse l'ouvrier : la file repart sur le fil principal PAR TRANCHES de ~8 ms. MESURÉ (banc `ouvrier.js`, tâches longues du fil principal) :
+  cotonInit 2,1-2,9 s → 35 ms ; la plus longue tâche du chargement 6,8 s → 4,7 s ; les 72 finesses sont là en ~6 s, en tâche de fond ;
+  au portail, plus aucune tâche longue due aux nuages ; ça marche aussi en `file://` (l'ouvrier y est accepté). `dbgCoton()` : initMs,
+  toutPretMs, prets (/96), ouvrier, finsApart. ⚠ Le reste du gel au chargement (~4 s ×2 en headless) n'est PAS les nuages.
+- **En attente** — À TRANCHER PAR SACHA : distinguer à l'œil les nuages UTILES (coussins/tours qui rendent de l'airtime)
   du décor COTON ; les bancs de route des NUAGES qui tombent en virage (la campagne 8 cache le virage SUIVANT) ; à l'ORAGE, un banc traversé
   EN VOL rend 1,2 s d'airtime (aucun test « sur la route »).
 

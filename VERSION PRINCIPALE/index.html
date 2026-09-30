@@ -6922,6 +6922,7 @@ function nuageChauffe(){ // (2026-09-26) les deux programmes de nuage compilés 
 }
 // FINESSE : à 16×11 les grosses boules (r 200-700) montraient leurs FACETTES — d'où les « formes
 // triangulaires ». On monte la définition sur desktop (mobile reste au gabarit léger).
+const CLOUD_SPH_LO=new THREE.SphereGeometry(1,10,7); // (2026-09-30) l'ÉBAUCHE d'un coussin ou d'une tour, le temps que l'ouvrier rende la forme fine
 const CLOUD_SPH=new THREE.SphereGeometry(1,(IS_MOBILE||IS_LOW_END)?16:20,(IS_MOBILE||IS_LOW_END)?11:14); // gabarit recopié/fusionné (24×16 mangeait 25 fps : 20×14 lisse assez)
 // Fusionne N sphères (x,y,z,rayon en coords locales) en UNE géométrie : un nuage = un draw call.
 function mergeSpheres(blobs,rx,ry,rz){
@@ -7091,11 +7092,11 @@ const COTON_GENRES=['humilis','humilis','mediocris','mediocris','mediocris','con
 function cotonGenre(k){return k<6?'classique':COTON_GENRES[k-6];}
 function cotonDe(cr,gs){const L9=[];for(const g of gs){if(typeof g==='number')L9.push(g);else for(let k=0;k<COTON_GENRES.length;k++)if(COTON_GENRES[k]===g)L9.push(6+k);}return L9[cr()*L9.length|0];} // un gabarit parmi ces genres (ou ces classiques)
 function cotonR(cr,a,b,p){return a*Math.pow(b/a,Math.pow(cr(),p||1.7));} // une TAILLE en loi de puissance : beaucoup de petits, quelques géants
-function cotonGeo(S,sph){ // les bourgeons fusionnés, en unités du nuage : modelé cuit (ventre lavande → sommet blanc, creux), faces enfouies jetées
-  const Bb=S.B,sp=sph.attributes.position.array,sn=sph.attributes.normal.array,si=sph.index.array,nv=sp.length/3,nb=Bb.length;
+function cotonCalc(Bb,base,top,sp,sn,si,CH){ // (2026-09-30) le CALCUL d'une forme de nuage, PUR (aucune variable du jeu, ni THREE) : il tourne aussi dans l'OUVRIER
+  const nv=sp.length/3,nb=Bb.length;
   const pos=new Float32Array(nv*3*nb),nor=new Float32Array(nv*3*nb),col=new Float32Array(nv*3*nb),noy=new Uint8Array(nv*nb);
   const idx=(nv*nb<65535)?new Uint16Array(si.length*nb):new Uint32Array(si.length*nb);let ni=0;
-  const H=Math.max(.1,S.top-S.base),VR=.70,VG=.74,VB=.93;
+  const H=Math.max(.1,top-base),VR=.70,VG=.74,VB=.93;
   for(let b=0;b<nb;b++){const e=Bb[b],ox=e[0],oy=e[1],oz=e[2],r=e[3],ry=e[3]*e[4],vo=b*nv*3,vb=b*nv;
     const voi=[];for(let c=0;c<nb;c++){if(c===b)continue;const q=Bb[c],dx=q[0]-ox,dy=q[1]-oy,dz=q[2]-oz,rr=r+q[3]*1.4;if(dx*dx+dy*dy+dz*dz<rr*rr)voi.push(q);}
     for(let i=0;i<nv;i++){const px=sp[i*3]*r+ox,py=sp[i*3+1]*ry+oy,pz=sp[i*3+2]*r+oz;
@@ -7106,18 +7107,48 @@ function cotonGeo(S,sph){ // les bourgeons fusionnés, en unités du nuage : mod
          une grappe de ballons qui ont chacun leur reflet et une ligne sombre à chaque soudure. La silhouette ne change pas. */
       let gx=0,gy=0,gz=0;
       for(let k=-1;k<voi.length;k++){const q=k<0?e:voi[k],qy=q[3]*q[4],dx=(px-q[0])/q[3],dy=(py-q[1])/qy,dz=(pz-q[2])/q[3],w=Math.exp(-1.3*(dx*dx+dy*dy+dz*dz));gx+=w*dx/q[3];gy+=w*dy/qy;gz+=w*dz/q[3];}
-      const lg=Math.hypot(gx,gy,gz),C9=COTON.CH;
+      const lg=Math.hypot(gx,gy,gz),C9=CH;
       let mx=nx/l,my=ny/l,mz=nz/l;if(lg>1e-6){mx=mx*(1-C9)+gx/lg*C9;my=my*(1-C9)+gy/lg*C9;mz=mz*(1-C9)+gz/lg*C9;}
       const lm=Math.hypot(mx,my,mz)||1;nor[vo+i*3]=mx/lm;nor[vo+i*3+1]=my/lm;nor[vo+i*3+2]=mz/lm;
       let ao=0;for(let k=0;k<voi.length;k++){const q=voi[k],qy=q[3]*q[4],dx=(px-q[0])/q[3],dy=(py-q[1])/qy,dz=(pz-q[2])/q[3],d2=dx*dx+dy*dy+dz*dz;
         if(d2<.9409){noy[vb+i]=1;break;}if(d2<1.96)ao+=(1.4-Math.sqrt(d2))/.43;}
-      const h=Math.max(0,Math.min(1,(py-S.base)/(H*.62))),hh=h*h*(3-2*h),o=1-.17*Math.min(1,ao); // (v7) le creux d'une soudure .3 → .17 : il dessinait une LIGNE entre deux bourgeons
+      const h=Math.max(0,Math.min(1,(py-base)/(H*.62))),hh=h*h*(3-2*h),o=1-.17*Math.min(1,ao); // (v7) le creux d'une soudure .3 → .17 : il dessinait une LIGNE entre deux bourgeons
       col[vo+i*3]=(VR+(1-VR)*hh)*o;col[vo+i*3+1]=(VG+(1-VG)*hh)*o;col[vo+i*3+2]=(VB+(1-VB)*hh)*o;}
     for(let i=0;i<si.length;i+=3){const a=si[i]+vb,c1=si[i+1]+vb,c2=si[i+2]+vb;if(noy[a]&&noy[c1]&&noy[c2])continue;idx[ni++]=a;idx[ni++]=c1;idx[ni++]=c2;}}
-  const g=new THREE.BufferGeometry();
-  g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('normal',new THREE.BufferAttribute(nor,3));g.setAttribute('color',new THREE.BufferAttribute(col,3));
-  g.setIndex(new THREE.BufferAttribute(idx.slice(0,ni),1));g.computeBoundingSphere();return g;
+  return {pos:pos,nor:nor,col:col,idx:idx.slice(0,ni)};
 }
+function cotonBuf(r){const g=new THREE.BufferGeometry(); // les tableaux d'un calcul → une géométrie
+  g.setAttribute('position',new THREE.BufferAttribute(r.pos,3));g.setAttribute('normal',new THREE.BufferAttribute(r.nor,3));g.setAttribute('color',new THREE.BufferAttribute(r.col,3));
+  g.setIndex(new THREE.BufferAttribute(r.idx,1));g.computeBoundingSphere();return g;}
+function cotonGeo(S,sph){ // les bourgeons fusionnés, en unités du nuage : modelé cuit (ventre lavande → sommet blanc, creux), faces enfouies jetées — TOUT DE SUITE
+  const A=sph.attributes;return cotonBuf(cotonCalc(S.B,S.base,S.top,A.position.array,A.normal.array,sph.index.array,COTON.CH));}
+/* L'OUVRIER DES NUAGES (2026-09-30, revue GAMEPLAY, mesuré : cotonInit gelait le fil principal 2,1 à 2,9 s au lancement — 96 formes d'un bloc,
+   la plus fine en pèse la moitié — et chaque portail 0,2 s, les coussins et les tours refaisant chacun sa forme). Le calcul d'une forme
+   (cotonCalc, pur) part dans un Web Worker bâti depuis sa propre source (un seul code, pas de copie) ; en attendant, une ÉBAUCHE légère
+   tient la place. Si le navigateur refuse l'ouvrier (page locale stricte), la file repart sur le fil principal PAR TRANCHES (~8 ms). */
+const COTON_OUV={w:null,ko:false,id:0,att:new Map(),file:[],t:0};
+function cotonOuvrier(){
+  if(COTON_OUV.w||COTON_OUV.ko)return COTON_OUV.w;
+  try{const src='const cotonCalc='+cotonCalc.toString()+';self.onmessage=function(e){const q=e.data,r=cotonCalc(q.B,q.base,q.top,q.sp,q.sn,q.si,q.CH);self.postMessage({id:q.id,r:r},[r.pos.buffer,r.nor.buffer,r.col.buffer,r.idx.buffer]);};';
+    const w=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})));
+    w.onmessage=function(e){const a=COTON_OUV.att.get(e.data.id);if(!a)return;COTON_OUV.att.delete(e.data.id);a.cb(e.data.r);};
+    w.onerror=function(ev){try{ev.preventDefault();}catch(e9){}cotonOuvrierKo();};COTON_OUV.w=w;
+  }catch(e){COTON_OUV.ko=true;}
+  return COTON_OUV.w;}
+function cotonOuvrierKo(){COTON_OUV.ko=true;if(COTON_OUV.w){try{COTON_OUV.w.terminate();}catch(e){}COTON_OUV.w=null;} // refusé : sa file repart sur le fil principal
+  for(const a of COTON_OUV.att.values())cotonTranche(a.job,a.cb);COTON_OUV.att.clear();}
+function cotonTranche(job,cb){COTON_OUV.file.push({job:job,cb:cb});if(!COTON_OUV.t)COTON_OUV.t=setTimeout(cotonTrancheSuite,0);}
+function cotonTrancheSuite(){COTON_OUV.t=0;const t0=performance.now();
+  while(COTON_OUV.file.length&&performance.now()-t0<8){const a=COTON_OUV.file.shift(),q=a.job;a.cb(cotonCalc(q.B,q.base,q.top,q.sp,q.sn,q.si,q.CH));}
+  if(COTON_OUV.file.length)COTON_OUV.t=setTimeout(cotonTrancheSuite,16);}
+function cotonCalcAsync(S,sph,cb){ // cb(le calcul), PLUS TARD : dans l'ouvrier si possible, sinon par tranches
+  const A=sph.attributes,job={B:S.B,base:S.base,top:S.top,sp:A.position.array,sn:A.normal.array,si:sph.index.array,CH:COTON.CH},w=cotonOuvrier();
+  if(w){const id=++COTON_OUV.id;COTON_OUV.att.set(id,{job:job,cb:cb});try{w.postMessage({id:id,B:job.B,base:job.base,top:job.top,sp:job.sp,sn:job.sn,si:job.si,CH:job.CH});}catch(e){COTON_OUV.att.delete(id);cotonTranche(job,cb);}}
+  else cotonTranche(job,cb);}
+function cotonFinesse(k,f,g){ // une finesse est arrivée : elle remplace l'ébauche dans SON lot et dans les lots plus fins encore en attente
+  COTON.pret[k*4+f]=1;const tri=g.index.count/3;
+  for(let f2=f;f2<4;f2++){const j=k*4+f2;if(f2>f&&COTON.pret[j])break;const im=COTON.im[j];im.geometry=g;im.userData.tri=tri;}
+  let n=0;for(let i=0;i<COTON.pret.length;i++)n+=COTON.pret[i];if(n===COTON.pret.length&&!COTON.msPret)COTON.msPret=performance.now()-COTON.t0;}
 function cotonMat(){ if(COTON.mat)return COTON.mat; // la ouate des nuages (MÊMES objets couleur : bioApply la teinte avec CLOUD_MAT) + le fondu près de l'objectif
   const m=CLOUD_MAT.clone();m.color=CLOUD_MAT.color;m.emissive=CLOUD_MAT.emissive;m.specular=CLOUD_MAT.specular;
   m.defines={NUAGE_INST:''};m.onBeforeCompile=nuageShader;m.customProgramCacheKey=function(){return 'nuageV3coton';};return (COTON.mat=m);}
@@ -7143,16 +7174,19 @@ function cotonChouFleur(S,rg,genre){
   let top=S.base;for(const b of B)top=Math.max(top,b[1]+b[3]*b[4]);S.top=top;
   if(S.fin==null)S.fin=1; // la finesse se juge sur les bourgeons d'ORIGINE (les petits du chou-fleur ne doivent pas l'alléger)
 }
-function cotonInit(){ if(COTON.root)return; // une fois par session : 6 gabarits × 2 finesses, en instances
+function cotonInit(){ if(COTON.root)return; // une fois par session : 24 gabarits × 4 finesses, en instances
+  COTON.t0=performance.now();COTON.pret=new Uint8Array(COTON_KINDS*4);
   const rg=mulberry32(0xC07070),SPH=COTON.SEG.map(function(s){return new THREE.SphereGeometry(1,s[0],s[1]);}),m=cotonMat();
   COTON.root=new THREE.Group();COTON.root.name='coton';COTON.root.visible=false;scene.add(COTON.root);COTON.L=[];
   const rgC=mulberry32(0xC0F1E5); // (v7) le hasard du chou-fleur, à part
   for(let k=0;k<COTON_KINDS;k++){const S=k<6?cotonBlobs(k,rg):cotonAleat(COTON_GENRES[k-6],rg);cotonChouFleur(S,rgC,cotonGenre(k));COTON.S.push(S);
-    for(const sph of SPH){const im=new THREE.InstancedMesh(cotonGeo(S,sph),m,COTON.cap);im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    const g0=cotonGeo(S,SPH[0]);COTON.pret[k*4]=1; // (2026-09-30) la finesse la plus LÉGÈRE tout de suite (7 % du calcul) : elle tient la place des trois autres, qui arrivent de l'ouvrier
+    for(let f9=0;f9<4;f9++){const im=new THREE.InstancedMesh(g0,m,COTON.cap);im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
       im.frustumCulled=false;im.count=0;im.castShadow=im.receiveShadow=false;im.matrixAutoUpdate=false;im.userData.tri=im.geometry.index.count/3;
       im.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(COTON.cap*3).fill(1),3);im.instanceColor.setUsage(THREE.DynamicDrawUsage); // (v6) la teinte par nuage — sur TOUS les lots dès la création : un seul programme
       COTON.root.add(im);COTON.im.push(im);COTON.L.push({i:new Int32Array(COTON.cap),d:new Float32Array(COTON.cap),n:0});}}
-  for(const s of SPH)s.dispose();COTON.I=new Float32Array(COTON.cap*COTON_ST);
+  for(let f=1;f<4;f++)for(let k=0;k<COTON_KINDS;k++)cotonCalcAsync(COTON.S[k],SPH[f],function(r){cotonFinesse(k,f,cotonBuf(r));}); // les plus légères d'abord : le ciel s'affine en quelques instants, sans jamais geler
+  for(const s of SPH)s.dispose();COTON.I=new Float32Array(COTON.cap*COTON_ST);COTON.msInit=performance.now()-COTON.t0;
 }
 function cotonGrille(){ // la piste en cases de 120 m : un point tous les ~18 m (la garde ne teste que les cases voisines)
   const st=Math.max(1,Math.round(18/Math.max(.5,L/Math.max(1,NP-1)))),g=new Map();
@@ -7273,7 +7307,8 @@ window.dbgCoton=function(q){ // q = 'max' : le plus gros nuage (centre du dessou
   if(q==='max'){const st=COTON_ST;let b=-1;for(let j=0;j<COTON.n;j++)if(b<0||COTON.I[j*st+3]>COTON.I[b*st+3])b=j;if(b<0)return null;const o=b*st,S=COTON.S[COTON.I[o+5]];
     return {x:COTON.I[o],y:COTON.I[o+1]+S.base*COTON.I[o+3]*COTON.I[o+9],z:COTON.I[o+2],r:COTON.I[o+3],h:COTON.I[o+7]};}
   return {nuages:COTON.n,pres:COTON.nN,loin:COTON.nF,triangles:COTON.tri,ms:+COTON.ms.toFixed(3),visible:!!(COTON.root&&COTON.root.visible),
-  maillagesApart:CLOUDS.length,gabarits:COTON.im.map(function(im){return im.userData.tri;})};};
+  maillagesApart:CLOUDS.length,gabarits:COTON.im.map(function(im){return im.userData.tri;}),
+  initMs:COTON.msInit==null?null:Math.round(COTON.msInit),toutPretMs:COTON.msPret?Math.round(COTON.msPret):null,prets:COTON.pret?COTON.pret.reduce(function(a,b){return a+b;},0):0,finsApart:CLOUDS.filter(function(c){return c.mesh&&c.mesh.userData.fin;}).length,ouvrier:COTON_OUV.ko?'refuse':COTON_OUV.w?'oui':'non'};};
 // Boules d'un nuage (metaballs) — coords LOCALES [-1,1] dans la boîte (x,y,z,rayon).
 // Chaque famille a sa silhouette : cumulus bourgeonnant, tour empilée, mer plate, voile épars.
 function mkBlobs(o,rng){
@@ -7356,10 +7391,10 @@ function mkCloud(center,r,o,rr){ // un nuage = ses boules fusionnées en UN mesh
   if(o.baseY!==undefined)center.y=o.baseY+ry*0.64; // plafond de condensation commun
   if(!o.onRoad&&nuageTouche(center,r,ry))return; // (2026-09-26) jamais un nuage de décor posé SUR le ruban
   const g=new THREE.Group();g.position.copy(center);
-  let geo9;
+  let geo9,fin9=null;
   if(!o.camp&&!o.onRoad&&!o.sea&&!o.veil&&!o.mur&&!o.titan&&!o.deco){ // (ciel de coton) les COUSSINS de vol et les TOURS qu'on traverse : la forme classique,
     cotonInit();const S=cotonBlobs(o.giant?2:[0,5,3][Math.floor(rr()*3)],rr),h=(S.top-S.base)*r; // bourgeons ronds, ventre lavande (voir cotonBlobs)
-    geo9=cotonGeo(S,CLOUD_SPH);geo9.scale(r,r,r);geo9.translate(0,-(S.base+S.top)*.5*r,0);geo9.computeBoundingSphere();
+    fin9={S:S,r:r,dy:-(S.base+S.top)*.5*r};geo9=cotonGeo(S,CLOUD_SPH_LO);geo9.scale(r,r,r);geo9.translate(0,fin9.dy,0);geo9.computeBoundingSphere(); // (2026-09-30) une ÉBAUCHE légère tout de suite, la forme fine arrive de l'ouvrier (≈10 ms par nuage : 0,2 s de gel à chaque portail)
     ry=h*.5;} // l'ellipsoïde « dedans » (white-out, airtime) suit la vraie hauteur du nuage
   else geo9=mergeSpheres(mkBlobs(o,rr),r,ry,r); // les 5-10 boules de CE nuage (RNG isolé : ne rebrasse pas la génération)
   const mesh=new THREE.Mesh(geo9,CLOUD_MAT);
@@ -7370,6 +7405,7 @@ function mkCloud(center,r,o,rr){ // un nuage = ses boules fusionnées en UN mesh
   mesh.userData.trav=!!(o.onRoad||(!o.giant&&!o.sea&&!o.veil&&!o.deco&&!o.titan));
   mesh.matrixAutoUpdate=false; // (2026-09-27, passe perf iPhone) le maillage ne bouge JAMAIS dans son groupe (repère identité) : c'est le groupe qui dérive — plus 90 matrices recomposées pour rien à chaque image
   g.add(mesh);scene.add(g);
+  if(fin9)cotonCalcAsync(fin9.S,CLOUD_SPH,function(q){if(!g.parent)return; /* jeté entre-temps (portail) */ const g2=cotonBuf(q);g2.scale(fin9.r,fin9.r,fin9.r);g2.translate(0,fin9.dy,0);g2.computeBoundingSphere();const o9=mesh.geometry;mesh.geometry=g2;o9.dispose();mesh.userData.fin=true;});
   CLOUDS.push({g:g,c:center.clone(),r:r,ry:ry,onRoad:!!o.onRoad,puffs:[],mesh:mesh,ph:rr()*6.28,refT:0,fid:-1,wasIn:false});
 }
 // (le repli SPRITES a été supprimé avec le raymarch : il n'y a plus qu'UN seul chemin de nuage)
