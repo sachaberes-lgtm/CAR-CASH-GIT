@@ -1,0 +1,17 @@
+{
+  "name": "CashCar",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": { "$path": "src/ReplicatedStorage" },
+    "ServerScriptService": { "$path": "src/ServerScriptService" },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterPlayerScripts": { "$path": "src/StarterPlayer/StarterPlayerScripts" }
+    },
+    "Workspace": {
+      "$properties": { "Gravity": 0, "FallenPartsDestroyHeight": -50000, "StreamingEnabled": false }
+    },
+    "Players": { "$properties": { "CharacterAutoLoads": false } },
+    "Lighting": { "$properties": { "Technology": "Future" } }
+  }
+}
