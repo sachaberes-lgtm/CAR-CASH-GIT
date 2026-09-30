@@ -1,5 +1,22 @@
 # CASH CAR — guide projet pour Claude Code
 
+## L'ORDI = L'IPHONE DE SACHA, ENCOCHE COMPRISE (2026-10-01, Léo : « son emplacement des touches est différent — que sur mon ordi, tous les ordis, ça ressemble à ce que Sacha a »)
+- MESURÉ : le cadre de l'ordi avait déjà la TAILLE de l'iPhone 13 Pro de Sacha (844 × 390), pas ses MARGES. Sur le vrai téléphone iOS
+  rentre l'interface de 47 px de chaque côté couché (21 en bas ; debout 47 en haut, 34 en bas) : au menu la colonne de boutons tombait
+  84 px plus près du bord droit sur l'ordi, le HUD de course aussi. APRÈS : mêmes rectangles au pixel près (banc `cmp.mjs` : cadre de
+  l'ordi 1440 × 800 contre un iPhone émulé avec `Emulation.setSafeAreaInsetsOverride` 47/47/0/21 — menu, course, debout).
+- Mécanique : les 56 `env(safe-area-inset-X,…)` du jeu sont lus via `var(--ccX,env(safe-area-inset-X,0px))` (X = T B L R). Seule la
+  colonne de l'ordi pose `--ccX` (`html.telCadre`, classe posée par le script du `<head>` quand l'adresse porte `colonne=1`) ; un vrai
+  téléphone ne les pose pas et garde SES marges. ⚠ Toute nouvelle marge d'encoche s'écrit `var(--ccX,env(safe-area-inset-X,0px))`
+  (ou passe par --sT/--sB/--sL/--sR, --hudG/--hudD/--hudH qui en dérivent), jamais `env()` nu.
+- La page-cadre dessine l'écran du 13 Pro : coins de 47 pt (`border-radius` sur l'iframe, agrandi par son zoom) et l'ENCOCHE (`#encoche`,
+  154 × 31 pt, posée par `cadre()` sur le côté gauche couché, en haut debout), par-dessus l'image comme sur le vrai. `?encoche=0` = sans.
+- « Tous les ordis » : un portable à ÉCRAN TACTILE dont la fenêtre fait moins de 820 px de haut passait pour un téléphone (plus de cadre,
+  jeu étiré sur tout le moniteur). Le test « vrai téléphone » (colonne du `<head>` ET `TEL_NATIF`) lit désormais la taille de l'ÉCRAN :
+  tactile ET (`hover:none` OU min(screen.width, screen.height) < 600).
+- Pas simulé (à deviner) : les barres de Safari quand Sacha joue dans le navigateur et pas depuis l'écran d'accueil (elles mangent ~40 px
+  de hauteur couché). sw.js → v47.
+
 ## L'ARGENT DE L'ATELIER — LES TAS DE BILLETS (2026-10-01, session INTERFACE — Sacha : « plus on gagne d'argent, plus il doit y avoir des tas de billets sur le sol du garage, un peu placés partout, sur les meubles et tout »)
 - `garArgent(g)` (défini juste avant `buildGarageRoom`, appelé avant `gmHoloBuild`) bâtit UNE fois un seul mesh de liasses en couleurs de
   sommets dans la matière MATE des meubles (`GAR.meubles`, famille 'm') : **zéro programme de plus** (mesuré 144 → 144), 28 ms sur PC.

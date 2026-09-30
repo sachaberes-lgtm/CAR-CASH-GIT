@@ -44,12 +44,15 @@ const EDITION='mobile';
 (function(){
   var q=location.search,M=window.matchMedia;
   if(window.top!==window){ // DANS la colonne : les touches frappées pendant que la page-cadre avait le focus arrivent par message
+    if(/[?&]colonne=1\b/.test(q)&&!/[?&]encoche=0\b/.test(q))document.documentElement.classList.add('telCadre'); // les marges de l'iPhone de référence (voir « L'ENCOCHE »)
     addEventListener('message',function(e){var d=e.data;if(e.source!==window.parent||!d||d.cc!=='touche')return;
       try{document.dispatchEvent(new KeyboardEvent(d.t,{key:d.key,code:d.code,repeat:!!d.rep,bubbles:true,cancelable:true}));}catch(_){}});
     return;}
   if(EDITION!=='mobile'||window.Capacitor||/[?&](pc|desktop)=1|[?&]colonne=0/.test(q)&&!/[?&](tel|mobile)=1/.test(q))return; // ?pc=1 : menu desktop · ?colonne=0 : l'ancien plein écran
   var tactile=(M&&M('(pointer:coarse)').matches)||('ontouchstart' in window)||navigator.maxTouchPoints>0;
-  if(tactile&&((M&&M('(hover:none)').matches)||Math.min(innerWidth,innerHeight)<820))return; // un vrai téléphone : il EST l'écran
+  if(tactile&&((M&&M('(hover:none)').matches)||Math.min(screen.width,screen.height)<600))return; // un vrai téléphone : il EST l'écran
+  /* (2026-10-01, Léo : « sur tous les ordis ») la taille de l'ÉCRAN, plus celle de la fenêtre : un portable à écran tactile
+     (1 536 × 864 → fenêtre < 820 px de haut) passait pour un téléphone et jouait sans cadre, étiré sur tout le moniteur */
   window.CC_COLONNE=true;window.__gameReady=true; // (le chien de garde du démarrage n'a rien à garder ici : le jeu démarre dans le cadre)
   var debout=/[?&]colonne=portrait/.test(q);
   document.documentElement.classList.add('colonne',debout?'debout':'couche');
@@ -60,7 +63,17 @@ const EDITION='mobile';
     f.src=u+(u.indexOf('?')<0?'?':'&')+'colonne=1';
     f.style.width=L+'px';f.style.height=H+'px';
     document.body.appendChild(f);
-    var cadre=function(){f.style.zoom=Math.max(.5,Math.min(innerHeight/H,innerWidth/L)).toFixed(4);};
+    /* L'ENCOCHE (2026-10-01, Léo : « son emplacement des touches est différent — que sur tous les ordis ça ressemble à ce que
+       Sacha a ») : le téléphone de référence est l'iPhone 13 Pro de Sacha, 844 × 390 — le cadre en avait la taille, pas les
+       MARGES. iOS rentre l'interface de 47 px de chaque côté couché (21 en bas ; debout 47 en haut, 34 en bas) : dans la
+       colonne, `html.telCadre` pose ces marges (--ccT/B/L/R, lues à la place de env(safe-area-inset-*) partout), et la page-
+       cadre dessine l'écran arrondi + l'encoche, par-dessus l'image comme sur le vrai. `?encoche=0` = sans. */
+    var en=null;if(!/[?&]encoche=0\b/.test(q)){en=document.createElement('div');en.id='encoche';document.body.appendChild(en);
+      document.documentElement.classList.add('encoche');}
+    var cadre=function(){var z=Math.max(.5,Math.min(innerHeight/H,innerWidth/L));f.style.zoom=z.toFixed(4);
+      if(!en)return;var r=f.getBoundingClientRect(),lo=154*z,ep=31*z,s=en.style; // l'encoche du 13 Pro ≈ 154 × 31 pt
+      if(debout){s.width=lo+'px';s.height=ep+'px';s.left=(r.left+(r.width-lo)/2)+'px';s.top=r.top+'px';s.borderRadius='0 0 '+(20*z)+'px '+(20*z)+'px';}
+      else{s.width=ep+'px';s.height=lo+'px';s.left=r.left+'px';s.top=(r.top+(r.height-lo)/2)+'px';s.borderRadius='0 '+(20*z)+'px '+(20*z)+'px 0';}};
     cadre();addEventListener('resize',cadre);
     /* LE BOUTON TOURNER (2026-09-30, Léo : « ajoute une option où je peux regarder en mode portrait » — repris de sa branche
        `version-leolei-2026`, 26/09) : le téléphone passe COUCHÉ ⇄ DEBOUT sans recharger — le jeu, dans la colonne, ne reçoit qu'un
@@ -89,7 +102,10 @@ html.colonne,html.colonne body{height:100%;margin:0;overflow:hidden;background:#
 html.colonne body{display:flex;align-items:center;justify-content:center;
   background:radial-gradient(ellipse 70% 42% at 50% 50%,#241a4a 0,#120c2a 48%,#07050f 100%)}
 html.colonne.debout body{background:radial-gradient(ellipse 42% 70% at 50% 50%,#241a4a 0,#120c2a 48%,#07050f 100%)}
-html.colonne body>*:not(#colonne):not(#tourne){display:none!important}
+html.colonne body>*:not(#colonne):not(#tourne):not(#encoche){display:none!important}
+/* l'écran du 13 Pro : coins de 47 pt (le zoom du cadre les agrandit avec lui) et son encoche, posée par le script */
+html.colonne.encoche #colonne{border-radius:47px}
+html.colonne #encoche{position:fixed;z-index:8;background:#000;pointer-events:none}
 /* (Léo) le bouton TOURNER, dans un coin de la page-cadre (hors du téléphone) */
 html.colonne #tourne{position:fixed;right:16px;bottom:16px;z-index:9;font:700 12px/1 system-ui,-apple-system,sans-serif;letter-spacing:1px;color:#fff;cursor:pointer;padding:11px 16px;border:0;border-radius:12px;
   background:linear-gradient(#7a6cff,#5143d9);box-shadow:0 4px 0 #2c2280,0 8px 18px rgba(0,0,0,.45);opacity:.85}
@@ -102,6 +118,10 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
 <style>
 @font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/pressstart2p.woff2') format('woff2');}
 :root{--pix:'Press Start 2P',monospace}
+/* L'ENCOCHE DANS LA COLONNE DE L'ORDI (2026-10-01, voir le <head>) : les zones sûres de l'iPhone 13 Pro de Sacha. Toutes les
+   marges du jeu lisent var(--ccX, env(safe-area-inset-X)) : un vrai téléphone ne pose pas --ccX et garde les siennes. */
+html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}
+@media (orientation:portrait){html.telCadre{--ccT:47px;--ccB:34px;--ccL:0px;--ccR:0px}}
   html,body{margin:0;padding:0;overflow:hidden;background:#07050f;font-family:var(--pix);user-select:none} /* (2026-09-29) #07050f, l'encre des écrans : plus de flash blanc entre l'écran natif et le jeu */
   canvas{display:block}
   #hud{position:fixed;inset:0;pointer-events:none;color:#fff;z-index:2} /* au-dessus du canvas filtré (le filter crée un contexte d'empilement) */
@@ -350,7 +370,7 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
   #epNom{display:block;margin-top:7px;font-size:7px;color:#7dffec;
     text-shadow:0 0 12px rgba(125,255,236,.85)}
   @media (max-width:820px){
-    #engPop{top:calc(env(safe-area-inset-top,0px) + 70px);left:10px;width:118px;height:80px} /* sous la jauge de nitro, plus dessus */
+    #engPop{top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 70px);left:10px;width:118px;height:80px} /* sous la jauge de nitro, plus dessus */
     #epGear{font-size:36px}#epNum{font-size:19px}#epNum i{font-size:5px;margin-bottom:4px}
     #epNom{font-size:5px;margin-top:5px}}
   #record{position:absolute;top:150px;left:50%;transform:translateX(-50%);font-size:9px;color:#8f84c8}
@@ -832,7 +852,7 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
   body.touch #hud,body.touch>canvas{touch-action:none}       /* zéro scroll/zoom parasite sur la zone de jeu */
   body.touch #chainHud,body.touch #caseHud{-webkit-backdrop-filter:none;backdrop-filter:none} /* le flou d'arrière-plan coûte une passe plein écran : hors de question sur téléphone */
   #touchCtl{position:fixed;inset:0;z-index:4;pointer-events:none;display:none;touch-action:none;
-    padding:env(safe-area-inset-top,0) env(safe-area-inset-right,0) env(safe-area-inset-bottom,0) env(safe-area-inset-left,0)}
+    padding:var(--ccT,env(safe-area-inset-top,0px)) var(--ccR,env(safe-area-inset-right,0px)) var(--ccB,env(safe-area-inset-bottom,0px)) var(--ccL,env(safe-area-inset-left,0px))}
   body.touch.play #touchCtl{display:block}  /* les commandes n'existent que manette en main : le menu reste net */
   .tbtn{position:absolute;pointer-events:auto;touch-action:none;-webkit-user-select:none;user-select:none;
     -webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;
@@ -852,7 +872,7 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
   #tKnob{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;
     background:radial-gradient(circle at 38% 32%,rgba(210,250,255,.9),rgba(0,190,230,.55) 58%,rgba(0,110,150,.28));
     border:2px solid rgba(170,244,255,.8);box-shadow:0 0 18px rgba(0,234,255,.55)}
-  #tSteerHint{position:absolute;left:calc(env(safe-area-inset-left,0px) + 24px);bottom:calc(env(safe-area-inset-bottom,0px) + 20px);font-family:var(--pix);font-size:8px;letter-spacing:2px;
+  #tSteerHint{position:absolute;left:calc(var(--ccL,env(safe-area-inset-left,0px)) + 24px);bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 20px);font-family:var(--pix);font-size:8px;letter-spacing:2px;
     color:#7fd8ff;opacity:.40;pointer-events:none;text-shadow:0 0 10px rgba(0,234,255,.5);transition:opacity .3s}
   #tSteer.act #tSteerHint,#tSteer.used #tSteerHint,body.tpad #tSteerHint{opacity:0} /* dit UNE fois : au premier braquage la consigne s'efface pour de bon */
   /* --- flèches : mode PAD, pour qui préfère le tout-ou-rien --- */
@@ -861,7 +881,7 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
   #tLeft{left:16px}
   #tRight{left:calc(min(84px,21vh) + 30px)}
   /* --- pouce DROIT : NITRO énorme. Une VRAIE touche d'arcade : plaque orange, biseau, épaisseur. --- */
-  #tNitro{right:calc(env(safe-area-inset-right,0px) + 16px);bottom:calc(env(safe-area-inset-bottom,0px) + 16px);width:min(122px,30vh);height:min(122px,30vh);font-size:13px;letter-spacing:2px;
+  #tNitro{right:calc(var(--ccR,env(safe-area-inset-right,0px)) + 16px);bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 16px);width:min(122px,30vh);height:min(122px,30vh);font-size:13px;letter-spacing:2px;
     border:0;border-radius:0;color:#2a1000;background:linear-gradient(180deg,#ffc074,#ff8c1a 52%,#d05e00);
     clip-path:polygon(12px 0,calc(100% - 12px) 0,100% 12px,100% calc(100% - 12px),calc(100% - 12px) 100%,12px 100%,0 calc(100% - 12px),0 12px);
     filter:drop-shadow(0 7px 0 #7a3200);text-shadow:0 1px 0 rgba(255,255,255,.4);
@@ -870,7 +890,7 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
   #tNitro.on,#tNitro:active{transform:translateY(6px);filter:drop-shadow(0 1px 0 #7a3200) brightness(1.15);
     background:linear-gradient(180deg,#fff0c0,#ffb24a 52%,#e87400)}
   /* le ⏸ / ⚙ : même plaque, en petit */
-  #tGear{position:fixed;z-index:8;top:calc(env(safe-area-inset-top,0px) + 10px);right:calc(env(safe-area-inset-right,0px) + 10px);
+  #tGear{position:fixed;z-index:8;top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 10px);right:calc(var(--ccR,env(safe-area-inset-right,0px)) + 10px);
     width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;
     border:0;border-radius:0;color:#9fe8ff;background:linear-gradient(180deg,#22305c,#141d3a);opacity:.94;
     clip-path:polygon(7px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 7px),calc(100% - 7px) 100%,7px 100%,0 calc(100% - 7px),0 7px);
@@ -927,8 +947,8 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
   /* la jauge de nitro monte SOUS le ciel : en bas elle barrait la caisse en travers, en haut elle ne
      masque rien et se lit d'un coup d'œil. C'est le dernier élément de HUD. */
   body.touch:not(.play) #nitroWrap,body.touch:not(.play) #airPie{display:none} /* hors partie, l'écran n'appartient qu'au menu */
-  body.touch #nitroWrap{left:calc(env(safe-area-inset-left,0px) + 14px);right:calc(env(safe-area-inset-right,0px) + 64px);
-    width:auto;transform:none;bottom:auto;top:calc(env(safe-area-inset-top,0px) + 18px)} /* sous l'encoche / la Dynamic Island, comme le ⏸ */
+  body.touch #nitroWrap{left:calc(var(--ccL,env(safe-area-inset-left,0px)) + 14px);right:calc(var(--ccR,env(safe-area-inset-right,0px)) + 64px);
+    width:auto;transform:none;bottom:auto;top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 18px)} /* sous l'encoche / la Dynamic Island, comme le ⏸ */
   body.touch #styleBar{height:6px;margin-bottom:4px}
   body.touch #airPie{top:13%;right:5%;width:76px;height:76px}
   /* ------- LES NIVEAUX (2026-09-24) : la bannière « NIVEAU n — LIEU ». Au-dessus de la route, dans le
@@ -946,7 +966,7 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
   /* ------- PORTRAIT : L'ORIENTATION NORMALE DU JEU (le paysage n'est plus qu'un repli) ------- */
   @media (orientation:portrait){
     body.touch #tSteer{width:52%}
-    body.touch #tNitro{width:min(128px,17vh);height:min(128px,17vh);right:calc(env(safe-area-inset-right,0px) + 14px);bottom:calc(env(safe-area-inset-bottom,0px) + 18px)}
+    body.touch #tNitro{width:min(128px,17vh);height:min(128px,17vh);right:calc(var(--ccR,env(safe-area-inset-right,0px)) + 14px);bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 18px)}
     body.touch #airPie{top:15%;right:5%;width:76px;height:76px}
   }
   /* ------- RESPONSIVE : écrans étroits / mobile — le HUD ne se chevauche plus ------- */
@@ -1053,7 +1073,7 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
   @keyframes secoue{0%,100%{transform:none}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
   /* le VOLANT se montre au premier départ : un anneau-fantôme là où naît le stick, jusqu'au premier braquage */
   @keyframes volantInvite{0%,100%{opacity:.35;transform:scale(1)}50%{opacity:.8;transform:scale(1.08)}}
-  body.touch.play #tSteer:not(.used)::after{content:'';position:absolute;left:calc(50% - 46px);bottom:calc(env(safe-area-inset-bottom,0px) + 96px);
+  body.touch.play #tSteer:not(.used)::after{content:'';position:absolute;left:calc(50% - 46px);bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 96px);
     width:92px;height:92px;border-radius:50%;border:3px dashed rgba(159,232,255,.55);pointer-events:none;animation:volantInvite 1.6s ease-in-out infinite}
   body.tpad #tSteer::after{display:none}
   @media (prefers-reduced-motion:reduce){body.touch.play #tSteer:not(.used)::after{animation:none;opacity:.6}}
@@ -1114,7 +1134,7 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
   .mRec b{color:var(--or);margin-left:.6em}
   .mRow4{gap:10px!important}
   /* -- la BANNIÈRE de succès (v2) -- */
-  #misBan{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 74px);z-index:70;width:min(360px,calc(100vw - 28px));box-sizing:border-box;
+  #misBan{position:fixed;left:50%;top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 74px);z-index:70;width:min(360px,calc(100vw - 28px));box-sizing:border-box;
     display:flex;align-items:center;gap:12px;padding:10px 12px 10px 10px;pointer-events:none;overflow:hidden;
     font-family:var(--pix);color:#fff;border-radius:18px;
     background:linear-gradient(135deg,rgba(38,32,98,.97),rgba(18,14,52,.97));
@@ -1154,7 +1174,7 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
   body.touch #nitroBar.plein{animation:nitroPlein .9s steps(2) infinite}
   @media (prefers-reduced-motion:reduce){body.touch #nitroBar.gain,body.touch #nitroBar.plein{animation:none}}
   /* ---- L'AUTO-ÉCOLE (2026-09-25) : une carte d'arcade sous la jauge, qui ne cache jamais la route ---- */
-  #coach{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 62px);z-index:66;width:min(340px,calc(100vw - 32px));box-sizing:border-box;
+  #coach{position:fixed;left:50%;top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 62px);z-index:66;width:min(340px,calc(100vw - 32px));box-sizing:border-box;
     transform:translate(-50%,-30px);opacity:0;pointer-events:none;font-family:var(--pix);color:#fff;padding:12px 14px 12px;
     background:linear-gradient(180deg,#1c2552,#131a3d);
     box-shadow:inset 0 3px 0 #313f86,inset 0 -3px 0 #0b1030,0 -3px 0 #04061a,0 3px 0 #04061a,-3px 0 0 #04061a,3px 0 0 #04061a,0 9px 0 rgba(0,0,0,.35);
@@ -1247,7 +1267,7 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
      nitro, bleu pour la réserve profonde, gris pour ce qui manque — l'arc s'ouvre en bas, comme un cadran. Le pouce lit sa
      réserve là où il appuie. Il s'ILLUMINE à l'appui, et BAT quand l'anneau est plein. (--nr/--nx : posés par la boucle.) */
   body.touch #tNitro{--nr:.5;--nx:0;width:104px!important;height:104px!important;border-radius:50%!important;border:8px solid transparent!important;
-    right:calc(env(safe-area-inset-right,0px) + 16px);bottom:calc(env(safe-area-inset-bottom,0px) + 20px);
+    right:calc(var(--ccR,env(safe-area-inset-right,0px)) + 16px);bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 20px);
     background:radial-gradient(circle at 50% 34%,#4a3bb5 0%,#241a78 55%,#140d4a 100%) padding-box,
       conic-gradient(from 220deg,#ffa545 0deg,#ff6a0e calc(var(--nr)*280deg),#6f86ff calc(var(--nr)*280deg),#3a58f0 calc(min(1,var(--nr) + var(--nx))*280deg),rgba(255,255,255,.14) calc(min(1,var(--nr) + var(--nx))*280deg),rgba(255,255,255,.14) 280deg,transparent 280deg) border-box!important;
     box-shadow:0 0 0 3px #0b0730,0 7px 0 #0b0730,0 12px 26px rgba(0,0,0,.5)!important;
@@ -1337,7 +1357,7 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
   /* -- la fiche du garage, ALLÉGÉE (user : « trop de texte ») : le nom, le nuancier, le bouton — et le compteur en haut -- */
   @keyframes gcMoins{0%{opacity:0;transform:translateY(-6px)}15%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0;transform:translateY(14px)}}
   /* -- LE FLOW : la pilule sous la jauge, et les bords de l'écran qui prennent sa couleur -- */
-  #flowHud{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 54px);z-index:30;transform:translate(-50%,-8px);opacity:0;pointer-events:none;
+  #flowHud{position:fixed;left:50%;top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 54px);z-index:30;transform:translate(-50%,-8px);opacity:0;pointer-events:none;
     display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;font-family:var(--pix);
     background:rgba(11,7,48,.78);box-shadow:0 0 0 2px var(--fc),0 0 16px color-mix(in srgb,var(--fc) 60%,transparent);transition:opacity .2s,transform .2s}
   #flowHud.on{opacity:1;transform:translate(-50%,0)}
@@ -1351,9 +1371,9 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
   /* -- LE DAUPHIN (2026-09-25) : l'étiquette qui dit POURQUOI l'aura monte. En vol la caméra CENTRE la caisse : on s'affiche
      au-dessus d'elle, SOUS la pilule du FLOW et le camembert, jamais dessus. Lecture seule (aucun geste). -- */
   :root{--dol:#5ee6ff;--dolNom:#ffffff;--dolOmbre:#0b0730;--auraRose:#ff7ad5;--auraOmbre:#3a0f4a}
-  #dolHud{position:fixed;left:50%;top:max(27vh,calc(env(safe-area-inset-top,0px) + 186px));z-index:7;pointer-events:none;
+  #dolHud{position:fixed;left:50%;top:max(27vh,calc(var(--ccT,env(safe-area-inset-top,0px)) + 186px));z-index:7;pointer-events:none;
     display:flex;flex-direction:column;align-items:center;gap:8px;white-space:nowrap;text-align:center;font-family:var(--pix);
-    max-width:calc(100vw - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px) - 32px);contain:layout style;
+    max-width:calc(100vw - var(--ccL,env(safe-area-inset-left,0px)) - var(--ccR,env(safe-area-inset-right,0px)) - 32px);contain:layout style;
     opacity:0;visibility:hidden;transform:translate3d(-50%,0,0);
     transition:opacity var(--t-fast) var(--ease),visibility 0s linear var(--t-fast)}
   #dolHud.on{opacity:1;visibility:visible;animation:dolEntre var(--t-slow) var(--ease) both;transition:opacity var(--t-slow) var(--ease),visibility 0s}
@@ -1371,7 +1391,7 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
   @media (prefers-reduced-motion:reduce){#dolHud.on{animation:none}#dolHud.fige .dAura{transform:none}}
   /* ---- L'AURA v2 — LA CHAÎNE (2026-09-26) : le compteur TOUJOURS visible, et la chaîne en cours dessous — points, multiplicateur,
      temps restant, et les trois derniers gestes AVEC leurs points. À GAUCHE, sous la pastille FLOW : à droite vit le chrono de vol. ---- */
-  #auraV2{position:fixed;left:calc(env(safe-area-inset-left,0px) + 14px);top:calc(env(safe-area-inset-top,0px) + 84px);z-index:6;
+  #auraV2{position:fixed;left:calc(var(--ccL,env(safe-area-inset-left,0px)) + 14px);top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 84px);z-index:6;
     pointer-events:none;font-family:var(--pix);text-align:left;display:none}
   body.play #auraV2{display:block}
   #auraHud{display:none!important} /* l'ancienne jauge d'aura (PC) : un seul compteur, celui-ci */
@@ -1463,8 +1483,8 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
      LES CROCHETS (ce qui fait relancer une partie) : une jauge VIDE qui demande à être remplie, le segment qui BAT quand le palier
      suivant est à portée, la bande qui FUIT puis LÂCHE (en rythme avec le tic sonore), le record de la meilleure partie à battre EN
      DIRECT, et la chaîne qui s'envole DANS le compteur quand elle s'encaisse. */
-  :root{--hudG:calc(env(safe-area-inset-left,0px) + 14px);--hudD:calc(env(safe-area-inset-right,0px) + 14px);--hudH:env(safe-area-inset-top,0px);
-    --laneA:max(40%,calc(env(safe-area-inset-top,0px) + 338px));--cashV:#7dff9a;--recOr:#ffd75e;--danger:#ff5e7a;
+  :root{--hudG:calc(var(--ccL,env(safe-area-inset-left,0px)) + 14px);--hudD:calc(var(--ccR,env(safe-area-inset-right,0px)) + 14px);--hudH:var(--ccT,env(safe-area-inset-top,0px));
+    --laneA:max(40%,calc(var(--ccT,env(safe-area-inset-top,0px)) + 338px));--cashV:#7dff9a;--recOr:#ffd75e;--danger:#ff5e7a;
     --oct:polygon(7px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 7px),calc(100% - 7px) 100%,7px 100%,0 calc(100% - 7px),0 7px)}
   /* R2 — LA BANDE DU FLOW : pleine largeur, toujours là */
   body #flowHud{left:var(--hudG);right:var(--hudD);top:calc(var(--hudH) + 72px);height:44px;box-sizing:border-box;z-index:6;
@@ -1652,7 +1672,7 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
   @keyframes spBreath2{50%{opacity:.72}}
   /* LA ZONE NITRO — une surface invisible sous le disque : tout le coin bas-droit (hors de la moitié du volant) répond au pouce */
   #tNitroZone{display:none}
-  body.touch.play #tNitroZone{display:block;position:fixed;right:0;bottom:0;width:46vw;height:calc(env(safe-area-inset-bottom,0px) + 190px);
+  body.touch.play #tNitroZone{display:block;position:fixed;right:0;bottom:0;width:46vw;height:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 190px);
     pointer-events:auto;touch-action:none;-webkit-tap-highlight-color:transparent} /* sans z-index : le disque, posé après, reste dessus */
   body.touch.tpad #tNitroZone{display:none}
   /* POURQUOI ON EST MORT — sous GAME OVER, dans la même langue pixel, sans voler la vedette au titre */
@@ -1770,7 +1790,7 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
          palier. Dessous, en 10 px cerné d'encre : le NOM du palier (sa couleur) à gauche, ce qu'il VAUT à droite ($×, vert billet).
          Le tableau de bord remonte de 32 px (aura, chrono de vol, pouvoirs) : la route gagne ce que la bande a rendu. */
   :root{--pxi-flot:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 9' shape-rendering='crispEdges'%3E%3Cpath d='M1 1h3v1h-3zM0 2h2v1h-2zM3 2h2v1h-2zM8 2h1v1h-1zM0 3h1v1h-1zM4 3h2v1h-2zM7 3h2v1h-2zM5 4h3v1h-3zM1 5h3v1h-3zM0 6h2v1h-2zM3 6h2v1h-2zM8 6h1v1h-1zM0 7h1v1h-1zM4 7h2v1h-2zM7 7h2v1h-2zM5 8h3v1h-3z'/%3E%3C/svg%3E")}
-  body #flowHud{left:var(--hudG);right:calc(env(safe-area-inset-right,0px) + 64px);top:calc(var(--hudH) + 52px);height:auto;padding:0 0 0 34px;
+  body #flowHud{left:var(--hudG);right:calc(var(--ccR,env(safe-area-inset-right,0px)) + 64px);top:calc(var(--hudH) + 52px);height:auto;padding:0 0 0 34px;
     display:grid;grid-template-columns:1fr auto;grid-template-rows:14px auto;gap:7px 8px;align-items:center;
     background:none;clip-path:none;box-shadow:none;transition:none}
   body #flowHud::before{content:'';position:absolute;left:4px;top:-2px;width:18px;height:18px;background:var(--fc);
@@ -1815,8 +1835,8 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
   body.touch #pwrChip.sousPie{top:calc(var(--hudH) + 184px)}
   /* l'édition PC (pas de .touch) : la nitro vit en bas au centre, 320 px — la jauge du FLOW s'y range DESSOUS, même largeur, cadre
      carré néon comme elle (elle recouvrait jusqu'ici le compteur d'argent, en haut à gauche) */
-  body:not(.touch) #nitroWrap{bottom:calc(env(safe-area-inset-bottom,0px) + 56px)}
-  body:not(.touch) #flowHud{left:calc(50% - 160px);right:auto;width:320px;top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);padding:0;
+  body:not(.touch) #nitroWrap{bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 56px)}
+  body:not(.touch) #flowHud{left:calc(50% - 160px);right:auto;width:320px;top:auto;bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 22px);padding:0;
     grid-template-rows:12px auto;row-gap:6px}
   body:not(.touch) #flowHud::before{display:none}
   body:not(.touch) #flowHud .fSeg{height:12px;padding:2px;border-radius:0;box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--fc) 60%,#00eaff),0 0 10px rgba(0,234,255,.25)}
@@ -1918,7 +1938,7 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
     var lg9='';try{lg9=localStorage.ccLang||'';}catch(e){}var en=lg9?lg9!=='fr':!/^fr/i.test((navigator.language||'fr')); // (passe qualité) la langue CHOISIE d'abord
     var b=document.createElement('div');
     b.setAttribute('style','position:fixed;inset:0;z-index:99999;background:#07050f;color:#ffd75e;box-sizing:border-box;'+
-      'font:12px/1.6 ui-monospace,Menlo,monospace;padding:calc(env(safe-area-inset-top,0px) + 28px) 24px calc(env(safe-area-inset-bottom,0px) + 24px);overflow:auto;-webkit-user-select:text;user-select:text');
+      'font:12px/1.6 ui-monospace,Menlo,monospace;padding:calc(var(--ccT,env(safe-area-inset-top,0px)) + 28px) 24px calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 24px);overflow:auto;-webkit-user-select:text;user-select:text');
     b.innerHTML='<div style="font:600 20px/1.35 -apple-system,system-ui,sans-serif;color:#fff;margin-bottom:10px">'+(en?'CASH CAR hit a snag.':'CASH CAR a calé.')+'</div>'+
       '<div style="font:500 15px/1.5 -apple-system,system-ui,sans-serif;color:#c9bdf0;margin-bottom:22px">'+(en?'Tap RESTART: your progress is saved.':'Touche RELANCER : ta progression est sauvegardée.')+'</div>'+
       '<button id="ccRelance" style="display:block;width:100%;max-width:360px;min-height:56px;margin:0 0 28px;border:0;font:600 17px -apple-system,system-ui,sans-serif;letter-spacing:1px;color:#3a1800;background:linear-gradient(180deg,#ffe78e,#f7ae16);box-shadow:0 5px 0 #9c5200;cursor:pointer">'+(en?'RESTART':'RELANCER')+'</button>'+
@@ -1996,7 +2016,7 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
   /* LES CORPS — une gamme courte (--f2 garde son nom pour les règles historiques, il vaut le même 10 px que --f1) */
   --f0:8px;--f1:10px;--f2:10px;--f3:12px;--f4:14px;--f5:16px;--f6:20px;--f9:24px;--f7:28px;--f8:40px;
   /* les marges d'écran (safe areas comprises) */
-  --sT:env(safe-area-inset-top,0px);--sB:env(safe-area-inset-bottom,0px);--sL:env(safe-area-inset-left,0px);--sR:env(safe-area-inset-right,0px);
+  --sT:var(--ccT,env(safe-area-inset-top,0px));--sB:var(--ccB,env(safe-area-inset-bottom,0px));--sL:var(--ccL,env(safe-area-inset-left,0px));--sR:var(--ccR,env(safe-area-inset-right,0px));
   --gut:18px;
   /* LA LAQUE — ce qui se TOUCHE : un reflet oblique (la lumière de la rue sur une carrosserie), une laque qui descend vers le noir */
   --laque:linear-gradient(112deg,transparent 0 37%,rgba(255,255,255,.055) 37% 45%,transparent 45% 49%,rgba(255,255,255,.03) 49% 51%,transparent 51%),
@@ -2870,7 +2890,7 @@ html.misS #gmHead small{line-height:1.6}
 body:not(.play) #misFocus{display:none!important}
 /* debout, le bas est à NITRO (droite) et au volant (gauche) : la ligne se range sur la marge gauche de la grille du HUD (hudOrdre, --hudG),
    juste au-dessus de la consigne du volant, et s'arrête avant NITRO */
-@media (orientation:portrait){#misFocus{left:var(--hudG,16px);transform:none;bottom:calc(env(safe-area-inset-bottom,0px) + 40px);max-width:calc(100vw - var(--hudG,16px) - var(--hudD,16px) - 118px)}}
+@media (orientation:portrait){#misFocus{left:var(--hudG,16px);transform:none;bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 40px);max-width:calc(100vw - var(--hudG,16px) - var(--hudD,16px) - 118px)}}
 @media (max-width:360px){#gProfil{padding:6px 10px 6px 6px}.gpAv{width:38px;height:38px}.gpAv svg{width:28px;height:28px}.gpJ{min-width:110px}.gpL{font-size:var(--f2)}
   #gMenuBas{gap:8px}#gMenuBas .gVerrou,#gMenuBas .gBoutique{width:70px;min-width:70px;font-size:var(--f0);letter-spacing:0}#gMenuBas .pxi{--pxs:3}.gLevel .glN{font-size:var(--f4);letter-spacing:1px}
   html #garage.menu #gTop{padding-top:calc(var(--sT) + 92px)}html #garage.menu #gPlayMain .lg{font-size:38px}}
@@ -3153,7 +3173,7 @@ html body.touch #pwrChip,html body.touch #pwrChip.sousPie{top:calc(var(--hudH) +
 html body.touch:has(#campChip.on) #pwrChip{top:calc(var(--hudH) + 248px)}
 /* en campagne la colonne de droite descend plus bas (objectif + pouvoirs) : le couloir des annonces descend d'autant, la bannière
    « NIVEAU 4 » passait derrière les pouvoirs */
-html body.touch:has(#campChip.on){--laneA:max(44%,calc(env(safe-area-inset-top,0px) + 384px))}
+html body.touch:has(#campChip.on){--laneA:max(44%,calc(var(--ccT,env(safe-area-inset-top,0px)) + 384px))}
 
 /* ---- 10. LA FRÉNÉSIE, REFAITE (2026-09-28 au soir, Sacha : « retravaille l'effet frénésie / dark triad, beaucoup beaucoup ; une
    petite part rouge dans la barre de flow = une zone de tolérance pour rester en frénésie plus souvent ; la barre devient toute rouge
@@ -4176,9 +4196,9 @@ img{-webkit-user-drag:none}
 /* les flèches du garage : 38 px dessinées, 54 × 70 touchables */
 #garage .gNav::after{content:'';position:absolute;inset:-6px -8px}
 /* les flèches du mode PAD : au-dessus de la barre d'accueil, hors de l'encoche en paysage */
-html body #tLeft,html body #tRight{bottom:calc(env(safe-area-inset-bottom,0px) + 20px)}
-html body #tLeft{left:calc(env(safe-area-inset-left,0px) + 16px)}
-html body #tRight{left:calc(env(safe-area-inset-left,0px) + min(84px,21vh) + 30px)}
+html body #tLeft,html body #tRight{bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 20px)}
+html body #tLeft{left:calc(var(--ccL,env(safe-area-inset-left,0px)) + 16px)}
+html body #tRight{left:calc(var(--ccL,env(safe-area-inset-left,0px)) + min(84px,21vh) + 30px)}
 /* la saisie du RECORD, couché : dans la case de l'objectif (elle ouvrait une 6e rangée et l'écran débordait) */
 @media (orientation:landscape) and (max-height:540px){html #mDead #nameEntry{grid-area:obj;align-self:start;z-index:2;background:var(--k0)}}
 /* le CONTRASTE des petits textes (8-10 px) : le lavande éteint gagne un cran (≈ 4,7:1 sur les fonds d'écran), les titres de section de la
@@ -4275,8 +4295,8 @@ html body #coach.passe .coN{color:var(--or);white-space:nowrap}html body #coach 
 /* ---- 27. MODE FACILE (2026-09-29) : les trois vies, en haut à droite, sous la pause (zone de LECTURE) ---- */
 #facVies{display:none}
 html body.touch.play.facile #facVies{display:flex;position:fixed;top:calc(var(--hudH) + 120px);right:var(--hudD);z-index:6;gap:5px;pointer-events:none;zoom:var(--hudK);
-  --hudH:calc((env(safe-area-inset-top,0px) + var(--hudY0) * (1 - var(--hudK))) / var(--hudK));
-  --hudD:calc((env(safe-area-inset-right,0px) + 14px) / var(--hudK))}
+  --hudH:calc((var(--ccT,env(safe-area-inset-top,0px)) + var(--hudY0) * (1 - var(--hudK))) / var(--hudK));
+  --hudD:calc((var(--ccR,env(safe-area-inset-right,0px)) + 14px) / var(--hudK))}
 #facVies .pxi{--pxs:1.6;color:var(--neoR);filter:drop-shadow(0 2px 0 var(--k0))}
 @media (orientation:landscape) and (max-height:540px){html body.touch.play.facile #facVies{top:calc(var(--hudH) + 103px)}}
 /* (29/09, re-mesuré) le compteur d'argent a une 2e ligne, le GAIN (« +$ 43 ») : il descend à 111 debout / 97 couché → les vies à 115 / 101.
@@ -5084,9 +5104,9 @@ html body #avCh.discret:not(.vole):not(.perdu),html body #pwrChip.discret,html b
 :root{--hudK:.8;--hudY0:96px}
 @media (orientation:landscape) and (max-height:540px){:root{--hudK:.72}}
 html body.touch :is(#auraV2,#triade,#airHud,#pwrChip,#campChip){zoom:var(--hudK);
-  --hudH:calc((env(safe-area-inset-top,0px) + var(--hudY0) * (1 - var(--hudK))) / var(--hudK));
-  --hudG:calc((env(safe-area-inset-left,0px) + 14px) / var(--hudK));
-  --hudD:calc((env(safe-area-inset-right,0px) + 14px) / var(--hudK))}
+  --hudH:calc((var(--ccT,env(safe-area-inset-top,0px)) + var(--hudY0) * (1 - var(--hudK))) / var(--hudK));
+  --hudG:calc((var(--ccL,env(safe-area-inset-left,0px)) + 14px) / var(--hudK));
+  --hudD:calc((var(--ccR,env(safe-area-inset-right,0px)) + 14px) / var(--hudK))}
 /* (balade du 29/09) LE PLANCHER DU PIXEL : la police pixel sous 8 px effectifs devient une bouillie (« NITRO MAX », « AIR » tombaient à 6,4 px,
    « AURA » et « RECORD » à 7,2 couché) — les grands chiffres rétrécissent, les petites étiquettes restent à 8 px nets.
    L'ASTUCE (#misBan) et l'AUTO-ÉCOLE (#coach) sortent de l'échelle : ce sont des consignes, elles doivent se lire du premier coup (« DÉFI RÉUSSI »
@@ -5094,7 +5114,7 @@ html body.touch :is(#auraV2,#triade,#airHud,#pwrChip,#campChip){zoom:var(--hudK)
 html body.touch :is(#airHud em,#pwrChip .pw small,#campChip small){font-size:calc(8px / var(--hudK))!important}
 html body.touch :is(#auraV2 .avTot em,#avRecT,#avList li){font-size:calc(max(10px * var(--hudK),8px) / var(--hudK))!important}
 /* le voile d'encre du haut suit le tableau de bord : pleine hauteur jusqu'aux barres, à l'échelle en dessous */
-body.touch.play #hud::before{height:calc(env(safe-area-inset-top,0px) + var(--hudY0) + (214px - var(--hudY0)) * var(--hudK))}
+body.touch.play #hud::before{height:calc(var(--ccT,env(safe-area-inset-top,0px)) + var(--hudY0) + (214px - var(--hudY0)) * var(--hudK))}
 /* l'AUTO-ÉCOLE, hors échelle, garde sa taille (172 px) : debout, les plaques de pouvoir passent SOUS sa carte (elles la chevauchaient de 26 px) */
 @media (orientation:portrait){html body.touch.coOn #pwrChip{top:calc(var(--hudH) + 290px)}}
 /* (2026-09-29, audit iPhone) « RÉDUIRE LES ANIMATIONS » : ce qui battait encore — le bouton NITRO plein, le chrono de vol qui tremble et
@@ -5181,7 +5201,7 @@ html body #carr .carrNiv.pb-gold b{text-shadow:none}
    ===================================================================================================================================== */
 /* (relevé de GAMEPLAY) ⏸ et NITRO sont des plaques PENCHÉES : leur pente déborde de la boîte (4 et 8 px) et mangeait la marge — le coin
    touchait presque le bord ; décalées d'autant, leur coin tombe sur la marge ; les barres reculent pour garder 12 px avant le ⏸ */
-html body.touch #tGear{right:calc(var(--hudD) + 4px)!important;top:calc(env(safe-area-inset-top,0px) + 8px)!important}
+html body.touch #tGear{right:calc(var(--hudD) + 4px)!important;top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 8px)!important}
 html body.touch #nitroWrap,html body.touch #flowHud{right:calc(var(--hudD) + 70px)!important}
 @media (orientation:landscape) and (max-height:540px){html body.touch #nitroWrap,html body.touch #flowHud{right:auto!important}}
 html body.touch :is(#cashHud,#airHud,#pwrChip,#campChip){right:var(--hudD)!important;left:auto!important}
@@ -5191,13 +5211,13 @@ html body.touch #pwrChip[style*="block"]{flex-direction:column!important;align-i
 html body.touch #pwrChip .pw{min-width:calc(112px / var(--hudK))!important;box-sizing:border-box}
 html body.touch #pwrChip .pw span b{font-size:17px!important}
 /* EN BAS : la même marge que le haut */
-html body.touch #tNitro{right:calc(var(--hudD) + 8px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 16px)!important}
+html body.touch #tNitro{right:calc(var(--hudD) + 8px)!important;bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 16px)!important}
 /* la consigne du volant : debout, en bas sur la marge ; COUCHÉE (relevé de GAMEPLAY : à 20 px du bas, le pouce la couvrait), À GAUCHE de
    l'anneau-fantôme (bas 96 px, 92 px de haut), sur deux lignes, à hauteur de son centre — au-dessus, elle tombait sur la route, et debout
    sur l'arrière de la caisse (essayé au banc) */
-html body.touch #tSteerHint{left:var(--hudG)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 20px)!important}
+html body.touch #tSteerHint{left:var(--hudG)!important;bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 20px)!important}
 @media (orientation:landscape) and (max-height:540px){html body.touch #tSteerHint{right:auto!important;width:calc(50% - 46px - var(--hudG) - 12px)!important;
-  white-space:normal!important;line-height:1.8!important;text-align:left;bottom:calc(env(safe-area-inset-bottom,0px) + 127px)!important}}
+  white-space:normal!important;line-height:1.8!important;text-align:left;bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 127px)!important}}
 /* le « $×1 » du FLOW au palier 0 était à 40 % d'opacité : gris sur bleu nuit, illisible sur un ciel clair (GAMEPLAY) — secondaire, mais lisible */
 html body #flowHud[data-lv="0"] .fM{opacity:.8!important}
 /* LA MISSION SUIVIE (#misFocus, relevé par GAMEPLAY) : debout, sa ligne n'a que ~244 px entre la marge et NITRO — « ENCHAINE 3 FIGURES D'UN
@@ -6738,7 +6758,7 @@ const SUN_PERP=new THREE.Vector3().crossVectors(SUN_DIR,new THREE.Vector3(0,1,0)
    c'est toujours la SEULE ligne qui diffère entre VERSION PRINCIPALE et AUTRE VERSION (voir synchro-versions.js). Dans la
    colonne, ce qui suit voit un écran de 390 × 844 non tactile : c'est donc ce chemin `FORCE_TEL` qui y tourne. */
 const TACTILE_NATIF=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||('ontouchstart'in window)||navigator.maxTouchPoints>0;
-const TEL_NATIF=TACTILE_NATIF&&((window.matchMedia&&matchMedia('(hover:none)').matches)||Math.min(innerWidth,innerHeight)<820);
+const TEL_NATIF=TACTILE_NATIF&&((window.matchMedia&&matchMedia('(hover:none)').matches)||Math.min(screen.width,screen.height)<600); // (2026-10-01) l'ÉCRAN, pas la fenêtre — même test que la colonne du <head>
 const FORCE_TEL=/[?&](tel|mobile)=1/.test(location.search)||(EDITION==='mobile'&&!TEL_NATIF&&!/[?&](pc|desktop)=1/.test(location.search)); // l'ORDI qui joue la version téléphone
 const IS_TOUCH=FORCE_TEL||TACTILE_NATIF;
 const IS_MOBILE=FORCE_TEL||TEL_NATIF;
