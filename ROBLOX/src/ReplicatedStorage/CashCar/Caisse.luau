@@ -1,6 +1,9 @@
 -- CASH CAR — LA CAISSE : le modèle 3D, en pièces Roblox (aucun maillage importé, aucun ID d'asset).
--- Bâtie par le SERVEUR (tout le monde la voit), pilotée par le JOUEUR (propriétaire réseau : c'est
--- son téléphone qui la déplace, le serveur ne fait que relayer). Le nez regarde -Z (LookVector de Roblox).
+-- Deux exemplaires par joueur : celle du SERVEUR (ancrée, cachée chez tout le monde, elle ne porte que la
+-- position que le joueur envoie) et celles que chaque joueur DESSINE chez lui (la sienne, collée à sa physique ;
+-- celles des autres, lissées vers la position du serveur). Le nez regarde -Z (LookVector de Roblox).
+-- (la 1re version comptait sur la « propriété réseau » : sans avatar, Roblox ne la donnait pas au joueur,
+-- et sa caisse restait plantée au garage — Sacha ne la voyait ni au menu ni en course)
 -- Échelle : 1 m du jeu web = Config.M studs. La caisse fait ~2 m × 4,4 m : 5 × 11 studs.
 local Caisse = {}
 
@@ -31,7 +34,7 @@ local function piece(modele: Model, racine: BasePart, nom: string, classe: strin
 end
 
 -- Construit une caisse neuve à l'origine. couleur = la laque.
-function Caisse.construire(nom: string, couleur: Color3?): Model
+function Caisse.construire(nom: string, couleur: Color3?, ancree: boolean?): Model
 	local laque = couleur or ORANGE
 	local m = Instance.new("Model")
 	m.Name = nom
@@ -44,7 +47,7 @@ function Caisse.construire(nom: string, couleur: Color3?): Model
 	r.CanCollide = false
 	r.CanQuery = false
 	r.CanTouch = false
-	r.Anchored = false
+	r.Anchored = ancree == true
 	r.CFrame = CFrame.new()
 	r.Parent = m
 	m.PrimaryPart = r

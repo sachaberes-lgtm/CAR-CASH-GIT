@@ -46,9 +46,23 @@ local evFin = CC:WaitForChild("FinPartie")
 local evEtat = CC:WaitForChild("EtatCaisse")
 local evRecord = CC:WaitForChild("Record")
 
+local Caisse = require(CC:WaitForChild("Caisse"))
+local evPos = CC:WaitForChild("PosCaisse")
 local dossierCaisses = workspace:WaitForChild("Caisses")
-local caisse = dossierCaisses:WaitForChild(joueur.Name) :: Model
-local racine = caisse:WaitForChild("Racine") :: BasePart
+-- La caisse du serveur n'est qu'une boîte aux lettres (sa position part vers les autres joueurs) : chez moi
+-- elle est cachée, et je dessine la MIENNE, ancrée, collée à ma physique. (1re version : la caisse du
+-- serveur pilotée par « propriété réseau » — sans avatar, Roblox ne la donnait pas : caisse invisible.)
+local function cacher(m: Instance)
+	for _, d in m:GetDescendants() do
+		if d:IsA("BasePart") then d.LocalTransparencyModifier = 1
+		elseif d:IsA("ParticleEmitter") or d:IsA("Trail") or d:IsA("Light") then d.Enabled = false end
+	end
+end
+local caisseServeur = dossierCaisses:WaitForChild(joueur.Name) :: Model
+cacher(caisseServeur)
+local caisse = Caisse.construire("MaCaisse", caisseServeur:GetAttribute("Couleur") or Color3.fromRGB(255, 122, 26), true)
+caisse.Parent = workspace
+local racine = caisse.PrimaryPart :: BasePart
 local flammes, trainees = {}, {}
 for i = 1, 2 do
 	local a = racine:WaitForChild("Tuyere" .. i)
@@ -67,11 +81,15 @@ local function montrerCaisse(oui: boolean)
 	for _, t in trainees do if not oui then t.Enabled = false end end
 end
 
-local record = 0
-evRecord.OnClientEvent:Connect(function(v)
+local record, compte, meilleurAura = 0, 0, 0
+evRecord.OnClientEvent:Connect(function(v, c)
 	if type(v) == "number" then
 		record = math.max(record, v)
 		E.menuRecord.Text = record > 0 and (T.record .. " " .. Hud.argent(record)) or ""
+	end
+	if type(c) == "number" then
+		compte = c
+		if E.mort.Visible then E.mCompte.Text = T.compte .. " " .. Hud.argent(compte) end
 	end
 end)
 
@@ -144,6 +162,11 @@ local fallT, fallTR, fallVH0, yawAcc, demiTours, dolphT, dolphPop, bumpCd, sDeco
 local chainVal, chainMult, auraChaine, vus, echelon = 0, 1, 0, {}, 0
 local boomT, boomPos, causeMort = 0, Vector3.zero, "autre"
 local tempsDepart = 0
+local secousse = 0 -- la vibration de caméra (atterrissage, explosion)
+local intro = false                          -- la CHUTE du départ : la caisse tombe du ciel sur la route
+local multiMax, piecesPrises = 1, 0
+local astucesVues = {}
+local eclats: { { p: BasePart, v: Vector3, r: Vector3, t: number } } = {}
 local carCF = CFrame.identity
 local carVel = Vector3.zero
 
@@ -225,6 +248,11 @@ local function gererNitro(dt: number, auSol: boolean)
 end
 
 -- ════════ décoller (startFall, L29730) ════════
+local function astuce(i: number)
+	if astucesVues[i] then return end
+	astucesVues[i] = true
+	Hud.astuce((Hud.tactile and T.astucesTactile or T.astuces)[i], 6)
+end
 local function decoller(impU: number, impF: number)
 	local cf = repere(s, side)
 	local T_, B, N = cf.LookVector, cf.RightVector, cf.UpVector
@@ -234,6 +262,7 @@ local function decoller(impU: number, impF: number)
 	if fallVel.Y > 70 then fallVel = Vector3.new(fallVel.X, 70, fallVel.Z) end
 	prevPos = fallPos
 	airRot = carCF.Rotation
+	if not intro then task.delay(0.6, function() if mode == "fall" then astuce(2) end end) end
 	fallT, fallTR, yawAcc, demiTours, dolphT, dolphPop, nitroAirT, bumpCd = 0, 0, 0, 0, 0, 0, 0, 0
 	fallVH0 = Vector3.new(fallVel.X, 0, fallVel.Z).Magnitude
 	chainVal, chainMult, auraChaine, echelon = 0, 1, 0, 0
@@ -254,13 +283,30 @@ local function exploser(cause: string)
 	mode = "boom"
 	boomT = 0
 	nitroOn = false
-	local ex = Instance.new("Explosion")
-	ex.Position = boomPos
-	ex.BlastRadius = 7 * M
-	ex.BlastPressure = 0
-	ex.DestroyJointRadiusPercent = 0
-	ex.ExplosionType = Enum.ExplosionType.NoCraters
-	ex.Parent = workspace
+	-- l'amas de cubes de feu + les éclats de carrosserie (pièces locales, rendues au bout de 2,5 s)
+	for _, e in eclats do e.p:Destroy() end
+	table.clear(eclats)
+	local rnd = Random.new()
+	local tons = { Color3.fromRGB(255, 60, 50), Color3.fromRGB(255, 96, 60), Color3.fromRGB(230, 40, 60), Color3.fromRGB(255, 150, 60), Color3.fromRGB(90, 40, 60) }
+	for k = 1, 34 do
+		local feu = k <= 24
+		local p = Instance.new("Part")
+		p.Anchored = true
+		p.CanCollide = false
+		p.CanQuery = false
+		p.CanTouch = false
+		p.CastShadow = false
+		p.Material = feu and Enum.Material.Neon or Enum.Material.SmoothPlastic
+		local plancher = caisse:FindFirstChild("Plancher") :: BasePart?
+		p.Color = feu and tons[rnd:NextInteger(1, #tons)] or (plancher and plancher.Color or Color3.fromRGB(255, 122, 26))
+		local t = (feu and rnd:NextNumber(1.2, 2.6) or rnd:NextNumber(0.6, 1.4)) * M
+		p.Size = feu and Vector3.new(t, t, t) or Vector3.new(t * 1.6, t * 0.25, t)
+		p.CFrame = CFrame.new(boomPos + Vector3.new(rnd:NextNumber(-1, 1), rnd:NextNumber(-0.5, 1), rnd:NextNumber(-1, 1)) * M)
+		p.Parent = workspace
+		local dir = Vector3.new(rnd:NextNumber(-1, 1), rnd:NextNumber(-0.2, 1), rnd:NextNumber(-1, 1)).Unit
+		table.insert(eclats, { p = p, v = dir * (feu and rnd:NextNumber(3, 9) or rnd:NextNumber(14, 30)) * M,
+			r = Vector3.new(rnd:NextNumber(-6, 6), rnd:NextNumber(-6, 6), rnd:NextNumber(-6, 6)), t = feu and 1 or 0 })
+	end
 	Sons.jouer("explosion")
 	montrerCaisse(false)
 	evEtat:FireServer("course", false)
@@ -272,6 +318,23 @@ local voisins: { number } = {}
 local function atterrir(j: number, face: number, latX: number, sX: number)
 	side = face
 	s = sX
+	if intro then
+		-- la CHUTE du départ se pose : la course commence (ni note, ni perte de vitesse)
+		intro = false
+		lat = (face > 0) and latX or -latX
+		vA, psi, yawR = 40, 0, 0
+		mode = "drive"
+		graceT = 0.3
+		fallT, fallTR = 0, 0
+		E.air.Visible = false
+		Hud.grand(T.niveau, Hud.C.texte, 1.8)
+		Sons.jouer("go")
+		Sons.jouer("poseChoc")
+		secousse = 0.6
+		task.delay(1.2, function() astuce(1) end)
+		task.delay(16, function() astuce(3) end)
+		return
+	end
 	local cf = repere(s, side)
 	local T_, B, N = cf.LookVector, cf.RightVector, cf.UpVector
 	local vM = vitMult()
@@ -317,6 +380,7 @@ local function atterrir(j: number, face: number, latX: number, sX: number)
 	serie = (g >= 1) and serie + 1 or 0
 	local faceMul = (face < 0) and 2 or 1
 	local serieMul = (serie >= 2) and (1 + math.min(1, serie * 0.1)) or 1
+	multiMax = math.max(multiMax, math.min(6, chainMult))
 	local qG = chainVal * math.min(6, chainMult) * g * faceMul * serieMul
 	local res = reservoir()
 	local gainN = res * NI.pose
@@ -429,6 +493,7 @@ local function ramasser(o: any)
 		dernierePiece = t
 		local mult = math.min(2.5, 1 + 0.5 * math.floor(combo / 5))
 		argent += denom() * 2.2 * mult
+		piecesPrises += 1
 		ajouterPieces(1)
 		Sons.jouer("piece", Sons.demiTons(({ 0, 2, 4, 7, 9, 12, 14, 16 })[((combo - 1) % 8) + 1]))
 	elseif k == "pad" then
@@ -669,8 +734,8 @@ local function etapeAir(dt: number)
 		local k = fallVH0 / h.Magnitude
 		fallVel = Vector3.new(fallVel.X * k, fallVel.Y, fallVel.Z * k)
 	end
-	if fallT > 1.8 and not vus["BIG AIR"] then figure("BIG AIR", 4, 50); Sons.jouer("bigAir") end
-	if fallT > 3.4 and not vus["AIR MONSTRE"] then figure(FR and "AIR MONSTRE" or "MONSTER AIR", 8, 110) end
+	if fallT > 1.8 and not vus["BIG AIR"] and not intro then figure("BIG AIR", 4, 50); Sons.jouer("bigAir") end
+	if fallT > 3.4 and not vus["AIR MONSTRE"] and not intro then figure(FR and "AIR MONSTRE" or "MONSTER AIR", 8, 110) end
 	prevPos = fallPos
 	fallPos += fallVel * dt * SPD
 	carVel = fallVel * SPD * M
@@ -683,7 +748,7 @@ local function etapeAir(dt: number)
 		E.chaine.TextColor3 = Hud.C.cyan
 	end
 	-- la mort en vol
-	if fallTR > Config.AIR_MAX and pwA <= 0 then
+	if fallTR > Config.AIR_MAX and pwA <= 0 and not intro then
 		exploser("air")
 	elseif fallPos.Y * M < piste.minY - Config.MORT_SOUS * M then
 		exploser("vide")
@@ -696,8 +761,8 @@ local function etapeAir(dt: number)
 end
 
 -- ════════ LA CAMÉRA (L36096-36170, L36389) ════════
+local menuCap = Vector3.new(0, 0, -1)
 local camFov = 72
-local secousse = 0
 local orbite = 0
 local function camera(dt: number)
 	if cam.CameraType ~= Enum.CameraType.Scriptable then cam.CameraType = Enum.CameraType.Scriptable end
@@ -736,14 +801,14 @@ local function camera(dt: number)
 		camVise = camVise:Lerp(boomPos, math.min(1, dt * 4))
 		camUp = camUp:Lerp(Vector3.yAxis, math.min(1, dt * 3)).Unit
 		fov = 70
-	else -- menu : on tourne autour de la caisse posée au départ, d'assez haut pour voir le ruban et le vide
-		orbite += dt * 0.12
-		local cf = carCF
-		pos = p + (cf.RightVector * math.cos(orbite) - cf.LookVector * math.sin(orbite)) * (19 * M) + cf.UpVector * (8.5 * M)
+	else -- menu (la CHUTE du web) : vue de côté, la caisse à GAUCHE de l'écran, nez qui plonge vers la droite
+		local av = Vector3.new(menuCap.X, 0, menuCap.Z).Unit
+		local dr = av:Cross(Vector3.yAxis)
+		pos = p - av * (5 * M) + dr * (15 * M) + Vector3.yAxis * (2.5 * M)
 		camPos = camPos:Lerp(pos, math.min(1, dt * 3))
-		camVise = camVise:Lerp(p + cf.UpVector * (0.5 * M), math.min(1, dt * 4))
-		camUp = cf.UpVector
-		fov = 56
+		camVise = camVise:Lerp(p + av * (6.5 * M) - Vector3.yAxis * (1.5 * M), math.min(1, dt * 4))
+		camUp = Vector3.yAxis
+		fov = 60
 	end
 	camFov += (math.min(Config.CAM.fovMax, fov) - camFov) * math.min(1, dt * 6)
 	cam.FieldOfView = camFov
@@ -765,8 +830,6 @@ local refletK = 0
 local function habiller(dt: number)
 	if mode == "boom" or mode == "mort" or mode == "charge" then return end
 	racine.CFrame = carCF
-	racine.AssemblyLinearVelocity = carVel
-	racine.AssemblyAngularVelocity = Vector3.zero
 	local feu = nitroOn or boost > 0 or ntrBoost > 0
 	local couleur = pwN > 0 and ColorSequence.new(Color3.fromRGB(190, 110, 255), Color3.fromRGB(110, 40, 255))
 		or (nitroOn and ColorSequence.new(Color3.fromRGB(255, 180, 70), Color3.fromRGB(255, 70, 30)))
@@ -789,22 +852,19 @@ end
 
 -- ════════ le HUD ════════
 local function hud()
-	E.argent.Text = Hud.argent(argent)
-	E.kmh.Text = Hud.entier(kmh()) .. " KM/H"
-	E.aura.Text = aura > 0 and (T.aura .. " " .. Hud.entier(aura)) or ""
+	E.argent.Text = '<font size="28">$</font>' .. Hud.nombre(argent)
+	E.aura.Text = T.aura .. (aura > 0 and ("   " .. Hud.entier(aura)) or "")
 	local res = reservoir()
-	E.nitro.Size = UDim2.fromScale(math.clamp(nitroR / res, 0, 1), 1)
-	E.nitro.BackgroundColor3 = pwN > 0 and Color3.fromRGB(170, 90, 255) or (nitroOn and Color3.fromRGB(255, 200, 80) or Color3.fromRGB(255, 122, 36))
-	E.moteurTxt.Text = T.moteur .. " " .. tier
-	if tier < #MOT - 1 then
-		local a, b = MOT[tier + 1][1], MOT[tier + 2][1]
-		E.moteur.Size = UDim2.fromScale(math.clamp((coinsGot - a) / (b - a), 0, 1), 1)
-	else
-		E.moteur.Size = UDim2.fromScale(1, 1)
-	end
-	if mode == "fall" then
+	local fr = math.clamp(nitroR / res, 0, 1)
+	E.nitro.Size = UDim2.fromScale(fr, 1)
+	E.nitroMini.Size = UDim2.fromScale(fr, 1)
+	E.nitro.BackgroundColor3 = pwN > 0 and Color3.fromRGB(170, 90, 255) or Color3.fromRGB(255, 128, 32)
+	if mode == "fall" and not intro then
 		E.air.Visible = true
 		local reste = pwA > 0 and 1 or math.clamp(1 - fallTR / Config.AIR_MAX, 0, 1)
+		local sec = string.format("%.1f", math.max(0, Config.AIR_MAX - fallTR))
+		if FR then sec = string.gsub(sec, "%.", ",") end
+		E.airTxt.Text = (pwA > 0 and "∞" or sec) .. ' <font size="16">' .. T.air .. "</font>"
 		E.airFill.Size = UDim2.fromScale(reste, 1)
 		E.airFill.BackgroundColor3 = pwA > 0 and Hud.C.magenta or ((Config.AIR_MAX - fallTR < 1.5) and Hud.C.rouge or Hud.C.cyan)
 	end
@@ -818,10 +878,16 @@ local function hud()
 end
 
 -- ════════ les parties ════════
+local S_CHUTE, H_CHUTE = 150, 220 -- la caisse tombe au-dessus du point à 150 m, de 220 m de haut
+local menuRot = CFrame.identity
 local function poserAuDepart()
-	s, lat, side, psi = 12, 0, 1, 0
+	s, lat, side, psi = S_CHUTE, 0, 1, 0
 	local cf = repere(s, 1)
-	carCF = cf
+	local lk = cf.LookVector
+	menuCap = Vector3.new(lk.X, 0, lk.Z).Unit
+	local pos = cf.Position + Vector3.new(0, H_CHUTE * M, 0)
+	menuRot = (CFrame.lookAt(pos, pos + menuCap) * CFrame.Angles(-math.rad(38), 0, 0)).Rotation
+	carCF = CFrame.new(pos) * menuRot
 	carVel = Vector3.zero
 end
 
@@ -833,7 +899,8 @@ local function allerMenu()
 	activer(ZONES[1])
 	poserAuDepart()
 	montrerCaisse(true)
-	camPos = carCF.Position + carCF.UpVector * (10 * M) + carCF.RightVector * (12 * M)
+	camPos = carCF.Position + Vector3.yAxis * (10 * M) + menuCap:Cross(Vector3.yAxis) * (20 * M)
+	camVise = carCF.Position
 	Hud.ecran("menu")
 	E.menuRecord.Text = record > 0 and (T.record .. " " .. Hud.argent(record)) or ""
 	evEtat:FireServer("course", false)
@@ -852,42 +919,59 @@ local function nouvellePartie()
 	pwN, pwA, pwV, pwM = 0, 0, 0, 0
 	arretT, graceT, hitT = 0, 0, 0
 	distAvant, vmax, nbFig, serie, nbZones = 0, 0, 0, 0, 0
+	multiMax, piecesPrises = 1, 0
 	tempsDepart = 0
 	E.chaine.Text = ""
 	E.air.Visible = false
 	montrerCaisse(true)
-	camPos = carCF.Position - carCF.LookVector * (30 * M) + carCF.UpVector * (12 * M)
-	camVise = carCF.Position
-	mode = "depart"
 	enPause = false
 	Hud.ecran("course")
 	evEtat:FireServer("course", true)
-	-- 3, 2, 1, GO
-	task.spawn(function()
-		for _, n in { "3", "2", "1" } do
-			if mode ~= "depart" then return end
-			Hud.grand(n, Hud.C.texte, 0.45)
-			Sons.jouer("bip")
-			task.wait(0.6)
-		end
-		if mode ~= "depart" then return end
-		Hud.grand(T.go, Hud.C.or_, 0.6)
-		Sons.jouer("go")
-		mode = "drive"
-	end)
+	-- la CHUTE : la caisse plonge du ciel (la pose du menu) et se pose sur la route — c'est le départ
+	intro = true
+	fallPos = carCF.Position / M
+	fallVel = menuCap * 6 - Vector3.new(0, 60, 0) -- presque à la verticale : elle se pose PILE sur la route dessous
+	prevPos = fallPos
+	airRot = carCF.Rotation
+	fallT, fallTR, yawAcc, demiTours, dolphT, dolphPop, nitroAirT, bumpCd = 0, 0, 0, 0, 0, 0, 0, 0
+	fallVH0 = Vector3.new(fallVel.X, 0, fallVel.Z).Magnitude
+	chainVal, chainMult, auraChaine, echelon = 0, 1, 0, 0
+	table.clear(vus)
+	sDecol = s
+	mode = "fall"
+	Sons.jouer("decollage")
 end
 
 local function finPartie()
 	mode = "mort"
-	local dist = distAvant + s
+	local dist = distAvant + math.max(0, s)
 	local rec = argent > record and argent > Config.CASH_DEPART + 0.01
 	evFin:FireServer(argent, dist)
 	if rec then record = argent end
-	E.mCause.Text = T.morts[causeMort] or T.morts.autre
-	E.mRecord.Text = rec and T.nouveau or (record > 0 and (T.record .. " " .. Hud.argent(record)) or "")
-	E.mStats.Text = string.format("%s %s M   ·   %s %d   ·   %s %s KM/H   ·   %s %d   ·   %s %d",
-		T.distance, Hud.entier(dist), T.figures, nbFig, T.vmax, Hud.entier(vmax), T.zones, nbZones + 1, T.moteur, tier)
-	E.mAura.Text = aura > 0 and (T.aura .. " " .. Hud.entier(aura)) or ""
+	meilleurAura = math.max(meilleurAura, aura)
+	local cause = T.morts[causeMort] or T.morts.autre
+	E.mCause.Text = rec and T.nouveau or cause
+	E.mRecord.Text = rec and (FR and "RECORD !" or "RECORD!") or ""
+	E.mRecord.Visible = rec
+	E.mCompte.Text = T.compte .. " " .. Hud.argent(compte + argent)
+	E.mAura.Text = Hud.entier(aura)
+	E.mAuraMeilleur.Text = T.meilleur .. " " .. Hud.entier(meilleurAura)
+	E.mMoteurNom.Text = MOT[tier + 1].nom
+	E.mMoteurPalier.Text = T.palier .. '  <font size="30">' .. tier .. "</font>"
+	if tier < #MOT - 1 then
+		E.mMoteurEncore.Text = string.format(T.encore, MOT[tier + 2][1] - coinsGot) .. "\n↑ " .. MOT[tier + 2].nom
+	else
+		E.mMoteurEncore.Text = T.moteurMax
+	end
+	E.mPartie.Text = cause .. "\n" .. T.distance .. "  " .. Hud.entier(dist) .. " M\n" .. T.pieces .. "  " .. piecesPrises
+	local st = {
+		{ "x" .. (FR and string.gsub(string.format("%.1f", multiMax), "%.", ",") or string.format("%.1f", multiMax)), T.multiMax },
+		{ Hud.entier(vmax), T.kmhMax }, { tostring(nbZones + 1), T.zone }, { tostring(nbFig), T.figures },
+	}
+	for i, v in st do
+		E.mStats[i][1].Text = v[1]
+		E.mStats[i][2].Text = v[2]
+	end
 	Hud.ecran("mort")
 	-- le montant s'égrène (750 ms), puis se pose
 	local cible = argent
@@ -908,50 +992,71 @@ E.btJouer.Activated:Connect(function() if mode == "menu" then nouvellePartie() e
 E.btRejouer.Activated:Connect(function() if mode == "mort" then nouvellePartie() end end)
 E.btMenuM.Activated:Connect(function() if mode == "mort" then allerMenu() end end)
 local function basculerPause()
-	if mode ~= "drive" and mode ~= "fall" and mode ~= "depart" then return end
+	if mode ~= "drive" and mode ~= "fall" then return end
 	enPause = not enPause
 	Hud.ecran(enPause and "pause" or "course")
 end
 Controles.surPause = basculerPause
 E.btPause.Activated:Connect(basculerPause)
-E.btReprendre.Activated:Connect(function() if enPause then basculerPause() end end)
+local retourReglages = "menu"
+E.btReglages.Activated:Connect(function() if mode == "menu" then retourReglages = "menu"; Hud.ecran("reglages") end end)
+E.btReglM.Activated:Connect(function() if mode == "mort" then retourReglages = "mort"; Hud.ecran("reglages") end end)
+E.btReprendre.Activated:Connect(function()
+	if enPause then basculerPause()
+	elseif Hud.ecranCourant() == "reglages" then Hud.ecran(retourReglages) end
+end)
 E.btRecom.Activated:Connect(function() if enPause then enPause = false; nouvellePartie() end end)
 E.btMenuP.Activated:Connect(function() if enPause then enPause = false; allerMenu() end end)
 local function majBoutonsSon()
-	for _, b in { E.btSon, E.btSonP } do b.Text = T.son .. (Sons.actif and " ON" or " OFF") end
-	for _, b in { E.btMus, E.btMusP } do b.Text = T.musique .. (Sons.musiqueActive and " ON" or " OFF") end
+	E.btSonP.Text = T.son .. (Sons.actif and " ON" or " OFF")
+	E.btMusP.Text = T.musique .. (Sons.musiqueActive and " ON" or " OFF")
 end
-for _, b in { E.btSon, E.btSonP } do
-	b.Activated:Connect(function() Sons.actif = not Sons.actif; majBoutonsSon() end)
-end
-for _, b in { E.btMus, E.btMusP } do
-	b.Activated:Connect(function() Sons.musiqueActive = not Sons.musiqueActive; majBoutonsSon() end)
-end
+E.btSonP.Activated:Connect(function() Sons.actif = not Sons.actif; majBoutonsSon() end)
+E.btMusP.Activated:Connect(function() Sons.musiqueActive = not Sons.musiqueActive; majBoutonsSon() end)
 majBoutonsSon()
 
--- ════════ les autres caisses : on ne voit que celles qui roulent dans NOTRE zone ════════
+-- ════════ les autres caisses : un double chez moi, lissé ; on ne voit que celles qui roulent dans NOTRE zone ════════
+type Double = { m: Model, c: Model, vu: boolean? }
+local doubles: { [Model]: Double } = {}
+local function lisserDoubles(dt: number)
+	for m, d in doubles do
+		if not m.Parent then
+			d.c:Destroy()
+			doubles[m] = nil
+		elseif d.vu and m.PrimaryPart then
+			d.c.PrimaryPart.CFrame = d.c.PrimaryPart.CFrame:Lerp(m.PrimaryPart.CFrame, math.min(1, dt * 10))
+		end
+	end
+end
 task.spawn(function()
 	while true do
 		for _, m in dossierCaisses:GetChildren() do
-			if m ~= caisse and m:IsA("Model") then
+			if m ~= caisseServeur and m:IsA("Model") and m.PrimaryPart then
+				local d = doubles[m]
+				if not d then
+					cacher(m)
+					local c = Caisse.construire("Autre", m:GetAttribute("Couleur") or Color3.new(1, 1, 1), true)
+					c.PrimaryPart.CFrame = m.PrimaryPart.CFrame
+					c.Parent = workspace
+					d = { m = m, c = c }
+					doubles[m] = d
+				end
 				local voir = m:GetAttribute("EnCourse") == true and (m:GetAttribute("Zone") or 1) == zoneN
-				local deja = m:GetAttribute("_vu")
-				if deja ~= voir then
-					m:SetAttribute("_vu", voir)
-					for _, p in m:GetDescendants() do
+				if d.vu ~= voir then
+					d.vu = voir
+					for _, p in d.c:GetDescendants() do
 						if p:IsA("BasePart") then p.LocalTransparencyModifier = voir and 0 or 1 end
 					end
+					if voir then d.c.PrimaryPart.CFrame = m.PrimaryPart.CFrame end
 				end
-				local r = m:FindFirstChild("Racine")
-				if r then
-					local nitro = voir and m:GetAttribute("Nitro") == true
-					for i = 1, 2 do
-						local a = r:FindFirstChild("Tuyere" .. i)
-						local f = a and a:FindFirstChild("Flamme" .. i)
-						if f then f.Rate = nitro and 90 or 0 end
-						local t = r:FindFirstChild("Trainee" .. i)
-						if t then t.Enabled = nitro end
-					end
+				local nitro = voir and m:GetAttribute("Nitro") == true
+				local r = d.c.PrimaryPart
+				for i = 1, 2 do
+					local a = r:FindFirstChild("Tuyere" .. i)
+					local f = a and a:FindFirstChild("Flamme" .. i)
+					if f then (f :: ParticleEmitter).Rate = nitro and 90 or 0 end
+					local t = r:FindFirstChild("Trainee" .. i)
+					if t then (t :: Trail).Enabled = nitro end
 				end
 			end
 		end
@@ -960,6 +1065,7 @@ task.spawn(function()
 end)
 
 -- ════════ LA BOUCLE ════════
+local envoiT = 0
 RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, function(dtBrut)
 	local dt = math.min(dtBrut, 1 / 20)
 	Controles.lire()
@@ -985,10 +1091,38 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			boomT += dt
 			secousse = math.max(secousse, boomT < 0.1 and 1.2 or 0)
 			if boomT > 1.8 then finPartie() end
+		elseif mode == "menu" then
+			-- la caisse PIQUE sur place : un souffle qui la berce
+			local t = os.clock()
+			local pos = repere(S_CHUTE, 1).Position + Vector3.new(0, H_CHUTE * M + math.sin(t * 1.1) * 0.5 * M, 0)
+			carCF = CFrame.new(pos) * menuRot * CFrame.Angles(math.sin(t * 0.8) * 0.03, 0, math.sin(t * 1.3) * 0.02)
+		end
+		-- les éclats de l'explosion
+		if #eclats > 0 then
+			for i = #eclats, 1, -1 do
+				local e = eclats[i]
+				e.v *= (1 - math.min(1, dt * (e.t == 1 and 2.5 or 0.6)))
+				e.v -= Vector3.new(0, (e.t == 1 and 2 or 12) * M * dt, 0)
+				e.p.CFrame = (e.p.CFrame + e.v * dt) * CFrame.Angles(e.r.X * dt, e.r.Y * dt, e.r.Z * dt)
+				if e.t == 1 then
+					e.p.Size += Vector3.new(1, 1, 1) * (dt * 1.5 * M)
+					e.p.Transparency = math.min(1, e.p.Transparency + dt * 0.45)
+				end
+				if e.p.Transparency >= 1 or boomT > 4 or mode == "menu" or mode == "drive" or mode == "fall" then
+					e.p:Destroy()
+					table.remove(eclats, i)
+				end
+			end
 		end
 		habiller(dt)
 		camera(dt)
 		Mer.suivre(cam.CFrame.Position, carCF.Position.Y, dt)
+		lisserDoubles(dt)
+		envoiT -= dtBrut
+		if envoiT <= 0 and (mode == "drive" or mode == "fall") then
+			envoiT = 1 / 15
+			evPos:FireServer(carCF)
+		end
 	end
 	hud()
 end)

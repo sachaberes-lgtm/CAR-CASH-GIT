@@ -24,9 +24,9 @@ modeleCoin.CanQuery = false
 modeleCoin.CanTouch = false
 modeleCoin.TopSurface = Enum.SurfaceType.Smooth
 modeleCoin.BottomSurface = Enum.SurfaceType.Smooth
-modeleCoin.Material = Enum.Material.Asphalt
+modeleCoin.Material = Enum.Material.SmoothPlastic
 modeleCoin.Color = R.bitume
-modeleCoin.Reflectance = 0
+modeleCoin.Reflectance = 0.06
 
 local function part(taille: Vector3, cf: CFrame, couleur: Color3, matiere: Enum.Material, parent: Instance): Part
 	local p = Instance.new("Part")
@@ -75,7 +75,7 @@ local function rail(a: Vector3, b: Vector3, haut: Vector3, parent: Instance)
 	local l = d.Magnitude
 	if l < 0.01 then return end
 	local cf = CFrame.lookAt((a + b) / 2, b, haut)
-	local p = part(Vector3.new(1.1 * M, EP + 0.3 * M, l + 0.05), cf, R.neon, Enum.Material.Neon, parent)
+	local p = part(Vector3.new(0.7 * M, EP + 0.3 * M, l + 0.05), cf, R.neon, Enum.Material.Neon, parent)
 	p.CastShadow = false
 end
 
@@ -101,28 +101,24 @@ function Construction.route(piste: Piste.Piste, dossier: Instance, ceder: (() ->
 		local gB, dB = mB - fb.RightVector * demi, mB + fb.RightVector * demi
 		triangle(gA, dA, dB, EP, dossier)
 		triangle(gA, dB, gB, EP, dossier)
-		local rA, rB = demi - 0.5 * M, demi - 0.5 * M
+		local rA, rB = demi - 0.35 * M, demi - 0.35 * M
 		rail(mA - fa.RightVector * rA, mB - fb.RightVector * rB, (fa.UpVector + fb.UpVector).Unit, dossier)
 		rail(mA + fa.RightVector * rA, mB + fb.RightVector * rB, (fa.UpVector + fb.UpVector).Unit, dossier)
 		i = j
 		compte += 1
 		if ceder and compte % 60 == 0 then ceder() end
 	end
-	-- le marquage : une ligne centrale SODIUM en pointillés (tous les 12 m) et deux lignes de voie blanches
-	-- (tous les 24 m) — sur un ruban de 56 m, c'est lui qui dit la vitesse et l'échelle
+	-- le marquage du niveau 1 (capture web) : des pointillés BLANCS sur les voies, tous les 12 m — sur un ruban
+	-- de 56 m, ce sont eux qui disent la vitesse et l'échelle
 	local haut = 0.03 * M
 	local s = 6 * M
 	local k = 0
 	while s < piste.len - 6 * M do
 		local f = Piste.repere(piste, s)
 		local cfl = CFrame.fromMatrix(f.Position + f.UpVector * haut, f.RightVector, f.UpVector, -f.LookVector)
-		local c = part(Vector3.new(0.5 * M, 0.06 * M, 4.5 * M), cfl, R.sodium, Enum.Material.Neon, dossier)
-		c.CastShadow = false
-		if k % 2 == 0 then
-			for _, cote in { -1, 1 } do
-				local v = part(Vector3.new(0.4 * M, 0.06 * M, 6 * M), cfl + f.RightVector * (cote * RH * 0.5 * M), R.voie, Enum.Material.SmoothPlastic, dossier)
-				v.CastShadow = false
-			end
+		for _, x in { -0.34, 0.34 } do
+			local v = part(Vector3.new(0.45 * M, 0.06 * M, 6 * M), cfl + f.RightVector * (x * RH * M), R.voie, Enum.Material.SmoothPlastic, dossier)
+			v.CastShadow = false
 		end
 		k += 1
 		s += 12 * M

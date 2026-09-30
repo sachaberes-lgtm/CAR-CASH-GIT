@@ -16,13 +16,38 @@ Config.MORT_SOUS = 120     -- on meurt 120 m sous le point le plus bas de la pis
 Config.ARRET_KMH = 22      -- « roule ou crève » : sous 22 km/h pendant 6 s → boum
 Config.ARRET_T = 6
 
--- ── le moteur monte avec les pièces (ENGINE_TIERS, L20059) : { pièces, poussée } ──
+-- ── le moteur monte avec les pièces (ENGINE_TIERS, L20328) : { pièces, poussée, nom, réservoir de nitro (s) } ──
 Config.MOTEURS = {
-	{ 0, 1.00 }, { 5, 1.06 }, { 12, 1.12 }, { 21, 1.19 }, { 33, 1.26 }, { 48, 1.34 }, { 66, 1.42 },
-	{ 88, 1.50 }, { 114, 1.59 }, { 145, 1.68 }, { 181, 1.78 }, { 223, 1.88 }, { 271, 1.99 },
-	{ 326, 2.10 }, { 389, 2.21 }, { 452, 2.33 }, { 540, 2.45 }, { 630, 2.58 }, { 731, 2.71 },
-	{ 844, 2.85 }, { 970, 2.99 }, { 1110, 3.13 }, { 1265, 3.28 }, { 1420, 3.44 }, { 1624, 3.60 },
-	{ 1830, 3.76 }, { 2055, 3.90 }, { 2270, 4.02 }, { 2566, 4.12 }, { 2854, 4.20 },
+	{ 0, 1.00, nom = "MOTEUR ROUILLÉ", res = 2.00, d = "Il tousse, il fume, il prie. Mais il tourne." },
+	{ 5, 1.06, nom = "BICYLINDRE", res = 2.02, d = "Deux cylindres. Un qui pousse, un qui regarde." },
+	{ 12, 1.12, nom = "3 CYLINDRES", res = 2.05, d = "Deux qui toussent, un qui prie." },
+	{ 21, 1.19, nom = "4 EN LIGNE", res = 2.08, d = "Le premier moteur qui ne s'excuse pas." },
+	{ 33, 1.26, nom = "4 SOUPAPES", res = 2.11, d = "Il respire enfin par le nez." },
+	{ 48, 1.34, nom = "4 EN LIGNE TURBO", res = 2.15, d = "Le premier vrai souffle. Ça siffle." },
+	{ 66, 1.42, nom = "5 CYLINDRES", res = 2.19, d = "Un chiffre impair, un bruit inoubliable." },
+	{ 88, 1.50, nom = "V6", res = 2.23, d = "La forme fait le son. Le son fait le reste." },
+	{ 114, 1.59, nom = "V6 BITURBO", res = 2.28, d = "Deux turbos, zéro patience." },
+	{ 145, 1.68, nom = "BOXER À PLAT", res = 2.33, d = "Le centre de gravité au ras du bitume." },
+	{ 181, 1.78, nom = "V8 ATMO", res = 2.38, d = "Le grondement qui fait trembler la dalle." },
+	{ 223, 1.88, nom = "V8 COMPRESSÉ", res = 2.43, d = "Un compresseur, et la dalle demande grâce." },
+	{ 271, 1.99, nom = "V10", res = 2.49, d = "Dix cylindres, zéro argument." },
+	{ 326, 2.10, nom = "V12", res = 2.55, d = "Douze cylindres qui hurlent à l'unisson." },
+	{ 389, 2.21, nom = "W12", res = 2.61, d = "Deux V6 mariés de force. Ça marche." },
+	{ 452, 2.33, nom = "V16", res = 2.67, d = "Seize. Parce que quinze, c'était ridicule." },
+	{ 540, 2.45, nom = "H16 F1", res = 2.73, d = "Seize cylindres en H. Interdit en course. Logique." },
+	{ 630, 2.58, nom = "QUADRITURBO", res = 2.80, d = "Quatre escargots, une seule idée." },
+	{ 731, 2.71, nom = "ROTATIF TRIPLE", res = 2.87, d = "Pas de pistons. Que du hurlement." },
+	{ 844, 2.85, nom = "TURBINE À GAZ", res = 2.94, d = "L'hélicoptère a appelé. Il veut son moteur." },
+	{ 970, 2.99, nom = "TURBINE À PLASMA", res = 3.01, d = "Plus de pistons. Un souffle continu, bleu." },
+	{ 1110, 3.13, nom = "STATORÉACTEUR", res = 3.08, d = "Il n'avale plus l'air. Il l'agresse." },
+	{ 1265, 3.28, nom = "PULSORÉACTEUR", res = 3.15, d = "Un battement par milliseconde. C'est le tien qui suit." },
+	{ 1420, 3.44, nom = "RÉACTEUR NUCLÉAIRE", res = 3.23, d = "Tu roules avec un cœur de centrale sous le capot." },
+	{ 1624, 3.60, nom = "CŒUR À FUSION", res = 3.31, d = "Une petite étoile, sanglée sous le capot." },
+	{ 1830, 3.76, nom = "ANTIMATIÈRE", res = 3.39, d = "Un gramme. Un seul. Ne freine pas." },
+	{ 2055, 3.90, nom = "MOTEUR À DISTORSION", res = 3.46, d = "Ce n'est plus toi qui avances. C'est la route qui recule." },
+	{ 2270, 4.02, nom = "COMÈTE", res = 3.52, d = "La caisse est EN FEU. Comme au premier jour." },
+	{ 2566, 4.12, nom = "SUPERNOVA", res = 3.56, d = "Tu ne brûles plus le carburant. Tu brûles le ciel." },
+	{ 2854, 4.20, nom = "TROU NOIR", res = 3.60, d = "Plus rien ne s'échappe. Même pas toi." },
 }
 -- valeur d'une pièce par palier de moteur (DENOMS L11820, × 0,25)
 Config.DENOMS = { 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 7, 7, 8, 8, 9, 9, 10, 11, 11, 12, 12, 13, 14, 15, 16, 16 }
@@ -91,7 +116,7 @@ Config.CIEL = {
 	merOmbre = Color3.fromRGB(160, 178, 214),
 }
 Config.ROUTE = {
-	bitume = Color3.fromRGB(30, 31, 40),  -- 0x322e40 × ROUTE_JOUR, assombri : sous l'éclairage Future de Roblox il remontait en gris-bleu clair
+	bitume = Color3.fromRGB(54, 58, 78),  -- le bleu-gris de la capture web du niveau 1 (0x322e40 × ROUTE_JOUR, éclairé par le ciel)
 	sodium = Color3.fromRGB(255, 188, 72), -- la ligne centrale
 	voie = Color3.fromRGB(210, 216, 230),  -- les lignes de voie
 	neon = Color3.fromRGB(62, 230, 240),  -- 0x3ee6f0 : les rails de néon
