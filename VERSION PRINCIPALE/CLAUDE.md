@@ -38,6 +38,9 @@
   `MENU_SACHA` (juste avant `garMode`) = `?menu=sacha` dans l'adresse. PAR DÉFAUT le menu du SKETCH de Léo (#gMenu) ; avec `?menu=sacha`
   (le cadre de l'ordi la transmet à la colonne) les boutons de Sacha décrits ci-dessous. À TRANCHER ENTRE SACHA ET LÉO : ne pas
   re-basculer le défaut sans leur accord — ils se défaisaient le travail l'un de l'autre.
+  · (même soir, Léo : « enlève la porte ») la PORTE FERMÉE au menu (Sacha, b8e7ce7) suit la même règle : `PORTE_FERMEE` = `?menu=sacha`
+    ou `?porte=1`. Sinon la porte reste RELEVÉE sous le plafond (`garPorte` la pose à 1 : la place des panneaux empilés d'avant) et le feu
+    se voit dès le menu. Son code est intact (hublots, son et lumière étouffés), il ne joue qu'avec PORTE_FERMEE.
 - Le décor du menu reste L'ATELIER (le garage en mode `menu`) ; ce qui se TOUCHE redevient l'accueil de Sacha, `#mHome` tel quel (logo CASH CAR,
   MISSIONS · ⚙, GARAGE · CARRIÈRE · BOUTIQUE, lingot JOUER — mêmes styles, même routeur `mTap`). `garMode` pose `body.garMenuH` en mode menu
   (pas en MISSIONS, pas en BOUTIQUE) ; closeGarage et le LÂCHER la retirent. CSS « LE MENU = LE GARAGE + LES BOUTONS DE SACHA » : `#overlay`

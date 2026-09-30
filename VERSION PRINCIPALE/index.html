@@ -33665,7 +33665,7 @@ function garPortePose(e){ // la porte le long de son RAIL : montée verticale (0
     else{m.position.set(0,4.98,zD-.28-(s-5.14));m.rotation.set(-Math.PI/2,0,0);}}}
 function garPorte(dt){ // FERMÉE tant qu'on ne part pas ; le JOUER (GAR.go, retour de vue compris) l'ouvre en 0,8 s, en accélérant puis en freinant
   const Pt=GAR.porte;if(!Pt)return;
-  Pt.k=GAR.go?Math.min(1,Pt.k+dt/.8):0;garPortePose(Pt.force!=null?Pt.force:Pt.k*Pt.k*(3-2*Pt.k)); // (Pt.force : dbgPorte, le banc)
+  Pt.k=GAR.go?Math.min(1,Pt.k+dt/.8):0;garPortePose(Pt.force!=null?Pt.force:!PORTE_FERMEE?1:Pt.k*Pt.k*(3-2*Pt.k)); // (Pt.force : dbgPorte, le banc) — (Léo : « enlève la porte ») sans PORTE_FERMEE elle reste RELEVÉE sous le plafond : le feu se voit au menu
   const F=GAR.feu,fl=F?.82+.12*Math.sin(F.t*9.1)+.06*Math.sin(F.t*23.7):1;Pt.mH.emissiveIntensity=fl*(1-Pt.e*.6); // les hublots battent avec le feu
   const B=GAR.beau;if(B){if(B.fac)B.fac.material.opacity=.2*(.15+.85*Pt.e);if(B.braises)B.braises.visible=Pt.e>.3;} // porte fermée : la lumière du feu ne passe plus qu'au ras du sol, pas de braises
 }
@@ -34151,6 +34151,9 @@ function gActSync(){const a=$('gAct');if(!a)return;const bt=$('gEquip'),row=$('g
    Léo (#gMenu : profil, JOUER en pixels, [verrou][NIVEAU][BOUTIQUE], l'étiquette MISSIONS du socle) ; `?menu=sacha` dans l'adresse (le cadre
    de l'ordi la transmet à la colonne) = les boutons de Sacha. À TRANCHER ENTRE EUX : c'est ce seul booléen. */
 const MENU_SACHA=/[?&]menu=sacha\b/.test(location.search);
+/* (même soir, Léo : « enlève la porte ») la porte FERMÉE au menu (Sacha, b8e7ce7) va avec SA version : avec ?menu=sacha (ou ?porte=1) elle
+   descend au menu et s'ouvre au JOUER ; sinon elle reste RELEVÉE sous le plafond (l'image d'avant : le feu se voit dès le menu). */
+const PORTE_FERMEE=MENU_SACHA||/[?&]porte=1\b/.test(location.search);
 function garMode(m){
   if(!gEl)return;const menu=m==='menu'||m==='missions',mis=m==='missions'; // (2026-09-30) MISSIONS = le menu, vu d'en haut, avec la constellation
   if(menu){if(SHOP.tab!=='voiture'||SHOP.prev)shopTab('voiture');const eq=equippedCar();if(garageI!==eq&&!GAR.sw)garageShow(eq);} // au menu : TA caisse, sans essai
