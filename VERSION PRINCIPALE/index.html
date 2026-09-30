@@ -4166,6 +4166,12 @@ html body #mDead>.mObj{order:-2}
 }
 /* (29/09, DEBUGGING) 320 px de large : « GLISSE POUR TOURNER » passait sous la plaque NITRO de 14 px — interlettrage 2 → 1 px */
 @media (max-width:340px){html body #tSteerHint{letter-spacing:1px}}
+/* (2026-09-30) les vignettes de la boutique en attente de leur photo : la voiture pixel pulse, la photo entre en fondu */
+.shPhoto .shAttente{--pxs:4;color:var(--tx3);animation:shAtt 1.1s var(--ease) infinite alternate}
+@keyframes shAtt{from{opacity:.25}to{opacity:.6}}
+.shPhoto img.shArrive{animation:shArr var(--t-slow) var(--ease) both}
+@keyframes shArr{from{opacity:0;scale:.94}to{opacity:1;scale:1}}
+@media (prefers-reduced-motion:reduce){.shPhoto .shAttente,.shPhoto img.shArrive{animation:none}}
 </style>
 <style id="hudMaitrise">
 /* =====================================================================================================================
@@ -19786,7 +19792,7 @@ function shopRender(){
   const une=document.getElementById('shUne'),gr=document.getElementById('shGrille');if(!une||!gr)return;
   const RAR={leg:'LÉGENDAIRE',epi:'ÉPIQUE',rar:'RARE'};let hU='',hG=''; // (2026-09-26) toutes LÉGENDAIRES : la boutique est leur seule porte
   for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(!u||u.k!=='premium')continue;
-    const ph=carPhoto(i),img=ph?'<img src="'+ph+'" alt="">':'<i class="pxi pxi-voiture"></i>',a=carOwned(i);
+    const ph=PHOTO.cache[i],img=ph?'<img src="'+ph+'" alt="">':'<i class="pxi pxi-voiture shAttente"></i>',a=carOwned(i);if(!ph)shopPhotoVeut(i); // (revue GAMEPLAY) plus de carPhoto EN SYNCHRONE : 13 photos d'un bloc = 1,1 s de gel sur PC (2-3 s sur iPhone) à la 1re ouverture
     if(u.une&&!hU){ // (charte v4) la VITRINE DE LÉGENDE : cadre d'or qui scintille autour (`.shUne`), le décor dedans (`.shUneCadre`)
       hU='<div class="shUneCadre"><div class="shRuban">'+TR('OFFRE DE LANCEMENT')+'</div><b class="shRemise">-50%</b><div class="shPhoto big">'+img+'</div>'
         +'<div class="shUneTx"><b>'+TR(CARS[i].name)+'</b><span>'+(LANG==='fr'?CARS[i].desc:TR(CARS[i].desc))+'</span></div>'
@@ -19796,6 +19802,19 @@ function shopRender(){
       +'<div class="shPhoto">'+img+'</div><b class="shNom">'+TR(CARS[i].name)+'</b><span class="shPrix'+(a?' aToi':'')+'">'+(a?TR('À TOI'):eurTxt(u.eur))+'</span></div>';
   }
   une.innerHTML=hU;gr.innerHTML=hG;
+}
+/* LES PHOTOS DE LA BOUTIQUE ARRIVENT UNE PAR UNE (2026-09-30, revue de GAMEPLAY) : la vitrine s'ouvre tout de suite, chaque vignette
+   attend en pulsant (une voiture pixel), et les photos se prennent une par une ENTRE deux images, après la transition d'écran — puis
+   restent en cache pour la session. */
+const SHQ={q:[],on:false}; // (essayé : remonter la caisse d'avant UNE fois à la fin de la file au lieu d'après chaque photo — MESURÉ pire, 0,8 s contre 0,3 : gardé tel quel)
+function shopPhotoVeut(i){if(SHQ.q.indexOf(i)<0)SHQ.q.push(i);if(!SHQ.on){SHQ.on=true;setTimeout(shopPhotoTour,380);}}
+function shopPhotoTour(){
+  const sc=document.getElementById('mShop');
+  if(!SHQ.q.length||!sc||!sc.classList.contains('on')||(started&&!gameOver)){SHQ.on=false;return;} // hors de la boutique (ou en course) : la file attend la prochaine ouverture
+  const i=SHQ.q.shift();let u=PHOTO.cache[i];if(!u)try{u=carPhoto(i);}catch(e){u=null;}
+  if(u)sc.querySelectorAll('[data-car="'+i+'"] .shPhoto,[data-car="'+i+'"].shUne .shPhoto').forEach(function(ph){if(ph.querySelector('img'))return;const at=ph.querySelector('.shAttente');if(at)at.remove();
+    const im=document.createElement('img');im.alt='';im.src=u;im.className='shArrive';ph.insertBefore(im,ph.firstChild);});
+  setTimeout(shopPhotoTour,40); // une photo, puis on rend la main : l'écran respire entre deux
 }
 function garPortee(){ // (2026-09-29, audit) la caisse la moins chère que la banque paie — le garage s'ouvre dessus, UNE fois par caisse et par session
   let b=-1,bp=Infinity;for(let i=0;i<CARS.length;i++){const p=carPrice(i);if(p&&!carUnlocked(i)&&p<=bank()&&p<bp){bp=p;b=i;}}
