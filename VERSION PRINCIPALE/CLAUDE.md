@@ -15,8 +15,26 @@
   jeu étiré sur tout le moniteur). Le test « vrai téléphone » (colonne du `<head>` ET `TEL_NATIF`) lit désormais la taille de l'ÉCRAN :
   tactile ET (`hover:none` OU min(screen.width, screen.height) < 600).
 - Pas simulé (à deviner) : les barres de Safari quand Sacha joue dans le navigateur et pas depuis l'écran d'accueil (elles mangent ~40 px
-  de hauteur couché). sw.js → v47.
+  de hauteur couché). sw.js → v48 (Sacha était déjà en v47).
 
+
+## LA TOUCHE VAN GOGH + NUAGES v8.1 (2026-10-01, nuit, session GAMEPLAY) — Sacha : « inspiration Van Gogh pour le ciel » ; mesures de SON et DEBUGGING sur les v8
+- PARTAGE : SON m'a confié TOUTE la touche (dôme compris, une seule main) ; le reste du dôme, les ambiances, l'étalonnage et la route restent
+  à SON. `uVG` (skyU, partagé tel quel par les nuages : `N8_U.uVG = skyU.uVG`) porté par le biome : `vg:1` dans G9 (matin/midi/aprem),
+  `vg:0` dans BIO_ETAL0, posé par bioApply. 0 = le ciel et les nuages d'avant.
+- LE DÔME (`K.vg`, dans les passes PLEINE et LISSE — basN — : aucun programme de plus) : `cielTourbillon` — le ciel en TOUCHES (des virgules
+  alignées sur un vent qui ondule, `vgTouche`), quatre TOURBILLONS fixes du ciel (le vent s'enroule en spirale, les bras s'éclairent de crème),
+  la palette de LA NUIT ÉTOILÉE (une couleur par touche : outremer, bleu clair, blanc crème), le soleil cerclé d'ANNEAUX ; `vgMer` à la sortie
+  de merZ : la mer de nuages en touches couchées (fondues au loin). Tout analytique (atan, sin, 4 centres) : peu de calcul.
+- LES NUAGES : la lumière posée en APLATS de peintre (ombre, demi-teinte, lumière, rehaut) aux bords brisés par un bruit accroché à la matière
+  (`vO`, unités du nuage) — mélangée à 38 % (à 70 % les nuages devenaient plats comme de la pâte) — et un CONTOUR sombre au bord de l'ombre.
+  ⚠ Essayé et retiré : des HACHURES en touches sur la ouate (repère tangent) — au banc, des écailles de reptile et des lignes de niveau.
+- v8.1 (mesures de SON / DEBUGGING) : blanc franc côté soleil (l'or n'arrive qu'en fin d'après-midi : `ch` selon la chaleur de sun.color),
+  ombre BLEU-LAVANDE (le sol de l'hémisphère tirait au brun), contre-jour en liseré seulement (il teintait toute la face), RELIEF de près
+  (sous ~300 m la normale ondule : plus de mur « en plastique »), finesse du tout près 48 (seuil sg > 32). Budget re-mesuré sur 3 pistes :
+  112-207 k triangles au sol debout, 43-94 k en vol. ⚠ Le « sable » des blancs au jour venait de la couche DA (mesuré : DA coupée → neutre) :
+  corrigé par SON (daHi).
+- Bancs (scratchpad GAMEPLAY) : `n8/sable.js` + `n8/sable.py` (couleur moyenne des blancs sous plusieurs réglages), `n8/studio.js`, `ciel2.js`.
 ## LE GARAGE v7 + LES BLANCS DU JOUR (2026-10-01, session SON — Sacha : « retravaille le garage, je veux la perfection » ; DEBUGGING (v6), GAMEPLAY (atelier, photos) et INTERFACE (tas de billets) ont passé la main / prévenu)
 - Relevé mesuré d'abord (`da/gar-audit.js`, scratchpad f6f592c0 : 4 formats, onglets, caisse rare, caisse verrouillée — boîtes, textes coupés, cibles, police mini) ; UNE couche `<style id="garageV7">` après la v6, même portée (`html body #garage:not(.menu)`).
 - Le PRIX n'est dit qu'une fois : `#gCard.prixSeul` (posé par la fiche quand la condition est de l'argent) masque l'encadré « PRIX / il te manque » qui redisait le bouton « IL MANQUE $ X » et mordait sur la scène. Défis et boutique en € restent écrits.
@@ -64,7 +82,6 @@
   Cause pas encore trouvée — piste : ce qui s'applique d'un coup à la reprise de conduite (la visée, elle, est censée glisser).
 - Hook `dbgBord({lat,vL,grace,psi,saut,rentre})` : pose la caisse au bord, force un petit saut, ou pousse la caisse vers la route en vol ;
   rend `{mode,lat,demi,vL,bumps,fallT,side,hOff,latOff,steer,basc}`. Bancs (scratchpad GFX) : `bord5.js doux|lent|retour`, `levre.js 1,4,7`.
-
 ## LES NUAGES v8 — REFAITS À ZÉRO (2026-10-01, nuit, session GAMEPLAY) — Sacha : « les nuages dans le premier niveau sont toujours aussi moches, il faut que tu reprennes tout à zéro et que tu me fasses une vraie génération de nuages adaptée au jeu et à la DA — pousse-toi dans tes limites, prends tout ton temps et surprends-moi »
 - LE DIAGNOSTIC : v1-v7 retouchaient les formes et les couleurs d'un même principe — des SPHÈRES fusionnées, chacune avec sa lumière Phong.
   Un nuage restait une grappe (les boules se comptaient, chaque soudure faisait une ligne), les gabarits étaient des piles de bourgeons
