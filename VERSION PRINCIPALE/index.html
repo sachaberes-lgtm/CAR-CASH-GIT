@@ -22802,7 +22802,7 @@ const dolphinRig=new THREE.Group();dolphinRig.visible=false;scene.add(dolphinRig
 const dolPod=new THREE.Group();dolphinRig.add(dolPod); // la « scène de Léo », posée devant la caisse
 const dolphins=DOL_BANC.map((b,i)=>{const d=mkDauphin();d.userData.b=b;d.userData.p=b.p0;d.userData.tailPh=i*1.7;d.userData.roll=i*2.3;d.userData.up=false;d.userData.vr=0;dolPod.add(d);return d;});
 // le sillage d'étincelles (rose) et les gerbes d'eau — particules v2 rattachées au BANC (repère local) : fondu de vie, taille propre
-const dolTrail=makePool(200,.32,0xff6ad6,.9,false,{a:[.05,.65,1,.2],v:.5,pr:[3,7,24,0]}),dolSplash=makePool(320,.5,0xd6faff,.95,false,{a:[.03,.5,1.1,.5],v:.7,pr:[3,7,30,0]}); // pr : le garde-objectif (fondu à 3-7 m, 24-30 px au plus) — un banc qui frôle la caméra ne fait plus de grosses taches
+const dolTrail=makePool(200,.32,0xff6ad6,.9,false,{a:[.05,.65,1,.2],v:.5,pr:[3,7,24,0]}),dolSplash=makePool(480/* (v6) 320 → 480 : au ras les gerbes doublent */,.5,0xd6faff,.95,false,{a:[.03,.5,1.1,.5],v:.7,pr:[3,7,30,0]}); // pr : le garde-objectif (fondu à 3-7 m, 24-30 px au plus) — un banc qui frôle la caméra ne fait plus de grosses taches
 for(const p of [dolTrail,dolSplash]){p.mesh.material.blending=THREE.AdditiveBlending;p.mesh.material.map=sparkTex;dolPod.add(p.mesh);
   for(let i=0;i<p.n;i++)p.pos[i*3+1]=-99999;} // ⚠ en repère LOCAL, une particule jamais née (0,0,0) se dessinerait au milieu du banc : on les range loin
 function dolPoolStep(p,dt,g){ // comme updatePool, mais avec une VRAIE gravité (la gerbe monte, s'arrête, retombe) — et la vie des particules v2
@@ -22813,24 +22813,33 @@ function dolPoolStep(p,dt,g){ // comme updatePool, mais avec une VRAIE gravité 
   if(viv||p._vivant){const at=p.mesh.geometry.attributes;at.position.needsUpdate=true;at.aF.needsUpdate=true;} // une réserve vide n'est plus renvoyée au GPU
   p._vivant=viv;
 }
-function dolGerbe(x,y,z,power,k){ // la gerbe : une COURONNE qui monte, un ANNEAU d'écume qui file au ras de l'eau, trois grosses gouttes au centre
-  for(let n=0;n<18;n++){const a=Math.random()*6.28,sp=(.7+Math.random()*1.3)*power*k;
+function dolGerbe(x,y,z,power,k,nM){ // la gerbe : une COURONNE qui monte, un ANNEAU d'écume qui file au ras de l'eau, trois grosses gouttes au centre — nM (v6) : ×1 → ×2 au ras
+  const nA=Math.round(18*(nM||1)),nB=Math.round(14*(nM||1));
+  for(let n=0;n<nA;n++){const a=Math.random()*6.28,sp=(.7+Math.random()*1.3)*power*k;
     spawnP(dolSplash,x,y,z,Math.cos(a)*sp*.55,(1.1+Math.random()*1.4)*power*k,Math.sin(a)*sp*.55,.6+Math.random()*.45);}
-  for(let n=0;n<14;n++){const a=n/14*6.28+Math.random()*.3,sp=(1.5+Math.random()*.7)*power*k; // l'anneau : il monte juste ce qu'il faut pour rester à fleur d'eau (g = 6k)
+  for(let n=0;n<nB;n++){const a=n/nB*6.28+Math.random()*.3,sp=(1.5+Math.random()*.7)*power*k; // l'anneau : il monte juste ce qu'il faut pour rester à fleur d'eau (g = 6k)
     spawnP(dolSplash,x,y,z,Math.cos(a)*sp,1.35*k,Math.sin(a)*sp,.4+Math.random()*.15);}
   for(let n=0;n<3;n++)spawnP(dolSplash,x+(Math.random()-.5)*.3*k,y,z+(Math.random()-.5)*.3*k,0,(2.3+Math.random()*1.2)*power*k,0,.8+Math.random()*.3);
 }
-const crV3=new THREE.Vector3(),dolUp=new THREE.Vector3();
+const crV3=new THREE.Vector3(),dolUp=new THREE.Vector3(),dolQc=new THREE.Quaternion(),dolQp=new THREE.Quaternion(),FDOL={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()}; // (v6) dolQc : l'orientation VISÉE du banc · dolQp : celle de l'image d'avant (banc) · FDOL : le repère de la route sous la caisse
+let dolRasK=0,dolRasF=null,dolSync=false,dolSyncT=0,dolSyncVr=1,dolRigMax=0; // (v6) dolRasK : le RAS lissé qui se VOIT (0-1 ; dolRasF le force au banc) · dolSync/T/Vr : le BOND ROYAL du 6e dauphin · dolRigMax : la plus grande rotation du banc en UNE image (°, lue et remise à zéro par dbgDauphin('etat'))
 let dolShow=0,dolIn=9,dolPart=0,dolDir=-1,dolKS=1,dolW=13; // dolShow : secondes d'affichage restantes · dolIn : secondes depuis le déclenchement · dolPart : vie restante des gerbes · dolDir : sens de traversée · dolKS/dolW : taille et demi-largeur du banc (m)
 function updateDolphins(dt,photo){
   if(paused&&!photo)return; // (2026-09-29) la PAUSE fige le banc : il nageait (et s'usait) derrière le panneau — `photo` : le pas à pas de dbgDolView
   if(dolShow<=0&&dolPart<=0){if(dolphinRig.visible)dolphinRig.visible=false;return;} // rien à montrer : zéro draw call
   dolphinRig.visible=true;dolPart=Math.max(0,dolPart-dt);
   // le REPÈRE DU VOL (sans la vrille) : x = latéral, y = haut de la caisse, z = trajectoire — celui de la caméra de vol
+  /* (2026-09-30, v6) LE BANC NE SAUTE PLUS À LA POSE. En vol son repère est la trajectoire (fallVel, FLY_U) ; au sol c'était celui de la
+     CAISSE (qui drifte, braque, se met en travers), posé d'une image à l'autre. Or le banc nage 7 à 16 m devant : un cap qui change de
+     10-30° à la pose le faisait bondir de plusieurs mètres en une image. Au sol il prend le repère de la ROUTE (sa tangente dans le sens
+     de marche, sa normale côté face roulée — la même main que carGroup) et l'orientation RALLIE la visée (1 − e^(−6·dt) : 63 % en
+     0,17 s) ; posée d'un coup seulement quand le banc est neuf (dolIn = 0). Repère dégénéré (vitesse ∥ haut) : on garde l'orientation. */
   dolphinRig.position.copy(carGroup.position);
-  if(mode==='fall'){crV1.copy(fallVel).normalize();crV2.crossVectors(FLY_U,crV1).normalize();crV3.crossVectors(crV1,crV2);
-    mat4.makeBasis(crV2,crV3,crV1);dolphinRig.quaternion.setFromRotationMatrix(mat4);}
-  else dolphinRig.quaternion.copy(carGroup.quaternion);
+  if(mode==='fall'){crV1.copy(fallVel).normalize();crV2.crossVectors(FLY_U,crV1).normalize();}
+  else{frameAt(s,FDOL);crV1.copy(FDOL.t).multiplyScalar(driveDir);dolUp.copy(FDOL.n).multiplyScalar(side);crV2.crossVectors(dolUp,crV1).normalize();}
+  if(crV2.lengthSq()>.5){crV3.crossVectors(crV1,crV2);mat4.makeBasis(crV2,crV3,crV1);dolQc.setFromRotationMatrix(mat4);
+    if(dolIn===0)dolphinRig.quaternion.copy(dolQc);else{dolphinRig.quaternion.slerp(dolQc,1-Math.exp(-dt*6));dolRigMax=Math.max(dolRigMax,dolQp.angleTo(dolphinRig.quaternion)*57.3);}
+    dolQp.copy(dolphinRig.quaternion);}
   dolPoolStep(dolTrail,dt,0);dolPoolStep(dolSplash,dt,6*dolKS);
   if(dolShow<=0){for(const d of dolphins)if(d.visible)d.visible=false;return;} // (tous : le 1er pouvait être sous l'eau pendant qu'un autre restait figé en l'air)
   // LISIBILITÉ : mesurée sur la VRAIE caméra — distance du banc, champ vertical, format de l'écran
@@ -22840,22 +22849,31 @@ function updateDolphins(dt,photo){
   dolUp.set(0,1,0).applyQuaternion(dolphinRig.quaternion);const surf0=dolUp.dot(crV1); // la SURFACE de l'eau : le plan du banc, à la hauteur de chaque gerbe
   const dist=Math.max(6,crV2.dot(crV1.sub(camera.position))),hv=dist*Math.tan(camera.fov*Math.PI/360),hw=hv*camera.aspect,
         kT=THREE.MathUtils.clamp(.17*Math.min(hv,hw),.8,3),wT=Math.max(7,.8*hw); // un dauphin ≈ ⅓ de la plus petite dimension ; les gerbes tombent DANS l'écran
-  if(neuf){dolKS=kT;dolW=wT;dolDir=-dolDir;
-    for(const d of dolphins){d.userData.p=d.userData.b.p0;d.userData.up=false;}
+  if(neuf){dolKS=kT;dolW=wT;dolDir=-dolDir;dolSyncT=0; // (v6) un banc neuf n'hérite pas d'un bond royal resté en suspens
+    for(const d of dolphins){d.userData.p=d.userData.b.p0;d.userData.up=false;d.userData.sy=0;}
     dolTrail.mesh.material.size=.24*kT;dolSplash.mesh.material.size=.5*kT;}
   else{const a=Math.min(1,dt*1.5);dolKS+=(kT-dolKS)*a;dolW+=(wT-dolW)*a;} // la caméra de vol zoome sur les gros airs : le banc suit en douceur
   dolShow-=dt;dolIn+=dt;
   const fade=Math.min(1,dolShow*2.5),k=dolKS,W=dolW,dir=dolDir;
-  DOL_U.uEcume.value=.2*k;
+  /* (v6) LE RAS SE VOIT — « au ras et vite = plus d'aura » (×9 du large au ras) ne se lisait pas, et Sacha ne veut pas de texte en vol.
+     Sans un mot : le RAS lissé (dolRasK, ~0,25 s, la proximité que dolTick paie) allume le liseré néon (1,5 → 4), double les gerbes et
+     l'écume, et au ras ET vite le banc S'EMBALLE (tempo des bonds jusqu'à ×1,5). Uniforms seulement : même programme `dauphin2`. */
+  {const c9=dolRasF!=null?dolRasF:(mode==='fall'&&dolOn?dolRasV:0);dolRasK+=(c9-dolRasK)*(1-Math.exp(-dt*4));}
+  const rK=dolRasK,tempo=1+.5*rK*Math.max(0,Math.min(1,(dolMul-.6)/1.5)),gK=1+rK;
+  DOL_U.uEcume.value=.2*k;DOL_U.uRimK.value=1.5+2.5*rK*rK;
+  if(dolSync){dolSync=false;dolSyncT=.4;dolSyncVr=Math.random()<.5?1:-1;} // (v6) LE BOND ROYAL : le 6e dauphin est arrivé (dolTick)
+  let go9=false;if(dolSyncT>0){dolSyncT-=dt;go9=dolSyncT<=0;}
   for(let i9=0;i9<dolphins.length;i9++){const d=dolphins[i9],u=d.userData,b=u.b;
     if(i9>=dolNb){if(d.visible)d.visible=false;u.pret=false;continue;} // (dauphin v4) pas encore dans le banc
-    if(!u.pret){u.pret=true;if(!neuf){u.p=-.12;u.up=false;}} // il REJOINT le banc : il perce la surface tout de suite (gerbe comprise)
-    u.p+=dt*b.speed*b.speed*8.8; // le tempo de l'aperçu (phase×vitesse×4,4 avec phase+=dt×vitesse×2)
-    if(u.p>1.2){u.p=-(.2+Math.random()*.3);u.vr=Math.random()<.34?(Math.random()<.5?1:-1):0;} // replongé : un temps sous l'eau, et il revient — une fois sur trois en VRILLE
+    if(!u.pret){u.pret=true;if(!neuf){u.p=dolSyncT>0?-.2:-.12;u.up=false;}} // il REJOINT le banc : il perce la surface tout de suite (gerbe comprise) — (v6) pendant le rassemblement du bond royal, il attend sous l'eau
+    if(dolSyncT>0){if(u.p>-.18)u.p+=dt*3.6;} // (v6) le banc SE RASSEMBLE (0,4 s) : qui est en l'air finit son bond, vite ; qui est sous l'eau attend
+    else u.p+=dt*(u.sy?.096:b.speed*b.speed)*8.8*tempo; // le tempo de l'aperçu (phase×vitesse×4,4 avec phase+=dt×vitesse×2) — (v6) ×tempo au ras et vite ; le bond royal au même tempo pour tous
+    if(u.p>1.2){u.p=-(.2+Math.random()*.3);u.vr=Math.random()<.34?(Math.random()<.5?1:-1):0;u.sy=0;} // replongé : un temps sous l'eau, et il revient — une fois sur trois en VRILLE
+    if(go9){u.p=-.12;u.sy=1;u.vr=dolSyncVr;} // (v6) …puis les six percent ENSEMBLE, même tempo, même vrille
     const p=u.p,vis=p>-.18&&p<1.18;d.visible=vis; // la surface le coupe : il est « là » dès que le rostre peut la percer
     const arc=Math.sin(p*Math.PI),amp=b.amp*k,base=b.base*k,x=dir*W*(2*p-1),y=base+arc*amp,z=-b.z*k;
     const above=y>base+.15*k&&p>0&&p<1;
-    if(above!==u.up){dolGerbe(x,base+.05*k,z,(above?1.2:.9)*b.scale,k);dolPart=1.3;u.up=above;} // on JAILLIT / on REPLONGE → gerbe
+    if(above!==u.up){dolGerbe(x,base+.05*k,z,(above?1.2:.9)*b.scale*(u.sy?1.4:1),k,gK);dolPart=1.3;u.up=above;} // on JAILLIT / on REPLONGE → gerbe (v6 : plus fournie au ras, plus haute au bond royal)
     if(!vis)continue;
     const s=k*b.scale*(.5+.5*fade);d.scale.setScalar(s); // pleine taille dès la sortie : c'est la surface qui le révèle, plus la gerbe qui le gonfle
     d.position.set(x,y,z);
@@ -22867,7 +22885,7 @@ function updateDolphins(dt,photo){
     mu.uDol.value.set(.11+.22*(1-hors)*(1-hors),u.tailPh,2.3,Math.min(.1,.5*Math.PI*Math.PI*amp/(4*W*W)*s*1.4)); // la queue POMPE fort en perçant l'eau, se relâche au sommet ; le corps se CAMBRE sur l'arc
     mu.uSurf.value.set(dolUp.x,dolUp.y,dolUp.z,surf0+base);
     {const sp9=Math.sin(pitch),t9=Math.abs(sp9)>.12?(base-y)/sp9:99; // l'ÉCUME : tant que le corps perce la surface, ça bouillonne à l'endroit exact où son axe la traverse
-      if(Math.abs(t9)<DOL_L*.5*s&&Math.random()<dt*42){const x9=x+dir*Math.cos(pitch)*t9;dolPart=Math.max(dolPart,.6);
+      if(Math.abs(t9)<DOL_L*.5*s&&Math.random()<dt*42*gK){const x9=x+dir*Math.cos(pitch)*t9;dolPart=Math.max(dolPart,.6);
         spawnP(dolSplash,x9+(Math.random()-.5)*.35*k,base+.04*k,z+(Math.random()-.5)*.35*k,(Math.random()-.5)*1.2*k,(1+Math.random()*1.3)*k,(Math.random()-.5)*1.2*k,.3+Math.random()*.25);}}
     if(above&&Math.random()<dt*55){const q=DOL_L*.5*s; // le sillage part de la QUEUE
       spawnP(dolTrail,x-dir*Math.cos(pitch)*q+(Math.random()-.5)*.15*k,y-Math.sin(pitch)*q+(Math.random()-.5)*.15*k,z+(Math.random()-.5)*.15*k,0,0,0,.55);dolPart=Math.max(dolPart,.55);}
@@ -22911,7 +22929,13 @@ const snNodes=[],snTang=[],snNorm=[];
   snNodes.push(new THREE.Vector3(Math.cos(a)*R,1.4,Math.sin(a)*R));snTang.push(new THREE.Vector3());snNorm.push(new THREE.Vector3());}}
 const _sq=new THREE.Quaternion(),_st=new THREE.Vector3(),_sn=new THREE.Vector3(),_sb=new THREE.Vector3(),_stmp=new THREE.Vector3(),_sup=new THREE.Vector3(0,1,0);
 let serpShow=0,serpShowMax=0,serpA=0;
-function serpHead(a){const R=5.4;return crV2.set(Math.cos(a)*R,1.5+Math.sin(a*2)*1.0,Math.sin(a)*R);} // tourne AUTOUR de la caisse
+/* (2026-09-30) LE SERPENT DANS LE CADRE DU PORTRAIT : en portrait la caméra n'est qu'à ~4,3 m derrière (×0,72) et 3,5 m au-dessus — sur
+   un cercle de 5,4 m, seul l'arc de devant entrait dans l'image (la tête à l'écran 37-45 % du temps, le corps 39-49 %). L'orbite s'aplatit
+   selon POR (0 paysage → 1 portrait, le paysage ne bouge pas) : ×0,7 en travers, ×1,5 en long, avancée de 3 m — l'arrière passe DERRIÈRE
+   et sous l'objectif (hors champ), le long bord devant la caisse. MESURÉ (banc node serpcadre.js : la caméra de conduite recalculée,
+   390×844, 8 départs) : tête 61-71 %, corps 70-83 % ; jamais à moins de 5 m de l'objectif quand elle est à l'écran. (Les variantes
+   « serrées derrière » montaient à 85-100 % mais faisaient passer la tête à 2 m de l'objectif, en gros plan : écartées.) */
+function serpHead(a){const R=5.4;return crV2.set(Math.cos(a)*R*(1-.3*POR),1.5+Math.sin(a*2)*1.0,Math.sin(a)*R*(1+.5*POR)+3*POR);} // tourne AUTOUR de la caisse
 function updateSerpent(dt){
   if(serpShow<=0){if(serpent.visible)serpent.visible=false;serpShowMax=0;return;}
   if(serpShow>serpShowMax)serpShowMax=serpShow; // pic = valeur de départ (robuste quelle que soit la durée déclenchée)
@@ -23679,7 +23703,10 @@ window.dbgLogo=function(n){
   return {tirages:n,distribution:JETONS.map(j=>({jeton:j.n,voulu:j.p+' %',
     obtenu:+(100*(c[j.n]||0)/n).toFixed(2)+' %',unClicSur:Math.round(n/Math.max(1,c[j.n]||0))}))};
 };
-window.dbgDolphins=function(sec,nb){dolShow=sec||4;dolIn=0;if(nb)dolNb=Math.max(1,Math.min(DOL_BANC.length,nb|0));}; // (2026-09-29) `nb` : le banc au complet d'entrée (banc photo)
+window.dbgDolphins=function(sec,nb){
+  if(sec==='royal'){if(dolShow<=0)dolIn=0;dolShow=Math.max(dolShow,4.5);dolNb=DOL_BANC.length;dolSync=true;return 'bond royal';} // (v6) le banc au complet bondit d'un seul corps
+  if(sec==='ras'){dolRasF=nb==null?null:+nb;return dolRasF;} // (v6) force le RAS vu (0-1 ; null = le vrai) : liseré, gerbes, tempo
+  dolShow=sec||4;dolIn=0;if(nb)dolNb=Math.max(1,Math.min(DOL_BANC.length,nb|0));}; // (2026-09-29) `nb` : le banc au complet d'entrée (banc photo)
 // (dev, 2026-09-29) `dbgDolView(i,a,d,h,pas)` : MODE PHOTO d'un dauphin — met en pause, fait nager le banc `pas` images de 1/60 s, cadre le
 // dauphin i (i = -1 : tout le banc) sous l'angle a (rad, dans le repère du banc : 0 = de face, π/2 = de profil), à d × sa longueur, hauteur
 // h × sa longueur, et rend UNE image. Renvoie la pose (phase du bond, échelle) pour que le banc sache ce qu'il a photographié.
@@ -23706,7 +23733,8 @@ window.dbgDolView=function(i,a,d,h,pas,ph){ // `ph` : on nage jusqu'à ce que le
 window.dbgDauphin=function(a,b,c,d){
   if(a==='force'){DAUPH.force=(b==null?null:!!b);return DAUPH.force;}
   if(a==='boom'){explode();return window.dbgState();}
-  if(a==='etat')return {on:dolOn,aura:+dolAura.toFixed(1),mul:+dolMul.toFixed(2),q:+dolQ.toFixed(2),nb:dolNb,fig:trkDolph,hF:+dolDist().toFixed(1),flow:+FLOW.v.toFixed(1),mode:mode}; // (v5) le dauphin au banc : aura, vitesse, qualité
+  if(a==='etat'){const r9={on:dolOn,aura:+dolAura.toFixed(1),mul:+dolMul.toFixed(2),q:+dolQ.toFixed(2),nb:dolNb,fig:trkDolph,hF:+dolDist().toFixed(1),flow:+FLOW.v.toFixed(1),mode:mode,
+    rasT:+dolRasT.toFixed(2),rasK:+dolRasK.toFixed(2),rim:+DOL_U.uRimK.value.toFixed(2),rigMax:+dolRigMax.toFixed(1)};dolRigMax=0;return r9;} // (v6) rasT : secondes au ras (figure à 1) · rasK : le ras qui se voit · rigMax : la plus grande rotation du banc en une image depuis la dernière lecture (°) // (v5) le dauphin au banc : aura, vitesse, qualité
   if(!started||gameOver)return 'pas de course en cours';
   if(mode!=='drive')return 'déjà en vol : '+mode;
   lat=d||0;vA=b||15;vL=c||0;startFall(a||60,1);return window.dbgState();
@@ -27100,9 +27128,30 @@ function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent dé
      assez pour être une FIGURE, il verse min(6, 4 × dolQ) en RISQUE signé NARCISSE — rien pour un dauphin lent et loin. Mesuré au
      simulateur (simtri.js + un dauphin par saut) : le maître atteint la frénésie en 123 s au lieu de 146 ; tranquille et casse-cou
      inchangés (jamais en 5 min, la frénésie v5 reste dure). */
+/* LE DAUPHIN v6 (2026-09-30, relecture) — LA FIGURE SE MÉRITE AU RAS. Depuis la v4, `DOL_T`=0 et la bande des 40 m : la figure
+   tombait à 1 s de N'IMPORTE QUEL vol au-dessus de la route. Mesuré (banc node simdol.js, le vrai bloc extrait, vitesse moyenne) : un saut
+   ordinaire de 2 s (gravité du monde FALL_G×SPD = 15,8 m/s² → pic 7,9 m) rapportait 413 d'aura (figure 150 + prime 80 + 183 en vol), ~8×
+   BIG AIR, faisait `chain++` → la frénésie armée partait à sa pose (`chain>0||trkBigA`) ; un vol à 35 m, 300.
+   · L'ANIMATION NE CHANGE PAS : le banc jaillit à la 1re image de tout vol proche (dessus, dessous, dans la largeur) et grandit avec la tenue.
+   · LA FIGURE (150, la prime, le flow, le maillon de chaîne) demande `DOL_FIG` = 1 s cumulée AU RAS (`dolRasT`) : à moins de `DOL_RAS_H`
+     = 6,5 m de la dalle, après la porte de pose (`DOL_RAS_T0` = fallT > 0,35 s : le décollage, où tout saut passe au ras, ne compte pas).
+     Pourquoi 6,5 m et pas 9-12 : un saut ordinaire culmine à 7,9 m — une bande plus haute le contiendrait EN ENTIER (1,4 s au ras après
+     la porte, figure garantie). À 6,5 m il ne fait que la traverser (0,6 s) ; un vrai rase-dalle y vit.
+   · L'AURA EN VOL NE PAIE PLUS QUE LA PROXIMITÉ : `DOL_AURA_S` 20 → 0 (le forfait de 20/s payait le simple fait de voler), `DOL_AURA_RAS`
+     160 → 190 : au ras de 4 m (ras² = 0,67) 190 × 0,67 = 126,5/s = le 20 + 160 × 0,67 d'avant — LE RASE-DALLE NE PERD RIEN (au contact il
+     gagne 3 %). Mais un saut ordinaire VIT entre 3 et 8 m : la proximité seule lui laissait 166 (à fond 348) — encore 3× BIG AIR, et une
+     carte « DAUPHIN » à chaque pose. Donc LA NAGE NE S'ENCAISSE QUE SI LE DAUPHIN EST NÉ (`trkDolph`, la figure) — la règle que la v5
+     avait déjà posée pour son flow ; `DOL_AURA_NUE` (0) est la part versée sans figure, si l'on veut rendre un peu aux sauts ordinaires.
+     (Un passage d'avant la figure, dans le même vol, ne se rattrape pas.) Une ligne sous `DOL_AURA_MIN` (10) ne s'écrit pas.
+   · MESURÉ (après, vitesse moyenne ; à fond entre parenthèses) : parabole de 2 s culminant à 8 m 411 → 0 (698 → 0), à 20 m 318 → 0,
+     à 35 m 300 → 0 : ni figure, ni maillon, ni flow, ni récapitulatif — les dauphins nagent quand même. Rase-dalle de 2 s à 4 m 618 → 620
+     (1 133 → 1 138), figure à 1,35 s au lieu de 0,98 ; à 3,2 m 661 → 674 ; à 6 m 548 → 526 ; vol flottant de 3 s culminant à 8 m (route qui
+     descend sous la caisse) 527 → 501, figure à 2,6 s. ⚠ Le verdict MONSTRE de la pose, lui, vient du RASE-DALLE d'argent (`chainVal`,
+     bloc de vol, 2,2-12 m) : il reste sur tout saut au-dessus de la route (hors de ce lot : il porte les pièces MOTEUR et le nitro de la pose). */
 const DOL_T=0,DOL_VU=2.6,DOL_HMAX=40,DOL_TMAX=4,DOL_GRACE=.12,DOL_FIGE=.6,DOL_FIG=1,DOL_PAS=.6,
-      DOL_AURA0=80,DOL_AURA_S=20,DOL_AURA_RAS=160,DOL_AURA_MAX=1200,DOL_FLOW_K=4,DOL_FLOW_MAX=6;
-let dolRoadT=0,dolOffT=0,dolOn=false,dolAura=0,dolMul=1,dolHudT=0,dolLive=0,dolNb=1,dolQ=0;
+      DOL_AURA0=80,DOL_AURA_S=0,DOL_AURA_RAS=190,DOL_AURA_MAX=1200,DOL_FLOW_K=4,DOL_FLOW_MAX=6,
+      DOL_RAS_H=6.5,DOL_RAS_T0=.35,DOL_AURA_NUE=0,DOL_AURA_MIN=10; // (v6) le RAS de la figure (m), sa porte (fallT), la part de la nage SANS figure, la plus petite ligne écrite
+let dolRoadT=0,dolOffT=0,dolOn=false,dolAura=0,dolMul=1,dolHudT=0,dolLive=0,dolNb=1,dolQ=0,dolRasT=0,dolRasV=0; // (v6) dolRasT : secondes AU RAS dans ce vol (la figure) · dolRasV : la proximité de l'image (0-1) que le banc montre
 function dolVitMul(){const vm=vmaxShow();if(!(vm>0))return 1;const p=fallVel.length()*3.6*SPD/vm;return .6+1.5*Math.max(0,Math.min(1,(p-.3)/.9));} // ×0,6 (30 % de la vmax) → ×2,1 (120 %)
 // la distance de la caisse à la DALLE (dessus, dessous, bords), dans son plan de coupe — radar de tryLand (image d'avant)
 function dolDist(){const dx=Math.max(0,Math.abs(curLatOff)-ROAD_HALF),dy=curHOff>0?curHOff:(curHOff<-THICK?-THICK-curHOff:0);return Math.hypot(dx,dy);}
@@ -27114,9 +27163,10 @@ function dolTick(dt,sur,hF){ // chaque image de VOL, avant tryLand (radar = imag
     if(dolOn){
       dolLive+=dt;
       const nb=Math.min(DOL_BANC.length,1+Math.floor(dolLive/DOL_PAS)); // (v4) le BANC GRANDIT avec la tenue
-      if(nb>dolNb){dolNb=nb;dolHudNom();hap(8);try{if(SONV2){if(nb>=DOL_BANC.length)sfx('fig.dauphinRoyal');else sfx('jeu.dauphin',{st:nb});}else chimeNote(noteP(Math.min(11,2+nb),1),0,.05,.18);}catch(e){}} // (la session SON : cri de dauphin, note qui monte avec le banc)
-      if(!trkDolph&&dolLive>=DOL_FIG){trkDolph=true;dolAura+=DOL_AURA0*dolMul;addTrick('dauphin','🐬 LE DAUPHIN !',3,2);} // (v4) LA FIGURE, à 1 s tenue, une fois par vol
-      const ras=Math.max(0,Math.min(1,1-(hF-2.2)/9.8)); // l'esprit du dauphin : nager AU RAS paye plus
+      if(nb>dolNb){dolNb=nb;dolHudNom();hap(8);if(nb>=DOL_BANC.length)dolSync=true;/* (v6) le 6e : le banc bondit d'un seul corps (updateDolphins) */try{if(SONV2){if(nb>=DOL_BANC.length)sfx('fig.dauphinRoyal');else sfx('jeu.dauphin',{st:nb});}else chimeNote(noteP(Math.min(11,2+nb),1),0,.05,.18);}catch(e){}} // (la session SON : cri de dauphin, note qui monte avec le banc)
+      if(hF<=DOL_RAS_H&&fallT>DOL_RAS_T0)dolRasT+=dt; // (v6) le temps AU RAS, cumulé sur tout le vol (plusieurs passages s'additionnent)
+      if(!trkDolph&&dolRasT>=DOL_FIG){trkDolph=true;dolAura+=DOL_AURA0*dolMul;addTrick('dauphin','🐬 LE DAUPHIN !',3,2);} // (v6) LA FIGURE, à 1 s AU RAS (v4 : 1 s de n'importe quel vol proche), une fois par vol
+      const ras=Math.max(0,Math.min(1,1-(hF-2.2)/9.8));dolRasV=ras; // l'esprit du dauphin : nager AU RAS paye plus — (v6) et SE VOIT (dolRasV → updateDolphins)
       dolMul+=(dolVitMul()-dolMul)*Math.min(1,dt*4); // (v5) la vitesse, relue en continu (lissée : un coup de nitro se sent en ~0,25 s)
       dolQ+=ras*ras*(.3+.7*Math.max(0,Math.min(1,(dolMul-.6)/1.5)))*dt; // (v5) la QUALITÉ du geste : au ras ET vite — elle fera le flow
       dolAura=Math.max(dolAura,Math.min(DOL_AURA_MAX*dolMul,dolAura+(DOL_AURA_S+DOL_AURA_RAS*ras*ras)*(1+.15*(dolNb-1))*dolMul*dt)); // (v5) jamais de recul : la vitesse qui retombe baisse le plafond, pas le gagné
@@ -27145,8 +27195,8 @@ function dolHudNom(){if(!DAUPH.nom)return;const t=TR('DAUPHIN')+(dolNb>1?' ×'+d
   DAUPH.nom.classList.add('eau');DAUPH.nom.innerHTML=Array.from(t).map(function(c,i){return c===' '?' ':'<i style="--i:'+i+'">'+c.replace(/[<>&]/g,'')+'</i>';}).join('');}
 function dolFin(){ // on QUITTE la route ou on se pose : le total se fige, s'encaisse, puis s'efface
   if(!dolOn)return;dolOn=false;dolHudVal();
-  const n=Math.round(dolAura);
-  if(n>0)dolAura9('DAUPHIN EN VOL',n,'dauphinLive',true); // brut : la vitesse est DÉJÀ dans le compteur (addAura refuse seule en parc) — (v5) versé à la POSE
+  const n=Math.round(dolAura*(trkDolph?1:DOL_AURA_NUE)); // (v6) la nage ne s'encaisse que si le dauphin est NÉ (la figure : 1 s au ras) — la règle de son flow (v5)
+  if(n>=DOL_AURA_MIN)dolAura9('DAUPHIN EN VOL',n,'dauphinLive',true); /* (v6) sous 10 : pas de ligne */ // brut : la vitesse est DÉJÀ dans le compteur (addAura refuse seule en parc) — (v5) versé à la POSE
   {const f9=Math.min(DOL_FLOW_MAX,DOL_FLOW_K*dolQ);if(trkDolph&&f9>=.5&&!PARK.on)flowAdd(f9,'risque','n');dolQ=0;} // (v5) le FLOW du dauphin : au ras et vite, pour qui a tenu la figure
 }
 /* (v5, 2026-09-29) LE DAUPHIN S'ÉCRIT À LA POSE — Sacha : « le texte dauphin doit s'afficher qu'à l'atterrissage sur la route ; avant, il y a
@@ -27171,7 +27221,7 @@ function dolPose(){
 let dolHudAtt=0; // (v5) combien de temps le récapitulatif peut encore attendre que le couloir se libère
 function dolHudLibre(){const c=document.body.classList;return !(c.contains('verdOn')||c.contains('slamOn')||c.contains('ebOn')||(DAUPH.mb||(DAUPH.mb=document.getElementById('misBan')))&&DAUPH.mb.classList.contains('on'));}
 function dolKill(){ // fin SANS encaissement : explosion, replacement, nouvelle partie, fin de partie
-  dolOn=false;dolAura=0;dolRoadT=0;dolOffT=0;dolShow=0;dolLive=0;dolNb=1;dolQ=0;DOL_DIFF.length=0;dolHudOff(); // (v5) les lignes en attente de pose partent avec la caisse
+  dolOn=false;dolAura=0;dolRoadT=0;dolOffT=0;dolShow=0;dolLive=0;dolNb=1;dolQ=0;dolRasT=0;dolRasV=0;dolSync=false;dolSyncT=0;DOL_DIFF.length=0;dolHudOff(); // (v5) les lignes en attente de pose partent avec la caisse
 }
 function dolHudInit(){ // une fois, au 1er dauphin — ensuite des classes et UN nœud texte
   const e=document.createElement('div');e.id='dolHud';e.setAttribute('aria-hidden','true');
@@ -27838,7 +27888,7 @@ function startFall(impU,impF){
   heartBeat.vu=0; // (console de son) la mallette pourra chauffer — et le dire — une fois dans ce vol
   if(rollover>0){if(SONV2)sfx('report');trickMsg('REPORT +'+Math.round(rollover),false);rollover=0;} // le PARFAIT d'avant paye d'avance
   trkMeteor=false;curNear=false;NTR.airT=0;NTR.airFig=false; // (AIR NITROOO) une figure par vol
-  if(dolOn)dolFin();dolphT=0;dolphGain=0;trkDolph=false;dolRoadT=0;dolOffT=0;dolAura=0;caseHot=false;heartT=0;ladderI=0;caseHud.style.opacity=0;caseHud.className='';
+  if(dolOn)dolFin();dolphT=0;dolphGain=0;trkDolph=false;dolRasT=0;dolRoadT=0;dolOffT=0;dolAura=0;caseHot=false;heartT=0;ladderI=0;caseHud.style.opacity=0;caseHud.className='';
   chainHud.style.opacity=0;chainHud.classList.remove('pulse');
   // le boost se disperse en petites particules
   for(let k=0;k<14;k++){
