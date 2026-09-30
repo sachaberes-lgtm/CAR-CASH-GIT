@@ -4182,6 +4182,25 @@ html body #mDead>.mObj{order:-2}
 .shPhoto img.shArrive{animation:shArr var(--t-slow) var(--ease) both}
 @keyframes shArr{from{opacity:0;scale:.94}to{opacity:1;scale:1}}
 @media (prefers-reduced-motion:reduce){.shPhoto .shAttente,.shPhoto img.shArrive{animation:none}}
+/* ---- 31. LA BOUTIQUE EN BAS DU GARAGE (2026-09-30) : MENU | BOUTIQUE | le lingot d'or — même format que MENU (pictogramme + mot) ;
+   l'icône carrée du haut s'efface (une seule porte, dans le tiers bas) ---- */
+#gAct #gShopBas{flex:none;flex-direction:column;gap:6px;width:84px;min-width:84px;padding:6px 4px 4px 8px;font-size:var(--f0);letter-spacing:1px}
+#gAct #gShopBas .pxi{--pxs:3}
+#gOutils [data-go="shop"]{display:none}
+@media (orientation:landscape) and (max-height:540px){html #gAct #gShopBas{width:76px;min-width:76px;min-height:54px;gap:4px;padding:4px 2px 2px 6px}}
+/* quand une caisse est à acheter / équiper (`.choix`), la décision prend la place : la BOUTIQUE devient un carré (son panier), et sur un très
+   petit écran elle s'efface le temps du choix (ACHETER tombait à 41 px de large, MESURÉ) */
+html #gAct.choix :is(#gShopBas,#gClose){width:52px;min-width:52px;padding:0;gap:0}html #gAct.choix :is(#gShopBas,#gClose) span{display:none}
+html #gAct.choix :is(#gBuy,#gEquip){padding:0 6px}
+/* (MESURÉ) le verbe et le prix côte à côte faisaient ~180 px dans un lingot de ~90 : ils débordaient (et couvraient la BOUTIQUE). En choix, le
+   lingot se lit en DEUX lignes : le verbe en petit, le prix en gros dessous ; « EN BOUTIQUE » peut passer sur deux lignes, son panier se tait */
+html #gAct.choix #gBuy{flex-direction:column;gap:4px}html #gAct.choix #gBuy>span{font-size:var(--f0);letter-spacing:0;white-space:normal;text-align:center;line-height:1.5}html #gAct.choix #gBuy>.pxi{display:none}html #gAct.choix #gBuy .gPrix{font-size:var(--f3);letter-spacing:0}
+/* JOUER partage la barre avec la BOUTIQUE : le mot se règle sur la largeur RÉELLE du lingot (unités cqi) ; sous 230 px, les chevrons se taisent
+   et laissent la place au mot (MESURÉ : à 390 et 320 px le « J » passait sous la BOUTIQUE) */
+html #gAct:not(.choix) #gJouer{container-type:inline-size;padding:0 10px}
+html #gAct:not(.choix) #gJouer>span{font-size:min(var(--f8),calc((100cqi - 84px) / 6.2));letter-spacing:2px;white-space:nowrap}
+@container (max-width:230px){html #gAct:not(.choix) #gJouer .mChev{display:none}html #gAct:not(.choix) #gJouer>span{font-size:min(var(--f8),calc((100cqi - 24px) / 6))}}
+@media (max-width:360px){html #gAct{gap:10px}html #gAct #gShopBas{width:74px;min-width:74px;letter-spacing:0}html #gAct #gClose{width:60px;min-width:60px}html #gAct.choix #gShopBas{display:none}}
 </style>
 <style id="hudMaitrise">
 /* =====================================================================================================================
@@ -4891,6 +4910,8 @@ html[data-reduced-motion="1"] .fx3.on,html[data-reduced-motion="1"] .fx3.on2{ani
         <!-- (2026-09-29, Léo) la paire de l'écran de mort : MAISON à gauche, le lingot JOUER sous le pouce droit (là où REJOUER attend) ; ACHETER / ÉQUIPER
              entre les deux quand il y a un choix à faire (la caisse équipée n'en a pas : JOUER prend la place) -->
         <button id="gClose" class="pbtn" aria-label="Menu"><i class="pxi pxi-maison" aria-hidden="true"></i><span data-fr="MENU">MENU</span></button>
+        <!-- (2026-09-30, Sacha via DEBUGGING, idée de Léo) la BOUTIQUE bien visible, EN BAS (charte règle 4) : secondaire magenta, jamais d'or (règle 3) -->
+        <button id="gShopBas" class="pbtn pb-mag" data-go="shop" aria-label="Boutique"><i class="pxi pxi-panier" aria-hidden="true"></i><span data-fr="BOUTIQUE">BOUTIQUE</span></button>
         <div id="gBuyRow"><button id="gBuy" class="pbtn pb-gold">ACHETER</button></div>
         <button id="gEquip" class="pbtn pb-gold">ÉQUIPER</button>
         <button id="gJouer" class="pbtn pb-gold big"><span data-fr="JOUER">JOUER</span><i class="mChev" aria-hidden="true"><i class="pxi pxi-droite"></i><i class="pxi pxi-droite"></i><i class="pxi pxi-droite"></i></i></button>
@@ -33420,7 +33441,7 @@ function garJouer(e){
 $('gJouer').addEventListener('click',garJouer);
 /* BOUTIQUE · RÉGLAGES (repris de l'écran de mort) : l'atelier se ferme sous le volet et le routeur ouvre l'écran voulu — par `__mRetour`,
    le chemin que l'observateur de l'overlay lit à la fermeture (un mGo direct serait aussitôt écrasé par son retour à la racine). */
-for(const b9 of document.querySelectorAll('#gOutils [data-go]'))b9.addEventListener('click',function(e){
+for(const b9 of document.querySelectorAll('#gOutils [data-go],#gShopBas'))b9.addEventListener('click',function(e){ // (2026-09-30) + la BOUTIQUE du bas
   e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(b9);uiClic('nav');
   const vers=b9.getAttribute('data-go');ecranWipe(function(){window.__mRetour=vers;closeGarage();});});
 function gActSync(){const a=$('gAct');if(!a)return;const bt=$('gEquip'),row=$('gBuyRow'),vu=function(x){return !!x&&x.style.display!=='none';};

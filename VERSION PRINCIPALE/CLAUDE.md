@@ -1,5 +1,15 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA BOUTIQUE EN BAS DU GARAGE (2026-09-30, session INTERFACE — demande de Sacha relayée par DEBUGGING, idée de Léo)
+- `#gShopBas` (pb-mag, panier + mot) dans `#gAct` : **MENU | BOUTIQUE | lingot d'or** — même format que MENU, même chemin que l'ancienne
+  icône (`#gOutils [data-go=shop]`, désormais masquée : une seule porte, dans le tiers bas, charte règles 3-4).
+- En `.choix` (ACHETER / ÉQUIPER) : MENU et BOUTIQUE deviennent des carrés à pictogramme ; sous 360 px la BOUTIQUE s'efface le temps du
+  choix. Le lingot ACHETER passe sur DEUX lignes (verbe petit, prix dessous) — MESURÉ : verbe + prix côte à côte faisaient ~180 px dans
+  ~90, ils débordaient déjà avant (et couvraient la boutique).
+- JOUER règle son mot sur sa largeur réelle (`container-type`, unités cqi) ; sous 230 px ses chevrons se taisent.
+- Banc `garshop.js W H lang` (BANK=0 : la caisse équipée, sans choix) : 390 / 320 / 844×390 / 667×375, FR et EN — aucun
+  chevauchement, le bouton ouvre la boutique.
+
 ## CE QUI VIENT DE LÉO, PORTÉ SUR LA VERSION DE SACHA (2026-09-30, session DEBUGGING/UHD)
 - Sacha, à propos de la branche `version-leolei-2026` (83 commits de Léo jamais fusionnés, arrêtée le 28/09) : « PARIS, le HUD qui
   s'estompe, le boost de départ, le bouton BOUTIQUE — c'est pas mal, adapte ça bien à ce qu'on a déjà construit pour pas tout casser ».
