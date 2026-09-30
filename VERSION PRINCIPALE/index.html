@@ -7711,6 +7711,18 @@ function genTuto(){
    passent jamais. Banc après : max 30,2°, P95 28,5°, entrée ≤ 29° ; la ville tombe de ~5,5 km au lieu de ~8,5 (même tracé en plan, ruban
    8 % plus court), les étages de la spirale gardent ≥ 143 m d'écart. Revenir à l'ancienne ville : `garde:1`. */
 const VILLE_PENTE={seuil:.30,garde:.35};
+/* L'AUTOROUTE ORBITALE (2026-09-30, session SON — Sacha : « vu qu'on va très vite, adapte le terrain dans le niveau espace »).
+   MESURÉ (`dbgTerrain`, banc terrain-banc.js, 12 pistes par palier moteur) : le VOLANT n'était pas le problème — à la croisière, 0 % de
+   la piste hors d'atteinte, partout. Ce qui distinguait l'espace, c'était le RELIEF : l'espace sortait du même générateur que les nuages
+   (mêmes motifs, mêmes pentes) mais avec la gravité ÷2 — 10 à 24 % de sa longueur en crêtes qu'une caisse à cette vitesse ne tiendrait
+   pas (v²·κ > g·gK), contre 2 à 13 % aux nuages ; et des épingles, chicanes, vagues et plongeons taillés pour 300 km/h qu'on avale à 700.
+   En ESPACE (ORBITE, PLUIE DE SATELLITES, et tout niveau `espace` tiré par genCtrl — jamais les pistes dessinées de la campagne) :
+   · la piste est dessinée pour 30 % de vitesse EN PLUS (`lv`) : rayons, droites, liaisons et zone s'allongent d'autant — la NITROOO et
+     les paliers gagnés pendant la zone y tiennent ;
+   · les poids de la VILLE (grands virages, grands balayages) tempérés (`w`) : épingles ×0,35, vagues, plongeons, chicanes ×0,5, lignes de
+     momentum ×1,2 — une route qui se prend à fond, avec les rayons larges de la ville ;
+   · le RELIEF en houle : pentes au-delà de ~10° comprimées (`pente`), crêtes et creux arrondis 2,5× plus (`cretes`, voir adoucirCretes). */
+const ESP_ROUTE={lv:1.3,w:[1,1,.35,1,.5,1,.5,1.2,.5,1,1,1,1],pente:{seuil:.14,garde:.4},cretes:.35};
 /* L'ENTRÉE DANS LA VILLE (2026-09-29, Sacha : « quand on arrive dans la ville, la route doit commencer par être droite et surélevée le
    temps que le joueur s'adapte, puis la route descend dans la ville »). AVANT : le départ commun à tous les niveaux — 110 m qui plongent
    de 70 (adoucis à ~23°) — jetait la caisse dans le canyon dès la sortie du portail, murs au-dessus de la route, nitro déjà sur les
@@ -8159,7 +8171,8 @@ function genCtrl(rnd,startPos,startPhi){
     approx+=2*Math.PI*R;};
   // ---- ADN DE PISTE : chaque zone tire une PERSONNALITÉ — fini le shuffle statistiquement identique ----
   // LV : la vitesse de la caisse élargit TOUS les rayons (praticable même à 1500 km/h) et allonge les respirations.
-  const LV=typeof lvPiste==='function'?lvPiste():1; // l'échelle suit la VITESSE du moteur (voir lvPiste) — 1 au banc
+  const ESPON=typeof LVL!=='undefined'&&LVL.cur&&LVL.cur.id==='espace'&&!(typeof PARK!=='undefined'&&PARK.on)&&!window.dbgEspOff; // (2026-09-30) L'AUTOROUTE ORBITALE (voir ESP_ROUTE) — `dbgEspOff=true` : l'ancien terrain, pour comparer au banc
+  const LV=(typeof lvPiste==='function'?lvPiste():1)*(ESPON?ESP_ROUTE.lv:1); // l'échelle suit la VITESSE du moteur (voir lvPiste) — 1 au banc · en ESPACE, 30 % de marge
   // poids des 13 motifs [loop,hélice,épingle,esses,vague,virage,plongeon,droite,chicane,spirale,GAP,TIRE-BOUCHON,ENTRELACS]
   const AR=[
     /* ⚠ ROUTE v2 (2026-09-25, user : « il y a trop de moments où la route est courbée et où on roule sans savoir où on
@@ -8191,7 +8204,7 @@ function genCtrl(rnd,startPos,startPhi){
   // On secoue les poids à CHAQUE zone : celle-ci sera obsédée par les esses, la suivante par les
   // tire-bouchons. Le CARACTÈRE de l'archétype tient (un 0 reste un 0), seule l'humeur change.
   const RV=RELIEF_ON&&sansLoop; // (vague 3) le terrain RELIEF (grands virages + 40/30/30) — coupé, voir RELIEF_ON
-  const W=(RV?AR.wv:AR.w).map(v=>v*(0.35+rnd()*1.7)); // (vague 3) la VILLE a ses poids à grands virages (voir `wv`)
+  const W=(RV?AR.wv:ESPON?AR.wv.map(function(v,k){return v*ESP_ROUTE.w[k];}):AR.w).map(v=>v*(0.35+rnd()*1.7)); // (vague 3) la VILLE a ses poids à grands virages (voir `wv`)
   const wsum=W.reduce((a,b)=>a+b,0);
   const pick=()=>{let x=rnd()*wsum;for(let k=0;k<13;k++){x-=W[k];if(x<0)return k;}return 5;};
   const LEN=14400*(1+Math.min(1.5,(LV-1)*.55)); // (2026-09-25, user : « double la longueur de chaque niveau ») 7200 → 14400 — et plus longues encore à haute vitesse
@@ -8326,7 +8339,7 @@ function genCtrl(rnd,startPos,startPhi){
     else if(mo===0&&!sansLoop&&!SANS_LOOPING&&approx-lastLoop>1600){ // UN looping, de temps en temps (route v3 : 1,6 km mini entre deux, plus de doublé) — JAMAIS en ville, et plus nulle part (SANS_LOOPING)
       straight(60+rnd()*50,-30);loop((30+rnd()*34)*LOOPS,30+rnd()*22);straight(60+rnd()*50,-30);lastLoop=approx;
     }else if(mo===9){ // (route v3b) LE GRAND BALAYAGE : un virage long et LARGE, 100-150°, qui descend doucement — on le prend à fond, on le SENT
-      const sg=sgn(),R9=(RV?160+rnd()*160:110+rnd()*90)*RS,a9=Math.min(100+rnd()*60,(RV?64000:52000)/R9); // (vague 3) plus LARGE en VILLE : R 160-320 (ailleurs 110-200)
+      const sg=sgn(),R9=(RV||ESPON?160+rnd()*160:110+rnd()*90)*RS,a9=Math.min(100+rnd()*60,(RV||ESPON?64000:52000)/R9); // (2026-09-30) l'ESPACE a les rayons de la ville // (vague 3) plus LARGE en VILLE : R 160-320 (ailleurs 110-200)
       arc(sg*a9,R9,Math.max(5,Math.round(a9/14)),-(a9*Math.PI/180*R9*(.12+rnd()*.12)));
     }else if(mo===0||mo===1||mo===11||mo===12){ // (route v3) looping trop proche du précédent — et les motifs retirés, par sûreté : un GRAND VIRAGE
       const sg=sgn(),R2=(80+rnd()*120)*RS,a2=Math.min(45+rnd()*65,46000/R2);
@@ -8348,7 +8361,7 @@ function genCtrl(rnd,startPos,startPhi){
       courbe(50+rnd()*40,(20+rnd()*25)*VT,sg4*(10+rnd()*12));  // remontée surprise
       courbe(70+rnd()*50,-(45+rnd()*40)*VT,sg4*(12+rnd()*14)); // et ça replonge (route v3 : sans le mur de 60°)
     }else if(mo===5){ // grand virage large — (route v3c) plus serré d'un cran et jamais sous 45° : un VRAI virage
-      const sg=sgn(),R2=(RV?130+rnd()*190:80+rnd()*120)*RS,a2=Math.min(45+rnd()*65,(RV?56000:46000)/R2); // (vague 3, « plus de virages larges ») R 130-320 en VILLE (ailleurs 80-200)
+      const sg=sgn(),R2=(RV||ESPON?130+rnd()*190:80+rnd()*120)*RS,a2=Math.min(45+rnd()*65,(RV||ESPON?56000:46000)/R2); // (vague 3, « plus de virages larges ») R 130-320 en VILLE (ailleurs 80-200)
       arc(sg*a2,R2,3,-(a2*Math.PI/180*R2*(.6+rnd()*.5)));
     }else if(mo===6){ // plongeon — (route v3) franc mais jamais vertical : pente bornée à ~30°
       {const l6=60+rnd()*80;courbe(l6,-l6*Math.min(.58,(.28+rnd()*.2)*VT),sgn()*(10+rnd()*10));}
@@ -8380,7 +8393,8 @@ function genCtrl(rnd,startPos,startPhi){
   if(RV)reliefPiste(ctrl,LOOPI,iDep); // (vague 3) en VILLE l'altitude ne vient plus des motifs : un PROGRAMME 40 % descente · 30 % montée · 30 % plat (NUAGES et ORBITE : la pente d'avant, voir `wv`)
   if(sansLoop)adoucirPentes(ctrl,VILLE_PENTE); // (vague 3) la VILLE descend moins raide — AVANT les lissages, qui arrondissent le résultat
   lisserRaccords(ctrl,LOOPI);   // (route v3b) plus de cassure de pente d'un motif à l'autre
-  adoucirCretes(ctrl,LOOPI);    // plus de crête AVEUGLE (voir la fonction)
+  if(ESPON)adoucirPentes(ctrl,ESP_ROUTE.pente); // (2026-09-30) l'ESPACE en houle : les pentes raides comprimées (AVANT les lissages)
+  adoucirCretes(ctrl,LOOPI,ESPON?ESP_ROUTE.cretes:1);    // plus de crête AVEUGLE (voir la fonction) — en ESPACE, arrondies 2,5× plus
   return ctrl;
 }
 /* ---- LES CRÊTES AVEUGLES (2026-09-25, user : « on va vers le haut puis la route descend, donc on ne voit pas
@@ -8405,14 +8419,15 @@ function lisserRaccords(P,skip){
       const yl=y[i-1]+(y[i+1]-y[i-1])*h1/(h1+h2); // l'altitude qu'aurait une pente CONTINUE à cet endroit
       P[i].y=y[i]*.5+yl*.5;}}
 }
-function adoucirCretes(P,skip){
+function adoucirCretes(P,skip,k){ // k : l'exigence (1 = la règle d'origine ; .4 en ESPACE : une cassure de pente 2,5× plus douce)
+  k=k||1;
   for(let pass=0;pass<6;pass++){let bouge=false;
     for(let i=1;i<P.length-1;i++){if(skip&&skip.has(i))continue;
       const a=P[i-1],b=P[i],c=P[i+1],h1=Math.hypot(b.x-a.x,b.z-a.z),h2=Math.hypot(c.x-b.x,c.z-b.z);
       if(h1<4||h2<4)continue;
-      const g1=(b.y-a.y)/h1,g2=(c.y-b.y)/h2,seuil=g1>-.05?.30:.45; // crête franche : 0,30 · lèvre d'une descente qui s'accentue : 0,45
+      const g1=(b.y-a.y)/h1,g2=(c.y-b.y)/h2,seuil=(g1>-.05?.30:.45)*k; // crête franche : 0,30 · lèvre d'une descente qui s'accentue : 0,45
       if(g1-g2>seuil){b.y-=(g1-g2-seuil)/(1/h1+1/h2);bouge=true;}
-      else if(g2-g1>.40){b.y+=(g2-g1-.40)/(1/h1+1/h2);bouge=true;} // (route v3b) le CREUX aussi : un fond de cuvette trop sec, la caisse y tapait
+      else if(g2-g1>.40*k){b.y+=(g2-g1-.40*k)/(1/h1+1/h2);bouge=true;} // (route v3b) le CREUX aussi : un fond de cuvette trop sec, la caisse y tapait
     }
     if(!bouge)break;}
 }
@@ -11978,6 +11993,7 @@ function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débri
       const hw=(k===0?rad:rad*.8),hu=(k===0?rad*.06:rad*.24),ht=(k===0?rad*.13:rad*.24),mx=Math.max(hw,hu,ht)+5;
       SATOB.list.push({s:s9,lat:la,q:q,W:W,U:U,T:Tt,hw:hw+1.0,hu:hu+.75,ht:ht+2.2,hw0:hw,R2:mx*mx,haut:!!haut,pres:0,min:99,fait:false,fr:{frole:false,mesh:{position:q}}});
       return true;};
+    const espK=Math.max(1,.45+.4*lvPiste()); // (2026-09-30) l'écart grandit avec la vitesse de croisière (lvPiste : 1,3 → 4,1 selon le palier)
     let sp=650+r()*100;
     while(sp<L-420){
       const rideau=r()<.32;
@@ -11987,9 +12003,9 @@ function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débri
           pose0(k,sp+(r()-.5)*6,g+sg*(gw/2+half),k?rad*.24+.3:1.15,rad,sg*(8+r()*20)*Math.PI/180,(r()-.5)*.5,1,false);}
       }else{const k=r()<.55?0:1,rad=k?6+r()*3:7+r()*3,half=k?rad*.8:rad,la=(r()*2-1)*Math.max(0,RH-half*.55);
         pose0(k,sp,la,k?rad*.24+.3:1.15,rad,(r()<.5?-1:1)*(8+r()*20)*Math.PI/180,(r()-.5)*.6,1,false);}
-      sp+=110+r()*120;
+      sp+=(110+r()*120)*espK; // (2026-09-30) espacés en TEMPS de route : 1,3 à 2,7 s entre deux à toute vitesse (110-230 m, c'était 0,6 s à 700 km/h)
     }
-    for(let s9=900+r()*300;s9<L-500;s9+=420+r()*220) // EN L'AIR : pour qui saute par-dessus un rideau
+    for(let s9=900+r()*300;s9<L-500;s9+=(420+r()*220)*espK) // EN L'AIR : pour qui saute par-dessus un rideau
       pose0(0,s9,(r()*2-1)*RH*.8,9+r()*11,6+r()*4,(r()-.5)*1.4,0,1,true);
   }
   // 1. LES PASSANTS : de grands Starlink au bord de la route, du côté EXTÉRIEUR du virage qui vient (ils ne cachent jamais la route qui tourne)
@@ -26013,6 +26029,31 @@ function vmaxShow(){return CARS[0].maxKmh*SPD*lateMul()*(ENGINE_TIERS[engTier]||
 // (tremblement, filés, champ) se jugent sur ELLE : calés sur vmaxShow, ils saturaient 3-4 s après le départ et restaient plats toute la
 // partie — le momentum, un pad, le FLOW, le mini-turbo ne changeaient plus RIEN à l'écran. (vmaxShow reste la référence de l'économie.)
 function vCroisiere(){return vmaxShow()*1.55;}
+/* (2026-09-30, session SON) LE TERRAIN FACE À LA VITESSE — `dbgTerrain(kmh, mult)` : sur la piste en cours, la part de la longueur qu'on ne peut
+   PAS tenir au volant à `kmh` (défaut : la croisière du moteur) avec un multiplicateur d'avance `mult` (NITROOO/VITESSE ×2, défaut 1) —
+   lacet demandé v·κ contre lacetMax —, le plus petit rayon, et les CRÊTES qu'une vraie voiture ne tiendrait pas (v²·κ > g·gK). */
+window.dbgTerrain=function(kmh,mult){
+  if(!pts||!NP)return 'pas de piste';
+  const m=mult||1,k0=kmh||vCroisiere(),v=k0/3.6/SPD,om=lacetMax(v),vw=k0/3.6*m,g=FALL_G*SPD*gK();
+  let hors=0,tot=0,rMin=1e9,cretes=0,loop=0,pire=0;
+  for(let i=0;i<NP-1;i++){const d=pts[i+1].distanceTo(pts[i]);if(!(d>1e-3)||holeAtI(i))continue;tot+=d;
+    const dx=T[i+1].x-T[i].x,dy=T[i+1].y-T[i].y,dz=T[i+1].z-T[i].z,kl=Math.abs(dx*B[i].x+dy*B[i].y+dz*B[i].z)/d,kv=(dx*Nn[i].x+dy*Nn[i].y+dz*Nn[i].z)/d;
+    if(kl>1e-6)rMin=Math.min(rMin,1/kl);
+    const r9=vw*kl/om;if(r9>1)hors+=d;if(r9>pire)pire=r9;
+    if(kv<0&&vw*vw*-kv>g)cretes+=d;
+    if(Math.abs(T[i].y)>.87)loop+=d;}
+  // la pente : part de la longueur au-delà de 10° et de 20° ; les CROISEMENTS : deux passages à moins d'une largeur en plan, à moins de 16 m
+  // en hauteur, éloignés de plus de 600 m le long du ruban (la route se traverserait) — grille de 60 m
+  let p10=0,p20=0,cr=0;const G=new Map(),c9=60,pas=Math.max(1,Math.round(6/Math.max(.5,L/NP)));
+  for(let i=0;i<NP-1;i++){const h=Math.hypot(pts[i+1].x-pts[i].x,pts[i+1].z-pts[i].z),dy=Math.abs(pts[i+1].y-pts[i].y);if(h>.01){const g9=dy/h;if(g9>.176)p10+=h;if(g9>.364)p20+=h;}}
+  for(let i=0;i<NP;i+=pas){const k=Math.floor(pts[i].x/c9)+','+Math.floor(pts[i].z/c9);(G.get(k)||G.set(k,[]).get(k)).push(i);}
+  const dS9=L/NP,lim9=2*ROAD_HALF+6;
+  for(let i=0;i<NP;i+=pas*4){const p=pts[i],gx=Math.floor(p.x/c9),gz=Math.floor(p.z/c9);let vu=false;
+    for(let a=-1;a<=1&&!vu;a++)for(let b2=-1;b2<=1&&!vu;b2++){const l9=G.get((gx+a)+','+(gz+b2));if(!l9)continue;
+      for(const j of l9){if(Math.abs(j-i)*dS9<600)continue;const q=pts[j];if(Math.hypot(q.x-p.x,q.z-p.z)<lim9&&Math.abs(q.y-p.y)<16){cr++;vu=true;break;}}}}
+  return {pente10:+(p10/tot*100).toFixed(1),pente20:+(p20/tot*100).toFixed(1),croisements:cr,lieu:LVL.cur?LVL.cur.id+(LVL.cur.hard?'-hard':''):'?',palier:engTier,lv:+lvPiste().toFixed(2),kmh:Math.round(k0*m),L:Math.round(tot),
+    horsVolant:+(hors/tot*100).toFixed(1),pireRatio:+pire.toFixed(2),rayonMin:Math.round(rMin),rayonTenable:Math.round(vw/om),cretesVolantes:+(cretes/tot*100).toFixed(1),loop_m:Math.round(loop)};
+};
 let mode='drive',s=0,lat=0,psi=0,vA=0,vL=0,side=1,driveDir=1; // driveDir : sens de conduite le long du ruban (+1/-1). TOUJOURS 1 en course ; dans le PARC il suit le sens d'atterrissage → les routes se roulent dans les DEUX sens (pas de sens imposé)
 const START_CASH=1.61; // la mise de depart, clin d'oeil au studio 1.61
 let steer=0,money=START_CASH,levelCash=0,boost=0,fallT=0,fallTR=0,padCd=0,shake=0,combo=0,comboT=0,graceT=0,safeS=0,yawAcc=0,edgeT=0,squashT=0,momT=0,styleM=0,fever=0,streak=0,slowT=0,steerHold=0,aheadV=0,sideCd=0,slipT=0,oilCd=0,hitT=0,insUsed=false,feverArmed=false,lastSpaceT=0,rollover=0,idleT=0,driftT=0,driftYaw=0;

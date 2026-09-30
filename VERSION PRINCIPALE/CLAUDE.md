@@ -80,6 +80,22 @@ scratchpad GAMEPLAY). Ce qui suit est EN JEU, mesuré au banc sauf mention.
   les flaques qu'il cache — **SAUF les plots de l'ORAGE** (décision GAMEPLAY : sa promesse est « la route se cache », ses bancs couvrent la
   piste, le filtre y retirait 50-92 % des plots) ; huile jugée en mètres ; pas de pigeon en ORBITE ni à l'ORAGE. `dbgPas()`.
 
+## L'AUTOROUTE ORBITALE (2026-09-30, session SON) — « vu qu'on va très vite, adapte le terrain dans le niveau espace »
+- **MESURÉ d'abord** (`dbgTerrain(kmh,mult)`, nouveau crochet : part de la piste hors d'atteinte du volant à la croisière — lacet v·κ contre
+  `lacetMax` —, rayon mini, CRÊTES qu'une vraie caisse ne tiendrait pas (v²·κ > g·gK), pentes > 10°/20°, CROISEMENTS de la route avec
+  elle-même ; banc `terrain-banc2.js`, 4 paliers × le cycle) : le VOLANT n'était pas en cause (0 % hors d'atteinte partout, ≤ 0,5 % à ×2 de
+  NITROOO). L'espace sortait du même générateur que les nuages, avec la gravité ÷2 : 12 à 27 % de sa longueur en crêtes « volantes » (nuages
+  4 à 13 %), des épingles/chicanes/vagues taillées pour 300 km/h avalées à 700-1 080 km/h (vitesse sol médiane au palier 22, pilote auto).
+- **`ESP_ROUTE` + `ESPON` dans genCtrl** (tout niveau `id:'espace'` tiré par genCtrl — ORBITE, PLUIE DE SATELLITES, niveaux standard de la
+  carrière ESPACE ; jamais les pistes dessinées `piste:'camp'`, jamais le parc) : piste dessinée pour 30 % de vitesse en plus (`lv` ×1,3 :
+  rayons, droites, liaisons, longueur de zone) ; poids de la VILLE (`wv`) tempérés (épingles ×0,35, vagues/plongeons/chicanes ×0,5, momentum
+  ×1,2) et rayons de la ville pour les grands virages et balayages ; relief en houle : `adoucirPentes` (au-delà de 8° : ×0,4) puis
+  `adoucirCretes(…,.35)` (nouveau 3e paramètre `k`, 1 = la règle d'origine : les autres niveaux sont identiques au tirage près).
+- **La PLUIE DE SATELLITES espacée en temps de route** (`espK=max(1,.45+.4·lvPiste())` sur les deux pas de pose d'orbiteBuild §0) :
+  palier 4 → 2,7 s entre deux obstacles, 10 → 2,2 s, 16 → 1,7 s, 22 → 1,4 s (c'était 0,66 s au palier 22 : 127 m à 691 km/h).
+- **Résultat au palier 22** : crêtes volantes 16-27 % → 8-12 % · pentes > 20° ~55 % → 28-45 % · rayon mini 95-141 → 148-258 m · 0 croisement ;
+  pilote auto 40 s en orbite, 0 mort des deux côtés. `window.dbgEspOff=true` (avant la génération) rend l'ancien terrain pour comparer.
+
 ## LA REVUE DES NUAGES (2026-09-30, session GRAPHISME — constats de la revue de GAMEPLAY, vérifiés)
 - **Les 14 NUAGES D'HORIZON en sprites sont RETIRÉS** (fin de buildTrack) : ils restaient en VILLE, perçaient la brume de l'ORAGE (650-1850 m
   contre 70/660) et la moitié tombait sous l'horizon dans l'abîme des NUAGES. Avec eux part `cloudTexs` (cinq toiles 512×256 peintes au
