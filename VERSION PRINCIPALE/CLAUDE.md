@@ -19,16 +19,33 @@
 - **LE GARAGE QUI VIT** (même soir, Léo : « on est censé pouvoir tourner autour — soit le garage en rotation sans qu'on touche, soit avec
   le doigt on glisse et on voit légèrement ; inspire-toi de ma branche ») : LES DEUX. Au repos la VUE balance autour de la caisse (les deux
   sinus de sa branche, ±~11°, + un souffle de hauteur : `GAR.swK/swO/swP`) ; au MENU, glisser tourne le REGARD (`GAR.vA`, ±.36 rad,
-  hauteur .08-.42), qui revient seul dans l'axe de la porte ~1 s après le lâcher ; le balancement est VERSÉ dans le regard au toucher
+  hauteur .08-.42 — ⚠ plus de retour automatique, voir LE GLISSÉ FONDU) ; le balancement est VERSÉ dans le regard au toucher
   (aucun saut). `garCamA()` = l'azimut réel (axe + regard + balancement) ; la visée reste au-delà de la caisse, côté opposé ; le LÂCHER part
   de cette visée (`GAR.go.lx0/lz0`). En BOUTIQUE glisser fait toujours tourner la caisse ; le plateau tourne toujours. L'étiquette MISSIONS
   reste COLLÉE AU BORD quand le socle sort du cadre, et ne se pose jamais sur JOUER (à côté, sinon dessous — `garLibre().pl`).
   `dbgGarage(a,p,d,v)` fige (4e argument = le regard), `dbgGarage('etat')`, `dbgGarage('libre')`. Banc `regard.mjs W H nom`.
   · **LE TOUR COMPLET** (même soir, Léo : « on doit pouvoir voir derrière ») : plus de borne au regard (0,007 rad/px : un glissé d'un
-    bord à l'autre ≈ un demi-tour debout) ; retour dans l'axe de la porte par le plus court chemin après 3 s sans toucher. Le recul
+    bord à l'autre ≈ un demi-tour debout) ; (retour auto dans l'axe après 3 s : retiré le même soir, c'est JOUER qui ramène). Le recul
     maxi dépend de l'azimut (`capH` : 10,5 m dans l'axe libre côté établi, 8 m ailleurs — la règle des 8,3 m). Socle des missions DANS
     LE DOS de la caméra : l'étiquette attend au bord de son côté, sous JOUER. Le LÂCHER rejoint la place de poursuite en TOURNANT autour
     de la caisse (angle/rayon/hauteur interpolés, `G.a0`) — en ligne droite depuis le côté porte il la traversait. Banc `regard2.mjs`.
+  · **LE GLISSÉ FONDU** (même soir, Léo : « une retouche game design : quand tu pivotes, que ce soit agréable, un effet de mouvement
+    fondu ; enlève le retour automatique vers la porte, fais-le (mieux) quand on appuie sur PLAY ») : le doigt pose une CIBLE
+    (`GAR.vAc`, `GAR.pT`) que la vue rejoint en ~80 ms ; lâchée en mouvement, elle garde son ÉLAN (`GAR.vW`, frottement e^−3t, doigt
+    arrêté > 90 ms avant de lâcher = pas d'élan) ; saisie, elle s'arrête ; la caméra penche un peu dans le virage (`GAR.roll` ≤ 2,3°).
+    ⚠ Le retour automatique (3 s) est RETIRÉ. **LE RETOUR AU FEU** : JOUER (`garageLaunch`) ramène d'abord la vue derrière la caisse,
+    face à la porte (`GAR.go.pre`, smootherstep, 0,25 + 0,28 × l'angle s), pendant que le plateau remet la caisse face à la porte ;
+    `G.p0`/`G.r0` sont relevés à la fin, puis le lâcher d'avant (son `garLacherSon` à ce moment-là). Banc `inertie.mjs`.
+- **LES AFFICHES DE RECORDS REVIENNENT** (Léo : « remets les affiches record ») : le bloc de sa branche (`buildAffiches`, `affichesMaj`,
+  `afficheVise`, `afficheTap`) dormait sur main, jamais appelé et sans son lanceur de rayon (`shopRay`/`shopNdc`). Branché : bâti à
+  la fin de `buildGarageRoom` (chauffé au menu avec l'atelier), repeint à chaque `openGarage`, tap (sinon la caisse encaisse) et
+  survol souris (curseur main), respiration dans garageRender, `dbgAffiche('perso'|'monde')`. Placées plus BAS et ×1,2 (sur main la
+  caméra du menu est plus proche : à 2,78 m elles passaient derrière JOUER) : PERSO contre le pilier gauche de la porte (x 6,45),
+  MONDE vers le coin droit (x −8,5 — à −6,45 le socle des missions tombait pile devant). Sans niveau choisi (GSEL absent de main) :
+  records de toujours (meilleure partie, aura max, palier moteur, vitesse max). Banc `affiches.mjs`.
+- **HOME** (Léo : « dans la boutique, au lieu d'un bouton MENU (erreur), un bouton HOME, qui remplacera tous les boutons GARAGE ou
+  MENU ») : `#gClose` (boutique) et la maison de l'écran de mort disent HOME ; la tuile GARAGE de l'écran de mort est RETIRÉE (HOME y
+  mène). Il reste BOUTIQUE · RÉGLAGES dans la rangée. (La tuile GARAGE de `#mHome` reste dans le HTML : l'écran d'accueil n'est plus montré.)
 - **GARAGE APRÈS UNE PARTIE = LE GARAGE-MENU** (Léo : « quand je finis une partie et que j'appuie sur GARAGE, ça me renvoie sur l'ancien ») :
   la tuile GARAGE de l'écran de mort prend le chemin de MENU (`accueilRetour` sous le volet, puis l'accueil = le garage en mode menu).
   ⚠ Du coup MENU (maison) et GARAGE de l'écran de mort mènent au même endroit. Restent en BOUTIQUE : missions → VOIR, objectif,
