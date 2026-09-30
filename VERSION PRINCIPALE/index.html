@@ -10633,7 +10633,7 @@ Object.assign(I18N,{"FRÉNÉSIE": "FRENZY", "FRÉNÉSIE !": "FRENZY!", "RESTE DA
 /* (2026-09-28, passe de lancement) CE QU'UN JOUEUR ANGLOPHONE LISAIT ENCORE EN FRANÇAIS, relevé à l'écran par un banc qui note chaque
    texte affiché pendant 3 minutes de jeu : la liste d'aura, les trois pouvoirs, la fête des ordres de grandeur, la meute du Survivant. */
 Object.assign(I18N,{'RATÉ ! GARDE LE NITRO, VISE LE DESSUS':'MISSED! HOLD NITRO, AIM FOR THE TOP'});Object.assign(I18N_ZH,{'RATÉ ! GARDE LE NITRO, VISE LE DESSUS':'失败！按住氮气，瞄准路面'});
-Object.assign(I18N,{'LES NUAGES TE PORTENT':'THE CLOUDS CARRY YOU','LES TOURS NE PARDONNENT PAS':'TOWERS SHOW NO MERCY'});Object.assign(I18N_ZH,{'LES NUAGES TE PORTENT':'云朵托着你','LES TOURS NE PARDONNENT PAS':'高楼绝不留情'}); // (2026-09-30) les promesses des NUAGES et de la VILLE
+Object.assign(I18N,{'LES NUAGES CACHENT LES VIRAGES':'CLOUDS HIDE THE TURNS','LES TOURS NE PARDONNENT PAS':'TOWERS SHOW NO MERCY'});Object.assign(I18N_ZH,{'LES NUAGES CACHENT LES VIRAGES':'云朵遮住弯道','LES TOURS NE PARDONNENT PAS':'高楼绝不留情'}); // (2026-09-30) les promesses des NUAGES et de la VILLE
 Object.assign(I18N,{'MINUIT EN VILLE':'MIDNIGHT CITY','PLEINS PHARES':'HIGH BEAMS'});Object.assign(I18N_ZH,{'MINUIT EN VILLE':'午夜城市','PLEINS PHARES':'远光灯'});
 Object.assign(I18N,{'PLUIE DE SATELLITES':'SATELLITE STORM','ESQUIVE LES SATELLITES':'DODGE THE SATELLITES','PERCUTE PAR UN SATELLITE':'HIT BY A SATELLITE'});Object.assign(I18N_ZH,{'PLUIE DE SATELLITES':'卫星雨','ESQUIVE LES SATELLITES':'躲开卫星','PERCUTE PAR UN SATELLITE':'撞上卫星'}); // (2026-09-30) le 6e niveau
 Object.assign(I18N,{'L\'ORAGE':'THE STORM','TEMPÊTE':'STORM','LA ROUTE SE CACHE : L\'ECLAIR LA MONTRE':'THE ROAD HIDES: LIGHTNING SHOWS IT'});Object.assign(I18N_ZH,{'L\'ORAGE':'暴风雨','TEMPÊTE':'风暴','LA ROUTE SE CACHE : L\'ECLAIR LA MONTRE':'道路隐没：闪电照亮它'}); // (2026-09-29) le 4e niveau
@@ -11337,7 +11337,7 @@ window.dbgBio=function(n,d){bioGo(n,d||2);}; // console : dbgBio('nuit') → tes
 const NIVEAUX=[ // ⚠ ORDRE (2026-09-25 au soir, user) : « remets le niveau dans les nuages en PREMIER, avant la ville » — NUAGES, puis VILLE, puis ORBITE
   // planete 0 aux NUAGES (user : « ne mets pas la Terre dans le niveau dans les nuages ») · route/sheen : clarté et brillance du bitume (routeTick)
   // (2026-09-30) `pr`, la PROMESSE (bannière de niveau, ≤ 32 signes, sans accent) : NUAGES = un nuage traversé en vol te soulève et rend de l'airtime (updateClouds, refT) · VILLE = en vol, une tour tue (villeHeurt → explode('tour'))
-  {id:'nuages',nm:'MER DE NUAGES',        bio:['matin','midi','aprem'],planete:0,   espace:0,pluie:0,cielMusical:false,route:0,  sheen:.06,pr:'LES NUAGES TE PORTENT'},
+  {id:'nuages',nm:'MER DE NUAGES',        bio:['matin','midi','aprem'],planete:0,   espace:0,pluie:0,cielMusical:false,route:0,  sheen:.06,pr:'LES NUAGES CACHENT LES VIRAGES'}, /* (2026-09-30) plus « TE PORTENT » : Sacha a retiré la portance des nuages (ils ne font que bloquer la vue) et les bancs se posent devant les virages */
   {id:'ville', nm:'AU-DESSUS DE LA VILLE',bio:['pluie'],               planete:0,   espace:0,pluie:1,cielMusical:true, route:.7, sheen:.12,pr:'LES TOURS NE PARDONNENT PAS'}, // route plus CLAIRE : elle se détache de la ville sombre (user) ; sheen : bitume mouillé par la pluie
   {id:'espace',nm:'EN ORBITE',            bio:['espace'],              planete:1.35,espace:1,pluie:0,cielMusical:false,route:.38,sheen:.12}, // (2026-09-27) route .9 → .38 : le SOLEIL de l'orbite éclaire désormais la route (lumière rasante de côté, voir orbiteLumiere) — la clarté ajoutée n'a plus à tout porter. Avant (vague 2) : (2026-09-26, vague 2) route .2 → .9 : la route (#050212 sur du noir) DISPARAISSAIT — MESURÉ : sous le contraste dur de l'orbite (1,28) tout ce qui sort de l'ACES sous ~.11 tombe au noir, .4 ne suffisait pas (#000008) ; à .9 le ruban se lit, encre indigo #0f0737 sur le vide
   {id:'orage', nm:'L\'ORAGE',               bio:['tempete'],             planete:0,   espace:0,pluie:1,cielMusical:false,route:.22,sheen:.16,pr:'LA ROUTE SE CACHE : L\'ECLAIR LA MONTRE'}, // (2026-09-29, Sacha) le 4e : les NUAGES sous l'ORAGE — le niveau DUR (voir « L'ORAGE » : tempete, bancs, plafond, éclairs)
@@ -11434,7 +11434,7 @@ let lvlBanT=0;
    coupe : l'explosion (hautVide) et la vie perdue du mode FACILE (facileSauve). Sans promesse : inchangé (2,8 s, coupable à 1,4 s). */
 const LVL_BAN={ms:2800,msPr:3800,verrou:3000};
 function lvlPromesse(){ // la ligne sous le nom ('' = aucune) — UN seul endroit : le couloir (sa durée) et la bannière (son texte, sa durée) la lisent
-  const c=LVL.cur;if(!c||c.piste==='tuto')return ''; // la piste de l'école hérite des NUAGES : pas de « LES NUAGES TE PORTENT » sous son ciel nu
+  const c=LVL.cur;if(!c||c.piste==='tuto')return ''; // la piste de l'école hérite des NUAGES : pas de « LES NUAGES CACHENT LES VIRAGES » sous son ciel nu
   return c.pr||(c.espace>=.5&&!PARK.on?'GRAVITE REDUITE : SAUTS 2 FOIS PLUS LONGS':''); // (2026-09-28) l'espace a SA promesse : la gravité
 }
 function lvlAnnonce(){ // (vague 2) le niveau prend son tour dans la file du couloir : il ne parle plus PAR-DESSUS un palier ou un record
@@ -29434,8 +29434,8 @@ function campNuages(cr){
   }
   // LES GUÉS DE OUATE (niveaux 6 et 10) : une rangée de petits coussins flotte DANS LE VIDE entre leg1 et leg3, au milieu de l'écart,
   // la crête au ras de leg1. MESURÉ en capture : depuis la caméra de poursuite (basse, grand-angle en portrait), leg3 se devine à peine —
-  // les gués, eux, dépassent du bord : ils MONTRENT la coupe sans flèche ni texte. Et traversés en vol, ce sont des coussins (portance +
-  // airtime rendu, le surf de nuage existant) : la coupe se lit ET pardonne. r 10,5 < demi-écart (11 m) : ils ne mordent aucune des deux dalles.
+  // les gués, eux, dépassent du bord : ils MONTRENT la coupe sans flèche ni texte. ⚠ (2026-09-30) ils ne PORTENT plus (Sacha : « les nuages
+  // ne font que bloquer la vue ») : la coupe se lit, elle ne pardonne plus — à rejuger au banc (niveaux 6 et 10). r 10,5 < demi-écart (11 m) : ils ne mordent aucune des deux dalles.
   for(const c of CAMP.coupes){const S=c.sA1-c.sA0,lg=ROAD_HALF+(c.gap-2*ROAD_HALF)/2;
     for(let k=0;k<6;k++){frameAt(c.sA0+S*(.12+k*.14),F); // six pas japonais, la crête ~5 m au-dessus de leg1 : on les voit dépasser du bord
       mkCloud(cldV1.copy(F.p).addScaledVector(F.b,c.side*lg).addScaledVector(F.n,-.5),10.5,{onRoad:true,camp:true},cr);}}

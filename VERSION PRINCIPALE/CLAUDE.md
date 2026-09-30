@@ -36,8 +36,8 @@ scratchpad GAMEPLAY). Ce qui suit est EN JEU, mesuré au banc sauf mention.
   l'écran au rebond). Armée, `flowReste` compte jusqu'à 88 ; au désarmement : flow.perdu, hap(6), braises sur `.fZ`. simville3.js :
   attente armée→départ 15 → 2,3 s (casse-cou). Banc : SUPER relâché en ville → frénésie ✔, MINI → rien ✔.
 - **LA BANNIÈRE DE NIVEAU SE LIT EN ENTIER** : avec promesse, couloir réservé 3,8 s et VERROU de 3 s que même la carte MOTEUR respecte
-  (`hautCede`, option `ferme`) — mesuré avant : la carte moteur la coupait À L'INSTANT. `lvlPromesse()` ; NUAGES « LES NUAGES TE
-  PORTENT », VILLE « LES TOURS NE PARDONNENT PAS » (EN/ZH). NIVEAU à la mort et en pause = `LVL.n`. **LES MORTS PAR NIVEAU** (invisible) :
+  (`hautCede`, option `ferme`) — mesuré avant : la carte moteur la coupait À L'INSTANT. `lvlPromesse()` ; NUAGES « LES NUAGES CACHENT
+  LES VIRAGES » (plus « TE PORTENT » : les nuages ne portent plus, décision de Sacha), VILLE « LES TOURS NE PARDONNENT PAS » (EN/ZH). NIVEAU à la mort et en pause = `LVL.n`. **LES MORTS PAR NIVEAU** (invisible) :
   `SAVE.d.ex.morts[clé][cause]` + `ex.temps[clé]` (clés nuages/ville/espace/orage/ville-nuit/espace-hard/ecole/c-<id>-<n>), `dbgMorts()`
   (`parMin`). ⚠ `san` reconstruit `ex` champ par champ : tout nouveau compteur dans `ex` doit y être ajouté.
 - **LA PARTIE INTERROMPUE** : iOS tue une appli en arrière-plan → `enCoursPose()` au passage à hidden pose `SAVE.d.enCours` (ce qu'un
