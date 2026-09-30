@@ -434,6 +434,22 @@
   page-cadre (`<head>`) — le téléphone passe COUCHÉ ⇄ DEBOUT sans recharger (le jeu ne reçoit qu'un resize), l'adresse garde
   `?colonne=portrait`. Banc `tourne.mjs`. sw.js → v31.
 
+## LA FENÊTRE D'ACHAT — LA CARTE SORT DE LA VITRINE (2026-10-01, session UI)
+Sacha, capture de la grille des LÉGENDAIRES où « BIENTÔT DISPONIBLE » s'affichait par-dessus les cartes : « il faut que la fenêtre de la
+voiture sorte de la page en mode pop-up pour valider la transaction ».
+- **Le geste** (`shopPop(src)`, branché sur `data-m="shopSoon"` des vignettes `.shCase` ET de l'offre à la une `#shUne`) : la vignette quitte
+  la grille (`.spParti` : sa place reste VIDE), la carte `#shPop .spCarte` grandit depuis cette place jusqu'au centre sur un voile opaque —
+  un FLIP : posée au centre, mesurée, puis animée depuis la vignette (`--dx/--dy/--s`, `shopPopVise`). La rareté, la phrase, le prix en
+  grand (barré 9,99 € + −50 % pour l'offre), UN lingot d'or ACHETER et ANNULER (cyan) arrivent après le trajet. Fermer (ANNULER, le voile,
+  Échap — écouteur en CAPTURE : Échap ferme la fenêtre, pas la boutique) = le même chemin à l'envers, vers la place ACTUELLE de la vignette.
+  Déjà à toi : ÉQUIPER (l'atelier s'ouvre sur la caisse). Couché (844 × 390) : photo à gauche, décision à droite, plaques côte à côte.
+- **L'achat** : `shopPaye(i)` est la SEULE porte de StoreKit — elle doit rendre une promesse tenue QUAND Apple a encaissé ; alors seulement
+  `shopDonne(i)` pose la caisse dans `SAVE.d.owned` (sans toucher à la banque du jeu). Aujourd'hui elle refuse : ACHETER le DIT dans la
+  fenêtre (« BIENTÔT DISPONIBLE » + « Les achats ouvriront à la sortie sur l'App Store. ») et ne donne jamais rien. `uiGarde` (320 ms)
+  empêche qu'un double appui sur la vignette tombe sur ACHETER.
+- CSS : `<style id="achatPop">` juste après hudMaitrise. Banc : `bancachat.js <pfx> <port> <w> <h> <dsf> <carte|-1 = la une>` ;
+  QA : trois contrôles (ouverte + trou, ACHETER ne donne rien, ANNULER referme et rend la carte).
+
 ## LA BOUTIQUE EN BAS DU GARAGE (2026-09-30, session INTERFACE — demande de Sacha relayée par DEBUGGING, idée de Léo)
 - `#gShopBas` (pb-mag, panier + mot) dans `#gAct` : **MENU | BOUTIQUE | lingot d'or** — même format que MENU, même chemin que l'ancienne
   icône (`#gOutils [data-go=shop]`, désormais masquée : une seule porte, dans le tiers bas, charte règles 3-4).

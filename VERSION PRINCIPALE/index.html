@@ -4730,6 +4730,76 @@ html body #flowHud .fT.trois{gap:5px}
 html[data-reduced-motion="1"] body.touch.play :is(#nitroWrap,#flowHud,#tGear,#auraV2),html[data-reduced-motion="1"] body.touch #pwrChip .pw,
 html[data-reduced-motion="1"] body.touch #airPie,html[data-reduced-motion="1"] body.touch #flowHud.monte .fSeg::after{animation:none!important}
 </style>
+<style id="achatPop">
+/* ============================ LA FENÊTRE D'ACHAT — la carte SORT de la vitrine (2026-10-01) ============================
+   (JS : shopPop / shopPopFerme / shopPaye) Sacha : « il faut que la fenêtre de la voiture sorte de la page en mode pop-up pour
+   valider la transaction ». La vignette touchée quitte la grille (`.spParti` : un trou reste à sa place), la carte grandit depuis
+   cette place jusqu'au centre (FLIP : --dx, --dy, --s posés par le JS), et ce que la petite carte n'avait pas — la phrase, le prix
+   en grand, les deux plaques — arrive APRÈS le trajet. Fermer = le même chemin à l'envers. Même matière que les cartes de la
+   boutique (laque, filet, néon magenta en tête), UN lingot d'or (ACHETER), l'annulation en cyan dessous. Voile opaque, aucun flou. */
+#shPop{position:fixed;inset:0;z-index:94;display:none;align-items:center;justify-content:center;box-sizing:border-box;
+  padding:calc(var(--sT) + 16px) calc(var(--sR) + var(--gut)) calc(var(--sB) + 16px) calc(var(--sL) + var(--gut));
+  background:rgba(5,3,12,.86);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+#shPop.on{display:flex;animation:k4Voile var(--t-slow) var(--ease) both}
+#shPop.sortant{animation:k4VoileOut var(--t-slow) var(--ease) forwards;pointer-events:none}
+.spCarte{--c:16px;position:relative;display:flex;flex-direction:column;gap:10px;width:100%;max-width:400px;margin:auto;box-sizing:border-box;
+  padding:18px 20px 20px;transform-origin:50% 50%;
+  clip-path:polygon(var(--c) 0,100% 0,100% calc(100% - var(--c)),calc(100% - var(--c)) 100%,0 100%,0 var(--c));
+  background:linear-gradient(to bottom right,transparent 50%,var(--fil) 50% calc(50% + 1.3px),transparent calc(50% + 1.3px)) 0 0/var(--c) var(--c) no-repeat,
+    linear-gradient(to top left,transparent 50%,var(--fil) 50% calc(50% + 1.3px),transparent calc(50% + 1.3px)) 100% 100%/var(--c) var(--c) no-repeat,
+    radial-gradient(85% 42% at 50% 24%,rgba(255,62,200,.26),transparent 70%),var(--laqueP);
+  box-shadow:inset 0 0 0 1px var(--filF),inset 0 3px 0 var(--neoM),var(--levre),inset 0 90px 70px -70px rgba(255,62,200,.3)}
+/* le trajet : de la vignette au centre, puis retour */
+#shPop.on .spCarte{animation:spSort var(--t-slow) var(--ease) both}
+#shPop.sortant .spCarte{animation:spRentre var(--t-slow) var(--ease) forwards}
+@keyframes spSort{0%{transform:translate(var(--dx,0),var(--dy,0)) scale(var(--s,1))}100%{transform:none}}
+@keyframes spRentre{0%{transform:none}100%{transform:translate(var(--dx,0),var(--dy,0)) scale(var(--s,1))}}
+/* ce que la vignette n'avait pas arrive après le trajet, et s'efface d'abord au retour */
+#shPop.on :is(.spRare,.spRemise,.spDesc,.spBtns,.spNote){animation:spApres var(--t-slow) var(--ease) both;animation-delay:calc(var(--t-slow) * .5)}
+#shPop.sortant :is(.spRare,.spRemise,.spDesc,.spBtns,.spNote){animation:k4VoileOut var(--t-fast) var(--ease) forwards}
+@keyframes spApres{0%{opacity:0;transform:translateY(10px)}100%{opacity:1;transform:none}}
+/* la vignette partie : sa place reste vide dans la grille */
+.shCase.spParti,.shUne.spParti{visibility:hidden}
+/* le contenu */
+.spRare{align-self:flex-start;padding:5px 8px 4px;font-family:var(--pix);font-size:var(--f0);line-height:1;letter-spacing:2px;color:var(--neoM);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--neoM) 60%,transparent)}
+.spCarte .spRemise{top:16px;right:18px;font-size:var(--f3)}
+.spCarte .shPhoto{margin:0 -8px}
+.spCarte .shPhoto img{width:108%}
+.spNom{font-family:var(--pix);font-weight:400;font-size:var(--f6);line-height:1.4;letter-spacing:1px;color:var(--tx);
+  text-shadow:0 3px 0 var(--txO),0 0 16px rgba(255,62,200,.45)}
+.spDesc{font-family:var(--sans);font-size:15px;line-height:1.45;font-weight:500;color:var(--tx2)}
+.spPrix{display:flex;align-items:baseline;gap:14px;font-family:var(--pix);margin-top:2px}
+.spPrix s{position:relative;font-size:var(--f3);color:var(--tx3);text-decoration:none}
+.spPrix s::after{content:'';position:absolute;left:-3px;right:-3px;top:calc(50% - 1px);height:2px;background:var(--neoM)}
+.spPrix em{font-style:normal;font-size:var(--f7);line-height:1.2;color:var(--au1);transform:skewX(var(--sk));text-shadow:0 3px 0 var(--auO),0 0 16px var(--auG)}
+.spPrix.aToi{align-items:center;gap:10px;font-size:var(--f4);color:var(--neoV)}
+.spPrix.aToi b{font-weight:400}
+.spPrix.aToi .pxi{--pxs:2;color:var(--neoV)}
+.spBtns{display:flex;flex-direction:column;gap:18px;margin-top:10px}
+.spBtns .pbtn{width:100%;padding:0 14px}
+.spBtns .spOui{min-height:60px;font-size:var(--f4)}
+.spBtns .spNon{min-height:48px;font-size:var(--f1)}
+.spBtns .pbtn .pxi{--pxs:2}
+.spNote{min-height:2.8em;font-family:var(--sans);font-size:12px;line-height:1.4;font-weight:500;color:var(--tx3);text-align:center;text-wrap:balance} /* deux lignes réservées : la note qui change (« bientôt ») ne fait pas sauter la carte */
+/* ACHETER touché : la plaque s'éteint le temps de la réponse ; « bientôt » : la note le dit, en ambre */
+#shPop.attend .spOui{opacity:.7}
+#shPop.refus .spNote{color:var(--neoA)}
+/* COUCHÉ (le cadre de l'ordi, 844 × 390) : la photo à gauche, la décision à droite, les deux plaques côte à côte */
+@media (orientation:landscape) and (max-height:540px){
+  .spCarte{max-width:700px;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);column-gap:18px;row-gap:8px;align-items:start;
+    grid-template-areas:"photo rare" "photo nom" "photo desc" "photo prix" "btns btns" "note note";padding:16px 18px 14px}
+  .spRare{grid-area:rare;justify-self:start}.spNom{grid-area:nom;font-size:var(--f5)}.spDesc{grid-area:desc;font-size:14px}.spPrix{grid-area:prix}
+  .spCarte .shPhoto{grid-area:photo;align-self:center;margin:0}
+  .spBtns{grid-area:btns;flex-direction:row;gap:16px;margin-top:6px}
+  .spBtns .spNon{order:-1;flex:0 0 auto;width:auto;min-width:170px}
+  .spBtns .spOui{flex:1;min-height:52px}
+  .spNote{grid-area:note}
+  .spPrix em{font-size:var(--f6)}
+}
+@media (prefers-reduced-motion:reduce){#shPop.on .spCarte,#shPop.sortant .spCarte,#shPop.on :is(.spRare,.spRemise,.spDesc,.spBtns,.spNote){animation:none}}
+html[data-reduced-motion="1"] #shPop.on .spCarte,html[data-reduced-motion="1"] #shPop.sortant .spCarte{animation:none}
+</style>
 <style id="pouvoirsV2">
 /* POUVOIRS v2 (2026-09-28, session GAMEPLAY) — six pouvoirs, cumulables. Trois plaques et plus à la fois : elles se SERRENT (la colonne
    de droite tient en portrait comme en paysage) ; un pouvoir CUMULÉ au-delà de sa durée : sa jauge, pleine, brille plus fort. */
@@ -21888,6 +21958,94 @@ function shopRender(){
   }
   une.innerHTML=hU;gr.innerHTML=hG;
 }
+/* LA FENÊTRE D'ACHAT (2026-10-01, Sacha : « il faut que la fenêtre de la voiture sorte de la page en mode pop-up pour valider la
+   transaction »). Toucher une caisse de la vitrine la fait SORTIR de la grille : sa carte quitte sa place (un trou reste dans la
+   grille), grandit et vient se poser au centre sur un voile — même photo, même nom — avec ce qu'il faut pour décider : la rareté, sa
+   phrase, le prix, UN lingot d'or (ACHETER) et ANNULER. Fermer (ANNULER, le voile, Échap) la renvoie À SA PLACE, par le même chemin
+   à l'envers. Le trajet est un FLIP : la carte est posée au centre, mesurée, puis part de la place de la vignette (--dx, --dy, --s).
+   L'ACHAT passe par l'App Store (StoreKit, avec le compte développeur) : `shopPaye(i)` est la SEULE porte à brancher — elle rend une
+   promesse tenue quand Apple a encaissé, et alors seulement `shopDonne(i)` pose la caisse. Tant qu'elle n'est pas branchée, ACHETER
+   le DIT dans la fenêtre (« BIENTÔT DISPONIBLE ») et ne donne jamais rien. Déjà à toi : ÉQUIPER (l'atelier s'ouvre sur elle). */
+Object.assign(I18N,{"ÉQUIPER":"EQUIP","Achat unique, via ton compte App Store. À toi pour toujours.":"One-time purchase through your App Store account. Yours forever.",
+  "Elle t'attend à l'atelier.":"It's waiting for you in the garage.","Les achats ouvriront à la sortie sur l'App Store.":"Purchases open when the game launches on the App Store."});
+const SPOP={el:null,src:null,i:-1,t:0};
+function shopPaye(i){return Promise.reject(new Error('storekit'));} // ⚠ LA porte de StoreKit : tenir la promesse QUAND Apple a encaissé — jamais avant
+function shopDonne(i){ // la caisse payée en vrai argent : posée dans `owned`, sans toucher à la banque du jeu
+  if(!Array.isArray(SAVE.d.owned))SAVE.d.owned=[];
+  if(SAVE.d.owned.indexOf(i)<0){SAVE.d.owned.push(i);carWas[i]=true;}
+  SAVE.flush();
+}
+function spDuree(){const v=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--t-slow'));return document.documentElement.getAttribute('data-reduced-motion')==='1'?0:(v>0?v:420);}
+function shopPopEl(){
+  if(SPOP.el)return SPOP.el;
+  const el=SPOP.el=document.createElement('div');el.id='shPop';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');
+  el.addEventListener('click',function(e){
+    e.stopPropagation();
+    if(!el.classList.contains('on')||el.classList.contains('sortant'))return;
+    const b=e.target.closest('[data-sp]');
+    if(!b){if(!e.target.closest('.spCarte')){uiClic('retour');shopPopFerme();}return;} // le VOILE ferme
+    const k=b.getAttribute('data-sp'),i=SPOP.i;
+    if(k==='non'){uiClic('retour');shopPopFerme();return;}
+    if(carOwned(i)){ // ÉQUIPER : la fenêtre rentre, puis l'atelier s'ouvre sur la caisse
+      uiClic('nav');hap(8);shopPopFerme();
+      setTimeout(function(){ecranWipe(function(){openGarage();shopTab('voiture');garageShow(i);});},spDuree());return;}
+    if(b.classList.contains('off'))return;
+    uiClic('');hap(12);b.classList.add('off');el.classList.add('attend');
+    shopPaye(i).then(function(){
+      shopDonne(i);el.classList.remove('attend');uiClic('ok');hap([12,40,12,40,30]);try{pixBurst(b,18);}catch(_){}
+      try{shopRender();}catch(_){}shopPopFerme();toast(pxi('coche')+' '+insec(TR(CARS[i].name))+' — '+TR('À TOI'));
+    },function(){ // pas encore branché : on le DIT, dans la fenêtre, et rien n'est donné
+      el.classList.remove('attend');el.classList.add('refus');uiClic('refus');hap([10,40,10]);
+      const s=b.querySelector('span');if(s)s.textContent=sansAcc(TR('BIENTÔT DISPONIBLE'));
+      const n=el.querySelector('.spNote');if(n)n.textContent=TR("Les achats ouvriront à la sortie sur l'App Store.");
+    });
+  });
+  // Échap : c'est la fenêtre qui se ferme — pas l'écran de la boutique (écouteur en CAPTURE, avant celui de la coque)
+  addEventListener('keydown',function(e){if(e.code!=='Escape'||!el.classList.contains('on')||el.classList.contains('sortant'))return;
+    e.stopImmediatePropagation();e.preventDefault();uiClic('retour');shopPopFerme();},true);
+  document.body.appendChild(el);return el;
+}
+function shopPop(src){
+  const i=+src.getAttribute('data-car'),u=CAR_UNLOCK[i];if(!u||u.k!=='premium'||!CARS[i])return;
+  const el=shopPopEl();if(el.classList.contains('on'))return;
+  clearTimeout(SPOP.t);
+  const a=carOwned(i),une=!!u.une,im=src.querySelector('.shPhoto img'),ph=PHOTO.cache[i]||(im?im.src:'');
+  const RAR={leg:'LÉGENDAIRE',epi:'ÉPIQUE',rar:'RARE'},rar=u.rar||'leg';
+  el.innerHTML='<div class="spCarte '+rar+'" data-car="'+i+'">'
+    +'<span class="spRare">'+sansAcc(TR(RAR[rar]))+'</span>'+(une&&!a?'<b class="shRemise spRemise">-50%</b>':'')
+    +'<div class="shPhoto big">'+(ph?'<img src="'+ph+'" alt="">':'<i class="pxi pxi-voiture shAttente"></i>')+'</div>'
+    +'<b class="spNom" id="spNom">'+insec(TR(CARS[i].name))+'</b>'
+    +'<span class="spDesc">'+(LANG==='fr'?CARS[i].desc:TR(CARS[i].desc))+'</span>'
+    +(a?'<div class="spPrix aToi">'+pxi('coche')+'<b>'+sansAcc(TR('À TOI'))+'</b></div>'
+       :'<div class="spPrix">'+(une?'<s>'+eurTxt('9,99 €')+'</s>':'')+'<em>'+eurTxt(u.eur)+'</em></div>')
+    +'<div class="spBtns"><div class="pbtn pb-gold spOui" role="button" data-sp="oui">'+pxi(a?'coche':'panier')+'<span>'+sansAcc(TR(a?'ÉQUIPER':'ACHETER'))+'</span></div>'
+    +'<div class="pbtn pb-cyan spNon" role="button" data-sp="non">'+pxi('gauche')+'<span>'+TR('ANNULER')+'</span></div></div>'
+    +'<small class="spNote">'+TR(a?"Elle t'attend à l'atelier.":"Achat unique, via ton compte App Store. À toi pour toujours.")+'</small></div>';
+  el.setAttribute('aria-labelledby','spNom');
+  // LA CARTE SORT DE LA PAGE : mesurée à sa place, puis au centre — le trajet se joue de l'une à l'autre
+  const r=src.getBoundingClientRect();
+  if(SPOP.src&&SPOP.src!==src)SPOP.src.classList.remove('spParti');
+  SPOP.src=src;SPOP.i=i;
+  el.classList.remove('sortant','refus','attend');el.classList.add('on');
+  shopPopVise(r);
+  src.classList.add('spParti');
+  try{uiGarde();}catch(e){}try{typeof sfx==='function'&&sfx('ui.modale');}catch(e){}hap(8);
+}
+function shopPopVise(r){ // pose --dx/--dy/--s : l'écart entre la vignette `r` et la carte posée au centre
+  const c=SPOP.el&&SPOP.el.querySelector('.spCarte');if(!c||!r||!(r.width>0))return;
+  const f=c.getBoundingClientRect();if(!(f.width>0))return;
+  c.style.setProperty('--dx',Math.round(r.left+r.width/2-(f.left+f.width/2))+'px');
+  c.style.setProperty('--dy',Math.round(r.top+r.height/2-(f.top+f.height/2))+'px');
+  c.style.setProperty('--s',Math.min(1,r.width/f.width).toFixed(3));
+}
+function shopPopFerme(){
+  const el=SPOP.el;if(!el||!el.classList.contains('on')||el.classList.contains('sortant'))return;
+  const src=SPOP.src;
+  if(src&&src.isConnected)shopPopVise(src.getBoundingClientRect()); // la vignette a pu bouger (défilement) : on vise sa place d'ARRIVÉE (la carte est au repos, sa mesure est juste)
+  el.classList.add('sortant');
+  try{typeof sfx==='function'&&sfx('ui.feuilleFerme');}catch(e){}
+  clearTimeout(SPOP.t);SPOP.t=setTimeout(function(){el.classList.remove('on','sortant','refus','attend');if(src)src.classList.remove('spParti');SPOP.src=null;},spDuree());
+}
 /* LES PHOTOS DE LA BOUTIQUE ARRIVENT UNE PAR UNE (2026-09-30, revue de GAMEPLAY) : la vitrine s'ouvre tout de suite, chaque vignette
    attend en pulsant (une voiture pixel), et les photos se prennent une par une ENTRE deux images, après la transition d'écran — puis
    restent en cache pour la session. */
@@ -38422,7 +38580,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       ecranWipe(function(){ openGarage(); if(c9.car!=null){shopTab('voiture');garageShow(c9.car);} else if(c9.cat){shopTab(c9.cat);shopShow(c9.cat,COSM[c9.cat].findIndex(x=>x.id===c9.id));} }); }
     else if(a==='shop'){ ecranWipe(function(){ if(garageOn){window.__mRetour='shop';closeGarage();} else mGo('shop'); }); } // LA BOUTIQUE : l'écran des caisses en vrai argent (depuis le garage-menu : l'atelier se ferme d'abord)
     else if(a==='custom'){ ecranWipe(function(){openGarage();shopTab('peinture');}); } // la PERSONNALISATION (peinture, ailes, traînées) vit au GARAGE
-    else if(a==='shopSoon'){ toast(pxi('panier')+' '+TR('BIENTÔT DISPONIBLE')); }
+    else if(a==='shopSoon'){ if(el&&el.hasAttribute('data-car'))shopPop(el); else toast(pxi('panier')+' '+TR('BIENTÔT DISPONIBLE')); } // (2026-10-01) la caisse SORT de la vitrine : la fenêtre d'achat (shopPop)
     else if(a==='shopRestore'){ toast(pxi('coche')+' '+TR('AUCUN ACHAT À RESTAURER')); } // LA BOUTIQUE : le même atelier 3D, onglet PEINTURE — on essaie sur la vraie caisse
     else if(a==='voirRec'&&MIS_REC){ const r=MIS_REC; ecranWipe(function(){ openGarage(); if(r.car!=null){shopTab('voiture');garageShow(r.car);setTimeout(function(){const be=$('gEquip');if(be&&garageOn&&be.offsetParent)pixBurst(be,12);},520);} else if(r.cat){shopTab(r.cat);shopShow(r.cat,COSM[r.cat].findIndex(x=>x.id===r.id));} }); }
     else if(a==='buyGoal'){ const g9=objectif(); ecranWipe(function(){ openGarage(); if(g9){ if(g9.car!=null){shopTab('voiture');garageShow(g9.car);} else {shopTab(g9.cat);shopShow(g9.cat,g9.i);} } }); }
