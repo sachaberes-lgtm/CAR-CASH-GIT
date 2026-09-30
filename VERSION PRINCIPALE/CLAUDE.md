@@ -75,7 +75,8 @@
   · SUIVRE : toucher un défi le coche (`SAVE.d.mis.f`, désinfecté dans `san`, −1 = aucun, remis à −1 par `misFin` et quand il est
     réussi) ; la carte passe en OR « SUIVI EN COURSE », l'en-tête dit « SUIVI : … ». La récompense ouvre sa fiche en boutique ; un carnet
     suivant répond « LES 3 DÉFIS D'ABORD ». En bas HOME (le menu) · JOUER (`garJouer`, partie sans fin). Échap = le menu.
-  · EN COURSE : `#misFocus` (créé dans #hud, `misFocusMaj` appelée par `misTick` 4×/s) — en bas au centre, discret (opacité .82, 8 px) :
+  · EN COURSE : `#misFocus` (créé dans #hud, `misFocusMaj` appelée par `misTick` 4×/s) — couché en bas au centre, debout sur la marge
+    gauche de la grille du HUD (`--hudG`, au-dessus de la consigne du volant, avant NITRO), discret (opacité .82, 8 px) :
     ◆ consigne · avancement · jauge fine ; VERT 3,2 s quand le défi tombe, puis s'efface.
   · Le départ depuis cet écran passe par LE RETOUR AU FEU (≥ 0,8 s : la vue d'ensemble redescend derrière la caisse, `pre.mk0`).
   · La porte MISSIONS de l'écran de mort (`mTap 'mis'`) ouvre CET écran (via `accueilRetour` + `GAR.aMis`) ; l'ancien écran `#mMis`
