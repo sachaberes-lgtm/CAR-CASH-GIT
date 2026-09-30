@@ -27349,7 +27349,14 @@ const CAM_TAILLE={on:true,fovMax:125,genou:6,recMax:.6,boost:1};
    · debout, la visée descend (`vise`) : la caisse remonte entre le HUD du haut et les commandes du bas ;
    · un voile de FLOU de vitesse sur les BORDS en croisière rapide (`flou`, le centre reste net).
    A/B : dbgCamRoute({heros:{on:false}}). */
-const CAM_HEROS={on:true,ref:86,dMin:.88,dMax:1,kick:16,accK:200,tau:.6,acc:0,v0:-1,boost:.2,bas:.08,vise:1.2,recP:1.1,flou:.2,fovMaxL:112,genouL:8,
+const CAM_HEROS={on:true,ref:86,dMin:.88,dMax:1,kick:16,accK:200,tau:.6,acc:0,v0:-1,boost:.2,bas:.08,vise:1.2,recP:1.1,flou:.2,fovMaxL:112,genouL:8,leve:.09,lk:0,
+  /* (2026-09-30, relevé par GRAPHISME au banc du HUD) debout, l'arrière de la caisse descendait à ~750 px : sous le bouton NITRO (744-828) et
+     l'anneau du volant (656-748). La visée n'y pouvait presque rien (le regard est tiré vers la route au loin, CAM_REGARD) → on DÉCENTRE
+     L'OBJECTIF : toute l'image monte de `leve` (en NDC, ×POR), sans changer ni la taille ni la perspective (l'objectif à bascule du
+     photographe). Il s'efface en vol (lissé : pas de saut de 38 px au décollage). Le garage gère SON décentrement (setViewOffset) : ici on
+     ajoute au terme de la matrice juste après updateProjectionMatrix, une fois par image. */
+  leveApplique:function(dt,cible){this.lk+=((this.on?cible:0)-this.lk)*Math.min(1,dt*3);const d=this.leve*POR*this.lk;if(Math.abs(d)<1e-4)return;
+    camera.projectionMatrix.elements[9]-=d;camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();},
   dolly:function(f){if(!(f>0))return 1;const r=Math.tan(fovPor(this.ref)*Math.PI/360)/Math.tan(Math.min(170,f)*Math.PI/360);return THREE.MathUtils.clamp(r,this.dMin,this.dMax);}};
 function camTailleOn(){return CAM_TAILLE.on&&POR>.5;}
 function camTailleFov(f){const T=CAM_TAILLE,K=T.fovMax-T.genou;return f<=K?f:K+T.genou*(1-Math.exp(-(f-K)/T.genou));} // le genou : pente 1 à K, tend vers fovMax
@@ -35338,7 +35345,7 @@ function loop(now){
         loop._fovB+=(fovT-loop._fovB)*Math.min(1,dt*(NFX.off>0&&fovT<loop._fovB?2.4:6));
         CAMV.zoom=Math.max(0,CAMV.zoom-dt*2);CAMV.zp=24*CAMV.zoom*CAMV.zoom*FOVP_K; // (2026-09-28) le COUP DE ZOOM d'une pose PARFAITE : sec à l'impact (−24°), relâché en 0,5 s — (2026-09-30) à 30 % sous « Réduire les animations », comme fovPunch
         camera.fov=Math.max(20,loop._fovB-CAMV.zp); // (vague 3) à l'extinction de la nitro le champ RETOMBE en douceur (il s'ouvre toujours sec)
-        camera.updateProjectionMatrix();
+        camera.updateProjectionMatrix();CAM_HEROS.leveApplique(dt,1); // (CAM_HEROS) l'image monte : la caisse au-dessus des commandes
         /* (2026-09-28, chasse aux détails) LES SECOUSSES SONT DES COUPS, PLUS DE LA NEIGE : un tirage au hasard à CHAQUE image (±0,7 m à la
            réception) grésillait à 60 i/s et sautait franchement à 30 — la caméra de mort, elle, tremblait déjà en sinus lisses. Trois sinus
            désaccordés (un choc qui cogne vers le bas, puis roule) + un soupçon de roulis ; même enveloppe qu'avant (décroît de 3,5/s). */
@@ -35580,7 +35587,7 @@ function loop(now){
       fovPunch=Math.max(0,fovPunch-dt*18);
       const fovAir=fovPor(76-bigAir*22+fovPunch*FOVP_K+(nitroOn?(nitroBlue?18:13):0)); // le champ se resserre avec l'ampleur du saut (76° petit air → 54° gros air)
       camera.fov+=(fovAir-camera.fov)*Math.min(1,dt*(NFX.off>0&&fovAir<camera.fov?2:4)); // (vague 3) la nitro coupée : le champ retombe en douceur
-      camera.updateProjectionMatrix();
+      camera.updateProjectionMatrix();CAM_HEROS.leveApplique(dt,0); // (CAM_HEROS) en vol le décentrement s'efface en douceur
       // (2026-09-28) le vent du VOL au même régime que celui du sol (×.42, le PLANÉ SUPERSONIQUE qui calme, « Réduire les animations ») :
       // en l'air la caméra tremblait 3 à 6 fois plus fort qu'au sol, en bruit blanc, pile sur le beau plan de trois-quarts des gros sauts
       const fshN=THREE.MathUtils.clamp((speedKmh-180)/360,0,1.2),fsh=(REDUCED_MOTION||window.dbgNoShake)?0:fshN*fshN*CAM_SHAKE_V*.42*(1-.7*THREE.MathUtils.smoothstep(speedKmh,700,1800));

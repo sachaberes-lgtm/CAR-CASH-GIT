@@ -390,6 +390,11 @@ scratchpad GAMEPLAY). Ce qui suit est EN JEU, mesuré au banc sauf mention.
   vitesse n'éloigne plus au-delà de recMax couché aussi ; la caméra DESCEND un peu à haute vitesse (`bas`) ; couché, un GENOU du champ à
   112° (`fovMaxL`, les coups passent par-dessus) ; debout, un pas en arrière (`recP` 1,1) et la visée plus basse (`vise`) ; un voile de
   FLOU sur les bords en croisière rapide (`flou` .2, dans `sfxT` — le centre reste net). Coup de champ ×FOVP_K (« Réduire les animations »).
+- **LE DÉCENTREMENT DE L'OBJECTIF** (relevé par GRAPHISME au banc du HUD : debout, l'arrière de la caisse descendait à ~750 px, sous le bouton
+  NITRO 744-828 et l'anneau du volant 656-748) : la visée n'y pouvait presque rien (le regard est tiré vers la route au loin). `leveApplique` retire
+  `leve`×POR (.09 NDC ≈ 38 px) au terme [9] de la matrice de projection juste après updateProjectionMatrix (route ET vol, une fois par image) :
+  toute l'image monte, sans changer ni taille ni perspective ; lissé à 0 en vol (pas de saut au décollage). Le garage garde son setViewOffset.
+  Mesuré : bas de caisse 616-701 px, haut 439-460 px, largeur inchangée.
 - **RÉSULTAT** (palier 0 → 22, nitro, NITROOO) : debout caisse 41-57 % de la largeur (29-44), plus de rétrécissement en nitro, même hauteur à
   l'écran ; couché 10-14 % de la largeur et 18-25 % de la hauteur (2-8 / 6-17), champ 88-111° (107-136). 0 erreur.
 
