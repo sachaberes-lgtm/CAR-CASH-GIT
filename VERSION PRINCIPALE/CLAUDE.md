@@ -1,5 +1,72 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA GRANDE RELECTURE (2026-09-30, session GAMEPLAY — Sacha : « arrête-toi sur chaque détail, une idée → un sous-agent »)
+8 relecteurs en lecture seule (une tranche chacun) → idées vérifiées dans le code → un sous-agent par lot (worktree `amel-<lot>`) →
+intégration une par une, bancs navigateur UN à la fois (integ1/2/3.js, pistes.js, perfab.js, hvbanc.js, ligne-g.js, tour.js dans le
+scratchpad GAMEPLAY). Ce qui suit est EN JEU, mesuré au banc sauf mention.
+- **LE RAMASSAGE EN VOL** (`pickupsTick`) : la boucle des pièces/fruits/cristaux vivait DANS la branche du sol de `loop` — en vol, RIEN
+  ne se ramassait depuis toujours (dauphin, aimant v3, grappes du ciel). Appelée des deux branches ; en vol une pièce entrée dans la sphère
+  S'ACCROCHE (`p.hk`, file sur la caisse, l'écart fond chaque image, saut > 150 m = décroche) ; le jumeau de l'autre face est ignoré
+  (jamais payé deux fois). Banc : aimant + vol → 17 pièces prises EN VOL ; rase-dalle → 6-9. `dbgRamasse()`.
+- **MISSIONS / POUVOIRS / CARTE MOTEUR** : `RUNX.perfect` compte toute pose g≥1,5 non ratée d'un vrai vol ; « FRANCHIS N PORTAILS »
+  montre la zone en cours (`misZoneFrac`, « 0 / 1 · 73 % ») ; carnets sans fin plafonnés (chaîne 8, parfaites 10, figures 30, survie 7 min,
+  nitro 60 s, pièces 300, fruits 60) ; AIR MAX s'use au QUART au sol (`pwrAirK`) ; tirage vétéran v .16 · x .27 · m .19 ; TEST_CAISSES :
+  ce qui DIT où l'on en est lit `carUnlockedVrai` (ACHETER visible en TEST), `carBuy` pose `carWas[i]` (un achat ne se recrie plus) ;
+  `engLate(t)`/`engGain(tier,de)` : le « +N KM/H » de la carte moteur est juste (+44 et non +28 au palier 10) ; le petit titre annonce la
+  capacité franchie (`ENG_CAP_NOM` : + PLUIE DE BILLETS 12 · + AIMANT A PIECES 15 · + CAISSE EN FEU 27), sur UNE ligne (`.ebTit.cap`,
+  mesuré au banc : il se cassait sur la carte de 188 px).
+- **LA FRÉNÉSIE SE LIT — LOI 20 DE FLOW2** : `FLOW2.decl` (base {drift:9,racc:false} · ville {drift:2,racc:true}) : en VILLE, relâcher un
+  SUPER/ULTRA TURBO (driftTick) ou poser un RACCOURCI (tryLand `rc9`) fait partir la frénésie ARMÉE ; l'armement dit « DRIFT OU FIGURE ! ».
+  Le geste qui arme ET déclenche se tait (`flowAddDecl` → `FREN.coup`). Quand un geste ouvre la 4e cellule ET arme, l'armement passe avant
+  la règle (`flowRevele` se tait si `FREN.arme` — vu au banc). MACHIAVEL réclame « RACCOURCI ! » (plus « TRICHE ! ») ; révélations AU
+  SINGULIER « FIGURE · RACCOURCI · NITRO » / « DRIFT · RACCOURCI · VITESSE » (28 signes tombaient au plancher de 10 px et sortaient de
+  l'écran au rebond). Armée, `flowReste` compte jusqu'à 88 ; au désarmement : flow.perdu, hap(6), braises sur `.fZ`. simville3.js :
+  attente armée→départ 15 → 2,3 s (casse-cou). Banc : SUPER relâché en ville → frénésie ✔, MINI → rien ✔.
+- **LA BANNIÈRE DE NIVEAU SE LIT EN ENTIER** : avec promesse, couloir réservé 3,8 s et VERROU de 3 s que même la carte MOTEUR respecte
+  (`hautCede`, option `ferme`) — mesuré avant : la carte moteur la coupait À L'INSTANT. `lvlPromesse()` ; NUAGES « LES NUAGES TE
+  PORTENT », VILLE « LES TOURS NE PARDONNENT PAS » (EN/ZH). NIVEAU à la mort et en pause = `LVL.n`. **LES MORTS PAR NIVEAU** (invisible) :
+  `SAVE.d.ex.morts[clé][cause]` + `ex.temps[clé]` (clés nuages/ville/espace/orage/ville-nuit/espace-hard/ecole/c-<id>-<n>), `dbgMorts()`
+  (`parMin`). ⚠ `san` reconstruit `ex` champ par champ : tout nouveau compteur dans `ex` doit y être ajouté.
+- **LA PARTIE INTERROMPUE** : iOS tue une appli en arrière-plan → `enCoursPose()` au passage à hidden pose `SAVE.d.enCours` (ce qu'un
+  QUITTER verserait), `SAVE.load()` le verse UNE fois (toast « PARTIE INTERROMPUE : +$X VERSES AU COMPTE ») ; instantané, jamais un
+  incrément (retiré au retour, dans commitExploits et resetGame). Banc : arrière-plan → rechargement → +16,5 $ et parties +1, 2e lancement
+  rien ✔. `SAVE.natif` (miroir Capacitor suspendu tant que `Preferences.get` n'a pas répondu). Pluie de devises à 180 glyphes/s (MR.acc) ;
+  un `try` par appel dans la boucle (`loopWarn`). `dbgEnCours()`. ⚠ au banc, forcer `document.hidden=false` fait passer un rechargement
+  pour un RETOUR (l'instantané est retiré) : simuler le VRAI arrière-plan (hidden=true + visibilitychange).
+- **LE VOLANT TACTILE** : zone morte verticale CROISÉE en vol `dz=.10+.45·|nx|` (tourner à fond ne pique/cabre plus) ; un seul doigt
+  propriétaire du volant ; place au bord (`gx/gy`) ; l'anneau suit la base flottante. ⚠ OUVERT : un balayage fort vers la DROITE en arc
+  peut dépasser `dy>34,9` et déclencher le drift (avant comme après).
+- **CAMÉRA DE ROUTE** (`CAM_REGARD`, `CAM_TAILLE`) : sous la dalle le retard latéral n'est plus retourné deux fois ; le regard vise 0,45 s
+  d'avance réelle (35-90 m, poids ×35/D) ; en portrait, genou du champ vers 125° et recul/hauteur de vitesse plafonnés : MESURÉ au banc,
+  la caisse sous nitro fait 0,67× sa taille de croisière (avant 0,37×), champ 126° (avant 149°). A/B : `dbgCamRoute({regard:{on:false},
+  taille:{on:false}})`.
+- **LA MORT ET LE REJOUER** : la musique meurt avec la caisse (tape-stop dans `explode`, hors bac à sable/école/vie FACILE), un seul fil
+  (`musicStop._iv`, `musicBandeNette`) : un REJOUER rapide n'est plus étranglé ; « EARLY DEAD » se tait à la 1re partie, sur un record
+  (`partieRecord()`) et en FACILE ; satellite → `mort.foudre` ; LE LINGOT et LA CAISSE-NUAGE ont leur explosion signature (banc : 0
+  programme lié à la mort du lingot) ; « Réduire les animations » : plan de mort fixe, `flashEcran` 1/s ≤ .4, `FOVP_K`=.3 (sol, vol, zoom
+  PARFAIT).
+- **LE SURVIVANT** : `survPTot()` / `survPortS()` = LA position du joueur (vol compris) ; `SURV.last` ne se recalcule pas en vol ; une
+  minute qui tombe en l'air ATTEND LA POSE ; au téléphone la plaque « RANG n / 8 · COUPERET DANS 0:xx » ; CHAMPION = slam, nitro pleine,
+  aura 500 ; le Drivatar n'apprend ni au bac à sable, ni au parc, ni à l'école. `dbgSurv()`.
+- **CAMPAGNE** : `campRaccourci` ne paie plus que leg1 → leg3 d'un ovale (`campCoupeDe`) ; radars sur la vitesse d'AVANCE (`vKmh`,
+  × vitMult) et plaque « DANS 240 M · 560 KM/H » ; CAISSE-NUAGE avec plaque (ELLE MENE DE X M · SILLAGE xx %, banc ✔) et « TU L'AS
+  DOUBLEE » ; portes du niveau 4 comptées (`campPortesTick` — ⚠ PAS `portesTick`, c'est la fonction du SON) ; textes du milieu retirés ;
+  ESPACE à graine fixe, débris `debK`, PLUTON `hard:1`, une promesse par planète ; MINUIT (VILLE 14) `nuit:1`.
+- **LE DAUPHIN v6** : la figure (150, prime, flow, maillon) demande 1 s cumulée à moins de `DOL_RAS_H`=6,5 m après `fallT`>.35 — un
+  saut ordinaire (pic 7,9 m) ne la donne plus (411 → 0), le rase-dalle garde ~620 ; l'aura de nage ne s'encaisse que si la figure est née.
+  Au sol le banc suit le repère de la ROUTE (slerp, fini le bond à la pose — banc : rigMax ≤ 0,8) ; le ras se voit (liseré, gerbes, tempo,
+  BOND ROYAL au 6e) ; le serpent reste dans le cadre en portrait (tête visible 37-45 % → 61-71 %). ⚠ à mesurer : la 1re frénésie peut
+  arriver plus tard (moins de flow « gratuit » aux sauts) ; le verdict MONSTRE vient encore du RASE-DALLE d'argent (`chainVal`).
+- **HAUTE VITESSE** : le lacet suit `spdMult` (rT ×m, VOL_TAU ÷m, FAC_CAP ×m ; les effets lisent `yawR/spdMult`) : même pouce = même
+  trajectoire à ×2,6 — MESURÉ (hvbanc, palier 0, nitro+VITESSE) : 3,68 → 0,49 sortie/km. `balEcart` : plots, pads, dos d'âne, flaques
+  testés sur le TRAJET de l'image (plus de plot fantôme au-delà de ~560 km/h à 30 i/s). NITROOO consomme ×0,5. Perf CPU par image : pas
+  d'écart mesurable (perfab.js, 4-7 ms les deux).
+- **LA PISTE MESURÉE** : `curve.arcLengthDivisions = 16 × points de contrôle` — les points n'étaient pas équidistants (0,4 à 1,9 ; la
+  caisse filait 9 % trop vite sur les droites et freinait en secret en virage). MESURÉ en jeu : p1-p99 0,99-1,01 sur les 6 niveaux. Sas du
+  portail (2,5 s sans plot ni flaque) ; `MODMARK`→`MODS` : pas de plot ni d'huile dans les modules ; un banc de route retire les plots et
+  les flaques qu'il cache — **SAUF les plots de l'ORAGE** (décision GAMEPLAY : sa promesse est « la route se cache », ses bancs couvrent la
+  piste, le filtre y retirait 50-92 % des plots) ; huile jugée en mètres ; pas de pigeon en ORBITE ni à l'ORAGE. `dbgPas()`.
+
 ## LA REVUE DES NUAGES (2026-09-30, session GRAPHISME — constats de la revue de GAMEPLAY, vérifiés)
 - **Les 14 NUAGES D'HORIZON en sprites sont RETIRÉS** (fin de buildTrack) : ils restaient en VILLE, perçaient la brume de l'ORAGE (650-1850 m
   contre 70/660) et la moitié tombait sous l'horizon dans l'abîme des NUAGES. Avec eux part `cloudTexs` (cinq toiles 512×256 peintes au
