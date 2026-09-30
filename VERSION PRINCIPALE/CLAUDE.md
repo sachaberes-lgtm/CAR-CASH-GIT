@@ -20,6 +20,10 @@
   accentuées) : si Sacha veut les accents, il faudra une autre police pour ces noms.
 
 ## LE MENU = LE GARAGE + LES BOUTONS DE SACHA (2026-09-30, session GAMEPLAY — Sacha : « les boutons ne vont pas du tout dans la version de Léo : on garde la base de garage pour le menu mais on remet les mêmes boutons que ceux que j'avais faits pour ma version »)
+- ⚠ **(même soir, Léo : « remets ma version sketch, Sacha dit que c'est brouillon »)** — LES DEUX MENUS COEXISTENT, un seul booléen :
+  `MENU_SACHA` (juste avant `garMode`) = `?menu=sacha` dans l'adresse. PAR DÉFAUT le menu du SKETCH de Léo (#gMenu) ; avec `?menu=sacha`
+  (le cadre de l'ordi la transmet à la colonne) les boutons de Sacha décrits ci-dessous. À TRANCHER ENTRE SACHA ET LÉO : ne pas
+  re-basculer le défaut sans leur accord — ils se défaisaient le travail l'un de l'autre.
 - Le décor du menu reste L'ATELIER (le garage en mode `menu`) ; ce qui se TOUCHE redevient l'accueil de Sacha, `#mHome` tel quel (logo CASH CAR,
   MISSIONS · ⚙, GARAGE · CARRIÈRE · BOUTIQUE, lingot JOUER — mêmes styles, même routeur `mTap`). `garMode` pose `body.garMenuH` en mode menu
   (pas en MISSIONS, pas en BOUTIQUE) ; closeGarage et le LÂCHER la retirent. CSS « LE MENU = LE GARAGE + LES BOUTONS DE SACHA » : `#overlay`

@@ -34105,12 +34105,17 @@ function gActSync(){const a=$('gAct');if(!a)return;const bt=$('gEquip'),row=$('g
    « le garage devient le nouveau menu » : l'accueil n'existe plus à l'écran — le routeur, en arrivant sur 'home', ouvre l'atelier en
    mode MENU (`garAccueil`). Deux modes, une seule scène : MENU (profil · PLAY · réglages · socle des MISSIONS · [🔒][LEVEL][BOUTIQUE])
    et BOUTIQUE (l'ancien atelier : fiche, onglets, vignettes, achat, MENU | BOUTIQUE | JOUER — sa maison rend le MENU). */
+/* LES DEUX MENUS (2026-09-30) — Sacha a posé SES boutons (l'accueil #mHome) par-dessus le garage (« les boutons ne vont pas du tout dans la
+   version de Léo ») ; Léo : « remets ma version sketch, Sacha dit que c'est brouillon ». Les deux existent : par défaut le menu du SKETCH de
+   Léo (#gMenu : profil, JOUER en pixels, [verrou][NIVEAU][BOUTIQUE], l'étiquette MISSIONS du socle) ; `?menu=sacha` dans l'adresse (le cadre
+   de l'ordi la transmet à la colonne) = les boutons de Sacha. À TRANCHER ENTRE EUX : c'est ce seul booléen. */
+const MENU_SACHA=/[?&]menu=sacha\b/.test(location.search);
 function garMode(m){
   if(!gEl)return;const menu=m==='menu'||m==='missions',mis=m==='missions'; // (2026-09-30) MISSIONS = le menu, vu d'en haut, avec la constellation
   if(menu){if(SHOP.tab!=='voiture'||SHOP.prev)shopTab('voiture');const eq=equippedCar();if(garageI!==eq&&!GAR.sw)garageShow(eq);} // au menu : TA caisse, sans essai
   gEl.classList.toggle('menu',menu);gEl.classList.toggle('missions',mis);garLibre._r=null;
-  document.body.classList.toggle('garMenuH',menu&&!mis); // (2026-09-30, Sacha) au MENU, ses boutons : l'accueil #mHome par-dessus l'atelier (voir « LE MENU = LE GARAGE + LES BOUTONS DE SACHA »)
-  if(menu&&!mis&&window.__mHomeSur)try{window.__mHomeSur();}catch(e){}
+  document.body.classList.toggle('garMenuH',MENU_SACHA&&menu&&!mis); // (2026-09-30, Sacha) au MENU, ses boutons — (même soir, Léo : « remets ma version sketch ») seulement avec ?menu=sacha, voir MENU_SACHA : l'accueil #mHome par-dessus l'atelier (voir « LE MENU = LE GARAGE + LES BOUTONS DE SACHA »)
+  if(MENU_SACHA&&menu&&!mis&&window.__mHomeSur)try{window.__mHomeSur();}catch(e){}
   if(menu)garMenuMaj();
   if(mis)try{gmRender();}catch(e){console.warn('missions',e);}
 }
