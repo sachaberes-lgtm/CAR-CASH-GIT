@@ -61,10 +61,22 @@
   · la CAMÉRA DE VOL : l'image du décollage avance caisse ET caméra d'un même pas (plus d'image figée) ; le suivi lisse l'ÉCART caisse→caméra
     et sa traîne s'installe en 0,6 s (en régime établi : l'ancien suivi au chiffre près) ; la VISÉE de conduite (`loop._vise`, ~10 m devant)
     fond vers la caisse en ~0,4 s au lieu de sauter, et la penche du virage (`camLean`) s'efface en douceur.
+- ⚠ LE SURSIS (2026-10-01, le lendemain, Sacha : « à grande vitesse on MEURT sans raison, sans la chance de se RATTRAPER » + « un son de
+  merde quand on sort de la route, deux petites notes ») — la v2 avait retiré le bond de sortie : c'était le clic, mais AUSSI le sursis
+  (avec la vitesse d'éjection réelle × vitMult du 30/09, la caisse boostée file ×2,6 plus vite de travers). Trace (banc `rattrape.js`) :
+  à 350 dans un creux, la caisse partie tout droit était 1 m SOUS le plan de la route en 0,08 s — sans gravité, c'est la route qui remonte.
+  Rendu sans bond : (1) LA CAISSE PORTÉE PAR LA LÈVRE — le temps qu'elle bascule (`BASC_T` 0,45 s) et tant que ses roues intérieures
+  touchent (centre < demi-largeur au-delà du bord), elle suit la hauteur de la route et ne s'affaisse que de 35 cm (dans tryLand, avant la
+  lèvre) ; (2) la gravité s'installe en BASC_T (`gB9`, la portance nitro au même prorata : jamais de remontée) ; (3) la lèvre raccroche
+  jusqu'à `LEVRE_H` 1,2 m sous la surface, pendant 0,8 s. Banc `rattrape.js` (5 points de piste × vA 200/350 × réaction 150/300 ms, sortie
+  lente, volant vers la route 1,5 s) : AVANT la v2 (avec le bond) 2 rattrapées vite / 13 perdues sur 19 ; MAINTENANT 7 / 8 sur 20 (+5
+  reposées plus loin). Passage du bord toujours sans à-coup (0,04 NDC). Le SON : impU 0 faisait jouer `chute` (le sifflet + « oh-oh »,
+  fait pour les TROUS) — la sortie par le bord rejoue le `decollage` d'avant, dosé comme l'ancienne impulsion 3,4.
 - ⚠ PAS RÉGLÉ : à l'ATTERRISSAGE la caisse saute encore de ~0,3 NDC vers le bas de l'image en une image (déjà là avant : 0,44-0,46 mesuré).
   Cause pas encore trouvée — piste : ce qui s'applique d'un coup à la reprise de conduite (la visée, elle, est censée glisser).
-- Hook `dbgBord({lat,vL,grace,psi,saut,rentre})` : pose la caisse au bord, force un petit saut, ou pousse la caisse vers la route en vol ;
-  rend `{mode,lat,demi,vL,bumps,fallT,side,hOff,latOff,steer,basc}`. Bancs (scratchpad GFX) : `bord5.js doux|lent|retour`, `levre.js 1,4,7`.
+- Hook `dbgBord({lat,vL,grace,psi,vA,s,saut,rentre})` : pose la caisse au bord, force un petit saut, ou pousse la caisse vers la route en vol ;
+  rend `{mode,lat,demi,vL,bumps,fallT,side,hOff,latOff,steer,basc}`. Bancs (scratchpad GFX) : `bord5.js doux|lent|retour`, `levre.js 1,4,7`, `rattrape.js <racine> <fichiers> <vA> <réactions> <points>` (VL=, TRACE=1).
+
 ## LES NUAGES v8 — REFAITS À ZÉRO (2026-10-01, nuit, session GAMEPLAY) — Sacha : « les nuages dans le premier niveau sont toujours aussi moches, il faut que tu reprennes tout à zéro et que tu me fasses une vraie génération de nuages adaptée au jeu et à la DA — pousse-toi dans tes limites, prends tout ton temps et surprends-moi »
 - LE DIAGNOSTIC : v1-v7 retouchaient les formes et les couleurs d'un même principe — des SPHÈRES fusionnées, chacune avec sa lumière Phong.
   Un nuage restait une grappe (les boules se comptaient, chaque soudure faisait une ligne), les gabarits étaient des piles de bourgeons

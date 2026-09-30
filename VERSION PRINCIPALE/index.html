@@ -27227,7 +27227,7 @@ function froleSnd(pres,n){
 // Hook console : `dbgConduite()` — l'état des nouveaux sons de conduite, et `dbgConduite('son')` les JOUE tous une fois
 // (renvoie la première erreur s'il y en a : les appels de la boucle sont sous try/catch, une panne y serait muette).
 window.dbgBord=function(o){ // (banc) LE BORD DE LA ROUTE : pose la caisse à un écart latéral (lat) avec une vitesse latérale (vL) · rend l'état (lat, bumps du vol, mode)
-  if(o&&mode==='drive'){if(o.lat!=null)lat=+o.lat;if(o.vL!=null)vL=+o.vL;if(o.grace!=null)graceT=+o.grace;if(o.psi!=null){psi=+o.psi;yawR=0;}if(o.saut)startFall(+o.saut,1);}
+  if(o&&mode==='drive'){if(o.lat!=null)lat=+o.lat;if(o.vL!=null)vL=+o.vL;if(o.grace!=null)graceT=+o.grace;if(o.psi!=null){psi=+o.psi;yawR=0;}if(o.vA!=null)vA=+o.vA;if(o.s!=null){s=+o.s;prevTvalid=false;}if(o.saut)startFall(+o.saut,1);}
   if(o&&mode==='fall'&&o.rentre!=null&&tryLand._bi>=0)fallVel.addScaledVector(B[tryLand._bi],-Math.sign(curLatOff||1)*(+o.rentre)*vitMult()); // (banc) en vol : une vitesse vers la route (le joueur qui braque déjà)
   return {mode:mode,lat:+lat.toFixed(2),demi:ROAD_HALF,vL:+vL.toFixed(2),bumps:bounceN,fallT:+fallT.toFixed(2),side:side,hOff:+curHOff.toFixed(2),latOff:+curLatOff.toFixed(2),steer:+steer.toFixed(2),basc:bascOn};};
 window.dbgConduite=function(q){
@@ -28219,7 +28219,14 @@ let airRoll=0; // vrille visuelle en vol
    `bascOn` = ce vol vient d'une sortie par le bord, `bascDir` = sens de la vrille (+1 = celui de toujours), `levreY` = la marche que la
    caisse remonte en raccrochant (décroît). */
 let bascOn=false,bascDir=1,levreY=0;
-const LEVRE_H=.7; // sous la surface, jusqu'où le pneu peut encore raccrocher la lèvre (plus bas : c'est la tranche qui cogne → BUMP)
+const LEVRE_H=1.2; // sous la surface, jusqu'où le pneu peut encore raccrocher la lèvre (plus bas : c'est la tranche qui cogne → BUMP)
+/* (2026-10-01, Sacha, le lendemain : « maintenant quand on s'expulse de la route à grande vitesse on MEURT sans raison, sans qu'on ait la
+   chance de se RATTRAPER ») — la v2 avait retiré le bond de sortie (+0,6 m et +3,4 vers le haut) : c'était le « clic », mais c'était AUSSI
+   le sursis. Mesuré : avant, la caisse restait au-dessus de −1,2 m (la fenêtre de pose) ~0,59 s ; en v2, 0,39 s — et la lèvre ne
+   raccrochait qu'à −0,7 m pendant 0,6 s : à grande vitesse, le temps de braquer, on était déjà sous la dalle. Le sursis revient SANS le
+   bond : la caisse PIVOTE sur ses roues intérieures avant de tomber — la gravité monte de 0 à 100 % en BASC_T (0,45 s), la réserve de
+   nitro plane au même prorata (jamais de remontée), et la lèvre raccroche jusqu'à LEVRE_H 1,2 m pendant 0,8 s. */
+const BASC_T=.45;
 /* VOL LIBRE (2026-09-26) — le REPÈRE DU VOL : FLY_U = le « haut » de la caisse en l'air, FLY_R = sa droite. Plus aucune référence au
    ciel : au décollage FLY_U part de la normale de la route (dessus comme dessous), puis il est TRANSPORTÉ avec la trajectoire
    (on lui retire sa part le long de la vitesse, image après image). Le volant tourne autour de FLY_U, le manche autour de FLY_R,
@@ -30318,8 +30325,11 @@ function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (
   }
   if(AC&&engRpm>.42){const e9=ENG_SND[Math.max(0,engLvl)];if(e9&&e9.crk)crackle(e9.crk*.8);} // (2026-09-25) le moteur se décharge en quittant le sol
   if(SONV2){ /* (console de son) tomber n'est pas décoller : chacun son son */
-    if((impU||.9)<2)sfx('chute');
-    else{const kv9=THREE.MathUtils.clamp((Math.max(impU||.9,fallVel.y)-3)/6,0,1),kh9=THREE.MathUtils.clamp(Math.abs(vA)*3.6*SPD/900,0,1);sfx('decollage',{vol:-8+11*Math.max(kv9,kh9*.7)});}
+    /* (bord, 1/10, Sacha : « un son de merde quand on sort de la route et qu'on va dans les airs, deux petites notes ») : la sortie par le
+       BORD passe désormais 0 d'impulsion (bord v2) et tombait donc sur `chute` — le sifflet + le « oh-oh » en deux notes, fait pour les
+       TROUS. Elle garde le son qu'elle avait avant la v2 : le décollage, dosé comme avec l'ancienne impulsion (3,4). */
+    if(!bord&&(impU||.9)<2)sfx('chute');
+    else{const kv9=THREE.MathUtils.clamp((Math.max(bord?3.4:(impU||.9),fallVel.y)-3)/6,0,1),kh9=THREE.MathUtils.clamp(Math.abs(vA)*3.6*SPD/900,0,1);sfx('decollage',{vol:-8+11*Math.max(kv9,kh9*.7)});}
   }else whoosh();
 }
 const dTmp=new THREE.Vector3();
@@ -30389,11 +30399,20 @@ function tryLand(dt){
   const prevH=hOff-vN*dt*SPD,prevL=latOff-vB*dt*SPD;
   const bumpIn=Math.abs(latOff)>=ROAD_HALF&&Math.abs(latOff)<ROAD_HALF+2.6&&vB*Math.sign(latOff)<-3;
   const bumpThru=Math.abs(prevL)>=ROAD_HALF&&Math.abs(latOff)<ROAD_HALF&&Math.sign(prevL)*vB<-3; // paroi percée en une frame
+  /* (bord, 1/10) LA CAISSE PORTÉE PAR LA LÈVRE : le temps qu'elle BASCULE (BASC_T, 0,45 s) — et tant que ses roues intérieures sont
+     encore sur la route (le centre à moins d'une demi-largeur au-delà du bord) — la caisse n'est pas en chute libre : elle PIVOTE sur la
+     lèvre, en suit la courbe et s'affaisse vers le vide (jusqu'à 35 cm) sans passer dessous. Mesuré (banc rattrape.js, trace) : à 350, la
+     caisse partie tout droit se retrouvait 1 m SOUS le plan de la route en 0,08 s (la route qui remonte dans un creux, pas la gravité) —
+     et elle ne pouvait plus que cogner la tranche. Braquer pendant la bascule la fait RACCROCHER (la lèvre, juste en dessous). C'est le
+     sursis que donnait l'ancien bond de sortie (≈ 0,6 s au-dessus de −1,2 m), en plus long (≈ 0,8 s) et sans à-coup. */
+  if(bascOn&&fallStartSide>0&&(fallT<BASC_T||Math.abs(latOff)<ROAD_HALF+CARS[level].w*.5)){
+    const hS9=-.35*Math.min(1,Math.max(fallT/BASC_T,(Math.abs(latOff)-ROAD_HALF)/(CARS[level].w*.5)));
+    if(hOff<hS9){fallPos.addScaledVector(Nn[bestI],hS9-hOff);if(vN<0)fallVel.addScaledVector(Nn[bestI],-vN);}}
   /* (bord v2) LA LÈVRE : juste après une BASCULE, les roues sont encore au ras du bitume. Si la caisse revient vers la route à cet
-     instant (le côté intérieur encore au-dessus de la dalle), le pneu ACCROCHE la lèvre et remonte, comme sur un trottoir — au lieu de
+     instant (le côté intérieur encore au-dessus de la dalle, 0,8 s au plus), le pneu ACCROCHE la lèvre et remonte, comme sur un trottoir — au lieu de
      cogner la tranche et d'être renvoyé au ciel par le BUMP. Plus bas que LEVRE_H, c'est la carrosserie qui heurte la tranche : BUMP.
      Rien n'est payé ni rendu (ni nitro, ni figure) : on a juste sauvé sa peau. Dessus seulement (la face du dessous n'a pas de sol). */
-  if(bascOn&&fallStartSide>0&&sideCd<=0&&fallT<.6&&hOff>-LEVRE_H&&hOff<.8&&Math.abs(latOff)<ROAD_HALF+CARS[level].w*.5&&vB*Math.sign(latOff)<-.5){
+  if(bascOn&&fallStartSide>0&&sideCd<=0&&fallT<.8&&hOff>-LEVRE_H&&hOff<.8&&Math.abs(latOff)<ROAD_HALF+CARS[level].w*.5&&vB*Math.sign(latOff)<-.5){
     levreRattrape(bestI,latOff,hOff,dTmp.dot(T[bestI]));return true;}
   if(sideCd<=0&&hOff>-THICK-.8&&hOff<.8&&(bumpIn||bumpThru)){
     const sg=bumpThru?Math.sign(prevL):Math.sign(latOff),impB=Math.abs(vB);
@@ -36911,7 +36930,8 @@ function loop(now){
       if(nitroOn&&!PARK.on){NTR.airT+=dt;if(NTR.airT>=NTR_T&&!NTR.airFig){NTR.airFig=true;addTrick('airnitro','AIR NITROOO !',10,1);if(!NTR.on)nitroooPart();}}
       else NTR.airT=0;
       if(!nitroOn)loop._nAir=false; // (2026-09-26) l'impulsion se RÉARME au relâché
-      fallVel.y-=FALL_G*gK()*dtF; // gK : gravité LUNAIRE en orbite (÷2)
+      const gB9=bascOn?Math.min(1,fallT/BASC_T):1; // (bord, 1/10) LA BASCULE : la caisse pivote sur la lèvre avant de tomber — la gravité s'installe en BASC_T
+      fallVel.y-=FALL_G*gK()*gB9*dtF; // gK : gravité LUNAIRE en orbite (÷2)
       // (vol libre, 2026-09-26) l'ANTI-BLOCAGE DU LACET a sauté : il rendait « un minimum d'horizontale » parce que le volant tournait
       // autour de l'axe VERTICAL du monde (mort en trajectoire verticale). Le volant tourne désormais autour du HAUT DE LA CAISSE
       // (FLY_U) : il mord à toutes les assiettes, piqué à pic compris, et il ne redresse plus rien.
@@ -36923,7 +36943,7 @@ function loop(now){
       fallVel.applyAxisAngle(FLY_U,yawIn); // (vol libre) autour du haut de la CAISSE — à gauche à l'écran, c'est à gauche, même sur le dos
       yawAcc+=yawIn;
       if(nitroOn){ // RÉACTEUR : il fait planer et donne l'assiette (piqué/cabré) — il n'accélère plus (vol v7 : inertie)
-        fallVel.y+=FALL_G*gK()*(nitroBlue?.75:.6)*dtF; // (vol v7) le RÉACTEUR fait PLANER : il reprend 60 % de la gravité (75 % en réserve bleue)
+        fallVel.y+=FALL_G*gK()*(nitroBlue?.75:.6)*gB9*dtF; // (bord, 1/10 : au prorata de la bascule — jamais de remontée) (vol v7) le RÉACTEUR fait PLANER : il reprend 60 % de la gravité (75 % en réserve bleue)
         /* (2026-09-26, user : « le boost nitro aérien doit VRAIMENT donner une impulsion, indépendamment de la vitesse de départ, qui s'y
            additionne, comme un propulseur ») : à l'ALLUMAGE en vol, un coup de réacteur de +32 m/s (× le palier moteur) dans l'axe du
            vol, quelle que soit la vitesse d'éjection. Un par allumage (0,5 s mini entre deux), et il coûte 12 % de réserve. */
