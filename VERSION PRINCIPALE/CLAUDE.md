@@ -1,5 +1,15 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE GARAGE v7 + LES BLANCS DU JOUR (2026-10-01, session SON — Sacha : « retravaille le garage, je veux la perfection » ; DEBUGGING (v6), GAMEPLAY (atelier, photos) et INTERFACE (tas de billets) ont passé la main / prévenu)
+- Relevé mesuré d'abord (`da/gar-audit.js`, scratchpad f6f592c0 : 4 formats, onglets, caisse rare, caisse verrouillée — boîtes, textes coupés, cibles, police mini) ; UNE couche `<style id="garageV7">` après la v6, même portée (`html body #garage:not(.menu)`).
+- Le PRIX n'est dit qu'une fois : `#gCard.prixSeul` (posé par la fiche quand la condition est de l'argent) masque l'encadré « PRIX / il te manque » qui redisait le bouton « IL MANQUE $ X » et mordait sur la scène. Défis et boutique en € restent écrits.
+- Lisibilité : rang « 1 / 68 » 8 → 11 px, onglets 8 → 10 px (`--f1`), comptes des puces 8 → 10 px ; zone de touche des puces 42 → 44 px (⚠ par leur `::after` : le `::before` est le LOSANGE — l'écraser l'efface).
+- La bande de vignettes se FOND dans le bord de la console (masque 40 px, éteint au bout de la bande : `#gStrip.finDroite`).
+- L'étiquette MISSIONS posée sur le décor (#gMisAncre) est masquée dans la boutique.
+- Cadrage : la caisse centrée à 44 % de sa zone libre (garLibre, `r.shop`) au lieu de 50 % — elle se posait bas. Lumière : dans la boutique, la clé passe à 1,6 avec une portée de 22 (la caisse se détache, la pièce garde son ombre) ; au menu, rien ne change.
+- LES BLANCS DU JOUR (mesure de GAMEPLAY : les nuages et la peinture de route sortaient SABLE) : le split or des hautes lumières de la couche DA est désormais dosé par ambiance, `daHi` (1 partout par BIO_ETAL0, 0 aux trois heures du jour ; protégé contre les NaN du mélange). uHi = [0,0,0] au jour ; clairs du haut de l'image (221,219,195) → (234,221,231).
+- Vérifié : souris dans la colonne (`da/pc3ss.js`) 58 OK avant / après 1 et 2 parties (3 « CASSÉ » = `#gNext`, les flèches retirées en v6, banc en retard) ; tas de billets d'INTERFACE hors de la silhouette de la caisse.
+
 ## L'ARGENT DE L'ATELIER — LES TAS DE BILLETS (2026-10-01, session INTERFACE — Sacha : « plus on gagne d'argent, plus il doit y avoir des tas de billets sur le sol du garage, un peu placés partout, sur les meubles et tout »)
 - `garArgent(g)` (défini juste avant `buildGarageRoom`, appelé avant `gmHoloBuild`) bâtit UNE fois un seul mesh de liasses en couleurs de
   sommets dans la matière MATE des meubles (`GAR.meubles`, famille 'm') : **zéro programme de plus** (mesuré 144 → 144), 28 ms sur PC.
