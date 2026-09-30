@@ -458,6 +458,7 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
   #cpFill{height:100%;width:0%;background:linear-gradient(90deg,#ff3924,#ffb000,#62e062)}
   #nitroWrap{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);width:320px}
   #styleBar{height:8px;background:#0c0d18;border:2px solid #ff3ec8;margin-bottom:6px;overflow:hidden;box-shadow:0 0 10px rgba(255,62,200,.35)}
+  #styleBar{display:none!important} /* (2026-09-30, LEG-1) la jauge rose se remplissait à la nitro et n'ARME plus rien depuis le 25/09 (décollage double-tap retiré) : masquée PARTOUT (le téléphone la masquait déjà, écran nu) */
   #styleFill{height:100%;width:0%;background:repeating-linear-gradient(90deg,#ff3ec8 0 10px,#b3208c 10px 14px)}
   #styleFill.fever{background:repeating-linear-gradient(90deg,#ffd75e 0 10px,#ffb000 10px 14px)}
   #styleFill.armed{background:repeating-linear-gradient(90deg,#ff3ec8 0 10px,#ffd75e 10px 14px);animation:armBlink .4s infinite alternate}
@@ -11602,6 +11603,7 @@ Object.assign(I18N,{"RASE-BORD": "EDGE RIDER"});Object.assign(I18N_ZH,{"RASE-BOR
 // (2026-09-28, chasse aux détails) les figures les plus fréquentes restaient en français en anglais (au-dessus de la caisse et dans la liste de chaîne)
 Object.assign(I18N,{'VIBRATIONS':'VIBRATION'});Object.assign(I18N,{'APPRENDS A VOLER':'LEARN TO FLY','ESPACE TERMINE':'SPACE COMPLETE','LE SYSTEME SOLAIRE EST A TOI':'THE SOLAR SYSTEM IS YOURS'});Object.assign(I18N_ZH,{'APPRENDS A VOLER':'学会飞翔','ESPACE TERMINE':'太空完成','LE SYSTEME SOLAIRE EST A TOI':'太阳系归你了'});Object.assign(I18N_ZH,{'VIBRATIONS':'震动'});
 Object.assign(I18N,{'AIR MONSTRE':'MONSTER AIR','DAUPHIN EN VOL':'DOLPHIN RUN','POSE PARFAITE':'PERFECT LANDING','POSE DIVINE':'DIVINE LANDING','IMPACT METEORE':'METEOR IMPACT'});
+Object.assign(I18N,{'POSÉ LOURD — AÏE…':'HEAVY LANDING — OUCH…'});Object.assign(I18N_ZH,{'PARFAIT !':'完美！','DIVIN !!':'神级！！','POSÉ LOURD — AÏE…':'重着陆——哎哟…'}); // (2026-09-30) le grade seul, sans « MONSTRE » (verdict d'un saut sans figure, PC) — DIVIN revient en frénésie
 Object.assign(I18N_ZH,{'AIR MONSTRE':'怪兽腾空','DAUPHIN EN VOL':'海豚飞行','POSE PARFAITE':'完美着陆','POSE DIVINE':'神级着陆','IMPACT METEORE':'流星撞击'});
 Object.assign(I18N,{"FRÉNÉSIE": "FRENZY", "FRÉNÉSIE !": "FRENZY!", "RESTE DANS LE ROUGE": "STAY IN THE RED", "PLUS VITE !": "FASTER!", "RISQUE + VITESSE": "RISK + SPEED"});Object.assign(I18N_ZH,{"FRÉNÉSIE": "狂热", "FRÉNÉSIE !": "狂热！", "RESTE DANS LE ROUGE": "守住红区"});
 /* (2026-09-28, passe de lancement) CE QU'UN JOUEUR ANGLOPHONE LISAIT ENCORE EN FRANÇAIS, relevé à l'écran par un banc qui note chaque
@@ -28273,7 +28275,7 @@ let chain=0,chainVal=0,chainMult=1,chainSeen={},spinHalf=0,
     curNear=false,curHOff=0,curLatOff=0,curTOff=0,lastNearY=0,lastNearH2=0,lastNearS=0, // lastNearH2 : distance HORIZONTALE² au bitume (au-dessus d'un trou elle explose → l'ombre de contact se cache) · lastNearS : où l'on en est SUR la piste pendant un vol (recentre le LOD de proximité)
     trkMeteor=false,
     dolphT=0,dolphGain=0,trkDolph=false, // LE DAUPHIN : nager au ras de la dalle
-    caseHot=false,heartT=0,ladderI=0;        // la MALLETTE tremble + cœur qui cogne · échelle des paliers
+    caseHot=false,heartT=0;                  // la MALLETTE tremble + cœur qui cogne
 function chainEst(){ // la MALLETTE : ce que vaut la chaîne SI on pose la caisse maintenant
   // l'airtime brut ne vaut RIEN : seule la CHAÎNE (figures + dauphin) remplit la mallette
   return denom()*chainVal*Math.min(6,chainMult)
@@ -28301,8 +28303,11 @@ const END_LINES=[ // fin de run (même en crash) : la punchline sous le GAME OVE
 const END_TOP=[ // fin de run AVEC record : là on s'incline
  '🏆 RECORD — LES AUTRES JOUENT À UN AUTRE JEU','🏆 LE LEADERBOARD A DEMANDÉ TON AUTOGRAPHE',
  '🏆 RECORD ÉCRASÉ — COMME TES SUSPENSIONS','🏆 HISTORIQUE. LA ROUTE S\'EN REMET À PEINE.'];
-// ---- L'ÉCHELLE : chaque palier de multiplicateur se CRIE — le plafond ×6 devient un objectif nommé ----
-const LADDER=[[2,'ÇA CHAUFFE !'],[3,'EN FEU !!'],[4.5,'AURA EN FUSION'],[6,'MULTI MAX !!']]; // (2026-09-29, passe qualité) « IL PLEUT DES BILLETS » / « JACKPOT MAX » : les figures ne paient plus qu'en aura
+/* ---- L'ÉCHELLE (LADDER ×2 · ×3 · ×4,5 · ×6) ET LE HUD « CHAÎNE ×2.0 · +8 » : RETIRÉS (2026-09-30, [LEG-1] de la grande relecture).
+   `chainMult` ne multiplie plus rien de ce que le joueur touche (les figures ne paient qu'en AURA depuis le 29/09) : ses paliers
+   criaient encore fig.palier / fig.jackpot (au téléphone : un son sans aucun × à l'écran — le × d'aura a déjà ses sons à ×5, ×8,
+   ×10) et, sur PC, « ×6 — MULTI MAX !! » et #chainHud. chainVal / chainMult restent, EN SILENCE : qG (verdict, pièces MOTEUR), la
+   nitro et le flow de la pose les lisent encore. Les recettes fig.palier / fig.jackpot restent dans la banque de sons, sans appelant. */
 const flyV=new THREE.Vector3();
 function flyCash(worldPos,n){ // les billets VOLENT de la caisse vers le compteur — l'argent SE VOIT gagné
   flyV.copy(worldPos).project(camera);
@@ -28321,11 +28326,22 @@ function flyCash(worldPos,n){ // les billets VOLENT de la caisse vers le compteu
 function trickPop(k){ // carillon qui MONTE d'un demi-ton par maillon — l'oreille réclame la suite
   chimeNote(noteP(Math.min(7,k-1),1),0,.09,.16); // (même tonalité que les pièces)
 }
-function chainHudShow(){
-  chainHud.textContent='CHAÎNE ×'+Math.min(6,chainMult).toFixed(1)+' · +'+Math.round(chainVal);
-  chainHud.style.opacity=1;
-  chainHud.classList.remove('pulse');void chainHud.offsetWidth;chainHud.classList.add('pulse');
-}
+/* LA VRILLE QUI ESCALADE (2026-09-30, [VRI-1] de la grande relecture) — elle payait 45 d'aura par demi-tour (360° = 90) quand le même
+   vol versait d'office BIG AIR 50 et AIR MONSTRE 110 : la figure qui demande le plus de nerf était la moins payée. MESURÉ (banc node
+   vrille.js : NEWTON + volCorps extraits du fichier, plein volant tenu, 60 et 30 i/s) sur le vol NEWTON : air rapide (> 162 km/h,
+   qt = 1) 180° à 1,87 s · 360° à 2,40 s · 540° à 3,83 s · 720° à 4,37 s · 900° à 5,80 s · 1080° à 6,33 s ; air lent (départ, 120 km/h)
+   ou orbite : 360° vers 1,6-1,7 s, 720° vers 3,0-3,2 s. Passé 180°, le volant lâché, la girouette FINIT le tour d'elle-même.
+   BARÈME CUMULÉ : 180° → 60 · 360° → 200 · 540° → 400 · 720° → 700, puis +300 par demi-tour — pas d'escalade au-delà : un vol de
+   plus de ~4,4 s ne tient qu'à l'AIRTIME INFINI, à l'orbite ou au mode FACILE, là où le couperet des 6 s ne menace plus. Rapporté au
+   vol qui le porte : ~4× ce que la durée paie seule (360° : 200 contre BIG AIR 50 ; 720° : 700 contre 50 + 110). Chaque palier
+   crédite ce qu'il AJOUTE (« 720° +300 »), dans la famille 'vrille' (brute : jamais décotée, un seul cran de ×).
+   ⚠ UN DEMI-TOUR IMPAIR (180°, 540°…) LAISSE LA CAISSE À CONTRESENS : il ne se paie qu'au tour complet suivant, ou à la POSE si elle
+   n'est pas ratée (tryLand → vriVerse) — sinon atterrir à l'envers rapportait (le piège du 180°). La vrille visuelle, le vol, le flow
+   (+4 par demi-tour, en direct) et la chaîne d'argent silencieuse (chainVal, qG) ne bougent pas. */
+const VRI_AURA=[0,60,200,400,700];
+let vriPaye=0,figVol=false; // vriPaye : le demi-tour déjà versé dans CE vol · figVol : une VRAIE figure est née dans ce vol (le verdict de pose la dit) — remis à zéro par startFall
+function vriCum(h){return h<VRI_AURA.length?VRI_AURA[h]:VRI_AURA[VRI_AURA.length-1]+(h-VRI_AURA.length+1)*300;}
+function vriVerse(h){const p=vriCum(h)-vriCum(vriPaye);vriPaye=h;if(p>0){figVol=true;chaineAura(h*180+'°',p,'vrille',true,true);}}
 function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent déjà (vrilles, bumps) — pas de décote. free : figure GRATUITE, zéro dollar (le bump) : feedback oui, argent non
   if(fever>0&&!free)fever=Math.min(18,fever+.8); // pendant le BRAQUAGE, chaque figure PROLONGE le plaisir (plafond 18 s) — sauf les gratuites
   const n=(chainSeen[id]=(chainSeen[id]||0)+1);
@@ -28334,7 +28350,7 @@ function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent dé
      l'enchaînement qu'on récompense. */
   // (aura v2) chaque figure entre dans la CHAÎNE avec ses points (voir chaineAura) — plus de combo à rang invisible
   // (2026-09-26, audit son) `muet` : `trickPop` plus bas sonne déjà le maillon — deux carillons sur deux notes brouillaient la gamme qui monte
-  if(id==='vrille')chaineAura(spinHalf*180+'°',45,'vrille',true,true);
+  if(id==='vrille'){if(spinHalf%2===0)vriVerse(spinHalf);} // (VRI-1) le barème qui escalade — un demi-tour IMPAIR attend le tour complet ou une pose propre
   else if(id==='meteo')chaineAura('MÉTÉORE',100,'meteo',false,true);
   else if(id==='airnitro')chaineAura('AIR NITROOO',120,'airnitro',false,true); // (2026-09-29) la comète en vol vaut la comète au sol
   else if(id==='dauphin')dolAura9('DAUPHIN',150,'dauphin',false,true); // (dauphin v4) 80 → 150 — (v5) sa ligne attend la POSE (dolAura9)
@@ -28343,21 +28359,16 @@ function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent dé
   // (FLOW v2) LE RISQUE NOURRIT LE FLOW EN DIRECT : en l'air la jauge monte PENDANT qu'on vrille (et le vide ne la fait pas fuir).
   // La vrille paie par demi-tour ; les autres selon leur rang, et la redite s'use comme dans la mallette (×0,6).
   if(mode==='fall'&&!free)flowAdd(id==='vrille'?4:(tier===3?12:tier===2?9:6)*Math.pow(.6,n-1),'risque');
-  if(!free){ // une figure gratuite ne touche NI la mallette (chainVal) NI le multiplicateur NI l'échelle
+  if(!free){ // une figure gratuite ne touche NI la mallette (chainVal) NI le multiplicateur
     chainVal+=raw?val:val*Math.pow(.6,n-1);
     chainMult+=n===1?.5:.15;
-    while(ladderI<LADDER.length&&Math.min(6,chainMult)>=LADDER[ladderI][0]){ // palier franchi : on le crie
-      trickMsg('×'+LADDER[ladderI][0]+' — '+LADDER[ladderI][1],LADDER[ladderI][0]>=4.5?3:2);
-      if(SONV2){if(LADDER[ladderI][0]>=6)sfx('fig.jackpot');else sfx('fig.palier',{st:echSt()});}else chimeNote(noteP(ladderI+3,1),0,.12,.22); // l'échelle monte à l'oreille aussi (mi pentatonique)
-      ladderI++;
-    }
+    if(id!=='vrille')figVol=true; // (LEG-1) le verdict de pose ne dit « MONSTRE » que si une figure est NÉE (la vrille : quand elle paie, vriVerse)
   }
   chain++;
   if(chain>(runStats.chainMax||0))runStats.chainMax=chain;
   if(!(id==='dauphin'&&mode==='fall'))trickMsg(txt+(n>2&&!raw?' ×'+n:''),tier||false); // (dauphin v5) en vol, le dauphin ne s'ÉCRIT pas : on le voit nager
   addStyle(tier===3?16:tier===2?11:7);
   figSnd(id); // (2026-09-28) chaque figure a sa matière, sur l'échelle du vol (voir LA CONSOLE DE SON)
-  chainHudShow();
 }
 /* ===== LE DAUPHIN v3 (2026-09-25) — 1 s AU-DESSUS DE LA ROUTE (2 s jusqu'au 26/09) =====
    User : « l'animation des dauphins doit se déclencher quand on vole au-dessus de la route pendant 2 s minimum, et
@@ -29159,11 +29170,11 @@ function startFall(impU,impF,bord){ // bord : SORTIE PAR LE BORD (v8.1 « LE BOR
   {tmp.copy(fallVel).normalize();FLY_U.copy(F.n).addScaledVector(tmp,-F.n.dot(tmp)); // (vol libre) le haut du vol part de celui de la route
    if(FLY_U.lengthSq()<1e-4)FLY_U.copy(F.b).cross(tmp);FLY_U.normalize();FLY_R.crossVectors(FLY_U,tmp).normalize();}
   // chaîne neuve : le vol commence, tout est à prouver
-  chain=0;chainVal=rollover;chainMult=1;chainSeen={};spinHalf=0;
+  chain=0;chainVal=rollover;chainMult=1;chainSeen={};spinHalf=0;vriPaye=0;figVol=false; // (VRI-1 / LEG-1) la vrille versée et la figure née : par vol
   heartBeat.vu=0; // (console de son) la mallette pourra chauffer — et le dire — une fois dans ce vol
   if(rollover>0){if(SONV2)sfx('report');trickMsg('REPORT +'+Math.round(rollover),false);rollover=0;} // le PARFAIT d'avant paye d'avance
   trkMeteor=false;curNear=false;NTR.airT=0;NTR.airFig=false; // (AIR NITROOO) une figure par vol
-  if(dolOn)dolFin();dolphT=0;dolphGain=0;trkDolph=false;dolRasT=0;dolRoadT=0;dolOffT=0;dolAura=0;caseHot=false;heartT=0;ladderI=0;caseHud.style.opacity=0;caseHud.className='';
+  if(dolOn)dolFin();dolphT=0;dolphGain=0;trkDolph=false;dolRasT=0;dolRoadT=0;dolOffT=0;dolAura=0;caseHot=false;heartT=0;caseHud.style.opacity=0;caseHud.className='';
   chainHud.style.opacity=0;chainHud.classList.remove('pulse');
   // le boost se disperse en petites particules
   for(let k=0;k<14;k++){
@@ -29353,13 +29364,19 @@ function tryLand(dt){
     else if(impact<4.5){g=1.5;gTxt='PARFAIT ! ';hitT=.08;hap(15);} // (REC-1, NEWTON) PARFAIT = pose propre ET impact < 4,5 — la perte de vitesse ne juge plus (elle suivait la durée du vol)
     else if(impact>=10){g=.65;gTxt='POSÉ LOURD — AÏE… ';hap(45);}
     else hap(14); // chaque pose se SENT dans la main (la parfaite a son coup sec plus haut, la lourde son choc)
-    if(fever>0&&!poseRatee){ // BRAQUAGE : tous les grades montent d'un cran — même la casse pardonne (pas la pose ratée)
+    if(fever>0&&!poseRatee){ // BRAQUAGE : tous les grades montent d'un cran — même la casse pardonne (pas la pose ratée) · ⚠ `fever` n'est plus posé que par heistFire, que seul dbgTakeoff appelle (le braquage a quitté le jeu)
       if(g===1.5){g=2;gTxt='DIVIN !! ';}
       else if(g===1){g=1.5;gTxt='PARFAIT (BOOST ×2) ! ';hitT=.08;hap(15);}
       else{g=1;gTxt='';}
     }
+    /* LA POSE DIVINE REVIENT — EN FRÉNÉSIE (2026-09-30, [DIV-1] de la grande relecture). Le grade DIVIN (g = 2 : +120 d'aura au lieu de
+       70, nitro ×2 au lieu de ×1,5, flow +14, double couronne de poseParfaiteFx) n'existait plus que derrière le braquage mort. En
+       FRÉNÉSIE (lue AVANT que la pose ne la juge), seul le PARFAIT monte d'un cran : la pose lourde ne remonte pas, la ratée non plus
+       (g === 1,5 l'exclut) — la frénésie reste dure, elle récompense la pose propre qui la fait durer. */
+    else if(g===1.5&&FLOW.lv===4){g=2;gTxt='DIVIN !! ';}
     if(g>=1.5)try{poseParfaiteFx(g>=2);}catch(e){} // (2026-09-28) coup de zoom + couronne dorée
     if(fallT>.7)sfaPose(!poseRatee&&g>=1); // (2026-09-28) SANS FAUTE : les poses propres d'affilée
+    if(!poseRatee&&spinHalf>vriPaye)vriVerse(spinHalf); // (VRI-1) le demi-tour IMPAIR (180°, 540°…) se paie à une pose qui n'est PAS ratée — posé à contresens, il ne vaut rien
     rollover=0; // (2026-09-29, passe qualité) plus de REPORT : il date de la mallette d'argent — les figures ne paient plus qu'en aura, et le report fabriquait une FAUSSE figure au vol suivant (verdict, voix, mission « figures » comptée sur une simple chute)
     if(g>=1.5)momT=Math.max(momT,3);else if(g<1)momT*=.5; // (momentum v2) PARFAIT relance la vitesse, POSÉ LOURD en coûte la moitié
     if(g<1){try{if(SONV2){/* (console) pose ratée : flowCasse ; cratère à la pose : il couvre la tôle */if(!poseRatee&&!(performance.now()-(CRAT.tSon||-1e9)<400))sfx('pose.lourde');}else{clank9(0,190,.12);clank9(.05,135,.09);}}catch(e){}if(!poseRatee)flowFaute('n',FLOW2.faute.lourd,.5);} // (v5) POSÉ LOURD : -NARCISSE // (2026-09-25) POSÉ LOURD : la TÔLE, sans carillon
@@ -29375,7 +29392,10 @@ function tryLand(dt){
     }
     if(Math.abs(latOff)<ROAD_HALF*.3){chainVal+=4;chainMult+=.2;trickMsg('PILE AU CENTRE 🎯',false);} // posé sur l'axe
     if(sideL<0&&chainVal>0)trickMsg('FACE CACHÉE ×2',2);
-    streak++;
+    /* (2026-09-30, [SER-1] de la grande relecture) LA SÉRIE SE CASSE : `streak` montait à chaque pose, lourde ou ratée comprise, et ne
+       retombait qu'à la partie suivante — qG (verdicts, pièces MOTEUR) prenait ×2 après 10 poses QUELLE QUE SOIT leur qualité. Une pose
+       ratée ou lourde (g < 1, la même règle que le SANS FAUTE) la remet à zéro ; la pose normale, parfaite ou divine la prolonge. */
+    streak=g<1?0:streak+1;
     // (vague 3) qG = la VALEUR DU GESTE, à l'échelle d'AVANT la vague 3 (FLOW +0,5/palier, SÉRIE jusqu'à ×2) : c'est elle qui décide
     // des pièces MOTEUR, des verdicts de l'annonceur et de la pose muette — rééquilibrer l'argent ne doit changer ni la montée du
     // moteur, ni les verdicts, ni quelle pose compte comme figure. Le GAIN, lui, suit ECO3 (et ne tombe jamais à 0 $ par arrondi).
@@ -29404,8 +29424,16 @@ function tryLand(dt){
       if(snaked){vKey='snakeLoop';vTier=3;vPrio=5;}                               // passé dessous, reposé côté départ
       if(gapOk){vTier=3;vPrio=Math.max(vPrio,5);if(q<45)vKey='m2';}               // traverser le vide mérite au moins le DOUBLE MONSTRE
       if(nitroOn&&nitroAirT>5){vKey='megaMeteor';vTier=3;vPrio=6;}                // 5 s de réacteur : l'ultime
-      const vTxt=annSpeak(vKey,vPrio)||'MONSTRE';
-      trickMsg(gTxt+vTxt,vTier); // (2026-09-29) plus de « +$ » : la figure paie en aura (la chaîne le dit)
+      /* (2026-09-30, [LEG-1]) LE VERDICT NE DIT PLUS « MONSTRE » POUR UN SAUT ORDINAIRE. `gain > 0` suffit dès que chainVal > 0 — et le
+         RASE-DALLE d'argent (2,2-12 m au-dessus de la route, bloc des figures en vol) ou PILE AU CENTRE en versent sur n'importe quel saut :
+         MESURÉ (banc node verdict.js, les vraies lignes, route plate sans commande) : pic 3,5 à 20 m → chainVal 4 à 10 (7,9 m : 9,2),
+         et même 0,9 sur un sautillement de 0,37 s — verdict MONSTRE à CHAQUE pose, pièces 2 à 4. Après : aucun mot sans figure. Le MOT
+         (texte + voix de l'annonceur) ne sort plus que si une VRAIE figure est née dans ce vol (vrille payée, MÉTÉORE, AIR NITROOO,
+         DAUPHIN : figVol ; AIR MONSTRE ; SNAKE LOOP ; GAP ; les clés meteor/megaMeteor/snakeLoop). Les RÉCOMPENSES ne bougent pas (flow,
+         nitro, pièces MOTEUR, aura de pose, son de verdict, landBoom) ; sans figure, le grade seul s'écrit (PARFAIT / LOURD, PC). */
+      const dit9=figVol||trkMonstre||snaked||gapOk||(vKey!=='m1'&&vKey!=='m2'&&vKey!=='m3');
+      if(dit9){const vTxt=annSpeak(vKey,vPrio)||'MONSTRE';trickMsg(gTxt+vTxt,vTier);} // (2026-09-29) plus de « +$ » : la figure paie en aura (la chaîne le dit)
+      else if(gTxt)trickMsg(gTxt.trim(),1);
       // LES FIGURES RAPPORTENT DES PIÈCES : une belle chaîne fait progresser le MOTEUR, pas seulement
       // le portefeuille. 2 pièces pour une figure honnête, jusqu'à ~18 pour un enchaînement monstrueux.
       poseSndT=performance.now(); // la pose va sonner : un palier moteur franchi par ces pièces attendra son tour (voir addCoins)
@@ -29699,7 +29727,7 @@ function resetGame(){
   driftC=0;driftLv=0;driftEnCours=false;raseT=0;raseAnn=false;yawR=0;slipB=0;glisse9=0;driftYaw=0;FROLE.n=0;FROLE.t=0;FROLE.s0=null; // (2026-09-25) une glisse ne survit pas à la partie (sinon MINI-TURBO fantôme au départ)
   nextRainAt=4e3*ECO3.gain;moneyRainT=0;sideCd=0;slipT=0;oilCd=0;
   nitroAirT=0;fallUnder=false;pureT=0;pureArmed=true;gapArmed=0;rampCd=0;annStop();deathStop();fxStop(); // la mort précédente se tait : on repart, elle n'a plus rien à dire
-  auraRun=0;auraPop=0;auraFlash=0;figCombo=0;figComboT=0;figComboAura=0;chaReset();CHA.v=0;CHA.vAff=-1;recInit();pureNext=0;pureLvl=0; // l'aura de la partie repart de zéro — la banque et le total à vie, eux, restent
+  auraRun=0;auraPop=0;auraFlash=0;figCombo=0;figComboT=0;figComboAura=0;fruitRaf=0;fruitRafT=0;/* (2026-09-30, CHA-1) la RAFALE de fruits ne déborde plus sur la partie suivante (RECOMMENCER depuis la pause, fenêtre gelée) */chaReset();CHA.v=0;CHA.vAff=-1;recInit();pureNext=0;pureLvl=0; // l'aura de la partie repart de zéro — la banque et le total à vie, eux, restent
   bounceN=0;airFlash=0;flightId=0;
   chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;dolphT=0;trkDolph=false;
@@ -29772,7 +29800,7 @@ function commitExploits(){
 function enCoursPose(){
   try{
     if(!(started&&!gameOver&&!SANDBOX&&!TUTO.on&&!PARK.on))return false;
-    const g=(CHA.n&&mode==='drive'&&running)?Math.round(CHA.pts*Math.max(1,CHA.x)):0; // endGame : chaineEncaisse() au sol seulement
+    const g=(CHA.n&&mode!=='boom'&&running)?Math.round(CHA.pts*Math.max(1,CHA.x)):0; // endGame : chaineEncaisse() hors explosion (au sol comme en vol, CHA-1)
     SAVE.d.enCours={v:Math.max(0,money-START_CASH),a:Math.round(auraRun)+Math.max(0,g),e:engTier|0,
       tr:runStats.tricks|0,ga:runStats.gaps|0,bu:runStats.bumps|0,sv:runStats.surv|0,zo:runStats.zones|0,ch:runStats.chainMax|0,
       km:Math.round(runStats.vmax)||0,s:Math.round(money),f:(FLOW.lv===4&&FREN.t>0)?Math.floor(FREN.t*10)/10:0};
@@ -29798,7 +29826,7 @@ function endGame(){
   if(mode!=='boom'&&!CAMP.garde)mortCause=''; // (2026-09-26) QUITTER n'est pas une mort : pas la cause de la partie d'avant · (2026-09-27) sauf une fin de CAMPAGNE (semé, terminé) qui pose la sienne
   if(CARR.actif&&LVL.cur&&LVL.cur.carr&&LVL.cur.carr.b===CARR.actif.b)CARR.actif.i=LVL.cur.carr.i; // (2026-09-27) REJOUER repart du niveau où l'on s'est arrêté, pas du premier de la série
   try{campStop();}catch(e){} // (2026-09-27) tirs, fumée, éclairs, halos : rien ne reste figé derrière l'écran de fin
-  try{if(CHA.n&&mode==='drive')chaineEncaisse();}catch(e){} // (2026-09-26) la chaîne d'aura ouverte est encaissée, pas oubliée
+  try{if(CHA.n&&mode!=='boom')chaineEncaisse();}catch(e){} // (2026-09-26) la chaîne d'aura ouverte est encaissée, pas oubliée — (2026-09-30, [CHA-1]) EN VOL AUSSI : QUITTER depuis la pause en l'air la jetait (mode 'fall'). Une EXPLOSION la perd toujours : explode → chainePerdue(true) l'a déjà vidée
   gameOver=true;airPie.style.display='none';chainHud.style.opacity=0;caseHud.style.opacity=0;
   musicStop(true);setTimeout(function(){if(gameOver)musicMenu();},1400); // TAPE-STOP de fin, puis la musique du menu revient, étouffée
   dolKill();serpShow=0; // les créatures ne survivent pas à l'explosion
