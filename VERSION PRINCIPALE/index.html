@@ -29239,7 +29239,7 @@ function portailPasse(){
   if(CAMP.n===20&&!PARK.on){if(!VBQ.fini)villeFinale();return;}
   if(!PARK.on&&CARR.actif&&LVL.cur&&LVL.cur.carr&&LVL.cur.id==='espace'&&LVL.cur.carr.i===9){espaceFinale();return;} // (2026-09-28) PLUTON n'avait pas de fin : le portail le rejouait à l'infini
   if(TUTO.on&&!CARR.actif&&!PARK.on){SURV.pBase+=sP;newTrack();return;} // (2026-09-28) l'auto-école ne s'échappe pas par le portail (le débutant qui n'osait pas sauter finissait la leçon dans la VILLE) : la piste d'apprentissage repart // (2026-09-27) le portail de MIDI : le premier arrivé gagne — le banquier passé avant toi, il ne mène plus nulle part // (2026-09-27) le portail du COUCHER : la campagne des NUAGES est finie, on ne va nulle part ailleurs
-  if(mode==='fall'){airPie.style.display='none';try{dolFin();}catch(e){}vA=Math.max(vA,Math.hypot(fallVel.x,fallVel.z)); // traversé en VOL : le vol s'arrête proprement, l'élan est gardé (inertie)
+  if(mode==='fall'){airPie.style.display='none';try{dolFin();}catch(e){}vA=Math.max(vA,Math.hypot(fallVel.x,fallVel.z)/vitMult()); // traversé en VOL : le vol s'arrête proprement, l'élan est gardé (inertie) — (2026-09-30) ÷ vitMult : le vol porte la vitesse réelle
     /* (2026-09-28, Sacha : « quand on coupe la route pour rejoindre le portail plus vite, ça doit quand même rapporter du machiavélisme »)
        LE RACCOURCI VERS LE PORTAIL : on n'atterrit pas, donc tryLand ne le voyait jamais. Même mesure qu'à la pose — la piste qu'il
        restait à rouler jusqu'à l'entrée de l'ovule (son centre est à L−25, son rayon 55 : ~L−80) moins la ligne droite volée. */
@@ -29297,7 +29297,9 @@ function startFall(impU,impF){
   // loin du 2.3 de l'ancienne ère (qui compensait SPD=.25) : l'endgame TRAVERSE sa phase aérienne
   // au lieu de flotter, sans virer missile. Parabole DANS L'ESPACE, viseur, seuils de figures et
   // paiements (fallT temps-sim) INCHANGÉS — seul le temps réel du vol se compresse un peu.
-  AIR_RATE=1.3; /* (2026-09-30, Sacha, après le retrait du vol NEWTON : « je veux que la voiture reste contrôlable mais qu elle aille plus vite et qu elle tombe plus vite ») : le vol se joue ×1,3 plus vite — même arc dans l espace (viseur, sauts dessinés, figures inchangés), on avance et on tombe 30 % plus vite */ // (vol v6, 2026-09-25, user : « la vitesse en airtime est trop importante proportionnellement à celle sur route ») : le vol se joue en TEMPS RÉEL, comme la route — il était compressé jusqu'à ×1,35 au-delà de 450 km/h
+  AIR_RATE=1; /* (2026-09-30, Sacha, le soir : « l'air time est trop rapide, il faut que ce soit VRAIMENT lié de manière réaliste à la VITESSE D'EXPULSION ») :
+     le vol se joue en TEMPS RÉEL (le ×1,3 du midi est retiré) et la caisse décolle à sa VRAIE vitesse d'avance (× vitMult, voir fallVel plus bas) —
+     mesuré avant : sans boost, elle bondissait de +30 % au décollage ; en NITROOO ×2,6, elle y perdait la moitié de sa vitesse. */ /* (le midi : AIR_RATE=1.3, « qu'elle aille plus vite et qu'elle tombe plus vite ») */ // (vol v6, 2026-09-25, user : « la vitesse en airtime est trop importante proportionnellement à celle sur route ») : le vol se joue en TEMPS RÉEL, comme la route — il était compressé jusqu'à ×1,35 au-delà de 450 km/h
   fallVH0=-1; // la vitesse horizontale de décollage se relève à la 1re image de vol (la catapulte retouche fallVel APRÈS cet appel)
   nitroAirT=0;fallUnder=false;fallStartSide=side; // SNAKE LOOP : côté de départ figé, passage dessous à prouver
   gapArmed=0; // vol ordinaire par défaut — la catapulte réarme JUSTE APRÈS cet appel
@@ -29307,7 +29309,8 @@ function startFall(impU,impF){
   if(side<0){F.n.multiplyScalar(-1);F.b.multiplyScalar(-1);}
   fallPos.copy(F.p).addScaledVector(F.b,lat).addScaledVector(F.n,(side<0?THICK:0)+.6);
   FLOW.s0=s;FLOW.p0.copy(fallPos); // (FLOW v2) d'où part le vol — la pose dira si c'était un RACCOURCI
-  fallVel.copy(F.t).multiplyScalar(vA*driveDir*(impF||1)).addScaledVector(F.b,vL*driveDir).addScaledVector(F.n,impU||.9); // driveDir : on décolle dans le sens où l'on roulait (le parc autorise les deux)
+  {const vm9=vitMult(); /* (2026-09-30) l'ÉJECTION = la vitesse d'avance RÉELLE : au sol, NITROOO et VITESSE ×2 multiplient l'avance (vitMult), pas vA — la caisse décollait sans eux */
+  fallVel.copy(F.t).multiplyScalar(vA*driveDir*(impF||1)*vm9).addScaledVector(F.b,vL*driveDir*vm9).addScaledVector(F.n,impU||.9);} // driveDir : on décolle dans le sens où l'on roulait (le parc autorise les deux)
   // INERTIE RÉELLE (2026-07-20) : fini le plafond TOTAL de 95 qui bridait l'éjection — éjecté à
   // 300 km/h, on VOLE à 300 km/h (le compteur ne s'effondre plus au décollage), et la gravité en
   // RAJOUTE en descente, comme une vraie chute. Seule la composante VERTICALE est bornée (70) :
@@ -29452,7 +29455,7 @@ function tryLand(dt){
   {const vTan=fallVel.dot(T[bestI]),vLat=fallVel.dot(B[bestI])*sideL;
    psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=0;slipB=0;driftYaw=0; // (2026-09-25) le cap de la pose = la direction EXACTE du vol — plus de redressement (×0,6) : c'était une aide
    driftT=Math.max(driftT,Math.min(1,.45+Math.abs(psi)));} // …et la fumée/le crissement suivent tout seuls
-  vA=fallVel.dot(T[bestI]);vL=fallVel.dot(B[bestI])*.4*sideL;
+  {const vm9=vitMult();vA=fallVel.dot(T[bestI])/vm9;vL=fallVel.dot(B[bestI])*.4*sideL/vm9;} // (2026-09-30) le vol porte la vitesse RÉELLE (× vitMult) : à la pose, on la ramène au vA d'avant le multiplicateur — sans ça, le boost comptait DEUX fois
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1; // PARC : on repart dans le sens d'atterrissage (les deux directions roulent) ; COURSE : toujours vers l'avant
   // ATTERRISSAGE : l'impact ralentit la caisse — d'autant plus que le saut etait gros
   {const nv9=nitroR;nitroPct(.2);if(SONV2&&nitroR>nv9+.01)sfx('nitro.plein',{t:.2});} // (2026-09-26, user) TOUTE pose rend 20 % de nitro — parfaite, lourde, à l'arrachée

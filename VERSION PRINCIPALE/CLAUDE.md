@@ -1,5 +1,17 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE VOL À LA VITESSE D'ÉJECTION (2026-09-30, soir, session GRAPHISME — Sacha : « l'air time est trop rapide, il faut que ce soit vraiment lié de manière réaliste à la vitesse d'expulsion »)
+- **`AIR_RATE=1`** (startFall) : le vol se joue en TEMPS RÉEL — le ×1,3 du midi (« qu'elle aille plus vite et tombe plus vite », 6ac7d3c) est
+  retiré. C'est la 3e fois que la demande revient (25/09 vol v6 : « la vitesse en airtime est trop importante proportionnellement à celle sur
+  route » ; 26/09 : « le vol dépend de la vitesse à l'éjection ») : ⚠ NE PLUS ACCÉLÉRER LE TEMPS DU VOL pour le rendre « plus nerveux ».
+- **L'ÉJECTION = la vitesse d'avance RÉELLE** : au sol, NITROOO et VITESSE ×2 multiplient l'AVANCE (`vitMult()`), pas `vA` — la caisse
+  décollait sans eux (en NITROOO ×2,6 elle perdait la moitié de sa vitesse au décollage ; sans boost elle bondissait de +30 %). `fallVel`
+  part à `vA × vitMult` (tangente et latérale) ; à la POSE (tryLand) et au PORTAIL traversé en vol, la vitesse de vol est ramenée au `vA`
+  d'avant le multiplicateur (÷ vitMult) — sinon le boost comptait deux fois. MESURÉ (banc `vitvol.js`, vitesse de jeu image par image) :
+  décollage en NITROOO 520 → 525 (et 253 → 253 m/s réels dans le monde), sans boost 137 → 143. La verticale, la gravité et le plafond
+  horizontal (= la vitesse d'éjection) ne changent pas : sans boost, l'arc dans l'espace (viseur, sauts dessinés) est celui d'avant.
+- ⚠ En temps réel, un vol dure 1,3 × plus longtemps qu'au midi : la jauge des 6 s (`airMax`) se remplit d'autant. À surveiller (GAMEPLAY).
+
 ## L'ATELIER v2 — LA LUMIÈRE ET LA MATIÈRE (2026-09-30, session GAMEPLAY — Sacha : « améliore le modèle 3D du garage en le rendant plus beau »)
 - Le garage est le MENU : c'est la 1re image du jeu. Léo le voulait SOBRE : rien n'est ajouté en bazar, on a travaillé la MATIÈRE et la
   LUMIÈRE (bloc « L'ATELIER v2 » dans `buildGarageRoom`, état `GAR.beau`, animation `garBeaute(dt,t9)` appelée après `garFeu`).
