@@ -1,5 +1,15 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE STUDIO PHOTO v2 — LES PHOTOS DE CAISSES (2026-09-30, soir, session GAMEPLAY) — Sacha, capture de la boutique : « pourquoi ces photos sont aussi moches »
+- MESURÉ sur l'ancien `carPhoto` : caisse tournée PILE face à l'objectif (rotation .72 pour une caméra à .70 d'azimut → vue de face écrasée),
+  360 × 220 affiché ×2 sur Retina (flou, escaliers), ambiance 1,25 + clé 1,3 brûlées par la relève 1/1,35 (jaunes et verts fluo en aplat),
+  et la tache rose `.shPhoto::before` qui se lisait comme une BARRE sous la caisse.
+- v2 : trois-quarts avant nez à gauche (`PHOTO_ROT` −.12, `PHOTO_AZ` .70, `PHOTO_EL` .27), objectif 24°, cadrage CALCULÉ sur la boîte des
+  maillages VISIBLES (86-93 % de large, 4 passes, la caisse un peu haute), rendu ×2 (`PHOTO_SS`) réduit en 720 × 440 (bords nets), clé chaude
+  + contre-jours rose et cyan + ambiance .62 (du modelé), relève douce 1/1,22 avec ÉPAULE au-dessus de .82, saturation ×1,14, ombre de contact
+  sous le CENTRE de la caisse et reflet d'un sol verni (la photo retournée, 26 % → 0 sur 18 % de la hauteur). Même cache, mêmes appels :
+  boutique, vignettes du garage, récompenses des missions. `.shPhoto::before` = une lueur large et douce derrière ; le drop-shadow CSS retiré.
+- Banc : `photo/photo.js <racine> <préfixe>` (scratchpad GAMEPLAY) — la boutique debout/couché + chaque photo en pleine définition.
 ## LE JOUR D'ALTITUDE — LE NIVEAU NUAGES ET LE MENU REFAITS (2026-09-30, soir, session GAMEPLAY) — Sacha, capture du menu CHUTE + image de Zelda : Tears of the Kingdom : « c'est vilain, refonte totale, refonte également du niveau dans les nuages, ambiance haut de gamme GTA 6, toute l'ambiance de cet écran doit être refaite et parfaite » · « vilain garçon si tu rajoutes pas un moyen de déplacer la caméra autour de la voiture avec le doigt »
 - PARTAGE (accord des sessions) : GAMEPLAY = SEUL écrivain de l'IMAGE du niveau NUAGES et du menu CHUTE (ciel, lumière, brume, étalonnage,
   mer de nuages, COTON, route, CHUTE) ; SON = l'œil de DA (critique numérotée, mesurée) et le SON (ambiance d'altitude, `chute.vent`).

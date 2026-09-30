@@ -37,7 +37,7 @@
 //  v22 (2026-09-28) : la CONSOLE DE SON (sfx.js + sons-banque.js) et les silences morts retirés des morceaux (le trou de 1 s à chaque boucle de NOCTURNAL GROOVE en VILLE).
 //  v30 (2026-09-30) : les fruits font SPLOTCH (4 prises par fruit) — sons-banque.js?v=8.
 //  v42 (2026-09-30) : LA FRONDE (sortie de virage) et le TRAIN DE BOOSTS — son fronde, sons-banque.js?v=10.
-const CACHE = 'cashcar-v43';
+const CACHE = 'cashcar-v44';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
