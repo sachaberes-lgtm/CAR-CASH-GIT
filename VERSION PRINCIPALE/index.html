@@ -2788,6 +2788,23 @@ html #garage.missions #gPlayMain{display:none!important}
 #gMis::after{content:'';position:absolute;left:0;right:0;height:22%;top:-22%;pointer-events:none;
   background:linear-gradient(180deg,rgba(95,240,255,0),rgba(95,240,255,.08) 70%,rgba(160,250,255,.18) 72%,rgba(95,240,255,0) 74%);animation:gmBalaye 5s linear infinite}
 @keyframes gmTrame{to{background-position:0 64px,0 0}}
+/* L'ÉCRAN MISSIONS DE SACHA (f474c51, rétabli le 30/09 au soir : « je préfère ma version de l'interface ») — html.misS = MENU_SACHA */
+html.misS #gMis::before{background:repeating-linear-gradient(0deg,rgba(95,240,255,.04) 0 1px,transparent 1px 4px),radial-gradient(ellipse 80% 75% at 50% 45%,rgba(10,40,80,0) 35%,rgba(3,8,22,.7) 100%),linear-gradient(rgba(4,8,20,.38),rgba(4,8,20,.38))} /* un voile de plus : l'atelier ne dispute plus la lecture */
+html.misS #gmFils path{stroke-width:1.2;stroke-dasharray:none;animation:none}
+html.misS #gmFils path.ch{stroke-dasharray:3 6;opacity:.32;animation:gmFlux 2.2s linear infinite} /* la constellation : discrète, elle ne barre plus les cartes */
+html.misS #gmFils path.ch.r{stroke:#ffd75e;opacity:.42}
+html.misS #gmFils path.lead{stroke-width:1.3;stroke-dasharray:none;opacity:.8}   /* le filet : de la carte à son meuble */
+html.misS #gmFils path.lead.f,html.misS #gmFils path.lead.r{stroke:#ffd75e;opacity:.95}
+html.misS .gmC{display:flex;flex-direction:column;background:linear-gradient(180deg,rgb(11,30,57),rgb(6,14,33))}
+html.misS .gmC small{margin-top:auto}
+html.misS .gmP{display:flex;align-items:center;gap:6px;margin:6px 0 4px}html.misS .gmP u{flex:1;min-width:0;margin:0}html.misS .gmP b{flex:none;font-weight:400;font-size:7px;color:var(--cash,#5ee37a);white-space:nowrap}
+html.misS .gmRw{display:flex;align-items:center;gap:10px;margin:2px 0 4px}   /* la récompense : l'image À GAUCHE, le nom à droite */
+html.misS .gmC.r .obFig{position:relative;right:auto;top:auto;margin:0;flex:none;width:74px;height:44px;display:flex}
+html.misS .gmC.r small{margin-top:3px}
+html.misS .gmNext{display:flex;align-items:center;gap:6px;margin-top:6px;padding-top:6px;border-top:1px solid rgba(143,132,200,.35);font-size:7px;letter-spacing:1px;color:#b9b2e6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.misS .gmNext .pxi{--pxs:1;color:#8f84c8}
+html.misS #gmHead small{line-height:1.6}
+@media (orientation:portrait) and (max-width:760px){html.misS .gmC{padding:7px 8px 8px}html.misS .gmC .gmX{font-size:8px}html.misS .gmT b{font-size:7px}}
 @keyframes gmBalaye{to{top:122%}}
 #gmFils{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none}
 #gmFils path{fill:none;stroke:#5ff0ff;stroke-width:1.6;stroke-dasharray:7 7;stroke-linecap:round;animation:gmFlux 1.1s linear infinite}
@@ -34447,10 +34464,14 @@ function gActSync(){const a=$('gAct');if(!a)return;const bt=$('gEquip'),row=$('g
 /* LES DEUX MENUS (2026-09-30) — Sacha a posé SES boutons (l'accueil #mHome) par-dessus le garage (« les boutons ne vont pas du tout dans la
    version de Léo ») ; Léo : « remets ma version sketch, Sacha dit que c'est brouillon ». Les deux existent : par défaut le menu du SKETCH de
    Léo (#gMenu : profil, JOUER en pixels, [verrou][NIVEAU][BOUTIQUE], l'étiquette MISSIONS du socle) ; `?menu=sacha` dans l'adresse (le cadre
-   de l'ordi la transmet à la colonne) = les boutons de Sacha. À TRANCHER ENTRE EUX : c'est ce seul booléen. */
-const MENU_SACHA=/[?&]menu=sacha\b/.test(location.search);
-/* (même soir, Léo : « enlève la porte ») la porte FERMÉE au menu (Sacha, b8e7ce7) va avec SA version : avec ?menu=sacha (ou ?porte=1) elle
-   descend au menu et s'ouvre au JOUER ; sinon elle reste RELEVÉE sous le plafond (l'image d'avant : le feu se voit dès le menu). */
+   de l'ordi la transmet à la colonne) = les boutons de Sacha. À TRANCHER ENTRE EUX : c'est ce seul booléen.
+   (même soir, Sacha a tranché : « je préfère ma version de l'interface finalement ») — le DÉFAUT est la version de Sacha : ses boutons,
+   son écran MISSIONS rangé (f474c51, rétabli à côté de celui de Léo : gmRenderS/gmPlace/gmSuitS, CSS sous html.misS) et sa porte fermée.
+   La version de Léo reste ENTIÈRE derrière `?menu=leo` (menu du sketch, ses missions, la porte relevée). ?menu=sacha marche toujours. */
+const MENU_SACHA=!/[?&]menu=leo\b/.test(location.search);
+document.documentElement.classList.toggle('misS',MENU_SACHA); // l'écran MISSIONS de Sacha : ses règles CSS vivent sous html.misS
+/* (même soir, Léo : « enlève la porte ») la porte FERMÉE au menu (Sacha, b8e7ce7) va avec SA version : par défaut (ou ?porte=1) elle
+   descend au menu et s'ouvre au JOUER ; avec ?menu=leo elle reste RELEVÉE sous le plafond (l'image d'avant : le feu se voit dès le menu). */
 const PORTE_FERMEE=MENU_SACHA||/[?&]porte=1\b/.test(location.search);
 function garMode(m){
   if(!gEl)return;const menu=m==='menu'||m==='missions',mis=m==='missions'; // (2026-09-30) MISSIONS = le menu, vu d'en haut, avec la constellation
@@ -34508,12 +34529,17 @@ function garMenuSuit(){ // l'étiquette MISSIONS se pose sur le socle, où qu'il
    · SUIVRE : toucher un défi le coche (`SAVE.d.mis.f`, un seul à la fois, re-toucher = décocher) ; en course `#misFocus` le montre
      en bas, discret (consigne · avancement · jauge fine), vert 3 s quand il tombe. Carnet neuf ou défi réussi : plus de suivi. */
 const GMIS={mk:0,e:0,v:new THREE.Vector3(),holo:[],
-  ancres:[{k:'d',i:0,p:[-9.3,2.3,2.6]},   // le compresseur, mur gauche
+  ancres:MENU_SACHA? // (Sacha a tranché) les ancres de SON écran rangé (f474c51) ; celles de Léo avec ?menu=leo
+         [{k:'d',i:0,p:[-9.3,2.3,2.6],pp:[-5.6,1.5,-12.2]},   // le compresseur, mur gauche (debout : l'étau, au bout de l'établi)
+          {k:'d',i:1,p:[-4.4,2.2,-12.0],pp:[-2.7,1.4,-12.4]},  // l'établi, au fond (debout : son autre bout)
+          {k:'d',i:2,p:[9.9,2.4,-10.3],pp:[4.8,2.0,-12.6]},   // le pont élévateur, au fond à droite (debout : le mur de l'affiche) — (2026-09-30) couché, 4,2 → 2,4 m
+          {k:'r',p:[0,3.0,0]}]          // la récompense, au-dessus de la caisse — (2026-09-30, « un peu brouillon ») les deux carnets SUIVANTS n'ont plus de carte ni de faisceau : une ligne dans la carte de la récompense
+        :[{k:'d',i:0,p:[-9.3,2.3,2.6]},   // le compresseur, mur gauche
           {k:'d',i:1,p:[-4.4,2.2,-12.0]}, // l'établi, au fond
           {k:'d',i:2,p:[9.9,4.2,-10.3]},  // le pont élévateur, au fond à droite
           {k:'r',p:[0,3.0,0]},            // la récompense, au-dessus de la caisse
           {k:'n',j:1,p:[9.5,3.5,3.4]},    // le carnet suivant : le rack
-          {k:'n',j:2,p:[9.6,2.7,8.4]}]};  // et celui d'après : le distributeur
+          {k:'n',j:2,p:[9.6,2.7,8.4]}]}; // et celui d'après : le distributeur
 function gmHoloBuild(g){ // les hologrammes 3D des ancres : un faisceau (sprite) et un anneau au sol — opacité 0 hors de l'écran MISSIONS
   GMIS.holo=[];const rg=new THREE.RingGeometry(.4,.5,28);
   for(const a of GMIS.ancres){const col=a.k==='r'?0xffd75e:a.k==='n'?0x8f84c8:0x5ff0ff;
@@ -34526,6 +34552,7 @@ function gmHoloBuild(g){ // les hologrammes 3D des ancres : un faisceau (sprite)
 function gmHoloTick(t9){const e=GMIS.e;for(let i=0;i<GMIS.holo.length;i++){const h=GMIS.holo[i],o=e*(.34+.12*Math.sin(t9*2.7+i*1.3));
   h.beam.material.opacity=o;if(h.ring){h.ring.material.opacity=e*.8;const k=1+.12*Math.sin(t9*3.1+i);h.ring.scale.set(k,k,k);}}}
 function gmRender(vu){ // vu : l'écran est déjà là (un défi coché) — les cartes ne rejouent pas leur entrée
+  if(MENU_SACHA)return gmRenderS(vu); // (Sacha a tranché) son écran rangé ; celui de Léo avec ?menu=leo
   const el=$('gmNoeuds'),sv=$('gmFils');if(!el||!sv)return;
   const s=misEtat(),c=carnet(s.n),g=misGain(c);let h='';
   if(s.f>=0&&s.ok[s.f])s.f=-1;
@@ -34549,6 +34576,7 @@ function gmRender(vu){ // vu : l'écran est déjà là (un défi coché) — les
   const aide=$('gmAide');if(aide)aide.textContent=s.f>=0?TR('SUIVI')+' : '+misTxt(c.m[s.f]):TR('TOUCHE UN DEFI POUR LE SUIVRE EN COURSE');
 }
 function gmSuit(){ // chaque image : les points sur leurs meubles, les cartes à côté (écartées, dans l'écran), les fils
+  if(MENU_SACHA)return gmSuitS();
   if(!GMIS.cards||!GMIS.cards.length)return;
   const W=VP.w,H=VP.h,v=GMIS.v,A=GMIS.ancres,n=A.length,P=GMIS.P||(GMIS.P=[]),Q=GMIS.Q||(GMIS.Q=[]);
   const now=performance.now();if(!GMIS.bT||now-GMIS.bT>300){GMIS.bT=now;const hd=$('gmHead'),bs=$('gmBas');
@@ -34572,6 +34600,72 @@ function gmSuit(){ // chaque image : les points sur leurs meubles, les cartes à
   for(let k=0;k<n-1;k++){const d9=(P[k][2]&&P[k+1][2])?'M'+P[k][0].toFixed(1)+' '+P[k][1].toFixed(1)+'L'+P[k+1][0].toFixed(1)+' '+P[k+1][1].toFixed(1):'';pa[q++].setAttribute('d',d9);pa[q++].setAttribute('d',d9);}
   for(let k=0;k<n;k++){const r=Q[k],x=cl(P[k][0],r[0],r[0]+r[2]),y=cl(P[k][1],r[1],r[1]+r[3]);
     pa[q++].setAttribute('d',P[k][2]?'M'+P[k][0].toFixed(1)+' '+P[k][1].toFixed(1)+'L'+x.toFixed(1)+' '+y.toFixed(1):'');}
+}
+function gmHoloPlace(land){ // (2026-09-30) les hologrammes suivent l'ancre de l'orientation (voir `pp`)
+  for(const h of GMIS.holo){const q=(!land&&h.a.pp)||h.a.p;h.beam.scale.set(.5,q[1]+.5,1);h.beam.position.set(q[0],(q[1]+.5)/2,q[2]);if(h.ring)h.ring.position.set(q[0],.05,q[2]);}}
+function gmRenderS(vu){ // (Sacha, f474c51) l'écran MISSIONS RANGÉ — voir MENU_SACHA // vu : l'écran est déjà là (un défi coché) — les cartes ne rejouent pas leur entrée
+  const el=$('gmNoeuds'),sv=$('gmFils');if(!el||!sv)return;
+  const s=misEtat(),c=carnet(s.n),g=misGain(c);let h='';
+  if(s.f>=0&&s.ok[s.f])s.f=-1;
+  GMIS.ancres.forEach(function(a,k){let cls,pt,in9;
+    if(a.k==='d'){const m=c.m[a.i],ok=!!s.ok[a.i],f=s.f===a.i,b=Math.min(m.v,s.best[a.i]||0);
+      cls='d'+(ok?' ok':'')+(f?' f':'');pt=ok?'ok':f?'f':'';
+      in9='<div class="gmT"><span class="gmChk"><i></i></span>'+TR('DEFI')+' '+(a.i+1)+'</div><div class="gmX">'+misTxt(m)+'</div><div class="gmP"><u><em style="width:'+Math.round(100*(ok?1:misPart(m,b)))+'%"></em></u><b>+'+fmtC(m.p)+'</b></div><small>'+(ok?TR('REUSSI'):f?TR('SUIVI EN COURSE'):TR('MEILLEUR ESSAI')+' '+misProgV(m,b))+'</small>';}
+    else{const gN=misGain(carnet(s.n+1));cls=pt='r';
+      in9='<div class="gmT">'+pxi('etoile')+' '+TR('RECOMPENSE')+'<b style="color:#ffd75e">'+s.ok.filter(Boolean).length+' / 3</b></div>'
+        +'<div class="gmRw">'+misGainFig(g)+'<div><div class="gmX" style="color:'+g.col+'">'+sansAcc(g.nom)+'</div><small>'+sansAcc(g.fam||'')+'</small></div></div>'
+        +'<div class="gmNext">'+pxi('verrou')+' '+TR('ENSUITE')+' · '+sansAcc(gN.nom)+'</div>';}
+    h+='<i class="gmPt '+pt+'"></i><div class="gmC '+cls+(vu?' vu':'')+'" data-k="'+k+'" style="--i:'+k+'" role="button">'+in9+'</div>';});
+  el.innerHTML=h;
+  let p9='';for(let i=0;i<GMIS.ancres.length-1;i++)p9+='<path class="ch'+(i===GMIS.ancres.length-2?' r':'')+'"/>';
+  for(let i=0;i<GMIS.ancres.length;i++)p9+='<path class="lead'+(GMIS.ancres[i].k==='d'&&s.f===GMIS.ancres[i].i?' f':GMIS.ancres[i].k==='r'?' r':'')+'"/>';
+  sv.innerHTML=p9;
+  GMIS.cards=[].slice.call(el.querySelectorAll('.gmC'));GMIS.pts=[].slice.call(el.querySelectorAll('.gmPt'));
+  GMIS.paths=[].slice.call(sv.querySelectorAll('path'));
+  GMIS.last=null;GMIS.lw=0; // les cases se recalculent (nouvelles cartes, nouveaux textes)
+  const sous=$('gmSous');if(sous)sous.textContent=TR('CARNET')+' '+(s.n+1)+' · '+TR('CHAQUE DEFI EN UNE PARTIE');
+  const aide=$('gmAide');if(aide)aide.textContent=s.f>=0?TR('SUIVI')+' : '+misTxt(c.m[s.f]):TR('TOUCHE UN DEFI POUR LE SUIVRE EN COURSE');
+}
+/* LES CASES (2026-09-30, Sacha : « missions, c'est pas mal mais un peu brouillon »). Les cartes flottaient À CÔTÉ de leur meuble et
+   s'écartaient les unes des autres (8 passes) : elles se chevauchaient quand même, le fil de la constellation les traversait, deux cartes
+   « ENSUITE » sortaient de l'écran. Désormais l'œil LIT une liste et la scène MONTRE où vit chaque défi : les TROIS DÉFIS en une rangée
+   de cases égales (debout : sous le titre ; couché : à droite du titre), la RÉCOMPENSE en bas (debout : au-dessus des boutons ; couché :
+   à gauche d'eux) avec « ENSUITE » dedans ; chaque carte est reliée à son meuble par un FILET fin, la constellation des points reste,
+   discrète. Les cases ne se recalculent que si l'écran change (taille, textes) : chaque image ne fait que suivre les points. */
+function gmPlace(W,H){
+  const C=GMIS.cards,Q=GMIS.Q||(GMIS.Q=[]),hd=$('gmHead'),bs=$('gmBas'),rh=hd&&hd.getBoundingClientRect(),rb=bs&&bs.getBoundingClientRect(),gp=8,land=W>H*1.25;
+  const g0=rh&&rh.width?rh.left:16;
+  const top=land?(rh&&rh.height?rh.top:12):(rh&&rh.height?rh.bottom+12:64);
+  const xL=land?(rh&&rh.width?rh.right+16:W*.42):g0,xR=W-g0;
+  const cw=Math.floor(Math.min(land?200:180,(xR-xL-2*gp)/3));
+  for(let k=0;k<3&&k<C.length;k++){C[k].style.width=cw+'px';C[k].style.minHeight='';}
+  let hM=0;for(let k=0;k<3&&k<C.length;k++)hM=Math.max(hM,C[k].offsetHeight);
+  for(let k=0;k<3&&k<C.length;k++){C[k].style.minHeight=hM+'px';Q[k]=[xL+k*(cw+gp),top,cw,hM];}
+  const r=C[3];if(r){const bl=rb&&rb.width?rb.left:W,bt=rb&&rb.height?rb.top:H-14,bb=rb&&rb.height?rb.bottom:H-14;
+    const rw=Math.floor(land?Math.min(440,bl-g0-14):W-2*g0);r.style.width=rw+'px';const rhh=r.offsetHeight;
+    Q[3]=[g0,land?bb-rhh:bt-12-rhh,rw,rhh];}
+  for(let k=0;k<C.length;k++)if(Q[k])C[k].style.transform='translate('+Q[k][0].toFixed(1)+'px,'+Q[k][1].toFixed(1)+'px)';
+}
+function gmSuitS(){ // chaque image : les points sur leurs meubles, les filets des cartes, la constellation (les cartes, elles, ne bougent pas)
+  if(!GMIS.cards||!GMIS.cards.length)return;
+  const W=VP.w,H=VP.h,v=GMIS.v,A=GMIS.ancres,n=A.length,P=GMIS.P||(GMIS.P=[]);
+  const now=performance.now();
+  if(GMIS.lw!==W||GMIS.lh!==H||!GMIS.bT||now-GMIS.bT>600){GMIS.bT=now;GMIS.lw=W;GMIS.lh=H;gmPlace(W,H);GMIS.last=null;}
+  const Q=GMIS.Q;if(!Q)return;
+  const land=W>H*1.25;if(GMIS.land!==land){GMIS.land=land;gmHoloPlace(land);}
+  for(let k=0;k<n;k++){const q=(!land&&A[k].pp)||A[k].p;v.set(q[0],q[1]+GARAGE_Y,q[2]).project(camera);
+    const px=(v.x*.5+.5)*W,py=(.5-v.y*.5)*H;P[k]=[px,py,v.z<1&&px>-20&&px<W+20&&py>-20&&py<H+20];}
+  let sig='';for(let k=0;k<n;k++)sig+=(P[k][0]|0)+','+(P[k][1]|0)+(P[k][2]?'':'x')+';';
+  for(let k=0;k<Q.length;k++)if(Q[k])sig+=(Q[k][0]|0)+','+(Q[k][1]|0)+';';
+  if(sig===GMIS.last)return;GMIS.last=sig;                                  // rien n'a bougé : pas une écriture
+  for(let k=0;k<n;k++){const pt=GMIS.pts[k];
+    pt.style.transform='translate('+P[k][0].toFixed(1)+'px,'+P[k][1].toFixed(1)+'px)';pt.style.visibility=P[k][2]?'':'hidden';}
+  const pa=GMIS.paths;let q=0;
+  for(let k=0;k<n-1;k++){pa[q++].setAttribute('d',(P[k][2]&&P[k+1][2])?'M'+P[k][0].toFixed(1)+' '+P[k][1].toFixed(1)+'L'+P[k+1][0].toFixed(1)+' '+P[k+1][1].toFixed(1):'');}
+  for(let k=0;k<n;k++){const r=Q[k];if(!r||!P[k][2]){pa[q++].setAttribute('d','');continue;}
+    const bas=r[1]+r[3]/2<P[k][1],x=Math.max(r[0]+10,Math.min(r[0]+r[2]-10,P[k][0])),y=bas?r[1]+r[3]:r[1]; // le filet part du bord de la carte qui REGARDE le point
+    const inside=P[k][0]>r[0]&&P[k][0]<r[0]+r[2]&&P[k][1]>r[1]&&P[k][1]<r[1]+r[3];                            // le point sous sa propre carte : pas de filet
+    pa[q++].setAttribute('d',inside?'':'M'+x.toFixed(1)+' '+y.toFixed(1)+'L'+P[k][0].toFixed(1)+' '+P[k][1].toFixed(1));}
 }
 function garMissionsOuvre(){ // la porte des MISSIONS, d'où qu'on vienne : l'écran de l'atelier
   if(garageOn){if(!GAR.go)garMode('missions');return;}

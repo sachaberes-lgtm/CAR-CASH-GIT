@@ -29,7 +29,7 @@
 
 ## LA REVUE DE TOUS LES ÉCRANS (2026-09-30, soir, session GAMEPLAY — Sacha : « vérifie tous les menus, tous les écrans d'interface, il y a plein de petits détails qui ne vont pas »)
 - Banc `ui.js` (scratchpad GAMEPLAY) : chaque écran debout 390×844 ET couché 844×390 (= le PC), FR et EN, captures + mesures (débords,
-  cibles < 44 px, capitales accentuées en police pixel, textes coupés). `?menu=sacha` pour le menu de Sacha, `leo.js` pour celui de Léo.
+  cibles < 44 px, capitales accentuées en police pixel, textes coupés). défaut = le menu de Sacha, `leo.js … "?menu=leo"` pour celui de Léo.
   0 erreur de page. Deux relectures indépendantes des captures (debout / couché).
 - **Écran de mort** : `#mCash` en `word-spacing:-.55em` (l'espace de la police pixel est une case PLEINE : « $    9 » au corps du héros) ;
   badge `em.mCashRec` « RECORD ! » dans la plaque d'argent quand c'est le record d'ARGENT (`rec`) — « NOUVEAU RECORD ! » ne disait pas
@@ -83,6 +83,11 @@
   accentuées) : si Sacha veut les accents, il faudra une autre police pour ces noms.
 
 ## LE MENU = LE GARAGE + LES BOUTONS DE SACHA (2026-09-30, session GAMEPLAY — Sacha : « les boutons ne vont pas du tout dans la version de Léo : on garde la base de garage pour le menu mais on remet les mêmes boutons que ceux que j'avais faits pour ma version »)
+- ⚠⚠ **SACHA A TRANCHÉ (30/09, plus tard encore) : « je préfère ma version de l'interface finalement »** — LE DÉFAUT EST LA VERSION DE
+  SACHA : `MENU_SACHA = !?menu=leo`. Par défaut : ses boutons (#mHome sur l'atelier), SON écran MISSIONS rangé (f474c51 rétabli À CÔTÉ
+  de celui de Léo : `gmRenderS`/`gmPlace`/`gmSuitS`/`gmHoloPlace` + ses ancres à `pp`, CSS sous `html.misS` ; `gmRender`/`gmSuit` de Léo
+  aiguillent en tête) et SA porte fermée. **`?menu=leo`** = toute la version de Léo, intacte (sketch, ses missions à 6 ancres, porte
+  relevée). `?menu=sacha` marche toujours. Les paragraphes ci-dessous décrivent l'état d'avant ce choix (défaut Léo).
 - ⚠ **(même soir, Léo : « remets ma version sketch, Sacha dit que c'est brouillon »)** — LES DEUX MENUS COEXISTENT, un seul booléen :
   `MENU_SACHA` (juste avant `garMode`) = `?menu=sacha` dans l'adresse. PAR DÉFAUT le menu du SKETCH de Léo (#gMenu) ; avec `?menu=sacha`
   (le cadre de l'ordi la transmet à la colonne) les boutons de Sacha décrits ci-dessous. À TRANCHER ENTRE SACHA ET LÉO : ne pas
