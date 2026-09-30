@@ -1,5 +1,16 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA PORTE DU GARAGE FERMÉE, OUVERTE AU JOUER (2026-09-30, session DEBUGGING, avec l'accord de GAMEPLAY) — « la porte du garage doit être fermée au début et s'ouvrir avec les flammes quand on clique sur JOUER »
+- `buildGarageRoom` : les cinq panneaux empilés sous le plafond deviennent une PORTE SECTIONNELLE sur son rail (`GAR.porte`) — tôle nervurée
+  (deux nervures par panneau, joints), une rangée de six HUBLOTS au 4e panneau qui laissent voir le feu (émissive qui bat avec les
+  flammes). `garPortePose(e)` : e = 0 fermée (panneaux verticaux dans l'ouverture, z hd − 0,2), montée le long du rail (0 → 4,7 m), coude
+  de 0,28 m, puis à plat sous le plafond — e = 1 retrouve EXACTEMENT la place des panneaux empilés d'avant. `garPorte(dt)` (en tête de
+  garageRender, avant garFeu) : fermée tant qu'il n'y a pas de LÂCHER ; le JOUER (`GAR.go`, retour de vue compris) l'ouvre en 0,8 s
+  (smoothstep) — mesuré : ouverte à ~0,83 s, la caisse atteint la porte à ~1,5 s.
+- Porte fermée, le FEU brûle derrière mais ne se voit plus que par les joints, les hublots et sous la porte : `garBeaute` multiplie le
+  reflet au sol (× .12 → 1), les nappes des murs et du plafond (× .2 → 1), `GAR.beau.fac` (× .15 → 1), pas de braises sous .3 ; `garFeu`
+  : la lueur du seuil × .4 → 1 et la VOIX du feu −9 dB porte fermée (puis +8 dB × k au lâcher, comme avant) ; le contre-jour de la caisse
+  ne prend la couleur braise qu'avec l'ouverture. Hook `dbgPorte()` (état) · `dbgPorte(e)` (fige à e) · `dbgPorte('libre')`.
 ## LES NOMS DES NIVEAUX DE LA CARRIÈRE (2026-09-30, session GRAPHISME — Sacha : « dans la carrière les niveaux sont écrits avec la mauvaise police, c'est inacceptable »)
 - `<style id="carrNoms">` (juste avant hudOrdre) : le nom d'un niveau (`.carrNiv span`) était en pixel 8 px (--f0), maigre, sans contour, forcé
   sur UNE ligne sous un numéro de 16 px — il se lisait comme une note de bas de page. Désormais 9 px, le contour d'ENCRE des libellés pixel

@@ -2776,19 +2776,18 @@ body.garMenuH #garage.menu::before,body.garMenuH #garage.menu::after{display:non
 #garage.missions #gMenu,#garage.quiet #gMis,#garage.launching #gMis{display:none!important}
 html #garage.missions #gPlayMain{display:none!important}
 #gMis::before{content:'';position:absolute;inset:0;pointer-events:none;                                   /* l'hologramme : trame, halo, bords éteints */
-  background:repeating-linear-gradient(0deg,rgba(95,240,255,.05) 0 1px,transparent 1px 4px),radial-gradient(ellipse 80% 75% at 50% 45%,rgba(10,40,80,0) 35%,rgba(3,8,22,.66) 100%);
+  background:repeating-linear-gradient(0deg,rgba(95,240,255,.04) 0 1px,transparent 1px 4px),radial-gradient(ellipse 80% 75% at 50% 45%,rgba(10,40,80,0) 35%,rgba(3,8,22,.7) 100%),linear-gradient(rgba(4,8,20,.38),rgba(4,8,20,.38)); /* (« brouillon ») un voile de plus : l'atelier reste là, il ne dispute plus la lecture */
   animation:gmTrame 6s linear infinite}
 #gMis::after{content:'';position:absolute;left:0;right:0;height:22%;top:-22%;pointer-events:none;
   background:linear-gradient(180deg,rgba(95,240,255,0),rgba(95,240,255,.08) 70%,rgba(160,250,255,.18) 72%,rgba(95,240,255,0) 74%);animation:gmBalaye 5s linear infinite}
 @keyframes gmTrame{to{background-position:0 64px,0 0}}
 @keyframes gmBalaye{to{top:122%}}
 #gmFils{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none}
-#gmFils path{fill:none;stroke:#5ff0ff;stroke-width:1.6;stroke-dasharray:7 7;stroke-linecap:round;animation:gmFlux 1.1s linear infinite}
-#gmFils path.hl{stroke-width:6;stroke-dasharray:none;opacity:.16;animation:none}
-#gmFils path.n{stroke:#8f84c8;opacity:.55;animation-duration:2.6s}
-#gmFils path.r{stroke:#ffd75e}
-#gmFils path.lead{stroke-width:1;stroke-dasharray:2 3;opacity:.75;animation:none}
-#gmFils path.lead.f{stroke:#ffd75e;opacity:1}
+#gmFils path{fill:none;stroke:#5ff0ff;stroke-width:1.2;stroke-linecap:round}
+#gmFils path.ch{stroke-dasharray:3 6;opacity:.32;animation:gmFlux 2.2s linear infinite} /* la constellation : discrète, elle ne barre plus les cartes */
+#gmFils path.ch.r{stroke:#ffd75e;opacity:.42}
+#gmFils path.lead{stroke-width:1.3;opacity:.8}                     /* le filet : de la carte à son meuble */
+#gmFils path.lead.f,#gmFils path.lead.r{stroke:#ffd75e;opacity:.95}
 @keyframes gmFlux{to{stroke-dashoffset:-28}}
 .gmPt{position:absolute;left:0;top:0;width:12px;height:12px;margin:-6px 0 0 -6px;pointer-events:none;will-change:transform}
 .gmPt::before{content:'';position:absolute;inset:0;transform:rotate(45deg);background:#5ff0ff;box-shadow:0 0 0 2px rgba(7,5,15,.85),0 0 14px #5ff0ff}
@@ -2798,7 +2797,7 @@ html #garage.missions #gPlayMain{display:none!important}
 .gmPt.n::before{background:#8f84c8;box-shadow:0 0 0 2px rgba(7,5,15,.85)}.gmPt.n::after{display:none}
 @keyframes gmOnde{from{opacity:.9;transform:rotate(45deg) scale(.6)}to{opacity:0;transform:rotate(45deg) scale(1.5)}}
 .gmC{position:absolute;left:0;top:0;width:var(--gmW,156px);box-sizing:border-box;padding:8px 10px 9px;pointer-events:auto;cursor:pointer;will-change:transform;
-  background:linear-gradient(180deg,rgba(10,30,58,.84),rgba(6,14,34,.9));color:#dff8ff;font-size:8px;letter-spacing:1px;line-height:1.5;
+  display:flex;flex-direction:column;background:linear-gradient(180deg,rgb(11,30,57),rgb(6,14,33));color:#dff8ff;font-size:8px;letter-spacing:1px;line-height:1.5;
   box-shadow:inset 0 0 0 1px rgba(95,240,255,.35),0 0 18px rgba(95,240,255,.12);
   --bc:#5ff0ff;animation:gmIn .45s var(--ease) backwards;animation-delay:calc(var(--i,0)*85ms + 260ms)}
 .gmC::before,.gmC::after{content:'';position:absolute;width:10px;height:10px;border:2px solid var(--bc);pointer-events:none} /* les crochets d'un viseur */
@@ -2817,20 +2816,26 @@ html #garage.missions #gPlayMain{display:none!important}
 .gmC.f .gmChk i{background:#ffd75e;box-shadow:0 0 6px #ffd75e}
 .gmC.ok{--bc:#5ee37a;cursor:default}.gmC.ok .gmChk i{background:#5ee37a}
 .gmC.r{--bc:#ffd75e;width:var(--gmWr,172px)}
-.gmC.r .obFig{display:block;width:100%;height:46px;margin:2px 0 4px}.gmC.r .obFig img{width:100%;height:100%;object-fit:contain}
+.gmC small{margin-top:auto}
+.gmP{display:flex;align-items:center;gap:6px;margin:6px 0 4px}.gmP u{flex:1;min-width:0;margin:0}.gmP b{flex:none;font-weight:400;font-size:7px;color:var(--cash,#5ee37a);white-space:nowrap}
+.gmRw{display:flex;align-items:center;gap:10px;margin:2px 0 4px}                                   /* la récompense : l'image À GAUCHE, le nom à droite (l'image était en position absolue : elle recouvrait le nom) */
+.gmC.r .obFig{position:relative;right:auto;top:auto;margin:0;flex:none;width:74px;height:44px;display:flex}.gmC.r .obFig img{width:100%;height:100%;object-fit:contain}
+.gmC.r small{margin-top:3px}
+.gmNext{display:flex;align-items:center;gap:6px;margin-top:6px;padding-top:6px;border-top:1px solid rgba(143,132,200,.35);font-size:7px;letter-spacing:1px;color:#b9b2e6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gmNext .pxi{--pxs:1;color:#8f84c8}
 .gmC.n{--bc:#8f84c8;opacity:.72;width:var(--gmWn,128px);cursor:default}
 .gmC.n .gmX{color:#b9b2e6}
 .gmC.vu{animation:none}.gmC.flash{animation:gmFlash .5s var(--ease)}
 @keyframes gmFlash{30%{filter:brightness(2.2)}}
 #gmHead{position:absolute;left:calc(var(--sL) + var(--gut));top:calc(var(--sT) + 12px);display:flex;flex-direction:column;gap:6px;pointer-events:none;max-width:min(60vw,420px)}
 #gmHead b{font-weight:400;font-size:22px;letter-spacing:3px;color:#5ff0ff;text-shadow:0 0 12px rgba(95,240,255,.8),2px 2px 0 #07050f}
-#gmHead small{font-size:8px;letter-spacing:1px;color:#8fb8c8}
+#gmHead small{font-size:8px;letter-spacing:1px;color:#8fb8c8;line-height:1.6}
 #gmHead em{font-style:normal;font-size:8px;letter-spacing:1px;color:#ffd75e;line-height:1.6}
 #gmBas{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--sB) + 14px);display:flex;gap:12px;pointer-events:auto;width:min(calc(100vw - 2 * var(--gut)),460px)}
 #gmBas .gmHome{flex:none;width:76px;min-width:76px;flex-direction:column;gap:6px;padding:6px 4px 4px 8px;font-size:var(--f1);letter-spacing:1px;--nc:var(--tx2);color:var(--tx2)}
 #gmBas .gmJouer{flex:1;min-width:0}
 @media (orientation:landscape) and (max-height:540px){#gmBas{left:auto;right:calc(var(--sR) + var(--gut));transform:none;width:min(46vw,380px)}#gmHead b{font-size:18px}}
-@media (orientation:portrait) and (max-width:760px){.gmC{--gmW:140px}.gmC.r{--gmWr:150px}.gmC.n{--gmWn:112px}}
+@media (orientation:portrait) and (max-width:760px){.gmC{padding:7px 8px 8px}.gmC .gmX{font-size:8px}.gmT b{font-size:7px}}
 @media (prefers-reduced-motion:reduce){#gMis::before,#gMis::after,#gmFils path,.gmPt::after,.gmC{animation:none!important}}
 /* LA MISSION SUIVIE, EN COURSE : une ligne discrète — la consigne, l'avancement, une jauge fine (voir misFocusMaj) */
 #misFocus{position:fixed;z-index:3;left:50%;bottom:calc(var(--sB,0px) + 6px);transform:translateX(-50%);display:none;align-items:center;gap:7px;
@@ -32664,7 +32669,19 @@ function buildGarageRoom(){
   // C'est ELLE qui ouvre l'atelier sur la nuit — sans ça, on tourne dans une boîte fermée.
   for(const sx of [-1,1]){bx(sx*4.85,2.4,hd-.1,.24,4.8,.4,M.fer);bx(sx*4.85,4.95,hd-3.3,.14,.14,6.6,M.fer);}
   bx(0,4.85,hd-.15,10,.3,.5,M.fer);                                     // traverse haute
-  for(let i=0;i<5;i++)bx(0,4.98,hd-.85-i*1.02,9.5,.13,.92,M.acier);     // les panneaux empilés
+  /* (2026-09-30, Sacha : « la porte du garage doit être fermée au début et s'ouvrir avec les flammes quand on clique sur JOUER ») LA PORTE
+     SECTIONNELLE descend : cinq panneaux de tôle nervurée sur le rail, FERMÉS au menu — le feu brûle derrière, il passe par les joints, par
+     les hublots du 4e panneau et sous la porte. Au LÂCHER, ils remontent le rail, prennent le coude et filent sous le plafond (garPorte,
+     0,8 s dès le JOUER) : le rideau de flammes apparaît et la caisse y entre. Ouverte, la porte retrouve exactement la place des panneaux
+     empilés d'avant (y 4,98 ; z hd − 0,85 − 1,02 i). */
+  {const nerf=(x,w,h)=>{x.fillStyle='#8f98ab';x.fillRect(0,0,w,h);
+      for(const y9 of [9,20]){x.fillStyle='#5d6576';x.fillRect(0,y9,w,2);x.fillStyle='#b9c1d1';x.fillRect(0,y9+2,w,1);} // deux nervures par panneau
+      x.fillStyle='#4c5363';x.fillRect(0,0,w,1);x.fillRect(0,h-1,w,1);for(let i=0;i<8;i++)x.fillRect(i*w/8,0,1,h);};    // les bords, les joints verticaux (aucune lumière derrière)
+   const tN=cvT(256,32,nerf),tH=cvT(256,32,(x,w,h)=>{nerf(x,w,h);for(let i=0;i<6;i++){const cx=w*(.14+.144*i);x.fillStyle='#2a2f3a';x.fillRect(cx-12,7,24,17);x.fillStyle='#1a0602';x.fillRect(cx-10,9,20,13);}}),
+         eH=cvT(256,32,(x,w,h)=>{x.fillStyle='#000';x.fillRect(0,0,w,h);for(let i=0;i<6;i++){const cx=w*(.14+.144*i),gr=x.createLinearGradient(0,22,0,9);gr.addColorStop(0,'#ffd26a');gr.addColorStop(1,'#ff4a10');x.fillStyle=gr;x.fillRect(cx-10,9,20,13);}}); // les hublots : le FEU derrière
+   const mN=L(0xffffff,0x0b0d12,{map:tN}),mH=L(0xffffff,0xffffff,{map:tH,emissiveMap:eH}),P9=[];
+   for(let i=0;i<5;i++)P9.push(bx(0,.47+.94*i,hd-.2,9.5,.9,.1,i===3?mH:mN));
+   GAR.porte={P:P9,zD:hd-.2,k:0,e:-1,mH:mH,db:null};garPortePose(0);}
   bx(3.2,5.55,hd-3.4,.8,.46,.66,M.acier);                               // le moteur de porte
   cy(3.2,5.2,hd-3.4,.03,.5,M.chrome);
   // ⚠ PAS DE BARRIÈRE, PAS DE PARVIS CLOS (verdict user) : franchir le seuil, c'est déjà être sur
@@ -33601,18 +33618,31 @@ function feuPixPas(F){
     const o=(y*W+x)*4,a=e.l;px[o]=Math.max(px[o],255*a);px[o+1]=Math.max(px[o+1],(90+110*a)*a);px[o+2]=Math.max(px[o+2],40*a);}
   F.cx.putImageData(F.img,0,0);F.tex.needsUpdate=true;
 }
+function garPortePose(e){ // la porte le long de son RAIL : montée verticale (0 → 4,7 m), coude de 0,28 m, puis à plat sous le plafond (−z)
+  const Pt=GAR.porte;if(!Pt||e===Pt.e)return;Pt.e=e;const zD=Pt.zD;
+  for(let i=0;i<5;i++){const s0=.47+.94*i,s=s0+(5.51+1.02*i-s0)*e,m=Pt.P[i];
+    if(s<=4.7){m.position.set(0,s,zD);m.rotation.set(0,0,0);}
+    else if(s<=5.14){const th=(s-4.7)/.44*Math.PI/2;m.position.set(0,4.7+.28*Math.sin(th),zD-.28+.28*Math.cos(th));m.rotation.set(-th,0,0);}
+    else{m.position.set(0,4.98,zD-.28-(s-5.14));m.rotation.set(-Math.PI/2,0,0);}}}
+function garPorte(dt){ // FERMÉE tant qu'on ne part pas ; le JOUER (GAR.go, retour de vue compris) l'ouvre en 0,8 s, en accélérant puis en freinant
+  const Pt=GAR.porte;if(!Pt)return;
+  Pt.k=GAR.go?Math.min(1,Pt.k+dt/.8):0;garPortePose(Pt.force!=null?Pt.force:Pt.k*Pt.k*(3-2*Pt.k)); // (Pt.force : dbgPorte, le banc)
+  const F=GAR.feu,fl=F?.82+.12*Math.sin(F.t*9.1)+.06*Math.sin(F.t*23.7):1;Pt.mH.emissiveIntensity=fl*(1-Pt.e*.6); // les hublots battent avec le feu
+  const B=GAR.beau;if(B){if(B.fac)B.fac.material.opacity=.2*(.15+.85*Pt.e);if(B.braises)B.braises.visible=Pt.e>.3;} // porte fermée : la lumière du feu ne passe plus qu'au ras du sol, pas de braises
+}
+window.dbgPorte=function(e){if(GAR.porte)GAR.porte.force=(e==null||e==='libre')?null:+e;return GAR.porte?{k:+GAR.porte.k.toFixed(3),e:+GAR.porte.e.toFixed(3),go:!!GAR.go,pre:!!(GAR.go&&GAR.go.pre)}:null;}; // (banc) l'état de la porte du garage ; dbgPorte(e) la FIGE à e (0 fermée → 1 ouverte), dbgPorte('libre') la rend
 function garFeu(dt){ // il brûle au repos, il RUGIT pendant le lâcher (k : 0 → 1 en 1,7 s, lissé) ; 30 pas/s (12 si « réduire les animations »)
   const F=GAR.feu;if(!F)return;const G=GAR.go;
   const u=G?Math.min(1,G.t/1.7):0,k0=u*u*(3-2*u);F.k+=(k0-F.k)*Math.min(1,dt*(G?12:3));
-  if(G&&openGarage._feu)try{openGarage._feu.gain(8*F.k,.05);}catch(e){} // le feu GRONDE quand la caisse entre dedans
-  if(GAR.feuLu)GAR.feuLu.material.opacity=Math.min(1,(.16+.03*Math.sin(F.t*9.1)+.02*Math.sin(F.t*23.7))*(1+F.k*2.4)); // (v3, Léo : « le sol ») .42 → .16 au repos, elle monte au lâcher
+  {const po=GAR.porte?Math.max(0,GAR.porte.e):1,db=8*F.k-9*(1-po);if(openGarage._feu&&(G||GAR.porte&&Math.abs(db-(GAR.porte.db==null?99:GAR.porte.db))>.3)){if(GAR.porte)GAR.porte.db=db;try{openGarage._feu.gain(db,.05);}catch(e){}}} // le feu GRONDE quand la caisse entre dedans — (2026-09-30) ÉTOUFFÉ derrière la porte fermée
+  if(GAR.feuLu)GAR.feuLu.material.opacity=Math.min(1,(.16+.03*Math.sin(F.t*9.1)+.02*Math.sin(F.t*23.7))*(1+F.k*2.4)*(.4+.6*(GAR.porte?Math.max(0,GAR.porte.e):1))); // (v3, Léo : « le sol ») .42 → .16 au repos, elle monte au lâcher ; (porte fermée : la lueur qui passe SOUS la porte)
   const pas=REDUCED_MOTION?1/12:1/30;F.acc+=dt;if(F.acc<pas)return;F.acc=Math.min(F.acc-pas,pas);F.t+=pas;F.dt=pas;feuPixPas(F);
 }
 function garBeaute(dt,t9){ // (2026-09-30) L'ATELIER v2 : ce qui vit — le feu qui éclaire et se reflète, le néon, les gyrophares, l'anneau de LED, les braises
-  const B=GAR.beau;if(!B)return;const k=GAR.feu?GAR.feu.k:0;
-  const fl=(1+.07*Math.sin(t9*9.1)+.04*Math.sin(t9*23.7)+.02*Math.sin(t9*41.3))*(1+k*1.4); // le souffle des flammes (celui de la lueur du seuil), et le RUGISSEMENT du lâcher — (2026-09-30, Léo : « les reflets des flammes un peu forts, ça ne va pas avec l'aspect premium ; surtout le sol, et le reflet en général ») un souffle calme au repos, tout monte au lâcher
-  {const d9=camera.getWorldDirection(B.cd||(B.cd=new THREE.Vector3())),w9=Math.max(0,Math.min(1,d9.z*1.25));B.reflet.visible=w9>.05;B.reflet.material.opacity=Math.min(1,.14*fl)*w9*w9;} /* (Léo) .5 → .14 : un reflet, pas une deuxième porte en feu */ // un REFLET dépend du regard : calé sur la vue de la porte, il s'efface quand la caméra ne regarde plus la porte (vu de dos, ou de la vue des MISSIONS, ce n'était plus qu'une mosaïque de couleurs au sol)B.fac.material.opacity=Math.min(1,.5*fl);
-  B.murG.material.opacity=B.murD.material.opacity=Math.min(1,.15*fl);B.plaf.material.opacity=Math.min(1,.06*fl);B.fac.material.opacity=Math.min(1,.2*fl); // (Léo) murs .42 → .15, plafond .16 → .06, façade .5 → .2
+  const B=GAR.beau;if(!B)return;const k=GAR.feu?GAR.feu.k:0,po=GAR.porte?Math.max(0,GAR.porte.e):1; // po : l'ouverture de la porte (0 fermée → 1)
+  const fl=(1+.07*Math.sin(t9*9.1)+.04*Math.sin(t9*23.7)+.02*Math.sin(t9*41.3))*(1+k*1.4); // le souffle des flammes (celui de la lueur du seuil), et le RUGISSEMENT du lâcher — (Léo : « les reflets des flammes un peu forts, ça ne va pas avec l'aspect premium ; surtout le sol, et le reflet en général ») un souffle calme au repos, tout monte au lâcher
+  {const d9=camera.getWorldDirection(B.cd||(B.cd=new THREE.Vector3())),w9=Math.max(0,Math.min(1,d9.z*1.25));B.reflet.visible=w9>.05;B.reflet.material.opacity=Math.min(1,.14*fl)*w9*w9*(.12+.88*po);} /* (Léo) .5 → .14 : un reflet, pas une deuxième porte en feu */ // un REFLET dépend du regard : calé sur la vue de la porte, il s'efface quand la caméra ne regarde plus la porte
+  B.murG.material.opacity=B.murD.material.opacity=Math.min(1,.15*fl)*(.2+.8*po);B.plaf.material.opacity=Math.min(1,.06*fl)*(.2+.8*po); // (Léo) murs .42 → .15, plafond .16 → .06 (la façade : voir la porte, .5 → .2)
   for(const n of B.neons)n.material.opacity=.86+.1*Math.sin(t9*2.3)+(Math.random()<.004?-.5:0); // le néon respire, et hoquette parfois
   for(const G9 of B.gyro){const c=Math.cos(t9*4.2+G9.ph),c3=c>0?c*c*c:0;G9.s.material.opacity=c3*.95;G9.s.scale.x=1.2+1.6*c3;} // le faisceau qui passe
   B.led.rotation.z+=dt*(.9+k*6);B.led.material.opacity=Math.min(1,.75+.2*Math.sin(t9*3.1)+k*.6);
@@ -33639,7 +33669,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   const ay=GARAGE_Y,t9=performance.now()*.001;
   if(!GAR.root)buildGarageRoom();
   GAR.root.position.y=ay;GAR.root.visible=true;
-  garFeu(dt);garBeaute(dt,t9); // le rideau de flammes de la porte : il brûle au repos, il RUGIT pendant le lâcher
+  garPorte(dt);garFeu(dt);garBeaute(dt,t9); // (2026-09-30) la PORTE (fermée au menu, ouverte au JOUER) ; le rideau de flammes : il brûle au repos, il RUGIT pendant le lâcher
   carGroup.position.set(0,ay+GAR.POD,0);carGroup.rotation.set(0,garRot(),0);carGroup.visible=true; // posée SUR le plateau — (2026-09-29, Léo) et c'est ELLE qui tourne, avec lui (voir GAR_CAM_A)
   garageFloor.visible=false;                       // l'ancienne nappe de brume : l'atelier a un vrai sol
   // CIEL CYAN étoilé — ce qu'on voit par la porte relevée (poussé après bioStep : ça gagne cette frame)
@@ -33658,7 +33688,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
      plateau qui tourne (« le garage sobre »), elles tournaient AVEC la caisse — elle montrait toujours le même côté éclairé et aucun reflet
      ne courait sur la tôle. Et le CONTRE-JOUR, c'est le FEU : face à la porte (au menu, au lâcher) il passe du cyan à la braise et vacille
      avec les flammes — la caisse se découpe sur le rideau de feu, bordée d'orange. Dos à la porte, il redevient le cyan d'avant. */
-  {const cA9=garCamA(),wF=Math.max(0,-Math.cos(cA9)),fl9=1+.13*Math.sin(t9*9.1)+.08*Math.sin(t9*23.7);
+  {const cA9=garCamA(),wF=Math.max(0,-Math.cos(cA9))*(.25+.75*(GAR.porte?Math.max(0,GAR.porte.e):1)),fl9=1+.13*Math.sin(t9*9.1)+.08*Math.sin(t9*23.7);
    stallKey.position.set(Math.sin(cA9+.72)*5.2,ay+4.1,Math.cos(cA9+.72)*5.2);
    stallRim.color.setRGB(.44+.56*wF,.82-.42*wF,1-.86*wF);stallRim.intensity=(.5+.6*wF)*(wF>0?fl9:1);stallRim.distance=26;
    stallRim.position.set(Math.sin(cA9+Math.PI+.35)*6,ay+2.3,Math.cos(cA9+Math.PI+.35)*6);}
@@ -34133,12 +34163,10 @@ function garMenuSuit(){ // l'étiquette MISSIONS se pose sur le socle, où qu'il
    · SUIVRE : toucher un défi le coche (`SAVE.d.mis.f`, un seul à la fois, re-toucher = décocher) ; en course `#misFocus` le montre
      en bas, discret (consigne · avancement · jauge fine), vert 3 s quand il tombe. Carnet neuf ou défi réussi : plus de suivi. */
 const GMIS={mk:0,e:0,v:new THREE.Vector3(),holo:[],
-  ancres:[{k:'d',i:0,p:[-9.3,2.3,2.6]},   // le compresseur, mur gauche
-          {k:'d',i:1,p:[-4.4,2.2,-12.0]}, // l'établi, au fond
-          {k:'d',i:2,p:[9.9,4.2,-10.3]},  // le pont élévateur, au fond à droite
-          {k:'r',p:[0,3.0,0]},            // la récompense, au-dessus de la caisse
-          {k:'n',j:1,p:[9.5,3.5,3.4]},    // le carnet suivant : le rack
-          {k:'n',j:2,p:[9.6,2.7,8.4]}]};  // et celui d'après : le distributeur
+  ancres:[{k:'d',i:0,p:[-9.3,2.3,2.6],pp:[-5.6,1.5,-12.2]},   // le compresseur, mur gauche (debout : l'étau, au bout de l'établi)
+          {k:'d',i:1,p:[-4.4,2.2,-12.0],pp:[-2.7,1.4,-12.4]},  // l'établi, au fond (debout : son autre bout)
+          {k:'d',i:2,p:[9.9,2.4,-10.3],pp:[4.8,2.0,-12.6]},   // le pont élévateur, au fond à droite (debout : le mur de l'affiche) — (2026-09-30) couché, 4,2 → 2,4 m
+          {k:'r',p:[0,3.0,0]}]};          // la récompense, au-dessus de la caisse — (2026-09-30, « un peu brouillon ») les deux carnets SUIVANTS n'ont plus de carte ni de faisceau : une ligne dans la carte de la récompense
 function gmHoloBuild(g){ // les hologrammes 3D des ancres : un faisceau (sprite) et un anneau au sol — opacité 0 hors de l'écran MISSIONS
   GMIS.holo=[];const rg=new THREE.RingGeometry(.4,.5,28);
   for(const a of GMIS.ancres){const col=a.k==='r'?0xffd75e:a.k==='n'?0x8f84c8:0x5ff0ff;
@@ -34148,6 +34176,8 @@ function gmHoloBuild(g){ // les hologrammes 3D des ancres : un faisceau (sprite)
       ring.rotation.x=-Math.PI/2;ring.position.set(a.p[0],.05,a.p[2]);g.add(ring);}
     GMIS.holo.push({beam:beam,ring:ring,a:a});}
 }
+function gmHoloPlace(land){ // (2026-09-30) les hologrammes suivent l'ancre de l'orientation (voir `pp`)
+  for(const h of GMIS.holo){const q=(!land&&h.a.pp)||h.a.p;h.beam.scale.set(.5,q[1]+.5,1);h.beam.position.set(q[0],(q[1]+.5)/2,q[2]);if(h.ring)h.ring.position.set(q[0],.05,q[2]);}}
 function gmHoloTick(t9){const e=GMIS.e;for(let i=0;i<GMIS.holo.length;i++){const h=GMIS.holo[i],o=e*(.34+.12*Math.sin(t9*2.7+i*1.3));
   h.beam.material.opacity=o;if(h.ring){h.ring.material.opacity=e*.8;const k=1+.12*Math.sin(t9*3.1+i);h.ring.scale.set(k,k,k);}}}
 function gmRender(vu){ // vu : l'écran est déjà là (un défi coché) — les cartes ne rejouent pas leur entrée
@@ -34157,46 +34187,62 @@ function gmRender(vu){ // vu : l'écran est déjà là (un défi coché) — les
   GMIS.ancres.forEach(function(a,k){let cls,pt,in9;
     if(a.k==='d'){const m=c.m[a.i],ok=!!s.ok[a.i],f=s.f===a.i,b=Math.min(m.v,s.best[a.i]||0);
       cls='d'+(ok?' ok':'')+(f?' f':'');pt=ok?'ok':f?'f':'';
-      in9='<div class="gmT"><span class="gmChk"><i></i></span>'+TR('DEFI')+' '+(a.i+1)+'<b>+'+fmtC(m.p)+'</b></div><div class="gmX">'+misTxt(m)+'</div><u><em style="width:'+Math.round(100*(ok?1:misPart(m,b)))+'%"></em></u><small>'+(ok?TR('REUSSI'):f?TR('SUIVI EN COURSE'):TR('MEILLEUR ESSAI')+' '+misProgV(m,b))+'</small>';}
-    else if(a.k==='r'){cls=pt='r';
-      in9='<div class="gmT">'+pxi('etoile')+' '+TR('RECOMPENSE')+'<b style="color:#ffd75e">'+s.ok.filter(Boolean).length+' / 3</b></div>'+misGainFig(g)+'<div class="gmX" style="color:'+g.col+'">'+sansAcc(g.nom)+'</div><small>'+sansAcc(g.fam||'')+'</small>';}
-    else{const gN=misGain(carnet(s.n+a.j));cls=pt='n';
-      in9='<div class="gmT">'+pxi('verrou')+' '+TR('ENSUITE')+'</div><div class="gmX">'+sansAcc(gN.nom)+'</div><small>'+TR('CARNET')+' '+(s.n+a.j+1)+'</small>';}
+      in9='<div class="gmT"><span class="gmChk"><i></i></span>'+TR('DEFI')+' '+(a.i+1)+'</div><div class="gmX">'+misTxt(m)+'</div><div class="gmP"><u><em style="width:'+Math.round(100*(ok?1:misPart(m,b)))+'%"></em></u><b>+'+fmtC(m.p)+'</b></div><small>'+(ok?TR('REUSSI'):f?TR('SUIVI EN COURSE'):TR('MEILLEUR ESSAI')+' '+misProgV(m,b))+'</small>';}
+    else{const gN=misGain(carnet(s.n+1));cls=pt='r';
+      in9='<div class="gmT">'+pxi('etoile')+' '+TR('RECOMPENSE')+'<b style="color:#ffd75e">'+s.ok.filter(Boolean).length+' / 3</b></div>'
+        +'<div class="gmRw">'+misGainFig(g)+'<div><div class="gmX" style="color:'+g.col+'">'+sansAcc(g.nom)+'</div><small>'+sansAcc(g.fam||'')+'</small></div></div>'
+        +'<div class="gmNext">'+pxi('verrou')+' '+TR('ENSUITE')+' · '+sansAcc(gN.nom)+'</div>';}
     h+='<i class="gmPt '+pt+'"></i><div class="gmC '+cls+(vu?' vu':'')+'" data-k="'+k+'" style="--i:'+k+'" role="button">'+in9+'</div>';});
   el.innerHTML=h;
-  let p9='';for(let i=0;i<GMIS.ancres.length-1;i++){const cl=i>=3?'n':i===2?'r':'';p9+='<path class="hl '+cl+'"/><path class="'+cl+'"/>';}
-  for(let i=0;i<GMIS.ancres.length;i++)p9+='<path class="lead'+(GMIS.ancres[i].k==='d'&&s.f===GMIS.ancres[i].i?' f':'')+'"/>';
+  let p9='';for(let i=0;i<GMIS.ancres.length-1;i++)p9+='<path class="ch'+(i===GMIS.ancres.length-2?' r':'')+'"/>';
+  for(let i=0;i<GMIS.ancres.length;i++)p9+='<path class="lead'+(GMIS.ancres[i].k==='d'&&s.f===GMIS.ancres[i].i?' f':GMIS.ancres[i].k==='r'?' r':'')+'"/>';
   sv.innerHTML=p9;
   GMIS.cards=[].slice.call(el.querySelectorAll('.gmC'));GMIS.pts=[].slice.call(el.querySelectorAll('.gmPt'));
-  GMIS.paths=[].slice.call(sv.querySelectorAll('path'));GMIS.sz=GMIS.cards.map(function(c9){return [c9.offsetWidth||150,c9.offsetHeight||60];});
-  GMIS.last=null;
+  GMIS.paths=[].slice.call(sv.querySelectorAll('path'));
+  GMIS.last=null;GMIS.lw=0; // les cases se recalculent (nouvelles cartes, nouveaux textes)
   const sous=$('gmSous');if(sous)sous.textContent=TR('CARNET')+' '+(s.n+1)+' · '+TR('CHAQUE DEFI EN UNE PARTIE');
   const aide=$('gmAide');if(aide)aide.textContent=s.f>=0?TR('SUIVI')+' : '+misTxt(c.m[s.f]):TR('TOUCHE UN DEFI POUR LE SUIVRE EN COURSE');
 }
-function gmSuit(){ // chaque image : les points sur leurs meubles, les cartes à côté (écartées, dans l'écran), les fils
+/* LES CASES (2026-09-30, Sacha : « missions, c'est pas mal mais un peu brouillon »). Les cartes flottaient À CÔTÉ de leur meuble et
+   s'écartaient les unes des autres (8 passes) : elles se chevauchaient quand même, le fil de la constellation les traversait, deux cartes
+   « ENSUITE » sortaient de l'écran. Désormais l'œil LIT une liste et la scène MONTRE où vit chaque défi : les TROIS DÉFIS en une rangée
+   de cases égales (debout : sous le titre ; couché : à droite du titre), la RÉCOMPENSE en bas (debout : au-dessus des boutons ; couché :
+   à gauche d'eux) avec « ENSUITE » dedans ; chaque carte est reliée à son meuble par un FILET fin, la constellation des points reste,
+   discrète. Les cases ne se recalculent que si l'écran change (taille, textes) : chaque image ne fait que suivre les points. */
+function gmPlace(W,H){
+  const C=GMIS.cards,Q=GMIS.Q||(GMIS.Q=[]),hd=$('gmHead'),bs=$('gmBas'),rh=hd&&hd.getBoundingClientRect(),rb=bs&&bs.getBoundingClientRect(),gp=8,land=W>H*1.25;
+  const g0=rh&&rh.width?rh.left:16;
+  const top=land?(rh&&rh.height?rh.top:12):(rh&&rh.height?rh.bottom+12:64);
+  const xL=land?(rh&&rh.width?rh.right+16:W*.42):g0,xR=W-g0;
+  const cw=Math.floor(Math.min(land?200:180,(xR-xL-2*gp)/3));
+  for(let k=0;k<3&&k<C.length;k++){C[k].style.width=cw+'px';C[k].style.minHeight='';}
+  let hM=0;for(let k=0;k<3&&k<C.length;k++)hM=Math.max(hM,C[k].offsetHeight);
+  for(let k=0;k<3&&k<C.length;k++){C[k].style.minHeight=hM+'px';Q[k]=[xL+k*(cw+gp),top,cw,hM];}
+  const r=C[3];if(r){const bl=rb&&rb.width?rb.left:W,bt=rb&&rb.height?rb.top:H-14,bb=rb&&rb.height?rb.bottom:H-14;
+    const rw=Math.floor(land?Math.min(440,bl-g0-14):W-2*g0);r.style.width=rw+'px';const rhh=r.offsetHeight;
+    Q[3]=[g0,land?bb-rhh:bt-12-rhh,rw,rhh];}
+  for(let k=0;k<C.length;k++)if(Q[k])C[k].style.transform='translate('+Q[k][0].toFixed(1)+'px,'+Q[k][1].toFixed(1)+'px)';
+}
+function gmSuit(){ // chaque image : les points sur leurs meubles, les filets des cartes, la constellation (les cartes, elles, ne bougent pas)
   if(!GMIS.cards||!GMIS.cards.length)return;
-  const W=VP.w,H=VP.h,v=GMIS.v,A=GMIS.ancres,n=A.length,P=GMIS.P||(GMIS.P=[]),Q=GMIS.Q||(GMIS.Q=[]);
-  const now=performance.now();if(!GMIS.bT||now-GMIS.bT>300){GMIS.bT=now;const hd=$('gmHead'),bs=$('gmBas');
-    const rh=hd&&hd.getBoundingClientRect(),rb=bs&&bs.getBoundingClientRect();GMIS.y0=(rh&&rh.height?rh.bottom:40)+8;GMIS.y1=(rb&&rb.height?rb.top:H)-8;
-    GMIS.bx=rb&&rb.height?[rb.left,rb.right]:null;}
-  const y0=GMIS.y0,y1=GMIS.y1,cl=function(x,a,b){return x<a?a:x>b?b:x;};
-  for(let k=0;k<n;k++){v.set(A[k].p[0],A[k].p[1]+GARAGE_Y,A[k].p[2]).project(camera);
-    const px=(v.x*.5+.5)*W,py=(.5-v.y*.5)*H,w=GMIS.sz[k][0],h=GMIS.sz[k][1];P[k]=[px,py,v.z<1];
-    const up=py-h-24>=y0;Q[k]=[cl(px-w/2,8,W-w-8),cl(up?py-h-24:py+24,y0,y1-h),w,h];}
-  for(let it=0;it<8;it++)for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){const a=Q[i],b=Q[j];
-    const ox=Math.min(a[0]+a[2],b[0]+b[2])-Math.max(a[0],b[0])+8,oy=Math.min(a[1]+a[3],b[1]+b[3])-Math.max(a[1],b[1])+8;
-    if(ox<=0||oy<=0)continue;
-    if(oy<ox){const d=(a[1]+a[3]/2<=b[1]+b[3]/2?1:-1)*oy/2;a[1]=cl(a[1]-d,y0,y1-a[3]);b[1]=cl(b[1]+d,y0,y1-b[3]);}
-    else{const d=(a[0]+a[2]/2<=b[0]+b[2]/2?1:-1)*ox/2;a[0]=cl(a[0]-d,8,W-a[2]-8);b[0]=cl(b[0]+d,8,W-b[2]-8);}}
-  let sig='';for(let k=0;k<n;k++)sig+=(P[k][0]|0)+','+(P[k][1]|0)+','+(Q[k][0]|0)+','+(Q[k][1]|0)+';';
+  const W=VP.w,H=VP.h,v=GMIS.v,A=GMIS.ancres,n=A.length,P=GMIS.P||(GMIS.P=[]);
+  const now=performance.now();
+  if(GMIS.lw!==W||GMIS.lh!==H||!GMIS.bT||now-GMIS.bT>600){GMIS.bT=now;GMIS.lw=W;GMIS.lh=H;gmPlace(W,H);GMIS.last=null;}
+  const Q=GMIS.Q;if(!Q)return;
+  const land=W>H*1.25;if(GMIS.land!==land){GMIS.land=land;gmHoloPlace(land);}
+  for(let k=0;k<n;k++){const q=(!land&&A[k].pp)||A[k].p;v.set(q[0],q[1]+GARAGE_Y,q[2]).project(camera);
+    const px=(v.x*.5+.5)*W,py=(.5-v.y*.5)*H;P[k]=[px,py,v.z<1&&px>-20&&px<W+20&&py>-20&&py<H+20];}
+  let sig='';for(let k=0;k<n;k++)sig+=(P[k][0]|0)+','+(P[k][1]|0)+(P[k][2]?'':'x')+';';
+  for(let k=0;k<Q.length;k++)if(Q[k])sig+=(Q[k][0]|0)+','+(Q[k][1]|0)+';';
   if(sig===GMIS.last)return;GMIS.last=sig;                                  // rien n'a bougé : pas une écriture
-  for(let k=0;k<n;k++){const pt=GMIS.pts[k],cd=GMIS.cards[k];
-    pt.style.transform='translate('+P[k][0].toFixed(1)+'px,'+P[k][1].toFixed(1)+'px)';pt.style.visibility=P[k][2]?'':'hidden';
-    cd.style.transform='translate('+Q[k][0].toFixed(1)+'px,'+Q[k][1].toFixed(1)+'px)';}
+  for(let k=0;k<n;k++){const pt=GMIS.pts[k];
+    pt.style.transform='translate('+P[k][0].toFixed(1)+'px,'+P[k][1].toFixed(1)+'px)';pt.style.visibility=P[k][2]?'':'hidden';}
   const pa=GMIS.paths;let q=0;
-  for(let k=0;k<n-1;k++){const d9=(P[k][2]&&P[k+1][2])?'M'+P[k][0].toFixed(1)+' '+P[k][1].toFixed(1)+'L'+P[k+1][0].toFixed(1)+' '+P[k+1][1].toFixed(1):'';pa[q++].setAttribute('d',d9);pa[q++].setAttribute('d',d9);}
-  for(let k=0;k<n;k++){const r=Q[k],x=cl(P[k][0],r[0],r[0]+r[2]),y=cl(P[k][1],r[1],r[1]+r[3]);
-    pa[q++].setAttribute('d',P[k][2]?'M'+P[k][0].toFixed(1)+' '+P[k][1].toFixed(1)+'L'+x.toFixed(1)+' '+y.toFixed(1):'');}
+  for(let k=0;k<n-1;k++){pa[q++].setAttribute('d',(P[k][2]&&P[k+1][2])?'M'+P[k][0].toFixed(1)+' '+P[k][1].toFixed(1)+'L'+P[k+1][0].toFixed(1)+' '+P[k+1][1].toFixed(1):'');}
+  for(let k=0;k<n;k++){const r=Q[k];if(!r||!P[k][2]){pa[q++].setAttribute('d','');continue;}
+    const bas=r[1]+r[3]/2<P[k][1],x=Math.max(r[0]+10,Math.min(r[0]+r[2]-10,P[k][0])),y=bas?r[1]+r[3]:r[1]; // le filet part du bord de la carte qui REGARDE le point
+    const inside=P[k][0]>r[0]&&P[k][0]<r[0]+r[2]&&P[k][1]>r[1]&&P[k][1]<r[1]+r[3];                            // le point sous sa propre carte : pas de filet
+    pa[q++].setAttribute('d',inside?'':'M'+x.toFixed(1)+' '+y.toFixed(1)+'L'+P[k][0].toFixed(1)+' '+P[k][1].toFixed(1));}
 }
 function garMissionsOuvre(){ // la porte des MISSIONS, d'où qu'on vienne : l'écran de l'atelier
   if(garageOn){if(!GAR.go)garMode('missions');return;}
