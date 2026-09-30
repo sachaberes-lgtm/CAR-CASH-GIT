@@ -1,5 +1,36 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE JOUR D'ALTITUDE — LE NIVEAU NUAGES ET LE MENU REFAITS (2026-09-30, soir, session GAMEPLAY) — Sacha, capture du menu CHUTE + image de Zelda : Tears of the Kingdom : « c'est vilain, refonte totale, refonte également du niveau dans les nuages, ambiance haut de gamme GTA 6, toute l'ambiance de cet écran doit être refaite et parfaite » · « vilain garçon si tu rajoutes pas un moyen de déplacer la caméra autour de la voiture avec le doigt »
+- PARTAGE (accord des sessions) : GAMEPLAY = SEUL écrivain de l'IMAGE du niveau NUAGES et du menu CHUTE (ciel, lumière, brume, étalonnage,
+  mer de nuages, COTON, route, CHUTE) ; SON = l'œil de DA (critique numérotée, mesurée) et le SON (ambiance d'altitude, `chute.vent`).
+  DEBUGGING (auteur de LA CHUTE) et GRAPHISME (ciel/COTON) ont passé la main.
+- LE CIEL (skyDome, zéro programme de plus : tout est chauffé au menu) : `uJour` (0 = le ciel d'avant, au bit près) mélange un dégradé
+  À LUI — `uJZen` azur profond au zénith, `uJMid` turquoise, `uJHor` horizon crème (le couchant de Vice City multiplié ne devient jamais
+  turquoise) ; `cielJour` pose la lueur du soleil sur l'horizon (`uJSol`) ; sous l'horizon `merZ` = une MER DE NUAGES pleine (dômes crème
+  au soleil, flancs bleu-lavande, rares trouées d'azur, embrasée côté soleil, noyée au loin : `uMerLoin` 16 km). Au jour d'altitude, le
+  pommelé passe blanc-crème et ×0,2, l'onde de couleur musicale ×0,15 et le fond musical ×0,25 (ils faisaient tourner le ciel au VIOLET).
+- LES AMBIANCES : `BIOMES.matin/midi/aprem` (le niveau libre NUAGES, les heures de la carrière qui les emploient, et le menu :
+  MENU_BIO='matin') reçoivent jour/jZen/jMid/jHor/jSol (champs par défaut dans BIO_ETAL0 : 0 partout ailleurs, bioMix mélange), une brume
+  repoussée (900-1000 / 5000-5600), fogCj/fogIn CRÈME et BLANC (le corail et le rose de la nuit teintaient le jour en MAGENTA), un
+  étalonnage neutre (wb 1, hi qui COMPENSE le split or de la couche DA — sinon un nuage blanc, haute lumière, sortait orange), une
+  vignette bleu nuit, des nuages blancs au soleil (volSun presque neutre ; l'après-midi garde l'or) et un envTex au même ciel. Bloc
+  « LE JOUR D'ALTITUDE — LES TROIS HEURES » juste avant `const BIO`. `dbgAmb(nom,{…})` retouche à chaud (menu et course) ;
+  `dbgCielObj()` expose fog, skyU, GFX_U, COTON, lumières.
+- LA ROUTE : `ROAD_U.uTeinte` (multiplie le bitume) = `ROUTE_JOUR` [1,1.12,.88] × LVL.mer × uJour → un anthracite à peine bleuté au lieu
+  de l'encre violette ; elle se DÉTACHE du ciel clair (critère n°1 de SON).
+- LE MENU CHUTE : la caisse tombe à 1 500 m au-dessus de TOUT le monde du niveau (les cumulus deviennent un champ de nuages sous elle, la
+  mer à perte de vue) — `CHUTE_P` : alt 1500, avant 1500, pitch .22, elev .22, brume ×2,5, expo .82, clé ×.5, plus de traînée orange
+  (`trainee` 0) ni de plancher peint (`plancher` 0). ⚠ Au menu la brume et l'exposition n'étaient JAMAIS écrites (fog #5e3254 de
+  départ, exposition .71) : chuteRender les écrit (FOG_BASE × P.brume, POST_EXPO × P.expo) et chuteSort(false) rend à l'atelier les
+  siennes (`CHUTE.av`).
+- L'ORBITE AU DOIGT : glisser tourne le regard autour de la caisse (tour complet ; de haut en bas elle monte/plonge, borne −0,45…1,25 rad
+  d'élévation), la vue rejoint le doigt en ~0,1 s et garde son ÉLAN lâchée en mouvement (×e^−3t) — le « glissé fondu » de l'atelier.
+  Pas de retour automatique (Léo l'avait refusé à l'atelier) : JOUER ramène la caméra derrière elle pour le piqué. `CHUTE.oA/oAc/oW/oP/oPc`,
+  branchés dans les gestionnaires pointer* de l'atelier (branche « AU CIEL »). Un appui sur un bouton de l'accueil (`[data-m]`) n'est plus
+  pris pour un glissé (avant : il déclenchait garageImpact).
+- MESURÉ : 140 programmes au menu ET en course (main : 141), 0 nouveau programme en course, 0 erreur ; boutons à la souris dans la colonne
+  (pc3.js) avant/après une/deux parties. Bancs (scratchpad GAMEPLAY) : `ciel2.js <racine> <préfixe> <variantes.json> [debout|couche]`
+  (menu, orbites, JOUER, course figée — `pause:1` fige la course, `bio` change l'heure), `ciel2/prog.js` (programmes), `pc3.js`.
 ## LA FRONDE + LE TRAIN DE BOOSTS (2026-09-30, session SON — GAMEPLAY a passé la main) — « trouve des moyens de rendre le jeu plus fun pour le gameplay quand tu roules »
 - **Mesuré d'abord** (banc `route-journal.js`, scratchpad session f6f592c0 : pilote auto, moteur 8, 90 s au sol, chaque son de la console
   horodaté en temps de jeu) : ~290 événements par minute, jamais plus de 2,5 s sans rien, dont 2/3 de pièces. La route ne manque pas

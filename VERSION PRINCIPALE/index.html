@@ -5664,6 +5664,7 @@ const skyU={uTime:{value:0},uSunDir:{value:SUN_DIR},
   uVille:{value:0},uPluie:{value:0},uFogCol:{value:new THREE.Color(0x331f48)},uCam:{value:new THREE.Vector3()},
   uVilleY:{value:0},uParis:{value:0},uParisT:{value:0}, // (2026-09-28) uParis : le ciel de PARIS (toits bas à l'horizon, lueur d'or) au lieu des tours de la ville
   // (2026-09-26) la SKYLINE descend à l'altitude de la ville (en sinus d'élévation) : la route spirale AU-DESSUS des toits
+  uJour:{value:0},uMerLoin:{value:16000},uJZen:{value:new THREE.Vector3()},uJMid:{value:new THREE.Vector3()},uJHor:{value:new THREE.Vector3()},uJSol:{value:new THREE.Vector3()}, // (2026-09-30) LE JOUR D'ALTITUDE (voir cielJour) : 0 = le ciel d'avant
   uMer:{value:0}, // (2026-09-26) LA MER DE NUAGES PEINTE sous l'horizon — niveau NUAGES seulement (voir merNuages ; fondue par lvlStep comme la ville)
   uBasTex:{value:null},uBasInv:{value:new THREE.Vector2(1,1)},uBasTr:{value:0}}; // (2026-09-27, tour 2) LE CIEL EN DEUX TEMPS : la passe lisse (cible hors écran), 1/taille de l'image où la relire, sa trame si elle est en 8 bits (voir CIEL2)
 const skyDome=(function(){
@@ -5680,6 +5681,7 @@ const skyDome=(function(){
       'varying vec3 vDir;uniform vec3 uSunDir;uniform float uTime;',
       'uniform vec3 uSkyMul,uSkyLift,uSunTint;uniform float uSunHalo,uCity,uStars,uMoon,uPulse;', // grade biome (identité par défaut) + uPulse musique
       'uniform float uSpace;', // NIVEAU ORBITE : 0 = aucun effet
+      'uniform float uJour,uMerLoin;uniform vec3 uJZen,uJMid,uJHor,uJSol;', // (2026-09-30) LE JOUR D ALTITUDE : 0 = le ciel d avant, au bit près
       'uniform float uLvl,uSpin,uBeatK,uFlip,uBar,uHi,uWave,uHueAmp;uniform vec3 uAcc,uAcc2;uniform vec4 uRingR,uRingA;', // LE FOND DU NIVEAU
       'float hash21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}',
       /* ROTATION DE TEINTE AUTOUR DE L AXE DES GRIS (Rodrigues). ⚠ c est LA fonction qui permet les
@@ -5901,6 +5903,28 @@ const skyDome=(function(){
         'vec3 b1=vec3(.085,.105,.30)*uSkyMul,b2=vec3(.05,.07,.22)*uSkyMul;'+          // le bleu du ciel du biome : clair sous l horizon, profond tout en bas
         'vec3 m=mix(b1,b2,smoothstep(-.08,-.7,y));m+=uSunTint*pow(sd,6.)*.10*uSunHalo;'+ // à contre-jour, le vide garde un reflet chaud du soleil
         'return mix(m,F,smoothstep(-.12,-.004,y));}',
+      /* LA MER DE NUAGES DU JOUR D ALTITUDE (2026-09-30, Zelda : Tears of the Kingdom) — sous l horizon, un PLANCHER de cumulus PLEIN
+         (quelques trouées seulement, l azur profond au fond), vu d en haut, calculé par direction du monde comme l ancienne mer (même
+         anticrénelage, même parallaxe vraie, même coût : mfbm2). Les dômes : sommets crème au soleil, flancs bleu-lavande à l ombre,
+         creux plus sombres ; côté soleil la mer s embrase ; au loin tout se noie dans la brume (perspective aérienne) et SEULE la
+         ligne d horizon rejoint le ciel. Mélangée par uJour (0 = la mer d avant). */
+      'vec3 merZ(vec3 d,float y,float sd){vec3 F=uFogCol;if(y>=-.002)return F;float yy=min(y,-.0006);',
+      '  float t=max(160.,uCam.y+420.)/(-yy);',
+      '  vec2 p=d.xz*t+uCam.xz+vec2(uTime*6.,uTime*2.4),q=p/1300.;',
+      '  float fp=t*.0016/max(-yy,.02)/1300.*MER_FPK;',
+      '  vec2 w=vec2(vn(q*.35+3.7),vn(q*.35-5.1));q+=1.1*w;',
+      '  vec2 sx=normalize(uSunDir.xz+vec2(1e-4));',
+      '  vec2 n2=mfbm2(q,q+sx*.06,fp);float n=n2.x;',
+      '  float lit=clamp(.55+(n-n2.y)*9.,0.,1.);',
+      '  float cov=smoothstep(.24,.48,n),cr=smoothstep(.42,.78,n);',
+      '  vec3 trou=uJZen*.55;',
+      '  vec3 ombre=mix(uJMid*.62+vec3(.10,.10,.15),F,.22);',
+      '  vec3 haut=mix(vec3(1.,.985,.96),uSunTint,.18);',
+      '  vec3 m=mix(ombre,haut,lit*(.55+.45*cr));',
+      '  m=mix(trou,m,cov);',
+      '  m+=uJSol*pow(sd,4.)*cov*.35;',
+      '  m=mix(m,F,(1.-exp(-t/uMerLoin))*.8);',
+      '  return mix(m,F,smoothstep(-.03,-.002,y));}',
       MER_MOTIF?'vec3 merNuages(vec3 d,float y,float sd){':'vec3 merNuagesMotif(vec3 d,float y,float sd){', // (l'ancienne mer peinte, gardée intacte)
       '  vec3 F=uFogCol;if(y>=-.004)return F;float yy=min(y,-.0008);',   // (perf iPhone) sur la ligne d horizon la mer EST la brume (dernier mix à 1)
       '  float t=max(140.,uCam.y+480.)/(-yy);',                       // la distance au pont de nuages le long du regard (m)
@@ -5969,6 +5993,11 @@ const skyDome=(function(){
       '  col=mix(blw,col,smoothstep(-.10,.012,y));',
       '  col=mix(dp2,col,smoothstep(-.85,-.12,y));',
       '  col=col*uSkyMul+uSkyLift*smoothstep(.35,-.06,y);', // BIOME : teinte du gradient + lift laiteux concentré à l horizon
+      /* LE JOUR D ALTITUDE (2026-09-30, Sacha, capture de Zelda : Tears of the Kingdom — « ambiance haut de gamme GTA 6, toute l ambiance
+         doit être refaite et parfaite ») : le ciel d AU-DESSUS des nuages, pas celui d en bas — un azur profond au zénith, un turquoise
+         lumineux au milieu, un horizon crème presque blanc (l air épais, éclairé). Son propre dégradé, pas le couchant de Vice City
+         multiplié : un rose ne devient jamais turquoise. uJour 0 = le ciel d avant. */
+      '  if(uJour>.001){float yj=max(y,0.);vec3 j=mix(uJHor,uJMid,smoothstep(0.,.16,yj));j=mix(j,uJZen,smoothstep(.12,.92,yj));col=mix(col,j,uJour);}',
       '  col=mix(col,vec3(0.),uSpace);', // ORBITE : le NOIR COMPLET (demande du user) — la Terre et la route portent seules la lumiere
       '  col*=1.+uPulse*.13;', // MUSIQUE : tout le ciel respire au beat (souffle global doux)
       '  return col;}',
@@ -5990,15 +6019,24 @@ const skyDome=(function(){
       '    float dk=length(f-cc)/rr;dm=min(dm,dk);m=max(m,1.-smoothstep(1.-ew,1.+ew,dk));}',
       '  if(m<.002)return;',
       '  vec2 s2=normalize(uSunDir.xz+vec2(1e-4));float lit=clamp(.5+.6*dot(normalize(f-o+vec2(1e-4)),s2),0.,1.);',
-      '  vec3 corps=mix(vec3(.94,.90,1.),uSunTint,.24)*uSkyMul*mix(.72,1.08,lit);',   // le ventre, teinté du soleil et du biome
+      '  vec3 corps=mix(vec3(.94,.90,1.),uSunTint,.24)*mix(uSkyMul,vec3(1.),uJour)*mix(.72,1.08,lit);',   // le ventre, teinté du soleil et du biome — (2026-09-30) au jour d altitude, blanc-crème (le bleu du biome en faisait des points bleus)
       '  corps+=uSunTint*(pow(lit,3.)*smoothstep(.45,.95,dm)*.45+pow(sd,4.)*.35)*uSunHalo;', // l ourlet d or côté soleil, et à contre-jour
-      '  float a=m*.7*smoothstep(.012,.055,y)*(1.-smoothstep(.62,.93,y))*exp(-t/36000.)*uMer*(1.-uSpace);',
+      '  float a=m*.7*smoothstep(.012,.055,y)*(1.-smoothstep(.62,.93,y))*exp(-t/36000.)*uMer*(1.-uSpace)*(1.-.8*uJour);',
       '  col=mix(col,corps,a);}',
     ],
     mer:[
       'void cielMer(inout vec3 col,float y,float sd){',
-      '  if(uMer>.001&&y<.02)col=mix(col,merNuages(vDir,y,sd),uMer*(1.-smoothstep(-.016,.012,y))*(1.-uSpace));', // NUAGES : la mer de nuages sous l horizon (voir merNuages)
+      '  if(uMer>.001&&y<.02){vec3 mz=uJour>.001?merZ(vDir,y,sd):vec3(0.);vec3 mo=uJour<.999?merNuages(vDir,y,sd):mz;', // (2026-09-30) la mer du JOUR D ALTITUDE (merZ), mélangée par uJour
+      '    col=mix(col,mix(mo,mz,uJour),uMer*(1.-smoothstep(-.016,.012,y))*(1.-uSpace));}', // NUAGES : la mer de nuages sous l horizon (voir merNuages)
       '}',
+    ],
+    jour:[
+      /* (2026-09-30) LE JOUR D ALTITUDE : la lueur chaude du soleil sur l horizon — large, basse, comme l air épais de Zelda au-dessus
+         de la mer de nuages (le cœur du soleil reste cielSoleil). */
+      'void cielJour(inout vec3 col,float y,float sd){',
+      '  if(uJour<.001)return;',
+      '  float h=exp(-abs(y)*6.5);',
+      '  col+=uJSol*(pow(sd,3.)*.55*h+pow(sd,14.)*.30)*uJour;}',
     ],
     soleil:[
       /* (2026-09-27, passe perf iPhone) CHAQUE COUCHE NE SE CALCULE QUE LÀ OÙ ELLE PEINT. Mesuré au banc (dôme seul, mêmes uniformes,
@@ -6047,7 +6085,7 @@ const skyDome=(function(){
          — ou l on regarde droit devant — on ne voyait presque rien. Le masque ne coupe plus, il
          DOSE : le bas du ciel joue a 62 %, le haut a 100 %. La route reste lisible parce qu elle
          est un objet 3D DEVANT le dome : elle se decoupe sur le fond au lieu d etre noyee. */
-      '    float mk=uLvl*(.62+.38*smoothstep(-.45,.12,y))*(1.-uSpace);', // ORBITE : aucun motif, le noir reste noir
+      '    float mk=uLvl*(.62+.38*smoothstep(-.45,.12,y))*(1.-uSpace)*(1.-.75*uJour);', // ORBITE : aucun motif, le noir reste noir — (2026-09-30) jour d altitude : le fond musical en sourdine
       '    mk*=1.-smoothstep(.10,.62,sd)*.42;',                    // le soleil garde son coeur ; il n est plus sanctuarise
       '    vec3 A=mix(uAcc,uAcc2,uFlip),Bc=mix(uAcc2,uAcc,uFlip);',// LA BASCULE : sur les phrases, les deux teintes s echangent
       /* ⚠ LES QUATRE COUCHES S ACCUMULENT DANS `fx`, PAS DANS `col`. Mesure a l origine de ce choix :
@@ -6144,7 +6182,7 @@ const skyDome=(function(){
       '    float dzw=acos(clamp(y,-1.,1.));',
       '    float w1=sin(dzw*3.4-uWave*6.2831853+az*.60);',        // le front principal roule du zenith vers l horizon
       '    float w2=sin(dzw*1.7-uWave*3.9000000-az*.35+2.1);',    // le second, plus lent et en sens inverse
-      '    float amp=uHueAmp*uLvl;',
+      '    float amp=uHueAmp*uLvl*(1.-.85*uJour);',   /* (2026-09-30) au JOUR D ALTITUDE l onde ne fait plus tourner le ciel au violet : un souffle, pas une bascule */
       '    col=hueRot(col,(w1*.70+w2*.45)*amp*6.2831853);',
       '    col*=1.+(w1*.5+.5)*amp*.55*uLvl;',                     // …et la crete de l onde ECLAIRE en passant
       /* L EPAULE. Tout ce qui depasse .78 est comprime vers 1 SANS JAMAIS L ATTEINDRE (asymptote).
@@ -6176,6 +6214,7 @@ const skyDome=(function(){
       '  vec3 col=cielFond(y);',
       '  float sd=max(dot(vDir,uSunDir),0.);',      // couchant : halo rosé large, couronne corail, coeur incandescent (tamisé)
       '  cielMer(col,y,sd);', // NUAGES : la mer de nuages sous l horizon (voir merNuages)
+      '  cielJour(col,y,sd);', // (2026-09-30) le jour d altitude : la lueur du soleil sur l horizon
       '  cielMotif(col,vDir,y,sd);', // NUAGES : le ciel pommelé (voir motif)
       '  cielSoleil(col,sd);',
       '  if(uParis>.001)parisCiel(col,vDir,y,sd);', // PARIS AU SOL : le ciel de l heure
@@ -6197,7 +6236,7 @@ const skyDome=(function(){
     basN:[LECT_TR,
       'void main(){',
       '  float y=vDir.y;vec3 col=cielFond(y);float sd=max(dot(vDir,uSunDir),0.);',
-      '  cielMer(col,y,sd);cielMotif(col,vDir,y,sd);cielSoleil(col,sd);if(uParis>.001)parisCiel(col,vDir,y,sd);',
+      '  cielMer(col,y,sd);cielJour(col,y,sd);cielMotif(col,vDir,y,sd);cielSoleil(col,sd);if(uParis>.001)parisCiel(col,vDir,y,sd);',
       '  if(cielGOn(y,sd))cielGuirlande(col,y,atan(vDir.x,-vDir.z),sd);',
       '  cielVoile(col,y);',
       '  gl_FragColor=vec4(col+vec3(cielTrame()*uBasTr),1.);}'],
@@ -6222,7 +6261,7 @@ const skyDome=(function(){
   const src=function(){return [].concat.apply([],arguments).join('\n');},K=COUCHES;
   // (2026-09-26, vague 2 — audit GPU) gl_Position.z = w : le dôme se pose sur le PLAN LOINTAIN (profondeur 1,0) — voir renderOrder plus bas
   const mk=(fs,lisse)=>new THREE.ShaderMaterial({uniforms:skyU,side:THREE.BackSide,depthWrite:false,depthTest:!lisse,vertexShader:VS,fragmentShader:fs});
-  const mat=mk(src(TETE,VILLE,VILLE_CIEL,MER,K.fond,K.motif,K.mer,K.soleil,K.paris,K.gon,K.son,K.guirl,K.niveau,K.etoiles,K.lune,K.voile,K.onde,K.trame,MAIN.plein));
+  const mat=mk(src(TETE,VILLE,VILLE_CIEL,MER,K.fond,K.motif,K.mer,K.jour,K.soleil,K.paris,K.gon,K.son,K.guirl,K.niveau,K.etoiles,K.lune,K.voile,K.onde,K.trame,MAIN.plein));
   /* LE CIEL SE PEINT EN DERNIER (2026-09-26, vague 2 — audit GPU). Il était dessiné en PREMIER (renderOrder −9, sans écrire la
      profondeur) : chaque pixel de l'écran payait le shader le plus lourd du jeu (mer de nuages, ville, étoiles, fond musical)… puis
      la route, la caisse, les nuages le recouvraient. Posé sur le plan lointain (z = w dans le vertex) et dessiné APRÈS tous les
@@ -6232,7 +6271,7 @@ const skyDome=(function(){
   const m=new THREE.Mesh(new THREE.SphereGeometry(4300,48,28),mat);
   const F_BAS=.5,FPK_BAS=1; // la passe lisse : ½ de la résolution en largeur et en hauteur (¼ des pixels) · l'anticrénelage de la mer y compte des pixels d'ÉCRAN (1)
   m.userData.ciel={plein:mat,f:F_BAS,
-    basN:mk(src('#define MER_FPK '+FPK_BAS.toFixed(4),TETE,VILLE,MER,K.fond,K.motif,K.mer,K.soleil,K.paris,K.gon,K.guirl,K.voile,K.trame,MAIN.basN),true),
+    basN:mk(src('#define MER_FPK '+FPK_BAS.toFixed(4),TETE,VILLE,MER,K.fond,K.motif,K.mer,K.jour,K.soleil,K.paris,K.gon,K.guirl,K.voile,K.trame,MAIN.basN),true),
     netN:mk(src(TETE,K.son,K.etoiles,K.lune,K.trame,MAIN.netN)),
     basV:mk(src(TETE,VILLE,VILLE_CIEL,K.trame,MAIN.basV),true),
     netV:mk(src(TETE,VILLE,VILLE_CIEL,K.trame,MAIN.netV))};
@@ -9063,7 +9102,7 @@ function genPark(rnd){
      · une CLARTÉ PAR NIVEAU (`uLift`) : la VILLE a un bitume plus clair, qui se détache de la ville sombre (user).
    Les uniformes vivent dans ROAD_U, PARTAGÉS par toutes les pistes : routeTick() les écrit une fois par image. */
 const ROAD_U={uLift:{value:new THREE.Color(0,0,0)},uSheen:{value:.1},uSheenCol:{value:new THREE.Color(.4,.3,.5)},uWet:{value:0},uAcc:{value:new THREE.Color(0xf24aa0)},uVil:{value:0},uEcl:{value:0},
-  uGlace:{value:0},uSunW:{value:SUN_DIR}}; // (passe graphismes mobile) uGlace/uSunW : le BITUME GLACÉ des routes sèches (voir roadMat) — la direction du soleil est SUN_DIR lui-même (même objet) // uWet/uAcc : le bitume MOUILLÉ de la ville (voir BITUME_MOUILLE)
+  uGlace:{value:0},uSunW:{value:SUN_DIR},uTeinte:{value:new THREE.Color(1,1,1)}}; // (passe graphismes mobile) uGlace/uSunW : le BITUME GLACÉ des routes sèches (voir roadMat) — la direction du soleil est SUN_DIR lui-même (même objet) // uWet/uAcc : le bitume MOUILLÉ de la ville (voir BITUME_MOUILLE)
 let ASPH_TEX=null;const ASPH_K=1.7; // (vague 2) finesse du grain lu par le bitume (voir roadMat)
 function asphTex(){ if(ASPH_TEX)return ASPH_TEX;
   const N=256,cv=document.createElement('canvas');cv.width=cv.height=N;const c=cv.getContext('2d'),im=c.createImageData(N,N),d=im.data;
@@ -9119,13 +9158,13 @@ function roadMat(){
   m.userData.bitume=face?2:1;m.userData.sauts=sauts; // 2 = face cachée jetée (bloc du dessous retourné), 1 = l'ancien DoubleSide
   m.onBeforeCompile=function(sh){
     sh.uniforms.uLift=ROAD_U.uLift;sh.uniforms.uSheen=ROAD_U.uSheen;sh.uniforms.uSheenCol=ROAD_U.uSheenCol;
-    sh.uniforms.uWet=ROAD_U.uWet;sh.uniforms.uAcc9=ROAD_U.uAcc;sh.uniforms.uT9=CITY.uT;sh.uniforms.uVil9=ROAD_U.uVil;sh.uniforms.uEcl9=ROAD_U.uEcl;sh.uniforms.uGlace=ROAD_U.uGlace;sh.uniforms.uSunW=ROAD_U.uSunW;
+    sh.uniforms.uTeinte=ROAD_U.uTeinte;sh.uniforms.uWet=ROAD_U.uWet;sh.uniforms.uAcc9=ROAD_U.uAcc;sh.uniforms.uT9=CITY.uT;sh.uniforms.uVil9=ROAD_U.uVil;sh.uniforms.uEcl9=ROAD_U.uEcl;sh.uniforms.uGlace=ROAD_U.uGlace;sh.uniforms.uSunW=ROAD_U.uSunW;
     if(face)sh.vertexShader=sh.vertexShader.replace('#include <color_vertex>','#include <color_vertex>\nvColor=abs(vColor);') // le dessous porte des couleurs NIÉES : on relit leur valeur
       .replace('#include <shadowmap_vertex>',THREE.ShaderChunk.shadowmap_vertex.split('inverseTransformDirection( transformedNormal, viewMatrix )')
         .join('inverseTransformDirection( transformedNormal*(color.r<0.?-1.:1.), viewMatrix )')); // …et le décalage d'ombre reprend la normale d'avant le retournement
-    sh.fragmentShader='uniform vec3 uLift;uniform float uSheen;uniform vec3 uSheenCol;uniform float uWet;uniform vec3 uAcc9;uniform float uT9;uniform float uGlace;uniform vec3 uSunW;uniform float uVil9,uEcl9;\n'+
+    sh.fragmentShader='uniform vec3 uTeinte;uniform vec3 uLift;uniform float uSheen;uniform vec3 uSheenCol;uniform float uWet;uniform vec3 uAcc9;uniform float uT9;uniform float uGlace;uniform vec3 uSunW;uniform float uVil9,uEcl9;\n'+
       sh.fragmentShader.replace('void main() {',BITUME_MOUILLE+'void main() {').replace('#include <lights_fragment_begin>',sauts?LFB_ROUTE:LFB_SANS_PL)
-      .replace('#include <map_fragment>','vec4 texelColor=texture2D(map,vUv*'+ASPH_K.toFixed(2)+');float spec9=texelColor.r;texelColor=mapTexelToLinear(texelColor);diffuseColor*=texelColor;')
+      .replace('#include <map_fragment>','vec4 texelColor=texture2D(map,vUv*'+ASPH_K.toFixed(2)+');float spec9=texelColor.r;texelColor=mapTexelToLinear(texelColor);diffuseColor*=texelColor;diffuseColor.rgb*=uTeinte;')
       .replace('#include <specularmap_fragment>','float specularStrength=spec9;').replace('#include <envmap_fragment>',
       '#include <envmap_fragment>\n{float fr9=pow(1.0-clamp(abs(dot(normal,normalize(vViewPosition))),0.0,1.0),4.0);float lk9=1.;\n'+
       '#if defined(USE_ENVMAP)&&defined(ENVMAP_TYPE_CUBE)\nif(uWet>.001){vec4 w9=bitumeMouille(outgoingLight,reflectVec,normal,normalize(vViewPosition));outgoingLight=w9.rgb;lk9=w9.a;}\n'+
@@ -9246,13 +9285,15 @@ function trancheMat(){
   m.customProgramCacheKey=function(){return 'trancheV2';};
   return m;
 }
+const ROUTE_JOUR=[1.0,1.12,.88]; // (2026-09-30) la teinte du bitume au jour d'altitude (× la base violette 0x322e40 → un anthracite à peine bleuté)
 const GLACE={k:1,nuages:.45,espace:.5}; // (passe graphismes mobile) la part du ciel dans le bitume sec, par niveau (la VILLE a son eau) — `dbgGfx({glace:0})` = l'ancien bitume
 const _px9=new THREE.Vector2();
 function routeTick(){ // le bitume suit le NIVEAU (fondu du portail : LVL.route / LVL.sheen, voir lvlStep)
   renderer.getDrawingBufferSize(_px9);TRAIT_U.uPx.value=2*Math.tan(camera.fov*Math.PI/360)/Math.max(1,_px9.y); // la taille d'un pixel à 1 m (suit le FOV de vol et la résolution adaptative)
   const r=LVL.route,pa9=LVL.paris||0;ROAD_U.uLift.value.setRGB(.010+.15*r+(.004-.006*r)*pa9,.009+.13*r+(.005+.012*r)*pa9,.016+.16*r-(.004+.03*r)*pa9); // (Paris) un gris d'asphalte NEUTRE, pas le violet de la nuit // ⚠ l'étalonnage de la pluie écrase le rouge et le vert : la clarté doit être NEUTRE et franche pour se lire (mesuré : (0,0,17) → (2,0,47) avec une clarté bleutée de .05)
   ROAD_U.uSheen.value=LVL.sheen;ROAD_U.uWet.value=Math.max(LVL.pluie,parisPluie()*1.8);ROAD_U.uVil.value=LVL.ville;try{ROAD_U.uEcl.value=CAMP_FLASH;}catch(e){} /* (2026-09-30) les enseignes reflétées : en VILLE seulement · l'éclair dans les flaques (CAMP_FLASH est déclaré plus bas : le try couvre l'init) */ // (2026-09-26) le bitume se mouille avec la pluie du niveau, au même fondu
-  ROAD_U.uGlace.value=GLACE.k*(GLACE.nuages*LVL.mer+GLACE.espace*LVL.espace)*(1-LVL.pluie); // (passe graphismes mobile) le bitume GLACÉ des routes sèches — voir roadMat
+  ROAD_U.uGlace.value=GLACE.k*(GLACE.nuages*LVL.mer+GLACE.espace*LVL.espace)*(1-LVL.pluie);
+  {const j9=LVL.mer*skyU.uJour.value;ROAD_U.uTeinte.value.setRGB(1+(ROUTE_JOUR[0]-1)*j9,1+(ROUTE_JOUR[1]-1)*j9,1+(ROUTE_JOUR[2]-1)*j9);} // (2026-09-30) LE JOUR D'ALTITUDE : l'asphalte des NUAGES en gris d'anthracite (le violet de la nuit, sous un ciel turquoise, se lisait en encre violette) // (passe graphismes mobile) le bitume GLACÉ des routes sèches — voir roadMat
   coneBandMat.emissiveIntensity=.25+.6*LVL.pluie; // (2026-09-26) la nuit de pluie, les bandes des plots RÉTRORÉFLÉCHISSENT : on les lit de loin (un uniforme, zéro recompilation)
   ROAD_U.uSheenCol.value.copy(scene.fog.color).multiplyScalar(.9); // (2026-09-26) ×1,5 → ×0,9 : la brillance rasante blanchissait tout le lointain
 }
@@ -12584,7 +12625,8 @@ const BIOMES={
    Un biome sans étalonnage reçoit les valeurs d'avant (`BIO_ETAL0`) : la ville, l'heure bleue, le soir… ne bougent pas d'un bit.
    ⚠ bioLerp parcourt les clés du biome d'ARRIVÉE : le remplissage ci-dessous garantit que TOUS les biomes les ont toutes. */
 const BIO_ETAL0={wb:[1.02,.985,1.03],sh:[.004,-.008,.062],hi:[.052,.008,-.014],con:1.23,bloomS:.54,bloomT:.92,vigK:.52,vigC:[.149,.047,.212],daCon:1,daExpo:1,daWbN:1,daSh:1,
-  rimK:0,rimS:.40,fogIn:[.847,.737,.816],fogCj:[.753,.416,.329]};
+  rimK:0,rimS:.40,fogIn:[.847,.737,.816],fogCj:[.753,.416,.329],
+  jour:0,jZen:[0,0,0],jMid:[0,0,0],jHor:[0,0,0],jSol:[0,0,0]}; // (2026-09-30) LE JOUR D'ALTITUDE : 0 = le ciel d'avant (voir cielJour)
 // (vague 3) ETAL_JOUR retiré : le jour des NUAGES reprend l'étalonnage d'origine (BIO_ETAL0), voir le haut de BIOMES
 Object.assign(BIOMES.pluie,{bloomS:.55,bloomT:.88,rimK:1,rimS:.55}); // VILLE : l'étalonnage d'avant (déjà au niveau) — le liseré vient du NÉON de contre-jour
 Object.assign(BIOMES.espace,{fog:[.016,.02,.055],wb:[.98,1,1.04],sh:[.008,.008,.03],hi:[.03,.03,.03],con:1.28,bloomS:.50,bloomT:.90,vigK:.42,vigC:[.05,.012,.09],rimK:0,rimS:.62}); // ORBITE : le vide NOIR et froid, un contraste dur ; la brume n'est plus le noir absolu mais le noir bleuté #04050e de la bible (le lointain de la route s'y fond, et la brillance d'horizon du bitume, qui en prend la couleur, n'est plus nulle)
@@ -12617,6 +12659,27 @@ for(const k9 in BIOMES)for(const f9 in BIO_ETAL0)if(BIOMES[k9][f9]==null)BIOMES[
 // Le tirage du jour, dans l'ordre des heures (+ l'ORAGE en joker météo) — la NUIT ne se tire pas,
 // elle se MÉRITE (3 portails). 9 ambiances en rotation : deux parties ne se ressemblent plus.
 const BIO_DAY=['aube','lever','matin','midi','aprem','golden','couchant','soir','orage'];
+/* LE JOUR D'ALTITUDE — LES TROIS HEURES DU NIVEAU NUAGES (2026-09-30, Sacha, capture de Zelda : Tears of the Kingdom à l'appui : « c'est
+   vilain, refonte totale, refonte également du niveau dans les nuages, ambiance haut de gamme GTA 6, toute l'ambiance doit être refaite
+   et parfaite »). Le ciel d'AU-DESSUS des nuages : azur profond au zénith, turquoise lumineux, horizon crème (jZen/jMid/jHor, voir
+   cielJour), la lueur du soleil posée sur l'horizon (jSol), une mer de nuages PLEINE sous l'horizon (merZ) ; la brume de l'air épais,
+   repoussée (on lit loin, la mer fait sa propre perspective) ; le contre-jour crème et le blanc des bancs (fogCj/fogIn : le corail et
+   le rose de la nuit teintaient le jour en MAGENTA) ; l'étalonnage neutre-frais (plus de voile magenta, vignette bleu nuit, ombres à
+   peine sarcelle) ; des nuages BLANCS au soleil (volSun presque neutre : la pêche, c'est l'après-midi). Réglé au banc (ciel2.js, menu
+   et course figée, debout et couché) ; `dbgAmb(nom,{…})` pour retoucher à chaud. Le menu (MENU_BIO = 'matin') prend le même ciel. */
+{const G9={wb:[1,1,1],sh:[-.006,.008,.03],hi:[-.01,-.02,.03],con:1.2, /* hi : compense le split or de la couche DA (+.02,+.038,−.042) — sinon un nuage blanc, haute lumière, sortait ORANGE */vigC:[.05,.14,.22],vigK:.34,fogIn:[.93,.95,.97],hemiG:[.78,.80,.86],volGnd:[.60,.66,.78],volSky:[.55,.75,.95]};
+ Object.assign(BIOMES.matin,G9,{jour:1,jZen:[.10,.36,.66],jMid:[.30,.66,.86],jHor:[.93,.93,.86],jSol:[.55,.38,.18],sunTint:[1,.90,.70],sunHalo:.8,
+   fog:[.84,.90,.92],fogN:900,fogF:5200,fogCj:[.96,.90,.78],hemiS:[.78,.86,.95],hemiI:.78,sunC:[1,.95,.84],sunI:1.5,fillC:[.55,.75,.95],
+   volSun:[2.05,1.98,1.84],volAmb:.9,expo:1.0,
+   env:[[0,'#2f7fc0'],[.3,'#6cc0dc'],[.48,'#e6f2ee'],[.58,'#fff4de'],[.66,'#b9c9d6'],[1,'#8ea4ba']],eS1:[255,248,230,.44],eS2:[150,215,240,.32]});
+ Object.assign(BIOMES.midi,G9,{jour:1,jZen:[.05,.30,.64],jMid:[.24,.62,.88],jHor:[.86,.92,.94],jSol:[.40,.36,.26],sunTint:[1,.96,.88],sunHalo:.6,
+   fog:[.82,.90,.95],fogN:1000,fogF:5600,fogCj:[.94,.93,.86],hemiS:[.76,.86,.98],hemiI:.82,sunC:[1,.98,.92],sunI:1.55,fillC:[.5,.72,.96],
+   volSun:[2.3,2.25,2.15],volAmb:.92,expo:1.0,
+   env:[[0,'#1f6cc4'],[.3,'#5ab0e0'],[.48,'#dff0f6'],[.58,'#ffffff'],[.66,'#bccbd8'],[1,'#90a4bc']],eS1:[255,255,248,.46],eS2:[140,205,250,.3]});
+ Object.assign(BIOMES.aprem,G9,{jour:1,jZen:[.14,.34,.62],jMid:[.40,.62,.82],jHor:[.98,.88,.74],jSol:[.75,.42,.16],sunTint:[1,.82,.58],sunHalo:.9,
+   fog:[.90,.87,.83],fogN:900,fogF:5000,fogCj:[1,.84,.66],hemiS:[.80,.84,.96],hemiI:.78,sunC:[1,.88,.72],sunI:1.35,fillC:[.58,.66,.86],
+   volSun:[1.9,1.6,1.3],volAmb:.8,expo:.98,hi:[.01,0,-.01], // l'après-midi garde un peu d'or dans ses lumières
+   env:[[0,'#3a78b8'],[.3,'#80b4d6'],[.48,'#f2dcbc'],[.58,'#ffd9a0'],[.66,'#c2b8b4'],[1,'#8e98ac']],eS1:[255,236,200,.44],eS2:[170,205,240,.3]});}
 const BIO={cur:JSON.parse(JSON.stringify(BIOMES.golden)),from:null,to:BIOMES.golden,k:1,dur:4,name:'golden'};
 function bioLerp(a,b,e,out){ // mixe deux biomes champ à champ (tableaux = composantes, nombres = scalaires)
   for(const key in b){ const bv=b[key];
@@ -12645,6 +12708,7 @@ window.dbgDA=function(o){if(o)for(const k in o){if(Array.isArray(o[k]))DA[k]=o[k
 function bioApply(c){ // pousse l'ambiance mélangée dans TOUS les organes (uniforms/couleurs only)
   skyU.uSkyMul.value.fromArray(c.skyMul);skyU.uSkyLift.value.fromArray(c.skyLift);skyU.uSunTint.value.fromArray(c.sunTint);
   skyU.uSunHalo.value=c.sunHalo;skyU.uCity.value=c.city;skyU.uStars.value=c.stars;skyU.uMoon.value=c.moon;
+  skyU.uJour.value=c.jour||0;if(c.jZen){skyU.uJZen.value.fromArray(c.jZen);skyU.uJMid.value.fromArray(c.jMid);skyU.uJHor.value.fromArray(c.jHor);skyU.uJSol.value.fromArray(c.jSol);} // (2026-09-30) le jour d'altitude
   FOG_BASE.setRGB(c.fog[0],c.fog[1],c.fog[2]);FOG_N=c.fogN;FOG_F=c.fogF;
   hemi.color.setRGB(c.hemiS[0],c.hemiS[1],c.hemiS[2]);hemi.groundColor.setRGB(c.hemiG[0],c.hemiG[1],c.hemiG[2]);hemi.intensity=c.hemiI;
   sun.color.setRGB(c.sunC[0],c.sunC[1],c.sunC[2]);sun.intensity=c.sunI;
@@ -33831,6 +33895,10 @@ const MENUV={t:0,cam:new THREE.Vector3(),vis:new THREE.Vector3(),p:new THREE.Vec
 // midi · aprem · aurore · lever (aprem/aurore délavent la caisse, lever retombe dans le rouge du couchant). Le voile du haut de
 // l'accueil (#overlay::after) a été allégé du même coup : à .84 il éteignait le zénith.
 let MENU_BIO='matin';
+window.dbgAmb=function(n,o){n=n||MENU_BIO;const B=BIOMES[n];if(!B)return null;if(o&&typeof o==='object')Object.assign(B,JSON.parse(JSON.stringify(o))); // (2026-09-30, dev) retoucher une ambiance à chaud : dbgAmb('matin',{jZen:[…]})
+  MENUV.bio=false;if(BIO.name===n||BIO.to===B){bioLerp(B,B,1,BIO.cur);bioApply(BIO.cur);paintEnv(B.env,B.eS1,B.eS2);BIO.pas=(BIO.pas|0)+1;}
+  return JSON.parse(JSON.stringify(B));};
+window.dbgCielObj=function(){return {horizonGlow:horizonGlow,sunSprite:sunSprite,RAYS:RAYS,CLOUD_MAT:CLOUD_MAT,COTON:COTON,GFX_U:GFX_U,skyU:skyU,fog:scene.fog,aces:acesPass,LVL:LVL,BIO:BIO,hemi:hemi,sun:sun,fill:fill,kick:kick};}; // (2026-09-30, dev) disséquer le ciel au banc
 window.dbgMenuCiel=function(b){if(b&&BIOMES[b]){MENU_BIO=b;MENUV.bio=false;}return MENU_BIO;}; // (dev) essayer un autre ciel d'accueil : dbgMenuCiel('matin')
 function menuPlan(){ // le meilleur couple (position, angle) pour filmer la caisse devant le couchant — une fois par piste
   MENUV.L=L;let best=9;const sx=SUN_DIR.x,sz=SUN_DIR.z,sn=Math.hypot(sx,sz);
@@ -34072,10 +34140,10 @@ window.dbgFeu=function(on){const F=GAR.feu;if(!F)return null;if(on!=null&&GAR.fe
      comme avant).
    ⚠ `var` et pas `const` : updateContactShadow et cielHorsCourse, déclarées bien plus haut, lisent CHUTE — `var` vaut `undefined` avant
    cette ligne au lieu de lever une erreur (la zone morte d'un const planterait le tout premier rendu). */
-var CHUTE={on:false,t:0,go:null,L:-1,s:0,C:new THREE.Vector3(),cam:new THREE.Vector3(),f:new THREE.Vector3(),fh:new THREE.Vector3(),lh:new THREE.Vector3(),
+var CHUTE={oA:0,oAc:0,oW:0,oP:0,oPc:0,mvT:0,on:false,t:0,go:null,L:-1,s:0,C:new THREE.Vector3(),cam:new THREE.Vector3(),f:new THREE.Vector3(),fh:new THREE.Vector3(),lh:new THREE.Vector3(),
   q:new THREE.Quaternion(),m:new THREE.Matrix4(),v1:new THREE.Vector3(),v2:new THREE.Vector3(),v3:new THREE.Vector3(),w:null,fil:null,voile:null,bioPas:-1,vent:false,entree:0};
 const CHUTE_OK=!/[?&]chute=0\b/.test(location.search); // (et seulement avec les boutons de Sacha : le menu de Léo, ?menu=leo, garde son atelier — son étiquette MISSIONS vit sur le socle)
-const CHUTE_P={alt:240,avant:720,pitch:.62,roule:.2,cap:.42,elev:.15,vit:26,echelle:1,taille:.82,sol:.3,sous:70,plancher:1}; // (choisi aux captures : l'horizon et la mer de nuages dans l'image, le soleil de côté devant — sa lueur rose-or sur l'horizon)
+const CHUTE_P={cle:.5,brume:2.5,expo:.82,trainee:0,alt:1500,avant:1500,pitch:.22,roule:.2,cap:.42,elev:.22,vit:26,echelle:1,taille:.82,sol:.3,sous:70,plancher:0}; // (2026-09-30, le JOUR D'ALTITUDE) de très haut au-dessus de TOUT le monde du niveau : les cumulus deviennent un champ de nuages sous la caisse, la mer à perte de vue ; plus de traînée orange ni de plancher peint ; brume repoussée, exposition et clé baissées (l'image sortait délavée) // (choisi aux captures : l'horizon et la mer de nuages dans l'image, le soleil de côté devant — sa lueur rose-or sur l'horizon)
 window.dbgChute=function(o){if(o&&typeof o==='object'){Object.assign(CHUTE_P,o);CHUTE.L=-1;}
   return {on:CHUTE.on,go:!!CHUTE.go,s:Math.round(CHUTE.s),C:CHUTE.C.toArray().map(Math.round),cam:CHUTE.cam.toArray().map(function(x){return +x.toFixed(1);}),P:CHUTE_P,
     route:(function(){try{frameAt(CHUTE.s,F);const q=F.p.clone().project(camera);return [+q.x.toFixed(2),+q.y.toFixed(2),+q.z.toFixed(3)];}catch(e){return null;}})()};};
@@ -34137,7 +34205,8 @@ function chuteVoileEl(){ // le banc de nuage traversé au JOUER : un voile blanc
   document.body.appendChild(e);CHUTE.voile=e;return e;
 }
 function chuteEntre(){ // de l'atelier (ou de rien) au ciel
-  CHUTE.on=true;CHUTE.t=0;CHUTE.bioPas=-1;
+  CHUTE.on=true;CHUTE.t=0;CHUTE.bioPas=-1;CHUTE.oA=CHUTE.oAc=CHUTE.oW=CHUTE.oP=CHUTE.oPc=0; // (2026-09-30) l'orbite repart du plan de face
+  if(!CHUTE.av)CHUTE.av={c:new THREE.Color()};CHUTE.av.e=acesPass?acesPass.uniforms.uExposure.value:null;if(scene.fog){CHUTE.av.c.copy(scene.fog.color);CHUTE.av.n=scene.fog.near;CHUTE.av.f=scene.fog.far;} // (2026-09-30) l'exposition et la brume d'avant (l'atelier les retrouve)
   if(!CHUTE.w)chuteMonte();
   if(GAR.root)GAR.root.visible=false;garageFloor.visible=false;
   try{if(openGarage._amb){openGarage._amb.stop(.35);openGarage._amb=null;}if(openGarage._feu){openGarage._feu.stop(.35);openGarage._feu=null;}}catch(e){} // l'atelier se tait : là-haut, c'est le vent
@@ -34154,6 +34223,7 @@ function chuteSort(ferme){ // on quitte le ciel : l'atelier (boutique, missions)
   if(CHUTE.vent&&AC){try{stt(windG.gain,0,AC.currentTime,.25);stt(whG.gain,0,AC.currentTime,.25);}catch(e){}}CHUTE.vent=false;
   if(ferme)return;
   MENUV.bio=false;bioApply(BIOMES.atelier);paintEnvAtelier();                    // l'atelier reprend sa lumière et son reflet
+  if(CHUTE.av){if(acesPass&&CHUTE.av.e!=null)acesPass.uniforms.uExposure.value=CHUTE.av.e;if(scene.fog&&CHUTE.av.n!=null){scene.fog.color.copy(CHUTE.av.c);scene.fog.near=CHUTE.av.n;scene.fog.far=CHUTE.av.f;}} // (2026-09-30) …et son exposition, sa brume
   if(GAR.root)GAR.root.visible=true;
   try{if(SONV2&&!openGarage._amb)openGarage._amb=sfx('garage.ambiance',{loop:true});if(SONV2&&!openGarage._feu)openGarage._feu=sfx('garage.feu',{loop:true});}catch(e){}
 }
@@ -34168,6 +34238,10 @@ function chuteRender(dt){
   // LE CIEL DU JOUR DES NUAGES (celui de l'accueil d'avant : MENU_BIO), repeint si le voyage BIO est passé derrière
   if(!MENUV.bio||CHUTE.bioPas!==BIO.pas){if(!MENUV.bio)paintEnv(BIOMES[MENU_BIO].env,BIOMES[MENU_BIO].eS1,BIOMES[MENU_BIO].eS2);MENUV.bio=true;CHUTE.bioPas=BIO.pas;bioApply(BIOMES[MENU_BIO]);}
   skyU.uMer.value=1;
+  /* (2026-09-30) LA BRUME ET L'EXPOSITION DE L'AMBIANCE : seule la course les réécrit (updateClouds) — au menu la brume restait le violet
+     de départ du jeu (#5e3254) et l'exposition .71 : la mer de nuages et les cumulus s'y noyaient en violet. chuteSort rend celles d'avant. */
+  if(scene.fog){scene.fog.color.copy(FOG_BASE);scene.fog.near=FOG_N*P.brume;scene.fog.far=FOG_F*P.brume;skyU.uFogCol.value.copy(FOG_BASE);} // (P.brume : de là-haut, la brume s'éloigne — la mer de nuages fait sa propre perspective)
+  if(acesPass)acesPass.uniforms.uExposure.value=POST_EXPO*P.expo;
   if(GAR.root&&GAR.root.visible)GAR.root.visible=false;
   if(CHUTE.L!==L)chutePlan();
   // L'ANCRE : au-dessus du début de piste, en retrait, à P.alt mètres
@@ -34196,8 +34270,15 @@ function chuteRender(dt){
   if(Math.abs(camera.fov-fov0)>.01){camera.fov=fov0;camera.updateProjectionMatrix();}
   const tV=Math.tan(camera.fov*Math.PI/360),tH=tV*camera.aspect;
   const d=Math.max(R9*P.taille*(camera.aspect>1?1.75:1)/(Cd.fr*tH),R9*.8/(Cd.fh*tV))*(1+.03*Math.sin(t*.37));
-  const ce=Math.cos(P.elev),se=Math.sin(P.elev);
-  CHUTE.cam.set(C.x-lx*ce*d,C.y+se*d,C.z-lz*ce*d);
+  /* L'ORBITE AU DOIGT (2026-09-30, Sacha : « rajoute un moyen de déplacer la caméra autour de la voiture avec le doigt ») — glisser tourne
+     le regard autour de la caisse (le tour complet), de haut en bas il monte ou plonge ; la vue rejoint le doigt en douceur (~0,1 s) et,
+     lâchée en mouvement, elle garde son élan (frottement ×e^−3t) — le même geste que l'atelier (« le glissé fondu »). Pas de retour
+     automatique : c'est JOUER qui ramène la caméra derrière elle pour le piqué. La caisse, elle, ne bouge pas dans le monde. */
+  if(!G){if(!garageDrag&&CHUTE.oW){CHUTE.oAc+=CHUTE.oW*dt;CHUTE.oW*=Math.exp(-dt*3);if(Math.abs(CHUTE.oW)<.015)CHUTE.oW=0;}
+    const kS=1-Math.exp(-dt*10);CHUTE.oA+=(CHUTE.oAc-CHUTE.oA)*kS;CHUTE.oP+=(CHUTE.oPc-CHUTE.oP)*kS;}
+  const oc=Math.cos(CHUTE.oA),os=Math.sin(CHUTE.oA),ox=lx*oc-lz*os,oz=lx*os+lz*oc,el9=THREE.MathUtils.clamp(P.elev+CHUTE.oP,-.45,1.25);
+  const ce=Math.cos(el9),se=Math.sin(el9);
+  CHUTE.cam.set(C.x-ox*ce*d,C.y+se*d,C.z-oz*ce*d);
   if(G){const k=Math.min(1,u/.5),e9=k*k*(3-2*k);                                   // la caméra passe DERRIÈRE elle (poursuite plongeante)
     const bx=C.x-f.x*9,by=C.y-f.y*9+3.2,bz=C.z-f.z*9;
     CHUTE.cam.set(CHUTE.cam.x+(bx-CHUTE.cam.x)*e9,CHUTE.cam.y+(by-CHUTE.cam.y)*e9,CHUTE.cam.z+(bz-CHUTE.cam.z)*e9);}
@@ -34207,14 +34288,14 @@ function chuteRender(dt){
   if(G&&u>.2){const a=(u-.2)*.9;camera.position.x+=(Math.random()-.5)*.08*a;camera.position.y+=(Math.random()-.5)*.08*a;} // l'air qui cogne
   camera.updateMatrixWorld();
   // LA LUMIÈRE : le soleil du ciel fait le gros ; une clé douce du côté caméra, un contre-jour bleu ciel qui détoure la caisse
-  stallKey.color.setHex(0xfff1dc);stallKey.intensity=.9;stallKey.distance=60;stallKey.position.copy(CHUTE.cam).addScaledVector(up,4);
+  stallKey.color.setHex(0xfff1dc);stallKey.intensity=.9*P.cle;stallKey.distance=60;stallKey.position.copy(CHUTE.cam).addScaledVector(up,4);
   stallRim.color.setHex(0xbfe4ff);stallRim.intensity=1.1;stallRim.distance=40;stallRim.position.copy(C).addScaledVector(camera.getWorldDirection(CHUTE.v2),7).addScaledVector(up,2.5);
-  carLight.position.copy(CHUTE.cam).addScaledVector(up,2.5);carLight.intensity=1.6;carLight.distance=60;
+  carLight.position.copy(CHUTE.cam).addScaledVector(up,2.5);carLight.intensity=1.6*P.cle;carLight.distance=60;
   headSpot.intensity=0;if(CARPOOL.head)CARPOOL.head.visible=false; // en plein jour, en l'air : ni phares (leur tache bleue sur les nuages au piqué), ni la nappe de 15 m des faisceaux (un plan qui flotte devant le nez)
   sunSprite.visible=sunSprite.material.opacity>.02;horizonGlow.visible=horizonGlow.material.opacity>.02;for(const r9 of RAYS)r9.visible=r9.material.opacity>.002;
   if(pigGroup)pigGroup.visible=false;if(landMark)landMark.visible=false;
   // SA TRAÎNÉE monte derrière elle (celle de la boutique) ; L'AIR MONTE : les bancs de nuage et les filets de vent
-  trailApercu(dt,true,.45);
+  trailApercu(dt,P.trainee>0,P.trainee);
   for(const sp of CHUTE.sol)sp.visible=!!P.plancher;
   const vk=1+(G?u*u*7:0),cp=camera.position,dC=cp.distanceTo(C);
   for(const w of CHUTE.w){w.y+=P.vit*w.v*vk*dt;if(w.y>70)chuteNuageNeuf(w,false);
@@ -35077,11 +35158,12 @@ const SWIPE_PX=64;
 /* (2026-09-29, audit de sortie) UN SEUL DOIGT fait tourner l'atelier : le 2e (le pincement) écrasait le point de départ, l'orbite sautait
    d'un doigt à l'autre, et au relâcher le premier comptait pour un glissé — la caisse changeait. Rien ne passe à travers le voile. */
 let gpId=null,gPince=false;
-addEventListener('pointerdown',e=>{if(!garageOn||ecranWipe._on)return;if(e.target.closest&&e.target.closest('#gTop,#gBottom,#gMenu,#gMis .gmC,#gmBas,#wipe,#carr,#modale'))return;
+addEventListener('pointerdown',e=>{if(!garageOn||ecranWipe._on)return;if(e.target.closest&&e.target.closest('#gTop,#gBottom,#gMenu,#gMis .gmC,#gmBas,#wipe,#carr,#modale,[data-m]'))return; // (2026-09-30) [data-m] : un bouton de l'accueil n'est pas un glissé
   if(garageDrag){gPince=true;return;}
   garageDrag=true;gpId=e.pointerId;gPince=false;gpx=gpx0=e.clientX;gpy=gpy0=e.clientY;
   if(GAR.swK){GAR.vA=(GAR.vA||0)+(GAR.swO||0);garagePitch=THREE.MathUtils.clamp(garagePitch+(GAR.swP||0),.02,.82);GAR.swO=GAR.swP=GAR.swK=0;} // (2026-09-30) le balancement est VERSÉ dans le regard : pas de saut sous le doigt
   if(!GAR.go){GAR.vAc=GAR.vA||0;GAR.vW=0;GAR.pT=garagePitch;GAR.mvT=performance.now();} // (le glissé fondu) on SAISIT la vue : elle s'arrête sous le doigt
+  if(CHUTE&&CHUTE.on){CHUTE.oAc=CHUTE.oA;CHUTE.oW=0;CHUTE.oPc=CHUTE.oP;CHUTE.mvT=performance.now();} // (2026-09-30) au ciel : on SAISIT l'orbite, elle s'arrête sous le doigt
   if(!GAR.sw&&!GAR.go)GAR.pressT=GAR.PRESS_D; // LE TOUCHER : la caisse accuse la pression tout de suite, avant même qu'on glisse
 });
 addEventListener('pointercancel',e=>{if(e.pointerId===gpId){garageDrag=false;gpId=null;}});
@@ -35091,7 +35173,8 @@ addEventListener('pointerup',e=>{
     const dx=e.clientX-gpx0,dy=e.clientY-gpy0;
     if(Math.abs(dx)>SWIPE_PX&&Math.abs(dx)>Math.abs(dy)*1.3){if(!gEl.classList.contains('menu'))garageGo(dx<0?1:-1);} // (2026-09-30) au MENU un glissé fait tourner le plateau, il ne change pas de caisse (c'est la BOUTIQUE qui feuillette) // glisse à GAUCHE → caisse SUIVANTE (même sens qu'un carrousel qu'on feuillette)
     else if(Math.abs(dx)<14&&Math.abs(dy)<14){let af=null;try{af=afficheVise(e);}catch(_){}if(af)afficheTap(af);else garageImpact();} // ni glissé ni swipe : un TAP — sur une AFFICHE elle saute (voir afficheTap), sinon la caisse encaisse (voir garageImpact)
-    if(performance.now()-(GAR.mvT||0)>90)GAR.vW=0;else GAR.vW=THREE.MathUtils.clamp(GAR.vW||0,-7,7); // (le glissé fondu) doigt arrêté avant de lâcher : la vue reste ; lancé : elle file sur son élan
+    if(performance.now()-(GAR.mvT||0)>90)GAR.vW=0;else GAR.vW=THREE.MathUtils.clamp(GAR.vW||0,-7,7);
+    if(CHUTE&&CHUTE.on){if(performance.now()-(CHUTE.mvT||0)>90)CHUTE.oW=0;else CHUTE.oW=THREE.MathUtils.clamp(CHUTE.oW||0,-7,7);} // (2026-09-30) l'orbite du ciel : lâchée en mouvement, elle garde son élan // (le glissé fondu) doigt arrêté avant de lâcher : la vue reste ; lancé : elle file sur son élan
   }
   garageDrag=false;
 });
@@ -35101,6 +35184,9 @@ addEventListener('pointermove',e=>{
       if(af!==GAR.affH){GAR.affH=af;document.body.style.cursor=af?'pointer':'';}}
     return;}
   if(e.pointerId!==gpId||gPince)return;
+  if(CHUTE&&CHUTE.on&&!CHUTE.go){const n9=performance.now(),dm=Math.max(8,n9-(CHUTE.mvT||n9-16))/1000,dA=-(e.clientX-gpx)*.008; // (2026-09-30) AU CIEL : le glissé fait tourner le regard autour de la caisse (voir « L'ORBITE AU DOIGT »)
+    CHUTE.oAc+=dA;CHUTE.oW=(CHUTE.oW||0)*.55+dA/dm*.45;CHUTE.mvT=n9;CHUTE.oPc=THREE.MathUtils.clamp(CHUTE.oPc+(e.clientY-gpy)*.004,-.6,1.0);
+    gpx=e.clientX;gpy=e.clientY;return;}
   if(GAR.go||gEl.classList.contains('missions'))return; // JOUER est parti / l'écran des MISSIONS : la vue ne se touche plus
   if(gEl&&gEl.classList.contains('menu')){const dA=-(e.clientX-gpx)*.007,n9=performance.now(),dm=Math.max(8,n9-(GAR.mvT||n9-16))/1000;
     GAR.vAc=(GAR.vAc!=null?GAR.vAc:(GAR.vA||0))+dA;GAR.vW=(GAR.vW||0)*.55+dA/dm*.45;GAR.mvT=n9; // (le glissé fondu) la CIBLE suit le doigt, la vitesse du geste est retenue pour l'élan
