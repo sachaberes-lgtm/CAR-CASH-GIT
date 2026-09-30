@@ -352,6 +352,25 @@ scratchpad GAMEPLAY). Ce qui suit est EN JEU, mesuré au banc sauf mention.
   réacteur ; PARFAIT plus rare quand on braque en l'air ; au clavier, tenir la flèche = vrille (on vise par appuis courts : 0,2 s = 34° de
   caisse, retour en 0,75 s). Tout se règle à chaud : `dbgVol({K_P:…,A_S:…})`.
 
+## LA CAMÉRA HÉROS (2026-09-30, session SON — GAMEPLAY et GRAPHISME ont passé la main) — « la voiture est souvent trop petite pour l'écran,
+## surtout sur mobile : trouve des trucs de caméra pour la jouabilité et la sensation de vitesse, surtout sur route »
+- **⚠ PIÈGE DE BANC** : en rendu logiciel (SwiftShader, 150-300 ms l'image) CHAQUE image dépassait les 150 ms de « reprise de conduite » :
+  l'écart caméra–caisse repartait de la caméra de l'image d'avant et la caméra reculait de v·dt à chaque image (35 m à 1 160 km/h, une caisse
+  à 5 % de l'écran — FAUX). `window.dbgCamReprise=5000` dans un banc (défaut 150 : le jeu ne change pas). Banc : `cam-mesure2.js <préfixe>
+  [paysage]` (scratchpad SON, `HEROS=0` = avant), médianes de `dbgCamRoute().caisse` + `.heros` (coup, champ demandé, punch, v/croisière).
+- **MESURÉ AVANT** (image normale) : le recul n'était pas en cause (5,6-7,6 m debout) mais le CHAMP, grand ouvert en PERMANENCE avec la vitesse —
+  debout 123-131° (caisse 29-44 % de la largeur), COUCHÉ 107-136° où CAM_TAILLE ne jouait pas (caisse 2 à 8 % de la largeur, 6 à 17 % de la
+  hauteur, 7-11 m) ; et la nitro, tenue presque tout le temps, reculait la caméra de 1,6 m.
+- **`CAM_HEROS`** (à côté de CAM_TAILLE ; A/B `dbgCamRoute({heros:{on:false}})`) : champ tenu deux fois moins ouvert par la vitesse (+16 au lieu
+  de +38, nitro +7 au lieu de +15/22, FLOW ×½) ; « ÇA POUSSE » = la PRISE DE VITESSE (écart vitesse − sa moyenne sur 0,6 s, `kick` 16° à
+  200 km/h d'écart ; une accélération brute restait saturée : la piste descend presque toujours) ; le VERTIGO (`dolly` : la caméra avance
+  quand le champ s'ouvre, jusqu'à ×0,88 — la caisse garde sa taille, le monde s'étire) ; la nitro ne recule plus la caméra (`boost` .2) ; la
+  vitesse n'éloigne plus au-delà de recMax couché aussi ; la caméra DESCEND un peu à haute vitesse (`bas`) ; couché, un GENOU du champ à
+  112° (`fovMaxL`, les coups passent par-dessus) ; debout, un pas en arrière (`recP` 1,1) et la visée plus basse (`vise`) ; un voile de
+  FLOU sur les bords en croisière rapide (`flou` .2, dans `sfxT` — le centre reste net). Coup de champ ×FOVP_K (« Réduire les animations »).
+- **RÉSULTAT** (palier 0 → 22, nitro, NITROOO) : debout caisse 41-57 % de la largeur (29-44), plus de rétrécissement en nitro, même hauteur à
+  l'écran ; couché 10-14 % de la largeur et 18-25 % de la hauteur (2-8 / 6-17), champ 88-111° (107-136). 0 erreur.
+
 ## L'AUTOROUTE ORBITALE (2026-09-30, session SON) — « vu qu'on va très vite, adapte le terrain dans le niveau espace »
 - **MESURÉ d'abord** (`dbgTerrain(kmh,mult)`, nouveau crochet : part de la piste hors d'atteinte du volant à la croisière — lacet v·κ contre
   `lacetMax` —, rayon mini, CRÊTES qu'une vraie caisse ne tiendrait pas (v²·κ > g·gK), pentes > 10°/20°, CROISEMENTS de la route avec

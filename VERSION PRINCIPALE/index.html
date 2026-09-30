@@ -19380,7 +19380,7 @@ window.dbgCam9=function(){return {camLean:+camLean.toFixed(3),camSwing:+camSwing
 window.dbgCamRoute=function(o){
   const FP={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},v=new THREE.Vector3(),f=new THREE.Vector3(),r2=x=>+x.toFixed(2);
   if(o&&o.regle){Object.assign(CAM_ROUTE,o.regle);return 'reglee';} // réglage à chaud : dbgCamRoute({regle:{ANTICIPE:0,ANTICIPE_DESSOUS:0}}) = la caméra d'avant
-  if(o&&(o.regard||o.taille)){if(o.regard)Object.assign(CAM_REGARD,o.regard);if(o.taille)Object.assign(CAM_TAILLE,o.taille);return {regard:CAM_REGARD,taille:CAM_TAILLE};} // (2026-09-30) A/B : dbgCamRoute({regard:{on:false},taille:{on:false}}) = la caméra d'avant
+  if(o&&(o.regard||o.taille||o.heros)){if(o.regard)Object.assign(CAM_REGARD,o.regard);if(o.taille)Object.assign(CAM_TAILLE,o.taille);if(o.heros)Object.assign(CAM_HEROS,o.heros);return {regard:CAM_REGARD,taille:CAM_TAILLE,heros:CAM_HEROS};} /* (2026-09-30) + CAM_HEROS */ // (2026-09-30) A/B : dbgCamRoute({regard:{on:false},taille:{on:false}}) = la caméra d'avant
   if(o==='scan'){const out=[];for(let s9=0;s9<L-60;s9+=10){frameAt(s9,FP);const n0=FP.n.clone(),ty=FP.t.y;frameAt(s9+45,FP);
     const k=Math.asin(THREE.MathUtils.clamp(FP.t.dot(n0),-1,1))*57.3;out.push([s9,r2(ty),Math.round(k)]);}return {L:Math.round(L),pts:out};}
   if(o&&typeof o==='object'){s=THREE.MathUtils.clamp(o.s||0,0,L-80);side=o.side<0?-1:1;lat=(o.lat||0)*side;psi=0;vL=0;mode='drive';driveDir=1;
@@ -19399,7 +19399,7 @@ window.dbgCamRoute=function(o){
    for(const a of [-.5,.5])for(const b of [0,1])for(const z of [-.5,.5]){const pr=v.set(a*c.w,b*(c.h||1.3),z*c.l).applyMatrix4(carGroup.matrixWorld).project(camera);
      mm[0]=Math.min(mm[0],pr.x);mm[1]=Math.max(mm[1],pr.x);mm[2]=Math.min(mm[2],pr.y);mm[3]=Math.max(mm[3],pr.y);}
    res.caisse={h:r2((mm[3]-mm[2])/2),l:r2((mm[1]-mm[0])/2),x:r2((mm[0]+mm[1])/2),y:r2((mm[2]+mm[3])/2)};}
-  res.regardD=Math.round(CAM_REGARD.D);res.regardK=+CAM_REGARD.kV.toFixed(3);res.recul=r2(camera.position.distanceTo(carGroup.position));res.por=r2(POR);
+  res.heros={acc:+CAM_HEROS.acc.toFixed(2),champ:Math.round(CAM_HEROS.fb||0),coup:Math.round(CAM_HEROS.pu||0),flow:FLOW.lv,r9:+(Math.abs(vA)*3.6*SPD*vitMult()/Math.max(1,vCroisiere())).toFixed(2)};res.regardD=Math.round(CAM_REGARD.D);res.regardK=+CAM_REGARD.kV.toFixed(3);res.recul=r2(camera.position.distanceTo(carGroup.position));res.por=r2(POR);
   return res;};
 // TREMPLINS de la zone courante : archétype, longueur de piste, et chaque lèvre (position + variante).
 // `dbgGap(true)` téléporte à 220 m avant la 1re lèvre — pour juger le gap sans refaire la course d'élan.
@@ -27319,6 +27319,25 @@ function camRouteCabrage(dt,camBack,camH){ // LE CABRAGE ANTICIPÉ : pose C.q, l
      l'essentiel du 0,65 restant (à ,5 : 0,75) ; 1 = inchangé. */
 const CAM_REGARD={on:true,k:.45,min:35,max:90,por:.3,comp:1,D:35,kV:0}; // D, kV : lus par dbgCamRoute (dernière image)
 const CAM_TAILLE={on:true,fovMax:125,genou:6,recMax:.6,boost:1};
+/* LA CAMÉRA HÉROS (2026-09-30, session SON — Sacha : « la voiture est souvent trop petite pour l'écran, surtout sur mobile : trouve des trucs
+   de caméra pour la jouabilité et la sensation de vitesse, surtout sur route »). MESURÉ (banc cam-mesure2.js, `dbgCamRoute().caisse`, image
+   normale — ⚠ en rendu logiciel chaque image passait pour une « reprise de conduite » et la caméra reculait de v·dt : `dbgCamReprise`) :
+   le coupable n'était pas le recul (5,6-7,6 m) mais le CHAMP, grand ouvert EN PERMANENCE avec la vitesse : 123-131° en portrait,
+   107-144° couché (où CAM_TAILLE ne joue pas) — un fish-eye où la caisse ne faisait que 29-44 % de la largeur debout, 3 À 8 % couché ; et la
+   NITRO (tenue presque tout le temps) reculait encore la caméra de 1,6 m.
+   LES TRUCS :
+   · le champ TENU s'ouvre deux fois moins avec la vitesse (+20° au lieu de +38, nitro +8 au lieu de +15/22, FLOW ×½) ;
+   · « ÇA POUSSE » se dit par l'ACCÉLÉRATION : chaque prise de vitesse (pad, nitro, relance) ouvre le champ de `kick`°, qui se referme
+     doucement quand la vitesse se stabilise — c'est le CHANGEMENT qui se sent, pas le champ grand ouvert ;
+   · le VERTIGO (travelling compensé) : quand le champ s'ouvre, la caméra AVANCE d'autant (`dolly`) — la caisse garde sa taille, c'est le
+     monde qui s'étire autour d'elle ;
+   · la nitro ne recule plus la caméra (`boost` : 20 % du recul d'avant) — le coup de champ de l'allumage reste ;
+   · à haute vitesse la caméra DESCEND un peu vers la route (`bas`) : le bitume défile plus fort ;
+   · debout, la visée descend (`vise`) : la caisse remonte entre le HUD du haut et les commandes du bas ;
+   · un voile de FLOU de vitesse sur les BORDS en croisière rapide (`flou`, le centre reste net).
+   A/B : dbgCamRoute({heros:{on:false}}). */
+const CAM_HEROS={on:true,ref:86,dMin:.88,dMax:1,kick:16,accK:200,tau:.6,acc:0,v0:-1,boost:.2,bas:.08,vise:1.2,recP:1.1,flou:.2,fovMaxL:112,genouL:8,
+  dolly:function(f){if(!(f>0))return 1;const r=Math.tan(fovPor(this.ref)*Math.PI/360)/Math.tan(Math.min(170,f)*Math.PI/360);return THREE.MathUtils.clamp(r,this.dMin,this.dMax);}};
 function camTailleOn(){return CAM_TAILLE.on&&POR>.5;}
 function camTailleFov(f){const T=CAM_TAILLE,K=T.fovMax-T.genou;return f<=K?f:K+T.genou*(1-Math.exp(-(f-K)/T.genou));} // le genou : pente 1 à K, tend vers fovMax
 const ASSIST_VIRAGE=0; // (conduite v6) ZÉRO : la caisse ne suit plus la route toute seule — c'était l'« aimant » (elle prenait 78 % de chaque virage, 99,5 % avec le cap visé)
@@ -35233,9 +35252,10 @@ function loop(now){
            caisse), pas la position absolue : la caméra garde la douceur dans les virages et les bosses, mais la vitesse ne
            l'éloigne plus. Recul de base 2,9 (était 3,3), qui s'allonge à peine avec la vitesse et le boost. */
         const hC9=Math.max(0,(CARS[level].h||1.3)-1.5), // (2026-09-26) les HAUTES (monster truck, glacier, combi) : on recule et on monte d'autant — elles bouchaient la route
-        ct9=camTailleOn(),vCam9=ct9?Math.min(speedKmh,CAM_TAILLE.recMax/.0018):speedKmh,bCam9=ct9?camBoost*CAM_TAILLE.boost:camBoost, // (2026-09-30) CAM_TAILLE : en portrait la vitesse n'éloigne plus la caméra au-delà de recMax (NITROOO ×2,6 l'envoyait à 9 m de haut)
-        camBack=(3.6+CARS[level].l*.42+hC9*1.6+vCam9*.0018+bCam9*1.6)*(1-POR*.28), // le recul suit la LONGUEUR de la caisse : la Combi et la Bulle cadrées pareil
-       camH=(camBack*.40+hC9*.9+vCam9*.0012+bCam9*.25)*(1+POR*.70);
+        ct9=camTailleOn(),H9=CAM_HEROS.on,vCam9=(ct9||H9)?Math.min(speedKmh,CAM_TAILLE.recMax/.0018):speedKmh,bCam9=H9?camBoost*CAM_HEROS.boost:ct9?camBoost*CAM_TAILLE.boost:camBoost, /* (CAM_HEROS) la nitro ne recule plus la caméra ; couché aussi, la vitesse n'éloigne plus au-delà de recMax */
+        dz9=H9?CAM_HEROS.dolly(loop._fovB):1,hz9=H9?1-CAM_HEROS.bas*THREE.MathUtils.clamp(speedKmh/Math.max(1,vCroisiere())-.6,0,1):1, /* (CAM_HEROS) le VERTIGO : la caméra avance quand le champ s'ouvre · elle descend à haute vitesse */ // (2026-09-30) CAM_TAILLE : en portrait la vitesse n'éloigne plus la caméra au-delà de recMax (NITROOO ×2,6 l'envoyait à 9 m de haut)
+        camBack=(3.6+CARS[level].l*.42+hC9*1.6+vCam9*.0018+bCam9*1.6)*(1-POR*.28)*dz9*(H9?1+(CAM_HEROS.recP-1)*POR:1), /* (CAM_HEROS) debout, un pas en arrière : le champ resserré suffit à grossir la caisse */ // le recul suit la LONGUEUR de la caisse : la Combi et la Bulle cadrées pareil
+       camH=(camBack*.40+hC9*.9+vCam9*.0012+bCam9*.25)*(1+POR*.70)*hz9;
         camLean=steer*.065;camSwing=0;camKick=0; // (conduite v3) la caméra penche avec toi (était .035)
         // (conduite v6) la caméra se place derrière un axe MI-ROUTE MI-CAISSE : avant, elle suivait le cap de la caisse et la clouait au
         // centre de l'image (mesuré : 0 % d'écart à l'écran à 15 m du centre) — on voyait le décor coulisser, pas la caisse bouger.
@@ -35245,7 +35265,7 @@ function loop(now){
         // plantée au milieu de l'image et c'est la route qui coulissait dessous. Elle suit désormais avec un RETARD (~0,35 s) : quand on
         // change de ligne, on VOIT la caisse partir vers le bord de l'écran, puis la caméra la rejoint. Pas de rappel vers l'axe : la cible
         // est TA position (×1), seul le rythme change.
-        {const n9=performance.now();if(loop._camLat==null||n9-(loop._camLatT||0)>150)loop._camLat=lat;loop._camLatT=n9;
+        {const n9=performance.now();if(loop._camLat==null||n9-(loop._camLatT||0)>(window.dbgCamReprise||150))loop._camLat=lat;loop._camLatT=n9;
          loop._camLat+=(lat-loop._camLat)*(1-Math.exp(-dt/.22));}
         // ⚠ PLAFONNÉ à 30 % du recul : la caméra n'est qu'à ~4 m derrière — un retard de 4 m montrait la caisse DE PROFIL, collée au bord
         /* ⚠ (2026-09-30) SOUS LA DALLE, LA CAMÉRA DEVANÇAIT LA CAISSE : il y avait ici un `×(side<0?−1:1)` — mais `lat` et `_camLat` vivent
@@ -35256,7 +35276,7 @@ function loop(now){
         tmp2.copy(carGroup.position).addScaledVector(loop._camD,-camBack).addScaledVector(F.n,camH).addScaledVector(F.b,cLag9);
         {const n9=performance.now(); // l'écart repart de la caméra RÉELLE à chaque reprise de conduite (après un vol, le garage, un respawn)
          if(!loop._camOff)loop._camOff=new THREE.Vector3();
-         if(n9-(loop._camDriveT||0)>150){loop._camOff.subVectors(camera.position,carGroup.position);CAM_ROUTE.phi=0;} // (vague 3) le pivot anticipé repart de zéro, lui aussi
+         if(n9-(loop._camDriveT||0)>(window.dbgCamReprise||150)){ /* (banc) dbgCamReprise : en rendu logiciel (200-300 ms l'image) CHAQUE image passait pour une reprise de conduite et la caméra reculait de v·dt à chaque image */loop._camOff.subVectors(camera.position,carGroup.position);CAM_ROUTE.phi=0;} // (vague 3) le pivot anticipé repart de zéro, lui aussi
          loop._camDriveT=n9;}
         {const off=loop._camOff,cibleOff=tmp2.sub(carGroup.position);        // l'écart VOULU (tmp2 redevient un écart)
          camRouteTonneau(cibleOff,loop._camD,dt); // (vague 3) dessus ↔ dessous : la caméra ROULE et orbite (voir CAM_ROUTE)
@@ -35269,7 +35289,7 @@ function loop(now){
         // PORTRAIT : on vise plus BAS (F.n 1,05 → 0,50) — la caméra pique du nez, donc la caisse
         // REMONTE dans le cadre au lieu de sortir par le bas. Reculer/monter/viser bas se règlent
         // ENSEMBLE : sans cette ligne, camBack et camH seuls laissaient une caisse minuscule en bas.
-        tmp2.copy(carGroup.position).addScaledVector(fwdW,8.5+POR*1.2).addScaledVector(F.n,1.05-POR*.55).addScaledVector(F.b,cLag9*.5); // la visée prend une partie du retard : la caisse sort un peu du centre de l'image
+        tmp2.copy(carGroup.position).addScaledVector(fwdW,8.5+POR*1.2).addScaledVector(F.n,1.05-POR*.55-(H9?CAM_HEROS.vise*POR:0)).addScaledVector(F.b,cLag9*.5); /* (CAM_HEROS) debout, la visée descend : la caisse remonte */ // la visée prend une partie du retard : la caisse sort un peu du centre de l'image
         /* (route v2) LE REGARD SUIT LA ROUTE : la visée se tire à 35 % vers un point de la piste 35 m DEVANT (à la même
            distance du bord que la caisse). Dans une courbe, l'œil part vers la sortie du virage au lieu de fixer l'axe de
            la caisse — on voit où l'on va. */
@@ -35292,10 +35312,16 @@ function loop(now){
         camera.lookAt(tmp2);
         fovPunch=Math.max(0,fovPunch-dt*18);
         const r9=speedKmh/Math.max(1,vCroisiere()), // (2026-09-25) le champ s'ouvre sur la CROISIÈRE réelle : il continue de réagir au momentum, au pad, au FLOW au lieu d'être collé au plafond
-              fb9=FLOW.lv*2.2+72+Math.min(38,r9*28+Math.max(0,r9-1)*10)+(boost>0?8:0)+(nitroOn?(nitroBlue?22:15):0); // le tunnel s'ouvre : part RELATIVE + part absolue + GROS coup de FOV au boost (Sacha)
+              fb9=H9?(()=>{const H=CAM_HEROS;if(H.v0<0||Math.abs(speedKmh-H.v0)>400)H.v0=speedKmh; /* (CAM_HEROS) « ça pousse » = la PRISE DE VITESSE : l'écart entre la vitesse et sa moyenne lente (≈1,2 s) — un pad, la nitro, une relance ouvrent le champ ; une vitesse stable ou une pente qui accélère doucement le laissent se refermer (la piste descend presque toujours : une accélération brute le tenait ouvert en permanence, mesuré) */
+                H.v0+=(speedKmh-H.v0)*(1-Math.exp(-dt/H.tau));const a9=speedKmh-H.v0;
+                H.acc+=(THREE.MathUtils.clamp(a9/H.accK,0,1)-H.acc)*(1-Math.exp(-dt*(a9>H.acc*H.accK?8:2)));
+                return 72+FLOW.lv*1.1+Math.min(16,r9*10+Math.max(0,r9-1)*4)+(boost>0?4:0)+(nitroOn?(nitroBlue?10:7):0)+H.kick*H.acc*FOVP_K;})() /* (« Réduire les animations » : le coup à 30 %, comme fovPunch) */
+               :FLOW.lv*2.2+72+Math.min(38,r9*28+Math.max(0,r9-1)*10)+(boost>0?8:0)+(nitroOn?(nitroBlue?22:15):0); // le tunnel s'ouvre : part RELATIVE + part absolue + GROS coup de FOV au boost (Sacha)
+        CAM_HEROS.fb=fb9;CAM_HEROS.pu=fovPunch; // (banc) lus par dbgCamRoute
         let fovT=Math.min(160,fovPor(fovPunch*FOVP_K+fb9)); // (portrait : élargi par la tangente, voir fovPor)
-        if(ct9){const f09=Math.min(160,fovPor(fb9));fovT=camTailleFov(f09)+(fovT-f09);} // (2026-09-30) CAM_TAILLE : le champ tenu passe par le genou, le COUP (fovPunch) passe par-dessus, intact
-        {const n9=performance.now();if(loop._fovB==null||n9-(loop._fovBT||0)>150)loop._fovB=camera.fov;loop._fovBT=n9;} // le champ « de base » repart du vrai champ à chaque reprise de conduite
+        if(ct9){const f09=Math.min(160,fovPor(fb9));fovT=camTailleFov(f09)+(fovT-f09);}
+        else if(H9){const H=CAM_HEROS,K=H.fovMaxL-H.genouL,f09=Math.min(160,fovPor(fb9));fovT=(f09<=K?f09:K+H.genouL*(1-Math.exp(-(f09-K)/H.genouL)))+(fovT-f09);} /* (CAM_HEROS) COUCHÉ aussi, le champ tenu passe par un genou (112°) — les coups passent par-dessus */ // (2026-09-30) CAM_TAILLE : le champ tenu passe par le genou, le COUP (fovPunch) passe par-dessus, intact
+        {const n9=performance.now();if(loop._fovB==null||n9-(loop._fovBT||0)>(window.dbgCamReprise||150))loop._fovB=camera.fov;loop._fovBT=n9;} // le champ « de base » repart du vrai champ à chaque reprise de conduite
         loop._fovB+=(fovT-loop._fovB)*Math.min(1,dt*(NFX.off>0&&fovT<loop._fovB?2.4:6));
         CAMV.zoom=Math.max(0,CAMV.zoom-dt*2);CAMV.zp=24*CAMV.zoom*CAMV.zoom*FOVP_K; // (2026-09-28) le COUP DE ZOOM d'une pose PARFAITE : sec à l'impact (−24°), relâché en 0,5 s — (2026-09-30) à 30 % sous « Réduire les animations », comme fovPunch
         camera.fov=Math.max(20,loop._fovB-CAMV.zp); // (vague 3) à l'extinction de la nitro le champ RETOMBE en douceur (il s'ouvre toujours sec)
@@ -36163,7 +36189,7 @@ function loop(now){
   if(!garageOn&&!stallOn){sunSprite.visible=sunSprite.material.opacity>.02;horizonGlow.visible=horizonGlow.material.opacity>.02;for(const r9 of RAYS)r9.visible=r9.material.opacity>.002;}
   if(acesPass){ // EFFETS DE VITESSE (aberration + flou radial + tunnel) — SUR LE BOOST, pas sur le simple fait d'avancer
     const volK9=mode==='fall'?.5:mode==='boom'?0:1; // (2026-09-29, passe « jeu pro » — deux critiques : la moitié de l'image étalée en vol, la lune en copies à la mort) : EN VOL on VISE la réception, à la MORT on regarde
-    const sfxT=(running&&!gameOver&&!REDUCED_MOTION&&FLOU_OK)?Math.max(ORBFX.warp*.95,Math.min(1,(nitroOn?0.72:0)+Math.min(1,boost)*0.6)*volK9):0; // (2026-09-28) + le TUNNEL de l'orbite // rouler normalement = image nette ; booster = ça FUSE
+    const sfxT=(running&&!gameOver&&!REDUCED_MOTION&&FLOU_OK)?Math.max(ORBFX.warp*.95,Math.min(1,(nitroOn?0.72:0)+Math.min(1,boost)*0.6+(CAM_HEROS.on&&mode==='drive'?CAM_HEROS.flou*THREE.MathUtils.clamp((speedKmh/Math.max(1,vCroisiere())-.7)/.8,0,1):0))*volK9):0; /* (CAM_HEROS) un voile de flou sur les BORDS en croisière rapide : la vitesse se lit sans ouvrir le champ */ // (2026-09-28) + le TUNNEL de l'orbite // rouler normalement = image nette ; booster = ça FUSE
     loop._sfx=(loop._sfx||0)+(sfxT-(loop._sfx||0))*Math.min(1,dt*(sfxT>(loop._sfx||0)?7:mode==='boom'?9:3)); // montée franche, retombée douce (sèche à l'explosion)
     acesPass.uniforms.uSpeed.value=loop._sfx;acesPass.uniforms.uJit.value=(acesPass.uniforms.uJit.value+.618034)%1;
     renderer.getDrawingBufferSize(acesPass.uniforms.uRes.value);acesPass.uniforms.uRes.value.set(1/Math.max(1,acesPass.uniforms.uRes.value.x),1/Math.max(1,acesPass.uniforms.uRes.value.y)); // la taille d'un texel pour le FXAA (suit la résolution adaptative)
