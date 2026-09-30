@@ -1,5 +1,17 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA REVUE DES NUAGES (2026-09-30, session GRAPHISME — constats de la revue de GAMEPLAY, vérifiés)
+- **Les 14 NUAGES D'HORIZON en sprites sont RETIRÉS** (fin de buildTrack) : ils restaient en VILLE, perçaient la brume de l'ORAGE (650-1850 m
+  contre 70/660) et la moitié tombait sous l'horizon dans l'abîme des NUAGES. Avec eux part `cloudTexs` (cinq toiles 512×256 peintes au
+  pinceau gaussien à CHAQUE lancement : 0,5 à 2,7 s de calcul sur le fil principal). Aucun tirage `rnd` n'avait lieu après eux dans
+  buildTrack (vérifié) : la piste ne bouge pas. Le ciel lointain, c'est COTON.
+- **La brume d'un banc** visait 120/820 en dur (pensée pour les NUAGES) : à l'ORAGE (70/660) entrer dans un banc ÉCLAIRCISSAIT la brume →
+  `Math.min(fogN9,120)` / `Math.min(FOG_F,820)` : jamais plus clair qu'avant d'entrer.
+- **En attente** : la finesse de cotonInit à la demande et mkCloud qui clone COTON (le reste du gel au lancement/portail — proposé à
+  INTERFACE, auteure des formes v7) ; À TRANCHER PAR SACHA : distinguer à l'œil les nuages UTILES (coussins/tours qui rendent de l'airtime)
+  du décor COTON ; les bancs de route des NUAGES qui tombent en virage (la campagne 8 cache le virage SUIVANT) ; à l'ORAGE, un banc traversé
+  EN VOL rend 1,2 s d'airtime (aucun test « sur la route »).
+
 ## LE JUS v5 — UN PEU PLUS VISIBLE, ET GÊNANT (2026-09-30, session GRAPHISME — Sacha à INTERFACE : « rends un peu plus visibles et gênantes à l'écran les taches de jus de fruit »)
 - Entre la v4 (discrète, hors de la zone de conduite, 11-34 px, 6 au plus) et la v3b (46-91 px, partout, 14 — jugée trop) : rayon ~19-57 px
   sur un téléphone (plafond 68), coulure un peu plus longue ; **55 % des gouttes tombent PARTOUT** (route et caisse comprises : ça gêne), les
