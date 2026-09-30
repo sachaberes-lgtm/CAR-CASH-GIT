@@ -12267,7 +12267,7 @@ function carrIci(){if(CARR.actif&&LVL.cur&&LVL.cur.carr&&LVL.cur.carr.b===CARR.a
 window.dbgCarriere=function(){return {actif:CARR.actif,progression:SAVE.d.carr||{}};};
 window.dbgVilleEntree=function(){return {marque:!!VILLE_ENTREE,troncons:CITY.entree,metres:CITY.entree?CITY.entree.map(function(i){return Math.round(i*L/(NP-1));}):null,alt:CITY.entree?CITY.entree.map(function(i){return Math.round(pts[i].y);}):null,depart:NP?Math.round(pts[0].y):null};}; // (banc) l'entrée surélevée de la ville : où finit la droite, où finit la rampe
 window.dbgNiveau=function(){return LVL.cur?{niveau:LVL.n,lieu:LVL.cur.id,ciel:BIO.name,largeurRoute:+(ROAD_HALF*2).toFixed(1),uSpace:+LVL.espace.toFixed(2),
-  planete:+LVL.planete.toFixed(2),ville:!!CITY.root,nuages:CLOUDS.length}:'parc freestyle (pas de niveaux)';};
+  planete:+LVL.planete.toFixed(2),ville:!!CITY.root,nuages:CLOUDS.length,nuit:+LVL.nuit.toFixed(2),hard:!!LVL.cur.hard,graine:LVL.cur.graine|0,pr:LVL.cur.pr||''}:'parc freestyle (pas de niveaux)';}; // (2026-09-30) + nuit, hard, graine, promesse : le banc de la carrière
 paintEnv(BIOMES.golden.env,BIOMES.golden.eS1,BIOMES.golden.eS2); // premier reflet = golden hour (la vitrine du menu)
 const carGroup=new THREE.Group();scene.add(carGroup);SCENE_TOUJOURS.add(carGroup); // (2026-09-27) sa matrice monde est LUE même cachée (voir scene.updateMatrixWorld)
 const carLight=new THREE.PointLight(0xfff2ea,1,12,2);scene.add(carLight); // (2026-09-25) blanc NEUTRE (le rosé 0xffe6f4 rosissait tout), portée courte en décroissance quadratique : elle éclaire la CARROSSERIE, plus la route (c'était la tache rose)
