@@ -43,6 +43,34 @@
   caméra du menu est plus proche : à 2,78 m elles passaient derrière JOUER) : PERSO contre le pilier gauche de la porte (x 6,45),
   MONDE vers le coin droit (x −8,5 — à −6,45 le socle des missions tombait pile devant). Sans niveau choisi (GSEL absent de main) :
   records de toujours (meilleure partie, aura max, palier moteur, vitesse max). Banc `affiches.mjs`.
+- **LES MISSIONS DANS L'ATELIER** (même soir, Léo : « un truc beaucoup plus ambitieux pour le bouton mission : un point de vue face au
+  garage, une ambiance sci-fi, des lignes qui montrent les missions réparties à différents endroits, reliées, un bouton JOUER ; cocher une
+  mission pour la suivre, elle reste affichée discrètement pendant le jeu ») — `garMode('missions')` (= `.menu` + `.missions`), bloc
+  `GMIS` (juste avant `garAccueil`) :
+  · LA CAMÉRA s'élève sous la porte relevée (0 ; 4,4 ; 11 — ⚠ pas plus haut : les panneaux de la porte sont empilés à 4,92-5,05 m) et
+    regarde tout l'atelier (visée 0 ; 0,6 ; −3,6), fondu en S (`GMIS.mk` → `GMIS.e`, position, visée, objectif 58°/66° debout ; le
+    décentrement du menu s'efface : `garCadre(1−e)`) ; balancement coupé, glissé désactivé.
+  · LES ANCRES (`GMIS.ancres`, coordonnées de la pièce) : défi 1 le COMPRESSEUR, défi 2 l'ÉTABLI, défi 3 le PONT ÉLÉVATEUR, la
+    RÉCOMPENSE au-dessus de la caisse, les deux carnets SUIVANTS sur le RACK et le DISTRIBUTEUR. En 3D (`gmHoloBuild`, bâti avec
+    l'atelier, opacité 0 hors de l'écran) : un faisceau (sprite lampTex) + un anneau au sol, cyan / or / lilas. En DOM (`gmRender`,
+    `gmSuit` chaque image) : un point-diamant à l'endroit exact, une CARTE-hologramme (crochets de viseur, trame, entrée en balayage)
+    reliée par un filet, écartée des autres et gardée dans l'écran (8 passes), les points reliés par le fil de la constellation
+    (défi 1 → 2 → 3 → récompense → la suite, en pointillés qui coulent). Aucune écriture DOM si rien n'a bougé.
+  · SUIVRE : toucher un défi le coche (`SAVE.d.mis.f`, désinfecté dans `san`, −1 = aucun, remis à −1 par `misFin` et quand il est
+    réussi) ; la carte passe en OR « SUIVI EN COURSE », l'en-tête dit « SUIVI : … ». La récompense ouvre sa fiche en boutique ; un carnet
+    suivant répond « LES 3 DÉFIS D'ABORD ». En bas HOME (le menu) · JOUER (`garJouer`, partie sans fin). Échap = le menu.
+  · EN COURSE : `#misFocus` (créé dans #hud, `misFocusMaj` appelée par `misTick` 4×/s) — en bas au centre, discret (opacité .82, 8 px) :
+    ◆ consigne · avancement · jauge fine ; VERT 3,2 s quand le défi tombe, puis s'efface.
+  · Le départ depuis cet écran passe par LE RETOUR AU FEU (≥ 0,8 s : la vue d'ensemble redescend derrière la caisse, `pre.mk0`).
+  · La porte MISSIONS de l'écran de mort (`mTap 'mis'`) ouvre CET écran (via `accueilRetour` + `GAR.aMis`) ; l'ancien écran `#mMis`
+    n'est plus ouvert depuis le jeu (son code reste). `garMissionsOuvre()`, `dbgMissions(f)`. Bancs `missions.mjs W H nom [court]`.
+- **CHOISIR UNE MAP LANCE LA PARTIE** (Léo : « quand je choisis une map, ça ne lance pas la partie, il faut revenir en arrière ») : un
+  NIVEAU de la grille lançait déjà (vérifié au banc, téléphone et cadre PC) — c'est la carte d'un MONDE qui ne faisait qu'ouvrir sa
+  grille. Désormais la carte d'un monde (`data-c="monde"`) LANCE son niveau en cours (le prochain à finir) et dit « ▶ JOUER · NIVEAU n »
+  sous son titre ; son compteur « 0 / 10 ▸ » (`.carrNivs`, `data-c="biome"`) ouvre la grille des dix. Banc `carr2.mjs`.
+- **LE TAPOTEMENT** (Léo : « le bruit que fait la voiture quand on la tapote est un peu bizarre, change-le ») : `garage.tole` refait
+  (atelier-son) — plus de « tonk » en rapports de cloche (un gong) : toc ÉTOUFFÉ de tôle épaisse, poids de la caisse, suspension qui
+  s'enfonce et remonte, garniture qui cliquette ; 4 prises ±8 %. Banque ?v=9 (étalon d'origine gardé), sw v34.
 - **HOME** (Léo : « dans la boutique, au lieu d'un bouton MENU (erreur), un bouton HOME, qui remplacera tous les boutons GARAGE ou
   MENU ») : `#gClose` (boutique) et la maison de l'écran de mort disent HOME ; la tuile GARAGE de l'écran de mort est RETIRÉE (HOME y
   mène). Il reste BOUTIQUE · RÉGLAGES dans la rangée. (La tuile GARAGE de `#mHome` reste dans le HTML : l'écran d'accueil n'est plus montré.)

@@ -837,8 +837,20 @@ D('garage.bascule',{fam:'interface',bus:'ui',dur:1.1,st:1,key:1,db:-5,max:1,cd:.
   r:function(b,R,o){bruit(b,{c:'r',t0:0,a:.05,d:.3,v:.4,ft:'bp',f:2400,f1:400,g:.33,q:1.2,pan:.5,pan1:-.2},R);grave(b,o,.3,110,70,.05,.12,.3);
     osc(b,{f:nE(12),f1:nE(31),g:.25,gc:.7,w:'tri',t0:.34,a:.01,d:.3,v:.12});swish(b,R,.34,.25,1500,6000,.15,-.4,.4);
     clic(b,{t0:.6,f:2500,d:.008,v:.4},R);osc(b,{f:180,f1:120,g:.04,t0:.6,a:.001,d:.08,v:.35});cloche(b,{f:nE(24),r:[1,2,2.76],m:[1,.25,.1],d:[.3,.12,.05],t0:.62,v:.18},R);}});
-D('garage.tole',{fam:'interface',bus:'ui',dur:.5,db:-5,max:2,cd:.08,v:2,dit:'taper sur la caisse au garage : « tonk » de tôle de carrosserie',
-  r:function(b,R,o){tole(b,R,0,300+R()*80,.45,.35);clic(b,{t0:0,f:1500,d:.01,v:.3},R);}});
+/* (2026-09-30, Léo : « le bruit que fait la voiture quand on la tapote est un peu bizarre, change-le, améliore ») l'ancien « tonk »
+   (5 modes de tôle en rapports de CLOCHE, 0,35 s de tenue) sonnait comme un gong. Une vraie caisse qu'on tape, c'est une TÔLE ÉPAISSE
+   ÉTOUFFÉE (la garniture, le joint) : un toc sourd et court, le POIDS de la caisse, sa SUSPENSION qui s'enfonce et remonte (la caisse
+   recule à l'écran), et un petit cliquetis de garniture. Quatre prises (±8 %) : on tape souvent. */
+D('garage.tole',{fam:'interface',bus:'ui',dur:.55,db:-5,max:2,cd:.08,v:4,dit:'taper sur la caisse au garage : le TOC étouffé d’une portière, le poids de la caisse, sa suspension qui rebondit, la garniture qui cliquette',
+  r:function(b,R,o){const k=.92+R()*.16;
+    clic(b,{t0:0,f:2200,d:.005,v:.26},R);                                                     // la jointure
+    cloche(b,{f:190*k,r:[1,1.62,2.31,3.48],m:[1,.55,.32,.14],d:[.1,.065,.04,.022],t0:0,v:.5,jit:.04},R); // la tôle épaisse, étouffée
+    bruit(b,{c:'r',t0:0,a:.0008,d:.06,v:.3,ft:'lp',f:750*k,q:.8},R);                          // le creux du panneau
+    grave(b,o,0,96*k,60*k,.05,.16,.4);                                                        // le poids
+    osc(b,{f:58*k,f1:50*k,g:.3,t0:.03,a:.03,d:.32,v:.13,vib:[6,.04]});                        // la suspension qui s'enfonce et remonte
+    bruit(b,{c:'b',t0:.04,a:.02,d:.12,v:.03,ft:'bp',f:1700*k,q:5,am:[22,.7]},R);              // l'amortisseur, à peine
+    for(let i=0;i<3;i++)plastique(b,R,.018+i*.017+R()*.01,(1300+R()*600)*k,.05-i*.012);      // la garniture qui cliquette
+  }});
 D('garage.lacher',{fam:'interface',dur:1.9,st:1,db:+3,max:1,cd:1,dit:'LE LÂCHER du garage (1,7 s) : le moteur qui s’ébroue, le turbo qui siffle, la caisse qui part + le WHOOSH du voile blanc (1,36 s)',
   r:function(b,R,o){for(const dt of [0,.01])osc(b,{f:48,f1:150,g:1.4,gc:1.6,w:'saw',t0:.05,a:.15,h:1.1,d:.3,v:.09,flt:['lp',300,2200,1.4,.9],pan:dt*50});
     osc(b,{f:700,f1:3200,g:1.3,gc:1.2,w:'saw',t0:.2,a:.4,h:.8,d:.2,v:.02,flt:['bp',1400,6400,1.3,6]});crepite(b,R,.05,.4,6,.25,300,900);
