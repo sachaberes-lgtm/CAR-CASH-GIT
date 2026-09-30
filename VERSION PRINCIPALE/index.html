@@ -2751,6 +2751,19 @@ html #garage.menu #gPlayMain{display:inline-flex!important;pointer-events:auto;a
   #gMenuBas .gLevel{min-height:82px;gap:7px}
   .gLevel .glM{font-size:var(--f1)}
 }
+/* ---- LE MENU = LE GARAGE + LES BOUTONS DE SACHA (2026-09-30, Sacha : « les boutons ne vont pas du tout dans la version de Léo : on garde
+   la base de garage pour le menu mais on remet les mêmes boutons que ceux que j'avais faits pour ma version ») — `body.garMenuH` (posée par
+   garMode quand l'atelier est en MENU) : SON accueil #mHome (le logo CASH CAR, MISSIONS · ⚙, GARAGE · CARRIERE · BOUTIQUE, le lingot JOUER)
+   passe PAR-DESSUS l'atelier — le même écran, les mêmes styles, le même routeur (mTap) ; fond transparent, seuls ses boutons prennent le
+   doigt (le glissé et le tap sur la caisse restent à l'atelier). Le menu de Léo (#gMenu : profil, JOUER en pixels, [verrou][NIVEAU]
+   [BOUTIQUE], l'étiquette du socle) s'efface ; son code reste (l'écran MISSIONS de l'atelier et la BOUTIQUE sont inchangés). ---- */
+body.garMenuH #overlay{display:flex!important;z-index:61}
+body.garMenuH #overlay[data-ecran="home"]{pointer-events:none;overflow:hidden}
+body.garMenuH #overlay[data-ecran="home"] [data-m]{pointer-events:auto}
+body.garMenuH #garage #gMenu,body.garMenuH #garage.menu #gTop{display:none!important}
+body.garMenuH #garage.menu::before,body.garMenuH #garage.menu::after{display:none}
+/* couché (le PC, un téléphone en paysage) : sa colonne centrée couvrait la caisse — elle se range à DROITE, la caisse se cadre dans la moitié gauche (garLibre) */
+@media (orientation:landscape) and (max-height:540px){body.garMenuH #mHome{align-self:flex-end!important;margin-right:calc(var(--sR) + 8px)}}
 /* ---- LES MISSIONS DANS L'ATELIER (2026-09-30, Léo : « un truc beaucoup plus ambitieux : point de vue face au garage, ambiance sci-fi,
    des lignes qui montrent les missions réparties à différents endroits, reliées, un bouton JOUER, et cocher une mission pour la suivre ») —
    `#garage.missions` (avec `.menu`) : la caméra s'élève au-dessus de la porte et regarde tout l'atelier (voir `GMIS`) ; chaque défi est
@@ -32991,7 +33004,7 @@ function garageLaunch(){
   const mk0=GMIS.mk>.02?GMIS.mk:0; // (missions) la vue d'ensemble redescend derrière la caisse pendant le même retour
   const pre=(Math.abs(dv)>.12||Math.abs(garagePitch-.2)>.1||mk0)?{t:0,D:Math.max(mk0?.8:0,.25+.28*Math.max(Math.abs(dv),Math.abs(dr)*.5)),v0:dv,g0:garageAng,gd:dr,p0:garagePitch,mk0:mk0}:null;
   GAR.go={t:0,pre:pre,p0:pre?null:camera.position.clone(),lx0:-Math.sin(garCamA())*1.5,lz0:-Math.cos(garCamA())*1.5,voile:false,quiet:gEl.classList.contains('quiet'),r0:dr}; // r0 : où le plateau l'avait tournée
-  gEl.classList.add('launching'); // dès qu'on PART, la vitrine s'efface — qu'on l'ait parcourue ou pas
+  gEl.classList.add('launching');document.body.classList.remove('garMenuH'); // dès qu'on PART, la vitrine s'efface — qu'on l'ait parcourue ou pas
   if(!pre)garLacherSon();
 }
 function garLacherSon(){try{if(SONV2)sfx('garage.lacher');else{noiseBurst(.6,.22,420);chimeNote(196,0,.5,.16);}}catch(e){}} /* (console de son) LE LÂCHER : moteur, turbo, départ, et le WHOOSH du voile (1,36 s) — le 196 Hz hors gamme reste en repli ; après LE RETOUR AU FEU s'il y en a un */
@@ -33297,7 +33310,7 @@ function closeGarage(){
   buildCar(CARS[level||0]);                 // remet la caisse du menu
   camera.up.set(0,1,0);
   frameAt(0,F);camera.position.copy(F.p).addScaledVector(F.t,-9).addScaledVector(F.n,4);camera.lookAt(F.p);
-  overlay.style.display='flex';
+  document.body.classList.remove('garMenuH');overlay.style.display='flex';
 }
 /* L'APERÇU DE TRAÎNÉE AU GARAGE (2026-09-25, user : « on ne voit pas la traînée de nitro derrière la voiture dans le
    garage »). La vraie traînée est l'HISTOIRE des positions de la caisse : sur son plateau, immobile, elle ne fait aucune
@@ -33781,7 +33794,11 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
 function garLibre(){
   const n=performance.now();if(garLibre._r&&n-garLibre._t<250)return garLibre._r;garLibre._t=n;
   const W=VP.w,H=VP.h,r={x0:0,x1:W,y0:0,y1:H};
-  if(gEl&&gEl.classList.contains('menu')&&!gEl.classList.contains('quiet')&&!gEl.classList.contains('launching')){ // LE MENU : entre PLAY et la rangée du bas
+  if(document.body.classList.contains('garMenuH')){ // (2026-09-30) LE MENU DE SACHA : la caisse entre le LOGO et la rangée MISSIONS · ⚙ (debout) ; couché, à gauche de la colonne
+    const ti=document.querySelector('#mHome .mTitle'),ou=document.querySelector('#mHome .mOutils'),hm=$('mHome'),tr=ti&&ti.getBoundingClientRect(),orr=ou&&ou.getBoundingClientRect(),hr=hm&&hm.getBoundingClientRect();
+    if(W>H*1.25&&hr&&hr.width&&hr.left>W*.3)r.x1=hr.left;                              // couché : la colonne est à droite
+    else{if(tr&&tr.height)r.y0=tr.bottom+14;if(orr&&orr.height)r.y1=orr.top;}          // debout : entre le titre et les boutons
+  }else if(gEl&&gEl.classList.contains('menu')&&!gEl.classList.contains('quiet')&&!gEl.classList.contains('launching')){ // LE MENU : entre PLAY et la rangée du bas
     const pm=$('gPlayMain'),mb=$('gMenuBas'),pr=pm&&pm.getBoundingClientRect(),br=mb&&mb.getBoundingClientRect();
     if(pr&&pr.height){r.y0=pr.bottom;r.pl={l:pr.left,r:pr.right,b:pr.bottom};}if(br&&br.height)r.y1=br.top; // (pl : JOUER, que l'étiquette des missions évite)
   }else if(gEl&&!gEl.classList.contains('quiet')&&!gEl.classList.contains('launching')){
@@ -33980,6 +33997,8 @@ function garMode(m){
   if(!gEl)return;const menu=m==='menu'||m==='missions',mis=m==='missions'; // (2026-09-30) MISSIONS = le menu, vu d'en haut, avec la constellation
   if(menu){if(SHOP.tab!=='voiture'||SHOP.prev)shopTab('voiture');const eq=equippedCar();if(garageI!==eq&&!GAR.sw)garageShow(eq);} // au menu : TA caisse, sans essai
   gEl.classList.toggle('menu',menu);gEl.classList.toggle('missions',mis);garLibre._r=null;
+  document.body.classList.toggle('garMenuH',menu&&!mis); // (2026-09-30, Sacha) au MENU, ses boutons : l'accueil #mHome par-dessus l'atelier (voir « LE MENU = LE GARAGE + LES BOUTONS DE SACHA »)
+  if(menu&&!mis&&window.__mHomeSur)try{window.__mHomeSur();}catch(e){}
   if(menu)garMenuMaj();
   if(mis)try{gmRender();}catch(e){console.warn('missions',e);}
 }
@@ -36828,6 +36847,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(overlay){overlay.scrollTop=0;overlay.setAttribute('data-ecran',id);} // le fond suit l'écran : l'accueil laisse voir le monde
     mFill();
     if(id==='home')try{garAccueil();}catch(e){} } // (2026-09-30, sketch de Léo) « le garage devient le nouveau menu » : l'ACCUEIL ouvre l'atelier
+  window.__mHomeSur=function(){if(mCur!=='home')mGo('home','racine',true);}; // (2026-09-30) le garage-menu montre l'ACCUEIL, d'où que vienne le routeur (mGo('home') rappelle garAccueil → garMode('menu') : ici, mCur vaut déjà 'home')
   function mStatBox(v,l){return '<div class="mStat"><b>'+v+'</b><span>'+l+'</span></div>';}
   let mCntT=0;
   function mCount(el,to,direct){ // égrène le montant : départ franc, arrivée en douceur (ease-out cubique)
@@ -36992,13 +37012,14 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='back')mGo(mRoot());
     else if(a==='carr'){ carrVue(null); } // (2026-09-27) la CARRIÈRE : les mondes, puis les dix niveaux (feuille #carr)
     else if(a==='mis'){ if(started&&gameOver){GAR.aMis=true;ecranWipe(function(){ accueilRetour(); mGo('home','racine'); });} else garMissionsOuvre(); } // (2026-09-30) les MISSIONS vivent dans l'atelier (la constellation) — l'ancien écran #mMis n'est plus ouvert d'ici
+    else if((a==='modes'||a==='set')&&garageOn){ ecranWipe(function(){ window.__mRetour=a; closeGarage(); }); } // (2026-09-30) depuis le garage-menu : l'atelier se ferme sous le volet, l'observateur de l'overlay ouvre l'écran (retour : le menu)
     else if(a==='modes'||a==='set')mGo(a);
     // (2026-09-28) MENU : l'écran de mort rend la main à l'ACCUEIL — sous le volet, la course est rangée et la vitrine revient
     else if(a==='menu'&&started&&gameOver){ ecranWipe(function(){ accueilRetour(); mGo('home','racine'); }); }
     else if(a==='misVoir'){ const c9=carnet(misEtat().n).r; // la récompense des MISSIONS, sur la vraie caisse, au garage (sa fiche porte ses trois défis)
       window.__mRetour=PROF[mCur]?mCur:null; // (2026-09-29) le RETOUR de l'atelier ramène aux MISSIONS
       ecranWipe(function(){ openGarage(); if(c9.car!=null){shopTab('voiture');garageShow(c9.car);} else if(c9.cat){shopTab(c9.cat);shopShow(c9.cat,COSM[c9.cat].findIndex(x=>x.id===c9.id));} }); }
-    else if(a==='shop'){ ecranWipe(function(){mGo('shop');}); } // LA BOUTIQUE : l'écran des caisses en vrai argent
+    else if(a==='shop'){ ecranWipe(function(){ if(garageOn){window.__mRetour='shop';closeGarage();} else mGo('shop'); }); } // LA BOUTIQUE : l'écran des caisses en vrai argent (depuis le garage-menu : l'atelier se ferme d'abord)
     else if(a==='custom'){ ecranWipe(function(){openGarage();shopTab('peinture');}); } // la PERSONNALISATION (peinture, ailes, traînées) vit au GARAGE
     else if(a==='shopSoon'){ toast(pxi('panier')+' '+TR('BIENTÔT DISPONIBLE')); }
     else if(a==='shopRestore'){ toast(pxi('coche')+' '+TR('AUCUN ACHAT À RESTAURER')); } // LA BOUTIQUE : le même atelier 3D, onglet PEINTURE — on essaie sur la vraie caisse
@@ -37007,7 +37028,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     /* (2026-09-30, Léo : « quand je finis une partie et que j'appuie sur GARAGE, ça me renvoie sur l'ancien ») GARAGE ouvre LE GARAGE-MENU
        (profil, JOUER, missions, [NIVEAU], BOUTIQUE) — plus l'atelier en mode boutique. Après une partie, c'est le chemin de MENU (la course
        est rangée sous le volet, puis l'accueil = le garage). La boutique reste à un bouton (BOUTIQUE, en bas du garage). */
-    else if(a==='garage'){ if(started&&gameOver)ecranWipe(function(){ accueilRetour(); mGo('home','racine'); }); else ecranWipe(function(){ if(garageOn)garMode('menu'); else {GAR.aMenu=true;openGarage();} }); }
+    else if(a==='garage'){ if(started&&gameOver)ecranWipe(function(){ accueilRetour(); mGo('home','racine'); }); else ecranWipe(function(){ if(garageOn)garMode('boutique'); else openGarage(); }); } // (2026-09-30, Sacha : ses boutons) GARAGE = l'ATELIER (caisses, peinture, ailes, traînées) — le menu, on y est déjà
     else if(a==='surv'){ clic(survBtnEl); mFill(); }
     else if(a==='park'){ clic(parkBtnEl); mFill(); }
     else if(a==='sand'){ SANDBOX=!SANDBOX; SAVE.d.sand=SANDBOX; SAVE.flush(); mFill(); }
