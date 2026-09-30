@@ -1,5 +1,14 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE CIEL POMMELÉ DU NIVEAU NUAGES (2026-09-30, session GRAPHISME — Sacha : « dans le niveau nuages, mets des nuages en motif dans le fond » → « dans le ciel »)
+- Couche `COUCHES.motif` / `cielMotif(col,vDir,y,sd)` du dôme du ciel, dans les passes PLEINE et LISSE (basN) — aucun programme de plus
+  (0 lié en course, banc coton.js). Un MOTIF de petits nuages ronds (trois bourgeons) sur un plafond à ~1,6 km, en rangées DÉCALÉES, avec
+  des trous, derrière les cumulus 3D : parallaxe ×.6 de la caméra et dérive au vent, éclairés côté soleil, ourlés d'or à contre-jour,
+  teintés par le biome (`uSkyMul`, `uSunTint`) ; ils naissent juste au-dessus de l'horizon et s'effacent vers le zénith. Allumé par
+  `uMer` (niveau NUAGES seulement, fondu par lvlStep) — ⚠ `MER_MOTIF` reste FALSE : SOUS la route, l'abîme reste bleu uni (verdict du
+  28/09, Sacha a choisi « dans le ciel » et pas « sous la route »). ⚠ Un nuage du motif doit TENIR dans sa case (±.5) : plus large, il
+  sortait coupé net (la case voisine ne le dessine pas). À plafond 2,4 km la caméra de poursuite, qui regarde vers le bas, n'en voyait rien.
+
 ## LA REVUE DE TOUS LES ÉCRANS (2026-09-30, soir, session GAMEPLAY — Sacha : « vérifie tous les menus, tous les écrans d'interface, il y a plein de petits détails qui ne vont pas »)
 - Banc `ui.js` (scratchpad GAMEPLAY) : chaque écran debout 390×844 ET couché 844×390 (= le PC), FR et EN, captures + mesures (débords,
   cibles < 44 px, capitales accentuées en police pixel, textes coupés). `?menu=sacha` pour le menu de Sacha, `leo.js` pour celui de Léo.

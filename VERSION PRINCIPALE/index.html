@@ -5956,6 +5956,28 @@ const skyDome=(function(){
       '  col*=1.+uPulse*.13;', // MUSIQUE : tout le ciel respire au beat (souffle global doux)
       '  return col;}',
     ],
+    /* LE CIEL POMMELÉ DES NUAGES (2026-09-30, Sacha : « dans le niveau nuages, mets des nuages en MOTIF dans le fond » — « dans le ciel ») :
+       un MOTIF de petits nuages ronds (trois bourgeons chacun) haut dans le ciel, sur un plafond à ~1,6 km, en rangées DÉCALÉES (quinconce)
+       avec des trous — derrière les cumulus 3D du ciel de coton. Parallaxe lente (×.6 de la caméra) et dérive au vent : ils défilent quand on
+       file. Éclairés du côté du soleil, ourlés d'or à contre-jour ; ils naissent juste au-dessus de l'horizon (⚠ banc : à 2,4 km et en
+       fondu jusqu'à 9°, la caméra de poursuite — qui regarde vers le bas — n'en voyait RIEN) et s'effacent vers le zénith. Niveau NUAGES seulement (uMer, fondu par lvlStep), dans les passes PLEINE et LISSE : aucun programme de plus. */
+    motif:[
+      'void cielMotif(inout vec3 col,vec3 d,float y,float sd){',
+      '  if(uMer<.001||y<.012||y>.93)return;',
+      '  float t=1600./y;if(t>90000.)return;',
+      '  vec2 q=(d.xz*t+uCam.xz*.6+vec2(uTime*5.,uTime*2.))/620.;',           // une case du motif ≈ 620 m
+      '  q.x+=.5*floor(q.y);vec2 c=floor(q),f=fract(q)-.5;',                   // rangées en quinconce
+      '  float h=hash21(c);if(h<.32)return;',                                   // des trous dans le motif
+      '  vec2 o=(vec2(hash21(c+7.13),hash21(c+3.31))-.5)*.16;float r=.15+.07*h,ew=clamp(t/16000.,.05,.3);', /* ⚠ (banc) le nuage doit TENIR dans sa case (±.5) : plus large, la case voisine ne le dessinait pas — il sortait coupé net */
+      '  float m=0.,dm=9.;for(int k=0;k<3;k++){float fk=float(k)-1.;vec2 cc=o+vec2(fk*r*.8,abs(fk)*r*.16);float rr=r*(k==1?1.:.68);',
+      '    float dk=length(f-cc)/rr;dm=min(dm,dk);m=max(m,1.-smoothstep(1.-ew,1.+ew,dk));}',
+      '  if(m<.002)return;',
+      '  vec2 s2=normalize(uSunDir.xz+vec2(1e-4));float lit=clamp(.5+.6*dot(normalize(f-o+vec2(1e-4)),s2),0.,1.);',
+      '  vec3 corps=mix(vec3(.94,.90,1.),uSunTint,.24)*uSkyMul*mix(.72,1.08,lit);',   // le ventre, teinté du soleil et du biome
+      '  corps+=uSunTint*(pow(lit,3.)*smoothstep(.45,.95,dm)*.45+pow(sd,4.)*.35)*uSunHalo;', // l ourlet d or côté soleil, et à contre-jour
+      '  float a=m*.7*smoothstep(.012,.055,y)*(1.-smoothstep(.62,.93,y))*exp(-t/36000.)*uMer*(1.-uSpace);',
+      '  col=mix(col,corps,a);}',
+    ],
     mer:[
       'void cielMer(inout vec3 col,float y,float sd){',
       '  if(uMer>.001&&y<.02)col=mix(col,merNuages(vDir,y,sd),uMer*(1.-smoothstep(-.016,.012,y))*(1.-uSpace));', // NUAGES : la mer de nuages sous l horizon (voir merNuages)
@@ -6137,6 +6159,7 @@ const skyDome=(function(){
       '  vec3 col=cielFond(y);',
       '  float sd=max(dot(vDir,uSunDir),0.);',      // couchant : halo rosé large, couronne corail, coeur incandescent (tamisé)
       '  cielMer(col,y,sd);', // NUAGES : la mer de nuages sous l horizon (voir merNuages)
+      '  cielMotif(col,vDir,y,sd);', // NUAGES : le ciel pommelé (voir motif)
       '  cielSoleil(col,sd);',
       '  if(uParis>.001)parisCiel(col,vDir,y,sd);', // PARIS AU SOL : le ciel de l heure
       '  bool gOn=cielGOn(y,sd),sOn=cielSOn(y,sd);',
@@ -6157,7 +6180,7 @@ const skyDome=(function(){
     basN:[LECT_TR,
       'void main(){',
       '  float y=vDir.y;vec3 col=cielFond(y);float sd=max(dot(vDir,uSunDir),0.);',
-      '  cielMer(col,y,sd);cielSoleil(col,sd);if(uParis>.001)parisCiel(col,vDir,y,sd);',
+      '  cielMer(col,y,sd);cielMotif(col,vDir,y,sd);cielSoleil(col,sd);if(uParis>.001)parisCiel(col,vDir,y,sd);',
       '  if(cielGOn(y,sd))cielGuirlande(col,y,atan(vDir.x,-vDir.z),sd);',
       '  cielVoile(col,y);',
       '  gl_FragColor=vec4(col+vec3(cielTrame()*uBasTr),1.);}'],
@@ -6182,7 +6205,7 @@ const skyDome=(function(){
   const src=function(){return [].concat.apply([],arguments).join('\n');},K=COUCHES;
   // (2026-09-26, vague 2 — audit GPU) gl_Position.z = w : le dôme se pose sur le PLAN LOINTAIN (profondeur 1,0) — voir renderOrder plus bas
   const mk=(fs,lisse)=>new THREE.ShaderMaterial({uniforms:skyU,side:THREE.BackSide,depthWrite:false,depthTest:!lisse,vertexShader:VS,fragmentShader:fs});
-  const mat=mk(src(TETE,VILLE,VILLE_CIEL,MER,K.fond,K.mer,K.soleil,K.paris,K.gon,K.son,K.guirl,K.niveau,K.etoiles,K.lune,K.voile,K.onde,K.trame,MAIN.plein));
+  const mat=mk(src(TETE,VILLE,VILLE_CIEL,MER,K.fond,K.motif,K.mer,K.soleil,K.paris,K.gon,K.son,K.guirl,K.niveau,K.etoiles,K.lune,K.voile,K.onde,K.trame,MAIN.plein));
   /* LE CIEL SE PEINT EN DERNIER (2026-09-26, vague 2 — audit GPU). Il était dessiné en PREMIER (renderOrder −9, sans écrire la
      profondeur) : chaque pixel de l'écran payait le shader le plus lourd du jeu (mer de nuages, ville, étoiles, fond musical)… puis
      la route, la caisse, les nuages le recouvraient. Posé sur le plan lointain (z = w dans le vertex) et dessiné APRÈS tous les
@@ -6192,7 +6215,7 @@ const skyDome=(function(){
   const m=new THREE.Mesh(new THREE.SphereGeometry(4300,48,28),mat);
   const F_BAS=.5,FPK_BAS=1; // la passe lisse : ½ de la résolution en largeur et en hauteur (¼ des pixels) · l'anticrénelage de la mer y compte des pixels d'ÉCRAN (1)
   m.userData.ciel={plein:mat,f:F_BAS,
-    basN:mk(src('#define MER_FPK '+FPK_BAS.toFixed(4),TETE,VILLE,MER,K.fond,K.mer,K.soleil,K.paris,K.gon,K.guirl,K.voile,K.trame,MAIN.basN),true),
+    basN:mk(src('#define MER_FPK '+FPK_BAS.toFixed(4),TETE,VILLE,MER,K.fond,K.motif,K.mer,K.soleil,K.paris,K.gon,K.guirl,K.voile,K.trame,MAIN.basN),true),
     netN:mk(src(TETE,K.son,K.etoiles,K.lune,K.trame,MAIN.netN)),
     basV:mk(src(TETE,VILLE,VILLE_CIEL,K.trame,MAIN.basV),true),
     netV:mk(src(TETE,VILLE,VILLE_CIEL,K.trame,MAIN.netV))};
