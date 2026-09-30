@@ -1,5 +1,37 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LES NUAGES v8 — REFAITS À ZÉRO (2026-10-01, nuit, session GAMEPLAY) — Sacha : « les nuages dans le premier niveau sont toujours aussi moches, il faut que tu reprennes tout à zéro et que tu me fasses une vraie génération de nuages adaptée au jeu et à la DA — pousse-toi dans tes limites, prends tout ton temps et surprends-moi »
+- LE DIAGNOSTIC : v1-v7 retouchaient les formes et les couleurs d'un même principe — des SPHÈRES fusionnées, chacune avec sa lumière Phong.
+  Un nuage restait une grappe (les boules se comptaient, chaque soudure faisait une ligne), les gabarits étaient des piles de bourgeons
+  ÉTROITES (au banc : des « fantômes »), et la lumière était plate. Le problème était la technique, pas le réglage.
+- LA SURFACE (`nuage8Calc`, pure, dans l'OUVRIER) : l'isosurface d'un CHAMP DE DENSITÉ — lobes gaussiens fondus (log-somme-exp, netteté
+  `N8_OPT.K` 5,5 : des creux francs entre les lobes), base PLATE au niveau de condensation, un soupçon de bruit (`det` .3) plus fort vers le
+  haut — maillée par SURFACE NETS (un sommet par cellule traversée, un quad par arête traversée : étanche, régulier, sans table). Normales =
+  gradient du champ (une seule masse). MODELÉ CUIT dans la couleur des sommets : R = occlusion (le champ sondé le long de la normale), G = le
+  ciel au-dessus (sondé vers le haut : les lobes du dessus portent leur ombre), B = la hauteur. Quatre finesses `N8_FIN` 12/18/26/36 cellules, choisies par la taille À L'ÉCRAN (cotonTick : ~1 cellule pour 11 px).
+- LES FORMES (`cumulus8(genre,rng)`) : un vrai cumulus — base de lobes aplatis dans une empreinte elliptique, DÔME plus haut au centre, selon
+  le genre une TOUR aussi large que le dôme (4 lobes par étage), cisaillée par le vent, une rangée de tourelles, un rouleau, un troupeau,
+  des lambeaux, et le CUMULONIMBUS (tour massive + ENCLUME large et plate, étirée sous le vent) — le 25e gabarit (`COTON_KINDS` 25), réservé aux titans et
+  au colosse de l'horizon (de près, une tête sur un cou se lit comme un ARBRE : `N8_GENRE_V` champignon → congestus) ;
+  puis le CHOU-FLEUR : 2-3 enfants ronds sur la calotte de chaque lobe du haut, et les petits-enfants au sommet. 70 lobes au plus.
+  `N8_GENRE6` : les 6 anciens gabarits classiques deviennent des cumulus de ces genres.
+- LA MATIÈRE (`nuage8Mat`, clé `nuage8inst` ; `nuage8Solo`, clé `nuage8solo`, pour les maillages seuls) : une lumière de peintre — frontière
+  d'ombre douce mais franche (`uR.x/.y` en N·L), côté ombre pris par le CIEL (l'hémisphère de l'ambiance, désaturé, bleu-lavande, clarté
+  `uR.z`), côté soleil un blanc neutre (l'étalonnage réchauffe déjà), ombre portée des lobes et creux (cuits), bord qui s'ALLÈGE de face (la
+  vapeur), LISIÈRE d'argent et vapeur éclairée à contre-jour. Toutes les couleurs viennent de l'ambiance (bioApply) : aucune écrite ici.
+  LA OUATE BOUILLONNE : deux ondes lentes le long de la normale (1,5 % du nuage), déphasées par nuage (`uTps`, posé par cotonTick).
+- PARTOUT : les instances du ciel de coton (COTON), et les BANCS DE ROUTE, COUSSINS DE VOL et TOURS (mkCloud hors campagne/mer/voiles/murs/
+  titans/décor : forme et matière v8, maillage à l'échelle `mesh.scale = r`, surface fine de l'ouvrier, l'ébauche en boules en attendant ;
+  dedans, le white-out `CLOUD_MAT_IN8` : la même paroi sans les couleurs de sommet, qui sont un modelé). Fondu de zone : `N8_U.uFondu`.
+- `?n8=0` = les nuages d'avant (A/B). Hooks : `dbgN8({x,y,z,w,r:[…]})` (albédo, soleil, lisière, vapeur, frontière d'ombre/clarté de
+  l'ombre), `dbgN8Regen({K,det,fq})` (refait toutes les surfaces), `dbgNet(1)` (coupe le flou de vitesse pour une image nette au banc).
+- Bancs (scratchpad GAMEPLAY) : `n8/studio.js <racine> <préfixe> <variantes.json>` (les genres en plein ciel, de côté et à contre-jour),
+  `ciel2.js` (course figée), `n8/diag.js` (matière et géométrie vivantes). Mesures de perf : banc `perf-nuages.sh` de DEBUGGING.
+- MESURÉ (banc perf de DEBUGGING, puis n8/quick.js, debout 390×844, même piste) : 1er jet 449 k triangles au sol (main 153 k) → finesses
+  et seuils revus : ~184 k au sol, 43 k en vol (l'ancien système, même piste : 221 k / 70 k) ; couché ~115 k. Programmes : 142 au menu = 142
+  en course (+2 chauffés au menu : nuage8solo, nuageV2dedans8), 0 lié en course. Toutes les formes prêtes en ~15 s (dans l'ouvrier ; les
+  ébauches sur 12 lobes tiennent la place). 0 erreur, v8 et ?n8=0.
+- À TRANCHER PAR SON (menu CHUTE) : chuteRender cache COTON au menu (les anciens passaient en boules translucides de 1 500 m).
 ## L'ACCUEIL CONTEMPLATIF (2026-09-30, nuit, session SON) — Sacha : « prends le bouton sans fond JOUER de Léo et remplace le mien pour laisser plus d'espace au ciel ; réduis aussi la taille des boutons pour que ce soit plus contemplatif »
 - `mPlayMot()` : le JOUER de l'accueil de Sacha (`#mHome .mPlay`) devient le mot de Léo (`#gPlayMain`) — des lettres d'or `.lg.gold` grillées de cubes, SANS plaque (la classe `.mMot` remplace `.pbtn/.pb-gold/.big/.wide`), la vague d'écailles part du doigt (`mPlayVague`, sur `pointerdown`) ; reconstruit à chaque bascule de langue (applyLangDOM). Le routeur `data-m="play"` est inchangé.
 - UNE couche `<style id="accueilCiel">` (après toutes les autres) : MISSIONS/⚙ à 44 px, tuiles 52 px (icônes ×2), couché la colonne des boutons passe à 340 px calée à droite (le LOGO garde sa largeur), pastilles NEW/10 à cheval sur le bord haut des tuiles.
