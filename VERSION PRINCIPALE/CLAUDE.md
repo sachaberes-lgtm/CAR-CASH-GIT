@@ -1,5 +1,10 @@
 # CASH CAR — guide projet pour Claude Code
 
+## L'ACCUEIL CONTEMPLATIF (2026-09-30, nuit, session SON) — Sacha : « prends le bouton sans fond JOUER de Léo et remplace le mien pour laisser plus d'espace au ciel ; réduis aussi la taille des boutons pour que ce soit plus contemplatif »
+- `mPlayMot()` : le JOUER de l'accueil de Sacha (`#mHome .mPlay`) devient le mot de Léo (`#gPlayMain`) — des lettres d'or `.lg.gold` grillées de cubes, SANS plaque (la classe `.mMot` remplace `.pbtn/.pb-gold/.big/.wide`), la vague d'écailles part du doigt (`mPlayVague`, sur `pointerdown`) ; reconstruit à chaque bascule de langue (applyLangDOM). Le routeur `data-m="play"` est inchangé.
+- UNE couche `<style id="accueilCiel">` (après toutes les autres) : MISSIONS/⚙ à 44 px, tuiles 52 px (icônes ×2), couché la colonne des boutons passe à 340 px calée à droite (le LOGO garde sa largeur), pastilles NEW/10 à cheval sur le bord haut des tuiles.
+- MESURÉ (`da/menu-boites.js`, 4 formats) : les boutons couvraient 19-27 % de l'écran → 14-20 % (le mot JOUER compté comme une boîte), cibles ≥ 44 px partout. Banc souris-colonne (`da/pc3ss.js`, copie SwiftShader du pc3.js de GAMEPLAY) : JOUER / re-JOUER / REJOUER OK avant, après une et après deux parties (les 3 « CASSÉ » restants = `#gNext`, les flèches retirées par le garage v6 : le banc est en retard, pas le jeu) ; au doigt (390×844) : 5 lettres en vague, la partie part.
+
 ## LE GARAGE v6 — LA RARETÉ EN COULEUR, UNE CONSOLE (2026-09-30, session DEBUGGING) — Sacha, capture couchée : « les raretés sont écrites deux fois alors qu'on peut juste mettre les couleurs — refonte totale du garage »
 - Tout est dans `<style id="garageV6">` (la dernière feuille avant `#garage`), scopé à la BOUTIQUE de l'atelier : `html body #garage:not(.menu)`.
   Le menu, les missions et l'étal (#stall, qui réutilise des ids) n'en voient rien.

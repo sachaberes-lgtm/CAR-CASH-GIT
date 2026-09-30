@@ -5208,6 +5208,40 @@ html body #garage:not(.menu) #gAct{margin:0}
   html body #garage:not(.menu) #gStrip{grid-template-rows:50px}
 }
 </style>
+<style id="accueilCiel">
+/* L'ACCUEIL CONTEMPLATIF (2026-09-30, nuit — Sacha : « prends le bouton sans fond JOUER de Léo et remplace le mien pour laisser plus
+   d'espace au ciel ; réduis aussi la taille des boutons pour que ce soit plus contemplatif »). UNE couche, ici, par-dessus toutes les
+   autres. MESURÉ avant (menu-boites.js, 4 formats) : les boutons couvraient 19 à 27 % de l'écran (couché 844×390 : colonne de 424 px,
+   tuiles de 66 px, JOUER en plaque d'or de 66 px ; debout : 256 px de haut sur 844).
+   · JOUER = le mot de Léo (#gPlayMain) : des lettres d'or extrudées, grillées de petits cubes, SANS plaque ; au toucher, la vague
+     d'écailles part du doigt (mPlayVague). Construit par mPlayMot() — la classe .mMot remplace la plaque .pbtn/.pb-gold.
+   · MISSIONS, ⚙ et les trois tuiles : plus bas, plus étroits (couché, la colonne passe de 424 à ~330 px), icônes ×2 au lieu de ×3,
+     libellés plus petits ; chaque cible garde ses 44 px (charte, règle 5). */
+html #mHome .mPlay.mMot{display:flex;justify-content:center;align-items:center;gap:.06em;background:none!important;clip-path:none!important;
+  box-shadow:none!important;border:0!important;outline:0;padding:4px 10px 8px!important;min-height:50px;margin:2px auto 0!important;width:auto!important;
+  perspective:640px;cursor:pointer;-webkit-tap-highlight-color:transparent;filter:drop-shadow(0 0 .3em rgba(255,200,80,.42)) drop-shadow(0 3px 10px rgba(4,20,48,.55))}
+html #mHome .mPlay.mMot::before,html #mHome .mPlay.mMot::after{content:none!important;display:none!important}
+html #mHome .mPlay.mMot .lg{font-family:var(--pix);font-size:40px}
+html #mHome .mPlay.mMot .lg.gold{background-image:
+    repeating-linear-gradient(90deg,rgba(255,255,255,.55) 0 1.5px,transparent 1.5px 6px),
+    repeating-linear-gradient(0deg,rgba(70,35,0,.5) 0 1.5px,transparent 1.5px 6px),
+    linear-gradient(180deg,#fffdf2 0%,#ffe9a0 28%,#ffc400 52%,#b06c05 74%,#ffe9a0 96%)}
+html #mHome .mPlay.mMot .lg.pxScale{animation:pxScale .5s cubic-bezier(.36,1.4,.4,1);transform-origin:50% 100%;backface-visibility:hidden}
+html #mHome.on>.mPlay.mMot,html #mHome.on.revu>.mPlay.mMot{animation:k6Surgit var(--t-in) var(--ease) backwards!important;animation-delay:calc(8 * var(--stag) + 90ms)!important}
+html #mHome .mOutils{margin-bottom:8px;gap:10px}
+html #mHome .mMisBtn,html #mHome .mGear{min-height:44px!important;font-size:11px}
+html #mHome .mMisBtn .pxi,html #mHome .mGear .pxi{--pxs:2}
+html #mHome .mIcons{margin-bottom:6px}
+html #mHome .mIcons .pbtn{min-height:52px!important;gap:3px!important;font-size:10px}
+html #mHome .mIcons .pbtn .pxi{--pxs:2}
+html #mHome .mIcons .mBadge{top:-9px!important;right:6px!important;transform:scale(.86);transform-origin:100% 0} /* la tuile a rapetissé : la pastille NEW / 10 cachait l'icône — elle passe à cheval sur le bord haut */
+@media (orientation:landscape) and (max-height:540px){ /* couché : le LOGO garde sa largeur, seule la colonne des boutons se resserre, calée à droite */
+  html #mHome .mOutils,html #mHome .mIcons{width:340px;max-width:100%;margin-left:auto!important;margin-right:0!important;align-self:flex-end}
+  html #mHome .mPlay.mMot{width:340px!important;box-sizing:border-box;max-width:100%;margin:2px 0 0 auto!important;align-self:flex-end}html #mHome .mPlay.mMot .lg{font-size:34px}}
+@media (orientation:portrait){html #mHome .mPlay.mMot{margin-bottom:6px!important}html #mHome .mPlay.mMot .lg{font-size:42px}}
+@media (prefers-reduced-motion:reduce){html #mHome .mPlay.mMot .lg.pxScale{animation:none}}
+html[data-reduced-motion="1"] #mHome .mPlay.mMot .lg.pxScale{animation:none!important}
+</style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
   <div id="spStage">
@@ -12361,7 +12395,7 @@ function applyLangDOM(){
   // revenaient avec leurs pictos alors que le HTML les avait perdus. Le menu est passé en texte nu ;
   // un emoji dans un lien secondaire le fait remonter dans la hierarchie visuelle, ce qu'on ne veut plus.
   modeLbl();
-  try{buildPlayWord();}catch(e){} // le JOUER du garage se reconstruit lettre par lettre dans la langue neuve
+  try{buildPlayWord();mPlayMot();}catch(e){} // le JOUER du garage (et celui de l'accueil, le même mot) se reconstruit lettre par lettre dans la langue neuve
   put('#garageBtn',TR('Garage'));put('#setBtn',TR('Réglages'));
   try{paintMoney();elRecord.textContent=TR('record : ')+fmt(best);setBestChip();renderLeaders(-1);}catch(e){}
   paintCarHud._k=null;try{paintCarHud();}catch(e){}      // la fiche se repeint dans la langue neuve
@@ -35247,6 +35281,16 @@ function buildPlayWord(){
   }
 }
 buildPlayWord();
+/* (2026-09-30, nuit — Sacha : « prends le bouton sans fond JOUER de Léo et remplace le mien ») LE JOUER DE L'ACCUEIL = le mot de Léo :
+   les mêmes lettres d'or grillées de cubes (voir <style id="accueilCiel">), la même vague d'écailles au toucher. La plaque .pbtn/.pb-gold
+   cède la place à .mMot ; le routeur de l'accueil (data-m="play") reste le même : même départ, même son, même haptique. */
+function mPlayMot(){const el=document.querySelector('#mHome .mPlay');if(!el)return;
+  el.classList.remove('pbtn','pb-gold','big','wide');el.classList.add('mMot');el.setAttribute('aria-label',TR('JOUER'));el.innerHTML='';
+  for(const ch of TR('JOUER')){const sp=document.createElement('span');sp.className='lg gold';sp.setAttribute('data-t',ch);sp.textContent=ch;el.appendChild(sp);}}
+function mPlayVague(x){const el=document.querySelector('#mHome .mPlay.mMot');if(!el)return;const L9=el.querySelectorAll('.lg');if(!L9.length)return;
+  if(x==null){const r0=el.getBoundingClientRect();x=(r0.left+r0.right)/2;}
+  L9.forEach(function(l){const r=l.getBoundingClientRect();l.classList.remove('pxScale');l.style.animationDelay='';void l.offsetWidth;l.style.animationDelay=Math.min(240,Math.abs((r.left+r.right)/2-x)*1.1).toFixed(0)+'ms';l.classList.add('pxScale');});}
+try{mPlayMot();const e9=document.querySelector('#mHome .mPlay');if(e9)e9.addEventListener('pointerdown',function(e){mPlayVague(e.clientX);});}catch(e){}
 // `playWordWave(clickX)` — LA VAGUE (2026-09-05 bis, demande du user : « une onde qui fait rebondir
 // tous les autres pixels depuis le point cliqué »). Même animation (`pxScale`, l'écaille qui bascule
 // — voir sa définition CSS) sur CHAQUE lettre, mais un `animation-delay` proportionnel à sa distance
