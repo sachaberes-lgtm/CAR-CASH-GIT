@@ -89,8 +89,13 @@ scratchpad GAMEPLAY). Ce qui suit est EN JEU, mesuré au banc sauf mention.
   un `try` par appel dans la boucle (`loopWarn`). `dbgEnCours()`. ⚠ au banc, forcer `document.hidden=false` fait passer un rechargement
   pour un RETOUR (l'instantané est retiré) : simuler le VRAI arrière-plan (hidden=true + visibilitychange).
 - **LE VOLANT TACTILE** : zone morte verticale CROISÉE en vol `dz=.10+.45·|nx|` (tourner à fond ne pique/cabre plus) ; un seul doigt
-  propriétaire du volant ; place au bord (`gx/gy`) ; l'anneau suit la base flottante. ⚠ OUVERT : un balayage fort vers la DROITE en arc
-  peut dépasser `dy>34,9` et déclencher le drift (avant comme après).
+  propriétaire du volant ; place au bord (`gx/gy`) ; l'anneau suit la base flottante. **LE DRIFT AU GESTE CONNAÎT L'ARC DU POUCE** (`stMove`, `DRIFT_PX`=34,9,
+  `TCTL.dyS/ar/ab/tr`) : braquer à droite fait descendre le pouce (il pivote à sa base) et la descente passait pour le geste du drift. Le
+  socle glisse le long de l'arc (pente .45) au-delà de la butée, la descente du bout de l'arc est retirée en proportion du braquage, et
+  l'ENTRÉE en drift à droite demande 6 px sous l'arc relevé du joueur (34,9 à 42,5 ; pour y RESTER, 34,9). Simulé : 58 → 2 drifts
+  involontaires / 100, voulus 85/92 inchangés ; BANC navigateur (banc-drift2.js, caisse remise en piste avant chaque geste) 19/19, drift
+  voulu en 0,16-0,26 s ; banc-volant.js 10/10. ⚠ OUVERT : prise tendue à < 40 px du bas ; le drift à GAUCHE demande 41-56 px de tirage
+  (5-14 à droite) — asymétrie antérieure, à trancher par Sacha.
 - **CAMÉRA DE ROUTE** (`CAM_REGARD`, `CAM_TAILLE`) : sous la dalle le retard latéral n'est plus retourné deux fois ; le regard vise 0,45 s
   d'avance réelle (35-90 m, poids ×35/D) ; en portrait, genou du champ vers 125° et recul/hauteur de vitesse plafonnés : MESURÉ au banc,
   la caisse sous nitro fait 0,67× sa taille de croisière (avant 0,37×), champ 126° (avant 149°). A/B : `dbgCamRoute({regard:{on:false},
