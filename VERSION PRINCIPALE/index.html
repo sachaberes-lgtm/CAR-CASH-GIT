@@ -5134,6 +5134,80 @@ html body #flowHud[data-lv="0"] .fM{opacity:.8!important}
    VOL » finissait en « … ». Deux lignes au plus, équilibrées ; la boîte grandit vers le HAUT (ancrée en bas), l'avancement reste à droite. */
 @media (orientation:portrait){html body #misFocus span{white-space:normal;text-overflow:clip;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;text-wrap:balance;min-width:0}}
 </style>
+<style id="garageV6">
+/* ======================= LE GARAGE v6 — LA REFONTE (2026-09-30, Sacha, capture couchée à l'appui : « améliore le garage, notamment les
+   raretés, qui sont écrites deux fois alors qu'on peut juste mettre les couleurs — refonte totale du garage ») =======================
+   Mesuré sur sa capture (couché, 844 × 390, l'écran de l'ordi) et debout :
+   · la RARETÉ écrite DEUX fois : la pastille « ◆ COMMUNE » sur la fiche et « ◆ COMMUNES 1/15 » dans la rangée des familles (en habillage :
+     « PEINTURE » sur la fiche, déjà écrit sur l'onglet) ;
+   · la rangée des familles DÉBORDAIT (ÉPIQUES coupé au bord, LÉGENDES et DÉFIS invisibles, il fallait faire défiler cinq puces) ;
+   · les grosses flèches ◀ ▶ posées SUR la caisse et sur le décor, en double des vignettes ;
+   · quatre plaques flottantes sans lien (onglets, puces, vignettes, actions), et quatre vignettes seulement à l'écran.
+   LA RÈGLE : la rareté se dit EN COULEUR, une seule fois — le filet de couleur sous le NOM, la couleur des pastilles, le liseré des
+   vignettes. Le mot reste pour qui ne voit pas la couleur (aria-label, title des pastilles).
+   · la FICHE : le nom, un filet de sa couleur, « 1 / 68 » — plus de pastille ;
+   · LA CONSOLE : tout ce qu'on touche dans UNE plaque (laque, filet, coins coupés, la LIVRÉE magenta · cyan · or en tête, comme sous
+     chaque titre) : onglets, puces, vignettes, actions ;
+   · les PUCES des familles : un losange de couleur et le compte, les cinq sur une ligne, sans défilement (en habillage, TOUT · À MOI ·
+     À ACHETER gardent leur mot : ce ne sont pas des raretés) ;
+   · les VIGNETTES : sur DEUX rangées couché (8 caisses d'un coup d'œil, au lieu de 4), une rangée debout et sur les écrans bas ;
+   · plus de flèches : on touche une vignette.
+   Tout est ici, scopé à la BOUTIQUE de l'atelier (`#garage:not(.menu)`) : le menu, les missions et l'étal (#stall) n'en voient rien. */
+html body #garage:not(.menu) #gRarPill{display:none}
+html body #garage:not(.menu) .gNav{display:none!important}
+/* LA FICHE : le nom, puis son filet de couleur et le rang */
+html body #garage:not(.menu) #gCard{align-items:flex-start;container-type:inline-size}
+html body #garage:not(.menu) #gName{order:1;flex:0 0 100%;margin:0;white-space:nowrap;font-size:min(clamp(20px,6.8vw,28px),calc(100cqw / var(--nL,10) - 3px))} /* (1 em par lettre + l'espacement) */
+html body #garage:not(.menu) #gName::after{content:'';display:block;width:min(100%,230px);height:3px;margin-top:10px;
+  background:linear-gradient(90deg,var(--rc,var(--tx2)) 0 72%,transparent);box-shadow:0 0 12px color-mix(in srgb,var(--rc,#fff) 60%,transparent)}
+html body #garage:not(.menu) #gLvl{order:2;margin-top:8px;font-size:var(--f0);letter-spacing:2px;color:var(--tx3)}
+html body #garage:not(.menu) #gDesc{order:3}
+/* LA CONSOLE : une seule plaque pour tout ce qu'on touche */
+html body #garage:not(.menu) #gBottom{box-sizing:border-box;width:calc(100% - var(--sL) - var(--sR) - 20px);max-width:560px;margin:0 auto calc(var(--sB) + 10px);
+  padding:15px 12px 12px;gap:12px;background:var(--laqueP);
+  box-shadow:inset 0 0 0 1px var(--fil),0 22px 40px -14px rgba(0,0,0,.75);
+  clip-path:polygon(var(--coupe) 0,100% 0,100% calc(100% - var(--coupe)),calc(100% - var(--coupe)) 100%,0 100%,0 var(--coupe))}
+html body #garage:not(.menu) #gBottom::before{content:'';position:absolute;left:calc(var(--coupe) + 4px);right:18px;top:0;height:3px;background:var(--livree);opacity:.9;pointer-events:none}
+html body #garage:not(.menu) #gTabs{margin:0}
+/* LES PUCES : cinq, sur une ligne, à parts égales — la couleur dit la famille, le chiffre dit ce qui est à toi */
+html body #garage:not(.menu) #gRar{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px;overflow:visible;margin:0;padding:0;-webkit-mask:none;mask:none}
+html body #garage:not(.menu) .gR{min-width:0;height:34px;justify-content:center;gap:8px;padding:0 4px;letter-spacing:0;white-space:nowrap;color:var(--tx3);transform:skewX(var(--sk));
+  background:var(--k1);box-shadow:inset 0 -3px 0 color-mix(in srgb,var(--rc) 55%,transparent),inset 0 0 0 1px var(--fil),0 0 0 1px var(--anneau)}
+html body #garage:not(.menu) .gR::before{width:9px;height:9px;background:var(--rc);box-shadow:0 0 8px var(--rc)}
+html body #garage:not(.menu) .gR::after{top:-5px;bottom:-5px}   /* 44 px de cible, le dessin reste fin (charte règle 5) */
+html body #garage:not(.menu) .gR .gRn{display:none}              /* la famille se dit en COULEUR — son nom vit dans aria-label et title */
+html body #garage:not(.menu) .gR b{font-weight:400;color:var(--tx2);white-space:nowrap}
+html body #garage:not(.menu) .gR.on{color:#fff;background:color-mix(in srgb,var(--rc) 24%,var(--k1));
+  box-shadow:inset 0 -3px 0 var(--rc),inset 0 0 0 1px var(--rc),0 0 0 1px var(--anneau),0 0 16px color-mix(in srgb,var(--rc) 45%,transparent)}
+html body #garage:not(.menu) .gR.on::before{background:var(--rc);box-shadow:0 0 10px var(--rc)}
+html body #garage:not(.menu) .gR.on b{color:#fff}
+html body #garage:not(.menu) .gR.gF .gRn{display:inline}          /* en habillage : TOUT · À MOI · À ACHETER (des filtres, pas des raretés) */
+html body #garage:not(.menu) .gR.gF{gap:7px}
+/* LES VIGNETTES : dans la console, liseré de la couleur de la famille */
+html body #garage:not(.menu) #gStrip{margin:0 -12px;padding:8px 14px 8px;gap:10px;
+  -webkit-mask:linear-gradient(90deg,transparent 0,#000 12px,#000 calc(100% - 18px),transparent);mask:linear-gradient(90deg,transparent 0,#000 12px,#000 calc(100% - 18px),transparent)}
+html body #garage:not(.menu) .gT{box-shadow:inset 0 -3px 0 var(--rc),inset 0 0 0 1px var(--fil),0 0 0 1px var(--anneau),0 5px 0 1px var(--anneau)}
+html body #garage:not(.menu) .gT.on{box-shadow:inset 0 -3px 0 var(--rc),inset 0 0 0 2px var(--rc),0 0 0 1px var(--anneau),0 5px 0 1px var(--anneau),0 0 20px color-mix(in srgb,var(--rc) 65%,transparent)}
+html body #garage:not(.menu) .gT em{bottom:3px}
+html body #garage:not(.menu) #gAct{margin:0}
+
+/* COUCHÉ (l'écran de l'ordi) : la fiche en haut à gauche, la CONSOLE en bas à droite, les vignettes sur deux rangées */
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html body #garage:not(.menu) #gBottom{position:absolute;top:auto;left:auto;right:calc(var(--sR) + 14px);bottom:calc(var(--sB) + 12px);
+    width:min(48%,450px);max-width:none;margin:0;padding:14px 12px 10px;gap:8px;justify-content:flex-start}
+  html body #garage:not(.menu) .gTab{min-height:44px}
+  html body #garage:not(.menu) #gStrip{display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,50px);grid-auto-columns:82px;gap:8px 10px;padding:8px 14px 8px}
+  html body #garage:not(.menu) .gT{width:82px;height:50px}
+  html body #garage:not(.menu) .gR{height:32px}
+  html body #garage:not(.menu) #gName{font-size:min(var(--f6),calc(100cqw / var(--nL,10) - 3px))}
+  html body #garage:not(.menu) #gAct #gClose,html body #garage:not(.menu) #gBuy,html body #garage:not(.menu) #gEquip,html body #garage:not(.menu) #gJouer{min-height:50px}
+  html body #garage:not(.menu) #gName::after{width:min(100%,260px)}
+}
+/* couché sur un écran BAS (< 380 px : la plupart des Android, l'iPhone SE) : une rangée de vignettes, la console reste sous le ⚙ */
+@media (orientation:landscape) and (max-height:379px){
+  html body #garage:not(.menu) #gStrip{grid-template-rows:50px}
+}
+</style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
   <div id="spStage">
@@ -33669,7 +33743,7 @@ function garageShow(i){
   buildCar(CARS[garageI]);
   const c=CARS[garageI];
   gNomEntre(TR(c.name));
-  {const L9=garageListe();gLvlEl.textContent=TR('CAISSE')+' '+(L9.indexOf(garageI)+1)+' / '+L9.length;}
+  {const L9=garageListe();gLvlEl.textContent=(L9.indexOf(garageI)+1)+' / '+L9.length;} // (garage v6) le rang seul — l'onglet dit déjà VOITURES
   gSpdEl.textContent=''; // plus de km/h sur la fiche : la vitesse vient du MOTEUR, pas de la caisse
   // La caisse VERROUILLÉE annonce SA condition (et où tu en es) : c'est la carte du jeu, pas une
   // porte close. Une caisse débloquée garde sa punchline d'origine — le champ `desc` des 24 fiches
@@ -33727,7 +33801,8 @@ function garageFamilles(r){
   const cles=RARETES.map(function(x){const L=rarListe(x.id);let a=0;for(const i of L)if(carUnlockedVrai(i))a++;return x.id+a+'/'+L.length;}).join('|')+'#'+r;
   if(bar._k!==cles){bar._k=cles;
     bar.innerHTML=RARETES.map(function(x){const L=rarListe(x.id);let a=0;for(const i of L)if(carUnlockedVrai(i))a++;
-      return '<button class="gR'+(x.id===r?' on':'')+'" data-r="'+x.id+'" role="tab" aria-selected="'+(x.id===r)+'" style="--rc:'+x.c+'">'+sansAcc(TR(x.n))+'<b>'+a+'/'+L.length+'</b></button>';}).join('');}
+      const nm9=sansAcc(TR(x.n)); // (garage v6) la famille se dit en COULEUR : son nom reste pour le lecteur d'écran et l'info-bulle
+      return '<button class="gR'+(x.id===r?' on':'')+'" data-r="'+x.id+'" role="tab" aria-selected="'+(x.id===r)+'" aria-label="'+nm9+' '+a+'/'+L.length+'" title="'+nm9+'" style="--rc:'+x.c+'"><span class="gRn">'+nm9+'</span><b>'+a+'/'+L.length+'</b></button>';}).join('');}
   {const ro=bar.querySelector('.gR.on');if(ro&&bar._on!==r){bar._on=r;const x=ro.offsetLeft-(bar.clientWidth-ro.offsetWidth)/2;try{bar.scrollTo({left:x,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){bar.scrollLeft=x;}}} // la famille active vient se montrer
   const L=rarListe(r),ri=rarInfo(r),own=L.filter(carUnlockedVrai).length; // (charte v4) posséder une caisse de plus REFAIT la bande (elle gardait son cadenas après l'achat)
   const mk9=(function(){try{const s=misEtat();return s.n+':'+s.ok.join('');}catch(e){return '';}})(); // (2026-09-29) les défis relevés changent la vignette de la caisse en jeu
@@ -33829,6 +33904,7 @@ function shopShow(cat,i){
 function gEtat(bt,etat,ic,txt){bt.dataset.etat=etat;bt.setAttribute('aria-disabled',etat?'true':'false');
   bt.innerHTML=(ic?pxi(ic):'')+'<span>'+TR(txt)+'</span>';}
 function gNomEntre(t){ // le NOM entre en glissant (seulement s'il CHANGE : rafraîchir la fiche ne le fait pas rejouer)
+  gNameEl.style.setProperty('--nL',Math.max(8,String(t).length)); /* (garage v6) la taille du nom suit sa longueur — posée même si le nom ne change pas */
   if(gNameEl.textContent===t)return;gNameEl.textContent=t;if(REDUCED_MOTION)return;
   gNameEl.classList.remove('entre');void gNameEl.offsetWidth;gNameEl.classList.add('entre');}
 function eurTxt(s){if(!s||LANG==='fr')return s;const v=parseFloat(String(s).replace(',','.'));return isFinite(v)?'€'+v.toFixed(2):s;}
@@ -33846,7 +33922,7 @@ function gStripHabits(cat,i){
   if(bar&&bar._k!==k){bar._k=k;bar._on=null; // la barre des familles devient celle des FILTRES (même touche, même place)
     const nb=function(f){let n=0;for(const d of L){const a=shopOwned(cat,d.id);if(f==='tout'||(f==='moi'?a:(!a&&!!d.p)))n++;}return n;};
     bar.innerHTML=[['tout','TOUT','var(--tx2)'],['moi','À MOI','var(--neoV)'],['achat','À ACHETER','var(--neoC)']].map(function(f){
-      return '<button class="gR gF'+(f[0]===fi?' on':'')+'" data-f="'+f[0]+'" role="tab" aria-selected="'+(f[0]===fi)+'" style="--rc:'+f[2]+'">'+sansAcc(TR(f[1]))+'<b>'+nb(f[0])+'</b></button>';}).join('');}
+      return '<button class="gR gF'+(f[0]===fi?' on':'')+'" data-f="'+f[0]+'" role="tab" aria-selected="'+(f[0]===fi)+'" style="--rc:'+f[2]+'"><span class="gRn">'+sansAcc(TR(f[1]))+'</span><b>'+nb(f[0])+'</b></button>';}).join('');}
   if(st._r!==k){st._r=k;st._n=-1;
     const hx=function(c){return '#'+(c>>>0).toString(16).padStart(6,'0');},rg=function(v){return 'rgb('+v.map(function(x){return Math.round(Math.min(1,x/1.45)*255);}).join(',')+')';};
     st.innerHTML=L.map(function(d,j){const a=shopOwned(cat,d.id),eqd=shopEqD(cat)===d;
@@ -34662,7 +34738,7 @@ function garLibre(){
   }else if(gEl&&!gEl.classList.contains('quiet')&&!gEl.classList.contains('launching')){
     const b=$('gBottom'),t=$('gTop'),bb=b&&b.getBoundingClientRect(),tb=t&&t.getBoundingClientRect();
     if(bb&&bb.width>0){
-      if(bb.left>W*.3&&bb.height>H*.6)r.x1=bb.left;          // téléphone couché : la colonne à droite
+      if(bb.left>W*.3&&(bb.height>H*.6||W>H*1.2))r.x1=bb.left; // téléphone couché : la colonne à droite — (garage v6) la CONSOLE n'en prend plus toute la hauteur
       else r.y1=bb.top;}                                       // sinon : les commandes en bas
     if(tb&&tb.height>0&&tb.bottom<r.y1-120)r.y0=tb.bottom;}    // la fiche du haut (si elle laisse de la place)
   r.cx=(r.x0+r.x1)/2;r.cy=(r.y0+r.y1)/2;return garLibre._r=r;

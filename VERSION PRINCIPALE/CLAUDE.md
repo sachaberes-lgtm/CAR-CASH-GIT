@@ -1,5 +1,24 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE GARAGE v6 — LA RARETÉ EN COULEUR, UNE CONSOLE (2026-09-30, session DEBUGGING) — Sacha, capture couchée : « les raretés sont écrites deux fois alors qu'on peut juste mettre les couleurs — refonte totale du garage »
+- Tout est dans `<style id="garageV6">` (la dernière feuille avant `#garage`), scopé à la BOUTIQUE de l'atelier : `html body #garage:not(.menu)`.
+  Le menu, les missions et l'étal (#stall, qui réutilise des ids) n'en voient rien.
+- LA RARETÉ SE DIT EN COULEUR, UNE FOIS :
+  - `#gRarPill` est masquée (elle redisait « COMMUNE », ou « PEINTURE » déjà écrit sur l'onglet) ;
+  - un filet de la couleur de la famille passe sous le NOM (`#gName::after`, `--rc`) ;
+  - `#gLvl` ne dit plus que « 1 / 68 » (« CAISSE » était dans l'onglet VOITURES) ;
+  - les puces `#gRar` (5, sur une ligne, grille à parts égales, plus de défilement) = un losange de couleur + le compte. Le nom est
+    dans `<span class="gRn">` masqué, et dans aria-label/title ;
+  - en habillage, les filtres `.gF` (TOUT · À MOI · À ACHETER) gardent leur mot : ce ne sont pas des raretés.
+- LA CONSOLE : `#gBottom` devient UNE plaque (laque, filet, coins coupés `--coupe`, la LIVRÉE en tête).
+  - Couché : en bas à droite, largeur min(48 %, 450 px), SOUS le ⚙.
+  - Couché, `garLibre` reconnaît la colonne à sa PLACE (`W>H*1.2`), plus à sa hauteur.
+- Vignettes : DEUX rangées couché (grille, 82 × 50) ; une rangée debout et couché bas (< 380 px de haut). Liseré de la famille en bas.
+- Plus de flèches ◀ ▶ dans la boutique (elles se posaient sur la caisse) : on touche une vignette. Les flèches du clavier marchent toujours.
+- Le NOM tient toujours dans sa largeur : `--nL` = nombre de lettres (gNomEntre, posé même si le nom ne change pas).
+  - `font-size: min(…, 100cqw / --nL − 3px)`, avec #gCard en conteneur (la police pixel avance d'1 em par lettre).
+  - Avant, « L'AMBASSADEUR » sortait de l'écran debout.
+- Mesuré à 844×390, 780×360, 932×430 et 390×844 : aucune puce coupée, la console sous le ⚙. Le parcours complet passe, debout et couché, sans erreur (course → mort → MENU → GARAGE → HOME → MISSIONS → HOME → JOUER).
 ## LE STUDIO PHOTO v2 — LES PHOTOS DE CAISSES (2026-09-30, soir, session GAMEPLAY) — Sacha, capture de la boutique : « pourquoi ces photos sont aussi moches »
 - MESURÉ sur l'ancien `carPhoto` : caisse tournée PILE face à l'objectif (rotation .72 pour une caméra à .70 d'azimut → vue de face écrasée),
   360 × 220 affiché ×2 sur Retina (flou, escaliers), ambiance 1,25 + clé 1,3 brûlées par la relève 1/1,35 (jaunes et verts fluo en aplat),
