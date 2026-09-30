@@ -19132,8 +19132,9 @@ function flowRevele(){
   const h=FLOW.el;
   if(h){h.classList.add('revele','ouvre');clearTimeout(flowRevele._t);flowRevele._t=setTimeout(function(){h.classList.remove('ouvre');},700);
     try{pixBurst(h.querySelector('.fSeg>i:nth-child(4)'),10);}catch(e){}}
-  if(FLOW2.lieu==='ville'&&!FREN.apprisV){FREN.apprisV=true;popTexte('DRIFT · RACCOURCI · VITESSE',FLOW_COL[4],2);} /* (2026-09-30) au singulier : 28 signes tombaient au plancher de 10 px et le rebond d'entrée sortait de l'écran (375-390 px) */ // (passe qualité) dans l'ordre des traits sous l'emblème : NARCISSE · MACHIAVEL · PSYCHO // (loi 15) en VILLE la triade se gagne sur la route : on le dit, une fois
-  else popTexte(FREN.appris?'DARK TRIAD':'FIGURE · RACCOURCI · NITRO',FLOW_COL[4],2);FREN.appris=true; // (v4) la règle de la triade, en trois mots · (2026-09-30) « TRICHE » nommait un défaut : on dit le GESTE (le nom MACHIAVEL, lui, reste)
+  if(FREN.arme){} /* (2026-09-30, banc) un seul geste peut ouvrir la 4e cellule ET armer : « DRIFT OU FIGURE ! » (ce qui déclenche, MAINTENANT) passe avant la règle — elle se dira la prochaine fois */
+  else if(FLOW2.lieu==='ville'&&!FREN.apprisV){FREN.apprisV=true;popTexte('DRIFT · RACCOURCI · VITESSE',FLOW_COL[4],2);} /* (2026-09-30) au singulier : 28 signes tombaient au plancher de 10 px et le rebond d'entrée sortait de l'écran (375-390 px) */ // (passe qualité) dans l'ordre des traits sous l'emblème : NARCISSE · MACHIAVEL · PSYCHO // (loi 15) en VILLE la triade se gagne sur la route : on le dit, une fois
+  else{popTexte(FREN.appris?'DARK TRIAD':'FIGURE · RACCOURCI · NITRO',FLOW_COL[4],2);FREN.appris=true;} // (v4) la règle de la triade, en trois mots · (2026-09-30) « TRICHE » nommait un défaut : on dit le GESTE (le nom MACHIAVEL, lui, reste)
   try{if(SONV2)sfx('triade.revele');else{subBoom(.14);chimeNote(noteP(0,0),.05,.07,.6);}}catch(e){}
   hap([10,40,10]);
 }
