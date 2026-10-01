@@ -35,6 +35,7 @@ local L = FR and {
 	home = "HOME", boutique = "BOUTIQUE", jouer = "JOUER", acheter = "ACHETER", manque = "IL MANQUE",
 	equiper = "EQUIPER", verrou = "VERROUILLEE", enBoutique = "EN BOUTIQUE", aToi = "A TOI !",
 	ilTeManque = "IL TE MANQUE ", bientot = "BIENTOT DISPONIBLE",
+	tout = "TOUT", aMoi = "A MOI", aAcheter = "A ACHETER", gagner = "A GAGNER", defi = "DEFI",
 	carnet = "SE GAGNE EN RELEVANT 3 DEFIS", carrN = "ATTRAPE-LA AU NIVEAU 10 DES NUAGES  (%d / 10)",
 	carrV = "BATS LE BANQUIER AU NIVEAU 10 DE LA VILLE  (%d / 10)", aura = "RANG D'AURA « %s »   (le tien : « %s »)",
 	rangs = { "ANONYME", "REMARQUE", "ON PARLE DE TOI", "REPUTE", "LEGENDE LOCALE", "STAR DU BITUME", "MYTHE", "DIVINITE DU CIEL" },
@@ -43,6 +44,7 @@ local L = FR and {
 	home = "HOME", boutique = "SHOP", jouer = "PLAY", acheter = "BUY", manque = "SHORT BY",
 	equiper = "EQUIP", verrou = "LOCKED", enBoutique = "IN THE SHOP", aToi = "YOURS!",
 	ilTeManque = "SHORT BY ", bientot = "COMING SOON",
+	tout = "ALL", aMoi = "MINE", aAcheter = "FOR SALE", gagner = "EARN IT", defi = "CHALLENGE",
 	carnet = "WON BY BEATING 3 CHALLENGES", carrN = "CATCH HER IN CLOUDS LEVEL 10  (%d / 10)",
 	carrV = "BEAT THE BANKER IN CITY LEVEL 10  (%d / 10)", aura = 'AURA RANK "%s"   (yours: "%s")',
 	rangs = { "NOBODY", "NOTICED", "THEY'RE TALKING ABOUT YOU", "RENOWNED", "LOCAL LEGEND", "ASPHALT STAR", "MYTH", "SKY GOD" },
@@ -119,6 +121,26 @@ local function gagnee(i: number): boolean -- carUnlockedVrai
 end
 local function ouverte(i: number): boolean return Config.TEST_CAISSES == true or gagnee(i) end
 
+-- ════════ les HABILLAGES (onglets PEINTURE · AILES · TRAINEES) ════════
+local HABITS = Config.HABITS
+local COUL_CAT = { peinture = Color3.fromRGB(255, 154, 216), aile = Color3.fromRGB(159, 232, 255), trainee = Color3.fromRGB(255, 176, 64) }
+local essai: { [string]: string } = {}                    -- ce qu'on ESSAIE sur la caisse (pas forcément à soi)
+local choisi = { peinture = 1, aile = 1, trainee = 1 }     -- l'article montré dans chaque onglet
+local filtre = "tout"
+local function tenue(): any return profil().porte or { peinture = "usine", aile = "panneaux", trainee = "nitro" } end
+local function aHabit(cat: string, d: any): boolean
+	if not d.p and not d.mis then return true end
+	return table.find(profil().habits or {}, cat .. ":" .. d.id) ~= nil
+end
+local function habitsVitrine(): any
+	local p = tenue()
+	return { peinture = essai.peinture or p.peinture, aile = essai.aile or p.aile, trainee = essai.trainee or p.trainee }
+end
+local function passeFiltre(cat: string, d: any): boolean
+	local a = aHabit(cat, d)
+	return filtre == "tout" or (filtre == "moi" and a) or (filtre == "acheter" and not a and d.p ~= nil)
+end
+
 -- ════════════════════════════════════════════════════════════════════════════════════════════════
 -- L'ATELIER (bâti une fois, à la première visite ; hors du monde tant que le garage est fermé)
 -- Repère : mètres, centre du plateau à l'origine, la PORTE sur le mur +Z. La caméra regarde vers la porte.
@@ -137,6 +159,7 @@ local feuPorte: PointLight
 local scanner: BasePart
 local cible: Model
 local vitrine: Model? = nil
+local vitrinePg: any = nil
 
 local function P(x: number, y: number, z: number): Vector3 return O + Vector3.new(x, y, z) * M end
 local function bloc(nom: string, sx: number, sy: number, sz: number, x: number, y: number, z: number, couleur: Color3,
@@ -515,8 +538,78 @@ local function creerTuile(i: number, rang: number): any
 	return t
 end
 
+-- une tuile d'HABILLAGE : le nuancier de la laque, le ruban de la traînée, le nom de l'aile
+local tuilesH: { any } = {}
+local function majBandeHabits()
+	fileN += 1
+	for i, t in tuiles do
+		t.cadre:Destroy()
+		tuiles[i] = nil
+	end
+	for _, t in tuilesH do t.cadre:Destroy() end
+	table.clear(tuilesH)
+	local cat = onglet
+	local p = tenue()
+	for j, d in HABITS[cat] do
+		if passeFiltre(cat, d) then
+			local cadre = inst("Frame", { Name = "H" .. j, BorderSizePixel = 0, BackgroundColor3 = Color3.fromRGB(26, 22, 50), LayoutOrder = j, ClipsDescendants = true }, U.bande)
+			local trait = inst("UIStroke", { Color = C.magenta, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Enabled = j == choisi[cat] }, cadre)
+			if cat == "aile" then
+				inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIX, TextSize = 8, TextWrapped = true, Text = FR and d.nom or d.en, TextColor3 = COUL_CAT.aile,
+					Size = UDim2.new(1, -8, 1, -18), Position = UDim2.fromOffset(4, 2) }, cadre)
+			else
+				local nu = inst("Frame", { BorderSizePixel = 0, Size = UDim2.new(1, -16, 0, (cat == "trainee") and 12 or 26), Position = UDim2.fromOffset(8, (cat == "trainee") and 14 or 6),
+					BackgroundColor3 = Color3.new(1, 1, 1) }, cadre)
+				if d.grad then
+					inst("UIGradient", { Rotation = 20, Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, d.grad[1]), ColorSequenceKeypoint.new(0.5, d.grad[2]),
+						ColorSequenceKeypoint.new(1, d.grad[3]) }) }, nu)
+				elseif d.arcenciel then
+					inst("UIGradient", { Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 60, 60)), ColorSequenceKeypoint.new(0.25, Color3.fromRGB(255, 190, 40)),
+						ColorSequenceKeypoint.new(0.5, Color3.fromRGB(110, 255, 90)), ColorSequenceKeypoint.new(0.75, Color3.fromRGB(60, 220, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 70, 220)) }) }, nu)
+				elseif d.c then
+					nu.BackgroundColor3 = d.c
+				elseif cat == "peinture" then
+					nu.BackgroundColor3 = Color3.fromHex(string.format("%06x", Catalogue[montre].laque)) -- « d'origine » : la teinte de CETTE caisse
+				else
+					nu.BackgroundColor3 = Color3.fromRGB(255, 122, 36)
+				end
+				if cat == "trainee" then inst("UIGradient", { Transparency = NumberSequence.new(0, 0.85) }, nu) end
+			end
+			inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = COUL_CAT[cat], Size = UDim2.new(1, 0, 0, 3), Position = UDim2.new(0, 0, 1, -3), ZIndex = 2 }, cadre)
+			local a = aHabit(cat, d)
+			local etiquette, couleur = "", CASH
+			if a then
+				etiquette = (p[cat] == d.id) and "" or "✓"
+			elseif d.p then
+				etiquette = Hud.argent(d.p)
+			else
+				etiquette, couleur = L.defi, OR1
+			end
+			local prix = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIX, TextSize = 9, Text = etiquette, TextColor3 = couleur,
+				Size = UDim2.new(1, -6, 0, 12), Position = UDim2.new(0, 0, 1, -17), TextXAlignment = Enum.TextXAlignment.Right, ZIndex = 3 }, cadre)
+			inst("UIStroke", { Color = C.encre, Thickness = 2 }, prix)
+			if p[cat] == d.id then
+				inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = Color3.fromRGB(255, 199, 42), Size = UDim2.fromOffset(9, 9), Position = UDim2.new(1, -16, 1, -18), Rotation = 45, ZIndex = 3 }, cadre)
+			end
+			local b = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "", ZIndex = 5 }, cadre)
+			b.Activated:Connect(function()
+				Sons.jouer("tap")
+				Garage.essayer(cat, j)
+			end)
+			table.insert(tuilesH, { cadre = cadre, trait = trait, j = j })
+		end
+	end
+	U.bande.CanvasPosition = Vector2.zero
+end
+
 -- la bande ne montre que la famille courante ; les photos se prennent une par une (la partie coûteuse)
 local function majBande()
+	if onglet ~= "voiture" then
+		majBandeHabits()
+		return
+	end
+	for _, t in tuilesH do t.cadre:Destroy() end
+	table.clear(tuilesH)
 	fileN += 1
 	local n = fileN
 	local liste = FAMILLES[famille]
@@ -547,6 +640,23 @@ local function majBande()
 end
 
 local function majPastilles()
+	local voitures = onglet == "voiture"
+	for _, r in RARETES do U.pastilles[r.id].fond.Visible = voitures end
+	for id, f in U.filtres do
+		f.fond.Visible = not voitures
+		if not voitures then
+			local n = 0
+			for _, d in HABITS[onglet] do
+				local a = aHabit(onglet, d)
+				if id == "tout" or (id == "moi" and a) or (id == "acheter" and not a and d.p ~= nil) then n += 1 end
+			end
+			f.txt.Text = f.nom .. " " .. n
+			local actif = id == filtre
+			f.fond.BackgroundColor3 = actif and f.c:Lerp(Color3.fromRGB(20, 16, 41), 0.72) or Color3.fromRGB(20, 16, 41)
+			f.trait.Color = actif and f.c or C.trait
+		end
+	end
+	if not voitures then return end
 	for _, r in RARETES do
 		local p = U.pastilles[r.id]
 		local a, n = 0, 0
@@ -597,37 +707,36 @@ local function condition(i: number): string
 end
 
 -- LA DÉCISION (gEtat + gPrixHtml + gActSync) : quel bouton, en or ou non
-local decision = "" -- "" | acheter | pauvre | equiper | verrou | boutique
-local function majFiche()
-	local f = Catalogue[montre]
-	local c = COULEUR_RAR[f.rar]
-	local nom = FR and f.nom or (f.en or f.nom)
-	nom = string.upper(nom)
+local decision = "" -- "" | acheter | pauvre | equiper | verrou | boutique | gagner
+local prixDecision = 0
+local function majFicheHabit()
+	local cat = onglet
+	local liste = HABITS[cat]
+	local d = liste[choisi[cat]]
+	local nom = FR and d.nom or d.en
 	U.nom.Text = nom
 	U.nom.TextSize = math.clamp(math.floor(470 / math.max(8, utf8.len(nom) or #nom)), 16, 34)
-	U.barre.BackgroundColor3 = c
-	U.rang.Text = RANG[montre] .. " / " .. #LISTE
-	local k = f.cond
-	local aMoi, ouv = gagnee(montre), ouverte(montre)
-	local test = ouv and not aMoi
-	-- la fiche n'écrit que la condition d'une caisse fermée (le prix, lui, est sur le bouton et la vignette)
-	local desc = ""
-	if not aMoi and k.k ~= "prix" then desc = "🔒 " .. condition(montre) end
-	if test then desc = '<font color="#ffd75e">[TEST]</font> ' .. desc end
-	U.desc.Text = desc
-	-- le bouton
+	U.barre.BackgroundColor3 = COUL_CAT[cat]
+	U.rang.Text = choisi[cat] .. " / " .. #liste
+	U.desc.Text = FR and d.d or d.dEN
 	local compte = profil().compte or 0
-	if k.k == "prix" and not possede(montre) then
-		decision = compte >= k.v and "acheter" or "pauvre"
-	elseif k.k == "premium" and not possede(montre) and not ouv then
-		decision = "boutique"
-	elseif not ouv then
-		decision = "verrou"
-	elseif profil().caisse ~= montre then
-		decision = "equiper"
+	local a = aHabit(cat, d)
+	if a then
+		decision = (tenue()[cat] == d.id) and "" or "equiper"
+	elseif d.p then
+		decision = (compte >= d.p) and "acheter" or "pauvre"
+		prixDecision = d.p
 	else
-		decision = ""
+		decision = "gagner"
 	end
+end
+local function majFiche()
+	if onglet ~= "voiture" then
+		majFicheHabit()
+	else
+		Garage.majFicheCaisse()
+	end
+	local compte = profil().compte or 0
 	local choix = decision ~= ""
 	local x = 14
 	local function placer(pq: any, l: number, visible: boolean)
@@ -649,13 +758,15 @@ local function majFiche()
 		habiller(U.btBoutique, "laque", C.magenta, nil, "$", 18)
 		habiller(U.btJouer, "laque", C.cyan, nil, L.jouer, 15)
 		if decision == "acheter" then
-			habiller(U.btDecision, "or_", nil, L.acheter, Hud.argent(k.v), 17)
+			habiller(U.btDecision, "or_", nil, L.acheter, Hud.argent(prixDecision), 17)
 		elseif decision == "pauvre" then
-			habiller(U.btDecision, "laque", ROUGE, L.manque, Hud.argent(k.v - compte), 15, ROUGE)
+			habiller(U.btDecision, "laque", ROUGE, L.manque, Hud.argent(prixDecision - compte), 15, ROUGE)
 		elseif decision == "equiper" then
 			habiller(U.btDecision, "or_", nil, nil, L.equiper, 18)
 		elseif decision == "boutique" then
-			habiller(U.btDecision, "or_", nil, L.enBoutique, eurTexte(k.eur), 16)
+			habiller(U.btDecision, "or_", nil, L.enBoutique, eurTexte(Catalogue[montre].cond.eur), 16)
+		elseif decision == "gagner" then
+			habiller(U.btDecision, "verrou", nil, nil, "🔒 " .. L.gagner, 11)
 		else
 			habiller(U.btDecision, "verrou", nil, nil, "🔒 " .. L.verrou, 11)
 		end
@@ -669,13 +780,48 @@ local function majFiche()
 		habiller(U.btJouer, "or_", nil, nil, L.jouer, 30)
 	end
 end
+function Garage.majFicheCaisse()
+	local f = Catalogue[montre]
+	local c = COULEUR_RAR[f.rar]
+	local nom = FR and f.nom or (f.en or f.nom)
+	nom = string.upper(nom)
+	U.nom.Text = nom
+	U.nom.TextSize = math.clamp(math.floor(470 / math.max(8, utf8.len(nom) or #nom)), 16, 34)
+	U.barre.BackgroundColor3 = c
+	U.rang.Text = RANG[montre] .. " / " .. #LISTE
+	local k = f.cond
+	local aMoi, ouv = gagnee(montre), ouverte(montre)
+	local test = ouv and not aMoi
+	-- la fiche n'écrit que la condition d'une caisse fermée (le prix, lui, est sur le bouton et la vignette)
+	local desc = ""
+	if not aMoi and k.k ~= "prix" then desc = "🔒 " .. condition(montre) end
+	if test then desc = '<font color="#ffd75e">[TEST]</font> ' .. desc end
+	U.desc.Text = desc
+	-- le bouton
+	local compte = profil().compte or 0
+	if k.k == "prix" and not possede(montre) then
+		decision = compte >= k.v and "acheter" or "pauvre"
+		prixDecision = k.v
+	elseif k.k == "premium" and not possede(montre) and not ouv then
+		decision = "boutique"
+	elseif not ouv then
+		decision = "verrou"
+	elseif profil().caisse ~= montre then
+		decision = "equiper"
+	else
+		decision = ""
+	end
+end
 
 local function majTout()
 	majCompte()
 	majPastilles()
-	for i in tuiles do majTuile(i) end
+	if onglet ~= "voiture" then majBande() else
+		for i in tuiles do majTuile(i) end
+	end
 	majFiche()
 end
+Garage.majTout = majTout
 
 local function secouer()
 	local p0 = UDim2.new(1, -22, 1, -16)
@@ -706,8 +852,41 @@ end
 
 local arme = 0 -- après un achat, ÉQUIPER prend la place d'ACHETER : le 2e appui d'un double appui ne doit pas l'activer
 local occupe = false
+local function deciderHabit()
+	local cat = onglet
+	local d = HABITS[cat][choisi[cat]]
+	if decision == "acheter" or decision == "equiper" then
+		occupe = true
+		local ok = ctx.action((decision == "acheter") and "habitAcheter" or "habitEquiper", cat, d.id)
+		occupe = false
+		if ok then
+			essai[cat] = nil
+			if decision == "acheter" then
+				arme = os.clock() + 0.42
+				Sons.jouer("encaisse")
+				tampon(COUL_CAT[cat])
+			else
+				Sons.jouer("maillon")
+			end
+			if ctx.surHabit then ctx.surHabit() end
+			Garage.majTout()
+		else
+			secouer()
+		end
+	elseif decision == "pauvre" then
+		secouer()
+		Hud.toast("✗ " .. L.ilTeManque .. Hud.argent(d.p - (profil().compte or 0)), ROUGE)
+	elseif decision == "gagner" then
+		secouer()
+		Hud.toast("🔒 " .. (FR and d.d or d.dEN))
+	end
+end
 local function decider()
 	if occupe or os.clock() < arme then return end
+	if onglet ~= "voiture" then
+		deciderHabit()
+		return
+	end
 	local f = Catalogue[montre]
 	if decision == "acheter" then
 		occupe = true
@@ -801,12 +980,7 @@ local function creerInterface()
 		U.onglets[o[1]] = { f = f, grad = grad, b = b }
 		b.Activated:Connect(function()
 			Sons.jouer("tap")
-			if o[1] ~= "voiture" then
-				Hud.toast(L.bientot)
-				return
-			end
-			onglet = o[1]
-			Garage.majOnglets()
+			Garage.onglet(o[1])
 		end)
 	end
 	-- les pastilles de famille
@@ -829,6 +1003,23 @@ local function creerInterface()
 			local eq = profil().caisse
 			local vers = (Catalogue[eq] and Catalogue[eq].rar == r.id) and eq or FAMILLES[r.id][1]
 			if vers then Garage.sauter(vers) end
+		end)
+	end
+	U.filtres = {}
+	local lf = (W_CONSOLE - 28 - 8) / 3
+	for k, q in { { "tout", L.tout, Color3.fromRGB(201, 189, 240) }, { "moi", L.aMoi, Color3.fromRGB(94, 227, 122) }, { "acheter", L.aAcheter, C.cyan } } do
+		local f = inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = Color3.fromRGB(20, 16, 41), Size = UDim2.fromOffset(lf, 34),
+			Position = UDim2.fromOffset(14 + (k - 1) * (lf + 4), 70), Visible = false }, cs)
+		local trait = inst("UIStroke", { Color = C.trait, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, f)
+		inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = q[3], Size = UDim2.new(1, 0, 0, 2), Position = UDim2.new(0, 0, 1, -2) }, f)
+		local txt = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIX, Text = q[2], TextSize = 9, TextColor3 = C.texte2, Size = UDim2.fromScale(1, 1) }, f)
+		local b = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 10), Position = UDim2.fromOffset(0, -5), Text = "" }, f)
+		U.filtres[q[1]] = { fond = f, trait = trait, txt = txt, nom = q[2], c = q[3] }
+		b.Activated:Connect(function()
+			Sons.jouer("tap")
+			filtre = q[1]
+			majPastilles()
+			majBande()
 		end)
 	end
 	-- la bande de vignettes : deux rangées, on fait défiler
@@ -890,9 +1081,10 @@ local function poserCaisse(m: Model, echelle: number, dz: number?)
 end
 
 -- changer de caisse : la caisse s'écrase dans le plateau, le scanner monte, la nouvelle se déploie
-function Garage.sauter(i: number, direct: boolean?)
+-- force = rebâtir la même caisse (un habillage essayé)
+function Garage.sauter(i: number, direct: boolean?, force: boolean?)
 	if not Catalogue[i] or lacher then return end
-	if i == montre and vitrine and not bascule then return end
+	if i == montre and vitrine and not bascule and not force then return end
 	montre = i
 	local fam = Catalogue[i].rar
 	local change = fam ~= famille
@@ -907,15 +1099,54 @@ function Garage.sauter(i: number, direct: boolean?)
 	bascule = b
 	if not direct then Sons.jouer("fronde", 1.2, 0.35) end
 	task.spawn(function()
-		local m = Caisse.construire("Vitrine", i, true)
+		local m, pg = Caisse.construire("Vitrine", i, true, habitsVitrine())
 		if n ~= jeton or not Garage.ouvert then
 			m:Destroy()
 			return
 		end
 		b.pret = m
+		b.pg = pg
 	end)
 end
+-- ESSAYER un habillage sur la caisse (même s'il n'est pas à soi)
+function Garage.essayer(cat: string, j: number)
+	local d = HABITS[cat][j]
+	if not d then return end
+	choisi[cat] = j
+	essai[cat] = d.id
+	for _, t in tuilesH do t.trait.Enabled = t.j == j end
+	majFiche()
+	if cat ~= "trainee" then Garage.sauter(montre, false, true) end
+end
+-- changer d'onglet : VOITURES · PEINTURE · AILES · TRAINEES
+function Garage.onglet(o: string)
+	if lacher or o == onglet then return end
+	local avait = next(essai) ~= nil
+	table.clear(essai) -- un essai ne survit pas à son onglet
+	onglet = o
+	filtre = "tout"
+	if o ~= "voiture" then
+		-- on ouvre sur ce que la caisse porte
+		local p = tenue()
+		for j, d in HABITS[o] do
+			if d.id == p[o] then choisi[o] = j end
+		end
+	end
+	Garage.majOnglets()
+	majPastilles()
+	majBande()
+	if o == "voiture" then
+		for k in tuiles do majTuile(k) end
+	end
+	majFiche()
+	if avait then Garage.sauter(montre, false, true) end
+end
 function Garage.voisin(d: number)
+	if onglet ~= "voiture" then
+		local n = #HABITS[onglet]
+		Garage.essayer(onglet, (choisi[onglet] - 1 + d) % n + 1)
+		return
+	end
 	local k = RANG[montre] or 1
 	Garage.sauter(LISTE[(k - 1 + d) % #LISTE + 1])
 end
@@ -947,6 +1178,7 @@ function Garage.rendu(dt: number)
 			if b.t >= 0.34 and b.pret then
 				if vitrine then vitrine:Destroy() end
 				vitrine = b.pret
+				vitrinePg = b.pg
 				poserCaisse(b.pret, 0.06)
 				echelleVue = 0.06
 				b.pret.Parent = dossier
@@ -972,6 +1204,8 @@ function Garage.rendu(dt: number)
 		end
 	elseif vitrine and not lacher then
 		vitrine:PivotTo(cfPlateau())
+		-- dans l'onglet AILES, la caisse les montre déployées
+		if vitrinePg then Caisse.deployer(vitrinePg, (onglet == "aile") and 1 or 0, t * 9) end
 	end
 
 	-- ── la vue ──
@@ -1122,6 +1356,8 @@ function Garage.ouvrir(indice: number?)
 	U.racine.Visible = true
 	U.fondu.Visible = false
 	onglet = "voiture"
+	table.clear(essai)
+	filtre = "tout"
 	Garage.majOnglets()
 	montre = -1
 	famille = ""
@@ -1143,6 +1379,10 @@ function Garage.fermer()
 		vitrine:Destroy()
 		vitrine = nil
 	end
+	vitrinePg = nil
+	table.clear(essai)
+	for _, t in tuilesH do t.cadre:Destroy() end
+	table.clear(tuilesH)
 	for i, t in tuiles do
 		t.cadre:Destroy()
 		tuiles[i] = nil

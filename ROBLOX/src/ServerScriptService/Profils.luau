@@ -31,6 +31,7 @@ function Profils.neuf(): Profil
 		traines = {}, trainee = 0,
 		mis = { n = 0, ok = { false, false, false }, best = { 0, 0, 0 }, f = -1 }, -- les CARNETS (voir Carnets)
 		habits = {},   -- les habillages gagnés ou achetés : « peinture:or », « trainee:arcenciel »…
+		porte = { peinture = "usine", aile = "panneaux", trainee = "nitro" }, -- ce que la caisse porte
 		carriere = {},
 		reglages = { son = true, musique = true, facile = false, facileChoisi = false, tuto = false },
 		permis = false, -- le PERMIS de l'auto-école : +500 $, une seule fois dans la vie du compte
@@ -42,11 +43,11 @@ local function sain(p: any): Profil
 	local n = Profils.neuf()
 	if type(p) ~= "table" then return n end
 	for k, v in n do
-		if k == "reglages" then
+		if k == "reglages" or k == "porte" then
 			-- (clé par clé : un vieux profil n'a pas les réglages ajoutés depuis)
-			if type(p.reglages) == "table" then
+			if type(p[k]) == "table" then
 				for rk, rv in v do
-					if type(p.reglages[rk]) == type(rv) then v[rk] = p.reglages[rk] end
+					if type(p[k][rk]) == type(rv) then v[rk] = p[k][rk] end
 				end
 			end
 		elseif type(p[k]) == type(v) then
@@ -149,6 +150,39 @@ Profils.actions.defi = function(_, prof, i, v)
 	prof.compte += d.p
 	return true
 end
+-- ── les HABILLAGES (shopBuy / shopEquip, L22150) : peintures, ailes, traînées ──
+local function habit(cat: any, id: any): any
+	local l = type(cat) == "string" and Config.HABITS[cat]
+	if not l then return nil end
+	for _, d in l do
+		if d.id == id then return d end
+	end
+	return nil
+end
+function Profils.aHabit(prof: Profil, cat: string, id: string): boolean
+	local d = habit(cat, id)
+	if not d then return false end
+	if not d.p and not d.mis then return true end -- offert
+	return table.find(prof.habits, cat .. ":" .. id) ~= nil
+end
+Profils.actions.habitAcheter = function(p, prof, cat, id)
+	local d = habit(cat, id)
+	if not d or not d.p then return false, "pas a vendre" end
+	if Profils.aHabit(prof, cat, id) then return false, "deja a toi" end
+	if prof.compte < d.p then return false, "pas assez" end
+	prof.compte -= d.p
+	table.insert(prof.habits, cat .. ":" .. id)
+	prof.porte[cat] = id -- (un habillage acheté est porté tout de suite — pas une caisse)
+	if Profils.surHabit then Profils.surHabit(p) end
+	return true
+end
+Profils.actions.habitEquiper = function(p, prof, cat, id)
+	if not habit(cat, id) or not Profils.aHabit(prof, cat, id) then return false, "pas a toi" end
+	prof.porte[cat] = id
+	if Profils.surHabit then Profils.surHabit(p) end
+	return true
+end
+
 Profils.actions.permis = function(_, prof)
 	if prof.permis then return false, "deja" end
 	prof.permis = true

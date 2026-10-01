@@ -6,7 +6,8 @@
 -- (laque, chrome, or, satiné, mat, verre) + une pièce Néon par couleur de feu + quatre roues qui tournent.
 -- Si Roblox refuse les maillages (appareil ancien, mémoire) : la caisse de secours en blocs.
 --
--- Caisse.construire(nom, indice, ancree) → Model, poignees
+-- Caisse.construire(nom, indice, ancree, habits) → Model, poignees
+--   habits = { peinture = id, aile = id, trainee = id } : ce que la boutique lui fait porter (voir Config.HABITS)
 --   poignees = { flammes, trainees, reflet, phares, essieux = { Weld }, bases = { CFrame }, rayons = { number }, fiche }
 local Config = require(script.Parent:WaitForChild("Config"))
 local Catalogue = require(script.Parent:WaitForChild("Caisses"):WaitForChild("Catalogue"))
@@ -81,7 +82,7 @@ local function blocs(m: Model, r: BasePart, laque: Color3)
 end
 
 -- ── la vraie caisse : les maillages cuits ──
-local function maillages(m: Model, r: BasePart, indice: number, poignees: any): boolean
+local function maillages(m: Model, r: BasePart, indice: number, poignees: any, peinture: any?): boolean
 	local module = Formes:FindFirstChild(string.format("F%02d", indice))
 	local Client = script.Parent:FindFirstChild("Client")
 	local mMaillage = Client and Client:FindFirstChild("Maillage")
@@ -106,10 +107,11 @@ local function maillages(m: Model, r: BasePart, indice: number, poignees: any): 
 			end
 			return true
 		end
-		local o3 = { miroir = opt and opt.miroir, teinte = lumiere }
+		local o3 = { miroir = opt and opt.miroir, teinte = lumiere, peinture = (g == "p") and peinture or nil }
 		local mp, centre = Maillage.piece(d, M, o3)
 		if not mp then return false end
-		local mt = MATIERES[g] or MATIERES.s
+		-- une peinture a sa MATIÈRE (noir mat : satiné ; chrome ; or) : elle remplace celle de la laque
+		local mt = MATIERES[(g == "p" and peinture and peinture.g) or g] or MATIERES.s
 		mp.Name = "Matiere_" .. g
 		mp.Material = mt[1]
 		mp.Reflectance = mt[2]
@@ -171,7 +173,7 @@ local function maillages(m: Model, r: BasePart, indice: number, poignees: any): 
 end
 
 -- Construit une caisse à l'origine. indice = l'indice du jeu web (0 = LA HONTE).
-function Caisse.construire(nom: string, indice: number, ancree: boolean?): (Model, any)
+function Caisse.construire(nom: string, indice: number, ancree: boolean?, habits: any?): (Model, any)
 	local fiche = Catalogue[indice] or Catalogue[0]
 	if not Catalogue[indice] then indice = 0 end
 	local m = Instance.new("Model")
@@ -190,10 +192,21 @@ function Caisse.construire(nom: string, indice: number, ancree: boolean?): (Mode
 	-- L'origine de la racine = le point de contact au sol, au centre : le bas des roues est à y = 0.
 	local poignees = { flammes = {}, trainees = {}, essieux = {}, bases = {}, rayons = {}, fiche = fiche, indice = indice, maillage = true }
 	local laque = lumiere(Color3.fromHex(string.format("%06x", fiche.laque)))
+	-- LA PEINTURE de la boutique recouvre la laque (« usine » = la teinte du constructeur)
+	local peint = habits and Config.habit("peinture", habits.peinture)
+	if peint and peint.id == "usine" then peint = nil end
+	if peint then laque = lumiere(peint.c or peint.grad[2]) end
 	poignees.laque = laque
-	if not maillages(m, r, indice, poignees) then
+	poignees.habits = habits or {}
+	if not maillages(m, r, indice, poignees, peint) then
 		poignees.maillage = false
 		blocs(m, r, laque)
+	end
+	-- (les ailes ne doivent jamais empêcher une caisse d'exister)
+	local okA, errA = pcall(Caisse.ailes, m, r, fiche, poignees, laque)
+	if not okA then
+		warn("[CashCar] ailes : " .. tostring(errA))
+		poignees.ailes = {}
 	end
 
 	-- ── les lumières ──
@@ -265,6 +278,108 @@ function Caisse.construire(nom: string, indice: number, ancree: boolean?): (Mode
 		table.insert(poignees.trainees, t)
 	end
 	return m, poignees
+end
+
+-- ════════ LES AILES (L19229) : repliées dans le flanc au sol, DÉPLOYÉES en vol. Le style de la boutique remplace celui
+-- du gabarit (sauf les caisses qui n'en ont pas). Quatre styles : panneaux de planeur · hélices · plumes d'ange · chauve-souris.
+-- Tout est en pièces simples, soudées à la racine par un Weld qu'on anime (Caisse.deployer).
+function Caisse.ailes(m: Model, r: BasePart, fiche: any, poignees: any, laque: Color3)
+	poignees.ailes = {}
+	local style = fiche.ailes or "panneaux"
+	local voulu = poignees.habits and poignees.habits.aile
+	if style ~= "none" and voulu and voulu ~= "panneaux" then style = voulu end
+	poignees.styleAiles = style
+	if style == "none" then return end
+	local W, H, L = fiche.w, fiche.h, fiche.l
+	local accent = lumiere(Color3.fromHex(string.format("%06x", fiche.accent)))
+	local SOMBRE, CHROME = Color3.fromRGB(20, 22, 26), Color3.fromRGB(232, 236, 240)
+	local function piece(pivot: CFrame, s: number, taille: Vector3, cf: CFrame, couleur: Color3, matiere: Enum.Material?, pale: number?, forme: Enum.PartType?): BasePart
+		local p = Instance.new("Part")
+		p.Name = "Aile"
+		p.Size = taille * M
+		p.Color = couleur
+		p.Material = matiere or Enum.Material.SmoothPlastic
+		if forme then p.Shape = forme end
+		p.CanCollide = false
+		p.CanQuery = false
+		p.CanTouch = false
+		p.Massless = true
+		p.CastShadow = false
+		p.LocalTransparencyModifier = 1
+		local w = Instance.new("Weld")
+		w.Part0 = r
+		w.Part1 = p
+		w.C0 = pivot * cf
+		w.Parent = p
+		p.Parent = m
+		table.insert(poignees.ailes, { w = w, p = p, pivot = pivot, cf = cf, taille = taille * M, s = s, pale = pale })
+		return p
+	end
+	for _, s in { 1, -1 } do -- s = le côté (+X = la droite du pilote)
+		local helices = style == "helices"
+		local pivot = CFrame.new(s * W * 0.36 * M, (0.35 + H * (helices and 0.44 or 0.55)) * M, L * 0.14 * M)
+		local function en(x: number, y: number, z: number): CFrame return CFrame.new(x * M, y * M, z * M) end
+		if helices then
+			for _, fz in { 1, -1 } do
+				piece(pivot, s, Vector3.new(W * 0.62, 0.055, 0.10), en(s * W * 0.44, 0, -fz * L * 0.20), accent)
+				piece(pivot, s, Vector3.new(0.09, 0.10, 0.10), en(s * W * 0.78, 0.05, -fz * L * 0.20) * CFrame.Angles(0, 0, math.pi / 2), SOMBRE, nil, nil, Enum.PartType.Cylinder)
+				local car = piece(pivot, s, Vector3.new(0.03, 0.56, 0.56), en(s * W * 0.78, 0.09, -fz * L * 0.20) * CFrame.Angles(0, 0, math.pi / 2), CHROME, nil, nil, Enum.PartType.Cylinder)
+				car.Transparency = 0.6 -- le carénage de l'hélice
+				for _, b in { 0, math.pi / 2 } do
+					piece(pivot, s, Vector3.new(0.52, 0.016, 0.085), en(s * W * 0.78, 0.09, -fz * L * 0.20), accent, nil, b)
+				end
+			end
+		elseif style == "plumes" then
+			-- PLUMES D'ANGE : six rémiges en éventail, de la plus longue (devant) à la plus courte, pointe dorée
+			local BLANC, OR = Color3.fromRGB(251, 248, 240), Color3.fromRGB(255, 215, 94)
+			for k = 0, 5 do
+				local ln = W * (1.18 - k * 0.13)
+				local rot = CFrame.Angles(0, s * (k * 0.19 - 0.05), 0)
+				piece(pivot, s, Vector3.new(ln, 0.05, 0.26), rot * en(s * ln / 2, -k * 0.012, 0), BLANC)
+				piece(pivot, s, Vector3.new(ln * 0.22, 0.055, 0.20), rot * en(s * ln * 0.9, -k * 0.012, 0), OR, Enum.Material.Neon)
+			end
+			piece(pivot, s, Vector3.new(W * 0.42, 0.08, 0.46), en(s * W * 0.2, 0.03, 0.05), BLANC)
+		elseif style == "chauve" then
+			-- CHAUVE-SOURIS : une membrane festonnée (des lames qui raccourcissent) tendue entre des doigts d'os
+			local MEMBRANE, OS = Color3.fromRGB(58, 20, 74), Color3.fromRGB(20, 16, 26)
+			local Wd = W * 1.15
+			-- le bord de fuite : { x, profondeur } du jeu web, rendu par des lames de 1/8 d'envergure
+			local bord = { { 0, 0.62 }, { 0.18, 0.56 }, { 0.36, 0.86 }, { 0.48, 0.46 }, { 0.66, 0.70 }, { 0.76, 0.30 }, { 0.92, 0.42 }, { 1, 0.02 } }
+			for k = 1, #bord - 1 do
+				local a, b = bord[k], bord[k + 1]
+				local x0, x1 = a[1] * Wd, b[1] * Wd
+				local prof = math.max(0.08, (a[2] + b[2]) / 2 + 0.17)
+				piece(pivot, s, Vector3.new(x1 - x0, 0.025, prof), en(s * (x0 + x1) / 2, 0, prof / 2 - 0.17), MEMBRANE)
+			end
+			for _, q in { { Wd, 0.02 }, { Wd * 0.66, 0.70 }, { Wd * 0.36, 0.86 } } do
+				local ln = math.sqrt(q[1] * q[1] + q[2] * q[2])
+				piece(pivot, s, Vector3.new(ln, 0.05, 0.05), CFrame.Angles(0, -s * math.atan2(q[2], q[1]), 0) * en(s * ln / 2, 0.02, 0), OS)
+			end
+			piece(pivot, s, Vector3.new(Wd * 0.56, 0.07, 0.07), en(s * Wd * 0.28, 0.03, -0.17), OS)
+		else
+			-- PANNEAUX : la planche de planeur et son saumon
+			piece(pivot, s, Vector3.new(W * 0.92, 0.05, L * 0.32), en(s * W * 0.5, 0, 0), accent)
+			piece(pivot, s, Vector3.new(W * 0.28, 0.04, L * 0.14), en(s * W * 0.92, 0.06, L * 0.08) * CFrame.Angles(-0.2, 0, 0), laque)
+		end
+	end
+end
+-- t = le déploiement (0 rentrées dans le flanc, 1 sorties) ; tour = l'angle des hélices
+function Caisse.deployer(poignees: any, t: number, tour: number?)
+	local ailes = poignees.ailes
+	if not ailes or #ailes == 0 then return end
+	local k = 0.05 + 0.95 * t
+	local cache = t < 0.04
+	for _, a in ailes do
+		a.p.LocalTransparencyModifier = cache and 1 or 0
+		if not cache then
+			local c = a.cf
+			local rot = c.Rotation
+			if a.pale then rot = rot * CFrame.Angles(0, (tour or 0) + a.pale, 0) end
+			-- elles SORTENT du flanc (l'envergure s'étire) et prennent un léger dièdre de planeur
+			a.w.C0 = a.pivot * CFrame.Angles(0, 0, a.s * 0.16 * t) * CFrame.new(c.X * k, c.Y, c.Z) * rot
+			if not a.pale then a.p.Size = Vector3.new(math.max(0.05, a.taille.X * k), a.taille.Y, a.taille.Z) end
+		end
+	end
 end
 
 -- LA VIGNETTE : la caisse entière (corps + quatre roues) en UN maillage, pour les photos du garage (ViewportFrame).

@@ -47,6 +47,15 @@ local fnProfil = remote("Profil", "RemoteFunction")   -- le client lit son profi
 local fnAction = remote("Action", "RemoteFunction")   -- le client demande (acheter, équiper, régler…), le serveur vérifie
 local evProfil = remote("ProfilMaj")                  -- le serveur pousse le profil à jour
 Profils.pousser = function(p: Player) evProfil:FireClient(p, Profils.de(p)) end
+Profils.surHabit = function(p: Player) -- la peinture, les ailes, la traînée : les autres doivent les voir
+	local m = dossier:FindFirstChild(p.Name)
+	local prof = Profils.de(p)
+	if m then
+		m:SetAttribute("Peinture", prof.porte.peinture)
+		m:SetAttribute("Aile", prof.porte.aile)
+		m:SetAttribute("Trainee", prof.porte.trainee)
+	end
+end
 Profils.surEquipe = function(p: Player, i: number) -- la caisse équipée change : les autres doivent la redessiner
 	local m = dossier:FindFirstChild(p.Name)
 	if m then m:SetAttribute("Caisse", i) end
@@ -101,6 +110,7 @@ local function arrivee(p: Player)
 	task.spawn(function()
 		local prof = Profils.charger(p)
 		m:SetAttribute("Caisse", prof.caisse)
+		Profils.surHabit(p)
 		rec.Value = math.floor(prof.record)
 		evRecord:FireClient(p, prof.record, prof.compte)
 		Profils.pousser(p)

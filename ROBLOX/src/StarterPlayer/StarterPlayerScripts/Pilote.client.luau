@@ -81,7 +81,7 @@ local fnProfil = CC:WaitForChild("Profil") :: RemoteFunction
 local fnAction = CC:WaitForChild("Action") :: RemoteFunction
 local profil = fnProfil:InvokeServer() or { compte = 0, record = 0, caisses = { 0 }, caisse = 0, reglages = {} }
 if Config.CAISSE_TEST then profil.caisse = Config.CAISSE_TEST end
-local caisse, poignees = Caisse.construire("MaCaisse", profil.caisse or 0, true)
+local caisse, poignees = Caisse.construire("MaCaisse", profil.caisse or 0, true, profil.porte)
 caisse.Parent = workspace
 local racine = caisse.PrimaryPart :: BasePart
 local flammes, trainees, reflet = poignees.flammes, poignees.trainees, poignees.reflet
@@ -89,7 +89,7 @@ local visibleCaisse = true
 -- changer de caisse (le garage) : on rebâtit la mienne, au même endroit
 local function changerCaisse(indice: number)
 	local ancienne = caisse
-	local nouvelle, pg = Caisse.construire("MaCaisse", indice, true)
+	local nouvelle, pg = Caisse.construire("MaCaisse", indice, true, profil.porte)
 	-- ⚠ PivotTo, pas « racine.CFrame = » : hors du monde, bouger la racine ne déplace pas les pièces soudées
 	-- (la soudure se recale à l'arrivée et la carrosserie reste plantée à l'origine : une caisse invisible)
 	nouvelle:PivotTo((ancienne.PrimaryPart :: BasePart).CFrame)
@@ -237,7 +237,7 @@ local G = {
 	carRoll = 0, rollV = 0, levreY = 0, pureT = 0, pureArmed = true, pureNext = 0, pureLvl = 0, idleT = 0, idleMsg = 0,
 	padCd = 0, padN = 0, padSL = nil :: number?, comboT = 0, safeS = 0,
 	distAvant = 0, vmax = 0, serie = 0, nbZones = 0, tempsDepart = 0,
-	fruitRaf = 0, fruitRafT = 0, coeurs = 3,
+	fruitRaf = 0, fruitRafT = 0, coeurs = 3, ailes = 0, helice = 0,
 	lgS = 240, lgK = 0, lgV = 0, lgAcc = 20, -- LA LIGNE PARFAITE : la prochaine abscisse, fruit (0) ou pad (1), la vitesse et l'accélération lissées
 }
 local NTR = { on = false, t = 0, pal = 0, boost = 0, k = 0, kc = 0 }
@@ -1773,6 +1773,9 @@ end
 
 -- ════════ la caisse, ses feux, ses sons ════════
 local refletK = 0
+local ARC_EN_CIEL = ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 60, 60)), ColorSequenceKeypoint.new(0.2, Color3.fromRGB(255, 190, 40)),
+	ColorSequenceKeypoint.new(0.4, Color3.fromRGB(110, 255, 90)), ColorSequenceKeypoint.new(0.6, Color3.fromRGB(60, 220, 255)),
+	ColorSequenceKeypoint.new(0.8, Color3.fromRGB(110, 90, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 70, 220)) })
 local function habiller(dt: number)
 	if mode == "boom" or mode == "mort" or mode == "charge" then return end
 	racine.CFrame = carCF
@@ -1781,11 +1784,24 @@ local function habiller(dt: number)
 		or (nitroBleue and ColorSequence.new(Color3.fromRGB(150, 170, 255), Color3.fromRGB(60, 90, 255)))
 		or (nitroOn and ColorSequence.new(Color3.fromRGB(255, 180, 70), Color3.fromRGB(255, 70, 30)))
 		or ColorSequence.new(Color3.fromRGB(255, 230, 130), Color3.fromRGB(255, 170, 40))
+	-- la TRAÎNÉE de la boutique se pose par-dessus la signature (nitro simple seulement : le violet, le bleu et l'or gardent leur sens)
+	local tr9 = Config.habit("trainee", profil.porte and profil.porte.trainee)
+	if tr9 and pwN <= 0 and not nitroBleue and nitroOn then
+		if tr9.arcenciel then
+			couleur = ARC_EN_CIEL
+		elseif tr9.c then
+			couleur = ColorSequence.new(tr9.c:Lerp(Color3.new(1, 1, 1), 0.35), tr9.c)
+		end
+	end
 	for _, f in flammes do f.Rate = nitroOn and 110 or (boost > 0 and 45 or 0) end
 	for _, t in trainees do
 		t.Enabled = feu
 		t.Color = couleur
 	end
+	-- les AILES : rentrées dans le flanc au sol, sorties en vol ; les hélices brassent doucement au sol et s'emballent en vol
+	G.ailes += (((mode == "fall" and not intro) and 1 or 0) - G.ailes) * math.min(1, dt * 6)
+	G.helice += dt * (3.5 + G.ailes * 36)
+	Caisse.deployer(poignees, G.ailes, G.helice)
 	-- les roues tournent à leur vraie vitesse (v / R) ; en l'air elles gardent leur élan
 	Caisse.rouler(poignees, vA * SPD * M * dt)
 	refletK += ((nitroOn and 1.6 or (boost > 0 and 0.9 or 0)) - refletK) * math.min(1, dt * 8)
@@ -2032,6 +2048,7 @@ Garage.init({
 	surEquipe = function(i: number)
 		if poignees.indice ~= i then changerCaisse(i) end
 	end,
+	surHabit = function() changerCaisse(profil.caisse or 0) end, -- la peinture ou les ailes ont changé : on rebâtit la mienne
 	surHome = function()
 		Garage.fermer()
 		allerMenu()
@@ -2112,7 +2129,7 @@ majBoutonsSon()
 E.btFacile.Parent.Visible = Config.FACILE_ACTIF
 
 -- ════════ les autres caisses : un double chez moi, lissé ; on ne voit que celles qui roulent dans NOTRE zone ════════
-type Double = { m: Model, c: Model, vu: boolean?, pg: any, ind: number }
+type Double = { m: Model, c: Model, vu: boolean?, pg: any, ind: number, cle: string }
 local doubles: { [Model]: Double } = {}
 local function lisserDoubles(dt: number)
 	for m, d in doubles do
@@ -2132,12 +2149,13 @@ task.spawn(function()
 				if not d then
 					cacher(m)
 					local ind = m:GetAttribute("Caisse") or 0
-					local c, pg = Caisse.construire("Autre", ind, true)
+					local porte = { peinture = m:GetAttribute("Peinture"), aile = m:GetAttribute("Aile"), trainee = m:GetAttribute("Trainee") }
+					local c, pg = Caisse.construire("Autre", ind, true, porte)
 					c:PivotTo(m.PrimaryPart.CFrame)
 					c.Parent = workspace
-					d = { m = m, c = c, pg = pg, ind = ind }
+					d = { m = m, c = c, pg = pg, ind = ind, cle = tostring(porte.peinture) .. tostring(porte.aile) }
 					doubles[m] = d
-				elseif d.ind ~= (m:GetAttribute("Caisse") or 0) then
+				elseif d.ind ~= (m:GetAttribute("Caisse") or 0) or d.cle ~= tostring(m:GetAttribute("Peinture")) .. tostring(m:GetAttribute("Aile")) then
 					-- il a changé de caisse au garage : on redessine son double
 					d.c:Destroy()
 					doubles[m] = nil

@@ -3,7 +3,8 @@
 -- par FACE (chaque coin a son sommet : pas de lissage, c'est le style du jeu).
 --
 -- Format cuit (voir outils/cuire-caisses.js) : { v = base64, t = base64 }
---   v : 9 octets par sommet unique — x, y, z en int16 (demi-millimètres) puis r, g, b
+--   v : 10 octets par sommet unique — x, y, z en int16 (demi-millimètres), r, g, b, puis m = le MASQUE de la peinture
+--       (0 : ce sommet n'est pas de la laque ; 1-255 : la lumière que l'ombre cuite lui laisse — la boutique repeint par là)
 --   t : 3 × uint16 par triangle (indices dans v)
 -- Maillage.piece(donnees, echelle, options) rend un MeshPart prêt à poser (ou nil si Roblox refuse : budget
 -- mémoire épuisé, appareil trop ancien — l'appelant garde alors son modèle de secours en blocs).
@@ -37,17 +38,45 @@ local function decoder(s: string): buffer
 end
 Maillage.decoder = decoder
 
+local PAS = 10 -- octets par sommet
+export type Peinture = { c: Color3?, grad: { Color3 }? } -- une teinte unie, ou un dégradé de trois couleurs du bas de caisse au toit
 export type Options = {
+	peinture: Peinture?,     -- la peinture de la boutique : elle recouvre la laque (là où le masque le dit)
 	miroir: boolean?,        -- retourne le maillage en X (les roues de gauche)
 	couleur: Color3?,        -- ne garde QUE les facettes de cette couleur (les feux : une pièce Néon par couleur)
 	teinte: ((Color3) -> Color3)?, -- repeint les couleurs au passage (la peinture de la boutique)
 }
 
+-- la couleur d'un sommet et sa clé (les sommets de même couleur partagent la leur) : la laque d'origine, ou la PEINTURE
+-- de la boutique × l'ombre cuite. Un dégradé se lit sur la hauteur (y en mètres : du bas de caisse 0,35 au toit 1,70).
+local function couleurDe(v: buffer, o: number, peinture: Peinture?): (number, Color3)
+	local m = buffer.readu8(v, o + 9)
+	if peinture and m > 0 then
+		local base: Color3
+		local cle = 16777216 + m
+		if peinture.grad then
+			local y = buffer.readi16(v, o + 2) / 2000
+			local u = math.clamp((y - 0.35) / 1.35, 0, 1)
+			local q = math.floor(u * 24 + 0.5)
+			u = q / 24
+			local g = peinture.grad
+			base = (u < 0.5) and g[1]:Lerp(g[2], u * 2) or g[2]:Lerp(g[3], (u - 0.5) * 2)
+			cle += (q + 1) * 256
+		else
+			base = peinture.c :: Color3
+		end
+		local k = m / 255
+		return cle, Color3.new(base.R * k, base.G * k, base.B * k)
+	end
+	local r, g, b = buffer.readu8(v, o + 6), buffer.readu8(v, o + 7), buffer.readu8(v, o + 8)
+	return r * 65536 + g * 256 + b, Color3.fromRGB(r, g, b)
+end
+
 -- les couleurs distinctes d'un maillage (pour découper les feux par couleur)
 function Maillage.couleurs(d: { v: string, t: string }): { Color3 }
 	local v = decoder(d.v)
 	local vus, liste = {}, {}
-	for i = 0, buffer.len(v) - 9, 9 do
+	for i = 0, buffer.len(v) - PAS, PAS do
 		local cle = buffer.readu8(v, i + 6) * 65536 + buffer.readu8(v, i + 7) * 256 + buffer.readu8(v, i + 8)
 		if not vus[cle] then
 			vus[cle] = true
@@ -69,16 +98,17 @@ function Maillage.editable(d: { v: string, t: string }, echelle: number, opt: Op
 	local filtre = opt and opt.couleur
 	local fcle = filtre and (math.floor(filtre.R * 255 + 0.5) * 65536 + math.floor(filtre.G * 255 + 0.5) * 256 + math.floor(filtre.B * 255 + 0.5))
 	local teinte = opt and opt.teinte
+	local peinture = opt and opt.peinture
 	local couleurs: { [number]: number } = {}
 	local nb = 0
 	-- 1re passe : la boîte des facettes gardées
 	local mnx, mny, mnz, mxx, mxy, mxz = math.huge, math.huge, math.huge, -math.huge, -math.huge, -math.huge
 	for i = 0, buffer.len(t) - 6, 6 do
-		local ia = buffer.readu16(t, i) * 9
+		local ia = buffer.readu16(t, i) * PAS
 		local ca = buffer.readu8(v, ia + 6) * 65536 + buffer.readu8(v, ia + 7) * 256 + buffer.readu8(v, ia + 8)
 		if not fcle or ca == fcle then
 			for j = 0, 4, 2 do
-				local o = buffer.readu16(t, i + j) * 9
+				local o = buffer.readu16(t, i + j) * PAS
 				local x, y, z = buffer.readi16(v, o) * k * sx, buffer.readi16(v, o + 2) * k, buffer.readi16(v, o + 4) * k
 				mnx, mny, mnz = math.min(mnx, x), math.min(mny, y), math.min(mnz, z)
 				mxx, mxy, mxz = math.max(mxx, x), math.max(mxy, y), math.max(mxz, z)
@@ -91,7 +121,7 @@ function Maillage.editable(d: { v: string, t: string }, echelle: number, opt: Op
 	end
 	local centre = Vector3.new((mnx + mxx) / 2, (mny + mxy) / 2, (mnz + mxz) / 2)
 	for i = 0, buffer.len(t) - 6, 6 do
-		local ia, ib, ic = buffer.readu16(t, i) * 9, buffer.readu16(t, i + 2) * 9, buffer.readu16(t, i + 4) * 9
+		local ia, ib, ic = buffer.readu16(t, i) * PAS, buffer.readu16(t, i + 2) * PAS, buffer.readu16(t, i + 4) * PAS
 		if sx < 0 then ib, ic = ic, ib end -- un miroir retourne le sens des faces
 		local ca = buffer.readu8(v, ia + 6) * 65536 + buffer.readu8(v, ia + 7) * 256 + buffer.readu8(v, ia + 8)
 		if not fcle or ca == fcle then
@@ -99,10 +129,9 @@ function Maillage.editable(d: { v: string, t: string }, echelle: number, opt: Op
 			local cids = table.create(3)
 			for n, o in { ia, ib, ic } do
 				ids[n] = em:AddVertex(Vector3.new(buffer.readi16(v, o) * k * sx, buffer.readi16(v, o + 2) * k, buffer.readi16(v, o + 4) * k) - centre)
-				local cc = buffer.readu8(v, o + 6) * 65536 + buffer.readu8(v, o + 7) * 256 + buffer.readu8(v, o + 8)
+				local cc, c3 = couleurDe(v, o, peinture)
 				local cid = couleurs[cc]
 				if not cid then
-					local c3 = Color3.fromRGB(buffer.readu8(v, o + 6), buffer.readu8(v, o + 7), buffer.readu8(v, o + 8))
 					if teinte then c3 = teinte(c3) end
 					cid = em:AddColor(c3, 1)
 					couleurs[cc] = cid
@@ -135,7 +164,7 @@ function Maillage.fusion(liste: { any }, echelle: number, teinte: ((Color3) -> C
 		local sx = e.miroir and -1 or 1
 		local cf = e.cf or CFrame.identity
 		for i = 0, buffer.len(t) - 6, 6 do
-			local o1, o2, o3 = buffer.readu16(t, i) * 9, buffer.readu16(t, i + 2) * 9, buffer.readu16(t, i + 4) * 9
+			local o1, o2, o3 = buffer.readu16(t, i) * PAS, buffer.readu16(t, i + 2) * PAS, buffer.readu16(t, i + 4) * PAS
 			if sx < 0 then o2, o3 = o3, o2 end
 			for _, o in { o1, o2, o3 } do
 				local p = cf * Vector3.new(buffer.readi16(v, o) * k * sx, buffer.readi16(v, o + 2) * k, buffer.readi16(v, o + 4) * k)

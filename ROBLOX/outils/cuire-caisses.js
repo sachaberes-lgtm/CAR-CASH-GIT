@@ -78,11 +78,14 @@ function en(fr) {
 }
 
 // ── assembler une caisse comme buildCar, et rendre { corps: Group, roue: Group, roues: [...], A, pots } ──
-function assemble(i) {
+// masque = true : la LAQUE (clé 'p' de la palette, carrosserie des gabarits classiques) est coulée en BLANC. La différence
+// avec la vraie caisse dit, sommet par sommet, ce que la PEINTURE de la boutique recouvre, et de combien l'ombre le fonce.
+function assemble(i, masque) {
   const spec = CARS[i], wreck = i === 0;
+  const blanc = pal => { if (!masque || !pal || !pal.p) return pal; const o = Object.assign({}, pal); o.p = Object.assign({}, pal.p, { c: 0xffffff }); return o; };
   const grp = new THREE.Group(); G.monte(grp);
   const tag = (m, g) => { m.userData.g = g; return m; };
-  const bodyM = tag(new THREE.MeshPhongMaterial({ color: spec.color }), 'p'), accM = tag(new THREE.MeshPhongMaterial({ color: spec.accent }), 'p'),
+  const bodyM = tag(new THREE.MeshPhongMaterial({ color: masque ? 0xffffff : spec.color }), 'p'), accM = tag(new THREE.MeshPhongMaterial({ color: spec.accent }), 'p'),
     glassM = tag(new THREE.MeshPhongMaterial({ color: 0x0d1620 }), 'g'), chromeM = tag(new THREE.MeshPhongMaterial({ color: 0xe8ecf0 }), 'c'),
     darkM = tag(new THREE.MeshPhongMaterial({ color: 0x14161a }), 'm'), rustM = tag(new THREE.MeshPhongMaterial({ color: 0x5a3a20 }), 'm');
   const y0 = .35, W9 = spec.w, H9 = spec.h, L9 = spec.l;
@@ -103,7 +106,7 @@ function assemble(i) {
     }
     if (kt.prims) for (const p of kt.prims) prims.push(p);
   };
-  const K = { W: W9, H: H9, L: L9, y0, spec, wreck, add, box, prof, cyl, sph, con, kit: pal => lpKit(pal), commit,
+  const K = { W: W9, H: H9, L: L9, y0, spec, wreck, add, box, prof, cyl, sph, con, kit: pal => lpKit(blanc(pal)), commit,
     body: bodyM, acc: accM, glass: glassM, chrome: chromeM, dark: darkM, rust: rustM };
   const A = Object.assign({ hl: [W9 * .32, y0 + H9 * .50, L9 / 2 + .16], tl: [W9 * .30, y0 + H9 * .55, -L9 / 2 - .10], wr: 1, wx: W9 / 2, wz: L9 / 2 - .75, wy: 0,
     glowX: W9 / 2 + .02, glowY: y0 + H9 * .42, glowL: L9 * .82, glowF: 1, sp: 1, skirt: 1, split: 1, doors: 0, slats: 0, wings: 'panel' }, SHAPES[spec.shape](K) || {});
@@ -166,18 +169,31 @@ function assemble(i) {
 }
 
 // ── d'un groupe three à des triangles par matière, dans le repère ROBLOX (x,y,z) → (−x, y, −z) ──
-function triangles(racine) {
-  const out = {}; // g → { v: Map clé→index, V: [x,y,z,r,g,b…], T: [i…] }
-  racine.updateMatrixWorld(true);
-  const va = new THREE.Vector3(), col = new THREE.Color();
-  racine.traverse(o => {
-    if (!o.isMesh || !o.geometry || !o.geometry.attributes.position) return;
+function mailles(racine) {
+  const l = []; racine.updateMatrixWorld(true);
+  racine.traverse(o => { if (o.isMesh && o.geometry && o.geometry.attributes.position) l.push(o); });
+  return l;
+}
+function triangles(racine, racineB) {
+  const out = {}; // g → { v: Map clé→index, V: [x,y,z,r,g,b,m…], T: [i…] }
+  const A = mailles(racine), Bm = racineB ? mailles(racineB) : null;
+  if (Bm && Bm.length !== A.length) throw new Error('masque : ' + Bm.length + ' maillages au lieu de ' + A.length);
+  const va = new THREE.Vector3(), col = new THREE.Color(), colB = new THREE.Color();
+  A.forEach((o, n9) => {
     const mat = Array.isArray(o.material) ? o.material[0] : o.material;
     let g = mat.userData && mat.userData.g;
     if (!g) g = mat.isMeshBasicMaterial ? 'l' : 's';
     if (!'pcosmgl'.includes(g)) g = 's';
     const geo = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry;
     const P = geo.attributes.position.array, C = (mat.vertexColors && geo.attributes.color) ? geo.attributes.color.array : null;
+    // le même maillage dans la caisse « laque blanche »
+    let CB = null, matB = null;
+    if (Bm) {
+      const ob = Bm[n9]; matB = Array.isArray(ob.material) ? ob.material[0] : ob.material;
+      const gb = ob.geometry.index ? ob.geometry.toNonIndexed() : ob.geometry;
+      if (gb.attributes.position.array.length !== P.length) throw new Error('masque : maillage ' + n9 + ' de taille différente');
+      CB = (matB.vertexColors && gb.attributes.color) ? gb.attributes.color.array : null;
+    }
     const flip = o.matrixWorld.determinant() < 0;
     const B = out[g] || (out[g] = { v: new Map(), V: [], T: [] });
     for (let i = 0; i + 8 < P.length; i += 9) {
@@ -187,9 +203,16 @@ function triangles(racine) {
         if (C) col.setRGB(C[i + k * 3] * mat.color.r, C[i + k * 3 + 1] * mat.color.g, C[i + k * 3 + 2] * mat.color.b); else col.copy(mat.color);
         const x = Math.round(-va.x * 2000), y = Math.round(va.y * 2000), z = Math.round(-va.z * 2000);
         const r = Math.max(0, Math.min(255, Math.round(col.r * 255))), gg = Math.max(0, Math.min(255, Math.round(col.g * 255))), b = Math.max(0, Math.min(255, Math.round(col.b * 255)));
-        const cle = x + ',' + y + ',' + z + ',' + r + ',' + gg + ',' + b;
+        // m = 0 : ce sommet n'est pas de la laque ; 1-255 : la part de lumière que l'ombre cuite lui laisse (255 = pleine teinte)
+        let m = 0;
+        if (matB) {
+          if (CB) colB.setRGB(CB[i + k * 3] * matB.color.r, CB[i + k * 3 + 1] * matB.color.g, CB[i + k * 3 + 2] * matB.color.b); else colB.copy(matB.color);
+          const rb = Math.round(colB.r * 255), gb2 = Math.round(colB.g * 255), bb = Math.round(colB.b * 255);
+          if (rb !== r || gb2 !== gg || bb !== b) m = Math.max(1, Math.min(255, Math.max(rb, gb2, bb)));
+        }
+        const cle = x + ',' + y + ',' + z + ',' + r + ',' + gg + ',' + b + ',' + m;
         let n = B.v.get(cle);
-        if (n === undefined) { n = B.V.length / 6; B.v.set(cle, n); B.V.push(x, y, z, r, gg, b); }
+        if (n === undefined) { n = B.V.length / 7; B.v.set(cle, n); B.V.push(x, y, z, r, gg, b, m); }
         idx.push(n);
       }
       if (idx[0] === idx[1] || idx[1] === idx[2] || idx[0] === idx[2]) continue; // facette dégénérée
@@ -199,17 +222,20 @@ function triangles(racine) {
   });
   return out;
 }
+// 10 octets par sommet : x, y, z (int16, demi-millimètres), r, g, b, m (le masque de la peinture)
 function encode(B) {
-  const nv = B.V.length / 6;
+  const nv = B.V.length / 7;
   if (nv > 65535) throw new Error('trop de sommets : ' + nv);
-  const v = Buffer.alloc(nv * 9);
+  const v = Buffer.alloc(nv * 10);
+  let peints = 0;
   for (let i = 0; i < nv; i++) {
-    for (let k = 0; k < 3; k++) { const q = B.V[i * 6 + k]; if (q < -32768 || q > 32767) throw new Error('sommet hors gabarit'); v.writeInt16LE(q, i * 9 + k * 2); }
-    v[i * 9 + 6] = B.V[i * 6 + 3]; v[i * 9 + 7] = B.V[i * 6 + 4]; v[i * 9 + 8] = B.V[i * 6 + 5];
+    for (let k = 0; k < 3; k++) { const q = B.V[i * 7 + k]; if (q < -32768 || q > 32767) throw new Error('sommet hors gabarit'); v.writeInt16LE(q, i * 10 + k * 2); }
+    v[i * 10 + 6] = B.V[i * 7 + 3]; v[i * 10 + 7] = B.V[i * 7 + 4]; v[i * 10 + 8] = B.V[i * 7 + 5]; v[i * 10 + 9] = B.V[i * 7 + 6];
+    if (B.V[i * 7 + 6]) peints++;
   }
   const t = Buffer.alloc(B.T.length * 2);
   for (let i = 0; i < B.T.length; i++) t.writeUInt16LE(B.T[i], i * 2);
-  return { v: v.toString('base64'), t: t.toString('base64'), nv, nt: B.T.length / 3 };
+  return { v: v.toString('base64'), t: t.toString('base64'), nv, nt: B.T.length / 3, peints };
 }
 
 // ── écrire ──
@@ -219,20 +245,23 @@ const rox = p => '{ ' + [-p[0], p[1], -p[2]].map(n4).join(', ') + ' }'; // repè
 const hex = c => '0x' + (c >>> 0).toString(16).padStart(6, '0');
 fs.mkdirSync(path.join(SORTIE, 'Formes'), { recursive: true });
 for (const f of fs.readdirSync(path.join(SORTIE, 'Formes'))) fs.unlinkSync(path.join(SORTIE, 'Formes', f));
-const fiches = []; let totalT = 0, totalK = 0; const erreurs = [];
+const fiches = []; let totalT = 0, totalK = 0, totalP = 0; const erreurs = [];
 for (let i = 0; i < CARS.length; i++) {
-  let a;
-  try { a = assemble(i); } catch (e) { erreurs.push(i + ' ' + CARS[i].name + ' : ' + e.message); continue; }
-  const corps = triangles(a.grp), roue = triangles(a.roue);
+  let a, corps, roue;
+  try {
+    a = assemble(i);
+    const am = assemble(i, true); // la même, laque en blanc : le masque de la peinture
+    corps = triangles(a.grp, am.grp); roue = triangles(a.roue, am.roue);
+  } catch (e) { erreurs.push(i + ' ' + CARS[i].name + ' : ' + e.message); continue; }
   let src = '-- CASH CAR — ' + a.spec.name + ' (caisse ' + i + ', gabarit ' + a.spec.shape + ') — CUIT par outils/cuire-caisses.js, ne pas éditer.\nreturn {\n\tcorps = {\n';
-  let nt = 0;
-  for (const g of Object.keys(corps)) { const e = encode(corps[g]); nt += e.nt; src += '\t\t' + g + ' = { v = "' + e.v + '", t = "' + e.t + '" },\n'; }
+  let nt = 0, peints = 0;
+  for (const g of Object.keys(corps)) { const e = encode(corps[g]); nt += e.nt; peints += e.peints; src += '\t\t' + g + ' = { v = "' + e.v + '", t = "' + e.t + '" },\n'; }
   src += '\t},\n\troue = {\n';
   for (const g of Object.keys(roue)) { const e = encode(roue[g]); nt += e.nt * 4; src += '\t\t' + g + ' = { v = "' + e.v + '", t = "' + e.t + '" },\n'; }
   src += '\t},\n}\n';
   if (src.length > 195000) erreurs.push(i + ' ' + a.spec.name + ' : module trop gros (' + src.length + ' caractères)');
   fs.writeFileSync(path.join(SORTIE, 'Formes', 'F' + String(i).padStart(2, '0') + '.luau'), src);
-  totalT += nt; totalK += src.length;
+  totalT += nt; totalK += src.length; totalP += peints ? 1 : 0;
   // la fiche
   const s = a.spec, u = CAR_UNLOCK[i] || null, gL = a.pots.filter(p => p[0] < -.05), dR = a.pots.filter(p => p[0] > .05);
   const moy = l => { const zm = Math.min(...l.map(p => p[2])); const k = l.filter(p => p[2] < zm + .25); return [0, 1, 2].map(j => k.reduce((t, p) => t + p[j], 0) / k.length); };
@@ -247,15 +276,16 @@ for (let i = 0; i < CARS.length; i++) {
     ', pots = { ' + a.pots.map(rox).join(', ') + ' }' +
     ',\n\t\ttrainees = { ' + ((gL.length && dR.length) ? [moy(dR), moy(gL)] : [centre]).map(rox).join(', ') + ' }, capot = ' + rox([0, y0c(s), s.l * .28]) +
     ',\n\t\troues = { ' + a.roues.map(r => '{ ' + [-r.x, r.y, -r.z].map(n4).join(', ') + ', ' + (r.miroir ? 'true' : 'false') + ', ' + n4(r.R) + ' }').join(', ') + ' }' +
-    (s.glow != null ? ', neon = ' + hex(s.glow) : '') + ', fx = ' + fx +
+    (s.glow != null ? ', neon = ' + hex(s.glow) : '') + ', ailes = ' + q(a.A.wings === 'none' ? 'none' : (a.A.wings === 'props' ? 'helices' : 'panneaux')) + ', fx = ' + fx +
     ',\n\t\tdesc = ' + q(s.desc || '') + ', descEN = ' + q(en(s.desc) || s.desc || '') + ' },');
 }
 function y0c(s) { return .35 + s.h * .78; }
 const cat = '-- CASH CAR — LE CATALOGUE DES ' + CARS.length + ' CAISSES — CUIT par outils/cuire-caisses.js depuis VERSION PRINCIPALE/index.html, ne pas éditer.\n' +
   '-- Indices du jeu web (0 = LA HONTE) : ce sont ceux des sauvegardes, ils ne bougent jamais.\n' +
   '-- Repère : nez vers −Z, droite du pilote +X, mètres. cond.k : depart · prix (v = $) · aura (rang) · carnet (n°) · premium (argent réel) · carrN / carrV (campagne).\n' +
-  '-- roues = { x, y, z, miroir, rayon } · trainees = un point par ruban de nitro.\n' +
+  '-- roues = { x, y, z, miroir, rayon } · trainees = un point par ruban de nitro · ailes = panneaux | helices | none (ce que le gabarit déploie en vol).\n' +
   'return {\n' + fiches.join('\n') + '\n}\n';
 fs.writeFileSync(path.join(SORTIE, 'Catalogue.luau'), cat);
+console.log(totalP + ' caisses ont une laque à peindre');
 console.log(CARS.length + ' caisses cuites : ' + totalT + ' triangles, ' + (totalK / 1024).toFixed(0) + ' Ko de formes, catalogue ' + (cat.length / 1024).toFixed(0) + ' Ko');
 if (erreurs.length) { console.log('ERREURS :\n  ' + erreurs.join('\n  ')); process.exit(1); }
