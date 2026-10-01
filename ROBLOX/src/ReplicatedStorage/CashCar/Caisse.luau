@@ -250,7 +250,7 @@ function Caisse.construire(nom: string, indice: number, ancree: boolean?, habits
 		f.Speed = NumberRange.new(36, 58)
 		f.SpreadAngle = Vector2.new(5, 5)
 		f.EmissionDirection = Enum.NormalId.Back
-		f.Brightness = 2.5
+		f.Brightness = 2
 		f.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1.25), NumberSequenceKeypoint.new(1, 0.15) })
 		f.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.1), NumberSequenceKeypoint.new(1, 1) })
 		f.Color = ColorSequence.new(Color3.fromRGB(255, 220, 140), cJet)
@@ -264,7 +264,7 @@ function Caisse.construire(nom: string, indice: number, ancree: boolean?, habits
 	local wu = (np == 1) and 1.4 or ((np >= 3) and 0.85 or 1)
 	for i, pot in fiche.pots do
 		if i > 4 then break end
-		for _, couche in { { "Halo", 0.56 * wu, 2.6, 1.0 }, { "Coeur", 0.21 * wu, 0.7, 2.0 } } do -- (vu dans Studio a 1,5 / 3,2 : en vol, la camera dans l axe, tout l ecran partait au blanc)
+		for _, couche in { { "Halo", 0.42 * wu, 1.7, 0.8 }, { "Coeur", 0.15 * wu, 0.7, 1.15 } } do -- (2e retour : à 0,56 × 2,6 et 0,21, deux cônes BLANCS larges comme la caisse — le web trace deux rubans fins, de la couleur du feu) -- (vu dans Studio a 1,5 / 3,2 : en vol, la camera dans l axe, tout l ecran partait au blanc)
 			local demi = couche[2] * 0.5 * M
 			local a0 = Instance.new("Attachment")
 			a0.Name = "Sillage" .. couche[1] .. "H" .. i
@@ -281,15 +281,15 @@ function Caisse.construire(nom: string, indice: number, ancree: boolean?, habits
 			t.Lifetime = 2.2
 			t.MaxLength = 100 * M
 			t.MinLength = 0.3
-			t.LightEmission = 1
+			t.LightEmission = (couche[1] == "Halo") and 0.8 or 0.9 -- (à 1, les deux couches s'additionnaient jusqu'au blanc : la couleur du feu ne se lisait plus)
 			t.LightInfluence = 0
 			t.Brightness = couche[4]
 			t.FaceCamera = true
 			t.WidthScale = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(1, couche[3]) })
 			-- la queue s'éteint sur le dernier quart (24 m sur 100)
 			t.Transparency = (couche[1] == "Halo")
-				and NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.62), NumberSequenceKeypoint.new(0.76, 0.76), NumberSequenceKeypoint.new(1, 1) })
-				or NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.05), NumberSequenceKeypoint.new(0.5, 0.3), NumberSequenceKeypoint.new(0.76, 0.5), NumberSequenceKeypoint.new(1, 1) })
+				and NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.5), NumberSequenceKeypoint.new(0.3, 0.72), NumberSequenceKeypoint.new(0.76, 0.86), NumberSequenceKeypoint.new(1, 1) })
+				or NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.1), NumberSequenceKeypoint.new(0.3, 0.4), NumberSequenceKeypoint.new(0.76, 0.66), NumberSequenceKeypoint.new(1, 1) })
 			t.Color = ColorSequence.new(Color3.fromRGB(255, 160, 60), Color3.fromRGB(255, 60, 30))
 			t.Enabled = false
 			t.Parent = r
@@ -311,7 +311,7 @@ function Caisse.feu(poignees: any, on: boolean, debit: number, c: Color3, arc: C
 		f.Color = flamme
 	end
 	local halo = arc or ColorSequence.new({ ColorSequenceKeypoint.new(0, c), ColorSequenceKeypoint.new(0.6, c:Lerp(BRAISE, 0.3)), ColorSequenceKeypoint.new(1, c:Lerp(BRAISE, 0.6)) })
-	local coeur = arc or ColorSequence.new({ ColorSequenceKeypoint.new(0, chaud), ColorSequenceKeypoint.new(0.25, c:Lerp(Color3.new(1, 1, 1), 0.3)), ColorSequenceKeypoint.new(1, c:Lerp(BRAISE, 0.45)) })
+	local coeur = arc or ColorSequence.new({ ColorSequenceKeypoint.new(0, c:Lerp(Color3.new(1, 1, 1), 0.5)), ColorSequenceKeypoint.new(0.12, c:Lerp(Color3.new(1, 1, 1), 0.18)), ColorSequenceKeypoint.new(1, c:Lerp(BRAISE, 0.45)) })
 	for _, t in poignees.trainees do
 		t.Enabled = on
 		t.Color = (t.Name == "Coeur") and coeur or halo

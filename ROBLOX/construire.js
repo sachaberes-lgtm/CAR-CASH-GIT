@@ -10,7 +10,10 @@
      x.luau                     → ModuleScript
    Les propriétés qu'un script NE PEUT PAS écrire en jeu (Technology, StreamingEnabled…) sont posées ici, dans le fichier. */
 const fs = require('fs'), path = require('path');
-const RACINE = __dirname, SRC = path.join(RACINE, 'src'), SORTIE = path.join(RACINE, 'CashCar.rbxlx');
+const RACINE = __dirname, SRC = path.join(RACINE, 'src');
+// node construire.js --distant <sortie.rbxlx> : la copie de TEST pilotée à distance (outils/banc.sh, outils/distant.py) — jamais le fichier du jeu
+const DISTANT = process.argv[2] === '--distant';
+const SORTIE = DISTANT ? path.resolve(process.argv[3]) : path.join(RACINE, 'CashCar.rbxlx');
 
 // Propriétés posées dans le fichier : [type XML, nom, valeur]
 const PROPS = {
@@ -52,10 +55,19 @@ function lire(dir) {
   return out;
 }
 
+const EN_PLUS = {};
+if (DISTANT) {
+  const dd = path.join(RACINE, 'outils', 'distant'), src = f => fs.readFileSync(path.join(dd, f), 'utf8').replace(/\r\n/g, '\n');
+  PROPS.HttpService = [['bool', 'HttpEnabled', true]];
+  PROPS.ServerScriptService.push(['bool', 'LoadStringEnabled', true]);
+  PROPS.ReplicatedFirst = [];
+  EN_PLUS.ServerScriptService = [item('Script', 'BancDistant', [], [], src('BancDistant.server.luau'))];
+  EN_PLUS.ReplicatedFirst = [item('LocalScript', 'BancDistantClient', [], [], src('BancDistantClient.client.luau'))];
+}
 const services = [];
 for (const svc of Object.keys(PROPS)) {
   const d = path.join(SRC, svc);
-  services.push(item(svc, svc, fs.existsSync(d) ? lire(d) : [], PROPS[svc]));
+  services.push(item(svc, svc, (fs.existsSync(d) ? lire(d) : []).concat(EN_PLUS[svc] || []), PROPS[svc]));
 }
 const xml = '<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ' +
   'xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">' + services.join('') + '</roblox>';

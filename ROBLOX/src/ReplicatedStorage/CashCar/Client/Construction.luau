@@ -28,7 +28,7 @@ modeleCoin.TopSurface = Enum.SurfaceType.Smooth
 modeleCoin.BottomSurface = Enum.SurfaceType.Smooth
 modeleCoin.Material = Enum.Material.SmoothPlastic
 modeleCoin.Color = R.bitume
-modeleCoin.Reflectance = 0.03
+modeleCoin.Reflectance = 0
 
 local function part(taille: Vector3, cf: CFrame, couleur: Color3, matiere: Enum.Material, parent: Instance): Part
 	local p = Instance.new("Part")
@@ -77,7 +77,8 @@ local function rail(a: Vector3, b: Vector3, haut: Vector3, parent: Instance)
 	local l = d.Magnitude
 	if l < 0.01 then return end
 	local cf = CFrame.lookAt((a + b) / 2, b, haut)
-	local p = part(Vector3.new(0.7 * M, EP + 0.3 * M, l + 0.05), cf, R.neon, Enum.Material.Neon, parent)
+	-- (0,7 m de néon : deux gros tubes cyan qui mangeaient l'image — la version web trace un LISERÉ au bord de la dalle)
+	local p = part(Vector3.new(0.24 * M, EP + 0.1 * M, l + 0.05), cf, R.neon, Enum.Material.Neon, parent)
 	p.CastShadow = false
 end
 
@@ -103,7 +104,7 @@ function Construction.route(piste: Piste.Piste, dossier: Instance, ceder: (() ->
 		local gB, dB = mB - fb.RightVector * demi, mB + fb.RightVector * demi
 		triangle(gA, dA, dB, EP, dossier)
 		triangle(gA, dB, gB, EP, dossier)
-		local rA, rB = demi - 0.35 * M, demi - 0.35 * M
+		local rA, rB = demi - 0.12 * M, demi - 0.12 * M
 		rail(mA - fa.RightVector * rA, mB - fb.RightVector * rB, (fa.UpVector + fb.UpVector).Unit, dossier)
 		rail(mA + fa.RightVector * rA, mB + fb.RightVector * rB, (fa.UpVector + fb.UpVector).Unit, dossier)
 		i = j

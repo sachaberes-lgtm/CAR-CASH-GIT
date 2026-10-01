@@ -102,6 +102,11 @@ ressources Roblox (ton compte) : à voir plus tard.
 - `outils/cuire-*.js` : cuisent les formes du jeu web (caisses, objets et dauphin, moteurs, nuages, icônes) en modules Luau.
 - `outils/verifier.sh <luau-compile>` : compile tous les scripts comme Studio (`-O1 -g2` : la limite des 200 variables
   locales ne se voit qu'ainsi). `outils/banc.sh` + `outils/studio.ps1` : la copie de banc et son ouverture dans Studio.
+- **Le banc à distance** (on teste sans prendre la souris ni l'écran à personne) : `outils/banc.sh` construit la copie de test AVEC
+  `outils/distant/` (jamais dans `CashCar.rbxlx`) ; `python outils/distant.py serveur` tient le relais, `outils/studio-relance.ps1`
+  rouvre la copie derrière les autres fenêtres et lance la partie (F5), `distant.py envoie|fichier` exécute du Luau côté serveur
+  (`client("prop", "monde", nom, propriété, valeur)` pour ce qui n'existe que chez le joueur), `distant.py journal` lit les
+  réponses, `outils/vue.sh <png>` photographie la vue 3D (PrintWindow : la fenêtre peut être cachée). `DbgJouer` lance une partie.
 - Mise au point dans Studio (barre de commande) : `workspace:SetAttribute("DbgAuto", true)` (pilote automatique), `DbgNitro`,
   `DbgInf`, `DbgPlein`, `DbgDauphins`, `DbgSerpent`, `DbgArgent` (un compte), `DbgBudget` (le budget de triangles),
   `DbgFx` = "mort" | "moteur7" | "pluie" | "cratere" | "jus3".

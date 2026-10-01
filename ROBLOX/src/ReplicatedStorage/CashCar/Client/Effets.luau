@@ -959,6 +959,23 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 		table.insert(bords, f)
 	end
 
+	-- LA VIGNETTE (uVigK/uVigC de l'ACES du jeu web : bleu nuit, discrète) : quatre bandes fixes, plus sombres en bas (le bitume)
+	for _, d in { { 0, 0, 1, 0.22, 90, 0.72 }, { 0, 0.66, 1, 0.34, 270, 0.5 }, { 0, 0, 0.2, 1, 0, 0.7 }, { 0.8, 0, 0.2, 1, 180, 0.7 } } do
+		local f = Instance.new("Frame")
+		f.Name = "Vignette"
+		f.BorderSizePixel = 0
+		f.BackgroundColor3 = Color3.fromRGB(10, 18, 44)
+		f.BackgroundTransparency = 0
+		f.Position = UDim2.fromScale(d[1], d[2])
+		f.Size = UDim2.fromScale(d[3], d[4])
+		f.ZIndex = 1
+		f.Parent = gui
+		local g = Instance.new("UIGradient")
+		g.Rotation = d[5]
+		g.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, d[6]), NumberSequenceKeypoint.new(0.6, 0.94), NumberSequenceKeypoint.new(1, 1) })
+		g.Parent = f
+	end
+
 	voile = Instance.new("Frame")
 	voile.Name = "Voile"
 	voile.BorderSizePixel = 0

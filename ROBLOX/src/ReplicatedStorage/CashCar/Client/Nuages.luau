@@ -24,8 +24,12 @@ local Nuages = {}
 
 local UNITE = 100 -- studs par unité de nuage dans le gabarit
 local TAILLE_MAX = 2000 -- studs : la plus grande pièce que Roblox accepte
+local BLANC = 1 -- la clarté de la ouate (la lumière est cuite dans les sommets : voir batir)
 
--- ── les gabarits : un EditableMesh à normales LISSES (le gradient du champ) et couleurs aux sommets ──
+-- ── les gabarits : un EditableMesh, la LUMIÈRE CUITE dans les couleurs des sommets (outils/cuire-nuages.js : la formule de
+-- nuage8Mat du jeu web — frontière d'ombre douce, soleil crème, ombre bleu-lavande) ; toutes les normales pointent vers le
+-- HAUT : l'éclairage de Roblox est alors le même sur tout le nuage (il ne fait que multiplier), plus de frontière dure ni de
+-- reflet de plastique — c'est la couleur cuite qu'on voit ──
 type Gabarit = { p: MeshPart, centre: Vector3, taille: Vector3, fiche: any }
 local gabarits: { [number]: Gabarit | false } = {}
 local function batir(k: number): Gabarit?
@@ -50,13 +54,12 @@ local function batir(k: number): Gabarit?
 		mn, mx = mn:Min(p), mx:Max(p)
 	end
 	local centre = (mn + mx) / 2
-	local ids, nrm, col = table.create(nv), table.create(nv), table.create(nv)
+	local ids, col = table.create(nv), table.create(nv)
+	local haut = em:AddNormal(Vector3.yAxis)
 	local couleurs: { [number]: number } = {}
 	for i = 0, nv - 1 do
 		local o = i * 12
 		ids[i + 1] = em:AddVertex(pts[i + 1] - centre)
-		local n = Vector3.new(buffer.readi8(v, o + 6), buffer.readi8(v, o + 7), buffer.readi8(v, o + 8))
-		nrm[i + 1] = em:AddNormal((n.Magnitude > 0) and n.Unit or Vector3.yAxis)
 		-- (les teintes voisines partagent leur couleur : 32 niveaux par voie suffisent à un dégradé de ouate)
 		local r, g, b = buffer.readu8(v, o + 9) // 8, buffer.readu8(v, o + 10) // 8, buffer.readu8(v, o + 11) // 8
 		local cle = r * 1024 + g * 32 + b
@@ -70,7 +73,7 @@ local function batir(k: number): Gabarit?
 	for i = 0, buffer.len(t) - 6, 6 do
 		local a, b, c = buffer.readu16(t, i) + 1, buffer.readu16(t, i + 2) + 1, buffer.readu16(t, i + 4) + 1
 		local f = em:AddTriangle(ids[a], ids[b], ids[c])
-		em:SetFaceNormals(f, { nrm[a], nrm[b], nrm[c] })
+		em:SetFaceNormals(f, { haut, haut, haut })
 		em:SetFaceColors(f, { col[a], col[b], col[c] })
 	end
 	local okF, fige = pcall(function() return AssetService:CreateEditableMeshAsync(Content.fromObject(em), { FixedSize = true }) end)
@@ -90,7 +93,7 @@ local function batir(k: number): Gabarit?
 	mp.CanQuery = false
 	mp.CanTouch = false
 	mp.CastShadow = false
-	mp.Material = Enum.Material.SmoothPlastic
+	mp.Material = Enum.Material.Plastic -- (mat : en lisse, le soleil y posait des reflets de glace — des icebergs, pas du coton)
 	mp.Color = Color3.new(1, 1, 1)
 	return { p = mp, centre = centre / UNITE, taille = mp.Size, fiche = Liste[k] }
 end
@@ -158,7 +161,8 @@ end
 export type Nuage = { p: MeshPart, c: Vector3, r: number, ry: number, route: boolean, base: Vector3, echelle: Vector3, casse: number, dedans: boolean }
 
 -- Bâtit le ciel et les nuages de jeu d'une piste. Rend la liste des nuages qu'on TRAVERSE (bancs, coussins, tours).
-function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() -> ())?): { Nuage }
+-- (decor : le ciel de coton SEUL, sans les nuages qu'on traverse — la piste de l'auto-école)
+function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() -> ())?, decor: boolean?): { Nuage }
 	Nuages.modeles(ceder)
 	local rnd = Random.new(graine)
 	local function cr(): number return rnd:NextNumber() end
@@ -207,7 +211,8 @@ function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 		local sx = 0.86 + cr() * 0.44
 		local sy0 = (gn == "fractus" or gn == "altocumulus" or gn == "stratocumulus") and (0.75 + cr() * 0.25) or (0.85 + cr() * 0.3)
 		local sy = syF or sy0
-		local cap, l9, w9, lourd = cr() * 6.2832, 0.82 + cr() * 0.22, (cr() - 0.5) * 2, cr() < 0.12
+		-- (la lumière est cuite pour le soleil du ciel : un nuage ne tourne plus que de ±0,4 rad sur lui-même, son côté clair reste au soleil)
+		local cap, l9, w9, lourd = (cr() - 0.5) * 0.8, 0.82 + cr() * 0.22, (cr() - 0.5) * 2, cr() < 0.12
 		-- Roblox : pas plus de 2 048 studs par pièce → un nuage trop gros est rapproché de la route d'autant
 		local plus = math.max(g.taille.X * sx, g.taille.Y * sy, g.taille.Z) / UNITE * r * M
 		if plus > TAILLE_MAX then
@@ -225,7 +230,8 @@ function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 		p.CFrame = CFrame.new(origine) * rot * CFrame.new(g.centre * UNITE * ech)
 		-- SA TEINTE : clair ou sourd, chaud ou froid, parfois lourd — en sourdine (30 %), comme la matière du jeu
 		local tr, tv, tb = l9 * (1 + 0.2 * w9) * (lourd and 0.8 or 1), l9 * (1 + 0.02 * w9) * (lourd and 0.83 or 1), l9 * (1 - 0.22 * w9) * (lourd and 0.95 or 1)
-		p.Color = Color3.new(math.min(1, 1 + (tr - 1) * 0.3), math.min(1, 1 + (tv - 1) * 0.3), math.min(1, 1 + (tb - 1) * 0.3))
+		-- (× BLANC : à 1, sous le soleil de Roblox, toute la face éclairée partait au blanc pur, sans modelé)
+		p.Color = Color3.new(math.min(1, 1 + (tr - 1) * 0.3) * BLANC, math.min(1, 1 + (tv - 1) * 0.3) * BLANC, math.min(1, 1 + (tb - 1) * 0.3) * BLANC)
 		p.Parent = dossier
 		nb += 1
 		if ceder and nb % 12 == 0 then ceder() end
@@ -347,6 +353,8 @@ function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 		pose(p, p.X + math.cos(a) * d, p.Y - 380, p.Z + math.sin(a) * d, (760 + cr() * 300) * 0.75, 24)
 	end
 
+	if decor then return traverses end
+
 	-- ════ LES NUAGES DE JEU (buildClouds) : ceux qu'on traverse ════
 	-- un nuage de jeu (mkCloud v8) : centré sur c, rayon r ; rend sa fiche pour le suivi (dedans / dehors)
 	local function jeu(c: Vector3, r: number, genres: { any }, route: boolean)
@@ -356,10 +364,11 @@ function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 		local ry = (g.fiche.sommet - g.fiche.base) * r * 0.5
 		-- (mkCloud centre le maillage sur son milieu : le dessous est à c.y − ry)
 		if not route and touche(c.X, c.Y, c.Z, r * 1.1, ry) then return end
-		local cap = cr() * 6.2832
+		local cap = (cr() - 0.5) * 0.8
 		local ech = Vector3.new(r, r, r) * (M / UNITE)
 		local p = g.p:Clone()
 		p.Size = g.taille * ech
+		p.Color = Color3.new(BLANC, BLANC, BLANC)
 		local milieu = (g.fiche.base + g.fiche.sommet) * 0.5
 		local base = Vector3.new(c.X, c.Y - milieu * r, c.Z) * M
 		p.CFrame = CFrame.new(base) * CFrame.Angles(0, cap, 0) * CFrame.new(g.centre * UNITE * ech)
@@ -495,6 +504,7 @@ function Nuages.seul(k: number, r: number): (MeshPart?, Vector3)
 	local ech = Vector3.new(rr, rr, rr) * (M / UNITE)
 	local p = g.p:Clone()
 	p.Size = g.taille * ech
+	p.Color = Color3.new(BLANC, BLANC, BLANC)
 	local milieu = (g.fiche.base + g.fiche.sommet) * 0.5
 	return p, g.centre * UNITE * ech - Vector3.new(0, milieu * rr * M, 0)
 end

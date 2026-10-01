@@ -170,13 +170,14 @@ local function preparer(z: number, depart: CFrame?): Zone
 			if o.o.kind == "pad" and o.o.face == 1 then table.insert(pads, o.o.s / M) end
 			if o.o.kind == "piece" and o.o.grp and o.o.face == 1 then series[o.o.grp] = (series[o.o.grp] or 0) + 1 end
 		end
-		-- LES NUAGES v8 : le ciel de coton, les bancs de route, les coussins, les tours (la piste d'école n'en a pas)
+		-- LES NUAGES v8 : le ciel de coton, les bancs de route, les coussins, les tours (la piste d'école n'a que le ciel de coton :
+		-- sans lui, la toute première partie d'un joueur se jouait dans un ciel VIDE)
 		local nuages = {}
 		local ciel = Instance.new("Folder") -- (à part : au menu, les nuages du niveau sont cachés — le titre a les siens)
 		ciel.Name = "Nuages"
 		ciel.Parent = d
-		if z ~= 0 then
-			local okN, resN = pcall(KA.Nuages.batir, p, ciel, graine + z * 31, ceder)
+		do
+			local okN, resN = pcall(KA.Nuages.batir, p, ciel, graine + z * 31, ceder, z == 0)
 			if okN then nuages = resN else warn("[CashCar] nuages : " .. tostring(resN)) end
 		end
 		e.ciel = ciel
@@ -2182,6 +2183,11 @@ E.btBoutique.Activated:Connect(function() if mode == "menu" then G.boutique.ouvr
 E.btBoutiqueM.Activated:Connect(function() if mode == "mort" then G.boutique.ouvrir("mort") end end)
 Hud.surMenu = function() Hud.pastilles(Missions.faits()) end
 E.btRejouer.Activated:Connect(function() if mode == "mort" then nouvellePartie() end end)
+-- (mise au point) "DbgJouer" : lancer une partie depuis la console ou le banc à distance — du menu ou de l'écran de fin, l'auto-école passée
+workspace:GetAttributeChangedSignal("DbgJouer"):Connect(function()
+	if mode == "menu" or mode == "mort" then nouvellePartie() end
+	task.delay(1.5, function() if TU.on then TU.fin(true) end end)
+end)
 E.btMenuM.Activated:Connect(function() if mode == "mort" then allerMenu() end end)
 local function basculerPause()
 	if mode ~= "drive" and mode ~= "fall" then return end
