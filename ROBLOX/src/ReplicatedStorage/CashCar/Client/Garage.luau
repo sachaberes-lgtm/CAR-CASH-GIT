@@ -19,6 +19,7 @@ local Lighting = game:GetService("Lighting")
 local CC = script.Parent.Parent
 local Config = require(CC:WaitForChild("Config"))
 local Caisse = require(CC:WaitForChild("Caisse"))
+local Maillage = require(script.Parent:WaitForChild("Maillage"))
 local Hud = require(script.Parent:WaitForChild("Hud"))
 local Sons = require(script.Parent:WaitForChild("Sons"))
 
@@ -480,6 +481,7 @@ local function habiller(pq: any, style: string, filet: Color3?, l1: string?, l2:
 end
 
 local tuiles: { [number]: any } = {}
+local RESERVE = 9000 -- triangles qu'une photo ne prend jamais (la caisse du plateau en a besoin)
 local fileN = 0 -- le numéro de la file de photos en cours (changer de famille l'annule)
 
 -- LA PHOTO d'une caisse (carPhoto du web) : trois-quarts avant, nez à gauche, objectif de 24°
@@ -487,7 +489,7 @@ local function photographier(t: any, i: number)
 	local m = Caisse.vignette(i)
 	if not m then return end
 	if not t.cadre.Parent then
-		m:Destroy()
+		Caisse.rendre(m)
 		return
 	end
 	local corps = m.PrimaryPart :: BasePart
@@ -564,6 +566,7 @@ local tuilesH: { any } = {}
 local function majBandeHabits()
 	fileN += 1
 	for i, t in tuiles do
+		Caisse.rendre(t.modele)
 		t.cadre:Destroy()
 		tuiles[i] = nil
 	end
@@ -638,6 +641,7 @@ local function majBande()
 	for _, i in liste do garde[i] = true end
 	for i, t in tuiles do
 		if not garde[i] then
+			Caisse.rendre(t.modele)
 			t.cadre:Destroy()
 			tuiles[i] = nil
 		end
@@ -648,14 +652,28 @@ local function majBande()
 	end
 	U.bande.CanvasPosition = Vector2.zero
 	task.spawn(function()
-		for _, i in liste do
-			if n ~= fileN or not Garage.ouvert then return end
-			local t = tuiles[i]
-			if t and not t.modele and not t.enCours then
-				t.enCours = true
-				photographier(t, i)
-				task.wait()
+		-- (une photo refusée par le budget de triangles n'est pas perdue : on repasse, le temps que Roblox rende la mémoire des
+		-- maillages qu'on vient de détruire — la boutique, la famille d'avant)
+		for passe = 1, 3 do
+			local rates = 0
+			for _, i in liste do
+				if n ~= fileN or not Garage.ouvert then return end
+				local t = tuiles[i]
+				if t and not t.modele and not t.enCours then
+					-- (la RÉSERVE : changer de caisse sur le plateau demande jusqu'à 6 000 triangles — une photo ne les prend pas)
+					if Maillage.libre() < (Catalogue[i].triangles or 3000) + RESERVE then return end
+					t.enCours = true
+					photographier(t, i)
+					if not t.modele then
+						t.enCours = false
+						rates += 1
+						if rates >= 2 then break end -- (inutile d'insister tout de suite)
+					end
+					task.wait()
+				end
 			end
+			if rates == 0 then return end
+			task.wait(1.6)
 		end
 	end)
 end
@@ -1063,7 +1081,10 @@ local function creerInterface()
 	U.btDecision = plaque(cs, "Decision")
 	U.btJouer = plaque(cs, "Jouer")
 	U.btHome.b.Activated:Connect(function() if not Garage.lance then ctx.surHome() end end)
-	U.btBoutique.b.Activated:Connect(function() Hud.toast("🛒 " .. L.bientot) end)
+	U.btBoutique.b.Activated:Connect(function()
+		if Garage.lance then return end
+		if ctx.surBoutique then ctx.surBoutique() else Hud.toast(L.bientot) end
+	end)
 	U.btDecision.b.Activated:Connect(decider)
 	U.btJouer.b.Activated:Connect(function() Garage.jouer() end)
 	U.btReglages.Activated:Connect(function() if not Garage.lance then ctx.surReglages() end end)
@@ -1129,7 +1150,7 @@ function Garage.sauter(i: number, direct: boolean?, force: boolean?)
 	task.spawn(function()
 		local m, pg = Caisse.construire("Vitrine", i, true, habitsVitrine())
 		if n ~= jeton or not Garage.ouvert then
-			m:Destroy()
+			Caisse.rendre(m)
 			return
 		end
 		b.pret = m
@@ -1204,7 +1225,7 @@ function Garage.rendu(dt: number)
 			scanner.Transparency = 0.35 + 0.4 * (1 - u)
 			scanner.CFrame = CFrame.new(P(0, 0.2 + u * 2.15, 0)) * CFrame.Angles(0, 0, math.pi / 2)
 			if b.t >= 0.34 and b.pret then
-				if vitrine then vitrine:Destroy() end
+				if vitrine then Caisse.rendre(vitrine) end
 				vitrine = b.pret
 				vitrinePg = b.pg
 				poserCaisse(b.pret, 0.06)
@@ -1404,7 +1425,7 @@ function Garage.fermer()
 	lacher = nil
 	glisse = nil
 	if vitrine then
-		vitrine:Destroy()
+		Caisse.rendre(vitrine)
 		vitrine = nil
 	end
 	vitrinePg = nil
@@ -1412,6 +1433,7 @@ function Garage.fermer()
 	for _, t in tuilesH do t.cadre:Destroy() end
 	table.clear(tuilesH)
 	for i, t in tuiles do
+		Caisse.rendre(t.modele)
 		t.cadre:Destroy()
 		tuiles[i] = nil
 	end
@@ -1427,6 +1449,24 @@ end
 -- le profil a changé (une partie finie, un achat validé ailleurs) : on rafraîchit ce qu'on montre
 function Garage.majProfil()
 	if Garage.ouvert then majTout() end
+end
+
+-- LES VIGNETTES SE PRÊTENT (le budget de triangles de Roblox est compté) : la boutique ouverte depuis le garage a besoin de la
+-- place — false = on rend les photos (les pastilles reviennent), true = on les reprend
+function Garage.vignettes(on: boolean)
+	if on then
+		if Garage.ouvert and onglet == "voiture" then majBande() end
+		return
+	end
+	fileN += 1
+	for _, t in tuiles do
+		if t.modele then
+			Caisse.rendre(t.modele)
+			t.modele = nil
+		end
+		t.enCours = false
+		t.pastille.Visible = true
+	end
 end
 
 -- JOUER : équipe la caisse montrée si elle est ouverte (garageLaunch), puis le lâcher

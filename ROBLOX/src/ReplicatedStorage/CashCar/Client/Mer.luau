@@ -231,6 +231,7 @@ dalle0 = function(h: buffer, ti: number, tj: number, image: any, G: number): Mes
 		return AssetService:CreateMeshPartAsync(Content.fromObject(em), { CollisionFidelity = Enum.CollisionFidelity.Box })
 	end)
 	if not okP or not mp then return nil end
+	require(script.Parent:WaitForChild("Maillage")).noter(G * G * 2 + G * 8) -- (le compte du budget de triangles : la dalle et sa jupe)
 	mp.Anchored = true
 	mp.CanCollide = false
 	mp.CanQuery = false

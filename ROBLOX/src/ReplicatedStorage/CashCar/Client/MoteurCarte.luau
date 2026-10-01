@@ -123,7 +123,7 @@ local function construire(i: number): (Model?, boolean)
 		end
 	end
 	if nb == 0 then
-		modele:Destroy()
+		Maillage.rendre(modele)
 		return nil, false
 	end
 	modele.WorldPivot = CFrame.identity
@@ -146,7 +146,7 @@ end
 local function oublier(sauf: number?)
 	for i, m in prets do
 		if i ~= sauf then
-			m:Destroy()
+			Maillage.rendre(m)
 			prets[i] = nil
 		end
 	end
@@ -285,7 +285,7 @@ local photoN, photoM = 0, nil :: Model?
 local function photoFin()
 	photoN += 1
 	if photoM then
-		photoM:Destroy()
+		Maillage.rendre(photoM)
 		photoM = nil
 	end
 end
@@ -306,13 +306,13 @@ local function photo(vp: ViewportFrame, tier: number)
 			local ok, x, complet = pcall(construire, tier)
 			m = (ok and x) or nil
 			if m and not complet and essai < 5 then
-				m:Destroy()
+				Maillage.rendre(m)
 				m = nil
 			end
 		end
 		if not m then return end
 		if n ~= photoN then
-			m:Destroy()
+			Maillage.rendre(m)
 			return
 		end
 		m:ScaleTo(1)

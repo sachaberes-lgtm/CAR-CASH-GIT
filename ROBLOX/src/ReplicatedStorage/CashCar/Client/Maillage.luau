@@ -42,6 +42,34 @@ Maillage.decoder = decoder
 -- EditableMesh en réserve beaucoup. Deux zones qui se bâtissent en même temps, la mer, les nuages, les objets : à plusieurs
 -- ateliers de front, le budget sautait (« Failed to create EditableMesh … memory budget limits »). Tout ce qui fabrique un
 -- maillage passe par ici : on attend son tour, on bâtit, on fige, on rend la place.
+-- RENDRE LE BUDGET (mesuré dans Studio le 01/10 au soir, à la console : 32 maillages de 1 000 triangles tiennent au menu).
+--   · un EditableMesh détruit (`:Destroy()`) rend sa place TOUT DE SUITE (32 puis 32) ;
+--   · un MeshPart détruit ne rend RIEN, même 3 s après (22 libres avec 10 pièces, 22 après leur destruction) : Roblox compte le
+--     budget sur le maillage d'origine, qui attend le ramasse-miettes de Luau ;
+--   · le maillage d'origine détruit AVEC sa pièce : tout revient aussitôt.
+-- Chaque pièce bâtie ici rend donc son maillage le jour où ELLE est détruite, par n'importe quel chemin (Destroy, ClearAllChildren,
+-- la destruction d'un parent) : un crochet sur `Destroying`. (Un registre à clés faibles a été essayé : il perdait ses entrées.)
+-- ⚠ une COPIE (Clone) partage le maillage de son original : ne jamais détruire un original dont des copies vivent encore — les
+-- gabarits (pièces de monnaie, fruits, cristal, nuages) restent en réserve, les roues d'une caisse partent avec elle.
+-- LE COMPTE : le budget mesuré (~68 000 triangles pour tout ce qui est bâti par code) et ce qu'on en tient. Qui veut garder
+-- une réserve (le garage : changer de caisse demande jusqu'à 6 000 triangles) demande `Maillage.libre()` avant de bâtir.
+Maillage.BUDGET = 68000
+local tenus = 0
+function Maillage.libre(): number return Maillage.BUDGET - tenus end
+-- (les maillages bâtis ailleurs et gardés pour toujours — la mer, les gabarits de nuages — se déclarent ici)
+function Maillage.noter(triangles: number) tenus += triangles end
+local function suivre(mp: Instance, em: any, triangles: number)
+	tenus += triangles
+	mp.Destroying:Once(function()
+		tenus -= triangles
+		pcall(function() em:Destroy() end)
+	end)
+end
+-- détruire un objet bâti ici (ses pièces rendent leur maillage toutes seules)
+function Maillage.rendre(objet: Instance?)
+	if objet then objet:Destroy() end
+end
+
 local atelierPris = false
 function Maillage.seul(f: (...any) -> ...any, ...: any): ...any
 	while atelierPris do task.wait() end
@@ -57,7 +85,8 @@ end
 
 -- (banc) CE QU'IL RESTE DU BUDGET : on fabrique des maillages figés de 1 000 triangles jusqu'au refus, puis on rend tout.
 -- Écrit le résultat dans la Sortie. À lancer au menu, une fois tout bâti (Config.BANC_BUDGET).
-function Maillage.mesurer(etiquette: string)
+function Maillage.mesurer(etiquette: string, court: boolean?)
+	warn(string.format("[CashCar] COMPTE %s : %d triangles tenus, %d libres d'après le compte", etiquette, tenus, Maillage.libre()))
 	-- trois façons de bâtir ~1 000 triangles : sommets NON partagés · sommets partagés · partagés + une normale par face
 	local function essai(nom: string, batir: (any) -> ())
 		Maillage.seul(function()
@@ -78,7 +107,7 @@ function Maillage.mesurer(etiquette: string)
 		end)
 		task.wait(0.5)
 	end
-	for _, nt in { 100, 1000, 4000 } do
+	for _, nt in (court and { 1000 } or { 100, 1000, 4000 }) do
 		essai(nt .. " triangles par maillage", function(em)
 			for i = 1, nt do
 				em:AddTriangle(em:AddVertex(Vector3.new(i, 0, 0)), em:AddVertex(Vector3.new(i, 1, 0)), em:AddVertex(Vector3.new(i, 0, 1)))
@@ -199,7 +228,7 @@ function Maillage.editable(d: { v: string, t: string }, echelle: number, opt: Op
 		em:Destroy()
 		return nil, Vector3.zero
 	end
-	return em, centre
+	return em, centre, nb
 end
 
 -- Plusieurs maillages cuits en UN seul EditableMesh (les vignettes du garage : la caisse entière et ses quatre
@@ -263,12 +292,13 @@ local function fusion(liste: { any }, echelle: number, teinte: ((Color3) -> Colo
 	mp.CanQuery = false
 	mp.CanTouch = false
 	mp.DoubleSided = true
+	suivre(mp, em, #pts / 3)
 	return mp, centre
 end
 
 -- Rend un MeshPart (ou nil) et le centre où le poser. ⚠ appelle CreateMeshPartAsync : à lancer hors de la boucle de rendu.
 local function piece(d: { v: string, t: string }, echelle: number, opt: Options?): (MeshPart?, Vector3)
-	local em, centre = Maillage.editable(d, echelle, opt)
+	local em, centre, nb = (Maillage.editable :: any)(d, echelle, opt)
 	if not em then return nil, Vector3.zero end
 	-- ⚠ LE BUDGET : un EditableMesh qu'on peut encore modifier réserve beaucoup de mémoire (Roblox en refuse vite de
 	-- nouveaux : « memory budget limits »). Une fois bâti, on en tire une copie FIGÉE (FixedSize), bien plus légère,
@@ -293,6 +323,7 @@ local function piece(d: { v: string, t: string }, echelle: number, opt: Options?
 	mp.CanTouch = false
 	mp.Massless = true
 	mp.DoubleSided = true -- les matières du kit sont en double face dans le jeu web
+	suivre(mp, em, nb or 0)
 	return mp, centre
 end
 function Maillage.piece(d: { v: string, t: string }, echelle: number, opt: Options?): (MeshPart?, Vector3)
@@ -340,6 +371,7 @@ local function brut(tris: { { any } }): (MeshPart?, Vector3, Vector3)
 	mp.CanTouch = false
 	mp.CastShadow = false
 	mp.DoubleSided = true
+	suivre(mp, em, #tris)
 	return mp, centre, mx - mn
 end
 function Maillage.brut(tris: { { any } }): (MeshPart?, Vector3, Vector3)

@@ -100,7 +100,7 @@ local function changerCaisse(indice: number)
 	nouvelle.Parent = workspace
 	caisse, poignees, racine = nouvelle, pg, nouvelle.PrimaryPart :: BasePart
 	flammes, trainees, reflet = pg.flammes, pg.trainees, pg.reflet
-	ancienne:Destroy()
+	Caisse.rendre(ancienne) -- (et ses maillages : le budget de triangles de Roblox)
 	visibleCaisse = true
 end
 local function montrerCaisse(oui: boolean)
@@ -2134,6 +2134,10 @@ Garage.init({
 		jouer(nouvellePartie)
 	end,
 	surReglages = function() Hud.ecran("reglages") end,
+	surBoutique = function()
+		Garage.vignettes(false) -- le garage prête sa place à la vitrine
+		G.boutique.ouvrir("garage")
+	end,
 })
 E.btGarage.Activated:Connect(ouvrirGarage)
 -- ── LES MISSIONS : le carnet ouvert, ses trois défis, sa récompense (voir Client/Missions) ──
@@ -2169,8 +2173,13 @@ E.btMissions.Activated:Connect(function()
 	Missions.ouvrir()
 end)
 E.btCarriere.Activated:Connect(function() if mode == "menu" then Hud.toast(T.bientot) end end)
-E.btBoutique.Activated:Connect(function() if mode == "menu" then Hud.toast(T.bientot) end end)
-E.btBoutiqueM.Activated:Connect(function() if mode == "mort" then Hud.toast(T.bientot) end end)
+-- LA BOUTIQUE : une vitrine (rien ne se vend encore) ; RETOUR ramène à l'écran d'où l'on vient
+G.boutique = require(CL:WaitForChild("Boutique"))
+G.boutique.init({ retour = function(d: string)
+	if d == "garage" then Garage.vignettes(true) else Hud.ecran(d) end
+end })
+E.btBoutique.Activated:Connect(function() if mode == "menu" then G.boutique.ouvrir("menu") end end)
+E.btBoutiqueM.Activated:Connect(function() if mode == "mort" then G.boutique.ouvrir("mort") end end)
 Hud.surMenu = function() Hud.pastilles(Missions.faits()) end
 E.btRejouer.Activated:Connect(function() if mode == "mort" then nouvellePartie() end end)
 E.btMenuM.Activated:Connect(function() if mode == "mort" then allerMenu() end end)
@@ -2231,7 +2240,7 @@ local doubles: { [Model]: Double } = {}
 local function lisserDoubles(dt: number)
 	for m, d in doubles do
 		if not m.Parent then
-			d.c:Destroy()
+			Caisse.rendre(d.c)
 			doubles[m] = nil
 		elseif d.vu and m.PrimaryPart then
 			d.c.PrimaryPart.CFrame = d.c.PrimaryPart.CFrame:Lerp(m.PrimaryPart.CFrame, math.min(1, dt * 10))
@@ -2254,7 +2263,7 @@ task.spawn(function()
 					doubles[m] = d
 				elseif d.ind ~= (m:GetAttribute("Caisse") or 0) or d.cle ~= tostring(m:GetAttribute("Peinture")) .. tostring(m:GetAttribute("Aile")) then
 					-- il a changé de caisse au garage : on redessine son double
-					d.c:Destroy()
+					Caisse.rendre(d.c)
 					doubles[m] = nil
 					continue
 				end
@@ -2443,6 +2452,10 @@ end)
 allerMenu()
 end
 
+-- (mise au point) workspace:SetAttribute("DbgBudget", "une étiquette") : ce qu'il reste du budget de triangles, écrit dans la Sortie
+workspace:GetAttributeChangedSignal("DbgBudget"):Connect(function()
+	task.spawn(function() require(CL:WaitForChild("Maillage")).mesurer(tostring(workspace:GetAttribute("DbgBudget")), true) end)
+end)
 if Config.BANC_BUDGET then
 	task.spawn(function()
 		local Maillage = require(CL:WaitForChild("Maillage"))

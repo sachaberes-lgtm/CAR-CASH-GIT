@@ -83,6 +83,7 @@ local function batir(k: number): Gabarit?
 		warn("[CashCar] nuage " .. k .. " : pièce refusée")
 		return nil
 	end
+	Maillage.noter(buffer.len(t) / 6) -- (le compte du budget de triangles)
 	mp.Name = "Nuage"
 	mp.Anchored = true
 	mp.CanCollide = false

@@ -422,6 +422,15 @@ end
 
 -- LA VIGNETTE : la caisse entière (corps + quatre roues) en UN maillage, pour les photos du garage (ViewportFrame).
 -- Rend un Model (une seule pièce) centré sur l'origine de la caisse, ou nil.
+-- Détruire une caisse (ou une vignette) ET rendre ses maillages au budget de Roblox (voir Maillage.rendre)
+function Caisse.rendre(m: Instance?)
+	if not m then return end
+	local Client = script.Parent:FindFirstChild("Client")
+	local mMaillage = Client and Client:FindFirstChild("Maillage")
+	local ok, Maillage = pcall(function() return require(mMaillage) end)
+	if ok and Maillage and Maillage.rendre then Maillage.rendre(m) else m:Destroy() end
+end
+
 function Caisse.vignette(indice: number): Model?
 	local module = Formes:FindFirstChild(string.format("F%02d", indice))
 	local Client = script.Parent:FindFirstChild("Client")

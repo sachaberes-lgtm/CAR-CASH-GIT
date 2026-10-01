@@ -349,9 +349,22 @@ local function lingot(parent: Instance, libelle: string, taille: UDim2, pos: UDi
 	return b
 end
 
+-- RETOUR : la plaque penchée cyan des sous-écrans du web, en bas à gauche (sous le pouce, jamais en haut : la charte)
+local function boutonRetour(parent: Instance): TextButton
+	local _, plaque, b = penche(parent, UDim2.fromOffset(290, 104), UDim2.new(0, 60, 1, -34), Vector2.new(0, 1), C.carbone, C.cyan, C.encre, C.trait)
+	icone(plaque, "gauche", 4, C.cyan, UDim2.new(0, 56, 0.5, 0), Vector2.new(0, 0.5))
+	b.Text = T.retour
+	b.TextSize = 32
+	b.TextXAlignment = Enum.TextXAlignment.Left
+	inst("UIPadding", { PaddingLeft = UDim.new(0, 112) }, b)
+	inst("UIStroke", { Color = C.encre, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual }, b)
+	retour(b, plaque)
+	return b
+end
+
 -- le KIT d'interface, prêté aux autres écrans (garage, missions, carrière…) : une seule charte
 Hud.kit = { inst = inst, texte = texte, degrade = degrade, carbone = carbone, tuile = tuile, lingot = lingot, retour = retour,
-	penche = penche, repeindre = repeindre, icone = icone, teinter = teinter, jauge = jauge,
+	penche = penche, repeindre = repeindre, icone = icone, teinter = teinter, jauge = jauge, boutonRetour = boutonRetour,
 	PIX = PIX, TXT = TXT, RAPIDE = RAPIDE, LENTE = LENTE }
 
 -- ── les formats d'argent (fmtC, L12383) ──
@@ -656,15 +669,7 @@ function Hud.creer()
 	local cj = colonne(T.jeu, 0.513, 0.957)
 	ligne(cj, 1, "tuto", "volant", T.revoir, true)
 	if Config.FACILE_ACTIF then ligne(cj, 2, "facile", "coeur", T.facile) end -- (Sacha : « mets que le mode normal » — la ligne n'existe que si le mode est ouvert)
-	local _, rtP, rtB = penche(reg, UDim2.fromOffset(290, 104), UDim2.new(0, 60, 1, -34), Vector2.new(0, 1), C.carbone, C.cyan, C.encre, C.trait)
-	icone(rtP, "gauche", 4, C.cyan, UDim2.new(0, 56, 0.5, 0), Vector2.new(0, 0.5))
-	rtB.Text = T.retour
-	rtB.TextSize = 32
-	rtB.TextXAlignment = Enum.TextXAlignment.Left
-	inst("UIPadding", { PaddingLeft = UDim.new(0, 112) }, rtB)
-	inst("UIStroke", { Color = C.encre, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual }, rtB)
-	retour(rtB, rtP)
-	E.rgRetour = rtB
+	E.rgRetour = boutonRetour(reg)
 	for _, d in reg:GetDescendants() do
 		if d:IsA("GuiObject") then d.ZIndex = 23 end
 	end

@@ -150,12 +150,15 @@ local function vignette(rec: any)
 	local i = rec.caisse or -1
 	if i == vignetteDe then return end
 	vignetteDe = i
+	for _, o in U.recVue:GetChildren() do
+		if o:IsA("Model") then Caisse.rendre(o) end -- (la vignette d'avant rend ses triangles)
+	end
 	U.recVue:ClearAllChildren()
 	if i < 0 then return end
 	task.spawn(function()
 		local m = Caisse.vignette(i)
 		if not m or vignetteDe ~= i then
-			if m then m:Destroy() end
+			Caisse.rendre(m)
 			return
 		end
 		local corps = m.PrimaryPart :: BasePart
