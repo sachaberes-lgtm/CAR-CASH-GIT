@@ -958,7 +958,7 @@ local function creerInterface()
 	U.tamponEchelle = inst("UIScale", {}, U.tampon)
 
 	-- ── ⚙ ──
-	U.btReglages = K.tuile(g, "⚙", C.cyan, UDim2.fromOffset(52, 44), UDim2.new(1, -22, 0, 14), Vector2.new(1, 0), 22)
+	U.btReglages = K.tuile(g, "", C.cyan, UDim2.fromOffset(56, 46), UDim2.new(1, -22, 0, 14), Vector2.new(1, 0), 16, "reglages")
 
 	-- ── LA CONSOLE ──
 	local cs = K.carbone(g, UDim2.fromOffset(W_CONSOLE, H_CONSOLE), UDim2.new(1, -22, 1, -16), nil, Vector2.new(1, 1))

@@ -32,17 +32,20 @@ function HudScore.creer()
 	E.aura.Parent.Visible = false
 	E.chaine.Visible = false
 
-	-- ── la bande de FLOW : sous la jauge de nitro, même largeur ──
-	local bande = inst("Frame", { Name = "Flow", BackgroundTransparency = 1, Size = UDim2.new(0.46, 52, 0, 20), Position = UDim2.fromOffset(20, 66) }, hud)
-	U.flowNom = K.texte(bande, { Text = "FLOW", TextSize = 12, TextColor3 = C.texte, Size = UDim2.fromOffset(118, 20),
-		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
-	local cases = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, -206, 0, 12), Position = UDim2.fromOffset(122, 4) }, bande)
+	-- ── la bande de FLOW (le web couché, 844 × 390, porté sur 720 px) : la vague, la barre de quatre cases sous la jauge de nitro,
+	-- « $×1 » au bout, le mot dessous et, à côté du mot, les étiquettes de trait. (Les corps : voir Hud — un caractère = 5/9 du TextSize.) ──
+	local bande = inst("Frame", { Name = "Flow", BackgroundTransparency = 1, Size = UDim2.new(0.46, 59, 0, 76), Position = UDim2.fromOffset(30, 94) }, hud)
+	U.bande = bande
+	U.vague = K.icone(bande, ".........|.##....#.|#..#..#..|....##...|.........|.##....#.|#..#..#..|....##...|.........", 4, COL[1], UDim2.fromOffset(4, -6))
+	local cases = inst("Frame", { BackgroundColor3 = hex("#170f55"), BorderSizePixel = 0, Size = UDim2.new(1, -59 - 112, 0, 24), Position = UDim2.fromOffset(59, 0) }, bande)
+	inst("Frame", { BackgroundColor3 = hex("#170f55"), BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 4), Position = UDim2.fromScale(0, 1) }, cases) -- l'épaisseur
 	U.cases = {}
 	for i = 1, 4 do
-		local fond = inst("Frame", { BackgroundColor3 = C.piste, BorderSizePixel = 0, Size = UDim2.new(0.25, -4, 1, 0),
-			Position = UDim2.fromScale((i - 1) * 0.25, 0) }, cases)
-		inst("UIStroke", { Color = C.encre, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, fond)
+		local fond = inst("Frame", { BackgroundColor3 = hex("#0d0a2a"), BorderSizePixel = 0, Size = UDim2.new(0.25, -5, 1, -8),
+			Position = UDim2.new((i - 1) * 0.25, 4, 0, 4) }, cases)
 		local plein = inst("Frame", { BackgroundColor3 = CEL[i], BorderSizePixel = 0, Size = UDim2.fromScale(0, 1) }, fond)
+		-- la lèvre claire du haut (les jauges du web sont en bandes, pas en aplat)
+		inst("Frame", { BackgroundColor3 = Color3.new(1, 1, 1), BackgroundTransparency = 0.45, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 3) }, plein)
 		U.cases[i] = { fond = fond, plein = plein }
 		if i == 4 then
 			-- la ZONE ROUGE (88-100) : les 48 derniers % de la case TRIADE
@@ -50,41 +53,45 @@ function HudScore.creer()
 				Size = UDim2.fromScale(0.48, 1), Position = UDim2.fromScale(0.52, 0) }, fond)
 		end
 	end
-	U.flowMul = K.texte(bande, { Text = "", TextSize = 12, TextColor3 = Color3.fromRGB(125, 255, 155), Size = UDim2.fromOffset(78, 20),
-		Position = UDim2.new(1, 0, 0, 0), AnchorPoint = Vector2.new(1, 0), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false })
-	-- les étiquettes de trait, sous le mot FLOW
+	U.flowMul = K.texte(bande, { Text = "", TextSize = 27, TextColor3 = Color3.fromRGB(125, 255, 155), Size = UDim2.fromOffset(112, 28),
+		Position = UDim2.new(1, -100, 0, -1), TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 3 })
+	U.flowNom = K.texte(bande, { Text = "FLOW", TextSize = 33, TextColor3 = C.texte, Size = UDim2.fromOffset(300, 34), Position = UDim2.fromOffset(59, 36),
+		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 3 })
+	-- les étiquettes de trait, à côté du mot FLOW
 	U.tags = {}
 	for i, t in TRAITS do
-		U.tags[t[1]] = { l = K.texte(hud, { Text = "", TextSize = 9, Size = UDim2.fromOffset(120, 14), Position = UDim2.fromOffset(20 + (i - 1) * 124, 90),
+		U.tags[t[1]] = { l = K.texte(hud, { Text = "", TextSize = 20, Size = UDim2.fromOffset(170, 22), Position = UDim2.fromOffset(300 + (i - 1) * 160, 136),
 			TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false }), fin = 0, signe = 0 }
 	end
 
-	-- ── l'AURA et sa chaîne ──
-	local bloc = inst("Frame", { Name = "Aura", BackgroundTransparency = 1, Size = UDim2.fromOffset(420, 96), Position = UDim2.fromOffset(20, 110) }, hud)
-	local rond = inst("Frame", { BackgroundColor3 = C.nuit, BorderSizePixel = 0, Size = UDim2.fromOffset(30, 30), Rotation = 45, Position = UDim2.fromOffset(4, 4) }, bloc)
-	inst("UIStroke", { Color = C.magenta, Thickness = 4, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, rond)
-	K.texte(bloc, { Text = "AURA", TextSize = 11, TextColor3 = Color3.fromRGB(255, 200, 250), Size = UDim2.fromOffset(80, 14), Position = UDim2.fromOffset(48, 0),
-		TextXAlignment = Enum.TextXAlignment.Left })
-	U.aura = K.texte(bloc, { Text = "0", TextSize = 22, TextColor3 = C.texte, Size = UDim2.fromOffset(240, 26), Position = UDim2.fromOffset(48, 14),
+	-- ── l'AURA et sa chaîne : LE CHIFFRE du HUD (gros, cerné d'encre), le mot à côté ; dessous les points de la chaîne, le ×, sa
+	-- barre des 3,5 s et les deux dernières figures ──
+	local bloc = inst("Frame", { Name = "Aura", BackgroundTransparency = 1, Size = UDim2.fromOffset(640, 250), Position = UDim2.fromOffset(26, 172) }, hud)
+	U.bloc = bloc
+	U.aura = K.texte(bloc, { Text = "0", TextSize = 73, TextColor3 = hex("#f1dcff"), Size = UDim2.fromOffset(640, 76), Position = UDim2.fromOffset(0, 0),
+		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 5, contourCouleur = hex("#1c0430") })
+	U.auraMot = K.texte(bloc, { Text = "AURA", TextSize = 30, TextColor3 = Color3.fromRGB(255, 200, 250), Size = UDim2.fromOffset(110, 32), Position = UDim2.fromOffset(54, 26),
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 3 })
-	U.auraRec = K.texte(bloc, { Text = "", TextSize = 9, TextColor3 = C.terne, Size = UDim2.fromOffset(300, 12), Position = UDim2.fromOffset(48, 42),
+	U.auraRec = K.texte(bloc, { Text = "", TextSize = 17, TextColor3 = C.terne, Size = UDim2.fromOffset(500, 18), Position = UDim2.fromOffset(4, 74),
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
-	U.chaX = K.texte(bloc, { Text = "", TextSize = 26, Size = UDim2.fromOffset(90, 30), Position = UDim2.fromOffset(0, 58),
-		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 3 })
-	U.chaL1 = K.texte(bloc, { Text = "", TextSize = 11, TextColor3 = C.or_, Size = UDim2.fromOffset(320, 14), Position = UDim2.fromOffset(92, 58),
+	U.chaPts = K.texte(bloc, { Text = "", TextSize = 25, TextColor3 = C.texte2, Size = UDim2.fromOffset(240, 28), Position = UDim2.fromOffset(4, 124),
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
-	U.chaL2 = K.texte(bloc, { Text = "", TextSize = 9, TextColor3 = C.terne, Size = UDim2.fromOffset(320, 12), Position = UDim2.fromOffset(92, 74),
-		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
-	local fondT = inst("Frame", { BackgroundColor3 = C.piste, BorderSizePixel = 0, Size = UDim2.fromOffset(300, 5), Position = UDim2.fromOffset(92, 90), Visible = false }, bloc)
+	U.chaX = K.texte(bloc, { Text = "", TextSize = 66, Size = UDim2.fromOffset(220, 68), Position = UDim2.fromOffset(70, 98),
+		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 5, contourCouleur = hex("#1c0430") })
+	local fondT = inst("Frame", { BackgroundColor3 = hex("#0d0a2a"), BorderSizePixel = 0, Size = UDim2.fromOffset(214, 10), Position = UDim2.fromOffset(4, 168), Visible = false }, bloc)
 	U.chaFond = fondT
 	U.chaT = inst("Frame", { BackgroundColor3 = C.magenta, BorderSizePixel = 0, Size = UDim2.fromScale(1, 1) }, fondT)
-	U.verse = K.texte(bloc, { Text = "", TextSize = 16, TextColor3 = hex("#ff9ee6"), Size = UDim2.fromOffset(240, 20), Position = UDim2.fromOffset(190, 16),
+	U.chaL1 = K.texte(bloc, { Text = "", TextSize = 24, TextColor3 = C.texte, Size = UDim2.fromOffset(640, 26), Position = UDim2.fromOffset(4, 186),
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
+	U.chaL2 = K.texte(bloc, { Text = "", TextSize = 24, TextColor3 = C.terne, Size = UDim2.fromOffset(640, 26), Position = UDim2.fromOffset(4, 214),
+		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
+	U.verse = K.texte(bloc, { Text = "", TextSize = 30, TextColor3 = hex("#ff9ee6"), Size = UDim2.fromOffset(300, 32), Position = UDim2.fromOffset(190, 26),
+		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 3 })
 	U.verse.TextTransparency = 1
 
 	-- ── l'emblème de la FRÉNÉSIE : DARK TRIAD, trois barres, le chrono ──
 	local tri = inst("Frame", { Name = "Triade", BackgroundColor3 = Color3.fromRGB(30, 6, 14), BorderSizePixel = 0, Size = UDim2.fromOffset(250, 62),
-		Position = UDim2.fromOffset(20, 214), Visible = false }, hud)
+		Position = UDim2.fromOffset(26, 436), Visible = false }, hud)
 	inst("UIStroke", { Color = ROUGE, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, tri)
 	inst("Frame", { BackgroundColor3 = ROUGE, BorderSizePixel = 0, Size = UDim2.new(0, 5, 1, 0) }, tri)
 	K.texte(tri, { Text = "DARK TRIAD", TextSize = 12, TextColor3 = ROUGE, Size = UDim2.fromOffset(150, 16), Position = UDim2.fromOffset(14, 6),
@@ -156,16 +163,17 @@ local verseFin = 0
 function HudScore.verse(g: number)
 	U.verse.Text = "+" .. Hud.entier(g)
 	U.verse.TextTransparency = 0
-	U.verse.Position = UDim2.fromOffset(190, 28)
-	TweenService:Create(U.verse, K.LENTE, { Position = UDim2.fromOffset(190, 14) }):Play()
+	local x = U.auraMot.Position.X.Offset + 4 * 30 * Hud.CHASSE + 16 -- à droite du mot AURA
+	U.verse.Position = UDim2.fromOffset(x, 40)
+	TweenService:Create(U.verse, K.LENTE, { Position = UDim2.fromOffset(x, 26) }):Play()
 	verseFin = os.clock() + 1.1
 end
 
 function HudScore.fren(etat: string)
 	if etat == "debut" then
 		U.triade.Visible = true
-		U.triade.Position = UDim2.fromOffset(-260, 214)
-		TweenService:Create(U.triade, K.LENTE, { Position = UDim2.fromOffset(20, 214) }):Play()
+		U.triade.Position = UDim2.fromOffset(-260, 436)
+		TweenService:Create(U.triade, K.LENTE, { Position = UDim2.fromOffset(26, 436) }):Play()
 	elseif etat == "fin" then
 		U.triade.Visible = false
 	end
@@ -176,10 +184,19 @@ local auraVue = 0
 function HudScore.tick(dt: number, mode: string)
 	local F, R, CH = Score.FLOW, Score.FREN, Score.CHA
 	local t = os.clock()
+	-- l'auto-école garde le haut de l'écran pour elle (web : body.coOn)
+	local libre = not E.coach.Visible
+	U.bande.Visible = libre
+	U.bloc.Visible = libre
+	for _, g in U.tags do g.l.Visible = libre end
 	-- la bande
 	local lv = F.lv
 	U.flowNom.Text = (lv == 4) and Score.T("FRENESIE", "FRENZY") or Score.FLOW_NOM[lv]
 	U.flowNom.TextColor3 = COL[lv]
+	if lv ~= U.vagueLv then
+		U.vagueLv = lv
+		K.teinter(U.vague, COL[lv])
+	end
 	U.flowMul.Text = "$×" .. Score.fmtMul(Score.flowMult())
 	local revele = F.revele or lv == 4 or R.arme
 	local rv = revele and 1 or math.clamp((F.v - 55) / 20, 0, 1)
@@ -222,7 +239,11 @@ function HudScore.tick(dt: number, mode: string)
 	local a = Score.aura()
 	auraVue += (a - auraVue) * math.min(1, dt * 7)
 	if math.abs(a - auraVue) < 0.5 then auraVue = a end
-	U.aura.Text = Hud.entier(auraVue)
+	local chiffres = Hud.entier(auraVue)
+	if chiffres ~= U.aura.Text then
+		U.aura.Text = chiffres
+		U.auraMot.Position = UDim2.fromOffset(#chiffres * 73 * Hud.CHASSE + 14, 26) -- (police à chasse fixe : le mot suit le chiffre)
+	end
 	if CH.rec > 0 then
 		if a > CH.rec then U.auraRec.Text = "+" .. Hud.entier(a - CH.rec) .. Score.T(" AU-DESSUS", " ABOVE")
 		elseif a >= CH.rec * 0.85 then U.auraRec.Text = Score.T("ENCORE ", "ONLY ") .. Hud.entier(CH.rec - a)
@@ -234,14 +255,19 @@ function HudScore.tick(dt: number, mode: string)
 		U.chaX.Text = "×" .. math.max(1, CH.x)
 		U.chaX.TextColor3 = hex(Score.X_COUL[CH.x])
 		U.chaL1.Text = CH.liste[1] or ""
-		U.chaL2.Text = (CH.liste[2] or "") .. "   " .. Hud.entier(CH.pts) .. " PTS"
+		U.chaL2.Text = CH.liste[2] or ""
+		local pts = Hud.entier(CH.pts)
+		if pts ~= U.chaPts.Text then
+			U.chaPts.Text = pts
+			U.chaX.Position = UDim2.fromOffset(#pts * 25 * Hud.CHASSE + 20, 98)
+		end
 		U.chaFond.Visible = true
 		local q = (mode == "fall") and 1 or math.clamp(CH.t / Score.CHA_FEN, 0, 1)
 		q = math.min(q, math.clamp((Score.CHA_VIE - CH.age) / 3, 0, 1)) -- (les 3 dernières secondes de sa vie, la barre se vide)
 		U.chaT.Size = UDim2.fromScale(q, 1)
 		U.chaT.BackgroundColor3 = (mode ~= "fall" and CH.t < 1.1) and ((math.sin(t * 20) > 0) and ROUGE or C.magenta) or C.magenta
 	else
-		U.chaX.Text, U.chaL1.Text, U.chaL2.Text = "", "", ""
+		U.chaX.Text, U.chaL1.Text, U.chaL2.Text, U.chaPts.Text = "", "", "", ""
 		U.chaFond.Visible = false
 	end
 	if U.verse.Text ~= "" and t > verseFin then

@@ -1870,27 +1870,23 @@ end
 
 -- ════════ le HUD ════════
 local function hud(dt: number)
-	E.argent.Text = '<font size="28">$</font>' .. Hud.nombre(argent)
+	E.argent.Text = '<font size="36">$</font>' .. Hud.nombre(argent)
 	local res = reservoir()
-	local fr = math.clamp((nitroR + nitroX) / res, 0, 1)
-	E.nitro.Size = UDim2.fromScale(fr, 1)
-	E.nitroMini.Size = UDim2.fromScale(fr, 1)
-	E.nitro.BackgroundColor3 = (pwN > 0 and Color3.fromRGB(170, 90, 255)) or ((nitroR <= 0.01 and nitroX > 0) and Color3.fromRGB(91, 125, 255)) or Color3.fromRGB(255, 128, 32)
+	-- la barre et le bouton NITRO : la réserve du moteur, la réserve bleue à la suite, violets en NITRO INFINIE
+	Hud.nitro(math.clamp(nitroR / res, 0, 1), math.clamp(nitroX / res, 0, 1), pwN > 0, nitroOn)
 	if mode == "fall" and not intro then
 		E.air.Visible = true
 		local reste = pwA > 0 and 1 or math.clamp(1 - V.fallTR / airMax(), 0, 1)
 		local sec = string.format("%.1f", math.max(0, airMax() - V.fallTR))
 		if FR then sec = string.gsub(sec, "%.", ",") end
-		E.airTxt.Text = (pwA > 0 and "∞" or sec) .. ' <font size="16">' .. T.air .. "</font>"
-		E.airFill.Size = UDim2.fromScale(reste, 1)
-		E.airFill.BackgroundColor3 = pwA > 0 and Hud.C.magenta or ((airMax() - V.fallTR < 1.5) and Hud.C.rouge or Hud.C.cyan)
+		Hud.air(reste, sec, pwA > 0)
 	end
+	-- les plaques des pouvoirs actifs, dans l'ordre fixe du web (l'œil apprend où regarder)
 	local pw = {}
-	local P = Config.POUVOIRS
 	for _, q in { { "n", pwN }, { "a", pwA }, { "v", pwV }, { "m", pwM }, { "x", pwX } } do
-		if q[2] > 0 then table.insert(pw, (FR and P[q[1]].nom or P[q[1]].nomEN) .. " " .. math.ceil(q[2])) end
+		if q[2] > 0 then table.insert(pw, q) end
 	end
-	E.pouvoir.Text = table.concat(pw, "  ·  ")
+	Hud.pouvoirs(pw, E.air.Visible)
 	if facile() and (mode == "drive" or mode == "fall") then
 		E.coeurs.Visible = true
 		E.coeurs.Text = string.rep("♥", G.coeurs) .. '<font color="#40385e">' .. string.rep("♥", math.max(0, FAC.coeurs - G.coeurs)) .. "</font>"
@@ -1925,6 +1921,7 @@ local function allerMenu()
 	KA.pos = carCF.Position + Vector3.yAxis * (10 * M) + menuCap:Cross(Vector3.yAxis) * (20 * M)
 	KA.vise = carCF.Position
 	KA.Titre.montrer(true)
+	Bus.emit("menu")
 	Hud.ecran("menu")
 	E.menuRecord.Text = record > 0 and (T.record .. " " .. Hud.argent(record)) or ""
 	evEtat:FireServer("course", false)
@@ -2008,23 +2005,27 @@ local function finPartie()
 	meilleurAura = math.max(meilleurAura, aura)
 	local cause = T.morts[causeMort] or T.morts.autre
 	E.mCause.Text = rec and T.nouveau or cause
+	Hud.tenir(E.mCauseEchelle, E.mCause.Text, 62, 560)
 	E.mRecord.Text = rec and (FR and "RECORD !" or "RECORD!") or ""
 	E.mRecord.Visible = rec
 	E.mCompte.Text = T.compte .. " " .. Hud.argent(compte + math.max(0, argent - Config.CASH_DEPART))
 	E.mAura.Text = Hud.entier(aura)
+	Hud.tenir(E.mAuraEchelle, E.mAura.Text, 78, 250)
 	E.mAuraMeilleur.Text = T.meilleur .. " " .. Hud.entier(meilleurAura)
 	E.mMoteurNom.Text = Hud.sansAccent(MOT[tier + 1].nom)
-	E.mMoteurPalier.Text = T.palier .. '  <font size="30">' .. tier .. "</font>"
+	Hud.tenir(E.mMoteurNomEchelle, E.mMoteurNom.Text, 20, 270)
+	E.mMoteurPalier.Text = T.palier .. '  <font size="46">' .. tier .. "</font>"
 	if tier < #MOT - 1 then
 		E.mMoteurEncore.Text = string.format(T.encore, MOT[tier + 2][1] - coinsGot) .. "\n↑ " .. Hud.sansAccent(MOT[tier + 2].nom)
 	else
 		E.mMoteurEncore.Text = T.moteurMax
 	end
-	E.mPartie.Text = cause .. "\n" .. T.distance .. "  " .. Hud.entier(dist) .. " M   " .. T.pieces .. "  " .. stats.pieces
-		.. (mres.ligne and ("\n◎ " .. mres.ligne) or "")
+	E.mPartie.Text = (rec and (cause .. "\n") or "") .. T.distance .. "  " .. Hud.entier(dist) .. " M   " .. T.pieces .. "  " .. stats.pieces
+		.. "   " .. T.figures .. "  " .. stats.poses
+	Hud.defi(mres.carte)
 	local st = {
 		{ "x" .. Score.CHA.xMax, T.multiMax },
-		{ Hud.entier(G.vmax), T.kmhMax }, { tostring(G.nbZones + 1), T.zone }, { tostring(stats.poses), T.figures },
+		{ Hud.entier(G.vmax), T.kmhMax }, { tostring(G.nbZones + 1), T.zone }, { Score.mmss(Score.FREN.max), T.frenesie },
 	}
 	for i, v in st do
 		E.mStats[i][1].Text = v[1]
@@ -2040,9 +2041,11 @@ local function finPartie()
 		while os.clock() - t0 < 0.75 do
 			local u = (os.clock() - t0) / 0.75
 			E.mArgent.Text = Hud.argent(cible * (1 - (1 - u) ^ 3))
+			Hud.tenir(E.mArgentEchelle, E.mArgent.Text, 100, 560)
 			task.wait()
 		end
 		E.mArgent.Text = Hud.argent(cible)
+		Hud.tenir(E.mArgentEchelle, E.mArgent.Text, 100, 560)
 		Sons.jouer(rec and "record" or "compteFin")
 	end)
 end
@@ -2163,6 +2166,8 @@ E.btMissions.Activated:Connect(function()
 end)
 E.btCarriere.Activated:Connect(function() if mode == "menu" then Hud.toast(T.bientot) end end)
 E.btBoutique.Activated:Connect(function() if mode == "menu" then Hud.toast(T.bientot) end end)
+E.btBoutiqueM.Activated:Connect(function() if mode == "mort" then Hud.toast(T.bientot) end end)
+Hud.surMenu = function() Hud.pastilles(Missions.faits()) end
 E.btRejouer.Activated:Connect(function() if mode == "mort" then nouvellePartie() end end)
 E.btMenuM.Activated:Connect(function() if mode == "mort" then allerMenu() end end)
 local function basculerPause()

@@ -79,12 +79,13 @@ local function donnees(i: number): { [string]: any }?
 	end
 	return d
 end
-local function construire(i: number): Model?
+-- (rend aussi « complet » : aucune pièce refusée par le budget de triangles)
+local function construire(i: number): (Model?, boolean)
 	local d = donnees(i)
-	if not d then return nil end
+	if not d then return nil, false end
 	local modele = Instance.new("Model")
 	modele.Name = "Moteur" .. i
-	local nb = 0
+	local nb, manque = 0, 0
 	local function poser(p: MeshPart, centre: Vector3)
 		p.Anchored = true
 		p.Massless = false
@@ -104,6 +105,8 @@ local function construire(i: number): Model?
 					p.Material = Enum.Material.Neon
 					p.Color = c
 					poser(p, centre)
+				else
+					manque += 1
 				end
 			end
 		else
@@ -114,15 +117,17 @@ local function construire(i: number): Model?
 				p.Reflectance = mt[2]
 				p.Color = Color3.new(1, 1, 1)
 				poser(p, centre)
+			else
+				manque += 1
 			end
 		end
 	end
 	if nb == 0 then
 		modele:Destroy()
-		return nil
+		return nil, false
 	end
 	modele.WorldPivot = CFrame.identity
-	return modele
+	return modele, manque == 0
 end
 
 -- ── la réserve : le moteur du prochain palier, bâti d'avance ──
@@ -274,6 +279,58 @@ local function tick(dt: number)
 	if c.t > T_COULOIR + T_PLONGE + 0.15 then fin() end
 end
 
+-- ── LA PHOTO DU MOTEUR (l'écran de fin, « MOTEUR ATTEINT ») : le moteur du palier tourne dans une petite fenêtre 3D. Il prend la
+-- place du moteur bâti d'avance (un seul à la fois : le budget de triangles), et rend la sienne à la partie suivante. ──
+local photoN, photoM = 0, nil :: Model?
+local function photoFin()
+	photoN += 1
+	if photoM then
+		photoM:Destroy()
+		photoM = nil
+	end
+end
+local function photo(vp: ViewportFrame, tier: number)
+	photoFin()
+	local n = photoN
+	fin()
+	oublier(tier)
+	task.spawn(function()
+		while enCours[tier] do task.wait() end
+		local m = prets[tier]
+		prets[tier] = nil
+		-- (Roblox ne rend pas tout de suite la mémoire du moteur qu'on vient de détruire : on réessaie, le temps qu'il la libère)
+		local essai = 0
+		while not m and essai < 5 and n == photoN do
+			if essai > 0 then task.wait(0.7) end
+			essai += 1
+			local ok, x, complet = pcall(construire, tier)
+			m = (ok and x) or nil
+			if m and not complet and essai < 5 then
+				m:Destroy()
+				m = nil
+			end
+		end
+		if not m then return end
+		if n ~= photoN then
+			m:Destroy()
+			return
+		end
+		m:ScaleTo(1)
+		m:PivotTo(CFrame.identity)
+		local boite, taille = m:GetBoundingBox()
+		m.WorldPivot = boite -- il tourne autour de son milieu
+		m:PivotTo(CFrame.identity)
+		local cam = vp:FindFirstChildOfClass("Camera") or Instance.new("Camera")
+		cam.FieldOfView = 28
+		local r = taille.Magnitude / 2
+		cam.CFrame = CFrame.lookAt(Vector3.new(0.55, 0.42, 1).Unit * (r / math.tan(math.rad(14)) * 0.86), Vector3.zero)
+		cam.Parent = vp
+		vp.CurrentCamera = cam
+		m.Parent = vp
+		photoM = m
+	end)
+end
+
 function MoteurCarte.init()
 	if ancre then return end
 	ancre = Instance.new("Part")
@@ -287,6 +344,7 @@ function MoteurCarte.init()
 	ancre.CFrame = CFrame.identity
 	ancre.Parent = workspace
 	RunService.RenderStepped:Connect(function(dt: number)
+		if photoM then photoM:PivotTo(CFrame.Angles(0, os.clock() * 0.9, 0) * CFrame.Angles(0.1, 0, 0)) end
 		local ok, err = pcall(tick, math.min(dt, 0.05))
 		if not ok then
 			warn("[CashCar] carte moteur : " .. tostring(err))
@@ -294,9 +352,14 @@ function MoteurCarte.init()
 		end
 	end)
 	Bus.on("partie", function()
+		photoFin()
 		fin()
 		oublier(1)
 		preparer(1)
+	end)
+	Bus.on("menu", photoFin)
+	Bus.on("fin", function(r: any)
+		if Hud.E.mMoteurVue and r and r.tier then photo(Hud.E.mMoteurVue, r.tier) end
 	end)
 	Bus.on("moteur", function(tier: number, gain: number)
 		ouvrir(tier, gain or 0)

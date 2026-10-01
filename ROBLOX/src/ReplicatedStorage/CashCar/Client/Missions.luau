@@ -90,7 +90,7 @@ local function creer()
 	U.recSuite = K.texte(r, { Text = "", TextSize = 9, TextColor3 = C.terne, Size = UDim2.new(1, -40, 0, 14), Position = UDim2.new(0, 20, 1, -32), TextWrapped = false })
 	U.aide = K.texte(g, { Text = tr("TOUCHE UN DEFI POUR LE SUIVRE EN COURSE", "TAP A CHALLENGE TO TRACK IT IN RACE"), TextSize = 10, TextColor3 = C.texte2,
 		Size = UDim2.new(0.5, -60, 0, 16), Position = UDim2.fromOffset(40, 470), TextXAlignment = Enum.TextXAlignment.Left })
-	U.btHome = K.tuile(g, "⌂ HOME", C.lavande, UDim2.fromOffset(150, 70), UDim2.new(1, -420, 1, -30), Vector2.new(0, 1), 14)
+	U.btHome = K.tuile(g, "HOME", C.lavande, UDim2.fromOffset(150, 70), UDim2.new(1, -420, 1, -30), Vector2.new(0, 1), 13, "maison", "v")
 	U.btJouer = K.lingot(g, tr("JOUER", "PLAY"), UDim2.fromOffset(250, 70), UDim2.new(1, -40, 1, -30), Vector2.new(1, 1), 30)
 	U.btHome.Activated:Connect(function() ctx.surHome() end)
 	U.btJouer.Activated:Connect(function() ctx.surJouer() end)
@@ -183,6 +183,14 @@ function Missions.init(c: any)
 	ctx = c
 	creer()
 end
+-- combien de défis du carnet sont tenus (les trois cases du bouton MISSIONS de l'accueil)
+function Missions.faits(): number
+	local m, n = etat(), 0
+	for i = 1, 3 do
+		if m.ok[i] then n += 1 end
+	end
+	return n
+end
 function Missions.ouvrir()
 	Missions.ouvert = true
 	Missions.maj()
@@ -272,9 +280,16 @@ function Missions.fin(r: any): any
 	U.banniere.Visible = false
 	local m, c = etat(), carnet()
 	local res: any = { meilleur = meilleurePartie }
+	-- LA CARTE de l'écran de fin (Hud.defi) : l'en-tête, le défi, sa jauge, sa prime, l'objet du carnet, les trois cases
+	local recNom, recCouleur = Missions.recompense(c.rec)
+	local function carte(d: any, reussi: boolean, tete: string, part: number)
+		res.carte = { tete = tete, reussi = reussi, texte = Carnets.texte(d, FR, Hud.argent), part = part, prime = "+" .. Hud.argent(d.p),
+			rec = Hud.sansAccent(recNom), recCouleur = recCouleur, faits = { m.ok[1], m.ok[2], m.ok[3] } }
+	end
 	if m.ok[1] and m.ok[2] and m.ok[3] then
 		-- le carnet se FERME (le serveur donne la récompense à la fin de la partie)
 		local nom, couleur = Missions.recompense(c.rec)
+		carte(c[reussisPartie[#reussisPartie] or 3], true, tr("CARNET FINI !", "BOOK DONE!"), 1)
 		res.ferme = { nom = nom, couleur = couleur, rec = c.rec }
 		res.ligne = tr("DEFIS REUSSIS ! ", "CHALLENGES DONE! ") .. nom .. ((c.rec.cash and tr(" VERSES AU COMPTE", " PAID TO ACCOUNT")) or tr(" EST A TOI", " IS YOURS"))
 		res.couleur = C.or_
@@ -282,6 +297,7 @@ function Missions.fin(r: any): any
 	end
 	if #reussisPartie > 0 then
 		local d = c[reussisPartie[#reussisPartie]]
+		carte(d, true, tr("DEFI REUSSI !", "CHALLENGE DONE!"), 1)
 		res.ligne = tr("DEFI REUSSI ! ", "CHALLENGE DONE! ") .. Carnets.texte(d, FR, Hud.argent) .. "  +" .. Hud.argent(d.p)
 		res.couleur = VERT
 		return res
@@ -296,6 +312,7 @@ function Missions.fin(r: any): any
 	end
 	if mieux > 0 then
 		local d = c[mieux]
+		carte(d, false, tr("DEFI · ", "CHALLENGE · ") .. Carnets.progres(d, Carnets.valeur(d.k, r), FR, Hud.argent), part)
 		res.ligne = Carnets.texte(d, FR, Hud.argent) .. "\n" .. tr("CETTE PARTIE · ", "THIS RUN · ") .. Carnets.progres(d, Carnets.valeur(d.k, r), FR, Hud.argent)
 		res.couleur = C.texte2
 	end

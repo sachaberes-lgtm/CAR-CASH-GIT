@@ -150,7 +150,8 @@ function Titre.vue(fiche: any): (CFrame, number)
 	local G = S.go
 	local fov = G and (44 + 26 * u * u) or 44
 	-- la place libre (menuCadre) : couché, la bande de GAUCHE (les boutons sont à droite) ; debout, entre le titre et les boutons
-	local nx, ny, fr, fhh = -0.52, -0.12, 0.34, 0.5 -- (vu dans Studio a 0,42 : la caisse debordait du bord gauche)
+	-- (vu dans Studio à 0,42 : la caisse débordait du bord gauche) · web c02c75a : la caisse au MILIEU de la hauteur utile (elle laissait le haut vide)
+	local nx, ny, fr, fhh = -0.52, 0.04, 0.34, 0.5
 	if aspect < 1 then nx, ny, fr, fhh = -0.16, 0.1, 0.62, 0.4 end
 	local R9 = 0.5 * math.sqrt(fiche.l * fiche.l + fiche.w * fiche.w + (fiche.h + 0.6) * (fiche.h + 0.6))
 	local tV = math.tan(math.rad(fov) / 2)
