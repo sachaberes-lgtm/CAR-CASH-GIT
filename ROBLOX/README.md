@@ -54,19 +54,36 @@ Roblox limite le nombre d'imports audio par mois : commence par `moteur`, `nitro
 
 ## Ce qui est porté / ce qui ne l'est pas encore
 
-**Porté** : la route-ruban dans le ciel qui plonge (motifs du niveau NUAGES : virages qui plongent, esses,
-épingles, chicanes, LACETS, montagnes russes, plongeons), les deux faces de la dalle (on roule dessous !),
-la conduite v6, le moment, la nitro-réservoir, NITROOO, les pads turbo en train, le vol (vrilles, piqué /
-cabré qui fait tourner la trajectoire, coup de nitro, portance), les atterrissages notés (PARFAIT + hit-stop,
-POSÉ LOURD, DE TRAVERS, AU CHEVEU), les BUMPS sur la tranche, le DAUPHIN, le RACCOURCI, les figures et la
-chaîne ×2/×3/×4,5/×6, les 30 paliers de MOTEUR, l'argent, l'aura, les 4 pouvoirs (nitro infinie, airtime
-infini, speed ×2, aimant), le portail et les zones qui s'enchaînent, la mort (6 s en l'air, le vide, roule ou
-crève), l'écran de mort, le classement (record à vie sauvegardé), le multijoueur (on voit les caisses des
-autres sur la même route).
+Le portage suit le jeu web **du jour** (`VERSION PRINCIPALE/index.html`), sur **une seule map : le niveau NUAGES**
+(décision de Sacha : pas de ville, de Paris, d'espace ni de carrière sur Roblox).
 
-**Pas encore** : les 68 caisses du garage (une seule caisse, couleur par joueur), le menu CHUTE, les autres
-niveaux (ville, Paris, espace…), la frénésie / FLOW, la meute de police, les missions, la boutique, l'annonceur,
-le drift et la fronde, les plots / flaques / épaves. Le module FILET est écrit mais retiré (voir `Piste.luau`).
+**Porté** (tout a été vu tourner dans Roblox Studio) :
+- la route-ruban qui plonge, ses deux faces, la conduite, le drift, la fronde, les pads, plots, flaques, épaves ;
+- le vol, les figures, les poses notées, les bumps, le bord (sursis, lèvre, bascule), la loi du réservoir de nitro ;
+- le score du web : FLOW, frénésie (DARK TRIAD), chaîne d'aura, argent, 30 paliers de moteur avec la carte moteur 3D ;
+- les effets (étincelles, gerbes, explosion, billets, pluie de devises, taches de jus), les nuages 3D, la mer de nuages ;
+- le dragon de papier de NITROOO, le banc de dauphins, le serpent du snake loop (noirs en dark triad) ;
+- l'écran titre (la caisse qui tombe dans le ciel), le menu, le garage (68 caisses, peintures, ailes, traînées, tas de
+  billets), les missions (carnets de défis), la boutique (vitrine), les réglages, l'auto-école, l'écran de fin ;
+- l'interface aux proportions du web (plaques penchées, icônes pixel, jauges en bandes) ;
+- le classement, la sauvegarde, le multijoueur (on voit les caisses des autres).
+
+**Pas encore / à décider par Sacha** :
+- la **boutique ne vend rien** (comme sur le web : « BIENTOT ») ; sur Roblox les prix seront en **Robux** : à fixer ;
+- le bouton **CARRIERE** dit « BIENTOT » (il n'y a qu'une map) : le garder, le retirer, ou en faire autre chose ;
+- les **sons** : tant qu'ils ne sont pas importés (voir plus haut), on n'entend que les sons de secours ;
+- le mode FACILE existe dans le code mais il est éteint (`Config.FACILE_ACTIF`).
+
+## ⚠ Avant de publier : deux réglages Roblox indispensables
+
+Le jeu fabrique ses formes 3D par code (caisses, nuages, moteurs, dauphins…). Roblox l'autorise seulement si :
+1. **Paramètres du jeu → Sécurité → « Autoriser les API de maillage et d'image »** (Allow Mesh & Image APIs) est activé ;
+2. le compte qui publie est **vérifié** (pièce d'identité, 13 ans ou plus) — c'est une règle de Roblox pour ces API.
+
+Sans ça, en ligne, les formes cuites ne s'afficheraient pas. Autre limite de Roblox : tout ce qui est bâti par code se partage
+environ 68 000 triangles ; le jeu tient dedans (il compte ce qu'il utilise et rend ce qu'il détruit), mais certaines vignettes
+du garage restent en pastille de couleur quand la place manque. La solution définitive serait d'importer les maillages comme
+ressources Roblox (ton compte) : à voir plus tard.
 
 ## Pour le développeur (Claude ou autre)
 
@@ -82,6 +99,11 @@ le drift et la fronde, les plots / flaques / épaves. Le module FILET est écrit
   caméra, écrans).
 - `outils/preparer-sons.js` : régénère `sons-a-importer/` depuis la banque du jeu web (ffmpeg requis).
 - Échelle : 1 m du jeu web = `Config.M` = 2,5 studs. La physique reste en mètres et en unités `vA`.
-- Vérifié hors de Roblox : les 10 scripts compilent avec le compilateur officiel Luau, l'analyseur est propre,
-  et la génération de piste tourne au banc (4 zones à la suite : 0 croisement, raccords exacts, ~20 % des
-  sorties de route « à l'aveugle » se reposent, 25 % dans les LACETS). **Pas encore joué dans Roblox Studio.**
+- `outils/cuire-*.js` : cuisent les formes du jeu web (caisses, objets et dauphin, moteurs, nuages, icônes) en modules Luau.
+- `outils/verifier.sh <luau-compile>` : compile tous les scripts comme Studio (`-O1 -g2` : la limite des 200 variables
+  locales ne se voit qu'ainsi). `outils/banc.sh` + `outils/studio.ps1` : la copie de banc et son ouverture dans Studio.
+- Mise au point dans Studio (barre de commande) : `workspace:SetAttribute("DbgAuto", true)` (pilote automatique), `DbgNitro`,
+  `DbgInf`, `DbgPlein`, `DbgDauphins`, `DbgSerpent`, `DbgArgent` (un compte), `DbgBudget` (le budget de triangles),
+  `DbgFx` = "mort" | "moteur7" | "pluie" | "cratere" | "jus3".
+- Budget de triangles : détruire une pièce ne rend rien, c'est son maillage d'origine qu'il faut détruire — `Client/Maillage`
+  le fait pour toute pièce bâtie par lui (`Maillage.libre()` donne ce qu'il reste).
