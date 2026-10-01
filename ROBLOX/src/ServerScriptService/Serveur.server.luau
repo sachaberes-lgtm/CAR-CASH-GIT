@@ -159,10 +159,14 @@ evFin.OnServerEvent:Connect(function(p, montant, distance, aura, stats)
 	if dernierEnvoi[p.UserId] and t - dernierEnvoi[p.UserId] < 2 then return end
 	dernierEnvoi[p.UserId] = t
 	local prof = Profils.de(p)
-	prof.compte += montant
+	prof.compte += math.max(0, montant - Config.CASH_DEPART) -- on ne verse que les GAINS, jamais la mise de 1,61 $
 	if montant > prof.record then prof.record = montant end
 	if type(aura) == "number" and aura == aura and aura >= 0 and aura < 1e12 then
 		prof.auraMeilleur = math.max(prof.auraMeilleur, aura)
+		prof.aura += math.floor(aura + 0.5)
+	end
+	if type(stats) == "table" and type(stats.frenRec) == "number" and stats.frenRec == stats.frenRec and stats.frenRec >= 5 and stats.frenRec < 3600 then
+		prof.frenRec = math.max(prof.frenRec, stats.frenRec)
 	end
 	prof.stats.parties += 1
 	if type(distance) == "number" and distance == distance and distance > 0 and distance < 1e7 then

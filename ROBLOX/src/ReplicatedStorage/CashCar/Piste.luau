@@ -17,7 +17,7 @@ local P = Config.PISTE
 local M = Config.M
 local RH = Config.ROAD_HALF
 
-export type Objet = { s: number, lat: number, h: number, face: number, kind: string, pw: string? }
+export type Objet = { s: number, lat: number, h: number, face: number, kind: string, pw: string?, grp: number?, r: number?, fruit: number?, ligne: boolean? }
 export type Piste = {
 	graine: number, zone: number, DS: number, n: number, len: number, F: { CFrame },
 	minY: number, grille: { [number]: { number } }, cellule: number,
@@ -375,81 +375,165 @@ end
 
 -- ── les objets (spawnPickups L23148) : tout existe sur les DEUX faces (miroir strict) ──
 function Piste.semer(p: Piste, rnd: Random, zone: number)
+	-- Ce que la route porte (buildTrack L10182-10286, spawnPickups L23625-23751). Tout existe en MIROIR sur les deux
+	-- faces ; lat est donné dans le repère de SA face (la droite du pilote qui roule dessus).
+	-- L'ordre : les flaques, les plots (lignes de chantier, slaloms, portes de frôlé), puis les pièces — qui ESQUIVENT
+	-- plots et flaques —, enfin les cristaux. Les PADS et les FRUITS ne sont pas semés ici : c'est LA LIGNE PARFAITE
+	-- qui les pose en course, devant la caisse, sur la trajectoire idéale (Pilote, ligneTick).
 	local function r(a: number, b: number): number return a + rnd:NextNumber() * (b - a) end
 	local O = Config.OBJETS
 	local HALF = RH - 1.8
 	local L = p.len / M
-	local rich = math.clamp(0.88 + (zone - 1) * 0.52, 0.88, 3.4)
-	local function dansModule(s: number): boolean
+	local zones = zone - 1
+	local rich = math.clamp(0.88 + zones * 0.52, 0.88, 3.4)   -- la route s'enrichit à chaque portail
+	local STR = math.clamp(1 + zones * 0.22, 1, 2.1)           -- le pas des motifs s'allonge avec la vitesse
+	local vC = 70 + zones * 35                                 -- ~1 s de croisière (m)
+	local function dansModule(sp: number): boolean
 		for _, m in p.modules do
-			if s > m.a / M - 30 and s < m.b / M + 30 then return true end
+			if sp > m.a / M - 30 and sp < m.b / M + 30 then return true end
 		end
 		return false
 	end
-	local function piece(s: number, lat: number)
-		if s < O.debut or s > L - 50 or dansModule(s) then return end
-		lat = math.clamp(lat, -HALF, HALF)
+	local DSm = p.DS / M
+	local function tangente(sp: number): Vector3
+		return p.F[math.clamp(math.floor(sp / DSm) + 1, 1, p.n)].LookVector
+	end
+	-- une portion DROITE : sur ±d mètres, aucune tangente à plus de ~6° de celle du point
+	local function droite(sp: number, d: number): boolean
+		local t0 = tangente(sp)
+		for q = -d, d, 10 do
+			if tangente(sp + q):Dot(t0) < 0.995 then return false end
+		end
+		return true
+	end
+	local plots: { { s: number, lat: number } } = {}
+	local flaques: { { s: number, lat: number, r: number } } = {}
+	local groupe = 0
+	local function plot(sp: number, lt: number)
+		if sp > L - 140 then return end
+		table.insert(plots, { s = sp, lat = lt })
 		for _, face in { 1, -1 } do
-			table.insert(p.objets, { s = s * M, lat = lat * M, h = 1.1 * M, face = face, kind = "piece" })
+			table.insert(p.objets, { s = sp * M, lat = lt * M, h = 0.12 * M, face = face, kind = "plot", grp = groupe })
 		end
 	end
-	local s = O.debut
-	while s < L - 90 do
-		if rnd:NextNumber() < 0.24 / rich then
-			s += r(60, 120)
-		else
-			local t = rnd:NextNumber()
-			if t < 0.30 then -- zigzag
-				local n, amp, pas = rnd:NextInteger(5, 8), r(0.7, 1) * HALF, r(10, 14)
-				local ph = rnd:NextNumber() * math.pi
-				for k = 0, n - 1 do piece(s + k * pas, amp * math.sin(ph + k * 0.9)) end
-				s += n * pas
-			elseif t < 0.52 then -- arc : une ligne qui traverse la route
-				local n, pas = rnd:NextInteger(5, 8), r(11, 15)
-				local a0 = r(-1, 1) * HALF * 0.8
-				for k = 0, n - 1 do piece(s + k * pas, a0 * math.cos(math.pi * k / (n - 1))) end
-				s += n * pas
-			elseif t < 0.70 then -- cercle
-				local n, R, c = rnd:NextInteger(8, 11), r(5.5, 9.5), r(-0.5, 0.5) * HALF
-				for k = 0, n - 1 do
-					local a = 2 * math.pi * k / n
-					piece(s + R + R * math.cos(a), c + R * math.sin(a))
-				end
-				s += 2 * R + 6
-			elseif t < 0.80 then -- jackpot : deux lignes serrées
-				local n, c = rnd:NextInteger(12, 17), r(-0.5, 0.5) * HALF
-				for k = 0, n - 1 do
-					piece(s + k * 6, c - 2.4)
-					piece(s + k * 6, c + 2.4)
-				end
-				s += n * 6
-			else -- éparpillées
-				local n = rnd:NextInteger(2, 4)
-				for _ = 1, n do
-					piece(s, r(-1, 1) * HALF)
-					s += r(20, 38)
+
+	-- ── les FLAQUES d'huile : rares, en ligne droite, jamais en montée ──
+	local sp = r(420, 920)
+	while sp < L - 220 do
+		if rnd:NextNumber() >= 0.4 then
+			local rayon = r(2, 3.1)
+			local lo = r(-1, 1) * (RH - 4.5)
+			if tangente(sp).Y <= 0.04 and not dansModule(sp) and droite(sp, math.max(60, 1.1 * vC)) then
+				table.insert(flaques, { s = sp, lat = lo, r = rayon })
+				for _, face in { 1, -1 } do
+					table.insert(p.objets, { s = sp * M, lat = lo * M, h = 0.05 * M, face = face, kind = "flaque", r = rayon })
 				end
 			end
-			s += r(25, 60) / rich
 		end
+		sp += r(1240, 2760)
 	end
-	-- les pads turbo (L9794) : une voie sur trois, gauche / centre / droite
-	local sp = r(180, 330)
-	local voie = math.min(RH - 2.95, math.max(4.6, RH * 0.45))
-	while sp < L - 120 do
+	-- ── les PLOTS, 1re vague : le SLALOM (3 en quinconce) ou la LIGNE DE CHANTIER (4 le long d'un bord) ──
+	sp = r(300, 520)
+	while sp < L - 170 do
+		local slal = rnd:NextNumber() < 0.55
+		local w = slal and math.min(r(3.5, 8), RH - 1.3) or 0
+		local sd = (rnd:NextNumber() < 0.5) and -1 or 1
 		if not dansModule(sp) then
-			local lat = ({ 0, -1, 1 })[(math.floor(sp * 0.0071) % 3) + 1] * voie
-			for _, face in { 1, -1 } do
-				table.insert(p.objets, { s = sp * M, lat = lat * M, h = 0.06 * M, face = face, kind = "pad" })
+			groupe += 1
+			if slal then
+				for k = 0, 2 do plot(sp + k * 15, ((k % 2 == 1) and -1 or 1) * w) end
+			else
+				for k = 0, 3 do plot(sp + k * 7.5, sd * (RH - 1.3)) end
 			end
 		end
-		sp += r(O.padTous[1], O.padTous[2])
+		sp += r(340, 860)
 	end
-	-- les cristaux de pouvoir (L23258)
+	-- ── 2e vague : LES PORTES DE FRÔLÉ (deux plots à 6 m, deux ou trois portes à la file) — elles se resserrent avec les portails ──
+	local z = math.min(3, zones)
+	sp = r(385, 605)
+	while sp < L - 170 do
+		local g = r(-1, 1) * (RH - 6)
+		local nP = (rnd:NextNumber() < 0.5) and 2 or 3
+		if not dansModule(sp) then
+			groupe += 1
+			for k = 0, nP - 1 do
+				plot(sp + k * 13, g - 3)
+				plot(sp + k * 13, g + 3)
+			end
+		end
+		sp += (560 - z * 40) + r(0, 500)
+	end
+
+	-- ── les PIÈCES : cinq motifs. Chaque motif (sauf l'éparpillé) est une SÉRIE : la prendre entière paie du flow ──
+	local serie = 0
+	local grp: number? = nil
+	local function piece(sq: number, lt: number)
+		if sq < 120 or sq > L - 50 or dansModule(sq) then return end
+		-- l'ESQUIVE : une pièce ne se pose jamais sur un plot ni dans une flaque
+		for _, c in plots do
+			if math.abs(c.s - sq) <= 3.4 and math.abs(c.lat - lt) <= 2.5 then
+				local cote = (lt >= c.lat) and 1 or -1
+				lt = c.lat + cote * 2.8
+				if math.abs(lt) > HALF then lt = c.lat - cote * 2.8 end
+			end
+		end
+		for _, f in flaques do
+			if math.abs(f.s - sq) <= f.r + 2.4 and math.abs(f.lat - lt) <= f.r + 1.4 then
+				local cote = (lt >= f.lat) and 1 or -1
+				lt = f.lat + cote * (f.r + 1.8)
+			end
+		end
+		lt = math.clamp(lt, -HALF, HALF)
+		for _, face in { 1, -1 } do
+			table.insert(p.objets, { s = sq * M, lat = lt * M, h = 1.3 * M, face = face, kind = "piece", grp = grp })
+		end
+	end
+	local function esp(v: number): number return v / rich end
+	local ss = O.debut
+	while ss < L - 90 do
+		if rnd:NextNumber() < 0.24 / rich then
+			ss += esp(r(120, 280)) -- une portion VIDE
+		else
+			local pat = rnd:NextNumber()
+			if pat < 0.80 then
+				serie += 1
+				grp = serie
+			else
+				grp = nil
+			end
+			if pat < 0.30 then -- ZIGZAG
+				local n, amp, ph, st = rnd:NextInteger(5, 8), HALF * r(0.7, 1), r(1.1, 2.4), r(10, 14) * STR
+				for i = 0, n - 1 do piece(ss + i * st, math.sin(i * ph) * amp) end
+				ss += esp(n * st / STR + r(70, 120))
+			elseif pat < 0.52 then -- ARC
+				local n, amp, sd, st = rnd:NextInteger(5, 8), HALF * r(0.75, 1), (rnd:NextNumber() < 0.5) and -1 or 1, r(11, 15) * STR
+				for i = 0, n - 1 do piece(ss + i * st, sd * amp * math.sin(i / (n - 1) * math.pi)) end
+				ss += esp(n * st / STR + r(70, 120))
+			elseif pat < 0.70 then -- CERCLE : un anneau à plat, étiré le long de la route
+				local R9, n = math.min(HALF, r(5.5, 9.5)), rnd:NextInteger(8, 11)
+				local Rs = R9 * STR
+				for i = 0, n - 1 do
+					local th = i / n * 6.2832
+					piece(ss + Rs + Rs * math.sin(th), R9 * math.cos(th))
+				end
+				ss += esp(2 * R9 + r(80, 130))
+			elseif pat < 0.80 then -- JACKPOT : une ligne dense
+				local n, st = rnd:NextInteger(12, 17), 6 * STR
+				for i = 0, n - 1 do piece(ss + i * st, math.sin(i * 0.55) * 2.4) end
+				ss += esp(n * st / STR + r(140, 220))
+			else -- ÉPARPILLÉ
+				local n, st = rnd:NextInteger(2, 4), r(20, 38) * STR
+				for i = 0, n - 1 do piece(ss + i * st, r(-1, 1) * HALF) end
+				ss += esp(n * st / STR + r(60, 110))
+			end
+		end
+	end
+
+	-- ── les cristaux de pouvoir : un tous les 860-1 620 m ──
 	local sc = r(380, 640)
 	local PW = Config.POUVOIRS
-	local cles = { "n", "a", "v", "m" }
-	while sc < L - 150 do
+	local cles = { "n", "a", "v", "m", "x" }
+	while sc < L - 140 do
 		local tot = 0
 		for _, k in cles do tot += PW[k].poids end
 		local x = rnd:NextNumber() * tot
@@ -458,9 +542,11 @@ function Piste.semer(p: Piste, rnd: Random, zone: number)
 			x -= PW[k].poids
 			if x <= 0 then pw = k; break end
 		end
-		local lat = r(-0.5, 0.5) * HALF
-		for _, face in { 1, -1 } do
-			table.insert(p.objets, { s = sc * M, lat = lat * M, h = 2.1 * M, face = face, kind = "cristal", pw = pw })
+		local lt = r(-1, 1) * (RH - 4)
+		if not dansModule(sc) then
+			for _, face in { 1, -1 } do
+				table.insert(p.objets, { s = sc * M, lat = lt * M, h = 2.1 * M, face = face, kind = "cristal", pw = pw })
+			end
 		end
 		sc += r(O.cristalTous[1], O.cristalTous[2])
 	end

@@ -113,7 +113,7 @@ end
 local function gagnee(i: number): boolean -- carUnlockedVrai
 	local k = Catalogue[i].cond
 	if k.k == "depart" or possede(i) then return true end
-	if k.k == "aura" then return rangAura(profil().auraMeilleur or 0) - 1 >= k.v end
+	if k.k == "aura" then return rangAura(profil().aura or 0) - 1 >= k.v end
 	return false
 end
 local function ouverte(i: number): boolean return Config.TEST_CAISSES == true or gagnee(i) end
@@ -590,7 +590,7 @@ local function condition(i: number): string
 	if k.k == "carnet" then return L.carnet end
 	if k.k == "carrN" then return string.format(L.carrN, 0) end
 	if k.k == "carrV" then return string.format(L.carrV, 0) end
-	if k.k == "aura" then return string.format(L.aura, L.rangs[k.v + 1] or "?", L.rangs[rangAura(profil().auraMeilleur or 0)]) end
+	if k.k == "aura" then return string.format(L.aura, L.rangs[k.v + 1] or "?", L.rangs[rangAura(profil().aura or 0)]) end
 	if k.k == "premium" then return L.boutique .. " — " .. eurTexte(k.eur) end
 	return ""
 end

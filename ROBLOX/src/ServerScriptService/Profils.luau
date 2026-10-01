@@ -23,6 +23,8 @@ function Profils.neuf(): Profil
 	return {
 		v = VERSION,
 		compte = 0, record = 0, auraMeilleur = 0,
+		aura = 0,      -- l'aura de TOUJOURS (elle fait le rang : ANONYME … DIVINITÉ DU CIEL)
+		frenRec = 0,   -- la plus longue frénésie (s)
 		caisses = { 0 }, caisse = 0, -- indices du jeu web : 0 = LA HONTE, la caisse de départ
 		peintures = {}, peinture = 0,
 		traines = {}, trainee = 0,
@@ -38,7 +40,7 @@ local function sain(p: any): Profil
 	for k, v in n do
 		if type(p[k]) == type(v) then n[k] = p[k] end
 	end
-	for _, k in { "compte", "record", "auraMeilleur" } do
+	for _, k in { "compte", "record", "auraMeilleur", "aura", "frenRec" } do
 		if n[k] ~= n[k] or n[k] < 0 or n[k] > 1e18 then n[k] = 0 end
 	end
 	local possede = {}

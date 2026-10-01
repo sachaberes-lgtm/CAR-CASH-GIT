@@ -3,10 +3,11 @@
 -- route et le montant final (pour le classement).
 --
 -- Les formules sont celles du jeu web, ligne pour ligne (index.html, numéros en commentaire) :
---   vA = la vitesse « du jeu » ; le monde avance de vA·SPD mètres par seconde ; km/h = vA·3,6·SPD.
+--   vA = la vitesse « du jeu » ; le monde avance de vA·SPD·vitMult mètres par seconde ; km/h = vA·3,6·SPD·vitMult.
 --   s  = la distance le long de la route (m), lat = l'écart latéral (m, droite +), psi = le cap de la
 --        caisse par rapport à la route (rad, droite +), side = la face (+1 dessus, −1 dessous).
--- En vol : fallPos (m, monde), fallVel (unités vA), airRot = l'orientation de la caisse.
+-- En vol : fallPos (m, monde), fallVel (unités vA), flyU = le « haut » du repère de vol.
+-- Le SCORE (flow, frénésie, chaîne d'aura) vit dans Client/Score : ici on lui dit ce qui arrive.
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -23,6 +24,8 @@ local Controles = require(CL:WaitForChild("Controles"))
 local Mer = require(CL:WaitForChild("Mer"))
 local Bus = require(CL:WaitForChild("Bus"))
 local Garage = require(CL:WaitForChild("Garage"))
+local Score = require(CL:WaitForChild("Score"))
+local HudScore = require(CL:WaitForChild("HudScore"))
 
 local M, SPD = Config.M, Config.SPD
 local RH, THICK = Config.ROAD_HALF, Config.THICK
@@ -33,6 +36,7 @@ local O = Config.OBJETS
 local E = Hud.E
 local T = Hud.T
 local FR = Hud.FR
+local function tr(fr: string, en: string): string return FR and fr or en end
 
 local cam = workspace.CurrentCamera
 -- le jeu web n'a ni fenêtre de chat ni tableau des joueurs : ils recouvraient la nitro et la pause
@@ -43,6 +47,9 @@ do
 	end
 end
 Hud.creer()
+HudScore.creer()
+Score.langue(FR)
+Score.fmtArgent = Hud.argent
 Hud.ecran("charge")
 
 -- ════════ la graine, la caisse ════════
@@ -59,8 +66,7 @@ local Caisse = require(CC:WaitForChild("Caisse"))
 local evPos = CC:WaitForChild("PosCaisse")
 local dossierCaisses = workspace:WaitForChild("Caisses")
 -- La caisse du serveur n'est qu'une boîte aux lettres (sa position part vers les autres joueurs) : chez moi
--- elle est cachée, et je dessine la MIENNE, ancrée, collée à ma physique. (1re version : la caisse du
--- serveur pilotée par « propriété réseau » — sans avatar, Roblox ne la donnait pas : caisse invisible.)
+-- elle est cachée, et je dessine la MIENNE, ancrée, collée à ma physique.
 local function cacher(m: Instance)
 	for _, d in m:GetDescendants() do
 		if d:IsA("BasePart") then d.LocalTransparencyModifier = 1
@@ -103,11 +109,17 @@ local function montrerCaisse(oui: boolean)
 end
 
 local record, compte, meilleurAura = 0, 0, 0
-CC:WaitForChild("ProfilMaj").OnClientEvent:Connect(function(p)
-	if type(p) ~= "table" then return end
+local function lireProfil(p: any)
 	local essai = Config.CAISSE_TEST
 	profil = p
 	if essai then profil.caisse = essai end
+	compte = p.compte or compte
+	meilleurAura = math.max(meilleurAura, p.auraMeilleur or 0)
+end
+lireProfil(profil)
+CC:WaitForChild("ProfilMaj").OnClientEvent:Connect(function(p)
+	if type(p) ~= "table" then return end
+	lireProfil(p)
 	Garage.majProfil()
 end)
 evRecord.OnClientEvent:Connect(function(v, c)
@@ -122,7 +134,8 @@ evRecord.OnClientEvent:Connect(function(v, c)
 end)
 
 -- ════════ les zones : la 1 est gardée toute la session, les suivantes se bâtissent en tâche de fond ════════
-type Zone = { z: number, pret: boolean, piste: Piste.Piste?, dossier: Folder?, objets: { any }?, grille: { [number]: { any } }? }
+type Zone = { z: number, pret: boolean, piste: Piste.Piste?, dossier: Folder?, objets: { any }?, grille: { [number]: { any } }?,
+	pads: { number }?, series: { [number]: number }?, prisSerie: { [number]: number }? }
 local ZONES: { [number]: Zone } = {}
 local CEL_OBJ = 25 * M
 local function cleObj(v: Vector3): number
@@ -143,13 +156,16 @@ local function preparer(z: number, depart: CFrame?): Zone
 		local objs = Construction.objets(p, d, ceder)
 		table.sort(objs, function(a, b) return a.o.s < b.o.s end)
 		local grille = {}
+		local pads, series = {}, {}
 		for _, o in objs do
 			local k = cleObj(o.pos)
 			grille[k] = grille[k] or {}
 			table.insert(grille[k], o)
+			if o.o.kind == "pad" and o.o.face == 1 then table.insert(pads, o.o.s / M) end
+			if o.o.kind == "piece" and o.o.grp and o.o.face == 1 then series[o.o.grp] = (series[o.o.grp] or 0) + 1 end
 		end
 		Construction.nuages(p, d, graine + z, ceder)
-		e.piste, e.dossier, e.objets, e.grille = p, d, objs, grille
+		e.piste, e.dossier, e.objets, e.grille, e.pads, e.series, e.prisSerie = p, d, objs, grille, pads, series, {}
 		e.pret = true
 	end)
 	return e
@@ -161,157 +177,282 @@ local function oublier(z: number)
 	ZONES[z] = nil
 end
 local function remettreObjets(e: Zone)
+	-- ce que LA LIGNE PARFAITE a posé pendant la partie d'avant s'en va (elle reposera sa file)
+	if e.objets then
+		local garde, change = {}, false
+		for _, o in e.objets do
+			if o.dyn then
+				o.p:Destroy()
+				change = true
+			else
+				table.insert(garde, o)
+			end
+		end
+		if change then
+			e.objets = garde
+			local grille, pads = {}, {}
+			for _, o in garde do
+				local k = cleObj(o.pos)
+				grille[k] = grille[k] or {}
+				table.insert(grille[k], o)
+				if o.o.kind == "pad" and o.o.face == 1 then table.insert(pads, o.o.s / M) end
+			end
+			e.grille, e.pads = grille, pads
+		end
+	end
 	for _, o in e.objets or {} do
 		o.pris = false
+		o.hk = nil
 		o.aimante = nil
+		o.touche = nil
+		o.frole = nil
+		o.dm = nil
 		o.p.CFrame = o.base
 		o.p.Parent = e.dossier
 	end
+	if e.prisSerie then table.clear(e.prisSerie) end
 end
 
 -- ════════ l'état de la partie ════════
-local mode = "charge" -- charge | menu | depart | drive | fall | boom | mort
+local mode = "charge" -- charge | menu | garage | drive | fall | boom | mort
 local enPause = false
 local zoneN = 1
 local zone: Zone
 local piste: Piste.Piste
 local s, lat, side, vA, psi, yawR, steerS, momT = 0, 0, 1, 0, 0, 0, 0, 0
-local boost, padCd, padTrain, padDernier = 0, 0, 0, -99
-local nitroR, nitroOn, nitroAirT, kickT, ntrHold, ntrBoost = 2, false, 0, 0, 0, 0
-local coinsGot, tier, combo, dernierePiece = 0, 0, 0, -99
+local sPrev, latPrev = 0, 0
+local boost = 0
+local nitroR, nitroX, nitroOn, nitroBleue = 2, 0, false, false
+local coinsGot, tier, combo = 0, 0, 0
 local argent, aura = Config.CASH_DEPART, 0
-local pwN, pwA, pwV, pwM = 0, 0, 0, 0
-local arretT, graceT, hitT = 0, 0, 0
-local distAvant, vmax, nbFig, serie, nbZones = 0, 0, 0, 0, 0
+local pwN, pwA, pwV, pwM, pwX = 0, 0, 0, 0, 0
+local graceT = 0
+-- (Luau refuse plus de 200 variables locales à la fois : l'état de la conduite fine vit dans G, celui du vol dans V)
+-- G : le drift, la fronde, le rase-bord, les flaques, les plots, le roulis, NITROOO, les pads, les compteurs de la partie
+local G = {
+	driftOn = false, driftC = 0, driftLv = 0, driftCd = 0, slipB = 0, slipT = 0, oilCd = 0,
+	virT = 0, virC = 0, virD = false, virPaye = false, frondeCd = 0, raseT = 0, raseAnn = false, froleN = 0, froleT = 0,
+	carRoll = 0, rollV = 0, levreY = 0, pureT = 0, pureArmed = true, pureNext = 0, pureLvl = 0, idleT = 0, idleMsg = 0,
+	padCd = 0, padN = 0, padSL = nil :: number?, comboT = 0, safeS = 0,
+	distAvant = 0, vmax = 0, serie = 0, nbZones = 0, tempsDepart = 0,
+	fruitRaf = 0, fruitRafT = 0,
+	lgS = 240, lgK = 0, lgV = 0, lgAcc = 20, -- LA LIGNE PARFAITE : la prochaine abscisse, fruit (0) ou pad (1), la vitesse et l'accélération lissées
+}
+local NTR = { on = false, t = 0, pal = 0, boost = 0, k = 0, kc = 0 }
+local NTR_BOOST, NTR_BOOST_MAX, NTR_T = 0.1, 1.6, 2
 -- vol
 local fallPos, fallVel, prevPos = Vector3.zero, Vector3.zero, Vector3.zero
-local airRot = CFrame.identity
-local fallT, fallTR, fallVH0, yawAcc, demiTours, dolphT, dolphPop, bumpCd, sDecol = 0, 0, 0, 0, 0, 0, 0, 0, 0
-local chainVal, chainMult, auraChaine, vus, echelon = 0, 1, 0, {}, 0
+local flyU, flyAv = Vector3.yAxis, Vector3.new(0, 0, -1)
+-- V : le vol
+local V = {
+	fallT = 0, fallTR = 0, fallVH0 = -1, yawAcc = 0, demiTours = 0, sDecol = 0,
+	bascOn = false, bascDir = 1, airRoll = 0, nAirTenu = false, kickT = 0, sideCd = 0, bounceN = 0,
+	fallUnder = false, fallStartSide = 1, flowS0 = 0, flowP0 = Vector3.zero,
+	curNear = false, curH = 0, curLat = 0, curT = 0,
+	chainVal = 0, chainMult = 1, chainN = 0, bigA = false, monstre = false, nitroAirT = 0, nitroAirTenue = 0,
+}
+local vus: { [string]: number } = {}
 local boomT, boomPos, causeMort = 0, Vector3.zero, "autre"
-local tempsDepart = 0
-local ralentiK, ralentiT = 1, 0 -- le RALENTI (la frénésie l'emploie) : facteur de temps et durée restante
-local secousse = 0 -- la vibration de caméra (atterrissage, explosion)
+local secousse, fovPunch = 0, 0
 local intro = false                          -- la CHUTE du départ : la caisse tombe du ciel sur la route
-local multiMax, piecesPrises = 1, 0
+local stats = { pieces = 0, poses = 0, parfaites = 0, fruits = 0, nitro = 0, duree = 0, chaine = 0, figures = 0 }
 local astucesVues = {}
 local eclats: { { p: BasePart, v: Vector3, r: Vector3, t: number } } = {}
 local carCF = CFrame.identity
-local carVel = Vector3.zero
+local menuRot = CFrame.identity -- la pose de la caisse au menu (la CHUTE), gardée pendant le plongeon du départ
 
--- le GUICHET de l'argent : toute recette y passe, multipliée par ce que les systèmes y branchent (FLOW, frénésie)
-Bus.multArgent = function(_source: string): number return 1 end
-local function encaisser(x: number, source: string): number
-	local g = x * Bus.multArgent(source)
-	argent += g
-	Bus.emit("argent", g, source)
-	return g
-end
 local function pousseMoteur(): number return MOT[tier + 1][2] end
 local function tardif(): number return 1 + math.min(0.5, math.max(0, tier - 8) * 0.035) end
-local function reservoir(): number return NI.resMin + (NI.resMax - NI.resMin) * tier / (#MOT - 1) end
+local function reservoir(): number return MOT[tier + 1].res or 2 end
 local function denom(): number return Config.DENOMS[tier + 1] * 0.25 end
 local function vmaxShow(): number return 190 * SPD * tardif() * pousseMoteur() end
-local function vitMult(): number return math.min(2.6, (pwV > 0 and 2 or 1) * (1 + ntrBoost)) end
+local function vitMult(): number return math.min(1 + NTR_BOOST_MAX, (pwV > 0 and 2 or 1) * (1 + NTR.boost)) end
 local function kmh(): number return math.abs(vA) * 3.6 * SPD * vitMult() end
+local function airMax(): number return Config.AIR_MAX end
+local function horiz(v: Vector3): number return math.sqrt(v.X * v.X + v.Z * v.Z) end
+-- la vitesse ÷ la croisière (flowVitN, L21005) : en vol, la vitesse HORIZONTALE seule
+local function vitN(): number
+	local vm = vmaxShow() * 2.9
+	if vm <= 0 then return 1 end
+	local v = (mode == "fall") and horiz(fallVel) or math.abs(vA)
+	return v * 3.6 * SPD / vm
+end
 
 local function repere(sM: number, face: number): CFrame
 	return Piste.repereFace(piste, sM * M, face)
 end
+local function nitroGain(q: number) nitroR = math.min(reservoir(), nitroR + q) end
+local function nitroPct(p: number) nitroGain(p * reservoir()) end
 
--- ════════ l'argent, le moteur, l'aura ════════
+-- ════════ ce que le score fait dire ════════
+local SON_DE = { ["fig.maillon"] = "maillon", ["aura.geste"] = "maillon", ["aura.encaisse1"] = "encaisse", ["aura.encaisse2"] = "encaisse",
+	["aura.encaisse3"] = "encaisse", ["aura.record"] = "record", ["frenesie"] = "record", ["flow.palier"] = "nitroPlein", ["frenesie.record"] = "record",
+	["flow.tic"] = "bip", ["frenesie.arme"] = "bip", ["plus.vite"] = "bip" }
+Score.dire.pop = function(txt: string, c: string?, prio: number?) Hud.pop(txt, HudScore.hex(c), (prio and prio >= 2) and 24 or 20) end
+Score.dire.slam = HudScore.slam
+Score.dire.flash = HudScore.flash
+Score.dire.tag = HudScore.tag
+Score.dire.verse = HudScore.verse
+Score.dire.fren = HudScore.fren
+Score.dire.fov = function(d: number) fovPunch = math.max(fovPunch, d) end
+Score.dire.son = function(nom: string, demiTons: number?)
+	local n = SON_DE[nom]
+	if n then Sons.jouer(n, demiTons and Sons.demiTons(demiTons) or nil) end
+end
+
+-- ════════ l'argent, le moteur ════════
+-- le GUICHET : toute recette de course passe ici, multipliée par le palier de FLOW (×1 · ×1,3 · ×1,5 · ×1,8 · ×3 en frénésie)
+local function encaisser(x: number, source: string): number
+	local g = x * Score.flowMult()
+	argent += g
+	Score.frenCash(g)
+	Bus.emit("argent", g, source)
+	return g
+end
 local function ajouterPieces(n: number)
 	coinsGot += n
 	local avant = tier
 	while tier < #MOT - 1 and coinsGot >= MOT[tier + 2][1] do tier += 1 end
 	if tier > avant then
-		Hud.pop(MOT[tier + 1].nom, Hud.C.or_, 26)
+		-- LE PASSAGE DE PALIER (L22576) : le nom du moteur, le rugissement, « +N KM/H »
+		local gain = math.floor(190 * SPD * (tardif() * pousseMoteur() - (1 + math.min(0.5, math.max(0, avant - 8) * 0.035)) * MOT[avant + 1][2]) * 2.9 + 0.5)
+		HudScore.slam(MOT[tier + 1].nom, tr("NOUVEAU MOTEUR", "NEW ENGINE"), "#ffd75e", "#dfeeff", 26, 1)
 		Sons.jouer("nitroPlein", 1.1)
+		boost = math.max(boost, 0.8)
+		fovPunch = math.max(fovPunch, 11)
+		secousse = math.max(secousse, 0.4)
+		task.delay(0.9, function()
+			if mode == "drive" or mode == "fall" then Hud.pop("+" .. gain .. " KM/H", Color3.fromRGB(125, 255, 154), 22) end
+		end)
 		Bus.emit("moteur", tier)
 	end
 end
 
-local ECHELLE = { { 2, "x2 CHAUD !" }, { 3, "x3 EN FEU !" }, { 4.5, FR and "x4.5 MILLIONNAIRE" or "x4.5 MILLIONAIRE" }, { 6, "x6 JACKPOT MAX" } }
-local function figure(nom: string, val: number, auraV: number)
-	local n = (vus[nom] or 0) + 1
-	vus[nom] = n
-	chainVal += val * 0.6 ^ (n - 1)
-	chainMult += (n == 1) and 0.5 or 0.15
-	auraChaine += auraV * 0.7 ^ (n - 1)
-	nbFig += 1
-	Bus.emit("figure", nom, val, auraV, n)
-	Hud.pop(nom, Hud.C.or_)
-	Sons.jouer("maillon", Sons.demiTons(math.min(12, nbFig * 2)))
-	while echelon < #ECHELLE and chainMult >= ECHELLE[echelon + 1][1] do
-		echelon += 1
-		Hud.grand(ECHELLE[echelon][2], echelon >= 3 and Hud.C.magenta or Hud.C.or_, 0.7)
+-- ════════ les FIGURES en vol (addTrick, L29397) ════════
+-- id = la famille ; val = sa valeur de chaîne ; rang 1-3 (ce qu'elle rend au flow) ; brut = pas de décote ; libre = ne compte pas dans la valeur
+local AURA_FIG = { vrille = 45, meteo = 100, airnitro = 120, bump = 30 }
+local function figure(id: string, txt: string, val: number, rang: number, brut: boolean?, libre: boolean?)
+	local n = (vus[id] or 0) + 1
+	vus[id] = n
+	if not libre then
+		V.chainVal += brut and val or val * 0.6 ^ (n - 1)
+		V.chainMult += (n == 1) and 0.5 or 0.15
 	end
+	V.chainN += 1
+	stats.figures += 1
+	stats.chaine = math.max(stats.chaine, V.chainN)
+	if id ~= "dauphin" then -- (le dauphin entre dans la chaîne d'aura à la POSE)
+		Score.geste(txt, AURA_FIG[id] or 40, id, id == "vrille" or id == "bump")
+	else
+		Hud.pop(txt, Color3.fromRGB(125, 255, 236), 22)
+	end
+	if mode == "fall" and not libre then
+		if id == "vrille" then Score.flowAdd(4, "risque", "n")
+		else Score.flowAdd(((rang >= 3) and 12 or (rang == 2 and 9 or 6)) * 0.6 ^ (n - 1), "risque", "n") end
+	end
+	Bus.emit("figure", id, val, n)
 end
 
--- ════════ la nitro ════════
-local function gererNitro(dt: number, auSol: boolean)
+-- ════════ la nitro : deux réservoirs (L36327) — l'orange se recharge seul, le BLEU ne vient que des fruits ════════
+local function gererNitro(dt: number)
 	local res = reservoir()
-	local veut = Controles.nitro
+	nitroR = math.min(res, nitroR + NI.regen * dt)
+	if pwN > 0 then nitroR = res end
 	local avant = nitroOn
-	if pwN > 0 then
-		nitroR = res
-		nitroOn = veut
-	else
-		if veut and (nitroOn and nitroR > 0.005 or nitroR > NI.seuil) then
-			nitroOn = true
-			nitroR -= NI.vide * dt
+	local total = nitroR + nitroX
+	nitroOn = Controles.nitro and ((nitroOn and total > 0.005) or total > NI.seuil) -- il faut 0,3 pour ALLUMER
+	if nitroOn and pwN <= 0 then
+		local prise = dt * ((Score.frenesie() or NTR.on) and Score.F2.frenNitro or 1) -- ×0,5 en frénésie ou en NITROOO (non cumulés)
+		if nitroR >= prise then
+			nitroR -= prise
 		else
-			nitroOn = false
+			prise -= nitroR
+			nitroR = 0
+			nitroX = math.max(0, nitroX - prise) -- l'orange d'abord, puis le bleu
 		end
-		if not nitroOn then nitroR = math.min(res, nitroR + NI.regen * dt) end
-		nitroR = math.max(0, nitroR)
 	end
-	if nitroOn and not avant and not auSol and kickT <= 0 then
-		-- le coup de pied à l'allumage en vol (L36221) : +46·poussée, une fois par 0,5 s, 12 % du réservoir
-		fallVel += (fallVel.Magnitude > 1 and fallVel.Unit or airRot.LookVector) * NI.coupAir * pousseMoteur()
-		kickT = 0.5
-		if pwN <= 0 then nitroR = math.max(0, nitroR - res * 0.12) end
-	end
-	-- NITROOO (L29222) : tenue 2 s au-dessus de min(400, 0,55·vmax) km/h → la vitesse se capitalise (+10 %/s)
-	if nitroOn and kmh() > math.min(400, 0.55 * vmaxShow()) then
-		ntrHold += dt
-		if ntrHold >= 2 then
-			if ntrBoost == 0 then Hud.grand("NITROOO !", Color3.fromRGB(255, 122, 36), 0.8); aura += 120 end
-			ntrBoost = (1 + ntrBoost) * (1.10 ^ dt) - 1 + 1e-6
-		end
-	else
-		ntrHold = 0
-		ntrBoost = math.max(0, ntrBoost - dt * 0.6)
-	end
+	nitroBleue = nitroOn and nitroR <= 0.01
+	if nitroOn then stats.nitro += dt end
 	if avant ~= nitroOn then
 		evEtat:FireServer("nitro", nitroOn)
 		Bus.emit("nitro", nitroOn)
 	end
 end
 
--- ════════ décoller (startFall, L29730) ════════
+-- ════════ NITROOO (L29695) : la nitro TENUE capitalise la vitesse (+10 % par seconde, plafond ×2,6) ════════
+local function nitroooPart()
+	if NTR.on then
+		NTR.kc = 1
+		return
+	end
+	NTR.on, NTR.t, NTR.kc, NTR.pal = true, 0, 1, 0
+	HudScore.flash("#ff781e", 0.6)
+	fovPunch = math.max(fovPunch, 9)
+	secousse = math.max(secousse, 0.35)
+end
+local function nitroooTick(dt: number)
+	local actif = NTR.on and nitroOn and (mode == "drive" or mode == "fall")
+	if NTR.on and not actif then NTR.on = false end
+	if actif then
+		NTR.t += dt
+		local pal = math.floor(NTR.t) -- UN PALIER par seconde tenue
+		if pal > NTR.pal and NTR.boost < NTR_BOOST_MAX - 0.001 then
+			NTR.pal = pal
+			NTR.kc = 1
+			local pct = math.floor(math.min(NTR_BOOST_MAX, (1 + NTR_BOOST) ^ pal - 1) * 100 + 0.5)
+			Hud.pop("+" .. pct .. " %", Color3.fromRGB(255, 176, 64), 20)
+			fovPunch = math.max(fovPunch, 4)
+			Sons.jouer("pad", Sons.demiTons(math.min(12, pal * 2)), 0.3)
+		end
+		NTR.boost = math.min(NTR_BOOST_MAX, math.max(NTR.boost, (1 + NTR_BOOST) ^ NTR.t - 1))
+	else
+		NTR.boost = math.max(0, NTR.boost - dt * 1.4) -- au lâcher : retombe en ~1 s
+	end
+	NTR.kc = math.max(0, NTR.kc - dt * 1.6)
+	local cible = actif and 1 or 0
+	NTR.k += (cible - NTR.k) * math.min(1, dt * (cible > NTR.k and 9 or 3.2))
+	if actif then secousse = math.max(secousse, 0.08 * NTR.k) end
+end
+
+-- ════════ décoller (startFall, L30229) ════════
 local function astuce(i: number)
 	if astucesVues[i] then return end
 	astucesVues[i] = true
 	Hud.astuce((Hud.tactile and T.astucesTactile or T.astuces)[i], 6)
 end
-local function decoller(impU: number, impF: number)
+-- impU = l'élan vers le haut ; impF = le coup d'accélérateur ; bord = on sort par le BORD (la bascule : ni saut ni élan)
+local function decoller(impU: number, impF: number, bord: boolean?)
 	local cf = repere(s, side)
 	local T_, B, N = cf.LookVector, cf.RightVector, cf.UpVector
-	local vL = vA * math.sin(psi)
-	fallPos = carCF.Position / M + N * 0.6
-	fallVel = T_ * (vA * impF * vitMult()) + B * (vL * vitMult()) + N * impU
+	local roulis = G.carRoll
+	local vm = vitMult()
+	local vL = vA * math.sin(psi - G.slipB)
+	fallPos = (cf.Position + B * (lat * M)) / M + N * (bord and 0 or 0.6)
+	fallVel = T_ * (vA * math.cos(psi - G.slipB) * impF * vm) + B * (vL * vm) + N * impU -- l'éjection = l'avance RÉELLE
 	if fallVel.Y > 70 then fallVel = Vector3.new(fallVel.X, 70, fallVel.Z) end
 	prevPos = fallPos
-	airRot = carCF.Rotation
+	flyAv = (fallVel.Magnitude > 1) and fallVel.Unit or T_
+	flyU = N - flyAv * N:Dot(flyAv)
+	flyU = (flyU.Magnitude > 1e-3) and flyU.Unit or N
 	if not intro then task.delay(0.6, function() if mode == "fall" then astuce(2) end end) end
-	fallT, fallTR, yawAcc, demiTours, dolphT, dolphPop, nitroAirT, bumpCd = 0, 0, 0, 0, 0, 0, 0, 0
-	fallVH0 = Vector3.new(fallVel.X, 0, fallVel.Z).Magnitude
-	chainVal, chainMult, auraChaine, echelon = 0, 1, 0, 0
+	V.fallT, V.fallTR, V.yawAcc, V.demiTours, V.nitroAirT, V.nitroAirTenue, V.sideCd, V.bounceN = 0, 0, 0, 0, 0, 0, 0, 0
+	V.fallVH0 = -1 -- le plafond horizontal se relève à la 1re image de vol
+	G.driftOn, G.driftC, G.driftLv, yawR, G.slipB, G.carRoll, G.rollV, G.levreY = false, 0, 0, 0, 0, 0, 0, 0
+	G.virT, G.virC, G.virD, G.virPaye = 0, 0, false, false -- un virage quitté par le bord ne paie pas la fronde
+	G.froleN, G.froleT = 0, 0
+	V.chainVal, V.chainMult, V.chainN, V.bigA, V.monstre = 0, 1, 0, false, false
 	table.clear(vus)
-	sDecol = s
+	V.sDecol = s
+	V.nAirTenu = nitroOn -- nitro TENUE depuis le sol : pas de coup d'allumage
+	V.fallUnder, V.fallStartSide = false, side
+	V.flowS0, V.flowP0 = s, fallPos
+	V.bascOn = bord == true
+	V.bascDir = bord and -((lat ~= 0) and math.sign(lat) or 1) or 1 -- la vrille tourne du côté du VIDE
+	V.airRoll = bord and roulis or 0
+	Score.dolDecolle()
 	mode = "fall"
-	Sons.jouer("decollage")
+	Score.ETAT.mode = "fall"
+	Sons.jouer("decollage", nil, bord and 0.25 or nil)
 	Bus.emit("decollage", intro)
 end
 
@@ -320,13 +461,13 @@ local function exploser(cause: string)
 	if mode == "boom" or mode == "mort" then return end
 	causeMort = cause
 	boomPos = carCF.Position
-	if chainVal > 0 and mode == "fall" then
-		Hud.pop(FR and "CHAINE PERDUE" or "CHAIN LOST", Hud.C.rouge)
-	end
-	Bus.emit("mort", cause, mode == "fall", chainVal)
+	Score.mort() -- la chaîne OUVERTE part avec la caisse, le flow retombe
+	Bus.emit("mort", cause, mode == "fall", V.chainVal)
 	mode = "boom"
+	Score.ETAT.mode = "boom"
 	boomT = 0
 	nitroOn = false
+	NTR.on, NTR.boost = false, 0
 	-- l'amas de cubes de feu + les éclats de carrosserie (pièces locales, rendues au bout de 2,5 s)
 	for _, e in eclats do e.p:Destroy() end
 	table.clear(eclats)
@@ -356,24 +497,20 @@ local function exploser(cause: string)
 	E.air.Visible = false
 end
 
--- ════════ atterrir (tryLand, L29832) ════════
+-- ════════ atterrir (tryLand, L30413-30570) ════════
 local voisins: { number } = {}
-local function nbFigVolN(): number
-	local n = 0
-	for _, v in vus do n += v end
-	return n
-end
-local function atterrir(j: number, face: number, latX: number, sX: number)
+local function atterrir(face: number, latX: number, sX: number)
 	side = face
 	s = sX
 	if intro then
 		-- la CHUTE du départ se pose : la course commence (ni note, ni perte de vitesse)
 		intro = false
 		lat = (face > 0) and latX or -latX
-		vA, psi, yawR = 40, 0, 0
+		vA, psi, yawR, G.slipB = 40, 0, 0, 0
 		mode = "drive"
+		Score.ETAT.mode = "drive"
 		graceT = 0.3
-		fallT, fallTR = 0, 0
+		V.fallT, V.fallTR = 0, 0
 		E.air.Visible = false
 		Hud.grand(T.niveau, Hud.C.texte, 1.8)
 		Sons.jouer("go")
@@ -385,71 +522,121 @@ local function atterrir(j: number, face: number, latX: number, sX: number)
 	end
 	local cf = repere(s, side)
 	local T_, B, N = cf.LookVector, cf.RightVector, cf.UpVector
-	local vM = vitMult()
+	local vm = vitMult()
 	local vT, vB, vN = fallVel:Dot(T_), fallVel:Dot(B), fallVel:Dot(N)
 	lat = (face > 0) and latX or -latX
-	vA = vT / vM
-	psi = math.clamp(math.atan2(vB * 0.4, math.abs(vT) + 1), -1.4, 1.4)
-	local perte = math.min(0.52, math.max(0, fallT - 0.8) * 0.15 + math.abs(vN) * 0.008)
+	-- la vitesse de vol redevient une vitesse de route (÷ vitMult : elle était partie multipliée)
+	local vTan, vLat = vT / vm, vB * 0.4 / vm
+	vA = vTan
+	psi = math.clamp(math.atan2(vLat, math.abs(vTan) + 1), -1.4, 1.4)
+	yawR, G.slipB = 0, 0
+	local perte = math.min(0.52, math.max(0, V.fallT - 0.8) * 0.15 + math.abs(vN) * 0.008)
 	vA *= 1 - perte
 	local impact = math.abs(vN)
-	-- la note de la pose
-	local angle = math.deg(math.acos(math.clamp(airRot.UpVector:Dot(N), -1, 1)))
-	local g, note, couleur, auraPose = 1, nil, Hud.C.texte, 0
-	if angle > 55 then
-		g, note, couleur = 0.65, FR and "DE TRAVERS" or "SIDEWAYS", Hud.C.rouge
+	-- la pose RATÉE : la trajectoire arrive à plus de 55° de l'axe de la route
+	local angle = math.deg(math.atan2(math.abs(vB), vT))
+	local ratee = math.sqrt(vT * vT + vB * vB) > 4 and angle > 55
+	-- SNAKE LOOP : passé SOUS la route, reposé sur la face de départ
+	local serpent = V.fallUnder and face == V.fallStartSide
+	if serpent then
+		V.chainVal += 14
+		V.chainMult += 0.5
+		Score.flowAdd(15, "risque", "m")
+		Score.geste("SNAKE LOOP", 320, "snake")
+	end
+	if math.abs(lat) < 0.3 * RH then
+		V.chainVal += 4
+		V.chainMult += 0.2
+	end
+	local g = (ratee and 0.65) or ((impact < 4.5 and perte < 0.2) and 1.5) or ((impact >= 10) and 0.65) or 1
+	G.serie += 1
+	local cachee = face < 0
+	local lv = Score.niveau()
+	local qG = V.chainVal * math.min(6, V.chainMult) * g * (cachee and 2 or 1) * (1 + lv * 0.5) * ((G.serie >= 2) and (1 + math.min(1, G.serie * 0.1)) or 1)
+	local paye = V.chainVal > 0 and qG * Config.DENOMS[tier + 1] >= 0.5 -- « cette pose porte une figure »
+	if paye then
+		Score.flowAdd((g >= 1.5) and 10 or 4, (g >= 1.5) and "risque" or "style", cachee and "m" or "n")
+		nitroGain(math.min(1.2, 0.45 + V.chainMult * 0.12) * ((g >= 1.5) and 1.5 or 1))
+		stats.poses += 1
+		ajouterPieces(math.clamp(math.floor(2 + qG / 6 + 0.5), 2, 18))
+		boost = math.max(boost, 0.5)
+		if g >= 1.5 then Score.geste(tr("POSE PARFAITE", "PERFECT LANDING"), 70, "pose") end
+	end
+	nitroPct(NI.pose) -- toute pose rend 20 % du réservoir
+	if g >= 1.5 and not ratee and (V.fallT > 0.7 or paye) then stats.parfaites += 1 end
+	-- ARRACHÉE / AU CHEVEU : posé juste avant la fin du chrono
+	local reste = airMax() - V.fallTR
+	if pwA <= 0 and reste <= 0.10 then
+		Score.geste(tr("AU CHEVEU", "BY A HAIR"), 220, "cheveu")
+		Score.flowAdd(20, "risque", "n")
+	elseif pwA <= 0 and reste <= 0.30 then
+		Score.geste(tr("ARRACHEE", "CLUTCH"), 120, "cheveu")
+		Score.flowAdd(12, "risque", "n")
+	end
+	-- LE RACCOURCI : la piste gagnée − la distance volée en ligne droite
+	local gagne = (s - V.flowS0) - (V.flowP0 - fallPos).Magnitude
+	local raccourci = false
+	if gagne >= 60 then
+		raccourci = true
+		Score.flowAdd(math.min(45, 12 + gagne * 0.06), "risque", "m")
+		Hud.pop(tr("RACCOURCI +", "SHORTCUT +") .. math.floor(gagne + 0.5) .. " M", Color3.fromRGB(125, 255, 236), 22)
+		nitroGain(0.3)
+		Score.gesteMuet(tr("RACCOURCI", "SHORTCUT"), math.floor(math.min(250, 60 + gagne * 0.2) + 0.5), "coupe")
+	elseif gagne >= 25 then
+		Score.frenTrait("m", gagne / 60) -- une petite coupe nourrit MACHIAVEL
+	end
+	-- le dauphin verse ce qu'il a nagé
+	Score.dolPose()
+	-- les fautes, la série de poses propres
+	if ratee then
 		Sons.jouer("poseLourde")
-	elseif impact < 4.5 and perte < 0.2 then
-		g, note, couleur, auraPose = 1.5, FR and "PARFAIT !" or "PERFECT!", Hud.C.or_, 70
-		hitT = 0.08
-		Sons.jouer("poseParfait")
 	elseif impact >= 10 then
-		g, note, couleur = 0.65, FR and "POSE LOURD" or "HEAVY LANDING", Hud.C.rouge
+		Score.flowFaute("n", 6, 0.5)
+		Hud.pop(tr("POSE LOURD", "HEAVY LANDING"), Hud.C.rouge, 20)
 		Sons.jouer("poseLourde")
+	elseif g >= 1.5 then
+		Sons.jouer("poseParfait")
 	else
 		Sons.jouer("poseChoc")
 	end
-	local reste = Config.AIR_MAX - fallTR
-	if pwA <= 0 and reste <= 0.10 then
-		note, auraPose = FR and "AU CHEVEU !" or "BY A HAIR!", auraPose + 220
-	elseif pwA <= 0 and reste <= 0.30 then
-		note, auraPose = FR and "A L'ARRACHEE !" or "JUST MADE IT!", auraPose + 120
+	nitroGain(Score.poseJugee(not ratee and impact < 10, V.fallT > 0.7))
+	-- LA FRÉNÉSIE : armée, elle part sur une figure POSÉE (ou un grand vol)
+	if not ratee and Score.frenPeut() and (V.chainN > 0 or V.bigA or (raccourci and Score.F2.decl.racc)) then Score.frenDeclenche() end
+	if ratee then
+		Score.flowCasse(angle)
+		secousse = math.max(secousse, 0.6)
 	end
-	if math.abs(lat) < 0.3 * RH then
-		chainVal += 4
-		chainMult += 0.2
-		auraPose += 30
-	end
-	if s - sDecol >= 60 then
-		auraPose += 150
-		Hud.grand((FR and "RACCOURCI +" or "SHORTCUT +") .. math.floor(s - sDecol) .. " M", Hud.C.cyan, 0.9)
-	end
-	if face < 0 then auraPose += 80 end
-	serie = (g >= 1) and serie + 1 or 0
-	local faceMul = (face < 0) and 2 or 1
-	local serieMul = (serie >= 2) and (1 + math.min(1, serie * 0.1)) or 1
-	multiMax = math.max(multiMax, math.min(6, chainMult))
-	local qG = chainVal * math.min(6, chainMult) * g * faceMul * serieMul
-	local res = reservoir()
-	local gainN = res * NI.pose
-	if chainVal > 0 then
-		ajouterPieces(math.clamp(math.floor(2 + qG / 6 + 0.5), 2, 18))
-		gainN += math.min(1.2, 0.45 + chainMult * 0.12) * (g >= 2 and 2 or g >= 1.5 and 1.5 or 1)
-	end
-	nitroR = math.min(res, nitroR + gainN)
-	local gainA = math.floor((auraChaine + auraPose) * math.min(6, chainMult) * g * faceMul + 0.5)
-	if gainA > 0 then
-		aura += gainA
-		E.chaine.Text = "+" .. Hud.entier(gainA) .. " " .. T.aura .. (face < 0 and (FR and "  · FACE CACHEE x2" or "  · UNDERSIDE x2") or "")
-		E.chaine.TextColor3 = Hud.C.magenta
-		task.delay(1.6, function() if mode ~= "fall" then E.chaine.Text = "" end end)
-		if chainVal > 0 then Sons.jouer("encaisse") end
-	end
-	if note then Hud.pop(note, couleur, 26) end
-	Bus.emit("pose", { g = g, impact = impact, face = face, chainVal = chainVal, chainMult = chainMult,
-		aura = gainA, raccourci = s - sDecol, figures = nbFigVolN(), note = note, fallT = fallT, reste = reste })
+	secousse = math.max(secousse, math.min(0.6, impact * 0.04))
+	Bus.emit("pose", { g = g, impact = impact, face = face, chainVal = V.chainVal, chainMult = V.chainMult, raccourci = gagne, figures = V.chainN, fallT = V.fallT, reste = reste })
 	mode = "drive"
+	Score.ETAT.mode = "drive"
 	graceT = 0.15
+	V.bascOn = false
+	E.air.Visible = false
+end
+
+-- la LÈVRE raccroche (levreRattrape, L30613) : la caisse qui bascule revient d'elle-même sur la route, −6 %
+local function levreRattrape(j: number, latOff: number, hOff: number, tOff: number)
+	local F = piste.F[j]
+	local vm = vitMult()
+	local vTan = fallVel:Dot(F.LookVector) / vm
+	local vLat = fallVel:Dot(F.RightVector) / vm
+	local DSm = piste.DS / M
+	s = math.clamp((j - 1) * DSm + math.clamp(tOff, -2, 2), 0, piste.len / M - 1)
+	side = 1
+	lat = math.sign(latOff) * (RH - 0.05)
+	psi = math.clamp(math.atan2(vLat, math.abs(vTan) + 1), -1.4, 1.4)
+	yawR, G.slipB = 0, 0
+	vA = vTan * 0.94
+	G.levreY = math.min(0, hOff)
+	G.carRoll = math.clamp(V.airRoll, -0.42, 0.42)
+	G.rollV = 0
+	mode = "drive"
+	Score.ETAT.mode = "drive"
+	V.bascOn = false
+	Score.dolFin() -- (rien n'est payé ni rendu : ce que le dauphin a nagé attendra la prochaine pose)
+	secousse = math.max(secousse, 0.28)
+	Sons.jouer("poseChoc", 1.2, 0.3)
 	E.air.Visible = false
 end
 
@@ -457,17 +644,74 @@ local function essayerAtterrir(dt: number)
 	local pos = fallPos * M
 	local prev = prevPos * M
 	local DSm = piste.DS / M
-	local bestJ, bestFace, bestLat, bestS, bestD = nil, 1, 0, 0, math.huge
-	local dolphH = math.huge
+	local demi = poignees.fiche.w * 0.5
 	local vol = (fallPos - prevPos).Magnitude
-	for _, j in Piste.autour(piste, pos, voisins) do
+	-- ── le RADAR : le point de piste le plus proche (dauphin, serpent, sursis, lèvre, bump) ──
+	local proche, dProche = nil, math.huge
+	local liste = Piste.autour(piste, pos, voisins)
+	for _, j in liste do
+		local d = (piste.F[j].Position - pos).Magnitude
+		if d < dProche then proche, dProche = j, d end
+	end
+	V.curNear = proche ~= nil and dProche < 40 * M
+	if V.curNear and proche then
+		local F = piste.F[proche]
+		local lc = F:PointToObjectSpace(pos)
+		local hOff, latOff, tOff = lc.Y / M, lc.X / M, -lc.Z / M
+		V.curH, V.curLat, V.curT = hOff, latOff, tOff
+		local N, B = F.UpVector, F.RightVector
+		local vN, vB = fallVel:Dot(N), fallVel:Dot(B)
+		local prevL = latOff - vB * dt * SPD
+		-- le SERPENT : passer SOUS la dalle, dans sa largeur
+		if not V.fallUnder and math.abs(latOff) < RH and ((V.fallStartSide > 0 and hOff < -THICK - 1) or (V.fallStartSide <= 0 and hOff > 1)) then V.fallUnder = true end
+		if V.bascOn and V.fallStartSide > 0 and not intro then
+			-- (a) LE SURSIS : la caisse est PORTÉE par la lèvre tant qu'elle bascule
+			if V.fallT < 0.45 or math.abs(latOff) < RH + demi then
+				local hS = -0.35 * math.min(1, math.max(V.fallT / 0.45, (math.abs(latOff) - RH) / demi))
+				if hOff < hS then
+					fallPos += N * (hS - hOff)
+					if vN < 0 then fallVel += N * (-vN) end
+					pos = fallPos * M
+				end
+			end
+			-- (b) LA LÈVRE RACCROCHE : la caisse REVIENT vers la route dans les 0,8 s
+			if V.sideCd <= 0 and V.fallT < 0.8 and hOff > -1.2 and hOff < 0.8 and math.abs(latOff) < RH + demi and vB * math.sign(latOff) < -0.5 then
+				levreRattrape(proche, latOff, hOff, tOff)
+				return
+			end
+		end
+		-- (c) le BUMP sur la tranche de la dalle
+		local sgL = math.sign(latOff)
+		local bumpIn = math.abs(latOff) >= RH and math.abs(latOff) < RH + 2.6 and vB * sgL < -3
+		local bumpThru = math.abs(prevL) >= RH and math.abs(latOff) < RH and math.sign(prevL) * vB < -3
+		if V.sideCd <= 0 and not intro and hOff > -THICK - 0.8 and hOff < 0.8 and (bumpIn or bumpThru) then
+			local sg = bumpThru and math.sign(prevL) or sgL
+			fallVel += B * (-vB * 1.65)
+			fallVel *= 0.78
+			fallVel += Vector3.new(0, 2.4, 0)
+			fallPos += B * (sg * math.max(bumpThru and 0 or math.abs(latOff), RH + demi) - latOff) -- remise CONTRE la tranche
+			V.sideCd = 0.35
+			V.bounceN += 1
+			nitroGain(0.35)
+			Score.flowAdd(6, "style")
+			V.fallT = math.max(0, V.fallT - airMax() * 0.5) -- DEMI-JAUGE rendue
+			V.fallTR = math.max(0, V.fallTR - airMax() * 0.5)
+			local noms = { "BUMP", "DOUBLE BUMP", "TRIPLE BUMP" }
+			figure("bump", noms[V.bounceN] or ("MEGA BUMP x" .. V.bounceN), 0, math.min(3, V.bounceN), true, true)
+			secousse = math.max(secousse, math.min(1.3, 0.3 + math.abs(vB) * 0.03))
+			Sons.jouer("poseChoc", 1.3)
+			return
+		end
+	end
+	-- ── (d) la POSE : le point EXACT où la trajectoire traverse le plan de la route ──
+	local bestFace, bestLat, bestS, bestD, trouve = 1, 0, 0, math.huge, false
+	for _, j in liste do
 		local F = piste.F[j]
 		local lc = F:PointToObjectSpace(pos)
 		local lp = F:PointToObjectSpace(prev)
 		local h, hp = lc.Y / M, lp.Y / M
 		local la, z = lc.X / M, -lc.Z / M
-		local N = F.UpVector
-		local vN = fallVel:Dot(N)
+		local vN = fallVel:Dot(F.UpVector)
 		local tranche = DSm * 0.6 + vol
 		if math.abs(z) <= tranche then
 			-- la face du DESSUS
@@ -477,11 +721,11 @@ local function essayerAtterrir(dt: number)
 				lx = (lp.X + (lc.X - lp.X) * t) / M
 				zx = -(lp.Z + (lc.Z - lp.Z) * t) / M
 				ok = math.abs(zx) <= DSm * 0.6
-			elseif fallT > 0.35 and h > -1.2 and h < 3 and vN < 4.5 and math.abs(z) <= DSm * 0.6 then
+			elseif V.fallT > 0.35 and h > -1.2 and h < 3 and vN < 4.5 and math.abs(z) <= DSm * 0.6 then
 				ok = true
 			end
 			if ok and math.abs(lx) < RH and math.abs(h) < bestD then
-				bestJ, bestFace, bestLat, bestS, bestD = j, 1, lx, (j - 1) * DSm + zx, math.abs(h)
+				bestFace, bestLat, bestS, bestD, trouve = 1, lx, (j - 1) * DSm + zx, math.abs(h), true
 			end
 			-- la face du DESSOUS (on s'y colle en remontant)
 			local ok2, lx2, zx2 = false, la, z
@@ -490,82 +734,102 @@ local function essayerAtterrir(dt: number)
 				lx2 = (lp.X + (lc.X - lp.X) * t) / M
 				zx2 = -(lp.Z + (lc.Z - lp.Z) * t) / M
 				ok2 = math.abs(zx2) <= DSm * 0.6
-			elseif fallT > 0.35 and h > -THICK - 3 and h < -THICK + 1.2 and vN > -4.5 and math.abs(z) <= DSm * 0.6 then
+			elseif V.fallT > 0.35 and h > -THICK - 3 and h < -THICK + 1.2 and vN > -4.5 and math.abs(z) <= DSm * 0.6 then
 				ok2 = true
 			end
 			if ok2 and math.abs(lx2) < RH and math.abs(h + THICK) < bestD then
-				bestJ, bestFace, bestLat, bestS, bestD = j, -1, lx2, (j - 1) * DSm + zx2, math.abs(h + THICK)
-			end
-			-- le radar du DAUPHIN : une dalle 2,2-12 m sous la caisse
-			if math.abs(la) < RH and h > 2.2 and h < 12 and h < dolphH then dolphH = h end
-			-- la TRANCHE de la dalle (BUMP, L29858) : on rebondit dessus au lieu de la traverser
-			if bumpCd <= 0 and math.abs(la) >= RH and math.abs(la) < RH + 2.6 and h > -THICK - 0.8 and h < 0.8 and math.abs(z) <= DSm * 0.6 then
-				local B = F.RightVector
-				local vB = fallVel:Dot(B)
-				if vB * math.sign(la) < -3 then
-					fallVel += B * (-vB * 1.65)
-					fallVel *= 0.78
-					fallVel += Vector3.new(0, 2.4, 0)
-					fallPos = (F.Position + B * (math.sign(la) * (RH + 1.8) * M) + F.UpVector * lc.Y) / M
-					bumpCd = 0.35
-					fallTR *= 0.5
-					nitroR = math.min(reservoir(), nitroR + 0.35)
-					figure("BUMP", 0, 30)
-					Sons.jouer("poseChoc", 1.3)
-				end
+				bestFace, bestLat, bestS, bestD, trouve = -1, lx2, (j - 1) * DSm + zx2, math.abs(h + THICK), true
 			end
 		end
 	end
-	if dolphH < math.huge then
-		local prox = 1 - (dolphH - 2.2) / 9.8
-		chainVal += 14 * prox * prox * dt
-		dolphT += dt
-		if dolphPop == 0 and dolphT > 0.4 then
-			dolphPop = 1
-			figure(FR and "LE DAUPHIN" or "THE DOLPHIN", 0, 150)
-		elseif dolphPop == 1 and dolphT > 2.4 then
-			dolphPop = 2
-			figure(FR and "DAUPHIN ROYAL" or "ROYAL DOLPHIN", 6, 150)
-		end
+	if trouve then atterrir(bestFace, bestLat, bestS) end
+end
+
+-- ════════ les pouvoirs v2 (pwrPrend, L23479) : le même pouvoir se CUMULE (plafond 2 × sa durée) ════════
+local function pouvoirPrend(k: string)
+	local d = Config.POUVOIRS[k]
+	local autres = 0
+	for kk, v in { n = pwN, a = pwA, v = pwV, m = pwM, x = pwX } do
+		if kk ~= k and v > 0 then autres += 1 end
 	end
-	if bestJ then atterrir(bestJ, bestFace, bestLat, bestS) end
+	local function cumule(v: number): number return math.min(d.duree * 2, v + d.duree) end
+	if k == "n" then pwN = cumule(pwN) elseif k == "a" then pwA = cumule(pwA) elseif k == "v" then pwV = cumule(pwV)
+	elseif k == "m" then pwM = cumule(pwM) else pwX = cumule(pwX) end
+	HudScore.slam(FR and d.nom or d.nomEN, nil, "#" .. d.couleur:ToHex(), nil, 26, 1)
+	secousse = math.max(secousse, 0.35)
+	HudScore.flash("#" .. d.couleur:ToHex(), 0.35)
+	Sons.jouer("nitroPlein")
+	if autres >= 1 then
+		local tri = autres >= 2
+		Score.gesteMuet(tri and tr("TRIPLE POUVOIR", "TRIPLE POWER") or tr("DOUBLE POUVOIR", "DOUBLE POWER"), tri and 150 or 70, "pwrCombo", true)
+	end
+	Bus.emit("pouvoir", k)
 end
 
 -- ════════ les objets ════════
 local oi = 1
+local FRUITS = Config.FRUITS
 local function ramasser(o: any)
+	local k = o.o.kind
+	if k == "pad" then
+		if G.padCd > 0 and not o.o.ligne then return end
+		-- LE TRAIN DE BOOSTS (padTrain, L28672) : un pad sauté entre le dernier pris et celui-ci casse le train
+		local sp = o.o.s / M
+		local rate = G.padSL == nil or sp < (G.padSL :: number)
+		if not rate then
+			for _, q in zone.pads or {} do
+				if q > (G.padSL :: number) + 8 and q < sp - 8 then
+					rate = true
+					break
+				end
+			end
+		end
+		G.padN = rate and 1 or G.padN + 1
+		G.padSL = sp
+		local trk = math.min(5, G.padN) - 1
+		vA += O.padPousse + 5 * trk
+		boost = math.max(boost, O.padBoost + 0.2 * trk)
+		if not o.o.ligne then G.padCd = 1.5 end
+		nitroGain(o.o.ligne and 1.15 or 0.12)
+		Score.flowAdd(6 + 2 * trk, "route", "p")
+		momT = math.min(4.3, momT + 0.8)
+		secousse = math.max(secousse, 0.3 + 0.04 * trk)
+		fovPunch = math.max(fovPunch, 10 + 2 * trk)
+		HudScore.flash("#ff9600", 0.3)
+		Sons.jouer("pad", Sons.demiTons(({ 0, 2, 4, 7, 9 })[trk + 1]))
+		Hud.pop((G.padN > 1) and ("BOOST x" .. G.padN) or "BOOST", Color3.fromRGB(255, 176, 0), 22)
+		Bus.emit("pad", G.padN)
+		if o.o.ligne then
+			o.pris = true
+			o.p.Parent = nil
+		end
+		return
+	end
 	o.pris = true
 	o.p.Parent = nil
-	local k = o.o.kind
 	if k == "piece" then
-		local t = os.clock()
-		combo = (t - dernierePiece < O.combo) and combo + 1 or 1
-		dernierePiece = t
+		combo += 1
+		G.comboT = 3
+		if combo % 5 == 0 then Score.geste(tr("RECOLTE", "HARVEST") .. " x" .. combo, 30, "recolte", true) end -- LA RÉCOLTE
+		stats.pieces += 1
+		ajouterPieces(1)
+		Score.flowAdd(0.7, "route")
+		-- SÉRIE COMPLÈTE (coinSerie, L21080) : la DERNIÈRE pièce d'un motif, toutes prises
+		local grp = o.o.grp
+		if grp and zone.series and zone.prisSerie and mode == "drive" then
+			local n = zone.series[grp] or 0
+			zone.prisSerie[grp] = (zone.prisSerie[grp] or 0) + 1
+			if n >= 4 and zone.prisSerie[grp] == n then
+				Score.flowAdd(3 + n * 0.4, "style", "n")
+				Hud.pop(tr("SERIE COMPLETE x", "FULL SET x") .. n, Hud.C.or_, 20)
+			end
+		end
 		local mult = math.min(2.5, 1 + 0.5 * math.floor(combo / 5))
 		local g = encaisser(denom() * 2.2 * mult, "piece")
-		piecesPrises += 1
-		ajouterPieces(1)
 		Bus.emit("piece", g, combo)
 		Sons.jouer("piece", Sons.demiTons(({ 0, 2, 4, 7, 9, 12, 14, 16 })[((combo - 1) % 8) + 1]))
-	elseif k == "pad" then
-		if padCd > 0 then return end
-		padTrain = (os.clock() - padDernier < 14) and math.min(5, padTrain + 1) or 1
-		padDernier = os.clock()
-		vA += O.padPousse + 5 * (padTrain - 1)
-		boost = O.padBoost + 0.2 * padTrain
-		padCd = 1.5
-		nitroR = math.min(reservoir(), nitroR + 0.12)
-		Sons.jouer("pad", Sons.demiTons((padTrain - 1) * 2))
-		Bus.emit("pad", padTrain)
-		if padTrain >= 2 then Hud.pop("BOOST x" .. padTrain, Color3.fromRGB(255, 176, 64)) end
 	elseif k == "cristal" then
-		local pw = Config.POUVOIRS[o.o.pw]
-		if o.o.pw == "n" then pwN = pw.duree elseif o.o.pw == "a" then pwA = pw.duree
-		elseif o.o.pw == "v" then pwV = pw.duree else pwM = pw.duree end
-		Hud.grand(Hud.FR and pw.nom or pw.nomEN, pw.couleur, 1)
-		Sons.jouer("nitroPlein")
-		Bus.emit("pouvoir", o.o.pw)
-		aura += 50
+		pouvoirPrend(o.o.pw)
 		-- le cristal de l'autre face disparaît avec lui (on ne le prend qu'une fois)
 		for _, x in zone.objets :: { any } do
 			if x ~= o and x.o.kind == "cristal" and math.abs(x.o.s - o.o.s) < 1 and not x.pris then
@@ -573,7 +837,113 @@ local function ramasser(o: any)
 				x.p.Parent = nil
 			end
 		end
+	elseif k == "fruit" then
+		-- un fruit = +20 % de la jauge en réserve BLEUE (fruit de la LIGNE : +1,15) ; ni argent ni moteur
+		nitroX = math.min(2, nitroX + (o.o.ligne and 1.15 or 0.2 * reservoir()))
+		stats.fruits += 1
+		local fd = FRUITS[o.o.fruit or 1]
+		-- LA RAFALE (fruitCroque, L29230) : 3 fruits et plus à moins de 2,6 s l'un de l'autre
+		G.fruitRafT = 2.6
+		G.fruitRaf += 1
+		local rf = math.min(6, G.fruitRaf)
+		secousse = math.max(secousse, math.min(0.55, 0.18 + rf * 0.07))
+		if G.fruitRaf >= 3 then Score.geste(tr("RAFALE", "STREAK") .. " x" .. G.fruitRaf, 40 + rf * 30, "rafale", true) end
+		if fd.boost >= 1.5 then
+			HudScore.slam(tr("PASTEQUE !", "WATERMELON!"), nil, "#e8253f", nil, 30, 1)
+			secousse = math.max(secousse, 0.3)
+		end
+		HudScore.flash("#" .. fd.couleur:ToHex(), 0.18 + 0.1 * math.min(1, fd.boost / 2))
+		Bus.emit("fruit", o.o.fruit, o.pos, fd)
+		Sons.jouer("piece", 0.8 + math.min(5, rf - 1) * 0.025)
+		-- le jumeau de l'autre face part avec lui
+		for _, x in zone.objets :: { any } do
+			if x ~= o and x.o.kind == "fruit" and math.abs(x.o.s - o.o.s) < 1 and not x.pris then
+				x.pris = true
+				x.p.Parent = nil
+			end
+		end
 	end
+end
+
+-- l'écart latéral MINIMAL à un objet pendant le trajet de l'image (balEcart, L28121) : rien ne passe « à travers »
+local function balEcart(so: number, w: number, sA: number, sB: number, lA: number, lB: number, lo: number): number
+	local a, b = math.min(sA, sB), math.max(sA, sB)
+	if b < so - w or a > so + w then return math.huge end
+	if b - a < 1e-6 then return math.abs(lA - lo) end
+	local t0 = math.clamp((so - w - sA) / (sB - sA), 0, 1)
+	local t1 = math.clamp((so + w - sA) / (sB - sA), 0, 1)
+	local l0, l1 = lA + (lB - lA) * t0, lA + (lB - lA) * t1
+	if (l0 - lo) * (l1 - lo) <= 0 then return 0 end
+	return math.min(math.abs(l0 - lo), math.abs(l1 - lo))
+end
+
+-- les plots volants (un plot percuté part devant, rebondit, se replie)
+local volants: { { p: BasePart, v: Vector3, r: Vector3, vie: number } } = {}
+local function obstacles(dt: number, cf: CFrame)
+	-- les PLOTS (choc, frôlé) et les FLAQUES, sur la face où l'on roule — balayés : rien ne passe à travers
+	local objs = zone.objets :: { any }
+	local sM = s * M
+	G.oilCd = math.max(0, G.oilCd - dt)
+	local bal = math.abs(s - sPrev) < 60
+	local sA = bal and sPrev or s
+	local lA = bal and latPrev or lat
+	local fr, fd, fk = nil, math.huge, 0
+	for k = oi, #objs do
+		local o = objs[k]
+		if o.o.s > sM + 40 * M then break end
+		if o.o.face == side and not o.pris then
+			local so, lo = o.o.s / M, o.o.lat / M
+			if o.o.kind == "plot" and not o.touche then
+				local e = balEcart(so, 2.6, sA, s, lA, lat, lo)
+				if e < math.huge then o.dm = math.min(o.dm or math.huge, e) end
+				if e < 1.6 then
+					-- LE CHOC : il part devant, la caisse perd 1,5 %
+					o.touche = true
+					local dl = lat - lo
+					local v = cf.LookVector * math.max(8, math.abs(vA) * 0.55) + cf.RightVector * ((dl > 0 and -1 or 1) * (2 + math.random() * 4))
+						+ cf.UpVector * (5 + math.random() * 5)
+					table.insert(volants, { p = o.p, v = v * M * 0.6, r = Vector3.new(math.random() * 16 - 8, 0, math.random() * 16 - 8), vie = 1.6 })
+					vA *= 0.985
+					secousse = math.max(secousse, 0.14)
+					Score.flowFaute("n", 0, 0.25)
+					Sons.jouer("poseChoc", 1.6, 0.3)
+				elseif not o.frole and o.dm and so <= s - 2.6 then
+					-- LE FRÔLÉ : le plot est passé derrière sans être touché, à moins de 3,6 m
+					o.frole = true
+					if graceT <= 0 and kmh() > vmaxShow() * 0.45 and o.dm >= 1.6 and o.dm < 3.6 then
+						fk += 1
+						if o.dm < fd then fd, fr = o.dm, o end
+					end
+				end
+			elseif o.o.kind == "flaque" and G.oilCd <= 0 then
+				local r = o.o.r or 2.5
+				if balEcart(so, r + 2, sA, s, lA, lat, lo) < r + 0.6 then
+					G.slipT, G.oilCd = 0.75, 1.2
+					secousse = math.max(secousse, 0.2)
+					Sons.jouer("poseChoc", 0.7, 0.3)
+				end
+			elseif o.o.kind == "pad" then
+				if balEcart(so, 6, sA, s, lA, lat, lo) < 4.1 then ramasser(o) end
+			elseif o.o.kind == "fruit" and o.o.ligne then
+				if balEcart(so, 1.5, sA, s, lA, lat, lo) < 4.5 then ramasser(o) end
+			end
+		end
+	end
+	if fr then
+		local pres = math.clamp(1 - (fd - 1.6) / 2, 0, 1)
+		G.froleN += fk
+		G.froleT = 1.4
+		local m = (fk > 1) and 1.5 or 1 -- une PORTE (deux plots dans la même image) : ×1,5
+		nitroGain((0.08 + 0.08 * pres) * m)
+		Score.flowAdd((4 + 4 * pres) * m, "style", "n")
+		momT = math.min(4.3, momT + 0.6)
+		Score.gesteMuet((G.froleN >= 2) and ("SLALOM x" .. G.froleN) or tr("FROLE", "CLOSE CALL"), 20, "frole")
+		if fk == 1 and G.froleN >= 2 then Hud.pop("SLALOM x" .. G.froleN, (G.froleN >= 3) and Hud.C.or_ or Color3.fromRGB(125, 255, 236), 20) end
+		fovPunch = math.max(fovPunch, 1.5 + 2 * pres)
+		Sons.jouer("maillon", Sons.demiTons(math.min(12, G.froleN * 2)), 0.3)
+	end
+	G.froleT -= dt
+	if G.froleT <= 0 then G.froleN = 0 end
 end
 
 local function objets(dt: number, pos: Vector3, t: number)
@@ -581,15 +951,19 @@ local function objets(dt: number, pos: Vector3, t: number)
 	-- les pièces proches tournent (les autres dorment : zéro coût)
 	local sM = s * M
 	while oi <= #objs and objs[oi].o.s < sM - 60 * M do oi += 1 end
-	local ang = CFrame.Angles(0, t * 3, 0)
+	local ang = CFrame.Angles(0, t * 2.5, 0)
 	for k = oi, #objs do
 		local o = objs[k]
 		if o.o.s > sM + 160 * M then break end
-		if not o.pris and o.o.kind ~= "pad" and not o.aimante then o.p.CFrame = o.base * ang end
+		local kd = o.o.kind
+		if not o.pris and not o.aimante and (kd == "piece" or kd == "cristal" or kd == "fruit") then o.p.CFrame = o.base * ang end
 	end
-	-- ramassage et aimant, par la grille (marche au sol comme en vol)
-	local rayonA = (pwM > 0) and 50 or ((mode == "drive") and O.aimant or 0)
-	local r = math.max(1, math.ceil(rayonA * M / CEL_OBJ))
+	-- ramassage, attraction, aimant (pickupsTick, L36093) — au sol comme en vol
+	local mag = (tier >= 15) and 1 or 0 -- la capacité moteur « AIMANT À PIÈCES »
+	local enVol = mode == "fall"
+	local face = enVol and ((V.curNear and ((V.curH < -THICK * 0.5) and -1 or 1)) or V.fallStartSide) or side
+	local rayonMax = (pwM > 0) and 50 or (enVol and (11 + mag * 3) or (15 + mag * 2))
+	local r = math.max(1, math.ceil(rayonMax * M / CEL_OBJ))
 	local cx, cy, cz = math.floor(pos.X / CEL_OBJ), math.floor(pos.Y / CEL_OBJ), math.floor(pos.Z / CEL_OBJ)
 	local g = zone.grille :: { [number]: { any } }
 	for dx = -r, r do
@@ -598,18 +972,26 @@ local function objets(dt: number, pos: Vector3, t: number)
 				local l = g[(cx + dx + 4096) * 67108864 + (cy + dy + 4096) * 8192 + (cz + dz + 4096)]
 				if l then
 					for _, o in l do
-						if not o.pris and (mode ~= "drive" or o.o.face == side) then
+						local kd = o.o.kind
+						if not o.pris and o.o.face == face and kd ~= "plot" and kd ~= "flaque" then
 							local d = (o.p.Position - pos).Magnitude / M
-							if o.o.kind == "pad" then
-								if mode == "drive" and o.o.face == side then
-									local loc = carCF:PointToObjectSpace(o.pos)
-									if math.abs(loc.X) < 4.1 * M and math.abs(loc.Z) < 6 * M then ramasser(o) end
-								end
-							elseif d < O.rayon + (o.o.kind == "cristal" and 1 or 0) then
+							if kd == "pad" then
+								-- (les pads se prennent au balayage, au sol : voir obstacles)
+							elseif d < O.rayon + mag * 0.5 then
 								ramasser(o)
-							elseif o.o.kind == "piece" and d < rayonA then
+							elseif kd ~= "cristal" and pwM > 0 and d < 50 then
+								-- la sphère de l'AIMANT : plus la pièce est près, plus elle fonce
+								local q = 1 - d / 50
 								o.aimante = true
-								o.p.CFrame = o.p.CFrame:Lerp(CFrame.new(pos + carCF.UpVector * M), math.min(1, dt * 9))
+								o.p.CFrame = o.p.CFrame:Lerp(CFrame.new(pos + carCF.UpVector * M), math.min(1, dt * (5 + 25 * q * q)))
+							elseif enVol and d < 11 + mag * 3 then
+								-- l'ACCROCHE en vol : ce qu'on frôle vient à la caisse
+								o.hk = (o.hk or 0) + dt
+								o.aimante = true
+								o.p.CFrame = o.p.CFrame:Lerp(CFrame.new(pos), math.min(1, dt * (5.5 + 30 * o.hk)))
+							elseif not enVol and math.abs(o.o.s / M - s) < 15 + mag * 2 and math.abs(o.o.lat / M - lat) < 9 + mag * 2 then
+								o.aimante = true
+								o.p.CFrame = o.p.CFrame:Lerp(CFrame.new(pos + carCF.UpVector * M), math.min(1, dt * (6 + mag * 1.5)))
 							end
 						end
 					end
@@ -617,11 +999,118 @@ local function objets(dt: number, pos: Vector3, t: number)
 			end
 		end
 	end
+	-- les plots percutés volent 1,6 s
+	for i = #volants, 1, -1 do
+		local v = volants[i]
+		v.vie -= dt
+		v.v -= Vector3.new(0, 24 * M * dt, 0)
+		v.p.CFrame = (v.p.CFrame + v.v * dt) * CFrame.Angles(v.r.X * dt, 0, v.r.Z * dt)
+		if v.vie <= 0 then
+			v.p.Parent = nil
+			table.remove(volants, i)
+		end
+	end
+end
+
+-- ════════ LA LIGNE PARFAITE (ligneTick, L11855) : FRUIT, PAD, FRUIT, PAD… sur la trajectoire idéale ════════
+-- Qui prend tout tient la nitro sans la lâcher : chaque objet rend 1,15 s, il y en a un toutes les 1,2 s de route.
+local function poserEnCourse(o: Piste.Objet)
+	local rec = Construction.unObjet(piste, o, zone.dossier :: Folder)
+	rec.dyn = true
+	local objs = zone.objets :: { any }
+	local lo, hi = 1, #objs + 1
+	while lo < hi do
+		local mid = (lo + hi) // 2
+		if objs[mid].o.s < o.s then lo = mid + 1 else hi = mid end
+	end
+	table.insert(objs, lo, rec)
+	local g = zone.grille :: { [number]: { any } }
+	local k = cleObj(rec.pos)
+	g[k] = g[k] or {}
+	table.insert(g[k], rec)
+	if o.kind == "pad" and o.face == 1 and zone.pads then
+		table.insert(zone.pads, o.s / M)
+		table.sort(zone.pads)
+	end
+end
+local function ligneBloque(s9: number): boolean
+	-- un plot à moins de 9 m, une flaque à moins de son rayon + 7 : la place est prise
+	local objs = zone.objets :: { any }
+	local lo, hi = 1, #objs + 1
+	local cible = (s9 - 12) * M
+	while lo < hi do
+		local mid = (lo + hi) // 2
+		if objs[mid].o.s < cible then lo = mid + 1 else hi = mid end
+	end
+	for k = lo, #objs do
+		local o = objs[k].o
+		if o.s > (s9 + 12) * M then break end
+		if o.face == 1 then
+			local d = math.abs(o.s / M - s9)
+			if o.kind == "plot" and d < 9 then return true end
+			if o.kind == "flaque" and d < (o.r or 2.5) + 7 then return true end
+		end
+	end
+	return false
+end
+local function ligneTick(dt: number)
+	local LI = Config.LIGNE
+	local L = piste.len / M
+	local b0 = math.max(30, math.abs(vA) * SPD)
+	local H = math.max(4, (RH - 3) * 0.62)
+	if G.lgV > 0 and dt > 0 then G.lgAcc += (math.min(40, (b0 - G.lgV) / dt) - G.lgAcc) * math.min(1, dt * 2) end
+	G.lgV = b0
+	local v = (b0 + math.max(0, G.lgAcc) * LI.voir * 0.7) * vitMult() -- la vitesse À L'ARRIVÉE sur l'objet
+	if G.lgS < s + 60 then G.lgS = s + 60 end
+	local horizon = s + math.max(220, v * LI.voir)
+	local n = 0
+	while G.lgS < horizon and G.lgS < L - 120 and n < 3 do
+		n += 1
+		local s9: number? = nil
+		for d = 0, 160, 20 do
+			local q = G.lgS + d
+			if q >= L - 120 then break end
+			if not ligneBloque(q) then
+				s9 = q
+				break
+			end
+		end
+		if not s9 then
+			G.lgS += 180
+		else
+			-- la CORDE : la file se décale vers l'intérieur du virage (rayon 150 m → ~11 m)
+			local f = Piste.repere(piste, s9 * M)
+			local c = (Piste.repere(piste, (s9 + 40) * M).LookVector:Dot(f.RightVector) - Piste.repere(piste, (s9 - 40) * M).LookVector:Dot(f.RightVector)) / 80
+			local lt = math.clamp(c * 1600, -H, H)
+			if G.lgK == 1 then
+				for _, face in { 1, -1 } do
+					poserEnCourse({ s = s9 * M, lat = lt * face * M, h = 0.1 * M, face = face, kind = "pad", ligne = true })
+				end
+			else
+				-- le fruit : tiré au poids (la myrtille 4 fois sur 10, la pastèque 1 fois sur 64), le même sur les deux faces
+				local tot = 0
+				for _, fd in FRUITS do tot += fd.freq end
+				local x, fi = math.random() * tot, 1
+				for i, fd in FRUITS do
+					x -= fd.freq
+					if x <= 0 then
+						fi = i
+						break
+					end
+				end
+				for _, face in { 1, -1 } do
+					poserEnCourse({ s = s9 * M, lat = lt * face * M, h = 1.6 * M, face = face, kind = "fruit", fruit = fi, ligne = true })
+				end
+			end
+			G.lgK = 1 - G.lgK
+			G.lgS = s9 + math.max(40, v * LI.dt)
+		end
+	end
 end
 
 local camPos, camVise, camUp = Vector3.zero, Vector3.zero, Vector3.yAxis
 
--- ════════ changer de zone : le PORTAIL (portailPasse, L29682) ════════
+-- ════════ changer de zone : le PORTAIL (portailPasse, L30180) ════════
 local function activer(e: Zone)
 	zone = e
 	piste = e.piste :: Piste.Piste
@@ -640,87 +1129,223 @@ local function passerPortail(): boolean
 		if mode == "drive" then s = piste.len / M - 0.6 end
 		return false
 	end
-	distAvant += piste.len / M
+	local longueur = piste.len / M
+	G.distAvant += longueur
 	local ancienne = zoneN
 	-- le saut vertical entre la sortie et le départ remonté : caisse, vol et caméra bougent ensemble
 	local saut = (suiv.piste :: Piste.Piste).F[1].Position - piste.F[piste.n].Position
 	carCF = carCF + saut
 	fallPos += saut / M
 	prevPos += saut / M
+	V.flowP0 += saut / M
 	camPos += saut
 	camVise += saut
-	s -= piste.len / M
+	s -= longueur
+	sPrev -= longueur
+	V.flowS0 -= longueur
+	G.padSL = 0 -- le train de boosts TRAVERSE le portail
+	G.lgS, G.lgK, G.lgV, G.lgAcc = 240, 0, 0, 20 -- la ligne parfaite repart avec la piste
 	zoneN += 1
-	nbZones += 1
+	G.nbZones += 1
 	remettreObjets(suiv)
 	activer(suiv)
 	oublier(ancienne)
-	encaisser(denom() * 24, "portail")
+	local g = encaisser(denom() * 24, "portail")
 	nitroR = reservoir()
 	Bus.emit("portail", zoneN)
-	Hud.grand("ZONE " .. zoneN, Hud.C.cyan, 1.2)
+	HudScore.slam("ZONE " .. zoneN, "+" .. Hud.argent(g), "#00eaff", "#7dff9b", 34, 1)
 	Sons.jouer("portail")
 	preparer(zoneN + 1, Piste.suite(piste))
 	return true
 end
 
--- ════════ LA CONDUITE (L35625-35830) ════════
+-- ════════ le DRIFT et son MINI-TURBO (driftTick, L20758) ════════
+local function driftTick(dt: number, on: boolean)
+	G.driftCd = math.max(0, G.driftCd - dt)
+	if on and G.driftCd <= 0 then
+		G.driftC += dt
+		vA *= math.max(0, 1 - 0.10 * dt) -- −10 %/s en glisse
+		local lv = (G.driftC > 1.4 and 3) or (G.driftC > 0.9 and 2) or (G.driftC > 0.45 and 1) or 0
+		if lv > G.driftLv then
+			G.driftLv = lv
+			Sons.jouer("bip", Sons.demiTons(({ 0, 3, 5, 7 })[lv + 1] - 3), 0.35)
+		end
+	elseif not on and G.driftC > 0 then
+		if G.driftLv > 0 then
+			-- LE MINI-TURBO, au RELÂCHER
+			G.driftCd = 0.6 + 0.3 * G.driftLv
+			if G.driftLv >= 2 then momT = 4.3 end
+			boost = math.max(boost, 0.35 + 0.3 * G.driftLv)
+			vA += 6 * G.driftLv
+			nitroGain(0.16 * G.driftLv)
+			secousse = math.max(secousse, 0.14 * G.driftLv)
+			Score.flowAddDecl(9 * G.driftLv, "style", "n")
+			fovPunch = math.max(fovPunch, 6 + 6 * G.driftLv)
+			if G.driftLv == 3 then HudScore.flash("#ff5ec8", 0.35) end
+			Sons.jouer("fronde", Sons.demiTons(G.driftLv * 3))
+			Score.gesteMuet(({ "MINI-TURBO", "SUPER TURBO", "ULTRA TURBO" })[G.driftLv], ({ 50, 100, 180 })[G.driftLv], "drift")
+			if G.driftLv >= Score.F2.decl.drift and Score.frenPeut() then Score.frenDeclenche() end -- (en ville, le drift déclenche)
+		end
+		G.driftC, G.driftLv = 0, 0
+	end
+end
+
+-- LA FRONDE (frondeLache, L28654) : un virage serré tenu SANS glisser rend de la vitesse à la sortie
+local function frondeLache(t: number, c: number)
+	if intro or mode ~= "drive" or G.frondeCd > 0 or not (vA > 8) then return end
+	local k = math.clamp((t - 0.9) / 1.8, 0, 1)
+	local co = (t > 0) and math.min(1, c / t) or 0
+	local p = (0.4 + 0.6 * k) * (1 + 0.6 * co)
+	vA += 16 * p
+	boost = math.max(boost, 0.45 + 0.45 * p)
+	momT = math.min(4.3, momT + 0.6 * p)
+	nitroGain(0.05 + 0.07 * p)
+	fovPunch = math.max(fovPunch, 5 + 6 * p)
+	secousse = math.max(secousse, 0.1 + 0.08 * p)
+	Score.flowAdd(4 + 6 * p, "route")
+	G.frondeCd = 0.8
+	Sons.jouer("fronde", Sons.demiTons(({ 0, 2, 4, 7, 9 })[math.clamp(math.floor(p * 3 + 0.5), 0, 4) + 1]))
+	Score.gesteMuet(tr("FRONDE", "SLINGSHOT"), math.floor(30 + 40 * p + 0.5), "fronde")
+end
+
+-- ════════ LA CONDUITE (L36300-36680) ════════
 local function etapeSol(dt: number)
 	local push, late = pousseMoteur(), tardif()
 	local maxSp = 190 / 3.6 * late * push
 	local acc9 = 22 * late * (1 + (push - 1) * 0.6)
+	local lv = Score.niveau()
 	local cf = repere(s, side)
 	local T_ = cf.LookVector
-	gererNitro(dt, true)
+	sPrev, latPrev = s, lat
+	gererNitro(dt)
+	local vm = vitMult()
 	local frein = Controles.frein
-	if not frein and math.abs(psi) < 0.25 then momT = math.min(4.3, momT + dt) else momT = math.max(0, momT - 2 * dt) end
+	steerS += (Controles.volant - steerS) * math.min(1, dt * 18)
+	-- LE DRIFT (conduite v6) : tirer le frein en braquant fort, à bonne vitesse
+	local vitOk = math.abs(vA) > maxSp * 0.42
+	if not intro and vitOk and frein and math.abs(steerS) > 0.35 then G.driftOn = true
+	elseif not vitOk or not frein or math.abs(steerS) < 0.2 then G.driftOn = false end
+	driftTick(dt, G.driftOn)
+	if not frein and not G.driftOn and math.abs(psi - G.slipB) < 0.25 then momT = math.min(4.3, momT + dt) else momT = math.max(0, momT - 2 * dt) end
 	local momF = 1 + math.min(1.8, momT * momT * 0.1)
 	local a
-	if frein then
+	if frein and not G.driftOn then
 		a = (vA > 2) and -acc9 * 1.5 or -acc9 * 0.5
 	else
-		a = acc9 * ((vA < maxSp) and 1 or 0.55) * ((boost > 0) and 1.5 or 1) * momF
+		-- le FLOW pousse : +5 % de vitesse de pointe et +6 % d'accélération par palier
+		a = acc9 * ((vA < maxSp * (1 + 0.05 * lv)) and 1 or 0.55) * ((boost > 0) and 1.5 or 1) * momF * (1 + 0.06 * lv)
 	end
 	vA += a * dt
-	if nitroOn then vA += NI.pousseSol * push * dt end
-	vA += -GRAV * T_.Y * math.cos(psi) * dt
+	if nitroOn then vA += (nitroBleue and 48 or NI.pousseSol) * push * dt end
+	vA += -GRAV * T_.Y * math.cos(psi - G.slipB) * dt
 	vA -= vA * math.abs(vA) * (acc9 / (maxSp * maxSp * 5.8)) * dt
 	vA *= 1 - 0.03 * dt
 	if vA < -8 then vA = -8 end
-	-- le volant (conduite v6) : le pouce commande un TAUX de lacet, pas de recentrage automatique
-	local vm = vitMult()
-	steerS += (Controles.volant - steerS) * math.min(1, dt * 18)
+	-- le volant : le pouce commande un TAUX de lacet (× 1,15 en drift, × 0,18 sur une flaque)
 	local vw = math.max(8, math.abs(vA) * SPD)
 	local lacetMax = vw / (40 + 0.3 * vw)
-	local rT = steerS * lacetMax * vm * math.clamp(vA / 8, -1, 1)
+	local rT = steerS * lacetMax * vm * math.clamp(vA / 8, -1, 1) * (G.driftOn and 1.15 or 1) * ((G.slipT > 0) and 0.18 or 1)
 	yawR += (rT - yawR) * (1 - math.exp(-dt * vm / 0.1))
-	psi += yawR * dt
-	local vL = vA * math.sin(psi)
+	-- l'angle de glisse du NEZ en drift (≈ 24°)
+	local slipC = G.driftOn and (math.sign(steerS) * 0.42 * math.min(1, math.abs(steerS))) or 0
+	local ds = (slipC - G.slipB) * (1 - math.exp(-(G.driftOn and 4 or 6) * dt))
+	G.slipB += ds
+	psi += yawR * dt + ds
+	-- une flaque : l'embardée
+	if G.slipT > 0 then
+		G.slipT -= dt
+		psi = math.clamp(psi + (math.random() - 0.5) * 2.6 * dt * math.min(1, math.abs(vA) / 12), -1.4, 1.4)
+		G.virD = true
+	end
+	local cap = psi - G.slipB
+	local vL = vA * math.sin(cap)
 	lat += vL * dt * SPD * vm
-	s += vA * math.cos(psi) * dt * SPD * vm
+	s += vA * math.cos(cap) * dt * SPD * vm
 	-- la route tourne SOUS la caisse
 	local cf2 = repere(s, side)
 	local dyaw = -(T_:Cross(cf2.LookVector)):Dot(cf2.UpVector)
 	psi = math.clamp(psi - math.asin(math.clamp(dyaw, -1, 1)), -1.4, 1.4)
 	if boost > 0 then boost -= dt end
-	-- rase-bord : longer le vide recharge la nitro
 	local k = kmh()
-	if math.abs(lat) > 0.8 * RH and k > 0.5 * vmaxShow() then
-		nitroR = math.min(reservoir(), nitroR + 0.22 * dt)
-		Bus.emit("rasebord", dt, math.abs(lat) / RH)
+	-- VIRAGE SERRÉ + LA FRONDE
+	local aB = math.abs(yawR / vm * vA) * SPD
+	G.frondeCd = math.max(0, G.frondeCd - dt)
+	if aB > 32 then
+		G.virT += dt * vm
+		if lat * math.sign(yawR) > RH * 0.2 then G.virC += dt * vm end -- à la CORDE
+		if G.driftOn or G.slipT > 0 then G.virD = true end
+	elseif aB < 12 then
+		if G.virPaye and not G.virD then frondeLache(G.virT, G.virC) end
+		G.virT, G.virC, G.virD, G.virPaye = 0, 0, false, false
 	end
-	-- roule ou crève
-	if tempsDepart > 1.5 and k < Config.ARRET_KMH then
-		arretT += dt
-		if arretT > Config.ARRET_T then exploser("arret"); return end
+	if G.virT > 0.9 and not G.virPaye then
+		G.virPaye = true
+		Score.gesteMuet(tr("VIRAGE SERRE", "TIGHT TURN"), 45, "virage")
+	end
+	-- RASE-BORD : longer le vide recharge la nitro
+	if not intro and math.abs(lat) > RH * 0.8 and math.abs(vA) > maxSp * 0.5 then
+		G.raseT += dt
+		nitroGain(0.22 * dt)
+		Score.flowAdd(6 * dt, "route")
+		if G.raseT > 0.6 and not G.raseAnn then
+			G.raseAnn = true
+			Score.gesteMuet(tr("RASE-BORD", "EDGE RIDER"), 40, "rase")
+		end
 	else
-		arretT = 0
+		G.raseT, G.raseAnn = 0, false
 	end
-	-- on quitte la route par le bord : on VOLE
+	-- NITROOO : la nitro tenue 2 s au-dessus de min(400, 55 % de la G.vmax)
+	if nitroOn and k > math.min(400, vmaxShow() * 0.55) then
+		G.pureT += dt
+		if G.pureT > NTR_T and G.pureArmed then
+			G.pureArmed = false
+			if not NTR.on then
+				HudScore.slam("NITROOO !", nil, "#ff7a24", nil, 40, 1)
+				Score.geste("NITROOO", 120, "pure")
+			end
+			G.pureNext = G.pureT + 2
+			nitroooPart()
+			Score.flowAdd(5, "risque", "p")
+		end
+		if not G.pureArmed and G.pureT > G.pureNext then
+			G.pureNext = G.pureT + 2
+			G.pureLvl = math.min(5, G.pureLvl + 1)
+			Score.geste("NITROOO x" .. (G.pureLvl + 1), 60 + G.pureLvl * 40, "pure", true)
+		end
+	else
+		G.pureT, G.pureArmed, G.pureNext, G.pureLvl = 0, true, 0, 0
+	end
+	-- les plots, les flaques, les pads ; la ligne parfaite se pose devant
+	obstacles(dt, cf2)
+	if not intro then ligneTick(dt) end
+	G.fruitRafT -= dt
+	if G.fruitRafT <= 0 then G.fruitRaf = 0 end
+	-- ROULE OU CRÈVE (L36365)
+	if not intro and graceT <= 0 and G.tempsDepart > 1.5 and math.abs(vA) * 3.6 * SPD < Config.ARRET_KMH then
+		G.idleT += dt
+		if G.idleT > 1.6 then
+			G.idleMsg -= dt
+			if G.idleMsg <= 0 then
+				G.idleMsg = 0.5
+				Hud.pop(tr("ROULE OU CREVE  ", "DRIVE OR DIE  ") .. string.format("%.1f", math.max(0, Config.ARRET_T - G.idleT)), Color3.fromRGB(255, 77, 77), 20)
+				Sons.jouer("bip", 1.2)
+			end
+		end
+		if G.idleT >= Config.ARRET_T then
+			G.idleT = 0
+			exploser("arret")
+			return
+		end
+	else
+		G.idleT = math.max(0, G.idleT - dt * 2.5)
+	end
+	-- le point de réapparition sûr
+	if side > 0 and cf2.UpVector.Y > 0.5 and math.abs(lat) < RH - 2 and math.abs(psi) < 0.5 then G.safeS = s end
+	-- on quitte la route par le bord : la BASCULE
 	if math.abs(lat) > RH then
 		if graceT <= 0 then
 			carCF = CFrame.new(cf2.Position + cf2.RightVector * lat * M) * cf2.Rotation * CFrame.Angles(0, -psi, 0)
-			decoller(3.4, 1.04)
+			decoller(0, 1, true)
 			return
 		else
 			lat = math.sign(lat) * RH
@@ -733,79 +1358,146 @@ local function etapeSol(dt: number)
 		return
 	end
 	-- le portail
-	if s * M >= piste.len - 0.5 * M then passerPortail(); cf2 = repere(s, side) end
-	-- la caisse posée (un soupçon de roulis dans les virages)
-	local pos = cf2.Position + cf2.RightVector * lat * M
-	local nouv = CFrame.new(pos) * cf2.Rotation * CFrame.Angles(0, -psi, 0) * CFrame.Angles(0, 0, -steerS * 0.05)
-	carVel = (pos - carCF.Position) / math.max(dt, 1e-3)
-	carCF = nouv
+	if s * M >= piste.len - 0.5 * M then
+		passerPortail()
+		cf2 = repere(s, side)
+	end
+	-- le ROULIS : le virage, le drift, et l'AFFAISSEMENT VERS LE VIDE quand les roues passent la lèvre (L36662)
+	local hw = poignees.fiche.w * 0.5
+	local dB = math.abs(lat) - (RH - hw)
+	local pe = (dB > 0) and math.min(1, dB / hw) or 0
+	local aLat = yawR / vm * math.abs(vA) * SPD
+	local rollT = math.sign(aLat) * 0.26 * (1 - math.exp(-math.abs(aLat) / 35)) + (G.driftOn and math.sign(G.slipB) * 0.07 or 0) - math.sign(lat) * 0.15 * pe * (2 - pe)
+	local d = math.min(dt, 1 / 30)
+	G.rollV += ((rollT - G.carRoll) * 196 - G.rollV * 15.4) * d
+	G.carRoll = math.clamp(G.carRoll + G.rollV * d, -0.42, 0.42)
+	G.levreY *= math.exp(-16 * dt)
+	if math.abs(G.levreY) < 0.005 then G.levreY = 0 end
+	-- la caisse posée
+	local pos = cf2.Position + cf2.RightVector * (lat * M) + cf2.UpVector * (G.levreY * M)
+	carCF = CFrame.new(pos) * cf2.Rotation * CFrame.Angles(0, -psi, 0) * CFrame.Angles(0, 0, G.carRoll)
 end
 
-local function nbFigVol(): string
-	local n = 0
-	for _, v in vus do n += v end
-	return n .. (FR and " FIGURE" or " TRICK") .. (n > 1 and "S" or "")
-end
-
--- ════════ LE VOL (L36213-36467) ════════
+-- ════════ LE VOL (L36896-37176) ════════
 local function etapeAir(dt: number)
-	fallT += dt
-	fallTR += dt
-	kickT -= dt
-	bumpCd -= dt
-	gererNitro(dt, false)
-	local vol = fallVel.Magnitude
-	-- lacet : les VRILLES
-	local yawRate = Controles.volant * (1.15 + math.min(0.6, vol * 0.004))
-	airRot = airRot * CFrame.Angles(0, -yawRate * dt, 0)
-	yawAcc += yawRate * dt
-	if fallT > 0.45 then
-		local dt_ = math.floor(math.abs(yawAcc) / math.pi)
-		if dt_ > demiTours then
-			demiTours = dt_
-			local noms = { "180 !", FR and "VRILLE 360 - LAVE-LINGE" or "360 SPIN CYCLE", "540 !" }
-			figure(noms[dt_] or (FR and "ESSOREUSE COSMIQUE " or "COSMIC SPINNER ") .. (dt_ * 180), 3.5 * dt_, 45)
-			Sons.jouer("vrille", Sons.demiTons(math.min(12, dt_ * 2)))
+	V.fallT += dt
+	V.fallTR += dt
+	V.kickT -= dt
+	V.sideCd -= dt
+	gererNitro(dt)
+	local push = pousseMoteur()
+	local gB = V.bascOn and math.min(1, V.fallT / 0.45) or 1 -- LE SURSIS : la gravité s'installe en 0,45 s
+	fallVel -= Vector3.new(0, FALL_G * gB * dt, 0)
+	-- le repère de vol : l'avant = la trajectoire, le haut reste perpendiculaire (garde contre le blocage de cardan)
+	local vit = fallVel.Magnitude
+	if vit > 1 then flyAv = fallVel / vit end
+	local u = flyU - flyAv * flyU:Dot(flyAv)
+	if u.Magnitude > 1e-3 then flyU = u.Unit end
+	local droite = flyAv:Cross(flyU)
+	if droite.Magnitude < 1e-3 then droite = Vector3.xAxis else droite = droite.Unit end
+	-- le LACET (volant) : il tourne la TRAJECTOIRE, et compte les vrilles
+	local yawIn = Controles.volant * (1.15 + math.min(0.6, vit * 0.004)) * dt
+	if yawIn ~= 0 then fallVel = CFrame.fromAxisAngle(flyU, -yawIn):VectorToWorldSpace(fallVel) end
+	V.yawAcc += yawIn
+	if V.fallT > 0.45 and not intro then
+		local dT = math.floor(math.abs(V.yawAcc) / math.pi)
+		if dT > V.demiTours then
+			V.demiTours = dT
+			figure("vrille", (dT * 180) .. "°", 3.5 * dT, math.min(3, dT), true)
+			Sons.jouer("vrille", Sons.demiTons(math.min(12, dT * 2)))
 		end
 	end
-	-- assiette : piqué / cabré (fait tourner la trajectoire avec la caisse)
-	local ass = Controles.assiette
-	if ass ~= 0 then
-		local q = CFrame.fromAxisAngle(airRot.RightVector, -ass * (nitroOn and 1.7 or 0.85) * dt)
-		airRot = q * airRot
-		fallVel = q:VectorToWorldSpace(fallVel)
-	end
-	-- la nitro en l'air : elle porte, elle pousse
 	if nitroOn then
-		local dir = fallVel.Magnitude > 1 and fallVel.Unit or airRot.LookVector
-		fallVel += Vector3.new(0, FALL_G * NI.portance * dt, 0)
-		fallVel += dir * NI.pousseAir * pousseMoteur() * (1 + math.min(0.4, ntrBoost)) * dt
-		nitroAirT += dt
-		fallVH0 = math.max(fallVH0, Vector3.new(fallVel.X, 0, fallVel.Z).Magnitude)
-		if nitroAirT > 1.2 and not vus["METEORE"] then figure("METEORE", 8, 100) end
-		if nitroAirT >= 2 and not vus["AIR NITROOO"] then figure("AIR NITROOO", 10, 120) end
+		-- la PORTANCE : la nitro reprend 60 % de la gravité (75 % en réserve bleue)
+		fallVel += Vector3.new(0, FALL_G * (nitroBleue and 0.75 or NI.portance) * gB * dt, 0)
+		-- le COUP D'ALLUMAGE : une fois par allumage EN VOL, 0,5 s entre deux
+		if not V.nAirTenu and V.kickT <= 0 then
+			V.nAirTenu = true
+			V.kickT = 0.5
+			local a = NI.coupAir * push
+			local m = fallVel.Magnitude
+			fallVel = (m > 1) and fallVel.Unit * (m + a) or (fallVel + flyU * a)
+			V.fallVH0 = math.max(V.fallVH0, horiz(fallVel))
+			if pwN <= 0 then nitroR = math.max(0, nitroR - 0.12 * reservoir() * (Score.frenesie() and Score.F2.frenNitro or 1)) end
+			fovPunch = math.max(fovPunch, 12)
+			secousse = math.max(secousse, 0.35)
+		end
+		-- la POUSSÉE continue, dans l'axe du vol
+		local a = (nitroBleue and 96 or NI.pousseAir) * push * (1 + math.min(0.4, NTR.boost)) * dt
+		local m = fallVel.Magnitude
+		if m > 1 then fallVel = fallVel.Unit * (m + a) end
+		V.fallVH0 = math.max(V.fallVH0, horiz(fallVel))
+		V.nitroAirT += dt
+		V.nitroAirTenue += dt
+		if V.nitroAirT > 1.2 and not vus.meteo and not intro then figure("meteo", tr("METEORE", "METEOR"), 8, 2) end
+		if V.nitroAirTenue >= NTR_T and not vus.airnitro and not intro then
+			figure("airnitro", "AIR NITROOO", 10, 1)
+			nitroooPart()
+		end
+	else
+		V.nAirTenu = false
+		V.nitroAirTenue = 0
 	end
-	fallVel -= Vector3.new(0, FALL_G * dt, 0)
-	local h = Vector3.new(fallVel.X, 0, fallVel.Z)
-	if h.Magnitude > fallVH0 and h.Magnitude > 0 then
-		local k = fallVH0 / h.Magnitude
-		fallVel = Vector3.new(fallVel.X * k, fallVel.Y, fallVel.Z * k)
+	-- l'ASSIETTE : piqué / cabré (1,7 rad/s sous nitro, 0,85 sans) — elle tourne la trajectoire ET le repère
+	local ass = Controles.assiette
+	if math.abs(ass) > 0.05 then
+		local q = CFrame.fromAxisAngle(droite, -ass * (nitroOn and 1.7 or 0.85) * dt)
+		fallVel = q:VectorToWorldSpace(fallVel)
+		flyU = q:VectorToWorldSpace(flyU)
 	end
-	if fallT > 1.8 and not vus["BIG AIR"] and not intro then figure("BIG AIR", 4, 50); Sons.jouer("bigAir") end
-	if fallT > 3.4 and not vus["AIR MONSTRE"] and not intro then figure(FR and "AIR MONSTRE" or "MONSTER AIR", 8, 110) end
+	-- le PLAFOND HORIZONTAL = la vitesse d'éjection (la nitro le relève)
+	local hx = horiz(fallVel)
+	if V.fallVH0 < 0 then V.fallVH0 = math.max(hx, fallVel.Magnitude) end
+	if hx > V.fallVH0 and hx > 1 then
+		local kx = V.fallVH0 / hx
+		fallVel = Vector3.new(fallVel.X * kx, fallVel.Y, fallVel.Z * kx)
+	end
+	-- les figures de durée
+	if V.fallTR > 1.8 and not V.bigA and not intro then
+		V.bigA = true
+		Score.geste("BIG AIR", 50, "bigair")
+		Score.flowAdd(6, "risque", "n")
+		Sons.jouer("bigAir")
+	end
+	if V.fallTR > 3.4 and not V.monstre and not intro then
+		V.monstre = true
+		Score.geste(tr("AIR MONSTRE", "MONSTER AIR"), 110, "V.monstre")
+		Score.flowAdd(10, "risque", "n")
+	end
 	prevPos = fallPos
 	fallPos += fallVel * dt * SPD
-	carVel = fallVel * SPD * M
-	carCF = CFrame.new(fallPos * M) * airRot
+	-- la vrille VISUELLE : la caisse roule autour de sa trajectoire
+	V.airRoll += (V.bascDir * (3.0 + math.min(2, V.fallT * 0.5)) * (V.bascOn and math.min(1, 0.25 + V.fallT * 1.9) or 1) + Controles.volant * 2.2) * dt * (intro and 0 or 1)
+	vit = fallVel.Magnitude
+	if vit > 1 then flyAv = fallVel / vit end
+	u = flyU - flyAv * flyU:Dot(flyAv)
+	if u.Magnitude > 1e-3 then flyU = u.Unit end
+	droite = flyAv:Cross(flyU)
+	if intro then
+		carCF = CFrame.new(fallPos * M) * menuRot -- la CHUTE du départ garde la pose du menu
+	elseif droite.Magnitude > 1e-3 then
+		carCF = CFrame.fromMatrix(fallPos * M, droite.Unit, flyU) * CFrame.Angles(0, 0, V.airRoll)
+	else
+		carCF = CFrame.new(fallPos * M) * carCF.Rotation
+	end
 	essayerAtterrir(dt)
 	if mode ~= "fall" then return end
-	-- la chaîne en direct
-	if nbFig > 0 and next(vus) ~= nil then
-		E.chaine.Text = "x" .. string.format("%.1f", math.min(6, chainMult)) .. "  ·  " .. nbFigVol()
-		E.chaine.TextColor3 = Hud.C.cyan
+	-- LE DAUPHIN : nager au ras de la dalle (dessus ou dessous, dans sa largeur)
+	if not intro then
+		local dx = math.max(0, math.abs(V.curLat) - RH)
+		local dy = (V.curH > 0 and V.curH) or ((V.curH < -THICK) and (-THICK - V.curH) or 0)
+		local hF = math.sqrt(dx * dx + dy * dy)
+		local sur = V.curNear and math.abs(V.curT) < 4 and math.abs(V.curLat) <= RH - 3 and hF < 40
+		if Score.dolTick(dt, sur, hF, fallVel.Magnitude * 3.6 * SPD / math.max(1, vmaxShow()), V.fallT) then
+			figure("dauphin", tr("LE DAUPHIN !", "THE DOLPHIN!"), 3, 2)
+		end
+		if V.curNear and math.abs(V.curLat) < RH and V.curH > 2.2 and V.curH < 12 then
+			local prox = 1 - (V.curH - 2.2) / 9.8
+			V.chainVal += 14 * prox * prox * dt
+		end
 	end
 	-- la mort en vol
-	if fallTR > Config.AIR_MAX and pwA <= 0 and not intro then
+	if V.fallTR > airMax() and pwA <= 0 and not intro then
 		exploser("air")
 	elseif fallPos.Y * M < piste.minY - Config.MORT_SOUS * M then
 		exploser("vide")
@@ -826,9 +1518,11 @@ local function camera(dt: number)
 	local CA = Config.CAM
 	local vis, pos, haut, fov
 	local p = carCF.Position
-	if mode == "drive" or mode == "depart" then
+	local lvF = Score.niveau() * 2.2 -- le FLOW ouvre le champ
+	fovPunch = math.max(0, fovPunch - 18 * dt)
+	if mode == "drive" then
 		local cf = repere(s, side)
-		local fwd = carCF.LookVector
+		local fwd = (cf.Rotation * CFrame.Angles(0, -psi, 0)).LookVector
 		local N = cf.UpVector
 		local vk = math.min(333, kmh())
 		local recul = (CA.recul + CA.reculL + vk * 0.0018 + ((nitroOn and 0.72 or 0) + (boost > 0 and 0.5 or 0)) * 0.2 * 1.6) * M
@@ -838,19 +1532,20 @@ local function camera(dt: number)
 		vis = p + fwd * (CA.vise * M) + N * (CA.viseH * M)
 		haut = N
 		local r = kmh() / (vmaxShow() * 1.55)
-		fov = CA.fov + math.min(16, r * 10 + math.max(0, r - 1) * 4) + (boost > 0 and 4 or 0) + (nitroOn and 7 or 0)
+		fov = CA.fov + math.min(16, r * 10 + math.max(0, r - 1) * 4) + (boost > 0 and 4 or 0) + (nitroOn and 7 or 0) + lvF + fovPunch
 		camPos = camPos:Lerp(pos, math.min(1, dt * 7))
 		camVise = camVise:Lerp(vis, math.min(1, dt * 9))
 		camUp = camUp:Lerp(haut, math.min(1, dt * 4)).Unit
 	elseif mode == "fall" then
-		local big = math.clamp((fallT - 0.5) / 2.2, 0, 1)
+		local big = math.clamp((V.fallT - 0.5) / 2.2, 0, 1)
 		local h = Vector3.new(fallVel.X, 0, fallVel.Z)
-		local dir = (h.Magnitude > 1) and h.Unit or Vector3.new(airRot.LookVector.X, 0, airRot.LookVector.Z).Unit
+		local dir = (h.Magnitude > 1) and h.Unit or Vector3.new(flyAv.X, 0, flyAv.Z).Unit
+		if dir ~= dir then dir = Vector3.new(0, 0, -1) end
 		pos = p - dir * ((9 - 2.6 * big) * M) + Vector3.yAxis * ((3.5 + 2.4 * big) * M)
 		camPos = camPos:Lerp(pos, math.min(1, dt * (3 + 4.5 * big)))
 		camVise = camVise:Lerp(p, math.min(1, dt * 10))
 		camUp = camUp:Lerp(Vector3.yAxis, math.min(1, dt * 3)).Unit
-		fov = 76 - 22 * big + (nitroOn and 13 or 0)
+		fov = 76 - 22 * big + (nitroOn and (nitroBleue and 18 or 13) or 0) + lvF * 0.5 + fovPunch
 	elseif mode == "boom" or mode == "mort" then
 		orbite += dt * 0.25
 		pos = boomPos + Vector3.new(math.cos(orbite), 0.45, math.sin(orbite)) * (26 * M)
@@ -858,7 +1553,7 @@ local function camera(dt: number)
 		camVise = camVise:Lerp(boomPos, math.min(1, dt * 4))
 		camUp = camUp:Lerp(Vector3.yAxis, math.min(1, dt * 3)).Unit
 		fov = 70
-	else -- menu (la CHUTE du web) : vue de côté, la caisse à GAUCHE de l'écran, nez qui plonge vers la droite
+	else -- menu (la CHUTE du web) : la caisse à GAUCHE de l'écran, nez qui plonge vers la droite
 		local av = Vector3.new(menuCap.X, 0, menuCap.Z).Unit
 		local dr = av:Cross(Vector3.yAxis)
 		-- (chuteRender du web) la vue est EN HAUTEUR (~20°) et plonge sur la caisse : la mer de nuages remplit l'écran
@@ -889,8 +1584,9 @@ local refletK = 0
 local function habiller(dt: number)
 	if mode == "boom" or mode == "mort" or mode == "charge" then return end
 	racine.CFrame = carCF
-	local feu = nitroOn or boost > 0 or ntrBoost > 0
+	local feu = nitroOn or boost > 0 or NTR.boost > 0
 	local couleur = pwN > 0 and ColorSequence.new(Color3.fromRGB(190, 110, 255), Color3.fromRGB(110, 40, 255))
+		or (nitroBleue and ColorSequence.new(Color3.fromRGB(150, 170, 255), Color3.fromRGB(60, 90, 255)))
 		or (nitroOn and ColorSequence.new(Color3.fromRGB(255, 180, 70), Color3.fromRGB(255, 70, 30)))
 		or ColorSequence.new(Color3.fromRGB(255, 230, 130), Color3.fromRGB(255, 170, 40))
 	for _, f in flammes do f.Rate = nitroOn and 110 or (boost > 0 and 45 or 0) end
@@ -913,35 +1609,34 @@ local function habiller(dt: number)
 end
 
 -- ════════ le HUD ════════
-local function hud()
+local function hud(dt: number)
 	E.argent.Text = '<font size="28">$</font>' .. Hud.nombre(argent)
-	E.aura.Text = T.aura .. (aura > 0 and ("   " .. Hud.entier(aura)) or "")
 	local res = reservoir()
-	local fr = math.clamp(nitroR / res, 0, 1)
+	local fr = math.clamp((nitroR + nitroX) / res, 0, 1)
 	E.nitro.Size = UDim2.fromScale(fr, 1)
 	E.nitroMini.Size = UDim2.fromScale(fr, 1)
-	E.nitro.BackgroundColor3 = pwN > 0 and Color3.fromRGB(170, 90, 255) or Color3.fromRGB(255, 128, 32)
+	E.nitro.BackgroundColor3 = (pwN > 0 and Color3.fromRGB(170, 90, 255)) or ((nitroR <= 0.01 and nitroX > 0) and Color3.fromRGB(91, 125, 255)) or Color3.fromRGB(255, 128, 32)
 	if mode == "fall" and not intro then
 		E.air.Visible = true
-		local reste = pwA > 0 and 1 or math.clamp(1 - fallTR / Config.AIR_MAX, 0, 1)
-		local sec = string.format("%.1f", math.max(0, Config.AIR_MAX - fallTR))
+		local reste = pwA > 0 and 1 or math.clamp(1 - V.fallTR / airMax(), 0, 1)
+		local sec = string.format("%.1f", math.max(0, airMax() - V.fallTR))
 		if FR then sec = string.gsub(sec, "%.", ",") end
 		E.airTxt.Text = (pwA > 0 and "∞" or sec) .. ' <font size="16">' .. T.air .. "</font>"
 		E.airFill.Size = UDim2.fromScale(reste, 1)
-		E.airFill.BackgroundColor3 = pwA > 0 and Hud.C.magenta or ((Config.AIR_MAX - fallTR < 1.5) and Hud.C.rouge or Hud.C.cyan)
+		E.airFill.BackgroundColor3 = pwA > 0 and Hud.C.magenta or ((airMax() - V.fallTR < 1.5) and Hud.C.rouge or Hud.C.cyan)
 	end
 	local pw = {}
-	if pwN > 0 then table.insert(pw, (Hud.FR and "NITRO INF " or "INF NITRO ") .. math.ceil(pwN)) end
-	if pwA > 0 then table.insert(pw, "AIR INF " .. math.ceil(pwA)) end
-	if pwV > 0 then table.insert(pw, "SPEED x2 " .. math.ceil(pwV)) end
-	if pwM > 0 then table.insert(pw, (Hud.FR and "AIMANT " or "MAGNET ") .. math.ceil(pwM)) end
+	local P = Config.POUVOIRS
+	for _, q in { { "n", pwN }, { "a", pwA }, { "v", pwV }, { "m", pwM }, { "x", pwX } } do
+		if q[2] > 0 then table.insert(pw, (FR and P[q[1]].nom or P[q[1]].nomEN) .. " " .. math.ceil(q[2])) end
+	end
 	E.pouvoir.Text = table.concat(pw, "  ·  ")
+	HudScore.tick(dt, mode)
 	Hud.tick()
 end
 
 -- ════════ les parties ════════
 local S_CHUTE, H_CHUTE = 150, 220 -- la caisse tombe au-dessus du point à 150 m, de 220 m de haut
-local menuRot = CFrame.identity
 local function poserAuDepart()
 	s, lat, side, psi = S_CHUTE, 0, 1, 0
 	local cf = repere(s, 1)
@@ -950,11 +1645,11 @@ local function poserAuDepart()
 	local pos = cf.Position + Vector3.new(0, H_CHUTE * M, 0)
 	menuRot = (CFrame.lookAt(pos, pos + menuCap) * CFrame.Angles(-math.rad(38), 0, 0)).Rotation
 	carCF = CFrame.new(pos) * menuRot
-	carVel = Vector3.zero
 end
 
 local function allerMenu()
 	mode = "menu"
+	Score.ETAT.enCours = false
 	enPause = false
 	zoneN = 1
 	remettreObjets(ZONES[1])
@@ -974,18 +1669,27 @@ local function nouvellePartie()
 	activer(ZONES[1])
 	preparer(2, Piste.suite(ZONES[1].piste :: Piste.Piste))
 	poserAuDepart()
-	vA, yawR, steerS, momT, boost, padCd, padTrain = 0, 0, 0, 0, 0, 0, 0
-	coinsGot, tier, combo = 0, 0, 0
-	nitroR, nitroOn, ntrHold, ntrBoost = reservoir(), false, 0, 0
+	vA, yawR, steerS, momT, boost, G.padCd, G.padN, G.padSL = 0, 0, 0, 0, 0, 0, 0, nil
+	coinsGot, tier, combo, G.comboT = 0, 0, 0, 0
+	nitroR, nitroX, nitroOn, nitroBleue = reservoir(), 0, false, false
+	NTR.on, NTR.t, NTR.pal, NTR.boost, NTR.k, NTR.kc = false, 0, 0, 0, 0, 0
+	G.pureT, G.pureArmed, G.pureNext, G.pureLvl = 0, true, 0, 0
 	argent, aura = Config.CASH_DEPART, 0
-	pwN, pwA, pwV, pwM = 0, 0, 0, 0
-	arretT, graceT, hitT = 0, 0, 0
-	distAvant, vmax, nbFig, serie, nbZones = 0, 0, 0, 0, 0
-	multiMax, piecesPrises = 1, 0
-	tempsDepart = 0
-	ralentiK, ralentiT = 1, 0
+	pwN, pwA, pwV, pwM, pwX = 0, 0, 0, 0, 0
+	G.idleT, G.idleMsg, graceT = 0, 0, 0
+	G.distAvant, G.vmax, G.serie, G.nbZones = 0, 0, 0, 0
+	G.driftOn, G.driftC, G.driftLv, G.driftCd, G.slipB, G.slipT, G.oilCd = false, 0, 0, 0, 0, 0, 0
+	G.virT, G.virC, G.virD, G.virPaye, G.frondeCd, G.raseT, G.raseAnn, G.froleN, G.froleT = 0, 0, false, false, 0, 0, false, 0, 0
+	G.carRoll, G.rollV, G.levreY, secousse, fovPunch = 0, 0, 0, 0, 0
+	stats.pieces, stats.poses, stats.parfaites, stats.fruits, stats.nitro, stats.duree, stats.chaine, stats.figures = 0, 0, 0, 0, 0, 0, 0, 0
+	G.tempsDepart = 0
+	G.fruitRaf, G.fruitRafT = 0, 0
+	G.lgS, G.lgK, G.lgV, G.lgAcc = 240, 0, 0, 20
+	for _, v in volants do v.p.Parent = nil end
+	table.clear(volants)
+	Score.debut(meilleurAura, profil.frenRec or 0)
+	HudScore.raz()
 	Bus.emit("partie")
-	E.chaine.Text = ""
 	E.air.Visible = false
 	montrerCaisse(true)
 	enPause = false
@@ -996,29 +1700,37 @@ local function nouvellePartie()
 	fallPos = carCF.Position / M
 	fallVel = menuCap * 6 - Vector3.new(0, 60, 0) -- presque à la verticale : elle se pose PILE sur la route dessous
 	prevPos = fallPos
-	airRot = carCF.Rotation
-	fallT, fallTR, yawAcc, demiTours, dolphT, dolphPop, nitroAirT, bumpCd = 0, 0, 0, 0, 0, 0, 0, 0
-	fallVH0 = Vector3.new(fallVel.X, 0, fallVel.Z).Magnitude
-	chainVal, chainMult, auraChaine, echelon = 0, 1, 0, 0
+	flyAv = fallVel.Unit
+	flyU = (menuCap - flyAv * menuCap:Dot(flyAv)).Unit -- le toit regarde vers l'avant : le nez plonge
+	V.fallT, V.fallTR, V.yawAcc, V.demiTours, V.nitroAirT, V.nitroAirTenue, V.sideCd, V.bounceN = 0, 0, 0, 0, 0, 0, 0, 0
+	V.fallVH0 = horiz(fallVel)
+	V.bascOn, V.bascDir, V.airRoll, V.nAirTenu, V.kickT = false, 1, 0, false, 0
+	V.fallUnder, V.fallStartSide, V.flowS0, V.flowP0 = false, 1, s, fallPos
+	V.chainVal, V.chainMult, V.chainN, V.bigA, V.monstre = 0, 1, 0, false, false
 	table.clear(vus)
-	sDecol = s
+	V.sDecol = s
+	sPrev, latPrev = s, lat
 	mode = "fall"
+	Score.ETAT.mode = "fall"
 	Sons.jouer("decollage")
 	Bus.emit("decollage", intro)
 end
 
 local function finPartie()
 	mode = "mort"
-	local dist = distAvant + math.max(0, s)
+	aura = Score.fin(false)
+	local dist = G.distAvant + math.max(0, s)
 	local rec = argent > record and argent > Config.CASH_DEPART + 0.01
-	evFin:FireServer(argent, dist, aura, { pieces = piecesPrises, figures = nbFig, kmh = vmax, zone = nbZones + 1, tier = tier, multi = multiMax, cause = causeMort })
+	evFin:FireServer(argent, dist, aura, { pieces = stats.pieces, figures = stats.poses, kmh = G.vmax, zone = G.nbZones + 1, tier = tier,
+		multi = Score.CHA.xMax, cause = causeMort, parfaites = stats.parfaites, fruits = stats.fruits, nitro = stats.nitro,
+		duree = stats.duree, chaine = stats.chaine, frenMax = Score.FREN.max, frenRec = Score.FREN.record })
 	if rec then record = argent end
 	meilleurAura = math.max(meilleurAura, aura)
 	local cause = T.morts[causeMort] or T.morts.autre
 	E.mCause.Text = rec and T.nouveau or cause
 	E.mRecord.Text = rec and (FR and "RECORD !" or "RECORD!") or ""
 	E.mRecord.Visible = rec
-	E.mCompte.Text = T.compte .. " " .. Hud.argent(compte + argent)
+	E.mCompte.Text = T.compte .. " " .. Hud.argent(compte + math.max(0, argent - Config.CASH_DEPART))
 	E.mAura.Text = Hud.entier(aura)
 	E.mAuraMeilleur.Text = T.meilleur .. " " .. Hud.entier(meilleurAura)
 	E.mMoteurNom.Text = MOT[tier + 1].nom
@@ -1028,20 +1740,20 @@ local function finPartie()
 	else
 		E.mMoteurEncore.Text = T.moteurMax
 	end
-	E.mPartie.Text = cause .. "\n" .. T.distance .. "  " .. Hud.entier(dist) .. " M\n" .. T.pieces .. "  " .. piecesPrises
+	E.mPartie.Text = cause .. "\n" .. T.distance .. "  " .. Hud.entier(dist) .. " M\n" .. T.pieces .. "  " .. stats.pieces
 	local st = {
-		{ "x" .. (FR and string.gsub(string.format("%.1f", multiMax), "%.", ",") or string.format("%.1f", multiMax)), T.multiMax },
-		{ Hud.entier(vmax), T.kmhMax }, { tostring(nbZones + 1), T.zone }, { tostring(nbFig), T.figures },
+		{ "x" .. Score.CHA.xMax, T.multiMax },
+		{ Hud.entier(G.vmax), T.kmhMax }, { tostring(G.nbZones + 1), T.zone }, { tostring(stats.poses), T.figures },
 	}
 	for i, v in st do
 		E.mStats[i][1].Text = v[1]
 		E.mStats[i][2].Text = v[2]
 	end
 	Hud.ecran("mort")
-	Bus.emit("fin", { argent = argent, aura = aura, distance = dist, pieces = piecesPrises, figures = nbFig,
-		kmh = vmax, zone = nbZones + 1, tier = tier, multi = multiMax, cause = causeMort, record = rec })
+	Bus.emit("fin", { argent = argent, aura = aura, distance = dist, pieces = stats.pieces, figures = stats.poses,
+		kmh = G.vmax, zone = G.nbZones + 1, tier = tier, multi = Score.CHA.xMax, cause = causeMort, record = rec })
 	-- le montant s'égrène (750 ms), puis se pose
-	local cible = argent
+	local cible = math.max(0, argent - Config.CASH_DEPART) -- on ne verse que les GAINS, jamais la mise de 1,61 $
 	task.spawn(function()
 		local t0 = os.clock()
 		while os.clock() - t0 < 0.75 do
@@ -1069,12 +1781,7 @@ Garage.init({
 	action = function(nom: string, ...: any): (boolean, string?)
 		local ok, res, msg, p = pcall(function(...) return fnAction:InvokeServer(nom, ...) end, ...)
 		if not ok then return false, "erreur" end
-		if type(p) == "table" then
-			local essai = Config.CAISSE_TEST
-			profil = p
-			if essai then profil.caisse = essai end
-			compte = p.compte or compte
-		end
+		if type(p) == "table" then lireProfil(p) end
 		return res == true, msg
 	end,
 	surEquipe = function(i: number)
@@ -1111,8 +1818,8 @@ E.btReprendre.Activated:Connect(function()
 	if enPause then basculerPause()
 	elseif Hud.ecranCourant() == "reglages" then Hud.ecran(mode == "garage" and "garage" or retourReglages) end
 end)
-E.btRecom.Activated:Connect(function() if enPause then enPause = false; nouvellePartie() end end)
-E.btMenuP.Activated:Connect(function() if enPause then enPause = false; allerMenu() end end)
+E.btRecom.Activated:Connect(function() if enPause then enPause = false; Score.fin(false); nouvellePartie() end end)
+E.btMenuP.Activated:Connect(function() if enPause then enPause = false; Score.fin(false); allerMenu() end end)
 local function majBoutonsSon()
 	E.btSonP.Text = T.son .. (Sons.actif and " ON" or " OFF")
 	E.btMusP.Text = T.musique .. (Sons.musiqueActive and " ON" or " OFF")
@@ -1175,17 +1882,14 @@ Bus.etat = function()
 	return {
 		mode = mode, pause = enPause, intro = intro, s = s, lat = lat, side = side, RH = RH, psi = psi,
 		steer = steerS, yawR = yawR, vA = vA, kmh = kmh(), vmax = vmaxShow(), nitroOn = nitroOn, nitroR = nitroR,
-		reservoir = reservoir(), tier = tier, argent = argent, aura = aura, fallT = fallT, fallTR = fallTR,
-		zone = zoneN, figures = nbFig, carCF = carCF, chainMult = chainMult, chainVal = chainVal, frein = Controles.frein,
+		reservoir = reservoir(), tier = tier, argent = argent, aura = aura, fallT = V.fallT, fallTR = V.fallTR,
+		zone = zoneN, figures = stats.figures, carCF = carCF, chainMult = V.chainMult, chainVal = V.chainVal, frein = Controles.frein,
 	}
 end
 Bus.agir.encaisser = encaisser
-Bus.agir.aura = function(x: number) aura += x end
-Bus.agir.nitro = function(x: number) nitroR = math.clamp(nitroR + x, 0, reservoir()) end
+Bus.agir.nitro = function(x: number) nitroGain(x) end
 Bus.agir.vitesse = function(dv: number) vA += dv end
 Bus.agir.boost = function(t: number) boost = math.max(boost, t) end
-Bus.agir.ralenti = function(k: number, t: number) ralentiK, ralentiT = k, t end
-Bus.agir.figure = function(nom: string, val: number, auraV: number) if mode == "fall" then figure(nom, val, auraV) end end
 Bus.agir.pieces = function(n: number) ajouterPieces(n) end
 Bus.agir.exploser = function(cause: string) exploser(cause) end
 
@@ -1194,29 +1898,34 @@ local envoiT = 0
 RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, function(dtBrut)
 	local dt = math.min(dtBrut, 1 / 20)
 	Controles.lire()
-	if hitT > 0 then
-		hitT -= dt
-		dt *= 0.04 -- le HIT-STOP du PARFAIT : 80 ms de gel
-	end
-	if ralentiT > 0 then
-		ralentiT -= dtBrut
-		dt *= ralentiK
-	end
 	if mode == "charge" then return end
+	-- LE RALENTI de la frénésie : le seul ralenti du jeu
+	if mode == "drive" or mode == "fall" then dt = Score.ralentiDt(dt, enPause) end
 	if not enPause then
-		if mode == "depart" then
-			carVel = Vector3.zero
-		elseif mode == "drive" or mode == "fall" then
-			tempsDepart += dt
+		if mode == "drive" or mode == "fall" then
+			G.tempsDepart += dt
+			stats.duree += dt
 			graceT -= dt
-			padCd -= dt
-			pwN, pwA, pwV, pwM = math.max(0, pwN - dt), math.max(0, pwA - dt), math.max(0, pwV - dt), math.max(0, pwM - dt)
+			G.padCd -= dt
+			-- les pouvoirs : l'AIRTIME ne s'use qu'au quart au sol
+			local enVol0 = mode == "fall"
+			local aAvant = pwA
+			pwN, pwV, pwM, pwX = math.max(0, pwN - dt), math.max(0, pwV - dt), math.max(0, pwM - dt), math.max(0, pwX - dt)
+			pwA = math.max(0, pwA - dt * (enVol0 and 1 or 0.25))
+			if aAvant > 0 and pwA <= 0 and enVol0 then V.fallT, V.fallTR = 0, 0 end -- il s'éteint EN VOL : une jauge neuve
+			Score.ETAT.auraX2 = pwX > 0
+			G.comboT -= dt
+			if G.comboT <= 0 then combo = 0 end
 			if mode == "drive" then etapeSol(dt) else etapeAir(dt) end
 			if mode == "drive" or mode == "fall" then
 				objets(dt, carCF.Position, os.clock())
-				vmax = math.max(vmax, kmh())
-				Bus.emit("tick", dt)
+				nitroooTick(dt)
+				G.vmax = math.max(G.vmax, kmh())
 			end
+			Score.flowTick(dt, mode, vitN(), nitroOn)
+			Score.chaineTick(dt, mode)
+			aura = Score.aura()
+			Bus.emit("tick", dt)
 		elseif mode == "boom" then
 			boomT += dt
 			secousse = math.max(secousse, boomT < 0.1 and 1.2 or 0)
@@ -1259,7 +1968,7 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			evPos:FireServer(carCF)
 		end
 	end
-	hud()
+	hud(dt)
 end)
 
 -- ════════ le démarrage : on bâtit la zone 1 derrière l'écran de chargement ════════
@@ -1282,5 +1991,5 @@ allerMenu()
 -- (la console de Studio ne partage pas _G avec les scripts : pour imposer une vue, poser l'attribut DbgVue — un CFrame — sur le Workspace)
 _G.cashcar = function()
 	return { mode = mode, zone = zoneN, s = s, lat = lat, side = side, vA = vA, kmh = kmh(), psi = psi,
-		nitro = nitroR, tier = tier, argent = argent, aura = aura, fallT = fallT, n = piste and piste.n, len = piste and piste.len }
+		nitro = nitroR, tier = tier, argent = argent, aura = aura, fallT = V.fallT, n = piste and piste.n, len = piste and piste.len }
 end

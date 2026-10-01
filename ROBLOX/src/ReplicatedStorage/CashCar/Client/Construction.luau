@@ -153,52 +153,170 @@ end
 
 -- ── les objets ──
 local OR = Color3.fromRGB(255, 205, 64)
-function Construction.objets(piste: Piste.Piste, dossier: Instance, ceder: (() -> ())?): { any }
-	local liste = {}
-	for k, o in piste.objets do
-		local f = Piste.repereFace(piste, o.s, o.face)
-		local pos = f.Position + f.RightVector * o.lat + f.UpVector * o.h
-		local p: Part
-		if o.kind == "piece" then
-			p = part(Vector3.new(0.35 * M, 1.5 * M, 1.5 * M), CFrame.fromMatrix(pos, f.RightVector, f.UpVector), OR, Enum.Material.Neon, dossier)
-			p.Shape = Enum.PartType.Cylinder
-			p.CastShadow = false
-		elseif o.kind == "pad" then
-			p = part(Vector3.new(7 * M, 0.12 * M, 9 * M), CFrame.fromMatrix(pos, f.RightVector, f.UpVector, -f.LookVector), R.pad, Enum.Material.Neon, dossier)
-			p.CastShadow = false
-			-- deux chevrons sombres : on lit le sens de la poussée
-			for c = -1, 1, 2 do
-				local ch = part(Vector3.new(4.6 * M, 0.14 * M, 0.9 * M),
-					CFrame.fromMatrix(pos + f.LookVector * (c * 1.8 * M) + f.UpVector * 0.02 * M, f.RightVector, f.UpVector, -f.LookVector),
-					Color3.fromRGB(90, 40, 10), Enum.Material.SmoothPlastic, dossier)
+local AssetService = game:GetService("AssetService")
+local EN_FRANCAIS = string.sub(game:GetService("Players").LocalPlayer.LocaleId or "fr", 1, 2) == "fr"
+
+-- LE PLOT (L7344) : rouge DANGER, deux bandes blanches, 1,5 m — un seul maillage à facettes, bâti une fois puis copié.
+-- (le maillage est centré sur sa boîte : on le pose à mi-hauteur)
+local PLOT_H = 1.5
+local modelePlot: BasePart? = nil
+local function plotModele(): BasePart
+	if modelePlot then return modelePlot end
+	local ROUGE, BLANC = Color3.fromRGB(255, 59, 92), Color3.fromRGB(250, 250, 255)
+	local ok, mp = pcall(function()
+		local em = AssetService:CreateEditableMesh()
+		-- le profil : { hauteur, rayon, couleur du tronçon AU-DESSUS }
+		local profil = {
+			{ 0, 0.72, ROUGE }, { 0.10, 0.72, ROUGE }, { 0.10, 0.44, ROUGE }, { 0.51, 0.345, BLANC }, { 0.73, 0.29, ROUGE },
+			{ 0.94, 0.225, BLANC }, { 1.10, 0.18, ROUGE }, { 1.50, 0.075, ROUGE },
+		}
+		local N = 8
+		local function pt(k: number, i: number): Vector3
+			local q = profil[k]
+			local a = (i / N) * math.pi * 2 + ((k <= 2) and math.pi / 4 or 0)
+			local n = (k <= 2) and 4 or N -- le socle a quatre pans
+			if k <= 2 then a = (math.floor(i / 2) / n) * math.pi * 2 + math.pi / 4 end
+			return Vector3.new(math.cos(a) * q[2], q[1] - PLOT_H / 2, math.sin(a) * q[2]) * M
+		end
+		local function face(a: Vector3, b: Vector3, c: Vector3, col: Color3)
+			if (b - a):Cross(c - a).Magnitude < 1e-6 then return end
+			local f = em:AddTriangle(em:AddVertex(a), em:AddVertex(b), em:AddVertex(c))
+			local id = em:AddColor(col, 1)
+			em:SetFaceColors(f, { id, id, id })
+		end
+		for k = 1, #profil - 1 do
+			for i = 0, N - 1 do
+				local a, b = pt(k, i), pt(k, i + 1)
+				local c, d = pt(k + 1, i), pt(k + 1, i + 1)
+				face(a, c, b, profil[k][3])
+				face(b, c, d, profil[k][3])
+			end
+		end
+		for i = 0, N - 1 do -- le bouchon du haut
+			face(pt(#profil, i), Vector3.new(0, PLOT_H / 2, 0) * M, pt(#profil, i + 1), ROUGE)
+		end
+		local fige = AssetService:CreateEditableMeshAsync(Content.fromObject(em), { FixedSize = true })
+		em:Destroy()
+		return AssetService:CreateMeshPartAsync(Content.fromObject(fige), { CollisionFidelity = Enum.CollisionFidelity.Box })
+	end)
+	local p: BasePart
+	if ok and mp then
+		p = mp
+		p.DoubleSided = true
+		p.Color = Color3.new(1, 1, 1)
+	else
+		p = Instance.new("Part") -- secours : une borne rouge
+		p.Size = Vector3.new(0.7, PLOT_H, 0.7) * M
+		p.Color = ROUGE
+	end
+	p.Anchored = true
+	p.CanCollide = false
+	p.CanQuery = false
+	p.CanTouch = false
+	p.CastShadow = false
+	p.Material = Enum.Material.SmoothPlastic
+	modelePlot = p
+	return p
+end
+
+-- un objet : sa pièce, sa position. o.lat et o.h sont donnés dans le repère de SA face.
+function Construction.unObjet(piste: Piste.Piste, o: Piste.Objet, dossier: Instance): any
+	local f = Piste.repereFace(piste, o.s, o.face)
+	local pos = f.Position + f.RightVector * o.lat + f.UpVector * o.h
+	local p: BasePart
+	if o.kind == "piece" then
+		p = part(Vector3.new(0.3 * M, 2.36 * M, 2.36 * M), CFrame.fromMatrix(pos, f.RightVector, f.UpVector), OR, Enum.Material.Neon, dossier);
+		(p :: Part).Shape = Enum.PartType.Cylinder
+		p.CastShadow = false
+	elseif o.kind == "pad" then
+		-- la plaque de 5,5 × 9 m : fond d'encre, rails et chevrons d'or
+		p = part(Vector3.new(5.5 * M, 0.12 * M, 9 * M), CFrame.fromMatrix(pos, f.RightVector, f.UpVector, -f.LookVector), Color3.fromRGB(28, 4, 48), Enum.Material.SmoothPlastic, dossier)
+		p.CastShadow = false
+		for c = -1.5, 1.5, 1 do
+			for cote = -1, 1, 2 do
+				local ch = part(Vector3.new(2.5 * M, 0.06 * M, 0.7 * M),
+					CFrame.fromMatrix(pos + f.LookVector * (c * 2.25 * M) + f.RightVector * (cote * 1.05 * M) + f.UpVector * (0.07 * M), f.RightVector, f.UpVector, -f.LookVector)
+						* CFrame.Angles(0, cote * 0.6, 0),
+					Color3.fromRGB(255, 242, 122), Enum.Material.Neon, dossier)
 				ch.CastShadow = false
 				ch.Parent = p
 			end
-		else -- cristal de pouvoir : un diamant qui tourne, et son étiquette
-			local pw = Config.POUVOIRS[o.pw or "n"]
-			p = part(Vector3.new(1.7 * M, 1.7 * M, 1.7 * M), CFrame.fromMatrix(pos, f.RightVector, f.UpVector) * CFrame.Angles(math.pi / 4, 0, math.pi / 4),
-				pw.couleur, Enum.Material.Neon, dossier)
-			p.CastShadow = false
-			local bb = Instance.new("BillboardGui")
-			bb.Size = UDim2.fromOffset(160, 40)
-			bb.StudsOffsetWorldSpace = f.UpVector * (2.2 * M)
-			bb.AlwaysOnTop = false
-			bb.MaxDistance = 260 * M
-			bb.LightInfluence = 0
-			local t = Instance.new("TextLabel")
-			t.BackgroundTransparency = 1
-			t.Size = UDim2.fromScale(1, 1)
-			t.FontFace = Font.new("rbxasset://fonts/families/PressStart2P.json")
-			t.TextScaled = true
-			t.TextColor3 = pw.couleur
-			t.TextStrokeTransparency = 0.2
-			t.Text = pw.nom
-			t.Name = "Nom"
-			t.Parent = bb
-			bb.Parent = p
 		end
-		p.Name = o.kind
-		liste[k] = { o = o, p = p, pos = pos, pris = false, base = p.CFrame }
+		for cote = -1, 1, 2 do
+			local rail = part(Vector3.new(0.22 * M, 0.08 * M, 9 * M), CFrame.fromMatrix(pos + f.RightVector * (cote * 2.6 * M) + f.UpVector * (0.06 * M), f.RightVector, f.UpVector, -f.LookVector),
+				Color3.fromRGB(255, 200, 60), Enum.Material.Neon, dossier)
+			rail.CastShadow = false
+			rail.Parent = p
+		end
+	elseif o.kind == "plot" then
+		p = plotModele():Clone()
+		p.CFrame = CFrame.fromMatrix(pos + f.UpVector * (PLOT_H / 2 * M), f.RightVector, f.UpVector)
+		p.Parent = dossier
+	elseif o.kind == "flaque" then
+		-- la flaque : un disque noir glacé, liseré violet
+		local r = (o.r or 2.5) * M
+		p = part(Vector3.new(0.06 * M, r * 2.4, r * 2.4), CFrame.fromMatrix(pos, f.UpVector, -f.RightVector), Color3.fromRGB(18, 20, 25), Enum.Material.SmoothPlastic, dossier);
+		(p :: Part).Shape = Enum.PartType.Cylinder
+		p.Reflectance = 0.45
+		p.CastShadow = false
+		local lis = part(Vector3.new(0.04 * M, r * 2.75, r * 2.75), CFrame.fromMatrix(pos - f.UpVector * (0.02 * M), f.UpVector, -f.RightVector), Color3.fromRGB(74, 58, 114), Enum.Material.SmoothPlastic, dossier);
+		(lis :: Part).Shape = Enum.PartType.Cylinder
+		lis.Transparency = 0.55
+		lis.CastShadow = false
+		lis.Parent = p
+	elseif o.kind == "fruit" then
+		-- un fruit (provisoire : une boule à sa couleur et sa feuille ; les six maillages du jeu web viendront de la cuisson)
+		local fd = Config.FRUITS[o.fruit or 1]
+		local t = fd.taille * M
+		p = part(Vector3.new(t, t * fd.plat, t), CFrame.fromMatrix(pos, f.RightVector, f.UpVector), fd.couleur, Enum.Material.SmoothPlastic, dossier);
+		(p :: Part).Shape = Enum.PartType.Ball
+		p.Reflectance = 0.12
+		p.CastShadow = false
+		local m = Instance.new("SpecialMesh")
+		m.MeshType = Enum.MeshType.Sphere
+		m.Parent = p
+		local feuille = part(Vector3.new(0.5 * M, 0.12 * M, 0.9 * M), CFrame.fromMatrix(pos + f.UpVector * (t * fd.plat * 0.5), f.RightVector, f.UpVector) * CFrame.Angles(0.5, 0.6, 0),
+			Color3.fromRGB(70, 190, 80), Enum.Material.SmoothPlastic, dossier)
+		feuille.CastShadow = false
+		feuille.Parent = p
+		local w = Instance.new("WeldConstraint")
+		feuille.Anchored = false
+		w.Part0, w.Part1 = p, feuille
+		w.Parent = feuille
+	else -- cristal de pouvoir : un diamant qui tourne, et son étiquette
+		local pw = Config.POUVOIRS[o.pw or "n"]
+		p = part(Vector3.new(2.4 * M, 2.4 * M, 2.4 * M), CFrame.fromMatrix(pos, f.RightVector, f.UpVector) * CFrame.Angles(math.pi / 4, 0, math.pi / 4),
+			pw.couleur, Enum.Material.Neon, dossier)
+		p.CastShadow = false
+		p.Transparency = 0.15
+		local bb = Instance.new("BillboardGui")
+		bb.Size = UDim2.fromOffset(180, 40)
+		bb.StudsOffsetWorldSpace = f.UpVector * (3 * M)
+		bb.AlwaysOnTop = false
+		bb.MaxDistance = 160 * M
+		bb.LightInfluence = 0
+		local t = Instance.new("TextLabel")
+		t.BackgroundTransparency = 1
+		t.Size = UDim2.fromScale(1, 1)
+		t.FontFace = Font.new("rbxasset://fonts/families/PressStart2P.json")
+		t.TextScaled = true
+		t.TextColor3 = pw.couleur
+		t.TextStrokeColor3 = Color3.fromRGB(28, 4, 48)
+		t.TextStrokeTransparency = 0
+		t.Text = EN_FRANCAIS and pw.nom or pw.nomEN
+		t.Name = "Nom"
+		t.Parent = bb
+		bb.Parent = p
+	end
+	p.Name = o.kind
+	return { o = o, p = p, pos = pos, pris = false, base = p.CFrame }
+end
+
+function Construction.objets(piste: Piste.Piste, dossier: Instance, ceder: (() -> ())?): { any }
+	local liste = {}
+	plotModele()
+	for k, o in piste.objets do
+		liste[k] = Construction.unObjet(piste, o, dossier)
 		if ceder and k % 150 == 0 then ceder() end
 	end
 	return liste

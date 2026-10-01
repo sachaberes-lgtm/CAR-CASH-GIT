@@ -91,12 +91,26 @@ Config.OBJETS = {
 }
 
 -- ── les pouvoirs (cristaux, L23258) ──
+-- les CINQ cristaux (pouvoirs v2, L23402 — le bouclier est retiré) : le même pouvoir repris se CUMULE (plafond 2 × sa durée)
 Config.POUVOIRS = {
-	n = { nom = "NITRO INFINIE", nomEN = "INFINITE NITRO", duree = 9, couleur = Color3.fromRGB(255, 122, 36), poids = 0.30 },
-	a = { nom = "AIRTIME INFINI", nomEN = "INFINITE AIRTIME", duree = 14, couleur = Color3.fromRGB(0, 234, 255), poids = 0.30 },
-	v = { nom = "SPEED UP", nomEN = "SPEED UP", duree = 8, couleur = Color3.fromRGB(255, 215, 94), poids = 0.20 },
-	m = { nom = "AIMANT", nomEN = "MAGNET", duree = 12, couleur = Color3.fromRGB(255, 62, 200), poids = 0.20 },
+	n = { nom = "NITRO MAX", nomEN = "NITRO MAX", duree = 9, couleur = Color3.fromRGB(164, 92, 255), poids = 0.21 },    -- la nitro ne se vide plus (flammes violettes)
+	a = { nom = "AIR MAX", nomEN = "AIR MAX", duree = 14, couleur = Color3.fromRGB(94, 230, 255), poids = 0.17 },       -- plus de mort « trop longtemps en l'air »
+	v = { nom = "VITESSE x2", nomEN = "SPEED x2", duree = 8, couleur = Color3.fromRGB(255, 62, 200), poids = 0.16 },    -- l'avance ×2 (plafond commun ×2,6 avec NITROOO)
+	m = { nom = "AIMANT", nomEN = "MAGNET", duree = 12, couleur = Color3.fromRGB(63, 224, 106), poids = 0.19 },         -- une sphère de 50 m sur les pièces et les fruits
+	x = { nom = "AURA x2", nomEN = "AURA x2", duree = 12, couleur = Color3.fromRGB(255, 201, 58), poids = 0.27 },       -- chaque gain d'aura doublé
 }
+
+-- ── les FRUITS de l'étal (FRUIT_DEFS, L20203) : ils ne rendent QUE de la nitro (la réserve BLEUE) ; boost ne dose plus que la fête ──
+Config.FRUITS = {
+	{ nom = "PECHE PLATE", boost = 0.6, freq = 10, couleur = Color3.fromRGB(255, 158, 194), taille = 2.2, plat = 0.6 },
+	{ nom = "BANANE", boost = 0.5, freq = 12, couleur = Color3.fromRGB(255, 214, 58), taille = 1.9, plat = 0.75 },
+	{ nom = "GRENADE", boost = 1.0, freq = 4, couleur = Color3.fromRGB(209, 15, 43), taille = 2.3, plat = 1 },
+	{ nom = "ORANGE", boost = 0.5, freq = 11, couleur = Color3.fromRGB(255, 139, 18), taille = 2.2, plat = 1 },
+	{ nom = "MYRTILLE", boost = 0.35, freq = 26, couleur = Color3.fromRGB(106, 75, 216), taille = 1.7, plat = 0.95 },
+	{ nom = "PASTEQUE", boost = 2.0, freq = 1, couleur = Color3.fromRGB(70, 170, 80), taille = 3.0, plat = 1 },
+}
+-- LA LIGNE PARFAITE (L11855) : une file FRUIT, PAD, FRUIT, PAD… posée en course devant la caisse, sur la trajectoire idéale
+Config.LIGNE = { dt = 1.2, don = 1.15, voir = 3.5 }
 
 -- ── le niveau 1 : « le jour d'altitude » (biomes matin/midi/aprem, L12775) ──
 local function rgb(r, g, b) return Color3.new(r, g, b) end
