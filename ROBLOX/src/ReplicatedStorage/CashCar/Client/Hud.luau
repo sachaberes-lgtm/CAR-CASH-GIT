@@ -143,24 +143,70 @@ local function retour(b: GuiButton, cible: GuiObject)
 	end)
 end
 
--- une TUILE du web : carbone + filet coloré + pictogramme + libellé
+-- ── LA PLAQUE PENCHÉE (charte v4 du web : « penché = je touche ») ──
+-- Roblox ne sait pas incliner un cadre. La plaque est faite de fines BANDES horizontales, chacune décalée d'un cran : un
+-- parallélogramme en escalier de pixels (le haut part vers la droite) — exact à toutes les tailles, et dans le ton du jeu.
+-- Le filet de couleur suit le bord gauche. Dessous, la TRANCHE : la plaque a une épaisseur, l'appui l'enfonce dedans.
+-- (essayé d'abord : couper un rectangle par un dégradé de transparence tourné — les bords tombaient à côté selon la taille)
+local PENTE = math.tan(math.rad(12))
+local CRAN = 4 -- hauteur d'une bande (px de l'interface)
+-- rend le conteneur (à placer), la plaque (ce qui s'enfonce) et le bouton
+local function penche(parent: Instance, taille: UDim2, pos: UDim2, ancre: Vector2?, fond: Color3, filet: Color3?, tranche: Color3, lisere: Color3?): (Frame, Frame, TextButton)
+	local boite = inst("Frame", { BackgroundTransparency = 1, Size = taille, Position = pos, AnchorPoint = ancre or Vector2.zero }, parent)
+	local tr = inst("Frame", { BackgroundColor3 = tranche, BorderSizePixel = 0 }, boite)
+	local plaque = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1) }, boite)
+	local bandes = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1) }, plaque)
+	local hauteur = -1
+	local function batir()
+		-- (la hauteur en px de l'INTERFACE : la racine est mise à l'échelle, AbsoluteSize est en px d'écran)
+		local Hh = taille.Y.Offset
+		if taille.Y.Scale ~= 0 then
+			local e = boite:FindFirstAncestorWhichIsA("GuiObject")
+			Hh = math.floor(taille.Y.Scale * (e and e.AbsoluteSize.Y or 0) + taille.Y.Offset + 0.5)
+		end
+		if Hh == hauteur or Hh < 4 then return end
+		hauteur = Hh
+		bandes:ClearAllChildren()
+		local d = math.floor(Hh * PENTE + 0.5)
+		local n = math.ceil(Hh / CRAN)
+		for i = 0, n - 1 do
+			local y = i * CRAN
+			local h = math.min(CRAN, Hh - y)
+			local x = math.floor((Hh - y - h / 2) * PENTE + 0.5)
+			local bande = inst("Frame", { BackgroundColor3 = (i == 0 and lisere) or fond, BorderSizePixel = 0, Size = UDim2.new(1, -d, 0, h), Position = UDim2.fromOffset(x, y) }, bandes)
+			if i == 0 and lisere then
+				-- le biseau clair : deux pixels en haut de la première bande
+				inst("Frame", { BackgroundColor3 = fond, BorderSizePixel = 0, Size = UDim2.new(1, 0, 1, -2), Position = UDim2.fromOffset(0, 2) }, bande)
+			end
+			if filet then inst("Frame", { BackgroundColor3 = filet, BorderSizePixel = 0, Size = UDim2.new(0, 5, 1, 0) }, bande) end
+		end
+		tr.Size = UDim2.new(1, -d, 0, 6)
+		tr.Position = UDim2.new(0, 0, 1, -1)
+	end
+	batir()
+	if taille.Y.Scale ~= 0 then boite:GetPropertyChangedSignal("AbsoluteSize"):Connect(batir) end
+	local b = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), FontFace = PIX, Text = "",
+		TextColor3 = C.texte, TextSize = 16, AutoButtonColor = false }, plaque)
+	return boite, plaque, b
+end
+
+-- une TUILE du web : une plaque penchée de carbone, son filet de couleur à gauche, son libellé
 local function tuile(parent: Instance, libelle: string, filet: Color3, taille: UDim2, pos: UDim2, ancre: Vector2?, corps: number?): TextButton
-	local f = carbone(parent, taille, pos, filet, ancre)
-	local b = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), FontFace = PIX, Text = libelle,
-		TextColor3 = C.texte, TextSize = corps or 16, AutoButtonColor = false }, f)
+	local _, plaque, b = penche(parent, taille, pos, ancre, C.carbone, filet, C.encre, C.trait)
+	b.Text = libelle
+	b.TextSize = corps or 16
 	inst("UIStroke", { Color = C.encre, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual }, b)
-	retour(b, f)
+	retour(b, plaque)
 	return b
 end
 
--- le GRAND bouton doré (REJOUER, REPRENDRE) : dégradé or, texte encre
+-- le GRAND bouton doré (REJOUER, REPRENDRE) : UN lingot par écran, penché lui aussi
 local function lingot(parent: Instance, libelle: string, taille: UDim2, pos: UDim2, ancre: Vector2?, corps: number?): TextButton
-	local f = inst("Frame", { BackgroundColor3 = C.or_, BorderSizePixel = 0, Size = taille, Position = pos, AnchorPoint = ancre or Vector2.zero }, parent)
-	degrade(f, Color3.fromRGB(255, 244, 150), Color3.fromRGB(255, 168, 0), 90)
-	inst("UIStroke", { Color = C.orSh, Thickness = 3, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, f)
-	local b = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), FontFace = PIX, Text = libelle,
-		TextColor3 = Color3.fromRGB(40, 22, 4), TextSize = corps or 34, AutoButtonColor = false }, f)
-	retour(b, f)
+	local _, plaque, b = penche(parent, taille, pos, ancre, Color3.fromRGB(255, 196, 40), nil, C.orSh, Color3.fromRGB(255, 244, 150))
+	b.Text = libelle
+	b.TextColor3 = Color3.fromRGB(40, 22, 4)
+	b.TextSize = corps or 34
+	retour(b, plaque)
 	return b
 end
 

@@ -264,6 +264,7 @@ local flyU, flyAv = Vector3.yAxis, Vector3.new(0, 0, -1)
 local V = {
 	fallT = 0, fallTR = 0, fallVH0 = -1, yawAcc = 0, demiTours = 0, sDecol = 0,
 	bascOn = false, bascDir = 1, airRoll = 0, nAirTenu = false, kickT = 0, sideCd = 0, bounceN = 0,
+	bascT = 0, -- LA BASCULE BORNÉE (web, 1/10 13 h 35) : le temps VÉCU depuis la sortie par le bord (fallT, lui, est rendu par les bumps)
 	fallUnder = false, fallStartSide = 1, flowS0 = 0, flowP0 = Vector3.zero,
 	curNear = false, curH = 0, curLat = 0, curT = 0,
 	chainVal = 0, chainMult = 1, chainN = 0, bigA = false, monstre = false, nitroAirT = 0, nitroAirTenue = 0,
@@ -477,6 +478,7 @@ local function decoller(impU: number, impF: number, bord: boolean?)
 	V.fallUnder, V.fallStartSide = false, side
 	V.flowS0, V.flowP0 = s, fallPos
 	V.bascOn = bord == true
+	V.bascT = 0
 	V.bascDir = bord and -((lat ~= 0) and math.sign(lat) or 1) or 1 -- la vrille tourne du côté du VIDE
 	V.airRoll = bord and roulis or 0
 	Score.dolDecolle()
@@ -889,17 +891,19 @@ local function essayerAtterrir(dt: number)
 		-- le SERPENT : passer SOUS la dalle, dans sa largeur
 		if not V.fallUnder and math.abs(latOff) < RH and ((V.fallStartSide > 0 and hOff < -THICK - 1) or (V.fallStartSide <= 0 and hOff > 1)) then V.fallUnder = true end
 		if V.bascOn and V.fallStartSide > 0 and not intro then
-			-- (a) LE SURSIS : la caisse est PORTÉE par la lèvre tant qu'elle bascule
-			if V.fallT < 0.45 or math.abs(latOff) < RH + demi then
-				local hS = -0.35 * math.min(1, math.max(V.fallT / 0.45, (math.abs(latOff) - RH) / demi))
+			-- (a) LE SURSIS : la caisse est PORTÉE par la lèvre tant qu'elle bascule (0,45 s) ou que ses roues intérieures touchent
+			-- encore — AU-DELÀ du bord seulement, et jamais plus bas que la lèvre (2 m) : sans ces bornes, une caisse passant
+			-- SOUS la route ou revenant après un bump était remontée d'un coup à la surface (jusqu'à 3 m en une image)
+			if hOff > -2 and (V.bascT < 0.45 or (math.abs(latOff) >= RH and math.abs(latOff) < RH + demi)) then
+				local hS = -0.35 * math.min(1, math.max(V.bascT / 0.45, (math.abs(latOff) - RH) / demi))
 				if hOff < hS then
 					fallPos += N * (hS - hOff)
 					if vN < 0 then fallVel += N * (-vN) end
 					pos = fallPos * M
 				end
 			end
-			-- (b) LA LÈVRE RACCROCHE : la caisse REVIENT vers la route dans les 0,8 s
-			if V.sideCd <= 0 and V.fallT < 0.8 and hOff > -1.2 and hOff < 0.8 and math.abs(latOff) < RH + demi and vB * math.sign(latOff) < -0.5 then
+			-- (b) LA LÈVRE RACCROCHE : la caisse REVIENT vers la route dans la seconde, jusqu'à 2 m sous la surface
+			if V.sideCd <= 0 and V.bascT < 1 and hOff > -2 and hOff < 0.8 and math.abs(latOff) < RH + demi and vB * math.sign(latOff) < -0.5 then
 				levreRattrape(proche, latOff, hOff, tOff)
 				return
 			end
@@ -926,6 +930,7 @@ local function essayerAtterrir(dt: number)
 			fallVel = Vector3.new(fallVel.X, math.max(fallVel.Y + 2.4, 16), fallVel.Z)
 			fallPos += B * (sg * math.max(bumpThru and 0 or math.abs(latOff), RH + demi) - latOff) -- remise CONTRE la tranche
 			V.sideCd = 0.35
+			V.bascOn = false -- la tranche touchée : la bascule est finie
 			V.bounceN += 1
 			nitroGain(Score.nitroBumpDe(V.bounceN, nitroOn and pwN <= 0)) -- 0,35 · 0,21 · 0,13 · 0,08 puis rien ; rien réacteur allumé
 			Score.flowAdd(6, "style")
@@ -1639,7 +1644,12 @@ local function etapeAir(dt: number)
 	V.sideCd -= dt
 	gererNitro(dt)
 	local push = pousseMoteur()
-	local gB = V.bascOn and math.min(1, V.fallT / 0.45) or 1 -- LE SURSIS : la gravité s'installe en 0,45 s
+	-- la bascule dure UNE seconde au plus, puis c'est un vol comme un autre (ni portée, ni lèvre, ni gravité retenue)
+	if V.bascOn then
+		V.bascT += dt
+		if V.bascT > 1.1 then V.bascOn = false end
+	end
+	local gB = V.bascOn and math.min(1, V.bascT / 0.45) or 1 -- LE SURSIS : la gravité s'installe en 0,45 s
 	fallVel -= Vector3.new(0, FALL_G * gB * dt, 0)
 	-- le repère de vol : l'avant = la trajectoire, le haut reste perpendiculaire (garde contre le blocage de cardan)
 	local vit = fallVel.Magnitude
@@ -1720,7 +1730,7 @@ local function etapeAir(dt: number)
 	prevPos = fallPos
 	fallPos += fallVel * dt * SPD
 	-- la vrille VISUELLE : la caisse roule autour de sa trajectoire
-	V.airRoll += (V.bascDir * (3.0 + math.min(2, V.fallT * 0.5)) * (V.bascOn and math.min(1, 0.25 + V.fallT * 1.9) or 1) + Controles.volant * 2.2) * dt * (intro and 0 or 1)
+	V.airRoll += (V.bascDir * (3.0 + math.min(2, V.fallT * 0.5)) * (V.bascOn and math.min(1, 0.25 + V.bascT * 1.9) or 1) + Controles.volant * 2.2) * dt * (intro and 0 or 1)
 	vit = fallVel.Magnitude
 	if vit > 1 then flyAv = fallVel / vit end
 	u = flyU - flyAv * flyU:Dot(flyAv)
