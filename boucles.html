@@ -16,7 +16,22 @@ html,body{margin:0;background:var(--fond);color:var(--tx);font-family:-apple-sys
 .in{max-width:760px;margin:0 auto;padding:48px 20px 120px}
 h1{font-size:40px;font-weight:700;letter-spacing:-.02em;margin:0}
 .sous{color:var(--tx2);font-size:17px;margin:6px 0 28px}
-.seg{display:inline-flex;background:var(--fil);border-radius:10px;padding:2px;margin-bottom:28px}
+.barreO{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.seg{display:inline-flex;background:var(--fil);border-radius:10px;padding:2px}
+.poub{position:relative;border:0;background:none;color:var(--tx2);width:40px;height:36px;border-radius:10px;cursor:pointer;display:grid;place-items:center;transition:all .15s}
+.poub svg{width:20px;height:20px;fill:currentColor}.poub b{position:absolute;top:2px;right:2px;font-size:10px;font-weight:600;color:var(--tx2)}
+/* le GLISSER : les onglets et la corbeille deviennent des cibles */
+body.glisse .seg button{outline:2px dashed var(--bleu);outline-offset:-4px}
+.seg button.cible{background:var(--bleu)!important;color:#fff}
+body.glisse .poub{background:#ff3b3020;color:#ff3b30}.poub.cible{background:#ff3b30!important;color:#fff!important;transform:scale(1.12)}
+.c.parti{opacity:.35}
+.niv{border-radius:20px;padding:14px;background:color-mix(in srgb,var(--nc) 7%,transparent);border:1.5px solid color-mix(in srgb,var(--nc) 25%,transparent);display:grid;gap:10px;transition:all .15s}
+.niv h2{margin:0 4px;font-size:15px;font-weight:600;color:var(--nc);display:flex;align-items:center;gap:8px}
+.niv h2 span{font-size:12px;color:var(--tx2);font-weight:500}
+.niv.cible{background:color-mix(in srgb,var(--nc) 18%,transparent);border-color:var(--nc);transform:scale(1.01)}
+body.glisse .niv{border-style:dashed}
+.videN{font-size:13px;color:var(--tx2);text-align:center;padding:14px;border:1.5px dashed var(--fil);border-radius:14px}
+#liste .niv+.niv{margin-top:6px}
 .seg button{border:0;background:none;font:inherit;font-size:14px;font-weight:500;color:var(--tx);padding:7px 18px;border-radius:8px;cursor:pointer}
 .seg button.on{background:var(--carte);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .liste{display:grid;gap:12px}
@@ -68,9 +83,12 @@ h1{font-size:40px;font-weight:700;letter-spacing:-.02em;margin:0}
 <body>
 <div class="in">
   <h1>Boucles</h1>
-  <p class="sous">Touche une boucle pour l'écouter. Touche-la encore pour l'arrêter.</p>
-  <div class="seg" id="seg">
-    <button data-g="lobby" class="on">Lobby</button><button data-g="niv">Niveaux</button><button data-g="petits">Petits sons</button>
+  <p class="sous">Touche une boucle pour l'écouter. Glisse-la sur un onglet pour la ranger, ou sur la corbeille.</p>
+  <div class="barreO">
+    <div class="seg" id="seg">
+      <button data-g="lobby" class="on">Lobby</button><button data-g="niv">Niveaux</button><button data-g="petits">Petits sons</button>
+    </div>
+    <button class="poub" id="poub" title="Glisse un son ici pour le supprimer — touche pour voir les sons supprimés"><svg viewBox="0 0 24 24"><path d="M9 3h6l1 2h4v2H4V5h4l1-2zm-3 6h12l-1 12H7L6 9z"/></svg><b id="poubN"></b></button>
   </div>
   <div class="liste" id="liste"></div>
   <div class="corb" id="corb"></div>
@@ -93,14 +111,23 @@ h1{font-size:40px;font-weight:700;letter-spacing:-.02em;margin:0}
 <script src="assets/audio/music/boucles/petits-donnees.js?v=1"></script>
 <script>
 'use strict';
+// les CIBLES du glisser : chaque onglet, et la corbeille
+function cible(el,action){
+  el.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';el.classList.add('cible');});
+  el.addEventListener('dragleave',()=>el.classList.remove('cible'));
+  el.addEventListener('drop',e=>{e.preventDefault();el.classList.remove('cible');document.body.classList.remove('glisse');let id=enGlisse;try{id=id||e.dataTransfer.getData('text/plain');}catch(_){}enGlisse=null;if(id)action(id);});}
+let enGlisse=null; // le son qu'on tient (le dataTransfer ne se lit pas partout au lâcher)
 const GROUPE={lobby:'LOBBY · 8 SECONDES',niv:'NIVEAUX · 8 SECONDES'};
 const ONGLETS={lobby:'Lobby',niv:'Niveaux',petits:'Petits sons'};
+// LES NIVEAUX DU JEU : dans l'onglet Niveaux, chaque son est rangé dans l'un d'eux (glisser-déposer)
+const NIVS=[['nuages','Nuages','#5ac8fa'],['ville','Ville','#ff2d92'],['orbite','Orbite','#af52de'],['frenesie','Frénésie','#ff3b30'],['aplacer','À placer','#8e8e93']];
+function nivDe(pour){pour=(pour||'').toUpperCase();return /NUAGE/.test(pour)?'nuages':/VILLE/.test(pour)?'ville':/ORBITE/.test(pour)?'orbite':/FR[EÉ]N/.test(pour)?'frenesie':'aplacer';}
 const TOUS=(window.PETITS||[]).map(p=>({g:'petits',id:p.id,titre:p.titre,style:p.style,bpm:p.bpm,cle:p.cle,dur:p.dur,f:p.f,idee:p.idee})).concat(
   (window.BOUCLES||[]).filter(b=>b.f&&(b.groupe===GROUPE.lobby||b.groupe===GROUPE.niv)).map(b=>({g:b.groupe===GROUPE.lobby?'lobby':'niv',id:b.id,titre:b.titre,
-    style:(b.pour||'').split('·').pop().trim(),bpm:b.bpm,cle:b.cle,dur:b.dur,f:b.f,idee:b.idee})));
+    style:(b.pour||'').split('·').pop().trim(),bpm:b.bpm,cle:b.cle,dur:b.dur,f:b.f,idee:b.idee,niv0:nivDe(b.pour)})));
 // LE RANGEMENT de Léo : {groupes:{id:onglet}, corbeille:[id]} — gardé par la boîte (atelier-son/boite/rangement.json), sinon par le navigateur
-let RANGE={groupes:{},corbeille:[]},ong='lobby';
-const ongDe=b=>RANGE.groupes[b.id]||b.g,jete=b=>RANGE.corbeille.indexOf(b.id)>=0;
+let RANGE={groupes:{},corbeille:[],niveaux:{}},ong='lobby';
+const ongDe=b=>RANGE.groupes[b.id]||b.g,jete=b=>RANGE.corbeille.indexOf(b.id)>=0,nivD=b=>(RANGE.niveaux||{})[b.id]||b.niv0||'aplacer';
 function liste(g){return TOUS.filter(b=>ongDe(b)===g&&!jete(b));}
 async function rangeCharge(){
   try{RANGE=Object.assign(RANGE,JSON.parse(localStorage.getItem('ccRange')||'{}'));}catch(e){}
@@ -108,18 +135,22 @@ async function rangeCharge(){
 }
 function rangeSauve(){try{localStorage.setItem('ccRange',JSON.stringify(RANGE));}catch(e){}
   fetch('http://localhost:8768/boite/rangement',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(RANGE)}).catch(()=>{});}
+function deplace(id,g){const b=TOUS.find(x=>x.id===id);if(!b||ongDe(b)===g)return;
+  if(g===b.g)delete RANGE.groupes[id];else RANGE.groupes[id]=g;if(cur&&cur.id===id)stop();rangeSauve();rend(ong);}
+function place(id,n){const b=TOUS.find(x=>x.id===id);if(!b)return;RANGE.niveaux=RANGE.niveaux||{};RANGE.niveaux[id]=n;
+  if(ongDe(b)!=='niv'){if(b.g==='niv')delete RANGE.groupes[id];else RANGE.groupes[id]='niv';}if(cur&&cur.id===id)stop();rangeSauve();rend(ong);}
+function supprime(id){if(RANGE.corbeille.indexOf(id)<0)RANGE.corbeille.push(id);if(cur&&cur.id===id)stop();rangeSauve();rend(ong);}
 function menu(b,bouton){
   fermeMenu();const m=document.createElement('div');m.className='menu';m.id='menu';
-  m.innerHTML=Object.keys(ONGLETS).filter(k=>k!==ongDe(b)).map(k=>'<button data-v="'+k+'">Déplacer vers '+ONGLETS[k]+'</button>').join('')+'<hr><button class="rouge" data-x="1">Supprimer</button>';
+  m.innerHTML=NIVS.filter(n=>n[0]!=='aplacer'&&!(ongDe(b)==='niv'&&nivD(b)===n[0])).map(n=>'<button data-n="'+n[0]+'">Mettre dans '+n[1]+'</button>').join('')+'<hr>'+
+    Object.keys(ONGLETS).filter(k=>k!==ongDe(b)&&k!=='niv').map(k=>'<button data-v="'+k+'">Déplacer vers '+ONGLETS[k]+'</button>').join('')+'<button class="rouge" data-x="1">Supprimer</button>';
   const r=bouton.getBoundingClientRect();m.style.top=(r.bottom+scrollY+4)+'px';m.style.left=Math.max(10,r.right+scrollX-210)+'px';
   m.onclick=function(e){const t=e.target.closest('button');if(!t)return;
-    if(t.dataset.v){if(t.dataset.v===b.g)delete RANGE.groupes[b.id];else RANGE.groupes[b.id]=t.dataset.v;}
-    if(t.dataset.x)RANGE.corbeille.push(b.id);
-    if(cur&&cur.id===b.id)stop();rangeSauve();fermeMenu();rend(ong);};
+    fermeMenu();if(t.dataset.n)place(b.id,t.dataset.n);if(t.dataset.v)deplace(b.id,t.dataset.v);if(t.dataset.x)supprime(b.id);};
   document.body.appendChild(m);setTimeout(()=>document.addEventListener('click',fermeMenu,{once:true}),0);}
 function fermeMenu(){const m=document.getElementById('menu');if(m)m.remove();}
 function corbeille(){
-  const jetes=TOUS.filter(jete),c=document.getElementById('corb');
+  const jetes=TOUS.filter(jete),c=document.getElementById('corb');document.getElementById('poubN').textContent=jetes.length||'';
   if(!jetes.length){c.innerHTML='';return;}
   const ouvert=c.querySelector('.corbL.on');
   c.innerHTML='<a id="corbA">Sons supprimés ('+jetes.length+')</a><div class="corbL'+(ouvert?' on':'')+'">'+
@@ -145,13 +176,27 @@ async function joue(b,el){
   s.connect(g);g.connect(sortie);const t=ac.currentTime+.03;s.start(t,a);g.gain.setTargetAtTime(1,t,.01);
   cur={id:b.id,s:s,g:g,el:el,t0:t,lg:fin-a};el.classList.add('joue');el.querySelector('.btn').innerHTML=STOP;
 }
+function carte(b){
+  const el=document.createElement('div');el.className='c';
+  el.innerHTML='<div class="btn">'+PLAY+'</div><div class="txt"><div class="t">'+titre(b.titre)+'</div><div class="m">'+titre(b.style)+' · '+Math.round(b.bpm)+' BPM · '+b.cle+'</div><div class="idee">'+(b.idee||'')+'</div></div>'+
+    '<button class="plus" aria-label="Options">•••</button><i class="prog"></i>';
+  el.draggable=true;
+  el.ondragstart=function(e){enGlisse=b.id;try{e.dataTransfer.setData('text/plain',b.id);}catch(_){}e.dataTransfer.effectAllowed='move';fermeMenu();
+    setTimeout(()=>{document.body.classList.add('glisse');el.classList.add('parti');},0);};
+  el.ondragend=function(){setTimeout(()=>{enGlisse=null;},0);document.body.classList.remove('glisse');el.classList.remove('parti');document.querySelectorAll('.cible').forEach(x=>x.classList.remove('cible'));};
+  el.onclick=function(e){if(e.target.closest('.plus')){e.stopPropagation();return menu(b,e.target.closest('.plus'));}joue(b,el);};
+  return el;}
 function rend(g){
   ong=g;stop();const box=document.getElementById('liste');box.innerHTML='';corbeille();
-  liste(g).forEach(function(b){
-    const el=document.createElement('div');el.className='c';
-    el.innerHTML='<div class="btn">'+PLAY+'</div><div class="txt"><div class="t">'+titre(b.titre)+'</div><div class="m">'+titre(b.style)+' · '+Math.round(b.bpm)+' BPM · '+b.cle+'</div><div class="idee">'+(b.idee||'')+'</div></div>'+
-      '<button class="plus" aria-label="Options">•••</button><i class="prog"></i>';
-    el.onclick=function(e){if(e.target.closest('.plus')){e.stopPropagation();return menu(b,e.target.closest('.plus'));}joue(b,el);};box.appendChild(el);});
+  if(g==='niv'){  // une CASE par niveau du jeu : on y glisse les sons
+    NIVS.forEach(function(n){const sons=liste('niv').filter(b=>nivD(b)===n[0]);if(n[0]==='aplacer'&&!sons.length)return;
+      const sec=document.createElement('section');sec.className='niv';sec.style.setProperty('--nc',n[2]);
+      sec.innerHTML='<h2>'+n[1]+'<span>'+sons.length+'</span></h2>';
+      sons.forEach(b=>sec.appendChild(carte(b)));
+      if(!sons.length){const v=document.createElement('div');v.className='videN';v.textContent='Glisse un son ici';sec.appendChild(v);}
+      cible(sec,id=>place(id,n[0]));box.appendChild(sec);});
+    return;}
+  liste(g).forEach(b=>box.appendChild(carte(b)));
   if(!box.children.length)box.innerHTML='<p class="sous" style="margin:0">Aucun son ici.</p>';
 }
 document.getElementById('seg').onclick=function(e){const b=e.target.closest('button');if(!b)return;
@@ -159,6 +204,9 @@ document.getElementById('seg').onclick=function(e){const b=e.target.closest('but
 document.getElementById('vol').oninput=function(e){if(cur&&cur.el9)cur.el9.volume=+e.target.value;if(sortie)sortie.gain.setTargetAtTime(+e.target.value,ac.currentTime,.05);};
 (function f(){requestAnimationFrame(f);if(!cur)return;const p=cur.el9?(cur.el9.currentTime%cur.lg)/cur.lg:((ac.currentTime-cur.t0)%cur.lg)/cur.lg;cur.el.querySelector('.prog').style.width=(p*100)+'%';})();
 rangeCharge().then(()=>rend('lobby'));
+document.querySelectorAll('#seg button').forEach(b=>cible(b,id=>deplace(id,b.dataset.g)));
+cible(document.getElementById('poub'),supprime);
+document.getElementById('poub').onclick=function(){const l=document.querySelector('.corbL');if(l){l.classList.add('on');l.scrollIntoView({behavior:'smooth',block:'center'});}};
 // ---- LA BOÎTE À CLAUDE (le serveur : python3 atelier-son/boite.py, sur :8768)
 (function(){
   const B='http://localhost:8768',$=id=>document.getElementById(id);let pj=[];
