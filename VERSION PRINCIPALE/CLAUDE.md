@@ -1,5 +1,56 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA LOI DU RÉSERVOIR + LA CHAÎNE SE FERME (2026-10-01, session GAMEPLAY) — Sacha : « il y a un gros problème de gameplay avec le nitro ; passe en revue et rends parfait tout le gameplay : l'argent gagné, le flow, l'aura, le nitro, tout doit être parfaitement équilibré — là on peut avoir du nitro infini en continuant à décoller et se poser en boucle »
+- **L'OUTIL — LE GRAND LIVRE** (`LIVRE`, `livre(k,q)`, `dbgLivre('ouvre')` / `dbgLivre()`) : chaque gain compté À SA SOURCE — `n+:src` nitro
+  créditée, `n0:src` nitro offerte mais perdue (jauge pleine), `n-:sol|vol|coup` nitro brûlée, `$:piece|portail|fin|ville` argent,
+  `a:chaine` aura encaissée, `ab:famille` points de chaîne avant le ×, `f:famille` flow réellement gagné ; plus la part du temps nitro
+  allumée et en vol. Fermé par défaut (un test par appel). `nitroGain(q, src)` / `nitroPct(p, src)` : TOUTE source de nitro porte son nom.
+  **LE PILOTE DE MESURE** sait désormais voler : `dbgAuto(1, lat, {vol:1, nit:1|2|3, saut:s, imp:n, latK:k})` — il revient sur l'axe en vol
+  (`dbgAutoVol`), tient la nitro (1 toujours · 2 en vol · 3 au sol), décolle toutes les `saut` s de route : c'est LA BOUCLE de Sacha, jouée au banc.
+- **MESURÉ AVANT** (banc `nitro/banc.js`, 45 s de jeu par profil) : route nitro tenue → allumée 97 % du temps ; boucle décoller / se poser →
+  allumée 93 %, 74 % du temps en vol : la POSE avait rendu 2,9 et la FIGURE 4,7 — autant que la recharge seule (7,9).
+- **DEUX DÉFAUTS**, et le second est le plus gros :
+  1. la boucle se remboursait (pose 20 % à chaque contact, figure jusqu'à 1,2 × 1,5/2, bump ,35 par rebond ; MÉTÉORE et AIR NITROOO naissent
+     du nitro lui-même ; NITROOO brûlait moitié moins depuis le 30/09 : un vol de 3 s coûtait ,9 et sa pose rendait 1 à 1,6) ;
+  2. **À SEC, IL NE S'ÉTEIGNAIT PAS** : le réacteur tenait tant qu'il restait plus de ,005 ; la jauge se refait de ,2 × dt par image — sous
+     ~40 images/s (dt > ,025 : l'iPhone bridé à 30 i/s) la recharge d'UNE image suffisait : bouton tenu, jauge vide, le nitro restait
+     allumé pour toujours (poussée, NITROOO ×1,10 par seconde, PSYCHO, flow gelé).
+- **LE RÉGLAGE = le bloc `<<<NITRO2>>>`** (juste avant LE GRAND LIVRE, PUR, exécuté tel quel par `nitro/simnitro.js`) — tout le réservoir vit là :
+  0. à sec il s'éteint (`nitroTientDe` : il tient tant que la jauge PAIE l'image, se rallume à ,3) ;
+  1. **LE VOL DÉPENSE, LA ROUTE REMPLIT** : pose et figure rendent au PRORATA DU VOL FAIT NITRO COUPÉE (`NIT.vol` / `NIT.nit`, `nitroPartDe`) ;
+  2. la pose rend ses 20 % pour un vol d'au moins 1,2 s (prorata en dessous) ;
+  3. le bump : ,35 · ,21 · ,13 · ,08 puis rien, et rien réacteur allumé ;
+  4. NITROOO ne brûle moins qu'AU SOL, et ×,75 au lieu de ×,5 (à ,5 un objet sur trois de la LIGNE PARFAITE suffisait à ne plus jamais
+     l'éteindre) ; EN L'AIR elle brûle plein ; la FRÉNÉSIE garde son nitro ×2 partout (demande de Sacha, FLOW v3) ;
+  5. le rase-bord (,22/s) ne remplit que nitro COUPÉE.
+  Ce qui se RAMASSE (pads, fruits, LIGNE PARFAITE) et les gestes de route ne changent pas : « à fond tout le temps » reste le prix de la
+  trajectoire parfaite — sur la ROUTE.
+- **MESURÉ APRÈS** — simulateur (5 min × 40 parties, jauge 2,0) : boucle bouton tenu 90-100 % → **40 %** (28 % en vol, plus longue tenue
+  238 s → 3 s) ; voltigeur qui tient la moitié de ses vols 79 → 70 % ; rouleur qui prend 80 % de la ligne 90 → 90 %, 50 % de la ligne
+  89 → 79 %, 30 % 73 → 57 %. En jeu (même banc) : boucle 93 → **61 %** avec 4 relances de partie (un plein offert chacune : ~36 % en
+  régime), pose + figure 7,5 → **1,0** ; route 97 → 77 %.
+- **L'AURA — LA CHAÎNE SE FERME** (commentaire au-dessus de `const CHA`) : au banc AUCUNE chaîne n'était encaissée (RÉCOLTE, RAFALE et paliers
+  de NITROOO relançaient les 3,5 s sans fin, et en vol l'horloge est gelée) → « AURA 0 » à la mort, ou une chaîne ×7 à ×10 gonflée par
+  ces robinets : 34 600 d'aura encaissée en 26 s dans une boucle de sauts au ras de la route (la nage du dauphin × 7), un rang MYTHE
+  en 40 s. Désormais :
+  · **LES ROBINETS SORTENT DE LA CHAÎNE** (`rob`, 6e argument de `chaineAura` : RÉCOLTE, RAFALE, paliers de NITROOO, et la NAGE du dauphin
+    « DAUPHIN EN VOL » — versée par `dolPose`) : ce qui coule en continu tombe directement dans le compteur, sans ×, sans horloge
+    (`a:robinet.*` au GRAND LIVRE). La figure DAUPHIN (150), elle, reste un geste de chaîne. La chaîne ne porte plus que des GESTES.
+  · **LEUR TARIF EST RECALÉ** sur leur fréquence d'aujourd'hui (la LIGNE PARFAITE pose un fruit toutes les 2,4 s et tient la NITROOO) :
+    RÉCOLTE 30 → 20 · RAFALE 40+30r → 15+6r · palier de NITROOO 60+40p → 15+8p. Le barème du dauphin (DOL_AURA_*) n'est PAS touché.
+  · **UNE CHAÎNE VIT `CHA_VIE` = 25 s AU PLUS** (vol compris), puis s'encaisse au sol (tout de suite si on roule, à la pose si on vole).
+  MESURÉ APRÈS (30 s, mêmes pilotes) : boucle de sauts au ras de la route 34 600 → **3 160** (2 360 de nage, 540 de chaîne) ; route
+  ~1 060 de robinets en 30 s + ses chaînes de gestes (3 750 encaissés en 45 s à la passe d'avant). Ordre de grandeur : ~4 000 à 6 000
+  d'aura par minute, sur la route comme en l'air.
+  ⚠ Exploser chaîne ouverte la perd toujours (le quitte ou double) — mais on ne risque plus que 25 s de gestes, jamais une partie.
+- **L'ARGENT, LE FLOW** : relus au GRAND LIVRE, aucun réglage touché. L'argent du banc vient à 100 % des pièces (× récolte × flow) ; le
+  flow ne fuit ni en vol ni nitro allumée — c'est la nitro infinie qui le rendait éternel (et la frénésie avec : PSYCHO vivait jauge
+  vide). ⚠ NON MESURÉ : une partie longue jouée par un humain (le pilote de mesure meurt en ~20 s) ; les rangs d'aura (55 000 = MYTHE)
+  sont laissés tels quels — à re-régler si Sacha les trouve trop rapides ou trop lents maintenant que l'aura s'encaisse.
+- Bancs (scratchpad GAMEPLAY `nitro/`) : `banc.js <racine> <s> <profils> <étiquette>` (route0 · route · bord · boucle · boucleSol · boucle0),
+  `passe.sh` (UNE passe, attend qu'aucun autre Chrome caché ne tourne), `simnitro.js <index.html>` (`OV='{"ntr":{"sol":0.5,"air":1}}'`
+  surcharge NITRO2, `FPSA=30` joue l'AVANT à 30 i/s).
+
 ## L'ÉCRAN TITRE v3 — la chute dans un ciel qui a de la PROFONDEUR (2026-10-01, soir, session GRAPHISME) — Sacha, capture couchée du menu : « toujours bof — il faut que ça s'inspire de l'écran titre de The Legend of Zelda : Tears of the Kingdom »
 - LE DIAGNOSTIC (mesuré sur captures, couché 844×390 et debout) : la caisse posée sur un PAPIER PEINT (la mer de nuages du dôme, plate, qui
   se répète), AUCUN plan entre elle et le fond, pas de lumière dirigée, un voile NOIR sur le tiers bas de l'image couchée (`#overlay::after`,

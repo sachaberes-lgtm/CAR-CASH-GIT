@@ -20051,7 +20051,7 @@ window.dbgGap=function(go){
 };
 // SIMULATION PAS À PAS : en headless l'onglet est « caché », rAF est suspendu et le jeu ne bouge plus —
 // impossible de vérifier une mécanique. Ce pas-à-pas fait avancer la boucle À LA MAIN, sans rAF.
-const DBG_AUTO={on:false,lat:0};
+const DBG_AUTO={on:false,lat:0,vol:false,nit:0,saut:0,imp:12,tS:0,l0:null,sg:1}; /* (2026-10-01) vol : il pilote aussi EN VOL (revient sur l'axe) · nit : 1 nitro tenue · 2 en vol seulement · 3 au sol seulement · saut : il décolle toutes les `saut` s de route (élan `imp`) — banc de LA LOI DU RÉSERVOIR */
 window.dbgMusique=function(){const e=musicEl;return {mode:musicMode,lieu:musicLieu&&musicLieu.titre,cur:musicCur,ctx:AC?AC.state:null,
   el:e?{src:(e.currentSrc||e.src).split('/').pop(),paused:e.paused,t:+e.currentTime.toFixed(2),ready:e.readyState,err:e.error&&e.error.code,vol:+musicVolCour.toFixed(2),voulue:musicVoulue,attente:musicEnAttente,analyse:!!musicAna,muted:e.muted}:null,son:SND.music};};
 window.dbgEngBig=function(i){i=i==null?5:i;engBig(ENGINE_TIERS[i],i);return ENGINE_TIERS[i].n;};
@@ -20060,7 +20060,11 @@ window.dbgEngCarte=function(k){if(k==='fige'){clearTimeout(engBig._p);clearTimeo
   return {on:engBig.on,s:engBig.s,pw:engBig.pw,ph:engBig.ph,cw:Math.round(engCaisseL()),Q:{x:Math.round(ENG_Q.x),y:Math.round(ENG_Q.y),w:Math.round(ENG_Q.w),h:Math.round(ENG_Q.h),op:ENG_Q.op},carte:r?[r.left,r.top,r.width,r.height].map(Math.round):null,hex:engBig.hex};};
 window.dbgMoteur=function(){const E=ENGINE_TIERS[engTier+1];if(!E)return 'palier max';addCoins(Math.max(1,E.coins-coinsGot));return engTier+' · '+ENGINE_TIERS[engTier].n;}; // console : monter d'UN palier en course (la vraie scène : son, carte 3D, boîte) // console : la grande carte « NOUVEAU MOTEUR »
 window.dbgLigne=function(k){const d=[];for(const q of LIGNE.pts)if(q.s>s-4&&d.length<3)d.push({s:Math.round(q.s),lat:+q.lat.toFixed(1),k:q.k?'pad':'fruit'});if(k==='parfait'&&d.length&&mode==='drive'&&d[0].s-s<90)lat=side*d[0].lat; /* banc : la TRAJECTOIRE PARFAITE (la caisse posée sur l'objet qui arrive) */return {on:LIGNE.on,poses:{fruits:LIGNE.n[0],pads:LIGNE.n[1]},pris:{fruits:LIGNE.pris[0],pads:LIGNE.pris[1]},devant:d,s:Math.round(s),lat:+(side*lat).toFixed(1),nitro:+(nitroR+nitroX).toFixed(2),nitroOn:nitroOn,kmh:Math.round(Math.abs(vA)*3.6*SPD),mode:mode,padCd:+padCd.toFixed(2),devantN:[LIGNE.pts.filter(q=>q.s>s&&!q.k).length,LIGNE.pts.filter(q=>q.s>s&&q.k).length]};}; // banc : LA LIGNE PARFAITE (les objets devant, la jauge, posés / pris)
-window.dbgAuto=function(on,l){DBG_AUTO.on=!!on;DBG_AUTO.lat=+l||0;return DBG_AUTO.on;};
+window.dbgAuto=function(on,l,o){DBG_AUTO.on=!!on;o=o||{};DBG_AUTO.lat=o.latK!=null?o.latK*ROAD_HALF:(+l||0); /* latK : en part de la demi-route (,86 = le rase-bord) */DBG_AUTO.vol=!!o.vol;DBG_AUTO.nit=o.nit|0;DBG_AUTO.saut=+o.saut||0;DBG_AUTO.imp=o.imp==null?12:+o.imp;DBG_AUTO.sg=o.sg==null?1:+o.sg;DBG_AUTO.tS=0;DBG_AUTO.l0=null;return DBG_AUTO.on;};
+function dbgAutoVol(dt){ /* banc : en vol, le pilote de mesure ramène la caisse sur l'axe de la route (écart latéral du radar de tryLand, et sa dérive) */
+  if(!curNear){DBG_AUTO.l0=null;return 0;}
+  const dl=DBG_AUTO.l0==null?0:THREE.MathUtils.clamp((curLatOff-DBG_AUTO.l0)/Math.max(dt,1e-3),-60,60);DBG_AUTO.l0=curLatOff;
+  return DBG_AUTO.sg*THREE.MathUtils.clamp((-curLatOff*1.2-dl)/Math.max(20,fallVel.length())*4,-1,1);}
 // `dbgEco()` : le relevé d'argent d'une partie en cours (pour caler l'économie) · `dbgEco('rejouer')` relance.
 window.dbgEco=function(a){if(a==='rejouer'&&gameOver){playViaGarage();}
   return {money:Math.round(money),bank:Math.round(bank()),engTier:engTier,gameOver:gameOver,started:started,mode:mode,
@@ -20787,7 +20791,7 @@ function driftTick(dt,on){
   }else if(!on&&driftC>0){
     if(driftLv>0){ // LE MINI-TURBO
       driftCd=.6+.3*driftLv;if(driftLv>=2)momT=4.3; // recharge ; et le SUPER/ULTRA rend la réserve de momentum que la glisse a vidée
-      boost=Math.max(boost,.35+.3*driftLv);vA+=6*driftLv;nitroGain(.16*driftLv);shake=Math.max(shake,.14*driftLv);(driftLv>=FLOW2.decl.drift?flowAddDecl:flowAdd)(9*driftLv,'style'); // (loi 20) en ville, ce turbo va déclencher : s'il arme, l'armement se tait
+      boost=Math.max(boost,.35+.3*driftLv);vA+=6*driftLv;nitroGain(.16*driftLv,'drift');shake=Math.max(shake,.14*driftLv);(driftLv>=FLOW2.decl.drift?flowAddDecl:flowAdd)(9*driftLv,'style'); // (loi 20) en ville, ce turbo va déclencher : s'il arme, l'armement se tait
       fovPunch=Math.max(fovPunch,6+6*driftLv);                                   // le champ S'OUVRE d'un coup : on est PROPULSÉ
       if(driftLv===3){slowT=Math.max(slowT,.14);try{flashEl.style.background='#ff5ec8';flashEl.style.opacity=.35;setTimeout(function(){flashEl.style.opacity=0;flashEl.style.background='#ff2020';},90);}catch(e){}}
       try{if(SONV2)sfx(['','turbo.mini','turbo.super','turbo.ultra'][driftLv]);else{boostSnd(1+.35*driftLv);if(driftLv>=2)crackle(.45+.2*driftLv);}}catch(e){}hap([12,30,20]);
@@ -21047,7 +21051,7 @@ function flowAdd(q,fam,trait){
   if(!(g>0)){ // refusé. Dans la TRIADE sous la vitesse, le jeu le DIT — une fois par partie, et jamais pour une pièce
     if(fam!=='route'&&FLOW.lv<4&&v0>=75&&FLOW.vit<FLOW2.gate&&!FLOW.lentVu){FLOW.lentVu=true;popTexte('PLUS VITE !',FLOW_COL[4],1);if(SONV2)sfx('plus.vite');}
     return;}
-  FLOW.v=Math.min(100,v0+g);if(flowGardeDe(fam,v0))FLOW.idle=0;
+  FLOW.v=Math.min(100,v0+g);livre('f:'+fam,FLOW.v-v0);if(flowGardeDe(fam,v0))FLOW.idle=0;
   if(t9&&FLOW.lv<4)flowTag(t9,1); // (v5) l'auteur du geste s'affiche à côté de FLOW
   if(FLOW.lv===4){frenNourrit(g);return;}   // déjà en FRÉNÉSIE : chaque goutte de style fait SCINTILLER la jauge (et cogne dans l'emblème)
   const lv=Math.min(3,flowLvDe(FLOW.v)); // (v4) la jauge pleine ne fait plus entrer : elle ARME (voir frenArme) — c'est la POSE qui déclenche
@@ -21316,7 +21320,7 @@ const FROLE={n:0,t:0,s0:null};
 function frole(c9,dl,k){
   k=k||1;c9.frole=true;const pres=Math.max(0,Math.min(1,1-(dl-1.6)/2)); // 1 = rasé de près, 0 = large (3,6 m) · k : plots frôlés dans la même image (une PORTE)
   FROLE.n+=k;FROLE.t=1.4;
-  nitroGain((.08+.08*pres)*(k>1?1.5:1));flowAdd((4+4*pres)*(k>1?1.5:1),'style','n'); // (v4→v5) frôler, c'est un peu de NARCISSE — flowAdd lui verse la part du style // ×1,5 (et non ×2) : la porte paie plus sans gonfler le FLOW
+  nitroGain((.08+.08*pres)*(k>1?1.5:1),'frole');flowAdd((4+4*pres)*(k>1?1.5:1),'style','n'); // (v4→v5) frôler, c'est un peu de NARCISSE — flowAdd lui verse la part du style // ×1,5 (et non ×2) : la porte paie plus sans gonfler le FLOW
   momT=Math.min(4.3,momT+.6); // (momentum v2) le style NOURRIT la réserve de vitesse
   try{chaineAuraMuette(FROLE.n>=2?'SLALOM ×'+FROLE.n:'FRÔLÉ',20,'frole',false,SONV2);}catch(e){}
   if(k===1&&FROLE.n>=2)popTexte('SLALOM ×'+FROLE.n,FROLE.n>=3?'#ffd75e':'#7dffec'); // (2026-09-29, Sacha) FRÔLÉ ! et PORTE ! ne s'écrivent plus : seul le SLALOM parle
@@ -21478,13 +21482,75 @@ function nitroFeu(dt){
     cx.globalAlpha=1;cx.globalCompositeOperation='source-over';}
   const vif=F.n>0;if(vif!==F.vif){F.vif=vif;F.cv.classList.toggle('on',vif);}
 }
-function nitroPct(p){nitroGain(p*((ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2));} // (2026-09-26) une PART de la jauge (0,2 = 20 %), quel que soit le moteur
+/* <<<NITRO2>>> ==============================================================
+   LA LOI DU RÉSERVOIR (2026-10-01, Sacha : « il y a un gros problème de gameplay avec le nitro […] on peut avoir du nitro infini en
+   continuant à décoller et se poser en boucle »).
+   LE TROU : la POSE rendait 20 % de la jauge à CHAQUE contact, la FIGURE posée jusqu'à 1,2 (×1,5 parfaite, ×2 divine), le BUMP ,35 à
+   chaque rebond — et les figures qui naissent du nitro lui-même (MÉTÉORE à 1,2 s de réacteur, AIR NITROOO à 2 s) comptaient comme
+   les autres. Tenir le nitro en l'air fabriquait donc la figure qui le remboursait à la pose ; et depuis que NITROOO brûlait moitié
+   moins (30/09), un vol de 3 s coûtait ,9 et sa pose rendait 1 à 1,6 : la boucle décoller / se poser GAGNAIT du nitro. Au bout, la
+   vitesse de NITROOO (×1,10 par seconde tenue) n'avait plus de frein.
+   LES LOIS :
+   0. À SEC, IL S'ÉTEINT. Le réacteur tenait tant qu'il restait plus de ,005 dans la jauge ; elle se refait de ,2 × dt par image : sous
+      ~40 images/s (un iPhone bridé à 30 i/s) la recharge d'UNE image suffisait et le nitro TENU ne s'éteignait jamais, jauge vide.
+      Il tient désormais tant que la jauge PAIE l'image (`nitroTientDe`), et se rallume à `seuil`.
+   1. LE VOL DÉPENSE, LA ROUTE REMPLIT. Ce que la POSE et la FIGURE rendent est au PRORATA DU VOL FAIT NITRO COUPÉE (`nitroPartDe`) :
+      un vol tenu réacteur allumé d'un bout à l'autre ne rend rien, un vol sans nitro rend tout, la moitié rend la moitié.
+   2. LA POSE rend ses 20 % pour un VRAI vol : pleine à partir de `pose.plein` secondes, au prorata en dessous (les sautillements au
+      bord de la route ne sont pas une pompe).
+   3. LE BUMP rend ,35 au 1er rebond d'un vol, puis ×,6 à chaque suivant, rien au-delà du 4e — et rien réacteur allumé.
+   4. NITROOO ne brûle moins qu'AU SOL (là où elle se gagne, sur la ligne), et les trois quarts au lieu de la moitié : à ,5 il suffisait
+      de prendre un objet sur trois de la LIGNE PARFAITE pour ne plus jamais l'éteindre ; à ,75 il en faut un sur deux pour presque
+      tenir, quatre sur cinq pour tenir. EN L'AIR elle brûle plein. La FRÉNÉSIE garde son
+      nitro qui dure 2× partout (demande de Sacha, FLOW v3) : c'est l'état des maîtres, et il se perd tout seul.
+   5. LE RASE-BORD (,22/s) ne remplit que nitro COUPÉE : rien ne se remplit en continu pendant que ça brûle.
+   Ce qui se RAMASSE (pads, fruits, la LIGNE PARFAITE) et les gestes de la route (drift, frôlé, fronde…) ne changent pas : tenir le
+   nitro « à fond tout le temps » reste le prix de la trajectoire parfaite — sur la ROUTE.
+   ⚠ BLOC PUR : ne lit que ses arguments et NITRO2 — le banc de simulation l'exécute tel quel, hors du jeu. Tous les réglages du
+   réservoir vivent dans NITRO2, nulle part ailleurs.
+   ========================================================================== */
+const NITRO2={
+  regen:.2,                // la jauge se refait seule (/s), réacteur allumé ou non
+  seuil:.3,                // éteint, il ne se rallume qu'à partir de là (anti-clignotement)
+  conso:1,                 // ce que le réacteur brûle (/s)
+  ntr:{sol:.75,air:1},     // part brûlée pendant NITROOO : au sol elle dure un tiers de plus, en l'air non (loi 4)
+  coup:.12,                // l'allumage EN VOL (le coup de réacteur) : 12 % de la jauge
+  pose:{pct:.2,plein:1.2}, // la pose : 20 % de la jauge, pleine à partir de 1,2 s de vol (loi 2)
+  fig:{base:.45,par:.12,max:1.2}, // la figure posée : ,45 + ,12 par × de la chaîne, plafond 1,2 (puis ×1,5 parfaite · ×2 divine)
+  bump:{q:.35,k:.6,n:4},   // le bump : ,35 · ,21 · ,13 · ,08 puis rien (loi 3)
+  rase:.22                 // le rase-bord (/s), nitro coupée seulement (loi 5)
+};
+// la part du vol faite NITRO COUPÉE (1 = tout le vol, 0 = réacteur tenu d'un bout à l'autre)
+function nitroPartDe(volT,nitT){return volT>1e-3?Math.max(0,Math.min(1,1-nitT/volT)):1;}
+// ce que rend la POSE d'un vol de `volT` s dont `nitT` s réacteur allumé, pour une jauge de `cap`
+function nitroPoseDe(cap,volT,nitT){return NITRO2.pose.pct*cap*Math.min(1,volT/NITRO2.pose.plein)*nitroPartDe(volT,nitT);}
+// ce que rend la FIGURE posée (× de la chaîne `mult`, grade de pose `g` : 1 · 1,5 parfaite · 2 divine)
+function nitroFigDe(mult,g,volT,nitT){return Math.min(NITRO2.fig.max,NITRO2.fig.base+mult*NITRO2.fig.par)*(g>=2?2:g>=1.5?1.5:1)*nitroPartDe(volT,nitT);}
+// ce que rend le n-ième BUMP du vol (`nit` : réacteur allumé à l'impact)
+function nitroBumpDe(n,nit){return nit||n>NITRO2.bump.n?0:NITRO2.bump.q*Math.pow(NITRO2.bump.k,Math.max(0,n-1));}
+// ce que le réacteur brûle pendant `dt` (`kFren` : la part de la frénésie, FLOW2.fren.nitro)
+function nitroConsoDe(dt,kFren,fren,ntr,air){return dt*NITRO2.conso*(fren?kFren:ntr?(air?NITRO2.ntr.air:NITRO2.ntr.sol):1);}
+// le réacteur TIENT-il ? `res` = ce qui reste (jauge + réserve bleue) · `take` = ce que brûle cette image · `on` = il était allumé
+function nitroTientDe(res,take,on){return on?res>Math.max(.005,take):res>NITRO2.seuil;}
+/* <<<FIN NITRO2>>> ========================================================== */
+const NIT={vol:0,nit:0}; // le vol en cours : sa durée (s), et le temps passé réacteur allumé — remis à zéro par startFall
+/* LE GRAND LIVRE (2026-10-01) — chaque gain de nitro, d'argent, d'aura et de flow compté À SA SOURCE, pour caler l'équilibrage sur une
+   mesure. FERMÉ par défaut (un test par appel, zéro allocation) ; `dbgLivre('ouvre')` l'ouvre et le remet à zéro, `dbgLivre()` le lit.
+   Clés : `n+:src` nitro créditée · `n0:src` nitro offerte mais perdue (jauge pleine) · `n-:…` nitro brûlée · `$:src` argent ·
+   `a:…` aura versée au compteur · `ab:famille` points de chaîne avant le × · `f:famille` flow réellement gagné. */
+const LIVRE={on:false,t:0,tN:0,tV:0,d:{}};
+function livre(k,q){if(!LIVRE.on||!(q>0))return;LIVRE.d[k]=(LIVRE.d[k]||0)+q;}
+window.dbgLivre=function(a){if(a==='ouvre'){LIVRE.on=true;LIVRE.t=LIVRE.tN=LIVRE.tV=0;LIVRE.d={};return 'ouvert';}if(a==='ferme'){LIVRE.on=false;return 'fermé';}
+  const o={};Object.keys(LIVRE.d).sort().forEach(function(k){o[k]=+LIVRE.d[k].toFixed(2);});
+  return {t:+LIVRE.t.toFixed(1),nitroPct:LIVRE.t>0?Math.round(100*LIVRE.tN/LIVRE.t):0,volPct:LIVRE.t>0?Math.round(100*LIVRE.tV/LIVRE.t):0,moteur:engTier,flow:FLOW.lv,argent:Math.round(money),aura:Math.round(auraRun),d:o};};
+function nitroPct(p,src){nitroGain(p*((ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2),src);} // (2026-09-26) une PART de la jauge (0,2 = 20 %), quel que soit le moteur
 // LE PLEIN = la capacité du MOTEUR (2,0 → 3,6). Tout ce qui « remplit la jauge » passe par ici : écrit `nitroR=2` en dur,
 // un portail ou une NITRO INFINIE VIDAIENT un réservoir de 3,6 (porté de la lignée car-crash, 2026-09-28).
 function nitroCap(){return (ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2;}
-function nitroGain(q){
+function nitroGain(q,src){
   if(!(q>0))return;const mx=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2;
   const av=nitroR;nitroR=Math.min(mx,nitroR+q);
+  if(LIVRE.on){livre('n+:'+(src||'?'),nitroR-av);livre('n0:'+(src||'?'),q-(nitroR-av));}
   if(nitroR>av+.01){const b=document.getElementById('nitroBar');if(b){b.classList.remove('gain');void b.offsetWidth;b.classList.add('gain');}}
 }
 function runxReset(){flowReset();RUNX.best0=best; // le record d'AVANT la partie : c'est lui que l'écran de mort doit battre
@@ -22241,7 +22307,7 @@ function tutoAffiche(msg){ // msg (facultatif) : le raté s'écrit dans l'en-tê
   c.querySelector('.coTx span').textContent=TR(E.d);
   c.querySelector('.coPips').innerHTML=TUTO_ETAPES.map(function(x,j){return '<i class="'+(j<TUTO.i?'ok':j===TUTO.i?'on':'')+'"></i>';}).join('');
   c.querySelector('.coGeste').className='coGeste g-'+E.geste;
-  if(E.geste==='nitro'){nitroR=Math.max(nitroR,(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2);nitroGain(.01);} // le PLEIN, offert : on apprend sans compter
+  if(E.geste==='nitro'){nitroR=Math.max(nitroR,(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2);nitroGain(.01,'ecole');} // le PLEIN, offert : on apprend sans compter
   c.classList.remove('bravo');c.classList.remove('entre');void c.offsetWidth;c.classList.add('on','entre');document.body.classList.add('coOn');
   document.body.classList.toggle('coNitro',E.geste==='nitro'); // le bouton NITRO s'entoure d'un anneau qui bat
   try{sfx(msg?'tuto.rate':'tuto.info');}catch(e){} // (2026-09-28, console de son) la carte de consigne sonne son « ding » ; un raté, ses deux notes qui descendent
@@ -23578,7 +23644,7 @@ function sfaPose(propre){ // appelé au verdict d'une VRAIE pose (fallT > .7)
   SFA.n++;const n=SFA.n;RUNX.sfMax=Math.max(RUNX.sfMax|0,n);
   if(n===3||n===5||n===8||n===12||(n>12&&n%5===0)){
     chaineAura('SANS FAUTE ×'+n,30+Math.min(20,n)*8,'sansfaute',true,true);
-    nitroGain(.12);
+    nitroGain(.12,'sansfaute');
     setTimeout(function(){try{if(running&&!gameOver)popTexte(sansAcc(TR('SANS FAUTE'))+' ×'+n,'#7dff9a',2);}catch(e){}},700);
     try{if(SONV2)sfx('jeu.sansFaute',{st:n});else chimeNote(noteP(Math.min(9,2+Math.floor(n/3)),1),.7,.06,.3);}catch(e){}
   }
@@ -28623,7 +28689,7 @@ function addAura(n,titre,brut){ // brut : n est DÉJÀ multiplié par la vitesse
   // l'on ne risque rien — sinon le mode d'entrainement devient la meilleure facon de monter en rang.
   if(!(n>0)||!running||gameOver||(typeof PARK!=='undefined'&&PARK.on))return;
   n=(brut?Math.round(n):Math.round(n*auraMultVitesse()))*(pwrAurT>0?2:1); // (pouvoirs v2) AURA ×2
-  auraRun+=n;
+  auraRun+=n;livre('a:direct'+(titre?'.'+String(titre).split(' ')[0]:''),n);
   auraPop=Math.min(1,auraPop+n/90);
   if(titre){ // un gain NOMMÉ : il claque à l'écran, avec sa raison
     auraFlash=1;auraLastTxt=titre+' +'+n;
@@ -28668,7 +28734,23 @@ function auraFigure(n){
      AIR : 180° de vrille +45 par demi-tour · BIG AIR +50 · AIR MONSTRE +110 · MÉTÉORE +100 · DAUPHIN +80 (+ ce qu'il monte en direct) · BUMP +30
      POSE : PARFAITE +70 · DIVINE +120 · GAP +120 · ARRACHÉE +120 · AU CHEVEU +220
      ROUTE : VIRAGE SERRÉ +45 · FRÔLÉ/SLALOM +20 · RASE-BORD +40 · MINI/SUPER/ULTRA TURBO +50/100/180 · RÉCOLTE +30 · PURE SPEED +120 */
-const CHA={pts:0,x:0,fam:{},n:0,t:0,liste:[],v:0,vAff:-1,rec:0,recB:false,recP:-1,urg:false},CHA_FEN=3.5,CHA_XMAX=10;
+/* (2026-10-01, Sacha : « rends parfait tout le gameplay : l'argent gagné, le flow, l'aura, le nitro ») LA CHAÎNE SE FERME.
+   MESURÉ (LE GRAND LIVRE, pilote de mesure, 45 s) : sur la route comme dans la boucle décoller / se poser, AUCUNE chaîne n'était
+   encaissée — la RÉCOLTE (toutes les 5 pièces), la RAFALE de fruits et les paliers de NITROOO (toutes les 2 s) relançaient les 3,5 s
+   sans fin, et en vol l'horloge est gelée. Deux issues, toutes deux fausses : mourir chaîne ouverte = « AURA 0 » à l'écran de fin ;
+   ou encaisser d'un coup une chaîne à ×10 gonflée par ces robinets (~100 points par seconde × 10 : un rang MYTHE en une minute).
+   · LES ROBINETS SORTENT DE LA CHAÎNE (`rob`, 6e argument de chaineAura : RÉCOLTE, RAFALE, paliers de NITROOO, et la NAGE du dauphin —
+     « DAUPHIN EN VOL ») : ce qui coule en continu tombe DIRECTEMENT dans le compteur, sans ×, sans relancer l'horloge. La chaîne ne
+     porte plus que des GESTES (figure, drift, frôlé, fronde, pose…) : eux seuls la gardent en vie et font monter le ×. MESURÉ avec les
+     robinets encore dans la chaîne (boucle de sauts au ras de la route, 0 mort) : 34 600 d'aura encaissée en 26 s — la nage du dauphin
+     (4 100 points) multipliée par ×7 ; un rang MYTHE en 40 s.
+   · LEUR TARIF EST RECALÉ sur leur fréquence d'aujourd'hui (LA LIGNE PARFAITE pose un fruit toutes les 2,4 s et tient la NITROOO) :
+     RÉCOLTE 30 → 20 · RAFALE 40+30r → 15+6r · palier de NITROOO 60+40p → 15+8p. Mesuré avant : ces trois-là faisaient 76 % des points
+     de chaîne de la route (5 300 sur 6 990 en 48 s), loin devant les gestes.
+   · UNE CHAÎNE VIT `CHA_VIE` SECONDES AU PLUS (vol compris) : passé ce temps elle s'encaisse au sol — tout de suite si on roule, à la
+     pose si on vole (exploser avant = perdue, la règle ne change pas). On ne joue plus toute une partie sur une seule chaîne : on
+     risque au plus CHA_VIE secondes de gains, et le ×10 redevient un exploit (dix gestes différents en 25 s). */
+const CHA={pts:0,x:0,fam:{},n:0,t:0,age:0,liste:[],v:0,vAff:-1,rec:0,recB:false,recP:-1,urg:false},CHA_FEN=3.5,CHA_XMAX=10,CHA_VIE=25;
 let trkBigA=false,trkMonstre=false,virT=0,virPaye=false,virC=0,virD=false;
 const avEl={};
 function avE(id){return avEl[id]||(avEl[id]=document.getElementById(id));}
@@ -28697,7 +28779,7 @@ const FRONDE={on:true,dv:16,k0:.9,kT:1.8,corde:.6,cd:0,n:0,pMax:0};
 function frondeLache(t,c){
   if(!FRONDE.on||introD||PARK.on||mode!=='drive'||FRONDE.cd>0||!(vA>8)||!running||gameOver)return;
   const k=THREE.MathUtils.clamp((t-FRONDE.k0)/FRONDE.kT,0,1),co=t>0?Math.min(1,c/t):0,p=(.4+.6*k)*(1+FRONDE.corde*co); /* 0,4 (tenu juste) → 1,6 (tenu long, à la corde) */
-  vA+=FRONDE.dv*p;boost=Math.max(boost,.45+.45*p);momT=Math.min(4.3,momT+.6*p);nitroGain(.05+.07*p); /* un pad donne +18 : la fronde pleine en vaut une et demie */
+  vA+=FRONDE.dv*p;boost=Math.max(boost,.45+.45*p);momT=Math.min(4.3,momT+.6*p);nitroGain(.05+.07*p,'fronde'); /* un pad donne +18 : la fronde pleine en vaut une et demie */
   fovPunch=Math.max(fovPunch,5+6*p);shake=Math.max(shake,.1+.08*p);hap(p>1.1?[10,24,16]:[10,20]);
   flowAdd(4+6*p,'route');FRONDE.cd=.8;FRONDE.n++;FRONDE.pMax=Math.max(FRONDE.pMax,p);
   try{if(SONV2)sfx('fronde',{st:sonPd(Math.round(p*3))});else boostSnd(1+.2*p);}catch(e){}
@@ -28718,13 +28800,18 @@ function padTrain(sp){
 }
 window.dbgRoule=function(){return {fronde:FRONDE.n,frondeMax:+FRONDE.pMax.toFixed(2),virT:+virT.toFixed(2),virC:+virC.toFixed(2),virD:virD,train:PADCH.n,trainMax:PADCH.max,boost:+boost.toFixed(2)};}; /* banc : la fronde et le train */
 function chaineAuraMuette(nom,base,fam,brut,muet){const s9=CHA.sansPop;CHA.sansPop=true;try{return chaineAura(nom,base,fam,brut,muet);}finally{CHA.sansPop=s9;}}
-function chaineAura(nom,base,fam,brut,muet){ // brut : pas de décote de redite (les échelles qui grimpent déjà : vrilles, bumps) · muet : l'appelant sonne déjà (figure en vol, pose)
+function chaineAura(nom,base,fam,brut,muet,rob){ // rob : un ROBINET (récolte, rafale, palier de NITROOO, nage du dauphin) — payé au compteur, hors chaîne · brut : pas de décote de redite (les échelles qui grimpent déjà : vrilles, bumps) · muet : l'appelant sonne déjà (figure en vol, pose)
   if(!(base>0)||!running||gameOver||(typeof PARK!=='undefined'&&PARK.on))return 0;
+  if(rob){ /* (2026-10-01) LE ROBINET : au compteur, tel quel — ni chaîne, ni ×, ni horloge (voir LA CHAÎNE SE FERME) */
+    const p=Math.max(1,Math.round(base*(pwrAurT>0?2:1)));auraRun+=p;livre('a:robinet.'+(fam||nom),p);auraPop=Math.min(1,auraPop+p/90);
+    if(TCTL.on&&!CHA.sansPop)popTexte(sansAcc(TR(nom))+' +'+p,'#ffd75e',0);
+    if(!muet)try{chimeNote(noteP(1,1),0,.10,.16);}catch(e){}
+    return p;}
   fam=fam||nom;const k=CHA.fam[fam]|0;CHA.fam[fam]=k+1;
   const p=Math.max(1,Math.round(base*(brut?1:Math.pow(.7,k))*(pwrAurT>0?2:1))); // (pouvoirs v2) AURA ×2
   const x0=CHA.x;if(k===0)CHA.x=Math.min(CHA_XMAX,CHA.x+1);
   if(CHA.x>(runStats.xMax|0))runStats.xMax=CHA.x; // le meilleur × de la partie : l'écran de fin le montre
-  CHA.pts+=p;CHA.n++;CHA.t=CHA_FEN;
+  if(!CHA.n)CHA.age=0;CHA.pts+=p;CHA.n++;CHA.t=CHA_FEN;livre('ab:'+fam,p);
   const lb9=sansAcc(TR(nom));CHA.liste.unshift(lb9+' +'+p);if(CHA.liste.length>2)CHA.liste.length=2; // (vague 2, H4) 2 lignes, la dernière en or : la mémoire de la chaîne, pas une 3e voix
   chaHud(true,CHA.x>x0);
   if(TCTL.on&&!CHA.sansPop)popTexte(lb9+' +'+p,CHA.x>x0?'#ff9ee6':'#ffd75e',0); // au-dessus de la caisse : le geste ET ce qu'il rapporte — (v5) sauf à la pose du dauphin : son récapitulatif parle seul
@@ -28942,14 +29029,15 @@ function chaineTick(dt){
   if(!CHA.recB&&CHA.rec>0&&auraRun>CHA.rec&&running&&!gameOver&&!TUTO.on)recBattu(); // (2026-09-29) pas de « RECORD BATTU » pendant la leçon
   if(!CHA.n)return;
   if(mode!=='fall'&&mode!=='boom')CHA.t-=dt; // en l'air, l'horloge est GELÉE
-  if(CHA.t<=0){chaineEncaisse();return;}
+  CHA.age+=dt; // (2026-10-01) l'âge de la chaîne, lui, court partout
+  if(CHA.t<=0||(CHA.age>=CHA_VIE&&mode==='drive')){chaineEncaisse();return;}
   const b9=avE('avBarF');if(b9)b9.style.transform='scaleX('+(mode==='fall'?1:Math.max(0,CHA.t/CHA_FEN)).toFixed(3)+')';
   const u9=mode!=='fall'&&CHA.t<1.1;if(u9!==CHA.urg){CHA.urg=u9;if(b9&&b9.parentNode)b9.parentNode.classList.toggle('urg',u9);} // la dernière seconde : la barre rougit et clignote
 }
 function chaineEncaisse(){
   const g=Math.round(CHA.pts*Math.max(1,CHA.x));
   if(g>0&&running&&!gameOver){
-    auraRun+=g;auraPop=Math.min(1,auraPop+g/90);
+    auraRun+=g;livre('a:chaine',g);auraPop=Math.min(1,auraPop+g/90);
     // (HUD v4) la chaîne S'ENVOLE dans le compteur, ce qu'elle verse s'affiche à côté ; une grosse chaîne prend aussi le couloir
     avPlusPop('+'+fmtAura(g));{const c9=avE('avCh');if(c9){c9.classList.remove('vole','perdu');void c9.offsetWidth;c9.classList.add('vole');}}
     if(g>=600||CHA.x>=5)slam('+'+fmtAura(g),(CHA.x>1?fmtAura(CHA.pts)+' ×'+CHA.x+' · ':'')+'AURA','#ff7ad5','#b14bff',30,1,g>=2000?18:0); // (2026-09-29) 40 → 30 : un texte de FIGURE (Sacha : « bloquent la vue »)
@@ -28969,7 +29057,7 @@ function chainePerdue(parMort){ // exploser la chaîne ouverte : tout part avec 
   slam('CHAÎNE PERDUE','-'+fmtAura(g)+' AURA','#ff5e7a','#b0102a',24,2); // (HUD v4) elle se BRISE sous les yeux, et le couloir dit combien — (2026-09-29) 30 → 24
   {const c9=avE('avCh');if(c9){c9.classList.remove('vole','perdu');void c9.offsetWidth;c9.classList.add('perdu');}}chaReset();
 }
-function chaReset(){CHA.pts=0;CHA.x=0;CHA.fam={};CHA.n=0;CHA.t=0;CHA.liste.length=0;if(CHA.urg){CHA.urg=false;const b9=avE('avBarF');if(b9&&b9.parentNode)b9.parentNode.classList.remove('urg');}chaHud(true,false);}
+function chaReset(){CHA.pts=0;CHA.x=0;CHA.fam={};CHA.n=0;CHA.t=0;CHA.age=0;CHA.liste.length=0;if(CHA.urg){CHA.urg=false;const b9=avE('avBarF');if(b9&&b9.parentNode)b9.parentNode.classList.remove('urg');}chaHud(true,false);}
 function chaHud(fort,monte){
   const ch=avE('avCh');if(!ch)return;if(CHA.n>0)ch.classList.remove('vole','perdu');ch.classList.toggle('on',CHA.n>0);
   if(!fort||!CHA.n)return;
@@ -29274,7 +29362,7 @@ function fruitCroque(pos,col,power,nom){ // nom : le fruit — chacun a SA bouch
   if(SONV2){sfx(FRUIT_SON[nom]||'fruit.peche',{rate:1+Math.min(5,r-1)*.025});if(r>=3)sfx('fruit.rafale');}else crunchSfx(r); /* (débogage son 2026-09-29) le plein de nitro sonne à la pompe, seulement s'il y a eu plein */
   shake=Math.max(shake,Math.min(.55,.18+r*.07));
   if(fruitRaf>=3){                                    // 3 fruits d'affilée : ce n'est plus un hasard
-    chaineAura('RAFALE ×'+fruitRaf,40+r*30,'rafale',true,SONV2);
+    chaineAura('RAFALE ×'+fruitRaf,15+r*6,'rafale',true,SONV2,true); /* (2026-10-01) 40+30r → 15+6r : depuis LA LIGNE PARFAITE un fruit arrive toutes les 2,4 s, la rafale ne retombe plus — 220 points par fruit, le plus gros robinet d'aura de la route (voir LA CHAÎNE SE FERME) */
     trickMsg('🧃 RAFALE ×'+fruitRaf,r>=5?3:2);
   }
 }
@@ -29563,7 +29651,7 @@ function dolAura9(nom,base,fam,brut,muet){DOL_DIFF.push([nom,base,fam,brut,muet]
 function dolPose(){
   if(!DOL_DIFF.length)return;
   let tot=0;CHA.sansPop=true;
-  try{for(const a of DOL_DIFF)tot+=chaineAura(a[0],a[1],a[2],a[3],true)|0;}catch(e){}
+  try{for(const a of DOL_DIFF)tot+=chaineAura(a[0],a[1],a[2],a[3],true,a[2]==='dauphinLive')|0;}catch(e){} /* (2026-10-01) la NAGE est un robinet : au compteur, sans × */
   CHA.sansPop=false;DOL_DIFF.length=0;
   if(!(tot>0)||PARK.on)return;
   if(!DAUPH.el)dolHudInit();
@@ -30229,7 +30317,7 @@ function portailPasse(){
     chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;}
   flashEcran('rgba(255,79,216,.6)'); // l'annonce, c'est « NIVEAU n — LIEU » (lvlAnnonce, couloir des annonces) : une seule voix au centre
   portalSnd();if(!SONV2)boostSnd();shake=.5; /* (console de son) `portail` porte tout le passage : plus le souffle d'un pad dessous */
-  const zb=denom()*24*(fever>0?2:1)*flowMult();money+=zb;levelCash+=zb;checkUpgrade();frenCash(zb,carGroup.position); // portail : 40→24 (régulation 2026-07-30) · (2026-09-29) × le FLOW comme les pièces : franchi en FRÉNÉSIE, il paie ×3
+  const zb=denom()*24*(fever>0?2:1)*flowMult();money+=zb;levelCash+=zb;livre('$:portail',zb);checkUpgrade();frenCash(zb,carGroup.position); // portail : 40→24 (régulation 2026-07-30) · (2026-09-29) × le FLOW comme les pièces : franchi en FRÉNÉSIE, il paie ×3
   runStats.zones++;
   if(SONV2&&nitroR<nitroCap()-.05)sfx('nitro.plein',{t:.45}); // (console de son) le portail refait le plein : on l'entend, après l'aspiration
   nitroR=Math.max(nitroR,nitroCap()); // le portail regonfle la nitro : chaque zone repart pied au plancher — au plein du MOTEUR (en dur à 2, il vidait un réservoir de 3,6)
@@ -30283,7 +30371,7 @@ function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (
      le vol se joue en TEMPS RÉEL (le ×1,3 du midi est retiré) et la caisse décolle à sa VRAIE vitesse d'avance (× vitMult, voir fallVel plus bas) —
      mesuré avant : sans boost, elle bondissait de +30 % au décollage ; en NITROOO ×2,6, elle y perdait la moitié de sa vitesse. */ /* (le midi : AIR_RATE=1.3, « qu'elle aille plus vite et qu'elle tombe plus vite ») */ // (vol v6, 2026-09-25, user : « la vitesse en airtime est trop importante proportionnellement à celle sur route ») : le vol se joue en TEMPS RÉEL, comme la route — il était compressé jusqu'à ×1,35 au-delà de 450 km/h
   fallVH0=-1; // la vitesse horizontale de décollage se relève à la 1re image de vol (la catapulte retouche fallVel APRÈS cet appel)
-  nitroAirT=0;fallUnder=false;fallStartSide=side; // SNAKE LOOP : côté de départ figé, passage dessous à prouver
+  nitroAirT=0;NIT.vol=0;NIT.nit=0;fallUnder=false;fallStartSide=side; // SNAKE LOOP : côté de départ figé, passage dessous à prouver
   gapArmed=0; // vol ordinaire par défaut — la catapulte réarme JUSTE APRÈS cet appel
   bounceN=0;flightId++; // nouveau vol : compteur de bumps et budget d'airtime des nuages remis à zéro
   if(Math.abs(vA)*3.6*SPD>400)annSpeak('launch400',1); // éjecté à +400 km/h (1 fois sur 3)
@@ -30447,7 +30535,7 @@ function tryLand(dt){
     sideCd=.35;bascOn=false; /* (1/10, soir) la tranche touchée : la bascule est finie */
     // ---- BUMP / DOUBLE BUMP / TRIPLE BUMP : figure GRATUITE (compte pour le HUD/style, zéro dollar) ----
     bounceN++;runStats.bumps++;
-    hap(24);{const nv9=nitroR;nitroGain(.35);if(SONV2&&nitroR>nv9+.01)sfx('nitro.plein',{t:.1});}flowAdd(6,'style'); // LE BUMP RECHARGE (2026-09-25, demande du user) : un quart de cellule… de plus à chaque rebond
+    hap(24);{const nv9=nitroR;nitroGain(nitroBumpDe(bounceN,nitroOn&&pwrNitroT<=0&&!PARK.on),'bump');if(SONV2&&nitroR>nv9+.01)sfx('nitro.plein',{t:.1});}flowAdd(6,'style'); // (LA LOI DU RÉSERVOIR : ,35 puis ×,6 par rebond du même vol, rien au-delà du 4e, rien nitro allumée) LE BUMP RECHARGE (2026-09-25, demande du user) : un quart de cellule… de plus à chaque rebond
     fallT=Math.max(0,fallT-airMax()*.5);fallTR=Math.max(0,fallTR-airMax()*.5);airFlash=.6; // DEMI-JAUGE d'airtime rendue (sim + réelle)
     addTrick('bump',bounceN===1?'BUMP':bounceN===2?'DOUBLE BUMP':bounceN===3?'TRIPLE BUMP — LA DALLE EN PLEURE':'MEGA BUMP x'+bounceN+' 💥',
       0,Math.min(3,bounceN),true,true); // free=true : le bump NE PAYE PLUS (fini la machine à cash en longeant la tranche) — il rend l'airtime et le style, c'est tout
@@ -30486,7 +30574,7 @@ function tryLand(dt){
   {const vm9=vitMult();vA=fallVel.dot(T[bestI])/vm9;vL=fallVel.dot(B[bestI])*.4*sideL/vm9;} // (2026-09-30) le vol porte la vitesse RÉELLE (× vitMult) : à la pose, on la ramène au vA d'avant le multiplicateur — sans ça, le boost comptait DEUX fois
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1; // PARC : on repart dans le sens d'atterrissage (les deux directions roulent) ; COURSE : toujours vers l'avant
   // ATTERRISSAGE : l'impact ralentit la caisse — d'autant plus que le saut etait gros
-  {const nv9=nitroR;nitroPct(.2);if(SONV2&&nitroR>nv9+.01)sfx('nitro.plein',{t:.2});} // (2026-09-26, user) TOUTE pose rend 20 % de nitro — parfaite, lourde, à l'arrachée
+  {const nv9=nitroR;nitroGain(nitroPoseDe(nitroCap(),NIT.vol,NIT.nit),'pose');if(SONV2&&nitroR>nv9+.01)sfx('nitro.plein',{t:.2});} // (2026-09-26, user) TOUTE pose rend 20 % de nitro — parfaite, lourde, à l'arrachée · (2026-10-01, LA LOI DU RÉSERVOIR) au prorata du vol fait NITRO COUPÉE, et pleine à partir de 1,2 s de vol : ce qu'on brûle en l'air ne revient pas à la pose
   /* (2026-09-26, user : « l'impact MÉTÉORE, c'est quand on entre en collision avec la route EN NITRO avec un angle supérieur à 45° »)
      Plus la figure MÉTÉORE (nitro tenue en l'air) : le CRATÈRE naît d'un PIQUÉ — nitro allumée au contact, et la trajectoire plonge
      dans la dalle à plus de 45° (vitesse normale > vitesse dans le plan : vN² > v² − vN²). Une pose rasante en nitro ne creuse rien. */
@@ -30584,7 +30672,7 @@ function tryLand(dt){
     if(g>=1.5&&!poseRatee&&(fallT>.7||gain>0))RUNX.perfect++;
     if(gain>0){ // l'airtime brut ne rapporte RIEN : sans chaîne à casher, la pose est muette
       flowAdd(g>=2?14:g>=1.5?10:4,g>=1.5?'risque':'style',sideL<0?'m':'n'); // (v5) posé sur la FACE CACHÉE : l'envers du décor, c'est MACHIAVEL // FLOW : une figure encaissée nourrit la montée — la pose PARFAITE est un RISQUE (on a visé), l'ordinaire du style
-      nitroGain(Math.min(1.2,.45+chainMult*.12)*(g>=2?2:g>=1.5?1.5:1)); // LA FIGURE RECHARGE LE NITRO — plus la chaîne est longue, plus ça remplit ; une pose parfaite ×1,5, DIVINE ×2 (l'échelle des grades monte aussi ici)
+      nitroGain(nitroFigDe(chainMult,g,NIT.vol,NIT.nit),'figure'); // (LA LOI DU RÉSERVOIR : au prorata du vol nitro coupée) LA FIGURE RECHARGE LE NITRO — plus la chaîne est longue, plus ça remplit ; une pose parfaite ×1,5, DIVINE ×2 (l'échelle des grades monte aussi ici)
       // LA CAISSE ENREGISTREUSE : seulement sur un ENCAISSEMENT QUI COMPTE. Sur chaque pose,
       // meme minuscule, le son deviendrait un tic — et 9 samples n'y changeraient rien.
       runStats.tricks++;
@@ -32227,7 +32315,7 @@ function fantomePris(){ // ELLE EST À TOI
   if(ci>=0){SAVE.d.equipped=ci;level=ci;try{buildCar(CARS[ci]);}catch(e){}SAVE.flush();}
   CAMP.portFerme=false;portailVisible(true);try{if(!SONV2)portalSnd();}catch(e){}
   try{chaineAura('LA CAISSE-NUAGE',400,'nuage',false,SONV2);}catch(e){}
-  flowAdd(40,'risque');nitroPct(1);
+  flowAdd(40,'risque');nitroPct(1,'campagne');
   setTimeout(function(){if(started&&!gameOver){popTexte("LE PORTAIL S'OUVRE",'#ff9ee6',1);if(SONV2)sfx('portail.ouvre');}},1500);
 }
 function fantomeSeme(devant){ // elle a franchi le portail la première — ou la route s'arrête sous tes roues : c'est perdu (devant : tu l'avais doublée)
@@ -32237,7 +32325,7 @@ function fantomeSeme(devant){ // elle a franchi le portail la première — ou l
   CAMP.finT=1.6;CAMP.cause=devant?'devant':'seme';
 }
 function campFinale(){ // le portail du COUCHER : les NUAGES sont finis
-  const zb=denom()*60*flowMult();money+=zb;levelCash+=zb;try{checkUpgrade();}catch(e){} // (2026-09-29) × le FLOW : le dernier portail franchi en FRÉNÉSIE paie ×3
+  const zb=denom()*60*flowMult();money+=zb;levelCash+=zb;livre('$:fin',zb);try{checkUpgrade();}catch(e){} // (2026-09-29) × le FLOW : le dernier portail franchi en FRÉNÉSIE paie ×3
   try{if(SONV2)sfx('monde.fin');else{portalSnd();boostSnd(2);fanfare();}}catch(e){}flashEcran('rgba(255,215,140,.75)');hap([40,40,40,40,120]);
   carrMarque(0,9);runStats.zones++;
   CAMP.garde=true;mortCause='finNuages';
@@ -32245,7 +32333,7 @@ function campFinale(){ // le portail du COUCHER : les NUAGES sont finis
   CARR.actif={b:Math.max(0,CARRIERE.findIndex(function(B){return B.id==='ville';})),i:0}; // (2026-09-28) REJOUER ouvre la VILLE (il relançait la chasse de la caisse-nuage qu'on conduit déjà)
 }
 function espaceFinale(){ // (2026-09-28) le portail de PLUTON : l'ESPACE est fini — même cérémonie que les NUAGES et la VILLE
-  const zb=denom()*60*flowMult();money+=zb;levelCash+=zb;try{checkUpgrade();}catch(e){} // (2026-09-29) × le FLOW : le dernier portail franchi en FRÉNÉSIE paie ×3
+  const zb=denom()*60*flowMult();money+=zb;levelCash+=zb;livre('$:fin',zb);try{checkUpgrade();}catch(e){} // (2026-09-29) × le FLOW : le dernier portail franchi en FRÉNÉSIE paie ×3
   try{if(SONV2)sfx('monde.fin');else{portalSnd();boostSnd(2);fanfare();}}catch(e){}flashEcran('rgba(255,215,140,.75)');hap([40,40,40,40,120]);
   carrMarque(Math.max(0,CARRIERE.findIndex(function(B){return B.id==='espace';})),9);runStats.zones++;
   CAMP.garde=true;mortCause='finEspace';
@@ -32288,7 +32376,7 @@ function filetTick(){ // appelée chaque image AU SOL (la boucle de conduite)
   else if(q){FILR.vMin=Math.min(FILR.vMin,v9);}
   else if(FILR.q){const q9=FILR.q;FILR.q=null;
     if(FILR.ok&&s>q9.sC1&&s<q9.sC1+200&&FILR.vMin>=FILET.vFond*q9.vN){q9.paye=true;
-      try{chaineAura('VIRAGE A FOND',120,'fond',true,false);flowAdd(14,'route');nitroGain(.25);hap([10,20,14]);}catch(e){}}
+      try{chaineAura('VIRAGE A FOND',120,'fond',true,false);flowAdd(14,'route');nitroGain(.25,'virage');hap([10,20,14]);}catch(e){}}
     FILR.ok=false;}
 }
 function filetRattrape(q){
@@ -32301,7 +32389,7 @@ function flowRaccourci(gagne,decl){ // decl : l'appelant fera partir la frénés
      Toutes les AUTRES vraies coupes (piste parcourue − ligne volée ≥ 60 m) paient comme en partie sans fin : avant, le `return` les
      taisait toutes, pendant que campRaccourci criait « RACCOURCI ! » au moindre long vol qui suivait la route. */
   if(CAMP.n&&campCoupeDe(FLOW.s0,s))return;
-  popTexte(TR('RACCOURCI')+' +'+Math.round(gagne)+' M','#7dffec',3);hap([12,24,18]);nitroGain(.3);
+  popTexte(TR('RACCOURCI')+' +'+Math.round(gagne)+' M','#7dffec',3);hap([12,24,18]);nitroGain(.3,'raccourci');
   try{chaineAura('RACCOURCI',Math.round(Math.min(250,60+gagne*.2)),'coupe',false,SONV2);}catch(e){}
   try{if(SONV2)sfx('raccourci');else{chimeNote(noteP(4,1),0,.09,.2);chimeNote(noteP(7,1),.08,.09,.26);}}catch(e){}
 }
@@ -32310,7 +32398,7 @@ function campCoupeDe(s0,s1){ // (2026-09-30) un vol parti de leg1 d'une coupe (o
 function campRaccourci(d){ // se poser loin devant son décollage : la coupe est payée
   CAMP.coupesN++;
   popTexte('RACCOURCI !','#7dffec',2);hap([12,24,18]);
-  nitroGain(.4); // (FLOW v2) le flow du raccourci est versé par flowRaccourci, à la pose — pour TOUS les modes, au prorata des mètres coupés
+  nitroGain(.4,'raccourci'); // (FLOW v2) le flow du raccourci est versé par flowRaccourci, à la pose — pour TOUS les modes, au prorata des mètres coupés
   try{chaineAura('RACCOURCI',150,'coupe',false,SONV2);}catch(e){}
   try{if(SONV2)sfx('raccourci');else{chimeNote(noteP(4,1),0,.09,.2);chimeNote(noteP(7,1),.08,.09,.26);}}catch(e){}
 }
@@ -32449,7 +32537,7 @@ function villeN(){return CAMP.n>10?CAMP.n-10:0;}          // 1..10 dans la campa
 function campMeute(){return campN()===14&&!PARK.on;}
 function vPos(){return mode==='fall'?lastNearS:s;}         // où l'on en est le long du ruban, même en vol
 function vKmh(){return (mode==='fall'?Math.hypot(fallVel.x,fallVel.z):Math.abs(vA)*vitMult())*3.6*SPD;} // (2026-09-30) au sol, la VRAIE vitesse d'avance (× vitMult : NITROOO, VITESSE ×2 — celle du compteur, speedKmh) : tenir NITROOO devant un radar ne changeait rien
-function vPaie(k,n){const g=denom()*k*(fever>0?2:1)*flowMult();money+=g;levelCash+=g;try{checkUpgrade();}catch(e){}if(n)try{flyCash(carGroup.position,n);}catch(e){}frenCash(g,carGroup.position);return g;} // (×3) en frénésie, le butin de la ville se voit aussi
+function vPaie(k,n){const g=denom()*k*(fever>0?2:1)*flowMult();money+=g;levelCash+=g;livre('$:ville',g);try{checkUpgrade();}catch(e){}if(n)try{flyCash(carGroup.position,n);}catch(e){}frenCash(g,carGroup.position);return g;} // (×3) en frénésie, le butin de la ville se voit aussi
 function vPose(o,sv,lt,h,fy){ // poser un objet sur la route (repère b, n, t), face fy
   frameAt(sv,VF);fy=fy||1;
   o.position.copy(VF.p).addScaledVector(VF.b,lt).addScaledVector(VF.n,fy>0?h:-THICK-h);
@@ -32567,10 +32655,10 @@ function campPad(i){ // crochet : un pad vient d'être pris (boucle de conduite)
   padCd=Math.min(padCd,.45); // la file se prend à pleine vitesse : le pad suivant est à ~110 m
   const ch=e.c,k=e.k;if(ch.brise||ch.fini||k!==ch.n)return;
   ch.n++;
-  if(k>0){nitroGain(.04*k);flowAdd(3+2*k,'route','p');} // (2026-09-30) plus de « LIGNE ×k » au milieu : la plaque « LIGNE 3 / 6 » compte, le pluck monte
+  if(k>0){nitroGain(.04*k,'ligne');flowAdd(3+2*k,'route','p');} // (2026-09-30) plus de « LIGNE ×k » au milieu : la plaque « LIGNE 3 / 6 » compte, le pluck monte
   try{if(SONV2)sfx('pad.neon',{st:sonPd(k)});else chimeNote(noteP(Math.min(7,k+1),1),0,.09,.2);}catch(e9){}
   if(ch.n>=ch.lats.length){ch.fini=true;ch.fl=1;const n=ch.lats.length;
-    slam('LIGNE PARFAITE','×'+n,'#ffd75e','#ff3ec8',40,2,18);vPaie(6*n,8);nitroPct(.5);flowAdd(15,'style','p');hap([14,30,14,30,40]);
+    slam('LIGNE PARFAITE','×'+n,'#ffd75e','#ff3ec8',40,2,18);vPaie(6*n,8);nitroPct(.5,'campagne');flowAdd(15,'style','p');hap([14,30,14,30,40]);
     try{chaineAura('LIGNE DE NEON',40+12*n,'ligne',false,SONV2);if(SONV2)sfx('victoire');else fanfare();}catch(e9){}}
 }
 function chainesTick(dt,sp){
@@ -32620,7 +32708,7 @@ function flaquesTick(dt,sp){
     try{sparkBurst(sparkBlue,carGroup.position,12,9);}catch(e){}}
   VC.slip0=slipT;
   for(const f of VZ.flaques){if(f.fait||sp<f.s+(f.d?64:6))continue;f.fait=true;
-    if(!VC.rowSlip){VC.secN=(VC.secN|0)+1;popTexte('A SEC !','#7dffec',0);flowAdd(f.d?10:6,'style');nitroGain(f.d?.1:.06);try{chaineAura('A SEC',f.d?30:18,'sec',false,SONV2);if(SONV2)sfx('flaque.sec');}catch(e){}}
+    if(!VC.rowSlip){VC.secN=(VC.secN|0)+1;popTexte('A SEC !','#7dffec',0);flowAdd(f.d?10:6,'style');nitroGain(f.d?.1:.06,'ville');try{chaineAura('A SEC',f.d?30:18,'sec',false,SONV2);if(SONV2)sfx('flaque.sec');}catch(e){}}
     VC.rowSlip=false;}
   // la plaque annonce la prochaine rangée (jamais le côté sec : ça, ça se LIT)
   let nx=null;for(const f of VZ.flaques)if(!f.fait&&f.s+(f.d?64:6)>sp){nx=f;break;}
@@ -32681,7 +32769,7 @@ function foudreFrappe(){
     flashEcran('rgba(215,200,255,.9)');shake=Math.max(shake,.7);hap([40,30,90]);
     popTexte('FOUDROYE !','#b58cff',2);try{if(SONV2)sfx('foudre.touche');else crackle(.8);}catch(e){}
   }else if(dessous){popTexte("A L'ABRI",'#9fe8ff',0);if(SONV2)sfx('abri');}
-  else if(d<VFOU_R+9){VC.esqN=(VC.esqN|0)+1;popTexte('ESQUIVE !','#7dffec',1);flowAdd(8,'style');nitroGain(.08);try{chaineAura('ESQUIVE',28,'esquive');}catch(e){}}
+  else if(d<VFOU_R+9){VC.esqN=(VC.esqN|0)+1;popTexte('ESQUIVE !','#7dffec',1);flowAdd(8,'style');nitroGain(.08,'ville');try{chaineAura('ESQUIVE',28,'esquive');}catch(e){}}
 }
 function foudreTick(dt,sp){
   ECL.t-=dt;if(ECL.t<=0){if(!VFOU.on)eclFrappe();ECL.t=4+Math.random()*4;} // l'orage de fond : des éclairs lointains, jamais pendant une frappe armée
@@ -32768,7 +32856,7 @@ function debFrappe(){
   }else if(d<DEB_R+9){ // ESQUIVÉ DE PRÈS : le risque paie, la série fait monter la mise
     D.serie++;const k=Math.min(4,D.serie);
     popTexte(TR('ESQUIVE !')+(D.serie>1?' ×'+D.serie:''),'#ffb000',1); // le mot de la FOUDRE : même geste, même nom (« FRÔLÉ » est déjà celui des plots)
-    flowAdd(6+k*3,'style');nitroGain(.08+k*.04);
+    flowAdd(6+k*3,'style');nitroGain(.08+k*.04,'ville');
     try{chaineAura('ESQUIVE',24+k*6,'esquive',false,SONV2);if(SONV2)sfx('debris.esquive',{st:sonPd(k)});else chimeNote(880+k*110,0,.1,.22);}catch(e){}
     sparkBurst(sparkBlue,carGroup.position,10,10);hap(18);
   }
@@ -32840,7 +32928,7 @@ function panneTick(dt,sp){
     if(sp>p.s0-170&&sp<=p.s0){vac=true;break;}}
   if(dans>=0&&VC.panI!==dans){VC.panI=dans;VC.panOk=true;VC.panN=(VC.panN|0)+1;VC.grT=0;panneSnd(true);hap([20,40,20]);} // (2026-09-30) plus de « COUPURE ! » au milieu : la plaque « COUPURE DE COURANT » et le noir le disent
   else if(dans<0&&VC.panI>=0){VC.panI=-1;VC.panT=.55;VC.panFl=0;panneSnd(false);
-    if(VC.panOk){VC.aveugleN=(VC.aveugleN|0)+1;slam("A L'AVEUGLE",'COURANT RETABLI','#ffd75e','#8f84c8',40,2,14);vPaie(10,6);flowAdd(16,'risque','p');nitroPct(.35);try{chaineAura("A L'AVEUGLE",80,'aveugle');}catch(e){}}
+    if(VC.panOk){VC.aveugleN=(VC.aveugleN|0)+1;slam("A L'AVEUGLE",'COURANT RETABLI','#ffd75e','#8f84c8',40,2,14);vPaie(10,6);flowAdd(16,'risque','p');nitroPct(.35,'campagne');try{chaineAura("A L'AVEUGLE",80,'aveugle');}catch(e){}}
     else popTexte('COURANT RETABLI','#9fe8ff',0);}
   if(VC.panI>=0&&mode==='fall')VC.panOk=false; // une sortie de route dans le noir : pas de prime
   if(vac){if(SONV2){VC.grT=(VC.grT||0)-dt;if(VC.grT<=0){VC.grT=.65;sfx('panne.gresille');}}VC.panFl-=dt;if(VC.panFl<=0){VC.panFl=.05+Math.random()*.16;VC.cour=Math.random()<.55?1:.12;}} // le courant VACILLE : ça va sauter
@@ -33195,7 +33283,7 @@ function banquierTick(dt,sp){
 }
 function villeFinale(){ // le portail de MIDI franchi AVANT le banquier : la VILLE est finie, et le lingot est à toi
   VBQ.on=false;VBQ.g.visible=false;trailStep(VBQ.tr,0,0,0,0,0,0,0);
-  const zb=denom()*60*flowMult();money+=zb;levelCash+=zb;try{checkUpgrade();}catch(e){} // (2026-09-29) × le FLOW : le dernier portail franchi en FRÉNÉSIE paie ×3
+  const zb=denom()*60*flowMult();money+=zb;levelCash+=zb;livre('$:fin',zb);try{checkUpgrade();}catch(e){} // (2026-09-29) × le FLOW : le dernier portail franchi en FRÉNÉSIE paie ×3
   try{if(SONV2)sfx('monde.fin');else{portalSnd();boostSnd(2);fanfare();}}catch(e){}flashEcran('rgba(255,215,140,.75)');hap([40,40,40,40,120]);
   carrMarque(Math.max(0,CARRIERE.findIndex(function(B){return B.id==='ville';})),9);runStats.zones++; // les dix niveaux de la VILLE : le lingot se débloque (condition carrV)
   const ci=CARS.findIndex(function(c){return c.shape==='lingot';});
@@ -36270,7 +36358,7 @@ function pickupsTick(dt){
         const fd=FRUIT_DEFS[p.fruit]||FRUIT_DEFS[0],pw=Math.min(1,fd.boost/2);
         // (2026-09-26, user : « les fruits donnent du nitro BLEU ») : chaque fruit remplit la RÉSERVE BLEUE (la nitro la plus forte : poussée
         // 48 contre 30) de 20 % de la jauge — le bleu se voit sur la barre et sur l'anneau du bouton
-        {const mx9=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,av9=nitroX;nitroX=Math.min(2,nitroX+(p.ligne?LIGNE.don:.2*mx9));if(p.ligne)LIGNE.pris[0]++; // (LIGNE PARFAITE) le fruit de la file rend de quoi tenir jusqu'au pad
+        {const mx9=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,av9=nitroX;nitroX=Math.min(2,nitroX+(p.ligne?LIGNE.don:.2*mx9));if(LIVRE.on){livre('n+:'+(p.ligne?'fruit.ligne':'fruit'),nitroX-av9);livre('n0:'+(p.ligne?'fruit.ligne':'fruit'),(p.ligne?LIGNE.don:.2*mx9)-(nitroX-av9));}if(p.ligne)LIGNE.pris[0]++; // (LIGNE PARFAITE) le fruit de la file rend de quoi tenir jusqu'au pad
          if(nitroX>av9+.01){if(SONV2)sfx('nitro.plein',{t:.14});const b=document.getElementById('nitroBar');if(b){b.classList.remove('gain');void b.offsetWidth;b.classList.add('gain');}}}
         RUNX.fruits++;hap(fd.boost>=1.5?[20,40,30]:11);
         fruitCroque(carGroup.position,fd.jus||0xffd75e,pw,fd.n); // ON CROQUE : jus, crunch, et la rafale qui monte
@@ -36285,7 +36373,7 @@ function pickupsTick(dt){
         /* LA RÉCOLTE EN SÉRIE. Une pièce isolée ne donne RIEN en aura — sinon on récompense
            encore le simple fait d'avancer. C'est tous les 5 ramassages SANS laisser retomber le
            combo (fenêtre de 3 s) que la salve tombe, et elle grossit à chaque palier. */
-        if(combo%5===0)chaineAura('RÉCOLTE ×'+combo,30,'recolte',true,SONV2); /* (console) muet : blip() joue piece.recolte */
+        if(combo%5===0)chaineAura('RÉCOLTE ×'+combo,20,'recolte',true,SONV2,true); /* (console) muet : blip() joue piece.recolte */
         // ÉCONOMIE RÉGULÉE (2026-07-30) : on montait de caisse BEAUCOUP trop vite. La pièce vaut
         // ~2,3× moins et le combo se mérite (un palier toutes les 5 pièces, plafond ×4 au lieu de ×5)
         // → rendement max 8,8×denom contre 25×denom avant. La CHAÎNE DE FIGURES reste la vraie fortune.
@@ -36294,7 +36382,7 @@ function pickupsTick(dt){
         {const n9=performance.now();if(n9-(hap._pc||0)>70){hap._pc=n9;hap(5);}} // la pièce : un tic à peine perceptible (bridé : une ligne de pièces ne doit pas bourdonner)
         const mult=Math.min(ECO3.recolte,1+.5*Math.floor(combo/5)); // (vague 3) ×1 · ×1,5 · ×2 · ×2,5 : sur une route dense la récolte ne retombait jamais — ×4 permanent
         const g=denom()*2.2*mult*(fever>0?2:1)*flowMult(); // × le FLOW
-        money+=g;levelCash+=g;blip();addStyle(5);frenCash(g,p.mesh.position); // (×3) en frénésie : le « ×3 » jaillit de la pièce, la bande frappe
+        money+=g;levelCash+=g;livre('$:piece',g);blip();addStyle(5);frenCash(g,p.mesh.position); // (×3) en frénésie : le « ×3 » jaillit de la pièce, la bande frappe
         checkUpgrade();
       }
     }
@@ -36430,15 +36518,21 @@ function loop(now){
     // nitro : 2s regen (10s de recharge) + 2s réserve (bidons bleus)
     // CAPACITÉ MOTEUR : la réserve de nitro s'élargit avec le palier (2,0 → 3,6 au réacteur)
     const NRMAX=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2;
-    nitroR=Math.min(NRMAX,nitroR+.2*dt);
+    {const av9=nitroR;nitroR=Math.min(NRMAX,nitroR+NITRO2.regen*dt);if(LIVRE.on)livre('n+:seule',nitroR-av9);}
     if(pwrNitroT>0||PARK.on||startBoostT>0)nitroR=NRMAX; // NITRO INFINIE : jauge pleine, rien ne se consomme (pouvoir, parc freestyle, OU le boost de départ) — pleine = la capacité du MOTEUR (à 2 en dur, la jauge restait à 55 % au palier max)
     {const fu9=nitroR>=NRMAX-.001,d9=nitroR-(loop._nR==null?nitroR:loop._nR);if(SONV2&&fu9&&loop._nFu===false&&d9<.06&&!(pwrNitroT>0||PARK.on||startBoostT>0)&&started&&!gameOver)sfx('nitro.pleine');loop._nFu=fu9;loop._nR=nitroR;} // (console de son) PLEINE : ding au franchissement — pas sous nitro infinie, ni quand un plein OFFERT (saut > .06 : portail, pose, bump, fruit) l'a remplie, il a son glouglou
-    const wantN=keys.ShiftLeft||keys.ShiftRight||keys.Space||startBoostT>0; // le boost de départ tient la touche à la place du joueur — « pas dur à gérer »
-    nitroOn=wantN&&(nitroOn?(nitroR+nitroX)>.005:(nitroR+nitroX)>.3); // hystérésis anti-clignotement
+    const wantN=keys.ShiftLeft||keys.ShiftRight||keys.Space||startBoostT>0||(DBG_AUTO.on&&(DBG_AUTO.nit===1||(DBG_AUTO.nit===2&&mode==='fall')||(DBG_AUTO.nit===3&&mode==='drive'))); // le boost de départ tient la touche à la place du joueur — « pas dur à gérer »
+    /* (2026-10-01, LA LOI DU RÉSERVOIR, loi 0) À SEC : le réacteur tenait tant qu'il restait plus de ,005 dans la jauge — or elle se refait
+       de ,2 × dt à chaque image : sous ~40 images/s (dt > ,025 : un iPhone bridé à 30 i/s) la recharge d'UNE image suffisait, et le nitro
+       tenu ne s'éteignait JAMAIS, jauge vide (poussée, NITROOO, PSYCHO, flow gelé). Il tient désormais tant que la jauge PAIE l'image. */
+    const tk9=pwrNitroT>0||PARK.on||startBoostT>0?0:nitroConsoDe(dt,FLOW2.fren.nitro,FLOW.lv===4,NTR.on,mode==='fall');
+    nitroOn=wantN&&nitroTientDe(nitroR+nitroX,tk9,nitroOn); // hystérésis anti-clignotement (il se rallume à ,3)
+    if(LIVRE.on){LIVRE.t+=dt;if(nitroOn)LIVRE.tN+=dt;if(mode==='fall')LIVRE.tV+=dt;}
     if(wantN&&!loop._nvW&&!nitroOn&&mode!=='boom'){try{if(SONV2)sfx('nitro.vide');else noiseBurst(.04,.06,2500);}catch(e){}hap(6);} // (2026-09-26, audit son) NITRO À VIDE : un « tchk » sec — l'appui répond toujours
     loop._nvW=wantN;
     if(nitroOn&&pwrNitroT<=0&&!PARK.on&&startBoostT<=0){
-      let take=dt*((FLOW.lv===4||NTR.on)?FLOW2.fren.nitro:1); // (v3, Sacha : « en frénésie le nitro baisse 2× plus lentement ») · (2026-09-30, HAUTE VITESSE) NITROOO aussi : réservoir plein, sans rien ramasser, il restait 0,5 s de NITROOO au moteur 1 (0 palier) et 2,5 s au moteur max (2) ; ×0,5 pendant NTR.on → 1,3 s (1 palier) et 6,6 s (6, +88 %). PAS cumulé avec la frénésie (×0,25 : 0,05/s net, une nitro quasi infinie)
+      let take=tk9; /* (LA LOI DU RÉSERVOIR) NITROOO ne dure 2× qu'AU SOL */ // (v3, Sacha : « en frénésie le nitro baisse 2× plus lentement ») · (2026-09-30, HAUTE VITESSE) NITROOO aussi : réservoir plein, sans rien ramasser, il restait 0,5 s de NITROOO au moteur 1 (0 palier) et 2,5 s au moteur max (2) ; ×0,5 pendant NTR.on → 1,3 s (1 palier) et 6,6 s (6, +88 %). PAS cumulé avec la frénésie (×0,25 : 0,05/s net, une nitro quasi infinie)
+      if(LIVRE.on)livre(mode==='fall'?'n-:vol':'n-:sol',Math.min(take,nitroR+nitroX));
       if(nitroR>=take)nitroR-=take;
       else{take-=nitroR;nitroR=0;nitroX=Math.max(0,nitroX-take);}
     }
@@ -36458,11 +36552,12 @@ function loop(now){
     // PILOTE AUTO DE MESURE (`dbgAuto`) : le volant du bot de poursuite (mêmes équations) posé sur TA caisse —
     // sert à mesurer l'économie sur des dizaines de parties sans jouer à la main. Jamais armé en jeu.
     const mA9=DBG_AUTO.on&&mode==='drive'?vitMult():1; // (HAUTE VITESSE, 2026-09-30) le pilote de mesure connaît sa caisse : au sol, le lacet est ×spdMult, et l'écart latéral s'y referme en autant de SECONDES qu'à ×1
-    const target=DBG_AUTO.on?THREE.MathUtils.clamp((routeLacet+(THREE.MathUtils.clamp((DBG_AUTO.lat-lat)/(Math.max(6,Math.abs(vA)*SPD*mA9)*.9),-.4,.4)-psi)*3)/(lacetMax(vA)*mA9),-1,1) // (conduite v6) le pilote de mesure corrige son CAP vers la ligne visée // (conduite v4) le pilote de mesure VISE un cap
+    const target=DBG_AUTO.on&&DBG_AUTO.vol&&mode==='fall'?dbgAutoVol(dt):DBG_AUTO.on?THREE.MathUtils.clamp((routeLacet+(THREE.MathUtils.clamp((DBG_AUTO.lat-lat)/(Math.max(6,Math.abs(vA)*SPD*mA9)*.9),-.4,.4)-psi)*3)/(lacetMax(vA)*mA9),-1,1) // (conduite v6) le pilote de mesure corrige son CAP vers la ligne visée // (conduite v4) le pilote de mesure VISE un cap
       :TCTL.act?TCTL.st:(lf?1:0)-(rt?1:0); // VOLANT TACTILE : le pouce prend la main sur le tout-ou-rien (même lissage derrière)
     steer+=(target-steer)*Math.min(1,dt*18);
     graceT=Math.max(0,graceT-dt);
     sideCd=Math.max(0,sideCd-dt);
+    if(DBG_AUTO.on&&DBG_AUTO.saut>0){if(mode==='drive'&&!introD&&graceT<=0){DBG_AUTO.tS+=dt;if(DBG_AUTO.tS>=DBG_AUTO.saut&&Math.abs(lat)<ROAD_HALF*.5&&Math.abs(vA)*3.6*SPD>110){DBG_AUTO.tS=0;DBG_AUTO.l0=null;startFall(DBG_AUTO.imp,1);}}else DBG_AUTO.tS=0;} /* banc : la boucle décoller / se poser */
     if(mode==='drive'){
       landMark.visible=false;LM.a=0; // (au sol : le prochain vol repart d'un viseur éteint)
       // ANTI-IDLE : la musique n'avance pas sans toi — reste quasi à l'arrêt trop longtemps et la caisse explose
@@ -36560,7 +36655,7 @@ function loop(now){
        filetTick();} // (2026-09-29) LA ROUTE QUI TE RATTRAPE : le VIRAGE À FOND (voir FILET)
       driftTick(dt,drifte);
       // (conduite v3) RASE-BORD : frôler le vide à pleine vitesse RECHARGE le nitro — le risque paie
-      if(!introD&&!PARK.on&&Math.abs(lat)>ROAD_HALF*.8&&Math.abs(vA)>maxSp*.5){raseT+=dt;nitroGain(.22*dt);flowAdd(6*dt,'route'); // bande du RASE-BORD : les 20 % extérieurs de la demi-route (3 à 4,8 m sur la route large)
+      if(!introD&&!PARK.on&&Math.abs(lat)>ROAD_HALF*.8&&Math.abs(vA)>maxSp*.5){raseT+=dt;if(!nitroOn)nitroGain(NITRO2.rase*dt,'rase'); /* (LA LOI DU RÉSERVOIR) le rase-bord ne remplit que nitro COUPÉE */flowAdd(6*dt,'route'); // bande du RASE-BORD : les 20 % extérieurs de la demi-route (3 à 4,8 m sur la route large)
         if(raseT>.6&&!raseAnn){raseAnn=true;hap(12);try{chaineAuraMuette('RASE-BORD',40,'rase');}catch(e){}} // (2026-09-29, Sacha) ne s'écrit plus
         if(Math.random()<dt*14){DRIFT_V.set(Math.sign(lat)*CARS[level].w*.5,.1,-.3);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkBlue,DRIFT_V,1,4);}}
       else{raseT=0;raseAnn=false;}
@@ -36595,7 +36690,7 @@ function loop(now){
         // ⚠ PALIER PLAFONNÉ À 5 (audit 2026-08-18) : `150+pureLvl*100` sans borne, c'est une rente —
         // tenir 60 s donnait 30 salves dont la derniere a 3 150. L'escalade se sent jusqu'a ×6, apres
         // quoi c'est la DUREE qui paye, pas le multiplicateur.
-        if(!pureArmed&&pureT>pureNext){pureNext=pureT+2;pureLvl=Math.min(5,pureLvl+1);if(SONV2)sfx('vitesse.pure',{st:sonPd(pureLvl)});chaineAura('NITROOO ×'+(pureLvl+1),60+pureLvl*40,'pure',true,SONV2);}
+        if(!pureArmed&&pureT>pureNext){pureNext=pureT+2;pureLvl=Math.min(5,pureLvl+1);if(SONV2)sfx('vitesse.pure',{st:sonPd(pureLvl)});chaineAura('NITROOO ×'+(pureLvl+1),15+pureLvl*8,'pure',true,SONV2,true); /* (2026-10-01) 60+40·palier → 15+8·palier : calé quand un réservoir donnait 3 paliers toutes les 15 s ; sur la LIGNE PARFAITE la NITROOO se tient, et le palier tombe toutes les 2 s */}
       }else{pureT=0;pureArmed=true;pureNext=0;pureLvl=0;}
       // point de respawn sûr
       if(side>0&&F.n.y>.5&&Math.abs(lat)<ROAD_HALF-2&&Math.abs(psi)<.5)safeS=s;
@@ -36629,7 +36724,7 @@ function loop(now){
           vA+=18+5*trk9;boost=Math.max(boost,1.5+.2*trk9);if(!pl9)padCd=1.5; /* (LIGNE PARFAITE, audit GAMEPLAY) un pad de la file ne met plus la recharge : au niveau 12 il bloquait le 1er pad de la LIGNE DE NÉON au-delà de ~470 km/h (« LIGNE CASSÉE ») */ // viser paie plus qu'avant (14 → 18)
           if(SONV2)sfx('pad',{st:sonPd(trk9)});else boostSnd(1+.1*trk9);shake=Math.max(shake,.3+.04*trk9);hap(trk9?[10,16,10]:10);
           slam(tr9>1?TR('BOOST')+' ×'+tr9:'BOOST','','#ffb000','#ff3924',28); /* (2026-09-29, Sacha : « BOOST écrit plus petit ») 46 → 28 */flashEcran('rgba(255,150,0,.5)');fovPunch=Math.max(fovPunch,10+2*trk9); // (HUD v3) « quand tu roules sur un boost, BOOST en gros »
-          if(pl9){LIGNE.pris[1]++;LIGNE.padPris.add(i9);}nitroGain(LIGNE.padI.has(i9)?LIGNE.don:.12);flowAdd(6+2*trk9,'route','p');momT=Math.min(4.3,momT+.8); // (LIGNE PARFAITE) le pad de la file rend de quoi tenir jusqu'au fruit
+          if(pl9){LIGNE.pris[1]++;LIGNE.padPris.add(i9);}nitroGain(LIGNE.padI.has(i9)?LIGNE.don:.12,LIGNE.padI.has(i9)?'pad.ligne':'pad');flowAdd(6+2*trk9,'route','p');momT=Math.min(4.3,momT+.8); // (LIGNE PARFAITE) le pad de la file rend de quoi tenir jusqu'au fruit
           campPad(i9); // (2026-09-27) la LIGNE DE NÉON (campagne VILLE, niveau 12)
           break;
         }
@@ -37005,6 +37100,7 @@ function loop(now){
       const dtF=dt*AIR_RATE; // temps de vol accéléré : même arc dans l'espace, moins de temps réel à flotter
       fallT+=dtF;fallTR+=dt; // fallT = temps-sim (figures/paiements) ; fallTR = temps RÉEL (jauge des 6 s — sinon le chrono file à ×1,6)
       if(nitroOn)nitroAirT+=dtF; // temps de réacteur dans CE vol (METEOR / MEGA METEOR)
+      NIT.vol+=dtF;if(nitroOn&&pwrNitroT<=0&&!PARK.on)NIT.nit+=dtF; /* (LA LOI DU RÉSERVOIR) la durée du vol et ce qu'on y a BRÛLÉ : la pose ne rend que la part volée nitro coupée */
       /* AIR NITROOO (2026-09-29, Sacha : « nitrooo avec la comète marche aussi dans les airs, mais s'appelle AIR NITROOO ») : le nitro tenu
          NTR_T s D'AFFILÉE en vol (temps réel, comme au sol) → la figure (une fois par vol, tier 1 : 6 de flow — GAMEPLAY vient de recaler la frénésie —, après MÉTÉORE qui compte le
          nitro cumulé à 1,2 s), la caisse s'embrase (nitroooPart) et la poussée du réacteur prend le même +10 %/s (NTR.boost, plus bas). */
@@ -37032,7 +37128,7 @@ function loop(now){
         if(!loop._nAir&&nitroOn&&(performance.now()-(loop._nAirT||0))>500){loop._nAirT=performance.now();loop._nAir=true;
           const sp8=fallVel.length(),a8=46*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1); // (2026-09-26, user : « dans l'air le nitro doit accélérer plus ») 32 → 46 m/s
           if(sp8>1)fallVel.multiplyScalar((sp8+a8)/sp8);else fallVel.addScaledVector(FLY_U,a8);
-          fallVH0=Math.max(fallVH0,Math.hypot(fallVel.x,fallVel.z));if(pwrNitroT<=0)nitroR=Math.max(0,nitroR-.12*((ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2)*(FLOW.lv===4?FLOW2.fren.nitro:1));
+          fallVH0=Math.max(fallVH0,Math.hypot(fallVel.x,fallVel.z));if(pwrNitroT<=0){const av9=nitroR;nitroR=Math.max(0,nitroR-NITRO2.coup*nitroCap()*(FLOW.lv===4?FLOW2.fren.nitro:1));if(LIVRE.on)livre('n-:coup',av9-nitroR);}
           fovPunch=Math.max(fovPunch,12);shake=Math.max(shake,.35);} // (vague 3) le reste du coup — onde, bords, WHOOMP, vibreur — vient de `nitroAllume`, qui part à la même image (il le doublait)
         { // (2026-09-26, user : « le nitro en l'air ne sert pas qu'à guider, il faut que ça ACCÉLÈRE vraiment ») : la MÊME poussée qu'au sol
           // (30 · 48 en réserve bleue × le palier moteur), dans l'axe du vol — et l'élan gagné au réacteur est GARDÉ (le plafond d'inertie suit)
