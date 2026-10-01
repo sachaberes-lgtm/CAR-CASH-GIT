@@ -1,5 +1,43 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE DRAGON DE PAPIER (v7) + LA DARK TRIAD EN NOIR (2026-10-01, session GAMEPLAY, GRAPHISME et SON ont passé la main) — Sacha : « il faut que le dragon nitro ait un peu un aspect "papier", comme un vrai dragon chinois en papier ; il doit donc beaucoup réagir au vent et à la vitesse — retravaille ça très bien ; aussi, en dark triad, le dragon, les dauphins et le snake doivent être noirs »
+- **LES FEUILLES** (canevas peints une fois, mêmes matières et mêmes programmes) : `DRG_TEX` (le corps) n'est plus une laque brillante à écailles
+  en fil d'or mais un LAMPION — papier vermillon MAT, PLIS d'accordéon (arête claire, creux, soufflet), ÉCAILLES de papier découpé (festons
+  pleins or / paille, l'ombre de la feuille du dessus, nervures), grain de fibres, et sur les deux bords une FRANGE paille découpée en
+  dents ; `DRG_PF` (la tête, les bois, sourcils, nageoires, banderoles, rubans) : les mêmes bandes que le feu peint, mais mates,
+  FROISSÉES, plissées, les bords découpés en frange au lieu des morsures de flamme. Tirages FIXES (pas de Math.random).
+- **LE LAMPION** : une fois formé (`CH` → 0) la feuille ne DÉFILE plus sur le crâne ni sur les bois (un papier a ses plis fixes ; le
+  défilement reste le feu de la formation). La vie vient du VENT.
+- **LE VENT** (`DRG.vt`, bloc « DRAGON v7 » de `dragonTick`) : la vitesse du moment rapportée à la croisière du moteur (`v9·3,6 /
+  (vmaxShow × FLOW_VREF)`), ~0,5 à l'entrée en NITROOO, 1 vers +60 %, 1,7 au plafond ×2,6, lissée ; `DRG.raf` = les rafales (deux houles
+  lentes + le coup d'une accélération ou d'un freinage) ; `DRG.phF` = la phase du CLAQUEMENT, qui court d'autant plus vite que le vent
+  est fort (6,5 + 13·vt rad/s). Tout ce qui est papier lit ces trois-là :
+  · le CORPS (`dragonEchine`) : rides courtes (`flm` m) qui courent vers la queue et grossissent vers le bout libre (un drapeau, `Af`) ;
+    fort, le vent le TEND (les grandes ondes ×0,7) ; faible, les ondes sont amples et la queue RETOMBE (`sag` : jusqu'à la route au sol,
+    sous la trajectoire en vol) ; en virage le bout libre part dehors (`dev`) ; le lampion GONFLE par bouffées et son bout se TORD (la
+    demi-largeur bat) ; les PLIS s'étirent (la tuile du corps × 0,82 → 1,38) ;
+  · le CRÂNE : son bord ARRIÈRE (la nuque, côté caméra) claque — les joues plus que l'arête (`fp9`) —, toute la coque tremble, la
+    mâchoire bat ; les BOIS se couchent vers l'arrière et leur pointe tremble ; crinière et moustaches ondulent au pas du vent ;
+  · **LES BANDEROLES** (`banG/banD`, 16 points) : deux larges bandes de papier nouées à la POINTE des bois (`DRG.tG/tD`), en V derrière
+    la tête (arrière, extérieur, haut) ; elles claquent, se tordent, partent dehors en virage, PENDENT sans vent ; plus courtes et à plat
+    en vol (levées, elles montaient vers l'objectif et barraient le haut de l'écran — banc) ; elles poussent avec les bois (`fTr`) ;
+  · **LES RUBANS DE QUEUE** (`rub0-2`, 14 points) : trois bandes de papier en éventail au bout du corps, en plus des flammes.
+  Les nouvelles bandes sont dans le groupe de la TÊTE (avant `andG` dans `DRG_STR` : la feuille `DRG_PF`, opacité `fTr`). ⚠ `dragonBande`
+  écrit dans `DRG.d/e/q` : ne pas garder un vecteur de travail dans `DRG.d` à travers un appel (la latérale des rubans vit dans `DRG.rl`).
+- **LA DARK TRIAD EN NOIR** (`triNoir()` = `FLOW.lv===4 && !PARK.on`, lu à chaque image : rien à remettre à zéro) :
+  · DRAGON : feuilles noires `DRG_TEX_N / DRG_PF_N / DRG_OEIL_N` (`drgNoir` : le rouge → noir d'encre, le modelé gardé ; l'or → brun-sang
+    sombre ; seul le plus clair — paille, filets blancs — garde un FILET rouge vif) ; palette `DRG.NOI` pour le feu additif, presque
+    éteinte ; crâne et traits opaques ; la COMÈTE (plasma, cœur, halos) à 10-14 %. ⚠ LEÇON DU BANC : l'additif ne sait pas faire du noir —
+    de la poursuite, crinière, crête et halo s'empilent DEVANT la tête ; à 40 % d'intensité elle se lisait ROUGE, il faut les taire.
+    La triade passe devant la nitro infinie (violet).
+  · DAUPHINS (`dolNoirMaj`, appelée par `updateDolphins`) : robe noire (la couleur de la matière × les couleurs de sommet), liseré et
+    écume rouge sang (`DOL_U.uRimA/uRimB/uEcC` — le shader lit désormais ces trois uniforms, clé de programme `dauphin3`), sillages rouges.
+  · SERPENT (`updateSerpent`) : laque noire (`serpMat.color`, le reflet blanc reste), lueur rouge sombre à 16 % (à 50 % : un anneau rouge).
+- **MESURÉ** (bancs `papier/photo.js` en poursuite et `papier/pause.js` en pause 5 angles, SwiftShader, muets) : 0 programme lié pendant la
+  course, 0 erreur ; en pause le papier se lit (plis, festons, frange, banderoles), le noir est noir (tête, corps, bois) avec filets rouges ;
+  dauphins et serpent noirs. ⚠ NON MESURÉ : le mouvement lui-même (claquement, retombée) n'est jugé que sur des images fixes — à Sacha de
+  le juger en jeu. `dbgDragon()` rend `vent` et `noir`.
+
 ## LA LOI DU RÉSERVOIR + LA CHAÎNE SE FERME (2026-10-01, session GAMEPLAY) — Sacha : « il y a un gros problème de gameplay avec le nitro ; passe en revue et rends parfait tout le gameplay : l'argent gagné, le flow, l'aura, le nitro, tout doit être parfaitement équilibré — là on peut avoir du nitro infini en continuant à décoller et se poser en boucle »
 - **L'OUTIL — LE GRAND LIVRE** (`LIVRE`, `livre(k,q)`, `dbgLivre('ouvre')` / `dbgLivre()`) : chaque gain compté À SA SOURCE — `n+:src` nitro
   créditée, `n0:src` nitro offerte mais perdue (jauge pleine), `n-:sol|vol|coup` nitro brûlée, `$:piece|portail|fin|ville` argent,
