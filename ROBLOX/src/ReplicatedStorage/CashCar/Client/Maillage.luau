@@ -121,6 +121,70 @@ function Maillage.editable(d: { v: string, t: string }, echelle: number, opt: Op
 	return em, centre
 end
 
+-- Plusieurs maillages cuits en UN seul EditableMesh (les vignettes du garage : la caisse entière et ses quatre
+-- roues en une pièce — un maillage par vignette au lieu de dix). liste = { { d = donnees, cf = CFrame?, miroir = bool? } }
+function Maillage.fusion(liste: { any }, echelle: number, teinte: ((Color3) -> Color3)?): (MeshPart?, Vector3)
+	local ok, em = pcall(function() return AssetService:CreateEditableMesh() end)
+	if not ok or not em then return nil, Vector3.zero end
+	local k = echelle / 2000
+	local pts: { Vector3 } = {}
+	local cols: { number } = {}
+	local mn, mx = Vector3.new(math.huge, math.huge, math.huge), Vector3.new(-math.huge, -math.huge, -math.huge)
+	for _, e in liste do
+		local v, t = decoder(e.d.v), decoder(e.d.t)
+		local sx = e.miroir and -1 or 1
+		local cf = e.cf or CFrame.identity
+		for i = 0, buffer.len(t) - 6, 6 do
+			local o1, o2, o3 = buffer.readu16(t, i) * 9, buffer.readu16(t, i + 2) * 9, buffer.readu16(t, i + 4) * 9
+			if sx < 0 then o2, o3 = o3, o2 end
+			for _, o in { o1, o2, o3 } do
+				local p = cf * Vector3.new(buffer.readi16(v, o) * k * sx, buffer.readi16(v, o + 2) * k, buffer.readi16(v, o + 4) * k)
+				table.insert(pts, p)
+				table.insert(cols, buffer.readu8(v, o + 6) * 65536 + buffer.readu8(v, o + 7) * 256 + buffer.readu8(v, o + 8))
+				mn, mx = mn:Min(p), mx:Max(p)
+			end
+		end
+	end
+	if #pts == 0 then
+		em:Destroy()
+		return nil, Vector3.zero
+	end
+	local centre = (mn + mx) / 2
+	local cids: { [number]: number } = {}
+	for i = 1, #pts, 3 do
+		local a, b, c = em:AddVertex(pts[i] - centre), em:AddVertex(pts[i + 1] - centre), em:AddVertex(pts[i + 2] - centre)
+		local f = em:AddTriangle(a, b, c)
+		local ids = table.create(3)
+		for n = 0, 2 do
+			local cc = cols[i + n]
+			local cid = cids[cc]
+			if not cid then
+				local c3 = Color3.fromRGB(bit32.rshift(cc, 16), bit32.band(bit32.rshift(cc, 8), 255), bit32.band(cc, 255))
+				if teinte then c3 = teinte(c3) end
+				cid = em:AddColor(c3, 1)
+				cids[cc] = cid
+			end
+			ids[n + 1] = cid
+		end
+		em:SetFaceColors(f, ids)
+	end
+	local okF, fige = pcall(function() return AssetService:CreateEditableMeshAsync(Content.fromObject(em), { FixedSize = true }) end)
+	if okF and fige then
+		em:Destroy()
+		em = fige
+	end
+	local okP, mp = pcall(function()
+		return AssetService:CreateMeshPartAsync(Content.fromObject(em), { CollisionFidelity = Enum.CollisionFidelity.Box })
+	end)
+	if not okP or not mp then return nil, Vector3.zero end
+	mp.Anchored = true
+	mp.CanCollide = false
+	mp.CanQuery = false
+	mp.CanTouch = false
+	mp.DoubleSided = true
+	return mp, centre
+end
+
 -- Rend un MeshPart (ou nil) et le centre où le poser. ⚠ appelle CreateMeshPartAsync : à lancer hors de la boucle de rendu.
 function Maillage.piece(d: { v: string, t: string }, echelle: number, opt: Options?): (MeshPart?, Vector3)
 	local em, centre = Maillage.editable(d, echelle, opt)

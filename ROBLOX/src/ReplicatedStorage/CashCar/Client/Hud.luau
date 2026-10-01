@@ -29,6 +29,7 @@ local T = FR and {
 	multiMax = "MULTI MAX", kmhMax = "KM/H MAX", zone = "ZONE", figures = "FIGURES", distance = "DISTANCE", pieces = "PIECES",
 	aura = "AURA", moteur = "MOTEUR", nitro = "NITRO", air = "AIR", go = "GO !", niveau = "MER DE NUAGES",
 	astuce = "ASTUCE", glisse = "GLISSE POUR\nTOURNER", chargement = "LA ROUTE SE CONSTRUIT",
+		missions = "MISSIONS", garage = "GARAGE", carriere = "CARRIERE", boutique = "BOUTIQUE", bientot = "BIENTOT DISPONIBLE",
 	astuces = {
 		"Sors par le BORD de la route : tu voles, et tu te poses plus bas. C'est là que le jeu se joue.",
 		"En l'air : flèche HAUT = plonge, flèche BAS = monte. Gauche / droite = les vrilles.",
@@ -48,6 +49,7 @@ local T = FR and {
 	multiMax = "MAX MULTI", kmhMax = "MAX KM/H", zone = "ZONE", figures = "TRICKS", distance = "DISTANCE", pieces = "COINS",
 	aura = "AURA", moteur = "ENGINE", nitro = "NITRO", air = "AIR", go = "GO!", niveau = "SEA OF CLOUDS",
 	astuce = "TIP", glisse = "SWIPE TO\nSTEER", chargement = "BUILDING THE ROAD",
+		missions = "MISSIONS", garage = "GARAGE", carriere = "CAREER", boutique = "SHOP", bientot = "COMING SOON",
 	astuces = {
 		"Leave the road by the EDGE: you fly, and land lower down. That's where the game is.",
 		"In the air: UP arrow = dive, DOWN arrow = climb. Left / right = spins.",
@@ -156,6 +158,10 @@ local function lingot(parent: Instance, libelle: string, taille: UDim2, pos: UDi
 	return b
 end
 
+-- le KIT d'interface, prêté aux autres écrans (garage, missions, carrière…) : une seule charte
+Hud.kit = { inst = inst, texte = texte, degrade = degrade, carbone = carbone, tuile = tuile, lingot = lingot, retour = retour,
+	PIX = PIX, TXT = TXT, RAPIDE = RAPIDE, LENTE = LENTE }
+
 -- ── les formats d'argent (fmtC, L12383) ──
 local UNITES = FR and { { 1e15, "Bd" }, { 1e12, "Bn" }, { 1e9, "Md" }, { 1e6, "M" }, { 1e3, "k" } }
 	or { { 1e15, "Qa" }, { 1e12, "T" }, { 1e9, "B" }, { 1e6, "M" }, { 1e3, "k" } }
@@ -179,6 +185,12 @@ end
 function Hud.argent(v: number): string
 	return "$ " .. Hud.nombre(v)
 end
+function Hud.compte(v: number): string
+	local s = tostring(math.floor(v + 0.5))
+	local out = string.reverse(string.gsub(string.reverse(s), "(%d%d%d)", FR and "%1 " or "%1,"))
+	out = string.gsub(out, "^[ ,]", "")
+	return (FR and "$ " or "$") .. out
+end
 function Hud.entier(v: number): string
 	local s = tostring(math.floor(v + 0.5))
 	local out = string.reverse(string.gsub(string.reverse(s), "(%d%d%d)", "%1 "))
@@ -199,6 +211,7 @@ function Hud.creer()
 	local tactile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 	-- tout est dessiné pour un écran de 720 px de haut : une RACINE de 1/k de l'écran, agrandie k fois
 	local racine = inst("Frame", { Name = "Racine", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1) }, gui)
+	Hud.racine = racine -- les autres écrans (garage…) se posent dans la même racine mise à l'échelle
 	local echelle = inst("UIScale", {}, racine)
 	local function recaler()
 		local cam = workspace.CurrentCamera
@@ -243,10 +256,14 @@ function Hud.creer()
 	end
 	E.menuRecord = texte(logo, { Text = "", TextSize = 14, TextColor3 = C.vert, Position = UDim2.fromOffset(0, 126),
 		TextXAlignment = Enum.TextXAlignment.Right, Size = UDim2.new(1, -20, 0, 20) })
-	-- ⚙ les réglages, puis JOUER en lettres d'or
-	E.btReglages = tuile(menu, "⚙", C.cyan, UDim2.fromOffset(84, 70), UDim2.new(1, -40, 0.5, 0), Vector2.new(1, 0.5), 30)
-	local jouer = inst("TextButton", { BackgroundTransparency = 1, AutoButtonColor = false, Size = UDim2.fromOffset(460, 110),
-		Position = UDim2.new(1, -60, 1, -40), AnchorPoint = Vector2.new(1, 1), FontFace = PIX, Text = T.jouer, TextSize = 76,
+	-- la colonne de droite du web (#mHome) : MISSIONS + ⚙, puis GARAGE · CARRIERE · BOUTIQUE, puis JOUER en lettres d'or
+	E.btMissions = tuile(menu, "◎ " .. T.missions, C.vert, UDim2.fromOffset(282, 52), UDim2.new(1, -388, 1, -220), nil, 14)
+	E.btReglages = tuile(menu, "⚙", C.cyan, UDim2.fromOffset(58, 52), UDim2.new(1, -98, 1, -220), nil, 24)
+	E.btGarage = tuile(menu, T.garage, C.cyan, UDim2.fromOffset(112, 60), UDim2.new(1, -388, 1, -160), nil, 11)
+	E.btCarriere = tuile(menu, T.carriere, C.cyan, UDim2.fromOffset(112, 60), UDim2.new(1, -270, 1, -160), nil, 11)
+	E.btBoutique = tuile(menu, T.boutique, C.magenta, UDim2.fromOffset(112, 60), UDim2.new(1, -152, 1, -160), nil, 11)
+	local jouer = inst("TextButton", { BackgroundTransparency = 1, AutoButtonColor = false, Size = UDim2.fromOffset(348, 70),
+		Position = UDim2.new(1, -214, 1, -18), AnchorPoint = Vector2.new(0.5, 1), FontFace = PIX, Text = T.jouer, TextSize = 56,
 		TextColor3 = C.or_ }, menu)
 	inst("UIStroke", { Color = Color3.fromRGB(60, 24, 6), Thickness = 4, ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual }, jouer)
 	inst("UIGradient", { Rotation = 90, Color = ColorSequence.new(Color3.fromRGB(255, 244, 170), C.orFonce) }, jouer)
@@ -396,8 +413,31 @@ function Hud.creer()
 		if d:IsA("GuiObject") then d.ZIndex = 31 end
 	end
 
+	-- ══ LE TOAST : une ligne qui passe en haut de n'importe quel écran (refus d'achat, « bientôt »…) ══
+	E.toast = carbone(racine, UDim2.fromOffset(520, 46), UDim2.new(0.5, 0, 0, -60), C.or_, Vector2.new(0.5, 0))
+	E.toast.ZIndex = 80
+	E.toast.Visible = false
+	E.toastTxt = texte(E.toast, { Text = "", TextSize = 12, TextColor3 = C.texte, Size = UDim2.new(1, -24, 1, 0),
+		Position = UDim2.fromOffset(14, 0), ZIndex = 81 })
+
 	Hud.brancherTactile()
 	return gui
+end
+
+local toastN = 0
+function Hud.toast(txt: string, couleur: Color3?)
+	toastN += 1
+	local n = toastN
+	E.toastTxt.Text = txt
+	E.toastTxt.TextColor3 = couleur or C.texte
+	E.toast.Visible = true
+	TweenService:Create(E.toast, LENTE, { Position = UDim2.new(0.5, 0, 0, 14) }):Play()
+	task.delay(1.9, function()
+		if n ~= toastN then return end
+		TweenService:Create(E.toast, LENTE, { Position = UDim2.new(0.5, 0, 0, -60) }):Play()
+		task.wait(0.35)
+		if n == toastN then E.toast.Visible = false end
+	end)
 end
 
 -- ── le volant tactile : la moitié gauche de l'écran, le stick NAÎT sous le pouce et le suit ──

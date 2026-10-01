@@ -106,8 +106,7 @@ Profils.actions.acheter = function(_, prof, i)
 	if prof.compte < f.cond.v then return false, "pas assez" end
 	prof.compte -= f.cond.v
 	table.insert(prof.caisses, i)
-	prof.caisse = i
-	return true
+	return true -- (comme carBuy du web : la caisse achetée n'est PAS équipée d'office)
 end
 Profils.actions.equiper = function(p, prof, i)
 	local f = type(i) == "number" and Catalogue[i]

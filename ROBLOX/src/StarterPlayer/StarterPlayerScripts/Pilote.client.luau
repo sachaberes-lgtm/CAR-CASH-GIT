@@ -22,6 +22,7 @@ local Sons = require(CL:WaitForChild("Sons"))
 local Controles = require(CL:WaitForChild("Controles"))
 local Mer = require(CL:WaitForChild("Mer"))
 local Bus = require(CL:WaitForChild("Bus"))
+local Garage = require(CL:WaitForChild("Garage"))
 
 local M, SPD = Config.M, Config.SPD
 local RH, THICK = Config.ROAD_HALF, Config.THICK
@@ -82,7 +83,9 @@ local visibleCaisse = true
 local function changerCaisse(indice: number)
 	local ancienne = caisse
 	local nouvelle, pg = Caisse.construire("MaCaisse", indice, true)
-	nouvelle.PrimaryPart.CFrame = ancienne.PrimaryPart.CFrame
+	-- ⚠ PivotTo, pas « racine.CFrame = » : hors du monde, bouger la racine ne déplace pas les pièces soudées
+	-- (la soudure se recale à l'arrivée et la carrosserie reste plantée à l'origine : une caisse invisible)
+	nouvelle:PivotTo((ancienne.PrimaryPart :: BasePart).CFrame)
 	nouvelle.Parent = workspace
 	caisse, poignees, racine = nouvelle, pg, nouvelle.PrimaryPart :: BasePart
 	flammes, trainees, reflet = pg.flammes, pg.trainees, pg.reflet
@@ -100,6 +103,13 @@ local function montrerCaisse(oui: boolean)
 end
 
 local record, compte, meilleurAura = 0, 0, 0
+CC:WaitForChild("ProfilMaj").OnClientEvent:Connect(function(p)
+	if type(p) ~= "table" then return end
+	local essai = Config.CAISSE_TEST
+	profil = p
+	if essai then profil.caisse = essai end
+	Garage.majProfil()
+end)
 evRecord.OnClientEvent:Connect(function(v, c)
 	if type(v) == "number" then
 		record = math.max(record, v)
@@ -893,9 +903,10 @@ local function habiller(dt: number)
 	-- les boucles de son
 	local k = kmh()
 	local r = math.clamp(k / math.max(1, vmaxShow() * 1.55), 0, 1.6)
-	Sons.regler("moteur", (mode == "menu") and 0.12 or 0.32, 0.7 + r * 1.1 + (nitroOn and 0.1 or 0))
+	local atelier = mode == "garage"
+	Sons.regler("moteur", atelier and 0.05 or ((mode == "menu") and 0.12 or 0.32), 0.7 + r * 1.1 + (nitroOn and 0.1 or 0))
 	Sons.regler("nitro", nitroOn and 0.45 or 0)
-	Sons.regler("ventAltitude", (mode == "fall") and math.min(0.7, 0.25 + fallVel.Magnitude * 0.004) or 0.08 + r * 0.1)
+	Sons.regler("ventAltitude", atelier and 0 or ((mode == "fall") and math.min(0.7, 0.25 + fallVel.Magnitude * 0.004) or 0.08 + r * 0.1))
 	Sons.regler("musique", 0.32)
 end
 
@@ -1043,6 +1054,45 @@ end
 
 -- les boutons
 E.btJouer.Activated:Connect(function() if mode == "menu" then nouvellePartie() end end)
+-- ── LE GARAGE : parcourir, acheter, équiper (voir Client/Garage) ──
+local function ouvrirGarage()
+	if mode ~= "menu" then return end
+	mode = "garage"
+	Hud.ecran("garage")
+	Garage.ouvrir(profil.caisse)
+end
+Garage.init({
+	profil = function() return profil end,
+	-- une demande au serveur : il vérifie, il rend le profil à jour
+	action = function(nom: string, ...: any): (boolean, string?)
+		local ok, res, msg, p = pcall(function(...) return fnAction:InvokeServer(nom, ...) end, ...)
+		if not ok then return false, "erreur" end
+		if type(p) == "table" then
+			local essai = Config.CAISSE_TEST
+			profil = p
+			if essai then profil.caisse = essai end
+			compte = p.compte or compte
+		end
+		return res == true, msg
+	end,
+	surEquipe = function(i: number)
+		if poignees.indice ~= i then changerCaisse(i) end
+	end,
+	surHome = function()
+		Garage.fermer()
+		allerMenu()
+	end,
+	surJouer = function()
+		Garage.fermer()
+		allerMenu()
+		nouvellePartie()
+	end,
+	surReglages = function() Hud.ecran("reglages") end,
+})
+E.btGarage.Activated:Connect(ouvrirGarage)
+E.btMissions.Activated:Connect(function() if mode == "menu" then Hud.toast(T.bientot) end end)
+E.btCarriere.Activated:Connect(function() if mode == "menu" then Hud.toast(T.bientot) end end)
+E.btBoutique.Activated:Connect(function() if mode == "menu" then Hud.toast(T.bientot) end end)
 E.btRejouer.Activated:Connect(function() if mode == "mort" then nouvellePartie() end end)
 E.btMenuM.Activated:Connect(function() if mode == "mort" then allerMenu() end end)
 local function basculerPause()
@@ -1057,7 +1107,7 @@ E.btReglages.Activated:Connect(function() if mode == "menu" then retourReglages 
 E.btReglM.Activated:Connect(function() if mode == "mort" then retourReglages = "mort"; Hud.ecran("reglages") end end)
 E.btReprendre.Activated:Connect(function()
 	if enPause then basculerPause()
-	elseif Hud.ecranCourant() == "reglages" then Hud.ecran(retourReglages) end
+	elseif Hud.ecranCourant() == "reglages" then Hud.ecran(mode == "garage" and "garage" or retourReglages) end
 end)
 E.btRecom.Activated:Connect(function() if enPause then enPause = false; nouvellePartie() end end)
 E.btMenuP.Activated:Connect(function() if enPause then enPause = false; allerMenu() end end)
@@ -1091,7 +1141,7 @@ task.spawn(function()
 					cacher(m)
 					local ind = m:GetAttribute("Caisse") or 0
 					local c, pg = Caisse.construire("Autre", ind, true)
-					c.PrimaryPart.CFrame = m.PrimaryPart.CFrame
+					c:PivotTo(m.PrimaryPart.CFrame)
 					c.Parent = workspace
 					d = { m = m, c = c, pg = pg, ind = ind }
 					doubles[m] = d
@@ -1169,7 +1219,7 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			boomT += dt
 			secousse = math.max(secousse, boomT < 0.1 and 1.2 or 0)
 			if boomT > 1.8 then finPartie() end
-		elseif mode == "menu" then
+		elseif mode == "menu" or mode == "garage" then
 			-- la caisse PIQUE sur place : un souffle qui la berce
 			local t = os.clock()
 			local pos = repere(S_CHUTE, 1).Position + Vector3.new(0, H_CHUTE * M + math.sin(t * 1.1) * 0.5 * M, 0)
@@ -1193,7 +1243,7 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			end
 		end
 		habiller(dt)
-		camera(dt)
+		if mode == "garage" then Garage.rendu(dtBrut) else camera(dt) end
 		Mer.suivre(cam.CFrame.Position, carCF.Position.Y, dt)
 		lisserDoubles(dt)
 		envoiT -= dtBrut

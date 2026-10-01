@@ -267,6 +267,37 @@ function Caisse.construire(nom: string, indice: number, ancree: boolean?): (Mode
 	return m, poignees
 end
 
+-- LA VIGNETTE : la caisse entière (corps + quatre roues) en UN maillage, pour les photos du garage (ViewportFrame).
+-- Rend un Model (une seule pièce) centré sur l'origine de la caisse, ou nil.
+function Caisse.vignette(indice: number): Model?
+	local module = Formes:FindFirstChild(string.format("F%02d", indice))
+	local Client = script.Parent:FindFirstChild("Client")
+	local mMaillage = Client and Client:FindFirstChild("Maillage")
+	if not module or not mMaillage then return nil end
+	local okD, donnees = pcall(require, module)
+	local okM, Maillage = pcall(require, mMaillage)
+	if not okD or not okM then return nil end
+	local liste = {}
+	for _, d in donnees.corps do table.insert(liste, { d = d }) end
+	for _, ro in Catalogue[indice].roues do
+		for _, d in donnees.roue do
+			table.insert(liste, { d = d, cf = CFrame.new(ro[1], ro[2], ro[3]), miroir = ro[4] })
+		end
+	end
+	local mp, centre = Maillage.fusion(liste, 1, lumiere) -- en mètres : une vignette n'a pas besoin de l'échelle du monde
+	if not mp then return nil end
+	local m = Instance.new("Model")
+	m.Name = "Vignette" .. indice
+	mp.Name = "Corps"
+	mp.Material = Enum.Material.SmoothPlastic
+	mp.Color = Color3.new(1, 1, 1)
+	mp.Reflectance = 0.06
+	mp.CFrame = CFrame.new(centre)
+	mp.Parent = m
+	m.PrimaryPart = mp
+	return m
+end
+
 -- fait tourner les roues d'une caisse : avance = distance parcourue depuis la dernière image (studs, signée)
 function Caisse.rouler(poignees: any, avance: number)
 	if #poignees.essieux == 0 then return end
