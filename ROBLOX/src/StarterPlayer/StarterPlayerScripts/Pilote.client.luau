@@ -2307,6 +2307,9 @@ do
 	-- LE BANC DE DAUPHINS : il lit Score.DOL et l'état du bus
 	local okB, errB = pcall(function() require(CL:WaitForChild("Dauphins")).init() end)
 	if not okB then warn("[CashCar] dauphins : " .. tostring(errB)) end
+	-- LE SERPENT du SNAKE LOOP : il écoute la pose
+	local okS, errS = pcall(function() require(CL:WaitForChild("Serpent")).init() end)
+	if not okS then warn("[CashCar] serpent : " .. tostring(errS)) end
 end
 Bus.agir.secousse = function(x: number) secousse = math.max(secousse, x) end
 Bus.agir.fov = function(d: number) fovPunch = math.max(fovPunch, d) end
