@@ -24,6 +24,7 @@
 11. « Plus actif, ça doit suivre, rupture harmonieuse » + « détails selon la nitro d'affilée / l'accélération » + « pas casser,
     une belle transition, un nouveau son par inspi » → v2.2-2.3 (§5 quinquies).
 12. « Pareil avec la musique de la VILLE, en samplant et en réorganisant, avec ta touche » → v3 (§5 sexies).
+13. « Mal réparti, prends des libertés, parallèle musique / moteur » + « trop superposé » → v3.1 (§5 septies).
 
 ## 2. Les fichiers
 
@@ -238,6 +239,28 @@ ajoute ta touche, même avec des sons d'avant que tu as générés ». Script : 
   SOMMET ; plot = ACCALMIE (CALME, filtre 960 → 900 Hz) ; relance = GROS. Jeu : NUAGES (neon-drive-2) → `dbgSaut()` → VILLE
   (ville-addictive) qui démarre en CALME avec pluie + nappe. Zéro erreur.
 - ⚠ Droits : ADDICTIVE LOOP est un morceau de Léo (Suno ?) — même règle que Glassy : garder la preuve d'abonnement payant.
+
+## 5 septies. v3.1 — LA VILLE SUIT LA BOÎTE DE VITESSES, LE MORCEAU PORTE SEUL (2026-10-01)
+
+Léo : « sur la ville c'était un peu mal réparti ; permets-toi de changer les règles du son et de prendre des libertés pour offrir
+une expérience son parallèle entre musique et moteur » · « la musique c'était un peu bof, trop superposé ».
+- **La BOÎTE mène** (`boite` = (rapport−1)/(rapports−1), `regime` = engRpm, passés par `mcvTick`) : 1er rapport = GROOVE,
+  milieu de boîte = PLEIN, haut de boîte = GROS ; dernier rapport tenu, régime > .7, deux phrases de GROS = SOMMET. Arrêt
+  (< .12) = CALME. Nitro tenue = MONTÉE, lâchée = SOMMET (le drop). Accalmie / relance : inchangées.
+- **Pas à pas** : on MONTE d'une marche au plus toutes les 2 mesures ; on ne REDESCEND que d'une marche, en fin de phrase, et
+  seulement si on le veut depuis une phrase entière. Pas de yo-yo.
+- **Le passage de marche s'entend** : un SOUFFLE qui monte (`ville--monte.m4a`, une demi-mesure, fini pile sur la marche) ou qui
+  descend (`ville--descend.m4a`).
+- **Le moteur respire avec la musique** : `mv.pompeMoteur()` (le volume du moteur se creuse de 28 % sur chaque temps, revient
+  en ~0,1 s), posé sur `engPost` dans la boucle du son moteur (`window.MUS_POMPE_MOT`) — sur NUAGES comme en VILLE.
+- **Le morceau porte seul** : retirés la nappe de Rhodes et l'arpège (toujours par-dessus). Restent, à LEUR moment : la PLUIE
+  (seulement en CALME, donc à l'arrêt et pendant l'accalmie), les rafales de CHARLEY TRAP (seulement en MONTÉE, élan > .75),
+  l'ACCALMIE Rhodes, la FLORAISON, les souffles. Règle `niveauMin` ajoutée ; en mode morceau la 1re couche obéit à ses règles.
+- Les phrases d'une marche sautée au milieu ou d'un saut immédiat sont TOUTES fondues (liste `noeuds`) ; la position d'un saut
+  se lit sur la grille (multiples de 4 mesures depuis le départ).
+- Page : boîte SIMULÉE (5 rapports, affichée BOITE R1…R5). Mesuré (muet) : arrêt = CALME + pluie ; R1 GROOVE · R2-R3 PLEIN ·
+  R4-R5 GROS ; 30 s au dernier rapport = SOMMET ; nitro 9 s = MONTÉE + charley ; lâchée = SOMMET ; ralenti à 60 % = PLEIN
+  (une marche à la fois) ; arrêt brusque = ACCALMIE + pluie. Jeu : CALME → GROOVE au démarrage, pompe active, zéro erreur.
 
 ## 6. CE QUI RESTE À FAIRE (intégration au jeu)
 

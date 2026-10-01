@@ -5061,7 +5061,7 @@ html #garage.nivOuvert:not(.boutique):not(.quiet):not(.launching) #gNiv{display:
   </div></div>
 </div>
 <script src="vendor/three.min.js"></script>
-<script src="musique-vitesse.js?v=8"></script><script src="assets/audio/music/boucles/couches-jeu.js?v=5"></script><!-- (2026-10-01) la musique qui suit la vitesse (voir <<<COUCHES>>>) -->
+<script src="musique-vitesse.js?v=11"></script><script src="assets/audio/music/boucles/couches-jeu.js?v=6"></script><!-- (2026-10-01) la musique qui suit la vitesse (voir <<<COUCHES>>>) -->
 <!-- POST-PROCESSING r128 (bloom cinématique) — version EXACTE alignée sur three r128. Chargés avant le jeu ;
      si l'un manque, le jeu retombe proprement sur renderer.render() (garde CAN_POST). -->
 <!-- ORDRE IMPORTANT : EffectComposer.js définit THREE.Pass, dont héritent Shader/Render/UnrealBloomPass — il doit venir AVANT elles. -->
@@ -22460,7 +22460,7 @@ function mcvJoue(){
   if(MCV.pret)mcvDemarre();                                        // sinon : démarre à la fin du chargement
 }
 function mcvStop(tape){
-  MCV.voulu=false;if(!MCV.actif)return;MCV.actif=false;
+  MCV.voulu=false;window.MUS_POMPE_MOT=1;if(!MCV.actif)return;MCV.actif=false;
   const t=GEN.ac.currentTime,g=MCV.vol.gain;g.cancelScheduledValues(t);g.setValueAtTime(g.value,t);g.setTargetAtTime(0,t,tape?.25:.03);
   const mv=MCV.mv;setTimeout(function(){if(!MCV.actif)mv.stop();},tape?1200:150);
   if(!GEN.joue)genAna(false);
@@ -22474,7 +22474,10 @@ function mcvTick(dt){
   const v=MCV.fren?1.3:flowVitN(),mot=Math.min(1,(engTier|0)/12);
   if(MCV.pal!=null&&engTier>MCV.pal)MCV.mv.palier(mot);MCV.pal=engTier; // un palier moteur gagné : la transition tombe sur la mesure
   {const n9=GEN.ac.currentTime;if(MCV.tA!=null)MCV.t=(MCV.t||0)+Math.max(0,Math.min(1,n9-MCV.tA));MCV.tA=n9;} // (v2.1) le TEMPS de musique jouée dans la partie, à l'HORLOGE AUDIO (pas aux images : un onglet ralenti ne le ralentit pas) — au début la BASE seule, le reste arrive avec lui
-  MCV.mv.regle({vitesse:v,enVol:mode==='fall',nitro:nitroOn||MCV.fren,moteur:mot,frenesie:MCV.fren,temps:MCV.t});
+  const e9=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0],gn9=Math.max(1,(e9.gr|0)||1);
+  MCV.mv.regle({vitesse:v,enVol:mode==='fall',nitro:nitroOn||MCV.fren,moteur:mot,frenesie:MCV.fren,temps:MCV.t,
+    boite:gn9>1?(engGear-1)/(gn9-1):Math.min(1,v),regime:engRpm}); // (v3.1) la BOÎTE et le RÉGIME : la ville monte d'une marche à chaque rapport
+  window.MUS_POMPE_MOT=MCV.mv.pompeMoteur?MCV.mv.pompeMoteur():1; // (v3.1) le moteur respire sur le temps de la musique
   MCV.vol.gain.setTargetAtTime(Math.max(0,musicVolCour),GEN.ac.currentTime,.08);
   musicOn=true;
 }
@@ -32378,7 +32381,7 @@ function loop(now){
         if(P9.whineOn)stt(engWhine.frequency,P9.whineF,T,.04);
         stt(engWhineG.gain,P9.whineG,T,.06);
         stt(engPre.gain,P9.drv,T,.06);
-        stt(engPost.gain,P9.post,T,.06);
+        stt(engPost.gain,P9.post*(MCV.actif?(window.MUS_POMPE_MOT||1):1),T,.03); // (2026-10-01) le moteur respire avec la musique à couches
         stt(engEq.gain,P9.eq,T,.09);
         stt(engMix.gain,P9.mix,T,.05);
         stt(engSubG.gain,P9.subG,T,.08);

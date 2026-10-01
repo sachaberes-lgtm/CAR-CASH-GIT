@@ -151,8 +151,23 @@ def ville_transition():
     pk = max(np.abs(L).max(), np.abs(R).max()); return L * .7 / pk, R * .7 / pk
 
 # (nom, fonction, niveau RMS visé en dB, règles : élan minimum, niveau de section maximum)
-COUCHES_VILLE = [('PLUIE', ville_pluie, -33, 0, 9), ('NAPPE', ville_nappe, -23, 0, 1),
-                 ('ARPEGE', ville_arpege, -25, .4, 3), ('CHARLEY TRAP', ville_trap, -27, .6, 9)]
+# v3.1 (Léo : « la musique c'était un peu bof, trop superposé ») : LE MORCEAU PORTE SEUL. Ma touche ne sort plus que dans SES
+# moments : la pluie à l'arrêt (CALME), les rafales de charley pendant la MONTÉE en nitro. La nappe et l'arpège (toujours là
+# par-dessus le morceau) sont retirés ; le Rhodes vit dans l'ACCALMIE. + niveau minimum de section (niveauMin).
+COUCHES_VILLE = [('PLUIE', ville_pluie, -30, 0, 0, 0), ('CHARLEY TRAP', ville_trap, -28, .75, 9, 5)]
+
+def souffle_passage(monte=True):
+    """LE PASSAGE DE MARCHE (v3.1, la musique suit la BOÎTE) : un souffle d'un temps qui MONTE vers la section suivante (bruit dont
+    le filtre s'ouvre + une cymbale à l'envers), ou qui DESCEND quand on redescend. Joué pour finir PILE sur la marche."""
+    de = Des(310 if monte else 311); n = int(MESURE / 2 * SR); t = np.arange(n) / SR; u = t / t[-1]
+    if monte:
+        s = balaye(de.bruit(n), 500 * (24 ** u)) * u ** 2.2 * .5
+        c = boucles8.crash(de, 1.)[:n][::-1]; c = np.r_[np.zeros(n - len(c)), c] if len(c) < n else c[-n:]
+        s = s + c * .35 * u
+    else:
+        s = balaye(de.bruit(n), 9000 * (1 / 30) ** u) * np.exp(-u * 2.5) * .45
+    L = filtre(s, 'high', 300); R = np.roll(L, 200)
+    pk = max(np.abs(L).max(), 1e-9); return L * .5 / pk, R * .5 / pk
 
 def rendre():
     os.makedirs(SORTIE, exist_ok=True)
@@ -161,17 +176,19 @@ def rendre():
     f_src = m4a('ville--phrases', PL, PR, 192000)
     print('   %d phrases de %.3f s (%s)' % (len(PL) / SR / lgT, lgT, ', '.join(s['nom'] for s in sections)))
     couches = []
-    for nom, fn, cible, elanMin, nivMax in COUCHES_VILLE:
+    for nom, fn, cible, elanMin, nivMax, nivMin in COUCHES_VILLE:
         M, (L, R) = fn(); L, R = niveau(L, R, cible)
         f = m4a('ville--' + nom.lower().replace(' ', '-'), L, R)
-        couches.append({'nom': nom, 'seuil': 0, 'sol': False, 'temps': 0, 'elanMin': elanMin, 'niveauMax': nivMax, 'rms': round(rms(L, R), 5),
+        couches.append({'nom': nom, 'seuil': 0, 'sol': False, 'temps': 0, 'elanMin': elanMin, 'niveauMax': nivMax, 'niveauMin': nivMin, 'rms': round(rms(L, R), 5),
                         'variantes': [{'v': 'A', 'f': f, 'moteur': 0, 'rms': round(rms(L, R), 5)}]})
         print('   %-13s RMS %.1f dB  élan ≥ %.2f  niveau ≤ %d' % (nom, cible, elanMin, nivMax))
     M, (cL, cR) = ville_calme(); cL, cR = niveau(cL, cR, -21); f_calme = m4a('ville--accalmie', cL, cR)
     f_flo = m4a('ville--floraison', *ville_floraison()); f_tr = m4a('ville--transition', *ville_transition())
+    f_mo = m4a('ville--monte', *souffle_passage(True)); f_de = m4a('ville--descend', *souffle_passage(False))
     d = {'titre': 'VILLE · ADDICTIVE LOOP', 'bpm': BPM, 'ton': 1, 'mesures': 4, 'dur': round(4 * MESURE, 5),
          'sequence': {'f': f_src, 'phrase': round(lgT, 5), 'mesures': 4, 'queue': QUEUE_P, 'sections': sections},
-         'couches': couches, 'transition': {'f': f_tr, 'avance': round(MESURE, 5)}, 'rupture': {'f': f_flo}, 'accalmie': {'f': f_calme}}
+         'couches': couches, 'transition': {'f': f_tr, 'avance': round(MESURE, 5)}, 'rupture': {'f': f_flo}, 'accalmie': {'f': f_calme},
+         'passages': {'monte': {'f': f_mo, 'avance': round(MESURE / 2, 5)}, 'descend': {'f': f_de}}, 'boite': True}
     # couches-jeu.js
     fj = os.path.join(SORTIE, 'couches-jeu.js'); jeu = json.loads(open(fj).read().split('=', 1)[1].rstrip().rstrip(';'))
     jeu['ville-addictive'] = d
@@ -181,7 +198,7 @@ def rendre():
     liste = [b for b in liste if b['id'] != 'ville-addictive']
     e = dict(d); e.update({'id': 'ville-addictive', 'groupe': 'MUSIQUE DE JEU · VITESSE + MOTEUR', 'pour': 'VILLE · EN JEU', 'cle': 'la mineur',
         'f': f_src, 'pics': pics(PL[:int(4 * MESURE * SR) * 4], PR[:int(4 * MESURE * SR) * 4]),
-        'idee': "ADDICTIVE LOOP échantillonné et réorganisé : 12 phrases de 4 mesures (CALME, GROOVE, PLEIN, GROS, SOMMET, MONTÉE) que la course enchaîne toutes les 2 mesures, en gardant la grille. Par-dessus, ma touche : pluie et vinyle, nappe de Rhodes, arpège et rafales de charley trap ouverts par l'élan, accalmie Rhodes sous la pluie."})
+        'idee': "ADDICTIVE LOOP échantillonné et réorganisé en 12 phrases (CALME, GROOVE, PLEIN, GROS, SOMMET, MONTÉE). La BOÎTE DE VITESSES mène : chaque rapport fait monter le morceau d'une marche (avec un souffle qui y mène), le moteur respire sur le temps. Le morceau porte seul ; ma touche n'arrive qu'à ses moments : la pluie à l'arrêt, les rafales de charley en nitro, l'accalmie Rhodes."})
     liste.insert(1, e)
     open(fd, 'w').write('window.BOUCLES=' + json.dumps(liste, ensure_ascii=False) + ';\n')
     print('ok → ville-addictive')

@@ -82,6 +82,7 @@ h2:first-child{margin-top:0}
     <label class="ctl" title="La vitesse de la caisse (% de la vitesse de croisière) — pour les boucles À COUCHES">VITESSE <input type="range" id="vit" min="0" max="130" value="0"> <b id="vitV" style="color:var(--tx);min-width:42px">0%</b></label>
     <label class="ctl" title="Le moteur de la caisse (les paliers gagnés) — débloque les variantes riches et la couche ÉNERGIE">MOTEUR <input type="range" id="mot" min="0" max="100" value="0"> <b id="motV" style="color:var(--tx);min-width:42px">0%</b></label>
     <span class="ctl" title="Le temps de musique jouée : au début la BASE seule, chaque partie a son heure">TEMPS <b id="tpsV" style="color:var(--tx);min-width:36px">0:00</b></span>
+    <span class="ctl" title="Le rapport de la boîte simulée : en VILLE, chaque rapport fait monter le morceau d'une marche">BOITE <b id="rapV" style="color:var(--tx);min-width:24px">R1</b></span>
     <button class="bt" id="plus15" title="Avance le temps de 15 secondes">+15 S</button>
     <button class="bt" id="pal" title="Un palier moteur gagné : montée + crash sur la mesure suivante">PALIER +1</button>
     <button class="bt" id="sim" title="Une course simulée : départ arrêté, accélération, un saut, la nitro, un virage, le crash">SIMULER UNE COURSE</button>
@@ -112,7 +113,7 @@ const SERVI=location.protocol.startsWith('http');
 let AC=null,sortie=null,filtre=null,brillance=null,analyseur=null;
 const BUF={},EL={};
 let cur=null,src=null,t0=0,ench=false,nitro=false;
-let mv=null,mvOn=false,vitCur=0,sim=null,simVol=false,motCur=0,simP=null,tJeu0=0; // tJeu0 : l'heure où la musique a commencé (l'axe TEMPS) // la musique qui suit la vitesse (musique-vitesse.js)
+let mv=null,mvOn=false,vitCur=0,sim=null,simVol=false,motCur=0,simP=null,tJeu0=0,rap=1; // rap : le rapport de la boîte simulée // tJeu0 : l'heure où la musique a commencé (l'axe TEMPS) // la musique qui suit la vitesse (musique-vitesse.js)
 
 function audio(){
   if(AC)return AC;
@@ -228,7 +229,12 @@ function logique(){ // LA LOGIQUE MUSICALE, toutes les 50 ms (une minuterie, pas
     document.getElementById('vit').value=Math.round(vitCur*100);document.getElementById('vitV').textContent=Math.round(vitCur*100)+'%';
     simVol=e.vol;if(e.nitro!==nitro)setNitro(e.nitro);
     const pal9=Math.floor(t/10);if(pal9!==simP){if(simP!=null&&mvOn&&mv.palier){motCur=Math.min(1,motCur+1/12);mv.palier(motCur);}simP=pal9;document.getElementById('mot').value=Math.round(motCur*100);document.getElementById('motV').textContent=Math.round(motCur*100)+'%';}etat((LISTE[cur]?sa(LISTE[cur].titre)+' · ':'')+e.leg);}
-  if(mvOn&&cur!=null){const enVol=simVol||(+document.getElementById('vol9').value>=50);const tj=(performance.now()-tJeu0)/1000;mv.regle({vitesse:vitCur,enVol:enVol,nitro:nitro,moteur:motCur,temps:tj});
+  if(mvOn&&cur!=null){const enVol=simVol||(+document.getElementById('vol9').value>=50);const tj=(performance.now()-tJeu0)/1000;
+    // une BOÎTE simulée (5 rapports, comme en jeu : on ne rétrograde qu'un peu sous le bas du rapport)
+    {const g=Math.min(5,1+Math.floor(Math.min(.999,vitCur/1.05)*5));if(g>rap)rap=g;else if(g<rap&&vitCur<(rap-1)/5*1.05*.95)rap=g;}
+    const regime=Math.max(0,Math.min(1,vitCur/1.05*5-(rap-1)));
+    mv.regle({vitesse:vitCur,enVol:enVol,nitro:nitro,moteur:motCur,temps:tj,boite:(rap-1)/4,regime:regime});
+    document.getElementById('rapV').textContent='R'+rap;
     document.getElementById('tpsV').textContent=Math.floor(tj/60)+':'+String(Math.floor(tj%60)).padStart(2,'0');
     const st=mv.etat(),c=cartes[cur];c.querySelectorAll('.cou i').forEach((el,j)=>el.style.setProperty('--g',st.gains[j]));
     c.querySelectorAll('.cou span').forEach((el,j)=>{if(st.variantes&&st.variantes[j]&&LISTE[cur].couches[j].variantes)el.textContent=st.variantes[j]+' · '+Math.round(LISTE[cur].couches[j].seuil*100)+'%';});
