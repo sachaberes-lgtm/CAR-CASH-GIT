@@ -599,7 +599,8 @@ function Hud.creer()
 	local voile = inst("Frame", { Name = "Pause", BackgroundColor3 = C.nuit, BackgroundTransparency = 0.25,
 		Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 20 }, racine)
 	E.pause = voile
-	local pan = carbone(voile, UDim2.fromOffset(760, 560), UDim2.fromScale(0.5, 0.5), C.cyan, Vector2.new(0.5, 0.5))
+	-- (sans le mode FACILE, le panneau n'a pas de troisième rangée : il se resserre)
+	local pan = carbone(voile, UDim2.fromOffset(760, Config.FACILE_ACTIF and 560 or 470), UDim2.fromScale(0.5, 0.5), C.cyan, Vector2.new(0.5, 0.5))
 	E.pauseTitre = texte(pan, { Text = T.pause, TextSize = 60, TextColor3 = C.texte, Size = UDim2.new(1, 0, 0, 62), Position = UDim2.fromOffset(0, 26), TextWrapped = false, epais = 4 })
 	E.btSonP = tuile(pan, T.son, C.cyan, UDim2.fromOffset(330, 84), UDim2.new(0.5, -10, 0, 116), Vector2.new(1, 0), 28)
 	E.btMusP = tuile(pan, T.musique, C.cyan, UDim2.fromOffset(330, 84), UDim2.new(0.5, 10, 0, 116), Vector2.new(0, 0), 28)

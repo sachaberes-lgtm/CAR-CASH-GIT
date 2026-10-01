@@ -1009,7 +1009,15 @@ local function creerInterface()
 	-- ── LA CONSOLE ──
 	local cs = K.carbone(g, UDim2.fromOffset(W_CONSOLE, H_CONSOLE), UDim2.new(1, -22, 1, -16), nil, Vector2.new(1, 1))
 	cs.Active = true -- un glissé qui commence sur la console ne fait pas tourner la caisse
-	inst("UIScale", { Scale = ECH_CONSOLE }, cs)
+	-- (le web est un écran de téléphone couché, 2,16 fois plus large que haut : sur un écran d'ordinateur 16:9 la console à pleine
+	-- taille mangerait 59 % de la largeur — elle se réduit pour laisser la moitié de l'image à la caisse)
+	local echelle = inst("UIScale", { Scale = ECH_CONSOLE }, cs)
+	local function caler()
+		local large = Hud.racine.AbsoluteSize.X / math.max(0.01, Hud.racine:FindFirstChildOfClass("UIScale").Scale) -- la largeur dessinée
+		echelle.Scale = ECH_CONSOLE * math.clamp(large / 1560, 0.72, 1)
+	end
+	caler()
+	Hud.racine:GetPropertyChangedSignal("AbsoluteSize"):Connect(caler)
 	U.console = cs
 	for k, c in { C.magenta, C.cyan, C.or_ } do -- la livrée, en liseré
 		inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = c, Size = UDim2.new(k == 1 and 0.44 or 0.25, -6, 0, 3),
