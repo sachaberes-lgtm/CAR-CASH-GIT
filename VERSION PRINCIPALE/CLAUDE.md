@@ -1,5 +1,39 @@
 # CASH CAR — guide projet pour Claude Code
 
+## L'ÉCRAN TITRE v3 — la chute dans un ciel qui a de la PROFONDEUR (2026-10-01, soir, session GRAPHISME) — Sacha, capture couchée du menu : « toujours bof — il faut que ça s'inspire de l'écran titre de The Legend of Zelda : Tears of the Kingdom »
+- LE DIAGNOSTIC (mesuré sur captures, couché 844×390 et debout) : la caisse posée sur un PAPIER PEINT (la mer de nuages du dôme, plate, qui
+  se répète), AUCUN plan entre elle et le fond, pas de lumière dirigée, un voile NOIR sur le tiers bas de l'image couchée (`#overlay::after`,
+  .94 d'opacité), l'horizon penché de 10°, la caisse vue à plat. Zelda : on tombe dans un ciel étagé, clair, lisible.
+- LE REGARD SE RÈGLE SUR LE SOLEIL (`chutePlan`, `CHUTE_P.az` 2,35 rad) : le soleil dans le dos de la caméra, à droite — les nuages sont
+  éclairés de FACE (à .95 rad on voyait leur côté ombre : des masses lavande et ternes). La caisse est à `alt` 900 m au-dessus du SOMMET de
+  toute la piste, la piste DERRIÈRE la caméra (`avant` −1700 : de là-haut ce n'était qu'un gribouillis noir sous les boutons).
+- LES CUMULUS DU TITRE (`CHUTE_NU`, `chuteFormes`, `chuteCumulus`, `CHUTE.nu`) : 18 vrais cumulus v8 (les formes `cumulus8` et la surface
+  `nuage8Async` de GAMEPLAY — rien d'écrit dans leurs fonctions) posés À LA MAIN dans le repère du regard [droite, devant, rayon, gabarit,
+  vitesse, hauteur de départ], à trois profondeurs (300 m → 2,6 km), devant (debout comme couché), à droite (derrière le titre et les
+  boutons couché) et tout autour (l'orbite au doigt). Ils MONTENT à la vitesse de la chute (`vit` 14 m/s) et renaissent sous le cadre : la
+  parallaxe fait la sensation de tomber. 5 gabarits partagés, ~160 k triangles au menu (rien en course : `chuteSort` les range).
+  ⚠ LES FORMES D'ABORD : elles sont demandées à l'ouvrier AU CHARGEMENT DU SCRIPT (avant les 96 finesses du ciel de coton) — sinon le titre
+  montrait 10-15 s des ébauches en grappes de boules. Aucune ébauche : un cumulus du titre n'est visible que fini (`c.e.g`).
+- LEUR MATIÈRE (`CHUTE.nuM`) : un clone de `nuage8Solo()` (même programme `nuage8solo`, 0 compilation) avec SES uniforms `uK`/`uR`
+  (`CHUTE_P.K` albédo/soleil/lisière/vapeur, `CHUTE_P.R` frontière d'ombre/clarté de l'ombre) : le titre veut des blancs clairs et des
+  ombres bleutées douces sans toucher aux nuages de la course.
+- L'AMBIANCE `BIOMES.titre` (un clone du matin d'altitude, lu par chuteRender seul) : azur plus profond, turquoise franc, brume à 500-5200 m
+  (les lointains se fondent : la profondeur), soleil 1,6 presque neutre (à [1,.92,.78] les nuages sortaient BEIGES). La mer du dôme est
+  calmée AU TITRE (`CHUTE_P.mzA` : cellules de 1500 m au lieu de 760, lumière moins franche) et rendue par `chuteSort` (`CHUTE.mz`).
+- LA CAISSE : de trois-quarts DESSUS, le nez piqué (`pitch` .62), le toit tourné vers la caméra (`gite` −.45) — vue de derrière en piqué,
+  une caisse montre son VENTRE (essayé : illisible). L'HORIZON est DROIT : le décadrage de `menuCadre` tourne autour de la verticale du
+  monde (÷ cos de la plongée), plus autour de l'axe de la caméra déjà penchée.
+- LE VOILE : `body.titreCiel` (posé par chuteEntre, ôté par chuteSort) remplace le dégradé noir de l'accueil par un azur léger (.30 en haut,
+  .50 en bas) — l'image garde toute sa hauteur couchée.
+- ⚠ BUG D'AVANT, CORRIGÉ : le garage décale l'objectif (`camera.setViewOffset`) et ne le rendait pas en revenant au ciel — après une visite
+  au garage la caisse du titre sortait du cadre à gauche (−1,08 NDC au lieu de −0,58 ; banc `retour.js`, vrai sur main aussi). chuteRender
+  efface le décentrement.
+- VÉRIFIÉ (bancs du scratchpad GRAPHISME : `titre.js`, `titre2.js` planches d'essais par `dbgChute`, `titre3.js` parcours, `retour.js`) :
+  menu → garage → retour → JOUER → course : 18 cumulus au titre, 0 ailleurs, mer du niveau rendue (760), classe du voile ôtée, programmes
+  constants, 0 erreur. Réglages à chaud : `dbgChute({az,alt,avant,elev,pitch,cap,gite,vit,K:[…],R:[…],mzA:[…],NU:[[…]]})`,
+  `dbgAmb('titre',{…})` ; `dbgChute()` rend `{cadre,ecran,orb,tris,nu,mz,ciel,…}`.
+- NON FAIT : la piste comme « destination » visible sous la caisse (essayée à 560 m : un ruban sombre sans ses néons, à reprendre avec un
+  ruban qui LUIT) ; les halos rouges des feux arrière en plein jour.
 ## LA MÊME VERSION POUR TOUT LE MONDE — LA MISE À JOUR TOUTE SEULE (2026-10-01, Léo : « trouve un moyen pour qu'on joue au même jeu, juste — fais-moi ça en un coup »)
 - Le problème : deux joueurs voyaient deux jeux. Une appli posée sur l'écran d'accueil de l'iPhone REPREND la page gardée en mémoire
   (aucun rechargement pendant des jours), un onglet resté ouvert garde l'ancienne version ; on ne savait même pas laquelle on avait.

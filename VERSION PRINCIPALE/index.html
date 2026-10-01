@@ -2205,6 +2205,7 @@ body.touch #overlay::before{content:'';position:fixed;inset:0;z-index:-1;pointer
 body.touch #overlay::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:0;transition:opacity var(--t-slow) var(--ease);
   background:linear-gradient(180deg,rgba(7,5,15,.48) 0%,rgba(7,5,15,.12) 22%,rgba(7,5,15,0) 38%,rgba(7,5,15,0) 54%,rgba(7,5,15,.4) 70%,rgba(7,5,15,.94) 88%)} /* (2026-09-28) le haut allégé (.84 → .48) : le ciel de JOUR de l'accueil doit se voir derrière le logo */
 body.touch #overlay[data-ecran="home"]::before{opacity:0}
+body.touch.titreCiel #overlay[data-ecran="home"]::after{background:linear-gradient(180deg,rgba(4,24,62,.30) 0%,rgba(4,24,62,0) 24%,rgba(4,24,62,0) 70%,rgba(4,24,62,.50) 100%)} /* (titre v3) AU CIEL : un azur profond et léger au lieu du voile noir (il mangeait le tiers bas de l'image couchée) */
 body.touch #overlay[data-ecran="home"]::after{opacity:1}
 body.touch #overlay[data-ecran="dead"]::before{opacity:.9}
 @keyframes k4Voile{0%{opacity:0}100%{opacity:1}}
@@ -13182,6 +13183,11 @@ const BIO_DAY=['aube','lever','matin','midi','aprem','golden','couchant','soir',
    fog:[.90,.87,.83],fogN:900,fogF:5000,fogCj:[1,.84,.66],hemiS:[.80,.84,.96],hemiI:.70,sunC:[1,.88,.72],sunI:1.35,fillC:[.58,.66,.86],
    volSun:[1.9,1.6,1.3],volAmb:.8,expo:.94,hi:[.01,0,-.01], // l'après-midi garde un peu d'or dans ses lumières
    env:[[0,'#3a78b8'],[.3,'#80b4d6'],[.48,'#f2dcbc'],[.58,'#ffd9a0'],[.66,'#c2b8b4'],[1,'#8e98ac']],eS1:[255,236,200,.44],eS2:[170,205,240,.3]});}
+/* L'AMBIANCE DU TITRE (titre v3) : le matin d'altitude, poussé vers l'écran titre de Zelda TOTK — un azur plus profond au zénith, un
+   turquoise franc, l'horizon presque blanc, une brume très loin (les cumulus du titre font la perspective), un soleil un peu plus fort.
+   Lue par chuteRender seulement (`BIOMES.titre`) ; le niveau garde son 'matin'. `dbgAmb('titre',{…})` pour retoucher à chaud. */
+BIOMES.titre=JSON.parse(JSON.stringify(BIOMES.matin));
+Object.assign(BIOMES.titre,{nm:'TITRE',jZen:[.05,.27,.66],jMid:[.22,.62,.90],jHor:[.90,.95,.94],fog:[.80,.90,.96],fogN:500,fogF:5200,sunC:[1,.96,.88],sunI:1.6,hemiI:.78,expo:.94,sat:1.24,vigK:.2});
 const BIO={cur:JSON.parse(JSON.stringify(BIOMES.golden)),from:null,to:BIOMES.golden,k:1,dur:4,name:'golden'};
 function bioLerp(a,b,e,out){ // mixe deux biomes champ à champ (tableaux = composantes, nombres = scalaires)
   for(const key in b){ const bv=b[key];
@@ -34957,9 +34963,9 @@ window.dbgFeu=function(on){const F=GAR.feu;if(!F)return null;if(on!=null&&GAR.fe
      des filets de vent (quads additifs, UN appel de dessin) filent vers le haut, SA traînée (celle de la boutique, `trailApercu`) monte
      derrière elle, la caisse tangue, roule, ses roues tournent, la vue balance lentement. De 190 m de haut, la route ne se rapproche
      pas à l'œil : c'est ce qu'on voit, vraiment, en chute libre.
-   · LE PLAN : `chutePlan()` cherche une fois par piste un tronçon droit du début de la piste que la caméra regarde en ENFILADE (la route
-     file devant, vers l'horizon), le soleil DERRIÈRE la caméra de côté (la caisse éclairée de trois-quarts), et un ciel dégagé autour
-     de la caisse (aucun nuage du niveau contre l'objectif).
+   · LE PLAN (titre v3, 2026-10-01 — voir « L'ÉCRAN TITRE v3 » dans CLAUDE.md) : `chutePlan()` règle le REGARD sur le SOLEIL (dans le dos de
+     la caméra, à droite : les nuages éclairés de face), la caisse très haut au-dessus du sommet de la piste, la piste derrière. Autour
+     d'elle, les CUMULUS DU TITRE (`CHUTE_NU`) : de vrais nuages v8 posés à la main à trois profondeurs, qui montent.
    · JOUER (`chuteLance`) : elle PIQUE — le nez plonge, elle accélère vers la route, la caméra passe derrière elle, l'air rugit, le champ
      s'ouvre ; elle traverse un banc de nuage (le voile BLANC, `#chuteVoile`) et, sous le voile, la course démarre (même fin que le
      lâcher de l'atelier : closeGarage, puis start()/resetGame()).
@@ -34968,27 +34974,23 @@ window.dbgFeu=function(on){const F=GAR.feu;if(!F)return null;if(on!=null&&GAR.fe
      comme avant).
    ⚠ `var` et pas `const` : updateContactShadow et cielHorsCourse, déclarées bien plus haut, lisent CHUTE — `var` vaut `undefined` avant
    cette ligne au lieu de lever une erreur (la zone morte d'un const planterait le tout premier rendu). */
-var CHUTE={oA:0,oAc:0,oW:0,oP:0,oPc:0,mvT:0,on:false,t:0,go:null,L:-1,s:0,C:new THREE.Vector3(),cam:new THREE.Vector3(),f:new THREE.Vector3(),fh:new THREE.Vector3(),lh:new THREE.Vector3(),
+var CHUTE={G:new THREE.Vector3(),nu:null,oA:0,oAc:0,oW:0,oP:0,oPc:0,mvT:0,on:false,t:0,go:null,L:-1,s:0,C:new THREE.Vector3(),cam:new THREE.Vector3(),f:new THREE.Vector3(),fh:new THREE.Vector3(),lh:new THREE.Vector3(),
   q:new THREE.Quaternion(),m:new THREE.Matrix4(),v1:new THREE.Vector3(),v2:new THREE.Vector3(),v3:new THREE.Vector3(),w:null,fil:null,voile:null,bioPas:-1,vent:false,entree:0};
 const CHUTE_OK=!/[?&]chute=0\b/.test(location.search); // (et seulement avec les boutons de Sacha : le menu de Léo, ?menu=leo, garde son atelier — son étiquette MISSIONS vit sur le socle)
-const CHUTE_P={coton:0,cle:.5,brume:2.5,expo:.82,trainee:0,alt:1500,avant:1500,pitch:.55,roule:.25,cap:.42,elev:.3, /* (niveau 1 v2) pitch .22 → .55, elev .22 → .30 : à plat, elle PLANAIT ; le nez piqué vers la mer, on la voit TOMBER */vit:26,echelle:1,taille:.82,sol:.3,sous:70,plancher:0}; // (2026-09-30, le JOUR D'ALTITUDE) de très haut au-dessus de TOUT le monde du niveau : les cumulus deviennent un champ de nuages sous la caisse, la mer à perte de vue ; plus de traînée orange ni de plancher peint ; brume repoussée, exposition et clé baissées (l'image sortait délavée) // (choisi aux captures : l'horizon et la mer de nuages dans l'image, le soleil de côté devant — sa lueur rose-or sur l'horizon)
-window.dbgChute=function(o){if(o&&typeof o==='object'){Object.assign(CHUTE_P,o);CHUTE.L=-1;}
-  return {on:CHUTE.on,go:!!CHUTE.go,s:Math.round(CHUTE.s),C:CHUTE.C.toArray().map(Math.round),cam:CHUTE.cam.toArray().map(function(x){return +x.toFixed(1);}),P:CHUTE_P,
+const CHUTE_P={az:2.35,cote:0,nuages:1,K:[1.02,1.08,1.1,1],R:[-.3,.5,.72,1],mzA:[1500,.8,9,.2],mzB:null,gite:-.45,coton:0,cle:.5,brume:1,expo:1,trainee:0,alt:900,avant:-1700,pitch:.62,roule:.12,cap:.28,elev:.34, /* (titre v3) voir « L'ÉCRAN TITRE v3 » : alt = au-dessus du SOMMET de la piste, az = l'angle regard ↔ soleil, cote = la piste décalée à droite de la caisse (couché), nuages = les cumulus du titre */ /* (niveau 1 v2) pitch .22 → .55, elev .22 → .30 : à plat, elle PLANAIT ; le nez piqué vers la mer, on la voit TOMBER */vit:14,echelle:1,taille:.82,sol:.3,sous:70,plancher:0}; // (2026-09-30, le JOUR D'ALTITUDE) de très haut au-dessus de TOUT le monde du niveau : les cumulus deviennent un champ de nuages sous la caisse, la mer à perte de vue ; plus de traînée orange ni de plancher peint ; brume repoussée, exposition et clé baissées (l'image sortait délavée) // (choisi aux captures : l'horizon et la mer de nuages dans l'image, le soleil de côté devant — sa lueur rose-or sur l'horizon)
+window.dbgChute=function(o){if(o&&typeof o==='object'){if(o.NU&&CHUTE.nu){o.NU.forEach(function(d,i){const c=CHUTE.nu[i];if(!c||!d)return;c.a=d[0];c.b=d[1];c.r=d[2];c.v=d[4];c.y=d[5];c.m.scale.set(d[2],d[2],d[2]);const dd=Math.hypot(d[0],d[1]);c.lo=-(1.2*dd+1.3*d[2]);c.hi=.1*dd+1.3*d[2];c.off=false;});for(let i=o.NU.length;i<CHUTE.nu.length;i++)CHUTE.nu[i].off=true;o=Object.assign({},o);delete o.NU;} /* (banc) NU : rejouer la disposition des cumulus du titre sans recharger */
+  Object.assign(CHUTE_P,o);CHUTE.L=-1;}
+  return {cadre:(function(){const c=menuCadre();return [+c.nx.toFixed(2),+c.ny.toFixed(2),+c.fr.toFixed(2),+c.fh.toFixed(2)];})(),ecran:(function(){const q=carGroup.position.clone().project(camera);return [+q.x.toFixed(2),+q.y.toFixed(2)];})(),orb:[+CHUTE.oA.toFixed(2),+CHUTE.oP.toFixed(2)],tris:CHUTE.nu?CHUTE.nu.reduce(function(a,c){return a+(c.m.visible&&c.m.geometry.index?c.m.geometry.index.count/3:0);},0):0,nu:CHUTE.nu?CHUTE.nu.filter(function(c){return c.m.visible;}).length:0,mz:+skyU.uMzA.value.x,ciel:document.body.classList.contains('titreCiel'),on:CHUTE.on,go:!!CHUTE.go,s:Math.round(CHUTE.s),C:CHUTE.C.toArray().map(Math.round),cam:CHUTE.cam.toArray().map(function(x){return +x.toFixed(1);}),P:CHUTE_P,
     route:(function(){try{frameAt(CHUTE.s,F);const q=F.p.clone().project(camera);return [+q.x.toFixed(2),+q.y.toFixed(2),+q.z.toFixed(3)];}catch(e){return null;}})()};};
 function chuteVoulue(){return CHUTE_OK&&MENU_SACHA&&garageOn&&!!gEl&&gEl.classList.contains('menu')&&!gEl.classList.contains('missions');}
-function chutePlan(){ // le tronçon du début de piste filmé en enfilade, soleil dans le dos de la caméra (de côté), ciel dégagé
-  CHUTE.L=L;let best=1e9;const sx=SUN_DIR.x,sz=SUN_DIR.z,sn=Math.hypot(sx,sz)||1;
-  for(let s9=60;s9<=Math.min(L-420,2600);s9+=20){
-    frameAt(s9,F);const ax=F.t.x,az=F.t.z,an=Math.hypot(ax,az)||1,p0y=F.p.y;frameAt(s9+380,F);const d9=(ax*F.t.x+az*F.t.z)/(an*(Math.hypot(F.t.x,F.t.z)||1));
-    if(d9<.72)continue;                                                           // la route file droit devant (une épingle sortirait du cadre)
-    const cs=(ax*sx+az*sz)/(an*sn);                                               // le regard vers le soleil : on le veut DERRIÈRE, de côté (~ −0,55)
-    let enc=0;const cx=F.p.x,cz=F.p.z;frameAt(s9,F);
-    const px=F.p.x-ax/an*CHUTE_P.avant,pz=F.p.z-az/an*CHUTE_P.avant,py=p0y+CHUTE_P.alt; // où serait la caisse
-    for(const c of CLOUDS){const q=c.g.position,rr=(c.r||60)+45,rv=Math.max(1,c.ry||c.r||60)+45;
-      const dx=px-q.x,dy=py-q.y,dz=pz-q.z;if((dx*dx+dz*dz)/(rr*rr)+dy*dy/(rv*rv)<1)enc++;}
-    const sc=Math.abs(cs-CHUTE_P.sol)+(1-d9)*1.5+enc*1.2+s9*.00008;
-    if(sc<best){best=sc;CHUTE.s=s9;}}
-  frameAt(CHUTE.s,F);CHUTE.lh.set(F.t.x,0,F.t.z).normalize();                     // le regard : dans l'axe de la route
+function chutePlan(){ // (titre v3) le REGARD se règle sur le SOLEIL (lumière de côté : le volume des nuages), la caisse au-dessus de TOUTE la piste
+  CHUTE.L=L;const P9=CHUTE_P,sx=SUN_DIR.x,sz=SUN_DIR.z,sn=Math.hypot(sx,sz)||1,ca=Math.cos(P9.az),sa=Math.sin(P9.az);
+  let lx9=(sx*ca-sz*sa)/sn,lz9=(sx*sa+sz*ca)/sn;if(-lz9*sx+lx9*sz<0){lx9=(sx*ca+sz*sa)/sn;lz9=(-sx*sa+sz*ca)/sn;} // le soleil à DROITE de l'image, à P.az du regard
+  CHUTE.lh.set(lx9,0,lz9).normalize();
+  let gx=0,gz=0,n9=0,yM=-1e9;const sF=Math.min(L-1,3200);                       // LA DESTINATION : le début de la piste (son centre), et le sommet de toute la piste
+  for(let s9=0;s9<=L-1;s9+=40){frameAt(s9,F);if(F.p.y>yM)yM=F.p.y;if(s9<=sF){gx+=F.p.x;gz+=F.p.z;n9++;}}
+  CHUTE.G.set(gx/Math.max(1,n9),yM,gz/Math.max(1,n9));CHUTE.s=Math.min(L-1,600);
+  frameAt(CHUTE.s,F);
   if(CHUTE.sol){const R=F.p,lx=CHUTE.lh.x,lz=CHUTE.lh.z;let k=0;                     // LE PLANCHER : une mer de cumulus SOUS la route, devant la caméra
     for(const sp of CHUTE.sol){const a=(k*2.399)%6.2832,r=90+Math.sqrt((k+.5)/CHUTE.sol.length)*980,fw=Math.max(-.2,Math.cos(a));k++;
       const px=R.x+lx*(r*fw*.9+120)+(-lz)*Math.sin(a)*r,pz=R.z+lz*(r*fw*.9+120)+lx*Math.sin(a)*r,w9=150+((k*53)%100)*1.9;
@@ -35003,7 +35005,45 @@ function chuteNuageTex(){ // un banc de cumulus peint une fois : des boules douc
   x.fillStyle=v;x.fillRect(0,0,256,256);
   const t=new THREE.CanvasTexture(cv);t.minFilter=THREE.LinearFilter;return t;
 }
+/* LES CUMULUS DE L'ÉCRAN TITRE (titre v3, 2026-10-01, Sacha, capture couchée : « toujours bof — il faut que ça s'inspire de l'écran titre de
+   Zelda Tears of the Kingdom »). Le défaut mesuré : la caisse posée sur un PAPIER PEINT (la mer de nuages du dôme, plate), aucun plan
+   entre elle et le fond, aucune destination, lumière sans direction. Zelda : on TOMBE dans un ciel qui a de la profondeur, vers un monde.
+   Ici : de vrais cumulus (les formes et la matière v8 de GAMEPLAY — `cumulus8`, `nuage8Async`, `nuage8Solo` — rien de neuf à compiler,
+   la matière est déjà chauffée au menu) posés À LA MAIN autour de la caisse, à trois profondeurs, dans le repère du regard ; ils MONTENT
+   tous à la vitesse de la chute (la parallaxe fait le reste : les proches passent en 15 s, les lointains tiennent la composition une
+   minute) et renaissent sous le cadre. `CHUTE_NU` : [droite, devant, rayon, gabarit, vitesse, hauteur de départ] en mètres. */
+const CHUTE_NU=[
+  // devant (vus debout comme couché)
+  [  60,1700,260,0,1,-900],[-160, 700,110,1,1,-420],[  50, 330, 34,2,1,-230],[ 150,1000,150,3,1,-640],[ -60,2600,340,4,1,-1250],[ -30, 480, 55,3,1,-120],
+  // à droite (couché : derrière le titre et les boutons)
+  [ 900,1500,260,0,1,-760],[ 520, 760,110,1,1,-500],[1500,1700,280,4,1,-800],[ 300, 460, 50,2,1,-330],[1050, 700,100,3,1,-420],[ 800,2600,360,4,1,-1150],
+  // à gauche et tout autour (l'orbite au doigt ne tombe jamais sur un ciel vide)
+  [-600,1300,160,0,1,-700],[-1000,400,140,1,1,-380],[-700,-600,150,3,1,-450],[ 300,-1000,180,0,1,-520],[1200,-400,160,1,1,-330],[-200,-1500,220,4,1,-640]];
+/* LES FORMES D'ABORD (titre v3) : les surfaces fines des cinq gabarits du titre sont demandées à l'ouvrier AU CHARGEMENT DU SCRIPT, avant
+   les 96 finesses du ciel de coton (cotonInit, au premier newTrack) — sinon elles attendaient 10 à 15 s derrière elles, et le titre
+   montrait pendant ce temps des ÉBAUCHES en grappes de boules. Aucune ébauche ici : un cumulus du titre n'existe à l'image que fini. */
+function chuteFormes(){
+  if(CHUTE.geo||!NUAGE8)return;const rg=mulberry32(0xC4A5),G9=[['mediocris',3],['humilis',3],['humilis',2],['mediocris',2],['congestus',3]],geo=[];
+  for(const q of G9){const S=cumulus8(q[0],rg);S.seed=Math.floor(rg()*997);const dyU=-(S.base+S.top)*.5,e={g:null};geo.push(e);
+    nuage8Async(S,N8_FIN[q[1]],function(r9){const g2=cotonBuf(r9);g2.translate(0,dyU,0);g2.computeBoundingSphere();e.g=g2;
+      if(CHUTE.nu)for(const c of CHUTE.nu)if(c.e===e)c.m.geometry=g2;});}
+  CHUTE.geo=geo;CHUTE.rg=rg;
+}
+function chuteCumulus(){
+  if(!NUAGE8||CHUTE.nu)return;chuteFormes();const geo=CHUTE.geo,rg=CHUTE.rg,vide=new THREE.BufferGeometry();
+  /* LEUR MATIÈRE : celle des nuages v8 (même programme, déjà compilé), avec SES réglages de lumière (uK : albédo, soleil, lisière, vapeur ·
+     uR : frontière d'ombre, clarté de l'ombre) — le titre veut des blancs plus clairs et des ombres bleutées plus douces que la course */
+  const m0=nuage8Solo(),mT=m0.clone();mT.uniforms=Object.assign({},m0.uniforms,{uK:{value:new THREE.Vector4().fromArray(CHUTE_P.K)},uR:{value:new THREE.Vector4().fromArray(CHUTE_P.R)}});
+  mT.defines={};mT.customProgramCacheKey=function(){return 'nuage8solo';};CHUTE.nuM=mT;
+  const N=[];
+  for(const d of CHUTE_NU){const e=geo[d[3]],m=new THREE.Mesh(e.g||vide,mT);m.visible=false;m.castShadow=false;m.receiveShadow=false;
+    m.scale.set(d[2],d[2],d[2]);m.rotation.y=rg()*6.2832;scene.add(m);const dd=Math.hypot(d[0],d[1]);
+    N.push({m:m,e:e,a:d[0],b:d[1],r:d[2],v:d[4],y:d[5],lo:-(1.2*dd+1.3*d[2]),hi:.1*dd+1.3*d[2]});}
+  CHUTE.nu=N;
+}
+try{if(CHUTE_OK)chuteFormes();}catch(e){} /* (titre v3) au chargement : les formes du titre passent AVANT celles du ciel de coton dans la file de l'ouvrier */
 function chuteMonte(){ // les bancs de nuage et les filets de vent (une fois)
+  chuteCumulus();
   const tex=chuteNuageTex(),W=[];
   for(let i=0;i<16;i++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,opacity:0,depthWrite:false,fog:false}));
     sp.visible=false;sp.renderOrder=4;scene.add(sp);W.push({sp:sp,x:0,y:0,z:0,s:1,v:1,r:0});}
@@ -35033,7 +35073,7 @@ function chuteVoileEl(){ // le banc de nuage traversé au JOUER : un voile blanc
   document.body.appendChild(e);CHUTE.voile=e;return e;
 }
 function chuteEntre(){ // de l'atelier (ou de rien) au ciel
-  CHUTE.on=true;CHUTE.t=0;CHUTE.bioPas=-1;CHUTE.oA=CHUTE.oAc=CHUTE.oW=CHUTE.oP=CHUTE.oPc=0; // (2026-09-30) l'orbite repart du plan de face
+  CHUTE.on=true;CHUTE.t=0;CHUTE.bioPas=-1;CHUTE.bioT=null;document.body.classList.add('titreCiel');if(!CHUTE.mz)CHUTE.mz=[skyU.uMzA.value.clone(),skyU.uMzB.value.clone()];CHUTE.oA=CHUTE.oAc=CHUTE.oW=CHUTE.oP=CHUTE.oPc=0; // (2026-09-30) l'orbite repart du plan de face
   if(!CHUTE.av)CHUTE.av={c:new THREE.Color()};CHUTE.av.e=acesPass?acesPass.uniforms.uExposure.value:null;if(scene.fog){CHUTE.av.c.copy(scene.fog.color);CHUTE.av.n=scene.fog.near;CHUTE.av.f=scene.fog.far;} // (2026-09-30) l'exposition et la brume d'avant (l'atelier les retrouve)
   if(!CHUTE.w)chuteMonte();
   if(GAR.root)GAR.root.visible=false;garageFloor.visible=false;gEl.classList.add('ciel'); /* (niveau 1 v2) le bandeau du bas prend l'azur profond du ciel (voir #garage.menu.ciel::after) */
@@ -35043,7 +35083,7 @@ function chuteEntre(){ // de l'atelier (ou de rien) au ciel
 }
 function chuteSort(ferme){ // on quitte le ciel : l'atelier (boutique, missions) ou la course (ferme)
   if(!CHUTE.on&&!CHUTE.go)return;
-  CHUTE.on=false;CHUTE.go=null;gEl.classList.remove('ciel');if(COTON.root)COTON.root.visible=COTON.n>0;
+  CHUTE.on=false;CHUTE.go=null;gEl.classList.remove('ciel');document.body.classList.remove('titreCiel');if(CHUTE.mz){skyU.uMzA.value.copy(CHUTE.mz[0]);skyU.uMzB.value.copy(CHUTE.mz[1]);}if(COTON.root)COTON.root.visible=COTON.n>0;if(CHUTE.nu)for(const c of CHUTE.nu)c.m.visible=false; /* (titre v3) les cumulus du titre se rangent */
   if(CHUTE.snd){try{CHUTE.snd.stop(ferme?.5:.3);}catch(e){}CHUTE.snd=null;} /* (niveau 1 v2) la chute libre se tait */
   if(CHUTE.w)for(const w of CHUTE.w){w.sp.visible=false;}
   if(CHUTE.fil)CHUTE.fil.m.visible=false;
@@ -35065,8 +35105,10 @@ function chuteRender(dt){
   if(!CHUTE.on)chuteEntre();
   CHUTE.t+=dt;const t=CHUTE.t,P=CHUTE_P,G=CHUTE.go;
   // LE CIEL DU JOUR DES NUAGES (celui de l'accueil d'avant : MENU_BIO), repeint si le voyage BIO est passé derrière
-  if(!MENUV.bio||CHUTE.bioPas!==BIO.pas){if(!MENUV.bio)paintEnv(BIOMES[MENU_BIO].env,BIOMES[MENU_BIO].eS1,BIOMES[MENU_BIO].eS2);MENUV.bio=true;CHUTE.bioPas=BIO.pas;bioApply(BIOMES[MENU_BIO]);}
-  skyU.uMer.value=1;
+  {const BT=BIOMES.titre||BIOMES[MENU_BIO]; /* (titre v3) l'ambiance du titre */
+   if(!MENUV.bio||CHUTE.bioPas!==BIO.pas||CHUTE.bioT!==BT){if(!MENUV.bio||CHUTE.bioT!==BT)paintEnv(BT.env,BT.eS1,BT.eS2);MENUV.bio=true;CHUTE.bioPas=BIO.pas;CHUTE.bioT=BT;bioApply(BT);}}
+  skyU.uMer.value=1;if(P.mzA)skyU.uMzA.value.fromArray(P.mzA);if(P.mzB)skyU.uMzB.value.fromArray(P.mzB); /* (titre v3) la mer de nuages du titre (rendue par chuteSort) */
+  if(CHUTE.nuM){CHUTE.nuM.uniforms.uK.value.fromArray(P.K);CHUTE.nuM.uniforms.uR.value.fromArray(P.R);}
   /* (2026-09-30) LA BRUME ET L'EXPOSITION DE L'AMBIANCE : seule la course les réécrit (updateClouds) — au menu la brume restait le violet
      de départ du jeu (#5e3254) et l'exposition .71 : la mer de nuages et les cumulus s'y noyaient en violet. chuteSort rend celles d'avant. */
   if(scene.fog){scene.fog.color.copy(FOG_BASE);scene.fog.near=FOG_N*P.brume;scene.fog.far=FOG_F*P.brume;skyU.uFogCol.value.copy(FOG_BASE);} // (P.brume : de là-haut, la brume s'éloigne — la mer de nuages fait sa propre perspective)
@@ -35077,11 +35119,11 @@ function chuteRender(dt){
   // L'ANCRE : au-dessus du début de piste, en retrait, à P.alt mètres
   frameAt(CHUTE.s,F);const lh=CHUTE.lh,sw=Math.sin(t*.11)*.07+Math.sin(t*.047+1.1)*.04; // la vue BALANCE lentement autour de la caisse
   const cA=Math.cos(sw),sA=Math.sin(sw);const lx=lh.x*cA-lh.z*sA,lz=lh.x*sA+lh.z*cA;
-  CHUTE.C.set(F.p.x-lh.x*P.avant,F.p.y+P.alt,F.p.z-lh.z*P.avant);
+  {const ct9=P.cote*(camera.aspect>1?1:.12);CHUTE.C.set(CHUTE.G.x-lh.x*P.avant+lh.z*ct9,CHUTE.G.y+P.alt,CHUTE.G.z-lh.z*P.avant-lh.x*ct9);} // (titre v3) au-dessus du sommet de la piste, en retrait ; la piste un peu à DROITE de la caisse (couché : la caisse est à gauche)
   // LE CAP : de trois-quarts, vers la droite de l'écran et vers la route (P.cap) — le nez plonge de P.pitch
   const rx=-lz,rz=lx;                                                             // la droite de l'écran (regard × haut) : le nez pique vers la DROITE, la traînée file en haut à gauche
   CHUTE.fh.set(rx*Math.cos(P.cap)+lx*Math.sin(P.cap),0,rz*Math.cos(P.cap)+lz*Math.sin(P.cap)).normalize();
-  let u=0,pi=P.pitch+.06*Math.sin(t*.9)+.03*Math.sin(t*2.3),ro=P.roule*Math.sin(t*.53)+.07*Math.sin(t*1.7),dy=0,fwd=0;
+  let u=0,pi=P.pitch+.06*Math.sin(t*.9)+.03*Math.sin(t*2.3),ro=(P.gite||0)+P.roule*Math.sin(t*.53)+.07*Math.sin(t*1.7),dy=0,fwd=0; /* (titre v3) P.gite : elle montre son TOIT à la caméra */
   if(G){G.t+=dt;u=Math.min(1,G.t/1.75);const e=u*u*(3-2*u);
     pi+=(1.3-pi)*Math.min(1,u/.3);ro*=1-e;                                         // le nez PLONGE
     dy=-Math.pow(u,2.3)*150;fwd=Math.pow(u,2)*25;}                                 // elle accélère vers la route
@@ -35098,6 +35140,10 @@ function chuteRender(dt){
   const Cd=menuCadre(),R9=.5*Math.hypot(sp.l||4.2,sp.w||1.9,(sp.h||.8)+.6)*sc,fov0=G?44+26*u*u:44;
   const nx=Cd.nx+(camera.aspect<1?-.16:0);
   if(Math.abs(camera.fov-fov0)>.01){camera.fov=fov0;camera.updateProjectionMatrix();}
+  /* ⚠ (titre v3) LE DÉCENTREMENT DE L'ATELIER : le garage décale l'objectif (`setViewOffset`) pour sa mise en page et ne le rendait pas en
+     revenant au ciel — mesuré (banc retour.js, sur main aussi) : après une visite au garage, la caisse du titre sortait du cadre à gauche
+     (−1,08 NDC au lieu de −0,58). Le ciel n'a pas de décentrement : on l'efface. */
+  if(camera.view&&camera.view.enabled){GAR.dec=GAR.decX=0;GAR.cdx=GAR.cdy=0;camera.clearViewOffset();}
   const tV=Math.tan(camera.fov*Math.PI/360),tH=tV*camera.aspect;
   const d=Math.max(R9*P.taille*(camera.aspect>1?1.75:1)/(Cd.fr*tH),R9*.8/(Cd.fh*tV))*(1+.03*Math.sin(t*.37));
   /* L'ORBITE AU DOIGT (2026-09-30, Sacha : « rajoute un moyen de déplacer la caméra autour de la voiture avec le doigt ») — glisser tourne
@@ -35113,8 +35159,9 @@ function chuteRender(dt){
     const bx=C.x-f.x*9,by=C.y-f.y*9+3.2,bz=C.z-f.z*9;
     CHUTE.cam.set(CHUTE.cam.x+(bx-CHUTE.cam.x)*e9,CHUTE.cam.y+(by-CHUTE.cam.y)*e9,CHUTE.cam.z+(bz-CHUTE.cam.z)*e9);}
   camera.position.copy(CHUTE.cam);camera.up.set(0,1,0);camera.lookAt(C);
-  if(!G){camera.rotateY(Math.atan(nx*tH));camera.rotateX(-Math.atan(Cd.ny*tV));}   // la caisse glisse dans la zone libre (lacet, tangage exacts)
-  else{const k=1-Math.min(1,u/.5);camera.rotateY(Math.atan(nx*tH)*k);camera.rotateX(-Math.atan(Cd.ny*tV)*k);}
+  /* (titre v3) L'HORIZON DROIT : le décadrage tournait autour de l'axe de la caméra, déjà penchée vers le bas — l'horizon basculait de 10°.
+     Il tourne autour de la VERTICALE DU MONDE (÷ cos de la plongée : la caisse garde sa place à l'écran). */
+  {const k=G?1-Math.min(1,u/.5):1,ce9=Math.max(.5,Math.cos(el9));camera.rotateOnWorldAxis(AXIS_Y,Math.atan(nx*tH)/ce9*k);camera.rotateX(-Math.atan(Cd.ny*tV)*k);}   // la caisse glisse dans la zone libre
   if(G&&u>.2){const a=(u-.2)*.9;camera.position.x+=(Math.random()-.5)*.08*a;camera.position.y+=(Math.random()-.5)*.08*a;} // l'air qui cogne
   camera.updateMatrixWorld();
   // LA LUMIÈRE : le soleil du ciel fait le gros ; une clé douce du côté caméra, un contre-jour bleu ciel qui détoure la caisse
@@ -35137,6 +35184,8 @@ function chuteRender(dt){
             rW=w.s*.62/(Math.max(1,dW)*tV9),rC=R9*1.2/(Math.max(1,dC)*tV9);
       o*=Math.max(0,Math.min(1,(e-(rW*.75+rC))/(rW*.5+.08)));}                       // …et jamais une ouate DEVANT la caisse (son disque projeté contre celui de la caisse)
     s.material.opacity=o*(G?1:.78);}
+  if(CHUTE.nu){const on9=!!P.nuages,C0=CHUTE.C,rx0=-lh.z,rz0=lh.x; // (titre v3) LES CUMULUS : ils montent, la caisse tombe
+    for(const c of CHUTE.nu){c.y+=P.vit*c.v*vk*dt;if(c.y>c.hi)c.y=c.lo;c.m.visible=on9&&!c.off&&!!c.e.g;c.m.position.set(C0.x+rx0*c.a+lh.x*c.b,C0.y+c.y,C0.z+rz0*c.a+lh.z*c.b);}}
   {const Fi=CHUTE.fil,pos=Fi.pos,col=Fi.col,cd=camera.getWorldDirection(CHUTE.v1);
    const ax=-cd.z,az=cd.x,an=Math.hypot(ax,az)||1;                                // la largeur des filets : horizontale, face caméra
    for(let i=0;i<Fi.S.length;i++){const S9=Fi.S[i];S9.y+=P.vit*S9.v*vk*dt;if(S9.y>44)chuteFilNeuf(S9,false);
