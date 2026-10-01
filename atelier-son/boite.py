@@ -3,6 +3,7 @@
 Un tout petit serveur qui reçoit ce que la fenêtre « Envoyer à Claude » de boucles.html dépose, et l'écrit là où Claude le lit :
   atelier-son/boite/MESSAGES.md   les messages, du plus récent au plus ancien, avec le nom des MP3 joints
   atelier-son/boite/mp3/          les MP3 (hors git)
+  atelier-son/boite/rangement.json le tri de boucles.html (sons déplacés d'un onglet à l'autre, corbeille)
 Dans le chat, il suffit de dire « regarde la boîte ».
 Lancer :  python3 atelier-son/boite.py      (écoute sur http://localhost:8768, accepte la page servie sur :8765)
 """
@@ -10,6 +11,7 @@ import http.server, json, os, re, time, urllib.parse
 
 ICI = os.path.dirname(os.path.abspath(__file__))
 BOITE = os.path.join(ICI, 'boite'); MP3 = os.path.join(BOITE, 'mp3'); MSG = os.path.join(BOITE, 'MESSAGES.md')
+RANGE = os.path.join(BOITE, 'rangement.json')   # le tri de Léo dans boucles.html : sons déplacés d'onglet, sons supprimés
 PORT = 8768
 SUR = re.compile(r'[^A-Za-z0-9._ ()-]+')
 
@@ -34,6 +36,9 @@ class Boite(http.server.BaseHTTPRequestHandler):
 
     def do_GET(self):
         u = urllib.parse.urlparse(self.path)
+        if u.path == '/boite/rangement':
+            d = json.load(open(RANGE, encoding='utf-8')) if os.path.exists(RANGE) else {}
+            return self.rend({'ok': True, 'rangement': d})
         if u.path == '/boite/liste':
             items = []
             if os.path.exists(MSG):
@@ -46,6 +51,10 @@ class Boite(http.server.BaseHTTPRequestHandler):
         u = urllib.parse.urlparse(self.path); q = urllib.parse.parse_qs(u.query)
         n = int(self.headers.get('Content-Length') or 0); corps = self.rfile.read(n) if n else b''
         os.makedirs(MP3, exist_ok=True)
+        if u.path == '/boite/rangement':
+            d = json.loads(corps.decode('utf-8') or '{}')
+            with open(RANGE, 'w', encoding='utf-8') as f: json.dump(d, f, ensure_ascii=False, indent=1)
+            return self.rend({'ok': True})
         if u.path == '/boite/mp3':
             nom = propre((q.get('nom') or ['son.mp3'])[0]); base, ext = os.path.splitext(nom); k = 1
             while os.path.exists(os.path.join(MP3, nom)): k += 1; nom = '%s (%d)%s' % (base, k, ext)
