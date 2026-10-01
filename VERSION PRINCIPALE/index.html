@@ -6266,7 +6266,7 @@ const skyDome=(function(){
     ],
     mer:[
       'void cielMer(inout vec3 col,float y,float sd){',
-      '  if(uMer>.001&&y<.02){vec3 mz=uJour>.001?vgMer(merZ(vDir,y,sd),vDir,y):vec3(0.);vec3 mo=uJour<.999?merNuages(vDir,y,sd):mz;', // (2026-09-30) la mer du JOUR D ALTITUDE (merZ), mélangée par uJour
+      '  if(uMer>.001&&y<.02){vec3 mz=uJour>.001?merZ(vDir,y,sd):vec3(0.);vec3 mo=uJour<.999?merNuages(vDir,y,sd):mz;', // (2026-09-30) la mer du JOUR D ALTITUDE (merZ), mélangée par uJour
       '    col=mix(col,mix(mo,mz,uJour),uMer*(1.-smoothstep(-.016,.012,y))*(1.-uSpace));}', // NUAGES : la mer de nuages sous l horizon (voir merNuages)
       '}',
     ],
@@ -8098,12 +8098,12 @@ function cotonMat(){ if(COTON.mat)return COTON.mat; // la ouate des nuages (MÊM
    le côté soleil crème, le côté ombre pris par le CIEL (bleu, lavande sous le ventre), l'ombre PORTÉE des bourgeons du haut (G cuit),
    les creux (R cuit), la base plus sourde, et à contre-jour la LISIÈRE qui s'embrase (diffusion avant). Les couleurs sont celles de
    l'ambiance (le soleil, l'hémisphère : bioApply) — aucune couleur écrite ici. Les bords s'allègent (la vapeur). Instanciée (COTON). */
-const N8_U={uVG:skyU.uVG,uFondu:{value:1},uTps:{value:0},uSunW:{value:SUN_DIR},uNearF:GFX_U.uNearF,uAlb:{value:CLOUD_MAT.color},uSunC:{value:null},uSky:{value:null},uGnd:{value:null},uK:{value:new THREE.Vector4(1,1,1,1)},uR:{value:new THREE.Vector4(-.25,.5,.64,1)}}; // uR : la frontière d'ombre (début, fin en N·L), la clarté du côté ombre, (libre)
+const N8_U={uFondu:{value:1},uTps:{value:0},uSunW:{value:SUN_DIR},uNearF:GFX_U.uNearF,uAlb:{value:CLOUD_MAT.color},uSunC:{value:null},uSky:{value:null},uGnd:{value:null},uK:{value:new THREE.Vector4(1,1,1,1)},uR:{value:new THREE.Vector4(-.25,.5,.64,1)}}; // uR : la frontière d'ombre (début, fin en N·L), la clarté du côté ombre, (libre)
 function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
   const U=THREE.UniformsUtils.merge([THREE.UniformsLib.fog]);for(const k in N8_U)U[k]=N8_U[k];
   U.uSunC.value=sun.color;U.uSky.value=hemi.color;U.uGnd.value=hemi.groundColor;
-  const m=new THREE.ShaderMaterial({uniforms:U,vertexColors:true,fog:true,transparent:true,depthWrite:true,extensions:{derivatives:true},
-    vertexShader:['#include <common>','#include <fog_pars_vertex>','varying vec3 vN,vW,vA,vT,vO;uniform float uTps;',
+  const m=new THREE.ShaderMaterial({uniforms:U,vertexColors:true,fog:true,transparent:true,depthWrite:true,
+    vertexShader:['#include <common>','#include <fog_pars_vertex>','varying vec3 vN,vW,vA,vT;uniform float uTps;',
       'void main(){vec3 tr=position;vec3 nn=normal;vT=vec3(1.);',
       '  float ph=0.;',
       '#ifdef USE_INSTANCING',
@@ -8120,11 +8120,11 @@ function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
       '#ifdef USE_INSTANCING_COLOR',
       '  vT=instanceColor;',
       '#endif',
-      '  vA=color;vO=position;vec4 wp=modelMatrix*vec4(tr,1.);vW=wp.xyz;vN=normalize(mat3(modelMatrix)*nn);',
+      '  vA=color;vec4 wp=modelMatrix*vec4(tr,1.);vW=wp.xyz;vN=normalize(mat3(modelMatrix)*nn);',
       '  vec4 mvPosition=viewMatrix*wp;gl_Position=projectionMatrix*mvPosition;',
       '#include <fog_vertex>',
       '}'].join('\n'),
-    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uAlb,uSunC,uSky,uGnd;uniform vec2 uNearF;uniform vec4 uK,uR;uniform float uFondu,uVG;varying vec3 vN,vW,vA,vT,vO;',
+    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uAlb,uSunC,uSky,uGnd;uniform vec2 uNearF;uniform vec4 uK,uR;uniform float uFondu;varying vec3 vN,vW,vA,vT;',
       'void main(){vec3 N=normalize(vN),N0=N,V=normalize(cameraPosition-vW);',
       /* LE RELIEF DE PRÈS (SON et DEBUGGING, mesuré : en vol, un grand nuage tout proche était un MUR lisse « en plastique ») : sous ~300 m, la
          normale ondule (deux champs de sinus déformés, en espace monde, des bosses de ~50 m) — le mur redevient de la ouate bosselée. Au loin, rien. */
@@ -8133,20 +8133,8 @@ function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
       '  float ao=vA.r,tv=vA.g,hh=vA.b,nl=dot(N,uSunW),sh=smoothstep(-.1,.5,uSunW.y);',
       '  float lit=smoothstep(uR.x,uR.y,nl);',                                                    /* la frontière d ombre : douce mais FRANCHE (le trait d un peintre) */
       '  lit*=mix(1.,tv,.6*sh)*mix(.32,1.,ao);',                                                  /* l ombre portée des lobes du haut, les creux du chou-fleur */
-      /* LA TOUCHE VAN GOGH sur la ouate : des touches alignées sur un courant qui tourne autour du lobe (en unités du nuage : la touche est
-         collée à la matière, elle ne glisse pas), qui BRISENT la frontière d ombre ; la lumière posée en deux tons de peintre ; au loin la
-         touche se fond (fwidth) au lieu de scintiller. */
-      '  float vS=0.;',
-      /* (v2) les hachures en touches faisaient des ÉCAILLES et des lignes de niveau (mesuré) : la touche est désormais dans la LUMIÈRE — posée en
-         aplats de peintre (ombre, demi-teinte, lumière, rehaut), leurs bords brisés par un bruit accroché à la matière (des bords de touche,
-         jamais un motif régulier). */
-      '  if(uVG>.001){vec3 q=vO*4.6;vec3 i9=floor(q),f9=fract(q);f9=f9*f9*(3.-2.*f9);',
-      '    float n=0.;for(int z=0;z<2;z++)for(int y=0;y<2;y++)for(int x=0;x<2;x++){vec3 c=vec3(float(x),float(y),float(z));vec3 w=mix(1.-f9,f9,c);',
-      '      n+=w.x*w.y*w.z*fract(sin(dot(i9+c,vec3(127.1,311.7,74.7)))*43758.5453);}',
-      '    n=n*2.-1.;vS=n*uVG;',
-      '    float lj=clamp(lit+n*.22*uVG*(1.-abs(lit*2.-1.)*.6),0.,1.);',
-      '    float bd=smoothstep(.2,.27,lj)*.34+smoothstep(.48,.55,lj)*.36+smoothstep(.77,.84,lj)*.3;',
-      '    lit=mix(lit,bd,.38*uVG);}',   /* (au banc : à .7 les nuages devenaient PLATS comme de la pâte) une touche peinte, le modelé reste */
+      /* (2026-10-01, Sacha : « les nuages, j'aime pas l'effet Van Gogh, remets un effet normal ») la touche sur la ouate — la lumière posée en
+         aplats de peintre aux bords brisés, le contour sombre — est RETIRÉE : les nuages gardent leur modelé doux. */
       '  vec3 alb=uAlb*mix(vec3(1.),vT,.3)*uK.x;',                                                /* la teinte propre du nuage, en sourdine (à plein, les « chauds » sortaient ORANGE) */
       '  vec3 sk=mix(vec3(dot(uSky,vec3(.3,.59,.11))),uSky,.6)*vec3(.9,.95,1.05);',
       '  vec3 ciel=mix(vec3(.72,.78,.97)*(.6+.5*dot(uGnd,vec3(.3,.59,.11))),sk,smoothstep(-.35,.8,N.y));',   /* (SON, mesuré) l ombre tirait au BRUN (le sol de l hémisphère) : un bleu-LAVANDE franc sous le ventre et sur les flancs */                   /* le côté ombre pris par le CIEL : bleu-lavande (et le rebond de la mer sous le ventre) */
@@ -8155,11 +8143,9 @@ function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
       '  float ch=clamp((uSunC.r-uSunC.b-.18)*3.5,0.,.45);',                                        /* la CHALEUR du soleil : nulle au matin et à midi, l or n arrive qu en fin d après-midi */
       '  vec3 soleil=mix(vec3(1.,.99,.975),uSunC/max(uSunC.r,.01),ch)*dot(uSunC,vec3(.3,.59,.11))*uK.y;',   /* (SON, mesuré) au matin les nuages sortaient BEIGE-SABLE : un blanc franc côté soleil */
       '  vec3 col=alb*mix(ombre,soleil,lit);',
-      '  col*=1.+vS*.05;',
       '  float fr=1.-max(dot(N,V),0.),bk=pow(max(dot(-V,uSunW),0.),3.);',
       '  col+=soleil*(pow(fr,3.)*1.5*bk+bk*.07*(1.-ao*.5))*uK.z;',   /* (SON, mesuré) la lueur de contre-jour ne teinte plus TOUTE la face en sable : le liseré, et un voile léger */                                  /* à contre-jour : la LISIÈRE d argent, et la vapeur éclairée par derrière */
       '  col+=alb*soleil*pow(fr,2.)*.16*(1.-bk)*(.4+.6*lit);',                                     /* de face, le bord qui tourne s ALLÈGE (la vapeur mince diffuse la lumière) */
-      '  col*=1.-.2*uVG*smoothstep(.6,.92,fr)*(1.-lit)*(1.-bk);',                          /* un CONTOUR sombre au bord de l ombre, comme un trait de pinceau */
       '  float a=(1.-pow(fr,6.)*.45*uK.w)*uFondu;',
       '#ifdef NUAGE8_INST',
       '  a*=smoothstep(uNearF.x,uNearF.y,length(vW-cameraPosition));',
@@ -13248,7 +13234,7 @@ window.dbgDA=function(o){if(o)for(const k in o){if(Array.isArray(o[k]))DA[k]=o[k
 function bioApply(c){ // pousse l'ambiance mélangée dans TOUS les organes (uniforms/couleurs only)
   skyU.uSkyMul.value.fromArray(c.skyMul);skyU.uSkyLift.value.fromArray(c.skyLift);skyU.uSunTint.value.fromArray(c.sunTint);
   skyU.uSunHalo.value=c.sunHalo;skyU.uCity.value=c.city;skyU.uStars.value=c.stars;skyU.uMoon.value=c.moon;
-  skyU.uJour.value=c.jour||0;skyU.uVG.value=c.vg||0; // (2026-10-01) la touche Van Gogh (ciel ET nuages : même objet)
+  skyU.uJour.value=c.jour||0;skyU.uVG.value=c.vg||0; // (2026-10-01) la touche Van Gogh — le CIEL seul (Sacha l'a refusée sur les nuages)
  if(c.jZen){skyU.uJZen.value.fromArray(c.jZen);skyU.uJMid.value.fromArray(c.jMid);skyU.uJHor.value.fromArray(c.jHor);skyU.uJSol.value.fromArray(c.jSol);} // (2026-09-30) le jour d'altitude
   FOG_BASE.setRGB(c.fog[0],c.fog[1],c.fog[2]);FOG_N=c.fogN;FOG_F=c.fogF;
   hemi.color.setRGB(c.hemiS[0],c.hemiS[1],c.hemiS[2]);hemi.groundColor.setRGB(c.hemiG[0],c.hemiG[1],c.hemiG[2]);hemi.intensity=c.hemiI;

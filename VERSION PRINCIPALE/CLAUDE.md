@@ -19,6 +19,10 @@
 
 
 ## LA TOUCHE VAN GOGH + NUAGES v8.1 (2026-10-01, nuit, session GAMEPLAY) — Sacha : « inspiration Van Gogh pour le ciel » ; mesures de SON et DEBUGGING sur les v8
+- ⚠ **(2026-10-01, matin) VERDICT DE SACHA : « les nuages, j'aime pas l'effet Van Gogh, remets un effet normal »** — la touche est RETIRÉE
+  des NUAGES 3D (plus d'aplats de peintre ni de contour : `nuage8Mat` ne lit plus `uVG`, plus de `vO` ni de dérivées) et de la MER DE
+  NUAGES peinte (`vgMer` n'est plus appelé). Le CIEL garde ses touches et ses tourbillons (`cielTourbillon`, `uVG` par biome) tant que
+  Sacha ne dit pas le contraire : ne PAS remettre de touche sur les nuages. Les lignes ci-dessous sur « LES NUAGES » décrivent l'essai retiré.
 - PARTAGE : SON m'a confié TOUTE la touche (dôme compris, une seule main) ; le reste du dôme, les ambiances, l'étalonnage et la route restent
   à SON. `uVG` (skyU, partagé tel quel par les nuages : `N8_U.uVG = skyU.uVG`) porté par le biome : `vg:1` dans G9 (matin/midi/aprem),
   `vg:0` dans BIO_ETAL0, posé par bioApply. 0 = le ciel et les nuages d'avant.

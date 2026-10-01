@@ -38,7 +38,7 @@
 //  v30 (2026-09-30) : les fruits font SPLOTCH (4 prises par fruit) — sons-banque.js?v=8.
 //  v42 (2026-09-30) : LA FRONDE (sortie de virage) et le TRAIN DE BOOSTS — son fronde, sons-banque.js?v=10.
 //  v45 (2026-09-30) : le SON du niveau 1 — nuages.ambiance (l'air d'altitude) et chute.vent (la chute libre du menu) — sons-banque.js?v=11 ; puis le NIVEAU 1 v2 (image).
-const CACHE = 'cashcar-v48';
+const CACHE = 'cashcar-v49';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
