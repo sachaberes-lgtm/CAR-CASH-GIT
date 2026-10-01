@@ -59,6 +59,8 @@ h2:first-child{margin-top:0}
 .cou i::before{content:'';position:absolute;top:-2px;bottom:-2px;left:calc(var(--s)*100%/1.3);width:1px;background:#fff8;z-index:1}
 .cou.sol b{color:#ff7a24}
 .simEtat{color:var(--or)}
+.chefEtat{margin-top:10px;font-family:var(--pix);font-size:8px;line-height:1.6;color:var(--cash);min-height:13px}
+.bt.apercu{margin-left:8px;padding:8px 10px;min-height:36px;font-size:8px}
 .pied{margin-top:26px;color:var(--tx3);font-size:12px;line-height:1.6}
 .pied code{color:var(--tx2)}
 @media (prefers-reduced-motion:reduce){.carte{transition:none}}
@@ -86,6 +88,8 @@ h2:first-child{margin-top:0}
     <button class="bt" id="plus15" title="Avance le temps de 15 secondes">+15 S</button>
     <button class="bt" id="pal" title="Un palier moteur gagné : montée + crash sur la mesure suivante">PALIER +1</button>
     <button class="bt" id="sim" title="Une course simulée : départ arrêté, accélération, un saut, la nitro, un virage, le crash">SIMULER UNE COURSE</button>
+    <label class="ctl" title="Le volant (pour le CHEF : l'arpège et le lead glissent du côté du virage)">VIRAGE <input type="range" id="vir" min="-100" max="100" value="0"></label>
+    <button class="bt" id="drift" title="Maintiens : un drift (le CHEF fait rouler les charleys)">DRIFT</button>
     <button class="bt" id="frein" title="Maintiens : la voiture freine jusqu'à l'arrêt (l'ACCALMIE)">FREIN</button>
     <button class="bt" id="ench" title="À la fin d'un tour, passe à la boucle suivante">ENCHAINER</button>
     <span class="etat" id="etat">—</span>
@@ -100,6 +104,8 @@ h2:first-child{margin-top:0}
 
 <script src="assets/audio/music/boucles/boucles-donnees.js"></script>
 <script src="musique-vitesse.js"></script>
+<script src="musique-chef.js"></script>
+<script src="assets/audio/music/compo/compo-donnees.js"></script>
 <script>
 'use strict';
 const COUL=['#ff3ec8','#5ee6ff','#b28cff','#ff3b5c','#5dff9a','#ffb040','#ff7a24','#ffd75e'];
@@ -107,13 +113,19 @@ const LISTE=(window.BOUCLES||[]).slice();
 LISTE.push({id:'glassy',titre:'GLASSY PLUCKS',pour:'LOBBY · MISSIONS',bpm:150.3,cle:'do# dorien',ton:0,mesures:44,dur:70.24333,
   f:'assets/audio/music/glassy-plucks-boucle.m4a',groupe:'LE LOBBY ACTUEL',idee:"La section 1:04 → 2:14 de ton morceau Suno, bouclée sur 44 mesures exactes. C'est la musique de l'accueil ; aux MISSIONS, le générateur joue par-dessus."});
 const sa=t=>String(t).normalize('NFD').replace(/[\u0300-\u036f]/g,''); // la police pixel n'a pas de capitales accentuées
-const GROUPES=['LOBBY · 8 SECONDES','NIVEAUX · 8 SECONDES','LONGUES · 16 MESURES','LE LOBBY ACTUEL'];
+// LE CHEF D'ORCHESTRE (v4) : une carte par niveau, jouée en direct par musique-chef.js
+const TITRES_CHEF={nuages:['NUAGES · ASCENSION','Progressive euphorique, 128 BPM, la mineur. Un vrai hook, une grosse caisse en couches, des accords supersaw qui pompent ; la course décide de la forme : intro, groove, montée en nitro, drop au lâcher, break, et trois actes (au 3e le morceau monte d\'un ton).'],
+  ville:['VILLE · NUIT ÉLECTRIQUE','Trap sombre en demi-temps, 140 BPM, fa mineur. 808 qui glisse, charleys en triolets, clap sur le 3, lead saturé, cloches. Même chef : la forme suit la course, les virages déplacent l\'arpège et le lead, le drift fait rouler les charleys.'],
+  orbite:['ORBITE · ATTRACTION','Drum\'n\'bass, 174 BPM, ré mineur. Break de batterie, basse reese qui respire, cloches de verre, nappe large. En vol la batterie se tait, à la pose : impact.']};
+if(window.COMPO)for(const k in COMPO){const c=COMPO[k],t=TITRES_CHEF[k]||[k,''];LISTE.push({id:c.id,chef:c,titre:t[0],idee:t[1],pour:k.toUpperCase()+' · EN JEU',
+  groupe:'LE CHEF D\'ORCHESTRE · EN JEU',bpm:c.bpm,cle:c.cle,ton:c.ton,mesures:16,dur:16*240/c.bpm,apercu:c.apercu});}
+const GROUPES=['LE CHEF D\'ORCHESTRE · EN JEU','LOBBY · 8 SECONDES','NIVEAUX · 8 SECONDES','LONGUES · 16 MESURES','LE LOBBY ACTUEL'];
 LISTE.forEach((b,i)=>b._i=i);LISTE.sort((a,b)=>(GROUPES.indexOf(a.groupe||GROUPES[2])-GROUPES.indexOf(b.groupe||GROUPES[2]))||a._i-b._i);
 const SERVI=location.protocol.startsWith('http');
 let AC=null,sortie=null,filtre=null,brillance=null,analyseur=null;
 const BUF={},EL={};
 let cur=null,src=null,t0=0,ench=false,nitro=false;
-let mv=null,mvOn=false,vitCur=0,sim=null,simVol=false,motCur=0,simP=null,tJeu0=0,rap=1; // rap : le rapport de la boîte simulée // tJeu0 : l'heure où la musique a commencé (l'axe TEMPS) // la musique qui suit la vitesse (musique-vitesse.js)
+let virCur=0,driftCur=false,mvs={},mvChef=false,mv=null,mvOn=false,vitCur=0,sim=null,simVol=false,motCur=0,simP=null,tJeu0=0,rap=1; // rap : le rapport de la boîte simulée // tJeu0 : l'heure où la musique a commencé (l'axe TEMPS) // la musique qui suit la vitesse (musique-vitesse.js)
 
 function audio(){
   if(AC)return AC;
@@ -153,8 +165,11 @@ async function joue(i){
   if(SERVI){
     try{
       const ac=audio();if(ac.state!=='running')await ac.resume();
+      if(b.chef&&window.MusiqueChef){ // LE CHEF : la partition jouée en direct
+        etat('CHARGE LA BANQUE DE SONS…');mv=mvs.chef||(mvs.chef=MusiqueChef(ac,filtre));mvChef=true;await mv.charge(b.chef);if(cur!==i)return;
+        mv.joue(false);mvOn=true;t0=ac.currentTime+.08;tJeu0=performance.now();volFiltre();etat(b.titre+' · LE CHEF JOUE');return;}
       if(b.couches&&window.MusiqueVitesse){ // À COUCHES : toutes les couches ensemble, la vitesse les ouvre
-        etat('CHARGE LES COUCHES…');mv=mv||MusiqueVitesse(ac,filtre);await mv.charge(b);if(cur!==i)return;
+        etat('CHARGE LES COUCHES…');mv=mvs.vit||(mvs.vit=MusiqueVitesse(ac,filtre));mvChef=false;await mv.charge(b);if(cur!==i)return;
         mv.joue();mvOn=true;t0=ac.currentTime+.03;tJeu0=performance.now();volFiltre();etat(b.titre+' · SUIT LA VITESSE');return;}
       etat('CHARGE…');const {buf,deb}=await charge(b);if(cur!==i)return;
       src=ac.createBufferSource();src.buffer=buf;src.loop=true;src.loopStart=deb;src.loopEnd=deb+b.dur;
@@ -188,6 +203,10 @@ LISTE.forEach(function(b,i){
   c.querySelector('.nom').textContent=sa(b.titre);c.querySelector('.pour').textContent=sa(b.pour);
   c.querySelectorAll('.meta b')[1].textContent=sa(b.cle.toUpperCase());
   c.querySelector('.idee').textContent=b.idee;
+  if(b.chef){const ce=document.createElement('div');ce.className='chefEtat';ce.textContent='—';c.appendChild(ce);
+    const ap=document.createElement('button');ap.className='bt apercu';ap.textContent='APERCU';ap.title='La chanson telle que la course la jouerait : intro, groove, montée, drop (actes 1 et 2), break';
+    ap.addEventListener('click',function(e){e.stopPropagation();stop();const a=EL['ap'+i]||(EL['ap'+i]=new Audio(b.apercu));if(!a.paused){a.pause();return;}a.currentTime=0;a.volume=Math.min(1,vol());a.play();etat(b.titre+' · APERCU');});
+    c.querySelector('.haut').appendChild(ap);}
   if(b.couches){c.classList.add('aCouches');const bd=document.createElement('span');bd.className='badge';bd.textContent='SUIT LA VITESSE';c.querySelector('.pour').appendChild(bd);
     const cc=document.createElement('div');cc.className='couches';
     b.couches.forEach(function(k,j){const d=document.createElement('div');d.title=k.temps?('débloquée à '+k.temps+' s de musique'):'';d.className='cou'+(k.sol?' sol':'');d.style.setProperty('--s',k.seuil);
@@ -233,9 +252,12 @@ function logique(){ // LA LOGIQUE MUSICALE, toutes les 50 ms (une minuterie, pas
     // une BOÎTE simulée (5 rapports, comme en jeu : on ne rétrograde qu'un peu sous le bas du rapport)
     {const g=Math.min(5,1+Math.floor(Math.min(.999,vitCur/1.05)*5));if(g>rap)rap=g;else if(g<rap&&vitCur<(rap-1)/5*1.05*.95)rap=g;}
     const regime=Math.max(0,Math.min(1,vitCur/1.05*5-(rap-1)));
-    mv.regle({vitesse:vitCur,enVol:enVol,nitro:nitro,moteur:motCur,temps:tj,boite:(rap-1)/4,regime:regime});
+    if(sim){virCur=.6*Math.sin((performance.now()-sim)/1000*.9);driftCur=Math.abs(virCur)>.5&&vitCur>.8;}
+    mv.regle({vitesse:vitCur,enVol:enVol,nitro:nitro,moteur:motCur,temps:tj,boite:(rap-1)/4,regime:regime,virage:virCur,drift:driftCur});
+    if(mvChef){const e=mv.etat(),el=cartes[cur].querySelector('.chefEtat');if(el)el.textContent=e.section+' · ACTE '+e.acte+(e.ton!=='0'?' (+1 TON)':'')+' · INTENSITE '+Math.round(e.intensite*100)+'%'+(e.elan>.05?' · ELAN '+Math.round(e.elan*100)+'%':'')+(e.vol?' · EN VOL':'')+(e.accalmie?' · ACCALMIE':'')+(e.drift?' · DRIFT':'')+(Math.abs(e.virage)>.15?' · VIRAGE '+(e.virage>0?'>':'<'):'');}
     document.getElementById('rapV').textContent='R'+rap;
     document.getElementById('tpsV').textContent=Math.floor(tj/60)+':'+String(Math.floor(tj%60)).padStart(2,'0');
+    if(mvChef){document.getElementById('rapV').textContent='R'+rap;document.getElementById('tpsV').textContent=Math.floor(tj/60)+':'+String(Math.floor(tj%60)).padStart(2,'0');return;}
     const st=mv.etat(),c=cartes[cur];c.querySelectorAll('.cou i').forEach((el,j)=>el.style.setProperty('--g',st.gains[j]));
     c.querySelectorAll('.cou span').forEach((el,j)=>{if(st.variantes&&st.variantes[j]&&LISTE[cur].couches[j].variantes)el.textContent=st.variantes[j]+' · '+Math.round(LISTE[cur].couches[j].seuil*100)+'%';});
     const mk=c.querySelector('.mk');if(mk)mk.textContent='+'+st.rattrapage+(st.elan!=null?' · ELAN '+Math.round(st.elan*100)+'%'+(st.boost?' +':'')+(st.rupture?' · ACCALMIE':'')+(st.section?' · '+st.section:''):'');}
@@ -261,6 +283,9 @@ fb.addEventListener('pointerdown',e=>{e.preventDefault();simArrete();frein=true;
 setInterval(function(){if(sim)return;let c=null; // hors simulation, NITRO et FREIN pilotent la vitesse comme une vraie caisse
   if(frein)c=Math.max(0,vitCur-.12);else if(nitro)c=Math.min(1.25,vitCur+.04);if(c==null)return;vitCur=c;
   document.getElementById('vit').value=Math.round(vitCur*100);document.getElementById('vitV').textContent=Math.round(vitCur*100)+'%';},50);
+document.getElementById('vir').addEventListener('input',function(){virCur=this.value/100;});
+{const db=document.getElementById('drift');db.addEventListener('pointerdown',e=>{e.preventDefault();driftCur=true;db.classList.add('on');});
+ ['pointerup','pointerleave','pointercancel'].forEach(ev=>db.addEventListener(ev,()=>{driftCur=false;db.classList.remove('on');}));}
 document.getElementById('plus15').addEventListener('click',function(){tJeu0-=15000;if(sim)sim-=15000;});
 document.getElementById('mot').addEventListener('input',function(){motCur=this.value/100;document.getElementById('motV').textContent=this.value+'%';});
 document.getElementById('pal').addEventListener('click',function(){motCur=Math.min(1,motCur+1/12);const m=document.getElementById('mot');m.value=Math.round(motCur*100);document.getElementById('motV').textContent=m.value+'%';if(mvOn&&mv.palier)mv.palier(motCur);});

@@ -5061,7 +5061,7 @@ html #garage.nivOuvert:not(.boutique):not(.quiet):not(.launching) #gNiv{display:
   </div></div>
 </div>
 <script src="vendor/three.min.js"></script>
-<script src="musique-vitesse.js?v=12"></script><script src="assets/audio/music/boucles/couches-jeu.js?v=7"></script><!-- (2026-10-01) la musique qui suit la vitesse (voir <<<COUCHES>>>) -->
+<script src="musique-vitesse.js?v=12"></script><script src="assets/audio/music/boucles/couches-jeu.js?v=7"></script><script src="musique-chef.js?v=3"></script><script src="assets/audio/music/compo/compo-donnees.js?v=1"></script><!-- (2026-10-01) la musique qui suit la vitesse (voir <<<COUCHES>>>) -->
 <!-- POST-PROCESSING r128 (bloom cinématique) — version EXACTE alignée sur three r128. Chargés avant le jeu ;
      si l'un manque, le jeu retombe proprement sur renderer.render() (garde CAN_POST). -->
 <!-- ORDRE IMPORTANT : EffectComposer.js définit THREE.Pass, dont héritent Shader/Render/UnrealBloomPass — il doit venir AVANT elles. -->
@@ -22002,7 +22002,7 @@ function musicDeverrouille(){ // appelé à CHAQUE toucher/touche (en capture) :
       return;}
   }
   if(GEN.ac&&GEN.ac.state==='suspended'&&(GEN.voulu||MCV.voulu)&&!paused)try{GEN.ac.resume();}catch(e){} // (2026-10-01) le contexte du GÉNÉRATEUR se relance au toucher
-  if(!musicDeverrouille._mcv&&MCV.on&&/^https?:/.test(location.protocol)&&typeof MusiqueVitesse==='function'){musicDeverrouille._mcv=1;try{mcvPrepare();}catch(e){}} // (2026-10-01) le contexte naît PENDANT ce toucher (iOS), et la boucle des NUAGES se charge déjà
+  if(!musicDeverrouille._mcv&&MCV.on&&/^https?:/.test(location.protocol)&&(typeof MusiqueVitesse==='function'||typeof MusiqueChef==='function')){musicDeverrouille._mcv=1;try{mcvPrepare();}catch(e){}} // (2026-10-01) le contexte naît PENDANT ce toucher (iOS), et la boucle des NUAGES se charge déjà
   if(musicVoulue&&SND.music&&(el.paused||musicEnAttente))musicJoue();
 }
 ['pointerdown','touchend','keydown'].forEach(function(ev){addEventListener(ev,function(){try{musicDeverrouille();}catch(e){}},MUSIC_PASSIF);});
@@ -22428,18 +22428,28 @@ function musGenBascule(on){
    enchaîne selon la course, + pluie, nappe de Rhodes, arpège et charley trap (atelier-son/ville.py). */
 /* v3.2 (« pas totalement ça — le choix des instruments, la profondeur : un effet de superposition ») : les NUAGES jouent aussi un
    VRAI morceau, NOITE DE VELOCIDADE (leur musique d'origine), découpé comme la ville. NÉON DRIVE reste : `dbgCouches('nuages','neon-drive-2')`. */
-const MUSIC_COUCHES={nuages:'nuages-noite',ville:'ville-addictive'};
+/* v4 — LE CHEF D'ORCHESTRE (2026-10-01, Léo : « creuse comment créer une musique adaptée au jeu sans que la personne s'en rende compte,
+   qui tienne compte des virages, qui évolue ; chaque niveau sa musique ; compose en synthèse mais dépasse tes limites ; il manque
+   l'ÉNERGIE ») : chaque niveau a sa COMPOSITION jouée note à note par musique-chef.js (atelier-son/compo.py) — NUAGES « ASCENSION »
+   (progressive 128), VILLE « NUIT ÉLECTRIQUE » (trap sombre 140), ORBITE « ATTRACTION » (drum'n'bass 174). Les versions d'avant
+   restent : `dbgCouches('nuages','neon-drive-2')`, `('ville','ville-addictive')`, `('nuages','nuages-noite')`. */
+const MUSIC_COUCHES={nuages:'compo-nuages',ville:'compo-ville',espace:'compo-orbite'};
+function mcvDonnees(id){if(!id)return null;if(window.COUCHES_JEU&&COUCHES_JEU[id])return COUCHES_JEU[id];
+  if(window.COMPO)for(const k in COMPO)if(COMPO[k].id===id)return COMPO[k];return null;}
 const MCV={ok:null,on:true,mv:null,vol:null,id:'',pret:false,charge:null,voulu:false,actif:false,fren:false,boucle:null};
-function mcvBoucle(){const id=LVL.cur&&MUSIC_COUCHES[LVL.cur.id],d=id&&window.COUCHES_JEU&&COUCHES_JEU[id];if(d&&!d.id)d.id=id;return d||null;}
+function mcvBoucle(){const id=LVL.cur&&MUSIC_COUCHES[LVL.cur.id],d=mcvDonnees(id);if(d&&!d.id)d.id=id;return d||null;}
 function mcvVeut(){
   return MCV.on&&MCV.ok!==false&&SND.music&&musicMode==='run'&&!gameOver&&!paused&&!!mcvBoucle()&&
-    typeof MusiqueVitesse==='function'&&/^https?:/.test(location.protocol);
+    (typeof MusiqueVitesse==='function'||typeof MusiqueChef==='function')&&/^https?:/.test(location.protocol);
 }
 function mcvPrepare(){ // le contexte, le nœud de volume, le lecteur — et le chargement de la boucle du lieu
   if(!genGraphe())return false;
-  if(!MCV.mv){MCV.vol=GEN.ac.createGain();MCV.vol.gain.value=0;MCV.vol.connect(GEN.lim);MCV.vol.connect(GEN.ana);
-    MCV.mv=MusiqueVitesse(GEN.ac,MCV.vol);}
-  const b=mcvBoucle()||(window.COUCHES_JEU&&COUCHES_JEU[MUSIC_COUCHES.nuages]);if(!b)return false;if(!b.id)b.id=MUSIC_COUCHES.nuages;
+  if(!MCV.vol){MCV.vol=GEN.ac.createGain();MCV.vol.gain.value=0;MCV.vol.connect(GEN.lim);MCV.vol.connect(GEN.ana);MCV.mvs={};}
+  const b=mcvBoucle()||mcvDonnees(MUSIC_COUCHES.nuages);if(!b)return false;if(!b.id)b.id=MUSIC_COUCHES.nuages;
+  {const ty=b.sections?'chef':'vitesse';                              // (v4) une PARTITION → le chef ; une boucle à couches → l'ancien lecteur
+    if(!MCV.mvs[ty])MCV.mvs[ty]=ty==='chef'?MusiqueChef(GEN.ac,MCV.vol):MusiqueVitesse(GEN.ac,MCV.vol);
+    if(MCV.mv&&MCV.mv!==MCV.mvs[ty]&&!MCV.actif)try{MCV.mv.stop();}catch(e){}
+    MCV.mv=MCV.mvs[ty];}
   if(MCV.id!==b.id){MCV.id=b.id;MCV.boucle=b;MCV.pret=false;
     MCV.charge=MCV.mv.charge(b).then(function(){if(MCV.id!==b.id)return;MCV.pret=true;if(MCV.voulu&&!MCV.actif&&mcvVeut())mcvDemarre();})
       .catch(function(e){console.warn('musique à couches : ',e);MCV.ok=false;MCV.voulu=false;if(musicMode==='run')try{musicPlayCurrent();}catch(x){}});}
@@ -22448,7 +22458,7 @@ function mcvPrepare(){ // le contexte, le nœud de volume, le lecteur — et le 
 function mcvDemarre(){
   try{if(GEN.ac.state==='suspended')GEN.ac.resume();}catch(e){}
   if(musicEl&&!musicEl.paused){try{musicEl.pause();}catch(e){}}
-  MCV.mv.joue();MCV.actif=true;MCV.pal=engTier;MCV.tA=null;genAna(true);
+  MCV.mv.joue((MCV.t||0)>1);MCV.actif=true;MCV.pal=engTier;MCV.tA=null;genAna(true); // (v4) le chef REPREND sa chanson après une pause (même acte, même section)
   const t=GEN.ac.currentTime,g=MCV.vol.gain;g.cancelScheduledValues(t);g.setValueAtTime(0,t);g.setTargetAtTime(Math.max(0,musicVolCour),t,.15);
   sonTonSuit._t=null;
 }
@@ -22478,9 +22488,9 @@ function mcvTick(dt){
   {const n9=GEN.ac.currentTime;if(MCV.tA!=null)MCV.t=(MCV.t||0)+Math.max(0,Math.min(1,n9-MCV.tA));MCV.tA=n9;} // (v2.1) le TEMPS de musique jouée dans la partie, à l'HORLOGE AUDIO (pas aux images : un onglet ralenti ne le ralentit pas) — au début la BASE seule, le reste arrive avec lui
   const e9=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0],gn9=Math.max(1,(e9.gr|0)||1);
   MCV.mv.regle({vitesse:v,enVol:mode==='fall',nitro:nitroOn||MCV.fren,moteur:mot,frenesie:MCV.fren,temps:MCV.t,
-    boite:gn9>1?(engGear-1)/(gn9-1):Math.min(1,v),regime:engRpm}); // (v3.1) la BOÎTE et le RÉGIME : la ville monte d'une marche à chaque rapport
+    boite:gn9>1?(engGear-1)/(gn9-1):Math.min(1,v),regime:engRpm,virage:Math.max(-1,Math.min(1,steer||0)),drift:!!driftEnCours}); // (v4) le VOLANT et le DRIFT · (v3.1) la BOÎTE et le RÉGIME : la ville monte d'une marche à chaque rapport
   window.MUS_POMPE_MOT=MCV.mv.pompeMoteur?MCV.mv.pompeMoteur():1; // (v3.1) le moteur respire sur le temps de la musique
-  MCV.vol.gain.setTargetAtTime(Math.max(0,musicVolCour),GEN.ac.currentTime,.08);
+  MCV.vol.gain.setTargetAtTime(Math.max(0,musicVolCour)*(MCV.boucle&&MCV.boucle.sections?.85:1),GEN.ac.currentTime,.08); // le chef sort plus dense : un cran en dessous
   musicOn=true;
 }
 window.dbgCouches=function(a,b){

@@ -26,6 +26,7 @@
 12. « Pareil avec la musique de la VILLE, en samplant et en réorganisant, avec ta touche » → v3 (§5 sexies).
 13. « Mal réparti, prends des libertés, parallèle musique / moteur » + « trop superposé » → v3.1 (§5 septies).
 14. « Pas totalement ça : le choix des instruments, la profondeur — encore de la superposition » → v3.2 (§5 octies).
+15. « Creuse une musique adaptée sans qu'on s'en rende compte, virages, évolution ; recompose en synthèse, dépasse tes limites ; il manque l'énergie » → v4 LE CHEF D'ORCHESTRE (§5 nonies).
 
 ## 2. Les fichiers
 
@@ -282,6 +283,49 @@ effet de superposition ».
   épanouie puis éteinte, réverbe — les mêmes instruments, suspendus (`figer` dans ville.py).
 - Mesuré (page, muet) : NUAGES arrêt = CALME, profondeur .42, filtre 1,3 kHz ; 50 % = GROOVE, .19 ; 100 % = GROS, 0 ; arrêt brusque
   = ACCALMIE, .42, 915 Hz. Jeu : `nuages-noite` démarre en CALME, monte en GROOVE, zéro erreur.
+
+## 5 nonies. v4 — LE CHEF D'ORCHESTRE (2026-10-01) — LA VERSION EN JEU
+
+Léo : « au début c'était mieux… creuse comment créer une musique adaptée au jeu sans que la personne s'en rende compte, qui
+tienne compte des virages, qui évolue ; chaque niveau a sa musique ; la 1re idée me plaisait, la 2e trop superposée ; les
+musiques encore faibles » → questionnaire : SOURCE = « je recompose en synthèse, mais dépasse tes limites » · FAIBLESSE = « l'ÉNERGIE ».
+
+**Le principe change** : plus de boucles pré-mixées découpées en couches. Chaque niveau a une BANQUE DE SONS rendue hors ligne et
+une PARTITION ; le jeu JOUE la partition note à note (comme les musiques adaptatives des jeux pro).
+- `atelier-son/compo.py` : instruments (grosse caisse en 3 couches saturée, clap large, caisse de roulement, charleys, ride,
+  crash, basse roulante / 808 / reese, accords supersaw 7 voix, nappe en chorus, Rhodes FM, pluck, cloches, lead supersaw avec
+  vibrato, montées 1 et 4 mesures, descente, impact, crash inversé, sub-drop) · les 3 COMPOSITIONS · la PLANCHE (tous les sons
+  dans un fichier, chacun à son adresse) · le CALIBRAGE (chaque piste du DROP rendue seule, gain réglé vers sa cible `CIBLES`)
+  · un APERÇU (la chanson INTRO → GROOVE → MONTÉE → DROP ×2 → BREAK). → `assets/audio/music/compo/<niveau>-sons.m4a`,
+  `<niveau>-apercu.m4a`, `compo-donnees.js` (`window.COMPO`).
+- Les 3 musiques :
+  | Niveau | Titre | Style | BPM | Clé | Grille |
+  |---|---|---|---|---|---|
+  | NUAGES | ASCENSION | progressive euphorique | 128 | la m | la m · fa · do · sol |
+  | VILLE | NUIT ÉLECTRIQUE | trap sombre demi-temps, 808 qui glisse | 140 | fa m | fa m · ré♭ · la♭ · mi♭ |
+  | ORBITE (`espace`) | ATTRACTION | drum'n'bass, reese | 174 | ré m | ré m · si♭ · fa · do |
+  Chacune : un hook A, un hook B (la fin qui grimpe), le lead doublé à l'octave au 3e acte.
+- `musique-chef.js` (`MusiqueChef`, même API que MusiqueVitesse) — la FORME suit la course, toujours sur la grille :
+  INTRO (1re phrase) → GROOVE → DROP selon l'INTENSITÉ (vitesse + élan + moteur, montée τ 1 s / descente τ 3,5 s, densité des
+  pistes réglée par `minI` en GROOVE/INTRO) ; MONTÉE tant que la nitro est tenue (élan > .7, sur la barre suivante, montée de 4
+  mesures), DROP au LÂCHER avec IMPACT ; la mesure avant un DROP devient un ROULEMENT ; après 4 phrases de DROP, un BREAK (le
+  hook rejoué en pincé) puis le DROP revient à l'ACTE suivant ; 3e acte = le morceau MONTE D'UN TON ; VOL = grosse caisse / clap
+  / basse coupés à la croche + passe-haut, POSE = impact sur le temps ; ACCALMIE = BREAK au temps suivant + son qui se ferme,
+  RELANCE = montée (même entamée) puis le groove SUR la barre (~1,4 s mesuré) ; palier moteur = montée + crash, actes plus vite.
+  En continu : VOLANT → l'arpège (±.38) et le lead (±.22) glissent du côté du virage, l'arpège s'éclaircit ; DRIFT → roulements
+  de charley ; vitesse → filtre ; lenteur → réverbe ; élan → aigus ; POMPE de la basse/accords sous chaque grosse caisse ;
+  colle (compresseur) + écrêteur doux ; le moteur respire sur le temps (`pompeMoteur`). Réglages : `CH_REGLES`.
+- Jeu : `MUSIC_COUCHES = {nuages:'compo-nuages', ville:'compo-ville', espace:'compo-orbite'}` ; `mcvDonnees(id)` lit COUCHES_JEU ou
+  COMPO ; une instance par type (chef / couches) ; le chef REPREND sa chanson après une pause ; volume ×.85 (il sort plus dense).
+  Anciennes versions : `dbgCouches('nuages','neon-drive-2')`, `('ville','ville-addictive')`, `('nuages','nuages-noite')`.
+- Page `boucles.html`, groupe LE CHEF D'ORCHESTRE : une carte par niveau (section · acte · intensité · élan · vol · accalmie ·
+  drift · virage en direct), bouton APERÇU (la chanson entière), curseurs VITESSE / MOTEUR / VIRAGE, boutons NITRO / FREIN / DRIFT /
+  PALIER +1, SIMULER UNE COURSE (avec virages et drifts).
+- Mesuré (muet) : aperçus DROP ≈ −11 dB RMS (−15 avant), INTRO/BREAK ≈ −20 ; page : arrêt INTRO → 50 % GROOVE → 100 % DROP →
+  nitro MONTÉE → lâcher DROP ; vol −13,5 dB (batterie/basse coupées) → pose −10,9 ; plot → BREAK ; relance → DROP en 1,4 s ;
+  actes 1 → 2 → 3 (+2 demi-tons) ; VILLE et ORBITE jouent ; jeu : NUAGES joue (INTRO → …), changement de lieu en direct OK, zéro erreur.
+- ⚠ Mémoire : planches 93-119 s décodées ≈ 35-45 Mo par niveau (un seul niveau chargé à la fois). Pas encore écouté par Léo,
+  ni testé sur iPhone.
 
 ## 6. CE QUI RESTE À FAIRE (intégration au jeu)
 

@@ -77,7 +77,10 @@ carrière, missions, garage à onglets, boutique), + SEULEMENT :
   (`atelier-son/ville.py`, séquenceur de musique-vitesse.js) + pluie, Rhodes, arpège, charley trap (§5 sexies) ; v3.1 : la BOÎTE mène la ville (une marche par
   rapport, souffles de passage), le moteur pompe sur le temps (`MUS_POMPE_MOT` sur engPost), le morceau porte seul (§5 septies). v3.2 : les NUAGES jouent
   NOITE DE VELOCIDADE échantillonné (`nuages-noite`), PROFONDEUR = réverbe qui monte quand on ralentit, floraison taillée dans le
-  morceau, plus rien par-dessus (§5 octies). **Tout est résumé pour une autre discussion dans `MUSIQUE-PASSATION.md`.** (clic = écoute, EN VOL, NITRO, ENCHAÎNER ; servie = boucle sans couture).
+  morceau, plus rien par-dessus (§5 octies). **v4 — LE CHEF D'ORCHESTRE (EN JEU, les 3 niveaux)** : `atelier-son/compo.py`
+  (banque de sons + partition + calibrage + aperçu → `assets/audio/music/compo/`) et `musique-chef.js` (joue la partition au seizième :
+  INTRO/GROOVE/MONTÉE/DROP/BREAK/ROULEMENT selon la course, 3 actes dont une montée d'un ton, vol/pose, accalmie/relance, volant →
+  panoramique, drift → roulements). NUAGES ASCENSION 128 · VILLE NUIT ÉLECTRIQUE 140 · ORBITE ATTRACTION 174 (§5 nonies). **Tout est résumé pour une autre discussion dans `MUSIQUE-PASSATION.md`.** (clic = écoute, EN VOL, NITRO, ENCHAÎNER ; servie = boucle sans couture).
 
 
 ## LES 10 PREMIÈRES MINUTES — CÔTÉ INTERFACE (2026-09-29, session INTERFACE)
