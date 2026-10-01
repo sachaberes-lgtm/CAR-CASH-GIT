@@ -27,6 +27,7 @@ local Garage = require(CL:WaitForChild("Garage"))
 local Score = require(CL:WaitForChild("Score"))
 local HudScore = require(CL:WaitForChild("HudScore"))
 local Missions = require(CL:WaitForChild("Missions"))
+local Camera = require(CL:WaitForChild("Camera"))
 
 local M, SPD = Config.M, Config.SPD
 local RH, THICK = Config.ROAD_HALF, Config.THICK
@@ -1750,71 +1751,56 @@ end
 -- ════════ LA CAMÉRA (L36096-36170, L36389) ════════
 local menuCap = Vector3.new(0, 0, -1)
 local camFov = 72
-local orbite = 0
+-- (la caméra de ROUTE, de VOL et de MORT est celle du jeu web d'aujourd'hui : Client/Camera)
+local CX: any = { repere = function(sM: number, face: number): CFrame return Piste.repereFace(piste, sM * M, face) end }
+local CV: any = {}
 local function camera(dt: number)
 	if cam.CameraType ~= Enum.CameraType.Scriptable then cam.CameraType = Enum.CameraType.Scriptable end
-	local CA = Config.CAM
-	local vis, pos, haut, fov
 	local p = carCF.Position
-	local lvF = Score.niveau() * 2.2 -- le FLOW ouvre le champ
+	local fiche = poignees.fiche
+	local t = os.clock()
+	local sh, roulis = Vector3.zero, 0
 	fovPunch = math.max(0, fovPunch - 18 * dt)
 	if mode == "drive" then
-		local cf = repere(s, side)
-		local fwd = (cf.Rotation * CFrame.Angles(0, -psi, 0)).LookVector
-		local N = cf.UpVector
-		local vk = math.min(333, kmh())
-		local recul = (CA.recul + CA.reculL + vk * 0.0018 + ((nitroOn and 0.72 or 0) + (boost > 0 and 0.5 or 0)) * 0.2 * 1.6) * M
-		local hauteurC = (recul / M * CA.hauteur + vk * 0.0012) * M
-		local dir = cf.LookVector:Lerp(fwd, 0.55).Unit
-		pos = p - dir * recul + N * hauteurC
-		vis = p + fwd * (CA.vise * M) + N * (CA.viseH * M)
-		haut = N
-		local r = kmh() / (vmaxShow() * 1.55)
-		fov = CA.fov + math.min(16, r * 10 + math.max(0, r - 1) * 4) + (boost > 0 and 4 or 0) + (nitroOn and 7 or 0) + lvF + fovPunch
-		camPos = camPos:Lerp(pos, math.min(1, dt * 7))
-		camVise = camVise:Lerp(vis, math.min(1, dt * 9))
-		camUp = camUp:Lerp(haut, math.min(1, dt * 4)).Unit
+		CX.carCF, CX.cf, CX.s, CX.L, CX.lat, CX.side, CX.psi, CX.vA = carCF, repere(s, side), s, piste.len / M, lat, side, psi, vA
+		CX.kmh, CX.vCrois, CX.vitMult, CX.nitroOn, CX.bleue, CX.boost = kmh(), vmaxShow() * 1.55, vitMult(), nitroOn, nitroBleue, boost
+		CX.steer, CX.flow, CX.punch, CX.l, CX.h = steerS, Score.niveau(), fovPunch, fiche.l, fiche.h
+		camPos, camVise, camUp, camFov = Camera.route(dt, CX, camPos)
+		sh, roulis = Camera.secousseRoute(t, secousse, CX, vmaxShow())
+		secousse = math.max(0, secousse - 3.5 * dt)
 	elseif mode == "fall" then
-		local big = math.clamp((V.fallT - 0.5) / 2.2, 0, 1)
-		local h = Vector3.new(fallVel.X, 0, fallVel.Z)
-		local dir = (h.Magnitude > 1) and h.Unit or Vector3.new(flyAv.X, 0, flyAv.Z).Unit
-		if dir ~= dir then dir = Vector3.new(0, 0, -1) end
-		pos = p - dir * ((9 - 2.6 * big) * M) + Vector3.yAxis * ((3.5 + 2.4 * big) * M)
-		camPos = camPos:Lerp(pos, math.min(1, dt * (3 + 4.5 * big)))
-		camVise = camVise:Lerp(p, math.min(1, dt * 10))
-		camUp = camUp:Lerp(Vector3.yAxis, math.min(1, dt * 3)).Unit
-		fov = 76 - 22 * big + (nitroOn and (nitroBleue and 18 or 13) or 0) + lvF * 0.5 + fovPunch
+		CV.carCF, CV.fallVel, CV.av, CV.haut, CV.fallT, CV.dtF = carCF, fallVel, flyAv, flyU, V.fallT, dt
+		CV.nitroOn, CV.bleue, CV.punch, CV.l, CV.w, CV.h, CV.kmh = nitroOn, nitroBleue, fovPunch, fiche.l, fiche.w, fiche.h, kmh()
+		camPos, camVise, camUp, camFov = Camera.vol(dt, CV, camPos)
+		sh = Camera.secousseVol(t, secousse, CV)
+		secousse = math.max(0, secousse - 3 * dt)
 	elseif mode == "boom" or mode == "mort" then
-		orbite += dt * 0.25
-		pos = boomPos + Vector3.new(math.cos(orbite), 0.45, math.sin(orbite)) * (26 * M)
-		camPos = camPos:Lerp(pos, math.min(1, dt * 2))
-		camVise = camVise:Lerp(boomPos, math.min(1, dt * 4))
-		camUp = camUp:Lerp(Vector3.yAxis, math.min(1, dt * 3)).Unit
-		fov = 70
+		camPos, camVise, camUp, camFov = Camera.mort(dt, boomPos, boomT, camPos)
+		-- le tremblement de l'explosion : un sinus lisse sur la visée, qui retombe
+		if secousse > 0 then
+			local a9 = 0.09 * math.min(2.6, secousse) * M
+			camVise += Vector3.new(math.sin(t * 47) * a9, math.sin(t * 37 + 1.3) * a9 * 0.8, 0)
+			secousse = math.max(0, secousse - 3 * dt)
+		end
 	else -- menu (la CHUTE du web) : la caisse à GAUCHE de l'écran, nez qui plonge vers la droite
 		local av = Vector3.new(menuCap.X, 0, menuCap.Z).Unit
 		local dr = av:Cross(Vector3.yAxis)
 		-- (chuteRender du web) la vue est EN HAUTEUR (~20°) et plonge sur la caisse : la mer de nuages remplit l'écran
 		-- sous l'horizon ; objectif de 46° ; la caisse à gauche, la colonne de boutons à droite
-		pos = p - av * (3 * M) + dr * (14.5 * M) + Vector3.yAxis * (5.4 * M)
+		local pos = p - av * (3 * M) + dr * (14.5 * M) + Vector3.yAxis * (5.4 * M)
 		camPos = camPos:Lerp(pos, math.min(1, dt * 3))
 		camVise = camVise:Lerp(p + av * (5.6 * M) - Vector3.yAxis * (0.5 * M), math.min(1, dt * 4))
 		camUp = Vector3.yAxis
-		fov = 46
+		camFov += (46 - camFov) * math.min(1, dt * 6)
+		Camera.etat.fov = camFov
+		secousse = math.max(0, secousse - 2.5 * dt)
 	end
-	camFov += (math.min(Config.CAM.fovMax, fov) - camFov) * math.min(1, dt * 6)
-	cam.FieldOfView = camFov
-	-- la vibration de vitesse (relative à la caisse ; l'hyper-vitesse la calme)
-	local sh = Vector3.zero
-	local spdN = kmh() / math.max(1, vmaxShow())
-	secousse = math.max(0, secousse - dt * 2.5)
-	local amp = secousse + ((mode == "drive") and math.max(0, spdN - 0.45) * 0.05 or 0)
-	if amp > 0 then
-		local t = os.clock()
-		sh = Vector3.new(math.noise(t * 23, 1), math.noise(t * 23, 2), math.noise(t * 23, 3)) * amp * M
-	end
+	-- (Roblox ne rend pas un champ de plus de 120°)
+	cam.FieldOfView = math.clamp(camFov, 20, 120)
 	if (camVise - camPos).Magnitude < 0.01 then camVise = camPos + Vector3.new(0, 0, -1) end
-	cam.CFrame = CFrame.lookAt(camPos + sh, camVise, camUp)
+	local cfC = CFrame.lookAt(camPos + sh, camVise, camUp)
+	if roulis ~= 0 then cfC *= CFrame.Angles(0, 0, roulis) end
+	cam.CFrame = cfC
 end
 
 -- ════════ la caisse, ses feux, ses sons ════════

@@ -19,6 +19,7 @@ local Hud = require(script.Parent:WaitForChild("Hud"))
 local HudScore = require(script.Parent:WaitForChild("HudScore"))
 local Sons = require(script.Parent:WaitForChild("Sons"))
 local Score = require(script.Parent:WaitForChild("Score"))
+local Camera = require(script.Parent:WaitForChild("Camera"))
 local M = Config.M
 local FR = string.sub(Players.LocalPlayer.LocaleId or "fr", 1, 2) == "fr"
 local function tr(fr: string, en: string): string return FR and fr or en end
@@ -1044,6 +1045,7 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 		-- la pose PARFAITE : les bords de l'écran s'allument d'or
 		if (p.g or 1) >= 1.5 and not p.ratee and ((p.fallT or 0) > 0.7 or p.paye) then
 			flashBords(Color3.fromRGB(255, 200, 60), 0.95)
+			Camera.zoom(1) -- le coup de zoom : sec, relache en une demi-seconde
 		end
 	end)
 	Bus.on("mort", function(cause: string, enVol: boolean, chaine: number?)

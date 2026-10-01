@@ -34,7 +34,11 @@ local MATIERES = {
 local function lumiere(c: Color3): Color3
 	local mx = math.max(c.R, c.G, c.B, 0.001)
 	local f = math.clamp(0.92 / mx, 1, 1.7)
-	return Color3.new(math.min(1, c.R * f), math.min(1, c.G * f), math.min(1, c.B * f))
+	local l = Color3.new(math.min(1, c.R * f), math.min(1, c.G * f), math.min(1, c.B * f))
+	-- (capture du jeu web du 1er oct. : LA HONTE y est ORANGE VIF, ici elle sortait beige) l etalonnage du web sature
+	-- aussi les teintes (x 1,44) : on pousse la saturation de la laque, les gris restent gris
+	local h, sat, v = l:ToHSV()
+	return Color3.fromHSV(h, 1 - (1 - sat) ^ 1.6, v)
 end
 
 local function souder(racine: BasePart, p: BasePart, cf: CFrame, modele: Instance)
