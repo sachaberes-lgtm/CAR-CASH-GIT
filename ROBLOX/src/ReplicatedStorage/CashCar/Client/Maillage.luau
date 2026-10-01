@@ -55,6 +55,38 @@ function Maillage.seul(f: (...any) -> ...any, ...: any): ...any
 	return table.unpack(r, 2, r.n)
 end
 
+-- (banc) CE QU'IL RESTE DU BUDGET : on fabrique des maillages figés de 1 000 triangles jusqu'au refus, puis on rend tout.
+-- Écrit le résultat dans la Sortie. À lancer au menu, une fois tout bâti (Config.BANC_BUDGET).
+function Maillage.mesurer(etiquette: string)
+	-- trois façons de bâtir ~1 000 triangles : sommets NON partagés · sommets partagés · partagés + une normale par face
+	local function essai(nom: string, batir: (any) -> ())
+		Maillage.seul(function()
+			local garde, n = {}, 0
+			while n < 900 do
+				local ok, em = pcall(function() return AssetService:CreateEditableMesh() end)
+				if not ok or not em then break end
+				batir(em)
+				local okF, fige = pcall(function() return AssetService:CreateEditableMeshAsync(Content.fromObject(em), { FixedSize = true }) end)
+				em:Destroy()
+				if not okF or not fige then break end
+				table.insert(garde, fige)
+				n += 1
+				if n % 20 == 0 then task.wait() end
+			end
+			warn(string.format("[CashCar] BUDGET %s — %s : %d maillages de ~1 000 triangles avant refus", etiquette, nom, n))
+			for _, f in garde do f:Destroy() end
+		end)
+		task.wait(0.5)
+	end
+	for _, nt in { 100, 1000, 4000 } do
+		essai(nt .. " triangles par maillage", function(em)
+			for i = 1, nt do
+				em:AddTriangle(em:AddVertex(Vector3.new(i, 0, 0)), em:AddVertex(Vector3.new(i, 1, 0)), em:AddVertex(Vector3.new(i, 0, 1)))
+			end
+		end)
+	end
+end
+
 local PAS = 10 -- octets par sommet
 export type Peinture = { c: Color3?, grad: { Color3 }? } -- une teinte unie, ou un dégradé de trois couleurs du bas de caisse au toit
 export type Options = {

@@ -1830,24 +1830,16 @@ local function habiller(dt: number)
 	if mode == "boom" or mode == "mort" or mode == "charge" then return end
 	racine.CFrame = carCF
 	local feu = nitroOn or boost > 0 or NTR.boost > 0
-	local couleur = pwN > 0 and ColorSequence.new(Color3.fromRGB(190, 110, 255), Color3.fromRGB(110, 40, 255))
-		or (nitroBleue and ColorSequence.new(Color3.fromRGB(150, 170, 255), Color3.fromRGB(60, 90, 255)))
-		or (nitroOn and ColorSequence.new(Color3.fromRGB(255, 180, 70), Color3.fromRGB(255, 70, 30)))
-		or ColorSequence.new(Color3.fromRGB(255, 230, 130), Color3.fromRGB(255, 170, 40))
-	-- la TRAÎNÉE de la boutique se pose par-dessus la signature (nitro simple seulement : le violet, le bleu et l'or gardent leur sens)
+	-- la couleur du feu (les teintes de la bible du web) : violet de la nitro infinie, bleu de la réserve, orange de la nitro, or du pad
+	local couleur = (pwN > 0 and Color3.fromRGB(157, 77, 255)) or (nitroBleue and Color3.fromRGB(91, 125, 255))
+		or (nitroOn and Color3.fromRGB(255, 122, 36)) or Color3.fromRGB(255, 215, 94)
+	-- la TRAÎNÉE de la boutique se pose par-dessus (nitro simple seulement : le violet, le bleu et l'or gardent leur sens)
+	local arc: ColorSequence? = nil
 	local tr9 = Config.habit("trainee", profil.porte and profil.porte.trainee)
 	if tr9 and pwN <= 0 and not nitroBleue and nitroOn then
-		if tr9.arcenciel then
-			couleur = ARC_EN_CIEL
-		elseif tr9.c then
-			couleur = ColorSequence.new(tr9.c:Lerp(Color3.new(1, 1, 1), 0.35), tr9.c)
-		end
+		if tr9.arcenciel then arc = ARC_EN_CIEL elseif tr9.c then couleur = tr9.c end
 	end
-	for _, f in flammes do f.Rate = nitroOn and 110 or (boost > 0 and 45 or 0) end
-	for _, t in trainees do
-		t.Enabled = feu
-		t.Color = couleur
-	end
+	Caisse.feu(poignees, feu, nitroOn and 130 or (boost > 0 and 55 or 0), couleur, arc)
 	-- les AILES : rentrées dans le flanc au sol, sorties en vol ; les hélices brassent doucement au sol et s'emballent en vol
 	G.ailes += (((mode == "fall" and not intro) and 1 or 0) - G.ailes) * math.min(1, dt * 6)
 	G.helice += dt * (3.5 + G.ailes * 36)
@@ -2236,8 +2228,7 @@ task.spawn(function()
 					if voir then d.c.PrimaryPart.CFrame = m.PrimaryPart.CFrame end
 				end
 				local nitro = voir and m:GetAttribute("Nitro") == true
-				for _, f in d.pg.flammes do f.Rate = nitro and 90 or 0 end
-				for _, t in d.pg.trainees do t.Enabled = nitro end
+				Caisse.feu(d.pg, nitro, nitro and 110 or 0, Color3.fromRGB(255, 122, 36))
 			end
 		end
 		task.wait(0.25)
@@ -2407,6 +2398,13 @@ end)
 allerMenu()
 end
 
+if Config.BANC_BUDGET then
+	task.spawn(function()
+		local Maillage = require(CL:WaitForChild("Maillage"))
+		task.wait(8) -- (le titre et la zone 2 ont fini de se bâtir)
+		Maillage.mesurer("au menu")
+	end)
+end
 -- aide au débogage (console du client dans Studio) : _G.cashcar()
 -- (la console de Studio ne partage pas _G avec les scripts : pour imposer une vue, poser l'attribut DbgVue — un CFrame — sur le Workspace)
 _G.cashcar = function()

@@ -137,9 +137,10 @@ local function preparer(i: number)
 		if ok and m then prets[i] = m end
 	end)
 end
-local function oublier(sauf: number)
+-- UN SEUL moteur bâti à la fois : Roblox ne donne que ~68 000 triangles à tout ce qui est bâti par code
+local function oublier(sauf: number?)
 	for i, m in prets do
-		if i ~= sauf and i ~= sauf + 1 then
+		if i ~= sauf then
 			m:Destroy()
 			prets[i] = nil
 		end
@@ -156,8 +157,10 @@ local function fin()
 	local c = carte
 	if not c then return end
 	carte = nil
-	if c.modele then c.modele.Parent = nil end
 	c.a:Destroy()
+	-- le moteur montré est rendu, celui du palier suivant se bâtit à sa place
+	oublier(nil)
+	preparer(c.tier + 1)
 end
 
 local function texte(parent: Instance, taille: number, y: number, h: number): TextLabel
@@ -214,8 +217,6 @@ local function ouvrir(tier: number, gain: number)
 			if carte and carte.tier == tier and not carte.plonge then Sons.jouer("maillon", Sons.demiTons(gamme[(i % #gamme) + 1]), 0.3) end
 		end)
 	end
-	preparer(tier + 1)
-	oublier(tier)
 end
 
 local function tick(dt: number)
@@ -294,6 +295,7 @@ function MoteurCarte.init()
 	end)
 	Bus.on("partie", function()
 		fin()
+		oublier(1)
 		preparer(1)
 	end)
 	Bus.on("moteur", function(tier: number, gain: number)

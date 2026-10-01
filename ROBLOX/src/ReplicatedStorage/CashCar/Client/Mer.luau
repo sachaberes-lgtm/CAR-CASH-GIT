@@ -27,7 +27,7 @@ local NP = 8            -- dalles FINES par côté (8 × 8 = 64, ±8 000 studs)
 local P = T * NP
 local NPL = 16          -- dalles GROSSIÈRES par côté (16 × 16, ±16 000 studs ; celles sous les fines sont cachées)
 local PL = T * NPL
-local G = 20            -- carreaux par côté d'une dalle fine
+local G = 12            -- carreaux par côté d'une dalle fine (20 avant : le budget de triangles de Roblox, ~68 000 pour TOUT ce qui est bâti par code)
 local GL = 5            -- … d'une dalle grossière
 local JUPE = 140        -- studs : la jupe qui pend au bord de chaque dalle (aucun jour entre deux finesses)
 local N = 1024          -- l'image

@@ -246,42 +246,76 @@ function Caisse.construire(nom: string, indice: number, ancree: boolean?, habits
 		f.LightEmission = 1
 		f.LightInfluence = 0
 		f.Rate = 0
-		f.Lifetime = NumberRange.new(0.06, 0.14)
-		f.Speed = NumberRange.new(20, 28)
-		f.SpreadAngle = Vector2.new(6, 6)
+		f.Lifetime = NumberRange.new(0.08, 0.16)
+		f.Speed = NumberRange.new(36, 58)
+		f.SpreadAngle = Vector2.new(5, 5)
 		f.EmissionDirection = Enum.NormalId.Back
-		f.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.9), NumberSequenceKeypoint.new(1, 0.1) })
+		f.Brightness = 2.5
+		f.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1.25), NumberSequenceKeypoint.new(1, 0.15) })
 		f.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.1), NumberSequenceKeypoint.new(1, 1) })
 		f.Color = ColorSequence.new(Color3.fromRGB(255, 220, 140), cJet)
 		f.Parent = a
 		table.insert(poignees.flammes, f)
 	end
-	for i, tp in fiche.trainees do
-		local a0 = Instance.new("Attachment")
-		a0.Name = "TraineeH" .. i
-		a0.Position = Vector3.new(tp[1] * M, tp[2] * M + 0.4, tp[3] * M + 0.1)
-		a0.Parent = r
-		local a1 = Instance.new("Attachment")
-		a1.Name = "TraineeB" .. i
-		a1.Position = Vector3.new(tp[1] * M, tp[2] * M - 0.4, tp[3] * M + 0.1)
-		a1.Parent = r
-		local t = Instance.new("Trail")
-		t.Name = "Trainee" .. i
-		t.Attachment0 = a0
-		t.Attachment1 = a1
-		t.Lifetime = 0.45
-		t.MinLength = 0.2
-		t.LightEmission = 1
-		t.LightInfluence = 0
-		t.FaceCamera = true
-		t.WidthScale = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(1, 0.15) })
-		t.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.05), NumberSequenceKeypoint.new(1, 1) })
-		t.Color = ColorSequence.new(Color3.fromRGB(255, 160, 60), Color3.fromRGB(255, 60, 30))
-		t.Enabled = false
-		t.Parent = r
-		table.insert(poignees.trainees, t)
+	-- LE SILLAGE v6 (SIL, index.html L14430) : UN PAR POT (4 au plus), né dans sa bouche, long de 100 m. Deux couches dans chaque
+	-- sillage : un HALO doux qui s'élargit vers le bout, et un CŒUR fin qui blanchit à la tuyère (c'est lui que le bloom attrape).
+	-- Un seul pot : un sillage plus large ; trois ou quatre : un peu plus fins (ils s'additionnent).
+	local np = math.min(4, #fiche.pots)
+	local wu = (np == 1) and 1.4 or ((np >= 3) and 0.85 or 1)
+	for i, pot in fiche.pots do
+		if i > 4 then break end
+		for _, couche in { { "Halo", 0.56 * wu, 2.6, 1.0 }, { "Coeur", 0.21 * wu, 0.7, 2.0 } } do -- (vu dans Studio a 1,5 / 3,2 : en vol, la camera dans l axe, tout l ecran partait au blanc)
+			local demi = couche[2] * 0.5 * M
+			local a0 = Instance.new("Attachment")
+			a0.Name = "Sillage" .. couche[1] .. "H" .. i
+			a0.Position = Vector3.new(pot[1] * M, pot[2] * M + demi, pot[3] * M + 0.1)
+			a0.Parent = r
+			local a1 = Instance.new("Attachment")
+			a1.Name = "Sillage" .. couche[1] .. "B" .. i
+			a1.Position = Vector3.new(pot[1] * M, pot[2] * M - demi, pot[3] * M + 0.1)
+			a1.Parent = r
+			local t = Instance.new("Trail")
+			t.Name = couche[1]
+			t.Attachment0 = a0
+			t.Attachment1 = a1
+			t.Lifetime = 2.2
+			t.MaxLength = 100 * M
+			t.MinLength = 0.3
+			t.LightEmission = 1
+			t.LightInfluence = 0
+			t.Brightness = couche[4]
+			t.FaceCamera = true
+			t.WidthScale = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(1, couche[3]) })
+			-- la queue s'éteint sur le dernier quart (24 m sur 100)
+			t.Transparency = (couche[1] == "Halo")
+				and NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.62), NumberSequenceKeypoint.new(0.76, 0.76), NumberSequenceKeypoint.new(1, 1) })
+				or NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.05), NumberSequenceKeypoint.new(0.5, 0.3), NumberSequenceKeypoint.new(0.76, 0.5), NumberSequenceKeypoint.new(1, 1) })
+			t.Color = ColorSequence.new(Color3.fromRGB(255, 160, 60), Color3.fromRGB(255, 60, 30))
+			t.Enabled = false
+			t.Parent = r
+			table.insert(poignees.trainees, t)
+		end
 	end
 	return m, poignees
+end
+
+-- LE FEU DE LA CAISSE : la plume des pots et les sillages, selon l'état. on = le sillage est allumé ; debit = particules par
+-- seconde et par pot ; c = la couleur du feu (orange nitro, bleu de réserve, violet de la nitro infinie, or du pad, ou la
+-- traînée de la boutique) ; arc = un arc-en-ciel (ColorSequence) à la place. Vers le bout, le feu tire au rouge-magenta.
+local BRAISE = Color3.fromRGB(255, 40, 110)
+function Caisse.feu(poignees: any, on: boolean, debit: number, c: Color3, arc: ColorSequence?)
+	local chaud = c:Lerp(Color3.new(1, 1, 1), 0.72)
+	local flamme = ColorSequence.new(chaud, c)
+	for _, f in poignees.flammes do
+		f.Rate = debit
+		f.Color = flamme
+	end
+	local halo = arc or ColorSequence.new({ ColorSequenceKeypoint.new(0, c), ColorSequenceKeypoint.new(0.6, c:Lerp(BRAISE, 0.3)), ColorSequenceKeypoint.new(1, c:Lerp(BRAISE, 0.6)) })
+	local coeur = arc or ColorSequence.new({ ColorSequenceKeypoint.new(0, chaud), ColorSequenceKeypoint.new(0.25, c:Lerp(Color3.new(1, 1, 1), 0.3)), ColorSequenceKeypoint.new(1, c:Lerp(BRAISE, 0.45)) })
+	for _, t in poignees.trainees do
+		t.Enabled = on
+		t.Color = (t.Name == "Coeur") and coeur or halo
+	end
 end
 
 -- ════════ LES AILES (L19229) : repliées dans le flanc au sol, DÉPLOYÉES en vol. Le style de la boutique remplace celui

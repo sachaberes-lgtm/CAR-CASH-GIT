@@ -363,13 +363,21 @@ local PICTOS = {
 }
 local imagesPicto: { [string]: any } = {}
 local modelesCristal: { [string]: any } = {}
+local cristalBase: any = nil
 local function cristalModele(pw: string): BasePart?
 	local m = modelesCristal[pw]
 	if m ~= nil then return m or nil end
 	modelesCristal[pw] = false
 	local def = Config.POUVOIRS[pw]
-	local verre = Maillage.piece(Objets.cristal.verre, M)
-	if not verre then return nil end
+	-- (le budget de triangles : les cinq cristaux partagent les mêmes trois maillages, copiés et recolorés)
+	if cristalBase == nil then
+		local v0 = Maillage.piece(Objets.cristal.verre, M)
+		local c0, cc = Maillage.piece(Objets.cristal.coeur, M)
+		local a0, ac = Maillage.piece(Objets.cristal.anneaux, M)
+		cristalBase = (v0 and c0 and a0) and { v0, c0, cc, a0, ac } or false
+	end
+	if not cristalBase then return nil end
+	local verre = cristalBase[1]:Clone()
 	verre.Anchored = true
 	verre.Massless = false
 	verre.CastShadow = false
@@ -377,12 +385,12 @@ local function cristalModele(pw: string): BasePart?
 	verre.Color = def.couleur
 	verre.Transparency = 0.28
 	verre.Reflectance = 0.2
-	for _, q in { { Objets.cristal.coeur, def.couleur:Lerp(Color3.new(1, 1, 1), 0.82) }, { Objets.cristal.anneaux, def.couleur } } do
-		local p, centre = Maillage.piece(q[1], M)
-		if p then
+	for _, q in { { cristalBase[2], cristalBase[3], def.couleur:Lerp(Color3.new(1, 1, 1), 0.82) }, { cristalBase[4], cristalBase[5], def.couleur } } do
+		local p, centre = q[1]:Clone(), q[2]
+		do
 			p.CastShadow = false
 			p.Material = Enum.Material.Neon
-			p.Color = q[2]
+			p.Color = q[3]
 			p.CFrame = verre.CFrame * CFrame.new(centre)
 			local w = Instance.new("WeldConstraint")
 			w.Part0, w.Part1 = verre, p

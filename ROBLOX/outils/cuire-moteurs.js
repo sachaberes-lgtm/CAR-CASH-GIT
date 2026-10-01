@@ -92,6 +92,29 @@ function teinte(mat, col) {
   }
   return col;
 }
+// LE BUDGET DE ROBLOX : tous les maillages bâtis par code se partagent ~68 000 triangles (mesuré dans Studio). Un V16 en pèse
+// 13 600 à lui seul. La carte moteur montre le moteur une seconde et demie, à l'échelle de la caisse : on retire ses plus PETITES
+// pièces (boulons, colliers, ailettes) jusqu'à tenir sous PLAFOND triangles — la silhouette et les couleurs restent.
+const PLAFOND = 4800;
+function alleger(racine) {
+  racine.updateMatrixWorld(true);
+  const l = []; let total = 0;
+  racine.traverse(o => {
+    if (!o.isMesh || !o.geometry || !o.geometry.attributes.position || o.visible === false) return;
+    const mat = Array.isArray(o.material) ? o.material[0] : o.material;
+    if (mat.transparent && mat.opacity < 0.35) return;
+    const g = o.geometry, nt = (g.index ? g.index.count : g.attributes.position.count) / 3;
+    if (!g.boundingBox) g.computeBoundingBox();
+    const b = g.boundingBox.clone().applyMatrix4(o.matrixWorld), d = b.max.clone().sub(b.min);
+    l.push({ o, nt, taille: Math.max(d.x, d.y, d.z), lumiere: matiere(mat) === 'l' }); total += nt;
+  });
+  if (total <= PLAFOND) return 0;
+  // (ce qui s'ALLUME reste : c'est la signature du moteur)
+  l.sort((x, y) => (x.lumiere - y.lumiere) || (x.taille - y.taille));
+  let retire = 0;
+  for (const e of l) { if (total <= PLAFOND || e.lumiere) break; e.o.visible = false; total -= e.nt; retire++; }
+  return retire;
+}
 function cuire(racine) {
   const out = {}; racine.updateMatrixWorld(true);
   const va = new THREE.Vector3(), col = new THREE.Color();
@@ -146,7 +169,8 @@ for (const f of fs.readdirSync(SORTIE)) fs.unlinkSync(path.join(SORTIE, f));
 const fiches = []; let total = 0, ko = 0; const erreurs = [];
 G.ENGINE_TIERS.forEach((E, i) => {
   let c;
-  try { c = cuire(G.mkEngine(i)); } catch (e) { erreurs.push(i + ' ' + E.n + ' : ' + e.message); return; }
+  let retire = 0;
+  try { const m9 = G.mkEngine(i); retire = alleger(m9); c = cuire(m9); } catch (e) { erreurs.push(i + ' ' + E.n + ' : ' + e.message); return; }
   const tete = '-- CASH CAR — ' + E.n + ' (moteur ' + i + ') — CUIT par outils/cuire-moteurs.js, ne pas éditer.\n';
   let src = tete + 'return {\n';
   let nt = 0; const parts = {};
@@ -168,7 +192,7 @@ G.ENGINE_TIERS.forEach((E, i) => {
     ', mn = { ' + [-c.mx[0], c.mn[1], -c.mx[2]].map(n3).join(', ') + ' }, mx = { ' + [-c.mn[0], c.mx[1], -c.mn[2]].map(n3).join(', ') + ' } },');
   const res = Object.keys(c.out).map(g => g + ':' + (c.out[g].T.length / 3)).join(' ');
   console.log('  ' + String(i).padStart(2) + ' ' + E.n.padEnd(22) + String(nt).padStart(6) + ' triangles  ' + (src.length / 1024).toFixed(0).padStart(4) + ' Ko   ' +
-    [0, 1, 2].map(j => n3(c.mx[j] - c.mn[j])).join(' × ') + ' m   ' + res);
+    [0, 1, 2].map(j => n3(c.mx[j] - c.mn[j])).join(' × ') + ' m   ' + res + (retire ? '   (' + retire + ' petites pièces retirées)' : ''));
 });
 fs.writeFileSync(path.join(SORTIE, 'Liste.luau'), '-- CASH CAR — LES 30 MOTEURS — CUIT par outils/cuire-moteurs.js depuis VERSION PRINCIPALE/index.html, ne pas éditer.\n' +
   '-- Indices du jeu web (0 = MOTEUR ROUILLÉ). mn / mx = la boîte du moteur, en mètres, repère Roblox.\nreturn {\n' + fiches.join('\n') + '\n}\n');

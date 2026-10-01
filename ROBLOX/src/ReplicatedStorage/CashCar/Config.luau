@@ -197,6 +197,7 @@ Config.CAM = {
 Config.TEST_CAISSES = true
 
 Config.CAISSE_TEST = nil :: number? -- (banc) force la caisse équipée, pour regarder un gabarit sans passer par le garage
+Config.BANC_BUDGET = false -- (banc) mesure, au menu, ce qu'il reste du budget de mémoire des maillages (voir Maillage.mesurer)
 
 Config.GARAGE_Y = 3000 -- où la caisse attend quand on est au menu (hors de la route)
 Config.DATASTORE = "CashCarRecords_v1"
