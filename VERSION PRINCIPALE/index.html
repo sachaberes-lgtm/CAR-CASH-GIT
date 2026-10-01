@@ -27218,6 +27218,24 @@ window.dbgBord=function(o){ // (banc) LE BORD DE LA ROUTE : pose la caisse à un
   if(o&&mode==='drive'){if(o.lat!=null)lat=+o.lat;if(o.vL!=null)vL=+o.vL;if(o.grace!=null)graceT=+o.grace;if(o.psi!=null){psi=+o.psi;yawR=0;}if(o.vA!=null)vA=+o.vA;if(o.s!=null){s=+o.s;prevTvalid=false;}if(o.saut)startFall(+o.saut,1);}
   if(o&&mode==='fall'&&o.rentre!=null&&tryLand._bi>=0)fallVel.addScaledVector(B[tryLand._bi],-Math.sign(curLatOff||1)*(+o.rentre)*vitMult()); // (banc) en vol : une vitesse vers la route (le joueur qui braque déjà)
   return {mode:mode,lat:+lat.toFixed(2),demi:ROAD_HALF,vL:+vL.toFixed(2),bumps:bounceN,fallT:+fallT.toFixed(2),side:side,hOff:+curHOff.toFixed(2),latOff:+curLatOff.toFixed(2),steer:+steer.toFixed(2),basc:bascOn};};
+/* (banc, 2026-10-01 — Sacha : « il y a des bugs quand on essaye de se poser sur la route, lance des debug ») LA POSE AU BANC : lâche la caisse
+   au-dessus de la route, au point `s` (ou `ds` devant, ou le prochain point `cherche` : 'plat' | 'montee' | 'descente' | 'virage'), à `h` mètres
+   de la dalle (face −1 : dessous), à l'écart latéral `lat`, avec ses vitesses DANS LE REPÈRE DE LA DALLE (vT le long, vB de côté, vN vers
+   la dalle si < 0). Le banc avance ensuite image par image (dbgStep) et lit dbgBord() / window.__poseJ (le journal des poses : hauteur à
+   laquelle la pose a été déclarée, point de traversée, vitesse normale, face). Aucun effet hors banc. */
+window.dbgPose=function(o){o=o||{};if(!started||gameOver)return null;
+  const ds=L/(NP-1);let i=Math.max(6,Math.min(NP-7,Math.round((o.s!=null?+o.s:s+(o.ds==null?60:+o.ds))/ds)));
+  const ka=function(k){return T[Math.min(NP-1,k+4)].distanceTo(T[Math.max(0,k-4)])/(8*ds);};
+  if(o.cherche)for(let k=i;k<NP-60;k++){const ty=T[k].y,ny=Nn[k].y,c=ka(k);
+    const ok=o.cherche==='plat'?(Math.abs(ty)<.04&&ny>.97&&c<.002):o.cherche==='montee'?(ty>.12&&ny>.8):o.cherche==='descente'?(ty<-.12&&ny>.8):o.cherche==='virage'?(c>.006&&ny>.9&&Math.abs(ty)<.1):false;
+    if(o.cherche==='droit'){let d9=Math.abs(ty)<.05&&ny>.97;for(let q=k;d9&&q<Math.min(NP-8,k+Math.round(160/ds));q+=3)d9=ka(q)<.0012&&Math.abs(T[q].y)<.06&&!holeAtS(q*ds);if(d9){i=k;break;}continue;} /* 'droit' : 160 m de route droite et plate devant */
+    if(ok&&!holeAtS(k*ds)){i=k;break;}}
+  const f=o.face<0?-1:1,h=o.h==null?6:+o.h;
+  if(mode!=='fall')startFall(0,1);
+  fallPos.copy(pts[i]).addScaledVector(Nn[i],f>0?h:-THICK-h).addScaledVector(B[i],+o.lat||0);
+  fallVel.copy(T[i]).multiplyScalar(o.vT==null?120:+o.vT).addScaledVector(B[i],+o.vB||0).addScaledVector(Nn[i],(o.vN==null?-6:+o.vN)*f);
+  fallT=fallTR=o.t==null?1:+o.t;fallStartSide=f;fallUnder=false;bascOn=false;sideCd=0;graceT=0;bounceN=0;tryLand._bi=i;carGroup.position.copy(fallPos);
+  return {i:i,s:Math.round(i*ds),pente:+T[i].y.toFixed(3),ny:+Nn[i].y.toFixed(3),courbure:+ka(i).toFixed(4),demi:ROAD_HALF,ep:THICK,largeur:CARS[level].w,L:Math.round(L)};};
 window.dbgConduite=function(q){
   if(q==='son'){const E=[];for(const f of [function(){blip();},function(){boostSnd(1.5);},function(){froleSnd(1,3);},function(){flowSnd(4);}])
     try{f();}catch(e){E.push(String(e));}return E.length?E:'ok';}
@@ -28207,6 +28225,8 @@ let airRoll=0; // vrille visuelle en vol
    `bascOn` = ce vol vient d'une sortie par le bord, `bascDir` = sens de la vrille (+1 = celui de toujours), `levreY` = la marche que la
    caisse remonte en raccrochant (décroît). */
 let bascOn=false,bascDir=1,levreY=0,bascT=0; /* bascT (1/10, soir) : le temps VÉCU depuis la sortie par le bord — `fallT` est rendu par les bumps, il réarmait la bascule en plein vol */
+const BUMP_VY=16; /* (2026-10-01) la vitesse verticale rendue par un BUMP (voir tryLand) */
+const LEVRE_POSE=.45; /* (2026-10-01) la marche qu'un pneu monte à TOUTE pose au bord (voir levre9 dans tryLand) */
 const LEVRE_H=2; /* (1/10, soir : 1,2 → 2 m, pendant 1 s — la marge que donnait, par accident, la portée réarmée après un bump) */ // sous la surface, jusqu'où le pneu peut encore raccrocher la lèvre (plus bas : c'est la tranche qui cogne → BUMP)
 /* (2026-10-01, Sacha, le lendemain : « maintenant quand on s'expulse de la route à grande vitesse on MEURT sans raison, sans qu'on ait la
    chance de se RATTRAPER ») — la v2 avait retiré le bond de sortie (+0,6 m et +3,4 vers le haut) : c'était le « clic », mais c'était AUSSI
@@ -28229,7 +28249,7 @@ let gapArmed=0,rampCd=0;
 let nitroAirT=0,fallUnder=false,fallStartSide=1,pureT=0,pureArmed=true,pureNext=0,pureLvl=0;
 let bounceN=0,airFlash=0; // BUMPS : rebonds sur la tranche de la dalle pendant CE vol
 let runStats={tricks:0,bumps:0,zones:0,vmax:0,chainMax:0,gaps:0,surv:0}; // bilan de la run (écran de fin) + les exploits versés aux compteurs À VIE qui débloquent les caisses
-let hopY=0,hopV=0; // petit saut de dos d'âne
+let hopY=0,hopV=0,POSE_F=null; // petit saut de dos d'âne — (2026-10-01) POSE_F : le contact d'une pose déclarée en l'air (voir « LA POSE SANS SAUT »)
 let nitroR=2,nitroX=0,nitroOn=false,nitroBlue=false,nitroHeldT=0;
 /* ---------- LA NITRO v3 — « LE COUP » (2026-09-27, vague 3) ----------
    Sacha : « Les effets de nitro sont un peu faiblards, travaille-les correctement comme dans Asphalt. »
@@ -30282,7 +30302,7 @@ function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (
   // servait qu'à rendre la portée ∝ vitesse malgré le plafond total — l'horizontale conservée le
   // fait désormais NATIVEMENT (portée = vx·2vy/g, vx vrai).
   if(fallVel.y>70)fallVel.y=70;
-  hopY=0;hopV=0; // un dos d'âne en cours ne doit pas laisser de décalage fantôme
+  hopY=0;hopV=0;POSE_F=null; // un dos d'âne en cours ne doit pas laisser de décalage fantôme
   lastNearY=fallPos.y; // référence du plongeon fatal tant que tryLand n'a pas mieux
   {tmp.copy(fallVel).normalize();FLY_U.copy(F.n).addScaledVector(tmp,-F.n.dot(tmp)); // (vol libre) le haut du vol part de celui de la route
    if(FLY_U.lengthSq()<1e-4)FLY_U.copy(F.b).cross(tmp);FLY_U.normalize();FLY_R.crossVectors(FLY_U,tmp).normalize();}
@@ -30385,7 +30405,13 @@ function tryLand(dt){
   // ANTI-TUNNEL : où était la caisse à la frame d'avant, dans le repère de la dalle ?
   // À grande vitesse le pas d'une frame dépasse les fenêtres de contact — on teste la TRAVERSÉE.
   const prevH=hOff-vN*dt*SPD,prevL=latOff-vB*dt*SPD;
-  const bumpIn=Math.abs(latOff)>=ROAD_HALF&&Math.abs(latOff)<ROAD_HALF+2.6&&vB*Math.sign(latOff)<-3;
+  /* (2026-10-01, LA POSE — MESURÉ au banc da/pose-cote.js) LE MUR INVISIBLE DU BORD : le BUMP se déclenchait jusqu'à 2,6 m AVANT la tranche
+     (la caisse y était ramenée d'un coup) et jusqu'à 80 cm AU-DESSUS du bitume — une caisse qui revenait se poser par le côté, plus haute
+     que la route, rebondissait sur du vide et repartait dans le ciel (« BUMP (h 0,79) puis tombée »). Le BUMP est le choc contre la TRANCHE :
+     il faut que le flanc de la caisse l'atteigne (sa demi-largeur + le pas de l'image) et que ses roues soient au niveau de la dalle ou
+     dessous (12 cm de marge, dessus comme dessous). Plus haut, elle passe le bord et se pose ; les traversées en une image restent prises. */
+  const mrgB9=CARS[level].w*.5+Math.max(.2,Math.abs(vB)*SPD*dt*1.5);
+  const bumpIn=Math.abs(latOff)>=ROAD_HALF&&Math.abs(latOff)<ROAD_HALF+mrgB9&&vB*Math.sign(latOff)<-3;
   const bumpThru=Math.abs(prevL)>=ROAD_HALF&&Math.abs(latOff)<ROAD_HALF&&Math.sign(prevL)*vB<-3; // paroi percée en une frame
   /* (bord, 1/10) LA CAISSE PORTÉE PAR LA LÈVRE : le temps qu'elle BASCULE (BASC_T, 0,45 s) — et tant que ses roues intérieures sont
      encore sur la route (le centre à moins d'une demi-largeur au-delà du bord) — la caisse n'est pas en chute libre : elle PIVOTE sur la
@@ -30405,11 +30431,16 @@ function tryLand(dt){
      Rien n'est payé ni rendu (ni nitro, ni figure) : on a juste sauvé sa peau. Dessus seulement (la face du dessous n'a pas de sol). */
   if(bascOn&&fallStartSide>0&&sideCd<=0&&bascT<1&&hOff>-LEVRE_H&&hOff<.8&&Math.abs(latOff)<ROAD_HALF+CARS[level].w*.5&&vB*Math.sign(latOff)<-.5){
     levreRattrape(bestI,latOff,hOff,dTmp.dot(T[bestI]));return true;}
-  if(sideCd<=0&&hOff>-THICK-.8&&hOff<.8&&(bumpIn||bumpThru)){
+  /* (2026-10-01, LA POSE) LA LÈVRE POUR TOUTE POSE : la caisse qui touche la tranche avec ses roues à moins de LEVRE_POSE (45 cm) sous le
+     bitume ne REBONDIT plus (MESURÉ : « BUMP (h 0,06, à 25 cm du bord) puis tombée » — les trois quarts de la caisse au-dessus de la route,
+     et elle repartait dans le vide) : le pneu monte la marche et elle se POSE au bord — une vraie pose (la chaîne s'encaisse, la vitesse
+     se paie comme partout). Plus bas, c'est la carrosserie qui cogne la tranche : BUMP, comme avant. */
+  const tranche9=sideCd<=0&&hOff>-THICK-.12&&hOff<.12&&(bumpIn||bumpThru),levre9=tranche9&&hOff>-LEVRE_POSE&&fallT>.35&&vN<4.5?(bumpThru?Math.sign(prevL):Math.sign(latOff)):0;
+  if(tranche9&&!levre9){
     const sg=bumpThru?Math.sign(prevL):Math.sign(latOff),impB=Math.abs(vB);
     fallVel.addScaledVector(B[bestI],-vB*1.65); // réflexion amortie sur la paroi
     fallVel.multiplyScalar(.78);
-    fallVel.y+=2.4; // la tranche RENVOIE la caisse vers le ciel
+    fallVel.y=Math.max(fallVel.y+2.4,BUMP_VY*Math.sqrt(gK())); /* (2026-10-01, LA POSE) la tranche RENVOIE la caisse vers le ciel — POUR DE BON : le +2,4 d'origine (calé sur une autre échelle de vitesse) ne valait plus que 4 cm de montée et s'AJOUTAIT à la chute — un BUMP était une condamnation (relevé par GRAPHISME, MESURÉ au banc : « BUMP (h −0,95) puis tombée », à chaque fois). La vitesse verticale REPART à BUMP_VY : ~1,9 m de montée (gravité monde 15,8 m/s²), ~1 s en l'air — une caisse qui a cogné la tranche à moins de 1,3 m sous le bitume remonte AU-DESSUS de la route et peut revenir s'y poser (le volant commande le vol) ; plus bas, elle reste dessous. √gK : même hauteur en gravité lunaire. */
     // (bord v2) la caisse est remise CONTRE la tranche (sa demi-largeur), là où elle la touche : avant, elle était téléportée à 1,8 m du bord
     // ET recalée sur le point de piste le plus proche (jusqu'à 1,6 m le long du ruban) — un saut d'image, pas un choc
     fallPos.addScaledVector(B[bestI],sg*Math.max(bumpThru?0:Math.abs(latOff),ROAD_HALF+CARS[level].w*.5)-latOff);
@@ -30429,7 +30460,7 @@ function tryLand(dt){
     return false; // toujours en vol — enchaîne les bumps !
   }
   let sideL=0;
-  if(fallT>.35&&hOff>-1.2&&hOff<3&&vN<4.5)sideL=1;                     // face du dessus (fenêtre élargie)
+  if(levre9||(fallT>.35&&hOff>-1.2&&hOff<3&&vN<4.5))sideL=1;                     // face du dessus (fenêtre élargie) — ou la LÈVRE (voir levre9)
   else if(fallT>.1&&prevH>-1.2&&hOff<=-1.2&&vN<4.5)sideL=1;      // dessus PERCÉ : TOUTE traversée du plan supérieur est rattrapée (plus de seuil d'amplitude → fini la caisse qui passe à travers la route)
   else if(fallT>.35&&hOff>-THICK-3&&hOff<-THICK+1.2&&vN>-4.5)sideL=-1; // face du dessous
   else if(fallT>.1&&prevH<-THICK+1.2&&hOff>=-THICK+1.2&&vN>-4.5)sideL=-1; // dessous percé en montant : idem, toute traversée compte
@@ -30444,7 +30475,7 @@ function tryLand(dt){
   // RAMENAIT la caisse dans la largeur — un aimant de plus. Désormais : le point EXACT où la trajectoire traverse le plan de la
   // dalle (interpolé entre l'image d'avant et celle-ci) ; s'il est au-dessus du vide, on tombe. Aucun recentrage.
   if(!sideL)return false;
-  const hS9=sideL>0?0:-THICK,dh9=prevH-hOff,f9=Math.abs(dh9)>1e-4?THREE.MathUtils.clamp((prevH-hS9)/dh9,0,1):1,latX9=prevL+(latOff-prevL)*f9;
+  const hS9=sideL>0?0:-THICK,dh9=prevH-hOff,f9=Math.abs(dh9)>1e-4?THREE.MathUtils.clamp((prevH-hS9)/dh9,0,1):1,latX9=levre9?levre9*(ROAD_HALF-.05):prevL+(latOff-prevL)*f9; /* (la LÈVRE : posée au bord, roues intérieures sur le bitume) */
   if(Math.abs(latX9)>=ROAD_HALF+facBord())return false; // (MODE FACILE) 5 m de plus de chaque côté : la caisse est ramenée dans la largeur juste dessous
   s=THREE.MathUtils.clamp(bestI/(NP-1)*L+THREE.MathUtils.clamp(dTmp.dot(T[bestI]),-2,2),0,L-1);
   side=sideL;lat=THREE.MathUtils.clamp(latX9,-ROAD_HALF+.02,ROAD_HALF-.02)*sideL;
@@ -30472,10 +30503,21 @@ function tryLand(dt){
   vA*=(1-landLoss);vL*=(1-landLoss);
   if(landLoss>.2)dropChip(2);
   if(landLoss>.28&&fallT>1.6)slowT=Math.max(slowT,.25);
+  if(window.__poseJ)window.__poseJ.push({h:+hOff.toFixed(2),hAvant:+prevH.toFixed(2),lat:+latX9.toFixed(2),vN:+vN.toFixed(1),vT:+fallVel.dot(T[bestI]).toFixed(1),face:sideL,t:+fallT.toFixed(2),vA:+vA.toFixed(1),psi:+psi.toFixed(2)}); /* (banc) le journal des poses */
   prevTvalid=false;mode='drive';
-  poseGerbe(carGroup.position,Nn[bestI],sideL,T[bestI],vA*SPD*driveDir,impact); // (2026-09-26) la GERBE DE POSE : étincelles de châssis qui rasent le bitume + gomme
-  thud(Math.abs(vN)*(impact<4.5&&landLoss<.2?.75:1));shake=Math.min(1.4,.35+Math.abs(vN)*.05+landLoss*.6);squashT=Math.max(squashT,.1+Math.min(.2,impact*.022)); // (2026-09-28) la caisse se TASSE sur ses ressorts à la pose (la réception n'en avait aucun) // (2026-09-25) la pose PARFAITE ne cogne plus plus fort que la lourde
-  engRpm*=.6;charge9=1;if(impact>2)pneuMord(Math.min(1,impact/10)); // la gomme MORD : le moteur reprend en charge, et ça piaille
+  /* LA POSE SANS SAUT (2026-10-01, Sacha : « il y a des bugs quand on essaye de se poser sur la route » — MESURÉ au banc des poses,
+     da/pose-banc.js, 144 lâchers à 1/60 s) : la pose est DÉCLARÉE dès que la caisse passe sous 3 m de la dalle (la fenêtre élargie), et la
+     conduite la posait SUR le bitume à l'image suivante — elle descendait de 2,1 à 2,6 m EN UNE IMAGE (le monde sautait à l'écran, 0,12 à
+     0,20 NDC contre 0,01 à 0,06 pour un pas normal), et la gerbe, le choc et le tassement partaient en l'air, un quart de seconde trop tôt.
+     Désormais la hauteur qui reste devient un SAUT de conduite (hopY / hopV, la mécanique du dos d'âne et du replacement) : la caisse FINIT
+     sa descente à sa vitesse de chute, et la gerbe, le choc, la secousse, le tassement et la gomme partent AU CONTACT (POSE_F). La règle de
+     pose (quand on est posé, où, à quelle vitesse, ce que ça paie) ne change pas d'une virgule. */
+  {const hR9=sideL>0?hOff:-THICK-hOff,nI9=bestI,lL9=landLoss,vN9=vN,imp9=impact,sd9=sideL;
+   const touche9=function(){
+     poseGerbe(carGroup.position,Nn[nI9],sd9,T[nI9],vA*SPD*driveDir,imp9); // (2026-09-26) la GERBE DE POSE : étincelles de châssis qui rasent le bitume + gomme
+     thud(Math.abs(vN9)*(imp9<4.5&&lL9<.2?.75:1));shake=Math.min(1.4,.35+Math.abs(vN9)*.05+lL9*.6);squashT=Math.max(squashT,.1+Math.min(.2,imp9*.022)); // (2026-09-28) la caisse se TASSE sur ses ressorts à la pose // (2026-09-25) la pose PARFAITE ne cogne plus plus fort que la lourde
+     engRpm*=.6;charge9=1;if(imp9>2)pneuMord(Math.min(1,imp9/10));}; // la gomme MORD : le moteur reprend en charge, et ça piaille
+   if(hR9>.25){hopY=hR9;hopV=(sd9>0?vN9:-vN9)*SPD;POSE_F=touche9;}else{hopY=0;hopV=0;POSE_F=null;if(sd9>0&&hR9<0)levreY=Math.max(-.6,hR9);touche9();}} /* posée SOUS le niveau du bitume (lèvre, plan percé) : elle remonte sa marche en ~0,15 s (levreY) au lieu d'y sauter */
   /* ---- LA RÉCEPTION À L'ARRACHÉE (2026-08-18) -------------------------------------------------
      Se poser À UN CHEVEU du couperet des 6 secondes. C'est le geste le plus tendu du jeu : rester en
      l'air paye en chaîne, mais dépasser tue — donc le style consiste à frôler la limite.
@@ -36630,7 +36672,7 @@ function loop(now){
       }
       if(hopY>0||hopV!==0){
         hopY+=hopV*dt;hopV-=26*gK()*dt;
-        if(hopY<=0){hopY=0;hopV=0;squashT=Math.max(squashT,.15);if(introD)smashPig();} // SPLAT.
+        if(hopY<=0){hopY=0;hopV=0;squashT=Math.max(squashT,.15);if(introD)smashPig();if(POSE_F){const f9=POSE_F;POSE_F=null;try{f9();}catch(e){}}} // SPLAT. — (2026-10-01) et le CONTACT d'une pose (gerbe, choc, gomme)
       }
       // plots orange : les percuter les envoie valser (étincelles + petite perte de vitesse)
       // (2026-09-25) LE FRÔLÉ : on regarde quels plots sont passés DERRIÈRE la caisse depuis l'image précédente (un
@@ -36872,13 +36914,14 @@ function loop(now){
         tmp2.copy(carGroup.position).addScaledVector(loop._camD,-camBack).addScaledVector(F.n,camH).addScaledVector(F.b,cLag9);
         {const n9=performance.now(); // l'écart repart de la caméra RÉELLE à chaque reprise de conduite (après un vol, le garage, un respawn)
          if(!loop._camOff)loop._camOff=new THREE.Vector3();
-         if(n9-(loop._camDriveT||0)>(window.dbgCamReprise||150)){ /* (banc) dbgCamReprise : en rendu logiciel (200-300 ms l'image) CHAQUE image passait pour une reprise de conduite et la caméra reculait de v·dt à chaque image */loop._camOff.subVectors(camera.position,carGroup.position);CAM_ROUTE.phi=0;} // (vague 3) le pivot anticipé repart de zéro, lui aussi
+         if(n9-(loop._camDriveT||0)>(window.dbgCamReprise||150)){ /* (banc) dbgCamReprise : en rendu logiciel (200-300 ms l'image) CHAQUE image passait pour une reprise de conduite et la caméra reculait de v·dt à chaque image */loop._camOff.subVectors(camera.position,loop._carPrev&&loop._carPrev.distanceToSquared(carGroup.position)<900?loop._carPrev:carGroup.position);CAM_ROUTE.phi=0;} /* (2026-10-01, LA POSE) l'écart repart de la caisse de l'image D'AVANT (`_carPrev`) : mesuré à la caisse de CETTE image, il clouait la caméra sur place une image entière (elle n'avançait que de 0,4 m au lieu de 0,8, de 0,6 au lieu de 2,5 à 540 km/h), puis elle rattrapait — l'à-coup de la pose */ // (vague 3) le pivot anticipé repart de zéro, lui aussi
          loop._camDriveT=n9;}
         {const off=loop._camOff,cibleOff=tmp2.sub(carGroup.position);        // l'écart VOULU (tmp2 redevient un écart)
          camRouteTonneau(cibleOff,loop._camD,dt); // (vague 3) dessus ↔ dessous : la caméra ROULE et orbite (voir CAM_ROUTE)
          if(off.distanceToSquared(cibleOff)>2500)off.copy(cibleOff);           // téléport (respawn, portail) : on ne lisse pas un saut de 50 m
-         off.lerp(cibleOff,Math.min(1,dt*(CAM_ROUTE.vif?16:7))); // (vague 3) pendant le tonneau, la caméra colle à son orbite (sinon elle coupe au travers de la dalle)
+         {const r9=loop._viseR==null?1:loop._viseR;off.lerp(cibleOff,Math.min(1,dt*(CAM_ROUTE.vif?16:7*(.3+.7*r9*r9))));} /* (2026-10-01, LA POSE) la PLACE de la caméra reprend en douceur, comme sa visée (`_viseR`) : à ×7/s elle faisait 11 % du chemin entre la caméra de vol et celle de route dès la 1re image */ // (vague 3) pendant le tonneau, la caméra colle à son orbite (sinon elle coupe au travers de la dalle)
          camera.position.copy(carGroup.position).add(off);}
+        (loop._carPrev||(loop._carPrev=new THREE.Vector3())).copy(carGroup.position);
         camUp.lerp(F.n,Math.min(1,dt*4)).normalize();
         qTmp2.setFromAxisAngle(fwdW,-camLean); // inclinaison caméra très légère dans les virages
         camera.up.copy(camUp).applyQuaternion(qTmp2); // ⚠ (conduite v6) BUG : la penche était ré-appliquée à camUp À CHAQUE IMAGE — elle s'additionnait (×15 à 60 i/s, ×30 à 120 Hz) : l'horizon penchait de 22 à 68° à chaque coup de pouce
@@ -36899,7 +36942,11 @@ function loop(now){
          CR.D=dR;CR.kV=kV;
          tmp2.lerp(tmp3,kV);
          tmp2.sub(carGroup.position); // (conduite v6) lissée RELATIVEMENT à la caisse : lissée en position monde, elle traînait de v/9 — à 700 km/h on regardait le capot
-         if(!loop._vise||n9Saut(loop))loop._vise=tmp2.clone();else loop._vise.lerp(tmp2,Math.min(1,dt*9));
+         /* (2026-10-01, LA POSE) LA VISÉE REPREND EN DOUCEUR : en vol la caméra vise la caisse, au sol ~10 m devant — à la pose, la visée y repartait
+            à plein régime (×9/s : 15 % du chemin dès la 1re image, la caisse glissait de 0,05 à 0,18 NDC en une image — MESURÉ au banc des poses,
+            contre 0,005 à 0,04 pour un pas de vol). Elle part désormais lentement (×2,2/s) et retrouve son régime en 0,6 s (`_viseR`, remis à 0 en vol). */
+         loop._viseR=Math.min(1,(loop._viseR==null?1:loop._viseR)+dt/.6);
+         if(!loop._vise||n9Saut(loop))loop._vise=tmp2.clone();else loop._vise.lerp(tmp2,Math.min(1,dt*(2.2+6.8*loop._viseR*loop._viseR)));
          tmp2.copy(loop._vise).add(carGroup.position);}
         /* (vague 3) LE CABRAGE ANTICIPÉ : tout le plan (place, visée, haut) pivote autour de la caisse d'une part du cabrage de la route
            à venir — la caisse reste à sa place à l'écran, c'est la route devant qui redevient lisible (voir CAM_ROUTE) */
@@ -37169,6 +37216,7 @@ function loop(now){
          fond désormais vers la caisse en ~0,4 s, la penche du virage aussi — et comme `n9Saut` reste nourri en vol, la visée repart EN
          DOUCEUR à l'atterrissage au lieu d'y sauter. */
       if(Math.abs(camLean)>.001){camLean*=Math.exp(-dt*5);qTmp2.setFromAxisAngle(tmp,-camLean);camera.up.applyQuaternion(qTmp2);}
+      loop._viseR=0;(loop._carPrev||(loop._carPrev=new THREE.Vector3())).copy(fallPos); /* (2026-10-01) à la pose, la visée de conduite repartira en douceur — et la caméra de route, de la caisse de cette image */
       {const v9=loop._vise;if(v9){if(n9Saut(loop))v9.set(0,0,0);else v9.multiplyScalar(Math.exp(-dt*5));}
        camera.lookAt(fallPos.x+(v9?v9.x:0),fallPos.y+(v9?v9.y:0),fallPos.z+(v9?v9.z:0));}
       // LES CHOCS EN VOL SE SENTENT (bump sur la tranche, surf de nuage, catapulte) — un petit déplacement qui décroît ici, le regard reste sur la caisse
