@@ -324,15 +324,22 @@ local function ajouterPieces(n: number)
 	if tier > avant then
 		-- LE PASSAGE DE PALIER (L22576) : le nom du moteur, le rugissement, « +N KM/H »
 		local gain = math.floor(190 * SPD * (tardif() * pousseMoteur() - (1 + math.min(0.5, math.max(0, avant - 8) * 0.035)) * MOT[avant + 1][2]) * 2.9 + 0.5)
-		HudScore.slam(MOT[tier + 1].nom, tr("NOUVEAU MOTEUR", "NEW ENGINE"), "#ffd75e", "#dfeeff", 26, 1)
-		Sons.jouer("nitroPlein", 1.1)
-		boost = math.max(boost, 0.8)
-		fovPunch = math.max(fovPunch, 11)
-		secousse = math.max(secousse, 0.4)
-		task.delay(0.9, function()
-			if mode == "drive" or mode == "fall" then Hud.pop("+" .. gain .. " KM/H", Color3.fromRGB(125, 255, 154), 22) end
-		end)
-		Bus.emit("moteur", tier)
+		if G.carteMoteur then
+			-- LA CARTE MOTEUR (Client/MoteurCarte) : le moteur en 3D au-dessus de la caisse, qui plonge dans le capot — c'est elle
+			-- qui donne la poussée, le coup de caméra et le « +N KM/H », à l'instant de l'impact
+			secousse = math.max(secousse, 0.15)
+			Bus.emit("moteur", tier, gain)
+		else
+			HudScore.slam(Hud.sansAccent(MOT[tier + 1].nom), tr("NOUVEAU MOTEUR", "NEW ENGINE"), "#ffd75e", "#dfeeff", 26, 1)
+			Sons.jouer("nitroPlein", 1.1)
+			boost = math.max(boost, 0.8)
+			fovPunch = math.max(fovPunch, 11)
+			secousse = math.max(secousse, 0.4)
+			task.delay(0.9, function()
+				if mode == "drive" or mode == "fall" then Hud.pop("+" .. gain .. " KM/H", Color3.fromRGB(125, 255, 154), 22) end
+			end)
+			Bus.emit("atelier", tier)
+		end
 	end
 end
 
@@ -383,7 +390,7 @@ local function gererNitro(dt: number)
 	if nitroOn then stats.nitro += dt end
 	if avant ~= nitroOn then
 		evEtat:FireServer("nitro", nitroOn)
-		Bus.emit("nitro", nitroOn)
+		Bus.emit("nitro", nitroOn, nitroBleue)
 	end
 end
 
@@ -655,13 +662,13 @@ local function exploser(cause: string)
 	boomT = 0
 	nitroOn = false
 	NTR.on, NTR.boost = false, 0
-	-- l'amas de cubes de feu + les éclats de carrosserie (pièces locales, rendues au bout de 2,5 s)
+	-- les éclats de carrosserie (pièces locales, rendues au bout de 2,5 s) — le feu, les ondes, les billets : Client/Effets
 	for _, e in eclats do e.p:Destroy() end
 	table.clear(eclats)
 	local rnd = Random.new()
-	local tons = { Color3.fromRGB(255, 60, 50), Color3.fromRGB(255, 96, 60), Color3.fromRGB(230, 40, 60), Color3.fromRGB(255, 150, 60), Color3.fromRGB(90, 40, 60) }
-	for k = 1, 34 do
-		local feu = k <= 24
+	local tons = { Color3.fromRGB(255, 60, 50) }
+	for _ = 1, 12 do
+		local feu = false
 		local p = Instance.new("Part")
 		p.Anchored = true
 		p.CanCollide = false
@@ -807,7 +814,10 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 		if face > 0 and reste9 < 0 then G.levreY = math.max(-0.6, reste9) end -- posée sous le niveau : elle remonte sa marche
 		secousse = math.max(secousse, math.min(0.6, impact * 0.04))
 	end
-	Bus.emit("pose", { g = g, impact = impact, face = face, chainVal = V.chainVal, chainMult = V.chainMult, raccourci = gagne, figures = V.chainN, fallT = V.fallT, reste = reste })
+	Bus.emit("pose", { g = g, impact = impact, face = face, chainVal = V.chainVal, chainMult = V.chainMult, raccourci = gagne, figures = V.chainN, fallT = V.fallT, reste = reste,
+		q = qG, paye = paye, serpent = serpent, ratee = ratee,
+		-- le MÉTÉORE (L29912) : la nitro tenue jusqu'au contact, en piqué à plus de 45°
+		meteore = nitroOn and fallVel:Dot(fallVel) > 36 and 2 * vN * vN > fallVel:Dot(fallVel) })
 	mode = "drive"
 	Score.ETAT.mode = "drive"
 	graceT = 0.15
@@ -1994,10 +2004,10 @@ local function finPartie()
 	E.mCompte.Text = T.compte .. " " .. Hud.argent(compte + math.max(0, argent - Config.CASH_DEPART))
 	E.mAura.Text = Hud.entier(aura)
 	E.mAuraMeilleur.Text = T.meilleur .. " " .. Hud.entier(meilleurAura)
-	E.mMoteurNom.Text = MOT[tier + 1].nom
+	E.mMoteurNom.Text = Hud.sansAccent(MOT[tier + 1].nom)
 	E.mMoteurPalier.Text = T.palier .. '  <font size="30">' .. tier .. "</font>"
 	if tier < #MOT - 1 then
-		E.mMoteurEncore.Text = string.format(T.encore, MOT[tier + 2][1] - coinsGot) .. "\n↑ " .. MOT[tier + 2].nom
+		E.mMoteurEncore.Text = string.format(T.encore, MOT[tier + 2][1] - coinsGot) .. "\n↑ " .. Hud.sansAccent(MOT[tier + 2].nom)
 	else
 		E.mMoteurEncore.Text = T.moteurMax
 	end
@@ -2222,9 +2232,19 @@ Bus.etat = function()
 		steer = steerS, yawR = yawR, vA = vA, kmh = kmh(), vmax = vmaxShow(), nitroOn = nitroOn, nitroR = nitroR,
 		reservoir = reservoir(), tier = tier, argent = argent, aura = aura, fallT = V.fallT, fallTR = V.fallTR,
 		zone = zoneN, figures = stats.figures, carCF = carCF, chainMult = V.chainMult, chainVal = V.chainVal, frein = Controles.frein,
+		driftOn = G.driftOn, driftLv = G.driftLv,
 	}
 end
 Bus.agir.encaisser = encaisser
+-- LES EFFETS écoutent le bus (étincelles, gerbes, explosion, billets, jus) : rien d'autre à leur dire
+require(CL:WaitForChild("Effets")).init({ compteur = E.argent })
+do
+	local okC, errC = pcall(function() require(CL:WaitForChild("MoteurCarte")).init() end)
+	G.carteMoteur = okC
+	if not okC then warn("[CashCar] carte moteur : " .. tostring(errC)) end
+end
+Bus.agir.secousse = function(x: number) secousse = math.max(secousse, x) end
+Bus.agir.fov = function(d: number) fovPunch = math.max(fovPunch, d) end
 Bus.agir.nitro = function(x: number) nitroGain(x) end
 Bus.agir.vitesse = function(dv: number) vA += dv end
 Bus.agir.boost = function(t: number) boost = math.max(boost, t) end
@@ -2236,6 +2256,10 @@ local envoiT = 0
 RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, function(dtBrut)
 	local dt = math.min(dtBrut, 1 / 20)
 	Controles.lire()
+	-- (mise au point, depuis la console de Studio) workspace:SetAttribute("DbgAuto", true) : un pilote automatique tient le
+	-- milieu de la route ; "DbgNitro" : il tient la nitro. Rien de tout ça n'existe pour un joueur.
+	if mode == "drive" and workspace:GetAttribute("DbgAuto") then Controles.volant = math.clamp(-(lat * 0.06 + psi * 2.2), -1, 1) end
+	if workspace:GetAttribute("DbgNitro") then Controles.nitro = true end
 	if mode == "charge" then return end
 	-- LE RALENTI de la frénésie : le seul ralenti du jeu
 	if mode == "drive" or mode == "fall" then dt = Score.ralentiDt(dt, enPause) end

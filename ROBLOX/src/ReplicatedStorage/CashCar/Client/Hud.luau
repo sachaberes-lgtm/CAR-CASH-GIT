@@ -171,6 +171,12 @@ Hud.kit = { inst = inst, texte = texte, degrade = degrade, carbone = carbone, tu
 -- ── les formats d'argent (fmtC, L12383) ──
 local UNITES = FR and { { 1e15, "Bd" }, { 1e12, "Bn" }, { 1e9, "Md" }, { 1e6, "M" }, { 1e3, "k" } }
 	or { { 1e15, "Qa" }, { 1e12, "T" }, { 1e9, "B" }, { 1e6, "M" }, { 1e3, "k" } }
+-- la police pixel n'a pas de capitales accentuées : tout ce qui s'écrit en pixels passe par ici
+local ACCENTS = { ["É"] = "E", ["È"] = "E", ["Ê"] = "E", ["Ë"] = "E", ["À"] = "A", ["Â"] = "A", ["Î"] = "I", ["Ï"] = "I", ["Ô"] = "O", ["Û"] = "U", ["Ù"] = "U", ["Ç"] = "C", ["Œ"] = "OE" }
+function Hud.sansAccent(s: string): string
+	for a, b in ACCENTS do s = string.gsub(s, a, b) end
+	return s
+end
 function Hud.nombre(v: number): string
 	local s
 	if v < 1000 then

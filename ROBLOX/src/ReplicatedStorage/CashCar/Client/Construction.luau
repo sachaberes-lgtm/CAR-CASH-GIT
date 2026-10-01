@@ -10,6 +10,8 @@
 -- rails plus larges : c'est un ruban de route, il doit trancher sur le ciel.)
 local Config = require(script.Parent.Parent:WaitForChild("Config"))
 local Piste = require(script.Parent.Parent:WaitForChild("Piste"))
+local Maillage = require(script.Parent:WaitForChild("Maillage"))
+local Objets = require(script.Parent.Parent:WaitForChild("Objets"))
 local M = Config.M
 local RH = Config.ROAD_HALF
 local EP = Config.THICK * M
@@ -219,15 +221,206 @@ local function plotModele(): BasePart
 	return p
 end
 
+-- ── LA PIÈCE (pickGeo, L20186) : une galette à 12 pans de 2,36 m, son JONC en relief, et le « $ » en pixels sur ses deux faces ──
+local function figer(em: any): MeshPart?
+	local okF, fige = pcall(function() return AssetService:CreateEditableMeshAsync(Content.fromObject(em), { FixedSize = true }) end)
+	if okF and fige then
+		em:Destroy()
+		em = fige
+	end
+	local ok, mp = pcall(function() return AssetService:CreateMeshPartAsync(Content.fromObject(em), { CollisionFidelity = Enum.CollisionFidelity.Box }) end)
+	if not ok or not mp then return nil end
+	mp.Anchored = true
+	mp.CanCollide = false
+	mp.CanQuery = false
+	mp.CanTouch = false
+	mp.CastShadow = false
+	mp.DoubleSided = true
+	return mp
+end
+local function hexa(h: number): Color3 return Color3.fromRGB(bit32.rshift(h, 16), bit32.band(bit32.rshift(h, 8), 255), bit32.band(h, 255)) end
+-- une image en pixels (une chaîne par ligne, une lettre par pixel) agrandie k fois : les pixels restent des pixels
+local function imagePixels(lignes: { string }, couleurs: { [string]: Color3 }, k: number): any?
+	local n = #lignes
+	local ok, im = pcall(function() return AssetService:CreateEditableImage({ Size = Vector2.new(n * k, n * k) }) end)
+	if not ok or not im then return nil end
+	local b = buffer.create(n * k * n * k * 4)
+	for y = 0, n * k - 1 do
+		local l = lignes[y // k + 1]
+		for x = 0, n * k - 1 do
+			local c = couleurs[string.sub(l, x // k + 1, x // k + 1)]
+			local o = (y * n * k + x) * 4
+			if c then
+				buffer.writeu8(b, o, math.floor(c.R * 255 + 0.5))
+				buffer.writeu8(b, o + 1, math.floor(c.G * 255 + 0.5))
+				buffer.writeu8(b, o + 2, math.floor(c.B * 255 + 0.5))
+				buffer.writeu8(b, o + 3, 255)
+			end
+		end
+	end
+	local ok2 = pcall(function() im:WritePixelsBuffer(Vector2.zero, Vector2.new(n * k, n * k), b) end)
+	return ok2 and im or nil
+end
+local PIECE_R, PIECE_E = 1.18, 0.15
+local modelePiece: any = nil
+local function pieceModele(): BasePart?
+	if modelePiece ~= nil then return modelePiece or nil end
+	modelePiece = false
+	-- la frappe (coinTex, L20155) : 16 × 16 — liseré sombre, tranche biseautée (lumière en haut à gauche), champ, et le « $ »
+	local DOL = { "..#..", ".####", "#.#..", "#.#..", ".###.", "..#.#", "..#.#", "####.", "..#.." }
+	local lignes = {}
+	for y = 0, 15 do
+		local l = ""
+		for x = 0, 15 do
+			local dx, dy = x - 7.5, y - 7.5
+			local r = math.sqrt(dx * dx + dy * dy)
+			local c
+			if r > 6.9 then c = "k" elseif r > 5.7 then c = (dx + dy < -1) and "l" or ((dx + dy > 2) and "d" or "h") else c = (dx + dy < -6) and "h" or "g" end
+			if x >= 6 and x <= 10 and y >= 3 and y <= 11 and string.sub(DOL[y - 2], x - 5, x - 5) == "#" then c = "s" end
+			l ..= c
+		end
+		lignes[y + 1] = l
+	end
+	local image = imagePixels(lignes, { k = hexa(0x6e3c00), d = hexa(0xd8a412), g = hexa(0xfff27a), l = hexa(0xfffbe6), h = hexa(0xfffbd0), s = hexa(0x8a4a00) }, 8)
+	local ok, em = pcall(function() return AssetService:CreateEditableMesh() end)
+	if not image or not ok or not em then return nil end
+	local R, e = PIECE_R * M, PIECE_E * M
+	local function tri(a: Vector3, b: Vector3, c: Vector3, ua: Vector2, ub: Vector2, uc: Vector2)
+		local f = em:AddTriangle(em:AddVertex(a), em:AddVertex(b), em:AddVertex(c))
+		em:SetFaceUVs(f, { em:AddUV(ua), em:AddUV(ub), em:AddUV(uc) })
+	end
+	local N = 12
+	local function pt(i: number, z: number, rho: number?): Vector3
+		local a = i / N * 2 * math.pi
+		return Vector3.new(math.cos(a) * (rho or R), math.sin(a) * (rho or R), z)
+	end
+	local function uvFace(p: Vector3, sens: number): Vector2 return Vector2.new(0.5 + sens * p.X / (2 * R), 0.5 - p.Y / (2 * R)) end
+	local champ, clair = Vector2.new(7.5 / 16, 13.5 / 16), Vector2.new(7.5 / 16, 1.5 / 16) -- un pixel du champ (la tranche), le pixel clair (le jonc)
+	for i = 0, N - 1 do
+		local a, b = pt(i, e), pt(i + 1, e)
+		local a2, b2 = pt(i, -e), pt(i + 1, -e)
+		tri(Vector3.new(0, 0, e), a, b, Vector2.new(0.5, 0.5), uvFace(a, 1), uvFace(b, 1))            -- la face
+		tri(Vector3.new(0, 0, -e), b2, a2, Vector2.new(0.5, 0.5), uvFace(b2, -1), uvFace(a2, -1))      -- le revers
+		tri(a, a2, b, champ, champ, champ)                                                              -- la tranche
+		tri(b, a2, b2, champ, champ, champ)
+		-- le JONC : un bourrelet en losange autour de la tranche
+		local t = 0.13 * M
+		local q = { { R + t, 0 }, { R, t }, { R - t, 0 }, { R, -t } }
+		for k = 1, 4 do
+			local q0, q1 = q[k], q[k % 4 + 1]
+			local p0, p1 = pt(i, q0[2], q0[1]), pt(i + 1, q0[2], q0[1])
+			local p2, p3 = pt(i, q1[2], q1[1]), pt(i + 1, q1[2], q1[1])
+			tri(p0, p1, p2, clair, clair, clair)
+			tri(p1, p3, p2, clair, clair, clair)
+		end
+	end
+	local mp = figer(em)
+	if not mp then return nil end
+	mp.Material = Enum.Material.SmoothPlastic
+	mp.Color = Color3.new(1, 1, 1)
+	mp.Reflectance = 0.08
+	mp.TextureContent = Content.fromObject(image)
+	modelePiece = mp
+	return mp
+end
+
+-- ── LES FRUITS (FRUIT_DEFS, L20222 — cuits : Objets.fruits) : un maillage à facettes par fruit ──
+local modelesFruit: { [number]: any } = {}
+local function fruitModele(i: number): { p: BasePart, dy: number }?
+	local m = modelesFruit[i]
+	if m ~= nil then return m or nil end
+	modelesFruit[i] = false
+	local d = Objets.fruits[i]
+	if not d then return nil end
+	local mp, centre = Maillage.piece(d, M)
+	if not mp then return nil end
+	mp.Anchored = true
+	mp.Massless = false
+	mp.CastShadow = false
+	mp.Material = Enum.Material.SmoothPlastic
+	mp.Reflectance = 0.06
+	local r = { p = mp, dy = centre.Y }
+	modelesFruit[i] = r
+	return r
+end
+-- la hauteur du centre d'un fruit (fruitLeve, L23459) : son point le plus bas reste ~45 cm au-dessus du bitume, battement compris
+function Construction.fruitLeve(i: number): number
+	local d = Objets.fruits[i]
+	return d and math.max(1.3, -d.bas * 1.1 + 0.45) or 1.3
+end
+
+-- ── LE CRISTAL de pouvoir (mkPower, L23525) : le verre à facettes, son cœur-étoile, le gyroscope de deux anneaux ──
+-- les pictogrammes en pixels des cinq pouvoirs (PXI_G) : les mêmes que sur la plaque du HUD
+local PICTOS = {
+	n = "....#....|...##....|...###...|..####.#.|..######.|.###.###.|.##...##.|.##...##.|..#####..",
+	a = ".........|#........|##.......|###......|#####....|.#######.|..#######|....#####|.......##",
+	v = ".....###.|....###..|...###...|..######.|.....##..|....##...|...##....|..##.....|.#.......",
+	m = "##.....##|.........|##.....##|##.....##|##.....##|###...###|.#######.|..#####..|.........",
+	x = "....#....|....#....|...###...|#########|.#######.|..#####..|..##.##..|.##...##.|.#.....#.",
+}
+local imagesPicto: { [string]: any } = {}
+local modelesCristal: { [string]: any } = {}
+local function cristalModele(pw: string): BasePart?
+	local m = modelesCristal[pw]
+	if m ~= nil then return m or nil end
+	modelesCristal[pw] = false
+	local def = Config.POUVOIRS[pw]
+	local verre = Maillage.piece(Objets.cristal.verre, M)
+	if not verre then return nil end
+	verre.Anchored = true
+	verre.Massless = false
+	verre.CastShadow = false
+	verre.Material = Enum.Material.Glass
+	verre.Color = def.couleur
+	verre.Transparency = 0.28
+	verre.Reflectance = 0.2
+	for _, q in { { Objets.cristal.coeur, def.couleur:Lerp(Color3.new(1, 1, 1), 0.82) }, { Objets.cristal.anneaux, def.couleur } } do
+		local p, centre = Maillage.piece(q[1], M)
+		if p then
+			p.CastShadow = false
+			p.Material = Enum.Material.Neon
+			p.Color = q[2]
+			p.CFrame = verre.CFrame * CFrame.new(centre)
+			local w = Instance.new("WeldConstraint")
+			w.Part0, w.Part1 = verre, p
+			w.Parent = p
+			p.Parent = verre
+		end
+	end
+	-- le pictogramme, dessiné une fois par pouvoir (9 × 9)
+	local lignes = string.split(PICTOS[pw] or PICTOS.n, "|")
+	imagesPicto[pw] = imagePixels(lignes, { ["#"] = def.couleur }, 6)
+	modelesCristal[pw] = verre
+	return verre
+end
+-- tous les modèles, bâtis UNE fois, hors de la boucle de rendu (la ligne parfaite pose des fruits en pleine course)
+local modelesPrets = false
+function Construction.modeles()
+	if modelesPrets then return end
+	modelesPrets = true
+	pieceModele()
+	for i = 1, #Config.FRUITS do fruitModele(i) end
+	for pw in Config.POUVOIRS do cristalModele(pw) end
+end
+
 -- un objet : sa pièce, sa position. o.lat et o.h sont donnés dans le repère de SA face.
 function Construction.unObjet(piste: Piste.Piste, o: Piste.Objet, dossier: Instance): any
 	local f = Piste.repereFace(piste, o.s, o.face)
-	local pos = f.Position + f.RightVector * o.lat + f.UpVector * o.h
+	local haut = (o.kind == "fruit") and Construction.fruitLeve(o.fruit or 1) * M or o.h
+	local pos = f.Position + f.RightVector * o.lat + f.UpVector * haut
 	local p: BasePart
 	if o.kind == "piece" then
-		p = part(Vector3.new(0.3 * M, 2.36 * M, 2.36 * M), CFrame.fromMatrix(pos, f.RightVector, f.UpVector), OR, Enum.Material.Neon, dossier);
-		(p :: Part).Shape = Enum.PartType.Cylinder
-		p.CastShadow = false
+		local modele = pieceModele()
+		if modele then
+			-- la frappe regarde le pilote qui arrive (puis elle tourne sur elle-même)
+			p = modele:Clone()
+			p.CFrame = CFrame.fromMatrix(pos, f.RightVector, f.UpVector)
+			p.Parent = dossier
+		else
+			p = part(Vector3.new(0.3 * M, 2.36 * M, 2.36 * M), CFrame.fromMatrix(pos, f.RightVector, f.UpVector), OR, Enum.Material.Neon, dossier);
+			(p :: Part).Shape = Enum.PartType.Cylinder
+			p.CastShadow = false
+		end
 	elseif o.kind == "pad" then
 		-- la plaque de 5,5 × 9 m : fond d'encre, rails et chevrons d'or
 		p = part(Vector3.new(5.5 * M, 0.12 * M, 9 * M), CFrame.fromMatrix(pos, f.RightVector, f.UpVector, -f.LookVector), Color3.fromRGB(28, 4, 48), Enum.Material.SmoothPlastic, dossier)
@@ -264,8 +457,14 @@ function Construction.unObjet(piste: Piste.Piste, o: Piste.Objet, dossier: Insta
 		lis.Transparency = 0.55
 		lis.CastShadow = false
 		lis.Parent = p
+	elseif o.kind == "fruit" and fruitModele(o.fruit or 1) then
+		-- le VRAI fruit du jeu web, à facettes (cuit)
+		local fm = fruitModele(o.fruit or 1) :: { p: BasePart, dy: number }
+		p = fm.p:Clone()
+		p.CFrame = CFrame.fromMatrix(pos + f.UpVector * fm.dy, f.RightVector, f.UpVector)
+		p.Parent = dossier
 	elseif o.kind == "fruit" then
-		-- un fruit (provisoire : une boule à sa couleur et sa feuille ; les six maillages du jeu web viendront de la cuisson)
+		-- (secours, si Roblox refuse les maillages : une boule à sa couleur et sa feuille)
 		local fd = Config.FRUITS[o.fruit or 1]
 		local t = fd.taille * M
 		p = part(Vector3.new(t, t * fd.plat, t), CFrame.fromMatrix(pos, f.RightVector, f.UpVector), fd.couleur, Enum.Material.SmoothPlastic, dossier);
@@ -283,21 +482,40 @@ function Construction.unObjet(piste: Piste.Piste, o: Piste.Objet, dossier: Insta
 		feuille.Anchored = false
 		w.Part0, w.Part1 = p, feuille
 		w.Parent = feuille
-	else -- cristal de pouvoir : un diamant qui tourne, et son étiquette
+	else -- cristal de pouvoir : le verre à facettes, son cœur, son gyroscope — et son étiquette (on sait ce qu'on vise AVANT de le prendre)
 		local pw = Config.POUVOIRS[o.pw or "n"]
-		p = part(Vector3.new(2.4 * M, 2.4 * M, 2.4 * M), CFrame.fromMatrix(pos, f.RightVector, f.UpVector) * CFrame.Angles(math.pi / 4, 0, math.pi / 4),
-			pw.couleur, Enum.Material.Neon, dossier)
-		p.CastShadow = false
-		p.Transparency = 0.15
+		local modele = cristalModele(o.pw or "n")
+		if modele then
+			p = modele:Clone()
+			p.CFrame = CFrame.fromMatrix(pos, f.RightVector, f.UpVector)
+			p.Parent = dossier
+		else
+			p = part(Vector3.new(2.4 * M, 2.4 * M, 2.4 * M), CFrame.fromMatrix(pos, f.RightVector, f.UpVector) * CFrame.Angles(math.pi / 4, 0, math.pi / 4),
+				pw.couleur, Enum.Material.Neon, dossier)
+			p.CastShadow = false
+			p.Transparency = 0.15
+		end
 		local bb = Instance.new("BillboardGui")
-		bb.Size = UDim2.fromOffset(180, 40)
-		bb.StudsOffsetWorldSpace = f.UpVector * (3 * M)
+		bb.Size = UDim2.fromOffset(180, 96)
+		bb.StudsOffsetWorldSpace = f.UpVector * (4.1 * M)
 		bb.AlwaysOnTop = false
 		bb.MaxDistance = 160 * M
 		bb.LightInfluence = 0
+		local picto = imagesPicto[o.pw or "n"]
+		if picto then
+			local im = Instance.new("ImageLabel")
+			im.BackgroundTransparency = 1
+			im.AnchorPoint = Vector2.new(0.5, 0)
+			im.Position = UDim2.fromScale(0.5, 0)
+			im.Size = UDim2.fromOffset(54, 54)
+			im.ResampleMode = Enum.ResamplerMode.Pixelated
+			im.ImageContent = Content.fromObject(picto)
+			im.Parent = bb
+		end
 		local t = Instance.new("TextLabel")
 		t.BackgroundTransparency = 1
-		t.Size = UDim2.fromScale(1, 1)
+		t.Size = UDim2.new(1, 0, 0, 36)
+		t.Position = UDim2.new(0, 0, 1, -38)
 		t.FontFace = Font.new("rbxasset://fonts/families/PressStart2P.json")
 		t.TextScaled = true
 		t.TextColor3 = pw.couleur
@@ -315,6 +533,7 @@ end
 function Construction.objets(piste: Piste.Piste, dossier: Instance, ceder: (() -> ())?): { any }
 	local liste = {}
 	plotModele()
+	Construction.modeles()
 	for k, o in piste.objets do
 		liste[k] = Construction.unObjet(piste, o, dossier)
 		if ceder and k % 150 == 0 then ceder() end
