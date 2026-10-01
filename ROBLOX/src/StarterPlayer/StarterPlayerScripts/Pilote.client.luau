@@ -68,17 +68,27 @@ local function cacher(m: Instance)
 end
 local caisseServeur = dossierCaisses:WaitForChild(joueur.Name) :: Model
 cacher(caisseServeur)
-local caisse = Caisse.construire("MaCaisse", caisseServeur:GetAttribute("Couleur") or Color3.fromRGB(255, 122, 26), true)
+-- le PROFIL (compte, caisses, caisse équipée, réglages) : lu au serveur, tenu à jour par ProfilMaj
+local fnProfil = CC:WaitForChild("Profil") :: RemoteFunction
+local fnAction = CC:WaitForChild("Action") :: RemoteFunction
+local profil = fnProfil:InvokeServer() or { compte = 0, record = 0, caisses = { 0 }, caisse = 0, reglages = {} }
+if Config.CAISSE_TEST then profil.caisse = Config.CAISSE_TEST end
+local caisse, poignees = Caisse.construire("MaCaisse", profil.caisse or 0, true)
 caisse.Parent = workspace
 local racine = caisse.PrimaryPart :: BasePart
-local flammes, trainees = {}, {}
-for i = 1, 2 do
-	local a = racine:WaitForChild("Tuyere" .. i)
-	table.insert(flammes, a:WaitForChild("Flamme" .. i))
-	table.insert(trainees, racine:WaitForChild("Trainee" .. i))
-end
-local reflet = racine:WaitForChild("RefletNitro") :: PointLight
+local flammes, trainees, reflet = poignees.flammes, poignees.trainees, poignees.reflet
 local visibleCaisse = true
+-- changer de caisse (le garage) : on rebâtit la mienne, au même endroit
+local function changerCaisse(indice: number)
+	local ancienne = caisse
+	local nouvelle, pg = Caisse.construire("MaCaisse", indice, true)
+	nouvelle.PrimaryPart.CFrame = ancienne.PrimaryPart.CFrame
+	nouvelle.Parent = workspace
+	caisse, poignees, racine = nouvelle, pg, nouvelle.PrimaryPart :: BasePart
+	flammes, trainees, reflet = pg.flammes, pg.trainees, pg.reflet
+	ancienne:Destroy()
+	visibleCaisse = true
+end
 local function montrerCaisse(oui: boolean)
 	if visibleCaisse == oui then return end
 	visibleCaisse = oui
@@ -321,8 +331,7 @@ local function exploser(cause: string)
 		p.CanTouch = false
 		p.CastShadow = false
 		p.Material = feu and Enum.Material.Neon or Enum.Material.SmoothPlastic
-		local plancher = caisse:FindFirstChild("Plancher") :: BasePart?
-		p.Color = feu and tons[rnd:NextInteger(1, #tons)] or (plancher and plancher.Color or Color3.fromRGB(255, 122, 26))
+		p.Color = feu and tons[rnd:NextInteger(1, #tons)] or poignees.laque
 		local t = (feu and rnd:NextNumber(1.2, 2.6) or rnd:NextNumber(0.6, 1.4)) * M
 		p.Size = feu and Vector3.new(t, t, t) or Vector3.new(t * 1.6, t * 0.25, t)
 		p.CFrame = CFrame.new(boomPos + Vector3.new(rnd:NextNumber(-1, 1), rnd:NextNumber(-0.5, 1), rnd:NextNumber(-1, 1)) * M)
@@ -872,11 +881,13 @@ local function habiller(dt: number)
 	local couleur = pwN > 0 and ColorSequence.new(Color3.fromRGB(190, 110, 255), Color3.fromRGB(110, 40, 255))
 		or (nitroOn and ColorSequence.new(Color3.fromRGB(255, 180, 70), Color3.fromRGB(255, 70, 30)))
 		or ColorSequence.new(Color3.fromRGB(255, 230, 130), Color3.fromRGB(255, 170, 40))
-	for i = 1, 2 do
-		flammes[i].Rate = nitroOn and 110 or (boost > 0 and 45 or 0)
-		trainees[i].Enabled = feu
-		trainees[i].Color = couleur
+	for _, f in flammes do f.Rate = nitroOn and 110 or (boost > 0 and 45 or 0) end
+	for _, t in trainees do
+		t.Enabled = feu
+		t.Color = couleur
 	end
+	-- les roues tournent à leur vraie vitesse (v / R) ; en l'air elles gardent leur élan
+	Caisse.rouler(poignees, vA * SPD * M * dt)
 	refletK += ((nitroOn and 1.6 or (boost > 0 and 0.9 or 0)) - refletK) * math.min(1, dt * 8)
 	reflet.Brightness = refletK
 	-- les boucles de son
@@ -1059,7 +1070,7 @@ E.btMusP.Activated:Connect(function() Sons.musiqueActive = not Sons.musiqueActiv
 majBoutonsSon()
 
 -- ════════ les autres caisses : un double chez moi, lissé ; on ne voit que celles qui roulent dans NOTRE zone ════════
-type Double = { m: Model, c: Model, vu: boolean? }
+type Double = { m: Model, c: Model, vu: boolean?, pg: any, ind: number }
 local doubles: { [Model]: Double } = {}
 local function lisserDoubles(dt: number)
 	for m, d in doubles do
@@ -1078,11 +1089,17 @@ task.spawn(function()
 				local d = doubles[m]
 				if not d then
 					cacher(m)
-					local c = Caisse.construire("Autre", m:GetAttribute("Couleur") or Color3.new(1, 1, 1), true)
+					local ind = m:GetAttribute("Caisse") or 0
+					local c, pg = Caisse.construire("Autre", ind, true)
 					c.PrimaryPart.CFrame = m.PrimaryPart.CFrame
 					c.Parent = workspace
-					d = { m = m, c = c }
+					d = { m = m, c = c, pg = pg, ind = ind }
 					doubles[m] = d
+				elseif d.ind ~= (m:GetAttribute("Caisse") or 0) then
+					-- il a changé de caisse au garage : on redessine son double
+					d.c:Destroy()
+					doubles[m] = nil
+					continue
 				end
 				local voir = m:GetAttribute("EnCourse") == true and (m:GetAttribute("Zone") or 1) == zoneN
 				if d.vu ~= voir then
@@ -1093,14 +1110,8 @@ task.spawn(function()
 					if voir then d.c.PrimaryPart.CFrame = m.PrimaryPart.CFrame end
 				end
 				local nitro = voir and m:GetAttribute("Nitro") == true
-				local r = d.c.PrimaryPart
-				for i = 1, 2 do
-					local a = r:FindFirstChild("Tuyere" .. i)
-					local f = a and a:FindFirstChild("Flamme" .. i)
-					if f then (f :: ParticleEmitter).Rate = nitro and 90 or 0 end
-					local t = r:FindFirstChild("Trainee" .. i)
-					if t then (t :: Trail).Enabled = nitro end
-				end
+				for _, f in d.pg.flammes do f.Rate = nitro and 90 or 0 end
+				for _, t in d.pg.trainees do t.Enabled = nitro end
 			end
 		end
 		task.wait(0.25)

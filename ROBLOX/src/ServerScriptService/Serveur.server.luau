@@ -11,7 +11,6 @@ local Lighting = game:GetService("Lighting")
 
 local CC = ReplicatedStorage:WaitForChild("CashCar")
 local Config = require(CC:WaitForChild("Config"))
-local Caisse = require(CC:WaitForChild("Caisse"))
 local Ciel = require(CC:WaitForChild("Ciel"))
 
 workspace.Gravity = 0 -- la physique de la caisse est à nous (aussi posé dans le fichier)
@@ -42,17 +41,16 @@ local dossier = Instance.new("Folder")
 dossier.Name = "Caisses"
 dossier.Parent = workspace
 
-local COULEURS = {
-	Color3.fromRGB(255, 122, 26), Color3.fromRGB(0, 234, 255), Color3.fromRGB(255, 62, 200),
-	Color3.fromRGB(255, 215, 94), Color3.fromRGB(98, 224, 98), Color3.fromRGB(160, 110, 255),
-}
-
 -- ── 4. les profils (compte, caisses, missions, carrière, réglages — voir Profils) ──
 local Profils = require(script.Parent:WaitForChild("Profils"))
 local fnProfil = remote("Profil", "RemoteFunction")   -- le client lit son profil
 local fnAction = remote("Action", "RemoteFunction")   -- le client demande (acheter, équiper, régler…), le serveur vérifie
 local evProfil = remote("ProfilMaj")                  -- le serveur pousse le profil à jour
 Profils.pousser = function(p: Player) evProfil:FireClient(p, Profils.de(p)) end
+Profils.surEquipe = function(p: Player, i: number) -- la caisse équipée change : les autres doivent la redessiner
+	local m = dossier:FindFirstChild(p.Name)
+	if m then m:SetAttribute("Caisse", i) end
+end
 
 fnProfil.OnServerInvoke = function(p)
 	return Profils.de(p)
@@ -80,18 +78,29 @@ local function arrivee(p: Player)
 	der.Parent = ls
 	ls.Parent = p
 
-	-- sa caisse (ancrée : c'est le joueur qui en donne la position)
-	local couleur = COULEURS[(p.UserId % #COULEURS) + 1]
-	if p.UserId <= 0 then couleur = COULEURS[1] end -- en test dans Studio : l'orange du jeu
-	local m = Caisse.construire(p.Name, couleur, true)
+	-- sa boîte aux lettres : une racine invisible et ancrée, qui ne porte que la position envoyée par le joueur
+	-- et ce que les autres doivent savoir pour DESSINER sa caisse (laquelle, en course ou non, quelle zone, nitro)
+	local m = Instance.new("Model")
+	m.Name = p.Name
+	local r = Instance.new("Part")
+	r.Name = "Racine"
+	r.Size = Vector3.new(1, 1, 1)
+	r.Transparency = 1
+	r.Anchored = true
+	r.CanCollide = false
+	r.CanQuery = false
+	r.CanTouch = false
+	r.CFrame = CFrame.new(0, Config.GARAGE_Y, 0)
+	r.Parent = m
+	m.PrimaryPart = r
 	m:SetAttribute("Joueur", p.UserId)
 	m:SetAttribute("EnCourse", false)
-	m:SetAttribute("Couleur", couleur)
-	m:PivotTo(CFrame.new(0, Config.GARAGE_Y, 0))
+	m:SetAttribute("Caisse", 0)
 	m.Parent = dossier
 
 	task.spawn(function()
 		local prof = Profils.charger(p)
+		m:SetAttribute("Caisse", prof.caisse)
 		rec.Value = math.floor(prof.record)
 		evRecord:FireClient(p, prof.record, prof.compte)
 		Profils.pousser(p)
