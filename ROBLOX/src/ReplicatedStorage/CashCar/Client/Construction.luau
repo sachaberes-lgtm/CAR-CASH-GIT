@@ -165,7 +165,7 @@ local modelePlot: BasePart? = nil
 local function plotModele(): BasePart
 	if modelePlot then return modelePlot end
 	local ROUGE, BLANC = Color3.fromRGB(255, 59, 92), Color3.fromRGB(250, 250, 255)
-	local ok, mp = pcall(function()
+	local mp = Maillage.seul(function()
 		local em = AssetService:CreateEditableMesh()
 		-- le profil : { hauteur, rayon, couleur du tronçon AU-DESSUS }
 		local profil = {
@@ -202,7 +202,7 @@ local function plotModele(): BasePart
 		return AssetService:CreateMeshPartAsync(Content.fromObject(fige), { CollisionFidelity = Enum.CollisionFidelity.Box })
 	end)
 	local p: BasePart
-	if ok and mp then
+	if mp then
 		p = mp
 		p.DoubleSided = true
 		p.Color = Color3.new(1, 1, 1)
@@ -263,9 +263,13 @@ local function imagePixels(lignes: { string }, couleurs: { [string]: Color3 }, k
 end
 local PIECE_R, PIECE_E = 1.18, 0.15
 local modelePiece: any = nil
+local pieceAtelier
 local function pieceModele(): BasePart?
 	if modelePiece ~= nil then return modelePiece or nil end
-	modelePiece = false
+	modelePiece = Maillage.seul(pieceAtelier) or false
+	return modelePiece or nil
+end
+pieceAtelier = function(): BasePart?
 	-- la frappe (coinTex, L20155) : 16 × 16 — liseré sombre, tranche biseautée (lumière en haut à gauche), champ, et le « $ »
 	local DOL = { "..#..", ".####", "#.#..", "#.#..", ".###.", "..#.#", "..#.#", "####.", "..#.." }
 	local lignes = {}
@@ -320,7 +324,6 @@ local function pieceModele(): BasePart?
 	mp.Color = Color3.new(1, 1, 1)
 	mp.Reflectance = 0.08
 	mp.TextureContent = Content.fromObject(image)
-	modelePiece = mp
 	return mp
 end
 
@@ -394,13 +397,19 @@ local function cristalModele(pw: string): BasePart?
 	return verre
 end
 -- tous les modèles, bâtis UNE fois, hors de la boucle de rendu (la ligne parfaite pose des fruits en pleine course)
-local modelesPrets = false
+local etatModeles = 0 -- 0 = pas commencé, 1 = en cours, 2 = prêts
 function Construction.modeles()
-	if modelesPrets then return end
-	modelesPrets = true
+	if etatModeles == 2 then return end
+	if etatModeles == 1 then
+		while etatModeles ~= 2 do task.wait() end -- (une deuxième zone se bâtit en même temps : elle attend les modèles)
+		return
+	end
+	etatModeles = 1
+	plotModele()
 	pieceModele()
 	for i = 1, #Config.FRUITS do fruitModele(i) end
 	for pw in Config.POUVOIRS do cristalModele(pw) end
+	etatModeles = 2
 end
 
 -- un objet : sa pièce, sa position. o.lat et o.h sont donnés dans le repère de SA face.
@@ -532,7 +541,6 @@ end
 
 function Construction.objets(piste: Piste.Piste, dossier: Instance, ceder: (() -> ())?): { any }
 	local liste = {}
-	plotModele()
 	Construction.modeles()
 	for k, o in piste.objets do
 		liste[k] = Construction.unObjet(piste, o, dossier)

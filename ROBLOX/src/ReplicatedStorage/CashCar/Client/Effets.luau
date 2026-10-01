@@ -866,10 +866,18 @@ local function palierTick(dt: number)
 end
 
 -- ════════ ce qui dure : les étincelles du drift, la nitro qu'on lâche, les billets du gros moteur ════════
-local suivi = { drift = 0, nitroT = 0, nitroOn = false, billetT = 1 }
+local suivi = { drift = 0, nitroT = 0, nitroOn = false, billetT = 1, nuage = 0 }
+local voile: Frame? = nil
 local function continuTick(dt: number)
 	local cf: CFrame = etat.carCF
 	if not cf then return end
+	-- DANS UN NUAGE : le voile blanc monte vite, redescend doucement (cloudInS → #cloudFx, 26 % au plus : jouable)
+	do
+		local k = etat.nuage or 0
+		suivi.nuage += (k - suivi.nuage) * math.min(1, dt * ((k > suivi.nuage) and 9 or 3.5))
+		if suivi.nuage < 0.004 then suivi.nuage = 0 end
+		if voile then voile.BackgroundTransparency = 1 - suivi.nuage * 0.26 end
+	end
 	-- le DRIFT : la gomme fume, la jante crache (or ; rose au dernier cran)
 	if etat.mode == "drive" and etat.driftOn then
 		suivi.drift += dt * (10 + 8 * (etat.driftLv or 0))
@@ -951,6 +959,14 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 		table.insert(bords, f)
 	end
 
+	voile = Instance.new("Frame")
+	voile.Name = "Voile"
+	voile.BorderSizePixel = 0
+	voile.BackgroundColor3 = Color3.fromRGB(240, 246, 255)
+	voile.BackgroundTransparency = 1
+	voile.Size = UDim2.fromScale(1, 1)
+	voile.ZIndex = 0
+	voile.Parent = gui
 	-- les bassins (la table des pools du jeu web, L23474-24235). Le suffixe C = le même, qui part avec la caisse.
 	local etinc = { 0, 0.45, 1, 0.5 }
 	for _, c in { { "or", OR, 16 }, { "bleu", BLEU, 12 }, { "rose", ROSE, 12 } } do
@@ -981,6 +997,8 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 	bassin("braiseR", { tex = TEX_BRAISE, c = hex(0xff3818), t = 0.7, a = { 0.05, 0.45, 1, 0.5 }, op = 1, add = true, vie = { 1, 2.2 }, nb = 2, eclat = 3 })
 	bassin("braiseO", { tex = TEX_BRAISE, c = hex(0xff8a20), t = 0.5, a = { 0.05, 0.45, 1, 0.5 }, op = 1, add = true, acc = 13, vie = { 0.8, 1.8 }, nb = 3, eclat = 3 })
 	bassin("braiseJ", { tex = TEX_BRAISE, c = hex(0xffd840), t = 0.36, a = { 0.05, 0.45, 1, 0.5 }, op = 1, add = true, acc = 16, vie = { 0.6, 1.5 }, nb = 2, eclat = 3 })
+	-- les miettes de ouate (cloudBits) : un banc qu'on perce part en mille morceaux
+	bassin("ouate", { tex = TEX_FUMEE, c = hex(0xdff6ff), t = 2.8, a = { 0.06, 0.5, 0.75, 1.35 }, op = 0.9, add = false, acc = 2.2, vie = { 0.5, 1.35 }, nb = 2 })
 	bassin("fumee", { tex = TEX_FUMEE, c = hex(0x2e2428), t = 3.4, a = { 0.14, 0.5, 0.6, 1.7 }, op = 0.5, add = false, frein = 1.6, vie = { 0.9, 2.1 }, nb = 4 })
 
 	-- ── les écoutes ──
@@ -1051,6 +1069,13 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 	Bus.on("mort", function(cause: string, enVol: boolean, chaine: number?)
 		etat = Bus.etat()
 		explosion(cause, enVol, chaine)
+	end)
+	-- shatterCloud (L24260) : on entre dans un nuage — mille morceaux au point de contact
+	Bus.on("nuage", function(quoi: string, k: number)
+		if quoi ~= "entre" and quoi ~= "defonce" then return end
+		local cf: CFrame = Bus.etat().carCF
+		local p = math.min(1, (k or 0) + 0.35)
+		jet("ouate", cf.Position, Vector3.yAxis, 18 + 28 * p, 3, 3 + 12 * p, 180)
 	end)
 	Bus.on("portail", function()
 		local cf: CFrame = Bus.etat().carCF

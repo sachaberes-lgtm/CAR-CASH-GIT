@@ -149,7 +149,12 @@ local function doux(h: buffer, x: number, y: number): number
 	return s / 25
 end
 
+local dalle0
 local function dalle(h: buffer, ti: number, tj: number, image: any, G: number): MeshPart?
+	-- (un seul atelier de maillages à la fois : voir Maillage.seul)
+	return require(script.Parent:WaitForChild("Maillage")).seul(dalle0, h, ti, tj, image, G)
+end
+dalle0 = function(h: buffer, ti: number, tj: number, image: any, G: number): MeshPart?
 	local ok, em = pcall(function() return AssetService:CreateEditableMesh() end)
 	if not ok or not em then return nil end
 	local parTuile = N / NT
@@ -255,10 +260,26 @@ function Mer.creer(graine: number)
 		end
 		local h = champ(graine, ceder)
 		local image = nil
-		local okI, im = pcall(function() return AssetService:CreateEditableImage({ Size = Vector2.new(N, N) }) end)
+		-- LE BUDGET : les images et les maillages modifiables se partagent une réserve de mémoire. L'image de la mer en prenait
+		-- 4 Mo à elle seule (1024²) : assez pour que les nuages ou un moteur soient refusés. On la peint en grand, on la rend à
+		-- 512² (moyenne de 2 × 2) : la mer est à des centaines de mètres sous la route, elle n'y perd rien.
+		local D2 = N // 2
+		local okI, im = pcall(function() return AssetService:CreateEditableImage({ Size = Vector2.new(D2, D2) }) end)
 		if okI and im then
 			local soleil = Lighting:GetSunDirection()
-			im:WritePixelsBuffer(Vector2.zero, Vector2.new(N, N), peindre(h, soleil, ceder))
+			local grand = peindre(h, soleil, ceder)
+			local petit = buffer.create(D2 * D2 * 4)
+			for y = 0, D2 - 1 do
+				for x = 0, D2 - 1 do
+					local a, b = ((y * 2) * N + x * 2) * 4, ((y * 2 + 1) * N + x * 2) * 4
+					for c = 0, 2 do
+						buffer.writeu8(petit, (y * D2 + x) * 4 + c, (buffer.readu8(grand, a + c) + buffer.readu8(grand, a + 4 + c) + buffer.readu8(grand, b + c) + buffer.readu8(grand, b + 4 + c)) // 4)
+					end
+					buffer.writeu8(petit, (y * D2 + x) * 4 + 3, 255)
+				end
+				if y % 64 == 63 then ceder() end
+			end
+			im:WritePixelsBuffer(Vector2.zero, Vector2.new(D2, D2), petit)
 			image = im
 		end
 		-- les 16 dalles de la période, en deux finesses, puis leurs copies

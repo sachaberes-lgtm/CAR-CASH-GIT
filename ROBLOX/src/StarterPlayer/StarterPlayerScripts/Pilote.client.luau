@@ -27,7 +27,10 @@ local Garage = require(CL:WaitForChild("Garage"))
 local Score = require(CL:WaitForChild("Score"))
 local HudScore = require(CL:WaitForChild("HudScore"))
 local Missions = require(CL:WaitForChild("Missions"))
-local Camera = require(CL:WaitForChild("Camera"))
+-- (Luau refuse plus de 200 variables locales dans une fonction — le premier niveau du script en est une : la caméra et les
+-- nuages vivent dans la table KA)
+local KA: any = { Camera = require(CL:WaitForChild("Camera")), Nuages = require(CL:WaitForChild("Nuages")),
+	pos = Vector3.zero, vise = Vector3.zero, up = Vector3.yAxis, fov = 72, V = {}, refletK = 0, envoiT = 0 }
 
 local M, SPD = Config.M, Config.SPD
 local RH, THICK = Config.ROAD_HALF, Config.THICK
@@ -137,7 +140,7 @@ end)
 
 -- ════════ les zones : la 1 est gardée toute la session, les suivantes se bâtissent en tâche de fond ════════
 type Zone = { z: number, pret: boolean, piste: Piste.Piste?, dossier: Folder?, objets: { any }?, grille: { [number]: { any } }?,
-	pads: { number }?, series: { [number]: number }?, prisSerie: { [number]: number }? }
+	pads: { number }?, series: { [number]: number }?, prisSerie: { [number]: number }?, nuages: { any }?, ciel: Folder? }
 local ZONES: { [number]: Zone } = {}
 local CEL_OBJ = 25 * M
 local function cleObj(v: Vector3): number
@@ -167,8 +170,17 @@ local function preparer(z: number, depart: CFrame?): Zone
 			if o.o.kind == "pad" and o.o.face == 1 then table.insert(pads, o.o.s / M) end
 			if o.o.kind == "piece" and o.o.grp and o.o.face == 1 then series[o.o.grp] = (series[o.o.grp] or 0) + 1 end
 		end
-		Construction.nuages(p, d, graine + z, ceder)
-		e.piste, e.dossier, e.objets, e.grille, e.pads, e.series, e.prisSerie = p, d, objs, grille, pads, series, {}
+		-- LES NUAGES v8 : le ciel de coton, les bancs de route, les coussins, les tours (la piste d'école n'en a pas)
+		local nuages = {}
+		local ciel = Instance.new("Folder") -- (à part : au menu, les nuages du niveau sont cachés — le titre a les siens)
+		ciel.Name = "Nuages"
+		ciel.Parent = d
+		if z ~= 0 then
+			local okN, resN = pcall(KA.Nuages.batir, p, ciel, graine + z * 31, ceder)
+			if okN then nuages = resN else warn("[CashCar] nuages : " .. tostring(resN)) end
+		end
+		e.ciel = ciel
+		e.piste, e.dossier, e.objets, e.grille, e.pads, e.series, e.prisSerie, e.nuages = p, d, objs, grille, pads, series, {}, nuages
 		e.pret = true
 	end)
 	return e
@@ -214,6 +226,7 @@ local function remettreObjets(e: Zone)
 		o.p.Parent = e.dossier
 	end
 	if e.prisSerie then table.clear(e.prisSerie) end
+	if e.nuages then KA.Nuages.remettre(e.nuages) end
 end
 
 -- ════════ l'état de la partie ════════
@@ -1331,7 +1344,6 @@ local function ligneTick(dt: number)
 	end
 end
 
-local camPos, camVise, camUp = Vector3.zero, Vector3.zero, Vector3.yAxis
 
 -- ════════ changer de zone : le PORTAIL (portailPasse, L30180) ════════
 local function activer(e: Zone)
@@ -1340,6 +1352,8 @@ local function activer(e: Zone)
 	for z, x in ZONES do
 		if x.dossier then x.dossier.Parent = (z == e.z) and workspace or nil end
 	end
+	-- (CHUTE_P.coton = 0 dans le jeu web) au menu, les nuages du niveau passaient devant la caisse : la mer de nuages suffit
+	if e.ciel then e.ciel.Parent = (mode ~= "menu" and mode ~= "garage" and mode ~= "charge") and e.dossier or nil end
 	oi = 1
 	evEtat:FireServer("zone", e.z)
 end
@@ -1362,8 +1376,8 @@ local function passerPortail(): boolean
 	fallPos += saut / M
 	prevPos += saut / M
 	V.flowP0 += saut / M
-	camPos += saut
-	camVise += saut
+	KA.pos += saut
+	KA.vise += saut
 	s -= longueur
 	sPrev -= longueur
 	V.flowS0 -= longueur
@@ -1750,10 +1764,8 @@ end
 
 -- ════════ LA CAMÉRA (L36096-36170, L36389) ════════
 local menuCap = Vector3.new(0, 0, -1)
-local camFov = 72
 -- (la caméra de ROUTE, de VOL et de MORT est celle du jeu web d'aujourd'hui : Client/Camera)
-local CX: any = { repere = function(sM: number, face: number): CFrame return Piste.repereFace(piste, sM * M, face) end }
-local CV: any = {}
+KA.X = { repere = function(sM: number, face: number): CFrame return Piste.repereFace(piste, sM * M, face) end }
 local function camera(dt: number)
 	if cam.CameraType ~= Enum.CameraType.Scriptable then cam.CameraType = Enum.CameraType.Scriptable end
 	local p = carCF.Position
@@ -1762,24 +1774,24 @@ local function camera(dt: number)
 	local sh, roulis = Vector3.zero, 0
 	fovPunch = math.max(0, fovPunch - 18 * dt)
 	if mode == "drive" then
-		CX.carCF, CX.cf, CX.s, CX.L, CX.lat, CX.side, CX.psi, CX.vA = carCF, repere(s, side), s, piste.len / M, lat, side, psi, vA
-		CX.kmh, CX.vCrois, CX.vitMult, CX.nitroOn, CX.bleue, CX.boost = kmh(), vmaxShow() * 1.55, vitMult(), nitroOn, nitroBleue, boost
-		CX.steer, CX.flow, CX.punch, CX.l, CX.h = steerS, Score.niveau(), fovPunch, fiche.l, fiche.h
-		camPos, camVise, camUp, camFov = Camera.route(dt, CX, camPos)
-		sh, roulis = Camera.secousseRoute(t, secousse, CX, vmaxShow())
+		KA.X.carCF, KA.X.cf, KA.X.s, KA.X.L, KA.X.lat, KA.X.side, KA.X.psi, KA.X.vA = carCF, repere(s, side), s, piste.len / M, lat, side, psi, vA
+		KA.X.kmh, KA.X.vCrois, KA.X.vitMult, KA.X.nitroOn, KA.X.bleue, KA.X.boost = kmh(), vmaxShow() * 1.55, vitMult(), nitroOn, nitroBleue, boost
+		KA.X.steer, KA.X.flow, KA.X.punch, KA.X.l, KA.X.h = steerS, Score.niveau(), fovPunch, fiche.l, fiche.h
+		KA.pos, KA.vise, KA.up, KA.fov = KA.Camera.route(dt, KA.X, KA.pos)
+		sh, roulis = KA.Camera.secousseRoute(t, secousse, KA.X, vmaxShow())
 		secousse = math.max(0, secousse - 3.5 * dt)
 	elseif mode == "fall" then
-		CV.carCF, CV.fallVel, CV.av, CV.haut, CV.fallT, CV.dtF = carCF, fallVel, flyAv, flyU, V.fallT, dt
-		CV.nitroOn, CV.bleue, CV.punch, CV.l, CV.w, CV.h, CV.kmh = nitroOn, nitroBleue, fovPunch, fiche.l, fiche.w, fiche.h, kmh()
-		camPos, camVise, camUp, camFov = Camera.vol(dt, CV, camPos)
-		sh = Camera.secousseVol(t, secousse, CV)
+		KA.V.carCF, KA.V.fallVel, KA.V.av, KA.V.haut, KA.V.fallT, KA.V.dtF = carCF, fallVel, flyAv, flyU, V.fallT, dt
+		KA.V.nitroOn, KA.V.bleue, KA.V.punch, KA.V.l, KA.V.w, KA.V.h, KA.V.kmh = nitroOn, nitroBleue, fovPunch, fiche.l, fiche.w, fiche.h, kmh()
+		KA.pos, KA.vise, KA.up, KA.fov = KA.Camera.vol(dt, KA.V, KA.pos)
+		sh = KA.Camera.secousseVol(t, secousse, KA.V)
 		secousse = math.max(0, secousse - 3 * dt)
 	elseif mode == "boom" or mode == "mort" then
-		camPos, camVise, camUp, camFov = Camera.mort(dt, boomPos, boomT, camPos)
+		KA.pos, KA.vise, KA.up, KA.fov = KA.Camera.mort(dt, boomPos, boomT, KA.pos)
 		-- le tremblement de l'explosion : un sinus lisse sur la visée, qui retombe
 		if secousse > 0 then
 			local a9 = 0.09 * math.min(2.6, secousse) * M
-			camVise += Vector3.new(math.sin(t * 47) * a9, math.sin(t * 37 + 1.3) * a9 * 0.8, 0)
+			KA.vise += Vector3.new(math.sin(t * 47) * a9, math.sin(t * 37 + 1.3) * a9 * 0.8, 0)
 			secousse = math.max(0, secousse - 3 * dt)
 		end
 	else -- menu (la CHUTE du web) : la caisse à GAUCHE de l'écran, nez qui plonge vers la droite
@@ -1788,23 +1800,22 @@ local function camera(dt: number)
 		-- (chuteRender du web) la vue est EN HAUTEUR (~20°) et plonge sur la caisse : la mer de nuages remplit l'écran
 		-- sous l'horizon ; objectif de 46° ; la caisse à gauche, la colonne de boutons à droite
 		local pos = p - av * (3 * M) + dr * (14.5 * M) + Vector3.yAxis * (5.4 * M)
-		camPos = camPos:Lerp(pos, math.min(1, dt * 3))
-		camVise = camVise:Lerp(p + av * (5.6 * M) - Vector3.yAxis * (0.5 * M), math.min(1, dt * 4))
-		camUp = Vector3.yAxis
-		camFov += (46 - camFov) * math.min(1, dt * 6)
-		Camera.etat.fov = camFov
+		KA.pos = KA.pos:Lerp(pos, math.min(1, dt * 3))
+		KA.vise = KA.vise:Lerp(p + av * (5.6 * M) - Vector3.yAxis * (0.5 * M), math.min(1, dt * 4))
+		KA.up = Vector3.yAxis
+		KA.fov += (46 - KA.fov) * math.min(1, dt * 6)
+		KA.Camera.etat.fov = KA.fov
 		secousse = math.max(0, secousse - 2.5 * dt)
 	end
 	-- (Roblox ne rend pas un champ de plus de 120°)
-	cam.FieldOfView = math.clamp(camFov, 20, 120)
-	if (camVise - camPos).Magnitude < 0.01 then camVise = camPos + Vector3.new(0, 0, -1) end
-	local cfC = CFrame.lookAt(camPos + sh, camVise, camUp)
+	cam.FieldOfView = math.clamp(KA.fov, 20, 120)
+	if (KA.vise - KA.pos).Magnitude < 0.01 then KA.vise = KA.pos + Vector3.new(0, 0, -1) end
+	local cfC = CFrame.lookAt(KA.pos + sh, KA.vise, KA.up)
 	if roulis ~= 0 then cfC *= CFrame.Angles(0, 0, roulis) end
 	cam.CFrame = cfC
 end
 
 -- ════════ la caisse, ses feux, ses sons ════════
-local refletK = 0
 local ARC_EN_CIEL = ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 60, 60)), ColorSequenceKeypoint.new(0.2, Color3.fromRGB(255, 190, 40)),
 	ColorSequenceKeypoint.new(0.4, Color3.fromRGB(110, 255, 90)), ColorSequenceKeypoint.new(0.6, Color3.fromRGB(60, 220, 255)),
 	ColorSequenceKeypoint.new(0.8, Color3.fromRGB(110, 90, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 70, 220)) })
@@ -1836,8 +1847,8 @@ local function habiller(dt: number)
 	Caisse.deployer(poignees, G.ailes, G.helice)
 	-- les roues tournent à leur vraie vitesse (v / R) ; en l'air elles gardent leur élan
 	Caisse.rouler(poignees, vA * SPD * M * dt)
-	refletK += ((nitroOn and 1.6 or (boost > 0 and 0.9 or 0)) - refletK) * math.min(1, dt * 8)
-	reflet.Brightness = refletK
+	KA.refletK += ((nitroOn and 1.6 or (boost > 0 and 0.9 or 0)) - KA.refletK) * math.min(1, dt * 8)
+	reflet.Brightness = KA.refletK
 	-- les boucles de son
 	local k = kmh()
 	local r = math.clamp(k / math.max(1, vmaxShow() * 1.55), 0, 1.6)
@@ -1902,8 +1913,8 @@ local function allerMenu()
 	activer(ZONES[1])
 	poserAuDepart()
 	montrerCaisse(true)
-	camPos = carCF.Position + Vector3.yAxis * (10 * M) + menuCap:Cross(Vector3.yAxis) * (20 * M)
-	camVise = carCF.Position
+	KA.pos = carCF.Position + Vector3.yAxis * (10 * M) + menuCap:Cross(Vector3.yAxis) * (20 * M)
+	KA.vise = carCF.Position
 	Hud.ecran("menu")
 	E.menuRecord.Text = record > 0 and (T.record .. " " .. Hud.argent(record)) or ""
 	evEtat:FireServer("course", false)
@@ -1968,6 +1979,7 @@ local function nouvellePartie()
 	sPrev, latPrev = s, lat
 	mode = "fall"
 	Score.ETAT.mode = "fall"
+	if zone.ciel then zone.ciel.Parent = zone.dossier end -- les nuages du niveau reviennent avec la course
 	Sons.jouer("decollage")
 	Bus.emit("decollage", intro)
 end
@@ -2218,7 +2230,7 @@ Bus.etat = function()
 		steer = steerS, yawR = yawR, vA = vA, kmh = kmh(), vmax = vmaxShow(), nitroOn = nitroOn, nitroR = nitroR,
 		reservoir = reservoir(), tier = tier, argent = argent, aura = aura, fallT = V.fallT, fallTR = V.fallTR,
 		zone = zoneN, figures = stats.figures, carCF = carCF, chainMult = V.chainMult, chainVal = V.chainVal, frein = Controles.frein,
-		driftOn = G.driftOn, driftLv = G.driftLv,
+		driftOn = G.driftOn, driftLv = G.driftLv, nuage = ((mode == "drive" or mode == "fall") and G.nuageIn) or 0,
 	}
 end
 Bus.agir.encaisser = encaisser
@@ -2238,7 +2250,6 @@ Bus.agir.pieces = function(n: number) ajouterPieces(n) end
 Bus.agir.exploser = function(cause: string) exploser(cause) end
 
 -- ════════ LA BOUCLE ════════
-local envoiT = 0
 RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, function(dtBrut)
 	local dt = math.min(dtBrut, 1 / 20)
 	Controles.lire()
@@ -2267,6 +2278,16 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			if mode == "drive" then etapeSol(dt) else etapeAir(dt) end
 			if mode == "drive" or mode == "fall" then
 				objets(dt, carCF.Position, os.clock())
+				-- LES NUAGES : ils ne font que BLOQUER LA VUE ; un banc percuté au sol éclate, le percer à l'aveugle paie du flow
+				do
+					local kN, quoi = KA.Nuages.suivre(zone.nuages or {}, carCF.Position, cam.CFrame.Position, mode == "drive", kmh(), dt)
+					G.nuageIn = kN
+					if kN > 0 then secousse = math.max(secousse, ((mode == "fall") and 0.1 or 0.07) * kN) end
+					if quoi then
+						Bus.emit("nuage", quoi, kN)
+						if quoi == "defonce" then Score.flowAdd(3, "style", "n") elseif quoi == "percee" then Score.flowAdd(7, "risque", "n") end
+					end
+				end
 				nitroooTick(dt)
 				G.vmax = math.max(G.vmax, kmh())
 			end
@@ -2326,9 +2347,9 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 		end
 		Mer.suivre(cam.CFrame.Position, carCF.Position.Y, dt, (mode == "menu" or mode == "garage") and Config.CIEL.merMenu * M or nil)
 		lisserDoubles(dt)
-		envoiT -= dtBrut
-		if envoiT <= 0 and (mode == "drive" or mode == "fall") then
-			envoiT = 1 / 15
+		KA.envoiT -= dtBrut
+		if KA.envoiT <= 0 and (mode == "drive" or mode == "fall") then
+			KA.envoiT = 1 / 15
 			evPos:FireServer(carCF)
 		end
 	end
@@ -2336,6 +2357,7 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 end)
 
 -- ════════ le démarrage : on bâtit la zone 1 derrière l'écran de chargement ════════
+do
 Mer.creer(graine)
 local z1 = preparer(1, nil)
 local t0 = os.clock()
@@ -2351,6 +2373,7 @@ end
 preparer(2, Piste.suite(z1.piste :: Piste.Piste))
 if profil.reglages and profil.reglages.tuto == false then preparer(0, nil) end
 allerMenu()
+end
 
 -- aide au débogage (console du client dans Studio) : _G.cashcar()
 -- (la console de Studio ne partage pas _G avec les scripts : pour imposer une vue, poser l'attribut DbgVue — un CFrame — sur le Workspace)

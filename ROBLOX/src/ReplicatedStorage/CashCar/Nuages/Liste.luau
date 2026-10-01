@@ -1,0 +1,30 @@
+-- CASH CAR — LES 25 GABARITS DE NUAGES v8 — CUIT par outils/cuire-nuages.js depuis VERSION PRINCIPALE/index.html, ne pas éditer.
+-- En unités de nuage (un nuage de rayon r se pose à l'échelle r) ; base = le plancher de condensation, sommet = le plus haut bourgeon.
+-- genre = la famille du tirage (COTON_GENRES ; « classique » pour les six premiers), forme = ce que le sculpteur a bâti.
+return {
+	[0] = { genre = "classique", forme = "mediocris", base = -0.35, sommet = 0.67, triangles = 1688, mn = { -0.932, -0.395, -0.971 }, mx = { 0.901, 0.649, 0.87 } },
+	[1] = { genre = "classique", forme = "humilis", base = -0.35, sommet = 0.483, triangles = 856, mn = { -1.19, -0.396, -0.783 }, mx = { 1.209, 0.457, 0.609 } },
+	[2] = { genre = "classique", forme = "congestus", base = -0.35, sommet = 1.311, triangles = 1384, mn = { -1.254, -0.393, -0.822 }, mx = { 1.212, 1.29, 0.922 } },
+	[3] = { genre = "classique", forme = "humilis", base = -0.35, sommet = 0.431, triangles = 896, mn = { -1.131, -0.393, -0.664 }, mx = { 1.253, 0.35, 0.74 } },
+	[4] = { genre = "classique", forme = "stratocumulus", base = -0.35, sommet = 0.189, triangles = 840, mn = { -1.03, -0.395, -0.458 }, mx = { 0.903, 0.183, 0.56 } },
+	[5] = { genre = "classique", forme = "mediocris", base = -0.35, sommet = 0.708, triangles = 1620, mn = { -1.113, -0.393, -0.963 }, mx = { 0.987, 0.689, 0.956 } },
+	[6] = { genre = "humilis", forme = "humilis", base = -0.35, sommet = 0.483, triangles = 1036, mn = { -1.07, -0.393, -0.804 }, mx = { 1.049, 0.398, 0.616 } },
+	[7] = { genre = "humilis", forme = "humilis", base = -0.35, sommet = 0.475, triangles = 984, mn = { -1, -0.392, -0.778 }, mx = { 1.264, 0.439, 0.785 } },
+	[8] = { genre = "mediocris", forme = "mediocris", base = -0.35, sommet = 0.808, triangles = 1412, mn = { -1.065, -0.388, -0.787 }, mx = { 1.057, 0.784, 0.838 } },
+	[9] = { genre = "mediocris", forme = "mediocris", base = -0.35, sommet = 0.683, triangles = 1344, mn = { -1.286, -0.4, -0.71 }, mx = { 0.742, 0.651, 1.002 } },
+	[10] = { genre = "mediocris", forme = "mediocris", base = -0.35, sommet = 0.734, triangles = 1240, mn = { -1.163, -0.393, -0.745 }, mx = { 1.036, 0.709, 1.056 } },
+	[11] = { genre = "congestus", forme = "congestus", base = -0.35, sommet = 2.001, triangles = 1524, mn = { -1.153, -0.393, -0.879 }, mx = { 1.247, 1.971, 0.677 } },
+	[12] = { genre = "congestus", forme = "congestus", base = -0.35, sommet = 1.413, triangles = 1656, mn = { -1.018, -0.391, -0.984 }, mx = { 1.127, 1.395, 0.827 } },
+	[13] = { genre = "congestus", forme = "congestus", base = -0.35, sommet = 1.654, triangles = 1760, mn = { -0.837, -0.393, -0.802 }, mx = { 1.252, 1.637, 0.889 } },
+	[14] = { genre = "castellanus", forme = "castellanus", base = -0.35, sommet = 0.729, triangles = 1044, mn = { -1.063, -0.387, -0.706 }, mx = { 1.147, 0.701, 0.596 } },
+	[15] = { genre = "castellanus", forme = "castellanus", base = -0.35, sommet = 0.688, triangles = 1156, mn = { -1.085, -0.39, -0.823 }, mx = { 0.978, 0.613, 0.78 } },
+	[16] = { genre = "fractus", forme = "fractus", base = -0.35, sommet = 0.183, triangles = 1694, mn = { 0.323, -0.396, -0.34 }, mx = { 0.975, 0.179, 0.3 } },
+	[17] = { genre = "stratocumulus", forme = "stratocumulus", base = -0.35, sommet = 0.284, triangles = 704, mn = { -1.14, -0.393, -0.45 }, mx = { 0.974, 0.244, 0.564 } },
+	[18] = { genre = "stratocumulus", forme = "stratocumulus", base = -0.35, sommet = 0.229, triangles = 628, mn = { -1.147, -0.378, -0.426 }, mx = { 1.027, 0.185, 0.454 } },
+	[19] = { genre = "altocumulus", forme = "altocumulus", base = -0.35, sommet = 0.001, triangles = 852, mn = { -0.816, -0.372, -0.563 }, mx = { 0.518, -0.023, 0.379 } },
+	[20] = { genre = "altocumulus", forme = "altocumulus", base = -0.35, sommet = 0.006, triangles = 588, mn = { -0.784, -0.366, -0.55 }, mx = { 0.842, -0.013, 0.366 } },
+	[21] = { genre = "cisaille", forme = "cisaille", base = -0.35, sommet = 1.296, triangles = 1336, mn = { -1.024, -0.393, -0.865 }, mx = { 1.36, 1.277, 0.728 } },
+	[22] = { genre = "cisaille", forme = "cisaille", base = -0.35, sommet = 1.293, triangles = 1104, mn = { -1.401, -0.391, -0.567 }, mx = { 1.224, 1.266, 0.826 } },
+	[23] = { genre = "champignon", forme = "congestus", base = -0.35, sommet = 1.745, triangles = 1600, mn = { -1.052, -0.376, -0.774 }, mx = { 1.1, 1.713, 0.862 } },
+	[24] = { genre = "cumulonimbus", forme = "cumulonimbus", base = -0.35, sommet = 2.373, triangles = 4260, mn = { -1.224, -0.398, -1.188 }, mx = { 1.289, 2.366, 1.192 } },
+}

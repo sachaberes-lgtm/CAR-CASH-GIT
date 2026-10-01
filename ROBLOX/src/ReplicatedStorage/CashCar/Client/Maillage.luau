@@ -38,6 +38,23 @@ local function decoder(s: string): buffer
 end
 Maillage.decoder = decoder
 
+-- UN SEUL ATELIER À LA FOIS. Roblox donne un BUDGET de mémoire aux maillages modifiables : tant qu'il n'est pas figé, un
+-- EditableMesh en réserve beaucoup. Deux zones qui se bâtissent en même temps, la mer, les nuages, les objets : à plusieurs
+-- ateliers de front, le budget sautait (« Failed to create EditableMesh … memory budget limits »). Tout ce qui fabrique un
+-- maillage passe par ici : on attend son tour, on bâtit, on fige, on rend la place.
+local atelierPris = false
+function Maillage.seul(f: (...any) -> ...any, ...: any): ...any
+	while atelierPris do task.wait() end
+	atelierPris = true
+	local r = table.pack(pcall(f, ...))
+	atelierPris = false
+	if not r[1] then
+		warn("[CashCar] atelier : " .. tostring(r[2]))
+		return nil
+	end
+	return table.unpack(r, 2, r.n)
+end
+
 local PAS = 10 -- octets par sommet
 export type Peinture = { c: Color3?, grad: { Color3 }? } -- une teinte unie, ou un dégradé de trois couleurs du bas de caisse au toit
 export type Options = {
@@ -91,7 +108,10 @@ end
 -- donc à repère × CFrame.new(centre) pour que chaque sommet retombe où le jeu web l'a mis.
 function Maillage.editable(d: { v: string, t: string }, echelle: number, opt: Options?): (any, Vector3)
 	local ok, em = pcall(function() return AssetService:CreateEditableMesh() end)
-	if not ok or not em then return nil, Vector3.zero end
+	if not ok or not em then
+		warn("[CashCar] maillage refusé (budget de mémoire) : " .. tostring(em))
+		return nil, Vector3.zero
+	end
 	local v, t = decoder(d.v), decoder(d.t)
 	local k = echelle / 2000
 	local sx = (opt and opt.miroir) and -1 or 1
@@ -152,7 +172,7 @@ end
 
 -- Plusieurs maillages cuits en UN seul EditableMesh (les vignettes du garage : la caisse entière et ses quatre
 -- roues en une pièce — un maillage par vignette au lieu de dix). liste = { { d = donnees, cf = CFrame?, miroir = bool? } }
-function Maillage.fusion(liste: { any }, echelle: number, teinte: ((Color3) -> Color3)?): (MeshPart?, Vector3)
+local function fusion(liste: { any }, echelle: number, teinte: ((Color3) -> Color3)?): (MeshPart?, Vector3)
 	local ok, em = pcall(function() return AssetService:CreateEditableMesh() end)
 	if not ok or not em then return nil, Vector3.zero end
 	local k = echelle / 2000
@@ -215,7 +235,7 @@ function Maillage.fusion(liste: { any }, echelle: number, teinte: ((Color3) -> C
 end
 
 -- Rend un MeshPart (ou nil) et le centre où le poser. ⚠ appelle CreateMeshPartAsync : à lancer hors de la boucle de rendu.
-function Maillage.piece(d: { v: string, t: string }, echelle: number, opt: Options?): (MeshPart?, Vector3)
+local function piece(d: { v: string, t: string }, echelle: number, opt: Options?): (MeshPart?, Vector3)
 	local em, centre = Maillage.editable(d, echelle, opt)
 	if not em then return nil, Vector3.zero end
 	-- ⚠ LE BUDGET : un EditableMesh qu'on peut encore modifier réserve beaucoup de mémoire (Roblox en refuse vite de
@@ -242,6 +262,14 @@ function Maillage.piece(d: { v: string, t: string }, echelle: number, opt: Optio
 	mp.Massless = true
 	mp.DoubleSided = true -- les matières du kit sont en double face dans le jeu web
 	return mp, centre
+end
+function Maillage.piece(d: { v: string, t: string }, echelle: number, opt: Options?): (MeshPart?, Vector3)
+	local mp, centre = Maillage.seul(piece, d, echelle, opt)
+	return mp, centre or Vector3.zero
+end
+function Maillage.fusion(liste: { any }, echelle: number, teinte: ((Color3) -> Color3)?): (MeshPart?, Vector3)
+	local mp, centre = Maillage.seul(fusion, liste, echelle, teinte)
+	return mp, centre or Vector3.zero
 end
 
 return Maillage
