@@ -323,6 +323,8 @@ end
 -- ════════ la frénésie se déclenche (une figure POSÉE, un raccourci ou un drift en ville) ════════
 function Score.frenPeut(): boolean return FREN.arme and FLOW.lv < 4 end
 function Score.frenDeclenche() if Score.frenPeut() then frenDeclenche() end end
+-- (mise au point) la frénésie tout de suite, pour regarder le DARK TRIAD (dragon, dauphins et serpent noirs)
+function Score.dbgFren() if FLOW.lv < 4 then FREN.arme = true frenDeclenche() end end
 
 -- chaque paiement en frénésie nourrit le butin
 function Score.frenCash(g: number) if FLOW.lv == 4 then FREN.butin += g end end

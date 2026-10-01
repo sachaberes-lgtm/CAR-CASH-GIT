@@ -32,8 +32,8 @@ local BLANC = 1 -- la clarté de la ouate (la lumière est cuite dans les sommet
 -- reflet de plastique — c'est la couleur cuite qu'on voit ──
 type Gabarit = { p: MeshPart, centre: Vector3, taille: Vector3, fiche: any }
 local gabarits: { [number]: Gabarit | false } = {}
-local function batir(k: number): Gabarit?
-	local module = Modules:FindFirstChild(string.format("N%02d", k))
+local function batir(k: number, fin: boolean?): Gabarit?
+	local module = Modules:FindFirstChild(string.format(fin and "F%02d" or "N%02d", k))
 	if not module then return nil end
 	local okD, d = pcall(require, module)
 	if not okD then return nil end
@@ -86,7 +86,11 @@ local function batir(k: number): Gabarit?
 		warn("[CashCar] nuage " .. k .. " : pièce refusée")
 		return nil
 	end
-	Maillage.noter(buffer.len(t) / 6) -- (le compte du budget de triangles)
+	if fin then
+		Maillage.suivre(mp, em, buffer.len(t) / 6) -- (la version fine se rend : sa destruction libère le budget)
+	else
+		Maillage.noter(buffer.len(t) / 6) -- (le compte du budget de triangles)
+	end
 	mp.Name = "Nuage"
 	mp.Anchored = true
 	mp.CanCollide = false
@@ -100,6 +104,135 @@ end
 local function gabarit(k: number): Gabarit?
 	return gabarits[k] or nil
 end
+-- ── LA FINESSE DU TOUT PRÈS (N8_FIN du web : la surface d'un nuage suit sa taille à l'écran, 12 / 18 / 26 / 48 cellules) ──
+-- Roblox ne tient pas quatre jeux de 25 maillages dans son budget : tous les nuages sont posés en ÉBAUCHE (14 cellules), et ceux
+-- qui deviennent GRANDS à l'écran (cotonTick : 73·R / (d − R/2) segments demandés, au-delà de ~13 l'ébauche montre ses facettes)
+-- reçoivent une copie FINE (30 cellules) par-dessus l'ébauche cachée. Une version fine coûte ~4 000 triangles, partagés par
+-- tous les nuages de son gabarit ; on en tient quelques-unes à la fois, les plus utiles d'abord, et on les rend dès qu'elles
+-- ne servent plus (le garage, la carte moteur ont besoin du budget).
+type Inscrit = { p: MeshPart, k: number, f: MeshPart?, q: number }
+local inscrits: { Inscrit } = {}
+local parPiece: { [MeshPart]: Inscrit } = {}
+local fins: { [number]: { g: Gabarit?, etat: string, vu: number } } = {}
+local FIN_ON, FIN_OFF, FIN_MAX, FIN_MARGE = 0.18, 0.14, 4, 10000
+local finT = 0
+local function inscrire(p: MeshPart, k: number)
+	local e = { p = p, k = k, f = nil, q = 0 }
+	table.insert(inscrits, e)
+	parPiece[p] = e
+end
+-- la copie fine suit l'ébauche : sa taille (un banc qui éclate), sa place, sa transparence (la caméra dedans)
+local function majFin(e: Inscrit)
+	local f, p = e.f, e.p
+	local g, gf = gabarits[e.k], fins[e.k] and fins[e.k].g
+	if not f or not g or not gf then return end
+	local ech = p.Size / g.taille
+	f.Size = gf.taille * ech
+	f.CFrame = p.CFrame * CFrame.new((gf.centre - g.centre) * UNITE * ech)
+	if f.Transparency ~= p.Transparency then f.Transparency = p.Transparency end
+end
+local function oterFin(e: Inscrit)
+	if e.f then
+		e.f:Destroy()
+		e.f = nil
+	end
+	if e.p.Parent then e.p.LocalTransparencyModifier = 0 end
+end
+-- à chaque image (le pilote) : `cam` = la caméra en course ; nil au menu et au garage → toutes les versions fines sont rendues
+function Nuages.finesseTick(dt: number, cam: Vector3?)
+	finT -= dt
+	if finT > 0 then return end
+	finT = 0.2
+	local maintenant = os.clock()
+	-- 1) chaque nuage vivant et montré : combien de segments il demande
+	local voulus: { [number]: number } = {}
+	local i = 1
+	while i <= #inscrits do
+		local e = inscrits[i]
+		local p = e.p
+		if not p.Parent then
+			-- (sa zone a été détruite : il sort de la liste)
+			oterFin(e)
+			parPiece[p] = nil
+			inscrits[i] = inscrits[#inscrits]
+			inscrits[#inscrits] = nil
+			continue
+		end
+		local q = 0
+		if cam and p:IsDescendantOf(workspace) then
+			local R = math.max(p.Size.X, p.Size.Y, p.Size.Z) * 0.5
+			local d = (p.Position - cam).Magnitude
+			q = R / math.max(1, d - R * 0.5)
+		end
+		e.q = q
+		if q > (e.f and FIN_OFF or FIN_ON) then voulus[e.k] = math.max(voulus[e.k] or 0, q) end
+		i += 1
+	end
+	-- 2) les gabarits fins à tenir : les plus demandés d'abord, tant que le budget le permet
+	local ordre = {}
+	for k, q in voulus do
+		if k ~= 24 then table.insert(ordre, { k, q }) end
+	end
+	table.sort(ordre, function(a, b) return a[2] > b[2] end)
+	local tenus = 0
+	for _, v in ordre do
+		local k = v[1]
+		local F = fins[k]
+		if tenus >= FIN_MAX then
+			voulus[k] = nil
+			continue
+		end
+		if not F then
+			local tri = (Liste[k] and Liste[k].fin) or 4000
+			if Maillage.libre() - tri > FIN_MARGE then
+				F = { g = nil, etat = "charge", vu = maintenant }
+				fins[k] = F
+				task.spawn(function()
+					local g = Maillage.seul(batir, k, true)
+					if fins[k] ~= F then
+						if g then g.p:Destroy() end
+						return
+					end
+					F.g = g
+					F.etat = g and "pret" or "refus"
+				end)
+			else
+				voulus[k] = nil
+				continue
+			end
+		end
+		F.vu = maintenant
+		tenus += 1
+	end
+	-- 3) chaque nuage : sa copie fine (si son gabarit fin est prêt et qu'il la demande), ou son ébauche
+	for _, e in inscrits do
+		local F = fins[e.k]
+		local veut = voulus[e.k] ~= nil and e.q > (e.f and FIN_OFF or FIN_ON) and F ~= nil and F.etat == "pret"
+		if veut and not e.f then
+			local f = (F :: any).g.p:Clone()
+			f.Color = e.p.Color
+			f.Parent = e.p.Parent
+			e.f = f
+			e.p.LocalTransparencyModifier = 1
+			majFin(e)
+		elseif not veut and e.f then
+			oterFin(e)
+		elseif e.f then
+			majFin(e)
+		end
+	end
+	-- 4) les gabarits fins qui ne servent plus depuis 3 s (tout de suite hors de la course) : rendus au budget
+	for k, F in fins do
+		if F.etat ~= "charge" and (not cam or maintenant - F.vu > 3) then
+			for _, e in inscrits do
+				if e.k == k and e.f then oterFin(e) end
+			end
+			if F.g then F.g.p:Destroy() end
+			fins[k] = nil
+		end
+	end
+end
+
 -- les 25 gabarits, bâtis UNE fois, l'un après l'autre (0 = pas commencé, 1 = en cours, 2 = prêts) : qui arrive pendant
 -- qu'ils se bâtissent ATTEND — sinon une deuxième zone se bâtirait sans eux
 local etatGabarits = 0
@@ -233,6 +366,7 @@ function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 		-- (× BLANC : à 1, sous le soleil de Roblox, toute la face éclairée partait au blanc pur, sans modelé)
 		p.Color = Color3.new(math.min(1, 1 + (tr - 1) * 0.3) * BLANC, math.min(1, 1 + (tv - 1) * 0.3) * BLANC, math.min(1, 1 + (tb - 1) * 0.3) * BLANC)
 		p.Parent = dossier
+		inscrire(p, k)
 		nb += 1
 		if ceder and nb % 12 == 0 then ceder() end
 		return p
@@ -373,6 +507,7 @@ function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 		local base = Vector3.new(c.X, c.Y - milieu * r, c.Z) * M
 		p.CFrame = CFrame.new(base) * CFrame.Angles(0, cap, 0) * CFrame.new(g.centre * UNITE * ech)
 		p.Parent = dossier
+		inscrire(p, kk)
 		-- (« dedans » = l'ellipsoïde r × ry autour du centre, comme dans le jeu web)
 		table.insert(traverses, { p = p, c = c * M, r = r * M, ry = ry * M, route = route, base = p.Position, echelle = p.Size, casse = 0, dedans = false })
 		nb += 1
@@ -492,6 +627,8 @@ function Nuages.suivre(liste: { Nuage }, car: Vector3, cam: Vector3, auSol: bool
 		local dc = (e.X * e.X + e.Z * e.Z) / (c.r * c.r) + (e.Y * e.Y) / (c.ry * c.ry)
 		local t = (dc < 1.1) and 0.82 or 0
 		if c.p.Transparency ~= t then c.p.Transparency = t end
+		local e = parPiece[c.p]
+		if e and e.f then majFin(e) end
 	end
 	return dedans, quoi, lequel
 end

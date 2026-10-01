@@ -14,6 +14,7 @@ const RACINE = path.join(__dirname, '..', '..');
 const SORTIE = path.join(__dirname, '..', 'src', 'ReplicatedStorage', 'CashCar', 'Nuages');
 const L = fs.readFileSync(path.join(RACINE, 'VERSION PRINCIPALE', 'index.html'), 'utf8').split('\n');
 const FINESSE = parseInt(process.argv[2] || '14', 10);
+const FINE = parseInt(process.argv[3] || '30', 10); // la finesse des nuages PROCHES
 
 function ligne(debut) { for (let i = 0; i < L.length; i++) if (L[i].startsWith(debut)) return i; throw new Error('introuvable dans index.html : ' + debut); }
 function bloc(debut, fin) { const a = ligne(debut); let b = a + 1; while (b < L.length && !L[b].startsWith(fin)) b++; return L.slice(a, b).join('\n'); }
@@ -63,9 +64,9 @@ function peint(N, ao, tv, hh) {
 }
 fs.mkdirSync(SORTIE, { recursive: true });
 for (const f of fs.readdirSync(SORTIE)) fs.unlinkSync(path.join(SORTIE, f));
-const fiches = []; let total = 0, ko = 0;
-gabarits.forEach((S, k) => {
-  const r = G.nuage8Calc(S.B, S.base, S.top, k === 24 ? FINESSE + 6 : FINESSE, Object.assign({ seed: S.seed }, G.N8_OPT));
+// UN gabarit à une finesse : le module Luau (prefixe N = l'ébauche de tous les nuages, F = la version FINE des nuages proches)
+function cuire(S, k, fin, prefixe) {
+  const r = G.nuage8Calc(S.B, S.base, S.top, fin, Object.assign({ seed: S.seed }, G.N8_OPT));
   const nv = r.pos.length / 3;
   if (nv > 65535) throw new Error('gabarit ' + k + ' : trop de sommets (' + nv + ')');
   const v = Buffer.alloc(nv * 12);
@@ -81,16 +82,25 @@ gabarits.forEach((S, k) => {
   // (x,z) → (−x,−z) est une rotation : le sens des faces est gardé
   const t = Buffer.alloc(r.idx.length * 2);
   for (let i = 0; i < r.idx.length; i++) t.writeUInt16LE(r.idx[i], i * 2);
-  const src = '-- CASH CAR — nuage ' + k + ' (' + S.vrai + ') — CUIT par outils/cuire-nuages.js, ne pas éditer.\nreturn { v = "' + v.toString('base64') + '", t = "' + t.toString('base64') + '" }\n';
-  if (src.length > 195000) throw new Error('gabarit ' + k + ' : module trop gros (' + src.length + ')');
-  fs.writeFileSync(path.join(SORTIE, 'N' + String(k).padStart(2, '0') + '.luau'), src);
-  const nt = r.idx.length / 3; total += nt; ko += src.length;
-  fiches.push('\t[' + k + '] = { genre = "' + S.genre + '", forme = "' + S.vrai + '", base = ' + n3(S.base) + ', sommet = ' + n3(S.top) + ', triangles = ' + nt +
-    ', mn = { ' + mn.map(n3).join(', ') + ' }, mx = { ' + mx.map(n3).join(', ') + ' } },');
-  console.log('  ' + String(k).padStart(2) + ' ' + S.vrai.padEnd(14) + String(S.B.length).padStart(3) + ' lobes ' + String(nt).padStart(6) + ' triangles ' + (src.length / 1024).toFixed(0).padStart(4) + ' Ko   ' +
-    [0, 1, 2].map(j => n3(mx[j] - mn[j])).join(' × '));
+  const src = '-- CASH CAR — nuage ' + k + ' (' + S.vrai + ', finesse ' + fin + ') — CUIT par outils/cuire-nuages.js, ne pas éditer.\nreturn { v = "' + v.toString('base64') + '", t = "' + t.toString('base64') + '" }\n';
+  if (src.length > 195000) throw new Error('gabarit ' + prefixe + k + ' : module trop gros (' + src.length + ')');
+  fs.writeFileSync(path.join(SORTIE, prefixe + String(k).padStart(2, '0') + '.luau'), src);
+  return { nt: r.idx.length / 3, ko: src.length, mn, mx };
+}
+const fiches = []; let total = 0, ko = 0, totalF = 0, koF = 0;
+gabarits.forEach((S, k) => {
+  const e = cuire(S, k, k === 24 ? FINESSE + 6 : FINESSE, 'N');
+  total += e.nt; ko += e.ko;
+  // LA FINESSE DU TOUT PRÈS (N8_FIN du web : 12 / 18 / 26 / 48 selon la distance) : ici une seule, chargée pour les nuages proches
+  // (Client/Nuages, finesseTick). Le cumulonimbus des titans n'est jamais près de la route : pas de version fine.
+  let nf = 0;
+  if (k !== 24) { const f = cuire(S, k, FINE, 'F'); nf = f.nt; totalF += f.nt; koF += f.ko; }
+  fiches.push('	[' + k + '] = { genre = "' + S.genre + '", forme = "' + S.vrai + '", base = ' + n3(S.base) + ', sommet = ' + n3(S.top) + ', triangles = ' + e.nt + ', fin = ' + nf +
+    ', mn = { ' + e.mn.map(n3).join(', ') + ' }, mx = { ' + e.mx.map(n3).join(', ') + ' } },');
+  console.log('  ' + String(k).padStart(2) + ' ' + S.vrai.padEnd(14) + String(S.B.length).padStart(3) + ' lobes ' + String(e.nt).padStart(6) + ' triangles (fins : ' + String(nf).padStart(5) + ') ' + (e.ko / 1024).toFixed(0).padStart(4) + ' Ko   ' +
+    [0, 1, 2].map(j => n3(e.mx[j] - e.mn[j])).join(' × '));
 });
 fs.writeFileSync(path.join(SORTIE, 'Liste.luau'), '-- CASH CAR — LES 25 GABARITS DE NUAGES v8 — CUIT par outils/cuire-nuages.js depuis VERSION PRINCIPALE/index.html, ne pas éditer.\n' +
   '-- En unités de nuage (un nuage de rayon r se pose à l\'échelle r) ; base = le plancher de condensation, sommet = le plus haut bourgeon.\n' +
   '-- genre = la famille du tirage (COTON_GENRES ; « classique » pour les six premiers), forme = ce que le sculpteur a bâti.\nreturn {\n' + fiches.join('\n') + '\n}\n');
-console.log('25 gabarits cuits (finesse ' + FINESSE + ') : ' + total + ' triangles, ' + (ko / 1024).toFixed(0) + ' Ko');
+console.log('25 gabarits cuits (finesse ' + FINESSE + ') : ' + total + ' triangles, ' + (ko / 1024).toFixed(0) + ' Ko ; fins (finesse ' + FINE + ') : ' + totalF + ' triangles, ' + (koF / 1024).toFixed(0) + ' Ko');
