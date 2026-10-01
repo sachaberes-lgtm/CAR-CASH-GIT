@@ -60,11 +60,14 @@ function liste(g){
 const titre=t=>t.charAt(0)+t.slice(1).toLowerCase();     // « NÉON NOIR » → « Néon noir »
 const PLAY='<svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>',STOP='<svg viewBox="0 0 16 16"><rect x="3.5" y="3.5" width="9" height="9" rx="1.5"/></svg>';
 let ac=null,sortie=null,cur=null;const BUF={};
+const FICHIER=location.protocol==='file:'; // ouverte en double-clic : le navigateur refuse fetch() → lecteur <audio> (petit blanc possible au raccord)
 function audio(){if(!ac){ac=new (window.AudioContext||window.webkitAudioContext)();sortie=ac.createGain();sortie.gain.value=+document.getElementById('vol').value;sortie.connect(ac.destination);}return ac;}
 function tampon(b){return BUF[b.f]||(BUF[b.f]=fetch(b.f).then(r=>r.arrayBuffer()).then(ab=>new Promise((ok,ko)=>audio().decodeAudioData(ab,ok,ko))));}
-function stop(){if(!cur)return;const c=cur;cur=null;try{c.g.gain.setTargetAtTime(0,ac.currentTime,.03);c.s.stop(ac.currentTime+.15);}catch(e){}c.el.classList.remove('joue');c.el.querySelector('.btn').innerHTML=PLAY;}
+function stop(){if(!cur)return;const c=cur;cur=null;try{if(c.el9){c.el9.pause();c.el9.src='';}else{c.g.gain.setTargetAtTime(0,ac.currentTime,.03);c.s.stop(ac.currentTime+.15);}}catch(e){}c.el.classList.remove('joue');c.el.querySelector('.btn').innerHTML=PLAY;}
 async function joue(b,el){
   const meme=cur&&cur.id===b.id;stop();if(meme)return;
+  if(FICHIER){const a9=new Audio(b.f);a9.loop=true;a9.volume=+document.getElementById('vol').value;a9.play();
+    cur={id:b.id,el9:a9,el:el,lg:b.dur||8};el.classList.add('joue');el.querySelector('.btn').innerHTML=STOP;return;}
   audio();await ac.resume();const buf=await tampon(b);
   // la boucle sans couture : l'amorce AAC sautée, bouclée sur sa durée exacte
   const ex=b.dur?buf.duration-b.dur:0,a=ex>.03?Math.min(ex,2112/buf.sampleRate):0,fin=b.dur?a+b.dur:buf.duration;
@@ -82,8 +85,8 @@ function rend(g){
 }
 document.getElementById('seg').onclick=function(e){const b=e.target.closest('button');if(!b)return;
   this.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));rend(b.dataset.g);};
-document.getElementById('vol').oninput=function(e){if(sortie)sortie.gain.setTargetAtTime(+e.target.value,ac.currentTime,.05);};
-(function f(){requestAnimationFrame(f);if(!cur)return;const p=((ac.currentTime-cur.t0)%cur.lg)/cur.lg;cur.el.querySelector('.prog').style.width=(p*100)+'%';})();
+document.getElementById('vol').oninput=function(e){if(cur&&cur.el9)cur.el9.volume=+e.target.value;if(sortie)sortie.gain.setTargetAtTime(+e.target.value,ac.currentTime,.05);};
+(function f(){requestAnimationFrame(f);if(!cur)return;const p=cur.el9?(cur.el9.currentTime%cur.lg)/cur.lg:((ac.currentTime-cur.t0)%cur.lg)/cur.lg;cur.el.querySelector('.prog').style.width=(p*100)+'%';})();
 rend('lobby');
 </script>
 </body>
