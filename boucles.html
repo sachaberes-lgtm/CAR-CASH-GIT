@@ -49,6 +49,12 @@ body.glisse .niv{border-style:dashed}
 .tag{font-size:12px;color:var(--tx2);white-space:nowrap}
 .prog{position:absolute;left:0;bottom:0;height:3px;background:var(--bleu);width:0;opacity:0}
 .c.joue .prog{opacity:1}
+.trait{margin-top:20px;background:var(--carte);border-radius:18px;padding:18px;box-shadow:var(--ombre)}
+.tH b{font-size:17px;display:block}.tH span{font-size:13px;color:var(--tx2)}
+.tCurs{display:flex;align-items:center;gap:12px;margin:16px 0 14px;font-size:13px;color:var(--tx2)}.tCurs input{flex:1;accent-color:var(--bleu)}
+.tBas{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.seg.petit{margin:0}.seg.petit button{padding:6px 14px}
+.tSim{border:0;background:var(--fond);color:var(--bleu);font:inherit;font-size:14px;font-weight:500;padding:8px 14px;border-radius:10px;cursor:pointer}
+.tSim.on{background:var(--bleu);color:#fff}.tEtat{margin-top:12px;font-size:13px;color:var(--tx2);min-height:18px}
 .vol{display:flex;align-items:center;gap:10px;color:var(--tx2);font-size:13px;margin-top:28px}
 .vol input{flex:1;max-width:240px;accent-color:var(--bleu)}
 /* ---- le RANGEMENT : « ••• » discret sur chaque son (déplacer d'onglet, supprimer), la corbeille en bas */
@@ -93,6 +99,15 @@ body.glisse .niv{border-style:dashed}
   <div class="liste" id="liste"></div>
   <div class="corb" id="corb"></div>
   <div class="vol">Volume <input type="range" id="vol" min="0" max="1" step=".01" value=".8"></div>
+  <div class="trait" id="trait">
+    <div class="tH"><b>Le traitement</b><span>Le morceau ne change pas : seule sa « lumière » change.</span></div>
+    <div class="tCurs"><span>Embellir</span><input type="range" id="tX" min="-100" max="100" value="0"><span>Intensifier</span></div>
+    <div class="tBas">
+      <div class="seg petit" id="tTheme"><button data-t="nuages" class="on">Nuages</button><button data-t="ville">Ville</button><button data-t="orbite">Orbite</button></div>
+      <button class="tSim" id="tSim">Simuler une course</button>
+    </div>
+    <div class="tEtat" id="tEtat">Lance une boucle puis bouge le curseur.</div>
+  </div>
 </div>
 <button class="bOuvre" id="bOuvre">Envoyer à Claude</button>
 <div class="boite" id="boite">
@@ -163,7 +178,46 @@ const titre=t=>t.charAt(0)+t.slice(1).toLowerCase();     // « NÉON NOIR » →
 const PLAY='<svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>',STOP='<svg viewBox="0 0 16 16"><rect x="3.5" y="3.5" width="9" height="9" rx="1.5"/></svg>';
 let ac=null,sortie=null,cur=null;const BUF={};
 const FICHIER=location.protocol==='file:'; // ouverte en double-clic : le navigateur refuse fetch() → lecteur <audio> (petit blanc possible au raccord)
-function audio(){if(!ac){ac=new (window.AudioContext||window.webkitAudioContext)();sortie=ac.createGain();sortie.gain.value=+document.getElementById('vol').value;sortie.connect(ac.destination);}return ac;}
+function audio(){if(!ac){ac=new (window.AudioContext||window.webkitAudioContext)();sortie=ac.createGain();sortie.gain.value=+document.getElementById('vol').value;TR.monte();}return ac;}
+// =============================================== LE TRAITEMENT : EMBELLIR ↔ INTENSIFIER (la règle générale, voir MUSIQUE-PASSATION.md)
+// Le morceau joue EN ENTIER, intact : le jeu ne touche qu'à sa « lumière ». Un seul curseur x ∈ [−1, 1] ; le THÈME du niveau colore.
+const THEMES={ // rev = réverbe · air = aigus doux · grave = punch · grain = saturation · pompe = respiration sur le temps · echo = écho spatial · large = largeur
+  nuages:{rev:1.25,air:1.2,grave:.7,grain:.25,pompe:.12,echo:.15},
+  ville:{rev:.7,air:.6,grave:1.1,grain:.65,pompe:.32,echo:.1},
+  orbite:{rev:1,air:.9,grave:1.2,grain:.3,pompe:.18,echo:.45}};
+const TR={x:0,theme:'nuages',n:{},
+  monte(){const n=this.n,c=ac;
+    n.grave=c.createBiquadFilter();n.grave.type='lowshelf';n.grave.frequency.value=110;
+    n.pres=c.createBiquadFilter();n.pres.type='peaking';n.pres.frequency.value=3000;n.pres.Q.value=.8;
+    n.air=c.createBiquadFilter();n.air.type='highshelf';n.air.frequency.value=8500;
+    n.sec=c.createGain();n.mouille=c.createGain();n.mouille.gain.value=0;n.sat=c.createWaveShaper();
+    const k=new Float32Array(1024);for(let i=0;i<1024;i++){const v=i/511.5-1;k[i]=Math.tanh(v*2.2)/Math.tanh(2.2);}n.sat.curve=k;n.sat.oversample='2x';
+    n.pompe=c.createGain();n.maitre=c.createGain();
+    n.revE=c.createGain();n.revE.gain.value=0;n.rev=c.createConvolver();n.rev.buffer=this.ir(3.2);
+    n.echE=c.createGain();n.echE.gain.value=0;n.ech=c.createDelay(2);n.echR=c.createGain();n.echR.gain.value=.38;n.echF=c.createBiquadFilter();n.echF.type='lowpass';n.echF.frequency.value=3500;
+    sortie.connect(n.grave);n.grave.connect(n.pres);n.pres.connect(n.air);
+    n.air.connect(n.sec);n.air.connect(n.sat);n.sat.connect(n.mouille);n.sec.connect(n.pompe);n.mouille.connect(n.pompe);
+    n.pompe.connect(n.maitre);n.maitre.connect(c.destination);
+    n.air.connect(n.revE);n.revE.connect(n.rev);n.rev.connect(n.maitre);
+    n.air.connect(n.echE);n.echE.connect(n.ech);n.ech.connect(n.echF);n.echF.connect(n.echR);n.echR.connect(n.ech);n.echF.connect(n.maitre);
+    this.regle();},
+  ir(sec){const c=ac,n=Math.floor(sec*c.sampleRate),b=c.createBuffer(2,n,c.sampleRate);
+    for(let ch=0;ch<2;ch++){const d=b.getChannelData(ch);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2.6)*.6;}return b;},
+  regle(){if(!ac||!this.n.grave)return;const n=this.n,T=THEMES[this.theme],x=this.x,em=Math.max(0,-x),it=Math.max(0,x),t=ac.currentTime,tc=.35;
+    n.revE.gain.setTargetAtTime((.06+.32*em)*T.rev,t,tc);
+    n.air.gain.setTargetAtTime(4.5*em*T.air+1.2*it,t,tc);
+    n.pres.gain.setTargetAtTime(2*it,t,tc);
+    n.grave.gain.setTargetAtTime(-2.5*em+2.5*it*T.grave,t,tc);
+    n.mouille.gain.setTargetAtTime(.9*it*T.grain,t,tc);n.sec.gain.setTargetAtTime(1-.35*it*T.grain,t,tc);
+    n.echE.gain.setTargetAtTime(T.echo*(.3+.3*Math.abs(x)),t,tc);
+    const ajout=it*(2*T.grave+1.2+5*T.grain)+em*(3*T.rev)+2*T.echo;     // dB qu'ajoutent les effets (mesuré)
+    n.maitre.gain.setTargetAtTime(Math.pow(10,(it*2-em*1-ajout)/20),t,tc);
+    const bpm=cur&&cur.bpm||110;n.ech.delayTime.setTargetAtTime(Math.min(1.9,60/bpm*.75),t,.05);
+    document.getElementById('tEtat').textContent=x<-.05?'Embellir '+Math.round(em*100)+' % — espace, air, douceur':x>.05?'Intensifier '+Math.round(it*100)+' % — punch, grain, ça pompe sur le temps':'Neutre — le morceau tel quel';},
+  // la POMPE : sur chaque temps du morceau, le volume se creuse puis remonte (calée sur la boucle qui joue)
+  tick(){if(!ac||!this.n.pompe||!cur||!cur.t0)return;const T=THEMES[this.theme],p=Math.max(0,this.x)*T.pompe;if(p<.01){this.n.pompe.gain.setTargetAtTime(1,ac.currentTime,.05);return;}
+    const tps=60/(cur.bpm||110),now=ac.currentTime,k=Math.ceil((now-cur.t0)/tps),tb=cur.t0+k*tps;
+    if(this._tb===tb||tb-now>.12)return;this._tb=tb;const g=this.n.pompe.gain;g.setTargetAtTime(1-p,tb,.008);g.setTargetAtTime(1,tb+.03,tps*.28);}};
 function tampon(b){return BUF[b.f]||(BUF[b.f]=fetch(b.f).then(r=>r.arrayBuffer()).then(ab=>new Promise((ok,ko)=>audio().decodeAudioData(ab,ok,ko))));}
 function stop(){if(!cur)return;const c=cur;cur=null;try{if(c.el9){c.el9.pause();c.el9.src='';}else{c.g.gain.setTargetAtTime(0,ac.currentTime,.03);c.s.stop(ac.currentTime+.15);}}catch(e){}c.el.classList.remove('joue');c.el.querySelector('.btn').innerHTML=PLAY;}
 async function joue(b,el){
@@ -176,7 +230,7 @@ async function joue(b,el){
   const ex=b.dur?buf.duration-b.dur:0,a=ex>.03?Math.min(ex,2112/buf.sampleRate):0,fin=b.dur?a+b.dur:buf.duration;
   const s=ac.createBufferSource(),g=ac.createGain();s.buffer=buf;s.loop=true;s.loopStart=a;s.loopEnd=fin;g.gain.value=0;
   s.connect(g);g.connect(sortie);const t=ac.currentTime+.03;s.start(t,a);g.gain.setTargetAtTime(1,t,.01);
-  cur={id:b.id,s:s,g:g,el:el,t0:t,lg:fin-a};el.classList.add('joue');el.querySelector('.btn').innerHTML=STOP;
+  cur={id:b.id,s:s,g:g,el:el,t0:t,lg:fin-a,bpm:b.bpm};TR.regle();el.classList.add('joue');el.querySelector('.btn').innerHTML=STOP;
 }
 function carte(b){
   const el=document.createElement('div');el.className='c';
@@ -206,6 +260,16 @@ document.getElementById('seg').onclick=function(e){const b=e.target.closest('but
 document.getElementById('vol').oninput=function(e){if(cur&&cur.el9)cur.el9.volume=+e.target.value;if(sortie)sortie.gain.setTargetAtTime(+e.target.value,ac.currentTime,.05);};
 (function f(){requestAnimationFrame(f);if(!cur)return;const p=cur.el9?(cur.el9.currentTime%cur.lg)/cur.lg:((ac.currentTime-cur.t0)%cur.lg)/cur.lg;cur.el.querySelector('.prog').style.width=(p*100)+'%';})();
 rangeCharge().then(()=>rend('lobby'));
+document.getElementById('tX').oninput=function(e){TR.x=+e.target.value/100;TR.regle();};
+document.getElementById('tTheme').onclick=function(e){const b=e.target.closest('button');if(!b)return;this.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));TR.theme=b.dataset.t;TR.regle();};
+setInterval(()=>TR.tick(),25);
+// SIMULER UNE COURSE : départ calme → on accélère → nitro → crash → on repart (48 s)
+let simT=0;document.getElementById('tSim').onclick=function(){if(simT){clearInterval(simT);simT=0;this.classList.remove('on');this.textContent='Simuler une course';return;}
+  this.classList.add('on');const t0=performance.now();
+  simT=setInterval(()=>{const t=(performance.now()-t0)/1000%48;let x,l;
+    if(t<6){x=-.6;l='Départ : on embellit';}else if(t<16){x=-.6+(t-6)/10*1.1;l='On accélère';}else if(t<22){x=.5;l='Croisière rapide';}
+    else if(t<28){x=1;l='NITRO : intensifier à fond';}else if(t<31){x=-1;l='Crash : tout s’adoucit';}else if(t<38){x=-1+(t-31)/7*1.3;l='On repart';}else{x=.3;l='Croisière';}
+    TR.x=x;document.getElementById('tX').value=Math.round(x*100);TR.regle();document.getElementById('tEtat').textContent=l+' · '+document.getElementById('tEtat').textContent;},200);};
 document.querySelectorAll('#seg button').forEach(b=>cible(b,id=>deplace(id,b.dataset.g)));
 cible(document.getElementById('poub'),supprime);
 document.getElementById('poub').onclick=function(){const l=document.querySelector('.corbL');if(l){l.classList.add('on');l.scrollIntoView({behavior:'smooth',block:'center'});}};
