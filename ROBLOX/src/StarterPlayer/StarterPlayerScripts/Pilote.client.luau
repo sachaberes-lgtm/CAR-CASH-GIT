@@ -861,11 +861,13 @@ local function camera(dt: number)
 	else -- menu (la CHUTE du web) : vue de côté, la caisse à GAUCHE de l'écran, nez qui plonge vers la droite
 		local av = Vector3.new(menuCap.X, 0, menuCap.Z).Unit
 		local dr = av:Cross(Vector3.yAxis)
-		pos = p - av * (5 * M) + dr * (15 * M) + Vector3.yAxis * (2.5 * M)
+		-- (chuteRender du web) la vue est EN HAUTEUR (~20°) et plonge sur la caisse : la mer de nuages remplit l'écran
+		-- sous l'horizon ; objectif de 46° ; la caisse à gauche, la colonne de boutons à droite
+		pos = p - av * (3 * M) + dr * (14.5 * M) + Vector3.yAxis * (5.4 * M)
 		camPos = camPos:Lerp(pos, math.min(1, dt * 3))
-		camVise = camVise:Lerp(p + av * (6.5 * M) - Vector3.yAxis * (1.5 * M), math.min(1, dt * 4))
+		camVise = camVise:Lerp(p + av * (5.6 * M) - Vector3.yAxis * (0.5 * M), math.min(1, dt * 4))
 		camUp = Vector3.yAxis
-		fov = 60
+		fov = 46
 	end
 	camFov += (math.min(Config.CAM.fovMax, fov) - camFov) * math.min(1, dt * 6)
 	cam.FieldOfView = camFov
@@ -1244,7 +1246,12 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 		end
 		habiller(dt)
 		if mode == "garage" then Garage.rendu(dtBrut) else camera(dt) end
-		Mer.suivre(cam.CFrame.Position, carCF.Position.Y, dt)
+		local vue = workspace:GetAttribute("DbgVue") -- (mise au point) une vue imposée depuis la console de Studio
+		if vue then
+			cam.CFrame = vue
+			cam.FieldOfView = workspace:GetAttribute("DbgFov") or 90
+		end
+		Mer.suivre(cam.CFrame.Position, carCF.Position.Y, dt, (mode == "menu" or mode == "garage") and Config.CIEL.merMenu * M or nil)
 		lisserDoubles(dt)
 		envoiT -= dtBrut
 		if envoiT <= 0 and (mode == "drive" or mode == "fall") then
@@ -1263,10 +1270,16 @@ while not z1.pret do
 	E.chargeTxt.Text = T.chargement .. string.rep(".", math.floor((os.clock() - t0) * 3) % 4)
 	task.wait(0.1)
 end
+-- la mer de nuages se peint pendant le chargement (au plus 15 s : au-delà on entre, elle arrivera)
+while not Mer.pret and os.clock() - t0 < 15 do
+	E.chargeTxt.Text = T.chargement .. string.rep(".", math.floor((os.clock() - t0) * 3) % 4)
+	task.wait(0.1)
+end
 preparer(2, Piste.suite(z1.piste :: Piste.Piste))
 allerMenu()
 
 -- aide au débogage (console du client dans Studio) : _G.cashcar()
+-- (la console de Studio ne partage pas _G avec les scripts : pour imposer une vue, poser l'attribut DbgVue — un CFrame — sur le Workspace)
 _G.cashcar = function()
 	return { mode = mode, zone = zoneN, s = s, lat = lat, side = side, vA = vA, kmh = kmh(), psi = psi,
 		nitro = nitroR, tier = tier, argent = argent, aura = aura, fallT = fallT, n = piste and piste.n, len = piste and piste.len }

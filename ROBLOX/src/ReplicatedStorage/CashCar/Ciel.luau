@@ -37,9 +37,9 @@ function Ciel.poser(Lighting: Lighting, ws: Workspace)
 
 	local atm = obtenir(Lighting, "Atmosphere", "Altitude")
 	atm.Density = C.brumeDensite
-	atm.Offset = 0.08
+	atm.Offset = 0.2
 	atm.Color = C.horizon
-	atm.Decay = C.zenith
+	atm.Decay = Color3.fromRGB(110, 165, 225) -- (le bleu profond du zénith teintait toute la brume en turquoise)
 	atm.Glare = 0.3
 	atm.Haze = C.brumeVoile
 
