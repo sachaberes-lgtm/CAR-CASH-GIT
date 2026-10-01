@@ -26,6 +26,7 @@ local Bus = require(CL:WaitForChild("Bus"))
 local Garage = require(CL:WaitForChild("Garage"))
 local Score = require(CL:WaitForChild("Score"))
 local HudScore = require(CL:WaitForChild("HudScore"))
+local Missions = require(CL:WaitForChild("Missions"))
 
 local M, SPD = Config.M, Config.SPD
 local RH, THICK = Config.ROAD_HALF, Config.THICK
@@ -142,13 +143,14 @@ local function cleObj(v: Vector3): number
 	return (math.floor(v.X / CEL_OBJ) + 4096) * 67108864 + (math.floor(v.Y / CEL_OBJ) + 4096) * 8192 + (math.floor(v.Z / CEL_OBJ) + 4096)
 end
 
+-- (la zone 0 est la piste DESSINÉE de l'auto-école)
 local function preparer(z: number, depart: CFrame?): Zone
 	if ZONES[z] then return ZONES[z] end
 	local e: Zone = { z = z, pret = false }
 	ZONES[z] = e
 	task.spawn(function()
 		local function ceder() task.wait() end
-		local p = Piste.generer(graine, z, depart, ceder)
+		local p = Piste.generer(graine, math.max(1, z), depart, ceder, z == 0)
 		local d = Instance.new("Folder")
 		d.Name = "Zone" .. z
 		Construction.route(p, d, ceder)
@@ -235,7 +237,7 @@ local G = {
 	carRoll = 0, rollV = 0, levreY = 0, pureT = 0, pureArmed = true, pureNext = 0, pureLvl = 0, idleT = 0, idleMsg = 0,
 	padCd = 0, padN = 0, padSL = nil :: number?, comboT = 0, safeS = 0,
 	distAvant = 0, vmax = 0, serie = 0, nbZones = 0, tempsDepart = 0,
-	fruitRaf = 0, fruitRafT = 0,
+	fruitRaf = 0, fruitRafT = 0, coeurs = 3,
 	lgS = 240, lgK = 0, lgV = 0, lgAcc = 20, -- LA LIGNE PARFAITE : la prochaine abscisse, fruit (0) ou pad (1), la vitesse et l'accélération lissées
 }
 local NTR = { on = false, t = 0, pal = 0, boost = 0, k = 0, kc = 0 }
@@ -256,6 +258,9 @@ local boomT, boomPos, causeMort = 0, Vector3.zero, "autre"
 local secousse, fovPunch = 0, 0
 local intro = false                          -- la CHUTE du départ : la caisse tombe du ciel sur la route
 local stats = { pieces = 0, poses = 0, parfaites = 0, fruits = 0, nitro = 0, duree = 0, chaine = 0, figures = 0 }
+local CPT: any = {} -- les compteurs de la partie, tels que les missions les lisent (voir Carnets.valeur)
+-- L'AUTO-ÉCOLE (TUTO, L22181) : cinq étapes sur la piste dessinée ; on ne peut pas y mourir ; au bout, le PERMIS (+500 $)
+local TU: any = { on = false, etape = 0, pause = 0, g = false, d = false, nitroT = 0, volT = 0, solT = 0, t = 0, rates = 0, horsT = 0, msg = nil, msgT = 0, vraiment = 0 }
 local astucesVues = {}
 local eclats: { { p: BasePart, v: Vector3, r: Vector3, t: number } } = {}
 local carCF = CFrame.identity
@@ -268,7 +273,9 @@ local function denom(): number return Config.DENOMS[tier + 1] * 0.25 end
 local function vmaxShow(): number return 190 * SPD * tardif() * pousseMoteur() end
 local function vitMult(): number return math.min(1 + NTR_BOOST_MAX, (pwV > 0 and 2 or 1) * (1 + NTR.boost)) end
 local function kmh(): number return math.abs(vA) * 3.6 * SPD * vitMult() end
-local function airMax(): number return Config.AIR_MAX end
+local FAC = Config.FACILE
+local function facile(): boolean return Config.FACILE_ACTIF and profil.reglages ~= nil and profil.reglages.facile == true end
+local function airMax(): number return Config.AIR_MAX * (facile() and FAC.air or 1) end
 local function horiz(v: Vector3): number return math.sqrt(v.X * v.X + v.Z * v.Z) end
 -- la vitesse ÷ la croisière (flowVitN, L21005) : en vol, la vitesse HORIZONTALE seule
 local function vitN(): number
@@ -416,7 +423,7 @@ end
 
 -- ════════ décoller (startFall, L30229) ════════
 local function astuce(i: number)
-	if astucesVues[i] then return end
+	if astucesVues[i] or TU.on then return end
 	astucesVues[i] = true
 	Hud.astuce((Hud.tactile and T.astucesTactile or T.astuces)[i], 6)
 end
@@ -457,8 +464,186 @@ local function decoller(impU: number, impF: number, bord: boolean?)
 end
 
 -- ════════ exploser ════════
+-- on REPART (respawn, L29589) : replacée sur sa ligne sûre, dessus, 26 de vitesse, 2,2 s de grâce, la nitro à moitié au moins
+local function replacer()
+	Score.SFA.n = 0
+	Score.dolFin()
+	V.chainN, V.chainVal, V.chainMult = 0, 0, 1
+	s = math.clamp(G.safeS - 8, 0, piste.len / M - 80)
+	lat, psi, yawR, side, vA = 0, 0, 0, 1, 26
+	G.slipB, G.carRoll, G.rollV, G.levreY = 0, 0, 0, 0
+	mode = "drive"
+	Score.ETAT.mode = "drive"
+	V.bascOn = false
+	graceT = math.max(graceT, 2.2)
+	nitroR = math.max(nitroR, 0.5 * reservoir())
+	carCF = repere(s, 1)
+	secousse = math.max(secousse, 0.5)
+	E.air.Visible = false
+end
+-- LES TROIS VIES du mode FACILE (facileSauve, L23506) : le vide et le chrono d'air pardonnent deux fois
+local function facileSauve(cause: string): boolean
+	if not facile() or G.coeurs <= 1 or (cause ~= "vide" and cause ~= "air") then return false end
+	G.coeurs -= 1
+	replacer()
+	HudScore.slam((G.coeurs > 1) and string.format(T.vies, G.coeurs) or T.derniereVie, T.onRepart, "#ff5e7a", "#ffd75e", 40, 3)
+	Sons.jouer("poseLourde")
+	return true
+end
+
+-- ════════ L'AUTO-ÉCOLE ════════
+local TU_ETAPES = FR and {
+	{ "TOURNE", "Braque à gauche… puis à droite." }, { "NITRO", "Maintiens NITRO : ça pousse fort." },
+	{ "DECOLLE", "Fonce hors de la route, par le bord. N'aie pas peur." },
+	{ "VOLE A LA NITRO", "En l'air, MAINTIENS NITRO et reviens au-dessus de la route." },
+	{ "POSE-TOI", "Reviens au-dessus de la route et pose-toi dessus (en douceur = parfait)." },
+} or {
+	{ "STEER", "Steer left… then right." }, { "NITRO", "Hold NITRO: it pushes hard." },
+	{ "TAKE OFF", "Drive off the road, over the edge. Don't be scared." },
+	{ "FLY ON NITRO", "In the air, HOLD NITRO and steer back over the road." },
+	{ "LAND IT", "Get back over the road and land on it (softly = perfect)." },
+}
+function TU.carte()
+	local e = math.clamp(TU.etape, 1, 5)
+	E.coach.Visible = TU.on
+	if not TU.on then return end
+	E.coachTete.Text = TU.msg or (tr("AUTO-ECOLE", "DRIVING SCHOOL") .. " · " .. e .. "/5")
+	E.coachTete.TextColor3 = TU.msg and Hud.C.rouge or Hud.C.terne
+	E.coachTitre.Text = TU_ETAPES[e][1]
+	E.coachTxt.Text = TU_ETAPES[e][2]
+	for i = 1, 5 do
+		E.coachPips[i].BackgroundColor3 = (i < e) and Color3.fromRGB(98, 224, 98) or ((i == e) and Hud.C.or_ or Hud.C.trait)
+	end
+	E.btPasser.Text = (os.clock() < TU.vraiment) and tr("VRAIMENT ?", "SURE?") or tr("PASSER", "SKIP")
+	E.btPasser.TextColor3 = (os.clock() < TU.vraiment) and Hud.C.rouge or Hud.C.texte2
+end
+function TU.dire(txt: string)
+	TU.msg, TU.msgT = txt, 2.6
+end
+function TU.vers(e: number)
+	TU.etape = e
+	TU.g, TU.d, TU.nitroT, TU.volT, TU.solT, TU.t, TU.horsT = false, false, 0, 0, 0, 0, 0
+end
+-- la leçon se termine : passe = on l'a SAUTÉE (pas de permis)
+function TU.fin(passe: boolean)
+	TU.on = false
+	E.coach.Visible = false
+	if pwA > 0 then -- l'airtime prêté est repris : en vol, la jauge repart neuve
+		pwA = 0
+		V.fallT, V.fallTR = 0, 0
+	end
+	profil.reglages = profil.reglages or {}
+	profil.reglages.tuto = true
+	task.spawn(function() pcall(function() fnAction:InvokeServer("reglage", "tuto", true) end) end)
+	if passe then return end
+	local premier = not profil.permis
+	if premier then
+		profil.permis = true
+		task.spawn(function() pcall(function() fnAction:InvokeServer("permis") end) end)
+	end
+	HudScore.slam(tr("PERMIS OBTENU !", "LICENSE EARNED!"), premier and "+$500" or nil, "#62e062", "#ffd75e", 40, 3)
+	Sons.jouer("record")
+	if premier then
+		task.delay(1.8, function()
+			Hud.astuce(facile() and tr("Fini l'entraînement : tu as 3 VIES. En l'air, pose-toi avant la fin du chrono.", "Training's over: you have 3 LIVES. In the air, land before the timer runs out.")
+				or tr("Fini l'entraînement : UNE SEULE VIE. En l'air, pose-toi avant la fin du chrono.", "Training's over: ONE LIFE. In the air, land before the timer runs out."), 3.4)
+		end)
+	end
+end
+function TU.bravo()
+	Sons.jouer("poseParfait", 1.2)
+	TU.pause = 0.75
+	if TU.etape >= 5 then
+		TU.etape = 6
+	else
+		TU.vers(TU.etape + 1)
+	end
+end
+-- on ne MEURT pas à l'école : la caisse est replacée, et la leçon reprend au décollage
+function TU.rate(): boolean
+	if not TU.on then return false end
+	replacer()
+	nitroR = reservoir()
+	TU.dire(tr("RATE ! ON RECOMMENCE", "MISSED! TRY AGAIN"))
+	if TU.etape >= 4 then TU.vers(3) end
+	HudScore.flash("#ffffff", 0.5)
+	return true
+end
+function TU.tick(dt: number)
+	if TU.msgT > 0 then
+		TU.msgT -= dt
+		if TU.msgT <= 0 then TU.msg = nil end
+	end
+	if TU.pause > 0 then
+		TU.pause -= dt
+		if TU.pause <= 0 and TU.etape >= 6 then TU.fin(false) end
+		TU.carte()
+		return
+	end
+	local e = TU.etape
+	local vol = mode == "fall"
+	if e == 1 then
+		if steerS < -0.25 then TU.g = true end
+		if steerS > 0.25 then TU.d = true end
+		if TU.g and TU.d then TU.bravo() end
+	elseif e == 2 then
+		nitroR = reservoir() -- le plein est offert
+		if nitroOn then TU.nitroT += dt end
+		if TU.nitroT > 1.1 then TU.bravo() end
+	elseif e == 3 then
+		if vol then
+			pwA = math.max(pwA, 9) -- l'airtime infini est PRÊTÉ
+			TU.bravo()
+		end
+	elseif e == 4 then
+		nitroR = reservoir()
+		if vol then
+			TU.solT = 0
+			if nitroOn then TU.volT += dt end
+			if TU.volT > 0.9 then TU.bravo() end
+		else
+			TU.solT += dt
+			if TU.solT > 1 then
+				TU.vers(3)
+				TU.dire(tr("ENCORE ! NITRO EN L'AIR", "AGAIN! NITRO IN THE AIR"))
+			end
+		end
+	elseif e == 5 then
+		if not vol then
+			TU.bravo()
+		else
+			pwA = math.max(pwA, 2)
+			TU.t += dt
+			if TU.t > 9 then
+				replacer()
+				TU.rates += 1
+				if TU.rates >= 2 then
+					TU.bravo() -- deux échecs : le permis est accordé quand même
+				else
+					TU.vers(3)
+					TU.dire(tr("RATE ! NITRO, VISE LE DESSUS", "MISSED! NITRO, AIM ABOVE IT"))
+				end
+			end
+		end
+	end
+	-- étapes 1 et 2 : sortir de la route replace aussitôt
+	if e <= 2 and vol then
+		TU.horsT += dt
+		if TU.horsT > 0.5 then
+			replacer()
+			nitroR = reservoir()
+			TU.dire(tr("SORTI ! SUIS LA ROUTE", "OFF THE ROAD! FOLLOW IT"))
+			TU.horsT = 0
+		end
+	else
+		TU.horsT = 0
+	end
+	TU.carte()
+end
+
 local function exploser(cause: string)
 	if mode == "boom" or mode == "mort" then return end
+	if TU.rate() or facileSauve(cause) then return end
 	causeMort = cause
 	boomPos = carCF.Position
 	Score.mort() -- la chaîne OUVERTE part avec la caisse, le flow retombe
@@ -535,7 +720,8 @@ local function atterrir(face: number, latX: number, sX: number)
 	local impact = math.abs(vN)
 	-- la pose RATÉE : la trajectoire arrive à plus de 55° de l'axe de la route
 	local angle = math.deg(math.atan2(math.abs(vB), vT))
-	local ratee = math.sqrt(vT * vT + vB * vB) > 4 and angle > 55
+	local ratee = math.sqrt(vT * vT + vB * vB) > 4 and angle > 55 + (facile() and 30 or 0)
+	lat = math.clamp(lat, -(RH - 0.02), RH - 0.02)
 	-- SNAKE LOOP : passé SOUS la route, reposé sur la face de départ
 	local serpent = V.fallUnder and face == V.fallStartSide
 	if serpent then
@@ -705,6 +891,7 @@ local function essayerAtterrir(dt: number)
 	end
 	-- ── (d) la POSE : le point EXACT où la trajectoire traverse le plan de la route ──
 	local bestFace, bestLat, bestS, bestD, trouve = 1, 0, 0, math.huge, false
+	local marge = facile() and FAC.bord or 0
 	for _, j in liste do
 		local F = piste.F[j]
 		local lc = F:PointToObjectSpace(pos)
@@ -724,7 +911,7 @@ local function essayerAtterrir(dt: number)
 			elseif V.fallT > 0.35 and h > -1.2 and h < 3 and vN < 4.5 and math.abs(z) <= DSm * 0.6 then
 				ok = true
 			end
-			if ok and math.abs(lx) < RH and math.abs(h) < bestD then
+			if ok and math.abs(lx) < RH + marge and math.abs(h) < bestD then
 				bestFace, bestLat, bestS, bestD, trouve = 1, lx, (j - 1) * DSm + zx, math.abs(h), true
 			end
 			-- la face du DESSOUS (on s'y colle en remontant)
@@ -737,7 +924,7 @@ local function essayerAtterrir(dt: number)
 			elseif V.fallT > 0.35 and h > -THICK - 3 and h < -THICK + 1.2 and vN > -4.5 and math.abs(z) <= DSm * 0.6 then
 				ok2 = true
 			end
-			if ok2 and math.abs(lx2) < RH and math.abs(h + THICK) < bestD then
+			if ok2 and math.abs(lx2) < RH + marge and math.abs(h + THICK) < bestD then
 				bestFace, bestLat, bestS, bestD, trouve = -1, lx2, (j - 1) * DSm + zx2, math.abs(h + THICK), true
 			end
 		end
@@ -1121,7 +1308,8 @@ local function activer(e: Zone)
 	evEtat:FireServer("zone", e.z)
 end
 local function passerPortail(): boolean
-	local suiv = ZONES[zoneN + 1]
+	local ecole = TU.on and zoneN == 0 -- pendant la leçon, le portail ramène sur la piste d'école
+	local suiv = ecole and ZONES[0] or ZONES[zoneN + 1]
 	if not suiv or not suiv.pret then
 		-- la zone suivante n'est pas prête (téléphone très lent) : la caisse patiente au bout de la route
 		-- (jamais d'attente DANS la boucle de rendu : Roblox l'interdit)
@@ -1145,17 +1333,19 @@ local function passerPortail(): boolean
 	V.flowS0 -= longueur
 	G.padSL = 0 -- le train de boosts TRAVERSE le portail
 	G.lgS, G.lgK, G.lgV, G.lgAcc = 240, 0, 0, 20 -- la ligne parfaite repart avec la piste
-	zoneN += 1
-	G.nbZones += 1
+	if not ecole then
+		zoneN += 1
+		G.nbZones += 1
+	end
 	remettreObjets(suiv)
 	activer(suiv)
-	oublier(ancienne)
+	if not ecole then oublier(ancienne) end
 	local g = encaisser(denom() * 24, "portail")
 	nitroR = reservoir()
 	Bus.emit("portail", zoneN)
 	HudScore.slam("ZONE " .. zoneN, "+" .. Hud.argent(g), "#00eaff", "#7dff9b", 34, 1)
 	Sons.jouer("portail")
-	preparer(zoneN + 1, Piste.suite(piste))
+	if not ecole then preparer(zoneN + 1, Piste.suite(piste)) end
 	return true
 end
 
@@ -1264,7 +1454,9 @@ local function etapeSol(dt: number)
 	-- la route tourne SOUS la caisse
 	local cf2 = repere(s, side)
 	local dyaw = -(T_:Cross(cf2.LookVector)):Dot(cf2.UpVector)
-	psi = math.clamp(psi - math.asin(math.clamp(dyaw, -1, 1)), -1.4, 1.4)
+	local fac = facile()
+	psi = math.clamp(psi - math.asin(math.clamp(dyaw, -1, 1)) * (1 - (fac and FAC.virage or 0)), -1.4, 1.4)
+	if fac and math.abs(steerS) < 0.1 and not G.driftOn then psi *= math.exp(-dt * FAC.cap * vm) end
 	if boost > 0 then boost -= dt end
 	local k = kmh()
 	-- VIRAGE SERRÉ + LA FRONDE
@@ -1317,7 +1509,7 @@ local function etapeSol(dt: number)
 	end
 	-- les plots, les flaques, les pads ; la ligne parfaite se pose devant
 	obstacles(dt, cf2)
-	if not intro then ligneTick(dt) end
+	if not intro and not TU.on then ligneTick(dt) end
 	G.fruitRafT -= dt
 	if G.fruitRafT <= 0 then G.fruitRaf = 0 end
 	-- ROULE OU CRÈVE (L36365)
@@ -1631,6 +1823,12 @@ local function hud(dt: number)
 		if q[2] > 0 then table.insert(pw, (FR and P[q[1]].nom or P[q[1]].nomEN) .. " " .. math.ceil(q[2])) end
 	end
 	E.pouvoir.Text = table.concat(pw, "  ·  ")
+	if facile() and (mode == "drive" or mode == "fall") then
+		E.coeurs.Visible = true
+		E.coeurs.Text = string.rep("♥", G.coeurs) .. '<font color="#40385e">' .. string.rep("♥", math.max(0, FAC.coeurs - G.coeurs)) .. "</font>"
+	else
+		E.coeurs.Visible = false
+	end
 	HudScore.tick(dt, mode)
 	Hud.tick()
 end
@@ -1664,9 +1862,15 @@ local function allerMenu()
 end
 
 local function nouvellePartie()
-	zoneN = 1
-	remettreObjets(ZONES[1])
-	activer(ZONES[1])
+	-- la leçon tant qu'elle n'a pas été passée (ou sautée) : la piste d'école est la zone 0
+	local ecole = profil.reglages ~= nil and profil.reglages.tuto == false and ZONES[0] ~= nil and ZONES[0].pret
+	TU.on = ecole
+	TU.vers(1)
+	TU.rates, TU.pause, TU.msg, TU.msgT, TU.vraiment = 0, 0, nil, 0, 0
+	E.coach.Visible = false
+	zoneN = ecole and 0 or 1
+	remettreObjets(ZONES[zoneN])
+	activer(ZONES[zoneN])
 	preparer(2, Piste.suite(ZONES[1].piste :: Piste.Piste))
 	poserAuDepart()
 	vA, yawR, steerS, momT, boost, G.padCd, G.padN, G.padSL = 0, 0, 0, 0, 0, 0, 0, nil
@@ -1684,11 +1888,14 @@ local function nouvellePartie()
 	stats.pieces, stats.poses, stats.parfaites, stats.fruits, stats.nitro, stats.duree, stats.chaine, stats.figures = 0, 0, 0, 0, 0, 0, 0, 0
 	G.tempsDepart = 0
 	G.fruitRaf, G.fruitRafT = 0, 0
+	G.coeurs = FAC.coeurs
+	G.safeS = S_CHUTE
 	G.lgS, G.lgK, G.lgV, G.lgAcc = 240, 0, 0, 20
 	for _, v in volants do v.p.Parent = nil end
 	table.clear(volants)
 	Score.debut(meilleurAura, profil.frenRec or 0)
 	HudScore.raz()
+	Missions.debut()
 	Bus.emit("partie")
 	E.air.Visible = false
 	montrerCaisse(true)
@@ -1721,9 +1928,10 @@ local function finPartie()
 	aura = Score.fin(false)
 	local dist = G.distAvant + math.max(0, s)
 	local rec = argent > record and argent > Config.CASH_DEPART + 0.01
+	local mres = Missions.fin(CPT)
 	evFin:FireServer(argent, dist, aura, { pieces = stats.pieces, figures = stats.poses, kmh = G.vmax, zone = G.nbZones + 1, tier = tier,
 		multi = Score.CHA.xMax, cause = causeMort, parfaites = stats.parfaites, fruits = stats.fruits, nitro = stats.nitro,
-		duree = stats.duree, chaine = stats.chaine, frenMax = Score.FREN.max, frenRec = Score.FREN.record })
+		duree = stats.duree, chaine = stats.chaine, frenMax = Score.FREN.max, frenRec = Score.FREN.record, mis = mres.meilleur })
 	if rec then record = argent end
 	meilleurAura = math.max(meilleurAura, aura)
 	local cause = T.morts[causeMort] or T.morts.autre
@@ -1740,7 +1948,8 @@ local function finPartie()
 	else
 		E.mMoteurEncore.Text = T.moteurMax
 	end
-	E.mPartie.Text = cause .. "\n" .. T.distance .. "  " .. Hud.entier(dist) .. " M\n" .. T.pieces .. "  " .. stats.pieces
+	E.mPartie.Text = cause .. "\n" .. T.distance .. "  " .. Hud.entier(dist) .. " M   " .. T.pieces .. "  " .. stats.pieces
+		.. (mres.ligne and ("\n◎ " .. mres.ligne) or "")
 	local st = {
 		{ "x" .. Score.CHA.xMax, T.multiMax },
 		{ Hud.entier(G.vmax), T.kmhMax }, { tostring(G.nbZones + 1), T.zone }, { tostring(stats.poses), T.figures },
@@ -1767,7 +1976,43 @@ local function finPartie()
 end
 
 -- les boutons
-E.btJouer.Activated:Connect(function() if mode == "menu" then nouvellePartie() end end)
+-- JOUER : à la toute première partie, on demande d'abord FACILE ou NORMAL (facChoix, L5807)
+local function reglage(cle: string, valeur: any)
+	profil.reglages = profil.reglages or {}
+	profil.reglages[cle] = valeur
+	task.spawn(function() pcall(function() fnAction:InvokeServer("reglage", cle, valeur) end) end)
+end
+local apresChoix: (() -> ())? = nil
+local function jouer(suite: () -> ())
+	if Config.FACILE_ACTIF and profil.reglages and profil.reglages.facileChoisi == false then
+		apresChoix = suite
+		E.choix.Visible = true
+		return
+	end
+	suite()
+end
+local function choisir(oui: boolean)
+	reglage("facile", oui)
+	reglage("facileChoisi", true)
+	E.choix.Visible = false
+	local f = apresChoix
+	apresChoix = nil
+	if f then f() end
+end
+E.btPasser.Activated:Connect(function()
+	if not TU.on then return end
+	-- PASSER : si le permis n'a jamais été payé, on demande d'abord (« VRAIMENT ? », 3 s)
+	if not profil.permis and os.clock() > TU.vraiment then
+		TU.vraiment = os.clock() + 3
+		TU.dire(tr("PERMIS +$500", "LICENSE +$500"))
+		TU.carte()
+		return
+	end
+	TU.fin(true)
+end)
+E.btFacileOui.Activated:Connect(function() choisir(true) end)
+E.btFacileNon.Activated:Connect(function() choisir(false) end)
+E.btJouer.Activated:Connect(function() if mode == "menu" then jouer(nouvellePartie) end end)
 -- ── LE GARAGE : parcourir, acheter, équiper (voir Client/Garage) ──
 local function ouvrirGarage()
 	if mode ~= "menu" then return end
@@ -1794,12 +2039,43 @@ Garage.init({
 	surJouer = function()
 		Garage.fermer()
 		allerMenu()
-		nouvellePartie()
+		jouer(nouvellePartie)
 	end,
 	surReglages = function() Hud.ecran("reglages") end,
 })
 E.btGarage.Activated:Connect(ouvrirGarage)
-E.btMissions.Activated:Connect(function() if mode == "menu" then Hud.toast(T.bientot) end end)
+-- ── LES MISSIONS : le carnet ouvert, ses trois défis, sa récompense (voir Client/Missions) ──
+Missions.init({
+	profil = function() return profil end,
+	action = function(nom: string, ...: any): (boolean, string?)
+		local ok, res, msg, p = pcall(function(...) return fnAction:InvokeServer(nom, ...) end, ...)
+		if not ok then return false, "erreur" end
+		if type(p) == "table" then
+			-- (le serveur rend le profil : on garde ce que la partie en cours a déjà coché, sa réponse peut arriver en retard)
+			local m = profil.mis
+			lireProfil(p)
+			if m and p.mis and m.n == p.mis.n then
+				for i = 1, 3 do
+					if m.ok[i] then p.mis.ok[i] = true end
+				end
+			end
+		end
+		return res == true, msg
+	end,
+	surHome = function()
+		Missions.fermer()
+		Hud.ecran("menu")
+	end,
+	surJouer = function()
+		Missions.fermer()
+		if mode == "menu" then jouer(nouvellePartie) end
+	end,
+})
+E.btMissions.Activated:Connect(function()
+	if mode ~= "menu" then return end
+	Hud.ecran("missions")
+	Missions.ouvrir()
+end)
 E.btCarriere.Activated:Connect(function() if mode == "menu" then Hud.toast(T.bientot) end end)
 E.btBoutique.Activated:Connect(function() if mode == "menu" then Hud.toast(T.bientot) end end)
 E.btRejouer.Activated:Connect(function() if mode == "mort" then nouvellePartie() end end)
@@ -1821,12 +2097,19 @@ end)
 E.btRecom.Activated:Connect(function() if enPause then enPause = false; Score.fin(false); nouvellePartie() end end)
 E.btMenuP.Activated:Connect(function() if enPause then enPause = false; Score.fin(false); allerMenu() end end)
 local function majBoutonsSon()
+	E.btFacile.Text = T.facile .. (facile() and " ON" or " OFF")
 	E.btSonP.Text = T.son .. (Sons.actif and " ON" or " OFF")
 	E.btMusP.Text = T.musique .. (Sons.musiqueActive and " ON" or " OFF")
 end
 E.btSonP.Activated:Connect(function() Sons.actif = not Sons.actif; majBoutonsSon() end)
 E.btMusP.Activated:Connect(function() Sons.musiqueActive = not Sons.musiqueActive; majBoutonsSon() end)
+E.btFacile.Activated:Connect(function()
+	reglage("facile", not facile())
+	reglage("facileChoisi", true)
+	majBoutonsSon()
+end)
 majBoutonsSon()
+E.btFacile.Parent.Visible = Config.FACILE_ACTIF
 
 -- ════════ les autres caisses : un double chez moi, lissé ; on ne voit que celles qui roulent dans NOTRE zone ════════
 type Double = { m: Model, c: Model, vu: boolean?, pg: any, ind: number }
@@ -1925,6 +2208,22 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			Score.flowTick(dt, mode, vitN(), nitroOn)
 			Score.chaineTick(dt, mode)
 			aura = Score.aura()
+			-- les missions relisent les compteurs de la partie
+			CPT.pieces, CPT.fruits, CPT.gains, CPT.poses, CPT.parfaites = stats.pieces, stats.fruits, argent - Config.CASH_DEPART, stats.poses, stats.parfaites
+			CPT.kmh, CPT.zones, CPT.duree, CPT.chaine, CPT.nitro = G.vmax, G.nbZones, stats.duree, stats.chaine, stats.nitro
+			-- (les missions et la leçon ne doivent JAMAIS pouvoir arrêter la partie : une erreur les coupe, la course continue)
+			if mode == "drive" or mode == "fall" then
+				local okM, errM = pcall(Missions.tick, dt, CPT)
+				if not okM then warn("[CashCar] missions : " .. tostring(errM)) end
+			end
+			if TU.on and not intro then
+				local okT, errT = pcall(TU.tick, dt)
+				if not okT then
+					warn("[CashCar] auto-école : " .. tostring(errT))
+					TU.on = false
+					E.coach.Visible = false
+				end
+			end
 			Bus.emit("tick", dt)
 		elseif mode == "boom" then
 			boomT += dt
@@ -1985,6 +2284,7 @@ while not Mer.pret and os.clock() - t0 < 15 do
 	task.wait(0.1)
 end
 preparer(2, Piste.suite(z1.piste :: Piste.Piste))
+if profil.reglages and profil.reglages.tuto == false then preparer(0, nil) end
 allerMenu()
 
 -- aide au débogage (console du client dans Studio) : _G.cashcar()
@@ -1993,7 +2293,7 @@ _G.cashcar = function()
 	return { mode = mode, zone = zoneN, s = s, lat = lat, side = side, vA = vA, kmh = kmh(), psi = psi,
 		nitro = nitroR, tier = tier, argent = argent, aura = aura, fallT = V.fallT, n = piste and piste.n, len = piste and piste.len }
 end
-]]></ProtectedString></Properties></Item></Item></Item><Item class="ReplicatedStorage" referent="RBX0000005D"><Properties><string name="Name">ReplicatedStorage</string></Properties><Item class="Folder" referent="RBX0000005C"><Properties><string name="Name">CashCar</string></Properties><Item class="ModuleScript" referent="RBX00000006"><Properties><string name="Name">Caisse</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LA CAISSE. Chaque joueur DESSINE les caisses chez lui (la sienne, collée à sa physique ; celles des
+]]></ProtectedString></Properties></Item></Item></Item><Item class="ReplicatedStorage" referent="RBX0000005F"><Properties><string name="Name">ReplicatedStorage</string></Properties><Item class="Folder" referent="RBX0000005E"><Properties><string name="Name">CashCar</string></Properties><Item class="ModuleScript" referent="RBX00000006"><Properties><string name="Name">Caisse</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LA CAISSE. Chaque joueur DESSINE les caisses chez lui (la sienne, collée à sa physique ; celles des
 -- autres, lissées vers la position que le serveur relaie). Le nez regarde −Z (LookVector de Roblox).
 --
 -- Les 68 caisses sont celles du jeu web, AU TRIANGLE PRÈS : Caisses/Formes/Fxx est cuit par outils/cuire-caisses.js
@@ -3723,7 +4023,135 @@ return {
 		c = { v = "QwEAADj+6Ozwvf4AADj+6OzwQwEMAY/+6Ozwvf4MAY/+6OzwQwGyAXP/6Ozwvf6yAXP/6OzwQwGyAY0A6Ozwvf6yAY0A6OzwQwEMAXEB6Ozwvf4MAXEB6OzwQwEAAMgB6Ozwvf4AAMgB6OzwQwH0/nEB6Ozwvf70/nEB6OzwQwFO/o0A6Ozwvf5O/o0A6OzwQwFO/nP/6Ozwvf5O/nP/6OzwQwH0/o/+6Ozwvf70/o/+6OzwQwEAAAAA6Ozwvf4AAAAA6OzwVgGPAc7/6Ozwqv6PAc7/6OzwVgGPATIA6Ozwqv6PATIA6OzwVgFx/jIA6Ozwqv5x/jIA6OzwVgFx/s7/6Ozwqv5x/s7/6OzwVgGrAGwB6Ozwqv6rAGwB6OzwVgFMAIsB6Ozwqv5MAIsB6OzwVgFV/5T+6Ozwqv5V/5T+6OzwVgG0/3X+6Ozwqv60/3X+6OzwVgHb/hMB6Ozwqv7b/hMB6OzwVgGg/sIA6Ozwqv6g/sIA6OzwVgElAe3+6Ozwqv4lAe3+6OzwVgFgAT7/6Ozwqv5gAT7/6OzwVgGg/j7/6Ozwqv6g/j7/6OzwVgHb/u3+6Ozwqv7b/u3+6OzwVgFgAcIA6Ozwqv5gAcIA6OzwVgElARMB6Ozwqv4lARMB6OzwVgFMAHX+6Ozwqv5MAHX+6OzwVgGrAJT+6Ozwqv6rAJT+6OzwVgG0/4sB6Ozwqv60/4sB6OzwVgFV/2wB6Ozwqv5V/2wB6OzwYAEAAGr/6OzwoP4AAGr/6OzwYAFqAJb/6OzwoP5qAJb/6OzwYAGWAAAA6OzwoP6WAAAA6OzwYAFqAGoA6OzwoP5qAGoA6OzwYAEAAJYA6OzwoP4AAJYA6OzwYAGW/2oA6OzwoP6W/2oA6OzwYAFq/wAA6OzwoP5q/wAA6OzwYAGW/5b/6OzwoP6W/5b/6OzwYAEAAAAA6OzwoP4AAAAA6Ozw", t = "AAABAAIAAQADAAIAAgADAAQAAwAFAAQABAAFAAYABQAHAAYABgAHAAgABwAJAAgACAAJAAoACQALAAoACgALAAwACwANAAwADAANAA4ADQAPAA4ADgAPABAADwARABAAEAARABIAEQATABIAEgATAAAAEwABAAAAAAACABQAAgAEABQABAAGABQABgAIABQACAAKABQACgAMABQADAAOABQADgAQABQAEAASABQAEgAAABQAAwABABUABQADABUABwAFABUACQAHABUACwAJABUADQALABUADwANABUAEQAPABUAEwARABUAAQATABUAFgAXABgAFwAZABgAGgAbABwAGwAdABwAGgAcABgAHAAWABgAHQAbABcAGwAZABcAHAAdABYAHQAXABYAGAAZABoAGQAbABoAHgAfACAAHwAhACAAIgAjACQAIwAlACQAIgAkACAAJAAeACAAJQAjAB8AIwAhAB8AJAAlAB4AJQAfAB4AIAAhACIAIQAjACIAJgAnACgAJwApACgAKgArACwAKwAtACwAKgAsACgALAAmACgALQArACcAKwApACcALAAtACYALQAnACYAKAApACoAKQArACoALgAvADAALwAxADAAMgAzADQAMwA1ADQAMgA0ADAANAAuADAANQAzAC8AMwAxAC8ANAA1AC4ANQAvAC4AMAAxADIAMQAzADIANgA3ADgANwA5ADgAOgA7ADwAOwA9ADwAOgA8ADgAPAA2ADgAPQA7ADcAOwA5ADcAPAA9ADYAPQA3ADYAOAA5ADoAOQA7ADoAPgA/AEAAPwBBAEAAQABBAEIAQQBDAEIAQgBDAEQAQwBFAEQARABFAEYARQBHAEYARgBHAEgARwBJAEgASABJAEoASQBLAEoASgBLAEwASwBNAEwATABNAD4ATQA/AD4APgBAAE4AQABCAE4AQgBEAE4ARABGAE4ARgBIAE4ASABKAE4ASgBMAE4ATAA+AE4AQQA/AE8AQwBBAE8ARQBDAE8ARwBFAE8ASQBHAE8ASwBJAE8ATQBLAE8APwBNAE8A" },
 	},
 }
-]]></ProtectedString></Properties></Item></Item></Item><Item class="ModuleScript" referent="RBX0000004E"><Properties><string name="Name">Ciel</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LE CIEL DU NIVEAU 1 : « le jour d'altitude ». Azur profond au zénith, horizon crème,
+]]></ProtectedString></Properties></Item></Item></Item><Item class="ModuleScript" referent="RBX0000004E"><Properties><string name="Name">Carnets</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES CARNETS (missions v2, index.html L21485-21600). Un carnet = 3 DÉFIS + 1 RÉCOMPENSE. Un seul carnet
+-- ouvert à la fois, dans l'ordre, pour toujours : neuf écrits à la main, puis une série sans fin (tirée d'un
+-- générateur déterministe : le même numéro donne le même carnet chez tout le monde, serveur compris).
+-- RÈGLE : chaque défi se réussit en UNE SEULE partie (le compteur repart à chaque partie), mais les trois peuvent
+-- se réussir dans trois parties différentes.
+-- Module PUR (partagé serveur / joueur) : il se teste hors du jeu (outils/banc-score.luau).
+local Carnets = {}
+
+-- k = le genre du défi, v = l'objectif, p = la prime (versée au COMPTE dès qu'il est réussi)
+-- rec = la récompense du carnet : { caisse = indice } | { habit = "peinture:or" } | { cash = montant }
+local ECRITS = {
+	{ { k = "coins", v = 25, p = 150 }, { k = "fruits", v = 4, p = 150 }, { k = "cash", v = 200, p = 200 }, rec = { caisse = 6 } },
+	{ { k = "tricks", v = 2, p = 300 }, { k = "perfect", v = 1, p = 300 }, { k = "kmh", v = 672, p = 300 }, rec = { caisse = 7 } },
+	{ { k = "zones", v = 1, p = 750 }, { k = "chain", v = 3, p = 750 }, { k = "cash", v = 2500, p = 1000 }, rec = { caisse = 8 } },
+	{ { k = "survie", v = 150, p = 2000 }, { k = "tricks", v = 8, p = 2000 }, { k = "cash", v = 12000, p = 2500 }, rec = { habit = "peinture:or", nom = "OR MASSIF", en = "SOLID GOLD" } },
+	{ { k = "zones", v = 2, p = 4000 }, { k = "chain", v = 4, p = 4000 }, { k = "perfect", v = 3, p = 4000 }, rec = { habit = "trainee:arcenciel", nom = "ARC-EN-CIEL", en = "RAINBOW" } },
+	{ { k = "tricks", v = 10, p = 5000 }, { k = "coins", v = 120, p = 5000 }, { k = "zones", v = 2, p = 6000 }, rec = { caisse = 65 } },
+	{ { k = "perfect", v = 5, p = 7500 }, { k = "kmh", v = 900, p = 7500 }, { k = "chain", v = 6, p = 9000 }, rec = { caisse = 63 } },
+	{ { k = "zones", v = 3, p = 13000 }, { k = "fruits", v = 12, p = 13000 }, { k = "cash", v = 60000, p = 15000 }, rec = { caisse = 64 } },
+	{ { k = "tricks", v = 20, p = 20000 }, { k = "perfect", v = 10, p = 20000 }, { k = "zones", v = 4, p = 25000 }, rec = { caisse = 62 } },
+}
+Carnets.ECRITS = #ECRITS
+
+-- ── le générateur des carnets 10 et suivants (carnetBrut, L21526) ──
+local function mul32(a: number, b: number): number -- Math.imul : le produit sur 32 bits
+	local al, ah = bit32.band(a, 0xFFFF), bit32.rshift(a, 16)
+	local bl, bh = bit32.band(b, 0xFFFF), bit32.rshift(b, 16)
+	return bit32.band(al * bl + bit32.lshift(bit32.band(ah * bl + al * bh, 0xFFFF), 16), 0xFFFFFFFF)
+end
+local function ecoRond(v: number): number
+	if v < 100 then return math.max(10, math.floor(v / 10 + 0.5) * 10) end
+	local e = 10 ^ (math.floor(math.log10(v)) - 1) -- deux chiffres significatifs
+	return math.floor(v / e + 0.5) * e
+end
+Carnets.ecoRond = ecoRond
+
+-- n = l'indice du carnet à partir de 0 (le carnet « 1 » du joueur est n = 0)
+function Carnets.de(n: number): any
+	if ECRITS[n + 1] then return ECRITS[n + 1] end
+	local l = n - #ECRITS + 1
+	local pr = ecoRond(5000 * 0.5 * (1 + 0.25 * l))
+	local POOL = {
+		{ k = "coins", v = math.min(300, 60 + 20 * l) }, { k = "fruits", v = math.min(60, 10 + 3 * l) },
+		{ k = "cash", v = ecoRond(12000 * math.min(4, 1 + 0.3 * l)) }, { k = "tricks", v = math.min(30, 8 + 3 * l) },
+		{ k = "perfect", v = math.min(10, 3 + l) }, { k = "kmh", v = math.min(1200, 680 + 48 * l) },
+		{ k = "zones", v = math.min(6, 2 + math.floor(l / 2)) }, { k = "survie", v = math.min(420, 150 + 30 * l) },
+		{ k = "chain", v = math.min(8, 4 + l) }, { k = "nitro", v = math.min(60, 20 + 5 * l) },
+	}
+	local h = mul32(n, 2654435761)
+	if h == 0 then h = 1 end
+	local c: any = { rec = { cash = 2 * pr } }
+	local pris: { [string]: boolean } = {}
+	local garde = 0
+	while #c < 3 and garde < 200 do
+		garde += 1
+		h = bit32.band(mul32(h, 1103515245) + 12345, 0xFFFFFFFF)
+		local q = POOL[(bit32.rshift(h, 8) % #POOL) + 1]
+		if not pris[q.k] then
+			pris[q.k] = true
+			table.insert(c, { k = q.k, v = q.v, p = pr })
+		end
+	end
+	return c
+end
+
+-- ── les textes (misTxt, L21543) ──
+local function duree(v: number, fr: boolean): string
+	if v < 60 then return v .. " S" end
+	local m, s = v // 60, v % 60
+	return m .. " MIN" .. ((s > 0) and string.format(" %02d", s) or "")
+end
+Carnets.duree = duree
+-- argent(v) : la mise en forme d'un montant (fournie par l'appelant : « $ 2,5 k »)
+function Carnets.texte(d: { k: string, v: number }, fr: boolean, argent: (number) -> string): string
+	local k, v = d.k, d.v
+	if k == "coins" then return fr and ("RAMASSE " .. v .. " PIECES") or ("GRAB " .. v .. " COINS") end
+	if k == "fruits" then return fr and ("CROQUE " .. v .. " FRUITS") or ("EAT " .. v .. " FRUITS") end
+	if k == "cash" then return (fr and "ENCAISSE " or "BANK ") .. argent(v) end
+	if k == "tricks" then return fr and ("REUSSIS " .. v .. " FIGURE" .. (v > 1 and "S" or "")) or ("LAND " .. v .. " TRICK" .. (v > 1 and "S" or "")) end
+	if k == "perfect" then
+		if v == 1 then return fr and "UNE POSE PARFAITE" or "A PERFECT LANDING" end
+		return fr and (v .. " POSES PARFAITES") or (v .. " PERFECT LANDINGS")
+	end
+	if k == "kmh" then return fr and ("ATTEINS " .. v .. " KM/H") or ("HIT " .. v .. " KM/H") end
+	if k == "zones" then return fr and ("FRANCHIS " .. v .. " PORTAIL" .. (v > 1 and "S" or "")) or ("CROSS " .. v .. " PORTAL" .. (v > 1 and "S" or "")) end
+	if k == "survie" then return (fr and "TIENS " or "SURVIVE ") .. duree(v, fr) end
+	if k == "chain" then return fr and ("ENCHAINE " .. v .. " FIGURES D'UN VOL") or ("CHAIN " .. v .. " TRICKS IN ONE JUMP") end
+	if k == "nitro" then return fr and ("BRULE " .. v .. " S DE NITRO") or ("BURN " .. v .. " S OF NITRO") end
+	return k
+end
+-- où on en est : « 18 / 25 », « $120 / $200 », « 1 MIN 05 / 2 MIN 30 »
+function Carnets.progres(d: { k: string, v: number }, val: number, fr: boolean, argent: (number) -> string): string
+	local x = math.min(d.v, val)
+	if d.k == "cash" then return argent(x) .. " / " .. argent(d.v) end
+	if d.k == "survie" then return duree(math.floor(x), fr) .. " / " .. duree(d.v, fr) end
+	return math.floor(x) .. " / " .. d.v
+end
+
+-- ── la valeur d'un défi dans la partie en cours (misVal, L21485) : r = les compteurs de la partie ──
+-- r = { pieces, fruits, gains, poses, parfaites, kmh, zones, duree, chaine, nitro }
+function Carnets.valeur(k: string, r: any): number
+	if k == "coins" then return r.pieces or 0 end
+	if k == "fruits" then return r.fruits or 0 end
+	if k == "cash" then return math.max(0, r.gains or 0) end
+	if k == "tricks" then return r.poses or 0 end
+	if k == "perfect" then return r.parfaites or 0 end
+	if k == "kmh" then return math.floor((r.kmh or 0) + 0.5) end
+	if k == "zones" then return r.zones or 0 end
+	if k == "survie" then return r.duree or 0 end
+	if k == "chain" then return r.chaine or 0 end
+	if k == "nitro" then return r.nitro or 0 end
+	return 0
+end
+
+-- un état de missions tout neuf / remis d'aplomb
+function Carnets.etat(m: any): any
+	local e = { n = 0, ok = { false, false, false }, best = { 0, 0, 0 }, f = -1 }
+	if type(m) ~= "table" then return e end
+	if type(m.n) == "number" and m.n >= 0 and m.n < 100000 then e.n = math.floor(m.n) end
+	for i = 1, 3 do
+		if type(m.ok) == "table" and m.ok[i] == true then e.ok[i] = true end
+		if type(m.best) == "table" and type(m.best[i]) == "number" and m.best[i] == m.best[i] and m.best[i] >= 0 then e.best[i] = m.best[i] end
+	end
+	if type(m.f) == "number" and m.f >= 1 and m.f <= 3 then e.f = math.floor(m.f) end
+	return e
+end
+
+return Carnets
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000004F"><Properties><string name="Name">Ciel</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LE CIEL DU NIVEAU 1 : « le jour d'altitude ». Azur profond au zénith, horizon crème,
 -- une mer de nuages sous la route (bâtie par chaque joueur, voir Decor), un soleil d'après-midi qui
 -- couche les ombres. Posé par le SERVEUR : Lighting se réplique tout seul chez chaque joueur.
 local Config = require(script.Parent:WaitForChild("Config"))
@@ -3794,7 +4222,7 @@ function Ciel.poser(Lighting: Lighting, ws: Workspace)
 end
 
 return Ciel
-]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX00000059"><Properties><string name="Name">Client</string></Properties><Item class="ModuleScript" referent="RBX0000004F"><Properties><string name="Name">Bus</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LE BUS : le pilote ANNONCE ce qui arrive (une pièce, une figure, une pose, un décollage, une
+]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX0000005B"><Properties><string name="Name">Client</string></Properties><Item class="ModuleScript" referent="RBX00000050"><Properties><string name="Name">Bus</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LE BUS : le pilote ANNONCE ce qui arrive (une pièce, une figure, une pose, un décollage, une
 -- mort, un portail…), les systèmes ÉCOUTENT (FLOW, frénésie, aura, missions, carrière, sons, jus…).
 -- Aucun système n'a besoin de connaître les autres, et le pilote reste la physique.
 --
@@ -3829,7 +4257,7 @@ Bus.etat = function(): { [string]: any } return {} end
 Bus.agir = {} :: { [string]: (...any) -> any }
 
 return Bus
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000050"><Properties><string name="Name">Construction</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LA CONSTRUCTION : de la piste calculée (des nombres) aux pièces qu'on voit.
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000051"><Properties><string name="Name">Construction</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LA CONSTRUCTION : de la piste calculée (des nombres) aux pièces qu'on voit.
 -- Bâtie CHEZ LE JOUEUR, jamais sur le serveur : rien à envoyer, rien que le « streaming » puisse effacer.
 --
 -- La dalle est un ruban de TRIANGLES (deux coins par triangle, la vieille recette Roblox) : aucun trou
@@ -4190,7 +4618,7 @@ function Construction.nuages(piste: Piste.Piste, dossier: Instance, graine: numb
 end
 
 return Construction
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000051"><Properties><string name="Name">Controles</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES COMMANDES. Trois mondes, une seule sortie :
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000052"><Properties><string name="Name">Controles</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES COMMANDES. Trois mondes, une seule sortie :
 --   Controles.volant  (−1 gauche … +1 droite)
 --   Controles.assiette (+1 = PIQUÉ, nez vers le bas ; −1 = CABRER) — ne sert qu'en l'air
 --   Controles.nitro   (vrai tant qu'on tient)
@@ -4276,7 +4704,7 @@ function Controles.lire()
 end
 
 return Controles
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000052"><Properties><string name="Name">Garage</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LE GARAGE (mode BOUTIQUE du jeu web : #garage, #gTop, #gBottom).
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000053"><Properties><string name="Name">Garage</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LE GARAGE (mode BOUTIQUE du jeu web : #garage, #gTop, #gBottom).
 -- Un ATELIER en 3D (plateau tournant cerclé de cyan, porte sectionnelle, néons, bazar de garagiste) et, par-dessus,
 -- la même interface que le web : le COMPTE en haut à gauche, la fiche de la caisse (nom, barre à la couleur de sa
 -- rareté, rang « 12 / 68 », sa condition si elle est fermée), et en bas à droite la CONSOLE : onglets, pastilles de
@@ -4392,6 +4820,7 @@ local function gagnee(i: number): boolean -- carUnlockedVrai
 	local k = Catalogue[i].cond
 	if k.k == "depart" or possede(i) then return true end
 	if k.k == "aura" then return rangAura(profil().aura or 0) - 1 >= k.v end
+	if k.k == "carnet" then return ((profil().mis and profil().mis.n) or 0) >= k.v end
 	return false
 end
 local function ouverte(i: number): boolean return Config.TEST_CAISSES == true or gagnee(i) end
@@ -5458,7 +5887,7 @@ function Garage.jouer()
 end
 
 return Garage
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000053"><Properties><string name="Name">Hud</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — L'INTERFACE (menu, course, pause, réglages, mort), calquée sur la VERSION PRINCIPALE web.
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000054"><Properties><string name="Name">Hud</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — L'INTERFACE (menu, course, pause, réglages, mort), calquée sur la VERSION PRINCIPALE web.
 -- Références : captures du jeu web à 1280×720 (menu CHUTE, course, écran de mort) — même disposition :
 --   · MENU : le logo CASH CAR en haut à droite (or, barre tricolore rose/cyan/or dessous), ⚙ à droite,
 --     JOUER en grandes lettres d'or en bas à droite ; la caisse qui pique à gauche, au-dessus des nuages.
@@ -5490,6 +5919,9 @@ local T = FR and {
 	aura = "AURA", moteur = "MOTEUR", nitro = "NITRO", air = "AIR", go = "GO !", niveau = "MER DE NUAGES",
 	astuce = "ASTUCE", glisse = "GLISSE POUR\nTOURNER", chargement = "LA ROUTE SE CONSTRUIT",
 		missions = "MISSIONS", garage = "GARAGE", carriere = "CARRIERE", boutique = "BOUTIQUE", bientot = "BIENTOT DISPONIBLE",
+		facile = "MODE FACILE", choisis = "CHOISIS TON MODE", normal = "NORMAL", facileMot = "FACILE",
+		facileTxt = "En FACILE, la voiture suit mieux les virages, tu restes plus longtemps en l'air et tu as 3 vies. Tu pourras changer dans les réglages.",
+		vies = "PLUS QUE %d VIES", derniereVie = "DERNIERE VIE !", onRepart = "ON REPART !",
 	astuces = {
 		"Sors par le BORD de la route : tu voles, et tu te poses plus bas. C'est là que le jeu se joue.",
 		"En l'air : flèche HAUT = plonge, flèche BAS = monte. Gauche / droite = les vrilles.",
@@ -5510,6 +5942,9 @@ local T = FR and {
 	aura = "AURA", moteur = "ENGINE", nitro = "NITRO", air = "AIR", go = "GO!", niveau = "SEA OF CLOUDS",
 	astuce = "TIP", glisse = "SWIPE TO\nSTEER", chargement = "BUILDING THE ROAD",
 		missions = "MISSIONS", garage = "GARAGE", carriere = "CAREER", boutique = "SHOP", bientot = "COMING SOON",
+		facile = "EASY MODE", choisis = "PICK YOUR MODE", normal = "NORMAL", facileMot = "EASY",
+		facileTxt = "In EASY, the car follows the turns better, you stay longer in the air and you get 3 lives. You can change it in the settings.",
+		vies = "%d LIVES LEFT", derniereVie = "LAST LIFE!", onRepart = "BACK ON THE ROAD!",
 	astuces = {
 		"Leave the road by the EDGE: you fly, and land lower down. That's where the game is.",
 		"In the air: UP arrow = dive, DOWN arrow = climb. Left / right = spins.",
@@ -5643,6 +6078,7 @@ function Hud.nombre(v: number): string
 	return s
 end
 function Hud.argent(v: number): string
+	if v < 1000 and v == math.floor(v) then return "$ " .. tostring(v) end -- un montant rond s'écrit sans centimes (les primes, les prix)
 	return "$ " .. Hud.nombre(v)
 end
 function Hud.compte(v: number): string
@@ -5759,6 +6195,8 @@ function Hud.creer()
 	E.btPause = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), FontFace = PIX, Text = "II",
 		TextSize = 26, TextColor3 = Color3.fromRGB(0, 50, 80), AutoButtonColor = false }, pauseF)
 	retour(E.btPause, pauseF)
+	E.coeurs = texte(hud, { Text = "", RichText = true, TextSize = 24, TextColor3 = C.rouge, Size = UDim2.fromOffset(120, 30),
+		Position = UDim2.new(1, -108, 0, 36), AnchorPoint = Vector2.new(1, 0), TextXAlignment = Enum.TextXAlignment.Right, FontFace = TXT, Visible = false })
 	E.argent = texte(hud, { Text = "", RichText = true, TextSize = 40, TextColor3 = C.vert, Size = UDim2.new(0, 460, 0, 48),
 		Position = UDim2.new(1, -22, 0, 96), AnchorPoint = Vector2.new(1, 0), TextXAlignment = Enum.TextXAlignment.Right, epais = 3 })
 	E.air = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(200, 50), Position = UDim2.new(1, -22, 0, 152),
@@ -5784,6 +6222,23 @@ function Hud.creer()
 	E.astuceTxt = inst("TextLabel", { BackgroundTransparency = 1, FontFace = TXT, TextSize = 18, TextColor3 = C.texte, TextWrapped = true,
 		TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, Size = UDim2.new(1, -92, 0, 56),
 		Position = UDim2.fromOffset(76, 32), Text = "" }, E.astuce)
+	-- la carte de l'AUTO-ÉCOLE (#coach) : l'en-tête et PASSER, le titre, la consigne, cinq pastilles
+	E.coach = carbone(hud, UDim2.fromOffset(540, 118), UDim2.new(0.5, 0, 0, 236), C.vert, Vector2.new(0.5, 0))
+	E.coach.Visible = false
+	E.coachTete = texte(E.coach, { Text = "", TextSize = 10, TextColor3 = C.terne, Size = UDim2.new(1, -180, 0, 14), Position = UDim2.fromOffset(22, 12),
+		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
+	E.coachTitre = texte(E.coach, { Text = "", TextSize = 20, TextColor3 = C.texte, Size = UDim2.new(1, -44, 0, 26), Position = UDim2.fromOffset(22, 32),
+		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 3 })
+	E.coachTxt = inst("TextLabel", { BackgroundTransparency = 1, FontFace = TXT, TextSize = 17, TextColor3 = C.texte2, TextWrapped = true,
+		TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, Size = UDim2.new(1, -44, 0, 40),
+		Position = UDim2.fromOffset(22, 62), Text = "" }, E.coach)
+	E.coachPips = {}
+	for i = 1, 5 do
+		E.coachPips[i] = inst("Frame", { BackgroundColor3 = C.trait, BorderSizePixel = 0, Size = UDim2.fromOffset(34, 5), Position = UDim2.new(0, 22 + (i - 1) * 40, 1, -12) }, E.coach)
+	end
+	E.btPasser = inst("TextButton", { BackgroundColor3 = C.carbone2, BorderSizePixel = 0, Size = UDim2.fromOffset(130, 28), Position = UDim2.new(1, -12, 0, 8),
+		AnchorPoint = Vector2.new(1, 0), FontFace = PIX, Text = "", TextSize = 10, TextColor3 = C.texte2, AutoButtonColor = false }, E.coach)
+	inst("UIStroke", { Color = C.trait, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, E.btPasser)
 	-- le bouton NITRO (en bas à droite, comme sur le web — souris et doigt)
 	local nb = carbone(hud, UDim2.fromOffset(176, 140), UDim2.new(1, -22, 1, -22), nil, Vector2.new(1, 1))
 	nb:FindFirstChildOfClass("UIStroke").Color = C.orange
@@ -5816,11 +6271,25 @@ function Hud.creer()
 	E.btMusP = tuile(pan, T.musique, C.cyan, UDim2.fromOffset(230, 60), UDim2.new(0.5, 10, 0, 100), Vector2.new(0, 0), 14)
 	E.btRecom = tuile(pan, T.recommencer, C.magenta, UDim2.fromOffset(230, 60), UDim2.new(0.5, -10, 0, 180), Vector2.new(1, 0), 14)
 	E.btMenuP = tuile(pan, "⌂ " .. T.menu, C.lavande, UDim2.fromOffset(230, 60), UDim2.new(0.5, 10, 0, 180), Vector2.new(0, 0), 14)
+	E.btFacile = tuile(pan, T.facile, C.vert, UDim2.fromOffset(480, 54), UDim2.new(0.5, 0, 0, 258), Vector2.new(0.5, 0), 14)
 	E.btRecom.Parent.Name = "Recom"
 	E.btMenuP.Parent.Name = "MenuP"
 	E.btReprendre = lingot(pan, T.reprendre, UDim2.new(1, -60, 0, 84), UDim2.new(0.5, 0, 1, -30), Vector2.new(0.5, 1), 28)
 	for _, d in voile:GetDescendants() do
 		if d:IsA("GuiObject") then d.ZIndex = 21 end
+	end
+
+	-- ══ LE CHOIX DU MODE (à la toute première partie) ══
+	local choix = inst("Frame", { Name = "Choix", BackgroundColor3 = C.nuit, BackgroundTransparency = 0.2, Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 40 }, racine)
+	E.choix = choix
+	local pc = carbone(choix, UDim2.fromOffset(620, 330), UDim2.fromScale(0.5, 0.5), C.vert, Vector2.new(0.5, 0.5))
+	texte(pc, { Text = T.choisis, TextSize = 26, TextColor3 = C.texte, Size = UDim2.new(1, 0, 0, 36), Position = UDim2.fromOffset(0, 28) })
+	inst("TextLabel", { BackgroundTransparency = 1, FontFace = TXT, TextSize = 19, TextColor3 = C.texte2, TextWrapped = true, Text = T.facileTxt,
+		Size = UDim2.new(1, -80, 0, 96), Position = UDim2.fromOffset(40, 84) }, pc)
+	E.btFacileOui = tuile(pc, "♥ " .. T.facileMot, C.vert, UDim2.fromOffset(250, 76), UDim2.new(0.5, -12, 1, -34), Vector2.new(1, 1), 20)
+	E.btFacileNon = tuile(pc, "⚡ " .. T.normal, C.cyan, UDim2.fromOffset(250, 76), UDim2.new(0.5, 12, 1, -34), Vector2.new(0, 1), 20)
+	for _, d in choix:GetDescendants() do
+		if d:IsA("GuiObject") then d.ZIndex = 41 end
 	end
 
 	-- ══ MORT ══
@@ -6022,7 +6491,7 @@ function Hud.tick()
 end
 
 return Hud
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000054"><Properties><string name="Name">HudScore</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LE HUD DU SCORE (dans l'écran de course) : la bande de FLOW sous la nitro (le mot, quatre cases, « $×1,3 »),
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000055"><Properties><string name="Name">HudScore</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LE HUD DU SCORE (dans l'écran de course) : la bande de FLOW sous la nitro (le mot, quatre cases, « $×1,3 »),
 -- les étiquettes de trait (+NARCISSE / -PSYCHO), l'emblème de la FRÉNÉSIE (trois barres N · M · P et son chrono),
 -- le compteur d'AURA et sa chaîne (les deux dernières lignes, le ×, la barre des 3,5 s), l'annonce qui claque (slam),
 -- l'éclair d'écran. Tout se lit dans Client/Score (FLOW, FREN, CHA) ; ce module ne fait qu'afficher.
@@ -6294,7 +6763,7 @@ function HudScore.raz()
 end
 
 return HudScore
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000055"><Properties><string name="Name">Maillage</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES MAILLAGES. Le jeu web modèle tout en facettes colorées (caisses, moteurs, fruits, nuages) ;
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000056"><Properties><string name="Name">Maillage</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES MAILLAGES. Le jeu web modèle tout en facettes colorées (caisses, moteurs, fruits, nuages) ;
 -- ici on rend ces mêmes triangles à Roblox avec un EditableMesh : mêmes sommets, mêmes couleurs, une normale
 -- par FACE (chaque coin a son sommet : pas de lissage, c'est le style du jeu).
 --
@@ -6512,7 +6981,7 @@ function Maillage.piece(d: { v: string, t: string }, echelle: number, opt: Optio
 end
 
 return Maillage
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000056"><Properties><string name="Name">Mer</string><ProtectedString name="Source"><![CDATA[--!native
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000057"><Properties><string name="Name">Mer</string><ProtectedString name="Source"><![CDATA[--!native
 --!optimize 2
 -- CASH CAR — LA MER DE NUAGES. Dans le jeu web (merZ) c'est un plancher de cumulus dessiné par le shader du ciel,
 -- ~420 m sous la route : presque plein, de rares trous bleus, des dômes crème éclairés du côté du soleil, des
@@ -6885,7 +7354,312 @@ function Mer.suivre(camPos: Vector3, yCaisse: number, dt: number, sous: number?)
 end
 
 return Mer
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000057"><Properties><string name="Name">Score</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LE SCORE : le FLOW (jauge 0-100, quatre cases + la FRÉNÉSIE), la TRIADE (NARCISSE · MACHIAVEL · PSYCHO),
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000058"><Properties><string name="Name">Missions</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES MISSIONS (carnets de 3 défis, voir Carnets). Trois endroits, comme sur le web :
+--   · l'ÉCRAN des missions (depuis le menu) : les trois défis du carnet ouvert, leur jauge (le MEILLEUR ESSAI d'une
+--     partie), la prime, la récompense ; on TOUCHE un défi pour le suivre en course ;
+--   · EN COURSE : toutes les 0,25 s on relit les compteurs de la partie ; un défi réussi claque sa bannière verte
+--     (« DEFI REUSSI » + la prime, versée au compte tout de suite, même si la partie finit mal) ; le défi SUIVI
+--     tient une ligne discrète sous l'argent ;
+--   · à la MORT : le défi dont cette partie s'est le plus approchée, et la récompense si le carnet vient de se fermer.
+-- Le serveur fait foi (primes, récompenses) : ici on DEMANDE (ctx.action("defi", i, valeur)).
+local TweenService = game:GetService("TweenService")
+local CC = script.Parent.Parent
+local Carnets = require(CC:WaitForChild("Carnets"))
+local Caisse = require(CC:WaitForChild("Caisse"))
+local Hud = require(script.Parent:WaitForChild("Hud"))
+local Sons = require(script.Parent:WaitForChild("Sons"))
+
+local Missions = { ouvert = false }
+local K, C, E, FR = Hud.kit, Hud.C, Hud.E, Hud.FR
+local inst = K.inst
+local ctx: any = nil
+local U: any = {}
+local VERT = Color3.fromRGB(125, 255, 155)
+local function tr(fr: string, en: string): string return FR and fr or en end
+
+local function etat(): any
+	local p = ctx.profil()
+	if type(p.mis) ~= "table" or not p.mis.sain then -- (remis d'aplomb UNE fois par profil reçu, pas à chaque image)
+		p.mis = Carnets.etat(p.mis)
+		p.mis.sain = true
+	end
+	return p.mis
+end
+local function carnet(): any return Carnets.de(etat().n) end
+
+-- le nom d'une récompense et sa couleur (une caisse : la couleur de sa rareté ; une peinture, une traînée ; du cash : le vert de l'argent)
+local RARETE = { commun = Color3.fromRGB(185, 196, 214), rare = Color3.fromRGB(77, 184, 255), epique = Color3.fromRGB(199, 125, 255),
+	legendaire = Color3.fromRGB(255, 215, 94), defi = Color3.fromRGB(94, 227, 122) }
+function Missions.recompense(rec: any): (string, Color3)
+	if rec.caisse then
+		local f = Caisse.Catalogue[rec.caisse]
+		return string.upper(FR and f.nom or (f.en or f.nom)), RARETE[f.rar] or C.texte
+	elseif rec.habit then
+		local traine = string.sub(rec.habit, 1, 7) == "trainee"
+		return tr(rec.nom, rec.en), traine and Color3.fromRGB(255, 176, 64) or Color3.fromRGB(255, 154, 216)
+	end
+	return "BONUS " .. Hud.argent(rec.cash or 0), VERT
+end
+
+-- ════════ l'écran ════════
+local function creer()
+	local racine = Hud.racine
+	local g = inst("Frame", { Name = "Missions", BackgroundColor3 = Color3.fromRGB(7, 5, 15), BackgroundTransparency = 0.35, Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 12 }, racine)
+	U.racine = g
+	U.titre = K.texte(g, { Text = "", TextSize = 18, TextColor3 = C.texte, Size = UDim2.new(1, -80, 0, 28), Position = UDim2.fromOffset(40, 30),
+		TextXAlignment = Enum.TextXAlignment.Left, epais = 3 })
+	for k, c in { C.magenta, C.cyan, C.or_ } do
+		inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = c, Size = UDim2.fromOffset(k == 1 and 180 or 110, 5), Position = UDim2.fromOffset(40 + (k == 1 and 0 or (k == 2 and 190 or 310)), 64) }, g)
+	end
+	U.cartes = {}
+	for i = 1, 3 do
+		local c = K.carbone(g, UDim2.new(0.5, -60, 0, 112), UDim2.fromOffset(40, 90 + (i - 1) * 124), C.cyan)
+		c.Active = true
+		K.texte(c, { Text = tr("DEFI ", "CHALLENGE ") .. i, TextSize = 10, TextColor3 = C.terne, Size = UDim2.fromOffset(160, 14), Position = UDim2.fromOffset(22, 12),
+			TextXAlignment = Enum.TextXAlignment.Left })
+		local txt = K.texte(c, { Text = "", TextSize = 15, TextColor3 = C.texte, Size = UDim2.new(1, -170, 0, 22), Position = UDim2.fromOffset(22, 32),
+			TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
+		local prime = K.texte(c, { Text = "", TextSize = 16, TextColor3 = VERT, Size = UDim2.fromOffset(140, 22), Position = UDim2.new(1, -16, 0, 30),
+			AnchorPoint = Vector2.new(1, 0), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false })
+		local fond = inst("Frame", { BackgroundColor3 = C.piste, BorderSizePixel = 0, Size = UDim2.new(1, -44, 0, 10), Position = UDim2.fromOffset(22, 64) }, c)
+		local plein = inst("Frame", { BackgroundColor3 = C.cyan, BorderSizePixel = 0, Size = UDim2.fromScale(0, 1) }, fond)
+		local statut = K.texte(c, { Text = "", TextSize = 10, TextColor3 = C.texte2, Size = UDim2.new(1, -44, 0, 14), Position = UDim2.fromOffset(22, 84),
+			TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
+		local b = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "", ZIndex = 14 }, c)
+		U.cartes[i] = { cadre = c, txt = txt, prime = prime, plein = plein, statut = statut, filet = c:FindFirstChildOfClass("Frame") }
+		b.Activated:Connect(function()
+			Sons.jouer("tap")
+			local m = etat()
+			if m.ok[i] then return end
+			m.f = (m.f == i) and -1 or i -- toucher le défi suivi le lâche
+			task.spawn(function() ctx.action("suivre", m.f) end)
+			Missions.maj()
+		end)
+	end
+	-- la RÉCOMPENSE
+	local r = K.carbone(g, UDim2.new(0.5, -100, 0, 236), UDim2.new(0.5, 30, 0, 90), C.or_)
+	U.recTitre = K.texte(r, { Text = "", TextSize = 11, TextColor3 = C.terne, Size = UDim2.new(1, -40, 0, 14), Position = UDim2.fromOffset(22, 14),
+		TextXAlignment = Enum.TextXAlignment.Left })
+	U.recVue = inst("ViewportFrame", { BackgroundTransparency = 1, Size = UDim2.new(1, -40, 0, 130), Position = UDim2.fromOffset(20, 34),
+		Ambient = Color3.fromRGB(150, 150, 178), LightColor = Color3.fromRGB(255, 244, 230) }, r)
+	U.recNom = K.texte(r, { Text = "", TextSize = 20, Size = UDim2.new(1, -40, 0, 26), Position = UDim2.new(0, 20, 1, -66), TextWrapped = false, epais = 3 })
+	U.recSuite = K.texte(r, { Text = "", TextSize = 9, TextColor3 = C.terne, Size = UDim2.new(1, -40, 0, 14), Position = UDim2.new(0, 20, 1, -32), TextWrapped = false })
+	U.aide = K.texte(g, { Text = tr("TOUCHE UN DEFI POUR LE SUIVRE EN COURSE", "TAP A CHALLENGE TO TRACK IT IN RACE"), TextSize = 10, TextColor3 = C.texte2,
+		Size = UDim2.new(0.5, -60, 0, 16), Position = UDim2.fromOffset(40, 470), TextXAlignment = Enum.TextXAlignment.Left })
+	U.btHome = K.tuile(g, "⌂ HOME", C.lavande, UDim2.fromOffset(150, 70), UDim2.new(1, -420, 1, -30), Vector2.new(0, 1), 14)
+	U.btJouer = K.lingot(g, tr("JOUER", "PLAY"), UDim2.fromOffset(250, 70), UDim2.new(1, -40, 1, -30), Vector2.new(1, 1), 30)
+	U.btHome.Activated:Connect(function() ctx.surHome() end)
+	U.btJouer.Activated:Connect(function() ctx.surJouer() end)
+	for _, d in g:GetDescendants() do
+		if d:IsA("GuiObject") and d.ZIndex < 13 then d.ZIndex = 13 end
+	end
+
+	-- ── EN COURSE : la ligne du défi SUIVI (sous le chrono d'air) et la bannière « DEFI REUSSI » ──
+	local hud = E.hud
+	U.suivi = inst("Frame", { Name = "DefiSuivi", BackgroundTransparency = 1, Size = UDim2.fromOffset(420, 30), Position = UDim2.new(1, -22, 0, 236),
+		AnchorPoint = Vector2.new(1, 0), Visible = false }, hud)
+	U.suiviTxt = K.texte(U.suivi, { Text = "", TextSize = 10, TextColor3 = C.texte2, Size = UDim2.new(1, 0, 0, 14), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false })
+	local fs = inst("Frame", { BackgroundColor3 = C.piste, BorderSizePixel = 0, Size = UDim2.fromOffset(180, 4), Position = UDim2.new(1, 0, 0, 20), AnchorPoint = Vector2.new(1, 0) }, U.suivi)
+	U.suiviPlein = inst("Frame", { BackgroundColor3 = C.cyan, BorderSizePixel = 0, Size = UDim2.fromScale(0, 1) }, fs)
+	U.banniere = K.carbone(hud, UDim2.fromOffset(460, 70), UDim2.new(0.5, 0, 0, -90), VERT, Vector2.new(0.5, 0))
+	K.texte(U.banniere, { Text = tr("DEFI REUSSI", "CHALLENGE DONE"), TextSize = 10, TextColor3 = VERT, Size = UDim2.new(1, -30, 0, 14), Position = UDim2.fromOffset(20, 10),
+		TextXAlignment = Enum.TextXAlignment.Left })
+	U.banTxt = K.texte(U.banniere, { Text = "", TextSize = 14, TextColor3 = C.texte, Size = UDim2.new(1, -150, 0, 22), Position = UDim2.fromOffset(20, 32),
+		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
+	U.banPrime = K.texte(U.banniere, { Text = "", TextSize = 16, TextColor3 = VERT, Size = UDim2.fromOffset(130, 22), Position = UDim2.new(1, -14, 0, 30),
+		AnchorPoint = Vector2.new(1, 0), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false })
+	U.banniere.Visible = false
+end
+
+local vignetteDe = -1
+local function vignette(rec: any)
+	local i = rec.caisse or -1
+	if i == vignetteDe then return end
+	vignetteDe = i
+	U.recVue:ClearAllChildren()
+	if i < 0 then return end
+	task.spawn(function()
+		local m = Caisse.vignette(i)
+		if not m or vignetteDe ~= i then
+			if m then m:Destroy() end
+			return
+		end
+		local corps = m.PrimaryPart :: BasePart
+		local az, el = 0.82, 0.27
+		local dir = Vector3.new(-math.sin(az) * math.cos(el), math.sin(el), -math.cos(az) * math.cos(el))
+		local cam = Instance.new("Camera")
+		cam.FieldOfView = 24
+		local dist = (corps.Size.Z * math.sin(az) + corps.Size.X * math.cos(az)) / 0.9 / (2 * math.tan(math.rad(12)) * 2.2) + corps.Size.Z * 0.18
+		cam.CFrame = CFrame.lookAt(corps.Position + dir * dist, corps.Position)
+		cam.Parent = U.recVue
+		U.recVue.CurrentCamera = cam
+		U.recVue.LightDirection = (-dir * 0.5 + Vector3.new(0.5, -1, 0.2)).Unit
+		m.Parent = U.recVue
+	end)
+end
+
+function Missions.maj()
+	if not U.racine then return end
+	local m, c = etat(), carnet()
+	U.titre.Text = tr("CARNET ", "BOOK ") .. (m.n + 1) .. tr(" · CHAQUE DEFI EN UNE PARTIE", " · EACH CHALLENGE IN ONE RUN")
+	local faits = 0
+	for i = 1, 3 do
+		local d, u = c[i], U.cartes[i]
+		u.txt.Text = Carnets.texte(d, FR, Hud.argent)
+		u.prime.Text = "+" .. Hud.argent(d.p)
+		local ok = m.ok[i]
+		if ok then faits += 1 end
+		u.plein.Size = UDim2.fromScale(ok and 1 or math.clamp(m.best[i] / d.v, 0, 1), 1)
+		u.plein.BackgroundColor3 = ok and VERT or C.cyan
+		if ok then
+			u.statut.Text = tr("REUSSI", "DONE")
+			u.statut.TextColor3 = VERT
+		elseif m.f == i then
+			u.statut.Text = tr("SUIVI EN COURSE", "TRACKED IN RACE")
+			u.statut.TextColor3 = C.cyan
+		else
+			u.statut.Text = tr("MEILLEUR ESSAI ", "BEST RUN ") .. Carnets.progres(d, m.best[i], FR, Hud.argent)
+			u.statut.TextColor3 = C.texte2
+		end
+		if u.filet then u.filet.BackgroundColor3 = ok and VERT or ((m.f == i) and C.or_ or C.cyan) end
+	end
+	local nom, couleur = Missions.recompense(c.rec)
+	U.recTitre.Text = tr("RECOMPENSE ", "REWARD ") .. faits .. " / 3"
+	U.recNom.Text = nom
+	U.recNom.TextColor3 = couleur
+	local suite = Missions.recompense(Carnets.de(m.n + 1).rec)
+	U.recSuite.Text = tr("ENSUITE · ", "NEXT · ") .. suite
+	vignette(c.rec)
+	local suivi = (m.f >= 1 and not m.ok[m.f]) and c[m.f] or nil
+	U.aide.Text = suivi and (tr("SUIVI : ", "TRACKING: ") .. Carnets.texte(suivi, FR, Hud.argent))
+		or tr("TOUCHE UN DEFI POUR LE SUIVRE EN COURSE", "TAP A CHALLENGE TO TRACK IT IN RACE")
+end
+
+function Missions.init(c: any)
+	ctx = c
+	creer()
+end
+function Missions.ouvrir()
+	Missions.ouvert = true
+	Missions.maj()
+	U.racine.Visible = true
+	U.racine.Position = UDim2.fromOffset(0, 18)
+	TweenService:Create(U.racine, K.LENTE, { Position = UDim2.fromOffset(0, 0) }):Play()
+end
+function Missions.fermer()
+	Missions.ouvert = false
+	U.racine.Visible = false
+end
+
+-- ════════ en course ════════
+local horloge, banFin, suiviFin = 0, 0, 0
+local reussisPartie: { number } = {}
+local meilleurePartie = { 0, 0, 0 }
+function Missions.debut()
+	horloge, suiviFin = 0, 0
+	table.clear(reussisPartie)
+	meilleurePartie = { 0, 0, 0 }
+	U.banniere.Visible = false
+end
+local function banniere(d: any)
+	U.banTxt.Text = Carnets.texte(d, FR, Hud.argent)
+	U.banPrime.Text = "+" .. Hud.argent(d.p)
+	U.banniere.Visible = true
+	U.banniere.Position = UDim2.new(0.5, 0, 0, -90)
+	TweenService:Create(U.banniere, K.LENTE, { Position = UDim2.new(0.5, 0, 0, 96) }):Play()
+	banFin = os.clock() + 1.6
+	Sons.jouer("record", 1.3, 0.4)
+end
+-- r = les compteurs de la partie (voir Carnets.valeur)
+function Missions.tick(dt: number, r: any)
+	local t = os.clock()
+	if U.banniere.Visible and t > banFin then
+		U.banniere.Visible = false
+	end
+	horloge -= dt
+	local m, c = etat(), carnet()
+	if horloge <= 0 then
+		horloge = 0.25
+		for i = 1, 3 do
+			if not m.ok[i] then
+				local d = c[i]
+				local v = Carnets.valeur(d.k, r)
+				meilleurePartie[i] = math.max(meilleurePartie[i], v)
+				if v > m.best[i] then m.best[i] = math.min(d.v, v) end
+				if v >= d.v then
+					m.ok[i] = true -- (le serveur confirme et verse la prime)
+					table.insert(reussisPartie, i)
+					banniere(d)
+					if m.f == i then suiviFin = t + 3.2 end
+					task.spawn(function() ctx.action("defi", i, v) end)
+				end
+			end
+		end
+	end
+	-- la ligne du défi suivi
+	local f = m.f
+	if f >= 1 and c[f] then
+		local d = c[f]
+		U.suivi.Visible = true
+		if m.ok[f] then
+			U.suiviTxt.Text = "◆ " .. Carnets.texte(d, FR, Hud.argent) .. " · " .. tr("REUSSI", "DONE")
+			U.suiviTxt.TextColor3 = VERT
+			U.suiviPlein.Size = UDim2.fromScale(1, 1)
+			U.suiviPlein.BackgroundColor3 = VERT
+			if suiviFin > 0 and t > suiviFin then
+				m.f = -1
+				suiviFin = 0
+			end
+		else
+			local v = Carnets.valeur(d.k, r)
+			U.suiviTxt.Text = "◆ " .. Carnets.texte(d, FR, Hud.argent) .. " · " .. Carnets.progres(d, v, FR, Hud.argent)
+			U.suiviTxt.TextColor3 = C.texte2
+			U.suiviPlein.Size = UDim2.fromScale(math.clamp(v / d.v, 0, 1), 1)
+			U.suiviPlein.BackgroundColor3 = C.cyan
+		end
+	else
+		U.suivi.Visible = false
+	end
+end
+
+-- à la mort : ce qu'il faut écrire sur l'écran de fin. Rend { ligne, couleur, ferme = { nom, couleur }? }
+function Missions.fin(r: any): any
+	U.suivi.Visible = false
+	U.banniere.Visible = false
+	local m, c = etat(), carnet()
+	local res: any = { meilleur = meilleurePartie }
+	if m.ok[1] and m.ok[2] and m.ok[3] then
+		-- le carnet se FERME (le serveur donne la récompense à la fin de la partie)
+		local nom, couleur = Missions.recompense(c.rec)
+		res.ferme = { nom = nom, couleur = couleur, rec = c.rec }
+		res.ligne = tr("DEFIS REUSSIS ! ", "CHALLENGES DONE! ") .. nom .. ((c.rec.cash and tr(" VERSES AU COMPTE", " PAID TO ACCOUNT")) or tr(" EST A TOI", " IS YOURS"))
+		res.couleur = C.or_
+		return res
+	end
+	if #reussisPartie > 0 then
+		local d = c[reussisPartie[#reussisPartie]]
+		res.ligne = tr("DEFI REUSSI ! ", "CHALLENGE DONE! ") .. Carnets.texte(d, FR, Hud.argent) .. "  +" .. Hud.argent(d.p)
+		res.couleur = VERT
+		return res
+	end
+	-- sinon : le défi dont cette partie s'est le plus approchée
+	local mieux, part = 0, -1
+	for i = 1, 3 do
+		if not m.ok[i] then
+			local q = math.clamp(Carnets.valeur(c[i].k, r) / c[i].v, 0, 1)
+			if q > part then mieux, part = i, q end
+		end
+	end
+	if mieux > 0 then
+		local d = c[mieux]
+		res.ligne = Carnets.texte(d, FR, Hud.argent) .. "\n" .. tr("CETTE PARTIE · ", "THIS RUN · ") .. Carnets.progres(d, Carnets.valeur(d.k, r), FR, Hud.argent)
+		res.couleur = C.texte2
+	end
+	return res
+end
+
+return Missions
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000059"><Properties><string name="Name">Score</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LE SCORE : le FLOW (jauge 0-100, quatre cases + la FRÉNÉSIE), la TRIADE (NARCISSE · MACHIAVEL · PSYCHO),
 -- la CHAÎNE D'AURA, le RALENTI de la frénésie et l'aura du DAUPHIN. C'est le « méta » du jeu web, porté ligne pour
 -- ligne (index.html : FLOW2 L20930, flowAdd L21025, flowTick L21321, frenDeclenche L21116, frenTriade L21244,
 -- chaineAura L28686, chaineEncaisse L28914, RALENTI L21096, dolTick L29467).
@@ -7536,7 +8310,7 @@ end
 function Score.aura(): number return ETAT.aura end
 
 return Score
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000058"><Properties><string name="Name">Sons</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES SONS (côté joueur). Un son = un nom de Config.SONS. Numéro vide → le son de secours
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000005A"><Properties><string name="Name">Sons</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES SONS (côté joueur). Un son = un nom de Config.SONS. Numéro vide → le son de secours
 -- livré avec Roblox s'il existe (Config.SONS_SECOURS), sinon silence : un son manquant ne casse JAMAIS rien.
 local SoundService = game:GetService("SoundService")
 local Config = require(script.Parent.Parent:WaitForChild("Config"))
@@ -7633,7 +8407,7 @@ function Sons.regler(nom: string, volume: number, hauteur: number?)
 end
 
 return Sons
-]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX0000005A"><Properties><string name="Name">Config</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES RÉGLAGES. Tous les chiffres du jeu web (VERSION PRINCIPALE/index.html) sont repris
+]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX0000005C"><Properties><string name="Name">Config</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES RÉGLAGES. Tous les chiffres du jeu web (VERSION PRINCIPALE/index.html) sont repris
 -- tels quels, avec le numéro de ligne d'où ils viennent : la caisse Roblox doit se conduire, voler et
 -- payer comme l'autre. Les distances sont en MÈTRES du jeu ; Config.M les convertit en studs.
 local Config = {}
@@ -7650,6 +8424,12 @@ Config.THICK = 2.6         -- épaisseur de la dalle
 Config.MORT_SOUS = 120     -- on meurt 120 m sous le point le plus bas de la piste
 Config.ARRET_KMH = 22      -- « roule ou crève » : sous 22 km/h pendant 6 s → boum
 Config.ARRET_T = 6
+-- LE MODE FACILE (L27967) : la SEULE assistance du jeu, en option. Quatre différences, rien d'autre :
+-- la caisse suit 80 % des virages toute seule, 10 s de vol au lieu de 6, trois vies, 5 m de pose en plus de chaque côté.
+Config.FACILE = { coeurs = 3, air = 10 / 6, bord = 5, virage = 0.8, cap = 1.6 }
+-- (Sacha, 01/10 : « mets que le mode normal ») — le mode FACILE reste écrit mais ÉTEINT : ni choix au premier lancement,
+-- ni réglage. Le rallumer = passer ceci à true, rien d'autre.
+Config.FACILE_ACTIF = false
 
 -- ── le moteur monte avec les pièces (ENGINE_TIERS, L20328) : { pièces, poussée, nom, réservoir de nitro (s) } ──
 Config.MOTEURS = {
@@ -7815,7 +8595,7 @@ Config.SONS_SECOURS = {
 }
 
 return Config
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000005B"><Properties><string name="Name">Piste</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LA PISTE : le ruban de route suspendu dans le ciel, calculé à partir d'une GRAINE.
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000005D"><Properties><string name="Name">Piste</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LA PISTE : le ruban de route suspendu dans le ciel, calculé à partir d'une GRAINE.
 -- Le serveur ne tire que la graine ; chaque joueur calcule la même route chez lui (Random.new est
 -- déterministe) : zéro pièce de route sur le réseau, et la physique lit des nombres, jamais des pièces.
 --
@@ -7853,7 +8633,8 @@ end
 
 -- Génère la zone `zone` à partir de la pose `depart` (CFrame en studs ; nil = l'origine du monde).
 -- `ceder` (facultatif) est appelé entre deux motifs : on étale le calcul sur plusieurs images.
-function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (() -> ())?): Piste
+-- `ecole` = la piste DESSINÉE de l'auto-école (genTuto, L8765) : douze tronçons écrits à la main, pas de hasard.
+function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (() -> ())?, ecole: boolean?): Piste
 	local rnd = Random.new(graine * 97 + zone * 7919)
 	local function r(a: number, b: number): number return a + rnd:NextNumber() * (b - a) end
 	local LV = 1 + (zone - 1) * 0.35          -- lvPiste : plus on va vite, plus les rayons s'ouvrent
@@ -8093,12 +8874,35 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 		return true
 	end
 
+	if ecole then
+		-- LA PISTE D'ÉCOLE : droite 300 · virage 70° R190 · droite 360 (−24) · virage −90° R210 · droite 420 ·
+		-- droite 240 (−80, le grand plongeon) · droite 380 · virage 55° R170 · virage −55° R170 · droite 300 (+20) ·
+		-- virage 120° R230 · droite 420 → le portail
+		local function droit(l: number, dy: number?) seg(l, 0, (dy or 0) / l, 40) end
+		pc = 0
+		droit(300)
+		arc(190, 70, 0)
+		droit(360, -24)
+		arc(210, -90, 0)
+		droit(420)
+		droit(240, -80)
+		droit(380)
+		arc(170, 55, 0)
+		arc(170, -55, 0)
+		droit(300, 20)
+		arc(230, 120, 0)
+		droit(420)
+		seg(80, 0, 0, 50)
+		poser(false)
+		LEN = 0 -- (rien d'autre : la boucle des motifs ne tourne pas)
+	else
 	-- le départ : un bout plat pour poser la caisse, puis la rampe qui plonge (on prend de l'élan)
 	pc = 0
 	seg(40, 0, 0)
 	seg(P.departLong * LV, 0, -P.departPente, 40)
 	seg(40, 0, -0.08, 30)
 	poser(false)
+	end
 
 	local prochainModule = r(P.module[1], P.module[2]) * LV * 0.6
 	local POIDS_TOT = 0
@@ -8151,10 +8955,12 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 		if ceder then ceder() end
 	end
 	-- l'arrivée : la dernière descente vers le PORTAIL, qui se pose à plat
-	pc = pente
-	seg(110 * LV, 0, -0.28, 40)
-	seg(80, 0, 0, 50)
-	poser(false)
+	if not ecole then
+		pc = pente
+		seg(110 * LV, 0, -0.28, 40)
+		seg(80, 0, 0, 50)
+		poser(false)
+	end
 
 	-- ── les repères, sur la vraie courbe (en STUDS) ──
 	local n = #pts
@@ -8186,12 +8992,12 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 		graine = graine, zone = zone, DS = DS * M, n = n, len = (n - 1) * DS * M, F = F,
 		minY = minY, grille = grille, cellule = CEL, objets = {}, modules = modules,
 	}
-	Piste.semer(piste :: any, rnd, zone)
+	Piste.semer(piste :: any, rnd, zone, ecole)
 	return piste :: any
 end
 
 -- ── les objets (spawnPickups L23148) : tout existe sur les DEUX faces (miroir strict) ──
-function Piste.semer(p: Piste, rnd: Random, zone: number)
+function Piste.semer(p: Piste, rnd: Random, zone: number, ecole: boolean?)
 	-- Ce que la route porte (buildTrack L10182-10286, spawnPickups L23625-23751). Tout existe en MIROIR sur les deux
 	-- faces ; lat est donné dans le repère de SA face (la droite du pilote qui roule dessus).
 	-- L'ordre : les flaques, les plots (lignes de chantier, slaloms, portes de frôlé), puis les pièces — qui ESQUIVENT
@@ -8267,7 +9073,7 @@ function Piste.semer(p: Piste, rnd: Random, zone: number)
 	end
 	-- ── 2e vague : LES PORTES DE FRÔLÉ (deux plots à 6 m, deux ou trois portes à la file) — elles se resserrent avec les portails ──
 	local z = math.min(3, zones)
-	sp = r(385, 605)
+	sp = ecole and L or r(385, 605)
 	while sp < L - 170 do
 		local g = r(-1, 1) * (RH - 6)
 		local nP = (rnd:NextNumber() < 0.5) and 2 or 3
@@ -8285,7 +9091,7 @@ function Piste.semer(p: Piste, rnd: Random, zone: number)
 	local serie = 0
 	local grp: number? = nil
 	local function piece(sq: number, lt: number)
-		if sq < 120 or sq > L - 50 or dansModule(sq) then return end
+		if sq < 120 or sq > L - 50 then return end -- (les pièces vont PARTOUT, modules compris : seuls plots et flaques les évitent)
 		-- l'ESQUIVE : une pièce ne se pose jamais sur un plot ni dans une flaque
 		for _, c in plots do
 			if math.abs(c.s - sq) <= 3.4 and math.abs(c.lat - lt) <= 2.5 then
@@ -8346,8 +9152,20 @@ function Piste.semer(p: Piste, rnd: Random, zone: number)
 		end
 	end
 
+	-- ── à l'ÉCOLE : des pads fixes, une voie sur trois (la ligne parfaite ne joue pas pendant la leçon) ──
+	if ecole then
+		local sq = r(180, 330)
+		local voie = math.min(RH - 2.95, math.max(4.6, RH * 0.45))
+		while sq < L - 100 do
+			local lt = ({ 0, -1, 1 })[(math.floor(sq * 0.0071) % 3) + 1] * voie
+			for _, face in { 1, -1 } do
+				table.insert(p.objets, { s = sq * M, lat = lt * M, h = 0.1 * M, face = face, kind = "pad" })
+			end
+			sq += r(280, 560)
+		end
+	end
 	-- ── les cristaux de pouvoir : un tous les 860-1 620 m ──
-	local sc = r(380, 640)
+	local sc = ecole and L or r(380, 640)
 	local PW = Config.POUVOIRS
 	local cles = { "n", "a", "v", "m", "x" }
 	while sc < L - 140 do
@@ -8420,7 +9238,7 @@ function Piste.suite(p: Piste): CFrame
 end
 
 return Piste
-]]></ProtectedString></Properties></Item></Item></Item><Item class="ServerScriptService" referent="RBX00000060"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="ModuleScript" referent="RBX0000005E"><Properties><string name="Name">Profils</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES PROFILS (serveur). Tout ce qu'un joueur garde d'une partie à l'autre : le COMPTE (l'argent
+]]></ProtectedString></Properties></Item></Item></Item><Item class="ServerScriptService" referent="RBX00000062"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="ModuleScript" referent="RBX00000060"><Properties><string name="Name">Profils</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES PROFILS (serveur). Tout ce qu'un joueur garde d'une partie à l'autre : le COMPTE (l'argent
 -- versé à chaque fin de partie), le record, les caisses achetées et celle qu'il conduit, les peintures,
 -- les missions, la carrière, les réglages. UNE entrée DataStore par joueur, versionnée (comme SAVE.d du web).
 --
@@ -8430,6 +9248,7 @@ return Piste
 local DataStoreService = game:GetService("DataStoreService")
 
 local Profils = {}
+local Carnets = require(game:GetService("ReplicatedStorage"):WaitForChild("CashCar"):WaitForChild("Carnets"))
 
 local VERSION = 1
 local store
@@ -8450,8 +9269,11 @@ function Profils.neuf(): Profil
 		caisses = { 0 }, caisse = 0, -- indices du jeu web : 0 = LA HONTE, la caisse de départ
 		peintures = {}, peinture = 0,
 		traines = {}, trainee = 0,
-		missions = {}, carriere = {},
-		reglages = { son = true, musique = true, facile = false },
+		mis = { n = 0, ok = { false, false, false }, best = { 0, 0, 0 }, f = -1 }, -- les CARNETS (voir Carnets)
+		habits = {},   -- les habillages gagnés ou achetés : « peinture:or », « trainee:arcenciel »…
+		carriere = {},
+		reglages = { son = true, musique = true, facile = false, facileChoisi = false, tuto = false },
+		permis = false, -- le PERMIS de l'auto-école : +500 $, une seule fois dans la vie du compte
 		stats = { parties = 0, distance = 0, pieces = 0, figures = 0 },
 	}
 end
@@ -8460,7 +9282,16 @@ local function sain(p: any): Profil
 	local n = Profils.neuf()
 	if type(p) ~= "table" then return n end
 	for k, v in n do
-		if type(p[k]) == type(v) then n[k] = p[k] end
+		if k == "reglages" then
+			-- (clé par clé : un vieux profil n'a pas les réglages ajoutés depuis)
+			if type(p.reglages) == "table" then
+				for rk, rv in v do
+					if type(p.reglages[rk]) == type(rv) then v[rk] = p.reglages[rk] end
+				end
+			end
+		elseif type(p[k]) == type(v) then
+			n[k] = p[k]
+		end
 	end
 	for _, k in { "compte", "record", "auraMeilleur", "aura", "frenRec" } do
 		if n[k] ~= n[k] or n[k] < 0 or n[k] > 1e18 then n[k] = 0 end
@@ -8476,6 +9307,12 @@ local function sain(p: any): Profil
 	if not possede[0] then table.insert(liste, 0) end
 	n.caisses = liste
 	if type(n.caisse) ~= "number" or n.caisse ~= math.floor(n.caisse) or n.caisse < 0 then n.caisse = 0 end
+	n.mis = Carnets.etat(n.mis)
+	local habits = {}
+	for _, h in n.habits do
+		if type(h) == "string" and #h < 60 and not table.find(habits, h) then table.insert(habits, h) end
+	end
+	n.habits = habits
 	return n
 end
 
@@ -8541,6 +9378,52 @@ Profils.actions.equiper = function(p, prof, i)
 	return true
 end
 
+-- ── les MISSIONS : un défi réussi verse sa prime TOUT DE SUITE ; le carnet se ferme à la fin de la partie ──
+Profils.actions.defi = function(_, prof, i, v)
+	if type(i) ~= "number" or i ~= math.floor(i) or i < 1 or i > 3 then return false, "defi inconnu" end
+	local d = Carnets.de(prof.mis.n)[i]
+	if prof.mis.ok[i] then return false, "deja reussi" end
+	if type(v) ~= "number" or v ~= v or v < d.v then return false, "pas atteint" end
+	prof.mis.ok[i] = true
+	prof.mis.best[i] = d.v
+	prof.compte += d.p
+	return true
+end
+Profils.actions.permis = function(_, prof)
+	if prof.permis then return false, "deja" end
+	prof.permis = true
+	prof.compte += 500
+	return true
+end
+Profils.actions.suivre = function(_, prof, i)
+	if i ~= -1 and not (type(i) == "number" and i == math.floor(i) and i >= 1 and i <= 3) then return false, "defi inconnu" end
+	prof.mis.f = i
+	return true
+end
+-- à la fin d'une partie : les meilleurs essais, puis le carnet se ferme si les trois défis sont réussis
+function Profils.finCarnet(prof: Profil, essais: any)
+	local c = Carnets.de(prof.mis.n)
+	if type(essais) == "table" then
+		for i = 1, 3 do
+			local b = essais[i]
+			if type(b) == "number" and b == b and b > prof.mis.best[i] and not prof.mis.ok[i] then
+				prof.mis.best[i] = math.min(c[i].v * 0.999, b) -- (un essai ne RÉUSSIT pas le défi : seule l'action « defi » le fait)
+			end
+		end
+	end
+	if prof.mis.ok[1] and prof.mis.ok[2] and prof.mis.ok[3] then
+		local rec = c.rec
+		if rec.caisse then
+			if not Profils.possede(prof, rec.caisse) then table.insert(prof.caisses, rec.caisse) end
+		elseif rec.habit then
+			if not table.find(prof.habits, rec.habit) then table.insert(prof.habits, rec.habit) end
+		elseif rec.cash then
+			prof.compte += rec.cash
+		end
+		prof.mis = { n = prof.mis.n + 1, ok = { false, false, false }, best = { 0, 0, 0 }, f = -1 }
+	end
+end
+
 Profils.actions.reglage = function(_, prof, cle, valeur)
 	if type(cle) ~= "string" or prof.reglages[cle] == nil or type(valeur) ~= type(prof.reglages[cle]) then
 		return false, "reglage inconnu"
@@ -8550,7 +9433,7 @@ Profils.actions.reglage = function(_, prof, cle, valeur)
 end
 
 return Profils
-]]></ProtectedString></Properties></Item><Item class="Script" referent="RBX0000005F"><Properties><string name="Name">Serveur</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LE SERVEUR. Il fait peu, exprès :
+]]></ProtectedString></Properties></Item><Item class="Script" referent="RBX00000061"><Properties><string name="Name">Serveur</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LE SERVEUR. Il fait peu, exprès :
 --   1. il tire la GRAINE de la piste (tout le serveur roule sur la même route : chaque joueur la bâtit
 --      chez lui à partir de ce nombre — zéro pièce de route à envoyer sur le réseau) ;
 --   2. il pose le CIEL (lumière, atmosphère) ;
@@ -8729,7 +9612,8 @@ evFin.OnServerEvent:Connect(function(p, montant, distance, aura, stats)
 			local v = stats[k]
 			if type(v) == "number" and v == v and v >= 0 and v < 1e6 then prof.stats[k] += v end
 		end
-		if Profils.finPartie then pcall(Profils.finPartie, p, prof, stats) end -- (missions, carrière)
+		pcall(Profils.finCarnet, prof, stats.mis) -- les missions : meilleurs essais, carnet qui se ferme
+		if Profils.finPartie then pcall(Profils.finPartie, p, prof, stats) end -- (carrière)
 	end
 	local ls = p:FindFirstChild("leaderstats")
 	if ls then
@@ -8740,4 +9624,4 @@ evFin.OnServerEvent:Connect(function(p, montant, distance, aura, stats)
 	Profils.pousser(p)
 	task.spawn(Profils.sauver, p)
 end)
-]]></ProtectedString></Properties></Item></Item><Item class="StarterGui" referent="RBX00000061"><Properties><string name="Name">StarterGui</string></Properties></Item><Item class="SoundService" referent="RBX00000062"><Properties><string name="Name">SoundService</string></Properties></Item></roblox>
+]]></ProtectedString></Properties></Item></Item><Item class="StarterGui" referent="RBX00000063"><Properties><string name="Name">StarterGui</string></Properties></Item><Item class="SoundService" referent="RBX00000064"><Properties><string name="Name">SoundService</string></Properties></Item></roblox>

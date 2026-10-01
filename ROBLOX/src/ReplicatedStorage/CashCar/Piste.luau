@@ -36,7 +36,8 @@ end
 
 -- Génère la zone `zone` à partir de la pose `depart` (CFrame en studs ; nil = l'origine du monde).
 -- `ceder` (facultatif) est appelé entre deux motifs : on étale le calcul sur plusieurs images.
-function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (() -> ())?): Piste
+-- `ecole` = la piste DESSINÉE de l'auto-école (genTuto, L8765) : douze tronçons écrits à la main, pas de hasard.
+function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (() -> ())?, ecole: boolean?): Piste
 	local rnd = Random.new(graine * 97 + zone * 7919)
 	local function r(a: number, b: number): number return a + rnd:NextNumber() * (b - a) end
 	local LV = 1 + (zone - 1) * 0.35          -- lvPiste : plus on va vite, plus les rayons s'ouvrent
@@ -276,12 +277,35 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 		return true
 	end
 
+	if ecole then
+		-- LA PISTE D'ÉCOLE : droite 300 · virage 70° R190 · droite 360 (−24) · virage −90° R210 · droite 420 ·
+		-- droite 240 (−80, le grand plongeon) · droite 380 · virage 55° R170 · virage −55° R170 · droite 300 (+20) ·
+		-- virage 120° R230 · droite 420 → le portail
+		local function droit(l: number, dy: number?) seg(l, 0, (dy or 0) / l, 40) end
+		pc = 0
+		droit(300)
+		arc(190, 70, 0)
+		droit(360, -24)
+		arc(210, -90, 0)
+		droit(420)
+		droit(240, -80)
+		droit(380)
+		arc(170, 55, 0)
+		arc(170, -55, 0)
+		droit(300, 20)
+		arc(230, 120, 0)
+		droit(420)
+		seg(80, 0, 0, 50)
+		poser(false)
+		LEN = 0 -- (rien d'autre : la boucle des motifs ne tourne pas)
+	else
 	-- le départ : un bout plat pour poser la caisse, puis la rampe qui plonge (on prend de l'élan)
 	pc = 0
 	seg(40, 0, 0)
 	seg(P.departLong * LV, 0, -P.departPente, 40)
 	seg(40, 0, -0.08, 30)
 	poser(false)
+	end
 
 	local prochainModule = r(P.module[1], P.module[2]) * LV * 0.6
 	local POIDS_TOT = 0
@@ -334,10 +358,12 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 		if ceder then ceder() end
 	end
 	-- l'arrivée : la dernière descente vers le PORTAIL, qui se pose à plat
-	pc = pente
-	seg(110 * LV, 0, -0.28, 40)
-	seg(80, 0, 0, 50)
-	poser(false)
+	if not ecole then
+		pc = pente
+		seg(110 * LV, 0, -0.28, 40)
+		seg(80, 0, 0, 50)
+		poser(false)
+	end
 
 	-- ── les repères, sur la vraie courbe (en STUDS) ──
 	local n = #pts
@@ -369,12 +395,12 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 		graine = graine, zone = zone, DS = DS * M, n = n, len = (n - 1) * DS * M, F = F,
 		minY = minY, grille = grille, cellule = CEL, objets = {}, modules = modules,
 	}
-	Piste.semer(piste :: any, rnd, zone)
+	Piste.semer(piste :: any, rnd, zone, ecole)
 	return piste :: any
 end
 
 -- ── les objets (spawnPickups L23148) : tout existe sur les DEUX faces (miroir strict) ──
-function Piste.semer(p: Piste, rnd: Random, zone: number)
+function Piste.semer(p: Piste, rnd: Random, zone: number, ecole: boolean?)
 	-- Ce que la route porte (buildTrack L10182-10286, spawnPickups L23625-23751). Tout existe en MIROIR sur les deux
 	-- faces ; lat est donné dans le repère de SA face (la droite du pilote qui roule dessus).
 	-- L'ordre : les flaques, les plots (lignes de chantier, slaloms, portes de frôlé), puis les pièces — qui ESQUIVENT
@@ -450,7 +476,7 @@ function Piste.semer(p: Piste, rnd: Random, zone: number)
 	end
 	-- ── 2e vague : LES PORTES DE FRÔLÉ (deux plots à 6 m, deux ou trois portes à la file) — elles se resserrent avec les portails ──
 	local z = math.min(3, zones)
-	sp = r(385, 605)
+	sp = ecole and L or r(385, 605)
 	while sp < L - 170 do
 		local g = r(-1, 1) * (RH - 6)
 		local nP = (rnd:NextNumber() < 0.5) and 2 or 3
@@ -468,7 +494,7 @@ function Piste.semer(p: Piste, rnd: Random, zone: number)
 	local serie = 0
 	local grp: number? = nil
 	local function piece(sq: number, lt: number)
-		if sq < 120 or sq > L - 50 or dansModule(sq) then return end
+		if sq < 120 or sq > L - 50 then return end -- (les pièces vont PARTOUT, modules compris : seuls plots et flaques les évitent)
 		-- l'ESQUIVE : une pièce ne se pose jamais sur un plot ni dans une flaque
 		for _, c in plots do
 			if math.abs(c.s - sq) <= 3.4 and math.abs(c.lat - lt) <= 2.5 then
@@ -529,8 +555,20 @@ function Piste.semer(p: Piste, rnd: Random, zone: number)
 		end
 	end
 
+	-- ── à l'ÉCOLE : des pads fixes, une voie sur trois (la ligne parfaite ne joue pas pendant la leçon) ──
+	if ecole then
+		local sq = r(180, 330)
+		local voie = math.min(RH - 2.95, math.max(4.6, RH * 0.45))
+		while sq < L - 100 do
+			local lt = ({ 0, -1, 1 })[(math.floor(sq * 0.0071) % 3) + 1] * voie
+			for _, face in { 1, -1 } do
+				table.insert(p.objets, { s = sq * M, lat = lt * M, h = 0.1 * M, face = face, kind = "pad" })
+			end
+			sq += r(280, 560)
+		end
+	end
 	-- ── les cristaux de pouvoir : un tous les 860-1 620 m ──
-	local sc = r(380, 640)
+	local sc = ecole and L or r(380, 640)
 	local PW = Config.POUVOIRS
 	local cles = { "n", "a", "v", "m", "x" }
 	while sc < L - 140 do

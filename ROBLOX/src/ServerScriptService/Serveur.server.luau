@@ -177,7 +177,8 @@ evFin.OnServerEvent:Connect(function(p, montant, distance, aura, stats)
 			local v = stats[k]
 			if type(v) == "number" and v == v and v >= 0 and v < 1e6 then prof.stats[k] += v end
 		end
-		if Profils.finPartie then pcall(Profils.finPartie, p, prof, stats) end -- (missions, carrière)
+		pcall(Profils.finCarnet, prof, stats.mis) -- les missions : meilleurs essais, carnet qui se ferme
+		if Profils.finPartie then pcall(Profils.finPartie, p, prof, stats) end -- (carrière)
 	end
 	local ls = p:FindFirstChild("leaderstats")
 	if ls then

@@ -114,6 +114,7 @@ local function gagnee(i: number): boolean -- carUnlockedVrai
 	local k = Catalogue[i].cond
 	if k.k == "depart" or possede(i) then return true end
 	if k.k == "aura" then return rangAura(profil().aura or 0) - 1 >= k.v end
+	if k.k == "carnet" then return ((profil().mis and profil().mis.n) or 0) >= k.v end
 	return false
 end
 local function ouverte(i: number): boolean return Config.TEST_CAISSES == true or gagnee(i) end

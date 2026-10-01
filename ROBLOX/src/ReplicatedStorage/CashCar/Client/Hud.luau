@@ -30,6 +30,9 @@ local T = FR and {
 	aura = "AURA", moteur = "MOTEUR", nitro = "NITRO", air = "AIR", go = "GO !", niveau = "MER DE NUAGES",
 	astuce = "ASTUCE", glisse = "GLISSE POUR\nTOURNER", chargement = "LA ROUTE SE CONSTRUIT",
 		missions = "MISSIONS", garage = "GARAGE", carriere = "CARRIERE", boutique = "BOUTIQUE", bientot = "BIENTOT DISPONIBLE",
+		facile = "MODE FACILE", choisis = "CHOISIS TON MODE", normal = "NORMAL", facileMot = "FACILE",
+		facileTxt = "En FACILE, la voiture suit mieux les virages, tu restes plus longtemps en l'air et tu as 3 vies. Tu pourras changer dans les réglages.",
+		vies = "PLUS QUE %d VIES", derniereVie = "DERNIERE VIE !", onRepart = "ON REPART !",
 	astuces = {
 		"Sors par le BORD de la route : tu voles, et tu te poses plus bas. C'est là que le jeu se joue.",
 		"En l'air : flèche HAUT = plonge, flèche BAS = monte. Gauche / droite = les vrilles.",
@@ -50,6 +53,9 @@ local T = FR and {
 	aura = "AURA", moteur = "ENGINE", nitro = "NITRO", air = "AIR", go = "GO!", niveau = "SEA OF CLOUDS",
 	astuce = "TIP", glisse = "SWIPE TO\nSTEER", chargement = "BUILDING THE ROAD",
 		missions = "MISSIONS", garage = "GARAGE", carriere = "CAREER", boutique = "SHOP", bientot = "COMING SOON",
+		facile = "EASY MODE", choisis = "PICK YOUR MODE", normal = "NORMAL", facileMot = "EASY",
+		facileTxt = "In EASY, the car follows the turns better, you stay longer in the air and you get 3 lives. You can change it in the settings.",
+		vies = "%d LIVES LEFT", derniereVie = "LAST LIFE!", onRepart = "BACK ON THE ROAD!",
 	astuces = {
 		"Leave the road by the EDGE: you fly, and land lower down. That's where the game is.",
 		"In the air: UP arrow = dive, DOWN arrow = climb. Left / right = spins.",
@@ -183,6 +189,7 @@ function Hud.nombre(v: number): string
 	return s
 end
 function Hud.argent(v: number): string
+	if v < 1000 and v == math.floor(v) then return "$ " .. tostring(v) end -- un montant rond s'écrit sans centimes (les primes, les prix)
 	return "$ " .. Hud.nombre(v)
 end
 function Hud.compte(v: number): string
@@ -299,6 +306,8 @@ function Hud.creer()
 	E.btPause = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), FontFace = PIX, Text = "II",
 		TextSize = 26, TextColor3 = Color3.fromRGB(0, 50, 80), AutoButtonColor = false }, pauseF)
 	retour(E.btPause, pauseF)
+	E.coeurs = texte(hud, { Text = "", RichText = true, TextSize = 24, TextColor3 = C.rouge, Size = UDim2.fromOffset(120, 30),
+		Position = UDim2.new(1, -108, 0, 36), AnchorPoint = Vector2.new(1, 0), TextXAlignment = Enum.TextXAlignment.Right, FontFace = TXT, Visible = false })
 	E.argent = texte(hud, { Text = "", RichText = true, TextSize = 40, TextColor3 = C.vert, Size = UDim2.new(0, 460, 0, 48),
 		Position = UDim2.new(1, -22, 0, 96), AnchorPoint = Vector2.new(1, 0), TextXAlignment = Enum.TextXAlignment.Right, epais = 3 })
 	E.air = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(200, 50), Position = UDim2.new(1, -22, 0, 152),
@@ -324,6 +333,23 @@ function Hud.creer()
 	E.astuceTxt = inst("TextLabel", { BackgroundTransparency = 1, FontFace = TXT, TextSize = 18, TextColor3 = C.texte, TextWrapped = true,
 		TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, Size = UDim2.new(1, -92, 0, 56),
 		Position = UDim2.fromOffset(76, 32), Text = "" }, E.astuce)
+	-- la carte de l'AUTO-ÉCOLE (#coach) : l'en-tête et PASSER, le titre, la consigne, cinq pastilles
+	E.coach = carbone(hud, UDim2.fromOffset(540, 118), UDim2.new(0.5, 0, 0, 236), C.vert, Vector2.new(0.5, 0))
+	E.coach.Visible = false
+	E.coachTete = texte(E.coach, { Text = "", TextSize = 10, TextColor3 = C.terne, Size = UDim2.new(1, -180, 0, 14), Position = UDim2.fromOffset(22, 12),
+		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
+	E.coachTitre = texte(E.coach, { Text = "", TextSize = 20, TextColor3 = C.texte, Size = UDim2.new(1, -44, 0, 26), Position = UDim2.fromOffset(22, 32),
+		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 3 })
+	E.coachTxt = inst("TextLabel", { BackgroundTransparency = 1, FontFace = TXT, TextSize = 17, TextColor3 = C.texte2, TextWrapped = true,
+		TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, Size = UDim2.new(1, -44, 0, 40),
+		Position = UDim2.fromOffset(22, 62), Text = "" }, E.coach)
+	E.coachPips = {}
+	for i = 1, 5 do
+		E.coachPips[i] = inst("Frame", { BackgroundColor3 = C.trait, BorderSizePixel = 0, Size = UDim2.fromOffset(34, 5), Position = UDim2.new(0, 22 + (i - 1) * 40, 1, -12) }, E.coach)
+	end
+	E.btPasser = inst("TextButton", { BackgroundColor3 = C.carbone2, BorderSizePixel = 0, Size = UDim2.fromOffset(130, 28), Position = UDim2.new(1, -12, 0, 8),
+		AnchorPoint = Vector2.new(1, 0), FontFace = PIX, Text = "", TextSize = 10, TextColor3 = C.texte2, AutoButtonColor = false }, E.coach)
+	inst("UIStroke", { Color = C.trait, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, E.btPasser)
 	-- le bouton NITRO (en bas à droite, comme sur le web — souris et doigt)
 	local nb = carbone(hud, UDim2.fromOffset(176, 140), UDim2.new(1, -22, 1, -22), nil, Vector2.new(1, 1))
 	nb:FindFirstChildOfClass("UIStroke").Color = C.orange
@@ -356,11 +382,25 @@ function Hud.creer()
 	E.btMusP = tuile(pan, T.musique, C.cyan, UDim2.fromOffset(230, 60), UDim2.new(0.5, 10, 0, 100), Vector2.new(0, 0), 14)
 	E.btRecom = tuile(pan, T.recommencer, C.magenta, UDim2.fromOffset(230, 60), UDim2.new(0.5, -10, 0, 180), Vector2.new(1, 0), 14)
 	E.btMenuP = tuile(pan, "⌂ " .. T.menu, C.lavande, UDim2.fromOffset(230, 60), UDim2.new(0.5, 10, 0, 180), Vector2.new(0, 0), 14)
+	E.btFacile = tuile(pan, T.facile, C.vert, UDim2.fromOffset(480, 54), UDim2.new(0.5, 0, 0, 258), Vector2.new(0.5, 0), 14)
 	E.btRecom.Parent.Name = "Recom"
 	E.btMenuP.Parent.Name = "MenuP"
 	E.btReprendre = lingot(pan, T.reprendre, UDim2.new(1, -60, 0, 84), UDim2.new(0.5, 0, 1, -30), Vector2.new(0.5, 1), 28)
 	for _, d in voile:GetDescendants() do
 		if d:IsA("GuiObject") then d.ZIndex = 21 end
+	end
+
+	-- ══ LE CHOIX DU MODE (à la toute première partie) ══
+	local choix = inst("Frame", { Name = "Choix", BackgroundColor3 = C.nuit, BackgroundTransparency = 0.2, Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 40 }, racine)
+	E.choix = choix
+	local pc = carbone(choix, UDim2.fromOffset(620, 330), UDim2.fromScale(0.5, 0.5), C.vert, Vector2.new(0.5, 0.5))
+	texte(pc, { Text = T.choisis, TextSize = 26, TextColor3 = C.texte, Size = UDim2.new(1, 0, 0, 36), Position = UDim2.fromOffset(0, 28) })
+	inst("TextLabel", { BackgroundTransparency = 1, FontFace = TXT, TextSize = 19, TextColor3 = C.texte2, TextWrapped = true, Text = T.facileTxt,
+		Size = UDim2.new(1, -80, 0, 96), Position = UDim2.fromOffset(40, 84) }, pc)
+	E.btFacileOui = tuile(pc, "♥ " .. T.facileMot, C.vert, UDim2.fromOffset(250, 76), UDim2.new(0.5, -12, 1, -34), Vector2.new(1, 1), 20)
+	E.btFacileNon = tuile(pc, "⚡ " .. T.normal, C.cyan, UDim2.fromOffset(250, 76), UDim2.new(0.5, 12, 1, -34), Vector2.new(0, 1), 20)
+	for _, d in choix:GetDescendants() do
+		if d:IsA("GuiObject") then d.ZIndex = 41 end
 	end
 
 	-- ══ MORT ══

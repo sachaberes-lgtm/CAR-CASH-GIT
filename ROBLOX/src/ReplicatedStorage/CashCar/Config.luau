@@ -15,6 +15,12 @@ Config.THICK = 2.6         -- épaisseur de la dalle
 Config.MORT_SOUS = 120     -- on meurt 120 m sous le point le plus bas de la piste
 Config.ARRET_KMH = 22      -- « roule ou crève » : sous 22 km/h pendant 6 s → boum
 Config.ARRET_T = 6
+-- LE MODE FACILE (L27967) : la SEULE assistance du jeu, en option. Quatre différences, rien d'autre :
+-- la caisse suit 80 % des virages toute seule, 10 s de vol au lieu de 6, trois vies, 5 m de pose en plus de chaque côté.
+Config.FACILE = { coeurs = 3, air = 10 / 6, bord = 5, virage = 0.8, cap = 1.6 }
+-- (Sacha, 01/10 : « mets que le mode normal ») — le mode FACILE reste écrit mais ÉTEINT : ni choix au premier lancement,
+-- ni réglage. Le rallumer = passer ceci à true, rien d'autre.
+Config.FACILE_ACTIF = false
 
 -- ── le moteur monte avec les pièces (ENGINE_TIERS, L20328) : { pièces, poussée, nom, réservoir de nitro (s) } ──
 Config.MOTEURS = {

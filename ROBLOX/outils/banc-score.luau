@@ -111,4 +111,24 @@ Score.ETAT.mode = "drive"; Score.dolPose()
 print("  dauphin : chaîne après la pose =", Score.CHA.pts, "×", Score.CHA.x)
 verifie("dauphin versé", Score.CHA.pts > 150, true)
 
+-- 5. les carnets : le générateur des carnets 10 et suivants doit tirer les mêmes défis que le jeu web
+local Carnets = require("../src/ReplicatedStorage/CashCar/Carnets")
+local attendu = {
+	[10] = { "tricks 11", "coins 80", "fruits 13", 3100, 6200 }, [11] = { "tricks 14", "coins 100", "survie 210", 3800, 7600 },
+	[12] = { "coins 120", "perfect 6", "kmh 824", 4400, 8800 }, [13] = { "zones 4", "tricks 20", "nitro 40", 5000, 10000 },
+	[14] = { "zones 4", "survie 300", "chain 8", 5600, 11200 }, [15] = { "tricks 26", "zones 5", "fruits 28", 6300, 12600 },
+	[16] = { "nitro 55", "zones 5", "coins 200", 6900, 13800 },
+}
+for num, a in attendu do
+	local c = Carnets.de(num - 1)
+	local lus = {}
+	for i = 1, 3 do lus[c[i].k .. " " .. c[i].v] = true end
+	for i = 1, 3 do verifie("carnet " .. num .. " défi " .. a[i], lus[a[i]] == true, true) end
+	verifie("carnet " .. num .. " prime", c[1].p, a[4])
+	verifie("carnet " .. num .. " récompense", c.rec.cash, a[5])
+end
+verifie("carnet 1", Carnets.de(0)[1].v, 25)
+verifie("carnet 9 récompense", Carnets.de(8).rec.caisse, 62)
+verifie("texte", Carnets.texte({ k = "survie", v = 150 }, true, tostring), "TIENS 2 MIN 30")
+
 print(string.format("%d vérifications, %d échec(s)", ok + ko, ko))

@@ -26,6 +26,7 @@ local Bus = require(CL:WaitForChild("Bus"))
 local Garage = require(CL:WaitForChild("Garage"))
 local Score = require(CL:WaitForChild("Score"))
 local HudScore = require(CL:WaitForChild("HudScore"))
+local Missions = require(CL:WaitForChild("Missions"))
 
 local M, SPD = Config.M, Config.SPD
 local RH, THICK = Config.ROAD_HALF, Config.THICK
@@ -142,13 +143,14 @@ local function cleObj(v: Vector3): number
 	return (math.floor(v.X / CEL_OBJ) + 4096) * 67108864 + (math.floor(v.Y / CEL_OBJ) + 4096) * 8192 + (math.floor(v.Z / CEL_OBJ) + 4096)
 end
 
+-- (la zone 0 est la piste DESSINÉE de l'auto-école)
 local function preparer(z: number, depart: CFrame?): Zone
 	if ZONES[z] then return ZONES[z] end
 	local e: Zone = { z = z, pret = false }
 	ZONES[z] = e
 	task.spawn(function()
 		local function ceder() task.wait() end
-		local p = Piste.generer(graine, z, depart, ceder)
+		local p = Piste.generer(graine, math.max(1, z), depart, ceder, z == 0)
 		local d = Instance.new("Folder")
 		d.Name = "Zone" .. z
 		Construction.route(p, d, ceder)
@@ -235,7 +237,7 @@ local G = {
 	carRoll = 0, rollV = 0, levreY = 0, pureT = 0, pureArmed = true, pureNext = 0, pureLvl = 0, idleT = 0, idleMsg = 0,
 	padCd = 0, padN = 0, padSL = nil :: number?, comboT = 0, safeS = 0,
 	distAvant = 0, vmax = 0, serie = 0, nbZones = 0, tempsDepart = 0,
-	fruitRaf = 0, fruitRafT = 0,
+	fruitRaf = 0, fruitRafT = 0, coeurs = 3,
 	lgS = 240, lgK = 0, lgV = 0, lgAcc = 20, -- LA LIGNE PARFAITE : la prochaine abscisse, fruit (0) ou pad (1), la vitesse et l'accélération lissées
 }
 local NTR = { on = false, t = 0, pal = 0, boost = 0, k = 0, kc = 0 }
@@ -256,6 +258,9 @@ local boomT, boomPos, causeMort = 0, Vector3.zero, "autre"
 local secousse, fovPunch = 0, 0
 local intro = false                          -- la CHUTE du départ : la caisse tombe du ciel sur la route
 local stats = { pieces = 0, poses = 0, parfaites = 0, fruits = 0, nitro = 0, duree = 0, chaine = 0, figures = 0 }
+local CPT: any = {} -- les compteurs de la partie, tels que les missions les lisent (voir Carnets.valeur)
+-- L'AUTO-ÉCOLE (TUTO, L22181) : cinq étapes sur la piste dessinée ; on ne peut pas y mourir ; au bout, le PERMIS (+500 $)
+local TU: any = { on = false, etape = 0, pause = 0, g = false, d = false, nitroT = 0, volT = 0, solT = 0, t = 0, rates = 0, horsT = 0, msg = nil, msgT = 0, vraiment = 0 }
 local astucesVues = {}
 local eclats: { { p: BasePart, v: Vector3, r: Vector3, t: number } } = {}
 local carCF = CFrame.identity
@@ -268,7 +273,9 @@ local function denom(): number return Config.DENOMS[tier + 1] * 0.25 end
 local function vmaxShow(): number return 190 * SPD * tardif() * pousseMoteur() end
 local function vitMult(): number return math.min(1 + NTR_BOOST_MAX, (pwV > 0 and 2 or 1) * (1 + NTR.boost)) end
 local function kmh(): number return math.abs(vA) * 3.6 * SPD * vitMult() end
-local function airMax(): number return Config.AIR_MAX end
+local FAC = Config.FACILE
+local function facile(): boolean return Config.FACILE_ACTIF and profil.reglages ~= nil and profil.reglages.facile == true end
+local function airMax(): number return Config.AIR_MAX * (facile() and FAC.air or 1) end
 local function horiz(v: Vector3): number return math.sqrt(v.X * v.X + v.Z * v.Z) end
 -- la vitesse ÷ la croisière (flowVitN, L21005) : en vol, la vitesse HORIZONTALE seule
 local function vitN(): number
@@ -416,7 +423,7 @@ end
 
 -- ════════ décoller (startFall, L30229) ════════
 local function astuce(i: number)
-	if astucesVues[i] then return end
+	if astucesVues[i] or TU.on then return end
 	astucesVues[i] = true
 	Hud.astuce((Hud.tactile and T.astucesTactile or T.astuces)[i], 6)
 end
@@ -457,8 +464,186 @@ local function decoller(impU: number, impF: number, bord: boolean?)
 end
 
 -- ════════ exploser ════════
+-- on REPART (respawn, L29589) : replacée sur sa ligne sûre, dessus, 26 de vitesse, 2,2 s de grâce, la nitro à moitié au moins
+local function replacer()
+	Score.SFA.n = 0
+	Score.dolFin()
+	V.chainN, V.chainVal, V.chainMult = 0, 0, 1
+	s = math.clamp(G.safeS - 8, 0, piste.len / M - 80)
+	lat, psi, yawR, side, vA = 0, 0, 0, 1, 26
+	G.slipB, G.carRoll, G.rollV, G.levreY = 0, 0, 0, 0
+	mode = "drive"
+	Score.ETAT.mode = "drive"
+	V.bascOn = false
+	graceT = math.max(graceT, 2.2)
+	nitroR = math.max(nitroR, 0.5 * reservoir())
+	carCF = repere(s, 1)
+	secousse = math.max(secousse, 0.5)
+	E.air.Visible = false
+end
+-- LES TROIS VIES du mode FACILE (facileSauve, L23506) : le vide et le chrono d'air pardonnent deux fois
+local function facileSauve(cause: string): boolean
+	if not facile() or G.coeurs <= 1 or (cause ~= "vide" and cause ~= "air") then return false end
+	G.coeurs -= 1
+	replacer()
+	HudScore.slam((G.coeurs > 1) and string.format(T.vies, G.coeurs) or T.derniereVie, T.onRepart, "#ff5e7a", "#ffd75e", 40, 3)
+	Sons.jouer("poseLourde")
+	return true
+end
+
+-- ════════ L'AUTO-ÉCOLE ════════
+local TU_ETAPES = FR and {
+	{ "TOURNE", "Braque à gauche… puis à droite." }, { "NITRO", "Maintiens NITRO : ça pousse fort." },
+	{ "DECOLLE", "Fonce hors de la route, par le bord. N'aie pas peur." },
+	{ "VOLE A LA NITRO", "En l'air, MAINTIENS NITRO et reviens au-dessus de la route." },
+	{ "POSE-TOI", "Reviens au-dessus de la route et pose-toi dessus (en douceur = parfait)." },
+} or {
+	{ "STEER", "Steer left… then right." }, { "NITRO", "Hold NITRO: it pushes hard." },
+	{ "TAKE OFF", "Drive off the road, over the edge. Don't be scared." },
+	{ "FLY ON NITRO", "In the air, HOLD NITRO and steer back over the road." },
+	{ "LAND IT", "Get back over the road and land on it (softly = perfect)." },
+}
+function TU.carte()
+	local e = math.clamp(TU.etape, 1, 5)
+	E.coach.Visible = TU.on
+	if not TU.on then return end
+	E.coachTete.Text = TU.msg or (tr("AUTO-ECOLE", "DRIVING SCHOOL") .. " · " .. e .. "/5")
+	E.coachTete.TextColor3 = TU.msg and Hud.C.rouge or Hud.C.terne
+	E.coachTitre.Text = TU_ETAPES[e][1]
+	E.coachTxt.Text = TU_ETAPES[e][2]
+	for i = 1, 5 do
+		E.coachPips[i].BackgroundColor3 = (i < e) and Color3.fromRGB(98, 224, 98) or ((i == e) and Hud.C.or_ or Hud.C.trait)
+	end
+	E.btPasser.Text = (os.clock() < TU.vraiment) and tr("VRAIMENT ?", "SURE?") or tr("PASSER", "SKIP")
+	E.btPasser.TextColor3 = (os.clock() < TU.vraiment) and Hud.C.rouge or Hud.C.texte2
+end
+function TU.dire(txt: string)
+	TU.msg, TU.msgT = txt, 2.6
+end
+function TU.vers(e: number)
+	TU.etape = e
+	TU.g, TU.d, TU.nitroT, TU.volT, TU.solT, TU.t, TU.horsT = false, false, 0, 0, 0, 0, 0
+end
+-- la leçon se termine : passe = on l'a SAUTÉE (pas de permis)
+function TU.fin(passe: boolean)
+	TU.on = false
+	E.coach.Visible = false
+	if pwA > 0 then -- l'airtime prêté est repris : en vol, la jauge repart neuve
+		pwA = 0
+		V.fallT, V.fallTR = 0, 0
+	end
+	profil.reglages = profil.reglages or {}
+	profil.reglages.tuto = true
+	task.spawn(function() pcall(function() fnAction:InvokeServer("reglage", "tuto", true) end) end)
+	if passe then return end
+	local premier = not profil.permis
+	if premier then
+		profil.permis = true
+		task.spawn(function() pcall(function() fnAction:InvokeServer("permis") end) end)
+	end
+	HudScore.slam(tr("PERMIS OBTENU !", "LICENSE EARNED!"), premier and "+$500" or nil, "#62e062", "#ffd75e", 40, 3)
+	Sons.jouer("record")
+	if premier then
+		task.delay(1.8, function()
+			Hud.astuce(facile() and tr("Fini l'entraînement : tu as 3 VIES. En l'air, pose-toi avant la fin du chrono.", "Training's over: you have 3 LIVES. In the air, land before the timer runs out.")
+				or tr("Fini l'entraînement : UNE SEULE VIE. En l'air, pose-toi avant la fin du chrono.", "Training's over: ONE LIFE. In the air, land before the timer runs out."), 3.4)
+		end)
+	end
+end
+function TU.bravo()
+	Sons.jouer("poseParfait", 1.2)
+	TU.pause = 0.75
+	if TU.etape >= 5 then
+		TU.etape = 6
+	else
+		TU.vers(TU.etape + 1)
+	end
+end
+-- on ne MEURT pas à l'école : la caisse est replacée, et la leçon reprend au décollage
+function TU.rate(): boolean
+	if not TU.on then return false end
+	replacer()
+	nitroR = reservoir()
+	TU.dire(tr("RATE ! ON RECOMMENCE", "MISSED! TRY AGAIN"))
+	if TU.etape >= 4 then TU.vers(3) end
+	HudScore.flash("#ffffff", 0.5)
+	return true
+end
+function TU.tick(dt: number)
+	if TU.msgT > 0 then
+		TU.msgT -= dt
+		if TU.msgT <= 0 then TU.msg = nil end
+	end
+	if TU.pause > 0 then
+		TU.pause -= dt
+		if TU.pause <= 0 and TU.etape >= 6 then TU.fin(false) end
+		TU.carte()
+		return
+	end
+	local e = TU.etape
+	local vol = mode == "fall"
+	if e == 1 then
+		if steerS < -0.25 then TU.g = true end
+		if steerS > 0.25 then TU.d = true end
+		if TU.g and TU.d then TU.bravo() end
+	elseif e == 2 then
+		nitroR = reservoir() -- le plein est offert
+		if nitroOn then TU.nitroT += dt end
+		if TU.nitroT > 1.1 then TU.bravo() end
+	elseif e == 3 then
+		if vol then
+			pwA = math.max(pwA, 9) -- l'airtime infini est PRÊTÉ
+			TU.bravo()
+		end
+	elseif e == 4 then
+		nitroR = reservoir()
+		if vol then
+			TU.solT = 0
+			if nitroOn then TU.volT += dt end
+			if TU.volT > 0.9 then TU.bravo() end
+		else
+			TU.solT += dt
+			if TU.solT > 1 then
+				TU.vers(3)
+				TU.dire(tr("ENCORE ! NITRO EN L'AIR", "AGAIN! NITRO IN THE AIR"))
+			end
+		end
+	elseif e == 5 then
+		if not vol then
+			TU.bravo()
+		else
+			pwA = math.max(pwA, 2)
+			TU.t += dt
+			if TU.t > 9 then
+				replacer()
+				TU.rates += 1
+				if TU.rates >= 2 then
+					TU.bravo() -- deux échecs : le permis est accordé quand même
+				else
+					TU.vers(3)
+					TU.dire(tr("RATE ! NITRO, VISE LE DESSUS", "MISSED! NITRO, AIM ABOVE IT"))
+				end
+			end
+		end
+	end
+	-- étapes 1 et 2 : sortir de la route replace aussitôt
+	if e <= 2 and vol then
+		TU.horsT += dt
+		if TU.horsT > 0.5 then
+			replacer()
+			nitroR = reservoir()
+			TU.dire(tr("SORTI ! SUIS LA ROUTE", "OFF THE ROAD! FOLLOW IT"))
+			TU.horsT = 0
+		end
+	else
+		TU.horsT = 0
+	end
+	TU.carte()
+end
+
 local function exploser(cause: string)
 	if mode == "boom" or mode == "mort" then return end
+	if TU.rate() or facileSauve(cause) then return end
 	causeMort = cause
 	boomPos = carCF.Position
 	Score.mort() -- la chaîne OUVERTE part avec la caisse, le flow retombe
@@ -535,7 +720,8 @@ local function atterrir(face: number, latX: number, sX: number)
 	local impact = math.abs(vN)
 	-- la pose RATÉE : la trajectoire arrive à plus de 55° de l'axe de la route
 	local angle = math.deg(math.atan2(math.abs(vB), vT))
-	local ratee = math.sqrt(vT * vT + vB * vB) > 4 and angle > 55
+	local ratee = math.sqrt(vT * vT + vB * vB) > 4 and angle > 55 + (facile() and 30 or 0)
+	lat = math.clamp(lat, -(RH - 0.02), RH - 0.02)
 	-- SNAKE LOOP : passé SOUS la route, reposé sur la face de départ
 	local serpent = V.fallUnder and face == V.fallStartSide
 	if serpent then
@@ -705,6 +891,7 @@ local function essayerAtterrir(dt: number)
 	end
 	-- ── (d) la POSE : le point EXACT où la trajectoire traverse le plan de la route ──
 	local bestFace, bestLat, bestS, bestD, trouve = 1, 0, 0, math.huge, false
+	local marge = facile() and FAC.bord or 0
 	for _, j in liste do
 		local F = piste.F[j]
 		local lc = F:PointToObjectSpace(pos)
@@ -724,7 +911,7 @@ local function essayerAtterrir(dt: number)
 			elseif V.fallT > 0.35 and h > -1.2 and h < 3 and vN < 4.5 and math.abs(z) <= DSm * 0.6 then
 				ok = true
 			end
-			if ok and math.abs(lx) < RH and math.abs(h) < bestD then
+			if ok and math.abs(lx) < RH + marge and math.abs(h) < bestD then
 				bestFace, bestLat, bestS, bestD, trouve = 1, lx, (j - 1) * DSm + zx, math.abs(h), true
 			end
 			-- la face du DESSOUS (on s'y colle en remontant)
@@ -737,7 +924,7 @@ local function essayerAtterrir(dt: number)
 			elseif V.fallT > 0.35 and h > -THICK - 3 and h < -THICK + 1.2 and vN > -4.5 and math.abs(z) <= DSm * 0.6 then
 				ok2 = true
 			end
-			if ok2 and math.abs(lx2) < RH and math.abs(h + THICK) < bestD then
+			if ok2 and math.abs(lx2) < RH + marge and math.abs(h + THICK) < bestD then
 				bestFace, bestLat, bestS, bestD, trouve = -1, lx2, (j - 1) * DSm + zx2, math.abs(h + THICK), true
 			end
 		end
@@ -1121,7 +1308,8 @@ local function activer(e: Zone)
 	evEtat:FireServer("zone", e.z)
 end
 local function passerPortail(): boolean
-	local suiv = ZONES[zoneN + 1]
+	local ecole = TU.on and zoneN == 0 -- pendant la leçon, le portail ramène sur la piste d'école
+	local suiv = ecole and ZONES[0] or ZONES[zoneN + 1]
 	if not suiv or not suiv.pret then
 		-- la zone suivante n'est pas prête (téléphone très lent) : la caisse patiente au bout de la route
 		-- (jamais d'attente DANS la boucle de rendu : Roblox l'interdit)
@@ -1145,17 +1333,19 @@ local function passerPortail(): boolean
 	V.flowS0 -= longueur
 	G.padSL = 0 -- le train de boosts TRAVERSE le portail
 	G.lgS, G.lgK, G.lgV, G.lgAcc = 240, 0, 0, 20 -- la ligne parfaite repart avec la piste
-	zoneN += 1
-	G.nbZones += 1
+	if not ecole then
+		zoneN += 1
+		G.nbZones += 1
+	end
 	remettreObjets(suiv)
 	activer(suiv)
-	oublier(ancienne)
+	if not ecole then oublier(ancienne) end
 	local g = encaisser(denom() * 24, "portail")
 	nitroR = reservoir()
 	Bus.emit("portail", zoneN)
 	HudScore.slam("ZONE " .. zoneN, "+" .. Hud.argent(g), "#00eaff", "#7dff9b", 34, 1)
 	Sons.jouer("portail")
-	preparer(zoneN + 1, Piste.suite(piste))
+	if not ecole then preparer(zoneN + 1, Piste.suite(piste)) end
 	return true
 end
 
@@ -1264,7 +1454,9 @@ local function etapeSol(dt: number)
 	-- la route tourne SOUS la caisse
 	local cf2 = repere(s, side)
 	local dyaw = -(T_:Cross(cf2.LookVector)):Dot(cf2.UpVector)
-	psi = math.clamp(psi - math.asin(math.clamp(dyaw, -1, 1)), -1.4, 1.4)
+	local fac = facile()
+	psi = math.clamp(psi - math.asin(math.clamp(dyaw, -1, 1)) * (1 - (fac and FAC.virage or 0)), -1.4, 1.4)
+	if fac and math.abs(steerS) < 0.1 and not G.driftOn then psi *= math.exp(-dt * FAC.cap * vm) end
 	if boost > 0 then boost -= dt end
 	local k = kmh()
 	-- VIRAGE SERRÉ + LA FRONDE
@@ -1317,7 +1509,7 @@ local function etapeSol(dt: number)
 	end
 	-- les plots, les flaques, les pads ; la ligne parfaite se pose devant
 	obstacles(dt, cf2)
-	if not intro then ligneTick(dt) end
+	if not intro and not TU.on then ligneTick(dt) end
 	G.fruitRafT -= dt
 	if G.fruitRafT <= 0 then G.fruitRaf = 0 end
 	-- ROULE OU CRÈVE (L36365)
@@ -1631,6 +1823,12 @@ local function hud(dt: number)
 		if q[2] > 0 then table.insert(pw, (FR and P[q[1]].nom or P[q[1]].nomEN) .. " " .. math.ceil(q[2])) end
 	end
 	E.pouvoir.Text = table.concat(pw, "  ·  ")
+	if facile() and (mode == "drive" or mode == "fall") then
+		E.coeurs.Visible = true
+		E.coeurs.Text = string.rep("♥", G.coeurs) .. '<font color="#40385e">' .. string.rep("♥", math.max(0, FAC.coeurs - G.coeurs)) .. "</font>"
+	else
+		E.coeurs.Visible = false
+	end
 	HudScore.tick(dt, mode)
 	Hud.tick()
 end
@@ -1664,9 +1862,15 @@ local function allerMenu()
 end
 
 local function nouvellePartie()
-	zoneN = 1
-	remettreObjets(ZONES[1])
-	activer(ZONES[1])
+	-- la leçon tant qu'elle n'a pas été passée (ou sautée) : la piste d'école est la zone 0
+	local ecole = profil.reglages ~= nil and profil.reglages.tuto == false and ZONES[0] ~= nil and ZONES[0].pret
+	TU.on = ecole
+	TU.vers(1)
+	TU.rates, TU.pause, TU.msg, TU.msgT, TU.vraiment = 0, 0, nil, 0, 0
+	E.coach.Visible = false
+	zoneN = ecole and 0 or 1
+	remettreObjets(ZONES[zoneN])
+	activer(ZONES[zoneN])
 	preparer(2, Piste.suite(ZONES[1].piste :: Piste.Piste))
 	poserAuDepart()
 	vA, yawR, steerS, momT, boost, G.padCd, G.padN, G.padSL = 0, 0, 0, 0, 0, 0, 0, nil
@@ -1684,11 +1888,14 @@ local function nouvellePartie()
 	stats.pieces, stats.poses, stats.parfaites, stats.fruits, stats.nitro, stats.duree, stats.chaine, stats.figures = 0, 0, 0, 0, 0, 0, 0, 0
 	G.tempsDepart = 0
 	G.fruitRaf, G.fruitRafT = 0, 0
+	G.coeurs = FAC.coeurs
+	G.safeS = S_CHUTE
 	G.lgS, G.lgK, G.lgV, G.lgAcc = 240, 0, 0, 20
 	for _, v in volants do v.p.Parent = nil end
 	table.clear(volants)
 	Score.debut(meilleurAura, profil.frenRec or 0)
 	HudScore.raz()
+	Missions.debut()
 	Bus.emit("partie")
 	E.air.Visible = false
 	montrerCaisse(true)
@@ -1721,9 +1928,10 @@ local function finPartie()
 	aura = Score.fin(false)
 	local dist = G.distAvant + math.max(0, s)
 	local rec = argent > record and argent > Config.CASH_DEPART + 0.01
+	local mres = Missions.fin(CPT)
 	evFin:FireServer(argent, dist, aura, { pieces = stats.pieces, figures = stats.poses, kmh = G.vmax, zone = G.nbZones + 1, tier = tier,
 		multi = Score.CHA.xMax, cause = causeMort, parfaites = stats.parfaites, fruits = stats.fruits, nitro = stats.nitro,
-		duree = stats.duree, chaine = stats.chaine, frenMax = Score.FREN.max, frenRec = Score.FREN.record })
+		duree = stats.duree, chaine = stats.chaine, frenMax = Score.FREN.max, frenRec = Score.FREN.record, mis = mres.meilleur })
 	if rec then record = argent end
 	meilleurAura = math.max(meilleurAura, aura)
 	local cause = T.morts[causeMort] or T.morts.autre
@@ -1740,7 +1948,8 @@ local function finPartie()
 	else
 		E.mMoteurEncore.Text = T.moteurMax
 	end
-	E.mPartie.Text = cause .. "\n" .. T.distance .. "  " .. Hud.entier(dist) .. " M\n" .. T.pieces .. "  " .. stats.pieces
+	E.mPartie.Text = cause .. "\n" .. T.distance .. "  " .. Hud.entier(dist) .. " M   " .. T.pieces .. "  " .. stats.pieces
+		.. (mres.ligne and ("\n◎ " .. mres.ligne) or "")
 	local st = {
 		{ "x" .. Score.CHA.xMax, T.multiMax },
 		{ Hud.entier(G.vmax), T.kmhMax }, { tostring(G.nbZones + 1), T.zone }, { tostring(stats.poses), T.figures },
@@ -1767,7 +1976,43 @@ local function finPartie()
 end
 
 -- les boutons
-E.btJouer.Activated:Connect(function() if mode == "menu" then nouvellePartie() end end)
+-- JOUER : à la toute première partie, on demande d'abord FACILE ou NORMAL (facChoix, L5807)
+local function reglage(cle: string, valeur: any)
+	profil.reglages = profil.reglages or {}
+	profil.reglages[cle] = valeur
+	task.spawn(function() pcall(function() fnAction:InvokeServer("reglage", cle, valeur) end) end)
+end
+local apresChoix: (() -> ())? = nil
+local function jouer(suite: () -> ())
+	if Config.FACILE_ACTIF and profil.reglages and profil.reglages.facileChoisi == false then
+		apresChoix = suite
+		E.choix.Visible = true
+		return
+	end
+	suite()
+end
+local function choisir(oui: boolean)
+	reglage("facile", oui)
+	reglage("facileChoisi", true)
+	E.choix.Visible = false
+	local f = apresChoix
+	apresChoix = nil
+	if f then f() end
+end
+E.btPasser.Activated:Connect(function()
+	if not TU.on then return end
+	-- PASSER : si le permis n'a jamais été payé, on demande d'abord (« VRAIMENT ? », 3 s)
+	if not profil.permis and os.clock() > TU.vraiment then
+		TU.vraiment = os.clock() + 3
+		TU.dire(tr("PERMIS +$500", "LICENSE +$500"))
+		TU.carte()
+		return
+	end
+	TU.fin(true)
+end)
+E.btFacileOui.Activated:Connect(function() choisir(true) end)
+E.btFacileNon.Activated:Connect(function() choisir(false) end)
+E.btJouer.Activated:Connect(function() if mode == "menu" then jouer(nouvellePartie) end end)
 -- ── LE GARAGE : parcourir, acheter, équiper (voir Client/Garage) ──
 local function ouvrirGarage()
 	if mode ~= "menu" then return end
@@ -1794,12 +2039,43 @@ Garage.init({
 	surJouer = function()
 		Garage.fermer()
 		allerMenu()
-		nouvellePartie()
+		jouer(nouvellePartie)
 	end,
 	surReglages = function() Hud.ecran("reglages") end,
 })
 E.btGarage.Activated:Connect(ouvrirGarage)
-E.btMissions.Activated:Connect(function() if mode == "menu" then Hud.toast(T.bientot) end end)
+-- ── LES MISSIONS : le carnet ouvert, ses trois défis, sa récompense (voir Client/Missions) ──
+Missions.init({
+	profil = function() return profil end,
+	action = function(nom: string, ...: any): (boolean, string?)
+		local ok, res, msg, p = pcall(function(...) return fnAction:InvokeServer(nom, ...) end, ...)
+		if not ok then return false, "erreur" end
+		if type(p) == "table" then
+			-- (le serveur rend le profil : on garde ce que la partie en cours a déjà coché, sa réponse peut arriver en retard)
+			local m = profil.mis
+			lireProfil(p)
+			if m and p.mis and m.n == p.mis.n then
+				for i = 1, 3 do
+					if m.ok[i] then p.mis.ok[i] = true end
+				end
+			end
+		end
+		return res == true, msg
+	end,
+	surHome = function()
+		Missions.fermer()
+		Hud.ecran("menu")
+	end,
+	surJouer = function()
+		Missions.fermer()
+		if mode == "menu" then jouer(nouvellePartie) end
+	end,
+})
+E.btMissions.Activated:Connect(function()
+	if mode ~= "menu" then return end
+	Hud.ecran("missions")
+	Missions.ouvrir()
+end)
 E.btCarriere.Activated:Connect(function() if mode == "menu" then Hud.toast(T.bientot) end end)
 E.btBoutique.Activated:Connect(function() if mode == "menu" then Hud.toast(T.bientot) end end)
 E.btRejouer.Activated:Connect(function() if mode == "mort" then nouvellePartie() end end)
@@ -1821,12 +2097,19 @@ end)
 E.btRecom.Activated:Connect(function() if enPause then enPause = false; Score.fin(false); nouvellePartie() end end)
 E.btMenuP.Activated:Connect(function() if enPause then enPause = false; Score.fin(false); allerMenu() end end)
 local function majBoutonsSon()
+	E.btFacile.Text = T.facile .. (facile() and " ON" or " OFF")
 	E.btSonP.Text = T.son .. (Sons.actif and " ON" or " OFF")
 	E.btMusP.Text = T.musique .. (Sons.musiqueActive and " ON" or " OFF")
 end
 E.btSonP.Activated:Connect(function() Sons.actif = not Sons.actif; majBoutonsSon() end)
 E.btMusP.Activated:Connect(function() Sons.musiqueActive = not Sons.musiqueActive; majBoutonsSon() end)
+E.btFacile.Activated:Connect(function()
+	reglage("facile", not facile())
+	reglage("facileChoisi", true)
+	majBoutonsSon()
+end)
 majBoutonsSon()
+E.btFacile.Parent.Visible = Config.FACILE_ACTIF
 
 -- ════════ les autres caisses : un double chez moi, lissé ; on ne voit que celles qui roulent dans NOTRE zone ════════
 type Double = { m: Model, c: Model, vu: boolean?, pg: any, ind: number }
@@ -1925,6 +2208,22 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			Score.flowTick(dt, mode, vitN(), nitroOn)
 			Score.chaineTick(dt, mode)
 			aura = Score.aura()
+			-- les missions relisent les compteurs de la partie
+			CPT.pieces, CPT.fruits, CPT.gains, CPT.poses, CPT.parfaites = stats.pieces, stats.fruits, argent - Config.CASH_DEPART, stats.poses, stats.parfaites
+			CPT.kmh, CPT.zones, CPT.duree, CPT.chaine, CPT.nitro = G.vmax, G.nbZones, stats.duree, stats.chaine, stats.nitro
+			-- (les missions et la leçon ne doivent JAMAIS pouvoir arrêter la partie : une erreur les coupe, la course continue)
+			if mode == "drive" or mode == "fall" then
+				local okM, errM = pcall(Missions.tick, dt, CPT)
+				if not okM then warn("[CashCar] missions : " .. tostring(errM)) end
+			end
+			if TU.on and not intro then
+				local okT, errT = pcall(TU.tick, dt)
+				if not okT then
+					warn("[CashCar] auto-école : " .. tostring(errT))
+					TU.on = false
+					E.coach.Visible = false
+				end
+			end
 			Bus.emit("tick", dt)
 		elseif mode == "boom" then
 			boomT += dt
@@ -1985,6 +2284,7 @@ while not Mer.pret and os.clock() - t0 < 15 do
 	task.wait(0.1)
 end
 preparer(2, Piste.suite(z1.piste :: Piste.Piste))
+if profil.reglages and profil.reglages.tuto == false then preparer(0, nil) end
 allerMenu()
 
 -- aide au débogage (console du client dans Studio) : _G.cashcar()

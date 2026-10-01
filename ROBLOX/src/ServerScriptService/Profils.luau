@@ -8,6 +8,7 @@
 local DataStoreService = game:GetService("DataStoreService")
 
 local Profils = {}
+local Carnets = require(game:GetService("ReplicatedStorage"):WaitForChild("CashCar"):WaitForChild("Carnets"))
 
 local VERSION = 1
 local store
@@ -28,8 +29,11 @@ function Profils.neuf(): Profil
 		caisses = { 0 }, caisse = 0, -- indices du jeu web : 0 = LA HONTE, la caisse de départ
 		peintures = {}, peinture = 0,
 		traines = {}, trainee = 0,
-		missions = {}, carriere = {},
-		reglages = { son = true, musique = true, facile = false },
+		mis = { n = 0, ok = { false, false, false }, best = { 0, 0, 0 }, f = -1 }, -- les CARNETS (voir Carnets)
+		habits = {},   -- les habillages gagnés ou achetés : « peinture:or », « trainee:arcenciel »…
+		carriere = {},
+		reglages = { son = true, musique = true, facile = false, facileChoisi = false, tuto = false },
+		permis = false, -- le PERMIS de l'auto-école : +500 $, une seule fois dans la vie du compte
 		stats = { parties = 0, distance = 0, pieces = 0, figures = 0 },
 	}
 end
@@ -38,7 +42,16 @@ local function sain(p: any): Profil
 	local n = Profils.neuf()
 	if type(p) ~= "table" then return n end
 	for k, v in n do
-		if type(p[k]) == type(v) then n[k] = p[k] end
+		if k == "reglages" then
+			-- (clé par clé : un vieux profil n'a pas les réglages ajoutés depuis)
+			if type(p.reglages) == "table" then
+				for rk, rv in v do
+					if type(p.reglages[rk]) == type(rv) then v[rk] = p.reglages[rk] end
+				end
+			end
+		elseif type(p[k]) == type(v) then
+			n[k] = p[k]
+		end
 	end
 	for _, k in { "compte", "record", "auraMeilleur", "aura", "frenRec" } do
 		if n[k] ~= n[k] or n[k] < 0 or n[k] > 1e18 then n[k] = 0 end
@@ -54,6 +67,12 @@ local function sain(p: any): Profil
 	if not possede[0] then table.insert(liste, 0) end
 	n.caisses = liste
 	if type(n.caisse) ~= "number" or n.caisse ~= math.floor(n.caisse) or n.caisse < 0 then n.caisse = 0 end
+	n.mis = Carnets.etat(n.mis)
+	local habits = {}
+	for _, h in n.habits do
+		if type(h) == "string" and #h < 60 and not table.find(habits, h) then table.insert(habits, h) end
+	end
+	n.habits = habits
 	return n
 end
 
@@ -117,6 +136,52 @@ Profils.actions.equiper = function(p, prof, i)
 	prof.caisse = i
 	if Profils.surEquipe then Profils.surEquipe(p, i) end
 	return true
+end
+
+-- ── les MISSIONS : un défi réussi verse sa prime TOUT DE SUITE ; le carnet se ferme à la fin de la partie ──
+Profils.actions.defi = function(_, prof, i, v)
+	if type(i) ~= "number" or i ~= math.floor(i) or i < 1 or i > 3 then return false, "defi inconnu" end
+	local d = Carnets.de(prof.mis.n)[i]
+	if prof.mis.ok[i] then return false, "deja reussi" end
+	if type(v) ~= "number" or v ~= v or v < d.v then return false, "pas atteint" end
+	prof.mis.ok[i] = true
+	prof.mis.best[i] = d.v
+	prof.compte += d.p
+	return true
+end
+Profils.actions.permis = function(_, prof)
+	if prof.permis then return false, "deja" end
+	prof.permis = true
+	prof.compte += 500
+	return true
+end
+Profils.actions.suivre = function(_, prof, i)
+	if i ~= -1 and not (type(i) == "number" and i == math.floor(i) and i >= 1 and i <= 3) then return false, "defi inconnu" end
+	prof.mis.f = i
+	return true
+end
+-- à la fin d'une partie : les meilleurs essais, puis le carnet se ferme si les trois défis sont réussis
+function Profils.finCarnet(prof: Profil, essais: any)
+	local c = Carnets.de(prof.mis.n)
+	if type(essais) == "table" then
+		for i = 1, 3 do
+			local b = essais[i]
+			if type(b) == "number" and b == b and b > prof.mis.best[i] and not prof.mis.ok[i] then
+				prof.mis.best[i] = math.min(c[i].v * 0.999, b) -- (un essai ne RÉUSSIT pas le défi : seule l'action « defi » le fait)
+			end
+		end
+	end
+	if prof.mis.ok[1] and prof.mis.ok[2] and prof.mis.ok[3] then
+		local rec = c.rec
+		if rec.caisse then
+			if not Profils.possede(prof, rec.caisse) then table.insert(prof.caisses, rec.caisse) end
+		elseif rec.habit then
+			if not table.find(prof.habits, rec.habit) then table.insert(prof.habits, rec.habit) end
+		elseif rec.cash then
+			prof.compte += rec.cash
+		end
+		prof.mis = { n = prof.mis.n + 1, ok = { false, false, false }, best = { 0, 0, 0 }, f = -1 }
+	end
 end
 
 Profils.actions.reglage = function(_, prof, cle, valeur)
