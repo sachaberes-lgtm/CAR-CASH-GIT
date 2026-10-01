@@ -1,2 +1,5 @@
 # cache des libs du CDN, retelechargeables : ca n'a rien a faire dans l'historique
 .libs-embarquees/
+
+# les MP3 de référence glissés dans le studio (musiques de tiers possibles) : jamais dans l'historique
+atelier-son/studio/references/

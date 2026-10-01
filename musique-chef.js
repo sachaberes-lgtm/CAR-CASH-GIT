@@ -26,7 +26,7 @@
 'use strict';
 const CH_REGLES={avance:.16,iMonte:1.0,iDescend:3.5,dropSur:.62,dropTient:.45,introSous:.2,elanMontee:.7,
   ruptDelta:.32,ruptSous:.55,picDescend:.3,relanceSur:.45,fcBas:1800,lpRupt:900,pompeMot:.28,profMax:.35,
-  panArp:.38,panLead:.22,toursParActe:4,tonFinal:2};
+  panArp:.38,panLead:.22,toursParActe:4,monteeMes:4,nitroTrou:.35,gMontee:.6,tonFinal:2};
 function MusiqueChef(ac,sortie){
   const R=CH_REGLES;
   // ---- LA CONSOLE : bus → (pompe) → pré → passe-haut (vol) → passe-bas (vitesse) → colle → écrêteur doux → sortie ; réverbe et écho en envoi
@@ -53,7 +53,7 @@ function MusiqueChef(ac,sortie){
   let D=null,buf=null,deb=0,iv=0,joueOk=false;
   let bpm=120,tps=.5,dc=.125,mes=2,t0=0,nb=0,tNb=0;                // la grille
   let sec='INTRO',act=0,dropTours=0,phr=0,cleK=1,cleProchaine=1,roulement=false,prochaine=null,relance=0,breakTours=0;
-  let I=0,vF=0,vPic=0,vPicL=0,elan=0,nitroT=0,nitroAv=false,volAv=false,volT=0,vir=0,drift=false,rupt=false,tRupt=-99,tPrec=0,dernier={};
+  let ancre=0,attente=[],vise=null,monteeT0=-1,monteeFaite=false,nitroLache=-9,I=0,vF=0,vPic=0,vPicL=0,elan=0,nitroT=0,nitroAv=false,volAv=false,volT=0,vir=0,drift=false,rupt=false,tRupt=-99,tPrec=0,dernier={};
   const pistes={};                                                  // la sortie de chaque piste (son gain = le calibrage × la règle « sol »)
   async function charge(c){
     D=c;bpm=c.bpm;tps=60/bpm;dc=tps/4;mes=tps*4;
@@ -64,7 +64,7 @@ function MusiqueChef(ac,sortie){
     for(const p in c.meta){if(pistes[p])try{pistes[p].disconnect();}catch(e){}const g=ac.createGain();g.gain.value=(c.gains[p]||1);g.connect(BUS[c.meta[p].bus].in);pistes[p]=g;}
     reset();
   }
-  function reset(){sec='INTRO';act=0;dropTours=0;phr=0;cleK=1;cleProchaine=1;roulement=false;prochaine=null;relance=0;breakTours=0;I=0;vF=vPic=vPicL=elan=nitroT=0;rupt=false;}
+  function reset(){sec='INTRO';act=0;dropTours=0;phr=0;cleK=1;cleProchaine=1;roulement=false;prochaine=null;relance=0;breakTours=0;I=0;vF=vPic=vPicL=elan=nitroT=0;rupt=false;ancre=0;vise=null;monteeT0=-1;monteeFaite=false;attente=[];if(riser){coupe(riser,ac.currentTime);riser=null;}}
   // ---- jouer un son de la planche
   function son(nom,t,g,dur,gl,piste,off){
     const a=D.index[nom];if(!a||!buf)return;
@@ -75,13 +75,15 @@ function MusiqueChef(ac,sortie){
     if(dur>0&&dur<lg){gn.gain.setValueAtTime(g,t+dur);gn.gain.linearRampToValueAtTime(0,t+dur+.07);lg=dur+.08;}
     off=Math.max(0,Math.min(a[1]-.05,off||0));
     s.connect(gn);gn.connect(piste?pistes[piste]:BUS.fx.in);s.start(t,deb+a[0]+off,Math.min(a[1]-off,lg*r+.01));
+    if(/^montee/.test(nom)){if(riser)coupe(riser,t);riser={s:s,g:gn};}  // UNE seule montée à la fois
     if(nom==='kick')pompe(t);
   }
+  let riser=null;
+  function coupe(r,t){try{r.g.gain.cancelScheduledValues(t);r.g.gain.setTargetAtTime(0,t,.025);r.s.stop(t+.25);}catch(e){}}
   function pompe(t){['basse','harm','arp','lead'].forEach(function(b){const d=BUS[b].duck.gain;d.setTargetAtTime(.38,t,.004);d.setTargetAtTime(1,t+.035,.06);});}
   // ---- LA FORME : la section de la phrase qui vient
   function choisir(){
     if(rupt)return 'BREAK';
-    if(dernier.nitro&&elan>R.elanMontee)return 'MONTEE';
     if(phr<1)return 'INTRO';                                          // le départ : une phrase d'INTRO, puis la course décide
     if(phr<2)return 'GROOVE';
     if(sec==='BREAK'&&breakTours>0)return I>R.dropSur?'DROP':'GROOVE';
@@ -95,9 +97,13 @@ function MusiqueChef(ac,sortie){
     act=Math.min(2,Math.floor(dropTours/R.toursParActe));if(dernier.frenesie)act=2;
     cleK=act>=2?Math.pow(2,R.tonFinal/12):1;                          // l'acte final : le morceau monte d'un ton
   }
+  function barreDe(t){return Math.round((t-t0)/mes);}
   function mesure(T,b){ // le début d'une mesure : la forme se décide ici
-    const pb=b%4;
-    if(relance&&T>=relance-.01){relance=0;sec=I>R.dropSur?'DROP':'GROOVE';son('impact',T,.75);if(sec==='DROP'){dropTours=Math.max(dropTours,1);entreDrop();}}
+    let pb=((b-ancre)%4+4)%4;
+    if(relance&&T>=relance-.01){relance=0;ancre=b;pb=0;sec=I>R.dropSur?'DROP':'GROOVE';son('impact',T,.75);if(sec==='DROP'){dropTours=Math.max(dropTours,1);entreDrop();}}
+    else if(sec==='MONTEE'){ // la MONTÉE dure ce que dure son souffle (4 mesures) : nitro encore tenue ou pas, elle tombe sur le DROP
+      if(monteeT0>0&&T>=monteeT0+R.monteeMes*mes-.01&&vise!=='DROP'){sec='DROP';monteeT0=-1;ancre=b;pb=0;dropTours=Math.max(dropTours,1);entreDrop();son('impact',T,.7);phr++;}
+    }
     else if(pb===0){
       if(sec==='DROP')dropTours++;
       if(sec==='BREAK')breakTours++;else breakTours=0;
@@ -114,7 +120,7 @@ function MusiqueChef(ac,sortie){
   function temps(b,T){ // un temps de la grille : on programme ses seizièmes
     const bar=Math.floor(b/4),bt=b%4;
     if(bt===0)mesure(T,bar);
-    const pb=bar%4,T0=T-bt*tps,s0=bt*4,s1=s0+4;
+    const pb=((bar-ancre)%4+4)%4,T0=T-bt*tps,s0=bt*4,s1=s0+4;
     const S=D.sections[roulement?'ROULEMENT':sec];if(!S)return;
     for(const p in S){
       const P=S[p],M=D.meta[p];
@@ -152,18 +158,20 @@ function MusiqueChef(ac,sortie){
     const iC=Math.min(1,.08+.72*Math.min(1.15,vF)+.25*elan+.1*mot+(o.frenesie?.3:0));
     I+=(iC-I)*Math.min(1,dt/(iC>I?R.iMonte:R.iDescend));
     // la MONTÉE de la nitro : elle commence à la barre suivante ; le LÂCHER fait tomber le DROP sur la barre suivante
-    if(o.nitro&&elan>R.elanMontee&&sec!=='MONTEE'&&!rupt&&joueOk){const tb=prochaineBarre();planEtat(tb,'MONTEE');}
-    if(nitroAv&&!o.nitro&&sec==='MONTEE'){const tb=prochaineBarre();planEtat(tb,'DROP',true);}
-    nitroAv=!!o.nitro;
+    const nit=!!o.nitro||now-nitroLache<R.nitroTrou;if(o.nitro)nitroLache=now;
+    if(!nit)monteeFaite=false;                                        // relâchée pour de bon : la prochaine nitro pourra remonter
+    if(nit&&!monteeFaite&&elan>R.elanMontee&&sec!=='MONTEE'&&!vise&&!rupt&&joueOk){monteeFaite=true;planEtat(prochaineBarre(),'MONTEE');}
+    if(nitroAv&&!nit&&(sec==='MONTEE'||vise==='MONTEE')){const tb=prochaineBarre();planEtat(tb,'DROP',true);if(riser)coupe(riser,tb);}
+    nitroAv=nit;
     // le VOL : la batterie et la basse se taisent à la croche ; la POSE : impact sur le temps
     if(o.enVol&&!volAv){volT=now;solGain(0,prochaineCroche());hp.frequency.setTargetAtTime(220,now,.2);}
     if(!o.enVol&&volAv){const t=prochaineTempsReel();solGain(1,t);hp.frequency.setTargetAtTime(25,t,.05);if(now-volT>.6)son('impact',t,.55);}
     volAv=!!o.enVol;
     // l'ACCALMIE et la RELANCE
-    if(!rupt&&now-tRupt>3&&((vPic-vF>R.ruptDelta&&vF<R.ruptSous)||(vF<.08&&vPicL>.3))){rupt=true;tRupt=now;const t=prochaineTempsReel();planEtat(t,'BREAK');son('descente',t,.45);}
+    if(!rupt&&now-tRupt>3&&((vPic-vF>R.ruptDelta&&vF<R.ruptSous)||(vF<.08&&vPicL>.3))){rupt=true;tRupt=now;const t=prochaineTempsReel();planEtat(t,'BREAK');if(riser)coupe(riser,t);son('descente',t,.45);}
     else if(rupt&&vF>R.relanceSur&&now-tRupt>.6){ // la RELANCE : le groove retombe sur la prochaine barre qui laisse au moins une demi-mesure de montée
       rupt=false;let tb=prochaineBarre();if(tb-now<mes*.5)tb+=mes;const d0=tb-mes,n0=now+.03;
-      son('montee1',Math.max(n0,d0),.7,0,0,null,Math.max(0,n0-d0));relance=tb;}
+      son('montee1',Math.max(n0,d0),.5,0,0,null,Math.max(0,n0-d0));relance=tb;}
     // le VOLANT, le DRIFT
     vir+=((o.virage||0)-vir)*Math.min(1,dt*6);drift=!!o.drift;
     if(BUS.arp.pan)BUS.arp.pan.pan.setTargetAtTime(Math.max(-1,Math.min(1,R.panArp*vir)),now,.05);
@@ -177,17 +185,16 @@ function MusiqueChef(ac,sortie){
   }
   function prochaineBarre(){const now=ac.currentTime+.05;const k=Math.ceil((now-t0)/mes);return t0+k*mes;}
   function prochaineTempsReel(){const now=ac.currentTime+.03;const k=Math.ceil((now-t0)/tps);return t0+k*tps;}
-  let attente=[];
   function planEtat(t,s,impact){ // une section qui doit commencer à l'instant t (sur la grille)
-    attente.push({t:t,s:s,impact:!!impact});
+    attente=attente.filter(function(a){return a.s!==s&&!(s==='DROP'&&a.s==='MONTEE');});attente.push({t:t,s:s,impact:!!impact});vise=s;
     const f=function(){const now=ac.currentTime;attente=attente.filter(function(a){
       if(a.t-now>R.avance+.05)return true;
-      sec=a.s;if(a.s==='DROP'){dropTours=Math.max(dropTours,1);entreDrop();if(a.impact)son('impact',a.t,.7);}
-      if(a.s==='MONTEE')son('montee4',a.t,.9);
-      return false;});if(attente.length)setTimeout(f,30);};
+      sec=a.s;if(a.s==='MONTEE'||a.s==='DROP')ancre=barreDe(a.t);if(a.s==='DROP'){monteeT0=-1;dropTours=Math.max(dropTours,1);entreDrop();if(a.impact)son('impact',a.t,.7);}
+      if(a.s==='MONTEE'){monteeT0=a.t;son('montee4',a.t,R.gMontee);}
+      return false;});vise=attente.length?attente[attente.length-1].s:null;if(attente.length)setTimeout(f,30);};
     setTimeout(f,0);
   }
-  function palier(m){if(!joueOk)return;const tb=prochaineBarre();son('montee1',tb,.7);son('crash',tb+mes,.7);dropTours+=2;}
+  function palier(m){if(!joueOk)return;const tb=prochaineBarre();if(sec!=='MONTEE'&&!vise)son('montee1',tb,.5);son('crash',tb+mes,.7);dropTours+=2;}
   function pompeMoteur(){if(!joueOk)return 1;const ph=((ac.currentTime-t0)%tps+tps)%tps;return 1-R.pompeMot*Math.exp(-ph/.08);}
   function position(){return joueOk?((ac.currentTime-t0)%(mes*4)+mes*4)%(mes*4):0;}
   return{charge:charge,joue:joue,stop:stop,regle:regle,palier:palier,pompeMoteur:pompeMoteur,position:position,reset:reset,sortie:pre,

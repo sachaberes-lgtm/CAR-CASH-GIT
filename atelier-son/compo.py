@@ -78,12 +78,12 @@ def impact(de):
     return norm(L + rL * .4), norm(L + rR * .4)
 
 def montee(de, mesures, bpm):
-    """une MONTÉE : bruit dont le filtre grimpe + scie qui monte d'une octave + battement qui accélère (tremolo), dense à la fin"""
+    """une MONTÉE : scie qui monte d'une octave et demie, un souffle discret dont le filtre grimpe — sans trémolo"""
     lg = mesures * 240 / bpm; n = int(lg * SR); t = np.arange(n) / SR; u = t / lg
     nz = balaye(de.bruit(n), 250 * (60 ** u)) * u ** 1.8
     sw = (scie(110 * 2 ** (u * 1.5), n) + scie(110 * 2 ** (u * 1.5) * 1.01, n)) * .3 * u ** 2.5
-    trem = .6 + .4 * np.sin(2 * np.pi * np.cumsum(2 + 14 * u ** 2) / SR)
-    s = (nz * .7 + filtre(sw, 'low', 6000)) * trem
+    # (v4.1) plus de trémolo qui hache le souffle (« vent inversé coupé en morceaux ») : la montée GONFLE, elle ne bégaie pas
+    s = nz * .32 + filtre(sw, 'low', 5000)
     L = filtre(s, 'high', 200); R = np.roll(L, 300)
     return norm(L, .8), norm(R, .8)
 
@@ -425,6 +425,36 @@ def soft(L, R, cible=-12):
     rms = np.sqrt(((L ** 2 + R ** 2) / 2).mean()) + 1e-9; k = 10 ** (cible / 20) / rms
     return np.tanh(L * k * 1.1) * .92, np.tanh(R * k * 1.1) * .92
 
+# (2026-10-01) LES TIGES : chaque composition découpée en COUCHES de 4 mesures sans couture, pour LE STUDIO (studio.html) —
+# on y mélange la batterie d'un niveau avec la basse d'un autre, le DÉ les tire par rôle. Même facteur pour toutes les tiges d'un
+# niveau : leurs volumes relatifs restent ceux du morceau.
+TIGES = [('DROP', 1, ('kick', 'clap', 'hat', 'ohat', 'ride'), 'BATTERIE', 'rythme'),
+         ('GROOVE', 0, ('kick', 'clap', 'hat', 'ohat', 'shaker'), 'BATTERIE GROOVE', 'rythme'),
+         ('DROP', 1, ('basse',), 'BASSE', 'basse'),
+         ('DROP', 1, ('stab', 'nappe'), 'ACCORDS', 'harmonie'),
+         ('BREAK', 0, ('rhodes', 'nappe'), 'RHODES', 'harmonie'),
+         ('DROP', 1, ('arp',), 'ARPEGE', 'melodie'),
+         ('DROP', 1, ('lead',), 'LEAD', 'melodie'),
+         ('BREAK', 0, ('pluck',), 'PLUCK', 'melodie')]
+
+def tiges(nom, N, sections, meta, sons, gains):
+    lg = int(4 * 240 / N['bpm'] * SR)
+    def boucle(L, R):   # la queue (réverbe, notes tenues) repliée sur le début : la boucle ne coupe rien
+        L = L.copy(); R = R.copy(); q = len(L) - lg; L[:q] += L[lg:]; R[:q] += R[lg:]; return L[:lg], R[:lg]
+    Lm, Rm = boucle(*rendre_section(N, sections, meta, sons, 'DROP', 1, gains, None, 4, 1.))
+    k = 10 ** (-14 / 20) / (np.sqrt(((Lm ** 2 + Rm ** 2) / 2).mean()) + 1e-9)
+    out = []
+    for sec, act, pistes, titre, role in TIGES:
+        pistes = [p for p in pistes if p in sections[sec]]
+        if not pistes: continue
+        L, R = boucle(*rendre_section(N, sections, meta, sons, sec, act, gains, pistes, 4, 1.))
+        if np.abs(L).max() < 1e-4: continue
+        L = np.tanh(L * k * 1.05) * .95; R = np.tanh(R * k * 1.05) * .95
+        f = ecrit_m4a('%s-tige-%s' % (nom, titre.lower().replace(' ', '-')), L, R)
+        out.append({'nom': titre, 'role': role, 'f': f, 'dur': lg / SR})
+    print('   tiges : ' + ', '.join(t['nom'] for t in out))
+    return out
+
 def rendre(nom):
     os.makedirs(SORTIE_C, exist_ok=True)
     N = NIVEAUX_C[nom](); sections, meta = composer(N)
@@ -440,7 +470,8 @@ def rendre(nom):
     for k, (l, r) in enumerate(morceaux): L[k * lg:k * lg + len(l)] += l; R[k * lg:k * lg + len(r)] += r
     L, R = soft(L, R, -12); f_ap = ecrit_m4a(nom + '-apercu', L, R)
     print('   planche %.1f s · aperçu %.1f s · gains %s' % (len(PL) / SR, len(L) / SR, ', '.join('%s %.2f' % kv for kv in sorted(gains.items()))))
-    return {'id': 'compo-' + nom, 'niveau': nom, 'bpm': N['bpm'], 'ton': N['ton'], 'cle': N['cle'], 'sons': f_sons, 'index': index,
+    tg = tiges(nom, N, sections, meta, sons, gains)
+    return {'tiges': tg, 'id': 'compo-' + nom, 'niveau': nom, 'bpm': N['bpm'], 'ton': N['ton'], 'cle': N['cle'], 'sons': f_sons, 'index': index,
             'apercu': f_ap, 'sections': sections, 'meta': meta, 'gains': gains}
 
 if __name__ == '__main__':

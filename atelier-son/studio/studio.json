@@ -1,0 +1,85 @@
+{
+ "v": 1,
+ "niveauActif": "nuages",
+ "notesG": "",
+ "niveaux": {
+  "nuages": {
+   "notes": "",
+   "epingles": [],
+   "versions": []
+  },
+  "ville": {
+   "notes": "",
+   "epingles": [],
+   "versions": []
+  },
+  "orbite": {
+   "notes": "",
+   "epingles": [],
+   "versions": []
+  },
+  "frenesie": {
+   "notes": "",
+   "epingles": [],
+   "versions": []
+  },
+  "lobby": {
+   "notes": "",
+   "epingles": [],
+   "versions": []
+  },
+  "missions": {
+   "notes": "",
+   "epingles": [],
+   "versions": []
+  },
+  "garage": {
+   "notes": "",
+   "epingles": [],
+   "versions": []
+  }
+ },
+ "mix": {
+  "bpm": 128,
+  "sync": true,
+  "pistes": [
+   {
+    "id": "compo-nuages--rhodes",
+    "vol": 0.75,
+    "seuil": "0",
+    "filtre": 1,
+    "muet": false,
+    "solo": false,
+    "verrou": false
+   },
+   {
+    "id": "compo-nuages--basse",
+    "vol": 0.75,
+    "seuil": "25",
+    "filtre": 1,
+    "muet": false,
+    "solo": false,
+    "verrou": false
+   },
+   {
+    "id": "niv-altitude--c3",
+    "vol": 0.8,
+    "seuil": "50",
+    "filtre": 1,
+    "muet": false,
+    "solo": false,
+    "verrou": false
+   },
+   {
+    "id": "compo-nuages--arpege",
+    "vol": 0.75,
+    "seuil": "75",
+    "filtre": 1,
+    "muet": false,
+    "solo": false,
+    "verrou": false
+   }
+  ]
+ },
+ "refs": {}
+}

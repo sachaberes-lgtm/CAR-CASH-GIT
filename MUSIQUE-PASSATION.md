@@ -327,6 +327,38 @@ une PARTITION ; le jeu JOUE la partition note à note (comme les musiques adapta
 - ⚠ Mémoire : planches 93-119 s décodées ≈ 35-45 Mo par niveau (un seul niveau chargé à la fois). Pas encore écouté par Léo,
   ni testé sur iPhone.
 
+## 5 decies. v4.1 — L'ASPIRATION RÉPARÉE + LE STUDIO (2026-10-01)
+
+**Le défaut** (Léo : « un effet style vent inversé, coupé en plein de morceaux, qui prend le dessus quand tu boostes non-stop, effet
+aspiration — c'est en trop »). Quatre causes, toutes dans `musique-chef.js` / `compo.py` :
+1. `regle()` est appelée à chaque image ; tant que la MONTÉE attendait sa barre (jusqu'à une mesure ≈ 1,9 s), CHAQUE appel replantait
+   un `planEtat('MONTEE')` → des dizaines de `montee4` empilées au même instant (le souffle énorme qui « aspire »).
+2. Nitro tenue = MONTÉE sans fin : `choisir()` rendait MONTEE à chaque phrase, et la frénésie passe `nitro:true` en permanence.
+3. La recharge de nitro qui clignote (vide → 0,1 s de jus → vide) relançait une montée à chaque reprise.
+4. Le souffle lui-même avait un TRÉMOLO qui accélérait (2 → 16 Hz) : « coupé en morceaux ». + la montée commençait sur n'importe quelle
+   mesure de la phrase : le roulement de caisse repartait de zéro au milieu.
+**Réparé** : UNE section en attente à la fois (`vise`), UNE montée sonne à la fois (`riser`, coupée net au lâcher ou à l'accalmie),
+une montée PAR APPUI (`monteeFaite`, nitro lissée sur `nitroTrou` 0,35 s), la montée dure son souffle (`monteeMes` 4 mesures) puis tombe
+SEULE sur le DROP même nitro tenue, la phrase repart de sa barre (`ancre`) ; souffle sans trémolo, moins de bruit, `gMontee` .6.
+Mesuré (moteur muet, 14 s de nitro tenue puis 20 à-coups) : 2 montées en tout, chacune résolue en 4 mesures — avant : une par image.
+
+**LE STUDIO** (`studio.html`, servi par `python3 atelier-son/studio-serveur.py` → http://localhost:8767/studio.html) :
+- BIBLIOTHÈQUE rangée : compositions v4 + leurs **tiges** (chaque morceau découpé en couches de 4 mesures sans couture : BATTERIE,
+  BATTERIE GROOVE, BASSE, ACCORDS, RHODES, ARPÈGE, LEAD, PLUCK — `TIGES`/`tiges()` dans compo.py → `compo/<niv>-tige-*.m4a`,
+  `COMPO[n].tiges`), boucles de niveau 8 s, longues 16 mesures, lobby, leurs couches, morceaux du jeu. Filtres par RÔLE et par niveau.
+- LA TABLE : 8 pistes calées sur un tempo (vitesse de lecture, ×2/÷2 pour rester proche de 1), chacune « s'ouvre à » une vitesse
+  (toujours, 25, 50, 75, 100 %, nitro) ; curseur VITESSE / NITRO / SIMULER = la course. Pastille de tonalité (vert = même gamme,
+  jaune = voisine, orange/rouge = ça frotte).
+- LE DÉ (générateur, différent de l'ancien GEN) : une piste par rôle, tirée parmi tiges/couches, en gardant les pistes 🔒 ; la 1re
+  piste tonale fixe la gamme, les suivantes doivent être à ≤ 1 quinte et peu déformées par le calage ; préfère le niveau, va chercher
+  dans d'autres morceaux (mélange). Seuils posés comme en course (harmonie toujours, basse 25 %, rythme 50 %, mélodie 75 %).
+- LES NIVEAUX (NUAGES, VILLE, ORBITE, FRÉNÉSIE, LOBBY, MISSIONS, GARAGE) : note libre, épingles ★, versions de mix enregistrées,
+  **MP3 de référence** glissés dans le niveau (→ `atelier-son/studio/references/<niveau>/`, hors git).
+- Tout s'écrit dans **`atelier-son/studio/studio.json`** + **`atelier-son/studio/BRIEF.md`** (lisible) : « regarde le brief » suffit
+  pour que Claude retrouve les notes, épingles, versions et MP3. Sans le serveur : navigateur seulement + COPIER/TÉLÉCHARGER LE BRIEF.
+- Prochaine marche (pas faite) : jouer une VERSION du studio en jeu (un mix de tiges qui s'ouvrent à la vitesse = ce que faisait
+  musique-vitesse.js avec des couches).
+
 ## 6. CE QUI RESTE À FAIRE (intégration au jeu)
 
 1. **Léo choisit** une boucle par niveau (et pour le lobby). Si elle n'est pas encore en couches : l'ajouter à `COUCHES`.
