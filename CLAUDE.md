@@ -73,7 +73,8 @@ carrière, missions, garage à onglets, boutique), + SEULEMENT :
   VITESSE / SIMULER UNE COURSE de `boucles.html`. v2 : NUAGES joue `neon-drive-2` (variantes par partie, couche ÉNERGIE, transition
   de palier) ; décisions calées sur les temps, moteur = `engTier/12` (voir MUSIQUE-PASSATION.md §5 ter) ; v2.1 : axe TEMPS (`MCV.t`, horloge audio, base seule au départ,
   chaque couche a son heure), son bonifié (§5 quater) ; v2.3 : filtre ← vitesse, ÉLAN (nitro
-  tenue/enchaînée, accélération), ACCALMIE au lieu d'une coupure (plot/arrêt → floraison + partie calme, relance sur la mesure) (§5 quinquies). **Tout est résumé pour une autre discussion dans `MUSIQUE-PASSATION.md`.** (clic = écoute, EN VOL, NITRO, ENCHAÎNER ; servie = boucle sans couture).
+  tenue/enchaînée, accélération), ACCALMIE au lieu d'une coupure (plot/arrêt → floraison + partie calme, relance sur la mesure) (§5 quinquies). v3 : la VILLE = ADDICTIVE LOOP découpé en phrases
+  (`atelier-son/ville.py`, séquenceur de musique-vitesse.js) + pluie, Rhodes, arpège, charley trap (§5 sexies). **Tout est résumé pour une autre discussion dans `MUSIQUE-PASSATION.md`.** (clic = écoute, EN VOL, NITRO, ENCHAÎNER ; servie = boucle sans couture).
 
 
 ## LES 10 PREMIÈRES MINUTES — CÔTÉ INTERFACE (2026-09-29, session INTERFACE)

@@ -23,6 +23,7 @@
 10. « Au début laisse vraiment la base, évolue aussi avec le temps ; un peu trop brut, bonifie » → v2.1 (§5 quater).
 11. « Plus actif, ça doit suivre, rupture harmonieuse » + « détails selon la nitro d'affilée / l'accélération » + « pas casser,
     une belle transition, un nouveau son par inspi » → v2.2-2.3 (§5 quinquies).
+12. « Pareil avec la musique de la VILLE, en samplant et en réorganisant, avec ta touche » → v3 (§5 sexies).
 
 ## 2. Les fichiers
 
@@ -211,6 +212,32 @@ construire un nouveau son à partir de chaque inspi ».
 - Page : bouton **FREIN** (maintenu), NITRO maintenu fait accélérer, SIMULER UNE COURSE (100 s : plot, nitro tenue, nitro
   enchaînée, arrêt, relances), la carte affiche ÉLAN et ACCALMIE. La logique de la page tourne sur une minuterie (pas sur
   l'affichage) : elle suit même onglet caché, comme le son.
+
+## 5 sexies. v3 — LA VILLE : ADDICTIVE LOOP ÉCHANTILLONNÉ ET RÉORGANISÉ (2026-10-01)
+
+Léo : « fais pareil avec la musique de la VILLE sur la map — produis en samplant et en réorganisant, tu as plus de matière ;
+ajoute ta touche, même avec des sons d'avant que tu as générés ». Script : `atelier-son/ville.py` (→ `ville--*.m4a`, met à jour
+`couches-jeu.js` et `boucles-donnees.js`, entrée `ville-addictive`). Jeu : `MUSIC_COUCHES.ville='ville-addictive'`.
+- **Mesuré sur ADDICTIVE LOOP** : 129,92 BPM, mesure 1,847 s (1re mesure à 0,681 s), cycle d'accords de 4 mesures FA · RÉ m ·
+  LA m · LA m (la mineur), sections qui changent sur les multiples de 4 mesures : intro calme 0-7 · groove 8-23 · plein 24-35 ·
+  coupure 36-39 · gros 40-53 · coupure 54-55 · lourd sur SOL 56-71 · montée 64-79 · sommet 80-92 · fin.
+- **Découpé** en 12 PHRASES de 4 mesures (+ 0,3 s de queue), début recalé sur l'attaque (±40 ms) : CALME (0, 4) · GROOVE (8, 16)
+  · PLEIN (24, 28) · GROS (40, 44) · SOMMET (80, 84) · MONTÉE (64, 68 — le passage tendu sur SOL). `ville--phrases.m4a` (89 s).
+- **Le SÉQUENCEUR** (musique-vitesse.js, `sequence` dans les données) : une phrase démarre toujours sur le temps fort de la
+  grille ; toutes les 2 mesures il peut changer de section EN GARDANT LA POSITION (CALME/GROOVE/PLEIN/GROS partagent la grille :
+  l'harmonie continue) ; MONTÉE et SOMMET (autre harmonie) ne s'ouvrent/ne se quittent qu'en fin de phrase. Niveau voulu =
+  .1 + .5·vitesse + .2·temps(40 s) + .15·moteur + .4·élan → CALME < .35 < GROOVE < .55 < PLEIN < .72 < GROS < .88 < SOMMET ;
+  nitro tenue (élan > .7) = MONTÉE ; nitro LÂCHÉE après la montée = la phrase suivante en SOMMET (le drop). ACCALMIE = saut
+  immédiat à l'intro, à la même place, fondu d'un temps (+ floraison + accalmie) ; RELANCE = retour sur la mesure, au moins PLEIN.
+- **Ma touche** (4 mesures, même grille) : PLUIE + vinyle (toujours) · NAPPE de Rhodes enchaînée (sections CALME/GROOVE) ·
+  ARPÈGE triangle en écho (élan ≥ .4, jusqu'à GROS) · CHARLEY TRAP en rafales (élan ≥ .6, partout). ACCALMIE de la ville :
+  Rhodes tenus + cloche + pluie. FLORAISON : la m add9 en Rhodes égrené + pluie. TRANSITION à 130 BPM.
+- Nouvelles règles de couche : `elanMin`, `niveauMax` (section maximale). Pas de rattrapage en mode séquence (le morceau porte le volume).
+- Changement de LIEU en pleine partie (nuages → ville) : l'ancienne boucle s'arrête, la nouvelle se charge et démarre.
+- Mesuré (page, muet) : arrêt = CALME + pluie + nappe ; croisière = GROS ; nitro 5 s = MONTÉE + charley trap ; nitro lâchée =
+  SOMMET ; plot = ACCALMIE (CALME, filtre 960 → 900 Hz) ; relance = GROS. Jeu : NUAGES (neon-drive-2) → `dbgSaut()` → VILLE
+  (ville-addictive) qui démarre en CALME avec pluie + nappe. Zéro erreur.
+- ⚠ Droits : ADDICTIVE LOOP est un morceau de Léo (Suno ?) — même règle que Glassy : garder la preuve d'abonnement payant.
 
 ## 6. CE QUI RESTE À FAIRE (intégration au jeu)
 

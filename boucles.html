@@ -232,7 +232,7 @@ function logique(){ // LA LOGIQUE MUSICALE, toutes les 50 ms (une minuterie, pas
     document.getElementById('tpsV').textContent=Math.floor(tj/60)+':'+String(Math.floor(tj%60)).padStart(2,'0');
     const st=mv.etat(),c=cartes[cur];c.querySelectorAll('.cou i').forEach((el,j)=>el.style.setProperty('--g',st.gains[j]));
     c.querySelectorAll('.cou span').forEach((el,j)=>{if(st.variantes&&st.variantes[j]&&LISTE[cur].couches[j].variantes)el.textContent=st.variantes[j]+' · '+Math.round(LISTE[cur].couches[j].seuil*100)+'%';});
-    const mk=c.querySelector('.mk');if(mk)mk.textContent='+'+st.rattrapage+(st.elan!=null?' · ELAN '+Math.round(st.elan*100)+'%'+(st.boost?' +':'')+(st.rupture?' · ACCALMIE':''):'');}
+    const mk=c.querySelector('.mk');if(mk)mk.textContent='+'+st.rattrapage+(st.elan!=null?' · ELAN '+Math.round(st.elan*100)+'%'+(st.boost?' +':'')+(st.rupture?' · ACCALMIE':'')+(st.section?' · '+st.section:''):'');}
 }
 setInterval(logique,50);
 (function boucle(){

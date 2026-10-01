@@ -61,6 +61,7 @@ function MusiqueVitesse(ac,sortie){
   const soufG=ac.createGain(),soufF=ac.createBiquadFilter();soufG.gain.value=0;soufF.type='bandpass';soufF.Q.value=3;soufF.frequency.value=800;
   soufF.connect(soufG);soufG.connect(aigus);let soufSrc=null;
   const calmeG=ac.createGain();calmeG.gain.value=0;calmeG.connect(filt);let calmeBuf=null,calmeSrc=null;
+  let SQ=null,seqBuf=null,seqG=null,cur=null,prochDemi=0,demi=0,dropSommet=false,nivSec=0; // le SÉQUENCEUR (mode « sampling » : un morceau découpé en phrases)
   let B=null,C=[],trBuf=null,ruBuf=null,deb=0,t0=0,temps=.5,tour=16,joueOk=false,src=[],prochTour=0,nTour=0,mk=1,hasard=0x9E3779B9;
   // la course vue par la musique : vitesse lissée, son pic récent, l'accélération, l'ÉLAN (nitro tenue / enchaînée, accélération)
   let vF=0,vPic=0,vPicL=0,acc=0,tPrec=0,elan=0,nitroT=0,nitroLache=-9,nitroAvant=false,tRupt=-99,rupt=false,relanceA=0,boost=false,boostT=0;
@@ -78,7 +79,49 @@ function MusiqueVitesse(ac,sortie){
     trBuf=b.transition?await decode(b.transition.f).catch(()=>null):null;
     ruBuf=b.rupture?await decode(b.rupture.f).catch(()=>null):null;
     calmeBuf=b.accalmie?await decode(b.accalmie.f).catch(()=>null):null;
+    SQ=b.sequence||null;seqBuf=SQ?await decode(SQ.f):null;
     const extra=C[0].bufs[0].duration-b.dur;deb=extra>.03?Math.min(extra,2112/C[0].bufs[0].sampleRate):0; // l'amorce AAC
+    if(seqBuf){const ex=seqBuf.duration-SQ.phrase*nPhrases();SQ.deb=ex>.03?Math.min(ex,2112/seqBuf.sampleRate):0;}
+  }
+  /* ---------------- LE SÉQUENCEUR (v3, la VILLE : « produis en samplant et en réorganisant ») ----------------
+     Le morceau source est livré en PHRASES de 4 mesures (+ une queue), rangées en SECTIONS de niveau 0-4 (+ MONTÉE = 5, la nitro
+     tenue). Une phrase démarre toujours sur le temps fort de la grille ; on peut changer de section au MILIEU d'une phrase (après
+     2 mesures) en reprenant la nouvelle phrase à la même position : la grille d'accords continue. MONTÉE et SOMMET (une autre
+     harmonie) ne s'ouvrent et ne se quittent qu'en fin de phrase. */
+  function nPhrases(){let n=0;SQ.sections.forEach(x=>{n=Math.max(n,Math.max.apply(null,x.phrases)+1);});return n;}
+  function secDe(niv){return SQ.sections.find(x=>x.niveau===niv)||SQ.sections[0];}
+  function libre(sec){return sec.niveau<=3;} // les sections qui partagent la grille FA · RÉ m · LA m · LA m
+  function lancePhrase(sec,T,pos,fondu){ // joue la phrase suivante de `sec`, à partir de `pos` secondes dans la phrase, à l'instant T
+    const lg=B.dur,q=SQ.queue||.3;sec.k=((sec.k|0)+(pos>0?0:1))%sec.phrases.length;const ph=sec.phrases[sec.k];
+    const s=ac.createBufferSource(),g=ac.createGain();s.buffer=seqBuf;s.connect(g);g.connect(seqG);
+    g.gain.setValueAtTime(0,T);g.gain.linearRampToValueAtTime(1,T+(fondu||.005));
+    g.gain.setValueAtTime(1,T+lg-pos);g.gain.linearRampToValueAtTime(0,T+lg-pos+q); // la queue de la phrase fond sous la suivante
+    s.start(T,SQ.deb+ph*SQ.phrase+pos,lg-pos+q+.05);
+    if(cur&&cur.T0+lg>T){cur.g.gain.cancelScheduledValues(T);cur.g.gain.setValueAtTime(1,T);cur.g.gain.linearRampToValueAtTime(0,T+(fondu||.06));}
+    cur={s:s,g:g,sec:sec,T0:T-pos};nivSec=sec.niveau;
+  }
+  function niveauVoulu(o,mot){
+    if(rupt)return 0;
+    if(o.nitro&&elan>.7)return 5;                                              // la nitro tenue : la MONTÉE
+    const I=.1+.5*Math.min(1.2,vF)+.2*Math.min(1,(o.temps||0)/40)+.15*mot+.4*elan;
+    return I<.35?0:I<.55?1:I<.72?2:I<.88?3:4;
+  }
+  function seqTick(o,mot){
+    if(!SQ||!seqBuf)return;
+    const now=ac.currentTime,lg=B.dur,hb=lg/2;
+    while(prochDemi<now+.35){
+      const T=prochDemi,finPhrase=!cur||T>=cur.T0+lg-.01;prochDemi+=hb;
+      let niv=niveauVoulu(o,mot);
+      if(dropSommet&&finPhrase){niv=4;dropSommet=false;}
+      const voulu=secDe(niv);
+      if(finPhrase){lancePhrase(voulu,T,0);}
+      else if(voulu!==cur.sec&&libre(voulu)&&libre(cur.sec))lancePhrase(voulu,T,hb,.06);  // au milieu : même position, l'harmonie continue
+    }
+  }
+  function seqSaut(niv,T,force){ // un saut IMMÉDIAT (accalmie, relance) à la même position dans la grille, fondu d'un temps
+    if(!SQ||!cur)return;const sec=secDe(niv),pos=((T-cur.T0)%B.dur+B.dur)%B.dur;
+    if(!force&&(!libre(sec)||!libre(cur.sec)))return;
+    lancePhrase(sec,T,pos,temps*.6);
   }
   function eligibles(k,moteur){return C[k].vs.map((v,i)=>i).filter(i=>(C[k].vs[i].moteur||0)<=moteur+1e-6);}
   function joue(){
@@ -91,12 +134,14 @@ function MusiqueVitesse(ac,sortie){
     });
     if(calmeBuf){calmeSrc=ac.createBufferSource();calmeSrc.buffer=calmeBuf;calmeSrc.loop=true;calmeSrc.loopStart=deb;calmeSrc.loopEnd=deb+tour;
       calmeSrc.connect(calmeG);calmeSrc.start(t0,deb);calmeG.gain.value=0;} // l'ACCALMIE tourne avec le reste, muette jusqu'à ce qu'on la réveille
+    if(seqBuf){seqG=ac.createGain();seqG.connect(bus);cur=null;prochDemi=t0;demi=0;}
     // le souffle : un bruit en boucle, toujours là, muet tant que l'élan dort
     const n=ac.sampleRate*2,nb=ac.createBuffer(1,n,ac.sampleRate),d=nb.getChannelData(0);for(let i=0;i<n;i++)d[i]=alea()*2-1;
     soufSrc=ac.createBufferSource();soufSrc.buffer=nb;soufSrc.loop=true;soufSrc.connect(soufF);soufSrc.start();
     joueOk=true;
   }
   function stop(){src.forEach(s=>{try{s.stop();}catch(e){}});src=[];C.forEach(L=>{if(L.layer)try{L.layer.disconnect();}catch(e){}});
+    if(seqG){try{seqG.disconnect();}catch(e){}seqG=null;cur=null;}
     if(soufSrc){try{soufSrc.stop();}catch(e){}soufSrc=null;}if(calmeSrc){try{calmeSrc.stop();}catch(e){}calmeSrc=null;}joueOk=false;}
   function prochain(pas,apres){const n=Math.ceil(((apres||ac.currentTime+.02)-t0)/pas);return t0+n*pas;} // le prochain temps (ou croche, ou mesure)
   function changeVariante(L,i,quand){if(i===L.var)return;L.gains[L.var].gain.setTargetAtTime(0,quand,.04);L.gains[i].gain.setTargetAtTime(1,quand,.02);L.var=i;}
@@ -110,6 +155,7 @@ function MusiqueVitesse(ac,sortie){
     const quand=prochain(temps);rupt=true;tRupt=quand;relanceA=0;
     C.forEach(function(L,k){if(k>0&&L.on)couche(L,false,quand,temps*.7);});
     coup(ruBuf,quand,0,.55);
+    seqSaut(0,quand,true); // le morceau passe à son intro, à la même place dans la grille
     calmeG.gain.cancelScheduledValues(quand);calmeG.gain.setTargetAtTime(1,quand,temps*.8);
     filt.frequency.cancelScheduledValues(quand);filt.frequency.setTargetAtTime(R.ruptFc,quand,.5);
   }
@@ -121,6 +167,7 @@ function MusiqueVitesse(ac,sortie){
     const debut=tb-av,now=ac.currentTime+.03;
     if(trBuf)coup(trBuf,Math.max(now,debut),Math.max(0,now-debut),.75);
     relanceA=tb;
+    if(SQ)setTimeout(function(){seqSaut(Math.max(2,niveauVoulu(dernier,dernier.moteur||0)),tb);},Math.max(0,(tb-ac.currentTime-.3)*1000)); // le morceau repart sur la mesure, au moins PLEIN
     calmeG.gain.cancelScheduledValues(tb);calmeG.gain.setTargetAtTime(0,tb,temps*.5); // l'accalmie s'efface quand le groove revient
   }
   let dernier={vitesse:0,enVol:false,nitro:false,moteur:0};
@@ -137,7 +184,7 @@ function MusiqueVitesse(ac,sortie){
     const eC=o.nitro?Math.min(1,R.nitroElan0+nitroT*R.nitroElanS):Math.min(R.accElanMax,Math.max(0,acc*R.accElanK));
     elan+=(eC-elan)*Math.min(1,dt/(eC>elan?(o.nitro?.35:.8):R.elanRetombe));
     if(nitroAvant&&!o.nitro&&nitroT>R.dropApres&&trBuf&&!rupt){ // la nitro LÂCHÉE après une longue poussée : le CRASH tombe sur le temps
-      const av=(B.transition&&B.transition.avance)||temps*4;coup(trBuf,prochain(temps),av,.6);}
+      const av=(B.transition&&B.transition.avance)||temps*4;coup(trBuf,prochain(temps),av,.6);dropSommet=true;}
     nitroAvant=!!o.nitro;
     // la RUPTURE (la vitesse s'effondre) et la RELANCE
     if(!rupt&&now-tRupt>R.ruptPause&&((vPic-vF>R.ruptDelta&&vF<R.ruptSous)||(vF<.08&&vPicL>.3)))rupture();
@@ -156,10 +203,12 @@ function MusiqueVitesse(ac,sortie){
       const parElan=L.c.nom==='ENERGIE'&&elan>R.energieElan;            // la nitro ouvre l'ÉNERGIE même si le moteur ne l'a pas encore débloquée
       if(parElan)veut=true;
       else if(!el.length||(o.temps!=null&&o.temps<heure))veut=false;
-      else if(L.on&&v<s-R.hyst)veut=false;else if(!L.on&&v>=s+R.hyst)veut=true;
+      else if(L.on&&s>0&&v<s-R.hyst)veut=false;else if(!L.on&&(s<=0||v>=s+R.hyst))veut=true; // seuil 0 = toujours (si les autres règles le permettent)
       if(L.c.sol&&o.enVol)veut=false;
       if(L.c.nom==='LEAD'&&L.repos&&!o.frenesie&&elan<.5)veut=false;
       if(rupt)veut=false;
+      if(L.c.elanMin&&elan<L.c.elanMin&&!parElan)veut=false;           // (v3) une couche que seul l'élan ouvre
+      if(SQ&&L.c.niveauMax!=null&&nivSec>L.c.niveauMax)veut=false;      // (v3) une couche réservée aux sections calmes
       if(veut===L.on)return;
       const vite=L.c.sol;
       let quand=prochain(vite&&!veut?temps/2:temps);                    // entrer / sortir : sur le temps ; la grosse caisse coupée en vol : à la croche
@@ -180,13 +229,14 @@ function MusiqueVitesse(ac,sortie){
       if(!change&&cand.length){const L=C[cand[(alea()*cand.length)|0]],el=eligibles(C.indexOf(L),mot).filter(i=>i!==L.var);if(el.length)changeVariante(L,el[(alea()*el.length)|0],quand);}
       C.forEach(function(L){if(L.c.nom==='LEAD')L.repos=mot<R.leadRespire&&(nTour%2===1);});
     }
+    seqTick(o,mot);
     // 3) LE SON QUI SUIT : filtre ← vitesse (sourd à l'arrêt, ouvert lancé), rattrapage, brillance et souffle ← élan
     if(!rupt||now>tRupt+.3){
       const k=Math.max(0,Math.min(1,(vF-.05)/.8)),fc=rupt?R.ruptFc:R.fcBas*Math.pow(R.fcHaut/R.fcBas,Math.pow(k,.7));
       filt.frequency.setTargetAtTime(fc,now,rupt?.4:.12);
     }
     let e=0,E=0;C.forEach(function(L,k){const r=L.vs[L.var].rms||L.c.rms||.05,g=k===0||L.on?1:0;e+=g*r*r;E+=r*r;});
-    const mkC=Math.max(1,Math.min(Math.pow(10,R.rattrapageMax/20),Math.sqrt(R.plancher*E/Math.max(e,1e-12))));
+    const mkC=SQ?1:Math.max(1,Math.min(Math.pow(10,R.rattrapageMax/20),Math.sqrt(R.plancher*E/Math.max(e,1e-12))));
     if(Math.abs(mkC-mk)>.01){mk=mkC;mkG.gain.setTargetAtTime(mk,now,.5);}
     aigus.gain.setTargetAtTime(R.nitroBrillance*elan,now,.08);
     soufG.gain.setTargetAtTime(o.nitro?R.souffle*elan*elan:0,now,o.nitro?.1:.25);
@@ -203,7 +253,7 @@ function MusiqueVitesse(ac,sortie){
   function position(){return B?((ac.currentTime-t0)%tour+tour)%tour:0;}
   return{charge:charge,joue:joue,stop:stop,regle:regle,palier:palier,position:position,sortie:bus,
     etat:function(){return{gains:C.map((L,k)=>k===0||L.on?1:0),variantes:C.map(L=>L.vs[L.var].v),noms:C.map(L=>L.c.nom),
-      tour:nTour,rattrapage:+(20*Math.log10(mk)).toFixed(1)+' dB',elan:+elan.toFixed(2),acc:+acc.toFixed(2),rupture:rupt,boost:boost,
+      section:cur?cur.sec.nom:null,tour:nTour,rattrapage:+(20*Math.log10(mk)).toFixed(1)+' dB',elan:+elan.toFixed(2),acc:+acc.toFixed(2),rupture:rupt,boost:boost,
       filtre:Math.round(filt.frequency.value)};}};
 }
 G.MusiqueVitesse=MusiqueVitesse;G.MV_REGLES=MV_REGLES;
