@@ -4527,7 +4527,7 @@ function Ciel.poser(Lighting: Lighting, ws: Workspace)
 	-- (le ciel de Roblox, pris comme lumière d'ambiance, teintait TOUTES les ombres en cyan et se reflétait dans le bitume —
 	-- une route bleu clair, des nuages de glace : l'ambiance vient de OutdoorAmbient, lavande, et le reflet du ciel est en sourdine)
 	Lighting.EnvironmentDiffuseScale = 0.3
-	Lighting.EnvironmentSpecularScale = 0.6
+	Lighting.EnvironmentSpecularScale = 0.9
 	Lighting.ShadowSoftness = 0.25
 	Lighting.GlobalShadows = true
 	Lighting.ExposureCompensation = C.expo
@@ -5432,7 +5432,7 @@ modeleCoin.TopSurface = Enum.SurfaceType.Smooth
 modeleCoin.BottomSurface = Enum.SurfaceType.Smooth
 modeleCoin.Material = Enum.Material.SmoothPlastic
 modeleCoin.Color = R.bitume
-modeleCoin.Reflectance = 0
+modeleCoin.Reflectance = 0.06 -- (le BITUME GLACÉ du jeu web : sombre de près, il prend le ciel et les nuages en rasant — sans reflet, un trou noir)
 
 local function part(taille: Vector3, cf: CFrame, couleur: Color3, matiere: Enum.Material, parent: Instance): Part
 	local p = Instance.new("Part")
@@ -14634,7 +14634,7 @@ Config.CIEL = {
 	merMenu = 620,                              -- m : au menu la caisse tombe de très haut, la mer est loin dessous
 }
 Config.ROUTE = {
-	bitume = Color3.fromRGB(32, 36, 58),  -- (capture web du 1er oct. : le bitume est presque NOIR-MARINE ; à 54,58,78 le ciel de Roblox le rendait bleu clair)
+	bitume = Color3.fromRGB(36, 34, 62),  -- (capture web du 1er oct. : le bitume est presque NOIR-MARINE ; à 54,58,78 le ciel de Roblox le rendait bleu clair)
 	sodium = Color3.fromRGB(255, 188, 72), -- la ligne centrale
 	voie = Color3.fromRGB(210, 216, 230),  -- les lignes de voie
 	neon = Color3.fromRGB(62, 230, 240),  -- 0x3ee6f0 : les rails de néon

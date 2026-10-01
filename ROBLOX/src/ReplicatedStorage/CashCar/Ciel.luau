@@ -24,7 +24,7 @@ function Ciel.poser(Lighting: Lighting, ws: Workspace)
 	-- (le ciel de Roblox, pris comme lumière d'ambiance, teintait TOUTES les ombres en cyan et se reflétait dans le bitume —
 	-- une route bleu clair, des nuages de glace : l'ambiance vient de OutdoorAmbient, lavande, et le reflet du ciel est en sourdine)
 	Lighting.EnvironmentDiffuseScale = 0.3
-	Lighting.EnvironmentSpecularScale = 0.6
+	Lighting.EnvironmentSpecularScale = 0.9
 	Lighting.ShadowSoftness = 0.25
 	Lighting.GlobalShadows = true
 	Lighting.ExposureCompensation = C.expo

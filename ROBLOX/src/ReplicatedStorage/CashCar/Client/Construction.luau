@@ -28,7 +28,7 @@ modeleCoin.TopSurface = Enum.SurfaceType.Smooth
 modeleCoin.BottomSurface = Enum.SurfaceType.Smooth
 modeleCoin.Material = Enum.Material.SmoothPlastic
 modeleCoin.Color = R.bitume
-modeleCoin.Reflectance = 0
+modeleCoin.Reflectance = 0.06 -- (le BITUME GLACÉ du jeu web : sombre de près, il prend le ciel et les nuages en rasant — sans reflet, un trou noir)
 
 local function part(taille: Vector3, cf: CFrame, couleur: Color3, matiere: Enum.Material, parent: Instance): Part
 	local p = Instance.new("Part")

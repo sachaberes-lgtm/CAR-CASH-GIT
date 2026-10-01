@@ -179,7 +179,7 @@ Config.CIEL = {
 	merMenu = 620,                              -- m : au menu la caisse tombe de très haut, la mer est loin dessous
 }
 Config.ROUTE = {
-	bitume = Color3.fromRGB(32, 36, 58),  -- (capture web du 1er oct. : le bitume est presque NOIR-MARINE ; à 54,58,78 le ciel de Roblox le rendait bleu clair)
+	bitume = Color3.fromRGB(36, 34, 62),  -- (capture web du 1er oct. : le bitume est presque NOIR-MARINE ; à 54,58,78 le ciel de Roblox le rendait bleu clair)
 	sodium = Color3.fromRGB(255, 188, 72), -- la ligne centrale
 	voie = Color3.fromRGB(210, 216, 230),  -- les lignes de voie
 	neon = Color3.fromRGB(62, 230, 240),  -- 0x3ee6f0 : les rails de néon
