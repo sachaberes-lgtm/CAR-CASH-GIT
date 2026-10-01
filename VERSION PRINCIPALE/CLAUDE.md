@@ -97,6 +97,14 @@
   lente, volant vers la route 1,5 s) : AVANT la v2 (avec le bond) 2 rattrapées vite / 13 perdues sur 19 ; MAINTENANT 7 / 8 sur 20 (+5
   reposées plus loin). Passage du bord toujours sans à-coup (0,04 NDC). Le SON : impU 0 faisait jouer `chute` (le sifflet + « oh-oh »,
   fait pour les TROUS) — la sortie par le bord rejoue le `decollage` d'avant, dosé comme l'ancienne impulsion 3,4.
+- ⚠ LA BASCULE BORNÉE (2026-10-01, soir, Sacha via SON : « il y a des bugs quand on essaie de se poser sur la route ») — une faute du
+  SURSIS : la portée et la lèvre se mesuraient sur `fallT`, que chaque BUMP rend (demi-jauge) → la bascule se RÉARMAIT en plein vol ; et la
+  « bande » de la portée était toute la largeur de la route → une caisse passant SOUS la dalle (ou revenant après un bump) était remontée
+  d'un coup à la surface (jusqu'à 3 m en une image). Désormais `bascT` = le temps VÉCU depuis la sortie (jamais rendu) ; la bascule dure
+  1,1 s au plus et un BUMP la termine ; la portée n'agit qu'au-dessus de −LEVRE_H, pendant BASC_T ou AU-DELÀ du bord (demi-largeur) ; la
+  lèvre raccroche jusqu'à LEVRE_H = 2 m pendant 1 s (la marge que donnait, par accident, le réarmement). Après : un vol comme un autre.
+  ⚠ banc `rattrape.js` : le « pilote » tient le volant 1,5 s et classe « perdu » toute pose au-delà de 1 s (une route qui descend = la
+  caisse passe AU-DESSUS et se repose plus loin : ce n'est pas une mort) — bruité d'un passage à l'autre, à lire en tendance.
 - ⚠ PAS RÉGLÉ : à l'ATTERRISSAGE la caisse saute encore de ~0,3 NDC vers le bas de l'image en une image (déjà là avant : 0,44-0,46 mesuré).
   Cause pas encore trouvée — piste : ce qui s'applique d'un coup à la reprise de conduite (la visée, elle, est censée glisser).
 - Hook `dbgBord({lat,vL,grace,psi,vA,s,saut,rentre})` : pose la caisse au bord, force un petit saut, ou pousse la caisse vers la route en vol ;

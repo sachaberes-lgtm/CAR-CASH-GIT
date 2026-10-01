@@ -28191,8 +28191,8 @@ let airRoll=0; // vrille visuelle en vol
    vite ; si l'on braque à temps, le pneu raccroche la LÈVRE au lieu d'aller cogner la tranche ; et la caméra glisse au lieu de sauter.
    `bascOn` = ce vol vient d'une sortie par le bord, `bascDir` = sens de la vrille (+1 = celui de toujours), `levreY` = la marche que la
    caisse remonte en raccrochant (décroît). */
-let bascOn=false,bascDir=1,levreY=0;
-const LEVRE_H=1.2; // sous la surface, jusqu'où le pneu peut encore raccrocher la lèvre (plus bas : c'est la tranche qui cogne → BUMP)
+let bascOn=false,bascDir=1,levreY=0,bascT=0; /* bascT (1/10, soir) : le temps VÉCU depuis la sortie par le bord — `fallT` est rendu par les bumps, il réarmait la bascule en plein vol */
+const LEVRE_H=2; /* (1/10, soir : 1,2 → 2 m, pendant 1 s — la marge que donnait, par accident, la portée réarmée après un bump) */ // sous la surface, jusqu'où le pneu peut encore raccrocher la lèvre (plus bas : c'est la tranche qui cogne → BUMP)
 /* (2026-10-01, Sacha, le lendemain : « maintenant quand on s'expulse de la route à grande vitesse on MEURT sans raison, sans qu'on ait la
    chance de se RATTRAPER ») — la v2 avait retiré le bond de sortie (+0,6 m et +3,4 vers le haut) : c'était le « clic », mais c'était AUSSI
    le sursis. Mesuré : avant, la caisse restait au-dessus de −1,2 m (la fenêtre de pose) ~0,59 s ; en v2, 0,39 s — et la lèvre ne
@@ -29586,7 +29586,7 @@ function respawn(){
   momT=0; // (momentum v2) repartir = réserve vide
   if(introD){introD=false;if(pigGroup){scene.remove(pigGroup);pigGroup=null;}} // R pendant le largage : on annule proprement
   s=THREE.MathUtils.clamp(safeS-8,0,Math.max(0,L-80));
-  lat=0;psi=0;vA=26;vL=0;side=1;driveDir=1;graceT=1.6;prevTvalid=false;yawAcc=0;hopY=0;hopV=0;levreY=0;bascOn=false;mode='drive';yawR=0;slipB=0;glisse9=0;driftYaw=0;driftEnCours=false;driftC=0;driftLv=0;driftT=0;carRoll9=0;rollV=0;pitch9=0;
+  lat=0;psi=0;vA=26;vL=0;side=1;driveDir=1;graceT=1.6;prevTvalid=false;yawAcc=0;hopY=0;hopV=0;levreY=0;bascOn=false;bascT=0;mode='drive';yawR=0;slipB=0;glisse9=0;driftYaw=0;driftEnCours=false;driftC=0;driftLv=0;driftT=0;carRoll9=0;rollV=0;pitch9=0;
 }
 // FREESTYLE : on ne MEURT jamais dans le parc — on repart sur la piste. La chaîne en cours est perdue
 // (on n'a pas su reposer), mais aucune explosion, aucun game over : c'est un bac à sable de figures.
@@ -30273,7 +30273,7 @@ function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (
    if(FLY_U.lengthSq()<1e-4)FLY_U.copy(F.b).cross(tmp);FLY_U.normalize();FLY_R.crossVectors(FLY_U,tmp).normalize();}
   // (bord v2) LA BASCULE : la vrille part du côté du VIDE (le toit vers l'extérieur : signe opposé à `lat`, même convention que carRoll9),
   // et elle part du roulis que la carrosserie avait déjà — reporté sur la caisse entière, sinon il s'effaçait d'un coup à la sortie
-  bascOn=!!bord;bascDir=bord?-(Math.sign(lat)||1):1;levreY=0;
+  bascOn=!!bord;bascT=0;bascDir=bord?-(Math.sign(lat)||1):1;levreY=0;
   if(bord){airRoll=roll0;qTmp.setFromAxisAngle(tmp.set(0,0,1),roll0);carGroup.quaternion.multiply(qTmp);}
   /* (bord v2) L'IMAGE DU DÉCOLLAGE : elle ne passe ni par le placement de la conduite (le mode vient de changer) ni par celui du vol
      (il commence à l'image suivante) — la caisse et la caméra restaient FIGÉES une image puis rattrapaient deux pas d'un coup (2,7 m au
@@ -30378,14 +30378,17 @@ function tryLand(dt){
      caisse partie tout droit se retrouvait 1 m SOUS le plan de la route en 0,08 s (la route qui remonte dans un creux, pas la gravité) —
      et elle ne pouvait plus que cogner la tranche. Braquer pendant la bascule la fait RACCROCHER (la lèvre, juste en dessous). C'est le
      sursis que donnait l'ancien bond de sortie (≈ 0,6 s au-dessus de −1,2 m), en plus long (≈ 0,8 s) et sans à-coup. */
-  if(bascOn&&fallStartSide>0&&(fallT<BASC_T||Math.abs(latOff)<ROAD_HALF+CARS[level].w*.5)){
-    const hS9=-.35*Math.min(1,Math.max(fallT/BASC_T,(Math.abs(latOff)-ROAD_HALF)/(CARS[level].w*.5)));
+  /* ⚠ (1/10, soir, Sacha : « des bugs quand on essaie de se poser sur la route ») : la portée n'avait pas de borne — `fallT` rendu par un
+     bump la réarmait, et toute caisse passant SOUS la route dans la largeur était remontée d'un coup à la surface. Désormais : le temps
+     vécu (`bascT`), jamais plus bas que la lèvre (LEVRE_H), la bande = AU-DELÀ du bord seulement, et un bump met fin à la bascule. */
+  if(bascOn&&fallStartSide>0&&hOff>-LEVRE_H&&(bascT<BASC_T||(Math.abs(latOff)>=ROAD_HALF&&Math.abs(latOff)<ROAD_HALF+CARS[level].w*.5))){
+    const hS9=-.35*Math.min(1,Math.max(bascT/BASC_T,(Math.abs(latOff)-ROAD_HALF)/(CARS[level].w*.5)));
     if(hOff<hS9){fallPos.addScaledVector(Nn[bestI],hS9-hOff);if(vN<0)fallVel.addScaledVector(Nn[bestI],-vN);}}
   /* (bord v2) LA LÈVRE : juste après une BASCULE, les roues sont encore au ras du bitume. Si la caisse revient vers la route à cet
      instant (le côté intérieur encore au-dessus de la dalle, 0,8 s au plus), le pneu ACCROCHE la lèvre et remonte, comme sur un trottoir — au lieu de
      cogner la tranche et d'être renvoyé au ciel par le BUMP. Plus bas que LEVRE_H, c'est la carrosserie qui heurte la tranche : BUMP.
      Rien n'est payé ni rendu (ni nitro, ni figure) : on a juste sauvé sa peau. Dessus seulement (la face du dessous n'a pas de sol). */
-  if(bascOn&&fallStartSide>0&&sideCd<=0&&fallT<.8&&hOff>-LEVRE_H&&hOff<.8&&Math.abs(latOff)<ROAD_HALF+CARS[level].w*.5&&vB*Math.sign(latOff)<-.5){
+  if(bascOn&&fallStartSide>0&&sideCd<=0&&bascT<1&&hOff>-LEVRE_H&&hOff<.8&&Math.abs(latOff)<ROAD_HALF+CARS[level].w*.5&&vB*Math.sign(latOff)<-.5){
     levreRattrape(bestI,latOff,hOff,dTmp.dot(T[bestI]));return true;}
   if(sideCd<=0&&hOff>-THICK-.8&&hOff<.8&&(bumpIn||bumpThru)){
     const sg=bumpThru?Math.sign(prevL):Math.sign(latOff),impB=Math.abs(vB);
@@ -30395,7 +30398,7 @@ function tryLand(dt){
     // (bord v2) la caisse est remise CONTRE la tranche (sa demi-largeur), là où elle la touche : avant, elle était téléportée à 1,8 m du bord
     // ET recalée sur le point de piste le plus proche (jusqu'à 1,6 m le long du ruban) — un saut d'image, pas un choc
     fallPos.addScaledVector(B[bestI],sg*Math.max(bumpThru?0:Math.abs(latOff),ROAD_HALF+CARS[level].w*.5)-latOff);
-    sideCd=.35;
+    sideCd=.35;bascOn=false; /* (1/10, soir) la tranche touchée : la bascule est finie */
     // ---- BUMP / DOUBLE BUMP / TRIPLE BUMP : figure GRATUITE (compte pour le HUD/style, zéro dollar) ----
     bounceN++;runStats.bumps++;
     hap(24);{const nv9=nitroR;nitroGain(.35);if(SONV2&&nitroR>nv9+.01)sfx('nitro.plein',{t:.1});}flowAdd(6,'style'); // LE BUMP RECHARGE (2026-09-25, demande du user) : un quart de cellule… de plus à chaque rebond
@@ -36903,7 +36906,8 @@ function loop(now){
       if(nitroOn&&!PARK.on){NTR.airT+=dt;if(NTR.airT>=NTR_T&&!NTR.airFig){NTR.airFig=true;addTrick('airnitro','AIR NITROOO !',10,1);if(!NTR.on)nitroooPart();}}
       else NTR.airT=0;
       if(!nitroOn)loop._nAir=false; // (2026-09-26) l'impulsion se RÉARME au relâché
-      const gB9=bascOn?Math.min(1,fallT/BASC_T):1; // (bord, 1/10) LA BASCULE : la caisse pivote sur la lèvre avant de tomber — la gravité s'installe en BASC_T
+      if(bascOn){bascT+=dtF;if(bascT>1.1)bascOn=false;} /* (1/10, soir) la bascule dure UNE seconde au plus, puis c'est un vol comme un autre (ni portée, ni lèvre, ni gravité retenue) */
+      const gB9=bascOn?Math.min(1,bascT/BASC_T):1; // (bord, 1/10) LA BASCULE : la caisse pivote sur la lèvre avant de tomber — la gravité s'installe en BASC_T
       fallVel.y-=FALL_G*gK()*gB9*dtF; // gK : gravité LUNAIRE en orbite (÷2)
       // (vol libre, 2026-09-26) l'ANTI-BLOCAGE DU LACET a sauté : il rendait « un minimum d'horizontale » parce que le volant tournait
       // autour de l'axe VERTICAL du monde (mort en trajectoire verticale). Le volant tourne désormais autour du HAUT DE LA CAISSE
@@ -37066,7 +37070,7 @@ function loop(now){
          de LACET (`yawAcc`) et n'a rien à voir avec cette rotation visuelle. */
       // (bord v2) après une sortie par le BORD la vrille tourne du côté du vide (`bascDir`) et DÉMARRE comme une vraie bascule : le pivot sur
       // la lèvre l'accélère de 25 % à 100 % en ~0,4 s. Hors bord : bascDir = 1, facteur 1 → la formule de toujours, au chiffre près.
-      airRoll+=(bascDir*(3.0+Math.min(2,fallT*.5))*(bascOn?Math.min(1,.25+fallT*1.9):1)+steer*2.2)*dtF; // VRILLE : la caisse tourne sur elle-même (suit le vol accéléré)
+      airRoll+=(bascDir*(3.0+Math.min(2,fallT*.5))*(bascOn?Math.min(1,.25+bascT*1.9):1)+steer*2.2)*dtF; // VRILLE : la caisse tourne sur elle-même (suit le vol accéléré)
       qTmp2.setFromAxisAngle(tmp,airRoll);
       qTmp.premultiply(qTmp2);
       carGroup.quaternion.slerp(qTmp,Math.min(1,dt*8));
