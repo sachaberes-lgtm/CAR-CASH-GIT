@@ -359,6 +359,23 @@ Mesuré (moteur muet, 14 s de nitro tenue puis 20 à-coups) : 2 montées en tout
 - Prochaine marche (pas faite) : jouer une VERSION du studio en jeu (un mix de tiges qui s'ouvrent à la vitesse = ce que faisait
   musique-vitesse.js avec des couches).
 
+## 5 undecies. LE STUDIO ABANDONNÉ, LE RETOUR DES BOUCLES DE 8 S (2026-10-01, soir)
+
+Léo, après le studio et l'essai sur « Og Ginobili » : « c'est n'importe quoi l'interface, je comprends rien, et beaucoup de son robot,
+très fade » puis « abandonne le générateur, ramène-moi le premier générateur de sons avec des accords de 8 s, rajoute quelques petits
+sons, interface plus Apple, plus simple ».
+- **Retirés** : `studio.html`, `atelier-son/studio-serveur.py`, l'état du studio. (L'export des tiges reste dans compo.py, sans usage.)
+- **`boucles.html`** = la page des boucles de 8 s, refaite sobre (police système, cartes blanches arrondies, mode sombre automatique) :
+  trois onglets LOBBY · NIVEAUX · PETITS SONS, un toucher joue la boucle sans couture, un autre l'arrête, un volume. Rien d'autre.
+  L'ancienne page (le chef, les couches, SIMULER UNE COURSE) vit dans **`boucles-chef.html`**.
+- **4 PETITS SONS** (`atelier-son/petits.py`, ~2 s de calcul) : KALIMBA SOLEIL (lo-fi 90), GUITARE DE NUIT (guitare claire 120),
+  FUNK D'OR (basse slappée + Rhodes 112), PLUIE DE PIÈCES (verre + guitare, la couleur de Glassy Plucks, 150). Réponse au « robot » :
+  des cordes PINCÉES (Karplus-Strong) plutôt que des ondes nues, et une MAIN (`Main` : ±4-7 ms, force ±7 %) sur chaque note.
+- **Og Ginobili** (MP3 de Léo, analysé) : 145 BPM, basse do ↔ do# toutes les 2 mesures (phrygien), mélodie brodée autour de SOL,
+  contraste par la DENSITÉ de batterie (A clairsemé 0-53 s, B à 53 s, trou à 77,8 s, C à 79 s). Mes ajouts (`og_ginobili.py`) ont été
+  jugés « robot, fade » : la synthèse maison plafonne à côté d'un vrai morceau produit. Piste proposée à Léo : la matière vient de Suno
+  (ou de sons qu'il fournit), Claude l'adapte au jeu (boucles, couches, vitesse, transitions).
+
 ## 6. CE QUI RESTE À FAIRE (intégration au jeu)
 
 1. **Léo choisit** une boucle par niveau (et pour le lobby). Si elle n'est pas encore en couches : l'ajouter à `COUCHES`.
