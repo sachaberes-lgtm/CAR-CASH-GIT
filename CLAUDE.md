@@ -7,7 +7,11 @@ avant d'y toucher. `ROBLOX/` est un autre jeu, le portage Roblox : un commit ROB
 - Quand Léo (ou Sacha) dit « la version récente », « la nouvelle version », « la dernière », « celle de ce soir » ou « la bonne », il parle
   du JEU WEB DE `main`, dossier `VERSION PRINCIPALE/`. C'est celui que Vercel publie à chaque push sur `main` :
   **https://car-cash-git.vercel.app/jouer/**
-- **Son socle figé, c'est l'étiquette git `jeu-reference-2026-10-01`** (commit `c02c75a`). Léo y a joué et l'a validée le 2026-10-01 au soir.
+- **Son socle figé, c'est le commit `c02c75a`** (`c02c75a20910bd8c2b3aa0596886b3e17cee4a79`), qu'on appelle `jeu-reference-2026-10-01`.
+  Léo y a joué et l'a validé le 2026-10-01 au soir.
+  ⚠ L'étiquette git de ce nom n'existe que si quelqu'un l'a posée depuis un ordi : la session cloud n'a pas le droit de pousser
+  une étiquette (refus 403). Pour la poser : `git tag -a jeu-reference-2026-10-01 c02c75a -m "reference"`, puis
+  `git push origin jeu-reference-2026-10-01`. Dans les commandes ci-dessous, `c02c75a` marche dans tous les cas.
   Tout ce qui vient après sur `main` doit être bâti DESSUS : on ne repart JAMAIS d'avant.
 - **Ce qui n'est PAS la référence** (ne jamais en repartir, ne jamais les fusionner par-dessus `main`) :
   · les vieilles branches : `version-leolei-2026`, `version-fusion-2026-09`, `fusion*`, `dev`, `v3-*`, `paris`, `campagne-nuages`, `appstore-backlog`… ;
@@ -18,7 +22,7 @@ avant d'y toucher. `ROBLOX/` est un autre jeu, le portage Roblox : un commit ROB
 - **Pour savoir quelle version tourne** : ouvrir ⚙ RÉGLAGES et lire la ligne du bas, « VERSION xxxxxxx ». Sur l'ordi, elle est aussi sous
   le téléphone. C'est le commit publié par Vercel ; une copie locale affiche « VERSION LOCALE ».
   ⚠ Ce numéro change aussi quand seul ROBLOX a bougé : le jeu web est alors identique. Pour voir si le JEU a changé depuis la référence,
-  lancer `git log --oneline jeu-reference-2026-10-01..origin/main -- "VERSION PRINCIPALE"`.
+  lancer `git log --oneline c02c75a..origin/main -- "VERSION PRINCIPALE"`.
 - **Ce que contient la référence**, pour la reconnaître :
   · le menu de SACHA par défaut (`?menu=leo` = celui de Léo), posé sur l'écran titre v3 : la caisse tombe dans un ciel de cumulus et
     on tourne la caméra autour d'elle au doigt ;
@@ -37,7 +41,7 @@ avant d'y toucher. `ROBLOX/` est un autre jeu, le portage Roblox : un commit ROB
   5. Si une publication casse le jeu :
      - **le rendre tout de suite** : Vercel → Deployments → la publication de `c02c75a` (ou du dernier commit qui marchait) → « Instant
        Rollback » ou « Promote » ;
-     - **trouver ce qui a cassé** : `git diff jeu-reference-2026-10-01 origin/main -- "VERSION PRINCIPALE"` ;
+     - **trouver ce qui a cassé** : `git diff c02c75a origin/main -- "VERSION PRINCIPALE"` ;
      - **réparer sur `main`** par un NOUVEAU commit.
-- **Changer de référence** : seulement quand Léo ou Sacha le demande. On pose une nouvelle étiquette `jeu-reference-AAAA-MM-JJ` (une
-  étiquette ne se déplace pas) et on met à jour ce paragraphe ainsi que celui de `VERSION PRINCIPALE/CLAUDE.md`.
+- **Changer de référence** : seulement quand Léo ou Sacha le demande. On note le nouveau commit et son nom `jeu-reference-AAAA-MM-JJ`
+  (une étiquette ne se déplace pas) dans ce paragraphe ET dans celui de `VERSION PRINCIPALE/CLAUDE.md`.

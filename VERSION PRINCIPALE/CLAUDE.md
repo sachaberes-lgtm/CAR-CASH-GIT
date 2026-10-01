@@ -2,7 +2,7 @@
 
 ## ⚠ LA VERSION DE RÉFÉRENCE — LIRE EN PREMIER (2026-10-01, Léo : « toutes les discussions où j'évoque une version récente, je parle de celle-là — sans tout casser »)
 - « La version récente / la nouvelle / la dernière / la bonne » = CE jeu, sur `main`, publié à https://car-cash-git.vercel.app/jouer/.
-  Son socle figé, validé par Léo en jeu le 2026-10-01 : l'étiquette git **`jeu-reference-2026-10-01`** (commit `c02c75a`). On bâtit
+  Son socle figé, validé par Léo en jeu le 2026-10-01 : le commit **`c02c75a`**, dit `jeu-reference-2026-10-01`. On bâtit
   DESSUS, on ne repart jamais d'avant : pas d'une vieille branche, pas de `version-leolei-2026/`, pas de `AUTRE VERSION/`, pas d'une copie locale.
 - Les règles « SANS TOUT CASSER » (partir de `origin/main` à jour, fusionner sans jamais forcer, jeu testé sans erreur avant chaque
   push, retour arrière par Vercel) et la liste de ce que contient la référence : voir `CLAUDE.md` à la RACINE du dépôt.
